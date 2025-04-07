@@ -122,7 +122,7 @@ protected:  // control bar embedded members
     LONG OnEngineShowCapi(WPARAM wParam, LPARAM lParam); // RHF Nov 22, 2002
     LONG OnRefreshSelected(WPARAM wParam, LPARAM lParam);
 
-    LONG OnSetSequential(WPARAM wParam, LPARAM lParam);
+    LRESULT OnSetSequential(WPARAM wParam, LPARAM lParam);
     LRESULT OnSetCapiText(WPARAM wParam, LPARAM lParam);
     LRESULT OnGetWindowHeight(WPARAM wParam, LPARAM lParam);
     LRESULT OnSetWindowHeight(WPARAM wParam, LPARAM lParam);

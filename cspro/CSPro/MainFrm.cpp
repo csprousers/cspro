@@ -3199,22 +3199,21 @@ LRESULT CMainFrame::OnMenuChar(UINT nChar, UINT nFlags, CMenu* pMenu)
 }
 
 
-LRESULT CMainFrame::OnGetDictionaryType(WPARAM wParam, LPARAM lParam)
+LRESULT CMainFrame::OnGetDictionaryType(const WPARAM wParam, const LPARAM lParam)
 {
-    const CDataDict* dictionary = reinterpret_cast<const CDataDict*>(wParam); // [in] the dictionary object
-    DictionaryType* out_dictionary_type = reinterpret_cast<DictionaryType*>(lParam); // [output] the dictionary type for the dictionary
-    ASSERT(dictionary != nullptr && out_dictionary_type != nullptr);
+    const CDataDict& dictionary = *reinterpret_cast<const CDataDict*>(wParam); // [in] the dictionary object
+    DictionaryType& out_dictionary_type = *reinterpret_cast<DictionaryType*>(lParam); // [output] the dictionary type for the dictionary
 
     std::optional<DictionaryType> dictionary_type;
 
     ForeachDocument<CAplDoc>(
         [&](const CAplDoc& application_document)
         {
-            DictionaryType this_dictionary_type = application_document.GetAppObject().GetDictionaryType(*dictionary);
+            const DictionaryType this_dictionary_type = application_document.GetAppObject().GetDictionaryType(dictionary);
 
             // if there are multiple applications using the dictionary, the lowest dictionary type is returned
             if( ( this_dictionary_type != DictionaryType::Unknown ) &&
-                ( !dictionary_type.has_value() || (int)this_dictionary_type < (int)*dictionary_type ) )
+                ( !dictionary_type.has_value() || static_cast<int>(this_dictionary_type) < static_cast<int>(*dictionary_type) ) )
             {
                 dictionary_type = this_dictionary_type;
             }
@@ -3224,7 +3223,7 @@ LRESULT CMainFrame::OnGetDictionaryType(WPARAM wParam, LPARAM lParam)
 
     if( dictionary_type.has_value() )
     {
-        *out_dictionary_type = *dictionary_type;
+        out_dictionary_type = *dictionary_type;
         return 1;
     }
 

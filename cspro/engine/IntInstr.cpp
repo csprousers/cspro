@@ -896,11 +896,11 @@ double CIntDriver::getMaxIndexForVariableUsingStack( VART* pVarT, REL_NODE* pRel
     double dMaxValue = pGroupT->GetTotalOccurrences( theIndex );
     int aWhich[] = { USE_DIM_1, USE_DIM_1_2, USE_ALL_DIM };
     theIndex.specifyIndexesUsed( aWhich[pGroupT->GetNumDim()-1] );
-#ifdef WIN_DESKTOP
-    TRACE( _T("\ngetMaxIndexForVariableUsingStack for var %s using group %s -> %s\n"),
-        UTF8_TODO::GetWide(pVarT->GetName()).c_str(),
-        UTF8_TODO::GetWide(pGroupT->GetName()).c_str(), theIndex.toString(pGroupT->GetNumDim()).c_str() );
-#endif
+
+    TRACE("\ngetMaxIndexForVariableUsingStack for var %s using group %s -> %s\n",
+          pVarT->GetName().c_str(), pGroupT->GetName().c_str(),
+          UTF8_TODO::GetUtf8(theIndex.toString(pGroupT->GetNumDim())).c_str());
+
     return dMaxValue;
 }
 

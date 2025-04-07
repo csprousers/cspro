@@ -459,9 +459,9 @@ void CCustMsg::CalcGMsgDims()
     dc.SelectObject(&m_ErrorFont2);
     m_rectInst = CRect(0,0,100,100);
 
-    const std::wstring& clear_text = m_messageOverrides.clear_text.has_value() ? *m_messageOverrides.clear_text :
-                                                                                 UTF8_TODO::GetWide(MGF::GetMessageText(MGF::PressF8ToClear).GetString());
-    dc.DrawText(clear_text.c_str(), &m_rectInst, DT_CALCRECT);
+    const std::string& clear_text = m_messageOverrides.clear_text.has_value() ? *m_messageOverrides.clear_text :
+                                                                                 MGF::GetMessageText(MGF::PressF8ToClear).GetString();
+    dc.DrawText(TC::ToWide(clear_text).c_str(), &m_rectInst, DT_CALCRECT);
 
     // Get size of message
     m_rectMsg = CRect(0,0,100,100);
@@ -655,13 +655,13 @@ void CCustMsg::DrawGMsg(CDC* pDC)
     pDC->SelectObject(&m_ErrorFont2);
     pDC->SetTextColor(RGB(0,0,0));
 
-    const std::wstring& clear_text = m_messageOverrides.clear_text.has_value() ? *m_messageOverrides.clear_text :
-                                                                                 UTF8_TODO::GetWide(MGF::GetMessageText(MGF::PressF8ToClear).GetString());
-    pDC->DrawText(clear_text.c_str(), m_rectInst, DT_CENTER);
+    const std::string& clear_text = m_messageOverrides.clear_text.has_value() ? *m_messageOverrides.clear_text :
+                                                                                 MGF::GetMessageText(MGF::PressF8ToClear).GetString();
+    pDC->DrawText(TC::ToWide(clear_text).c_str(), m_rectInst, DT_CENTER);
 
-    if (m_sMsgNum  != _T("")) {
+    if( !m_sMsgNum.IsEmpty() )
         pDC->DrawText(m_sMsgNum, m_rectMsg, DT_CENTER);
-    }
+
     pDC->SelectObject(pOldFont);
 }
 

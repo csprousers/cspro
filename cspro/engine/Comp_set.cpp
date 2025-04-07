@@ -436,7 +436,7 @@ std::optional<int> CEngineCompFunc::ci_set()
 
             if( m_Flagcomp )
             {
-                pset_ac->st_code = FNMESSAGEOVERRDIES_CODE;
+                pset_ac->st_code = FNMESSAGEOVERRIDES_CODE;
                 pset_ac->idic = errorMessageCode;
                 pset_ac->iidx = keystrokeCode;
             }

@@ -184,7 +184,6 @@ long CEntryDriver::WriteData()
     pDicT->GetPrimaryKey(pszCurrentKey,true);
 
     // REPO_TEMP temporarily using the exwritecase code to write out the data
-    bool bRet = false;
     long lWriteFilePos = -1;
 
     Case& data_case = pDicX->GetCase();
@@ -227,22 +226,18 @@ long CEntryDriver::WriteData()
         issaerror(MessageType::Warning, 10104, exception.what());
     }
 
-
-    bRet = ( lWriteFilePos >= 0 );
-
-    if( !bRet )
-        issaerror( MessageType::Abort, 4017, pDicX->GetDataRepository().GetName(DataRepositoryNameType::Full).c_str());
-
-    if( bRet )
+    // on success, send a message to update the stats file
+    if( lWriteFilePos >= 0 )
     {
-#ifdef WIN_DESKTOP
-        // send a message to update the stats file
-        if( AfxGetMainWnd() != nullptr )
-            AfxGetMainWnd()->SendMessage(WM_IMSA_WRITECASE, 0, (LPARAM)&data_case);
-#endif
+        WindowsDesktopMessage::Send(WM_IMSA_WRITECASE, 0, &data_case);
     }
 
-   return lWriteFilePos;
+    else
+    {
+        issaerror( MessageType::Abort, 4017, pDicX->GetDataRepository().GetName(DataRepositoryNameType::Full).c_str());
+    }
+
+    return lWriteFilePos;
 }
 
 

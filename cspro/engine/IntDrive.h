@@ -525,13 +525,13 @@ public:
 
     double  exuserbar(int iExpr); // 20100414
 
-    double  exmessageoverrides(int iExpr); // 20100518
+    double  exmessageoverrides(int program_index); // 20100518
 
     double  ex_trace(int program_index);
 
-    double  exgetcapturetype(int iExpr);    // 20100608
-    double  exsetcapturetype(int iExpr);    // 20100608
-    double  exsetcapturepos(int iExpr);     // 20110502
+    double  exgetcapturetype(int iExpr);         // 20100608
+    double  exsetcapturetype(int iExpr);         // 20100608
+    double  ex_setcapturepos(int program_index); // 20110502
 
     double  exchangekeyboard(int iExpr);    // 20120820
 

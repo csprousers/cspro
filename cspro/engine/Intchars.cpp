@@ -1271,11 +1271,9 @@ double CIntDriver::exsetcaselabel(int iExpr)
 
         data_case.SetCaseLabel(EvaluateString(fn8_node.extra_parameter));
 
-#ifdef WIN_DESKTOP
         // refresh the case listing
         if( engine_dictionary->GetSubType() == SymbolSubType::Input )
             WindowsDesktopMessage::Send(WM_IMSA_KEY_CHANGED, &data_case);
-#endif
     }
 
     else
@@ -1285,10 +1283,9 @@ double CIntDriver::exsetcaselabel(int iExpr)
 
         data_case.SetCaseLabel(EvaluateString(fn8_node.extra_parameter));
 
-#ifdef WIN_DESKTOP
-        if( symbol->GetSubType() == SymbolSubType::Input ) // refresh the case listing
+        // refresh the case listing
+        if( symbol->GetSubType() == SymbolSubType::Input )
             WindowsDesktopMessage::Send(WM_IMSA_KEY_CHANGED, &data_case);
-#endif
     }
 
     return 1;

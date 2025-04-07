@@ -2977,10 +2977,8 @@ double CIntDriver::exgetcapturetype(int iExpr) // 20100608
 
 double CIntDriver::exsetcapturetype(int iExpr)
 {
-#ifdef WIN_DESKTOP
     // 20100623 we'll want to refresh the responses window in case the capture type has been changed
-    AfxGetApp()->GetMainWnd()->PostMessage(UWM::CSEntry::ShowCapi);
-#endif
+    WindowsDesktopMessage::Post(UWM::CSEntry::ShowCapi);
 
     const FNN_NODE* pFunc = (FNN_NODE*)PPT(iExpr);
     Symbol* pSymbol = NPT(pFunc->fn_expr[0]);
@@ -3037,35 +3035,37 @@ double CIntDriver::exsetcapturetype(int iExpr)
 }
 
 
-double CIntDriver::exsetcapturepos(int iExpr)
+double CIntDriver::ex_setcapturepos(const int program_index)
 {
-#ifdef WIN_DESKTOP
-    const FNN_NODE* pFunc = (FNN_NODE*)PPT(iExpr);
-    Symbol* pSymbol = NPT(pFunc->fn_expr[0]);
-
-    POINT point =
-    {
-        Evaluate<LONG>(pFunc->fn_expr[1]),
-        Evaluate<LONG>(pFunc->fn_expr[2])
-    };
-
-    auto setcapturepos_processor = [&](VART* pVarT) -> bool
-    {
-        pVarT->SetCapturePos(point);
-        return true;
-    };
-
-    return VariableWorker(GetSymbolTable(), pSymbol, setcapturepos_processor);
-
+#ifndef WIN_DESKTOP
+    // not applicable on portable platforms
+    return DEFAULT;
 #else
-    return DEFAULT; // not applicable on portable platforms
+    const auto& fnn_node = GetNode<FNN_NODE>(program_index);
+    Symbol& symbol = NPT_Ref(fnn_node.fn_expr[0]);
+
+    const POINT point
+    {
+        Evaluate<LONG>(fnn_node.fn_expr[1]),
+        Evaluate<LONG>(fnn_node.fn_expr[2])
+    };
+
+    return VariableWorker(GetSymbolTable(), &symbol,
+        [&](VART* const pVarT)
+        {
+            pVarT->SetCapturePos(point);
+            return true;
+        });
 #endif
 }
 
 
 double CIntDriver::exchangekeyboard(int iExpr)
 {
-#ifdef WIN_DESKTOP
+#ifndef WIN_DESKTOP
+    // not applicable on portable platforms
+    return DEFAULT;
+#else
     const auto& va_node = GetNode<Nodes::VariableArguments>(iExpr);
     Symbol& symbol = NPT_Ref(va_node.arguments[1]);
 
@@ -3095,9 +3095,6 @@ double CIntDriver::exchangekeyboard(int iExpr)
 
         return VariableWorker(GetSymbolTable(), &symbol, changekeyboard_processor);
     }
-
-#else
-    return DEFAULT; // not applicable on portable platforms
 #endif
 }
 
@@ -3105,7 +3102,10 @@ double CIntDriver::exchangekeyboard(int iExpr)
 // getorientation and setorientation both call this function; only setorientation has parameters
 double CIntDriver::exorientation(int iExpr) // 20100618
 {
-#ifdef WIN_DESKTOP
+#ifndef WIN_DESKTOP
+    // not applicable on portable platforms
+    return DEFAULT;
+#else
     FNN_NODE* pfun = (FNN_NODE*)PPT(iExpr);
     bool isSetting = pfun->fn_nargs == 1;
     DWORD setMode = isSetting ? Evaluate<DWORD>(pfun->fn_expr[0]) : 0;
@@ -3123,26 +3123,27 @@ double CIntDriver::exorientation(int iExpr) // 20100618
     if( !isSetting )
         return DeviceMode.dmDisplayOrientation * 90;
 
-    else if( DeviceMode.dmDisplayOrientation == setMode )
-        return 1; // no need to change the orientation if the screen is currently that orientation
+    // no need to change the orientation if the screen is currently that orientation
+    if( DeviceMode.dmDisplayOrientation == setMode )
+        return 1;
 
     bool isCurrentlyLandscape = DeviceMode.dmDisplayOrientation == DMDO_DEFAULT || DeviceMode.dmDisplayOrientation == DMDO_180;
     bool isRequestingLandscape;
 
     switch( setMode )
     {
-    case 0://DMDO_DEFAULT:
-    case 180://DMDO_180:
-        isRequestingLandscape = true;
-        break;
+        case 0:   // DMDO_DEFAULT:
+        case 180: // DMDO_180:
+            isRequestingLandscape = true;
+            break;
 
-    case 90://DMDO_90:
-    case 270://DMDO_270:
-        isRequestingLandscape  = false;
-        break;
+        case 90:  // DMDO_90:
+        case 270: // DMDO_270:
+            isRequestingLandscape  = false;
+            break;
 
-    default:
-        return 0; // they are requesting an invalid orientation
+        default:
+            return 0; // they are requesting an invalid orientation
     }
 
     setMode /= 90; // get it into the DMDO formats
@@ -3158,10 +3159,6 @@ double CIntDriver::exorientation(int iExpr) // 20100618
     DeviceMode.dmDisplayOrientation = setMode;
 
     return ChangeDisplaySettings(&DeviceMode,0) == DISP_CHANGE_SUCCESSFUL;
-
-#else
-    return DEFAULT; // not applicable on portable platforms
-
 #endif
 }
 
@@ -3336,9 +3333,7 @@ double CIntDriver::exsetocclabel(int iExpr)
             if( pGroup->GetItemType() == CDEFormBase::Roster )
             {
                 ((CDERoster*)pGroup)->GetStubTextSet().GetText(iSpecifiedOcc).SetLabel(new_label);
-#ifdef WIN_DESKTOP
-                AfxGetApp()->GetMainWnd()->PostMessage(WM_IMSA_GROUP_OCCS_CHANGE);
-#endif
+                WindowsDesktopMessage::Post(WM_IMSA_GROUP_OCCS_CHANGE);
             }
 
             if( pGroup->GetRIType() == CDEFormBase::Record )
@@ -3394,10 +3389,7 @@ double CIntDriver::exshowocc(int iExpr)
     if( iSpecifiedOcc >= 0 && iSpecifiedOcc < pGroupT->GetMaxOccs() )
     {
         pGroupT->SetOccVisibility(iSpecifiedOcc,bVisible);
-
-#ifdef WIN_DESKTOP
-        AfxGetApp()->GetMainWnd()->PostMessage(WM_IMSA_GROUP_OCCS_CHANGE);
-#endif
+        WindowsDesktopMessage::Post(WM_IMSA_GROUP_OCCS_CHANGE);
         return 1;
     }
 

@@ -765,10 +765,10 @@ int GROUPT::Trip( Symbol* sp, int iInfo, void* pInfo ) {
 }
 
 
-double CIntDriver::exmessageoverrides(int iExpr) // 20100518
+double CIntDriver::exmessageoverrides(const int program_index)
 {
-    const auto& pset_ac = GetNode<ACCESS_NODE>(iExpr);
-    ASSERT(pset_ac.st_code == FNMESSAGEOVERRDIES_CODE);
+    const auto& pset_ac = GetNode<ACCESS_NODE>(program_index);
+    ASSERT(pset_ac.st_code == FNMESSAGEOVERRIDES_CODE);
 
     MessageOverrides message_overrides;
 
@@ -791,21 +791,19 @@ double CIntDriver::exmessageoverrides(int iExpr) // 20100518
 
         // a custom error message is getting passed
         if( pset_ac.idic >= 0 )
-            message_overrides.clear_text = EvalAlphaExpr(pset_ac.idic);
+            message_overrides.clear_text = EvaluateString(pset_ac.idic);
 
         // a custom keystroke is getting passed
         if( pset_ac.iidx >= 0 )
         {
-            WPARAM keystroke = evalexpr<WPARAM>(pset_ac.iidx);
+            const WPARAM keystroke = Evaluate<WPARAM>(pset_ac.iidx);
 
             if( keystroke > 0 && keystroke < 256 ) // more robust checking could be done...
                 message_overrides.clear_key_code = keystroke;
         }
     }
 
-#ifdef WIN_DESKTOP
-    AfxGetApp()->GetMainWnd()->SendMessage(WM_IMSA_SET_MESSAGE_OVERRIDES, (WPARAM)&message_overrides);
-#endif
+    WindowsDesktopMessage::Send(WM_IMSA_SET_MESSAGE_OVERRIDES, &message_overrides);
 
     return 0;
 }

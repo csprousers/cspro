@@ -368,7 +368,10 @@ double LogicInterpreter::ex_htmldialog(const int program_index)
 
 double LogicInterpreter::ex_setfont(const int program_index)
 {
-#ifdef WIN_DESKTOP
+#ifndef WIN_DESKTOP
+    // not applicable on portable platforms
+    return DEFAULT;
+#else
     UserDefinedFonts* user_defined_fonts;
 
     if( WindowsDesktopMessage::Send(WM_IMSA_GET_USER_FONTS, &user_defined_fonts) != 1 )
@@ -401,14 +404,9 @@ double LogicInterpreter::ex_setfont(const int program_index)
         font_type == UserDefinedFonts::FontType::All )
     {
         // refresh the response window
-        AfxGetApp()->GetMainWnd()->PostMessage(UWM::CSEntry::ShowCapi);
+        WindowsDesktopMessage::Post(UWM::CSEntry::ShowCapi);
     }
 
     return 1;
-
-#else
-    // not applicable on portable platforms
-    return DEFAULT;
-
 #endif
 }

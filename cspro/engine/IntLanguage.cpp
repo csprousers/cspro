@@ -73,15 +73,9 @@ bool CIntDriver::SetLanguage(const std::string_view language_name_sv, SetLanguag
     {
         m_pEngineDriver->SetCurrentLanguageName(formatted_language_name);
 
+        // inform the UI of language changes to force the redrawing of rosters
         if( Issamod == ModuleType::Entry )
-        {
-#ifdef WIN_DESKTOP
-            // inform the interface for refreshing
-            CWnd* pMainWnd = AfxGetApp()->GetMainWnd();
-            if( pMainWnd != nullptr && IsWindow(pMainWnd->GetSafeHwnd()) )
-                pMainWnd->SendMessage(UWM::CSEntry::ShowCapi, 0, 1); //inform the UI of change languages to force redraw rosters
-#endif
-        }
+            WindowsDesktopMessage::Send(UWM::CSEntry::ShowCapi, 0, 1);
     }
 
     else if( show_failure_message )

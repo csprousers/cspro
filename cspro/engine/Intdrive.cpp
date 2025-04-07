@@ -566,7 +566,7 @@ CIntDriver::pDoubleFunction CIntDriver::m_pExFuncs[] =
 /* 198 */   &CIntDriver::ex_low_high,        // GHM 20110301 low
 /* 199 */   &CIntDriver::ex_low_high,        // GHM 20110301 high
 /* 200 */   &CIntDriver::exgetrecord,        // GHM 20110302
-/* 201 */   &CIntDriver::exsetcapturepos,    // GHM 20110502
+/* 201 */   &CIntDriver::ex_setcapturepos,   // GHM 20110502
 /* 202 */   &CIntDriver::ex_abs,             // GHM 20110721
 /* 203 */   &CIntDriver::ex_randomin,        // GHM 20110721
 /* 204 */   &CIntDriver::exrandomizevs,      // GHM 20110811

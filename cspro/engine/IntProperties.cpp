@@ -478,7 +478,7 @@ CString CIntDriver::GetProperty(ParameterManager::Parameter parameter, std::set<
             {
 #ifdef WIN_DESKTOP
                 if( parameter == ParameterManager::Parameter::Property_WindowTitle )
-                    AfxGetApp()->GetMainWnd()->SendMessage(WM_IMSA_WINDOW_TITLE_QUERY, true, (LPARAM)&property);
+                    WindowsDesktopMessage::Send(WM_IMSA_WINDOW_TITLE_QUERY, true, &property);
 #else
                 CString parameter_name = GetDisplayName(parameter);
                 property = PlatformInterface::GetInstance()->GetApplicationInterface()->GetProperty(parameter_name);
@@ -809,7 +809,7 @@ double CIntDriver::exsetproperty(int iExpr)
                 {
                     CString window_title = ValueToString(value);
 #ifdef WIN_DESKTOP
-                    AfxGetApp()->GetMainWnd()->SendMessage(WM_IMSA_WINDOW_TITLE_QUERY, false, (LPARAM)&window_title);
+                    WindowsDesktopMessage::Send(WM_IMSA_WINDOW_TITLE_QUERY, false, &window_title);
 #else
                     PlatformInterface::GetInstance()->GetApplicationInterface()->SetProperty(parameter_name, window_title);
 #endif

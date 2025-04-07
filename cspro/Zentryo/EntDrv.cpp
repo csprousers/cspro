@@ -285,19 +285,15 @@ bool CEntryDriver::ReportToInterface( int iSymbol, int iOcc, int iDirection, CFl
             if( iSymbol != m_iLastRefGroupSym && bFocusGroup ) {
                 m_iLastRefGroupSym = iSymbol;
                 // TODO_PORT: Need to devise a method for posting messages to the OS UI
-#ifdef WIN_DESKTOP
-                AfxGetMainWnd()->SendMessage(WM_IMSA_REFRESHFORM, (long) pGroupT->GetCDEGroup() );
-#endif
+                WindowsDesktopMessage::Send(WM_IMSA_REFRESHFORM, pGroupT->GetCDEGroup());
             }
         }
         else { // No Roster. Form multiple in depth . HtOcc always is inner!
             if( bFocusGroup || xAtomType == CFlowAtom::AtomType::HTOcc ) {
-                    m_iLastRefGroupSym = iSymbol;
+                m_iLastRefGroupSym = iSymbol;
                 // TODO_PORT: Need to devise a method for posting messages to the OS UI
-#ifdef WIN_DESKTOP
-                AfxGetMainWnd()->SendMessage(WM_IMSA_REFRESHFORM, (long) pGroupT->GetCDEGroup() );
-#endif
-                }
+                WindowsDesktopMessage::Send(WM_IMSA_REFRESHFORM, pGroupT->GetCDEGroup());
+            }
         }
     }
     else if( pVarT != NULL ) {
@@ -308,9 +304,7 @@ bool CEntryDriver::ReportToInterface( int iSymbol, int iOcc, int iDirection, CFl
             ASSERT( m_iLastRefGroupSym > 0 );
             pGroupT = GPT(m_iLastRefGroupSym);
             // TODO_PORT: Need to devise a method for posting messages to the OS UI
-#ifdef WIN_DESKTOP
-            AfxGetMainWnd()->SendMessage(WM_IMSA_REFRESHFORM, (long) pGroupT->GetCDEGroup());
-#endif
+            WindowsDesktopMessage::Send(WM_IMSA_REFRESHFORM, pGroupT->GetCDEGroup());
         }
 
         if( pVarT->IsProtectedOrNoNeedVerif() ) {
@@ -319,9 +313,7 @@ bool CEntryDriver::ReportToInterface( int iSymbol, int iOcc, int iDirection, CFl
             DeFld.SetSymbol( iSymbol );
             DeFld.setIndexValue( 0, iOcc );
             // TODO_PORT: Need to devise a method for posting messages to the OS UI
-#ifdef WIN_DESKTOP
-            AfxGetMainWnd()->SendMessage(WM_IMSA_REFRESHPROTECTED, (long) &DeFld );
-#endif
+            WindowsDesktopMessage::Send(WM_IMSA_REFRESHPROTECTED, &DeFld);
         }
     }
 
@@ -943,7 +935,7 @@ int CEntryDriver::DisplayMessage_pre77(const MessageType message_type, const int
     while( true )
     {
 #ifdef WIN_DESKTOP
-        const int selected_button_number = AfxGetMainWnd()->SendMessage(WM_IMSA_ENGINEMSG, (WPARAM)&message_options);
+        const int selected_button_number = WindowsDesktopMessage::Send(WM_IMSA_ENGINEMSG, &message_options);
 #else
         const int selected_button_number = PlatformInterface::GetInstance()->GetApplicationInterface()->ShowMessage(title, message, message_buttons);
 #endif
