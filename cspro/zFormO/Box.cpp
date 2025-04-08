@@ -59,13 +59,13 @@ CDEBox& CDEBox::operator=(const CDEBox& rhs) // FORM_TODO remove if no longer de
 
 CString CDEBox::GetSerializedText() const
 {
-    const TCHAR* box_string = ( m_type == BoxType::Etched ) ? FRM_CMD_ETCHEDBOX :
-                              ( m_type == BoxType::Raised ) ? FRM_CMD_RAISEDBOX : 
-                              ( m_type == BoxType::Thin )   ? FRM_CMD_THINBOX :
-                              ( m_type == BoxType::Thick )  ? FRM_CMD_THICKBOX :
-                                                              ReturnProgrammingError(FRM_CMD_ETCHEDBOX);
+    const wchar_t* const box_string = ( m_type == BoxType::Etched ) ? FRM_CMD_ETCHEDBOX :
+                                      ( m_type == BoxType::Raised ) ? FRM_CMD_RAISEDBOX :
+                                      ( m_type == BoxType::Thin )   ? FRM_CMD_THINBOX :
+                                      ( m_type == BoxType::Thick )  ? FRM_CMD_THICKBOX :
+                                                                      ReturnProgrammingError(FRM_CMD_ETCHEDBOX);
 
-    return FormatText(_T("%d,%d,%d,%d,%s"), (int)m_box.left, (int)m_box.top, (int)m_box.right, (int)m_box.bottom, box_string);
+    return FormatText<CString>(L"%d,%d,%d,%d,%s", (int)m_box.left, (int)m_box.top, (int)m_box.right, (int)m_box.bottom, box_string);
 }
 
 
@@ -85,7 +85,7 @@ void CDEBox::Draw(CDC* pDC, const CPoint* offset/* = nullptr*/) const
         rect.OffsetRect(*offset);
 
     if( m_type == BoxType::Etched )
-    {        
+    {
         pDC->DrawEdge(&rect, EDGE_ETCHED, BF_RECT);
     }
 
@@ -98,7 +98,7 @@ void CDEBox::Draw(CDC* pDC, const CPoint* offset/* = nullptr*/) const
     {
         // the box is really a line (FrameRect won't work if height or width = 0)
         if( rect.Height() == 0 || rect.Width() == 0 )
-        {            
+        {
             pDC->SelectStockObject(BLACK_PEN);
             pDC->MoveTo(rect.TopLeft());
             pDC->LineTo(rect.BottomRight());
@@ -111,7 +111,7 @@ void CDEBox::Draw(CDC* pDC, const CPoint* offset/* = nullptr*/) const
         }
     }
 
-    else 
+    else
     {
         // because i'm inflating the rect, don't have prob as w/thin line
         ASSERT(m_type == BoxType::Thick);

@@ -251,7 +251,7 @@ LRESULT ExportDataDlg::OnUpdateDialogControls(WPARAM /*wParam*/, LPARAM /*lParam
 
     catch( const CSProException& exception )
     {
-        m_outputsListBox->AddString(FormatText(L"<< %s >> ", TC::ToWide(exception.what()).c_str()));
+        m_outputsListBox->AddString(TC::ToWide(FormatText("<< %s >> ", exception.what())).c_str());
     }
 
     m_okWnd->EnableWindow(!m_exportConnectionStrings.empty());

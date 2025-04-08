@@ -145,7 +145,7 @@ void CGridProp::OnOK()
         CFormDoc* pDoc = m_pMyParent->GetDocument();
         const CDictItem* pItem = pDoc->GetSharedDictionary()->LookupName<CDictItem>(UTF8_TODO::GetUtf8(m_sMaxOccField));
         if(pItem == nullptr || pItem->GetContentType() != ContentType::Numeric) {
-            AfxMessageBox(FormatText(_T("%s is not a numeric dictionary item name"), m_sMaxOccField.GetString()));
+            AfxMessageBox(m_sMaxOccField + L" is not a numeric dictionary item name");
             return;
         }
         else {

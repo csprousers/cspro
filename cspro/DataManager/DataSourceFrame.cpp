@@ -208,7 +208,7 @@ LRESULT DataSourceFrame::OnUpdateStatusBarCaseCount(WPARAM /*wParam*/, LPARAM /*
                                          /*( status == CaseIterationCaseStatus::DuplicatesOnly )*/ L"Duplicate";
 
         main_frame->SetStatusBarPaneText(ID_STATUS_PANE_CASE_COUNT,
-                                         FormatTextCS2WS(L"%s Cases: %d", status_text, static_cast<int>(*number_cases)).c_str());
+                                         FormatText(L"%s Cases: %d", status_text, static_cast<int>(*number_cases)).c_str());
     }
 
     else

@@ -35,7 +35,7 @@ namespace PropertyGrid
 
 
     PortableColorProperty::PortableColorProperty(std::shared_ptr<PropertyGridData<PortableColor>> data)
-        :   CMFCPropertyGridColorProperty(data->property_name, data->value->ToCOLORREF(), nullptr, data->property_description),
+        :   CMFCPropertyGridColorProperty(data->property_name, data->value->ToCOLORREF(), nullptr, data->property_description.c_str()),
             Property(data->allow_direct_edit),
             m_data(data)
     {
@@ -45,7 +45,7 @@ namespace PropertyGrid
 
     BOOL PortableColorProperty::OnEdit(LPPOINT lptClick)
     {
-        // don't use CMFCPropertyGridColorProperty's OnEdit because it restricts 
+        // don't use CMFCPropertyGridColorProperty's OnEdit because it restricts
         // the characters that can be entered (e.g., '#' cannot be entered)
         return CMFCPropertyGridProperty::OnEdit(lptClick);
     }
@@ -55,7 +55,7 @@ namespace PropertyGrid
     {
         // modified from CMFCPropertyGridColorProperty::OnUpdateValue
         if( m_pWndInPlace == nullptr )
-        	return FALSE;
+            return FALSE;
 
         CString color_text;
         m_pWndInPlace->GetWindowText(color_text);
@@ -76,11 +76,11 @@ namespace PropertyGrid
         if( m_Color != portable_color->ToCOLORREF() )
         {
             m_Color = portable_color->ToCOLORREF();
-    		m_pWndList->OnPropertyChanged(this);
+            m_pWndList->OnPropertyChanged(this);
         }
-	    
+
         return TRUE;
-    }        
+    }
 
 
     CString PortableColorProperty::FormatProperty()

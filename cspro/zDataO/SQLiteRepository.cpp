@@ -1130,7 +1130,7 @@ std::unique_ptr<SQLiteStatement> SQLiteRepository::GetKeySearchIteratorStatement
                                                                       _T("") ));
     }
 
-    CString limit_text = FormatText(_T("LIMIT %d OFFSET %d "), ( limit == SIZE_MAX ) ? -1 : (int)limit, (int)offset);
+    const std::wstring limit_text = FormatText(L"LIMIT %d OFFSET %d ", ( limit == SIZE_MAX ) ? -1 : (int)limit, (int)offset);
 
     CString where_text;
 
@@ -1186,10 +1186,10 @@ std::unique_ptr<SQLiteStatement> SQLiteRepository::GetKeySearchIteratorStatement
     }
 
     // generate the complete SQL statement
-    CString filter_sql = FormatText(_T("SELECT `cases`.`file_order` FROM `cases` %s %s %s "), where_text.GetString(), order_by_text.GetString(), limit_text.GetString());
+    const std::wstring filter_sql = FormatText(L"SELECT `cases`.`file_order` FROM `cases` %s %s %s ", where_text.GetString(), order_by_text.GetString(), limit_text.c_str());
 
     CString sql;
-    sql.Format(base_sql, filter_sql.GetString());
+    sql.Format(base_sql, filter_sql.c_str());
     sql.AppendFormat(order_by_text);
 
     auto statement = std::make_unique<SQLiteStatement>(m_db, sql);

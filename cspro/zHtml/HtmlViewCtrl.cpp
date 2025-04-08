@@ -177,17 +177,18 @@ void HtmlViewCtrl::InitializeWebView()
             return S_OK;
         }).Get());
 
-    if (!SUCCEEDED(hr))
+    if( SUCCEEDED(hr) )
+        return;
+
+    if( hr == HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND) )
     {
-        if (hr == HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND))
-        {
-            AfxMessageBox(_T("Couldn't find Edge installation. Do you have a version installed ")
-                          _T("that's compatible with this WebView2 SDK version?"));
-        }
-        else
-        {
-            AfxMessageBox(FormatText(_T("Failed to create webview environment: 0x%08x"), hr), MB_OK);
-        }
+        AfxMessageBox(L"Could not find Edge installation. Do you have a version installed "
+                      L"that is compatible with this WebView2 SDK version?");
+    }
+
+    else
+    {
+        AfxMessageBox(FormatText(L"Failed to create webview environment: 0x%08x", hr));
     }
 }
 

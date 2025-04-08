@@ -89,7 +89,7 @@ template<Logic::ParserMessage::Type type, bool throw_LineError_on_error/* = true
 void MessageFile::Compiler::IssueMessage(const int message_number, Args const&... args)
 {
 #ifdef _DEBUG
-    ValidateFormatTextArgumentTypes(args...);
+    ValidateFormatTextArgumentTypes<char>(args...);
 #endif
 
     Logic::ParserMessage& parser_message = m_messageFile.m_loadParserMessages.emplace_back(Logic::ParserMessage { type });

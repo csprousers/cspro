@@ -86,9 +86,9 @@ CString FilteredExtensionProcessor::GetFilenameFromType(wstring_view type_text, 
     {
         if( type_text == type )
         {
-            return FormatText(_T("%s%s.%s"), PortableFunctions::PathGetDirectory(filename).c_str(),
-                                             UTF8_TODO::GetWide(Path::GetFilenameWithoutExtension(UTF8_TODO::GetUtf8(filename))).c_str(),
-                                             extensions.front().GetString());
+            return FormatText<CString>(L"%s%s.%s", PortableFunctions::PathGetDirectory(filename).c_str(),
+                                                   UTF8_TODO::GetWide(Path::GetFilenameWithoutExtension(UTF8_TODO::GetUtf8(filename))).c_str(),
+                                                   extensions.front().GetString());
         }
     }
 

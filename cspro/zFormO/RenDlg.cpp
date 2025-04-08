@@ -42,8 +42,8 @@ BOOL CRenameDlg::OnInitDialog()
 
     m_heading = name + _T(" not found in dictionary");
 
-    SetDlgItemText(IDC_RENAME, FormatText(_T("&Rename %s to"), name.GetString()));
-    SetDlgItemText(IDC_DELETE, FormatText(_T("&Delete %s from the form"), name.GetString()));
+    SetDlgItemText(IDC_RENAME, FormatText(L"&Rename %s to", name.GetString()).c_str());
+    SetDlgItemText(IDC_DELETE, FormatText(L"&Delete %s from the form", name.GetString()).c_str());
 
     for( const DictNamedBase* const dict_candidate : m_dictCandidates )
         m_candidateList.AddString(TC::ToWide(dict_candidate->GetName()).c_str());

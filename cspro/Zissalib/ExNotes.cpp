@@ -533,8 +533,8 @@ std::tuple<SharableString, bool> CEngineDriver::EditNote_pre77(std::shared_ptr<N
 
     CString occurrences = UTF8_TODO::GetCString(named_reference->GetMinimalOccurrencesText());
 
-    CString title = FormatText(_T("%s Note%s%s%s%s"), title_prefix.GetString(), field_label.IsEmpty() ? _T("") : _T(": "), field_label.GetString(),
-                                                      occurrences.IsEmpty() ? _T("") : _T(" "), occurrences.GetString());
+    CString title = FormatText<CString>(L"%s Note%s%s%s%s", title_prefix.GetString(), field_label.IsEmpty() ? _T("") : _T(": "), field_label.GetString(),
+                                                            occurrences.IsEmpty() ? _T("") : _T(" "), occurrences.GetString());
 
     std::unique_ptr<Paradata::NoteEvent> note_event;
 

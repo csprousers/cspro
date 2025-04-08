@@ -1040,7 +1040,10 @@ LRESULT CMainFrame::OnGenerateBinary(WPARAM /*wParam*/, LPARAM lParam)
             if( !csentry_exe.has_value() )
                 return 0;
 
-            CString command_line = FormatText(_T("\"%s\" \"%s\" /pen /binaryName \"%s\""), UTF8_TODO::GetWide(*csentry_exe).c_str(), pDoc->GetPathName().GetString(), sBinName.GetString());
+            CString command_line = FormatText<CString>(L"\"%s\" \"%s\" /pen /binaryName \"%s\"",
+                                                       UTF8_TODO::GetWide(*csentry_exe).c_str(),
+                                                       pDoc->GetPathName().GetString(),
+                                                       sBinName.GetString());
 
             STARTUPINFO si;
             PROCESS_INFORMATION pi;
@@ -1135,7 +1138,7 @@ LRESULT CMainFrame::OnPublishAndDeploy(WPARAM /*wParam*/, LPARAM lParam)
             if( !csdeploy_exe.has_value() )
                 return 0;
 
-            CString command_line = FormatText(_T("\"%s\" \"%s\""), UTF8_TODO::GetWide(*csdeploy_exe).c_str(), pffPath.GetString());
+            CString command_line = FormatText<CString>(L"\"%s\" \"%s\"", UTF8_TODO::GetWide(*csdeploy_exe).c_str(), pffPath.GetString());
 
             STARTUPINFO si;
             PROCESS_INFORMATION pi;
@@ -2656,7 +2659,7 @@ LRESULT CMainFrame::IsNameUnique(WPARAM wParam, LPARAM lParam)
 
     if( !name_is_unique )
     {
-        AfxMessageBox(FormatText(_T("The name '%s' cannot be used as it is not unique in your application."), name.GetString()));
+        AfxMessageBox(FormatText(L"The name '%s' cannot be used as it is not unique in your application.", name.GetString()));
         return 0;
     }
 

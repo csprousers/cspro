@@ -3826,7 +3826,7 @@ bool DictionaryValidator::CheckNote(DictBase& dict_base)
             dict_element_for_name = assert_cast<const DictNamedBase*>(&dict_base);
 
         m_csErrorReport += GetErrorName(*dict_element_for_name) +
-                           FormatText(_T("The note is too long (maximum %d characters)."), MAX_NOTE_LEN) +
+                           FormatText<CString>(L"The note is too long (maximum %d characters).", MAX_NOTE_LEN) +
                            CRLF;
 
         if( m_bAutoFixAndRecurse )

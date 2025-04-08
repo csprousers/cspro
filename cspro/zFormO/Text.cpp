@@ -105,7 +105,7 @@ bool CDEText::Build(CSpecFile& frmFile, bool bSilent/* = false*/)
 
         else {                      // Incorrect attribute
             if (!bSilent) {
-                ErrorMessage::Display(FormatText(_T("Incorrect [Text] attribute\n\n%s"), csCmd.GetString()));
+                ErrorMessage::Display(L"Incorrect [Text] attribute\n\n" + csCmd);
             }
             ASSERT(false);
         }

@@ -744,10 +744,10 @@ int SO::CompareNoCase(const wstring_view sv1, const wstring_view sv2)
     if( sv2.empty() )
         return 1;
 
-    const TCHAR* sv1_itr = sv1.data();
-    const TCHAR* sv2_itr = sv2.data();
+    const wchar_t* sv1_itr = sv1.data();
+    const wchar_t* sv2_itr = sv2.data();
     const bool sv1_is_longer = ( sv1.length() > sv2.length() );
-    const TCHAR* const sv1_end = sv1.data() + ( sv1_is_longer ? sv2.length() : sv1.length() );
+    const wchar_t* const sv1_end = sv1.data() + ( sv1_is_longer ? sv2.length() : sv1.length() );
 
     for( ; sv1_itr < sv1_end; ++sv1_itr, ++sv2_itr )
     {
@@ -959,7 +959,7 @@ std::string& SO::Remove(std::string& text, const char ch)
 }
 
 
-std::wstring& SO::Remove(std::wstring& text, const TCHAR ch)
+std::wstring& SO::Remove(std::wstring& text, const wchar_t ch)
 {
     std::wstring::size_type ch_pos = 0;
 
@@ -1098,9 +1098,9 @@ template CLASS_DECL_ZTOOLSO void SO::CopyToFixedBufferWorker(wchar_t* destinatio
 
 std::vector<std::wstring> SO::WrapText(wstring_view text_sv, const size_t maximum_line_width)
 {
-    constexpr const TCHAR* SpaceCharacters = _T(" \t\r\n");
+    constexpr const wchar_t* SpaceCharacters = L" \t\r\n";
     constexpr wstring_view SpaceCharactersWithoutNewline_sv(SpaceCharacters, 3);
-    constexpr TCHAR HyphenCharacter = '-';
+    constexpr wchar_t HyphenCharacter = '-';
 
     // short circuit cases where the entire text will fit on one line
     text_sv = SO::TrimRight(text_sv, SpaceCharactersWithoutNewline_sv);
@@ -1291,7 +1291,7 @@ void SO::MakeNewlineLF(std::wstring& text)
 }
 
 
-std::tuple<size_t, size_t> SO::FindCharacters(const wstring_view text_sv, const TCHAR ch1, const TCHAR ch2, const size_t offset/* = 0*/)
+std::tuple<size_t, size_t> SO::FindCharacters(const wstring_view text_sv, const wchar_t ch1, const wchar_t ch2, const size_t offset/* = 0*/)
 {
     const size_t ch1_pos = text_sv.find(ch1, offset);
     return std::make_tuple(ch1_pos, ( ch1_pos != wstring_view::npos ) ? text_sv.find(ch2, ch1_pos + 1) :
@@ -1299,7 +1299,7 @@ std::tuple<size_t, size_t> SO::FindCharacters(const wstring_view text_sv, const 
 }
 
 
-std::wstring& SO::AppendWithSeparator(std::wstring& destination, const wstring_view text_sv, const TCHAR separator)
+std::wstring& SO::AppendWithSeparator(std::wstring& destination, const wstring_view text_sv, const wchar_t separator)
 {
     if( !destination.empty() )
         destination.push_back(separator);

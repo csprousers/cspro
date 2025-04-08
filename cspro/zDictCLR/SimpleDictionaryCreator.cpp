@@ -6,7 +6,7 @@ namespace
 {
     CString GetTitleCaseLabel(System::String^ text)
     {
-        return System::Globalization::CultureInfo::InvariantCulture->TextInfo->ToTitleCase(text->ToLower()->Replace('_', ' '));
+        return System::Globalization::CultureInfo::InvariantCulture->TextInfo->ToTitleCase(text->ToLower()->Replace(L'_', L' '));
     }
 }
 

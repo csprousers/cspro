@@ -133,7 +133,7 @@ CMFCPropertyGridProperty* DictPropertyGridBaseManager::CreateNoteProperty()
         .SetOnButtonClick([&]() -> std::optional<CString>
             {
                 CNoteDlg note_dlg;
-                note_dlg.SetTitle(FormatText(L"%s: %s (Note)", m_typeName.GetString(), m_dictBase.GetLabel().GetString()));
+                note_dlg.SetTitle(FormatText<CString>(L"%s: %s (Note)", m_typeName.GetString(), m_dictBase.GetLabel().GetString()));
                 note_dlg.SetNote(m_dictBase.GetNote());
 
                 if( note_dlg.DoModal() == IDOK && m_dictBase.GetNote() != note_dlg.GetNote() )

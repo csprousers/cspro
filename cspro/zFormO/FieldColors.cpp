@@ -97,7 +97,7 @@ void FieldColors::Save(CSpecFile& specfile) const
     for( size_t i = 0; i < m_colors.size(); ++i )
     {
         if( m_userDefined[i] != 0 )
-            specfile.PutLine(FRM_FIELDCOLOR_BASE, FormatText(_T("%s,%d"), SerializedArguments[i], static_cast<int>(m_colors[i].ToCOLORREF())));
+            specfile.PutLine(FRM_FIELDCOLOR_BASE, FormatText(L"%s,%d", SerializedArguments[i], static_cast<int>(m_colors[i].ToCOLORREF())));
     }
 }
 

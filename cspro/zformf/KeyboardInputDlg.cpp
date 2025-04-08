@@ -53,7 +53,7 @@ BOOL KeyboardInputDlg::OnInitDialog()
         }
 
         const unsigned int klid = KeyboardLoader::GetKlidFromHKL(hKL);
-        const std::wstring klid_text = FormatTextCS2WS(L"%u", klid);
+        const std::wstring klid_text = FormatText(L"%u", klid);
 
         m_klidList.InsertItem(row, display_name.c_str());
         m_klidList.SetItemText(row, 1, country.c_str());

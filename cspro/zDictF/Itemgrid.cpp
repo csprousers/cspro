@@ -373,7 +373,7 @@ void CItemGrid::Update()
             bool is_real_linked_value_set = ( value_set_links >= 2 );
             COLORREF linkedVSColor = is_real_linked_value_set ? RGB(255,200,200) : GetSysColor(COLOR_WINDOW);
 
-            QuickSetText(ITEM_LABEL_COL, ir, is_real_linked_value_set ? FormatText(_T("<Linked Value Set: %d Links>"), (int)value_set_links) : _T(""));
+            QuickSetText(ITEM_LABEL_COL, ir, is_real_linked_value_set ? FormatText(L"<Linked Value Set: %d Links>", (int)value_set_links).c_str() : L"");
 
             // 20110120 for linked value sets
             QuickSetBackColor(ITEM_SETLABEL_COL, ir, linkedVSColor);
@@ -688,7 +688,7 @@ void CItemGrid::OnRClicked(int /*col*/, long row, int updn, RECT* /*rect*/, POIN
             popMenu.AppendMenu(MF_STRING, ID_REMOVE_VS_LINK, _T("Remove Value Set Link"));
 
             if( value_set_links > 2 ) // 20110121
-                popMenu.AppendMenu(MF_STRING, ID_REMOVE_VS_ALL_LINKS, FormatText(_T("Remove All Value Set's %d Links"), (int)value_set_links));
+                popMenu.AppendMenu(MF_STRING, ID_REMOVE_VS_ALL_LINKS, FormatText(L"Remove All Value Set's %d Links", (int)value_set_links).c_str());
         }
 
         // i'm not sure when formatTextMenu gets deleted, but it had to be created with new or else the program would crash

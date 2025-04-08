@@ -3952,7 +3952,7 @@ bool CDEFormFile::Build(CSpecFile& frmFile, std::shared_ptr<ProgressDlg> pDlgPro
         if (csCmd.CompareNoCase (FRM_CMD_NAME) == 0 ) {
             SetName(csArg);
             if (pDlgProgress != NULL) {
-                pDlgProgress->SetStatus(FormatText(_T("Checking form file %s ... please wait"), GetName().GetString()));
+                pDlgProgress->SetStatus(FormatText(L"Checking form file %s ... please wait", GetName().GetString()).c_str());
             }
         }
         else if( csCmd.CompareNoCase (FRM_CMD_LABEL) == 0 ) {
@@ -4138,8 +4138,8 @@ bool CDEFormFile::BuildWrapUp()
                 if (pItem->GetParent() == NULL)
                 {
                     // delete it and continue, don't make it a fatal error
-                    ErrorMessage::Display(FormatText(_T("Item \"%s\" on Form #%d was not found in any [Group] block.\n")
-                                                     _T("The item will be removed from the form"), pItem->GetName().GetString(), i + 1));
+                    ErrorMessage::Display(FormatText(L"Item \"%s\" on Form #%d was not found in any [Group] block.\n"
+                                                     L"The item will be removed from the form", pItem->GetName().GetString(), i + 1));
                     delete pItem;   // removing the item from the form doesn't delete it's memory
 
                     pForm->RemoveItem (j);

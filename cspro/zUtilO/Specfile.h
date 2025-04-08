@@ -271,7 +271,7 @@ public:
 
     UINT PutLine(const TCHAR* pszLine);
 
-    UINT PutLine(NullTerminatedString attribute, NullTerminatedString value) { return PutLine(FormatText(_T("%s=%s"), attribute.c_str(), value.c_str())); }
+    UINT PutLine(NullTerminatedString attribute, NullTerminatedString value) { return PutLine(FormatText(L"%s=%s", attribute.c_str(), value.c_str()).c_str()); }
     UINT PutLine(NullTerminatedString attribute, int32_t value)              { return PutLine(std::move(attribute), UTF8_TODO::GetCString(IntToString(value))); }
     UINT PutLine(NullTerminatedString attribute, uint32_t value)             { return PutLine(std::move(attribute), UTF8_TODO::GetCString(IntToString(value))); }
 #ifdef WASM
@@ -279,7 +279,7 @@ public:
 #endif
     UINT PutLine(NullTerminatedString attribute, int64_t value)              { return PutLine(std::move(attribute), UTF8_TODO::GetCString(IntToString(value))); }
     UINT PutLine(NullTerminatedString attribute, uint64_t value)             { return PutLine(std::move(attribute), UTF8_TODO::GetCString(IntToString(value))); }
-    UINT PutLine(NullTerminatedString attribute, double value)               { return PutLine(std::move(attribute), FormatText(_T("%f"), value)); }
+    UINT PutLine(NullTerminatedString attribute, double value)               { return PutLine(std::move(attribute), FormatText(L"%f", value)); }
 
     void SetSilent(BOOL bIsSilent)  { m_bIsSilent = bIsSilent; }
 

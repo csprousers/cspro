@@ -460,7 +460,7 @@ void CBatchDriver::RunGroupItems( int iHeadIndex, int iTailIndex ) { // victor J
                             csFieldMsg.Format(UTF8_TODO::GetCString(MGF::GetMessageText(88212).GetString()), UTF8_TODO::GetWide(pVarT->GetName()).c_str(), csDirtyTxt.GetString());
                         }
                         else {
-                            CString csVarNameOcc = FormatText(_T("%s%s"), UTF8_TODO::GetWide(pVarT->GetName()).c_str(), theCurrentIndex.toString(pVarT->GetNumDim()).c_str());
+                            CString csVarNameOcc = FormatText<CString>(L"%s%s", UTF8_TODO::GetWide(pVarT->GetName()).c_str(), theCurrentIndex.toString(pVarT->GetNumDim()).c_str());
                             csFieldMsg.Format(UTF8_TODO::GetCString(MGF::GetMessageText(88212).GetString()), csVarNameOcc.GetString(), csDirtyTxt.GetString());
                         }
 
@@ -589,7 +589,7 @@ void CBatchDriver::RunGroupItems( int iHeadIndex, int iTailIndex ) { // victor J
                                             csFieldMsg.Format(UTF8_TODO::GetCString(MGF::GetMessageText(88221).GetString()), UTF8_TODO::GetWide(pVarT->GetName()).c_str());
                                         }
                                         else {
-                                            CString csVarNameOcc = FormatText( _T("%s%s"), UTF8_TODO::GetWide(pVarT->GetName()).c_str(), theCurrentIndex.toString(pVarT->GetNumDim()).c_str() );
+                                            CString csVarNameOcc = FormatText<CString>(L"%s%s", UTF8_TODO::GetWide(pVarT->GetName()).c_str(), theCurrentIndex.toString(pVarT->GetNumDim()).c_str());
                                             csFieldMsg.Format(UTF8_TODO::GetCString(MGF::GetMessageText(88221).GetString()), csVarNameOcc.GetString() );
                                         }
 

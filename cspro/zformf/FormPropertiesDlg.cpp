@@ -84,7 +84,7 @@ void CFormPropDlg::OnOK()
 
     if(CIMSAString::IsReservedWord(m_sFormName))
     {
-        AfxMessageBox(FormatText(_T("%s is a reserved word"), m_sFormName.GetString()));
+        AfxMessageBox(m_sFormName + L" is a reserved word");
         return;
     }
 

@@ -31,7 +31,7 @@ CMFCPropertyGridProperty* PropertyGrid::PropertyBuilder<std::string>::ToProperty
 
 
 PropertyGrid::StringProperty::StringProperty(std::shared_ptr<PropertyGridData<std::string>> data)
-    :   CMFCPropertyGridProperty(data->property_name, WindowsTC::ToOleVariant(*data->value), data->property_description),
+    :   CMFCPropertyGridProperty(data->property_name, WindowsTC::ToOleVariant(*data->value), data->property_description.c_str()),
         Property(data->allow_direct_edit),
         m_data(std::move(data))
 {

@@ -74,7 +74,7 @@ BOOL CFormDoc::OnOpenDocument(LPCTSTR lpszPathName)
     specFile.Close();
 
     if( !success )   // open didn't go ok
-        AfxMessageBox(FormatText(_T("Opening %s failed"), lpszPathName));
+        AfxMessageBox(FormatText(L"Opening %s failed", lpszPathName));
 
     return success;
 }

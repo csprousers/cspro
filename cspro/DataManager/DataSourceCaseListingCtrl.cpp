@@ -119,7 +119,7 @@ void DataSourceCaseListingCtrl::OnCaseListingContextMenu(CPoint point)
 
     else if( selected_case_summaries.size() > 1 )
     {
-        build_and_show_menu(FormatText(L"Copy Keys of Selected Cases (%d)", static_cast<int>(selected_case_summaries.size())).GetString(),
+        build_and_show_menu(FormatText(L"Copy Keys of Selected Cases (%d)", static_cast<int>(selected_case_summaries.size())).c_str(),
                             L"View Selected Cases in New Windows",
                             L"Save Selected Cases",
                             L"Export Selected Cases",
@@ -132,7 +132,7 @@ void DataSourceCaseListingCtrl::OnCaseListingContextMenu(CPoint point)
     {
         build_and_show_menu(nullptr,
                             nullptr,
-                            FormatText(L"Save Filtered Cases (%d)", static_cast<int>(*GetNumberCases())).GetString(),
+                            FormatText(L"Save Filtered Cases (%d)", static_cast<int>(*GetNumberCases())).c_str(),
                             L"Export Filtered Cases",
                             L"Extract Notes from Filtered Cases",
                             L"Extract Binary Data from Filtered Cases",

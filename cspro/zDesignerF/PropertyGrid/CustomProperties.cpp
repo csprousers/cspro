@@ -34,7 +34,7 @@ namespace PropertyGrid
     // ------------------------------------------
     // ReadOnlyTextProperty
     // ------------------------------------------
-    ReadOnlyTextProperty::ReadOnlyTextProperty(const CString& property_name, const TCHAR* property_description, CString value)
+    ReadOnlyTextProperty::ReadOnlyTextProperty(const CString& property_name, const wchar_t* const property_description, CString value)
         :   CMFCPropertyGridProperty(property_name, COleVariant(value), property_description)
     {
         AllowEdit(FALSE);

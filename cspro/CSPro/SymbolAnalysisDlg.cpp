@@ -56,7 +56,7 @@ BOOL SymbolAnalysisDlg::OnInitDialog()
 {
     CDialog::OnInitDialog();
 
-    m_symbolsLabelCtrl.SetWindowText(FormatText(_T("Symbols (%d)"), static_cast<int>(m_symbolAnalysisCompiler.GetSymbolUseMap().size())));
+    m_symbolsLabelCtrl.SetWindowText(FormatText(L"Symbols (%d)", static_cast<int>(m_symbolAnalysisCompiler.GetSymbolUseMap().size())).c_str());
 
     m_usesLogicCtrl->ReplaceCEdit(this, false, false);
     m_contextLogicCtrl.ReplaceCEdit(this, false, true);

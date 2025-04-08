@@ -16,7 +16,7 @@ BOOL OnKeyCharacterMapDlg::PreTranslateMessage(MSG* pMsg)
 {
     auto set_char_and_number = [&](auto char_resource_id, auto number_resource_id, auto number)
     {
-        GetDlgItem(char_resource_id)->SetWindowText(FormatText(_T("%c"), (TCHAR)pMsg->wParam));
+        GetDlgItem(char_resource_id)->SetWindowText(FormatText(L"%c", (TCHAR)pMsg->wParam).c_str());
         GetDlgItem(number_resource_id)->SetWindowText(UTF8_TODO::GetCString(IntToString(number)));
     };
 

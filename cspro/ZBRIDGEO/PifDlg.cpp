@@ -101,7 +101,7 @@ bool CPifDlg::IsValidFilePath(const std::wstring& path, bool must_be_writeable)
     }
 
     // Check that name doesn't contain invalid characters
-    return ( path.find_first_of(_T("\"<>|*?")) == wstring_view::npos );
+    return ( path.find_first_of(L"\"<>|*?") == wstring_view::npos );
 }
 
 
@@ -126,7 +126,7 @@ bool CPifDlg::Validate()
             {
                 if( pifInfo->connection_strings.size() == 0 && pifInfo->sUName.CompareNoCase(OUTPFILE) != 0 )
                 {
-                    AfxMessageBox(FormatText(_T("You must specify a data source for %s"), pifInfo->sDisplay.GetString()));
+                    AfxMessageBox(L"You must specify a data source for " + pifInfo->sDisplay);
                     return false;
                 }
 
@@ -135,7 +135,7 @@ bool CPifDlg::Validate()
                     // see comments in PifInfoPopulator::GetPifInfo for why the output data doesn't have this flag set
                     if( pifInfo->sUName.CompareNoCase(OUTPFILE) != 0 )
                     {
-                        AfxMessageBox(FormatText(_T("You cannot specify multiple data sources for %s"), pifInfo->sDisplay.GetString()));
+                        AfxMessageBox(L"You cannot specify multiple data sources for " + pifInfo->sDisplay);
                         return false;
                     }
                 }
@@ -148,7 +148,7 @@ bool CPifDlg::Validate()
                         {
                             if( ( pifInfo->uOptions & PIF_MULTIPLE_FILES ) == 0 )
                             {
-                                AfxMessageBox(_T("File names may not contain wildcards (* or ?)."));
+                                AfxMessageBox(L"File names may not contain wildcards (* or ?).");
                                 return false;
                             }
 
@@ -213,28 +213,28 @@ bool CPifDlg::Validate()
 
                     if( filename.IsEmpty() && ( pifInfo->uOptions & PIF_ALLOW_BLANK ) == 0 )
                     {
-                        AfxMessageBox(FormatText(_T("File Associations incomplete.\nFile name missing for %s."), pifInfo->sDisplay.GetString()));
+                        AfxMessageBox(FormatText(L"File Associations incomplete.\nFile name missing for %s.", pifInfo->sDisplay.GetString()));
                         return false;
                     }
 
-                    if( filename.FindOneOf(_T("*?")) >= 0 && ( pifInfo->uOptions & PIF_ALLOW_WILDCARDS ) == 0 )
+                    if( filename.FindOneOf(L"*?") >= 0 && ( pifInfo->uOptions & PIF_ALLOW_WILDCARDS ) == 0 )
                     {
-                        AfxMessageBox(_T("File names may not contain wildcards (* or ?)."));
+                        AfxMessageBox(L"File names may not contain wildcards (* or ?).");
                         return false;
                     }
 
                     // Check valid path except if name is empty or is multiple files (containing ")
-                    if( !filename.IsEmpty() && filename.Find(_T('"')) < 0 &&
+                    if( !filename.IsEmpty() && filename.Find('"') < 0 &&
                         !IsValidFilePath(CS2WS(filename), !( pifInfo->uOptions & PIF_READ_ONLY )) )
                     {
-                        AfxMessageBox(FormatText(_T("%s is not a valid file name. Check that the directory exists ")
-                                                 _T("and that the name does not contain invalid characters."), filename.GetString()));
+                        AfxMessageBox(FormatText(L"%s is not a valid file name. Check that the directory exists "
+                                                 L"and that the name does not contain invalid characters.", filename.GetString()));
                         return false;
                     }
 
                     if( !filename.IsEmpty() && ( pifInfo->uOptions & PIF_FILE_MUST_EXIST ) != 0 && !PortableFunctions::FileExists(filename) )
                     {
-                        AfxMessageBox(FormatText(_T("File %s not found"), filename.GetString()));
+                        AfxMessageBox(FormatText(L"File %s not found", filename.GetString()));
                         return false;
                     }
                 }
@@ -248,7 +248,7 @@ bool CPifDlg::Validate()
                     [&](const CString& added_filename)
                     { return ( filename.CompareNoCase(added_filename) == 0 ); }) != processed_filenames.cend() )
                 {
-                    AfxMessageBox(FormatText(_T("You cannot use the file name %s more than once."), filename.GetString()));
+                    AfxMessageBox(FormatText(L"You cannot use the file name %s more than once.", filename.GetString()));
                     return false;
                 }
 
@@ -381,9 +381,9 @@ BOOL CPifDlg::PreTranslateMessage(MSG* pMsg) // 20110805
         if( bCtrl )
         {
             // 20110805 shortcuts so that the user doesn't have to click on the ellipses
-            if( pMsg->wParam >= _T('1') && pMsg->wParam <= _T('9') )
+            if( pMsg->wParam >= '1' && pMsg->wParam <= '9' )
             {
-                int rowNum = pMsg->wParam - _T('1');
+                int rowNum = pMsg->wParam - '1';
 
                 if( rowNum < m_pifgrid.GetNumberRows() )
                 {

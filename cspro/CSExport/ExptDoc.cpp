@@ -4581,7 +4581,7 @@ bool CExportDoc::ExecuteFileInfo2()
     }
 
     for( const ConnectionString& connection_string : m_PifFile.GetInputDataConnectionStrings() )
-        m_pLogFile->WriteString(FormatText(L"   Input Data Source: %s\n", UTF8_TODO::GetWide(connection_string.GetName(DataRepositoryNameType::ForListing)).c_str()));
+        m_pLogFile->WriteString(FormatText(L"   Input Data Source: %s\n", UTF8_TODO::GetWide(connection_string.GetName(DataRepositoryNameType::ForListing)).c_str()).c_str());
 
     m_pLogFile->Close();
     SAFE_DELETE(m_pLogFile);
@@ -5705,7 +5705,7 @@ bool CExportDoc::CheckIfInputOutputDataSourcesAreDifferent() const
         {
             if( connection_string.FilePathMatches(UTF8_TODO::GetUtf8(exportFilename)) )
             {
-                AfxMessageBox(FormatText(_T("Input data source: %s is the same as output file. Please use different names for input and ouput files and try again."), exportFilename.GetString()));
+                AfxMessageBox(FormatText(L"Input data source: %s is the same as output file. Please use different names for input and ouput files and try again.", exportFilename.GetString()));
                 return false;
             }
         }

@@ -61,12 +61,13 @@ void WindowsMenuManager::Build(CMDIFrameWnd& frame_wnd, CMenu* pPopupMenu)
         CString menu_text = doc->GetTitle();
 
         ASSERT(doc_index <= 9);
-        menu_text.Insert(0, ( doc_index == 9 ) ? _T("1&0 ") : FormatText(_T("&%d "), doc_index + 1));
+        menu_text.Insert(0, ( doc_index == 9 ) ? L"1&0 " :
+                                                 FormatText(L"&%d ", doc_index + 1).c_str());
 
         pPopupMenu->AppendMenu(flags, DocumentFirstId + doc_index, menu_text);
     };
 
-    pPopupMenu->AppendMenu(MF_STRING, ID_WINDOWS_WINDOWS, _T("&Windows..."));
+    pPopupMenu->AppendMenu(MF_STRING, ID_WINDOWS_WINDOWS, L"&Windows...");
 }
 
 

@@ -16,7 +16,7 @@ CDECol::CDECol(const CDECol& rhs)
     :   m_iWidth(rhs.m_iWidth),
         m_Offset(rhs.m_Offset),
         m_columnCell(rhs.m_columnCell),
-        m_headerText(std::make_shared<CDEText>(*rhs.m_headerText))        
+        m_headerText(std::make_shared<CDEText>(*rhs.m_headerText))
 {
     for( int i = 0; i < rhs.GetNumFields(); ++i )
         AddField(rhs.GetField(i));
@@ -158,7 +158,7 @@ bool CDECol::Build(CSpecFile& frmFile, CDEGroup* pParentGroup, bool bSilent/* = 
         else
         {                      // Incorrect attribute
             if (!bSilent)
-                ErrorMessage::Display(FormatText(_T("Incorrect [Column] attribute\n\n%s"), csCmd.GetString()));
+                ErrorMessage::Display(L"Incorrect [Column] attribute\n\n" + csCmd);
 
             rtnVal = false;
         }

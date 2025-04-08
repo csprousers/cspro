@@ -2288,7 +2288,7 @@ CString GetDictFilenameFromFormFile(const CString& sFormFileName)
 
     if( !frmFile.Open(sFormFileName, CFile::modeRead) )
     {
-        AfxMessageBox(FormatText(_T("File %s Could not be opened"), sFormFileName.GetString()));
+        AfxMessageBox(FormatText(L"File %s Could not be opened", sFormFileName.GetString()));
     }
 
     else

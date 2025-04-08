@@ -119,7 +119,7 @@ private:
     std::string GetFormattedMessage(int message_number, Args const&... args) const
     {
 #ifdef _DEBUG
-        ValidateFormatTextArgumentTypes(args...);
+        ValidateFormatTextArgumentTypes<char>(args...);
 #endif
         return GetFormattedMessageWorker(message_number, args...);
     }

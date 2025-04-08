@@ -171,7 +171,7 @@ LRESULT CTabView::OnDropItem(WPARAM wParam,LPARAM lParam)
 
     if(pDictItem){
         if(SO::EqualsNoCase(pDictItem->GetName(), WORKVAR_TOTAL_NAME)){
-            AfxMessageBox(FormatText(_T("Cannot Drop %s"), WORKVAR_TOTAL_NAME.GetString()));
+            AfxMessageBox(L"Cannot Drop " + WORKVAR_TOTAL_NAME);
             return 0;
         }
         if(pDictItem->GetContentType() != ContentType::Numeric){

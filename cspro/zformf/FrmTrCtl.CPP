@@ -1895,7 +1895,7 @@ bool CFormTreeCtrl::InsertFormDependencies(CFormNodeID* const pID)
 
     if( !specFile.Open(pID->GetFFName(), CFile::modeRead) )
     {
-        AfxMessageBox(FormatText(_T("File %s Could not be opened"), pID->GetFFName().GetString()));
+        AfxMessageBox(FormatText(L"File %s Could not be opened", pID->GetFFName().GetString()));
         return false;
     }
 
@@ -1944,14 +1944,14 @@ bool CFormTreeCtrl::ReleaseFormDependencies(CFormNodeID* pID)
 
         if( dictionary_file_paths.empty() )
         {
-            AfxMessageBox(FormatText(_T("No Dictionaries in Spec file %s"), pID->GetFFName().GetString()));
+            AfxMessageBox(L"No Dictionaries in Spec file " + pID->GetFFName());
             return false;
         }
     }
 
     else    // associated err msg not particularly accurate...
     {
-        AfxMessageBox(FormatText(_T("File %s Could not be opened"), pID->GetFFName().GetString()));
+        AfxMessageBox(FormatText(L"File %s Could not be opened", pID->GetFFName().GetString()));
         return false;
     }
 

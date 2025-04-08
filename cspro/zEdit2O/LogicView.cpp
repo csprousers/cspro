@@ -34,10 +34,10 @@ int CLogicView::OnCreate(LPCREATESTRUCT lpCreateStruct)
     // don't create the window if already created
     if( m_pEdit != nullptr && m_pEdit->GetSafeHwnd() != nullptr )
         return 0;
-    
+
     m_pEdit = std::make_unique<CLogicCtrl>();
     CLogicCtrl* logic_ctrl = GetLogicCtrl();
-    
+
     if( !logic_ctrl->Create(WS_CHILD | WS_VISIBLE | WS_TABSTOP, CRect(0, 0, 0, 0), this, 100) )
         return -1;
 
@@ -249,7 +249,7 @@ void CLogicView::UpdateMarginWidth(bool force_margin_width_update/* = false*/)
     if( force_margin_width_update || m_lineCountNumberDigitsAtLastUpdateMarginWidth != line_count_number_digits )
     {
         m_lineCountNumberDigitsAtLastUpdateMarginWidth = line_count_number_digits;
-        GetLogicCtrl()->SetMarginWidthN(0, GetLogicCtrl()->TextWidth(STYLE_LINENUMBER, FormatText(_T("_%d"), line_count)));
+        GetLogicCtrl()->SetMarginWidthN(0, GetLogicCtrl()->TextWidth(STYLE_LINENUMBER, FormatText("_%d", line_count).c_str()));
     }
 }
 

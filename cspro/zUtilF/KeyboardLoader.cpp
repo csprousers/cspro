@@ -82,7 +82,7 @@ std::wstring KeyboardLoader::GetDisplayName(const unsigned int keyboard_id, cons
     // load the keyboard only if we can't find it in the current list of keyboards
     if( hFoundKL == nullptr )
     {
-        const std::wstring hex_layout_name = FormatTextCS2WS(L"%08x", keyboard_id);
+        const std::wstring hex_layout_name = FormatText(L"%08x", keyboard_id);
 
         const HKL hKL = LoadKeyboardLayout(hex_layout_name.c_str(), KLF_ACTIVATE);
         GetKeyboardLayoutName(layout_name);

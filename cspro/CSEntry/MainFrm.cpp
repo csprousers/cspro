@@ -4668,7 +4668,7 @@ void CMainFrame::BuildKeyArray()
                     caseFilterRegex = std::make_unique<std::regex>(UTF8_TODO::GetUtf8(csFilterRegex));
                 }
                 catch (const std::regex_error&) {
-                    AfxMessageBox(FormatText(_T("CaseListingFilter is an invalid ECMAScript regular expression: %s"), csFilterRegex.GetString()));
+                    AfxMessageBox(FormatText(L"CaseListingFilter is an invalid ECMAScript regular expression: %s", csFilterRegex.GetString()));
                 }
             }
         }
