@@ -2234,18 +2234,25 @@ void CFormChildWnd::OnOptionsFieldProperties()
 }
 
 
-LRESULT CFormChildWnd::OnSwitchView(WPARAM wParam, LPARAM /*lParam*/)
+LRESULT CFormChildWnd::OnSwitchView(const WPARAM wParam, LPARAM /*lParam*/)
 {
-    ViewType view_type = (ViewType)wParam;
+    const ViewType view_type = static_cast<ViewType>(wParam);
 
     if( view_type == ViewType::Form )
+    {
         OnViewForm();
+    }
 
     else if( view_type == ViewType::Logic )
-        OnViewLogic();
+    {
+        if( m_bAppAssociated )
+            OnViewLogic();
+    }
 
     else
+    {
         ASSERT(false);
+    }
 
     return 0;
 }
