@@ -2048,7 +2048,7 @@ int CDDGView::FormatNote(CDC* pDC, const CIMSAString& notes, CStringArray& acsTe
     int iWidth = 0;
     bool bDone = FALSE;
     do {
-        notes.Wrap(acsText, 0, iChar, true);
+        WrapText(notes, acsText, 0, iChar, true);
         for (int i = 0 ; i < acsText.GetSize() ; i++) {
             CSize size = pDC->GetTextExtent(acsText[i]);
             if (size.cx > iWidth) {
@@ -2276,7 +2276,7 @@ void CDDGView::PrintToFile()
         if (!pDict->GetNote().IsEmpty()) {
             CIMSAString csNote = pDict->GetNote();
             CStringArray acsText;
-            csNote.Wrap(acsText,10, iLineLen - 4);
+            WrapText(csNote, acsText, 10, iLineLen - 4);
             for (int x = 0 ; x < acsText.GetSize() ; x++) {
                 if (x == 0) {
                     acsText[0] = acsText[0].Left(4) + _T("Note: ") + acsText[0].Mid(10);
@@ -2339,7 +2339,7 @@ void CDDGView::PrintToFile()
             if (!dict_level.GetNote().IsEmpty()) {
                 CIMSAString csNote = dict_level.GetNote();
                 CStringArray acsText;
-                csNote.Wrap(acsText,10, iLineLen - 4);
+                WrapText(csNote, acsText, 10, iLineLen - 4);
                 for (int x = 0 ; x < acsText.GetSize() ; x++) {
                     if (x == 0) {
                         acsText[0] = acsText[0].Left(4) + _T("Note: ") + acsText[0].Mid(10);
@@ -2396,7 +2396,7 @@ void CDDGView::PrintToFile()
                 if (!pRec->GetNote().IsEmpty()) {
                     CIMSAString csNote = pRec->GetNote();
                     CStringArray acsText;
-                    csNote.Wrap(acsText,12, iLineLen - 4);
+                    WrapText(csNote, acsText, 12, iLineLen - 4);
                     for (int x = 0 ; x < acsText.GetSize() ; x++) {
                         if (x == 0) {
                             acsText[0] = acsText[0].Left(6) + _T("Note: ") + acsText[0].Mid(12);
@@ -2561,7 +2561,7 @@ void CDDGView::PrintToFile()
                     if (!pItem->GetNote().IsEmpty()) {
                         CIMSAString csNote = pItem->GetNote();
                         CStringArray acsText;
-                        csNote.Wrap(acsText,10, iLineLen - 4);
+                        WrapText(csNote, acsText, 10, iLineLen - 4);
                         for (int x = 0 ; x < acsText.GetSize() ; x++) {
                             if (x == 0) {
                                 acsText[0] = acsText[0].Left(4) + _T("Note: ") + acsText[0].Mid(10);
@@ -2606,7 +2606,7 @@ void CDDGView::PrintToFile()
                         if (!dict_value_set.GetNote().IsEmpty()) {
                             CIMSAString csNote = dict_value_set.GetNote();
                             CStringArray acsText;
-                            csNote.Wrap(acsText,12, iLineLen - 4);
+                            WrapText(csNote, acsText, 12, iLineLen - 4);
                             for (int x = 0 ; x < acsText.GetSize() ; x++) {
                                 if (x == 0) {
                                     acsText[0] = acsText[0].Left(6) + _T("Note: ") + acsText[0].Mid(12);
@@ -2654,7 +2654,7 @@ void CDDGView::PrintToFile()
                             if (!dict_value.GetNote().IsEmpty()) {
                                 CIMSAString csNote = dict_value.GetNote();
                                 CStringArray acsText;
-                                csNote.Wrap(acsText,14, iLineLen - 4);
+                                WrapText(csNote, acsText, 14, iLineLen - 4);
                                 for (int x = 0 ; x < acsText.GetSize() ; x++) {
                                     if (x == 0) {
                                         acsText[0] = acsText[0].Left(8) + _T("Note: ") + acsText[0].Mid(14);
@@ -3097,4 +3097,63 @@ void CDDGView::OnEditFlattenOccurrences() // 20130224
 {
     if( m_iGrid == DictionaryGrid::Record )
         m_gridRecord.SendMessage(WM_COMMAND, ID_EDIT_FLATTEN_OCCURRENCES);
+}
+
+
+int CDDGView::WrapText(const CString& text, CStringArray& acsLine, int iColLeft /*=0*/, int iColRight /*=132*/, BOOL bStripCRLF /*=FALSE*/)
+{
+    // previously CIMSAString::Wrap
+    //
+    //      Parameters
+    //          acsLine             An array of CStrings where the wrapped lines are stored.
+    //          iColLeft            Left hand margin, column where string starts
+    //          iColRight           Right hand margin, column where wrapping ends
+    //          bStripCRLF          Whether to remove \r and \n characters
+    //                              (used when outputting Note= commands that
+    //                              were previously formatted for use in a CEdit box)
+    //
+    //      Return value
+    //          Number of lines wrapped, that is size of CStringArray.
+    //
+    int iWrap;
+    CIMSAString csLine;
+    CIMSAString csThis = text;  // make a copy then walk down it
+
+    if (bStripCRLF)  {
+        int i;
+
+        // remove any \r's (needed to make it show up correctly in a CEdit box)
+        while ((i=csThis.Find('\r')) != NONE)  {
+            csThis.SetAt(i,SPACE);
+        }
+
+        //remove any trailing emptyness
+        while (csThis.Right(1).FindOneOf(_T("\r\n ")) != NONE)  {
+            csThis = csThis.Left(csThis.GetLength()-1);
+        }
+    }
+
+    while (csThis.GetLength() > iColRight - iColLeft || csThis.Find('\n') != NONE)  {
+        csLine = csThis.Left(iColRight-iColLeft);
+        // look for embedded newline (from left)
+        iWrap = csLine.Find('\n');
+        if (iWrap == NONE)  {
+            // no embedded newlines, then wrap in from righthand side
+            iWrap = csLine.ReverseFind(' ');
+        }
+        if (iWrap==NONE && csLine.GetLength()==iColRight-iColLeft)  {
+            // no break found to wrap at; force a break at the end of the column
+            iWrap = iColRight-iColLeft;
+        }
+        if (iWrap != NONE)  {
+            csThis = csThis.Mid(iWrap+1);
+            csLine = csLine.Left(iWrap);
+        }
+        csLine = CIMSAString(SPACE, iColLeft) + csLine;
+        acsLine.Add(csLine);
+        csLine.Empty();
+    }
+    csLine = CIMSAString(SPACE, iColLeft) + csThis;
+    acsLine.Add(csLine);
+    return acsLine.GetSize();
 }

@@ -421,59 +421,6 @@ CIMSAString CIMSAString::AdjustLenRight (int iLen, csprochar cPad /*=SPACE*/) co
 
 /////////////////////////////////////////////////////////////////////////////
 //
-//                           CIMSAString::Wrap
-//
-/////////////////////////////////////////////////////////////////////////////
-
-int CIMSAString::Wrap(CStringArray& acsLine, int iColLeft /*=0*/, int iColRight /*=132*/, BOOL bStripCRLF /*=FALSE*/) const {
-
-    int iWrap;
-    CIMSAString csLine, csThis;
-
-    csThis = *this;  // make a copy then walk down it
-
-    if (bStripCRLF)  {
-        int i;
-
-        // remove any \r's (needed to make it show up correctly in a CEdit box)
-        while ((i=csThis.Find('\r')) != NONE)  {
-            csThis.SetAt(i,SPACE);
-        }
-
-        //remove any trailing emptyness
-        while (csThis.Right(1).FindOneOf(_T("\r\n ")) != NONE)  {
-            csThis = csThis.Left(csThis.GetLength()-1);
-        }
-    }
-
-    while (csThis.GetLength() > iColRight - iColLeft || csThis.Find('\n') != NONE)  {
-        csLine = csThis.Left(iColRight-iColLeft);
-        // look for embedded newline (from left)
-        iWrap = csLine.Find('\n');
-        if (iWrap == NONE)  {
-            // no embedded newlines, then wrap in from righthand side
-            iWrap = csLine.ReverseFind(' ');
-        }
-        if (iWrap==NONE && csLine.GetLength()==iColRight-iColLeft)  {
-            // no break found to wrap at; force a break at the end of the column
-            iWrap = iColRight-iColLeft;
-        }
-        if (iWrap != NONE)  {
-            csThis = csThis.Mid(iWrap+1);
-            csLine = csLine.Left(iWrap);
-        }
-        csLine = CIMSAString(SPACE, iColLeft) + csLine;
-        acsLine.Add(csLine);
-        csLine.Empty();
-    }
-    csLine = CIMSAString(SPACE, iColLeft) + csThis;
-    acsLine.Add(csLine);
-    return acsLine.GetSize();
-}
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
 //                           CIMSAString::GetToken
 //
 /////////////////////////////////////////////////////////////////////////////

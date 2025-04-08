@@ -80,10 +80,12 @@ bool CRunAplEntry::LoadCompile()
         pApplication->SetApplicationLoader(std::make_unique<PenReaderApplicationLoader>(pApplication, std::string()));
     }
 
+#ifdef WIN_DESKTOP
     else if( BinaryGen::IsCreatingPen() )
     {
         pApplication->SetApplicationLoader(std::make_unique<PenWriterApplicationLoader>(pApplication, std::string()));
     }
+#endif
 
     else if( OnWindowsDesktop() )
     {

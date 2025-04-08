@@ -112,7 +112,6 @@ void CEngineDriver::InitializeData()
     {
         std::unique_ptr<EngineCaseConstructionReporter> case_construction_reporter_override;
 
-#ifdef WIN_DESKTOP
         // create the batch input case construction reporter
         if( engine_dictionary->GetSubType() == SymbolSubType::Input && Appl.ApplicationType != ModuleType::Entry )
         {
@@ -126,7 +125,6 @@ void CEngineDriver::InitializeData()
                                                                                                    m_pEngineDriver->GetProcessSummary(),
                                                                                                    std::move(update_case_callback));
         }
-#endif
 
         std::function<void(EngineDataRepository&)> reset_override;
 

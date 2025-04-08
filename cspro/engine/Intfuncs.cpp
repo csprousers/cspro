@@ -25,8 +25,9 @@
 #include <zToolsO/DirectoryLister.h>
 #include <zToolsO/FileIO.h>
 #include <zToolsO/NewlineSubstitutor.h>
+#include <zToolsO/TextConverter.h>
 #include <zToolsO/TextEncoding.h>
-#include <zToolsO/Tools.h>
+#include <zToolsO/Utf8.h>
 #include <zToolsO/VarFuncs.h>
 #include <zUtilO/PathHelpers.h>
 #include <zUtilO/PortableFileSystem.h>

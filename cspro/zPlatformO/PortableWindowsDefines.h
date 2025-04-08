@@ -1,4 +1,5 @@
 ﻿#pragma once
+
 /*
  * PortableWindowsDefines.h
  * Definitions/types that are built-in on Windows defined for other platforms (Windows.h for non-Windows platforms)
@@ -225,11 +226,7 @@ typedef struct stat filestat;
 #define _istxdigit  iswxdigit
 #define _istxdigit_l  _iswxdigit_l
 
-// GHM 20131206 we'll assume that all the buffers in the desktop version were large enough,
-// so for the swprintf length parameter, we'll just use a very large number
-//#define _stprintf(dest,fmt,...) swprintf(dest,50000,fmt,__VA_ARGS__)
-
-// GHM 20131207 the crystax version of swprintf doesn't work with unicode characters (there
+// 20131207 the crystax version of swprintf doesn't work with unicode characters (there
 // must be a problem with the wide to multibyte routines, so replacing it with a different one)
 #include <zPlatformO/util_snprintf.h>
 #define _stprintf(dest,fmt,...) ap_snprintf(dest,50000,fmt,__VA_ARGS__)
@@ -275,10 +272,6 @@ typedef struct stat filestat;
 #define _tcslwr_l   _wcslwr_l
 #define _tcslwr_s   _wcslwr_s
 #define _tcslwr_s_l _wcslwr_s_l
-#define _tcsupr     _wcsupr
-#define _tcsupr_l   _wcsupr_l
-#define _tcsupr_s   _wcsupr_s
-#define _tcsupr_s_l _wcsupr_s_l
 #define _tcsxfrm    wcsxfrm
 #define _tcsxfrm_l  _wcsxfrm_l
 #else
@@ -328,17 +321,6 @@ typedef int                 INT;
 typedef unsigned int        UINT;
 typedef unsigned int        *PUINT;
 
-typedef struct _SYSTEMTIME {
-    WORD wYear;
-    WORD wMonth;
-    WORD wDayOfWeek;
-    WORD wDay;
-    WORD wHour;
-    WORD wMinute;
-    WORD wSecond;
-    WORD wMilliseconds;
-} SYSTEMTIME, *PSYSTEMTIME, *LPSYSTEMTIME;
-
 #ifdef FALSE
 #undef FALSE
 #endif
@@ -360,7 +342,6 @@ typedef _W64 unsigned long UINT_PTR, *PUINT_PTR;
 typedef long LONG_PTR, *PLONG_PTR;
 typedef _W64 unsigned long ULONG_PTR, *PULONG_PTR;
 
-#define __int3264   __int32
 #define __int64     int64_t
 
 #ifndef INT_MAX
@@ -381,87 +362,6 @@ typedef _W64 unsigned long ULONG_PTR, *PULONG_PTR;
 
 
 #define RGB(r,g,b)          ((COLORREF)(((BYTE)(r)|((WORD)((BYTE)(g))<<8))|(((DWORD)(BYTE)(b))<<16)))
-#define OUT_DEFAULT_PRECIS          0
-#define OUT_STRING_PRECIS           1
-#define OUT_CHARACTER_PRECIS        2
-#define OUT_STROKE_PRECIS           3
-#define OUT_TT_PRECIS               4
-#define OUT_DEVICE_PRECIS           5
-#define OUT_RASTER_PRECIS           6
-#define OUT_TT_ONLY_PRECIS          7
-#define OUT_OUTLINE_PRECIS          8
-#define OUT_SCREEN_OUTLINE_PRECIS   9
-#define OUT_PS_ONLY_PRECIS          10
-
-#define CLIP_DEFAULT_PRECIS         0
-#define CLIP_CHARACTER_PRECIS       1
-#define CLIP_STROKE_PRECIS          2
-#define CLIP_MASK                   0xf
-#define CLIP_LH_ANGLES              (1<<4)
-#define CLIP_TT_ALWAYS              (2<<4)
-
-#define FW_NORMAL                   400
-
-// Quality
-#define DEFAULT_QUALITY             0
-#define DRAFT_QUALITY               1
-#define PROOF_QUALITY               2
-#define DEFAULT_PITCH               0
-#define FIXED_PITCH                 1
-#define VARIABLE_PITCH              2
-
-// Charset
-#define ANSI_CHARSET                0
-#define DEFAULT_CHARSET             1
-#define SYMBOL_CHARSET              2
-#define SHIFTJIS_CHARSET            128
-#define HANGEUL_CHARSET             129
-#define HANGUL_CHARSET              129
-#define GB2312_CHARSET              134
-#define CHINESEBIG5_CHARSET         136
-#define OEM_CHARSET                 255
-#define JOHAB_CHARSET               130
-#define HEBREW_CHARSET              177
-#define ARABIC_CHARSET              178
-#define GREEK_CHARSET               161
-#define TURKISH_CHARSET             162
-#define VIETNAMESE_CHARSET          163
-#define THAI_CHARSET                222
-#define EASTEUROPE_CHARSET          238
-#define RUSSIAN_CHARSET             204
-
-#define MAC_CHARSET                 77
-#define BALTIC_CHARSET              186
-
-/* Font Families */
-#define FF_DONTCARE                 (0<<4)  /* Don't care or don't know. */
-#define FF_ROMAN                    (1<<4)  /* Variable stroke width, serifed. */
-                                            /* Times Roman, Century Schoolbook, etc. */
-#define FF_SWISS                    (2<<4)  /* Variable stroke width, sans-serifed. */
-                                            /* Helvetica, Swiss, etc. */
-#define FF_MODERN                   (3<<4)  /* Constant stroke width, serifed or sans-serifed. */
-                                            /* Pica, Elite, Courier, etc. */
-#define FF_SCRIPT                   (4<<4)  /* Cursive, etc. */
-#define FF_DECORATIVE               (5<<4)  /* Old English, etc. */
-
-/* Font Weights */
-#define FW_DONTCARE         0
-#define FW_THIN             100
-#define FW_EXTRALIGHT       200
-#define FW_LIGHT            300
-#define FW_NORMAL           400
-#define FW_MEDIUM           500
-#define FW_SEMIBOLD         600
-#define FW_BOLD             700
-#define FW_EXTRABOLD        800
-#define FW_HEAVY            900
-
-#define FW_ULTRALIGHT       FW_EXTRALIGHT
-#define FW_REGULAR          FW_NORMAL
-#define FW_DEMIBOLD         FW_SEMIBOLD
-#define FW_ULTRABOLD        FW_EXTRABOLD
-#define FW_BLACK            FW_HEAVY
-
 
 typedef long            LONGLONG;
 typedef unsigned long   ULONGLONG;
@@ -480,22 +380,7 @@ typedef struct _GUID {
 
 #define _countof(x) (sizeof(x)/sizeof(x[0]))
 
-inline wchar_t * _wcsupr(wchar_t *str)
-{
-    for (wchar_t *s = str; *s != 0; ++s)
-        *s = towupper(*s);
-    return str;
-}
-
-inline void Sleep(DWORD dwMilliseconds)
-{
-    usleep(dwMilliseconds * 1000);
-}
-
-#define UNREFERENCED_PARAMETER(P)          (P)
-#define DBG_UNREFERENCED_PARAMETER(P)      (P)
-#define DBG_UNREFERENCED_LOCAL_VARIABLE(V) (V)
-
+inline void Sleep(DWORD dwMilliseconds) { usleep(dwMilliseconds * 1000); }
 
 #define TEXT                _T
 

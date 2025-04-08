@@ -69,6 +69,8 @@ private:
     void PrintRecHead(CDC* pDC, CPrintInfo* pInfo, const DictLevel& dict_level, const CDictRecord* pRec, int i);
     void PrintToFile();
 
+    static int WrapText(const CString& text, CStringArray& acsLine, int iColLeft = 0, int iColRight = 132, BOOL bStripCRLF = FALSE);
+
 protected:
     DECLARE_MESSAGE_MAP()
 

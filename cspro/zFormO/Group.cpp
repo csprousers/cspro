@@ -660,12 +660,11 @@ eReturnType CDEGroup::Reconcile(CDEFormFile* pFormFile, CString& csErr, bool bSi
 // check group occurrences against the dictionary
 
 eReturnType CDEGroup::ReconcileRecordOccs (CDEFormFile* pFormFile,CString& csErr,
-                                           bool bSilent,
+                                           bool /*bSilent*/,
                                            bool bAutoFix,
                                            const DICT_LOOKUP_INFO& structLookup,
                                            bool* bFirst)
 {
-    UNREFERENCED_PARAMETER (bSilent);
     eReturnType eReturn = OK;
 
     int iGroupOccs = GetMaxLoopOccs();
@@ -728,12 +727,11 @@ eReturnType CDEGroup::ReconcileRecordOccs (CDEFormFile* pFormFile,CString& csErr
 // ***************************************************************************
 
 eReturnType CDEGroup::ReconcileItemOccs (CDEFormFile*pFormFile,CString& csErr,
-                                         bool bSilent,
+                                         bool /*bSilent*/,
                                          bool bAutoFix,
                                          const DICT_LOOKUP_INFO& structLookup,
                                          bool* bFirst)
 {
-    UNREFERENCED_PARAMETER (bSilent);
     eReturnType eReturn = OK;
 
     int iGroupOccs = GetMaxLoopOccs();

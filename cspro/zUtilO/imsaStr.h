@@ -147,21 +147,6 @@
 //
 //---------------------------------------------------------------------------
 //
-//  int CIMSAString::Wrap(CStringArray& acsLine, int iColLeft = 0, int iColRight = 132, BOOL bStripCRLF = FALSE);
-//
-//      Parameters
-//          acsLine             An array of CStrings where the wrapped lines are stored.
-//          iColLeft            Left hand margin, column where string starts
-//          iColRight           Right hand margin, column where wrapping ends
-//          bStripCRLF          Whether to remove \r and \n characters
-//                              (used when outputting Note= commands that
-//                              were previously formatted for use in a CEdit box)
-//
-//      Return value
-//          Number of lines wrapped, that is size of CStringArray.
-//
-//---------------------------------------------------------------------------
-//
 //  void CIMSAString::QuoteDelimit();
 //
 //      Remarks
@@ -573,8 +558,6 @@ public:
     void Str(int64_t iVal, int iLen=NONE, csprochar cPad=SPACE);
     void Str(int iVal,     int iLen=NONE, csprochar cPad=SPACE)  { Str((int64_t) iVal, iLen, cPad);   }
     void Str(UINT uVal,    int iLen=NONE, csprochar cPad=SPACE)  { Str((int64_t) uVal, iLen, cPad);   }
-
-    int Wrap(CStringArray& acsLine, int iColLeft=0, int iColRight=132, BOOL bStripCRLF=FALSE) const;
 
 // To avoid casting
     CIMSAString Mid(int iFirst) const             { return CIMSAString(CString::Mid(iFirst)); }
