@@ -423,8 +423,8 @@ double CIntDriver::ex_syncapp(int /*program_index*/)
             ErrorMessage::Display(*restart_message);
 
 #ifndef WIN_DESKTOP
-            const CString& pff_name = m_pEngineDriver->m_pPifFile->GetPifFileName();
-            PlatformInterface::GetInstance()->GetApplicationInterface()->ExecPff(CS2WS(pff_name));
+            const CString& pff_file_path = m_pEngineDriver->m_pPifFile->GetPifFileName();
+            PlatformInterface::GetInstance()->GetApplicationInterface()->ExecPff(UTF8_TODO::GetUtf8(pff_file_path));
 #endif
             m_bStopProc = true;
             m_pEngineDriver->SetStopCode(1);

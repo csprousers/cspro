@@ -960,7 +960,7 @@ JNIEXPORT void JNICALL Java_gov_census_cspro_engine_EngineInterface_RunNonEntryA
 
         // set the OnExit parameter
         if( !pff.GetOnExitFilename().IsEmpty() )
-            PlatformInterface::GetInstance()->GetApplicationInterface()->ExecPff(CS2WS(pff.GetOnExitFilename()));
+            PlatformInterface::GetInstance()->GetApplicationInterface()->ExecPff(UTF8_TODO::GetUtf8(pff.GetOnExitFilename()));
     }
 
     catch( const CSProException& exception )

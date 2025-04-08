@@ -994,32 +994,32 @@ double CIntDriver::ExExecSystem(int iExpr)
 {
     const auto& execsystem_node = GetNode<FNEXECSYSTEM_NODE>(iExpr);
     bool success = false;
-    std::wstring command = EvalAlphaExpr(execsystem_node.m_iCommand);
+    std::string command = EvaluateString(execsystem_node.m_iCommand);
 
     std::unique_ptr<Paradata::ExternalApplicationEvent> external_application_event = ExExecCommonBeforeExecute(FNEXECSYSTEM_CODE, command, execsystem_node.m_iOptions);
 
 #ifdef WIN_DESKTOP
-    success =  ExExecCommonExecute(command, execsystem_node.m_iOptions);
+    success = ExExecCommonExecute(command, execsystem_node.m_iOptions);
 
 #else
-    bool wait = ( ( execsystem_node.m_iOptions & EXECSYSTEM_WAIT ) != 0 );
+    const bool wait = ( ( execsystem_node.m_iOptions & EXECSYSTEM_WAIT ) != 0 );
 
     // for a couple actions, fully evaluate the path before passing the file paths to Android functions
-    size_t colon_pos = command.find(':');
+    const size_t colon_pos = command.find(':');
 
     if( colon_pos != std::wstring::npos )
     {
-        constexpr const TCHAR* ActionsToFullyEvaluatePath[] = { _T("camera"), _T("signature"), _T("view") };
-        wstring_view command_sv = command;
-        wstring_view action_sv = command_sv.substr(0, colon_pos);
+        constexpr const char* ActionsToFullyEvaluatePath[] = { "camera", "signature", "view" };
+        const std::string_view command_sv = command;
+        const std::string_view action_sv = command_sv.substr(0, colon_pos);
 
         for( size_t i = 0; i < _countof(ActionsToFullyEvaluatePath); ++i )
         {
             if( SO::EqualsNoCase(action_sv, ActionsToFullyEvaluatePath[i]) )
             {
-                std::wstring filename = SO::Trim(command_sv.substr(colon_pos + 1));
-                MakeFullPathFileName(filename);
-                command = SO::ConcatenateWS(action_sv, _T(":"), filename);
+                std::string file_path(SO::Trim(command_sv.substr(colon_pos + 1)));
+                MakeAbsolutePath(file_path);
+                command = SO::Concatenate(action_sv, ":", file_path);
                 break;
             }
         }
@@ -1045,22 +1045,21 @@ double CIntDriver::ExExecPFF(int iExpr) // 20100601
 
     else
     {
-        std::wstring pff_filename = EvalFullPathFileName(execsystem_node.m_iCommand);
-        return ExExecPFF(std::move(pff_filename), execsystem_node.m_iOptions);
+        return ExExecPFF(EvaluatePath(execsystem_node.m_iCommand), execsystem_node.m_iOptions);
     }
 }
 
 
-double CIntDriver::ExExecPFF(std::variant<LogicPff*, std::wstring> logic_pff_or_pff_filename, std::optional<int> flags/* = std::nullopt*/)
+double CIntDriver::ExExecPFF(std::variant<LogicPff*, std::string> logic_pff_or_pff_file_path, std::optional<int> flags/* = std::nullopt*/)
 {
     LogicPff* logic_pff = nullptr;
     std::shared_ptr<const PFF> pff;
     std::shared_ptr<PffExecutor> pff_executor;
     bool success = true;
 
-    if( std::holds_alternative<LogicPff*>(logic_pff_or_pff_filename) )
+    if( std::holds_alternative<LogicPff*>(logic_pff_or_pff_file_path) )
     {
-        logic_pff = std::get<LogicPff*>(logic_pff_or_pff_filename);
+        logic_pff = std::get<LogicPff*>(logic_pff_or_pff_file_path);
         pff = logic_pff->GetSharedPff();
         pff_executor = logic_pff->GetSharedPffExecutor();
 
@@ -1074,7 +1073,7 @@ double CIntDriver::ExExecPFF(std::variant<LogicPff*, std::wstring> logic_pff_or_
     {
         // load the PFF
         auto loaded_pff = std::make_unique<PFF>();
-        loaded_pff->SetPifFileName(WS2CS(std::get<std::wstring>(logic_pff_or_pff_filename)));
+        loaded_pff->SetPifFileName(UTF8_TODO::GetCString(std::get<std::string>(logic_pff_or_pff_file_path)));
         success = loaded_pff->LoadPifFile(true);
         pff = std::move(loaded_pff);
     }
@@ -1082,26 +1081,27 @@ double CIntDriver::ExExecPFF(std::variant<LogicPff*, std::wstring> logic_pff_or_
     ASSERT(pff != nullptr && flags.has_value());
 
     // when a PFF is launched in wait mode try to use the PFF executor
-    bool use_pff_executor = ( ( ( *flags & EXECSYSTEM_WAIT ) != 0 ) && PffExecutor::CanExecute(pff->GetAppType()) );
+    const bool use_pff_executor = ( ( *flags & EXECSYSTEM_WAIT ) != 0 &&
+                                    PffExecutor::CanExecute(pff->GetAppType()) );
 
-    std::wstring pff_filename;
+    std::string pff_file_path_or_name;
 
     if( logic_pff == nullptr || !logic_pff->IsModified() )
     {
-        pff_filename = CS2WS(pff->GetPifFileName());
+        pff_file_path_or_name = UTF8_TODO::GetUtf8(pff->GetPifFileName());
     }
 
     else if( !use_pff_executor )
     {
-        pff_filename = logic_pff->GetRunnableFilename();
+        pff_file_path_or_name = logic_pff->GetRunnableFilePath();
     }
 
     else
     {
-        pff_filename = UTF8_TODO::GetWide(logic_pff->GetName());
+        pff_file_path_or_name = logic_pff->GetName();
     }
 
-    std::unique_ptr<Paradata::ExternalApplicationEvent> external_application_event = ExExecCommonBeforeExecute(FNEXECPFF_CODE, pff_filename, *flags);
+    std::unique_ptr<Paradata::ExternalApplicationEvent> external_application_event = ExExecCommonBeforeExecute(FNEXECPFF_CODE, pff_file_path_or_name, *flags);
 
     if( success )
     {
@@ -1110,7 +1110,7 @@ double CIntDriver::ExExecPFF(std::variant<LogicPff*, std::wstring> logic_pff_or_
             try
             {
                 if( pff_executor == nullptr )
-                    pff_executor = std::make_shared<PffExecutor>();
+                    pff_executor = std::make_unique<PffExecutor>();
 
                 EngineUI::RunPffExecutorNode run_pff_executor_node
                 {
@@ -1127,7 +1127,7 @@ double CIntDriver::ExExecPFF(std::variant<LogicPff*, std::wstring> logic_pff_or_
 
             catch( const CSProException& exception )
             {
-                issaerror(MessageType::Error, 47195, PortableFunctions::PathGetFilename(UTF8_TODO::GetUtf8(pff_filename)).c_str(), exception.what());
+                issaerror(MessageType::Error, 47195, Path::GetFilename(pff_file_path_or_name).c_str(), exception.what());
                 success = false;
             }
         }
@@ -1139,12 +1139,12 @@ double CIntDriver::ExExecPFF(std::variant<LogicPff*, std::wstring> logic_pff_or_
             const std::optional<std::string> exe_filename = pff->GetExecutableProgram();
 
             success = exe_filename.has_value() &&
-                      ExExecCommonExecute(FormatTextCS2WS(_T("%s \"%s\""), UTF8_TODO::GetWide(*exe_filename).c_str(), pff_filename.c_str()), *flags);
+                      ExExecCommonExecute(FormatText("%s \"%s\"", exe_filename->c_str(), pff_file_path_or_name.c_str()), *flags);
 #else
             if( pff->GetAppType() == ENTRY_TYPE || PffExecutor::CanExecute(pff->GetAppType()) )
             {
                 // 20140213 a temporary kludge ... we'll set a parameter concerning the next application to run, which will be run when this application ends
-                success = PlatformInterface::GetInstance()->GetApplicationInterface()->ExecPff(pff_filename);
+                success = PlatformInterface::GetInstance()->GetApplicationInterface()->ExecPff(pff_file_path_or_name);
             }
 
             else
@@ -1159,7 +1159,7 @@ double CIntDriver::ExExecPFF(std::variant<LogicPff*, std::wstring> logic_pff_or_
 }
 
 
-std::unique_ptr<Paradata::ExternalApplicationEvent> CIntDriver::ExExecCommonBeforeExecute(FunctionCode source, const std::wstring& command, int flags)
+std::unique_ptr<Paradata::ExternalApplicationEvent> CIntDriver::ExExecCommonBeforeExecute(const FunctionCode source, const std::string& command, const int flags)
 {
     try
     {
@@ -1171,65 +1171,58 @@ std::unique_ptr<Paradata::ExternalApplicationEvent> CIntDriver::ExExecCommonBefo
         issaerror(MessageType::Warning, 10104, exception.what());
     }
 
-    std::unique_ptr<Paradata::ExternalApplicationEvent> external_application_event;
+    if( !Paradata::Logger::IsOpen() )
+        return nullptr;
 
-    if( Paradata::Logger::IsOpen() )
-    {
-        bool stop = ( ( flags & EXECSYSTEM_STOP ) != 0 );
+    const auto ext_app_source = ( source == FNEXECSYSTEM_CODE ) ? Paradata::ExternalApplicationEvent::Source::ExecSystem :
+                                                                  Paradata::ExternalApplicationEvent::Source::ExecPff;
 
-        external_application_event = std::make_unique<Paradata::ExternalApplicationEvent>(
-            ( source == FNEXECSYSTEM_CODE ) ? Paradata::ExternalApplicationEvent::Source::ExecSystem : Paradata::ExternalApplicationEvent::Source::ExecPff,
-            UTF8_TODO::GetUtf8(command),
-            stop);
-    }
-
-    return external_application_event;
+    return std::make_unique<Paradata::ExternalApplicationEvent>(ext_app_source,
+                                                                command,
+                                                                ( ( flags & EXECSYSTEM_STOP ) != 0 ));
 }
 
 
-bool CIntDriver::ExExecCommonExecute(std::wstring command, int flags)
-{
 #ifdef WIN_DESKTOP
-    int show_window = ( ( flags & EXECSYSTEM_MAXIMIZED ) != 0 ) ? SW_MAXIMIZE :
-                      ( ( flags & EXECSYSTEM_MINIMIZED ) != 0 ) ? SW_MINIMIZE :
-                      ( ( flags & EXECSYSTEM_NORMAL ) != 0 )    ? SW_SHOWNA :
-                                                                  SW_SHOWNA;
 
-    bool focus =      ( ( flags & EXECSYSTEM_FOCUS ) != 0 )     ? true :
-                      ( ( flags & EXECSYSTEM_NOFOCUS ) != 0 )   ? false :
-                                                                  true;
+bool CIntDriver::ExExecCommonExecute(const std::string& command, const int flags)
+{
+    const int show_window = ( ( flags & EXECSYSTEM_MAXIMIZED ) != 0 ) ? SW_MAXIMIZE :
+                            ( ( flags & EXECSYSTEM_MINIMIZED ) != 0 ) ? SW_MINIMIZE :
+                            ( ( flags & EXECSYSTEM_NORMAL ) != 0 )    ? SW_SHOWNA :
+                                                                        SW_SHOWNA;
 
-    bool wait =       ( ( flags & EXECSYSTEM_WAIT ) != 0 )      ? true :
+    const bool focus = ( ( flags & EXECSYSTEM_FOCUS ) != 0 )     ? true :
+                       ( ( flags & EXECSYSTEM_NOFOCUS ) != 0 )   ? false :
+                                                                   true;
+
+    const bool wait = ( ( flags & EXECSYSTEM_WAIT ) != 0 )      ? true :
                       ( ( flags & EXECSYSTEM_NOWAIT ) != 0 )    ? false :
                                                                   false;
 
     int return_code = 0;
-    return RunProgram(std::move(command), &return_code, show_window, focus, wait);
-
-#else
-    return false;
-
-#endif
+    return RunProgram(UTF8_TODO::GetWide(command), &return_code, show_window, focus, wait);
 }
 
+#endif // WIN_DESKTOP
 
-double CIntDriver::ExExecCommonAfterExecute(FunctionCode source, int flags, bool success, std::unique_ptr<Paradata::ExternalApplicationEvent> external_application_event)
+
+double CIntDriver::ExExecCommonAfterExecute(const FunctionCode source, const int flags, const bool success,
+                                            std::unique_ptr<Paradata::ExternalApplicationEvent> external_application_event)
 {
-    bool stop = ( ( flags & EXECSYSTEM_STOP ) != 0 );
-
-    if( stop )
+    if( ( flags & EXECSYSTEM_STOP ) != 0 )
     {
         m_bStopProc = true;
         m_pEngineDriver->SetStopCode(1);
 
         // clear any OnExit command for the current application
         if( source == FNEXECPFF_CODE )
-            m_pEngineDriver->m_pPifFile->SetOnExitFilename(_T(""));
+            m_pEngineDriver->m_pPifFile->SetOnExitFilename(L"");
     }
 
     if( external_application_event != nullptr )
     {
-        bool wait = ( ( flags & EXECSYSTEM_WAIT ) != 0 );
+        const bool wait = ( ( flags & EXECSYSTEM_WAIT ) != 0 );
         external_application_event->SetPostExecutionValues(success, wait);
         m_paradataDriver->RegisterAndLogEvent(std::move(external_application_event));
     }

@@ -48,8 +48,8 @@ public:
     std::string GetDeviceId() const override;
     std::string GetLocaleLanguage() const override;
     void EngineAbort() override;
-    bool ExecSystem(const std::wstring& command, bool wait) override;
-    bool ExecPff(const std::wstring& pff_filename) override;
+    bool ExecSystem(const std::string& command, bool wait) override;
+    bool ExecPff(const std::string& pff_file_path) override;
     CString GetProperty(const CString& parameter) override;
     void SetProperty(const CString& parameter, const CString& value) override;
     void ShowProgressDialog(const std::string& message) override;

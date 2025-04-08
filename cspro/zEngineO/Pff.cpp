@@ -110,28 +110,28 @@ bool LogicPff::Save(std::wstring filename)
 }
 
 
-std::wstring LogicPff::GetRunnableFilename()
+std::string LogicPff::GetRunnableFilePath()
 {
     EnsurePffExists();
 
     // if the PFF has been modified, save the PFF to the temp folder
     if( m_modified )
     {
-        bool clear_app_description = m_pff->GetAppDescription().IsEmpty();
+        const bool clear_app_description = m_pff->GetAppDescription().IsEmpty();
 
         // modify the description so that PFF::GetEvaluatedAppDescription doesn't
         // show the name of the temporary PFF filename
         if( clear_app_description )
             m_pff->SetAppDescription(m_pff->GetEvaluatedAppDescription());
 
-        std::string temp_filename = GetUniqueTempFilePath(PortableFunctions::PathAppendFileExtension(GetName(), FileExtensions::Pff), true);
-        Save(UTF8_TODO::GetWide(std::move(temp_filename)));
+        std::string temp_file_path = GetUniqueTempFilePath(PortableFunctions::PathAppendFileExtension(GetName(), FileExtensions::Pff), true);
+        Save(UTF8_TODO::GetWide(std::move(temp_file_path)));
 
         if( clear_app_description )
-            m_pff->SetAppDescription(CString());
+            m_pff->SetAppDescription(L"");
     }
 
-    return CS2WS(m_pff->GetPifFileName());
+    return UTF8_TODO::GetUtf8(m_pff->GetPifFileName());
 }
 
 

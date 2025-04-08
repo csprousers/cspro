@@ -316,12 +316,12 @@ void AndroidApplicationInterface::EngineAbort()
 }
 
 
-bool AndroidApplicationInterface::ExecSystem(const std::wstring& command, bool wait)
+bool AndroidApplicationInterface::ExecSystem(const std::string& command, bool wait)
 {
     auto env = GetJNIEnvForCurrentThread();
     return (bool)env->CallStaticLongMethod(JNIReferences::classApplicationInterface,
                                            JNIReferences::methodApplicationInterfaceExecsystem,
-                                           WideToJava(env, command),
+                                           JavaString::ToJava(*env, command),
                                            wait);
 }
 
@@ -485,11 +485,14 @@ int AndroidApplicationInterface::ShowSelcaseDialog(const std::vector<CString>* c
 }
 
 
-bool AndroidApplicationInterface::ExecPff(const std::wstring& pff_filename)
+bool AndroidApplicationInterface::ExecPff(const std::string& pff_file_path)
 {
-    auto pEnv = GetJNIEnvForCurrentThread();
-    JNIReferences::scoped_local_ref<jstring> jpff(pEnv, WideToJava(pEnv, pff_filename));
-    return pEnv->CallStaticBooleanMethod(JNIReferences::classApplicationInterface, JNIReferences::methodApplicationInterfaceExecPFF, jpff.get());
+    JNIEnv* pEnv = GetJNIEnvForCurrentThread();
+
+    JNIReferences::scoped_local_ref<jstring> jPffFilePath(pEnv, JavaString::ToJava(*pEnv, pff_file_path));
+
+    return pEnv->CallStaticBooleanMethod(JNIReferences::classApplicationInterface, JNIReferences::methodApplicationInterfaceExecPFF,
+                                         jPffFilePath.get());
 }
 
 

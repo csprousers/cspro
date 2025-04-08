@@ -2053,7 +2053,7 @@ double CIntDriver::exfilename(int iExpr)
     else if( symbol->IsA(SymbolType::Pff) )
     {
         LogicPff& logic_pff = assert_cast<LogicPff&>(*symbol);
-        return AssignAlphaValue(logic_pff.GetRunnableFilename());
+        return AssignString(logic_pff.GetRunnableFilePath());
     }
 
     // Report
