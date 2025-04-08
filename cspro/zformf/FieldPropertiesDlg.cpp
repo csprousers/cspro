@@ -1,6 +1,7 @@
 ﻿#include "StdAfx.h"
 #include "FieldPropertiesDlg.h"
 #include "KeyboardInputDlg.h"
+#include <zUtilF/KeyboardLoader.h>
 
 
 BEGIN_MESSAGE_MAP(CFieldPropDlg, CDialog)
@@ -51,7 +52,7 @@ CFieldPropDlg::CFieldPropDlg(CDEField* pField, CFormScrollView* pParent)
     m_bRepeatingItem = ( m_pDictItem->GetOccurs() > 1 || dict_record->GetMaxRecs() > 1 ); // 20120504
     m_bVerify = m_pField->GetVerifyFlag();
     m_eValidationMethod = m_pField->GetValidationMethod();
-    m_KLID = m_pField->GetKLID();
+    m_klid = m_pField->GetKeyboardLayoutId();
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -95,7 +96,7 @@ void CFieldPropDlg::DoDataExchange(CDataExchange* pDX)
     DDX_Check(pDX, IDC_AUTOINCREMENT, m_bAutoIncrement);
     DDX_Check(pDX, IDC_UPPERCASE, m_bUpperCase);
     DDX_Check(pDX, IDC_VERIFY, m_bVerify);
-    DDX_Text(pDX, IDC_KEYBOARD_DESC, m_sKeyboardDescription);
+    DDX_Text(pDX, IDC_KEYBOARD_DESC, m_keyboardDescription);
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -119,7 +120,7 @@ BOOL CFieldPropDlg::OnInitDialog()
     PopulateCaptureInfo();
     OnCbnSelchangeCaptureInfo();
 
-    m_sKeyboardDescription = CKeyboardInputDlg::GetDisplayName(m_pField->GetKLID());
+    m_keyboardDescription = KeyboardLoader::GetDisplayName(m_pField->GetKeyboardLayoutId());
 
     UpdateData(false);
     CDEFormFile* pFF = &m_pMyParent->GetDocument()->GetFormFile();
@@ -349,20 +350,19 @@ void CFieldPropDlg::BuildSkipToSel()
 }
 
 
-void CFieldPropDlg::OnBnClickedChangeKeyboard() // 20120817
+void CFieldPropDlg::OnBnClickedChangeKeyboard()
 {
-    CKeyboardInputDlg dlg;
+    KeyboardInputDlg dlg(m_klid, this);
 
-    dlg.SetKLID(m_KLID);
+    if( dlg.DoModal() != IDOK )
+        return;
 
-    if( dlg.DoModal() == IDOK )
-    {
-        m_KLID = dlg.GetKLID();
-        m_sKeyboardDescription = CKeyboardInputDlg::GetDisplayName(m_KLID);
-        UpdateData(FALSE);
-    }
+    m_klid = dlg.GetSelectedKLID();
+    m_keyboardDescription = KeyboardLoader::GetDisplayName(m_klid);
 
-    GotoDlgCtrl((CButton *)GetDlgItem(IDOK));
+    UpdateData(FALSE);
+
+    GotoDlgCtrl(GetDlgItem(IDOK));
 }
 
 

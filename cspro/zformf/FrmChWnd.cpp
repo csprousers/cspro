@@ -2160,7 +2160,7 @@ void CFormChildWnd::RunMultipleFieldPropertiesDialog(std::vector<CDEField*>* sel
                 pField->SetValidationMethod(dlg.GetValidationMethod());
 
             if( dlg.ApplyKLID() )
-                pField->SetKLID(dlg.GetKLID());
+                pField->SetKeyboardLayoutId(dlg.GetKLID());
         }
 
         if( dlg.ApplyHideInCaseTree() )

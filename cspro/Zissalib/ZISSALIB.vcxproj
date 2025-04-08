@@ -102,7 +102,6 @@
     <ClCompile Include="GroupT.cpp" />
     <ClCompile Include="groupt2.cpp" />
     <ClCompile Include="GroupVisitor.cpp" />
-    <ClCompile Include="KeyboardLoader.cpp" />
     <ClCompile Include="Labsalo.cpp" />
     <ClCompile Include="OccurrenceInfo.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>

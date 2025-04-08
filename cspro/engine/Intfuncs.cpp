@@ -31,6 +31,7 @@
 #include <zToolsO/VarFuncs.h>
 #include <zUtilO/PathHelpers.h>
 #include <zUtilO/PortableFileSystem.h>
+#include <zUtilF/KeyboardLoader.h>
 #include <zMessageO/MessageFile.h>
 #include <zDictO/ValueProcessor.h>
 #include <zDictO/ValueSetResponse.h>
@@ -3061,40 +3062,37 @@ double CIntDriver::ex_setcapturepos(const int program_index)
 }
 
 
-double CIntDriver::exchangekeyboard(int iExpr)
+double CIntDriver::ex_changekeyboard(const int program_index)
 {
 #ifndef WIN_DESKTOP
     // not applicable on portable platforms
     return DEFAULT;
 #else
-    const auto& va_node = GetNode<Nodes::VariableArguments>(iExpr);
+    const auto& va_node = GetNode<Nodes::VariableArguments>(program_index);
     Symbol& symbol = NPT_Ref(va_node.arguments[1]);
 
     // they are only interested in what the keyboard ID is...
     if( va_node.arguments[0] == -1 )
     {
         ASSERT(symbol.IsA(SymbolType::Variable));
-
-        return m_pEngineDriver->GetKLIDFromHKL(assert_cast<VART&>(symbol).GetHKL());
+        return assert_cast<const VART&>(symbol).GetKeyboardLayoutId();
     }
 
     // ...or the keyboard ID is being changed
     else
     {
-        unsigned keyboard_id = Evaluate<unsigned>(va_node.arguments[0]);
-        HKL hKL = m_pEngineDriver->LoadKLID(keyboard_id);
+        const unsigned keyboard_id = m_keyboardLoader->GetKeyboardId(Evaluate<unsigned int>(va_node.arguments[0]));
 
-        auto changekeyboard_processor = [hKL](VART* pVarT) -> bool
-        {
-            // no reason to change it if it's not on a form
-            if( !pVarT->IsUsed() )
-                return false;
+        return VariableWorker(GetSymbolTable(), &symbol,
+            [&](VART* const pVarT)
+            {
+                // no reason to change it if it's not on a form
+                if( !pVarT->IsUsed() )
+                    return false;
 
-            pVarT->SetHKL(hKL);
-            return true;
-        };
-
-        return VariableWorker(GetSymbolTable(), &symbol, changekeyboard_processor);
+                pVarT->SetKeyboardLayoutId(keyboard_id);
+                return true;
+            });
     }
 #endif
 }

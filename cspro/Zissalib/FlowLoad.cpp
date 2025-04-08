@@ -329,10 +329,7 @@ void CEngineDriver::AttachFormItem( CDEForm* pForm, CDEItemBase* pMember ) { // 
         // inherit the parent form's capture position
         pVarT->SetCapturePos(pForm->GetCapturePos());
 
-#ifdef WIN_DESKTOP
-        if( bIsEntryRun )
-            pVarT->SetHKL(LoadKLID(pField->GetKLID()));
-#endif
+        pVarT->SetKeyboardLayoutId(pField->GetKeyboardLayoutId());
     }
 }
 

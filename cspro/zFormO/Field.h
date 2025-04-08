@@ -83,8 +83,8 @@ public:
     const CRect& GetTextDims() const { return m_cText.GetDims(); }
     CRect& GetTextDims()             { return m_cText.GetDims(); }
 
-    UINT GetKLID() const { return m_KLID; }
-    void SetKLID(UINT klid) { m_KLID = klid; }
+    unsigned int GetKeyboardLayoutId() const    { return m_keyboardLayoutId; }
+    void SetKeyboardLayoutId(unsigned int klid) { m_keyboardLayoutId = klid; }
 
     const CaptureInfo& GetCaptureInfo() const            { return m_captureInfo; }
     void SetCaptureInfo(const CaptureInfo& capture_info) { m_captureInfo = capture_info; }
@@ -217,7 +217,7 @@ private:
 
     CSize m_szUnicodeTextBox;
 
-    UINT m_KLID; // 20120822
+    unsigned int m_keyboardLayoutId;
 
     CString m_sPlusTarget;  //"+"Key skip to target
 

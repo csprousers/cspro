@@ -47,7 +47,8 @@ const Logic::SymbolTable& CSymbolVar::GetSymbolTable() const
 
 CSymbolVar::CSymbolVar(std::string name, CEngineDriver* pEngineDriver)
     :   ChainedSymbol(std::move(name), SymbolType::Variable),
-        m_engineBlock(nullptr)
+        m_engineBlock(nullptr),
+        m_keyboardLayoutId(0)
 {
     m_pEngineDriver = pEngineDriver;
     m_pEngineArea = pEngineDriver->getEngineAreaPtr();
@@ -122,10 +123,6 @@ CSymbolVar::CSymbolVar(std::string name, CEngineDriver* pEngineDriver)
     m_aSizeForThisType[CDimension::Item]    = 1;
     m_aSizeForThisType[CDimension::SubItem] = 1;
 
-#ifdef WIN_DESKTOP
-    SetHKL(NULL); // 20120820
-#endif
-
     m_showQuestionText = true;
     m_showExtendedControl = true;
     m_showExtendedControlTitle = true;
@@ -134,10 +131,12 @@ CSymbolVar::CSymbolVar(std::string name, CEngineDriver* pEngineDriver)
     SetDummyPersistent(false); // 20121120 for boost serialization all bools must be initialized
 }
 
+
 CSymbolVar::~CSymbolVar()
 {
     DeleteCurrentValueSet();
 }
+
 
 //////////////////////////////////////////////////////////////////////////////
 //

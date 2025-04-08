@@ -217,9 +217,7 @@ private:
     bool    m_alwaysVisualValue;
     bool    m_bNeedVerification;        // need verification?
 
-#ifdef WIN_DESKTOP
-    HKL     m_hKL;                      // 20120820 ... is a special keyboard specified for the field?
-#endif
+    unsigned int m_keyboardLayoutId;
 
     // capture information
     CaptureInfo m_captureInfo;
@@ -419,10 +417,8 @@ public:
             ResetVisible();
     }
 
-#ifdef WIN_DESKTOP
-    HKL     GetHKL() const { return m_hKL; }
-    void    SetHKL(HKL hKL) { m_hKL = hKL; }
-#endif
+    unsigned int GetKeyboardLayoutId() const    { return m_keyboardLayoutId; }
+    void SetKeyboardLayoutId(unsigned int klid) { m_keyboardLayoutId = klid; }
 
     // capture information
     const CaptureInfo& GetCaptureInfo() const { return m_captureInfo; }

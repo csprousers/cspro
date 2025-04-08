@@ -4140,9 +4140,9 @@ void CFormScrollView::OnEditFieldProp()
         bFieldModified = true;
     }
 
-    if( pField->GetKLID() != dlg.m_KLID ) // 20120822
+    if( pField->GetKeyboardLayoutId() != dlg.m_klid )
     {
-        pField->SetKLID(dlg.m_KLID);
+        pField->SetKeyboardLayoutId(dlg.m_klid);
         bFieldModified = true;
     }
 

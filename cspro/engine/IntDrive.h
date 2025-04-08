@@ -49,6 +49,7 @@ class FrequencyDriver;
 class ImputationDriver;
 struct InterpreterExecuteResult;
 class ItemIndex;
+class KeyboardLoader;
 class LoopStack;
 class NamedReference;
 class SelcaseManager;
@@ -525,15 +526,15 @@ public:
 
     double  exuserbar(int iExpr); // 20100414
 
-    double  exmessageoverrides(int program_index); // 20100518
+    double  exmessageoverrides(int program_index);
 
     double  ex_trace(int program_index);
 
     double  exgetcapturetype(int iExpr);         // 20100608
     double  exsetcapturetype(int iExpr);         // 20100608
-    double  ex_setcapturepos(int program_index); // 20110502
+    double  ex_setcapturepos(int program_index);
 
-    double  exchangekeyboard(int iExpr);    // 20120820
+    double  ex_changekeyboard(int iExpr);
 
     double  exorientation(int iExpr);       // 20100618
 
@@ -828,15 +829,8 @@ private:
 public:
     void RunGlobalOnFocus(int symbol_index);
 
-    void UpdateKeyboardInputMethod(VART* pVarT);
-
 private:
     std::map<const DictValue*, int> m_deckarrayIndexMappings;
-
-#ifdef WIN_DESKTOP
-    HKL     m_hLastDefaultKL;
-    HKL     m_hCurrentKL;
-#endif
 
 public:
     SharableString EvaluateCapiText(const std::string& language_name, const bool is_question, const int symbol_index);
@@ -1014,6 +1008,8 @@ private:
     std::unique_ptr<SelcaseManager> m_selcaseManager;
 
     std::shared_ptr<SyncObjects> m_syncObjects;
+
+    std::unique_ptr<KeyboardLoader> m_keyboardLoader; // non-null
 };
 
 

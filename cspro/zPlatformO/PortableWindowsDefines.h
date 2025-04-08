@@ -367,9 +367,9 @@ typedef long            LONGLONG;
 typedef unsigned long   ULONGLONG;
 
 #define MAXLONG     0x7fffffff
-#define WM_APP                          0x8000
-typedef int         HKL;
-#define _TEOF       EOF
+#define WM_APP      0x8000
+
+using HKL = void*;
 
 typedef struct _GUID {
     unsigned long  Data1;

@@ -107,12 +107,6 @@ CEngineDriver::~CEngineDriver()
     m_pIntDriver.reset();
 
     ResetSkipping();                                    // victor Mar 14, 01
-
-#ifdef WIN_DESKTOP
-    // 20120822 unload all loaded keyboards
-    for( int i = 0; i < m_vAddedKeyboards.GetSize(); i++ )
-        UnloadKeyboardLayout(m_vAddedKeyboards[i]);
-#endif
 }
 
 

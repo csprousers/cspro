@@ -372,16 +372,6 @@ public:
 
     void            ResetDynamicAttributes(DICX* pDicX = nullptr);
 
-#ifdef WIN_DESKTOP
-private:
-    CArray<HKL>             m_vAddedKeyboards; // 20120822
-    CMap<UINT,UINT,HKL,HKL> m_mKLID2HKLMap;
-public:
-    HKL                     LoadKLID(UINT klid);
-    void                    UnloadAddedKeyboards();
-    UINT                    GetKLIDFromHKL(HKL hKL);
-#endif
-
     void serialize(Serializer& ar);
 
     // --- DAT files access, case' nodes management

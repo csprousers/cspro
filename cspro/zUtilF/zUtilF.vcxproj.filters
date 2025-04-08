@@ -50,6 +50,9 @@
     <ClCompile Include="ImageViewDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="KeyboardLoader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="LinkCtrls.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -173,6 +176,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ImageViewDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="KeyboardLoader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="LinkCtrls.h">
