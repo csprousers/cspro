@@ -102,10 +102,6 @@
       <Project>{e704c3c1-f6c2-4dd3-af59-cb1d895db130}</Project>
       <Private>false</Private>
     </ProjectReference>
-    <ProjectReference Include="..\engine\ISSA\issa.vcxproj">
-      <Project>{9556badf-5360-45d1-91a7-449e003cde54}</Project>
-      <Private>false</Private>
-    </ProjectReference>
     <ProjectReference Include="..\zSql\zSql.vcxproj">
       <Project>{d20eded4-35e5-465c-a43e-746f632d4eaf}</Project>
       <Private>false</Private>
