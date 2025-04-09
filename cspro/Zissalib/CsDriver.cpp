@@ -27,17 +27,14 @@
 //
 //---------------------------------------------------------------------------
 #include "StdAfx.h"
-
-//typedef unsigned char   byte;
-
 #include "CsDriver.h"
 #include "CFlow.h"
 #include "CFlAdmin.h"                                   // victor Aug 02, 01
 #include <engine/Engdrv.h>
-#include <engine/ProgramControl.h>
-#include <Cexentry/Entifaz.h>
 #include <engine/Engine.h>
+#include <engine/Entifaz.h>
 #include <engine/IntDrive.h>
+#include <engine/ProgramControl.h>
 #include <zToolsO/VarFuncs.h>
 #include <zAppO/Properties/ApplicationProperties.h>
 #include <zMessageO/MessageManager.h>

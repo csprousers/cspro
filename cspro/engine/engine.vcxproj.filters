@@ -109,6 +109,9 @@
     <ClInclude Include="Entdrv.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Entifaz.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="Exappl.h">
       <Filter>Header Files</Filter>
     </ClInclude>

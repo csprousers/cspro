@@ -1,8 +1,8 @@
 ﻿// Dicx functions
-#include "STDAFX.H"
-#include <engine/Dicx.h>
-#include <engine/Engine.h>
-#include <engine/RELATION.H>
+#include "StandardSystemIncludes.h"
+#include "Dicx.h"
+#include "Engine.h"
+#include "RELATION.H"
 #include <zEngineO/EngineCaseConstructionReporter.h>
 #include <zToolsO/Tools.h>
 #include <zCaseO/Case.h>

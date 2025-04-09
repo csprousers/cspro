@@ -14,8 +14,10 @@
 //                                  ... other methods not related to pRunCase were moved to new file EntDrv.cpp of zEntryO
 //
 //---------------------------------------------------------------------------
-#include "STDAFX.H"
-#include <zPlatformO/PlatformInterface.h>
+#include "StandardSystemIncludes.h"
+#include "EXENTRY.H"
+#include "Engine.h"
+#include "Dicx.h"
 #include <zToolsO/Tools.h>
 #include <zMessageO/Messages.h>
 #include <zDictO/DDClass.h>
@@ -23,9 +25,6 @@
 #include <zCaseO/Case.h>
 #include <zCaseO/CaseItemReference.h>
 #include <zDataO/DataRepository.h>
-#include <engine/EXENTRY.H>
-#include <engine/Engine.h>
-#include <engine/Dicx.h>
 #include <Zissalib/CsDriver.h>
 
 

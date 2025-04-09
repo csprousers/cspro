@@ -17,7 +17,6 @@ include_directories(${PROJECT_NAME} PUBLIC
 add_library(${PROJECT_NAME}
     Applload.cpp
     citer.cpp
-    Common.cpp
     Decorr.cpp
     engdrv.cpp
     Exappl.cpp
@@ -72,12 +71,13 @@ add_library(${PROJECT_NAME}
     Tablesen.cpp
     VariableInOut.cpp
 
+    ${CEXENTRY_DIRECTORY}/Common.cpp
     ${CEXENTRY_DIRECTORY}/DeWrite.cpp
-    ${CEXENTRY_DIRECTORY}/Dicx.cpp
+    ${CEXENTRY_DIRECTORY}/DicX.cpp
     ${CEXENTRY_DIRECTORY}/Entifaz.cpp
     ${CEXENTRY_DIRECTORY}/Relation.cpp
-    ${CEXENTRY_DIRECTORY}/Secx.cpp
-    ${CEXENTRY_DIRECTORY}/Varx.cpp
+    ${CEXENTRY_DIRECTORY}/SecX.cpp
+    ${CEXENTRY_DIRECTORY}/VarX.cpp
 
     ${ZCAPIO_DIRECTORY}/CapiCondition.cpp
     ${ZCAPIO_DIRECTORY}/CapiContentVirtualFileMapping.cpp

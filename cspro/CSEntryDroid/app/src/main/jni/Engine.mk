@@ -4,22 +4,22 @@ include $(CLEAR_VARS)
 
 LOCAL_MODULE            := Engine
 LOCAL_C_INCLUDES        := src
-CEXENTRY_SRC_PATH       := ../../../../../CEXEntry
+CEXENTRY_SRC_PATH       := ../../../../../engine
 ENGINE_SRC_PATH         := ../../../../../engine
 ZCAPIO_SRC_PATH         := ../../../../../zCapiO
 ZENTRYO_SRC_PATH        := ../../../../../zEntryO
 ZISSALIB_SRC_PATH       := ../../../../../zIssaLib
 
+LOCAL_SRC_FILES         += $(CEXENTRY_SRC_PATH)/Common.cpp
 LOCAL_SRC_FILES         += $(CEXENTRY_SRC_PATH)/DeWrite.cpp
-LOCAL_SRC_FILES         += $(CEXENTRY_SRC_PATH)/Dicx.cpp
+LOCAL_SRC_FILES         += $(CEXENTRY_SRC_PATH)/DicX.cpp
 LOCAL_SRC_FILES         += $(CEXENTRY_SRC_PATH)/Entifaz.cpp
 LOCAL_SRC_FILES         += $(CEXENTRY_SRC_PATH)/Relation.cpp
-LOCAL_SRC_FILES         += $(CEXENTRY_SRC_PATH)/Secx.cpp
-LOCAL_SRC_FILES         += $(CEXENTRY_SRC_PATH)/Varx.cpp
+LOCAL_SRC_FILES         += $(CEXENTRY_SRC_PATH)/SecX.cpp
+LOCAL_SRC_FILES         += $(CEXENTRY_SRC_PATH)/VarX.cpp
 
 LOCAL_SRC_FILES         += $(ENGINE_SRC_PATH)/Applload.cpp
 LOCAL_SRC_FILES         += $(ENGINE_SRC_PATH)/citer.cpp
-LOCAL_SRC_FILES         += $(ENGINE_SRC_PATH)/Common.cpp
 LOCAL_SRC_FILES         += $(ENGINE_SRC_PATH)/Decorr.cpp
 LOCAL_SRC_FILES         += $(ENGINE_SRC_PATH)/engdrv.cpp
 LOCAL_SRC_FILES         += $(ENGINE_SRC_PATH)/Exappl.cpp

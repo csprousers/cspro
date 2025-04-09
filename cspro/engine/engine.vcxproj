@@ -45,6 +45,7 @@
     <ClInclude Include="EngineObjectTransporter.h" />
     <ClInclude Include="EngineQuestionnaireViewer.h" />
     <ClInclude Include="Entdrv.h" />
+    <ClInclude Include="Entifaz.h" />
     <ClInclude Include="Exappl.h" />
     <ClInclude Include="EXENTRY.H" />
     <ClInclude Include="Export.h" />

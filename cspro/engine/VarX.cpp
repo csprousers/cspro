@@ -18,11 +18,11 @@
 //              10 Apr 04   rcl     Modifications to handle more than 1 dimension
 //
 //---------------------------------------------------------------------------
-#include "STDAFX.H"
-#include <engine/Tables.h>
-#include <engine/Engine.h>
-#include <engine/RELATION.H>
-#include <engine/VARX.h>
+#include "StandardSystemIncludes.h"
+#include "Tables.h"
+#include "Engine.h"
+#include "RELATION.H"
+#include "VARX.h"
 #include <zEngineF/TraceHandler.h>
 #include <zToolsO/VarFuncs.h>
 #include <zUtilO/AppLdr.h>

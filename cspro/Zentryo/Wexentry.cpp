@@ -4,7 +4,7 @@
 #include "StdAfx.h"
 #include <engine/EXENTRY.H>
 #include <engine/Engine.h>
-#include <Cexentry/Entifaz.h>
+#include <engine/Entifaz.h>
 #include <zUtilO/AppLdr.h>
 #include <zCapiO/CapiQuestionManager.h>
 #include <ZBRIDGEO/npff.h>

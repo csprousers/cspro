@@ -1,10 +1,10 @@
-﻿#include "STDAFX.H"
+﻿#include "StandardSystemIncludes.h"
 #include "Entifaz.h"
-#include <engine/3dException.h>
-#include <engine/Engine.h>
-#include <engine/Exappl.h>
-#include <engine/ProgramControl.h>
-#include <engine/runmodes.h>
+#include "3dException.h"
+#include "Engine.h"
+#include "Exappl.h"
+#include "ProgramControl.h"
+#include "runmodes.h"
 #include <zEngineO/Block.h>
 #include <zToolsO/Tools.h>
 #include <zFormO/FormFile.h>

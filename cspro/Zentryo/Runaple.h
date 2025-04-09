@@ -6,8 +6,8 @@
 
 #include <Zentryo/zEntryO.h>
 #include <ZBRIDGEO/runapl.h>
-#include <Cexentry/Entifaz.h>
 #include <engine/DEFLD.H>
+#include <engine/Entifaz.h>
 #include <engine/Settings.h>
 #include <zMessageO/Messages.h>
 #include <zHtml/UseHtmlDialogs.h>
