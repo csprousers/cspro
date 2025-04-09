@@ -87,10 +87,6 @@
       <Project>{9be94f2e-69da-483f-9a82-293bd8b8ed1a}</Project>
       <Private>false</Private>
     </ProjectReference>
-    <ProjectReference Include="..\engine\EX2\ex2.vcxproj">
-      <Project>{e704c3c1-f6c2-4dd3-af59-cb1d895db130}</Project>
-      <Private>false</Private>
-    </ProjectReference>
     <ProjectReference Include="..\zSql\zSql.vcxproj">
       <Project>{d20eded4-35e5-465c-a43e-746f632d4eaf}</Project>
       <Private>false</Private>

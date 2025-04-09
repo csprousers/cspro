@@ -54,17 +54,21 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <PreprocessorDefinitions>WIN_DESKTOP;WIN32;_DEBUG;_WINDOWS;GENCODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalOptions> /J</AdditionalOptions>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
       <PreprocessorDefinitions>WIN_DESKTOP;WIN32;NDEBUG;_WINDOWS;GENCODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalOptions> /J</AdditionalOptions>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Break.cpp" />
     <ClCompile Include="Cdeclare.cpp" />
+    <ClCompile Include="citer.cpp" />
     <ClCompile Include="Common.cpp" />
     <ClCompile Include="Comp.cpp" />
     <ClCompile Include="Compall.cpp" />
@@ -79,20 +83,68 @@
     <ClCompile Include="Decorr.cpp" />
     <ClCompile Include="DeWrite.cpp" />
     <ClCompile Include="DicX.cpp" />
+    <ClCompile Include="Do_xtab.cpp" />
+    <ClCompile Include="engdrv.cpp" />
     <ClCompile Include="Entifaz.cpp" />
+    <ClCompile Include="Exappl.cpp" />
+    <ClCompile Include="exapplva.cpp" />
+    <ClCompile Include="Exbatchf.cpp" />
+    <ClCompile Include="Exopfile.cpp" />
+    <ClCompile Include="Exportf1.cpp" />
     <ClCompile Include="ExpresC.cpp" />
     <ClCompile Include="Expresc_Helper.cpp" />
+    <ClCompile Include="gpsfuncs.cpp" />
     <ClCompile Include="Instruc.cpp" />
+    <ClCompile Include="intcapi.cpp" />
+    <ClCompile Include="IntCase.cpp" />
+    <ClCompile Include="Intchars.cpp" />
+    <ClCompile Include="IntDataAccess.cpp" />
     <ClCompile Include="Intdentr.cpp" />
+    <ClCompile Include="IntDiagnostics.cpp" />
+    <ClCompile Include="Intdrive.cpp" />
+    <ClCompile Include="IntDynamicLogicEvaluation.cpp" />
     <ClCompile Include="intenter.cpp" />
+    <ClCompile Include="InterpreterAccessor.cpp" />
+    <ClCompile Include="Intexpr.cpp" />
+    <ClCompile Include="Intextdi.cpp" />
+    <ClCompile Include="IntFreq.cpp" />
+    <ClCompile Include="Intfuncs.cpp" />
+    <ClCompile Include="IntImpute.cpp" />
+    <ClCompile Include="IntInstr.cpp" />
+    <ClCompile Include="IntItem.cpp" />
+    <ClCompile Include="IntLanguage.cpp" />
+    <ClCompile Include="IntMessages.cpp" />
+    <ClCompile Include="IntOccurrences.cpp" />
+    <ClCompile Include="IntPath.cpp" />
+    <ClCompile Include="IntPff.cpp" />
+    <ClCompile Include="IntPre77Report.cpp" />
+    <ClCompile Include="IntProgramControl.cpp" />
+    <ClCompile Include="IntProperties.cpp" />
+    <ClCompile Include="IntQuery.cpp" />
+    <ClCompile Include="IntSync.cpp" />
+    <ClCompile Include="Inttbl.cpp" />
+    <ClCompile Include="IntUserbar.cpp" />
+    <ClCompile Include="IntUserFunction.cpp" />
+    <ClCompile Include="IntUserInterface.cpp" />
+    <ClCompile Include="IntValues.cpp" />
+    <ClCompile Include="IntVariable.cpp" />
+    <ClCompile Include="Intxtab.cpp" />
+    <ClCompile Include="Int_set.cpp" />
+    <ClCompile Include="Listing.cpp" />
     <ClCompile Include="LoadSaveBinary.cpp" />
+    <ClCompile Include="Nextnode.cpp" />
     <ClCompile Include="oexpresc.cpp" />
+    <ClCompile Include="ParadataDriver.cpp" />
     <ClCompile Include="ParameterManager.cpp" />
+    <ClCompile Include="Pre80Routines.cpp" />
     <ClCompile Include="Preprocessor.cpp" />
     <ClCompile Include="RangeFunctions.cpp" />
     <ClCompile Include="Relation.cpp" />
     <ClCompile Include="SecX.cpp" />
+    <ClCompile Include="Tabfuncs.cpp" />
+    <ClCompile Include="Tbd_save.cpp" />
     <ClCompile Include="VarX.cpp" />
+    <ClCompile Include="VTSTRUCT.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="3dException.h" />

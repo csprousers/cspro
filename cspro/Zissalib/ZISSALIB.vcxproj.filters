@@ -36,7 +36,7 @@
       <Filter>Source Files\issa</Filter>
     </ClCompile>
     <ClCompile Include="..\engine\relt.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\issa</Filter>
     </ClCompile>
     <ClCompile Include="..\engine\Settings.cpp">
       <Filter>Source Files\issa</Filter>

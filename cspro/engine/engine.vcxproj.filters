@@ -18,6 +18,9 @@
     <Filter Include="Source Files\ex1">
       <UniqueIdentifier>{e423fa56-5eea-4fc1-a33d-bb548f1e2a1e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\ex2">
+      <UniqueIdentifier>{fd084bbb-081e-4b06-9a64-62e112110e35}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="3dException.h">
@@ -253,8 +256,14 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Break.cpp">
+      <Filter>Source Files\ex2</Filter>
+    </ClCompile>
     <ClCompile Include="Cdeclare.cpp">
       <Filter>Source Files\ex1</Filter>
+    </ClCompile>
+    <ClCompile Include="citer.cpp">
+      <Filter>Source Files\ex2</Filter>
     </ClCompile>
     <ClCompile Include="Common.cpp">
       <Filter>Source Files\CEXEntry</Filter>
@@ -298,8 +307,29 @@
     <ClCompile Include="DicX.cpp">
       <Filter>Source Files\CEXEntry</Filter>
     </ClCompile>
+    <ClCompile Include="Do_xtab.cpp">
+      <Filter>Source Files\ex2</Filter>
+    </ClCompile>
+    <ClCompile Include="engdrv.cpp">
+      <Filter>Source Files\ex2</Filter>
+    </ClCompile>
     <ClCompile Include="Entifaz.cpp">
       <Filter>Source Files\CEXEntry</Filter>
+    </ClCompile>
+    <ClCompile Include="Exappl.cpp">
+      <Filter>Source Files\ex2</Filter>
+    </ClCompile>
+    <ClCompile Include="exapplva.cpp">
+      <Filter>Source Files\ex2</Filter>
+    </ClCompile>
+    <ClCompile Include="Exbatchf.cpp">
+      <Filter>Source Files\ex2</Filter>
+    </ClCompile>
+    <ClCompile Include="Exopfile.cpp">
+      <Filter>Source Files\ex2</Filter>
+    </ClCompile>
+    <ClCompile Include="Exportf1.cpp">
+      <Filter>Source Files\ex2</Filter>
     </ClCompile>
     <ClCompile Include="ExpresC.cpp">
       <Filter>Source Files\ex1</Filter>
@@ -307,23 +337,137 @@
     <ClCompile Include="Expresc_Helper.cpp">
       <Filter>Source Files\ex1</Filter>
     </ClCompile>
+    <ClCompile Include="gpsfuncs.cpp">
+      <Filter>Source Files\ex2</Filter>
+    </ClCompile>
     <ClCompile Include="Instruc.cpp">
       <Filter>Source Files\ex1</Filter>
+    </ClCompile>
+    <ClCompile Include="intcapi.cpp">
+      <Filter>Source Files\ex2</Filter>
+    </ClCompile>
+    <ClCompile Include="IntCase.cpp">
+      <Filter>Source Files\ex2</Filter>
+    </ClCompile>
+    <ClCompile Include="Intchars.cpp">
+      <Filter>Source Files\ex2</Filter>
+    </ClCompile>
+    <ClCompile Include="IntDataAccess.cpp">
+      <Filter>Source Files\ex2</Filter>
     </ClCompile>
     <ClCompile Include="Intdentr.cpp">
       <Filter>Source Files\dep</Filter>
     </ClCompile>
+    <ClCompile Include="IntDiagnostics.cpp">
+      <Filter>Source Files\ex2</Filter>
+    </ClCompile>
+    <ClCompile Include="Intdrive.cpp">
+      <Filter>Source Files\ex2</Filter>
+    </ClCompile>
+    <ClCompile Include="IntDynamicLogicEvaluation.cpp">
+      <Filter>Source Files\ex2</Filter>
+    </ClCompile>
     <ClCompile Include="intenter.cpp">
       <Filter>Source Files\dep</Filter>
     </ClCompile>
+    <ClCompile Include="InterpreterAccessor.cpp">
+      <Filter>Source Files\ex2</Filter>
+    </ClCompile>
+    <ClCompile Include="Intexpr.cpp">
+      <Filter>Source Files\ex2</Filter>
+    </ClCompile>
+    <ClCompile Include="Intextdi.cpp">
+      <Filter>Source Files\ex2</Filter>
+    </ClCompile>
+    <ClCompile Include="IntFreq.cpp">
+      <Filter>Source Files\ex2</Filter>
+    </ClCompile>
+    <ClCompile Include="Intfuncs.cpp">
+      <Filter>Source Files\ex2</Filter>
+    </ClCompile>
+    <ClCompile Include="IntImpute.cpp">
+      <Filter>Source Files\ex2</Filter>
+    </ClCompile>
+    <ClCompile Include="IntInstr.cpp">
+      <Filter>Source Files\ex2</Filter>
+    </ClCompile>
+    <ClCompile Include="IntItem.cpp">
+      <Filter>Source Files\ex2</Filter>
+    </ClCompile>
+    <ClCompile Include="IntLanguage.cpp">
+      <Filter>Source Files\ex2</Filter>
+    </ClCompile>
+    <ClCompile Include="IntMessages.cpp">
+      <Filter>Source Files\ex2</Filter>
+    </ClCompile>
+    <ClCompile Include="IntOccurrences.cpp">
+      <Filter>Source Files\ex2</Filter>
+    </ClCompile>
+    <ClCompile Include="IntPath.cpp">
+      <Filter>Source Files\ex2</Filter>
+    </ClCompile>
+    <ClCompile Include="IntPff.cpp">
+      <Filter>Source Files\ex2</Filter>
+    </ClCompile>
+    <ClCompile Include="IntPre77Report.cpp">
+      <Filter>Source Files\ex2</Filter>
+    </ClCompile>
+    <ClCompile Include="IntProgramControl.cpp">
+      <Filter>Source Files\ex2</Filter>
+    </ClCompile>
+    <ClCompile Include="IntProperties.cpp">
+      <Filter>Source Files\ex2</Filter>
+    </ClCompile>
+    <ClCompile Include="IntQuery.cpp">
+      <Filter>Source Files\ex2</Filter>
+    </ClCompile>
+    <ClCompile Include="IntSync.cpp">
+      <Filter>Source Files\ex2</Filter>
+    </ClCompile>
+    <ClCompile Include="Inttbl.cpp">
+      <Filter>Source Files\ex2</Filter>
+    </ClCompile>
+    <ClCompile Include="IntUserbar.cpp">
+      <Filter>Source Files\ex2</Filter>
+    </ClCompile>
+    <ClCompile Include="IntUserFunction.cpp">
+      <Filter>Source Files\ex2</Filter>
+    </ClCompile>
+    <ClCompile Include="IntUserInterface.cpp">
+      <Filter>Source Files\ex2</Filter>
+    </ClCompile>
+    <ClCompile Include="IntValues.cpp">
+      <Filter>Source Files\ex2</Filter>
+    </ClCompile>
+    <ClCompile Include="IntVariable.cpp">
+      <Filter>Source Files\ex2</Filter>
+    </ClCompile>
+    <ClCompile Include="Intxtab.cpp">
+      <Filter>Source Files\ex2</Filter>
+    </ClCompile>
+    <ClCompile Include="Int_set.cpp">
+      <Filter>Source Files\ex2</Filter>
+    </ClCompile>
+    <ClCompile Include="Listing.cpp">
+      <Filter>Source Files\ex2</Filter>
+    </ClCompile>
     <ClCompile Include="LoadSaveBinary.cpp">
-      <Filter>Source Files\ex1</Filter>
+      <Filter>Source Files\ex2</Filter>
+    </ClCompile>
+    <ClCompile Include="Nextnode.cpp">
+      <Filter>Source Files\ex2</Filter>
     </ClCompile>
     <ClCompile Include="oexpresc.cpp">
       <Filter>Source Files\ex1</Filter>
     </ClCompile>
+    <ClCompile Include="ParadataDriver.cpp">
+      <Filter>Source Files\ex2</Filter>
+    </ClCompile>
     <ClCompile Include="ParameterManager.cpp">
-      <Filter>Source Files\ex1</Filter>
+      <Filter>Source Files\ex2</Filter>
+    </ClCompile>
+    <ClCompile Include="Pre80Routines.cpp">
+      <Filter>Source Files\ex2</Filter>
     </ClCompile>
     <ClCompile Include="Preprocessor.cpp">
       <Filter>Source Files\ex1</Filter>
@@ -337,8 +481,17 @@
     <ClCompile Include="SecX.cpp">
       <Filter>Source Files\CEXEntry</Filter>
     </ClCompile>
+    <ClCompile Include="Tabfuncs.cpp">
+      <Filter>Source Files\ex2</Filter>
+    </ClCompile>
+    <ClCompile Include="Tbd_save.cpp">
+      <Filter>Source Files\ex2</Filter>
+    </ClCompile>
     <ClCompile Include="VarX.cpp">
       <Filter>Source Files\CEXEntry</Filter>
+    </ClCompile>
+    <ClCompile Include="VTSTRUCT.cpp">
+      <Filter>Source Files\ex2</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -30,13 +30,12 @@ add_library(${PROJECT_NAME}
     Intdentr.cpp
     intenter.cpp
 
-    Applload.cpp
+    # ex2
     citer.cpp
     engdrv.cpp
     Exappl.cpp
     Exapplva.cpp
     Exopfile.cpp
-    Form.cpp
     gpsfuncs.cpp
     Int_set.cpp
     intcapi.cpp
@@ -69,14 +68,18 @@ add_library(${PROJECT_NAME}
     IntUserInterface.cpp
     IntValues.cpp
     IntVariable.cpp
-    Issafunc.cpp
     Listing.cpp
     LoadSaveBinary.cpp
-    Messages.cpp
     Nextnode.cpp
     ParadataDriver.cpp
     ParameterManager.cpp
     Pre80Routines.cpp
+
+    # issa
+    Applload.cpp
+    Form.cpp
+    Issafunc.cpp
+    Messages.cpp
     relt.cpp
     Settings.cpp
     Tables.cpp

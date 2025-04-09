@@ -18,6 +18,7 @@
 #include "EXENTRY.H"
 #include "Engine.h"
 #include "Dicx.h"
+#include <zPlatformO/PlatformInterface.h>
 #include <zToolsO/Tools.h>
 #include <zMessageO/Messages.h>
 #include <zDictO/DDClass.h>
