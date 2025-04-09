@@ -49,7 +49,7 @@ BOOL SelectDocsDlg::OnInitDialog()
 
         ASSERT(!description.IsEmpty() && !filename.IsEmpty());
 
-        pBox->AddString(FormatText(_T("%s: %s"), description.GetString(), filename.GetString()));
+        pBox->AddString(FormatText(L"%s: %s", description.GetString(), filename.GetString()).c_str());
     }
 
     // select the first option

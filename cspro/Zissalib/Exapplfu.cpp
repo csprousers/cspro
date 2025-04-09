@@ -168,8 +168,9 @@ void CEngineDriver::ClearLevelNode( DICT* pDicT, int iNodeLevel ) {
 
 }
 
-#ifdef USE_BINARY
-#else
+
+#ifdef WIN_DESKTOP
+
 bool CEngineDriver::EvaluateNode( DICT* pDicT, int iNodeLevel ) {
     // EvaluateNode: check minimum section occurrences for a node at a given level
     // ... formerly 'evalcase', now 'EvaluateNode'      // victor May 16, 00
@@ -195,7 +196,8 @@ bool CEngineDriver::EvaluateNode( DICT* pDicT, int iNodeLevel ) {
 
     return bOK;
 }
-#endif // USE_BINARY
+
+#endif // WIN_DESKTOP
 
 
 // return code:  true=reached the max # messages, false=did not reach
@@ -479,7 +481,7 @@ void CEngineDriver::prepvar( VART* pVarT, bool bVisualValue ) // rcl Jun 25 2004
 
     int iMaxOccsInDim0  = pVarT->GetMaxOccsInFixedDim(0);
 
-#ifdef BUCEN
+    // BUCEN
     // begin SAVY 28-May-2003  SPEED
     if( Appl.ApplicationType != ModuleType::Entry ) { // RHF Sep 05, 2003
         int iMyDim = 0;
@@ -490,7 +492,6 @@ void CEngineDriver::prepvar( VART* pVarT, bool bVisualValue ) // rcl Jun 25 2004
         }
     }
     // end SAVY 28-May-2003  SPEED
-#endif
 
 #define SET_IDX( x, y ) theIndexAux.setIndexValue(x,y)
 #define GET_IDX(x) theIndexAux.getIndexValue(x)

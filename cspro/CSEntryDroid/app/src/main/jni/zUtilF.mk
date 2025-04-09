@@ -1,4 +1,4 @@
-﻿LOCAL_PATH := $(call my-dir)
+LOCAL_PATH := $(call my-dir)
 JNI_PATH := $(call my-dir)
 
 include $(CLEAR_VARS)
@@ -10,6 +10,7 @@ LOCAL_SRC_FILES         += $(ZUTILF_SRC_PATH)/ChoiceDlg.cpp
 LOCAL_SRC_FILES         += $(ZUTILF_SRC_PATH)/HtmlDialogFunctionRunner.cpp
 LOCAL_SRC_FILES         += $(ZUTILF_SRC_PATH)/ImageCaptureDlg.cpp
 LOCAL_SRC_FILES         += $(ZUTILF_SRC_PATH)/ImageViewDlg.cpp
+LOCAL_SRC_FILES         += $(ZUTILF_SRC_PATH)/KeyboardLoader.cpp
 LOCAL_SRC_FILES         += $(ZUTILF_SRC_PATH)/NoteEditDlg.cpp
 LOCAL_SRC_FILES         += $(ZUTILF_SRC_PATH)/ProcessSummaryDlg.cpp
 LOCAL_SRC_FILES         += $(ZUTILF_SRC_PATH)/ProgressDlgFactory.cpp

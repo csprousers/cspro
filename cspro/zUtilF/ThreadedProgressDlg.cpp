@@ -99,7 +99,7 @@ INT_PTR CALLBACK ThreadedProgressDlg::DialogProc(const HWND hwndDlg, const UINT 
                     if( instance->m_usingMarquee )
                         instance->ToggleProgressBarMarquee();
 
-                    const std::wstring percent_text = FormatTextCS2WS(L"%d%%", instance->m_position);
+                    const std::wstring percent_text = FormatText(L"%d%%", instance->m_position);
                     WindowsWS::SetDlgItemText(hwndDlg, IDC_PROGDLG_PERCENT, percent_text);
 
                     PostMessage(GetDlgItem(hwndDlg, IDC_PROGDLG_PROGRESS), PBM_SETPOS, instance->m_position, 0);

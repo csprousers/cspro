@@ -1,4 +1,5 @@
 ﻿#pragma once
+
 //---------------------------------------------------------------------------
 //  File name: CtStatV.h
 //
@@ -11,34 +12,30 @@
 //              01 Jul 02   RHF     Created
 //
 //---------------------------------------------------------------------------
-#include <ZTBDO/zTbdO.h>
 
-class CLASS_DECL_ZTBDO CtStatVar {
-private:
-    int         m_iSubtableNumber;
-    int         m_iCoordNumber;
-    int         m_iSymVar;
-    bool        m_bOverlappedCat;
 
+class CtStatVar
+{
 public:
-    CtStatVar();
+    CtStatVar() = default;
+    CtStatVar(const CtStatVar&) = default;
+    CtStatVar& operator=(const CtStatVar&) = default;
 
-    void Init();
+    int GetSubtableNumber() const               { return m_iSubtableNumber; }
+    void SetSubtableNumber(int iSubTableNumber) { m_iSubtableNumber = iSubTableNumber; }
 
-    void    SetSubtableNumber( int iSubTableNumber );
-    void    SetCoordNumber( int iCoordNumber );
-    void    SetSymVar( int iSymVar );
-    void    SetHasOverlappedCat( bool bOverlapped );
+    int GetCoordNumber() const            { return m_iCoordNumber; }
+    void SetCoordNumber(int iCoordNumber) { m_iCoordNumber = iCoordNumber; }
 
-    int     GetSubtableNumber();
-    int     GetCoordNumber();
-    int     GetSymVar();
-    bool    GetHasOverlappedCat();
-#if defined(USE_BINARY) || defined(GENERATE_BINARY)
-    CtStatVar( CtStatVar& other );
-    void operator=( CtStatVar& other );
+    int GetSymVar() const       { return m_iSymVar; }
+    void SetSymVar(int iSymVar) { m_iSymVar = iSymVar; }
+
+    bool GetHasOverlappedCat() const           { return m_bOverlappedCat; }
+    void SetHasOverlappedCat(bool bOverlapped) { m_bOverlappedCat = bOverlapped; }
 
 private:
-    void cloneFrom( CtStatVar& other );
-#endif // USE_BINARY || GENERATE_BINARY
+    int m_iSubtableNumber = -1;
+    int m_iCoordNumber = -1;
+    int m_iSymVar = -1;
+    bool m_bOverlappedCat = false;
 };

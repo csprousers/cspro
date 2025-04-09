@@ -1,7 +1,7 @@
 ﻿#include "StdAfx.h"
 #include "MultipleFieldPropertiesDlg.h"
 #include "FieldPropertiesDlg.h"
-#include "KeyboardInputDlg.h"
+#include <zUtilF/KeyboardLoader.h>
 
 
 IMPLEMENT_DYNAMIC(CMultipleFieldPropertiesDlg, CDialog)
@@ -127,7 +127,7 @@ void CMultipleFieldPropertiesDlg::SetPropertiesBasedOnFieldValues()
 
         validation_methods_used.insert(pField->GetValidationMethod());
         field_labels_types_used.insert(pField->GetFieldLabelType());
-        klids_used.insert(pField->GetKLID());
+        klids_used.insert(pField->GetKeyboardLayoutId());
     }
 
 
@@ -189,22 +189,15 @@ void CMultipleFieldPropertiesDlg::SetPropertiesBasedOnFieldValues()
 
     pComboBox->SetItemDataPtr(pComboBox->AddString(_T("<no change>")), (void*)HKL_NEXT); // HKL_NEXT will signify no change
 
-    int iNumEnumeratedHKLs = GetKeyboardLayoutList(0, NULL);
-    HKL* pEnumeratedHKLs = new HKL[iNumEnumeratedHKLs];
-    GetKeyboardLayoutList(iNumEnumeratedHKLs, pEnumeratedHKLs);
-
-    for( int i = -1; i < iNumEnumeratedHKLs; i++ )
+    for( const auto& [hKL, display_name] : KeyboardLoader::GetKeyboardLayouts(true) )
     {
-        HKL hKL = ( i == -1 ) ? nullptr : pEnumeratedHKLs[i];
-        int posNum = pComboBox->AddString(CKeyboardInputDlg::GetDisplayNameHKL(hKL));
+        const int posNum = pComboBox->AddString(display_name.c_str());
         pComboBox->SetItemDataPtr(posNum, hKL);
 
         // for speed reasons, we'll just work with HKLs and then convert the selected value to a KLID after the operation
-        if( keyboard_selection_index == 0 && klids_used.size() == 1 && CKeyboardInputDlg::HKL2KLID(hKL) == *klids_used.begin() )
+        if( keyboard_selection_index == 0 && klids_used.size() == 1 && KeyboardLoader::GetKlidFromHKL(hKL) == *klids_used.begin() )
             keyboard_selection_index = posNum;
     }
-
-    delete [] pEnumeratedHKLs;
 
     pComboBox->SetCurSel(keyboard_selection_index);
 }
@@ -264,7 +257,7 @@ void CMultipleFieldPropertiesDlg::OnBnClickedOk()
     // HKL_NEXT means <no change> ... if not, we need to convert the HKL to a KLID
     pComboBox = (CComboBox*)GetDlgItem(IDC_KEYBOARDINPUT);
     HKL hKL = (HKL)pComboBox->GetItemDataPtr(pComboBox->GetCurSel());
-    m_KLID = ( hKL == (void*)HKL_NEXT ) ? (UINT)HKL_NEXT : CKeyboardInputDlg::HKL2KLID(hKL);
+    m_KLID = ( hKL == (void*)HKL_NEXT ) ? (UINT)HKL_NEXT : KeyboardLoader::GetKlidFromHKL(hKL);
 
     CDialog::OnOK();
 }

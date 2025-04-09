@@ -78,6 +78,7 @@
     <ClCompile Include="ImageManager.cpp" />
     <ClCompile Include="ImageSelectorDlg.cpp" />
     <ClCompile Include="ImageViewDlg.cpp" />
+    <ClCompile Include="KeyboardLoader.cpp" />
     <ClCompile Include="LinkCtrls.cpp" />
     <ClCompile Include="LoggingListBox.cpp" />
     <ClCompile Include="ManageCredentialsDlg.cpp" />
@@ -127,6 +128,7 @@
     <ClInclude Include="ImageManager.h" />
     <ClInclude Include="ImageSelectorDlg.h" />
     <ClInclude Include="ImageViewDlg.h" />
+    <ClInclude Include="KeyboardLoader.h" />
     <ClInclude Include="LinkCtrls.h" />
     <ClInclude Include="LoggingListBox.h" />
     <ClInclude Include="ManageCredentialsDlg.h" />

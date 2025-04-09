@@ -21,6 +21,7 @@
 #include <zCapiO/QSFView.h>
 #include <zCapiO/UWM.h>
 #include <Zsrcmgro/DesignerApplicationLoader.h>
+#include <Zsrcmgro/DesignerCapiLogicCompiler.h>
 #include <Zsrcmgro/DesignerCompiler.h>
 #include <zEngineF/EngineUI.h>
 
@@ -84,6 +85,7 @@ BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWnd)
     ON_MESSAGE(UWM::Designer::SetCodeFileSuccessfullyCompiled, OnSetCodeFileSuccessfullyCompiled)
 
     ON_MESSAGE(UWM::Designer::TokenizeLogic_V0, OnTokenizeLogic_V0)
+    ON_MESSAGE(UWM::Designer::CreateCapiLogicCompiler, OnCreateCapiLogicCompiler)
 
     ON_MESSAGE(UWM::UtilF::RunOnUIThread, OnRunOnUIThread)
     ON_MESSAGE(UWM::UtilF::GetApplicationShutdownRunner, OnGetApplicationShutdownRunner)
@@ -1040,7 +1042,10 @@ LRESULT CMainFrame::OnGenerateBinary(WPARAM /*wParam*/, LPARAM lParam)
             if( !csentry_exe.has_value() )
                 return 0;
 
-            CString command_line = FormatText(_T("\"%s\" \"%s\" /pen /binaryName \"%s\""), UTF8_TODO::GetWide(*csentry_exe).c_str(), pDoc->GetPathName().GetString(), sBinName.GetString());
+            CString command_line = FormatText<CString>(L"\"%s\" \"%s\" /pen /binaryName \"%s\"",
+                                                       UTF8_TODO::GetWide(*csentry_exe).c_str(),
+                                                       pDoc->GetPathName().GetString(),
+                                                       sBinName.GetString());
 
             STARTUPINFO si;
             PROCESS_INFORMATION pi;
@@ -1135,7 +1140,7 @@ LRESULT CMainFrame::OnPublishAndDeploy(WPARAM /*wParam*/, LPARAM lParam)
             if( !csdeploy_exe.has_value() )
                 return 0;
 
-            CString command_line = FormatText(_T("\"%s\" \"%s\""), UTF8_TODO::GetWide(*csdeploy_exe).c_str(), pffPath.GetString());
+            CString command_line = FormatText<CString>(L"\"%s\" \"%s\"", UTF8_TODO::GetWide(*csdeploy_exe).c_str(), pffPath.GetString());
 
             STARTUPINFO si;
             PROCESS_INFORMATION pi;
@@ -2656,7 +2661,7 @@ LRESULT CMainFrame::IsNameUnique(WPARAM wParam, LPARAM lParam)
 
     if( !name_is_unique )
     {
-        AfxMessageBox(FormatText(_T("The name '%s' cannot be used as it is not unique in your application."), name.GetString()));
+        AfxMessageBox(FormatText(L"The name '%s' cannot be used as it is not unique in your application.", name.GetString()));
         return 0;
     }
 
@@ -3199,22 +3204,21 @@ LRESULT CMainFrame::OnMenuChar(UINT nChar, UINT nFlags, CMenu* pMenu)
 }
 
 
-LRESULT CMainFrame::OnGetDictionaryType(WPARAM wParam, LPARAM lParam)
+LRESULT CMainFrame::OnGetDictionaryType(const WPARAM wParam, const LPARAM lParam)
 {
-    const CDataDict* dictionary = reinterpret_cast<const CDataDict*>(wParam); // [in] the dictionary object
-    DictionaryType* out_dictionary_type = reinterpret_cast<DictionaryType*>(lParam); // [output] the dictionary type for the dictionary
-    ASSERT(dictionary != nullptr && out_dictionary_type != nullptr);
+    const CDataDict& dictionary = *reinterpret_cast<const CDataDict*>(wParam); // [in] the dictionary object
+    DictionaryType& out_dictionary_type = *reinterpret_cast<DictionaryType*>(lParam); // [output] the dictionary type for the dictionary
 
     std::optional<DictionaryType> dictionary_type;
 
     ForeachDocument<CAplDoc>(
         [&](const CAplDoc& application_document)
         {
-            DictionaryType this_dictionary_type = application_document.GetAppObject().GetDictionaryType(*dictionary);
+            const DictionaryType this_dictionary_type = application_document.GetAppObject().GetDictionaryType(dictionary);
 
             // if there are multiple applications using the dictionary, the lowest dictionary type is returned
             if( ( this_dictionary_type != DictionaryType::Unknown ) &&
-                ( !dictionary_type.has_value() || (int)this_dictionary_type < (int)*dictionary_type ) )
+                ( !dictionary_type.has_value() || static_cast<int>(this_dictionary_type) < static_cast<int>(*dictionary_type) ) )
             {
                 dictionary_type = this_dictionary_type;
             }
@@ -3224,7 +3228,7 @@ LRESULT CMainFrame::OnGetDictionaryType(WPARAM wParam, LPARAM lParam)
 
     if( dictionary_type.has_value() )
     {
-        *out_dictionary_type = *dictionary_type;
+        out_dictionary_type = *dictionary_type;
         return 1;
     }
 
@@ -3564,6 +3568,17 @@ LRESULT CMainFrame::OnTokenizeLogic_V0(const WPARAM wParam, const LPARAM lParam)
     std::vector<Logic::BasicToken>& basic_tokens = *reinterpret_cast<std::vector<Logic::BasicToken>*>(lParam);
 
     basic_tokens = Logic::SourceBuffer::Tokenize(logic, LogicSettings::GetOriginalSettings());
+
+    return 1;
+}
+
+
+LRESULT CMainFrame::OnCreateCapiLogicCompiler(const WPARAM wParam, const LPARAM lParam)
+{
+    std::unique_ptr<DesignerCapiLogicCompiler>& compiler = *reinterpret_cast<std::unique_ptr<DesignerCapiLogicCompiler>*>(wParam);
+    Application& application = *reinterpret_cast<Application*>(lParam);
+
+    compiler = std::make_unique<DesignerCapiLogicCompiler>(application);
 
     return 1;
 }
@@ -5852,7 +5867,7 @@ LRESULT CMainFrame::OnGetLexerLanguage(const WPARAM wParam, const LPARAM lParam)
 
     else
     {
-        ASSERT(false);
+        ASSERT(pWnd->GetActiveDocument()->IsKindOf(RUNTIME_CLASS(CTabulateDoc)));
         lexer_language = Lexers::GetLexer_Logic(pAplDoc->GetAppObject());
     }
 

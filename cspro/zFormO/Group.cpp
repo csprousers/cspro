@@ -660,12 +660,11 @@ eReturnType CDEGroup::Reconcile(CDEFormFile* pFormFile, CString& csErr, bool bSi
 // check group occurrences against the dictionary
 
 eReturnType CDEGroup::ReconcileRecordOccs (CDEFormFile* pFormFile,CString& csErr,
-                                           bool bSilent,
+                                           bool /*bSilent*/,
                                            bool bAutoFix,
                                            const DICT_LOOKUP_INFO& structLookup,
                                            bool* bFirst)
 {
-    UNREFERENCED_PARAMETER (bSilent);
     eReturnType eReturn = OK;
 
     int iGroupOccs = GetMaxLoopOccs();
@@ -728,12 +727,11 @@ eReturnType CDEGroup::ReconcileRecordOccs (CDEFormFile* pFormFile,CString& csErr
 // ***************************************************************************
 
 eReturnType CDEGroup::ReconcileItemOccs (CDEFormFile*pFormFile,CString& csErr,
-                                         bool bSilent,
+                                         bool /*bSilent*/,
                                          bool bAutoFix,
                                          const DICT_LOOKUP_INFO& structLookup,
                                          bool* bFirst)
 {
-    UNREFERENCED_PARAMETER (bSilent);
     eReturnType eReturn = OK;
 
     int iGroupOccs = GetMaxLoopOccs();
@@ -2044,7 +2042,7 @@ bool CDEGroup::Build (CSpecFile& frmFile, CDEFormFile* pFF, bool bSilent /* = fa
                 }
                 if (eItem == CDEFormBase::Field ||eItem == CDEFormBase::Roster || eItem == CDEFormBase::Block)  {
                     if ((pFF->GetForm (GetFormNum()) == NULL) &&(pForm ==NULL))  {
-                        ErrorMessage::Display(FormatText(_T("Line #%d: [Group]'s \"Form=\" entry missing or refers to non-existent form."), ln));
+                        ErrorMessage::Display(FormatText(L"Line #%d: [Group]'s \"Form=\" entry missing or refers to non-existent form.", ln));
                         return false;       // nd to bail right away
                     }
                     if(eItem == CDEFormBase::Roster)  {
@@ -2089,7 +2087,7 @@ bool CDEGroup::Build (CSpecFile& frmFile, CDEFormFile* pFF, bool bSilent /* = fa
                             AddItem(pField);           // add the item to the group
                             //                          int iFN = GetFormNum();//pField->GetFormNum(); Changed by chirag for copy pasrte stuff
                             if (pForm == NULL)  {
-                                ErrorMessage::Display(FormatText(_T("Line #%1: [Field]'s \"Form=\" entry missing or refers to non-existent form."), localLN));
+                                ErrorMessage::Display(FormatText(L"Line #%1: [Field]'s \"Form=\" entry missing or refers to non-existent form.", localLN));
                                 return false;       // nd to bail right away
                             }
 
@@ -2097,7 +2095,7 @@ bool CDEGroup::Build (CSpecFile& frmFile, CDEFormFile* pFF, bool bSilent /* = fa
                                 //Search in all forms and reset.
                                 if (!SearchInAllForms(pFF,pField))
                                 {
-                                    ErrorMessage::Display(FormatText( _T("Line %d: [Group]'s field \"%s\" not found on the form"), localLN, pField->GetName().GetString()));
+                                    ErrorMessage::Display(FormatText(L"Line %d: [Group]'s field \"%s\" not found on the form", localLN, pField->GetName().GetString()));
                                     RemoveItem (pField->GetName());
                                 }
                                 else
@@ -2164,7 +2162,7 @@ bool CDEGroup::Build (CSpecFile& frmFile, CDEFormFile* pFF, bool bSilent /* = fa
         else {
             // Incorrect attribute
             if (!bSilent) {
-                ErrorMessage::Display(FormatText(_T("Line#%d: Incorrect [%s] attribute\n\n%s"), (int)frmFile.GetLineNumber(), HEAD_GROUP, csCmd.GetString()));
+                ErrorMessage::Display(FormatText(L"Line#%d: Incorrect [%s] attribute\n\n%s", (int)frmFile.GetLineNumber(), HEAD_GROUP, csCmd.GetString()));
             }
             bRtnVal = false;    // keep parsing, don't set bDone yet
         }
@@ -2172,19 +2170,19 @@ bool CDEGroup::Build (CSpecFile& frmFile, CDEFormFile* pFF, bool bSilent /* = fa
     if (bRtnVal)  {   // then we're good so far, do a few more checks
         if (GetName() == sEmptyName) {
             // if the group was missing it's Name= block, provide one
-            ErrorMessage::Display(FormatText(_T("Line #%d: [Group] missing \"Name=\" entry--a unique name was provided."), ln));
+            ErrorMessage::Display(FormatText(L"Line #%d: [Group] missing \"Name=\" entry--a unique name was provided.", ln));
             SetName(pFF->CreateUniqueName(_T("GROUP"), false));
         }
 
         int i = GetFormNum();
         if (i == NONE)  {
-            ErrorMessage::Display(FormatText(_T("Line #%d: [Group] entry must have a \"Form=\" entry."), ln));
+            ErrorMessage::Display(FormatText(L"Line #%d: [Group] entry must have a \"Form=\" entry.", ln));
             bRtnVal = false;
         }
         else {
             //CDEForm* pForm = pFF->GetForm (i);
             if (pForm == NULL)  {  // form doesn't exist
-                ErrorMessage::Display(FormatText(_T("Line #%d: [Group]'s \"Form=\" entry refers to a non-existent form (%d)."), ln, i));
+                ErrorMessage::Display(FormatText(L"Line #%d: [Group]'s \"Form=\" entry refers to a non-existent form (%d).", ln, i));
                 return false;   // bail right away
             }
             else {

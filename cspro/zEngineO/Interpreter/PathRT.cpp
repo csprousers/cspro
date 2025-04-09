@@ -29,7 +29,7 @@ std::string LogicInterpreter::GetAbsolutePath(std::string path)
 
 void LogicInterpreter::MakeAbsolutePath(std::string& path)
 {
-    path = GetAbsolutePath(path);
+    path = GetAbsolutePath(std::move(path));
 }
 
 

@@ -1,8 +1,5 @@
 ﻿#pragma once
 
-#ifdef USE_BINARY
-
-#else
 //---------------------------------------------------------------------------
 //  File name: BatDrv.h
 //
@@ -258,5 +255,3 @@ public:
     int     CreateProgItem( int iLevel, int iSymVar, bool bDoCreate = true );
     int     CreateProgTable( int iTable, int iCtab, bool bDoCreate = true );
 };
-
-#endif // USE_BINARY

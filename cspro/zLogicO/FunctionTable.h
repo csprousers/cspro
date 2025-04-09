@@ -244,7 +244,7 @@ enum FunctionCode : int
 
     FNUSERBAR_CODE                          = 185, // GHM 20100414
 
-    FNMESSAGEOVERRDIES_CODE                 = 186, // GHM 20100518
+    FNMESSAGEOVERRIDES_CODE                 = 186, // GHM 20100518
 
     FNTRACE_CODE                            = 187, // GHM 20100518
 

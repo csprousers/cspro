@@ -7,7 +7,7 @@ struct MessageOverrides
     enum class Mode { NoOverride, SystemControlled, OperatorControlled };
 
     Mode mode = Mode::NoOverride;
-    std::optional<std::wstring> clear_text;
+    std::optional<std::string> clear_text;
     std::optional<WPARAM> clear_key_code;
 
     bool ForceSystemControlled() const   { return ( mode == Mode::SystemControlled ); }

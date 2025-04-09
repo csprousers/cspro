@@ -3,14 +3,19 @@
 //---------------------------------------------------------------------------
 #include "StdAfx.h"
 #include <engine/EXENTRY.H>
-#include <engine/Entdrv.h>
-#include <engine/EXENTRY.H>
 #include <engine/Engine.h>
-#include <Cexentry/Entifaz.h>
+#include <engine/Entifaz.h>
 #include <zUtilO/AppLdr.h>
 #include <zCapiO/CapiQuestionManager.h>
 #include <ZBRIDGEO/npff.h>
 #include <zDataO/DataRepository.h>
+
+#ifdef WIN_DESKTOP
+#include <engine/Comp.h>
+#include <engine/Ctab.h>
+#include <engine/Export.h>
+#include <engine/Tbd_save.h>
+#endif
 
 
 void CEntryDriver::reset_lastopenlevels()
@@ -305,12 +310,12 @@ void CEngineDriver::initextdi()
 double CIntDriver::DoXtab( CTAB *, double, int, LIST_NODE*  ){ return (double) 0; }
 double CIntDriver::DoOneXtab( CTAB* pCtab, double dWeight, int iTabLogicExpr, LIST_NODE*  ) { return (double) 0; }
 void CIntDriver::CtPos( CTAB*, int, int*, CSubTable*, CCoordValue*, bool  ){}
+
 #ifdef WIN_DESKTOP //TODO_PORT conflicts with inttbl.cpp check which one to use
 double CIntDriver::val_coord( int i_node, double i_coord ){ return -1; }
 double CIntDriver::val_high( void ) { return (double) 0; }    // BMD 13 Oct 2005
 #endif
 
-#include <engine/Ctab.h>
 
 double CIntDriver::tblcoord(int, int) { return( DEFAULT ); }
 double CIntDriver::excpttbl(int) { return( DEFAULT ); }
@@ -322,8 +327,8 @@ double CIntDriver::exxtab(int) { assert(0); return DEFAULT; }
 double CIntDriver::exupdate(int) { assert(0); return DEFAULT; }
 #endif
 
-#ifdef USE_BINARY
-#else
+#ifdef WIN_DESKTOP
+
 // Break nulls
 bool CTbd::breakinit( const TCHAR* ) {return( FALSE );}
 void CTbd::breakend(void) { return; }
@@ -333,13 +338,10 @@ void CTbd::breakmakeid( csprochar * ) { return; }
 void CTbd::breaksave( const TCHAR*, CTAB * ) { return; }
 short CTbdFile::GetTableNum( const csprochar*, int  ) { return 0; }
 int  CTbdFile::SetTableNum( csprochar* , short, int  ) { return 0; }
-#endif
 
 
 // compiling forbidden objects
-#ifdef WIN_DESKTOP
 
-#include <engine/COMPILAD.H>
 int  CEngineCompFunc::compctab( int, CTableDef::ETableType )    { return( SetSyntErr(601), 0 ); }
 
 void CEngineCompFunc::CompileSubTablesList( CTAB* pCtab, int* pNodeBase[TBD_MAXDIM],
@@ -481,14 +483,12 @@ int CEngineCompFunc::CompileOneSubTableDim( int* pNodeBase[TBD_MAXDIM], int iDim
                               ) { return 0; }
 
 int CEngineCompFunc::ctopernode( int iLeft, int iRight, int iNodeType ) { return -1;}
-#ifndef USE_BINARY
-bool CEngineCompFunc::ScanTables() { ASSERT(0); return false; }
-CMap<int,int,CString,CString> CTAB::m_aExtraNodeInfo;
-#endif
 
 bool CEngineCompFunc::CheckProcTables() {return false;}
 
-#ifndef USE_BINARY
+bool CEngineCompFunc::ScanTables() { ASSERT(0); return false; }
+CMap<int,int,CString,CString> CTAB::m_aExtraNodeInfo;
+
 void CExport::ExportClose(void) {}
 void CExport::ExportDescriptions(void){}
 bool CExport::ExportOpen(bool* bDeleteWhenFail){return false;}
@@ -501,6 +501,5 @@ CString CExport::GetDcfExpoName() const { ASSERT(0); return CString(); }
 int CTRANGE::getNumCells() { ASSERT(0); return 0; } // rcl, Jun 2005
 int CTRANGE::getNumCells(double rLow, double rHigh, int iCollapsed) { ASSERT(0); return 0; } // rcl, Jun 2005
 bool CTRANGE::fitInside( double rValue ) { ASSERT(0); return false; }
-#endif // !USE_BINARY
 
-#endif
+#endif // WIN_DESKTOP

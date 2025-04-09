@@ -154,12 +154,6 @@ inline std::wstring WindowsWS::AfxFormatString1(const UINT id, const NullTermina
 // AfxMessageBox overrides
 // --------------------------------------------------------------------------
 
-inline int AfxMessageBox(const std::wstring& text, const UINT nType = MB_OK, const UINT nIDHelp = 0)
-{
-    return AfxMessageBox(text.c_str(), nType, nIDHelp);
-}
-
-
 inline int AfxMessageBox(const CString& text, const UINT nType = MB_OK, const UINT nIDHelp = 0)
 {
     return AfxMessageBox(text.GetString(), nType, nIDHelp);

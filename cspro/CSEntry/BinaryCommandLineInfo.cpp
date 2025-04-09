@@ -3,54 +3,50 @@
 
 
 CSEntryBinaryCommandLineInfo::CSEntryBinaryCommandLineInfo()
-    :   m_bGeneratePen(false),
-        m_bExpectingPenFilename(false)
+    :   m_expectingPenFilePath(false)
 {
 }
 
 
-void CSEntryBinaryCommandLineInfo::ParseParam(const TCHAR* pszParam, BOOL bFlag, BOOL bLast)
+void CSEntryBinaryCommandLineInfo::ParseParam(const TCHAR* const pszParam, const BOOL bFlag, const BOOL bLast)
 {
+    std::string param = TC::ToUtf8(pszParam);
+
     if( bFlag )
     {
-        if( _tcsicmp(pszParam, _T("pen")) == 0 || _tcsicmp(pszParam, _T("binaryWin32")) == 0 || _tcsicmp(pszParam, _T("binaryUnicode")) == 0 )
+        if( SO::EqualsOneOfNoCase(param, "pen", "binaryWin32", "binaryUnicode") )
         {
-            m_bGeneratePen = true;
+            if( !m_penFilePath.has_value() )
+                m_penFilePath.emplace();
         }
 
-        else if( _tcsicmp(pszParam, _T("penName")) == 0 || _tcsicmp(pszParam, _T("binaryName")) == 0 )
+        else if( SO::EqualsOneOfNoCase(param, "penName", "binaryName") )
         {
-            m_bExpectingPenFilename = true;
+            m_expectingPenFilePath = true;
         }
     }
 
-    else if( m_bExpectingPenFilename ) // following /binaryName flag, pick up filename
+    else if( m_expectingPenFilePath ) // following /binaryName flag, pick up filename
     {
-        m_penFilename = pszParam;
-        m_bExpectingPenFilename = false;
+        m_penFilePath = std::move(param);
+        m_expectingPenFilePath = false;
     }
 
     else
     {
-        CIMSACommandLineInfo::ParseParam(pszParam, bFlag, bLast);
+        __super::ParseParam(pszParam, bFlag, bLast);
     }
-}
-
-
-const std::wstring& CSEntryBinaryCommandLineInfo::GetPenFilename()
-{
-    // if no name was specified, use the .ent filename but replace the extension with .pen
-    if( m_penFilename.empty() )
-        m_penFilename = UTF8_TODO::GetWide(PortableFunctions::PathReplaceFileExtension(UTF8_TODO::GetUtf8(m_strFileName), FileExtensions::BinaryEntryPen));
-
-    return m_penFilename;
 }
 
 
 void CSEntryBinaryCommandLineInfo::UpdateBinaryGen()
 {
-    BinaryGen::m_bGeneratingBinary = m_bGeneratePen;
+    if( m_penFilePath.has_value() )
+    {
+        // if no file path was specified, use the application's filename but replace the extension with .pen
+        if( m_penFilePath->empty() )
+            m_penFilePath = Path::ReplaceExtension(TC::ToUtf8(m_strFileName), FileExtensions::BinaryEntryPen);
 
-    if( m_bGeneratePen )
-        BinaryGen::m_sBinaryName = GetPenFilename();
+        BinaryGen::SetCreatingPen(MakeFullPath(GetWorkingDirectory(), std::move(*m_penFilePath)));
+    }
 }

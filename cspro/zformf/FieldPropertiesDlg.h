@@ -9,10 +9,10 @@ constexpr const char* CAPTURETYPE_TEXTBOX_NO_TICKMARKS_DESCRIPTION = "Text Box (
 
 constexpr int CAPTURETYPE_TEXTBOX_MULTILINE                        = static_cast<int>(CaptureType::Unspecified) - 2;
 constexpr const char* CAPTURETYPE_TEXTBOX_MULTILINE_DESCRIPTION    = "Text Box (Multiline)";
-                                              
+
 constexpr const char* CAPTURETYPE_UNASSIGNED_DESCRIPTION           = "<linked to dictionary item>";
-                                              
-// multiple field properties                  
+
+// multiple field properties
 constexpr int CAPTURETYPE_NO_CHANGE                                = static_cast<int>(CaptureType::Unspecified) - 3;
 constexpr int CAPTURETYPE_DEFAULT                                  = static_cast<int>(CaptureType::Unspecified) - 4;
 constexpr int CAPTURETYPE_LINK_TO_DICT_IF_DEFINED                  = static_cast<int>(CaptureType::Unspecified) - 5;
@@ -43,8 +43,8 @@ public:
 
     ValidationMethod    m_eValidationMethod;
 
-    CString             m_sKeyboardDescription;
-    UINT                m_KLID;
+    std::wstring        m_keyboardDescription;
+    UINT                m_klid;
 
     CStatic*            m_pCaptureErrorIcon;
     CStatic*            m_pCaptureErrorText;

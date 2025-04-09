@@ -46,7 +46,7 @@
   <PropertyGroup Label="UserMacros" />
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <PreprocessorDefinitions>WIN_DESKTOP;WIN32;NDEBUG;_WINDOWS;_AFXEXT;ZBATCHO_EXPORTS;MSVC;GENERATE_BINARY;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN_DESKTOP;WIN32;NDEBUG;_WINDOWS;_AFXEXT;ZBATCHO_EXPORTS;MSVC;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -55,7 +55,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <PreprocessorDefinitions>WIN_DESKTOP;WIN32;_DEBUG;_WINDOWS;_AFXEXT;ZBATCHO_EXPORTS;MSVC;GENERATE_BINARY;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN_DESKTOP;WIN32;_DEBUG;_WINDOWS;_AFXEXT;ZBATCHO_EXPORTS;MSVC;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -86,24 +86,8 @@
     <ClInclude Include="zBatchO.h" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Cexentry\CEXENTRY.vcxproj">
-      <Project>{0e462c9b-e100-4266-9340-a06cae0c3f10}</Project>
-      <Private>false</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\engine\DEP\Dep.vcxproj">
-      <Project>{84ec2305-2882-4cd4-a88c-0b9e7aab5254}</Project>
-      <Private>false</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\engine\EX1\ex1.vcxproj">
-      <Project>{b865564a-7c54-4c9e-a1c9-1dbdf17e0446}</Project>
-      <Private>false</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\engine\EX2\ex2.vcxproj">
-      <Project>{e704c3c1-f6c2-4dd3-af59-cb1d895db130}</Project>
-      <Private>false</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\engine\ISSA\issa.vcxproj">
-      <Project>{9556badf-5360-45d1-91a7-449e003cde54}</Project>
+    <ProjectReference Include="..\engine\engine.vcxproj">
+      <Project>{9be94f2e-69da-483f-9a82-293bd8b8ed1a}</Project>
       <Private>false</Private>
     </ProjectReference>
     <ProjectReference Include="..\zSql\zSql.vcxproj">

@@ -766,7 +766,7 @@ template<typename... Args>
 void LogicInterpreter::IssueMessage(const MessageType message_type, const int message_number, Args const&... args)
 {
 #ifdef _DEBUG
-    ValidateFormatTextArgumentTypes(args...);
+    ValidateFormatTextArgumentTypes<char>(args...);
 #endif
 
     IssueMessageWorker(message_type, message_number, args...);
@@ -777,7 +777,7 @@ template<typename... Args>
 std::string LogicInterpreter::GetFormattedMessage(const int message_number, Args const&... args)
 {
 #ifdef _DEBUG
-    ValidateFormatTextArgumentTypes(args...);
+    ValidateFormatTextArgumentTypes<char>(args...);
 #endif
 
     return GetFormattedMessageWorker(message_number, args...);

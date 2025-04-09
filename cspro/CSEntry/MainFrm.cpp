@@ -414,7 +414,6 @@ void CMainFrame::OnUpdateStop(CCmdUI* pCmdUI)
 {
     CEntryrunDoc* pDoc = (CEntryrunDoc*)GetActiveDocument();
     if(pDoc->GetAppMode() == MODIFY_MODE || pDoc->GetAppMode() == ADD_MODE || pDoc->GetAppMode() == VERIFY_MODE)
-
         pCmdUI->Enable( TRUE );
     else
         pCmdUI->Enable( FALSE);
@@ -1922,12 +1921,11 @@ void CMainFrame::OnUpdateDeletecase(CCmdUI* pCmdUI)
 //      LONG CMainFrame::OnWriteCase(WPARAM wParam, LPARAM lParam)
 //
 /////////////////////////////////////////////////////////////////////////////////
-LONG CMainFrame::OnWriteCase(WPARAM wParam, LPARAM lParam)
+LONG CMainFrame::OnWriteCase(WPARAM /*wParam*/, LPARAM lParam)
 {
-    UNREFERENCED_PARAMETER(wParam);
-    const Case& data_case = *(const Case*)lParam;
+    const Case& data_case = *reinterpret_cast<const Case*>(lParam);
 
-    CEntryrunDoc* pDoc = (CEntryrunDoc*)GetActiveDocument();
+    CEntryrunDoc* pDoc = GetDocument();
 
     COperatorStatisticsLog* pOperatorStatisticsLog = pDoc->GetOperatorStatisticsLog();
 
@@ -4285,16 +4283,13 @@ LONG CMainFrame::OnUserbarUpdate(WPARAM wParam, LPARAM lParam) // 20100415
 }
 
 
-
 LONG CMainFrame::OnSetMessageOverrides(WPARAM wParam, LPARAM /*lParam*/) // 20100518
 {
-    const MessageOverrides& message_overrides = *((const MessageOverrides*)wParam);
-
-    CEntryrunDoc* pDoc = (CEntryrunDoc*)GetActiveDocument();
-    pDoc->SetMessageOverrides(message_overrides);
-
-    return 0;
+    const MessageOverrides& message_overrides = *reinterpret_cast<const MessageOverrides*>(wParam);
+    GetDocument()->SetMessageOverrides(message_overrides);
+    return 1;
 }
+
 
 LONG CMainFrame::OnUsingOperatorControlledMessages(WPARAM wParam, LPARAM lParam)
 {
@@ -4304,7 +4299,7 @@ LONG CMainFrame::OnUsingOperatorControlledMessages(WPARAM wParam, LPARAM lParam)
 
     if( pRunApl != nullptr )
     {
-        const auto& message_overrides = pDoc->GetMessageOverrides();
+        const MessageOverrides& message_overrides = pDoc->GetMessageOverrides();
 
         using_operator_controlled_messages = message_overrides.ForceOperatorControlled() ||
                                              ( !pRunApl->IsPathOn() && !message_overrides.ForceSystemControlled() );
@@ -4558,20 +4553,21 @@ void CMainFrame::OnReviewNotes()
 
 /////////////////////////////////////////////////////////////////////////////////
 //
-//      LONG CMainFrame::OnSetSequential(WPARAM wParam, LPARAM lParam)
+//      LRESULT CMainFrame::OnSetSequential(WPARAM wParam, LPARAM lParam)
 //
 /////////////////////////////////////////////////////////////////////////////////
-LONG CMainFrame::OnSetSequential(WPARAM wParam, LPARAM lParam)
+LRESULT CMainFrame::OnSetSequential(WPARAM wParam, LPARAM /*lParam*/)
 {
-    CDEField* pField = (CDEField*)wParam;
     //Get the field that is current
-    ///get the pEdit and set window text
-    CDEBaseEdit *pEdit = GetRunView()->SearchEdit(pField);
-    if(pEdit){
-        pEdit->SetWindowText(pField->GetData());
-    }
-    return 0l;
+    const CDEField* const pField = reinterpret_cast<CDEField*>(wParam);
 
+    //Get the pEdit and set window text
+    CDEBaseEdit* const pEdit = GetRunView()->SearchEdit(pField);
+
+    if( pEdit != nullptr )
+        pEdit->SetWindowText(pField->GetData());
+
+    return 0;
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -4672,7 +4668,7 @@ void CMainFrame::BuildKeyArray()
                     caseFilterRegex = std::make_unique<std::regex>(UTF8_TODO::GetUtf8(csFilterRegex));
                 }
                 catch (const std::regex_error&) {
-                    AfxMessageBox(FormatText(_T("CaseListingFilter is an invalid ECMAScript regular expression: %s"), csFilterRegex.GetString()));
+                    AfxMessageBox(FormatText(L"CaseListingFilter is an invalid ECMAScript regular expression: %s", csFilterRegex.GetString()));
                 }
             }
         }
@@ -4844,7 +4840,7 @@ void CMainFrame::DoInitialApplicationLayout(CNPifFile* pPifFile)
 }
 
 
-LRESULT CMainFrame::OnChangeInputRepository(WPARAM wParam,LPARAM lParam)
+LRESULT CMainFrame::OnChangeInputRepository(WPARAM /*wParam*/, LPARAM /*lParam*/)
 {
     // the input repository was changed via a call to open/close/setfile so...
 
@@ -4853,7 +4849,7 @@ LRESULT CMainFrame::OnChangeInputRepository(WPARAM wParam,LPARAM lParam)
     GetCaseView()->BuildTree();
 
     // and the title bar
-    CEntryrunDoc* pRunDoc = (CEntryrunDoc*)GetDocument();
+    CEntryrunDoc* const pRunDoc = GetDocument();
     const std::wstring title = TC::ToWide(pRunDoc->MakeTitle());
     pRunDoc->SetTitle(title.c_str());
     SetWindowText(title.c_str());
@@ -4868,9 +4864,9 @@ LRESULT CMainFrame::OnChangeInputRepository(WPARAM wParam,LPARAM lParam)
 LRESULT CMainFrame::OnWindowTitleQuery(const WPARAM wParam, const LPARAM lParam)
 {
     const bool get_title = static_cast<bool>(wParam);
-    CString& window_title = *((CString*)lParam);
+    CString& window_title = *reinterpret_cast<CString*>(lParam);
 
-    CEntryrunDoc* pRunDoc = (CEntryrunDoc*)GetDocument();
+    CEntryrunDoc* pRunDoc = GetDocument();
 
     if( get_title )
     {

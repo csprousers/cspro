@@ -27,18 +27,15 @@
 #include <zEngineO/SaveArrayFile.h>
 #include <zEngineO/UserFunctionArgumentEvaluator.h>
 #include <zEngineF/TraceHandler.h>
+#include <zEngineF/WindowsApplicationInterface.h>
 #include <zToolsO/Tools.h>
 #include <zUtilO/MemoryHelpers.h>
-#include <zJson/JsonNode.h>
+#include <zUtilF/KeyboardLoader.h>
 #include <ZBRIDGEO/npff.h>
 #include <zMessageO/Messages.h>
 #include <zCapiO/CapiQuestionManager.h>
 #include <zFreqO/Frequency.h>
 #include <zReportO/Pre77ReportManager.h>
-
-#ifdef WIN_DESKTOP
-#include <zEngineF/WindowsApplicationInterface.h>
-#endif
 
 
 
@@ -68,7 +65,8 @@ CIntDriver::CIntDriver(CEngineDriver& engine_driver)
         m_aFixedDimensions(ONE_BASED),
         m_pEngineDriver(&engine_driver),
         m_pEngineArea(m_pEngineDriver->getEngineAreaPtr()),
-        m_pEngineSettings(&m_pEngineDriver->m_EngineSettings)
+        m_pEngineSettings(&m_pEngineDriver->m_EngineSettings),
+        m_keyboardLoader(std::make_unique<KeyboardLoader>())
 {
     // --- procedure being executed
     m_iProgType          = 0;
@@ -101,11 +99,6 @@ CIntDriver::CIntDriver(CEngineDriver& engine_driver)
     m_bAllowMultipleRelation = false; // RHF Jul 16, 2002
 
     m_FieldSymbol = 0; // 20100708
-
-#ifdef WIN_DESKTOP
-    m_hLastDefaultKL = NULL; // 20120821
-    m_hCurrentKL = NULL;
-#endif
 
     m_paradataDriver = std::make_unique<EngineParadataDriver>(*this);
 
@@ -566,13 +559,13 @@ CIntDriver::pDoubleFunction CIntDriver::m_pExFuncs[] =
 /* 198 */   &CIntDriver::ex_low_high,        // GHM 20110301 low
 /* 199 */   &CIntDriver::ex_low_high,        // GHM 20110301 high
 /* 200 */   &CIntDriver::exgetrecord,        // GHM 20110302
-/* 201 */   &CIntDriver::exsetcapturepos,    // GHM 20110502
+/* 201 */   &CIntDriver::ex_setcapturepos,   // GHM 20110502
 /* 202 */   &CIntDriver::ex_abs,             // GHM 20110721
 /* 203 */   &CIntDriver::ex_randomin,        // GHM 20110721
 /* 204 */   &CIntDriver::exrandomizevs,      // GHM 20110811
 /* 205 */   &CIntDriver::ex_getusername,     // GHM 20111028
 /* 206 */   &CIntDriver::exfileempty,        // GHM 20120627
-/* 207 */   &CIntDriver::exchangekeyboard,   // GHM 20120820
+/* 207 */   &CIntDriver::ex_changekeyboard,  // GHM 20120820
 /* 208 */   &CIntDriver::ex_setoutput,       // GHM 20121126
 /* 209 */   &CIntDriver::exseekMinMax,       // GHM 20130119
 /* 210 */   &CIntDriver::exseekMinMax,       // GHM 20130119
@@ -1421,35 +1414,8 @@ void CIntDriver::RunGlobalOnFocus(const int symbol_index)
     if( HasSpecialFunction(SpecialFunction::GlobalOnFocus) )
         ExecSpecialFunction(symbol_index, SpecialFunction::GlobalOnFocus, { double(symbol_index) });
 
-    UpdateKeyboardInputMethod(VPT(symbol_index)); // 20120821
-}
-
-
-void CIntDriver::UpdateKeyboardInputMethod(VART* const pVarT) // 20120821
-{
-#ifdef WIN_DESKTOP
-    if( pVarT->GetHKL() == nullptr ) // default keyboard
-    {
-        if( m_hCurrentKL != nullptr ) // currently not the default
-        {
-            ActivateKeyboardLayout(m_hLastDefaultKL, 0);
-            m_hLastDefaultKL = nullptr;
-            m_hCurrentKL = nullptr;
-        }
-    }
-
-    else // setting the keyboard
-    {
-        if( m_hLastDefaultKL == nullptr ) // get the current keyboard
-            m_hLastDefaultKL = GetKeyboardLayout(0);
-
-        if( m_hCurrentKL != pVarT->GetHKL() )
-        {
-            m_hCurrentKL = pVarT->GetHKL();
-            ActivateKeyboardLayout(m_hCurrentKL, 0);
-        }
-    }
-#endif
+    // when the field specifies a particular keyboard to use, update the keyboard input
+    m_keyboardLoader->Activate(VPT(symbol_index)->GetKeyboardLayoutId());
 }
 
 

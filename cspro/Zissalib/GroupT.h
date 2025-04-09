@@ -498,9 +498,7 @@ public:
 
     void serialize_subclass(Serializer& ar) override;
 
-#if defined(USE_BINARY) || defined(GENERATE_BINARY)
     virtual void accept( GroupVisitor* visitor );
-#endif
 
 private:
     const Logic::SymbolTable& GetSymbolTable() const;
@@ -509,6 +507,6 @@ private:
     int m_containerIndex = 0; // the container table index
 
 public:
-    int GetContainerIndex() const  			    { return m_containerIndex; }
+    int GetContainerIndex() const               { return m_containerIndex; }
     void SetContainerIndex(int container_index) { m_containerIndex = container_index; }
 };

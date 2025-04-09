@@ -10,10 +10,13 @@ class CDEItemBase;
 class DesignerCapiLogicCompiler;
 
 
-/// <summary>
-/// Stores currently selected CAPI question, language and
-/// condition to be displayed in CAPI question editor views
-/// </summary>
+// --------------------------------------------------------------------------
+// CapiEditorViewModel
+//
+// Stores the currently selected CAPI question, language, and condition
+// to be displayed in CAPI question editor views.
+// --------------------------------------------------------------------------
+
 class CapiEditorViewModel
 {
 public:

@@ -1,6 +1,8 @@
-﻿#include <engine/StandardSystemIncludes.h>
+﻿#include "StdAfx.h"
+#include "Wcompile.h"
+#include <engine/StandardSystemIncludes.h>
 #include <engine/INTERPRE.H>
-#include <engine/EXENTRY.H>
+#include <engine/Export.h>
 #include <engine/FrequencyDriver.h>
 #include <engine/ImputationDriver.h>
 #include <engine/InterpreterAccessor.h>
@@ -10,8 +12,8 @@
 #include <zEngineO/UserFunctionArgumentEvaluator.h>
 #include <zEngineF/TraceHandler.h>
 #include <zEngineF/WindowsApplicationInterface.h>
+#include <zUtilF/KeyboardLoader.h>
 #include <Zissalib/CFlAdmin.h>
-#include <zJson/JsonNode.h>
 #include <zReportO/Pre77ReportManager.h>
 
 

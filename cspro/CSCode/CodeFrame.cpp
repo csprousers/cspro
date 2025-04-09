@@ -283,10 +283,10 @@ void CodeFrame::PopulateRunMenu(CMenu& popup_menu)
     {
         const bool is_spec_file = ( view_language_settings.GetLanguageType() == LanguageType::CSProSpecFileJson );
 
-        const std::wstring validate_text = FormatTextCS2WS(L"&Validate%s\tCtrl+K",
-                                                           is_spec_file                                                                 ? L" Specification File" :
-                                                           ( doc_language_settings.GetLanguageType() == LanguageType::CSProHtmlDialog ) ? L" JSON Input" :
-                                                                                                                                          L"");
+        const std::wstring validate_text = FormatText(L"&Validate%s\tCtrl+K",
+                                                      is_spec_file                                                                 ? L" Specification File" :
+                                                      ( doc_language_settings.GetLanguageType() == LanguageType::CSProHtmlDialog ) ? L" JSON Input" :
+                                                                                                                                     L"");
         dynamic_menu_builder.AddOption(ID_RUN_COMPILE_OR_VALIDATE, validate_text);
 
         if( is_spec_file )

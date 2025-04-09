@@ -10,6 +10,7 @@ class CLASS_DECL_ZSRCMGR DesignerCapiLogicCompiler : public BackgroundCompiler, 
 {
 public:
     DesignerCapiLogicCompiler(Application& application);
+    virtual ~DesignerCapiLogicCompiler() { }
 
     CEngineDriver* GetEngineDriver() override;
     std::string GetProcName() const override           { return m_procName; }
@@ -21,7 +22,8 @@ public:
         std::string error_message;
     };
 
-    CompileResult Compile(const CapiLogicParameters& capi_logic_parameters);
+    // marked as virtual to make it accessible from zFormO
+    virtual CompileResult Compile(const CapiLogicParameters& capi_logic_parameters);
 
 private:
     Application& m_application;

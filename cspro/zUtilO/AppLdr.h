@@ -14,28 +14,14 @@ class CAppLoader
 {
 public:
     // binary or regular load
-    bool GetBinaryFileLoad() const
-    {
-        return m_bBinary;
-    }
+    bool GetBinaryFileLoad() const { return m_binaryFileLoad; }
+    void SetBinaryFileLoad(bool b) { m_binaryFileLoad = b; }
 
-    void SetBinaryFileLoad(bool b)
-    {
-        m_bBinary = b;
-    }
-
-    // name of archive for binary load
-    const std::wstring& GetArchiveName() const
-    {
-        return m_sArchiveName;
-    }
-
-    void SetArchiveName(std::wstring sName)
-    {
-        m_sArchiveName = std::move(sName);
-    }
+    // file path of archive for binary load
+    const std::string& GetArchiveFilePath() const  { return m_archiveFilePath; }
+    void SetArchiveFilePath(std::string file_path) { m_archiveFilePath = std::move(file_path); }
 
 private:
-    bool m_bBinary = false;
-    std::wstring m_sArchiveName;
+    bool m_binaryFileLoad = false;
+    std::string m_archiveFilePath;
 };

@@ -14,7 +14,7 @@ public:
     void IssueError(int message_number, Args const&... args)
     {
 #ifdef _DEBUG
-        ValidateFormatTextArgumentTypes(args...);
+        ValidateFormatTextArgumentTypes<char>(args...);
 #endif
 
         IssueErrorWorker(message_number, args...);

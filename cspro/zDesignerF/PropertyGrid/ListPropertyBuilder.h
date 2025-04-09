@@ -10,7 +10,7 @@ namespace PropertyGrid
     {
     public:
         ListProperty(std::shared_ptr<PropertyGridData<T>> data, std::shared_ptr<const std::vector<std::tuple<T, CString>>> options)
-            :   CMFCPropertyGridProperty(data->property_name, ToOleVariant(*data->value, *options), data->property_description),
+            :   CMFCPropertyGridProperty(data->property_name, ToOleVariant(*data->value, *options), data->property_description.c_str()),
                 Property(data->allow_direct_edit),
                 m_data(data),
                 m_options(options)
@@ -99,7 +99,7 @@ namespace PropertyGrid
     class ListPropertyBuilder : public PropertyBuilderBase<T>
     {
     public:
-        ListPropertyBuilder(CString property_name, const TCHAR* property_description, std::optional<T> value = std::nullopt)
+        ListPropertyBuilder(CString property_name, const wchar_t* property_description, std::optional<T> value = std::nullopt)
             :   PropertyBuilderBase<T>(property_name, property_description, value),
                 m_options(std::make_shared<std::vector<std::tuple<T, CString>>>())
         {

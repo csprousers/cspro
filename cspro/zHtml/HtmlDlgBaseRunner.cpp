@@ -50,7 +50,7 @@ INT_PTR HtmlDlgBaseRunner::DoModal(const bool on_ui_thread)
         return ProcessResults(html_dlg->GetResultsText());
 
 #else
-        UNREFERENCED_PARAMETER(on_ui_thread);
+        on_ui_thread; // unreferenced parameter
 
         return ProcessResults(RunHtmlDlg());
 

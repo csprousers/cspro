@@ -372,11 +372,8 @@ public:
 
     //Application Runtime Functions
 
-    bool LoadRTDicts                (CAppLoader* pLoader); // Load the CDataDict objects @ runtime
-
-#ifdef GENERATE_BINARY
-    bool SaveRTDicts(const std::wstring& archive_name) const; // writes dictionary to disk
-#endif
+    bool LoadRTDicts(CAppLoader* pLoader); // Load the CDataDict objects @ runtime
+    bool SaveRTDicts() const;              // writes dictionary to disk
 
     const PortableFont& GetFieldFont() const { return m_fieldFont; }
     void SetFieldFont(PortableFont font)     { m_fieldFont = std::move(font); }

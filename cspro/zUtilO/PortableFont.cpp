@@ -3,6 +3,18 @@
 #include <mutex>
 
 
+#ifndef WIN32
+    #define ANSI_CHARSET        0
+    #define ARABIC_CHARSET      178
+    #define RUSSIAN_CHARSET     204
+    #define OUT_DEFAULT_PRECIS  0
+    #define CLIP_DEFAULT_PRECIS 0
+    #define DEFAULT_QUALITY     0
+    #define FF_DONTCARE         (0<<4)
+    #define FW_NORMAL           400
+#endif
+
+
 namespace
 {
     struct FontDetails

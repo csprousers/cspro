@@ -25,11 +25,13 @@
 #include <zToolsO/DirectoryLister.h>
 #include <zToolsO/FileIO.h>
 #include <zToolsO/NewlineSubstitutor.h>
+#include <zToolsO/TextConverter.h>
 #include <zToolsO/TextEncoding.h>
-#include <zToolsO/Tools.h>
+#include <zToolsO/Utf8.h>
 #include <zToolsO/VarFuncs.h>
 #include <zUtilO/PathHelpers.h>
 #include <zUtilO/PortableFileSystem.h>
+#include <zUtilF/KeyboardLoader.h>
 #include <zMessageO/MessageFile.h>
 #include <zDictO/ValueProcessor.h>
 #include <zDictO/ValueSetResponse.h>
@@ -1873,6 +1875,109 @@ double CIntDriver::exfileconcat(int iExpr)
 }
 
 
+// Read a line until \n.
+// 20140326 for variable length strings (used by fileread)
+bool ReadLine(CFile& cFile, CString* pStr, Encoding encoding)
+{
+    bool    bRet=true;
+
+    try {
+    UINT    nBytes, nTotalBytes=0;
+#define BUF256                  256
+        char    lpBuffer[BUF256];
+#ifdef WIN32
+        TCHAR   wBuffer[BUF256];
+#else
+        std::wstring wBuffer;
+#endif
+        UINT    wBytes = 0;
+
+        ULONGLONG    lCurrentPos=cFile.GetPosition();
+
+        int             iLen=0;
+        int             iPosNewLine=-1;
+
+        while( iPosNewLine == -1 && (nBytes=cFile.Read( lpBuffer, BUF256 )) > 0 ) {
+
+            if( encoding == Encoding::Utf8 )
+            {
+                if( ( BUF256 - nBytes ) < 4 ) // don't let the buffer end in the middle of a character sequence
+                {
+                    int goBackChars = 0;
+
+                    while( lpBuffer[nBytes + goBackChars - 1] >> 6 == 2 ) // we're in the middle of a sequence
+                        goBackChars--;
+
+                    if( lpBuffer[nBytes + goBackChars - 1] & 0xC0 ) // the beginning of a sequence
+                        goBackChars--;
+
+                    if( goBackChars )
+                    {
+                        cFile.Seek(goBackChars,CFile::current);
+                        nBytes += goBackChars;
+                    }
+                }
+#ifdef WIN32
+                wBytes = MultiByteToWideChar(CP_UTF8,0,lpBuffer,nBytes,wBuffer,BUF256);
+#else
+                wBuffer = TC::ToWide(lpBuffer, nBytes);
+                wBytes = wBuffer.length();
+#endif
+            }
+
+            else if( encoding == Encoding::Ansi )
+            {
+#ifdef WIN32
+                wBytes = MultiByteToWideChar(CP_ACP,0,lpBuffer,nBytes,wBuffer,BUF256);
+#else
+                wBuffer = TextConverter::WindowsAnsiToWide(lpBuffer,nBytes);
+                wBytes = wBuffer.length();
+#endif
+            }
+
+            else
+            {
+                ASSERT(0); // no other encoding supported
+            }
+
+            nTotalBytes += nBytes;
+
+            TCHAR * pBuff = pStr->GetBuffer(iLen + wBytes);
+
+            // first fill pBuff
+            for( UINT i = 0; i < wBytes && wBuffer[i] != _T('\n'); i++ )
+            {
+                if( wBuffer[i] != _T('\r') )
+                    pBuff[iLen++] = wBuffer[i];
+            }
+
+            // now search for the endline in the ANSI/UTF8 string
+            for( UINT i = 0; iPosNewLine == -1 && i < nBytes ; i++ )
+            {
+                if( lpBuffer[i] == '\n' )
+                    iPosNewLine = nTotalBytes - nBytes + i;
+            }
+
+        }
+
+        pStr->ReleaseBuffer(iLen);
+
+        if( nTotalBytes == 0 )
+            bRet = false;
+
+        // Some newline was found
+        if( iPosNewLine != -1 ) {
+            cFile.Seek( lCurrentPos+iPosNewLine+1, CFile::begin );
+        }
+    }
+    catch(...) {
+        bRet = false;
+    }
+
+    return bRet;
+}
+
+
 // Open the file if it was closed. Only allows file handler as parameter
 double CIntDriver::exfileread(int iExpr)
 {
@@ -2874,10 +2979,8 @@ double CIntDriver::exgetcapturetype(int iExpr) // 20100608
 
 double CIntDriver::exsetcapturetype(int iExpr)
 {
-#ifdef WIN_DESKTOP
     // 20100623 we'll want to refresh the responses window in case the capture type has been changed
-    AfxGetApp()->GetMainWnd()->PostMessage(UWM::CSEntry::ShowCapi);
-#endif
+    WindowsDesktopMessage::Post(UWM::CSEntry::ShowCapi);
 
     const FNN_NODE* pFunc = (FNN_NODE*)PPT(iExpr);
     Symbol* pSymbol = NPT(pFunc->fn_expr[0]);
@@ -2934,67 +3037,63 @@ double CIntDriver::exsetcapturetype(int iExpr)
 }
 
 
-double CIntDriver::exsetcapturepos(int iExpr)
+double CIntDriver::ex_setcapturepos(const int program_index)
 {
-#ifdef WIN_DESKTOP
-    const FNN_NODE* pFunc = (FNN_NODE*)PPT(iExpr);
-    Symbol* pSymbol = NPT(pFunc->fn_expr[0]);
-
-    POINT point =
-    {
-        Evaluate<LONG>(pFunc->fn_expr[1]),
-        Evaluate<LONG>(pFunc->fn_expr[2])
-    };
-
-    auto setcapturepos_processor = [&](VART* pVarT) -> bool
-    {
-        pVarT->SetCapturePos(point);
-        return true;
-    };
-
-    return VariableWorker(GetSymbolTable(), pSymbol, setcapturepos_processor);
-
+#ifndef WIN_DESKTOP
+    // not applicable on portable platforms
+    return DEFAULT;
 #else
-    return DEFAULT; // not applicable on portable platforms
+    const auto& fnn_node = GetNode<FNN_NODE>(program_index);
+    Symbol& symbol = NPT_Ref(fnn_node.fn_expr[0]);
+
+    const POINT point
+    {
+        Evaluate<LONG>(fnn_node.fn_expr[1]),
+        Evaluate<LONG>(fnn_node.fn_expr[2])
+    };
+
+    return VariableWorker(GetSymbolTable(), &symbol,
+        [&](VART* const pVarT)
+        {
+            pVarT->SetCapturePos(point);
+            return true;
+        });
 #endif
 }
 
 
-double CIntDriver::exchangekeyboard(int iExpr)
+double CIntDriver::ex_changekeyboard(const int program_index)
 {
-#ifdef WIN_DESKTOP
-    const auto& va_node = GetNode<Nodes::VariableArguments>(iExpr);
+#ifndef WIN_DESKTOP
+    // not applicable on portable platforms
+    return DEFAULT;
+#else
+    const auto& va_node = GetNode<Nodes::VariableArguments>(program_index);
     Symbol& symbol = NPT_Ref(va_node.arguments[1]);
 
     // they are only interested in what the keyboard ID is...
     if( va_node.arguments[0] == -1 )
     {
         ASSERT(symbol.IsA(SymbolType::Variable));
-
-        return m_pEngineDriver->GetKLIDFromHKL(assert_cast<VART&>(symbol).GetHKL());
+        return assert_cast<const VART&>(symbol).GetKeyboardLayoutId();
     }
 
     // ...or the keyboard ID is being changed
     else
     {
-        unsigned keyboard_id = Evaluate<unsigned>(va_node.arguments[0]);
-        HKL hKL = m_pEngineDriver->LoadKLID(keyboard_id);
+        const unsigned keyboard_id = m_keyboardLoader->GetKeyboardId(Evaluate<unsigned int>(va_node.arguments[0]));
 
-        auto changekeyboard_processor = [hKL](VART* pVarT) -> bool
-        {
-            // no reason to change it if it's not on a form
-            if( !pVarT->IsUsed() )
-                return false;
+        return VariableWorker(GetSymbolTable(), &symbol,
+            [&](VART* const pVarT)
+            {
+                // no reason to change it if it's not on a form
+                if( !pVarT->IsUsed() )
+                    return false;
 
-            pVarT->SetHKL(hKL);
-            return true;
-        };
-
-        return VariableWorker(GetSymbolTable(), &symbol, changekeyboard_processor);
+                pVarT->SetKeyboardLayoutId(keyboard_id);
+                return true;
+            });
     }
-
-#else
-    return DEFAULT; // not applicable on portable platforms
 #endif
 }
 
@@ -3002,7 +3101,10 @@ double CIntDriver::exchangekeyboard(int iExpr)
 // getorientation and setorientation both call this function; only setorientation has parameters
 double CIntDriver::exorientation(int iExpr) // 20100618
 {
-#ifdef WIN_DESKTOP
+#ifndef WIN_DESKTOP
+    // not applicable on portable platforms
+    return DEFAULT;
+#else
     FNN_NODE* pfun = (FNN_NODE*)PPT(iExpr);
     bool isSetting = pfun->fn_nargs == 1;
     DWORD setMode = isSetting ? Evaluate<DWORD>(pfun->fn_expr[0]) : 0;
@@ -3020,26 +3122,27 @@ double CIntDriver::exorientation(int iExpr) // 20100618
     if( !isSetting )
         return DeviceMode.dmDisplayOrientation * 90;
 
-    else if( DeviceMode.dmDisplayOrientation == setMode )
-        return 1; // no need to change the orientation if the screen is currently that orientation
+    // no need to change the orientation if the screen is currently that orientation
+    if( DeviceMode.dmDisplayOrientation == setMode )
+        return 1;
 
     bool isCurrentlyLandscape = DeviceMode.dmDisplayOrientation == DMDO_DEFAULT || DeviceMode.dmDisplayOrientation == DMDO_180;
     bool isRequestingLandscape;
 
     switch( setMode )
     {
-    case 0://DMDO_DEFAULT:
-    case 180://DMDO_180:
-        isRequestingLandscape = true;
-        break;
+        case 0:   // DMDO_DEFAULT:
+        case 180: // DMDO_180:
+            isRequestingLandscape = true;
+            break;
 
-    case 90://DMDO_90:
-    case 270://DMDO_270:
-        isRequestingLandscape  = false;
-        break;
+        case 90:  // DMDO_90:
+        case 270: // DMDO_270:
+            isRequestingLandscape  = false;
+            break;
 
-    default:
-        return 0; // they are requesting an invalid orientation
+        default:
+            return 0; // they are requesting an invalid orientation
     }
 
     setMode /= 90; // get it into the DMDO formats
@@ -3055,10 +3158,6 @@ double CIntDriver::exorientation(int iExpr) // 20100618
     DeviceMode.dmDisplayOrientation = setMode;
 
     return ChangeDisplaySettings(&DeviceMode,0) == DISP_CHANGE_SUCCESSFUL;
-
-#else
-    return DEFAULT; // not applicable on portable platforms
-
 #endif
 }
 
@@ -3233,9 +3332,7 @@ double CIntDriver::exsetocclabel(int iExpr)
             if( pGroup->GetItemType() == CDEFormBase::Roster )
             {
                 ((CDERoster*)pGroup)->GetStubTextSet().GetText(iSpecifiedOcc).SetLabel(new_label);
-#ifdef WIN_DESKTOP
-                AfxGetApp()->GetMainWnd()->PostMessage(WM_IMSA_GROUP_OCCS_CHANGE);
-#endif
+                WindowsDesktopMessage::Post(WM_IMSA_GROUP_OCCS_CHANGE);
             }
 
             if( pGroup->GetRIType() == CDEFormBase::Record )
@@ -3291,10 +3388,7 @@ double CIntDriver::exshowocc(int iExpr)
     if( iSpecifiedOcc >= 0 && iSpecifiedOcc < pGroupT->GetMaxOccs() )
     {
         pGroupT->SetOccVisibility(iSpecifiedOcc,bVisible);
-
-#ifdef WIN_DESKTOP
-        AfxGetApp()->GetMainWnd()->PostMessage(WM_IMSA_GROUP_OCCS_CHANGE);
-#endif
+        WindowsDesktopMessage::Post(WM_IMSA_GROUP_OCCS_CHANGE);
         return 1;
     }
 

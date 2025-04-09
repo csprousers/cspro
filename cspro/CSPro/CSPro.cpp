@@ -27,7 +27,6 @@
 #include <zTableF/TabView.h>
 #include <zTableF/TabChWnd.h>
 #include <zNetwork/SyncLog.h>
-#include <engine/trace_macros.h>
 #include <afxvisualmanageroffice2007.h>
 
 
@@ -2289,7 +2288,7 @@ CString GetDictFilenameFromFormFile(const CString& sFormFileName)
 
     if( !frmFile.Open(sFormFileName, CFile::modeRead) )
     {
-        AfxMessageBox(FormatText(_T("File %s Could not be opened"), sFormFileName.GetString()));
+        AfxMessageBox(FormatText(L"File %s Could not be opened", sFormFileName.GetString()));
     }
 
     else

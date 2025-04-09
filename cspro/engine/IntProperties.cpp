@@ -5,6 +5,7 @@
 #include "VariableWorker.h"
 #include <zPlatformO/PlatformInterface.h>
 #include <zToolsO/Screen.h>
+#include <zUtilF/KeyboardLoader.h>
 #include <zAppO/Application.h>
 #include <zAppO/Properties/ApplicationProperties.h>
 #include <zDictO/DDClass.h>
@@ -187,6 +188,25 @@ int StringToPropertyValueInt(const std::variant<double, CString>& value)
     else
     {
         return _ttoi(std::get<CString>(value));
+    }
+}
+
+
+CString PropertyValueToString(unsigned int value)
+{
+    return UTF8_TODO::GetCString(IntToString(value));
+}
+
+unsigned int StringToPropertyValueUnsignedInt(const std::variant<double, CString>& value)
+{
+    if( std::holds_alternative<double>(value) )
+    {
+        return static_cast<unsigned int>(std::get<double>(value));
+    }
+
+    else
+    {
+        return _tcstoul(std::get<CString>(value), nullptr, 10);
     }
 }
 
@@ -478,7 +498,7 @@ CString CIntDriver::GetProperty(ParameterManager::Parameter parameter, std::set<
             {
 #ifdef WIN_DESKTOP
                 if( parameter == ParameterManager::Parameter::Property_WindowTitle )
-                    AfxGetApp()->GetMainWnd()->SendMessage(WM_IMSA_WINDOW_TITLE_QUERY, true, (LPARAM)&property);
+                    WindowsDesktopMessage::Send(WM_IMSA_WINDOW_TITLE_QUERY, true, &property);
 #else
                 CString parameter_name = GetDisplayName(parameter);
                 property = PlatformInterface::GetInstance()->GetApplicationInterface()->GetProperty(parameter_name);
@@ -557,9 +577,7 @@ CString CIntDriver::GetProperty(ParameterManager::Parameter parameter, std::set<
                 break;
 
             case ParameterManager::Parameter::Property_Keyboard:
-#ifdef WIN_DESKTOP
-                property = PropertyValueToString((int)m_pEngineDriver->GetKLIDFromHKL(pVarT->GetHKL()));
-#endif
+                property = PropertyValueToString(pVarT->GetKeyboardLayoutId());
                 break;
 
             case ParameterManager::Parameter::Property_Protected:
@@ -809,7 +827,7 @@ double CIntDriver::exsetproperty(int iExpr)
                 {
                     CString window_title = ValueToString(value);
 #ifdef WIN_DESKTOP
-                    AfxGetApp()->GetMainWnd()->SendMessage(WM_IMSA_WINDOW_TITLE_QUERY, false, (LPARAM)&window_title);
+                    WindowsDesktopMessage::Send(WM_IMSA_WINDOW_TITLE_QUERY, false, &window_title);
 #else
                     PlatformInterface::GetInstance()->GetApplicationInterface()->SetProperty(parameter_name, window_title);
 #endif
@@ -942,9 +960,7 @@ double CIntDriver::exsetproperty(int iExpr)
                         break;
 
                     case ParameterManager::Parameter::Property_Keyboard:
-#ifdef WIN_DESKTOP
-                        pVarT->SetHKL(m_pEngineDriver->LoadKLID(StringToPropertyValueInt(value)));
-#endif
+                        pVarT->SetKeyboardLayoutId(m_keyboardLoader->GetKeyboardId(StringToPropertyValueUnsignedInt(value)));
                         break;
 
                     case ParameterManager::Parameter::Property_Protected:

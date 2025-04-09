@@ -1,4 +1,5 @@
 ﻿#pragma once
+
 //---------------------------------------------------------------------------
 //  File name: CtStat.h
 //
@@ -11,17 +12,16 @@
 //              01 Jul 02   RHF     Created
 //
 //---------------------------------------------------------------------------
+
 #include <ZTBDO/zTbdO.h>
 #include <ZTBDO/ctstatv.h>
-
-#ifndef USE_BINARY // IGNORE_CTAB
-
 #include <ZTBDO/subrange.h>
 #include <ZTBDO/cttree.h>
 #include <ZTBDO/ctstadef.h>
 
 
-class CLASS_DECL_ZTBDO CtStatBase {
+class CLASS_DECL_ZTBDO CtStatBase
+{
 protected:
     CStatType           m_eStatType;
     int                 m_iSubCells;
@@ -210,5 +210,3 @@ public:
     CtStatBase*  GetStat( int iStat );
     void        RemoveAllStat();
 };
-
-#endif

@@ -144,9 +144,9 @@ void CCalcDriver::RunDriver( void ) {
     AfxGetApp()->GetMainWnd()->SendMessage(WM_IMSA_GET_PROCESS_SUMMARY_REPORTER, (WPARAM)&process_summary_reporter);
     ASSERT(process_summary_reporter != nullptr);
 
-    std::wstring dialog_title = FormatTextCS2WS(_T("Running %s application %s. Press ESC to interrupt..."),
-                                                m_pEngineDriver->m_lpszExecutorLabel,
-                                                PortableFunctions::PathGetFilename(Appl.GetAppFileName()));
+    std::string dialog_title = FormatText("Running %s application %s. Press ESC to interrupt...",
+                                          m_pEngineDriver->m_lpszExecutorLabel,
+                                          Path::GetFilename(m_pEngineDriver->GetApplication()->GetApplicationFilePath()).c_str());
 
     process_summary_reporter->Initialize(std::move(dialog_title), m_pEngineDriver->GetProcessSummary(), &m_pIntDriver->m_bStopProc);
 

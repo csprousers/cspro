@@ -776,7 +776,7 @@ bool CDERoster::Build(CSpecFile& frmFile, bool bSilent/* = false*/)
         {                      // Incorrect attribute
             if (!bSilent)
             {
-                ErrorMessage::Display(FormatText(_T("Incorrect [Grid] attribute\n\n%s"), csCmd.GetString()));
+                ErrorMessage::Display(L"Incorrect [Grid] attribute\n\n" + csCmd);
             }
             rtnVal = false;
         }

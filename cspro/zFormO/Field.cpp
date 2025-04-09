@@ -45,7 +45,7 @@ void CDEField::BaseConstructorInit()
 
     m_szUnicodeTextBox = CSize(0,0);
 
-    m_KLID = 0; // 20120822
+    m_keyboardLayoutId = 0;
 
     m_runtimeOccurrence = NONE;
 
@@ -83,6 +83,7 @@ CDEField::CDEField(const CString& sItemName, const CString& sDictName)
 
 CDEField::CDEField(const CDEField& field)  // copy constructor
     :   CDEItemBase(field),
+        m_keyboardLayoutId(field.m_keyboardLayoutId),
         m_font(field.m_font)
 {
     SetDictItem (field.GetDictItem());  // CDEField level vars
@@ -106,8 +107,6 @@ CDEField::CDEField(const CDEField& field)  // copy constructor
 
     SetUseUnicodeTextBox(field.UseUnicodeTextBox());
     SetMultiLineOption(field.AllowMultiLine());
-
-    SetKLID(field.GetKLID());
 
     SetFieldLabelType(field.GetFieldLabelType());
 }
@@ -311,7 +310,7 @@ void CDEField::operator=(const CDEField& field)
     m_bUseUnicodeTextBox = field.m_bUseUnicodeTextBox;
     m_bAllowMultiLine = field.m_bAllowMultiLine;
 
-    m_KLID = field.m_KLID;
+    m_keyboardLayoutId = field.m_keyboardLayoutId;
 
     m_font = field.m_font;
 }
@@ -543,7 +542,7 @@ bool CDEField::Build (CSpecFile& frmFile, bool bSilent /* = false */) {
 
         else if( csCmd.CompareNoCase(FRM_CMD_KEYBOARD_ID) == 0 ) // 20120817
         {
-            SetKLID(_tcstoul(csArg,NULL,10));
+            m_keyboardLayoutId = _tcstoul(csArg, nullptr, 10);
         }
 
         else if( csCmd.CompareNoCase(_T("Occurrence")) == 0 )
@@ -560,7 +559,7 @@ bool CDEField::Build (CSpecFile& frmFile, bool bSilent /* = false */) {
         {
             if (!bSilent)
             {
-                ErrorMessage::Display(FormatText(_T("Incorrect [Field] attribute\n\n%s"), csCmd.GetString()));
+                ErrorMessage::Display(L"Incorrect [Field] attribute\n\n" + csCmd);
             }
 
             ASSERT(false);
@@ -671,8 +670,8 @@ void CDEField::Save(CSpecFile& frmFile, bool bGridField) const
     if( CaptureInfoSaveTemp::WriteCaptureInfo )
         m_captureInfo.Save(frmFile, true);
 
-    if( GetKLID() ) // 20120822
-        frmFile.PutLine(FRM_CMD_KEYBOARD_ID,GetKLID());
+    if( m_keyboardLayoutId != 0 )
+        frmFile.PutLine(FRM_CMD_KEYBOARD_ID, m_keyboardLayoutId);
 
     if (GetFormNum() != NONE && !bGridField)
         frmFile.PutLine(FRM_CMD_FORMNUM, GetFormNum()+1);
@@ -713,7 +712,7 @@ void CDEField::serialize(Serializer& ar) // 20121114
            & m_captureInfo
            & m_bUseUnicodeTextBox
            & m_bAllowMultiLine
-           & m_KLID;
+           & m_keyboardLayoutId;
 
         ar.SerializeEnum(m_fieldLabelType);
 

@@ -112,12 +112,13 @@ void CBatchDriver::RunDriver()
     WindowsDesktopMessage::Send(WM_IMSA_GET_PROCESS_SUMMARY_REPORTER, &process_summary_reporter);
     ASSERT(process_summary_reporter != nullptr);
 
-    const std::shared_ptr<ProcessSummary> process_summary = m_pEngineDriver->GetProcessSummary();
+    const std::shared_ptr<ProcessSummary> process_summary = GetProcessSummary();
 
-    std::wstring dialog_title = FormatTextCS2WS(_T("Running %s application %s. Press ESC to interrupt..."),
-                                                m_pEngineDriver->m_lpszExecutorLabel, PortableFunctions::PathGetFilename(Appl.GetAppFileName()));
+    std::string dialog_title = FormatText("Running %s application %s. Press ESC to interrupt...",
+                                          m_lpszExecutorLabel,
+                                          Path::GetFilename(m_pApplication->GetApplicationFilePath()).c_str());
 
-    process_summary_reporter->Initialize(std::move(dialog_title), m_pEngineDriver->GetProcessSummary(), &m_pIntDriver->m_bStopProc);
+    process_summary_reporter->Initialize(std::move(dialog_title), process_summary, &m_pIntDriver->m_bStopProc);
 
     // cycle through all of the input data
     bool continue_processing = true;
@@ -459,7 +460,7 @@ void CBatchDriver::RunGroupItems( int iHeadIndex, int iTailIndex ) { // victor J
                             csFieldMsg.Format(UTF8_TODO::GetCString(MGF::GetMessageText(88212).GetString()), UTF8_TODO::GetWide(pVarT->GetName()).c_str(), csDirtyTxt.GetString());
                         }
                         else {
-                            CString csVarNameOcc = FormatText(_T("%s%s"), UTF8_TODO::GetWide(pVarT->GetName()).c_str(), theCurrentIndex.toString(pVarT->GetNumDim()).c_str());
+                            CString csVarNameOcc = FormatText<CString>(L"%s%s", UTF8_TODO::GetWide(pVarT->GetName()).c_str(), theCurrentIndex.toString(pVarT->GetNumDim()).c_str());
                             csFieldMsg.Format(UTF8_TODO::GetCString(MGF::GetMessageText(88212).GetString()), csVarNameOcc.GetString(), csDirtyTxt.GetString());
                         }
 
@@ -588,7 +589,7 @@ void CBatchDriver::RunGroupItems( int iHeadIndex, int iTailIndex ) { // victor J
                                             csFieldMsg.Format(UTF8_TODO::GetCString(MGF::GetMessageText(88221).GetString()), UTF8_TODO::GetWide(pVarT->GetName()).c_str());
                                         }
                                         else {
-                                            CString csVarNameOcc = FormatText( _T("%s%s"), UTF8_TODO::GetWide(pVarT->GetName()).c_str(), theCurrentIndex.toString(pVarT->GetNumDim()).c_str() );
+                                            CString csVarNameOcc = FormatText<CString>(L"%s%s", UTF8_TODO::GetWide(pVarT->GetName()).c_str(), theCurrentIndex.toString(pVarT->GetNumDim()).c_str());
                                             csFieldMsg.Format(UTF8_TODO::GetCString(MGF::GetMessageText(88221).GetString()), csVarNameOcc.GetString() );
                                         }
 

@@ -1,8 +1,8 @@
 ﻿// Dicx functions
-#include "STDAFX.H"
-#include <engine/Dicx.h>
-#include <engine/Engine.h>
-#include <engine/RELATION.H>
+#include "StandardSystemIncludes.h"
+#include "Dicx.h"
+#include "Engine.h"
+#include "RELATION.H"
 #include <zEngineO/EngineCaseConstructionReporter.h>
 #include <zToolsO/Tools.h>
 #include <zCaseO/Case.h>
@@ -151,7 +151,7 @@ void DICX::StartRuntime()
     CaseAccess* case_access = pDicT->GetCaseAccess();
 
     // full access is required of entry inputs, batch inputs when there is an output,
-	// special outputs, and writeable external dictionaries
+    // special outputs, and writeable external dictionaries
     bool set_requires_full_access = false;
     bool batch_input_mode = false;
 
@@ -210,10 +210,8 @@ void DICX::StartRuntime()
     // input file so that record counts for external dictionaries don't get added in
     std::function<void(const Case&)> update_case_callback;
 
-#ifdef WIN_DESKTOP
     if( batch_input_mode )
         update_case_callback = [this](const Case& data_case) { m_pEngineDriver->GetLister()->SetMessageSource(data_case); };
-#endif
 
     case_access->SetCaseConstructionReporter(std::make_unique<EngineCaseConstructionReporter>(m_pEngineDriver->GetSharedSystemMessageIssuer(),
                                                                                               batch_input_mode ? m_pEngineDriver->GetProcessSummary() : nullptr,
@@ -307,7 +305,7 @@ void DICX::CreateCaseIterator(const CaseIteratorStyle case_iterator_style, const
         iteration_start_type = CaseIterationStartType::GreaterThanEquals;
         case_key = &(*m_rd->m_lastSearchedCaseKey);
     }
-    
+
     else if( case_iterator_style == CaseIteratorStyle::FromNextKey )
     {
         ASSERT(starting_key.has_value());
@@ -320,7 +318,7 @@ void DICX::CreateCaseIterator(const CaseIteratorStyle case_iterator_style, const
     std::tie(case_iteration_method, case_iteration_order, case_iteration_case_status) = GetDictionaryAccessParameters(dictionary_access);
 
     std::unique_ptr<CaseIteratorParameters> start_parameters;
-    
+
     if( case_key != nullptr || key_prefix.has_value() )
     {
         // flip the order for a descending iterator

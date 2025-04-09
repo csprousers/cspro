@@ -98,7 +98,7 @@ private:
     QuickJSAccess* m_qjs;
 
     // wraps JSValue
-#if INTPTR_MAX >= INT64_MAX
+#if ( INTPTR_MAX >= INT64_MAX ) && !defined(_CONSOLE)
     __int128 m_value;
 #else
     uint64_t m_value;

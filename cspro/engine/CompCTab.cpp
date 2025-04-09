@@ -32,6 +32,7 @@
 #include "Ctab_Helper.h" // rcl, Dec 2004
 #include "Engine.h"
 #include "RangeFunctions.h"
+#include "Tbd_save.h"
 #include <zEngineO/ValueSet.h>
 #include <zEngineO/Compiler/CompilationExtendedInformation.h>
 #include <zEngineO/Compiler/TokenHelper.h>
@@ -462,7 +463,7 @@ int CEngineCompFunc::comp_ctab( CTableDef::ETableType eTableType ) {
 
 #ifdef GENCODE
     CTAB_NODE* ctabpt = (CTAB_NODE*) (PPT(Prognext));
-    if( Flagcomp && g_iCtabmode == MODE_DICT_DECL ) {
+    if( m_Flagcomp && g_iCtabmode == MODE_DICT_DECL ) {
         OC_CreateCompilationSpace(sizeof(CTAB_NODE) / sizeof(int));
 
         ctabpt->st_code  = CTAB_CODE;
@@ -564,7 +565,7 @@ int CEngineCompFunc::comp_ctab( CTableDef::ETableType eTableType ) {
 
     // RHF INIC Jul 04, 2002
 #ifdef GENCODE
-    if( Flagcomp && modeIsDictRelated() ) { // Inheritance of TABLOGIC of declared CTAB
+    if( m_Flagcomp && modeIsDictRelated() ) { // Inheritance of TABLOGIC of declared CTAB
         ctabpt->tablogicexpr = ct->GetTabLogicExpr();
         ctabpt->selectexpr = ct->GetSelectExpr();
         ctabpt->weightexpr = ct->GetWeightExpr();
@@ -578,7 +579,7 @@ int CEngineCompFunc::comp_ctab( CTableDef::ETableType eTableType ) {
     }
 
 #ifdef GENCODE
-    if( Flagcomp && modeIsDictRelated() )
+    if( m_Flagcomp && modeIsDictRelated() )
         ctabpt->SYMTctab = ict;
 #endif
 
@@ -760,7 +761,7 @@ int CEngineCompFunc::comp_ctab( CTableDef::ETableType eTableType ) {
 
             /* RHF COM INIC Jul 04, 2002
 #ifdef GENCODE
-            if( Flagcomp && modeIsDictRelated() )
+            if( m_Flagcomp && modeIsDictRelated() )
                 ctabpt->selectexpr = i;
 #endif
             RHF COM END Jul 04, 2002 */
@@ -770,7 +771,7 @@ int CEngineCompFunc::comp_ctab( CTableDef::ETableType eTableType ) {
             if( i < 0 ) // Empty
                 i = 0;
 
-            if( Flagcomp ) {
+            if( m_Flagcomp ) {
                 if( modeIsDictRelated() )
                     ctabpt->selectexpr = i;
                 else
@@ -1039,7 +1040,7 @@ int CEngineCompFunc::comp_ctab( CTableDef::ETableType eTableType ) {
 
             /* RHF COM INIC Jul 04, 2002
 #ifdef GENCODE
-            if( Flagcomp && ( g_iCtabmode == MODE_DICT_DECL  || g_iCtabmode == MODE_DICT_EXEC ) )
+            if( m_Flagcomp && ( g_iCtabmode == MODE_DICT_DECL  || g_iCtabmode == MODE_DICT_EXEC ) )
                 ctabpt->weightexpr = i;
 #endif
                 RHF COM END Jul 04, 2002 */
@@ -1049,7 +1050,7 @@ int CEngineCompFunc::comp_ctab( CTableDef::ETableType eTableType ) {
             if( i < 0 ) // Empty
                 i = 0;
 
-            if( Flagcomp ) {
+            if( m_Flagcomp ) {
                 if( modeIsDictRelated() )
                     ctabpt->weightexpr = i;
                 else
@@ -1256,7 +1257,7 @@ int CEngineCompFunc::comp_ctab( CTableDef::ETableType eTableType ) {
                 if( i < 0 ) // Empty
                     i = 0;
 
-                if( Flagcomp ) {
+                if( m_Flagcomp ) {
                     if( modeIsDictRelated() )
                         ctabpt->tablogicexpr = i;
                     else
@@ -1588,7 +1589,7 @@ int CEngineCompFunc::ctvardep( CTAB* ct, int i_dep ) {
     ct->SetDepSymVar(iSymVar, i_dep );
 
 #ifdef GENCODE
-    if( Flagcomp )
+    if( m_Flagcomp )
         pVarT->SetUsed( true );
 #endif
 
@@ -1772,7 +1773,7 @@ int CEngineCompFunc::ctvar() {
                 return -1;
 
 #ifdef GENCODE
-            if( Flagcomp ) {
+            if( m_Flagcomp ) {
                 pVarT->SetUsed( true );
             }
 #endif
@@ -3339,7 +3340,7 @@ void CEngineCompFunc::CompileUnit( int* pNodeBase[TBD_MAXDIM] ) {
     int iSymForVar = MakeRelationWorkVar();
 
 #ifdef GENCODE
-    if( Flagcomp )
+    if( m_Flagcomp )
 #endif
     {
         ASSERT( m_ForTableNext >= 0 );
@@ -3422,7 +3423,7 @@ void CEngineCompFunc::CompileUnit( int* pNodeBase[TBD_MAXDIM] ) {
     if( GetSyntErr() != 0 )
         return;
 
-    if( Flagcomp ) {
+    if( m_Flagcomp ) {
         // Generates and add the unit to the ctab object
         CtUnit    ctUnit;
         int iUnitNumber = CTAB::pCurrentCtab->GetNumUnits();
@@ -3514,7 +3515,7 @@ void CEngineCompFunc::CompileUnit( int* pNodeBase[TBD_MAXDIM] ) {
 
     // RHF INIT Jul 29, 2005
 #ifdef GENCODE
-    if( Flagcomp )
+    if( m_Flagcomp )
 #endif
     {
         m_ForTableNext--;
@@ -4251,7 +4252,7 @@ void CEngineCompFunc::CompileStat( int* pNodeBase[TBD_MAXDIM] ) {
         }
 
         // Here we have all ready for 1 stat
-        if( true || Flagcomp ) {
+        if( true || m_Flagcomp ) {
             // Generates and add the Stat object to the ctab object
             int iStatNumber=CTAB::pCurrentCtab->GetNumStats();
 

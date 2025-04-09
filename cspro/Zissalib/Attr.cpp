@@ -10,8 +10,11 @@
 #include <engine/Tables.h>
 #include <engine/Engine.h>
 #include <engine/Engarea.h>
-#include <engine/Batdrv.h>
 #include <zCapiO/CapiQuestionManager.h>
+
+#ifdef WIN_DESKTOP
+#include <engine/Batdrv.h>
+#endif
 
 
 //----------------------------------------------------------------------
@@ -30,59 +33,61 @@ bool CEngineDriver::attrload()
 {
     Application* pApp = GetApplication();
 
-    io_Dic.Empty();
-    io_Var.Empty();
-    io_Err = 0;
-    Failmsg.Empty();
+    m_pEngineSettings->m_io_Dic.clear();
+    m_pEngineSettings->m_io_Var.clear();
+    m_pEngineSettings->m_io_Err = 0;
+    m_pEngineSettings->m_failMessage.clear();
 
     // insert APP object
     if( GetSymbolTable().NameExists(Appl.GetName()) )
     {
-        Failmsg.Format(_T("name '%s' already present"), Appl.GetName().c_str());
+        m_pEngineSettings->m_failMessage = FormatText("name '%s' already present", Appl.GetName().c_str());
         return false;
     }
 
     m_engineData->AddSymbol(m_pEngineArea->m_Appl);
 
     // application type                 // TODO: add more types to CsPro???
-    const TCHAR* pWord = _T("none");
-    ModuleType eApplType = ModuleType::None;
+    std::optional<std::tuple<ModuleType, const char*>> application_type;
 
-    if( pApp->GetEngineAppType() == EngineAppType::Entry ) {
-        pWord = _T("ENTRY");
-        eApplType = ModuleType::Entry;
+    if( pApp->GetEngineAppType() == EngineAppType::Entry )
+    {
+        application_type.emplace(ModuleType::Entry, "ENTRY");
     }
-    else if( pApp->GetEngineAppType() == EngineAppType::Batch ) {
-#ifdef USE_BINARY
-        ASSERT(0);
-#else
-        pWord = _T("BATCH");
-        eApplType = ModuleType::Batch;
+
+    else if( pApp->GetEngineAppType() == EngineAppType::Batch )
+    {
+        application_type.emplace(ModuleType::Batch, "BATCH");
 
         // RHF INIC Jan 31, 2003
-        if( Issamod == ModuleType::Batch ) {
-            CBatchDriverBase*   pBatchDriverBase=(CBatchDriverBase*) this;
+        if( Issamod == ModuleType::Batch )
+        {
+#ifdef WIN_DESKTOP
+            CBatchDriverBase* const pBatchDriverBase = assert_cast<CBatchDriverBase*>(this);
 
-            bool    bCsCalc = (pBatchDriverBase->GetBatchMode() == CRUNAPL_CSCALC );
-            bool    bCsTab = (pBatchDriverBase->GetBatchMode() == CRUNAPL_CSTAB );
+            if( pBatchDriverBase->GetBatchMode() == CRUNAPL_CSCALC )
+            {
+                std::get<1>(*application_type) = "POSTCALC";
+            }
 
-            if( bCsCalc )
-                pWord = _T("POSTCALC");
-            else if( bCsTab )
-                pWord = _T("CSTAB");
+            else if( pBatchDriverBase->GetBatchMode() == CRUNAPL_CSTAB )
+            {
+                std::get<1>(*application_type) = "CSTAB";
+            }
+#endif
         }
         // RHF END Jan 31, 2003
-#endif
     }
 
-    if( eApplType == ModuleType::None ) {
-        io_Err = 1;                 // invalid application type
-        Failmsg = _T("invalid application type");
-        return FALSE;
+    if( !application_type.has_value() )
+    {
+        m_pEngineSettings->m_io_Err = 1;
+        m_pEngineSettings->m_failMessage = "invalid application type";
+        return false;
     }
 
-    Appl.ApplicationType = eApplType;
-    Appl.ApplicationTypeText = pWord;
+    Appl.ApplicationType = std::get<0>(*application_type);
+    Appl.ApplicationTypeText = std::get<1>(*application_type);
 
     // inserting Appl' children (Flows/Dicts/Flow Forms)// victor Dec 27, 99
     // into symbol table -- returns if any error        // victor Dec 27, 99
@@ -343,28 +348,21 @@ void CEngineDriver::SetPifFile(CNPifFile* pPifFile)
 void CEngineDriver::InitAppName()
 {
     // InitAppName: get the "LevelZero" app-name either form 1st FormFile, or from the application' file-name
-    Application* application = GetApplication();
-
-    const CodeFile* logic_main_code_file = application->GetLogicMainCodeFile();
-
-    if( logic_main_code_file != nullptr )
-        m_csAppFullName = UTF8_TODO::GetCString(logic_main_code_file->GetFilePath());
-
-    CString csNodeName = UTF8_TODO::GetCString(Path::GetFilenameWithoutExtension(UTF8_TODO::GetUtf8(m_csAppFullName)));
-    CString csLevelZeroName;
+    ASSERT(m_pApplication != nullptr);
 
     // try to get the 1st FormFile (or Flow) name
-    if( !application->GetRuntimeFormFiles().empty() )
-        csLevelZeroName = application->GetRuntimeFormFiles().front()->GetName();
+    const std::vector<std::shared_ptr<CDEFormFile>>& form_files = m_pApplication->GetRuntimeFormFiles();
+
+    std::string level_zero_name = !form_files.empty() ? UTF8_TODO::GetUtf8(m_pApplication->GetRuntimeFormFiles().front()->GetName()) :
+                                                        std::string();
 
     // if no name yet, get the application' file-name
-    if( csLevelZeroName.IsEmpty() )
-        csLevelZeroName = csNodeName;
+    if( level_zero_name.empty() )
+    {
+        ASSERT(false);
+        level_zero_name = CIMSAString::MakeName(Path::GetFilenameWithoutExtension(m_pApplication->GetApplicationFilePath()));
+    }
 
     // pass the Level-zero name to the settings
-    m_pEngineSettings->SetLevelZeroName(csLevelZeroName);
-
-    // Calcute ...
-    ApplName = csNodeName;
-    ApplName.MakeUpper();
+    m_pEngineSettings->SetLevelZeroName(std::move(level_zero_name));
 }

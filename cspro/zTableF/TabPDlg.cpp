@@ -43,7 +43,7 @@ void CTabPropDlg::OnOK()
 
     if(m_sTabName.IsReservedWord())
     {
-        AfxMessageBox(FormatText(_T("%s is a reserved word."), m_sTabName.GetString()));
+        AfxMessageBox(m_sTabName + L" is a reserved word.");
         return;
     }
 

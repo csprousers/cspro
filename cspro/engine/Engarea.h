@@ -170,13 +170,11 @@ public:
     // the indices of local persistent variables that need to be reset
     std::set<int> m_persistentSymbolsNeedingResetSet;
 
-#ifndef USE_BINARY
     // --- export management
 private:
     CExport*                    m_pCurExport;       // current export
     std::vector<CExport*>       m_aExport;          // array of export' commands // victor Dec 18, 00
     int                         m_iExpoSeqNo;       // seq # for assigning    // victor Dec 18, 00
-#endif // !USE_BINARY
 
     // --- break-by memory
 public:
@@ -237,8 +235,6 @@ private:
 private:
     int     marksymbolunused( Symbol* sp );
 
-
-#ifndef USE_BINARY
     // --- export management
 public:
     void    SetCurExport( CExport* pExport )    { m_pCurExport = pExport; }
@@ -251,7 +247,6 @@ public:
     int     GetExpoSeqNo( void )                { return( m_iExpoSeqNo + 1 ); }           // victor Dec 18, 00
     int     NewExpoSeqNo( void )                { return ++m_iExpoSeqNo; }                // victor Dec 18, 00
     void    ClearExports()                      { m_aExport.clear(); ResetExpoSeqNo(); }
-#endif // !USE_BINARY
 
     // --- miscellaneous purpose methods
 private:
@@ -326,10 +321,7 @@ public:
     GROUPT* GetGroupTOfSymbol(int symbol_index) const;
     int GetSectionOfSymbol(int symbol_index) const;
 
-#ifdef _DEBUG
-    // TEST ONLY
-    CString DumpGroupTName( int iSymbol );
-#endif
+    CString DumpGroupTName( int iSymbol ); // TEST ONLY
 };
 
     // --- aliases for public symbols

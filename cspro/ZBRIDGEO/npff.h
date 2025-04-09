@@ -25,11 +25,10 @@ public:
     static void SetFormFileNumber(Application& application);
     static void SetFormFileNumber(CDEFormBase* pBase, int iNumber);
 
-#ifdef GENERATE_BINARY
     // SaveFormObjects: writes 'binary' forms to disk
-    bool SaveFormObjects(const std::wstring& archive_name);
-    bool SaveEDicts(const std::wstring& archive_name);
-#endif
+    bool SaveFormObjects();
+    bool SaveEDicts();
+
     bool BuildAllObjects(); //Builds the Application object && is ready for entry
     BOOL LoadFormObjects(); //used for entry
     bool LoadEDicts();      //load all external dictionaries

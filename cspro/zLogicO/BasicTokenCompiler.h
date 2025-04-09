@@ -162,7 +162,7 @@ template<typename... Args>
 void Logic::BasicTokenCompiler::IssueMessage(ParserMessage& parser_message, const int message_number, Args const&... args)
 {
 #ifdef _DEBUG
-    ValidateFormatTextArgumentTypes(args...);
+    ValidateFormatTextArgumentTypes<char>(args...);
 #endif
 
     IssueMessageWorker(parser_message, message_number, args...);

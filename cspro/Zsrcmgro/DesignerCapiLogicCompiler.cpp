@@ -1,9 +1,9 @@
 ﻿#include "StdAfx.h"
 #include "DesignerCapiLogicCompiler.h"
 #include "SrcCode.h"
+#include "Wcompile.h"
 #include <zAppO/Application.h>
 #include <engine/Comp.h>
-#include <Wcompile/Wcompile.h>
 
 
 DesignerCapiLogicCompiler::DesignerCapiLogicCompiler(Application& application)

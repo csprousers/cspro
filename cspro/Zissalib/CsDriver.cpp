@@ -27,17 +27,14 @@
 //
 //---------------------------------------------------------------------------
 #include "StdAfx.h"
-
-//typedef unsigned char   byte;
-
 #include "CsDriver.h"
 #include "CFlow.h"
 #include "CFlAdmin.h"                                   // victor Aug 02, 01
 #include <engine/Engdrv.h>
-#include <engine/ProgramControl.h>
-#include <Cexentry/Entifaz.h>
 #include <engine/Engine.h>
+#include <engine/Entifaz.h>
 #include <engine/IntDrive.h>
+#include <engine/ProgramControl.h>
 #include <zToolsO/VarFuncs.h>
 #include <zAppO/Properties/ApplicationProperties.h>
 #include <zMessageO/MessageManager.h>
@@ -7803,87 +7800,89 @@ bool CsDriver::C_IsAutoEndGroup() {
 
 /////////////////////////////////////////////////////////////////////////////////
 //
-//      void CEntryrunView::ProcessFldAttrib(CDEField* pField)
+//      void CsDriver::ProcessSequentialFld(VART* pVarT)
 //
 /////////////////////////////////////////////////////////////////////////////////
 void CsDriver::ProcessSequentialFld(VART* pVarT)
 {
     //SAVY Jul 30 ,2003 for sequential update in partial add mode
     //SAVY 2/6/2012 - Also in a two level app  check for new node
-    bool bIsModification = m_pEntryDriver->IsModification() && m_pEntryDriver->GetPartialMode() != ADD_MODE && !m_pEntryDriver->GetEntryIFaz()->C_IsNewNode();
+    const bool bIsModification = ( m_pEntryDriver->IsModification() &&
+                                   m_pEntryDriver->GetPartialMode() != ADD_MODE &&
+                                   !m_pEntryDriver->GetEntryIFaz()->C_IsNewNode() );
 
-    if(!bIsModification &&  pVarT->GetDictItem()->GetContentType() == ContentType::Numeric && pVarT->IsSequential() ) {
-        CDEField* pField = NULL;
-        int iMaxDEField = -1;
-        CDEGroup* pGroup = pVarT->GetOwnerGPT()->GetCDEGroup();
-        if(pGroup->GetMaxDEField()){
-            iMaxDEField = getGroupMaxOccsUsingMaxDEField(pVarT->GetOwnerGPT());
+    if( bIsModification || pVarT->GetDictItem()->GetContentType() != ContentType::Numeric || !pVarT->IsSequential() )
+        return;
+
+    CDEField* pField = NULL;
+    int iMaxDEField = -1;
+    CDEGroup* pGroup = pVarT->GetOwnerGPT()->GetCDEGroup();
+    if(pGroup->GetMaxDEField()){
+        iMaxDEField = getGroupMaxOccsUsingMaxDEField(pVarT->GetOwnerGPT());
+    }
+    for(int iIndex =0; iIndex < pGroup->GetNumItems();iIndex++) {
+        pField = (CDEField*)pGroup->GetItem(iIndex);
+        if(pField->IsMirror())
+            continue;
+        if(pField->GetDictItem() == pVarT->GetDictItem()) {
+            break;
         }
-        for(int iIndex =0; iIndex < pGroup->GetNumItems();iIndex++) {
-            pField = (CDEField*)pGroup->GetItem(iIndex);
-            if(pField->IsMirror())
-                continue;
-            if(pField->GetDictItem() == pVarT->GetDictItem()) {
-                break;
+        pField = NULL; //reset;
+    }
+    if(!pField)
+        return;
+
+    VARX*   pVarX = pVarT->GetVarX();
+
+    int iOcc=pField->GetRuntimeOccurrence();
+    if( iOcc <= 0 )
+        iOcc = pGroup->GetCurOccurrence();
+    if(iMaxDEField != -1 && iOcc > iMaxDEField){
+        return;//We have exceeded the max allowed for this controlled group
+    }
+    CNDIndexes theIndex( ZERO_BASED );
+    pVarX->BuildIntParentIndexes( theIndex, iOcc < 1 ? 1 : iOcc );       // TRANSITION ?
+
+    CString sData = pVarX->GetValue(theIndex);
+
+    if( true ) {
+        sData.Trim();
+        if(sData.IsEmpty()) {
+
+            CDEGroup* pGroup = pVarT->GetOwnerGPT()->GetCDEGroup();
+            while(pGroup) {
+                if(pGroup->GetMaxLoopOccs() != 1) // See if it is multiple
+                    break;
+                else  {
+                    pGroup = pGroup->GetParent();
+                }
             }
-            pField = NULL; //reset;
-        }
-        if(!pField)
-            return;
-
-        VARX*   pVarX = pVarT->GetVarX();
-
-        int iOcc=pField->GetRuntimeOccurrence();
-        if( iOcc <= 0 )
-            iOcc = pGroup->GetCurOccurrence();
-        if(iMaxDEField != -1 && iOcc > iMaxDEField){
-            return;//We have exceeded the max allowed for this controlled group
-        }
-        CNDIndexes theIndex( ZERO_BASED );
-        pVarX->BuildIntParentIndexes( theIndex, iOcc < 1 ? 1 : iOcc );       // TRANSITION ?
-
-        CString sData = pVarX->GetValue(theIndex);
-
-        if( true ) {
-            sData.Trim();
-            if(sData.IsEmpty()) {
-
-                CDEGroup* pGroup = pVarT->GetOwnerGPT()->GetCDEGroup();
-                while(pGroup) {
-                    if(pGroup->GetMaxLoopOccs() != 1) // See if it is multiple
-                        break;
-                    else  {
-                        pGroup = pGroup->GetParent();
-                    }
-                }
-                if(!pGroup)
-                    return;
-                //int iIndex = pGroup->GetCurOccurrence(); //probably can use iOccur
-                int iIndex = iOcc;
-                if(iIndex > 1) {//get previous val
-                    CNDIndexes theIndex( ZERO_BASED );
-                    pVarX->BuildIntParentIndexes( theIndex, iIndex - 1 < 1 ? 1 : iIndex - 1 );       // TRANSITION ?
-                    CString sIndexData = pVarX->GetValue(theIndex);
-                    int iVal = _ttoi(sIndexData);
-                    if(iVal)
-                        iIndex = iVal+1;
-                }
-
-                sData = UTF8_TODO::GetCString(IntToString(iIndex));
-
-                pField->SetData( sData ); //probably can use this to set the data than doing a putval
-
-#ifdef WIN_DESKTOP
-                AfxGetApp()->GetMainWnd()->PostMessage(WM_IMSA_SETSEQUENTIAL, (WPARAM)pField ,(LPARAM)0 );
-#endif
-                if(pField->IsProtected()) {
-                    csprochar*   pszVarvalue = sData.GetBuffer(128);
-                    C_FldPutVal(pVarT,pszVarvalue );
-                    sData.ReleaseBuffer();
-                }
-                //in the case of protected field you may have to do a putval 'cos you dont get the control
-                //on the client side
+            if(!pGroup)
+                return;
+            //int iIndex = pGroup->GetCurOccurrence(); //probably can use iOccur
+            int iIndex = iOcc;
+            if(iIndex > 1) {//get previous val
+                CNDIndexes theIndex( ZERO_BASED );
+                pVarX->BuildIntParentIndexes( theIndex, iIndex - 1 < 1 ? 1 : iIndex - 1 );       // TRANSITION ?
+                CString sIndexData = pVarX->GetValue(theIndex);
+                int iVal = _ttoi(sIndexData);
+                if(iVal)
+                    iIndex = iVal+1;
             }
+
+            sData = UTF8_TODO::GetCString(IntToString(iIndex));
+
+            pField->SetData( sData ); //probably can use this to set the data than doing a putval
+
+            WindowsDesktopMessage::Post(WM_IMSA_SETSEQUENTIAL, pField);
+
+            if(pField->IsProtected()) {
+                csprochar*   pszVarvalue = sData.GetBuffer(128);
+                C_FldPutVal(pVarT,pszVarvalue );
+                sData.ReleaseBuffer();
+            }
+            //in the case of protected field you may have to do a putval 'cos you dont get the control
+            //on the client side
         }
     }
 }
@@ -7986,7 +7985,7 @@ void CsDriver::SetReenterTarget( VART* pVarT ) {
     int     iLevel = GetLevelOfCurObject();
     int     iSymItem = pVarT->GetSymbolIndex();
     int     iSymVar;
-    for( int iItem = 0; !bIsIdField && ( iSymVar = m_pEntryDriver->QidVars[iLevel - 1][iItem] ) > 0; iItem++ ) {
+    for( int iItem = 0; !bIsIdField && ( iSymVar = m_pEntryDriver->m_pEngineSettings->m_QidVars[iLevel - 1][iItem] ) > 0; iItem++ ) {
         VART* pIdVarT=VPT(iSymVar);
         if( !pIdVarT->IsProtectedOrNoNeedVerif() )
             iSymPrevIdNoProtected = iSymVar;

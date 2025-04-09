@@ -10,6 +10,142 @@
       <Platform>Win32</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>16.0</VCProjectVersion>
+    <ProjectGuid>{9be94f2e-69da-483f-9a82-293bd8b8ed1a}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>engine</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+    <UseOfMfc>Dynamic</UseOfMfc>
+    <UseDebugLibraries>true</UseDebugLibraries>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+    <UseOfMfc>Dynamic</UseOfMfc>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(SolutionDir)Properties.props" />
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(SolutionDir)Properties.props" />
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)$(Configuration)\lib\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)$(Configuration)\lib\</OutDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>WIN_DESKTOP;WIN32;_DEBUG;_WINDOWS;GENCODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalOptions> /J</AdditionalOptions>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>WIN_DESKTOP;WIN32;NDEBUG;_WINDOWS;GENCODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalOptions> /J</AdditionalOptions>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="Break.cpp" />
+    <ClCompile Include="Cdeclare.cpp" />
+    <ClCompile Include="citer.cpp" />
+    <ClCompile Include="Common.cpp" />
+    <ClCompile Include="Comp.cpp" />
+    <ClCompile Include="Compall.cpp" />
+    <ClCompile Include="CompCTab.cpp" />
+    <ClCompile Include="CompileExport.cpp" />
+    <ClCompile Include="CompileProgramControl.cpp" />
+    <ClCompile Include="Compissa.cpp" />
+    <ClCompile Include="Comptbl.cpp" />
+    <ClCompile Include="Comp_set.cpp" />
+    <ClCompile Include="Ctab.cpp" />
+    <ClCompile Include="Ctab_Helper.cpp" />
+    <ClCompile Include="Decorr.cpp" />
+    <ClCompile Include="DeWrite.cpp" />
+    <ClCompile Include="DicX.cpp" />
+    <ClCompile Include="Do_xtab.cpp" />
+    <ClCompile Include="engdrv.cpp" />
+    <ClCompile Include="Entifaz.cpp" />
+    <ClCompile Include="Exappl.cpp" />
+    <ClCompile Include="exapplva.cpp" />
+    <ClCompile Include="Exbatchf.cpp" />
+    <ClCompile Include="Exopfile.cpp" />
+    <ClCompile Include="Exportf1.cpp" />
+    <ClCompile Include="ExpresC.cpp" />
+    <ClCompile Include="Expresc_Helper.cpp" />
+    <ClCompile Include="gpsfuncs.cpp" />
+    <ClCompile Include="Instruc.cpp" />
+    <ClCompile Include="intcapi.cpp" />
+    <ClCompile Include="IntCase.cpp" />
+    <ClCompile Include="Intchars.cpp" />
+    <ClCompile Include="IntDataAccess.cpp" />
+    <ClCompile Include="Intdentr.cpp" />
+    <ClCompile Include="IntDiagnostics.cpp" />
+    <ClCompile Include="Intdrive.cpp" />
+    <ClCompile Include="IntDynamicLogicEvaluation.cpp" />
+    <ClCompile Include="intenter.cpp" />
+    <ClCompile Include="InterpreterAccessor.cpp" />
+    <ClCompile Include="Intexpr.cpp" />
+    <ClCompile Include="Intextdi.cpp" />
+    <ClCompile Include="IntFreq.cpp" />
+    <ClCompile Include="Intfuncs.cpp" />
+    <ClCompile Include="IntImpute.cpp" />
+    <ClCompile Include="IntInstr.cpp" />
+    <ClCompile Include="IntItem.cpp" />
+    <ClCompile Include="IntLanguage.cpp" />
+    <ClCompile Include="IntMessages.cpp" />
+    <ClCompile Include="IntOccurrences.cpp" />
+    <ClCompile Include="IntPath.cpp" />
+    <ClCompile Include="IntPff.cpp" />
+    <ClCompile Include="IntPre77Report.cpp" />
+    <ClCompile Include="IntProgramControl.cpp" />
+    <ClCompile Include="IntProperties.cpp" />
+    <ClCompile Include="IntQuery.cpp" />
+    <ClCompile Include="IntSync.cpp" />
+    <ClCompile Include="Inttbl.cpp" />
+    <ClCompile Include="IntUserbar.cpp" />
+    <ClCompile Include="IntUserFunction.cpp" />
+    <ClCompile Include="IntUserInterface.cpp" />
+    <ClCompile Include="IntValues.cpp" />
+    <ClCompile Include="IntVariable.cpp" />
+    <ClCompile Include="Intxtab.cpp" />
+    <ClCompile Include="Int_set.cpp" />
+    <ClCompile Include="Listing.cpp" />
+    <ClCompile Include="LoadSaveBinary.cpp" />
+    <ClCompile Include="Nextnode.cpp" />
+    <ClCompile Include="oexpresc.cpp" />
+    <ClCompile Include="ParadataDriver.cpp" />
+    <ClCompile Include="ParameterManager.cpp" />
+    <ClCompile Include="Pre80Routines.cpp" />
+    <ClCompile Include="Preprocessor.cpp" />
+    <ClCompile Include="RangeFunctions.cpp" />
+    <ClCompile Include="Relation.cpp" />
+    <ClCompile Include="SecX.cpp" />
+    <ClCompile Include="Tabfuncs.cpp" />
+    <ClCompile Include="Tbd_save.cpp" />
+    <ClCompile Include="VarX.cpp" />
+    <ClCompile Include="VTSTRUCT.cpp" />
+  </ItemGroup>
   <ItemGroup>
     <ClInclude Include="3dException.h" />
     <ClInclude Include="Apl.h" />
@@ -45,6 +181,7 @@
     <ClInclude Include="EngineObjectTransporter.h" />
     <ClInclude Include="EngineQuestionnaireViewer.h" />
     <ClInclude Include="Entdrv.h" />
+    <ClInclude Include="Entifaz.h" />
     <ClInclude Include="Exappl.h" />
     <ClInclude Include="EXENTRY.H" />
     <ClInclude Include="Export.h" />
@@ -82,61 +219,12 @@
     <ClInclude Include="Tables.h" />
     <ClInclude Include="TBDIFAZ.H" />
     <ClInclude Include="Tbd_save.h" />
-    <ClInclude Include="trace_macros.h" />
     <ClInclude Include="ttype.h" />
     <ClInclude Include="VariableWorker.h" />
     <ClInclude Include="VarT.h" />
     <ClInclude Include="VARX.h" />
     <ClInclude Include="VTSTRUCT.h" />
   </ItemGroup>
-  <PropertyGroup Label="Globals">
-    <VCProjectVersion>16.0</VCProjectVersion>
-    <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{9be94f2e-69da-483f-9a82-293bd8b8ed1a}</ProjectGuid>
-    <RootNamespace>engine</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
-  </PropertyGroup>
-  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
-    <PlatformToolset>v143</PlatformToolset>
-    <CharacterSet>Unicode</CharacterSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
-    <PlatformToolset>v143</PlatformToolset>
-    <CharacterSet>Unicode</CharacterSet>
-  </PropertyGroup>
-  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
-  <ImportGroup Label="ExtensionSettings">
-  </ImportGroup>
-  <ImportGroup Label="Shared">
-  </ImportGroup>
-  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <Import Project="$(SolutionDir)Properties.props" />
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-  </ImportGroup>
-  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <Import Project="$(SolutionDir)Properties.props" />
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-  </ImportGroup>
-  <PropertyGroup Label="UserMacros" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-  </PropertyGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <Link>
-      <SubSystem>
-      </SubSystem>
-    </Link>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <Link>
-      <SubSystem>
-      </SubSystem>
-    </Link>
-  </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

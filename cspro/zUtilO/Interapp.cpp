@@ -652,7 +652,7 @@ std::vector<std::string> GetFileNameArrayFromSpecFile(CSpecFile& specFile, const
                 file_paths.emplace_back(UTF8_TODO::GetUtf8(sFileName));
             }
             else {
-                ErrorMessage::Display(FormatText(_T("Invalid line at %d\n%s"), specFile.GetLineNumber(), csCmd.GetString()));
+                ErrorMessage::Display(FormatText(L"Invalid line at %d\n%s", specFile.GetLineNumber(), csCmd.GetString()));
             }
         }
     }

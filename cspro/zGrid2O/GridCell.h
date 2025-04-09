@@ -166,6 +166,9 @@ protected:
     COLORREF        m_colorFSel;
 
 private:
+    static CSize GetLongestWordSize(CDC* pDC, const CString& text);
+
+private:
     std::vector<std::shared_ptr<CDEBox>> m_boxes;
     std::vector<std::shared_ptr<CDEText>> m_texts;
 };

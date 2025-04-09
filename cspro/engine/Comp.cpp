@@ -20,7 +20,7 @@ CEngineCompFunc::CEngineCompFunc(CEngineDriver* pEngineDriver)
     m_iForRecordIdx = 0;    //Added by Savy (R) 20090716
     m_iShowfnGroupIdx = 0;  //Added by Savy (R) 20090731 //Fix for show() warning issue
 
-    m_Flagvars = 0;         // to request index for Mult vars
+    m_allowMultVarWithoutIndex = false; // to request index for Mult vars
 
     clearSyntaxErrorStatus();
     useForPrecedence();
@@ -43,10 +43,9 @@ CEngineCompFunc::CEngineCompFunc(CEngineDriver* pEngineDriver)
     m_LvlInComp = 0;
     m_ProcInComp = 0;
 
-//BUCEN
+    // BUCEN
     m_bcvarsubcheck = false;
     m_icGrpIdx = 0;
-//BUCEN
 
     m_pCuroccGrpIdx = NULL; // 20091027
 
@@ -104,8 +103,8 @@ void CEngineCompFunc::FormatMessageAndProcessParserMessage(Logic::ParserMessage&
     m_pEngineDriver->GetSystemMessageIssuer().IssueVA(parser_message, parg);
 
     // set the fail message text
-    if( parser_message.type == Logic::ParserError::Type::Error && Failmsg.IsEmpty() )
-        Failmsg = UTF8_TODO::GetCString(parser_message.message_text);
+    if( parser_message.type == Logic::ParserError::Type::Error && m_pEngineSettings->m_failMessage.empty() )
+        m_pEngineSettings->m_failMessage = parser_message.message_text;
 }
 
 

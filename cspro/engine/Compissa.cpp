@@ -23,7 +23,8 @@
 int CEngineCompFunc::rutasync(const int symbol_index, const std::function<void()>* const compilation_function/* = nullptr*/)
 {
     clearSyntaxErrorStatus();
-    Flagvars = 0;
+
+    m_allowMultVarWithoutIndex = false;
 
     const Symbol& compilation_symbol = NPT_Ref(symbol_index);
     SetCompilationSymbol(compilation_symbol);

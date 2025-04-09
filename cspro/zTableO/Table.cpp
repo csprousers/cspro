@@ -5151,7 +5151,7 @@ void CTable::SaveNTiles(CSpecFile& specFile)
 
     for( int iIndex = 0; iIndex < iSize; iIndex += EntriesPerNTile )
     {
-        specFile.PutLine(XTS_CMD_NTILE, FormatText(_T("%s %s %s"),
+        specFile.PutLine(XTS_CMD_NTILE, FormatText(L"%s %s %s",
             m_arrFrqNTiles[iIndex].GetString(), m_arrFrqNTiles[iIndex + 1].GetString(), m_arrFrqNTiles[iIndex + 2].GetString()));
     }
 

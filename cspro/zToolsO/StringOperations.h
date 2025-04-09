@@ -264,7 +264,6 @@ public:
     // --------------------------------------------------------------------------
 
     // newline characters handled throughout the code
-    static constexpr const TCHAR* NewlineCharacters = _T("\r\n");
     static constexpr std::string_view Newline_crlf_sv = "\r\n";
     static constexpr std::string_view Newline_lf_sv   = "\n";
 
@@ -363,7 +362,7 @@ public:
 
     // removes all instances of the character
     CLASS_DECL_ZTOOLSO static std::string& Remove(std::string& text, char ch);
-    CLASS_DECL_ZTOOLSO static std::wstring& Remove(std::wstring& text, TCHAR ch);
+    CLASS_DECL_ZTOOLSO static std::wstring& Remove(std::wstring& text, wchar_t ch);
 
     // removes all whitespace characters from the text
     CLASS_DECL_ZTOOLSO static std::string RemoveWhitespace(std::string_view text_sv);
@@ -380,13 +379,13 @@ public:
     static T& Append(T& destination, wstring_view text_sv);
 
     template<typename T, typename... Args>
-    static T& AppendFormat(T& destination, const TCHAR* formatter, Args const&... args);
+    static T& AppendFormat(T& destination, const wchar_t* formatter, Args const&... args);
 
     // appends text with the separator added if the destination string is not blank
     template<typename AppendT, typename SeparatorT>
     static std::string& AppendWithSeparator(std::string& destination, AppendT&& text_to_append, SeparatorT&& separator);
 
-    CLASS_DECL_ZTOOLSO static std::wstring& AppendWithSeparator(std::wstring& destination, wstring_view text_sv, TCHAR separator);
+    CLASS_DECL_ZTOOLSO static std::wstring& AppendWithSeparator(std::wstring& destination, wstring_view text_sv, wchar_t separator);
 
     template<typename T>
     static T& AppendWithSeparator(T& destination, wstring_view text_sv, wstring_view separator_sv);
@@ -1405,7 +1404,7 @@ T& SO::Append(T& destination, const wstring_view text_sv)
 
 
 template<typename T, typename... Args>
-T& SO::AppendFormat(T& destination, const TCHAR* formatter, Args const&... args)
+T& SO::AppendFormat(T& destination, const wchar_t* const formatter, Args const&... args)
 {
     if constexpr(std::is_same_v<T, std::wstring>)
     {
@@ -1570,7 +1569,7 @@ void SO::ForeachLine(wstring_view text_sv, const bool process_whitespace_lines, 
 
     while( true )
     {
-        const std::wstring_view::size_type newline_pos = text_sv.find_first_of(NewlineCharacters);
+        const std::wstring_view::size_type newline_pos = text_sv.find_first_of(L"\r\n");
         const wstring_view this_line_sv = text_sv.substr(0, newline_pos);
 
         if( process_whitespace_lines || !SO::IsWhitespace(this_line_sv) )

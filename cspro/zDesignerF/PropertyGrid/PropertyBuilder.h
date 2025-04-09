@@ -15,7 +15,7 @@ template<typename T>
 struct PropertyGrid::PropertyGridData
 {
     CString property_name;
-    CString property_description;
+    std::wstring property_description;
     bool allow_direct_edit;
     std::optional<T> value;
     std::function<CString(const T&)> format_callback;
@@ -41,7 +41,7 @@ template<typename T>
 class PropertyGrid::PropertyBuilderBase
 {
 protected:
-    PropertyBuilderBase(const CString& property_name, const CString& property_description, std::optional<T> value = std::nullopt);
+    PropertyBuilderBase(const CString& property_name, std::wstring property_description, std::optional<T> value = std::nullopt);
 
 public:
     virtual ~PropertyBuilderBase() { }
@@ -76,7 +76,7 @@ template<typename T>
 class PropertyGrid::PropertyBuilder : public PropertyBuilderBase<T>
 {
 public:
-    PropertyBuilder(const CString& property_name, const CString& property_description, std::optional<T> value = std::nullopt);
+    PropertyBuilder(const CString& property_name, std::wstring property_description, std::optional<T> value = std::nullopt);
 
 protected:
     CMFCPropertyGridProperty* ToProperty() override;
@@ -89,11 +89,11 @@ protected:
 // --------------------------------------------------------------------------
 
 template<typename T>
-PropertyGrid::PropertyBuilderBase<T>::PropertyBuilderBase(const CString& property_name, const CString& property_description, std::optional<T> value/* = std::nullopt*/)
+PropertyGrid::PropertyBuilderBase<T>::PropertyBuilderBase(const CString& property_name, std::wstring property_description, std::optional<T> value/* = std::nullopt*/)
     :   m_data(std::make_unique<PropertyGridData<T>>(PropertyGridData<T>
             {
                 property_name,
-                property_description,
+                std::move(property_description),
                 true,
                 std::move(value)
             }))
@@ -172,8 +172,8 @@ CMFCPropertyGridProperty* PropertyGrid::PropertyBuilderBase<T>::Create()
                               // because the definitions for these are in .cpp files
 
 template<typename T>
-PropertyGrid::PropertyBuilder<T>::PropertyBuilder(const CString& property_name, const CString& property_description, std::optional<T> value/* = std::nullopt*/)
-    :   PropertyBuilderBase<T>(property_name, property_description, std::move(value))
+PropertyGrid::PropertyBuilder<T>::PropertyBuilder(const CString& property_name, std::wstring property_description, std::optional<T> value/* = std::nullopt*/)
+    :   PropertyBuilderBase<T>(property_name, std::move(property_description), std::move(value))
 {
 }
 

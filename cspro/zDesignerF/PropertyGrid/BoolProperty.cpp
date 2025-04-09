@@ -37,7 +37,7 @@ namespace PropertyGrid
 
 
     BoolProperty::BoolProperty(std::shared_ptr<PropertyGridData<bool>> data)
-        :   CMFCPropertyGridProperty(data->property_name, ToOleVariant(*data->value), data->property_description),
+        :   CMFCPropertyGridProperty(data->property_name, ToOleVariant(*data->value), data->property_description.c_str()),
             Property(data->allow_direct_edit),
             m_data(data)
     {

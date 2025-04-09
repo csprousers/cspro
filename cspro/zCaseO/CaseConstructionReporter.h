@@ -71,7 +71,7 @@ template<typename... Args>
 void CaseConstructionReporter::IssueMessage(const MessageType message_type, const int message_number, Args const&... args)
 {
 #ifdef _DEBUG
-    ValidateFormatTextArgumentTypes(args...);
+    ValidateFormatTextArgumentTypes<char>(args...);
 #endif
 
     IssueMessageWorker(message_type, message_number, args...);
@@ -181,4 +181,3 @@ inline void CaseConstructionReporter::IncrementErasedRecordCount()
     if( m_processSummary != nullptr )
         m_processSummary->IncrementAttributesErased();
 }
-

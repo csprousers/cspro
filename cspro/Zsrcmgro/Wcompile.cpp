@@ -1,14 +1,9 @@
-﻿#include <engine/StandardSystemIncludes.h>
-#include <engine/Tables.h>
-#include <engine/Ctab.h>
-#include <engine/COMPILAD.H>
-#include <engine/Engine.h>
-#include <Zsrcmgro/zSrcMgrO.h>
-#include <Zsrcmgro/SrcCode.h>
-#include <zLogicO/SourceBuffer.h>
-#include <zLogicO/ProcDirectory.h>
-#include <ZTBDO/cLinkTab.h>
+﻿#include "StdAfx.h"
 #include "Wcompile.h"
+#include "SrcCode.h"
+#include <zLogicO/ProcDirectory.h>
+#include <engine/COMPILAD.H>
+#include <engine/Ctab.h>
 
 
 #ifdef _DEBUG
@@ -50,7 +45,7 @@ bool CCompIFaz::C_CompilerInit( CString* pcsLines, bool& bSomeError )// RHF Jun 
     // load the messages
     m_pEngineDriver->BuildMessageManagers();
 
-    if( !m_pEngineDriver->attrload() || io_Err )
+    if( !m_pEngineDriver->attrload() || m_pEngineSettings->m_io_Err != 0 )
     {
         C_CompilerEnd();
         return false;
@@ -58,7 +53,8 @@ bool CCompIFaz::C_CompilerInit( CString* pcsLines, bool& bSomeError )// RHF Jun 
 
     if( !m_pEngineDriver->LoadApplChildren(pcsLines) ) // RHF Jun 12, 2003 Add pcrLines
     {
-        issaerror( MessageType::Error, 10004, UTF8_TODO::GetUtf8(ApplName).c_str(), UTF8_TODO::GetUtf8(Failmsg).c_str() );
+        issaerror(MessageType::Error, 10004, Path::GetFilename(m_pEngineDriver->GetApplication()->GetApplicationFilePath()).c_str(),
+                                             m_pEngineSettings->m_failMessage.c_str());
 
         // RHF COM Mar 06, 2001 return false;
         bSomeError = true;

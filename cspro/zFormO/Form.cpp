@@ -501,7 +501,7 @@ bool CDEForm::Build (CSpecFile& frmFile, const CString& sDictName, bool bSilent 
         {
             if (!bSilent)
             {
-                ErrorMessage::Display(FormatText(_T("Incorrect [Form] attribute\n\n%s"), csCmd.GetString()));
+                ErrorMessage::Display(L"Incorrect [Form] attribute\n\n" + csCmd);
             }
         }
     }

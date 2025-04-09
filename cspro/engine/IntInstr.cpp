@@ -19,8 +19,6 @@
 #include "INTERPRE.H"
 #include "Engine.h"
 #include "VARX.h"
-#include "Batdrv.h"
-#include "Ctab.h"
 #include "ProgramControl.h"
 #include "3dException.h"
 #include <zEngineO/AllSymbols.h>
@@ -29,6 +27,12 @@
 #include <Zissalib/CFlAdmin.h>
 #include <Zissalib/GroupVisitor.h>
 #include <zToolsO/Serializer.h>
+
+#ifdef WIN_DESKTOP
+#include "Batdrv.h"
+#include "Ctab.h"
+#include "Export.h"
+#endif
 
 #pragma warning( push )
 #pragma warning( once: 4244 )
@@ -98,15 +102,16 @@ double CIntDriver::excpt(int iExpr)
 
     // left-side is ... a cell of a table:
     else if( iThisVarType == TVAR_CODE ) {
-#ifdef WIN_DESKTOP
+#ifndef WIN_DESKTOP
+        // crosstabs don't exist in the portable environments
+        return ReturnProgrammingError(DEFAULT);
+#else
         TVAR_NODE*  pTVarNode = (TVAR_NODE*) pSVarNode;
         CTAB*       pCtab = XPT(pTVarNode->tvar_index);
         int         aCoord[3] = { 0, 0, 0 };
         bool        bGoodCoord = true;
-#ifdef BUCEN
         bool        bnotappl = true;
         int         iBadSubscript = 0;  // GSF 10-jan-03
-#endif
 
         for( int iAxis = 0; bGoodCoord && iAxis < 3; iAxis++ ) {
             int     iExprIndex = pTVarNode->tvar_exprindex[iAxis];
@@ -116,16 +121,14 @@ double CIntDriver::excpt(int iExpr)
 
                 if( m_bStopProc ) // see the note on the similar code above
                     return 0;
-#ifdef BUCEN
+
                 bnotappl = ( dValue >= 0 && dValue <= INT_MAX);
-#endif
+
                 //TODO:         bGoodCoord = ( dValue >= 0 && dValue <= INT_MAX??? );
 
                 if( bGoodCoord ) {
                     aCoord[iAxis] = (int) dValue;
-#ifdef BUCEN
                     iBadSubscript = (int) dValue;   // GSF 10-jan-03
-#endif
                 }
             }
         }
@@ -145,11 +148,6 @@ double CIntDriver::excpt(int iExpr)
         //      else ISSUE A MESSAGE???
 
         return dRightValue;// RHF Nov 03, 2000
-        // RHF COM Nov 03, 2000        return( (double) 0 );
-#else
-        // crosstabs don't exist in the portable environments
-        ASSERT(false);
-        return DEFAULT;
 #endif
     }
 
@@ -191,7 +189,7 @@ double CIntDriver::excpt(int iExpr)
     }
 
     if( bOk ) {
-#ifdef BUCEN
+        // BUCEN
         bool bIsInputDict = (pVarT->GetSubType() == SymbolSubType::Input);
         GROUPT* pGroupTRec = pVarT->GetOwnerGPT();
         int iDimType = pGroupTRec->GetDimType();
@@ -220,13 +218,6 @@ double CIntDriver::excpt(int iExpr)
         }
 
     // GSF 11-Feb-2003 end
-#else
-        CNDIndexes theIndex( ZERO_BASED, aIndex );
-        bOk = SetVarFloatValue( dRightValue, pVarX, theIndex );
-        ASSERT( bOk );
-
-
-#endif
     } // if( bOk )
 
     //TODO: all below MUST be done by 'SetVarFloatValue'    // victor Jul 25, 00
@@ -248,7 +239,6 @@ double CIntDriver::excpt(int iExpr)
     // RHF 12/8/99 Items/SubItems
 
     return dRightValue; // RHF Nov 03, 2000
-    // RHF COM Nov 03, 2000 return( (double) 0 );
 }
 
 
@@ -461,7 +451,7 @@ double CIntDriver::exbox( int iExpr )
         pBoxRow = ( pBoxRow->next_row >= 0 ) ? (BOX_ROW*) (PPT(pBoxRow->next_row)) : NULL;
     }
 
-    return( (double) 0 );
+    return 0;
 }
 
 bool CIntDriver::exboxrow( const void* pBoxNode_void, BOX_ROW* pBoxRow, double aVarValues[] )
@@ -907,11 +897,11 @@ double CIntDriver::getMaxIndexForVariableUsingStack( VART* pVarT, REL_NODE* pRel
     double dMaxValue = pGroupT->GetTotalOccurrences( theIndex );
     int aWhich[] = { USE_DIM_1, USE_DIM_1_2, USE_ALL_DIM };
     theIndex.specifyIndexesUsed( aWhich[pGroupT->GetNumDim()-1] );
-#ifdef WIN_DESKTOP
-    TRACE( _T("\ngetMaxIndexForVariableUsingStack for var %s using group %s -> %s\n"),
-        UTF8_TODO::GetWide(pVarT->GetName()).c_str(),
-        UTF8_TODO::GetWide(pGroupT->GetName()).c_str(), theIndex.toString(pGroupT->GetNumDim()).c_str() );
-#endif
+
+    TRACE("\ngetMaxIndexForVariableUsingStack for var %s using group %s -> %s\n",
+          pVarT->GetName().c_str(), pGroupT->GetName().c_str(),
+          UTF8_TODO::GetUtf8(theIndex.toString(pGroupT->GetNumDim())).c_str());
+
     return dMaxValue;
 }
 
@@ -1008,7 +998,6 @@ double CIntDriver::exdofor_relation( FORRELATION_NODE* pFor, double* dTableWeigh
 
     double      dCount1, dInitValue1, dMaxValue1, dValExpr;
     double*     pTargetWVar;
-    double      dOneRet;
     bool        bFitValue;// RHF Jul 08, 2002
 
     ChangeExOccVisitor changeVisitor;
@@ -1202,8 +1191,9 @@ double CIntDriver::exdofor_relation( FORRELATION_NODE* pFor, double* dTableWeigh
             if( iCtabWeigthExpr != 0 && !IsSpecial(dSubTableWeight) && dSubTableWeight > -MAXVALUE ||
                 iCtabWeigthExpr == 0 && !IsSpecial(*dTableWeight) && *dTableWeight > -MAXVALUE ) {
                 // RHF COM Jul 15, 2005 dOneRet = DoOneXtab( pCtab, (iCtabWeigthExpr!=0) ? dSubTableWeight : (*dTableWeight), *iTabLogicExpr, pListNode );
-                    dOneRet = DoOneXtab( pCtab, (iCtabWeigthExpr!=0) ? dSubTableWeight * (*dTableWeight) : (*dTableWeight), (iUnitTablogicExpr!=0) ? iUnitTablogicExpr :*iTabLogicExpr, pListNode );
-                if( dRet == 0 ) dRet = dOneRet; // The first error is returned
+                double dOneRet = DoOneXtab( pCtab, (iCtabWeigthExpr!=0) ? dSubTableWeight * (*dTableWeight) : (*dTableWeight), (iUnitTablogicExpr!=0) ? iUnitTablogicExpr :*iTabLogicExpr, pListNode );
+                if( dRet == 0 )
+                    dRet = dOneRet; // The first error is returned
             }
         }
         else
@@ -1345,16 +1335,16 @@ double CIntDriver::exforbreak(int /*iExpr*/)
 
 double CIntDriver::exctab( int iExpr )
 {
-#if defined(USE_BINARY) // IGNORE_CTAB
-    ASSERT(0);
-    return 0;
+#ifndef WIN_DESKTOP
+    // not applicable on portable platforms
+    return ReturnProgrammingError(0);
 #else
     // exctab: execute CROSSTAB statement
     CTAB_NODE*  pCtabNode = (CTAB_NODE*) (PPT(iExpr));
     CTAB*       pCtab     = XPT(pCtabNode->SYMTctab);
 
     if( pCtab->GetAcumArea() == NULL )
-        return( (double) 0 );
+        return 0;
 
     pCtab->ResetSelectWeightExpr( pCtabNode->selectexpr, pCtabNode->weightexpr ); // RHF Aug 05, 2005
 
@@ -1393,37 +1383,40 @@ double CIntDriver::exctab( int iExpr )
         return( (double) -1 );
 
     return( DoXtab( pCtab, dWeightValue, iTabLogicExpr, NULL ) );
-#endif //#if defined(USE_BINARY) // IGNORE_CTAB
+#endif
 }
 
 
-double CIntDriver::exbreak( int iExpr ) {
-#ifdef USE_BINARY
-    ASSERT(0); // should not be executing this
+double CIntDriver::exbreak( int iExpr )
+{
+#ifndef WIN_DESKTOP
+    // not applicable on portable platforms
+    return ReturnProgrammingError(0);
 #else
     // exbreak: execute BREAK BY statement
-
     ASSERT( Issamod == ModuleType::Batch );
     CBatchDriverBase*   pBatchDriverBase=(CBatchDriverBase*)m_pEngineDriver;
 
     // RHF INIC Oct 22, 2002
     if( pBatchDriverBase->GetBatchMode() == CRUNAPL_CSCALC ) {
         issaerror( MessageType::Warning, 591 );  // Break by not executed
-        return( (double) 0 );
+        return 0;
     }
     // RHF END Oct 22, 2002
 
-    CTbd*       pTbd = pBatchDriverBase->GetTbd();
-
+    CTbd* pTbd = pBatchDriverBase->GetTbd();
     pTbd->breakcheckid();
-#endif
 
-    return( (double) 0 );
+    return 0;
+#endif
 }
 
-double CIntDriver::exexport( int iExpr ) {
-#ifdef USE_BINARY
-    ASSERT(0); // should not be executing this
+
+double CIntDriver::exexport( int iExpr )
+{
+#ifndef WIN_DESKTOP
+    // not applicable on portable platforms
+    return ReturnProgrammingError(0);
 #else
     // exexport: execute Export statement
     EXPORT_NODE*    pExpoNode = (EXPORT_NODE*) (PPT(iExpr));
@@ -1442,9 +1435,11 @@ double CIntDriver::exexport( int iExpr ) {
 
         ExpWriteThisExport();           // formerly 'expwrecords'
     }
-#endif // USE_BINARY
+
     return 0;
+#endif
 }
+
 
 //--------------------------------------------------------
 //  exsetattr: change attributes of fields in forms

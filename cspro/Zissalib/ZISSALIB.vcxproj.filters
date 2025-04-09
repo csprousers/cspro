@@ -9,16 +9,49 @@
       <UniqueIdentifier>{a4f9baa4-f1d7-4c35-96fe-2f32b5beb145}</UniqueIdentifier>
       <Extensions>h;hpp;hxx;hm;inl</Extensions>
     </Filter>
+    <Filter Include="Source Files\issa">
+      <UniqueIdentifier>{f1c1314a-7955-4b8b-b9e9-789a1695b08e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\ENGINE\Export.cpp">
+    <ClCompile Include="..\engine\Applload.cpp">
+      <Filter>Source Files\issa</Filter>
+    </ClCompile>
+    <ClCompile Include="..\engine\CtUnit.cpp">
+      <Filter>Source Files\issa</Filter>
+    </ClCompile>
+    <ClCompile Include="..\engine\Export.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\ENGINE\export2.cpp">
+    <ClCompile Include="..\engine\export2.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\ENGINE\relt.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="..\engine\Form.cpp">
+      <Filter>Source Files\issa</Filter>
+    </ClCompile>
+    <ClCompile Include="..\engine\IssaFunc.cpp">
+      <Filter>Source Files\issa</Filter>
+    </ClCompile>
+    <ClCompile Include="..\engine\Messages.cpp">
+      <Filter>Source Files\issa</Filter>
+    </ClCompile>
+    <ClCompile Include="..\engine\relt.cpp">
+      <Filter>Source Files\issa</Filter>
+    </ClCompile>
+    <ClCompile Include="..\engine\Settings.cpp">
+      <Filter>Source Files\issa</Filter>
+    </ClCompile>
+    <ClCompile Include="..\engine\subtable.cpp">
+      <Filter>Source Files\issa</Filter>
+    </ClCompile>
+    <ClCompile Include="..\engine\Tables.cpp">
+      <Filter>Source Files\issa</Filter>
+    </ClCompile>
+    <ClCompile Include="..\engine\Tablesen.cpp">
+      <Filter>Source Files\issa</Filter>
+    </ClCompile>
+    <ClCompile Include="..\engine\VariableInOut.cpp">
+      <Filter>Source Files\issa</Filter>
     </ClCompile>
     <ClCompile Include="Attr.cpp">
       <Filter>Source Files</Filter>
@@ -81,9 +114,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="GroupVisitor.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="KeyboardLoader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Labsalo.cpp">

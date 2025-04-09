@@ -28,7 +28,7 @@ void CEngineDriver::LoadApplication()
     // FLOW_TODO eventually add more types and look at exapplinit to see how things like POSTCALC are set [if these even matter]
     ASSERT(m_pApplication->GetEngineAppType() == EngineAppType::Batch);
     Appl.ApplicationType = ModuleType::Batch;
-    Appl.ApplicationTypeText = _T("BATCH");
+    Appl.ApplicationTypeText = "BATCH";
 
     // insert the application into the symbol table
     m_engineData->AddSymbol(m_pEngineArea->m_Appl);

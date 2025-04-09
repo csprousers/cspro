@@ -112,7 +112,7 @@ bool CRecordGrid::GetSelectedItemsAndQueryForSubitems(std::vector<size_t>& selec
 
             if( potential_subitem->IsSubitem() )
             {
-                int action = AfxMessageBox(FormatText(_T("%s subitems too?"), action_text), MB_YESNOCANCEL);
+                int action = AfxMessageBox(FormatText(L"%s subitems too?", action_text), MB_YESNOCANCEL);
 
                 if( action == IDCANCEL )
                 {

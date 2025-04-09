@@ -1,5 +1,5 @@
-﻿#include "STDAFX.H"
-#include <engine/RELATION.H>
+﻿#include "StandardSystemIncludes.h"
+#include "RELATION.H"
 
 
 void CRelatedTable::InsertRelated( std::shared_ptr<CItemBase> newItDescr )

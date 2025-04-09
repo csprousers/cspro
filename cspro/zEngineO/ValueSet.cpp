@@ -574,10 +574,11 @@ std::tuple<std::unique_ptr<DictValueSet>, bool> DynamicValueSet::CreateDictValue
         {
             const NumericDynamicValueSetEntry& numeric_entry = assert_cast<const NumericDynamicValueSetEntry&>(entry);
 
-            auto format_numeric_value = [&](double value)
+            auto format_numeric_value = [&](const double value)
             {
-                std::wstring text_value = FormatTextCS2WS(_T("%*.*f"), (int)length, (int)decimals, value);
-                value_does_not_fit_in_value_set_warning = value_does_not_fit_in_value_set_warning || ( text_value.length() > complete_length );
+                std::string text_value = FormatText("%*.*f", static_cast<int>(length), static_cast<int>(decimals), value);
+                value_does_not_fit_in_value_set_warning = ( value_does_not_fit_in_value_set_warning ||
+                                                            SO::WideLength(text_value) > complete_length );
                 SO::MakeTrim(text_value);
                 return text_value;
             };
@@ -590,7 +591,7 @@ std::tuple<std::unique_ptr<DictValueSet>, bool> DynamicValueSet::CreateDictValue
 
             else
             {
-                dict_value_pair.SetFrom(WS2CS(format_numeric_value(numeric_entry.from_value)));
+                dict_value_pair.SetFrom(UTF8_TODO::GetCString(format_numeric_value(numeric_entry.from_value)));
             }
 
             if( numeric_entry.to_value.has_value() )
@@ -602,7 +603,7 @@ std::tuple<std::unique_ptr<DictValueSet>, bool> DynamicValueSet::CreateDictValue
 
                 else
                 {
-                    dict_value_pair.SetTo(WS2CS(format_numeric_value(*numeric_entry.to_value)));
+                    dict_value_pair.SetTo(UTF8_TODO::GetCString(format_numeric_value(*numeric_entry.to_value)));
                 }
             }
         }

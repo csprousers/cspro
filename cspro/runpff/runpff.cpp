@@ -44,7 +44,7 @@ BOOL RunPffApp::InitInstance()
     // ...or use command line arguments, forwarding any to the program that will be executed
     else
     {
-        std::string command_line_arguments = TC::ToUtf8(GetCommandLine());
+        std::string command_line_arguments = PortableFunctions::GetCommandLine();
         const size_t pff_file_path_pos = command_line_arguments.find(pff_file_path);
 
         if( pff_file_path_pos != std::string::npos )

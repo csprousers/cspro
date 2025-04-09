@@ -95,10 +95,7 @@ bool CBatchIFaz::C_BatchInit( CNPifFile* pPifFile, int iRunMode ) {
         SetBatchDriver( pBatchDriverBase ); // Set m_pEngineDriver also!
         pBatchDriverBase->SetBatchMode( bCsBatch ? CRUNAPL_CSBATCH : CRUNAPL_CSTAB );
 
-        if( bCsBatch )
-            m_pEngineDriver->m_lpszExecutorLabel =_T("BATCH");
-        else
-            m_pEngineDriver->m_lpszExecutorLabel = _T("CSTAB");
+        m_pEngineDriver->m_lpszExecutorLabel = bCsBatch ? "BATCH" : "CSTAB";
 
         if(pPifFile->GetSkipStructFlag()){
             GetSettings()->SetHasSkipStruc(true);
@@ -116,7 +113,7 @@ bool CBatchIFaz::C_BatchInit( CNPifFile* pPifFile, int iRunMode ) {
         pBatchDriverBase->SetBatchMode( CRUNAPL_CSCALC );
 
         SetBatchDriver( pBatchDriverBase ); // Set m_pEngineDriver also!
-        m_pEngineDriver->m_lpszExecutorLabel = _T("CALC");
+        m_pEngineDriver->m_lpszExecutorLabel = "CALC";
     }
 
     CTbd*   pTbd = pBatchDriverBase->GetTbd();
@@ -178,14 +175,9 @@ bool CBatchIFaz::C_BatchInit1( CNPifFile* pPifFile, int iRunMode )
 
     Issamod = ModuleType::Batch;
 
-    if( bCsBatch )
-        m_pEngineDriver->m_lpszExecutorLabel = _T("BATCH");
-    else if( bCsTab )
-        m_pEngineDriver->m_lpszExecutorLabel = _T("CSTAB");
-    else {
-        ASSERT(bCsCalc);
-        m_pEngineDriver->m_lpszExecutorLabel = _T("CALC");
-    }
+    m_pEngineDriver->m_lpszExecutorLabel = bCsBatch ? "BATCH" :
+                                           bCsTab   ? "CSTAB" :
+                                        /* bCsCalc */ "CALC";
 
     // initializing application
     m_pEngineDriver->SetPifFile( pPifFile );            // see Attr.cpp

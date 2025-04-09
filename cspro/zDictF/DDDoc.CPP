@@ -398,9 +398,9 @@ void CDDDoc::OnOptionsZeroFill()
     bool new_zero_fill = !m_dictionary->IsZeroFill();
     m_dictionary->SetZeroFill(new_zero_fill);
 
-    const TCHAR* text_setting = new_zero_fill ? _T("Yes") : _T("No");
-    CString message = FormatText(_T("ZeroFill default set to '%s'.\n\nDo you want to change ZeroFill to '%s' in all existing numeric items?"),
-                                 text_setting, text_setting);
+    const wchar_t* const text_setting = new_zero_fill ? L"Yes" : L"No";
+    const std::wstring message = FormatText(L"ZeroFill default set to '%s'.\n\nDo you want to change ZeroFill to '%s' in all existing numeric items?",
+                                            text_setting, text_setting);
 
     if( AfxMessageBox(message, MB_YESNO | MB_DEFBUTTON2) == IDYES )
     {
@@ -430,9 +430,9 @@ void CDDDoc::OnOptionsDecChar()
     bool new_dec_char = !m_dictionary->IsDecChar();
     m_dictionary->SetDecChar(new_dec_char);
 
-    const TCHAR* text_setting = new_dec_char ? _T("Yes") : _T("No");
-    CString message = FormatText(_T("DecChar default set to '%s'.\n\nDo you want to change DecChar to '%s' in all existing decimal items?"),
-                                 text_setting, text_setting);
+    const wchar_t* const text_setting = new_dec_char ? L"Yes" : L"No";
+    const std::wstring message = FormatText(L"DecChar default set to '%s'.\n\nDo you want to change DecChar to '%s' in all existing decimal items?",
+                                            text_setting, text_setting);
 
     if( AfxMessageBox(message, MB_YESNO | MB_DEFBUTTON2) == IDYES )
     {

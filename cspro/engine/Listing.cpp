@@ -1,6 +1,5 @@
 ﻿#include "StandardSystemIncludes.h"
 #include "Engdrv.h"
-#include "Batdrv.h"
 #include "IntDrive.h"
 #include <zEngineO/AllSymbols.h>
 #include <ZBRIDGEO/npff.h>
@@ -9,6 +8,10 @@
 #include <zListingO/HeaderAttribute.h>
 #include <zListingO/ListerWriteFile.h>
 #include <zListingO/TextWriteFile.h>
+
+#ifdef WIN_DESKTOP
+#include "Batdrv.h"
+#endif
 
 
 void CEngineDriver::OpenListerAndWriteFiles()
@@ -36,7 +39,7 @@ void CEngineDriver::StartLister()
 
     bool append = false;
 
-    std::string application_type = UTF8_TODO::GetUtf8(Appl.ApplicationTypeText);
+    std::string application_type = Appl.ApplicationTypeText;
     bool cstab = false;
     bool cscalc = false;
 
@@ -48,7 +51,7 @@ void CEngineDriver::StartLister()
 
     else if( m_pPifFile->GetAppType() == APPTYPE::TAB_TYPE )
     {
-        if( application_type == "CSTab" )
+        if( SO::EqualsNoCase(application_type, "CSTab") )
         {
             cstab = true;
             application_type = "Tab";
@@ -56,7 +59,7 @@ void CEngineDriver::StartLister()
 
         else
         {
-            if( application_type == "PostCalc" )
+            if( SO::EqualsNoCase(application_type, "PostCalc") )
             {
                 cscalc = true;
                 application_type = "Format";
@@ -95,7 +98,7 @@ void CEngineDriver::StartLister()
 
     if( cscalc )
     {
-#if defined(WIN_DESKTOP) && !defined(USE_BINARY)
+#ifdef WIN_DESKTOP
         CCalcDriver* const pCalcDriver = assert_cast<CCalcDriver*>(m_pEngineDriver);
         header_attributes.emplace_back("Input Data", UTF8_TODO::GetUtf8(pCalcDriver->GetInputTbd()->GetFileName()));
         header_attributes.emplace_back("Output", UTF8_TODO::GetUtf8(m_pPifFile->GetPrepOutputFName()));

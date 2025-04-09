@@ -167,17 +167,18 @@ void CEntryDriver::DoQid() {
     int     iSymVar;
     int     iLevelKeyLen;
 
-    QidLength = 0;
+    m_pEngineSettings->m_QidLength = 0;
+
     for( int i = 0; i < (int)MaxNumberLevels && pDicT->qloc[i] > 0; i++ ) {
          iLevelKeyLen = 0;
          int j = 0;
 
-         while( ( iSymVar = QidVars[i][j++] ) >= 0 )
+         while( ( iSymVar = m_pEngineSettings->m_QidVars[i][j++] ) >= 0 )
              iLevelKeyLen += VPT(iSymVar)->GetLength();
          if( iLevelKeyLen != pDicT->qlen[i] )
              issaerror( MessageType::Abort, 1024, i + 1, iLevelKeyLen, pDicT->qlen[i] );
 
-         QidLength += pDicT->qlen[i];
+         m_pEngineSettings->m_QidLength += pDicT->qlen[i];
     }
 }
 
@@ -191,7 +192,7 @@ bool CEntryDriver::QidReady(int iLevel)
     bool bReady = true;
 
     // only if there is a case-identifier
-    if( QidLength > 0 )
+    if( m_pEngineSettings->m_QidLength > 0 )
     {
         bool bPathOff = m_pEngineSettings->IsPathOff();
         int iItem = 0;
@@ -199,7 +200,7 @@ bool CEntryDriver::QidReady(int iLevel)
         // checks presence of every id-field for this level
         while( bReady )
         {
-            int iSymVar = QidVars[iLevel - 1][iItem++];
+            int iSymVar = m_pEngineSettings->m_QidVars[iLevel - 1][iItem++];
 
             if( iSymVar > 0 )
             {
@@ -258,19 +259,24 @@ bool CEntryDriver::ReportToInterface( int iSymbol, int iOcc, int iDirection, CFl
     VART*               pVarT=NULL;
     bool                bDone=false;
 
-    if( iSymbol <= 0 ) return true;
+    if( iSymbol <= 0 )
+        return true;
+
 #ifdef WIN_DESKTOP
     if( AfxGetMainWnd() == NULL )
         return bDone;
 #endif
-    if( NPT(iSymbol)->IsA(SymbolType::Group) )
+
+    if( NPT(iSymbol)->IsA(SymbolType::Group) ) {
         pGroupT = GPT(iSymbol);
+    }
     else if( NPT(iSymbol)->IsA(SymbolType::Variable) ) {
         ASSERT( iOcc >= 1 );
         pVarT = VPT(iSymbol);
     }
-    else
+    else {
         ASSERT(0);
+    }
 
     bDone = true;
     // If Group/Roster send message in Head/Tail
@@ -284,19 +290,15 @@ bool CEntryDriver::ReportToInterface( int iSymbol, int iOcc, int iDirection, CFl
             if( iSymbol != m_iLastRefGroupSym && bFocusGroup ) {
                 m_iLastRefGroupSym = iSymbol;
                 // TODO_PORT: Need to devise a method for posting messages to the OS UI
-#ifdef WIN_DESKTOP
-                AfxGetMainWnd()->SendMessage(WM_IMSA_REFRESHFORM, (long) pGroupT->GetCDEGroup() );
-#endif
+                WindowsDesktopMessage::Send(WM_IMSA_REFRESHFORM, pGroupT->GetCDEGroup());
             }
         }
         else { // No Roster. Form multiple in depth . HtOcc always is inner!
             if( bFocusGroup || xAtomType == CFlowAtom::AtomType::HTOcc ) {
-                    m_iLastRefGroupSym = iSymbol;
+                m_iLastRefGroupSym = iSymbol;
                 // TODO_PORT: Need to devise a method for posting messages to the OS UI
-#ifdef WIN_DESKTOP
-                AfxGetMainWnd()->SendMessage(WM_IMSA_REFRESHFORM, (long) pGroupT->GetCDEGroup() );
-#endif
-                }
+                WindowsDesktopMessage::Send(WM_IMSA_REFRESHFORM, pGroupT->GetCDEGroup());
+            }
         }
     }
     else if( pVarT != NULL ) {
@@ -307,9 +309,7 @@ bool CEntryDriver::ReportToInterface( int iSymbol, int iOcc, int iDirection, CFl
             ASSERT( m_iLastRefGroupSym > 0 );
             pGroupT = GPT(m_iLastRefGroupSym);
             // TODO_PORT: Need to devise a method for posting messages to the OS UI
-#ifdef WIN_DESKTOP
-            AfxGetMainWnd()->SendMessage(WM_IMSA_REFRESHFORM, (long) pGroupT->GetCDEGroup());
-#endif
+            WindowsDesktopMessage::Send(WM_IMSA_REFRESHFORM, pGroupT->GetCDEGroup());
         }
 
         if( pVarT->IsProtectedOrNoNeedVerif() ) {
@@ -318,9 +318,7 @@ bool CEntryDriver::ReportToInterface( int iSymbol, int iOcc, int iDirection, CFl
             DeFld.SetSymbol( iSymbol );
             DeFld.setIndexValue( 0, iOcc );
             // TODO_PORT: Need to devise a method for posting messages to the OS UI
-#ifdef WIN_DESKTOP
-            AfxGetMainWnd()->SendMessage(WM_IMSA_REFRESHPROTECTED, (long) &DeFld );
-#endif
+            WindowsDesktopMessage::Send(WM_IMSA_REFRESHPROTECTED, &DeFld);
         }
     }
 
@@ -645,9 +643,9 @@ void CEntryDriver::PrefillKeyFromPff()
     CString key = m_pPifFile->GetKey();
     int current_position_in_key = 0;
 
-    for( int i = 0; current_position_in_key < key.GetLength() && QidVars[0][i] >= 0; i++ )
+    for( int i = 0; current_position_in_key < key.GetLength() && m_pEngineSettings->m_QidVars[0][i] >= 0; i++ )
     {
-        VART* pVarT = VPT(QidVars[0][i]);
+        VART* pVarT = VPT(m_pEngineSettings->m_QidVars[0][i]);
         TCHAR* variable_text_buffer = m_pIntDriver->GetVarAsciiAddr(pVarT);
 
         // format the value properly for this variable
@@ -849,7 +847,6 @@ int CEntryDriver::DisplayMessage(const MessageType message_type, const int messa
     // when not using select, the only button is the OK button
     if( message_buttons == nullptr || message_buttons->empty() )
     {
-#ifdef WIN_DESKTOP
         // use the old message style while in operator-controlled mode
         if( WindowsDesktopMessage::Send(UWM::CSEntry::UsingOperatorControlledMessages) == 1 )
             return DisplayMessage_pre77(message_type, message_number, UTF8_TODO::GetCString(*message_text), select_details);
@@ -858,7 +855,6 @@ int CEntryDriver::DisplayMessage(const MessageType message_type, const int messa
         // (for example, while in an interactive edit)
         if( WindowsDesktopMessage::Send(UWM::CSEntry::PreprocessEngineMessage, static_cast<WPARAM>(message_type), message_number) < 0 )
             return 1;
-#endif
 
         // to allow simple error messages to display during synchronous JavaScript calls
         // into the engine, display messages using a native message box
@@ -942,7 +938,7 @@ int CEntryDriver::DisplayMessage_pre77(const MessageType message_type, const int
     while( true )
     {
 #ifdef WIN_DESKTOP
-        const int selected_button_number = AfxGetMainWnd()->SendMessage(WM_IMSA_ENGINEMSG, (WPARAM)&message_options);
+        const int selected_button_number = WindowsDesktopMessage::Send(WM_IMSA_ENGINEMSG, &message_options);
 #else
         const int selected_button_number = PlatformInterface::GetInstance()->GetApplicationInterface()->ShowMessage(title, message, message_buttons);
 #endif

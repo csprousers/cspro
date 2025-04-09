@@ -1,8 +1,4 @@
 ﻿#include "StandardSystemIncludes.h"
-
-#if defined(USE_BINARY) // IGNORE_CTAB
-#else
-
 #include "Comp.h"
 #include "CtUnit.h"
 #include "Ctab.h"
@@ -340,5 +336,3 @@ bool CSubTable::GetTableCoord( int &iTableI, int &iTableJ, int &iTableK, const i
 
     return false;
 }
-
-#endif

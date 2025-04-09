@@ -202,7 +202,7 @@ bool CDELevel::Build(CSpecFile& frmFile, CDEFormFile* pFF)
     {
         if (GetNumGroups() == 0 )
         {
-            ErrorMessage::Display(FormatText(_T("Line #%d: Each [Level] block must have at least one associated [Group] block."), ln));
+            ErrorMessage::Display(FormatText(L"Line #%d: Each [Level] block must have at least one associated [Group] block.", ln));
         }
 
         // anything else to check??  name will be done on rtn to CDEFormFile::Build()

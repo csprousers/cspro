@@ -92,8 +92,8 @@ void SetRegistryFileAssociation(CString csDocumentName, bool* pbSuccess, const s
 
     if( *pbSuccess )
     {
-        CString csIconName = FormatText(_T("%s,%d"), pcsIconExe != NULL ? pcsIconExe->c_str() : pcsOpenExe->c_str(), iIconIndex);
-        *pbSuccess = SetRegistryStringValue(hKey,NULL,csIconName);
+        const std::wstring icon_name = FormatText(L"%s,%d", ( pcsIconExe != nullptr ) ? pcsIconExe->c_str() : pcsOpenExe->c_str(), iIconIndex);
+        *pbSuccess = SetRegistryStringValue(hKey, nullptr, icon_name.c_str());
 
         RegCloseKey(hKey);
     }

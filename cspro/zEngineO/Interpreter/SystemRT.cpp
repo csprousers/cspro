@@ -110,13 +110,12 @@ double LogicInterpreter::ex_sysparm(const int program_index)
         SharableString parameter = ( m_engineData->pff != nullptr ) ? m_engineData->pff->GetCustomParamString(*argument) :
                                                                       SharableString();
 
-#ifdef WIN_DESKTOP
-        // on Windows, if the parameter isn't specified in the PFF file, check if it is a command line argument;
+        // if the parameter isn't specified in the PFF file, check if it is a command line argument;
         // if so, return the argument (meaning that checking if sysparm isn't blank is a way of seeing
         // if something is defined on the command line)
         if( parameter->empty() )
         {
-            const std::string command_line = SO::ToLower(TC::ToUtf8(GetCommandLine()));
+            const std::string command_line = SO::ToLower(PortableFunctions::GetCommandLine());
             argument.MakeLower();
             const size_t argument_pos = command_line.find(*argument);
 
@@ -132,7 +131,6 @@ double LogicInterpreter::ex_sysparm(const int program_index)
                 }
             }
         }
-#endif
 
         return AssignString(std::move(parameter));
     }

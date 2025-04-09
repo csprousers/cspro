@@ -38,7 +38,7 @@ int CEngineArea::inittables()
 
     // marks level-id list as empty
     for (size_t i = 0; i < MaxNumberLevels; i++)
-        QidVars[i][0] = -1;
+        m_pEngineSettings->m_QidVars[i][0] = -1;
 
     return TRUE;
 }
@@ -299,11 +299,9 @@ void CEngineArea::Init()
     m_aCtabBreakId.clear(); // RHF Apr 16, 2003
     m_CtabBreakHighLevel = 0; // RHF Apr 16, 2003
 
-#ifndef USE_BINARY
     // --- export management
     m_pCurExport = NULL;// current export
     ResetExpoSeqNo(); // seq # for assigning    // victor Dec 18, 00
-#endif // !USE_BINARY
 }
 
 

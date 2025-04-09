@@ -143,8 +143,8 @@ void CCaseView::BuildTree()
     if( numCasesDisplayed == 0 && ( pFrame->m_eCaseStatusToShow == CaseIterationCaseStatus::PartialsOnly ||
         pFrame->m_eCaseStatusToShow == CaseIterationCaseStatus::DuplicatesOnly  ) )
     {
-        AfxMessageBox(FormatText(_T("No %s cases are available so all cases will be shown."),
-            ( pFrame->m_eCaseStatusToShow == CaseIterationCaseStatus::PartialsOnly ) ? _T("partial") : _T("duplicate")));
+        AfxMessageBox(FormatText(L"No %s cases are available so all cases will be shown.",
+                                 ( pFrame->m_eCaseStatusToShow == CaseIterationCaseStatus::PartialsOnly ) ? L"partial" : L"duplicate"));
 
         pFrame->m_eCaseStatusToShow = CaseIterationCaseStatus::NotDeletedOnly;
         BuildTree();

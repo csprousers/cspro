@@ -1,10 +1,10 @@
-﻿#include "STDAFX.H"
+﻿#include "StandardSystemIncludes.h"
 #include "Entifaz.h"
-#include <engine/3dException.h>
-#include <engine/Engine.h>
-#include <engine/Exappl.h>
-#include <engine/ProgramControl.h>
-#include <engine/runmodes.h>
+#include "3dException.h"
+#include "Engine.h"
+#include "Exappl.h"
+#include "ProgramControl.h"
+#include "runmodes.h"
 #include <zEngineO/Block.h>
 #include <zToolsO/Tools.h>
 #include <zFormO/FormFile.h>
@@ -237,13 +237,8 @@ void CEntryIFaz::C_ExentryEnd( int bCanExit ) {
 
     m_pEngineDriver->CloseRepositories(true);
 
-#ifdef USE_BINARY
     if( Dicxbase != 0 )
-#else
-    ASSERT( Dicxbase != 0 );
-#endif
-
-    m_pIntDriver->StopApplication();
+        m_pIntDriver->StopApplication();
 
     m_pEngineArea->tablesend();
 
@@ -706,32 +701,26 @@ DEFLD* CEntryIFaz::C_EndGroup( bool bPostProc ) {
     if( !m_bExentryStarted ) return NULL; // RHF Mar 15, 2001
     bool    bCanUseEnd  = m_pEngineSettings->IsPathOff();
 
+    // BUCEN
+    // setup source of movement
+    int     iSymSourceGroup =0;
+    int     iSymSourceVar = -1;
+    DEFLD*  pReachedFld = m_pCsDriver->GetCurDeFld();
+    if(pReachedFld){
+        iSymSourceVar = pReachedFld->GetSymbol();
+        iSymSourceGroup = m_pEngineArea->GetGroupOfSymbol( iSymSourceVar );
+    }
 
-#ifdef BUCEN
-        if(true) {
-        // setup source of movement
-        int     iSymSourceGroup =0;
-        int     iSymSourceVar = -1;
-        DEFLD*  pReachedFld = NULL ;
-        pReachedFld = m_pCsDriver->GetCurDeFld();
-        if(pReachedFld){
-             iSymSourceVar = pReachedFld->GetSymbol();
-             iSymSourceGroup = m_pEngineArea->GetGroupOfSymbol( iSymSourceVar );
-
-        }
-
-        if(GPT(iSymSourceGroup)) {
-            CDEGroup*   pGroup = GPT(iSymSourceGroup)->GetCDEGroup();
-            if(pGroup) {
-                CDERoster* pRoster = DYNAMIC_DOWNCAST(CDERoster,pGroup);
-                if(pRoster && pRoster->UsingFreeMovement()){
-                    bCanUseEnd = true;
-                    bPostProc = true;
-                }
+    if(GPT(iSymSourceGroup)) {
+        CDEGroup*   pGroup = GPT(iSymSourceGroup)->GetCDEGroup();
+        if(pGroup) {
+            CDERoster* pRoster = DYNAMIC_DOWNCAST(CDERoster,pGroup);
+            if(pRoster && pRoster->UsingFreeMovement()){
+                bCanUseEnd = true;
+                bPostProc = true;
             }
         }
     }
-#endif
 
     C3DObject   o3DSource;
     C3DObject*  p3DObject;
@@ -750,8 +739,7 @@ DEFLD* CEntryIFaz::C_EndGroup( bool bPostProc ) {
     }
 
     // FUTURE: return p3DObject;
-    DEFLD*  pReachedFld = m_pCsDriver->GetCurDeFld();
-    return pReachedFld;
+    return m_pCsDriver->GetCurDeFld();
 }
 
 // public

@@ -166,7 +166,7 @@ bool CEngineCompFunc::CompileDeclarations()
     bool compilation_errors = false;
 
     for( size_t i = 0; i < MaxNumberLevels; i++ )
-        QidVars[i][0] = -1;
+        m_pEngineSettings->m_QidVars[i][0] = -1;
 
     while( Tkn != TOKEOP && Tkn != TOKERROR && GetSyntErr() == 0 )
     {

@@ -1,18 +1,14 @@
 ﻿#pragma once
 
 class Application;
-class CEngineDriver;
 class CEngineArea;
 class CEngineCompFunc;
+class CEngineDriver;
+class CLinkTable;
 class CompilerCreator;
 class CSettings;
 struct EngineData;
-
 namespace Logic { class SourceBuffer; class SymbolTable; }
-
-// SERPRO_CALC
-class CLinkTable;
-// SERPRO_CALC
 
 
 class CCompIFaz

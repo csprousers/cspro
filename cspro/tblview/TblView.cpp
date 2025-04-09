@@ -300,7 +300,7 @@ void CTblViewApp::OnFileOpen()
 
     if( dlgFile.m_aFileName.GetSize() > MaxFiles )
     {
-        AfxMessageBox(FormatText(_T("You cannot view more than %d files at once.\n\nYou tried to view %d."), MaxFiles, dlgFile.m_aFileName.GetSize()));
+        AfxMessageBox(FormatText(L"You cannot view more than %d files at once.\n\nYou tried to view %d.", MaxFiles, dlgFile.m_aFileName.GetSize()));
         return;
     }
 

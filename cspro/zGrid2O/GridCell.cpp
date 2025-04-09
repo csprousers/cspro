@@ -120,7 +120,7 @@ void CGridCell::CalcMinSize(CDC* pDC, CSize& szFieldFontTextExt)
         }
 
         // determine min sizes, if squished horizontally or vertically
-        CSize sz = CIMSAString::GetLongestWordSize(pDC, cs);
+        CSize sz = GetLongestWordSize(pDC, cs);
         CRect rcMinH(0,0,sz.cx,0), rcMinV(0,0,0,sz.cy);
 
         pDC->DrawText(cs, &rcMinV, DT_CALCRECT|DT_LEFT|DT_WORDBREAK);
@@ -206,4 +206,44 @@ void CGridCell::CalcMinSize(CDC* pDC, CSize& szFieldFontTextExt)
     }
 
     pDC->RestoreDC(iSaveDC);
+}
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+//                       CGridCell::GetLongestWordSize
+//
+/////////////////////////////////////////////////////////////////////////////
+
+CSize CGridCell::GetLongestWordSize(CDC* pDC, const CString& text)
+{
+    int iLen = 0;
+    int iMaxStart = 0;
+    CSize szMax(0,0);
+
+    for (int i = 0 ; i < text.GetLength() ; i++)  {
+        if (iLen==0)  {
+            iMaxStart = i;
+        }
+        TCHAR c = text.GetAt(i);
+        if( c != _T(' ') ) {
+            iLen++;
+        }
+        else  {
+            CSize szWord = pDC->GetTextExtent(text.Mid(iMaxStart, iLen));
+            if (szWord.cx > szMax.cx)  {
+                szMax = szWord;
+            }
+            iLen = 0;
+        }
+    }
+//    if (szMax == CSize(0,0) && iLen > 0)  {
+    if (iLen > 0)  {                                    // csc 6/12/96
+        // we haven't done the last word yet!
+        CSize szWord = pDC->GetTextExtent(text.Mid(iMaxStart, iLen));
+        if (szWord.cx > szMax.cx)  {
+            szMax = szWord;
+        }
+    }
+    return szMax;
 }

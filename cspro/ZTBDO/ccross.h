@@ -26,11 +26,7 @@
 class CLASS_DECL_ZTBDO CCrossTable : public CBaseTable2
 {
 private:
-
-#if defined(USE_BINARY) // IGNORE_CTAB
-#else
-    CArray<CSubExpresion,CSubExpresion>   m_aSubExpresion;
-#endif
+    CArray<CSubExpresion,CSubExpresion> m_aSubExpresion;
 
     int     m_iTableLevel;
     bool    m_bApplDeclared;    // true declared in APP; false in other proc

@@ -47,7 +47,7 @@
   <PropertyGroup Label="UserMacros" />
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <PreprocessorDefinitions>WIN_DESKTOP;WIN32;_DEBUG;_WINDOWS;_AFXEXT;ZFORMF_IMPL;GENERATE_BINARY;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN_DESKTOP;WIN32;_DEBUG;_WINDOWS;_AFXEXT;ZFORMF_IMPL;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(SolutionDir);$(SolutionDir)external</AdditionalIncludeDirectories>
     </ClCompile>
     <ResourceCompile>
@@ -57,7 +57,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <PreprocessorDefinitions>WIN_DESKTOP;WIN32;NDEBUG;_WINDOWS;_AFXEXT;ZFORMF_IMPL;GENERATE_BINARY;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN_DESKTOP;WIN32;NDEBUG;_WINDOWS;_AFXEXT;ZFORMF_IMPL;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(SolutionDir);$(SolutionDir)external</AdditionalIncludeDirectories>
     </ClCompile>
     <ResourceCompile>
@@ -246,10 +246,6 @@
     </ProjectReference>
     <ProjectReference Include="..\zNetwork\zNetwork.vcxproj">
       <Project>{07d7da9d-03ed-437c-8a1f-cb2e76a3ef6a}</Project>
-      <Private>false</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\Zsrcmgro\ZSRCMGRO.vcxproj">
-      <Project>{89d69981-4131-4b75-8adb-a596219f7ed3}</Project>
       <Private>false</Private>
     </ProjectReference>
     <ProjectReference Include="..\zSyncF\zSyncF.vcxproj">

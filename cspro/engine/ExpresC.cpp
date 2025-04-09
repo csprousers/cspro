@@ -13,6 +13,12 @@
 
 #define THROW_PARSER_ERROR0(x) do { SetSyntErr(x); return 0; } while( false )
 
+#ifdef GENCODE
+    #define GENERATE_CODE(x) if( m_Flagcomp ) x
+#else
+    #define GENERATE_CODE(x)
+#endif
+
 
 int CEngineCompFunc::crelalpha()
 {
@@ -70,7 +76,7 @@ int CEngineCompFunc::relanal( int iSymRel, bool bAllowDimExpr ) {
 
         iRelNode = Prognext;
 #ifdef GENCODE
-        if( Flagcomp ) {
+        if( m_Flagcomp ) {
                 pRelNode = NODEPTR_AS( REL_NODE );
                 ADVANCE_NODE( REL_NODE );                       // RHF Aug 04, 2000
 
@@ -124,7 +130,7 @@ int CEngineCompFunc::relanal( int iSymRel, bool bAllowDimExpr ) {
         // in the corresponding occurence counters associated for the relation
 
 #ifdef GENCODE
-        if( Flagcomp ) {
+        if( m_Flagcomp ) {
                 int    iRelIndex = ( pRelT != NULL ) ? pRelT->GetSymbolIndex() : 0;
                 int i, j;
 
@@ -211,7 +217,7 @@ int CEngineCompFunc::grpanal( int iSymGroup, bool bAllowDimExpr, int iChecklimit
 
 #ifdef GENCODE
         iGrpNode = Prognext;
-        if( Flagcomp ) {
+        if( m_Flagcomp ) {
                 pGrpNode = NODEPTR_AS( GRP_NODE );
                 ADVANCE_NODE( GRP_NODE );                       // RHF Aug 04, 2000
         }
@@ -398,7 +404,7 @@ int CEngineCompFunc::grpanal( int iSymGroup, bool bAllowDimExpr, int iChecklimit
         // in the corresponding occurence counters associated for the group
 
 #ifdef GENCODE
-        if( Flagcomp ) {
+        if( m_Flagcomp ) {
 #endif
                 for( j = subindexCount - 1, i = pGrpT->GetNumDim() - 1; i >= 0; j--, i--) {
                         ASSERT( pGrpT );
@@ -491,7 +497,7 @@ int CEngineCompFunc::genMVARNode( int iSym, MVAR_NODE* pMVarNodeAux ) {
         ASSERT( NPT(iSym)->IsA(SymbolType::Variable) );
         ASSERT( VPT(iSym)->IsArray() );
 
-        if( Flagcomp ) {
+        if( m_Flagcomp ) {
                 VPT(iSym)->SetUsed( true );
 #ifdef GENCODE
                 pMVarNode = NODEPTR_AS( MVAR_NODE );
@@ -558,10 +564,10 @@ bool CEngineCompFunc::varsanal_basicCheck( int* piVarNode, int fmt )
             // eat variable name
             NextToken();
 
-#ifdef BUCEN
+            // BUCEN
             if( Tkn == TOKLPAREN )
                 throw VarAnalysisException( 25 );
-#endif
+
             *piVarNode = iVarNode;
             bOk = false;
         }
@@ -843,7 +849,7 @@ int CEngineCompFunc::blockanal(int block_symbol_index)
 
 #ifdef GENCODE
     // change the group node details to block
-    if( Flagcomp )
+    if( m_Flagcomp )
     {
         group_node->m_iGrpType = BLOCK_CODE;
         group_node->m_iGrpIndex = block_symbol_index;
@@ -1310,11 +1316,11 @@ int CEngineCompFunc::varsanal( int fmt, bool bCompleteCompilation, bool* pbAllIn
 
                 VarAnalysis va( pVarT->GetNumDim() );
 
-                if( Flagcomp )
+                if( m_Flagcomp )
                         pVarT->SetUsed( true );
 
 #ifdef GENCODE
-                if( Flagcomp ) { // RHF Aug 04, 2000
+                if( m_Flagcomp ) { // RHF Aug 04, 2000
                         pMVarNode = NODEPTR_AS( MVAR_NODE );
                         ADVANCE_NODE( MVAR_NODE );                      // RHF Aug 04, 2000
                 } // RHF Aug 04, 2000
@@ -1367,7 +1373,7 @@ int CEngineCompFunc::varsanal( int fmt, bool bCompleteCompilation, bool* pbAllIn
 
 
 #ifdef GENCODE
-                if( Flagcomp )
+                if( m_Flagcomp  )
 #endif
                         varsanal_generateVarNode( va, iVarT, pMVarNode, bTryToComplete );
 
@@ -1747,7 +1753,7 @@ int CEngineCompFunc::cfun_fnitemlist() // 20091203
 
         numArgs++;
 
-        if( Flagcomp )
+        if( m_Flagcomp )
         {
             arguments.Add(Prognext);
 
@@ -1784,7 +1790,7 @@ int CEngineCompFunc::cfun_fnitemlist() // 20091203
 
     int iProg = Prognext;
 
-    if( Flagcomp )
+    if( m_Flagcomp )
     {
         FNN_NODE* ptrfunc = NODEPTR_AS(FNN_NODE);
         OC_CreateCompilationSpace(2 + numArgs); // in lieu of ADVANCE_NODE(FNN_NODE) because of the variable number of arguments
@@ -1992,7 +1998,7 @@ int CEngineCompFunc::cfun_fncapturetype() // 20100608
 
     int iProg = Prognext;
 
-    if( Flagcomp )
+    if( m_Flagcomp )
     {
         FNN_NODE* ptrfunc = NODEPTR_AS(FNN_NODE);
 
@@ -2507,7 +2513,7 @@ int CEngineCompFunc::cfun_compile_count() {
         bool    bMultItem=false; // RHF Apr 15, 2004
         bool    bIsGroup=false; // RHF Aug 01, 2005
 
-        if( Flagvars == 1 )
+        if( m_allowMultVarWithoutIndex )
             IssueError(38);
 
         FNGR_NODE curoccGrpIdx; // 20091028
@@ -2520,7 +2526,7 @@ int CEngineCompFunc::cfun_compile_count() {
 
 #ifdef GENCODE
         FN2_NODE*   ptrfunc = NODEPTR_AS( FN2_NODE );
-        if( Flagcomp ) {
+        if( m_Flagcomp ) {
                 ADVANCE_NODE( FN2_NODE );
 
                 ptrfunc->fn_code = iFunCode;
@@ -2721,7 +2727,7 @@ int CEngineCompFunc::cfun_compile_count() {
         } // 20110901 end the original count code
 
 
-        Flagvars = 1;                   // allow for Mult var without index
+        m_allowMultVarWithoutIndex = true; // allow for Mult var without index
         stopUsingForPrecedence( iGroupToIgnoreForPrecedence );
 
         m_bcvarsubcheck = bIsValidGroup;
@@ -2740,7 +2746,7 @@ int CEngineCompFunc::cfun_compile_count() {
         m_bcvarsubcheck = oldVarsubcheck; // 20120413 rewrote a little
         m_icGrpIdx = oldGrpIdx;
 
-        Flagvars = 0;                   // require Mult var to have an index
+        m_allowMultVarWithoutIndex = false; // require Mult var to have an index
         useForPrecedence();
 
         CHECK_SYNTAX_ERROR_AND_THROW(0);
@@ -2750,7 +2756,7 @@ int CEngineCompFunc::cfun_compile_count() {
         NextToken();
 
 #ifdef GENCODE
-        if( Flagcomp ) {
+        if( m_Flagcomp ) {
                 ptrfunc->fn_exp = i;
         }
 #endif
@@ -2770,7 +2776,7 @@ int CEngineCompFunc::cfun_compile_sum() {
         int     isymGroup  = 0;                             // victor Aug 02, 99
         int     i;
 
-        if( Flagvars == 1 )
+        if( m_allowMultVarWithoutIndex )
             IssueError(38);
 
 #ifdef GENCODE
@@ -2784,7 +2790,7 @@ int CEngineCompFunc::cfun_compile_sum() {
 #ifdef GENCODE
         FN3_NODE*   ptrfunc = NODEPTR_AS( FN3_NODE );
 
-        if( Flagcomp ) {
+        if( m_Flagcomp ) {
 
                 if( iFunCode == FNSEEK_CODE ) // 20100602
                     OC_CreateCompilationSpace(1); // FN3 isn't big enough, we need one more int, i'm putting this before ADVANCE_NODE so the out of memory message gets checked there
@@ -2912,7 +2918,7 @@ int CEngineCompFunc::cfun_compile_sum() {
         }
 
 #ifdef GENCODE
-        if( Flagcomp ) {
+        if( m_Flagcomp ) {
                 // make a search and try to get which group will
                 // be used to iterate...
                 // Hopefully, we find only 1 MVAR_GROUP.
@@ -2975,14 +2981,14 @@ int CEngineCompFunc::cfun_compile_sum() {
                     NextToken();
         }
 
-        Flagvars = 1;                   // allow for Mult var without index
+        m_allowMultVarWithoutIndex = true; // allow for Mult var without index
         stopUsingForPrecedence( isymGroup );
 
         i = exprlog();                  // i = pointer to logical expression
 
         m_pCuroccGrpIdx = NULL; // 20091027
 
-        Flagvars = 0;                   // require Mult var to have an index
+        m_allowMultVarWithoutIndex = false; // require Mult var to have an index
         useForPrecedence();
 
         CHECK_SYNTAX_ERROR_AND_THROW(0);
@@ -3064,7 +3070,7 @@ int CEngineCompFunc::CompileHas(int iVarNode) // 20120429 (some of this code com
     m_bcvarsubcheck = bPrevSubscriptChecking;
 
 #ifdef GENCODE
-    if( !Flagcomp )
+    if( !m_Flagcomp )
         return 0;
 
     // xxx has yyy will be given the code: seek(xxx in yyy) > 0
@@ -3132,7 +3138,7 @@ int CEngineCompFunc::cfun_fnh()
 #ifdef GENCODE
     FNH_NODE* ptrfunc = NODEPTR_AS(FNH_NODE);
 
-    if( Flagcomp )
+    if( m_Flagcomp )
     {
         ADVANCE_NODE(FNH_NODE);
         ptrfunc->fn_code = iFunCode;
@@ -3161,7 +3167,7 @@ int CEngineCompFunc::cfun_fnh()
     NextToken();
 
 #ifdef GENCODE
-    if( Flagcomp )
+    if( m_Flagcomp )
     {
         ptrfunc->isymb = iVarExpr;
         ptrfunc->occ_exp = -2; // -2 indicates that this has been compiled with the variable information coming from varsanal (for versions 7.0+)
@@ -3277,7 +3283,7 @@ int CEngineCompFunc::cfun_fn6() {
 
 #ifdef GENCODE
         FN6_NODE* ptrfunc = NODEPTR_AS( FN6_NODE );
-        if( Flagcomp ) {
+        if( m_Flagcomp ) {
                 ADVANCE_NODE( FN6_NODE );
 
                 ptrfunc->fn_code = iFunCode;
@@ -3328,7 +3334,7 @@ int CEngineCompFunc::cfun_fn6() {
         int   iWeightExpr = 0;
 
 #ifdef GENCODE
-        if( Flagcomp ) { // Inheritance of Weight of declared CTAB
+        if( m_Flagcomp ) { // Inheritance of Weight of declared CTAB
                 iWeightExpr = pCtab->GetWeightExpr();
                 ASSERT( iWeightExpr <= 0 );
         }
@@ -3337,7 +3343,7 @@ int CEngineCompFunc::cfun_fn6() {
         int   iSelectExpr = 0;
 
 #ifdef GENCODE
-        if( Flagcomp ) { // Inheritance of Select of declared CTAB
+        if( m_Flagcomp ) { // Inheritance of Select of declared CTAB
                 iSelectExpr = pCtab->GetSelectExpr();
                 ASSERT( iSelectExpr <= 0 );
         }
@@ -3431,7 +3437,7 @@ int CEngineCompFunc::cfun_fn6() {
         CHECK_SYNTAX_ERROR_AND_THROW(0);
 
 #ifdef GENCODE
-        if( Flagcomp ) {
+        if( m_Flagcomp ) {
                 ptrfunc->iWeightExpr = iWeightExpr;
                 ptrfunc->iSelectExpr = iSelectExpr;
 
@@ -3887,7 +3893,7 @@ int CEngineCompFunc::cfun_fninvalueset() {
 #ifdef GENCODE
         FNINVALUSET_NODE*   ptrfunc = NODEPTR_AS( FNINVALUSET_NODE );
 
-        if( Flagcomp ) {
+        if( m_Flagcomp ) {
             ADVANCE_NODE( FNINVALUSET_NODE );
 
             ptrfunc->fn_code = iFunCode;
@@ -3963,7 +3969,7 @@ int CEngineCompFunc::cfun_fninvalueset() {
         NextToken();
 
 #ifdef GENCODE
-        if( Flagcomp ) {
+        if( m_Flagcomp ) {
                 ptrfunc->m_iSymVar = iSymVar;
                 ptrfunc->m_iExpr = iExpr;
                 ptrfunc->m_iSymVSet = iSymVSet;
@@ -4192,7 +4198,7 @@ int CEngineCompFunc::cfun_fns()
 
             NextToken();
 
-            Flagvars = 0; // require Mult var to have an index
+            m_allowMultVarWithoutIndex = false; // require Mult var to have an index
             iWhereExpression = exprlog();
         }
 
@@ -4303,7 +4309,7 @@ int CEngineCompFunc::cfun_fntc() {
         if( bNewTbd ) {
                 ptrnewfunc = NODEPTR_AS( FNTC_NODE );
 
-                if( Flagcomp ) {
+                if( m_Flagcomp ) {
                         ADVANCE_NODE( FNTC_NODE );
 
                         ptrnewfunc->fn_code = iFunCode;
@@ -4319,7 +4325,7 @@ int CEngineCompFunc::cfun_fntc() {
         else {
                 ptroldfunc = NODEPTR_AS( OLD_FNTC_NODE );
 
-                if( Flagcomp ) {
+                if( m_Flagcomp ) {
                         ADVANCE_NODE( OLD_FNTC_NODE );
 
                         ptroldfunc->fn_code = iFunCode;
@@ -4330,7 +4336,7 @@ int CEngineCompFunc::cfun_fntc() {
 #endif
 
 #ifdef GENCODE
-        if( bNewTbd && Flagcomp )
+        if( bNewTbd && m_Flagcomp )
                 ptrnewfunc->iCtab = Tokstindex;
 #endif
 
@@ -4428,7 +4434,7 @@ int CEngineCompFunc::do_cfun_fntc( CTAB* pCtab, int iTheDimType, FNTC_NODE* pFnt
         }
 
 #ifdef GENCODE
-        if( Flagcomp ) {
+        if( m_Flagcomp ) {
                 pFntcNode->iSubTableNum = iSubTableNum+1;
                 CSubTable&  cSubTable=pCtab->GetSubTable(iSubTableNum);
                 int         iCatExprValue=0;
@@ -4603,7 +4609,7 @@ int CEngineCompFunc::cfun_fngr() {
 #ifdef GENCODE
         FNGR_NODE*  ptrfunc = NODEPTR_AS( FNGR_NODE );
 
-        if( Flagcomp ) {
+        if( m_Flagcomp ) {
                 ADVANCE_NODE( FNGR_NODE );
 
                 ptrfunc->fn_code = iFunCode;
@@ -4621,7 +4627,7 @@ int CEngineCompFunc::cfun_fngr() {
         // did user write  "()" ?
         if( Tkn == TOKRPAREN ) {            // yes -> call without arguments
 #ifdef GENCODE
-                if( Flagcomp ) {
+                if( m_Flagcomp ) {
                         ptrfunc->m_iArgumentType = FNGR_Spec::ARG_NO_ARGUMENTS;
                         ptrfunc->fn_arg = -1;
 
@@ -4713,7 +4719,7 @@ int CEngineCompFunc::cfun_fnb() {
 #ifdef GENCODE
         FNC_NODE*   pFnbNode = NODEPTR_AS( FNC_NODE );
 
-        if( Flagcomp )
+        if( m_Flagcomp )
                 ADVANCE_NODE( FNC_NODE );
 #endif
 
@@ -4739,7 +4745,7 @@ int CEngineCompFunc::cfun_fnb() {
         NextToken();
 
 #ifdef GENCODE
-        if( Flagcomp ) {
+        if( m_Flagcomp ) {
                 pFnbNode->fn_code = iFunCode;
                 pFnbNode->isymb   = iExpr;
         }
@@ -4856,7 +4862,7 @@ int CEngineCompFunc::cfun_fnsrt()
 #ifdef GENCODE
     FNSRT_NODE*  ptrfunc = NODEPTR_AS( FNSRT_NODE );
 
-    if( Flagcomp )
+    if( m_Flagcomp )
     {
         ADVANCE_NODE( FNSRT_NODE );
         ptrfunc->fn_code = iFunCode;
@@ -4873,7 +4879,7 @@ int CEngineCompFunc::cfun_fnsrt()
     if( Tkn == TOKRPAREN )
     {
 #ifdef GENCODE
-        if( Flagcomp )
+        if( m_Flagcomp )
         {
             ptrfunc->fn_grp = -1;
 
@@ -4964,7 +4970,7 @@ int CEngineCompFunc::cfun_fnsrt()
         {
             m_bcvarsubcheck = true; // this is copied from the sum/average/etc. function
             stopUsingForPrecedence(iGrp);
-            Flagvars = 1;
+            m_allowMultVarWithoutIndex = true;
             FNGR_NODE curoccGrpIdx;
             curoccGrpIdx.fn_arg = iGrp;
             curoccGrpIdx.m_iArgumentType = FNGR_Spec::ARG_WHERE_GROUP;
@@ -4974,7 +4980,7 @@ int CEngineCompFunc::cfun_fnsrt()
             iWhere = exprlog();
 
             m_pCuroccGrpIdx = NULL;
-            Flagvars = 0;
+            m_allowMultVarWithoutIndex = false;
             useForPrecedence();
             m_bcvarsubcheck = false;
         }
@@ -5000,7 +5006,7 @@ int CEngineCompFunc::cfun_fnsrt()
         }
 
 #ifdef GENCODE
-        if( Flagcomp )
+        if( m_Flagcomp )
         {
             ptrfunc->fn_grp = iGrp;
 
@@ -5043,7 +5049,7 @@ int CEngineCompFunc::FillImplicitIndexes( int iVarT ) {
 #ifdef GENCODE
         VART*   pVarT=VPT(iVarT);
 
-        if( Flagcomp ) {
+        if( m_Flagcomp ) {
                 RELT        *pRelT;
                 RELATED     *pRelated, aRelated;
 
@@ -5186,7 +5192,7 @@ int CEngineCompFunc::cfun_fnexecsystem()
 #ifdef GENCODE
     FNEXECSYSTEM_NODE* ptrfunc = NODEPTR_AS(FNEXECSYSTEM_NODE);
 
-    if( Flagcomp )
+    if( m_Flagcomp )
     {
         ADVANCE_NODE(FNEXECSYSTEM_NODE);
         ptrfunc->fn_code = iFunCode;
@@ -5296,7 +5302,7 @@ int CEngineCompFunc::cfun_fnexecsystem()
     IssueErrorOnTokenMismatch(TOKRPAREN, 17);
 
 #ifdef GENCODE
-    if( Flagcomp )
+    if( m_Flagcomp )
     {
         ptrfunc->m_iCommand = iCommandExpr;
         ptrfunc->m_iOptions = iOption;
@@ -5420,7 +5426,7 @@ int CEngineCompFunc::cfun_fnshow()
         // RHF END Dec 17, 2007
 
 #ifdef GENCODE
-        if( Flagcomp ) {
+        if( m_Flagcomp ) {
                 // title list
                 if( aAlphaExpr.GetSize() == 0 ) {
                     show_node.m_iTitleList = -MAXLONG;
@@ -5581,7 +5587,7 @@ int CEngineCompFunc::cfun_fnshow()
         program_index = Prognext;
 
 #ifdef GENCODE
-        if( Flagcomp )
+        if( m_Flagcomp )
         {
             FNN_NODE* ptrfunc = NODEPTR_AS(FNN_NODE);
             OC_CreateCompilationSpace(( sizeof(FNN_NODE) / sizeof(int) ) + 3 + aTitles.size());
@@ -5667,7 +5673,7 @@ int CEngineCompFunc::CompileShowList()
 void CEngineCompFunc::FillImplicitIndex( MVAR_NODE* pMVarNode, int iVarT, int iDim, int iGroupIndex ) {
 
 #ifdef GENCODE
-        if( Flagcomp ) {
+        if( m_Flagcomp ) {
                 int             k;
 
                 VART*   pVarT=VPT(iVarT);
@@ -5689,16 +5695,6 @@ void CEngineCompFunc::FillImplicitIndex( MVAR_NODE* pMVarNode, int iVarT, int iD
                                 if( m_ForTable[k].forGrpIdx == iGroupIndex ) {
                                         break;
                                 }
-                                /*  // BMD 13 Jan 2004
-
-                                #ifdef BUCEN
-                                else {
-                                GROUPT* pGpt = GPT(m_ForTable[k].forGrpIdx);
-                                if (pGrpT->GetRecord(0) == pGpt->GetRecord(0)) break;
-                                }
-
-                                #endif
-                                */
                         }
                         else if( m_ForTable[k].forType == 'R' ) {
                                 pRelT = RLT( m_ForTable[k].forRelIdx );

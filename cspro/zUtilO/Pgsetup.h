@@ -1,4 +1,5 @@
 ﻿#pragma once
+
 //***************************************************************************
 //  File name: PGSETUP.H
 //
@@ -182,8 +183,8 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-class CLASS_DECL_ZUTILO CPageMetrics {
-
+class CLASS_DECL_ZUTILO CPageMetrics
+{
 // Data Members
 private:
     CRect   m_rectUserMargins;          // User margins in twips from edge of page
@@ -210,8 +211,8 @@ private:
 //
 /////////////////////////////////////////////////////////////////////////////
 
-class CLASS_DECL_ZUTILO CFolio {
-
+class CLASS_DECL_ZUTILO CFolio
+{
 // Data Members
 private:
     BOOL        m_bHeader;                  // Has header
@@ -263,8 +264,8 @@ private:
 //
 /////////////////////////////////////////////////////////////////////////////
 
-class CLASS_DECL_ZUTILO CIMSAPageSetupDlg : public CDialog {
-
+class CLASS_DECL_ZUTILO CIMSAPageSetupDlg : public CDialog
+{
 // Data Members
 private:
     CPageMetrics    m_pageMetrics;
@@ -334,4 +335,24 @@ protected:
     afx_msg void OnSetfocusFooterRight();
     //}}AFX_MSG
     DECLARE_MESSAGE_MAP()
+};
+
+
+
+class CLASS_DECL_ZUTILO TimeFormatter
+{
+public:
+    // these functions were previously in CIMSAString
+
+    // Date: Create a date string for a given CTime.
+    static CString Date(CTime);
+    static CString Date() { return Date(CTime::GetCurrentTime()); }
+
+    // Time: Create a time string for a given CTime.
+    static CString Time(CTime);
+    static CString Time() { return Time(CTime::GetCurrentTime()); }
+
+    // DateTime: Create a date/time string for a given CTime.
+    static CString DateTime(CTime);
+    static CString DateTime() { return DateTime(CTime::GetCurrentTime()); }
 };

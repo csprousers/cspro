@@ -31,9 +31,9 @@ bool CEngineArea::LoadOneDic(DICT* pDicT)
     bool bDictLoadedOK = true;
     const CDataDict* pDataDict = pDicT->GetDataDict();
 
-    io_Dic = UTF8_TODO::GetCString(pDicT->GetName());
-    io_Var.Empty();
-    io_Err = 0;
+    m_pEngineSettings->m_io_Dic = pDicT->GetName();
+    m_pEngineSettings->m_io_Var.clear();
+    m_pEngineSettings->m_io_Err = 0;
 
     // passing definition of level-ids to pDicT
     pDicT->SetMaxLevel( (int)pDataDict->GetNumLevels() );
@@ -81,7 +81,7 @@ bool CEngineArea::LoadOneDic(DICT* pDicT)
     pDicT->SYMTlsec = -1;
 
     // LOADING SECTIONS (required by Groups loading)
-    for( int iTotRecs = 0, iLevel = 0; !io_Err && iLevel < pDicT->GetMaxLevel(); iLevel++ ) {
+    for( int iTotRecs = 0, iLevel = 0; m_pEngineSettings->m_io_Err == 0 && iLevel < pDicT->GetMaxLevel(); iLevel++ ) {
         const DictLevel& dict_level = pDataDict->GetLevel(iLevel);
         const CDictRecord* pRecord = dict_level.GetIdItemsRec();
 
@@ -92,7 +92,7 @@ bool CEngineArea::LoadOneDic(DICT* pDicT)
 
         int     iNumRecords = dict_level.GetNumRecords();
 
-        for( int iRecNum = 0; !io_Err && iRecNum < iNumRecords; iRecNum++ ) {
+        for( int iRecNum = 0; m_pEngineSettings->m_io_Err == 0 && iRecNum < iNumRecords; iRecNum++ ) {
             pRecord = dict_level.GetRecord(iRecNum);
             dictloadsection( pDicT, pRecord, iSecLevel, iTotRecs + 1 ); // was 'iLevel + 1'
             iTotRecs++;
@@ -117,7 +117,7 @@ bool CEngineArea::LoadOneDic(DICT* pDicT)
 //------------------------------------------------------------------------
 void CEngineArea::dictloadsection(DICT* pDicT, const CDictRecord* pRecord, int iLevel, int iRecNum)
 {
-    io_Var.Empty();
+    m_pEngineSettings->m_io_Var.clear();
 
     // inserting section symbol
     auto pSecT = std::make_shared<SECT>(pRecord->GetName(), m_pEngineDriver);
@@ -177,7 +177,7 @@ void CEngineArea::dictloadsection(DICT* pDicT, const CDictRecord* pRecord, int i
     int     iNumItems = pRecord->GetNumItems();
     int     iSymMainItem = 0;           // SYMT of last true item
 
-    for( int iItem = 0; !io_Err && iItem < iNumItems; iItem++ )
+    for( int iItem = 0; m_pEngineSettings->m_io_Err == 0 && iItem < iNumItems; iItem++ )
     {
         const CDictItem* pItem = pRecord->GetItem(iItem);
         const int iSymItem = dictloadvariable(pSecT.get(), pItem, iSymMainItem);
@@ -197,7 +197,7 @@ int CEngineArea::dictloadvariable(SECT* pSecT, const CDictItem* pItem, int iSymM
     int iSymSec = pSecT->GetSymbolIndex();
 
     // inserting Var' symbol
-    io_Var = UTF8_TODO::GetCString(pItem->GetName());
+    m_pEngineSettings->m_io_Var = pItem->GetName();
 
     auto pVarT = std::make_shared<VART>(pItem->GetName(), m_pEngineDriver);
 
@@ -278,7 +278,7 @@ int CEngineArea::dictloadvariable(SECT* pSecT, const CDictItem* pItem, int iSymM
     // (b) remaining dimension' features
     if( !pVarT->SetDimFeatures() )      // was 'SetVarIsArray'
     {
-        io_Err = 91;                    // SEE PROVISIONAL CONSTRAINTS
+        m_pEngineSettings->m_io_Err = 91; // SEE PROVISIONAL CONSTRAINTS
         return 0;
     }
 

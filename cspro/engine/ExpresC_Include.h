@@ -13,9 +13,3 @@
 #include <zToolsO/Utf8.h>
 #include <zDictO/DDClass.h>
 #include <zCaseO/CaseAccess.h>
-
-#ifdef GENCODE
-  #define GENERATE_CODE(x) if( Flagcomp ) x
-#else
-  #define GENERATE_CODE(x)
-#endif

@@ -19,7 +19,7 @@ namespace
     Logic::AutoComplete LogicReferenceAutoCompleter;
 
 
-    void AddTabbedText(CString& reference_text, const TCHAR* text_to_add, int tabs, bool add_arrow)
+    void AddTabbedText(CString& reference_text, const NullTerminatedString text_to_add, int tabs, bool add_arrow)
     {
         int spaces = tabs * 4;
 
@@ -29,13 +29,13 @@ namespace
             spaces -= 2;
         }
 
-        reference_text.AppendFormat(_T("%s%s%s\n"), UTF8_TODO::GetWide(SO::GetRepeatingCharacterString(' ', spaces)).c_str(), add_arrow ? _T("` ") : _T(""), text_to_add);
+        reference_text.AppendFormat(L"%s%s%s\n", UTF8_TODO::GetWide(SO::GetRepeatingCharacterString(' ', spaces)).c_str(), add_arrow ? L"` " : L"", text_to_add);
     }
 
     void AddCommaSeparatedList(CString& reference_text, const std::vector<CString>& list)
     {
         for( size_t i = 0; i < list.size(); ++i )
-            reference_text.AppendFormat(_T("%s%s"), ( i == 0 ) ? _T("") : _T(", "), list[i].GetString());
+            reference_text.AppendFormat(L"%s%s", ( i == 0 ) ? L"" : L", ", list[i].GetString());
 
         reference_text.AppendChar('\n');
     }
@@ -52,36 +52,36 @@ namespace
         if( function_definition == nullptr )
             return;
 
-        constexpr const TCHAR* ActionInvokerTitle = _T("Action Invoker Details");
+        constexpr const wchar_t* ActionInvokerTitle = L"Action Invoker Details";
         constexpr size_t ActionInvokerTitleLength = wstring_view(ActionInvokerTitle).length();
-        reference_text.AppendFormat(_T("\n%s\n%s\n"), ActionInvokerTitle, UTF8_TODO::GetWide(SO::GetRepeatingCharacterString(L'‾', ActionInvokerTitleLength)).c_str());
+        reference_text.AppendFormat(L"\n%s\n%s\n", ActionInvokerTitle, UTF8_TODO::GetWide(SO::GetRepeatingCharacterString(L'‾', ActionInvokerTitleLength)).c_str());
 
         if( !function_definition->description.empty() )
-            reference_text.AppendFormat(_T("Description: %s\n"), UTF8_TODO::GetWide(function_definition->description).c_str());
+            reference_text.AppendFormat(L"Description: %s\n", UTF8_TODO::GetWide(function_definition->description).c_str());
 
         if( !function_definition->parameters.empty() )
         {
-            reference_text.Append(_T("\nInput Parameters:\n"));
+            reference_text.Append(L"\nInput Parameters:\n");
 
             for( const GF::Parameter& parameter : function_definition->parameters )
             {
-                reference_text.Append(_T("\n"));
-                AddTabbedText(reference_text, FormatText(_T("Name: %s"), UTF8_TODO::GetWide(parameter.variable.name).c_str()), 1, true);
+                reference_text.Append(L"\n");
+                AddTabbedText(reference_text, FormatText(L"Name: %s", UTF8_TODO::GetWide(parameter.variable.name).c_str()), 1, true);
 
                 if( !parameter.variable.description.empty() )
-                    AddTabbedText(reference_text, FormatText(_T("Description: %s"), UTF8_TODO::GetWide(parameter.variable.description).c_str()), 1, false);
+                    AddTabbedText(reference_text, FormatText(L"Description: %s", UTF8_TODO::GetWide(parameter.variable.description).c_str()), 1, false);
 
-                AddTabbedText(reference_text, FormatText(_T("Required: %s"), parameter.required ? _T("Yes") : _T("No")), 1, false);
+                AddTabbedText(reference_text, FormatText(L"Required: %s", parameter.required ? L"Yes" : L"No"), 1, false);
             }
         }
 
         if( !function_definition->returns.empty() )
         {
-            reference_text.Append(_T("\nReturns:"));
+            reference_text.Append(L"\nReturns:");
 
             if( function_definition->returns.size() == 1 && function_definition->returns.front().name.empty() )
             {
-                reference_text.AppendFormat(_T(" %s\n"), UTF8_TODO::GetWide(function_definition->returns.front().description).c_str());
+                reference_text.AppendFormat(L" %s\n", UTF8_TODO::GetWide(function_definition->returns.front().description).c_str());
             }
 
             else
@@ -92,13 +92,13 @@ namespace
                 {
                     ASSERT(!variable.name.empty() || !variable.description.empty());
 
-                    reference_text.Append(_T("\n"));
+                    reference_text.Append(L"\n");
 
                     if( !variable.name.empty() )
-                        AddTabbedText(reference_text, FormatText(_T("Name: %s"), UTF8_TODO::GetWide(variable.name).c_str()), 1, true);
+                        AddTabbedText(reference_text, FormatText(L"Name: %s", UTF8_TODO::GetWide(variable.name).c_str()), 1, true);
 
                     if( !variable.description.empty() )
-                        AddTabbedText(reference_text, FormatText(_T("Description: %s"), UTF8_TODO::GetWide(variable.description).c_str()), 1, false);
+                        AddTabbedText(reference_text, FormatText(L"Description: %s", UTF8_TODO::GetWide(variable.description).c_str()), 1, false);
                 }
             }
         }
@@ -106,7 +106,7 @@ namespace
 
     void AddEngineFunction(CString& reference_text, const Logic::FunctionDetails& function_details)
     {
-        reference_text.AppendFormat(_T("%s\n"), UTF8_TODO::GetWide(function_details.tooltip).c_str());
+        reference_text.AppendFormat(L"%s\n", UTF8_TODO::GetWide(function_details.tooltip).c_str());
 
         if( function_details.compilation_type == Logic::FunctionCompilationType::CS )
             AddActionInvokerFunction(reference_text, static_cast<ActionInvoker::Action>(function_details.number_arguments));
@@ -282,11 +282,10 @@ namespace
             has_to = ( has_to || ( dict_value.GetNumToValues() > 0 ) );
         }
 
-        CString formatter;
-        formatter.Format(_T("%%-%ds ｜ %%%ds%s%%%ds%s%%s\n"),
-            max_label_length, dict_item.GetCompleteLen(),
-            has_to ? _T(" ｜ ") : _T(""), has_to ? dict_item.GetCompleteLen() : 0,
-            has_special ? _T(" ｜ ") : _T(""));
+        const std::wstring formatter = FormatText(L"%%-%ds ｜ %%%ds%s%%%ds%s%%s\n",
+                                                  max_label_length, dict_item.GetCompleteLen(),
+                                                  has_to ? L" ｜ " : L"", has_to ? dict_item.GetCompleteLen() : 0,
+                                                  has_special ? L" ｜ " : L"");
 
         for( const DictValue& dict_value : dict_value_set.GetValues() )
         {
@@ -294,11 +293,11 @@ namespace
 
             for( const DictValuePair& dict_value_pair : dict_value.GetValuePairs() )
             {
-                reference_text.AppendFormat(formatter,
-                                            first_pair ? dict_value.GetLabel().GetString() : _T(""),
+                reference_text.AppendFormat(formatter.c_str(),
+                                            first_pair ? dict_value.GetLabel().GetString() : L"",
                                             dict_value_pair.GetFrom().GetString(),
                                             dict_value_pair.GetTo().GetString(),
-                                            dict_value.IsSpecial() ? UTF8_TODO::GetWide(SpecialValues::ValueToString(dict_value.GetSpecialValue(), false)).c_str() : _T(""));
+                                            dict_value.IsSpecial() ? UTF8_TODO::GetWide(SpecialValues::ValueToString(dict_value.GetSpecialValue(), false)).c_str() : L"");
                 first_pair = false;
             }
         }
@@ -361,12 +360,12 @@ namespace
 
             if( desired_level != nullptr || dictionary->GetNumLevels() == 1 )
             {
-                reference_text.Append(_T("IDs: "));
+                reference_text.Append(L"IDs: ");
             }
 
             else
             {
-                reference_text.AppendFormat(_T("Level %s's IDs: "), UTF8_TODO::GetWide(dict_level.GetName()).c_str());
+                reference_text.AppendFormat(L"Level %s's IDs: ", UTF8_TODO::GetWide(dict_level.GetName()).c_str());
             }
 
             const CDictRecord* record = dict_level.GetIdItemsRec();
@@ -381,7 +380,7 @@ namespace
         reference_text.AppendChar('\n');
 
         if( display_dictionary_hierarchy )
-            reference_text.Append(_T("Dictionary Hierarchy:\n\n"));
+            reference_text.Append(L"Dictionary Hierarchy:\n\n");
 
         // add the dictionary tree with the levels and records expanded
         AddTabbedText(reference_text, UTF8_TODO::GetCString(dictionary->GetName()), 0, false);
@@ -410,21 +409,21 @@ namespace
             const EngineDictionary* engine_dictionary = assert_cast<const EngineDictionary*>(symbol);
             dictionary = &engine_dictionary->GetDictionary();
 
-            reference_text.Append(_T("Variable Type: "));
+            reference_text.Append(L"Variable Type: ");
 
             if( engine_dictionary->IsDictionaryObject() )
             {
-                reference_text.AppendFormat(_T("Dictionary (%s)\n"), UTF8_TODO::GetWide(ToString(engine_dictionary->GetSubType())).c_str());
+                reference_text.AppendFormat(L"Dictionary (%s)\n", UTF8_TODO::GetWide(ToString(engine_dictionary->GetSubType())).c_str());
             }
 
             else if( engine_dictionary->IsCaseObject() )
             {
-                reference_text.AppendFormat(_T("Case (%s)\n"), UTF8_TODO::GetWide(dictionary->GetName()).c_str());
+                reference_text.AppendFormat(L"Case (%s)\n", UTF8_TODO::GetWide(dictionary->GetName()).c_str());
             }
 
             else
             {
-                reference_text.AppendFormat(_T("DataSource (%s)\n"), UTF8_TODO::GetWide(dictionary->GetName()).c_str());
+                reference_text.AppendFormat(L"DataSource (%s)\n", UTF8_TODO::GetWide(dictionary->GetName()).c_str());
             }
         }
 
@@ -432,26 +431,26 @@ namespace
         {
             const DICT* pDicT = assert_cast<const DICT*>(symbol);
             dictionary = pDicT->GetDataDict();
-            reference_text.Append(_T("Variable Type: Dictionary\n"));
+            reference_text.Append(L"Variable Type: Dictionary\n");
         }
 
-        reference_text.AppendFormat(_T("Label: %s\n"), dictionary->GetLabel().GetString());
+        reference_text.AppendFormat(L"Label: %s\n", dictionary->GetLabel().GetString());
 
         AddDictionaryLevelHierarchy(reference_text, dictionary, nullptr, false);
     }
 
     void AddLevel(CString& reference_text, const DictLevel& dict_level, const CDataDict* dictionary, bool display_dictionary_hierarchy)
     {
-        reference_text.Append(_T("Variable Type: Level\n"));
-        reference_text.AppendFormat(_T("Label: %s\n"), dict_level.GetLabel().GetString());
+        reference_text.Append(L"Variable Type: Level\n");
+        reference_text.AppendFormat(L"Label: %s\n", dict_level.GetLabel().GetString());
         AddDictionaryLevelHierarchy(reference_text, dictionary, &dict_level, display_dictionary_hierarchy);
     }
 
     void AddRecord(CString& reference_text, const CDictRecord& record)
     {
-        reference_text.Append(_T("Variable Type: Record\n"));
-        reference_text.AppendFormat(_T("Label: %s\n"), record.GetLabel().GetString());
-        reference_text.AppendFormat(_T("Occurrences: %d (%s)\n\n"), record.GetMaxRecs(), record.GetRequired() ? _T("Required") : _T("Not Required"));
+        reference_text.Append(L"Variable Type: Record\n");
+        reference_text.AppendFormat(L"Label: %s\n", record.GetLabel().GetString());
+        reference_text.AppendFormat(L"Occurrences: %d (%s)\n\n", record.GetMaxRecs(), record.GetRequired() ? L"Required" : L"Not Required");
 
         std::function<void(const std::vector<const DictBase*>&)> dictionary_locator_callback =
             [&](const std::vector<const DictBase*>& hierarchy)
@@ -484,19 +483,19 @@ namespace
     {
         const CDictItem& dict_item = *variable->GetDictItem();
 
-        reference_text.Append(_T("Variable Type: Item\n"));
-        reference_text.AppendFormat(_T("Label: %s\n"), dict_item.GetLabel().GetString());
-        reference_text.AppendFormat(_T("Data Type: %s\n"), UTF8_TODO::GetWide(ToString(dict_item.GetContentType())).c_str());
+        reference_text.Append(L"Variable Type: Item\n");
+        reference_text.AppendFormat(L"Label: %s\n", dict_item.GetLabel().GetString());
+        reference_text.AppendFormat(L"Data Type: %s\n", UTF8_TODO::GetWide(ToString(dict_item.GetContentType())).c_str());
 
         // length
-        reference_text.AppendFormat(_T("Length: %d"), dict_item.GetLen());
+        reference_text.AppendFormat(L"Length: %d", dict_item.GetLen());
 
         if( dict_item.GetContentType() == ContentType::Numeric )
         {
-            reference_text.AppendFormat(_T(" (%s"), CString('X', dict_item.GetIntegerLen()).GetString());
+            reference_text.AppendFormat(L" (%s", CString('X', dict_item.GetIntegerLen()).GetString());
 
             if( dict_item.GetDecimal() > 0 )
-                reference_text.AppendFormat(_T(".%s"), CString('x', dict_item.GetDecimal()).GetString());
+                reference_text.AppendFormat(L".%s", CString('x', dict_item.GetDecimal()).GetString());
 
             reference_text.AppendChar(')');
         }
@@ -504,14 +503,14 @@ namespace
         reference_text.AppendChar('\n');
 
         // item type
-        reference_text.AppendFormat(_T("Item Type: %s\n"), ( dict_item.GetItemType() == ItemType::Item ) ? _T("Item") : _T("Subitem"));
+        reference_text.AppendFormat(L"Item Type: %s\n", ( dict_item.GetItemType() == ItemType::Item ) ? L"Item" : L"Subitem");
 
         const CDictItem* parent_dict_item = nullptr;
 
         if( dict_item.GetItemType() == ItemType::Subitem )
         {
             parent_dict_item = dict_item.GetParentItem();
-            reference_text.AppendFormat(_T("Parent Item: %s\n"), UTF8_TODO::GetWide(parent_dict_item->GetName()).c_str());
+            reference_text.AppendFormat(L"Parent Item: %s\n", UTF8_TODO::GetWide(parent_dict_item->GetName()).c_str());
         }
 
         // check it there are any subitems
@@ -527,23 +526,23 @@ namespace
 
             if( !subitem_names.empty() )
             {
-                reference_text.Append(_T("Child Items: "));
+                reference_text.Append(L"Child Items: ");
                 AddCommaSeparatedList(reference_text, subitem_names);
             }
         }
 
         // occurrences
         const CDictRecord* record = variable->GetSPT()->GetDictRecord();
-        reference_text.AppendFormat(_T("Record Occurrences: %d (%s)\n"), record->GetMaxRecs(), record->GetRequired() ? _T("Required") : _T("Not Required"));
+        reference_text.AppendFormat(L"Record Occurrences: %d (%s)\n", record->GetMaxRecs(), record->GetRequired() ? L"Required" : L"Not Required");
 
-        reference_text.AppendFormat(_T("Item Occurrences: %d\n"),
+        reference_text.AppendFormat(L"Item Occurrences: %d\n",
             (( parent_dict_item != nullptr ) ? parent_dict_item : &dict_item)->GetOccurs());
 
         if( parent_dict_item != nullptr )
-            reference_text.AppendFormat(_T("Subitem Occurrences: %d\n"), dict_item.GetOccurs());
+            reference_text.AppendFormat(L"Subitem Occurrences: %d\n", dict_item.GetOccurs());
 
         // dictionary hierarchy
-        reference_text.Append(_T("\nDictionary Hierarchy:\n\n"));
+        reference_text.Append(L"\nDictionary Hierarchy:\n\n");
 
         std::function<void(const std::vector<const DictBase*>&)> dictionary_locator_callback =
             [&](const std::vector<const DictBase*>& hierarchy)
@@ -568,13 +567,13 @@ namespace
         {
             if( variable->GetFormSymbol() == 0 )
             {
-                reference_text.AppendFormat(_T("\nNot Located on a Form\n"));
+                reference_text.AppendFormat(L"\nNot Located on a Form\n");
             }
 
             else
             {
                 // form hierarchy
-                reference_text.Append(_T("\nForm Hierarchy:\n\n"));
+                reference_text.Append(L"\nForm Hierarchy:\n\n");
 
                 std::function<void(const std::vector<const CDEFormBase*>&)> form_file_locator_callback =
                     [&](const std::vector<const CDEFormBase*>& hierarchy)
@@ -589,23 +588,23 @@ namespace
                 CaptureInfo capture_info = variable->GetCaptureInfo().MakeValid(dict_item,
                     dict_item.GetFirstValueSetOrNull());
 
-                reference_text.AppendFormat(_T("\nField Capture Type: %s\n"), UTF8_TODO::GetWide(capture_info.GetDescription()).c_str());
+                reference_text.AppendFormat(L"\nField Capture Type: %s\n", UTF8_TODO::GetWide(capture_info.GetDescription()).c_str());
             }
         }
 
         // first value set
         if( dict_item.HasValueSets() )
         {
-            reference_text.Append(_T("\nFirst Value Set:\n\n"));
+            reference_text.Append(L"\nFirst Value Set:\n\n");
             AddValueSetValues(reference_text, dict_item, dict_item.GetValueSet(0));
         }
     }
 
     void AddValueSet(CString& reference_text, const ValueSet& value_set)
     {
-        reference_text.Append(_T("Variable Type: ValueSet\n"));
-        reference_text.AppendFormat(_T("Label: %s\n"), value_set.GetLabel().GetString());
-        reference_text.AppendFormat(_T("Data Type: %s\n"), value_set.IsNumeric() ? _T("Numeric") : _T("String"));
+        reference_text.Append(L"Variable Type: ValueSet\n");
+        reference_text.AppendFormat(L"Label: %s\n", value_set.GetLabel().GetString());
+        reference_text.AppendFormat(L"Data Type: %s\n", value_set.IsNumeric() ? L"Numeric" : L"String");
 
         if( value_set.IsDynamic() )
             return;
@@ -616,7 +615,7 @@ namespace
 
         if( dict_item.GetNumValueSets() > 1 )
         {
-            reference_text.AppendFormat(_T("Other Value Sets of %s: "), UTF8_TODO::GetWide(dict_item.GetName()).c_str());
+            reference_text.AppendFormat(L"Other Value Sets of %s: ", UTF8_TODO::GetWide(dict_item.GetName()).c_str());
 
             bool add_comma = false;
 
@@ -624,7 +623,7 @@ namespace
             {
                 if( &this_dict_value_set != &dict_value_set )
                 {
-                    reference_text.AppendFormat(_T("%s%s"), add_comma ? _T(", ") : _T(""), UTF8_TODO::GetWide(this_dict_value_set.GetName()).c_str());
+                    reference_text.AppendFormat(L"%s%s", add_comma ? L", " : L"", UTF8_TODO::GetWide(this_dict_value_set.GetName()).c_str());
                     add_comma = true;
                 }
             }
@@ -650,19 +649,19 @@ namespace
 
     void AddRelation(CString& reference_text, const RELT& relation, const Logic::SymbolTable& symbol_table)
     {
-        reference_text.Append(_T("Variable Type: Relation\n"));
-        reference_text.AppendFormat(_T("Base Object: %s\n"), UTF8_TODO::GetWide(symbol_table.GetAt(relation.GetBaseObjIndex()).GetName()).c_str());
+        reference_text.Append(L"Variable Type: Relation\n");
+        reference_text.AppendFormat(L"Base Object: %s\n", UTF8_TODO::GetWide(symbol_table.GetAt(relation.GetBaseObjIndex()).GetName()).c_str());
 
         for( size_t i = 1; i < relation.m_aTarget.size(); ++i )
         {
-            int relation_type = relation.m_aTarget[i].iTargetRelationType;
-            const TCHAR* relation_type_string =
-                ( relation_type == USE_INDEX_RELATION )        ? _T("Parallel") :
-                ( relation_type == USE_LINK_RELATION )         ? _T("Linked") :
-                ( relation_type == USE_WHERE_RELATION_SINGLE ) ? _T("Where (single)") :
-                ( relation_type == USE_WHERE_RELATION_SINGLE ) ? _T("Where (multiple)") : _T("");
+            const int relation_type = relation.m_aTarget[i].iTargetRelationType;
+            const wchar_t* const relation_type_string =
+                ( relation_type == USE_INDEX_RELATION )        ? L"Parallel" :
+                ( relation_type == USE_LINK_RELATION )         ? L"Linked" :
+                ( relation_type == USE_WHERE_RELATION_SINGLE ) ? L"Where (single)" :
+                ( relation_type == USE_WHERE_RELATION_SINGLE ) ? L"Where (multiple)" : L"";
 
-            reference_text.AppendFormat(_T("Linkage to %s: %s\n"), UTF8_TODO::GetWide(symbol_table.GetAt(relation.m_aTarget[i].iTargetSymbolIndex).GetName()).c_str(), relation_type_string);
+            reference_text.AppendFormat(L"Linkage to %s: %s\n", UTF8_TODO::GetWide(symbol_table.GetAt(relation.m_aTarget[i].iTargetSymbolIndex).GetName()).c_str(), relation_type_string);
         }
     }
 
@@ -670,8 +669,8 @@ namespace
     {
         const CDEFormFile* form_file = flow.GetFormFile();
 
-        reference_text.Append(_T("Variable Type: Form File\n"));
-        reference_text.AppendFormat(_T("Label: %s\n\n"), form_file->GetLabel().GetString());
+        reference_text.Append(L"Variable Type: Form File\n");
+        reference_text.AppendFormat(L"Label: %s\n\n", form_file->GetLabel().GetString());
 
         AddTabbedText(reference_text, form_file->GetName(), 0, false);
 
@@ -696,10 +695,10 @@ namespace
 
         else
         {
-            reference_text.AppendFormat(_T("Variable Type: %s\n"),
-                form_group->isA(CDEFormBase::eItemType::Roster) ? _T("Roster") : _T("Group"));
-            reference_text.AppendFormat(_T("Label: %s\n"), form_group->GetLabel().GetString());
-            reference_text.AppendFormat(_T("Occurrences: %d\n"), group.GetMaxOccs());
+            reference_text.AppendFormat(L"Variable Type: %s\n",
+                                        form_group->isA(CDEFormBase::eItemType::Roster) ? L"Roster" : L"Group");
+            reference_text.AppendFormat(L"Label: %s\n", form_group->GetLabel().GetString());
+            reference_text.AppendFormat(L"Occurrences: %d\n", group.GetMaxOccs());
         }
 
         std::function<void(const std::vector<const CDEFormBase*>&)> form_file_locator_callback =
@@ -726,7 +725,7 @@ namespace
 
         if( form_files != nullptr )
         {
-            reference_text.Append(_T("\nForm Hierarchy:\n\n"));
+            reference_text.Append(L"\nForm Hierarchy:\n\n");
             FormFileLocator(form_files, form_group->GetName(), form_file_locator_callback);
         }
     }
@@ -735,9 +734,9 @@ namespace
     {
         const CDEBlock& form_block = engine_block.GetFormBlock();
 
-        reference_text.Append(_T("Variable Type: Block\n"));
-        reference_text.AppendFormat(_T("Label: %s\n"), form_block.GetLabel().GetString());
-        reference_text.AppendFormat(_T("Display on Same Screen: %s\n\n"), form_block.GetDisplayTogether() ? _T("Yes") : _T("No"));
+        reference_text.Append(L"Variable Type: Block\n");
+        reference_text.AppendFormat(L"Label: %s\n", form_block.GetLabel().GetString());
+        reference_text.AppendFormat(L"Display on Same Screen: %s\n\n", form_block.GetDisplayTogether() ? L"Yes" : L"No");
 
         std::function<void(const std::vector<const CDEFormBase*>&)> form_file_locator_callback =
             [&](const std::vector<const CDEFormBase*>& hierarchy)
@@ -766,56 +765,56 @@ namespace
         {
             case SymbolType::Audio:
             {
-                reference_text.Append(_T("Variable Type: Audio\n"));
+                reference_text.Append(L"Variable Type: Audio\n");
                 break;
             }
 
             case SymbolType::Document:
             {
-                reference_text.Append(_T("Variable Type: Document\n"));
+                reference_text.Append(L"Variable Type: Document\n");
                 break;
             }
 
             case SymbolType::File:
             {
-                reference_text.Append(_T("Variable Type: File\n"));
+                reference_text.Append(L"Variable Type: File\n");
                 break;
             }
 
             case SymbolType::Geometry:
             {
-                reference_text.Append(_T("Variable Type: Geometry\n"));
+                reference_text.Append(L"Variable Type: Geometry\n");
                 break;
             }
 
             case SymbolType::Image:
             {
-                reference_text.Append(_T("Variable Type: Image\n"));
+                reference_text.Append(L"Variable Type: Image\n");
                 break;
             }
 
             case SymbolType::List:
             {
                 const LogicList& logic_list = assert_cast<const LogicList&>(symbol);
-                reference_text.AppendFormat(_T("Variable Type: List\nData Type: %s\n"), logic_list.IsNumeric() ? _T("Numeric") : _T("String"));
+                reference_text.AppendFormat(L"Variable Type: List\nData Type: %s\n", logic_list.IsNumeric() ? L"Numeric" : L"String");
                 break;
             }
 
             case SymbolType::Map:
             {
-                reference_text.Append(_T("Variable Type: Map\n"));
+                reference_text.Append(L"Variable Type: Map\n");
                 break;
             }
 
             case SymbolType::Pff:
             {
-                reference_text.Append(_T("Variable Type: Pff\n"));
+                reference_text.Append(L"Variable Type: Pff\n");
                 break;
             }
 
             case SymbolType::SystemApp:
             {
-                reference_text.Append(_T("Variable Type: SystemApp\n"));
+                reference_text.Append(L"Variable Type: SystemApp\n");
                 break;
             }
 
@@ -823,12 +822,12 @@ namespace
             {
                 if( symbol.GetSubType() == SymbolSubType::WorkAlpha )
                 {
-                    reference_text.AppendFormat(_T("Variable Type: Alpha\nLength: %d\n"), static_cast<int>(assert_cast<const WorkAlpha&>(symbol).GetWideLength()));
+                    reference_text.AppendFormat(L"Variable Type: Alpha\nLength: %d\n", static_cast<int>(assert_cast<const WorkAlpha&>(symbol).GetWideLength()));
                 }
 
                 else
                 {
-                    reference_text.Append(_T("Variable Type: String\nLength: Unlimited\n"));
+                    reference_text.Append(L"Variable Type: String\nLength: Unlimited\n");
                 }
 
                 break;
@@ -836,7 +835,7 @@ namespace
 
             case SymbolType::WorkVariable:
             {
-                reference_text.Append(_T("Variable Type: Numeric\n"));
+                reference_text.Append(L"Variable Type: Numeric\n");
                 break;
             }
         }
@@ -844,78 +843,78 @@ namespace
 
     void AddArray(CString& reference_text, const LogicArray& logic_array, const Logic::SymbolTable& symbol_table)
     {
-        reference_text.Append(_T("Variable Type: Array\n"));
+        reference_text.Append(L"Variable Type: Array\n");
 
-        reference_text.AppendFormat(_T("Data Type: %s"), logic_array.IsNumeric() ? _T("Numeric") : _T(""));
+        reference_text.AppendFormat(L"Data Type: %s", logic_array.IsNumeric() ? L"Numeric" : L"");
 
         if( logic_array.IsString() )
         {
             if( logic_array.GetPaddingStringLength() == 0 )
             {
-                reference_text.Append(_T("String\nCell Length: Unlimited"));
+                reference_text.Append(L"String\nCell Length: Unlimited");
             }
 
             else
             {
-                reference_text.AppendFormat(_T("Alpha\nCell Length: %d"), logic_array.GetPaddingStringLength());
+                reference_text.AppendFormat(L"Alpha\nCell Length: %d", logic_array.GetPaddingStringLength());
             }
         }
 
         reference_text.AppendChar('\n');
 
-        reference_text.AppendFormat(_T("Dimensions: %d\n"), (int)logic_array.GetNumberDimensions());
+        reference_text.AppendFormat(L"Dimensions: %d\n", (int)logic_array.GetNumberDimensions());
 
-        reference_text.Append(_T("Dimension Sizes: "));
+        reference_text.Append(L"Dimension Sizes: ");
 
         for( size_t i = 0; i < logic_array.GetNumberDimensions(); ++i )
         {
             if( i > 0 )
-                reference_text.Append(_T(", "));
+                reference_text.Append(L", ");
 
             int deckarray_symbol = logic_array.GetDeckArraySymbols()[i];
 
             if( deckarray_symbol != 0 )
             {
-                reference_text.AppendFormat(_T("%s"), UTF8_TODO::GetWide(symbol_table.GetAt(abs(deckarray_symbol)).GetName()).c_str());
+                reference_text.Append(UTF8_TODO::GetCString(symbol_table.GetAt(abs(deckarray_symbol)).GetName()));
 
                 if( deckarray_symbol < 0 )
-                    reference_text.Append(_T("(+)"));
+                    reference_text.Append(L"(+)");
 
-                reference_text.Append(_T(" ["));
+                reference_text.Append(L" [");
             }
 
-            reference_text.AppendFormat(_T("%d"), (int)logic_array.GetDimension(i) - 1);
+            reference_text.AppendFormat(L"%d", (int)logic_array.GetDimension(i) - 1);
 
             if( deckarray_symbol != 0 )
-                reference_text.Append(_T("]"));
+                reference_text.Append(L"]");
         }
 
         reference_text.AppendChar('\n');
 
-        reference_text.AppendFormat(_T("Save Array: %s\n"), logic_array.GetUsingSaveArray() ? _T("Yes") : _T("No"));
+        reference_text.AppendFormat(L"Save Array: %s\n", logic_array.GetUsingSaveArray() ? L"Yes" : L"No");
     }
 
     void AddHashMap(CString& reference_text, const LogicHashMap& hashmap)
     {
-        reference_text.Append(_T("Variable Type: HashMap\n"));
+        reference_text.Append(L"Variable Type: HashMap\n");
 
-        reference_text.AppendFormat(_T("Data Type: %s\n"), UTF8_TODO::GetWide(ToString(hashmap.GetValueType())).c_str());
+        reference_text.AppendFormat(L"Data Type: %s\n", UTF8_TODO::GetWide(ToString(hashmap.GetValueType())).c_str());
 
         if( hashmap.HasDefaultValue() )
         {
-            reference_text.AppendFormat(_T("Default Value: %s\n"), hashmap.IsValueTypeNumeric() ?
+            reference_text.AppendFormat(L"Default Value: %s\n", hashmap.IsValueTypeNumeric() ?
                                         UTF8_TODO::GetWide(DoubleToString(std::get<double>(*hashmap.GetDefaultValue()))).c_str() :
                                         UTF8_TODO::GetWide(*std::get<SharableString>(*hashmap.GetDefaultValue())).c_str());
         }
 
-        reference_text.AppendFormat(_T("Dimensions: %d\n"), (int)hashmap.GetNumberDimensions());
+        reference_text.AppendFormat(L"Dimensions: %d\n", (int)hashmap.GetNumberDimensions());
 
-        reference_text.Append(_T("Dimension Types: "));
+        reference_text.Append(L"Dimension Types: ");
 
         for( size_t i = 0; i < hashmap.GetNumberDimensions(); ++i )
         {
             if( i > 0 )
-                reference_text.Append(_T(", "));
+                reference_text.Append(L", ");
 
             if( hashmap.GetDimensionType(i).has_value() )
             {
@@ -924,7 +923,7 @@ namespace
 
             else
             {
-                reference_text.Append(_T("Numeric/String"));
+                reference_text.Append(L"Numeric/String");
             }
         }
 
@@ -935,11 +934,11 @@ namespace
     {
         auto GetSymbolTable = [&]() -> const Logic::SymbolTable& { return m_pEngineArea->GetSymbolTable(); };
 
-        reference_text.Append(_T("Variable Type: Freq\n"));
+        reference_text.Append(L"Variable Type: Freq\n");
 
         if( named_frequency.IsFunctionParameter() )
         {
-            reference_text.Append(_T("Function Parameter\n"));
+            reference_text.Append(L"Function Parameter\n");
             return;
         }
 
@@ -949,7 +948,7 @@ namespace
         if( frequency.GetFrequencyEntries().empty() )
             return;
 
-        reference_text.Append(_T("\nVariables Tallied:\n\n"));
+        reference_text.Append(L"\nVariables Tallied:\n\n");
 
         for( const FrequencyEntry& frequency_entry : frequency.GetFrequencyEntries() )
         {
@@ -960,9 +959,9 @@ namespace
                 CString occurrences = record_details;
 
                 if( !item_subitem_details.IsEmpty() )
-                    occurrences.AppendFormat(occurrences.IsEmpty() ? _T("%s"): _T(", %s"), item_subitem_details.GetString());
+                    occurrences.AppendFormat(occurrences.IsEmpty() ? L"%s" : L", %s", item_subitem_details.GetString());
 
-                reference_text.AppendFormat(occurrences.IsEmpty() ? _T("%s\n") : _T("%s(%s)\n"), UTF8_TODO::GetWide(symbol->GetName()).c_str(), occurrences.GetString());
+                reference_text.AppendFormat(occurrences.IsEmpty() ? L"%s\n" : L"%s(%s)\n", UTF8_TODO::GetWide(symbol->GetName()).c_str(), occurrences.GetString());
             };
 
             if( frequency_entry.occurrence_details.empty() )
@@ -991,7 +990,7 @@ namespace
                         {
                             if( occurrence_details.min_item_subitem_occurrence != occurrence_details.max_item_subitem_occurrence )
                             {
-                                output_variable(record_details, _T("*"));
+                                output_variable(record_details, L"*");
                             }
 
                             else
@@ -1008,13 +1007,13 @@ namespace
 
                     else if( occurrence_details.combine_record_occurrences )
                     {
-                        add_record_details(_T("*"));
+                        add_record_details(L"*");
                     }
 
                     else
                     {
                         if( occurrence_details.disjoint_record_occurrences )
-                            add_record_details(_T("disjoint"));
+                            add_record_details(L"disjoint");
 
                         for( size_t occurrence : occurrence_details.record_occurrences_to_explicitly_display )
                             add_record_details(UTF8_TODO::GetCString(IntToString(occurrence + 1)));
@@ -1026,44 +1025,44 @@ namespace
 
     void AddReport(CString& reference_text, const Application& application, const Report& report)
     {
-        reference_text.Append(_T("Variable Type: Report\n"));
+        reference_text.Append(L"Variable Type: Report\n");
 
         if( report.IsFunctionParameter() )
         {
-            reference_text.Append(_T("Function Parameter\n"));
+            reference_text.Append(L"Function Parameter\n");
         }
 
         else
         {
-            reference_text.AppendFormat(_T("Path: %s\n"), UTF8_TODO::GetWide(GetRelativePathForDisplay(application.GetApplicationFilePath(), report.GetFilePath())).c_str());
+            reference_text.AppendFormat(L"Path: %s\n", UTF8_TODO::GetWide(GetRelativePathForDisplay(application.GetApplicationFilePath(), report.GetFilePath())).c_str());
         }
     }
 
     void AddUserFunction(CString& reference_text, const UserFunction& user_function, const Logic::SymbolTable& symbol_table)
     {
-        reference_text.Append(_T("Variable Type: Function\n"));
+        reference_text.Append(L"Variable Type: Function\n");
 
-        reference_text.Append(_T("Return Type: "));
+        reference_text.Append(L"Return Type: ");
 
         if( user_function.GetReturnType() == SymbolType::WorkVariable )
         {
-            reference_text.Append(_T("Numeric"));
+            reference_text.Append(L"Numeric");
         }
 
         else if( user_function.GetReturnPaddingStringLength() == 0 )
         {
-            reference_text.Append(_T("String"));
+            reference_text.Append(L"String");
         }
 
         else
         {
-            reference_text.AppendFormat(_T("Alpha (%d)"), user_function.GetReturnPaddingStringLength());
+            reference_text.AppendFormat(L"Alpha (%d)", user_function.GetReturnPaddingStringLength());
         }
 
         reference_text.AppendChar('\n');
 
         if( user_function.IsSqlCallbackFunction() )
-            reference_text.Append(_T("SQL Callback Function: Yes\n"));
+            reference_text.Append(L"SQL Callback Function: Yes\n");
 
         if( user_function.GetNumberParameters() > 0 )
         {
@@ -1078,24 +1077,24 @@ namespace
                 bool parameter_is_optional = ( i >= user_function.GetNumberRequiredParameters() );
 
                 CString parameter_type_string =
-                    ( parameter_symbol.IsA(SymbolType::WorkVariable) ) ? _T("Numeric") :
-                    ( parameter_symbol.IsA(SymbolType::WorkString) )   ? _T("String") :
-                    ( parameter_symbol.IsA(SymbolType::UserFunction) ) ? _T("Function") :
+                    ( parameter_symbol.IsA(SymbolType::WorkVariable) ) ? L"Numeric" :
+                    ( parameter_symbol.IsA(SymbolType::WorkString) )   ? L"String" :
+                    ( parameter_symbol.IsA(SymbolType::UserFunction) ) ? L"Function" :
                                                                          UTF8_TODO::GetCString(ToString(parameter_symbol.GetType()));
 
                 if( parameter_symbol.GetSubType() == SymbolSubType::WorkAlpha )
                 {
-                    parameter_type_string.Format(_T("Alpha (%d)"), static_cast<int>(assert_cast<const WorkAlpha&>(parameter_symbol).GetWideLength()));
+                    parameter_type_string.Format(L"Alpha (%d)", static_cast<int>(assert_cast<const WorkAlpha&>(parameter_symbol).GetWideLength()));
                 }
 
                 else if( parameter_symbol.IsA(SymbolType::List) )
                 {
-                    parameter_type_string.AppendFormat(_T(" (%s)"), assert_cast<const LogicList&>(parameter_symbol).IsNumeric() ? _T("numeric") : _T("string"));
+                    parameter_type_string.AppendFormat(L" (%s)", assert_cast<const LogicList&>(parameter_symbol).IsNumeric() ? L"numeric" : L"string");
                 }
 
                 else if( parameter_symbol.IsA(SymbolType::ValueSet) )
                 {
-                    parameter_type_string.AppendFormat(_T(" (%s)"), assert_cast<const ValueSet&>(parameter_symbol).IsNumeric() ? _T("numeric") : _T("string"));
+                    parameter_type_string.AppendFormat(L" (%s)", assert_cast<const ValueSet&>(parameter_symbol).IsNumeric() ? L"numeric" : L"string");
                 }
 
                 parameter_information.emplace_back(i + 1, parameter_type_string, UTF8_TODO::GetCString(parameter_symbol.GetName()), parameter_is_optional);
@@ -1103,10 +1102,10 @@ namespace
                 parameter_type_max_length = std::max(parameter_type_max_length, parameter_type_string.GetLength());
             }
 
-            const TCHAR* OptionalText = _T("(optional) ");
+            constexpr const wchar_t* OptionalText = L"(optional) ";
 
             CString formatter;
-            formatter.Format(_T("Parameter %%%dd %%%ds| %%-%ds | %%s\n"),
+            formatter.Format(L"Parameter %%%dd %%%ds| %%-%ds | %%s\n",
                 (int)log10(user_function.GetNumberParameters()) + 1,
                 std::get<3>(parameter_information.back()) ? _tcslen(OptionalText) : 0,
                 parameter_type_max_length);
@@ -1115,7 +1114,7 @@ namespace
             {
                 reference_text.AppendFormat(formatter,
                     std::get<0>(parameter),
-                    std::get<3>(parameter) ? OptionalText : _T(""),
+                    std::get<3>(parameter) ? OptionalText : L"",
                     std::get<1>(parameter).GetString(),
                     std::get<2>(parameter).GetString());
             }
@@ -1651,7 +1650,7 @@ namespace
 
                 CStringArray proc_global_lines;
                 CString proc_global_buffer;
-                source_code->GetProc(proc_global_lines, _T("GLOBAL"));
+                source_code->GetProc(proc_global_lines, L"GLOBAL");
                 source_code->ArrayToString(&proc_global_lines, proc_global_buffer, true);
 
                 source_buffer = std::make_unique<Logic::SourceBuffer>(UTF8_TODO::GetUtf8(proc_global_buffer));
@@ -1738,13 +1737,13 @@ namespace
             {
                 // add the selected words as a title
                 CString title = UTF8_TODO::GetCString(SO::CreateSingleString(selected_words, "."));
-                title.AppendFormat(_T("\n%s\n"), UTF8_TODO::GetWide(SO::GetRepeatingCharacterString(L'‾', title.GetLength())).c_str());
+                title.AppendFormat(L"\n%s\n", UTF8_TODO::GetWide(SO::GetRepeatingCharacterString(L'‾', title.GetLength())).c_str());
 
                 // if declared in external code (not currently being edited), indicate where to find this declaration
                 if( external_logic_text_source_or_compilation_location.has_value() &&
                     std::holds_alternative<const TextSource*>(*external_logic_text_source_or_compilation_location) )
                 {
-                    title.AppendFormat(_T("External Logic: %s\n"),
+                    title.AppendFormat(L"External Logic: %s\n",
                                        UTF8_TODO::GetWide(PortableFunctions::PathGetFilename(std::get<const TextSource*>(*external_logic_text_source_or_compilation_location)->GetFilePath())).c_str());
                 }
 
@@ -1754,8 +1753,8 @@ namespace
             // if the reference window appears for the first time without a valid word being displayed, show the default message
             else if( reference_control->GetText().empty() )
             {
-                reference_text.Append(_T("Click on a word while holding the\n")
-                                      _T("Control and Alt keys to obtain more information.\n"));
+                reference_text.Append(L"Click on a word while holding the\n"
+                                      L"Control and Alt keys to obtain more information.\n");
             }
 
             if( !reference_text.IsEmpty() )
@@ -1997,13 +1996,13 @@ LRESULT CMainFrame::OnLogicReference(const WPARAM wParam, const LPARAM lParam)
                 {
                     // if using an alias, show the base name
                     if( symbol->GetName() != selected_words.back() )
-                        reference_text.AppendFormat(_T("Base Name: %s\n"), UTF8_TODO::GetWide(symbol->GetName()).c_str());
+                        reference_text.AppendFormat(L"Base Name: %s\n", UTF8_TODO::GetWide(symbol->GetName()).c_str());
 
                     // show any aliases to the symbol
                     const std::vector<std::string> aliases = symbol_table.GetAliases(*symbol);
 
                     if( !aliases.empty() )
-                        reference_text.AppendFormat(_T("Aliases: %s\n"), UTF8_TODO::GetWide(SO::CreateSingleString(aliases)).c_str());
+                        reference_text.AppendFormat(L"Aliases: %s\n", UTF8_TODO::GetWide(SO::CreateSingleString(aliases)).c_str());
 
 
                     // add the symbol

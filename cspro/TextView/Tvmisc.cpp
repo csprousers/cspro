@@ -352,7 +352,7 @@ BOOL CFileIO::Open ( CString csFileName )  {
     m_unicodeEncoding= GetEncodingFromBOM(m_iHandle);
     bool isValidEncoding = (m_unicodeEncoding == Encoding::Utf8) || (m_unicodeEncoding == Encoding::Ansi) || (m_unicodeEncoding == Encoding::Utf16LE);
     if (!isValidEncoding){
-        AfxMessageBox(FormatText(_T("%s\n\nCSPro does not support the specified text encoding."), csFileName.GetString()));
+        AfxMessageBox(csFileName + L"\n\nCSPro does not support the specified text encoding.");
         return FALSE;
     }
 
@@ -1066,13 +1066,13 @@ TCHAR* CBuffer::GetPrevLine (void)  {
     }
     m_stStatus = ACTIVE;
 
-	if(m_currFileIO->GetEncoding() == Encoding::Utf16LE){
-		return (LPTSTR)m_caIOBuffer + (m_iaOffs[m_iCurrLine--]/2);
-	}
-	else{
-		m_currFileIO->ConvertBufferToWideChar(m_caIOBuffer+m_iaOffs[m_iCurrLine--], m_LineBuffer,  -1);
-		return m_LineBuffer;
-	}
+    if(m_currFileIO->GetEncoding() == Encoding::Utf16LE){
+        return (LPTSTR)m_caIOBuffer + (m_iaOffs[m_iCurrLine--]/2);
+    }
+    else{
+        m_currFileIO->ConvertBufferToWideChar(m_caIOBuffer+m_iaOffs[m_iCurrLine--], m_LineBuffer,  -1);
+        return m_LineBuffer;
+    }
 }
 
 TCHAR* CBuffer::GetNextLine (void)  {
@@ -1087,29 +1087,29 @@ TCHAR* CBuffer::GetNextLine (void)  {
 
     m_stStatus = ACTIVE;
 
-	if(m_currFileIO->GetEncoding() == Encoding::Utf16LE){
-		return (LPTSTR)m_caIOBuffer + (m_iaOffs[m_iCurrLine++]/2);
-	}
-	else{
-		m_currFileIO->ConvertBufferToWideChar(m_caIOBuffer+m_iaOffs[m_iCurrLine++], m_LineBuffer,  -1);
-		return m_LineBuffer;
-	}
+    if(m_currFileIO->GetEncoding() == Encoding::Utf16LE){
+        return (LPTSTR)m_caIOBuffer + (m_iaOffs[m_iCurrLine++]/2);
+    }
+    else{
+        m_currFileIO->ConvertBufferToWideChar(m_caIOBuffer+m_iaOffs[m_iCurrLine++], m_LineBuffer,  -1);
+        return m_LineBuffer;
+    }
 }
 
 //TCHAR* CBuffer::GetNextLineU (void)  {
 //
-//	LPTSTR* pLine = NULL;
-//	BYTE* pNextLine =GetNextLine();
+//  LPTSTR* pLine = NULL;
+//  BYTE* pNextLine =GetNextLine();
 //
-//	if(pNextLine){
-//		//use the bom check
-//		//convert the bytes to unicode in the TCHAR buffer.
-//	}
-//	return pNextLine;
+//  if(pNextLine){
+//      //use the bom check
+//      //convert the bytes to unicode in the TCHAR buffer.
+//  }
+//  return pNextLine;
 //
-//	//CString str((LPCSTR)pNextLine,sizeof(TCHAR));
+//  //CString str((LPCSTR)pNextLine,sizeof(TCHAR));
 //
-//	//CString csResult;
+//  //CString csResult;
 //
 // //   //int             iLen=_tcslen((LPTSTR)pNextLine);
 // //   wchar_t*  pBuff=csResult.GetBufferSetLength( 71 );
@@ -1320,5 +1320,3 @@ void ltoc (TCHAR ch[], long value, int len, int fill)  {
         }
     }
 }
-
-

@@ -1,9 +1,5 @@
 ﻿#pragma once
 
-#ifdef USE_BINARY
-
-#elif WIN_DESKTOP
-
 #include <ZTBDO/TbdFile.h>
 
 class CBatchDriverBase;
@@ -93,10 +89,7 @@ private:
 
 public:
     CEngineDriver*  m_pEngineDriver;
-#ifdef USE_BINARY
-#else
     CBatchDriverBase*   m_pBatchDriverBase;
-#endif
     CEngineArea*    m_pEngineArea;
     EngineData*     m_engineData;
     CSettings*      m_pEngineSettings;
@@ -105,10 +98,7 @@ public:
     CTbd();
     ~CTbd();
 
-#ifdef USE_BINARY
-#else
     void    SetBatchDriver( CBatchDriverBase* pBatchDriverBase );
-#endif
 
     // break stuff
     void    breakcheckid();
@@ -146,5 +136,3 @@ public:
 private:
     const Logic::SymbolTable& GetSymbolTable() const;
 };
-
-#endif

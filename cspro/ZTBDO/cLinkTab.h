@@ -1,8 +1,5 @@
 ﻿#pragma once
 
-#if defined(USE_BINARY) // IGNORE_CTAB
-#else
-
 //---------------------------------------------------------------------------
 //  File name: CLinkTab.h
 //
@@ -14,6 +11,7 @@
 //              25 Feb 03   RHF      Created
 //
 //---------------------------------------------------------------------------
+
 #include <ZTBDO/zTbdO.h>
 #include <ZTBDO/cLinkTer.h>
 #include <ZTBDO/cLinkUnt.h>
@@ -128,5 +126,3 @@ public:
     friend      class CEngineCompFunc;
 
 };
-
-#endif

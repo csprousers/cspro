@@ -33,9 +33,7 @@
 //  Comparison/analysis
 //      IsNumeric           Is string a number (can have sign and decimal point).
 //      IsName              Is string an IMPS name (IMPS 3.1 and IMPS 4.x).
-//      GetLongestWordSize  Get the size (CSize) of the longest word in the string.
 //      ReverseFindOneOf    Search for the end of the string of a character in a set.
-//      CompareNoCase       Compare string to a resource string given the id.
 //
 //  Conversion
 //      MakeName            Make an IMSA name from a label.
@@ -54,11 +52,6 @@
 //      Val                 Convert string to an integer value.
 //      fVal                Convert string to a floating point value.
 //      Str                 Convert value to a string.
-//
-//  Date/time strings
-//      Date                Create a date string for a given CTime.
-//      Time                Create a time string for a given CTime.
-//      DateTime            Create a date/time string for a given CTime.
 //
 //***************************************************************************
 //***************************************************************************
@@ -109,16 +102,6 @@
 //
 //---------------------------------------------------------------------------
 //
-//  int CIMSAString::CompareNoCase(int iID);
-//
-//      Parameters
-//          iID                 Resource id value.
-//
-//      Return value
-//           0      This strings are identical (ignoring case)
-//          -1      This CIMSAString is less than the resource string (ignoring case)
-//           1      This CIMSAString is greater than the resource string (ignoring case)
-//
 //***************************************************************************
 //
 //  void CIMSAString::MakeName();
@@ -161,21 +144,6 @@
 //      Remarks
 //          If iLen is less than the string length, the string is trucated.
 //          If iLen is greater than the string length, the string is padded.
-//
-//---------------------------------------------------------------------------
-//
-//  int CIMSAString::Wrap(CStringArray& acsLine, int iColLeft = 0, int iColRight = 132, BOOL bStripCRLF = FALSE);
-//
-//      Parameters
-//          acsLine             An array of CStrings where the wrapped lines are stored.
-//          iColLeft            Left hand margin, column where string starts
-//          iColRight           Right hand margin, column where wrapping ends
-//          bStripCRLF          Whether to remove \r and \n characters
-//                              (used when outputting Note= commands that
-//                              were previously formatted for use in a CEdit box)
-//
-//      Return value
-//          Number of lines wrapped, that is size of CStringArray.
 //
 //---------------------------------------------------------------------------
 //
@@ -546,16 +514,7 @@ public:
     static bool IsReservedWord(wstring_view word_sv) { return IsReservedWord(UTF8_TODO::GetUtf8(word_sv)); }
     bool IsReservedWord() const { return IsReservedWord(*this); }
 
-#ifdef WIN_DESKTOP
-    static CSize GetLongestWordSize(CDC* pDC, const CString& text);
-#endif
     int ReverseFindOneOf(const csprochar* pszSet) const;
-
-#ifdef WIN_DESKTOP
-    int CompareNoCase(int iID) const;
-#endif
-
-    int CompareNoCase(LPCTSTR lpsz) const;
 
 // Conversion
     static CString MakeName(wstring_view base_name_sv, size_t max_name_length = SIZE_MAX);
@@ -564,9 +523,10 @@ public:
     void MakeName()                                                  { *this = MakeName(*this); }
     void MakeNameRestrictLength()                                    { *this = MakeNameRestrictLength(*this); }
 
-    // returns a valid name that is also not reserved
-    template<typename ECC = void*>
-    static std::string CreateUnreservedName(std::string_view text_sv, ECC extra_check_callback = nullptr);
+    // Returns a valid name that is also not reserved.
+    // If defined, the callback should return true if the name is valid.
+    static std::string CreateUnreservedName(std::string_view text_sv,
+                                            const std::function<bool(const std::string& name_candidate)>& extra_check_callback = {});
 
     static CString MakeNumeric(wstring_view text_sv);
     void MakeNumeric() { *this = MakeNumeric(*this); }
@@ -599,18 +559,6 @@ public:
     void Str(int iVal,     int iLen=NONE, csprochar cPad=SPACE)  { Str((int64_t) iVal, iLen, cPad);   }
     void Str(UINT uVal,    int iLen=NONE, csprochar cPad=SPACE)  { Str((int64_t) uVal, iLen, cPad);   }
 
-#ifdef WIN_DESKTOP
-// Date/time access
-    void Date(CTime);
-    void Date()  { Date(CTime::GetCurrentTime()); }
-    void Time(CTime);
-    void Time()  { Time(CTime::GetCurrentTime()); }
-    CIMSAString DateTime(CTime);
-    CIMSAString DateTime() { return DateTime(CTime::GetCurrentTime()); }
-
-    int Wrap(CStringArray& acsLine, int iColLeft=0, int iColRight=132, BOOL bStripCRLF=FALSE) const;
-#endif
-
 // To avoid casting
     CIMSAString Mid(int iFirst) const             { return CIMSAString(CString::Mid(iFirst)); }
     CIMSAString Mid(int iFirst, int iCount) const { return CIMSAString(CString::Mid(iFirst, iCount)); }
@@ -629,32 +577,6 @@ public:
 
     void serialize(Serializer& ar);
 };
-
-
-template<typename ECC/* = void* */>
-std::string CIMSAString::CreateUnreservedName(const std::string_view text_sv, ECC extra_check_callback/* = nullptr*/)
-{
-    std::string name_candidate = SO::ToUpper(text_sv);
-
-    for( int i = 0; ; ++i )
-    {
-        bool valid = ( IsName(name_candidate) && !IsReservedWord(name_candidate) );
-
-        if constexpr(!std::is_same_v<ECC, void*>)
-        {
-            if( valid )
-                valid = extra_check_callback(name_candidate);
-        }
-
-        if( valid )
-            return name_candidate;
-
-        name_candidate = MakeName(text_sv);
-
-        if( i > 0 )
-            name_candidate.append(FormatText("_%d", i));
-    }
-}
 
 
 

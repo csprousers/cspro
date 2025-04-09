@@ -225,7 +225,7 @@ void BatchMeterDlg::ToggleDetails(const bool show_details)
                  m_showingDetails ? std::get<1>(*m_dialogWidthAndHeightDetailsNoDetails) : std::get<2>(*m_dialogWidthAndHeightDetailsNoDetails),
                  SWP_NOMOVE);
 
-    m_dlgItemDetailsButton->SetWindowText(FormatText(L"Details %s", m_showingDetails ? L"<<" : L">>"));
+    m_dlgItemDetailsButton->SetWindowText(FormatText(L"Details %s", m_showingDetails ? L"<<" : L">>").c_str());
 }
 
 

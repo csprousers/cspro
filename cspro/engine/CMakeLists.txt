@@ -15,26 +15,36 @@ include_directories(${PROJECT_NAME} PUBLIC
 )
 
 add_library(${PROJECT_NAME}
-    Applload.cpp
-    citer.cpp
-    Common.cpp
+
+    # CEXEntry
+    ${CEXENTRY_DIRECTORY}/Common.cpp
+    ${CEXENTRY_DIRECTORY}/DeWrite.cpp
+    ${CEXENTRY_DIRECTORY}/DicX.cpp
+    ${CEXENTRY_DIRECTORY}/Entifaz.cpp
+    ${CEXENTRY_DIRECTORY}/Relation.cpp
+    ${CEXENTRY_DIRECTORY}/SecX.cpp
+    ${CEXENTRY_DIRECTORY}/VarX.cpp
+
+    # dep
     Decorr.cpp
+    Intdentr.cpp
+    intenter.cpp
+
+    # ex2
+    citer.cpp
     engdrv.cpp
     Exappl.cpp
     Exapplva.cpp
     Exopfile.cpp
-    Form.cpp
     gpsfuncs.cpp
     Int_set.cpp
     intcapi.cpp
     IntCase.cpp
     Intchars.cpp
     IntDataAccess.cpp
-    Intdentr.cpp
     IntDiagnostics.cpp
     Intdrive.cpp
     IntDynamicLogicEvaluation.cpp
-    intenter.cpp
     InterpreterAccessor.cpp
     Intexpr.cpp
     Intextdi.cpp
@@ -58,28 +68,25 @@ add_library(${PROJECT_NAME}
     IntUserInterface.cpp
     IntValues.cpp
     IntVariable.cpp
-    Issafunc.cpp
     Listing.cpp
     LoadSaveBinary.cpp
-    Messages.cpp
     Nextnode.cpp
     ParadataDriver.cpp
     ParameterManager.cpp
     Pre80Routines.cpp
+
+    # issa
+    Applload.cpp
+    Form.cpp
+    Issafunc.cpp
+    Messages.cpp
     relt.cpp
     Settings.cpp
-    subtable.cpp
     Tables.cpp
     Tablesen.cpp
     VariableInOut.cpp
 
-    ${CEXENTRY_DIRECTORY}/DeWrite.cpp
-    ${CEXENTRY_DIRECTORY}/Dicx.cpp
-    ${CEXENTRY_DIRECTORY}/Entifaz.cpp
-    ${CEXENTRY_DIRECTORY}/Relation.cpp
-    ${CEXENTRY_DIRECTORY}/Secx.cpp
-    ${CEXENTRY_DIRECTORY}/Varx.cpp
-
+    # zCapiO
     ${ZCAPIO_DIRECTORY}/CapiCondition.cpp
     ${ZCAPIO_DIRECTORY}/CapiContentVirtualFileMapping.cpp
     ${ZCAPIO_DIRECTORY}/CapiQuestion.cpp
@@ -88,6 +95,7 @@ add_library(${PROJECT_NAME}
     ${ZCAPIO_DIRECTORY}/CapiStyle.cpp
     ${ZCAPIO_DIRECTORY}/CapiText.cpp
 
+    # zEntryO
     ${ZENTRYO_DIRECTORY}/CapiHandler.cpp
     ${ZENTRYO_DIRECTORY}/CaseTreeBuilder.cpp
     ${ZENTRYO_DIRECTORY}/CaseTreeNode.cpp
@@ -101,6 +109,7 @@ add_library(${PROJECT_NAME}
     ${ZENTRYO_DIRECTORY}/RunAple.cpp
     ${ZENTRYO_DIRECTORY}/WEXEntry.cpp
 
+    # zIssaLib
     ${ZISSALIB_DIRECTORY}/Attr.cpp
     ${ZISSALIB_DIRECTORY}/CFlAdmin.cpp
     ${ZISSALIB_DIRECTORY}/CFlow.cpp

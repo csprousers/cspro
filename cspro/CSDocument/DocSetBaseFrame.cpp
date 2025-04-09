@@ -46,7 +46,7 @@ void DocSetBaseFrame::AddFrameSpecificItemsToBuildMenu(DynamicMenuBuilder& dynam
     else
     {
         doc_set_component_text = ToString(doc_set_component_type);
-        dynamic_menu_builder.AddOption(ID_COMPILE, FormatTextCS2WS(L"Co&mpile %s\tCtrl+K", TC::ToWide(doc_set_component_text).c_str()));
+        dynamic_menu_builder.AddOption(ID_COMPILE, FormatText(L"Co&mpile %s\tCtrl+K", TC::ToWide(doc_set_component_text).c_str()));
     }
 
     ASSERT(DocSetComponentUseJson(doc_set_component_type) == ( GetTextEditDoc().GetLexerLanguage() == SCLEX_JSON ));
@@ -55,10 +55,10 @@ void DocSetBaseFrame::AddFrameSpecificItemsToBuildMenu(DynamicMenuBuilder& dynam
     {
         dynamic_menu_builder.AddSeparator();
         dynamic_menu_builder.AddOption(ID_FORMAT_JSON, L"Format JSON");
-        dynamic_menu_builder.AddOption(ID_FORMAT_COMPONENT, FormatTextCS2WS(L"Format %s\tCtrl+M", TC::ToWide(doc_set_component_text).c_str()));
+        dynamic_menu_builder.AddOption(ID_FORMAT_COMPONENT, FormatText(L"Format %s\tCtrl+M", TC::ToWide(doc_set_component_text).c_str()));
 
         if( DocSetComponentSupportsDetailedFormatting(doc_set_component_type) )
-            dynamic_menu_builder.AddOption(ID_FORMAT_COMPONENT_DETAILED, FormatTextCS2WS(L"Format %s (Detailed)\tCtrl+Shift+M", TC::ToWide(doc_set_component_text).c_str()));
+            dynamic_menu_builder.AddOption(ID_FORMAT_COMPONENT_DETAILED, FormatText(L"Format %s (Detailed)\tCtrl+Shift+M", TC::ToWide(doc_set_component_text).c_str()));
     }
 }
 

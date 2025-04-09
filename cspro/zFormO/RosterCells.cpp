@@ -149,7 +149,7 @@ bool CDEFreeCell::Build(CSpecFile& frmFile, bool bSilent/* = false */)
         else
         {                      // Incorrect attribute
             if (!bSilent)
-                ErrorMessage::Display(FormatText(_T("Incorrect [Cell] attribute\n\n%s"), csCmd.GetString()));
+                ErrorMessage::Display(L"Incorrect [Cell] attribute\n\n" + csCmd);
 
             rtnVal = false;
         }

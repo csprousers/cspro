@@ -78,9 +78,9 @@ void TableToolbarDropdown::DrawBoxes(CDC& dc)
 
 void TableToolbarDropdown::DrawDimensionText(CDC& dc)
 {
-    CString text = FormatText(L"%d x %d", m_selected_columns, m_selected_rows);
+    const std::wstring text = FormatText(L"%d x %d", m_selected_columns, m_selected_rows);
     CFont* old_font = dc.SelectObject(&GetGlobalData()->fontRegular);
-    dc.TextOut(GetMargin(), GetMargin(), text);
+    dc.TextOut(GetMargin(), GetMargin(), text.c_str());
     dc.SelectObject(old_font);
 }
 
@@ -120,7 +120,7 @@ void TableToolbarDropdown::OnMouseMove(UINT /*nFlags*/, CPoint point)
     m_selected_columns = point.x < margin ? 0 : (point.x - margin - box_margin) / box_size.cx + 1;
     if (m_selected_rows == 0 || m_selected_columns == 0)
         m_selected_rows = m_selected_columns = 1;
-    
+
     Invalidate();
 }
 
@@ -144,7 +144,7 @@ bool TableToolbarDropdown::Create(TableToolbarButton* parent)
     {
         return false;
     }
-    
+
     CRect button_rect = parent->Rect();
     CWnd* parent_wnd = parent->GetParentWnd();
     parent_wnd->ClientToScreen(button_rect);

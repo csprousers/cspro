@@ -26,7 +26,6 @@
 
 #include <zEngineO/Interpreter/LogicInterpreter.h>
 #include <engine/NODES.H>
-#include <engine/Export.h>
 #include <engine/ParameterManager.h>
 #include <engine/DEFLD.H>
 #include <ZTBDO/cttree.h>
@@ -49,6 +48,7 @@ class FrequencyDriver;
 class ImputationDriver;
 struct InterpreterExecuteResult;
 class ItemIndex;
+class KeyboardLoader;
 class LoopStack;
 class NamedReference;
 class SelcaseManager;
@@ -525,15 +525,15 @@ public:
 
     double  exuserbar(int iExpr); // 20100414
 
-    double  exmessageoverrides(int iExpr); // 20100518
+    double  exmessageoverrides(int program_index);
 
     double  ex_trace(int program_index);
 
-    double  exgetcapturetype(int iExpr);    // 20100608
-    double  exsetcapturetype(int iExpr);    // 20100608
-    double  exsetcapturepos(int iExpr);     // 20110502
+    double  exgetcapturetype(int iExpr);         // 20100608
+    double  exsetcapturetype(int iExpr);         // 20100608
+    double  ex_setcapturepos(int program_index);
 
-    double  exchangekeyboard(int iExpr);    // 20120820
+    double  ex_changekeyboard(int iExpr);
 
     double  exorientation(int iExpr);       // 20100618
 
@@ -770,11 +770,11 @@ public:
     double  exprotect(int iExpr);
 
     double  ExExecSystem(int iExpr);
-    std::unique_ptr<Paradata::ExternalApplicationEvent> ExExecCommonBeforeExecute(FunctionCode source, const std::wstring& command, int flags);
-    bool    ExExecCommonExecute(std::wstring command, int flags);
+    std::unique_ptr<Paradata::ExternalApplicationEvent> ExExecCommonBeforeExecute(FunctionCode source, const std::string& command, int flags);
+    bool    ExExecCommonExecute(const std::string& command, int flags);
     double  ExExecCommonAfterExecute(FunctionCode source, int flags, bool success, std::unique_ptr<Paradata::ExternalApplicationEvent> external_application_event);
     double  ExExecPFF(int iExpr);
-    double  ExExecPFF(std::variant<LogicPff*, std::wstring> logic_pff_or_pff_filename, std::optional<int> flags = std::nullopt);
+    double  ExExecPFF(std::variant<LogicPff*, std::string> logic_pff_or_pff_file_path, std::optional<int> flags = std::nullopt);
 
     double exwhile(int iExpr);
     double ex_do(int program_index);
@@ -828,15 +828,8 @@ private:
 public:
     void RunGlobalOnFocus(int symbol_index);
 
-    void UpdateKeyboardInputMethod(VART* pVarT);
-
 private:
     std::map<const DictValue*, int> m_deckarrayIndexMappings;
-
-#ifdef WIN_DESKTOP
-    HKL     m_hLastDefaultKL;
-    HKL     m_hCurrentKL;
-#endif
 
 public:
     SharableString EvaluateCapiText(const std::string& language_name, const bool is_question, const int symbol_index);
@@ -1014,6 +1007,8 @@ private:
     std::unique_ptr<SelcaseManager> m_selcaseManager;
 
     std::shared_ptr<SyncObjects> m_syncObjects;
+
+    std::unique_ptr<KeyboardLoader> m_keyboardLoader; // non-null
 };
 
 

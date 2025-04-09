@@ -52,7 +52,7 @@ template<typename... Args>
 void SystemMessageIssuer::Issue(const MessageType message_type, const int message_number, Args const&... args)
 {
 #ifdef _DEBUG
-    ValidateFormatTextArgumentTypes(args...);
+    ValidateFormatTextArgumentTypes<char>(args...);
 #endif
 
     IssueWorker(message_type, message_number, args...);

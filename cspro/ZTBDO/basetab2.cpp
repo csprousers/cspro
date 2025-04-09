@@ -1,6 +1,4 @@
-﻿//#ifndef _CBaseTab2_included
-//#define _CBaseTab2_included
-//---------------------------------------------------------------------------
+﻿//---------------------------------------------------------------------------
 //  File name: BaseTab2.cpp
 //
 //  Description:
@@ -148,16 +146,16 @@ unsigned int  CBaseTable2::GetCellSize() { return m_iCellSize; }
 void          CBaseTable2::SetCellSize( int iSize ) { m_iCellSize = iSize; }
 
 // Other Info
-csprochar            CBaseTable2::GetOtherInfo() {  return m_cOtherInfo;}
+csprochar       CBaseTable2::GetOtherInfo() { return m_cOtherInfo;}
 void            CBaseTable2::SetOtherInfo( csprochar cOtherInfo ) { m_cOtherInfo = cOtherInfo; }
 
 
 
-void                CBaseTable2::SetParentRelatedTable( CBaseTable2* pParentRelatedTable ) { m_pParentRelatedTable = pParentRelatedTable; }
-CBaseTable2*            CBaseTable2::GetParentRelatedTable() { return m_pParentRelatedTable; }
+void            CBaseTable2::SetParentRelatedTable( CBaseTable2* pParentRelatedTable ) { m_pParentRelatedTable = pParentRelatedTable; }
+CBaseTable2*    CBaseTable2::GetParentRelatedTable() { return m_pParentRelatedTable; }
 
-void                CBaseTable2::SetParentTable( CBaseTable2* pParentTable)        { m_pParentTable = pParentTable; }
-CBaseTable2*            CBaseTable2::GetParentTable()        { return m_pParentTable; }
+void            CBaseTable2::SetParentTable( CBaseTable2* pParentTable) { m_pParentTable = pParentTable; }
+CBaseTable2*    CBaseTable2::GetParentTable()        { return m_pParentTable; }
 
 
 // Base indexes
@@ -199,5 +197,3 @@ void CBaseTable2::RemoveBaseIndexes( int iDim ) {
 
     m_iBaseIndexes[iDim].RemoveAll();
 }
-
-

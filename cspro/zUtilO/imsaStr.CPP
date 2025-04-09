@@ -13,8 +13,6 @@
 #include <zToolsO/Special.h>
 
 
-#define INI _T("WIN.INI")
-
 namespace
 {
     constexpr TCHAR ConvertAccentChar(TCHAR ch)
@@ -250,26 +248,6 @@ int CIMSAString::ReverseFindOneOf(const csprochar* pszSet) const {
 }
 
 
-#ifdef WIN_DESKTOP
-/////////////////////////////////////////////////////////////////////////////
-//
-//                           CIMSAString::CompareNoCase
-//
-/////////////////////////////////////////////////////////////////////////////
-
-int CIMSAString::CompareNoCase(int iID) const {
-
-    CIMSAString cs;
-    cs.LoadString(iID);
-    return CompareNoCase(cs);
-}
-#endif
-
-int CIMSAString::CompareNoCase(LPCTSTR lpsz) const {
-    // we need this since we overload the base class' version
-    return CString::CompareNoCase(lpsz);
-}
-
 /////////////////////////////////////////////////////////////////////////////
 //
 //                           CIMSAString::MakeName
@@ -320,6 +298,27 @@ CString CIMSAString::MakeName(const wstring_view base_name_sv, const size_t max_
     ASSERT(IsName(text));
 
     return text;
+}
+
+
+std::string CIMSAString::CreateUnreservedName(const std::string_view text_sv,
+                                              const std::function<bool(const std::string& name_candidate)>& extra_check_callback/* = {}*/)
+{
+    std::string name_candidate = SO::ToUpper(text_sv);
+
+    for( int i = 0; ; ++i )
+    {
+        if( IsName(name_candidate) && !IsReservedWord(name_candidate) )
+        {
+            if( !extra_check_callback || extra_check_callback(name_candidate) )
+                return name_candidate;
+        }
+
+        name_candidate = MakeName(text_sv);
+
+        if( i > 0 )
+            name_candidate.append(FormatText("_%d", i));
+    }
 }
 
 
@@ -377,47 +376,6 @@ CString CIMSAString::MakeNumeric(const wstring_view text_sv)
 }
 
 
-#ifdef WIN_DESKTOP
-/////////////////////////////////////////////////////////////////////////////
-//
-//                       CIMSAString::GetLongestWordSize
-//
-/////////////////////////////////////////////////////////////////////////////
-
-CSize CIMSAString::GetLongestWordSize(CDC* pDC, const CString& text)
-{
-    int iLen = 0;
-    int iMaxStart = 0;
-    CSize szMax(0,0);
-
-    for (int i = 0 ; i < text.GetLength() ; i++)  {
-        if (iLen==0)  {
-            iMaxStart = i;
-        }
-        TCHAR c = text.GetAt(i);
-        if( c != _T(' ') ) {
-            iLen++;
-        }
-        else  {
-            CSize szWord = pDC->GetTextExtent(text.Mid(iMaxStart, iLen));
-            if (szWord.cx > szMax.cx)  {
-                szMax = szWord;
-            }
-            iLen = 0;
-        }
-    }
-//    if (szMax == CSize(0,0) && iLen > 0)  {
-    if (iLen > 0)  {                                    // csc 6/12/96
-        // we haven't done the last word yet!
-        CSize szWord = pDC->GetTextExtent(text.Mid(iMaxStart, iLen));
-        if (szWord.cx > szMax.cx)  {
-            szMax = szWord;
-        }
-    }
-    return szMax;
-}
-#endif
-
 /////////////////////////////////////////////////////////////////////////////
 //
 //                           CIMSAString::AdjustLenLeft
@@ -459,167 +417,6 @@ CIMSAString CIMSAString::AdjustLenRight (int iLen, csprochar cPad /*=SPACE*/) co
         return Left(iLen);
     }
 }
-
-#ifdef WIN_DESKTOP
-
-/////////////////////////////////////////////////////////////////////////////
-//
-//                             CIMSAString::Date
-//
-/////////////////////////////////////////////////////////////////////////////
-
-void CIMSAString::Date(CTime time) {
-
-    csprochar pszTemp[50];
-    GetPrivateProfileString(_T("intl"),_T("sShortDate"),_T("M/d/yy"), pszTemp, 50, INI);
-    CIMSAString csShortDate = pszTemp;
-    CIMSAString csMonth = time.Format(_T("%m"));
-    if (csShortDate.Find(_T("MM")) == -1) {
-        if (csMonth.GetAt(0) == '0') {
-            csMonth = (CIMSAString) csMonth.GetAt(1);
-        }
-    }
-    CIMSAString csDay = time.Format(_T("%d"));
-    if (csShortDate.Find(_T("dd")) == -1) {
-        if (csDay.GetAt(0) == '0') {
-            csDay = (CIMSAString) csDay.GetAt(1);
-        }
-    }
-    CIMSAString csYear;
-    if (csShortDate.Find(_T("yyyy")) == -1) {
-        csYear = time.Format(_T("%y"));
-    }
-    else {
-        csYear = time.Format(_T("%Y"));
-    }
-    UINT iDate = GetPrivateProfileInt(_T("intl"),_T("iDate"), 0, INI);
-    GetPrivateProfileString(_T("intl"),_T("sDate"),_T("/"), pszTemp, 50, INI);
-    CIMSAString csSep = pszTemp;
-    if (iDate == 0) {
-        *this = csMonth + csSep + csDay + csSep + csYear;
-    }
-    else if (iDate == 1) {
-        *this = csDay + csSep + csMonth + csSep + csYear;
-    }
-    else {
-        *this = csYear + csSep + csMonth + csSep + csDay;
-    }
-}
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
-//                           CIMSAString::Time
-//
-/////////////////////////////////////////////////////////////////////////////
-
-void CIMSAString::Time(CTime time) {
-    csprochar pszTemp[50];
-    CIMSAString csHour;
-    CIMSAString csMinute = time.Format(_T("%M"));
-    CIMSAString csSecond = time.Format(_T("%S"));
-    GetPrivateProfileString(_T("intl"),_T("sTime"),_T(":"), pszTemp, 50, INI);
-    CIMSAString csSep = pszTemp;
-    *this = csMinute + csSep + csSecond;
-    if (GetPrivateProfileInt(_T("intl"),_T("iTime"), 0, INI) == 0) {
-        // 12 hour clock
-        csHour = time.Format(_T("%I"));
-        if (GetPrivateProfileInt(_T("intl"),_T("TLZero"), 0, INI) == 0) {
-            if (csHour.GetAt(0) == '0') {
-                csHour = (CIMSAString) csHour.GetAt(1);
-            }
-        }
-        if (time.GetHour() < 12) {
-            GetPrivateProfileString(_T("intl"),_T("s1159"),_T("AM"), pszTemp, 50, INI);
-        }
-        else {
-            GetPrivateProfileString(_T("intl"),_T("s2359"),_T("PM"), pszTemp, 50, INI);
-        }
-        CIMSAString csAMPM = pszTemp;
-        *this = csHour + csSep + *this +_T(" ") + csAMPM;
-    }
-    else {
-        // 24 hour clock
-        csHour = time.Format(_T("%H"));
-        if (GetPrivateProfileInt(_T("intl"),_T("TLZero"), 0, INI) == 0) {
-            if (csHour.GetAt(0) == '0') {
-                csHour = (CIMSAString) csHour.GetAt(1);
-            }
-        }
-        *this = csHour + csSep + *this;
-    }
-}
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
-//                           CIMSAString::DateTime
-//
-/////////////////////////////////////////////////////////////////////////////
-
-CIMSAString CIMSAString::DateTime(CTime time) {
-
-    CIMSAString csDate, csTime;
-    csDate.Date(time);
-    csTime.Time(time);
-    *this = csDate +_T("  ") + csTime;
-    return *this;
-}
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
-//                           CIMSAString::Wrap
-//
-/////////////////////////////////////////////////////////////////////////////
-
-int CIMSAString::Wrap(CStringArray& acsLine, int iColLeft /*=0*/, int iColRight /*=132*/, BOOL bStripCRLF /*=FALSE*/) const {
-
-    int iWrap;
-    CIMSAString csLine, csThis;
-
-    csThis = *this;  // make a copy then walk down it
-
-    if (bStripCRLF)  {
-        int i;
-
-        // remove any \r's (needed to make it show up correctly in a CEdit box)
-        while ((i=csThis.Find('\r')) != NONE)  {
-            csThis.SetAt(i,SPACE);
-        }
-
-        //remove any trailing emptyness
-        while (csThis.Right(1).FindOneOf(_T("\r\n ")) != NONE)  {
-            csThis = csThis.Left(csThis.GetLength()-1);
-        }
-    }
-
-    while (csThis.GetLength() > iColRight - iColLeft || csThis.Find('\n') != NONE)  {
-        csLine = csThis.Left(iColRight-iColLeft);
-        // look for embedded newline (from left)
-        iWrap = csLine.Find('\n');
-        if (iWrap == NONE)  {
-            // no embedded newlines, then wrap in from righthand side
-            iWrap = csLine.ReverseFind(' ');
-        }
-        if (iWrap==NONE && csLine.GetLength()==iColRight-iColLeft)  {
-            // no break found to wrap at; force a break at the end of the column
-            iWrap = iColRight-iColLeft;
-        }
-        if (iWrap != NONE)  {
-            csThis = csThis.Mid(iWrap+1);
-            csLine = csLine.Left(iWrap);
-        }
-        csLine = CIMSAString(SPACE, iColLeft) + csLine;
-        acsLine.Add(csLine);
-        csLine.Empty();
-    }
-    csLine = CIMSAString(SPACE, iColLeft) + csThis;
-    acsLine.Add(csLine);
-    return acsLine.GetSize();
-}
-
-#endif // WIN_DESKTOP
 
 
 /////////////////////////////////////////////////////////////////////////////

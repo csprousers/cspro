@@ -98,6 +98,9 @@ namespace PortableFunctions
     CLASS_DECL_ZTOOLSO std::string GetUniqueFilePathInDirectory(std::string_view directory_sv, std::string_view extension_sv, const char* filename_prefix = nullptr,
                                                                 std::function<bool(const std::string&)> uniqueness_check_callback = { });
 
+    // Returns the "command-line string for the current process," or a blank string in the portable environments.
+    CLASS_DECL_ZTOOLSO std::string GetCommandLine();
+
     // Returns MD5 Message-Digest (RFC 1321) of a file.
     CLASS_DECL_ZTOOLSO std::string FileMd5(InterfaceString file_path);
 

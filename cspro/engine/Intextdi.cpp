@@ -2053,7 +2053,7 @@ double CIntDriver::exfilename(int iExpr)
     else if( symbol->IsA(SymbolType::Pff) )
     {
         LogicPff& logic_pff = assert_cast<LogicPff&>(*symbol);
-        return AssignAlphaValue(logic_pff.GetRunnableFilename());
+        return AssignString(logic_pff.GetRunnableFilePath());
     }
 
     // Report
@@ -2264,10 +2264,8 @@ bool CIntDriver::ex_setfile_dictionary(DICT* const pDicT, const ConnectionString
 
 void CIntDriver::EntryInputRepositoryChangingActions()
 {
-#ifdef WIN_DESKTOP
     // update the case listing and the title bar
-    AfxGetApp()->GetMainWnd()->SendMessage(WM_IMSA_CHANGE_INPUT_REPOSITORY);
-#endif
+    WindowsDesktopMessage::Send(WM_IMSA_CHANGE_INPUT_REPOSITORY);
 
     // clear any write case parameter in use
     m_pEngineDriver->ClearWriteCaseParameter();

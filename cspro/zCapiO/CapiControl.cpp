@@ -916,7 +916,7 @@ CString CCapiControl::TranslateDateToString() // 20100615
     if( !date.has_value() )
         return ReturnProgrammingError(CString());
 
-    return FormatText(_T("%0*d"), m_pParent->m_pDictItem->GetLen(), static_cast<int>(*date));
+    return FormatText<CString>(L"%0*d", m_pParent->m_pDictItem->GetLen(), static_cast<int>(*date));
 }
 
 

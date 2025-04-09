@@ -277,7 +277,7 @@ void CTVDoc::CloseDeletedFile()
 {
     if (!IsReloadingOrClosing()) {    // prevent recursion
         m_bIsReloadingOrClosing = true;
-        AfxMessageBox(FormatText(_T("File %s has been deleted, or is no longer available. File will be closed."), GetPathName().GetString()), MB_ICONEXCLAMATION);
+        AfxMessageBox(FormatText(L"File %s has been deleted, or is no longer available. File will be closed.", GetPathName().GetString()), MB_ICONEXCLAMATION);
         OnCloseDocument();
     }
 }

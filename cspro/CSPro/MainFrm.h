@@ -106,6 +106,7 @@ public:
     LRESULT OnSetCodeFileSuccessfullyCompiled(WPARAM wParam, LPARAM lParam);
 
     LRESULT OnTokenizeLogic_V0(WPARAM wParam, LPARAM lParam);
+    LRESULT OnCreateCapiLogicCompiler(WPARAM wParam, LPARAM lParam);
 
     LRESULT OnRunOnUIThread(WPARAM wParam, LPARAM lParam);
     LRESULT OnGetApplicationShutdownRunner(WPARAM wParam, LPARAM lParam);

@@ -30,7 +30,7 @@ std::unique_ptr<BatchDriver> BatchDriver::Create(CNPifFile& pff)
     std::unique_ptr<BatchDriver> batch_driver(new BatchDriver(pff));
 
     batch_driver->m_Issamod = ModuleType::Batch;
-    batch_driver->m_lpszExecutorLabel =_T("BATCH");
+    batch_driver->m_lpszExecutorLabel = "BATCH";
 
     if( !batch_driver->exapplinit() )
         throw CSProException("There was an error compiling the batch application.");
@@ -73,7 +73,7 @@ bool BatchDriver::InitializeRun()
     {
         OpenListerAndWriteFiles();
 
-        m_pEngineDriver->GetLister()->SetMessageSource(SO::Concatenate(UTF8_TODO::GetUtf8(m_lpszExecutorLabel), " INITIALIZATION"));
+        m_pEngineDriver->GetLister()->SetMessageSource(SO::Concatenate(m_lpszExecutorLabel, " INITIALIZATION"));
 
         m_pIntDriver->StartApplication();
 
@@ -104,9 +104,9 @@ bool BatchDriver::InitializeRun()
         AfxGetApp()->GetMainWnd()->SendMessage(WM_IMSA_GET_PROCESS_SUMMARY_REPORTER, (WPARAM)&m_processSummaryReporter);
         ASSERT(m_processSummaryReporter != nullptr);
 
-        std::wstring dialog_title = FormatTextCS2WS(_T("Running %s application %s. Press ESC to interrupt..."),
-                                                    m_lpszExecutorLabel,
-                                                    PortableFunctions::PathGetFilename(Appl.GetAppFileName()));
+        std::string dialog_title = FormatText("Running %s application %s. Press ESC to interrupt...",
+                                              m_lpszExecutorLabel,
+                                              Path::GetFilename(m_pEngineDriver->GetApplication()->GetApplicationFilePath()).c_str());
 
         m_processSummaryReporter->Initialize(std::move(dialog_title), m_pEngineDriver->GetProcessSummary(), &m_pIntDriver->m_bStopProc);
     }

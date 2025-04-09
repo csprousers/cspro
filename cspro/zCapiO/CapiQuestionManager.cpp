@@ -428,13 +428,12 @@ void CapiQuestionManager::serialize(Serializer& ar)
             m_styles = DefaultCapiStyles;
     }
 
-#if defined(_DEBUG) && defined(WIN_DESKTOP)
+
     // allow a way for developers to recover question text from .pen files
-    if( std::wstring(GetCommandLine()).find(L"/extract") != std::wstring::npos )
+    if( DebugMode() && PortableFunctions::GetCommandLine().find("/extract") != std::string::npos )
     {
         const std::string file_path = PortableFunctions::CreateFilePath(GetWindowsSpecialFolder(WindowsSpecialFolder::Desktop),
                                                                         "Extracted Question Text", FileExtensions::QuestionText);
         Save(file_path);
     }
-#endif
 }

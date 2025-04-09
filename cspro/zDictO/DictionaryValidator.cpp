@@ -594,12 +594,10 @@ bool DictionaryValidator::IsValid(DictLevel& dict_level,
         }
     }
     else {
-#ifdef WIN_DESKTOP
         DictionaryType dictionary_type;
 
         if( ( m_iLevelNum > 0 ) &&
-            ( AfxGetMainWnd() != nullptr && AfxGetMainWnd()->SendMessage(UWM::Designer::GetDictionaryType, reinterpret_cast<WPARAM>(m_pDict),
-                                                                                                           reinterpret_cast<LPARAM>(&dictionary_type)) != 0 ) &&
+            ( WindowsDesktopMessage::Send(UWM::Designer::GetDictionaryType, m_pDict, &dictionary_type) != 0 ) &&
             ( dictionary_type == DictionaryType::External || dictionary_type == DictionaryType::Working ) )
         {
             csMsg = _T("External and Working Storage dictionaries can have only 1 level.");
@@ -608,7 +606,6 @@ bool DictionaryValidator::IsValid(DictLevel& dict_level,
                 m_iInvalidEdit = 1;
             }
         }
-#endif
     }
     if (!CheckNote(dict_level))  {
         if (m_iInvalidEdit == NONE)  {
@@ -3829,7 +3826,7 @@ bool DictionaryValidator::CheckNote(DictBase& dict_base)
             dict_element_for_name = assert_cast<const DictNamedBase*>(&dict_base);
 
         m_csErrorReport += GetErrorName(*dict_element_for_name) +
-                           FormatText(_T("The note is too long (maximum %d characters)."), MAX_NOTE_LEN) +
+                           FormatText<CString>(L"The note is too long (maximum %d characters).", MAX_NOTE_LEN) +
                            CRLF;
 
         if( m_bAutoFixAndRecurse )

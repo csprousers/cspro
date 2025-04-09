@@ -12,6 +12,7 @@
 #include "FormFile.h"
 #include "DragOptions.h"
 #include "RenDlg.h"
+#include <zToolsO/BinaryGen.h>
 #include <zToolsO/Serializer.h>
 #include <zUtilO/AppLdr.h>
 #include <zUtilO/Versioning.h>
@@ -1976,7 +1977,7 @@ bool CDEFormFile::LoadRTDicts(CAppLoader* pLoader)
         catch( const std::exception& exception )
         {
             ErrorMessage::Display(FormatText(MGF::GetMessageText(MGF::ErrorReadingPen)->c_str(),
-                                             Path::GetFilename(UTF8_TODO::GetUtf8(pLoader->GetArchiveName())).c_str(),
+                                             Path::GetFilename(pLoader->GetArchiveFilePath()).c_str(),
                                              exception.what()));
             return false;
         }
@@ -1999,12 +2000,10 @@ bool CDEFormFile::LoadRTDicts(CAppLoader* pLoader)
     return true;
 }
 
-#ifdef GENERATE_BINARY
-bool CDEFormFile::SaveRTDicts(const std::wstring& archive_name) const
+
+bool CDEFormFile::SaveRTDicts() const
 {
-    ASSERT(BinaryGen::isGeneratingBinary());
-    if( !BinaryGen::isGeneratingBinary() )
-        return true;
+    ASSERT(BinaryGen::IsCreatingPen());
 
     try // 20121109 for the portable environment
     {
@@ -2013,13 +2012,12 @@ bool CDEFormFile::SaveRTDicts(const std::wstring& archive_name) const
 
     catch(...)
     {
-        ErrorMessage::Display(FormatText(_T("There was an error writing to the binary file %s"), archive_name.c_str()));
+        ErrorMessage::Display("There was an error writing to the binary file: " + BinaryGen::GetPenFilePath());
         return false;
     }
 
     return true;
 }
-#endif // GENERATE_BINARY
 
 
 bool CDEFormFile::SetDictItem(CDEField* pField)
@@ -2098,8 +2096,6 @@ std::vector<CString> CDEFormFile::GetOrder() const
 }
 
 
-#ifdef USE_BINARY
-#else
 /////////////////////////////////////////////////////////////////////////////
 ////SAVY 07/25
 //USE THIS FUNC FOR ORDER RECONCILE
@@ -2372,11 +2368,8 @@ void CDEFormFile::CreateGroupForOrder(CDEGroup* pGroup,
         pGroup->SetDims (0,0,rightCol,(row > MaxScrSz) ? row : MaxScrSz);
     }
 }
-#endif // USE_BINARY
 
 
-#ifdef USE_BINARY
-#else
 ///////////////////////////////////////////////////////////////////////////////////////////////
 //  //CALL THIS FUNCTION AFTER A CALL TO CHECKNADDLEVELS
 //                  void CDEFormFile::CheckNAddMissingItems()
@@ -2493,7 +2486,7 @@ bool CDEFormFile::CheckNAddMissingItems()
 
     return bRet;
 }
-#endif // USE_BINARY
+
 
 //The record which has the sRecName as the TypeName . If it doesnt  have one create a group
 //with this type name
@@ -2984,8 +2977,7 @@ CDEGroup* CDEFormFile::OCreateGroupField(CDEGroup* pGroup, const CDictItem* pDI,
     return pFieldOccGroup;
 }
 
-#ifdef USE_BINARY
-#else
+
 /////////////////////////////////////////////////////////////////////////////////
 //
 //      void CDEFormFile::CreateOrderFile (CDataDict& dictionary, bool bBuildRecords/*=false*/)
@@ -3070,7 +3062,6 @@ void CDEFormFile::CreateOrderFile(const CDataDict& dictionary, bool bBuildRecord
         pFormLevel->SetHierarchy(iIndex);
     }
 }
-#endif // USE_BINARY
 
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -3954,7 +3945,7 @@ bool CDEFormFile::Build(CSpecFile& frmFile, std::shared_ptr<ProgressDlg> pDlgPro
         if (csCmd.CompareNoCase (FRM_CMD_NAME) == 0 ) {
             SetName(csArg);
             if (pDlgProgress != NULL) {
-                pDlgProgress->SetStatus(FormatText(_T("Checking form file %s ... please wait"), GetName().GetString()));
+                pDlgProgress->SetStatus(FormatText(L"Checking form file %s ... please wait", GetName().GetString()).c_str());
             }
         }
         else if( csCmd.CompareNoCase (FRM_CMD_LABEL) == 0 ) {
@@ -4140,8 +4131,8 @@ bool CDEFormFile::BuildWrapUp()
                 if (pItem->GetParent() == NULL)
                 {
                     // delete it and continue, don't make it a fatal error
-                    ErrorMessage::Display(FormatText(_T("Item \"%s\" on Form #%d was not found in any [Group] block.\n")
-                                                     _T("The item will be removed from the form"), pItem->GetName().GetString(), i + 1));
+                    ErrorMessage::Display(FormatText(L"Item \"%s\" on Form #%d was not found in any [Group] block.\n"
+                                                     L"The item will be removed from the form", pItem->GetName().GetString(), i + 1));
                     delete pItem;   // removing the item from the form doesn't delete it's memory
 
                     pForm->RemoveItem (j);
@@ -4259,13 +4250,11 @@ void CDEFormFile::serialize(Serializer& ar)
 
     FormSerialization::reset();
 
-#if defined(_DEBUG) && defined(WIN_DESKTOP)
     // allow a way for developers to recover people's form files from .pen files
-    if( std::wstring(GetCommandLine()).find(L"/extract") != std::wstring::npos )
+    if( DebugMode() && PortableFunctions::GetCommandLine().find("/extract") != std::string::npos )
     {
         const std::string file_path = PortableFunctions::CreateFilePath(GetWindowsSpecialFolder(WindowsSpecialFolder::Desktop),
                                                                         UTF8_TODO::GetUtf8(GetName()), FileExtensions::Form);
         Save(file_path);
     }
-#endif
 }

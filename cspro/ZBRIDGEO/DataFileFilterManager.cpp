@@ -19,7 +19,7 @@ const DataFileFilterManager& DataFileFilterManager::Get(const UseType use_type, 
 DataFileFilterManager::DataFileFilterManager(const UseType use_type, const bool add_only_readable_types)
     :   m_useType(use_type)
 {
-    constexpr const TCHAR* FilterFormatter = _T("%s Files (*.%s)|*.%s|");
+    constexpr const wchar_t* FilterFormatter = L"%s Files (*.%s)|*.%s|";
     std::wstring all_cspro_extensions;
 
     auto add_type = [&](const DataRepositoryType type, const bool cspro_type = true, const bool force_extension = true)
@@ -33,10 +33,10 @@ DataFileFilterManager::DataFileFilterManager(const UseType use_type, const bool 
 
         if( m_useType == UseType::FileChooserDlg )
         {
-            m_filterText.append(FormatTextCS2WS(FilterFormatter, type_name, extension, extension));
+            m_filterText.append(FormatText(FilterFormatter, type_name, extension, extension));
 
             if( cspro_type )
-                SO::AppendWithSeparator(all_cspro_extensions, extension, _T(";*."));
+                SO::AppendWithSeparator(all_cspro_extensions, extension, L";*.");
         }
 
         else
@@ -80,12 +80,12 @@ DataFileFilterManager::DataFileFilterManager(const UseType use_type, const bool 
     // add CSPro Data to the filter text
     if( m_useType == UseType::FileChooserDlg )
     {
-        m_filterText.insert(0, FormatTextCS2WS(FilterFormatter, _T("CSPro Data"), all_cspro_extensions.c_str(), all_cspro_extensions.c_str()));
+        m_filterText.insert(0, FormatText(FilterFormatter, L"CSPro Data", all_cspro_extensions.c_str(), all_cspro_extensions.c_str()));
 
         // add the All Files filter
         m_filters.emplace_back(CombinedType::AllFiles);
 
-        m_filterText.append(FormatTextCS2WS(FilterFormatter, _T("All"), _T("*"), _T("*")));
+        m_filterText.append(FormatText(FilterFormatter, L"All", L"*", L"*"));
         m_filterText.push_back('|');
     }
 }

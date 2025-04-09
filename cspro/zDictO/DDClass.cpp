@@ -1989,15 +1989,13 @@ void CDataDict::serialize(Serializer& ar)
         SyncLinkedValueSets();
     }
 
-#if defined(_DEBUG) && defined(WIN_DESKTOP)
     // allow a way for developers to recover people's dictionaries from .pen files
-    if( std::wstring(GetCommandLine()).find(L"/extract") != std::wstring::npos )
+    if( DebugMode() && PortableFunctions::GetCommandLine().find("/extract") != std::string::npos )
     {
         const std::string file_path = PortableFunctions::CreateFilePath(GetWindowsSpecialFolder(WindowsSpecialFolder::Desktop),
                                                                         GetName(), FileExtensions::Dictionary);
         Save(file_path);
     }
-#endif
 }
 
 

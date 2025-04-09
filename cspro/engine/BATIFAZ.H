@@ -1,7 +1,5 @@
 ﻿#pragma once
 
-#ifndef USE_BINARY
-
 #include <engine/Batdrv.h>
 
 
@@ -48,5 +46,3 @@ public:
 protected:
     const Logic::SymbolTable& GetSymbolTable() const;
 };
-
-#endif // !USE_BINARY

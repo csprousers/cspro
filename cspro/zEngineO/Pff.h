@@ -15,7 +15,7 @@ private:
 
 public:
     LogicPff(std::string pff_name);
-	
+
     LogicPff& operator=(const LogicPff& rhs);
 
     std::shared_ptr<const PFF> GetSharedPff();
@@ -25,7 +25,7 @@ public:
 
     bool IsModified() const { return m_modified; }
 
-    std::wstring GetRunnableFilename();
+    std::string GetRunnableFilePath();
 
     std::vector<std::wstring> GetProperties(const std::wstring& property_name);
 

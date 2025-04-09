@@ -114,7 +114,7 @@ void CDEFormBase::WriteDimsToStr(CString& cs, CRect rect) const
 CString CDEFormBase::GetUpperDimsStr() const
 {
     const CPoint& cp = m_cDims.BottomRight();
-    return FormatText(_T("%d,%d"), (int)cp.x, (int)cp.y);
+    return FormatText<CString>(L"%d,%d", (int)cp.x, (int)cp.y);
 }
 
 

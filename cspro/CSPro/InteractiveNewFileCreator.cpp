@@ -145,7 +145,7 @@ std::optional<std::tuple<std::string, AppFileType>> InteractiveNewFileCreator::I
         constexpr size_t NumberExternalDictionaries = 3;
 
         for( int i = 1; i <= NumberExternalDictionaries; ++i )
-            file_associations_dlg.m_fileAssociations.emplace_back(FileAssociation::Type::Dictionary, FormatText(L"External Dictionary %d", i), false);
+            file_associations_dlg.m_fileAssociations.emplace_back(FileAssociation::Type::Dictionary, FormatText<CString>(L"External Dictionary %d", i), false);
 
         // prefill in the working storage dictionary for tabulation applications
         if( app_file_type == AppFileType::ApplicationTabulation )
@@ -155,7 +155,7 @@ std::optional<std::tuple<std::string, AppFileType>> InteractiveNewFileCreator::I
             file_associations_dlg.m_sWSDName = UTF8_TODO::GetCString(GetDefaultWorkingStorageDictionaryFilePath(file_path));
         }
 
-        file_associations_dlg.m_sTitle = FormatText(L"New %s", UTF8_TODO::GetWide(ToString(app_file_type)).c_str());
+        file_associations_dlg.m_sTitle = FormatText<CString>(L"New %s", UTF8_TODO::GetWide(ToString(app_file_type)).c_str());
 
         if( file_associations_dlg.DoModal() != IDOK )
             return std::nullopt;

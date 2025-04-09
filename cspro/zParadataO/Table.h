@@ -122,7 +122,7 @@ void Paradata::Table::Insert(long* const id, Args const&... args)
                          !std::is_same_v<type, const long*> &&
                          !std::is_same_v<type, const double*>)
             {
-                ValidateFormatTextArgumentTypes(args);
+                ValidateFormatTextArgumentTypes<char>(args);
             }
         }
     (), ...);

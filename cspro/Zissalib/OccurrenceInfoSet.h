@@ -10,7 +10,7 @@ class OccurrenceInfoSet
 {
 public:
     virtual ~OccurrenceInfoSet() { }
-    virtual void accept( OccurrenceVisitor& v ) = 0;
+    virtual void accept(OccurrenceVisitor& v) = 0;
 };
 
 class RecordOccurrenceInfoSet : public OccurrenceInfoSet
@@ -19,7 +19,7 @@ public:
     OccurrenceInfo m_Info;
 public:
     RecordOccurrenceInfoSet();
-    virtual void accept( OccurrenceVisitor& v );
+    void accept(OccurrenceVisitor& v) override;
 };
 
 class ItemOccurrenceInfoSet : public OccurrenceInfoSet
@@ -29,7 +29,7 @@ public:
     int m_iSize;
 public:
     ItemOccurrenceInfoSet( int iNumOfRecords );
-    virtual void accept( OccurrenceVisitor& v );
+    void accept(OccurrenceVisitor& v) override;
 };
 
 class SubItemOccurrenceInfoSet : public OccurrenceInfoSet
@@ -39,5 +39,5 @@ public:
     int m_iXSize, m_iYSize;
 public:
     SubItemOccurrenceInfoSet( int iNumOfRecords, int iNumItems );
-    virtual void accept( OccurrenceVisitor& v );
+    void accept(OccurrenceVisitor& v) override;
 };

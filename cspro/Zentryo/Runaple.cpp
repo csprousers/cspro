@@ -4,6 +4,7 @@
 #include "StdAfx.h"
 #include "Runaple.h"
 #include <zPlatformO/PlatformInterface.h>
+#include <zToolsO/BinaryGen.h>
 #include <zUtilO/AppLdr.h>
 #include <zUtilF/ChoiceDlg.h>
 #include <zUtilF/TextInputDlg.h>
@@ -18,9 +19,9 @@
 #include <zEngineO/ResponseProcessor.h>
 #include <zEngineO/ValueSet.h>
 #include <zNetwork/LoginCredentials.h>
-#include <Cexentry/Entifaz.h>
 #include <zEngineO/Userbar.h>
 #include <engine/DEFLD.H>
+#include <engine/Entifaz.h>
 #include <engine/IntDrive.h>
 #include <engine/ParadataDriver.h>
 
@@ -75,19 +76,25 @@ bool CRunAplEntry::LoadCompile()
     Application* pApplication = m_pPifFile->GetApplication();
 
     if( pApplication->GetAppLoader()->GetBinaryFileLoad() )
+    {
         pApplication->SetApplicationLoader(std::make_unique<PenReaderApplicationLoader>(pApplication, std::string()));
+    }
+
+#ifdef WIN_DESKTOP
+    else if( BinaryGen::IsCreatingPen() )
+    {
+        pApplication->SetApplicationLoader(std::make_unique<PenWriterApplicationLoader>(pApplication, std::string()));
+    }
+#endif
+
+    else if constexpr(OnWindowsDesktop())
+    {
+        pApplication->SetApplicationLoader(std::make_unique<FileApplicationLoader>(pApplication));
+    }
 
     else
     {
-#ifdef WIN_DESKTOP
-        if( BinaryGen::isGeneratingBinary() )
-            pApplication->SetApplicationLoader(std::make_unique<PenWriterApplicationLoader>(pApplication, std::string()));
-
-        else
-            pApplication->SetApplicationLoader(std::make_unique<FileApplicationLoader>(pApplication));
-#else
         throw ProgrammingErrorException();
-#endif
     }
 
 
@@ -189,7 +196,9 @@ bool CRunAplEntry::Stop()
         bool bClose = false;
 
         if( pEntryDriver->Exit_Code != 0 )
+        {
             bClose = true;
+        }
 
         else if( GetSettings() && GetSettings()->GetExitWhenFinish() )
         {
@@ -203,7 +212,7 @@ bool CRunAplEntry::Stop()
 
 #ifdef WIN_DESKTOP
         if( bClose )
-            AfxGetMainWnd()->PostMessage(WM_CLOSE);
+            WindowsDesktopMessage::Post(WM_CLOSE);
 #endif
     }
 
@@ -1382,7 +1391,7 @@ void CRunAplEntry::StopIfNecessary() // 20121023 for stopping after OnKey and On
 {
 #ifdef WIN_DESKTOP
     if( GetEntryDriver()->m_pIntDriver->m_bStopProc )
-        AfxGetMainWnd()->PostMessage(WM_IMSA_USERBAR_UPDATE,0,-1); // an easy way to stop (leveraging old work)
+        WindowsDesktopMessage::Post(WM_IMSA_USERBAR_UPDATE, 0, -1); // an easy way to stop (leveraging old work)
 #endif
 }
 
@@ -1528,8 +1537,7 @@ void CRunAplEntry::RunPeriodicEvents()
                 bool bClearSkipped = false;
 
 #ifdef WIN_DESKTOP
-                if( AfxGetMainWnd() != NULL && ::IsWindow(AfxGetMainWnd()->GetSafeHwnd()) )
-                    AfxGetMainWnd()->SendMessage(WM_IMSA_PARTIAL_SAVE,(WPARAM)bClearSkipped);
+                WindowsDesktopMessage::Send(WM_IMSA_PARTIAL_SAVE, bClearSkipped);
 #else
                 bool bFromLogic = true;
                 PlatformInterface::GetInstance()->GetApplicationInterface()->PartialSave(bClearSkipped, bFromLogic);

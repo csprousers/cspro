@@ -37,6 +37,11 @@ namespace ErrorMessage
 // AfxMessageBox overrides
 // --------------------------------------------------------------------------
 
+inline int AfxMessageBox(const std::wstring& text, UINT nType = MB_OK, UINT nIDHelp = 0)
+{
+    return AfxMessageBox(text.c_str(), nType, nIDHelp);
+}
+
 CLASS_DECL_ZTOOLSO int AfxMessageBox(const std::string_view text_sv, UINT nType = MB_OK, UINT nIDHelp = 0);
 
 

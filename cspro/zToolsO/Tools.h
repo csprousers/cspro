@@ -40,25 +40,11 @@ CLASS_DECL_ZTOOLSO const char* ToString(Encoding encoding);
 // TEXT_ENCODING_TODO the above should move to TextEncoding.h
 
 
-CLASS_DECL_ZTOOLSO bool ReadLine( CFile& cFile, CString * pStr, Encoding encoding );
-
 CLASS_DECL_ZTOOLSO CString DelimitCRLF(CString csText, const TCHAR* crlf_override = nullptr);
 CLASS_DECL_ZTOOLSO CString UndelimitCRLF(CString csText, const TCHAR* crlf_override = nullptr);
 
 CLASS_DECL_ZTOOLSO bool RunProgram(std::wstring command, int* iRetCode, int iShowWindow, bool bFocus, bool bWait);
 
-//////////////////////////////////////////////////////////////////////////
-
-class CLASS_DECL_ZTOOLSO BinaryGen
-{
-public:
-#ifdef GENERATE_BINARY
-    static bool m_bGeneratingBinary;
-    static std::wstring m_sBinaryName;
-    static const std::wstring& GetBinaryName();
-#endif // GENERATE_BINARY
-    static bool isGeneratingBinary();
-};
 //////////////////////////////////////////////////////////////////////////
 
 CLASS_DECL_ZTOOLSO bool RecycleFile(InterfaceString file_path);
@@ -87,14 +73,11 @@ CLASS_DECL_ZTOOLSO std::wstring EscapeCommandLineArgument(std::wstring argument)
 CLASS_DECL_ZTOOLSO std::string UnescapeCommandLineArgument(std::string argument);
 
 
-#ifdef WIN_DESKTOP
-
+// In the portable environments, a blank string is returned for the Windows special folders.
 enum class WindowsSpecialFolder { Desktop, Windows, Documents, ProgramFiles32, ProgramFiles64 };
 CLASS_DECL_ZTOOLSO std::string GetWindowsSpecialFolder(WindowsSpecialFolder folder);
 
 CLASS_DECL_ZTOOLSO std::vector<std::string> GetLogicalDrivesVector();
-
-#endif
 
 CLASS_DECL_ZTOOLSO const std::string& GetDownloadsDirectory();
 

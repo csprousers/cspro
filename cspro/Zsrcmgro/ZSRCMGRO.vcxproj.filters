@@ -9,10 +9,79 @@
       <UniqueIdentifier>{b310fc26-b2c3-46af-b9c8-9f559067ebaf}</UniqueIdentifier>
       <Extensions>h;hpp;hxx;hm;inl</Extensions>
     </Filter>
+    <Filter Include="Header Files\WCompile">
+      <UniqueIdentifier>{942473d0-7148-4bba-90be-4ce4df0fe54d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\WCompile">
+      <UniqueIdentifier>{27209c26-23ca-4039-ac5f-cfc85822e161}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\de">
+      <UniqueIdentifier>{456a65c3-43f2-4c49-b654-e3b67ff197d9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\engine\Cdeclare.cpp">
+      <Filter>Source Files\de</Filter>
+    </ClCompile>
+    <ClCompile Include="..\engine\Common.cpp">
+      <Filter>Source Files\WCompile</Filter>
+    </ClCompile>
+    <ClCompile Include="..\engine\Comp.cpp">
+      <Filter>Source Files\de</Filter>
+    </ClCompile>
+    <ClCompile Include="..\engine\CompCTab.cpp">
+      <Filter>Source Files\de</Filter>
+    </ClCompile>
+    <ClCompile Include="..\engine\CompileExport.cpp">
+      <Filter>Source Files\de</Filter>
+    </ClCompile>
+    <ClCompile Include="..\engine\CompileProgramControl.cpp">
+      <Filter>Source Files\de</Filter>
+    </ClCompile>
+    <ClCompile Include="..\engine\Compissa.cpp">
+      <Filter>Source Files\de</Filter>
+    </ClCompile>
+    <ClCompile Include="..\engine\Comptbl.cpp">
+      <Filter>Source Files\de</Filter>
+    </ClCompile>
+    <ClCompile Include="..\engine\Comp_set.cpp">
+      <Filter>Source Files\de</Filter>
+    </ClCompile>
+    <ClCompile Include="..\engine\Ctab.cpp">
+      <Filter>Source Files\de</Filter>
+    </ClCompile>
+    <ClCompile Include="..\engine\Ctab_Helper.cpp">
+      <Filter>Source Files\de</Filter>
+    </ClCompile>
+    <ClCompile Include="..\engine\Exappl.cpp">
+      <Filter>Source Files\WCompile</Filter>
+    </ClCompile>
+    <ClCompile Include="..\engine\ExpresC.cpp">
+      <Filter>Source Files\de</Filter>
+    </ClCompile>
+    <ClCompile Include="..\engine\Expresc_Helper.cpp">
+      <Filter>Source Files\de</Filter>
+    </ClCompile>
+    <ClCompile Include="..\engine\Instruc.cpp">
+      <Filter>Source Files\de</Filter>
+    </ClCompile>
+    <ClCompile Include="..\engine\oexpresc.cpp">
+      <Filter>Source Files\de</Filter>
+    </ClCompile>
+    <ClCompile Include="..\engine\ParameterManager.cpp">
+      <Filter>Source Files\de</Filter>
+    </ClCompile>
+    <ClCompile Include="..\engine\Preprocessor.cpp">
+      <Filter>Source Files\de</Filter>
+    </ClCompile>
+    <ClCompile Include="..\engine\RangeFunctions.cpp">
+      <Filter>Source Files\de</Filter>
+    </ClCompile>
     <ClCompile Include="BackgroundCompiler.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="compall.cpp">
+      <Filter>Source Files\WCompile</Filter>
     </ClCompile>
     <ClCompile Include="Compiler.cpp">
       <Filter>Source Files</Filter>
@@ -26,6 +95,9 @@
     <ClCompile Include="DesignerCompiler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="nulas.cpp">
+      <Filter>Source Files\WCompile</Filter>
+    </ClCompile>
     <ClCompile Include="ProcGlobalConditionalCompiler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -36,6 +108,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="SymbolAnalysisCompiler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Wcompile.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -69,6 +144,9 @@
     </ClInclude>
     <ClInclude Include="SymbolAnalysisCompiler.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Wcompile.h">
+      <Filter>Header Files\WCompile</Filter>
     </ClInclude>
     <ClInclude Include="zSrcMgrO.h">
       <Filter>Header Files</Filter>
