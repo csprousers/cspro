@@ -19,9 +19,8 @@ bool CEngineDriver::LoadApplFlows()
     bool        bDone = true;
     bool        bIsEntryRun = ( Issamod == ModuleType::Entry );
     CFlAdmin*   pFlAdmin = ( bIsEntryRun ) ? ((CEntryDriver*) m_pEngineDriver)->GetFlAdmin() : NULL;
-#ifdef _DEBUG
+
     TRACE( _T("\n\n* LoadApplFlows: loading %d Flows:\n"), iNumberOfFlows );
-#endif
 
     m_iAbsoluteFlowOrder = 0; // BUCEN_2003 Changes
     AttachForms();                                // RHF Feb 22, 2000
@@ -343,10 +342,8 @@ bool CEngineDriver::AddGroupTForOneFlow( void ) {
     // AddGroupTForOneFlow: building GROUPT chain for visible groups
     FLOW*   pCurrentFlow = GetFlowInProcess();
 
-#ifdef _DEBUG
     TRACE(_T("\n--- AddGroupTForOneFlow: Flow %s, symbol #%d\n"), m_pEngineArea->DumpGroupTName(pCurrentFlow->GetSymbolIndex()).GetString(),
                                                                   pCurrentFlow->GetSymbolIndex());
-#endif
 
     // looks for higher level
     CDEFormFile*    pFormFile = pCurrentFlow->GetFormFile();
@@ -450,9 +447,7 @@ GROUPT* CEngineDriver::AddGroupTForLevelZero( int iMaxLevel ) {
     pGroupTLevel->SetMaxOccs( 1 );
     pGroupTLevel->SetCDEGroup( NULL );  // no linked IMSA Group
 
-#ifdef _DEBUG
     TRACE( _T("... AddGroupTForLevelZero %s, level %d: %d Levels\n"), m_pEngineArea->DumpGroupTName(iSymLevel).GetString(), pGroupTLevel->GetLevel(), iMaxLevel );
-#endif
 
     return pGroupTLevel.get();
 }
@@ -490,9 +485,7 @@ bool CEngineDriver::AddGroupTForLevel( CDEFormFile* pFormFile, CDELevel* pLevel,
                               pGroupTLevel->GetLevel() >  1 ? 9999 : 0 );
     pGroupTLevel->SetCDEGroup( pLevel );
 
-#ifdef  _DEBUG
     TRACE( _T("... AddGroupTForLevel %s, level %d: %d Items\n"), m_pEngineArea->DumpGroupTName(iSymLevel).GetString(), pGroupTLevel->GetLevel(), iNumLevelItems );
-#endif
 
     // attach to owner group
     InstallItemIntoGroupT( pGroupTOwner, iSymLevel, iLevel, m_iGlobalFlowOrder );
@@ -794,10 +787,9 @@ bool CEngineDriver::AddGroupTForOneSec( int iSymSec ) {
     bool        bOutput=(pSecT->GetSubType() == SymbolSubType::Output); // RHF Aug 23, 2002
     int         iSymVar;
     int         iItem = 0;
-#ifdef _DEBUG
+
     TRACE( _T("\n... AddGroupTForOneSec %s: first Var %s\n"), m_pEngineArea->DumpGroupTName(iSymSec).GetString(),
                                                               m_pEngineArea->DumpGroupTName(pSecT->SYMTfvar).GetString() );
-#endif
 
     // counts no-form vars in this section
     int         iNumItems = 0;
@@ -1009,11 +1001,9 @@ int CEngineDriver::AddGroupTForMultVar( int iSymMultVar, GROUPT::Source eGroupSo
     pGroupT->SetCurrentOccurrences( pGroupT->GetMaxOccs() );
     pGroupT->SetTotalOccurrences( pGroupT->GetMaxOccs() );    //??? what???
 
-#ifdef _DEBUG
     TRACE( _T("\n\n... AddGroupTForMultVar %s, Group %s: %d Items {GroupSource=%d, GroupType=%d, owner=%s}\n"),
         m_pEngineArea->DumpGroupTName(iSymMultVar).GetString(), m_pEngineArea->DumpGroupTName(iSymGroup).GetString(), pGroupT->GetNumItems(), (int)pGroupT->GetSource(), pGroupT->GetGroupType(),
         m_pEngineArea->DumpGroupTName(iSymOwner).GetString() );
-#endif
 
     // fill-up entries of the list of items: 1st, the mult-var itself...
     int     iItem = 0;
@@ -1024,10 +1014,9 @@ int CEngineDriver::AddGroupTForMultVar( int iSymMultVar, GROUPT::Source eGroupSo
         iFlowOrder = ( bWithForm ) ? m_iGlobalFlowOrder++ : -1;
 
         InstallItemIntoGroupT( pGroupT.get(), iSymItem, iItem, iFlowOrder );
-#ifdef _DEBUG
-        TRACE( _T("...... InstallItemIntoGroup (first): Item %s into Group %s\n"),
-            m_pEngineArea->DumpGroupTName(iSymItem).GetString(), m_pEngineArea->DumpGroupTName(iSymGroup).GetString() );
-#endif
+
+        TRACE(L"...... InstallItemIntoGroup (first): Item %s into Group %s\n", m_pEngineArea->DumpGroupTName(iSymItem).GetString(),
+                                                                               m_pEngineArea->DumpGroupTName(iSymGroup).GetString() );
 
         VPT(iSymItem)->SetOwnerGroup( iSymGroup );
 
@@ -1045,10 +1034,9 @@ int CEngineDriver::AddGroupTForMultVar( int iSymMultVar, GROUPT::Source eGroupSo
             iFlowOrder = ( bWithForm ) ? m_iGlobalFlowOrder++ : -1;
 
             InstallItemIntoGroupT( pGroupT.get(), iSymItem, iItem, iFlowOrder );
-#ifdef _DEBUG
-            TRACE( _T("...... InstallItemIntoGroup (subitem): Item %s into Group %s\n"),
-                m_pEngineArea->DumpGroupTName(iSymItem).GetString(), m_pEngineArea->DumpGroupTName(iSymGroup).GetString() );
-#endif
+
+            TRACE(L"...... InstallItemIntoGroup (subitem): Item %s into Group %s\n", m_pEngineArea->DumpGroupTName(iSymItem).GetString(),
+                                                                                     m_pEngineArea->DumpGroupTName(iSymGroup).GetString());
 
             // this GroupT is a GIP owner of this var
             VPT(iSymItem)->SetOwnerGroup( iSymGroup );

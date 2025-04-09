@@ -321,10 +321,7 @@ public:
     GROUPT* GetGroupTOfSymbol(int symbol_index) const;
     int GetSectionOfSymbol(int symbol_index) const;
 
-#ifdef _DEBUG
-    // TEST ONLY
-    CString DumpGroupTName( int iSymbol );
-#endif
+    CString DumpGroupTName( int iSymbol ); // TEST ONLY
 };
 
     // --- aliases for public symbols

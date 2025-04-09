@@ -1484,8 +1484,6 @@ bool CEngineArea::GroupSetCurOccurrence( GROUPT* pGroupT, int iNewOccurrence, in
 }
 
 
-#ifdef _DEBUG
-
 //////////////////////////////////////////////////////////////////////////
 //
 // --- TEST ONLY
@@ -1529,8 +1527,6 @@ CString CEngineArea::DumpGroupTName( int iSymbol )
 
     return csName;
 }
-
-#endif//_DEBUG
 
 
 //////////////////////////////////////////////////////////////////////////
