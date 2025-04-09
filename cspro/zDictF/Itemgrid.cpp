@@ -98,13 +98,13 @@ void CItemGrid::OnSetup()
             QuickSetAlignment(column, HEADER_ROW, alignment);
     };
 
-    set_header(ITEM_NOTE_COL,     _T("N"));
-    set_header(ITEM_SETLABEL_COL, _T("Value Set Label"), UG_ALIGNLEFT);
-    set_header(ITEM_SETNAME_COL,  _T("Value Set Name"),  UG_ALIGNLEFT);
-    set_header(ITEM_LABEL_COL,    _T("Value Label"),     UG_ALIGNLEFT);
-    set_header(ITEM_FROM_COL,     _T("From"),            UG_ALIGNRIGHT);
-    set_header(ITEM_TO_COL,       _T("To"),              UG_ALIGNRIGHT);
-    set_header(ITEM_SPECIAL_COL,  _T("Special     "),    UG_ALIGNLEFT);
+    set_header(ITEM_NOTE_COL,     L"N");
+    set_header(ITEM_SETLABEL_COL, L"Value Set Label", UG_ALIGNLEFT);
+    set_header(ITEM_SETNAME_COL,  L"Value Set Name",  UG_ALIGNLEFT);
+    set_header(ITEM_LABEL_COL,    L"Value Label",     UG_ALIGNLEFT);
+    set_header(ITEM_FROM_COL,     L"From",            UG_ALIGNRIGHT);
+    set_header(ITEM_TO_COL,       L"To",              UG_ALIGNRIGHT);
+    set_header(ITEM_SPECIAL_COL,  L"Special     ",    UG_ALIGNLEFT);
 
     m_bAdding = false;
     m_bInserting = false;
@@ -121,7 +121,7 @@ void CItemGrid::OnSetup()
 
 void CItemGrid::Size(CRect rect)
 {
-    CIMSAString csWidths = AfxGetApp()->GetProfileString(_T("Data Dictionary"), _T("ItemGridWidths"), _T("-1"));
+    CIMSAString csWidths = AfxGetApp()->GetProfileString(L"Data Dictionary", L"ItemGridWidths", L"-1");
     std::vector<std::wstring> aWidths = SO::SplitString(csWidths, ',');
 
     if (aWidths.size() < ITEM_NUM_COLS) {
@@ -162,14 +162,14 @@ void CItemGrid::Size(CRect rect)
             SetColWidth(ITEM_LABEL_COL,    (rect.Width() - m_GI->m_vScrollWidth - iUsed)/2);
         }
 
-        csWidths.Format(_T("%d,%d,%d,%d,%d,%d,%d"), GetColWidth(ITEM_NOTE_COL),
-                                                    GetColWidth(ITEM_SETLABEL_COL),
-                                                    GetColWidth(ITEM_SETNAME_COL),
-                                                    GetColWidth(ITEM_LABEL_COL),
-                                                    GetColWidth(ITEM_FROM_COL),
-                                                    GetColWidth(ITEM_TO_COL),
-                                                    GetColWidth(ITEM_SPECIAL_COL));
-        AfxGetApp()->WriteProfileString(_T("Data Dictionary"), _T("ItemGridWidths"), csWidths);
+        csWidths.Format(L"%d,%d,%d,%d,%d,%d,%d", GetColWidth(ITEM_NOTE_COL),
+                                                 GetColWidth(ITEM_SETLABEL_COL),
+                                                 GetColWidth(ITEM_SETNAME_COL),
+                                                 GetColWidth(ITEM_LABEL_COL),
+                                                 GetColWidth(ITEM_FROM_COL),
+                                                 GetColWidth(ITEM_TO_COL),
+                                                 GetColWidth(ITEM_SPECIAL_COL));
+        AfxGetApp()->WriteProfileString(L"Data Dictionary", L"ItemGridWidths", csWidths);
     }
     else {
         CIMSAString csWidth = csWidths.GetToken();
@@ -236,21 +236,21 @@ void CItemGrid::OnColSized(int col,int* /*width*/)
                 m_pSpecialEdit->SetFont(&m_font);
                 m_pSpecialEdit->SetItemHeight (-1, m_plf->lfHeight);   // sets height for static control and button
                 m_pSpecialEdit->SetItemHeight ( 0, m_plf->lfHeight);   // sets height for list box entries
-                m_pSpecialEdit->AddString(_T(""));
-                m_pSpecialEdit->AddString(_T("Missing"));
-                m_pSpecialEdit->AddString(_T("Refused"));
-                m_pSpecialEdit->AddString(_T("NotAppl"));
-                m_pSpecialEdit->AddString(_T("Default"));
-                if (csText == _T("")) {
+                m_pSpecialEdit->AddString(L"");
+                m_pSpecialEdit->AddString(L"Missing");
+                m_pSpecialEdit->AddString(L"Refused");
+                m_pSpecialEdit->AddString(L"NotAppl");
+                m_pSpecialEdit->AddString(L"Default");
+                if (csText == L"") {
                     m_pSpecialEdit->SetCurSel(0);
                 }
-                else if (csText == _T("Missing")) {
+                else if (csText == L"Missing") {
                     m_pSpecialEdit->SetCurSel(1);
                 }
-                else if (csText == _T("Refused")) {
+                else if (csText == L"Refused") {
                     m_pSpecialEdit->SetCurSel(2);
                 }
-                else if (csText == _T("NotAppl")) {
+                else if (csText == L"NotAppl") {
                     m_pSpecialEdit->SetCurSel(3);
                 }
                 else {
@@ -265,14 +265,14 @@ void CItemGrid::OnColSized(int col,int* /*width*/)
         }
     }
     CString csWidths;
-    csWidths.Format(_T("%d,%d,%d,%d,%d,%d,%d"), GetColWidth(ITEM_NOTE_COL),
-                                                GetColWidth(ITEM_SETLABEL_COL),
-                                                GetColWidth(ITEM_SETNAME_COL),
-                                                GetColWidth(ITEM_LABEL_COL),
-                                                GetColWidth(ITEM_FROM_COL),
-                                                GetColWidth(ITEM_TO_COL),
-                                                GetColWidth(ITEM_SPECIAL_COL));
-    AfxGetApp()->WriteProfileString(_T("Data Dictionary"), _T("ItemGridWidths"), csWidths);
+    csWidths.Format(L"%d,%d,%d,%d,%d,%d,%d", GetColWidth(ITEM_NOTE_COL),
+                                             GetColWidth(ITEM_SETLABEL_COL),
+                                             GetColWidth(ITEM_SETNAME_COL),
+                                             GetColWidth(ITEM_LABEL_COL),
+                                             GetColWidth(ITEM_FROM_COL),
+                                             GetColWidth(ITEM_TO_COL),
+                                             GetColWidth(ITEM_SPECIAL_COL));
+    AfxGetApp()->WriteProfileString(L"Data Dictionary", L"ItemGridWidths", csWidths);
 }
 
 
@@ -383,9 +383,9 @@ void CItemGrid::Update()
             QuickSetBackColor(ITEM_TO_COL, ir, linkedVSColor);
             QuickSetBackColor(ITEM_SPECIAL_COL, ir, linkedVSColor);
 
-            QuickSetText      (ITEM_FROM_COL,     ir, _T(""));
-            QuickSetText      (ITEM_TO_COL,       ir, _T(""));
-            QuickSetText      (ITEM_SPECIAL_COL,  ir, _T(""));
+            QuickSetText      (ITEM_FROM_COL,     ir, L"");
+            QuickSetText      (ITEM_TO_COL,       ir, L"");
+            QuickSetText      (ITEM_SPECIAL_COL,  ir, L"");
             m_aValue.Add(key);
             ir++;
             int v = 0;
@@ -404,12 +404,12 @@ void CItemGrid::Update()
                 else {
                     QuickSetBitmap(ITEM_NOTE_COL,     ir, m_pNoteNo);
                 }
-                QuickSetText      (ITEM_SETLABEL_COL, ir, _T(""));
-                QuickSetText      (ITEM_SETNAME_COL,  ir, _T(""));
+                QuickSetText      (ITEM_SETLABEL_COL, ir, L"");
+                QuickSetText      (ITEM_SETNAME_COL,  ir, L"");
                 QuickSetText      (ITEM_LABEL_COL,    ir, dict_value.GetLabel());
                 QuickSetTextColor (ITEM_LABEL_COL,    ir, dict_value.GetTextColor().ToCOLORREF());
 
-                QuickSetText(ITEM_SPECIAL_COL, ir, dict_value.IsSpecial() ? UTF8_TODO::GetWide(SpecialValues::ValueToString(dict_value.GetSpecialValue(), false)).c_str() : _T(""));
+                QuickSetText(ITEM_SPECIAL_COL, ir, dict_value.IsSpecial() ? UTF8_TODO::GetWide(SpecialValues::ValueToString(dict_value.GetSpecialValue(), false)).c_str() : L"");
 
                 int p = 0;
                 for( const DictValuePair& dict_value_pair : dict_value.GetValuePairs() ) {
@@ -424,9 +424,9 @@ void CItemGrid::Update()
                         QuickSetBitmap    (ITEM_NOTE_COL,  ir, NULL);
                         QuickSetBackColor (ITEM_NOTE_COL,  ir, GetSysColor(COLOR_WINDOW));
                         QuickSetHBackColor(ITEM_NOTE_COL,  ir, GetSysColor(COLOR_HIGHLIGHT));
-                        QuickSetText  (ITEM_SETLABEL_COL,  ir, _T(""));
-                        QuickSetText  (ITEM_SETNAME_COL,   ir, _T(""));
-                        QuickSetText  (ITEM_LABEL_COL,     ir, _T(" "));
+                        QuickSetText      (ITEM_SETLABEL_COL,  ir, L"");
+                        QuickSetText      (ITEM_SETNAME_COL,   ir, L"");
+                        QuickSetText      (ITEM_LABEL_COL,     ir, L" ");
                     }
                     if (pItem->GetContentType() == ContentType::Alpha) {
                         QuickSetAlignment (ITEM_FROM_COL,     ir, UG_ALIGNLEFT);
@@ -462,7 +462,7 @@ void CItemGrid::Update()
                     csTemp.Replace(SPACE, SHOWBLANK);
                     QuickSetText      (ITEM_TO_COL,       ir, csTemp);
                     if (p > 0) {
-                        QuickSetText  (ITEM_SPECIAL_COL,  ir, _T(""));
+                        QuickSetText  (ITEM_SPECIAL_COL,  ir, L"");
                     }
                     m_aValue.Add(key);
                     ir++;
@@ -660,21 +660,24 @@ void CItemGrid::OnRClicked(int /*col*/, long row, int updn, RECT* /*rect*/, POIN
     popMenu.CreatePopupMenu();
 
     bool has_rows_selected = ( GetNumberRows() > 0 );
-    popMenu.AppendMenuItems(has_rows_selected, { { ID_EDIT_CUT, _T("Cu&t\tCtrl+X") },
-                                                 { ID_EDIT_COPY, _T("&Copy\tCtrl+C") } });
+    popMenu.AppendMenuItems(has_rows_selected, { { ID_EDIT_CUT,  L"Cu&t\tCtrl+X" },
+                                                 { ID_EDIT_COPY, L"&Copy\tCtrl+C" } });
 
     CView* pView = assert_cast<CView*>(GetParent());
     CDDDoc* pDoc = assert_cast<CDDDoc*>(pView->GetDocument());
 
     bool can_paste = IsClipboardValidForValueSetPaste(*pDoc);
-    popMenu.AppendMenuItems(can_paste, { { ID_EDIT_PASTE, _T("&Paste\tCtrl+V") } });
+    popMenu.AppendMenuItems(can_paste, { { ID_EDIT_PASTE, L"&Paste\tCtrl+V" } });
 
     popMenu.AppendMenu(MF_SEPARATOR);
 
     CDictItem* pItem = m_pDict->GetLevel(m_iLevel).GetRecord(m_iRec)->GetItem(m_iItem);
 
     if( can_paste && pDoc->GetDictClipboard().IsAvailable<DictValueSet>() ) // 20110118
-        popMenu.AppendMenu(MF_STRING, ID_PASTE_VS_LINK, _T("Paste Value Set Link\tCtrl+Alt+V"));
+    {
+        // the spaces prior to the tab prevent the accelerator text from overlapping
+        popMenu.AppendMenu(MF_STRING, ID_PASTE_VS_LINK, L"Paste Value Set Link   \tCtrl+Alt+V");
+    }
 
     bool value_set_header_selected = ( !selected_rows.empty() && GetValue(selected_rows.front()) == NONE );
 
@@ -685,7 +688,7 @@ void CItemGrid::OnRClicked(int /*col*/, long row, int updn, RECT* /*rect*/, POIN
 
         if( value_set_links >= 2 ) // 20110120
         {
-            popMenu.AppendMenu(MF_STRING, ID_REMOVE_VS_LINK, _T("Remove Value Set Link"));
+            popMenu.AppendMenu(MF_STRING, ID_REMOVE_VS_LINK, L"Remove Value Set Link");
 
             if( value_set_links > 2 ) // 20110121
                 popMenu.AppendMenu(MF_STRING, ID_REMOVE_VS_ALL_LINKS, FormatText(L"Remove All Value Set's %d Links", (int)value_set_links).c_str());
@@ -695,66 +698,66 @@ void CItemGrid::OnRClicked(int /*col*/, long row, int updn, RECT* /*rect*/, POIN
         CMenu* formatTextMenu = new CMenu;
         formatTextMenu->CreatePopupMenu();
 
-        BCMenu::AppendMenuItems(*formatTextMenu, { { ID_VS_CASE_FORMAT, _T("Formatted String") },
-                                                   { ID_VS_CASE_UPPER, _T("All Upper Case") },
-                                                   { ID_VS_CASE_LOWER, _T("All Lower Case") },
-                                                   { ID_VS_CASE_MIXED_FIRST_WORD, _T("First Letter Upper Case") },
-                                                   { ID_VS_CASE_MIXED_ALL_WORDS, _T("First Letter of Each Word Upper Case") } });
+        BCMenu::AppendMenuItems(*formatTextMenu, { { ID_VS_CASE_FORMAT,           L"Formatted String" },
+                                                   { ID_VS_CASE_UPPER,            L"All Upper Case" },
+                                                   { ID_VS_CASE_LOWER,            L"All Lower Case" },
+                                                   { ID_VS_CASE_MIXED_FIRST_WORD, L"First Letter Upper Case" },
+                                                   { ID_VS_CASE_MIXED_ALL_WORDS,  L"First Letter of Each Word Upper Case" } });
 
-        popMenu.AppendMenu(MF_POPUP, (UINT)formatTextMenu->GetSafeHmenu(), _T("Format Value Pair Labels"));
+        popMenu.AppendMenu(MF_POPUP, (UINT)formatTextMenu->GetSafeHmenu(), L"Format Value Pair Labels");
 
         // for replacing only value labels
-        popMenu.AppendMenuItems(IsClipboardFormatAvailable(_tCF_TEXT), { { ID_VS_REPLACE_VALUE_LABELS, _T("Replace Value Labels (Paste from Clipboard)") } });
+        popMenu.AppendMenuItems(IsClipboardFormatAvailable(_tCF_TEXT), { { ID_VS_REPLACE_VALUE_LABELS, L"Replace Value Labels (Paste from Clipboard)" } });
 
         popMenu.AppendMenu(MF_SEPARATOR);
 
         bool first_value_set_selected = ( &dict_value_set == &pItem->GetValueSet(0) );
-        popMenu.AppendMenuItems(!first_value_set_selected, { { ID_VS_MAKE_FIRST_VS, _T("Make Primary Value Set") } });
+        popMenu.AppendMenuItems(!first_value_set_selected, { { ID_VS_MAKE_FIRST_VS, L"Make Primary Value Set" } });
     }
 
     if( *only_values_selected ) // 20110901
-        popMenu.AppendMenu(MF_STRING, ID_MERGE_VS_VALUES, _T("M&erge Value Pairs"));
+        popMenu.AppendMenu(MF_STRING, ID_MERGE_VS_VALUES, L"M&erge Value Pairs");
 
-    popMenu.AppendMenuItems(IsNumeric(*pItem), { { ID_EDIT_GEN_VALUE_SET, _T("&Generate Value Set\tCtrl+G") } });
+    popMenu.AppendMenuItems(IsNumeric(*pItem), { { ID_EDIT_GEN_VALUE_SET, L"&Generate Value Set\tCtrl+G" } });
 
     popMenu.AppendMenu(MF_SEPARATOR);
 
     if( !has_rows_selected || !value_set_header_selected )
     {
-        popMenu.AppendMenuItems(has_rows_selected, { { ID_EDIT_MODIFY, _T("&Modify Value\tCtrl+M") } });
+        popMenu.AppendMenuItems(has_rows_selected, { { ID_EDIT_MODIFY, L"&Modify Value\tCtrl+M" } });
     }
 
     else
     {
-        popMenu.AppendMenuItems({ { ID_EDIT_MODIFY, _T("&Modify Value Set\tCtrl+M") } });
+        popMenu.AppendMenuItems({ { ID_EDIT_MODIFY, L"&Modify Value Set\tCtrl+M" } });
     }
 
     if( !has_rows_selected )
     {
-        popMenu.AppendMenuItems({ { ID_EDIT_ADD, _T("&Add Value Set\tCtrl+A") } });
-        popMenu.AppendMenuItems(false, { { ID_EDIT_INSERT, _T("&Insert Value\tIns") },
-                                         { ID_EDIT_DELETE, _T("&Delete Value\tDel") } });
+        popMenu.AppendMenuItems({ { ID_EDIT_ADD, L"&Add Value Set\tCtrl+A" } });
+        popMenu.AppendMenuItems(false, { { ID_EDIT_INSERT, L"&Insert Value\tIns" },
+                                         { ID_EDIT_DELETE, L"&Delete Value\tDel" } });
     }
 
     else
     {
         bool add_value_set = ( value_set_header_selected && ( ( current_row + 1 ) != GetNumberRows() ) &&
                                                             ( GetValue(current_row + 1) != NONE ) );
-        popMenu.AppendMenuItems({ { ID_EDIT_ADD, add_value_set ? _T("&Add Value Set\tCtrl+A") :
-                                                                 _T("&Add Value\tCtrl+A") } });
+        popMenu.AppendMenuItems({ { ID_EDIT_ADD, add_value_set ? L"&Add Value Set\tCtrl+A" :
+                                                                 L"&Add Value\tCtrl+A" } });
 
-        popMenu.AppendMenuItems({ { ID_EDIT_INSERT, ( current_row == 0 || value_set_header_selected ) ? _T("&Insert Value Set\tIns") :
-                                                                                                        _T("&Insert Value\tIns") } });
+        popMenu.AppendMenuItems({ { ID_EDIT_INSERT, ( current_row == 0 || value_set_header_selected ) ? L"&Insert Value Set\tIns" :
+                                                                                                        L"&Insert Value\tIns" } });
 
-        popMenu.AppendMenuItems({ { ID_EDIT_DELETE, value_set_header_selected ? _T("&Delete Value Set\tDel") :
-                                                                                _T("&Delete Value\tDel") } });
+        popMenu.AppendMenuItems({ { ID_EDIT_DELETE, value_set_header_selected ? L"&Delete Value Set\tDel" :
+                                                                                L"&Delete Value\tDel" } });
     }
 
     popMenu.AppendMenu(MF_SEPARATOR);
 
     long currow = GetCurrentRow();
     bool enable_notes = ( row >= 0 && GetVPair(currow) == 0 );
-    popMenu.AppendMenuItems(enable_notes, { { ID_EDIT_NOTES, _T("&Notes...\tCtrl+D") } });
+    popMenu.AppendMenuItems(enable_notes, { { ID_EDIT_NOTES, L"&Notes...\tCtrl+D" } });
 
     popMenu.LoadToolbar(IDR_DICT_FRAME);   // BMD 29 Sep 2003
 
@@ -1024,23 +1027,23 @@ void CItemGrid::EditBegin(int col, long row, UINT vcKey)
         m_pSpecialEdit->SetFont(&m_font);
         m_pSpecialEdit->SetItemHeight (-1, m_plf->lfHeight);   // sets height for static control and button
         m_pSpecialEdit->SetItemHeight ( 0, m_plf->lfHeight);   // sets height for list box entries
-        m_pSpecialEdit->AddString(_T(""));
+        m_pSpecialEdit->AddString(L"");
         m_pSpecialEdit->AddString(UTF8_TODO::GetWide(SpecialValues::ValueToString(MISSING, false)).c_str());
         m_pSpecialEdit->AddString(UTF8_TODO::GetWide(SpecialValues::ValueToString(REFUSED, false)).c_str());
         m_pSpecialEdit->AddString(UTF8_TODO::GetWide(SpecialValues::ValueToString(NOTAPPL, false)).c_str());
         m_pSpecialEdit->AddString(UTF8_TODO::GetWide(SpecialValues::ValueToString(DEFAULT, false)).c_str());
         GetCell(ITEM_SPECIAL_COL, row, &cell);
         cell.GetText(&cs);
-        if (cs == _T("")) {
+        if (cs == L"") {
             m_pSpecialEdit->SetCurSel(0);
         }
-        else if (cs == _T("Missing")) {
+        else if (cs == L"Missing") {
             m_pSpecialEdit->SetCurSel(1);
         }
-        else if (cs == _T("Refused")) {
+        else if (cs == L"Refused") {
             m_pSpecialEdit->SetCurSel(2);
         }
-        else if (cs == _T("NotAppl")) {
+        else if (cs == L"NotAppl") {
             m_pSpecialEdit->SetCurSel(3);
         }
         else {
@@ -1155,7 +1158,7 @@ bool CItemGrid::EditEnd(bool bSilent)
         m_aEditControl[ITEM_FROM_COL]->GetWindowText(csNewFrom);
         bool bNewFromWasEmpty = csNewFrom.IsEmpty(); // 20130412 (i don't know why it is being set to a space below)
         if (bNewFromWasEmpty) {
-            csNewFrom = _T(" ");
+            csNewFrom = L" ";
         }
 
         CString csNewTo;
@@ -1575,12 +1578,12 @@ void CItemGrid::OnEditAdd()
         CIMSAString csName = UTF8_TODO::GetCString(pItem->GetName());
         if (!pItem->HasValueSets()) {
             dict_value_set.GetLabelSet().SetLabels(pItem->GetLabelSet());
-            csName += _T("_VS1");
+            csName += L"_VS1";
         }
         else {
             CIMSAString csNum;
             csNum.Str((int)pItem->GetNumValueSets() + 1);
-            csName += _T("_VS") + csNum;
+            csName += L"_VS" + csNum;
         }
         csName = UTF8_TODO::GetCString(pDoc->GetDict()->GetUniqueName(UTF8_TODO::GetUtf8(csName)));
         dict_value_set.SetName(UTF8_TODO::GetUtf8(csName));
@@ -1676,12 +1679,12 @@ void CItemGrid::OnEditInsert()
         CIMSAString csName = UTF8_TODO::GetCString(pItem->GetName());
         if (!pItem->HasValueSets()) {
             dict_value_set.SetLabel(pItem->GetLabel());
-            csName += _T("_VS1");
+            csName += L"_VS1";
         }
         else {
             CIMSAString csNum;
             csNum.Str((int)pItem->GetNumValueSets() + 1);
-            csName += _T("_VS") + csNum;
+            csName += L"_VS" + csNum;
         }
         dict_value_set.SetName(UTF8_TODO::GetUtf8(csName));
         pItem->InsertValueSet(iVSet, std::move(dict_value_set));
@@ -1813,8 +1816,8 @@ namespace
                     {
                         val = clearString(val, true);
 
-                        if( !val.IsEmpty() && val[0] == _T('.') )
-                            val.Insert(0, _T('0'));
+                        if( !val.IsEmpty() && val[0] == '.' )
+                            val.Insert(0, '0');
                     };
 
                     fix(values[1]);
@@ -1856,8 +1859,8 @@ namespace
 
     void OutputDictValue(std::wostringstream& stream, const DictValuePair& dict_value_pair)
     {
-        stream << _T("\t") << dict_value_pair.GetFrom().GetString()
-               << _T("\t") << dict_value_pair.GetTo().GetString();
+        stream << L"\t" << dict_value_pair.GetFrom().GetString()
+               << L"\t" << dict_value_pair.GetTo().GetString();
     }
 
     std::wostringstream& operator<<(std::wostringstream& stream, const DictValuePair& dict_value_pair)
@@ -1878,7 +1881,7 @@ namespace
             OutputDictValue(stream, dict_value_pair);
 
             if( first_pair && !dict_value.GetImageFilePath().empty() )
-                stream << _T("\t") << UTF8_TODO::GetCString(dict_value.GetImageFilePath()).GetString();
+                stream << L"\t" << UTF8_TODO::GetCString(dict_value.GetImageFilePath()).GetString();
 
             stream << std::endl;
 
@@ -2427,13 +2430,13 @@ void CItemGrid::OnPasteValueSetLink() // 20110118
         dest_dict_item->GetDecimal() != source_dict_item->GetDecimal() ||
         dest_dict_item->GetDecChar() != source_dict_item->GetDecChar() )
     {
-        AfxMessageBox(_T("You can only paste a value set link if the item's attributes are the same."));
+        AfxMessageBox(L"You can only paste a value set link if the item's attributes are the same.");
         return;
     }
 
     if( dest_dict_item == source_dict_item )
     {
-        AfxMessageBox(_T("A value set must link to a value set in a different item."));
+        AfxMessageBox(L"A value set must link to a value set in a different item.");
         return;
     }
 
@@ -2443,7 +2446,7 @@ void CItemGrid::OnPasteValueSetLink() // 20110118
         {
             if( this_dict_value_set.IsLinkedValueSet() && this_dict_value_set.GetLinkedValueSetCode() == source_dict_value_set->GetLinkedValueSetCode() )
             {
-                AfxMessageBox(_T("For any given item you can only have one linkage to a given value set."));
+                AfxMessageBox(L"For any given item you can only have one linkage to a given value set.");
                 return;
             }
         }
@@ -2679,9 +2682,9 @@ void CItemGrid::OnEditNotes()
     if (m_aValue[row].value == NONE) {
         csLabel = dict_value_set.GetLabel().Left(32);
         if (dict_value_set.GetLabel().GetLength() > 32)  {
-            csLabel += _T("...");
+            csLabel += L"...";
         }
-        csTitle = _T("Value Set: ") + csLabel + csTitle;
+        csTitle = L"Value Set: " + csLabel + csTitle;
         csNote = dict_value_set.GetNote();
         dlgNote.SetTitle(csTitle);
         dlgNote.SetNote(csNote);
@@ -2701,9 +2704,9 @@ void CItemGrid::OnEditNotes()
         DictValue& dict_value = dict_value_set.GetValue(iValue);
         csLabel = dict_value.GetLabel().Left(32);
         if (dict_value.GetLabel().GetLength() > 32)  {
-            csLabel += _T("...");
+            csLabel += L"...";
         }
-        csTitle = _T("Value: ") +csLabel + csTitle;
+        csTitle = L"Value: " + csLabel + csTitle;
         csNote = dict_value.GetNote();
         dlgNote.SetTitle(csTitle);
         dlgNote.SetNote(csNote);
@@ -2907,17 +2910,17 @@ void CItemGrid::OnFormatValueLabels(UINT nID)
         if( format_template.has_value() )
         {
             label = *format_template;
-            label.Replace(_T("%s"), dict_value.GetLabel());
+            label.Replace(L"%s", dict_value.GetLabel());
 
             if( dict_value.HasValuePairs() )
             {
                 const DictValuePair& dict_value_pair = dict_value.GetValuePair(0);
 
                 CString str = dict_value_pair.GetFrom();
-                label.Replace(_T("%f"), str.Trim());
+                label.Replace(L"%f", str.Trim());
 
                 str = dict_value_pair.GetTo();
-                label.Replace(_T("%t"), str.Trim());
+                label.Replace(L"%t", str.Trim());
             }
         }
 
@@ -2950,7 +2953,7 @@ void CItemGrid::OnFormatValueLabels(UINT nID)
                     {
                         TCHAR thisChar = label.GetAt(j);
 
-                        if( ( thisChar >= _T('a') && thisChar <= 'z' ) || ( thisChar >= _T('A') && thisChar <= 'Z' ) )
+                        if( ( thisChar >= 'a' && thisChar <= 'z' ) || ( thisChar >= 'A' && thisChar <= 'Z' ) )
                             foundWord = true;
 
                         else
@@ -2961,7 +2964,7 @@ void CItemGrid::OnFormatValueLabels(UINT nID)
                 if( foundWord )
                 {
                     if( label.GetAt(j) > 'Z' )
-                        label.SetAt(j,label.GetAt(j) - ( _T('a') - 'A' ));
+                        label.SetAt(j, label.GetAt(j) - ( 'a' - 'A' ));
 
                     if( nID == ID_VS_CASE_MIXED_FIRST_WORD )
                     {
@@ -2977,7 +2980,7 @@ void CItemGrid::OnFormatValueLabels(UINT nID)
                             TCHAR thisChar = label.GetAt(j);
 
                             // 20130201 added the / and \ characters
-                            if( thisChar == _T(' ') || thisChar == _T('/') || thisChar == _T('\\') )
+                            if( thisChar == ' ' || thisChar == '/' || thisChar == '\\' )
                                 break;
 
                             j++;
