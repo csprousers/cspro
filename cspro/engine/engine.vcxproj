@@ -65,9 +65,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Common.cpp" />
+    <ClCompile Include="Decorr.cpp" />
     <ClCompile Include="DeWrite.cpp" />
     <ClCompile Include="DicX.cpp" />
     <ClCompile Include="Entifaz.cpp" />
+    <ClCompile Include="Intdentr.cpp" />
+    <ClCompile Include="intenter.cpp" />
     <ClCompile Include="Relation.cpp" />
     <ClCompile Include="SecX.cpp" />
     <ClCompile Include="VarX.cpp" />

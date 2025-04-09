@@ -25,9 +25,13 @@ add_library(${PROJECT_NAME}
     ${CEXENTRY_DIRECTORY}/SecX.cpp
     ${CEXENTRY_DIRECTORY}/VarX.cpp
 
+    # dep
+    Decorr.cpp
+    Intdentr.cpp
+    intenter.cpp
+
     Applload.cpp
     citer.cpp
-    Decorr.cpp
     engdrv.cpp
     Exappl.cpp
     Exapplva.cpp
@@ -39,11 +43,9 @@ add_library(${PROJECT_NAME}
     IntCase.cpp
     Intchars.cpp
     IntDataAccess.cpp
-    Intdentr.cpp
     IntDiagnostics.cpp
     Intdrive.cpp
     IntDynamicLogicEvaluation.cpp
-    intenter.cpp
     InterpreterAccessor.cpp
     Intexpr.cpp
     Intextdi.cpp

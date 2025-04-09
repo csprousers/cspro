@@ -12,6 +12,9 @@
     <Filter Include="Source Files\CEXEntry">
       <UniqueIdentifier>{f14cf500-1181-4183-9fad-6d19e0a1454b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\dep">
+      <UniqueIdentifier>{4de4927d-44c7-49c7-9a37-d4178641350f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="3dException.h">
@@ -250,6 +253,9 @@
     <ClCompile Include="Common.cpp">
       <Filter>Source Files\CEXEntry</Filter>
     </ClCompile>
+    <ClCompile Include="Decorr.cpp">
+      <Filter>Source Files\dep</Filter>
+    </ClCompile>
     <ClCompile Include="DeWrite.cpp">
       <Filter>Source Files\CEXEntry</Filter>
     </ClCompile>
@@ -258,6 +264,12 @@
     </ClCompile>
     <ClCompile Include="Entifaz.cpp">
       <Filter>Source Files\CEXEntry</Filter>
+    </ClCompile>
+    <ClCompile Include="Intdentr.cpp">
+      <Filter>Source Files\dep</Filter>
+    </ClCompile>
+    <ClCompile Include="intenter.cpp">
+      <Filter>Source Files\dep</Filter>
     </ClCompile>
     <ClCompile Include="Relation.cpp">
       <Filter>Source Files\CEXEntry</Filter>
