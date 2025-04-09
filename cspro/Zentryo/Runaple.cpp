@@ -87,7 +87,7 @@ bool CRunAplEntry::LoadCompile()
     }
 #endif
 
-    else if( OnWindowsDesktop() )
+    else if constexpr(OnWindowsDesktop())
     {
         pApplication->SetApplicationLoader(std::make_unique<FileApplicationLoader>(pApplication));
     }

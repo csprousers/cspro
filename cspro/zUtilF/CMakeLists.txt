@@ -7,6 +7,7 @@ add_library(${PROJECT_NAME}
     HtmlDialogFunctionRunner.cpp
     ImageCaptureDlg.cpp
     ImageViewDlg.cpp
+    KeyboardLoader.cpp
     NoteEditDlg.cpp
     ProcessSummaryDlg.cpp
     ProgressDlgFactory.cpp

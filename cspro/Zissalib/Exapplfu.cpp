@@ -168,8 +168,9 @@ void CEngineDriver::ClearLevelNode( DICT* pDicT, int iNodeLevel ) {
 
 }
 
-#ifdef USE_BINARY
-#else
+
+#ifdef WIN_DESKTOP
+
 bool CEngineDriver::EvaluateNode( DICT* pDicT, int iNodeLevel ) {
     // EvaluateNode: check minimum section occurrences for a node at a given level
     // ... formerly 'evalcase', now 'EvaluateNode'      // victor May 16, 00
@@ -195,7 +196,8 @@ bool CEngineDriver::EvaluateNode( DICT* pDicT, int iNodeLevel ) {
 
     return bOK;
 }
-#endif // USE_BINARY
+
+#endif // WIN_DESKTOP
 
 
 // return code:  true=reached the max # messages, false=did not reach

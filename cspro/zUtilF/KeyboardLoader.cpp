@@ -3,6 +3,8 @@
 #include <zToolsO/RaiiHelpers.h>
 
 
+#ifdef WIN_DESKTOP
+
 namespace
 {
     constexpr const wchar_t* DefaultKeyboardName      = L"Default Keyboard";
@@ -207,3 +209,14 @@ unsigned int KeyboardLoader::LayoutNameToKlid(const wchar_t* const layout_name)
 
     return keyboard_id;
 }
+
+#else
+
+// --------------------------------------------------------------------------
+// dummy portable implementations
+// --------------------------------------------------------------------------
+
+unsigned int KeyboardLoader::GetKeyboardId(const unsigned int keyboard_id) { return keyboard_id; }
+void KeyboardLoader::Activate(unsigned int /*keyboard_id*/) { }
+
+#endif

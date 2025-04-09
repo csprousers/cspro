@@ -223,9 +223,10 @@ double CIntDriver::exedit(int iExpr)
 //----------------------------------------------------------------------
 double CIntDriver::extavar(int iExpr)
 {
-    CString value;
-
-#ifdef WIN_DESKTOP
+#ifndef WIN_DESKTOP
+    // crosstabs don't exist in the portable environments
+    ASSERT(false);
+#else
     const TVAR_NODE* pTableNode = (TVAR_NODE*)PPT(iExpr);
     CTAB* pCtab = XPT( pTableNode->tvar_index );
     int subindex[3];
@@ -242,16 +243,11 @@ double CIntDriver::extavar(int iExpr)
     if( pBuf != nullptr )
     {
         int len = pCtab->GetAcumType() / sizeof(TCHAR);
-        value = CString(pBuf, len);
+        return AssignAlphaValue(CString(pBuf, len));
     }
-
-#else
-    // crosstabs don't exist in the portable environments
-    ASSERT(false);
-
 #endif
 
-    return AssignAlphaValue(value);
+    return AssignStringNull();
 }
 
 

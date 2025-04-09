@@ -27,6 +27,7 @@
 #include <zEngineO/SaveArrayFile.h>
 #include <zEngineO/UserFunctionArgumentEvaluator.h>
 #include <zEngineF/TraceHandler.h>
+#include <zEngineF/WindowsApplicationInterface.h>
 #include <zToolsO/Tools.h>
 #include <zUtilO/MemoryHelpers.h>
 #include <zUtilF/KeyboardLoader.h>
@@ -35,10 +36,6 @@
 #include <zCapiO/CapiQuestionManager.h>
 #include <zFreqO/Frequency.h>
 #include <zReportO/Pre77ReportManager.h>
-
-#ifdef WIN_DESKTOP
-#include <zEngineF/WindowsApplicationInterface.h>
-#endif
 
 
 

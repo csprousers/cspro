@@ -299,11 +299,9 @@ void CEngineArea::Init()
     m_aCtabBreakId.clear(); // RHF Apr 16, 2003
     m_CtabBreakHighLevel = 0; // RHF Apr 16, 2003
 
-#ifndef USE_BINARY
     // --- export management
     m_pCurExport = NULL;// current export
     ResetExpoSeqNo(); // seq # for assigning    // victor Dec 18, 00
-#endif // !USE_BINARY
 }
 
 

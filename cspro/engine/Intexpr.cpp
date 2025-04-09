@@ -426,7 +426,10 @@ void CIntDriver::grpGetSubindexes( GROUPT* pGrpT, GRP_NODE* pgrp, double* dIndex
 
 double CIntDriver::extvar(int iExpr)
 {
-#ifdef WIN_DESKTOP
+#ifndef WIN_DESKTOP
+    // crosstabs don't exist in the portable environments
+    return ReturnProgrammingError(DEFAULT);
+#else
     TVAR_NODE*  ptrvar = (TVAR_NODE*)PPT(iExpr);
     CTAB*       pCtab = XPT( ptrvar->tvar_index );
     int         iIndex[3];
@@ -439,10 +442,6 @@ double CIntDriver::extvar(int iExpr)
 
     // RHF COM Jul 31, 2001 return( tabvalue( pCtab, iIndex[0], iIndex[1], iIndex[2] ) );
     return( pCtab->m_pAcum.GetDoubleValue( iIndex[0], iIndex[1], iIndex[2] ) );
-#else
-    // crosstabs don't exist in the portable environments
-    ASSERT(false);
-    return DEFAULT;
 #endif
 }
 

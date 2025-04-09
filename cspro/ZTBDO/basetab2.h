@@ -1,4 +1,5 @@
 ﻿#pragma once
+
 //---------------------------------------------------------------------------
 //  File name: BaseTab2.h
 //
@@ -13,28 +14,28 @@
 //---------------------------------------------------------------------------
 
 #include <ZTBDO/zTbdO.h>
+#include <ZTBDO/cttree.h>
 #include <engine/ttype.h>
 
 class CTableAcum;
-#include <ZTBDO/cttree.h>
 
 
 // To be used by TBD and interpreter
-class CLASS_DECL_ZTBDO CBaseTable2 {
-
+class CLASS_DECL_ZTBDO CBaseTable2
+{
 private:
 
     // m_pAcum is allocated for tables/sub-tables.
     // m_pAcum::m_pData is allocated only for a table
-    CTableAcum*                                 m_pAcum;
+    CTableAcum* m_pAcum;
 
-    //   bool                                       m_bSubTable;
+    // bool m_bSubTable;
 
-//    CArray<CBaseTable2*,CBaseTable2*>   m_aRelatedTables;
-    CBaseTable2*                                            m_pParentRelatedTable;
+    // CArray<CBaseTable2*,CBaseTable2*>   m_aRelatedTables;
+    CBaseTable2* m_pParentRelatedTable;
 
     //Parent table: Null if m_SubTable is false (i.e. NULL if is a table)
-    CBaseTable2*                                                m_pParentTable;
+    CBaseTable2* m_pParentTable;
 
     // Indexes relative to m_pParentTable
     // if m_bSubTable is false, m_aBaseIndex contains only 0's.
@@ -42,17 +43,14 @@ private:
 
 
 protected:
-    CArray<int,int>                     m_aDim; // Dimensions
-    CTableDef::ETableType                       m_eTableType;
-    int                                                 m_iCellSize;
-    csprochar                                                m_cOtherInfo;
-
-
+    CArray<int,int>       m_aDim; // Dimensions
+    CTableDef::ETableType m_eTableType;
+    int                   m_iCellSize;
+    csprochar             m_cOtherInfo;
 
 private:
     // Init
     void Init();
-
 
 public:
     CBaseTable2();
@@ -89,17 +87,14 @@ public:
     void             SetCellSize( int iSize );
 
     // Other Info
-    csprochar            GetOtherInfo();
-    void            SetOtherInfo( csprochar cOtherInfo );
+    csprochar        GetOtherInfo();
+    void             SetOtherInfo( csprochar cOtherInfo );
 
+    void             SetParentRelatedTable( CBaseTable2* pParentRelatedTable );
+    CBaseTable2*     GetParentRelatedTable();
 
-
-    void                SetParentRelatedTable( CBaseTable2* pParentRelatedTable );
-    CBaseTable2*            GetParentRelatedTable();
-
-    void                SetParentTable( CBaseTable2* pParentTable);
-    CBaseTable2*            GetParentTable();
-
+    void             SetParentTable( CBaseTable2* pParentTable);
+    CBaseTable2*     GetParentTable();
 
     // Base indexes
     int GetBaseIndex( int iDim, int iSubPart );

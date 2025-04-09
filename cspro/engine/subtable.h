@@ -1,9 +1,5 @@
 ﻿#pragma once
 
-#ifdef USE_BINARY // IGNORE_CTAB
-
-#else
-
 //---------------------------------------------------------------------------
 //  File name: SubTable.h
 //
@@ -18,9 +14,10 @@
 
 #include <engine/Defines.h>
 #include <ZTBDO/cttree.h>
+#include <ZTBDO/ctstadef.h>
+
 class CtStat;
 
-#include <ZTBDO/ctstadef.h>
 
 class CRemapCoord {
 public:
@@ -215,6 +212,3 @@ typedef struct {
     double  m_dColTotal;
     double  m_dTotTotal;
 } SUBTABLE_TOTALS;
-
-
-#endif

@@ -3,10 +3,8 @@
 #include <zLogicO/Token.h>
 #include <engine/CtDef.h>
 
-#if defined(USE_BINARY) // IGNORE_CTAB
-#else
 class CtStatBase;
-#endif
+
 
 // const to be assigned to CTNODE's m_iNodeType field, see below
 const int CTNODE_VARIABLE = 0;
@@ -31,10 +29,7 @@ public:
     int     m_iSeqNumber;       //  -1, 1,2,...n: Only for Variable nodes. Doesn't depend of dimension.
     int     m_iStatType;        // See CStatType
 
-#if defined(USE_BINARY) // IGNORE_CTAB
-#else
     CtStatBase* m_pStatBase;
-#endif
 
 public:
     int  m_iFlags;  // MASK to indicate special values in ranges ...
@@ -48,10 +43,7 @@ public:
         m_iParentIndex = -1; // taken from // RHF Jul 25, 2001
         m_iFlags = ct_NOFLAGS;
         m_bSpecialFlagsInserted = false;
-#if defined(USE_BINARY) // IGNORE_CTAB
-#else
-        m_pStatBase = 0;
-#endif
+        m_pStatBase = nullptr;
         m_iSeqNumber = 0;
     }
     void setOperNode( int iNodeType )
@@ -101,10 +93,8 @@ public:
             this->m_iCoordNumber = other.m_iCoordNumber;
             this->m_iSeqNumber = other.m_iSeqNumber;
             this->m_iStatType = other.m_iStatType;
-#if defined(USE_BINARY) // IGNORE_CTAB
-#else
             this->m_pStatBase = other.m_pStatBase;
-#endif
+
             // Special flags management
             this->m_iFlags = other.m_iFlags;
             this->m_bSpecialFlagsInserted = other.m_bSpecialFlagsInserted;

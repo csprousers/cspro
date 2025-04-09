@@ -1,6 +1,5 @@
 ﻿#include "StandardSystemIncludes.h"
 #include "Engdrv.h"
-#include "Batdrv.h"
 #include "IntDrive.h"
 #include <zEngineO/AllSymbols.h>
 #include <ZBRIDGEO/npff.h>
@@ -9,6 +8,10 @@
 #include <zListingO/HeaderAttribute.h>
 #include <zListingO/ListerWriteFile.h>
 #include <zListingO/TextWriteFile.h>
+
+#ifdef WIN_DESKTOP
+#include "Batdrv.h"
+#endif
 
 
 void CEngineDriver::OpenListerAndWriteFiles()
@@ -95,7 +98,7 @@ void CEngineDriver::StartLister()
 
     if( cscalc )
     {
-#if defined(WIN_DESKTOP) && !defined(USE_BINARY)
+#ifdef WIN_DESKTOP
         CCalcDriver* const pCalcDriver = assert_cast<CCalcDriver*>(m_pEngineDriver);
         header_attributes.emplace_back("Input Data", UTF8_TODO::GetUtf8(pCalcDriver->GetInputTbd()->GetFileName()));
         header_attributes.emplace_back("Output", UTF8_TODO::GetUtf8(m_pPifFile->GetPrepOutputFName()));

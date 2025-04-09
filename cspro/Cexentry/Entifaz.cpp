@@ -237,13 +237,8 @@ void CEntryIFaz::C_ExentryEnd( int bCanExit ) {
 
     m_pEngineDriver->CloseRepositories(true);
 
-#ifdef USE_BINARY
     if( Dicxbase != 0 )
-#else
-    ASSERT( Dicxbase != 0 );
-#endif
-
-    m_pIntDriver->StopApplication();
+        m_pIntDriver->StopApplication();
 
     m_pEngineArea->tablesend();
 

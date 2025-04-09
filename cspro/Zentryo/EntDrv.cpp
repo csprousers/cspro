@@ -259,19 +259,24 @@ bool CEntryDriver::ReportToInterface( int iSymbol, int iOcc, int iDirection, CFl
     VART*               pVarT=NULL;
     bool                bDone=false;
 
-    if( iSymbol <= 0 ) return true;
+    if( iSymbol <= 0 )
+        return true;
+
 #ifdef WIN_DESKTOP
     if( AfxGetMainWnd() == NULL )
         return bDone;
 #endif
-    if( NPT(iSymbol)->IsA(SymbolType::Group) )
+
+    if( NPT(iSymbol)->IsA(SymbolType::Group) ) {
         pGroupT = GPT(iSymbol);
+    }
     else if( NPT(iSymbol)->IsA(SymbolType::Variable) ) {
         ASSERT( iOcc >= 1 );
         pVarT = VPT(iSymbol);
     }
-    else
+    else {
         ASSERT(0);
+    }
 
     bDone = true;
     // If Group/Roster send message in Head/Tail
@@ -842,7 +847,6 @@ int CEntryDriver::DisplayMessage(const MessageType message_type, const int messa
     // when not using select, the only button is the OK button
     if( message_buttons == nullptr || message_buttons->empty() )
     {
-#ifdef WIN_DESKTOP
         // use the old message style while in operator-controlled mode
         if( WindowsDesktopMessage::Send(UWM::CSEntry::UsingOperatorControlledMessages) == 1 )
             return DisplayMessage_pre77(message_type, message_number, UTF8_TODO::GetCString(*message_text), select_details);
@@ -851,7 +855,6 @@ int CEntryDriver::DisplayMessage(const MessageType message_type, const int messa
         // (for example, while in an interactive edit)
         if( WindowsDesktopMessage::Send(UWM::CSEntry::PreprocessEngineMessage, static_cast<WPARAM>(message_type), message_number) < 0 )
             return 1;
-#endif
 
         // to allow simple error messages to display during synchronous JavaScript calls
         // into the engine, display messages using a native message box

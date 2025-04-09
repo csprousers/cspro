@@ -5,18 +5,15 @@
 //---------------------------------------------------------------------------
 #include "StandardSystemIncludes.h"
 #include "Exappl.h"
-#include <zToolsO/Tools.h>
 #include "Engine.h"
-#include "Batdrv.h"
-#include <zDictO/DDClass.h>
+
 
 //////////////////////////////////////////////////////////////////////////////
 //
-//
 // CEngineDriver::methods
 //
-//
 //////////////////////////////////////////////////////////////////////////////
+
 void CEngineDriver::BuildGroupOccsFromNodeRecords( DICT* pDicT, int iNodeLevel ) { // victor May 16, 00
     //return; // SPEED RHF Mar 14, 2001
     // BuildGroupOccsFromNodeRecords: transfer all Sect' occurrences in node-level to related Groups

@@ -70,7 +70,6 @@ LOCAL_SRC_FILES         += $(ENGINE_SRC_PATH)/ParameterManager.cpp
 LOCAL_SRC_FILES         += $(ENGINE_SRC_PATH)/Pre80Routines.cpp
 LOCAL_SRC_FILES         += $(ENGINE_SRC_PATH)/relt.cpp
 LOCAL_SRC_FILES         += $(ENGINE_SRC_PATH)/Settings.cpp
-LOCAL_SRC_FILES         += $(ENGINE_SRC_PATH)/subtable.cpp
 LOCAL_SRC_FILES         += $(ENGINE_SRC_PATH)/Tables.cpp
 LOCAL_SRC_FILES         += $(ENGINE_SRC_PATH)/Tablesen.cpp
 LOCAL_SRC_FILES         += $(ENGINE_SRC_PATH)/VariableInOut.cpp
@@ -127,7 +126,6 @@ LOCAL_SRC_FILES         += $(ZISSALIB_SRC_PATH)/VarT.cpp
 include $(LOCAL_PATH)/LOCAL_CFLAGS.mk
 LOCAL_CFLAGS            += -DUNICODE=1
 LOCAL_CFLAGS            += -D_UNICODE=1
-LOCAL_CFLAGS            += -DUSE_BINARY=1
 
 LOCAL_C_INCLUDES        += $(JNI_PATH)/../../../../../external
 LOCAL_C_INCLUDES        += $(JNI_PATH)/../../../../../external/geometry.hpp/include

@@ -2096,8 +2096,6 @@ std::vector<CString> CDEFormFile::GetOrder() const
 }
 
 
-#ifdef USE_BINARY
-#else
 /////////////////////////////////////////////////////////////////////////////
 ////SAVY 07/25
 //USE THIS FUNC FOR ORDER RECONCILE
@@ -2370,11 +2368,8 @@ void CDEFormFile::CreateGroupForOrder(CDEGroup* pGroup,
         pGroup->SetDims (0,0,rightCol,(row > MaxScrSz) ? row : MaxScrSz);
     }
 }
-#endif // USE_BINARY
 
 
-#ifdef USE_BINARY
-#else
 ///////////////////////////////////////////////////////////////////////////////////////////////
 //  //CALL THIS FUNCTION AFTER A CALL TO CHECKNADDLEVELS
 //                  void CDEFormFile::CheckNAddMissingItems()
@@ -2491,7 +2486,7 @@ bool CDEFormFile::CheckNAddMissingItems()
 
     return bRet;
 }
-#endif // USE_BINARY
+
 
 //The record which has the sRecName as the TypeName . If it doesnt  have one create a group
 //with this type name
@@ -2982,8 +2977,7 @@ CDEGroup* CDEFormFile::OCreateGroupField(CDEGroup* pGroup, const CDictItem* pDI,
     return pFieldOccGroup;
 }
 
-#ifdef USE_BINARY
-#else
+
 /////////////////////////////////////////////////////////////////////////////////
 //
 //      void CDEFormFile::CreateOrderFile (CDataDict& dictionary, bool bBuildRecords/*=false*/)
@@ -3068,7 +3062,6 @@ void CDEFormFile::CreateOrderFile(const CDataDict& dictionary, bool bBuildRecord
         pFormLevel->SetHierarchy(iIndex);
     }
 }
-#endif // USE_BINARY
 
 
 /////////////////////////////////////////////////////////////////////////////////

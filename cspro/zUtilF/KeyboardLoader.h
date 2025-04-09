@@ -34,14 +34,3 @@ private:
     HKL m_hDefaultKL = nullptr;
     HKL m_hCurrentKL = nullptr;
 };
-
-
-
-// --------------------------------------------------------------------------
-// dummy portable implementations
-// --------------------------------------------------------------------------
-
-#ifndef WIN_DESKTOP
-inline unsigned int KeyboardLoader::GetKeyboardId(const unsigned int keyboard_id) { return keyboard_id; }
-inline void KeyboardLoader::Activate(unsigned int /*keyboard_id*/) { }
-#endif

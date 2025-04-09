@@ -21,10 +21,7 @@
 #include <ZBRIDGEO/npff.h>
 #include <zListingO/ErrorLister.h>
 #include <zLogicO/SpecialFunction.h>
-
-#ifdef WIN_DESKTOP
 #include <zLogicO/SourceBuffer.h>
-#endif
 
 
 ///////////////////////// ISSA-based functions ///////////////////////////////
@@ -191,8 +188,7 @@ bool CEngineDriver::exapplinit()
 #endif
         }
 
-
-#ifndef USE_BINARY
+#ifdef WIN_DESKTOP
         if( !GetApplication()->GetAppLoader()->GetBinaryFileLoad() )
         {
             m_pEngineCompFunc->RunPostCompilationChecks();
@@ -204,20 +200,16 @@ bool CEngineDriver::exapplinit()
                 return false;
             }
         }
-#endif
 
-#ifdef WIN_DESKTOP
         Appl.m_AppTknSource.reset();
-#endif
 
         if (!GetApplication()->GetAppLoader()->GetBinaryFileLoad()) {
-#ifdef WIN_DESKTOP
-            // Binary is for ENTRY, so the if() below will always be false in USE_BINARY
+            // Binary is for ENTRY, so the if() below will always be false in portable
             // compilation -> do not call CheckProcTables()
             if( Issamod != ModuleType::Entry ) // RHF Feb 10, 2003
                 m_pEngineCompFunc->CheckProcTables(); // RHF INIC Jan 23, 2003
-#endif
         }
+#endif
 
         // RHF INIC Nov 02, 2000
         // Fix problem in Data Entry. If the sub-items are in the forms but not in the logic, the sub-items
@@ -352,10 +344,13 @@ void CEngineArea::get_acum() {          // assign Crosstab' acumareas
         get_cumarea( ct );              // get m_pAcumArea for this Crosstab
 }
 
+
 void CEngineArea::get_cumarea( CTAB* ct )
 {
-#ifdef WIN_DESKTOP
-
+#ifndef WIN_DESKTOP
+    // crosstabs don't exist in the portable environments
+    ASSERT(false);
+#else
     int xtab_level = ct->GetTableLevel() / 10;
     int decl_level = ct->GetTableLevel() % 10;
 
@@ -419,8 +414,6 @@ void CEngineArea::get_cumarea( CTAB* ct )
     else if( pDefaultValue == NULL ) // RHF Aug 12, 2002 Add pDefaultValue == NULL
         memset( ct->GetAcumArea(), 0, uSize );
 
-#if defined(USE_BINARY) // IGNORE_CTAB
-#else
     // RHF INIC Jan 30, 2003
     if( ct->m_pBorder != NULL )
         ct->AllocBorder();
@@ -441,15 +434,12 @@ void CEngineArea::get_cumarea( CTAB* ct )
     // RHF INIC Oct 09, 2002
     // Some percent subtable
     ct->CalcHasSomePercent();
-#endif
 
     //bool    bSomePercent=ct->GetHasSomePercent();
     // RHF END Oct 09, 2002
-#else
-    // crosstabs don't exist in the portable environments
-    ASSERT(false);
 #endif
 }
+
 
 ////////////////////// ISSAW/IMSA new functions //////////////////////////////
 int CEngineArea::LookForUsedSubItems()

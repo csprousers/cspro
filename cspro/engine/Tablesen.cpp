@@ -1,13 +1,8 @@
 ﻿#include "StandardSystemIncludes.h"
-#include "Engine.h"
-#include "Ctab.h"
 #include "VARX.h"
 
-
-#ifdef _DEBUG
-#undef THIS_FILE
-static char THIS_FILE[]= __FILE__;
-#define new DEBUG_NEW
+#ifdef WIN_DESKTOP
+#include "Export.h"
 #endif
 
 
@@ -36,10 +31,10 @@ void CEngineArea::FreeTables()
 
 void CEngineArea::tablesend()
 {
-#ifndef USE_BINARY
+#ifdef WIN_DESKTOP
     if( Issamod == ModuleType::Designer )
         ExportFinish();  // RHF Oct 05, 2004
-#endif // USE_BINARY
+#endif
 
     if( Dicxbase != NULL )
     {
@@ -81,7 +76,9 @@ void CEngineArea::tablesend()
     FreeTables();
 }
 
-#ifndef USE_BINARY
+
+#ifdef WIN_DESKTOP
+
 //static
 CDataDict* CExport::ExportGetDataDict( CString csDataFileName, CMap<CString,LPCTSTR,CDictExport,CDictExport&>& aDataDicts, CExport* pExport ) {
     CDataDict*  pDataDict = NULL;
@@ -528,10 +525,8 @@ void CEngineArea::ExportFinish()
 
             // save the dictionary if CSPro export is enabled
             // (not if it was just for metadata)
-            if (pExport->GetExportToCSPRO()) {
-#ifdef USE_BINARY
-                ASSERT(0);
-#else
+            if (pExport->GetExportToCSPRO())
+            {
                 try
                 {
                     pDataDict->Save(UTF8_TODO::GetUtf8(csDataFileName));
@@ -541,8 +536,6 @@ void CEngineArea::ExportFinish()
                 {
                     issaerror(MessageType::Warning, 31073, UTF8_TODO::GetUtf8(csDataFileName).c_str());
                 }
-
-#endif // USE_BINARY
 
                 // RHF INIC Feb 03, 2005
                 CIMSAString sError;
@@ -573,4 +566,5 @@ void CEngineArea::ExportFinish()
 
     m_pEngineArea->ClearExports();
 }
-#endif // !USE_BINARY
+
+#endif // WIN_DESKTOP

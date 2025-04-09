@@ -27,13 +27,12 @@ struct EXP_HEADER_NODE
 };
 
 struct EXP_ENSEMBLE_NODE                // ENSEMBLED    // victor Dec 12, 00
-{                        
+{
     TCHAR   m_iNodeType;
     char*   m_pEndNode;                 // address of the end-of-ensemble
 };
 
 
-#ifndef USE_BINARY
 //---------------------------------------------------------------------------
 //  File name: Export.h
 //
@@ -637,5 +636,3 @@ private:
 public:
     void    SetEngineArea( CEngineArea* pEngineArea );
 };
-
-#endif

@@ -85,7 +85,6 @@ LOCAL_LDLIBS            := -llog -landroid
 include $(LOCAL_PATH)/LOCAL_CFLAGS.mk
 LOCAL_CFLAGS            += -DUNICODE=1
 LOCAL_CFLAGS            += -D_UNICODE=1
-LOCAL_CFLAGS            += -DUSE_BINARY=1
 
 LOCAL_C_INCLUDES        += $(JNI_PATH)/../../../../../external
 LOCAL_C_INCLUDES        += $(JNI_PATH)/../../../../../external/rxcpp

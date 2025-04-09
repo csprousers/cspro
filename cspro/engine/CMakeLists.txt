@@ -68,7 +68,6 @@ add_library(${PROJECT_NAME}
     Pre80Routines.cpp
     relt.cpp
     Settings.cpp
-    subtable.cpp
     Tables.cpp
     Tablesen.cpp
     VariableInOut.cpp

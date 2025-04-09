@@ -1,12 +1,11 @@
 ﻿#pragma once
 
-#ifdef USE_BINARY
-#else
-
 #include <engine/Batdrv.h>
 #include <engine/BATIFAZ.H>
 
-class CCalcIFaz : public CBatchIFaz {
+
+class CCalcIFaz : public CBatchIFaz
+{
 public:
     CCalcIFaz();
 
@@ -35,5 +34,3 @@ public:
     void C_SetRunTimeBreakKeys( CStringArray* aBreakKeys, CUIntArray*  aBreakNumKeys, CArray<CTAB*, CTAB*>* aUsedCtabs );
     void SetProcessSpcls4Tab(bool bFlag) { m_bTabProcessSpecial = bFlag;}
 };
-
-#endif // USE_BINARY

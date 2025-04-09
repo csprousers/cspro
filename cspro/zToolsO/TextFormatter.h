@@ -98,7 +98,7 @@ RT FormatText(const wchar_t* const formatter, Args const&... args)
 
         else
         {
-#ifdef WIN32
+#ifdef WIN_DESKTOP
 #pragma warning(push)
 #pragma warning(disable:4996)
             std::wstring formatted_text(_snwprintf(nullptr, 0, formatter, args...), '\0');

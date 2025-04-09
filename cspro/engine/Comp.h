@@ -20,9 +20,7 @@
 //            25 Jul 04   rcl     Adds special parameter to varsanal (bCompleteCompilation)
 //                                to be used in sum() compilation. Add varsanal method not to use
 //                                (evil) default parameters
-#ifdef USE_BINARY
 //            06 Oct 05   rcl     Binary Serialization of compiled data
-#endif
 //---------------------------------------------------------------------------
 
 // Prevents "C++ Exception Specification ignored" message // RCL 2004

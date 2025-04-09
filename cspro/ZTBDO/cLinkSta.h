@@ -13,13 +13,12 @@
 //---------------------------------------------------------------------------
 
 #include <ZTBDO/zTbdO.h>
-
-#ifndef USE_BINARY // IGNORE_CTAB
-
-#include <ZTBDO/ctstat.h>
 #include <ZTBDO/cLinkSub.h>
+#include <ZTBDO/ctstat.h>
 
-class CLASS_DECL_ZTBDO CLinkStatVar {
+
+class CLASS_DECL_ZTBDO CLinkStatVar
+{
 public:
     CString     m_csVarName;
     int         m_iSeqNumber;
@@ -72,5 +71,3 @@ public:
     void  RemoveAllStat();
 
 };
-
-#endif

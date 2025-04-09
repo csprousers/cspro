@@ -5854,7 +5854,7 @@ LRESULT CMainFrame::OnGetLexerLanguage(const WPARAM wParam, const LPARAM lParam)
 
     else
     {
-        ASSERT(false);
+        ASSERT(pWnd->GetActiveDocument()->IsKindOf(RUNTIME_CLASS(CTabulateDoc)));
         lexer_language = Lexers::GetLexer_Logic(pAplDoc->GetAppObject());
     }
 

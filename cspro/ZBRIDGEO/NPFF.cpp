@@ -170,9 +170,7 @@ bool CNPifFile::BuildAllObjects()
         pTabSet->Open(sTabFile);
         pTabSet->SetDictFile(UTF8_TODO::GetCString(dictionary_file_paths.front()));
         CString sDictFile = pTabSet->GetDictFile();
-#ifdef USE_BINARY
-        ASSERT(0);
-#else
+
         try
         {
             auto pDict = std::make_shared<CDataDict>();
@@ -201,8 +199,6 @@ bool CNPifFile::BuildAllObjects()
             ErrorMessage::Display(exception);
             return false;
         }
-
-#endif // USE_BINARY
 #endif // WIN_DESKTOP
     }
 
@@ -257,7 +253,6 @@ bool CNPifFile::LoadEDicts()
 
         if( m_application->GetAppLoader()->GetBinaryFileLoad() )
         {
-            // Test if USE_BINARY will use this code ...
             try // 20121115 for the portable environment
             {
                 APP_LOAD_TODO_GetArchive() & *dictionary;
@@ -382,12 +377,7 @@ BOOL CNPifFile::LoadFormObjects(void)
             }
         }
         else {
-#ifndef USE_BINARY
             bFileOpenError = ( pFormFile->Open(form_file_path, TRUE) == false );
-#else
-            ASSERT(!_T("No non-binary file load in this build"));
-            bFileOpenError = false;
-#endif
         }
 
         if( bFileOpenError )

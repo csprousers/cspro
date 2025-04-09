@@ -40,7 +40,6 @@ LOCAL_SRC_FILES         += $(ZSYNCO_SRC_PATH)/SyncServiceFactory.cpp
 include $(LOCAL_PATH)/LOCAL_CFLAGS.mk
 LOCAL_CFLAGS            += -DUNICODE=1
 LOCAL_CFLAGS            += -D_UNICODE=1
-LOCAL_CFLAGS            += -DUSE_BINARY
 LOCAL_C_INCLUDES        += $(JNI_PATH)/../../../../../external
 LOCAL_C_INCLUDES        += $(JNI_PATH)/../../../../../external/rxcpp
 LOCAL_STATIC_LIBRARIES  := zPlatformO zToolsO zUtilO zJson zNetwork zCaseO zDataO zParadataO

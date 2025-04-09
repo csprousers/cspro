@@ -1,4 +1,5 @@
 ﻿#pragma once
+
 //---------------------------------------------------------------------------
 //  File name: SubExpr.h
 //
@@ -9,23 +10,22 @@
 //  a[1:3,5,7,(30:20),56] [recoded by f_a([ par1,..,parn] )]    by
 //  b[...] [ recoded by f_b( [ par1,..., parn ] ) ]             by
 //  c[...] [ recoded by f_c( [ par1,..., parn ] ) ]
-
 //
 //  History:    Date       Author   Comment
 //              ---------------------------
 //              30 Jul 01   RHF     Created
 //
 //---------------------------------------------------------------------------
+
 #include <ZTBDO/zTbdO.h>
 #include <ZTBDO/ctstat.h>
-
-#ifndef USE_BINARY // IGNORE_CTAB
-
 #include <ZTBDO/cttree.h>
 
 namespace Logic { class SymbolTable; }
 
-class CLASS_DECL_ZTBDO CSubExpresion {
+
+class CLASS_DECL_ZTBDO CSubExpresion
+{
 private:
     // Number of dimensions: 0,1,2,3
     int                         m_iNumDim;
@@ -434,5 +434,3 @@ public:
         m_aParam[iDepth][iDim].RemoveAll();
     }
 };
-
-#endif

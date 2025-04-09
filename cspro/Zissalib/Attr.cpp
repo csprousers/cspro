@@ -10,8 +10,11 @@
 #include <engine/Tables.h>
 #include <engine/Engine.h>
 #include <engine/Engarea.h>
-#include <engine/Batdrv.h>
 #include <zCapiO/CapiQuestionManager.h>
+
+#ifdef WIN_DESKTOP
+#include <engine/Batdrv.h>
+#endif
 
 
 //----------------------------------------------------------------------
