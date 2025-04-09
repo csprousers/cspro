@@ -3,6 +3,7 @@
 #include <zAppO/Application.h>
 #include <zCapiO/CapiName.h>
 #include <zCapiO/CapiQuestionManager.h>
+#include <zDesignerF/UWM.h>
 #include <Zsrcmgro/DesignerCapiLogicCompiler.h>
 
 
@@ -128,18 +129,15 @@ void CapiEditorViewModel::SetItem(const CDEItemBase* const item_base)
 
 CapiEditorViewModel::SyntaxCheckResult CapiEditorViewModel::CheckSyntax(const CapiLogicParameters::Type type, SharableString logic)
 {
-    if( m_compiler == nullptr || m_item->GetSymbol() < 1 )
-        m_compiler = std::make_unique<DesignerCapiLogicCompiler>(*m_application);
+    if( ( m_compiler == nullptr || m_item->GetSymbol() < 1 ) &&
+        ( WindowsDesktopMessage::Send(UWM::Designer::CreateCapiLogicCompiler, &m_compiler, m_application) != 1 ) )
+    {
+        return ReturnProgrammingError(SyntaxCheckError { "Could not create DesignerCapiLogicCompiler" });
+    }
+
+    ASSERT(m_compiler != nullptr && m_item->GetSymbol() >= 1);
 
     CapiLogicParameters capi_logic_parameters { type, m_item->GetSymbol(), std::move(logic) };
-
-    // Creating compiler above should have rebuilt the symbol table
-    // but if for some reason the symbol isn't set, use the name
-    if( std::get<int>(capi_logic_parameters.symbol_index_or_name) < 1 )
-    {
-        ASSERT(false);
-        capi_logic_parameters.symbol_index_or_name = UTF8_TODO::GetUtf8(m_item->GetName());
-    }
 
     DesignerCapiLogicCompiler::CompileResult result = m_compiler->Compile(capi_logic_parameters);
 

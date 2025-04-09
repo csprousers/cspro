@@ -248,10 +248,6 @@
       <Project>{07d7da9d-03ed-437c-8a1f-cb2e76a3ef6a}</Project>
       <Private>false</Private>
     </ProjectReference>
-    <ProjectReference Include="..\Zsrcmgro\ZSRCMGRO.vcxproj">
-      <Project>{89d69981-4131-4b75-8adb-a596219f7ed3}</Project>
-      <Private>false</Private>
-    </ProjectReference>
     <ProjectReference Include="..\zSyncF\zSyncF.vcxproj">
       <Project>{f937df04-b0cb-4b04-8671-d7cfb13cae56}</Project>
       <Private>false</Private>

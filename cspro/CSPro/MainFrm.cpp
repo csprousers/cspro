@@ -21,6 +21,7 @@
 #include <zCapiO/QSFView.h>
 #include <zCapiO/UWM.h>
 #include <Zsrcmgro/DesignerApplicationLoader.h>
+#include <Zsrcmgro/DesignerCapiLogicCompiler.h>
 #include <Zsrcmgro/DesignerCompiler.h>
 #include <zEngineF/EngineUI.h>
 
@@ -84,6 +85,7 @@ BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWnd)
     ON_MESSAGE(UWM::Designer::SetCodeFileSuccessfullyCompiled, OnSetCodeFileSuccessfullyCompiled)
 
     ON_MESSAGE(UWM::Designer::TokenizeLogic_V0, OnTokenizeLogic_V0)
+    ON_MESSAGE(UWM::Designer::CreateCapiLogicCompiler, OnCreateCapiLogicCompiler)
 
     ON_MESSAGE(UWM::UtilF::RunOnUIThread, OnRunOnUIThread)
     ON_MESSAGE(UWM::UtilF::GetApplicationShutdownRunner, OnGetApplicationShutdownRunner)
@@ -3566,6 +3568,17 @@ LRESULT CMainFrame::OnTokenizeLogic_V0(const WPARAM wParam, const LPARAM lParam)
     std::vector<Logic::BasicToken>& basic_tokens = *reinterpret_cast<std::vector<Logic::BasicToken>*>(lParam);
 
     basic_tokens = Logic::SourceBuffer::Tokenize(logic, LogicSettings::GetOriginalSettings());
+
+    return 1;
+}
+
+
+LRESULT CMainFrame::OnCreateCapiLogicCompiler(const WPARAM wParam, const LPARAM lParam)
+{
+    std::unique_ptr<DesignerCapiLogicCompiler>& compiler = *reinterpret_cast<std::unique_ptr<DesignerCapiLogicCompiler>*>(wParam);
+    Application& application = *reinterpret_cast<Application*>(lParam);
+
+    compiler = std::make_unique<DesignerCapiLogicCompiler>(application);
 
     return 1;
 }

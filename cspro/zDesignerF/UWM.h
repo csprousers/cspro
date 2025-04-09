@@ -27,9 +27,10 @@ namespace UWM::Designer
     const unsigned CanCodeFileCompilationBeSkipped = UWM::Ranges::DesignerStart + 17;
     const unsigned SetCodeFileSuccessfullyCompiled = UWM::Ranges::DesignerStart + 18;
     const unsigned TokenizeLogic_V0                = UWM::Ranges::DesignerStart + 19;
+    const unsigned CreateCapiLogicCompiler         = UWM::Ranges::DesignerStart + 20;
 
     // unlike the above messages, the following messages are only used within the project
-    const unsigned TabViewContainerTabChange       = UWM::Ranges::DesignerStart + 20;
+    const unsigned TabViewContainerTabChange       = UWM::Ranges::DesignerStart + 21;
 
     CHECK_MESSAGE_NUMBERING(TabViewContainerTabChange, UWM::Ranges::DesignerLast)
 }
