@@ -1,9 +1,9 @@
 ﻿#include "StdAfx.h"
 #include "BackgroundCompiler.h"
 #include "DesignerApplicationLoader.h"
+#include "Wcompile.h"
 #include <zAppO/Application.h>
 #include <engine/Comp.h>
-#include <Wcompile/Wcompile.h>
 
 
 BackgroundCompiler::BackgroundCompiler(Application& application, DesignerCompilerMessageProcessor* const designer_compiler_message_processor/* = nullptr*/,

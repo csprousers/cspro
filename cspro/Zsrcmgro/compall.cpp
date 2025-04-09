@@ -2,17 +2,13 @@
 // COMPALL.cpp  manage compiler functions
 //------------------------------------------------------------------------------
 
-#include <engine/StandardSystemIncludes.h>
-#include <engine/Exappl.h>
-#define ZSRCMGR_IMPL
-#include <Zsrcmgro/Compiler.h>
-#include <engine/COMPILAD.H>
-#include <engine/Engine.h>
+#include "StdAfx.h"
+#include "Compiler.h"
+#include "Wcompile.h"
 #include <zToolsO/Tools.h>
 #include <zAppO/Application.h>
 #include <zLogicO/SourceBuffer.h>
-
-#include <engine/Ctab.h>
+#include <engine/COMPILAD.H>
 
 
 bool CEngineCompFunc::compobjOk(Symbol* objp)

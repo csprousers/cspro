@@ -63,11 +63,21 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\engine\Common.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\engine\Exappl.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="BackgroundCompiler.cpp" />
+    <ClCompile Include="compall.cpp" />
     <ClCompile Include="Compiler.cpp" />
     <ClCompile Include="DesignerApplicationLoader.cpp" />
     <ClCompile Include="DesignerCapiLogicCompiler.cpp" />
     <ClCompile Include="DesignerCompiler.cpp" />
+    <ClCompile Include="nulas.cpp" />
     <ClCompile Include="ProcGlobalConditionalCompiler.cpp" />
     <ClCompile Include="SrcCode.cpp" />
     <ClCompile Include="StdAfx.cpp">
@@ -75,6 +85,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="SymbolAnalysisCompiler.cpp" />
+    <ClCompile Include="Wcompile.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BackgroundCompiler.h" />
@@ -87,6 +98,7 @@
     <ClInclude Include="SrcCode.h" />
     <ClInclude Include="StdAfx.h" />
     <ClInclude Include="SymbolAnalysisCompiler.h" />
+    <ClInclude Include="Wcompile.h" />
     <ClInclude Include="zSrcMgrO.h" />
   </ItemGroup>
   <ItemGroup>
@@ -96,10 +108,6 @@
     </ProjectReference>
     <ProjectReference Include="..\engine\ISSA\issa.vcxproj">
       <Project>{9556badf-5360-45d1-91a7-449e003cde54}</Project>
-      <Private>false</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\Wcompile\WCOMPILE.vcxproj">
-      <Project>{6949e4e8-0484-44b7-9a39-a28aab197b07}</Project>
       <Private>false</Private>
     </ProjectReference>
     <ProjectReference Include="..\zAppO\zAppO.vcxproj">

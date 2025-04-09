@@ -131,7 +131,7 @@
 
 #include <Zsrcmgro/zSrcMgrO.h>
 #include <Zsrcmgro/DesignerCompilerMessageProcessor.h>
-#include <Wcompile/Wcompile.h>
+#include <Zsrcmgro/Wcompile.h>
 
 class Application;
 struct CapiLogicParameters;

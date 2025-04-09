@@ -1,14 +1,9 @@
-﻿#include <engine/StandardSystemIncludes.h>
-#include <engine/Tables.h>
-#include <engine/Ctab.h>
-#include <engine/COMPILAD.H>
-#include <engine/Engine.h>
-#include <Zsrcmgro/zSrcMgrO.h>
-#include <Zsrcmgro/SrcCode.h>
-#include <zLogicO/SourceBuffer.h>
-#include <zLogicO/ProcDirectory.h>
-#include <ZTBDO/cLinkTab.h>
+﻿#include "StdAfx.h"
 #include "Wcompile.h"
+#include "SrcCode.h"
+#include <zLogicO/ProcDirectory.h>
+#include <engine/COMPILAD.H>
+#include <engine/Ctab.h>
 
 
 #ifdef _DEBUG
