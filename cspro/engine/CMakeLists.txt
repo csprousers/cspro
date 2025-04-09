@@ -15,6 +15,16 @@ include_directories(${PROJECT_NAME} PUBLIC
 )
 
 add_library(${PROJECT_NAME}
+
+    # CEXEntry
+    ${CEXENTRY_DIRECTORY}/Common.cpp
+    ${CEXENTRY_DIRECTORY}/DeWrite.cpp
+    ${CEXENTRY_DIRECTORY}/DicX.cpp
+    ${CEXENTRY_DIRECTORY}/Entifaz.cpp
+    ${CEXENTRY_DIRECTORY}/Relation.cpp
+    ${CEXENTRY_DIRECTORY}/SecX.cpp
+    ${CEXENTRY_DIRECTORY}/VarX.cpp
+
     Applload.cpp
     citer.cpp
     Decorr.cpp
@@ -71,14 +81,7 @@ add_library(${PROJECT_NAME}
     Tablesen.cpp
     VariableInOut.cpp
 
-    ${CEXENTRY_DIRECTORY}/Common.cpp
-    ${CEXENTRY_DIRECTORY}/DeWrite.cpp
-    ${CEXENTRY_DIRECTORY}/DicX.cpp
-    ${CEXENTRY_DIRECTORY}/Entifaz.cpp
-    ${CEXENTRY_DIRECTORY}/Relation.cpp
-    ${CEXENTRY_DIRECTORY}/SecX.cpp
-    ${CEXENTRY_DIRECTORY}/VarX.cpp
-
+    # zCapiO
     ${ZCAPIO_DIRECTORY}/CapiCondition.cpp
     ${ZCAPIO_DIRECTORY}/CapiContentVirtualFileMapping.cpp
     ${ZCAPIO_DIRECTORY}/CapiQuestion.cpp
@@ -87,6 +90,7 @@ add_library(${PROJECT_NAME}
     ${ZCAPIO_DIRECTORY}/CapiStyle.cpp
     ${ZCAPIO_DIRECTORY}/CapiText.cpp
 
+    # zEntryO
     ${ZENTRYO_DIRECTORY}/CapiHandler.cpp
     ${ZENTRYO_DIRECTORY}/CaseTreeBuilder.cpp
     ${ZENTRYO_DIRECTORY}/CaseTreeNode.cpp
@@ -100,6 +104,7 @@ add_library(${PROJECT_NAME}
     ${ZENTRYO_DIRECTORY}/RunAple.cpp
     ${ZENTRYO_DIRECTORY}/WEXEntry.cpp
 
+    # zIssaLib
     ${ZISSALIB_DIRECTORY}/Attr.cpp
     ${ZISSALIB_DIRECTORY}/CFlAdmin.cpp
     ${ZISSALIB_DIRECTORY}/CFlow.cpp

@@ -86,12 +86,12 @@
     <ClInclude Include="zBatchO.h" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Cexentry\CEXENTRY.vcxproj">
-      <Project>{0e462c9b-e100-4266-9340-a06cae0c3f10}</Project>
-      <Private>false</Private>
-    </ProjectReference>
     <ProjectReference Include="..\engine\DEP\Dep.vcxproj">
       <Project>{84ec2305-2882-4cd4-a88c-0b9e7aab5254}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\engine\engine.vcxproj">
+      <Project>{9be94f2e-69da-483f-9a82-293bd8b8ed1a}</Project>
       <Private>false</Private>
     </ProjectReference>
     <ProjectReference Include="..\engine\EX1\ex1.vcxproj">

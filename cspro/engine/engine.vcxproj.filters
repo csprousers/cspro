@@ -1,9 +1,16 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
     <Filter Include="Header Files">
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Source Files\CEXEntry">
+      <UniqueIdentifier>{f14cf500-1181-4183-9fad-6d19e0a1454b}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -238,5 +245,28 @@
     <ClInclude Include="VTSTRUCT.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Common.cpp">
+      <Filter>Source Files\CEXEntry</Filter>
+    </ClCompile>
+    <ClCompile Include="DeWrite.cpp">
+      <Filter>Source Files\CEXEntry</Filter>
+    </ClCompile>
+    <ClCompile Include="DicX.cpp">
+      <Filter>Source Files\CEXEntry</Filter>
+    </ClCompile>
+    <ClCompile Include="Entifaz.cpp">
+      <Filter>Source Files\CEXEntry</Filter>
+    </ClCompile>
+    <ClCompile Include="Relation.cpp">
+      <Filter>Source Files\CEXEntry</Filter>
+    </ClCompile>
+    <ClCompile Include="SecX.cpp">
+      <Filter>Source Files\CEXEntry</Filter>
+    </ClCompile>
+    <ClCompile Include="VarX.cpp">
+      <Filter>Source Files\CEXEntry</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
