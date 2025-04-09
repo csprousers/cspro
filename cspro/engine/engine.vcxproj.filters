@@ -15,6 +15,9 @@
     <Filter Include="Source Files\dep">
       <UniqueIdentifier>{4de4927d-44c7-49c7-9a37-d4178641350f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\ex1">
+      <UniqueIdentifier>{e423fa56-5eea-4fc1-a33d-bb548f1e2a1e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="3dException.h">
@@ -250,8 +253,41 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Cdeclare.cpp">
+      <Filter>Source Files\ex1</Filter>
+    </ClCompile>
     <ClCompile Include="Common.cpp">
       <Filter>Source Files\CEXEntry</Filter>
+    </ClCompile>
+    <ClCompile Include="Comp.cpp">
+      <Filter>Source Files\ex1</Filter>
+    </ClCompile>
+    <ClCompile Include="Compall.cpp">
+      <Filter>Source Files\ex1</Filter>
+    </ClCompile>
+    <ClCompile Include="CompCTab.cpp">
+      <Filter>Source Files\ex1</Filter>
+    </ClCompile>
+    <ClCompile Include="CompileExport.cpp">
+      <Filter>Source Files\ex1</Filter>
+    </ClCompile>
+    <ClCompile Include="CompileProgramControl.cpp">
+      <Filter>Source Files\ex1</Filter>
+    </ClCompile>
+    <ClCompile Include="Compissa.cpp">
+      <Filter>Source Files\ex1</Filter>
+    </ClCompile>
+    <ClCompile Include="Comptbl.cpp">
+      <Filter>Source Files\ex1</Filter>
+    </ClCompile>
+    <ClCompile Include="Comp_set.cpp">
+      <Filter>Source Files\ex1</Filter>
+    </ClCompile>
+    <ClCompile Include="Ctab.cpp">
+      <Filter>Source Files\ex1</Filter>
+    </ClCompile>
+    <ClCompile Include="Ctab_Helper.cpp">
+      <Filter>Source Files\ex1</Filter>
     </ClCompile>
     <ClCompile Include="Decorr.cpp">
       <Filter>Source Files\dep</Filter>
@@ -265,11 +301,35 @@
     <ClCompile Include="Entifaz.cpp">
       <Filter>Source Files\CEXEntry</Filter>
     </ClCompile>
+    <ClCompile Include="ExpresC.cpp">
+      <Filter>Source Files\ex1</Filter>
+    </ClCompile>
+    <ClCompile Include="Expresc_Helper.cpp">
+      <Filter>Source Files\ex1</Filter>
+    </ClCompile>
+    <ClCompile Include="Instruc.cpp">
+      <Filter>Source Files\ex1</Filter>
+    </ClCompile>
     <ClCompile Include="Intdentr.cpp">
       <Filter>Source Files\dep</Filter>
     </ClCompile>
     <ClCompile Include="intenter.cpp">
       <Filter>Source Files\dep</Filter>
+    </ClCompile>
+    <ClCompile Include="LoadSaveBinary.cpp">
+      <Filter>Source Files\ex1</Filter>
+    </ClCompile>
+    <ClCompile Include="oexpresc.cpp">
+      <Filter>Source Files\ex1</Filter>
+    </ClCompile>
+    <ClCompile Include="ParameterManager.cpp">
+      <Filter>Source Files\ex1</Filter>
+    </ClCompile>
+    <ClCompile Include="Preprocessor.cpp">
+      <Filter>Source Files\ex1</Filter>
+    </ClCompile>
+    <ClCompile Include="RangeFunctions.cpp">
+      <Filter>Source Files\ex1</Filter>
     </ClCompile>
     <ClCompile Include="Relation.cpp">
       <Filter>Source Files\CEXEntry</Filter>
