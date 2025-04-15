@@ -10,6 +10,7 @@ Language - CSPro HTML Report.png
 Language - CSPro Messages.png
 JSScript.svg
 JSONScript.svg
+MarkdownFile_16x.svg
 SQLDatabase.svg
 Copy.svg
 DocumentsFolder.svg
