@@ -233,9 +233,9 @@ BEGIN
         MENUITEM "&Underline\tCtrl+U",          ID_FORMAT_UNDERLINE
         MENUITEM "Color",                       ID_FORMAT_COLOR
         MENUITEM SEPARATOR
-        MENUITEM "&Left",                       ID_FORMAT_ALIGNLEFT
-        MENUITEM "&Center",                     ID_FORMAT_ALIGNCENTER
-        MENUITEM "&Right",                      ID_FORMAT_ALIGNRIGHT
+        MENUITEM "&Left",                       ID_FORMAT_ALIGN_LEFT
+        MENUITEM "&Center",                     ID_FORMAT_ALIGN_CENTER
+        MENUITEM "&Right",                      ID_FORMAT_ALIGN_RIGHT
         MENUITEM SEPARATOR
         MENUITEM "Bullets",                     ID_FORMAT_OUTLINE_BULLET
         MENUITEM "Numbering",                   ID_FORMAT_OUTLINE_NUMBER
@@ -410,9 +410,9 @@ BEGIN
     BUTTON      ID_FORMAT_ITALIC
     BUTTON      ID_FORMAT_UNDERLINE
     BUTTON      ID_FORMAT_COLOR
-    BUTTON      ID_FORMAT_ALIGNLEFT
-    BUTTON      ID_FORMAT_ALIGNCENTER
-    BUTTON      ID_FORMAT_ALIGNRIGHT
+    BUTTON      ID_FORMAT_ALIGN_LEFT
+    BUTTON      ID_FORMAT_ALIGN_CENTER
+    BUTTON      ID_FORMAT_ALIGN_RIGHT
     BUTTON      ID_FORMAT_OUTLINE_BULLET
     BUTTON      ID_FORMAT_OUTLINE_NUMBER
     BUTTON      ID_EDIT_INSERT_IMAGE
@@ -443,9 +443,9 @@ BEGIN
     SEPARATOR
     BUTTON      ID_FORMAT_COLOR
     SEPARATOR
-    BUTTON      ID_FORMAT_ALIGNLEFT
-    BUTTON      ID_FORMAT_ALIGNCENTER
-    BUTTON      ID_FORMAT_ALIGNRIGHT
+    BUTTON      ID_FORMAT_ALIGN_LEFT
+    BUTTON      ID_FORMAT_ALIGN_CENTER
+    BUTTON      ID_FORMAT_ALIGN_RIGHT
     SEPARATOR
     BUTTON      ID_FORMAT_OUTLINE_BULLET
     BUTTON      ID_FORMAT_OUTLINE_NUMBER
@@ -1592,9 +1592,9 @@ BEGIN
     ID_FILE_PUBLISHANDDEPLOY 
                             "Deploy application to synchronization service\nPublish and Deploy"
     ID_FIND_NEXT            "Find Next\n Find Next"
-    ID_FORMAT_ALIGNCENTER   "Center this paragraph\nCenter"
-    ID_FORMAT_ALIGNLEFT     "Left justify this paragraph\nLeft"
-    ID_FORMAT_ALIGNRIGHT    "Right justify this paragraph\nRight"
+    ID_FORMAT_ALIGN_LEFT    "Left justify this paragraph\nLeft"
+    ID_FORMAT_ALIGN_CENTER  "Center this paragraph\nCenter"
+    ID_FORMAT_ALIGN_RIGHT   "Right justify this paragraph\nRight"
     ID_FORMAT_BOLD          "Make the selection bold (toggle)\nBold"
     ID_FORMAT_COLOR         "Make the selection a specified color\nColor"
     ID_FORMAT_ITALIC        "Make the selection italic (toggle)\nItalic"

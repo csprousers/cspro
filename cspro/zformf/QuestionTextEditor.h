@@ -1,0 +1,122 @@
+﻿#pragma once
+
+#include <zHtml/HtmlEditorCtrl.h>
+
+
+// --------------------------------------------------------------------------
+// QuestionTextEditor
+//
+// An interface for question text editors. Subclasses include:
+//
+//     - QuestionTextHtmlEditor: a wrapper around HtmlViewCtrl.
+//
+// --------------------------------------------------------------------------
+
+class QuestionTextEditor
+{
+public:
+    virtual ~QuestionTextEditor() { }
+
+    virtual CWnd& GetWnd() = 0;
+
+    virtual void Initialize(Application* application, const std::string& application_file_path) = 0;
+    virtual void Destroy() = 0;
+
+    virtual void SetStyles(const std::vector<HtmlEditorCtrl::Style>& editor_styles) = 0;
+
+    virtual bool IsDirty() = 0;
+
+    virtual void UpdateFillErrorDisplay(const std::map<std::string, CapiEditorViewModel::SyntaxCheckResult>& fill_syntax_check_results) = 0;
+
+    virtual bool HasContent() = 0;
+    virtual void ClearContent() = 0;
+    virtual void SetContent(const SharableString& text) = 0;
+
+    virtual void Copy() = 0;
+    virtual bool CanCopy() = 0;
+
+    virtual void Cut() = 0;
+    virtual bool CanCut() = 0;
+
+    virtual void Paste(bool with_formatting) = 0;
+    virtual bool CanPaste() = 0;
+
+    virtual void SelectAll() = 0;
+
+    virtual void Undo() = 0;
+    virtual void Redo() = 0;
+
+    virtual void Bold() = 0;
+    virtual void Italic() = 0;
+    virtual void Underline() = 0;
+
+    virtual void SetForeColor(COLORREF color) = 0;
+
+    virtual void UnorderedList() = 0;
+    virtual void OrderedList() = 0;
+
+    virtual void InsertImage(const std::string& image_url) = 0;
+    virtual void InsertTable(int rows, int columns) = 0;
+    virtual void InsertLink(const std::string& text, const std::string& url) = 0;
+};
+
+
+
+// --------------------------------------------------------------------------
+// QuestionTextHtmlEditor
+// --------------------------------------------------------------------------
+
+class QuestionTextHtmlEditor : public QuestionTextEditor
+{
+public:
+    QuestionTextHtmlEditor();
+    ~QuestionTextHtmlEditor();
+
+    HtmlEditorCtrl& GetHtmlEditorCtrl();
+
+    CWnd& GetWnd() override { return GetHtmlEditorCtrl(); }
+
+    void Initialize(Application* application, const std::string& application_file_path) override;
+    void Destroy() override;
+
+    void SetStyles(const std::vector<HtmlEditorCtrl::Style>& editor_styles) override;
+
+    bool IsDirty() override;
+
+    void UpdateFillErrorDisplay(const std::map<std::string, CapiEditorViewModel::SyntaxCheckResult>& fill_syntax_check_results) override;
+
+    bool HasContent() override;
+    void ClearContent() override;
+    void SetContent(const SharableString& text) override;
+
+    void Copy() override;
+    bool CanCopy() override;
+
+    void Cut() override;
+    bool CanCut() override;
+
+    void Paste(bool with_formatting) override;
+    bool CanPaste() override;
+
+    void SelectAll() override;
+
+    void Undo() override;
+    void Redo() override;
+
+    void Bold() override;
+    void Italic() override;
+    void Underline() override;
+
+    void SetForeColor(COLORREF color) override;
+
+    void UnorderedList() override;
+    void OrderedList() override;
+
+    void InsertImage(const std::string& image_url) override;
+    void InsertTable(int rows, int columns) override;
+    void InsertLink(const std::string& text, const std::string& url) override;
+
+private:
+    struct Data;
+    std::unique_ptr<Data> m_data;
+};

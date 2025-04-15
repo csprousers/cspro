@@ -2,11 +2,9 @@
 
 #include <zformf/CapiEditorViewModel.h>
 #include <zformf/QSFEditToolbar.h>
+#include <zformf/QuestionTextEditor.h>
 
 struct CapiStyle;
-class CFormDoc;
-class SharedHtmlLocalFileServer;
-class VirtualFileMapping;
 
 
 // --------------------------------------------------------------------------
@@ -19,7 +17,6 @@ class CQSFEView : public CFormView
 
 public:
     CQSFEView(CFormDoc* pFormDoc);
-    ~CQSFEView();
 
     using CFormView::Create;
 
@@ -38,6 +35,7 @@ protected:
     DECLARE_MESSAGE_MAP()
 
     void DoDataExchange(CDataExchange* pDX) override;
+    void OnInitialUpdate() override;
     void OnUpdate(CView* pSender, LPARAM lHint, CObject* pHint) override;
 
     int OnCreate(LPCREATESTRUCT lpCreateStruct);
@@ -55,6 +53,9 @@ protected:
 
     void OnChangeHtmlEdit();
     void OnSetFocusHtmlEdit();
+
+    void OnUpdateIsActiveEditorVisualHtml(CCmdUI* pCmdUI);
+    void OnUpdateIsActiveEditorAcceptingVisualStyles(CCmdUI* pCmdUI);
 
     void OnEditCopy();
     void OnUpdateEditCopy(CCmdUI* pCmdUI);
@@ -90,16 +91,9 @@ protected:
     void OnUpdateFormatFontSize(CCmdUI* pCmdUI);
 
     void OnFormatColor();
-    void OnUpdateFormatColor(CCmdUI* pCmdUI);
 
-    void OnFormatAlignLeft();
-    void OnUpdateFormatAlignLeft(CCmdUI* pCmdUI);
-
-    void OnFormatAlignCenter();
-    void OnUpdateFormatAlignCenter(CCmdUI* pCmdUI);
-
-    void OnFormatAlignRight();
-    void OnUpdateFormatAlignRight(CCmdUI* pCmdUI);
+    void OnFormatAlign(UINT nID);
+    void OnUpdateFormatAlign(CCmdUI* pCmdUI);
 
     void OnEditFormatOutlineBullet();
     void OnUpdateEditFormatOutlineBullet(CCmdUI* pCmdUI);
@@ -108,22 +102,16 @@ protected:
     void OnUpdateEditFormatOutlineNumbering(CCmdUI* pCmdUI);
 
     void OnEditInsertImage();
-    void OnUpdateEditInsertImage(CCmdUI* pCmdUI);
 
     void OnInsertTable();
-    void OnUpdateInsertTable(CCmdUI* pCmdUI);
 
     void OnInsertLink();
-    void OnUpdateInsertLink(CCmdUI* pCmdUI);
 
     void OnChangeTextDirectionRightToLeft();
-    void OnUpdateChangeTextDirectionRightToLeft(CCmdUI* pCmdUI);
-
     void OnChangeTextDirectionLeftToRight();
-    void OnUpdateChangeTextDirectionLeftToRight(CCmdUI* pCmdUI);
 
-    void OnChangeEditType(UINT nID);
-    void OnUpdateChangeEditType(CCmdUI* pCmdUI);
+    void OnChangeEditorType(UINT nID);
+    void OnUpdateChangeEditorType(CCmdUI* pCmdUI);
 
     void OnViewQuestionHelpText(UINT nID);
     void OnUpdateViewQuestionHelpText(CCmdUI* pCmdUI);
@@ -133,23 +121,25 @@ protected:
 private:
     CFormDoc* GetFormDoc();
 
-    void SetUpFileServer();
-
     void UpdateDisplayText();
     void UpdateToolbar();
 
     void StartIdleTimer();
     void StopIdleTimer();
 
-    void UpdateFillErrorDisplay();
+    bool IsActiveEditorVisualHtml();
+    bool IsActiveEditorAcceptingVisualStyles();
+
+    template<typename T>
+    static T ConvertResourceId(UINT nID);
 
 private:
-    std::unique_ptr<HtmlEditorCtrl> m_htmlEditorCtrl; // non-null
+    QuestionTextHtmlEditor m_htmlEditor;
+    std::vector<QuestionTextHtmlEditor*> m_editors;
+    QuestionTextEditor* m_currentEditor;
     QSFEditToolbar m_toolbar;
 
-    std::unique_ptr<SharedHtmlLocalFileServer> m_fileServer;
-    std::unique_ptr<VirtualFileMapping> m_questionTextVirtualFileMapping;
-
+    Application* m_application;
     std::string m_applicationFilePath;
     std::vector<Language> m_languages;
     size_t m_languageIndex;

@@ -13,10 +13,9 @@ public:
 
     void SetUrl(std::string_view url_sv);
 
-    void SetText(std::wstring text);
+    const SharableString& GetText() const { return m_text; }
+    void SetText(SharableString text);
     void Clear();
-
-    const std::wstring& GetText() const { return m_text; }
 
     struct Style
     {
@@ -51,6 +50,7 @@ public:
 
     enum class TextAlign { Left, Right, Center, Justify, Start, End, JustifyAll, MatchParent };
     TextAlign GetTextAlignment();
+    void Align(TextAlign text_align);
     void AlignLeft();
     void AlignRight();
     void AlignCenter();
@@ -76,10 +76,9 @@ public:
 
     void InsertImage(std::string_view image_path_sv);
 
-    void InsertTable(const CSize& size);
+    void InsertTable(int rows, int columns);
 
-    void ShowInsertLinkDialog();
-    void InsertLink(std::string_view url_sv, std::string_view text_sv, bool open_in_new_window = false);
+    void InsertLink(std::string_view text_sv, std::string_view url_sv, bool open_in_new_window = false);
 
     struct Format
     {
@@ -101,7 +100,7 @@ protected:
     afx_msg void OnEnable(BOOL bEnabled);
 
 private:
-    void OnTextChanged(std::wstring text);
+    void OnTextChanged(std::string text);
     void OnSelectionChanged(bool is_empty, Format format);
     void OnContextMenu(CPoint location);
     void OnCodeViewToggled(bool codeViewShowing);
@@ -114,11 +113,11 @@ private:
     template<typename T>
     void SendCommand(std::string_view command_sv, T&& arg);
     void SendEditorMessage(std::string&& message_json);
-    void ShowEditLinkDlg(std::wstring url, std::wstring text, bool open_in_new_window);
+    void ShowEditLinkDlg(std::string text, std::string url, bool open_in_new_window);
 
 private:
     bool m_dirty;
-    std::wstring m_text;
+    SharableString m_text;
     bool m_selection_empty;
     Format m_current_format;
     bool m_code_view_showing;

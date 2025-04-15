@@ -17,7 +17,7 @@ public:
     void SetButtonVisible(UINT id, BOOL visible);
     CMFCColorMenuButton* CreateColorButton();
 
-    void SetFontFace(NullTerminatedString font_name);
+    void SetFontFace(const std::wstring& font_name);
     std::string GetFontFace() const;
 
     void SetFontSize(int font_size);

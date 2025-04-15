@@ -218,14 +218,14 @@ CMFCColorMenuButton* QSFEditToolbar::CreateColorButton()
 }
 
 
-void QSFEditToolbar::SetFontFace(const NullTerminatedString font_name)
+void QSFEditToolbar::SetFontFace(const std::wstring& font_name)
 {
     QSFEditToolBarStyledComboBoxButton* button = DYNAMIC_DOWNCAST(QSFEditToolBarStyledComboBoxButton, GetButton(CommandToIndex(IDC_FONTFACE)));
     const int num_items = button->GetCount();
 
     for( int i = 0; i < num_items; ++i )
     {
-        if( SO::Equals(button->GetItem(i), font_name) )
+        if( font_name == button->GetItem(i) )
         {
             if( button->GetCurSel() != i )
                 button->SelectItem(i, TRUE);

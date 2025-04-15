@@ -253,9 +253,9 @@
 #define ID_FILE_PUBLISHANDDEPLOY        44038
 #define ID_FIND_NEXT                    44039
 #define ID_FORM_TOOLBAR                 44040
-#define ID_FORMAT_ALIGNCENTER           44041
-#define ID_FORMAT_ALIGNLEFT             44042
-#define ID_FORMAT_ALIGNRIGHT            44043
+#define ID_FORMAT_ALIGN_LEFT            44041
+#define ID_FORMAT_ALIGN_CENTER          44042
+#define ID_FORMAT_ALIGN_RIGHT           44043
 #define ID_FORMAT_BOLD                  44044
 #define ID_FORMAT_COLOR                 44045
 #define ID_FORMAT_ITALIC                44046

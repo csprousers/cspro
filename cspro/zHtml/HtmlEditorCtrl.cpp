@@ -85,15 +85,19 @@ void HtmlEditorCtrl::SetUrl(const std::string_view url_sv)
 }
 
 
-void HtmlEditorCtrl::SetText(std::wstring text)
+void HtmlEditorCtrl::SetText(SharableString text)
 {
-    SendEditorMessage(Json::CreateObjectString(
-        {
-            { JK::action, "setText" },
-            { JK::value,  std::string_view(UTF8_TODO::GetUtf8(text)) }
-        }));
+    if( *m_text != *text )
+    {
+        SendEditorMessage(Json::CreateObjectString(
+            {
+                { JK::action, "setText" },
+                { JK::value,  std::string_view(*text) }
+            }));
 
-    m_text = std::move(text);
+        m_text = std::move(text);
+    }
+
     m_dirty = false;
 }
 
@@ -105,7 +109,7 @@ void HtmlEditorCtrl::Clear()
             { JK::action, "clear" }
         }));
 
-    m_text.clear();
+    m_text.Reset();
     m_dirty = false;
 }
 
@@ -221,6 +225,28 @@ bool HtmlEditorCtrl::IsUnderline() const
 HtmlEditorCtrl::TextAlign HtmlEditorCtrl::GetTextAlignment()
 {
     return m_current_format.text_align;
+}
+
+
+void HtmlEditorCtrl::Align(const TextAlign text_align)
+{
+    switch( text_align )
+    {
+        case TextAlign::Left:
+            AlignLeft();
+            break;
+
+        case TextAlign::Right:
+            AlignRight();
+            break;
+
+        case TextAlign::Center:
+            AlignCenter();
+            break;
+
+        default:
+            ASSERT(false);
+    }
 }
 
 
@@ -343,41 +369,24 @@ void HtmlEditorCtrl::InsertImage(const std::string_view image_path_sv)
 }
 
 
-void HtmlEditorCtrl::InsertTable(const CSize& size)
+void HtmlEditorCtrl::InsertTable(const int rows, const int columns)
 {
-    SendCommand("insertTable", FormatText("%dx%d", size.cx, size.cy));
+    SendCommand("insertTable", FormatText("%dx%d", rows, columns));
 }
 
 
-void HtmlEditorCtrl::ShowInsertLinkDialog()
+void HtmlEditorCtrl::ShowEditLinkDlg(std::string text, std::string url, const bool open_in_new_window)
 {
-    InsertLinkDlg link_dlg;
+    InsertLinkDlg insert_link_dlg(std::move(text), std::move(url));
 
-    if( link_dlg.DoModal() != IDOK )
-        return;
-
-    InsertLink(UTF8_TODO::GetUtf8(link_dlg.m_url), UTF8_TODO::GetUtf8(link_dlg.m_text));
-}
-
-
-void HtmlEditorCtrl::ShowEditLinkDlg(std::wstring url, std::wstring text, const bool open_in_new_window)
-{
-    InsertLinkDlg link_dlg;
-
-    // don't override the dialog's default URL
-    if( !url.empty() )
-        link_dlg.m_url = std::move(url);
-
-    link_dlg.m_text = std::move(text);
-
-    if( link_dlg.DoModal() == IDOK )
+    if( insert_link_dlg.DoModal() == IDOK )
     {
         SendEditorMessage(Json::CreateObjectString(
             {
                 { JK::action,    "editLinkDialogDismissed" },
                 { "cancelled",   false },
-                { JK::url,       link_dlg.m_url },
-                { JK::text,      link_dlg.m_text },
+                { JK::text,      insert_link_dlg.GetText() },
+                { JK::url,       insert_link_dlg.GetUrl() },
                 { "isNewWindow", open_in_new_window }
             }));
     }
@@ -393,12 +402,12 @@ void HtmlEditorCtrl::ShowEditLinkDlg(std::wstring url, std::wstring text, const 
 }
 
 
-void HtmlEditorCtrl::InsertLink(const std::string_view url_sv, const std::string_view text_sv, const bool open_in_new_window)
+void HtmlEditorCtrl::InsertLink(const std::string_view text_sv, const std::string_view url_sv, const bool open_in_new_window/* = false*/)
 {
     const JsonNode link_info_json_node = Json::CreateObject(
         {
-            { JK::url,         url_sv },
             { JK::text,        text_sv },
+            { JK::url,         url_sv },
             { "isNewWindow",   open_in_new_window },
             { "checkProtocol", true }
         });
@@ -439,8 +448,7 @@ void HtmlEditorCtrl::OnWebMessageReceived(const std::string_view message_sv)
             }
         }
         else if (action_sv == "textChanged") {
-            std::wstring value = json_node.GetOrConstruct<std::wstring>("value");
-            OnTextChanged(std::move(value));
+            OnTextChanged(json_node.GetOrConstruct<std::string>("value"));
         }
         else if (action_sv == "selectionChanged") {
             const bool is_empty = json_node.Get<bool>("empty");
@@ -458,8 +466,8 @@ void HtmlEditorCtrl::OnWebMessageReceived(const std::string_view message_sv)
         }
         else if (action_sv == "showEditLinkDialog") {
             const JsonNode link_info_json_node = json_node["linkInfo"];
-            ShowEditLinkDlg(link_info_json_node.Get<std::wstring>("url"),
-                            link_info_json_node.Get<std::wstring>("text"),
+            ShowEditLinkDlg(link_info_json_node.Get<std::string>("text"),
+                            link_info_json_node.Get<std::string>("url"),
                             link_info_json_node.GetOrDefault("isNewWindow", false));
         }
 
@@ -470,7 +478,7 @@ void HtmlEditorCtrl::OnWebMessageReceived(const std::string_view message_sv)
 }
 
 
-void HtmlEditorCtrl::OnTextChanged(std::wstring text)
+void HtmlEditorCtrl::OnTextChanged(std::string text)
 {
     m_dirty = true;
     m_text = std::move(text);

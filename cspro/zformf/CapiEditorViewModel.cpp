@@ -51,7 +51,7 @@ CapiText CapiEditorViewModel::GetText(const size_t language_index, const CapiTex
 }
 
 
-void CapiEditorViewModel::SetText(const size_t language_index, const CapiText::Type type, std::string new_text)
+void CapiEditorViewModel::SetText(const size_t language_index, const CapiText::Type type, SharableString new_text)
 {
     CapiQuestion question = GetQuestion();
     CapiCondition condition = ( m_conditionIndex < question.GetConditions().size() ) ? question.GetConditions()[m_conditionIndex] :
@@ -59,10 +59,10 @@ void CapiEditorViewModel::SetText(const size_t language_index, const CapiText::T
 
     const std::string& language_name = m_questionManager->GetLanguages()[language_index].GetName();
 
-    if( new_text == "<p></p>" )
-        new_text.clear();
+    if( *new_text == "<p></p>" )
+        new_text.Reset();
 
-    condition.SetText(CapiText(std::move(new_text)), language_name, type);
+    condition.SetText(std::move(new_text), language_name, type);
     question.SetCondition(std::move(condition));
 
     m_questionManager->SetQuestion(std::move(question));

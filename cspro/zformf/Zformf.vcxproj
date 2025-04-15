@@ -100,6 +100,7 @@
     <ClCompile Include="QSFEditToolbar.cpp" />
     <ClCompile Include="QSFEditToolBarComboBoxButtons.cpp" />
     <ClCompile Include="QSFEView.cpp" />
+    <ClCompile Include="QuestionTextHtmlEditor.cpp" />
     <ClCompile Include="RunAsBatchDlg.cpp" />
     <ClCompile Include="StdAfx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -178,6 +179,7 @@
     <ClInclude Include="QSFEditToolbar.h" />
     <ClInclude Include="QSFEditToolBarComboBoxButtons.h" />
     <ClInclude Include="QSFEView.h" />
+    <ClInclude Include="QuestionTextEditor.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="RunAsBatchDlg.h" />
     <ClInclude Include="StdAfx.h" />
