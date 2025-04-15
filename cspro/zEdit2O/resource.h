@@ -17,15 +17,13 @@
 #define IDC_REGULAR_EXPRESSION          10504
 #define IDC_REPLACE_IN_SELECTION        10505
 #define ID_EDIT_COMMENT_LINE            45001
-#define ID_EDIT_DELETE_LINE             45002
-#define ID_EDIT_DUPLICATE_LINE          45003
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        10009
-#define _APS_NEXT_COMMAND_VALUE         45004
+#define _APS_NEXT_COMMAND_VALUE         45002
 #define _APS_NEXT_CONTROL_VALUE         10506
 #define _APS_NEXT_SYMED_VALUE           10009
 #endif

@@ -77,7 +77,6 @@ BEGIN_MESSAGE_MAP(CFSourceEditView, CLogicView)
     ON_COMMAND(ID_VIEW_PEEK_LOGIC_WORD, OnPeekLogicWord)
     ON_COMMAND(ID_VIEW_GOTO_LOGIC_WORD, OnGotoLogicWord)
     ON_COMMAND(ID_COMMENT_CODE, OnCommentCode)
-    ON_COMMAND(ID_DUPLICATE_LINE, OnDuplicateLine)
     //}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -373,16 +372,4 @@ void CFSourceEditView::OnCommentCode() // 20101215
 {
     GetDocument()->SetModifiedFlag(true);
     GetEditCtrl()->CommentCode();
-}
-
-
-void CFSourceEditView::OnDuplicateLine()
-{
-    GetDocument()->SetModifiedFlag(true);
-    if (GetEditCtrl()->GetSelectionEmpty()) {
-        GetEditCtrl()->LineDuplicate();
-    }
-    else {
-        GetEditCtrl()->SelectionDuplicate();
-    }
 }

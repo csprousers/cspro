@@ -106,6 +106,9 @@ private:
     void Copy(Sci_Position start_pos, Sci_Position end_pos, std::string_view text_sv);
     void CopyForCSProUsers(bool for_forum);
 
+    void DuplicateLineOrSelection();
+    void DeleteLine();
+
 private:
     UINT            m_nCtxMenuId;
     bool            m_modified;

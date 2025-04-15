@@ -24,10 +24,6 @@ BEGIN_MESSAGE_MAP(EditCtrl, CLogicCtrl)
     ON_COMMAND(ID_EDIT_REDO, OnEditRedo)
     ON_UPDATE_COMMAND_UI(ID_EDIT_REDO, OnUpdateEditRedo)
 
-    ON_COMMAND(ID_EDIT_DELETE_LINE, OnEditDeleteLine)
-
-    ON_COMMAND(ID_EDIT_DUPLICATE_LINE, OnEditDuplicateLine)
-
     ON_COMMAND(ID_EDIT_COMMENT_LINE, OnEditCommentLine)
 
 END_MESSAGE_MAP()
@@ -128,27 +124,6 @@ void EditCtrl::OnEditRedo()
 void EditCtrl::OnUpdateEditRedo(CCmdUI* pCmdUI)
 {
     pCmdUI->Enable(CanRedo());
-}
-
-
-void EditCtrl::OnEditDeleteLine()
-{
-    LineDelete();
-    SetModified();
-    OnUpdateStatusPaneCaretPos();
-}
-
-
-void EditCtrl::OnEditDuplicateLine()
-{
-    if( GetSelectionEmpty() )
-        LineDuplicate();
-
-    else
-        SelectionDuplicate();
-
-    SetModified();
-    OnUpdateStatusPaneCaretPos();
 }
 
 
