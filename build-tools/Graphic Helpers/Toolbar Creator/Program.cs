@@ -13,10 +13,12 @@ namespace ToolbarCreator
             {
                 try
                 {
-                    var creator = new Creator(Path.GetFullPath(args[0]), ( args.Length > 1 ) ? Path.GetFullPath(args[1]) : null);
+                    var creator = new Creator(Path.GetFullPath(args[0]),
+                                              ( args.Length > 1 ) ? Path.GetFullPath(args[1]) : null,
+                                              ( args.Length > 2 ) ? (int?)Int32.Parse(args[2]) : null);
                     creator.Create(false);
                 }
-                
+
                 catch( Exception exception )
                 {
                     MessageBox.Show(exception.Message);

@@ -20,10 +20,17 @@ Edit - Form.png
 Edit - Order.png
 Edit - Table.png
 Help.png
-Question Text - Font.png
-Question Text - Bullets.png
-Question Text - Ordered.png
-Question Text - Insert Image.png
+Font.svg
+Bold.svg
+Italic.svg
+Underline.svg
+FontColor.svg
+TextLeft.svg
+TextCenter.svg
+TextRight.svg
+BulletList.svg
+OrderedList.svg
+Image.svg
 Question Text Type.png
 View - Logic.png
 View - Question Text.png

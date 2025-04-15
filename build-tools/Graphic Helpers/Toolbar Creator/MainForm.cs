@@ -14,7 +14,7 @@ namespace ToolbarCreator
         {
             try
             {
-                textBoxOutput.Text = Creator.GetOutputFilename(textBoxInputs.Text);
+                textBoxOutput.Text = Creator.GetOutputFilePath(textBoxInputs.Text);
             }
 
             catch( Exception exception )

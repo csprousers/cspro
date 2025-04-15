@@ -20,3 +20,5 @@ To create icons from the Visual Studio 2022 Image Library:
 1. Open the .svg file at 225x225.
 
 2. Export as .png: Ctrl+Shift+E.
+
+* Note that this is no longer necessary because Toolbar Creator can directly process .svg files.

@@ -9,6 +9,7 @@ Because most CSPro development occurs on a [private repository](https://github.c
 
 | Date | Branch | Pull Request Message |
 | --- | --- | --- |
+| 2025&#8209;04&#8209;15 | [toolbar-creator-svg](https://github.com/CSProDevelopment/cspro/commit/6e6ff99ac0b28fb938bf2c9975ae22cbe4da5aee) | added support for SVG files to the Toolbar Creator build tool |
 | 2025&#8209;04&#8209;09 | [binary-engine-projects-cleanup](https://github.com/CSProDevelopment/cspro/commit/b1dc7a9fda5e501355c07f3f5a1f8f4259c246cd) | cleaned up the codebase by consolidating the engine projects and removing "binary"-specific compilations |
 | 2025&#8209;04&#8209;04 | [question-text-utf8](https://github.com/CSProDevelopment/cspro/commit/ed29402b9e1082438396fd9b2a46124b096f41c6) | reworked CAPI objects to use non-wide strings + removed additional pre-7.6 question text routines |
 | 2025&#8209;03&#8209;28 | [sqlite-math](https://github.com/CSProDevelopment/cspro/commit/b0012e1ed0c38ace6986486e53835498d5a5fcbd) | built SQLite with support for mathematical functions |
