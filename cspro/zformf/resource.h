@@ -303,11 +303,11 @@
 #define ID_SHOW_BOXTOOLBAR              44088
 #define ID_TEXT_DIR_LTR                 44089
 #define ID_TEXT_DIR_RTL                 44090
-#define ID_UNGROUP                      44091
-#define ID_UNGROUP_ITEMS                44092
-#define ID_VIEW_FORM                    44093
-#define ID_VIEW_GOTO_LOGIC_WORD         44094
-#define ID_VIEW_HIDE                    44095
+#define ID_TOGGLE_QSF_SECOND_VIEW       44091
+#define ID_UNGROUP                      44092
+#define ID_UNGROUP_ITEMS                44093
+#define ID_VIEW_FORM                    44094
+#define ID_VIEW_GOTO_LOGIC_WORD         44095
 #define ID_VIEW_PEEK_LOGIC_WORD         44096
 #define ID_VQSF_EDITOR                  44097
 #define ID_VVIEW_LOGIC                  44098

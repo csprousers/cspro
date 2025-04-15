@@ -52,7 +52,6 @@ public:
     void UseWebView2AcceleratorKeyHandler();
 
     void MoveFocus();
-    void Resize(UINT nType, int cx, int cy) { OnSize(nType, cx, cy); }
 
     std::string GetSource();
 
