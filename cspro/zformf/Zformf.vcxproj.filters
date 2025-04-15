@@ -105,19 +105,13 @@
     <ClCompile Include="QSFCndVw.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="QSFEditNumericSortToolBarComboBoxButton.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="QSFEditStyleDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="QSFEditToolbar.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="QSFEditToolBarComboBoxButton.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="QSFEditToolBarStyledComboBoxButton.cpp">
+    <ClCompile Include="QSFEditToolBarComboBoxButtons.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="QSFEView.cpp">
@@ -319,19 +313,13 @@
     <ClInclude Include="QSFCndVw.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="QSFEditNumericSortToolBarComboBoxButton.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="QSFEditStyleDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="QSFEditToolbar.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="QSFEditToolBarComboBoxButton.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="QSFEditToolBarStyledComboBoxButton.h">
+    <ClInclude Include="QSFEditToolBarComboBoxButtons.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="QSFEView.h">

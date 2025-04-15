@@ -18,7 +18,7 @@ public:
     CMFCColorMenuButton* CreateColorButton();
 
     void SetFontFace(NullTerminatedString font_name);
-    CString GetFontFace() const;
+    std::string GetFontFace() const;
 
     void SetFontSize(int font_size);
     int GetFontSize() const;
@@ -41,6 +41,8 @@ protected:
     LRESULT OnIdleUpdateCmdUI(WPARAM wParam, LPARAM);
 
 private:
+    static CSize GetBaseUnits(CFont* pFont);
+
     int GetImageIndex(UINT command);
 
 private:

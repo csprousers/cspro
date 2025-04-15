@@ -96,11 +96,9 @@
     <ClCompile Include="MappingOptionsDlg.cpp" />
     <ClCompile Include="MultipleFieldPropertiesDlg.cpp" />
     <ClCompile Include="QSFCndVw.cpp" />
-    <ClCompile Include="QSFEditNumericSortToolBarComboBoxButton.cpp" />
     <ClCompile Include="QSFEditStyleDlg.cpp" />
     <ClCompile Include="QSFEditToolbar.cpp" />
-    <ClCompile Include="QSFEditToolBarComboBoxButton.cpp" />
-    <ClCompile Include="QSFEditToolBarStyledComboBoxButton.cpp" />
+    <ClCompile Include="QSFEditToolBarComboBoxButtons.cpp" />
     <ClCompile Include="QSFEView.cpp" />
     <ClCompile Include="RunAsBatchDlg.cpp" />
     <ClCompile Include="StdAfx.cpp">
@@ -176,11 +174,9 @@
     <ClInclude Include="MappingOptionsDlg.h" />
     <ClInclude Include="MultipleFieldPropertiesDlg.h" />
     <ClInclude Include="QSFCndVw.h" />
-    <ClInclude Include="QSFEditNumericSortToolBarComboBoxButton.h" />
     <ClInclude Include="QSFEditStyleDlg.h" />
     <ClInclude Include="QSFEditToolbar.h" />
-    <ClInclude Include="QSFEditToolBarComboBoxButton.h" />
-    <ClInclude Include="QSFEditToolBarStyledComboBoxButton.h" />
+    <ClInclude Include="QSFEditToolBarComboBoxButtons.h" />
     <ClInclude Include="QSFEView.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="RunAsBatchDlg.h" />
