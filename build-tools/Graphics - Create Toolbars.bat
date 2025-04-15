@@ -7,7 +7,8 @@ set msbuild="C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Cur
 :start
 %msbuild% "Graphic Helpers\Graphic Helpers.sln" /p:Configuration=Release /t:Rebuild
 
-REM 32-bit PNG toolbars
+
+REM 32-bit PNG toolbars (icons are 16x15, file saved with height 15)
 
 "Graphic Helpers\Toolbar Creator\bin\Release\Toolbar Creator.exe" "Graphic Helpers\CSPro Sources\Toolbar - CSCode - Main Frame.txt"        "..\cspro\CSCode\res\Toolbar MainFrame.png"
 "Graphic Helpers\Toolbar Creator\bin\Release\Toolbar Creator.exe" "Graphic Helpers\CSPro Sources\Toolbar - CSCode - Code Frame.txt"        "..\cspro\CSCode\res\Toolbar CodeFrame.png"
@@ -17,7 +18,13 @@ REM 32-bit PNG toolbars
 "Graphic Helpers\Toolbar Creator\bin\Release\Toolbar Creator.exe" "Graphic Helpers\CSPro Sources\Toolbar - CSDocument - Doc Frame.txt"     "..\cspro\CSDocument\res\Toolbar DocFrame.png"
 "Graphic Helpers\Toolbar Creator\bin\Release\Toolbar Creator.exe" "Graphic Helpers\CSPro Sources\Toolbar - CSDocument - Extra Icons.txt"   "..\cspro\CSDocument\res\Toolbar Extra Icons.png"
 
-REM BMP toolbars
+
+REM 32-bit PNG toolbars (icons are 20x19, file saved with height 19)
+
+"Graphic Helpers\Toolbar Creator\bin\Release\Toolbar Creator.exe" "Graphic Helpers\CSPro Sources\Toolbar - zFormF - Question Text.txt"     "..\cspro\zFormF\res\qsf_editor_toolbar.png" 20
+
+
+REM BMP toolbars (icons are 16x15, file saved with height 16)
 
 "Graphic Helpers\Toolbar Creator\bin\Release\Toolbar Creator.exe" "Graphic Helpers\CSPro Sources\Toolbar - CSDiff.txt"                     "..\cspro\CSDiff\res\Toolbar (save as 16).bmp"
 "Graphic Helpers\Toolbar Creator\bin\Release\Toolbar Creator.exe" "Graphic Helpers\CSPro Sources\Toolbar - CSEntry.txt"                    "..\cspro\CSEntry\res\Toolbar (save as 16).bmp"

@@ -597,15 +597,19 @@ std::unique_ptr<CToolBar> CFormChildWnd::CreateFormToolBar(CWnd* const pParentWn
         return nullptr;
     }
 
+    // the toolbar image has some entries for menu icons only, so hide
+    // toolbar buttons that should not be shown on the toolbar
     CToolBarCtrl& tool_bar_ctrl = pWndFormTBar->GetToolBarCtrl();
+    TBBUTTON tool_bar_button;
+    const int button_count = tool_bar_ctrl.GetButtonCount();
+    const int last_button_to_show = tool_bar_ctrl.CommandToIndex(ID_HELP);
+    ASSERT(last_button_to_show != -1);
 
-    tool_bar_ctrl.HideButton(ID_EDIT_CAPI_STYLES);
-    tool_bar_ctrl.HideButton(ID_FORMAT_OUTLINE_BULLET);
-    tool_bar_ctrl.HideButton(ID_FORMAT_OUTLINE_NUMBER);
-    tool_bar_ctrl.HideButton(ID_EDIT_INSERT_IMAGE);
-    tool_bar_ctrl.HideButton(ID_TOGGLE_QN);
-    tool_bar_ctrl.HideButton(ID_VVIEW_LOGIC);
-    tool_bar_ctrl.HideButton(ID_VQSF_EDITOR);
+    for( int i = last_button_to_show + 1; i < button_count; ++i )
+    {
+        if( tool_bar_ctrl.GetButton(i, &tool_bar_button) )
+            tool_bar_ctrl.HideButton(tool_bar_button.idCommand);
+    }
 
     return pWndFormTBar;
 }
