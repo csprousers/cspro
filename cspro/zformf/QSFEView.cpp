@@ -18,18 +18,26 @@ BEGIN_MESSAGE_MAP(CQSFEView, CFormView)
     ON_WM_CREATE()
     ON_WM_DESTROY()
     ON_WM_SIZE()
+    ON_WM_CONTEXTMENU()
+    ON_WM_TIMER()
+
     ON_COMMAND(ID_EDIT_PASTE, OnEditPaste)
-    ON_COMMAND(ID_EDIT_PASTE_WITHOUT_FORMATTING, OnEditPasteWithoutFormatting)
     ON_UPDATE_COMMAND_UI(ID_EDIT_PASTE, OnUpdateEditPaste)
+
+    ON_COMMAND(ID_EDIT_PASTE_WITHOUT_FORMATTING, OnEditPasteWithoutFormatting)
     ON_UPDATE_COMMAND_UI(ID_EDIT_PASTE_WITHOUT_FORMATTING, OnUpdateEditPaste)
+
     ON_COMMAND(ID_EDIT_COPY, OnEditCopy)
     ON_UPDATE_COMMAND_UI(ID_EDIT_COPY, OnUpdateEditCopy)
+
     ON_COMMAND(ID_EDIT_CUT, OnEditCut)
     ON_UPDATE_COMMAND_UI(ID_EDIT_CUT, OnUpdateEditCut)
+
     ON_COMMAND(ID_EDIT_SELECT_ALL, OnEditSelectAll)
-    ON_WM_CONTEXTMENU()
+
     ON_EN_CHANGE(IDC_HTML_EDIT, OnChangeHtmlEdit)
     ON_EN_SETFOCUS(IDC_HTML_EDIT, OnSetfocusHtmlEdit)
+
     ON_COMMAND(ID_EDIT_UNDO, OnEditUndo)
     ON_COMMAND(ID_EDIT_REDO, OnEditRedo)
     ON_COMMAND(ID_VIEW_FORM, OnViewForm)
@@ -38,45 +46,64 @@ BEGIN_MESSAGE_MAP(CQSFEView, CFormView)
 
     ON_CBN_SELENDOK(IDC_STYLE, OnFormatStyle)
     ON_UPDATE_COMMAND_UI(IDC_STYLE, OnUpdateFormatStyle)
+
     ON_COMMAND(ID_FORMAT_BOLD, OnFormatBold)
     ON_UPDATE_COMMAND_UI(ID_FORMAT_BOLD, OnUpdateFormatBold)
+
     ON_COMMAND(ID_FORMAT_ITALIC, OnFormatItalic)
     ON_UPDATE_COMMAND_UI(ID_FORMAT_ITALIC, OnUpdateFormatItalic)
+
     ON_COMMAND(ID_FORMAT_UNDERLINE, OnFormatUnderline)
     ON_UPDATE_COMMAND_UI(ID_FORMAT_UNDERLINE, OnUpdateFormatUnderline)
+
     ON_CBN_SELENDOK(IDC_FONTFACE, OnFormatFontFace)
     ON_UPDATE_COMMAND_UI(IDC_FONTFACE, OnUpdateFormatFontFace)
+
     ON_CBN_SELENDOK(IDC_FONTSIZE, OnFormatFontSize)
     ON_UPDATE_COMMAND_UI(IDC_FONTSIZE, OnUpdateFormatFontSize)
+
     ON_COMMAND(ID_FORMAT_COLOR, OnFormatColor)
     ON_UPDATE_COMMAND_UI(ID_FORMAT_COLOR, OnUpdateFormatColor)
+
     ON_COMMAND(ID_FORMAT_ALIGNLEFT, OnFormatAlignLeft)
     ON_UPDATE_COMMAND_UI(ID_FORMAT_ALIGNLEFT, OnUpdateFormatAlignLeft)
+
     ON_COMMAND(ID_FORMAT_ALIGNCENTER, OnFormatAlignCenter)
     ON_UPDATE_COMMAND_UI(ID_FORMAT_ALIGNCENTER, OnUpdateFormatAlignCenter)
+
     ON_COMMAND(ID_FORMAT_ALIGNRIGHT, OnFormatAlignRight)
     ON_UPDATE_COMMAND_UI(ID_FORMAT_ALIGNRIGHT, OnUpdateFormatAlignRight)
+
     ON_COMMAND(ID_TEXT_DIR_RTL, OnChangeTextDirectionRightToLeft)
     ON_UPDATE_COMMAND_UI(ID_TEXT_DIR_RTL, OnUpdateChangeTextDirectionRightToLeft)
+
     ON_COMMAND(ID_TEXT_DIR_LTR, OnChangeTextDirectionLeftToRight)
     ON_UPDATE_COMMAND_UI(ID_TEXT_DIR_LTR, OnUpdateChangeTextDirectionLeftToRight)
+
     ON_COMMAND(ID_EDIT_INSERT_IMAGE, OnEditInsertImage)
     ON_UPDATE_COMMAND_UI(ID_EDIT_INSERT_IMAGE, OnUpdateEditInsertImage)
+
     ON_UPDATE_COMMAND_UI(ID_INSERT_TABLE, OnUpdateInsertTable)
     ON_COMMAND(ID_INSERT_TABLE, OnInsertTable)
+
     ON_UPDATE_COMMAND_UI(ID_INSERT_LINK, OnUpdateInsertLink)
     ON_COMMAND(ID_INSERT_LINK, OnInsertLink)
+
     ON_COMMAND(ID_FORMAT_OUTLINE_BULLET, OnEditFormatOutlineBullet)
     ON_UPDATE_COMMAND_UI(ID_FORMAT_OUTLINE_BULLET, OnUpdateEditFormatOutlineBullet)
+
     ON_COMMAND(ID_FORMAT_OUTLINE_NUMBER, OnEditFormatOutlineNumbering)
     ON_UPDATE_COMMAND_UI(ID_FORMAT_OUTLINE_NUMBER, OnUpdateEditFormatOutlineNumbering)
-    ON_COMMAND(ID_QSF_EDITOR_VIEW_CODE, OnToggleViewCode)
-    ON_UPDATE_COMMAND_UI(ID_QSF_EDITOR_VIEW_CODE, OnUpdateToggleViewCode)
+
+    ON_COMMAND_RANGE(ID_QSF_EDITOR_EDIT_HTML_VISUAL, ID_QSF_EDITOR_EDIT_HTML_VISUAL_CODE, OnChangeEditType)
+    ON_UPDATE_COMMAND_UI_RANGE(ID_QSF_EDITOR_EDIT_HTML_VISUAL, ID_QSF_EDITOR_EDIT_HTML_VISUAL_CODE, OnUpdateChangeEditType)
+
+    ON_COMMAND_RANGE(ID_QSF_EDITOR_VIEW_QUESTION, ID_QSF_EDITOR_VIEW_HELP, OnViewQuestionHelpText)
+    ON_UPDATE_COMMAND_UI_RANGE(ID_QSF_EDITOR_VIEW_QUESTION, ID_QSF_EDITOR_VIEW_HELP, OnUpdateViewQuestionHelpText)
+
     ON_COMMAND(IDC_EDIT_LANG, OnLanguageChanged)
     ON_CBN_SELENDOK(IDC_EDIT_LANG, OnLanguageChanged)
-    ON_UPDATE_COMMAND_UI(ID_TOGGLE_QN, OnUpdateToggleQuestionHelpText)
-    ON_COMMAND(ID_TOGGLE_QN, OnToggleQuestionHelpText)
-    ON_WM_TIMER()
+
 END_MESSAGE_MAP()
 
 
@@ -101,7 +128,7 @@ CQSFEView::CQSFEView(CFormDoc* const pFormDoc)
         m_applicationFilePath = TC::ToUtf8(pFormDoc->GetPathName());
     }
 
-    SetupFileServer();
+    SetUpFileServer();
     ASSERT(m_questionTextVirtualFileMapping != nullptr);
 
     m_htmlEditorCtrl.SetUrl(m_questionTextVirtualFileMapping->GetUrl());
@@ -191,7 +218,7 @@ void CQSFEView::OnDestroy()
 }
 
 
-void CQSFEView::SetupFileServer()
+void CQSFEView::SetUpFileServer()
 {
     // to make relative paths in the question text work, the HTML editor must
     // appear as if it exists in the application directory; we will load the
@@ -298,18 +325,6 @@ void CQSFEView::OnViewHide(void)
     CFormChildWnd* pParentFrame = (CFormChildWnd*)GetParentFrame();
     pParentFrame->m_bHideSecondLang = !pParentFrame->m_bHideSecondLang;
     pParentFrame->DisplayActiveMode();
-}
-
-
-void CQSFEView::OnQuestionTextTypeChanged()
-{
-    UpdateDisplayText();
-}
-
-
-CapiEditorViewModel& CQSFEView::GetViewModel()
-{
-    return GetFormDoc()->GetCapiEditorViewModel();
 }
 
 
@@ -687,17 +702,50 @@ void CQSFEView::OnUpdateInsertLink(CCmdUI* const pCmdUI)
 }
 
 
-void CQSFEView::OnToggleViewCode()
+void CQSFEView::OnChangeEditType(const UINT nID)
 {
-    m_htmlEditorCtrl.ToggleCodeView();
+    const bool edit_html_code = ( nID == ID_QSF_EDITOR_EDIT_HTML_VISUAL_CODE );
+
+    if( edit_html_code != m_htmlEditorCtrl.GetCodeViewShowing() )
+        m_htmlEditorCtrl.ToggleCodeView();
 }
 
 
-void CQSFEView::OnUpdateToggleViewCode(CCmdUI* const pCmdUI)
+void CQSFEView::OnUpdateChangeEditType(CCmdUI* const pCmdUI)
 {
     pCmdUI->Enable();
-    if (pCmdUI->m_pOther == &m_toolbar)
-        pCmdUI->SetCheck(m_htmlEditorCtrl.GetCodeViewShowing());
+
+    if( pCmdUI->m_pOther == &m_toolbar )
+    {
+        const bool edit_html_code = ( pCmdUI->m_nID == ID_QSF_EDITOR_EDIT_HTML_VISUAL_CODE );
+        pCmdUI->SetCheck(( edit_html_code == m_htmlEditorCtrl.GetCodeViewShowing() ));
+    }
+}
+
+
+void CQSFEView::OnViewQuestionHelpText(const UINT nID)
+{
+    const CapiText::Type this_text_type = ( nID == ID_QSF_EDITOR_VIEW_QUESTION ) ? CapiText::Type::Question :
+                                                                                   CapiText::Type::Help;
+
+    if( m_textType != this_text_type )
+    {
+        m_textType = this_text_type;
+        UpdateDisplayText();
+    }
+}
+
+
+void CQSFEView::OnUpdateViewQuestionHelpText(CCmdUI* const pCmdUI)
+{
+    pCmdUI->Enable();
+
+    if( pCmdUI->m_pOther == &m_toolbar )
+    {
+        const CapiText::Type this_text_type = ( pCmdUI->m_nID == ID_QSF_EDITOR_VIEW_QUESTION ) ? CapiText::Type::Question :
+                                                                                                 CapiText::Type::Help;
+        pCmdUI->SetCheck(( m_textType == this_text_type ));
+    }
 }
 
 
@@ -705,22 +753,6 @@ void CQSFEView::OnLanguageChanged()
 {
     SetLanguage(m_toolbar.GetLanguageLabel());
     UpdateDisplayText();
-}
-
-
-void CQSFEView::OnUpdateToggleQuestionHelpText(CCmdUI* const pCmdUI)
-{
-    pCmdUI->Enable();
-    if (pCmdUI->m_pOther == &m_toolbar)
-        pCmdUI->SetCheck(m_textType == CapiText::Type::Help);
-}
-
-
-void CQSFEView::OnToggleQuestionHelpText()
-{
-    m_textType = ( m_textType == CapiText::Type::Question ) ? CapiText::Type::Help :
-                                                              CapiText::Type::Question;
-    OnQuestionTextTypeChanged();
 }
 
 

@@ -8,7 +8,6 @@ struct CapiStyle;
 class CFormDoc;
 class SharedHtmlLocalFileServer;
 class VirtualFileMapping;
-struct WebViewImpl;
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -51,6 +50,8 @@ protected:
     afx_msg void OnEditPasteWithoutFormatting();
     afx_msg void OnUpdateEditPaste(CCmdUI* pCmdUI);
     afx_msg void OnSize(UINT nType, int cx, int cy);
+    afx_msg void OnTimer(UINT nIDEvent);
+
     afx_msg void OnEditCopy();
     afx_msg void OnUpdateEditCopy(CCmdUI* pCmdUI);
     afx_msg void OnEditCut();
@@ -98,20 +99,22 @@ protected:
     afx_msg void OnUpdateInsertTable(CCmdUI* pCmdUI);
     afx_msg void OnInsertLink();
     afx_msg void OnUpdateInsertLink(CCmdUI* pCmdUI);
-    afx_msg void OnToggleViewCode();
-    afx_msg void OnUpdateToggleViewCode(CCmdUI* pCmdUI);
+
+    afx_msg void OnChangeEditType(UINT nID);
+    afx_msg void OnUpdateChangeEditType(CCmdUI* pCmdUI);
+
+    afx_msg void OnViewQuestionHelpText(UINT nID);
+    afx_msg void OnUpdateViewQuestionHelpText(CCmdUI* pCmdUI);
+
     afx_msg void OnLanguageChanged();
-    afx_msg void OnUpdateToggleQuestionHelpText(CCmdUI* pCmdUI);
-    afx_msg void OnToggleQuestionHelpText();
-    afx_msg void OnTimer(UINT nIDEvent);
 
 private:
-    void SetupFileServer();
+    void SetUpFileServer();
 
     void OnViewHide();
-    void OnQuestionTextTypeChanged();
-    CapiEditorViewModel& GetViewModel();
+
     CFormDoc* GetFormDoc();
+
     void StartIdleTimer();
     void StopIdleTimer();
     void UpdateFillErrorDisplay();

@@ -331,19 +331,6 @@ std::string QSFEditToolbar::GetLanguageLabel() const
 }
 
 
-BOOL QSFEditToolbar::OnUserToolTip(CMFCToolBarButton* const pButton, CString& strTTText) const
-{
-    if( pButton->m_nID == ID_TOGGLE_QN )
-    {
-        strTTText = ( ( pButton->m_nStyle & TBBS_CHECKED ) != 0 ) ? L"Help Text" :
-                                                                    L"Question Text";
-        return TRUE;
-    }
-
-    return __super::OnUserToolTip(pButton, strTTText);
-}
-
-
 int QSFEditToolbar::GetImageIndex(UINT /*command*/)
 {
     return GetButton(CommandToIndex(ID_INSERT_TABLE))->GetImage();

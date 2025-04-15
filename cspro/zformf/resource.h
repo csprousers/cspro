@@ -284,38 +284,40 @@
 #define ID_OPTIONS_SYNCHRONIZATION      44069
 #define ID_PROPERTIES                   44070
 #define ID_QSF_EDITOR                   44071
-#define ID_QSF_EDITOR_VIEW_CODE         44072
-#define ID_QSFCOND_ADD                  44073
-#define ID_QSFCOND_DELETE               44074
-#define ID_QSFCOND_INSERT               44075
-#define ID_QSFCOND_MODIFY               44076
-#define ID_REPLACE                      44077
-#define ID_RUNAS_BCH                    44078
-#define ID_SELECT_ITEMS                 44079
-#define ID_SELITEMS_FROMTB              44080
-#define ID_DRAW_ETCHED                  44081
-#define ID_DRAW_RAISED                  44082
-#define ID_DRAW_THINBOX                 44083
-#define ID_DRAW_THICKBOX                44084
-#define ID_SHOW_BOXTOOLBAR              44085
-#define ID_TEXT_DIR_LTR                 44086
-#define ID_TEXT_DIR_RTL                 44087
-#define ID_TOGGLE_QN                    44088
-#define ID_UNGROUP                      44089
-#define ID_UNGROUP_ITEMS                44090
-#define ID_VIEW_FORM                    44091
-#define ID_VIEW_GOTO_LOGIC_WORD         44092
-#define ID_VIEW_HIDE                    44093
-#define ID_VIEW_PEEK_LOGIC_WORD         44094
-#define ID_VQSF_EDITOR                  44095
-#define ID_VVIEW_LOGIC                  44096
+#define ID_QSF_EDITOR_EDIT_HTML_VISUAL  44072
+#define ID_QSF_EDITOR_EDIT_HTML_VISUAL_CODE 44073
+#define ID_QSF_EDITOR_VIEW_QUESTION     44074
+#define ID_QSF_EDITOR_VIEW_HELP         44075
+#define ID_QSFCOND_ADD                  44076
+#define ID_QSFCOND_DELETE               44077
+#define ID_QSFCOND_INSERT               44078
+#define ID_QSFCOND_MODIFY               44079
+#define ID_REPLACE                      44080
+#define ID_RUNAS_BCH                    44081
+#define ID_SELECT_ITEMS                 44082
+#define ID_SELITEMS_FROMTB              44083
+#define ID_DRAW_ETCHED                  44084
+#define ID_DRAW_RAISED                  44085
+#define ID_DRAW_THINBOX                 44086
+#define ID_DRAW_THICKBOX                44087
+#define ID_SHOW_BOXTOOLBAR              44088
+#define ID_TEXT_DIR_LTR                 44089
+#define ID_TEXT_DIR_RTL                 44090
+#define ID_UNGROUP                      44091
+#define ID_UNGROUP_ITEMS                44092
+#define ID_VIEW_FORM                    44093
+#define ID_VIEW_GOTO_LOGIC_WORD         44094
+#define ID_VIEW_HIDE                    44095
+#define ID_VIEW_PEEK_LOGIC_WORD         44096
+#define ID_VQSF_EDITOR                  44097
+#define ID_VVIEW_LOGIC                  44098
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        8054
-#define _APS_NEXT_COMMAND_VALUE         44097
+#define _APS_NEXT_COMMAND_VALUE         44099
 #define _APS_NEXT_CONTROL_VALUE         8658
 #define _APS_NEXT_SYMED_VALUE           8054
 #endif

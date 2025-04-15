@@ -416,7 +416,6 @@ BEGIN
     BUTTON      ID_FORMAT_OUTLINE_BULLET
     BUTTON      ID_FORMAT_OUTLINE_NUMBER
     BUTTON      ID_EDIT_INSERT_IMAGE
-    BUTTON      ID_TOGGLE_QN
     BUTTON      ID_VVIEW_LOGIC
     BUTTON      ID_VQSF_EDITOR
 END
@@ -450,6 +449,7 @@ BEGIN
     SEPARATOR
     BUTTON      ID_FORMAT_OUTLINE_BULLET
     BUTTON      ID_FORMAT_OUTLINE_NUMBER
+    SEPARATOR
     BUTTON      ID_EDIT_INSERT_IMAGE
     BUTTON      ID_INSERT_TABLE
     BUTTON      ID_INSERT_LINK
@@ -457,9 +457,11 @@ BEGIN
     BUTTON      ID_TEXT_DIR_LTR
     BUTTON      ID_TEXT_DIR_RTL
     SEPARATOR
-    BUTTON      ID_QSF_EDITOR_VIEW_CODE
+    BUTTON      ID_QSF_EDITOR_EDIT_HTML_VISUAL
+    BUTTON      ID_QSF_EDITOR_EDIT_HTML_VISUAL_CODE
     SEPARATOR
-    BUTTON      ID_TOGGLE_QN
+    BUTTON      ID_QSF_EDITOR_VIEW_QUESTION
+    BUTTON      ID_QSF_EDITOR_VIEW_HELP
     SEPARATOR
     BUTTON      IDC_EDIT_LANG
     SEPARATOR
@@ -1544,14 +1546,17 @@ BEGIN
     ID_OPTIONS_MAPPING      "Set mapping options"
     ID_OPTIONS_SYNCHRONIZATION "Set synchronization options"
     ID_QSF_EDITOR           "View currently-selected CAPI Questions\nCAPI Questions"
-    ID_QSF_EDITOR_VIEW_CODE "Edit HTML code\nCode"
-    ID_REPLACE              "Replace"
-    ID_RUNAS_BCH            "Run data entry application as a batch edit"
-    ID_SELECT_ITEMS         "Show or hide box draw toolbar\nBox Draw Toolbar"
+    ID_QSF_EDITOR_EDIT_HTML_VISUAL "Edit HTML visually\nEdit HTML Visually"
+    ID_QSF_EDITOR_EDIT_HTML_VISUAL_CODE "Edit HTML code\nEdit HTML Code"
+    ID_QSF_EDITOR_VIEW_QUESTION "View the question text\nView Question Text"
+    ID_QSF_EDITOR_VIEW_HELP "View the help text\nView Help Text"
 END
 
 STRINGTABLE
 BEGIN
+    ID_REPLACE              "Replace"
+    ID_RUNAS_BCH            "Run data entry application as a batch edit"
+    ID_SELECT_ITEMS         "Show or hide box draw toolbar\nBox Draw Toolbar"
     ID_SELITEMS_FROMTB      "Return to tracker mode\nSelect items"
     ID_DRAW_ETCHED          "Draw a box with an etched border\nEtched border"
     ID_DRAW_RAISED          "Draw a box with a raised border\nRaised border"
@@ -1559,7 +1564,6 @@ BEGIN
     ID_DRAW_THICKBOX        "Draw a box with a wide border\nThick border"
     ID_TEXT_DIR_LTR         "Change text direction to left-to-right\nText direction: LTR"
     ID_TEXT_DIR_RTL         "Change text direction to right-to-left\nText direction: RTL"
-    ID_TOGGLE_QN            "Toggle between question and help text\n(this tooltip text is determined dynamically)"
     ID_UNGROUP              "Ungroup the selected item(s)"
     ID_UNGROUP_ITEMS        "Ungroup selected group of items\nUngroup"
     ID_VIEW_FORM            "View the currently selected form\nForm"

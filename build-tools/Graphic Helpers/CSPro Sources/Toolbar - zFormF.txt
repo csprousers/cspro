@@ -31,6 +31,5 @@ TextRight.svg
 BulletList.svg
 OrderedList.svg
 Image.svg
-Question Text Type.png
 View - Logic.png
 View - Question Text.png

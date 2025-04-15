@@ -1,9 +1,9 @@
-Blank.png
+Blank.png                   // style
 Bold.svg
 Italic.svg
 Underline.svg
-Blank.png
-Blank.png
+Blank.png                   // font name
+Blank.png                   // font size
 FontColor.svg
 TextLeft.svg
 TextCenter.svg
@@ -15,6 +15,8 @@ Table.svg
 Link.svg
 Text Direction - LTR.png
 Text Direction - RTL.png
-HTMLEndTag.svg
-QuestionMark.svg
-Blank.png
+HTMLDesignView.svg          // edit HTML
+HTMLEndTag.svg              // edit code
+emoji_u2753.svg             // view question text
+emoji_u2139.svg             // view help text
+Blank.png                   // language

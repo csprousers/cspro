@@ -31,8 +31,6 @@ public:
     void SetLanguage(const Language& language);
     std::string GetLanguageLabel() const;
 
-    BOOL OnUserToolTip(CMFCToolBarButton* pButton, CString& strTTText) const override;
-
 protected:
     DECLARE_MESSAGE_MAP()
 
