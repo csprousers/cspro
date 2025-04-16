@@ -3,7 +3,6 @@
 #include <zUtilF/TextReportDlg.h>
 #include <zFormO/FormFile.h>
 #include <zFormO/FormFileIterator.h>
-#include <zCapiO/CapiName.h>
 
 
 BEGIN_MESSAGE_MAP(CapiMacrosDlg, CDialog)

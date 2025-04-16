@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include <zCapiO/zCapiO.h>
+#include <zCapiO/CapiText.h>
 #include <zHtml/HtmlViewCtrl.h>
 #include <mutex>
 
@@ -8,12 +9,12 @@ class SharedHtmlLocalFileServer;
 class VirtualFileMapping;
 
 
-/////////////////////////////////////////////////////////////////////////////
-// QSFView view
+// --------------------------------------------------------------------------
+// QSFView
 //
-// A form view that displays question text using an HTML control.
-//
-/////////////////////////////////////////////////////////////////////////////
+// A CFormView subclass that displays question text using an HTML control.
+// --------------------------------------------------------------------------
+
 class CLASS_DECL_ZCAPIO QSFView : public CFormView
 {
     DECLARE_DYNCREATE(QSFView)
@@ -26,7 +27,7 @@ public:
 
     void SetUpQuestionTextView(const std::string& application_file_path);
 
-    void SetText(SharableString text, std::optional<PortableColor> background_color = std::nullopt);
+    void SetCapiText(std::optional<CapiText> capi_text, const COLORREF* const background_color);
     void SetStyleCss(std::string css);
 
 protected:
@@ -34,8 +35,8 @@ protected:
 
     void DoDataExchange(CDataExchange* pDX) override;
 
-    afx_msg void OnSize(UINT nType, int cx, int cy);
-    afx_msg void OnDestroy();
+    void OnSize(UINT nType, int cx, int cy);
+    void OnDestroy();
 
     LRESULT OnRefreshQuestionText(WPARAM wParam, LPARAM lParam);
 
@@ -53,7 +54,7 @@ private:
 
     std::string m_backgroundColor;
     std::string m_stylesheet;
-    SharableString m_questionText;
+    std::optional<CapiText> m_capiText;
 
     SharableString m_html;
     std::mutex m_htmlMutex;

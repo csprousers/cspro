@@ -1,6 +1,7 @@
 ﻿#include "StdAfx.h"
 #include "CapiText.h"
 #include <zToolsO/Encoders.h>
+#include <zMarkdown/Markdown.h>
 #include <sstream>
 
 
@@ -78,6 +79,15 @@ namespace
 
         return params;
     }
+}
+
+
+SharableString CapiText::GetHtml(SharableString text) const
+{
+    if( m_format == Format::ReportMarkdown )
+        return Markdown::ToHtml(text.GetString());
+
+    return text;
 }
 
 

@@ -855,7 +855,7 @@ LRESULT CMainFrame::OnSelectLanguage(WPARAM wParam, LPARAM /*lParam*/)
         }
 
         // update the question text
-        SendMessage(UWM::Form::ShowCapiText, reinterpret_cast<WPARAM>(dictionary_based_doc));
+        WindowsDesktopMessage::Send(UWM::Form::ShowCapiText, dictionary_based_doc);
     }
 
     return 1;
@@ -3645,33 +3645,44 @@ std::tuple<CAplDoc*, CDEItemBase*> CMainFrame::GetCapiItemDetails(CFormDoc* pFor
 
 LRESULT CMainFrame::OnShowCapiText(WPARAM wParam, LPARAM /*lParam*/)
 {
-    CFormDoc* pFormDoc = reinterpret_cast<CFormDoc*>(wParam);
-    QSFView* pQTView = (QSFView*)pFormDoc->GetView(FormViewType::QuestionText);
+    CFormDoc* const pFormDoc = reinterpret_cast<CFormDoc*>(wParam);
+    QSFView* const pQTView = assert_cast<QSFView*>(pFormDoc->GetView(FormViewType::QuestionText));
 
-    if (pQTView != nullptr && pQTView->IsWindowVisible())
+    if( pQTView == nullptr || !pQTView->IsWindowVisible() )
+        return 0;
+
+    CAplDoc* pAplDoc;
+    CDEItemBase* item_base;
+    std::tie(pAplDoc, item_base) = GetCapiItemDetails(pFormDoc);
+
+    std::optional<CapiText> capi_text;
+
+    if( item_base != nullptr )
     {
-        CAplDoc* pAplDoc;
-        CDEItemBase* pBase;
-        std::tie(pAplDoc, pBase) = GetCapiItemDetails(pFormDoc);
+        ASSERT(pAplDoc->m_questionManager != nullptr);
+        CapiQuestionManager& question_manager = *pAplDoc->m_questionManager;
 
-        SharableString question_text;
+        const CapiQuestion* const question = question_manager.GetQuestion(CapiName::Create(item_base));
 
-        if( pBase != nullptr )
+        if( question != nullptr && !question->GetConditions().empty() )
         {
-            // use the currently selected dictionary language if possible
-            const auto& pDataDict = pFormDoc->GetFormFile().GetDictionary();
+            // use the currently selected dictionary language where there are multiple languages
+            const CDataDict* const dictionary = pFormDoc->GetFormFile().GetDictionary();
+            ASSERT(dictionary != nullptr);
 
-            if( pDataDict->GetLanguages().size() > 1 )
-                question_text = pAplDoc->GetCapiTextForFirstCondition(pBase, pDataDict->GetCurrentLanguage().GetName());
+            const std::string& language_name = ( dictionary->GetLanguages().size() > 1 ) ? dictionary->GetCurrentLanguage().GetName() :
+                                                                                           pAplDoc->m_questionManager->GetDefaultLanguage().GetName();
 
-            else
-                question_text = pAplDoc->GetCapiTextForFirstCondition(pBase);
+            const CapiText* const matched_capi_text = question->GetConditions().front().GetQuestionText(language_name);
+
+            if( matched_capi_text != nullptr )
+                capi_text = *matched_capi_text;
         }
-
-        pQTView->SetText(std::move(question_text));
     }
 
-    return 0;
+    pQTView->SetCapiText(std::move(capi_text), nullptr);
+
+    return 1;
 }
 
 

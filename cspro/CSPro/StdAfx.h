@@ -39,6 +39,7 @@
 #include <zTableF/TabDoc.h>
 #include <zTableF/TabView.h>
 #include <zTableF/UWM.h>
+#include <zCapiO/CapiName.h>
 #include <zCapiO/CapiQuestionManager.h>
 #include <Zsrcmgro/Compiler.h>
 #include <Zsrcmgro/SrcCode.h>

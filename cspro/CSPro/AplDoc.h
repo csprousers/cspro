@@ -102,7 +102,6 @@ public:
     void ReconcileDictTypes();
     bool FindDictName(const std::string& dictionary_file_path, const std::wstring& sFormName);
     void BuildQuestMgr();
-    SharableString GetCapiTextForFirstCondition(CDEItemBase* item_base, cs::cref_optional<std::string> language_name = std::nullopt);
     void SetCapiTextForAllConditions(CDEItemBase* item_base, SharableString question_text, const std::string& language_name = SO::Empty_string);
     bool IsQHAvailable(const CDEItemBase* item_base);
     bool GetLangInfo(CArray<CLangInfo,CLangInfo&>& arrInfo);

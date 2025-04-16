@@ -56,22 +56,25 @@ SharableString CIntDriver::EvaluateCapiText(const CapiQuestion& question, const 
             return SharableString();
     }
 
+    SharableString evaluated_text = capi_text->GetText();
     const std::vector<CapiFill>& fills_to_replace = capi_text->GetFills();
 
-    if( fills_to_replace.empty() )
-        return capi_text->GetText();
-
-    const std::map<std::string, int>& fill_expressions = question.GetFillExpressions();
-
-    std::map<std::string, SharableString> replacements;
-
-    for( const CapiFill& fill : fills_to_replace )
+    if( !fills_to_replace.empty() )
     {
-        replacements.try_emplace(fill.GetTextToReplace(),
-                                 EvaluateQuestionTextFill(symbol, fill_expressions.at(fill.GetTextToReplace())));
+        const std::map<std::string, int>& fill_expressions = question.GetFillExpressions();
+
+        std::map<std::string, SharableString> replacements;
+
+        for( const CapiFill& fill : fills_to_replace )
+        {
+            replacements.try_emplace(fill.GetTextToReplace(),
+                                     EvaluateQuestionTextFill(symbol, fill_expressions.at(fill.GetTextToReplace())));
+        }
+
+        evaluated_text = capi_text->ReplaceFills(replacements);
     }
 
-    return capi_text->ReplaceFills(replacements);
+    return capi_text->GetHtml(std::move(evaluated_text));
 }
 
 

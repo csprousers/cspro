@@ -2,7 +2,6 @@
 #include "AplDoc.h"
 #include <zUtilO/ArrUtil.h>
 #include <zUtilF/ProgressDlg.h>
-#include <zCapiO/CapiName.h>
 #include <zCapiO/QSFView.h>
 #include <Zentryo/Runaple.h>
 #include <zDesignerF/NewFileCreator.h>
@@ -2135,31 +2134,6 @@ void CAplDoc::BuildQuestMgr()
     m_questionManager->Load(m_application->GetQuestionTextFilePath());
 }
 
-
-/////////////////////////////////////////////////////////////////////////////////
-//
-//  SharableString CAplDoc::GetCapiTextForFirstCondition(CDEField* pField)
-//
-/////////////////////////////////////////////////////////////////////////////////
-SharableString CAplDoc::GetCapiTextForFirstCondition(CDEItemBase* const item_base, cs::cref_optional<std::string> language_name/* = std::nullopt*/)
-{
-    ASSERT(m_questionManager != nullptr);
-
-    const CapiQuestion* const question = m_questionManager->GetQuestion(CapiName::Create(item_base));
-
-    if( question != nullptr && !question->GetConditions().empty() )
-    {
-        if( !language_name.has_value() )
-            language_name = m_questionManager->GetDefaultLanguage().GetName();
-
-        const CapiText* const capi_text = question->GetConditions().front().GetQuestionText(*language_name);
-
-        if( capi_text != nullptr )
-            return capi_text->GetText();
-    }
-
-    return SharableString();
-}
 
 
 /////////////////////////////////////////////////////////////////////////////////

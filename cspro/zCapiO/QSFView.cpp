@@ -26,7 +26,7 @@ QSFView::QSFView()
     m_htmlViewCtrl.SetAcceleratorKeyHandler([this](UINT, UINT key, INT) {
 #ifdef _DEBUG
         // Allow dev tools in debug mode (ctrl+shift+I)
-        return !(key == 'I' && GetKeyState(VK_CONTROL) < 0 && GetKeyState(VK_SHIFT) < 0);
+        return !( key == 'I' && GetKeyState(VK_CONTROL) < 0 && GetKeyState(VK_SHIFT) < 0 );
 #else
         return true;
 #endif
@@ -39,23 +39,24 @@ QSFView::~QSFView()
 }
 
 
-void QSFView::DoDataExchange(CDataExchange* pDX)
+void QSFView::DoDataExchange(CDataExchange* const pDX)
 {
-    CFormView::DoDataExchange(pDX);
+    __super::DoDataExchange(pDX);
+
     DDX_Control(pDX, IDC_HTML_VIEW, m_htmlViewCtrl);
 }
 
 
-void QSFView::OnSize(UINT nType, int cx, int cy)
+void QSFView::OnSize(const UINT nType, const int cx, const int cy)
 {
-    CFormView::OnSize(nType, cx, cy);
+    __super::OnSize(nType, cx, cy);
 
     // resize the HTML control so that it fills up the client window
     if( m_htmlViewCtrl.m_hWnd != nullptr )
     {
-        CRect rcClient;
-        GetClientRect(&rcClient);
-        m_htmlViewCtrl.MoveWindow(rcClient);
+        CRect client_rect;
+        GetClientRect(&client_rect);
+        m_htmlViewCtrl.MoveWindow(client_rect);
     }
 }
 
@@ -89,11 +90,11 @@ void QSFView::SetUpQuestionTextView(const std::string& application_file_path)
 }
 
 
-void QSFView::SetText(SharableString text, const std::optional<PortableColor> background_color/* = std::nullopt*/)
+void QSFView::SetCapiText(std::optional<CapiText> capi_text, const COLORREF* const background_color)
 {
-    m_backgroundColor = background_color.has_value() ? background_color->ToStringRGB() :
-                                                       DefaultBackgroundColor();
-    m_questionText = std::move(text);
+    m_backgroundColor = ( background_color != nullptr ) ? PortableColor::FromCOLORREF(*background_color).ToString() :
+                                                          DefaultBackgroundColor();
+    m_capiText = std::move(capi_text);
     UpdateHtml();
 }
 
@@ -137,7 +138,7 @@ void QSFView::UpdateHtml()
 
     std::string html = SO::Concatenate(Part1_sv, m_stylesheet,
                                        Part2_sv, m_backgroundColor,
-                                       Part3_sv, m_questionText.GetString(),
+                                       Part3_sv, m_capiText.has_value () ? m_capiText->GetHtml().GetString() : SO::Empty_string,
                                        Part4_sv);
 
     std::lock_guard<std::mutex> lock(m_htmlMutex);

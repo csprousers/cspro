@@ -253,19 +253,23 @@ void CFormTreeCtrl::OnSelchanged (NMHDR* pNMHDR, LRESULT* pResult)
             }
         }
 
-        if(bProcessQuestionText)
+        if( bProcessQuestionText )
         {
-            if(bActivate){
+            if( bActivate )
                 pFrame->ActivateFrame();
+
+            if( m_bSendMsg && pFrame->GetViewMode() == FormViewMode )
+            {
+                WindowsDesktopMessage::Send(UWM::Form::ShowCapiText, pDoc);
             }
-            if(m_bSendMsg && pFrame->GetViewMode()==FormViewMode){
-                AfxGetMainWnd()->SendMessage(UWM::Form::ShowCapiText, reinterpret_cast<WPARAM>(pDoc));
-            }
-            else if(m_bSendMsg && pFrame->GetViewMode()==QSFEditorViewMode){
+
+            else if( m_bSendMsg && pFrame->GetViewMode() == QSFEditorViewMode )
+            {
                 pDoc->SetSelectedCapiQuestion(pID);
                 pDoc->UpdateAllViews(nullptr, Hint::CapiEditorUpdateQuestionStyles);
             }
         }
+
     //} moved 6 lines below----Chirag Problem seen in lot of versions...
         CFSourceEditView* pView2 = (CFSourceEditView*)pDoc->GetView(FormViewType::Logic);
         if (pView2 != NULL) {

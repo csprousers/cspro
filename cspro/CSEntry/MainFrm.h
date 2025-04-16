@@ -317,8 +317,6 @@ private:
 
     void ChangeViewCaseStatus(CaseIterationCaseStatus eStatus);
 
-    void SetCapiText(SharableString text, const COLORREF* background_color);
-
 public:
     bool ModifyStarterHelper(NODEINFO* pNodeInfo,CRunAplEntry::ProcessModifyAction eModifyAction);
 

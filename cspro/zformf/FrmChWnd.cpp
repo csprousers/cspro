@@ -884,9 +884,10 @@ void CFormChildWnd::OnViewForm()
     if(!m_pSourceEditView){
         m_eViewMode = FormViewMode;
         DisplayActiveMode();
-        if(m_bUseQuestionText && pDoc->GetFormTreeCtrl()->m_bSendMsg) {
-            AfxGetMainWnd()->SendMessage(UWM::Form::ShowCapiText, reinterpret_cast<WPARAM>(pDoc));
-        }
+
+        if( m_bUseQuestionText && pDoc->GetFormTreeCtrl()->m_bSendMsg )
+            WindowsDesktopMessage::Send(UWM::Form::ShowCapiText, pDoc);
+
         AfxGetMainWnd()->SendMessage(UWM::Designer::ShowToolbar, (WPARAM)FrameType::Form);
         return;
     }
@@ -956,8 +957,8 @@ void CFormChildWnd::OnViewForm()
     if(!pWnd || !pWnd->IsKindOf(RUNTIME_CLASS(CToolBar)))
         return;
 
-    if(m_bUseQuestionText && pDoc->GetFormTreeCtrl()->m_bSendMsg)
-        AfxGetMainWnd()->SendMessage(UWM::Form::ShowCapiText, reinterpret_cast<WPARAM>(pDoc));
+    if( m_bUseQuestionText && pDoc->GetFormTreeCtrl()->m_bSendMsg )
+        WindowsDesktopMessage::Send(UWM::Form::ShowCapiText, pDoc);
 }
 
 

@@ -13,9 +13,15 @@ public:
 
     CapiText(SharableString text = SharableString(), Format format = Format::Html);
 
+    // Returns the raw HTML or Markdown.
     const SharableString& GetText() const { return m_text; }
 
+    // Returns the format.
     Format GetFormat() const { return m_format; }
+
+    // Returns the text as HTML, converting Markdown to HTML.
+    SharableString GetHtml() const { return GetHtml(m_text); }
+    SharableString GetHtml(SharableString text) const;
 
     const std::vector<CapiFill>& GetFills() const;
 
