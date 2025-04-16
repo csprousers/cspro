@@ -30,6 +30,8 @@ public:
     bool IsModified() { return ( m_modified || GetModify() ); }
     virtual void SetModified(bool modified = true);
 
+    void SetTextAndSetSavePoint(cs::string_sz text);
+
     std::string ReturnWordAtCursorPos(Sci_Position pos);
     std::vector<std::string> ReturnWordsAtCursorWithDotNotation(std::optional<Sci_Position> pos = std::nullopt);
 

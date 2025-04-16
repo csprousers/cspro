@@ -14,13 +14,11 @@ protected:
 public:
     TextEditDoc& GetTextEditDoc() { return assert_cast<TextEditDoc&>(*GetDocument()); }
 
-    void SetTextAndSetSavePoint(cs::string_sz text);
-
 protected:
     DECLARE_MESSAGE_MAP()
 
     void OnInitialUpdate() override;
-	void OnActivateView(BOOL bActivate, CView* pActivateView, CView* pDeactiveView) override;
+    void OnActivateView(BOOL bActivate, CView* pActivateView, CView* pDeactiveView) override;
 
     void OnSavePointReached(Scintilla::NotificationData* pSCNotification) override;
     void OnSavePointLeft(Scintilla::NotificationData* pSCNotification) override;

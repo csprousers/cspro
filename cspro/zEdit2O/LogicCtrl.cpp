@@ -176,6 +176,13 @@ void CLogicCtrl::SetModified(bool modified/* = true*/)
 }
 
 
+void CLogicCtrl::SetTextAndSetSavePoint(const cs::string_sz text)
+{
+    SetText(text);
+    SetSavePoint();
+}
+
+
 std::string CLogicCtrl::ReturnWordAtCursorPos(const Sci_Position pos)
 {
     Sci_Position sciCurrentPos = pos;

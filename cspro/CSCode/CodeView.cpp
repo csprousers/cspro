@@ -54,15 +54,6 @@ std::variant<const CDocument*, std::string> CodeView::GetDocumentOrTitleForBuild
 }
 
 
-void CodeView::SetTextAndSetSavePoint(const cs::string_sz text)
-{
-    CLogicCtrl* const logic_ctrl = GetLogicCtrl();
-
-    logic_ctrl->SetText(text);
-    logic_ctrl->SetSavePoint();
-}
-
-
 void CodeView::RefreshLogicControlLexer()
 {
     const LanguageSettings& view_language_settings = GetLanguageSettings();
@@ -102,8 +93,9 @@ void CodeView::OnInitialUpdateWorker(const cs::string_sz initial_text)
     RefreshLogicControlLexer();
 
     // set the text
-    SetTextAndSetSavePoint(initial_text);
-    GetLogicCtrl()->EmptyUndoBuffer();
+    CLogicCtrl* const logic_ctrl = GetLogicCtrl();
+    logic_ctrl->SetTextAndSetSavePoint(initial_text);
+    logic_ctrl->EmptyUndoBuffer();
 }
 
 

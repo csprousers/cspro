@@ -270,7 +270,7 @@ void CodeDoc::ReloadFromDisk()
     try
     {
         m_textSource->ReloadFromDisk();
-        GetPrimaryCodeView().SetTextAndSetSavePoint(m_textSource->GetText());
+        GetPrimaryCodeView().GetLogicCtrl()->SetTextAndSetSavePoint(m_textSource->GetText());
 
         SetModifiedFlag(FALSE);
     }
