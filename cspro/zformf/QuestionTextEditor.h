@@ -30,6 +30,7 @@ public:
     virtual void UpdateFillErrorDisplay(const std::map<std::string, CapiEditorViewModel::SyntaxCheckResult>& fill_syntax_check_results) = 0;
 
     virtual bool HasContent() = 0;
+    virtual SharableString GetContent() = 0;
     virtual void ClearContent() = 0;
     virtual void SetContent(const SharableString& text) = 0;
 
@@ -87,6 +88,7 @@ public:
     void UpdateFillErrorDisplay(const std::map<std::string, CapiEditorViewModel::SyntaxCheckResult>& fill_syntax_check_results) override;
 
     bool HasContent() override;
+    SharableString GetContent() override;
     void ClearContent() override;
     void SetContent(const SharableString& text) override;
 
@@ -134,7 +136,9 @@ public:
     QuestionTextTextEditor();
     ~QuestionTextTextEditor();
 
-    CWnd& GetWnd() override;
+    CLogicCtrl& GetLogicCtrl() { return *m_logicCtrl; }
+
+    CWnd& GetWnd() override { return GetLogicCtrl(); }
 
     void Initialize(CWnd* pParent, const std::string& application_file_path) override;
     void Destroy() override;
@@ -146,6 +150,7 @@ public:
     void UpdateFillErrorDisplay(const std::map<std::string, CapiEditorViewModel::SyntaxCheckResult>& fill_syntax_check_results) override;
 
     bool HasContent() override;
+    SharableString GetContent() override;
     void ClearContent() override;
     void SetContent(const SharableString& text) override;
 
@@ -180,7 +185,7 @@ private:
     int GetLexerLanguage(const Application* application) const;
 
 private:
-    class LogicCtrl;
-    std::unique_ptr<LogicCtrl> m_logicCtrl;
+    class CustomLogicCtrl;
+    std::unique_ptr<CLogicCtrl> m_logicCtrl;
     CapiText::Format m_format;
 };

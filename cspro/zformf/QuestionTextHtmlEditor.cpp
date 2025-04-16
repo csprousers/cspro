@@ -100,6 +100,17 @@ bool QuestionTextHtmlEditor::HasContent()
 }
 
 
+SharableString QuestionTextHtmlEditor::GetContent()
+{
+    SharableString text = m_data->html_editor_ctrl.GetText();
+
+    if( *text == "<p></p>" )
+        return SharableString();
+
+    return text;
+}
+
+
 void QuestionTextHtmlEditor::ClearContent()
 {
     m_data->html_editor_ctrl.Clear();

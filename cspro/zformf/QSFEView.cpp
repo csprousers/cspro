@@ -491,12 +491,7 @@ void CQSFEView::OnChangeHtmlEditor()
 
     if( view_model.CanHaveText() )
     {
-        SharableString text = m_htmlEditor.GetHtmlEditorCtrl().GetText();
-
-        if( *text == "<p></p>" )
-            text.Reset();
-
-        m_currentCapiText = CapiText(std::move(text), CapiText::Format::Html);
+        m_currentCapiText = CapiText(m_htmlEditor.GetContent(), CapiText::Format::Html);
 
         view_model.SetText(m_languageIndex, m_textTypeEditing, m_currentCapiText);
     }
@@ -515,7 +510,7 @@ void CQSFEView::OnChangeTextEditor()
 
     if( view_model.CanHaveText() )
     {
-        m_currentCapiText = CapiText(m_htmlEditor.GetHtmlEditorCtrl().GetText(), m_currentCapiText.GetFormat());
+        m_currentCapiText = CapiText(m_textEditor.GetContent(), m_currentCapiText.GetFormat());
 
         view_model.SetText(m_languageIndex, m_textTypeEditing, m_currentCapiText);
     }

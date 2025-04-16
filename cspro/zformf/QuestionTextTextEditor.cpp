@@ -3,10 +3,10 @@
 
 
 // --------------------------------------------------------------------------
-// QuestionTextTextEditor::LogicCtrl
+// QuestionTextTextEditor::CustomLogicCtrl
 // --------------------------------------------------------------------------
 
-class QuestionTextTextEditor::LogicCtrl : public CLogicCtrl
+class QuestionTextTextEditor::CustomLogicCtrl : public CLogicCtrl
 {
 protected:
     bool ProcessClicksForReferenceWindow() const override { return false; }
@@ -18,12 +18,12 @@ protected:
 };
 
 
-BEGIN_MESSAGE_MAP(QuestionTextTextEditor::LogicCtrl, CLogicCtrl)
+BEGIN_MESSAGE_MAP(QuestionTextTextEditor::CustomLogicCtrl, CLogicCtrl)
     ON_WM_CONTEXTMENU()
 END_MESSAGE_MAP()
 
 
-void QuestionTextTextEditor::LogicCtrl::OnContextMenu(CWnd* const pWnd, const CPoint point)
+void QuestionTextTextEditor::CustomLogicCtrl::OnContextMenu(CWnd* const pWnd, const CPoint point)
 {
     // use CQSFEView's context menu when possible
     CWnd* const pParent = GetParent();
@@ -46,7 +46,7 @@ void QuestionTextTextEditor::LogicCtrl::OnContextMenu(CWnd* const pWnd, const CP
 // --------------------------------------------------------------------------
 
 QuestionTextTextEditor::QuestionTextTextEditor()
-    :   m_logicCtrl(std::make_unique<LogicCtrl>()),
+    :   m_logicCtrl(std::make_unique<CustomLogicCtrl>()),
         m_format(CapiText::Format::ReportMarkdown)
 {
 }
@@ -54,12 +54,6 @@ QuestionTextTextEditor::QuestionTextTextEditor()
 
 QuestionTextTextEditor::~QuestionTextTextEditor()
 {
-}
-
-
-CWnd& QuestionTextTextEditor::GetWnd()
-{
-    return *m_logicCtrl;
 }
 
 
@@ -108,6 +102,12 @@ void QuestionTextTextEditor::UpdateFillErrorDisplay(const std::map<std::string, 
 bool QuestionTextTextEditor::HasContent()
 {
     return ( m_logicCtrl->GetTextLength() > 0 );
+}
+
+
+SharableString QuestionTextTextEditor::GetContent()
+{
+    return m_logicCtrl->GetText();
 }
 
 
