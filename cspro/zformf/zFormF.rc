@@ -458,6 +458,8 @@ BEGIN
     SEPARATOR
     BUTTON      ID_QSF_EDITOR_EDIT_HTML_VISUAL
     BUTTON      ID_QSF_EDITOR_EDIT_HTML_VISUAL_CODE
+    BUTTON      ID_QSF_EDITOR_EDIT_TEXT_HTML
+    BUTTON      ID_QSF_EDITOR_EDIT_TEXT_MARKDOWN
     SEPARATOR
     BUTTON      ID_QSF_EDITOR_VIEW_QUESTION
     BUTTON      ID_QSF_EDITOR_VIEW_HELP
@@ -885,11 +887,12 @@ BEGIN
     LTEXT           "Current Font:  ",IDC_FIELD_FONT_DESC,66,10,213,8
 END
 
-IDD_QSF_EDIT_VIEW DIALOGEX 0, 0, 38, 21
+IDD_QSF_EDIT_VIEW DIALOGEX 0, 0, 95, 28
 STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_BORDER
 FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
-    CONTROL         "",IDC_HTML_EDIT,"Static",SS_BLACKRECT | SS_NOPREFIX | SS_NOTIFY | SS_SUNKEN | WS_BORDER,7,7,23,12
+    CONTROL         "",IDC_HTML_EDIT,"Static",SS_BLACKRECT | SS_NOPREFIX | SS_NOTIFY | SS_SUNKEN | WS_BORDER,0,0,43,28
+    EDITTEXT        IDC_QSF_LOGIC_CONTROL,52,0,43,28,ES_MULTILINE | WS_VSCROLL
 END
 
 IDD_RUNASB_DLG DIALOGEX 0, 0, 160, 73
@@ -1201,10 +1204,8 @@ BEGIN
 
     IDD_QSF_EDIT_VIEW, DIALOG
     BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 31
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 14
+        RIGHTMARGIN, 38
+        BOTTOMMARGIN, 21
     END
 
     IDD_RUNASB_DLG, DIALOG
@@ -1492,6 +1493,11 @@ BEGIN
     0
 END
 
+IDD_QSF_EDIT_VIEW AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -1515,7 +1521,25 @@ END
 
 STRINGTABLE
 BEGIN
+    ID_EDIT_TEXTPROP        "Edit the properties for the selected text\nText Properties"
+    ID_FIELDCOLORS          "Change the background color of fields during data entry\nField Colors"
+    ID_FIELDFONT            "Change field font"
+    ID_FILE_GENERATEBINARY  "Save data entry application in binary format\nGenerate Binary"
+    ID_FILE_PUBLISHANDDEPLOY 
+                            "Deploy application to synchronization service\nPublish and Deploy"
+    ID_FIND_NEXT            "Find Next\n Find Next"
+    ID_FORMAT_ALIGN_LEFT    "Left justify this paragraph\nLeft"
+    ID_FORMAT_ALIGN_CENTER  "Center this paragraph\nCenter"
+    ID_FORMAT_ALIGN_RIGHT   "Right justify this paragraph\nRight"
+    ID_FORMAT_BOLD          "Make the selection bold (toggle)\nBold"
+    ID_FORMAT_COLOR         "Make the selection a specified color\nColor"
+    ID_FORMAT_ITALIC        "Make the selection italic (toggle)\nItalic"
+    ID_FORMAT_OUTLINE_BULLET "Use bullets for this paragraph\nBullets"
     ID_FORMAT_OUTLINE_NUM   "Use numbering for this paragraph\nNumbered"
+END
+
+STRINGTABLE
+BEGIN
     ID_FORMAT_OUTLINE_NUMBER "Use numbering for this paragraph\nNumbering"
     ID_FORMAT_UNDERLINE     "Make the selection underline (toggle)\nUnderline"
     ID_FRM_EDIT_FIND        "Find the specified text\nFind"
@@ -1532,12 +1556,12 @@ BEGIN
                             "Line up selected items to the horizontal center of selection"
     ID_LAYOUT_HORIZONTALLY_SPACE_EVENLY 
                             "Space evenly horizontally selected items within selection"
+    ID_LAYOUT_VERTICALLY_SPACE_EVENLY 
+                            "Space evenly vertically selected items within selection"
 END
 
 STRINGTABLE
 BEGIN
-    ID_LAYOUT_VERTICALLY_SPACE_EVENLY 
-                            "Space evenly vertically selected items within selection"
     ID_LAYOUT_VERTICALLY_CENTER 
                             "Line up selected items to the vertical center of selection"
     ID_OPTIONS_DATA_SOURCES "Change data source options"
@@ -1547,6 +1571,9 @@ BEGIN
     ID_QSF_EDITOR           "View currently-selected CAPI Questions\nCAPI Questions"
     ID_QSF_EDITOR_EDIT_HTML_VISUAL "Edit HTML visually\nEdit HTML Visually"
     ID_QSF_EDITOR_EDIT_HTML_VISUAL_CODE "Edit HTML code\nEdit HTML Code"
+    ID_QSF_EDITOR_EDIT_TEXT_HTML "Edit as HTML report\nEdit as HTML Report"
+    ID_QSF_EDITOR_EDIT_TEXT_MARKDOWN 
+                            "Edit as Markdown report\nEdit as Markdown Report"
     ID_QSF_EDITOR_VIEW_QUESTION "View the question text\nView Question Text"
     ID_QSF_EDITOR_VIEW_HELP "View the help text\nView Help Text"
 END
@@ -1580,24 +1607,6 @@ BEGIN
     ID_EDIT_INSERT_IMAGE    "Insert an image from a file\nImage"
     ID_EDIT_LEVELPROP       "Level Properties \n Level Properties"
     ID_EDIT_OPTIONS         "Change options for the data entry application"
-END
-
-STRINGTABLE
-BEGIN
-    ID_EDIT_TEXTPROP        "Edit the properties for the selected text\nText Properties"
-    ID_FIELDCOLORS          "Change the background color of fields during data entry\nField Colors"
-    ID_FIELDFONT            "Change field font"
-    ID_FILE_GENERATEBINARY  "Save data entry application in binary format\nGenerate Binary"
-    ID_FILE_PUBLISHANDDEPLOY 
-                            "Deploy application to synchronization service\nPublish and Deploy"
-    ID_FIND_NEXT            "Find Next\n Find Next"
-    ID_FORMAT_ALIGN_LEFT    "Left justify this paragraph\nLeft"
-    ID_FORMAT_ALIGN_CENTER  "Center this paragraph\nCenter"
-    ID_FORMAT_ALIGN_RIGHT   "Right justify this paragraph\nRight"
-    ID_FORMAT_BOLD          "Make the selection bold (toggle)\nBold"
-    ID_FORMAT_COLOR         "Make the selection a specified color\nColor"
-    ID_FORMAT_ITALIC        "Make the selection italic (toggle)\nItalic"
-    ID_FORMAT_OUTLINE_BULLET "Use bullets for this paragraph\nBullets"
 END
 
 STRINGTABLE

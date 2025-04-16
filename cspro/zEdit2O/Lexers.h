@@ -168,7 +168,6 @@ public:
     }
 
 
-private:
     template<typename T>
     static bool UseV8_0Lexers(const T& application_or_logic_settings_or_version)
     {

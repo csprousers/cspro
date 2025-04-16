@@ -157,11 +157,13 @@ void CapiText::serialize(Serializer& ar)
 {
     if( ar.PredatesVersionIteration(Serializer::Iteration_8_1_000_1) )
     {
+        ASSERT(m_format == Format::Html);
         ar & m_text.MakeModifiable();
     }
 
     else
     {
         ar & m_text;
+        ar.SerializeEnum(m_format);
     }
 }

@@ -30,7 +30,7 @@ public:
     bool CanHaveText() const { return ( m_item != nullptr ); }
 
     CapiText GetText(size_t language_index, CapiText::Type type);
-    void SetText(size_t language_index, CapiText::Type type, SharableString new_text);
+    void SetText(size_t language_index, CapiText::Type type, CapiText capi_text);
 
     void SetCondition(int condition_index, std::string logic);
     void DeleteCondition(int condition_index);

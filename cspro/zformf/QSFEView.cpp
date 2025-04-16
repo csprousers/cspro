@@ -5,10 +5,7 @@
 #include <zUtilO/BCMenu.h>
 #include <zUtilF/ImageFileDialog.h>
 #include <zHtml/InsertLinkDlg.h>
-#include <zCapiO/CapiLogicParameters.h>
 #include <zCapiO/CapiQuestionManager.h>
-#include <zCapiO/CapiStyle.h>
-#include <zCapiO/CapiText.h>
 
 
 namespace
@@ -31,8 +28,11 @@ BEGIN_MESSAGE_MAP(CQSFEView, CFormView)
     ON_COMMAND(ID_VIEW_LOGIC, OnViewLogic)
     ON_COMMAND(ID_TOGGLE_QSF_SECOND_VIEW, OnToggleSecondView)
 
-    ON_EN_CHANGE(IDC_HTML_EDIT, OnChangeHtmlEdit)
-    ON_EN_SETFOCUS(IDC_HTML_EDIT, OnSetFocusHtmlEdit)
+    ON_EN_SETFOCUS(IDC_HTML_EDIT, OnSetFocusEditor)
+    ON_EN_CHANGE(IDC_HTML_EDIT, OnChangeHtmlEditor)
+
+    ON_EN_SETFOCUS(IDC_QSF_LOGIC_CONTROL, OnSetFocusEditor)
+    ON_EN_CHANGE(IDC_QSF_LOGIC_CONTROL, OnChangeTextEditor)
 
     ON_COMMAND(ID_EDIT_COPY, OnEditCopy)
     ON_UPDATE_COMMAND_UI(ID_EDIT_COPY, OnUpdateEditCopy)
@@ -96,8 +96,8 @@ BEGIN_MESSAGE_MAP(CQSFEView, CFormView)
     ON_COMMAND(ID_TEXT_DIR_LTR, OnChangeTextDirectionLeftToRight)
     ON_UPDATE_COMMAND_UI(ID_TEXT_DIR_LTR, OnUpdateIsActiveEditorVisualHtml)
 
-    ON_COMMAND_RANGE(ID_QSF_EDITOR_EDIT_HTML_VISUAL, ID_QSF_EDITOR_EDIT_HTML_VISUAL_CODE, OnChangeEditorType)
-    ON_UPDATE_COMMAND_UI_RANGE(ID_QSF_EDITOR_EDIT_HTML_VISUAL, ID_QSF_EDITOR_EDIT_HTML_VISUAL_CODE, OnUpdateChangeEditorType)
+    ON_COMMAND_RANGE(ID_QSF_EDITOR_EDIT_HTML_VISUAL, ID_QSF_EDITOR_EDIT_TEXT_MARKDOWN, OnChangeEditorType)
+    ON_UPDATE_COMMAND_UI_RANGE(ID_QSF_EDITOR_EDIT_HTML_VISUAL, ID_QSF_EDITOR_EDIT_TEXT_MARKDOWN, OnUpdateChangeEditorType)
 
     ON_COMMAND_RANGE(ID_QSF_EDITOR_VIEW_QUESTION, ID_QSF_EDITOR_VIEW_HELP, OnViewQuestionHelpText)
     ON_UPDATE_COMMAND_UI_RANGE(ID_QSF_EDITOR_VIEW_QUESTION, ID_QSF_EDITOR_VIEW_HELP, OnUpdateViewQuestionHelpText)
@@ -110,9 +110,9 @@ END_MESSAGE_MAP()
 
 CQSFEView::CQSFEView(CFormDoc* const pFormDoc)
     :   CFormView(IDD_QSF_EDIT_VIEW),
-        m_editors{ &m_htmlEditor },
+        m_editors{ &m_htmlEditor, &m_textEditor },
         m_currentEditor(&m_htmlEditor),
-        m_textType(CapiText::Type::Question),
+        m_textTypeEditing(CapiText::Type::Question),
         m_languageIndex(0)
 {
     ASSERT(pFormDoc != nullptr);
@@ -137,6 +137,7 @@ void CQSFEView::DoDataExchange(CDataExchange* const pDX)
     __super::DoDataExchange(pDX);
 
     DDX_Control(pDX, IDC_HTML_EDIT, m_htmlEditor.GetWnd());
+    DDX_Control(pDX, IDC_QSF_LOGIC_CONTROL, m_textEditor.GetWnd());
 }
 
 
@@ -144,8 +145,12 @@ void CQSFEView::OnInitialUpdate()
 {
     __super::OnInitialUpdate();
 
+    // show the HTML editor by default
+    ASSERT(m_currentEditor == &m_htmlEditor),
+    m_textEditor.GetWnd().ShowWindow(SW_HIDE);
+
     for( QuestionTextEditor* const editor : m_editors )
-        editor->Initialize(m_application, m_applicationFilePath);
+        editor->Initialize(this, m_applicationFilePath);
 }
 
 
@@ -243,7 +248,10 @@ void CQSFEView::OnContextMenu(CWnd* /*pWnd*/, const CPoint point)
     popup_menu.AppendMenu(MF_STRING | ( m_currentEditor->CanCut() ? MF_ENABLED : MF_GRAYED ), ID_EDIT_CUT, L"Cu&t\tCtrl+X");
     popup_menu.AppendMenu(MF_STRING | ( m_currentEditor->CanCopy() ? MF_ENABLED : MF_GRAYED ), ID_EDIT_COPY, L"&Copy\tCtrl+C");
     popup_menu.AppendMenu(MF_STRING | ( m_currentEditor->CanPaste() ? MF_ENABLED : MF_GRAYED ), ID_EDIT_PASTE, L"&Paste\tCtrl+V");
-    popup_menu.AppendMenu(MF_STRING | ( m_currentEditor->CanPaste() ? MF_ENABLED : MF_GRAYED ), ID_EDIT_PASTE_WITHOUT_FORMATTING, L"Paste &Without formatting\tCtrl+Shift+V");
+
+    if( IsActiveEditorVisualHtml() )
+        popup_menu.AppendMenu(MF_STRING | ( m_currentEditor->CanPaste() ? MF_ENABLED : MF_GRAYED ), ID_EDIT_PASTE_WITHOUT_FORMATTING, L"Paste &Without formatting\tCtrl+Shift+V");
+
     popup_menu.AppendMenu(MF_SEPARATOR);
     popup_menu.AppendMenu(MF_STRING | ( m_currentEditor->HasContent() ? MF_ENABLED : MF_GRAYED ), ID_EDIT_SELECT_ALL, L"Select &All");
     popup_menu.AppendMenu(MF_SEPARATOR);
@@ -275,7 +283,7 @@ void CQSFEView::OnTimer(const UINT nIDEvent)
     if( !view_model.CanHaveText() )
         return;
 
-    CapiText text = view_model.GetText(m_languageIndex, m_textType);
+    CapiText text = view_model.GetText(m_languageIndex, m_textTypeEditing);
     bool updated = false;
 
     for( const CapiFill& fill : text.GetFills() )
@@ -329,10 +337,9 @@ void CQSFEView::SetStyles(const std::vector<CapiStyle>& styles)
     for( const CapiStyle& style : styles )
         editor_styles.emplace_back(HtmlEditorCtrl::Style{ "span", style.name, style.class_name, style.css });
 
-    for( QuestionTextEditor* const editor : m_editors )
-        editor->SetStyles(editor_styles);
-
     m_toolbar.SetStyles(editor_styles);
+
+    m_htmlEditor.GetHtmlEditorCtrl().SetStyles(std::move(editor_styles));
 }
 
 
@@ -348,6 +355,27 @@ CFormDoc* CQSFEView::GetFormDoc()
 }
 
 
+void CQSFEView::SetCorrectEditor()
+{
+    QuestionTextEditor* const correct_editor =
+        ( m_currentCapiText.GetFormat() == CapiText::Format::Html ) ? static_cast<QuestionTextEditor*>(&m_htmlEditor) :
+                                                                      static_cast<QuestionTextEditor*>(&m_textEditor);
+
+    if( m_currentEditor != correct_editor )
+    {
+        m_currentEditor->GetWnd().ShowWindow(SW_HIDE);
+
+        m_currentEditor = correct_editor;
+
+        CWnd& wnd = m_currentEditor->GetWnd();
+        wnd.ShowWindow(SW_SHOW);
+        wnd.EnableWindow();
+    }
+
+    m_currentEditor->UpdateForFormat(m_application, m_currentCapiText.GetFormat());
+}
+
+
 void CQSFEView::UpdateDisplayText()
 {
     CFormDoc* const form_doc = GetFormDoc();
@@ -358,16 +386,17 @@ void CQSFEView::UpdateDisplayText()
         EnableWindow(TRUE);
         m_currentEditor->GetWnd().EnableWindow(TRUE);
 
-        const CapiText& capi_text = view_model.GetText(m_languageIndex, m_textType);
+        m_currentCapiText = view_model.GetText(m_languageIndex, m_textTypeEditing);
+        SetCorrectEditor();
 
-        if( capi_text.GetText()->empty() )
+        if( m_currentCapiText.GetText()->empty() )
         {
             m_currentEditor->ClearContent();
         }
 
         else
         {
-            m_currentEditor->SetContent(capi_text.GetText().GetString());
+            m_currentEditor->SetContent(m_currentCapiText.GetText().GetString());
 
             StartIdleTimer();
         }
@@ -443,7 +472,16 @@ void CQSFEView::OnToggleSecondView()
 }
 
 
-void CQSFEView::OnChangeHtmlEdit()
+void CQSFEView::OnSetFocusEditor()
+{
+    // Make this the active view - this ensures that menu selections (undo, cut, paste...)
+    // will be routed to this view
+    GetParentFrame()->SetActiveView(this);
+    GetDocument()->UpdateAllViews(nullptr, Hint::CapiEditorUpdateStyles);
+}
+
+
+void CQSFEView::OnChangeHtmlEditor()
 {
     ASSERT(m_currentEditor == &m_htmlEditor);
 
@@ -452,18 +490,37 @@ void CQSFEView::OnChangeHtmlEdit()
     CapiEditorViewModel& view_model = form_doc->GetCapiEditorViewModel();
 
     if( view_model.CanHaveText() )
-        view_model.SetText(m_languageIndex, m_textType, m_htmlEditor.GetHtmlEditorCtrl().GetText());
+    {
+        SharableString text = m_htmlEditor.GetHtmlEditorCtrl().GetText();
+
+        if( *text == "<p></p>" )
+            text.Reset();
+
+        m_currentCapiText = CapiText(std::move(text), CapiText::Format::Html);
+
+        view_model.SetText(m_languageIndex, m_textTypeEditing, m_currentCapiText);
+    }
 
     StartIdleTimer();
 }
 
 
-void CQSFEView::OnSetFocusHtmlEdit()
+void CQSFEView::OnChangeTextEditor()
 {
-    // Make this the active view - this ensures that menu selections (undo, cut, paste...)
-    // will be routed to this view
-    GetParentFrame()->SetActiveView(this);
-    GetDocument()->UpdateAllViews(nullptr, Hint::CapiEditorUpdateStyles);
+    ASSERT(m_currentEditor == &m_textEditor);
+
+    // Text changed in text editor - update it in document
+    CFormDoc* const form_doc = GetFormDoc();
+    CapiEditorViewModel& view_model = form_doc->GetCapiEditorViewModel();
+
+    if( view_model.CanHaveText() )
+    {
+        m_currentCapiText = CapiText(m_htmlEditor.GetHtmlEditorCtrl().GetText(), m_currentCapiText.GetFormat());
+
+        view_model.SetText(m_languageIndex, m_textTypeEditing, m_currentCapiText);
+    }
+
+    StartIdleTimer();
 }
 
 
@@ -476,7 +533,8 @@ bool CQSFEView::IsActiveEditorVisualHtml()
 
 bool CQSFEView::IsActiveEditorAcceptingVisualStyles()
 {
-    return IsActiveEditorVisualHtml();
+    return ( m_currentEditor == &m_textEditor ||
+             !m_htmlEditor.GetHtmlEditorCtrl().GetCodeViewShowing() );
 }
 
 
@@ -524,6 +582,8 @@ void CQSFEView::OnEditPaste()
 
 void CQSFEView::OnEditPasteWithoutFormatting()
 {
+    ASSERT(IsActiveEditorVisualHtml());
+
     m_currentEditor->Paste(false);
 }
 
@@ -810,29 +870,49 @@ void CQSFEView::OnChangeTextDirectionLeftToRight()
 
 void CQSFEView::OnChangeEditorType(const UINT nID)
 {
-    ASSERT(m_currentEditor == &m_htmlEditor);
+    const bool use_html_code_view = ( nID == ID_QSF_EDITOR_EDIT_HTML_VISUAL_CODE );
+    const bool use_html_editor = ( use_html_code_view || nID == ID_QSF_EDITOR_EDIT_HTML_VISUAL );
 
-    HtmlEditorCtrl& html_editor_ctrl = m_htmlEditor.GetHtmlEditorCtrl();
-    const bool edit_html_code = ( nID == ID_QSF_EDITOR_EDIT_HTML_VISUAL_CODE );
+    // handle the easy case of toggling the HTML editor's code view
+    if( use_html_editor && m_currentEditor == &m_htmlEditor )
+    {
+        HtmlEditorCtrl& html_editor_ctrl = m_htmlEditor.GetHtmlEditorCtrl();
 
-    if( edit_html_code != html_editor_ctrl.GetCodeViewShowing() )
-        html_editor_ctrl.ToggleCodeView();
+        if( use_html_code_view != html_editor_ctrl.GetCodeViewShowing() )
+            html_editor_ctrl.ToggleCodeView();
+
+        return;
+    }
+
+    // MARKDOWN_TODO
 }
 
 
 void CQSFEView::OnUpdateChangeEditorType(CCmdUI* const pCmdUI)
 {
-    ASSERT(m_currentEditor == &m_htmlEditor);
-
     bool check = ( pCmdUI->m_pOther == &m_toolbar &&
                    GetFormDoc()->GetCapiEditorViewModel().CanHaveText() );
 
     if( check )
     {
-        HtmlEditorCtrl& html_editor_ctrl = m_htmlEditor.GetHtmlEditorCtrl();
-        const bool edit_html_code = ( pCmdUI->m_nID == ID_QSF_EDITOR_EDIT_HTML_VISUAL_CODE );
+        switch( pCmdUI->m_nID )
+        {
+            case ID_QSF_EDITOR_EDIT_HTML_VISUAL:
+                check = ( m_currentEditor == &m_htmlEditor && !m_htmlEditor.GetHtmlEditorCtrl().GetCodeViewShowing() );
+                break;
 
-        check = ( edit_html_code == html_editor_ctrl.GetCodeViewShowing() );
+            case ID_QSF_EDITOR_EDIT_HTML_VISUAL_CODE:
+                check = ( m_currentEditor == &m_htmlEditor && m_htmlEditor.GetHtmlEditorCtrl().GetCodeViewShowing() );
+                break;
+
+            case ID_QSF_EDITOR_EDIT_TEXT_HTML:
+                check = ( m_currentCapiText.GetFormat() == CapiText::Format::ReportHtml );
+                break;
+
+            case ID_QSF_EDITOR_EDIT_TEXT_MARKDOWN:
+                check = ( m_currentCapiText.GetFormat() == CapiText::Format::ReportMarkdown );
+                break;
+        }
     }
 
     pCmdUI->Enable();
@@ -859,9 +939,9 @@ void CQSFEView::OnViewQuestionHelpText(const UINT nID)
 {
     const CapiText::Type this_text_type = ConvertResourceId<CapiText::Type>(nID);
 
-    if( m_textType != this_text_type )
+    if( m_textTypeEditing != this_text_type )
     {
-        m_textType = this_text_type;
+        m_textTypeEditing = this_text_type;
         UpdateDisplayText();
     }
 }
@@ -871,7 +951,7 @@ void CQSFEView::OnUpdateViewQuestionHelpText(CCmdUI* const pCmdUI)
 {
     const bool check = ( pCmdUI->m_pOther == &m_toolbar &&
                          GetFormDoc()->GetCapiEditorViewModel().CanHaveText() &&
-                         m_textType == ConvertResourceId<CapiText::Type>(pCmdUI->m_nID) );
+                         m_textTypeEditing == ConvertResourceId<CapiText::Type>(pCmdUI->m_nID) );
 
     pCmdUI->Enable();
     pCmdUI->SetCheck(check);

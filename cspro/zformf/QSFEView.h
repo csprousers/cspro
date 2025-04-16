@@ -51,8 +51,10 @@ protected:
     void OnViewLogic();
     void OnToggleSecondView();
 
-    void OnChangeHtmlEdit();
-    void OnSetFocusHtmlEdit();
+    void OnSetFocusEditor();
+
+    void OnChangeHtmlEditor();
+    void OnChangeTextEditor();
 
     void OnUpdateIsActiveEditorVisualHtml(CCmdUI* pCmdUI);
     void OnUpdateIsActiveEditorAcceptingVisualStyles(CCmdUI* pCmdUI);
@@ -121,6 +123,8 @@ protected:
 private:
     CFormDoc* GetFormDoc();
 
+    void SetCorrectEditor();
+
     void UpdateDisplayText();
     void UpdateToolbar();
 
@@ -135,7 +139,8 @@ private:
 
 private:
     QuestionTextHtmlEditor m_htmlEditor;
-    std::vector<QuestionTextHtmlEditor*> m_editors;
+    QuestionTextTextEditor m_textEditor;
+    std::vector<QuestionTextEditor*> m_editors;
     QuestionTextEditor* m_currentEditor;
     QSFEditToolbar m_toolbar;
 
@@ -143,7 +148,8 @@ private:
     std::string m_applicationFilePath;
     std::vector<Language> m_languages;
     size_t m_languageIndex;
-    CapiText::Type m_textType;
+    CapiText::Type m_textTypeEditing;
+    CapiText m_currentCapiText;
     std::optional<UINT_PTR> m_idleTimer;
 
     std::map<std::string, CapiEditorViewModel::SyntaxCheckResult> m_fillSyntaxCheckResults;

@@ -9,6 +9,7 @@
 // An interface for question text editors. Subclasses include:
 //
 //     - QuestionTextHtmlEditor: a wrapper around HtmlViewCtrl.
+//     - QuestionTextTextEditor: a wrapper around CLogicCtrl.
 //
 // --------------------------------------------------------------------------
 
@@ -19,10 +20,10 @@ public:
 
     virtual CWnd& GetWnd() = 0;
 
-    virtual void Initialize(Application* application, const std::string& application_file_path) = 0;
+    virtual void Initialize(CWnd* pParent, const std::string& application_file_path) = 0;
     virtual void Destroy() = 0;
 
-    virtual void SetStyles(const std::vector<HtmlEditorCtrl::Style>& editor_styles) = 0;
+    virtual void UpdateForFormat(const Application* application, CapiText::Format format) = 0;
 
     virtual bool IsDirty() = 0;
 
@@ -76,10 +77,10 @@ public:
 
     CWnd& GetWnd() override { return GetHtmlEditorCtrl(); }
 
-    void Initialize(Application* application, const std::string& application_file_path) override;
+    void Initialize(CWnd* pParent, const std::string& application_file_path) override;
     void Destroy() override;
 
-    void SetStyles(const std::vector<HtmlEditorCtrl::Style>& editor_styles) override;
+    void UpdateForFormat(const Application* application, CapiText::Format format) override;
 
     bool IsDirty() override;
 
@@ -119,4 +120,67 @@ public:
 private:
     struct Data;
     std::unique_ptr<Data> m_data;
+};
+
+
+
+// --------------------------------------------------------------------------
+// QuestionTextTextEditor
+// --------------------------------------------------------------------------
+
+class QuestionTextTextEditor : public QuestionTextEditor
+{
+public:
+    QuestionTextTextEditor();
+    ~QuestionTextTextEditor();
+
+    CWnd& GetWnd() override;
+
+    void Initialize(CWnd* pParent, const std::string& application_file_path) override;
+    void Destroy() override;
+
+    void UpdateForFormat(const Application* application, CapiText::Format format) override;
+
+    bool IsDirty() override;
+
+    void UpdateFillErrorDisplay(const std::map<std::string, CapiEditorViewModel::SyntaxCheckResult>& fill_syntax_check_results) override;
+
+    bool HasContent() override;
+    void ClearContent() override;
+    void SetContent(const SharableString& text) override;
+
+    void Copy() override;
+    bool CanCopy() override;
+
+    void Cut() override;
+    bool CanCut() override;
+
+    void Paste(bool with_formatting) override;
+    bool CanPaste() override;
+
+    void SelectAll() override;
+
+    void Undo() override;
+    void Redo() override;
+
+    void Bold() override;
+    void Italic() override;
+    void Underline() override;
+
+    void SetForeColor(COLORREF color) override;
+
+    void UnorderedList() override;
+    void OrderedList() override;
+
+    void InsertImage(const std::string& image_url) override;
+    void InsertTable(int rows, int columns) override;
+    void InsertLink(const std::string& text, const std::string& url) override;
+
+private:
+    int GetLexerLanguage(const Application* application) const;
+
+private:
+    class LogicCtrl;
+    std::unique_ptr<LogicCtrl> m_logicCtrl;
+    CapiText::Format m_format;
 };

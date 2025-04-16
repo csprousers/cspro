@@ -30,7 +30,7 @@ HtmlEditorCtrl& QuestionTextHtmlEditor::GetHtmlEditorCtrl()
 }
 
 
-void QuestionTextHtmlEditor::Initialize(Application* /*application*/, const std::string& application_file_path)
+void QuestionTextHtmlEditor::Initialize(CWnd* /*pParent*/, const std::string& application_file_path)
 {
     // to make relative paths in the question text work, the HTML editor must
     // appear as if it exists in the application directory; we will load the
@@ -68,9 +68,9 @@ void QuestionTextHtmlEditor::Destroy()
 }
 
 
-void QuestionTextHtmlEditor::SetStyles(const std::vector<HtmlEditorCtrl::Style>& editor_styles)
+void QuestionTextHtmlEditor::UpdateForFormat(const Application* /*application*/, const CapiText::Format format)
 {
-    m_data->html_editor_ctrl.SetStyles(editor_styles);
+    ASSERT(format == CapiText::Format::Html);
 }
 
 

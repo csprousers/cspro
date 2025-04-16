@@ -120,6 +120,9 @@
     <ClCompile Include="QuestionTextHtmlEditor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="QuestionTextTextEditor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="RunAsBatchDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

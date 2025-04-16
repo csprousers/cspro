@@ -101,6 +101,7 @@
     <ClCompile Include="QSFEditToolBarComboBoxButtons.cpp" />
     <ClCompile Include="QSFEView.cpp" />
     <ClCompile Include="QuestionTextHtmlEditor.cpp" />
+    <ClCompile Include="QuestionTextTextEditor.cpp" />
     <ClCompile Include="RunAsBatchDlg.cpp" />
     <ClCompile Include="StdAfx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
