@@ -286,6 +286,7 @@ void CQSFEView::OnTimer(const UINT nIDEvent)
     CapiText text = view_model.GetText(m_languageIndex, m_textTypeEditing);
     bool updated = false;
 
+#ifdef MARKDOWN_TODO
     for( const CapiFill& fill : text.GetFills() )
     {
         SharableString fill_text(fill.GetTextToEvaluate_sv());
@@ -297,6 +298,7 @@ void CQSFEView::OnTimer(const UINT nIDEvent)
             updated = true;
         }
     }
+#endif
 
     if( updated )
         m_currentEditor->UpdateFillErrorDisplay(m_fillSyntaxCheckResults);

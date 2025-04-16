@@ -20,8 +20,7 @@ public:
     std::vector<CapiCondition>& GetConditions()             { return m_conditions; }
     void SetCondition(CapiCondition condition);
 
-    const std::map<std::string, int>& GetFillExpressions() const         { return m_fillExpressions; }
-    void SetFillExpressions(std::map<std::string, int> fill_expressions) { m_fillExpressions = std::move(fill_expressions); }
+    const std::map<std::string, int>* GetPre81FillExpressions() const { return m_pre81FillExpressions.get(); }
 
     void WriteJson(JsonWriter& json_writer) const;
     void serialize(Serializer& ar);
@@ -29,5 +28,5 @@ public:
 private:
     std::string m_itemName;
     std::vector<CapiCondition> m_conditions;
-    std::map<std::string, int> m_fillExpressions;
+    std::shared_ptr<std::map<std::string, int>> m_pre81FillExpressions;
 };

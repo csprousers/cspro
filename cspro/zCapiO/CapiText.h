@@ -1,7 +1,6 @@
 ﻿#pragma once
 
 #include <zCapiO/zCapiO.h>
-#include <zCapiO/CapiFill.h>
 
 
 class CLASS_DECL_ZCAPIO CapiText
@@ -20,23 +19,19 @@ public:
     Format GetFormat() const { return m_format; }
 
     // Returns the text as HTML, converting Markdown to HTML.
-    SharableString GetHtml() const { return GetHtml(m_text); }
-    SharableString GetHtml(SharableString text) const;
+    SharableString GetHtml() const;
 
-    const std::vector<CapiFill>& GetFills() const;
-
-    std::string ReplaceFills(const std::map<std::string, SharableString>& replacements) const;
+    // Returns or sets the program index for evaluating the question text.
+    int GetProgramIndex() const             { return m_programIndex; }
+    void SetProgramIndex(int program_index) { m_programIndex = program_index; }
 
     void WriteJson(JsonWriter& json_writer) const;
     void serialize(Serializer& ar);
 
 private:
-    static std::string ReplaceFills(std::string_view text_sv, const std::map<std::string, SharableString>& replacements);
-
-private:
     SharableString m_text;
     Format m_format;
-    mutable std::shared_ptr<std::vector<CapiFill>> m_params;
+    int m_programIndex;
 };
 
 
@@ -47,12 +42,7 @@ private:
 
 inline CapiText::CapiText(SharableString text/* = SharableString()*/, const Format format/* = Format::Html*/)
     :   m_text(std::move(text)),
-        m_format(format)
+        m_format(format),
+        m_programIndex(-1)
 {
-}
-
-
-inline std::string CapiText::ReplaceFills(const std::map<std::string, SharableString>& replacements) const
-{
-    return ReplaceFills(*m_text, replacements);
 }

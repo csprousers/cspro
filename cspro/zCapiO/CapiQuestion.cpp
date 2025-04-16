@@ -45,6 +45,12 @@ void CapiQuestion::WriteJson(JsonWriter& json_writer) const
 void CapiQuestion::serialize(Serializer& ar)
 {
     ar & m_itemName
-       & m_conditions
-       & m_fillExpressions;
+       & m_conditions;
+
+    if( ar.PredatesVersionIteration(Serializer::Iteration_8_1_000_1) )
+    {
+        ASSERT(ar.IsLoading() && m_pre81FillExpressions == nullptr);
+        m_pre81FillExpressions = std::make_unique<std::map<std::string, int>>();
+        ar >> *m_pre81FillExpressions;
+    }
 }

@@ -184,7 +184,10 @@ namespace YAML
                 rhs.m_conditions = node["conditions"].as<std::vector<CapiCondition>>();
 
             if( node["fillExpressions"] )
-                rhs.m_fillExpressions = node["fillExpressions"].as<std::map<std::string, int>>();
+            {
+                ASSERT(rhs.m_pre81FillExpressions == nullptr);
+                rhs.m_pre81FillExpressions = std::make_unique<std::map<std::string, int>>(node["fillExpressions"].as<std::map<std::string, int>>());
+            }
 
             return true;
         }

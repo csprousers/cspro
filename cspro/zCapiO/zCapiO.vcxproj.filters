@@ -100,9 +100,6 @@
     <ClInclude Include="CapiControl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CapiFill.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="CapiLogicParameters.h">
       <Filter>Header Files</Filter>
     </ClInclude>

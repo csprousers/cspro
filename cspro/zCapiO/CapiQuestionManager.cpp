@@ -40,6 +40,7 @@ void CapiQuestionManager::CompileCapiLogic(const std::function<int(const CapiLog
         const std::string& item_name_workaround_for_clang_precpp80_issue = item_name;
 
         std::vector<CapiCondition>& conditions = question.GetConditions();
+#ifdef MARKDOWN_TODO
         std::map<std::string, int> fill_expressions;
 
         for( size_t condition_index = 0; condition_index < conditions.size(); ++condition_index )
@@ -101,6 +102,7 @@ void CapiQuestionManager::CompileCapiLogic(const std::function<int(const CapiLog
         }
 
         question.SetFillExpressions(std::move(fill_expressions));
+#endif
     }
 }
 

@@ -33,6 +33,7 @@
 class CapiCondition;
 class CapiQuestion;
 class CapiQuestionManager;
+class CapiText;
 class CaseItemIndex;
 class CaseItemReference;
 class CCoordValue;
@@ -835,8 +836,12 @@ public:
     SharableString EvaluateCapiText(const std::string& language_name, const bool is_question, const int symbol_index);
 private:
     SharableString EvaluateCapiText(const CapiQuestion& question, const Symbol& symbol, const std::string& language_name, bool is_question);
-    bool EvaluateQuestionTextCondition(const Symbol& symbol, int program_index);
-    SharableString EvaluateQuestionTextFill(const Symbol& symbol, int program_index);
+
+    template<typename T>
+    T EvaluateCapiLogic(const Symbol& symbol, int program_index);
+
+    SharableString EvaluatePre81CapiText(const Symbol& symbol, const CapiQuestion& question, const CapiText& capi_text);
+
     SharableString EvaluateTextFill(int program_index) override;
 
     // --- tables & arrays processing
