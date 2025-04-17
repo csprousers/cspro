@@ -170,6 +170,9 @@
     <ClCompile Include="Compiler\StringsCC.cpp">
       <Filter>Source Files\Compiler</Filter>
     </ClCompile>
+    <ClCompile Include="Compiler\StringWriterCC.cpp">
+      <Filter>Source Files\Compiler</Filter>
+    </ClCompile>
     <ClCompile Include="Compiler\SwitchCC.cpp">
       <Filter>Source Files\Compiler</Filter>
     </ClCompile>
@@ -317,6 +320,9 @@
     <ClCompile Include="Interpreter\StringRT.cpp">
       <Filter>Source Files\Interpreter</Filter>
     </ClCompile>
+    <ClCompile Include="Interpreter\StringWriterRT.cpp">
+      <Filter>Source Files\Interpreter</Filter>
+    </ClCompile>
     <ClCompile Include="Interpreter\SwitchRT.cpp">
       <Filter>Source Files\Interpreter</Filter>
     </ClCompile>
@@ -390,6 +396,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="stdafx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="StringWriter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="SymbolCalculator.cpp">
@@ -695,6 +704,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="stdafx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="StringWriter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="SubscriptText.h">

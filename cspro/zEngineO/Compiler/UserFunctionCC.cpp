@@ -417,6 +417,11 @@ void LogicCompiler::CompileUserFunctionParameters(UserFunction& user_function, c
             symbol = CompileLogicPffDeclaration();
         }
 
+        else if( Tkn == TOKKWSTRINGWRITER )
+        {
+            symbol = CompileStringWriterDeclaration(true);
+        }
+
         else if( Tkn == TOKKWSYSTEMAPP )
         {
             symbol = CompileSystemAppDeclaration();
@@ -748,6 +753,7 @@ int LogicCompiler::CompileUserFunctionCall(const bool allow_function_name_withou
                                                   Tkn == TOKMAP ||
                                                   Tkn == TOKPFF ||
                                                   Tkn == TOKREPORT ||
+                                                  Tkn == TOKSTRINGWRITER ||
                                                   Tkn == TOKSYSTEMAPP ||
                                                   Tkn == TOKUSERFUNCTION ||
                                                   Tkn == TOKVALUESET ) ? &NPT_Ref(Tokstindex) : nullptr;

@@ -9,7 +9,7 @@
 #include <engine/Dict.h>
 
 
-LogicFile* LogicCompiler::CompileLogicFileDeclaration(const bool compiling_function_parameter/* = false*/)
+LogicFile* LogicCompiler::CompileLogicFileDeclaration(const bool compiling_function_parameter)
 {
     std::string file_name = CompileNewSymbolName();
 
@@ -31,7 +31,7 @@ int LogicCompiler::CompileLogicFiles()
 
     do
     {
-        LogicFile* logic_file = CompileLogicFileDeclaration();
+        LogicFile* const logic_file = CompileLogicFileDeclaration(false);
 
         AddSymbolResetNode(symbol_reset_node, *logic_file);
 

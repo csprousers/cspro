@@ -295,7 +295,7 @@ public:
     // (FileCC.cpp)
     // --------------------------------------------------------------------------
 public:
-    LogicFile* CompileLogicFileDeclaration(bool compiling_function_parameter = false);
+    LogicFile* CompileLogicFileDeclaration(bool compiling_function_parameter);
     int CompileLogicFiles();
     int CompileLogicFileFunctions();
 
@@ -457,6 +457,15 @@ public:
 
 private:
     std::unique_ptr<Logic::SourceBuffer> ConvertReportToSourceBuffer(std::string_view report_text_sv);
+
+
+    // --------------------------------------------------------------------------
+    // StringWriter object
+    // (StringWriterCC.cpp)
+    // --------------------------------------------------------------------------
+public:
+    StringWriter* CompileStringWriterDeclaration(bool compiling_function_parameter);
+    int CompileStringWriterDeclarations();
 
 
     // --------------------------------------------------------------------------

@@ -18,6 +18,7 @@
 #include <zEngineO/NamedFrequency.h>
 #include <zEngineO/Pff.h>
 #include <zEngineO/Report.h>
+#include <zEngineO/StringWriter.h>
 #include <zEngineO/SystemApp.h>
 #include <zEngineO/UserFunction.h>
 #include <zEngineO/ValueSet.h>

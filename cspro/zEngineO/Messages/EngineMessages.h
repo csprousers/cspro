@@ -353,6 +353,8 @@ namespace MGF
     constexpr int Geometry_save_error_100353                                = 100353;
     constexpr int Geometry_assignment_error_100354                          = 100354;
 
+    constexpr int StringWriter_encoding_specified_for_func_param_100360     = 100360;
+
     constexpr int Path_invalid_directory_100379                             = 100379;
 
     constexpr int Item_subscript_cannot_be_empty_100400                     = 100400;

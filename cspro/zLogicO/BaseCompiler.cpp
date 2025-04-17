@@ -363,6 +363,7 @@ TokenCode BaseCompiler::GetTokenCodeFromSymbolType(const SymbolType symbol_type)
         { SymbolType::Relation,        TokenCode::TOKRELATION },
         { SymbolType::Report,          TokenCode::TOKREPORT },
         { SymbolType::Section,         TokenCode::TOKSECT },
+        { SymbolType::StringWriter,    TokenCode::TOKSTRINGWRITER },
         { SymbolType::SystemApp,       TokenCode::TOKSYSTEMAPP },
         { SymbolType::UserFunction,    TokenCode::TOKUSERFUNCTION },
         { SymbolType::Variable,        TokenCode::TOKVAR },

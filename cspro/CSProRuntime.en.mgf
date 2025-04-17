@@ -663,6 +663,9 @@ Language=EN
 100353 Error saving geometry file %s: %s
 100354 Error assigning '%s' to Geometry '%s': %s
 
+/* --- StringWriter */
+100360 You cannot specify an encoding type when using StringWriter as a function parameter.
+
 /* --- Paths */
 100370 Select a File
 100371 No Files

@@ -127,6 +127,7 @@ const std::map<std::string, SymbolType>& Symbol::GetDeclarationTextMap()
                 { SymbolType::Pff,            TokenCode::TOKKWPFF },
                 { SymbolType::Relation,       TokenCode::TOKKWRELATION },
                 { SymbolType::Report,         "Report" },
+                { SymbolType::StringWriter,   TokenCode::TOKKWSTRINGWRITER },
                 { SymbolType::SystemApp,      TokenCode::TOKKWSYSTEMAPP },
                 { SymbolType::UserFunction,   TokenCode::TOKKWFUNCTION },
                 { SymbolType::ValueSet,       TokenCode::TOKKWVALUESET },

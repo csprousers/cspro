@@ -86,6 +86,7 @@ const char* UserFunctionArgumentChecker::GetExpectedArgumentText(const Symbol& s
         case SymbolType::NamedFrequency: return "a named frequency";
         case SymbolType::Pff:            return "a Pff object";
         case SymbolType::Report:         return "a Report";
+        case SymbolType::StringWriter:   return "a StringWriter";
         case SymbolType::SystemApp:      return "a SystemApp";
         case SymbolType::UserFunction:   return "a function pointer";
         case SymbolType::ValueSet:       return "a value set";

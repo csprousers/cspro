@@ -112,6 +112,7 @@ bool ValidInstructionStartToken(const TokenCode token_code)
         TOKKWGEOMETRY,
         TOKGEOMETRY,
         TOKDECLARE,
+        TOKKWSTRINGWRITER,
     };
 
     return ( ValidInstructionStartTokens.find(token_code) != ValidInstructionStartTokens.cend() );
@@ -303,6 +304,10 @@ int CEngineCompFunc::instruc(bool create_new_local_symbol_stack/* = true*/, bool
 
                 case TOKKWPFF:
                     last_added_node_address = CompileLogicPffDeclarations();
+                    break;
+
+                case TOKKWSTRINGWRITER:
+                    last_added_node_address = CompileStringWriterDeclarations();
                     break;
 
                 case TOKKWSYSTEMAPP:

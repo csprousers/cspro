@@ -45,6 +45,7 @@ add_library(${PROJECT_NAME}
     RunnableSymbol.cpp
     RuntimeEvent.cpp
     SaveArrayFile.cpp
+    StringWriter.cpp
     SymbolCalculator.cpp
     SystemApp.cpp
     UserFunction.cpp
@@ -94,6 +95,7 @@ add_library(${PROJECT_NAME}
     Compiler/QueryCC.cpp
     Compiler/ReportCC.cpp
     Compiler/StringsCC.cpp
+    Compiler/StringWriterCC.cpp
     Compiler/SwitchCC.cpp
     Compiler/SymbolsCC.cpp
     Compiler/SyncCC.cpp
@@ -130,6 +132,7 @@ add_library(${PROJECT_NAME}
     Interpreter/PathRT.cpp
     Interpreter/ReportRT.cpp
     Interpreter/StringRT.cpp
+    Interpreter/StringWriterRT.cpp
     Interpreter/SwitchRT.cpp
     Interpreter/SymbolRT.cpp
     Interpreter/SystemAppRT.cpp
