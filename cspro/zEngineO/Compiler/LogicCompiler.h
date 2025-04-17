@@ -2,6 +2,7 @@
 
 #include <zEngineO/zEngineO.h>
 #include <zEngineO/EngineData.h>
+#include <zEngineO/ProcType.h>
 #include <zEngineO/Compiler/SymbolCompilerModifier.h>
 #include <zEngineO/Nodes/BaseNodes.h>
 #include <zLogicO/BaseCompiler.h>
@@ -51,6 +52,9 @@ public:
     bool IsNoLevelCompilation() const;
 
     EngineAppType GetEngineAppType() const;
+
+    ProcType GetCompilationProcType() const { return m_procType; }
+    void SetCompilationProcType(ProcType proc_type, ExtendedProcType extended_proc_type = ExtendedProcType::None);
 
     void CompileExternalCode();
     virtual void CompileExternalCode(const CodeFile& code_file);
@@ -663,7 +667,12 @@ protected:
     cs::non_null_shared_or_raw_ptr<EngineData> m_engineData;
 
 private:
-    const Symbol* m_compilationSymbol; // non-null during compilation
+    // The symbol that is currently being compiled (non-null during compilation).
+    const Symbol* m_compilationSymbol;
+
+    // The type of the procedure currently being compiled.
+    ProcType m_procType;
+    ExtendedProcType m_extendedProcType;
 
     std::vector<std::shared_ptr<CompilerHelper>> m_compilerHelpers;
 

@@ -69,9 +69,9 @@ CIntDriver::CIntDriver(CEngineDriver& engine_driver)
         m_keyboardLoader(std::make_unique<KeyboardLoader>())
 {
     // --- procedure being executed
-    m_iProgType          = 0;
-    m_iExLevel           = 0;
-    m_iExSymbol          = 0;
+    m_procType = ProcType::PreProc;
+    m_iExLevel = 0;
+    m_iExSymbol = 0;
 
     // --- execution flags
     m_bStopExec = false;
@@ -214,7 +214,7 @@ void CIntDriver::StopApplication()
 }
 
 
-void CIntDriver::PrepareForExportExec(int iSymbol, int iProgType)
+void CIntDriver::PrepareForExportExec(int iSymbol, const ProcType proc_type)
 {
     m_bSkipStmt = false;
 
@@ -248,7 +248,7 @@ void CIntDriver::PrepareForExportExec(int iSymbol, int iProgType)
         return;
     }
 
-    m_iProgType = iProgType;
+    m_procType = proc_type;
     m_iExSymbol = iSymbol;
     m_iExLevel  = iLevel;
     m_bSkipStmt = false;
@@ -270,7 +270,7 @@ std::string CIntDriver::ProcName()
 
     if( eType == SymbolType::Pre80Dictionary ) {
         obj_type = _T("Dict");
-        csExProcName.Format( _T("%s %s Level %d %s"), obj_type, csObjName.GetString(), m_iExLevel, UTF8_TODO::GetWide(GetProcTypeName(m_iProgType)).c_str());
+        csExProcName.Format( _T("%s %s Level %d %s"), obj_type, csObjName.GetString(), m_iExLevel, UTF8_TODO::GetWide(GetProcTypeName(m_procType)).c_str());
     }
     else {
         if( eType == SymbolType::Section ) {
@@ -294,7 +294,7 @@ std::string CIntDriver::ProcName()
             obj_type = _T("Var");
         }
 
-        csExProcName.Format( _T("%s %s %s"), obj_type, csObjName.GetString(), UTF8_TODO::GetWide(GetProcTypeName(m_iProgType)).c_str() );
+        csExProcName.Format( _T("%s %s %s"), obj_type, csObjName.GetString(), UTF8_TODO::GetWide(GetProcTypeName(m_procType)).c_str() );
     }
 
     return UTF8_TODO::GetUtf8(csExProcName);
@@ -856,7 +856,7 @@ void CIntDriver::EvaluateApplicationStartupJavaScript()
 }
 
 
-bool CIntDriver::ExecuteSymbolProcs(const Symbol& symbol, ProcType proc_type)
+bool CIntDriver::ExecuteSymbolProcs(const Symbol& symbol, const ProcType proc_type)
 {
     bool bRequestIssued = false;
 
@@ -875,7 +875,7 @@ bool CIntDriver::ExecuteSymbolProcs(const Symbol& symbol, ProcType proc_type)
     if( program_index != -1 )
     {
         // setup execution parameters
-        m_iProgType = static_cast<int>(proc_type);
+        m_procType = proc_type;
         m_iExSymbol = symbol.GetSymbolIndex();
         m_iExLevel = SymbolCalculator::GetLevelNumber_base1(symbol);
 
@@ -1331,7 +1331,7 @@ double CIntDriver::ExecSpecialFunction(const int iSymVar, const SpecialFunction 
     if( iSymVar <= 0 && special_function != SpecialFunction::OnSystemMessage )
         return AssignInvalidValue(return_type);
 
-    const RAII::SetValueAndRestoreOnDestruction prog_type_modifier(m_iProgType, PROCTYPE_ONFOCUS);
+    const RAII::SetValueAndRestoreOnDestruction proc_type_modifier(m_procType, ProcType::OnFocus);
     const RAII::SetValueAndRestoreOnDestruction symbol_modifier(m_iExSymbol, iSymVar);
     const RAII::SetValueAndRestoreOnDestruction level_modifier(m_iExLevel, ( iSymVar > 0 ) ? SymbolCalculator::GetLevelNumber_base1(NPT_Ref(iSymVar)) : 0);
 

@@ -651,11 +651,13 @@ bool CExport::ExportOpen( bool* bDeleteWhenFail ) {
                     // If they are in diferent levels, all the export until level-1 must be in PreProc.
                     if( pDuplicatedExport->m_pHeadNode->m_iExportLevel != m_pHeadNode->m_iExportLevel ) {
                         if( pDuplicatedExport->m_pHeadNode->m_iExportLevel < m_pHeadNode->m_iExportLevel ) {
-                            if( pDuplicatedExport->m_pHeadNode->m_iExportProcType != PROCTYPE_PRE ) // the previous one is going to be executed after this export
+                            if( pDuplicatedExport->m_pHeadNode->m_exportProcType != ProcType::PreProc ) { // the previous one is going to be executed after this export
                                 bError = true;
+                            }
                         }
-                        else if( m_pHeadNode->m_iExportProcType != PROCTYPE_PRE )
+                        else if( m_pHeadNode->m_exportProcType != ProcType::PreProc ) {
                             bError = true;
+                        }
 
                         if( bError ) {
                             issaerror( MessageType::Warning, 31080 );
@@ -665,15 +667,15 @@ bool CExport::ExportOpen( bool* bDeleteWhenFail ) {
 
                     /*
                     if( pDuplicatedExport->m_pHeadNode->m_iExportLevel > m_pHeadNode->m_iExportLevel ) {
-                    issaerror( MessageType::Warning, 31080 );
-                    bError = true;
-                    continue;
+                        issaerror( MessageType::Warning, 31080 );
+                        bError = true;
+                        continue;
                     }
                     */
 
                     bool    bSameLevel=(pDuplicatedExport->m_pHeadNode->m_iExportLevel == m_pHeadNode->m_iExportLevel);
 
-            bSameLevel = true; // RHF Feb 21, 2005 Assume they have the same level.
+                    bSameLevel = true; // RHF Feb 21, 2005 Assume they have the same level.
 
                     // case id must be the same
                     if( bSameLevel && pDuplicatedExport->m_pHeadNode->m_iNumCaseId != m_pHeadNode->m_iNumCaseId )
@@ -694,7 +696,7 @@ bool CExport::ExportOpen( bool* bDeleteWhenFail ) {
                         continue;
                     }
 
-            if( *m_pszSectionCode == 0 && HasRecType( m_pHeadNode ) ) // RHF Feb 15, 2005 Add HasRecType( m_pHeadNode )
+                    if( *m_pszSectionCode == 0 && HasRecType( m_pHeadNode ) ) // RHF Feb 15, 2005 Add HasRecType( m_pHeadNode )
                         ExportRecType(false);
 
                     // record type length must be the same

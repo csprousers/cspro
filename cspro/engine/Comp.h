@@ -117,7 +117,6 @@ private:
 public:
     int     m_Flagcomp;               // to activate code generation
     int     m_LvlInComp;              // Level of object compiled
-    int     m_ProcInComp;             // Proc  currently compiled
 
     bool    m_bcvarsubcheck;          // flag for variable subscript checking
     int     m_icGrpIdx;               // group in which variable subscript check has to be done
@@ -657,7 +656,6 @@ public:
 
 #define ObjInComp     m_pEngineCompFunc->m_ObjInComp // COMPILER_DLL_TODO, note: for reports and user-defined functions, ObjInComp = SymbolType::Application
 #define LvlInComp     m_pEngineCompFunc->m_LvlInComp
-#define ProcInComp    m_pEngineCompFunc->m_ProcInComp
 
 #define Tokstindex    m_pEngineCompFunc->GetLastFoundVariableIndex()
 

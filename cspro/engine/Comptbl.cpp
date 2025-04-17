@@ -20,15 +20,17 @@ int CEngineCompFunc::rutcpttbl()
 #endif
 
 
-    bool    bPostZero = (m_pEngineArea->IsLevel( InCompIdx ) && LvlInComp == 0 && ProcInComp == PROCTYPE_POST);// RHF Mar 26, 2002
+    bool bPostZero = ( m_pEngineArea->IsLevel( InCompIdx ) &&
+                       LvlInComp == 0 &&
+                       GetCompilationProcType() == ProcType::PostProc );// RHF Mar 26, 2002
 
-    bPostZero = bPostZero || (ProcInComp == PROCTYPE_ECALC); // RHF May 06, 2003
+    bPostZero = bPostZero || ( GetCompilationProcType() == ProcType::ExplicitCalc ); // RHF May 06, 2003
 
     bool    bValid=(bPostZero || NPT(InCompIdx)->IsA(SymbolType::UserFunction) ); // RHF Jan 11, 2003
     // RHF COM Jan 11, 2003 bool    bValid=bPostZero;
 
 
-    // RHF COM Mar 26, 2002 if( !m_pEngineArea->IsLevel( InCompIdx ) || LvlInComp != 0 || ProcInComp != PROCTYPE_POST )
+    // RHF COM Mar 26, 2002 if( !m_pEngineArea->IsLevel( InCompIdx ) || LvlInComp != 0 || m_compilationProcType != ProcType::PostProc)
     if( !bValid )// RHF Mar 26, 2002
         return( SetSyntErr(535), 0 );
 

@@ -3,7 +3,6 @@
 #include "Event.h"
 #include "EventList.h"
 #include <zUtilO/Versioning.h>
-#include <zEngineO/ProcType.h>
 
 using namespace Paradata;
 
@@ -342,7 +341,7 @@ void Log::WriteEvents(const bool wait_for_transaction)
                 table.m_tableDefinition.table_code,
                 event.m_timestamp,
                 GetOptionalValueOrNull(AddNullableNamedObject(event.m_proc.get())),
-                GetOptionalValueOrNull(event.m_procType)
+                (  event.m_procType != ProcType::None ) ? reinterpret_cast<const int*>(&event.m_procType) : nullptr
             );
 
             event.Save(*this, base_event_id);

@@ -5,31 +5,31 @@
 
 struct EXP_HEADER_NODE
 {
-    TCHAR   m_iNodeType;
-    TCHAR   m_iExportModel;              // 1:Flat, 2:Ensembled
-    TCHAR   m_iExportAppLevel;           // Level where the export is executed
-    TCHAR   m_iExportLevel;              // Final export level
-    bool    m_bHasCaseId;                // has a declared CASE_ID
+    TCHAR m_iNodeType;
+    TCHAR m_iExportModel;           // 1:Flat, 2:Ensembled
+    TCHAR m_iExportAppLevel;        // Level where the export is executed
+    TCHAR m_iExportLevel;           // Final export level
+    bool m_bHasCaseId;              // has a declared CASE_ID
 
-    int     m_iExportProcSymbol;
-    int     m_iExportProcType;
+    int m_iExportProcSymbol;
+    ProcType m_exportProcType;
 
-    TCHAR   m_iLenRecId;
-    TCHAR   m_iNumCaseId;          // # of vars in CASE_ID
-    int     m_iLenCaseId;               // length of CASE_ID list
-    int     m_iLenCaseIdUnicode;        // GHM 20130502 the length of the case IDs (if in SPSS/SAS/Stata Unicode mode, where alphas are written out with four bytes to a character)
+    TCHAR m_iLenRecId;
+    TCHAR m_iNumCaseId;             // # of vars in CASE_ID
+    int m_iLenCaseId;               // length of CASE_ID list
+    int m_iLenCaseIdUnicode;        // 20130502 the length of the case IDs (if in SPSS/SAS/Stata Unicode mode, where alphas are written out with four bytes to a character)
 
-    int     m_iRecNameExpr;
-    int     m_iRecTypeExpr;
-    bool    m_bIsSymbolRecName;
-    bool    m_bIsSymbolRecType;
-    bool    m_bCaseIdAfterRecType;
+    int m_iRecNameExpr;
+    int m_iRecTypeExpr;
+    bool m_bIsSymbolRecName;
+    bool m_bIsSymbolRecType;
+    bool m_bCaseIdAfterRecType;
 };
 
-struct EXP_ENSEMBLE_NODE                // ENSEMBLED    // victor Dec 12, 00
+struct EXP_ENSEMBLE_NODE            // ENSEMBLED    // victor Dec 12, 00
 {
     TCHAR   m_iNodeType;
-    char*   m_pEndNode;                 // address of the end-of-ensemble
+    char*   m_pEndNode;             // address of the end-of-ensemble
 };
 
 
@@ -234,7 +234,7 @@ public:
 
 class CExport : public CObject
 {
-#define STATA_MAXLAB    80              // STATA max-lab // GHM 20100426 increased size
+#define STATA_MAXLAB    80              // STATA max-lab // 20100426 increased size
 
     typedef   int (CExport::*pEmsembledTrip)( int iVar, int aIndex[DIM_MAXDIM], int aDimFlag[DIM_MAXDIM],  void* pInfo );
 
@@ -266,7 +266,7 @@ public:
     bool                m_bExportSubItemOnly;
     bool                m_bExportItemSubItem;
 
-    bool                m_bExportForceANSI; // GHM 20120416
+    bool                m_bExportForceANSI; // 20120416
     bool                m_bCommaDecimal;
 
     // notes collected from exported records
@@ -438,11 +438,11 @@ public:
     void    SetExportToR( bool bX )                 { m_bToR = bX; }
 
     void    SetExportItemOnly( bool bX )        { m_bExportItemOnly = bX; }
-    void    SetExportSubItemOnly( bool bX )        { m_bExportSubItemOnly = bX; }
-    void    SetExportItemSubItem( bool bX )        { m_bExportItemSubItem = bX; }
+    void    SetExportSubItemOnly( bool bX )     { m_bExportSubItemOnly = bX; }
+    void    SetExportItemSubItem( bool bX )     { m_bExportItemSubItem = bX; }
 
-    void    SetExportForceANSI(bool b) { m_bExportForceANSI = b; } // GHM 20120416
-    void    SetExportCommaDecimal(bool b) { m_bCommaDecimal = b; }
+    void    SetExportForceANSI(bool b)          { m_bExportForceANSI = b; } // 20120416
+    void    SetExportCommaDecimal(bool b)       { m_bCommaDecimal = b; }
 
     bool    GetExportToDat() const              { return m_bToDatFile; }
     bool    GetExportToSPSS() const             { return m_bToSPSS; }
@@ -466,7 +466,7 @@ public:
     bool    GetExportSubItemOnly()              { return m_bExportSubItemOnly; }
     bool    GetExportItemSubItem()              { return m_bExportItemSubItem; }
 
-    bool    GetExportForceANSI() const          { return m_bExportForceANSI; } // GHM 20120416
+    bool    GetExportForceANSI() const          { return m_bExportForceANSI; } // 20120416
     bool    GetExportCommaDecimal() const       { return m_bCommaDecimal; }
 
     void    ExportDescriptions();
@@ -592,7 +592,7 @@ private:
 
     // --- R description
 public:
-    void    R_Descr(); // GHM 20120507
+    void    R_Descr(); // 20120507
 
     // --- utility functions
     // RHF INIC Feb 03, 2005

@@ -382,14 +382,14 @@ std::unique_ptr<Paradata::MessageEvent> EngineParadataDriver::CreateMessageEvent
 
 void EngineParadataDriver::RegisterAndLogEvent(std::shared_ptr<Event> event, const void* const instance_object/* = nullptr*/)
 {
-    ASSERT(m_pIntDriver->m_iProgType == PROCTYPE_PRE ||
-           m_pIntDriver->m_iProgType == PROCTYPE_ONFOCUS ||
-           m_pIntDriver->m_iProgType == PROCTYPE_KILLFOCUS ||
-           m_pIntDriver->m_iProgType == PROCTYPE_POST ||
-           m_pIntDriver->m_iProgType == PROCTYPE_ONOCCCHANGE);
+    ASSERT(m_pIntDriver->m_procType == ProcType::PreProc ||
+           m_pIntDriver->m_procType == ProcType::OnFocus ||
+           m_pIntDriver->m_procType == ProcType::KillFocus ||
+           m_pIntDriver->m_procType == ProcType::PostProc ||
+           m_pIntDriver->m_procType == ProcType::OnOccChange);
 
     if( m_pIntDriver->m_iExSymbol > 0 )
-        event->SetProcInformation(CreateObject(NPT_Ref(m_pIntDriver->m_iExSymbol)), m_pIntDriver->m_iProgType);
+        event->SetProcInformation(CreateObject(NPT_Ref(m_pIntDriver->m_iExSymbol)), m_pIntDriver->m_procType);
 
     Logger::LogEvent(std::move(event), instance_object);
 }

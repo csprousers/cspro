@@ -688,7 +688,7 @@ int CEngineCompFunc::instruc(bool create_new_local_symbol_stack/* = true*/, bool
                         if( ObjInComp != SymbolType::Variable || ( VPT(InCompIdx)->SYMTfrm <= 0 && Appl.ApplicationType == ModuleType::Entry ) ) // RHF Nov 07, 2001
                             IssueError( 557 );  // not in a field
 
-                        if( !( ProcInComp == PROCTYPE_PRE || ProcInComp == PROCTYPE_ONFOCUS) )
+                        if( !( GetCompilationProcType() == ProcType::PreProc || GetCompilationProcType() == ProcType::OnFocus ) )
                             IssueError( 558 ); // must be at Pre
 
                         NextToken();
@@ -700,7 +700,7 @@ int CEngineCompFunc::instruc(bool create_new_local_symbol_stack/* = true*/, bool
                     case TOKENDSECT:
                         // RHF INIC Dec 04, 2003 Now endgroup can be called from a function
                            //BUCEN_DEC2003 Changes
-                        if( ObjInComp == SymbolType::Group && ( ProcInComp == PROCTYPE_KILLFOCUS || ProcInComp == PROCTYPE_POST) ||
+                        if( ObjInComp == SymbolType::Group && ( GetCompilationProcType() == ProcType::KillFocus || GetCompilationProcType() == ProcType::PostProc ) ||
                             m_pEngineArea->IsLevel( InCompIdx ) )
                         {
                             IssueError( 100 );
@@ -718,7 +718,7 @@ int CEngineCompFunc::instruc(bool create_new_local_symbol_stack/* = true*/, bool
                             issaerror( MessageType::Warning, 88150 ); // RHF Nov 08, 2001 Better here instead of in BatchExEndLevel method
                         }
 
-                        if( m_pEngineArea->IsLevel( InCompIdx ) && ( ProcInComp == PROCTYPE_KILLFOCUS || ProcInComp == PROCTYPE_POST) && LvlInComp == 0 )// RHF Jun 05, 2001
+                        if( m_pEngineArea->IsLevel( InCompIdx ) && ( GetCompilationProcType() == ProcType::KillFocus || GetCompilationProcType() == ProcType::PostProc ) && LvlInComp == 0 )// RHF Jun 05, 2001
                             IssueError( 117 ); // invalid endlevel 0
 
                         NextToken();
@@ -887,7 +887,7 @@ int CEngineCompFunc::instruc(bool create_new_local_symbol_stack/* = true*/, bool
 void CEngineCompFunc::CheckIdChanger(const VART* pVarT)
 {
     if( pVarT->GetSubType() == SymbolSubType::Input && pVarT->GetSPT()->IsCommon() ) { // RHF Aug 17, 2005
-        if( !m_pEngineArea->IsLevel(InCompIdx) || ProcInComp != PROCTYPE_PRE || LvlInComp != pVarT->GetLevel() ) { // Allowed only in the corresponding Level PreProc
+        if( !m_pEngineArea->IsLevel(InCompIdx) || GetCompilationProcType() != ProcType::PreProc || LvlInComp != pVarT->GetLevel() ) { // Allowed only in the corresponding Level PreProc
             // GSF 12-oct-2005 - do not enforce this rule for one-level apps
             SECT* pSecT = pVarT->GetSPT();
             int iNumLevels = pSecT->GetDicT()->GetMaxLevel();
@@ -1251,7 +1251,7 @@ int CEngineCompFunc::CompileAskStatement(bool bIsTargetlessSkip/* = false*/)
 
     // ask will only be allowed in a preproc
     // skip will only be allowed in a preproc or in a user-defined function
-    if( ( ( ObjInComp == SymbolType::Application ) && !bIsTargetlessSkip ) || ( ProcInComp != PROCTYPE_PRE ) )
+    if( ( ( ObjInComp == SymbolType::Application ) && !bIsTargetlessSkip ) || ( GetCompilationProcType() != ProcType::PreProc ) )
         IssueError(5562);
 
     if( m_pEngineArea->IsLevel(InCompIdx) ) // the statements cannot be in an application or level preproc
@@ -1543,11 +1543,11 @@ int CEngineCompFunc::CompileReenterStatement( bool bNextTkn ) {
                             if( VPT(InCompIdx)->SYMTfrm <= 0 )
                                 IssueError( 554 ); // must have field
 
-                        if( ProcInComp == PROCTYPE_PRE || ProcInComp == PROCTYPE_ONFOCUS )
+                        if( GetCompilationProcType() == ProcType::PreProc || GetCompilationProcType() == ProcType::OnFocus )
                         {
                             // 20140402 you should only get a compilation error if reentering a field (from its proc) that does not have multiple occurrences
                             if( pVart->GetMaxOccs() == 1 && pVart->GetOwnerGPT()->GetMaxOccs() == 1 )
-                                IssueError( 559 ); // must be only in PROCTYPE_POST
+                                IssueError( 559 ); // must be only in ProcType::PostProc
                         }
                     }
 
@@ -1594,8 +1594,8 @@ int CEngineCompFunc::CompileReenterStatement( bool bNextTkn ) {
                 IssueError( 11 );
             }
 
-            if( ProcInComp == PROCTYPE_PRE || ProcInComp == PROCTYPE_ONFOCUS )
-                IssueError( 559 ); // must be only in PROCTYPE_POST
+            if( GetCompilationProcType() == ProcType::PreProc || GetCompilationProcType() == ProcType::OnFocus )
+                IssueError( 559 ); // must be only in ProcType::PostProc
             // RHF END Oct 01, 2000
         }// RHF Mar 28, 2001
     }
@@ -1800,7 +1800,7 @@ void CEngineCompFunc::VerifyAtTargetSymbol(int iSymbol)
         IssueError(88100);
 
     // RHF INIC Jun 13, 2001
-    if( m_pEngineArea->IsLevel(InCompIdx) && ( ProcInComp == PROCTYPE_KILLFOCUS || ProcInComp == PROCTYPE_POST) )
+    if( m_pEngineArea->IsLevel(InCompIdx) && ( GetCompilationProcType() == ProcType::KillFocus || GetCompilationProcType() == ProcType::PostProc ) )
         IssueError(555);                     // void in Post-Level
     // RHF END Jun 13, 2001
 }
@@ -1819,7 +1819,7 @@ int CEngineCompFunc::VerifyTargetSymbol( int iSymb, bool bMustBeInForm )
     if( Tkn == TOKVAR && NPT_Ref(Tokstindex).IsA(SymbolType::WorkVariable) )
         IssueError( 13 );
 
-    if( m_pEngineArea->IsLevel(InCompIdx) && ( ProcInComp == PROCTYPE_KILLFOCUS || ProcInComp == PROCTYPE_POST) )
+    if( m_pEngineArea->IsLevel(InCompIdx) && ( GetCompilationProcType() == ProcType::KillFocus || GetCompilationProcType() == ProcType::PostProc ) )
         IssueError( 555 );                     // void in Post-Level
 
     if( Tkn == TOKVAR ) {

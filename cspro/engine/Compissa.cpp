@@ -264,7 +264,7 @@ void CEngineCompFunc::CompileSymbolProcs()
 
         procs_defined.insert(proc_type);
 
-        ProcInComp = static_cast<int>(proc_type);
+        SetCompilationProcType(proc_type);
 
         // allow a colon after the proc type
         if( Tkn == TOKPREPRO || Tkn == TOKONFOCUS || Tkn == TOKKILLFOCUS || Tkn == TOKPOSTPRO || Tkn == TOKONOCCCHANGE || Tkn == TOKTALLY || Tkn == TOKPOSTCALC )
@@ -344,7 +344,7 @@ int CEngineCompFunc::CompileCapiLogic(const CapiLogicParameters& capi_logic_para
 
     const std::function<void()> compilation_function = [&]()
     {
-        ProcInComp = static_cast<int>(ProcType::OnFocus);
+        SetCompilationProcType(ProcType::OnFocus, ExtendedProcType::QuestionText);
 
         try
         {

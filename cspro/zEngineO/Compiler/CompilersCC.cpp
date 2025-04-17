@@ -30,6 +30,13 @@ EngineAppType LogicCompiler::GetEngineAppType() const
 }
 
 
+void LogicCompiler::SetCompilationProcType(const ProcType proc_type, const ExtendedProcType extended_proc_type/* = ExtendedProcType::None*/)
+{
+    m_procType = proc_type;
+    m_extendedProcType = extended_proc_type;
+}
+
+
 void LogicCompiler::CompileExternalCode()
 {
     ASSERT(m_engineData->application != nullptr);

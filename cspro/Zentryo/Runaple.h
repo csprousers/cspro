@@ -106,8 +106,8 @@ class Userbar;
 //
 // OBJECTIVE    : Finish the data entry of the group currently having the
 //                focus.  The idea is (1) receive the field as entered,
-//                (2) execute its PROCTYPE_POST proc, (3) execute the PROCTYPE_POST proc
-//                of this group, (4) execute the PROCTYPE_PRE proc of the first
+//                (2) execute its ProcType::PostProc proc, (3) execute the ProcType::PostProc
+//                proc of this group, (4) execute the ProcType::PreProc proc of the first
 //                field following the group or, if no such a field, write
 //                the case and offer a new one to the operator.
 //
@@ -120,26 +120,26 @@ class Userbar;
 //                  can take the decission of come back to the same field,
 //                  and the requested EndGroup is not completed.Only if bPostProc is true
 //
-//                - the PROCTYPE_POST proc of the entered field is executed and if
+//                - the ProcType::PostProc proc of the entered field is executed and if
 //                  any instruction modifying the natural flow is executed,
 //                  the new target field is returned and the requested
-//                  EndGroup is not completed.  The PROCTYPE_PRE proc of the new
+//                  EndGroup is not completed.  The ProcType::PreProc proc of the new
 //                  field is executed.Only if bPostProc is true
 //
-//                - then, the PROCTYPE_POST proc of the Group is executed.  If any
+//                - then, the ProcType::PostProc proc of the Group is executed.  If any
 //                  procedural changes to the natural flow arises, a new
-//                  target field is returned after PROCTYPE_PRE execution and the
+//                  target field is returned after ProcType::PreProc execution and the
 //                  requested EndGroup is not completed
 //
 //                - finally, the first field after the group is selected as
-//                  current field, its PROCTYPE_PRE proc is executed and that field
+//                  current field, its ProcType::PreProc proc is executed and that field
 //                  is returned.  The EndGroup has been completed
 //
 //                - a variation of "completing EndGroup" happens when the
-//                  group is the last group of case or node: the PROCTYPE_POST level
+//                  group is the last group of case or node: the ProcType::PostProc level
 //                  is normally executed for this case/node, then it is
 //                  written to data file, then a new case/node is initialized
-//                  and its PROCTYPE_PRE proc executed, then a first field is selected
+//                  and its ProcType::PreProc proc executed, then a first field is selected
 //                  and (gasp!) returned to the interfase
 //
 // PARAMETERS:
@@ -272,7 +272,7 @@ class Userbar;
 // PARAMETERS   : none
 //
 // RETURNS      : TRUE/FALSE. TRUE if PreLevel 0 or PreLevel 1 was executed
-//                recently. FALSE if any PROCTYPE_POST procedure was executed.
+//                recently. FALSE if any ProcType::PostProc procedure was executed.
 //
 // CHANGES      : 20 Sep 1999, RHF, Creation
 ////////////////////////////////////////////////////////////////////////////////

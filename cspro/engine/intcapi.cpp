@@ -79,7 +79,7 @@ T CIntDriver::EvaluateCapiLogic(const Symbol& symbol, const int program_index)
     ASSERT(program_index != -1);
 
     // setup execution parameters
-    m_iProgType = static_cast<int>(ProcType::OnFocus);
+    m_procType = ProcType::OnFocus;
     m_iExSymbol = symbol.GetSymbolIndex();
     m_iExLevel = SymbolCalculator::GetLevelNumber_base1(symbol);
 

@@ -31,7 +31,7 @@ int CEngineCompFunc::compexport() {
         return( SetSyntErr(31002) );      // only in Batch appls
 
     //  NEW_VERSION                     //      <begin> // victor Jun 20, 00
-    if( !m_pEngineArea->IsLevel( InCompIdx ) || LvlInComp < 1 /* RHF COM Oct 20, 2004 || ProcInComp != PROCTYPE_POST*/ )
+    if( !m_pEngineArea->IsLevel( InCompIdx ) || LvlInComp < 1 /* RHF COM Oct 20, 2004 || m_compilationProcType != ProcType::PostProc*/ )
         return( SetSyntErr(31003) );      // export cannot appear here
     //  NEW_VERSION                     //      <end>   // victor Jun 20, 00
 
@@ -97,9 +97,9 @@ int CEngineCompFunc::comp_export()
     pHeadNode->m_bHasCaseId      = false;
 
     pHeadNode->m_iExportProcSymbol = InCompIdx;
-    pHeadNode->m_iExportProcType   = ProcInComp;
+    pHeadNode->m_exportProcType = GetCompilationProcType();
 
-    pHeadNode->m_iNumCaseId = 0;        // # of vars in CASE_ID
+    pHeadNode->m_iNumCaseId      = 0; // # of vars in CASE_ID
     pHeadNode->m_iLenCaseId      = 0; // length of CASE_ID list
     pHeadNode->m_iLenRecId       = 0;
     pHeadNode->m_iLenCaseIdUnicode = 0;
@@ -180,14 +180,13 @@ int CEngineCompFunc::excase_id() {
             return GetSyntErr();
         // RHF END Nov 05, 2004
 
-        MVAR_NODE*  pMVarNode=NULL;
         if( pVarT->IsArray() ) {
             int iOccExpr = varsanal( pVarT->GetFmt() );
 
             //Export is only allowed in Level procedures (see error 31003),
             //so if pMVarNode->m_iVarSubindex=='G' the index can't be solved at runtime
 #ifdef GENCODE
-            pMVarNode = (MVAR_NODE*)PPT(iOccExpr);
+            MVAR_NODE* pMVarNode = (MVAR_NODE*)PPT(iOccExpr);
 
             bool    bOkIndex=true;
             for( int i =0; bOkIndex && i < pVarT->GetNumDim(); i++ ) {
@@ -232,7 +231,7 @@ int CEngineCompFunc::excase_id() {
         pCurExport->m_iCaseIdItems[pHeadNode->m_iNumCaseId] = iSymVar;
 
         pHeadNode->m_iLenCaseId += pVarT->GetLength();
-        pHeadNode->m_iLenCaseIdUnicode += pVarT->GetLength() * ( pVarT->IsAlpha() ? 4 : 1 ); // GHM 20130502 in case any of the ID fields are alphas
+        pHeadNode->m_iLenCaseIdUnicode += pVarT->GetLength() * ( pVarT->IsAlpha() ? 4 : 1 ); // 20130502 in case any of the ID fields are alphas
         pHeadNode->m_iNumCaseId++;
 
 
