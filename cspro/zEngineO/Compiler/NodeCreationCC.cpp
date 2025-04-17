@@ -86,17 +86,23 @@ int LogicCompiler::CreateSymbolVariableArgumentsNode(const FunctionCode function
 
 
 Nodes::SymbolVariableArguments& LogicCompiler::CreateSymbolVariableArgumentsNode(const FunctionCode function_code, const Symbol& symbol,
-                                                                                 const int number_arguments, const std::optional<int> initialize_value/* = std::nullopt*/)
+                                                                                 const int number_arguments)
 {
     auto& symbol_va_node = CreateNode<Nodes::SymbolVariableArguments>(function_code, number_arguments - 1);
 
     symbol_va_node.symbol_index = symbol.GetSymbolIndex();
 
-    if( initialize_value.has_value() )
-    {
-        for( int i = 0; i < number_arguments; ++i )
-            symbol_va_node.arguments[i] = *initialize_value;
-    }
+    return symbol_va_node;
+}
+
+
+Nodes::SymbolVariableArguments& LogicCompiler::CreateSymbolVariableArgumentsNode(const FunctionCode function_code, const Symbol& symbol,
+                                                                                 const int number_arguments, const int initialize_value)
+{
+    auto& symbol_va_node = CreateSymbolVariableArgumentsNode(function_code, symbol, number_arguments);
+
+    for( int i = 0; i < number_arguments; ++i )
+        symbol_va_node.arguments[i] = initialize_value;
 
     return symbol_va_node;
 }

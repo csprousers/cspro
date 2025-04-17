@@ -72,3 +72,24 @@ int LogicCompiler::CompileStringWriterDeclarations()
 
     return GetOptionalProgramIndex(symbol_reset_node);
 }
+
+
+int LogicCompiler::CompileStringWriterFunctions()
+{
+    // compiling: string_writer.toString();
+    const FunctionCode function_code = CurrentToken.function_details->code;
+    const StringWriter& string_writer = *assert_cast<const StringWriter*>(CurrentToken.symbol);
+
+    CheckTextTemplateIsCurrentlyAccessible(string_writer);
+
+    NextToken();
+    IssueErrorOnTokenMismatch(TOKLPAREN, MGF::left_parenthesis_expected_in_function_call_14);
+
+    NextToken();
+    IssueErrorOnTokenMismatch(TOKRPAREN, MGF::right_parenthesis_expected_in_function_call_17);
+
+    NextToken();
+
+    Nodes::SymbolVariableArguments& symbol_va_node = CreateSymbolVariableArgumentsNode(function_code, string_writer, 0);
+    return GetProgramIndex(symbol_va_node);
+}

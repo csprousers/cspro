@@ -226,7 +226,7 @@ namespace MGF
     constexpr int TextTemplate_unbalanced_escapes_48101                     =  48101;
     constexpr int TextTemplate_end_reached_while_in_logic_or_fill_48102     =  48102;
     constexpr int TextTemplate_unsupported_functionality_48103              =  48103;
-    constexpr int Report_write_in_invalid_location_48104                    =  48104;
+    constexpr int TextTemplate_accessed_in_invalid_location_48104           =  48104;
 
     constexpr int UserFunction_expects_argument_50000                       =  50000;
     constexpr int UserFunction_function_pointer_invalid_50001               =  50001;

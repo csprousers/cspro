@@ -4,14 +4,6 @@
 #include "Nodes/Report.h"
 
 
-void LogicCompiler::CheckReportIsCurrentlyWriteable(const Report& report)
-{
-    // report.write can only be called from a report or a user-defined function
-    if( !IsCompiling(report) && !IsCompiling(SymbolType::UserFunction) )
-        IssueError(MGF::Report_write_in_invalid_location_48104, report.GetName().c_str());
-}
-
-
 int LogicCompiler::CompileReportFunctions()
 {
     // compiling report_name.save(filename);

@@ -99,8 +99,8 @@
           * JS functions: eval, getValue, getValueJson, hasValue, invoke,
               setValue, setValueFromJson
           * Report functions: writeEncoded, writeEncodedLine, writeLine
-          * StringWriter functions: write, writeEncoded, writeEncodedLine,
-              writeLine
+          * StringWriter functions: toString, write, writeEncoded,
+              writeEncodedLine, writeLine
 
     -  Action Invoker additions:
           * throwException

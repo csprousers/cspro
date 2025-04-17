@@ -1378,18 +1378,20 @@ double CIntDriver::ex_Freq_save(const int program_index)
             Report& report = GetSymbolReport(arguments[1]);
             const FileExtensionAnalyzer report_extension_analyser(report.GetFilePath());
 
-            if( !report_extension_analyser.IsTypeHtml() )
+            if( !report_extension_analyser.IsTypeHtmlOrDerivable() )
             {
                 issaerror(MessageType::Error, MGF::Freq_cannot_be_saved_to_non_HTML_report_94533,
                                               named_frequency.GetName().c_str(), report.GetName().c_str());
                 return 0;
             }
 
-            html_writer_and_report_text_builder = std::make_unique<std::tuple<HtmlStringWriter, std::string*>>(
-                HtmlStringWriter(), GetReportTextBuilderWithValidityCheck(report));
+            std::string* report_text_builder;
+            std::tie(std::ignore, report_text_builder) = GetTextTemplateBuilder(report);
 
-            if( std::get<1>(*html_writer_and_report_text_builder) == nullptr )
+            if( report_text_builder == nullptr )
                 return 0;
+
+            html_writer_and_report_text_builder = std::make_unique<std::tuple<HtmlStringWriter, std::string*>>(HtmlStringWriter(), report_text_builder);
 
             frequency_printer = std::make_unique<HtmlFrequencyPrinter>(std::get<0>(*html_writer_and_report_text_builder), false);
         }

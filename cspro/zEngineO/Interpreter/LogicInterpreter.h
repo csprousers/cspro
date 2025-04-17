@@ -599,7 +599,6 @@ public:
 
 protected: // INTERPRETER_DLL_TODO change to private
     double ex_Report_view(Report& report, const ViewerOptions* viewer_options);
-    std::string* GetReportTextBuilderWithValidityCheck(Report& report);
     std::unique_ptr<std::string> GenerateReport(Report& report, const std::string* output_file_path);
 
 
@@ -608,6 +607,7 @@ protected: // INTERPRETER_DLL_TODO change to private
     // (StringWriterRT.cpp)
     // --------------------------------------------------------------------------
 public:
+    double ex_StringWriter_toString(int program_index);
 
 
     // --------------------------------------------------------------------------
@@ -669,9 +669,13 @@ public:
 public:
     double ex_TextTemplate_write_writeEncoded_writeEncodedLine_writeLine(int program_index);
 
-private:
+protected: // INTERPRETER_DLL_TODO change to private
     SharableString EncodeText(SharableString text, EncodeType encode_type);
     SharableString EncodeText(SharableString text, const Symbol& symbol);
+
+    // If the symbol is a StringWriter, the underlying type (e.g., a Report) is returned.
+    // The returned text builder is null if the text template is inaccessible.
+    std::tuple<Symbol*, std::string*> GetTextTemplateBuilder(Symbol& symbol);
 
 
     // --------------------------------------------------------------------------

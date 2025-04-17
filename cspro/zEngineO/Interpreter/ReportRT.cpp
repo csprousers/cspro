@@ -6,17 +6,6 @@
 #include <zViewO/MarkdownViewInput.h>
 
 
-std::string* LogicInterpreter::GetReportTextBuilderWithValidityCheck(Report& report)
-{
-    std::string* const report_text_builder = report.GetReportTextBuilder();
-
-    if( report_text_builder == nullptr )
-        IssueMessage(MessageType::Error, 48111, report.GetName().c_str(), "The report creation has not yet been initiated.");
-
-    return report_text_builder;
-}
-
-
 double LogicInterpreter::ex_Report_save(const int program_index)
 {
     const auto& report_save_node = GetNode<Nodes::Report::Save>(program_index);

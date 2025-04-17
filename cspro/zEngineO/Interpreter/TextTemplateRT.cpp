@@ -101,37 +101,55 @@ SharableString LogicInterpreter::EncodeText(SharableString text, const Symbol& s
 }
 
 
-double LogicInterpreter::ex_TextTemplate_write_writeEncoded_writeEncodedLine_writeLine(const int program_index)
+std::tuple<Symbol*, std::string*> LogicInterpreter::GetTextTemplateBuilder(Symbol& symbol)
 {
-    const auto& text_template_node = GetNode<Nodes::TextTemplate>(program_index);
-    Symbol* symbol = &NPT_Ref(text_template_node.symbol_index);
-    std::string* text_builder = nullptr;
-
-    if( symbol->IsA(SymbolType::StringWriter) )
+    if( symbol.IsA(SymbolType::Report) )
     {
-        std::variant<std::string, int>& output = assert_cast<StringWriter&>(*symbol).GetOutput();
+        Report& report = assert_cast<Report&>(symbol);
+        std::string* const report_text_builder = report.GetReportTextBuilder();
+
+        if( report_text_builder == nullptr )
+            IssueMessage(MessageType::Error, 48111, report.GetName().c_str(), "The report creation has not yet been initiated.");
+
+        return { &symbol, report_text_builder };
+    }
+
+    else if( symbol.IsA(SymbolType::StringWriter) )
+    {
+        std::variant<std::string, int>& output = assert_cast<StringWriter&>(symbol).GetOutput();
 
         if( std::holds_alternative<int>(output) )
         {
-            symbol = &NPT_Ref(std::get<int>(output));
-            ASSERT(symbol->IsA(SymbolType::Report));
+            return GetTextTemplateBuilder(NPT_Ref(std::get<int>(output)));
         }
 
         else
         {
-            text_builder = &std::get<std::string>(output);
+            ASSERT(std::holds_alternative<std::string>(output));
+            return { &symbol, &std::get<std::string>(output) };
         }
     }
 
-    if( symbol->IsA(SymbolType::Report) )
+    else
     {
-        text_builder = GetReportTextBuilderWithValidityCheck(assert_cast<Report&>(*symbol));;
-
-        if( text_builder == nullptr )
-            return 0;
+        return ReturnProgrammingError(std::tuple<Symbol*, std::string*>());
     }
+}
 
-    ASSERT(text_builder != nullptr);
+
+double LogicInterpreter::ex_TextTemplate_write_writeEncoded_writeEncodedLine_writeLine(const int program_index)
+{
+    const auto& text_template_node = GetNode<Nodes::TextTemplate>(program_index);
+    Symbol& specified_symbol = NPT_Ref(text_template_node.symbol_index);
+
+    const Symbol* underying_text_template_symbol;
+    std::string* text_builder;
+    std::tie(underying_text_template_symbol, text_builder) = GetTextTemplateBuilder(specified_symbol);
+
+    if( text_builder == nullptr )
+        return 0;
+
+    ASSERT(underying_text_template_symbol != nullptr);
 
     // write out direct text...
     if( text_template_node.type == Nodes::TextTemplate::Type::DirectText )
@@ -145,12 +163,12 @@ double LogicInterpreter::ex_TextTemplate_write_writeEncoded_writeEncodedLine_wri
         SharableString fill_text = EvaluateTextFill(text_template_node.expression);
 
         if( text_template_node.encode_text == 1 )
-            fill_text = EncodeText(std::move(fill_text), *symbol);
+            fill_text = EncodeText(std::move(fill_text), *underying_text_template_symbol);
 
         text_builder->append(*fill_text);
     }
 
-    // ...or the results of a symbol.write / writeEncoded / writeEncodedLine / writeLine call
+    // ...or the results of a write / writeEncoded / writeEncodedLine / writeLine call
     else
     {
         ASSERT(text_template_node.type == Nodes::TextTemplate::Type::Write);
@@ -165,7 +183,7 @@ double LogicInterpreter::ex_TextTemplate_write_writeEncoded_writeEncodedLine_wri
             if( text_template_node.function_code == FunctionCode::TEXTTEMPLATEFN_WRITEENCODEDLINE_CODE )
                 fill_text.MakeModifiable().push_back('\n');
 
-            fill_text = EncodeText(std::move(fill_text), *symbol);
+            fill_text = EncodeText(std::move(fill_text), *underying_text_template_symbol);
         }
 
         text_builder->append(*fill_text);

@@ -12,6 +12,36 @@ namespace
 }
 
 
+const Symbol& LogicCompiler::CheckTextTemplateIsCurrentlyAccessible(const Symbol& symbol)
+{
+    ASSERT(symbol.IsOneOf(SymbolType::Report, SymbolType::StringWriter));
+
+    if( symbol.IsA(SymbolType::Report) )
+    {
+        // the report being created can only be called from a report's logic or from a user-defined function
+        if( !IsCompiling(symbol) && !IsCompiling(SymbolType::UserFunction) )
+            IssueError(MGF::TextTemplate_accessed_in_invalid_location_48104, symbol.GetName().c_str());
+    }
+
+    else if( symbol.IsA(SymbolType::StringWriter) )
+    {
+        const std::variant<std::string, int>& output = assert_cast<const StringWriter&>(symbol).GetOutput();
+
+        if( std::holds_alternative<int>(output) )
+            return CheckTextTemplateIsCurrentlyAccessible(NPT_Ref(std::get<int>(output)));
+
+        ASSERT(std::holds_alternative<std::string>(output));
+    }
+
+    else
+    {
+        ASSERT(false);
+    }
+
+    return symbol;
+}
+
+
 int LogicCompiler::CompileTextTemplateFunctions()
 {
     // the write...class of functions are used by Report and StringWriter objects
@@ -23,25 +53,12 @@ int LogicCompiler::CompileTextTemplateFunctions()
     //            [some symbols].writeEncodedLine(...);
     //            [some symbols].writeLine(...);
     const FunctionCode function_code = CurrentToken.function_details->code;
-    const Symbol* symbol = CurrentToken.symbol;
-    ASSERT(symbol->IsOneOf(SymbolType::Report, SymbolType::StringWriter));
+    const Symbol& specified_symbol = *CurrentToken.symbol;
 
-    if( symbol->IsA(SymbolType::StringWriter) )
-    {
-        const std::variant<std::string, int>& output = assert_cast<const StringWriter&>(*symbol).GetOutput();
-
-        if( std::holds_alternative<int>(output) )
-        {
-            symbol = &NPT_Ref(std::get<int>(output));
-            ASSERT(symbol->IsA(SymbolType::Report));
-        }
-    }
-
-    if( symbol->IsA(SymbolType::Report) )
-        CheckReportIsCurrentlyWriteable(assert_cast<const Report&>(*symbol));
+    CheckTextTemplateIsCurrentlyAccessible(specified_symbol);
 
     auto& text_template_node = CreateNode<Nodes::TextTemplate>(function_code);
-    text_template_node.symbol_index = symbol->GetSymbolIndex();
+    text_template_node.symbol_index = specified_symbol.GetSymbolIndex();
 
     NextToken();
     IssueErrorOnTokenMismatch(TOKLPAREN, MGF::left_parenthesis_expected_in_function_call_14);
@@ -53,7 +70,7 @@ int LogicCompiler::CompileTextTemplateFunctions()
     optional_named_arguments_compiler.AddArgument(WriteTypeNamedArgument, dummy_write_type_argument,
         [&]()
         {
-            ASSERT(IsCompiling(*symbol));
+            ASSERT(IsCompiling(specified_symbol));
 
             NextToken();
 

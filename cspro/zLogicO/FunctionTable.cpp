@@ -3414,6 +3414,21 @@ namespace
 
 
         // --------------------------------------------------------------------------
+        // StringWriter functions
+        // --------------------------------------------------------------------------
+        {
+            "toString",
+            "string_writer_name.toString()",
+            "StringWriter_toString_function.html",
+            FunctionCode::STRINGWRITERFN_TOSTRING_CODE,
+            SymbolType::StringWriter,
+            DataType::String,
+            FunctionCompilationType::StringWriter,
+            0,
+        },
+
+
+        // --------------------------------------------------------------------------
         // SystemApp functions
         // --------------------------------------------------------------------------
         {

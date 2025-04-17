@@ -574,6 +574,7 @@ enum FunctionCode : int
     TEXTTEMPLATEFN_WRITEENCODED_CODE        = 465, // 20250417
     TEXTTEMPLATEFN_WRITEENCODEDLINE_CODE    = 466, // 20250417
     TEXTTEMPLATEFN_WRITELINE_CODE           = 467, // 20250417
+    STRINGWRITERFN_TOSTRING_CODE            = 468, // 20250417
 };
 
 
@@ -696,6 +697,7 @@ namespace Logic
         Item                    =  276,
         Case                    =  277,
         JS                      =  278,
+        StringWriter            =  279,
         TextTemplate            =  280,
     };
 

@@ -104,8 +104,8 @@ public:
 
     int CreateSymbolVariableArgumentsNode(FunctionCode function_code, const Symbol& symbol, cs::span<const int> arguments);
 
-    Nodes::SymbolVariableArguments& CreateSymbolVariableArgumentsNode(FunctionCode function_code, const Symbol& symbol,
-                                                                      int number_arguments, std::optional<int> initialize_value = std::nullopt);
+    Nodes::SymbolVariableArguments& CreateSymbolVariableArgumentsNode(FunctionCode function_code, const Symbol& symbol, int number_arguments);
+    Nodes::SymbolVariableArguments& CreateSymbolVariableArgumentsNode(FunctionCode function_code, const Symbol& symbol, int number_arguments, int initialize_value);
 
     int CreateSymbolVariableArgumentsWithSubscriptNode(FunctionCode function_code, const Symbol& symbol, int symbol_subscript_compilation, cs::span<const int> arguments);
 
@@ -454,9 +454,6 @@ public:
     void CompileReports();
     virtual void CompileReport(const ReportFile& report_file);
 
-private:
-    void CheckReportIsCurrentlyWriteable(const Report& report);
-
 
     // --------------------------------------------------------------------------
     // StringWriter object
@@ -465,6 +462,7 @@ private:
 public:
     StringWriter* CompileStringWriterDeclaration(bool compiling_function_parameter);
     int CompileStringWriterDeclarations();
+    int CompileStringWriterFunctions();
 
 
     // --------------------------------------------------------------------------
@@ -498,6 +496,10 @@ public:
     int CompileTextTemplateFunctions();
 
 private:
+    // If the symbol is a StringWriter, the underlying type (e.g., a Report) is returned.
+    // An exception is thrown is the symbol is not currently accessible.
+    const Symbol& CheckTextTemplateIsCurrentlyAccessible(const Symbol& symbol);
+
     std::unique_ptr<Logic::SourceBuffer> ConvertTextTemplateToSourceBuffer(std::string_view text_template_sv);
 
 
