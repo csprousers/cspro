@@ -826,13 +826,7 @@ int LogicCompiler::CompileFunctionsVarious()
         auto& encode_node = CreateNode<Nodes::Encode>(function_code);
 
         // get the optional encoding type (if specified)
-        encode_node.encoding_type = static_cast<Nodes::EncodeType>(NextKeyword({ "HTML",
-                                                                                 "CSV",
-                                                                                 "PercentEncoding",
-                                                                                 "URI",
-                                                                                 "URIComponent",
-                                                                                 "Slashes",
-                                                                                 "JsonString" }));
+        encode_node.encoding_type = static_cast<Nodes::EncodeType>(NextKeyword(Nodes::EncodeTypeStrings));
         encode_node.string_expression = -1;
 
         NextToken();

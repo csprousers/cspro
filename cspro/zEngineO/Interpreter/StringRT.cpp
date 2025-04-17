@@ -568,6 +568,10 @@ double LogicInterpreter::ex_encode(const int program_index)
         case Nodes::EncodeType::JsonString:
             return AssignString(Encoders::ToJsonString(*text));
 
+        case Nodes::EncodeType::Markdown:
+            encoded_text = Encoders::ToMarkdownWorker(*text);
+            break;
+
         default:
             ASSERT(false);
             break;

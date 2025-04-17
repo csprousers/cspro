@@ -17,8 +17,10 @@ namespace Nodes
     };
 
 
-    enum class EncodeType : int { Default, Html, Csv, PercentEncoding, Uri, UriComponent, Slashes, JsonString };
-    
+    enum class EncodeType : int { Default, Html, Csv, PercentEncoding, Uri, UriComponent, Slashes, JsonString, Markdown };
+
+    constexpr const char* EncodeTypeStrings[] = { "HTML", "CSV", "PercentEncoding", "URI", "URIComponent", "Slashes", "JsonString", "Markdown" };
+
     struct Encode
     {
         FunctionCode function_code;
