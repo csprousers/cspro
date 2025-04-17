@@ -595,10 +595,10 @@ Language=EN
 48011  The question text condition must consist of a single numeric expression
 48012  The question text fill must consist of a single numeric or string expression, or an object with binary data
 
-/* --- Reports */
-48101  Unbalanced ?> escapes in report on line number %d
-48102  Reached end of report while still in %s that started on line number %d
-48103  The report uses functionality that is not supported
+/* --- Text Templates + Reports */
+48101  Unbalanced ?> escapes in text template on line number %d
+48102  Reached end of text template while still in %s that started on line number %d
+48103  The text template uses functionality that is not supported
 48104  Writing to report '%s' is only allowed within the report's logic or from a user-defined function
 
 /* --- User-Defined Function Messages */

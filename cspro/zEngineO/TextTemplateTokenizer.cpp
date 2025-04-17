@@ -1,5 +1,5 @@
 ﻿#include "stdafx.h"
-#include "ReportTokenizer.h"
+#include "TextTemplateTokenizer.h"
 #include <zLogicO/LogicScanner.h>
 
 

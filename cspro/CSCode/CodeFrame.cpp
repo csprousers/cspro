@@ -5,7 +5,7 @@
 #include "ProcessorActionInvoker.h"
 #include "ProcessorMarkdown.h"
 #include <zUtilF/DynamicMenuBuilder.h>
-#include <zDesignerF/ReportPreviewer.h>
+#include <zDesignerF/TextTemplatePreviewer.h>
 
 
 IMPLEMENT_DYNCREATE(CodeFrame, CMDIChildWndEx)

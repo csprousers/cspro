@@ -1,7 +1,7 @@
 ﻿#include "StdAfx.h"
-#include "ReportPreviewer.h"
+#include "TextTemplatePreviewer.h"
 #include <zEdit2O/ScintillaColorizer.h>
-#include <zEngineO/ReportTokenizer.h>
+#include <zEngineO/TextTemplateTokenizer.h>
 #include <zHtml/SharedHtmlLocalFileServer.h>
 #include <zViewO/MarkdownViewInput.h>
 

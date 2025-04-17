@@ -795,7 +795,7 @@ CIntDriver::pDoubleFunction CIntDriver::m_pExFuncs[] =
 /* 434 */   &CIntDriver::ex_invoke,
 /* 435 */   &CIntDriver::ex_Report_save,
 /* 436 */   &CIntDriver::ex_Report_view,
-/* 437 */   &CIntDriver::ex_Report_write,
+/* 437 */   &CIntDriver::ex_TextTemplate_write_writeEncoded_writeEncodedLine_writeLine, // Report.write prior to CSPro 8.1
 /* 438 */   &CIntDriver::ex_setbluetoothname,
 /* 439 */   &CIntDriver::expersistentsymbolreset,
 /* 440 */   &CIntDriver::ex_Symbol_getJson_getValueJson, // symbol.getJson
@@ -822,6 +822,10 @@ CIntDriver::pDoubleFunction CIntDriver::m_pExFuncs[] =
 /* 461 */   &CIntDriver::ex_JavaScript_getValue,
 /* 462 */   &CIntDriver::ex_JavaScript_setValue,
 /* 463 */   &CIntDriver::ex_JavaScript_UserFunctionCall,
+/* 464 */   &CIntDriver::ex_TextTemplate_write_writeEncoded_writeEncodedLine_writeLine, // Report/StringWriter.write
+/* 465 */   &CIntDriver::ex_TextTemplate_write_writeEncoded_writeEncodedLine_writeLine, // Report/StringWriter.writeEncoded
+/* 466 */   &CIntDriver::ex_TextTemplate_write_writeEncoded_writeEncodedLine_writeLine, // Report/StringWriter.writeEncodedLine
+/* 467 */   &CIntDriver::ex_TextTemplate_write_writeEncoded_writeEncodedLine_writeLine, // Report/StringWriter.writeLine
 
 
             // placeholders to allow new logic functions to be added to an existing serialization

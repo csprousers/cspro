@@ -6,6 +6,7 @@
 #include "WorkString.h"
 #include "Nodes/Encryption.h"
 #include "Nodes/Strings.h"
+#include "Nodes/TextTemplate.h"
 #include "Nodes/Various.h"
 #include <regex>
 
@@ -525,58 +526,19 @@ double LogicInterpreter::ex_decryptstring(const int program_index)
 double LogicInterpreter::ex_encode(const int program_index)
 {
     const auto& encode_node = GetNode<Nodes::Encode>(program_index);
-    ASSERT(encode_node.encoding_type != Nodes::EncodeType::Default || encode_node.string_expression >= 0);
+    ASSERT(encode_node.encode_type != EncodeType::Default || encode_node.string_expression >= 0);
 
     // change the default encoding type
     if( encode_node.string_expression < 0 )
     {
-        m_currentEncodeType = encode_node.encoding_type;
+        m_currentEncodeType = encode_node.encode_type;
         return AssignStringNull();
     }
 
     // or encode a string
-    const Nodes::EncodeType encoding_type = ( encode_node.encoding_type == Nodes::EncodeType::Default ) ? m_currentEncodeType :
-                                                                                                          encode_node.encoding_type;
-    SharableString text = EvaluateSharableString(encode_node.string_expression);
-    std::unique_ptr<std::string> encoded_text;
-
-    switch( encoding_type )
+    else
     {
-        case Nodes::EncodeType::Html:
-            encoded_text = Encoders::ToHtmlWorker(*text);
-            break;
-
-        case Nodes::EncodeType::Csv:
-            encoded_text = Encoders::ToCsvWorker(*text);
-            break;
-
-        case Nodes::EncodeType::PercentEncoding:
-            encoded_text = Encoders::ToPercentEncodingWorker(*text);
-            break;
-
-        case Nodes::EncodeType::Uri:
-            encoded_text = Encoders::ToUriWorker(*text);
-            break;
-
-        case Nodes::EncodeType::UriComponent:
-            encoded_text = Encoders::ToUriComponentWorker(*text);
-            break;
-
-        case Nodes::EncodeType::Slashes:
-            return AssignString(Encoders::ToEscapedString(text.Release()));
-
-        case Nodes::EncodeType::JsonString:
-            return AssignString(Encoders::ToJsonString(*text));
-
-        case Nodes::EncodeType::Markdown:
-            encoded_text = Encoders::ToMarkdownWorker(*text);
-            break;
-
-        default:
-            ASSERT(false);
-            break;
+        return AssignString(EncodeText(EvaluateSharableString(encode_node.string_expression),
+                                       encode_node.encode_type));
     }
-
-    return ( encoded_text != nullptr ) ? AssignString(std::move(encoded_text)) :
-                                         AssignString(std::move(text));
 }

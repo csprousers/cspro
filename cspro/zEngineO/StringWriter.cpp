@@ -1,17 +1,26 @@
 ﻿#include "stdafx.h"
 #include "StringWriter.h"
-#include "Nodes/Various.h"
+#include "Nodes/TextTemplate.h"
 
 
-StringWriter::StringWriter(std::string string_writer_name, const Nodes::EncodeType encode_type)
+StringWriter::StringWriter(std::string string_writer_name, const EncodeType encode_type)
     :   Symbol(std::move(string_writer_name), SymbolType::StringWriter),
         m_encodeType(encode_type)
 {
 }
 
 
+StringWriter::StringWriter(std::string string_writer_name, const Symbol& symbol)
+    :   Symbol(std::move(string_writer_name), SymbolType::StringWriter),
+        m_encodeType(EncodeType::Default),
+        m_output(symbol.GetSymbolIndex())
+{
+    ASSERT(symbol.IsA(SymbolType::Report));
+}
+
+
 StringWriter::StringWriter(std::string string_writer_name)
-    :   StringWriter(std::move(string_writer_name), Nodes::EncodeType::Default)
+    :   StringWriter(std::move(string_writer_name), EncodeType::Default)
 {
 }
 
@@ -24,13 +33,28 @@ std::unique_ptr<Symbol> StringWriter::CloneInInitialState() const
 
 void StringWriter::Reset()
 {
-    // SW_TODO
+    if( std::holds_alternative<std::string>(m_output) )
+        std::get<std::string>(m_output).clear();
 }
 
 
 void StringWriter::serialize_subclass(Serializer& ar)
 {
     ar.SerializeEnum(m_encodeType);
+
+    if( ar.IsSaving() )
+    {
+        ar.Write<bool>(std::holds_alternative<int>(m_output));
+
+        if( std::holds_alternative<int>(m_output) )
+            ar << std::get<int>(m_output);
+    }
+
+    else
+    {
+        if( ar.Read<bool>() )
+            m_output = ar.Read<int>();
+    }
 }
 
 

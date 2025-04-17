@@ -40,7 +40,6 @@ add_library(${PROJECT_NAME}
     PreinitializedVariable.cpp
     ProcType.cpp
     Report.cpp
-    ReportTokenizer.cpp
     ResponseProcessor.cpp
     RunnableSymbol.cpp
     RuntimeEvent.cpp
@@ -48,6 +47,7 @@ add_library(${PROJECT_NAME}
     StringWriter.cpp
     SymbolCalculator.cpp
     SystemApp.cpp
+    TextTemplateTokenizer.cpp
     UserFunction.cpp
     UserFunctionArgumentChecker.cpp
     UserFunctionArgumentEvaluator.cpp
@@ -100,6 +100,7 @@ add_library(${PROJECT_NAME}
     Compiler/SymbolsCC.cpp
     Compiler/SyncCC.cpp
     Compiler/SystemAppCC.cpp
+    Compiler/TextTemplateCC.cpp
     Compiler/TokenCC.cpp
     Compiler/TraceCC.cpp
     Compiler/UserbarCC.cpp
@@ -137,5 +138,6 @@ add_library(${PROJECT_NAME}
     Interpreter/SymbolRT.cpp
     Interpreter/SystemAppRT.cpp
     Interpreter/SystemRT.cpp
+    Interpreter/TextTemplateRT.cpp
     Interpreter/UserInterfaceRT.cpp
 )

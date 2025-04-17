@@ -450,13 +450,12 @@ public:
     // --------------------------------------------------------------------------
 public:
     int CompileReportFunctions();
-    void CheckReportIsCurrentlyWriteable(const Report& report);
 
     void CompileReports();
     virtual void CompileReport(const ReportFile& report_file);
 
 private:
-    std::unique_ptr<Logic::SourceBuffer> ConvertReportToSourceBuffer(std::string_view report_text_sv);
+    void CheckReportIsCurrentlyWriteable(const Report& report);
 
 
     // --------------------------------------------------------------------------
@@ -489,6 +488,17 @@ public:
     SystemApp* CompileSystemAppDeclaration();
     int CompileSystemAppDeclarations();
     int CompileSystemAppFunctions();
+
+
+    // --------------------------------------------------------------------------
+    // Text Template functions
+    // (TextTemplateCC.cpp)
+    // --------------------------------------------------------------------------
+public:
+    int CompileTextTemplateFunctions();
+
+private:
+    std::unique_ptr<Logic::SourceBuffer> ConvertTextTemplateToSourceBuffer(std::string_view text_template_sv);
 
 
     // --------------------------------------------------------------------------

@@ -91,7 +91,6 @@
     <ClCompile Include="PropertyGrid\PropertyManager.cpp" />
     <ClCompile Include="PropertyGrid\StringProperty.cpp" />
     <ClCompile Include="QuestionnaireView.cpp" />
-    <ClCompile Include="ReportPreviewer.cpp" />
     <ClCompile Include="ReportPropertiesPageDlg.cpp" />
     <ClCompile Include="ResourcePropertiesPageDlg.cpp" />
     <ClCompile Include="StdAfx.cpp">
@@ -102,6 +101,7 @@
     <ClCompile Include="TableSpecPropertiesPageDlg.cpp" />
     <ClCompile Include="TabViewContainer.cpp" />
     <ClCompile Include="TextDisplayPageDlg.cpp" />
+    <ClCompile Include="TextTemplatePreviewer.cpp" />
     <ClCompile Include="UnfloatableDialogBar.cpp" />
     <ClCompile Include="zDesignerF.cpp" />
   </ItemGroup>
@@ -138,7 +138,6 @@
     <ClInclude Include="PropertyGrid\PropertyManager.h" />
     <ClInclude Include="PropertyGrid\PropertyValidationException.h" />
     <ClInclude Include="QuestionnaireView.h" />
-    <ClInclude Include="ReportPreviewer.h" />
     <ClInclude Include="ReportPropertiesPageDlg.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="ResourcePropertiesPageDlg.h" />
@@ -148,6 +147,7 @@
     <ClInclude Include="TableSpecPropertiesPageDlg.h" />
     <ClInclude Include="TabViewContainer.h" />
     <ClInclude Include="TextDisplayPageDlg.h" />
+    <ClInclude Include="TextTemplatePreviewer.h" />
     <ClInclude Include="UnfloatableDialogBar.h" />
     <ClInclude Include="UWM.h" />
     <ClInclude Include="ViewType.h" />

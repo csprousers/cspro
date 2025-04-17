@@ -3,38 +3,34 @@
 #include <zUtilO/DataTypes.h>
 #include <zLogicO/FunctionTable.h>
 
+enum class EncodeType : int;
+namespace Nodes { struct Connection; struct Encode; struct Hash; }
 
-namespace Nodes
+
+struct Nodes::Connection
 {
-    struct Connection
-    {
-        static constexpr int Mobile = 0x00000001;
-        static constexpr int WiFi   = 0x00000002;
-        static constexpr int Any    = 0xFFFFFFFF;
+    static constexpr int Mobile = 0x00000001;
+    static constexpr int WiFi   = 0x00000002;
+    static constexpr int Any    = 0xFFFFFFFF;
 
-        FunctionCode function_code;
-        int connection_type;
-    };
+    FunctionCode function_code;
+    int connection_type;
+};
 
 
-    enum class EncodeType : int { Default, Html, Csv, PercentEncoding, Uri, UriComponent, Slashes, JsonString, Markdown };
-
-    constexpr const char* EncodeTypeStrings[] = { "HTML", "CSV", "PercentEncoding", "URI", "URIComponent", "Slashes", "JsonString", "Markdown" };
-
-    struct Encode
-    {
-        FunctionCode function_code;
-        EncodeType encoding_type;
-        int string_expression;
-    };
+struct Nodes::Encode
+{
+    FunctionCode function_code;
+    EncodeType encode_type;
+    int string_expression;
+};
 
 
-    struct Hash
-    {
-        FunctionCode function_code;
-        DataType value_data_type;
-        int value_expression;
-        int length_expression;
-        int salt_expression;
-    };
-}
+struct Nodes::Hash
+{
+    FunctionCode function_code;
+    DataType value_data_type;
+    int value_expression;
+    int length_expression;
+    int salt_expression;
+};

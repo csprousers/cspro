@@ -2,7 +2,7 @@
 #include "ProcessorMarkdown.h"
 #include <zToolsO/FileIO.h>
 #include <zViewO/MarkdownViewInput.h>
-#include <zDesignerF/ReportPreviewer.h>
+#include <zDesignerF/TextTemplatePreviewer.h>
 
 
 void ProcessorMarkdown::Run(CodeDoc& code_doc)

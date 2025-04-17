@@ -383,7 +383,7 @@ Language=EN
 47194  The PFF property "%s" cannot accept a dictionary argument
 47195  There was an error executing "%s": %s
 
-/* --- Reports */
+/* --- Text Templates + Reports */
 48111  Error generating the report %s: %s
 
 /* --- User-Defined Function Messages */
@@ -664,7 +664,7 @@ Language=EN
 100354 Error assigning '%s' to Geometry '%s': %s
 
 /* --- StringWriter */
-100360 You cannot specify an encoding type when using StringWriter as a function parameter.
+100360 You cannot specify an encoding type or symbol when using StringWriter as a function parameter.
 
 /* --- Paths */
 100370 Select a File

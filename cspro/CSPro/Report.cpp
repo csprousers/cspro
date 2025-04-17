@@ -1,6 +1,6 @@
 ﻿#include "StdAfx.h"
 #include "MainFrm.h"
-#include <zDesignerF/ReportPreviewer.h>
+#include <zDesignerF/TextTemplatePreviewer.h>
 
 
 const TextSource* CMainFrame::GetHtmlOrDerivableReportTextSourceCurrentlyEditing(std::string* const report_name_for_report_preview)

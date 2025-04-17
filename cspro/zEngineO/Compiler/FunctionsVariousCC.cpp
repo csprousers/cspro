@@ -3,6 +3,7 @@
 #include "AllSymbols.h"
 #include "PublishDateCompilerHelper.h"
 #include "Nodes/Date.h"
+#include "Nodes/TextTemplate.h"
 #include "Nodes/UserInterface.h"
 #include "Nodes/Various.h"
 #include <regex>
@@ -826,18 +827,18 @@ int LogicCompiler::CompileFunctionsVarious()
         auto& encode_node = CreateNode<Nodes::Encode>(function_code);
 
         // get the optional encoding type (if specified)
-        encode_node.encoding_type = static_cast<Nodes::EncodeType>(NextKeyword(Nodes::EncodeTypeStrings));
+        encode_node.encode_type = static_cast<EncodeType>(NextKeyword(EncodeTypeStrings));
         encode_node.string_expression = -1;
 
         NextToken();
 
-        if( encode_node.encoding_type != Nodes::EncodeType::Default && Tkn != TOKRPAREN )
+        if( encode_node.encode_type != EncodeType::Default && Tkn != TOKRPAREN )
         {
             IssueErrorOnTokenMismatch(TOKCOMMA, MGF::function_call_comma_expected_528);
             NextToken();
         }
 
-        if( encode_node.encoding_type == Nodes::EncodeType::Default || Tkn != TOKRPAREN )
+        if( encode_node.encode_type == EncodeType::Default || Tkn != TOKRPAREN )
             encode_node.string_expression = CompileStringExpression();
 
         IssueErrorOnTokenMismatch(TOKRPAREN, MGF::right_parenthesis_expected_in_function_call_17);

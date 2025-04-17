@@ -114,6 +114,7 @@
     <ClCompile Include="Compiler\SymbolsCC.cpp" />
     <ClCompile Include="Compiler\SyncCC.cpp" />
     <ClCompile Include="Compiler\SystemAppCC.cpp" />
+    <ClCompile Include="Compiler\TextTemplateCC.cpp" />
     <ClCompile Include="Compiler\TokenCC.cpp" />
     <ClCompile Include="Compiler\TraceCC.cpp" />
     <ClCompile Include="Compiler\UserbarCC.cpp" />
@@ -164,6 +165,7 @@
     <ClCompile Include="Interpreter\SymbolRT.cpp" />
     <ClCompile Include="Interpreter\SystemAppRT.cpp" />
     <ClCompile Include="Interpreter\SystemRT.cpp" />
+    <ClCompile Include="Interpreter\TextTemplateRT.cpp" />
     <ClCompile Include="Interpreter\UserInterfaceRT.cpp" />
     <ClCompile Include="JavaScriptProcessor.cpp" />
     <ClCompile Include="List.cpp" />
@@ -179,7 +181,6 @@
     <ClCompile Include="PreinitializedVariable.cpp" />
     <ClCompile Include="ProcType.cpp" />
     <ClCompile Include="Report.cpp" />
-    <ClCompile Include="ReportTokenizer.cpp" />
     <ClCompile Include="ResponseProcessor.cpp" />
     <ClCompile Include="RunnableSymbol.cpp" />
     <ClCompile Include="RuntimeEvent.cpp" />
@@ -191,6 +192,7 @@
     <ClCompile Include="StringWriter.cpp" />
     <ClCompile Include="SymbolCalculator.cpp" />
     <ClCompile Include="SystemApp.cpp" />
+    <ClCompile Include="TextTemplateTokenizer.cpp" />
     <ClCompile Include="UserFunction.cpp" />
     <ClCompile Include="UserFunctionArgumentChecker.cpp" />
     <ClCompile Include="UserFunctionArgumentEvaluator.cpp" />
@@ -273,6 +275,7 @@
     <ClInclude Include="Nodes\Set.h" />
     <ClInclude Include="Nodes\Strings.h" />
     <ClInclude Include="Nodes\Switch.h" />
+    <ClInclude Include="Nodes\TextTemplate.h" />
     <ClInclude Include="Nodes\Trace.h" />
     <ClInclude Include="Nodes\UserFunction.h" />
     <ClInclude Include="Nodes\UserInterface.h" />
@@ -286,7 +289,6 @@
     <ClInclude Include="PreinitializedVariable.h" />
     <ClInclude Include="ProcType.h" />
     <ClInclude Include="Report.h" />
-    <ClInclude Include="ReportTokenizer.h" />
     <ClInclude Include="ResponseProcessor.h" />
     <ClInclude Include="RunnableSymbol.h" />
     <ClInclude Include="RuntimeEvent.h" />
@@ -298,6 +300,7 @@
     <ClInclude Include="SymbolReference.h" />
     <ClInclude Include="SymbolSerializerHelper.h" />
     <ClInclude Include="SystemApp.h" />
+    <ClInclude Include="TextTemplateTokenizer.h" />
     <ClInclude Include="Userbar.h" />
     <ClInclude Include="UserFunction.h" />
     <ClInclude Include="UserFunctionArgumentChecker.h" />

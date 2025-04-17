@@ -3411,16 +3411,6 @@ namespace
             FunctionCompilationType::Report,
             -1,
         },
-        {
-            "write",
-            "report_name.write(Message, [Item, [Item ...]])",
-            "Report_write_function.html",
-            FunctionCode::REPORTFN_WRITE_CODE,
-            SymbolType::Report,
-            DataType::Numeric,
-            FunctionCompilationType::Report,
-            -1,
-        },
 
 
         // --------------------------------------------------------------------------
@@ -3465,6 +3455,67 @@ namespace
             DataType::Numeric,
             FunctionCompilationType::SystemApp,
             3,
+        },
+
+
+        // --------------------------------------------------------------------------
+        // Text Template functions (for Report and StringWriter)
+        // --------------------------------------------------------------------------
+        {
+            "write",
+            "symbol_name.write(Message, [Item, [Item ...]])",
+            "StringWriter_write_function.html",
+            FunctionCode::TEXTTEMPLATEFN_WRITE_CODE,
+            std::vector<SymbolType>
+            {
+                SymbolType::Report,
+                SymbolType::StringWriter,
+            },
+            DataType::Numeric,
+            FunctionCompilationType::TextTemplate,
+            -1,
+        },
+        {
+            "writeEncoded",
+            "symbol_name.writeEncoded(Message, [Item, [Item ...]])",
+            "StringWriter_writeEncoded_function.html",
+            FunctionCode::TEXTTEMPLATEFN_WRITEENCODED_CODE,
+            std::vector<SymbolType>
+            {
+                SymbolType::Report,
+                SymbolType::StringWriter,
+            },
+            DataType::Numeric,
+            FunctionCompilationType::TextTemplate,
+            -1,
+        },
+        {
+            "writeEncodedLine",
+            "symbol_name.writeEncodedLine(Message, [Item, [Item ...]])",
+            "StringWriter_writeEncodedLine_function.html",
+            FunctionCode::TEXTTEMPLATEFN_WRITEENCODEDLINE_CODE,
+            std::vector<SymbolType>
+            {
+                SymbolType::Report,
+                SymbolType::StringWriter,
+            },
+            DataType::Numeric,
+            FunctionCompilationType::TextTemplate,
+            -1,
+        },
+        {
+            "writeLine",
+            "symbol_name.writeLine(Message, [Item, [Item ...]])",
+            "StringWriter_writeLine_function.html",
+            FunctionCode::TEXTTEMPLATEFN_WRITELINE_CODE,
+            std::vector<SymbolType>
+            {
+                SymbolType::Report,
+                SymbolType::StringWriter,
+            },
+            DataType::Numeric,
+            FunctionCompilationType::TextTemplate,
+            -1,
         },
 
 

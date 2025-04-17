@@ -1,27 +1,51 @@
 ﻿#include "stdafx.h"
 #include "IncludesCC.h"
 #include "StringWriter.h"
-#include "Nodes/Various.h"
+#include "Nodes/TextTemplate.h"
 
 
 StringWriter* LogicCompiler::CompileStringWriterDeclaration(const bool compiling_function_parameter)
 {
     std::string string_writer_name = CompileNewSymbolName();
-    Nodes::EncodeType encode_type = Nodes::EncodeType::Default;
+    std::variant<EncodeType, std::reference_wrapper<const Symbol>> encode_type_or_symbol = EncodeType::Default;
 
-    // read the optional encoding type
+    // the StringWriter can optionally be declared with a specified encoding type or as based on a Report
     if( NextKeywordIf(TOKLPAREN) )
     {
         if( compiling_function_parameter )
-            IssueError(MGF::StringWriter_encoding_specified_for_func_param_100360);
+            IssueError(MGF::StringWriter_option_invalid_for_function_parameter_100360);
 
-        encode_type = static_cast<Nodes::EncodeType>(NextKeywordOrError(Nodes::EncodeTypeStrings));
+        const size_t encode_type = NextKeyword(EncodeTypeStrings);
+
+        if( encode_type != 0 )
+        {
+            encode_type_or_symbol = static_cast<EncodeType>(encode_type);
+        }
+
+        else
+        {
+            NextToken();
+
+            if( Tkn == TOKREPORT )
+            {
+                encode_type_or_symbol = NPT_Ref(Tokstindex);
+            }
+
+            else
+            {
+                // NextKeywordOrError will display the valid options
+                NextKeywordOrError(EncodeTypeStrings);
+                ASSERT(false);
+            }
+        }
 
         NextToken();
         IssueErrorOnTokenMismatch(TOKRPAREN, MGF::right_parenthesis_expected_in_function_call_17);
     }
 
-    auto string_writer = std::make_shared<StringWriter>(std::move(string_writer_name), encode_type);
+    auto string_writer = std::holds_alternative<EncodeType>(encode_type_or_symbol) ?
+        std::make_shared<StringWriter>(std::move(string_writer_name), std::get<0>(encode_type_or_symbol)) :
+        std::make_shared<StringWriter>(std::move(string_writer_name), std::get<1>(encode_type_or_symbol).get());
 
     m_engineData->AddSymbol(string_writer);
 

@@ -3,14 +3,20 @@
 #include <zEngineO/zEngineO.h>
 #include <zLogicO/Symbol.h>
 
-namespace Nodes { enum class EncodeType : int; }
+enum class EncodeType : int;
 
 
 class ZENGINEO_API StringWriter : public Symbol
 {
 public:
-    StringWriter(std::string string_writer_name, Nodes::EncodeType encode_type);
+    StringWriter(std::string string_writer_name, EncodeType encode_type);
+    StringWriter(std::string string_writer_name, const Symbol& symbol);
     StringWriter(std::string string_writer_name);
+
+    EncodeType GetEncodeType() const { return m_encodeType; }
+
+    const std::variant<std::string, int>& GetOutput() const { return m_output; }
+    std::variant<std::string, int>& GetOutput()             { return m_output; }
 
     // Symbol overrides
     std::unique_ptr<Symbol> CloneInInitialState() const override;
@@ -22,5 +28,6 @@ public:
     void WriteValueToJson(JsonWriter& json_writer) const override;
 
 private:
-    Nodes::EncodeType m_encodeType;
+    EncodeType m_encodeType;
+    std::variant<std::string, int> m_output; // a string or a symbol index
 };

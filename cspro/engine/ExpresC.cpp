@@ -1501,6 +1501,7 @@ int CEngineCompFunc::rutfunc()
         { Logic::FunctionCompilationType::Report,                   &LogicCompiler::CompileReportFunctions },
         { Logic::FunctionCompilationType::Symbol,                   &LogicCompiler::CompileSymbolFunctions },
         { Logic::FunctionCompilationType::SystemApp,                &LogicCompiler::CompileSystemAppFunctions },
+        { Logic::FunctionCompilationType::TextTemplate,             &LogicCompiler::CompileTextTemplateFunctions },
         { Logic::FunctionCompilationType::UserInterface,            &LogicCompiler::CompileUserInterfaceFunctions },
         { Logic::FunctionCompilationType::ValueSet,                 &LogicCompiler::CompileValueSetFunctions },
 
