@@ -4,7 +4,7 @@
 
 class CLogicCtrl;
 class CodeDoc;
-class ReportPreviewer;
+class TextTemplatePreviewer;
 
 
 class CodeFrame : public CMDIChildWndEx
@@ -89,5 +89,5 @@ private:
     WPARAM m_codeFrameActivatePostMessageCounter;
     int64_t m_lastCheckIfFileIsUpdatedTime;
 
-    std::unique_ptr<ReportPreviewer> m_reportPreviewer;
+    std::unique_ptr<TextTemplatePreviewer> m_textTemplatePreviewer;
 };

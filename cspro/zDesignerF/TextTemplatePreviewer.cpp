@@ -6,102 +6,104 @@
 #include <zViewO/MarkdownViewInput.h>
 
 
-class ReportPreviewer::DesignerReportTokenizer : public ReportTokenizer
+class TextTemplatePreviewer::DesignerTextTemplateTokenizer : public TextTemplateTokenizer
 {
 public:
+    DesignerTextTemplateTokenizer() : TextTemplateTokenizer(true) { }
+
     void OnErrorUnbalancedEscapes(size_t /*line_number*/) override { }
-    void OnErrorTokenNotEnded(const ReportToken& /*report_token*/) override { }
+    void OnErrorTokenNotEnded(const TextTemplateToken& /*token*/) override { }
 };
 
 
-struct ReportPreviewer::ReportVirtualFileMappingDetails
+struct TextTemplatePreviewer::VirtualFileMappingDetails
 {
     SharedHtmlLocalFileServer file_server;
     std::unique_ptr<VirtualFileMapping> virtual_file_mapping;
 };
 
 
-ReportPreviewer::ReportPreviewer(std::string report_file_path, const std::string_view report_text_sv,
-                                 const LogicSettings& logic_settings, const char* const action/* = "previewing"*/)
-    :   m_reportFilePath(std::move(report_file_path)),
+TextTemplatePreviewer::TextTemplatePreviewer(std::string text_template_file_path, const std::string_view text_template_sv,
+                                             const LogicSettings& logic_settings, const char* const action/* = "previewing"*/)
+    :   m_textTemplateFilePath(std::move(text_template_file_path)),
         m_lexerLanguage(Lexers::GetLexer_Logic(logic_settings))
 {
-    DesignerReportTokenizer report_tokenizer;
+    DesignerTextTemplateTokenizer text_template_tokenizer;
 
-    if( !report_tokenizer.Tokenize(report_text_sv, logic_settings) )
-        throw CSProException("There are errors that must be fixed before %s the report. Compile the report to see the errors.", action);
+    if( !text_template_tokenizer.Tokenize(text_template_sv, logic_settings) )
+        throw CSProException("There are errors that must be fixed before %s the text template. Compile the text template to see the errors.", action);
 
-    const FileExtensionAnalyzer report_extension_analyser(m_reportFilePath);
-    ASSERT(report_extension_analyser.IsTypeHtmlOrDerivable());
+    const FileExtensionAnalyzer extension_analyser(m_textTemplateFilePath);
+    ASSERT(extension_analyser.IsTypeHtmlOrDerivable());
 
-    m_reportHtml = ( report_extension_analyser.IsTypeHtml() ) ? CreateHtmlForHtml(report_tokenizer.GetReportTokens()) :
-                                                                CreateHtmlForMarkdown(report_tokenizer.GetReportTokens());
+    m_html = extension_analyser.IsTypeHtml() ? CreateHtmlForHtml(text_template_tokenizer.GetTokens()) :
+                                               CreateHtmlForMarkdown(text_template_tokenizer.GetTokens());
 }
 
 
-ReportPreviewer::~ReportPreviewer()
+TextTemplatePreviewer::~TextTemplatePreviewer()
 {
 }
 
 
-std::string ReportPreviewer::CreateHtmlForHtml(const std::vector<ReportToken>& report_tokens) const
+std::string TextTemplatePreviewer::CreateHtmlForHtml(const std::vector<TextTemplateToken>& tokens) const
 {
-    // without writing a full blown HTML parser, try to intelligently write out logic to the report:
+    // without writing a full blown HTML parser, try to intelligently write out logic to the text template:
     // - when in a head or script block, don't write out any logic
     // - when in a tag attribute value, write the logic escaped for HTML and quotes
     // - when elsewhere in a tag, write the logic escaped for HTML
     // - otherwise colorize the logic without formatting
 
     std::optional<char> tag_attribute_quote_char;
-    char previous_report_char = 0;
+    char previous_source_char = 0;
     bool in_tag = false;
     bool building_tag_text = false;
     std::string tag_text;
     bool in_head_block = false;
     bool in_script_block = false;
 
-    std::string report_html;
+    std::string html;
 
-    for( const ReportToken& report_token : report_tokens )
+    for( const TextTemplateToken& token : tokens )
     {
         // add logic
-        if( report_token.type != ReportToken::Type::ReportText )
+        if( token.type != TextTemplateToken::Type::DirectText )
         {
             if( in_head_block || in_script_block )
                 continue;
 
             if( tag_attribute_quote_char.has_value() )
             {
-                std::string html = Encoders::ToHtml(report_token.text);
-                SO::Replace(html, "\"", "&#34;");
-                SO::Replace(html, "'", "&#39;");
-                report_html.append(html);
+                std::string this_html = Encoders::ToHtml(token.text);
+                SO::Replace(this_html, "\"", "&#34;");
+                SO::Replace(this_html, "'", "&#39;");
+                html.append(this_html);
             }
 
             else if( in_tag )
             {
-                report_html.append(Encoders::ToHtml(report_token.text));
+                html.append(Encoders::ToHtml(token.text));
             }
 
-            else if( !SO::IsWhitespace(report_token.text) )
+            else if( !SO::IsWhitespace(token.text) )
             {
-                ScintillaColorizer colorizer(m_lexerLanguage, report_token.text);
+                ScintillaColorizer colorizer(m_lexerLanguage, token.text);
 
-                report_html.append(colorizer.GetHtml(ScintillaColorizer::HtmlProcessorType::ContentOnly));
+                html.append(colorizer.GetHtml(ScintillaColorizer::HtmlProcessorType::ContentOnly));
             }
         }
 
-        // add the report text directly and then update the report characteristics
+        // add the text template's text directly and then update the report characteristics
         else
         {
-            report_html.append(report_token.text);
+            html.append(token.text);
 
-            for( const char ch : report_token.text )
+            for( const char ch : token.text )
             {
                 // in a tag attribute waiting for the end quote
                 if( tag_attribute_quote_char.has_value() )
                 {
-                    if( ch == *tag_attribute_quote_char && previous_report_char != '\\' )
+                    if( ch == *tag_attribute_quote_char && previous_source_char != '\\' )
                         tag_attribute_quote_char.reset();
                 }
 
@@ -156,61 +158,100 @@ std::string ReportPreviewer::CreateHtmlForHtml(const std::vector<ReportToken>& r
                     }
                 }
 
-                previous_report_char = ch;
+                previous_source_char = ch;
             }
         }
     }
 
-    return report_html;
+    return html;
 }
 
 
-std::string ReportPreviewer::CreateHtmlForMarkdown(const std::vector<ReportToken>& report_tokens) const
+std::string TextTemplatePreviewer::CreateHtmlForMarkdown(const std::vector<TextTemplateToken>& tokens) const
 {
     std::string markdown;
 
-    for( const ReportToken& report_token : report_tokens )
+    for( const TextTemplateToken& token : tokens )
     {
         // add Markdown
-        if( report_token.type == ReportToken::Type::ReportText )
+        if( token.type == TextTemplateToken::Type::DirectText )
         {
-            markdown.append(report_token.text);
+            markdown.append(token.text);
         }
 
         // add logic
         else
         {
-            ScintillaColorizer colorizer(m_lexerLanguage, report_token.text);
+            ScintillaColorizer colorizer(m_lexerLanguage, token.text);
             const std::string html = colorizer.GetHtml(ScintillaColorizer::HtmlProcessorType::ContentOnly);
             ASSERT(!html.empty() && html.front() == '<' && html.back() == '>');
-            markdown.append(html);
+
+            // logic like ~~~"**"~~~ is colored like <span style="color:Fuchsia;">"**"</span>
+            // which is a problem because Markdown syntax is processed within span-level tags (but not block-level tags),
+            // so we must escape the content in between each of the tags
+            size_t last_processed_end_tag_pos = 0;
+            size_t start_tag_pos = 0;
+
+            while( start_tag_pos < html.length() )
+            {
+                size_t end_tag_pos;
+
+                start_tag_pos = html.find('<', start_tag_pos);
+
+                if( ( start_tag_pos == std::string::npos ) ||
+                    ( ( end_tag_pos = html.find('>', start_tag_pos + 1)) ) == std::string::npos )
+                {
+                    throw ProgrammingErrorException();
+                }
+
+                // append the logic (e.g., "**")
+                if( start_tag_pos > last_processed_end_tag_pos )
+                {
+                    std::string logic = html.substr(last_processed_end_tag_pos + 1, start_tag_pos - last_processed_end_tag_pos - 1);
+
+                    // the logic may have named entities such as &nbsp; so convert these back to their original values
+                    // so that they are properly escaped for Markdown
+                    logic = Encoders::FromHtmlAmpersandEscapes(std::move(logic));
+
+                    markdown.append(Encoders::ToMarkdown(logic));
+                }
+
+                // append the tag
+                markdown.append(html.substr(start_tag_pos, end_tag_pos - start_tag_pos + 1));
+
+                last_processed_end_tag_pos = end_tag_pos;
+
+                start_tag_pos = end_tag_pos + 1;
+            }
+
+            ASSERT(start_tag_pos == html.length());
         }
     }
 
-    return MarkdownViewInput::ToViewableHtml(m_reportFilePath, markdown);
+    return MarkdownViewInput::ToViewableHtml(m_textTemplateFilePath, markdown);
 }
 
 
-std::string ReportPreviewer::GetReportUrl()
+std::string TextTemplatePreviewer::GetUrl()
 {
-    if( m_reportVirtualFileMappingDetails == nullptr )
+    if( m_virtualFileMappingDetails == nullptr )
     {
-        m_reportVirtualFileMappingDetails = std::make_unique<ReportVirtualFileMappingDetails>();
+        m_virtualFileMappingDetails = std::make_unique<VirtualFileMappingDetails>();
 
-        m_reportVirtualFileMappingDetails->virtual_file_mapping = std::make_unique<VirtualFileMapping>(
-            m_reportVirtualFileMappingDetails->file_server.CreateVirtualHtmlFile(PortableFunctions::PathGetDirectory(m_reportFilePath),
+        m_virtualFileMappingDetails->virtual_file_mapping = std::make_unique<VirtualFileMapping>(
+            m_virtualFileMappingDetails->file_server.CreateVirtualHtmlFile(PortableFunctions::PathGetDirectory(m_textTemplateFilePath),
                 [&]()
                 {
-                    return m_reportHtml;
+                    return m_html;
                 }));
     }
 
-    return m_reportVirtualFileMappingDetails->virtual_file_mapping->GetUrl();
+    return m_virtualFileMappingDetails->virtual_file_mapping->GetUrl();
 }
 
 
-std::unique_ptr<UriResolver> ReportPreviewer::GetReportUriResolver()
+std::unique_ptr<UriResolver> TextTemplatePreviewer::GetUriResolver()
 {
-    const std::string report_url = GetReportUrl();
-    return UriResolver::CreateUriDomain(report_url, report_url, m_reportFilePath);
+    const std::string url = GetUrl();
+    return UriResolver::CreateUriDomain(url, url, m_textTemplateFilePath);
 }

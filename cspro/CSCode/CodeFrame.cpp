@@ -455,11 +455,11 @@ void CodeFrame::OnRunReportPreview()
         const bool html_type = ( doc_language_settings.GetLanguageType() == LanguageType::CSProReportHtml );
         ASSERT(html_type || doc_language_settings.GetLanguageType() == LanguageType::CSProReportMarkdown);
 
-        m_reportPreviewer = std::make_unique<ReportPreviewer>(code_doc.GetActualOrTempFilePath(html_type ? FileExtensions::HTML : FileExtensions::Markdown),
-                                                              logic_ctrl->GetText(),
-                                                              logic_settings);
+        m_textTemplatePreviewer = std::make_unique<TextTemplatePreviewer>(code_doc.GetActualOrTempFilePath(html_type ? FileExtensions::HTML : FileExtensions::Markdown),
+                                                                          logic_ctrl->GetText(),
+                                                                          logic_settings);
 
-        html_viewer_wnd->GetHtmlBrowser().NavigateTo(m_reportPreviewer->GetReportUriResolver());
+        html_viewer_wnd->GetHtmlBrowser().NavigateTo(m_textTemplatePreviewer->GetUriResolver());
     }
 
     catch( const CSProException& exception )

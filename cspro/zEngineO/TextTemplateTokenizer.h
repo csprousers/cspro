@@ -5,9 +5,9 @@
 class LogicSettings;
 
 
-struct ReportToken
+struct TextTemplateToken
 {
-    enum class Type { ReportText, DoubleTilde, TripleTilde, Logic };
+    enum class Type { DirectText, DoubleTilde, TripleTilde, Logic };
 
     Type type;
     size_t section_line_number_start;
@@ -15,19 +15,21 @@ struct ReportToken
 };
 
 
-class ZENGINEO_API ReportTokenizer
+class ZENGINEO_API TextTemplateTokenizer
 {
 public:
-    virtual ~ReportTokenizer() { }
+    TextTemplateTokenizer(bool allow_logic_escapes);
+    virtual ~TextTemplateTokenizer() { }
 
-    bool Tokenize(std::string_view report_text_sv, const LogicSettings& logic_settings);
+    bool Tokenize(std::string_view text_template_sv, const LogicSettings& logic_settings);
 
-    const std::vector<ReportToken>& GetReportTokens() const { return m_reportTokens; }
+    const std::vector<TextTemplateToken>& GetTokens() const { return m_tokens; }
 
 protected:
     virtual void OnErrorUnbalancedEscapes(size_t line_number) = 0;
-    virtual void OnErrorTokenNotEnded(const ReportToken& report_token) = 0;
+    virtual void OnErrorTokenNotEnded(const TextTemplateToken& token) = 0;
 
 private:
-    std::vector<ReportToken> m_reportTokens;
+    bool m_allowLogicEscapes;
+    std::vector<TextTemplateToken> m_tokens;
 };

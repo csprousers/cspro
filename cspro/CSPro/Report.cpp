@@ -73,16 +73,16 @@ void CMainFrame::OnViewReportPreview()
 
     try
     {
-        ReportPreviewer report_previewer(report_text_source->GetFilePath(),
-                                         report_text_source->GetText(),
-                                         application->GetLogicSettings());
+        TextTemplatePreviewer text_template_previewer(report_text_source->GetFilePath(),
+                                                      report_text_source->GetText(),
+                                                      application->GetLogicSettings());
 
         // view the report, using an ExceptionHolder to display uncaught exceptions from the Action Invoker
         Viewer viewer;
         viewer.UseEmbeddedViewer()
               .UseExceptionHolder(nullptr)
               .SetTitle("Report Preview: " + report_name)
-              .ViewHtmlUrl(report_previewer.GetReportUrl());
+              .ViewHtmlUrl(text_template_previewer.GetUrl());
     }
 
     catch( const CSProException& exception )

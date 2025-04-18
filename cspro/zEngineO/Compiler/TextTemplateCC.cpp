@@ -125,13 +125,13 @@ int LogicCompiler::CompileTextTemplateFunctions()
         NextToken();
     }
 
-    // if not using named arguments, the user is supplying the text directly using a report.write function call
+    // if not using named arguments, the user is supplying the text directly using a write... function call
     else
     {
         text_template_node.type = Nodes::TextTemplate::Type::Write;
 
         text_template_node.encode_text = ( text_template_node.function_code == FunctionCode::TEXTTEMPLATEFN_WRITEENCODED_CODE ||
-                                      text_template_node.function_code == FunctionCode::TEXTTEMPLATEFN_WRITEENCODEDLINE_CODE ) ? 1 : 0;
+                                           text_template_node.function_code == FunctionCode::TEXTTEMPLATEFN_WRITEENCODEDLINE_CODE ) ? 1 : 0;
 
         text_template_node.expression = CompileMessageFunction(function_code);
 
@@ -144,11 +144,12 @@ int LogicCompiler::CompileTextTemplateFunctions()
 
 namespace
 {
-    class EngineTextTemplateTokenizer : public ReportTokenizer
+    class EngineTextTemplateTokenizer : public TextTemplateTokenizer
     {
     public:
-        EngineTextTemplateTokenizer(LogicCompiler& logic_compiler)
-            :   m_compiler(logic_compiler)
+        EngineTextTemplateTokenizer(LogicCompiler& logic_compiler, const bool allow_logic_escapes)
+            :   TextTemplateTokenizer(allow_logic_escapes),
+                m_compiler(logic_compiler)
         {
         }
 
@@ -157,11 +158,11 @@ namespace
             m_compiler.ReportError(MGF::TextTemplate_unbalanced_escapes_48101, static_cast<int>(line_number));
         }
 
-        void OnErrorTokenNotEnded(const ReportToken& report_token) override
+        void OnErrorTokenNotEnded(const TextTemplateToken& token) override
         {
             m_compiler.ReportError(MGF::TextTemplate_end_reached_while_in_logic_or_fill_48102,
-                                   ( report_token.type == ReportToken::Type::Logic ) ? "logic" : "a fill",
-                                   static_cast<int>(report_token.section_line_number_start));
+                                   ( token.type == TextTemplateToken::Type::Logic ) ? "logic" : "a fill",
+                                   static_cast<int>(token.section_line_number_start));
         }
 
     private:
@@ -191,9 +192,9 @@ namespace
 }
 
 
-std::unique_ptr<Logic::SourceBuffer> LogicCompiler::ConvertTextTemplateToSourceBuffer(const std::string_view text_template_sv)
+std::unique_ptr<Logic::SourceBuffer> LogicCompiler::ConvertTextTemplateToSourceBuffer(const std::string_view text_template_sv, const bool allow_logic_escapes)
 {
-    EngineTextTemplateTokenizer text_template_tokenizer(*this);
+    EngineTextTemplateTokenizer text_template_tokenizer(*this, allow_logic_escapes);
 
     if( !text_template_tokenizer.Tokenize(text_template_sv, GetLogicSettings()) )
         return nullptr;
@@ -205,41 +206,41 @@ std::unique_ptr<Logic::SourceBuffer> LogicCompiler::ConvertTextTemplateToSourceB
     size_t source_line = 1;
     size_t output_line = 1;
 
-    for( const ReportToken& report_token : text_template_tokenizer.GetReportTokens() )
+    for( const TextTemplateToken& token : text_template_tokenizer.GetTokens() )
     {
-        const size_t token_text_newlines = CountNewlines(report_token.text);
+        const size_t token_text_newlines = CountNewlines(token.text);
 
         text_template_line_adjuster->line_map.try_emplace(output_line, source_line);
         source_line += token_text_newlines;
 
-        if( report_token.type == ReportToken::Type::ReportText )
+        if( token.type == TextTemplateToken::Type::DirectText )
         {
             // the text template's direct text will be added to the string literal conserver
             logic.append(FormatText("$.write(%s := %d, %d);",
                                     WriteTypeNamedArgument,
                                     static_cast<int>(Nodes::TextTemplate::Type::DirectText),
-                                    ConserveConstant(report_token.text)));
+                                    ConserveConstant(token.text)));
 
             ++output_line;
         }
 
-        else if( report_token.type == ReportToken::Type::DoubleTilde ||
-                 report_token.type == ReportToken::Type::TripleTilde )
+        else if( token.type == TextTemplateToken::Type::DoubleTilde ||
+                 token.type == TextTemplateToken::Type::TripleTilde )
         {
             logic.append(FormatText("$.write(%s := %d, %d, %s);",
                                     WriteTypeNamedArgument,
                                     static_cast<int>(Nodes::TextTemplate::Type::TextFill),
-                                    ( report_token.type == ReportToken::Type::DoubleTilde ) ? 1 : 0,
-                                    report_token.text.c_str()));
+                                    ( token.type == TextTemplateToken::Type::DoubleTilde ) ? 1 : 0,
+                                    token.text.c_str()));
 
             output_line += token_text_newlines + 1;
         }
 
         else
         {
-            ASSERT(report_token.type == ReportToken::Type::Logic);
+            ASSERT(token.type == TextTemplateToken::Type::Logic);
 
-            logic.append(report_token.text);
+            logic.append(token.text);
 
             output_line += token_text_newlines + 1;
         }

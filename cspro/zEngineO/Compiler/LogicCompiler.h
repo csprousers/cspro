@@ -500,7 +500,7 @@ private:
     // An exception is thrown is the symbol is not currently accessible.
     const Symbol& CheckTextTemplateIsCurrentlyAccessible(const Symbol& symbol);
 
-    std::unique_ptr<Logic::SourceBuffer> ConvertTextTemplateToSourceBuffer(std::string_view text_template_sv);
+    std::unique_ptr<Logic::SourceBuffer> ConvertTextTemplateToSourceBuffer(std::string_view text_template_sv, bool allow_logic_escapes);
 
 
     // --------------------------------------------------------------------------

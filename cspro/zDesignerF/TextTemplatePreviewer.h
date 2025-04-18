@@ -4,36 +4,37 @@
 #include <zHtml/UriResolver.h>
 
 class LogicSettings;
-struct ReportToken;
+struct TextTemplateToken;
 
 
 // --------------------------------------------------------------------------
-// ReportPreviewer is used to show a preview of HTML / Markdown reports.
+// TextTemplatePreviewer is used to show a preview of HTML / Markdown
+// text templates.
 // --------------------------------------------------------------------------
 
-class CLASS_DECL_ZDESIGNERF ReportPreviewer
+class CLASS_DECL_ZDESIGNERF TextTemplatePreviewer
 {
 public:
-    // CSProException exceptions thrown if the report text does not compile
-    ReportPreviewer(std::string report_file_path, std::string_view report_text_sv,
-                    const LogicSettings& logic_settings, const char* action = "previewing");
-    ~ReportPreviewer();
+    // CSProException exceptions are thrown if the text template does not compile.
+    TextTemplatePreviewer(std::string text_template_file_path, std::string_view text_template_sv,
+                          const LogicSettings& logic_settings, const char* action = "previewing");
+    ~TextTemplatePreviewer();
 
-    SharableString GetReportHtml() const { return m_reportHtml; }
+    SharableString GetHtml() const { return m_html; }
 
-    std::string GetReportUrl();
-    std::unique_ptr<UriResolver> GetReportUriResolver();
-
-private:
-    std::string CreateHtmlForHtml(const std::vector<ReportToken>& report_tokens) const;
-    std::string CreateHtmlForMarkdown(const std::vector<ReportToken>& report_tokens) const;
+    std::string GetUrl();
+    std::unique_ptr<UriResolver> GetUriResolver();
 
 private:
-    class DesignerReportTokenizer;
-    struct ReportVirtualFileMappingDetails;
+    std::string CreateHtmlForHtml(const std::vector<TextTemplateToken>& tokens) const;
+    std::string CreateHtmlForMarkdown(const std::vector<TextTemplateToken>& tokens) const;
 
-    std::string m_reportFilePath;
+private:
+    class DesignerTextTemplateTokenizer;
+    struct VirtualFileMappingDetails;
+
+    std::string m_textTemplateFilePath;
     int m_lexerLanguage;
-    SharableString m_reportHtml;
-    std::unique_ptr<ReportVirtualFileMappingDetails> m_reportVirtualFileMappingDetails;
+    SharableString m_html;
+    std::unique_ptr<VirtualFileMappingDetails> m_virtualFileMappingDetails;
 };
