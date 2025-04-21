@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+﻿#include "StdAfx.h"
 #include "OpenSourceReleaseCreator.h"
 #include "OpenSourceReleaseCreatorDlg.h"
 #include <zUtilF/CommonControls.h>
@@ -6,12 +6,12 @@
 
 namespace
 {
-    // The one and only OpenSourceReleaseCreator object
-    OpenSourceReleaseCreatorAll theApp;
+    // The one and only OpenSourceReleaseCreatorApp object
+    OpenSourceReleaseCreatorApp theApp;
 }
 
 
-BOOL OpenSourceReleaseCreatorAll::InitInstance()
+BOOL OpenSourceReleaseCreatorApp::InitInstance()
 {
     InitializeCommonControls();
 
@@ -19,11 +19,11 @@ BOOL OpenSourceReleaseCreatorAll::InitInstance()
 
     AfxEnableControlContainer();
 
-	EnableTaskbarInteraction(FALSE);
+    EnableTaskbarInteraction(FALSE);
 
-	OpenSourceReleaseCreatorDlg dlg;
-	m_pMainWnd = &dlg;
-	dlg.DoModal();
+    OpenSourceReleaseCreatorDlg dlg;
+    m_pMainWnd = &dlg;
+    dlg.DoModal();
 
     return FALSE;
 }

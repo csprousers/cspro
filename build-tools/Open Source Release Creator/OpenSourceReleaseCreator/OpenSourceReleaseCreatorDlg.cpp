@@ -16,7 +16,7 @@ BEGIN_MESSAGE_MAP(OpenSourceReleaseCreatorDlg, ResizableDlg)
 END_MESSAGE_MAP()
 
 
-OpenSourceReleaseCreatorDlg::OpenSourceReleaseCreatorDlg(CWnd* const pParent /*=nullptr*/)
+OpenSourceReleaseCreatorDlg::OpenSourceReleaseCreatorDlg(CWnd* const pParent/* = nullptr*/)
     :   ResizableDlg(IDD_CREATOR, pParent),
         m_settingsDb("OpenSourceReleaseCreator.db"),
         m_outputDirectory(m_settingsDb.ReadOrDefault<std::string>(OutputDirectoryKey_sv))

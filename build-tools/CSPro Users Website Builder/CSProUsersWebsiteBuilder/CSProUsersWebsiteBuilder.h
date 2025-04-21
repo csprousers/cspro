@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 
-class OpenSourceReleaseCreatorApp : public CWinApp
+class CSProUsersWebsiteBuilderApp : public CWinApp
 {
 protected:
     BOOL InitInstance() override;
