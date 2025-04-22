@@ -1,19 +1,117 @@
 ﻿#include "StdAfx.h"
 #include "Builder.h"
+#include <zToolsO/DirectoryLister.h>
 #include <zToolsO/FileIO.h>
 #include <zUtilO/TemporaryFile.h>
+#include <zZipo/ZipFile.h>
 
 
-Builder::Builder(LoggingListBox& logging_list_box, std::string cspro_root_directory,
-                 std::string cspro_users_input_directory, std::string cspro_users_output_directory)
-    :   m_loggingListBox(logging_list_box),
-        m_csproRootDirectory(std::move(cspro_root_directory)),
-        m_csproUsersInputDirectory(std::move(cspro_users_input_directory)),
-        m_csproUsersOutputDirectory(std::move(cspro_users_output_directory))
+Builder::Builder(Directories directories, LoggingListBox& logging_list_box)
+    :   m_directories(std::move(directories)),
+        m_loggingListBox(logging_list_box)
 {
-    ASSERT(PortableFunctions::FileIsDirectory(m_csproRootDirectory) &&
-           PortableFunctions::FileIsDirectory(m_csproUsersInputDirectory) &&
-           PortableFunctions::FileIsDirectory(m_csproUsersOutputDirectory));
+}
+
+
+void Builder::RecycleDirectory(const std::string& directory)
+{
+    if( !PortableFunctions::FileIsDirectory(directory) )
+        return;
+
+    m_loggingListBox.AddText("Recycling " + directory);
+
+    wchar_t complete_from_path[MAX_PATH];
+    const int path_length = GetFullPathName(TC::ToWide(directory).c_str(), MAX_PATH, complete_from_path, nullptr);
+
+    if( path_length == 0 || path_length >= MAX_PATH )
+        throw CSProException("GetFullPathName error: %s", directory.c_str());
+
+    SHFILEOPSTRUCT info = { nullptr };
+    info.wFunc = FO_DELETE;
+    info.fFlags = FOF_NOCONFIRMATION | FOF_ALLOWUNDO;
+    info.pFrom = complete_from_path;
+
+    if( SHFileOperation(&info) != 0 )
+        throw CSProException("Error recycling: " + directory);
+}
+
+
+void Builder::CopyFile(const std::string& input_file_path, const std::string& output_file_path)
+{
+    FileIO::CreateDirectoriesForFile(output_file_path);
+    PortableFunctions::FileCopyWithExceptions(input_file_path, output_file_path, FileOverwriteFlag::Fail);
+}
+
+
+void Builder::CopyDirectoryRecursive(const std::string& input_directory, const std::string& output_directory)
+{
+    DirectoryLister directory_lister(true);
+
+    for( const std::string& input_file_path : directory_lister.GetPaths(input_directory) )
+    {
+        ASSERT(SO::StartsWithNoCase(input_file_path, input_directory));
+
+        CopyFile(input_file_path,
+                 Path::Combine(output_directory, input_file_path.substr(input_directory.length())));
+    }
+}
+
+
+void Builder::BuildDocSet(const std::string& csdocset_file_path, const std::string& build_name)
+{
+    const std::string csdocument_exe = Path::Combine(m_directories.cspro_root, R"(cspro\debug\bin\CSDocument.exe)");
+
+    if( !PortableFunctions::FileIsRegular(csdocument_exe) )
+        throw CSProException("CSDocument must exist at: " + csdocument_exe);
+
+    const std::string command = EscapeCommandLineArgument(csdocument_exe)
+                                .append(" -build ").append(EscapeCommandLineArgument(build_name))
+                                .append(" -input ").append(EscapeCommandLineArgument(csdocset_file_path));
+    int return_code;
+
+    if( !RunProgram(TC::ToWide(command), &return_code, SW_SHOWNA, true, true) )
+        throw CSProException("Error running CSDocument (build '%s'): %s", build_name.c_str(), csdocset_file_path.c_str());
+}
+
+
+void Builder::UpdateMobileWorkshop()
+{
+    m_loggingListBox.AddText("Building the mobile workshop materials...");
+
+    const std::string mobile_workshop_output_directory = Path::Combine(m_directories.csprousers_output, "mobile-workshop");
+    RecycleDirectory(mobile_workshop_output_directory);
+
+    const std::string csdocset_file_path = Path::Combine(m_directories.mobile_workshop, "CSProMobileWorkshop", "CSProMobileWorkshop.csdocset");
+
+    const std::string csdocument_outputs_directory = Path::Combine(m_directories.mobile_workshop, "Outputs");
+    RecycleDirectory(csdocument_outputs_directory);
+
+    // build the website
+    m_loggingListBox.AddText("Building the website...");
+    BuildDocSet(csdocset_file_path, "CSPro Users Workshop Website");
+    CopyDirectoryRecursive(Path::Combine(csdocument_outputs_directory, "mobile-workshop"),
+                           mobile_workshop_output_directory);
+
+    // build the PDF
+    m_loggingListBox.AddText("Building the PDF...");
+    BuildDocSet(csdocset_file_path, "PDF Documentation");
+    CopyFile(Path::Combine(csdocument_outputs_directory, "CSProMobileWorkshop.pdf"),
+             Path::Combine(mobile_workshop_output_directory, "pdf", "cspro-mobile-workshop.pdf"));
+
+    // create the materials ZIP file
+    m_loggingListBox.AddText("Building the materials ZIP file...");
+    std::vector<std::string> zip_input_file_paths;
+
+    DirectoryLister directory_lister(true);
+    directory_lister.AddPaths(zip_input_file_paths, Path::Combine(m_directories.mobile_workshop, "FilesForExercises"));
+    directory_lister.AddPaths(zip_input_file_paths, Path::Combine(m_directories.mobile_workshop, "Questionnaire"));
+
+    std::string zip_output_file_path = Path::Combine(mobile_workshop_output_directory, "materials", "cspro-mobile-workshop-materials.zip");
+    FileIO::CreateDirectoriesForFile(zip_output_file_path);
+
+    ZipCreator zip_creator(std::move(zip_output_file_path));
+    zip_creator.AddFiles(zip_input_file_paths);
+    zip_creator.Close();
 }
 
 
@@ -21,12 +119,12 @@ void Builder::UpdateGooglePlayPrivacyPolicy()
 {
     m_loggingListBox.AddText("Creating the Google Play privacy policy...");
 
-    const std::string gcl_exe = Path::Combine(m_csproRootDirectory, "build-tools\\Licenses\\Generate Combined License\\Debug\\Generate Combined License.exe");
+    const std::string gcl_exe = Path::Combine(m_directories.cspro_root, R"(build-tools\Licenses\Generate Combined License\Debug\Generate Combined License.exe)");
 
     if( !PortableFunctions::FileIsRegular(gcl_exe) )
         throw CSProException("The Generate Combined License program must exist at: " + gcl_exe);
 
-    const std::string privacy_path_directory = Path::Combine(m_csproUsersInputDirectory, "privacy");
+    const std::string privacy_path_directory = Path::Combine(m_directories.csprousers_input, "privacy");
     const std::string privacy_path_template_file_path = Path::Combine(privacy_path_directory, "privacy-policy-template.html");
     const std::string privacy_path_output_file_path = Path::Combine(privacy_path_directory, "privacy-policy.html");
 

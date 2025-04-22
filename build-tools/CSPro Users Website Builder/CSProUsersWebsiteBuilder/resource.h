@@ -6,8 +6,10 @@
 #define IDC_DIRECTORY_CSPRO             1000
 #define IDC_DIRECTORY_CSPRO_USERS_INPUTS 1001
 #define IDC_DIRECTORY_CSPRO_USERS_OUTPUTS 1002
-#define IDC_LOG                         1003
-#define IDC_UPDATE_GOOGLE_PLAY_PRIVACY_POLICY 1004
+#define IDC_DIRECTORY_MOBILE_WORKSHOP   1003
+#define IDC_LOG                         1004
+#define IDC_UPDATE_GOOGLE_PLAY_PRIVACY_POLICY 1005
+#define IDC_UPDATE_MOBILE_WORKSHOP      1006
 
 // Next default values for new objects
 // 
@@ -15,7 +17,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        102
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1005
+#define _APS_NEXT_CONTROL_VALUE         1007
 #define _APS_NEXT_SYMED_VALUE           102
 #endif
 #endif

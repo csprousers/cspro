@@ -9,14 +9,15 @@
 
 namespace
 {
+    static constexpr std::string_view MobileWorkshopDirectoryKey_sv   = "mobile-workshop";
     static constexpr std::string_view CSProUsersInputDirectoryKey_sv  = "input-directory";
     static constexpr std::string_view CSProUsersOutputDirectoryKey_sv = "output-directory";
 }
 
 
-
 BEGIN_MESSAGE_MAP(CSProUsersWebsiteBuilderDlg, ResizableDlg)
-    ON_COMMAND(IDC_UPDATE_GOOGLE_PLAY_PRIVACY_POLICY, OnUpdateGooglePlayPrivacyPolicy)
+    ON_COMMAND_RANGE(IDC_UPDATE_MOBILE_WORKSHOP, IDC_UPDATE_MOBILE_WORKSHOP, OnBuildTask)
+    ON_COMMAND_RANGE(IDC_UPDATE_GOOGLE_PLAY_PRIVACY_POLICY, IDC_UPDATE_GOOGLE_PLAY_PRIVACY_POLICY, OnBuildTask)
     ON_MESSAGE(UWM::Ranges::ExeStart, OnBuildTaskComplete)
     ON_MESSAGE(UWM::ToolsO::DisplayErrorMessage, OnDisplayErrorMessage)
 END_MESSAGE_MAP()
@@ -25,9 +26,10 @@ END_MESSAGE_MAP()
 CSProUsersWebsiteBuilderDlg::CSProUsersWebsiteBuilderDlg(CWnd* const pParent/* = nullptr*/)
     :   ResizableDlg(IDD_BUILDER, pParent),
         m_settingsDb("CSProUsersWebsiteBuilder.db"),
-        m_csproRootDirectory(MakeFullPath(CSProExecutables::GetApplicationDirectory(), "..\\..\\..")),
-        m_csproUsersInputDirectory(m_settingsDb.ReadOrDefault<std::string>(CSProUsersInputDirectoryKey_sv)),
-        m_csproUsersOutputDirectory(m_settingsDb.ReadOrDefault<std::string>(CSProUsersOutputDirectoryKey_sv))
+        m_directories{ MakeFullPath(CSProExecutables::GetApplicationDirectory(), "..\\..\\.."),
+                       m_settingsDb.ReadOrDefault<std::string>(MobileWorkshopDirectoryKey_sv),
+                       m_settingsDb.ReadOrDefault<std::string>(CSProUsersInputDirectoryKey_sv),
+                       m_settingsDb.ReadOrDefault<std::string>(CSProUsersOutputDirectoryKey_sv) }
 {
     SerializeDialogSize("CSProUsersWebsiteBuilderDlg");
 }
@@ -39,13 +41,14 @@ CSProUsersWebsiteBuilderDlg::~CSProUsersWebsiteBuilderDlg()
 }
 
 
-void CSProUsersWebsiteBuilderDlg::DoDataExchange(CDataExchange* pDX)
+void CSProUsersWebsiteBuilderDlg::DoDataExchange(CDataExchange* const pDX)
 {
     __super::DoDataExchange(pDX);
 
-    DDX_Text(pDX, IDC_DIRECTORY_CSPRO, m_csproRootDirectory);
-    DDX_Text(pDX, IDC_DIRECTORY_CSPRO_USERS_INPUTS, m_csproUsersInputDirectory);
-    DDX_Text(pDX, IDC_DIRECTORY_CSPRO_USERS_OUTPUTS, m_csproUsersOutputDirectory);
+    DDX_Text(pDX, IDC_DIRECTORY_CSPRO, m_directories.cspro_root);
+    DDX_Text(pDX, IDC_DIRECTORY_MOBILE_WORKSHOP, m_directories.mobile_workshop);
+    DDX_Text(pDX, IDC_DIRECTORY_CSPRO_USERS_INPUTS, m_directories.csprousers_input);
+    DDX_Text(pDX, IDC_DIRECTORY_CSPRO_USERS_OUTPUTS, m_directories.csprousers_output);
     DDX_Control(pDX, IDC_LOG, m_loggingListBox);
 }
 
@@ -72,8 +75,7 @@ void CSProUsersWebsiteBuilderDlg::OnCancel()
 }
 
 
-template<typename FP>
-void CSProUsersWebsiteBuilderDlg::RunBuildTask(FP task_function)
+void CSProUsersWebsiteBuilderDlg::OnBuildTask(const UINT nID)
 {
     UpdateData(TRUE);
 
@@ -83,21 +85,25 @@ void CSProUsersWebsiteBuilderDlg::RunBuildTask(FP task_function)
             throw CSProException("You must wait until the current build task has completed.");
 
         // validate the directories, and if successful, save them for future runs of this program
-        if( !PortableFunctions::FileIsDirectory(m_csproRootDirectory) )
+        if( !PortableFunctions::FileIsDirectory(m_directories.cspro_root) )
             throw CSProException("Specify a valid CSPro directory.");
 
-        if( !PortableFunctions::FileIsDirectory(m_csproUsersInputDirectory) )
+        if( nID == IDC_UPDATE_MOBILE_WORKSHOP && !PortableFunctions::FileIsDirectory(m_directories.mobile_workshop) )
+            throw CSProException("Specify a valid mobile workshop directory.");
+
+        if( !PortableFunctions::FileIsDirectory(m_directories.csprousers_input) )
             throw CSProException("Specify a valid CSPro Users (sources) directory.");
 
-        if( !PortableFunctions::FileIsDirectory(m_csproUsersOutputDirectory) )
+        if( !PortableFunctions::FileIsDirectory(m_directories.csprousers_output) )
             throw CSProException("Specify a valid CSPro Users (built website) directory.");
 
-        m_settingsDb.Write<std::string>(CSProUsersInputDirectoryKey_sv, m_csproUsersInputDirectory);
-        m_settingsDb.Write<std::string>(CSProUsersOutputDirectoryKey_sv, m_csproUsersOutputDirectory);
+        m_settingsDb.Write<std::string>(MobileWorkshopDirectoryKey_sv, m_directories.mobile_workshop);
+        m_settingsDb.Write<std::string>(CSProUsersInputDirectoryKey_sv, m_directories.csprousers_input);
+        m_settingsDb.Write<std::string>(CSProUsersOutputDirectoryKey_sv, m_directories.csprousers_output);
 
         m_buildThread = std::make_unique<std::thread>(
-            [ builder = std::make_unique<Builder>(m_loggingListBox, m_csproRootDirectory, m_csproUsersInputDirectory, m_csproUsersOutputDirectory),
-              task_function,
+            [ builder = std::make_unique<Builder>(m_directories, m_loggingListBox),
+              nID,
               this ]()
             {
                 try
@@ -105,7 +111,19 @@ void CSProUsersWebsiteBuilderDlg::RunBuildTask(FP task_function)
                     m_loggingListBox.Clear();
                     m_loggingListBox.AddText(FormatText("Task started at %s\n", DateTime::LocalDateTimeString(DateTime::Now()).c_str()));
 
-                    ((*builder).*task_function)();
+                    switch( nID )
+                    {
+                        case IDC_UPDATE_MOBILE_WORKSHOP:
+                            builder->UpdateMobileWorkshop();
+                            break;
+
+                        case IDC_UPDATE_GOOGLE_PLAY_PRIVACY_POLICY:
+                            builder->UpdateGooglePlayPrivacyPolicy();
+                            break;
+
+                        default:
+                            throw ProgrammingErrorException();
+                    }
 
                     m_loggingListBox.AddText("\nTask completed successfully.");
                 }
@@ -137,12 +155,6 @@ LRESULT CSProUsersWebsiteBuilderDlg::OnBuildTaskComplete(WPARAM /*wParam*/, LPAR
     m_buildThread.reset();
 
     return 1;
-}
-
-
-void CSProUsersWebsiteBuilderDlg::OnUpdateGooglePlayPrivacyPolicy()
-{
-    RunBuildTask(&Builder::UpdateGooglePlayPrivacyPolicy);
 }
 
 

@@ -56,11 +56,11 @@
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
-      <AdditionalDependencies>..\..\..\cspro\$(Configuration)\lib\zToolsO.lib;..\..\..\cspro\$(Configuration)\lib\zUtilO.lib;..\..\..\cspro\$(Configuration)\lib\zUtilF.lib</AdditionalDependencies>
+      <AdditionalDependencies>..\..\..\cspro\$(Configuration)\lib\zToolsO.lib;..\..\..\cspro\$(Configuration)\lib\zUtilO.lib;..\..\..\cspro\$(Configuration)\lib\zUtilF.lib;..\..\..\cspro\$(Configuration)\lib\zZipO.lib</AdditionalDependencies>
     </Link>
     <PreBuildEvent>
       <Command>xcopy /D /Y /F /R /S /I "$(SolutionDir)..\..\cspro\$(Configuration)\bin\*.dll" "$(TargetDir)"
-xcopy /D /Y /F /R /S /I "$(SolutionDir)..\..\cspro\external\libgit2\lib\*.dll" "$(TargetDir)"</Command>
+</Command>
     </PreBuildEvent>
     <ResourceCompile>
       <Culture>0x0409</Culture>
@@ -83,11 +83,11 @@ xcopy /D /Y /F /R /S /I "$(SolutionDir)..\..\cspro\external\libgit2\lib\*.dll" "
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>..\..\..\cspro\$(Configuration)\lib\zToolsO.lib;..\..\..\cspro\$(Configuration)\lib\zUtilO.lib;..\..\..\cspro\$(Configuration)\lib\zUtilF.lib</AdditionalDependencies>
+      <AdditionalDependencies>..\..\..\cspro\$(Configuration)\lib\zToolsO.lib;..\..\..\cspro\$(Configuration)\lib\zUtilO.lib;..\..\..\cspro\$(Configuration)\lib\zUtilF.lib;..\..\..\cspro\$(Configuration)\lib\zZipO.lib</AdditionalDependencies>
     </Link>
     <PreBuildEvent>
       <Command>xcopy /D /Y /F /R /S /I "$(SolutionDir)..\..\cspro\$(Configuration)\bin\*.dll" "$(TargetDir)"
-xcopy /D /Y /F /R /S /I "$(SolutionDir)..\..\cspro\external\libgit2\lib\*.dll" "$(TargetDir)"</Command>
+</Command>
     </PreBuildEvent>
     <ResourceCompile>
       <Culture>0x0409</Culture>
@@ -99,6 +99,7 @@ xcopy /D /Y /F /R /S /I "$(SolutionDir)..\..\cspro\external\libgit2\lib\*.dll" "
     <ClInclude Include="Builder.h" />
     <ClInclude Include="CSProUsersWebsiteBuilder.h" />
     <ClInclude Include="CSProUsersWebsiteBuilderDlg.h" />
+    <ClInclude Include="Directories.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="StdAfx.h" />
   </ItemGroup>

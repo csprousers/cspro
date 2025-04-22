@@ -1,5 +1,6 @@
 ﻿#pragma once
 
+#include "Directories.h"
 #include <zUtilO/ResizableDlg.h>
 #include <zUtilO/SettingsDb.h>
 
@@ -18,20 +19,14 @@ protected:
 
     void OnCancel() override;
 
-    void OnUpdateGooglePlayPrivacyPolicy();
+    void OnBuildTask(UINT nID);
 
     LRESULT OnBuildTaskComplete(WPARAM wParam, LPARAM lParam);
     LRESULT OnDisplayErrorMessage(WPARAM wParam, LPARAM lParam);
 
 private:
-    template<typename FP>
-    void RunBuildTask(FP task_function);
-
-private:
     SettingsDb m_settingsDb;
-    std::string m_csproRootDirectory;
-    std::string m_csproUsersInputDirectory;
-    std::string m_csproUsersOutputDirectory;
+    Directories m_directories;
     LoggingListBox m_loggingListBox;
 
     std::unique_ptr<std::thread> m_buildThread;
