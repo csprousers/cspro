@@ -1,4 +1,4 @@
-#define WIN_DESKTOP
+﻿#define WIN_DESKTOP
 #include <engine/StandardSystemIncludes.h>
 #include <engine/StrictCompilerErrors.h>
 #include <zToolsO/FileIO.h>
@@ -30,9 +30,13 @@ class LicenseGenerator
 public:
     void Generate();
 
+    bool DisplayMessage() const { return !m_licenseTemplateOutputFilePaths.has_value(); }
+
     size_t GetNumberLicenses() const { return m_licenses.size(); }
 
 private:
+    static std::string ReadInputFile(const std::string& file_path);
+
     void LoadLicenseDetails();
     std::string LoadLicenseText(const std::string& project_name);
 
@@ -46,13 +50,14 @@ private:
 private:
     std::string m_inputsDirectory;
     std::string m_licensesDirectory;
+    std::optional<std::tuple<std::string, std::string>> m_licenseTemplateOutputFilePaths;
     std::vector<License> m_licenses;
     std::string m_csproLicenseText;
     std::map<std::string, std::string> m_anchorIds;
 };
 
 
-int main()
+int wmain()
 {
     std::string message;
     unsigned int message_flags = MB_OK;
@@ -62,7 +67,8 @@ int main()
         LicenseGenerator generator;
         generator.Generate();
 
-        message = FormatText("Successfully created a combined license for %d projects.", static_cast<int>(generator.GetNumberLicenses()));
+        if( generator.DisplayMessage() )
+            message = FormatText("Successfully created a combined license for %d projects.", static_cast<int>(generator.GetNumberLicenses()));
     }
 
     catch( const CSProException& exception )
@@ -71,7 +77,8 @@ int main()
         message_flags |= MB_ICONEXCLAMATION;
     }
 
-    MessageBoxW(nullptr, TC::ToWide(message).c_str(), L"Generate Combined License", message_flags);
+    if( !message.empty() )
+        MessageBoxW(nullptr, TC::ToWide(message).c_str(), L"Generate Combined License", message_flags);
 }
 
 
@@ -79,6 +86,10 @@ void LicenseGenerator::Generate()
 {
     m_inputsDirectory = MakeFullPath(CSProExecutables::GetModuleDirectory(), "..\\..\\");
     m_licensesDirectory = Path::Combine(m_inputsDirectory, "Licenses");
+
+    // path overrides come from the CSPro Users Website Builder
+    if( __argc >= 3 )
+        m_licenseTemplateOutputFilePaths.emplace(TC::ToUtf8(__wargv[1]), TC::ToUtf8(__wargv[2]));
 
     LoadLicenseDetails();
 
@@ -88,6 +99,21 @@ void LicenseGenerator::Generate()
     m_csproLicenseText = LoadLicenseText("CSPro");
 
     CreateLicense();
+}
+
+
+std::string LicenseGenerator::ReadInputFile(const std::string& file_path)
+{
+    std::string text = FileIO::ReadText(file_path);
+    SO::MakeTrimRight(text);
+
+    // standardize the line endings
+    SO::MakeNewlineLF(text);
+
+    // remove form file characters
+    SO::Remove(text, '\f');
+
+    return text;
 }
 
 
@@ -117,31 +143,29 @@ std::string LicenseGenerator::LoadLicenseText(const std::string& project_name)
 {
     const std::string license_file_path = PortableFunctions::CreateFilePath(m_licensesDirectory, project_name, ".txt");
 
-    std::string license_text = FileIO::ReadText(license_file_path);
-    SO::MakeTrimRight(license_text);
-
-    // standardize the line endings
-    SO::MakeNewlineLF(license_text);
-
-    // remove form file characters
-    SO::Remove(license_text, '\f');
-
-    return license_text;
+    return ReadInputFile(license_file_path);
 }
 
 
 void LicenseGenerator::CreateLicense()
 {
-    const std::string license_template_path = Path::Combine(m_inputsDirectory, "Licenses-Template.html");
-    const std::string license_output_path = Path::Combine(m_inputsDirectory, "Licenses.html");
+    const std::string license_template_file_path = m_licenseTemplateOutputFilePaths.has_value() ? std::get<0>(*m_licenseTemplateOutputFilePaths) :
+                                                                                                  Path::Combine(m_inputsDirectory, "Licenses-Template.html");
 
-    std::string license_html = FileIO::ReadText(license_template_path);
+    const std::string license_output_file_path = m_licenseTemplateOutputFilePaths.has_value() ? std::get<1>(*m_licenseTemplateOutputFilePaths) :
+                                                                                                Path::Combine(m_inputsDirectory, "Licenses.html");
 
-    SO::Replace(license_html, "{{ list-list }}", PrependFourSpacesToEachLine(CreateLicenseListHtml()));
-    SO::Replace(license_html, "{{ cspro-license }}", PrependFourSpacesToEachLine(CreateLicenseTextHtml(m_csproLicenseText)));
+    const std::string license_introduction_file_path = Path::Combine(m_inputsDirectory, "Licenses-Introduction.html");
+    std::string license_introduction_html = ReadInputFile(license_introduction_file_path);
+
+    std::string license_html = FileIO::ReadText(license_template_file_path);
+
+    SO::Replace(license_html, "{{ licenses-introduction }}", PrependFourSpacesToEachLine(std::move(license_introduction_html)));
+    SO::Replace(license_html, "{{ licenses-list }}", PrependFourSpacesToEachLine(CreateLicenseListHtml()));
+    SO::Replace(license_html, "{{ licenses-cspro }}", PrependFourSpacesToEachLine(CreateLicenseTextHtml(m_csproLicenseText)));
     SO::Replace(license_html, "{{ licenses }}", PrependFourSpacesToEachLine(CreateLicensesHtml()));
 
-    FileIO::WriteText(license_output_path, license_html, false);
+    FileIO::WriteText(license_output_file_path, license_html, false);
 }
 
 
@@ -304,5 +328,6 @@ std::string LicenseGenerator::CreateLicensesHtml()
         html_writer << "\n\n";
     }
 
-    return html_writer.str();
+    std::string html = html_writer.str();
+    return SO::MakeTrimRight(html);
 }

@@ -96,12 +96,14 @@ xcopy /D /Y /F /R /S /I "$(SolutionDir)..\..\cspro\external\libgit2\lib\*.dll" "
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Builder.h" />
     <ClInclude Include="CSProUsersWebsiteBuilder.h" />
     <ClInclude Include="CSProUsersWebsiteBuilderDlg.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="StdAfx.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Builder.cpp" />
     <ClCompile Include="CSProUsersWebsiteBuilder.cpp" />
     <ClCompile Include="CSProUsersWebsiteBuilderDlg.cpp" />
     <ClCompile Include="StdAfx.cpp">
