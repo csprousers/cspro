@@ -9,6 +9,7 @@
 
 namespace
 {
+    static constexpr std::string_view HelpsDirectoryKey_sv            = "helps";
     static constexpr std::string_view MobileWorkshopDirectoryKey_sv   = "mobile-workshop";
     static constexpr std::string_view CSProUsersInputDirectoryKey_sv  = "input-directory";
     static constexpr std::string_view CSProUsersOutputDirectoryKey_sv = "output-directory";
@@ -16,6 +17,7 @@ namespace
 
 
 BEGIN_MESSAGE_MAP(CSProUsersWebsiteBuilderDlg, ResizableDlg)
+    ON_COMMAND_RANGE(IDC_UPDATE_HELPS, IDC_UPDATE_HELPS, OnBuildTask)
     ON_COMMAND_RANGE(IDC_UPDATE_MOBILE_WORKSHOP, IDC_UPDATE_MOBILE_WORKSHOP, OnBuildTask)
     ON_COMMAND_RANGE(IDC_UPDATE_GOOGLE_PLAY_PRIVACY_POLICY, IDC_UPDATE_GOOGLE_PLAY_PRIVACY_POLICY, OnBuildTask)
     ON_MESSAGE(UWM::Ranges::ExeStart, OnBuildTaskComplete)
@@ -27,6 +29,7 @@ CSProUsersWebsiteBuilderDlg::CSProUsersWebsiteBuilderDlg(CWnd* const pParent/* =
     :   ResizableDlg(IDD_BUILDER, pParent),
         m_settingsDb("CSProUsersWebsiteBuilder.db"),
         m_directories{ MakeFullPath(CSProExecutables::GetApplicationDirectory(), "..\\..\\.."),
+                       m_settingsDb.ReadOrDefault<std::string>(HelpsDirectoryKey_sv),
                        m_settingsDb.ReadOrDefault<std::string>(MobileWorkshopDirectoryKey_sv),
                        m_settingsDb.ReadOrDefault<std::string>(CSProUsersInputDirectoryKey_sv),
                        m_settingsDb.ReadOrDefault<std::string>(CSProUsersOutputDirectoryKey_sv) }
@@ -46,6 +49,7 @@ void CSProUsersWebsiteBuilderDlg::DoDataExchange(CDataExchange* const pDX)
     __super::DoDataExchange(pDX);
 
     DDX_Text(pDX, IDC_DIRECTORY_CSPRO, m_directories.cspro_root);
+    DDX_Text(pDX, IDC_DIRECTORY_HELPS, m_directories.helps);
     DDX_Text(pDX, IDC_DIRECTORY_MOBILE_WORKSHOP, m_directories.mobile_workshop);
     DDX_Text(pDX, IDC_DIRECTORY_CSPRO_USERS_INPUTS, m_directories.csprousers_input);
     DDX_Text(pDX, IDC_DIRECTORY_CSPRO_USERS_OUTPUTS, m_directories.csprousers_output);
@@ -88,6 +92,9 @@ void CSProUsersWebsiteBuilderDlg::OnBuildTask(const UINT nID)
         if( !PortableFunctions::FileIsDirectory(m_directories.cspro_root) )
             throw CSProException("Specify a valid CSPro directory.");
 
+        if( nID == IDC_UPDATE_HELPS && !PortableFunctions::FileIsDirectory(m_directories.helps) )
+            throw CSProException("Specify a valid helps directory.");
+
         if( nID == IDC_UPDATE_MOBILE_WORKSHOP && !PortableFunctions::FileIsDirectory(m_directories.mobile_workshop) )
             throw CSProException("Specify a valid mobile workshop directory.");
 
@@ -97,6 +104,7 @@ void CSProUsersWebsiteBuilderDlg::OnBuildTask(const UINT nID)
         if( !PortableFunctions::FileIsDirectory(m_directories.csprousers_output) )
             throw CSProException("Specify a valid CSPro Users (built website) directory.");
 
+        m_settingsDb.Write<std::string>(HelpsDirectoryKey_sv, m_directories.helps);
         m_settingsDb.Write<std::string>(MobileWorkshopDirectoryKey_sv, m_directories.mobile_workshop);
         m_settingsDb.Write<std::string>(CSProUsersInputDirectoryKey_sv, m_directories.csprousers_input);
         m_settingsDb.Write<std::string>(CSProUsersOutputDirectoryKey_sv, m_directories.csprousers_output);
@@ -113,6 +121,10 @@ void CSProUsersWebsiteBuilderDlg::OnBuildTask(const UINT nID)
 
                     switch( nID )
                     {
+                        case IDC_UPDATE_HELPS:
+                            builder->UpdateHelps();
+                            break;
+
                         case IDC_UPDATE_MOBILE_WORKSHOP:
                             builder->UpdateMobileWorkshop();
                             break;
@@ -125,7 +137,7 @@ void CSProUsersWebsiteBuilderDlg::OnBuildTask(const UINT nID)
                             throw ProgrammingErrorException();
                     }
 
-                    m_loggingListBox.AddText("\nTask completed successfully.");
+                    m_loggingListBox.AddText("\nTask completed successfully at " + DateTime::LocalDateTimeString(DateTime::Now()));
                 }
 
                 catch( const CSProException& exception )

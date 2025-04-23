@@ -36,8 +36,11 @@ void Builder::RecycleDirectory(const std::string& directory)
 }
 
 
-void Builder::CopyFile(const std::string& input_file_path, const std::string& output_file_path)
+void Builder::CopyFile(const std::string& input_file_path, const std::string& output_file_path, const bool add_message_to_log/* = true*/)
 {
+    if( add_message_to_log )
+        m_loggingListBox.AddText("Copying file:\n    " + input_file_path + "\n    " + output_file_path);
+
     FileIO::CreateDirectoriesForFile(output_file_path);
     PortableFunctions::FileCopyWithExceptions(input_file_path, output_file_path, FileOverwriteFlag::Fail);
 }
@@ -45,6 +48,8 @@ void Builder::CopyFile(const std::string& input_file_path, const std::string& ou
 
 void Builder::CopyDirectoryRecursive(const std::string& input_directory, const std::string& output_directory)
 {
+    m_loggingListBox.AddText("Copying directory:\n    " + input_directory + "\n    " + output_directory);
+
     DirectoryLister directory_lister(true);
 
     for( const std::string& input_file_path : directory_lister.GetPaths(input_directory) )
@@ -52,7 +57,8 @@ void Builder::CopyDirectoryRecursive(const std::string& input_directory, const s
         ASSERT(SO::StartsWithNoCase(input_file_path, input_directory));
 
         CopyFile(input_file_path,
-                 Path::Combine(output_directory, input_file_path.substr(input_directory.length())));
+                 Path::Combine(output_directory, input_file_path.substr(input_directory.length())),
+                 false);
     }
 }
 
@@ -71,6 +77,32 @@ void Builder::BuildDocSet(const std::string& csdocset_file_path, const std::stri
 
     if( !RunProgram(TC::ToWide(command), &return_code, SW_SHOWNA, true, true) )
         throw CSProException("Error running CSDocument (build '%s'): %s", build_name.c_str(), csdocset_file_path.c_str());
+}
+
+
+void Builder::UpdateHelps()
+{
+    m_loggingListBox.AddText("Building the helps...");
+
+    const std::string helps_output_directory = Path::Combine(m_directories.csprousers_output, "help");
+    RecycleDirectory(helps_output_directory);
+
+    const std::string csdocument_outputs_directory = Path::Combine(m_directories.helps, "Outputs");
+    RecycleDirectory(csdocument_outputs_directory);
+
+    DirectoryLister directory_lister(true);
+    directory_lister.SetNameFilter("*.csdocset");
+
+    for( const std::string& csdocset_file_path : directory_lister.GetPaths(m_directories.helps) )
+    {
+        // build the website
+        m_loggingListBox.AddText(FormatText("Building the website for %s...", Path::GetFilenameWithoutExtension(csdocset_file_path).c_str()));
+        BuildDocSet(csdocset_file_path, "CSPro Users Help Website");
+    }
+
+    CopyDirectoryRecursive(Path::Combine(csdocument_outputs_directory, "Website"),
+                           helps_output_directory);
+
 }
 
 
