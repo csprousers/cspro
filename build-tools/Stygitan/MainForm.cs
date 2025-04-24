@@ -166,7 +166,7 @@ namespace Stygitan
                   extension == ".cxx" ||
                   extension == ".kt" || extension == ".java" ||
                   extension == ".json" ||
-                  extension == ".html" || extension == ".js" || extension == ".css" ||
+                  extension == ".html" || extension == ".php" || extension == ".js" || extension == ".css" ||
                   extension == ".mk" || extension == ".gradle" ||
                   extension == ".txt" || extension == ".md" ||
                   extension == ".nsh" || extension == ".nsi" );

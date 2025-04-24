@@ -2,6 +2,7 @@
 #include "Builder.h"
 #include <zToolsO/DirectoryLister.h>
 #include <zToolsO/FileIO.h>
+#include <zJson/Json.h>
 #include <zUtilO/TemporaryFile.h>
 #include <zZipo/ZipFile.h>
 
@@ -87,6 +88,20 @@ void Builder::UpdateHelps()
     const std::string helps_output_directory = Path::Combine(m_directories.csprousers_output, "help");
     RecycleDirectory(helps_output_directory);
 
+    // copy the resource files
+    const std::string resource_files_json_file_path = Path::Combine(m_directories.helps, "resource-files.json");
+    m_loggingListBox.AddText(FormatText("Copying resource files specified in %s...", resource_files_json_file_path.c_str()));
+
+    JsonReaderInterface json_reader_interface(m_directories.helps);
+    const JsonNode json_node = Json::ParseFile(resource_files_json_file_path, &json_reader_interface);
+
+    for( const JsonNode& file_json_node : json_node.GetArray() )
+    {
+        const std::string resource_file_path = file_json_node.GetAbsolutePath();
+        CopyFile(resource_file_path,
+                 Path::Combine(helps_output_directory, "resources", Path::GetFilename(resource_file_path)));
+    }
+
     const std::string csdocument_outputs_directory = Path::Combine(m_directories.helps, "Outputs");
     RecycleDirectory(csdocument_outputs_directory);
 
@@ -102,7 +117,6 @@ void Builder::UpdateHelps()
 
     CopyDirectoryRecursive(Path::Combine(csdocument_outputs_directory, "Website"),
                            helps_output_directory);
-
 }
 
 

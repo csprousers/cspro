@@ -51,8 +51,8 @@ namespace Json
 
     // Read and parse the contents of the file:
     // - If there is an error reading the file, a FileIO::Exception exception will be thrown.
-    // - Errors in parsing, or interacting with JSON nodes, will result in JsonParseException exceptions/
-    ZJSON_API JsonNode ParseFile(InterfaceString file_path);
+    // - Errors in parsing, or interacting with JSON nodes, will result in JsonParseException exceptions.
+    ZJSON_API JsonNode ParseFile(InterfaceString file_path, JsonReaderInterface* json_reader_interface = nullptr);
 
 
 
