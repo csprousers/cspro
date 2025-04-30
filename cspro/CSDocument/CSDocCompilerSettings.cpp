@@ -73,6 +73,11 @@ std::string CSDocCompilerSettings::GetSpecialDefinition(const std::string& domai
 }
 
 
+void CSDocCompilerSettings::AddMetadata(std::string_view /*attribute_sv*/, std::string_view /*value_sv*/)
+{
+}
+
+
 void CSDocCompilerSettings::AddCompilerMessage(CompilerMessageType /*compiler_message_type*/, const std::string& /*text*/)
 {
 }
@@ -271,6 +276,12 @@ std::string CSDocCompilerSettings::CreateUrlForImageFile(const std::string& path
 
     return Encoders::ToDataUrl(*FileIO::Read(path),
                                ValueOrDefault(MimeType::GetTypeFromFileExtension(PortableFunctions::PathGetFileExtension(path))));
+}
+
+
+std::string CSDocCompilerSettings::CreateUrlForResource(const std::string& /*resource*/)
+{
+    return std::string();
 }
 
 

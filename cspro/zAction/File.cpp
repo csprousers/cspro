@@ -151,7 +151,7 @@ FileIO::TextFile FileHelper::OpenTextFileForWriting(const JsonNode& json_node, A
 
     FileIO::TextFile text_file;
     text_file.SetTextEncoding(TextEncoding::Type::Utf8);
-    text_file.SetWriteNewline(false);
+    text_file.SetWriteNewlineAsCRLF(false);
 
     // ...but the "encoding" and "newline" values can be modified
     text_file.SetProperties(json_node);

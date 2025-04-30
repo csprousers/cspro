@@ -24,6 +24,7 @@ namespace
     constexpr std::string_view TopicTag_sv                  = "topic";
     constexpr std::string_view LinkTag_sv                   = "link";
     constexpr std::string_view SeeAlsoTag_sv                = "seealso";
+    constexpr std::string_view ResourceTag_sv               = "resource";
     constexpr std::string_view TableTag_sv                  = "table";
     constexpr std::string_view TableCellTag_sv              = "cell";
     constexpr std::string_view LogicTag_sv                  = "logic";
@@ -41,6 +42,7 @@ namespace
     constexpr std::string_view HtmlTag_sv                   = "html";
     constexpr std::string_view MdTag_sv                     = "md";
     constexpr std::string_view NoteTag_sv                   = "note";
+    constexpr std::string_view MetadataTag_sv               = "metadata";
     constexpr std::string_view DefinitionTag_sv             = "definition";
     constexpr std::string_view IncludeTag_sv                = "include";
     constexpr std::string_view CalloutTag_sv                = "callout";
@@ -85,6 +87,7 @@ const CSDocCompilerWorker::SD& CSDocCompilerWorker::GetStaticData()
             { TopicTag_sv,         TagDefinition { false,  &TopicStartHandler, { }, 1, 1 } },
             { LinkTag_sv,          TagDefinition { true,   &LinkStartHandler, "</a>", 1, 1 } },
             { SeeAlsoTag_sv,       TagDefinition { false,  &SeeAlsoStartHandler, { }, 1, SIZE_MAX } },
+            { ResourceTag_sv,      TagDefinition { true,   &ResourceStartHandler, "</a>", 1, 1 } },
             { TableTag_sv,         TagDefinition { true,   &TableStartHandler, &TableEndHandler, 1, 4 } },
             { TableCellTag_sv,     TagDefinition { true,   &TableCellStartHandler, &TableCellEndHandler, 0, 2 } },
             { LogicTag_sv,         TagDefinition { true,   { }, &LogicEndHandler } },
@@ -102,6 +105,7 @@ const CSDocCompilerWorker::SD& CSDocCompilerWorker::GetStaticData()
             { HtmlTag_sv,          TagDefinition { true,   { }, { } } },
             { MdTag_sv,            TagDefinition { true,   { }, &MarkdownEndHandler } },
             { NoteTag_sv,          TagDefinition { false,  &NoteStartHandler, { }, 1, 2 } },
+            { MetadataTag_sv,      TagDefinition { false,  &MetadataStartHandler, { }, 1, SIZE_MAX  } },
             { CalloutTag_sv,       TagDefinition { true,   "<div style=\"background-color: lightgrey;border:1px solid black;margin:10px;padding:10px\">", "</div>" } },
             { PageBreakTag_sv,     TagDefinition { false,  "<div class=\"new-page\" />" } },
             { BuildExtraTag_sv,    TagDefinition { false,  &BuildExtraStartHandler, { }, 1, SIZE_MAX } },
@@ -1127,7 +1131,7 @@ std::string CSDocCompilerWorker::CreateTitleHtml(std::string raw_title, const st
 
     std::string header;
 
-    if( *m_title != NoHeaderAttribute_sv )
+    if( *m_title != NoHeaderAttribute_sv && m_settings.AddTitleToDocument() )
     {
         header = "<h2><span class=\"header_size header\">" + title_html + "</span></h2>";
 
@@ -1547,6 +1551,13 @@ std::string CSDocCompilerWorker::SeeAlsoStartHandler(const cs::span<const std::s
 }
 
 
+std::string CSDocCompilerWorker::ResourceStartHandler(const cs::span<const std::string> tag_components)
+{
+    return CreateHyperlinkStart(m_settings.CreateUrlForResource(tag_components.front()),
+                                m_settings.OpenExternalLinksInSeparateWindow());
+}
+
+
 struct CSDocCompilerWorker::TableSettings
 {
     int columns = 0;
@@ -1737,6 +1748,15 @@ std::string CSDocCompilerWorker::NoteStartHandler(const std::string& start_tag, 
             ASSERT(note_type == NoteType::Comment);
             break;
     }
+
+    return std::string();
+}
+
+
+std::string CSDocCompilerWorker::MetadataStartHandler(const std::string& /*start_tag*/, const std::map<std::string_view, std::string_view>& tag_components)
+{
+    for( const auto& [attribute_sv, value_sv] : tag_components )
+        m_settings.AddMetadata(attribute_sv, value_sv);
 
     return std::string();
 }

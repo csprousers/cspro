@@ -125,7 +125,7 @@ public:
     void SetTextEncoding(TextEncoding text_encoding) { m_textEncoding = std::move(text_encoding); }
 
     // sets the style of newline characters used when writing lines
-    void SetWriteNewline(bool write_newline_as_crlf) { m_writeNewlineAsCRLF = write_newline_as_crlf; }
+    void SetWriteNewlineAsCRLF(bool write_newline_as_crlf) { m_writeNewlineAsCRLF = write_newline_as_crlf; }
 
     // sets the encoding and newline properties using a PropertyRetriever,
     // or an object that can create a PropertyRetriever

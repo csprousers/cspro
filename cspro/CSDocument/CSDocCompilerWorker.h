@@ -127,6 +127,7 @@ private:
     std::string TopicStartHandler(cs::span<const std::string> tag_components);
     std::string LinkStartHandler(cs::span<const std::string> tag_components);
     std::string SeeAlsoStartHandler(cs::span<const std::string> tag_components);
+    std::string ResourceStartHandler(cs::span<const std::string> tag_components);
 
     TableSettings& GetCurrentTable();
     std::string TableStartHandler(cs::span<const std::string> tag_components);
@@ -135,6 +136,8 @@ private:
     std::string TableCellEndHandler(const std::string& inner_text);
 
     std::string NoteStartHandler(const std::string& start_tag, const std::map<std::string_view, std::string_view>& tag_components);
+
+    std::string MetadataStartHandler(const std::string& start_tag, const std::map<std::string_view, std::string_view>& tag_components);
 
     std::string BuildExtraStartHandler(cs::span<const std::string> tag_components);
 
