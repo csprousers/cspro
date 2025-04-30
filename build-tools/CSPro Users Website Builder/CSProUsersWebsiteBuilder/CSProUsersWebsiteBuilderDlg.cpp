@@ -17,6 +17,7 @@ namespace
 
 
 BEGIN_MESSAGE_MAP(CSProUsersWebsiteBuilderDlg, ResizableDlg)
+    ON_COMMAND_RANGE(IDC_UPDATE_BLOG, IDC_UPDATE_BLOG, OnBuildTask)
     ON_COMMAND_RANGE(IDC_UPDATE_HELPS, IDC_UPDATE_HELPS, OnBuildTask)
     ON_COMMAND_RANGE(IDC_UPDATE_MOBILE_WORKSHOP, IDC_UPDATE_MOBILE_WORKSHOP, OnBuildTask)
     ON_COMMAND_RANGE(IDC_UPDATE_GOOGLE_PLAY_PRIVACY_POLICY, IDC_UPDATE_GOOGLE_PLAY_PRIVACY_POLICY, OnBuildTask)
@@ -121,6 +122,10 @@ void CSProUsersWebsiteBuilderDlg::OnBuildTask(const UINT nID)
 
                     switch( nID )
                     {
+                        case IDC_UPDATE_BLOG:
+                            builder->UpdateBlog();
+                            break;
+
                         case IDC_UPDATE_HELPS:
                             builder->UpdateHelps();
                             break;

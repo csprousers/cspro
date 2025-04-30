@@ -12,12 +12,13 @@ public:
     const std::string& GetBuildSettingsFilePath() const       { return m_buildSettingsFilePath; }
     const std::string& GetBuildNameOrType() const             { return m_buildNameOrType; }
 
+    bool CreateCSProUsersBlog() const           { return m_createCSProUsersBlog; }
     bool CreateNotepadPlusPlusColorizer() const { return m_createNotepadPlusPlusColorizer; }
 
     const std::vector<std::string>& GetFilePaths() const { return m_filePaths; }
 
 protected:
-    void ParseParam(const TCHAR* pszParam, BOOL bFlag, BOOL bLast) override;
+    void ParseParam(const wchar_t* pszParam, BOOL bFlag, BOOL bLast) override;
 
 private:
     static std::string EvaluatePath(std::string path);
@@ -32,6 +33,7 @@ private:
     std::string m_buildSettingsFilePath;
     std::string m_buildNameOrType;
 
+    bool m_createCSProUsersBlog = false;
     bool m_createNotepadPlusPlusColorizer = false;
 };
 
@@ -47,7 +49,7 @@ inline std::string CommandLineParser::EvaluatePath(std::string path)
 }
 
 
-inline void CommandLineParser::ParseParam(const TCHAR* const pszParam, const BOOL bFlag, const BOOL bLast)
+inline void CommandLineParser::ParseParam(const wchar_t* const pszParam, const BOOL bFlag, const BOOL bLast)
 {
     std::string param = TC::ToUtf8(pszParam);
 
@@ -96,6 +98,11 @@ inline void CommandLineParser::ParseParam(const TCHAR* const pszParam, const BOO
         else if( m_buildNameOrType.empty() && SO::EqualsNoCase("build", param) )
         {
             m_nextBuildValue = &m_buildNameOrType;
+        }
+
+        else if( !m_createCSProUsersBlog && SO::EqualsNoCase("csprousers-blog", param) )
+        {
+            m_createCSProUsersBlog = true;
         }
 
         else if( !m_createNotepadPlusPlusColorizer && SO::EqualsNoCase("Notepad++", param) )
