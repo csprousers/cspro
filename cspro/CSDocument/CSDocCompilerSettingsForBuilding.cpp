@@ -538,7 +538,7 @@ std::string CSDocCompilerSettingsForBuilding::CreateUrlForLogicTopic(const char*
     const DocBuildSettings::LogicLinkageAction logic_linkage_action = m_buildSettings.GetLogicLinkageAction();
 
     return ( logic_linkage_action == DocBuildSettings::LogicLinkageAction::Suppress )   ? std::string() :
-           ( logic_linkage_action == DocBuildSettings::LogicLinkageAction::CSProUsers ) ? CreateUrlForLogicTopicOnCSProUsersForum(help_topic_filename) :
+           ( logic_linkage_action == DocBuildSettings::LogicLinkageAction::CSProUsers ) ? CreateUrlForLogicTopicOnCSProUsersWebsite(help_topic_filename) :
            ( logic_linkage_action == DocBuildSettings::LogicLinkageAction::Project )    ? CreateUrlForLogicHelpTopicInCSProProject(help_topic_filename) :
                                                                                           throw ProgrammingErrorException();
 }

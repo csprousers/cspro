@@ -16,7 +16,7 @@ Details about building CSPro, as well as information about the codebase and prog
 Released versions of the software are available at the following sites:
 
 - [Census Bureau](https://www.census.gov/data/software/cspro.html) (CSPro and CSWeb)
-- [CSPro Users](https://www.csprousers.org/downloads) (CSPro and CSWeb)
+- [CSPro Users](https://csprousers.org/downloads/) (CSPro and CSWeb)
 - [Google Play](https://play.google.com/store/apps/details?id=gov.census.cspro.csentry) (CSEntry)
 
 

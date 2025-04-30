@@ -243,15 +243,15 @@ std::string CSDocCompilerSettings::CreateUrlForLogicTopic(const char* const help
 {
     ASSERT(GetBuildSettingsDebug() == nullptr || GetBuildSettingsDebug()->GetLogicLinkageAction() == DocBuildSettings::LogicLinkageAction::CSProUsers);
 
-    return CreateUrlForLogicTopicOnCSProUsersForum(help_topic_filename);
+    return CreateUrlForLogicTopicOnCSProUsersWebsite(help_topic_filename);
 }
 
 
-std::string CSDocCompilerSettings::CreateUrlForLogicTopicOnCSProUsersForum(const char* const help_topic_filename)
+std::string CSDocCompilerSettings::CreateUrlForLogicTopicOnCSProUsersWebsite(const char* const help_topic_filename)
 {
     ASSERT(PortableFunctions::PathGetFileExtension(help_topic_filename) == FileExtensions::HTML);
 
-    return "https://www.csprousers.org/help/CSPro/" + Encoders::ToUri(help_topic_filename);
+    return "https://csprousers.org/help/CSPro/" + Encoders::ToUri(help_topic_filename);
 }
 
 

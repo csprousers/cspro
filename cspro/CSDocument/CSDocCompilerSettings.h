@@ -110,7 +110,7 @@ protected:
     static std::string GetStylesheetLinkHtml(const std::string& css_url);
     static std::string GetStylesheetEmbeddedHtml(std::string css);
 
-    static std::string CreateUrlForLogicTopicOnCSProUsersForum(const char* help_topic_filename);
+    static std::string CreateUrlForLogicTopicOnCSProUsersWebsite(const char* help_topic_filename);
     std::string CreateUrlForLogicHelpTopicInCSProProject(const char* help_topic_filename);
 
 #ifdef _DEBUG
