@@ -1008,6 +1008,7 @@ std::string CSDocCompilerWorker::ColorStartHandler(const cs::span<const std::str
                       SO::StartsWithNoCase(language_name, "Markdown" )   ? SCLEX_MARKDOWN :
                       SO::StartsWithNoCase(language_name, "message" )    ? SCLEX_CSPRO_MESSAGE_V8_0 :
                       SO::StartsWithNoCase(language_name, "SQL" )        ? SCLEX_SQL :
+                      SO::StartsWithNoCase(language_name, "text" )       ? SCLEX_NULL :
                                                                            throw CSProException("Coloring the language '%s' is not supported.", language_name.c_str());
 
     return std::string();

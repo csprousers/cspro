@@ -3,6 +3,7 @@
 #include "CSDocCompiler.h"
 #include "HtmlTags.h"
 #include <zToolsO/File.h>
+#include <zToolsO/VectorHelpers.h>
 #include <zReportO/HtmlTagModifier.h>
 
 
@@ -15,11 +16,12 @@ class CSDocCompilerSettingsForCSProUsersBlog : public CSDocCompilerSettings
 public:
     CSDocCompilerSettingsForCSProUsersBlog(cs::non_null_shared_or_raw_ptr<DocSetSpec> doc_set_spec);
 
-    // Resets the title / author / tags.
+    // Resets the title / author / date / tags.
     void Reset();
 
     const std::string& GetTitle() const  { return m_title; }
     const std::string& GetAuthor() const { return m_author; }
+    const std::string& GetDate() const   { return m_date; }
     const std::string& GetTags() const   { return m_tags; }
 
 protected:
@@ -48,6 +50,7 @@ private:
     std::string m_blogDirectory;
     std::string m_title;
     std::string m_author;
+    std::string m_date;
     std::string m_tags;
 };
 
@@ -63,6 +66,7 @@ void CSDocCompilerSettingsForCSProUsersBlog::Reset()
 {
     m_title.clear();
     m_author.clear();
+    m_date.clear();
     m_tags.clear();
 }
 
@@ -79,10 +83,27 @@ void CSDocCompilerSettingsForCSProUsersBlog::AddMetadata(const std::string_view 
 {
     std::string* const destination_value =
         ( attribute_sv == "author" ) ? &m_author :
+        ( attribute_sv == "date" )   ? &m_date :
         ( attribute_sv == "tags" )   ? &m_tags :
                                        throw CSProException("Unknown metadata attribute: '%s'", std::string(attribute_sv).c_str());
 
     *destination_value = value_sv;
+
+    // make sure that the tags are unique and in alphabetical order
+    if( destination_value == &m_tags )
+    {
+        std::vector<std::string> tags = SO::SplitString(SO::Trim(SO::Trim(m_tags, '['), ']'), ',');
+
+        if( VectorHelpers::RemoveDuplicateStringsNoCase(tags) > 0 )
+            throw CSProException("Tags should not contain duplicates: ", m_tags.c_str());
+
+        std::vector<std::string> sorted_tags = tags;
+        std::sort(sorted_tags.begin(), sorted_tags.end(),
+                  [](const std::string& s1, const std::string& s2) { return ( SO::CompareNoCase(s1, s2) < 0 ); });
+
+        if( tags != sorted_tags )
+            throw CSProException("Tags should be specified in sorted order: ", m_tags.c_str());
+    }
 }
 
 
@@ -267,17 +288,18 @@ void CSProUsersBlogBuilder::Build(const std::string& blog_file_path, const std::
     ASSERT(!m_settings->GetTitle().empty());
     text_file.WriteFormattedLine("title: \"%s\"", Encoders::ToEscapedString(m_settings->GetTitle()).c_str());
 
-    if( !m_settings->GetAuthor().empty() )
+    auto write_if_not_empty = [&](const char* const key, const std::string& value)
     {
-        ASSERT(m_settings->GetAuthor() == Encoders::ToEscapedString(m_settings->GetAuthor()));
-        text_file.WriteLine("author: " + m_settings->GetAuthor());
-    }
+        if( !value.empty() )
+        {
+            ASSERT(value == Encoders::ToEscapedString(value));
+            text_file.WriteLine(key + value);
+        }
+    };
 
-    if( !m_settings->GetTags().empty() )
-    {
-        ASSERT(m_settings->GetTags() == Encoders::ToEscapedString(m_settings->GetTags()));
-        text_file.WriteLine("tags:   " + m_settings->GetTags());
-    }
+    write_if_not_empty("author: ", m_settings->GetAuthor());
+    write_if_not_empty("date:   ", m_settings->GetDate());
+    write_if_not_empty("tags:   ", m_settings->GetTags());
 
     text_file.WriteLine("---");
 

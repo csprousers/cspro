@@ -8,7 +8,7 @@ namespace VectorHelpers
     // returns true if the values pointed to by the shared pointer are equal
     template<typename T>
     bool ValueOfSharedPointersIsEqual(const std::vector<std::shared_ptr<T>>& lhs, const std::vector<std::shared_ptr<T>>& rhs);
-    
+
 
     // appends one or more vectors to a destination vector
     template<typename T, typename... Args>
@@ -32,7 +32,7 @@ namespace VectorHelpers
     size_t RemoveDuplicates(std::vector<T>& values);
 
     template<typename T>
-    void RemoveDuplicateStringsNoCase(std::vector<T>& values);
+    size_t RemoveDuplicateStringsNoCase(std::vector<T>& values);
 
     // randomizes the specified indices of the vector
     template<typename T, typename RandomEngine>
@@ -132,9 +132,9 @@ size_t VectorHelpers::RemoveDuplicates(std::vector<T>& values)
 
 
 template<typename T>
-void VectorHelpers::RemoveDuplicateStringsNoCase(std::vector<T>& values)
+size_t VectorHelpers::RemoveDuplicateStringsNoCase(std::vector<T>& values)
 {
-    RemoveDuplicates(values, [&](const auto& value1, const auto& value2) { return SO::EqualsNoCase(value1, value2); });
+    return RemoveDuplicates(values, [&](const auto& value1, const auto& value2) { return SO::EqualsNoCase(value1, value2); });
 }
 
 
