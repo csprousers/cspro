@@ -11,12 +11,14 @@ namespace
 {
     static constexpr std::string_view HelpsDirectoryKey_sv            = "helps";
     static constexpr std::string_view MobileWorkshopDirectoryKey_sv   = "mobile-workshop";
+    static constexpr std::string_view RubyDirectoryKey_sv             = "ruby";
     static constexpr std::string_view CSProUsersInputDirectoryKey_sv  = "input-directory";
     static constexpr std::string_view CSProUsersOutputDirectoryKey_sv = "output-directory";
 }
 
 
 BEGIN_MESSAGE_MAP(CSProUsersWebsiteBuilderDlg, ResizableDlg)
+    ON_COMMAND_RANGE(IDC_BUILD_SITE, IDC_BUILD_SITE, OnBuildTask)
     ON_COMMAND_RANGE(IDC_UPDATE_BLOG, IDC_UPDATE_BLOG, OnBuildTask)
     ON_COMMAND_RANGE(IDC_UPDATE_HELPS, IDC_UPDATE_HELPS, OnBuildTask)
     ON_COMMAND_RANGE(IDC_UPDATE_MOBILE_WORKSHOP, IDC_UPDATE_MOBILE_WORKSHOP, OnBuildTask)
@@ -32,6 +34,7 @@ CSProUsersWebsiteBuilderDlg::CSProUsersWebsiteBuilderDlg(CWnd* const pParent/* =
         m_directories{ MakeFullPath(CSProExecutables::GetApplicationDirectory(), "..\\..\\.."),
                        m_settingsDb.ReadOrDefault<std::string>(HelpsDirectoryKey_sv),
                        m_settingsDb.ReadOrDefault<std::string>(MobileWorkshopDirectoryKey_sv),
+                       m_settingsDb.ReadOrDefault<std::string>(RubyDirectoryKey_sv),
                        m_settingsDb.ReadOrDefault<std::string>(CSProUsersInputDirectoryKey_sv),
                        m_settingsDb.ReadOrDefault<std::string>(CSProUsersOutputDirectoryKey_sv) }
 {
@@ -52,6 +55,7 @@ void CSProUsersWebsiteBuilderDlg::DoDataExchange(CDataExchange* const pDX)
     DDX_Text(pDX, IDC_DIRECTORY_CSPRO, m_directories.cspro_root);
     DDX_Text(pDX, IDC_DIRECTORY_HELPS, m_directories.helps);
     DDX_Text(pDX, IDC_DIRECTORY_MOBILE_WORKSHOP, m_directories.mobile_workshop);
+    DDX_Text(pDX, IDC_DIRECTORY_RUBY, m_directories.ruby);
     DDX_Text(pDX, IDC_DIRECTORY_CSPRO_USERS_INPUTS, m_directories.csprousers_input);
     DDX_Text(pDX, IDC_DIRECTORY_CSPRO_USERS_OUTPUTS, m_directories.csprousers_output);
     DDX_Control(pDX, IDC_LOG, m_loggingListBox);
@@ -99,6 +103,9 @@ void CSProUsersWebsiteBuilderDlg::OnBuildTask(const UINT nID)
         if( nID == IDC_UPDATE_MOBILE_WORKSHOP && !PortableFunctions::FileIsDirectory(m_directories.mobile_workshop) )
             throw CSProException("Specify a valid mobile workshop directory.");
 
+        if( nID == IDC_BUILD_SITE && !PortableFunctions::FileIsDirectory(m_directories.ruby) )
+            throw CSProException("Specify a valid Ruby directory.");
+
         if( !PortableFunctions::FileIsDirectory(m_directories.csprousers_input) )
             throw CSProException("Specify a valid CSPro Users (sources) directory.");
 
@@ -107,6 +114,7 @@ void CSProUsersWebsiteBuilderDlg::OnBuildTask(const UINT nID)
 
         m_settingsDb.Write<std::string>(HelpsDirectoryKey_sv, m_directories.helps);
         m_settingsDb.Write<std::string>(MobileWorkshopDirectoryKey_sv, m_directories.mobile_workshop);
+        m_settingsDb.Write<std::string>(RubyDirectoryKey_sv, m_directories.ruby);
         m_settingsDb.Write<std::string>(CSProUsersInputDirectoryKey_sv, m_directories.csprousers_input);
         m_settingsDb.Write<std::string>(CSProUsersOutputDirectoryKey_sv, m_directories.csprousers_output);
 
@@ -122,6 +130,10 @@ void CSProUsersWebsiteBuilderDlg::OnBuildTask(const UINT nID)
 
                     switch( nID )
                     {
+                        case IDC_BUILD_SITE:
+                            builder->BuildSite();
+                            break;
+
                         case IDC_UPDATE_BLOG:
                             builder->UpdateBlog();
                             break;

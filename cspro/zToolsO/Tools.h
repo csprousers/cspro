@@ -43,7 +43,8 @@ CLASS_DECL_ZTOOLSO const char* ToString(Encoding encoding);
 CLASS_DECL_ZTOOLSO CString DelimitCRLF(CString csText, const TCHAR* crlf_override = nullptr);
 CLASS_DECL_ZTOOLSO CString UndelimitCRLF(CString csText, const TCHAR* crlf_override = nullptr);
 
-CLASS_DECL_ZTOOLSO bool RunProgram(std::wstring command, int* iRetCode, int iShowWindow, bool bFocus, bool bWait);
+CLASS_DECL_ZTOOLSO bool RunProgram(std::wstring command, int* iRetCode, int iShowWindow, bool bFocus, bool bWait,
+                                   const wchar_t* directory = nullptr);
 
 //////////////////////////////////////////////////////////////////////////
 

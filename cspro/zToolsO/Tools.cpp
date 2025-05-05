@@ -131,7 +131,8 @@ const char* ToString(const Encoding encoding)
 
 // Return errorlevel when bWait is used
 // Return 1/0 when bWait is false. 1 indicates the program was executed.
-bool RunProgram(std::wstring command, int* iRetCode, int iShowWindow, bool bFocus, bool bWait)
+bool RunProgram(std::wstring command, int* iRetCode, int iShowWindow, bool bFocus, bool bWait,
+                const wchar_t* const directory/* = nullptr*/)
 {
     bool    bRet=true;
     *iRetCode = 0; // RHF May 22, 2006
@@ -173,16 +174,16 @@ bool RunProgram(std::wstring command, int* iRetCode, int iShowWindow, bool bFocu
         //}
 
         // Start the child process.
-        if( !CreateProcess( NULL,   // No module name (use command line).
+        if( !CreateProcess(nullptr, // No module name (use command line).
             command.data(),
-            NULL,             // Process handle not inheritable.
-            NULL,             // Thread handle not inheritable.
-            FALSE,            // Set handle inheritance to FALSE.
-            0,                // No creation flags.
-            NULL,             // Use parent's environment block.
-            NULL,             // Use parent's starting directory.
-            &si,              // Pointer to STARTUPINFO structure.
-            &pi )             // Pointer to PROCESS_INFORMATION structure.
+            nullptr,                // Process handle not inheritable.
+            nullptr,                // Thread handle not inheritable.
+            FALSE,                  // Set handle inheritance to FALSE.
+            0,                      // No creation flags.
+            nullptr,                // Use parent's environment block.
+            directory,              // Use parent's starting directory.
+            &si,                    // Pointer to STARTUPINFO structure.
+            &pi )                   // Pointer to PROCESS_INFORMATION structure.
             )
         {
             return false;
