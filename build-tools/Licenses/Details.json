@@ -171,6 +171,12 @@
     "licenseUrl": "https://curl.haxx.se/docs/copyright.html"
   },
   {
+    "projectName": "libexif",
+    "projectUrl": "https://github.com/libexif/libexif",
+    "licenseFilename": "COPYING",
+    "licenseUrl": "https://raw.githubusercontent.com/libexif/libexif/refs/heads/master/COPYING"
+  },
+  {
     "projectName": "libgit2",
     "projectUrl": "https://github.com/libgit2/libgit2",
     "licenseFilename": "COPYING",
