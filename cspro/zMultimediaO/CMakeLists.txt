@@ -12,6 +12,7 @@ include_directories(${PROJECT_NAME} PUBLIC
 
 add_library(${PROJECT_NAME}
     BmpFile.cpp
+    ExifReader.cpp
     Icon.cpp
     Image.cpp
     Mp4Reader.cpp

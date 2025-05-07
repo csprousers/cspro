@@ -9,6 +9,7 @@ LIBEXIF_SRC_PATH        := ../../../../../external/libexif
 QRCODEGEN_SRC_PATH      := ../../../../../external/qrcodegen
 
 LOCAL_SRC_FILES         += $(ZMULTIMEDIAO_SRC_PATH)/BmpFile.cpp
+LOCAL_SRC_FILES         += $(ZMULTIMEDIAO_SRC_PATH)/ExifReader.cpp
 LOCAL_SRC_FILES         += $(ZMULTIMEDIAO_SRC_PATH)/Icon.cpp
 LOCAL_SRC_FILES         += $(ZMULTIMEDIAO_SRC_PATH)/Image.cpp
 LOCAL_SRC_FILES         += $(ZMULTIMEDIAO_SRC_PATH)/Mp4Reader.cpp

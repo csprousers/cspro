@@ -89,6 +89,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="BmpFile.h" />
+    <ClInclude Include="ExifReader.h" />
     <ClInclude Include="Icon.h" />
     <ClInclude Include="Image.h" />
     <ClInclude Include="Mp4Reader.h" />
@@ -204,6 +205,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="BmpFile.cpp" />
+    <ClCompile Include="ExifReader.cpp" />
     <ClCompile Include="Icon.cpp" />
     <ClCompile Include="Image.cpp" />
     <ClCompile Include="Mp4Reader.cpp" />
