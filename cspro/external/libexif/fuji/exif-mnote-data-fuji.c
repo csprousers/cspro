@@ -24,7 +24,7 @@
 #include <string.h>
 
 
-#include <config.h>
+#include <libexif/config.h>
 #include <libexif/exif-byte-order.h>
 #include <libexif/exif-utils.h>
 

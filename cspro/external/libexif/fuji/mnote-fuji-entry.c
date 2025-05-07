@@ -24,7 +24,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <config.h>
+#include <libexif/config.h>
 
 #include <libexif/i18n.h>
 

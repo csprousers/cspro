@@ -20,7 +20,7 @@
  * SPDX-License-Identifier: LGPL-2.0-or-later
  */
 
-#include <config.h>
+#include <libexif/config.h>
 
 #include <libexif/exif-format.h>
 #include <libexif/i18n.h>
@@ -56,7 +56,7 @@ exif_format_get_name (ExifFormat format)
 {
 	unsigned int i;
 
-	(void) bindtextdomain (GETTEXT_PACKAGE, LOCALEDIR);
+	bindtextdomain (GETTEXT_PACKAGE, LOCALEDIR);
 
 	for (i = 0; ExifFormatTable[i].name; i++)
 		if (ExifFormatTable[i].format == format)

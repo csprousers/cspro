@@ -20,7 +20,7 @@
  * SPDX-License-Identifier: LGPL-2.0-or-later
  */
 
-#include <config.h>
+#include <libexif/config.h>
 
 #include <libexif/exif-entry.h>
 #include <libexif/exif-ifd.h>
@@ -879,7 +879,7 @@ exif_entry_get_value (ExifEntry *e, char *val, unsigned int maxlen)
 		{""    , 0,  0}
 	};
 
-	(void) bindtextdomain (GETTEXT_PACKAGE, LOCALEDIR);
+	bindtextdomain (GETTEXT_PACKAGE, LOCALEDIR);
 
 	if (!e || !e->parent || !e->parent->parent || !maxlen || !val)
 		return val;

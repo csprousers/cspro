@@ -20,7 +20,7 @@
  * SPDX-License-Identifier: LGPL-2.0-or-later
  */
 
-#include <config.h>
+#include <libexif/config.h>
 #include "mnote-canon-tag.h"
 
 #include <stdlib.h>
@@ -241,7 +241,7 @@ mnote_canon_tag_get_title (MnoteCanonTag t)
 {
 	unsigned int i;
 
-	(void) bindtextdomain (GETTEXT_PACKAGE, LOCALEDIR);
+	bindtextdomain (GETTEXT_PACKAGE, LOCALEDIR);
 	for (i = 0; i < sizeof (table) / sizeof (table[0]); i++)
 		if (table[i].tag == t) {
 			if (!table[i].title)
@@ -282,7 +282,7 @@ mnote_canon_tag_get_description (MnoteCanonTag t)
 		if (table[i].tag == t) {
 			if (!table[i].description || !*table[i].description)
 				return "";
-			(void) bindtextdomain (GETTEXT_PACKAGE, LOCALEDIR);
+			bindtextdomain (GETTEXT_PACKAGE, LOCALEDIR);
 			return _(table[i].description);
 		}
 	return NULL;

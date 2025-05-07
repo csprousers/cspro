@@ -20,7 +20,7 @@
  * SPDX-License-Identifier: LGPL-2.0-or-later
  */
 
-#include <config.h>
+#include <libexif/config.h>
 
 #include <libexif/exif-loader.h>
 #include <libexif/exif-utils.h>

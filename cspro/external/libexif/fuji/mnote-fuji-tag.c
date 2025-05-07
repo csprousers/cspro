@@ -22,7 +22,7 @@
 
 #include <stdlib.h>
 
-#include <config.h>
+#include <libexif/config.h>
 #include <libexif/i18n.h>
 
 #include "mnote-fuji-tag.h"
@@ -85,7 +85,7 @@ mnote_fuji_tag_get_title (MnoteFujiTag t)
 {
 	unsigned int i;
 
-	(void) bindtextdomain (GETTEXT_PACKAGE, LOCALEDIR);
+	bindtextdomain (GETTEXT_PACKAGE, LOCALEDIR);
 	for (i = 0; i < sizeof (table) / sizeof (table[0]); i++)
 		if (table[i].tag == t) {
 			if (!table[i].title)
@@ -104,7 +104,7 @@ mnote_fuji_tag_get_description (MnoteFujiTag t)
 		if (table[i].tag == t) {
 			if (!table[i].description || !*table[i].description)
 				return "";
-			(void) bindtextdomain (GETTEXT_PACKAGE, LOCALEDIR);
+			bindtextdomain (GETTEXT_PACKAGE, LOCALEDIR);
 			return _(table[i].description);
 		}
 	return NULL;
