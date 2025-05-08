@@ -403,6 +403,7 @@ protected: // INTERPRETER_DLL_TODO change to private
 public:
     double ex_Image_compute(int program_index);
     double ex_Image_clear(int program_index);
+    double ex_Image_getExif(int program_index);
     double ex_Image_load(int program_index);
     double ex_Image_resample(int program_index);
     double ex_Image_save(int program_index);

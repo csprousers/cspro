@@ -559,6 +559,7 @@ Language=EN
 47241  An Image object can only be assigned a value of type Image or Document
 47242  The Image.load function takes either a filename or a valueset
 47243  The Image.resample function's arguments can be either width/height or maxWidth/maxHeight, not both
+47244  The Image.getExif function expects a string HashMap with 1 non-numeric dimension
 
 /* --- Dictionary + Case + DataSource */
 47251  When declaring a Case object, specify the name of the dictionary in parentheses before the object name

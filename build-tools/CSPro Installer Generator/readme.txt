@@ -97,6 +97,7 @@
 
     -  Language additions:
           * Logic: setValueFromJson
+          * Image functions: getExif
           * JS functions: eval, getValue, getValueJson, hasValue, invoke,
               setValue, setValueFromJson
           * Report functions: writeEncoded, writeEncodedLine, writeLine

@@ -47,6 +47,23 @@ public:
     // Iterates over every entry, representing the entry's value as a string.
     void ForeachEntry(ValueType value_type, const std::function<void(const char* name, std::string value)>& callback) const;
 
+    // Gets the value based on the case-sensitive name, returning a blank string is not defined.
+    // An exception is thrown if the name is not valid.
+    // If the name contains a colon, the text to the left of the colon is parsed as:
+    // "0": tags in EXIF_IFD_0
+    // "1": tags in EXIF_IFD_1
+    // "EXIF": tags in EXIF_IFD_EXIF
+    // "GPS": tags in EXIF_IFD_GPS
+    // "Interoperability": tags in EXIF_IFD_INTEROPERABILITY
+    // "CSPro": special CSPro tags: "TimestampOriginal", "GPSLatitude", "GPSLongitude"
+    // If there is no colon, all IFDs are searched (in order) until a value is found.
+    std::string GetValueFromName(ValueType value_type, const std::string& name) const;
+
+private:
+    static auto GetTagFromName(const std::string& name);
+    std::string GetValueFromIfdAndName(ValueType value_type, const std::string& ifd_name, const std::string& name) const;
+    std::string GetValueFromCSProName(const std::string& name) const;
+
 private:
     class Impl;
     std::unique_ptr<Impl> m_impl;

@@ -1,5 +1,6 @@
 ﻿#include "stdafx.h"
 #include "IncludesCC.h"
+#include "HashMap.h"
 #include "Image.h"
 #include "ValueSet.h"
 
@@ -89,6 +90,7 @@ int LogicCompiler::CompileLogicImageFunctions()
 {
     // compiling image_name.captureSignature([message][, showExisting := b]);
     //           image_name.clear();
+    //           image_name.getExif(tag_name | hashmap[, valuesForDisplay);
     //           image_name.height();
     //           image_name.load(filename);  ||  image_name.load(valueset_name, from_value);
     //           image_name.resample(width, height);
@@ -114,6 +116,7 @@ int LogicCompiler::CompileLogicImageFunctions()
                                                                            IsNextTokenNamedArgument() );
 
     if( !is_captureSignature_takePhoto_with_only_named_arguments &&
+        function_code != FunctionCode::IMAGEFN_GETEXIF_CODE &&
         function_code != FunctionCode::IMAGEFN_RESAMPLE_CODE &&
         function_code != FunctionCode::IMAGEFN_VIEW_CODE )
     {
@@ -199,6 +202,44 @@ int LogicCompiler::CompileLogicImageFunctions()
 
         if( symbol_va_with_subscript_node.arguments[0] == -1 )
             NextToken();
+    }
+
+
+    // getExif accepts a string or a HashMap and then an optional conditional value
+    else if( function_code == FunctionCode::IMAGEFN_GETEXIF_CODE )
+    {
+        std::optional<SymbolType> next_token_symbol_type = GetNextTokenSymbolType();
+        NextToken();
+
+        if( next_token_symbol_type.has_value() && *next_token_symbol_type == SymbolType::HashMap )
+        {
+            const LogicHashMap& hashmap = GetSymbolLogicHashMap(Tokstindex);
+
+            if( !hashmap.IsValueTypeString() ||
+                hashmap.GetNumberDimensions() != 1 ||
+                !hashmap.DimensionTypeHandles(0, DataType::String) )
+            {
+                IssueError(MGF::Image_getExif_invalid_HashMap_47244);
+            }
+
+            symbol_va_with_subscript_node.arguments[0] = static_cast<int>(SymbolType::HashMap);
+            symbol_va_with_subscript_node.arguments[1] = hashmap.GetSymbolIndex();
+
+            NextToken();
+        }
+
+        else
+        {
+            symbol_va_with_subscript_node.arguments[0] = static_cast<int>(SymbolType::WorkString);
+            symbol_va_with_subscript_node.arguments[1] = CompileStringExpression();
+        }
+
+        // read the optional conditional value (valuesForDisplay)
+        if( Tkn == TOKCOMMA )
+        {
+            NextToken();
+            symbol_va_with_subscript_node.arguments[2] = exprlog();
+        }
     }
 
 

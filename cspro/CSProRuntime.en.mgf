@@ -645,6 +645,7 @@ Language=EN
 100325 Error capturing a signature: %s
 100326 Error taking a photo: %s
 100327 Error assigning '%s' to Image '%s': %s
+100328 Error accessing EXIF data with the name '%s': %s
 
 /* --- Barcode */
 100330 The error correction level '%s' is not valid

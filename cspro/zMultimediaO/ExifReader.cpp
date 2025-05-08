@@ -1,6 +1,7 @@
 ﻿#include "stdafx.h"
 #include "ExifReader.h"
 #include <zToolsO/DateTime.h>
+#include <zToolsO/EnumHelpers.h>
 #include <zToolsO/NumberToString.h>
 #include <external/libexif/exif-data.h>
 
@@ -341,4 +342,82 @@ void ExifReader::ForeachEntry(const ValueType value_type, const std::function<vo
 {
     Impl::ForeachContentData user_data { *m_impl, value_type, callback };
     exif_data_foreach_content(m_impl->GetExifData(), &Impl::ForeachContent, &user_data);
+}
+
+
+auto ExifReader::GetTagFromName(const std::string& name)
+{
+    ExifTag tag = exif_tag_from_name(name.c_str());
+
+    if( tag == 0 )
+        throw CSProException("The name '%s' is not a known EXIF tag.", name.c_str());
+
+    return tag;
+}
+
+
+std::string ExifReader::GetValueFromName(const ValueType value_type, const std::string& name) const
+{
+    // the name may be prefixed with an IFD (Image File Directory)
+    const size_t colon_pos = name.find(':');
+
+    if( colon_pos != std::string::npos )
+    {
+        std::string ifd = name.substr(0, colon_pos);
+        std::string actual_name = name.substr(colon_pos + 1);
+        return GetValueFromIfdAndName(value_type, SO::MakeTrim(ifd), SO::MakeTrim(actual_name));
+    }
+
+    const ExifTag tag = GetTagFromName(name);
+
+    // search through each IFD
+    for( ExifIfd ifd = EXIF_IFD_0; ifd < EXIF_IFD_COUNT; IncrementEnum(ifd) )
+    {
+        std::string value = m_impl->GetString(ifd, tag, value_type);
+
+        if( !value.empty() )
+            return value;
+    }
+
+    return std::string();
+}
+
+
+std::string ExifReader::GetValueFromIfdAndName(const ValueType value_type, const std::string& ifd_name, const std::string& name) const
+{
+    if( ifd_name == "CSPro" )
+        return GetValueFromCSProName(name);
+
+    const ExifIfd ifd =
+        ( ifd_name == "0" )                ? EXIF_IFD_0 :
+        ( ifd_name == "1" )                ? EXIF_IFD_1 :
+        ( ifd_name == "EXIF" )             ? EXIF_IFD_EXIF :
+        ( ifd_name == "GPS" )              ? EXIF_IFD_GPS :
+        ( ifd_name == "Interoperability" ) ? EXIF_IFD_INTEROPERABILITY :
+                                             throw CSProException("'%s' is not a valid EXIF IFD.", ifd_name.c_str());
+
+    const ExifTag tag = GetTagFromName(name);
+
+    // check if this tag is valid for this IFD
+    const char* const name_in_idf = exif_tag_get_name_in_ifd(tag, ifd);
+
+    if( name_in_idf == nullptr )
+        throw CSProException("The name '%s' is not a tag in EXIF IFD '%s'.", name.c_str(), ifd_name.c_str());
+
+    ASSERT(name == name_in_idf);
+
+    return m_impl->GetString(ifd, tag, value_type);
+}
+
+
+std::string ExifReader::GetValueFromCSProName(const std::string& name) const
+{
+    const std::optional<double> value =
+        ( name == "TimestampOriginal" ) ? GetTimestampOriginal<double>() :
+        ( name == "GPSLatitude" )       ? GetGpsLatitude() :
+        ( name == "GPSLongitude" )      ? GetGpsLongitude() :
+                                          throw CSProException("The name '%s' is not one of CSPro's custom EXIF tags.", name.c_str());
+
+    return value.has_value() ? DoubleToString(*value) :
+                               std::string();
 }
