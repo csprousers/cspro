@@ -101,6 +101,7 @@
     <ClInclude Include="GenerateTaskProcessRunner.h" />
     <ClInclude Include="GlobalSettings.h" />
     <ClInclude Include="GlobalSettingsDlg.h" />
+    <ClInclude Include="HelpTasks.h" />
     <ClInclude Include="HtmlOutputWnd.h" />
     <ClInclude Include="HtmlTags.h" />
     <ClInclude Include="MainFrame.h" />
@@ -156,6 +157,7 @@
     <ClCompile Include="GenerateTaskProcessRunner.cpp" />
     <ClCompile Include="GlobalSettings.cpp" />
     <ClCompile Include="GlobalSettingsDlg.cpp" />
+    <ClCompile Include="HelpTasks.cpp" />
     <ClCompile Include="HtmlOutputWnd.cpp" />
     <ClCompile Include="MainFrame.cpp" />
     <ClCompile Include="MainFrameHtml.cpp" />

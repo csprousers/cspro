@@ -59,6 +59,13 @@ public:
     // If there is no colon, all IFDs are searched (in order) until a value is found.
     std::string GetValueFromName(ValueType value_type, const std::string& name) const;
 
+    // Executes the callback function for every tag in the ExifTagTable.
+    // The values in ifds match the names specified above ("0", ...).
+    static void ForeachTag(const std::function<void(const std::string& name,
+                                                    const char* title,
+                                                    const char* description,
+                                                    const std::vector<const char*>& ifds)>& callback);
+
 private:
     static auto GetTagFromName(const std::string& name);
     std::string GetValueFromIfdAndName(ValueType value_type, const std::string& ifd_name, const std::string& name) const;

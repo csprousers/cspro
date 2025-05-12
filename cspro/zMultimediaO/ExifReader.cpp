@@ -421,3 +421,78 @@ std::string ExifReader::GetValueFromCSProName(const std::string& name) const
     return value.has_value() ? DoubleToString(*value) :
                                std::string();
 }
+
+
+void ExifReader::ForeachTag(const std::function<void(const std::string& name,
+                                                     const char* title,
+                                                     const char* description,
+                                                     const std::vector<const char*>& ifds)>& callback)
+{
+    std::vector<std::tuple<std::string, ExifTag>> names_and_tags;
+    const unsigned int num_tags = exif_tag_table_count();
+
+    for( unsigned int i = 0; i < num_tags; ++i )
+    {
+        const ExifTag tag = exif_tag_table_get_tag(i);
+        const char* const name = exif_tag_table_get_name(i);
+
+        if( name == nullptr )
+        {
+            ASSERT(i == ( num_tags - 1 ));
+        }
+
+        else
+        {
+            names_and_tags.emplace_back(name, tag);
+        }
+    }
+
+    // sort by tag name
+    std::sort(names_and_tags.begin(), names_and_tags.end(),
+              [&](const auto& nat1, const auto& nat2) { return ( std::get<0>(nat1) < std::get<0>(nat2) ); });
+
+    // determine which IFDs this is part of
+    std::vector<const char*> ifds;
+
+    for( const auto& [name, tag] : names_and_tags )
+    {
+        const char* title = nullptr;
+        const char* description = nullptr;
+        ifds.clear();
+        
+        for( ExifIfd ifd = EXIF_IFD_0; ifd < EXIF_IFD_COUNT; IncrementEnum(ifd) )
+        {
+            const char* const name_in_ifd = exif_tag_get_name_in_ifd(tag, ifd);
+
+            if( name_in_ifd == nullptr || name != name_in_ifd )
+                continue;
+
+            ifds.emplace_back(( ifd == EXIF_IFD_0 )                ? "0" :
+                              ( ifd == EXIF_IFD_1 )                ? "1" :
+                              ( ifd == EXIF_IFD_EXIF )             ? "EXIF" :
+                              ( ifd == EXIF_IFD_GPS )              ? "GPS" :
+                              ( ifd == EXIF_IFD_INTEROPERABILITY ) ? "Interoperability" :
+                                                                     throw ReturnProgrammingError(""));
+
+            if( title == nullptr )
+            {
+                ASSERT(description == nullptr);
+                title = exif_tag_get_title_in_ifd(tag, ifd);
+                description = exif_tag_get_description_in_ifd(tag, ifd);
+            }
+
+            else
+            {
+                ASSERT(title == exif_tag_get_title_in_ifd(tag, ifd));
+                ASSERT(description == exif_tag_get_description_in_ifd(tag, ifd));
+            }
+        }
+
+        // execute the callback only if this is part of at least one IFD
+        if( !ifds.empty() )
+        {
+            ASSERT(title != nullptr && description != nullptr);
+            callback(name, title, description, ifds);
+        }
+    }
+}
