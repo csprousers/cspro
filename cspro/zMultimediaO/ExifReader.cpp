@@ -291,6 +291,10 @@ ZMULTIMEDIAO_API std::optional<int64_t> ExifReader::GetTimestampOriginal() const
 #pragma warning(pop)
 
     const int64_t local_timestamp = DateTime::CreateTime(date_time_components);
+
+    if( local_timestamp == -1 )
+        return std::nullopt;
+
     const int offset_seconds = offset_hours * 3600 + offset_minutes * 60;
 
     switch( offset_sign )
@@ -459,7 +463,7 @@ void ExifReader::ForeachTag(const std::function<void(const std::string& name,
         const char* title = nullptr;
         const char* description = nullptr;
         ifds.clear();
-        
+
         for( ExifIfd ifd = EXIF_IFD_0; ifd < EXIF_IFD_COUNT; IncrementEnum(ifd) )
         {
             const char* const name_in_ifd = exif_tag_get_name_in_ifd(tag, ifd);

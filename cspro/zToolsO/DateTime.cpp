@@ -39,12 +39,15 @@ const tm& DateTime::LocalTm(const int64_t time)
 tm DateTime::ToTm(const Components& components)
 {
     tm tm;
+    tm.tm_isdst = -1;
+
     tm.tm_year = YearToTm(components.year);
     tm.tm_mon = MonthToTm(components.month);
     tm.tm_mday = components.day;
     tm.tm_hour = components.hour;
     tm.tm_min = components.minute;
     tm.tm_sec = components.second;
+
     return tm;
 }
 
@@ -52,6 +55,7 @@ tm DateTime::ToTm(const Components& components)
 tm DateTime::ToTm(int yyyymmdd, int hhmmss)
 {
     tm tm;
+    tm.tm_isdst = -1;
 
     tm.tm_mday = yyyymmdd % 100;
     yyyymmdd /= 100;
