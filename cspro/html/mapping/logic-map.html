@@ -337,7 +337,13 @@
             }
         });
 
-        csmap.fitBounds(L.latLngBounds(L.latLng(minLat, minLong), L.latLng(maxLat, maxLong)));
+        if( minLat == maxLat && minLong == maxLong ) {
+            // when only one marker exists, use a zoom level in between streets and building
+            zoomTo(minLat, minLong, 18);
+        }
+        else {
+            csmap.fitBounds(L.latLngBounds(L.latLng(minLat, minLong), L.latLng(maxLat, maxLong)));
+        }
     }
 
 
