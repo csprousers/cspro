@@ -2934,7 +2934,7 @@ namespace
         },
         {
             "addImageButton",
-            "map_name.addImageButton(pathToImageFile, onClickFunction)",
+            "map_name.addImageButton(urlOrPathToImageFile, onClickFunction)",
             "Map_addImageButton_function.html",
             FunctionCode::MAPFN_ADD_IMAGE_BUTTON_CODE,
             SymbolType::Map,
@@ -3114,7 +3114,7 @@ namespace
         },
         {
             "setMarkerImage",
-            "map_name.setMarkerImage(markerId, pathOfImageFile)",
+            "map_name.setMarkerImage(markerId, urlOrPathToImageFile)",
             "Map_setMarkerImage_function.html",
             FunctionCode::MAPFN_SET_MARKER_IMAGE_CODE,
             SymbolType::Map,

@@ -39,7 +39,7 @@ public:
     bool RemoveMarker(int marker_id) override;
     void ClearMarkers() override;
 
-    bool SetMarkerImage(int marker_id, const std::string& image_file_path) override;
+    bool SetMarkerImage(int marker_id, const std::string& image_url_or_file_path) override;
     bool SetMarkerText(int marker_id, SharableString text, int background_color, int text_color) override;
     bool SetMarkerOnClick(int marker_id, int on_click_callback) override;
     bool SetMarkerOnClickInfoWindow(int marker_id, int on_click_callback) override;
@@ -48,7 +48,7 @@ public:
     bool SetMarkerLocation(int marker_id, double latitude, double longitude) override;
     std::optional<std::tuple<double, double>> GetMarkerLocation(int marker_id) override;
 
-    int AddImageButton(const std::string& image_file_path, int on_click_callback) override;
+    int AddImageButton(const std::string& image_url_or_file_path, int on_click_callback) override;
     int AddTextButton(SharableString label, int on_click_callback) override;
     bool RemoveButton(int button_id) override;
     void ClearButtons() override;
@@ -95,7 +95,7 @@ private:
     void EnsureFileServerIsSetup();
 
     std::string GetUrlOfMapHtml() const;
-    std::string GetUrlForFile(const std::string& file_path);
+    std::string GetUrlForUrlOrFile(const std::string& url_or_file_path);
 
     Marker* GetMarker(int marker_id);
     Button* GetButton(int button_id);

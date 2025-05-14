@@ -87,13 +87,13 @@ void AndroidMapUI::ClearMarkers()
 }
 
 
-bool AndroidMapUI::SetMarkerImage(const int marker_id, const std::string& image_file_path)
+bool AndroidMapUI::SetMarkerImage(const int marker_id, const std::string& image_url_or_file_path)
 {
     JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
-    JNIReferences::scoped_local_ref<jstring> jImageFilePath(pEnv, JavaString::ToJava(*pEnv, image_file_path));
+    JNIReferences::scoped_local_ref<jstring> jImageUrlOrFilePath(pEnv, JavaString::ToJava(*pEnv, image_url_or_file_path));
 
     return pEnv->CallIntMethod(m_javaImpl, JNIReferences::methodAndroidMapUISetMarkerImage,
-                               marker_id, jImageFilePath.get());
+                               marker_id, jImageUrlOrFilePath.get());
 }
 
 
@@ -175,13 +175,13 @@ std::optional<std::tuple<double, double>> AndroidMapUI::GetMarkerLocation(const 
 }
 
 
-int AndroidMapUI::AddImageButton(const std::string& image_file_path, const int on_click_callback)
+int AndroidMapUI::AddImageButton(const std::string& image_url_or_file_path, const int on_click_callback)
 {
     JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
-    JNIReferences::scoped_local_ref<jstring> jImageFilePath(pEnv, JavaString::ToJava(*pEnv, image_file_path));
+    JNIReferences::scoped_local_ref<jstring> jImageUrlOrFilePath(pEnv, JavaString::ToJava(*pEnv, image_url_or_file_path));
 
     return pEnv->CallIntMethod(m_javaImpl, JNIReferences::methodAndroidMapUIAddImageButton,
-                               jImageFilePath.get(), on_click_callback);
+                               jImageUrlOrFilePath.get(), on_click_callback);
 }
 
 

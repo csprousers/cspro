@@ -80,7 +80,7 @@ int LogicCompiler::CompileLogicMapFunctions()
         symbol_va_node.arguments[1] = exprlog();
     }
 
-    // map_name.setMarkerImage(markerId, pathOfImageFile)
+    // map_name.setMarkerImage(markerId, urlOrPathToImageFile)
     // map_name.setMarkerDescription(markerId, description)
     else if( function_code == FunctionCode::MAPFN_SET_MARKER_IMAGE_CODE ||
              function_code == FunctionCode::MAPFN_SET_MARKER_DESCRIPTION_CODE)
@@ -175,7 +175,7 @@ int LogicCompiler::CompileLogicMapFunctions()
     }
 
     // map_name.addTextButton(label, onClickFunction)
-    // map_name.addImageButton(pathToImageFile, onClickFunction)
+    // map_name.addImageButton(urlOrPathToImageFile, onClickFunction)
     else if( function_code == FunctionCode::MAPFN_ADD_IMAGE_BUTTON_CODE ||
              function_code == FunctionCode::MAPFN_ADD_TEXT_BUTTON_CODE )
     {

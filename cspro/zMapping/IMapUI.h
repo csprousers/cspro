@@ -38,7 +38,7 @@ public:
     virtual void ClearMarkers() = 0;
 
     // Sets the marker icon as an image.
-    virtual bool SetMarkerImage(int marker_id, const std::string& image_file_path) = 0;
+    virtual bool SetMarkerImage(int marker_id, const std::string& image_url_or_file_path) = 0;
 
     // Sets the marker icon as text.
     // The colors are supplied as color ints (AARRGGBB);
@@ -70,7 +70,7 @@ public:
     // Adds a button to the map as an image.
     // The callback is the index of the function registered with the Map object.
     // Returns a unique ID of the button.
-    virtual int AddImageButton(const std::string& image_file_path, int on_click_callback) = 0;
+    virtual int AddImageButton(const std::string& image_url_or_file_path, int on_click_callback) = 0;
 
     // Adds a button to the map as text.
     // The callback is the index of the function registered with the Map object.

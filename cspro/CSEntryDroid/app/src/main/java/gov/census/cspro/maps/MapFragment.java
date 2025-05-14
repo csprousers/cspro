@@ -320,10 +320,8 @@ public class MapFragment extends Fragment
 
         MarkerOptions markerOptions = new MarkerOptions().position(latLng);
 
-        if (Util.stringIsNullOrEmpty(m.getImagePath()))
-        {
-            if (!Util.stringIsNullOrEmpty(m.getText()))
-            {
+        if (Util.stringIsNullOrEmpty(m.getImageUrlOrFilePath())) {
+            if (!Util.stringIsNullOrEmpty(m.getText())) {
                 // Text icon
                 markerOptions.icon(BitmapDescriptorFactory.fromBitmap(m_textIconGenerator.makeIcon(m)));
             } else {
@@ -336,14 +334,12 @@ public class MapFragment extends Fragment
 
         Marker googleMapMarker = m_map.addMarker(markerOptions);
 
-        if (googleMapMarker != null)
-        {
+        if (googleMapMarker != null) {
             googleMapMarker.setTag(m);
 
-            if (!Util.stringIsNullOrEmpty(m.getImagePath()))
-            {
+            if (!Util.stringIsNullOrEmpty(m.getImageUrlOrFilePath())) {
                 // Image icon
-                Glide.with(this).asBitmap().load(m.getImagePath()).centerInside().into(new MarkerIconTarget(m_maxMarkerIconSizePx, m_maxMarkerIconSizePx, googleMapMarker));
+                Glide.with(this).asBitmap().load(m.getImageUrlOrFilePath()).centerInside().into(new MarkerIconTarget(m_maxMarkerIconSizePx, m_maxMarkerIconSizePx, googleMapMarker));
             }
         }
 
@@ -483,7 +479,7 @@ public class MapFragment extends Fragment
 
         // Only include text if there is an icon, otherwise text is already shown
         // on the icon so it is redundant
-        String text = Util.stringIsNullOrEmpty(mm.getImagePath()) ? null : mm.getText();
+        String text = Util.stringIsNullOrEmpty(mm.getImageUrlOrFilePath()) ? null : mm.getText();
         String description = mm.getDescription();
 
         if (Util.stringIsNullOrEmpty(text) && Util.stringIsNullOrEmpty(description)) {
@@ -551,10 +547,10 @@ public class MapFragment extends Fragment
             textButton.setAllCaps(false);
             textButton.setText(textToMapSupportedHtml(mapButton.getLabel()));
             button = textButton;
-        } else if (!TextUtils.isEmpty(mapButton.getImagePath())) {
+        } else if (!TextUtils.isEmpty(mapButton.getImageUrlOrFilePath())) {
             ImageButton imageButton = new ImageButton(getContext());
             button = imageButton;
-            Glide.with(this).load(mapButton.getImagePath()).fitCenter().into(imageButton);
+            Glide.with(this).load(mapButton.getImageUrlOrFilePath()).fitCenter().into(imageButton);
         } else {
             ImageButton imageButton = new ImageButton(getContext());
             imageButton.setImageResource(mapButton.getImageResourceId());

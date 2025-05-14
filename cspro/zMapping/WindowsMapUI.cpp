@@ -6,6 +6,7 @@
 #include "TPKReader.h"
 #include "WindowsMapDlg.h"
 #include "WindowsMapUIThreadRunner.h"
+#include <zToolsO/Encoders.h>
 #include <zHtml/SharedHtmlLocalFileServer.h>
 
 
@@ -164,14 +165,14 @@ void WindowsMapUI::ClearMarkers()
 }
 
 
-bool WindowsMapUI::SetMarkerImage(const int marker_id, const std::string& image_file_path)
+bool WindowsMapUI::SetMarkerImage(const int marker_id, const std::string& image_url_or_file_path)
 {
     Marker* const marker = GetMarker(marker_id);
 
     if( marker == nullptr )
         return false;
 
-    marker->image_url = GetUrlForFile(image_file_path);
+    marker->image_url = GetUrlForUrlOrFile(image_url_or_file_path);
 
     PerformMapDlgAction([&](WindowsMapDlg& map_dlg)
     {
@@ -300,11 +301,11 @@ std::optional<std::tuple<double, double>> WindowsMapUI::GetMarkerLocation(const 
 }
 
 
-int WindowsMapUI::AddImageButton(const std::string& image_file_path, const int on_click_callback)
+int WindowsMapUI::AddImageButton(const std::string& image_url_or_file_path, const int on_click_callback)
 {
     const Button& button = m_buttons.try_emplace(m_nextMapId, Button { Button::Type::Image,
                                                                        on_click_callback,
-                                                                       GetUrlForFile(image_file_path) }).first->second;
+                                                                       GetUrlForUrlOrFile(image_url_or_file_path) }).first->second;
 
     PerformMapDlgAction([&](WindowsMapDlg& map_dlg)
     {
@@ -598,8 +599,11 @@ std::string WindowsMapUI::GetUrlOfMapHtml() const
 }
 
 
-std::string WindowsMapUI::GetUrlForFile(const std::string& file_path)
+std::string WindowsMapUI::GetUrlForUrlOrFile(const std::string& url_or_file_path)
 {
+    if( Encoders::IsDataOrHttpUrl(url_or_file_path) )
+        return url_or_file_path;
+
     EnsureFileServerIsSetup();
-    return m_fileServer->CreateFileUrl(file_path);
+    return m_fileServer->CreateFileUrl(url_or_file_path);
 }

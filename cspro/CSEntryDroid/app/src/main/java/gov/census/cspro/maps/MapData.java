@@ -6,19 +6,11 @@ import android.util.SparseArray;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.List;
 
 import gov.census.cspro.engine.BaseMapSelection;
 import gov.census.cspro.engine.Util;
 import gov.census.cspro.maps.geojson.FeatureCollection;
-import timber.log.Timber;
 
 /**
  * Data representing the state of a map including markers, buttons, camera...
@@ -156,10 +148,10 @@ public class MapData
         m_markers.clear();
     }
 
-    void setMarkerImage(int markerId, String imageFilePath)
+    void setMarkerImageUrlOrFilePath(int markerId, String imageUrlOrFilePath)
     {
         MapMarker marker = getMarker(markerId);
-        marker.setImagePath(imageFilePath);
+        marker.setImageUrlOrFilePath(imageUrlOrFilePath);
     }
 
     void setMarkerText(int markerId, String text, @ColorInt int backgroundColor, @ColorInt int textColor)
@@ -215,10 +207,10 @@ public class MapData
         return marker;
     }
 
-    int addButton(String imagePath, String label, int callbackId)
+    int addButton(String imageUrlOrFilePath, String label, int callbackId)
     {
         final int id = m_nextButtonId++;
-        MapButton button = new MapButton(id, imagePath, label, callbackId);
+        MapButton button = new MapButton(id, imageUrlOrFilePath, label, callbackId);
         m_buttons.put(id, button);
         return id;
     }

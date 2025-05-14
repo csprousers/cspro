@@ -140,16 +140,17 @@ double LogicInterpreter::ex_Map_setMarkerImage(const int program_index)
 
     const int marker_id = Evaluate<int>(symbol_va_node.arguments[0]);
 
-    const std::string image_file_path = EvaluatePath(symbol_va_node.arguments[1]);
+    const SharableString image_url_or_file_path = EvaluatePathOrUrl(symbol_va_node.arguments[1]);
 
     // Try to catch invalid image file here since it is a pain to handle on the Java side
-    if( !PortableFunctions::FileIsRegular(image_file_path) )
+    if( !Encoders::IsDataOrHttpUrl(*image_url_or_file_path) &&
+        !PortableFunctions::FileIsRegular(*image_url_or_file_path) )
     {
-        IssueMessage(MessageType::Error, MGF::cannot_open_file_2001, image_file_path.c_str());
+        IssueMessage(MessageType::Error, MGF::cannot_open_file_2001, image_url_or_file_path->c_str());
         return 0;
     }
 
-    return map_ui->SetMarkerImage(marker_id, image_file_path);
+    return map_ui->SetMarkerImage(marker_id, *image_url_or_file_path);
 }
 
 
@@ -331,18 +332,19 @@ double LogicInterpreter::ex_Map_addImageButton(const int program_index)
     if( map_ui == nullptr )
         return 0;
 
-    const std::string image_file_path = EvaluatePath(symbol_va_node.arguments[0]);
+    const SharableString image_url_or_file_path = EvaluatePathOrUrl(symbol_va_node.arguments[0]);
 
     // Try to catch invalid image file here since it is a pain to handle on the Java side
-    if( !PortableFunctions::FileIsRegular(image_file_path) )
+    if( !Encoders::IsDataOrHttpUrl(*image_url_or_file_path) &&
+        !PortableFunctions::FileIsRegular(*image_url_or_file_path) )
     {
-        IssueMessage(MessageType::Error, MGF::cannot_open_file_2001, image_file_path.c_str());
+        IssueMessage(MessageType::Error, MGF::cannot_open_file_2001, image_url_or_file_path->c_str());
         return 0;
     }
 
     const int callback_index = logic_map.AddCallback(EvaluateArgumentsForCallbackUserFunction(symbol_va_node.arguments[1],
                                                                                               FunctionCode::MAPFN_SHOW_CODE));
-    return map_ui->AddImageButton(image_file_path, callback_index);
+    return map_ui->AddImageButton(*image_url_or_file_path, callback_index);
 }
 
 

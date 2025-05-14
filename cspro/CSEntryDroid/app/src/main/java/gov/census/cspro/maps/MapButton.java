@@ -6,16 +6,16 @@ import android.os.Parcelable;
 public class MapButton implements Parcelable
 {
     private final int m_id;
-    private String m_imagePath;
+    private String m_imageUrlOrFilePath;
 
     private int m_imageResourceId;
-    private String m_label;
-    private int m_onClickCallback;
+    private final String m_label;
+    private final int m_onClickCallback;
 
-    MapButton(int id, String imagePath, String label, int onClickCallback)
+    MapButton(int id, String imageUrlOrFilePath, String label, int onClickCallback)
     {
         m_id = id;
-        m_imagePath = imagePath;
+        m_imageUrlOrFilePath = imageUrlOrFilePath;
         m_label = label;
         m_onClickCallback = onClickCallback;
     }
@@ -31,7 +31,7 @@ public class MapButton implements Parcelable
     MapButton(MapButton rhs)
     {
         m_id = rhs.m_id;
-        m_imagePath = rhs.m_imagePath;
+        m_imageUrlOrFilePath = rhs.m_imageUrlOrFilePath;
         m_label = rhs.m_label;
         m_onClickCallback = rhs.m_onClickCallback;
         m_imageResourceId = rhs.m_imageResourceId;
@@ -47,9 +47,9 @@ public class MapButton implements Parcelable
         return m_label;
     }
 
-    String getImagePath()
+    String getImageUrlOrFilePath()
     {
-        return m_imagePath;
+        return m_imageUrlOrFilePath;
     }
 
     int getImageResourceId()
@@ -72,7 +72,7 @@ public class MapButton implements Parcelable
     public void writeToParcel(Parcel dest, int flags)
     {
         dest.writeInt(this.m_id);
-        dest.writeString(this.m_imagePath);
+        dest.writeString(this.m_imageUrlOrFilePath);
         dest.writeString(this.m_label);
         dest.writeInt(this.m_onClickCallback);
     }
@@ -80,7 +80,7 @@ public class MapButton implements Parcelable
     private MapButton(Parcel in)
     {
         this.m_id = in.readInt();
-        this.m_imagePath = in.readString();
+        this.m_imageUrlOrFilePath = in.readString();
         this.m_label = in.readString();
         this.m_onClickCallback = in.readInt();
     }
