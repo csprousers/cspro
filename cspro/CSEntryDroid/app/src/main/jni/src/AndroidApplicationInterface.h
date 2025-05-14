@@ -41,7 +41,7 @@ public:
     std::tuple<int, int> GetMaxDisplaySize() const override;
     std::vector<std::string> GetMediaFilePaths(MediaStore::MediaType media_type) const override;
     std::string GetUsername() const override;
-    void SetUsername(const CString& username);
+    void SetUsername(std::string username);
     void StoreCredential(const std::string& attribute, const std::string& secret_value) override;
     std::string RetrieveCredential(const std::string& attribute) override;
     std::optional<std::string> GetPassword(const std::string& title, const std::string& description, bool file_exists) override;

@@ -1174,9 +1174,9 @@ bool AndroidApplicationInterface::RunPffExecutor(EngineUI::RunPffExecutorNode& r
 }
 
 
-void AndroidApplicationInterface::SetUsername(const CString& username)
+void AndroidApplicationInterface::SetUsername(std::string username)
 {
-    m_username = UTF8_TODO::GetUtf8(username);
+    m_username = std::move(username);
 }
 
 

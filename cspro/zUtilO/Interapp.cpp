@@ -490,6 +490,8 @@ const std::string& GetAppDataPath()
 #endif
         }();
 
+    ASSERT(!app_data_path.empty());
+
     return app_data_path;
 }
 
@@ -619,7 +621,7 @@ std::vector<std::string> GetFileNameArrayFromSpecFile(CSpecFile& specFile, const
     CString csCmd;     // the string command  (left side of =)
     CIMSAString csArg; // the string argument (right side of =)
 
-    specFile.SeekToBegin(); //Start from the begining of the file
+    specFile.SeekToBegin(); //Start from the beginning of the file
 
     while (specFile.GetLine(csCmd, csArg) == SF_OK) {
         ASSERT (!csCmd.IsEmpty());
