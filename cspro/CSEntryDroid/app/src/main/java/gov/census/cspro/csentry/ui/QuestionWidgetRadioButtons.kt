@@ -170,7 +170,7 @@ internal class QuestionWidgetRadioButtons(field: CDEField, adapter: RecyclerView
             imageLoader.load(imagePath)
                 .signature(getFileSignature(imagePath))
                 .listener(object : RequestListener<Drawable> {
-                    override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Drawable>?, isFirstResource: Boolean): Boolean {
+                    override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Drawable>, isFirstResource: Boolean): Boolean {
                         Timber.e(e, "Error loading image for radio button ")
                         e?.rootCauses?.forEach {
                             Timber.e(it, "Caused by")
@@ -178,11 +178,11 @@ internal class QuestionWidgetRadioButtons(field: CDEField, adapter: RecyclerView
                         return false
                     }
 
-                    override fun onResourceReady(resource: Drawable?, model: Any?, target: Target<Drawable>?, dataSource: DataSource?, isFirstResource: Boolean): Boolean {
+                    override fun onResourceReady(resource: Drawable, model: Any, target: Target<Drawable>?, dataSource: DataSource, isFirstResource: Boolean): Boolean {
                         return false
                     }
 
-            }).apply(opts).into(imageView)
+                }).apply(opts).into(imageView)
         }
     }
 

@@ -10,7 +10,7 @@ class VirtualFileMappingPathHandler : WebViewAssetLoader.PathHandler {
 
     companion object {
         const val PATH_PREFIX = "/lfs/"
-        private const val URL_PREFIX = WebViewClientWithVirtualFileSupport.ASSET_LOADER_ROOT_URL + "lfs/"
+        const val URL_PREFIX = WebViewClientWithVirtualFileSupport.ASSET_LOADER_ROOT_URL + "lfs/"
 
         fun isVirtualFileMappingUrl(url: String?): Boolean {
             return ( url?.startsWith(URL_PREFIX) == true )
