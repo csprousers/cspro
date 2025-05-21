@@ -225,10 +225,6 @@
       <Project>{ea52b4fa-021b-4f0c-8209-ef54aa538476}</Project>
       <Private>false</Private>
     </ProjectReference>
-    <ProjectReference Include="..\zReportO\zReportO.vcxproj">
-      <Project>{9e851aa2-a3f8-41f6-870a-1f5122906bd1}</Project>
-      <Private>false</Private>
-    </ProjectReference>
     <ProjectReference Include="..\zToolsO\zToolsO.vcxproj">
       <Project>{fb0e28ec-927d-41d0-996c-01c21a7a346b}</Project>
       <Private>false</Private>

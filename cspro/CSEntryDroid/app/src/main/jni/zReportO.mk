@@ -9,17 +9,6 @@ ZREPORTO_SRC_PATH       := ../../../../../zReportO
 LOCAL_SRC_FILES         += $(ZREPORTO_SRC_PATH)/Pre77Report.cpp
 LOCAL_SRC_FILES         += $(ZREPORTO_SRC_PATH)/Pre77ReportManager.cpp
 LOCAL_SRC_FILES         += $(ZREPORTO_SRC_PATH)/Pre77ReportNodes.cpp
-LOCAL_SRC_FILES         += $(ZREPORTO_SRC_PATH)/../external/gumbo/attribute.c
-LOCAL_SRC_FILES         += $(ZREPORTO_SRC_PATH)/../external/gumbo/char_ref.c
-LOCAL_SRC_FILES         += $(ZREPORTO_SRC_PATH)/../external/gumbo/error.c
-LOCAL_SRC_FILES         += $(ZREPORTO_SRC_PATH)/../external/gumbo/parser.c
-LOCAL_SRC_FILES         += $(ZREPORTO_SRC_PATH)/../external/gumbo/string_buffer.c
-LOCAL_SRC_FILES         += $(ZREPORTO_SRC_PATH)/../external/gumbo/string_piece.c
-LOCAL_SRC_FILES         += $(ZREPORTO_SRC_PATH)/../external/gumbo/tag.c
-LOCAL_SRC_FILES         += $(ZREPORTO_SRC_PATH)/../external/gumbo/tokenizer.c
-LOCAL_SRC_FILES         += $(ZREPORTO_SRC_PATH)/../external/gumbo/utf8.c
-LOCAL_SRC_FILES         += $(ZREPORTO_SRC_PATH)/../external/gumbo/util.c
-LOCAL_SRC_FILES         += $(ZREPORTO_SRC_PATH)/../external/gumbo/vector.c
 
 include $(LOCAL_PATH)/LOCAL_CFLAGS.mk
 LOCAL_CFLAGS            += -DUNICODE=1

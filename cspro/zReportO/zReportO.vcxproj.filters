@@ -9,50 +9,11 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
-    <Filter Include="Gumbo">
-      <UniqueIdentifier>{5d04930d-05b6-418b-a12e-e6aa1189224d}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Reports">
       <UniqueIdentifier>{1a07fa22-5a66-4db7-8744-aff039976949}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\external\gumbo\attribute.c">
-      <Filter>Gumbo</Filter>
-    </ClCompile>
-    <ClCompile Include="..\external\gumbo\char_ref.c">
-      <Filter>Gumbo</Filter>
-    </ClCompile>
-    <ClCompile Include="..\external\gumbo\error.c">
-      <Filter>Gumbo</Filter>
-    </ClCompile>
-    <ClCompile Include="..\external\gumbo\parser.c">
-      <Filter>Gumbo</Filter>
-    </ClCompile>
-    <ClCompile Include="..\external\gumbo\string_buffer.c">
-      <Filter>Gumbo</Filter>
-    </ClCompile>
-    <ClCompile Include="..\external\gumbo\string_piece.c">
-      <Filter>Gumbo</Filter>
-    </ClCompile>
-    <ClCompile Include="..\external\gumbo\tag.c">
-      <Filter>Gumbo</Filter>
-    </ClCompile>
-    <ClCompile Include="..\external\gumbo\tokenizer.c">
-      <Filter>Gumbo</Filter>
-    </ClCompile>
-    <ClCompile Include="..\external\gumbo\utf8.c">
-      <Filter>Gumbo</Filter>
-    </ClCompile>
-    <ClCompile Include="..\external\gumbo\util.c">
-      <Filter>Gumbo</Filter>
-    </ClCompile>
-    <ClCompile Include="..\external\gumbo\vector.c">
-      <Filter>Gumbo</Filter>
-    </ClCompile>
-    <ClCompile Include="HtmlTagModifier.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Pre77Report.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -67,9 +28,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="HtmlTagModifier.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Pre77Report.h">
       <Filter>Header Files</Filter>
     </ClInclude>

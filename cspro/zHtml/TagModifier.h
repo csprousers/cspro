@@ -1,13 +1,13 @@
 ﻿#pragma once
 
-#include <zReportO/zReportO.h>
+#include <zHtml/zHtml.h>
 #include <external/gumbo/gumbo.h>
 
 
-class ZREPORTO_API HtmlTagModifier
+class ZHTML_API TagModifier
 {
 public:
-    virtual ~HtmlTagModifier() { }
+    virtual ~TagModifier() { }
 
     std::string Process(cs::string_sz html_input);
 
