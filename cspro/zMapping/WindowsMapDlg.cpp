@@ -105,8 +105,8 @@ void WindowsMapDlg::AddMarker(const WindowsMapUI::Marker& marker, const int id)
                        .Write(JK::longitude, marker.longitude)
                        .Write(JK::draggable, ( marker.on_drag_callback >= 0 ))
                        .Write(JK::callbackIndex, marker.on_info_window_click_callback)
-                       .Write(JK::description, marker.description)
-                       .Write(JK::text, marker.text)
+                       .Write(JK::description, m_htmlishSanitizer.Sanitize(*marker.description))
+                       .Write(JK::text, m_htmlishSanitizer.Sanitize(*marker.text))
                        .Write(JK::backgroundColor, marker.background_color)
                        .Write(JK::textColor, marker.text_color)
                        .Write(JK::imageUrl, marker.image_url);
@@ -147,7 +147,7 @@ void WindowsMapDlg::SetMarkerText(const WindowsMapUI::Marker& marker)
         [&](JsonWriter& json_writer)
         {
             json_writer.Write(JK::leafletId, marker.leaflet_id)
-                       .Write(JK::text, marker.text)
+                       .Write(JK::text, m_htmlishSanitizer.Sanitize(*marker.text))
                        .Write(JK::backgroundColor, marker.background_color)
                        .Write(JK::textColor, marker.text_color);
         });
@@ -171,7 +171,7 @@ void WindowsMapDlg::SetMarkerDescription(const WindowsMapUI::Marker& marker, con
         {
             json_writer.Write(JK::id, id)
                        .Write(JK::leafletId, marker.leaflet_id)
-                       .Write(JK::description, marker.description)
+                       .Write(JK::description, m_htmlishSanitizer.Sanitize(*marker.description))
                        .Write(JK::callbackIndex, marker.on_info_window_click_callback);
         });
 }
@@ -212,7 +212,7 @@ void WindowsMapDlg::AddTextButton(const WindowsMapUI::Button& button, const int 
         [&](JsonWriter& json_writer)
         {
             json_writer.Write(JK::id, id)
-                       .Write(JK::text, button.content);
+                       .Write(JK::text, m_htmlishSanitizer.Sanitize(*button.content));
         });
 }
 
@@ -259,7 +259,7 @@ void WindowsMapDlg::SetTitle(const std::string& title)
     PostActionMessage("setTitle",
         [&](JsonWriter& json_writer)
         {
-            json_writer.Write(JK::text, title);
+            json_writer.Write(JK::text, m_htmlishSanitizer.Sanitize(title));
         });
 }
 

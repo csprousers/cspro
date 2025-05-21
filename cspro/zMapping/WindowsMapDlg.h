@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include <zMapping/WindowsMapUI.h>
+#include <zHtml/HtmlishSanitizer.h>
 #include <zHtml/HtmlViewDlg.h>
 #include <zHtml/VirtualFileMapping.h>
 
@@ -62,5 +63,6 @@ private:
 private:
     WindowsMapUI& m_mapUI;
     bool m_loaded;
+    HtmlishSanitizer m_htmlishSanitizer;
     std::vector<std::unique_ptr<VirtualFileMappingHandler>> m_geometryVirtualFileMappings;
 };

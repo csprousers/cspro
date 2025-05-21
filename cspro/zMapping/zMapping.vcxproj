@@ -101,6 +101,10 @@
     <ClInclude Include="zMapping.h" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\zMarkdown\zMarkdown.vcxproj">
+      <Project>{4c225ee5-cea1-4516-bfa4-4bb49940af51}</Project>
+      <Private>false</Private>
+    </ProjectReference>
     <ProjectReference Include="..\zSql\zSql.vcxproj">
       <Project>{d20eded4-35e5-465c-a43e-746f632d4eaf}</Project>
       <Private>false</Private>
