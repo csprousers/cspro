@@ -125,6 +125,7 @@
     <ClCompile Include="HtmlDlgBase.cpp" />
     <ClCompile Include="HtmlDlgBaseRunner.cpp" />
     <ClCompile Include="HtmlEditorCtrl.cpp" />
+    <ClCompile Include="HtmlishSanitizer.cpp" />
     <ClCompile Include="HtmlTemplates.cpp" />
     <ClCompile Include="HtmlTextConverter.cpp" />
     <ClCompile Include="HtmlViewCtrl.cpp" />
@@ -161,6 +162,7 @@
     <ClInclude Include="HtmlDlgBase.h" />
     <ClInclude Include="HtmlDlgBaseRunner.h" />
     <ClInclude Include="HtmlEditorCtrl.h" />
+    <ClInclude Include="HtmlishSanitizer.h" />
     <ClInclude Include="HtmlTemplates.h" />
     <ClInclude Include="HtmlTextConverter.h" />
     <ClInclude Include="HtmlViewCtrl.h" />

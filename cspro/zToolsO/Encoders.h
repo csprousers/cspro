@@ -8,7 +8,8 @@
 class Encoders
 {
 public:
-    static constexpr const char* HexChars = "0123456789abcdef";
+    static constexpr const char* DecimalChars = "0123456789";
+    static constexpr const char* HexChars     = "0123456789abcdef";
 
     static constexpr const char* JsonEscapeRepresentations = "/\"\\\b\f\n\r\t";
     static constexpr const char* JsonEscapeSequences       = "/\"\\bfnrt";

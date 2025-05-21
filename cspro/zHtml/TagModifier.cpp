@@ -9,8 +9,9 @@ std::string TagModifier::Process(const cs::string_sz html_input)
     const RAII::SetValueAndRestoreOnDestruction html_modifier(m_html, &html_output);
 
     GumboOutput* const gumbo_output = gumbo_parse(html_input.c_str());
+    const RAII::RunOnDestruction destroy([&]() { gumbo_destroy_output(&kGumboDefaultOptions, gumbo_output); });
+
     ProcessNode(gumbo_output->root);
-    gumbo_destroy_output(&kGumboDefaultOptions, gumbo_output);
 
     return html_output;
 }

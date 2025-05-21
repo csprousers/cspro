@@ -401,7 +401,6 @@ void Markdown::HtmlParserCallback::render_entity(const std::string_view text_sv,
 
         render_utf8_codepoint(codepoint, escape_type);
         return;
-
     }
 
     else
