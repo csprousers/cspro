@@ -38,6 +38,23 @@
         fillOpacity: 1
     }
 
+    // platform-specific variables for...
+    let webview;
+    let parentMessagePoster;
+
+    // ... Windows (Edge)
+    if( typeof window.chrome !== "undefined" ) {
+        webview = window.chrome.webview;
+        parentMessagePoster = function(message) {
+            webview.postMessage(message);
+        };
+    }
+
+    function postMessageToParent(action, message = {}) {
+        message.action = action;
+        parentMessagePoster(message);
+    }
+
 
     function initializeMap() {
         csmap = L.map('mapid', {
@@ -52,14 +69,12 @@
 
     window.onload = function() {
         initializeMap();
-        window.chrome.webview.postMessage({
-            action: 'documentLoaded'
-        });
+        postMessageToParent('documentLoaded');
     }
 
 
-    window.chrome.webview.addEventListener('message', event => {
-        const message = event.data;
+    webview.addEventListener('message', event => {
+        const message = JSON.parse(event.data);
 
         switch( message.action ) {
             case 'addMarker':
@@ -169,8 +184,7 @@
     function onMapClick(e) {
         const latLng = e.latlng;
         const camera = csmap.getCenter();
-        window.chrome.webview.postMessage({
-            action: 'mapClick',
+        postMessageToParent('mapClick', {
             latitude: latLng.lat,
             longitude: latLng.lng,
             camera: {
@@ -225,8 +239,7 @@
             marker.setIcon(icon);
         }
 
-        window.chrome.webview.postMessage({
-            action: 'markerPlaced',
+        postMessageToParent('markerPlaced', {
             id: id,
             leafletId: markers.getLayerId(marker)
         });
@@ -349,8 +362,7 @@
 
     function onMarkerClick(e, id) {
         const camera = csmap.getCenter();
-        window.chrome.webview.postMessage({
-            action: 'markerClick',
+        postMessageToParent('markerClick', {
             id: id,
             camera: {
                 latitude: camera.lat,
@@ -363,8 +375,7 @@
 
     function onMarkerPopup(id) {
         const camera = csmap.getCenter();
-        window.chrome.webview.postMessage({
-            action: 'markerPopup',
+        postMessageToParent('markerPopup', {
             id: id,
             camera: {
                 latitude: camera.lat,
@@ -378,8 +389,7 @@
     function onMarkerDrag(e, id) {
         const latLng = e.target.getLatLng();
         const camera = csmap.getCenter();
-        window.chrome.webview.postMessage({
-            action: 'markerDrag',
+        postMessageToParent('markerDrag', {
             id: id,
             marker: markers.getLayerId(e.target),
             latitude: latLng.lat,
@@ -440,8 +450,7 @@
 
     function onButtonClick(e, id) {
         const camera = csmap.getCenter();
-        window.chrome.webview.postMessage({
-            action: 'buttonClick',
+        postMessageToParent('buttonClick', {
             id: id,
             camera: {
                 latitude: camera.lat,
@@ -582,8 +591,7 @@
     function addGeometry(id, geojsonUrl) {
         const geojson = new L.GeoJSON.AJAX(geojsonUrl);
         const geometry = geojson.addTo(geometries);
-        window.chrome.webview.postMessage({
-            action: 'geometryPlaced',
+        postMessageToParent('geometryPlaced', {
             id: id,
             leafletId: geometries.getLayerId(geometry)
         });

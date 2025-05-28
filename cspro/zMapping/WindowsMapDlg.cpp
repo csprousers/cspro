@@ -65,7 +65,7 @@ LRESULT WindowsMapDlg::OnPostActionMessage(const WPARAM wParam, LPARAM /*lParam*
     const SharableString message = WindowsDesktopMessage::GetPostedObject<SharableString>(wParam);
     ASSERT(message.IsSet());
 
-    m_htmlViewCtrl.PostWebMessageAsJson(*message);
+    m_htmlViewCtrl.PostWebMessageAsString(*message);
 
     return 1;
 }
