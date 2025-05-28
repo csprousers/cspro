@@ -58,6 +58,24 @@ bool AndroidMapUI::SaveSnapshot(const std::string& image_file_path)
 }
 
 
+void AndroidMapUI::Clear()
+{
+    JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
+    pEnv->CallVoidMethod(m_javaImpl, JNIReferences::methodAndroidMapUIClear);
+    m_baseMapDefined = false;
+}
+
+
+bool AndroidMapUI::SetTitle(SharableString title)
+{
+    JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
+    JNIReferences::scoped_local_ref<jstring> jTitle(pEnv, JavaString::ToJava(*pEnv, *title));
+
+    return pEnv->CallIntMethod(m_javaImpl, JNIReferences::methodAndroidMapUISetTitle,
+                               jTitle.get());
+}
+
+
 int AndroidMapUI::AddMarker(const double latitude, const double longitude)
 {
     JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
@@ -257,16 +275,6 @@ bool AndroidMapUI::SetShowCurrentLocation(const bool show)
 }
 
 
-bool AndroidMapUI::SetTitle(SharableString title)
-{
-    JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
-    JNIReferences::scoped_local_ref<jstring> jTitle(pEnv, JavaString::ToJava(*pEnv, *title));
-
-    return pEnv->CallIntMethod(m_javaImpl, JNIReferences::methodAndroidMapUISetTitle,
-                               jTitle.get());
-}
-
-
 bool AndroidMapUI::ZoomTo(const double latitude, const double longitude, const double zoom/* = -1*/)
 {
     JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
@@ -284,14 +292,6 @@ bool AndroidMapUI::ZoomTo(const double min_latitude, const double min_longitude,
 
     return pEnv->CallIntMethod(m_javaImpl, JNIReferences::methodAndroidMapUIZoomToBounds,
                                min_latitude, min_longitude, max_latitude, max_longitude, padding_percent);
-}
-
-
-void AndroidMapUI::Clear()
-{
-    JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
-    pEnv->CallVoidMethod(m_javaImpl, JNIReferences::methodAndroidMapUIClear);
-    m_baseMapDefined = false;
 }
 
 

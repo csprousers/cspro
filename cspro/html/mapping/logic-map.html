@@ -135,7 +135,7 @@
                 break;
 
             case 'setTitle':
-                setTitle(message.text);
+                setTitle(message.title);
                 break;
 
             case 'zoomTo':
@@ -508,13 +508,13 @@
     }
 
 
-    function setTitle(text) {
+    function setTitle(titleHtml) {
         const title = document.getElementById('title');
 
         if( title ) {
             title.classList.remove('hidden');
             title.classList.add('shown');
-            title.innerHTML = text;
+            title.innerHTML = titleHtml;
         }
         else {
             title.classList.remove('shown');

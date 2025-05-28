@@ -60,8 +60,6 @@ public:
 
     bool SetShowCurrentLocation(bool show) override;
 
-    bool SetTitle(SharableString title) override;
-
     bool ZoomTo(double latitude, double longitude, double zoom = -1) override;
     bool ZoomTo(double min_latitude, double min_longitude, double max_latitude, double max_longitude, double padding_percent = 0) override;
 
@@ -86,6 +84,14 @@ protected:
     virtual void NotifyEvent(EventCode code, int marker_id = -1, int callback_id = -1,
                              double latitude = 0, double longitude = 0, const MapCamera& camera = MapCamera { 0, 0, 0, 0 });
 
+protected:
+    // HtmlMapUI overrides
+    bool IsMapShowing() override;
+
+    void OnPostActionMessage(SharableString action_message_json) override;
+
+    void OnSetWindowTitle(const std::string& title) override;
+
 private:
     void WaitForShowThreadToTerminate();
 
@@ -102,7 +108,6 @@ private:
     std::mutex m_mapEventMutex;
 
 protected:
-    SharableString m_title;
     std::optional<BaseMapSelection> m_baseMapSelection;
     std::unique_ptr<Zoom> m_zoom;
     bool m_showCurrentLocation;

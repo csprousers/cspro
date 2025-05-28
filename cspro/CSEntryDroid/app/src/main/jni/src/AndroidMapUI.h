@@ -21,6 +21,10 @@ public:
 
     bool SaveSnapshot(const std::string& image_file_path) override;
 
+    void Clear() override;
+
+    bool SetTitle(SharableString title) override;
+
     int AddMarker(double latitude, double longitude) override;
     bool RemoveMarker(int marker_id) override;
     void ClearMarkers() override;
@@ -39,15 +43,11 @@ public:
     bool RemoveButton(int button_id) override;
     void ClearButtons() override;
 
-    void Clear() override;
-
     bool IsBaseMapDefined() const override;
 
     bool SetBaseMap(BaseMapSelection base_map_selection) override;
 
     bool SetShowCurrentLocation(bool show) override;
-
-    bool SetTitle(SharableString title) override;
 
     bool ZoomTo(double latitude, double longitude, double zoom = -1) override;
     bool ZoomTo(double min_latitude, double min_longitude, double max_latitude, double max_longitude, double padding_percent = 0) override;

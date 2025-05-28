@@ -26,6 +26,12 @@ public:
     // Saves a snapshot (to JPEG/PNG formats) of the currently displayed map.
     virtual bool SaveSnapshot(const std::string& image_file_path) = 0;
 
+    // Clears the map state.
+    virtual void Clear() = 0;
+
+    // Sets the title text that is displayed at the top of the map.
+    virtual bool SetTitle(SharableString title) = 0;
+
     // Add a place mark to the map.
     // Latitude and longitude are in degrees.
     // Returns a unique ID of the marker.
@@ -83,9 +89,6 @@ public:
     // Removes all buttons from the map.
     virtual void ClearButtons() = 0;
 
-    // Clears the map state.
-    virtual void Clear() = 0;
-
     // Returns whether a base map has been set.
     virtual bool IsBaseMapDefined() const = 0;
 
@@ -94,9 +97,6 @@ public:
 
     // Sets whether to show the current location on the map.
     virtual bool SetShowCurrentLocation(bool show) = 0;
-
-    // Sets the title text that is displayed at the top of the map.
-    virtual bool SetTitle(SharableString title) = 0;
 
     // Pans the camera to center at the specified point and optional zoom level.
     // Latitude and longitude are in degrees.

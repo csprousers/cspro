@@ -251,19 +251,6 @@ void WindowsMapDlg::SetShowCurrentLocation()
 }
 
 
-void WindowsMapDlg::SetTitle(const std::string& title)
-{
-    ASSERT(m_viewerOptions.title.IsSet());
-    SetWindowText(TC::ToWide(title.empty() ? *m_viewerOptions.title : title).c_str());
-
-    PostActionMessage("setTitle",
-        [&](JsonWriter& json_writer)
-        {
-            json_writer.Write(JK::text, m_htmlishSanitizer.Sanitize(title));
-        });
-}
-
-
 void WindowsMapDlg::ZoomTo(const double latitude, const double longitude, const double zoom)
 {
     PostActionMessage("zoomTo",
@@ -368,6 +355,7 @@ void WindowsMapDlg::OnWebMessageReceived(const std::string_view message_sv)
 {
     try
     {
+        m_mapUI.OnWebMessageReceived(message_sv);
         OnWebMessageReceived(Json::Parse(message_sv));
     }
     catch(...) { ASSERT(false); }
@@ -474,9 +462,6 @@ void WindowsMapDlg::SetUpInitialMap()
 {
     ASSERT(m_loaded);
 
-    // set the title
-    SetTitle(*m_mapUI.m_title);
-
     // set up the base map
     SetUpBaseMap();
 
@@ -567,4 +552,11 @@ LRESULT WindowsMapDlg::OnSaveSnapshot(const WPARAM wParam, LPARAM /*lParam*/)
     }
 
     return 0;
+}
+
+
+void WindowsMapDlg::SetWindowTitle(const std::string& title)
+{
+    ASSERT(m_viewerOptions.title.IsSet());
+    SetWindowText(TC::ToWide(title.empty() ? *m_viewerOptions.title : title).c_str());
 }

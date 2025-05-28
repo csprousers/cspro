@@ -361,7 +361,8 @@ void WindowsMapUI::ClearButtons()
 
 void WindowsMapUI::Clear()
 {
-    m_title.Reset();
+    __super::Clear();
+
     m_baseMapSelection.reset();
     m_zoom.reset();
     m_showCurrentLocation = true;
@@ -431,19 +432,6 @@ bool WindowsMapUI::SetShowCurrentLocation(const bool show)
     PerformMapDlgAction([&](WindowsMapDlg& map_dlg)
     {
         map_dlg.SetShowCurrentLocation();
-    });
-
-    return true;
-}
-
-
-bool WindowsMapUI::SetTitle(SharableString title)
-{
-    m_title = std::move(title);
-
-    PerformMapDlgAction([&](WindowsMapDlg& map_dlg)
-    {
-        map_dlg.SetTitle(*m_title);
     });
 
     return true;
@@ -581,4 +569,28 @@ void WindowsMapUI::NotifyEvent(const EventCode code, const int marker_id/* = -1*
                                     latitude,
                                     longitude,
                                     camera });
+}
+
+
+bool WindowsMapUI::IsMapShowing()
+{
+    return ( GetMapDlgForAction() != nullptr );
+}
+
+
+void WindowsMapUI::OnPostActionMessage(SharableString action_message_json)
+{
+    ASSERT(IsMapShowing());
+
+    WindowsDesktopMessage::PostObject(GetMapDlgForAction(), UWM::Mapping::PostActionMessage,
+                                      std::move(action_message_json));
+}
+
+
+void WindowsMapUI::OnSetWindowTitle(const std::string& title)
+{
+    WindowsMapDlg* const map_dlg = GetMapDlgForAction();
+
+    if( map_dlg != nullptr )
+        map_dlg->SetWindowTitle(title);
 }

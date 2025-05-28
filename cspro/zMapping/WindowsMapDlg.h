@@ -29,8 +29,6 @@ public:
 
     void SetShowCurrentLocation();
 
-    void SetTitle(const std::string& title);
-
     void ZoomTo(double latitude, double longitude, double);
     void ZoomTo(double min_latitude, double min_longitude, double max_latitude, double max_longitude, double padding_percent);
 
@@ -42,6 +40,8 @@ public:
 
     struct SnapshotData;
     void SaveSnapshot(const std::string& file_path);
+
+    void SetWindowTitle(const std::string& title);
 
 protected:
     DECLARE_MESSAGE_MAP()
