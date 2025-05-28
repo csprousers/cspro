@@ -1,7 +1,6 @@
 ﻿#pragma once
 
 #include <zHtml/zHtml.h>
-#include <zMarkdown/HtmlEntityLookup.h>
 
 
 // --------------------------------------------------------------------------
@@ -15,23 +14,19 @@
 // "&amp; &invalid; &#1234;"  ->  "&amp; &amp;invalid; &#1234;"
 //
 // No exceptions are thrown.
-//
-// Users of this class must also use zMarkdown.
 // --------------------------------------------------------------------------
 
 class HtmlishSanitizer
 {
-private:
-    ZHTML_API HtmlishSanitizer(std::unique_ptr<HtmlEntityLookup> entity_lookup);
+    class Worker;
 
 public:
-    HtmlishSanitizer();
-
-    ZHTML_API std::string Sanitize(cs::string_sz input);
+    template<typename IT,
+             typename OT = std::conditional_t<std::is_same_v<IT, SharableString>, SharableString, std::string>>
+    static OT Sanitize(IT input);
 
 private:
-    class Worker;
-    std::unique_ptr<HtmlEntityLookup> m_entityLookup;
+    ZHTML_API static std::string SanitizeWorker(const char* input);
 };
 
 
@@ -40,7 +35,14 @@ private:
 // inline implementations
 // --------------------------------------------------------------------------
 
-inline HtmlishSanitizer::HtmlishSanitizer()
-    :   HtmlishSanitizer(HtmlEntityLookup::Create())
+template<typename IT,
+         typename OT/* = std::conditional_t<std::is_same_v<IT, SharableString>, SharableString, std::string>*/>
+OT HtmlishSanitizer::Sanitize(IT input)
 {
+    const char* const input_data = SO::GetNullTerminatedString(input);
+
+    if( strpbrk(input_data, "<>&\r\n") == nullptr )
+        return OT(std::move(input));
+
+    return SanitizeWorker(input_data);
 }

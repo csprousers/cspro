@@ -14,17 +14,11 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\external\md4c\entity.c">
-      <Filter>md4c</Filter>
-    </ClCompile>
     <ClCompile Include="..\external\md4c\md4c-html.c">
       <Filter>md4c</Filter>
     </ClCompile>
     <ClCompile Include="..\external\md4c\md4c.c">
       <Filter>md4c</Filter>
-    </ClCompile>
-    <ClCompile Include="HtmlEntityLookup.cpp">
-      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="HtmlParserCallback.cpp">
       <Filter>Source Files</Filter>
@@ -40,9 +34,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="HtmlEntityLookup.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Markdown.h">
       <Filter>Header Files</Filter>
     </ClInclude>

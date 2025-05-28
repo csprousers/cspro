@@ -4,8 +4,14 @@ JNI_PATH := $(call my-dir)
 include $(CLEAR_VARS)
 
 LOCAL_MODULE            := zToolsO
-LOCAL_C_INCLUDES        := src
-ZTOOLSO_SRC_PATH        := ../../../../../zToolsO
+SOLUTION_SRC_PATH       := $(JNI_PATH)/../../../../..
+ZTOOLSO_SRC_PATH        := $(SOLUTION_SRC_PATH)/zToolsO
+MD4C_SRC_PATH           := $(SOLUTION_SRC_PATH)/external/md4c
+RIJNDAEL_SRC_PATH       := $(SOLUTION_SRC_PATH)/zToolsO/rijndael
+SCRYPT_SRC_PATH         := $(SOLUTION_SRC_PATH)/external/scrypt
+
+LOCAL_C_INCLUDES        += $(SOLUTION_SRC_PATH)
+LOCAL_C_INCLUDES        += $(SOLUTION_SRC_PATH)/external
 
 LOCAL_SRC_FILES         += $(ZTOOLSO_SRC_PATH)/base64.cpp
 LOCAL_SRC_FILES         += $(ZTOOLSO_SRC_PATH)/BinaryGen.cpp
@@ -47,14 +53,15 @@ LOCAL_SRC_FILES         += $(ZTOOLSO_SRC_PATH)/Utf8FileStream.cpp
 LOCAL_SRC_FILES         += $(ZTOOLSO_SRC_PATH)/uuid.cpp
 LOCAL_SRC_FILES         += $(ZTOOLSO_SRC_PATH)/VarFuncs.cpp
 
-LOCAL_SRC_FILES         += $(ZTOOLSO_SRC_PATH)/rijndael/rijndael-alg-fst.c
+LOCAL_SRC_FILES         += $(MD4C_SRC_PATH)/entity.c
 
-LOCAL_SRC_FILES         += $(ZTOOLSO_SRC_PATH)/../external/scrypt/insecure_memzero.c
-LOCAL_SRC_FILES         += $(ZTOOLSO_SRC_PATH)/../external/scrypt/sha256.c
+LOCAL_SRC_FILES         += $(RIJNDAEL_SRC_PATH)/rijndael-alg-fst.c
+
+LOCAL_SRC_FILES         += $(SCRYPT_SRC_PATH)/insecure_memzero.c
+LOCAL_SRC_FILES         += $(SCRYPT_SRC_PATH)/sha256.c
 
 include $(LOCAL_PATH)/LOCAL_CFLAGS.mk
 LOCAL_CFLAGS            += -DUNICODE=1
 LOCAL_CFLAGS            += -D_UNICODE=1
-LOCAL_C_INCLUDES        += $(JNI_PATH)/../../../../../external
 
 include $(BUILD_STATIC_LIBRARY)

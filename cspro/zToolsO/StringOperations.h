@@ -94,6 +94,15 @@ public:
 
 
     // --------------------------------------------------------------------------
+    // Access functions
+    // --------------------------------------------------------------------------
+
+    // returns the object's null-terminated string
+    template<typename ST>
+    static const char* GetNullTerminatedString(const ST& text);
+
+
+    // --------------------------------------------------------------------------
     // Length functions
     // --------------------------------------------------------------------------
 
@@ -624,6 +633,20 @@ const auto* SO::GetStringData(const ST& sv_or_cstr)
     {
         return static_cast<const char*>(sv_or_cstr);
     }
+}
+
+
+
+// --------------------------------------------------------------------------
+// Access functions
+// --------------------------------------------------------------------------
+
+template<typename ST>
+const char* SO::GetNullTerminatedString(const ST& text)
+{
+         if constexpr(std::is_same_v<ST, SharableString>) return text->c_str();
+    else if constexpr(std::is_same_v<ST, std::string>)    return text.c_str();
+    else                                                  return text;
 }
 
 

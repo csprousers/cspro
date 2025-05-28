@@ -1,6 +1,7 @@
 ﻿#include "stdafx.h"
 #include "HtmlishSanitizer.h"
 #include <external/gumbo/gumbo.h>
+#include <external/md4c/entity.h>
 
 
 // --------------------------------------------------------------------------
@@ -10,7 +11,7 @@
 class HtmlishSanitizer::Worker
 {
 public:
-    Worker(HtmlEntityLookup& entity_lookup, cs::string_sz input, std::string& html);
+    Worker(cs::string_sz input, std::string& html);
     ~Worker();
 
     void Sanitize();
@@ -26,15 +27,13 @@ private:
     size_t IsHtmlEntity(std::string_view text_sv);
 
 private:
-    HtmlEntityLookup& m_entityLookup;
     GumboOutput* m_gumboOutput;
     std::string& m_html;
 };
 
 
-HtmlishSanitizer::Worker::Worker(HtmlEntityLookup& entity_lookup, const cs::string_sz input, std::string& html)
-    :   m_entityLookup(entity_lookup),
-        m_gumboOutput(gumbo_parse(input.c_str())),
+HtmlishSanitizer::Worker::Worker(const cs::string_sz input, std::string& html)
+    :   m_gumboOutput(gumbo_parse(input.c_str())),
         m_html(html)
 {
     ASSERT(m_gumboOutput != nullptr && m_html.empty());
@@ -222,7 +221,7 @@ size_t HtmlishSanitizer::Worker::IsHtmlEntity(const std::string_view text_sv)
     }
 
     // check for a named entity
-    if( m_entityLookup.IsEntity(entity_sv) )
+    if( entity_lookup(entity_sv.data(), entity_sv.size()) != nullptr )
         return entity_sv.length();
 
     return 0;
@@ -234,17 +233,10 @@ size_t HtmlishSanitizer::Worker::IsHtmlEntity(const std::string_view text_sv)
 // HtmlishSanitizer
 // --------------------------------------------------------------------------
 
-HtmlishSanitizer::HtmlishSanitizer(std::unique_ptr<HtmlEntityLookup> entity_lookup/* = HtmlEntityLookup::Create()*/)
-    :   m_entityLookup(std::move(entity_lookup))
-{
-    ASSERT(m_entityLookup != nullptr);
-}
-
-
-std::string HtmlishSanitizer::Sanitize(const cs::string_sz input)
+std::string HtmlishSanitizer::SanitizeWorker(const char* const input)
 {
     std::string html;
-    Worker worker(*m_entityLookup, input, html);
+    Worker worker(input, html);
 
     worker.Sanitize();
 

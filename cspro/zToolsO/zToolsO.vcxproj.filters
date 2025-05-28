@@ -21,8 +21,14 @@
     <Filter Include="Source Files\rijndael">
       <UniqueIdentifier>{d7f6f0d9-1b16-46a1-8988-afe08d42274e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\md4c">
+      <UniqueIdentifier>{14b4c701-ff11-44a2-9b9f-24e207246c1a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\external\md4c\entity.c">
+      <Filter>Source Files\md4c</Filter>
+    </ClCompile>
     <ClCompile Include="..\external\scrypt\insecure_memzero.c">
       <Filter>Source Files\scrypt</Filter>
     </ClCompile>

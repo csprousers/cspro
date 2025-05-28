@@ -64,10 +64,6 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\external\md4c\entity.c">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
     <ClCompile Include="..\external\md4c\md4c-html.c">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
@@ -76,7 +72,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="HtmlEntityLookup.cpp" />
     <ClCompile Include="HtmlParserCallback.cpp" />
     <ClCompile Include="Markdown.cpp" />
     <ClCompile Include="StdAfx.cpp">
@@ -86,7 +81,6 @@
     <ClCompile Include="zMarkdown.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="HtmlEntityLookup.h" />
     <ClInclude Include="Markdown.h" />
     <ClInclude Include="ParserCallback.h" />
     <ClInclude Include="StdAfx.h" />
