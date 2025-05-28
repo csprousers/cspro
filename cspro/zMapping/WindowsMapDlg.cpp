@@ -310,7 +310,7 @@ void WindowsMapDlg::SetUpBaseMap()
 
                 if( base_map != BaseMap::None )
                 {
-                    const MappingTileProviderProperties& mapping_tile_provider_properties = m_mapUI.m_mappingProperties.GetWindowsMappingTileProviderProperties();
+                    const MappingTileProviderProperties& mapping_tile_provider_properties = m_mapUI.m_mappingProperties->GetWindowsMappingTileProviderProperties();
 
                     json_writer.Write(JK::tileProvider, mapping_tile_provider_properties.GetMappingTileProvider())
                                .Write(JK::tileLayer, mapping_tile_provider_properties.GetTileLayer(base_map))

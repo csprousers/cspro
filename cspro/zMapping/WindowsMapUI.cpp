@@ -10,8 +10,8 @@
 #include <zHtml/SharedHtmlLocalFileServer.h>
 
 
-WindowsMapUI::WindowsMapUI(const MappingProperties& mapping_properties)
-    :   m_mappingProperties(mapping_properties),
+WindowsMapUI::WindowsMapUI(cs::non_null_shared_or_raw_ptr<const MappingProperties> mapping_properties)
+    :   HtmlMapUI(std::move(mapping_properties)),
         m_showCurrentLocation(true),
         m_nextMapId(1)
 {
@@ -37,8 +37,6 @@ void WindowsMapUI::WaitForShowThreadToTerminate()
 
 bool WindowsMapUI::Show()
 {
-    EnsureFileServerIsSetup();
-
     return WindowsShow();
 }
 
@@ -75,7 +73,8 @@ bool WindowsMapUI::WindowsShow()
 
 WindowsMapDlg* WindowsMapUI::GetMapDlgForAction()
 {
-    return ( m_uiThreadRunner != nullptr ) ? m_uiThreadRunner->GetMapDlg() : nullptr;
+    return ( m_uiThreadRunner != nullptr ) ? m_uiThreadRunner->GetMapDlg() :
+                                             nullptr;
 }
 
 
@@ -582,28 +581,4 @@ void WindowsMapUI::NotifyEvent(const EventCode code, const int marker_id/* = -1*
                                     latitude,
                                     longitude,
                                     camera });
-}
-
-
-void WindowsMapUI::EnsureFileServerIsSetup()
-{
-    if( m_fileServer == nullptr )
-        m_fileServer = std::make_unique<SharedHtmlLocalFileServer>("mapping");
-}
-
-
-std::string WindowsMapUI::GetUrlOfMapHtml() const
-{
-    ASSERT(m_fileServer != nullptr);
-    return m_fileServer->CreateProjectUrl("logic-map.html");
-}
-
-
-std::string WindowsMapUI::GetUrlForUrlOrFile(const std::string& url_or_file_path)
-{
-    if( Encoders::IsDataOrHttpUrl(url_or_file_path) )
-        return url_or_file_path;
-
-    EnsureFileServerIsSetup();
-    return m_fileServer->CreateFileUrl(url_or_file_path);
 }

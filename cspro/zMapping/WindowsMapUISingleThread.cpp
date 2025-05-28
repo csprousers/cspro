@@ -3,8 +3,8 @@
 #include "WindowsMapDlg.h"
 
 
-WindowsMapUISingleThread::WindowsMapUISingleThread(const MappingProperties& mapping_properties)
-    :   WindowsMapUI(mapping_properties)
+WindowsMapUISingleThread::WindowsMapUISingleThread(cs::non_null_shared_or_raw_ptr<const MappingProperties> mapping_properties)
+    :   WindowsMapUI(std::move(mapping_properties))
 {
 }
 

@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 #include <zMapping/zMapping.h>
-#include <zMapping/IMapUI.h>
+#include <zMapping/HtmlMapUI.h>
 #include <zUtilO/PortableColor.h>
 #include <zAppO/Properties/MappingProperties.h>
 #include <mutex>
@@ -9,15 +9,14 @@
 
 class OfflineTileProvider;
 class OfflineTileReader;
-class SharedHtmlLocalFileServer;
 class WindowsMapUIThreadRunner;
 
 
 // --------------------------------------------------------------------------
-// Windows implementation of mapping.
+// Windows implementation of HTML-based mapping.
 // --------------------------------------------------------------------------
 
-class ZMAPPING_API WindowsMapUI : public IMapUI
+class ZMAPPING_API WindowsMapUI : public HtmlMapUI
 {
     friend class WindowsMapDlg;
 
@@ -27,7 +26,7 @@ class ZMAPPING_API WindowsMapUI : public IMapUI
     struct Zoom;
 
 public:
-    WindowsMapUI(const MappingProperties& mapping_properties);
+    WindowsMapUI(cs::non_null_shared_or_raw_ptr<const MappingProperties> mapping_properties);
     ~WindowsMapUI();
 
     bool Show() override;
@@ -92,25 +91,15 @@ private:
 
     constexpr bool AreCoordinatesValid(double latitude, double longitude);
 
-    void EnsureFileServerIsSetup();
-
-    std::string GetUrlOfMapHtml() const;
-    std::string GetUrlForUrlOrFile(const std::string& url_or_file_path);
-
     Marker* GetMarker(int marker_id);
     Button* GetButton(int button_id);
     MapGeometry* GetGeometry(int geometry_id);
 
 private:
-    const MappingProperties& m_mappingProperties;
-
     std::shared_ptr<WindowsMapUIThreadRunner> m_uiThreadRunner;
     std::unique_ptr<std::thread> m_showThread;
     std::unique_ptr<MapEvent> m_mapEvent;
     std::mutex m_mapEventMutex;
-
-    std::string m_fileServerDirectory;
-    std::unique_ptr<SharedHtmlLocalFileServer> m_fileServer;
 
 protected:
     SharableString m_title;

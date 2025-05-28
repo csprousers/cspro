@@ -20,6 +20,9 @@
     <ClCompile Include="GeoJson.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="HtmlMapUI.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="MappingPropertiesTester.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -62,6 +65,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="GreatCircle.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="HtmlMapUI.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="IMapUI.h">

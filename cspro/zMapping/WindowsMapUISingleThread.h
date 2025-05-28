@@ -6,7 +6,7 @@
 class ZMAPPING_API WindowsMapUISingleThread : public WindowsMapUI
 {
 public:
-    WindowsMapUISingleThread(const MappingProperties& mapping_properties);
+    WindowsMapUISingleThread(cs::non_null_shared_or_raw_ptr<const MappingProperties> mapping_properties);
     ~WindowsMapUISingleThread();
 
     bool Hide() override;

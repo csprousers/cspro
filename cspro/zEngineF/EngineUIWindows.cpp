@@ -46,16 +46,16 @@ long EngineUIProcessor::CreateMapUI(std::unique_ptr<IMapUI>& map_ui)
     if( m_pff == nullptr )
         return ReturnProgrammingError(0);
 
-    const auto& mapping_properties = m_pff->GetApplication()->GetApplicationProperties().GetMappingProperties();
+    const MappingProperties& mapping_properties = m_pff->GetApplication()->GetApplicationProperties().GetMappingProperties();
 
     if( m_engineRunsOnUIThread )
     {
-        map_ui = std::make_unique<WindowsMapUISingleThread>(mapping_properties);
+        map_ui = std::make_unique<WindowsMapUISingleThread>(&mapping_properties);
     }
 
     else
     {
-        map_ui = std::make_unique<WindowsMapUI>(mapping_properties);
+        map_ui = std::make_unique<WindowsMapUI>(&mapping_properties);
     }
 
     return 1;

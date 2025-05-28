@@ -21,8 +21,8 @@ namespace
 class MappingPropertiesTester::TestMapUI : public WindowsMapUISingleThread
 {
 public:
-    TestMapUI(const MappingProperties& mapping_properties)
-        :   WindowsMapUISingleThread(mapping_properties)
+    TestMapUI(cs::non_null_shared_or_raw_ptr<const MappingProperties> mapping_properties)
+        :   WindowsMapUISingleThread(std::move(mapping_properties))
     {
     }
 
@@ -71,7 +71,7 @@ void MappingPropertiesTester::Test(MappingProperties mapping_properties, const s
 
     try
     {
-        TestMapUI map_ui(mapping_properties);
+        TestMapUI map_ui(&mapping_properties);
 
         if( mapping_tile_provider.has_value() || std::holds_alternative<BaseMap>(mapping_properties.GetDefaultBaseMap()) )
         {
