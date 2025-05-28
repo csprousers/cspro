@@ -134,6 +134,10 @@
                 showCurrentLocation(message.latitude, message.longitude);
                 break;
 
+            case 'hideCurrentLocation':
+                hideCurrentLocation();
+                break;
+
             case 'setTitle':
                 setTitle(message.title);
                 break;
@@ -462,11 +466,6 @@
 
 
     function showCurrentLocation(latitude, longitude) {
-        if( !latitude ) {
-            hideCurrentLocation();
-            return;
-        }
-
         // invalid coordinates, only set if we encountered an error before
         if( latitude < -90 || longitude < -180 ) {
             alert('Geolocation failed! Check your Internet connection.');

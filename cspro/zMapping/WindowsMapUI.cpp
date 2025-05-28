@@ -1,18 +1,12 @@
 ﻿#include "stdafx.h"
+#include "CurrentLocation.h"
 #include "WindowsMapUI.h"
-#include "MBTilesReader.h"
-#include "OfflineTileProvider.h"
-#include "OfflineTileReader.h"
-#include "TPKReader.h"
 #include "WindowsMapDlg.h"
 #include "WindowsMapUIThreadRunner.h"
-#include <zToolsO/Encoders.h>
-#include <zHtml/SharedHtmlLocalFileServer.h>
 
 
 WindowsMapUI::WindowsMapUI(cs::non_null_shared_or_raw_ptr<const MappingProperties> mapping_properties)
     :   HtmlMapUI(std::move(mapping_properties)),
-        m_showCurrentLocation(true),
         m_nextMapId(1)
 {
 }
@@ -363,78 +357,11 @@ void WindowsMapUI::Clear()
 {
     __super::Clear();
 
-    m_baseMapSelection.reset();
     m_zoom.reset();
-    m_showCurrentLocation = true;
 
     ClearButtons();
     ClearMarkers();
     ClearGeometry();
-
-    m_tileReader.reset();
-    m_tileProvider.reset();
-}
-
-
-bool WindowsMapUI::IsBaseMapDefined() const
-{
-    return m_baseMapSelection.has_value();
-}
-
-
-bool WindowsMapUI::SetBaseMap(BaseMapSelection base_map_selection)
-{
-    if( std::holds_alternative<BaseMap>(base_map_selection) )
-    {
-        m_tileReader.reset();
-        m_tileProvider.reset();
-    }
-
-    else
-    {
-        // open the MBTiles or TPK file
-        const std::string& file_path = std::get<std::string>(base_map_selection);
-        const std::string extension = Path::GetExtension(file_path);
-
-        if( SO::EqualsNoCase(extension, "mbtiles") )
-        {
-            m_tileReader = std::make_unique<MBTilesReader>(file_path);
-        }
-
-        else if( SO::EqualsOneOfNoCase(extension, "tpk", "tpkx") )
-        {
-            m_tileReader = std::make_unique<TPKReader>(file_path);
-        }
-
-        else
-        {
-            throw CSProException("unknown base map file with extension '%s'", extension.c_str());
-        }
-
-        m_tileProvider = std::make_unique<OfflineTileProvider>(m_tileReader);
-    }
-
-    m_baseMapSelection = std::move(base_map_selection);
-
-    PerformMapDlgAction([&](WindowsMapDlg& map_dlg)
-    {
-        map_dlg.SetUpBaseMap();
-    });
-
-    return true;
-}
-
-
-bool WindowsMapUI::SetShowCurrentLocation(const bool show)
-{
-    m_showCurrentLocation = show;
-
-    PerformMapDlgAction([&](WindowsMapDlg& map_dlg)
-    {
-        map_dlg.SetShowCurrentLocation();
-    });
-
-    return true;
 }
 
 
@@ -593,4 +520,23 @@ void WindowsMapUI::OnSetWindowTitle(const std::string& title)
 
     if( map_dlg != nullptr )
         map_dlg->SetWindowTitle(title);
+}
+
+
+bool WindowsMapUI::OnShowCurrentLocation()
+{
+    // only show the current location when it can be retrieved
+    const std::optional<std::tuple<double, double>> current_location = CurrentLocation::GetCurrentLocation();
+
+    if( !current_location.has_value() )
+        return false;
+
+    PostActionMessage("showCurrentLocation",
+        [&](JsonWriter& json_writer)
+        {
+            json_writer.Write(JK::latitude, std::get<0>(*current_location))
+                       .Write(JK::longitude, std::get<1>(*current_location));
+        });
+
+    return true;
 }

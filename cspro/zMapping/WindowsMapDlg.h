@@ -27,12 +27,8 @@ public:
     void RemoveButton(int id);
     void ClearButtons();
 
-    void SetShowCurrentLocation();
-
     void ZoomTo(double latitude, double longitude, double);
     void ZoomTo(double min_latitude, double min_longitude, double max_latitude, double max_longitude, double padding_percent);
-
-    void SetUpBaseMap();
 
     void AddGeometry(const WindowsMapUI::MapGeometry& geometry, int id);
     void RemoveGeometry(int leaflet_id);

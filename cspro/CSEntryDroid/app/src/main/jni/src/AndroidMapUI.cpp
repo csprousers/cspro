@@ -76,6 +76,54 @@ bool AndroidMapUI::SetTitle(SharableString title)
 }
 
 
+bool AndroidMapUI::IsBaseMapDefined() const
+{
+    return m_baseMapDefined;
+}
+
+
+bool AndroidMapUI::SetBaseMap(const BaseMapSelection base_map_selection)
+{
+    JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
+
+    m_baseMapDefined = ( pEnv->CallIntMethod(m_javaImpl, JNIReferences::methodAndroidMapUISetBaseMap,
+                                             CreateJavaBaseMapSelection(pEnv, base_map_selection)) == 1 );
+
+    return m_baseMapDefined;
+}
+
+
+jobject AndroidMapUI::CreateJavaBaseMapSelection(JNIEnv* const pEnv, const BaseMapSelection& base_map_selection)
+{
+    jint jType;
+    JNIReferences::scoped_local_ref<jstring> jFilePath(pEnv);
+
+    if( std::holds_alternative<std::string>(base_map_selection) )
+    {
+        jType = 0;
+        jFilePath.reset(JavaString::ToJava(*pEnv, std::get<std::string>(base_map_selection)));
+    }
+
+    else
+    {
+        jType = (jint)std::get<BaseMap>(base_map_selection);
+    }
+
+    return pEnv->NewObject(JNIReferences::classBaseMapSelection,
+                           JNIReferences::methodBaseMapSelectionConstructor,
+                           jType, jFilePath.get());
+}
+
+
+bool AndroidMapUI::SetShowCurrentLocation(const bool show)
+{
+    JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
+
+    return pEnv->CallIntMethod(m_javaImpl, JNIReferences::methodAndroidMapUISetShowCurrentLocation,
+                               show);
+}
+
+
 int AndroidMapUI::AddMarker(const double latitude, const double longitude)
 {
     JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
@@ -224,54 +272,6 @@ void AndroidMapUI::ClearButtons()
     JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
 
     return pEnv->CallVoidMethod(m_javaImpl, JNIReferences::methodAndroidMapUIClearButtons);
-}
-
-
-bool AndroidMapUI::IsBaseMapDefined() const
-{
-    return m_baseMapDefined;
-}
-
-
-bool AndroidMapUI::SetBaseMap(const BaseMapSelection base_map_selection)
-{
-    JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
-
-    m_baseMapDefined = ( pEnv->CallIntMethod(m_javaImpl, JNIReferences::methodAndroidMapUISetBaseMap,
-                                             CreateJavaBaseMapSelection(pEnv, base_map_selection)) == 1 );
-
-    return m_baseMapDefined;
-}
-
-
-jobject AndroidMapUI::CreateJavaBaseMapSelection(JNIEnv* const pEnv, const BaseMapSelection& base_map_selection)
-{
-    jint jType;
-    JNIReferences::scoped_local_ref<jstring> jFilePath(pEnv);
-
-    if( std::holds_alternative<std::string>(base_map_selection) )
-    {
-        jType = 0;
-        jFilePath.reset(JavaString::ToJava(*pEnv, std::get<std::string>(base_map_selection)));
-    }
-
-    else
-    {
-        jType = (jint)std::get<BaseMap>(base_map_selection);
-    }
-
-    return pEnv->NewObject(JNIReferences::classBaseMapSelection,
-                           JNIReferences::methodBaseMapSelectionConstructor,
-                           jType, jFilePath.get());
-}
-
-
-bool AndroidMapUI::SetShowCurrentLocation(const bool show)
-{
-    JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
-
-    return pEnv->CallIntMethod(m_javaImpl, JNIReferences::methodAndroidMapUISetShowCurrentLocation,
-                               show);
 }
 
 

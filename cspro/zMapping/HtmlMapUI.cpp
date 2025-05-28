@@ -1,9 +1,17 @@
 ﻿#include "stdafx.h"
 #include "HtmlMapUI.h"
+#include "MBTilesReader.h"
+#include "OfflineTileProvider.h"
+#include "TPKReader.h"
 #include <zToolsO/Encoders.h>
 #include <zHtml/HtmlishSanitizer.h>
 #include <zHtml/HtmlTextConverter.h>
 #include <zHtml/PortableLocalhost.h>
+#include <zAppO/Properties/MappingProperties.h>
+
+
+CREATE_JSON_KEY(options)
+CREATE_JSON_KEY(tileProvider)
 
 
 // --------------------------------------------------------------------------
@@ -18,6 +26,12 @@ struct HtmlMapUI::Data
 {
     SharableString title_html;
     std::string title_text;
+
+    std::optional<BaseMapSelection> base_map_selection;
+    std::shared_ptr<OfflineTileReader> tile_reader;
+    std::unique_ptr<OfflineTileProvider> tile_provider;
+
+    bool show_current_location = true;
 };
 
 
@@ -100,6 +114,10 @@ void HtmlMapUI::OnWebMessageReceived(const std::string_view message_sv)
 void HtmlMapUI::Clear()
 {
     SetTitle(SharableString());
+
+    SetBaseMapWorker(std::nullopt);
+
+    SetShowCurrentLocation(true);
 }
 
 
@@ -107,6 +125,12 @@ void HtmlMapUI::SetUpInitialMapIMIS()
 {
     // set the title
     SetTitleIMIS();
+
+    // set the base map
+    SetBaseMapIMIS();
+
+    // show or hide the current location
+    SetShowCurrentLocationIMIS();
 }
 
 
@@ -130,4 +154,115 @@ void HtmlMapUI::SetTitleIMIS()
         });
 
     OnSetWindowTitle(m_data->title_text);
+}
+
+
+bool HtmlMapUI::IsBaseMapDefined() const
+{
+    return m_data->base_map_selection.has_value();
+}
+
+
+bool HtmlMapUI::SetBaseMap(BaseMapSelection base_map_selection)
+{
+    SetBaseMapWorker(std::move(base_map_selection));
+    return true;
+}
+
+
+void HtmlMapUI::SetBaseMapWorker(std::optional<BaseMapSelection> base_map_selection)
+{
+    if( !base_map_selection.has_value() || std::holds_alternative<BaseMap>(*base_map_selection) )
+    {
+        m_data->tile_reader.reset();
+        m_data->tile_provider.reset();
+    }
+
+    else
+    {
+        // open the MBTiles or TPK file
+        const std::string& file_path = std::get<std::string>(*base_map_selection);
+        const std::string extension = Path::GetExtension(file_path);
+
+        if( SO::EqualsNoCase(extension, "mbtiles") )
+        {
+            m_data->tile_reader = std::make_unique<MBTilesReader>(file_path);
+        }
+
+        else if( SO::EqualsOneOfNoCase(extension, "tpk", "tpkx") )
+        {
+            m_data->tile_reader = std::make_unique<TPKReader>(file_path);
+        }
+
+        else
+        {
+            throw CSProException("unknown base map file with extension '%s'", extension.c_str());
+        }
+
+        m_data->tile_provider = std::make_unique<OfflineTileProvider>(m_data->tile_reader);
+    }
+
+    m_data->base_map_selection = std::move(base_map_selection);
+
+    SetBaseMapIMIS();
+}
+
+
+void HtmlMapUI::SetBaseMapIMIS()
+{
+    ASSERT(!m_data->base_map_selection.has_value() ||
+           std::holds_alternative<BaseMap>(*m_data->base_map_selection) == ( m_data->tile_provider == nullptr ));
+
+    PostActionMessage("setBaseMap",
+        [&](JsonWriter& json_writer)
+        {
+            if( !m_data->base_map_selection.has_value() ||
+                std::holds_alternative<BaseMap>(*m_data->base_map_selection) )
+            {
+                // if the base map has not been manually set, use Normal
+                const BaseMap base_map = m_data->base_map_selection.has_value() ? std::get<BaseMap>(*m_data->base_map_selection) :
+                                                                                  BaseMap::Normal;
+                json_writer.Write(JK::type, base_map);
+
+                if( base_map != BaseMap::None )
+                {
+                    const MappingTileProviderProperties& mapping_tile_provider_properties = m_mappingProperties->GetWindowsMappingTileProviderProperties();
+
+                    json_writer.Write(JK::tileProvider, mapping_tile_provider_properties.GetMappingTileProvider())
+                               .Write(JK::tileLayer, mapping_tile_provider_properties.GetTileLayer(base_map))
+                               .Write(JK::accessToken, mapping_tile_provider_properties.GetAccessToken());
+                }
+            }
+
+            else
+            {
+                json_writer.Write(JK::url, m_data->tile_provider->GetTileLayerUrl());
+
+                json_writer.Key(JK::options);
+                m_data->tile_provider->WriteJsonLeafletTileLayerOptions(json_writer);
+            }
+        });
+}
+
+
+OfflineTileReader* HtmlMapUI::GetOfflineTileReader()
+{
+    return m_data->tile_reader.get();
+}
+
+
+bool HtmlMapUI::SetShowCurrentLocation(const bool show)
+{
+    m_data->show_current_location = show;
+
+    SetShowCurrentLocationIMIS();
+
+    return true;
+}
+
+
+void HtmlMapUI::SetShowCurrentLocationIMIS()
+{
+    if( !m_data->show_current_location|| !OnShowCurrentLocation() )
+        PostActionMessage("hideCurrentLocation");
 }

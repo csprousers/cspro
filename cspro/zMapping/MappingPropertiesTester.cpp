@@ -28,7 +28,10 @@ public:
 
     std::optional<OfflineTileReader::Bounds> GetOfflineTileReaderBounds()
     {
-        return ( m_tileReader != nullptr ) ? m_tileReader->GetBounds() : std::nullopt;
+        OfflineTileReader* const tile_reader = GetOfflineTileReader();
+
+        return ( tile_reader != nullptr ) ? tile_reader->GetBounds() :
+                                            std::nullopt;
     }
 
     WindowsMapDlg* GetMapDlg()

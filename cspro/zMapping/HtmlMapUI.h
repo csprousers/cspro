@@ -5,6 +5,7 @@
 #include <zToolsO/PointerClasses.h>
 
 class MappingProperties;
+class OfflineTileReader;
 
 
 // --------------------------------------------------------------------------
@@ -13,6 +14,8 @@ class MappingProperties;
 
 class ZMAPPING_API HtmlMapUI : public IMapUI
 {
+    struct Data;
+
 public:
     HtmlMapUI(cs::non_null_shared_or_raw_ptr<const MappingProperties> mapping_properties);
     ~HtmlMapUI();
@@ -21,6 +24,11 @@ public:
     void Clear() override;
 
     bool SetTitle(SharableString title) override;
+
+    bool IsBaseMapDefined() const override;
+    bool SetBaseMap(BaseMapSelection base_map_selection) override;
+
+    bool SetShowCurrentLocation(bool show) override;
 
 protected:
     std::string GetUrlOfMapHtml() const;
@@ -31,6 +39,8 @@ protected:
 
     void OnWebMessageReceived(std::string_view message_sv);
 
+    OfflineTileReader* GetOfflineTileReader();
+
     // the following methods must be overridden by subclasses:
     virtual bool IsMapShowing() = 0;
 
@@ -39,6 +49,9 @@ protected:
 
     virtual void OnSetWindowTitle(const std::string& title) = 0;
 
+    // OnShowCurrentLocation should return false if the current location is unknown.
+    virtual bool OnShowCurrentLocation() = 0;
+
 private:
     // The following methods, with the suffix IMIS ("if map is showing"), are mostly companion
     // functions to the IMapUI overrides that will only be called when the map is showing.
@@ -46,10 +59,14 @@ private:
 
     void SetTitleIMIS();
 
+    void SetBaseMapWorker(std::optional<BaseMapSelection> base_map_selection);
+    void SetBaseMapIMIS();
+
+    void SetShowCurrentLocationIMIS();
+
 protected:
     cs::non_null_shared_or_raw_ptr<const MappingProperties> m_mappingProperties;
 
 private:
-    struct Data;
     std::unique_ptr<Data> m_data;
 };

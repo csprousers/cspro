@@ -1,8 +1,6 @@
 ﻿#include "stdafx.h"
 #include "WindowsMapDlg.h"
-#include "CurrentLocation.h"
 #include "GeoJson.h"
-#include "OfflineTileProvider.h"
 #include <zToolsO/Encoders.h>
 #include <zToolsO/Utf8.h>
 #include <zUtilO/MimeType.h>
@@ -27,9 +25,7 @@ CREATE_JSON_KEY(maxLatitude)
 CREATE_JSON_KEY(maxLongitude)
 CREATE_JSON_KEY(minLatitude)
 CREATE_JSON_KEY(minLongitude)
-CREATE_JSON_KEY(options)
 CREATE_JSON_KEY(padding)
-CREATE_JSON_KEY(tileProvider)
 CREATE_JSON_KEY(zoom)
 
 
@@ -233,24 +229,6 @@ void WindowsMapDlg::ClearButtons()
 }
 
 
-void WindowsMapDlg::SetShowCurrentLocation()
-{
-    // only show the current location when it can be retrieved
-    const std::optional<std::tuple<double, double>> current_location = m_mapUI.m_showCurrentLocation ? CurrentLocation::GetCurrentLocation() :
-                                                                                                       std::nullopt;
-
-    PostActionMessage("showCurrentLocation",
-        [&](JsonWriter& json_writer)
-        {
-            if( current_location.has_value() )
-            {
-                json_writer.Write(JK::latitude, std::get<0>(*current_location))
-                           .Write(JK::longitude, std::get<1>(*current_location));
-            }
-        });
-}
-
-
 void WindowsMapDlg::ZoomTo(const double latitude, const double longitude, const double zoom)
 {
     PostActionMessage("zoomTo",
@@ -275,43 +253,6 @@ void WindowsMapDlg::ZoomTo(const double min_latitude, const double min_longitude
                        .Write(JK::maxLatitude, max_latitude)
                        .Write(JK::maxLongitude, max_longitude)
                        .Write(JK::padding, padding_percent);
-        });
-}
-
-
-void WindowsMapDlg::SetUpBaseMap()
-{
-    // if the base map has not been manually set, use Normal
-    if( !m_mapUI.m_baseMapSelection.has_value() )
-        m_mapUI.m_baseMapSelection = BaseMap::Normal;
-
-    ASSERT(std::holds_alternative<BaseMap>(*m_mapUI.m_baseMapSelection) == ( m_mapUI.m_tileProvider == nullptr ));
-
-    PostActionMessage("setBaseMap",
-        [&](JsonWriter& json_writer)
-        {
-            if( std::holds_alternative<BaseMap>(*m_mapUI.m_baseMapSelection) )
-            {
-                const BaseMap base_map = std::get<BaseMap>(*m_mapUI.m_baseMapSelection);
-                json_writer.Write(JK::type, base_map);
-
-                if( base_map != BaseMap::None )
-                {
-                    const MappingTileProviderProperties& mapping_tile_provider_properties = m_mapUI.m_mappingProperties->GetWindowsMappingTileProviderProperties();
-
-                    json_writer.Write(JK::tileProvider, mapping_tile_provider_properties.GetMappingTileProvider())
-                               .Write(JK::tileLayer, mapping_tile_provider_properties.GetTileLayer(base_map))
-                               .Write(JK::accessToken, mapping_tile_provider_properties.GetAccessToken());
-                }
-            }
-
-            else
-            {
-                json_writer.Write(JK::url, m_mapUI.m_tileProvider->GetTileLayerUrl());
-
-                json_writer.Key(JK::options);
-                m_mapUI.m_tileProvider->WriteJsonLeafletTileLayerOptions(json_writer);
-            }
         });
 }
 
@@ -462,9 +403,6 @@ void WindowsMapDlg::SetUpInitialMap()
 {
     ASSERT(m_loaded);
 
-    // set up the base map
-    SetUpBaseMap();
-
     // add markers
     for( const auto& [id, marker] : m_mapUI.m_markers )
     {
@@ -484,9 +422,6 @@ void WindowsMapDlg::SetUpInitialMap()
             AddImageButton(button, id);
         }
     }
-
-    // show or hide the current location
-    SetShowCurrentLocation();
 
     // set the zoom
     if( m_mapUI.m_zoom != nullptr )

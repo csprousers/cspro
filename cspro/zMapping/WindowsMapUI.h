@@ -7,8 +7,6 @@
 #include <mutex>
 #include <thread>
 
-class OfflineTileProvider;
-class OfflineTileReader;
 class WindowsMapUIThreadRunner;
 
 
@@ -54,12 +52,6 @@ public:
 
     void Clear() override;
 
-    bool IsBaseMapDefined() const override;
-
-    bool SetBaseMap(BaseMapSelection base_map_selection) override;
-
-    bool SetShowCurrentLocation(bool show) override;
-
     bool ZoomTo(double latitude, double longitude, double zoom = -1) override;
     bool ZoomTo(double min_latitude, double min_longitude, double max_latitude, double max_longitude, double padding_percent = 0) override;
 
@@ -92,6 +84,8 @@ protected:
 
     void OnSetWindowTitle(const std::string& title) override;
 
+    bool OnShowCurrentLocation() override;
+
 private:
     void WaitForShowThreadToTerminate();
 
@@ -108,17 +102,12 @@ private:
     std::mutex m_mapEventMutex;
 
 protected:
-    std::optional<BaseMapSelection> m_baseMapSelection;
     std::unique_ptr<Zoom> m_zoom;
-    bool m_showCurrentLocation;
     int m_nextMapId;
 
     std::map<int, Marker> m_markers;
     std::map<int, Button> m_buttons;
     std::map<int, MapGeometry> m_geometries;
-
-    std::shared_ptr<OfflineTileReader> m_tileReader;
-    std::unique_ptr<OfflineTileProvider> m_tileProvider;
 };
 
 
