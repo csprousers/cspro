@@ -58,10 +58,6 @@
           "sourceName": "external/chartjs/chart.umd.js.map"
         },
         {
-          "sourceName": "external/leaflet/",
-          "build": "nonDesktop"
-        },
-        {
           "sourceName": "external/jquery/jquery.min.map"
         },
         {
@@ -83,7 +79,7 @@
           "build": "nonDesktop"
         },
         {
-          "sourceName": "mapping/",
+          "sourceName": "mapping/paradata-viewer-location-mapper.html",
           "build": "nonDesktop"
         },
         {

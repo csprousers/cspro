@@ -304,7 +304,7 @@
               writeLines, writeText
           * Hash: createHash, createMd5
           * Localhost: mapActionResult, mapFile, mapSymbol, mapText
-          * Logic: getSymbol, getSymbolMetadata, getSymbolValue, eval,
+          * Logic: eval, getSymbol, getSymbolMetadata, getSymbolValue,
               invoke, updateSymbolValue
           * Message: formatText, getText
           * Path: createDirectory, getDirectoryListing, getPathInfo,

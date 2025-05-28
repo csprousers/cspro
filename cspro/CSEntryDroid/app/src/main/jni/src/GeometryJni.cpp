@@ -3,8 +3,6 @@
 #include <mapbox/variant.hpp>
 #include <mapbox/feature.hpp>
 
-#define JNI_VERSION JNI_VERSION_1_6
-
 
 namespace GeometryJni {
 

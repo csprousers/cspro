@@ -134,7 +134,6 @@
       android:label="@string/app_name">
       <intent-filter>
         <action android:name="android.intent.action.MAIN" />
-
         <category android:name="android.intent.category.LAUNCHER" />
       </intent-filter>
     </activity>
@@ -173,21 +172,18 @@
       android:label="@string/notes_title" />
     <activity
       android:name=".ui.GenericWebViewActivity"
-      android:exported="false"
-      android:label="@string/app_name" />
+      android:exported="false" />
     <activity
       android:name=".ui.WebViewWithJavaScriptInterfaceActivity"
       android:exported="false"
-      android:configChanges="orientation|screenSize|keyboardHidden"
-      android:label="@string/app_name" />
+      android:configChanges="orientation|screenSize|keyboardHidden" />
     <activity
       android:name=".ui.SelectStyleActivity"
       android:exported="false"
       android:label="@string/select_style_title" />
     <activity
       android:name=".ui.ServiceTermsActivity"
-      android:exported="false"
-      android:label="@string/app_name" />
+      android:exported="false" />
     <activity android:name=".ui.ChooseBluetoothDeviceActivity" />
 
     <!-- for Dropbox -->

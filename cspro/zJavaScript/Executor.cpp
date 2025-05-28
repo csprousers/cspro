@@ -396,7 +396,7 @@ JavaScript::Value JavaScript::Executor::CreateEngineValue(const double value)
 
 
 template<>
-double JavaScript::Executor::ConvertEngineValue(const Value& value)
+ZJAVASCRIPT_API double JavaScript::Executor::ConvertEngineValue(const Value& value)
 {
     const JSValue& js_value = value.GetValue();
 
@@ -417,19 +417,15 @@ double JavaScript::Executor::ConvertEngineValue(const Value& value)
     return ConvertValue<double>(value);
 }
 
-template ZJAVASCRIPT_API double JavaScript::Executor::ConvertEngineValue(const Value& value);
-
 
 template<>
-SharableString JavaScript::Executor::ConvertEngineValue(const Value& value)
+ZJAVASCRIPT_API SharableString JavaScript::Executor::ConvertEngineValue(const Value& value)
 {
     if( JS_IsNull(value.GetValue()) )
         return SharableString();
 
     return ConvertValue<std::string>(value);
 }
-
-template ZJAVASCRIPT_API SharableString JavaScript::Executor::ConvertEngineValue(const Value& value);
 
 
 auto JavaScript::Executor::GetJSValueArray(size_t number_values, const Value* values)

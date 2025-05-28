@@ -908,10 +908,10 @@ JNIEXPORT jstring JNICALL Java_gov_census_cspro_engine_EngineInterface_FormatCoo
 {
     auto engine = (AndroidEngineInterface*)nativeReference;
     const Application* application = engine->GetPifFile()->GetApplication();
-    const auto& mapping_properties = application->GetApplicationProperties().GetMappingProperties();
+    const MappingProperties& mapping_properties = application->GetApplicationProperties().GetMappingProperties();
 
-    CString formatted_coordinates = CoordinateConverter::ToString(mapping_properties.GetCoordinateDisplay(), latitude, longitude);
-    return WideToJava(pEnv, formatted_coordinates);
+    const std::string formatted_coordinates = CoordinateConverter::ToString(mapping_properties.GetCoordinateDisplay(), latitude, longitude);
+    return JavaString::ToJava(*pEnv, formatted_coordinates);
 }
 
 

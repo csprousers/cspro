@@ -6,8 +6,6 @@
 #include "JNIHelpers.h"
 
 
-#define JNI_VERSION JNI_VERSION_1_6
-
 namespace
 {
     jobject guidToJava(JNIEnv* pEnv, const GUID& guid)

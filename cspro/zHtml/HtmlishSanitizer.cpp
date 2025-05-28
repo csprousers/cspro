@@ -149,7 +149,7 @@ void HtmlishSanitizer::Worker::AppendTextRequiringEscaping(const std::string_vie
             m_html.append("<br>");
         }
 
-        // ignore line feed characters
+        // ignore carriage returns
         else if( ch == '\r' )
         {
             output_and_start_new_segment(1);

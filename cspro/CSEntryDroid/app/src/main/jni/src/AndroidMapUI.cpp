@@ -5,9 +5,6 @@
 #include <android/log.h>
 
 
-#define JNI_VERSION JNI_VERSION_1_6
-
-
 AndroidMapUI::AndroidMapUI()
     :   m_baseMapDefined(false)
 {
