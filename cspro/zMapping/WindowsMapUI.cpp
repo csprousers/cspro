@@ -122,7 +122,7 @@ int WindowsMapUI::AddMarker(const double latitude, const double longitude)
     PerformMapDlgAction([&](WindowsMapDlg& map_dlg)
     {
         map_dlg.AddMarker(marker, m_nextMapId);
-        map_dlg.FitMarkers();
+        FitMarkersIMIS();
     });
 
     return m_nextMapId++;
@@ -276,7 +276,7 @@ bool WindowsMapUI::SetMarkerLocation(const int marker_id, const double latitude,
     PerformMapDlgAction([&](WindowsMapDlg& map_dlg)
     {
         map_dlg.SetMarkerLocation(*marker);
-        map_dlg.FitMarkers();
+        FitMarkersIMIS();
     });
 
     return true;
@@ -357,58 +357,9 @@ void WindowsMapUI::Clear()
 {
     __super::Clear();
 
-    m_zoom.reset();
-
     ClearButtons();
     ClearMarkers();
     ClearGeometry();
-}
-
-
-constexpr bool WindowsMapUI::AreCoordinatesValid(const double latitude, const double longitude)
-{
-    return ( latitude >= -90 && latitude <= 90 &&
-             longitude >= -180 && longitude <= 180 );
-}
-
-
-bool WindowsMapUI::ZoomTo(const double latitude, const double longitude, const double zoom/* = -1*/)
-{
-    if( !AreCoordinatesValid(latitude, longitude) )
-        return false;
-
-    m_zoom.reset(new Zoom { latitude, longitude, -91, -181, zoom });
-
-    PerformMapDlgAction([&](WindowsMapDlg& map_dlg)
-    {
-        map_dlg.ZoomTo(latitude, longitude, zoom);
-    });
-
-    return true;
-}
-
-
-bool WindowsMapUI::ZoomTo(const double min_latitude, const double min_longitude,
-                          const double max_latitude, const double max_longitude,
-                          const double padding_percent/* = 0*/)
-{
-    if( !AreCoordinatesValid(min_latitude, min_longitude) || !AreCoordinatesValid(max_latitude, max_longitude) )
-        return false;
-
-    m_zoom.reset(new Zoom { min_latitude, min_longitude, max_latitude, max_longitude, padding_percent });
-
-    PerformMapDlgAction([&](WindowsMapDlg& map_dlg)
-    {
-        map_dlg.ZoomTo(min_latitude, min_longitude, max_latitude, max_longitude, padding_percent);
-    });
-
-    return true;
-}
-
-
-bool WindowsMapUI::SetCamera(const MapCamera& camera)
-{
-    return ZoomTo(camera.latitude, camera.longitude, camera.zoom);
 }
 
 

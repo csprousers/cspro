@@ -20,15 +20,11 @@ public:
     void SetMarkerOnDrag(int leaflet_id);
     void SetMarkerDescription(const WindowsMapUI::Marker& marker, int id);
     void SetMarkerLocation(const WindowsMapUI::Marker& marker);
-    void FitMarkers();
 
     void AddImageButton(const WindowsMapUI::Button& button, int id);
     void AddTextButton(const WindowsMapUI::Button& button, int id);
     void RemoveButton(int id);
     void ClearButtons();
-
-    void ZoomTo(double latitude, double longitude, double);
-    void ZoomTo(double min_latitude, double min_longitude, double max_latitude, double max_longitude, double padding_percent);
 
     void AddGeometry(const WindowsMapUI::MapGeometry& geometry, int id);
     void RemoveGeometry(int leaflet_id);

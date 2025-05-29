@@ -30,6 +30,11 @@ public:
 
     bool SetShowCurrentLocation(bool show) override;
 
+    bool SetCamera(const MapCamera& camera) override;
+
+    bool ZoomTo(double latitude, double longitude, double zoom = -1) override;
+    bool ZoomTo(double min_latitude, double min_longitude, double max_latitude, double max_longitude, double padding_percent = 0) override;
+
     int AddMarker(double latitude, double longitude) override;
     bool RemoveMarker(int marker_id) override;
     void ClearMarkers() override;
@@ -47,11 +52,6 @@ public:
     int AddTextButton(SharableString label, int on_click_callback) override;
     bool RemoveButton(int button_id) override;
     void ClearButtons() override;
-
-    bool ZoomTo(double latitude, double longitude, double zoom = -1) override;
-    bool ZoomTo(double min_latitude, double min_longitude, double max_latitude, double max_longitude, double padding_percent = 0) override;
-
-    bool SetCamera(const MapCamera& camera) override;
 
     int AddGeometry(std::shared_ptr<const Geometry::FeatureCollection> geometry, std::shared_ptr<const Geometry::BoundingBox> bounds) override;
     bool RemoveGeometry(int geometry_id) override;

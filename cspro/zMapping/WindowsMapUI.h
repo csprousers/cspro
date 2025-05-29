@@ -21,7 +21,6 @@ class ZMAPPING_API WindowsMapUI : public HtmlMapUI
     struct Button;
     struct MapGeometry;
     struct Marker;
-    struct Zoom;
 
 public:
     WindowsMapUI(cs::non_null_shared_or_raw_ptr<const MappingProperties> mapping_properties);
@@ -51,11 +50,6 @@ public:
     void ClearButtons() override;
 
     void Clear() override;
-
-    bool ZoomTo(double latitude, double longitude, double zoom = -1) override;
-    bool ZoomTo(double min_latitude, double min_longitude, double max_latitude, double max_longitude, double padding_percent = 0) override;
-
-    bool SetCamera(const MapCamera& camera) override;
 
     int AddGeometry(std::shared_ptr<const Geometry::FeatureCollection> geometry, std::shared_ptr<const Geometry::BoundingBox> bounds) override;
     bool RemoveGeometry(int geometry_id) override;
@@ -89,8 +83,6 @@ protected:
 private:
     void WaitForShowThreadToTerminate();
 
-    constexpr bool AreCoordinatesValid(double latitude, double longitude);
-
     Marker* GetMarker(int marker_id);
     Button* GetButton(int button_id);
     MapGeometry* GetGeometry(int geometry_id);
@@ -102,7 +94,6 @@ private:
     std::mutex m_mapEventMutex;
 
 protected:
-    std::unique_ptr<Zoom> m_zoom;
     int m_nextMapId;
 
     std::map<int, Marker> m_markers;
@@ -140,16 +131,6 @@ struct WindowsMapUI::MapGeometry
 {
     std::shared_ptr<const Geometry::FeatureCollection> geometry;
     int leaflet_id;
-};
-
-
-struct WindowsMapUI::Zoom
-{
-    double latitude;
-    double longitude;
-    double latitude2;
-    double longitude2;
-    double level;
 };
 
 

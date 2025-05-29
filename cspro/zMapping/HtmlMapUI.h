@@ -15,6 +15,8 @@ class OfflineTileReader;
 class ZMAPPING_API HtmlMapUI : public IMapUI
 {
     struct Data;
+    struct Zoom1;
+    struct Zoom2;
 
 public:
     HtmlMapUI(cs::non_null_shared_or_raw_ptr<const MappingProperties> mapping_properties);
@@ -29,6 +31,11 @@ public:
     bool SetBaseMap(BaseMapSelection base_map_selection) override;
 
     bool SetShowCurrentLocation(bool show) override;
+
+    bool SetCamera(const MapCamera& camera) override;
+
+    bool ZoomTo(double latitude, double longitude, double zoom = -1) override;
+    bool ZoomTo(double min_latitude, double min_longitude, double max_latitude, double max_longitude, double padding_percent = 0) override;
 
 protected:
     std::string GetUrlOfMapHtml() const;
@@ -63,6 +70,14 @@ private:
     void SetBaseMapIMIS();
 
     void SetShowCurrentLocationIMIS();
+
+    constexpr bool AreCoordinatesValid(double latitude, double longitude);
+
+    void ZoomToWorker(std::variant<std::monostate, Zoom1, Zoom2> zoom);
+    void ZoomToIMIS();
+
+protected:
+    void FitMarkersIMIS();
 
 protected:
     cs::non_null_shared_or_raw_ptr<const MappingProperties> m_mappingProperties;

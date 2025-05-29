@@ -41,6 +41,19 @@ public:
     // Sets whether to show the current location on the map.
     virtual bool SetShowCurrentLocation(bool show) = 0;
 
+    // Sets the position of the camera for the map display.
+    virtual bool SetCamera(const MapCamera& camera) = 0;
+
+    // Pans the camera to center at the specified point and optional zoom level.
+    // Latitude and longitude are in degrees.
+    // The zoom level is 0 for the entire level, and 20 to show individual buildings.
+    virtual bool ZoomTo(double latitude, double longitude, double zoom = -1) = 0;
+
+    // Pan/zoom to fit the rectangular region of the map to the screen
+    // Latitude and longitude are in degrees.
+    // The optional padding is as as percentage of the screen width.
+    virtual bool ZoomTo(double min_latitude, double min_longitude, double max_latitude, double max_longitude, double padding_percent = 0) = 0;
+
     // Add a place mark to the map.
     // Latitude and longitude are in degrees.
     // Returns a unique ID of the marker.
@@ -97,22 +110,6 @@ public:
 
     // Removes all buttons from the map.
     virtual void ClearButtons() = 0;
-
-
-
-
-    // Pans the camera to center at the specified point and optional zoom level.
-    // Latitude and longitude are in degrees.
-    // The zoom level is 0 for the entire level, and 20 to show individual buildings.
-    virtual bool ZoomTo(double latitude, double longitude, double zoom = -1) = 0;
-
-    // Pan/zoom to fit the rectangular region of the map to the screen
-    // Latitude and longitude are in degrees.
-    // The optional padding is as as percentage of the screen width.
-    virtual bool ZoomTo(double min_latitude, double min_longitude, double max_latitude, double max_longitude, double padding_percent = 0) = 0;
-
-    // Sets the position of the camera for the map display.
-    virtual bool SetCamera(const MapCamera& camera) = 0;
 
     // Add a vector layer to the map.
     // Returns a unique ID of the geometry.

@@ -10,8 +10,14 @@
 #include <zAppO/Properties/MappingProperties.h>
 
 
+CREATE_JSON_KEY(maxLatitude)
+CREATE_JSON_KEY(maxLongitude)
+CREATE_JSON_KEY(minLatitude)
+CREATE_JSON_KEY(minLongitude)
 CREATE_JSON_KEY(options)
+CREATE_JSON_KEY(padding)
 CREATE_JSON_KEY(tileProvider)
+CREATE_JSON_KEY(zoom)
 
 
 // --------------------------------------------------------------------------
@@ -21,6 +27,24 @@ CREATE_JSON_KEY(tileProvider)
 //     _html = passed through HtmlishSanitizer
 //     _text = passed through HtmlTextConverter
 // --------------------------------------------------------------------------
+
+struct HtmlMapUI::Zoom1
+{
+    double latitude;
+    double longitude;
+    double zoom;
+};
+
+
+struct HtmlMapUI::Zoom2
+{
+    double min_latitude;
+    double min_longitude;
+    double max_latitude;
+    double max_longitude;
+    double padding_percent;
+};
+
 
 struct HtmlMapUI::Data
 {
@@ -32,6 +56,8 @@ struct HtmlMapUI::Data
     std::unique_ptr<OfflineTileProvider> tile_provider;
 
     bool show_current_location = true;
+
+    std::variant<std::monostate, Zoom1, Zoom2> zoom;
 };
 
 
@@ -118,6 +144,8 @@ void HtmlMapUI::Clear()
     SetBaseMapWorker(std::nullopt);
 
     SetShowCurrentLocation(true);
+
+    ZoomToWorker(std::monostate());
 }
 
 
@@ -131,6 +159,9 @@ void HtmlMapUI::SetUpInitialMapIMIS()
 
     // show or hide the current location
     SetShowCurrentLocationIMIS();
+
+    // set the zoom
+    ZoomToIMIS();
 }
 
 
@@ -265,4 +296,99 @@ void HtmlMapUI::SetShowCurrentLocationIMIS()
 {
     if( !m_data->show_current_location|| !OnShowCurrentLocation() )
         PostActionMessage("hideCurrentLocation");
+}
+
+
+bool HtmlMapUI::SetCamera(const MapCamera& camera)
+{
+    return ZoomTo(camera.latitude, camera.longitude, camera.zoom);
+}
+
+
+constexpr bool HtmlMapUI::AreCoordinatesValid(const double latitude, const double longitude)
+{
+    return ( latitude >= -90 && latitude <= 90 &&
+             longitude >= -180 && longitude <= 180 );
+}
+
+
+bool HtmlMapUI::ZoomTo(const double latitude, const double longitude, const double zoom/* = -1*/)
+{
+    if( !AreCoordinatesValid(latitude, longitude) )
+        return false;
+
+    ZoomToWorker(Zoom1 { latitude, longitude, zoom });
+
+    return true;
+}
+
+
+bool HtmlMapUI::ZoomTo(const double min_latitude, const double min_longitude,
+                       const double max_latitude, const double max_longitude,
+                       const double padding_percent/* = 0*/)
+{
+    if( !AreCoordinatesValid(min_latitude, min_longitude) ||
+        !AreCoordinatesValid(max_latitude, max_longitude) )
+    {
+        return false;
+    }
+
+    ZoomToWorker(Zoom2 { min_latitude, min_longitude, max_latitude, max_longitude, padding_percent });
+
+    return true;
+}
+
+
+void HtmlMapUI::ZoomToWorker(std::variant<std::monostate, Zoom1, Zoom2> zoom)
+{
+    m_data->zoom = std::move(zoom);
+
+    ZoomToIMIS();
+}
+
+
+void HtmlMapUI::ZoomToIMIS()
+{
+    if( std::holds_alternative<std::monostate>(m_data->zoom) )
+    {
+        FitMarkersIMIS();
+    }
+
+    else if( std::holds_alternative<Zoom1>(m_data->zoom) )
+    {
+        const Zoom1& zoom1 = std::get<Zoom1>(m_data->zoom);
+
+        PostActionMessage("zoomTo",
+            [&](JsonWriter& json_writer)
+            {
+                // need to set initial zoom, 7 seems like a nice number
+                constexpr double DefaultZoomLevel = 7;
+
+                json_writer.Write(JK::latitude, zoom1.latitude)
+                           .Write(JK::longitude, zoom1.longitude)
+                           .Write(JK::zoom, ( zoom1.zoom > 0 ) ? zoom1.zoom : DefaultZoomLevel);
+            });
+    }
+
+    else
+    {
+        ASSERT(std::holds_alternative<Zoom2>(m_data->zoom));
+        const Zoom2& zoom2 = std::get<Zoom2>(m_data->zoom);
+
+        PostActionMessage("zoomTo",
+            [&](JsonWriter& json_writer)
+            {
+                json_writer.Write(JK::minLatitude, zoom2.min_latitude)
+                           .Write(JK::minLongitude, zoom2.min_longitude)
+                           .Write(JK::maxLatitude, zoom2.max_latitude)
+                           .Write(JK::maxLongitude, zoom2.max_longitude)
+                           .Write(JK::padding, zoom2.padding_percent);
+            });
+    }
+}
+
+
+void HtmlMapUI::FitMarkersIMIS()
+{
+    PostActionMessage("fitMarkers");
 }

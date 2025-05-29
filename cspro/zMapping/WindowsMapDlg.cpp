@@ -185,12 +185,6 @@ void WindowsMapDlg::SetMarkerLocation(const WindowsMapUI::Marker& marker)
 }
 
 
-void WindowsMapDlg::FitMarkers()
-{
-    PostActionMessage("fitMarkers");
-}
-
-
 void WindowsMapDlg::AddImageButton(const WindowsMapUI::Button& button, const int id)
 {
     PostActionMessage("addImageButton",
@@ -226,34 +220,6 @@ void WindowsMapDlg::RemoveButton(const int id)
 void WindowsMapDlg::ClearButtons()
 {
     PostActionMessage("clearButtons");
-}
-
-
-void WindowsMapDlg::ZoomTo(const double latitude, const double longitude, const double zoom)
-{
-    PostActionMessage("zoomTo",
-        [&](JsonWriter& json_writer)
-        {
-            json_writer.Write(JK::latitude, latitude)
-                       .Write(JK::longitude, longitude)
-                       .Write(JK::zoom, zoom);
-        });
-}
-
-
-void WindowsMapDlg::ZoomTo(const double min_latitude, const double min_longitude,
-                            const double max_latitude, const double max_longitude,
-                            const double padding_percent)
-{
-    PostActionMessage("zoomTo",
-        [&](JsonWriter& json_writer)
-        {
-            json_writer.Write(JK::minLatitude, min_latitude)
-                       .Write(JK::minLongitude, min_longitude)
-                       .Write(JK::maxLatitude, max_latitude)
-                       .Write(JK::maxLongitude, max_longitude)
-                       .Write(JK::padding, padding_percent);
-        });
 }
 
 
@@ -421,28 +387,6 @@ void WindowsMapDlg::SetUpInitialMap()
         {
             AddImageButton(button, id);
         }
-    }
-
-    // set the zoom
-    if( m_mapUI.m_zoom != nullptr )
-    {
-        const WindowsMapUI::Zoom& zoom = *m_mapUI.m_zoom;
-
-        if( zoom.latitude2 > -91 )
-        {
-            ZoomTo(zoom.latitude, zoom.longitude, zoom.latitude2, zoom.longitude2, zoom.level);
-        }
-
-        else
-        {
-            // need to set initial zoom, 7 seems like a nice number
-            ZoomTo(zoom.latitude, zoom.longitude, ( zoom.level > 0 ) ? zoom.level : 7);
-        }
-    }
-
-    else
-    {
-        FitMarkers();
     }
 
     // add geometries

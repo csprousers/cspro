@@ -124,6 +124,36 @@ bool AndroidMapUI::SetShowCurrentLocation(const bool show)
 }
 
 
+bool AndroidMapUI::SetCamera(const MapCamera& camera)
+{
+    JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
+
+    JNIReferences::scoped_local_ref<jobject> jCamera(pEnv, pEnv->NewObject(JNIReferences::classMapCameraPosition, JNIReferences::methodMapCameraPositionConstructor,
+                                                                           camera.latitude, camera.longitude, camera.zoom, camera.bearing));
+    return pEnv->CallIntMethod(m_javaImpl, JNIReferences::methodAndroidMapUISetCamera, jCamera.get());
+}
+
+
+bool AndroidMapUI::ZoomTo(const double latitude, const double longitude, const double zoom/* = -1*/)
+{
+    JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
+
+    return pEnv->CallIntMethod(m_javaImpl, JNIReferences::methodAndroidMapUIZoomToPoint,
+                               latitude, longitude, zoom);
+}
+
+
+bool AndroidMapUI::ZoomTo(const double min_latitude, const double min_longitude,
+                          const double max_latitude, const double max_longitude,
+                          const double padding_percent/* = 0*/)
+{
+    JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
+
+    return pEnv->CallIntMethod(m_javaImpl, JNIReferences::methodAndroidMapUIZoomToBounds,
+                               min_latitude, min_longitude, max_latitude, max_longitude, padding_percent);
+}
+
+
 int AndroidMapUI::AddMarker(const double latitude, const double longitude)
 {
     JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
@@ -275,26 +305,6 @@ void AndroidMapUI::ClearButtons()
 }
 
 
-bool AndroidMapUI::ZoomTo(const double latitude, const double longitude, const double zoom/* = -1*/)
-{
-    JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
-
-    return pEnv->CallIntMethod(m_javaImpl, JNIReferences::methodAndroidMapUIZoomToPoint,
-                              latitude, longitude, zoom);
-}
-
-
-bool AndroidMapUI::ZoomTo(const double min_latitude, const double min_longitude,
-                          const double max_latitude, const double max_longitude,
-                          const double padding_percent/* = 0*/)
-{
-    JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
-
-    return pEnv->CallIntMethod(m_javaImpl, JNIReferences::methodAndroidMapUIZoomToBounds,
-                               min_latitude, min_longitude, max_latitude, max_longitude, padding_percent);
-}
-
-
 IMapUI::MapEvent AndroidMapUI::WaitForEvent()
 {
     JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
@@ -323,16 +333,6 @@ IMapUI::MapEvent AndroidMapUI::WaitForEvent()
     pEnv->DeleteLocalRef(jcamera);
 
     return event;
-}
-
-
-bool AndroidMapUI::SetCamera(const MapCamera& camera)
-{
-    JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
-
-    JNIReferences::scoped_local_ref<jobject> jCamera(pEnv, pEnv->NewObject(JNIReferences::classMapCameraPosition, JNIReferences::methodMapCameraPositionConstructor,
-                                                                           camera.latitude, camera.longitude, camera.zoom, camera.bearing));
-    return pEnv->CallIntMethod(m_javaImpl, JNIReferences::methodAndroidMapUISetCamera, jCamera.get());
 }
 
 
