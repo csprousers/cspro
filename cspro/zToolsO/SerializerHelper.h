@@ -1,6 +1,5 @@
 ﻿#pragma once
 
-#include <zToolsO/PointerClasses.h>
 #include <zToolsO/RaiiHelpers.h>
 
 

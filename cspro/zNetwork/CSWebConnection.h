@@ -3,7 +3,6 @@
 #include <zNetwork/zNetwork.h>
 #include <zNetwork/CSWebUser.h>
 #include <zNetwork/LoginCredentials.h>
-#include <zToolsO/PointerClasses.h>
 #include <zUtilO/SyncConnectionString.h>
 
 class ConnectResponse;

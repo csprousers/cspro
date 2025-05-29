@@ -6,7 +6,6 @@
 #include <zEngineO/LogicByteCode.h>
 #include <zEngineO/RuntimeEvent.h>
 #include <zEngineO/SymbolReference.h>
-#include <zToolsO/PointerClasses.h>
 #include <zLogicO/SymbolTable.h>
 
 class Application;

@@ -1,6 +1,5 @@
 ﻿#pragma once
 
-#include <zToolsO/PointerClasses.h>
 #include <zUtilO/BinaryDataAccessor.h>
 
 class BinarySymbol;

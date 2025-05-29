@@ -15,7 +15,6 @@
 //---------------------------------------------------------------------------
 #include "StdAfx.h"
 #include <zPlatformO/PlatformInterface.h>
-#include <zToolsO/PointerClasses.h>
 #include <zToolsO/Tools.h>
 #include <zToolsO/VarFuncs.h>
 #include <zUtilO/ArrUtil.h>

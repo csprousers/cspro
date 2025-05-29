@@ -1,6 +1,5 @@
 ﻿#include "StdAfx.h"
 #include "DictionaryReconcileDlg.h"
-#include <zToolsO/PointerClasses.h>
 #include <zToolsO/WinClipboard.h>
 #include <zDictO/DictionaryComparer.h>
 #include <zDataO/DictionarySource.h>

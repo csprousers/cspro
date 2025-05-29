@@ -2,7 +2,6 @@
 
 #include <zMapping/zMapping.h>
 #include <zMapping/IMapUI.h>
-#include <zToolsO/PointerClasses.h>
 
 class MappingProperties;
 class OfflineTileReader;

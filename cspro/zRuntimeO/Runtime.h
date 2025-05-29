@@ -1,7 +1,6 @@
 ﻿#pragma once
 
 #include <zRuntimeO/zRuntimeO.h>
-#include <zToolsO/PointerClasses.h>
 
 class RuntimeHost;
 

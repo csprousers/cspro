@@ -2,7 +2,6 @@
 
 #include <zListingO/Lister.h>
 #include <zListingO/WriteFile.h>
-#include <zToolsO/PointerClasses.h>
 
 
 class Listing::ListerWriteFile : public WriteFile

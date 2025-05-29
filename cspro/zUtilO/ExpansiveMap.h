@@ -1,7 +1,6 @@
 ﻿#pragma once
 
 #include <zUtilO/zUtilO.h>
-#include <zToolsO/PointerClasses.h>
 #include <zSql/DataStorage.h>
 #include <zSql/SQLiteStatement.h>
 

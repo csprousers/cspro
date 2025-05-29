@@ -1,7 +1,6 @@
 ﻿#pragma once
 
 #include <zToolsO/Encoders.h>
-#include <zToolsO/PointerClasses.h>
 #include <zUtilO/Interapp.h>
 #include <sstream>
 

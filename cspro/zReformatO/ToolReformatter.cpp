@@ -4,7 +4,6 @@
 #include <zToolsO/File.h>
 #include <zToolsO/NewlineSubstitutor.h>
 #include <zToolsO/NumberToString.h>
-#include <zToolsO/PointerClasses.h>
 #include <zUtilO/BasicLogger.h>
 #include <zUtilF/ProcessSummaryDlg.h>
 #include <zAppO/PFF.h>

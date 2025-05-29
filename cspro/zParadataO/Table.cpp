@@ -1,6 +1,5 @@
 ﻿#include "stdafx.h"
 #include "Table.h"
-#include <zToolsO/PointerClasses.h>
 #include <iterator>
 
 using namespace Paradata;
