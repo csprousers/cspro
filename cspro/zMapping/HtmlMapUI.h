@@ -67,6 +67,7 @@ protected:
 
     void PostActionMessage(cs::string_sz action);
     void PostActionMessage(cs::string_sz action, const std::function<void(JsonWriter&)>& callback_function);
+    void PostActionMessage(cs::string_sz action, int id, int leaflet_id, const std::function<void(JsonWriter&)>& callback_function);
 
     template<typename... Args>
     void NotifyEvent(Args&&... args);
@@ -89,6 +90,11 @@ protected:
     virtual bool OnShowCurrentLocation() = 0;
 
 private:
+    std::unique_ptr<JsonStringWriter> InitializePostActionMessage(cs::string_sz action, const std::function<void(JsonWriter&)>& callback_function);
+    void FinalizePostActionMessage(JsonStringWriter& json_writer);
+    void FinalizePostActionMessage(int leaflet_id, JsonStringWriter& json_writer);
+    void ProcessPendingActionMessages(int id, int leaflet_id);
+
     // The following methods, with the suffix IMIS ("if map is showing"), are mostly companion
     // functions to the IMapUI overrides that will only be called when the map is showing.
     void SetUpInitialMapIMIS();

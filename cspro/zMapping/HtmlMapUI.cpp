@@ -97,6 +97,9 @@ struct HtmlMapUI::Zoom2
 
 struct HtmlMapUI::Data
 {
+    std::vector<std::tuple<int, std::unique_ptr<JsonStringWriter>>> pending_action_messages; // id -> message
+    std::mutex pending_action_messages_mutex;
+
     SharableString title_html;
     std::string title_text;
 
@@ -158,21 +161,102 @@ void HtmlMapUI::PostActionMessage(const cs::string_sz action)
 }
 
 
-void HtmlMapUI::PostActionMessage(cs::string_sz action, const std::function<void(JsonWriter&)>& callback_function)
+std::unique_ptr<JsonStringWriter> HtmlMapUI::InitializePostActionMessage(const cs::string_sz action,
+                                                                         const std::function<void(JsonWriter&)>& callback_function)
 {
     if( !IsMapShowing() )
-        return;
+        return nullptr;
 
-    const std::unique_ptr<JsonStringWriter> json_writer = Json::CreateStringWriter();
+    std::unique_ptr<JsonStringWriter> json_writer = Json::CreateStringWriter();
 
     json_writer->BeginObject()
                 .Write(JK::action, action);
 
     callback_function(*json_writer);
 
-    json_writer->EndObject();
+    return json_writer;
+}
 
-    OnPostActionMessage(json_writer->ReleaseSharableString());
+
+void HtmlMapUI::FinalizePostActionMessage(JsonStringWriter& json_writer)
+{
+    ASSERT(IsMapShowing());
+
+    json_writer.EndObject();
+
+    OnPostActionMessage(json_writer.ReleaseSharableString());
+}
+
+
+void HtmlMapUI::FinalizePostActionMessage(const int leaflet_id, JsonStringWriter& json_writer)
+{
+    ASSERT(leaflet_id != -1);
+
+    json_writer.Write(JK::leafletId, leaflet_id);
+
+    FinalizePostActionMessage(json_writer);
+}
+
+
+void HtmlMapUI::PostActionMessage(const cs::string_sz action,
+                                  const std::function<void(JsonWriter&)>& callback_function)
+{
+    const std::unique_ptr<JsonStringWriter> json_writer = InitializePostActionMessage(action, callback_function);
+
+    if( json_writer == nullptr )
+        return;
+
+    FinalizePostActionMessage(*json_writer);
+}
+
+
+void HtmlMapUI::PostActionMessage(const cs::string_sz action, const int id, const int leaflet_id,
+                                  const std::function<void(JsonWriter&)>& callback_function)
+{
+    std::unique_ptr<JsonStringWriter> json_writer = InitializePostActionMessage(action, callback_function);
+
+    if( json_writer == nullptr )
+        return;
+
+    // if the Leaflet ID has not been set yet (via one of the ...Placed web messages),
+    // hold this message until it is set
+    if( leaflet_id == -1 )
+    {
+        const std::lock_guard<std::mutex> lock(m_data->pending_action_messages_mutex);
+        m_data->pending_action_messages.emplace_back(id, std::move(json_writer));
+    }
+
+    else
+    {
+        FinalizePostActionMessage(leaflet_id, *json_writer);
+    }
+}
+
+
+void HtmlMapUI::ProcessPendingActionMessages(const int id, const int leaflet_id)
+{
+    ASSERT(IsMapShowing() && leaflet_id != -1);
+
+    const std::lock_guard<std::mutex> lock(m_data->pending_action_messages_mutex);
+
+    if( m_data->pending_action_messages.empty() )
+        return;
+
+    // finalize any messages are that connected to this ID
+    for( auto itr = m_data->pending_action_messages.begin(); itr != m_data->pending_action_messages.end(); )
+    {
+        if( std::get<0>(*itr) == id )
+        {
+            ASSERT(std::get<1>(*itr) != nullptr);
+            FinalizePostActionMessage(leaflet_id, *std::get<1>(*itr));
+            itr = m_data->pending_action_messages.erase(itr);
+        }
+
+        else
+        {
+            ++itr;
+        }
+    }
 }
 
 
@@ -210,7 +294,10 @@ void HtmlMapUI::OnWebMessageReceived(const std::string_view message_sv)
             Marker* const marker = GetMarker(marker_id);
 
             if( marker != nullptr )
+            {
                 marker->leaflet_id = leaflet_id;
+                ProcessPendingActionMessages(marker->id, leaflet_id);
+            }
         }
 
         else if( action_sv == "markerClick" )
@@ -279,7 +366,10 @@ void HtmlMapUI::OnWebMessageReceived(const std::string_view message_sv)
             MapGeometry* const geometry = GetGeometry(geometry_id);
 
             if( geometry != nullptr )
+            {
                 geometry->leaflet_id = leaflet_id;
+                ProcessPendingActionMessages(geometry->id, leaflet_id);
+            }
         }
     }
     catch(...) { ASSERT(false); };
@@ -604,10 +694,9 @@ bool HtmlMapUI::RemoveMarker(const int marker_id)
 
     m_data->markers.erase(marker_id);
 
-    PostActionMessage("removeMarker",
-        [&](JsonWriter& json_writer)
+    PostActionMessage("removeMarker", marker_id, leaflet_id,
+        [](JsonWriter& /*json_writer*/)
         {
-            json_writer.Write(JK::leafletId, leaflet_id);
         });
 
     return true;
@@ -631,11 +720,10 @@ bool HtmlMapUI::SetMarkerImage(const int marker_id, const std::string& image_url
 
     marker->image_url = GetUrlForUrlOrFile(image_url_or_file_path);
 
-    PostActionMessage("setMarkerImage",
+    PostActionMessage("setMarkerImage", marker_id, marker->leaflet_id,
         [&](JsonWriter& json_writer)
         {
-            json_writer.Write(JK::leafletId, marker->leaflet_id)
-                       .Write(JK::imageUrl, marker->image_url);
+            json_writer.Write(JK::imageUrl, marker->image_url);
         });
 
     return true;
@@ -653,11 +741,10 @@ bool HtmlMapUI::SetMarkerText(const int marker_id, SharableString text, const in
     marker->background_color = PortableColor::FromColorInt(background_color);
     marker->text_color = PortableColor::FromColorInt(text_color);
 
-    PostActionMessage("setMarkerText",
+    PostActionMessage("setMarkerText", marker_id, marker->leaflet_id,
         [&](JsonWriter& json_writer)
         {
-            json_writer.Write(JK::leafletId, marker->leaflet_id)
-                       .Write(JK::text, marker->text_html)
+            json_writer.Write(JK::text, marker->text_html)
                        .Write(JK::backgroundColor, marker->background_color)
                        .Write(JK::textColor, marker->text_color);
         });
@@ -683,11 +770,10 @@ bool HtmlMapUI::SetMarkerDescription(const int marker_id, SharableString descrip
 
 void HtmlMapUI::SetMarkerDescriptionIMIS(const Marker& marker)
 {
-    PostActionMessage("setMarkerDescription",
+    PostActionMessage("setMarkerDescription", marker.id, marker.leaflet_id,
         [&](JsonWriter& json_writer)
         {
             json_writer.Write(JK::id, marker.id)
-                       .Write(JK::leafletId, marker.leaflet_id)
                        .Write(JK::description, marker.description_html)
                        .Write(JK::callbackIndex, marker.on_info_window_click_callback);
         });
@@ -731,10 +817,9 @@ bool HtmlMapUI::SetMarkerOnDrag(const int marker_id, const int on_drag_callback)
 
     marker->on_drag_callback = on_drag_callback;
 
-    PostActionMessage("setMarkerOnDrag",
-        [&](JsonWriter& json_writer)
+    PostActionMessage("setMarkerOnDrag", marker_id, marker->leaflet_id,
+        [](JsonWriter& /*json_writer*/)
         {
-            json_writer.Write(JK::leafletId, marker->leaflet_id);
         });
 
     return true;
@@ -751,11 +836,10 @@ bool HtmlMapUI::SetMarkerLocation(const int marker_id, const double latitude, co
     marker->latitude = latitude;
     marker->longitude = longitude;
 
-    PostActionMessage("setMarkerLocation",
+    PostActionMessage("setMarkerLocation", marker_id, marker->leaflet_id,
         [&](JsonWriter& json_writer)
         {
-            json_writer.Write(JK::leafletId, marker->leaflet_id)
-                       .Write(JK::latitude, marker->latitude)
+            json_writer.Write(JK::latitude, marker->latitude)
                        .Write(JK::longitude, marker->longitude);
         });
 
@@ -905,10 +989,9 @@ bool HtmlMapUI::RemoveGeometry(const int geometry_id)
 
     m_data->geometries.erase(geometry_id);
 
-    PostActionMessage("removeGeometry",
-        [&](JsonWriter& json_writer)
+    PostActionMessage("removeGeometry", geometry_id, leaflet_id,
+        [](JsonWriter& /*json_writer*/)
         {
-            json_writer.Write(JK::leafletId, leaflet_id);
         });
 
     return true;
