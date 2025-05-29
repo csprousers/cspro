@@ -26,10 +26,6 @@ public:
     void RemoveButton(int id);
     void ClearButtons();
 
-    void AddGeometry(const WindowsMapUI::MapGeometry& geometry, int id);
-    void RemoveGeometry(int leaflet_id);
-    void ClearGeometry();
-
     struct SnapshotData;
     void SaveSnapshot(const std::string& file_path);
 
@@ -56,5 +52,4 @@ private:
     WindowsMapUI& m_mapUI;
     bool m_loaded;
     HtmlishSanitizer m_htmlishSanitizer;
-    std::vector<std::unique_ptr<VirtualFileMappingHandler>> m_geometryVirtualFileMappings;
 };

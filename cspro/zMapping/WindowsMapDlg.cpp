@@ -1,31 +1,15 @@
 ﻿#include "stdafx.h"
 #include "WindowsMapDlg.h"
-#include "GeoJson.h"
 #include <zToolsO/Encoders.h>
 #include <zToolsO/Utf8.h>
-#include <zUtilO/MimeType.h>
-#include <zHtml/PortableLocalhost.h>
-#include <sstream>
-
-#pragma warning(push)
-#pragma warning(disable: 4068 4239)
-#include <mapbox/feature.hpp>
-#include <mapbox/geometry.hpp>
-#pragma warning(pop)
 
 
 CREATE_JSON_KEY(backgroundColor)
 CREATE_JSON_KEY(callbackIndex)
 CREATE_JSON_KEY(camera)
 CREATE_JSON_KEY(draggable)
-CREATE_JSON_KEY(geojsonUrl)
 CREATE_JSON_KEY(imageUrl)
 CREATE_JSON_KEY(leafletId)
-CREATE_JSON_KEY(maxLatitude)
-CREATE_JSON_KEY(maxLongitude)
-CREATE_JSON_KEY(minLatitude)
-CREATE_JSON_KEY(minLongitude)
-CREATE_JSON_KEY(padding)
 CREATE_JSON_KEY(zoom)
 
 
@@ -223,41 +207,6 @@ void WindowsMapDlg::ClearButtons()
 }
 
 
-void WindowsMapDlg::AddGeometry(const WindowsMapUI::MapGeometry& geometry, const int id)
-{
-    std::ostringstream stream;
-    GeoJson::toGeoJson(stream, *geometry.geometry);
-
-    // serve the GeoJSON as a virtual file
-    const auto& virtual_file_mapping = m_geometryVirtualFileMappings.emplace_back(std::make_unique<TextVirtualFileMappingHandler>(stream.str(), MimeType::Type::GeoJson));
-
-    PortableLocalhost::CreateVirtualFile(*virtual_file_mapping);
-
-    PostActionMessage("addGeometry",
-        [&](JsonWriter& json_writer)
-        {
-            json_writer.Write(JK::id, id)
-                       .Write(JK::geojsonUrl, virtual_file_mapping->GetUrl());
-        });
-}
-
-
-void WindowsMapDlg::RemoveGeometry(const int leaflet_id)
-{
-    PostActionMessage("removeGeometry",
-        [&](JsonWriter& json_writer)
-        {
-            json_writer.Write(JK::leafletId, leaflet_id);
-        });
-}
-
-
-void WindowsMapDlg::ClearGeometry()
-{
-    PostActionMessage("clearGeometry");
-}
-
-
 void WindowsMapDlg::OnWebMessageReceived(const std::string_view message_sv)
 {
     try
@@ -352,16 +301,6 @@ void WindowsMapDlg::OnWebMessageReceived(const JsonNode json_node)
                                 button->on_click_callback, 0, 0, camera);
         }
     }
-
-    else if( action_sv == "geometryPlaced" )
-    {
-        const int geometry_id = json_node.Get<int>(JK::id);
-        const int leaflet_id = json_node.Get<int>(JK::leafletId);
-        WindowsMapUI::MapGeometry* const geometry = m_mapUI.GetGeometry(geometry_id);
-
-        if( geometry != nullptr )
-            geometry->leaflet_id = leaflet_id;
-    }
 }
 
 
@@ -387,12 +326,6 @@ void WindowsMapDlg::SetUpInitialMap()
         {
             AddImageButton(button, id);
         }
-    }
-
-    // add geometries
-    for( const auto& [id, geometry] : m_mapUI.m_geometries )
-    {
-        AddGeometry(geometry, id);
     }
 }
 

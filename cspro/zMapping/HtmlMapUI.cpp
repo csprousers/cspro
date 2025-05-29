@@ -1,5 +1,6 @@
 ﻿#include "stdafx.h"
 #include "HtmlMapUI.h"
+#include "GeoJson.h"
 #include "MBTilesReader.h"
 #include "OfflineTileProvider.h"
 #include "TPKReader.h"
@@ -8,8 +9,18 @@
 #include <zHtml/HtmlTextConverter.h>
 #include <zHtml/PortableLocalhost.h>
 #include <zAppO/Properties/MappingProperties.h>
+#include <sstream>
+
+#pragma warning(push)
+#pragma warning(disable: 4068 4239)
+#include <mapbox/feature.hpp>
+#include <mapbox/geometry.hpp>
+#pragma warning(pop)
 
 
+CREATE_JSON_KEY(camera)
+CREATE_JSON_KEY(geojsonUrl)
+CREATE_JSON_KEY(leafletId)
 CREATE_JSON_KEY(maxLatitude)
 CREATE_JSON_KEY(maxLongitude)
 CREATE_JSON_KEY(minLatitude)
@@ -27,6 +38,14 @@ CREATE_JSON_KEY(zoom)
 //     _html = passed through HtmlishSanitizer
 //     _text = passed through HtmlTextConverter
 // --------------------------------------------------------------------------
+
+struct HtmlMapUI::MapGeometry
+{
+    int id;
+    std::unique_ptr<VirtualFileMappingHandler> virtual_file_mapping;
+    int leaflet_id;
+};
+
 
 struct HtmlMapUI::Zoom1
 {
@@ -58,6 +77,10 @@ struct HtmlMapUI::Data
     bool show_current_location = true;
 
     std::variant<std::monostate, Zoom1, Zoom2> zoom;
+
+    int next_map_id = 1;
+
+    std::map<int, MapGeometry> geometries;
 };
 
 
@@ -128,9 +151,26 @@ void HtmlMapUI::OnWebMessageReceived(const std::string_view message_sv)
         const JsonNode json_node = Json::Parse(message_sv);
         const std::string_view action_sv = json_node.Get<std::string_view>(JK::action);
 
+        const JsonNode camera_json_node = json_node.GetOrEmpty(JK::camera);
+        const IMapUI::MapCamera camera = camera_json_node.IsEmpty() ? IMapUI::MapCamera { 0, 0, 0, 0 } :
+                                                                      IMapUI::MapCamera { camera_json_node.Get<double>(JK::latitude),
+                                                                                          camera_json_node.Get<double>(JK::longitude),
+                                                                                          camera_json_node.Get<float>(JK::zoom),
+                                                                                          0 };
+
         if( action_sv == "documentLoaded" )
         {
             SetUpInitialMapIMIS();
+        }
+
+        else if( action_sv == "geometryPlaced" )
+        {
+            const int geometry_id = json_node.Get<int>(JK::id);
+            const int leaflet_id = json_node.Get<int>(JK::leafletId);
+            MapGeometry* const geometry = GetGeometry(geometry_id);
+
+            if( geometry != nullptr )
+                geometry->leaflet_id = leaflet_id;
         }
     }
     catch(...) { ASSERT(false); };
@@ -139,13 +179,15 @@ void HtmlMapUI::OnWebMessageReceived(const std::string_view message_sv)
 
 void HtmlMapUI::Clear()
 {
-    SetTitle(SharableString());
+    HtmlMapUI::SetTitle(SharableString());
 
-    SetBaseMapWorker(std::nullopt);
+    HtmlMapUI::SetBaseMapWorker(std::nullopt);
 
-    SetShowCurrentLocation(true);
+    HtmlMapUI::SetShowCurrentLocation(true);
 
-    ZoomToWorker(std::monostate());
+    HtmlMapUI::ClearGeometry();
+
+    HtmlMapUI::ZoomToWorker(std::monostate());
 }
 
 
@@ -159,6 +201,10 @@ void HtmlMapUI::SetUpInitialMapIMIS()
 
     // show or hide the current location
     SetShowCurrentLocationIMIS();
+
+    // add geometries
+    for( const auto& [id, geometry] : m_data->geometries )
+        AddGeometryIMIS(geometry);
 
     // set the zoom
     ZoomToIMIS();
@@ -391,4 +437,72 @@ void HtmlMapUI::ZoomToIMIS()
 void HtmlMapUI::FitMarkersIMIS()
 {
     PostActionMessage("fitMarkers");
+}
+
+
+HtmlMapUI::MapGeometry* HtmlMapUI::GetGeometry(const int geometry_id)
+{
+    const auto& lookup = m_data->geometries.find(geometry_id);
+    return ( lookup != m_data->geometries.cend() ) ? &lookup->second :
+                                                     nullptr;
+}
+
+
+int HtmlMapUI::AddGeometry(std::shared_ptr<const Geometry::FeatureCollection> geometry, std::shared_ptr<const Geometry::BoundingBox> bounds)
+{
+    ASSERT(geometry != nullptr && bounds != nullptr);
+
+    std::ostringstream stream;
+    GeoJson::toGeoJson(stream, *geometry);
+
+    // serve the GeoJSON as a virtual file
+    auto virtual_file_mapping = std::make_unique<TextVirtualFileMappingHandler>(stream.str(), MimeType::Type::GeoJson);
+    PortableLocalhost::CreateVirtualFile(*virtual_file_mapping);
+
+    const int geometry_id = m_data->next_map_id++;
+
+    AddGeometryIMIS(m_data->geometries.try_emplace(geometry_id, MapGeometry { geometry_id,
+                                                                              std::move(virtual_file_mapping),
+                                                                              -1 }).first->second);
+    return geometry_id;
+}
+
+
+void HtmlMapUI::AddGeometryIMIS(const MapGeometry& geometry)
+{
+    PostActionMessage("addGeometry",
+        [&](JsonWriter& json_writer)
+        {
+            json_writer.Write(JK::id, geometry.id)
+                       .Write(JK::geojsonUrl, geometry.virtual_file_mapping->GetUrl());
+        });
+}
+
+
+bool HtmlMapUI::RemoveGeometry(const int geometry_id)
+{
+    MapGeometry* const geometry = GetGeometry(geometry_id);
+
+    if( geometry == nullptr )
+        return false;
+
+    const int leaflet_id = geometry->leaflet_id;
+
+    m_data->geometries.erase(geometry_id);
+
+    PostActionMessage("removeGeometry",
+        [&](JsonWriter& json_writer)
+        {
+            json_writer.Write(JK::leafletId, leaflet_id);
+        });
+
+    return true;
+}
+
+
+void HtmlMapUI::ClearGeometry()
+{
+    m_data->geometries.clear();
+
+    PostActionMessage("clearGeometry");
 }

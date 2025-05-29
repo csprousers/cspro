@@ -15,6 +15,7 @@ class OfflineTileReader;
 class ZMAPPING_API HtmlMapUI : public IMapUI
 {
     struct Data;
+    struct MapGeometry;
     struct Zoom1;
     struct Zoom2;
 
@@ -36,6 +37,10 @@ public:
 
     bool ZoomTo(double latitude, double longitude, double zoom = -1) override;
     bool ZoomTo(double min_latitude, double min_longitude, double max_latitude, double max_longitude, double padding_percent = 0) override;
+
+    int AddGeometry(std::shared_ptr<const Geometry::FeatureCollection> geometry, std::shared_ptr<const Geometry::BoundingBox> bounds) override;
+    bool RemoveGeometry(int geometry_id) override;
+    void ClearGeometry() override;
 
 protected:
     std::string GetUrlOfMapHtml() const;
@@ -78,6 +83,10 @@ private:
 
 protected:
     void FitMarkersIMIS();
+
+private:
+    MapGeometry* GetGeometry(int geometry_id);
+    void AddGeometryIMIS(const MapGeometry& map_geometry);
 
 protected:
     cs::non_null_shared_or_raw_ptr<const MappingProperties> m_mappingProperties;

@@ -19,7 +19,6 @@ class ZMAPPING_API WindowsMapUI : public HtmlMapUI
     friend class WindowsMapDlg;
 
     struct Button;
-    struct MapGeometry;
     struct Marker;
 
 public:
@@ -51,10 +50,6 @@ public:
 
     void Clear() override;
 
-    int AddGeometry(std::shared_ptr<const Geometry::FeatureCollection> geometry, std::shared_ptr<const Geometry::BoundingBox> bounds) override;
-    bool RemoveGeometry(int geometry_id) override;
-    void ClearGeometry() override;
-
     MapEvent WaitForEvent() override;
 
 protected:
@@ -85,7 +80,6 @@ private:
 
     Marker* GetMarker(int marker_id);
     Button* GetButton(int button_id);
-    MapGeometry* GetGeometry(int geometry_id);
 
 private:
     std::shared_ptr<WindowsMapUIThreadRunner> m_uiThreadRunner;
@@ -98,7 +92,6 @@ protected:
 
     std::map<int, Marker> m_markers;
     std::map<int, Button> m_buttons;
-    std::map<int, MapGeometry> m_geometries;
 };
 
 
@@ -127,13 +120,6 @@ struct WindowsMapUI::Button
 };
 
 
-struct WindowsMapUI::MapGeometry
-{
-    std::shared_ptr<const Geometry::FeatureCollection> geometry;
-    int leaflet_id;
-};
-
-
 
 // --------------------------------------------------------------------------
 // inline implementations
@@ -150,11 +136,4 @@ inline WindowsMapUI::Button* WindowsMapUI::GetButton(const int button_id)
 {
     auto button_search = m_buttons.find(button_id);
     return ( button_search != m_buttons.cend() ) ? &button_search->second : nullptr;
-}
-
-
-inline WindowsMapUI::MapGeometry* WindowsMapUI::GetGeometry(const int geometry_id)
-{
-    auto geometry_search = m_geometries.find(geometry_id);
-    return ( geometry_search != m_geometries.cend() ) ? &geometry_search->second : nullptr;
 }

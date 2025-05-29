@@ -1,6 +1,6 @@
 ﻿#include "stdafx.h"
-#include "CurrentLocation.h"
 #include "WindowsMapUI.h"
+#include "CurrentLocation.h"
 #include "WindowsMapDlg.h"
 #include "WindowsMapUIThreadRunner.h"
 
@@ -359,52 +359,6 @@ void WindowsMapUI::Clear()
 
     ClearButtons();
     ClearMarkers();
-    ClearGeometry();
-}
-
-
-int WindowsMapUI::AddGeometry(std::shared_ptr<const Geometry::FeatureCollection> geometry, std::shared_ptr<const Geometry::BoundingBox> bounds)
-{
-    ASSERT(geometry != nullptr && bounds != nullptr);
-
-    const MapGeometry& map_geometry = m_geometries.try_emplace(m_nextMapId, MapGeometry { std::move(geometry),
-                                                                                          -1 }).first->second;
-
-    PerformMapDlgAction([&](WindowsMapDlg& map_dlg)
-    {
-        map_dlg.AddGeometry(map_geometry, m_nextMapId);
-    });
-
-    return m_nextMapId++;
-}
-
-
-bool WindowsMapUI::RemoveGeometry(const int geometry_id)
-{
-    MapGeometry* const geometry = GetGeometry(geometry_id);
-
-    if( geometry == nullptr )
-        return false;
-
-    PerformMapDlgAction([&](WindowsMapDlg& map_dlg)
-    {
-        map_dlg.RemoveGeometry(geometry->leaflet_id);
-    });
-
-    m_geometries.erase(geometry_id);
-
-    return true;
-}
-
-
-void WindowsMapUI::ClearGeometry()
-{
-    PerformMapDlgAction([&](WindowsMapDlg& map_dlg)
-    {
-        map_dlg.ClearGeometry();
-    });
-
-    m_geometries.clear();
 }
 
 
