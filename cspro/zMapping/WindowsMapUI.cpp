@@ -6,8 +6,7 @@
 
 
 WindowsMapUI::WindowsMapUI(cs::non_null_shared_or_raw_ptr<const MappingProperties> mapping_properties)
-    :   HtmlMapUI(std::move(mapping_properties)),
-        m_nextMapId(1)
+    :   HtmlMapUI(std::move(mapping_properties))
 {
 }
 
@@ -54,7 +53,7 @@ bool WindowsMapUI::WindowsShow()
 
     // after showing the map, we must return to the engine,
     // so the map dialog will be launched in a new thread
-    m_uiThreadRunner = std::make_shared<WindowsMapUIThreadRunner>(*this);
+    m_uiThreadRunner = std::make_unique<WindowsMapUIThreadRunner>(*this);
 
     m_showThread = std::make_unique<std::thread>([ui_thread_runner = m_uiThreadRunner]()
     {
@@ -72,26 +71,16 @@ WindowsMapDlg* WindowsMapUI::GetMapDlgForAction()
 }
 
 
-template<typename Action>
-void WindowsMapUI::PerformMapDlgAction(const Action action)
-{
-    WindowsMapDlg* const map_dlg = GetMapDlgForAction();
-
-    if( map_dlg != nullptr )
-        action(*map_dlg);
-}
-
-
 bool WindowsMapUI::Hide()
 {
     if( m_uiThreadRunner == nullptr )
         return false;
 
+    WindowsMapDlg* const map_dlg = GetMapDlgForAction();
+
     // send a message to close the dialog
-    PerformMapDlgAction([&](WindowsMapDlg& map_dlg)
-    {
-        map_dlg.SendMessage(WM_CLOSE);
-    });
+    if( map_dlg != nullptr )
+        map_dlg->SendMessage(WM_CLOSE);
 
     // wait for the dialog to fully close
     WaitForShowThreadToTerminate();
@@ -102,203 +91,14 @@ bool WindowsMapUI::Hide()
 
 bool WindowsMapUI::SaveSnapshot(const std::string& image_file_path)
 {
-    bool result = false;
+    WindowsMapDlg* const map_dlg = GetMapDlgForAction();
 
-    PerformMapDlgAction([&](WindowsMapDlg& map_dlg)
-    {
-        map_dlg.SaveSnapshot(image_file_path);
-        result = true;
-    });
-
-    return result;
-}
-
-
-int WindowsMapUI::AddMarker(const double latitude, const double longitude)
-{
-    const Marker& marker = m_markers.try_emplace(m_nextMapId, Marker { latitude,
-                                                                       longitude }).first->second;
-
-    PerformMapDlgAction([&](WindowsMapDlg& map_dlg)
-    {
-        map_dlg.AddMarker(marker, m_nextMapId);
-        FitMarkersIMIS();
-    });
-
-    return m_nextMapId++;
-}
-
-
-bool WindowsMapUI::RemoveMarker(const int marker_id)
-{
-    Marker* const marker = GetMarker(marker_id);
-
-    if( marker == nullptr )
+    if( map_dlg == nullptr )
         return false;
 
-    PerformMapDlgAction([&](WindowsMapDlg& map_dlg)
-    {
-        map_dlg.RemoveMarker(marker->leaflet_id);
-    });
-
-    m_markers.erase(marker_id);
+    map_dlg->SaveSnapshot(image_file_path);
 
     return true;
-}
-
-
-void WindowsMapUI::ClearMarkers()
-{
-    PerformMapDlgAction([&](WindowsMapDlg& map_dlg)
-    {
-        map_dlg.ClearMarkers();
-    });
-
-    m_markers.clear();
-}
-
-
-bool WindowsMapUI::SetMarkerImage(const int marker_id, const std::string& image_url_or_file_path)
-{
-    Marker* const marker = GetMarker(marker_id);
-
-    if( marker == nullptr )
-        return false;
-
-    marker->image_url = GetUrlForUrlOrFile(image_url_or_file_path);
-
-    PerformMapDlgAction([&](WindowsMapDlg& map_dlg)
-    {
-        map_dlg.SetMarkerImage(*marker);
-    });
-
-    return true;
-}
-
-
-bool WindowsMapUI::SetMarkerText(const int marker_id, SharableString text, const int background_color, const int text_color)
-{
-    Marker* const marker = GetMarker(marker_id);
-
-    if( marker == nullptr )
-        return false;
-
-    marker->text = std::move(text);
-    marker->background_color = PortableColor::FromColorInt(background_color);
-    marker->text_color = PortableColor::FromColorInt(text_color);
-
-    PerformMapDlgAction([&](WindowsMapDlg& map_dlg)
-    {
-        map_dlg.SetMarkerText(*marker);
-    });
-
-    return true;
-}
-
-
-bool WindowsMapUI::SetMarkerOnClick(const int marker_id, const int on_click_callback)
-{
-    Marker* const marker = GetMarker(marker_id);
-
-    if( marker == nullptr )
-        return false;
-
-    marker->on_click_callback = on_click_callback;
-
-    return true;
-}
-
-
-bool WindowsMapUI::SetMarkerOnClickInfoWindow(const int marker_id, const int on_click_callback)
-{
-    Marker* const marker = GetMarker(marker_id);
-
-    if( marker == nullptr )
-        return false;
-
-    marker->on_info_window_click_callback = on_click_callback;
-
-    PerformMapDlgAction([&](WindowsMapDlg& map_dlg)
-    {
-        map_dlg.SetMarkerDescription(*marker, marker_id);
-    });
-
-    return true;
-}
-
-
-bool WindowsMapUI::SetMarkerOnDrag(const int marker_id, const int on_drag_callback)
-{
-    Marker* const marker = GetMarker(marker_id);
-
-    if( marker == nullptr )
-        return false;
-
-    marker->on_drag_callback = on_drag_callback;
-
-    PerformMapDlgAction([&](WindowsMapDlg& map_dlg)
-    {
-        map_dlg.SetMarkerOnDrag(marker->leaflet_id);
-    });
-
-    return true;
-}
-
-
-bool WindowsMapUI::SetMarkerDescription(const int marker_id, SharableString description)
-{
-    Marker* const marker = GetMarker(marker_id);
-
-    if( marker == nullptr )
-        return false;
-
-    marker->description = std::move(description);
-
-    PerformMapDlgAction([&](WindowsMapDlg& map_dlg)
-    {
-        map_dlg.SetMarkerDescription(*marker, marker_id);
-    });
-
-    return true;
-}
-
-
-bool WindowsMapUI::SetMarkerLocation(const int marker_id, const double latitude, const double longitude)
-{
-    Marker* const marker = GetMarker(marker_id);
-
-    if( marker == nullptr )
-        return false;
-
-    marker->latitude = latitude;
-    marker->longitude = longitude;
-
-    PerformMapDlgAction([&](WindowsMapDlg& map_dlg)
-    {
-        map_dlg.SetMarkerLocation(*marker);
-        FitMarkersIMIS();
-    });
-
-    return true;
-}
-
-
-std::optional<std::tuple<double, double>> WindowsMapUI::GetMarkerLocation(const int marker_id)
-{
-    Marker* const marker = GetMarker(marker_id);
-
-    if( marker == nullptr )
-        return std::nullopt;
-
-    return std::make_tuple(marker->latitude, marker->longitude);
-}
-
-
-void WindowsMapUI::Clear()
-{
-    __super::Clear();
-
-    ClearMarkers();
 }
 
 

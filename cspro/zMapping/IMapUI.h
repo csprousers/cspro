@@ -72,6 +72,9 @@ public:
     // The colors are supplied as color ints (AARRGGBB);
     virtual bool SetMarkerText(int marker_id, SharableString text, int background_color, int text_color) = 0;
 
+    // Set the text description that is displayed in the info window when a marker is clicked and in list view.
+    virtual bool SetMarkerDescription(int marker_id, SharableString description) = 0;
+
     // Set a user-defined function callback that is executed when the marker is clicked.
     // The callback is the index of the function registered with the Map object.
     virtual bool SetMarkerOnClick(int marker_id, int on_click_callback) = 0;
@@ -83,9 +86,6 @@ public:
     // Set a user-defined function callback that is executed when the marker is dragged.
     // The callback is the index of the function registered with the Map object.
     virtual bool SetMarkerOnDrag(int marker_id, int on_drag_callback) = 0;
-
-    // Set the text description that is displayed in the info window when a marker is clicked and in list view.
-    virtual bool SetMarkerDescription(int marker_id, SharableString description) = 0;
 
     // Sets the location of a place mark on the map.
     // Latitude and longitude are in degrees.

@@ -17,6 +17,7 @@ class ZMAPPING_API HtmlMapUI : public IMapUI
     struct Button;
     struct Data;
     struct MapGeometry;
+    struct Marker;
     struct Zoom1;
     struct Zoom2;
 
@@ -38,6 +39,18 @@ public:
 
     bool ZoomTo(double latitude, double longitude, double zoom = -1) override;
     bool ZoomTo(double min_latitude, double min_longitude, double max_latitude, double max_longitude, double padding_percent = 0) override;
+
+    int AddMarker(double latitude, double longitude) override;
+    bool RemoveMarker(int marker_id) override;
+    void ClearMarkers() override;
+    bool SetMarkerImage(int marker_id, const std::string& image_url_or_file_path) override;
+    bool SetMarkerText(int marker_id, SharableString text, int background_color, int text_color) override;
+    bool SetMarkerDescription(int marker_id, SharableString description) override;
+    bool SetMarkerOnClick(int marker_id, int on_click_callback) override;
+    bool SetMarkerOnClickInfoWindow(int marker_id, int on_click_callback) override;
+    bool SetMarkerOnDrag(int marker_id, int on_drag_callback) override;
+    bool SetMarkerLocation(int marker_id, double latitude, double longitude) override;
+    std::optional<std::tuple<double, double>> GetMarkerLocation(int marker_id) override;
 
     int AddImageButton(const std::string& image_url_or_file_path, int on_click_callback) override;
     int AddTextButton(SharableString label, int on_click_callback) override;
@@ -92,10 +105,10 @@ private:
     void ZoomToWorker(std::variant<std::monostate, Zoom1, Zoom2> zoom);
     void ZoomToIMIS();
 
-protected:
-    void FitMarkersIMIS();
+    Marker* GetMarker(int marker_id);
+    void AddMarkerIMIS(const Marker& marker);
+    void SetMarkerDescriptionIMIS(const Marker& marker);
 
-private:
     Button* GetButton(int button_id);
     void AddButtonIMIS(const Button& button);
 

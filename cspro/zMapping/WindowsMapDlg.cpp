@@ -1,16 +1,6 @@
 ﻿#include "stdafx.h"
 #include "WindowsMapDlg.h"
-#include <zToolsO/Encoders.h>
 #include <zToolsO/Utf8.h>
-
-
-CREATE_JSON_KEY(backgroundColor)
-CREATE_JSON_KEY(callbackIndex)
-CREATE_JSON_KEY(camera)
-CREATE_JSON_KEY(draggable)
-CREATE_JSON_KEY(imageUrl)
-CREATE_JSON_KEY(leafletId)
-CREATE_JSON_KEY(zoom)
 
 
 BEGIN_MESSAGE_MAP(WindowsMapDlg, HtmlViewDlg)
@@ -21,10 +11,13 @@ END_MESSAGE_MAP()
 
 WindowsMapDlg::WindowsMapDlg(WindowsMapUI& map_ui, CWnd* const pParent/*= nullptr*/)
     :   HtmlViewDlg(pParent),
-        m_mapUI(map_ui),
-        m_loaded(false)
+        m_mapUI(map_ui)
 {
-    m_htmlViewCtrl.AddWebEventObserver([&](const std::wstring_view message_sv) { OnWebMessageReceived(TC::ToUtf8(message_sv)); });
+    m_htmlViewCtrl.AddWebEventObserver(
+        [&](const std::wstring_view message_sv)
+        {
+            m_mapUI.OnWebMessageReceived(TC::ToUtf8(message_sv));
+        });
 
     SetInitialUrl(m_mapUI.GetUrlOfMapHtml());
 
@@ -48,221 +41,6 @@ LRESULT WindowsMapDlg::OnPostActionMessage(const WPARAM wParam, LPARAM /*lParam*
     m_htmlViewCtrl.PostWebMessageAsString(*message);
 
     return 1;
-}
-
-
-void WindowsMapDlg::PostActionMessage(const std::string_view action_sv)
-{
-    WindowsDesktopMessage::PostObject(this, UWM::Mapping::PostActionMessage,
-                                      "{\"action\":" + Encoders::ToJsonString(action_sv) + "}");
-}
-
-
-template<typename CF>
-void WindowsMapDlg::PostActionMessage(const cs::string_sz action, const CF& callback_function)
-{
-    const std::unique_ptr<JsonStringWriter> json_writer = Json::CreateStringWriter();
-
-    json_writer->BeginObject()
-                .Write(JK::action, action);
-
-    callback_function(*json_writer);
-
-    json_writer->EndObject();
-
-    WindowsDesktopMessage::PostObject(this, UWM::Mapping::PostActionMessage,
-                                      json_writer->ReleaseSharableString());
-}
-
-
-void WindowsMapDlg::AddMarker(const WindowsMapUI::Marker& marker, const int id)
-{
-    PostActionMessage("addMarker",
-        [&](JsonWriter& json_writer)
-        {
-            json_writer.Write(JK::id, id)
-                       .Write(JK::latitude, marker.latitude)
-                       .Write(JK::longitude, marker.longitude)
-                       .Write(JK::draggable, ( marker.on_drag_callback >= 0 ))
-                       .Write(JK::callbackIndex, marker.on_info_window_click_callback)
-                       .Write(JK::description, m_htmlishSanitizer.Sanitize(*marker.description))
-                       .Write(JK::text, m_htmlishSanitizer.Sanitize(*marker.text))
-                       .Write(JK::backgroundColor, marker.background_color)
-                       .Write(JK::textColor, marker.text_color)
-                       .Write(JK::imageUrl, marker.image_url);
-        });
-}
-
-
-void WindowsMapDlg::RemoveMarker(const int leaflet_id)
-{
-    PostActionMessage("removeMarker",
-        [&](JsonWriter& json_writer)
-        {
-            json_writer.Write(JK::leafletId, leaflet_id);
-        });
-}
-
-
-void WindowsMapDlg::ClearMarkers()
-{
-    PostActionMessage("clearMarkers");
-}
-
-
-void WindowsMapDlg::SetMarkerImage(const WindowsMapUI::Marker& marker)
-{
-    PostActionMessage("setMarkerImage",
-        [&](JsonWriter& json_writer)
-        {
-            json_writer.Write(JK::leafletId, marker.leaflet_id)
-                       .Write(JK::imageUrl, marker.image_url);
-        });
-}
-
-
-void WindowsMapDlg::SetMarkerText(const WindowsMapUI::Marker& marker)
-{
-    PostActionMessage("setMarkerText",
-        [&](JsonWriter& json_writer)
-        {
-            json_writer.Write(JK::leafletId, marker.leaflet_id)
-                       .Write(JK::text, m_htmlishSanitizer.Sanitize(*marker.text))
-                       .Write(JK::backgroundColor, marker.background_color)
-                       .Write(JK::textColor, marker.text_color);
-        });
-}
-
-
-void WindowsMapDlg::SetMarkerOnDrag(const int leaflet_id)
-{
-    PostActionMessage("setMarkerOnDrag",
-        [&](JsonWriter& json_writer)
-        {
-            json_writer.Write(JK::leafletId, leaflet_id);
-        });
-}
-
-
-void WindowsMapDlg::SetMarkerDescription(const WindowsMapUI::Marker& marker, const int id)
-{
-    PostActionMessage("setMarkerDescription",
-        [&](JsonWriter& json_writer)
-        {
-            json_writer.Write(JK::id, id)
-                       .Write(JK::leafletId, marker.leaflet_id)
-                       .Write(JK::description, m_htmlishSanitizer.Sanitize(*marker.description))
-                       .Write(JK::callbackIndex, marker.on_info_window_click_callback);
-        });
-}
-
-
-void WindowsMapDlg::SetMarkerLocation(const WindowsMapUI::Marker& marker)
-{
-    PostActionMessage("setMarkerLocation",
-        [&](JsonWriter& json_writer)
-        {
-            json_writer.Write(JK::leafletId, marker.leaflet_id)
-                       .Write(JK::latitude, marker.latitude)
-                       .Write(JK::longitude, marker.longitude);
-        });
-}
-
-
-void WindowsMapDlg::OnWebMessageReceived(const std::string_view message_sv)
-{
-    try
-    {
-        m_mapUI.OnWebMessageReceived(message_sv);
-        OnWebMessageReceived(Json::Parse(message_sv));
-    }
-    catch(...) { ASSERT(false); }
-}
-
-
-void WindowsMapDlg::OnWebMessageReceived(const JsonNode json_node)
-{
-    const std::string_view action_sv = json_node.Get<std::string_view>(JK::action);
-
-    const JsonNode camera_json_node = json_node.GetOrEmpty(JK::camera);
-    const IMapUI::MapCamera camera = camera_json_node.IsEmpty() ? IMapUI::MapCamera { 0, 0, 0, 0 } :
-                                                                  IMapUI::MapCamera { camera_json_node.Get<double>(JK::latitude),
-                                                                                      camera_json_node.Get<double>(JK::longitude),
-                                                                                      camera_json_node.Get<float>(JK::zoom),
-                                                                                      0 };
-
-    if( action_sv == "documentLoaded" )
-    {
-        m_loaded = true;
-        SetUpInitialMap();
-    }
-
-    else if( action_sv == "mapClick" )
-    {
-        m_mapUI.NotifyEvent(IMapUI::EventCode::MapClicked, -1, -1,
-                            json_node.Get<double>(JK::latitude), json_node.Get<double>(JK::longitude), camera);
-    }
-
-    else if( action_sv == "markerPlaced" )
-    {
-        const int marker_id = json_node.Get<int>(JK::id);
-        const int leaflet_id = json_node.Get<int>(JK::leafletId);
-        WindowsMapUI::Marker* const marker = m_mapUI.GetMarker(marker_id);
-
-        if( marker != nullptr )
-            marker->leaflet_id = leaflet_id;
-    }
-
-    else if( action_sv == "markerClick" )
-    {
-        const int marker_id = json_node.Get<int>(JK::id);
-        WindowsMapUI::Marker* const marker = m_mapUI.GetMarker(marker_id);
-
-        if( marker != nullptr )
-        {
-            m_mapUI.NotifyEvent(IMapUI::EventCode::MarkerClicked, marker_id,
-                                marker->on_click_callback, marker->latitude, marker->longitude, camera);
-        }
-    }
-
-    else if( action_sv == "markerPopup" )
-    {
-        const int marker_id = json_node.Get<int>(JK::id);
-        WindowsMapUI::Marker* const marker = m_mapUI.GetMarker(marker_id);
-
-        if( marker != nullptr )
-        {
-            m_mapUI.NotifyEvent(IMapUI::EventCode::MarkerInfoWindowClicked, marker_id,
-                                marker->on_info_window_click_callback, marker->latitude, marker->longitude, camera);
-        }
-    }
-
-    else if( action_sv == "markerDrag" )
-    {
-        const int marker_id = json_node.Get<int>(JK::id);
-        WindowsMapUI::Marker* const marker = m_mapUI.GetMarker(marker_id);
-
-        if( marker != nullptr )
-        {
-            marker->latitude = json_node.Get<double>(JK::latitude);
-            marker->longitude = json_node.Get<double>(JK::longitude);
-
-            m_mapUI.NotifyEvent(IMapUI::EventCode::MarkerDragged, marker_id,
-                                marker->on_drag_callback, marker->latitude, marker->longitude, camera);
-        }
-    }
-}
-
-
-void WindowsMapDlg::SetUpInitialMap()
-{
-    ASSERT(m_loaded);
-
-    // add markers
-    for( const auto& [id, marker] : m_mapUI.m_markers )
-    {
-        AddMarker(marker, id);
-    }
 }
 
 

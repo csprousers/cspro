@@ -6,6 +6,7 @@
 #include "WindowsMapDlg.h"
 #include "WindowsMapUISingleThread.h"
 #include <zToolsO/WinClipboard.h>
+#include <zUtilO/PortableColor.h>
 
 
 namespace

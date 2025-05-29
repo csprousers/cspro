@@ -200,7 +200,7 @@
     }
 
 
-    function addMarker(id, latitude, longitude, draggable, callbackIndex, description, text, backgroundColor, textColor, imageUrl) {
+    function addMarker(id, latitude, longitude, draggable, callbackIndex, descriptionHtml, labelHtml, backgroundColor, textColor, imageUrl) {
         var marker = L.marker(L.latLng(latitude, longitude), {
             draggable: draggable
         }).addTo(markers);
@@ -209,7 +209,7 @@
         marker.on('dragend', (e) => onMarkerDrag(e, id));
         marker.on('mouseover', onMarkerMouseover);
 
-        if( description ) {
+        if( descriptionHtml ) {
             let elem;
             if( callbackIndex >= 0 ) {
                 elem = document.createElement('a');
@@ -218,16 +218,15 @@
             }
             else {
                 elem = document.createElement('div');
-                elem.style.whiteSpace = 'pre';
             }
-            elem.innerHTML = description;
+            elem.innerHTML = descriptionHtml;
             marker.bindPopup(elem);
         }
 
-        if( text ) {
+        if( labelHtml ) {
             const tooltip = document.createElement('div');
             tooltip.setAttribute('style', `background-color: ${backgroundColor}; color: ${textColor}; white-space: pre;`);
-            tooltip.innerHTML = text;
+            tooltip.innerHTML = labelHtml;
             marker.bindTooltip(tooltip, {
                 permanent: true,
                 direction: 'bottom',
@@ -242,6 +241,8 @@
             });
             marker.setIcon(icon);
         }
+
+        fitMarkers();
 
         postMessageToParent('markerPlaced', {
             id: id,
@@ -277,14 +278,14 @@
     }
 
 
-    function setMarkerText(leafletId, text, backgroundColor, textColor) {
+    function setMarkerText(leafletId, labelHtml, backgroundColor, textColor) {
         const marker = markers.getLayer(leafletId);
         marker.unbindTooltip();
 
-        if( text ) {
+        if( labelHtml ) {
             const tooltip = document.createElement('div');
             tooltip.setAttribute('style', `background-color: ${backgroundColor}; color: ${textColor}; white-space: pre;`);
-            tooltip.innerHTML = text;
+            tooltip.innerHTML = labelHtml;
             marker.bindTooltip(tooltip, {
                 permanent: true,
                 direction: 'bottom',
@@ -300,11 +301,11 @@
     }
 
 
-    function setMarkerDescription(id, leafletId, description, callbackIndex) {
+    function setMarkerDescription(id, leafletId, descriptionHtml, callbackIndex) {
         const marker = markers.getLayer(leafletId);
         marker.unbindPopup();
 
-        if( description ) {
+        if( descriptionHtml ) {
             let elem;
             if( callbackIndex >= 0 ) {
                 elem = document.createElement('a');
@@ -313,9 +314,8 @@
             }
             else {
                 elem = document.createElement('div');
-                elem.style.whiteSpace = 'pre';
             }
-            elem.innerHTML = description;
+            elem.innerHTML = descriptionHtml;
             marker.bindPopup(elem);
         }
     }
@@ -324,6 +324,8 @@
     function setMarkerLocation(leafletId, latitude, longitude) {
         const marker = markers.getLayer(leafletId);
         marker.setLatLng([latitude, longitude]);
+
+        fitMarkers();
     }
 
 
@@ -425,10 +427,10 @@
     }
 
 
-    function addTextButton(id, text) {
+    function addTextButton(id, labelHtml) {
         const button = document.createElement('button');
         button.setAttribute('id', `button${id}`);
-        button.innerHTML = text;
+        button.innerHTML = labelHtml;
         button.addEventListener('click', (e) => onButtonClick(e, id));
         buttons.appendChild(button);
     }

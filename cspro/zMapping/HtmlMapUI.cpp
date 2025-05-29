@@ -5,6 +5,7 @@
 #include "OfflineTileProvider.h"
 #include "TPKReader.h"
 #include <zToolsO/Encoders.h>
+#include <zUtilO/PortableColor.h>
 #include <zHtml/HtmlishSanitizer.h>
 #include <zHtml/HtmlTextConverter.h>
 #include <zHtml/PortableLocalhost.h>
@@ -18,7 +19,10 @@
 #pragma warning(pop)
 
 
+CREATE_JSON_KEY(backgroundColor)
+CREATE_JSON_KEY(callbackIndex)
 CREATE_JSON_KEY(camera)
+CREATE_JSON_KEY(draggable)
 CREATE_JSON_KEY(geojsonUrl)
 CREATE_JSON_KEY(imageUrl)
 CREATE_JSON_KEY(leafletId)
@@ -56,6 +60,23 @@ struct HtmlMapUI::MapGeometry
 };
 
 
+struct HtmlMapUI::Marker
+{
+    int id;
+    double latitude = 0;
+    double longitude = 0;
+    int on_click_callback = -1;
+    int on_drag_callback = -1;
+    int on_info_window_click_callback = -1;
+    int leaflet_id = -1;
+    std::string image_url;
+    SharableString description_html;
+    SharableString text_html;
+    PortableColor background_color = PortableColor::White;
+    PortableColor text_color = PortableColor::Black;
+};
+
+
 struct HtmlMapUI::Zoom1
 {
     double latitude;
@@ -90,6 +111,7 @@ struct HtmlMapUI::Data
     int next_map_id = 1;
 
     std::map<int, Button> buttons;
+    std::map<int, Marker> markers;
     std::map<int, MapGeometry> geometries;
 };
 
@@ -162,15 +184,78 @@ void HtmlMapUI::OnWebMessageReceived(const std::string_view message_sv)
         const std::string_view action_sv = json_node.Get<std::string_view>(JK::action);
 
         const JsonNode camera_json_node = json_node.GetOrEmpty(JK::camera);
-        const IMapUI::MapCamera camera = camera_json_node.IsEmpty() ? IMapUI::MapCamera { 0, 0, 0, 0 } :
-                                                                      IMapUI::MapCamera { camera_json_node.Get<double>(JK::latitude),
-                                                                                          camera_json_node.Get<double>(JK::longitude),
-                                                                                          camera_json_node.Get<float>(JK::zoom),
-                                                                                          0 };
+        const MapCamera camera = camera_json_node.IsEmpty() ? MapCamera { 0, 0, 0, 0 } :
+                                                              MapCamera { camera_json_node.Get<double>(JK::latitude),
+                                                                          camera_json_node.Get<double>(JK::longitude),
+                                                                          camera_json_node.Get<float>(JK::zoom),
+                                                                          0 };
 
         if( action_sv == "documentLoaded" )
         {
             SetUpInitialMapIMIS();
+        }
+
+        else if( action_sv == "mapClick" )
+        {
+            NotifyEvent(EventCode::MapClicked,
+                        -1, -1,
+                        json_node.Get<double>(JK::latitude), json_node.Get<double>(JK::longitude),
+                        camera);
+        }
+
+        else if( action_sv == "markerPlaced" )
+        {
+            const int marker_id = json_node.Get<int>(JK::id);
+            const int leaflet_id = json_node.Get<int>(JK::leafletId);
+            Marker* const marker = GetMarker(marker_id);
+
+            if( marker != nullptr )
+                marker->leaflet_id = leaflet_id;
+        }
+
+        else if( action_sv == "markerClick" )
+        {
+            const int marker_id = json_node.Get<int>(JK::id);
+            Marker* const marker = GetMarker(marker_id);
+
+            if( marker != nullptr )
+            {
+                NotifyEvent(EventCode::MarkerClicked,
+                            marker_id, marker->on_click_callback,
+                            marker->latitude, marker->longitude,
+                            camera);
+            }
+        }
+
+        else if( action_sv == "markerPopup" )
+        {
+            const int marker_id = json_node.Get<int>(JK::id);
+            Marker* const marker = GetMarker(marker_id);
+
+            if( marker != nullptr )
+            {
+                NotifyEvent(EventCode::MarkerInfoWindowClicked,
+                            marker_id, marker->on_info_window_click_callback,
+                            marker->latitude, marker->longitude,
+                            camera);
+            }
+        }
+
+        else if( action_sv == "markerDrag" )
+        {
+            const int marker_id = json_node.Get<int>(JK::id);
+            Marker* const marker = GetMarker(marker_id);
+
+            if( marker != nullptr )
+            {
+                marker->latitude = json_node.Get<double>(JK::latitude);
+                marker->longitude = json_node.Get<double>(JK::longitude);
+
+                NotifyEvent(EventCode::MarkerDragged,
+                            marker_id, marker->on_drag_callback,
+                            marker->latitude, marker->longitude,
+                            camera);
+            }
         }
 
         else if( action_sv == "buttonClick" )
@@ -180,8 +265,10 @@ void HtmlMapUI::OnWebMessageReceived(const std::string_view message_sv)
 
             if( button != nullptr )
             {
-                NotifyEvent(IMapUI::EventCode::ButtonClicked, button_id,
-                            button->on_click_callback, 0.0, 0.0, camera);
+                NotifyEvent(EventCode::ButtonClicked,
+                            button_id, button->on_click_callback,
+                            0.0, 0.0,
+                            camera);
             }
         }
 
@@ -207,6 +294,7 @@ void HtmlMapUI::Clear()
 
     HtmlMapUI::SetShowCurrentLocation(true);
 
+    HtmlMapUI::ClearMarkers();
     HtmlMapUI::ClearButtons();
     HtmlMapUI::ClearGeometry();
 
@@ -224,6 +312,10 @@ void HtmlMapUI::SetUpInitialMapIMIS()
 
     // show or hide the current location
     SetShowCurrentLocationIMIS();
+
+    // add markers
+    for( const auto& [id, marker] : m_data->markers )
+        AddMarkerIMIS(marker);
 
     // add buttons
     for( const auto& [id, button] : m_data->buttons )
@@ -424,7 +516,7 @@ void HtmlMapUI::ZoomToIMIS()
 {
     if( std::holds_alternative<std::monostate>(m_data->zoom) )
     {
-        FitMarkersIMIS();
+        PostActionMessage("fitMarkers");
     }
 
     else if( std::holds_alternative<Zoom1>(m_data->zoom) )
@@ -461,17 +553,232 @@ void HtmlMapUI::ZoomToIMIS()
 }
 
 
-void HtmlMapUI::FitMarkersIMIS()
+HtmlMapUI::Marker* HtmlMapUI::GetMarker(const int marker_id)
 {
-    PostActionMessage("fitMarkers");
+    const auto& lookup = m_data->markers.find(marker_id);
+    return ( lookup != m_data->markers.cend() ) ? &lookup->second :
+                                                  nullptr;
+}
+
+
+int HtmlMapUI::AddMarker(const double latitude, const double longitude)
+{
+    const int marker_id = m_data->next_map_id++;
+
+    AddMarkerIMIS(m_data->markers.try_emplace(marker_id, Marker { marker_id,
+                                                                  latitude,
+                                                                  longitude }).first->second);
+
+    return marker_id;
+}
+
+
+void HtmlMapUI::AddMarkerIMIS(const Marker& marker)
+{
+    PostActionMessage("addMarker",
+        [&](JsonWriter& json_writer)
+        {
+            json_writer.Write(JK::id, marker.id)
+                       .Write(JK::latitude, marker.latitude)
+                       .Write(JK::longitude, marker.longitude)
+                       .Write(JK::draggable, ( marker.on_drag_callback >= 0 ))
+                       .Write(JK::callbackIndex, marker.on_info_window_click_callback)
+                       .Write(JK::description, marker.description_html)
+                       .Write(JK::text, marker.text_html)
+                       .Write(JK::backgroundColor, marker.background_color)
+                       .Write(JK::textColor, marker.text_color)
+                       .Write(JK::imageUrl, marker.image_url);
+        });
+}
+
+
+
+bool HtmlMapUI::RemoveMarker(const int marker_id)
+{
+    Marker* const marker = GetMarker(marker_id);
+
+    if( marker == nullptr )
+        return false;
+
+    const int leaflet_id = marker->leaflet_id;
+
+    m_data->markers.erase(marker_id);
+
+    PostActionMessage("removeMarker",
+        [&](JsonWriter& json_writer)
+        {
+            json_writer.Write(JK::leafletId, leaflet_id);
+        });
+
+    return true;
+}
+
+
+void HtmlMapUI::ClearMarkers()
+{
+    m_data->markers.clear();
+
+    PostActionMessage("clearMarkers");
+}
+
+
+bool HtmlMapUI::SetMarkerImage(const int marker_id, const std::string& image_url_or_file_path)
+{
+    Marker* const marker = GetMarker(marker_id);
+
+    if( marker == nullptr )
+        return false;
+
+    marker->image_url = GetUrlForUrlOrFile(image_url_or_file_path);
+
+    PostActionMessage("setMarkerImage",
+        [&](JsonWriter& json_writer)
+        {
+            json_writer.Write(JK::leafletId, marker->leaflet_id)
+                       .Write(JK::imageUrl, marker->image_url);
+        });
+
+    return true;
+}
+
+
+bool HtmlMapUI::SetMarkerText(const int marker_id, SharableString text, const int background_color, const int text_color)
+{
+    Marker* const marker = GetMarker(marker_id);
+
+    if( marker == nullptr )
+        return false;
+
+    marker->text_html = HtmlishSanitizer::Sanitize(std::move(text));
+    marker->background_color = PortableColor::FromColorInt(background_color);
+    marker->text_color = PortableColor::FromColorInt(text_color);
+
+    PostActionMessage("setMarkerText",
+        [&](JsonWriter& json_writer)
+        {
+            json_writer.Write(JK::leafletId, marker->leaflet_id)
+                       .Write(JK::text, marker->text_html)
+                       .Write(JK::backgroundColor, marker->background_color)
+                       .Write(JK::textColor, marker->text_color);
+        });
+
+    return true;
+}
+
+
+bool HtmlMapUI::SetMarkerDescription(const int marker_id, SharableString description)
+{
+    Marker* const marker = GetMarker(marker_id);
+
+    if( marker == nullptr )
+        return false;
+
+    marker->description_html = HtmlishSanitizer::Sanitize(std::move(description));
+
+    SetMarkerDescriptionIMIS(*marker);
+
+    return true;
+}
+
+
+void HtmlMapUI::SetMarkerDescriptionIMIS(const Marker& marker)
+{
+    PostActionMessage("setMarkerDescription",
+        [&](JsonWriter& json_writer)
+        {
+            json_writer.Write(JK::id, marker.id)
+                       .Write(JK::leafletId, marker.leaflet_id)
+                       .Write(JK::description, marker.description_html)
+                       .Write(JK::callbackIndex, marker.on_info_window_click_callback);
+        });
+}
+
+
+bool HtmlMapUI::SetMarkerOnClick(const int marker_id, const int on_click_callback)
+{
+    Marker* const marker = GetMarker(marker_id);
+
+    if( marker == nullptr )
+        return false;
+
+    marker->on_click_callback = on_click_callback;
+
+    return true;
+}
+
+
+bool HtmlMapUI::SetMarkerOnClickInfoWindow(const int marker_id, const int on_click_callback)
+{
+    Marker* const marker = GetMarker(marker_id);
+
+    if( marker == nullptr )
+        return false;
+
+    marker->on_info_window_click_callback = on_click_callback;
+
+    SetMarkerDescriptionIMIS(*marker);
+
+    return true;
+}
+
+
+bool HtmlMapUI::SetMarkerOnDrag(const int marker_id, const int on_drag_callback)
+{
+    Marker* const marker = GetMarker(marker_id);
+
+    if( marker == nullptr )
+        return false;
+
+    marker->on_drag_callback = on_drag_callback;
+
+    PostActionMessage("setMarkerOnDrag",
+        [&](JsonWriter& json_writer)
+        {
+            json_writer.Write(JK::leafletId, marker->leaflet_id);
+        });
+
+    return true;
+}
+
+
+bool HtmlMapUI::SetMarkerLocation(const int marker_id, const double latitude, const double longitude)
+{
+    Marker* const marker = GetMarker(marker_id);
+
+    if( marker == nullptr )
+        return false;
+
+    marker->latitude = latitude;
+    marker->longitude = longitude;
+
+    PostActionMessage("setMarkerLocation",
+        [&](JsonWriter& json_writer)
+        {
+            json_writer.Write(JK::leafletId, marker->leaflet_id)
+                       .Write(JK::latitude, marker->latitude)
+                       .Write(JK::longitude, marker->longitude);
+        });
+
+    return true;
+}
+
+
+std::optional<std::tuple<double, double>> HtmlMapUI::GetMarkerLocation(const int marker_id)
+{
+    Marker* const marker = GetMarker(marker_id);
+
+    if( marker == nullptr )
+        return std::nullopt;
+
+    return std::make_tuple(marker->latitude, marker->longitude);
 }
 
 
 HtmlMapUI::Button* HtmlMapUI::GetButton(const int button_id)
 {
     const auto& lookup = m_data->buttons.find(button_id);
-    return ( lookup!= m_data->buttons.cend() ) ? &lookup->second :
-                                                 nullptr;
+    return ( lookup != m_data->buttons.cend() ) ? &lookup->second :
+                                                  nullptr;
 }
 
 

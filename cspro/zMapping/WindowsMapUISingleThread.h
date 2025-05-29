@@ -14,10 +14,12 @@ public:
     MapEvent WaitForEvent() override;
 
 protected:
+    // WindowsMapUI overrides
     bool WindowsShow() override;
 
     WindowsMapDlg* GetMapDlgForAction() override;
 
+    // HtmlMapUI overrides
     void OnNotifyEvent(std::unique_ptr<IMapUI::MapEvent> event) override;
 
 private:
