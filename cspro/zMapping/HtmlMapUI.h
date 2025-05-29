@@ -14,6 +14,7 @@ class OfflineTileReader;
 
 class ZMAPPING_API HtmlMapUI : public IMapUI
 {
+    struct Button;
     struct Data;
     struct MapGeometry;
     struct Zoom1;
@@ -38,6 +39,11 @@ public:
     bool ZoomTo(double latitude, double longitude, double zoom = -1) override;
     bool ZoomTo(double min_latitude, double min_longitude, double max_latitude, double max_longitude, double padding_percent = 0) override;
 
+    int AddImageButton(const std::string& image_url_or_file_path, int on_click_callback) override;
+    int AddTextButton(SharableString label, int on_click_callback) override;
+    bool RemoveButton(int button_id) override;
+    void ClearButtons() override;
+
     int AddGeometry(std::shared_ptr<const Geometry::FeatureCollection> geometry, std::shared_ptr<const Geometry::BoundingBox> bounds) override;
     bool RemoveGeometry(int geometry_id) override;
     void ClearGeometry() override;
@@ -49,6 +55,9 @@ protected:
     void PostActionMessage(cs::string_sz action);
     void PostActionMessage(cs::string_sz action, const std::function<void(JsonWriter&)>& callback_function);
 
+    template<typename... Args>
+    void NotifyEvent(Args&&... args);
+
     void OnWebMessageReceived(std::string_view message_sv);
 
     OfflineTileReader* GetOfflineTileReader();
@@ -58,6 +67,8 @@ protected:
 
     // OnPostActionMessage will only be called when the map is showing.
     virtual void OnPostActionMessage(SharableString action_message_json) = 0;
+
+    virtual void OnNotifyEvent(std::unique_ptr<IMapUI::MapEvent> event) = 0;
 
     virtual void OnSetWindowTitle(const std::string& title) = 0;
 
@@ -85,6 +96,9 @@ protected:
     void FitMarkersIMIS();
 
 private:
+    Button* GetButton(int button_id);
+    void AddButtonIMIS(const Button& button);
+
     MapGeometry* GetGeometry(int geometry_id);
     void AddGeometryIMIS(const MapGeometry& map_geometry);
 
@@ -94,3 +108,15 @@ protected:
 private:
     std::unique_ptr<Data> m_data;
 };
+
+
+
+// --------------------------------------------------------------------------
+// inline implementations
+// --------------------------------------------------------------------------
+
+template<typename... Args>
+void HtmlMapUI::NotifyEvent(Args&&... args)
+{
+    OnNotifyEvent(std::unique_ptr<MapEvent>(new MapEvent { std::forward<Args>(args)... }));
+}

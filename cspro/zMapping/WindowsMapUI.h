@@ -18,7 +18,6 @@ class ZMAPPING_API WindowsMapUI : public HtmlMapUI
 {
     friend class WindowsMapDlg;
 
-    struct Button;
     struct Marker;
 
 public:
@@ -43,11 +42,6 @@ public:
     bool SetMarkerLocation(int marker_id, double latitude, double longitude) override;
     std::optional<std::tuple<double, double>> GetMarkerLocation(int marker_id) override;
 
-    int AddImageButton(const std::string& image_url_or_file_path, int on_click_callback) override;
-    int AddTextButton(SharableString label, int on_click_callback) override;
-    bool RemoveButton(int button_id) override;
-    void ClearButtons() override;
-
     void Clear() override;
 
     MapEvent WaitForEvent() override;
@@ -62,14 +56,12 @@ private:
     void PerformMapDlgAction(Action action);
 
 protected:
-    virtual void NotifyEvent(EventCode code, int marker_id = -1, int callback_id = -1,
-                             double latitude = 0, double longitude = 0, const MapCamera& camera = MapCamera { 0, 0, 0, 0 });
-
-protected:
     // HtmlMapUI overrides
     bool IsMapShowing() override;
 
     void OnPostActionMessage(SharableString action_message_json) override;
+
+    void OnNotifyEvent(std::unique_ptr<IMapUI::MapEvent> event) override;
 
     void OnSetWindowTitle(const std::string& title) override;
 
@@ -79,7 +71,6 @@ private:
     void WaitForShowThreadToTerminate();
 
     Marker* GetMarker(int marker_id);
-    Button* GetButton(int button_id);
 
 private:
     std::shared_ptr<WindowsMapUIThreadRunner> m_uiThreadRunner;
@@ -91,7 +82,6 @@ protected:
     int m_nextMapId;
 
     std::map<int, Marker> m_markers;
-    std::map<int, Button> m_buttons;
 };
 
 
@@ -111,15 +101,6 @@ struct WindowsMapUI::Marker
 };
 
 
-struct WindowsMapUI::Button
-{
-    enum class Type { Text, Image };
-    Type type;
-    int on_click_callback;
-    SharableString content;
-};
-
-
 
 // --------------------------------------------------------------------------
 // inline implementations
@@ -129,11 +110,4 @@ inline WindowsMapUI::Marker* WindowsMapUI::GetMarker(const int marker_id)
 {
     auto marker_search = m_markers.find(marker_id);
     return ( marker_search != m_markers.cend() ) ? &marker_search->second : nullptr;
-}
-
-
-inline WindowsMapUI::Button* WindowsMapUI::GetButton(const int button_id)
-{
-    auto button_search = m_buttons.find(button_id);
-    return ( button_search != m_buttons.cend() ) ? &button_search->second : nullptr;
 }

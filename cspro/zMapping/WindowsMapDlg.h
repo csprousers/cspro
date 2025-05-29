@@ -21,11 +21,6 @@ public:
     void SetMarkerDescription(const WindowsMapUI::Marker& marker, int id);
     void SetMarkerLocation(const WindowsMapUI::Marker& marker);
 
-    void AddImageButton(const WindowsMapUI::Button& button, int id);
-    void AddTextButton(const WindowsMapUI::Button& button, int id);
-    void RemoveButton(int id);
-    void ClearButtons();
-
     struct SnapshotData;
     void SaveSnapshot(const std::string& file_path);
 

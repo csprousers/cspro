@@ -65,10 +65,10 @@ IMapUI::MapEvent WindowsMapUISingleThread::WaitForEvent()
 }
 
 
-void WindowsMapUISingleThread::NotifyEvent(const EventCode code, const int marker_id/* = -1*/, const int callback_id/* = -1*/,
-                                           const double latitude/* = 0*/, const double longitude/* = 0*/,
-                                           const MapCamera& camera/* = MapCamera { 0, 0, 0, 0 }*/)
+void WindowsMapUISingleThread::OnNotifyEvent(std::unique_ptr<IMapUI::MapEvent> event)
 {
+    ASSERT(event != nullptr);
+
     // ignore the map closing event trigged by the WM_CLOSE message below
     if( m_singleMapEvent != nullptr )
     {
@@ -77,15 +77,7 @@ void WindowsMapUISingleThread::NotifyEvent(const EventCode code, const int marke
     }
 
     // only one event is allowed at a time, so store the event...
-    m_singleMapEvent.reset(new MapEvent
-    {
-        code,
-        marker_id,
-        callback_id,
-        latitude,
-        longitude,
-        camera
-    });
+    m_singleMapEvent = std::move(event);
 
     // ...and then close the map dialog
     if( m_mapDlg != nullptr )

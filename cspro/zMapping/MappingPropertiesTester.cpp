@@ -45,14 +45,14 @@ public:
         m_callbackFunctions.emplace_back(std::move(callback_function));
     }
 
-    void NotifyEvent(const EventCode code, const int marker_id/* = -1*/, const int callback_id/* = -1*/,
-                     const double /*latitude*/ = 0, const double /*longitude*/ = 0,
-                     const MapCamera& /*camera*/ = MapCamera { 0, 0, 0, 0 }) override
+    void OnNotifyEvent(std::unique_ptr<IMapUI::MapEvent> event) override
     {
-        if( code == EventCode::ButtonClicked )
+        ASSERT(event != nullptr);
+
+        if( event->code == EventCode::ButtonClicked )
         {
-            ASSERT(callback_id < static_cast<int>(m_callbackFunctions.size()));
-            m_callbackFunctions[callback_id](marker_id);
+            ASSERT(static_cast<size_t>(event->callback_id) < m_callbackFunctions.size());
+            m_callbackFunctions[event->callback_id](event->marker_id);
         }
     }
 

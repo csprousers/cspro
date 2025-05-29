@@ -149,9 +149,9 @@ enum class IMapUI::EventCode
 struct IMapUI::MapEvent
 {
     EventCode code;
-    int marker_id;
-    int callback_id;
-    double latitude;
-    double longitude;
-    MapCamera camera;
+    int marker_id = -1;
+    int callback_id = -1;
+    double latitude = 0;
+    double longitude = 0;
+    MapCamera camera = { 0, 0, 0, 0 };
 };

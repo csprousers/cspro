@@ -169,44 +169,6 @@ void WindowsMapDlg::SetMarkerLocation(const WindowsMapUI::Marker& marker)
 }
 
 
-void WindowsMapDlg::AddImageButton(const WindowsMapUI::Button& button, const int id)
-{
-    PostActionMessage("addImageButton",
-        [&](JsonWriter& json_writer)
-        {
-            json_writer.Write(JK::id, id)
-                       .Write(JK::imageUrl, button.content);
-        });
-}
-
-
-void WindowsMapDlg::AddTextButton(const WindowsMapUI::Button& button, const int id)
-{
-    PostActionMessage("addTextButton",
-        [&](JsonWriter& json_writer)
-        {
-            json_writer.Write(JK::id, id)
-                       .Write(JK::text, m_htmlishSanitizer.Sanitize(*button.content));
-        });
-}
-
-
-void WindowsMapDlg::RemoveButton(const int id)
-{
-    PostActionMessage("removeButton",
-        [&](JsonWriter& json_writer)
-        {
-            json_writer.Write(JK::id, id);
-        });
-}
-
-
-void WindowsMapDlg::ClearButtons()
-{
-    PostActionMessage("clearButtons");
-}
-
-
 void WindowsMapDlg::OnWebMessageReceived(const std::string_view message_sv)
 {
     try
@@ -289,18 +251,6 @@ void WindowsMapDlg::OnWebMessageReceived(const JsonNode json_node)
                                 marker->on_drag_callback, marker->latitude, marker->longitude, camera);
         }
     }
-
-    else if( action_sv == "buttonClick" )
-    {
-        const int button_id = json_node.Get<int>(JK::id);
-        WindowsMapUI::Button* const button = m_mapUI.GetButton(button_id);
-
-        if( button != nullptr )
-        {
-            m_mapUI.NotifyEvent(IMapUI::EventCode::ButtonClicked, button_id,
-                                button->on_click_callback, 0, 0, camera);
-        }
-    }
 }
 
 
@@ -312,20 +262,6 @@ void WindowsMapDlg::SetUpInitialMap()
     for( const auto& [id, marker] : m_mapUI.m_markers )
     {
         AddMarker(marker, id);
-    }
-
-    // add buttons
-    for( const auto& [id, button] : m_mapUI.m_buttons )
-    {
-        if( button.type == WindowsMapUI::Button::Type::Text )
-        {
-            AddTextButton(button, id);
-        }
-
-        else
-        {
-            AddImageButton(button, id);
-        }
     }
 }
 

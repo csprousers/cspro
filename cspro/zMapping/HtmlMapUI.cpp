@@ -20,6 +20,7 @@
 
 CREATE_JSON_KEY(camera)
 CREATE_JSON_KEY(geojsonUrl)
+CREATE_JSON_KEY(imageUrl)
 CREATE_JSON_KEY(leafletId)
 CREATE_JSON_KEY(maxLatitude)
 CREATE_JSON_KEY(maxLongitude)
@@ -38,6 +39,14 @@ CREATE_JSON_KEY(zoom)
 //     _html = passed through HtmlishSanitizer
 //     _text = passed through HtmlTextConverter
 // --------------------------------------------------------------------------
+
+struct HtmlMapUI::Button
+{
+    int id;
+    int on_click_callback;
+    std::variant<std::string, SharableString> image_url_or_label_html;
+};
+
 
 struct HtmlMapUI::MapGeometry
 {
@@ -80,6 +89,7 @@ struct HtmlMapUI::Data
 
     int next_map_id = 1;
 
+    std::map<int, Button> buttons;
     std::map<int, MapGeometry> geometries;
 };
 
@@ -163,6 +173,18 @@ void HtmlMapUI::OnWebMessageReceived(const std::string_view message_sv)
             SetUpInitialMapIMIS();
         }
 
+        else if( action_sv == "buttonClick" )
+        {
+            const int button_id = json_node.Get<int>(JK::id);
+            Button* const button = GetButton(button_id);
+
+            if( button != nullptr )
+            {
+                NotifyEvent(IMapUI::EventCode::ButtonClicked, button_id,
+                            button->on_click_callback, 0.0, 0.0, camera);
+            }
+        }
+
         else if( action_sv == "geometryPlaced" )
         {
             const int geometry_id = json_node.Get<int>(JK::id);
@@ -185,6 +207,7 @@ void HtmlMapUI::Clear()
 
     HtmlMapUI::SetShowCurrentLocation(true);
 
+    HtmlMapUI::ClearButtons();
     HtmlMapUI::ClearGeometry();
 
     HtmlMapUI::ZoomToWorker(std::monostate());
@@ -201,6 +224,10 @@ void HtmlMapUI::SetUpInitialMapIMIS()
 
     // show or hide the current location
     SetShowCurrentLocationIMIS();
+
+    // add buttons
+    for( const auto& [id, button] : m_data->buttons )
+        AddButtonIMIS(button);
 
     // add geometries
     for( const auto& [id, geometry] : m_data->geometries )
@@ -437,6 +464,87 @@ void HtmlMapUI::ZoomToIMIS()
 void HtmlMapUI::FitMarkersIMIS()
 {
     PostActionMessage("fitMarkers");
+}
+
+
+HtmlMapUI::Button* HtmlMapUI::GetButton(const int button_id)
+{
+    const auto& lookup = m_data->buttons.find(button_id);
+    return ( lookup!= m_data->buttons.cend() ) ? &lookup->second :
+                                                 nullptr;
+}
+
+
+int HtmlMapUI::AddImageButton(const std::string& image_url_or_file_path, const int on_click_callback)
+{
+    const int button_id = m_data->next_map_id++;
+
+    AddButtonIMIS(m_data->buttons.try_emplace(button_id, Button { button_id,
+                                                                  on_click_callback,
+                                                                  GetUrlForUrlOrFile(image_url_or_file_path) }).first->second);
+
+    return button_id;
+}
+
+
+int HtmlMapUI::AddTextButton(SharableString label, const int on_click_callback)
+{
+    const int button_id = m_data->next_map_id++;
+
+    AddButtonIMIS(m_data->buttons.try_emplace(button_id, Button { button_id,
+                                                                  on_click_callback,
+                                                                  HtmlishSanitizer::Sanitize(std::move(label)) }).first->second);
+
+    return button_id;
+}
+
+
+void HtmlMapUI::AddButtonIMIS(const Button& button)
+{
+    const bool is_image_button = std::holds_alternative<std::string>(button.image_url_or_label_html);
+
+    PostActionMessage(is_image_button ? "addImageButton" : "addTextButton",
+        [&](JsonWriter& json_writer)
+        {
+            json_writer.Write(JK::id, button.id);
+
+            if( is_image_button )
+            {
+                json_writer.Write(JK::imageUrl, std::get<std::string>(button.image_url_or_label_html));
+            }
+
+            else
+            {
+                json_writer.Write(JK::text, std::get<SharableString>(button.image_url_or_label_html));
+            }
+        });
+}
+
+
+bool HtmlMapUI::RemoveButton(const int button_id)
+{
+    Button* const button = GetButton(button_id);
+
+    if( button == nullptr )
+        return false;
+
+    m_data->buttons.erase(button_id);
+
+    PostActionMessage("removeButton",
+        [&](JsonWriter& json_writer)
+        {
+            json_writer.Write(JK::id, button_id);
+        });
+
+    return true;
+}
+
+
+void HtmlMapUI::ClearButtons()
+{
+    m_data->buttons.clear();
+
+    PostActionMessage("clearButtons");
 }
 
 

@@ -294,70 +294,10 @@ std::optional<std::tuple<double, double>> WindowsMapUI::GetMarkerLocation(const 
 }
 
 
-int WindowsMapUI::AddImageButton(const std::string& image_url_or_file_path, const int on_click_callback)
-{
-    const Button& button = m_buttons.try_emplace(m_nextMapId, Button { Button::Type::Image,
-                                                                       on_click_callback,
-                                                                       GetUrlForUrlOrFile(image_url_or_file_path) }).first->second;
-
-    PerformMapDlgAction([&](WindowsMapDlg& map_dlg)
-    {
-        map_dlg.AddImageButton(button, m_nextMapId);
-    });
-
-    return m_nextMapId++;
-}
-
-
-int WindowsMapUI::AddTextButton(SharableString label, const int on_click_callback)
-{
-    const Button& button = m_buttons.try_emplace(m_nextMapId, Button { Button::Type::Text,
-                                                                       on_click_callback,
-                                                                       std::move(label) }).first->second;
-
-    PerformMapDlgAction([&](WindowsMapDlg& map_dlg)
-    {
-        map_dlg.AddTextButton(button, m_nextMapId);
-    });
-
-    return m_nextMapId++;
-}
-
-
-bool WindowsMapUI::RemoveButton(const int button_id)
-{
-    Button* const button = GetButton(button_id);
-
-    if( button == nullptr )
-        return false;
-
-    PerformMapDlgAction([&](WindowsMapDlg& map_dlg)
-    {
-        map_dlg.RemoveButton(button_id);
-    });
-
-    m_buttons.erase(button_id);
-
-    return true;
-}
-
-
-void WindowsMapUI::ClearButtons()
-{
-    PerformMapDlgAction([&](WindowsMapDlg& map_dlg)
-    {
-        map_dlg.ClearButtons();
-    });
-
-    m_buttons.clear();
-}
-
-
 void WindowsMapUI::Clear()
 {
     __super::Clear();
 
-    ClearButtons();
     ClearMarkers();
 }
 
@@ -385,25 +325,6 @@ IMapUI::MapEvent WindowsMapUI::WaitForEvent()
 }
 
 
-void WindowsMapUI::NotifyEvent(const EventCode code, const int marker_id/* = -1*/, const int callback_id/* = -1*/,
-                               const double latitude/* = 0*/, const double longitude/* = 0*/,
-                               const MapCamera& camera/* = MapCamera { 0, 0, 0, 0 }*/)
-{
-    // wait until any existing events have been processed by the engine
-    while( m_mapEvent != nullptr )
-        Sleep(5);
-
-    std::lock_guard<std::mutex> lock(m_mapEventMutex);
-
-    m_mapEvent.reset(new MapEvent { code,
-                                    marker_id,
-                                    callback_id,
-                                    latitude,
-                                    longitude,
-                                    camera });
-}
-
-
 bool WindowsMapUI::IsMapShowing()
 {
     return ( GetMapDlgForAction() != nullptr );
@@ -416,6 +337,19 @@ void WindowsMapUI::OnPostActionMessage(SharableString action_message_json)
 
     WindowsDesktopMessage::PostObject(GetMapDlgForAction(), UWM::Mapping::PostActionMessage,
                                       std::move(action_message_json));
+}
+
+
+void WindowsMapUI::OnNotifyEvent(std::unique_ptr<IMapUI::MapEvent> event)
+{
+    ASSERT(event != nullptr);
+
+    // wait until any existing events have been processed by the engine
+    while( m_mapEvent != nullptr )
+        Sleep(5);
+
+    std::lock_guard<std::mutex> lock(m_mapEventMutex);
+    m_mapEvent = std::move(event);
 }
 
 
