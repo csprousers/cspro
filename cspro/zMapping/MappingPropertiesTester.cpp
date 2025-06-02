@@ -71,7 +71,7 @@ void MappingPropertiesTester::Test(MappingProperties mapping_properties, const s
 {
     // mapping properties is passed as a copy in case we need to override the tile provider
     if( mapping_tile_provider.has_value() )
-        mapping_properties.SetWindowsMappingTileProvider(*mapping_tile_provider);
+        mapping_properties.SetMappingTileProvider(*mapping_tile_provider);
 
     try
     {
@@ -99,7 +99,7 @@ void MappingPropertiesTester::Test(MappingProperties mapping_properties, const s
 
 void MappingPropertiesTester::SetupMapForTileProvider(TestMapUI& map_ui, const MappingProperties& mapping_properties)
 {
-    const MappingTileProviderProperties& mapping_tile_provider_properties = mapping_properties.GetWindowsMappingTileProviderProperties();
+    const MappingTileProviderProperties& mapping_tile_provider_properties = mapping_properties.GetMappingTileProviderProperties();
 
     if( mapping_tile_provider_properties.GetMappingTileProvider() == MappingTileProvider::Mapbox &&
         mapping_tile_provider_properties.GetAccessToken().empty() )

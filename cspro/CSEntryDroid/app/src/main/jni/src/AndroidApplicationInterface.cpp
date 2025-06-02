@@ -2,6 +2,7 @@
 #include "AndroidApplicationInterface.h"
 #include "AndroidBluetoothAdapter.h"
 #include "AndroidFtpConnection.h"
+#include "AndroidHtmlMapUI.h"
 #include "AndroidHttpConnection.h"
 #include "AndroidMapUI.h"
 #include "AndroidUserbar.h"
@@ -305,7 +306,15 @@ std::unique_ptr<FtpConnection> AndroidApplicationInterface::CreateFtpConnection(
 
 void AndroidApplicationInterface::CreateMapUI(EngineUI::CreateMapUINode& create_map_ui_node)
 {
-    create_map_ui_node.map_ui = std::make_unique<AndroidMapUI>();
+    if( create_map_ui_node.mapping_properties->GetMappingEngine() == MappingEngine::Leaflet )
+    {
+        create_map_ui_node.map_ui = std::make_unique<AndroidHtmlMapUI>(std::move(create_map_ui_node.mapping_properties));
+    }
+
+    else
+    {
+        create_map_ui_node.map_ui = std::make_unique<AndroidMapUI>();
+    }
 }
 
 

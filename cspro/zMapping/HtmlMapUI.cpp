@@ -32,7 +32,6 @@ CREATE_JSON_KEY(minLatitude)
 CREATE_JSON_KEY(minLongitude)
 CREATE_JSON_KEY(options)
 CREATE_JSON_KEY(padding)
-CREATE_JSON_KEY(tileProvider)
 CREATE_JSON_KEY(zoom)
 
 
@@ -512,7 +511,7 @@ void HtmlMapUI::SetBaseMapIMIS()
 
                 if( base_map != BaseMap::None )
                 {
-                    const MappingTileProviderProperties& mapping_tile_provider_properties = m_mappingProperties->GetWindowsMappingTileProviderProperties();
+                    const MappingTileProviderProperties& mapping_tile_provider_properties = m_mappingProperties->GetMappingTileProviderProperties();
 
                     json_writer.Write(JK::tileProvider, mapping_tile_provider_properties.GetMappingTileProvider())
                                .Write(JK::tileLayer, mapping_tile_provider_properties.GetTileLayer(base_map))

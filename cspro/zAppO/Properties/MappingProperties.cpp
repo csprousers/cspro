@@ -2,10 +2,14 @@
 #include "MappingProperties.h"
 
 
+CREATE_JSON_KEY(windowsMappingTileProvider) // used by CSPro 8.0 only
+
+
 MappingProperties::MappingProperties()
     :   m_coordinateDisplay(CoordinateDisplay::Decimal),
         m_defaultBaseMap(BaseMap::Normal),
-        m_windowsMappingTileProvider(MappingTileProvider::Esri),
+        m_mappingEngine(MappingEngine::Default),
+        m_mappingTileProvider(MappingTileProvider::Esri),
         m_esriMappingTileProviderProperties(MappingTileProvider::Esri),
         m_mapboxMappingTileProviderProperties(MappingTileProvider::Mapbox)
 {
@@ -16,16 +20,17 @@ bool MappingProperties::operator==(const MappingProperties& rhs) const
 {
     return ( m_coordinateDisplay == rhs.m_coordinateDisplay &&
              m_defaultBaseMap == rhs.m_defaultBaseMap &&
-             m_windowsMappingTileProvider == rhs.m_windowsMappingTileProvider &&
+             m_mappingEngine == rhs.m_mappingEngine &&
+             m_mappingTileProvider == rhs.m_mappingTileProvider &&
              m_esriMappingTileProviderProperties == rhs.m_esriMappingTileProviderProperties &&
              m_mapboxMappingTileProviderProperties == rhs.m_mapboxMappingTileProviderProperties );
 }
 
 
-const MappingTileProviderProperties& MappingProperties::GetWindowsMappingTileProviderProperties() const
+const MappingTileProviderProperties& MappingProperties::GetMappingTileProviderProperties() const
 {
-    return ( m_windowsMappingTileProvider == MappingTileProvider::Esri ) ? m_esriMappingTileProviderProperties :
-                                                                           m_mapboxMappingTileProviderProperties;
+    return ( m_mappingTileProvider == MappingTileProvider::Esri ) ? m_esriMappingTileProviderProperties :
+                                                                    m_mapboxMappingTileProviderProperties;
 }
 
 
@@ -58,7 +63,11 @@ MappingProperties MappingProperties::CreateFromJson(const JsonNode& json_node)
         }
     }
 
-    mapping_properties.m_windowsMappingTileProvider = json_node.GetOrDefault(JK::windowsMappingTileProvider, mapping_properties.m_windowsMappingTileProvider);
+    mapping_properties.m_mappingEngine = json_node.GetOrDefault(JK::engine, mapping_properties.m_mappingEngine);
+
+    const char* const tile_provider_key = ( json_node.Contains(JK::tileProvider) ||
+                                            !json_node.Contains(JK::windowsMappingTileProvider) ) ? JK::tileProvider : JK::windowsMappingTileProvider;
+    mapping_properties.m_mappingTileProvider = json_node.GetOrDefault(tile_provider_key, mapping_properties.m_mappingTileProvider);
 
     for( const JsonNode& tile_provider_node : json_node.GetArrayOrEmpty(JK::tileProviders) )
     {
@@ -90,7 +99,8 @@ void MappingProperties::WriteJson(JsonWriter& json_writer) const
         json_writer.WriteRelativePath(JK::defaultBaseMap, std::get<std::string>(m_defaultBaseMap));
     }
 
-    json_writer.Write(JK::windowsMappingTileProvider, m_windowsMappingTileProvider);
+    json_writer.Write(JK::engine, m_mappingEngine)
+               .Write(JK::tileProvider, m_mappingTileProvider);
 
     json_writer.BeginArray(JK::tileProviders)
                .Write(m_esriMappingTileProviderProperties)
@@ -104,7 +114,11 @@ void MappingProperties::WriteJson(JsonWriter& json_writer) const
 void MappingProperties::serialize(Serializer& ar)
 {
     ar.SerializeEnum(m_coordinateDisplay);
-    ar.SerializeEnum(m_windowsMappingTileProvider);
+
+    if( ar.MeetsVersionIteration(Serializer::Iteration_8_1_000_1) )
+        ar.SerializeEnum(m_mappingEngine);
+
+    ar.SerializeEnum(m_mappingTileProvider);
 
     if( ar.IsSaving() )
     {

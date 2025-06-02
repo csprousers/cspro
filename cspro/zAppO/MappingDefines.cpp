@@ -91,6 +91,16 @@ DEFINE_ENUM_JSON_SERIALIZER_CLASS(BaseMap,
 
 
 // --------------------------------------------------------------------------
+// MappingEngine
+// --------------------------------------------------------------------------
+
+DEFINE_ENUM_JSON_SERIALIZER_CLASS(MappingEngine,
+    { MappingEngine::Default, "default" },
+    { MappingEngine::Leaflet, "Leaflet" })
+
+
+
+// --------------------------------------------------------------------------
 // MappingTileProvider
 // --------------------------------------------------------------------------
 
