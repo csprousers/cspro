@@ -516,6 +516,12 @@ JNIEXPORT jstring JNICALL Java_gov_census_cspro_engine_EngineInterface_FormatCoo
 
 JNIEXPORT jstring JNICALL Java_gov_census_cspro_engine_EngineInterface_GetTpkMetadataAsJson(JNIEnv*, jobject, jstring);
 
+JNIEXPORT void JNICALL Java_gov_census_cspro_engine_EngineInterface_HtmlMapNotifyLifecycle
+  (JNIEnv* jni_env, jobject, jlong nativeReference, jlong jJniObjectPtr, jobject jHtmlMapActivity);
+
+JNIEXPORT void JNICALL Java_gov_census_cspro_engine_EngineInterface_HtmlMapNotifyWebMessageReceived
+  (JNIEnv* jni_env, jobject, jlong nativeReference, jlong jJniObjectPtr, jstring jEventJson);
+
 JNIEXPORT jstring JNICALL Java_gov_census_cspro_engine_EngineInterface_GetApplicationDescription
     (JNIEnv *, jobject, jlong);
 

@@ -289,6 +289,13 @@
       android:label="@string/title_activity_maps" />
 
     <activity
+      android:name="gov.census.cspro.maps.HtmlMapActivity"
+      android:exported="false"
+      android:configChanges="orientation|screenSize|keyboardHidden"
+      android:label="@string/title_activity_maps" >
+    </activity>
+
+    <activity
       android:name="gov.census.cspro.media.player.AudioPlayerActivity"
       android:exported="false"
       android:theme="@style/Dialog.App"

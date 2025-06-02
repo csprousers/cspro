@@ -4,14 +4,17 @@ JNI_PATH := $(call my-dir)
 include $(CLEAR_VARS)
 
 LOCAL_MODULE            := zHtml
-ZHTML_SRC_PATH          := ../../../../../zHtml
-GUMBO_SRC_PATH          := ../../../../../external/gumbo
+SOLUTION_SRC_PATH       := $(JNI_PATH)/../../../../..
+ZHTML_SRC_PATH          := $(SOLUTION_SRC_PATH)/zHtml
+GUMBO_SRC_PATH          := $(SOLUTION_SRC_PATH)/external/gumbo
 
 LOCAL_SRC_FILES         += $(ZHTML_SRC_PATH)/AccessUrlSerializer.cpp
 LOCAL_SRC_FILES         += $(ZHTML_SRC_PATH)/CSHtmlDlgRunner.cpp
 LOCAL_SRC_FILES         += $(ZHTML_SRC_PATH)/CssProvider.cpp
 LOCAL_SRC_FILES         += $(ZHTML_SRC_PATH)/FileSystemVirtualFileMappingHandler.cpp
 LOCAL_SRC_FILES         += $(ZHTML_SRC_PATH)/HtmlDlgBaseRunner.cpp
+LOCAL_SRC_FILES         += $(ZHTML_SRC_PATH)/HtmlishSanitizer.cpp
+LOCAL_SRC_FILES         += $(ZHTML_SRC_PATH)/HtmlTextConverter.cpp
 LOCAL_SRC_FILES         += $(ZHTML_SRC_PATH)/LocalhostUrl.cpp
 LOCAL_SRC_FILES         += $(ZHTML_SRC_PATH)/PortableLocalFileServer.cpp
 LOCAL_SRC_FILES         += $(ZHTML_SRC_PATH)/PortableLocalhost.cpp

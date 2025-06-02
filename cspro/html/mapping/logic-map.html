@@ -50,6 +50,14 @@
         };
     }
 
+    // ...Android (WebView)
+    else {
+        webview = window;
+        parentMessagePoster = function(message) {
+            AndroidHtmlMap.postMessage(JSON.stringify(message));
+        };
+    }
+
     function postMessageToParent(action, message = {}) {
         message.action = action;
         parentMessagePoster(message);

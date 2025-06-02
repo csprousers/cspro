@@ -733,16 +733,7 @@ public class MapFragment extends Fragment
 
                     try
                     {
-                        String extension = imagePath.substring(imagePath.lastIndexOf('.') + 1);
-
-                        if( extension.compareToIgnoreCase("png") == 0 )
-                            bitmap.compress(Bitmap.CompressFormat.PNG, 100, new FileOutputStream(imagePath));
-
-                        else if( extension.compareToIgnoreCase("jpg") == 0 || extension.compareToIgnoreCase("jpeg") == 0 )
-                            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, new FileOutputStream(imagePath));
-
-                        else
-                            throw new IOException("Snapshots can only be saved to JPEG or PNG formats.");
+                        saveSnapshotToDisk(bitmap, imagePath);
                     }
 
                     catch( Exception exception )
@@ -753,6 +744,20 @@ public class MapFragment extends Fragment
                     Messenger.getInstance().engineFunctionComplete(result);
                 }
             });
+        }
+    }
+
+    public static void saveSnapshotToDisk(Bitmap bitmap, String imagePath) throws IOException {
+        String extension = imagePath.substring(imagePath.lastIndexOf('.') + 1);
+
+        if( extension.compareToIgnoreCase("png") == 0 ) {
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, new FileOutputStream(imagePath));
+        }
+        else if( extension.compareToIgnoreCase("jpg") == 0 || extension.compareToIgnoreCase("jpeg") == 0 ) {
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, new FileOutputStream(imagePath));
+        }
+        else {
+            throw new IOException("Snapshots can only be saved to JPEG or PNG formats.");
         }
     }
 

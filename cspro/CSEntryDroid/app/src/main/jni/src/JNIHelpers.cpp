@@ -447,6 +447,7 @@ jmethodID JNIReferences::methodApplicationInterfaceAudioStopRecording;
 jmethodID JNIReferences::methodApplicationInterfaceAudioRecordInteractive;
 jmethodID JNIReferences::methodApplicationInterfaceImageTakePhoto;
 jmethodID JNIReferences::methodApplicationInterfaceImageCaptureSignature;
+jmethodID JNIReferences::methodApplicationInterfaceLaunchHtmlMap;
 jmethodID JNIReferences::methodApplicationInterfaceGeometryTracePolygon;
 jmethodID JNIReferences::methodApplicationInterfaceGeometryWalkPolygon;
 jmethodID JNIReferences::methodApplicationInterfaceClipboardGetText;
@@ -542,6 +543,9 @@ jfieldID JNIReferences::fieldMapCameraPositionLatitude;
 jfieldID JNIReferences::fieldMapCameraPositionLongitude;
 jfieldID JNIReferences::fieldMapCameraPositionZoom;
 jfieldID JNIReferences::fieldMapCameraPositionBearing;
+
+jclass JNIReferences::classHtmlMapActivity;
+jmethodID JNIReferences::methodHtmlMapActivityHandleRequest;
 
 jclass JNIReferences::classAppMappingOptions;
 jmethodID JNIReferences::methodAppMappingOptionsConstructor;
@@ -687,6 +691,7 @@ jint JNI_OnLoad(JavaVM * aVm, void * aReserved)
         ( JNIReferences::methodApplicationInterfaceAudioRecordInteractive = pEnv->GetStaticMethodID(JNIReferences::classApplicationInterface, "audioRecordInteractive", "(Ljava/lang/String;Ljava/lang/String;I)Z") ) &&
         ( JNIReferences::methodApplicationInterfaceImageTakePhoto = pEnv->GetStaticMethodID(JNIReferences::classApplicationInterface, "takePhoto", "(Ljava/lang/String;)Ljava/lang/String;") ) &&
         ( JNIReferences::methodApplicationInterfaceImageCaptureSignature = pEnv->GetStaticMethodID(JNIReferences::classApplicationInterface, "captureSignature", "(Ljava/lang/String;)Ljava/lang/String;") ) &&
+        ( JNIReferences::methodApplicationInterfaceLaunchHtmlMap = pEnv->GetStaticMethodID(JNIReferences::classApplicationInterface, "launchHtmlMap", "(JLjava/lang/String;)V") ) &&
         ( JNIReferences::methodApplicationInterfaceGeometryTracePolygon = pEnv->GetStaticMethodID(JNIReferences::classApplicationInterface, "tracePolygon", "(Lgov/census/cspro/maps/geojson/Polygon;Lgov/census/cspro/maps/MapUI;)Ljava/util/List;") ) &&
         ( JNIReferences::methodApplicationInterfaceGeometryWalkPolygon = pEnv->GetStaticMethodID(JNIReferences::classApplicationInterface, "walkPolygon", "(Lgov/census/cspro/maps/geojson/Polygon;Lgov/census/cspro/maps/MapUI;)Ljava/util/List;") ) &&
         ( JNIReferences::methodApplicationInterfaceClipboardGetText = pEnv->GetStaticMethodID(JNIReferences::classApplicationInterface, "clipboardGetText", "()Ljava/lang/String;") ) &&
@@ -855,6 +860,10 @@ jint JNI_OnLoad(JavaVM * aVm, void * aReserved)
         (JNIReferences::fieldMapCameraPositionLongitude = pEnv->GetFieldID(JNIReferences::classMapCameraPosition, "longitude", "D")) &&
         (JNIReferences::fieldMapCameraPositionZoom = pEnv->GetFieldID(JNIReferences::classMapCameraPosition, "zoom", "F")) &&
         (JNIReferences::fieldMapCameraPositionBearing = pEnv->GetFieldID(JNIReferences::classMapCameraPosition, "bearing", "F")) &&
+
+        (JNIReferences::classHtmlMapActivity = pEnv->FindClass("gov/census/cspro/maps/HtmlMapActivity")) &&
+        (JNIReferences::classHtmlMapActivity = reinterpret_cast<jclass>(pEnv->NewGlobalRef(JNIReferences::classHtmlMapActivity))) &&
+        (JNIReferences::methodHtmlMapActivityHandleRequest = pEnv->GetMethodID(JNIReferences::classHtmlMapActivity, "handleRequest", "(ILjava/lang/String;)V")) &&
 
         (JNIReferences::classAppMappingOptions = pEnv->FindClass("gov/census/cspro/engine/AppMappingOptions")) &&
         (JNIReferences::classAppMappingOptions = reinterpret_cast<jclass>(pEnv->NewGlobalRef(JNIReferences::classAppMappingOptions))) &&

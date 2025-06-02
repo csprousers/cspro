@@ -269,6 +269,7 @@ namespace JNIReferences
     extern jmethodID methodApplicationInterfaceAudioRecordInteractive;
     extern jmethodID methodApplicationInterfaceImageTakePhoto;
     extern jmethodID methodApplicationInterfaceImageCaptureSignature;
+    extern jmethodID methodApplicationInterfaceLaunchHtmlMap;
     extern jmethodID methodApplicationInterfaceGeometryTracePolygon;
     extern jmethodID methodApplicationInterfaceGeometryWalkPolygon;
     extern jmethodID methodApplicationInterfaceClipboardGetText;
@@ -365,6 +366,9 @@ namespace JNIReferences
     extern jfieldID fieldMapCameraPositionLongitude;
     extern jfieldID fieldMapCameraPositionZoom;
     extern jfieldID fieldMapCameraPositionBearing;
+
+    extern jclass classHtmlMapActivity;
+    extern jmethodID methodHtmlMapActivityHandleRequest;
 
     extern jclass classAppMappingOptions;
     extern jmethodID methodAppMappingOptionsConstructor;
