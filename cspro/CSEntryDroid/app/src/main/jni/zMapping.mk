@@ -15,6 +15,7 @@ LOCAL_SRC_FILES         += $(ZMAPPING_SRC_PATH)/CoordinateConverter.cpp
 LOCAL_SRC_FILES         += $(ZMAPPING_SRC_PATH)/GeoJson.cpp
 LOCAL_SRC_FILES         += $(ZMAPPING_SRC_PATH)/HtmlMapUI.cpp
 LOCAL_SRC_FILES         += $(ZMAPPING_SRC_PATH)/MBTilesReader.cpp
+LOCAL_SRC_FILES         += $(ZMAPPING_SRC_PATH)/OfflineTileProvider.cpp
 LOCAL_SRC_FILES         += $(ZMAPPING_SRC_PATH)/TPKReader.cpp
 
 include $(LOCAL_PATH)/LOCAL_CFLAGS.mk

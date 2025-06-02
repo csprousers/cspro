@@ -120,6 +120,9 @@
     <ClCompile Include="PortableLocalhost.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="PortableSimpleServer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="Pre77ReportGumboAccessor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

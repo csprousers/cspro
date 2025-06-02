@@ -13,6 +13,7 @@ add_library(${PROJECT_NAME}
     LocalhostUrl.cpp
     PortableLocalFileServer.cpp
     PortableLocalhost.cpp
+    PortableSimpleServer.cpp
     Pre77ReportGumboAccessor.cpp
     VirtualFileMappingHandlers.cpp
     WebViewSyncOperationMarker.cpp

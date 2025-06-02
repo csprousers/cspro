@@ -1,4 +1,4 @@
-﻿LOCAL_PATH := $(call my-dir)
+LOCAL_PATH := $(call my-dir)
 JNI_PATH := $(call my-dir)
 
 include $(CLEAR_VARS)
@@ -18,6 +18,7 @@ LOCAL_SRC_FILES         += $(ZHTML_SRC_PATH)/HtmlTextConverter.cpp
 LOCAL_SRC_FILES         += $(ZHTML_SRC_PATH)/LocalhostUrl.cpp
 LOCAL_SRC_FILES         += $(ZHTML_SRC_PATH)/PortableLocalFileServer.cpp
 LOCAL_SRC_FILES         += $(ZHTML_SRC_PATH)/PortableLocalhost.cpp
+LOCAL_SRC_FILES         += $(ZHTML_SRC_PATH)/PortableSimpleServer.cpp
 LOCAL_SRC_FILES         += $(ZHTML_SRC_PATH)/Pre77ReportGumboAccessor.cpp
 LOCAL_SRC_FILES         += $(ZHTML_SRC_PATH)/VirtualFileMappingHandlers.cpp
 LOCAL_SRC_FILES         += $(ZHTML_SRC_PATH)/WebViewSyncOperationMarker.cpp

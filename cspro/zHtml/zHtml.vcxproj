@@ -137,6 +137,7 @@
     <ClCompile Include="ModalDialogSimulator.cpp" />
     <ClCompile Include="PortableLocalFileServer.cpp" />
     <ClCompile Include="PortableLocalhost.cpp" />
+    <ClCompile Include="PortableSimpleServer.cpp" />
     <ClCompile Include="Pre77ReportGumboAccessor.cpp" />
     <ClCompile Include="SharedHtmlLocalFileServer.cpp" />
     <ClCompile Include="SimpleServer.cpp" />
