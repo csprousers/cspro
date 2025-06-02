@@ -863,7 +863,7 @@ jint JNI_OnLoad(JavaVM * aVm, void * aReserved)
 
         (JNIReferences::classHtmlMapActivity = pEnv->FindClass("gov/census/cspro/maps/HtmlMapActivity")) &&
         (JNIReferences::classHtmlMapActivity = reinterpret_cast<jclass>(pEnv->NewGlobalRef(JNIReferences::classHtmlMapActivity))) &&
-        (JNIReferences::methodHtmlMapActivityHandleRequest = pEnv->GetMethodID(JNIReferences::classHtmlMapActivity, "handleRequest", "(ILjava/lang/String;)V")) &&
+        (JNIReferences::methodHtmlMapActivityHandleRequest = pEnv->GetMethodID(JNIReferences::classHtmlMapActivity, "handleRequest", "(ILjava/lang/String;)Z")) &&
 
         (JNIReferences::classAppMappingOptions = pEnv->FindClass("gov/census/cspro/engine/AppMappingOptions")) &&
         (JNIReferences::classAppMappingOptions = reinterpret_cast<jclass>(pEnv->NewGlobalRef(JNIReferences::classAppMappingOptions))) &&

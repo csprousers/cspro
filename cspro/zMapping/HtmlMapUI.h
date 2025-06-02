@@ -86,8 +86,11 @@ protected:
 
     virtual void OnSetWindowTitle(const std::string& title) = 0;
 
-    // OnShowCurrentLocation should return false if the current location is unknown.
+    // OnShowCurrentLocation should return false if the current location is unknown or will never be known.
     virtual bool OnShowCurrentLocation() = 0;
+
+    // OnHideCurrentLocation has a default implementation that posts the appropriate action message.
+    virtual void OnHideCurrentLocation();
 
 private:
     std::unique_ptr<JsonStringWriter> InitializePostActionMessage(cs::string_sz action, const std::function<void(JsonWriter&)>& callback_function);
@@ -104,7 +107,7 @@ private:
     void SetBaseMapWorker(std::optional<BaseMapSelection> base_map_selection);
     void SetBaseMapIMIS();
 
-    void SetShowCurrentLocationIMIS();
+    bool SetShowCurrentLocationIMIS();
 
     constexpr bool AreCoordinatesValid(double latitude, double longitude);
 

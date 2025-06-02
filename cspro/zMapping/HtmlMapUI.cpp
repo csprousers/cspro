@@ -540,16 +540,28 @@ bool HtmlMapUI::SetShowCurrentLocation(const bool show)
 {
     m_data->show_current_location = show;
 
-    SetShowCurrentLocationIMIS();
-
-    return true;
+    return SetShowCurrentLocationIMIS();
 }
 
 
-void HtmlMapUI::SetShowCurrentLocationIMIS()
+bool HtmlMapUI::SetShowCurrentLocationIMIS()
 {
-    if( !m_data->show_current_location|| !OnShowCurrentLocation() )
-        PostActionMessage("hideCurrentLocation");
+    if( m_data->show_current_location )
+    {
+        return OnShowCurrentLocation();
+    }
+
+    else
+    {
+        OnHideCurrentLocation();
+        return true;
+    }
+}
+
+
+void HtmlMapUI::OnHideCurrentLocation()
+{
+    PostActionMessage("hideCurrentLocation");
 }
 
 

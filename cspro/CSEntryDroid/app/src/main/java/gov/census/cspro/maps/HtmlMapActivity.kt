@@ -1,25 +1,38 @@
 package gov.census.cspro.maps
 
 import android.annotation.SuppressLint
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.Manifest
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Looper
 import android.view.View
 import android.webkit.JavascriptInterface
 import android.webkit.WebMessage
 import android.webkit.WebView
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationResult
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
 import gov.census.cspro.csentry.R
 import gov.census.cspro.engine.EngineInterface
 import gov.census.cspro.html.WebViewClientWithVirtualFileSupport
+import gov.census.cspro.location.GpsReader
 
 
 class HtmlMapActivity : AppCompatActivity() {
     private lateinit var webView: WebView
     private var jniObjectPtr: Long = -1
     private var mappingUrl: String? = null
+    private var locationProvider: FusedLocationProviderClient? = null
+    private var locationCallback: LocationCallback? = null
 
     companion object {
         const val JNI_OBJECT_PTR  = "JNI_OBJECT_PTR"
@@ -32,6 +45,8 @@ class HtmlMapActivity : AppCompatActivity() {
         const val HIDE = 2
         const val SAVE_SNAPSHOT = 3
         const val SET_WINDOW_TITLE = 4
+        const val SHOW_CURRENT_LOCATION = 5
+        const val HIDE_CURRENT_LOCATION = 6
     }
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -68,6 +83,16 @@ class HtmlMapActivity : AppCompatActivity() {
         mappingUrl?.let {
             webView.loadUrl(it)
         }
+
+        if (locationProvider != null) {
+            enableCurrentLocationUpdates()
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+
+        disableCurrentLocationUpdates()
     }
 
     override fun onDestroy() {
@@ -77,29 +102,46 @@ class HtmlMapActivity : AppCompatActivity() {
     }
 
     @RequiresApi(Build.VERSION_CODES.M)
-    fun handleRequest(type: Int, data: String?) {
+    fun handleRequest(type: Int, data: String?): Boolean {
         when (type) {
             RequestType.POST_WEB_MESSAGE -> {
                 postWebMessage(data)
+                return true
             }
             RequestType.HIDE -> {
                 runOnUiThread {
                     finish()
                 }
+                return true
             }
             RequestType.SAVE_SNAPSHOT -> {
                 data?.let {
                     saveSnapshot(it)
                 }
+                return true
             }
             RequestType.SET_WINDOW_TITLE -> {
                 data?.let {
                     runOnUiThread {
-                        setTitle(it)
+                        title = it
                     }
                 }
+                return true
+            }
+            RequestType.SHOW_CURRENT_LOCATION -> {
+                return try {
+                    enableCurrentLocationUpdates()
+                } catch (e: Exception) {
+                    false
+                }
+            }
+            RequestType.HIDE_CURRENT_LOCATION -> {
+                disableCurrentLocationUpdates()
+                return true
             }
         }
+
+        return false
     }
 
     // for sending messages to JavaScript
@@ -122,5 +164,58 @@ class HtmlMapActivity : AppCompatActivity() {
         val canvas = android.graphics.Canvas(bitmap)
         webView.draw(canvas)
         MapFragment.saveSnapshotToDisk(bitmap, imageFilePath)
+    }
+
+    private fun enableCurrentLocationUpdates(): Boolean {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            // postWebMessage requires API level 23, so there is no need to create a location
+            // provider if we cannot update the location
+            return false
+        }
+        else if (locationProvider == null) {
+            // determine if we have access to location services
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+                ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                return false
+            }
+            locationProvider = LocationServices.getFusedLocationProviderClient(this)
+        }
+        else if (locationCallback != null) {
+            // we may already be receiving location updates
+            return true
+        }
+
+        // set up the request and callback
+        val locationRequest = LocationRequest.Builder(
+            Priority.PRIORITY_HIGH_ACCURACY,
+            GpsReader.UPDATE_INTERVAL_IN_MILLISECONDS)
+            .setMinUpdateIntervalMillis(GpsReader.FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS)
+            .build()
+
+        locationCallback = object : LocationCallback() {
+            override fun onLocationResult(result: LocationResult) {
+                val location = result.lastLocation
+                location?.let {
+                    postWebMessage("{ \"action\": \"updateCurrentLocation\", \"latitude\": ${it.latitude}, \"longitude\": ${it.longitude} }")
+                }
+            }
+        }
+
+        locationCallback?.let {
+            locationProvider!!.requestLocationUpdates(
+                locationRequest,
+                it,
+                Looper.getMainLooper()
+            )
+        }
+
+        return true
+    }
+
+    private fun disableCurrentLocationUpdates() {
+        locationCallback?.let {
+            locationProvider?.removeLocationUpdates(it)
+            locationCallback = null
+        }
     }
 }

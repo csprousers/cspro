@@ -12,10 +12,12 @@ namespace
 
 namespace RequestType
 {
-    constexpr int POST_WEB_MESSAGE = 1;
-    constexpr int HIDE             = 2;
-    constexpr int SAVE_SNAPSHOT    = 3;
-    constexpr int SET_WINDOW_TITLE = 4;
+    constexpr int POST_WEB_MESSAGE      = 1;
+    constexpr int HIDE                  = 2;
+    constexpr int SAVE_SNAPSHOT         = 3;
+    constexpr int SET_WINDOW_TITLE      = 4;
+    constexpr int SHOW_CURRENT_LOCATION = 5;
+    constexpr int HIDE_CURRENT_LOCATION = 6;
 }
 
 
@@ -95,7 +97,7 @@ bool AndroidHtmlMapUI::Hide()
 
     JNIEnv* const jni_env = GetJNIEnvForCurrentThread();
 
-    jni_env->CallVoidMethod(
+    jni_env->CallBooleanMethod(
         m_jHtmlMapActivity,
         JNIReferences::methodHtmlMapActivityHandleRequest,
         RequestType::HIDE,
@@ -117,7 +119,7 @@ bool AndroidHtmlMapUI::SaveSnapshot(const std::string& image_file_path)
     JNIEnv* const jni_env = GetJNIEnvForCurrentThread();
     JNIReferences::scoped_local_ref<jstring> jImageFilePath(jni_env, JavaString::ToJava(*jni_env, image_file_path));
 
-    jni_env->CallVoidMethod(
+    jni_env->CallBooleanMethod(
         m_jHtmlMapActivity,
         JNIReferences::methodHtmlMapActivityHandleRequest,
         RequestType::SAVE_SNAPSHOT,
@@ -164,7 +166,7 @@ void AndroidHtmlMapUI::OnPostActionMessage(const SharableString action_message_j
     JNIEnv* const jni_env = GetJNIEnvForCurrentThread();
     JNIReferences::scoped_local_ref<jstring> jActionMessageJson(jni_env, JavaString::ToJava(*jni_env, *action_message_json));
 
-    jni_env->CallVoidMethod(
+    jni_env->CallBooleanMethod(
         m_jHtmlMapActivity,
         JNIReferences::methodHtmlMapActivityHandleRequest,
         RequestType::POST_WEB_MESSAGE,
@@ -194,7 +196,7 @@ void AndroidHtmlMapUI::OnSetWindowTitle(const std::string& title)
     JNIEnv* const jni_env = GetJNIEnvForCurrentThread();
     JNIReferences::scoped_local_ref<jstring> jTitle(jni_env, JavaString::ToJava(*jni_env, title));
 
-    jni_env->CallVoidMethod(
+    jni_env->CallBooleanMethod(
         m_jHtmlMapActivity,
         JNIReferences::methodHtmlMapActivityHandleRequest,
         RequestType::SET_WINDOW_TITLE,
@@ -205,5 +207,29 @@ void AndroidHtmlMapUI::OnSetWindowTitle(const std::string& title)
 
 bool AndroidHtmlMapUI::OnShowCurrentLocation()
 {
-    return false; // MAP_TODO
+    return OnShowHideCurrentLocation(RequestType::SHOW_CURRENT_LOCATION);
+}
+
+
+void AndroidHtmlMapUI::OnHideCurrentLocation()
+{
+    HtmlMapUI::OnHideCurrentLocation();
+
+    OnShowHideCurrentLocation(RequestType::HIDE_CURRENT_LOCATION);
+}
+
+
+bool AndroidHtmlMapUI::OnShowHideCurrentLocation(const int request_type)
+{
+    if( !AndroidHtmlMapUI::IsMapShowing() )
+        return true;
+
+    JNIEnv* const jni_env = GetJNIEnvForCurrentThread();
+
+    return jni_env->CallBooleanMethod(
+        m_jHtmlMapActivity,
+        JNIReferences::methodHtmlMapActivityHandleRequest,
+        request_type,
+        nullptr
+    );
 }

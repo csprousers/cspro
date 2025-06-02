@@ -8,6 +8,7 @@ WindowsMapUISingleThread::WindowsMapUISingleThread(cs::non_null_shared_or_raw_pt
 {
 }
 
+
 WindowsMapUISingleThread::~WindowsMapUISingleThread()
 {
 }

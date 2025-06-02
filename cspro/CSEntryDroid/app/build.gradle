@@ -145,7 +145,7 @@ dependencies {
     implementation 'com.android.support:multidex:1.0.3'//:2.0.1 breaks for lower API
 
     implementation 'com.google.android.gms:play-services-maps:18.2.0'
-    implementation 'com.google.android.gms:play-services-location:16.0.0'
+    implementation 'com.google.android.gms:play-services-location:21.3.0'
     implementation 'com.google.android.gms:play-services-vision:19.0.0'
     implementation 'com.google.maps.android:android-maps-utils:0.5'
 

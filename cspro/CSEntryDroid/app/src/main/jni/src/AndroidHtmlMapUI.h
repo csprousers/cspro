@@ -25,7 +25,7 @@ public:
 
     MapEvent WaitForEvent() override;
 
-private:
+protected:
     // HtmlMapUI overrides
     bool IsMapShowing() override;
 
@@ -36,6 +36,10 @@ private:
     void OnSetWindowTitle(const std::string& title) override;
 
     bool OnShowCurrentLocation() override;
+    void OnHideCurrentLocation() override;
+
+private:
+    bool OnShowHideCurrentLocation(int request_type);
 
 private:
     jobject m_jHtmlMapActivity;
