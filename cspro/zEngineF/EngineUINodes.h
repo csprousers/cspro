@@ -1,5 +1,7 @@
 ﻿#pragma once
 
+class IMapUI;
+class MappingProperties;
 class PFF;
 class PffExecutor;
 class SystemApp;
@@ -30,6 +32,13 @@ namespace EngineUI
         Action action;
         SharableString overlay_message; // nullable
         std::string output_file_path;
+    };
+
+
+    struct CreateMapUINode
+    {
+        std::unique_ptr<IMapUI>& map_ui;
+        cs::non_null_shared_or_raw_ptr<const MappingProperties> mapping_properties;
     };
 
 

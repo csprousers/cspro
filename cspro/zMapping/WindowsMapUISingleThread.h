@@ -9,6 +9,7 @@ public:
     WindowsMapUISingleThread(cs::non_null_shared_or_raw_ptr<const MappingProperties> mapping_properties);
     ~WindowsMapUISingleThread();
 
+    // IMapUI overrides
     bool Hide() override;
 
     MapEvent WaitForEvent() override;
@@ -20,7 +21,7 @@ protected:
     WindowsMapDlg* GetMapDlgForAction() override;
 
     // HtmlMapUI overrides
-    void OnNotifyEvent(std::unique_ptr<IMapUI::MapEvent> event) override;
+    void OnNotifyEvent(std::unique_ptr<MapEvent> event) override;
 
 private:
     std::unique_ptr<WindowsMapDlg> m_mapDlg;

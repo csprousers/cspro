@@ -4,7 +4,6 @@
 #include <zEngineF/EngineUINodes.h>
 #include <zPlatformO/PlatformInterface.h>
 
-class IMapUI;
 class Userbar;
 class Viewer;
 
@@ -21,7 +20,7 @@ private:
     // platform-specific
     long CaptureImage(EngineUI::CaptureImageNode& capture_image_node);
     long ColorizeLogic(EngineUI::ColorizeLogicNode& colorize_logic_node);
-    long CreateMapUI(std::unique_ptr<IMapUI>& map_ui);
+    long CreateMapUI(EngineUI::CreateMapUINode& create_map_ui_node);
     long CreateUserbar(std::unique_ptr<Userbar>& userbar);
     long EditNote(EngineUI::EditNoteNode& edit_note_node);
     long ExecSystemApp(EngineUI::ExecSystemAppNode& exec_system_app_node);

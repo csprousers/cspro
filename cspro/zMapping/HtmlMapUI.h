@@ -3,6 +3,7 @@
 #include <zMapping/zMapping.h>
 #include <zMapping/IMapUI.h>
 
+class JsonStringWriter;
 class MappingProperties;
 class OfflineTileReader;
 
@@ -81,7 +82,7 @@ protected:
     // OnPostActionMessage will only be called when the map is showing.
     virtual void OnPostActionMessage(SharableString action_message_json) = 0;
 
-    virtual void OnNotifyEvent(std::unique_ptr<IMapUI::MapEvent> event) = 0;
+    virtual void OnNotifyEvent(std::unique_ptr<MapEvent> event) = 0;
 
     virtual void OnSetWindowTitle(const std::string& title) = 0;
 

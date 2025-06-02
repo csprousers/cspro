@@ -303,9 +303,9 @@ std::unique_ptr<FtpConnection> AndroidApplicationInterface::CreateFtpConnection(
 }
 
 
-void AndroidApplicationInterface::CreateMapUI(std::unique_ptr<IMapUI>& map_ui)
+void AndroidApplicationInterface::CreateMapUI(EngineUI::CreateMapUINode& create_map_ui_node)
 {
-    map_ui = std::make_unique<AndroidMapUI>();
+    create_map_ui_node.map_ui = std::make_unique<AndroidMapUI>();
 }
 
 

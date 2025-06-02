@@ -5,6 +5,12 @@
 #include "WindowsMapUIThreadRunner.h"
 
 
+namespace
+{
+    constexpr DWORD SleepInterval = 100; // 100 milliseconds
+}
+
+
 WindowsMapUI::WindowsMapUI(cs::non_null_shared_or_raw_ptr<const MappingProperties> mapping_properties)
     :   HtmlMapUI(std::move(mapping_properties))
 {
@@ -47,7 +53,7 @@ bool WindowsMapUI::WindowsShow()
         // if the map was hidden using map.hide(), there will be an
         // unprocessed map closing event posted by WindowsMapDlg's destructor
         std::lock_guard<std::mutex> lock(m_mapEventMutex);
-        ASSERT(m_mapEvent->code == IMapUI::EventCode::MapClosed);
+        ASSERT(m_mapEvent->code == EventCode::MapClosed);
         m_mapEvent.reset();
     }
 
@@ -104,11 +110,11 @@ bool WindowsMapUI::SaveSnapshot(const std::string& image_file_path)
 
 IMapUI::MapEvent WindowsMapUI::WaitForEvent()
 {
-    std::unique_ptr<MapEvent> received_map_event;
-
     // wait for an event
     while( m_mapEvent == nullptr )
-        Sleep(5);
+        Sleep(SleepInterval);
+
+    std::unique_ptr<MapEvent> received_map_event;
 
     // lock guard
     {
@@ -118,7 +124,7 @@ IMapUI::MapEvent WindowsMapUI::WaitForEvent()
 
     // if the dialog is closing, wait for the show thread to terminate
     // before returning the event to the engine
-    if( received_map_event->code == IMapUI::EventCode::MapClosed )
+    if( received_map_event->code == EventCode::MapClosed )
         WaitForShowThreadToTerminate();
 
     return *received_map_event;
@@ -140,13 +146,13 @@ void WindowsMapUI::OnPostActionMessage(SharableString action_message_json)
 }
 
 
-void WindowsMapUI::OnNotifyEvent(std::unique_ptr<IMapUI::MapEvent> event)
+void WindowsMapUI::OnNotifyEvent(std::unique_ptr<MapEvent> event)
 {
     ASSERT(event != nullptr);
 
     // wait until any existing events have been processed by the engine
     while( m_mapEvent != nullptr )
-        Sleep(5);
+        Sleep(SleepInterval);
 
     std::lock_guard<std::mutex> lock(m_mapEventMutex);
     m_mapEvent = std::move(event);

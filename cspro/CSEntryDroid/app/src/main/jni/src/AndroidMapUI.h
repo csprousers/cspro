@@ -38,13 +38,12 @@ public:
     int AddMarker(double latitude, double longitude) override;
     bool RemoveMarker(int marker_id) override;
     void ClearMarkers() override;
-
     bool SetMarkerImage(int marker_id, const std::string& image_url_or_file_path) override;
     bool SetMarkerText(int marker_id, SharableString text, int background_color, int text_color) override;
+    bool SetMarkerDescription(int marker_id, SharableString description) override;
     bool SetMarkerOnClick(int marker_id, int on_click_callback) override;
     bool SetMarkerOnClickInfoWindow(int marker_id, int on_click_callback) override;
     bool SetMarkerOnDrag(int marker_id, int on_drag_callback) override;
-    bool SetMarkerDescription(int marker_id, SharableString description) override;
     bool SetMarkerLocation(int marker_id, double latitude, double longitude) override;
     std::optional<std::tuple<double, double>> GetMarkerLocation(int marker_id) override;
 

@@ -9,8 +9,9 @@
 // LogicMap
 // --------------------------------------------------------------------------
 
-LogicMap::LogicMap(std::string map_name)
+LogicMap::LogicMap(std::string map_name, const EngineData& engine_data)
     :   Symbol(std::move(map_name), SymbolType::Map),
+        m_engineData(engine_data),
         m_showing(false),
         m_onClickMapCallbackId(-1),
         m_lastClickLatitude(NOTAPPL),
@@ -21,6 +22,7 @@ LogicMap::LogicMap(std::string map_name)
 
 LogicMap::LogicMap(const LogicMap& logic_map)
     :   Symbol(logic_map),
+        m_engineData(logic_map.m_engineData),
         m_showing(false),
         m_onClickMapCallbackId(-1),
         m_lastClickLatitude(NOTAPPL),
@@ -56,7 +58,18 @@ void LogicMap::Reset()
 IMapUI* LogicMap::GetMapUI()
 {
     if( m_mapUI == nullptr )
-        SendEngineUIMessage(EngineUI::Type::CreateMapUI, m_mapUI);
+    {
+        if( m_engineData.application == nullptr )
+            return ReturnProgrammingError(nullptr);
+
+        EngineUI::CreateMapUINode create_map_ui_node
+        {
+            m_mapUI,
+            &m_engineData.application->GetApplicationProperties().GetMappingProperties()
+        };
+
+        SendEngineUIMessage(EngineUI::Type::CreateMapUI, create_map_ui_node);
+    }
 
     return m_mapUI.get();
 }

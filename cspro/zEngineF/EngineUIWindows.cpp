@@ -7,7 +7,6 @@
 #include <zToolsO/WinRegistry.h>
 #include <zUtilO/Viewers.h>
 #include <zHtml/PortableLocalhost.h>
-#include <zAppO/Properties/ApplicationProperties.h>
 #include <zEngineO/PffExecutor.h>
 #include <zEngineO/SystemApp.h>
 #include <zMapping/WindowsMapUI.h>
@@ -41,21 +40,16 @@ long EngineUIProcessor::ColorizeLogic(EngineUI::ColorizeLogicNode& colorize_logi
 }
 
 
-long EngineUIProcessor::CreateMapUI(std::unique_ptr<IMapUI>& map_ui)
+long EngineUIProcessor::CreateMapUI(EngineUI::CreateMapUINode& create_map_ui_node)
 {
-    if( m_pff == nullptr )
-        return ReturnProgrammingError(0);
-
-    const MappingProperties& mapping_properties = m_pff->GetApplication()->GetApplicationProperties().GetMappingProperties();
-
     if( m_engineRunsOnUIThread )
     {
-        map_ui = std::make_unique<WindowsMapUISingleThread>(&mapping_properties);
+        create_map_ui_node.map_ui = std::make_unique<WindowsMapUISingleThread>(std::move(create_map_ui_node.mapping_properties));
     }
 
     else
     {
-        map_ui = std::make_unique<WindowsMapUI>(&mapping_properties);
+        create_map_ui_node.map_ui = std::make_unique<WindowsMapUI>(std::move(create_map_ui_node.mapping_properties));
     }
 
     return 1;

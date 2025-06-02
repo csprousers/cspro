@@ -46,7 +46,7 @@ public:
         m_callbackFunctions.emplace_back(std::move(callback_function));
     }
 
-    void OnNotifyEvent(std::unique_ptr<IMapUI::MapEvent> event) override
+    void OnNotifyEvent(std::unique_ptr<MapEvent> event) override
     {
         ASSERT(event != nullptr);
 

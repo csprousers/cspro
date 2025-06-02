@@ -7,7 +7,7 @@ LogicMap* LogicCompiler::CompileLogicMapDeclaration()
 {
     std::string map_name = CompileNewSymbolName();
 
-    auto logic_map = std::make_shared<LogicMap>(std::move(map_name));
+    auto logic_map = std::make_shared<LogicMap>(std::move(map_name), *m_engineData);
 
     m_engineData->AddSymbol(logic_map);
 

@@ -65,7 +65,7 @@ IMapUI::MapEvent WindowsMapUISingleThread::WaitForEvent()
 }
 
 
-void WindowsMapUISingleThread::OnNotifyEvent(std::unique_ptr<IMapUI::MapEvent> event)
+void WindowsMapUISingleThread::OnNotifyEvent(std::unique_ptr<MapEvent> event)
 {
     ASSERT(event != nullptr);
 

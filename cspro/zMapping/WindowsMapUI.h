@@ -20,6 +20,7 @@ public:
     WindowsMapUI(cs::non_null_shared_or_raw_ptr<const MappingProperties> mapping_properties);
     ~WindowsMapUI();
 
+    // IMapUI overrides
     bool Show() override;
     bool Hide() override;
 
@@ -33,7 +34,7 @@ protected:
 
     void OnPostActionMessage(SharableString action_message_json) override;
 
-    void OnNotifyEvent(std::unique_ptr<IMapUI::MapEvent> event) override;
+    void OnNotifyEvent(std::unique_ptr<MapEvent> event) override;
 
     void OnSetWindowTitle(const std::string& title) override;
 

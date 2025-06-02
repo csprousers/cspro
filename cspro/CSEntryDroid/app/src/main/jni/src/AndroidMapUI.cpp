@@ -200,6 +200,16 @@ bool AndroidMapUI::SetMarkerText(const int marker_id, const SharableString text,
 }
 
 
+bool AndroidMapUI::SetMarkerDescription(const int marker_id, const SharableString description)
+{
+    JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
+    JNIReferences::scoped_local_ref<jstring> jDescription(pEnv, JavaString::ToJava(*pEnv, *description));
+
+    return pEnv->CallIntMethod(m_javaImpl, JNIReferences::methodAndroidMapUISetMarkerDescription,
+                               marker_id, jDescription.get());
+}
+
+
 bool AndroidMapUI::SetMarkerOnClick(const int marker_id, const int on_click_callback)
 {
     JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
@@ -224,16 +234,6 @@ bool AndroidMapUI::SetMarkerOnDrag(const int marker_id, const int on_drag_callba
 
     return pEnv->CallIntMethod(m_javaImpl, JNIReferences::methodAndroidMapUISetMarkerOnDrag,
                                marker_id, on_drag_callback);
-}
-
-
-bool AndroidMapUI::SetMarkerDescription(const int marker_id, const SharableString description)
-{
-    JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
-    JNIReferences::scoped_local_ref<jstring> jDescription(pEnv, JavaString::ToJava(*pEnv, *description));
-
-    return pEnv->CallIntMethod(m_javaImpl, JNIReferences::methodAndroidMapUISetMarkerDescription,
-                               marker_id, jDescription.get());
 }
 
 
@@ -305,6 +305,35 @@ void AndroidMapUI::ClearButtons()
 }
 
 
+int AndroidMapUI::AddGeometry(std::shared_ptr<const Geometry::FeatureCollection> geometry, std::shared_ptr<const Geometry::BoundingBox> bounds)
+{
+    ASSERT(geometry != nullptr && bounds != nullptr);
+
+    JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
+
+    auto jFeatureCollection = GeometryJni::featureCollectionToJava(pEnv, *geometry, *bounds);
+
+    return pEnv->CallIntMethod(m_javaImpl, JNIReferences::methodAndroidMapUIAddGeometry, jFeatureCollection.get());
+}
+
+
+bool AndroidMapUI::RemoveGeometry(const int geometry_id)
+{
+    JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
+
+    return pEnv->CallIntMethod(m_javaImpl, JNIReferences::methodAndroidMapUIRemoveGeometry,
+                               geometry_id);
+}
+
+
+void AndroidMapUI::ClearGeometry()
+{
+    JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
+
+    return pEnv->CallVoidMethod(m_javaImpl, JNIReferences::methodAndroidMapUIClearGeometry);
+}
+
+
 IMapUI::MapEvent AndroidMapUI::WaitForEvent()
 {
     JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
@@ -333,33 +362,4 @@ IMapUI::MapEvent AndroidMapUI::WaitForEvent()
     pEnv->DeleteLocalRef(jcamera);
 
     return event;
-}
-
-
-int AndroidMapUI::AddGeometry(std::shared_ptr<const Geometry::FeatureCollection> geometry, std::shared_ptr<const Geometry::BoundingBox> bounds)
-{
-    ASSERT(geometry != nullptr && bounds != nullptr);
-
-    JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
-
-    auto jFeatureCollection = GeometryJni::featureCollectionToJava(pEnv, *geometry, *bounds);
-
-    return pEnv->CallIntMethod(m_javaImpl, JNIReferences::methodAndroidMapUIAddGeometry, jFeatureCollection.get());
-}
-
-
-bool AndroidMapUI::RemoveGeometry(const int geometry_id)
-{
-    JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
-
-    return pEnv->CallIntMethod(m_javaImpl, JNIReferences::methodAndroidMapUIRemoveGeometry,
-                               geometry_id);
-}
-
-
-void AndroidMapUI::ClearGeometry()
-{
-    JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
-
-    return pEnv->CallVoidMethod(m_javaImpl, JNIReferences::methodAndroidMapUIClearGeometry);
 }
