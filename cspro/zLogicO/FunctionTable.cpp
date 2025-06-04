@@ -2109,8 +2109,8 @@ namespace
             {
                 SymbolType::Array,          SymbolType::Audio,          SymbolType::Document,       SymbolType::Dictionary,     SymbolType::Pre80Dictionary,
                 SymbolType::File,           SymbolType::Geometry,       SymbolType::HashMap,        SymbolType::Image,          SymbolType::List,
-                SymbolType::NamedFrequency, SymbolType::Record,         SymbolType::Report,         SymbolType::SystemApp,      SymbolType::ValueSet,
-                SymbolType::WorkString,     SymbolType::WorkVariable
+                SymbolType::NamedFrequency, SymbolType::Record,         SymbolType::Report,         SymbolType::StringWriter,   SymbolType::SystemApp,
+                SymbolType::ValueSet,       SymbolType::WorkString,     SymbolType::WorkVariable
             },
             DataType::String,
             FunctionCompilationType::Symbol,
@@ -2124,8 +2124,8 @@ namespace
             std::vector<SymbolType>
             {
                 SymbolType::Array,          SymbolType::Audio,          SymbolType::Document,       SymbolType::Geometry,       SymbolType::HashMap,
-                SymbolType::Image,          SymbolType::List,           SymbolType::Report,         SymbolType::SystemApp,      SymbolType::ValueSet,
-                SymbolType::WorkString,     SymbolType::WorkVariable
+                SymbolType::Image,          SymbolType::List,           SymbolType::Report,         SymbolType::StringWriter,   SymbolType::SystemApp,
+                SymbolType::ValueSet,       SymbolType::WorkString,     SymbolType::WorkVariable
             },
             DataType::Numeric,
             FunctionCompilationType::Symbol,
@@ -2138,9 +2138,10 @@ namespace
             FunctionCode::SYMBOLFN_SETVALUEFROMJSON_CODE,
             std::vector<SymbolType>
             {
+                // updateValueFromJson is deprecated so do not add anything added post-CSPro 8.0 here
                 SymbolType::Array,          SymbolType::Audio,          SymbolType::Document,       SymbolType::Geometry,       SymbolType::HashMap,
-                SymbolType::Image,          SymbolType::List,           SymbolType::Report,         SymbolType::SystemApp,      SymbolType::ValueSet,
-                SymbolType::WorkString,     SymbolType::WorkVariable
+                SymbolType::Image,          SymbolType::List,           SymbolType::SystemApp,      SymbolType::ValueSet,       SymbolType::WorkString,
+                SymbolType::WorkVariable
             },
             DataType::Numeric,
             FunctionCompilationType::Symbol,
@@ -3416,6 +3417,16 @@ namespace
         // --------------------------------------------------------------------------
         // StringWriter functions
         // --------------------------------------------------------------------------
+        {
+            "clear",
+            "string_writer_name.clear()",
+            "StringWriter_clear_function.html",
+            FunctionCode::STRINGWRITERFN_CLEAR_CODE,
+            SymbolType::StringWriter,
+            DataType::Numeric,
+            FunctionCompilationType::StringWriter,
+            0,
+        },
         {
             "toString",
             "string_writer_name.toString()",

@@ -262,42 +262,50 @@ std::string CIntDriver::ProcName()
         return "Unknown";
 
     const Symbol& symbol = NPT_Ref(m_iExSymbol);
-    CString csObjName = UTF8_TODO::GetCString(symbol.GetName());
-    CString csExProcName;
+    const SymbolType symbol_type = symbol.GetType();
 
-    SymbolType eType = symbol.GetType();
-    csprochar const* obj_type;
-
-    if( eType == SymbolType::Pre80Dictionary ) {
-        obj_type = _T("Dict");
-        csExProcName.Format( _T("%s %s Level %d %s"), obj_type, csObjName.GetString(), m_iExLevel, UTF8_TODO::GetWide(GetProcTypeName(m_procType)).c_str());
-    }
-    else {
-        if( eType == SymbolType::Section ) {
-            if( !is_digit(csObjName[0]) )
-                obj_type = _T("Sect");
-            else
-                obj_type = _T("View");
-        }
-        else if( eType == SymbolType::Group ) {
-            GROUPT*     pGroupT=(GROUPT*)&symbol;
-            obj_type = (pGroupT->GetGroupType() == GROUPT::Level) ? _T("Level") : _T("Group");
-        }
-        else if( eType == SymbolType::Crosstab ) {
-            obj_type = _T("Table");
-        }
-        else if( eType == SymbolType::Block ) {
-            obj_type = _T("Block");
-        }
-        else {
-            ASSERT( eType == SymbolType::Variable ); // RHF Oct 29, 2002
-            obj_type = _T("Var");
-        }
-
-        csExProcName.Format( _T("%s %s %s"), obj_type, csObjName.GetString(), UTF8_TODO::GetWide(GetProcTypeName(m_procType)).c_str() );
+    if( symbol_type == SymbolType::Pre80Dictionary )
+    {
+        return FormatText("Dict %s Level %d %s", symbol.GetName().c_str(), m_iExLevel, GetProcTypeName(m_procType));
     }
 
-    return UTF8_TODO::GetUtf8(csExProcName);
+    else if( symbol_type == SymbolType::Report )
+    {
+        return "Report " + symbol.GetName();
+    }
+
+    else
+    {
+        const char* type;
+
+        if( symbol_type == SymbolType::Section )
+        {
+            type = is_digit(symbol.GetName().front()) ? "View" : "Sect";
+        }
+
+        else if( symbol_type == SymbolType::Group )
+        {
+            type = ( assert_cast<const GROUPT&>(symbol).GetGroupType() == GROUPT::Level ) ? "Level" : "Group";
+        }
+
+        else if( symbol_type == SymbolType::Crosstab )
+        {
+            type = "Table";
+        }
+
+        else if( symbol_type == SymbolType::Block )
+        {
+            type = "Block";
+        }
+
+        else
+        {
+            ASSERT(symbol_type == SymbolType::Variable); // RHF Oct 29, 2002
+            type = "Var";
+        }
+
+        return FormatText("%s %s %s", type, symbol.GetName().c_str(), GetProcTypeName(m_procType));
+    }
 }
 
 
@@ -827,6 +835,7 @@ CIntDriver::pDoubleFunction CIntDriver::m_pExFuncs[] =
 /* 466 */   &CIntDriver::ex_TextTemplate_write_writeEncoded_writeEncodedLine_writeLine, // Report/StringWriter.writeEncodedLine
 /* 467 */   &CIntDriver::ex_TextTemplate_write_writeEncoded_writeEncodedLine_writeLine, // Report/StringWriter.writeLine
 /* 468 */   &CIntDriver::ex_StringWriter_toString,
+/* 469 */   &CIntDriver::ex_StringWriter_clear,
 
 
             // placeholders to allow new logic functions to be added to an existing serialization

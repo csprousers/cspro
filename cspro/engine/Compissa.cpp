@@ -404,7 +404,7 @@ int CEngineCompFunc::CompileCapiLogic(const CapiLogicParameters& capi_logic_para
             local_symbol_stack.emplace(m_symbolTable.CreateLocalSymbolStack());
 
             if( m_engineData->question_text_string_writer == nullptr )
-                m_engineData->question_text_string_writer = std::make_unique<StringWriter>(QuestionTextStringWriterName);
+                m_engineData->question_text_string_writer = std::make_unique<StringWriter>(QuestionTextStringWriterName, *m_engineData);
 
             m_engineData->question_text_string_writer->ResetForQuestionText(capi_text.GetEncodeType());
 

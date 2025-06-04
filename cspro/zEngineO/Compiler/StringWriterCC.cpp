@@ -44,8 +44,8 @@ StringWriter* LogicCompiler::CompileStringWriterDeclaration(const bool compiling
     }
 
     auto string_writer = std::holds_alternative<EncodeType>(encode_type_or_symbol) ?
-        std::make_shared<StringWriter>(std::move(string_writer_name), std::get<0>(encode_type_or_symbol)) :
-        std::make_shared<StringWriter>(std::move(string_writer_name), std::get<1>(encode_type_or_symbol).get());
+        std::make_shared<StringWriter>(std::move(string_writer_name), std::get<0>(encode_type_or_symbol), *m_engineData) :
+        std::make_shared<StringWriter>(std::move(string_writer_name), std::get<1>(encode_type_or_symbol).get(), *m_engineData);
 
     m_engineData->AddSymbol(string_writer);
 
@@ -76,7 +76,8 @@ int LogicCompiler::CompileStringWriterDeclarations()
 
 int LogicCompiler::CompileStringWriterFunctions()
 {
-    // compiling: string_writer.toString();
+    // compiling: string_writer.clear();
+    //            string_writer.toString();
     const FunctionCode function_code = CurrentToken.function_details->code;
     const StringWriter& string_writer = *assert_cast<const StringWriter*>(CurrentToken.symbol);
 

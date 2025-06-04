@@ -607,6 +607,7 @@ protected: // INTERPRETER_DLL_TODO change to private
     // (StringWriterRT.cpp)
     // --------------------------------------------------------------------------
 public:
+    double ex_StringWriter_clear(int program_index);
     double ex_StringWriter_toString(int program_index);
 
 

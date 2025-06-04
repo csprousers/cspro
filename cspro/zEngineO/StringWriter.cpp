@@ -3,15 +3,17 @@
 #include "Nodes/TextTemplate.h"
 
 
-StringWriter::StringWriter(std::string string_writer_name, const EncodeType encode_type)
+StringWriter::StringWriter(std::string string_writer_name, const EncodeType encode_type, const EngineData& engine_data)
     :   Symbol(std::move(string_writer_name), SymbolType::StringWriter),
+        m_engineData(engine_data),
         m_encodeType(encode_type)
 {
 }
 
 
-StringWriter::StringWriter(std::string string_writer_name, const Symbol& symbol)
+StringWriter::StringWriter(std::string string_writer_name, const Symbol& symbol, const EngineData& engine_data)
     :   Symbol(std::move(string_writer_name), SymbolType::StringWriter),
+        m_engineData(engine_data),
         m_encodeType(EncodeType::Default),
         m_output(symbol.GetSymbolIndex())
 {
@@ -19,8 +21,8 @@ StringWriter::StringWriter(std::string string_writer_name, const Symbol& symbol)
 }
 
 
-StringWriter::StringWriter(std::string string_writer_name)
-    :   StringWriter(std::move(string_writer_name), EncodeType::Default)
+StringWriter::StringWriter(std::string string_writer_name, const EngineData& engine_data)
+    :   StringWriter(std::move(string_writer_name), EncodeType::Default, engine_data)
 {
 }
 
@@ -67,7 +69,38 @@ void StringWriter::serialize_subclass(Serializer& ar)
 }
 
 
+void StringWriter::WriteJsonMetadata_subclass(JsonWriter& json_writer) const
+{
+    if( std::holds_alternative<int>(m_output) )
+    {
+        m_engineData.symbol_table.GetAt(std::get<int>(m_output)).WriteJsonMetadata_subclass(json_writer);
+        return;
+    }
+
+    json_writer.Write(JK::encoding, ( m_encodeType == EncodeType::Default ) ? "default" :
+                                                                              EncodeTypeStrings[static_cast<size_t>(m_encodeType) - 1]);
+}
+
+
 void StringWriter::WriteValueToJson(JsonWriter& json_writer) const
 {
-    json_writer; // SW_TODO
+    if( std::holds_alternative<int>(m_output) )
+    {
+        m_engineData.symbol_table.GetAt(std::get<int>(m_output)).WriteValueToJson(json_writer);
+        return;
+    }
+
+    json_writer.WriteEngineValue(std::get<SharableString>(m_output));
+}
+
+
+void StringWriter::SetValueFromJson(const JsonNode& json_node)
+{
+    if( std::holds_alternative<int>(m_output) )
+    {
+        m_engineData.symbol_table.GetAt(std::get<int>(m_output)).SetValueFromJson(json_node);
+        return;
+    }
+
+    std::get<SharableString>(m_output) = json_node.GetEngineValue<SharableString>();
 }

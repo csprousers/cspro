@@ -192,7 +192,7 @@ std::unique_ptr<Symbol> CEngineArea::CreateSymbol(std::string symbol_name, const
                 return std::make_unique<SECT>((std::move(symbol_name)), m_pEngineDriver);
 
             case SymbolType::StringWriter:
-                return std::make_unique<StringWriter>(std::move(symbol_name));
+                return std::make_unique<StringWriter>(std::move(symbol_name), *m_engineData);
 
             case SymbolType::SystemApp:
                 return std::make_unique<SystemApp>(std::move(symbol_name));
