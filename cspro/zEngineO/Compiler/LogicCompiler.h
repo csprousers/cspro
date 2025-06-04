@@ -497,11 +497,11 @@ public:
 public:
     int CompileTextTemplateFunctions();
 
-private:
     // If the symbol is a StringWriter, the underlying type (e.g., a Report) is returned.
     // An exception is thrown is the symbol is not currently accessible.
     const Symbol& CheckTextTemplateIsCurrentlyAccessible(const Symbol& symbol);
 
+private:
     std::unique_ptr<Logic::SourceBuffer> ConvertTextTemplateToSourceBuffer(const char* text_template_name, std::string_view text_template_sv, bool allow_logic_escapes);
     std::unique_ptr<Logic::SourceBuffer> ConvertTextTemplateToSourceBuffer(const char* text_template_name, TextTemplateTokenizer& text_template_tokenizer);
 
