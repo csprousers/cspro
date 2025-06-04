@@ -593,7 +593,6 @@ Language=EN
 
 /* --- Question Text */
 48011  The question text condition must consist of a single numeric expression
-48012  The question text fill must consist of a single numeric or string expression, or an object with binary data
 
 /* --- Text Templates */
 48101  Unbalanced ?> escapes in text template on line number %d

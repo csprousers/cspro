@@ -12,10 +12,60 @@
 #include "Engine.h"
 #include "Entdrv.h"
 #include "ProgramControl.h"
+#include <zEngineO/StringWriter.h>
 #include <zToolsO/Encoders.h>
 #include <zCapiO/CapiName.h>
 #include <zCapiO/CapiQuestionManager.h>
 #include <sstream>
+
+namespace Pre81Capi { class CapiFill; }
+
+
+template<typename T>
+auto CIntDriver::EvaluateCapiLogic(const Symbol& symbol, const int program_index)
+{
+    ASSERT(symbol.IsOneOf(SymbolType::Block, SymbolType::Variable));
+    ASSERT(program_index != -1);
+
+    // setup execution parameters
+    m_procType = ProcType::OnFocus;
+    m_iExSymbol = symbol.GetSymbolIndex();
+    m_iExLevel = SymbolCalculator::GetLevelNumber_base1(symbol);
+
+    // these statements clear any preexisting stuff that might have been going on
+    m_bSkipStmt = false;
+    m_bStopExec = m_bStopProc;
+    SetRequestIssued(false);
+
+    try
+    {
+        // evaluate the condition's logic...
+        if constexpr(std::is_same_v<T, CapiCondition>)
+        {
+            return EvaluateConditional(program_index);
+        }
+
+        // ... or the question text
+        else if constexpr(std::is_same_v<T, CapiText>)
+        {
+            ExecuteProgramStatements(program_index);
+            return true;
+        }
+
+        // ...or a pre-8.1 question text fill
+        else
+        {
+            static_assert(std::is_same_v<T, Pre81Capi::CapiFill>);
+            return EvaluateTextFill(program_index);
+        }
+    }
+
+    // HTML_QSF_TODO what should happen if exceptions are thrown / movement requests are issued?
+    catch( const ProgramControlException& ) { }
+
+    using ReturnTypeT = typename std::conditional<std::is_same_v<T, Pre81Capi::CapiFill>, SharableString, bool>::type;
+    return ReturnTypeT();
+}
 
 
 SharableString CIntDriver::EvaluateCapiText(const std::string& language_name, const bool is_question, const int symbol_index)
@@ -36,7 +86,7 @@ SharableString CIntDriver::EvaluateCapiText(const CapiQuestion& question, const 
     for( const CapiCondition& condition : question.GetConditions() )
     {
         if( condition.GetProgramIndex() == -1 ||
-            EvaluateCapiLogic<bool>(symbol, condition.GetProgramIndex()) )
+            EvaluateCapiLogic<CapiCondition>(symbol, condition.GetProgramIndex()) )
         {
             matched_condition = &condition;
             break;
@@ -68,45 +118,17 @@ SharableString CIntDriver::EvaluateCapiText(const CapiQuestion& question, const 
         return capi_text->GetHtml();
     }
 
-    return "MARKDOWN_TODO with fills";
-}
+    // update the question text StringWriter object
+    ASSERT(m_engineData->question_text_string_writer != nullptr);
+    m_engineData->question_text_string_writer->ResetForQuestionText(capi_text->GetEncodeType());
 
-
-template<typename T>
-T CIntDriver::EvaluateCapiLogic(const Symbol& symbol, const int program_index)
-{
-    ASSERT(symbol.IsOneOf(SymbolType::Block, SymbolType::Variable));
-    ASSERT(program_index != -1);
-
-    // setup execution parameters
-    m_procType = ProcType::OnFocus;
-    m_iExSymbol = symbol.GetSymbolIndex();
-    m_iExLevel = SymbolCalculator::GetLevelNumber_base1(symbol);
-
-    // these statements clear any preexisting stuff that might have been going on
-    m_bSkipStmt = false;
-    m_bStopExec = m_bStopProc;
-    SetRequestIssued(false);
-
-    try
+    if( EvaluateCapiLogic<CapiText>(symbol, capi_text->GetProgramIndex()) )
     {
-        // evaluate the condition's logic...
-        if constexpr(std::is_same_v<T, bool>)
-        {
-            return EvaluateConditional(program_index);
-        }
-
-        // ...or the question's fill
-        else
-        {
-            return EvaluateTextFill(program_index);
-        }
+        SharableString& evaluated_text = std::get<SharableString>(m_engineData->question_text_string_writer->GetOutput());
+        return capi_text->GetHtml(evaluated_text.Release<SharableString>());
     }
 
-    // HTML_QSF_TODO what should happen if exceptions are thrown / movement requests are issued?
-    catch( const ProgramControlException& ) { }
-
-    return T();
+    return SharableString();
 }
 
 
@@ -317,7 +339,7 @@ SharableString CIntDriver::EvaluatePre81CapiText(const Symbol& symbol, const Cap
     for( const Pre81Capi::CapiFill& fill : params )
     {
         replacements.try_emplace(fill.GetTextToReplace(),
-                                 EvaluateCapiLogic<SharableString>(symbol, pre81_fill_expressions->at(fill.GetTextToReplace())));
+                                 EvaluateCapiLogic<Pre81Capi::CapiFill>(symbol, pre81_fill_expressions->at(fill.GetTextToReplace())));
     }
 
     return Pre81Capi::ReplaceFills(*text, replacements);

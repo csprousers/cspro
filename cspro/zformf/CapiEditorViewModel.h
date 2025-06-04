@@ -2,7 +2,6 @@
 
 #include <zCapiO/CapiText.h>
 #include <zCapiO/CapiQuestion.h>
-#include <zCapiO/CapiLogicParameters.h>
 
 class Application;
 class CapiQuestionManager;
@@ -46,7 +45,7 @@ public:
     struct SyntaxCheckError { std::string error_message; };
     using SyntaxCheckResult = std::variant<SyntaxCheckOk, SyntaxCheckError>;
 
-    SyntaxCheckResult CheckSyntax(CapiLogicParameters::Type type, SharableString logic);
+    SyntaxCheckResult CheckSyntax(std::variant<const CapiCondition*, const CapiText*> condition_or_text);
 
 private:
     std::shared_ptr<CapiQuestionManager> m_questionManager;

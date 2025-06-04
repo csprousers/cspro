@@ -1,7 +1,12 @@
 ﻿#include "stdafx.h"
 #include "TextTemplateTokenizer.h"
+#include "Compiler/LogicCompiler.h"
 #include <zLogicO/LogicScanner.h>
 
+
+// --------------------------------------------------------------------------
+// TextTemplateTokenizer
+// --------------------------------------------------------------------------
 
 TextTemplateTokenizer::TextTemplateTokenizer(const bool allow_logic_escapes)
     :   m_allowLogicEscapes(allow_logic_escapes)
@@ -133,4 +138,38 @@ bool TextTemplateTokenizer::Tokenize(const std::string_view text_template_sv, co
     }
 
     return true;
+}
+
+
+bool TextTemplateTokenizer::IsOnlyDirectTextUsed() const
+{
+    ASSERT(!m_tokens.empty() && m_tokens.front().type == TextTemplateToken::Type::DirectText);
+
+    return ( m_tokens.size() == 1 );
+}
+
+
+
+// --------------------------------------------------------------------------
+// LogicCompilerTextTemplateTokenizer
+// --------------------------------------------------------------------------
+
+LogicCompilerTextTemplateTokenizer::LogicCompilerTextTemplateTokenizer(LogicCompiler& logic_compiler, const bool allow_logic_escapes)
+        :   TextTemplateTokenizer(allow_logic_escapes),
+            m_compiler(logic_compiler)
+{
+}
+
+
+void LogicCompilerTextTemplateTokenizer::OnErrorUnbalancedEscapes(const size_t line_number)
+{
+    m_compiler.ReportError(MGF::TextTemplate_unbalanced_escapes_48101, static_cast<int>(line_number));
+}
+
+
+void LogicCompilerTextTemplateTokenizer::OnErrorTokenNotEnded(const TextTemplateToken& token)
+{
+    m_compiler.ReportError(MGF::TextTemplate_end_reached_while_in_logic_or_fill_48102,
+                           ( token.type == TextTemplateToken::Type::Logic ) ? "logic" : "a fill",
+                           static_cast<int>(token.section_line_number_start));
 }

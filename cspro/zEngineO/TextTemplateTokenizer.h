@@ -2,8 +2,13 @@
 
 #include <zEngineO/zEngineO.h>
 
+class LogicCompiler;
 class LogicSettings;
 
+
+// --------------------------------------------------------------------------
+// TextTemplateToken
+// --------------------------------------------------------------------------
 
 struct TextTemplateToken
 {
@@ -15,6 +20,10 @@ struct TextTemplateToken
 };
 
 
+// --------------------------------------------------------------------------
+// TextTemplateTokenizer
+// --------------------------------------------------------------------------
+
 class ZENGINEO_API TextTemplateTokenizer
 {
 public:
@@ -25,6 +34,8 @@ public:
 
     const std::vector<TextTemplateToken>& GetTokens() const { return m_tokens; }
 
+    bool IsOnlyDirectTextUsed() const;
+
 protected:
     virtual void OnErrorUnbalancedEscapes(size_t line_number) = 0;
     virtual void OnErrorTokenNotEnded(const TextTemplateToken& token) = 0;
@@ -32,4 +43,22 @@ protected:
 private:
     bool m_allowLogicEscapes;
     std::vector<TextTemplateToken> m_tokens;
+};
+
+
+// --------------------------------------------------------------------------
+// LogicCompilerTextTemplateTokenizer
+// --------------------------------------------------------------------------
+
+class ZENGINEO_API LogicCompilerTextTemplateTokenizer : public TextTemplateTokenizer
+{
+public:
+    LogicCompilerTextTemplateTokenizer(LogicCompiler& logic_compiler, bool allow_logic_escapes);
+
+protected:
+    void OnErrorUnbalancedEscapes(size_t line_number) override;
+    void OnErrorTokenNotEnded(const TextTemplateToken& token) override;
+
+private:
+    LogicCompiler& m_compiler;
 };

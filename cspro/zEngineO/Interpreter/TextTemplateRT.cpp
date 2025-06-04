@@ -88,7 +88,7 @@ SharableString LogicInterpreter::EncodeText(SharableString text, const Symbol& s
     else if( symbol.IsA(SymbolType::StringWriter) )
     {
         const StringWriter& string_writer = assert_cast<const StringWriter&>(symbol);
-        ASSERT(std::holds_alternative<std::string>(string_writer.GetOutput()));
+        ASSERT(std::holds_alternative<SharableString>(string_writer.GetOutput()));
 
         return EncodeText(std::move(text), string_writer.GetEncodeType());
     }
@@ -116,7 +116,7 @@ std::tuple<Symbol*, std::string*> LogicInterpreter::GetTextTemplateBuilder(Symbo
 
     else if( symbol.IsA(SymbolType::StringWriter) )
     {
-        std::variant<std::string, int>& output = assert_cast<StringWriter&>(symbol).GetOutput();
+        std::variant<SharableString, int>& output = assert_cast<StringWriter&>(symbol).GetOutput();
 
         if( std::holds_alternative<int>(output) )
         {
@@ -125,8 +125,8 @@ std::tuple<Symbol*, std::string*> LogicInterpreter::GetTextTemplateBuilder(Symbo
 
         else
         {
-            ASSERT(std::holds_alternative<std::string>(output));
-            return { &symbol, &std::get<std::string>(output) };
+            ASSERT(std::holds_alternative<SharableString>(output));
+            return { &symbol, &std::get<SharableString>(output).MakeModifiable() };
         }
     }
 

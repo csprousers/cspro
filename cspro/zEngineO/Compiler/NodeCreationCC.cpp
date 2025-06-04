@@ -14,7 +14,7 @@ int LogicCompiler::CreateNumericConstantNode(const double numeric_constant)
 }
 
 
-int LogicCompiler::CreateStringLiteralNode(std::string string_literal)
+int LogicCompiler::CreateStringLiteralNode(SharableString string_literal)
 {
     auto& string_literal_node = CreateNode<Nodes::StringLiteral>(FunctionCode::STRING_LITERAL_CODE);
 

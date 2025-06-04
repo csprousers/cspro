@@ -3,6 +3,7 @@
 #include "ChildSymbolNames.h"
 #include "KeywordTable.h"
 #include "SpecialFunction.h"
+#include <zCapiO/CapiLogicParameters.h>
 
 using namespace Logic;
 
@@ -11,17 +12,18 @@ namespace
 {
     const AdditionalReservedWordDetails AdditionalReservedWords[] =
     {
-        { "GLOBAL",         "cspro_program_structure.html" },
-        { "PROC",           "proc_statement.html" },
-        { "summary",        "errmsg_function.html" },
-        { "denom",          "errmsg_function.html" },
-        { "disjoint",       "Freq_statement_unnamed.html" },
-        { "weight",         "Freq_statement_unnamed.html" },
-        { "specific",       "impute_function.html" },
-        { "outofrange",     "set_behavior_canenter_statement.html" },
-        { "confirm",        "set_behavior_canenter_statement.html" },
-        { "noconfirm",      "set_behavior_canenter_statement.html" },
-        { "specialvalues",  "set_behavior_specialvalues_statement.html" },
+        { "GLOBAL",                     "cspro_program_structure.html" },
+        { "PROC",                       "proc_statement.html" },
+        { "summary",                    "errmsg_function.html" },
+        { "denom",                      "errmsg_function.html" },
+        { "disjoint",                   "Freq_statement_unnamed.html" },
+        { "weight",                     "Freq_statement_unnamed.html" },
+        { "specific",                   "impute_function.html" },
+        { "outofrange",                 "set_behavior_canenter_statement.html" },
+        { "confirm",                    "set_behavior_canenter_statement.html" },
+        { "noconfirm",                  "set_behavior_canenter_statement.html" },
+        { "specialvalues",              "set_behavior_specialvalues_statement.html" },
+        { QuestionTextStringWriterName, "templated_question_text.html" },
 
         // words that are used in the CSPro DB tables
         { "cases",          nullptr },

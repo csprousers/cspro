@@ -1,14 +1,22 @@
 ﻿#include "StdAfx.h"
 #include "CapiText.h"
 #include <zMarkdown/Markdown.h>
+#include <zEngineO/Nodes/TextTemplate.h>
 
 
-SharableString CapiText::GetHtml() const
+EncodeType CapiText::GetEncodeType() const
+{
+    return ( m_format == Format::ReportMarkdown ) ? EncodeType::Markdown :
+                                                    EncodeType::Html;
+}
+
+
+SharableString CapiText::GetHtml(const SharableString& text) const
 {
     if( m_format == Format::ReportMarkdown )
-        return Markdown::ToHtml(m_text.GetString());
+        return Markdown::ToHtml(text.GetString());
 
-    return m_text;
+    return text;
 }
 
 

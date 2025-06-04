@@ -15,8 +15,10 @@ public:
 
     EncodeType GetEncodeType() const { return m_encodeType; }
 
-    const std::variant<std::string, int>& GetOutput() const { return m_output; }
-    std::variant<std::string, int>& GetOutput()             { return m_output; }
+    const std::variant<SharableString, int>& GetOutput() const { return m_output; }
+    std::variant<SharableString, int>& GetOutput()             { return m_output; }
+
+    void ResetForQuestionText(EncodeType encode_type);
 
     // Symbol overrides
     std::unique_ptr<Symbol> CloneInInitialState() const override;
@@ -29,5 +31,5 @@ public:
 
 private:
     EncodeType m_encodeType;
-    std::variant<std::string, int> m_output; // a string or a symbol index
+    std::variant<SharableString, int> m_output; // a string or a symbol index
 };

@@ -45,3 +45,9 @@ int LogicCompiler::ConserveConstant(std::string&& string_literal)
 {
     return m_stringLiteralConserver->Add(std::move(string_literal));
 }
+
+
+int LogicCompiler::ConserveConstant(SharableString&& string_literal)
+{
+    return m_stringLiteralConserver->Add(std::move(string_literal));
+}

@@ -33,8 +33,17 @@ std::unique_ptr<Symbol> StringWriter::CloneInInitialState() const
 
 void StringWriter::Reset()
 {
-    if( std::holds_alternative<std::string>(m_output) )
-        std::get<std::string>(m_output).clear();
+    if( std::holds_alternative<SharableString>(m_output) )
+        std::get<SharableString>(m_output).Reset();
+}
+
+
+void StringWriter::ResetForQuestionText(const EncodeType encode_type)
+{
+    ASSERT(std::holds_alternative<SharableString>(m_output));
+
+    m_encodeType = encode_type;
+    std::get<SharableString>(m_output).Reset();
 }
 
 

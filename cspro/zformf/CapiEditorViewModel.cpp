@@ -124,8 +124,10 @@ void CapiEditorViewModel::SetItem(const CDEItemBase* const item_base)
 }
 
 
-CapiEditorViewModel::SyntaxCheckResult CapiEditorViewModel::CheckSyntax(const CapiLogicParameters::Type type, SharableString logic)
+CapiEditorViewModel::SyntaxCheckResult CapiEditorViewModel::CheckSyntax(const std::variant<const CapiCondition*, const CapiText*> condition_or_text)
 {
+    ASSERT(std::visit([](const auto& ptr) { return ( ptr != nullptr ); }, condition_or_text));
+
     if( ( m_compiler == nullptr || m_item->GetSymbol() < 1 ) &&
         ( WindowsDesktopMessage::Send(UWM::Designer::CreateCapiLogicCompiler, &m_compiler, m_application) != 1 ) )
     {
@@ -134,7 +136,7 @@ CapiEditorViewModel::SyntaxCheckResult CapiEditorViewModel::CheckSyntax(const Ca
 
     ASSERT(m_compiler != nullptr && m_item->GetSymbol() >= 1);
 
-    CapiLogicParameters capi_logic_parameters { type, m_item->GetSymbol(), std::move(logic) };
+    const CapiLogicParameters capi_logic_parameters { m_item->GetSymbol(), condition_or_text };
 
     DesignerCapiLogicCompiler::CompileResult result = m_compiler->Compile(capi_logic_parameters);
 

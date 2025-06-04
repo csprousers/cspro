@@ -25,12 +25,12 @@ const Symbol& LogicCompiler::CheckTextTemplateIsCurrentlyAccessible(const Symbol
 
     else if( symbol.IsA(SymbolType::StringWriter) )
     {
-        const std::variant<std::string, int>& output = assert_cast<const StringWriter&>(symbol).GetOutput();
+        const std::variant<SharableString, int>& output = assert_cast<const StringWriter&>(symbol).GetOutput();
 
         if( std::holds_alternative<int>(output) )
             return CheckTextTemplateIsCurrentlyAccessible(NPT_Ref(std::get<int>(output)));
 
-        ASSERT(std::holds_alternative<std::string>(output));
+        ASSERT(std::holds_alternative<SharableString>(output));
     }
 
     else
@@ -70,7 +70,7 @@ int LogicCompiler::CompileTextTemplateFunctions()
     optional_named_arguments_compiler.AddArgument(WriteTypeNamedArgument, dummy_write_type_argument,
         [&]()
         {
-            ASSERT(IsCompiling(specified_symbol));
+            ASSERT(IsCompiling(specified_symbol) || specified_symbol.GetName() == QuestionTextStringWriterName);
 
             NextToken();
 
@@ -144,32 +144,6 @@ int LogicCompiler::CompileTextTemplateFunctions()
 
 namespace
 {
-    class EngineTextTemplateTokenizer : public TextTemplateTokenizer
-    {
-    public:
-        EngineTextTemplateTokenizer(LogicCompiler& logic_compiler, const bool allow_logic_escapes)
-            :   TextTemplateTokenizer(allow_logic_escapes),
-                m_compiler(logic_compiler)
-        {
-        }
-
-        void OnErrorUnbalancedEscapes(const size_t line_number) override
-        {
-            m_compiler.ReportError(MGF::TextTemplate_unbalanced_escapes_48101, static_cast<int>(line_number));
-        }
-
-        void OnErrorTokenNotEnded(const TextTemplateToken& token) override
-        {
-            m_compiler.ReportError(MGF::TextTemplate_end_reached_while_in_logic_or_fill_48102,
-                                   ( token.type == TextTemplateToken::Type::Logic ) ? "logic" : "a fill",
-                                   static_cast<int>(token.section_line_number_start));
-        }
-
-    private:
-        LogicCompiler& m_compiler;
-    };
-
-
     // maintain a mapping of the text template line numbers to the CSPro logic
     struct TextTemplateLineAdjuster : Logic::SourceBuffer::LineAdjuster
     {
@@ -192,12 +166,23 @@ namespace
 }
 
 
-std::unique_ptr<Logic::SourceBuffer> LogicCompiler::ConvertTextTemplateToSourceBuffer(const std::string_view text_template_sv, const bool allow_logic_escapes)
+std::unique_ptr<Logic::SourceBuffer> LogicCompiler::ConvertTextTemplateToSourceBuffer(const char* const text_template_name,
+                                                                                      const std::string_view text_template_sv,
+                                                                                      const bool allow_logic_escapes)
 {
-    EngineTextTemplateTokenizer text_template_tokenizer(*this, allow_logic_escapes);
+    LogicCompilerTextTemplateTokenizer text_template_tokenizer(*this, allow_logic_escapes);
 
     if( !text_template_tokenizer.Tokenize(text_template_sv, GetLogicSettings()) )
         return nullptr;
+
+    return ConvertTextTemplateToSourceBuffer(text_template_name, text_template_tokenizer);
+}
+
+
+std::unique_ptr<Logic::SourceBuffer> LogicCompiler::ConvertTextTemplateToSourceBuffer(const char* const text_template_name,
+                                                                                      TextTemplateTokenizer& text_template_tokenizer)
+{
+    ASSERT(SO::EqualsOneOf(text_template_name, "$", QuestionTextStringWriterName));
 
     // create the logic to run this text template
     std::string logic;
@@ -216,7 +201,8 @@ std::unique_ptr<Logic::SourceBuffer> LogicCompiler::ConvertTextTemplateToSourceB
         if( token.type == TextTemplateToken::Type::DirectText )
         {
             // the text template's direct text will be added to the string literal conserver
-            logic.append(FormatText("$.write(%s := %d, %d);",
+            logic.append(FormatText("%s.write(%s := %d, %d);",
+                                    text_template_name,
                                     WriteTypeNamedArgument,
                                     static_cast<int>(Nodes::TextTemplate::Type::DirectText),
                                     ConserveConstant(token.text)));
@@ -227,7 +213,8 @@ std::unique_ptr<Logic::SourceBuffer> LogicCompiler::ConvertTextTemplateToSourceB
         else if( token.type == TextTemplateToken::Type::DoubleTilde ||
                  token.type == TextTemplateToken::Type::TripleTilde )
         {
-            logic.append(FormatText("$.write(%s := %d, %d, %s);",
+            logic.append(FormatText("%s.write(%s := %d, %d, %s);",
+                                    text_template_name,
                                     WriteTypeNamedArgument,
                                     static_cast<int>(Nodes::TextTemplate::Type::TextFill),
                                     ( token.type == TextTemplateToken::Type::DoubleTilde ) ? 1 : 0,

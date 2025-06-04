@@ -84,7 +84,7 @@ void LogicCompiler::CompileReport(const ReportFile& report_file)
         report = &assert_cast<Report&>(GetSymbolTable().FindSymbolOfType(report_file.GetName(), SymbolType::Report));
 
         const std::string& report_text = report_file.GetTextSource().GetText();
-        source_buffer = ConvertTextTemplateToSourceBuffer(report_text, true);
+        source_buffer = ConvertTextTemplateToSourceBuffer("$", report_text, true);
     }
 
     catch( const CSProException& exception )

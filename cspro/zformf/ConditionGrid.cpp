@@ -569,8 +569,11 @@ bool CCondGrid::EditEnd(bool /*bSilent*/)
     // check if the condition is valid
     if( !sCondition.IsEmpty() )
     {
-        CapiEditorViewModel::SyntaxCheckResult result = view_model.CheckSyntax(CapiLogicParameters::Type::Condition, UTF8_TODO::GetUtf8(sCondition));
-        if (std::holds_alternative<CapiEditorViewModel::SyntaxCheckError>(result)) {
+        const CapiCondition condition(UTF8_TODO::GetUtf8(sCondition));
+        const CapiEditorViewModel::SyntaxCheckResult result = view_model.CheckSyntax(&condition);
+
+        if( std::holds_alternative<CapiEditorViewModel::SyntaxCheckError>(result) )
+        {
             ErrorMessage::Display("Compilation error: " + std::get<CapiEditorViewModel::SyntaxCheckError>(result).error_message);
             GotoRow(m_iEditRow);
             m_pLabelEdit->SetFocus();

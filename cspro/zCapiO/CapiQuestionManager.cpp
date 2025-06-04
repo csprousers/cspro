@@ -40,41 +40,33 @@ void CapiQuestionManager::CompileCapiLogic(const std::function<int(const CapiLog
         const std::string& item_name_workaround_for_clang_precpp80_issue = item_name;
 
         std::vector<CapiCondition>& conditions = question.GetConditions();
-#ifdef MARKDOWN_TODO
-        std::map<std::string, int> fill_expressions;
 
         for( size_t condition_index = 0; condition_index < conditions.size(); ++condition_index )
         {
-            // the compilation routine for conditions and fills
-            auto compile = [&](const CapiLogicParameters::Type type, SharableString logic, std::optional<std::string> language_label)
-            {
-                const CapiLogicParameters capi_logic_parameters
-                {
-                    type,
-                    item_name_workaround_for_clang_precpp80_issue,
-                    std::move(logic),
-                    CapiLogicLocation { condition_index, std::move(language_label) }
-                };
-
-                return compile_callback(capi_logic_parameters);
-            };
-
-
-            // compile the condition
+            // compile the condition's logic
             CapiCondition& condition = conditions[condition_index];
 
-            if( !condition.GetLogic().empty() )
+            if( condition.GetLogic().empty() )
             {
-                condition.SetProgramIndex(compile(CapiLogicParameters::Type::Condition,
-                                                  condition.GetLogic(),
-                                                  std::nullopt));
+                condition.SetProgramIndex(-1);
+            }
+
+            else
+            {
+                condition.SetProgramIndex(compile_callback(
+                    CapiLogicParameters
+                    {
+                        item_name_workaround_for_clang_precpp80_issue,
+                        &condition,
+                        CapiLogicLocation { condition_index, std::nullopt }
+                    }));
             }
 
 
             // compile any fills
-            auto compile_fills = [&](const std::map<std::string, CapiText>& question_text)
+            auto compile_fills = [&](std::map<std::string, CapiText>& question_text)
             {
-                for( const auto& [language_name, text] : question_text )
+                for( auto& [language_name, text] : question_text )
                 {
                     const std::string& language_name_workaround_for_clang_precpp80_issue = language_name;
 
@@ -84,25 +76,19 @@ void CapiQuestionManager::CompileCapiLogic(const std::function<int(const CapiLog
                     if( language_lookup == m_languages.end() )
                         continue;
 
-                    for( const CapiFill& param : text.GetFills() )
-                    {
-                        if( fill_expressions.find(param.GetTextToReplace()) == fill_expressions.end() )
+                    text.SetProgramIndex(compile_callback(
+                        CapiLogicParameters
                         {
-                            // compile the logic with delimiters removed
-                            fill_expressions.try_emplace(param.GetTextToReplace(), compile(CapiLogicParameters::Type::Fill,
-                                                                                           param.GetTextToEvaluate_sv(),
-                                                                                           language_lookup->GetLabel()));
-                        }
-                    }
+                            item_name_workaround_for_clang_precpp80_issue,
+                            &text,
+                            CapiLogicLocation { condition_index, language_lookup->GetLabel() }
+                        }));
                 }
             };
 
             compile_fills(condition.GetAllQuestionText());
             compile_fills(condition.GetAllHelpText());
         }
-
-        question.SetFillExpressions(std::move(fill_expressions));
-#endif
     }
 }
 

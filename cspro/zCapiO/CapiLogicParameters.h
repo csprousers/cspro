@@ -1,5 +1,11 @@
 ﻿#pragma once
 
+class CapiCondition;
+class CapiText;
+
+
+constexpr const char* QuestionTextStringWriterName = "QSF";
+
 
 struct CapiLogicLocation
 {
@@ -10,10 +16,7 @@ struct CapiLogicLocation
 
 struct CapiLogicParameters
 {
-    enum class Type { Condition, Fill };
-
-    Type type;
     std::variant<int, std::string> symbol_index_or_name;
-    SharableString logic;
+    std::variant<const CapiCondition*, const CapiText*> condition_or_text; // non-null
     CapiLogicLocation capi_logic_location;
 };

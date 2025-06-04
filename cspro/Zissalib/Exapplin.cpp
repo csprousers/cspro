@@ -126,18 +126,20 @@ bool CEngineDriver::exapplinit()
             m_pEngineCompFunc->compall( 2 );
 
             // compile the CAPI conditions and fills
-            if( m_pApplication->GetUseQuestionText() && question_text_manager != nullptr )
+            if( question_text_manager != nullptr && m_pApplication->GetUseQuestionText() )
             {
-                std::function<int(const CapiLogicParameters&)> compile_callback = [&](const CapiLogicParameters& capi_logic_parameters)
-                {
-                    return ( m_pEngineCompFunc->getErrors() == 0 ) ? m_pEngineCompFunc->CompileCapiLogic(capi_logic_parameters) : -1;
-                };
+                question_text_manager->CompileCapiLogic(
+                    [&](const CapiLogicParameters& capi_logic_parameters)
+                    {
+                        if( m_pEngineCompFunc->getErrors() != 0 )
+                            return -1;
 
-                question_text_manager->CompileCapiLogic(compile_callback);
+                        return m_pEngineCompFunc->CompileCapiLogic(capi_logic_parameters);
+                    });
 
                 if( m_pEngineCompFunc->getErrors() > 0 )
                 {
-                    issaerror(MessageType::Abort, 10010, PortableFunctions::PathGetFilename(m_pApplication->GetApplicationFilePath()).c_str(), m_pEngineCompFunc->getErrors());
+                    issaerror(MessageType::Abort, 10010, Path::GetFilename(m_pApplication->GetApplicationFilePath()).c_str(), m_pEngineCompFunc->getErrors());
                     return false;
                 }
             }

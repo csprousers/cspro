@@ -3655,7 +3655,7 @@ LRESULT CMainFrame::OnShowCapiText(WPARAM wParam, LPARAM /*lParam*/)
     CDEItemBase* item_base;
     std::tie(pAplDoc, item_base) = GetCapiItemDetails(pFormDoc);
 
-    std::optional<CapiText> capi_text;
+    std::variant<SharableString, CapiText> capi_text;
 
     if( item_base != nullptr )
     {

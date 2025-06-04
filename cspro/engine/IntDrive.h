@@ -838,7 +838,7 @@ private:
     SharableString EvaluateCapiText(const CapiQuestion& question, const Symbol& symbol, const std::string& language_name, bool is_question);
 
     template<typename T>
-    T EvaluateCapiLogic(const Symbol& symbol, int program_index);
+    auto EvaluateCapiLogic(const Symbol& symbol, int program_index);
 
     SharableString EvaluatePre81CapiText(const Symbol& symbol, const CapiQuestion& question, const CapiText& capi_text);
 

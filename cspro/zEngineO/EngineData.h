@@ -78,6 +78,9 @@ struct ZENGINEO_API EngineData
     std::vector<SECT*> sections;            // sections
     std::vector<VART*> variables;           // variables
 
+    // non-table storage of other symbols:
+    std::shared_ptr<StringWriter> question_text_string_writer;
+
 
     // --------------------------------------------------------------------------
     // methods

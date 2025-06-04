@@ -90,11 +90,12 @@ void QSFView::SetUpQuestionTextView(const std::string& application_file_path)
 }
 
 
-void QSFView::SetCapiText(std::optional<CapiText> capi_text, const COLORREF* const background_color)
+void QSFView::SetCapiText(std::variant<SharableString, CapiText> capi_text, const COLORREF* const background_color)
 {
     m_backgroundColor = ( background_color != nullptr ) ? PortableColor::FromCOLORREF(*background_color).ToString() :
                                                           DefaultBackgroundColor();
     m_capiText = std::move(capi_text);
+
     UpdateHtml();
 }
 
@@ -136,9 +137,15 @@ void QSFView::UpdateHtml()
         "</body>\n"
         "</html>\n";
 
+    // evaluate the text as HTML if necessary
+    if( std::holds_alternative<CapiText>(m_capiText) )
+        m_capiText = std::get<CapiText>(m_capiText).GetHtml();
+
+    ASSERT(std::holds_alternative<SharableString>(m_capiText));
+
     std::string html = SO::Concatenate(Part1_sv, m_stylesheet,
                                        Part2_sv, m_backgroundColor,
-                                       Part3_sv, m_capiText.has_value () ? m_capiText->GetHtml().GetString() : SO::Empty_string,
+                                       Part3_sv, std::get<SharableString>(m_capiText).GetString(),
                                        Part4_sv);
 
     std::lock_guard<std::mutex> lock(m_htmlMutex);

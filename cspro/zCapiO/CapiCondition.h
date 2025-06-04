@@ -28,7 +28,10 @@ public:
     void SetHelpText(CapiText text, const std::string& language_name)     { SetText(std::move(text), language_name, CapiText::Type::Help); }
 
     const std::map<std::string, CapiText>& GetAllQuestionText() const { return m_questionTexts; }
-    const std::map<std::string, CapiText>& GetAllHelpText() const     { return m_helpTexts; }
+    std::map<std::string, CapiText>& GetAllQuestionText()             { return m_questionTexts; }
+
+    const std::map<std::string, CapiText>& GetAllHelpText() const { return m_helpTexts; }
+    std::map<std::string, CapiText>& GetAllHelpText()             { return m_helpTexts; }
 
     void DeleteLanguage(const std::string& language_name);
     void ModifyLanguage(const std::string& old_language_name, const std::string& new_language_name);

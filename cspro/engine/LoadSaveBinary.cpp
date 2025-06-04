@@ -72,7 +72,7 @@ void CEngineDriver::LoadCompiledBinary()
     ar >> *this;
 
     // first deserialize the base symbols
-    size_t symbol_table_size = LoadBaseSymbols(ar);
+    const size_t symbol_table_size = LoadBaseSymbols(ar);
 
     if( ar.MeetsVersionIteration(Serializer::Iteration_8_0_000_1) )
     {
@@ -89,7 +89,13 @@ void CEngineDriver::LoadCompiledBinary()
         ar >> m_engineData->frequencies;
         Imputation::serialize(ar, *m_engineData);
 
-        ar >> m_engineData->logic_byte_code;
+        if( ar.MeetsVersionIteration(Serializer::Iteration_8_1_000_1) &&
+            ar.Read<bool>() )
+        {
+            m_engineData->question_text_string_writer = std::dynamic_pointer_cast<StringWriter, Symbol>(GetSharedSymbol(ar.Read<int>()));
+            ASSERT(m_engineData->question_text_string_writer != nullptr &&
+                   m_engineData->question_text_string_writer->GetName() == QuestionTextStringWriterName);
+        }
 
         if( ar.MeetsVersionIteration(Serializer::Iteration_8_1_000_1) &&
             ar.Read<bool>() )
@@ -97,7 +103,8 @@ void CEngineDriver::LoadCompiledBinary()
             ar >> m_engineData->GetJavaScriptProcessor();
         }
 
-        ar >> m_engineData->runtime_events_processor;
+        ar >> m_engineData->logic_byte_code
+           >> m_engineData->runtime_events_processor;
     }
 
     else
@@ -187,12 +194,16 @@ void CEngineDriver::SaveCompiledBinary()
     ar << m_engineData->frequencies;
     Imputation::serialize(ar, *m_engineData);
 
-    ar << m_engineData->logic_byte_code;
+    const bool using_question_text_string_writer = ( m_engineData->question_text_string_writer != nullptr );
+    ar << using_question_text_string_writer;
+    if( using_question_text_string_writer )
+        ar << m_engineData->question_text_string_writer->GetSymbolIndex();
 
     const bool using_javascript_processor = ( m_engineData->javascript_processor != nullptr );
     ar << using_javascript_processor;
     if( using_javascript_processor )
-       ar & *m_engineData->javascript_processor;
+       ar << *m_engineData->javascript_processor;
 
-    ar << m_engineData->runtime_events_processor;
+    ar << m_engineData->logic_byte_code
+       << m_engineData->runtime_events_processor;
 }

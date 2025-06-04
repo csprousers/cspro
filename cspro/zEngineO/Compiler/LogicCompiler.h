@@ -17,6 +17,7 @@ class MessageEvaluator;
 class MessageManager;
 class ReportFile;
 enum class SetAction : int;
+class TextTemplateTokenizer;
 namespace CompilationExtendedInformation { struct InCrosstabInformation; }
 namespace GF { enum class VariableType: int; }
 
@@ -148,7 +149,8 @@ public:
 public:
     int ConserveConstant(const std::string& string_literal);
     int ConserveConstant(std::string&& string_literal);
-    int CreateStringLiteralNode(std::string string_literal);
+    int ConserveConstant(SharableString&& string_literal);
+    int CreateStringLiteralNode(SharableString string_literal);
 
     int CompileStringExpression();
     int CompileStringExpressionWithStringLiteralCheck(const std::function<void(std::string)>& string_literal_check_callback);
@@ -500,7 +502,8 @@ private:
     // An exception is thrown is the symbol is not currently accessible.
     const Symbol& CheckTextTemplateIsCurrentlyAccessible(const Symbol& symbol);
 
-    std::unique_ptr<Logic::SourceBuffer> ConvertTextTemplateToSourceBuffer(std::string_view text_template_sv, bool allow_logic_escapes);
+    std::unique_ptr<Logic::SourceBuffer> ConvertTextTemplateToSourceBuffer(const char* text_template_name, std::string_view text_template_sv, bool allow_logic_escapes);
+    std::unique_ptr<Logic::SourceBuffer> ConvertTextTemplateToSourceBuffer(const char* text_template_name, TextTemplateTokenizer& text_template_tokenizer);
 
 
     // --------------------------------------------------------------------------
@@ -659,6 +662,8 @@ public:
     // COMPILER_DLL_TODO...
     // --------------------------------------------------------------------------
 public:
+    friend class CEngineCompFunc; // COMPILER_DLL_TODO remove once all all functionality is in this class
+
     virtual int& get_COMPILER_DLL_TODO_Tokstindex() = 0;
     virtual int& get_COMPILER_DLL_TODO_InCompIdx() = 0;
     virtual std::tuple<int, bool>& get_COMPILER_DLL_TODO_m_loneAlphaFunctionCallTester() = 0;

@@ -27,7 +27,9 @@ public:
 
     void SetUpQuestionTextView(const std::string& application_file_path);
 
-    void SetCapiText(std::optional<CapiText> capi_text, const COLORREF* const background_color);
+    // if passing the text as a SharableString, it should already be evaluated as HTML
+    void SetCapiText(std::variant<SharableString, CapiText> capi_text, const COLORREF* background_color);
+
     void SetStyleCss(std::string css);
 
 protected:
@@ -54,7 +56,7 @@ private:
 
     std::string m_backgroundColor;
     std::string m_stylesheet;
-    std::optional<CapiText> m_capiText;
+    std::variant<SharableString, CapiText> m_capiText;
 
     SharableString m_html;
     std::mutex m_htmlMutex;
