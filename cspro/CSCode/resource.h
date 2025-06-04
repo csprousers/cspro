@@ -73,7 +73,7 @@
 #define ID_RUN_JAVASCRIPT_MODULE_GLOBAL 40050
 #define ID_RUN_JAVASCRIPT_MODULE_MODULE 40051
 #define ID_RUN_PLACEHOLDER              40052
-#define ID_RUN_REPORT_PREVIEW           40053
+#define ID_RUN_PREVIEW_TEXT_TEMPLATE    40053
 #define ID_RUN_RUN                      40054
 #define ID_RUN_SAVE_AS_HTML             40055
 #define ID_RUN_STOP                     40056

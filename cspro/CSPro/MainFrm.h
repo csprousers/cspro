@@ -228,11 +228,11 @@ protected:
     LRESULT OnGetLexerLanguage(WPARAM wParam, LPARAM lParam);
 
 
-    // report functions
+    // text template functions
     // --------------------------------------------------------------------------
 protected:
-    void OnViewReportPreview();
-    void OnUpdateViewReportPreview(CCmdUI* pCmdUI);
+    void OnViewPreviewTextTemplate();
+    void OnUpdateViewPreviewTextTemplate(CCmdUI* pCmdUI);
 
 private:
     const TextSource* GetHtmlOrDerivableReportTextSourceCurrentlyEditing(std::string* report_name_for_report_preview);

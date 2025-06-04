@@ -71,8 +71,8 @@
 #define ID_VIEW_NAMES                   44574
 #define ID_VIEW_NAMES_WITH_LABELS       44575
 #define ID_VIEW_ONKEY_CHAR_MAP          44576
-#define ID_VIEW_QUESTIONNAIRE           44577
-#define ID_VIEW_REPORT_PREVIEW          44578
+#define ID_VIEW_PREVIEW_TEXT_TEMPLATE   44577
+#define ID_VIEW_QUESTIONNAIRE           44578
 #define ID_VIEW_TOP_LOGIC               44579
 #define ID_WINDOW_DICTS                 44580
 #define ID_WINDOW_FORMS                 44581

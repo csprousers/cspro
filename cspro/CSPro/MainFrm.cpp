@@ -159,8 +159,8 @@ BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWnd)
 
     ON_MESSAGE(UWM::Edit::GetLexerLanguage, OnGetLexerLanguage)
 
-    ON_COMMAND(ID_VIEW_REPORT_PREVIEW, OnViewReportPreview)
-    ON_UPDATE_COMMAND_UI(ID_VIEW_REPORT_PREVIEW, OnUpdateViewReportPreview)
+    ON_COMMAND(ID_VIEW_PREVIEW_TEXT_TEMPLATE, OnViewPreviewTextTemplate)
+    ON_UPDATE_COMMAND_UI(ID_VIEW_PREVIEW_TEXT_TEMPLATE, OnUpdateViewPreviewTextTemplate)
 
     ON_MESSAGE(UWM::Designer::GetDesignerIcon, OnGetDesignerIcon)
     ON_MESSAGE(UWM::ToolsO::DisplayErrorMessage, OnDisplayErrorMessage)
@@ -3643,7 +3643,7 @@ std::tuple<CAplDoc*, CDEItemBase*> CMainFrame::GetCapiItemDetails(CFormDoc* pFor
 }
 
 
-LRESULT CMainFrame::OnShowCapiText(WPARAM wParam, LPARAM /*lParam*/)
+LRESULT CMainFrame::OnShowCapiText(const WPARAM wParam, LPARAM /*lParam*/)
 {
     CFormDoc* const pFormDoc = reinterpret_cast<CFormDoc*>(wParam);
     QSFView* const pQTView = assert_cast<QSFView*>(pFormDoc->GetView(FormViewType::QuestionText));

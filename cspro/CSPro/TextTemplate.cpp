@@ -53,14 +53,14 @@ const TextSource* CMainFrame::GetHtmlOrDerivableReportTextSourceCurrentlyEditing
 }
 
 
-void CMainFrame::OnUpdateViewReportPreview(CCmdUI* const pCmdUI)
+void CMainFrame::OnUpdateViewPreviewTextTemplate(CCmdUI* const pCmdUI)
 {
     const TextSource* const report_text_source = GetHtmlOrDerivableReportTextSourceCurrentlyEditing(nullptr);
     pCmdUI->Enable(( report_text_source != nullptr ));
 }
 
 
-void CMainFrame::OnViewReportPreview()
+void CMainFrame::OnViewPreviewTextTemplate()
 {
     Application* application;
     std::string report_name;

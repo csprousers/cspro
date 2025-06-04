@@ -33,8 +33,8 @@ BEGIN_MESSAGE_MAP(CodeFrame, CMDIChildWndEx)
     ON_COMMAND(ID_RUN_RUN, OnRunRun)
     ON_UPDATE_COMMAND_UI(ID_RUN_RUN, OnUpdateRunRun)
 
-    ON_COMMAND(ID_RUN_REPORT_PREVIEW, OnRunReportPreview)
-    ON_UPDATE_COMMAND_UI(ID_RUN_REPORT_PREVIEW, OnUpdateRunReportPreview)
+    ON_COMMAND(ID_RUN_PREVIEW_TEXT_TEMPLATE, OnRunPreviewTextTemplate)
+    ON_UPDATE_COMMAND_UI(ID_RUN_PREVIEW_TEXT_TEMPLATE, OnUpdateRunPreviewTextTemplate)
 
     ON_COMMAND(ID_RUN_DISPLAY_RESULTS_AS_JSON, OnRunActionInvokerDisplayResultsAsJson)
     ON_UPDATE_COMMAND_UI(ID_RUN_DISPLAY_RESULTS_AS_JSON, OnUpdateRunActionInvokerDisplayResultsAsJson)
@@ -304,7 +304,7 @@ void CodeFrame::PopulateRunMenu(CMenu& popup_menu)
     if( doc_language_settings.CanViewReportPreview() )
     {
         dynamic_menu_builder.AddSeparator();
-        dynamic_menu_builder.AddOption(ID_RUN_REPORT_PREVIEW, L"Report Preview\tCtrl+F5");
+        dynamic_menu_builder.AddOption(ID_RUN_PREVIEW_TEXT_TEMPLATE, L"Preview Text Template\tCtrl+F5");
     }
 
     if( view_language_settings.GetLexerLanguage() == SCLEX_JSON )
@@ -438,7 +438,7 @@ void CodeFrame::OnUpdateRunRun(CCmdUI* const pCmdUI)
 }
 
 
-void CodeFrame::OnRunReportPreview()
+void CodeFrame::OnRunPreviewTextTemplate()
 {
     HtmlViewerWnd* const html_viewer_wnd = assert_cast<CMainFrame*>(AfxGetMainWnd())->GetHtmlViewerWnd();
 
@@ -469,7 +469,7 @@ void CodeFrame::OnRunReportPreview()
 }
 
 
-void CodeFrame::OnUpdateRunReportPreview(CCmdUI* const pCmdUI)
+void CodeFrame::OnUpdateRunPreviewTextTemplate(CCmdUI* const pCmdUI)
 {
     const LanguageSettings& doc_language_settings = GetCodeDoc().GetLanguageSettings();
 

@@ -53,8 +53,8 @@ protected:
     void OnRunRun();
     void OnUpdateRunRun(CCmdUI* pCmdUI);
 
-    void OnRunReportPreview();
-    void OnUpdateRunReportPreview(CCmdUI* pCmdUI);
+    void OnRunPreviewTextTemplate();
+    void OnUpdateRunPreviewTextTemplate(CCmdUI* pCmdUI);
 
     void OnRunActionInvokerDisplayResultsAsJson();
     void OnUpdateRunActionInvokerDisplayResultsAsJson(CCmdUI* pCmdUI);
