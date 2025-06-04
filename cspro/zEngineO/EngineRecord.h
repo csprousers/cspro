@@ -33,10 +33,7 @@ public:
 
     void serialize_subclass(Serializer& ar) override;
 
-protected:
     void WriteJsonMetadata_subclass(JsonWriter& json_writer) const override;
-
-public:
     void WriteValueToJson(JsonWriter& json_writer) const override;
     // ENGINECR_TODO allow updating of the record with SetValueFromJson?
 

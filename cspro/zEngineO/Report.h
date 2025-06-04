@@ -8,7 +8,7 @@
 class ZENGINEO_API Report : public Symbol
 {
 private:
-    Report(std::string report_name, ReportFile::EscapeType report_escape_type, std::string report_file_path);
+    Report(std::string report_name, ReportFile::Encoding report_encoding, std::string report_file_path);
 
 public:
     Report(const ReportFile& report_file);
@@ -19,7 +19,7 @@ public:
 
     bool IsFunctionParameter() const { return m_filePath.empty(); }
 
-    ReportFile::EscapeType GetEscapeType() const { return m_escapeType; }
+    ReportFile::Encoding GetEncoding() const { return m_encoding; }
 
     void SetProgramIndex(int program_index) { m_programIndex = program_index; }
     int GetProgramIndex() const             { return m_programIndex; }
@@ -31,11 +31,12 @@ public:
     // Symbol overrides
     void serialize_subclass(Serializer& ar) override;
 
-protected:
     void WriteJsonMetadata_subclass(JsonWriter& json_writer) const override;
+    void WriteValueToJson(JsonWriter& json_writer) const override;
+    void SetValueFromJson(const JsonNode& json_node) override;
 
 private:
-    ReportFile::EscapeType m_escapeType;
+    ReportFile::Encoding m_encoding;
     std::string m_filePath;
     int m_programIndex;
 

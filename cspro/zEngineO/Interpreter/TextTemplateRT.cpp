@@ -62,23 +62,23 @@ SharableString LogicInterpreter::EncodeText(SharableString text, const Symbol& s
     {
         EncodeType encode_type;
 
-        switch( assert_cast<const Report&>(symbol).GetEscapeType() )
+        switch( assert_cast<const Report&>(symbol).GetEncoding() )
         {
-            case ReportFile::EscapeType::Html:
+            case ReportFile::Encoding::Html:
                 encode_type = EncodeType::Html;
                 break;
 
-            case ReportFile::EscapeType::Markdown:
+            case ReportFile::Encoding::Markdown:
                 encode_type = EncodeType::Markdown;
                 break;
 
-            case ReportFile::EscapeType::Csv:
+            case ReportFile::Encoding::Csv:
                 encode_type = EncodeType::Csv;
                 break;
 
             default:
-                // no encoding if the Report does not define an escape type
-                ASSERT(assert_cast<const Report&>(symbol).GetEscapeType() == ReportFile::EscapeType::None);
+                // no encoding if the Report does not define an encoding
+                ASSERT(assert_cast<const Report&>(symbol).GetEncoding() == ReportFile::Encoding::None);
                 return text;
         }
 

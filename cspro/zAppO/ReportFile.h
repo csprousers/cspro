@@ -11,16 +11,16 @@
 class ZAPPO_API ReportFile
 {
 public:
-    enum class EscapeType : int { None, Html, Markdown, Csv };
+    enum class Encoding : int { None, Html, Markdown, Csv };
 
-    ReportFile(std::string name, EscapeType escape_type, std::shared_ptr<TextSource> text_source);
+    ReportFile(std::string name, Encoding encoding, std::shared_ptr<TextSource> text_source);
     ReportFile();
 
     const std::string& GetName() const { return m_name; }
     void SetName(std::string name)     { m_name = std::move(name); }
 
-    EscapeType GetEscapeType() const           { return m_escapeType; }
-    void SetEscapeType(EscapeType escape_type) { m_escapeType = escape_type; }
+    Encoding GetEncoding() const        { return m_encoding; }
+    void SetEncoding(Encoding encoding) { m_encoding = encoding; }
 
     const TextSource& GetTextSource() const           { ASSERT(m_textSource != nullptr); return *m_textSource; }
     TextSource& GetTextSource()                       { ASSERT(m_textSource != nullptr); return *m_textSource; }
@@ -28,7 +28,7 @@ public:
 
     const std::string& GetFilePath() const { ASSERT(m_textSource != nullptr); return m_textSource->GetFilePath(); }
 
-    static EscapeType GetDefaultEscapeTypeFromFilename(const std::string& file_path, bool match_against_all_escape_types);
+    static Encoding GetDefaultEncodingFromFilename(const std::string& file_path, bool match_against_all_encodings);
 
     // serialization
     // --------------------------------------------------------------------------
@@ -40,10 +40,10 @@ public:
 
 private:
     std::string m_name;
-    EscapeType m_escapeType;
+    Encoding m_encoding;
     std::shared_ptr<TextSource> m_textSource;
 };
 
 
 
-DECLARE_ENUM_JSON_SERIALIZER_CLASS(ReportFile::EscapeType, ZAPPO_API)
+DECLARE_ENUM_JSON_SERIALIZER_CLASS(ReportFile::Encoding, ZAPPO_API)

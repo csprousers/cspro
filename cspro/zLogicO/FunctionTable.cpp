@@ -2109,8 +2109,8 @@ namespace
             {
                 SymbolType::Array,          SymbolType::Audio,          SymbolType::Document,       SymbolType::Dictionary,     SymbolType::Pre80Dictionary,
                 SymbolType::File,           SymbolType::Geometry,       SymbolType::HashMap,        SymbolType::Image,          SymbolType::List,
-                SymbolType::NamedFrequency, SymbolType::Record,         SymbolType::SystemApp,      SymbolType::ValueSet,       SymbolType::WorkString,
-                SymbolType::WorkVariable
+                SymbolType::NamedFrequency, SymbolType::Record,         SymbolType::Report,         SymbolType::SystemApp,      SymbolType::ValueSet,
+                SymbolType::WorkString,     SymbolType::WorkVariable
             },
             DataType::String,
             FunctionCompilationType::Symbol,
@@ -2124,8 +2124,8 @@ namespace
             std::vector<SymbolType>
             {
                 SymbolType::Array,          SymbolType::Audio,          SymbolType::Document,       SymbolType::Geometry,       SymbolType::HashMap,
-                SymbolType::Image,          SymbolType::List,           SymbolType::SystemApp,      SymbolType::ValueSet,       SymbolType::WorkString,
-                SymbolType::WorkVariable
+                SymbolType::Image,          SymbolType::List,           SymbolType::Report,         SymbolType::SystemApp,      SymbolType::ValueSet,
+                SymbolType::WorkString,     SymbolType::WorkVariable
             },
             DataType::Numeric,
             FunctionCompilationType::Symbol,
@@ -2139,8 +2139,8 @@ namespace
             std::vector<SymbolType>
             {
                 SymbolType::Array,          SymbolType::Audio,          SymbolType::Document,       SymbolType::Geometry,       SymbolType::HashMap,
-                SymbolType::Image,          SymbolType::List,           SymbolType::SystemApp,      SymbolType::ValueSet,       SymbolType::WorkString,
-                SymbolType::WorkVariable
+                SymbolType::Image,          SymbolType::List,           SymbolType::Report,         SymbolType::SystemApp,      SymbolType::ValueSet,
+                SymbolType::WorkString,     SymbolType::WorkVariable
             },
             DataType::Numeric,
             FunctionCompilationType::Symbol,

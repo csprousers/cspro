@@ -110,7 +110,6 @@ namespace JK
     CJK(entryStatus)
     CJK(erased)
     CJK(error)
-    CJK(escapeType)
     CJK(events)
     CJK(excel)
     CJK(exception)

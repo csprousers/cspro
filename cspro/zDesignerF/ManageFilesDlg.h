@@ -133,7 +133,7 @@ private:
     void OnAddMessages();
 
     void OnAddReport();
-    static void CreateDefaultReport(const std::string& report_file_path, ReportFile::EscapeType escape_type);
+    static void CreateDefaultReport(const std::string& report_file_path, ReportFile::Encoding encoding);
     static bool CreateDefaultHtmlReport(const std::string& templates_directory, const std::string& report_file_path);
 
     void OnAddResourceDirectory();
