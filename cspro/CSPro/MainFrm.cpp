@@ -3651,16 +3651,16 @@ LRESULT CMainFrame::OnShowCapiText(const WPARAM wParam, LPARAM /*lParam*/)
     if( pQTView == nullptr || !pQTView->IsWindowVisible() )
         return 0;
 
-    CAplDoc* pAplDoc;
+    CAplDoc* app_doc;
     CDEItemBase* item_base;
-    std::tie(pAplDoc, item_base) = GetCapiItemDetails(pFormDoc);
+    std::tie(app_doc, item_base) = GetCapiItemDetails(pFormDoc);
 
-    std::variant<SharableString, CapiText> capi_text;
+    SharableString html;
 
     if( item_base != nullptr )
     {
-        ASSERT(pAplDoc->m_questionManager != nullptr);
-        CapiQuestionManager& question_manager = *pAplDoc->m_questionManager;
+        ASSERT(app_doc->m_questionManager != nullptr);
+        CapiQuestionManager& question_manager = *app_doc->m_questionManager;
 
         const CapiQuestion* const question = question_manager.GetQuestion(CapiName::Create(item_base));
 
@@ -3671,16 +3671,16 @@ LRESULT CMainFrame::OnShowCapiText(const WPARAM wParam, LPARAM /*lParam*/)
             ASSERT(dictionary != nullptr);
 
             const std::string& language_name = ( dictionary->GetLanguages().size() > 1 ) ? dictionary->GetCurrentLanguage().GetName() :
-                                                                                           pAplDoc->m_questionManager->GetDefaultLanguage().GetName();
+                                                                                           app_doc->m_questionManager->GetDefaultLanguage().GetName();
 
             const CapiText* const matched_capi_text = question->GetConditions().front().GetQuestionText(language_name);
 
             if( matched_capi_text != nullptr )
-                capi_text = *matched_capi_text;
+                html = CreateQuestionTextHtmlPreview(app_doc->GetAppObject(), *matched_capi_text);
         }
     }
 
-    pQTView->SetCapiText(std::move(capi_text), nullptr);
+    pQTView->SetCapiTextHtml(std::move(html), nullptr);
 
     return 1;
 }

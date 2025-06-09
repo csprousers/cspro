@@ -236,6 +236,7 @@ protected:
 
 private:
     const TextSource* GetHtmlOrDerivableReportTextSourceCurrentlyEditing(std::string* report_name_for_report_preview);
+    static SharableString CreateQuestionTextHtmlPreview(const Application& application, const CapiText& capi_text) noexcept;
 
 
     // Code menu handlers

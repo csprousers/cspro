@@ -4583,8 +4583,8 @@ LRESULT CMainFrame::OnSetCapiText(const WPARAM wParam, const LPARAM lParam)
     const SharableString* const evaluated_html = reinterpret_cast<const SharableString*>(wParam);
     const COLORREF* const background_color = reinterpret_cast<const COLORREF*>(lParam);
 
-    GetQTxtView()->SetCapiText(( evaluated_html != nullptr ) ? *evaluated_html : SharableString(),
-                               background_color);
+    GetQTxtView()->SetCapiTextHtml(( evaluated_html != nullptr ) ? *evaluated_html : SharableString(),
+                                   background_color);
 
     return 1;
 }

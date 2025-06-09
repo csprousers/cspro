@@ -369,6 +369,7 @@ int CEngineCompFunc::CompileCapiLogic(const CapiLogicParameters& capi_logic_para
 
     try
     {
+        SetCompilationSymbol(*symbol);
         SetCapiLogicLocation(capi_logic_parameters.capi_logic_location);
 
         std::unique_ptr<Logic::SourceBuffer> source_buffer;

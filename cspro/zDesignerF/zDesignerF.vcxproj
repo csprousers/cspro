@@ -201,6 +201,10 @@
       <Project>{bc0d77b3-18ef-4554-a94f-650af6f7c87c}</Project>
       <Private>false</Private>
     </ProjectReference>
+    <ProjectReference Include="..\zMarkdown\zMarkdown.vcxproj">
+      <Project>{4c225ee5-cea1-4516-bfa4-4bb49940af51}</Project>
+      <Private>false</Private>
+    </ProjectReference>
     <ProjectReference Include="..\zMessageO\zMessageO.vcxproj">
       <Project>{4b7117ac-94a3-429e-bc5e-a59fbb34051e}</Project>
       <Private>false</Private>
@@ -223,10 +227,6 @@
     </ProjectReference>
     <ProjectReference Include="..\zUToolO\Zutoolo.vcxproj">
       <Project>{28f15179-5b3d-4a06-a076-2774611ca534}</Project>
-      <Private>false</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\zViewO\zViewO.vcxproj">
-      <Project>{27008d1d-bbbc-4506-8679-be5db42026bc}</Project>
       <Private>false</Private>
     </ProjectReference>
   </ItemGroup>

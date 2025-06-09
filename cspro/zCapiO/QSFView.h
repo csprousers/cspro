@@ -1,7 +1,6 @@
 ﻿#pragma once
 
 #include <zCapiO/zCapiO.h>
-#include <zCapiO/CapiText.h>
 #include <zHtml/HtmlViewCtrl.h>
 #include <mutex>
 
@@ -27,10 +26,10 @@ public:
 
     void SetUpQuestionTextView(const std::string& application_file_path);
 
-    // if passing the text as a SharableString, it should already be evaluated as HTML
-    void SetCapiText(std::variant<SharableString, CapiText> capi_text, const COLORREF* background_color);
-
     void SetStyleCss(std::string css);
+
+    void SetCapiTextHtml(SharableString capi_text_html, const COLORREF* background_color);
+    std::string CreateCapiTextHtml(std::string_view html_sv) const;
 
 protected:
     DECLARE_MESSAGE_MAP()
@@ -56,7 +55,7 @@ private:
 
     std::string m_backgroundColor;
     std::string m_stylesheet;
-    std::variant<SharableString, CapiText> m_capiText;
+    SharableString m_capiTextHtml;
 
     SharableString m_html;
     std::mutex m_htmlMutex;

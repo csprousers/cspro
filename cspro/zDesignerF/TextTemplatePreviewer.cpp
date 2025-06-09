@@ -3,7 +3,18 @@
 #include <zEdit2O/ScintillaColorizer.h>
 #include <zEngineO/TextTemplateTokenizer.h>
 #include <zHtml/SharedHtmlLocalFileServer.h>
-#include <zViewO/MarkdownViewInput.h>
+#include <zMarkdown/Markdown.h>
+#include <zCapiO/CapiText.h>
+#include <zEngineO/Nodes/TextTemplate.h>
+
+
+struct TextTemplatePreviewer::ConstructionData
+{
+    const LogicSettings& logic_settings;
+    int lexer_language;
+    const char* action;
+    std::unique_ptr<DesignerTextTemplateTokenizer> text_template_tokenizer;
+};
 
 
 class TextTemplatePreviewer::DesignerTextTemplateTokenizer : public TextTemplateTokenizer
@@ -23,21 +34,39 @@ struct TextTemplatePreviewer::VirtualFileMappingDetails
 };
 
 
-TextTemplatePreviewer::TextTemplatePreviewer(std::string text_template_file_path, const std::string_view text_template_sv,
-                                             const LogicSettings& logic_settings, const char* const action/* = "previewing"*/)
-    :   m_textTemplateFilePath(std::move(text_template_file_path)),
-        m_lexerLanguage(Lexers::GetLexer_Logic(logic_settings))
+TextTemplatePreviewer::TextTemplatePreviewer(const EncodeType encode_type, const LogicSettings& logic_settings,
+                                             const std::string_view text_template_sv, std::optional<std::string> text_template_file_path,
+                                             const char* const action/* = "previewing"*/)
+    :   m_textTemplateFilePath(std::move(text_template_file_path))
 {
-    DesignerTextTemplateTokenizer text_template_tokenizer;
+    ASSERT(action != nullptr);
 
-    if( !text_template_tokenizer.Tokenize(text_template_sv, logic_settings) )
-        throw CSProException("There are errors that must be fixed before %s the text template. Compile the text template to see the errors.", action);
+    ConstructionData data
+    {
+        logic_settings,
+        Lexers::GetLexer_Logic(logic_settings),
+        action
+    };
 
-    const FileExtensionAnalyzer extension_analyser(m_textTemplateFilePath);
-    ASSERT(extension_analyser.IsTypeHtmlOrDerivable());
+    TokenizeTemplate(data, text_template_sv);
 
-    m_html = extension_analyser.IsTypeHtml() ? CreateHtmlForHtml(text_template_tokenizer.GetTokens()) :
-                                               CreateHtmlForMarkdown(text_template_tokenizer.GetTokens());
+    m_html = ( encode_type == EncodeType::Html ) ? ProcessHtml(data) :
+                                                   ProcessMarkdown(data);
+}
+
+
+TextTemplatePreviewer::TextTemplatePreviewer(const std::string& text_template_file_path, const std::string_view text_template_sv,
+                                             const LogicSettings& logic_settings, const char* const action/* = "previewing"*/)
+    :   TextTemplatePreviewer(GetEncodeType(text_template_file_path), logic_settings,
+                              text_template_sv, text_template_file_path, action)
+{
+}
+
+
+TextTemplatePreviewer::TextTemplatePreviewer(const CapiText& capi_text, const LogicSettings& logic_settings)
+    :   TextTemplatePreviewer(capi_text.GetEncodeType(), logic_settings,
+                              capi_text.GetText().GetString(), std::nullopt)
+{
 }
 
 
@@ -46,8 +75,34 @@ TextTemplatePreviewer::~TextTemplatePreviewer()
 }
 
 
-std::string TextTemplatePreviewer::CreateHtmlForHtml(const std::vector<TextTemplateToken>& tokens) const
+EncodeType TextTemplatePreviewer::GetEncodeType(const std::string& text_template_file_path)
 {
+    const FileExtensionAnalyzer extension_analyser(text_template_file_path);
+    ASSERT(extension_analyser.IsTypeHtmlOrDerivable());
+
+    return extension_analyser.IsTypeHtml() ? EncodeType::Html :
+                                             EncodeType::Markdown;
+}
+
+
+void TextTemplatePreviewer::TokenizeTemplate(ConstructionData& data, const std::string_view text_template_sv)
+{
+    data.text_template_tokenizer = std::make_unique<DesignerTextTemplateTokenizer>();
+
+    if( !data.text_template_tokenizer->Tokenize(text_template_sv, data.logic_settings) )
+        throw CSProException("There are errors that must be fixed before %s the text template. Compile the text template to see the errors.", data.action);
+}
+
+
+std::string TextTemplatePreviewer::ProcessHtml(ConstructionData& data)
+{
+    // if there are no fills or logic, there is no reason to process this further
+    if( data.text_template_tokenizer->IsOnlyDirectTextUsed() )
+    {
+        ASSERT(data.text_template_tokenizer->GetTokens().size() == 1);
+        return data.text_template_tokenizer->GetTokens().front().text;
+    }
+
     // without writing a full blown HTML parser, try to intelligently write out logic to the text template:
     // - when in a head or script block, don't write out any logic
     // - when in a tag attribute value, write the logic escaped for HTML and quotes
@@ -64,7 +119,7 @@ std::string TextTemplatePreviewer::CreateHtmlForHtml(const std::vector<TextTempl
 
     std::string html;
 
-    for( const TextTemplateToken& token : tokens )
+    for( const TextTemplateToken& token : data.text_template_tokenizer->GetTokens() )
     {
         // add logic
         if( token.type != TextTemplateToken::Type::DirectText )
@@ -87,7 +142,7 @@ std::string TextTemplatePreviewer::CreateHtmlForHtml(const std::vector<TextTempl
 
             else if( !SO::IsWhitespace(token.text) )
             {
-                ScintillaColorizer colorizer(m_lexerLanguage, token.text);
+                ScintillaColorizer colorizer(data.lexer_language, token.text);
 
                 html.append(colorizer.GetHtml(ScintillaColorizer::HtmlProcessorType::ContentOnly));
             }
@@ -167,11 +222,68 @@ std::string TextTemplatePreviewer::CreateHtmlForHtml(const std::vector<TextTempl
 }
 
 
-std::string TextTemplatePreviewer::CreateHtmlForMarkdown(const std::vector<TextTemplateToken>& tokens) const
+std::string TextTemplatePreviewer::ProcessMarkdown(ConstructionData& data) const
 {
+    std::string result;
+    bool result_is_already_html;
+
+    // if there are no fills or logic, there is no reason to process this further
+    if( data.text_template_tokenizer->IsOnlyDirectTextUsed() )
+    {
+        ASSERT(data.text_template_tokenizer->GetTokens().size() == 1);
+        result = data.text_template_tokenizer->GetTokens().front().text;
+        result_is_already_html = false;
+    }
+
+    else
+    {
+        // when the Markdown contains tags, it will be converted to HTML
+        // and passed to ProcessHtml so that rules like not writing out logic
+        // in a head or script block are followed
+        if( DirectTextContains(data, '<') )
+        {
+            result = ProcessMarkdownWithHtmlTagSupport(data);
+            result_is_already_html = true;
+        }
+
+        // otherwise use the quicker Markdown-specific converter
+        else
+        {
+            result = ProcessMarkdownWithNoHtmlTags(data);
+            result_is_already_html = false;
+        }
+    }
+
+    // potentially create a HTML document
+    if( m_textTemplateFilePath.has_value() )
+    {
+        const std::string title = Path::GetFilenameWithoutExtension(*m_textTemplateFilePath);
+        CssProvider css_provider(Html::CSS::Markdown, false);
+
+        return result_is_already_html ? Markdown::ToHtmlDocumentFromConvertedMarkdown(title, result, &css_provider) :
+                                        Markdown::ToHtmlDocument(title, result, &css_provider);
+    }
+
+    // otherwise convert Markdown to HTML when necessary
+    else if( !result_is_already_html )
+    {
+        return Markdown::ToHtml(result);
+    }
+
+    else
+    {
+        return result;
+    }
+}
+
+
+std::string TextTemplatePreviewer::ProcessMarkdownWithNoHtmlTags(ConstructionData& data)
+{
+    ASSERT(!data.text_template_tokenizer->IsOnlyDirectTextUsed());
+
     std::string markdown;
 
-    for( const TextTemplateToken& token : tokens )
+    for( const TextTemplateToken& token : data.text_template_tokenizer->GetTokens() )
     {
         // add Markdown
         if( token.type == TextTemplateToken::Type::DirectText )
@@ -182,7 +294,7 @@ std::string TextTemplatePreviewer::CreateHtmlForMarkdown(const std::vector<TextT
         // add logic
         else
         {
-            ScintillaColorizer colorizer(m_lexerLanguage, token.text);
+            ScintillaColorizer colorizer(data.lexer_language, token.text);
             const std::string html = colorizer.GetHtml(ScintillaColorizer::HtmlProcessorType::ContentOnly);
             ASSERT(!html.empty() && html.front() == '<' && html.back() == '>');
 
@@ -228,18 +340,107 @@ std::string TextTemplatePreviewer::CreateHtmlForMarkdown(const std::vector<TextT
         }
     }
 
-    return MarkdownViewInput::ToViewableHtml(m_textTemplateFilePath, markdown);
+    return markdown;
+}
+
+
+std::string TextTemplatePreviewer::ProcessMarkdownWithHtmlTagSupport(ConstructionData& data)
+{
+    ASSERT(!data.text_template_tokenizer->IsOnlyDirectTextUsed());
+
+    // create a custom tag that does not exist in the document
+    std::string custom_tag;
+
+    for( int i = 0; ; ++i )
+    {
+        custom_tag = "x-cs" + IntToString(i);
+
+        if( !DirectTextContains(data, custom_tag) )
+        {
+            // construct the start/end tag
+            custom_tag = FormatText("<%s></%s>", custom_tag.c_str(), custom_tag.c_str());
+            break;
+        }
+    }
+
+    // build Markdown with all fills and logic replaced with the custom tag
+    std::string markdown;
+    std::vector<std::tuple<TextTemplateToken::Type, std::string>> replaced_fills_and_logic;
+
+    for( const TextTemplateToken& token : data.text_template_tokenizer->GetTokens() )
+    {
+        if( token.type == TextTemplateToken::Type::DirectText )
+        {
+            markdown.append(token.text);
+        }
+
+        else
+        {
+            markdown.append(custom_tag);
+            replaced_fills_and_logic.emplace_back(token.type, token.text);
+        }
+    }
+
+    // convert this Markdown to HTML
+    std::string html = Markdown::ToHtml(markdown);
+
+    // replace the custom tags with the fills and logic
+    auto replaced_fills_and_logic_itr = replaced_fills_and_logic.cbegin();
+    auto replaced_fills_and_logic_end = replaced_fills_and_logic.cend();
+    size_t custom_tag_pos = 0;
+
+    while( ( replaced_fills_and_logic_itr != replaced_fills_and_logic_end ) &&
+           ( ( custom_tag_pos = html.find(custom_tag, custom_tag_pos) ) != std::string::npos ) )
+    {
+        const auto& [type, text] = *replaced_fills_and_logic_itr;
+
+        const std::string fill_or_logic =
+            ( type == TextTemplateToken::Type::DoubleTilde ) ? ( "~~" + text + "~~" ) :
+            ( type == TextTemplateToken::Type::TripleTilde ) ? ( "~~~" + text + "~~~" ) :
+          /*( type == TextTemplateToken::Type::Logic ) */      ( "<?" + text + "?>" );
+
+        html.replace(custom_tag_pos, custom_tag.length(), fill_or_logic);
+
+        ++replaced_fills_and_logic_itr;
+        custom_tag_pos += fill_or_logic.length();
+    }
+
+    ASSERT(replaced_fills_and_logic_itr == replaced_fills_and_logic_end);
+    ASSERT(html.find(custom_tag, custom_tag_pos) == std::string::npos);
+
+    // now tokenize and process this constructed HTML
+    TokenizeTemplate(data, html);
+
+    return ProcessHtml(data);
+}
+
+
+template<typename T>
+bool TextTemplatePreviewer::DirectTextContains(ConstructionData& data, const T& text)
+{
+    for( const TextTemplateToken& token : data.text_template_tokenizer->GetTokens() )
+    {
+        if( token.type == TextTemplateToken::Type::DirectText &&
+            token.text.find(text) != std::string::npos )
+        {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 
 std::string TextTemplatePreviewer::GetUrl()
 {
+    ASSERT(m_textTemplateFilePath.has_value());
+
     if( m_virtualFileMappingDetails == nullptr )
     {
         m_virtualFileMappingDetails = std::make_unique<VirtualFileMappingDetails>();
 
         m_virtualFileMappingDetails->virtual_file_mapping = std::make_unique<VirtualFileMapping>(
-            m_virtualFileMappingDetails->file_server.CreateVirtualHtmlFile(PortableFunctions::PathGetDirectory(m_textTemplateFilePath),
+            m_virtualFileMappingDetails->file_server.CreateVirtualHtmlFile(PortableFunctions::PathGetDirectory(ValueOrDefault(m_textTemplateFilePath)),
                 [&]()
                 {
                     return m_html;
@@ -252,6 +453,8 @@ std::string TextTemplatePreviewer::GetUrl()
 
 std::unique_ptr<UriResolver> TextTemplatePreviewer::GetUriResolver()
 {
+    ASSERT(m_textTemplateFilePath.has_value());
+
     const std::string url = GetUrl();
-    return UriResolver::CreateUriDomain(url, url, m_textTemplateFilePath);
+    return UriResolver::CreateUriDomain(url, url, ValueOrDefault(m_textTemplateFilePath));
 }

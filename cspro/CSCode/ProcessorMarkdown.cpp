@@ -38,9 +38,9 @@ void ProcessorMarkdown::SaveReportAsHtml(CodeDoc& code_doc)
 {
     // save Markdown reports to HTML using the output of the text template preview
     SaveAsHtml(code_doc,
-        [&](std::string markdown_file_path, const std::string_view markdown_sv)
+        [&](const std::string& markdown_file_path, const std::string_view markdown_sv)
         {
-            TextTemplatePreviewer text_template_previewer(std::move(markdown_file_path),
+            TextTemplatePreviewer text_template_previewer(markdown_file_path,
                                                           markdown_sv,
                                                           code_doc.GetLanguageSettings().GetOrCreateLogicSettings(),
                                                           "saving");

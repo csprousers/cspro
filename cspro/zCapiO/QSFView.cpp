@@ -90,19 +90,19 @@ void QSFView::SetUpQuestionTextView(const std::string& application_file_path)
 }
 
 
-void QSFView::SetCapiText(std::variant<SharableString, CapiText> capi_text, const COLORREF* const background_color)
+void QSFView::SetStyleCss(std::string css)
 {
-    m_backgroundColor = ( background_color != nullptr ) ? PortableColor::FromCOLORREF(*background_color).ToString() :
-                                                          DefaultBackgroundColor();
-    m_capiText = std::move(capi_text);
-
+    m_stylesheet = std::move(css);
     UpdateHtml();
 }
 
 
-void QSFView::SetStyleCss(std::string css)
+void QSFView::SetCapiTextHtml(SharableString capi_text_html, const COLORREF* const background_color)
 {
-    m_stylesheet = std::move(css);
+    m_backgroundColor = ( background_color != nullptr ) ? PortableColor::FromCOLORREF(*background_color).ToString() :
+                                                          DefaultBackgroundColor();
+    m_capiTextHtml = std::move(capi_text_html);
+
     UpdateHtml();
 }
 
@@ -114,7 +114,7 @@ const std::string& QSFView::DefaultBackgroundColor()
 }
 
 
-void QSFView::UpdateHtml()
+std::string QSFView::CreateCapiTextHtml(const std::string_view html_sv) const
 {
     constexpr std::string_view Part1_sv =
         "<!doctype html>\n"
@@ -137,19 +137,17 @@ void QSFView::UpdateHtml()
         "</body>\n"
         "</html>\n";
 
-    // evaluate the text as HTML if necessary
-    if( std::holds_alternative<CapiText>(m_capiText) )
-        m_capiText = std::get<CapiText>(m_capiText).GetHtml();
+    return SO::Concatenate(Part1_sv, m_stylesheet,
+                           Part2_sv, m_backgroundColor,
+                           Part3_sv, html_sv,
+                           Part4_sv);
+}
 
-    ASSERT(std::holds_alternative<SharableString>(m_capiText));
 
-    std::string html = SO::Concatenate(Part1_sv, m_stylesheet,
-                                       Part2_sv, m_backgroundColor,
-                                       Part3_sv, std::get<SharableString>(m_capiText).GetString(),
-                                       Part4_sv);
-
+void QSFView::UpdateHtml()
+{
     std::lock_guard<std::mutex> lock(m_htmlMutex);
-    m_html = std::move(html);
+    m_html = CreateCapiTextHtml(m_capiTextHtml.GetString());
 
     PostMessage(UWM::Capi::RefreshQuestionText);
 }

@@ -90,3 +90,19 @@ void CMainFrame::OnViewPreviewTextTemplate()
         ErrorMessage::Display(exception);
     }
 }
+
+
+SharableString CMainFrame::CreateQuestionTextHtmlPreview(const Application& application, const CapiText& capi_text) noexcept
+{
+    try
+    {
+        const TextTemplatePreviewer text_template_previewer(capi_text, application.GetLogicSettings());
+        return text_template_previewer.GetHtml();
+    }
+
+    catch( const CSProException& exception )
+    {
+        // format the exception as HTML
+        return "<b><em>" + Encoders::ToHtml(exception.what()) + "</em></b>";
+    }
+}
