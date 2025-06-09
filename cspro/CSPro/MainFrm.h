@@ -235,7 +235,7 @@ protected:
     void OnUpdateViewPreviewTextTemplate(CCmdUI* pCmdUI);
 
 private:
-    const TextSource* GetHtmlOrDerivableReportTextSourceCurrentlyEditing(std::string* report_name_for_report_preview);
+    std::variant<std::monostate, const CapiText*, const TextSource*> GetHtmlOrDerivableTextTemplateCurrentlyEditing(std::string* report_name_for_report_preview);
     static SharableString CreateQuestionTextHtmlPreview(const Application& application, const CapiText& capi_text) noexcept;
 
 

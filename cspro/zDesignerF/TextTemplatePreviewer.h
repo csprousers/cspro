@@ -2,6 +2,7 @@
 
 #include <zDesignerF/zDesignerF.h>
 #include <zHtml/UriResolver.h>
+#include <zEngineO/TextTemplateTokenizer.h>
 
 class CapiText;
 enum class EncodeType : int;
@@ -48,6 +49,11 @@ private:
 
     // Instantiates the tokenizer and tokenizes the text template.
     static void TokenizeTemplate(ConstructionData& data, std::string_view text_template_sv);
+
+    static constexpr std::tuple<const char*, const char*> GetDelimiters(TextTemplateToken::Type type);
+    static constexpr std::tuple<const char*, const char*> GetEscapedDelimiters(TextTemplateToken::Type type);
+
+    static void AppendColorizedLogic(std::string& html, TextTemplateToken::Type type, const std::string& colorized_tag_html);
 
     static std::string ProcessHtml(ConstructionData& data);
 

@@ -1,11 +1,16 @@
 ﻿#include "StdAfx.h"
 #include "TextTemplatePreviewer.h"
 #include <zEdit2O/ScintillaColorizer.h>
-#include <zEngineO/TextTemplateTokenizer.h>
 #include <zHtml/SharedHtmlLocalFileServer.h>
 #include <zMarkdown/Markdown.h>
 #include <zCapiO/CapiText.h>
 #include <zEngineO/Nodes/TextTemplate.h>
+
+
+namespace
+{
+    constexpr bool HighlightLogicAndShowDelimitersInOutput = true;
+}
 
 
 struct TextTemplatePreviewer::ConstructionData
@@ -94,6 +99,47 @@ void TextTemplatePreviewer::TokenizeTemplate(ConstructionData& data, const std::
 }
 
 
+constexpr std::tuple<const char*, const char*> TextTemplatePreviewer::GetDelimiters(const TextTemplateToken::Type type)
+{
+    return ( type == TextTemplateToken::Type::DoubleTilde ) ? std::make_tuple("~~", "~~") :
+           ( type == TextTemplateToken::Type::TripleTilde ) ? std::make_tuple("~~~", "~~~") :
+         /*( type == TextTemplateToken::Type::Logic ) */      std::make_tuple("<?", "?>");
+}
+
+
+constexpr std::tuple<const char*, const char*> TextTemplatePreviewer::GetEscapedDelimiters(const TextTemplateToken::Type type)
+{
+    // the tilde delimiters are returned as HTML entities so that we do not have to worry about escaping ~ for Markdown
+    return ( type == TextTemplateToken::Type::DoubleTilde ) ? std::make_tuple("&#126;&#126;", "&#126;&#126;") :
+           ( type == TextTemplateToken::Type::TripleTilde ) ? std::make_tuple("&#126;&#126;&#126;", "&#126;&#126;&#126;") :
+         /*( type == TextTemplateToken::Type::Logic ) */      std::make_tuple("&lt;?", "?&gt;");
+}
+
+
+void TextTemplatePreviewer::AppendColorizedLogic(std::string& html, const TextTemplateToken::Type type, const std::string& colorized_tag_html)
+{
+    if constexpr(HighlightLogicAndShowDelimitersInOutput)
+    {
+        // the background color is the color used by the cspro-capi-fill class at 37.5% opacity
+        constexpr const char* SpanStart = "<span style=\"font-family: Consolas, monaco, monospace; "
+                                                        "background-color: #e7f6f660\">";
+
+        const std::tuple<const char*, const char*> delimiters = GetEscapedDelimiters(type);
+
+        html.append(SpanStart)
+            .append(std::get<0>(delimiters))
+            .append(colorized_tag_html)
+            .append(std::get<1>(delimiters))
+            .append("</span>");
+    }
+
+    else
+    {
+        html.append(colorized_tag_html);
+    }
+}
+
+
 std::string TextTemplatePreviewer::ProcessHtml(ConstructionData& data)
 {
     // if there are no fills or logic, there is no reason to process this further
@@ -143,8 +189,7 @@ std::string TextTemplatePreviewer::ProcessHtml(ConstructionData& data)
             else if( !SO::IsWhitespace(token.text) )
             {
                 ScintillaColorizer colorizer(data.lexer_language, token.text);
-
-                html.append(colorizer.GetHtml(ScintillaColorizer::HtmlProcessorType::ContentOnly));
+                AppendColorizedLogic(html, token.type, colorizer.GetHtml(ScintillaColorizer::HtmlProcessorType::ContentOnly));
             }
         }
 
@@ -301,6 +346,7 @@ std::string TextTemplatePreviewer::ProcessMarkdownWithNoHtmlTags(ConstructionDat
             // logic like ~~~"**"~~~ is colored like <span style="color:Fuchsia;">"**"</span>
             // which is a problem because Markdown syntax is processed within span-level tags (but not block-level tags),
             // so we must escape the content in between each of the tags
+            std::string escaped_html;
             size_t last_processed_end_tag_pos = 0;
             size_t start_tag_pos = 0;
 
@@ -316,7 +362,7 @@ std::string TextTemplatePreviewer::ProcessMarkdownWithNoHtmlTags(ConstructionDat
                     throw ProgrammingErrorException();
                 }
 
-                // append the logic (e.g., "**")
+                // add the logic (e.g., "**")
                 if( start_tag_pos > last_processed_end_tag_pos )
                 {
                     std::string logic = html.substr(last_processed_end_tag_pos + 1, start_tag_pos - last_processed_end_tag_pos - 1);
@@ -325,11 +371,11 @@ std::string TextTemplatePreviewer::ProcessMarkdownWithNoHtmlTags(ConstructionDat
                     // so that they are properly escaped for Markdown
                     logic = Encoders::FromHtmlAmpersandEscapes(std::move(logic));
 
-                    markdown.append(Encoders::ToMarkdown(logic));
+                    escaped_html.append(Encoders::ToMarkdown(logic));
                 }
 
-                // append the tag
-                markdown.append(html.substr(start_tag_pos, end_tag_pos - start_tag_pos + 1));
+                // add the tag
+                escaped_html.append(html.substr(start_tag_pos, end_tag_pos - start_tag_pos + 1));
 
                 last_processed_end_tag_pos = end_tag_pos;
 
@@ -337,6 +383,8 @@ std::string TextTemplatePreviewer::ProcessMarkdownWithNoHtmlTags(ConstructionDat
             }
 
             ASSERT(start_tag_pos == html.length());
+
+            AppendColorizedLogic(markdown, token.type, escaped_html);
         }
     }
 
@@ -348,22 +396,21 @@ std::string TextTemplatePreviewer::ProcessMarkdownWithHtmlTagSupport(Constructio
 {
     ASSERT(!data.text_template_tokenizer->IsOnlyDirectTextUsed());
 
-    // create a custom tag that does not exist in the document
-    std::string custom_tag;
+    // create a text string that does not exist in the document
+    std::string replacement_text;
 
     for( int i = 0; ; ++i )
     {
-        custom_tag = "x-cs" + IntToString(i);
+        replacement_text = "cs" + IntToString(i);
 
-        if( !DirectTextContains(data, custom_tag) )
-        {
-            // construct the start/end tag
-            custom_tag = FormatText("<%s></%s>", custom_tag.c_str(), custom_tag.c_str());
+        if( !DirectTextContains(data, replacement_text) )
             break;
-        }
     }
 
-    // build Markdown with all fills and logic replaced with the custom tag
+    ASSERT(replacement_text == Encoders::ToHtml(replacement_text) &&
+           replacement_text == Encoders::ToMarkdown(replacement_text));
+
+    // build Markdown with all fills and logic replaced with the replacement text
     std::string markdown;
     std::vector<std::tuple<TextTemplateToken::Type, std::string>> replaced_fills_and_logic;
 
@@ -376,7 +423,7 @@ std::string TextTemplatePreviewer::ProcessMarkdownWithHtmlTagSupport(Constructio
 
         else
         {
-            markdown.append(custom_tag);
+            markdown.append(replacement_text);
             replaced_fills_and_logic.emplace_back(token.type, token.text);
         }
     }
@@ -384,29 +431,27 @@ std::string TextTemplatePreviewer::ProcessMarkdownWithHtmlTagSupport(Constructio
     // convert this Markdown to HTML
     std::string html = Markdown::ToHtml(markdown);
 
-    // replace the custom tags with the fills and logic
+    // restore the fills and logic
     auto replaced_fills_and_logic_itr = replaced_fills_and_logic.cbegin();
     auto replaced_fills_and_logic_end = replaced_fills_and_logic.cend();
-    size_t custom_tag_pos = 0;
+    size_t replacement_text_pos = 0;
 
     while( ( replaced_fills_and_logic_itr != replaced_fills_and_logic_end ) &&
-           ( ( custom_tag_pos = html.find(custom_tag, custom_tag_pos) ) != std::string::npos ) )
+           ( ( replacement_text_pos = html.find(replacement_text, replacement_text_pos) ) != std::string::npos ) )
     {
         const auto& [type, text] = *replaced_fills_and_logic_itr;
 
-        const std::string fill_or_logic =
-            ( type == TextTemplateToken::Type::DoubleTilde ) ? ( "~~" + text + "~~" ) :
-            ( type == TextTemplateToken::Type::TripleTilde ) ? ( "~~~" + text + "~~~" ) :
-          /*( type == TextTemplateToken::Type::Logic ) */      ( "<?" + text + "?>" );
+        const std::tuple<const char*, const char*> delimiters = GetDelimiters(type);
+        const std::string fill_or_logic = std::get<0>(delimiters) + text + std::get<1>(delimiters);
 
-        html.replace(custom_tag_pos, custom_tag.length(), fill_or_logic);
+        html.replace(replacement_text_pos, replacement_text.length(), fill_or_logic);
 
         ++replaced_fills_and_logic_itr;
-        custom_tag_pos += fill_or_logic.length();
+        replacement_text_pos += fill_or_logic.length();
     }
 
     ASSERT(replaced_fills_and_logic_itr == replaced_fills_and_logic_end);
-    ASSERT(html.find(custom_tag, custom_tag_pos) == std::string::npos);
+    ASSERT(html.find(replacement_text, replacement_text_pos) == std::string::npos);
 
     // now tokenize and process this constructed HTML
     TokenizeTemplate(data, html);

@@ -114,7 +114,8 @@ const std::string& QSFView::DefaultBackgroundColor()
 }
 
 
-std::string QSFView::CreateCapiTextHtml(const std::string_view html_sv) const
+std::string QSFView::CreateCapiTextHtml(const std::string_view html_sv, const std::string_view css_sv,
+                                        const std::string_view background_color_sv)
 {
     constexpr std::string_view Part1_sv =
         "<!doctype html>\n"
@@ -137,10 +138,16 @@ std::string QSFView::CreateCapiTextHtml(const std::string_view html_sv) const
         "</body>\n"
         "</html>\n";
 
-    return SO::Concatenate(Part1_sv, m_stylesheet,
-                           Part2_sv, m_backgroundColor,
+    return SO::Concatenate(Part1_sv, css_sv,
+                           Part2_sv, background_color_sv,
                            Part3_sv, html_sv,
                            Part4_sv);
+}
+
+
+std::string QSFView::CreateCapiTextHtml(const std::string_view html_sv) const
+{
+    return CreateCapiTextHtml(html_sv, m_stylesheet, m_backgroundColor);
 }
 
 

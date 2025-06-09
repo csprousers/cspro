@@ -1,5 +1,6 @@
 ﻿#pragma once
 
+#include <zformf/zFormF.h>
 #include <zformf/CapiEditorViewModel.h>
 #include <zformf/QSFEditToolbar.h>
 #include <zformf/QuestionTextEditor.h>
@@ -11,7 +12,7 @@ struct CapiStyle;
 // CQSFEView: Question text editor view
 // --------------------------------------------------------------------------
 
-class CQSFEView : public CFormView
+class CLASS_DECL_ZFORMF CQSFEView : public CFormView
 {
     DECLARE_DYNAMIC(CQSFEView)
 
@@ -30,6 +31,8 @@ public:
     void SetStyles(const std::vector<CapiStyle>& styles);
 
     bool IsDirty() const;
+
+    const CapiText& GetCurrentCapiText() const { return m_currentCapiText; }
 
 protected:
     DECLARE_MESSAGE_MAP()

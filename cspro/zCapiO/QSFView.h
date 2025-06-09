@@ -29,6 +29,11 @@ public:
     void SetStyleCss(std::string css);
 
     void SetCapiTextHtml(SharableString capi_text_html, const COLORREF* background_color);
+
+    static const std::string& DefaultBackgroundColor();
+
+    static std::string CreateCapiTextHtml(std::string_view html_sv, std::string_view css_sv,
+                                          std::string_view background_color_sv);
     std::string CreateCapiTextHtml(std::string_view html_sv) const;
 
 protected:
@@ -42,8 +47,6 @@ protected:
     LRESULT OnRefreshQuestionText(WPARAM wParam, LPARAM lParam);
 
 private:
-    static const std::string& DefaultBackgroundColor();
-
     void UpdateHtml();
 
     void SetUpActionInvoker();
