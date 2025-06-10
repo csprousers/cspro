@@ -40,6 +40,8 @@ protected:
     void OnInitialUpdate() override;
     void OnUpdate(CView* pSender, LPARAM lHint, CObject* pHint) override;
 
+    BOOL PreTranslateMessage(MSG* pMsg) override;
+
     int OnCreate(LPCREATESTRUCT lpCreateStruct);
     void OnDestroy();
 

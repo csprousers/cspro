@@ -1,5 +1,6 @@
 ﻿#include "StdAfx.h"
 #include "QuestionTextEditor.h"
+#include <zToolsO/Encoders.h>
 
 
 // --------------------------------------------------------------------------
@@ -59,13 +60,13 @@ QuestionTextTextEditor::~QuestionTextTextEditor()
 
 int QuestionTextTextEditor::GetLexerLanguage(const Application* const application) const
 {
-    ASSERT(m_format == CapiText::Format::ReportHtml || m_format == CapiText::Format::ReportMarkdown);
+    ASSERT(EditingHtml() || EditingMarkdown());
 
     const bool use_v8_0_lexers = ( application != nullptr ) ? Lexers::UseV8_0Lexers(*application) :
                                                               true;
 
-    return ( m_format == CapiText::Format::ReportHtml ) ? ( use_v8_0_lexers ? SCLEX_CSPRO_REPORT_HTML_V8_0     : SCLEX_CSPRO_REPORT_HTML_V0 ) :
-                                                          ( use_v8_0_lexers ? SCLEX_CSPRO_REPORT_MARKDOWN_V8_0 : SCLEX_CSPRO_REPORT_MARKDOWN_V0 );
+    return EditingHtml() ? ( use_v8_0_lexers ? SCLEX_CSPRO_REPORT_HTML_V8_0     : SCLEX_CSPRO_REPORT_HTML_V0 ) :
+                           ( use_v8_0_lexers ? SCLEX_CSPRO_REPORT_MARKDOWN_V8_0 : SCLEX_CSPRO_REPORT_MARKDOWN_V0 );
 }
 
 
@@ -242,53 +243,146 @@ void QuestionTextTextEditor::Redo()
 
 void QuestionTextTextEditor::Bold()
 {
-    // MARKDOWN_TODO
+    EditingHtml() ? WrapSelection("<strong>", "</strong>") :
+                    WrapSelection("**", "**");
 }
 
 
 void QuestionTextTextEditor::Italic()
 {
-    // MARKDOWN_TODO
+    EditingHtml() ? WrapSelection("<em>", "</em>") :
+                    WrapSelection("*", "*");
 }
 
 
 void QuestionTextTextEditor::Underline()
 {
-    // MARKDOWN_TODO
+    WrapSelection("<u>", "</u>");
 }
 
 
 void QuestionTextTextEditor::SetForeColor(const COLORREF color)
 {
-    // MARKDOWN_TODO
+    const std::string color_text = PortableColor::FromCOLORREF(color).ToString();
+    WrapSelection(FormatText("<span style=\"color:%s\">", color_text.c_str()), "</span>");
 }
 
 
 void QuestionTextTextEditor::UnorderedList()
 {
-    // MARKDOWN_TODO
+    EditingHtml() ? WrapSelection("<ul>\n    <li>", "</li>\n</ul>") :
+                    WrapSelection("- ", nullptr);
 }
 
 
 void QuestionTextTextEditor::OrderedList()
 {
-    // MARKDOWN_TODO
+    EditingHtml() ? WrapSelection("<ol>\n    <li>", "</li>\n</ol>") :
+                    WrapSelection("1. ", nullptr);
 }
 
 
 void QuestionTextTextEditor::InsertImage(const std::string& image_url)
 {
-    // MARKDOWN_TODO
+    if( EditingHtml() )
+    {
+        WrapSelection(FormatText("<img src=\"%s\">", Encoders::ToHtmlTagValue(image_url).c_str()), nullptr);
+    }
+
+    else
+    {
+        WrapSelection(FormatText("![](%s)", ToMarkdownUrl(image_url).c_str()), nullptr);
+    }
 }
 
 
 void QuestionTextTextEditor::InsertTable(const int rows, const int columns)
 {
-    // MARKDOWN_TODO
+    // for HTML, match what Summernote creates
+    if( EditingHtml() )
+    {
+        std::string html = "<table class=\"table table-bordered\">\n    <tbody>\n";
+
+        for( int r = 0; r < rows; ++r )
+        {
+            html.append("        <tr>");
+
+            for( int c = 0; c < columns; ++c )
+                html.append("<td> </td>");
+
+            html.append("</tr>\n");
+        }
+
+        html.append("    </tbody>\n</table>");
+
+        WrapSelection(html, nullptr);
+    }
+
+    // for Markdown, an additional row will be added for the header
+    else
+    {
+        auto create_row = [&](const char* const cell_text)
+        {
+            std::string row_markdown = "| ";
+
+            for( int c = 0; c < columns; ++c )
+                row_markdown.append(cell_text).append(" | ");
+
+            row_markdown.back() = '\n';
+
+            return row_markdown;
+        };
+
+        const std::string row_markdown = create_row("   ");
+
+        std::string markdown = row_markdown + create_row("---");
+
+        for( int r = 0; r < rows; ++r )
+            markdown.append(row_markdown);
+
+        WrapSelection(markdown, nullptr);
+    }
 }
 
 
 void QuestionTextTextEditor::InsertLink(const std::string& text, const std::string& url)
 {
-    // MARKDOWN_TODO
+    if( EditingHtml() )
+    {
+        const std::string link = FormatText("<a href=\"%s\">%s</a>", url.c_str(),
+                                                                     Encoders::ToHtml(text).c_str());
+        WrapSelection(link, nullptr);
+    }
+
+    else
+    {
+        const std::string link = FormatText("[%s](%s)", Encoders::ToMarkdown(text).c_str(),
+                                                        ToMarkdownUrl(url).c_str());
+        WrapSelection(link, nullptr);
+    }
+}
+
+
+std::string QuestionTextTextEditor::ToMarkdownUrl(std::string url)
+{
+    // because ) closes the URL, replace it with its percent-encoded equivalent
+    return SO::Replace(url, ")", "%29");
+}
+
+
+void QuestionTextTextEditor::WrapSelection(const cs::string_view_sz start_text_sv, const char* const end_text)
+{
+    const Sci_Position start_pos = m_logicCtrl->GetSelectionStart();
+    const Sci_Position end_pos = m_logicCtrl->GetSelectionEnd();
+
+    m_logicCtrl->BeginUndoAction();
+
+    if( end_text != nullptr )
+        m_logicCtrl->InsertText(end_pos, end_text);
+
+    m_logicCtrl->InsertText(start_pos, start_text_sv.c_str());
+    m_logicCtrl->EndUndoAction();
+
+    // adjust the selection to account for the inserted start text
+    m_logicCtrl->SetSelection(start_pos + start_text_sv.length(), end_pos + start_text_sv.length());
 }

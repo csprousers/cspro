@@ -371,7 +371,8 @@ void HtmlEditorCtrl::InsertImage(const std::string_view image_path_sv)
 
 void HtmlEditorCtrl::InsertTable(const int rows, const int columns)
 {
-    SendCommand("insertTable", FormatText("%dx%d", rows, columns));
+    // the dimensions are specified as columns x rows
+    SendCommand("insertTable", FormatText("%dx%d", columns, rows));
 }
 
 

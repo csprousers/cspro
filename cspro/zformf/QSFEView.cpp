@@ -176,6 +176,31 @@ void CQSFEView::OnUpdate(CView* const pSender, const LPARAM lHint, CObject* /*pH
 }
 
 
+BOOL CQSFEView::PreTranslateMessage(MSG* const pMsg)
+{
+    // ensure that the question text-specific accelerator keys are not intercepted by Scintilla
+    if( m_currentEditor == &m_textEditor && pMsg->message == WM_KEYDOWN && ::GetKeyState(VK_CONTROL) < 0 )
+    {
+        switch( pMsg->wParam )
+        {
+            case 'B':
+                OnFormatBold();
+                return TRUE;
+
+            case 'I':
+                OnFormatItalic();
+                return TRUE;
+
+            case 'U':
+                OnFormatUnderline();
+                return TRUE;
+        }
+    }
+
+    return __super::PreTranslateMessage(pMsg);
+}
+
+
 int CQSFEView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
     if( __super::OnCreate(lpCreateStruct) == -1 )
@@ -645,8 +670,9 @@ void CQSFEView::OnUpdateFormatBold(CCmdUI* const pCmdUI)
 {
     pCmdUI->Enable(IsActiveEditorAcceptingVisualStyles());
 
-    if( pCmdUI->m_pOther == &m_toolbar && IsActiveEditorVisualHtml() )
-        pCmdUI->SetCheck(m_htmlEditor.GetHtmlEditorCtrl().IsBold());
+    pCmdUI->SetCheck(( pCmdUI->m_pOther == &m_toolbar &&
+                       IsActiveEditorVisualHtml() &&
+                       m_htmlEditor.GetHtmlEditorCtrl().IsBold() ));
 }
 
 
@@ -662,8 +688,9 @@ void CQSFEView::OnUpdateFormatItalic(CCmdUI* const pCmdUI)
 {
     pCmdUI->Enable(IsActiveEditorAcceptingVisualStyles());
 
-    if( pCmdUI->m_pOther == &m_toolbar && IsActiveEditorVisualHtml() )
-        pCmdUI->SetCheck(m_htmlEditor.GetHtmlEditorCtrl().IsItalic());
+    pCmdUI->SetCheck(( pCmdUI->m_pOther == &m_toolbar &&
+                       IsActiveEditorVisualHtml() &&
+                       m_htmlEditor.GetHtmlEditorCtrl().IsItalic() ));
 }
 
 
@@ -679,8 +706,9 @@ void CQSFEView::OnUpdateFormatUnderline(CCmdUI* const pCmdUI)
 {
     pCmdUI->Enable(IsActiveEditorAcceptingVisualStyles());
 
-    if( pCmdUI->m_pOther == &m_toolbar && IsActiveEditorVisualHtml() )
-        pCmdUI->SetCheck(m_htmlEditor.GetHtmlEditorCtrl().IsUnderline());
+    pCmdUI->SetCheck(( pCmdUI->m_pOther == &m_toolbar &&
+                       IsActiveEditorVisualHtml() &&
+                       m_htmlEditor.GetHtmlEditorCtrl().IsUnderline() ));
 }
 
 
@@ -762,8 +790,9 @@ void CQSFEView::OnUpdateFormatAlign(CCmdUI* const pCmdUI)
     const bool is_active_editor_visual_html = IsActiveEditorVisualHtml();
     pCmdUI->Enable(is_active_editor_visual_html);
 
-    if( is_active_editor_visual_html && pCmdUI->m_pOther == &m_toolbar )
-        pCmdUI->SetCheck(( m_htmlEditor.GetHtmlEditorCtrl().GetTextAlignment() == ConvertResourceId<HtmlEditorCtrl::TextAlign>(pCmdUI->m_nID)) );
+    pCmdUI->SetCheck(( is_active_editor_visual_html &&
+                       pCmdUI->m_pOther == &m_toolbar &&
+                       m_htmlEditor.GetHtmlEditorCtrl().GetTextAlignment() == ConvertResourceId<HtmlEditorCtrl::TextAlign>(pCmdUI->m_nID) ));
 }
 
 
@@ -778,8 +807,9 @@ void CQSFEView::OnUpdateEditFormatOutlineBullet(CCmdUI* const pCmdUI)
 {
     pCmdUI->Enable(IsActiveEditorAcceptingVisualStyles());
 
-    if( pCmdUI->m_pOther == &m_toolbar && IsActiveEditorVisualHtml() )
-        pCmdUI->SetCheck(( m_htmlEditor.GetHtmlEditorCtrl().GetListStyle() == HtmlEditorCtrl::ListStyle::Unordered) );
+    pCmdUI->SetCheck(( pCmdUI->m_pOther == &m_toolbar &&
+                       IsActiveEditorVisualHtml() &&
+                       m_htmlEditor.GetHtmlEditorCtrl().GetListStyle() == HtmlEditorCtrl::ListStyle::Unordered ));
 }
 
 
@@ -794,8 +824,9 @@ void CQSFEView::OnUpdateEditFormatOutlineNumbering(CCmdUI* const pCmdUI)
 {
     pCmdUI->Enable(IsActiveEditorAcceptingVisualStyles());
 
-    if( pCmdUI->m_pOther == &m_toolbar && IsActiveEditorVisualHtml() )
-        pCmdUI->SetCheck(( m_htmlEditor.GetHtmlEditorCtrl().GetListStyle() == HtmlEditorCtrl::ListStyle::Ordered) );
+    pCmdUI->SetCheck(( pCmdUI->m_pOther == &m_toolbar &&
+                       IsActiveEditorVisualHtml() &&
+                       m_htmlEditor.GetHtmlEditorCtrl().GetListStyle() == HtmlEditorCtrl::ListStyle::Ordered ));
 }
 
 
@@ -832,7 +863,7 @@ void CQSFEView::OnInsertTable()
     ASSERT(IsActiveEditorAcceptingVisualStyles());
 
     const CSize dimensions = m_toolbar.GetTableDimensions();
-    m_currentEditor->InsertTable(dimensions.cx, dimensions.cy);
+    m_currentEditor->InsertTable(dimensions.cy, dimensions.cx);
 }
 
 
