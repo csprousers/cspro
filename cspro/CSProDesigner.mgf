@@ -593,7 +593,7 @@ Language=EN
 
 /* --- Question Text */
 48011  Question text conditions must consist of a single numeric expression
-48012  Question text logic is not complete
+48012  Question text logic is not valid
 48013  Question text fills must consist of a single numeric or string expression, or an object with binary data
 
 /* --- Text Templates */

@@ -9,19 +9,39 @@
 
 class QuestionTextTextEditor::CustomLogicCtrl : public CLogicCtrl
 {
+public:
+    void ClearSelectionOnSetFocus() { m_clearSelectionOnSetFocus = true; }
+
 protected:
     bool ProcessClicksForReferenceWindow() const override { return false; }
 
 protected:
     DECLARE_MESSAGE_MAP()
 
+    void OnSetFocus(CWnd* pOldWnd);
     void OnContextMenu(CWnd* pWnd, CPoint point);
+
+private:
+    bool m_clearSelectionOnSetFocus = false;
 };
 
 
 BEGIN_MESSAGE_MAP(QuestionTextTextEditor::CustomLogicCtrl, CLogicCtrl)
+    ON_WM_SETFOCUS()
     ON_WM_CONTEXTMENU()
 END_MESSAGE_MAP()
+
+
+void QuestionTextTextEditor::CustomLogicCtrl::OnSetFocus(CWnd* const pOldWnd)
+{
+    __super::OnSetFocus(pOldWnd);
+
+    if( m_clearSelectionOnSetFocus )
+    {
+        GotoPos(0);
+        m_clearSelectionOnSetFocus = false;
+    }
+}
 
 
 void QuestionTextTextEditor::CustomLogicCtrl::OnContextMenu(CWnd* const pWnd, const CPoint point)
@@ -73,6 +93,11 @@ int QuestionTextTextEditor::GetLexerLanguage(const Application* const applicatio
 void QuestionTextTextEditor::Initialize(CWnd* const pParent, const std::string& /*application_file_path*/)
 {
     m_logicCtrl->ReplaceCEdit(pParent, true, true, GetLexerLanguage(nullptr));
+
+    // turn off modifications for many events to prevent CQSFEView::OnEditorChangeText
+    // from being called for events such as clearing markers
+    m_logicCtrl->SetModEventMask(Scintilla::ModificationFlags::InsertText |
+                                 Scintilla::ModificationFlags::DeleteText);
 
     // errors will be reported using annotations
     m_logicCtrl->StyleSetFore(SCE_CSPRO_ERROR_ANNOTATION, RGB(150, 0, 64));
@@ -181,7 +206,23 @@ void QuestionTextTextEditor::ClearContent()
 void QuestionTextTextEditor::SetContent(const SharableString& text)
 {
     m_logicCtrl->SetTextAndSetSavePoint(text.GetString());
+    m_logicCtrl->EmptyUndoBuffer();
     m_logicCtrl->SetModified(false);
+
+    // this is a solution to a problem described by ChatGPT as:
+    //
+    //   If you set text via SCI_SETTEXT while the control does not have focus, and then
+    //   the user clicks on the control for the first time, Scintilla will often select
+    //   all the text when it receives focus.
+    //
+    //   Later, when the user clicks the control to give it focus:
+    //     * Scintilla interprets the mouse event as “focus + click”
+    //     * If there’s a full range selected (0 to length), it may treat it as a
+    //       focus event and auto-select the entire line or buffer
+    //
+    //   This is similar to how some single-line edit controls select-all-on-focus to
+    //   make editing easier — but it's not always desirable in a code editor scenario.
+    assert_cast<CustomLogicCtrl&>(*m_logicCtrl).ClearSelectionOnSetFocus();
 }
 
 

@@ -55,10 +55,8 @@ protected:
     void OnViewLogic();
     void OnToggleSecondView();
 
-    void OnSetFocusEditor();
-
-    void OnChangeHtmlEditor();
-    void OnChangeTextEditor();
+    void OnEditorSetFocus();
+    void OnEditorChangeText();
 
     void OnUpdateIsActiveEditorVisualHtml(CCmdUI* pCmdUI);
     void OnUpdateIsActiveEditorAcceptingVisualStyles(CCmdUI* pCmdUI);
@@ -146,7 +144,7 @@ private:
 private:
     QuestionTextHtmlEditor m_htmlEditor;
     QuestionTextTextEditor m_textEditor;
-    std::vector<QuestionTextEditor*> m_editors;
+    QuestionTextEditor* m_editors[2];
     QuestionTextEditor* m_currentEditor;
     QSFEditToolbar m_toolbar;
 
@@ -156,6 +154,7 @@ private:
     size_t m_languageIndex;
     CapiText::Type m_textTypeEditing;
     CapiText m_currentCapiText;
+    bool m_updatingDisplayText;
     std::optional<UINT_PTR> m_idleTimer;
 
     std::string m_lastCheckedFillsAndLogic;

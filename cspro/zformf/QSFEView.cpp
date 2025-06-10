@@ -2,6 +2,7 @@
 #include "QSFEView.h"
 #include "TableToolbarButton.h"
 #include <zToolsO/Encoders.h>
+#include <zToolsO/RaiiHelpers.h>
 #include <zUtilO/BCMenu.h>
 #include <zUtilF/ImageFileDialog.h>
 #include <zHtml/InsertLinkDlg.h>
@@ -29,11 +30,11 @@ BEGIN_MESSAGE_MAP(CQSFEView, CFormView)
     ON_COMMAND(ID_VIEW_LOGIC, OnViewLogic)
     ON_COMMAND(ID_TOGGLE_QSF_SECOND_VIEW, OnToggleSecondView)
 
-    ON_EN_SETFOCUS(IDC_HTML_EDIT, OnSetFocusEditor)
-    ON_EN_CHANGE(IDC_HTML_EDIT, OnChangeHtmlEditor)
+    ON_EN_SETFOCUS(IDC_HTML_EDIT, OnEditorSetFocus)
+    ON_EN_CHANGE(IDC_HTML_EDIT, OnEditorChangeText)
 
-    ON_EN_SETFOCUS(IDC_QSF_LOGIC_CONTROL, OnSetFocusEditor)
-    ON_EN_CHANGE(IDC_QSF_LOGIC_CONTROL, OnChangeTextEditor)
+    ON_EN_SETFOCUS(IDC_QSF_LOGIC_CONTROL, OnEditorSetFocus)
+    ON_EN_CHANGE(IDC_QSF_LOGIC_CONTROL, OnEditorChangeText)
 
     ON_COMMAND(ID_EDIT_COPY, OnEditCopy)
     ON_UPDATE_COMMAND_UI(ID_EDIT_COPY, OnUpdateEditCopy)
@@ -114,7 +115,8 @@ CQSFEView::CQSFEView(CFormDoc* const pFormDoc)
         m_editors{ &m_htmlEditor, &m_textEditor },
         m_currentEditor(&m_htmlEditor),
         m_textTypeEditing(CapiText::Type::Question),
-        m_languageIndex(0)
+        m_languageIndex(0),
+        m_updatingDisplayText(false)
 {
     ASSERT(pFormDoc != nullptr);
 
@@ -170,9 +172,9 @@ void CQSFEView::OnUpdate(CView* const pSender, const LPARAM lHint, CObject* /*pH
     {
         m_lastCheckedFillsAndLogic.clear();
         m_currentEditor->ClearCompilationResults();
-    }
 
-    UpdateDisplayText();
+        UpdateDisplayText();
+    }
 }
 
 
@@ -390,6 +392,8 @@ void CQSFEView::SetCorrectEditor()
 
     if( m_currentEditor != correct_editor )
     {
+        SetRedraw(FALSE);
+
         m_currentEditor->GetWnd().ShowWindow(SW_HIDE);
 
         m_currentEditor = correct_editor;
@@ -397,6 +401,10 @@ void CQSFEView::SetCorrectEditor()
         CWnd& wnd = m_currentEditor->GetWnd();
         wnd.ShowWindow(SW_SHOW);
         wnd.EnableWindow();
+
+        SetRedraw(TRUE);
+        Invalidate(FALSE);
+        UpdateWindow();
     }
 
     m_currentEditor->UpdateForFormat(m_application, m_currentCapiText.GetFormat());
@@ -415,6 +423,8 @@ void CQSFEView::UpdateDisplayText()
 
         m_currentCapiText = view_model.GetText(m_languageIndex, m_textTypeEditing);
         SetCorrectEditor();
+
+        const RAII::SetValueAndRestoreOnDestruction updating_display_text_modifier(m_updatingDisplayText, true);
 
         if( m_currentCapiText.GetText()->empty() )
         {
@@ -499,7 +509,7 @@ void CQSFEView::OnToggleSecondView()
 }
 
 
-void CQSFEView::OnSetFocusEditor()
+void CQSFEView::OnEditorSetFocus()
 {
     // Make this the active view - this ensures that menu selections (undo, cut, paste...)
     // will be routed to this view
@@ -508,36 +518,21 @@ void CQSFEView::OnSetFocusEditor()
 }
 
 
-void CQSFEView::OnChangeHtmlEditor()
+void CQSFEView::OnEditorChangeText()
 {
-    ASSERT(m_currentEditor == &m_htmlEditor);
-
-    // Text changed in HTML editor - update it in document
-    CFormDoc* const form_doc = GetFormDoc();
-    CapiEditorViewModel& view_model = form_doc->GetCapiEditorViewModel();
-
-    if( view_model.CanHaveText() )
+    if( m_updatingDisplayText )
     {
-        m_currentCapiText = CapiText(m_htmlEditor.GetContent(), CapiText::Format::Html);
-
-        view_model.SetText(m_languageIndex, m_textTypeEditing, m_currentCapiText);
+        ASSERT(m_currentEditor == &m_textEditor);
+        return;
     }
 
-    StartIdleTimer();
-}
-
-
-void CQSFEView::OnChangeTextEditor()
-{
-    ASSERT(m_currentEditor == &m_textEditor);
-
-    // Text changed in text editor - update it in document
+    // Text changed in editor - update it in document
     CFormDoc* const form_doc = GetFormDoc();
     CapiEditorViewModel& view_model = form_doc->GetCapiEditorViewModel();
 
     if( view_model.CanHaveText() )
     {
-        m_currentCapiText = CapiText(m_textEditor.GetContent(), m_currentCapiText.GetFormat());
+        m_currentCapiText = CapiText(m_currentEditor->GetContent(), m_currentCapiText.GetFormat());
 
         view_model.SetText(m_languageIndex, m_textTypeEditing, m_currentCapiText);
     }
