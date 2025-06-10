@@ -47,7 +47,6 @@ add_library(${PROJECT_NAME}
     StringWriter.cpp
     SymbolCalculator.cpp
     SystemApp.cpp
-    TextTemplateTokenizer.cpp
     UserFunction.cpp
     UserFunctionArgumentChecker.cpp
     UserFunctionArgumentEvaluator.cpp

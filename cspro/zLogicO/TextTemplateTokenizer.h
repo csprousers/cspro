@@ -1,9 +1,9 @@
 ﻿#pragma once
 
-#include <zEngineO/zEngineO.h>
+#include <zLogicO/zLogicO.h>
 
-class LogicCompiler;
 class LogicSettings;
+namespace Logic { class BasicTokenCompiler; }
 
 
 // --------------------------------------------------------------------------
@@ -24,7 +24,7 @@ struct TextTemplateToken
 // TextTemplateTokenizer
 // --------------------------------------------------------------------------
 
-class ZENGINEO_API TextTemplateTokenizer
+class ZLOGICO_API TextTemplateTokenizer
 {
 public:
     TextTemplateTokenizer(bool allow_logic_escapes);
@@ -46,19 +46,36 @@ private:
 };
 
 
+
 // --------------------------------------------------------------------------
-// LogicCompilerTextTemplateTokenizer
+// ErrorReportingTextTemplateTokenizer
 // --------------------------------------------------------------------------
 
-class ZENGINEO_API LogicCompilerTextTemplateTokenizer : public TextTemplateTokenizer
+class ZLOGICO_API ErrorReportingTextTemplateTokenizer : public TextTemplateTokenizer
 {
 public:
-    LogicCompilerTextTemplateTokenizer(LogicCompiler& logic_compiler, bool allow_logic_escapes);
+    ErrorReportingTextTemplateTokenizer(Logic::BasicTokenCompiler& logic_compiler, bool allow_logic_escapes);
 
 protected:
     void OnErrorUnbalancedEscapes(size_t line_number) override;
     void OnErrorTokenNotEnded(const TextTemplateToken& token) override;
 
 private:
-    LogicCompiler& m_compiler;
+    Logic::BasicTokenCompiler& m_compiler;
+};
+
+
+
+// --------------------------------------------------------------------------
+// ErrorSuppressingTextTemplateTokenizer
+// --------------------------------------------------------------------------
+
+class ErrorSuppressingTextTemplateTokenizer : public TextTemplateTokenizer
+{
+public:
+    using TextTemplateTokenizer::TextTemplateTokenizer;
+
+protected:
+    void OnErrorUnbalancedEscapes(size_t /*line_number*/) override { }
+    void OnErrorTokenNotEnded(const TextTemplateToken& /*token*/) override { }
 };

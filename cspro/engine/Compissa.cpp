@@ -14,10 +14,10 @@
 #include "Preprocessor.h"
 #include <zEngineO/JavaScriptProcessor.h>
 #include <zEngineO/StringWriter.h>
-#include <zEngineO/TextTemplateTokenizer.h>
 #include <zToolsO/RaiiHelpers.h>
 #include <zAppO/Application.h>
 #include <zLogicO/LocalSymbolStack.h>
+#include <zLogicO/TextTemplateTokenizer.h>
 #include <zCapiO/CapiCondition.h>
 #include <zCapiO/CapiLogicParameters.h>
 #include <zDesignerF/UWM.h>
@@ -385,7 +385,7 @@ int CEngineCompFunc::CompileCapiLogic(const CapiLogicParameters& capi_logic_para
         {
             const CapiText& capi_text = *std::get<const CapiText*>(capi_logic_parameters.condition_or_text);
 
-            LogicCompilerTextTemplateTokenizer text_template_tokenizer(*this, capi_text.FormatSupportsLogicEscapes());
+            ErrorReportingTextTemplateTokenizer text_template_tokenizer(*this, capi_text.FormatSupportsLogicEscapes());
 
             if( text_template_tokenizer.Tokenize(capi_text.GetText().GetString(), GetLogicSettings()) )
             {

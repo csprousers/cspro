@@ -2,8 +2,8 @@
 #include "IncludesCC.h"
 #include "Report.h"
 #include "StringWriter.h"
-#include "TextTemplateTokenizer.h"
 #include "Nodes/TextTemplate.h"
+#include <zLogicO/TextTemplateTokenizer.h>
 
 
 namespace
@@ -170,7 +170,7 @@ std::unique_ptr<Logic::SourceBuffer> LogicCompiler::ConvertTextTemplateToSourceB
                                                                                       const std::string_view text_template_sv,
                                                                                       const bool allow_logic_escapes)
 {
-    LogicCompilerTextTemplateTokenizer text_template_tokenizer(*this, allow_logic_escapes);
+    ErrorReportingTextTemplateTokenizer text_template_tokenizer(*this, allow_logic_escapes);
 
     if( !text_template_tokenizer.Tokenize(text_template_sv, GetLogicSettings()) )
         return nullptr;

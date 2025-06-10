@@ -1,7 +1,7 @@
 ﻿#include "stdafx.h"
 #include "TextTemplateTokenizer.h"
-#include "Compiler/LogicCompiler.h"
-#include <zLogicO/LogicScanner.h>
+#include "BaseCompiler.h"
+#include "LogicScanner.h"
 
 
 // --------------------------------------------------------------------------
@@ -151,23 +151,23 @@ bool TextTemplateTokenizer::IsOnlyDirectTextUsed() const
 
 
 // --------------------------------------------------------------------------
-// LogicCompilerTextTemplateTokenizer
+// ErrorReportingTextTemplateTokenizer
 // --------------------------------------------------------------------------
 
-LogicCompilerTextTemplateTokenizer::LogicCompilerTextTemplateTokenizer(LogicCompiler& logic_compiler, const bool allow_logic_escapes)
+ErrorReportingTextTemplateTokenizer::ErrorReportingTextTemplateTokenizer(Logic::BasicTokenCompiler& logic_compiler, const bool allow_logic_escapes)
         :   TextTemplateTokenizer(allow_logic_escapes),
             m_compiler(logic_compiler)
 {
 }
 
 
-void LogicCompilerTextTemplateTokenizer::OnErrorUnbalancedEscapes(const size_t line_number)
+void ErrorReportingTextTemplateTokenizer::OnErrorUnbalancedEscapes(const size_t line_number)
 {
     m_compiler.ReportError(MGF::TextTemplate_unbalanced_escapes_48101, static_cast<int>(line_number));
 }
 
 
-void LogicCompilerTextTemplateTokenizer::OnErrorTokenNotEnded(const TextTemplateToken& token)
+void ErrorReportingTextTemplateTokenizer::OnErrorTokenNotEnded(const TextTemplateToken& token)
 {
     m_compiler.ReportError(MGF::TextTemplate_end_reached_while_in_logic_or_fill_48102,
                            ( token.type == TextTemplateToken::Type::Logic ) ? "logic" : "a fill",

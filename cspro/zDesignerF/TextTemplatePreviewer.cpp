@@ -18,17 +18,7 @@ struct TextTemplatePreviewer::ConstructionData
     const LogicSettings& logic_settings;
     int lexer_language;
     const char* action;
-    std::unique_ptr<DesignerTextTemplateTokenizer> text_template_tokenizer;
-};
-
-
-class TextTemplatePreviewer::DesignerTextTemplateTokenizer : public TextTemplateTokenizer
-{
-public:
-    DesignerTextTemplateTokenizer() : TextTemplateTokenizer(true) { }
-
-    void OnErrorUnbalancedEscapes(size_t /*line_number*/) override { }
-    void OnErrorTokenNotEnded(const TextTemplateToken& /*token*/) override { }
+    std::unique_ptr<ErrorSuppressingTextTemplateTokenizer> text_template_tokenizer;
 };
 
 
@@ -92,7 +82,7 @@ EncodeType TextTemplatePreviewer::GetEncodeType(const std::string& text_template
 
 void TextTemplatePreviewer::TokenizeTemplate(ConstructionData& data, const std::string_view text_template_sv)
 {
-    data.text_template_tokenizer = std::make_unique<DesignerTextTemplateTokenizer>();
+    data.text_template_tokenizer = std::make_unique<ErrorSuppressingTextTemplateTokenizer>(true);
 
     if( !data.text_template_tokenizer->Tokenize(text_template_sv, data.logic_settings) )
         throw CSProException("There are errors that must be fixed before %s the text template. Compile the text template to see the errors.", data.action);

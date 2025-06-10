@@ -5,7 +5,6 @@
 #include "StringLiteralParser.h"
 #include <zToolsO/Special.h>
 #include <zToolsO/VarFuncs.h>
-#include <zEngineO/Messages/EngineMessages.h>
 
 using namespace Logic;
 

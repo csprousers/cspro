@@ -15,4 +15,5 @@ add_library(${PROJECT_NAME}
     Symbol.cpp
     SymbolTable.cpp
     SymbolType.cpp
+    TextTemplateTokenizer.cpp
 )

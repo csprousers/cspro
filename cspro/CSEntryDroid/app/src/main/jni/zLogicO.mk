@@ -15,6 +15,7 @@ LOCAL_SRC_FILES         += $(ZLOGICO_SRC_PATH)/SourceBuffer.cpp
 LOCAL_SRC_FILES         += $(ZLOGICO_SRC_PATH)/Symbol.cpp
 LOCAL_SRC_FILES         += $(ZLOGICO_SRC_PATH)/SymbolTable.cpp
 LOCAL_SRC_FILES         += $(ZLOGICO_SRC_PATH)/SymbolType.cpp
+LOCAL_SRC_FILES         += $(ZLOGICO_SRC_PATH)/TextTemplateTokenizer.cpp
 
 include $(LOCAL_PATH)/LOCAL_CFLAGS.mk
 LOCAL_CFLAGS            += -DUNICODE=1

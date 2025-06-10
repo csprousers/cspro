@@ -410,9 +410,6 @@
     <ClCompile Include="SystemApp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="TextTemplateTokenizer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="UserFunction.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -728,9 +725,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="SystemApp.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="TextTemplateTokenizer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Userbar.h">

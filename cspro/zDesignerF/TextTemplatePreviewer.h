@@ -2,7 +2,7 @@
 
 #include <zDesignerF/zDesignerF.h>
 #include <zHtml/UriResolver.h>
-#include <zEngineO/TextTemplateTokenizer.h>
+#include <zLogicO/TextTemplateTokenizer.h>
 
 class CapiText;
 enum class EncodeType : int;
@@ -21,7 +21,6 @@ class CLASS_DECL_ZDESIGNERF TextTemplatePreviewer
 {
 private:
     struct ConstructionData;
-    class DesignerTextTemplateTokenizer;
     struct VirtualFileMappingDetails;
 
     TextTemplatePreviewer(EncodeType encode_type, const LogicSettings& logic_settings,

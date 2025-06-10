@@ -192,7 +192,6 @@
     <ClCompile Include="StringWriter.cpp" />
     <ClCompile Include="SymbolCalculator.cpp" />
     <ClCompile Include="SystemApp.cpp" />
-    <ClCompile Include="TextTemplateTokenizer.cpp" />
     <ClCompile Include="UserFunction.cpp" />
     <ClCompile Include="UserFunctionArgumentChecker.cpp" />
     <ClCompile Include="UserFunctionArgumentEvaluator.cpp" />
@@ -300,7 +299,6 @@
     <ClInclude Include="SymbolReference.h" />
     <ClInclude Include="SymbolSerializerHelper.h" />
     <ClInclude Include="SystemApp.h" />
-    <ClInclude Include="TextTemplateTokenizer.h" />
     <ClInclude Include="Userbar.h" />
     <ClInclude Include="UserFunction.h" />
     <ClInclude Include="UserFunctionArgumentChecker.h" />

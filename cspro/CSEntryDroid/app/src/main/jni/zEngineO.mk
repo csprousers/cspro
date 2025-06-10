@@ -41,7 +41,6 @@ LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/SaveArrayFile.cpp
 LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/StringWriter.cpp
 LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/SymbolCalculator.cpp
 LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/SystemApp.cpp
-LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/TextTemplateTokenizer.cpp
 LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/UserFunction.cpp
 LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/UserFunctionArgumentChecker.cpp
 LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/UserFunctionArgumentEvaluator.cpp
