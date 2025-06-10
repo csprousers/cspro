@@ -62,7 +62,7 @@ void BasicTokenCompiler::SetCompilationUnitName(std::string name)
 
 void BasicTokenCompiler::SetCapiLogicLocation(CapiLogicLocation capi_logic_location)
 {
-    m_compilationUnitName = "<CAPI Text>";
+    m_compilationUnitName = "<Question Text>";
     m_capiLogicLocation = std::move(capi_logic_location);
 }
 

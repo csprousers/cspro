@@ -279,10 +279,10 @@ void CFSourceEditView::OnContextMenu(CWnd* /*pWnd*/, CPoint point)
     CFormChildWnd* pParentFrame = (CFormChildWnd*)GetParentFrame();
 
     if( pParentFrame != nullptr && pParentFrame->GetUseQuestionText() ) {
-        popMenu.AppendMenu (MF_STRING, ID_QSF_EDITOR, _T("View CAPI &Question"));
+        popMenu.AppendMenu (MF_STRING, ID_QSF_EDITOR, _T("View &Question Text"));
     }
     else {
-        popMenu.AppendMenu (MF_STRING|MF_GRAYED, ID_QSF_EDITOR, _T("View CAPI &Question"));
+        popMenu.AppendMenu (MF_STRING|MF_GRAYED, ID_QSF_EDITOR, _T("View &Question Text"));
     }
 
     popMenu.LoadToolbar(IDR_FORM_FRAME);

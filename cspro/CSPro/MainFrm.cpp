@@ -2005,7 +2005,7 @@ namespace
                 {
                     const CapiLogicLocation& capi_logic_location = std::get<CapiLogicLocation>(parser_message.extended_location);
 
-                    error_location_and_line_number = "CAPI Text, " + parser_message.proc_name;
+                    error_location_and_line_number = "Question Text, " + parser_message.proc_name;
 
                     if( capi_logic_location.language_label.has_value() )
                     {

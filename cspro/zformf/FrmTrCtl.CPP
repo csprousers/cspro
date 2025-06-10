@@ -3399,7 +3399,7 @@ void CFormTreeCtrl::OnRButtonUp(UINT nFlags, CPoint point)
 
         if( pFrame->GetUseQuestionText())
         {
-            popMenu.AppendMenu(MF_STRING, ID_QSF_EDITOR, _T("View CAPI &Question"));
+            popMenu.AppendMenu(MF_STRING, ID_QSF_EDITOR, _T("View &Question Text"));
             popMenu.AppendMenu(MF_STRING, ID_VIEW_QUESTIONNAIRE, _T("View Questionnaire"));
             popMenu.AppendMenu(MF_SEPARATOR);
             popMenu.AppendMenu(isQuestionnaireView ? MF_STRING | MF_GRAYED : MF_STRING, ID_CAPI_MACROS, _T("Question Text &Macros"));

@@ -203,7 +203,7 @@ void CFormGrid::OnCell_RClicked(int iRow, int iCol)
     popMenu.AppendMenu(MF_SEPARATOR);
     popMenu.AppendMenu(MF_STRING, ID_VVIEW_LOGIC, _T("View &Logic"));
     if (((CFormChildWnd*)(pView->GetParentFrame()))->GetUseQuestionText()) {
-        popMenu.AppendMenu(MF_STRING, ID_VQSF_EDITOR, _T("View CAPI &Question"));
+        popMenu.AppendMenu(MF_STRING, ID_VQSF_EDITOR, _T("View &Question Text"));
     }
 
     GetParent()->ClientToScreen(&pt);
@@ -355,7 +355,7 @@ void CFormGrid::OnCellField_RClicked(CDEField* pFld, int iOcc)
         popMenu.AppendMenu(MF_SEPARATOR);
         popMenu.AppendMenu(MF_STRING, ID_VVIEW_LOGIC, _T("View &Logic"));
         if (((CFormChildWnd*)(GetFormView()->GetParentFrame()))->GetUseQuestionText()) {
-            popMenu.AppendMenu(MF_STRING, ID_VQSF_EDITOR, _T("View CAPI &Question"));
+            popMenu.AppendMenu(MF_STRING, ID_VQSF_EDITOR, _T("View &Question Text"));
         }
 
         GetParent()->ClientToScreen(&pt);
@@ -425,7 +425,7 @@ void CFormGrid::OnCellText_RClicked(CHitOb& hitOb)
         popMenu.AppendMenu(MF_SEPARATOR);
         popMenu.AppendMenu(MF_STRING, ID_VVIEW_LOGIC, _T("View &Logic"));
         if (((CFormChildWnd*)(GetFormView()->GetParentFrame()))->GetUseQuestionText()) {
-            popMenu.AppendMenu(MF_STRING, ID_VQSF_EDITOR, _T("View CAPI &Question"));
+            popMenu.AppendMenu(MF_STRING, ID_VQSF_EDITOR, _T("View &Question Text"));
         }
 
         GetParent()->ClientToScreen(&pt);
@@ -492,7 +492,7 @@ void CFormGrid::OnCellBox_RClicked(CHitOb& hitOb)
         popMenu.AppendMenu(MF_SEPARATOR);
         popMenu.AppendMenu(MF_STRING, ID_VVIEW_LOGIC, _T("View &Logic"));
         if (((CFormChildWnd*)(GetFormView()->GetParentFrame()))->GetUseQuestionText()) {
-            popMenu.AppendMenu(MF_STRING, ID_VQSF_EDITOR, _T("View CAPI &Question"));
+            popMenu.AppendMenu(MF_STRING, ID_VQSF_EDITOR, _T("View &Question Text"));
         }
 
         GetParent()->ClientToScreen(&pt);
@@ -619,7 +619,7 @@ void CFormGrid::OnSH_RClicked(int iRow)
     popMenu.AppendMenu(MF_SEPARATOR);
     popMenu.AppendMenu(MF_STRING, ID_VVIEW_LOGIC, _T("View &Logic"));
     if (((CFormChildWnd*)(GetFormView()->GetParentFrame()))->GetUseQuestionText()) {
-        popMenu.AppendMenu(MF_STRING, ID_VQSF_EDITOR, _T("View CAPI &Question"));
+        popMenu.AppendMenu(MF_STRING, ID_VQSF_EDITOR, _T("View &Question Text"));
     }
 
     CHitOb h;
@@ -705,7 +705,7 @@ void CFormGrid::OnTH_RClicked(int iCol)
     popMenu.AppendMenu(MF_SEPARATOR);
     popMenu.AppendMenu(MF_STRING, ID_VVIEW_LOGIC, _T("View &Logic"));
     if (((CFormChildWnd*)(GetFormView()->GetParentFrame()))->GetUseQuestionText()) {
-        popMenu.AppendMenu(MF_STRING, ID_VQSF_EDITOR, _T("View CAPI &Question"));
+        popMenu.AppendMenu(MF_STRING, ID_VQSF_EDITOR, _T("View &Question Text"));
     }
     CHitOb h;
     h.SetCell(CPoint(iCol, NONE));
@@ -753,7 +753,7 @@ void CFormGrid::OnCB_RClicked(const CPoint& pt)
     popMenu.AppendMenu(MF_SEPARATOR);
     popMenu.AppendMenu(MF_STRING, ID_VVIEW_LOGIC, _T("View &Logic"));
     if (((CFormChildWnd*)(pView->GetParentFrame()))->GetUseQuestionText()) {
-        popMenu.AppendMenu(MF_STRING, ID_VQSF_EDITOR, _T("View CAPI &Question"));
+        popMenu.AppendMenu(MF_STRING, ID_VQSF_EDITOR, _T("View &Question Text"));
     }
 
     GetParent()->ClientToScreen(&point);
