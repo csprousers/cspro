@@ -375,8 +375,11 @@ int CEngineCompFunc::CompileCapiLogic(const CapiLogicParameters& capi_logic_para
 
     try
     {
-        SetCompilationSymbol(*symbol);
-        SetCapiLogicLocation(capi_logic_parameters.capi_logic_location);
+        auto set_compilation_details = [&]()
+        {
+            SetCompilationSymbol(*symbol);
+            SetCapiLogicLocation(capi_logic_parameters.capi_logic_location);
+        };
 
         std::unique_ptr<Logic::SourceBuffer> source_buffer;
         std::optional<Logic::LocalSymbolStack> local_symbol_stack;
@@ -392,6 +395,9 @@ int CEngineCompFunc::CompileCapiLogic(const CapiLogicParameters& capi_logic_para
         else if( std::holds_alternative<const CapiText*>(condition_or_text_or_token) )
         {
             const CapiText& capi_text = *std::get<const CapiText*>(condition_or_text_or_token);
+
+            // set the compilation details in case ErrorReportingTextTemplateTokenizer reports an error
+            set_compilation_details();
 
             ErrorReportingTextTemplateTokenizer text_template_tokenizer(*this, capi_text.FormatSupportsLogicEscapes());
 
@@ -430,6 +436,8 @@ int CEngineCompFunc::CompileCapiLogic(const CapiLogicParameters& capi_logic_para
 
         ASSERT(source_buffer != nullptr);
         SetSourceBuffer(std::move(source_buffer));
+
+        set_compilation_details();
 
         if( rutasync(symbol->GetSymbolIndex(), &compilation_function) )
             ReportError(GetSyntErr());

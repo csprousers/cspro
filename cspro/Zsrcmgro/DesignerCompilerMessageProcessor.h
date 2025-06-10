@@ -11,7 +11,7 @@ class DesignerCompilerMessageProcessor
 public:
     virtual ~DesignerCompilerMessageProcessor() { }
 
-    virtual CEngineDriver* GetEngineDriver() = 0;    
+    virtual CEngineDriver* GetEngineDriver() = 0;
     virtual std::string GetProcName() const = 0;
     virtual int GetLineNumberOfCurrentCompile() const = 0;
 
@@ -35,15 +35,9 @@ inline void DesignerCompilerMessageProcessor::ClearParserMessages()
 
 inline void DesignerCompilerMessageProcessor::AddParserMessage(Logic::ParserMessage parser_message)
 {
-    // no line number for CAPI logic
-    if( std::holds_alternative<CapiLogicLocation>(parser_message.extended_location) )
-    {
-        parser_message.line_number = 0;
-    }
-
     // if the line number is not set, assign it to the first line number for the current PROC;
     // this will generally occur during a full compilation with errors from CEngineCompFunc::CreateProcDirectory
-    else if( parser_message.line_number == 0 )
+    if( parser_message.line_number == 0 )
     {
         ASSERT(std::holds_alternative<std::monostate>(parser_message.extended_location));
 
