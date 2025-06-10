@@ -243,6 +243,10 @@
       <Project>{44a4fe38-ca5a-487c-a227-4be1ebd4874d}</Project>
       <Private>false</Private>
     </ProjectReference>
+    <ProjectReference Include="..\zLogicO\zLogicO.vcxproj">
+      <Project>{bc0d77b3-18ef-4554-a94f-650af6f7c87c}</Project>
+      <Private>false</Private>
+    </ProjectReference>
     <ProjectReference Include="..\zNetwork\zNetwork.vcxproj">
       <Project>{07d7da9d-03ed-437c-8a1f-cb2e76a3ef6a}</Project>
       <Private>false</Private>

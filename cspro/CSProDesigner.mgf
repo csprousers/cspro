@@ -592,7 +592,9 @@ Language=EN
 47513  You must specify an index for this dimension
 
 /* --- Question Text */
-48011  The question text condition must consist of a single numeric expression
+48011  Question text conditions must consist of a single numeric expression
+48012  Question text logic is not complete
+48013  Question text fills must consist of a single numeric or string expression, or an object with binary data
 
 /* --- Text Templates */
 48101  Unbalanced ?> escapes in text template on line number %d

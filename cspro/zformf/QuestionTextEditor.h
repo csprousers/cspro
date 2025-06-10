@@ -27,7 +27,8 @@ public:
 
     virtual bool IsDirty() = 0;
 
-    virtual void UpdateFillErrorDisplay(const std::map<std::string, CapiEditorViewModel::SyntaxCheckResult>& fill_syntax_check_results) = 0;
+    virtual void ClearCompilationResults() = 0;
+    virtual void CompileFillsAndLogic(CapiEditorViewModel& view_model, const CapiText& capi_text) = 0;
 
     virtual bool HasContent() = 0;
     virtual SharableString GetContent() = 0;
@@ -85,7 +86,8 @@ public:
 
     bool IsDirty() override;
 
-    void UpdateFillErrorDisplay(const std::map<std::string, CapiEditorViewModel::SyntaxCheckResult>& fill_syntax_check_results) override;
+    void ClearCompilationResults() override;
+    void CompileFillsAndLogic(CapiEditorViewModel& view_model, const CapiText& capi_text) override;
 
     bool HasContent() override;
     SharableString GetContent() override;
@@ -147,7 +149,8 @@ public:
 
     bool IsDirty() override;
 
-    void UpdateFillErrorDisplay(const std::map<std::string, CapiEditorViewModel::SyntaxCheckResult>& fill_syntax_check_results) override;
+    void ClearCompilationResults() override;
+    void CompileFillsAndLogic(CapiEditorViewModel& view_model, const CapiText& capi_text) override;
 
     bool HasContent() override;
     SharableString GetContent() override;

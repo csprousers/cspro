@@ -311,6 +311,10 @@ void CEngineCompFunc::CompileSymbolProcs()
 
 int CEngineCompFunc::CompileCapiLogic(const CapiLogicParameters& capi_logic_parameters)
 {
+    const std::variant<const CapiCondition*,
+                       const CapiText*,
+                       const TextTemplateToken*>& condition_or_text_or_token = capi_logic_parameters.condition_or_text_or_token;
+
     // lookup the symbol
     const Symbol* symbol = nullptr;
 
@@ -337,7 +341,6 @@ int CEngineCompFunc::CompileCapiLogic(const CapiLogicParameters& capi_logic_para
 
     ASSERT(symbol->IsOneOf(SymbolType::Block, SymbolType::Variable));
 
-    const bool condition_type = std::holds_alternative<const CapiCondition*>(capi_logic_parameters.condition_or_text);
     int question_text_node_index = -1;
 
     const std::function<void()> compilation_function = [&]()
@@ -350,13 +353,16 @@ int CEngineCompFunc::CompileCapiLogic(const CapiLogicParameters& capi_logic_para
 
             // conditions are always numeric expressions,
             // whereas the question text is evaluated as a text template
-            question_text_node_index = condition_type ? exprlog() :
-                                                        instruc(false);
+            question_text_node_index =
+                std::holds_alternative<const CapiCondition*>(condition_or_text_or_token) ? exprlog() :
+                std::holds_alternative<const CapiText*>(condition_or_text_or_token)      ? instruc(false) :
+                                                                                           CompileFillText();
 
             if( Tkn != TOKEOP || GetSyntErr() != 0 )
             {
-                ASSERT(condition_type);
-                IssueError(48011);
+                IssueError(std::holds_alternative<const CapiCondition*>(condition_or_text_or_token) ? 48011 :
+                           std::holds_alternative<const CapiText*>(condition_or_text_or_token)      ? 48012 :
+                                                                                                      48013);
             }
         }
 
@@ -375,15 +381,17 @@ int CEngineCompFunc::CompileCapiLogic(const CapiLogicParameters& capi_logic_para
         std::unique_ptr<Logic::SourceBuffer> source_buffer;
         std::optional<Logic::LocalSymbolStack> local_symbol_stack;
 
-        if( condition_type )
+        // condition logic
+        if( std::holds_alternative<const CapiCondition*>(condition_or_text_or_token) )
         {
-            const CapiCondition& condition = *std::get<const CapiCondition*>(capi_logic_parameters.condition_or_text);
+            const CapiCondition& condition = *std::get<const CapiCondition*>(condition_or_text_or_token);
             source_buffer = std::make_unique<Logic::SourceBuffer>(condition.GetLogic());
         }
 
-        else
+        // question text fills and logic
+        else if( std::holds_alternative<const CapiText*>(condition_or_text_or_token) )
         {
-            const CapiText& capi_text = *std::get<const CapiText*>(capi_logic_parameters.condition_or_text);
+            const CapiText& capi_text = *std::get<const CapiText*>(condition_or_text_or_token);
 
             ErrorReportingTextTemplateTokenizer text_template_tokenizer(*this, capi_text.FormatSupportsLogicEscapes());
 
@@ -410,6 +418,14 @@ int CEngineCompFunc::CompileCapiLogic(const CapiLogicParameters& capi_logic_para
             m_engineData->question_text_string_writer->ResetForQuestionText(capi_text.GetEncodeType());
 
             m_symbolTable.AddReusableSymbol(m_engineData->question_text_string_writer);
+        }
+
+        // question text fills coming from QuestionTextHtmlEditor
+        else
+        {
+            ASSERT(std::holds_alternative<const TextTemplateToken*>(condition_or_text_or_token));
+            const TextTemplateToken& text_template_token = *std::get<const TextTemplateToken*>(condition_or_text_or_token);
+            source_buffer = std::make_unique<Logic::SourceBuffer>(text_template_token.text);
         }
 
         ASSERT(source_buffer != nullptr);

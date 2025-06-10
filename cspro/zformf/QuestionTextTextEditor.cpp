@@ -72,6 +72,11 @@ int QuestionTextTextEditor::GetLexerLanguage(const Application* const applicatio
 void QuestionTextTextEditor::Initialize(CWnd* const pParent, const std::string& /*application_file_path*/)
 {
     m_logicCtrl->ReplaceCEdit(pParent, true, true, GetLexerLanguage(nullptr));
+
+    // errors will be reported using annotations
+    m_logicCtrl->StyleSetFore(SCE_CSPRO_ERROR_ANNOTATION, RGB(150, 0, 64));
+    m_logicCtrl->StyleSetBack(SCE_CSPRO_ERROR_ANNOTATION, RGB(255, 240, 240));
+    m_logicCtrl->AnnotationSetVisible(Scintilla::AnnotationVisible::Boxed);
 }
 
 
@@ -93,9 +98,62 @@ bool QuestionTextTextEditor::IsDirty()
 }
 
 
-void QuestionTextTextEditor::UpdateFillErrorDisplay(const std::map<std::string, CapiEditorViewModel::SyntaxCheckResult>& /*fill_syntax_check_results*/)
+void QuestionTextTextEditor::ClearCompilationResults()
 {
-    // MARKDOWN_TODO ?
+    m_logicCtrl->AnnotationClearAll();
+}
+
+
+void QuestionTextTextEditor::CompileFillsAndLogic(CapiEditorViewModel& view_model, const CapiText& capi_text)
+{
+    QuestionTextTextEditor::ClearCompilationResults();
+
+    try
+    {
+        std::optional<CapiEditorViewModel::SyntaxCheckError> check_errors = view_model.CheckSyntax(&capi_text);
+
+        if( !check_errors.has_value() )
+            return;
+
+        // sort the errors by line number
+        if( check_errors->size() > 1 )
+        {
+            std::sort(check_errors->begin(), check_errors->end(),
+                [&](const Logic::ParserMessage& pm1, const Logic::ParserMessage& pm2)
+                {
+                    return ( pm1.line_number < pm2.line_number );
+                });
+        }
+
+        // add annotations, grouping all errors per-line into a single annotation
+        auto parser_messages_itr = check_errors->cbegin();
+        const auto& parser_messages_end = check_errors->cend();
+        ASSERT(parser_messages_itr != parser_messages_end);
+        bool additional_messages_exist = false;
+
+        do
+        {
+            const size_t line_number = parser_messages_itr->line_number;
+            const std::string& first_message_text = parser_messages_itr->message_text;
+            std::string message_text = first_message_text;
+
+            while( ( additional_messages_exist = ( ++parser_messages_itr != parser_messages_end ) ) &&
+                   ( line_number == parser_messages_itr->line_number ) )
+            {
+                // don't add duplicate messages
+                if( parser_messages_itr->message_text != first_message_text )
+                {
+                    message_text.push_back('\n');
+                    message_text.append(parser_messages_itr->message_text);
+                }
+            }
+
+            m_logicCtrl->AnnotationSetStyle(line_number - 1, SCE_CSPRO_ERROR_ANNOTATION);
+            m_logicCtrl->AnnotationSetText(line_number - 1, message_text.c_str());
+
+        } while( additional_messages_exist );
+    }
+    catch(...) { ASSERT(false); }
 }
 
 

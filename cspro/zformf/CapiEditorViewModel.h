@@ -2,11 +2,13 @@
 
 #include <zCapiO/CapiText.h>
 #include <zCapiO/CapiQuestion.h>
+#include <zLogicO/ParserMessage.h>
 
 class Application;
 class CapiQuestionManager;
 class CDEItemBase;
 class DesignerCapiLogicCompiler;
+struct TextTemplateToken;
 
 
 // --------------------------------------------------------------------------
@@ -23,6 +25,8 @@ public:
     ~CapiEditorViewModel();
 
     void SetQuestionManager(Application* application, std::shared_ptr<CapiQuestionManager> question_manager);
+
+    const Application* GetApplication() const { return m_application; }
 
     void Clear();
 
@@ -41,11 +45,9 @@ public:
 
     void SetItem(const CDEItemBase* item_base);
 
-    struct SyntaxCheckOk    { };
-    struct SyntaxCheckError { std::string error_message; };
-    using SyntaxCheckResult = std::variant<SyntaxCheckOk, SyntaxCheckError>;
-
-    SyntaxCheckResult CheckSyntax(std::variant<const CapiCondition*, const CapiText*> condition_or_text);
+    using SyntaxCheckInput = std::variant<const CapiCondition*, const CapiText*, const TextTemplateToken*>;
+    using SyntaxCheckError = std::vector<Logic::ParserMessage>;
+    std::optional<SyntaxCheckError> CheckSyntax(SyntaxCheckInput condition_or_text_or_token);
 
 private:
     std::shared_ptr<CapiQuestionManager> m_questionManager;

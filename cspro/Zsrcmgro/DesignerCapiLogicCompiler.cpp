@@ -8,7 +8,8 @@
 
 DesignerCapiLogicCompiler::DesignerCapiLogicCompiler(Application& application)
     :   BackgroundCompiler(application, this),
-        m_application(application)
+        m_application(application),
+        m_procGlobalCompiled(false)
 {
 }
 
@@ -21,24 +22,27 @@ CEngineDriver* DesignerCapiLogicCompiler::GetEngineDriver()
 
 DesignerCapiLogicCompiler::CompileResult DesignerCapiLogicCompiler::Compile(const CapiLogicParameters& capi_logic_parameters)
 {
-    int expression = -1;
-
     try
     {
         ClearParserMessages();
 
         // compile the contents of PROC GLOBAL
-        m_procName = "GLOBAL";
+        if( !m_procGlobalCompiled )
+        {
+            m_procName = "GLOBAL";
 
-        CStringArray proc_global_lines;
-        CString proc_global_buffer;
+            CStringArray proc_global_lines;
+            CString proc_global_buffer;
 
-        if( m_application.GetAppSrcCode() != nullptr )
-            m_application.GetAppSrcCode()->GetProc(proc_global_lines, UTF8_TODO::GetCString(m_procName));
+            if( m_application.GetAppSrcCode() != nullptr )
+                m_application.GetAppSrcCode()->GetProc(proc_global_lines, UTF8_TODO::GetCString(m_procName));
 
-        CSourceCode::ArrayToString(&proc_global_lines, proc_global_buffer, true);
+            CSourceCode::ArrayToString(&proc_global_lines, proc_global_buffer, true);
 
-        BackgroundCompiler::Compile(std::make_unique<Logic::SourceBuffer>(UTF8_TODO::GetUtf8(proc_global_buffer)));
+            BackgroundCompiler::Compile(std::make_unique<Logic::SourceBuffer>(UTF8_TODO::GetUtf8(proc_global_buffer)));
+
+            m_procGlobalCompiled = true;
+        }
 
         // compile the CAPI logic
         if( std::holds_alternative<int>(capi_logic_parameters.symbol_index_or_name) )
@@ -52,22 +56,17 @@ DesignerCapiLogicCompiler::CompileResult DesignerCapiLogicCompiler::Compile(cons
             m_procName = std::get<std::string>(capi_logic_parameters.symbol_index_or_name);
         }
 
-        expression = m_compIFaz->m_pEngineCompFunc->CompileCapiLogic(capi_logic_parameters);
+        m_compIFaz->m_pEngineCompFunc->CompileCapiLogic(capi_logic_parameters);
     }
     catch(...) { ASSERT(false); }
 
-    CompileResult result { expression };
+    CompileResult result;
 
-    // only display the last error
-    const std::vector<Logic::ParserMessage>& parser_messages = GetParserMessages();
-
-    for( auto parser_message_itr = parser_messages.crbegin(); parser_message_itr != parser_messages.crend(); ++parser_message_itr )
+    // only add error messages
+    for( const Logic::ParserMessage& parser_message : GetParserMessages() )
     {
-        if( parser_message_itr->type == Logic::ParserMessage::Type::Error )
-        {
-            result.error_message = parser_message_itr->message_text;
-            break;
-        }
+        if( parser_message.type == Logic::ParserMessage::Type::Error )
+            result.errors.emplace_back(parser_message);
     }
 
     return result;

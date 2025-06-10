@@ -124,29 +124,27 @@ void CapiEditorViewModel::SetItem(const CDEItemBase* const item_base)
 }
 
 
-CapiEditorViewModel::SyntaxCheckResult CapiEditorViewModel::CheckSyntax(const std::variant<const CapiCondition*, const CapiText*> condition_or_text)
+std::optional<CapiEditorViewModel::SyntaxCheckError> CapiEditorViewModel::CheckSyntax(const SyntaxCheckInput condition_or_text_or_token)
 {
-    ASSERT(std::visit([](const auto& ptr) { return ( ptr != nullptr ); }, condition_or_text));
+    ASSERT(std::visit([](const auto& ptr) { return ( ptr != nullptr ); }, condition_or_text_or_token));
 
     if( ( m_compiler == nullptr || m_item->GetSymbol() < 1 ) &&
         ( WindowsDesktopMessage::Send(UWM::Designer::CreateCapiLogicCompiler, &m_compiler, m_application) != 1 ) )
     {
-        return ReturnProgrammingError(SyntaxCheckError { "Could not create DesignerCapiLogicCompiler" });
+        SyntaxCheckError errors;
+        errors.emplace_back(Logic::ParserMessage::Type::Error);
+        errors.back().message_text = "Could not create DesignerCapiLogicCompiler";
+        return ReturnProgrammingError(std::move(errors));
     }
 
     ASSERT(m_compiler != nullptr && m_item->GetSymbol() >= 1);
 
-    const CapiLogicParameters capi_logic_parameters { m_item->GetSymbol(), condition_or_text };
+    const CapiLogicParameters capi_logic_parameters { m_item->GetSymbol(), condition_or_text_or_token };
 
     DesignerCapiLogicCompiler::CompileResult result = m_compiler->Compile(capi_logic_parameters);
 
-    if( result.expression == -1 )
-    {
-        return SyntaxCheckError { std::move(result.error_message) };
-    }
+    if( !result.errors.empty() )
+        return result.errors;
 
-    else
-    {
-        return SyntaxCheckOk();
-    }
+    return std::nullopt;
 }

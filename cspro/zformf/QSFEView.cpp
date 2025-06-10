@@ -10,7 +10,8 @@
 
 namespace
 {
-    constexpr UINT TimerId = 20250414;
+    constexpr UINT CompilationInterval = 1000; // one second
+    constexpr UINT CompilationTimerId  = 20250414;
 }
 
 
@@ -167,8 +168,8 @@ void CQSFEView::OnUpdate(CView* const pSender, const LPARAM lHint, CObject* /*pH
 
     if( lHint == Hint::CapiEditorUpdateQuestion || lHint == Hint::CapiEditorUpdateQuestionStyles )
     {
-        m_fillSyntaxCheckResults.clear();
-        m_currentEditor->UpdateFillErrorDisplay(m_fillSyntaxCheckResults);
+        m_lastCheckedFillsAndLogic.clear();
+        m_currentEditor->ClearCompilationResults();
     }
 
     UpdateDisplayText();
@@ -272,7 +273,7 @@ void CQSFEView::OnContextMenu(CWnd* /*pWnd*/, const CPoint point)
 
 void CQSFEView::OnTimer(const UINT nIDEvent)
 {
-    if( nIDEvent != TimerId )
+    if( nIDEvent != CompilationTimerId )
         return;
 
     StopIdleTimer();
@@ -283,25 +284,24 @@ void CQSFEView::OnTimer(const UINT nIDEvent)
     if( !view_model.CanHaveText() )
         return;
 
-    CapiText text = view_model.GetText(m_languageIndex, m_textTypeEditing);
-    bool updated = false;
+    CapiText capi_text = view_model.GetText(m_languageIndex, m_textTypeEditing);
 
-#ifdef MARKDOWN_TODO
-    for( const CapiFill& fill : text.GetFills() )
+    // only compile the question text when the fills or logic have changed
+    std::string fills_and_logic = GetFillsAndLogic(capi_text.GetText().GetString(), capi_text.FormatSupportsLogicEscapes());
+
+    if( m_lastCheckedFillsAndLogic == fills_and_logic )
+        return;
+
+    m_lastCheckedFillsAndLogic = std::move(fills_and_logic);
+
+    // if there are no fills or logic, then we don't need to compile anything
+    if( m_lastCheckedFillsAndLogic.empty() )
     {
-        SharableString fill_text(fill.GetTextToEvaluate_sv());
-
-        if( m_fillSyntaxCheckResults.find(fill_text.GetString()) == m_fillSyntaxCheckResults.end() )
-        {
-            CapiEditorViewModel::SyntaxCheckResult result = view_model.CheckSyntax(CapiLogicParameters::Type::Fill, fill_text);
-            m_fillSyntaxCheckResults.try_emplace(fill_text.Release(), result);
-            updated = true;
-        }
+        m_currentEditor->ClearCompilationResults();
+        return;
     }
-#endif
 
-    if( updated )
-        m_currentEditor->UpdateFillErrorDisplay(m_fillSyntaxCheckResults);
+    m_currentEditor->CompileFillsAndLogic(view_model, capi_text);
 }
 
 
@@ -398,7 +398,7 @@ void CQSFEView::UpdateDisplayText()
 
         else
         {
-            m_currentEditor->SetContent(m_currentCapiText.GetText().GetString());
+            m_currentEditor->SetContent(m_currentCapiText.GetText());
 
             StartIdleTimer();
         }
@@ -438,7 +438,7 @@ void CQSFEView::UpdateToolbar()
 
 void CQSFEView::StartIdleTimer()
 {
-    m_idleTimer = SetTimer(TimerId, 1000, nullptr);
+    m_idleTimer = SetTimer(CompilationTimerId, CompilationInterval, nullptr);
 }
 
 
@@ -446,7 +446,7 @@ void CQSFEView::StopIdleTimer()
 {
     if( m_idleTimer.has_value() )
     {
-        KillTimer(TimerId);
+        KillTimer(CompilationTimerId);
         m_idleTimer.reset();
     }
 }
@@ -959,4 +959,52 @@ void CQSFEView::OnLanguageChanged()
 {
     SetLanguage(m_toolbar.GetLanguageLabel());
     UpdateDisplayText();
+}
+
+
+std::string CQSFEView::GetFillsAndLogic(const std::string& text, const bool process_logic_escapes)
+{
+    // rather than use TextTemplateTokenizer to properly get the fills and logic, we will just search
+    // for delimiters, which will surely in false positives, but this value is not important
+    // as it is only used to prevent excessive compilations
+    std::string fills_and_logic;
+
+    // add fills
+    size_t start_pos = 0;
+    size_t end_pos;
+
+    while( ( start_pos = text.find("~~", start_pos) ) != std::string::npos )
+    {
+        const size_t end_double_tilde_pos = start_pos + 2;
+        const bool fill_is_triple_tilde = ( end_double_tilde_pos < text.length() &&
+                                            text[end_double_tilde_pos] == '~' );
+
+        end_pos = fill_is_triple_tilde ? text.find("~~~", end_double_tilde_pos + 1) :
+                                         text.find("~~", end_double_tilde_pos);
+
+        if( end_pos == std::string::npos )
+            break;
+
+        const size_t fill_length = fill_is_triple_tilde ? 3 : 2;
+
+        fills_and_logic.append(text, start_pos, end_pos - start_pos + fill_length);
+
+        start_pos = end_pos + fill_length;
+    }
+
+    // add logic
+    if( process_logic_escapes )
+    {
+        start_pos = 0;
+
+        while( ( start_pos = text.find("<?", start_pos) ) != std::string::npos &&
+               ( end_pos = text.find("?>", start_pos + 2) ) != std::string::npos )
+        {
+            fills_and_logic.append(text, start_pos, end_pos - start_pos + 2);
+
+            start_pos = end_pos + 2;
+        }
+    }
+
+    return fills_and_logic;
 }

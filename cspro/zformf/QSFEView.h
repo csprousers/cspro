@@ -1,7 +1,6 @@
 ﻿#pragma once
 
 #include <zformf/zFormF.h>
-#include <zformf/CapiEditorViewModel.h>
 #include <zformf/QSFEditToolbar.h>
 #include <zformf/QuestionTextEditor.h>
 
@@ -140,6 +139,8 @@ private:
     template<typename T>
     static T ConvertResourceId(UINT nID);
 
+    static std::string GetFillsAndLogic(const std::string& text, bool process_logic_escapes);
+
 private:
     QuestionTextHtmlEditor m_htmlEditor;
     QuestionTextTextEditor m_textEditor;
@@ -155,5 +156,5 @@ private:
     CapiText m_currentCapiText;
     std::optional<UINT_PTR> m_idleTimer;
 
-    std::map<std::string, CapiEditorViewModel::SyntaxCheckResult> m_fillSyntaxCheckResults;
+    std::string m_lastCheckedFillsAndLogic;
 };

@@ -3,6 +3,7 @@
 #include <zToolsO/FileIO.h>
 #include <zHtml/HtmlEditorCtrl.h>
 #include <zHtml/SharedHtmlLocalFileServer.h>
+#include <zLogicO/TextTemplateTokenizer.h>
 
 
 struct QuestionTextHtmlEditor::Data
@@ -80,17 +81,51 @@ bool QuestionTextHtmlEditor::IsDirty()
 }
 
 
-void QuestionTextHtmlEditor::UpdateFillErrorDisplay(const std::map<std::string, CapiEditorViewModel::SyntaxCheckResult>& fill_syntax_check_results)
+void QuestionTextHtmlEditor::ClearCompilationResults()
 {
-    std::map<std::string, std::string> errors;
+    m_data->html_editor_ctrl.SetSyntaxErrors({ });
+}
 
-    for( const auto& [fill, result] : fill_syntax_check_results )
+
+void QuestionTextHtmlEditor::CompileFillsAndLogic(CapiEditorViewModel& view_model, const CapiText& capi_text)
+{
+    std::map<std::string, std::string> syntax_errors;
+
+    // tokenize the text and then compile each fill separately so that we can link the
+    // compilation errors with each fill
+    try
     {
-        if( std::holds_alternative<CapiEditorViewModel::SyntaxCheckError>(result) )
-            errors.try_emplace(fill, std::get<CapiEditorViewModel::SyntaxCheckError>(result).error_message);
-    }
+        const Application* const application = view_model.GetApplication();
 
-    m_data->html_editor_ctrl.SetSyntaxErrors(errors);
+        if( application == nullptr )
+            throw ProgrammingErrorException();
+
+        ErrorSuppressingTextTemplateTokenizer text_template_tokenizer(capi_text.FormatSupportsLogicEscapes());
+        text_template_tokenizer.Tokenize(capi_text.GetText().GetString(), application->GetLogicSettings());
+
+        ASSERT(!text_template_tokenizer.IsOnlyDirectTextUsed());
+
+        for( const TextTemplateToken& token : text_template_tokenizer.GetTokens() )
+        {
+            if( token.type == TextTemplateToken::Type::DirectText )
+                continue;
+
+            ASSERT(token.type == TextTemplateToken::Type::DoubleTilde ||
+                   token.type == TextTemplateToken::Type::TripleTilde);
+
+            const std::optional<CapiEditorViewModel::SyntaxCheckError> check_errors = view_model.CheckSyntax(&token);
+
+            if( !check_errors.has_value() )
+                continue;
+
+            // only display the last error
+            ASSERT(!check_errors->empty());
+            syntax_errors.try_emplace(token.text, check_errors->back().message_text);
+        }
+    }
+    catch(...) { ASSERT(false); }
+
+    m_data->html_editor_ctrl.SetSyntaxErrors(syntax_errors);
 }
 
 
