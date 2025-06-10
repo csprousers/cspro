@@ -23,9 +23,9 @@ public:
     const CapiText* GetQuestionText(const std::string& language_name) const { return GetText(language_name, CapiText::Type::Question); }
     const CapiText* GetHelpText(const std::string& language_name) const     { return GetText(language_name, CapiText::Type::Help); }
 
-    void SetText(CapiText text, const std::string& language_name, CapiText::Type type);
-    void SetQuestionText(CapiText text, const std::string& language_name) { SetText(std::move(text), language_name, CapiText::Type::Question); }
-    void SetHelpText(CapiText text, const std::string& language_name)     { SetText(std::move(text), language_name, CapiText::Type::Help); }
+    void SetText(CapiText capi_text, const std::string& language_name, CapiText::Type type);
+    void SetQuestionText(CapiText capi_text, const std::string& language_name) { SetText(std::move(capi_text), language_name, CapiText::Type::Question); }
+    void SetHelpText(CapiText capi_text, const std::string& language_name)     { SetText(std::move(capi_text), language_name, CapiText::Type::Help); }
 
     const std::map<std::string, CapiText>& GetAllQuestionText() const { return m_questionTexts; }
     std::map<std::string, CapiText>& GetAllQuestionText()             { return m_questionTexts; }

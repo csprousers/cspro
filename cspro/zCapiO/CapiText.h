@@ -26,9 +26,17 @@ public:
     // Returns true if the format supports text template logic escapes: <? ... ?>
     bool FormatSupportsLogicEscapes() const { return ( m_format != Format::Html ); }
 
-    // Returns the text as HTML, converting Markdown to HTML.
+    // Returns the text as HTML. Markdown will be converted HTML.
     SharableString GetHtml() const { return GetHtml(m_text); }
     SharableString GetHtml(const SharableString& text) const;
+
+    // Returns the text as HTML. Tilde text template delimiters in Markdown will be escaped
+    // prior to the conversion to HTML so that ~~ is not treated as strikethrough.
+    // For example:
+    //   Markdown input:                           **~~P03_SEX~~**
+    //   GetHtml:                                  <strong><del>P03_SEX</del></strong>
+    //   GetHtmlWithEscapedTextTemplateDelimiters: <strong>&#126;&#126;P03_SEX&#126;&#126;</strong>
+    SharableString GetHtmlWithEscapedTextTemplateDelimiters() const;
 
     // Returns or sets the program index for evaluating the question text.
     int GetProgramIndex() const             { return m_programIndex; }
