@@ -100,7 +100,6 @@ BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWnd)
     ON_MESSAGE(UWM::Form::HasQuestionText, OnIsQuestion)
     ON_MESSAGE(UWM::Form::IsNameUnique, IsNameUnique)
     ON_MESSAGE(UWM::Form::UpdateStatusBar, OnFormUpdateStatusBar)
-    ON_MESSAGE(UWM::Form::GetCapiLanguages, GetLangInfo)
     ON_MESSAGE(UWM::Form::UpdateCapiLanguages, ProcessLangs)
     ON_MESSAGE(UWM::Form::ShowCapiText, OnShowCapiText)
     ON_MESSAGE(UWM::Form::CapiMacros, OnCapiMacros)
@@ -1251,7 +1250,7 @@ BOOL CMainFrame::IsOKToClose(){
         }
         if(bProcess && (pDoc && pDoc->IsModified())){   // BMD 02 Mar 2003
             CString sMsg = pDoc->GetPathName();
-            sMsg += _T(" is modified. Do you want to save it ?");
+            sMsg += _T(" is modified. Do you want to save it?");
             int iRet = AfxMessageBox(sMsg,MB_YESNOCANCEL);
             if(iRet == IDYES) {
                 pDoc->OnSaveDocument(pDoc->GetPathName());
@@ -3703,28 +3702,10 @@ LRESULT CMainFrame::OnIsQuestion(WPARAM /*wParam*/, LPARAM lParam)
     return ( pBase != nullptr && pAplDoc->IsQHAvailable(pBase) ) ? 1 : 0;
 }
 
-LRESULT CMainFrame::GetLangInfo(WPARAM wParam, LPARAM lParam)
-{
-    CArray<CLangInfo,CLangInfo&>* pArrInfo = (CArray<CLangInfo,CLangInfo&>*)(wParam);
-    CFormDoc* pFormDoc = (CFormDoc*)lParam;
-    ASSERT(pFormDoc);
-
-    CAplDoc* pAplDoc = ProcessFOForSrcCode(*pFormDoc);
-
-    if(pAplDoc == nullptr){
-        return 0;
-    }
-    Application* pApplication = &pAplDoc->GetAppObject();
-    ASSERT(pApplication->GetEngineAppType() == EngineAppType::Entry);
-    UNREFERENCED_PARAMETER(pApplication);
-    pAplDoc->GetLangInfo(*pArrInfo);
-
-    return 0;
-}
 
 LRESULT CMainFrame::ProcessLangs(WPARAM wParam, LPARAM lParam)
 {
-    CArray<CLangInfo,CLangInfo&>* pArrInfo = (CArray<CLangInfo,CLangInfo&>*)(wParam);
+    std::vector<CLangInfo>* pArrInfo = reinterpret_cast<std::vector<CLangInfo>*>(wParam);
     CFormDoc* pFormDoc = (CFormDoc*)lParam;
     ASSERT(pFormDoc);
 

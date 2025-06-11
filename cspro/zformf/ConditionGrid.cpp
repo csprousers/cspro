@@ -706,7 +706,7 @@ void CCondGrid::OnEditInsert()
 void CCondGrid::OnEditDelete()
 {
     int iRow = GetCurrentRow();
-    if (AfxMessageBox(_T("Do you want to delete this condition ?"), MB_YESNO) == IDYES) {
+    if (AfxMessageBox(_T("Do you want to delete this condition?"), MB_YESNO) == IDYES) {
         CView* pView = (CView*) GetParent();
         CFormDoc* pDoc = (CFormDoc*) pView->GetDocument();
         pDoc->GetCapiEditorViewModel().DeleteCondition(iRow);

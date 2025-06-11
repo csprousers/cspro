@@ -104,8 +104,7 @@ public:
     void BuildQuestMgr();
     void SetCapiTextForAllConditions(CDEItemBase* item_base, SharableString question_text, const std::string& language_name = SO::Empty_string);
     bool IsQHAvailable(const CDEItemBase* item_base);
-    bool GetLangInfo(CArray<CLangInfo,CLangInfo&>& arrInfo);
-    void ProcessLangs(CArray<CLangInfo,CLangInfo&>& arrInfo);
+    void ProcessLangs(std::vector<CLangInfo>& arrInfo);
     void ChangeCapiName(const CDEItemBase* item_base, const std::string& old_name);
     void ChangeCapiDictName(const CDataDict& dictionary);
 

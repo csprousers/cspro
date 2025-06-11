@@ -1037,7 +1037,8 @@ void CFormChildWnd::OnEditOptions()
     SetFromApplication(SetCaseTreeType, optDlg.m_caseTreeType);
 
     SetFromApplication(SetUseQuestionText, optDlg.m_bUseQuestionText);
-    m_bUseQuestionText = optDlg.m_bUseQuestionText;
+    if( application != nullptr )
+        m_bUseQuestionText = optDlg.m_bUseQuestionText;
 
     SetFromApplication(SetShowRefusals,optDlg.m_bShowRefusals);
     SetFromApplication(SetCenterForms,optDlg.m_bCenterForms);
@@ -1909,18 +1910,27 @@ void CFormChildWnd::OnAddcapiLang()
     CFormDoc* pFormDoc = (CFormDoc*) GetActiveDocument();
     CCapilangDlg dlg;
 
-    AfxGetMainWnd()->SendMessage(UWM::Form::GetCapiLanguages, (WPARAM)&dlg.m_Langgrid.m_aLangInfo, (LPARAM)pFormDoc);
+    const CapiQuestionManager* const question_manager = pFormDoc->GetCapiQuestionManager();
+    ASSERT(question_manager != nullptr);
 
-    if(dlg.DoModal() == IDOK && dlg.m_Langgrid.m_bChanged){
-        //process the onok
-        AfxGetMainWnd()->SendMessage(UWM::Form::UpdateCapiLanguages, (WPARAM)&dlg.m_Langgrid.m_aLangInfo, (LPARAM)pFormDoc);
-        pFormDoc->UpdateAllViews(nullptr, Hint::CapiEditorUpdateLanguages);
-
-        if(this->m_eViewMode == QSFEditorViewMode){
-            DisplayEditorMode();
-        }
+    for( const Language& language : question_manager->GetLanguages() )
+    {
+        dlg.m_Langgrid.m_aLangInfo.emplace_back(UTF8_TODO::GetCString(language.GetName()),
+                                                UTF8_TODO::GetCString(language.GetLabel()));
     }
+
+
+    if( dlg.DoModal() != IDOK || !dlg.m_Langgrid.m_bChanged )
+        return;
+
+    //process the onok
+    WindowsDesktopMessage::Send(UWM::Form::UpdateCapiLanguages, &dlg.m_Langgrid.m_aLangInfo, pFormDoc);
+    pFormDoc->UpdateAllViews(nullptr, Hint::CapiEditorUpdateLanguages);
+
+    if( m_eViewMode == QSFEditorViewMode )
+        DisplayEditorMode();
 }
+
 
 void CFormChildWnd::OnUpdateIfUsingQuestionText(CCmdUI* pCmdUI)
 {

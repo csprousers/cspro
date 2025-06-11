@@ -2219,30 +2219,15 @@ bool CAplDoc::IsQHAvailable(const CDEItemBase* const item_base)
 }
 
 
-bool CAplDoc::GetLangInfo(CArray<CLangInfo,CLangInfo&>& arrInfo)
-{
-    ASSERT(m_questionManager != nullptr);
-    arrInfo.RemoveAll();
-    for (const Language& lang : m_questionManager->GetLanguages()) {
-        CLangInfo langInfo;
-        langInfo.m_sLangName = UTF8_TODO::GetCString(lang.GetName());
-        langInfo.m_sLabel = UTF8_TODO::GetCString(lang.GetLabel());
-        arrInfo.Add(langInfo);
-    }
-
-    return true;
-}
-
-
-void CAplDoc::ProcessLangs(CArray<CLangInfo,CLangInfo&>& arrInfo)
+void CAplDoc::ProcessLangs(std::vector<CLangInfo>& arrInfo)
 {
     ASSERT( m_questionManager != nullptr );
 
     int iNumLanguages = m_questionManager->GetLanguages().size();
 
     //First process langs which are modified
-    for(int iLangInfo=0; iLangInfo < arrInfo.GetSize(); iLangInfo++) {
-        CLangInfo langInfo = arrInfo[iLangInfo];
+    for(int iLangInfo=0; iLangInfo < (int)arrInfo.size(); iLangInfo++) {
+        const CLangInfo& langInfo = arrInfo[iLangInfo];
         if (langInfo.m_eLangInfo == eLANGINFO::MODIFIED_INFO) {
             ASSERT(iNumLanguages > iLangInfo);
             CString sName = langInfo.m_sLangName;
@@ -2253,16 +2238,16 @@ void CAplDoc::ProcessLangs(CArray<CLangInfo,CLangInfo&>& arrInfo)
     }
 
     //Second langs which are deleted
-    for(int iLangInfo=0; iLangInfo < arrInfo.GetSize(); iLangInfo++) {
-        CLangInfo langInfo =arrInfo[iLangInfo];
+    for(int iLangInfo=0; iLangInfo < (int)arrInfo.size(); iLangInfo++) {
+        const CLangInfo& langInfo = arrInfo[iLangInfo];
         if(langInfo.m_eLangInfo == eLANGINFO::DELETED_INFO) {
             m_questionManager->DeleteLanguage(UTF8_TODO::GetUtf8(langInfo.m_sLangName));
         }
     }
 
     //Finally langs which are ADDED
-    for(int iLangInfo=0; iLangInfo < arrInfo.GetSize(); iLangInfo++) {
-        CLangInfo langInfo =arrInfo[iLangInfo];
+    for(int iLangInfo=0; iLangInfo < (int)arrInfo.size(); iLangInfo++) {
+        const CLangInfo& langInfo = arrInfo[iLangInfo];
         if(langInfo.m_eLangInfo == eLANGINFO::NEW_INFO) {
             CString sName = langInfo.m_sLangName;
             sName.Trim();

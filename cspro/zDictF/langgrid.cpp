@@ -85,7 +85,7 @@ void CLangGrid::EditBegin(int col, long row, UINT vcKey)
 
     CUGCell cell;
     CRect rect;
-    CIMSAString cs;
+    CString cs;
     m_aEditControl.SetSize(2);
     m_bEditing = true;
     m_iEditRow = row;
@@ -134,9 +134,8 @@ void CLangGrid::EditBegin(int col, long row, UINT vcKey)
 
 bool CLangGrid::EditEnd(bool /*bSilent*/)
 {
-
-    CIMSAString sName;
-    CIMSAString sLabel;
+    CString sName;
+    CString sLabel;
 
     if (!m_bEditing)
         return false;
@@ -148,7 +147,7 @@ bool CLangGrid::EditEnd(bool /*bSilent*/)
 
 
     //Check if the Name is valid
-    if(!sName.IsName()) {
+    if(!CIMSAString::IsName(sName)) {
         AfxMessageBox(_T("Not a Valid name"));
         GotoRow(m_iEditRow);
         m_aEditControl[0]->SetFocus();
@@ -160,7 +159,7 @@ bool CLangGrid::EditEnd(bool /*bSilent*/)
     langInfo.m_sLangName= sName;
     int iDupRow = IsDuplicate(langInfo,m_iEditRow);
     if(iDupRow) {
-        CIMSAString sMsg;
+        CString sMsg;
         sMsg.Format(_T("Current row %d and row %d are duplicates. Cannot add a duplicate language") , m_iEditRow+1,iDupRow);
         AfxMessageBox(sMsg);
         GotoRow(m_iEditRow);
@@ -170,17 +169,17 @@ bool CLangGrid::EditEnd(bool /*bSilent*/)
 
     CUGCell cell;
     GetCell(0,m_iEditRow,&cell);
-    CLangInfo** pLangInfo  = (CLangInfo**)cell.GetExtraMemPtr();
+    CLangInfo** pLangInfo = (CLangInfo**)cell.GetExtraMemPtr();
     if(pLangInfo && (*pLangInfo) &&  (*(*pLangInfo) )== langInfo && !m_bAdding) { //do nothing
     }
     else {
         if(m_bAdding ){
             ASSERT(!pLangInfo);
             langInfo.m_eLangInfo = eLANGINFO::NEW_INFO;
-            this->m_aLangInfo.Add(langInfo);
+            this->m_aLangInfo.emplace_back(langInfo);
 
             Update();
-            m_bChanged  = true;
+            m_bChanged = true;
         }
         else {
             if(pLangInfo && (*pLangInfo) &&  !((*(*pLangInfo)) == langInfo)) {
@@ -191,7 +190,7 @@ bool CLangGrid::EditEnd(bool /*bSilent*/)
                 (*pLangInfo)->m_sLabel = langInfo.m_sLabel;
 
                 UpdateLang((*pLangInfo),m_iEditRow,RGB(0,0,0));
-                m_bChanged  = true;
+                m_bChanged = true;
 
             }
         }
@@ -312,24 +311,25 @@ void CLangGrid::EditContinue()
 void CLangGrid::OnEditDelete()
 {
     int iRow = GetCurrentRow();
-    CUGCell cell ;
+    CUGCell cell;
     GetCell(0,iRow,&cell);
     if(GetNumberRows() == 1) {
         AfxMessageBox(_T("Cannot delete all languages"));
         return;
     }
-    CLangInfo** plangInfo  = (CLangInfo**)cell.GetExtraMemPtr();
+    CLangInfo** plangInfo = (CLangInfo**)cell.GetExtraMemPtr();
     if(plangInfo && *plangInfo)  {
-        if (AfxMessageBox(_T("Do you want to delete this language ?"), MB_YESNO) == IDYES) {
+        if (AfxMessageBox(_T("Do you want to delete this language?"), MB_YESNO) == IDYES) {
             if((*plangInfo)->m_eLangInfo != eLANGINFO::NEW_INFO ) {
                 (*plangInfo)->m_eLangInfo = eLANGINFO::DELETED_INFO;
                 DeleteRow(iRow);
-                m_bChanged  = true;
+                m_bChanged = true;
             }
             else {
-                for(int iIndex =0; iIndex < m_aLangInfo.GetSize() ; iIndex++) {
-                    if(m_aLangInfo.GetAt(iIndex) == **plangInfo){
-                        this->m_aLangInfo.RemoveAt(iIndex);
+                for(int iIndex = 0; iIndex < (int)m_aLangInfo.size(); iIndex++) {
+                    if(m_aLangInfo[iIndex] == **plangInfo){
+                        m_aLangInfo.erase(m_aLangInfo.begin() + iIndex);
+                        break;
                     }
                 }
                 DeleteRow(iRow);
@@ -571,7 +571,7 @@ void CLangGrid::Size(CRect rect)
 
     int iUsed = SIDEH_WIDTH;
     if(true) {
-        for (int col = 0 ; col <=0 ; col++) {
+        for (int col = 0; col <= 0; col++) {
             GetCell(col, HEADER_ROW, &cell);
             pCellType = GetCellType(HEADER_ROW, col);
             pCellType->GetBestSize(GetDC(), &size, &cell);
@@ -601,7 +601,7 @@ void CLangGrid::Resize(CRect rect) {
 
     MoveWindow(&rect, FALSE);
     if (m_aEditControl.GetSize() > 0) {
-        for (int i = m_iMinCol ; i <= m_iMaxCol ; i++) {
+        for (int i = m_iMinCol; i <= m_iMaxCol; i++) {
             m_aEditControl[i]->PostMessage(WM_SIZE);
         }
     }
@@ -621,20 +621,20 @@ void CLangGrid::Update()
     ResetGrid();
 
 
-    SetNumberRows(m_aLangInfo.GetSize());
+    SetNumberRows(m_aLangInfo.size());
 
     //TO DO Avoid Duplicates  SAVY_CAPI
-    ASSERT(m_aLangInfo.GetSize() !=0);
+    ASSERT(!m_aLangInfo.empty());
 
     int iRowCount = 0;
-    for(int iIndex =0 ; iIndex < m_aLangInfo.GetSize(); iIndex++ ){
+    for(int iIndex =0; iIndex < (int)m_aLangInfo.size(); iIndex++ ){
         CLangInfo&  langInfo = m_aLangInfo[iIndex];
 
         if(langInfo.m_eLangInfo == eLANGINFO::DELETED_INFO) {
             continue;
         }
         QuickSetText (0,    iRowCount,langInfo.m_sLangName);
-        CIMSAString sLabel =    langInfo.m_sLabel;
+        CString sLabel =    langInfo.m_sLabel;
         sLabel.Trim();
         QuickSetText (1,iRowCount,sLabel );
 
@@ -667,7 +667,6 @@ void CLangGrid::UpdateLang(CLangInfo* pLangInfo, int row, COLORREF /*rgb*/)
     if(!pLangInfo) { //See if you need to add a blank line
     }
     else {
-
         CIMSAString sIndex;
         sIndex.Str(row+1);
         QuickSetText     (-1, row, sIndex);
@@ -857,7 +856,7 @@ void CLangGrid::ResetGrid()
 
     SetRedraw(FALSE);
 
-    int iNumberofRows  = GetNumberRows() ;
+    int iNumberofRows = GetNumberRows();
     for(int iIndex = 0; iIndex <iNumberofRows; iIndex++)
     {
         DeleteRow(0);
@@ -893,21 +892,21 @@ void CLangGrid::OnCharDown(UINT* vcKey,BOOL /*processed*/)
 int CLangGrid::IsDuplicate(CLangInfo& langInfo ,int iIgnoreRow /*=-1*/)
 {
     int iRet = 0;
-    int iRows = GetNumberRows() ;
+    int iRows = GetNumberRows();
 
-    for (int iIndex =0 ; iIndex <iRows; iIndex++){
+    for (int iIndex =0; iIndex <iRows; iIndex++){
         if(iIgnoreRow == iIndex)
             continue;
         CUGCell cell;
         GetCell(0,iIndex,&cell);
-        CLangInfo** pLangInfo  = (CLangInfo**)cell.GetExtraMemPtr();
+        CLangInfo** pLangInfo = (CLangInfo**)cell.GetExtraMemPtr();
         CLangInfo* pLocal= NULL;
         if(pLangInfo) {
             pLocal = *pLangInfo;
             if(pLocal) {
-                CIMSAString sLang = langInfo.m_sLangName;
+                CString sLang = langInfo.m_sLangName;
                 sLang.Trim();
-                CIMSAString sLocalLang ;
+                CString sLocalLang;
                 sLocalLang = pLocal->m_sLangName;
                 sLocalLang.Trim();
                 if(sLang.CompareNoCase(sLocalLang) ==0 ) {

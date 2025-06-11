@@ -53,7 +53,6 @@ public:
 
     LRESULT OnShowCapiText(WPARAM wParam, LPARAM lParam);
 
-    LRESULT GetLangInfo(WPARAM wParam, LPARAM lParam);
     LRESULT ProcessLangs(WPARAM wParam, LPARAM lParam);
 
     // gets the application using this form file (or order); if there are multiple ones,

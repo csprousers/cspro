@@ -1665,18 +1665,16 @@ void CDDTreeCtrl::OnEditLanguages()
 
     for( const Language& language : dictionary->GetLanguages() )
     {
-        CLangInfo langInfo;
-        langInfo.m_sLangName = UTF8_TODO::GetCString(language.GetName());
-        langInfo.m_sLabel = UTF8_TODO::GetCString(language.GetLabel());
-        dlg.m_Langgrid.m_aLangInfo.Add(langInfo);
+        dlg.m_Langgrid.m_aLangInfo.emplace_back(UTF8_TODO::GetCString(language.GetName()),
+                                                UTF8_TODO::GetCString(language.GetLabel()));
     }
 
     if( dlg.DoModal() != IDOK || !dlg.m_Langgrid.m_bChanged )
         return;
 
     //First process langs which are modified
-    for(int iLangInfo=0; iLangInfo < dlg.m_Langgrid.m_aLangInfo.GetSize(); iLangInfo++) {
-        CLangInfo langInfo = dlg.m_Langgrid.m_aLangInfo[iLangInfo];
+    for(int iLangInfo=0; iLangInfo < (int)dlg.m_Langgrid.m_aLangInfo.size(); iLangInfo++) {
+        const CLangInfo& langInfo = dlg.m_Langgrid.m_aLangInfo[iLangInfo];
         if(langInfo.m_eLangInfo == eLANGINFO::MODIFIED_INFO) {
             CString sName = langInfo.m_sLangName;
             sName.Trim();
@@ -1687,8 +1685,8 @@ void CDDTreeCtrl::OnEditLanguages()
     }
 
     //Second langs which are ADDED
-    for(int iLangInfo=0; iLangInfo < dlg.m_Langgrid.m_aLangInfo.GetSize(); iLangInfo++) {
-        CLangInfo langInfo = dlg.m_Langgrid.m_aLangInfo[iLangInfo];
+    for(int iLangInfo=0; iLangInfo < (int)dlg.m_Langgrid.m_aLangInfo.size(); iLangInfo++) {
+        const CLangInfo& langInfo = dlg.m_Langgrid.m_aLangInfo[iLangInfo];
         if(langInfo.m_eLangInfo == eLANGINFO::NEW_INFO) {
             CIMSAString sName = langInfo.m_sLangName;
             sName.Trim();
@@ -1699,8 +1697,8 @@ void CDDTreeCtrl::OnEditLanguages()
     }
 
     //Finally langs which are deleted
-    for(int iLangInfo=0; iLangInfo < dlg.m_Langgrid.m_aLangInfo.GetSize(); iLangInfo++) {
-        CLangInfo langInfo = dlg.m_Langgrid.m_aLangInfo[iLangInfo];
+    for(int iLangInfo=0; iLangInfo < (int)dlg.m_Langgrid.m_aLangInfo.size(); iLangInfo++) {
+        const CLangInfo& langInfo = dlg.m_Langgrid.m_aLangInfo[iLangInfo];
         if(langInfo.m_eLangInfo == eLANGINFO::DELETED_INFO) {
             const std::optional<size_t> language_index = dictionary->IsLanguageDefined(UTF8_TODO::GetUtf8(langInfo.m_sLangName));
             ASSERT(language_index.has_value());
