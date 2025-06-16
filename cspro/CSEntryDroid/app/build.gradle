@@ -8,8 +8,8 @@ plugins {
 
 android {
     namespace 'gov.census.cspro.csentry'
+    compileSdk 34
 
-    compileSdkVersion 33
 
     lintOptions {
         checkReleaseBuilds true
