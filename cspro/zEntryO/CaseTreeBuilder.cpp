@@ -5,9 +5,9 @@
 #include <ZBRIDGEO/npff.h>
 #include <zEngineO/ResponseProcessor.h>
 #include <zEngineO/ValueSet.h>
-#include <Zentryo/CoreEntryPage.h>
-#include <Zentryo/CoreEntryPageField.h>
-#include <Zentryo/Runaple.h>
+#include <zEntryO/CoreEntryPage.h>
+#include <zEntryO/CoreEntryPageField.h>
+#include <zEntryO/Runaple.h>
 
 
 CaseTreeBuilder::CaseTreeBuilder(CRunAplEntry* pRunAplEntry)

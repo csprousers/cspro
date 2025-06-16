@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include <Zentryo/zEntryO.h>
+#include <zEntryO/zEntryO.h>
 #include <zCapiO/CapiContentVirtualFileMapping.h>
 #include <engine/DEFLD.H>
 

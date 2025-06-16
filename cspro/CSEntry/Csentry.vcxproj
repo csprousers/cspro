@@ -184,7 +184,7 @@
       <Project>{45dadbf6-072a-4a5f-94b3-39fb607807f2}</Project>
       <Private>false</Private>
     </ProjectReference>
-    <ProjectReference Include="..\Zentryo\ZENTRYO.vcxproj">
+    <ProjectReference Include="..\zEntryO\zEntryO.vcxproj">
       <Project>{cfe980f3-5fc0-4c53-9eb5-1c63254503cd}</Project>
       <Private>false</Private>
     </ProjectReference>

@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 #include <zFormO/FormFile.h>
-#include <Zentryo/Runaple.h>
+#include <zEntryO/Runaple.h>
 
 // CDEBaseEdit
 const int  CARET_HEIGHT =1;
@@ -103,5 +103,3 @@ public:
     afx_msg void OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags);
     virtual BOOL OnHelpInfo(HELPINFO *lpHelpInfo);
 };
-
-

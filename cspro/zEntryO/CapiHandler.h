@@ -11,7 +11,7 @@ class CEngineArea;
 class CWnd;
 class CExtendedControl;
 
-#include <Zentryo/zEntryO.h>
+#include <zEntryO/zEntryO.h>
 #include <zUtilO/imsaStr.h>
 #include <engine/DEFLD.H>
 #include <zEngineO/AllSymbolDeclarations.h>

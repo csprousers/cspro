@@ -1,4 +1,5 @@
 ﻿#pragma once
+
 //---------------------------------------------------------------------------
 //  File name: Entifaz.h
 //
@@ -23,7 +24,7 @@
 #include <engine/DEFLD.H>
 #include <engine/Entdrv.h>
 #include <Zissalib/CsDriver.h>
-#include <Zentryo/CapiHandler.h>
+#include <zEntryO/CapiHandler.h>
 
 enum class SpecialFunction : int;
 

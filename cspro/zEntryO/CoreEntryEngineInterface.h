@@ -1,10 +1,10 @@
 ﻿#pragma once
 
-#include <Zentryo/zEntryO.h>
-#include <Zentryo/CoreEntryFieldNote.h>
-#include <Zentryo/Runaple.h>
-#include <Zentryo/CaseTreeNode.h>
-#include <Zentryo/CaseTreeUpdate.h>
+#include <zEntryO/zEntryO.h>
+#include <zEntryO/CoreEntryFieldNote.h>
+#include <zEntryO/Runaple.h>
+#include <zEntryO/CaseTreeNode.h>
+#include <zEntryO/CaseTreeUpdate.h>
 #include <zCaseO/CaseSummary.h>
 #include <zFormO/FormFile.h>
 

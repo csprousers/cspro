@@ -7,7 +7,7 @@
 #include <zUtilO/AppLdr.h>
 #include <zFormO/FormFile.h>
 #include <zFormO/Roster.h>
-#include <Zentryo/Runaple.h>
+#include <zEntryO/Runaple.h>
 #include "TItmInfo.h"
 #include "CEUtils.h"
 #include <zToolsO/Tools.h>

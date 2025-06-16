@@ -1,7 +1,7 @@
 ﻿#pragma once
 
-#include <Zentryo/zEntryO.h>
-#include <Zentryo/CoreEntryPageField.h>
+#include <zEntryO/zEntryO.h>
+#include <zEntryO/CoreEntryPageField.h>
 
 class CDEField;
 class CoreEntryEngineInterface;

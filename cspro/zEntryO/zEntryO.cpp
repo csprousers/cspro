@@ -12,7 +12,7 @@ DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
 
     if (dwReason == DLL_PROCESS_ATTACH)
     {
-        TRACE0("ZENTRYO.DLL Initializing!\n");
+        TRACE0("zEntryO.DLL Initializing!\n");
 
         // Extension DLL one-time initialization
         if (!AfxInitExtensionModule(ZEntryODLL, hInstance))
@@ -34,7 +34,7 @@ DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
     }
     else if (dwReason == DLL_PROCESS_DETACH)
     {
-        TRACE0("ZENTRYO.DLL Terminating!\n");
+        TRACE0("zEntryO.DLL Terminating!\n");
         // Terminate the library before destructors are called
         AfxTermExtensionModule(ZEntryODLL);
     }

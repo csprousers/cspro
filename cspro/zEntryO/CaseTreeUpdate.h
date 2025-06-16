@@ -1,7 +1,7 @@
 ﻿#pragma once
 
-#include <Zentryo/zEntryO.h>
-#include <Zentryo/CaseTreeNode.h>
+#include <zEntryO/zEntryO.h>
+#include <zEntryO/CaseTreeNode.h>
 
 class CLASS_DECL_ZENTRYO CaseTreeUpdate {
 
@@ -40,4 +40,3 @@ private:
     std::shared_ptr<CaseTreeNode> m_node;
     int m_childIndex;
 };
-

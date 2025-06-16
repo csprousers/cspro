@@ -1,8 +1,8 @@
 ﻿#pragma once
 
-#include <Zentryo/zEntryO.h>
-#include <Zentryo/CaseTreeNode.h>
-#include <Zentryo/CaseTreeUpdate.h>
+#include <zEntryO/zEntryO.h>
+#include <zEntryO/CaseTreeNode.h>
+#include <zEntryO/CaseTreeUpdate.h>
 
 class CRunAplEntry;
 class CDEGroup;

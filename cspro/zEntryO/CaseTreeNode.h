@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include <Zentryo/zEntryO.h>
+#include <zEntryO/zEntryO.h>
 #include <array>
 
 class CDEFormBase;

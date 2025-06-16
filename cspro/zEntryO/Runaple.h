@@ -4,7 +4,7 @@
 // RunAplE.h: interface for CRunAplEntry class.
 //////////////////////////////////////////////////////////////////////
 
-#include <Zentryo/zEntryO.h>
+#include <zEntryO/zEntryO.h>
 #include <ZBRIDGEO/runapl.h>
 #include <engine/DEFLD.H>
 #include <engine/Entifaz.h>

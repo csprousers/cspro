@@ -16,7 +16,7 @@
 #include <zMapping/CoordinateConverter.h>
 #include <zMapping/DefaultBaseMapEvaluator.h>
 #include <zMapping/TPKReader.h>
-#include <Zentryo/CoreEntryEngineInterface.h>
+#include <zEntryO/CoreEntryEngineInterface.h>
 #include <zEngineO/PffExecutor.h>
 
 
