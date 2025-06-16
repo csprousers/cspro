@@ -45,6 +45,9 @@ private:
     std::string m_defaultBaseMapFilePath;
     std::optional<int> m_customDefaultBaseMapIndex;
 
-    int m_windowsMappingTileProvider;
+    int m_mappingEngine;
+    RadioEnumHelper<MappingEngine> m_mappingEngineRadioEnumHelper;
+
+    int m_mappingTileProvider;
     RadioEnumHelper<MappingTileProvider> m_mappingTileProviderRadioEnumHelper;
 };

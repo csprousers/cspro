@@ -201,6 +201,7 @@ class Serializer;
 #include <zToolsO/ErrorMessageDisplayer.h>
 #include <zToolsO/InterfaceString.h>
 #include <zToolsO/OperatingSystem.h>
+#include <zToolsO/PointerClasses.h>
 #include <zToolsO/StandardTemplates.h>
 #include <zToolsO/StringOperations.h>
 #include <zToolsO/SharableString.h>

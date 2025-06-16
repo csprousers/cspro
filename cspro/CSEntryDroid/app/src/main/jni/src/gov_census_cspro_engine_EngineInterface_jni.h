@@ -108,7 +108,7 @@ JNIEXPORT void JNICALL Java_gov_census_cspro_engine_EngineInterface_EndLevelOcc
  * Signature: (Ljava/lang/String;)J
  */
 JNIEXPORT jboolean JNICALL Java_gov_census_cspro_engine_EngineInterface_InitApplication
-  (JNIEnv *, jobject, jlong applicationReference, jstring);
+  (JNIEnv *, jobject, jlong nativeReference, jstring);
 
 JNIEXPORT jlong JNICALL Java_gov_census_cspro_engine_EngineInterface_InitNativeEngineInterface
   (JNIEnv *, jobject);
@@ -440,7 +440,7 @@ JNIEXPORT jobjectArray JNICALL Java_gov_census_cspro_engine_EngineInterface_Upda
  * Signature: (J)Z
  */
 JNIEXPORT jboolean JNICALL Java_gov_census_cspro_engine_EngineInterface_GetShowCaseTreeFlag
-  (JNIEnv * pEnv, jobject object, jlong applicationReference);
+  (JNIEnv * pEnv, jobject object, jlong nativeReference);
 
 /*
  * Class:     gov_census_cspro_engine_EngineInterface
@@ -448,7 +448,7 @@ JNIEXPORT jboolean JNICALL Java_gov_census_cspro_engine_EngineInterface_GetShowC
  * Signature: (J)Z
  */
 JNIEXPORT jboolean JNICALL Java_gov_census_cspro_engine_EngineInterface_GetAutoAdvanceOnSelectionFlag
-  (JNIEnv * pEnv, jobject object, jlong applicationReference);
+  (JNIEnv * pEnv, jobject object, jlong nativeReference);
 
 /*
  * Class:     gov_census_cspro_engine_EngineInterface
@@ -456,7 +456,7 @@ JNIEXPORT jboolean JNICALL Java_gov_census_cspro_engine_EngineInterface_GetAutoA
  * Signature: (J)Z
  */
 JNIEXPORT jboolean JNICALL Java_gov_census_cspro_engine_EngineInterface_GetDisplayCodesAlongsideLabelsFlag
-  (JNIEnv * pEnv, jobject object, jlong applicationReference);
+  (JNIEnv * pEnv, jobject object, jlong nativeReference);
 
 /*
  * Class:     gov_census_cspro_engine_EngineInterface
@@ -464,21 +464,21 @@ JNIEXPORT jboolean JNICALL Java_gov_census_cspro_engine_EngineInterface_GetDispl
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_gov_census_cspro_engine_EngineInterface_OnProgressDialogCancel
-  (JNIEnv * pEnv, jobject object, jlong applicationReference);
+  (JNIEnv * pEnv, jobject object, jlong nativeReference);
 
 /*
 * Class:     gov_census_cspro_engine_EngineInterface
 * Method:    HasSync
 */
 JNIEXPORT jboolean JNICALL Java_gov_census_cspro_engine_EngineInterface_HasSync
-  (JNIEnv * pEnv, jobject object, jlong applicationReference);
+  (JNIEnv * pEnv, jobject object, jlong nativeReference);
 
 /*
 * Class:     gov_census_cspro_engine_EngineInterface
 * Method:    SyncApp
 */
 JNIEXPORT jboolean JNICALL Java_gov_census_cspro_engine_EngineInterface_SyncApp
-  (JNIEnv * pEnv, jobject object, jlong applicationReference);
+  (JNIEnv * pEnv, jobject object, jlong nativeReference);
 
 /*
  * Class:     gov_census_cspro_engine_EngineInterface
@@ -486,7 +486,7 @@ JNIEXPORT jboolean JNICALL Java_gov_census_cspro_engine_EngineInterface_SyncApp
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_gov_census_cspro_engine_EngineInterface_GetParadataCachedEvents
-  (JNIEnv* pEnv, jobject object, jlong applicationReference);
+  (JNIEnv* pEnv, jobject object, jlong nativeReference);
 
 /*
 * Class:     gov_census_cspro_engine_EngineInterface
@@ -506,15 +506,21 @@ JNIEXPORT jstring JNICALL Java_gov_census_cspro_engine_EngineInterface_GetRuntim
   (JNIEnv* pEnv, jobject object, jint message_number, jstring text);
 
 JNIEXPORT jobject JNICALL Java_gov_census_cspro_engine_EngineInterface_GetMappingOptions
-        (JNIEnv* pEnv, jobject object, jlong applicationReference);
+        (JNIEnv* pEnv, jobject object, jlong nativeReference);
 
 JNIEXPORT jobject JNICALL Java_gov_census_cspro_engine_EngineInterface_GetBaseMapSelection
-        (JNIEnv* pEnv, jobject object, jlong applicationReference);
+        (JNIEnv* pEnv, jobject object, jlong nativeReference);
 
 JNIEXPORT jstring JNICALL Java_gov_census_cspro_engine_EngineInterface_FormatCoordinates
-        (JNIEnv* pEnv, jobject object, jlong applicationReference, jdouble latitude, jdouble longitude);
+        (JNIEnv* pEnv, jobject object, jlong nativeReference, jdouble latitude, jdouble longitude);
 
 JNIEXPORT jstring JNICALL Java_gov_census_cspro_engine_EngineInterface_GetTpkMetadataAsJson(JNIEnv*, jobject, jstring);
+
+JNIEXPORT void JNICALL Java_gov_census_cspro_engine_EngineInterface_HtmlMapNotifyLifecycle
+  (JNIEnv* jni_env, jobject, jlong nativeReference, jlong jJniObjectPtr, jobject jHtmlMapActivity);
+
+JNIEXPORT void JNICALL Java_gov_census_cspro_engine_EngineInterface_HtmlMapNotifyWebMessageReceived
+  (JNIEnv* jni_env, jobject, jlong nativeReference, jlong jJniObjectPtr, jstring jEventJson);
 
 JNIEXPORT jstring JNICALL Java_gov_census_cspro_engine_EngineInterface_GetApplicationDescription
     (JNIEnv *, jobject, jlong);

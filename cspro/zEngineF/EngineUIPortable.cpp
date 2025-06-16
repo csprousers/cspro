@@ -20,10 +20,10 @@ long EngineUIProcessor::ColorizeLogic(EngineUI::ColorizeLogicNode& /*colorize_lo
 }
 
 
-long EngineUIProcessor::CreateMapUI(std::unique_ptr<IMapUI>& map_ui)
+long EngineUIProcessor::CreateMapUI(EngineUI::CreateMapUINode& create_map_ui_node)
 {
-    m_baseApplicationInterface.CreateMapUI(map_ui);
-    return ( map_ui != nullptr ) ? 1 : 0;
+    m_baseApplicationInterface.CreateMapUI(create_map_ui_node);
+    return ( create_map_ui_node.map_ui != nullptr ) ? 1 : 0;
 }
 
 

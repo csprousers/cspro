@@ -8,7 +8,8 @@
 class Encoders
 {
 public:
-    static constexpr const char* HexChars = "0123456789abcdef";
+    static constexpr const char* DecimalChars = "0123456789";
+    static constexpr const char* HexChars     = "0123456789abcdef";
 
     static constexpr const char* JsonEscapeRepresentations = "/\"\\\b\f\n\r\t";
     static constexpr const char* JsonEscapeSequences       = "/\"\\bfnrt";
@@ -114,6 +115,9 @@ public:
 
     // returns whether the text begins with the data URL prefix
     CLASS_DECL_ZTOOLSO static bool IsDataUrl(std::string_view text_sv);
+
+    // returns whether the text begins with a data URL prefix or http: or https:
+    CLASS_DECL_ZTOOLSO static bool IsDataOrHttpUrl(std::string_view text_sv);
 
     // decodes a data URL into its data and mediatype values; the data pointer will be null on error
     CLASS_DECL_ZTOOLSO static std::tuple<std::unique_ptr<std::vector<std::byte>>, std::string> FromDataUrl(std::string_view data_url_sv);

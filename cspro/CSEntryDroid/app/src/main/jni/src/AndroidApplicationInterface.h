@@ -41,7 +41,7 @@ public:
     std::tuple<int, int> GetMaxDisplaySize() const override;
     std::vector<std::string> GetMediaFilePaths(MediaStore::MediaType media_type) const override;
     std::string GetUsername() const override;
-    void SetUsername(const CString& username);
+    void SetUsername(std::string username);
     void StoreCredential(const std::string& attribute, const std::string& secret_value) override;
     std::string RetrieveCredential(const std::string& attribute) override;
     std::optional<std::string> GetPassword(const std::string& title, const std::string& description, bool file_exists) override;
@@ -82,7 +82,7 @@ public:
     // for EngineUIProcessor
     long RunEngineUIProcessor(WPARAM wParam, LPARAM lParam) override;
     bool CaptureImage(EngineUI::CaptureImageNode& capture_image_node) override;
-    void CreateMapUI(std::unique_ptr<IMapUI>& map_ui) override;
+    void CreateMapUI(EngineUI::CreateMapUINode& create_map_ui_node) override;
     void CreateUserbar(std::unique_ptr<Userbar>& userbar) override;
     CString EditNote(const CString& note, const CString& title, bool case_note) override;
     bool ExecSystemApp(EngineUI::ExecSystemAppNode& exec_system_app_node) override;

@@ -174,7 +174,7 @@ std::unique_ptr<Symbol> CEngineArea::CreateSymbol(std::string symbol_name, const
                                                                                   std::make_unique<LogicList>(std::move(symbol_name));
 
             case SymbolType::Map:
-                return std::make_unique<LogicMap>(std::move(symbol_name));
+                return std::make_unique<LogicMap>(std::move(symbol_name), *m_engineData);
 
             case SymbolType::NamedFrequency:
                 return std::make_unique<NamedFrequency>(std::move(symbol_name));

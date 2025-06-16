@@ -25,7 +25,6 @@ class ExceptionHolder;
 class FtpConnection;
 class HttpConnection;
 class IBluetoothAdapter;
-class IMapUI;
 class NavigationAddress;
 class OAuth2Authorizer;
 class OAuth2Token;
@@ -101,7 +100,7 @@ public:
     // for EngineUIProcessor
     virtual long RunEngineUIProcessor(WPARAM wParam, LPARAM lParam) = 0;
     virtual bool CaptureImage(EngineUI::CaptureImageNode& capture_image_node) = 0;
-    virtual void CreateMapUI(std::unique_ptr<IMapUI>& map_ui) = 0;
+    virtual void CreateMapUI(EngineUI::CreateMapUINode& create_map_ui_node) = 0;
     virtual void CreateUserbar(std::unique_ptr<Userbar>& userbar) = 0;
     virtual CString EditNote(const CString& note, const CString& title, bool case_note) = 0;
     virtual bool ExecSystemApp(EngineUI::ExecSystemAppNode& exec_system_app_node) = 0;

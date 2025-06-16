@@ -33,6 +33,9 @@ public:
     SqliteDbWrapper(Runtime& runtime, WrapperType db_wrapper);
     ~SqliteDbWrapper();
 
+    static std::unique_ptr<SqliteDbWrapper> Open(Runtime& runtime, const JsonNode& json_node,
+                                                 const std::string& path, bool in_memory_db);
+
     void Close();
 
     sqlite3* GetDb(bool for_querying);
@@ -96,6 +99,72 @@ ActionInvoker::Runtime::SqliteDbWrapper::~SqliteDbWrapper()
         Close();
     }
     catch(...) { }
+}
+
+
+std::unique_ptr<ActionInvoker::Runtime::SqliteDbWrapper> ActionInvoker::Runtime::SqliteDbWrapper::Open(Runtime& runtime, const JsonNode& json_node,
+                                                                                                       const std::string& path, const bool in_memory_db)
+{
+    // default to read-only
+    const size_t open_flags_index = json_node.Contains(JK::openFlags) ?
+        json_node.GetFromStringOptions(JK::openFlags, { "read", "readWrite", "readWriteCreate" }) :
+        0;
+
+    const int open_flags = ( open_flags_index ) == 0 ? ( SQLITE_OPEN_READONLY ) :
+                           ( open_flags_index ) == 1 ? ( SQLITE_OPEN_READWRITE ) :
+                                                       ( SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE );
+
+    // by default, a created SQLite file is 0 bytes, so we will set a pragma to make sure that a proper
+    // database is created, which matters mostly when using an encryption key
+    const bool set_user_pragmas = ( open_flags_index == 2 &&
+                                    !in_memory_db &&
+                                    !PortableFunctions::FileIsRegular(path) );
+
+    const SqliteDbWrapper::EncryptionKey encryption_key = SqliteDbWrapper::GetEncryptionKey(runtime, json_node, false);
+    sqlite3* db;
+
+    if( sqlite3_open_v2(path.c_str(), &db, open_flags, nullptr) != SQLITE_OK )
+    {
+        const char* const message_prefix = PortableFunctions::FileIsRegular(path) ? "The SQLite database could not be opened: " :
+                                                                                    "The SQLite database does not exist: ";
+        throw CSProException(message_prefix + path);
+    }
+
+    // now wrapped, the database will be closed if any exceptions are thrown below
+    auto db_wrapper = std::make_unique<SqliteDbWrapper>(runtime, SqliteDbWrapper::SqliteDb { db, false });
+
+    auto throw_exception = [&]()
+    {
+        const char* const message_prefix = ( encryption_key.key == nullptr ) ? "The file is not a valid SQLite database: " :
+                                                                               "The file is not a valid SQLite database or the encryption key is invalid: ";
+        throw CSProException(message_prefix + path);
+    };
+
+    // key the database regardless of whether using an encryption key;
+    // it is important for non-encrypted databases in case they are eventually rekeyed: https://www.sqlite.org/see/doc/trunk/www/readme.wiki
+    if( SqliteEncryption::sqlite3_key(db, encryption_key.key.get(), encryption_key.key_size) != SQLITE_OK )
+        throw_exception();
+
+    // make sure the database is valid
+    sqlite3_stmt* stmt;
+    sqlite3_prepare_v2(db, "PRAGMA user_version;", -1, &stmt, nullptr);
+    const int key_check_result = sqlite3_step(stmt);
+    const int user_version = set_user_pragmas ? sqlite3_column_int(stmt, 0) : 0;
+    sqlite3_finalize(stmt);
+
+    if( key_check_result == SQLITE_NOTADB )
+        throw_exception();
+
+    // when creating a new database, prevent a 0-byte file
+    if( set_user_pragmas )
+    {
+        const std::string sql = FormatText("PRAGMA user_version = %d;", user_version);
+
+        if( sqlite3_exec(db, sql.c_str(), nullptr, nullptr, nullptr) != SQLITE_OK )
+            throw_exception();
+    }
+
+    return db_wrapper;
 }
 
 
@@ -464,70 +533,8 @@ ActionInvoker::Result ActionInvoker::Runtime::Sqlite_open(const JsonNode& json_n
     // path
     if( input_type == JK::path )
     {
-        std::string path = json_node.Get<std::string>(JK::path);
-        const bool in_memory_db = ( path == ":memory:" );
-
-        if( !in_memory_db )
-            path = caller.EvaluateAbsolutePath(std::move(path));
-
-        // default to read-only
-        const size_t open_flags_index = json_node.Contains(JK::openFlags) ?
-            json_node.GetFromStringOptions(JK::openFlags, { "read", "readWrite", "readWriteCreate" }) :
-            0;
-
-        const int open_flags = ( open_flags_index ) == 0 ? ( SQLITE_OPEN_READONLY ) :
-                               ( open_flags_index ) == 1 ? ( SQLITE_OPEN_READWRITE ) :
-                                                           ( SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE );
-
-        // by default, a created SQLite file is 0 bytes, so we will set a pragma to make sure that a proper
-        // database is created, which matters mostly when using an encryption key
-        const bool set_user_pragmas = ( open_flags_index == 2 &&
-                                        !in_memory_db &&
-                                        !PortableFunctions::FileIsRegular(path) );
-
-        const SqliteDbWrapper::EncryptionKey encryption_key = SqliteDbWrapper::GetEncryptionKey(*this, json_node, false);
-        sqlite3* db;
-
-        if( sqlite3_open_v2(path.c_str(), &db, open_flags, nullptr) != SQLITE_OK )
-        {
-            const char* const message_prefix = PortableFunctions::FileIsRegular(path) ? "The SQLite database could not be opened: " :
-                                                                                        "The SQLite database does not exist: ";
-            throw CSProException(message_prefix + path);
-        }
-
-        // now wrapped, the database will be closed if any exceptions are thrown below
-        db_wrapper = std::make_unique<SqliteDbWrapper>(*this, SqliteDbWrapper::SqliteDb { db, false });
-
-        auto throw_exception = [&]()
-        {
-            const char* const message_prefix = ( encryption_key.key == nullptr ) ? "The file is not a valid SQLite database: " :
-                                                                                   "The file is not a valid SQLite database or the encryption key is invalid: ";
-            throw CSProException(message_prefix + path);
-        };
-
-        // key the database regardless of whether using an encryption key;
-        // it is important for non-encrypted databases in case they are eventually rekeyed: https://www.sqlite.org/see/doc/trunk/www/readme.wiki
-        if( SqliteEncryption::sqlite3_key(db, encryption_key.key.get(), encryption_key.key_size) != SQLITE_OK )
-            throw_exception();
-
-        // make sure the database is valid
-        sqlite3_stmt* stmt;
-        sqlite3_prepare_v2(db, "PRAGMA user_version;", -1, &stmt, nullptr);
-        const int key_check_result = sqlite3_step(stmt);
-        const int user_version = set_user_pragmas ? sqlite3_column_int(stmt, 0) : 0;
-        sqlite3_finalize(stmt);
-
-        if( key_check_result == SQLITE_NOTADB )
-            throw_exception();
-
-        // when creating a new database, prevent a 0-byte file
-        if( set_user_pragmas )
-        {
-            const std::string sql = FormatText("PRAGMA user_version = %d;", user_version);
-
-            if( sqlite3_exec(db, sql.c_str(), nullptr, nullptr, nullptr) != SQLITE_OK )
-                throw_exception();
-        }
+        const std::string path = caller.EvaluateAbsolutePath(json_node.Get<std::string>(JK::path));
+        db_wrapper = SqliteDbWrapper::Open(*this, json_node, path, false);
     }
 
     // name
@@ -535,11 +542,12 @@ ActionInvoker::Result ActionInvoker::Runtime::Sqlite_open(const JsonNode& json_n
     {
         ASSERT(input_type == JK::name);
 
-        const std::string_view name_sv = json_node.Get<std::string_view>(JK::name);
+        std::string name = json_node.Get<std::string>(JK::name);
 
-        // create a wrapper around paradata, or a dictionary name
-        db_wrapper = ( name_sv == "paradata" ) ? std::make_unique<SqliteDbWrapper>(*this, SqliteDbWrapper::ParadataDb { }) :
-                                                 std::make_unique<SqliteDbWrapper>(*this, SqliteDbWrapper::DictionaryDb { std::string(name_sv) });
+        // create a wrapper around an in-memory database, paradata, or a dictionary name
+        db_wrapper = ( name == ":memory:" ) ? SqliteDbWrapper::Open(*this, json_node, name, true) :
+                     ( name == "paradata" ) ? std::make_unique<SqliteDbWrapper>(*this, SqliteDbWrapper::ParadataDb { }) :
+                                              std::make_unique<SqliteDbWrapper>(*this, SqliteDbWrapper::DictionaryDb { std::move(name) });
 
         // get the database, which will throw an exception if the input is not valid
         db_wrapper->GetDb(false);

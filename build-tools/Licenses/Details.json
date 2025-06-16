@@ -230,6 +230,12 @@
     "licenseUrl": "https://raw.githubusercontent.com/googlefonts/noto-emoji/refs/heads/main/LICENSE"
   },
   {
+    "projectName": "OkHttp",
+    "projectUrl": "https://github.com/square/okhttp",
+    "licenseFilename": "README.md",
+    "licenseUrl": "https://raw.githubusercontent.com/square/okhttp/refs/heads/master/README.md"
+  },
+  {
     "projectName": "pugixml",
     "projectUrl": "https://pugixml.org",
     "licenseFilename": "license.html",

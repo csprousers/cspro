@@ -9,6 +9,7 @@ Because most CSPro development occurs on a [private repository](https://github.c
 
 | Date | Branch | Pull Request Message |
 | --- | --- | --- |
+| 2025&#8209;06&#8209;16 | [html-mapping](https://github.com/CSProDevelopment/cspro/commit/bcc33537068bd26a207da6261176eab5f25107dd) | allowed Leaflet to be used for mapping on Android |
 | 2025&#8209;06&#8209;16 | [image-exif](https://github.com/CSProDevelopment/cspro/commit/e7689cc0480b0ac25d384e41c05b90ef73f6ec99) | added the Image.getExif logic function |
 | 2025&#8209;06&#8209;16 | [cspro-users-website-builder](https://github.com/CSProDevelopment/cspro/commit/c4dc702be2e5be1a2d5cf904d3ba27a2c4594a05) | created CSPro Users Website Builder, a build tool to help create blog entries and other aspects of csprousers.org |
 | 2025&#8209;06&#8209;16 | [markdown-question-text+StringWriter](https://github.com/CSProDevelopment/cspro/commit/56796263fd7098e598916c9d1826dba3f864cddd) | allowed question text to be specified using Markdown + added the StringWriter logic object |

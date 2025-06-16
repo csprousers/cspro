@@ -6,20 +6,22 @@
 class ZMAPPING_API WindowsMapUISingleThread : public WindowsMapUI
 {
 public:
-    WindowsMapUISingleThread(const MappingProperties& mapping_properties);
+    WindowsMapUISingleThread(cs::non_null_shared_or_raw_ptr<const MappingProperties> mapping_properties);
     ~WindowsMapUISingleThread();
 
+    // IMapUI overrides
     bool Hide() override;
 
     MapEvent WaitForEvent() override;
 
 protected:
+    // WindowsMapUI overrides
     bool WindowsShow() override;
 
     WindowsMapDlg* GetMapDlgForAction() override;
 
-    void NotifyEvent(EventCode code, int marker_id = -1, int callback_id = -1,
-                     double latitude = 0, double longitude = 0, const MapCamera& camera = MapCamera { 0, 0, 0, 0 }) override;
+    // HtmlMapUI overrides
+    void OnNotifyEvent(std::unique_ptr<MapEvent> event) override;
 
 private:
     std::unique_ptr<WindowsMapDlg> m_mapDlg;

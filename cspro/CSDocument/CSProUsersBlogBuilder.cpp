@@ -4,7 +4,7 @@
 #include "HtmlTags.h"
 #include <zToolsO/File.h>
 #include <zToolsO/VectorHelpers.h>
-#include <zReportO/HtmlTagModifier.h>
+#include <zHtml/TagModifier.h>
 
 
 // --------------------------------------------------------------------------
@@ -172,17 +172,17 @@ std::string CSDocCompilerSettingsForCSProUsersBlog::CreateUrlForResource(const s
 
 
 // --------------------------------------------------------------------------
-// CSProUsersBlogHtmlTagModifier
+// CSProUsersBlogTagModifier
 // --------------------------------------------------------------------------
 
-class CSProUsersBlogHtmlTagModifier : public HtmlTagModifier
+class CSProUsersBlogTagModifier : public TagModifier
 {
 protected:
     void ProcessTag(std::string& start_tag, std::string* end_tag) override;
 };
 
 
-void CSProUsersBlogHtmlTagModifier::ProcessTag(std::string& start_tag, std::string* const end_tag)
+void CSProUsersBlogTagModifier::ProcessTag(std::string& start_tag, std::string* const end_tag)
 {
     // only elements with end tags will be processed
     if( end_tag == nullptr )
@@ -231,7 +231,7 @@ void CSProUsersBlogHtmlTagModifier::ProcessTag(std::string& start_tag, std::stri
 
 CSProUsersBlogBuilder::CSProUsersBlogBuilder(GlobalSettings& global_settings, std::string blog_doc_set_spec_file_path, std::string output_directory)
     :   m_outputDirectory(std::move(output_directory)),
-        m_htmlTagModifier(std::make_unique<CSProUsersBlogHtmlTagModifier>()),
+        m_tagModifier(std::make_unique<CSProUsersBlogTagModifier>()),
         m_docSetSpec(std::move(blog_doc_set_spec_file_path))
 {
     FileIO::CreateDirectories(m_outputDirectory);
@@ -274,7 +274,7 @@ void CSProUsersBlogBuilder::Build(const std::string& blog_file_path, const std::
     std::string html = csdoc_compiler.CompileToHtml(*m_settings, blog_file_path, blog_text);
 
     // convert tags, making them suitable for the blog
-    html = m_htmlTagModifier->Process(html);
+    html = m_tagModifier->Process(html);
 
     FileIO::TextFile text_file;
     text_file.SetTextEncoding(TextEncoding::Type::Utf8);

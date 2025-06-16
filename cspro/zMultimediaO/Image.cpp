@@ -1,7 +1,6 @@
 ﻿#include "stdafx.h"
 #include "Image.h"
 #include "Icon.h"
-#include <zToolsO/PointerClasses.h>
 #include <zToolsO/Tools.h>
 #include <zUtilO/MimeType.h>
 #include <external/zlib/zlib.h>

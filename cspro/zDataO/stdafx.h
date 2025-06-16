@@ -8,7 +8,6 @@
 #include <zDataO/DataRepositoryUniqueCaseIdentifer.h>
 #include <zDataO/WriteCaseParameter.h>
 #include <zToolsO/NewlineSubstitutor.h>
-#include <zToolsO/PointerClasses.h>
 #include <zToolsO/Special.h>
 #include <zToolsO/TextEncoding.h>
 #include <zToolsO/Tools.h>

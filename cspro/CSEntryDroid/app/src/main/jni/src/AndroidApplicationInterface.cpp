@@ -2,6 +2,7 @@
 #include "AndroidApplicationInterface.h"
 #include "AndroidBluetoothAdapter.h"
 #include "AndroidFtpConnection.h"
+#include "AndroidHtmlMapUI.h"
 #include "AndroidHttpConnection.h"
 #include "AndroidMapUI.h"
 #include "AndroidUserbar.h"
@@ -303,9 +304,17 @@ std::unique_ptr<FtpConnection> AndroidApplicationInterface::CreateFtpConnection(
 }
 
 
-void AndroidApplicationInterface::CreateMapUI(std::unique_ptr<IMapUI>& map_ui)
+void AndroidApplicationInterface::CreateMapUI(EngineUI::CreateMapUINode& create_map_ui_node)
 {
-    map_ui = std::make_unique<AndroidMapUI>();
+    if( create_map_ui_node.mapping_properties->GetMappingEngine() == MappingEngine::Leaflet )
+    {
+        create_map_ui_node.map_ui = std::make_unique<AndroidHtmlMapUI>(std::move(create_map_ui_node.mapping_properties));
+    }
+
+    else
+    {
+        create_map_ui_node.map_ui = std::make_unique<AndroidMapUI>();
+    }
 }
 
 
@@ -1174,9 +1183,9 @@ bool AndroidApplicationInterface::RunPffExecutor(EngineUI::RunPffExecutorNode& r
 }
 
 
-void AndroidApplicationInterface::SetUsername(const CString& username)
+void AndroidApplicationInterface::SetUsername(std::string username)
 {
-    m_username = UTF8_TODO::GetUtf8(username);
+    m_username = std::move(username);
 }
 
 

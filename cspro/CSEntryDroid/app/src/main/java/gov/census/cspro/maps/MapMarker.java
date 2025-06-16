@@ -15,7 +15,7 @@ public class MapMarker implements Parcelable
     private String m_text;
     private @ColorInt int m_textColor;
     private @ColorInt int m_backgroundColor = 0xF44343;
-    private String m_imagePath;
+    private String m_imageUrlOrFilePath;
     private String m_description;
     private int m_onClickCallback = -1;
     private int m_onClickInfoWindowCallback = -1;
@@ -36,7 +36,7 @@ public class MapMarker implements Parcelable
         m_text = rhs.m_text;
         m_textColor = rhs.m_textColor;
         m_backgroundColor = rhs.m_backgroundColor;
-        m_imagePath = rhs.m_imagePath;
+        m_imageUrlOrFilePath = rhs.m_imageUrlOrFilePath;
         m_description = rhs.m_description;
         m_onClickCallback = rhs.m_onClickCallback;
         m_onClickInfoWindowCallback = rhs.m_onClickInfoWindowCallback;
@@ -72,7 +72,7 @@ public class MapMarker implements Parcelable
     void setText(String text)
     {
         m_text = text;
-        m_imagePath = null; // Can't have both text and image
+        m_imageUrlOrFilePath = null; // Can't have both text and image
     }
 
     String getDescription()
@@ -115,14 +115,14 @@ public class MapMarker implements Parcelable
         m_backgroundColor = backgroundColor;
     }
 
-    String getImagePath()
+    String getImageUrlOrFilePath()
     {
-        return m_imagePath;
+        return m_imageUrlOrFilePath;
     }
 
-    void setImagePath(String imagePath)
+    void setImageUrlOrFilePath(String imageUrlOrFilePath)
     {
-        m_imagePath = imagePath;
+        m_imageUrlOrFilePath = imageUrlOrFilePath;
         m_text = null; // Can't have both image and text
     }
 
@@ -154,7 +154,7 @@ public class MapMarker implements Parcelable
         m_text = in.readString();
         m_textColor = in.readInt();
         m_backgroundColor = in.readInt();
-        m_imagePath = in.readString();
+        m_imageUrlOrFilePath = in.readString();
         m_description = in.readString();
         m_onClickCallback = in.readInt();
         m_onClickInfoWindowCallback = in.readInt();
@@ -170,7 +170,7 @@ public class MapMarker implements Parcelable
         dest.writeString(m_text);
         dest.writeInt(m_textColor);
         dest.writeInt(m_backgroundColor);
-        dest.writeString(m_imagePath);
+        dest.writeString(m_imageUrlOrFilePath);
         dest.writeString(m_description);
         dest.writeInt(m_onClickCallback);
         dest.writeInt(m_onClickInfoWindowCallback);
@@ -223,7 +223,7 @@ public class MapMarker implements Parcelable
         if (m_onDragCallback != mapMarker.m_onDragCallback) return false;
         if (m_text != null ? !m_text.equals(mapMarker.m_text) : mapMarker.m_text != null)
             return false;
-        if (m_imagePath != null ? !m_imagePath.equals(mapMarker.m_imagePath) : mapMarker.m_imagePath != null)
+        if (m_imageUrlOrFilePath != null ? !m_imageUrlOrFilePath.equals(mapMarker.m_imageUrlOrFilePath) : mapMarker.m_imageUrlOrFilePath != null)
             return false;
         return m_description != null ? m_description.equals(mapMarker.m_description) : mapMarker.m_description == null;
     }

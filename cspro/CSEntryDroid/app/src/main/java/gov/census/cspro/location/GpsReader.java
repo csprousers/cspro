@@ -25,8 +25,8 @@ public class GpsReader
     private ILocationProvider m_locationClient;
     private LocationCallback m_locationCallback;
 
-    private static final long UPDATE_INTERVAL_IN_MILLISECONDS = 200;
-    private static final long FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS = 200;
+    public static final long UPDATE_INTERVAL_IN_MILLISECONDS = 200;
+    public static final long FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS = 200;
 
     private Location m_lastLocation;
     private Location m_mostAccurateLocation;

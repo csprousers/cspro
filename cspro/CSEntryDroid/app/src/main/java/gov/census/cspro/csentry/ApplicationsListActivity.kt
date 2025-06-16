@@ -30,7 +30,7 @@ class ApplicationsListActivity constructor() : AppCompatActivity(), IEngineMessa
     // If already asked user to grant system permissions
     private var m_alreadyAskedPermissions: Boolean = false
 
-    //Update this list for Android 6.0 and above if new permissions are added. 
+    //Update this list for Android 6.0 and above if new permissions are added.
     //These permissions are checked only if the API Level of the device > 23 (Marshmallow and above)
     //Any device < Android 6.0 will have permissions available on install
     private val PERMISSIONS: Array<String> = arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE,
@@ -78,6 +78,9 @@ class ApplicationsListActivity constructor() : AppCompatActivity(), IEngineMessa
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.applications_layout)
+
+        // instantiate the application interface
+        EngineInterface.CreateEngineInterfaceInstance(application)
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -135,9 +138,6 @@ class ApplicationsListActivity constructor() : AppCompatActivity(), IEngineMessa
         } else {
             // If we got here then terms of service are accepted and permissions
             // are granted.
-
-            // instantiate the application interface
-            EngineInterface.CreateEngineInterfaceInstance(application)
 
             m_appsFragment?.displayApplications(sharedPref.getBoolean(getString(R.string.preferences_show_hidden_applications), false))
 
@@ -244,7 +244,7 @@ class ApplicationsListActivity constructor() : AppCompatActivity(), IEngineMessa
     private fun launchRequestPermissionsDialogs() {
         m_alreadyAskedPermissions = true
 
-        //We are not using requestCode for the callback as we are requesting all the permissions 
+        //We are not using requestCode for the callback as we are requesting all the permissions
         //in this single activity
         val requestCode: Int = 0
         ActivityCompat.requestPermissions(this, PERMISSIONS, requestCode)

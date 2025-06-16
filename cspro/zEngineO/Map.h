@@ -13,7 +13,7 @@ private:
     LogicMap(const LogicMap& logic_map);
 
 public:
-    LogicMap(std::string map_name);
+    LogicMap(std::string map_name, const EngineData& engine_data);
     ~LogicMap();
 
     IMapUI* GetMapUI();
@@ -38,6 +38,7 @@ public:
     void Reset() override;
 
 private:
+    const EngineData& m_engineData;
     std::unique_ptr<IMapUI> m_mapUI;
     bool m_showing;
     std::vector<std::shared_ptr<UserFunctionArgumentEvaluator>> m_callbacks;

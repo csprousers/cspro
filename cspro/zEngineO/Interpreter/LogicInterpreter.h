@@ -582,6 +582,7 @@ public:
     std::string GetAbsolutePath(std::string path);
     void MakeAbsolutePath(std::string& path);
     std::string EvaluatePath(int program_index);
+    SharableString EvaluatePathOrUrl(int program_index);
 
     void MakeAbsolutePath(ConnectionString& connection_string);
     ConnectionString EvaluateConnectionString(int program_index);

@@ -10,7 +10,7 @@ namespace Pre77Report
             m_pReportDataNode(nullptr),
             m_bStandardReportDivDefined(false)
     {
-        m_pGumboOutput = gumbo_parse(m_sReport.c_str());
+        m_pGumboOutput = GumboAccessor::gumbo_parse(m_sReport.c_str());
 
         m_pRootReportNode = ProcessNode(m_pGumboOutput->root);
     }
@@ -20,7 +20,7 @@ namespace Pre77Report
     {
         delete m_pRootReportNode; // this will recursively delete all nodes
 
-        gumbo_destroy_output(&kGumboDefaultOptions,m_pGumboOutput);
+        GumboAccessor::gumbo_destroy_output(&GumboAccessor::GetGumboDefaultOptions(),m_pGumboOutput);
     }
 
     void Report::SetReportIsSourceScript(const ReportManager* pReportManager,CString csScriptFilename)

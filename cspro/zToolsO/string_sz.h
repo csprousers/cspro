@@ -72,7 +72,10 @@ public:
     static constexpr auto npos = std::string_view::npos;
 
     template<typename... Args>
-    [[nodiscard]] std::string_view::size_type find(Args const&... args) const;
+    [[nodiscard]] std::string_view::size_type find(Args&&... args) const;
+
+    template<typename... Args>
+    [[nodiscard]] std::string_view::size_type find_first_of(Args&&... args) const;
 
     template<typename T = string_view_sz>
     [[nodiscard]] T substr(std::string::size_type pos = 0) const;
@@ -207,9 +210,16 @@ inline const char* cs::string_view_sz::cend() const
 
 
 template<typename... Args>
-std::string_view::size_type cs::string_view_sz::find(Args const&... args) const
+std::string_view::size_type cs::string_view_sz::find(Args&&... args) const
 {
-    return std::string_view(m_text, m_length).find(args...);
+    return std::string_view(m_text, m_length).find(std::forward<Args>(args)...);
+}
+
+
+template<typename... Args>
+std::string_view::size_type cs::string_view_sz::find_first_of(Args&&... args) const
+{
+    return std::string_view(m_text, m_length).find_first_of(std::forward<Args>(args)...);
 }
 
 

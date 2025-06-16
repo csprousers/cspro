@@ -14,9 +14,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\external\md4c\entity.c">
-      <Filter>md4c</Filter>
-    </ClCompile>
     <ClCompile Include="..\external\md4c\md4c-html.c">
       <Filter>md4c</Filter>
     </ClCompile>

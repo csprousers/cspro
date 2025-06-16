@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 class CSDocCompilerSettingsForCSProUsersBlog;
-class CSProUsersBlogHtmlTagModifier;
+class CSProUsersBlogTagModifier;
 
 
 class CSProUsersBlogBuilder
@@ -17,7 +17,7 @@ private:
 
 private:
     std::string m_outputDirectory;
-    std::unique_ptr<CSProUsersBlogHtmlTagModifier> m_htmlTagModifier;
+    std::unique_ptr<CSProUsersBlogTagModifier> m_tagModifier;
 
     DocSetSpec m_docSetSpec;
     std::unique_ptr<CSDocCompilerSettingsForCSProUsersBlog> m_settings;

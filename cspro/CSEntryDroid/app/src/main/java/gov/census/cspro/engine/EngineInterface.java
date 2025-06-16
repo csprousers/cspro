@@ -31,6 +31,7 @@ import gov.census.cspro.form.EntryPage;
 import gov.census.cspro.form.FieldNote;
 import gov.census.cspro.html.HtmlDirectoryPathHandler;
 import gov.census.cspro.html.VirtualFile;
+import gov.census.cspro.maps.HtmlMapActivity;
 import gov.census.cspro.util.CredentialStore;
 import timber.log.Timber;
 
@@ -136,7 +137,7 @@ public class EngineInterface
                 saveFilesCreatedByPff(pifFile);
 
                 // if an OnExit filename is specified, queue that as the next PFF to be run
-                if( pifFile.GetOnExitFilename().length() > 0 )
+                if( !pifFile.GetOnExitFilename().isEmpty() )
                     m_execpffParameter = pifFile.GetOnExitFilename();
             }
 
@@ -327,7 +328,7 @@ public class EngineInterface
                 if (directoryPaths != null && directoryPaths.length > 0 ) {
                     copyAssetsDirectory(assetManager, assetsDirectoryName, fullPath);
                 } else {
-                    Util.copyAndCloseStreams(assetManager.open(fullPath), new FileOutputStream(new File(Util.combinePath(outputDirectoryName, path))));
+                    Util.copyAndCloseStreams(assetManager.open(fullPath), new FileOutputStream(Util.combinePath(outputDirectoryName, path)));
                 }
             }
         }
@@ -807,6 +808,12 @@ public class EngineInterface
         SetThreadWaitComplete(m_nativeEngineInterfaceReference, threadWaitId, response);
     }
     public native void SetThreadWaitComplete(long applicationReference, long threadWaitId, String response);
+
+    public void htmlMapNotifyLifecycle(long jniObjectPtr, HtmlMapActivity activity) { HtmlMapNotifyLifecycle(m_nativeEngineInterfaceReference, jniObjectPtr, activity); }
+    public native void HtmlMapNotifyLifecycle(long applicationReference, long jniObjectPtr, HtmlMapActivity activity);
+
+    public void htmlMapNotifyWebMessageReceived(long jniObjectPtr, String eventJson) { HtmlMapNotifyWebMessageReceived(m_nativeEngineInterfaceReference, jniObjectPtr, eventJson); }
+    public native void HtmlMapNotifyWebMessageReceived(long applicationReference, long jniObjectPtr, String eventJson);
 
     public boolean useHtmlDialogs()
     {

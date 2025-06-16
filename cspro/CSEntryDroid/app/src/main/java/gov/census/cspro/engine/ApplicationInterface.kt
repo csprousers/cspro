@@ -39,6 +39,7 @@ import gov.census.cspro.csentry.ui.FieldNoteUpdateListener
 import gov.census.cspro.csentry.ui.WebViewWithJavaScriptInterfaceActivity
 import gov.census.cspro.engine.functions.*
 import gov.census.cspro.maps.CapturePolygonActivity
+import gov.census.cspro.maps.HtmlMapActivity
 import gov.census.cspro.maps.MapUI
 import gov.census.cspro.maps.geojson.Polygon
 import gov.census.cspro.media.player.AudioPlayerActivity
@@ -331,7 +332,6 @@ fun viewWebPageWithJavaScriptInterface(title: String?, url: String, actionInvoke
     return threadWaitId
 }
 
-
 fun mediaScanFiles(filePaths: Array<String>) {
     val activity = Messenger.getInstance().currentMessage.activity
     MediaScannerConnection.scanFile(activity, filePaths, null, null)
@@ -490,6 +490,19 @@ fun captureSignature(overlayMessage: String?): String? {
             Messenger.getInstance().engineFunctionComplete(0)
         }
     }
+}
+
+fun launchHtmlMap(jniObjectPtr: Long, mappingUrl: String) {
+    val engineFunction = EngineFunction { activity ->
+        activity?.run {
+            val intent = Intent(activity, HtmlMapActivity::class.java)
+            intent.putExtra(HtmlMapActivity.JNI_OBJECT_PTR, jniObjectPtr)
+            intent.putExtra(HtmlMapActivity.MAPPING_URL, mappingUrl)
+            activity.startActivity(intent)
+        }
+    }
+
+    Messenger.getInstance().runEngineFunctionDirectlyWithoutUsingMessengerQueue(engineFunction)
 }
 
 fun tracePolygon(existingPolygon: Polygon?, map: MapUI?): List<LatLng>? {

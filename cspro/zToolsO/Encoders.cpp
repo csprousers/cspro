@@ -844,6 +844,25 @@ bool Encoders::IsDataUrl(const std::string_view text_sv)
 }
 
 
+bool Encoders::IsDataOrHttpUrl(std::string_view text_sv)
+{
+    constexpr std::string_view HttpUrlPrefix_sv = "http";
+
+    if( SO::StartsWithNoCase(text_sv, HttpUrlPrefix_sv) )
+    {
+        text_sv.remove_prefix(HttpUrlPrefix_sv.length());
+
+        return ( SO::StartsWithNoCase(text_sv, "s:") ||
+                 SO::StartsWithNoCase(text_sv, ":") );
+    }
+
+    else
+    {
+        return IsDataUrl(text_sv);
+    }
+}
+
+
 std::tuple<std::unique_ptr<std::vector<std::byte>>, std::string> Encoders::FromDataUrl(std::string_view data_url_sv)
 {
     if( !IsDataUrl(data_url_sv) )

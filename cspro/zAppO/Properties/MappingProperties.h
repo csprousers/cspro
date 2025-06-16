@@ -26,8 +26,11 @@ public:
     const BaseMapSelection& GetDefaultBaseMap() const         { return m_defaultBaseMap; }
     void SetDefaultBaseMap(BaseMapSelection default_base_map) { m_defaultBaseMap = std::move(default_base_map); }
 
-    MappingTileProvider GetWindowsMappingTileProvider() const        { return m_windowsMappingTileProvider; }
-    void SetWindowsMappingTileProvider(MappingTileProvider provider) { m_windowsMappingTileProvider = provider; }
+    MappingEngine GetMappingEngine() const      { return m_mappingEngine; }
+    void SetMappingEngine(MappingEngine engine) { m_mappingEngine = engine; }
+
+    MappingTileProvider GetMappingTileProvider() const        { return m_mappingTileProvider; }
+    void SetMappingTileProvider(MappingTileProvider provider) { m_mappingTileProvider = provider; }
 
     const MappingTileProviderProperties& GetEsriMappingTileProviderProperties() const { return m_esriMappingTileProviderProperties; }
     MappingTileProviderProperties& GetEsriMappingTileProviderProperties()             { return m_esriMappingTileProviderProperties; }
@@ -35,7 +38,7 @@ public:
     const MappingTileProviderProperties& GetMapboxMappingTileProviderProperties() const { return m_mapboxMappingTileProviderProperties; }
     MappingTileProviderProperties& GetMapboxMappingTileProviderProperties()             { return m_mapboxMappingTileProviderProperties; }
 
-    const MappingTileProviderProperties& GetWindowsMappingTileProviderProperties() const;
+    const MappingTileProviderProperties& GetMappingTileProviderProperties() const;
 
 
     // serialization
@@ -49,7 +52,8 @@ public:
 private:
     CoordinateDisplay m_coordinateDisplay;
     BaseMapSelection m_defaultBaseMap;
-    MappingTileProvider m_windowsMappingTileProvider;
+    MappingEngine m_mappingEngine;
+    MappingTileProvider m_mappingTileProvider;
     MappingTileProviderProperties m_esriMappingTileProviderProperties;
     MappingTileProviderProperties m_mapboxMappingTileProviderProperties;
 };

@@ -2,7 +2,6 @@
 
 #include <zParadataO/zParadataO.h>
 #include <zParadataO/Log.h>
-#include <zToolsO/PointerClasses.h>
 
 namespace Paradata { class Syncer; }
 struct sqlite3;

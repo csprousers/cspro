@@ -3,7 +3,7 @@ package gov.census.cspro.maps;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
-import android.text.Html;
+
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,7 +20,7 @@ import gov.census.cspro.engine.Util;
 
 public class MapListAdapter extends RecyclerView.Adapter<MapListAdapter.ViewHolder>
 {
-    private List<MapMarker> m_markers = new ArrayList<>();
+    private final List<MapMarker> m_markers = new ArrayList<>();
     private OnItemClickListener m_onItemClickListener;
     private final RequestManager m_glide;
     private final MarkerTextIconGenerator m_textIconGenerator;
@@ -83,21 +83,19 @@ public class MapListAdapter extends RecyclerView.Adapter<MapListAdapter.ViewHold
             holder.m_description.setText(MapFragment.textToMapSupportedHtml(marker.getDescription()));
         }
 
-        if (!Util.stringIsNullOrEmpty(marker.getImagePath()))
-        {
+        if (!Util.stringIsNullOrEmpty(marker.getImageUrlOrFilePath())) {
             holder.m_icon.setVisibility(View.VISIBLE);
-            m_glide.load(marker.getImagePath())
+            m_glide.load(marker.getImageUrlOrFilePath())
                    .fitCenter()
                    .into(holder.m_icon);
-        } else
-        {
+        }
+        else {
             m_glide.clear(holder.m_icon);
-            if (!Util.stringIsNullOrEmpty(marker.getText()))
-            {
+            if (!Util.stringIsNullOrEmpty(marker.getText())) {
                 holder.m_icon.setVisibility(View.VISIBLE);
                 holder.m_icon.setImageBitmap(m_textIconGenerator.makeIcon(marker));
-            } else
-            {
+            }
+            else {
                 holder.m_icon.setVisibility(View.GONE);
             }
         }

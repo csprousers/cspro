@@ -67,6 +67,7 @@
     <ClCompile Include="CoordinateConverter.cpp" />
     <ClCompile Include="CurrentLocation.cpp" />
     <ClCompile Include="GeoJson.cpp" />
+    <ClCompile Include="HtmlMapUI.cpp" />
     <ClCompile Include="MappingPropertiesTester.cpp" />
     <ClCompile Include="MBTilesReader.cpp" />
     <ClCompile Include="OfflineTileProvider.cpp" />
@@ -86,6 +87,7 @@
     <ClInclude Include="GeoJson.h" />
     <ClInclude Include="Geometry.h" />
     <ClInclude Include="GreatCircle.h" />
+    <ClInclude Include="HtmlMapUI.h" />
     <ClInclude Include="IMapUI.h" />
     <ClInclude Include="MappingPropertiesTester.h" />
     <ClInclude Include="MBTilesReader.h" />

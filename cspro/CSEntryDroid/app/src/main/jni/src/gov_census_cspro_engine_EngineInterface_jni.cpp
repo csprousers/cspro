@@ -1,6 +1,7 @@
 ﻿#include <engine/StandardSystemIncludes.h>
 #include "gov_census_cspro_engine_EngineInterface_jni.h"
 #include "AndroidEngineInterface.h"
+#include "AndroidHtmlMapUI.h"
 #include "AndroidLocalFileServer.h"
 #include "AndroidMapUI.h"
 #include "JNIHelpers.h"
@@ -908,10 +909,10 @@ JNIEXPORT jstring JNICALL Java_gov_census_cspro_engine_EngineInterface_FormatCoo
 {
     auto engine = (AndroidEngineInterface*)nativeReference;
     const Application* application = engine->GetPifFile()->GetApplication();
-    const auto& mapping_properties = application->GetApplicationProperties().GetMappingProperties();
+    const MappingProperties& mapping_properties = application->GetApplicationProperties().GetMappingProperties();
 
-    CString formatted_coordinates = CoordinateConverter::ToString(mapping_properties.GetCoordinateDisplay(), latitude, longitude);
-    return WideToJava(pEnv, formatted_coordinates);
+    const std::string formatted_coordinates = CoordinateConverter::ToString(mapping_properties.GetCoordinateDisplay(), latitude, longitude);
+    return JavaString::ToJava(*pEnv, formatted_coordinates);
 }
 
 
@@ -929,6 +930,22 @@ JNIEXPORT jstring JNICALL Java_gov_census_cspro_engine_EngineInterface_GetTpkMet
         ThrowJavaException(env, exception);
         return nullptr;
     }
+}
+
+
+JNIEXPORT void JNICALL Java_gov_census_cspro_engine_EngineInterface_HtmlMapNotifyLifecycle
+    (JNIEnv* const jni_env, jobject, jlong nativeReference, jlong jJniObjectPtr, jobject jHtmlMapActivity)
+{
+    AndroidHtmlMapUI* const html_map_ui = reinterpret_cast<AndroidHtmlMapUI*>(jJniObjectPtr);
+    html_map_ui->NotifyLifecycle(jHtmlMapActivity);
+}
+
+
+JNIEXPORT void JNICALL Java_gov_census_cspro_engine_EngineInterface_HtmlMapNotifyWebMessageReceived
+    (JNIEnv* const jni_env, jobject, jlong nativeReference, jlong jJniObjectPtr, jstring jEventJson)
+{
+    AndroidHtmlMapUI* const html_map_ui = reinterpret_cast<AndroidHtmlMapUI*>(jJniObjectPtr);
+    html_map_ui->NotifyWebMessageReceived(JavaString::ToUtf8(*jni_env, jEventJson));
 }
 
 

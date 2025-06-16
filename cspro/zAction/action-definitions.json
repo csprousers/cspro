@@ -2029,7 +2029,7 @@
       },
       {
         "name": "name",
-        "description": "The name of a dictionary or \"paradata\". Either \"path\" or \"name\" must be specified.",
+        "description": "The name of a dictionary or \"paradata\" or \":memory:\". Either \"path\" or \"name\" must be specified.",
         "types": [
           "string"
         ],

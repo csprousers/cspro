@@ -66,6 +66,7 @@ LOCAL_SRC_FILES         += $(CSENTRY_SRC_PATH)/AndroidBluetoothAdapter.cpp
 LOCAL_SRC_FILES         += $(CSENTRY_SRC_PATH)/AndroidBluetoothObexTransport.cpp
 LOCAL_SRC_FILES         += $(CSENTRY_SRC_PATH)/AndroidEngineInterface.cpp
 LOCAL_SRC_FILES         += $(CSENTRY_SRC_PATH)/AndroidFtpConnection.cpp
+LOCAL_SRC_FILES         += $(CSENTRY_SRC_PATH)/AndroidHtmlMapUI.cpp
 LOCAL_SRC_FILES         += $(CSENTRY_SRC_PATH)/AndroidHttpConnection.cpp
 LOCAL_SRC_FILES         += $(CSENTRY_SRC_PATH)/AndroidLocalFileServer.cpp
 LOCAL_SRC_FILES         += $(CSENTRY_SRC_PATH)/AndroidMapUI.cpp

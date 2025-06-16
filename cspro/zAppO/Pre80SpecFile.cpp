@@ -776,7 +776,7 @@ std::string ApplicationProperties::ConvertPre80SpecFile(const InterfaceString fi
 
                 else if( command_is(_T("WindowsMappingTileProvider")) )
                 {
-                    mapping_node.Set(JK::windowsMappingTileProvider, argument);
+                    mapping_node.Set(JK::tileProvider, argument);
                 }
 
                 else

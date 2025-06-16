@@ -1,22 +1,23 @@
 ﻿#include "stdafx.h"
-#include "HtmlTagModifier.h"
+#include "TagModifier.h"
 #include <zToolsO/RaiiHelpers.h>
 
 
-std::string HtmlTagModifier::Process(const cs::string_sz html_input)
+std::string TagModifier::Process(const cs::string_sz html_input)
 {
     std::string html_output;
     const RAII::SetValueAndRestoreOnDestruction html_modifier(m_html, &html_output);
 
     GumboOutput* const gumbo_output = gumbo_parse(html_input.c_str());
+    const RAII::RunOnDestruction destroy([&]() { gumbo_destroy_output(&kGumboDefaultOptions, gumbo_output); });
+
     ProcessNode(gumbo_output->root);
-    gumbo_destroy_output(&kGumboDefaultOptions, gumbo_output);
 
     return html_output;
 }
 
 
-void HtmlTagModifier::ProcessNode(const GumboNode* const node)
+void TagModifier::ProcessNode(const GumboNode* const node)
 {
     ASSERT(m_html != nullptr && node != nullptr);
 
@@ -45,7 +46,7 @@ void HtmlTagModifier::ProcessNode(const GumboNode* const node)
 }
 
 
-void HtmlTagModifier::ProcessElement(const GumboElement& element)
+void TagModifier::ProcessElement(const GumboElement& element)
 {
     std::unique_ptr<std::string> end_tag;
 

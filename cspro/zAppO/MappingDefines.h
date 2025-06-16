@@ -35,6 +35,20 @@ DECLARE_ENUM_JSON_SERIALIZER_CLASS(BaseMap, ZAPPO_API)
 
 
 // --------------------------------------------------
+// MappingEngine
+// --------------------------------------------------
+
+enum class MappingEngine : int
+{
+    Default,
+    Leaflet
+};
+
+DECLARE_ENUM_JSON_SERIALIZER_CLASS(MappingEngine, ZAPPO_API)
+
+
+
+// --------------------------------------------------
 // MappingTileProvider
 // --------------------------------------------------
 

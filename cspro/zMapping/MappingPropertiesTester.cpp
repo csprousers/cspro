@@ -6,6 +6,7 @@
 #include "WindowsMapDlg.h"
 #include "WindowsMapUISingleThread.h"
 #include <zToolsO/WinClipboard.h>
+#include <zUtilO/PortableColor.h>
 
 
 namespace
@@ -21,14 +22,17 @@ namespace
 class MappingPropertiesTester::TestMapUI : public WindowsMapUISingleThread
 {
 public:
-    TestMapUI(const MappingProperties& mapping_properties)
-        :   WindowsMapUISingleThread(mapping_properties)
+    TestMapUI(cs::non_null_shared_or_raw_ptr<const MappingProperties> mapping_properties)
+        :   WindowsMapUISingleThread(std::move(mapping_properties))
     {
     }
 
     std::optional<OfflineTileReader::Bounds> GetOfflineTileReaderBounds()
     {
-        return ( m_tileReader != nullptr ) ? m_tileReader->GetBounds() : std::nullopt;
+        OfflineTileReader* const tile_reader = GetOfflineTileReader();
+
+        return ( tile_reader != nullptr ) ? tile_reader->GetBounds() :
+                                            std::nullopt;
     }
 
     WindowsMapDlg* GetMapDlg()
@@ -42,14 +46,14 @@ public:
         m_callbackFunctions.emplace_back(std::move(callback_function));
     }
 
-    void NotifyEvent(const EventCode code, const int marker_id/* = -1*/, const int callback_id/* = -1*/,
-                     const double /*latitude*/ = 0, const double /*longitude*/ = 0,
-                     const MapCamera& /*camera*/ = MapCamera { 0, 0, 0, 0 }) override
+    void OnNotifyEvent(std::unique_ptr<MapEvent> event) override
     {
-        if( code == EventCode::ButtonClicked )
+        ASSERT(event != nullptr);
+
+        if( event->code == EventCode::ButtonClicked )
         {
-            ASSERT(callback_id < static_cast<int>(m_callbackFunctions.size()));
-            m_callbackFunctions[callback_id](marker_id);
+            ASSERT(static_cast<size_t>(event->callback_id) < m_callbackFunctions.size());
+            m_callbackFunctions[event->callback_id](event->marker_id);
         }
     }
 
@@ -67,11 +71,11 @@ void MappingPropertiesTester::Test(MappingProperties mapping_properties, const s
 {
     // mapping properties is passed as a copy in case we need to override the tile provider
     if( mapping_tile_provider.has_value() )
-        mapping_properties.SetWindowsMappingTileProvider(*mapping_tile_provider);
+        mapping_properties.SetMappingTileProvider(*mapping_tile_provider);
 
     try
     {
-        TestMapUI map_ui(mapping_properties);
+        TestMapUI map_ui(&mapping_properties);
 
         if( mapping_tile_provider.has_value() || std::holds_alternative<BaseMap>(mapping_properties.GetDefaultBaseMap()) )
         {
@@ -95,7 +99,7 @@ void MappingPropertiesTester::Test(MappingProperties mapping_properties, const s
 
 void MappingPropertiesTester::SetupMapForTileProvider(TestMapUI& map_ui, const MappingProperties& mapping_properties)
 {
-    const MappingTileProviderProperties& mapping_tile_provider_properties = mapping_properties.GetWindowsMappingTileProviderProperties();
+    const MappingTileProviderProperties& mapping_tile_provider_properties = mapping_properties.GetMappingTileProviderProperties();
 
     if( mapping_tile_provider_properties.GetMappingTileProvider() == MappingTileProvider::Mapbox &&
         mapping_tile_provider_properties.GetAccessToken().empty() )

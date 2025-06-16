@@ -19,6 +19,13 @@ namespace
     Logic::AutoComplete LogicReferenceAutoCompleter;
 
 
+    void DisplayHelp(CWnd& wnd, const char* const help_topic_filename)
+    {
+        ASSERT(help_topic_filename != nullptr);
+        wnd.HtmlHelp(reinterpret_cast<DWORD_PTR>(TC::ToWide(help_topic_filename).c_str()), HH_DISPLAY_TOPIC);
+    }
+
+
     void AddTabbedText(CString& reference_text, const NullTerminatedString text_to_add, int tabs, bool add_arrow)
     {
         int spaces = tabs * 4;
@@ -1851,7 +1858,7 @@ LRESULT CMainFrame::OnLogicReference(const WPARAM wParam, const LPARAM lParam)
 
     if( help_topic_filename != nullptr && ( activated_by_f1 || goto_word ) )
     {
-        HtmlHelp((DWORD_PTR)help_topic_filename, HH_DISPLAY_TOPIC);
+        DisplayHelp(*this, help_topic_filename);
         return 0;
     }
 
@@ -1983,7 +1990,7 @@ LRESULT CMainFrame::OnLogicReference(const WPARAM wParam, const LPARAM lParam)
                             if( activated_by_f1 || goto_word )
                             {
                                 f1_help_processing_finished = true;
-                                HtmlHelp((DWORD_PTR)function_details->help_filename, HH_DISPLAY_TOPIC);
+                                DisplayHelp(*this, function_details->help_filename);
                             }
 
                             else
@@ -2246,7 +2253,7 @@ LRESULT CMainFrame::OnLogicReference(const WPARAM wParam, const LPARAM lParam)
     if( reference_text.IsEmpty() )
     {
         if( activated_by_f1 )
-            HtmlHelp((DWORD_PTR)Logic::ContextSensitiveHelp::GetIntroductionTopicFilename(), HH_DISPLAY_TOPIC);
+            DisplayHelp(*this, Logic::ContextSensitiveHelp::GetIntroductionTopicFilename());
     }
 
     // otherwise set up the reference window

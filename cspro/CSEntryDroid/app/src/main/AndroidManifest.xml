@@ -17,6 +17,7 @@
   <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
   <uses-permission android:name="android.permission.RECORD_AUDIO" />
   <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
   <uses-permission
     android:name="android.permission.ACCESS_COARSE_LOCATION"
     android:required="false" />
@@ -133,7 +134,6 @@
       android:label="@string/app_name">
       <intent-filter>
         <action android:name="android.intent.action.MAIN" />
-
         <category android:name="android.intent.category.LAUNCHER" />
       </intent-filter>
     </activity>
@@ -172,21 +172,18 @@
       android:label="@string/notes_title" />
     <activity
       android:name=".ui.GenericWebViewActivity"
-      android:exported="false"
-      android:label="@string/app_name" />
+      android:exported="false" />
     <activity
       android:name=".ui.WebViewWithJavaScriptInterfaceActivity"
       android:exported="false"
-      android:configChanges="orientation|screenSize|keyboardHidden"
-      android:label="@string/app_name" />
+      android:configChanges="orientation|screenSize|keyboardHidden" />
     <activity
       android:name=".ui.SelectStyleActivity"
       android:exported="false"
       android:label="@string/select_style_title" />
     <activity
       android:name=".ui.ServiceTermsActivity"
-      android:exported="false"
-      android:label="@string/app_name" />
+      android:exported="false" />
     <activity android:name=".ui.ChooseBluetoothDeviceActivity" />
 
     <!-- for Dropbox -->
@@ -292,6 +289,13 @@
       android:label="@string/title_activity_maps" />
 
     <activity
+      android:name="gov.census.cspro.maps.HtmlMapActivity"
+      android:exported="false"
+      android:configChanges="orientation|screenSize|keyboardHidden"
+      android:label="@string/title_activity_maps" >
+    </activity>
+
+    <activity
       android:name="gov.census.cspro.media.player.AudioPlayerActivity"
       android:exported="false"
       android:theme="@style/Dialog.App"
@@ -335,6 +339,7 @@
 
     <service
       android:name="gov.census.cspro.media.recording.background.RecorderService"
+      android:foregroundServiceType="microphone"
       android:exported="false"
       android:stopWithTask="true" />
 

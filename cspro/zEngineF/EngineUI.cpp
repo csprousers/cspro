@@ -7,72 +7,72 @@
 long EngineUIProcessor::ProcessMessage(WPARAM wParam, LPARAM lParam)
 {
     const EngineUI::Type type = static_cast<EngineUI::Type>(wParam);
-        
+
     switch( type )
     {
         case EngineUI::Type::CaptureImage:
         {
-            EngineUI::CaptureImageNode* capture_image_node = reinterpret_cast<EngineUI::CaptureImageNode*>(lParam);
+            EngineUI::CaptureImageNode* const capture_image_node = reinterpret_cast<EngineUI::CaptureImageNode*>(lParam);
             return CaptureImage(*capture_image_node);
         }
 
         case EngineUI::Type::ColorizeLogic:
         {
-            EngineUI::ColorizeLogicNode* colorize_logic_node = reinterpret_cast<EngineUI::ColorizeLogicNode*>(lParam);
+            EngineUI::ColorizeLogicNode* const colorize_logic_node = reinterpret_cast<EngineUI::ColorizeLogicNode*>(lParam);
             return ColorizeLogic(*colorize_logic_node);
         }
 
         case EngineUI::Type::CreateMapUI:
         {
-            std::unique_ptr<IMapUI>* map_ui = reinterpret_cast<std::unique_ptr<IMapUI>*>(lParam);
-            return CreateMapUI(*map_ui);
+            EngineUI::CreateMapUINode* const create_map_ui_node = reinterpret_cast<EngineUI::CreateMapUINode*>(lParam);
+            return CreateMapUI(*create_map_ui_node);
         }
 
         case EngineUI::Type::CreateUserbar:
         {
-            std::unique_ptr<Userbar>* userbar = reinterpret_cast<std::unique_ptr<Userbar>*>(lParam);
+            std::unique_ptr<Userbar>* const userbar = reinterpret_cast<std::unique_ptr<Userbar>*>(lParam);
             return CreateUserbar(*userbar);
         }
 
         case EngineUI::Type::CreateVirtualFileMappingAroundViewHtmlContent:
         {
-            EngineUI::CreateVirtualFileMappingAroundViewHtmlContentNode* node = reinterpret_cast<EngineUI::CreateVirtualFileMappingAroundViewHtmlContentNode*>(lParam);
+            EngineUI::CreateVirtualFileMappingAroundViewHtmlContentNode* const node = reinterpret_cast<EngineUI::CreateVirtualFileMappingAroundViewHtmlContentNode*>(lParam);
             return CreateVirtualFileMappingAroundViewHtmlContent(*node);
         }
 
         case EngineUI::Type::EditNote:
         {
-            EngineUI::EditNoteNode* edit_note_node = reinterpret_cast<EngineUI::EditNoteNode*>(lParam);
+            EngineUI::EditNoteNode* const edit_note_node = reinterpret_cast<EngineUI::EditNoteNode*>(lParam);
             return EditNote(*edit_note_node);
         }
 
         case EngineUI::Type::ExecSystemApp:
         {
-            EngineUI::ExecSystemAppNode* exec_system_app_node = reinterpret_cast<EngineUI::ExecSystemAppNode*>(lParam);
+            EngineUI::ExecSystemAppNode* const exec_system_app_node = reinterpret_cast<EngineUI::ExecSystemAppNode*>(lParam);
             return ExecSystemApp(*exec_system_app_node);
         }
 
         case EngineUI::Type::HtmlDialogsDirectoryQuery:
         {
-            std::string* html_dialogs_directory = reinterpret_cast<std::string*>(lParam);
+            std::string* const html_dialogs_directory = reinterpret_cast<std::string*>(lParam);
             return HtmlDialogsDirectoryQuery(*html_dialogs_directory);
         }
 
         case EngineUI::Type::Prompt:
         {
-            EngineUI::PromptNode* prompt_node = reinterpret_cast<EngineUI::PromptNode*>(lParam);
+            EngineUI::PromptNode* const prompt_node = reinterpret_cast<EngineUI::PromptNode*>(lParam);
             return Prompt(*prompt_node);
         }
 
         case EngineUI::Type::RunPffExecutor:
         {
-            EngineUI::RunPffExecutorNode* run_pff_executor_node = reinterpret_cast<EngineUI::RunPffExecutorNode*>(lParam);
+            EngineUI::RunPffExecutorNode* const run_pff_executor_node = reinterpret_cast<EngineUI::RunPffExecutorNode*>(lParam);
             return RunPffExecutor(*run_pff_executor_node);
         }
 
         case EngineUI::Type::View:
         {
-            const Viewer* viewer = reinterpret_cast<const Viewer*>(lParam);
+            const Viewer* const viewer = reinterpret_cast<const Viewer*>(lParam);
             return View(*viewer);
         }
 

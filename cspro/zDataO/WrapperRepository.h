@@ -2,7 +2,6 @@
 
 #include <zDataO/zDataO.h>
 #include <zDataO/DataRepository.h>
-#include <zToolsO/PointerClasses.h>
 
 
 class ZDATAO_API WrapperRepository : public DataRepository

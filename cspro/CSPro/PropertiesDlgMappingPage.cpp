@@ -18,6 +18,7 @@ PropertiesDlgMappingPage::PropertiesDlgMappingPage(MappingProperties& mapping_pr
         m_mappingProperties(mapping_properties),
         m_currentLocation(CurrentLocation::GetCurrentLocationOrCensusBureau()),
         m_coordinateDisplayRadioEnumHelper({ CoordinateDisplay::Decimal, CoordinateDisplay::DMS }),
+        m_mappingEngineRadioEnumHelper({ MappingEngine::Default, MappingEngine::Leaflet}),
         m_mappingTileProviderRadioEnumHelper({ MappingTileProvider::Esri, MappingTileProvider::Mapbox })
 {
     PropertiesToForm(m_mappingProperties);
@@ -40,7 +41,9 @@ void PropertiesDlgMappingPage::DoDataExchange(CDataExchange* const pDX)
 
     DDX_Control(pDX, IDC_BASE_MAP, m_defaultBaseMap);
 
-    DDX_Radio(pDX, IDC_ESRI, m_windowsMappingTileProvider);
+    DDX_Radio(pDX, IDC_MAPPING_ENGINE_DEFAULT, m_mappingEngine);
+
+    DDX_Radio(pDX, IDC_ESRI, m_mappingTileProvider);
 }
 
 
@@ -103,7 +106,9 @@ void PropertiesDlgMappingPage::PropertiesToForm(const MappingProperties& mapping
         std::get<std::string>(mapping_properties.GetDefaultBaseMap()) :
         std::string();
 
-    m_windowsMappingTileProvider = m_mappingTileProviderRadioEnumHelper.ToForm(mapping_properties.GetWindowsMappingTileProvider());
+    m_mappingEngine = m_mappingEngineRadioEnumHelper.ToForm(mapping_properties.GetMappingEngine());
+
+    m_mappingTileProvider = m_mappingTileProviderRadioEnumHelper.ToForm(mapping_properties.GetMappingTileProvider());
 }
 
 
@@ -114,7 +119,7 @@ void PropertiesDlgMappingPage::FormToProperties()
     m_mappingProperties.SetCoordinateDisplay(m_coordinateDisplayRadioEnumHelper.FromForm(m_coordinateDisplay));
 
 
-    int default_base_map_selected_index = m_defaultBaseMap.GetCurSel();
+    const int default_base_map_selected_index = m_defaultBaseMap.GetCurSel();
 
     if( default_base_map_selected_index == m_customDefaultBaseMapIndex )
     {
@@ -129,7 +134,9 @@ void PropertiesDlgMappingPage::FormToProperties()
     }
 
 
-    m_mappingProperties.SetWindowsMappingTileProvider(m_mappingTileProviderRadioEnumHelper.FromForm(m_windowsMappingTileProvider));
+    m_mappingProperties.SetMappingEngine(m_mappingEngineRadioEnumHelper.FromForm(m_mappingEngine));
+
+    m_mappingProperties.SetMappingTileProvider(m_mappingTileProviderRadioEnumHelper.FromForm(m_mappingTileProvider));
 }
 
 

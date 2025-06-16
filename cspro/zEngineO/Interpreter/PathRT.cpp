@@ -39,6 +39,17 @@ std::string LogicInterpreter::EvaluatePath(const int program_index)
 }
 
 
+SharableString LogicInterpreter::EvaluatePathOrUrl(const int program_index)
+{
+    SharableString path_or_url = EvaluateSharableString(program_index);
+
+    if( !Encoders::IsDataOrHttpUrl(*path_or_url) )
+        MakeAbsolutePath(path_or_url.MakeModifiable());
+
+    return path_or_url;
+}
+
+
 void LogicInterpreter::MakeAbsolutePath(ConnectionString& connection_string)
 {
     connection_string.AdjustRelativePath(GetCurrentWorkingDirectory());

@@ -17,7 +17,7 @@ import timber.log.Timber;
 @SuppressWarnings("unused")
 public class MapUI
 {
-    private MapData m_mapData = new MapData();
+    private final MapData m_mapData = new MapData();
 
     public MapData getMapData()
     {
@@ -80,10 +80,10 @@ public class MapUI
         m_mapData.clearMarkers();
     }
 
-    int setMarkerImage(int markerId, String imageFilePath)
+    int setMarkerImage(int markerId, String imageUrlOrFilePath)
     {
         try {
-            m_mapData.setMarkerImage(markerId, imageFilePath);
+            m_mapData.setMarkerImageUrlOrFilePath(markerId, imageUrlOrFilePath);
             return 1;
         } catch (IllegalArgumentException ignored) {
             return 0;
@@ -165,9 +165,9 @@ public class MapUI
         m_mapData.clear();
     }
 
-    public int addImageButton(String imagePath, int callbackId)
+    public int addImageButton(String imageUrlOrFilePath, int callbackId)
     {
-       return addButton(imagePath, null, callbackId);
+       return addButton(imageUrlOrFilePath, null, callbackId);
     }
 
     public int addTextButton(String label, int callbackId)
@@ -175,9 +175,9 @@ public class MapUI
         return addButton(null, label, callbackId);
     }
 
-    private int addButton(String imagePath, String label, int callbackId)
+    private int addButton(String imageUrlOrFilePath, String label, int callbackId)
     {
-        return m_mapData.addButton(imagePath, label, callbackId);
+        return m_mapData.addButton(imageUrlOrFilePath, label, callbackId);
     }
 
     public int removeButton(int buttonId)

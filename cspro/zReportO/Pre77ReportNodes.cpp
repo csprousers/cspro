@@ -42,7 +42,7 @@ namespace Pre77Report
         std::string GetAttributeValue(const GumboNode* pGumboNode,const char* lpszAttribute)
         {
             std::string sValue;
-            const GumboAttribute* pAttribute = gumbo_get_attribute(&pGumboNode->v.element.attributes,lpszAttribute);
+            const GumboAttribute* pAttribute = GumboAccessor::gumbo_get_attribute(&pGumboNode->v.element.attributes,lpszAttribute);
 
             if( pAttribute != nullptr )
                 sValue = pAttribute->value;

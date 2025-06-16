@@ -88,6 +88,8 @@
        wrappers in CSPro logic that appear as user-defined functions but
        call into JavaScript when invoked.
 
+    -  Leaflet can be used as the mapping engine on Android.
+
     -  A new dialog, Manage Application Files, replaces the Add Files and
        Drop Files dialogs, providing a central place to manage an
        application's files and each file's properties.
@@ -304,7 +306,7 @@
               writeLines, writeText
           * Hash: createHash, createMd5
           * Localhost: mapActionResult, mapFile, mapSymbol, mapText
-          * Logic: getSymbol, getSymbolMetadata, getSymbolValue, eval,
+          * Logic: eval, getSymbol, getSymbolMetadata, getSymbolValue,
               invoke, updateSymbolValue
           * Message: formatText, getText
           * Path: createDirectory, getDirectoryListing, getPathInfo,
