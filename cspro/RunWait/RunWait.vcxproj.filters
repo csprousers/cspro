@@ -11,7 +11,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="runwait.cpp">
+    <ClCompile Include="RunWait.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

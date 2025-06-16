@@ -1,5 +1,5 @@
 ﻿//---------------------------------------------------------------------------
-//  File name: runwait.cpp
+//  File name: RunWait.cpp
 //
 //  Description:
 //          This utiliy is intended to wait a windows program.

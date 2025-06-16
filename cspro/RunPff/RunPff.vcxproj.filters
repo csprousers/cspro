@@ -15,7 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="runpff.cpp">
+    <ClCompile Include="RunPff.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="StdAfx.cpp">
@@ -26,7 +26,7 @@
     <ClInclude Include="resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="runpff.h">
+    <ClInclude Include="RunPff.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="StdAfx.h">
@@ -34,12 +34,12 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="res\runpff.ico">
+    <None Include="res\RunPff.ico">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="runpff.rc">
+    <ResourceCompile Include="RunPff.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
   </ItemGroup>

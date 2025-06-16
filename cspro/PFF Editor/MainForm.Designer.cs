@@ -109,7 +109,7 @@
             this.textBoxObjectName = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
             this.checkBoxOptionsAsParameters = new System.Windows.Forms.CheckBox();
-            this.checkBoxRunPFF = new System.Windows.Forms.CheckBox();
+            this.checkBoxRunPff = new System.Windows.Forms.CheckBox();
             this.buttonCopyLogic = new System.Windows.Forms.Button();
             this.menuViewHelpView = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
@@ -738,7 +738,7 @@
             this.tabPageLogic.Controls.Add(this.textBoxObjectName);
             this.tabPageLogic.Controls.Add(this.label1);
             this.tabPageLogic.Controls.Add(this.checkBoxOptionsAsParameters);
-            this.tabPageLogic.Controls.Add(this.checkBoxRunPFF);
+            this.tabPageLogic.Controls.Add(this.checkBoxRunPff);
             this.tabPageLogic.Controls.Add(this.buttonCopyLogic);
             this.tabPageLogic.Location = new System.Drawing.Point(4, 22);
             this.tabPageLogic.Name = "tabPageLogic";
@@ -811,18 +811,18 @@
             this.checkBoxOptionsAsParameters.UseVisualStyleBackColor = true;
             this.checkBoxOptionsAsParameters.CheckedChanged += new System.EventHandler(this.logicContentsParameterChanged);
             // 
-            // checkBoxRunPFF
+            // checkBoxRunPff
             // 
-            this.checkBoxRunPFF.AutoSize = true;
-            this.checkBoxRunPFF.Checked = true;
-            this.checkBoxRunPFF.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.checkBoxRunPFF.Location = new System.Drawing.Point(332, 10);
-            this.checkBoxRunPFF.Name = "checkBoxRunPFF";
-            this.checkBoxRunPFF.Size = new System.Drawing.Size(135, 17);
-            this.checkBoxRunPFF.TabIndex = 2;
-            this.checkBoxRunPFF.Text = "Run PFF After Creation";
-            this.checkBoxRunPFF.UseVisualStyleBackColor = true;
-            this.checkBoxRunPFF.CheckedChanged += new System.EventHandler(this.logicContentsParameterChanged);
+            this.checkBoxRunPff.AutoSize = true;
+            this.checkBoxRunPff.Checked = true;
+            this.checkBoxRunPff.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.checkBoxRunPff.Location = new System.Drawing.Point(332, 10);
+            this.checkBoxRunPff.Name = "checkBoxRunPFF";
+            this.checkBoxRunPff.Size = new System.Drawing.Size(135, 17);
+            this.checkBoxRunPff.TabIndex = 2;
+            this.checkBoxRunPff.Text = "Run PFF After Creation";
+            this.checkBoxRunPff.UseVisualStyleBackColor = true;
+            this.checkBoxRunPff.CheckedChanged += new System.EventHandler(this.logicContentsParameterChanged);
             // 
             // buttonCopyLogic
             // 
@@ -895,7 +895,7 @@
         private System.Windows.Forms.TextBox textBoxObjectName;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.CheckBox checkBoxOptionsAsParameters;
-        private System.Windows.Forms.CheckBox checkBoxRunPFF;
+        private System.Windows.Forms.CheckBox checkBoxRunPff;
         private System.Windows.Forms.ToolStripMenuItem menuOptions;
         private System.Windows.Forms.ToolStripMenuItem menuAbsolutePaths;
         private System.Windows.Forms.ToolStripMenuItem menuRelativePaths;

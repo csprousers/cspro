@@ -1509,7 +1509,7 @@ void PFF::AdjustAttributesFromOldFiles()
 }
 
 
-std::optional<std::string> PFF::GetExecutableProgram() const // 20111012 for execpff and runpff
+std::optional<std::string> PFF::GetExecutableProgram() const // 20111012 for execpff and RunPff
 {
 #ifdef WIN_DESKTOP
     CSProExecutables::Program program;

@@ -1,5 +1,5 @@
 ﻿#include "StdAfx.h"
-#include "runpff.h"
+#include "RunPff.h"
 #include <zToolsO/Utf8.h>
 #include <zUtilO/FileDlg.h>
 #include <zUtilO/Interapp.h>

@@ -1,6 +1,6 @@
 //{{NO_DEPENDENCIES}}
 // Microsoft Visual C++ generated include file.
-// Used by runpff.rc
+// Used by RunPff.rc
 //
 #define IDR_MAINFRAME                   101
 
