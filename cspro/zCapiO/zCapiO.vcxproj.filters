@@ -39,6 +39,9 @@
     <ClCompile Include="CapiText.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="CapiTextConverter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="ExtendedControl.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -119,6 +122,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="CapiText.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CapiTextConverter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ExtendedControl.h">

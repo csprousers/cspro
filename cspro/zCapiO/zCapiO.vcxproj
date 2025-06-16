@@ -73,6 +73,7 @@
     <ClCompile Include="CapiQuestionYaml.cpp" />
     <ClCompile Include="CapiStyle.cpp" />
     <ClCompile Include="CapiText.cpp" />
+    <ClCompile Include="CapiTextConverter.cpp" />
     <ClCompile Include="ExtendedControl.cpp" />
     <ClCompile Include="Pre76CapiQuestionFile.cpp" />
     <ClCompile Include="Pre76CapiQuestionManager.cpp" />
@@ -109,6 +110,7 @@
     <ClInclude Include="CapiQuestionYaml.h" />
     <ClInclude Include="CapiStyle.h" />
     <ClInclude Include="CapiText.h" />
+    <ClInclude Include="CapiTextConverter.h" />
     <ClInclude Include="ExtendedControl.h" />
     <ClInclude Include="Pre76CapiQuestionFile.h" />
     <ClInclude Include="QSFView.h" />
@@ -121,6 +123,10 @@
     <ClInclude Include="zCapiO.h" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\zLogicO\zLogicO.vcxproj">
+      <Project>{bc0d77b3-18ef-4554-a94f-650af6f7c87c}</Project>
+      <Private>false</Private>
+    </ProjectReference>
     <ProjectReference Include="..\zMarkdown\zMarkdown.vcxproj">
       <Project>{4c225ee5-cea1-4516-bfa4-4bb49940af51}</Project>
       <Private>false</Private>

@@ -49,9 +49,6 @@ private:
     // Instantiates the tokenizer and tokenizes the text template.
     static void TokenizeTemplate(ConstructionData& data, std::string_view text_template_sv);
 
-    static constexpr std::tuple<const char*, const char*> GetDelimiters(TextTemplateToken::Type type);
-    static constexpr std::tuple<const char*, const char*> GetEscapedDelimiters(TextTemplateToken::Type type);
-
     static void AppendColorizedLogic(std::string& html, TextTemplateToken::Type type, const std::string& colorized_tag_html);
 
     static std::string ProcessHtml(ConstructionData& data);
@@ -59,9 +56,6 @@ private:
     std::string ProcessMarkdown(ConstructionData& data) const;
     static std::string ProcessMarkdownWithNoHtmlTags(ConstructionData& data);
     static std::string ProcessMarkdownWithHtmlTagSupport(ConstructionData& data);
-
-    template<typename T>
-    static bool DirectTextContains(ConstructionData& data, const T& text);
 
 private:
     std::optional<std::string> m_textTemplateFilePath;

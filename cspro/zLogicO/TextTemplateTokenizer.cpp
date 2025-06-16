@@ -2,6 +2,7 @@
 #include "TextTemplateTokenizer.h"
 #include "BaseCompiler.h"
 #include "LogicScanner.h"
+#include <zToolsO/Encoders.h>
 
 
 // --------------------------------------------------------------------------
@@ -146,6 +147,93 @@ bool TextTemplateTokenizer::IsOnlyDirectTextUsed() const
     ASSERT(!m_tokens.empty() && m_tokens.front().type == TextTemplateToken::Type::DirectText);
 
     return ( m_tokens.size() == 1 );
+}
+
+
+template<typename T>
+bool TextTemplateTokenizer::DirectTextContainsWorker(const T& text) const
+{
+    for( const TextTemplateToken& token : m_tokens )
+    {
+        if( token.type == TextTemplateToken::Type::DirectText &&
+            token.text.find(text) != std::string::npos )
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+
+std::string TextTemplateTokenizer::ConvertDirectText(const std::function<void(std::string& direct_text)>& conversion_function) const
+{
+    // if no fills or logic are used, we can convert the text and get out
+    if( IsOnlyDirectTextUsed() )
+    {
+        std::string direct_text = m_tokens.front().text;
+        conversion_function(direct_text);
+        return direct_text;
+    }
+
+    // otherwise find a text string that does not exist in the document
+    std::string replacement_text;
+
+    for( int i = 0; ; ++i )
+    {
+        replacement_text = "cs" + IntToString(i);
+
+        if( !DirectTextContains(replacement_text) )
+            break;
+    }
+
+    ASSERT(replacement_text == Encoders::ToHtml(replacement_text) &&
+           replacement_text == Encoders::ToMarkdown(replacement_text));
+
+    // build the document with all fills and logic replaced with the replacement text
+    std::string direct_text;
+    std::vector<std::tuple<TextTemplateToken::Type, std::string>> replaced_fills_and_logic;
+
+    for( const TextTemplateToken& token : m_tokens )
+    {
+        if( token.type == TextTemplateToken::Type::DirectText )
+        {
+            direct_text.append(token.text);
+        }
+
+        else
+        {
+            direct_text.append(replacement_text);
+            replaced_fills_and_logic.emplace_back(token.type, token.text);
+        }
+    }
+
+    // convert this document
+    conversion_function(direct_text);
+
+    // restore the fills and logic
+    auto replaced_fills_and_logic_itr = replaced_fills_and_logic.cbegin();
+    auto replaced_fills_and_logic_end = replaced_fills_and_logic.cend();
+    size_t replacement_text_pos = 0;
+
+    while( ( replaced_fills_and_logic_itr != replaced_fills_and_logic_end ) &&
+           ( ( replacement_text_pos = direct_text.find(replacement_text, replacement_text_pos) ) != std::string::npos ) )
+    {
+        const auto& [type, text] = *replaced_fills_and_logic_itr;
+
+        const std::tuple<const char*, const char*> delimiters = TextTemplateToken::GetDelimiters(type);
+        const std::string fill_or_logic = std::get<0>(delimiters) + text + std::get<1>(delimiters);
+
+        direct_text.replace(replacement_text_pos, replacement_text.length(), fill_or_logic);
+
+        ++replaced_fills_and_logic_itr;
+        replacement_text_pos += fill_or_logic.length();
+    }
+
+    ASSERT(replaced_fills_and_logic_itr == replaced_fills_and_logic_end);
+    ASSERT(direct_text.find(replacement_text, replacement_text_pos) == std::string::npos);
+
+    return direct_text;
 }
 
 

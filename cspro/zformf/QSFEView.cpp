@@ -7,6 +7,7 @@
 #include <zUtilF/ImageFileDialog.h>
 #include <zHtml/InsertLinkDlg.h>
 #include <zCapiO/CapiQuestionManager.h>
+#include <zCapiO/CapiTextConverter.h>
 
 
 namespace
@@ -169,12 +170,7 @@ void CQSFEView::OnUpdate(CView* const pSender, const LPARAM lHint, CObject* /*pH
         SetStyles(GetFormDoc()->GetCapiQuestionManager()->GetStyles());
 
     if( lHint == Hint::CapiEditorUpdateQuestion || lHint == Hint::CapiEditorUpdateQuestionStyles )
-    {
-        m_lastCheckedFillsAndLogic.clear();
-        m_currentEditor->ClearCompilationResults();
-
         UpdateDisplayText();
-    }
 }
 
 
@@ -448,6 +444,10 @@ void CQSFEView::UpdateDisplayText()
     }
 
     UpdateToolbar();
+
+    // clear any compilation results from the previously displayed text
+    m_lastCheckedFillsAndLogic.clear();
+    m_currentEditor->ClearCompilationResults();
 }
 
 
@@ -896,18 +896,61 @@ void CQSFEView::OnChangeEditorType(const UINT nID)
     const bool use_html_code_view = ( nID == ID_QSF_EDITOR_EDIT_HTML_VISUAL_CODE );
     const bool use_html_editor = ( use_html_code_view || nID == ID_QSF_EDITOR_EDIT_HTML_VISUAL );
 
-    // handle the easy case of toggling the HTML editor's code view
-    if( use_html_editor && m_currentEditor == &m_htmlEditor )
+    auto ensure_correct_html_editor_showing = [&]()
     {
+        ASSERT(use_html_editor);
+
         HtmlEditorCtrl& html_editor_ctrl = m_htmlEditor.GetHtmlEditorCtrl();
 
         if( use_html_code_view != html_editor_ctrl.GetCodeViewShowing() )
             html_editor_ctrl.ToggleCodeView();
+    };
 
-        return;
+    // handle the easy case of toggling the HTML editor's code view
+    if( use_html_editor && m_currentEditor == &m_htmlEditor )
+    {
+        ensure_correct_html_editor_showing();
     }
 
-    // MARKDOWN_TODO
+    // handle other cases
+    else
+    {
+        CFormDoc* const form_doc = GetFormDoc();
+        CapiEditorViewModel& view_model = form_doc->GetCapiEditorViewModel();
+
+        const CapiText::Format output_format =
+            ( nID == ID_QSF_EDITOR_EDIT_TEXT_HTML)     ? CapiText::Format::ReportHtml :
+            ( nID == ID_QSF_EDITOR_EDIT_TEXT_MARKDOWN) ? CapiText::Format::ReportMarkdown :
+                                                         CapiText::Format::Html;
+
+        ASSERT(use_html_editor || output_format != CapiText::Format::Html);
+
+        if( output_format == m_currentCapiText.GetFormat() )
+            return;
+
+        try
+        {
+            ASSERT(m_application != nullptr);
+            CapiTextConverter converter(m_application->GetLogicSettings(), m_currentCapiText, output_format);
+
+            if( AfxMessageBox(converter.GetConfirmationMessage(), MB_YESNOCANCEL | MB_ICONEXCLAMATION) != IDYES )
+                return;
+
+            view_model.SetText(m_languageIndex, m_textTypeEditing, converter.Convert());
+
+            UpdateDisplayText();
+
+            if( use_html_editor )
+                ensure_correct_html_editor_showing();
+        }
+
+        catch( const CSProException& exception )
+        {
+            ErrorMessage::Display(exception);
+        }
+    }
+
+    m_currentEditor->GetWnd().SetFocus();
 }
 
 

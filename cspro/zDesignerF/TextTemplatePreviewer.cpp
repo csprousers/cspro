@@ -89,23 +89,6 @@ void TextTemplatePreviewer::TokenizeTemplate(ConstructionData& data, const std::
 }
 
 
-constexpr std::tuple<const char*, const char*> TextTemplatePreviewer::GetDelimiters(const TextTemplateToken::Type type)
-{
-    return ( type == TextTemplateToken::Type::DoubleTilde ) ? std::make_tuple("~~", "~~") :
-           ( type == TextTemplateToken::Type::TripleTilde ) ? std::make_tuple("~~~", "~~~") :
-         /*( type == TextTemplateToken::Type::Logic ) */      std::make_tuple("<?", "?>");
-}
-
-
-constexpr std::tuple<const char*, const char*> TextTemplatePreviewer::GetEscapedDelimiters(const TextTemplateToken::Type type)
-{
-    // the tilde delimiters are returned as HTML entities so that we do not have to worry about escaping ~ for Markdown
-    return ( type == TextTemplateToken::Type::DoubleTilde ) ? std::make_tuple("&#126;&#126;", "&#126;&#126;") :
-           ( type == TextTemplateToken::Type::TripleTilde ) ? std::make_tuple("&#126;&#126;&#126;", "&#126;&#126;&#126;") :
-         /*( type == TextTemplateToken::Type::Logic ) */      std::make_tuple("&lt;?", "?&gt;");
-}
-
-
 void TextTemplatePreviewer::AppendColorizedLogic(std::string& html, const TextTemplateToken::Type type, const std::string& colorized_tag_html)
 {
     if constexpr(HighlightLogicAndShowDelimitersInOutput)
@@ -114,7 +97,7 @@ void TextTemplatePreviewer::AppendColorizedLogic(std::string& html, const TextTe
         constexpr const char* SpanStart = "<span style=\"font-family: Consolas, monaco, monospace; "
                                                         "background-color: #e7f6f660\">";
 
-        const std::tuple<const char*, const char*> delimiters = GetEscapedDelimiters(type);
+        const std::tuple<const char*, const char*> delimiters = TextTemplateToken::GetEscapedDelimiters(type);
 
         html.append(SpanStart)
             .append(std::get<0>(delimiters))
@@ -275,7 +258,7 @@ std::string TextTemplatePreviewer::ProcessMarkdown(ConstructionData& data) const
         // when the Markdown contains tags, it will be converted to HTML
         // and passed to ProcessHtml so that rules like not writing out logic
         // in a head or script block are followed
-        if( DirectTextContains(data, '<') )
+        if( data.text_template_tokenizer->DirectTextContains('<') )
         {
             result = ProcessMarkdownWithHtmlTagSupport(data);
             result_is_already_html = true;
@@ -386,83 +369,17 @@ std::string TextTemplatePreviewer::ProcessMarkdownWithHtmlTagSupport(Constructio
 {
     ASSERT(!data.text_template_tokenizer->IsOnlyDirectTextUsed());
 
-    // create a text string that does not exist in the document
-    std::string replacement_text;
-
-    for( int i = 0; ; ++i )
-    {
-        replacement_text = "cs" + IntToString(i);
-
-        if( !DirectTextContains(data, replacement_text) )
-            break;
-    }
-
-    ASSERT(replacement_text == Encoders::ToHtml(replacement_text) &&
-           replacement_text == Encoders::ToMarkdown(replacement_text));
-
     // build Markdown with all fills and logic replaced with the replacement text
-    std::string markdown;
-    std::vector<std::tuple<TextTemplateToken::Type, std::string>> replaced_fills_and_logic;
-
-    for( const TextTemplateToken& token : data.text_template_tokenizer->GetTokens() )
-    {
-        if( token.type == TextTemplateToken::Type::DirectText )
+    std::string html = data.text_template_tokenizer->ConvertDirectText(
+        [&](std::string& direct_text)
         {
-            markdown.append(token.text);
-        }
-
-        else
-        {
-            markdown.append(replacement_text);
-            replaced_fills_and_logic.emplace_back(token.type, token.text);
-        }
-    }
-
-    // convert this Markdown to HTML
-    std::string html = Markdown::ToHtml(markdown);
-
-    // restore the fills and logic
-    auto replaced_fills_and_logic_itr = replaced_fills_and_logic.cbegin();
-    auto replaced_fills_and_logic_end = replaced_fills_and_logic.cend();
-    size_t replacement_text_pos = 0;
-
-    while( ( replaced_fills_and_logic_itr != replaced_fills_and_logic_end ) &&
-           ( ( replacement_text_pos = html.find(replacement_text, replacement_text_pos) ) != std::string::npos ) )
-    {
-        const auto& [type, text] = *replaced_fills_and_logic_itr;
-
-        const std::tuple<const char*, const char*> delimiters = GetDelimiters(type);
-        const std::string fill_or_logic = std::get<0>(delimiters) + text + std::get<1>(delimiters);
-
-        html.replace(replacement_text_pos, replacement_text.length(), fill_or_logic);
-
-        ++replaced_fills_and_logic_itr;
-        replacement_text_pos += fill_or_logic.length();
-    }
-
-    ASSERT(replaced_fills_and_logic_itr == replaced_fills_and_logic_end);
-    ASSERT(html.find(replacement_text, replacement_text_pos) == std::string::npos);
+            direct_text = Markdown::ToHtml(direct_text);
+        });
 
     // now tokenize and process this constructed HTML
     TokenizeTemplate(data, html);
 
     return ProcessHtml(data);
-}
-
-
-template<typename T>
-bool TextTemplatePreviewer::DirectTextContains(ConstructionData& data, const T& text)
-{
-    for( const TextTemplateToken& token : data.text_template_tokenizer->GetTokens() )
-    {
-        if( token.type == TextTemplateToken::Type::DirectText &&
-            token.text.find(text) != std::string::npos )
-        {
-            return true;
-        }
-    }
-
-    return false;
 }
 
 
