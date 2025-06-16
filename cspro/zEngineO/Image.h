@@ -3,6 +3,7 @@
 #include <zEngineO/zEngineO.h>
 #include <zEngineO/BinarySymbol.h>
 
+class ExifReader;
 class LogicDocument;
 struct ViewerOptions;
 namespace Multimedia { class Image; struct ImageDetails; }
@@ -29,6 +30,9 @@ public:
     int GetWidth() const;
     int GetHeight() const;
 
+    // Throws an exception if the ExifReader cannot be created (which should not happen).
+    const ExifReader& GetExifReader();
+
     void Resample(int width, int height);
 
     void Load(std::string file_path, bool file_path_is_temporary = false);
@@ -54,6 +58,9 @@ public:
     bool HasValidContent() const override;
 
 private:
+    bool IsImageSet() const;
+    void SetImage(std::unique_ptr<const Multimedia::Image> image);
+
     const Multimedia::Image& GetParsedImage();
 
     BinaryData::ContentCallbackType CreateBinaryDataContentFromImageCallback() const;
@@ -62,5 +69,6 @@ private:
     static std::unique_ptr<BinarySymbolDataContentValidator> CreateContentValidator();
 
 private:
-    std::shared_ptr<const Multimedia::Image> m_image;
+    struct RuntimeData;
+    std::shared_ptr<RuntimeData> m_runtimeData;
 };

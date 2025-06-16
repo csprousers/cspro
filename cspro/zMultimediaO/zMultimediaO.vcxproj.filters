@@ -12,9 +12,15 @@
     <Filter Include="qrcodegen">
       <UniqueIdentifier>{ef734f98-59e1-4a30-a0f0-aacd48e4abfe}</UniqueIdentifier>
     </Filter>
+    <Filter Include="libexif">
+      <UniqueIdentifier>{619a0465-4fd3-4470-a1a6-b352a777956b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BmpFile.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ExifReader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Icon.h">
@@ -43,10 +49,88 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\external\libexif\canon\exif-mnote-data-canon.c">
+      <Filter>libexif</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\libexif\canon\mnote-canon-entry.c">
+      <Filter>libexif</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\libexif\canon\mnote-canon-tag.c">
+      <Filter>libexif</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\libexif\exif-byte-order.c">
+      <Filter>libexif</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\libexif\exif-content.c">
+      <Filter>libexif</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\libexif\exif-data.c">
+      <Filter>libexif</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\libexif\exif-entry.c">
+      <Filter>libexif</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\libexif\exif-format.c">
+      <Filter>libexif</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\libexif\exif-gps-ifd.c">
+      <Filter>libexif</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\libexif\exif-ifd.c">
+      <Filter>libexif</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\libexif\exif-loader.c">
+      <Filter>libexif</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\libexif\exif-log.c">
+      <Filter>libexif</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\libexif\exif-mem.c">
+      <Filter>libexif</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\libexif\exif-mnote-data.c">
+      <Filter>libexif</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\libexif\exif-tag.c">
+      <Filter>libexif</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\libexif\exif-utils.c">
+      <Filter>libexif</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\libexif\fuji\exif-mnote-data-fuji.c">
+      <Filter>libexif</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\libexif\fuji\mnote-fuji-entry.c">
+      <Filter>libexif</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\libexif\fuji\mnote-fuji-tag.c">
+      <Filter>libexif</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\libexif\olympus\exif-mnote-data-olympus.c">
+      <Filter>libexif</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\libexif\olympus\mnote-olympus-entry.c">
+      <Filter>libexif</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\libexif\olympus\mnote-olympus-tag.c">
+      <Filter>libexif</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\libexif\pentax\exif-mnote-data-pentax.c">
+      <Filter>libexif</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\libexif\pentax\mnote-pentax-entry.c">
+      <Filter>libexif</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\libexif\pentax\mnote-pentax-tag.c">
+      <Filter>libexif</Filter>
+    </ClCompile>
     <ClCompile Include="..\external\qrcodegen\qrcodegen.cpp">
       <Filter>qrcodegen</Filter>
     </ClCompile>
     <ClCompile Include="BmpFile.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ExifReader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Icon.cpp">

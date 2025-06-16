@@ -2623,6 +2623,16 @@ namespace
             0,
         },
         {
+            "getExif",
+            "image_name.getExif(tag_name | hashmap)",
+            "Image_getExif_function.html",
+            FunctionCode::IMAGEFN_GETEXIF_CODE,
+            SymbolType::Image,
+            DataType::String,
+            FunctionCompilationType::Image,
+            3,
+        },
+        {
             "height",
             "image_name.height()",
             "Image_height_function.html",

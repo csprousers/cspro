@@ -129,6 +129,9 @@
     <ClInclude Include="GlobalSettingsDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="HelpTasks.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="HtmlOutputWnd.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -288,6 +291,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="GlobalSettingsDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="HelpTasks.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="HtmlOutputWnd.cpp">

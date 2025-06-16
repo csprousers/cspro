@@ -2,8 +2,21 @@
 #include "Image.h"
 #include "Document.h"
 #include <zUtilF/ImageViewDlg.h>
+#include <zMultimediaO/ExifReader.h>
 #include <zMultimediaO/Icon.h>
 #include <zMultimediaO/Image.h>
+
+
+// --------------------------------------------------------------------------
+// LogicImage::RuntimeData
+// --------------------------------------------------------------------------
+
+struct LogicImage::RuntimeData
+{
+    std::shared_ptr<const Multimedia::Image> image;
+    std::unique_ptr<ExifReader> exif_reader;
+};
+
 
 
 // --------------------------------------------------------------------------
@@ -40,7 +53,7 @@ LogicImage& LogicImage::operator=(const LogicImage& logic_image)
     if( this != &logic_image )
     {
         m_binarySymbolData = logic_image.m_binarySymbolData;
-        m_image = logic_image.m_image;
+        m_runtimeData = logic_image.m_runtimeData;
     }
 
     return *this;
@@ -60,7 +73,7 @@ LogicImage& LogicImage::operator=(const LogicDocument& logic_document)
     }
 
     m_binarySymbolData = document_binary_symbol_data;
-    m_image.reset();
+    m_runtimeData.reset();
 
     return *this;
 }
@@ -69,7 +82,7 @@ LogicImage& LogicImage::operator=(const LogicDocument& logic_document)
 LogicImage& LogicImage::operator=(const BinarySymbolData& binary_symbol_data)
 {
     m_binarySymbolData = binary_symbol_data;
-    m_image.reset();
+    m_runtimeData.reset();
 
     return *this;
 }
@@ -78,7 +91,21 @@ LogicImage& LogicImage::operator=(const BinarySymbolData& binary_symbol_data)
 void LogicImage::Reset()
 {
     BinarySymbol::Reset();
-    m_image.reset();
+    m_runtimeData.reset();
+}
+
+
+inline bool LogicImage::IsImageSet() const
+{
+    return ( m_runtimeData != nullptr && m_runtimeData->image != nullptr );
+}
+
+
+void LogicImage::SetImage(std::unique_ptr<const Multimedia::Image> image)
+{
+    ASSERT(image != nullptr);
+
+    m_runtimeData.reset(new RuntimeData { std::move(image)});
 }
 
 
@@ -86,19 +113,19 @@ const Multimedia::Image& LogicImage::GetParsedImage()
 {
     ASSERT(HasContent());
 
-    if( m_image == nullptr )
-        m_image = Multimedia::Image::FromBuffer(m_binarySymbolData.GetContent());
+    if( !IsImageSet() )
+        SetImage(Multimedia::Image::FromBuffer(m_binarySymbolData.GetContent()));
 
-    return *m_image;
+    return *m_runtimeData->image;
 }
 
 
 BinaryData::ContentCallbackType LogicImage::CreateBinaryDataContentFromImageCallback() const
 {
-    ASSERT(m_image != nullptr);
+    ASSERT(IsImageSet());
 
     return
-        [image = m_image]() -> std::shared_ptr<const std::vector<std::byte>>
+        [image = m_runtimeData->image]() -> std::shared_ptr<const std::vector<std::byte>>
         {
             ASSERT(image != nullptr);
 
@@ -120,7 +147,7 @@ bool LogicImage::HasValidImage(const bool parse_image_if_necessary) const noexce
 {
     ASSERT(HasContent());
 
-    if( m_image == nullptr )
+    if( !IsImageSet() )
     {
         if( !parse_image_if_necessary )
             return false;
@@ -151,7 +178,7 @@ int LogicImage::GetWidth() const
 {
     ASSERT(HasValidImage(false));
 
-    return m_image->GetDetails().width;
+    return m_runtimeData->image->GetDetails().width;
 }
 
 
@@ -159,7 +186,24 @@ int LogicImage::GetHeight() const
 {
     ASSERT(HasValidImage(false));
 
-    return m_image->GetDetails().height;
+    return m_runtimeData->image->GetDetails().height;
+}
+
+
+const ExifReader& LogicImage::GetExifReader()
+{
+    ASSERT(HasContent());
+
+    if( m_runtimeData == nullptr )
+        m_runtimeData = std::make_unique<RuntimeData>();
+
+    if( m_runtimeData->exif_reader == nullptr )
+    {
+        const std::vector<std::byte>& content = m_binarySymbolData.GetContent();
+        m_runtimeData->exif_reader = std::make_unique<ExifReader>(content.data(), content.size());
+    }
+
+    return *m_runtimeData->exif_reader;
 }
 
 
@@ -168,7 +212,7 @@ void LogicImage::Resample(const int width, const int height)
     ASSERT(HasValidImage(false));
     ASSERT(width > 0 && height > 0);
 
-    m_image = m_image->GetResizedImage(width, height);
+    SetImage(m_runtimeData->image->GetResizedImage(width, height));
 
     // if saved, the content must be modified
     m_binarySymbolData.SetBinaryData(CreateBinaryDataContentFromImageCallback());
@@ -196,7 +240,7 @@ void LogicImage::Load(std::string file_path, bool file_path_is_temporary/* = fal
         content = FileIO::Read(file_path);
     }
 
-    m_image = Multimedia::Image::FromBuffer(*content);
+    SetImage(Multimedia::Image::FromBuffer(*content));
 
     if( file_path_is_temporary )
     {
@@ -217,7 +261,7 @@ void LogicImage::Load(std::unique_ptr<const Multimedia::Image> image, std::strin
 {
     ASSERT(image != nullptr);
 
-    m_image = std::move(image);
+    SetImage(std::move(image));
 
     // if saved, the content must be modified
     m_binarySymbolData.SetBinaryData(CreateBinaryDataContentFromImageCallback(), std::move(path_or_filename));
@@ -246,7 +290,7 @@ void LogicImage::LoadFromDataUrl(const std::string_view data_url_sv, BinaryDataM
 
     m_binarySymbolData.SetSymbolValueFromDataUrl(*this, data_url_sv, std::move(binary_data_metadata), logic_image_content_validator.get());
 
-    m_image.reset();
+    m_runtimeData.reset();
 }
 
 
@@ -256,8 +300,8 @@ void LogicImage::Save(std::string file_path, const std::optional<int> jpeg_quali
     ASSERT(!jpeg_quality.has_value() || ( *jpeg_quality >= 0 && *jpeg_quality <= 100 ));
 
     // if the contents of the image are already in the format requested, we can save the content directly
-    if( m_image != nullptr && !jpeg_quality.has_value() &&
-        m_image->GetDetails().image_type == MimeType::GetSupportedImageTypeFromFileExtension(PortableFunctions::PathGetFileExtension(file_path)) )
+    if( IsImageSet() && !jpeg_quality.has_value() &&
+        m_runtimeData->image->GetDetails().image_type == MimeType::GetSupportedImageTypeFromFileExtension(PortableFunctions::PathGetFileExtension(file_path)) )
     {
         FileIO::Write(file_path, m_binarySymbolData.GetContent());
     }
@@ -277,7 +321,7 @@ void LogicImage::View(const ViewerOptions* const viewer_options) const
     ASSERT(HasContent());
 
     View(m_binarySymbolData.GetContent(),
-         ( m_image != nullptr ) ? std::make_optional<Multimedia::ImageDetails>(m_image->GetDetails()) : std::nullopt,
+         IsImageSet() ? std::make_optional<Multimedia::ImageDetails>(m_runtimeData->image->GetDetails()) : std::nullopt,
          m_binarySymbolData.CreateFilenameBasedOnMimeType(*this),
          viewer_options);
 }
@@ -317,5 +361,5 @@ void LogicImage::SetValueFromJson(const JsonNode& json_node)
 
     m_binarySymbolData.SetSymbolValueFromJson(*this, json_node, logic_image_content_validator.get());
 
-    m_image.reset();
+    m_runtimeData.reset();
 }

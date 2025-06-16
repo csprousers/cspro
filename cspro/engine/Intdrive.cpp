@@ -835,7 +835,8 @@ CIntDriver::pDoubleFunction CIntDriver::m_pExFuncs[] =
 /* 466 */   &CIntDriver::ex_TextTemplate_write_writeEncoded_writeEncodedLine_writeLine, // Report/StringWriter.writeEncodedLine
 /* 467 */   &CIntDriver::ex_TextTemplate_write_writeEncoded_writeEncodedLine_writeLine, // Report/StringWriter.writeLine
 /* 468 */   &CIntDriver::ex_StringWriter_toString,
-/* 469 */   &CIntDriver::ex_StringWriter_clear,
+/* 469 */   &CIntDriver::ex_Image_getExif,
+/* 470 */   &CIntDriver::ex_StringWriter_clear,
 
 
             // placeholders to allow new logic functions to be added to an existing serialization

@@ -1,12 +1,14 @@
 ﻿#include "stdafx.h"
 #include "IncludesRT.h"
 #include "Document.h"
+#include "HashMap.h"
 #include "Image.h"
 #include "ValueSet.h"
 #include <zHtml/VirtualFileMapping.h>
 #include <zUtilF/ImageCaptureDlg.h>
 #include <zEngineF/EngineUI.h>
 #include <zDictO/ValueProcessor.h>
+#include <zMultimediaO/ExifReader.h>
 
 
 namespace ImageRT
@@ -109,6 +111,79 @@ double LogicInterpreter::ex_Image_clear(const int program_index)
     logic_image->Reset();
 
     return 1;
+}
+
+
+double LogicInterpreter::ex_Image_getExif(const int program_index)
+{
+    const auto& symbol_va_with_subscript_node = GetOrConvertPre80SymbolVariableArgumentsWithSubscriptNode(program_index);
+    LogicImage* const logic_image = GetFromSymbolOrEngineItem<LogicImage*>(symbol_va_with_subscript_node.symbol_index, symbol_va_with_subscript_node.subscript_compilation);
+
+    if( logic_image == nullptr || !ImageRT::EnsureImageExists(*this, *logic_image, "get EXIF data") )
+    {
+        // clear the HashMap on error
+        if( symbol_va_with_subscript_node.arguments[0] == static_cast<int>(SymbolType::HashMap) )
+        {
+            LogicHashMap& hashmap = GetSymbolLogicHashMap(symbol_va_with_subscript_node.arguments[1]);
+            hashmap.Reset();
+        }
+
+        return AssignStringNull();
+    }
+
+    try
+    {
+        const ExifReader& exif_reader = logic_image->GetExifReader();
+
+        // by default, values are returned in their raw form
+        const ExifReader::ValueType value_type =
+            EvaluateOptionalConditional(symbol_va_with_subscript_node.arguments[2], false) ? ExifReader::ValueType::ForDisplay :
+                                                                                             ExifReader::ValueType::Raw;
+
+        // a single value can be queried...
+        if( symbol_va_with_subscript_node.arguments[0] == static_cast<int>(SymbolType::WorkString) )
+        {
+            const SharableString name = EvaluateSharableString(symbol_va_with_subscript_node.arguments[1]);
+
+            try
+            {
+                return AssignString(exif_reader.GetValueFromName(value_type, *name));
+            }
+
+            catch( const CSProException& exception )
+            {
+                IssueMessage(MessageType::Error, MGF::Image_invalid_exif_tag_name_100328,
+                                                 name->c_str(), exception.what());
+                return AssignStringNull();
+            }
+        }
+
+        // ... or all values can be stored in a HashMap
+        else
+        {
+            ASSERT(symbol_va_with_subscript_node.arguments[0] == static_cast<int>(SymbolType::HashMap));
+
+            LogicHashMap& hashmap = GetSymbolLogicHashMap(symbol_va_with_subscript_node.arguments[1]);
+            ASSERT(hashmap.IsValueTypeString() &&
+                   hashmap.GetNumberDimensions() == 1 &&
+                   hashmap.DimensionTypeHandles(0, DataType::String));
+
+            hashmap.Reset();
+
+            exif_reader.ForeachEntry(value_type,
+                [&](const char* const name, std::string value)
+                {
+                    hashmap.SetValue({ name }, std::move(value));
+                });
+
+            return AssignStringNull();
+        }
+    }
+
+    catch(...)
+    {
+        return ReturnProgrammingError(AssignStringNull());
+    }
 }
 
 

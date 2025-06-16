@@ -204,6 +204,7 @@ namespace MGF
     constexpr int Image_invalid_assignment_47241                            =  47241;
     constexpr int Image_load_invalid_argument_47242                         =  47242;
     constexpr int Image_resample_invalid_arguments_47243                    =  47243;
+    constexpr int Image_getExif_invalid_HashMap_47244                       =  47244;
 
     constexpr int dictionary_expected_47301                                 =  47301;
     constexpr int dictionary_expected_not_Case_or_DataSource_name_47302     =  47302;
@@ -341,6 +342,7 @@ namespace MGF
     constexpr int Image_signature_error_100325                              = 100325;
     constexpr int Image_photo_error_100326                                  = 100326;
     constexpr int Image_assignment_error_100327                             = 100327;
+    constexpr int Image_invalid_exif_tag_name_100328                        = 100328;
 
     constexpr int Document_no_document_for_action_100340                    = 100340;
     constexpr int Document_load_error_100341                                = 100341;
