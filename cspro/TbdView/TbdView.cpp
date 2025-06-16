@@ -1,4 +1,4 @@
-﻿// tbdview.cpp : Defines the entry point for the console application.
+﻿// TbdView.cpp : Defines the entry point for the console application.
 //
 
 #include "Stdafx.h"
@@ -37,7 +37,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* /*envp*/[])
     {
         if (argc != 2) {
             std::wcerr << _T("------------------------------\n");
-            std::wcerr << _T("Command use: tbdview <tbdfile>\n");
+            std::wcerr << _T("Command use: TbdView <tbdfile>\n");
             std::wcerr << _T("------------------------------\n");
             return 1;
         }

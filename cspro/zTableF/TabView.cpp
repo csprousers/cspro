@@ -12,7 +12,7 @@
 #include <zUtilO/BCMenu.h>
 #include <zDictF/UWM.h>
 #include <zTableO/TllyStat.h>
-#include <tblview/TblView.h>
+#include <TblView/TblView.h>
 #include <strstream>
 #include <sstream>
 #include <fstream>
@@ -5547,6 +5547,7 @@ void CTabView::OnUpdateEditPastetable(CCmdUI *pCmdUI)
     flgclip = flgclip ? flgclip: IsClipboardFormatAvailable(pDoc->GetClipBoardFormat(TD_TABLE_FORMAT));
     pCmdUI->Enable(flgclip);
 }
+
 void CTabView::ReconcileFmtsForPaste(CFmtReg& fmtRegFrmClip,CMap<CFmtBase*,CFmtBase*,CFmtBase*,CFmtBase*>& aMapOldFmts2NewFmts)
 {
     CTabulateDoc* pDoc = (CTabulateDoc*)GetDocument();
@@ -5567,6 +5568,7 @@ void CTabView::ReconcileFmtsForPaste(CFmtReg& fmtRegFrmClip,CMap<CFmtBase*,CFmtB
     //Add it to the current TabSet fmtReg
     //Add the old pointer and the new pointer to the map
 }
+
 void CTabView::FixFmtsForPasteTable(CTable* pTable,CMap<CFmtBase*,CFmtBase*,CFmtBase*,CFmtBase*>& aMapOldFmts2NewFmts)
 {
     //Loop through all the objects of the table(tabvalues, title, header ,footer) .. need to do recursive for TabVals in A*B case

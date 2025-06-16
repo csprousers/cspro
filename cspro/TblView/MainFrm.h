@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include <tblview/TVDlgBar.h>
+#include <TblView/TVDlgBar.h>
 #include <zUToolO/zUtoolO.h>
 #include <zUtilO/BCMenu.h>
 

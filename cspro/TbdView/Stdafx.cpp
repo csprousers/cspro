@@ -1,5 +1,5 @@
 ﻿// stdafx.cpp : source file that includes just the standard includes
-//  tbdview.pch will be the pre-compiled header
+//  TbdView.pch will be the pre-compiled header
 //  stdafx.obj will contain the pre-compiled type information
 
 #include "Stdafx.h"

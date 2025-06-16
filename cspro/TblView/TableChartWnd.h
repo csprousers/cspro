@@ -2,7 +2,7 @@
 
 #include <zTableF/TabChWnd.h>
 #include <zUtilF/SplitterWndWithDifferingViews.h>
-#include <tblview/ChartManager.h>
+#include <TblView/ChartManager.h>
 
 class HtmlViewerView;
 namespace ActionInvoker { class ListenerHolder; }

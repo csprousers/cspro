@@ -16,4 +16,4 @@
 #include <zTableF/TabChWnd.h>
 #include <zTableF/resource_shared.h>
 #include <zTableF/UWM.h>
-#include <tblview/resource.h>
+#include <TblView/resource.h>
