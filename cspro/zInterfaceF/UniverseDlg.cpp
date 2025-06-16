@@ -3,7 +3,7 @@
 #include "DictionaryTreeCtrl.h"
 #include <zToolsO/Encoders.h>
 #include <zToolsO/Special.h>
-#include <zEdit2O/LogicCtrl.h>
+#include <zEditO/LogicCtrl.h>
 #include <zDictO/ValueSetResponse.h>
 
 
@@ -181,7 +181,7 @@ void UniverseDlg::OnDictionaryTreeSelectionChanged(const DictionaryTreeNode& dic
                     std::string trimmed_value(SO::TrimRight(UTF8_TODO::GetUtf8(dict_value_pair.GetFrom())));
 
                     SO::AppendWithSeparator(values, trimmed_value, ',');
-                    
+
                     // wrap the string in quotes
                     const std::string escaped_label = Encoders::ToLogicString(std::move(trimmed_value));
                     SO::AppendWithSeparator(logic_for_values, escaped_label, ',');

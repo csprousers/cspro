@@ -12,7 +12,7 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{ADEF6FC1-00EE-4F3A-84DD-43EE2F108BB0}</ProjectGuid>
-    <RootNamespace>zEdit2O</RootNamespace>
+    <RootNamespace>zEditO</RootNamespace>
     <Keyword>MFCProj</Keyword>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -46,7 +46,7 @@
   <PropertyGroup Label="UserMacros" />
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <PreprocessorDefinitions>WIN_DESKTOP;WIN32;_DEBUG;_WINDOWS;_AFXEXT;ZEDIT2O_IMPL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN_DESKTOP;WIN32;_DEBUG;_WINDOWS;_AFXEXT;ZEDITO_IMPL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -55,7 +55,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <PreprocessorDefinitions>WIN_DESKTOP;WIN32;NDEBUG;_WINDOWS;_AFXEXT;ZEDIT2O_IMPL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN_DESKTOP;WIN32;NDEBUG;_WINDOWS;_AFXEXT;ZEDITO_IMPL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -80,7 +80,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="zEdit2O.cpp" />
+    <ClCompile Include="zEditO.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CSProScintillaCtrl.h" />
@@ -100,10 +100,10 @@
     <ClInclude Include="ScintillaDocView.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="UWM.h" />
-    <ClInclude Include="zEdit2O.h" />
+    <ClInclude Include="zEditO.h" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="zEdit2O.rc" />
+    <ResourceCompile Include="zEditO.rc" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\zLogicO\zLogicO.vcxproj">

@@ -16,6 +16,6 @@
 #include <zUtilO/WindowsWS.h>
 #include <zUtilF/DialogValidators.h>
 #include <zLogicO/StringEscaper.h>
-#include <zEdit2O/UWM.h>
+#include <zEditO/UWM.h>
 #include <zFormO/FormFile.h>
 #include <zFormO/Roster.h>

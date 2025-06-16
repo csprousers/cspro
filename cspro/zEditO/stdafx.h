@@ -6,6 +6,6 @@
 #include <zToolsO/Utf8.h>
 #include <zToolsO/WinClipboard.h>
 #include <zUtilO/Interapp.h>
-#include <zEdit2O/resource.h>
-#include <zEdit2O/UWM.h>
-#include <zEdit2O/LogicCtrl.h>
+#include <zEditO/resource.h>
+#include <zEditO/UWM.h>
+#include <zEditO/LogicCtrl.h>

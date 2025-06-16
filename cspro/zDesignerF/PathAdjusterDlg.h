@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 #include <zUtilF/EditControls.h>
-#include <zEdit2O/LogicCtrl.h>
+#include <zEditO/LogicCtrl.h>
 
 
 class PathAdjusterDlg : public CDialog

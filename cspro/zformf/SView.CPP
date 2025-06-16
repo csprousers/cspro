@@ -358,13 +358,13 @@ void CFSourceEditView::OnFormatLogic()
 
 void CFSourceEditView::OnPeekLogicWord()
 {
-    AfxGetMainWnd()->SendMessage(ZEDIT2O_LOGIC_REFERENCE, ZEDIT2O_LOGIC_REFERENCE, (LPARAM)GetEditCtrl());
+    AfxGetMainWnd()->SendMessage(ZEDITO_LOGIC_REFERENCE, ZEDITO_LOGIC_REFERENCE, (LPARAM)GetEditCtrl());
 }
 
 
 void CFSourceEditView::OnGotoLogicWord()
 {
-    AfxGetMainWnd()->SendMessage(ZEDIT2O_LOGIC_REFERENCE, ZEDIT2O_LOGIC_REFERENCE_GOTO, (LPARAM)GetEditCtrl());
+    AfxGetMainWnd()->SendMessage(ZEDITO_LOGIC_REFERENCE, ZEDITO_LOGIC_REFERENCE_GOTO, (LPARAM)GetEditCtrl());
 }
 
 

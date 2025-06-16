@@ -1,6 +1,6 @@
 ﻿#include "StdAfx.h"
 #include <zUtilO/ArrUtil.h>
-#include <zEdit2O/LogicView.h>
+#include <zEditO/LogicView.h>
 #include <zLogicO/ActionInvoker.h>
 #include <zLogicO/AutoComplete.h>
 #include <zLogicO/ContextSensitiveHelp.h>
@@ -1829,8 +1829,8 @@ namespace
 LRESULT CMainFrame::OnLogicReference(const WPARAM wParam, const LPARAM lParam)
 {
     CLogicCtrl* const logic_control = reinterpret_cast<CLogicCtrl*>(lParam);
-    const bool activated_by_f1 = ( wParam == ZEDIT2O_LOGIC_REFERENCE_HELP );
-    const bool goto_word = ( wParam == ZEDIT2O_LOGIC_REFERENCE_GOTO );
+    const bool activated_by_f1 = ( wParam == ZEDITO_LOGIC_REFERENCE_HELP );
+    const bool goto_word = ( wParam == ZEDITO_LOGIC_REFERENCE_GOTO );
 
     const std::vector<std::string> selected_words = logic_control->ReturnWordsAtCursorWithDotNotation();
 

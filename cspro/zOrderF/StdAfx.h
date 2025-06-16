@@ -6,9 +6,9 @@
 #include <zToolsO/Utf8.h>
 #include <zUtilO/imsaStr.h>
 #include <zUtilO/Interapp.h>
-#include <zEdit2O/zEdit2O.h>
+#include <zEditO/zEditO.h>
+#include <zEditO/UWM.h>
 #include <zDictO/DDClass.h>
-#include <zEdit2O/UWM.h>
 #include <zDesignerF/resource_shared.h>
 #include <zDesignerF/UWM.h>
 #include <zDictF/Dddoc.h>

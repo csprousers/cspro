@@ -5,7 +5,7 @@
 #include <zToolsO/EnumHelpers.h>
 #include <zToolsO/WinSettings.h>
 #include <zUtilO/WindowHelpers.h>
-#include <zEdit2O/LogicCtrl.h>
+#include <zEditO/LogicCtrl.h>
 
 
 namespace CodeMenu

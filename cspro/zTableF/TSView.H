@@ -12,7 +12,7 @@
 //***************************************************************************
 
 #include <zTableF/zTableF.h>
-#include <zEdit2O/LogicView.h>
+#include <zEditO/LogicView.h>
 
 /////////////////////////////////////////////////////////////////////////////
 // CTSourceEditView view

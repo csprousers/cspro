@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include <zEdit2O/LogicCtrl.h>
+#include <zEditO/LogicCtrl.h>
 
 
 class StringEncoderDlg : public CDialog

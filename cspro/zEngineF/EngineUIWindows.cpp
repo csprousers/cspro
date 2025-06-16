@@ -11,7 +11,7 @@
 #include <zEngineO/SystemApp.h>
 #include <zMapping/WindowsMapUI.h>
 #include <zMapping/WindowsMapUISingleThread.h>
-#include <zEdit2O/ScintillaColorizer.h>
+#include <zEditO/ScintillaColorizer.h>
 
 
 EngineUIProcessor::EngineUIProcessor(const PFF* const pff, const bool engine_runs_on_ui_thread)

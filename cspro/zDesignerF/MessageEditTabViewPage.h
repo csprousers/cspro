@@ -2,7 +2,7 @@
 
 #include <zDesignerF/zDesignerF.h>
 #include <zUToolO/oxtbvw.h>
-#include <zEdit2O/MessageEditCtrl.h>
+#include <zEditO/MessageEditCtrl.h>
 #include <zDesignerF/ApplicationChildWnd.h>
 #include <zUtilO/TextSourceEditable.h>
 

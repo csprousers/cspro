@@ -12,7 +12,7 @@
 #include <zUtilO/Interapp.h>
 #include <zUtilO/WindowsUtf8.h>
 #include <zUtilO/WindowsWS.h>
-#include <zEdit2O/UWM.h>
+#include <zEditO/UWM.h>
 #include <zDictO/DDClass.h>
 #include <zGridO/Ugmedit.h>
 #include <ZBRIDGEO/npff.h>

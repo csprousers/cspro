@@ -2,7 +2,7 @@
 #include "CaseJsonContentCreator.h"
 #include "CaseJsonContentCreatorSettings.h"
 #include "ViewOptionsHelper.h"
-#include <zEdit2O/ScintillaColorizer.h>
+#include <zEditO/ScintillaColorizer.h>
 #include <zCaseO/CaseJsonSerializer.h>
 
 

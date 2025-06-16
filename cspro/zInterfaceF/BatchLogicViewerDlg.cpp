@@ -6,7 +6,7 @@
 #include <zUtilO/Interapp.h>
 #include <zAppO/Application.h>
 #include <zFormO/FormFile.h>
-#include <zEdit2O/LogicCtrl.h>
+#include <zEditO/LogicCtrl.h>
 
 
 IMPLEMENT_DYNAMIC(BatchLogicViewerDlg, CDialog)

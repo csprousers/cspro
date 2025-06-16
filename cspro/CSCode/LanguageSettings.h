@@ -3,7 +3,7 @@
 #include <CSCode/resource.h>
 #include <zToolsO/EnumHelpers.h>
 #include <zAppO/LogicSettings.h>
-#include <zEdit2O/Lexers.h>
+#include <zEditO/Lexers.h>
 
 
 // --------------------------------------------------------------------------

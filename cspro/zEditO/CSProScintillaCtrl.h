@@ -1,13 +1,13 @@
 ﻿#pragma once
 
-#include <zEdit2O/zEdit2O.h>
-#include <zEdit2O/ScintillaCtrl.h>
+#include <zEditO/zEditO.h>
+#include <zEditO/ScintillaCtrl.h>
 
 
 // CSProScintillaCtrl is the base subclass that all CSPro-related Scintilla controls derive from;
 // it has some convenience methods (not put in CScintillaCtrl to make it easier to upgrade to new versions of Scintilla)
 
-class CLASS_DECL_ZEDIT2O CSProScintillaCtrl : public Scintilla::CScintillaCtrl
+class CLASS_DECL_ZEDITO CSProScintillaCtrl : public Scintilla::CScintillaCtrl
 {
 public:
     [[nodiscard]] std::string GetText(int length = -1);

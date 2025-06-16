@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 #include <zAppO/Application.h>
-#include <zEdit2O/LogicCtrl.h>
+#include <zEditO/LogicCtrl.h>
 #include <Zsrcmgro/SymbolAnalysisCompiler.h>
 
 
@@ -30,7 +30,7 @@ private:
     const SymbolAnalysisCompiler& m_symbolAnalysisCompiler;
 
     CStatic m_symbolsLabelCtrl;
-    CTreeCtrl m_symbolsTreeCtrl;    
+    CTreeCtrl m_symbolsTreeCtrl;
     CStatic m_usesLabelCtrl;
     std::unique_ptr<CLogicCtrl> m_usesLogicCtrl;
     CLogicCtrl m_contextLogicCtrl;

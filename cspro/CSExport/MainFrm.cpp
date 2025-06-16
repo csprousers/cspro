@@ -4,7 +4,7 @@
 #include "ExptDoc.h"
 #include "ExptView.h"
 #include <zUtilO/Interapp.h>
-#include <zEdit2O/Lexers.h>
+#include <zEditO/Lexers.h>
 #include <zInterfaceF/UWM.h>
 
 

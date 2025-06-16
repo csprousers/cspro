@@ -11,10 +11,10 @@ All rights reserved.
 
 Copyright / Usage Details:
 
-You are allowed to include the source code in any product (commercial, shareware, freeware or otherwise) 
-when your product is released in binary form. You are allowed to modify the source code in any way you want 
-except you cannot modify the copyright details at the top of each module. If you want to distribute source 
-code with your application, then you are only allowed to distribute versions released by the author. This is 
+You are allowed to include the source code in any product (commercial, shareware, freeware or otherwise)
+when your product is released in binary form. You are allowed to modify the source code in any way you want
+except you cannot modify the copyright details at the top of each module. If you want to distribute source
+code with your application, then you are only allowed to distribute versions released by the author. This is
 to maintain a single distribution point for the source code.
 
 */
@@ -32,9 +32,9 @@ to maintain a single distribution point for the source code.
 #define __SCINTILLACTRL_H__
 
 // CSPRO_SCINTILLA_MOD start
-#include <zEdit2O/zEdit2O.h>
+#include <zEditO/zEditO.h>
 
-#define SCINTILLACTRL_EXT_CLASS CLASS_DECL_ZEDIT2O
+#define SCINTILLACTRL_EXT_CLASS CLASS_DECL_ZEDITO
 
 #include <zScintilla/include/ScintillaTypes.h>
 #include <zScintilla/include/ScintillaCall.h>

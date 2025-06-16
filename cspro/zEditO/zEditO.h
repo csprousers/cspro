@@ -1,11 +1,11 @@
 ﻿#pragma once
 
 #ifdef _WIN32
-#ifdef ZEDIT2O_IMPL
-    #define CLASS_DECL_ZEDIT2O __declspec(dllexport)
+#ifdef ZEDITO_IMPL
+    #define CLASS_DECL_ZEDITO __declspec(dllexport)
 #else
-    #define CLASS_DECL_ZEDIT2O __declspec(dllimport)
+    #define CLASS_DECL_ZEDITO __declspec(dllimport)
 #endif
 #else
-#define CLASS_DECL_ZEDIT2O
+#define CLASS_DECL_ZEDITO
 #endif

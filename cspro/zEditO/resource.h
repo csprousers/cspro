@@ -1,6 +1,6 @@
 //{{NO_DEPENDENCIES}}
 // Microsoft Visual C++ generated include file.
-// Used by zEdit2O.rc
+// Used by zEditO.rc
 //
 #define IDR_MESSAGE_EDIT                10001
 #define IDR_READ_ONLY_EDIT              10002

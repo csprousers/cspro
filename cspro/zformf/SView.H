@@ -12,7 +12,7 @@
 //***************************************************************************
 
 #include <zformf/zFormF.h>
-#include <zEdit2O/LogicView.h>
+#include <zEditO/LogicView.h>
 
 /////////////////////////////////////////////////////////////////////////////
 // CFSourceEditView view

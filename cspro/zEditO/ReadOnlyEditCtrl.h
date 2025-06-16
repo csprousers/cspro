@@ -1,10 +1,10 @@
 ﻿#pragma once
 
-#include <zEdit2O/zEdit2O.h>
-#include <zEdit2O/EditCtrl.h>
+#include <zEditO/zEditO.h>
+#include <zEditO/EditCtrl.h>
 
 
-class CLASS_DECL_ZEDIT2O ReadOnlyEditCtrl : public EditCtrl
+class CLASS_DECL_ZEDITO ReadOnlyEditCtrl : public EditCtrl
 {
 public:
     void ClearReadOnlyText();

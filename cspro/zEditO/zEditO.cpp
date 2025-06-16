@@ -1,4 +1,4 @@
-﻿// zEdit2O.cpp : Defines the initialization routines for the DLL.
+﻿// zEditO.cpp : Defines the initialization routines for the DLL.
 //
 #include "stdafx.h"
 #include <zUtilO/CSProExecutables.h>
@@ -6,7 +6,7 @@
 #include <afxdllx.h>
 
 
-static AFX_EXTENSION_MODULE zEdit2ODLL = { false, nullptr };
+static AFX_EXTENSION_MODULE zEditODLL = { false, nullptr };
 
 
 extern "C" int APIENTRY
@@ -17,10 +17,10 @@ DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
 
     if (dwReason == DLL_PROCESS_ATTACH)
     {
-        TRACE0("zEdit2O.DLL Initializing!\n");
+        TRACE0("zEditO.DLL Initializing!\n");
 
         // Extension DLL one-time initialization
-        if (!AfxInitExtensionModule(zEdit2ODLL, hInstance))
+        if (!AfxInitExtensionModule(zEditODLL, hInstance))
             return 0;
 
         // Insert this DLL into the resource chain
@@ -35,7 +35,7 @@ DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
         //  Regular DLL's resource chain, and serious problems will
         //  result.
 
-        new CDynLinkLibrary(zEdit2ODLL);
+        new CDynLinkLibrary(zEditODLL);
 
         const std::wstring scintilla_dll_file_path = TC::ToWide(Path::Combine(CSProExecutables::GetApplicationDirectory(), "zScintilla.dll"));
         AfxLoadLibrary(scintilla_dll_file_path.c_str());
@@ -43,10 +43,10 @@ DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
 
     else if (dwReason == DLL_PROCESS_DETACH)
     {
-        TRACE0("zEdit2O.DLL Terminating!\n");
+        TRACE0("zEditO.DLL Terminating!\n");
 
         // Terminate the library before destructors are called
-        AfxTermExtensionModule(zEdit2ODLL);
+        AfxTermExtensionModule(zEditODLL);
     }
 
     return 1;   // ok

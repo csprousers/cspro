@@ -7,7 +7,7 @@
 //
 // Generated from the TEXTINCLUDE 2 resource.
 //
-#include "../zEdit2O/resource_win32.h"
+#include "../zEditO/resource_win32.h"
 #include "afxres.h"
 
 /////////////////////////////////////////////////////////////////////////////
@@ -33,7 +33,7 @@ END
 
 2 TEXTINCLUDE 
 BEGIN
-    "#include ""../zEdit2O/resource_win32.h""\r\n"
+    "#include ""../zEditO/resource_win32.h""\r\n"
     "#include ""afxres.h""\r\n"
     "\0"
 END
@@ -78,10 +78,10 @@ BEGIN
         BLOCK "040904b0"
         BEGIN
             VALUE "CompanyName", "U.S. Census Bureau"
-            VALUE "FileDescription", "zEdit2O DLL"
+            VALUE "FileDescription", "zEditO DLL"
             VALUE "FileVersion", "8.0.1.0"
-            VALUE "InternalName", "zEdit2O"
-            VALUE "OriginalFilename", "zEdit2O.dll"
+            VALUE "InternalName", "zEditO"
+            VALUE "OriginalFilename", "zEditO.dll"
             VALUE "ProductName", "CSPro 8.0"
             VALUE "ProductVersion", "8.0.1.0"
         END

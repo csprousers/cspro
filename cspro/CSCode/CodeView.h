@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include <zEdit2O/LogicView.h>
+#include <zEditO/LogicView.h>
 
 class CodeDoc;
 

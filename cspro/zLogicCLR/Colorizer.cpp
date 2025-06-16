@@ -1,6 +1,6 @@
 ﻿#include "Stdafx.h"
 #include "Colorizer.h"
-#include <zEdit2O/ScintillaColorizer.h>
+#include <zEditO/ScintillaColorizer.h>
 
 
 System::String^ CSPro::Logic::Colorizer::LogicToHtml(System::String^ text)

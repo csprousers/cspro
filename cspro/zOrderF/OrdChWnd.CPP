@@ -371,12 +371,12 @@ void COrderChildWnd::OnCompile()
 
 void COrderChildWnd::OnPeekLogicWord()
 {
-    AfxGetMainWnd()->SendMessage(ZEDIT2O_LOGIC_REFERENCE, ZEDIT2O_LOGIC_REFERENCE, reinterpret_cast<LPARAM>(GetOSourceView()->GetEditCtrl()));
+    AfxGetMainWnd()->SendMessage(ZEDITO_LOGIC_REFERENCE, ZEDITO_LOGIC_REFERENCE, reinterpret_cast<LPARAM>(GetOSourceView()->GetEditCtrl()));
 }
 
 void COrderChildWnd::OnGotoLogicWord()
 {
-    AfxGetMainWnd()->SendMessage(ZEDIT2O_LOGIC_REFERENCE, ZEDIT2O_LOGIC_REFERENCE_GOTO, reinterpret_cast<LPARAM>(GetOSourceView()->GetEditCtrl()));
+    AfxGetMainWnd()->SendMessage(ZEDITO_LOGIC_REFERENCE, ZEDITO_LOGIC_REFERENCE_GOTO, reinterpret_cast<LPARAM>(GetOSourceView()->GetEditCtrl()));
 }
 
 

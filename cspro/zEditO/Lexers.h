@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include <zEdit2O/zEdit2O.h>
+#include <zEditO/zEditO.h>
 #include <zScintilla/include/SciLexer.h>
 #include <zAppO/LogicSettings.h>
 
@@ -10,11 +10,11 @@ class Application;
 class Lexers
 {
 public:
-    CLASS_DECL_ZEDIT2O static int GetLexerFromFilename(const std::string& filename);
+    CLASS_DECL_ZEDITO static int GetLexerFromFilename(const std::string& filename);
 
-    CLASS_DECL_ZEDIT2O static const char* GetLexerName(int lexer_language);
+    CLASS_DECL_ZEDITO static const char* GetLexerName(int lexer_language);
 
-    CLASS_DECL_ZEDIT2O static const char* GetLexerDefaultServerMimeType(int lexer_language);
+    CLASS_DECL_ZEDITO static const char* GetLexerDefaultServerMimeType(int lexer_language);
 
 
     static constexpr bool IsCSProLogic(int lexer_language)

@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 #include <CSDocument/TextEditDoc.h>
-#include <zEdit2O/LogicView.h>
+#include <zEditO/LogicView.h>
 
 
 class TextEditView : public CLogicView

@@ -172,7 +172,7 @@ void CLogicCtrl::SetModified(bool modified/* = true*/)
     // the entry/batch logic window's modified flag is set by this message;
     // TODO: have that code use CLogicCtrl::IsModified
     if( modified )
-        AfxGetMainWnd()->SendMessage(ZEDIT2O_SEL_CHANGE, reinterpret_cast<WPARAM>(this->GetParent()));
+        AfxGetMainWnd()->SendMessage(ZEDITO_SEL_CHANGE, reinterpret_cast<WPARAM>(this->GetParent()));
 }
 
 
@@ -407,8 +407,8 @@ void CLogicCtrl::OnLButtonDown(UINT nFlags, CPoint point)
         {
             GotoPos(current_position);
 
-            int message_type = ( GetKeyState(VK_MENU) < 0 ) ? ZEDIT2O_LOGIC_REFERENCE : ZEDIT2O_LOGIC_REFERENCE_GOTO;
-            AfxGetMainWnd()->SendMessage(ZEDIT2O_LOGIC_REFERENCE, message_type, (LPARAM)this);
+            int message_type = ( GetKeyState(VK_MENU) < 0 ) ? ZEDITO_LOGIC_REFERENCE : ZEDITO_LOGIC_REFERENCE_GOTO;
+            AfxGetMainWnd()->SendMessage(ZEDITO_LOGIC_REFERENCE, message_type, (LPARAM)this);
 
             return;
         }

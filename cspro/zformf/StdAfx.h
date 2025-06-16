@@ -11,7 +11,7 @@
 #include <zHtml/CssStyleParser.h>
 #include <zDictO/DDClass.h>
 #include <zFormO/FormFile.h>
-#include <zEdit2O/UWM.h>
+#include <zEditO/UWM.h>
 #include <zDesignerF/OnUpdateHints.h>
 #include <zDesignerF/resource_shared.h>
 #include <zDesignerF/UWM.h>

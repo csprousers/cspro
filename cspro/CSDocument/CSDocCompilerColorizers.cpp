@@ -8,7 +8,7 @@
 #include <zLogicO/FunctionTable.h>
 #include <zLogicO/ReservedWords.h>
 #include <zLogicO/Symbol.h>
-#include <zEdit2O/ScintillaColorizer.h>
+#include <zEditO/ScintillaColorizer.h>
 
 
 namespace

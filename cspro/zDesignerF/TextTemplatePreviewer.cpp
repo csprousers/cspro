@@ -1,6 +1,6 @@
 ﻿#include "StdAfx.h"
 #include "TextTemplatePreviewer.h"
-#include <zEdit2O/ScintillaColorizer.h>
+#include <zEditO/ScintillaColorizer.h>
 #include <zHtml/SharedHtmlLocalFileServer.h>
 #include <zMarkdown/Markdown.h>
 #include <zCapiO/CapiText.h>

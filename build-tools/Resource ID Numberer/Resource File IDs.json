@@ -54,7 +54,7 @@
       "command": 44501,
       "control": 9500
     },
-    "zEdit2O": {
+    "zEditO": {
       "resource": 10001,
       "command": 45001,
       "control": 10500
@@ -329,7 +329,7 @@
         "IDC_NOTES_FORMAT_EXCEL"
       ]
     ],
-    "zEdit2O": [
+    "zEditO": [
       [
         "IDC_FIND_COMBO",
         "IDC_REPLACE_COMBO"

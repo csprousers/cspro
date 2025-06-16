@@ -13,14 +13,14 @@ namespace UWM::Edit
 }
 
 // RESOURCE_TODO ... use UWM scheme
-constexpr unsigned ZEDIT2O_SEL_CHANGE              = UWM::Ranges::EditStart + 3;
-constexpr unsigned ZEDIT2O_LOGIC_REFERENCE         = UWM::Ranges::EditStart + 4;
-constexpr unsigned ZEDIT2O_LOGIC_REFERENCE_GOTO    = UWM::Ranges::EditStart + 5;
-constexpr unsigned ZEDIT2O_LOGIC_REFERENCE_HELP    = UWM::Ranges::EditStart + 6;
-constexpr unsigned ZEDIT2O_LOGIC_AUTO_COMPLETE     = UWM::Ranges::EditStart + 7;
-constexpr unsigned ZEDIT2O_LOGIC_INSERT_PROC_NAME  = UWM::Ranges::EditStart + 8;
+constexpr unsigned ZEDITO_SEL_CHANGE              = UWM::Ranges::EditStart + 3;
+constexpr unsigned ZEDITO_LOGIC_REFERENCE         = UWM::Ranges::EditStart + 4;
+constexpr unsigned ZEDITO_LOGIC_REFERENCE_GOTO    = UWM::Ranges::EditStart + 5;
+constexpr unsigned ZEDITO_LOGIC_REFERENCE_HELP    = UWM::Ranges::EditStart + 6;
+constexpr unsigned ZEDITO_LOGIC_AUTO_COMPLETE     = UWM::Ranges::EditStart + 7;
+constexpr unsigned ZEDITO_LOGIC_INSERT_PROC_NAME  = UWM::Ranges::EditStart + 8;
 
 namespace UWM::Edit
 {
-    CHECK_MESSAGE_NUMBERING(ZEDIT2O_LOGIC_INSERT_PROC_NAME, UWM::Ranges::EditLast)
+    CHECK_MESSAGE_NUMBERING(ZEDITO_LOGIC_INSERT_PROC_NAME, UWM::Ranges::EditLast)
 }

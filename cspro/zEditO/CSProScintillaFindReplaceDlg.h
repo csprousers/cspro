@@ -1,13 +1,13 @@
 ﻿#pragma once
 
-#include <zEdit2O/zEdit2O.h>
-#include <zEdit2O/ScintillaDocView.h>
+#include <zEditO/zEditO.h>
+#include <zEditO/ScintillaDocView.h>
 
 
 // CSProScintillaFindReplaceDlg is a CScintillaFindReplaceDlg subclass that supports saving/reading
 // previously-searched strings to the registry, as well as allowing the user to only replace text in a selection
 
-class CLASS_DECL_ZEDIT2O CSProScintillaFindReplaceDlg : public Scintilla::CScintillaFindReplaceDlg
+class CLASS_DECL_ZEDITO CSProScintillaFindReplaceDlg : public Scintilla::CScintillaFindReplaceDlg
 {
 public:
     bool GetReplaceInSelection() const    { return m_replaceInSelection; };

@@ -112,13 +112,13 @@ BOOL CLogicView::PreTranslateMessage(MSG* pMsg)
             {
                 if( pMsg->wParam == VK_SPACE )
                 {
-                    AfxGetMainWnd()->SendMessage(ZEDIT2O_LOGIC_AUTO_COMPLETE, 0, (LPARAM)pLogicCtrl);
+                    AfxGetMainWnd()->SendMessage(ZEDITO_LOGIC_AUTO_COMPLETE, 0, (LPARAM)pLogicCtrl);
                     return TRUE;
                 }
 
                 else if( pMsg->wParam == '4' ) // $ is on the 4 key on a U.S. keyboard
                 {
-                    AfxGetMainWnd()->SendMessage(ZEDIT2O_LOGIC_INSERT_PROC_NAME, 0, (LPARAM)pLogicCtrl);
+                    AfxGetMainWnd()->SendMessage(ZEDITO_LOGIC_INSERT_PROC_NAME, 0, (LPARAM)pLogicCtrl);
                     return TRUE;
                 }
 
@@ -229,7 +229,7 @@ void CLogicView::OnHelp()
     if( pWnd->IsKindOf(RUNTIME_CLASS(CLogicCtrl)) )
     {
         if( !OnHandleHelp() )
-            AfxGetMainWnd()->SendMessage(ZEDIT2O_LOGIC_REFERENCE, ZEDIT2O_LOGIC_REFERENCE_HELP, reinterpret_cast<LPARAM>(pWnd));
+            AfxGetMainWnd()->SendMessage(ZEDITO_LOGIC_REFERENCE, ZEDITO_LOGIC_REFERENCE_HELP, reinterpret_cast<LPARAM>(pWnd));
     }
 
     else

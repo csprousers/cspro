@@ -3,7 +3,7 @@
 #include <zToolsO/Utf8.h>
 #include <zJson/JsonNode.h>
 #include <zLogicO/ParserMessage.h>
-#include <zEdit2O/ReadOnlyEditCtrl.h>
+#include <zEditO/ReadOnlyEditCtrl.h>
 
 
 // --------------------------------------------------------------------------

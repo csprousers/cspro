@@ -1,11 +1,11 @@
 ﻿#pragma once
 
-#include <zEdit2O/zEdit2O.h>
-#include <zEdit2O/ScintillaDocView.h>
-#include <zEdit2O/LogicCtrl.h>
+#include <zEditO/zEditO.h>
+#include <zEditO/ScintillaDocView.h>
+#include <zEditO/LogicCtrl.h>
 
 
-class CLASS_DECL_ZEDIT2O CLogicView : public Scintilla::CScintillaView
+class CLASS_DECL_ZEDITO CLogicView : public Scintilla::CScintillaView
 {
     DECLARE_DYNCREATE(CLogicView)
 

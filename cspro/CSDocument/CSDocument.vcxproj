@@ -201,7 +201,7 @@
       <Project>{5a7c4b2c-3c72-4c23-994f-bc647ab0a882}</Project>
       <Private>false</Private>
     </ProjectReference>
-    <ProjectReference Include="..\zEdit2O\zEdit2O.vcxproj">
+    <ProjectReference Include="..\zEditO\zEditO.vcxproj">
       <Project>{adef6fc1-00ee-4f3a-84dd-43ee2f108bb0}</Project>
       <Private>false</Private>
     </ProjectReference>

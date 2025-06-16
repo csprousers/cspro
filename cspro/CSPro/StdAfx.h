@@ -24,7 +24,7 @@
 #include <zDictF/DDChWnd.H>
 #include <zDictF/Dddoc.h>
 #include <zDictF/DictTreeNode.h>
-#include <zEdit2O/UWM.h>
+#include <zEditO/UWM.h>
 #include <zformf/FrmChWnd.h>
 #include <zformf/FormDoc.h>
 #include <zformf/FormID.h>

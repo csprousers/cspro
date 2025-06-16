@@ -133,7 +133,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Save Array Viewer", "Save A
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zLogicO", "zLogicO\zLogicO.vcxproj", "{BC0D77B3-18EF-4554-A94F-650AF6F7C87C}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zEdit2O", "zEdit2O\zEdit2O.vcxproj", "{ADEF6FC1-00EE-4F3A-84DD-43EE2F108BB0}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zEditO", "zEditO\zEditO.vcxproj", "{ADEF6FC1-00EE-4F3A-84DD-43EE2F108BB0}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zScintilla", "zScintilla\win32\zScintilla.vcxproj", "{FBE04237-9C7B-4973-9C60-505975998B39}"
 EndProject

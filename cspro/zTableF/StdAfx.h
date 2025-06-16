@@ -12,7 +12,7 @@
 #include <zDictF/Dddoc.h>
 #include <zDictF/DictTreeNode.h>
 #include <zTableO/Table.h>
-#include <zEdit2O/UWM.h>
+#include <zEditO/UWM.h>
 #include <zDesignerF/resource_shared.h>
 #include <zDesignerF/UWM.h>
 #include <zTableF/resource.h>

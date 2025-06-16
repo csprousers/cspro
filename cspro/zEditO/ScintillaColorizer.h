@@ -1,15 +1,15 @@
 ﻿#pragma once
 
-#include <zEdit2O/zEdit2O.h>
-#include <zEdit2O/LexerProperties.h>
-#include <zEdit2O/LogicCtrl.h>
+#include <zEditO/zEditO.h>
+#include <zEditO/LexerProperties.h>
+#include <zEditO/LogicCtrl.h>
 #include <iosfwd>
 
 enum class SymbolType : int;
 namespace Logic { struct FunctionNamespaceDetails; }
 
 
-class CLASS_DECL_ZEDIT2O ScintillaColorizer
+class CLASS_DECL_ZEDITO ScintillaColorizer
 {
 public:
     struct HtmlProcessor;

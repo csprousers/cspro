@@ -1,14 +1,14 @@
 ﻿#pragma once
 
-#include <zEdit2O/zEdit2O.h>
-#include <zEdit2O/CSProScintillaCtrl.h>
-#include <zEdit2O/Lexers.h>
+#include <zEditO/zEditO.h>
+#include <zEditO/CSProScintillaCtrl.h>
+#include <zEditO/Lexers.h>
 #include <zToolsO/CaseInsensitiveComparer.h>
 
 class CSProScintillaFindReplaceDlg;
 
 
-class CLASS_DECL_ZEDIT2O CLogicCtrl : public CSProScintillaCtrl
+class CLASS_DECL_ZEDITO CLogicCtrl : public CSProScintillaCtrl
 {
     DECLARE_DYNCREATE(CLogicCtrl)
 
