@@ -4,7 +4,7 @@
 #include "Nodes/Various.h"
 #include <zToolsO/DirectoryLister.h>
 #include <zToolsO/Hash.h>
-#include <zZipo/ZipFile.h>
+#include <zZip/ZipFile.h>
 
 
 double LogicInterpreter::ex_compress(const int program_index)

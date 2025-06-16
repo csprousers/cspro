@@ -414,7 +414,7 @@
       <Project>{27008d1d-bbbc-4506-8679-be5db42026bc}</Project>
       <Private>false</Private>
     </ProjectReference>
-    <ProjectReference Include="..\zZipo\zZipo.vcxproj">
+    <ProjectReference Include="..\zZip\zZip.vcxproj">
       <Project>{bde6d79f-d295-48ba-8e8c-e2ab1eda0646}</Project>
       <Private>false</Private>
     </ProjectReference>

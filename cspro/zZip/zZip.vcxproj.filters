@@ -49,7 +49,7 @@
     <ClInclude Include="ZLib.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="zZipo.h">
+    <ClInclude Include="zZip.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -8,7 +8,7 @@
 #include <zToolsO/ApiKeys.h>
 #include <zToolsO/MemoryStream.h>
 #include <zUtilO/FileExtensions.h>
-#include <zZipo/ZLib.h>
+#include <zZip/ZLib.h>
 
 
 CSWebConnection::CSWebConnection(std::unique_ptr<HttpConnection> http_connection, SyncConnectionString sync_connection_string, LoginCredentials login_credentials)

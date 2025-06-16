@@ -1,11 +1,11 @@
 ﻿#pragma once
 
 #ifdef WIN32
-    #ifdef ZZIPO_IMPL
-        #define CLASS_DECL_ZZIPO __declspec(dllexport)
+    #ifdef ZZIP_IMPL
+        #define CLASS_DECL_ZZIP __declspec(dllexport)
     #else
-        #define CLASS_DECL_ZZIPO __declspec(dllimport)
+        #define CLASS_DECL_ZZIP __declspec(dllimport)
     #endif
 #else
-    #define CLASS_DECL_ZZIPO
+    #define CLASS_DECL_ZZIP
 #endif

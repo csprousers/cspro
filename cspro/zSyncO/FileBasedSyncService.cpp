@@ -8,7 +8,7 @@
 #include "SyncMessage.h"
 #include <zToolsO/MemoryStream.h>
 #include <zUtilO/BinaryDataAccessor.h>
-#include <zZipo/ZipFile.h>
+#include <zZip/ZipFile.h>
 #include <zNetwork/FileBasedConnection.h>
 #include <zCaseO/BinaryCaseItem.h>
 #include <zCaseO/Case.h>

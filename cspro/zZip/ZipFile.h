@@ -1,7 +1,7 @@
 ﻿#pragma once
 
-#include <zZipo/zZipo.h>
-#include <zZipo/ZipException.h>
+#include <zZip/zZip.h>
+#include <zZip/ZipException.h>
 #include <zToolsO/BinaryBlock.h>
 
 class ZipImpl;
@@ -21,7 +21,7 @@ class ZipImpl;
 // ZipReader
 // --------------------------------------------------------------------------
 
-class CLASS_DECL_ZZIPO ZipReader
+class CLASS_DECL_ZZIP ZipReader
 {
     friend class ZipCreator;
     friend class ZipUtility;
@@ -83,7 +83,7 @@ private:
 // ZipCreator
 // --------------------------------------------------------------------------
 
-class CLASS_DECL_ZZIPO ZipCreator
+class CLASS_DECL_ZZIP ZipCreator
 {
     friend class ZipUtility;
 
@@ -137,7 +137,7 @@ private:
 // ZipUtility
 // --------------------------------------------------------------------------
 
-class CLASS_DECL_ZZIPO ZipUtility
+class CLASS_DECL_ZZIP ZipUtility
 {
 public:
     // Opens a base ZIP file and merges into it the contents of another ZIP file (combine_file_path).

@@ -42,7 +42,7 @@ add_subdirectory(../zToolsO zToolsO)
 add_subdirectory(../zUtilO zUtilO)
 # add_subdirectory(../zViewO zViewO)
 # add_subdirectory(../zYaml zYaml)
-# add_subdirectory(../zZipO zZipO)
+# add_subdirectory(../zZip zZip)
 
 
 project(CSPro)
@@ -119,7 +119,7 @@ target_link_libraries(${PROJECT_NAME}
     # zViewO
     zUtilO
     # zYaml
-    # zZipO
+    # zZip
 )
 
 set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 17)

@@ -1,4 +1,4 @@
-project(zZipO)
+project(zZip)
 
 include(../WASM/Definitions.cmake)
 

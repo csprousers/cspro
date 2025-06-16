@@ -1,10 +1,10 @@
 ﻿#pragma once
 
-#include <zZipo/zZipo.h>
+#include <zZip/zZip.h>
 #include <iosfwd>
 
 
-class CLASS_DECL_ZZIPO ZLib
+class CLASS_DECL_ZZIP ZLib
 {
 public:
     // Compress a stream.
