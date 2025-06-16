@@ -12,6 +12,7 @@ namespace Stygitan
             public string RepositoryPath;
             public bool Process;
             public bool WriteUtf8Bom;
+            public bool RemoveLineFeeds;
         }
 
         private string _gitDirectory;
@@ -161,8 +162,12 @@ namespace Stygitan
                   extension == ".cs" ||
                   extension == ".csdocset" || extension == ".csdoc" || extension == ".hgi" || extension == ".index" || extension == ".toc" );
 
+            bool process_and_remove_line_feeds =
+                ( extension == ".php" );
+
             bool process =
                 ( process_and_write_utf8_bom ||
+                  process_and_remove_line_feeds ||
                   extension == ".cxx" ||
                   extension == ".kt" || extension == ".java" ||
                   extension == ".json" ||
@@ -182,7 +187,8 @@ namespace Stygitan
                 FilePath = file_path,
                 RepositoryPath = path_in_repository,
                 Process = process,
-                WriteUtf8Bom = process_and_write_utf8_bom
+                WriteUtf8Bom = process_and_write_utf8_bom,
+                RemoveLineFeeds = process_and_remove_line_feeds
             });
         }
 
@@ -194,7 +200,7 @@ namespace Stygitan
 
                 foreach( var modified_file in _modifiedFiles )
                 {
-                    if( modified_file.Process && StandardizeFile(modified_file.FilePath, modified_file.WriteUtf8Bom) )
+                    if( modified_file.Process && StandardizeFile(modified_file) )
                         ++files_modified;
                 }
 
@@ -207,14 +213,17 @@ namespace Stygitan
             }
         }
 
-        private bool StandardizeFile(string file_path, bool write_utf8_bom)
+        private bool StandardizeFile(ModifiedFile modified_file)
         {
             // read the text, which will be processed with only \n newline characters
-            string original_file_text = File.ReadAllText(file_path).Replace("\r\n", "\n").Replace('\r', '\n');
+            string original_file_text = File.ReadAllText(modified_file.FilePath);
+            bool file_had_line_feeds = ( original_file_text.IndexOf('\r') >= 0 );
+
+            original_file_text = original_file_text.Replace("\r\n", "\n").Replace('\r', '\n');
 
             // make sure that there are no tabs
             if( original_file_text.IndexOf('\t') >= 0 )
-                throw new Exception($"Rework tabs in {file_path}");
+                throw new Exception($"Rework tabs in {modified_file.FilePath}");
 
             string file_text = "";
 
@@ -225,13 +234,17 @@ namespace Stygitan
             // make sure there is only one final newline
             file_text = file_text.TrimEnd() + '\n';
 
-            if( original_file_text == file_text )
+            if( ( original_file_text == file_text ) &&
+                ( !modified_file.RemoveLineFeeds || !file_had_line_feeds ) )
+            {
                 return false;
+            }
 
-            // write the modified text with \r\n newline characters and potentially a UTF-8 BOM
-            file_text = file_text.Replace("\n", "\r\n");
+            // write the modified text, potentially with \r\n newline characters and a UTF-8 BOM
+            if( !modified_file.RemoveLineFeeds )
+                file_text = file_text.Replace("\n", "\r\n");
 
-            File.WriteAllText(file_path, file_text, new UTF8Encoding(write_utf8_bom));
+            File.WriteAllText(modified_file.FilePath, file_text, new UTF8Encoding(modified_file.WriteUtf8Bom));
 
             return true;
         }

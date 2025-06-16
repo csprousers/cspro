@@ -77,6 +77,7 @@
     <ClInclude Include="CSDocExportDlg.h" />
     <ClInclude Include="CSDocFrame.h" />
     <ClInclude Include="CSDocument.h" />
+    <ClInclude Include="CSProUsersBlogBuilder.h" />
     <ClInclude Include="DocBuildSettings.h" />
     <ClInclude Include="DocSetBaseFrame.h" />
     <ClInclude Include="DocSetBuilder.h" />
@@ -130,6 +131,7 @@
     <ClCompile Include="CSDocExportDlg.cpp" />
     <ClCompile Include="CSDocFrame.cpp" />
     <ClCompile Include="CSDocument.cpp" />
+    <ClCompile Include="CSProUsersBlogBuilder.cpp" />
     <ClCompile Include="DocBuildSettings.cpp" />
     <ClCompile Include="DocSetBaseFrame.cpp" />
     <ClCompile Include="DocSetBuilderBaseGenerateTask.cpp" />
@@ -219,6 +221,10 @@
     </ProjectReference>
     <ProjectReference Include="..\zMultimediaO\zMultimediaO.vcxproj">
       <Project>{ea52b4fa-021b-4f0c-8209-ef54aa538476}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zReportO\zReportO.vcxproj">
+      <Project>{9e851aa2-a3f8-41f6-870a-1f5122906bd1}</Project>
       <Private>false</Private>
     </ProjectReference>
     <ProjectReference Include="..\zToolsO\zToolsO.vcxproj">

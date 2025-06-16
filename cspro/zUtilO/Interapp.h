@@ -245,7 +245,7 @@ namespace Html
     CLASS_DECL_ZUTILO std::string GetCSSFilePath(CSS css);
     CLASS_DECL_ZUTILO const std::string& GetCSS(CSS css);
 
-    constexpr const char* CSProUsersForumUrl = "https://www.csprousers.org/forum";
+    constexpr const char* CSProUsersForumUrl = "https://csprousers.org/forum";
 }
 
 

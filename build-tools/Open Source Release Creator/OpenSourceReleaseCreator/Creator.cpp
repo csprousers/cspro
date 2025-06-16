@@ -782,10 +782,10 @@ void Creator::CreateHistoryLog(const git_oidT* const oid)
     {
         history_file.WriteFormattedLine("\n\n## CSPro %s", tag_commits_itr->tag_name.c_str());
 
-        std::string url = FormatText("https://www.csprousers.org/downloads/cspro/cspro%s.exe", tag_commits_itr->tag_name.c_str());
+        std::string url = FormatText("https://csprousers.org/downloads/cspro/cspro%s.exe", tag_commits_itr->tag_name.c_str());
         history_file.WriteFormattedLine("\n**Installer**: [%s](%s)", url.c_str(), url.c_str());
 
-        url = FormatText("https://www.csprousers.org/downloads/cspro/cspro%s_releasenotes.txt", tag_commits_itr->tag_name.c_str());
+        url = FormatText("https://csprousers.org/downloads/cspro/cspro%s-release-notes.txt", tag_commits_itr->tag_name.c_str());
         history_file.WriteFormattedLine("\n**Release notes**: [%s](%s)", url.c_str(), url.c_str());
 
         if( !tag_commits_itr->pull_requests.empty() )

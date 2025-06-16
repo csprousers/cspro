@@ -65,7 +65,7 @@ std::string CSDocCompilerSettingsForCSDocumentPreview::CreateUrlForLogicTopic(co
     }
 
     // otherwise link to the online helps
-    return CreateUrlForLogicTopicOnCSProUsersForum(help_topic_filename);
+    return CreateUrlForLogicTopicOnCSProUsersWebsite(help_topic_filename);
 }
 
 

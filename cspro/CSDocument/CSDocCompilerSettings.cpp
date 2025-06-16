@@ -73,6 +73,11 @@ std::string CSDocCompilerSettings::GetSpecialDefinition(const std::string& domai
 }
 
 
+void CSDocCompilerSettings::AddMetadata(std::string_view /*attribute_sv*/, std::string_view /*value_sv*/)
+{
+}
+
+
 void CSDocCompilerSettings::AddCompilerMessage(CompilerMessageType /*compiler_message_type*/, const std::string& /*text*/)
 {
 }
@@ -243,15 +248,15 @@ std::string CSDocCompilerSettings::CreateUrlForLogicTopic(const char* const help
 {
     ASSERT(GetBuildSettingsDebug() == nullptr || GetBuildSettingsDebug()->GetLogicLinkageAction() == DocBuildSettings::LogicLinkageAction::CSProUsers);
 
-    return CreateUrlForLogicTopicOnCSProUsersForum(help_topic_filename);
+    return CreateUrlForLogicTopicOnCSProUsersWebsite(help_topic_filename);
 }
 
 
-std::string CSDocCompilerSettings::CreateUrlForLogicTopicOnCSProUsersForum(const char* const help_topic_filename)
+std::string CSDocCompilerSettings::CreateUrlForLogicTopicOnCSProUsersWebsite(const char* const help_topic_filename)
 {
     ASSERT(PortableFunctions::PathGetFileExtension(help_topic_filename) == FileExtensions::HTML);
 
-    return "https://www.csprousers.org/help/CSPro/" + Encoders::ToUri(help_topic_filename);
+    return "https://csprousers.org/help/CSPro/" + Encoders::ToUri(help_topic_filename);
 }
 
 
@@ -271,6 +276,12 @@ std::string CSDocCompilerSettings::CreateUrlForImageFile(const std::string& path
 
     return Encoders::ToDataUrl(*FileIO::Read(path),
                                ValueOrDefault(MimeType::GetTypeFromFileExtension(PortableFunctions::PathGetFileExtension(path))));
+}
+
+
+std::string CSDocCompilerSettings::CreateUrlForResource(const std::string& /*resource*/)
+{
+    return std::string();
 }
 
 

@@ -114,6 +114,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="HtmlTagModifier.cpp" />
     <ClCompile Include="Pre77Report.cpp" />
     <ClCompile Include="Pre77ReportManager.cpp" />
     <ClCompile Include="Pre77ReportNodes.cpp" />
@@ -123,6 +124,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="HtmlTagModifier.h" />
     <ClInclude Include="Pre77Report.h" />
     <ClInclude Include="Pre77ReportException.h" />
     <ClInclude Include="Pre77ReportManager.h" />

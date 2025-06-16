@@ -188,7 +188,7 @@
 
     The following modules were previously included with CSPro but have
     been removed from the installation package. The modules are available
-    at https://www.csprousers.org/downloads.
+    at https://csprousers.org/downloads.
 
         Data Dictionary Converter   (DDConvrt.exe)
         Form Viewer                 (FViewer.exe)

@@ -98,8 +98,8 @@ std::unique_ptr<JsonFileWriter> Json::CreateFileWriter(const InterfaceString fil
 // JSON parsing
 // --------------------------------------------------------------------------
 
-JsonNode Json::ParseFile(InterfaceString file_path)
+JsonNode Json::ParseFile(InterfaceString file_path, JsonReaderInterface* const json_reader_interface/* = nullptr*/)
 {
     const std::string json_text = FileIO::ReadText(std::move(file_path));
-    return JsonNode(json_text);
+    return JsonNode(json_text, json_reader_interface);
 }

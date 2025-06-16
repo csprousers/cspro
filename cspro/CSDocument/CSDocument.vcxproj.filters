@@ -57,6 +57,9 @@
     <ClInclude Include="CSDocument.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="CSProUsersBlogBuilder.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="DocBuildSettings.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -210,6 +213,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CSDocument.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CSProUsersBlogBuilder.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="DocBuildSettings.cpp">

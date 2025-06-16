@@ -352,7 +352,7 @@ BEGIN
     LTEXT           "cspro@lists.census.gov",IDC_TROUBLESHOOTING_EMAIL,185,7,86,8,SS_NOTIFY
     LTEXT           "If submitting a question or if you have a problem with your application, use the\ntool to create a single file of your application that can be easily emailed to the support team.",IDC_STATIC,7,22,303,19
     LTEXT           "You can also visit the CSPro Users forum, a place to ask questions of and exchange ideas with other users of CSPro from all around the world:",IDC_STATIC,7,44,293,18
-    LTEXT           "https://www.csprousers.org/forum/",IDC_TROUBLESHOOTING_CSPROUSERS,176,52,116,8,SS_NOTIFY
+    LTEXT           "https://csprousers.org/forum/",IDC_TROUBLESHOOTING_CSPROUSERS,176,52,98,8,SS_NOTIFY
     LTEXT           "International Programs\nUnited States Census Bureau\nWashington, DC 20233\n+1 301-763-1451",IDC_STATIC,48,83,184,34
     LTEXT           "https://www.census.gov/data/software/cspro.html",IDC_TROUBLESHOOTING_WEBSITE,48,120,210,8,SS_NOTIFY
     GROUPBOX        "The Census and Survey Processing System (CSPro) is distributed by:",IDC_STATIC,33,70,239,66

@@ -50,6 +50,9 @@
     <ClCompile Include="..\external\gumbo\vector.c">
       <Filter>Gumbo</Filter>
     </ClCompile>
+    <ClCompile Include="HtmlTagModifier.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="Pre77Report.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -64,6 +67,9 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="HtmlTagModifier.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="Pre77Report.h">
       <Filter>Header Files</Filter>
     </ClInclude>

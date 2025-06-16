@@ -43,6 +43,10 @@ public:
     // overridable methods
     // --------------------------------------------------------------------------
 
+    // called when processing the metadata tag;
+    // the base implementation does nothing
+    virtual void AddMetadata(std::string_view attribute_sv, std::string_view value_sv);
+
     // adds a compiler message to the build window
     virtual void AddCompilerMessage(CompilerMessageType compiler_message_type, const std::string& text);
 
@@ -65,6 +69,10 @@ public:
 
     // if true, documents without titles will be considered incomplete
     virtual bool TitleIsRequired() const { return false; }
+
+    // if false, the title will not be written to the document where the tag exists;
+    // this setting does not impact whether the title is inserted into the HTML header
+    virtual bool AddTitleToDocument() const { return true; }
 
     // returns whether the document is being compiled for a .chm file
     virtual bool CompilingForCompiledHtmlHelp() const { return false; }
@@ -95,6 +103,10 @@ public:
     // the base implementation returns a data URL
     virtual std::string CreateUrlForImageFile(const std::string& path);
 
+    // returns a URL for the specified resource;
+    // the base implementation returns a blank string
+    virtual std::string CreateUrlForResource(const std::string& resource);
+
     // if true, external links will open in a new window
     virtual bool OpenExternalLinksInSeparateWindow() const { return true; }
 
@@ -110,7 +122,7 @@ protected:
     static std::string GetStylesheetLinkHtml(const std::string& css_url);
     static std::string GetStylesheetEmbeddedHtml(std::string css);
 
-    static std::string CreateUrlForLogicTopicOnCSProUsersForum(const char* help_topic_filename);
+    static std::string CreateUrlForLogicTopicOnCSProUsersWebsite(const char* help_topic_filename);
     std::string CreateUrlForLogicHelpTopicInCSProProject(const char* help_topic_filename);
 
 #ifdef _DEBUG
