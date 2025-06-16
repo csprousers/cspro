@@ -4,13 +4,15 @@
 #include <zEngineO/AllSymbolDeclarations.h>
 #include <zToolsO/CSProException.h>
 
+class LogicCompiler;
+
 
 class ZENGINEO_API UserFunctionArgumentChecker
 {
 public:
     CREATE_CSPRO_EXCEPTION(CheckError);
 
-    UserFunctionArgumentChecker(const UserFunction& user_function);
+    UserFunctionArgumentChecker(LogicCompiler* compiler, const UserFunction& user_function);
 
     // methods to help compile arguments; on failure, a CheckError exception is thrown with the error message
     void CheckNumberArguments(size_t number_arguments) const;
@@ -44,6 +46,7 @@ private:
     void CheckUserFunctionArgument(UserFunction& argument_user_function) const;
 
 private:
+    LogicCompiler* m_compiler;
     const UserFunction& m_userFunction;
     size_t m_parameterNumber;
     const Symbol* m_parameterSymbol;

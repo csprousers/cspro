@@ -27,14 +27,3 @@ protected:
 private:
     std::vector<int> m_procIndices;
 };
-
-
-// RUNNABLE_SYMBOL_TODO remove
-#define PROCTYPE_PRE            static_cast<int>(ProcType::PreProc)
-#define PROCTYPE_ONFOCUS        static_cast<int>(ProcType::OnFocus)
-#define PROCTYPE_KILLFOCUS      static_cast<int>(ProcType::KillFocus)
-#define PROCTYPE_POST           static_cast<int>(ProcType::PostProc)
-#define PROCTYPE_ONOCCCHANGE    static_cast<int>(ProcType::OnOccChange)
-#define PROCTYPE_NONE           static_cast<int>(ProcType::None)
-#define PROCTYPE_TALLY          static_cast<int>(ProcType::Tally)
-#define PROCTYPE_ECALC          static_cast<int>(ProcType::ExplicitCalc)

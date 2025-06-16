@@ -144,7 +144,7 @@ void TextEditDoc::ReloadFromDisk()
     try
     {
         const std::string& text = m_textSource->ReloadFromDisk();
-        m_textEditView->SetTextAndSetSavePoint(text);
+        m_textEditView->GetLogicCtrl()->SetTextAndSetSavePoint(text);
 
         SetModifiedFlag(FALSE);
     }

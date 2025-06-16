@@ -8,6 +8,8 @@ LogicCompiler::LogicCompiler(cs::non_null_shared_or_raw_ptr<EngineData> engine_d
     :   Logic::BaseCompiler(engine_data->symbol_table),
         m_engineData(std::move(engine_data)),
         m_compilationSymbol(nullptr),
+        m_procType(ProcType::None),
+        m_extendedProcType(ExtendedProcType::None),
         m_numericConstantConserver(std::make_unique<ConstantConserver<double>>(m_engineData->numeric_constants)),
         m_stringLiteralConserver(std::make_unique<ConstantConserver<SharableString>>(m_engineData->string_literals)),
         m_tracingLogic(false)
@@ -40,6 +42,12 @@ int LogicCompiler::ConserveConstant(const std::string& string_literal)
 
 
 int LogicCompiler::ConserveConstant(std::string&& string_literal)
+{
+    return m_stringLiteralConserver->Add(std::move(string_literal));
+}
+
+
+int LogicCompiler::ConserveConstant(SharableString&& string_literal)
 {
     return m_stringLiteralConserver->Add(std::move(string_literal));
 }

@@ -237,10 +237,7 @@ public:
 
     void serialize_subclass(Serializer& ar) override;
 
-protected:
     void WriteJsonMetadata_subclass(JsonWriter& json_writer) const override;
-
-public:
     void WriteValueToJson(JsonWriter& json_writer) const override;
 
 private:
@@ -250,7 +247,7 @@ private:
     int m_containerIndex = 0; // the container table index
 
 public:
-    int GetContainerIndex() const  			    { return m_containerIndex; }
+    int GetContainerIndex() const               { return m_containerIndex; }
     void SetContainerIndex(int container_index) { m_containerIndex = container_index; }
 };
 

@@ -15,22 +15,21 @@
 #define IDI_ORD_ROSTER32C               11011
 #define IDI_ORD_ORDERC                  11012
 #define ID_CUSTOMORDER                  45501
-#define ID_DUPLICATE_LINE               45502
-#define ID_FIND_NEXT                    45503
-#define ID_FRM_EDIT_FIND                45504
-#define ID_ORD_COMPILE                  45505
-#define ID_ORD_EDIT_FIND                45506
-#define ID_REPLACE                      45507
-#define ID_RUNBATCH                     45508
-#define ID_VIEW_GOTO_LOGIC_WORD         45509
-#define ID_VIEW_PEEK_LOGIC_WORD         45510
+#define ID_FIND_NEXT                    45502
+#define ID_FRM_EDIT_FIND                45503
+#define ID_ORD_COMPILE                  45504
+#define ID_ORD_EDIT_FIND                45505
+#define ID_REPLACE                      45506
+#define ID_RUNBATCH                     45507
+#define ID_VIEW_GOTO_LOGIC_WORD         45508
+#define ID_VIEW_PEEK_LOGIC_WORD         45509
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        11013
-#define _APS_NEXT_COMMAND_VALUE         45511
+#define _APS_NEXT_COMMAND_VALUE         45510
 #define _APS_NEXT_CONTROL_VALUE         11500
 #define _APS_NEXT_SYMED_VALUE           11013
 #endif

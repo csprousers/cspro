@@ -2,12 +2,13 @@
 
 #include <zCapiO/CapiText.h>
 #include <zCapiO/CapiQuestion.h>
-#include <zCapiO/CapiLogicParameters.h>
+#include <zLogicO/ParserMessage.h>
 
 class Application;
 class CapiQuestionManager;
 class CDEItemBase;
 class DesignerCapiLogicCompiler;
+struct TextTemplateToken;
 
 
 // --------------------------------------------------------------------------
@@ -25,12 +26,14 @@ public:
 
     void SetQuestionManager(Application* application, std::shared_ptr<CapiQuestionManager> question_manager);
 
+    const Application* GetApplication() const { return m_application; }
+
     void Clear();
 
     bool CanHaveText() const { return ( m_item != nullptr ); }
 
     CapiText GetText(size_t language_index, CapiText::Type type);
-    void SetText(size_t language_index, CapiText::Type type, std::string new_text);
+    void SetText(size_t language_index, CapiText::Type type, CapiText capi_text);
 
     void SetCondition(int condition_index, std::string logic);
     void DeleteCondition(int condition_index);
@@ -42,11 +45,9 @@ public:
 
     void SetItem(const CDEItemBase* item_base);
 
-    struct SyntaxCheckOk    { };
-    struct SyntaxCheckError { std::string error_message; };
-    using SyntaxCheckResult = std::variant<SyntaxCheckOk, SyntaxCheckError>;
-
-    SyntaxCheckResult CheckSyntax(CapiLogicParameters::Type type, SharableString logic);
+    using SyntaxCheckInput = std::variant<const CapiCondition*, const CapiText*, const TextTemplateToken*>;
+    using SyntaxCheckError = std::vector<Logic::ParserMessage>;
+    std::optional<SyntaxCheckError> CheckSyntax(SyntaxCheckInput condition_or_text_or_token);
 
 private:
     std::shared_ptr<CapiQuestionManager> m_questionManager;

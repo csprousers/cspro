@@ -938,7 +938,7 @@ bool CsDriver::IsRequestValid( void ) {
     // (2) identification of the request
 
 bool CsDriver::SetInterRequestNature( RequestNature xNature, bool bResetAdvance/*=true*/ ) {
-    SetRequestEventType( (EventType) m_pIntDriver->m_iProgType ); // RHF Mar 23, 2003
+    SetRequestEventType(static_cast<EventType>(m_pIntDriver->m_procType)); // RHF Mar 23, 2003
     // save previous situation
     bool            bPrevRequestSource = m_bRequestFromLogic;
     RequestNature   xPrevRequestNature = m_xRequestNature;
@@ -4385,10 +4385,9 @@ CheckCurrentAtom:
     }
 
     // calling the actual execution of each one of applicable event-procs
-    bool    bRequestArised = false;
-    bool    bBreakingEventsChain = false;
-    int     iProcType;
-    bool    bMarkProgress;                              // victor Dec 10, 01
+    bool bRequestArised = false;
+    bool bBreakingEventsChain = false;
+    bool bMarkProgress;                              // victor Dec 10, 01
 
     for( iEvent = 0; !bBreakingEventsChain && iEvent <= EventOnOccChange; iEvent++ ) {
         // update progress bitmap                       // victor Dec 10, 01
@@ -4409,10 +4408,13 @@ CheckCurrentAtom:
         if( !bCallProc[iEvent] )
             continue;
 
-        bool    bEventKillOrPost=false;
-        switch( iEvent ) {
+        ProcType proc_type = ProcType::None;
+        bool bEventKillOrPost = false;
+
+        switch( iEvent )
+        {
             case EventPreProc:
-                iProcType = PROCTYPE_PRE;
+                proc_type = ProcType::PreProc;
 
                 // opening-level actions
                 if( bIsLevelHead ) {
@@ -4424,16 +4426,16 @@ CheckCurrentAtom:
                 break;
 
             case EventOnFocus:
-                iProcType = PROCTYPE_ONFOCUS;
+                proc_type = ProcType::OnFocus;
                 break;
 
             case EventInterface:
                 // TODO when landing here: should return to the driver???
-                iProcType = -1;         // no proc attached
+                ASSERT(proc_type == ProcType::None);         // no proc attached
                 break;
 
             case EventRefresh:
-                iProcType = -1;         // no proc attached
+                ASSERT(proc_type == ProcType::None);         // no proc attached
                 if( xAtomType == CFlowAtom::AtomType::Item ) {
                     if( bEnterTheField )
                         bRequestArised = AcceptFieldValue( pAtom );
@@ -4457,22 +4459,22 @@ CheckCurrentAtom:
                 break;
 
             case EventKillFocus:
-                iProcType = PROCTYPE_KILLFOCUS;
+                proc_type = ProcType::KillFocus;
                 bEventKillOrPost = true;
                 break;
 
             case EventPostProc:
-                iProcType = PROCTYPE_POST;
+                proc_type = ProcType::PostProc;
                 bEventKillOrPost = true;
                 break;
 
             case EventOnOccChange:
-                iProcType = PROCTYPE_ONOCCCHANGE;
+                proc_type = ProcType::OnOccChange;
                 break;
 
             default:
-                ASSERT( 0 );            // can't be
-                iProcType = -1;         // no proc attached
+                ASSERT(false);                       // can't be
+                ASSERT(proc_type == ProcType::None); // no proc attached
                 break;
         }
 
@@ -4490,11 +4492,11 @@ CheckCurrentAtom:
             bRequestArised = true;
         }
 
-        else if( iProcType >= 0 )
+        else if( proc_type != ProcType::None )
         {
             if( xAtomType == CFlowAtom::AtomType::Item )
             {
-                bRequestArised = m_pIntDriver->ExecuteProcVar(iSymbol, (ProcType)iProcType);
+                bRequestArised = m_pIntDriver->ExecuteProcVar(iSymbol, proc_type);
 
                 if( bEventKillOrPost && bIsPrimaryFlow )
                 {
@@ -4508,12 +4510,12 @@ CheckCurrentAtom:
 
             else if( xAtomType == CFlowAtom::AtomType::BlockHead || xAtomType == CFlowAtom::AtomType::BlockTail )
             {
-                bRequestArised = m_pIntDriver->ExecuteProcBlock(iSymbol, (ProcType)iProcType);
+                bRequestArised = m_pIntDriver->ExecuteProcBlock(iSymbol, proc_type);
             }
 
             else
             {
-                bRequestArised = m_pIntDriver->ExecuteProcGroup(iSymbol, (ProcType)iProcType);
+                bRequestArised = m_pIntDriver->ExecuteProcGroup(iSymbol, proc_type);
 
                 // RHF INIC Feb 17, 2003
                 if( bEventKillOrPost && bIsPrimaryFlow )
@@ -4523,7 +4525,7 @@ CheckCurrentAtom:
 
             // SAVY INTERACTIVE EDIT INIT
             //stuff for sequential field
-            if( xAtomType == CFlowAtom::AtomType::Item && iProcType == PROCTYPE_PRE ) { //process sequential
+            if( xAtomType == CFlowAtom::AtomType::Item && proc_type == ProcType::PreProc ) { //process sequential
                 CNDIndexes theIndex;
                 VARX*       pVarX = GetFieldFromAtom( pAtom, theIndex );
                 VART*       pVarT = pVarX->GetVarT();
@@ -7584,7 +7586,7 @@ void CsDriver::SaveEnvironmentInfo()
     // SaveEnvironmentInfo: saves current values of the environment for Enter-flow actions
 
     // info saved to allow later returning to this flow
-    m_ProgType = m_pIntDriver->m_iProgType;
+    m_procType = m_pIntDriver->m_procType;
     m_ExLevel = m_pIntDriver->m_iExLevel;
     m_ExSymbol = m_pIntDriver->m_iExSymbol;
 }
@@ -7594,7 +7596,7 @@ void CsDriver::RestoreEnvironmentInfo()
     // RestoreEnvironmentInfo: restores saved values of the environment for Enter-flow actions
 
     // info saved to allow later returning to this flow
-    m_pIntDriver->m_iProgType = m_ProgType;
+    m_pIntDriver->m_procType = m_procType;
     m_pIntDriver->m_iExLevel = m_ExLevel;
     m_pIntDriver->m_iExSymbol = m_ExSymbol;
 }
@@ -7638,7 +7640,7 @@ bool CsDriver::RunEnterFlowLogicStack()
                 ///     skip to VALUE;
                 if( bRequestIssued )
                 {
-                    SetRequestEventType(static_cast<EventType>(m_pIntDriver->m_iProgType));
+                    SetRequestEventType(static_cast<EventType>(m_pIntDriver->m_procType));
                     SetRequestOrigin();
                 }
 

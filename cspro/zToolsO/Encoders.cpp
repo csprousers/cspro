@@ -167,9 +167,15 @@ std::string Encoders::ToHtmlTagValue(const std::string_view text_sv)
 
 std::string Encoders::FromHtmlAmpersandEscapes(std::string text)
 {
-    SO::Replace(text, HtmlTag_lt_sv, "<");
-    SO::Replace(text, HtmlTag_gt_sv, ">");
-    SO::Replace(text, HtmlTag_amp_sv, "&");
+    const size_t first_ampersand_pos = text.find('&');
+
+    if( first_ampersand_pos != std::string::npos )
+    {
+        SO::Replace(text, HtmlTag_lt_sv, "<", first_ampersand_pos);
+        SO::Replace(text, HtmlTag_gt_sv, ">", first_ampersand_pos);
+        SO::Replace(text, HtmlTag_nbsp_sv, " ", first_ampersand_pos);
+        SO::Replace(text, HtmlTag_amp_sv, "&", first_ampersand_pos);
+    }
 
     return text;
 }

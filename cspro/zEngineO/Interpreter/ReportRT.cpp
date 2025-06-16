@@ -6,17 +6,6 @@
 #include <zViewO/MarkdownViewInput.h>
 
 
-std::string* LogicInterpreter::GetReportTextBuilderWithValidityCheck(Report& report)
-{
-    std::string* const report_text_builder = report.GetReportTextBuilder();
-
-    if( report_text_builder == nullptr )
-        IssueMessage(MessageType::Error, 48111, report.GetName().c_str(), "The report creation has not yet been initiated.");
-
-    return report_text_builder;
-}
-
-
 double LogicInterpreter::ex_Report_save(const int program_index)
 {
     const auto& report_save_node = GetNode<Nodes::Report::Save>(program_index);
@@ -77,67 +66,6 @@ double LogicInterpreter::ex_Report_view(Report& report, const ViewerOptions* con
     else
     {
         viewer.ViewFile(*report_file_path);
-    }
-
-    return 1;
-}
-
-
-double LogicInterpreter::ex_Report_write(const int program_index)
-{
-    const auto& report_write_node = GetNode<Nodes::Report::Write>(program_index);
-    Report& report = GetSymbolReport(report_write_node.symbol_index);
-
-    std::string* const report_text_builder = GetReportTextBuilderWithValidityCheck(report);
-
-    if( report_text_builder == nullptr )
-        return 0;
-
-    // write out direct report text...
-    if( report_write_node.type == Nodes::Report::Write::Type::ReportText )
-    {
-        report_text_builder->append(*m_engineData->string_literals[report_write_node.expression]);
-    }
-
-    // ...or the results of a text fill...
-    else if( report_write_node.type == Nodes::Report::Write::Type::TextFill )
-    {
-        const SharableString fill_text = EvaluateTextFill(report_write_node.expression);
-        std::unique_ptr<std::string> escaped_fill_text;
-
-        if( report_write_node.escape_text == 1 )
-        {
-            switch( report.GetEscapeType() )
-            {
-                case ReportFile::EscapeType::Html:
-                    escaped_fill_text = Encoders::ToHtmlWorker(*fill_text);
-                    break;
-
-                case ReportFile::EscapeType::Markdown:
-                    escaped_fill_text = Encoders::ToMarkdownWorker(*fill_text);
-                    break;
-
-                case ReportFile::EscapeType::Csv:
-                    escaped_fill_text = Encoders::ToCsvWorker(*fill_text);
-                    break;
-
-                default:
-                    ASSERT(report.GetEscapeType() == ReportFile::EscapeType::None);
-                    break;
-            }
-        }
-
-        report_text_builder->append(( escaped_fill_text != nullptr ) ? *escaped_fill_text :
-                                                                       *fill_text);
-    }
-
-    // ...or the results of a report.write call
-    else
-    {
-        ASSERT(report_write_node.type == Nodes::Report::Write::Type::Write);
-
-        const SharableString fill_text = EvaluateUserMessage(report_write_node.expression, FunctionCode::REPORTFN_WRITE_CODE);
-        report_text_builder->append(*fill_text);
     }
 
     return 1;

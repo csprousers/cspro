@@ -176,6 +176,13 @@ void CLogicCtrl::SetModified(bool modified/* = true*/)
 }
 
 
+void CLogicCtrl::SetTextAndSetSavePoint(const cs::string_sz text)
+{
+    SetText(text);
+    SetSavePoint();
+}
+
+
 std::string CLogicCtrl::ReturnWordAtCursorPos(const Sci_Position pos)
 {
     Sci_Position sciCurrentPos = pos;
@@ -391,7 +398,7 @@ void CLogicCtrl::OnLButtonDown(UINT nFlags, CPoint point)
 {
     // for invoking the reference window with Ctrl+Alt+Click or Ctrl+Click
 
-    if( ( GetKeyState(VK_CONTROL) < 0 && GetKeyState(VK_SHIFT) >= 0 ) && ProcessClicksForReferenceWindow())
+    if( ( GetKeyState(VK_CONTROL) < 0 && GetKeyState(VK_SHIFT) >= 0 ) && ProcessClicksForReferenceWindow() )
     {
         // override the handling of any change of position so that nothing get selected
         int current_position = CharPositionFromPoint(point.x, point.y);
@@ -528,15 +535,9 @@ void CLogicCtrl::ShowTooltip(Sci_Position word_pos, const bool show_offset_by_fu
 }
 
 
-void CLogicCtrl::OnUpdateNeedSel(CCmdUI* pCmdUI)
+void CLogicCtrl::OnUpdateNeedSel(CCmdUI* const pCmdUI)
 {
-    //Validate our parameters
-    ASSERT_VALID(this);
-
-    CScintillaCtrl& rCtrl = *this;
-    const Sci_Position nStartChar = rCtrl.GetSelectionStart();
-    const Sci_Position nEndChar = rCtrl.GetSelectionEnd();
-    pCmdUI->Enable(nStartChar != nEndChar);
+    pCmdUI->Enable(!GetSelectionEmpty());
 }
 
 
@@ -1177,6 +1178,25 @@ void CLogicCtrl::OnEditRepeat()
 }
 
 
+void CLogicCtrl::DuplicateLineOrSelection()
+{
+    GetSelectionEmpty() ? LineDuplicate() :
+                          SelectionDuplicate();
+
+    SetModified();
+    OnUpdateStatusPaneCaretPos();
+}
+
+
+void CLogicCtrl::DeleteLine()
+{
+    LineDelete();
+
+    SetModified();
+    OnUpdateStatusPaneCaretPos();
+}
+
+
 void CLogicCtrl::CommentCode() // 20101215
 {
     int selectionBufferLength = Scintilla::CScintillaCtrl::GetSelText(NULL);
@@ -1768,23 +1788,26 @@ BOOL CLogicCtrl::PreTranslateMessage(MSG* pMsg)
                 break;
             }
         }
-        else {
-            int nID =  0;
-            if (bCtrl) {
-                switch (pMsg->wParam) {
-                case 'L':
-                    LineDelete();
-                    return TRUE;
-                case 'A': nID = 16; break;
-                case 'C': nID = 13; break;
-                default:
-                    break;
-                }
 
-            }
-            if (nID != 0) {//select | copy
-                PostMessage(WM_COMMAND, nID, 0);
-                return TRUE;
+        else if( bCtrl )
+        {
+            switch( pMsg->wParam )
+            {
+                case 'D':
+                    DuplicateLineOrSelection();
+                    return TRUE;
+
+                case 'L':
+                    DeleteLine();
+                    return TRUE;
+
+                case 'A':
+                    PostMessage(WM_COMMAND, 16); // select
+                    return TRUE;
+
+                case 'C':
+                    PostMessage(WM_COMMAND, 13); // copy
+                    return TRUE;
             }
         }
     }

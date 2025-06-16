@@ -75,12 +75,12 @@ CEngineDriver::CEngineDriver(Application* pApplication, bool bDoInterpreter, Com
 
     m_TmpCtabTmp.Empty();
 
-    // batch-skip management                            // victor Mar 14, 01
-    m_bSkipping       = false;          // "skipping" flag
-    m_pSkippingSource = NULL;           // skip-source description
-    m_iSkippingSource = -1;             // skip-source proc-type (PROCTYPE_PRE or PROCTYPE_POST)
-    m_pSkippingTarget = NULL;           // skip-target description
-    m_iSkippingTarget = -1;             // skip-source proc-type (PROCTYPE_PRE or PROCTYPE_POST)
+    // batch-skip management                   // victor Mar 14, 01
+    m_bSkipping       = false;                 // "skipping" flag
+    m_pSkippingSource = NULL;                  // skip-source description
+    m_skippingSourceProcType = ProcType::None; // skip-source proc-type (ProcType::PreProc or ProcType::PostProc)
+    m_pSkippingTarget = NULL;                  // skip-target description
+    m_skippingTargetProcType = ProcType::None; // skip-source proc-type (ProcType::PreProc or ProcType::PostProc)
 
     // miscellaneous
     SetHasOutputDict( false ); // RHF Aug 23, 2002
@@ -151,7 +151,7 @@ void CEngineDriver::SetUserbar(std::unique_ptr<Userbar> userbar)
 //
 //////////////////////////////////////////////////////////////////////////////
 
-void CEngineDriver::SetSkipping( int iSymbol, int* aIndex, int iProgType, bool bTarget ) {
+void CEngineDriver::SetSkipping( int iSymbol, int* aIndex, const ProcType proc_type, bool bTarget ) {
     m_bSkipping = true;
 
     CNDIndexes theIndex( ONE_BASED, aIndex );
@@ -159,12 +159,12 @@ void CEngineDriver::SetSkipping( int iSymbol, int* aIndex, int iProgType, bool b
     if( !bTarget ) {                    // skip-source
         ASSERT( m_pSkippingSource == NULL );
         m_pSkippingSource = new C3DObject( iSymbol, theIndex );
-        m_iSkippingSource = iProgType;
+        m_skippingSourceProcType = proc_type;
     }
     else {                              // skip-target
         ASSERT( m_pSkippingTarget == NULL );
         m_pSkippingTarget = new C3DObject( iSymbol, theIndex );
-        m_iSkippingTarget = iProgType;
+        m_skippingTargetProcType = proc_type;
     }
 }
 
@@ -172,24 +172,24 @@ void CEngineDriver::SetSkipping( int iSymbol, int* aIndex, int iProgType, bool b
 // SetSkipping -> new 3d versions: SetSkippingSource + SetSkippingTarget
 // rcl, Sept 04, 2004
 
-void CEngineDriver::SetSkippingSource( C3DObject& theSourceObject, int iProgType ) // rcl, Sept 04, 04
+void CEngineDriver::SetSkippingSource(C3DObject& theSourceObject, const ProcType proc_type) // rcl, Sept 04, 04
 {
     m_bSkipping = true;
 
     ASSERT( !theSourceObject.getIndexes().isZeroBased() );
     ASSERT( m_pSkippingSource == NULL );
     m_pSkippingSource = new C3DObject( theSourceObject.GetSymbol(), theSourceObject.GetIndexes() );
-    m_iSkippingSource = iProgType;
+    m_skippingSourceProcType = proc_type;
 }
 
-void CEngineDriver::SetSkippingTarget( C3DObject& theTargetObject, int iProgType )  // rcl, Sept 04, 04
+void CEngineDriver::SetSkippingTarget(C3DObject& theTargetObject, const ProcType proc_type)  // rcl, Sept 04, 04
 {
     m_bSkipping = true;
 
     ASSERT( !theTargetObject.getIndexes().isZeroBased() );
     ASSERT( m_pSkippingTarget == NULL );
     m_pSkippingTarget = new C3DObject( theTargetObject.GetSymbol(), theTargetObject.GetIndexes() );
-    m_iSkippingTarget = iProgType;
+    m_skippingTargetProcType = proc_type;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -202,10 +202,10 @@ void CEngineDriver::ResetSkipping( void ) {
     if( m_pSkippingTarget != NULL )     // skip-target description
         delete m_pSkippingTarget;
 
-    m_pSkippingSource = NULL;           // skip-source description
-    m_iSkippingSource = -1;             // skip-source proc-type (PROCTYPE_PRE or PROCTYPE_POST)
-    m_pSkippingTarget = NULL;           // skip-target description
-    m_iSkippingTarget = -1;             // skip-source proc-type (PROCTYPE_PRE or PROCTYPE_POST)
+    m_pSkippingSource = NULL;                  // skip-source description
+    m_skippingSourceProcType = ProcType::None; // skip-source proc-type (ProcType::PreProc or ProcType::PostProc)
+    m_pSkippingTarget = NULL;                  // skip-target description
+    m_skippingTargetProcType = ProcType::None; // skip-source proc-type (ProcType::PreProc or ProcType::PostProc)
 }
 
 
@@ -229,8 +229,9 @@ static bool IsEndGroupReached(Symbol* pSourceSymbol, Symbol* pCurrentSymbol)
     if( pCurrentGroupT ) {
         GROUPT* pSourceGroupT=NULL;
 
-        if( pSourceSymbol->IsA(SymbolType::Group) )
+        if( pSourceSymbol->IsA(SymbolType::Group) ) {
             pSourceGroupT=(GROUPT*)pSourceSymbol;
+        }
         else if( pSourceSymbol->GetType() == SymbolType::Block ) {
             pSourceGroupT = assert_cast<const EngineBlock*>(pSourceSymbol)->GetGroupT();
         }
@@ -238,8 +239,9 @@ static bool IsEndGroupReached(Symbol* pSourceSymbol, Symbol* pCurrentSymbol)
             VART*   pVarT=(VART*)pSourceSymbol;
             pSourceGroupT = LocalGetParent( pVarT );
         }
-        else
-            ASSERT(0);
+        else {
+            ASSERT(false);
+        }
 
         if( pSourceGroupT ) {
             int iSourceSymbol = pSourceGroupT->GetSymbolIndex();
@@ -297,8 +299,9 @@ bool CEngineDriver::IsSkippingTargetReached( int iCurrentSymbol, CNDIndexes& aIn
 }
 
 //#else
-bool CEngineDriver::IsSkippingTargetReached( int iCurrentSymbol, int* aIndex, int iProgType ) {
-    // IsSkippingTargetReached: calculate if {iCurrentSymbol, aIndex, iProgType} is at or after m_pSkippingTarget
+bool CEngineDriver::IsSkippingTargetReached(int iCurrentSymbol, int* aIndex, const ProcType proc_type)
+{
+    // IsSkippingTargetReached: calculate if {iCurrentSymbol, aIndex, proc_type} is at or after m_pSkippingTarget
     bool    bTargetReached = true;
 
     if( !m_bSkipping )
@@ -315,7 +318,7 @@ bool CEngineDriver::IsSkippingTargetReached( int iCurrentSymbol, int* aIndex, in
 
     // completing target coordinates
     int     iTargetSymbol = m_pSkippingTarget->GetSymbol();
-    int     iTargetProg   = m_iSkippingTarget;
+    ProcType target_proc_type = m_skippingTargetProcType;
     SymbolType eTargetType = NPT(iTargetSymbol)->GetType();
     int     iTargetSymVar = 0;
     int     iTargetSymBlock = 0;
@@ -366,7 +369,7 @@ bool CEngineDriver::IsSkippingTargetReached( int iCurrentSymbol, int* aIndex, in
 
     // completing tested coordinates
     int     iTestedSymbol = iCurrentSymbol;
-    int     iTestedProg = iProgType;
+    ProcType tested_proc_type = proc_type;
     SymbolType eTestedType = NPT(iTestedSymbol)->GetType();
     int     iTestedSymVar = 0;
     int     iTestedSymBlock = 0;
@@ -434,20 +437,24 @@ bool CEngineDriver::IsSkippingTargetReached( int iCurrentSymbol, int* aIndex, in
     }
 
     else if( eTestedType == SymbolType::Group ) {      // target is a block or Var, testing a Group
-        if( iTargetProg == PROCTYPE_PRE )
+        if( target_proc_type == ProcType::PreProc ) {
             bTargetReached = ( iTestedOrder > iTargetOrder );
-
-        else if( iTargetProg == PROCTYPE_NONE ) // RHF+VC Jun 06, 2001
+        }
+        else if( target_proc_type == ProcType::None ) { // RHF+VC Jun 06, 2001
             bTargetReached = true;// RHF+VC Jun 06, 2001
-        else if( iTargetProg == PROCTYPE_ONFOCUS )
+        }
+        else if( target_proc_type == ProcType::OnFocus ) {
             bTargetReached = ( iTestedOrder > iTargetOrder );
-        else if( iTargetProg == PROCTYPE_KILLFOCUS )
+        }
+        else if( target_proc_type == ProcType::KillFocus ) {
             bTargetReached = ( iTestedGroupOrder >= iTargetGroupOrder );
-
-        else if( iTargetProg == PROCTYPE_POST )
+        }
+        else if( target_proc_type == ProcType::PostProc ) {
             bTargetReached = ( iTestedGroupOrder >= iTargetGroupOrder );
-        else
-            ASSERT(0);
+        }
+        else {
+            ASSERT(false);;
+        }
     }
 
     else if( eTargetType == SymbolType::Block )
@@ -468,7 +475,7 @@ bool CEngineDriver::IsSkippingTargetReached( int iCurrentSymbol, int* aIndex, in
             {
                 if( reached_block_or_field_in_block )
                 {
-                    bTargetReached = ( iTestedSymVar != 0 ) || ( iTestedProg == iTargetProg );
+                    bTargetReached = ( iTestedSymVar != 0 ) || ( tested_proc_type == target_proc_type );
                 }
 
                 else
@@ -490,7 +497,7 @@ bool CEngineDriver::IsSkippingTargetReached( int iCurrentSymbol, int* aIndex, in
             if( iTestedOcc > iTargetOcc )
                 bTargetReached = true;
             else if( iTestedOcc == iTargetOcc )
-                bTargetReached = ( iTestedProg == iTargetProg );
+                bTargetReached = ( tested_proc_type == target_proc_type );
             else
                 bTargetReached = false;
         }

@@ -41,7 +41,6 @@ CEngineCompFunc::CEngineCompFunc(CEngineDriver* pEngineDriver)
 
     m_Flagcomp = 0;
     m_LvlInComp = 0;
-    m_ProcInComp = 0;
 
     // BUCEN
     m_bcvarsubcheck = false;

@@ -91,7 +91,7 @@ BEGIN
     "S",            ID_FILE_SAVE_ALL,       VIRTKEY, SHIFT, CONTROL, NOINVERT
     VK_F1,          ID_HELP_FINDER,         VIRTKEY, NOINVERT
     "K",            ID_RUN_COMPILE_OR_VALIDATE, VIRTKEY, CONTROL, NOINVERT
-    VK_F5,          ID_RUN_REPORT_PREVIEW,  VIRTKEY, CONTROL, NOINVERT
+    VK_F5,          ID_RUN_PREVIEW_TEXT_TEMPLATE, VIRTKEY, CONTROL, NOINVERT
     "R",            ID_RUN_RUN,             VIRTKEY, CONTROL, NOINVERT
 END
 
@@ -670,7 +670,8 @@ BEGIN
                             "Treat the JavaScript file as part of the global object (not a module)\nGlobal"
     ID_RUN_JAVASCRIPT_MODULE_MODULE 
                             "Treat the JavaScript file as a module\nECMAScript Module"
-    ID_RUN_REPORT_PREVIEW   "Preview the report\nReport Preview"
+    ID_RUN_PREVIEW_TEXT_TEMPLATE 
+                            "Preview the text template\nPreview Text Template"
     ID_RUN_RUN              "Run the code\nRun"
     ID_RUN_SAVE_AS_HTML     "Save the file as HTML\nSave as HTML"
     ID_RUN_STOP             "Stop any running code\nStop"

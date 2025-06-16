@@ -1073,15 +1073,15 @@ void ManageFilesDlg::OnAddReport()
     {
         try
         {
-            const ReportFile::EscapeType escape_type = ReportFile::GetDefaultEscapeTypeFromFilename(file_path, true);
+            const ReportFile::Encoding encoding = ReportFile::GetDefaultEncodingFromFilename(file_path, true);
 
             // if the file does not exist, create a default one
             if( !PortableFunctions::FileIsRegular(file_path) )
-                CreateDefaultReport(file_path, escape_type);
+                CreateDefaultReport(file_path, encoding);
 
             // create a unique name based on the filename
             m_application.AddReport(ReportFile(CreateUniqueName(Path::GetFilenameWithoutExtension(file_path)),
-                                               escape_type,
+                                               encoding,
                                                TextSourceEditable::FindOpenOrCreate(file_path)));
 
             last_added_dialog = BuildTreeReport(AppFileType::Report, m_application.GetReportFiles().back());
@@ -1102,19 +1102,19 @@ void ManageFilesDlg::OnAddReport()
 }
 
 
-void ManageFilesDlg::CreateDefaultReport(const std::string& report_file_path, const ReportFile::EscapeType escape_type)
+void ManageFilesDlg::CreateDefaultReport(const std::string& report_file_path, const ReportFile::Encoding encoding)
 {
     ASSERT(!PortableFunctions::FileIsRegular(report_file_path));
 
     const std::string templates_directory = Html::GetDirectory(Html::Subdirectory::Templates);
 
-    if( escape_type == ReportFile::EscapeType::Html )
+    if( encoding == ReportFile::Encoding::Html )
     {
         if( CreateDefaultHtmlReport(templates_directory, report_file_path) )
             return;
     }
 
-    else if( escape_type == ReportFile::EscapeType::Markdown )
+    else if( encoding == ReportFile::Encoding::Markdown )
     {
         const std::string markdown_report_template = Path::Combine(templates_directory, "report-basic.md");
         PortableFunctions::FileCopyWithExceptions(markdown_report_template, report_file_path, FileOverwriteFlag::Fail);

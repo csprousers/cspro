@@ -51,7 +51,7 @@ CapiText CapiEditorViewModel::GetText(const size_t language_index, const CapiTex
 }
 
 
-void CapiEditorViewModel::SetText(const size_t language_index, const CapiText::Type type, std::string new_text)
+void CapiEditorViewModel::SetText(const size_t language_index, const CapiText::Type type, CapiText capi_text)
 {
     CapiQuestion question = GetQuestion();
     CapiCondition condition = ( m_conditionIndex < question.GetConditions().size() ) ? question.GetConditions()[m_conditionIndex] :
@@ -59,10 +59,7 @@ void CapiEditorViewModel::SetText(const size_t language_index, const CapiText::T
 
     const std::string& language_name = m_questionManager->GetLanguages()[language_index].GetName();
 
-    if( new_text == "<p></p>" )
-        new_text.clear();
-
-    condition.SetText(CapiText(std::move(new_text)), language_name, type);
+    condition.SetText(std::move(capi_text), language_name, type);
     question.SetCondition(std::move(condition));
 
     m_questionManager->SetQuestion(std::move(question));
@@ -127,27 +124,27 @@ void CapiEditorViewModel::SetItem(const CDEItemBase* const item_base)
 }
 
 
-CapiEditorViewModel::SyntaxCheckResult CapiEditorViewModel::CheckSyntax(const CapiLogicParameters::Type type, SharableString logic)
+std::optional<CapiEditorViewModel::SyntaxCheckError> CapiEditorViewModel::CheckSyntax(const SyntaxCheckInput condition_or_text_or_token)
 {
+    ASSERT(std::visit([](const auto& ptr) { return ( ptr != nullptr ); }, condition_or_text_or_token));
+
     if( ( m_compiler == nullptr || m_item->GetSymbol() < 1 ) &&
         ( WindowsDesktopMessage::Send(UWM::Designer::CreateCapiLogicCompiler, &m_compiler, m_application) != 1 ) )
     {
-        return ReturnProgrammingError(SyntaxCheckError { "Could not create DesignerCapiLogicCompiler" });
+        SyntaxCheckError errors;
+        errors.emplace_back(Logic::ParserMessage::Type::Error);
+        errors.back().message_text = "Could not create DesignerCapiLogicCompiler";
+        return ReturnProgrammingError(std::move(errors));
     }
 
     ASSERT(m_compiler != nullptr && m_item->GetSymbol() >= 1);
 
-    CapiLogicParameters capi_logic_parameters { type, m_item->GetSymbol(), std::move(logic) };
+    const CapiLogicParameters capi_logic_parameters { m_item->GetSymbol(), condition_or_text_or_token };
 
     DesignerCapiLogicCompiler::CompileResult result = m_compiler->Compile(capi_logic_parameters);
 
-    if( result.expression == -1 )
-    {
-        return SyntaxCheckError { std::move(result.error_message) };
-    }
+    if( !result.errors.empty() )
+        return result.errors;
 
-    else
-    {
-        return SyntaxCheckOk();
-    }
+    return std::nullopt;
 }

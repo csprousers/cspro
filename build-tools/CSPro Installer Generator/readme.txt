@@ -92,10 +92,16 @@
        Drop Files dialogs, providing a central place to manage an
        application's files and each file's properties.
 
+    -  New StringWriter logic object that supports building strings
+       incrementally.
+
     -  Language additions:
           * Logic: setValueFromJson
           * JS functions: eval, getValue, getValueJson, hasValue, invoke,
               setValue, setValueFromJson
+          * Report functions: writeEncoded, writeEncodedLine, writeLine
+          * StringWriter functions: clear, toString, write, writeEncoded,
+              writeEncodedLine, writeLine
 
     -  Action Invoker additions:
           * throwException

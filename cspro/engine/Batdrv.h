@@ -41,8 +41,8 @@ public:
     // where    LEVELslot   is a Level-proc slot
     //          GRslot      is a Group-proc slot
     //          GIslot      is a group-iterator slot:
-    //                      the initial slot has ProgType=PROCTYPE_PRE,
-    //                      the ending slot has ProgType=PROCTYPE_POST
+    //                      the initial slot has ProgType = ProcType::PreProc,
+    //                      the ending slot has ProgType = ProcType::PostProc
     //          Blockslot   is a block-proc slot
     //          VAslot      is a Variable-proc slot
     //          CTslot      is a Table-proc slot
@@ -53,8 +53,8 @@ private:
     ProcType    m_eProcType;            // PreProc, PostProc, etc.
     int         m_iSymbol;              // iSymbol
     int         m_iSlot;                // reciprocal indexes, for GIslots only:
-                                        // ... iIndex of GIslot/PROCTYPE_POST for GIslot/PROCTYPE_PRE,
-                                        // ... iIndex of GIslot/PROCTYPE_PRE  for GIslot/PROCTYPE_POST,
+                                        // ... iIndex of GIslot/ProcType::PostProc for GIslot/ProcType::PreProc,
+                                        // ... iIndex of GIslot/ProcType::PreProc for GIslot/ProcType::PostProc,
                                         // ... -1                    for other slots
 
 // --- Methods -------------------------------------------------------------

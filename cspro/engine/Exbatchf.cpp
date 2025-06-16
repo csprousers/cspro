@@ -100,7 +100,7 @@ void CBatchDriver::CreateProgLevel( int iLevel ) {
     ASSERT( iSymLevel > 0 );
     GROUPT* pGroupT = GPT(iSymLevel);
 
-    // adding Level' PROCTYPE_PRE-block
+    // adding Level' ProcType::PreProc-block
     CreateProgSlot( iLevel, CPrSlot::LEVELslot, ProcType::PreProc, iSymLevel );
 
     bool    bAsCtab= (GetBatchMode() == CRUNAPL_CSTAB );
@@ -185,7 +185,7 @@ int CBatchDriver::CreateProgGroup( int iLevel, int iSymGroup, bool bDoCreate ) {
     }
 
     if( bDoCreate ) {
-        // adding Group' PROCTYPE_PRE-block (for named groups only)
+        // adding Group' ProcType::PreProc-block (for named groups only)
         if( bIsNamedGroup )
             CreateProgSlot( iLevel, CPrSlot::GRslot, ProcType::PreProc, iSymGroup );
 
@@ -195,7 +195,7 @@ int CBatchDriver::CreateProgGroup( int iLevel, int iSymGroup, bool bDoCreate ) {
         //// (for instance in the case that a item that repeats on a record has code
         //// in X000 but not in X)
 
-            // generate head of group-iterator (GIslot/PROCTYPE_PRE)
+            // generate head of group-iterator (GIslot/ProcType::PreProc)
             int     iHeadIndex = CreateProgSlot( iLevel, CPrSlot::GIslot, ProcType::PreProc, iSymGroup );
 
             // generate for each item in Group
@@ -219,7 +219,7 @@ int CBatchDriver::CreateProgGroup( int iLevel, int iSymGroup, bool bDoCreate ) {
                 }
             }
 
-            // generate tail of group-iterator (GIslot/PROCTYPE_POST)
+            // generate tail of group-iterator (GIslot/ProcType::PostProc)
             int     iTailIndex = CreateProgSlot( iLevel, CPrSlot::GIslot, ProcType::PostProc, iSymGroup );
 
             // setup reciprocal indexes in head & tail of group-iterator
@@ -304,7 +304,7 @@ int CBatchDriver::CreateProgTable( int iLevel, int iCtab, bool bDoCreate )
     CTAB*   pCtab = XPT(iCtab);
     int     iNumProgSlots = 0;
 
-    // adding Var' PROCTYPE_TALLY-block only if Tally present
+    // adding Var' ProcType::Tally-block only if Tally present
     if( pCtab->HasProcIndex(ProcType::Tally) ) {
         iNumProgSlots++;
         if( bDoCreate )

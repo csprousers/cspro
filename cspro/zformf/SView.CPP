@@ -77,7 +77,6 @@ BEGIN_MESSAGE_MAP(CFSourceEditView, CLogicView)
     ON_COMMAND(ID_VIEW_PEEK_LOGIC_WORD, OnPeekLogicWord)
     ON_COMMAND(ID_VIEW_GOTO_LOGIC_WORD, OnGotoLogicWord)
     ON_COMMAND(ID_COMMENT_CODE, OnCommentCode)
-    ON_COMMAND(ID_DUPLICATE_LINE, OnDuplicateLine)
     //}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -280,10 +279,10 @@ void CFSourceEditView::OnContextMenu(CWnd* /*pWnd*/, CPoint point)
     CFormChildWnd* pParentFrame = (CFormChildWnd*)GetParentFrame();
 
     if( pParentFrame != nullptr && pParentFrame->GetUseQuestionText() ) {
-        popMenu.AppendMenu (MF_STRING, ID_QSF_EDITOR, _T("View CAPI &Question"));
+        popMenu.AppendMenu (MF_STRING, ID_QSF_EDITOR, _T("View &Question Text"));
     }
     else {
-        popMenu.AppendMenu (MF_STRING|MF_GRAYED, ID_QSF_EDITOR, _T("View CAPI &Question"));
+        popMenu.AppendMenu (MF_STRING|MF_GRAYED, ID_QSF_EDITOR, _T("View &Question Text"));
     }
 
     popMenu.LoadToolbar(IDR_FORM_FRAME);
@@ -373,16 +372,4 @@ void CFSourceEditView::OnCommentCode() // 20101215
 {
     GetDocument()->SetModifiedFlag(true);
     GetEditCtrl()->CommentCode();
-}
-
-
-void CFSourceEditView::OnDuplicateLine()
-{
-    GetDocument()->SetModifiedFlag(true);
-    if (GetEditCtrl()->GetSelectionEmpty()) {
-        GetEditCtrl()->LineDuplicate();
-    }
-    else {
-        GetEditCtrl()->SelectionDuplicate();
-    }
 }

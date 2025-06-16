@@ -592,14 +592,15 @@ Language=EN
 47513  You must specify an index for this dimension
 
 /* --- Question Text */
-48011  The question text condition must consist of a single numeric expression
-48012  The question text fill must consist of a single numeric or string expression, or an object with binary data
+48011  Question text conditions must consist of a single numeric expression
+48012  Question text logic is not valid
+48013  Question text fills must consist of a single numeric or string expression, or an object with binary data
 
-/* --- Reports */
-48101  Unbalanced ?> escapes in report on line number %d
-48102  Reached end of report while still in %s that started on line number %d
-48103  The report uses functionality that is not supported
-48104  Writing to report '%s' is only allowed within the report's logic or from a user-defined function
+/* --- Text Templates */
+48101  Unbalanced ?> escapes in text template on line number %d
+48102  Reached end of text template while still in %s that started on line number %d
+48103  The text template uses functionality that is not supported
+48104  Accessing or writing to the text template based on '%s' is only allowed within the template's logic or from a user-defined function
 
 /* --- User-Defined Function Messages */
 50000  The user-defined function '%s' expects %s

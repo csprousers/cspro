@@ -1,6 +1,7 @@
 ﻿#include "stdafx.h"
 #include "UserFunctionArgumentChecker.h"
 #include "AllSymbols.h"
+#include "Compiler/LogicCompiler.h"
 #include <engine/Ctab.h>
 
 
@@ -8,8 +9,9 @@
 // UserFunctionArgumentChecker
 // --------------------------------------------------------------------------
 
-UserFunctionArgumentChecker::UserFunctionArgumentChecker(const UserFunction& user_function)
-    :   m_userFunction(user_function),
+UserFunctionArgumentChecker::UserFunctionArgumentChecker(LogicCompiler* const compiler, const UserFunction& user_function)
+    :   m_compiler(compiler),
+        m_userFunction(user_function),
         m_parameterNumber(SIZE_MAX),
         m_parameterSymbol(nullptr)
 {
@@ -86,6 +88,7 @@ const char* UserFunctionArgumentChecker::GetExpectedArgumentText(const Symbol& s
         case SymbolType::NamedFrequency: return "a named frequency";
         case SymbolType::Pff:            return "a Pff object";
         case SymbolType::Report:         return "a Report";
+        case SymbolType::StringWriter:   return "a StringWriter";
         case SymbolType::SystemApp:      return "a SystemApp";
         case SymbolType::UserFunction:   return "a function pointer";
         case SymbolType::ValueSet:       return "a value set";
@@ -162,13 +165,22 @@ void UserFunctionArgumentChecker::CheckSymbolArgument(const size_t parameter_num
     {
         if( m_parameterSymbol->IsA(SymbolType::Array) )
         {
-            return ( argument_symbol_type == SymbolType::Crosstab );
+            if( argument_symbol_type == SymbolType::Crosstab )
+                return true;
         }
 
-        else
+        else if( m_parameterSymbol->IsA(SymbolType::StringWriter ) )
         {
-            return false;
+            if( argument_symbol_type == SymbolType::Report )
+            {
+                if( m_compiler != nullptr )
+                    m_compiler->CheckTextTemplateIsCurrentlyAccessible(*argument_symbol);
+
+                return true;
+            }
         }
+
+        return false;
     };
 
     // make sure the symbol type matches
@@ -376,7 +388,7 @@ void UserFunctionArgumentChecker::CheckUserFunctionArgument(UserFunction& argume
     }
 
     // ...and are compatible
-    UserFunctionArgumentChecker parameter_user_function_argument_checker(parameter_user_function);
+    UserFunctionArgumentChecker parameter_user_function_argument_checker(m_compiler, parameter_user_function);
 
     for( size_t i = 0; i < parameter_user_function.GetNumberParameters(); ++i )
     {

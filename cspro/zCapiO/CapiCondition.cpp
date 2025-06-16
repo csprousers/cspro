@@ -20,7 +20,7 @@ const CapiText* CapiCondition::GetText(const std::string& language_name, const C
 }
 
 
-void CapiCondition::SetText(CapiText text, const std::string& language_name, const CapiText::Type type)
+void CapiCondition::SetText(CapiText capi_text, const std::string& language_name, const CapiText::Type type)
 {
     std::map<std::string, CapiText>& texts = ( type == CapiText::Type::Question ) ? m_questionTexts :
                                                                                     m_helpTexts;
@@ -28,12 +28,12 @@ void CapiCondition::SetText(CapiText text, const std::string& language_name, con
 
     if( lookup == texts.cend() )
     {
-        texts.try_emplace(language_name, std::move(text));
+        texts.try_emplace(language_name, std::move(capi_text));
     }
 
     else
     {
-        lookup->second = std::move(text);
+        lookup->second = std::move(capi_text);
     }
 }
 
@@ -94,8 +94,13 @@ void CapiCondition::WriteJson(JsonWriter& json_writer) const
                 json_writer.BeginObject()
                            .Write(JK::language, language)
                            .Write(JK::type, type)
-                           .Write(JK::html, capi_text)
-                           .EndObject();
+                           .Write(JK::content, capi_text);
+
+                // only write the evaluated HTML in verbose mode
+                if( json_writer.Verbose() )
+                    json_writer.Write(JK::html, capi_text.GetHtmlWithEscapedTextTemplateDelimiters());
+
+                json_writer.EndObject();
             }
         };
 

@@ -150,6 +150,8 @@ void EngineData::Clear()
     groups.clear();
     sections.clear();
     variables.clear();
+
+    question_text_string_writer.reset();
 }
 
 

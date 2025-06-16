@@ -35,10 +35,6 @@ protected:
     void OnEditRedo();
     void OnUpdateEditRedo(CCmdUI* pCmdUI);
 
-    void OnEditDeleteLine();
-
-    void OnEditDuplicateLine();
-
     void OnEditCommentLine();
 
 protected:

@@ -160,7 +160,7 @@ BEGIN
         MENUITEM "&Question Text\tCtrl+Q",      ID_QSF_EDITOR
         MENUITEM "Questionnaire",               ID_VIEW_QUESTIONNAIRE
         MENUITEM SEPARATOR
-        MENUITEM "Report Preview\tCtrl+F5",     ID_VIEW_REPORT_PREVIEW
+        MENUITEM "Preview Text Template\tCtrl+F5", ID_VIEW_PREVIEW_TEXT_TEMPLATE
         MENUITEM SEPARATOR
         MENUITEM "OnKey Character Map",         ID_VIEW_ONKEY_CHAR_MAP
         MENUITEM "User and Configuration &Settings", ID_VIEW_COMMONSTORE
@@ -233,9 +233,9 @@ BEGIN
         MENUITEM "&Underline\tCtrl+U",          ID_FORMAT_UNDERLINE
         MENUITEM "Color",                       ID_FORMAT_COLOR
         MENUITEM SEPARATOR
-        MENUITEM "&Left",                       ID_FORMAT_ALIGNLEFT
-        MENUITEM "&Center",                     ID_FORMAT_ALIGNCENTER
-        MENUITEM "&Right",                      ID_FORMAT_ALIGNRIGHT
+        MENUITEM "&Left",                       ID_FORMAT_ALIGN_LEFT
+        MENUITEM "&Center",                     ID_FORMAT_ALIGN_CENTER
+        MENUITEM "&Right",                      ID_FORMAT_ALIGN_RIGHT
         MENUITEM SEPARATOR
         MENUITEM "Bullets",                     ID_FORMAT_OUTLINE_BULLET
         MENUITEM "Numbering",                   ID_FORMAT_OUTLINE_NUMBER
@@ -325,7 +325,6 @@ BEGIN
     VK_OEM_2,       ID_COMMENT_CODE,        VIRTKEY, CONTROL, NOINVERT
     "K",            ID_COMPILE,             VIRTKEY, CONTROL, NOINVERT
     VK_DELETE,      ID_DELETE_FORM,         VIRTKEY, CONTROL, NOINVERT
-    "D",            ID_DUPLICATE_LINE,      VIRTKEY, CONTROL, NOINVERT
     "C",            ID_EDIT_COPY,           VIRTKEY, CONTROL, NOINVERT
     "X",            ID_EDIT_CUT,            VIRTKEY, CONTROL, NOINVERT
     "V",            ID_EDIT_PASTE,          VIRTKEY, CONTROL, NOINVERT
@@ -356,7 +355,7 @@ BEGIN
     "L",            ID_VIEW_LOGIC,          VIRTKEY, CONTROL, NOINVERT
     "T",            ID_VIEW_NAMES,          VIRTKEY, CONTROL, NOINVERT
     VK_F12,         ID_VIEW_PEEK_LOGIC_WORD, VIRTKEY, ALT, NOINVERT
-    VK_F5,          ID_VIEW_REPORT_PREVIEW, VIRTKEY, CONTROL, NOINVERT
+    VK_F5,          ID_VIEW_PREVIEW_TEXT_TEMPLATE, VIRTKEY, CONTROL, NOINVERT
     "L",            ID_VIEW_TOP_LOGIC,      VIRTKEY, SHIFT, CONTROL, NOINVERT
 END
 
@@ -410,13 +409,12 @@ BEGIN
     BUTTON      ID_FORMAT_ITALIC
     BUTTON      ID_FORMAT_UNDERLINE
     BUTTON      ID_FORMAT_COLOR
-    BUTTON      ID_FORMAT_ALIGNLEFT
-    BUTTON      ID_FORMAT_ALIGNCENTER
-    BUTTON      ID_FORMAT_ALIGNRIGHT
+    BUTTON      ID_FORMAT_ALIGN_LEFT
+    BUTTON      ID_FORMAT_ALIGN_CENTER
+    BUTTON      ID_FORMAT_ALIGN_RIGHT
     BUTTON      ID_FORMAT_OUTLINE_BULLET
     BUTTON      ID_FORMAT_OUTLINE_NUMBER
     BUTTON      ID_EDIT_INSERT_IMAGE
-    BUTTON      ID_TOGGLE_QN
     BUTTON      ID_VVIEW_LOGIC
     BUTTON      ID_VQSF_EDITOR
 END
@@ -444,12 +442,13 @@ BEGIN
     SEPARATOR
     BUTTON      ID_FORMAT_COLOR
     SEPARATOR
-    BUTTON      ID_FORMAT_ALIGNLEFT
-    BUTTON      ID_FORMAT_ALIGNCENTER
-    BUTTON      ID_FORMAT_ALIGNRIGHT
+    BUTTON      ID_FORMAT_ALIGN_LEFT
+    BUTTON      ID_FORMAT_ALIGN_CENTER
+    BUTTON      ID_FORMAT_ALIGN_RIGHT
     SEPARATOR
     BUTTON      ID_FORMAT_OUTLINE_BULLET
     BUTTON      ID_FORMAT_OUTLINE_NUMBER
+    SEPARATOR
     BUTTON      ID_EDIT_INSERT_IMAGE
     BUTTON      ID_INSERT_TABLE
     BUTTON      ID_INSERT_LINK
@@ -457,9 +456,13 @@ BEGIN
     BUTTON      ID_TEXT_DIR_LTR
     BUTTON      ID_TEXT_DIR_RTL
     SEPARATOR
-    BUTTON      ID_QSF_EDITOR_VIEW_CODE
+    BUTTON      ID_QSF_EDITOR_EDIT_HTML_VISUAL
+    BUTTON      ID_QSF_EDITOR_EDIT_HTML_VISUAL_CODE
+    BUTTON      ID_QSF_EDITOR_EDIT_TEXT_HTML
+    BUTTON      ID_QSF_EDITOR_EDIT_TEXT_MARKDOWN
     SEPARATOR
-    BUTTON      ID_TOGGLE_QN
+    BUTTON      ID_QSF_EDITOR_VIEW_QUESTION
+    BUTTON      ID_QSF_EDITOR_VIEW_HELP
     SEPARATOR
     BUTTON      IDC_EDIT_LANG
     SEPARATOR
@@ -884,11 +887,12 @@ BEGIN
     LTEXT           "Current Font:  ",IDC_FIELD_FONT_DESC,66,10,213,8
 END
 
-IDD_QSF_EDIT_VIEW DIALOGEX 0, 0, 38, 21
+IDD_QSF_EDIT_VIEW DIALOGEX 0, 0, 95, 28
 STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_BORDER
 FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
-    CONTROL         "",IDC_HTML_EDIT,"Static",SS_BLACKRECT | SS_NOPREFIX | SS_NOTIFY | SS_SUNKEN | WS_BORDER,7,7,23,12
+    CONTROL         "",IDC_HTML_EDIT,"Static",SS_BLACKRECT | SS_NOPREFIX | SS_NOTIFY | SS_SUNKEN | WS_BORDER,0,0,43,28
+    EDITTEXT        IDC_QSF_LOGIC_CONTROL,52,0,43,28,ES_MULTILINE | WS_VSCROLL
 END
 
 IDD_RUNASB_DLG DIALOGEX 0, 0, 160, 73
@@ -1200,10 +1204,8 @@ BEGIN
 
     IDD_QSF_EDIT_VIEW, DIALOG
     BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 31
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 14
+        RIGHTMARGIN, 38
+        BOTTOMMARGIN, 21
     END
 
     IDD_RUNASB_DLG, DIALOG
@@ -1491,6 +1493,11 @@ BEGIN
     0
 END
 
+IDD_QSF_EDIT_VIEW AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -1514,7 +1521,25 @@ END
 
 STRINGTABLE
 BEGIN
+    ID_EDIT_TEXTPROP        "Edit the properties for the selected text\nText Properties"
+    ID_FIELDCOLORS          "Change the background color of fields during data entry\nField Colors"
+    ID_FIELDFONT            "Change field font"
+    ID_FILE_GENERATEBINARY  "Save data entry application in binary format\nGenerate Binary"
+    ID_FILE_PUBLISHANDDEPLOY 
+                            "Deploy application to synchronization service\nPublish and Deploy"
+    ID_FIND_NEXT            "Find Next\n Find Next"
+    ID_FORMAT_ALIGN_LEFT    "Left justify this paragraph\nLeft"
+    ID_FORMAT_ALIGN_CENTER  "Center this paragraph\nCenter"
+    ID_FORMAT_ALIGN_RIGHT   "Right justify this paragraph\nRight"
+    ID_FORMAT_BOLD          "Make the selection bold (toggle)\nBold"
+    ID_FORMAT_COLOR         "Make the selection a specified color\nColor"
+    ID_FORMAT_ITALIC        "Make the selection italic (toggle)\nItalic"
+    ID_FORMAT_OUTLINE_BULLET "Use bullets for this paragraph\nBullets"
     ID_FORMAT_OUTLINE_NUM   "Use numbering for this paragraph\nNumbered"
+END
+
+STRINGTABLE
+BEGIN
     ID_FORMAT_OUTLINE_NUMBER "Use numbering for this paragraph\nNumbering"
     ID_FORMAT_UNDERLINE     "Make the selection underline (toggle)\nUnderline"
     ID_FRM_EDIT_FIND        "Find the specified text\nFind"
@@ -1531,12 +1556,12 @@ BEGIN
                             "Line up selected items to the horizontal center of selection"
     ID_LAYOUT_HORIZONTALLY_SPACE_EVENLY 
                             "Space evenly horizontally selected items within selection"
+    ID_LAYOUT_VERTICALLY_SPACE_EVENLY 
+                            "Space evenly vertically selected items within selection"
 END
 
 STRINGTABLE
 BEGIN
-    ID_LAYOUT_VERTICALLY_SPACE_EVENLY 
-                            "Space evenly vertically selected items within selection"
     ID_LAYOUT_VERTICALLY_CENTER 
                             "Line up selected items to the vertical center of selection"
     ID_OPTIONS_DATA_SOURCES "Change data source options"
@@ -1544,14 +1569,20 @@ BEGIN
     ID_OPTIONS_MAPPING      "Set mapping options"
     ID_OPTIONS_SYNCHRONIZATION "Set synchronization options"
     ID_QSF_EDITOR           "View currently-selected CAPI Questions\nCAPI Questions"
-    ID_QSF_EDITOR_VIEW_CODE "Edit HTML code\nCode"
-    ID_REPLACE              "Replace"
-    ID_RUNAS_BCH            "Run data entry application as a batch edit"
-    ID_SELECT_ITEMS         "Show or hide box draw toolbar\nBox Draw Toolbar"
+    ID_QSF_EDITOR_EDIT_HTML_VISUAL "Edit HTML visually\nEdit HTML Visually"
+    ID_QSF_EDITOR_EDIT_HTML_VISUAL_CODE "Edit HTML code\nEdit HTML Code"
+    ID_QSF_EDITOR_EDIT_TEXT_HTML "Edit as HTML report\nEdit as HTML Report"
+    ID_QSF_EDITOR_EDIT_TEXT_MARKDOWN 
+                            "Edit as Markdown report\nEdit as Markdown Report"
+    ID_QSF_EDITOR_VIEW_QUESTION "View the question text\nView Question Text"
+    ID_QSF_EDITOR_VIEW_HELP "View the help text\nView Help Text"
 END
 
 STRINGTABLE
 BEGIN
+    ID_REPLACE              "Replace"
+    ID_RUNAS_BCH            "Run data entry application as a batch edit"
+    ID_SELECT_ITEMS         "Show or hide box draw toolbar\nBox Draw Toolbar"
     ID_SELITEMS_FROMTB      "Return to tracker mode\nSelect items"
     ID_DRAW_ETCHED          "Draw a box with an etched border\nEtched border"
     ID_DRAW_RAISED          "Draw a box with a raised border\nRaised border"
@@ -1559,7 +1590,6 @@ BEGIN
     ID_DRAW_THICKBOX        "Draw a box with a wide border\nThick border"
     ID_TEXT_DIR_LTR         "Change text direction to left-to-right\nText direction: LTR"
     ID_TEXT_DIR_RTL         "Change text direction to right-to-left\nText direction: RTL"
-    ID_TOGGLE_QN            "Toggle between question and help text\n(this tooltip text is determined dynamically)"
     ID_UNGROUP              "Ungroup the selected item(s)"
     ID_UNGROUP_ITEMS        "Ungroup selected group of items\nUngroup"
     ID_VIEW_FORM            "View the currently selected form\nForm"
@@ -1577,24 +1607,6 @@ BEGIN
     ID_EDIT_INSERT_IMAGE    "Insert an image from a file\nImage"
     ID_EDIT_LEVELPROP       "Level Properties \n Level Properties"
     ID_EDIT_OPTIONS         "Change options for the data entry application"
-END
-
-STRINGTABLE
-BEGIN
-    ID_EDIT_TEXTPROP        "Edit the properties for the selected text\nText Properties"
-    ID_FIELDCOLORS          "Change the background color of fields during data entry\nField Colors"
-    ID_FIELDFONT            "Change field font"
-    ID_FILE_GENERATEBINARY  "Save data entry application in binary format\nGenerate Binary"
-    ID_FILE_PUBLISHANDDEPLOY 
-                            "Deploy application to synchronization service\nPublish and Deploy"
-    ID_FIND_NEXT            "Find Next\n Find Next"
-    ID_FORMAT_ALIGNCENTER   "Center this paragraph\nCenter"
-    ID_FORMAT_ALIGNLEFT     "Left justify this paragraph\nLeft"
-    ID_FORMAT_ALIGNRIGHT    "Right justify this paragraph\nRight"
-    ID_FORMAT_BOLD          "Make the selection bold (toggle)\nBold"
-    ID_FORMAT_COLOR         "Make the selection a specified color\nColor"
-    ID_FORMAT_ITALIC        "Make the selection italic (toggle)\nItalic"
-    ID_FORMAT_OUTLINE_BULLET "Use bullets for this paragraph\nBullets"
 END
 
 STRINGTABLE

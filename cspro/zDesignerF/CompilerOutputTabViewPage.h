@@ -5,7 +5,6 @@
 #include <zUToolO/oxtbvw.h>
 #include <zEdit2O/ReadOnlyEditCtrl.h>
 #include <zLogicO/ParserMessage.h>
-#include <zCapiO/CapiLogicParameters.h>
 
 
 class CLASS_DECL_ZDESIGNERF CompilerOutputTabViewPage : public COXTabViewPage<ReadOnlyEditCtrl>

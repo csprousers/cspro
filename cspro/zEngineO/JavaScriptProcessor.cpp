@@ -252,7 +252,7 @@ void EngineJavaScriptProcessor::ConvertSymbol(const JavaScript::Value& js_value,
 JavaScript::Value EngineJavaScriptProcessor::CreateValue(const UserFunction& user_function)
 {
 #ifdef _DEBUG
-    const UserFunctionArgumentChecker argument_checker(user_function);
+    const UserFunctionArgumentChecker argument_checker(nullptr, user_function);
     ASSERT(!argument_checker.FindFirstInvalidParameter(EngineJavaScriptProcessor::SymbolTypesAllowedAsArguments, false).has_value());
 #endif
 
@@ -622,7 +622,7 @@ JavaScript::Value EngineJavaScriptProcessor::ExecuteLogicUserFunction(Interprete
         {
             try
             {
-                const UserFunctionArgumentChecker argument_checker(user_function);
+                const UserFunctionArgumentChecker argument_checker(nullptr, user_function);
                 argument_checker.CheckNumberArguments(argc);
             }
 

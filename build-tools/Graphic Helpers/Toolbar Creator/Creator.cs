@@ -61,8 +61,13 @@ namespace ToolbarCreator
 
             var source_directory = new DirectoryInfo(Path.GetDirectoryName(_inputFilePath));
 
-            foreach( string input_filename in File.ReadAllLines(_inputFilePath) )
+            foreach( string line in File.ReadAllLines(_inputFilePath) )
             {
+                // strip any comments
+                int comment_pos = line.IndexOf("//");
+                string input_filename = ( comment_pos >= 0 ) ? line.Substring(0, comment_pos).Trim() :
+                                                               line.Trim();
+
                 var files = source_directory.GetFiles(input_filename, SearchOption.AllDirectories);
 
                 if( files.Length == 0 )

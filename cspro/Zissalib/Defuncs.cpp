@@ -79,20 +79,28 @@ int CEntryDriver::dedemode()
         int iLocation = m_pCsDriver->SearchTargetLocation(o3DTarget.get());
 
         if( iLocation > 0 ) // target after current
+        {
             bAfterPartialPos = false;
+        }
 
         else if( iLocation == 0 )
         {
             // check events because the partial save can only be done by interface so PreProc & OnFocus were executed before partial save
-            if( m_pIntDriver->m_iProgType == PROCTYPE_PRE || m_pIntDriver->m_iProgType == PROCTYPE_ONFOCUS )
+            if( m_pIntDriver->m_procType == ProcType::PreProc || m_pIntDriver->m_procType == ProcType::OnFocus )
+            {
                 bAfterPartialPos = false;
+            }
 
             else
+            {
                 bAfterPartialPos = true;
+            }
         }
 
         else // target before current
+        {
             bAfterPartialPos = true;
+        }
     }
 
     int iMode = 1; // default to add mode
@@ -100,17 +108,25 @@ int CEntryDriver::dedemode()
     if( bAfterPartialPos )
     {
         if( m_ePartialMode == MODIFY_MODE )
+        {
             iMode = 2;
+        }
 
         else if( m_ePartialMode == VERIFY_MODE )
+        {
             iMode = 3;
+        }
     }
 
     else if( IsVerify() )
+    {
         iMode = 3;
+    }
 
     else
+    {
         iMode = 2;
+    }
 
     return iMode;
 }
@@ -200,7 +216,7 @@ bool CEntryDriver::ConfirmValue(const bool value_is_notappl, VART* const pVarT, 
     {
         { MGF::GetMessageText(MGF::Yes), MGF::GetMessageText(MGF::No) },
         1  // default to selecting No
-    };                                                                                           
+    };
 
     const int selected_button_number = DisplayMessage(message_type, message_number, std::move(message_text), &select_details);
 

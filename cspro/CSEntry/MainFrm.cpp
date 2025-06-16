@@ -1208,7 +1208,7 @@ void CMainFrame::OnStop(bool* close_csentry_after_stopping)
         m_bCaseTreeActiveOnStart = true;
     }
 
-    SetCapiText(SharableString(), nullptr);
+    SendMessage(WM_IMSA_SETCAPITEXT, 0, 0);
 
     // redraw the title
     SetWindowText(TC::ToWide(pDoc->MakeTitle()).c_str());
@@ -4579,16 +4579,14 @@ LRESULT CMainFrame::OnSetSequential(WPARAM wParam, LPARAM /*lParam*/)
 /////////////////////////////////////////////////////////////////////////////////
 LRESULT CMainFrame::OnSetCapiText(const WPARAM wParam, const LPARAM lParam)
 {
-    SetCapiText(*reinterpret_cast<const SharableString*>(wParam),
-                reinterpret_cast<const COLORREF*>(lParam));
-    return 0;
-}
+    // the CAPI text coming text here is already evaluated as HTML
+    const SharableString* const evaluated_html = reinterpret_cast<const SharableString*>(wParam);
+    const COLORREF* const background_color = reinterpret_cast<const COLORREF*>(lParam);
 
+    GetQTxtView()->SetCapiTextHtml(( evaluated_html != nullptr ) ? *evaluated_html : SharableString(),
+                                   background_color);
 
-void CMainFrame::SetCapiText(SharableString text, const COLORREF* const background_color)
-{
-    GetQTxtView()->SetText(std::move(text), ( background_color != nullptr ) ? std::make_optional(PortableColor::FromCOLORREF(*background_color)) :
-                                                                              std::nullopt);
+    return 1;
 }
 
 

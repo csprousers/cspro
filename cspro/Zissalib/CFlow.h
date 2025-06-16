@@ -249,7 +249,7 @@ private:
                     // info saved to allow later returning to this flow
     int*            m_Progbase;         // program partition starting address
     int             m_Prognext;         // current next sentence to be executed
-    int             m_ProgType;         // proc being executed: pre/post
+    ProcType        m_procType;         // proc being executed: pre/post
     int             m_ExLevel;          //                    : level
     int             m_ExSymbol;         //                    : isym
                     // additional info from entry driver

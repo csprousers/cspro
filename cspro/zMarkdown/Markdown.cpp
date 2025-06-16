@@ -40,6 +40,22 @@ std::string Markdown::ToHtml(const std::string_view markdown_sv)
 std::string Markdown::ToHtmlDocument(const std::string_view title_sv, const std::string_view markdown_sv,
                                      CssProvider* const css_provider/* = nullptr*/)
 {
+    return ToHtmlDocument(title_sv, css_provider, [&](std::string& html) { ToHtml(html, markdown_sv); });
+}
+
+
+std::string Markdown::ToHtmlDocumentFromConvertedMarkdown(const std::string_view title_sv, const std::string_view html_sv,
+                                                          CssProvider* const css_provider/* = nullptr*/)
+
+{
+    return ToHtmlDocument(title_sv, css_provider, [&](std::string& html) { html.append(html_sv); });
+}
+
+
+
+template<typename CF>
+std::string Markdown::ToHtmlDocument(std::string_view title_sv, CssProvider* const css_provider, const CF& callback_function)
+{
     std::string html(
 R"!(<!doctype html>
 <html lang="en">
@@ -75,7 +91,7 @@ R"!(<style>
 <article class="markdown-body">
 )!");
 
-    ToHtml(html, markdown_sv);
+    callback_function(html);
 
     html.append(
 R"!(</article>

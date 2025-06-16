@@ -2,7 +2,7 @@
 #include "ProcessorMarkdown.h"
 #include <zToolsO/FileIO.h>
 #include <zViewO/MarkdownViewInput.h>
-#include <zDesignerF/ReportPreviewer.h>
+#include <zDesignerF/TextTemplatePreviewer.h>
 
 
 void ProcessorMarkdown::Run(CodeDoc& code_doc)
@@ -36,16 +36,16 @@ void ProcessorMarkdown::SaveAsHtml(CodeDoc& code_doc)
 
 void ProcessorMarkdown::SaveReportAsHtml(CodeDoc& code_doc)
 {
-    // save reports to HTML as the report preview
+    // save Markdown reports to HTML using the output of the text template preview
     SaveAsHtml(code_doc,
-        [&](std::string markdown_file_path, const std::string_view markdown_sv)
+        [&](const std::string& markdown_file_path, const std::string_view markdown_sv)
         {
-            ReportPreviewer report_previewer(std::move(markdown_file_path),
-                                             markdown_sv,
-                                             code_doc.GetLanguageSettings().GetOrCreateLogicSettings(),
-                                             "saving");
+            TextTemplatePreviewer text_template_previewer(markdown_file_path,
+                                                          markdown_sv,
+                                                          code_doc.GetLanguageSettings().GetOrCreateLogicSettings(),
+                                                          "saving");
 
-            return report_previewer.GetReportHtml();
+            return text_template_previewer.GetHtml();
         });
 }
 

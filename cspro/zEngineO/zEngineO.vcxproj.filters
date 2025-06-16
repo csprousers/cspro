@@ -170,6 +170,9 @@
     <ClCompile Include="Compiler\StringsCC.cpp">
       <Filter>Source Files\Compiler</Filter>
     </ClCompile>
+    <ClCompile Include="Compiler\StringWriterCC.cpp">
+      <Filter>Source Files\Compiler</Filter>
+    </ClCompile>
     <ClCompile Include="Compiler\SwitchCC.cpp">
       <Filter>Source Files\Compiler</Filter>
     </ClCompile>
@@ -180,6 +183,9 @@
       <Filter>Source Files\Compiler</Filter>
     </ClCompile>
     <ClCompile Include="Compiler\SystemAppCC.cpp">
+      <Filter>Source Files\Compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="Compiler\TextTemplateCC.cpp">
       <Filter>Source Files\Compiler</Filter>
     </ClCompile>
     <ClCompile Include="Compiler\TokenCC.cpp">
@@ -317,6 +323,9 @@
     <ClCompile Include="Interpreter\StringRT.cpp">
       <Filter>Source Files\Interpreter</Filter>
     </ClCompile>
+    <ClCompile Include="Interpreter\StringWriterRT.cpp">
+      <Filter>Source Files\Interpreter</Filter>
+    </ClCompile>
     <ClCompile Include="Interpreter\SwitchRT.cpp">
       <Filter>Source Files\Interpreter</Filter>
     </ClCompile>
@@ -327,6 +336,9 @@
       <Filter>Source Files\Interpreter</Filter>
     </ClCompile>
     <ClCompile Include="Interpreter\SystemRT.cpp">
+      <Filter>Source Files\Interpreter</Filter>
+    </ClCompile>
+    <ClCompile Include="Interpreter\TextTemplateRT.cpp">
       <Filter>Source Files\Interpreter</Filter>
     </ClCompile>
     <ClCompile Include="Interpreter\UserInterfaceRT.cpp">
@@ -374,9 +386,6 @@
     <ClCompile Include="Report.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ReportTokenizer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="ResponseProcessor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -390,6 +399,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="stdafx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="StringWriter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="SymbolCalculator.cpp">
@@ -640,6 +652,9 @@
     <ClInclude Include="Nodes\Switch.h">
       <Filter>Header Files\Nodes</Filter>
     </ClInclude>
+    <ClInclude Include="Nodes\TextTemplate.h">
+      <Filter>Header Files\Nodes</Filter>
+    </ClInclude>
     <ClInclude Include="Nodes\Trace.h">
       <Filter>Header Files\Nodes</Filter>
     </ClInclude>
@@ -679,9 +694,6 @@
     <ClInclude Include="Report.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ReportTokenizer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="ResponseProcessor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -695,6 +707,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="stdafx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="StringWriter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="SubscriptText.h">

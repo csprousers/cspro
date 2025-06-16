@@ -25,7 +25,7 @@ void TextEditView::OnInitialUpdate()
     logic_ctrl->InitLogicControl(true, true, text_edit_doc.GetLexerLanguage());
 
     // set the text
-    SetTextAndSetSavePoint(initial_text);
+    logic_ctrl->SetTextAndSetSavePoint(initial_text);
     logic_ctrl->EmptyUndoBuffer();
 
     // enable word wrap (if previously turned on, or by default)
@@ -45,15 +45,6 @@ void TextEditView::OnActivateView(const BOOL bActivate, CView* const pActivateVi
     }
 
     __super::OnActivateView(bActivate, pActivateView, pDeactiveView);
-}
-
-
-void TextEditView::SetTextAndSetSavePoint(const cs::string_sz text)
-{
-    CLogicCtrl* const logic_ctrl = GetLogicCtrl();
-
-    logic_ctrl->SetText(text);
-    logic_ctrl->SetSavePoint();
 }
 
 

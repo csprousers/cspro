@@ -173,7 +173,7 @@ std::tuple<int, int> LogicCompiler::CompileJavaScriptConvertableValue()
         if( symbol.IsA(SymbolType::UserFunction) )
         {
             const UserFunction& user_function = assert_cast<const UserFunction&>(symbol);
-            const UserFunctionArgumentChecker argument_checker(user_function);
+            const UserFunctionArgumentChecker argument_checker(this, user_function);
             const std::optional<size_t> invalid_parameter_index =
                 argument_checker.FindFirstInvalidParameter(EngineJavaScriptProcessor::SymbolTypesAllowedAsArguments, false);
 

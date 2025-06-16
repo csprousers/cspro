@@ -979,7 +979,7 @@ void CEntryDriver::ViewCurrentCase()
     }
 
     // because the Action Invoker will be called to get the case data, set the proper attributes to allow those calls to succeed
-    const RAII::SetValueAndRestoreOnDestruction prog_type_modifier(m_pIntDriver->m_iProgType, PROCTYPE_ONFOCUS);
+    const RAII::SetValueAndRestoreOnDestruction proc_type_modifier(m_pIntDriver->m_procType, ProcType::OnFocus);
     const RAII::SetValueAndRestoreOnDestruction symbol_modifier(m_pIntDriver->m_iExSymbol, pVarT->GetSymbolIndex());
     const RAII::SetValueAndRestoreOnDestruction level_modifier(m_pIntDriver->m_iExLevel, SymbolCalculator::GetLevelNumber_base1(*pVarT));
 

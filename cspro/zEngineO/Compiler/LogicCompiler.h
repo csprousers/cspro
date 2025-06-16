@@ -2,6 +2,7 @@
 
 #include <zEngineO/zEngineO.h>
 #include <zEngineO/EngineData.h>
+#include <zEngineO/ProcType.h>
 #include <zEngineO/Compiler/SymbolCompilerModifier.h>
 #include <zEngineO/Nodes/BaseNodes.h>
 #include <zLogicO/BaseCompiler.h>
@@ -16,6 +17,7 @@ class MessageEvaluator;
 class MessageManager;
 class ReportFile;
 enum class SetAction : int;
+class TextTemplateTokenizer;
 namespace CompilationExtendedInformation { struct InCrosstabInformation; }
 namespace GF { enum class VariableType: int; }
 
@@ -51,6 +53,9 @@ public:
     bool IsNoLevelCompilation() const;
 
     EngineAppType GetEngineAppType() const;
+
+    ProcType GetCompilationProcType() const { return m_procType; }
+    void SetCompilationProcType(ProcType proc_type, ExtendedProcType extended_proc_type = ExtendedProcType::None);
 
     void CompileExternalCode();
     virtual void CompileExternalCode(const CodeFile& code_file);
@@ -100,8 +105,8 @@ public:
 
     int CreateSymbolVariableArgumentsNode(FunctionCode function_code, const Symbol& symbol, cs::span<const int> arguments);
 
-    Nodes::SymbolVariableArguments& CreateSymbolVariableArgumentsNode(FunctionCode function_code, const Symbol& symbol,
-                                                                      int number_arguments, std::optional<int> initialize_value = std::nullopt);
+    Nodes::SymbolVariableArguments& CreateSymbolVariableArgumentsNode(FunctionCode function_code, const Symbol& symbol, int number_arguments);
+    Nodes::SymbolVariableArguments& CreateSymbolVariableArgumentsNode(FunctionCode function_code, const Symbol& symbol, int number_arguments, int initialize_value);
 
     int CreateSymbolVariableArgumentsWithSubscriptNode(FunctionCode function_code, const Symbol& symbol, int symbol_subscript_compilation, cs::span<const int> arguments);
 
@@ -144,7 +149,8 @@ public:
 public:
     int ConserveConstant(const std::string& string_literal);
     int ConserveConstant(std::string&& string_literal);
-    int CreateStringLiteralNode(std::string string_literal);
+    int ConserveConstant(SharableString&& string_literal);
+    int CreateStringLiteralNode(SharableString string_literal);
 
     int CompileStringExpression();
     int CompileStringExpressionWithStringLiteralCheck(const std::function<void(std::string)>& string_literal_check_callback);
@@ -291,7 +297,7 @@ public:
     // (FileCC.cpp)
     // --------------------------------------------------------------------------
 public:
-    LogicFile* CompileLogicFileDeclaration(bool compiling_function_parameter = false);
+    LogicFile* CompileLogicFileDeclaration(bool compiling_function_parameter);
     int CompileLogicFiles();
     int CompileLogicFileFunctions();
 
@@ -446,13 +452,19 @@ public:
     // --------------------------------------------------------------------------
 public:
     int CompileReportFunctions();
-    void CheckReportIsCurrentlyWriteable(const Report& report);
 
     void CompileReports();
     virtual void CompileReport(const ReportFile& report_file);
 
-private:
-    std::unique_ptr<Logic::SourceBuffer> ConvertReportToSourceBuffer(std::string_view report_text_sv);
+
+    // --------------------------------------------------------------------------
+    // StringWriter object
+    // (StringWriterCC.cpp)
+    // --------------------------------------------------------------------------
+public:
+    StringWriter* CompileStringWriterDeclaration(bool compiling_function_parameter);
+    int CompileStringWriterDeclarations();
+    int CompileStringWriterFunctions();
 
 
     // --------------------------------------------------------------------------
@@ -476,6 +488,22 @@ public:
     SystemApp* CompileSystemAppDeclaration();
     int CompileSystemAppDeclarations();
     int CompileSystemAppFunctions();
+
+
+    // --------------------------------------------------------------------------
+    // Text Template functions
+    // (TextTemplateCC.cpp)
+    // --------------------------------------------------------------------------
+public:
+    int CompileTextTemplateFunctions();
+
+    // If the symbol is a StringWriter, the underlying type (e.g., a Report) is returned.
+    // An exception is thrown is the symbol is not currently accessible.
+    const Symbol& CheckTextTemplateIsCurrentlyAccessible(const Symbol& symbol);
+
+private:
+    std::unique_ptr<Logic::SourceBuffer> ConvertTextTemplateToSourceBuffer(const char* text_template_name, std::string_view text_template_sv, bool allow_logic_escapes);
+    std::unique_ptr<Logic::SourceBuffer> ConvertTextTemplateToSourceBuffer(const char* text_template_name, TextTemplateTokenizer& text_template_tokenizer);
 
 
     // --------------------------------------------------------------------------
@@ -634,6 +662,8 @@ public:
     // COMPILER_DLL_TODO...
     // --------------------------------------------------------------------------
 public:
+    friend class CEngineCompFunc; // COMPILER_DLL_TODO remove once all all functionality is in this class
+
     virtual int& get_COMPILER_DLL_TODO_Tokstindex() = 0;
     virtual int& get_COMPILER_DLL_TODO_InCompIdx() = 0;
     virtual std::tuple<int, bool>& get_COMPILER_DLL_TODO_m_loneAlphaFunctionCallTester() = 0;
@@ -663,7 +693,12 @@ protected:
     cs::non_null_shared_or_raw_ptr<EngineData> m_engineData;
 
 private:
-    const Symbol* m_compilationSymbol; // non-null during compilation
+    // The symbol that is currently being compiled (non-null during compilation).
+    const Symbol* m_compilationSymbol;
+
+    // The type of the procedure currently being compiled.
+    ProcType m_procType;
+    ExtendedProcType m_extendedProcType;
 
     std::vector<std::shared_ptr<CompilerHelper>> m_compilerHelpers;
 

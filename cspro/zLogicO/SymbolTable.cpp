@@ -43,6 +43,22 @@ void SymbolTable::AddSymbol(std::shared_ptr<Symbol> symbol, const NameMapAdditio
 }
 
 
+void SymbolTable::AddReusableSymbol(std::shared_ptr<Symbol> symbol)
+{
+    ASSERT(symbol != nullptr);
+
+    if( symbol->GetSymbolIndex() == -1 )
+    {
+        AddSymbol(std::move(symbol));
+    }
+
+    else if( !NameExists(symbol->GetName()) )
+    {
+        AddSymbolToNameMap(symbol->GetName(), symbol->GetSymbolIndex(), NameMapAddition::ToCurrentScope);
+    }
+}
+
+
 void SymbolTable::AddSymbolToNameMap(std::string symbol_name, const size_t symbol_index, const NameMapAddition name_map_addition)
 {
     ASSERT(!symbol_name.empty() && symbol_index < m_symbols.size());

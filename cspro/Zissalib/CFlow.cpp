@@ -63,7 +63,7 @@ CSymbolFlow::CSymbolFlow(std::string name, CEngineArea* pEngineArea)
     // --- info saved to allow later returning to this flow
     m_Progbase      = NULL;
     m_Prognext      = 0;
-    m_ProgType      = -1;
+    m_procType      = ProcType::None;
     m_ExLevel       = -1;
     m_ExSymbol      = 0;
 
@@ -198,9 +198,9 @@ void FLOW::RestoreAfterEnter()
     // processing info: restore the environment prior to enter this flow
 
     // info saved to allow later returning to this flow
-    m_pEngineArea->m_pEngineDriver->m_pIntDriver->m_iProgType  = m_ProgType;
-    m_pEngineArea->m_pEngineDriver->m_pIntDriver->m_iExLevel   = m_ExLevel;
-    m_pEngineArea->m_pEngineDriver->m_pIntDriver->m_iExSymbol  = m_ExSymbol;
+    m_pEngineArea->m_pEngineDriver->m_pIntDriver->m_procType = m_procType;
+    m_pEngineArea->m_pEngineDriver->m_pIntDriver->m_iExLevel = m_ExLevel;
+    m_pEngineArea->m_pEngineDriver->m_pIntDriver->m_iExSymbol = m_ExSymbol;
 
     m_pEngineArea->m_pEngineDriver->m_pIntDriver->m_bStopExec = false; // RHF Dec 19, 2000 Fix problem with enter. Enter was not executing the instructions after ENTER
     //m_pEngineArea->m_pEngineDriver->m_pIntDriver->SkipStmt = m_SkipStmt;

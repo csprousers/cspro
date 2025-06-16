@@ -98,11 +98,9 @@ public:
     enum class SymbolJsonOutput { Metadata, MetadataAndValue, Value };
     void WriteJson(JsonWriter& json_writer, SymbolJsonOutput symbol_json_output = SymbolJsonOutput::Metadata) const;
 
-protected:
     // Subclasses can write out definitional information (to the existing object).
     virtual void WriteJsonMetadata_subclass(JsonWriter& json_writer) const;
 
-public:
     virtual void WriteValueToJson(JsonWriter& json_writer) const;
 
     virtual void SetValueFromJson(const JsonNode& json_node);

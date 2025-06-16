@@ -80,7 +80,6 @@ public:
     void serialize_subclass(Serializer& ar) override;
 
     void WriteJsonMetadata_subclass(JsonWriter& json_writer) const override;
-
     void WriteValueToJson(JsonWriter& json_writer) const override;
     void SetValueFromJson(const JsonNode& json_node) override;
 

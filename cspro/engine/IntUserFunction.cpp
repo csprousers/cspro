@@ -20,7 +20,7 @@
 namespace
 {
 #ifdef WIN_DESKTOP
-    std::unique_ptr<LogicArray> CreateArrayFromCrosstab(CTAB* pCtab)
+    std::unique_ptr<LogicArray> CreateArrayFromCrosstab(CTAB* const pCtab)
     {
         auto logic_array = std::make_unique<LogicArray>(pCtab->GetName());
 
@@ -47,7 +47,7 @@ namespace
         return logic_array;
     }
 
-    void CopyArrayToCrosstab(CTAB* pCtab, const LogicArray& logic_array)
+    void CopyArrayToCrosstab(CTAB* const pCtab, const LogicArray& logic_array)
     {
         std::function<void(const std::vector<size_t>&)> array_to_crosstab_copier =
             [&](const std::vector<size_t>& indices)
@@ -156,11 +156,16 @@ double CIntDriver::CallUserFunction(UserFunction& user_function, UserFunctionArg
                 // otherwise use the symbol substitutor
                 else
                 {
-#ifdef WIN_DESKTOP
-                    // crosstabs can be passed as arguments to arrays
-                    if( argument_symbol->IsA(SymbolType::Crosstab) )
+                    // Report argument -> StringWriter parameter
+                    if( argument_symbol->IsA(SymbolType::Report) && parameter_symbol.IsA(SymbolType::StringWriter) )
                     {
-                        CTAB* pCtab = assert_cast<CTAB*>(argument_symbol.get());
+                        argument_symbol = std::make_unique<StringWriter>(argument_symbol->GetName(), *argument_symbol, *m_engineData);
+                    }
+#ifdef WIN_DESKTOP
+                    // Crosstab argument -> Array parameter
+                    else if( argument_symbol->IsA(SymbolType::Crosstab) )
+                    {
+                        CTAB* const pCtab = assert_cast<CTAB*>(argument_symbol.get());
                         std::shared_ptr<LogicArray> crosstab_converted_to_array = CreateArrayFromCrosstab(pCtab);
                         argument_symbol = crosstab_converted_to_array;
 
@@ -721,7 +726,7 @@ InterpreterExecuteResult CIntDriver::RunInvoke(const std::string_view function_n
 
         try
         {
-            UserFunctionArgumentChecker argument_checker(*user_function);
+            UserFunctionArgumentChecker argument_checker(nullptr, *user_function);
 
             const size_t number_arguments = arguments_list.number_elements / 2;
 

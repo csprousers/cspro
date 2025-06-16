@@ -53,7 +53,6 @@ public:
 
     LRESULT OnShowCapiText(WPARAM wParam, LPARAM lParam);
 
-    LRESULT GetLangInfo(WPARAM wParam, LPARAM lParam);
     LRESULT ProcessLangs(WPARAM wParam, LPARAM lParam);
 
     // gets the application using this form file (or order); if there are multiple ones,
@@ -228,14 +227,15 @@ protected:
     LRESULT OnGetLexerLanguage(WPARAM wParam, LPARAM lParam);
 
 
-    // report functions
+    // text template functions
     // --------------------------------------------------------------------------
 protected:
-    void OnViewReportPreview();
-    void OnUpdateViewReportPreview(CCmdUI* pCmdUI);
+    void OnViewPreviewTextTemplate();
+    void OnUpdateViewPreviewTextTemplate(CCmdUI* pCmdUI);
 
 private:
-    const TextSource* GetHtmlOrDerivableReportTextSourceCurrentlyEditing(std::string* report_name_for_report_preview);
+    std::variant<std::monostate, const CapiText*, const TextSource*> GetHtmlOrDerivableTextTemplateCurrentlyEditing(std::string* report_name_for_report_preview);
+    static SharableString CreateQuestionTextHtmlPreview(const Application& application, const CapiText& capi_text) noexcept;
 
 
     // Code menu handlers

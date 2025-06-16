@@ -1499,8 +1499,10 @@ int CEngineCompFunc::rutfunc()
         { Logic::FunctionCompilationType::Path,                     &LogicCompiler::CompilePathFunctions },
         { Logic::FunctionCompilationType::Pff,                      &LogicCompiler::CompileLogicPffFunctions},
         { Logic::FunctionCompilationType::Report,                   &LogicCompiler::CompileReportFunctions },
+        { Logic::FunctionCompilationType::StringWriter,             &LogicCompiler::CompileStringWriterFunctions },
         { Logic::FunctionCompilationType::Symbol,                   &LogicCompiler::CompileSymbolFunctions },
         { Logic::FunctionCompilationType::SystemApp,                &LogicCompiler::CompileSystemAppFunctions },
+        { Logic::FunctionCompilationType::TextTemplate,             &LogicCompiler::CompileTextTemplateFunctions },
         { Logic::FunctionCompilationType::UserInterface,            &LogicCompiler::CompileUserInterfaceFunctions },
         { Logic::FunctionCompilationType::ValueSet,                 &LogicCompiler::CompileValueSetFunctions },
 

@@ -13,9 +13,12 @@
 #include "Ctab.h"
 #include "Preprocessor.h"
 #include <zEngineO/JavaScriptProcessor.h>
+#include <zEngineO/StringWriter.h>
 #include <zToolsO/RaiiHelpers.h>
 #include <zAppO/Application.h>
 #include <zLogicO/LocalSymbolStack.h>
+#include <zLogicO/TextTemplateTokenizer.h>
+#include <zCapiO/CapiCondition.h>
 #include <zCapiO/CapiLogicParameters.h>
 #include <zDesignerF/UWM.h>
 
@@ -264,7 +267,7 @@ void CEngineCompFunc::CompileSymbolProcs()
 
         procs_defined.insert(proc_type);
 
-        ProcInComp = static_cast<int>(proc_type);
+        SetCompilationProcType(proc_type);
 
         // allow a colon after the proc type
         if( Tkn == TOKPREPRO || Tkn == TOKONFOCUS || Tkn == TOKKILLFOCUS || Tkn == TOKPOSTPRO || Tkn == TOKONOCCCHANGE || Tkn == TOKTALLY || Tkn == TOKPOSTCALC )
@@ -308,6 +311,10 @@ void CEngineCompFunc::CompileSymbolProcs()
 
 int CEngineCompFunc::CompileCapiLogic(const CapiLogicParameters& capi_logic_parameters)
 {
+    const std::variant<const CapiCondition*,
+                       const CapiText*,
+                       const TextTemplateToken*>& condition_or_text_or_token = capi_logic_parameters.condition_or_text_or_token;
+
     // lookup the symbol
     const Symbol* symbol = nullptr;
 
@@ -334,28 +341,29 @@ int CEngineCompFunc::CompileCapiLogic(const CapiLogicParameters& capi_logic_para
 
     ASSERT(symbol->IsOneOf(SymbolType::Block, SymbolType::Variable));
 
-    const bool condition_type = ( capi_logic_parameters.type == CapiLogicParameters::Type::Condition );
-    const bool fill_type = !condition_type;
-
-    SetSourceBuffer(std::make_unique<Logic::SourceBuffer>(capi_logic_parameters.logic));
-    SetCapiLogicLocation(capi_logic_parameters.capi_logic_location);
-
     int question_text_node_index = -1;
 
     const std::function<void()> compilation_function = [&]()
     {
-        ProcInComp = static_cast<int>(ProcType::OnFocus);
+        SetCompilationProcType(ProcType::OnFocus, ExtendedProcType::QuestionText);
 
         try
         {
             NextToken();
 
-            // fills can evaluate to strings but conditions will always be numeric expressions
-            question_text_node_index = fill_type ? CompileFillText() :
-                                                   exprlog();
+            // conditions are always numeric expressions,
+            // whereas the question text is evaluated as a text template
+            question_text_node_index =
+                std::holds_alternative<const CapiCondition*>(condition_or_text_or_token) ? exprlog() :
+                std::holds_alternative<const CapiText*>(condition_or_text_or_token)      ? instruc(false) :
+                                                                                           CompileFillText();
 
             if( Tkn != TOKEOP || GetSyntErr() != 0 )
-                IssueError(condition_type ? 48011 : 48012);
+            {
+                IssueError(std::holds_alternative<const CapiCondition*>(condition_or_text_or_token) ? 48011 :
+                           std::holds_alternative<const CapiText*>(condition_or_text_or_token)      ? 48012 :
+                                                                                                      48013);
+            }
         }
 
         catch(...)
@@ -367,6 +375,70 @@ int CEngineCompFunc::CompileCapiLogic(const CapiLogicParameters& capi_logic_para
 
     try
     {
+        auto set_compilation_details = [&]()
+        {
+            SetCompilationSymbol(*symbol);
+            SetCapiLogicLocation(capi_logic_parameters.capi_logic_location);
+        };
+
+        std::unique_ptr<Logic::SourceBuffer> source_buffer;
+        std::optional<Logic::LocalSymbolStack> local_symbol_stack;
+
+        // condition logic
+        if( std::holds_alternative<const CapiCondition*>(condition_or_text_or_token) )
+        {
+            const CapiCondition& condition = *std::get<const CapiCondition*>(condition_or_text_or_token);
+            source_buffer = std::make_unique<Logic::SourceBuffer>(condition.GetLogic());
+        }
+
+        // question text fills and logic
+        else if( std::holds_alternative<const CapiText*>(condition_or_text_or_token) )
+        {
+            const CapiText& capi_text = *std::get<const CapiText*>(condition_or_text_or_token);
+
+            // set the compilation details in case ErrorReportingTextTemplateTokenizer reports an error
+            set_compilation_details();
+
+            ErrorReportingTextTemplateTokenizer text_template_tokenizer(*this, capi_text.FormatSupportsLogicEscapes());
+
+            if( text_template_tokenizer.Tokenize(capi_text.GetText().GetString(), GetLogicSettings()) )
+            {
+                // if the question text does not use any fills or logic, there is no reason to
+                // process it as a text template
+                if( text_template_tokenizer.IsOnlyDirectTextUsed() )
+                    return -1;
+
+                source_buffer = ConvertTextTemplateToSourceBuffer(QuestionTextStringWriterName, text_template_tokenizer);
+            }
+
+            // ConvertTextTemplateToSourceBuffer reports errors but they are not thrown
+            if( source_buffer == nullptr )
+                throw std::exception();
+
+            // add the question text StringWriter object for this compilation
+            local_symbol_stack.emplace(m_symbolTable.CreateLocalSymbolStack());
+
+            if( m_engineData->question_text_string_writer == nullptr )
+                m_engineData->question_text_string_writer = std::make_unique<StringWriter>(QuestionTextStringWriterName, *m_engineData);
+
+            m_engineData->question_text_string_writer->ResetForQuestionText(capi_text.GetEncodeType());
+
+            m_symbolTable.AddReusableSymbol(m_engineData->question_text_string_writer);
+        }
+
+        // question text fills coming from QuestionTextHtmlEditor
+        else
+        {
+            ASSERT(std::holds_alternative<const TextTemplateToken*>(condition_or_text_or_token));
+            const TextTemplateToken& text_template_token = *std::get<const TextTemplateToken*>(condition_or_text_or_token);
+            source_buffer = std::make_unique<Logic::SourceBuffer>(text_template_token.text);
+        }
+
+        ASSERT(source_buffer != nullptr);
+        SetSourceBuffer(std::move(source_buffer));
+
+        set_compilation_details();
+
         if( rutasync(symbol->GetSymbolIndex(), &compilation_function) )
             ReportError(GetSyntErr());
     }

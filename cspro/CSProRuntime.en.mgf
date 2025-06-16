@@ -83,7 +83,7 @@ Language=EN
 /* --- Frequency */
 94531  There was a problem interacting with the frequency file: %s
 94532  The Frequency '%s' was not tallied because of an invalid weight
-94533  The Frequency '%s' cannot be saved to '%s' because only HTML reports are supported
+94533  The Frequency '%s' cannot be saved to '%s' because only HTML-style reports are supported
 
 /* --- Portable Messages */
 110001 OK
@@ -383,8 +383,8 @@ Language=EN
 47194  The PFF property "%s" cannot accept a dictionary argument
 47195  There was an error executing "%s": %s
 
-/* --- Reports */
-48111  Error generating the report %s: %s
+/* --- Text Templates */
+48111  Error generating the text template %s: %s
 
 /* --- User-Defined Function Messages */
 
@@ -662,6 +662,9 @@ Language=EN
 100352 Error loading geometry file %s: %s
 100353 Error saving geometry file %s: %s
 100354 Error assigning '%s' to Geometry '%s': %s
+
+/* --- StringWriter */
+100360 You cannot specify an encoding type or symbol when using StringWriter as a function parameter.
 
 /* --- Paths */
 100370 Select a File

@@ -8,12 +8,12 @@ class SharedHtmlLocalFileServer;
 class VirtualFileMapping;
 
 
-/////////////////////////////////////////////////////////////////////////////
-// QSFView view
+// --------------------------------------------------------------------------
+// QSFView
 //
-// A form view that displays question text using an HTML control.
-//
-/////////////////////////////////////////////////////////////////////////////
+// A CFormView subclass that displays question text using an HTML control.
+// --------------------------------------------------------------------------
+
 class CLASS_DECL_ZCAPIO QSFView : public CFormView
 {
     DECLARE_DYNCREATE(QSFView)
@@ -26,22 +26,27 @@ public:
 
     void SetUpQuestionTextView(const std::string& application_file_path);
 
-    void SetText(SharableString text, std::optional<PortableColor> background_color = std::nullopt);
     void SetStyleCss(std::string css);
+
+    void SetCapiTextHtml(SharableString capi_text_html, const COLORREF* background_color);
+
+    static const std::string& DefaultBackgroundColor();
+
+    static std::string CreateCapiTextHtml(std::string_view html_sv, std::string_view css_sv,
+                                          std::string_view background_color_sv);
+    std::string CreateCapiTextHtml(std::string_view html_sv) const;
 
 protected:
     DECLARE_MESSAGE_MAP()
 
     void DoDataExchange(CDataExchange* pDX) override;
 
-    afx_msg void OnSize(UINT nType, int cx, int cy);
-    afx_msg void OnDestroy();
+    void OnSize(UINT nType, int cx, int cy);
+    void OnDestroy();
 
     LRESULT OnRefreshQuestionText(WPARAM wParam, LPARAM lParam);
 
 private:
-    static const std::string& DefaultBackgroundColor();
-
     void UpdateHtml();
 
     void SetUpActionInvoker();
@@ -53,7 +58,7 @@ private:
 
     std::string m_backgroundColor;
     std::string m_stylesheet;
-    SharableString m_questionText;
+    SharableString m_capiTextHtml;
 
     SharableString m_html;
     std::mutex m_htmlMutex;

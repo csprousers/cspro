@@ -396,6 +396,21 @@
         "ID_DRAW_RAISED",
         "ID_DRAW_THINBOX",
         "ID_DRAW_THICKBOX"
+      ],
+      [
+        "ID_FORMAT_ALIGN_LEFT",
+        "ID_FORMAT_ALIGN_CENTER",
+        "ID_FORMAT_ALIGN_RIGHT"
+      ],
+      [
+        "ID_QSF_EDITOR_EDIT_HTML_VISUAL",
+        "ID_QSF_EDITOR_EDIT_HTML_VISUAL_CODE",
+        "ID_QSF_EDITOR_EDIT_TEXT_HTML",
+        "ID_QSF_EDITOR_EDIT_TEXT_MARKDOWN"
+      ],
+      [
+        "ID_QSF_EDITOR_VIEW_QUESTION",
+        "ID_QSF_EDITOR_VIEW_HELP"
       ]
     ],
     "zDesignerF": [

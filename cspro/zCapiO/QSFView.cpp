@@ -26,7 +26,7 @@ QSFView::QSFView()
     m_htmlViewCtrl.SetAcceleratorKeyHandler([this](UINT, UINT key, INT) {
 #ifdef _DEBUG
         // Allow dev tools in debug mode (ctrl+shift+I)
-        return !(key == 'I' && GetKeyState(VK_CONTROL) < 0 && GetKeyState(VK_SHIFT) < 0);
+        return !( key == 'I' && GetKeyState(VK_CONTROL) < 0 && GetKeyState(VK_SHIFT) < 0 );
 #else
         return true;
 #endif
@@ -39,23 +39,24 @@ QSFView::~QSFView()
 }
 
 
-void QSFView::DoDataExchange(CDataExchange* pDX)
+void QSFView::DoDataExchange(CDataExchange* const pDX)
 {
-    CFormView::DoDataExchange(pDX);
+    __super::DoDataExchange(pDX);
+
     DDX_Control(pDX, IDC_HTML_VIEW, m_htmlViewCtrl);
 }
 
 
-void QSFView::OnSize(UINT nType, int cx, int cy)
+void QSFView::OnSize(const UINT nType, const int cx, const int cy)
 {
-    CFormView::OnSize(nType, cx, cy);
+    __super::OnSize(nType, cx, cy);
 
     // resize the HTML control so that it fills up the client window
     if( m_htmlViewCtrl.m_hWnd != nullptr )
     {
-        CRect rcClient;
-        GetClientRect(&rcClient);
-        m_htmlViewCtrl.MoveWindow(rcClient);
+        CRect client_rect;
+        GetClientRect(&client_rect);
+        m_htmlViewCtrl.MoveWindow(client_rect);
     }
 }
 
@@ -89,18 +90,19 @@ void QSFView::SetUpQuestionTextView(const std::string& application_file_path)
 }
 
 
-void QSFView::SetText(SharableString text, const std::optional<PortableColor> background_color/* = std::nullopt*/)
+void QSFView::SetStyleCss(std::string css)
 {
-    m_backgroundColor = background_color.has_value() ? background_color->ToStringRGB() :
-                                                       DefaultBackgroundColor();
-    m_questionText = std::move(text);
+    m_stylesheet = std::move(css);
     UpdateHtml();
 }
 
 
-void QSFView::SetStyleCss(std::string css)
+void QSFView::SetCapiTextHtml(SharableString capi_text_html, const COLORREF* const background_color)
 {
-    m_stylesheet = std::move(css);
+    m_backgroundColor = ( background_color != nullptr ) ? PortableColor::FromCOLORREF(*background_color).ToString() :
+                                                          DefaultBackgroundColor();
+    m_capiTextHtml = std::move(capi_text_html);
+
     UpdateHtml();
 }
 
@@ -112,7 +114,8 @@ const std::string& QSFView::DefaultBackgroundColor()
 }
 
 
-void QSFView::UpdateHtml()
+std::string QSFView::CreateCapiTextHtml(const std::string_view html_sv, const std::string_view css_sv,
+                                        const std::string_view background_color_sv)
 {
     constexpr std::string_view Part1_sv =
         "<!doctype html>\n"
@@ -135,13 +138,23 @@ void QSFView::UpdateHtml()
         "</body>\n"
         "</html>\n";
 
-    std::string html = SO::Concatenate(Part1_sv, m_stylesheet,
-                                       Part2_sv, m_backgroundColor,
-                                       Part3_sv, m_questionText.GetString(),
-                                       Part4_sv);
+    return SO::Concatenate(Part1_sv, css_sv,
+                           Part2_sv, background_color_sv,
+                           Part3_sv, html_sv,
+                           Part4_sv);
+}
 
+
+std::string QSFView::CreateCapiTextHtml(const std::string_view html_sv) const
+{
+    return CreateCapiTextHtml(html_sv, m_stylesheet, m_backgroundColor);
+}
+
+
+void QSFView::UpdateHtml()
+{
     std::lock_guard<std::mutex> lock(m_htmlMutex);
-    m_html = std::move(html);
+    m_html = CreateCapiTextHtml(m_capiTextHtml.GetString());
 
     PostMessage(UWM::Capi::RefreshQuestionText);
 }

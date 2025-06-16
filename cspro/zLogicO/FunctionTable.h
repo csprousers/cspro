@@ -539,7 +539,7 @@ enum FunctionCode : int
     FNINVOKE_CODE                           = 434, // 20211108
     REPORTFN_SAVE_CODE                      = 435, // 20210610
     REPORTFN_VIEW_CODE                      = 436, // 20210610
-    REPORTFN_WRITE_CODE                     = 437, // 20211115
+    // previously Report.write              = 437, // 20211115
     FNSETBLUETOOTHNAME_CODE                 = 438, // 20211210
 
     // CSPro 8.0
@@ -570,6 +570,12 @@ enum FunctionCode : int
     JSFN_GETVALUE_CODE                      = 461, // 20250121
     JSFN_SETVALUE_CODE                      = 462, // 20250121
     JSFN_USERFUNCTIONWRAPPER_CODE           = 463, // 20250128
+    TEXTTEMPLATEFN_WRITE_CODE               = 464, // 20250417
+    TEXTTEMPLATEFN_WRITEENCODED_CODE        = 465, // 20250417
+    TEXTTEMPLATEFN_WRITEENCODEDLINE_CODE    = 466, // 20250417
+    TEXTTEMPLATEFN_WRITELINE_CODE           = 467, // 20250417
+    STRINGWRITERFN_TOSTRING_CODE            = 468, // 20250417
+    STRINGWRITERFN_CLEAR_CODE               = 469, // 20250604
 };
 
 
@@ -692,6 +698,8 @@ namespace Logic
         Item                    =  276,
         Case                    =  277,
         JS                      =  278,
+        StringWriter            =  279,
+        TextTemplate            =  280,
     };
 
 

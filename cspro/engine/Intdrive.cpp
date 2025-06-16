@@ -69,9 +69,9 @@ CIntDriver::CIntDriver(CEngineDriver& engine_driver)
         m_keyboardLoader(std::make_unique<KeyboardLoader>())
 {
     // --- procedure being executed
-    m_iProgType          = 0;
-    m_iExLevel           = 0;
-    m_iExSymbol          = 0;
+    m_procType = ProcType::PreProc;
+    m_iExLevel = 0;
+    m_iExSymbol = 0;
 
     // --- execution flags
     m_bStopExec = false;
@@ -214,7 +214,7 @@ void CIntDriver::StopApplication()
 }
 
 
-void CIntDriver::PrepareForExportExec(int iSymbol, int iProgType)
+void CIntDriver::PrepareForExportExec(int iSymbol, const ProcType proc_type)
 {
     m_bSkipStmt = false;
 
@@ -248,7 +248,7 @@ void CIntDriver::PrepareForExportExec(int iSymbol, int iProgType)
         return;
     }
 
-    m_iProgType = iProgType;
+    m_procType = proc_type;
     m_iExSymbol = iSymbol;
     m_iExLevel  = iLevel;
     m_bSkipStmt = false;
@@ -262,42 +262,50 @@ std::string CIntDriver::ProcName()
         return "Unknown";
 
     const Symbol& symbol = NPT_Ref(m_iExSymbol);
-    CString csObjName = UTF8_TODO::GetCString(symbol.GetName());
-    CString csExProcName;
+    const SymbolType symbol_type = symbol.GetType();
 
-    SymbolType eType = symbol.GetType();
-    csprochar const* obj_type;
-
-    if( eType == SymbolType::Pre80Dictionary ) {
-        obj_type = _T("Dict");
-        csExProcName.Format( _T("%s %s Level %d %s"), obj_type, csObjName.GetString(), m_iExLevel, UTF8_TODO::GetWide(GetProcTypeName(m_iProgType)).c_str());
-    }
-    else {
-        if( eType == SymbolType::Section ) {
-            if( !is_digit(csObjName[0]) )
-                obj_type = _T("Sect");
-            else
-                obj_type = _T("View");
-        }
-        else if( eType == SymbolType::Group ) {
-            GROUPT*     pGroupT=(GROUPT*)&symbol;
-            obj_type = (pGroupT->GetGroupType() == GROUPT::Level) ? _T("Level") : _T("Group");
-        }
-        else if( eType == SymbolType::Crosstab ) {
-            obj_type = _T("Table");
-        }
-        else if( eType == SymbolType::Block ) {
-            obj_type = _T("Block");
-        }
-        else {
-            ASSERT( eType == SymbolType::Variable ); // RHF Oct 29, 2002
-            obj_type = _T("Var");
-        }
-
-        csExProcName.Format( _T("%s %s %s"), obj_type, csObjName.GetString(), UTF8_TODO::GetWide(GetProcTypeName(m_iProgType)).c_str() );
+    if( symbol_type == SymbolType::Pre80Dictionary )
+    {
+        return FormatText("Dict %s Level %d %s", symbol.GetName().c_str(), m_iExLevel, GetProcTypeName(m_procType));
     }
 
-    return UTF8_TODO::GetUtf8(csExProcName);
+    else if( symbol_type == SymbolType::Report )
+    {
+        return "Report " + symbol.GetName();
+    }
+
+    else
+    {
+        const char* type;
+
+        if( symbol_type == SymbolType::Section )
+        {
+            type = is_digit(symbol.GetName().front()) ? "View" : "Sect";
+        }
+
+        else if( symbol_type == SymbolType::Group )
+        {
+            type = ( assert_cast<const GROUPT&>(symbol).GetGroupType() == GROUPT::Level ) ? "Level" : "Group";
+        }
+
+        else if( symbol_type == SymbolType::Crosstab )
+        {
+            type = "Table";
+        }
+
+        else if( symbol_type == SymbolType::Block )
+        {
+            type = "Block";
+        }
+
+        else
+        {
+            ASSERT(symbol_type == SymbolType::Variable); // RHF Oct 29, 2002
+            type = "Var";
+        }
+
+        return FormatText("%s %s %s", type, symbol.GetName().c_str(), GetProcTypeName(m_procType));
+    }
 }
 
 
@@ -795,7 +803,7 @@ CIntDriver::pDoubleFunction CIntDriver::m_pExFuncs[] =
 /* 434 */   &CIntDriver::ex_invoke,
 /* 435 */   &CIntDriver::ex_Report_save,
 /* 436 */   &CIntDriver::ex_Report_view,
-/* 437 */   &CIntDriver::ex_Report_write,
+/* 437 */   &CIntDriver::ex_TextTemplate_write_writeEncoded_writeEncodedLine_writeLine, // Report.write prior to CSPro 8.1
 /* 438 */   &CIntDriver::ex_setbluetoothname,
 /* 439 */   &CIntDriver::expersistentsymbolreset,
 /* 440 */   &CIntDriver::ex_Symbol_getJson_getValueJson, // symbol.getJson
@@ -822,6 +830,12 @@ CIntDriver::pDoubleFunction CIntDriver::m_pExFuncs[] =
 /* 461 */   &CIntDriver::ex_JavaScript_getValue,
 /* 462 */   &CIntDriver::ex_JavaScript_setValue,
 /* 463 */   &CIntDriver::ex_JavaScript_UserFunctionCall,
+/* 464 */   &CIntDriver::ex_TextTemplate_write_writeEncoded_writeEncodedLine_writeLine, // Report/StringWriter.write
+/* 465 */   &CIntDriver::ex_TextTemplate_write_writeEncoded_writeEncodedLine_writeLine, // Report/StringWriter.writeEncoded
+/* 466 */   &CIntDriver::ex_TextTemplate_write_writeEncoded_writeEncodedLine_writeLine, // Report/StringWriter.writeEncodedLine
+/* 467 */   &CIntDriver::ex_TextTemplate_write_writeEncoded_writeEncodedLine_writeLine, // Report/StringWriter.writeLine
+/* 468 */   &CIntDriver::ex_StringWriter_toString,
+/* 469 */   &CIntDriver::ex_StringWriter_clear,
 
 
             // placeholders to allow new logic functions to be added to an existing serialization
@@ -856,7 +870,7 @@ void CIntDriver::EvaluateApplicationStartupJavaScript()
 }
 
 
-bool CIntDriver::ExecuteSymbolProcs(const Symbol& symbol, ProcType proc_type)
+bool CIntDriver::ExecuteSymbolProcs(const Symbol& symbol, const ProcType proc_type)
 {
     bool bRequestIssued = false;
 
@@ -875,7 +889,7 @@ bool CIntDriver::ExecuteSymbolProcs(const Symbol& symbol, ProcType proc_type)
     if( program_index != -1 )
     {
         // setup execution parameters
-        m_iProgType = static_cast<int>(proc_type);
+        m_procType = proc_type;
         m_iExSymbol = symbol.GetSymbolIndex();
         m_iExLevel = SymbolCalculator::GetLevelNumber_base1(symbol);
 
@@ -1331,7 +1345,7 @@ double CIntDriver::ExecSpecialFunction(const int iSymVar, const SpecialFunction 
     if( iSymVar <= 0 && special_function != SpecialFunction::OnSystemMessage )
         return AssignInvalidValue(return_type);
 
-    const RAII::SetValueAndRestoreOnDestruction prog_type_modifier(m_iProgType, PROCTYPE_ONFOCUS);
+    const RAII::SetValueAndRestoreOnDestruction proc_type_modifier(m_procType, ProcType::OnFocus);
     const RAII::SetValueAndRestoreOnDestruction symbol_modifier(m_iExSymbol, iSymVar);
     const RAII::SetValueAndRestoreOnDestruction level_modifier(m_iExLevel, ( iSymVar > 0 ) ? SymbolCalculator::GetLevelNumber_base1(NPT_Ref(iSymVar)) : 0);
 

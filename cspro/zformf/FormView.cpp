@@ -3817,7 +3817,7 @@ void CFormScrollView::OnRButtonUp(UINT /*nFlags*/, CPoint point)
         popMenu.AppendMenu(MF_SEPARATOR);
         popMenu.AppendMenu(MF_ENABLED, ID_VIEW_LOGIC,   _T("View &Logic"));
         if (assert_cast<CFormChildWnd*>(GetParentFrame())->GetUseQuestionText()) {
-            popMenu.AppendMenu(MF_ENABLED, ID_QSF_EDITOR, _T("View CAPI &Question"));
+            popMenu.AppendMenu(MF_ENABLED, ID_QSF_EDITOR, _T("View &Question Text"));
         }
 
         m_bAddRFT = true;
@@ -3905,7 +3905,7 @@ void CFormScrollView::OnRButtonUp(UINT /*nFlags*/, CPoint point)
         popMenu.AppendMenu(MF_SEPARATOR);
         popMenu.AppendMenu(MF_STRING, ID_VIEW_LOGIC,   _T("View &Logic"));
         if (assert_cast<CFormChildWnd*>(GetParentFrame())->GetUseQuestionText()) {
-            popMenu.AppendMenu(MF_STRING, ID_QSF_EDITOR, _T("View CAPI &Question"));
+            popMenu.AppendMenu(MF_STRING, ID_QSF_EDITOR, _T("View &Question Text"));
         }
 
         m_bAddRFT = false;

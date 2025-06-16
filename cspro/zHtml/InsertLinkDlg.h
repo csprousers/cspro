@@ -1,10 +1,15 @@
 ﻿#pragma once
 
+#include <zHtml/zHtml.h>
 
-class InsertLinkDlg : public CDialog
+
+class ZHTML_API InsertLinkDlg : public CDialog
 {
 public:
-	InsertLinkDlg(CWnd* pParent = nullptr);
+    InsertLinkDlg(std::string text, std::string url, CWnd* pParent = nullptr);
+
+    const std::string& GetText() const { return m_text; }
+    const std::string& GetUrl() const  { return m_url; }
 
 protected:
     void DoDataExchange(CDataExchange* pDX) override;
@@ -12,6 +17,6 @@ protected:
     void OnOK() override;
 
 public:
-    std::wstring m_text;
-    std::wstring m_url;
+    std::string m_text;
+    std::string m_url;
 };

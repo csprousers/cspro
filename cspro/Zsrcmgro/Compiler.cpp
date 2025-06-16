@@ -181,12 +181,13 @@ CCompiler::Result CCompiler::CompileReport(const ReportFile& report_file)
 CCompiler::Result CCompiler::Compile(CapiQuestionManager& question_manager)
 {
     question_manager.CompileCapiLogic(
-        [&](const CapiLogicParameters& params)
+        [&](const CapiLogicParameters& capi_logic_parameters)
         {
-            return m_CompIFaz.m_pEngineCompFunc->CompileCapiLogic(params);
+            return m_CompIFaz.m_pEngineCompFunc->CompileCapiLogic(capi_logic_parameters);
         });
 
-    return ( m_CompIFaz.m_pEngineCompFunc->getErrors() == 0 ) ? Result::NoErrors : Result::SomeErrors;
+    return ( m_CompIFaz.m_pEngineCompFunc->getErrors() == 0 ) ? Result::NoErrors :
+                                                                Result::SomeErrors;
 }
 
 

@@ -3,16 +3,16 @@
 #include <zUtilO/FileExtensions.h>
 
 
-DEFINE_ENUM_JSON_SERIALIZER_CLASS(ReportFile::EscapeType,
-    { ReportFile::EscapeType::None,     "none" },
-    { ReportFile::EscapeType::Html,     "HTML" },
-    { ReportFile::EscapeType::Markdown, "Markdown" },
-    { ReportFile::EscapeType::Csv,      "CSV" })
+DEFINE_ENUM_JSON_SERIALIZER_CLASS(ReportFile::Encoding,
+    { ReportFile::Encoding::None,     "none" },
+    { ReportFile::Encoding::Html,     "HTML" },
+    { ReportFile::Encoding::Markdown, "Markdown" },
+    { ReportFile::Encoding::Csv,      "CSV" })
 
 
-ReportFile::ReportFile(std::string name, const EscapeType escape_type, std::shared_ptr<TextSource> text_source)
+ReportFile::ReportFile(std::string name, const Encoding encoding, std::shared_ptr<TextSource> text_source)
     :   m_name(std::move(name)),
-        m_escapeType(escape_type),
+        m_encoding(encoding),
         m_textSource(std::move(text_source))
 {
     ASSERT(m_textSource != nullptr);
@@ -20,24 +20,24 @@ ReportFile::ReportFile(std::string name, const EscapeType escape_type, std::shar
 
 
 ReportFile::ReportFile()
-    :   m_escapeType(EscapeType::None)
+    :   m_encoding(Encoding::None)
 {
     // this should never be called explicitly but allows serialization routines to work properly
 }
 
 
-ReportFile::EscapeType ReportFile::GetDefaultEscapeTypeFromFilename(const std::string& file_path, const bool match_against_all_escape_types)
+ReportFile::Encoding ReportFile::GetDefaultEncodingFromFilename(const std::string& file_path, const bool match_against_all_encodings)
 {
     const std::string extension = PortableFunctions::PathGetFileExtension(file_path);
 
     if( FileExtensions::IsExtensionHtml(extension) )
-        return EscapeType::Html;
+        return Encoding::Html;
 
-    // prior to CSPro 8.1, the only escape type supported was HTML
-    return !match_against_all_escape_types                       ? EscapeType::None :
-           SO::EqualsNoCase(extension, FileExtensions::Markdown) ? EscapeType::Markdown:
-           SO::EqualsNoCase(extension, FileExtensions::CSV)      ? EscapeType::Csv :
-                                                                   EscapeType::None;
+    // prior to CSPro 8.1, the only encoding supported was HTML
+    return !match_against_all_encodings                          ? Encoding::None :
+           SO::EqualsNoCase(extension, FileExtensions::Markdown) ? Encoding::Markdown:
+           SO::EqualsNoCase(extension, FileExtensions::CSV)      ? Encoding::Csv :
+                                                                   Encoding::None;
 }
 
 
@@ -49,8 +49,9 @@ ReportFile ReportFile::CreateFromJson(const JsonNode& json_node,
     std::string file_path = json_node.Contains(JK::filename) ? json_node.GetAbsolutePath(JK::filename) :
                                                                json_node.GetAbsolutePath(JK::path);
 
-    const EscapeType escape_type = json_node.Contains(JK::escapeType) ? json_node.Get<EscapeType>(JK::escapeType) :
-                                                                        GetDefaultEscapeTypeFromFilename(file_path, false);
+    const Encoding encoding = json_node.Contains(JK::encoding) ? json_node.Get<Encoding>(JK::encoding) :
+                              json_node.Contains("escapeType") ? json_node.Get<Encoding>("escapeType") : // used in CSPro 8.0 only
+                                                                 GetDefaultEncodingFromFilename(file_path, false);
 
     std::shared_ptr<TextSource> text_source;
 
@@ -65,7 +66,7 @@ ReportFile ReportFile::CreateFromJson(const JsonNode& json_node,
         text_source = std::make_unique<TextSource>(std::move(file_path));
     }
 
-    return ReportFile(std::move(name), escape_type, std::move(text_source));
+    return ReportFile(std::move(name), encoding, std::move(text_source));
 }
 
 
@@ -75,7 +76,7 @@ void ReportFile::WriteJson(JsonWriter& json_writer) const
 
     json_writer.BeginObject()
                .Write(JK::name, m_name)
-               .Write(JK::escapeType, m_escapeType)
+               .Write(JK::encoding, m_encoding)
                .WriteRelativePath(JK::path, m_textSource->GetFilePath())
                .EndObject();
 }
@@ -92,13 +93,13 @@ void ReportFile::serialize(Serializer& ar)
 
     if( ar.MeetsVersionIteration(Serializer::Iteration_8_1_000_1) )
     {
-        ar.SerializeEnum(m_escapeType);
+        ar.SerializeEnum(m_encoding);
         ar & *m_textSource;
     }
 
     else
     {
         ar & *m_textSource;
-        m_escapeType = GetDefaultEscapeTypeFromFilename(m_textSource->GetFilePath(), false);
+        m_encoding = GetDefaultEncodingFromFilename(m_textSource->GetFilePath(), false);
     }
 }

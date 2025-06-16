@@ -700,7 +700,7 @@ bool CBatchDriver::BatchProcessCaseLevel(Case* pCasetainer, Pre74_CaseLevel* pIn
                         if( m_pEngineDriver->IsSkipping() )
                         {
                             // ... check if the skip-target was reached
-                            bool bTargetReached = m_pEngineDriver->IsSkippingTargetReached( iSymbol, tIndex, static_cast<int>(proc_type) );
+                            bool bTargetReached = m_pEngineDriver->IsSkippingTargetReached(iSymbol, tIndex, proc_type);
 
                             if( bTargetReached )
                                 m_pEngineDriver->ResetSkipping();

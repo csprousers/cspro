@@ -223,10 +223,10 @@ namespace MGF
     constexpr int DeckArray_value_set_size_invalid_47502                    =  47502;
     constexpr int DeckArray_leftover_cell_error_47503                       =  47503;
 
-    constexpr int Report_unbalanced_escapes_48101                           =  48101;
-    constexpr int Report_end_reached_while_in_logic_or_fill_48102           =  48102;
-    constexpr int Report_unsupported_functionality_48103                    =  48103;
-    constexpr int Report_write_in_invalid_locatation_48104                  =  48104;
+    constexpr int TextTemplate_unbalanced_escapes_48101                     =  48101;
+    constexpr int TextTemplate_end_reached_while_in_logic_or_fill_48102     =  48102;
+    constexpr int TextTemplate_unsupported_functionality_48103              =  48103;
+    constexpr int TextTemplate_accessed_in_invalid_location_48104           =  48104;
 
     constexpr int UserFunction_expects_argument_50000                       =  50000;
     constexpr int UserFunction_function_pointer_invalid_50001               =  50001;
@@ -352,6 +352,8 @@ namespace MGF
     constexpr int Geometry_load_error_100352                                = 100352;
     constexpr int Geometry_save_error_100353                                = 100353;
     constexpr int Geometry_assignment_error_100354                          = 100354;
+
+    constexpr int StringWriter_option_invalid_for_function_parameter_100360 = 100360;
 
     constexpr int Path_invalid_directory_100379                             = 100379;
 

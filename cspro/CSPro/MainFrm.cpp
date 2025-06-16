@@ -100,7 +100,6 @@ BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWnd)
     ON_MESSAGE(UWM::Form::HasQuestionText, OnIsQuestion)
     ON_MESSAGE(UWM::Form::IsNameUnique, IsNameUnique)
     ON_MESSAGE(UWM::Form::UpdateStatusBar, OnFormUpdateStatusBar)
-    ON_MESSAGE(UWM::Form::GetCapiLanguages, GetLangInfo)
     ON_MESSAGE(UWM::Form::UpdateCapiLanguages, ProcessLangs)
     ON_MESSAGE(UWM::Form::ShowCapiText, OnShowCapiText)
     ON_MESSAGE(UWM::Form::CapiMacros, OnCapiMacros)
@@ -159,8 +158,8 @@ BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWnd)
 
     ON_MESSAGE(UWM::Edit::GetLexerLanguage, OnGetLexerLanguage)
 
-    ON_COMMAND(ID_VIEW_REPORT_PREVIEW, OnViewReportPreview)
-    ON_UPDATE_COMMAND_UI(ID_VIEW_REPORT_PREVIEW, OnUpdateViewReportPreview)
+    ON_COMMAND(ID_VIEW_PREVIEW_TEXT_TEMPLATE, OnViewPreviewTextTemplate)
+    ON_UPDATE_COMMAND_UI(ID_VIEW_PREVIEW_TEXT_TEMPLATE, OnUpdateViewPreviewTextTemplate)
 
     ON_MESSAGE(UWM::Designer::GetDesignerIcon, OnGetDesignerIcon)
     ON_MESSAGE(UWM::ToolsO::DisplayErrorMessage, OnDisplayErrorMessage)
@@ -855,7 +854,7 @@ LRESULT CMainFrame::OnSelectLanguage(WPARAM wParam, LPARAM /*lParam*/)
         }
 
         // update the question text
-        SendMessage(UWM::Form::ShowCapiText, reinterpret_cast<WPARAM>(dictionary_based_doc));
+        WindowsDesktopMessage::Send(UWM::Form::ShowCapiText, dictionary_based_doc);
     }
 
     return 1;
@@ -1251,7 +1250,7 @@ BOOL CMainFrame::IsOKToClose(){
         }
         if(bProcess && (pDoc && pDoc->IsModified())){   // BMD 02 Mar 2003
             CString sMsg = pDoc->GetPathName();
-            sMsg += _T(" is modified. Do you want to save it ?");
+            sMsg += _T(" is modified. Do you want to save it?");
             int iRet = AfxMessageBox(sMsg,MB_YESNOCANCEL);
             if(iRet == IDYES) {
                 pDoc->OnSaveDocument(pDoc->GetPathName());
@@ -2005,7 +2004,7 @@ namespace
                 {
                     const CapiLogicLocation& capi_logic_location = std::get<CapiLogicLocation>(parser_message.extended_location);
 
-                    error_location_and_line_number = "CAPI Text, " + parser_message.proc_name;
+                    error_location_and_line_number = "Question Text, " + parser_message.proc_name;
 
                     if( capi_logic_location.language_label.has_value() )
                     {
@@ -3643,35 +3642,46 @@ std::tuple<CAplDoc*, CDEItemBase*> CMainFrame::GetCapiItemDetails(CFormDoc* pFor
 }
 
 
-LRESULT CMainFrame::OnShowCapiText(WPARAM wParam, LPARAM /*lParam*/)
+LRESULT CMainFrame::OnShowCapiText(const WPARAM wParam, LPARAM /*lParam*/)
 {
-    CFormDoc* pFormDoc = reinterpret_cast<CFormDoc*>(wParam);
-    QSFView* pQTView = (QSFView*)pFormDoc->GetView(FormViewType::QuestionText);
+    CFormDoc* const pFormDoc = reinterpret_cast<CFormDoc*>(wParam);
+    QSFView* const pQTView = assert_cast<QSFView*>(pFormDoc->GetView(FormViewType::QuestionText));
 
-    if (pQTView != nullptr && pQTView->IsWindowVisible())
+    if( pQTView == nullptr || !pQTView->IsWindowVisible() )
+        return 0;
+
+    CAplDoc* app_doc;
+    CDEItemBase* item_base;
+    std::tie(app_doc, item_base) = GetCapiItemDetails(pFormDoc);
+
+    SharableString html;
+
+    if( item_base != nullptr )
     {
-        CAplDoc* pAplDoc;
-        CDEItemBase* pBase;
-        std::tie(pAplDoc, pBase) = GetCapiItemDetails(pFormDoc);
+        ASSERT(app_doc->m_questionManager != nullptr);
+        CapiQuestionManager& question_manager = *app_doc->m_questionManager;
 
-        SharableString question_text;
+        const CapiQuestion* const question = question_manager.GetQuestion(CapiName::Create(item_base));
 
-        if( pBase != nullptr )
+        if( question != nullptr && !question->GetConditions().empty() )
         {
-            // use the currently selected dictionary language if possible
-            const auto& pDataDict = pFormDoc->GetFormFile().GetDictionary();
+            // use the currently selected dictionary language where there are multiple languages
+            const CDataDict* const dictionary = pFormDoc->GetFormFile().GetDictionary();
+            ASSERT(dictionary != nullptr);
 
-            if( pDataDict->GetLanguages().size() > 1 )
-                question_text = pAplDoc->GetCapiTextForFirstCondition(pBase, pDataDict->GetCurrentLanguage().GetName());
+            const std::string& language_name = ( dictionary->GetLanguages().size() > 1 ) ? dictionary->GetCurrentLanguage().GetName() :
+                                                                                           app_doc->m_questionManager->GetDefaultLanguage().GetName();
 
-            else
-                question_text = pAplDoc->GetCapiTextForFirstCondition(pBase);
+            const CapiText* const matched_capi_text = question->GetConditions().front().GetQuestionText(language_name);
+
+            if( matched_capi_text != nullptr )
+                html = CreateQuestionTextHtmlPreview(app_doc->GetAppObject(), *matched_capi_text);
         }
-
-        pQTView->SetText(std::move(question_text));
     }
 
-    return 0;
+    pQTView->SetCapiTextHtml(std::move(html), nullptr);
+
+    return 1;
 }
 
 
@@ -3692,28 +3702,10 @@ LRESULT CMainFrame::OnIsQuestion(WPARAM /*wParam*/, LPARAM lParam)
     return ( pBase != nullptr && pAplDoc->IsQHAvailable(pBase) ) ? 1 : 0;
 }
 
-LRESULT CMainFrame::GetLangInfo(WPARAM wParam, LPARAM lParam)
-{
-    CArray<CLangInfo,CLangInfo&>* pArrInfo = (CArray<CLangInfo,CLangInfo&>*)(wParam);
-    CFormDoc* pFormDoc = (CFormDoc*)lParam;
-    ASSERT(pFormDoc);
-
-    CAplDoc* pAplDoc = ProcessFOForSrcCode(*pFormDoc);
-
-    if(pAplDoc == nullptr){
-        return 0;
-    }
-    Application* pApplication = &pAplDoc->GetAppObject();
-    ASSERT(pApplication->GetEngineAppType() == EngineAppType::Entry);
-    UNREFERENCED_PARAMETER(pApplication);
-    pAplDoc->GetLangInfo(*pArrInfo);
-
-    return 0;
-}
 
 LRESULT CMainFrame::ProcessLangs(WPARAM wParam, LPARAM lParam)
 {
-    CArray<CLangInfo,CLangInfo&>* pArrInfo = (CArray<CLangInfo,CLangInfo&>*)(wParam);
+    std::vector<CLangInfo>* pArrInfo = reinterpret_cast<std::vector<CLangInfo>*>(wParam);
     CFormDoc* pFormDoc = (CFormDoc*)lParam;
     ASSERT(pFormDoc);
 

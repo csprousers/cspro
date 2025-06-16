@@ -263,6 +263,10 @@ std::optional<SymbolType> LogicCompiler::GetNextTokenSymbolType()
                 symbol_type = SymbolType::Report;
                 break;
 
+            case TOKSTRINGWRITER:
+                symbol_type = SymbolType::StringWriter;
+                break;
+
             case TOKSYSTEMAPP:
                 symbol_type = SymbolType::SystemApp;
                 break;

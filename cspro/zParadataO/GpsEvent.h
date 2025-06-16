@@ -2,7 +2,7 @@
 
 #include <zParadataO/Event.h>
 
-namespace Paradata { class GpsEvent; struct GpsReadingInstance;; class GpsReadRequestEvent; }
+namespace Paradata { class GpsEvent; struct GpsReadingInstance; class GpsReadRequestEvent; }
 
 
 // --------------------------------------------------------------------------

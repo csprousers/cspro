@@ -25,13 +25,14 @@ struct Logic::ParserMessage : public CSProException
 
     virtual ~ParserMessage() { }
 
-    bool IsDeprecationWarning() const { return ( type == Type::DeprecationMajor || type == Type::DeprecationMinor ); }
+    bool IsDeprecationWarning() const { return ( type == Type::DeprecationMajor ||
+                                                 type == Type::DeprecationMinor ); }
 
     Type type;
     int message_number;
     std::string message_text;
-    size_t line_number;
-    size_t position_in_line;
+    size_t line_number;      // 1-based
+    size_t position_in_line; // 0-based
     std::string compilation_unit_name;
     std::string proc_name;
     ExtendedLocation extended_location;
@@ -41,8 +42,5 @@ struct Logic::ParserMessage : public CSProException
 
 struct Logic::ParserError : public ParserMessage
 {
-    ParserError()
-        :   ParserMessage(ParserMessage::Type::Error)
-    {
-    }
+    ParserError() : ParserMessage(ParserMessage::Type::Error) { }
 };

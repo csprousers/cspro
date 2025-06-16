@@ -78,6 +78,9 @@ struct ZENGINEO_API EngineData
     std::vector<SECT*> sections;            // sections
     std::vector<VART*> variables;           // variables
 
+    // non-table storage of other symbols:
+    std::shared_ptr<StringWriter> question_text_string_writer;
+
 
     // --------------------------------------------------------------------------
     // methods
@@ -132,6 +135,7 @@ struct ZENGINEO_API EngineData
 #define GetSymbolLogicNamedFrequency(i) assert_cast<NamedFrequency&>(NPT_Ref(i))
 #define GetSymbolLogicPff(i)            assert_cast<LogicPff&>(NPT_Ref(i))
 #define GetSymbolReport(i)              assert_cast<Report&>(NPT_Ref(i))
+#define GetSymbolStringWriter(i)        assert_cast<StringWriter&>(NPT_Ref(i))
 #define GetSymbolSystemApp(i)           assert_cast<SystemApp&>(NPT_Ref(i))
 #define GetSymbolUserFunction(i)        assert_cast<UserFunction&>(NPT_Ref(i))
 #define GetSymbolValueSet(i)            assert_cast<ValueSet&>(NPT_Ref(i))

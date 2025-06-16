@@ -57,6 +57,7 @@ namespace
             { SymbolType::Flow,             { "Flow"                        } },
             { SymbolType::Report,           { "Report"                      } },
             { SymbolType::Item,             { "Item"                        } },
+            { SymbolType::StringWriter,     { "StringWriter"                } },
             { SymbolType::None,             { "None"                        } },
         };
 

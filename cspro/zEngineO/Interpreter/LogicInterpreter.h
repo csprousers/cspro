@@ -13,6 +13,7 @@
 class ApplicationInterface;
 class BinarySymbol;
 class ConnectionString;
+enum class EncodeType : int;
 class EngineParadataDriver;
 enum FunctionCode : int;
 class PortableColor;
@@ -22,7 +23,7 @@ class UserFunctionArgumentEvaluator;
 class VirtualFileMappingHandler;
 namespace ActionInvoker { class Caller; class Runtime; }
 namespace JavaScript { class Value; }
-namespace Nodes { enum class EncodeType : int; struct ItemSubscript; struct List; struct SymbolComputeWithSubscript;
+namespace Nodes { struct ItemSubscript; struct List; struct SymbolComputeWithSubscript;
                   struct SymbolVariableArgumentsWithSubscript; struct SymbolValue; }
 namespace Paradata { class Event; }
 
@@ -253,7 +254,7 @@ private:
     std::vector<SharableString> m_workingStrings;
 
     // the encoding type for the encode function
-    Nodes::EncodeType m_currentEncodeType;
+    EncodeType m_currentEncodeType;
 
 
     // --------------------------------------------------------------------------
@@ -595,12 +596,19 @@ private:
 public:
     double ex_Report_view(int program_index);
     double ex_Report_save(int program_index);
-    double ex_Report_write(int program_index);
 
 protected: // INTERPRETER_DLL_TODO change to private
     double ex_Report_view(Report& report, const ViewerOptions* viewer_options);
-    std::string* GetReportTextBuilderWithValidityCheck(Report& report);
     std::unique_ptr<std::string> GenerateReport(Report& report, const std::string* output_file_path);
+
+
+    // --------------------------------------------------------------------------
+    // StringWriter object functions
+    // (StringWriterRT.cpp)
+    // --------------------------------------------------------------------------
+public:
+    double ex_StringWriter_clear(int program_index);
+    double ex_StringWriter_toString(int program_index);
 
 
     // --------------------------------------------------------------------------
@@ -653,6 +661,22 @@ public:
     double ex_sysparm(int program_index);
     double ex_savesetting(int program_index);
     double ex_loadsetting(int program_index);
+
+
+    // --------------------------------------------------------------------------
+    // Text Template functions
+    // (TextTemplateRT.cpp)
+    // --------------------------------------------------------------------------
+public:
+    double ex_TextTemplate_write_writeEncoded_writeEncodedLine_writeLine(int program_index);
+
+protected: // INTERPRETER_DLL_TODO change to private
+    SharableString EncodeText(SharableString text, EncodeType encode_type);
+    SharableString EncodeText(SharableString text, const Symbol& symbol);
+
+    // If the symbol is a StringWriter, the underlying type (e.g., a Report) is returned.
+    // The returned text builder is null if the text template is inaccessible.
+    std::tuple<Symbol*, std::string*> GetTextTemplateBuilder(Symbol& symbol);
 
 
     // --------------------------------------------------------------------------

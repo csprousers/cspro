@@ -262,8 +262,7 @@ class CaseViewInputProcessor {
             return res;
 
         qsf.conditions[0].texts.forEach(t => {
-            res[t.language] = t.html.replace(/~~/g, '');
-            //res.push(t.html.replace(/~~/g, ''));
+            res[t.language] = t.html.replace(/~~~|~~/g, '');
         });
 
         return res;

@@ -4,6 +4,14 @@
 #include <yaml-cpp/yaml.h>
 
 
+namespace
+{
+    // yaml-cpp library adds new line when reading "Literal" output and it does not have folding feature to eliminate new lines
+    // as a work around we are trimming new lines added when using "Literal" style output
+    constexpr bool RightTrimNewLines = true;
+}
+
+
 namespace YAML
 {
     template<>
@@ -28,15 +36,6 @@ namespace YAML
     template<>
     struct convert<CapiStyle>
     {
-        static Node encode(const CapiStyle& rhs)
-        {
-            Node node(NodeType::Map);
-            node.force_insert("name", rhs.name);
-            node.force_insert("className", rhs.class_name);
-            node.force_insert("css", rhs.css);
-            return node;
-        }
-
         static bool decode(const Node& node, CapiStyle& rhs)
         {
             if( !node.IsMap() )
@@ -49,6 +48,7 @@ namespace YAML
             return true;
         }
     };
+
 
     template<>
     struct convert<Language>
@@ -73,33 +73,77 @@ namespace YAML
         }
     };
 
+
+    template<>
+    struct convert<CapiText::Format>
+    {
+        static constexpr const char* FormatTexts[] = { "HTML", "HTML-Report", "Markdown-Report" };
+
+        static Node encode(const CapiText::Format& rhs)
+        {
+            ASSERT(static_cast<int>(rhs) < _countof(FormatTexts));
+            return Node(FormatTexts[static_cast<int>(rhs)]);
+        }
+
+        static bool decode(const Node& node, CapiText::Format& rhs)
+        {
+            if( node.IsScalar() )
+            {
+                const std::string this_format_text = node.as<std::string>();
+
+                for( int i = 0; i < _countof(FormatTexts); ++i )
+                {
+                    if( this_format_text == FormatTexts[i] )
+                    {
+                        rhs = static_cast<CapiText::Format>(i);
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+    };
+
+
     template<>
     struct convert<CapiText>
     {
-        static Node encode(const CapiText& rhs)
-        {
-            return Node(rhs.GetText());
-        }
-
         static bool decode(const Node& node, CapiText& rhs)
         {
-            if( !node.IsScalar() )
-                return false;
+            SharableString text;
+            CapiText::Format format;
 
-            rhs = CapiText(node.as<std::string>());
+            if( node.IsScalar() ) // pre-CSPro 8.1
+            {
+                format = CapiText::Format::Html;
+                text = node.as<std::string>();
+            }
+
+            else if( node.IsMap() ) // CSPro 8.1+
+            {
+                format = node["format"].as<CapiText::Format>();
+                text = node["text"].as<std::string>();
+            }
+
+            else
+            {
+                return false;
+            }
+
+            if constexpr(RightTrimNewLines)
+                text.MakeTrimRight('\n');
+
+            rhs = CapiText(std::move(text), format);
 
             return true;
         }
     };
 
+
     template<>
     struct convert<CapiCondition>
     {
-        static Node encode(const CapiCondition& /*rhs*/)
-        {
-            return ReturnProgrammingError(Node());
-        }
-
         static bool decode(const Node& node, CapiCondition& rhs)
         {
             static_assert(Serializer::GetEarliestSupportedVersion() < Serializer::Iteration_8_0_000_1, "when removing pre-8.0 support, remove 'logicExpression'");
@@ -123,14 +167,10 @@ namespace YAML
         }
     };
 
+
     template<>
     struct convert<CapiQuestion>
     {
-        static Node encode(const CapiQuestion& /*rhs*/)
-        {
-            return ReturnProgrammingError(Node());
-        }
-
         static bool decode(const Node& node, CapiQuestion& rhs)
         {
             static_assert(Serializer::GetEarliestSupportedVersion() < Serializer::Iteration_8_0_000_1, "when removing pre-8.0 support, remove 'fillExpressions'");
@@ -144,14 +184,19 @@ namespace YAML
                 rhs.m_conditions = node["conditions"].as<std::vector<CapiCondition>>();
 
             if( node["fillExpressions"] )
-                rhs.m_fillExpressions = node["fillExpressions"].as<std::map<std::string, int>>();
+            {
+                ASSERT(rhs.m_pre81FillExpressions == nullptr);
+                rhs.m_pre81FillExpressions = std::make_unique<std::map<std::string, int>>(node["fillExpressions"].as<std::map<std::string, int>>());
+            }
 
             return true;
         }
     };
 
+
     template <typename T>
-    Emitter& operator<<(Emitter& emitter, const T& t) {
+    Emitter& operator<<(Emitter& emitter, const T& t)
+    {
         emitter << convert<T>::encode(t);
         return emitter;
     }
@@ -165,72 +210,107 @@ std::string WriteToYaml(const CapiQuestionManager& question_manager)
     // for the question text and we need to write out everything field by field
     // to do that.
     YAML::Emitter out;
+
     out << YAML::BeginDoc;
     out << YAML::BeginMap;
+
     out << YAML::Key << "fileType";
     out << YAML::Value << "Question Text";
+
     out << YAML::Key << "version";
     out << Versioning::CSProVersionText;
+
     out << YAML::Key << "languages";
     out << YAML::Value << question_manager.GetLanguages();
 
     // styles
     out << YAML::Key << "styles";
     out << YAML::BeginSeq;
-    for (const CapiStyle& style : question_manager.GetStyles()) {
+
+    for( const CapiStyle& style : question_manager.GetStyles() )
+    {
         out << YAML::BeginMap;
+
         out << YAML::Key << "name";
         out << YAML::Value << style.name;
+
         out << YAML::Key << "className";
         out << YAML::Value << style.class_name;
+
         out << YAML::Key << "css";
         out << YAML::Value << YAML::Literal << style.css;
+
         out << YAML::EndMap;
     }
+
     out << YAML::EndSeq;
 
     // questions
     out << YAML::Key << "questions";
     out << YAML::BeginSeq;
 
-    for (const CapiQuestion& question : question_manager.GetQuestionsSortedInFormOrder()) {
+    for( const CapiQuestion& question : question_manager.GetQuestionsSortedInFormOrder() )
+    {
         out << YAML::BeginMap;
+
         out << YAML::Key << "name";
         out << YAML::Value << question.GetItemName();
+
         const std::vector<CapiCondition>& conditions = question.GetConditions();
-        if (!conditions.empty()) {
+
+        if( !conditions.empty() )
+        {
             out << YAML::Key << "conditions";
             out << YAML::BeginSeq;
-            for (const CapiCondition& condition : conditions) {
+
+            for( const CapiCondition& condition : conditions )
+            {
                 out << YAML::BeginMap;
-                if (!condition.GetLogic().empty()) {
+
+                if( !condition.GetLogic().empty() )
+                {
                     out << YAML::Key << "logic";
                     out << YAML::Value << condition.GetLogic();
                 }
-                if (!condition.GetAllQuestionText().empty()) {
-                    out << YAML::Key << "questionText";
+
+                auto write_texts = [&](const char* const key, const std::map<std::string, CapiText>& texts)
+                {
+                    if( texts.empty() )
+                        return;
+
+                    out << YAML::Key << key;
                     out << YAML::BeginMap;
-                    for (const auto& text : condition.GetAllQuestionText()) {
-                        out << YAML::Key << text.first;
-                        out << YAML::Literal << text.second;
+
+                    for( const auto& [language_name, capi_text] : texts )
+                    {
+                        out << YAML::Key << language_name;
+
+                        out << YAML::BeginMap;
+
+                        out << YAML::Key << "format";
+                        out << YAML::Value << capi_text.GetFormat();
+
+                        out << YAML::Key << "text";
+                        out << YAML::Literal << capi_text.GetText();
+
+                        out << YAML::EndMap;
                     }
+
                     out << YAML::EndMap;
-                }
-                if (!condition.GetAllHelpText().empty()) {
-                    out << YAML::Key << "helpText";
-                    out << YAML::BeginMap;
-                    for (const auto& text : condition.GetAllHelpText()) {
-                        out << YAML::Key << text.first;
-                        out << YAML::Literal << text.second;
-                    }
-                    out << YAML::EndMap;
-                }
+                };
+
+                write_texts("questionText", condition.GetAllQuestionText());
+                write_texts("helpText", condition.GetAllHelpText());
+
                 out << YAML::EndMap;
             }
+
             out << YAML::EndSeq;
         }
+
         out << YAML::EndMap;
     }
+
     out << YAML::EndSeq;
 
     out << YAML::EndMap;
@@ -252,14 +332,15 @@ void ReadFromYaml(CapiQuestionManager& question_manager, const YAML::Node& yaml)
     for( Language& language : languages )
         question_manager.AddLanguage(std::move(language));
 
-    // yaml-cpp library adds new line when reading "Literal" output and it does not have folding feature to eliminate new lines
-    // as a work around we are trimming new lines added when using "Literal" style output
     if( yaml["styles"] )
     {
         std::vector<CapiStyle> styles = yaml["styles"].as<std::vector<CapiStyle>>();
 
-        for( CapiStyle& style : styles )
-            SO::MakeTrimRight(style.css, '\n');
+        if constexpr(RightTrimNewLines)
+        {
+            for( CapiStyle& style : styles )
+                SO::MakeTrimRight(style.css, '\n');
+        }
 
         question_manager.SetStyles(std::move(styles));
     }
@@ -269,26 +350,7 @@ void ReadFromYaml(CapiQuestionManager& question_manager, const YAML::Node& yaml)
         std::vector<CapiQuestion> questions = yaml["questions"].as<std::vector<CapiQuestion>>();
 
         for( CapiQuestion& question : questions )
-        {
-            std::vector<CapiCondition>& conditions = question.GetConditions();
-
-            for( CapiCondition& condition : conditions )
-            {
-                for( const auto& [language_name, capi_text] : condition.GetAllQuestionText() )
-                {
-                    condition.SetQuestionText(CapiText(SO::TrimRight(capi_text.GetText().GetString(), '\n')),
-                                              language_name);
-                }
-
-                for( const auto& [language_name, capi_text] : condition.GetAllHelpText() )
-                {
-                    condition.SetHelpText(CapiText(SO::TrimRight(capi_text.GetText().GetString(), '\n')),
-                                          language_name);
-                }
-            }
-
             question_manager.SetQuestion(std::move(question));
-        }
     }
 }
 

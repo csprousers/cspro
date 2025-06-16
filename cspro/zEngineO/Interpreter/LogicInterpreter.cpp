@@ -1,7 +1,7 @@
 ﻿#include "stdafx.h"
 #include "IncludesRT.h"
 #include "LogicInterpreter.h"
-#include "Nodes/Various.h"
+#include "Nodes/TextTemplate.h"
 #include <zHtml/VirtualFileMapping.h>
 #include <zAction/Caller.h>
 
@@ -10,7 +10,7 @@ LogicInterpreter::LogicInterpreter(cs::non_null_shared_or_raw_ptr<EngineData> en
                                    cs::non_null_shared_or_raw_ptr<ApplicationInterface> application_interface)
     :   m_symbolTable(engine_data->symbol_table),
         m_logicByteCode(engine_data->logic_byte_code),
-        m_currentEncodeType(Nodes::EncodeType::Html),
+        m_currentEncodeType(EncodeType::Html),
         m_engineData(std::move(engine_data)),
         m_applicationInterface(std::move(application_interface)),
         m_usingLogicSettingsV0(true)

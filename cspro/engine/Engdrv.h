@@ -151,11 +151,11 @@ public:
 
     // batch-skip management                            // victor Mar 14, 01
 private:
-    bool            m_bSkipping;        // "skipping" flag
-    C3DObject*      m_pSkippingSource;  // skip-source description
-    int             m_iSkippingSource;  // skip-source proc-type (PROCTYPE_PRE or PROCTYPE_POST)
-    C3DObject*      m_pSkippingTarget;  // skip-target description
-    int             m_iSkippingTarget;  // skip-source proc-type (PROCTYPE_PRE or PROCTYPE_POST)
+    bool            m_bSkipping;              // "skipping" flag
+    C3DObject*      m_pSkippingSource;        // skip-source description
+    ProcType        m_skippingSourceProcType; // skip-source proc-type (ProcType::PreProc or ProcType::PostProc)
+    C3DObject*      m_pSkippingTarget;        // skip-target description
+    ProcType        m_skippingTargetProcType; // skip-source proc-type (ProcType::PreProc or ProcType::PostProc)
 
     // miscellaneous
 private:
@@ -204,16 +204,16 @@ public:
     // batch-skip management                            // victor Mar 14, 01
 public:
     bool    IsSkipping() const { return m_bSkipping; }
-    bool    IsSkippingTargetReached( int iCurrentSymbol, CNDIndexes& aIndex );
-    bool    IsSkippingTargetReached( int iCurrentSymbol, int* aIndex, int iProgType );
+    bool    IsSkippingTargetReached(int iCurrentSymbol, CNDIndexes& aIndex );
+    bool    IsSkippingTargetReached(int iCurrentSymbol, int* aIndex, ProcType proc_type);
 
-    void    SetSkipping( int iSymbol, int* aIndex, int iProgType, bool bTarget = false );
+    void    SetSkipping(int iSymbol, int* aIndex, ProcType proc_type, bool bTarget = false);
 
     //////////////////////////////////////////////////////////////////////////
     // SetSkipping -> new 3d versions: SetSkippingSource + SetSkippingTarget
     // rcl, Sept 04, 2004
-    void    SetSkippingSource( C3DObject& theSourceObject, int iProgType );
-    void    SetSkippingTarget( C3DObject& theTargetObject, int iProgType );
+    void    SetSkippingSource(C3DObject& theSourceObject, ProcType proc_type);
+    void    SetSkippingTarget(C3DObject& theTargetObject, ProcType proc_type);
     //////////////////////////////////////////////////////////////////////////
 
     void    ResetSkipping();

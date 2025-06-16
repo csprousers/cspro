@@ -2109,8 +2109,8 @@ namespace
             {
                 SymbolType::Array,          SymbolType::Audio,          SymbolType::Document,       SymbolType::Dictionary,     SymbolType::Pre80Dictionary,
                 SymbolType::File,           SymbolType::Geometry,       SymbolType::HashMap,        SymbolType::Image,          SymbolType::List,
-                SymbolType::NamedFrequency, SymbolType::Record,         SymbolType::SystemApp,      SymbolType::ValueSet,       SymbolType::WorkString,
-                SymbolType::WorkVariable
+                SymbolType::NamedFrequency, SymbolType::Record,         SymbolType::Report,         SymbolType::StringWriter,   SymbolType::SystemApp,
+                SymbolType::ValueSet,       SymbolType::WorkString,     SymbolType::WorkVariable
             },
             DataType::String,
             FunctionCompilationType::Symbol,
@@ -2124,8 +2124,8 @@ namespace
             std::vector<SymbolType>
             {
                 SymbolType::Array,          SymbolType::Audio,          SymbolType::Document,       SymbolType::Geometry,       SymbolType::HashMap,
-                SymbolType::Image,          SymbolType::List,           SymbolType::SystemApp,      SymbolType::ValueSet,       SymbolType::WorkString,
-                SymbolType::WorkVariable
+                SymbolType::Image,          SymbolType::List,           SymbolType::Report,         SymbolType::StringWriter,   SymbolType::SystemApp,
+                SymbolType::ValueSet,       SymbolType::WorkString,     SymbolType::WorkVariable
             },
             DataType::Numeric,
             FunctionCompilationType::Symbol,
@@ -2138,6 +2138,7 @@ namespace
             FunctionCode::SYMBOLFN_SETVALUEFROMJSON_CODE,
             std::vector<SymbolType>
             {
+                // updateValueFromJson is deprecated so do not add anything added post-CSPro 8.0 here
                 SymbolType::Array,          SymbolType::Audio,          SymbolType::Document,       SymbolType::Geometry,       SymbolType::HashMap,
                 SymbolType::Image,          SymbolType::List,           SymbolType::SystemApp,      SymbolType::ValueSet,       SymbolType::WorkString,
                 SymbolType::WorkVariable
@@ -3411,15 +3412,30 @@ namespace
             FunctionCompilationType::Report,
             -1,
         },
+
+
+        // --------------------------------------------------------------------------
+        // StringWriter functions
+        // --------------------------------------------------------------------------
         {
-            "write",
-            "report_name.write(Message, [Item, [Item ...]])",
-            "Report_write_function.html",
-            FunctionCode::REPORTFN_WRITE_CODE,
-            SymbolType::Report,
+            "clear",
+            "string_writer_name.clear()",
+            "StringWriter_clear_function.html",
+            FunctionCode::STRINGWRITERFN_CLEAR_CODE,
+            SymbolType::StringWriter,
             DataType::Numeric,
-            FunctionCompilationType::Report,
-            -1,
+            FunctionCompilationType::StringWriter,
+            0,
+        },
+        {
+            "toString",
+            "string_writer_name.toString()",
+            "StringWriter_toString_function.html",
+            FunctionCode::STRINGWRITERFN_TOSTRING_CODE,
+            SymbolType::StringWriter,
+            DataType::String,
+            FunctionCompilationType::StringWriter,
+            0,
         },
 
 
@@ -3465,6 +3481,67 @@ namespace
             DataType::Numeric,
             FunctionCompilationType::SystemApp,
             3,
+        },
+
+
+        // --------------------------------------------------------------------------
+        // Text Template functions (for Report and StringWriter)
+        // --------------------------------------------------------------------------
+        {
+            "write",
+            "symbol_name.write(Message, [Item, [Item ...]])",
+            "StringWriter_write_function.html",
+            FunctionCode::TEXTTEMPLATEFN_WRITE_CODE,
+            std::vector<SymbolType>
+            {
+                SymbolType::Report,
+                SymbolType::StringWriter,
+            },
+            DataType::Numeric,
+            FunctionCompilationType::TextTemplate,
+            -1,
+        },
+        {
+            "writeEncoded",
+            "symbol_name.writeEncoded(Message, [Item, [Item ...]])",
+            "StringWriter_writeEncoded_function.html",
+            FunctionCode::TEXTTEMPLATEFN_WRITEENCODED_CODE,
+            std::vector<SymbolType>
+            {
+                SymbolType::Report,
+                SymbolType::StringWriter,
+            },
+            DataType::Numeric,
+            FunctionCompilationType::TextTemplate,
+            -1,
+        },
+        {
+            "writeEncodedLine",
+            "symbol_name.writeEncodedLine(Message, [Item, [Item ...]])",
+            "StringWriter_writeEncodedLine_function.html",
+            FunctionCode::TEXTTEMPLATEFN_WRITEENCODEDLINE_CODE,
+            std::vector<SymbolType>
+            {
+                SymbolType::Report,
+                SymbolType::StringWriter,
+            },
+            DataType::Numeric,
+            FunctionCompilationType::TextTemplate,
+            -1,
+        },
+        {
+            "writeLine",
+            "symbol_name.writeLine(Message, [Item, [Item ...]])",
+            "StringWriter_writeLine_function.html",
+            FunctionCode::TEXTTEMPLATEFN_WRITELINE_CODE,
+            std::vector<SymbolType>
+            {
+                SymbolType::Report,
+                SymbolType::StringWriter,
+            },
+            DataType::Numeric,
+            FunctionCompilationType::TextTemplate,
+            -1,
         },
 
 

@@ -151,6 +151,7 @@ namespace
         { "Geometry",           "Geometry_statement.html",              TokenCode::TOKKWGEOMETRY },
         { "persistent",         "persistent_modifier.html",             TokenCode::TOKPERSISTENT },
         { "declare",            "declare_modifier.html",                TokenCode::TOKDECLARE },
+        { "StringWriter",       "StringWriter_statement.html",          TokenCode::TOKKWSTRINGWRITER },
     };
 }
 

@@ -1,4 +1,5 @@
 ﻿#pragma once
+
 // RelGrid.h: interface for the CLangGrid class.
 //
 //////////////////////////////////////////////////////////////////////
@@ -12,20 +13,27 @@ class CNameEdit2;
 enum class eLANGINFO { DEFAULT_INFO = 0, NEW_INFO, MODIFIED_INFO, DELETED_INFO };
 
 
-class CLASS_DECL_ZDICTF CLangInfo : public CObject {
-    public:
-    CLangInfo() { m_eLangInfo = eLANGINFO::DEFAULT_INFO; }
-    virtual ~CLangInfo(){};
-    bool operator== (const CLangInfo& langInfo ) const {
+class CLangInfo
+{
+public:
+    CLangInfo(CString sLangName = CString(), CString sLabel = CString())
+        :   m_sLangName(std::move(sLangName)),
+            m_sLabel(std::move(sLabel)),
+            m_eLangInfo(eLANGINFO::DEFAULT_INFO)
+    {
+    }
+
+    bool operator==(const CLangInfo& langInfo) const
+    {
         bool bRet = false;
         if(true) {
-            CIMSAString sThis = m_sLangName;
-            CIMSAString sCompare = langInfo.m_sLangName;
+            CString sThis = m_sLangName;
+            CString sCompare = langInfo.m_sLangName;
             sThis.Trim();
             sCompare.Trim();
 
-            CIMSAString sThisLabel = m_sLabel;
-            CIMSAString sCompareLabel = langInfo.m_sLabel;
+            CString sThisLabel = m_sLabel;
+            CString sCompareLabel = langInfo.m_sLabel;
             sThisLabel.Trim();
             sCompareLabel.Trim();
 
@@ -33,25 +41,13 @@ class CLASS_DECL_ZDICTF CLangInfo : public CObject {
                 bRet = true;
             }
         }
+
         return bRet;
-
-    }
-    CLangInfo (CLangInfo& langInfo)
-    {
-        m_sLangName = langInfo.m_sLangName ;
-        m_sLabel = langInfo.m_sLabel;
-        m_eLangInfo = langInfo.m_eLangInfo;
-    }       // copy constructor
-
-    void operator= (CLangInfo& langInfo){
-        m_sLangName = langInfo.m_sLangName ;
-        m_sLabel = langInfo.m_sLabel;
-        m_eLangInfo = langInfo.m_eLangInfo;
     }
 
-public :
-    CIMSAString m_sLangName;
-    CIMSAString m_sLabel;
+public:
+    CString m_sLangName;
+    CString m_sLabel;
     eLANGINFO m_eLangInfo;
 };
 
@@ -81,8 +77,8 @@ public:
     int         m_iMinCol;
     bool        m_bChanged;
 
-    CArray<CLangInfo,CLangInfo&>   m_aLangInfo;
-    CArray<CWnd*, CWnd*>    m_aEditControl;
+    std::vector<CLangInfo> m_aLangInfo;
+    CArray<CWnd*, CWnd*> m_aEditControl;
 
 public:
     CLangGrid() {m_bChanged = false;}

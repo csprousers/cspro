@@ -253,19 +253,23 @@ void CFormTreeCtrl::OnSelchanged (NMHDR* pNMHDR, LRESULT* pResult)
             }
         }
 
-        if(bProcessQuestionText)
+        if( bProcessQuestionText )
         {
-            if(bActivate){
+            if( bActivate )
                 pFrame->ActivateFrame();
+
+            if( m_bSendMsg && pFrame->GetViewMode() == FormViewMode )
+            {
+                WindowsDesktopMessage::Send(UWM::Form::ShowCapiText, pDoc);
             }
-            if(m_bSendMsg && pFrame->GetViewMode()==FormViewMode){
-                AfxGetMainWnd()->SendMessage(UWM::Form::ShowCapiText, reinterpret_cast<WPARAM>(pDoc));
-            }
-            else if(m_bSendMsg && pFrame->GetViewMode()==QSFEditorViewMode){
+
+            else if( m_bSendMsg && pFrame->GetViewMode() == QSFEditorViewMode )
+            {
                 pDoc->SetSelectedCapiQuestion(pID);
                 pDoc->UpdateAllViews(nullptr, Hint::CapiEditorUpdateQuestionStyles);
             }
         }
+
     //} moved 6 lines below----Chirag Problem seen in lot of versions...
         CFSourceEditView* pView2 = (CFSourceEditView*)pDoc->GetView(FormViewType::Logic);
         if (pView2 != NULL) {
@@ -3395,7 +3399,7 @@ void CFormTreeCtrl::OnRButtonUp(UINT nFlags, CPoint point)
 
         if( pFrame->GetUseQuestionText())
         {
-            popMenu.AppendMenu(MF_STRING, ID_QSF_EDITOR, _T("View CAPI &Question"));
+            popMenu.AppendMenu(MF_STRING, ID_QSF_EDITOR, _T("View &Question Text"));
             popMenu.AppendMenu(MF_STRING, ID_VIEW_QUESTIONNAIRE, _T("View Questionnaire"));
             popMenu.AppendMenu(MF_SEPARATOR);
             popMenu.AppendMenu(isQuestionnaireView ? MF_STRING | MF_GRAYED : MF_STRING, ID_CAPI_MACROS, _T("Question Text &Macros"));

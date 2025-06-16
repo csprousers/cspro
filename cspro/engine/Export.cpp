@@ -253,7 +253,7 @@ int CExport::SpsDescr( int iNumRecords ) {
         int iRecLen = EnsembledTrip( &CExport::Export_GetRecordLen, false, &bUseSeparator );
         iRecLen += m_pHeadNode->m_iLenCaseId;
         if ( iRecLen > 8192 ){
-            // GHM 20110404 the file handle command below was missing a period (trevor-reported bug)
+            // 20110404 the file handle command below was missing a period (trevor-reported bug)
             _ftprintf( m_pFileSPSS, _T("FILE HANDLE SPSSDATA/NAME='%s' LRECL=%d.\n"), GetExpoName().GetString(), iRecLen );
             _ftprintf( m_pFileSPSS, _T("DATA LIST FILE=SPSSDATA RECORDS=%d\n"), iNumRecords );
         }
@@ -263,7 +263,7 @@ int CExport::SpsDescr( int iNumRecords ) {
     }
     CIntDriver* pIntDriver = m_pEngineDriver->m_pIntDriver.get();
 
-    pIntDriver->PrepareForExportExec( m_pHeadNode->m_iExportProcSymbol, m_pHeadNode->m_iExportProcType );
+    pIntDriver->PrepareForExportExec(m_pHeadNode->m_iExportProcSymbol, m_pHeadNode->m_exportProcType);
 
     // Process
     while( *pExpoNode != Exp_EOCASE ) {
@@ -275,7 +275,7 @@ int CExport::SpsDescr( int iNumRecords ) {
                                 if( bGenerate ) {
                                     int iSizeCaseId = m_pHeadNode->m_iLenCaseId;
 
-                                        if( Export4ByteUnicodeAlphas() ) // GHM 20130502
+                                        if( Export4ByteUnicodeAlphas() ) // 20130502
                                             iSizeCaseId = m_pHeadNode->m_iLenCaseIdUnicode;
 
                                         iLoc = 1 + iSizeCaseId + m_pHeadNode->m_iLenRecId;
@@ -351,7 +351,7 @@ void CExport::sps_variable( VART* pVarT, const CString& csExportVarName, int & i
 
         int iVarLength = pVarT->GetLength();
 
-        if( pVarT->GetDecimals() && !pVarT->GetDecChar() ) // GHM 20120504 we need to add the decimal character to the output
+        if( pVarT->GetDecimals() && !pVarT->GetDecChar() ) // 20120504 we need to add the decimal character to the output
             iVarLength++;
 
         else if( pVarT->IsAlpha() && !GetExportForceANSI() ) // we will output four bytes for every character to satisfy all UTF-8 possibilities
@@ -369,7 +369,7 @@ void CExport::sps_variable( VART* pVarT, const CString& csExportVarName, int & i
 
         _fputtc( _T('\n'), m_pFileSPSS );
 
-    iLoc += iVarLength; // GHM 20120504 moved from CExport::Export_SpssDescription
+    iLoc += iVarLength; // 20120504 moved from CExport::Export_SpssDescription
 }
 
 void CExport::sps_label( csprochar* pszGenLabel, csprochar* pszLabel ) {
@@ -411,7 +411,7 @@ void CExport::SasDescr() {
         return;
 
     CIntDriver* pIntDriver = m_pEngineDriver->m_pIntDriver.get();
-    pIntDriver->PrepareForExportExec( m_pHeadNode->m_iExportProcSymbol, m_pHeadNode->m_iExportProcType );
+    pIntDriver->PrepareForExportExec(m_pHeadNode->m_iExportProcSymbol, m_pHeadNode->m_exportProcType);
 
     CMap<VART*,VART*,int,int>       aMapSasLabel;
 
@@ -432,10 +432,10 @@ void CExport::SasDescr() {
     int     iRecLen = sas_input( 0 );
     CString csFName = GetExpoName(); // RHF Apr 30, 2002
 
-    if( GetExportForceANSI() ) // GHM 20120417
+    if( GetExportForceANSI() ) // 20120417
         _ftprintf( m_pFileSAS, _T("infile '%s' LRECL=%d TRUNCOVER ;\n"), csFName.GetString(), iRecLen );
     else
-        _ftprintf( m_pFileSAS, _T("infile '%s' encoding=\"utf-8\" LRECL=%d TRUNCOVER ;\n"), csFName.GetString(), iRecLen ); // GHM 20120120 for unicode
+        _ftprintf( m_pFileSAS, _T("infile '%s' encoding=\"utf-8\" LRECL=%d TRUNCOVER ;\n"), csFName.GetString(), iRecLen ); // 20120120 for unicode
 
     // generate input format
     // RHF COM Oct 15, 2004 m_bCaseIdReady = ( !m_pHeadNode->m_bHasCaseId );
@@ -587,7 +587,7 @@ void CExport::sas_misvalue( VART* pVarT, int aIndex[DIM_MAXDIM], int aDimFlag[DI
 
         // _ftprintf( m_pFileSAS, _T("    if %-8s = %6.0f then %s = .;\n"),
 
-        // GHM 20140905 see my SPSS fix on 20130907 for an explanation of the change
+        // 20140905 see my SPSS fix on 20130907 for an explanation of the change
         CString formatStr;
         formatStr.Format(_T("    if %%-8ls = %%.%df then %%s = .;\n"),pVarT->GetDecimals());
         _ftprintf( m_pFileSAS, formatStr, csExportedVarName.GetString(), dValue, csExportedVarName.GetString() );
@@ -676,7 +676,7 @@ void CExport::sas_inpvariable( VART* pVarT, int aIndex[DIM_MAXDIM], int aDimFlag
 
     int iVarLength = pVarT->GetLength();
 
-    if( pVarT->GetDecimals() && !pVarT->GetDecChar() ) // GHM 20120504 we need to add the decimal character to the output
+    if( pVarT->GetDecimals() && !pVarT->GetDecChar() ) // 20120504 we need to add the decimal character to the output
         iVarLength++;
 
     else if( pVarT->IsAlpha() && !GetExportForceANSI() ) // we will output four bytes for every character to satisfy all UTF-8 possibilities
@@ -839,7 +839,7 @@ int CExport::StataDescr( int iNumRecords ) {
         return 0;
 
     CIntDriver* pIntDriver = m_pEngineDriver->m_pIntDriver.get();
-    pIntDriver->PrepareForExportExec( m_pHeadNode->m_iExportProcSymbol, m_pHeadNode->m_iExportProcType );
+    pIntDriver->PrepareForExportExec(m_pHeadNode->m_iExportProcSymbol, m_pHeadNode->m_exportProcType);
 
     // RHF COM Oct 15, 2004m_bCaseIdReady = ( !m_pHeadNode->m_bHasCaseId ); // RHF Apr 30, 2002
     m_bCaseIdReady = (m_pHeadNode->m_iLenCaseId == 0 && m_pHeadNode->m_iLenRecId == 0 );
@@ -974,7 +974,7 @@ void CExport::stata_variable( VART* pVarT, const CString& csExportedVarName, int
 
     if( pVarT->IsNumeric() ) {
 
-        if( pVarT->GetDecimals() && !pVarT->GetDecChar() ) // GHM 20120504 we need to add the decimal character to the output
+        if( pVarT->GetDecimals() && !pVarT->GetDecChar() ) // 20120504 we need to add the decimal character to the output
             iVarLength++;
 
         // RHF INIC Sep 22, 2005
@@ -1052,7 +1052,7 @@ bool CExport::stata_hasvaluelabel( VART* pVarT ) {         // RHF 15/3/99
     bool    bIsValid = stata_isvalidvalue( dValue );
     bool    bHasAny  = ( bIsValid && !stata_findvalue( pVarT, dValue ) );
 
-    // GHM 20110210 disable printing of labels that are empty
+    // 20110210 disable printing of labels that are empty
     bool nonBlankLabel = false;
 
     for( int iValue = 0; !nonBlankLabel && iValue < iNumCategories; iValue++ )
@@ -1106,7 +1106,7 @@ int CExport::stata_countValidValues() {
     for( int iValue = 0; iValue < iNumCategories; iValue++ ) {
         CExportVarCateg*    pVarCateg = GetVarCategoryAt( iValue );
 
-        // GHM 20111020 change of export behavior so that values with blank labels aren't counted as valid values
+        // 20111020 change of export behavior so that values with blank labels aren't counted as valid values
         if( pVarCateg->csTextLabel.GetLength() )
         {
             _tcscpy( pszValue, pVarCateg->csTextValue );
@@ -1151,7 +1151,7 @@ int CExport::CsProDescr() {
         return 0;
 
     CIntDriver* pIntDriver = m_pEngineDriver->m_pIntDriver.get();
-    pIntDriver->PrepareForExportExec( m_pHeadNode->m_iExportProcSymbol, m_pHeadNode->m_iExportProcType );
+    pIntDriver->PrepareForExportExec(m_pHeadNode->m_iExportProcSymbol, m_pHeadNode->m_exportProcType);
 
     int     iLoc=1;
 
@@ -1413,15 +1413,15 @@ void CExport::DeleteVarCategories()
 }
 
 
-void CExport::R_Descr() // GHM 20120507
+void CExport::R_Descr() // 20120507
 {
-    char * pExpoNode = GetFirstNode();
+    char* pExpoNode = GetFirstNode();
 
     if( !pExpoNode )
         return;
 
     CIntDriver* pIntDriver = m_pEngineDriver->m_pIntDriver.get();
-    pIntDriver->PrepareForExportExec( m_pHeadNode->m_iExportProcSymbol, m_pHeadNode->m_iExportProcType );
+    pIntDriver->PrepareForExportExec(m_pHeadNode->m_iExportProcSymbol, m_pHeadNode->m_exportProcType);
 
     m_bCaseIdReady = m_pHeadNode->m_iLenCaseId == 0 && m_pHeadNode->m_iLenRecId == 0;
 
@@ -1466,7 +1466,7 @@ void CExport::R_Descr() // GHM 20120507
     _ftprintf(m_pFileR,_T("names(%s) <- c("), sDataFrame.GetString());
 
     pExpoNode = GetFirstNode();
-    pIntDriver->PrepareForExportExec( m_pHeadNode->m_iExportProcSymbol, m_pHeadNode->m_iExportProcType );
+    pIntDriver->PrepareForExportExec(m_pHeadNode->m_iExportProcSymbol, m_pHeadNode->m_exportProcType);
     m_bCaseIdReady = m_pHeadNode->m_iLenCaseId == 0 && m_pHeadNode->m_iLenRecId == 0;
     bFirstElement = true;
 
@@ -1491,7 +1491,7 @@ void CExport::R_Descr() // GHM 20120507
     _ftprintf(m_pFileR,_T("if( cspro.factor.type != 0 ) {\n\n"));
 
     pExpoNode = GetFirstNode();
-    pIntDriver->PrepareForExportExec( m_pHeadNode->m_iExportProcSymbol, m_pHeadNode->m_iExportProcType );
+    pIntDriver->PrepareForExportExec(m_pHeadNode->m_iExportProcSymbol, m_pHeadNode->m_exportProcType);
     m_bCaseIdReady = m_pHeadNode->m_iLenCaseId == 0 && m_pHeadNode->m_iLenRecId == 0;
 
     while( *pExpoNode != Exp_EOCASE )

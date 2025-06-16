@@ -38,10 +38,7 @@ public:
 
     void Reset() override;
 
-protected:
     void WriteJsonMetadata_subclass(JsonWriter& json_writer) const override;
-
-public:
     void WriteValueToJson(JsonWriter& json_writer) const override;
     void SetValueFromJson(const JsonNode& json_node) override;
 

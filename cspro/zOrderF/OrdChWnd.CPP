@@ -43,7 +43,6 @@ BEGIN_MESSAGE_MAP(COrderChildWnd, ApplicationChildWnd)
     ON_COMMAND(ID_VIEW_PEEK_LOGIC_WORD, OnPeekLogicWord)
     ON_COMMAND(ID_VIEW_GOTO_LOGIC_WORD, OnGotoLogicWord)
     ON_COMMAND(ID_COMMENT_CODE, OnCommentCode)
-    ON_COMMAND(ID_DUPLICATE_LINE, OnDuplicateLine)
     ON_COMMAND(ID_LOGIC_FORMAT, OnFormatLogic)
     ON_COMMAND(ID_VIEW_QUESTIONNAIRE, &COrderChildWnd::OnViewQuestionnaire)
     ON_UPDATE_COMMAND_UI(ID_VIEW_QUESTIONNAIRE, &COrderChildWnd::OnUpdateViewQuestionnaire)
@@ -409,20 +408,6 @@ void COrderChildWnd::OnCommentCode()
 }
 
 
-void COrderChildWnd::OnDuplicateLine()
-{
-    ModifyDocumentAndDoWithLogicCtrl(
-        [](CLogicCtrl* logic_control)
-        {
-            if( logic_control->GetSelectionEmpty() )
-                logic_control->LineDuplicate();
-
-            else
-                logic_control->SelectionDuplicate();
-        });
-}
-
-
 void COrderChildWnd::OnFormatLogic()
 {
     ModifyDocumentAndDoWithLogicCtrl(
@@ -534,4 +519,3 @@ void COrderChildWnd::OnUpdateLogicFormat(CCmdUI* pCmdUI)
 {
     m_bQuestionnaireView ? pCmdUI->Enable(FALSE) : pCmdUI->Enable(TRUE);
 }
-

@@ -569,9 +569,17 @@ bool CCondGrid::EditEnd(bool /*bSilent*/)
     // check if the condition is valid
     if( !sCondition.IsEmpty() )
     {
-        CapiEditorViewModel::SyntaxCheckResult result = view_model.CheckSyntax(CapiLogicParameters::Type::Condition, UTF8_TODO::GetUtf8(sCondition));
-        if (std::holds_alternative<CapiEditorViewModel::SyntaxCheckError>(result)) {
-            ErrorMessage::Display("Compilation error: " + std::get<CapiEditorViewModel::SyntaxCheckError>(result).error_message);
+        const CapiCondition condition(UTF8_TODO::GetUtf8(sCondition));
+        const std::optional<CapiEditorViewModel::SyntaxCheckError> check_errors = view_model.CheckSyntax(&condition);
+
+        if( check_errors.has_value() )
+        {
+            const std::string message = SO::CreateSingleStringUsingCallback(
+                *check_errors,
+                [](const Logic::ParserMessage& parser_message) { return parser_message.message_text; },
+                SO::Newline_lf_sv);
+
+            ErrorMessage::Display("Compilation error: " + message);
             GotoRow(m_iEditRow);
             m_pLabelEdit->SetFocus();
             return false;
@@ -698,7 +706,7 @@ void CCondGrid::OnEditInsert()
 void CCondGrid::OnEditDelete()
 {
     int iRow = GetCurrentRow();
-    if (AfxMessageBox(_T("Do you want to delete this condition ?"), MB_YESNO) == IDYES) {
+    if (AfxMessageBox(_T("Do you want to delete this condition?"), MB_YESNO) == IDYES) {
         CView* pView = (CView*) GetParent();
         CFormDoc* pDoc = (CFormDoc*) pView->GetDocument();
         pDoc->GetCapiEditorViewModel().DeleteCondition(iRow);

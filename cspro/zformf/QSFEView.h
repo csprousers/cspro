@@ -1,133 +1,161 @@
 ﻿#pragma once
 
-#include <zformf/CapiEditorViewModel.h>
+#include <zformf/zFormF.h>
 #include <zformf/QSFEditToolbar.h>
-#include <zHtml/HtmlEditorCtrl.h>
+#include <zformf/QuestionTextEditor.h>
 
 struct CapiStyle;
-class CFormDoc;
-class SharedHtmlLocalFileServer;
-class VirtualFileMapping;
-struct WebViewImpl;
 
 
-/////////////////////////////////////////////////////////////////////////////
-// CQSFEView form view
+// --------------------------------------------------------------------------
+// CQSFEView: Question text editor view
+// --------------------------------------------------------------------------
 
-class CQSFEView : public CFormView
+class CLASS_DECL_ZFORMF CQSFEView : public CFormView
 {
     DECLARE_DYNAMIC(CQSFEView)
 
 public:
     CQSFEView(CFormDoc* pFormDoc);
-    ~CQSFEView();
+
+    using CFormView::Create;
 
     void SetLanguages(std::vector<Language> languages);
-
     void SetLanguage(size_t language_index);
     void SetLanguage(std::string_view language_label_sv);
 
-    size_t GetNumLanguages() const { return m_languages.size(); }
-
+    size_t GetNumLanguages() const             { return m_languages.size(); }
     const Language& GetCurrentLanguage() const { return m_languages[m_languageIndex]; }
 
-    bool IsDirty() const { return m_htmlEditorCtrl.IsDirty(); }
-
-    void UpdateDisplayText();
     void SetStyles(const std::vector<CapiStyle>& styles);
-    void UpdateToolbar();
 
-    BOOL Create(LPCTSTR lpszClassName, LPCTSTR lpszWindowName, DWORD dwStyle, const RECT& rect, CWnd* pParentWnd, UINT nID, CCreateContext* pContext = NULL) override;
+    bool IsDirty() const;
+
+    const CapiText& GetCurrentCapiText() const { return m_currentCapiText; }
 
 protected:
     DECLARE_MESSAGE_MAP()
 
     void DoDataExchange(CDataExchange* pDX) override;
+    void OnInitialUpdate() override;
     void OnUpdate(CView* pSender, LPARAM lHint, CObject* pHint) override;
 
-    afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
-    afx_msg void OnDestroy();
-    afx_msg void OnEditPaste();
-    afx_msg void OnEditPasteWithoutFormatting();
-    afx_msg void OnUpdateEditPaste(CCmdUI* pCmdUI);
-    afx_msg void OnSize(UINT nType, int cx, int cy);
-    afx_msg void OnEditCopy();
-    afx_msg void OnUpdateEditCopy(CCmdUI* pCmdUI);
-    afx_msg void OnEditCut();
-    afx_msg void OnUpdateEditCut(CCmdUI* pCmdUI);
-    afx_msg void OnEditSelectAll();
-    afx_msg void OnContextMenu(CWnd* pWnd, CPoint point);
-    afx_msg void OnChangeHtmlEdit();
-    afx_msg void OnSetfocusHtmlEdit();
-    afx_msg void OnEditUndo();
-    afx_msg void OnEditRedo();
-    afx_msg void OnViewForm();
-    afx_msg void OnViewLogic();
+    BOOL PreTranslateMessage(MSG* pMsg) override;
 
-    afx_msg void OnUpdateFormatStyle(CCmdUI* pCmdUI);
-    afx_msg void OnFormatStyle();
-    afx_msg void OnFormatBold();
-    afx_msg void OnUpdateFormatBold(CCmdUI* pCmdUI);
-    afx_msg void OnFormatItalic();
-    afx_msg void OnUpdateFormatItalic(CCmdUI* pCmdUI);
-    afx_msg void OnFormatUnderline();
-    afx_msg void OnUpdateFormatUnderline(CCmdUI* pCmdUI);
-    afx_msg void OnFormatFontFace();
-    afx_msg void OnUpdateFormatFontFace(CCmdUI* pCmdUI);
-    afx_msg void OnFormatFontSize();
-    afx_msg void OnUpdateFormatFontSize(CCmdUI* pCmdUI);
-    afx_msg void OnFormatColor();
-    afx_msg void OnUpdateFormatColor(CCmdUI* pCmdUI);
-    afx_msg void OnFormatAlignLeft();
-    afx_msg void OnUpdateFormatAlignLeft(CCmdUI* pCmdUI);
-    afx_msg void OnFormatAlignCenter();
-    afx_msg void OnUpdateFormatAlignCenter(CCmdUI* pCmdUI);
-    afx_msg void OnFormatAlignRight();
-    afx_msg void OnUpdateFormatAlignRight(CCmdUI* pCmdUI);
-    afx_msg void OnChangeTextDirectionRightToLeft();
-    afx_msg void OnUpdateChangeTextDirectionRightToLeft(CCmdUI* pCmdUI);
-    afx_msg void OnChangeTextDirectionLeftToRight();
-    afx_msg void OnUpdateChangeTextDirectionLeftToRight(CCmdUI* pCmdUI);
-    afx_msg void OnEditFormatOutlineBullet();
-    afx_msg void OnUpdateEditFormatOutlineBullet(CCmdUI* pCmdUI);
-    afx_msg void OnEditFormatOutlineNumbering();
-    afx_msg void OnUpdateEditFormatOutlineNumbering(CCmdUI* pCmdUI);
-    afx_msg void OnEditInsertImage();
-    afx_msg void OnUpdateEditInsertImage(CCmdUI* pCmdUI);
-    afx_msg void OnInsertTable();
-    afx_msg void OnUpdateInsertTable(CCmdUI* pCmdUI);
-    afx_msg void OnInsertLink();
-    afx_msg void OnUpdateInsertLink(CCmdUI* pCmdUI);
-    afx_msg void OnToggleViewCode();
-    afx_msg void OnUpdateToggleViewCode(CCmdUI* pCmdUI);
-    afx_msg void OnLanguageChanged();
-    afx_msg void OnUpdateToggleQuestionHelpText(CCmdUI* pCmdUI);
-    afx_msg void OnToggleQuestionHelpText();
-    afx_msg void OnTimer(UINT nIDEvent);
+    int OnCreate(LPCREATESTRUCT lpCreateStruct);
+    void OnDestroy();
+
+    void OnSize(UINT nType, int cx, int cy);
+
+    void OnContextMenu(CWnd* pWnd, CPoint point);
+
+    void OnTimer(UINT nIDEvent);
+
+    void OnViewForm();
+    void OnViewLogic();
+    void OnToggleSecondView();
+
+    void OnEditorSetFocus();
+    void OnEditorChangeText();
+
+    void OnUpdateIsActiveEditorVisualHtml(CCmdUI* pCmdUI);
+    void OnUpdateIsActiveEditorAcceptingVisualStyles(CCmdUI* pCmdUI);
+
+    void OnEditCopy();
+    void OnUpdateEditCopy(CCmdUI* pCmdUI);
+
+    void OnEditCut();
+    void OnUpdateEditCut(CCmdUI* pCmdUI);
+
+    void OnEditPaste();
+    void OnEditPasteWithoutFormatting();
+    void OnUpdateEditPaste(CCmdUI* pCmdUI);
+
+    void OnEditSelectAll();
+
+    void OnEditUndo();
+    void OnEditRedo();
+
+    void OnFormatStyle();
+    void OnUpdateFormatStyle(CCmdUI* pCmdUI);
+
+    void OnFormatBold();
+    void OnUpdateFormatBold(CCmdUI* pCmdUI);
+
+    void OnFormatItalic();
+    void OnUpdateFormatItalic(CCmdUI* pCmdUI);
+
+    void OnFormatUnderline();
+    void OnUpdateFormatUnderline(CCmdUI* pCmdUI);
+
+    void OnFormatFontFace();
+    void OnUpdateFormatFontFace(CCmdUI* pCmdUI);
+
+    void OnFormatFontSize();
+    void OnUpdateFormatFontSize(CCmdUI* pCmdUI);
+
+    void OnFormatColor();
+
+    void OnFormatAlign(UINT nID);
+    void OnUpdateFormatAlign(CCmdUI* pCmdUI);
+
+    void OnEditFormatOutlineBullet();
+    void OnUpdateEditFormatOutlineBullet(CCmdUI* pCmdUI);
+
+    void OnEditFormatOutlineNumbering();
+    void OnUpdateEditFormatOutlineNumbering(CCmdUI* pCmdUI);
+
+    void OnEditInsertImage();
+
+    void OnInsertTable();
+
+    void OnInsertLink();
+
+    void OnChangeTextDirectionRightToLeft();
+    void OnChangeTextDirectionLeftToRight();
+
+    void OnChangeEditorType(UINT nID);
+    void OnUpdateChangeEditorType(CCmdUI* pCmdUI);
+
+    void OnViewQuestionHelpText(UINT nID);
+    void OnUpdateViewQuestionHelpText(CCmdUI* pCmdUI);
+
+    void OnLanguageChanged();
 
 private:
-    void SetupFileServer();
-
-    void OnViewHide();
-    void OnQuestionTextTypeChanged();
-    CapiEditorViewModel& GetViewModel();
     CFormDoc* GetFormDoc();
+
+    void SetCorrectEditor();
+
+    void UpdateDisplayText();
+    void UpdateToolbar();
+
     void StartIdleTimer();
     void StopIdleTimer();
-    void UpdateFillErrorDisplay();
+
+    bool IsActiveEditorVisualHtml();
+    bool IsActiveEditorAcceptingVisualStyles();
+
+    template<typename T>
+    static T ConvertResourceId(UINT nID);
+
+    static std::string GetFillsAndLogic(const std::string& text, bool process_logic_escapes);
 
 private:
-    HtmlEditorCtrl m_htmlEditorCtrl;
-    std::unique_ptr<SharedHtmlLocalFileServer> m_fileServer;
-    std::unique_ptr<VirtualFileMapping> m_questionTextVirtualFileMapping;
+    QuestionTextHtmlEditor m_htmlEditor;
+    QuestionTextTextEditor m_textEditor;
+    QuestionTextEditor* m_editors[2];
+    QuestionTextEditor* m_currentEditor;
+    QSFEditToolbar m_toolbar;
 
+    Application* m_application;
     std::string m_applicationFilePath;
     std::vector<Language> m_languages;
     size_t m_languageIndex;
-    CapiText::Type m_textType;
-    QSFEditToolbar m_toolbar;
-    std::optional<UINT_PTR> m_idle_timer;
-    enum { idleTimerID };
+    CapiText::Type m_textTypeEditing;
+    CapiText m_currentCapiText;
+    bool m_updatingDisplayText;
+    std::optional<UINT_PTR> m_idleTimer;
 
-    std::map<std::string, CapiEditorViewModel::SyntaxCheckResult> m_fillSyntaxCheckResults;
+    std::string m_lastCheckedFillsAndLogic;
 };

@@ -48,7 +48,7 @@ double CIntDriver::exset(int iExpr)
         short   iBehaviorItem = pset_ot->setinfo.behavior_item & 0x0000ffff;
         short   iBehaviorOpt =  (pset_ot->setinfo.behavior_item & 0x00ff0000) >> 16;
         short   iBehaviorOpt2 = (pset_ot->setinfo.behavior_item & 0xff000000) >> 24;
-        bool    bPreLevelZero = ( m_iProgType == PROCTYPE_PRE && m_iExLevel == 0 );
+        bool    bPreLevelZero = ( m_procType == ProcType::PreProc && m_iExLevel == 0 );
         bool    bPathOff = m_pEngineSettings->IsPathOff();
 #ifdef  _DEBUG
         const char* const action_formatter = "...... SessionSettings->SetBehavior() %s ......\n";

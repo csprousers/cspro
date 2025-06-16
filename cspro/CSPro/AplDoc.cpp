@@ -2,7 +2,6 @@
 #include "AplDoc.h"
 #include <zUtilO/ArrUtil.h>
 #include <zUtilF/ProgressDlg.h>
-#include <zCapiO/CapiName.h>
 #include <zCapiO/QSFView.h>
 #include <Zentryo/Runaple.h>
 #include <zDesignerF/NewFileCreator.h>
@@ -2136,31 +2135,6 @@ void CAplDoc::BuildQuestMgr()
 }
 
 
-/////////////////////////////////////////////////////////////////////////////////
-//
-//  SharableString CAplDoc::GetCapiTextForFirstCondition(CDEField* pField)
-//
-/////////////////////////////////////////////////////////////////////////////////
-SharableString CAplDoc::GetCapiTextForFirstCondition(CDEItemBase* const item_base, cs::cref_optional<std::string> language_name/* = std::nullopt*/)
-{
-    ASSERT(m_questionManager != nullptr);
-
-    const CapiQuestion* const question = m_questionManager->GetQuestion(CapiName::Create(item_base));
-
-    if( question != nullptr && !question->GetConditions().empty() )
-    {
-        if( !language_name.has_value() )
-            language_name = m_questionManager->GetDefaultLanguage().GetName();
-
-        const CapiText* const capi_text = question->GetConditions().front().GetQuestionText(*language_name);
-
-        if( capi_text != nullptr )
-            return capi_text->GetText();
-    }
-
-    return SharableString();
-}
-
 
 /////////////////////////////////////////////////////////////////////////////////
 //
@@ -2245,30 +2219,15 @@ bool CAplDoc::IsQHAvailable(const CDEItemBase* const item_base)
 }
 
 
-bool CAplDoc::GetLangInfo(CArray<CLangInfo,CLangInfo&>& arrInfo)
-{
-    ASSERT(m_questionManager != nullptr);
-    arrInfo.RemoveAll();
-    for (const Language& lang : m_questionManager->GetLanguages()) {
-        CLangInfo langInfo;
-        langInfo.m_sLangName = UTF8_TODO::GetCString(lang.GetName());
-        langInfo.m_sLabel = UTF8_TODO::GetCString(lang.GetLabel());
-        arrInfo.Add(langInfo);
-    }
-
-    return true;
-}
-
-
-void CAplDoc::ProcessLangs(CArray<CLangInfo,CLangInfo&>& arrInfo)
+void CAplDoc::ProcessLangs(std::vector<CLangInfo>& arrInfo)
 {
     ASSERT( m_questionManager != nullptr );
 
     int iNumLanguages = m_questionManager->GetLanguages().size();
 
     //First process langs which are modified
-    for(int iLangInfo=0; iLangInfo < arrInfo.GetSize(); iLangInfo++) {
-        CLangInfo langInfo = arrInfo[iLangInfo];
+    for(int iLangInfo=0; iLangInfo < (int)arrInfo.size(); iLangInfo++) {
+        const CLangInfo& langInfo = arrInfo[iLangInfo];
         if (langInfo.m_eLangInfo == eLANGINFO::MODIFIED_INFO) {
             ASSERT(iNumLanguages > iLangInfo);
             CString sName = langInfo.m_sLangName;
@@ -2279,16 +2238,16 @@ void CAplDoc::ProcessLangs(CArray<CLangInfo,CLangInfo&>& arrInfo)
     }
 
     //Second langs which are deleted
-    for(int iLangInfo=0; iLangInfo < arrInfo.GetSize(); iLangInfo++) {
-        CLangInfo langInfo =arrInfo[iLangInfo];
+    for(int iLangInfo=0; iLangInfo < (int)arrInfo.size(); iLangInfo++) {
+        const CLangInfo& langInfo = arrInfo[iLangInfo];
         if(langInfo.m_eLangInfo == eLANGINFO::DELETED_INFO) {
             m_questionManager->DeleteLanguage(UTF8_TODO::GetUtf8(langInfo.m_sLangName));
         }
     }
 
     //Finally langs which are ADDED
-    for(int iLangInfo=0; iLangInfo < arrInfo.GetSize(); iLangInfo++) {
-        CLangInfo langInfo =arrInfo[iLangInfo];
+    for(int iLangInfo=0; iLangInfo < (int)arrInfo.size(); iLangInfo++) {
+        const CLangInfo& langInfo = arrInfo[iLangInfo];
         if(langInfo.m_eLangInfo == eLANGINFO::NEW_INFO) {
             CString sName = langInfo.m_sLangName;
             sName.Trim();

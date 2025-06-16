@@ -65,7 +65,6 @@ protected:
     afx_msg void OnPeekLogicWord();
     afx_msg void OnGotoLogicWord();
     afx_msg void OnCommentCode();
-    afx_msg void OnDuplicateLine();
     afx_msg void OnFormatLogic();
     afx_msg void OnViewQuestionnaire();
     afx_msg void OnUpdateViewQuestionnaire(CCmdUI* pCmdUI);

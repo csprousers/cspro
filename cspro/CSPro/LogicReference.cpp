@@ -1038,6 +1038,17 @@ namespace
         }
     }
 
+    void AddStringWriter(CString& reference_text, const StringWriter& string_writer, const Logic::SymbolTable& symbol_table)
+    {
+        reference_text.Append(L"Variable Type: StringWriter\n");
+
+        if( std::holds_alternative<int>(string_writer.GetOutput()) )
+        {
+            const Symbol& wrapped_symbol = symbol_table.GetAt(std::get<int>(string_writer.GetOutput()));
+            reference_text.AppendFormat(L"Wraps: %s\n", UTF8_TODO::GetWide(wrapped_symbol.GetName()).c_str());
+        }
+    }
+
     void AddUserFunction(CString& reference_text, const UserFunction& user_function, const Logic::SymbolTable& symbol_table)
     {
         reference_text.Append(L"Variable Type: Function\n");
@@ -2074,6 +2085,11 @@ LRESULT CMainFrame::OnLogicReference(const WPARAM wParam, const LPARAM lParam)
                     else if( symbol->IsA(SymbolType::Report) )
                     {
                         AddReport(reference_text, logic_reference_worker.GetApplication(), assert_cast<const Report&>(*symbol));
+                    }
+
+                    else if( symbol->IsA(SymbolType::StringWriter) )
+                    {
+                        AddStringWriter(reference_text, assert_cast<const StringWriter&>(*symbol), symbol_table);
                     }
 
                     else if( symbol->IsA(SymbolType::UserFunction) )

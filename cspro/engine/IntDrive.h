@@ -33,6 +33,7 @@
 class CapiCondition;
 class CapiQuestion;
 class CapiQuestionManager;
+class CapiText;
 class CaseItemIndex;
 class CaseItemReference;
 class CCoordValue;
@@ -71,7 +72,7 @@ class CIntDriver : public LogicInterpreter
 
     // --- procedure being executed
 public:
-    int     m_iProgType;                   // proc being executed: pre/post
+    ProcType m_procType;                   // proc being executed: pre/post
     int     m_iExLevel;                    //                    : level
     int     m_iExSymbol;                   //                    : isym
 
@@ -303,7 +304,7 @@ public:
 
     // --- main interpreting methods
 public:
-    void    PrepareForExportExec(int iSymbol, int iProgType);
+    void    PrepareForExportExec(int iSymbol, ProcType proc_type);
 
     template<typename T = double>
     T evalexpr(int program_index);
@@ -370,18 +371,18 @@ private:
     double  BatchExEndLevel(int iExpr);               // victor Mar 20, 01
     // ... utility functions
 private:
-    void    BatchExSetSkipping( int iSymSource, int iOccSource, int iProgSource,              // victor Mar 26, 01
-                                int iSymTarget, int iOccTarget, int iProgTarget );
+    void    BatchExSetSkipping(int iSymSource, int iOccSource, ProcType source_proc_type, // victor Mar 26, 01
+                               int iSymTarget, int iOccTarget, ProcType target_proc_type);
 
     //////////////////////////////////////////////////////////////////////////
     // new 3D versions
-    void    BatchExSetSkipping( C3DObject& objSource, int iProgSource,  // rcl, Sept 04, 04
-                                C3DObject& objTarget, int iProgTarget );
+    void    BatchExSetSkipping(C3DObject& objSource, ProcType source_proc_type, // rcl, Sept 04, 04
+                               C3DObject& objTarget, ProcType target_proc_type);
 
-    bool    BatchExScanOccur( std::vector<int>& aDirtySymbol, std::vector<int>& aDirtyOccur,    // victor Mar 14, 01
-                              GROUPT* pGroupT, int iItemCheck, int iOccCheck, int iProgTarget );
-    void    BatchExDisplayDirty( std::vector<int>& aDirtySymbol, std::vector<int>& aDirtyOccur, // victor Mar 14, 01
-                                 int iHeadMessage );
+    bool    BatchExScanOccur(std::vector<int>& aDirtySymbol, std::vector<int>& aDirtyOccur,    // victor Mar 14, 01
+                             GROUPT* pGroupT, int iItemCheck, int iOccCheck, ProcType target_proc_type);
+    void    BatchExDisplayDirty(std::vector<int>& aDirtySymbol, std::vector<int>& aDirtyOccur, // victor Mar 14, 01
+                                int iHeadMessage );
     double  EntryExSkipToAt(int iExpr);                                                     // victor Mar 26, 01
 
     double  EntryExReenterToAt(int iExpr);
@@ -835,8 +836,12 @@ public:
     SharableString EvaluateCapiText(const std::string& language_name, const bool is_question, const int symbol_index);
 private:
     SharableString EvaluateCapiText(const CapiQuestion& question, const Symbol& symbol, const std::string& language_name, bool is_question);
-    bool EvaluateQuestionTextCondition(const Symbol& symbol, int program_index);
-    SharableString EvaluateQuestionTextFill(const Symbol& symbol, int program_index);
+
+    template<typename T>
+    auto EvaluateCapiLogic(const Symbol& symbol, int program_index);
+
+    SharableString EvaluatePre81CapiText(const Symbol& symbol, const CapiQuestion& question, const CapiText& capi_text);
+
     SharableString EvaluateTextFill(int program_index) override;
 
     // --- tables & arrays processing

@@ -30,6 +30,6 @@ private:
 
     std::wstring m_name;
 
-    RadioEnumHelper<ReportFile::EscapeType> m_escapeTypeRadioEnumHelper;
-    int m_escapeType;
+    RadioEnumHelper<ReportFile::Encoding> m_encodingRadioEnumHelper;
+    int m_encoding;
 };

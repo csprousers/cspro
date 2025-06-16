@@ -24,6 +24,7 @@ class LogicMap;
 class LogicPff;
 class NamedFrequency;
 class Report;
+class StringWriter;
 class Symbol;
 class SystemApp;
 class UserFunction;

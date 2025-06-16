@@ -20,8 +20,8 @@ namespace
         SymbolType::Document,       SymbolType::File,           SymbolType::Geometry,
         SymbolType::HashMap,        SymbolType::Image,          SymbolType::List,
         SymbolType::Map,            SymbolType::NamedFrequency, SymbolType::Pff,
-        SymbolType::Record,         SymbolType::SystemApp,      SymbolType::ValueSet,
-        SymbolType::WorkString,     SymbolType::WorkVariable
+        SymbolType::Record,         SymbolType::StringWriter,   SymbolType::SystemApp,
+        SymbolType::ValueSet,       SymbolType::WorkString,     SymbolType::WorkVariable
     };
 
     constexpr SymbolType SymbolTypesDisallowedAsOptionalParameters[]
@@ -37,8 +37,8 @@ namespace
         SymbolType::Document,       SymbolType::File,           SymbolType::Geometry,
         SymbolType::HashMap,        SymbolType::Image,          SymbolType::List,
         SymbolType::Map,            SymbolType::NamedFrequency, SymbolType::Pff,
-        SymbolType::Report,         SymbolType::SystemApp,      SymbolType::UserFunction,
-        SymbolType::ValueSet
+        SymbolType::Report,         SymbolType::StringWriter,   SymbolType::SystemApp,
+        SymbolType::UserFunction,   SymbolType::ValueSet
     };
 }
 
@@ -417,6 +417,11 @@ void LogicCompiler::CompileUserFunctionParameters(UserFunction& user_function, c
             symbol = CompileLogicPffDeclaration();
         }
 
+        else if( Tkn == TOKKWSTRINGWRITER )
+        {
+            symbol = CompileStringWriterDeclaration(true);
+        }
+
         else if( Tkn == TOKKWSYSTEMAPP )
         {
             symbol = CompileSystemAppDeclaration();
@@ -681,7 +686,7 @@ int LogicCompiler::CompileUserFunctionCall(const bool allow_function_name_withou
     // evaluate each of the provided arguments
     try
     {
-        UserFunctionArgumentChecker argument_checker(user_function);
+        UserFunctionArgumentChecker argument_checker(this, user_function);
 
         for( size_t argument_index = 0; argument_index < user_function.GetNumberParameters(); ++argument_index )
         {
@@ -748,6 +753,7 @@ int LogicCompiler::CompileUserFunctionCall(const bool allow_function_name_withou
                                                   Tkn == TOKMAP ||
                                                   Tkn == TOKPFF ||
                                                   Tkn == TOKREPORT ||
+                                                  Tkn == TOKSTRINGWRITER ||
                                                   Tkn == TOKSYSTEMAPP ||
                                                   Tkn == TOKUSERFUNCTION ||
                                                   Tkn == TOKVALUESET ) ? &NPT_Ref(Tokstindex) : nullptr;

@@ -1469,7 +1469,7 @@ int LogicCompiler::CompileNamedFrequencyFunctions()
             if( Tkn == TOKREPORT )
             {
                 const Report& report = GetSymbolReport(Tokstindex);
-                CheckReportIsCurrentlyWriteable(report);
+                CheckTextTemplateIsCurrentlyAccessible(report);
 
                 const FileExtensionAnalyzer report_extension_analyser(report.GetFilePath());
 

@@ -2,36 +2,20 @@
 
 #include <zLogicO/FunctionTable.h>
 
+namespace Nodes { namespace Report { struct Save; struct View; } }
 
-namespace Nodes
+
+struct Nodes::Report::Save
 {
-    namespace Report
-    {
-        struct Save
-        {
-            FunctionCode function_code;
-            int symbol_index;
-            int filename_expression;
-        };
+    FunctionCode function_code;
+    int symbol_index;
+    int filename_expression;
+};
 
 
-        struct View
-        {
-            FunctionCode function_code;
-            int symbol_index;
-            int viewer_options_node_index;
-        };
-
-
-        struct Write
-        {
-            enum class Type : int { ReportText = 1, TextFill, Write };
-
-            FunctionCode function_code;
-            int symbol_index;
-            Type type;
-            int expression;
-            int escape_text; // 0 = false, 1 = true
-        };
-    }
-}
+struct Nodes::Report::View
+{
+    FunctionCode function_code;
+    int symbol_index;
+    int viewer_options_node_index;
+};

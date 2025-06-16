@@ -138,8 +138,8 @@ double CIntDriver::exskipto( int iExpr ) {
         // there was a bug whereby skipping to the next field (A->B) in a postproc left A marked as skipped
         // while logic was run (only to be marked as filled once logic stopped); so if the skip target is
         // the next field, advance to it instead
-        if( ( m_iProgType == PROCTYPE_KILLFOCUS || m_iProgType == PROCTYPE_POST ) &&
-            NPT(m_iExSymbol)->IsA(SymbolType::Variable) && NPT(iSymTarget)->IsA(SymbolType::Variable) )
+        if( ( m_procType == ProcType::KillFocus || m_procType == ProcType::PostProc ) &&
+            ( NPT(m_iExSymbol)->IsA(SymbolType::Variable) && NPT(iSymTarget)->IsA(SymbolType::Variable) ) )
         {
             GROUPT* pCurrentGroupT = m_pEngineArea->GetGroupTOfSymbol(m_iExSymbol);
 
@@ -442,8 +442,8 @@ double CIntDriver::exendsect( int iExpr ) {
     bool    bValid=true;
     // Not valid in Group (Kill/Post) & in Level PROCS
     if( NPT(m_iExSymbol)->IsA(SymbolType::Group) &&
-        (m_iProgType == PROCTYPE_KILLFOCUS || m_iProgType == PROCTYPE_POST) ||
-        NPT(m_iExSymbol)->IsA(SymbolType::Group) &&  GPT(m_iExSymbol)->GetGroupType() == 1 ) { // Level
+        ( m_procType == ProcType::KillFocus || m_procType == ProcType::PostProc ) ||
+        NPT(m_iExSymbol)->IsA(SymbolType::Group) && GPT(m_iExSymbol)->GetGroupType() == 1 ) { // Level
         bValid = false;
     }
 
@@ -480,8 +480,7 @@ double CIntDriver::exendlevl( int iExpr ) {
         Symbol* pSymbol = NPT(m_iExSymbol);
         // Level 0 killFocus/postproc not allowed
         if( pSymbol->IsA(SymbolType::Group) && ((GROUPT*) pSymbol)->GetLevel() == 0 &&
-            (m_iProgType == PROCTYPE_KILLFOCUS || m_iProgType == PROCTYPE_POST)
-            )
+            ( m_procType == ProcType::KillFocus || m_procType == ProcType::PostProc ) )
         {
             issaerror( MessageType::Error, 9194 );
             return DEFAULT;
@@ -562,16 +561,16 @@ double CIntDriver::BatchExSkipTo( int iExpr ) {         // victor Mar 08, 01
         ( eType == SymbolType::Block ) ? GetSymbolEngineBlock(iSymSource).GetGroupT()->GetSymbol() :
         VPT(iSymSource)->GetOwnerGroup();
 
-    int         iOccSource      = GPT(iSymSourceGroup)->GetCurrentExOccurrence();
-    int         iProgSource     = m_iProgType;
+    int iOccSource = GPT(iSymSourceGroup)->GetCurrentExOccurrence();
+    ProcType source_proc_type = m_procType;
 
     if( iOccSource < 1 )
         iOccSource = 1;
 
     // get the target
-    int         iSymTarget      = 0;
-    int         iOccTarget      = 1;
-    int         iProgTarget     = PROCTYPE_PRE;
+    int iSymTarget = 0;
+    int iOccTarget = 1;
+    ProcType target_proc_type = ProcType::PreProc;
 
     C3DObject   o3DTarget;
     UserIndexesArray dIndex;
@@ -677,15 +676,15 @@ double CIntDriver::BatchExSkipTo( int iExpr ) {         // victor Mar 08, 01
     CsDriver::PassTo3D( &o3DTarget, NPT(iSymTarget), dIndex );
 
     // setup the skipping-flag info for the engine
-    // BatchExSetSkipping( iSymSource, iOccSource, iProgSource, iSymTarget, iOccTarget, iProgTarget ); // victor Mar 26, 01
+    // BatchExSetSkipping(iSymSource, iOccSource, source_proc_type, iSymTarget, iOccTarget, target_proc_type); // victor Mar 26, 01
 
     // definitivo:
-    // BatchExSetSkipping( iSymSource, iOccSource, iProgSource, o3DTarget, iProgTarget ); // rcl, Sep 04, 04
+    // BatchExSetSkipping(iSymSource, iOccSource, source_proc_type, o3DTarget, target_proc_type); // rcl, Sep 04, 04
 
 
     C3DObject   o3DSourceDummy;
 
-    BatchExSetSkipping( o3DSourceDummy, iProgSource, o3DTarget, iProgTarget );
+    BatchExSetSkipping(o3DSourceDummy, source_proc_type, o3DTarget, target_proc_type);
 
     // 88200 %d inconsistent fields detected following a 'skip to' command in %p
     m_csSkipStructMsg = UTF8_TODO::GetCString(FormatText(MGF::GetMessageText(88190)->c_str(), bSkipToNext ? "SKIP TO NEXT" : "SKIP", ProcName().c_str()));
@@ -788,12 +787,12 @@ double CIntDriver::BatchExEndsect( int iExpr ) {        // victor Mar 08, 01
 
     m_bSkipStmt = true;                    // to break the current proc
 
-    C3DObject   o3DSourceDummy;
-    int         iSymSource      = m_iExSymbol;
-    int         iProgSource     = m_iProgType;
-    int         iProgTarget     = PROCTYPE_POST;
+    C3DObject o3DSourceDummy;
+    int iSymSource = m_iExSymbol;
+    ProcType source_proc_type = m_procType;
+    ProcType target_proc_type = ProcType::PostProc;
 
-    C3DObject   o3DTarget;
+    C3DObject o3DTarget;
     UserIndexesArray dIndex;
 
     initUserIndexArray(dIndex);
@@ -803,7 +802,7 @@ double CIntDriver::BatchExEndsect( int iExpr ) {        // victor Mar 08, 01
     o3DTarget.SetSymbol(-iSymSource); // don't use dIndex, stop in next group that is not my son
 
 
-    BatchExSetSkipping( o3DSourceDummy, iProgSource, o3DTarget, iProgTarget );
+    BatchExSetSkipping(o3DSourceDummy, source_proc_type, o3DTarget, target_proc_type);
 
     // 88200 %d inconsistent fields detected following a 'skip to' command in %p
     m_csSkipStructMsg = UTF8_TODO::GetCString(FormatText(MGF::GetMessageText(88190)->c_str(), "ENDGROUP", ProcName().c_str()));
@@ -836,16 +835,16 @@ double CIntDriver::BatchExEndLevel( int iExpr ) {       // victor Mar 20, 01
     int         iOccSource      = 0;
     int         iSymSourceGroup = 0;
     bool        bSeeSource      = false;
-    int         iProgSource     = m_iProgType;
+    ProcType source_proc_type = m_procType;
 
     if( NPT(iSymSource)->IsA(SymbolType::Variable) ) {
         iSymSourceGroup = VPT(iSymSource)->GetOwnerGroup();
         iOccSource      = GPT(iSymSourceGroup)->GetCurrentExOccurrence();
-        bSeeSource      = ( m_iProgType == PROCTYPE_PRE || m_iProgType == PROCTYPE_ONFOCUS );
+        bSeeSource      = ( m_procType == ProcType::PreProc || m_procType == ProcType::OnFocus );
     }
     else {                              // the source is a Group
         ASSERT(NPT(iSymSource)->IsA(SymbolType::Group));
-        ASSERT( iProgSource == PROCTYPE_PRE || iProgSource == PROCTYPE_ONFOCUS );
+        ASSERT( source_proc_type == ProcType::PreProc || source_proc_type == ProcType::OnFocus );
 
         iSymSourceGroup = iSymSource;
         iOccSource = 1;
@@ -854,24 +853,31 @@ double CIntDriver::BatchExEndLevel( int iExpr ) {       // victor Mar 20, 01
     if( iOccSource < 1 )
         iOccSource = 1;
 
-    // set the target: issued at Level/PreProc - PAST the iSymLevelGroup, PROCTYPE_POST
-    //                 otherwise               - the iSymLevelGroup, PROCTYPE_POST
-    int         iSymTarget      = iSymSourceGroup;
-    int         iOccTarget      = 1;
-    ProcType    proc_target     = ProcType::PostProc;
+    // set the target: issued at Level/PreProc - PAST the iSymLevelGroup, ProcType::PostProc
+    //                 otherwise               - the iSymLevelGroup, ProcType::PostProc
+    int iSymTarget = iSymSourceGroup;
+    int iOccTarget = 1;
+    ProcType target_proc_type = ProcType::PostProc;
 
     bool    bFromLevelPreProc=false;
 
-    if( m_pEngineArea->IsLevel(iSymSource) && (iProgSource == PROCTYPE_PRE || iProgSource == PROCTYPE_ONFOCUS) )
+    if( m_pEngineArea->IsLevel(iSymSource) && ( source_proc_type == ProcType::PreProc || source_proc_type == ProcType::OnFocus ) )
+    {
         bFromLevelPreProc = true;
+    }
 
     if( NPT(iSymSource)->IsA(SymbolType::Variable) || !bFromLevelPreProc )
-        proc_target = ProcType::KillFocus;
+    {
+        target_proc_type = ProcType::KillFocus;
+    }
+
     else
-        proc_target = ProcType::None; // change behavior...... Post del nivel menor
+    {
+        target_proc_type = ProcType::None; // change behavior...... Post del nivel menor
+    }
 
     // setup the skipping-flag and the target for the engine
-    BatchExSetSkipping( iSymSource, iOccSource, iProgSource, iSymTarget, iOccTarget, (int)proc_target ); // victor Mar 26, 01
+    BatchExSetSkipping(iSymSource, iOccSource, source_proc_type, iSymTarget, iOccTarget, target_proc_type); // victor Mar 26, 01
 
     // returns if checking of skip-struc is OFF
     if( !m_pEngineSettings->IsCheckingSkipStruc() )
@@ -892,7 +898,7 @@ double CIntDriver::BatchExEndLevel( int iExpr ) {       // victor Mar 20, 01
         if( iSymCheck == iSymSource && iOccCheck == iOccSource && !bSeeSource )
             iItemCheck++;               // check the source only when required
 
-        bTargetReached = BatchExScanOccur( aDirtySymbol, aDirtyOccur, pGroupT, iItemCheck, iOccCheck, (int)proc_target );
+        bTargetReached = BatchExScanOccur(aDirtySymbol, aDirtyOccur, pGroupT, iItemCheck, iOccCheck, target_proc_type);
 
         if( !bTargetReached )           // next occurrence begin at first item
             iItemCheck = 0;
@@ -905,34 +911,38 @@ double CIntDriver::BatchExEndLevel( int iExpr ) {       // victor Mar 20, 01
 }
 
 
-void CIntDriver::BatchExSetSkipping( int iSymSource, int iOccSource, int iProgSource,             // victor Mar 26, 01
-                                     int iSymTarget, int iOccTarget, int iProgTarget ) {
+void CIntDriver::BatchExSetSkipping(int iSymSource, int iOccSource, const ProcType source_proc_type, // victor Mar 26, 01
+                                    int iSymTarget, int iOccTarget, const ProcType target_proc_type)
+{
     // BatchExSetSkipping: setup the skipping-flag and the target for the engine
     int     aIndex[DIM_MAXDIM];
 
     m_pEngineDriver->ResetSkipping();
 
     aIndex[0] = iOccSource - 1; aIndex[1] = aIndex[2] = 0; // ***TRANSITION***
-    m_pEngineDriver->SetSkipping( iSymSource, aIndex, iProgSource );
+    m_pEngineDriver->SetSkipping(iSymSource, aIndex, source_proc_type);
 
     aIndex[0] = iOccTarget - 1; aIndex[1] = aIndex[2] = 0; // ***TRANSITION***
-    m_pEngineDriver->SetSkipping( iSymTarget, aIndex, iProgTarget, true );
+    m_pEngineDriver->SetSkipping(iSymTarget, aIndex, target_proc_type, true);
 }
 
-void CIntDriver::BatchExSetSkipping( C3DObject& objSource, int iProgSource,  // rcl, Sept 04, 04
-                                     C3DObject& objTarget, int iProgTarget ) {
+
+void CIntDriver::BatchExSetSkipping(C3DObject& objSource, const ProcType source_proc_type,  // rcl, Sept 04, 04
+                                    C3DObject& objTarget, const ProcType target_proc_type)
+{
     // BatchExSetSkipping: setup the skipping-flag and the target for the engine
 
     m_pEngineDriver->ResetSkipping();
 
-    m_pEngineDriver->SetSkippingSource( objSource, iProgSource );
-    m_pEngineDriver->SetSkippingTarget( objTarget, iProgTarget );
+    m_pEngineDriver->SetSkippingSource(objSource, source_proc_type);
+    m_pEngineDriver->SetSkippingTarget(objTarget, target_proc_type);
 }
 
 
 
-bool CIntDriver::BatchExScanOccur( std::vector<int>& aDirtySymbol, std::vector<int>& aDirtyOccur,    // victor Mar 14, 01
-                                   GROUPT* pGroupT, int iItemCheck, int iOccCheck, int iProgTarget ) {
+bool CIntDriver::BatchExScanOccur(std::vector<int>& aDirtySymbol, std::vector<int>& aDirtyOccur,    // victor Mar 14, 01
+                                  GROUPT* pGroupT, int iItemCheck, int iOccCheck, const ProcType target_proc_type)
+{
     // BatchExScanOccur: check there is no "dirty" fields in pGroupT, occ iCheckOccur
     int     aIndex[DIM_MAXDIM];
     bool    bTargetReached = false;
@@ -941,13 +951,13 @@ bool CIntDriver::BatchExScanOccur( std::vector<int>& aDirtySymbol, std::vector<i
     aIndex[0] = iOccCheck - 1; aIndex[1] = aIndex[2] = 0; // ***TRANSITION***
 
     while( !bTargetReached && iSymCheck ) {
-        bTargetReached = m_pEngineDriver->IsSkippingTargetReached( iSymCheck, aIndex, iProgTarget );
+        bTargetReached = m_pEngineDriver->IsSkippingTargetReached(iSymCheck, aIndex, target_proc_type);
 
         if( !bTargetReached ) {
             // Group-item: scan it starting at its first item
             if( NPT(iSymCheck)->IsA(SymbolType::Group) )
-                bTargetReached = BatchExScanOccur( aDirtySymbol, aDirtyOccur,
-                                                   GPT(iSymCheck), 0, iOccCheck, iProgTarget );
+                bTargetReached = BatchExScanOccur(aDirtySymbol, aDirtyOccur,
+                                                  GPT(iSymCheck), 0, iOccCheck, target_proc_type);
             // Var-item: if a blank-field, add it to the list of "dirty" fields
             else if( !m_pEngineDriver->IsBlankField( iSymCheck, iOccCheck ) ) {
                 /*
@@ -1284,20 +1294,20 @@ double CIntDriver::BatchExSkipToAt( int iExpr ) {       // victor Mar 26, 01
     int         iOccSource      = 0;
     int         iSymSourceGroup = 0;
     bool        bSeeSource      = false;
-    int         iProgSource     = m_iProgType;
+    ProcType source_proc_type = m_procType;
 
     if( NPT(iSymSource)->IsOneOf(SymbolType::Block, SymbolType::Variable) ) {
         iSymSourceGroup = NPT(iSymSource)->IsA(SymbolType::Block) ?
             GetSymbolEngineBlock(iSymSource).GetGroupT()->GetSymbol() : VPT(iSymSource)->GetOwnerGroup();
         iOccSource      = GPT(iSymSourceGroup)->GetCurrentExOccurrence();
-        bSeeSource      = ( m_iProgType == PROCTYPE_PRE || m_iProgType == PROCTYPE_ONFOCUS );
+        bSeeSource      = ( m_procType == ProcType::PreProc || m_procType == ProcType::OnFocus );
     }
     if( iOccSource < 1 )
         iOccSource = 1;
 
     // get the (remainder of the) target
-    int         iOccTarget   = 1;
-    int         iProgTarget  = PROCTYPE_PRE;
+    int iOccTarget = 1;
+    ProcType target_proc_type = ProcType::PreProc;
 
     if( NPT(iSymTarget)->IsOneOf(SymbolType::Block, SymbolType::Variable) ) { // target is a block or Var:
         GROUPT* pGroupTTarget = NPT(iSymTarget)->IsA(SymbolType::Block) ?
@@ -1366,7 +1376,7 @@ double CIntDriver::BatchExSkipToAt( int iExpr ) {       // victor Mar 26, 01
 
     C3DObject   o3DSourceDummy;
 
-    BatchExSetSkipping( o3DSourceDummy, iProgSource, o3DTarget, iProgTarget );
+    BatchExSetSkipping(o3DSourceDummy, source_proc_type, o3DTarget, target_proc_type);
 
     // 88200 %d inconsistent fields detected following a 'skip to' command in %p
     m_csSkipStructMsg = UTF8_TODO::GetCString(FormatText(MGF::GetMessageText(88190)->c_str(), bSkipToNext ? "SKIP TO NEXT (by reference)" : "SKIP (by reference)", ProcName().c_str()));
@@ -2179,7 +2189,7 @@ double CIntDriver::exask(int iExpr) // for ask-if and targetless skips
     // make sure that the skip is being done in a valid place
     bool bCallComesFromUserbar = ( bIsTargetlessSkip && ( m_FieldSymbol != 0 ) );
 
-    if( m_iExSymbol <= 0 || m_pEngineArea->IsLevel(m_iExSymbol) || ( m_iProgType != PROCTYPE_PRE && !bCallComesFromUserbar ) )
+    if( m_iExSymbol <= 0 || m_pEngineArea->IsLevel(m_iExSymbol) || ( m_procType != ProcType::PreProc && !bCallComesFromUserbar ) )
     {
         issaerror(MessageType::Error, 88151, skip_name);
         return 0;
@@ -2256,7 +2266,7 @@ double CIntDriver::exask(int iExpr) // for ask-if and targetless skips
             else
             {
                 C3DObject o3DSourceDummy;
-                BatchExSetSkipping(o3DSourceDummy, m_iProgType, o3DTarget, PROCTYPE_PRE);
+                BatchExSetSkipping(o3DSourceDummy, m_procType, o3DTarget, ProcType::PreProc);
 
                 // 88200 %d inconsistent fields detected following a 'skip to' command in %p
                 m_csSkipStructMsg = UTF8_TODO::GetCString(FormatText(MGF::GetMessageText(88190)->c_str(), skip_name, ProcName().c_str()));

@@ -91,6 +91,7 @@
     <ClInclude Include="SymbolTable.h" />
     <ClInclude Include="SymbolTableIterator.h" />
     <ClInclude Include="SymbolType.h" />
+    <ClInclude Include="TextTemplateTokenizer.h" />
     <ClInclude Include="Token.h" />
     <ClInclude Include="TokenCode.h" />
     <ClInclude Include="zLogicO.h" />
@@ -115,6 +116,7 @@
     <ClCompile Include="Symbol.cpp" />
     <ClCompile Include="SymbolTable.cpp" />
     <ClCompile Include="SymbolType.cpp" />
+    <ClCompile Include="TextTemplateTokenizer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\zAppO\zAppO.vcxproj">

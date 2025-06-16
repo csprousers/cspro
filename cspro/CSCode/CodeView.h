@@ -22,8 +22,6 @@ public:
 
     virtual std::variant<const CDocument*, std::string> GetDocumentOrTitleForBuildWnd() const;
 
-    void SetTextAndSetSavePoint(cs::string_sz text);
-
     void RefreshLogicControlLexer();
 
 protected:

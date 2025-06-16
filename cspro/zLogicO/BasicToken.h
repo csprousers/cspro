@@ -25,8 +25,8 @@ struct Logic::BasicToken
     Type type;
     TokenCode token_code;
     size_t token_length;
-    size_t line_number;             // 1-based
-    size_t position_in_line;        // 0-based
+    size_t line_number;      // 1-based
+    size_t position_in_line; // 0-based
     const char* token_text;
 
     std::string GetText() const    { return std::string(token_text, token_length); }

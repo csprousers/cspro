@@ -4,7 +4,7 @@
 
 class CLogicCtrl;
 class CodeDoc;
-class ReportPreviewer;
+class TextTemplatePreviewer;
 
 
 class CodeFrame : public CMDIChildWndEx
@@ -53,8 +53,8 @@ protected:
     void OnRunRun();
     void OnUpdateRunRun(CCmdUI* pCmdUI);
 
-    void OnRunReportPreview();
-    void OnUpdateRunReportPreview(CCmdUI* pCmdUI);
+    void OnRunPreviewTextTemplate();
+    void OnUpdateRunPreviewTextTemplate(CCmdUI* pCmdUI);
 
     void OnRunActionInvokerDisplayResultsAsJson();
     void OnUpdateRunActionInvokerDisplayResultsAsJson(CCmdUI* pCmdUI);
@@ -89,5 +89,5 @@ private:
     WPARAM m_codeFrameActivatePostMessageCounter;
     int64_t m_lastCheckIfFileIsUpdatedTime;
 
-    std::unique_ptr<ReportPreviewer> m_reportPreviewer;
+    std::unique_ptr<TextTemplatePreviewer> m_textTemplatePreviewer;
 };

@@ -218,6 +218,12 @@
     "licenseUrl": "https://raw.githubusercontent.com/janl/mustache.js/master/LICENSE"
   },
   {
+    "projectName": "noto-emoji",
+    "projectUrl": "https://github.com/googlefonts/noto-emoji",
+    "licenseFilename": "LICENSE",
+    "licenseUrl": "https://raw.githubusercontent.com/googlefonts/noto-emoji/refs/heads/main/LICENSE"
+  },
+  {
     "projectName": "pugixml",
     "projectUrl": "https://pugixml.org",
     "licenseFilename": "license.html",

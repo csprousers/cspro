@@ -49,6 +49,7 @@ enum class SymbolType : int
     Flow                       =  49,
     Report                     =  50,
     Item                       =  51,
+    StringWriter               =  52,
     Unknown
 };
 

@@ -197,7 +197,6 @@ public:
     // Symbol overrides
     Symbol* FindChildSymbol(std::string_view symbol_name_sv) const override;
 
-protected:
     void WriteJsonMetadata_subclass(JsonWriter& json_writer) const override;
 
 private:

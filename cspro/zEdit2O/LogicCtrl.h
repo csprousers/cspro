@@ -30,6 +30,8 @@ public:
     bool IsModified() { return ( m_modified || GetModify() ); }
     virtual void SetModified(bool modified = true);
 
+    void SetTextAndSetSavePoint(cs::string_sz text);
+
     std::string ReturnWordAtCursorPos(Sci_Position pos);
     std::vector<std::string> ReturnWordsAtCursorWithDotNotation(std::optional<Sci_Position> pos = std::nullopt);
 
@@ -105,6 +107,9 @@ private:
 
     void Copy(Sci_Position start_pos, Sci_Position end_pos, std::string_view text_sv);
     void CopyForCSProUsers(bool for_forum);
+
+    void DuplicateLineOrSelection();
+    void DeleteLine();
 
 private:
     UINT            m_nCtxMenuId;

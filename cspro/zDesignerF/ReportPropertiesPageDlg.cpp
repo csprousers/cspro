@@ -19,11 +19,11 @@ ReportPropertiesPageDlg::ReportPropertiesPageDlg(ManageFilesDlg& manage_files_dl
         m_manageFilesDlg(manage_files_dlg),
         m_reportFile(std::move(report_file)),
         m_name(TC::ToWide(m_reportFile.GetName())),
-        m_escapeTypeRadioEnumHelper({ ReportFile::EscapeType::Html,
-                                      ReportFile::EscapeType::Markdown,
-                                      ReportFile::EscapeType::Csv,
-                                      ReportFile::EscapeType::None }),
-        m_escapeType(m_escapeTypeRadioEnumHelper.ToForm(m_reportFile.GetEscapeType()))
+        m_encodingRadioEnumHelper({ ReportFile::Encoding::Html,
+                                    ReportFile::Encoding::Markdown,
+                                    ReportFile::Encoding::Csv,
+                                    ReportFile::Encoding::None }),
+        m_encoding(m_encodingRadioEnumHelper.ToForm(m_reportFile.GetEncoding()))
 {
 }
 
@@ -33,7 +33,7 @@ void ReportPropertiesPageDlg::DoDataExchange(CDataExchange* const pDX)
     __super::DoDataExchange(pDX);
 
     DDX_Text(pDX, IDC_NAME, m_name);
-    DDX_Radio(pDX, IDC_ESCAPE_HTML, m_escapeType);
+    DDX_Radio(pDX, IDC_ENCODING_HTML, m_encoding);
 }
 
 
@@ -55,5 +55,5 @@ void ReportPropertiesPageDlg::OnValidatePage()
     m_manageFilesDlg.ValidateName(utf8_name, m_reportFile.GetFilePath());
 
     m_reportFile.SetName(std::move(utf8_name));
-    m_reportFile.SetEscapeType(m_escapeTypeRadioEnumHelper.FromForm(m_escapeType));
+    m_reportFile.SetEncoding(m_encodingRadioEnumHelper.FromForm(m_encoding));
 }

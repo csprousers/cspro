@@ -96,12 +96,12 @@
     <ClCompile Include="MappingOptionsDlg.cpp" />
     <ClCompile Include="MultipleFieldPropertiesDlg.cpp" />
     <ClCompile Include="QSFCndVw.cpp" />
-    <ClCompile Include="QSFEditNumericSortToolBarComboBoxButton.cpp" />
     <ClCompile Include="QSFEditStyleDlg.cpp" />
     <ClCompile Include="QSFEditToolbar.cpp" />
-    <ClCompile Include="QSFEditToolBarComboBoxButton.cpp" />
-    <ClCompile Include="QSFEditToolBarStyledComboBoxButton.cpp" />
+    <ClCompile Include="QSFEditToolBarComboBoxButtons.cpp" />
     <ClCompile Include="QSFEView.cpp" />
+    <ClCompile Include="QuestionTextHtmlEditor.cpp" />
+    <ClCompile Include="QuestionTextTextEditor.cpp" />
     <ClCompile Include="RunAsBatchDlg.cpp" />
     <ClCompile Include="StdAfx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -176,12 +176,11 @@
     <ClInclude Include="MappingOptionsDlg.h" />
     <ClInclude Include="MultipleFieldPropertiesDlg.h" />
     <ClInclude Include="QSFCndVw.h" />
-    <ClInclude Include="QSFEditNumericSortToolBarComboBoxButton.h" />
     <ClInclude Include="QSFEditStyleDlg.h" />
     <ClInclude Include="QSFEditToolbar.h" />
-    <ClInclude Include="QSFEditToolBarComboBoxButton.h" />
-    <ClInclude Include="QSFEditToolBarStyledComboBoxButton.h" />
+    <ClInclude Include="QSFEditToolBarComboBoxButtons.h" />
     <ClInclude Include="QSFEView.h" />
+    <ClInclude Include="QuestionTextEditor.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="RunAsBatchDlg.h" />
     <ClInclude Include="StdAfx.h" />
@@ -242,6 +241,10 @@
     </ProjectReference>
     <ProjectReference Include="..\zJson\zJson.vcxproj">
       <Project>{44a4fe38-ca5a-487c-a227-4be1ebd4874d}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zLogicO\zLogicO.vcxproj">
+      <Project>{bc0d77b3-18ef-4554-a94f-650af6f7c87c}</Project>
       <Private>false</Private>
     </ProjectReference>
     <ProjectReference Include="..\zNetwork\zNetwork.vcxproj">

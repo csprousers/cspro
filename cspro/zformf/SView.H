@@ -75,7 +75,6 @@ protected:
     afx_msg void OnPeekLogicWord();
     afx_msg void OnGotoLogicWord();
     afx_msg void OnCommentCode();
-    afx_msg void OnDuplicateLine();
 
     //}}AFX_MSG
     DECLARE_MESSAGE_MAP()

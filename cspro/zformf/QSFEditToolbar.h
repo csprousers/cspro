@@ -17,8 +17,8 @@ public:
     void SetButtonVisible(UINT id, BOOL visible);
     CMFCColorMenuButton* CreateColorButton();
 
-    void SetFontFace(NullTerminatedString font_name);
-    CString GetFontFace() const;
+    void SetFontFace(const std::wstring& font_name);
+    std::string GetFontFace() const;
 
     void SetFontSize(int font_size);
     int GetFontSize() const;
@@ -31,8 +31,6 @@ public:
     void SetLanguage(const Language& language);
     std::string GetLanguageLabel() const;
 
-    BOOL OnUserToolTip(CMFCToolBarButton* pButton, CString& strTTText) const override;
-
 protected:
     DECLARE_MESSAGE_MAP()
 
@@ -41,6 +39,8 @@ protected:
     LRESULT OnIdleUpdateCmdUI(WPARAM wParam, LPARAM);
 
 private:
+    static CSize GetBaseUnits(CFont* pFont);
+
     int GetImageIndex(UINT command);
 
 private:

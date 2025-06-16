@@ -111,9 +111,6 @@
     <ClCompile Include="PropertiesDlgParadataPage.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Report.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="SelectAppDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -127,6 +124,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="SymbolAnalysisDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TextTemplate.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="VersionShifterDlg.cpp">

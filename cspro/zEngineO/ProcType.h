@@ -22,3 +22,6 @@ template<typename T>
 const char* GetProcTypeName(T proc_type) { return ToString(static_cast<ProcType>(proc_type)); }
 
 ZENGINEO_API bool IsProcTypeOrderCorrect(ProcType first_proc_type, ProcType second_proc_type);
+
+
+enum class ExtendedProcType { None, QuestionText };
