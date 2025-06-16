@@ -11,7 +11,7 @@
 #include <zUtilO/CSProExecutables.h>
 #include <zUtilO/SpecialDirectoryLister.h>
 #include <zUtilF/SelectFileDlg.h>
-#include <ZBRIDGEO/npff.h>
+#include <zBridgeO/npff.h>
 
 
 namespace

@@ -11,7 +11,7 @@
 #include "TItmInfo.h"
 #include "CEUtils.h"
 #include <zToolsO/Tools.h>
-#include <ZBRIDGEO/npff.h>
+#include <zBridgeO/npff.h>
 
 #ifdef _DEBUG
 #undef THIS_FILE

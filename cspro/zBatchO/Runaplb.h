@@ -3,7 +3,7 @@
 //////////////////////////////////////////////////////////////////////
 
 #include <zBatchO/zBatchO.h>
-#include <ZBRIDGEO/runapl.h>
+#include <zBridgeO/runapl.h>
 #include <engine/BATIFAZ.H>
 
 class CBatchIFaz;

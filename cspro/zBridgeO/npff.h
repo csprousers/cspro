@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include <ZBRIDGEO/zBridgeO.h>
+#include <zBridgeO/zBridgeO.h>
 #include <zAppO/PFF.h>
 
 class CDEFormBase;

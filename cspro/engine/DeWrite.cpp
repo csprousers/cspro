@@ -22,7 +22,7 @@
 #include <zToolsO/Tools.h>
 #include <zMessageO/Messages.h>
 #include <zDictO/DDClass.h>
-#include <ZBRIDGEO/npff.h>
+#include <zBridgeO/npff.h>
 #include <zCaseO/Case.h>
 #include <zCaseO/CaseItemReference.h>
 #include <zDataO/DataRepository.h>

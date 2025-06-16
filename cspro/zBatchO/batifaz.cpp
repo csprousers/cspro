@@ -11,7 +11,7 @@
 #include <engine/ParadataDriver.h>
 #include <zEngineO/FileApplicationLoader.h>
 #include <zToolsO/WinSettings.h>
-#include <ZBRIDGEO/PifDlg.h>
+#include <zBridgeO/PifDlg.h>
 
 
 #ifdef _DEBUG

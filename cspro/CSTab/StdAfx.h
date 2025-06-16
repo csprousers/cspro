@@ -7,6 +7,6 @@
 #include <zToolsO/Tools.h>
 #include <zToolsO/Utf8.h>
 #include <zUtilO/Interapp.h>
-#include <ZBRIDGEO/npff.h>
+#include <zBridgeO/npff.h>
 #include <zTableO/Table.h>
 #include <zExTab/RunTab.h>

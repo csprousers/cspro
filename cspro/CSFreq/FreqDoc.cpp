@@ -8,7 +8,7 @@
 #include <zJson/JsonSpecFile.h>
 #include <Zsrcmgro/Compiler.h>
 #include <Zsrcmgro/SrcCode.h>
-#include <ZBRIDGEO/DataFileDlg.h>
+#include <zBridgeO/DataFileDlg.h>
 #include <zFormO/FormFile.h>
 #include <zInterfaceF/BatchLogicViewerDlg.h>
 #include <zInterfaceF/LogicSettingsDlg.h>

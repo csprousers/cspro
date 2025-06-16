@@ -38,7 +38,7 @@
 #include <zFormO/FormFile.h>
 #include <zFormO/Roster.h>
 #include <Zissalib/CsDriver.h>
-#include <ZBRIDGEO/npff.h>
+#include <zBridgeO/npff.h>
 #include <zCapiO/SelectDlg.h>
 #include <zCaseO/Case.h>
 #include <zConcatO/Concatenator.h>

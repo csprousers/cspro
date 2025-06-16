@@ -15,7 +15,7 @@
 #include <zEditO/UWM.h>
 #include <zDictO/DDClass.h>
 #include <zGridO/Ugmedit.h>
-#include <ZBRIDGEO/npff.h>
+#include <zBridgeO/npff.h>
 #include <zInterfaceF/resource_shared.h>
 
 

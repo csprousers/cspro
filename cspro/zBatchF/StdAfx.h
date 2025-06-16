@@ -5,4 +5,4 @@
 
 #include <zToolsO/Utf8.h>
 #include <zUtilO/Interapp.h>
-#include <ZBRIDGEO/npff.h>
+#include <zBridgeO/npff.h>

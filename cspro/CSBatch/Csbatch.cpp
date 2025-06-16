@@ -2,7 +2,7 @@
 #include "CSBatch.h"
 #include "SelectApplicationDlg.h"
 #include <zUtilF/CommonControls.h>
-#include <ZBRIDGEO/PifDlg.h>
+#include <zBridgeO/PifDlg.h>
 #include <zEngineF/PifInfoPopulator.h>
 #include <zBatchF/BatchExecutor.h>
 

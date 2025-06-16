@@ -7,7 +7,7 @@
 #include <zUToolO/zUtoolO.h>
 #include <zExTab/zExTab.h>
 #include <zInterfaceF/LangDlgBar.h>
-#include <ZBRIDGEO/npff.h>
+#include <zBridgeO/npff.h>
 #include <zTableF/TabDoc.h>
 
 class ObjectTransporter;

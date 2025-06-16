@@ -5,7 +5,7 @@
 #include <zEngineO/List.h>
 #include <zEngineO/Nodes/Query.h>
 #include <zJson/Json.h>
-#include <ZBRIDGEO/npff.h>
+#include <zBridgeO/npff.h>
 #include <zDataO/DataRepositoryHelpers.h>
 #include <zDataO/SQLiteRepository.h>
 #include <zDataO/TextRepository.h>

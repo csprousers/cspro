@@ -1,7 +1,7 @@
 ﻿#pragma once
 
-#include <ZBRIDGEO/zBridgeO.h>
-#include <ZBRIDGEO/DataFileFilterManager.h>
+#include <zBridgeO/zBridgeO.h>
+#include <zBridgeO/DataFileFilterManager.h>
 
 class WinRegistry;
 

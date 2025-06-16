@@ -5,7 +5,7 @@
 #include <zPlatformO/PlatformInterface.h>
 #include <zMapping/DefaultBaseMapEvaluator.h>
 #include <zMapping/GreatCircle.h>
-#include <ZBRIDGEO/npff.h>
+#include <zBridgeO/npff.h>
 #include <zParadataO/Logger.h>
 
 

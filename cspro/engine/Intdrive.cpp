@@ -31,7 +31,7 @@
 #include <zToolsO/Tools.h>
 #include <zUtilO/MemoryHelpers.h>
 #include <zUtilF/KeyboardLoader.h>
-#include <ZBRIDGEO/npff.h>
+#include <zBridgeO/npff.h>
 #include <zMessageO/Messages.h>
 #include <zCapiO/CapiQuestionManager.h>
 #include <zFreqO/Frequency.h>

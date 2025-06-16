@@ -20,7 +20,7 @@
 #include <zDictO/ValueProcessor.h>
 #include <zCaseO/Case.h>
 #include <zCaseO/CaseItemReference.h>
-#include <ZBRIDGEO/npff.h>
+#include <zBridgeO/npff.h>
 #include <Zissalib/CsDriver.h>
 #include <zParadataO/Logger.h>
 #include <zEngineF/EngineUI.h>

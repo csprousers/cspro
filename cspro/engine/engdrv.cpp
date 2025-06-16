@@ -9,7 +9,7 @@
 #include "Comp.h"
 #include <zEngineO/ResponseProcessor.h>
 #include <zEngineO/ValueSet.h>
-#include <ZBRIDGEO/npff.h>
+#include <zBridgeO/npff.h>
 
 
 void CEngineDriver::ResetDynamicAttributes(DICX* pDicX/* = nullptr*/)

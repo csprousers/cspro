@@ -12,7 +12,7 @@
 #include <zUtilO/imsaDlg.H>
 #include <zUtilO/WinFocSw.h>
 #include <zUtilF/CommonControls.h>
-#include <ZBRIDGEO/PifDlg.h>
+#include <zBridgeO/PifDlg.h>
 #include <zEngineF/PifInfoPopulator.h>
 #include <zCapiO/QSFView.h>
 #include <afxadv.h> // for mru stuff

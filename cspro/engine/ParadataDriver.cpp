@@ -8,7 +8,7 @@
 #include <zParadataO/Logger.h>
 #include <zDictO/DDClass.h>
 #include <zMessageO/MessageManager.h>
-#include <ZBRIDGEO/npff.h>
+#include <zBridgeO/npff.h>
 #include <zCaseO/Case.h>
 #include <Zissalib/CsDriver.h>
 

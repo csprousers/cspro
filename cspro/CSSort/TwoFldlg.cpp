@@ -13,7 +13,7 @@
 #include "StdAfx.h"
 #include "TwoFldlg.h"
 #include <zUtilO/PathHelpers.h>
-#include <ZBRIDGEO/DataFileDlg.h>
+#include <zBridgeO/DataFileDlg.h>
 
 
 BEGIN_MESSAGE_MAP(CTwoFileDialog, CDialog)

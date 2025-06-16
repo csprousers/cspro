@@ -7,7 +7,7 @@
 #include <zEngineO/ValueSet.h>
 #include <zEngineO/Nodes/Impute.h>
 #include <zToolsO/Hash.h>
-#include <ZBRIDGEO/npff.h>
+#include <zBridgeO/npff.h>
 #include <zParadataO/Logger.h>
 #include <zCaseO/Case.h>
 #include <zCaseO/CaseAccess.h>

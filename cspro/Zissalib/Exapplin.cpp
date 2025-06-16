@@ -18,7 +18,7 @@
 #include <zUtilO/AppLdr.h>
 #include <zUtilO/ConnectionString.h>
 #include <zCapiO/CapiQuestionManager.h>
-#include <ZBRIDGEO/npff.h>
+#include <zBridgeO/npff.h>
 #include <zListingO/ErrorLister.h>
 #include <zLogicO/SpecialFunction.h>
 #include <zLogicO/SourceBuffer.h>

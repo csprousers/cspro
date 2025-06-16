@@ -9,7 +9,7 @@
 #include <zToolsO/Tools.h>
 #include <zFormO/FormFile.h>
 #include <zFormO/Roster.h>
-#include <ZBRIDGEO/npff.h>
+#include <zBridgeO/npff.h>
 #include <Zissalib/CFlAdmin.h>
 #include <Zissalib/groupt2.h>
 

@@ -41,7 +41,7 @@
 #include <zMessageO/Messages.h>
 #include <zCaseO/Case.h>
 #include <zParadataO/Logger.h>
-#include <ZBRIDGEO/npff.h>
+#include <zBridgeO/npff.h>
 #include <zLogicO/SpecialFunction.h>
 
 

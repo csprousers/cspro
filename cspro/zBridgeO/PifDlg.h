@@ -1,7 +1,7 @@
 ﻿#pragma once
 
-#include <ZBRIDGEO/npff.h>
-#include <ZBRIDGEO/Pifgrid.h>
+#include <zBridgeO/npff.h>
+#include <zBridgeO/Pifgrid.h>
 
 
 enum FILETYPE { FILE_NONE, PIFDICT, PIFUSRFILE };

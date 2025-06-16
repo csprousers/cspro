@@ -13,7 +13,7 @@ DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
 
     if (dwReason == DLL_PROCESS_ATTACH)
     {
-        TRACE0("ZBRIDGEO.DLL Initializing!\n");
+        TRACE0("zBridgeO.DLL Initializing!\n");
 
         // Extension DLL one-time initialization
         if (!AfxInitExtensionModule(zBridgeODLL, hInstance))
@@ -35,7 +35,7 @@ DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
     }
     else if (dwReason == DLL_PROCESS_DETACH)
     {
-        TRACE0("ZBRIDGEO.DLL Terminating!\n");
+        TRACE0("zBridgeO.DLL Terminating!\n");
         // Terminate the library before destructors are called
         AfxTermExtensionModule(zBridgeODLL);
     }

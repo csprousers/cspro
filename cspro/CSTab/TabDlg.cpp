@@ -5,7 +5,7 @@
 #include <zUtilO/FileDlg.h>
 #include <zUtilO/imsaDlg.H>
 #include <zJson/JsonStream.h>
-#include <ZBRIDGEO/PifDlg.h>
+#include <zBridgeO/PifDlg.h>
 
 
 BEGIN_MESSAGE_MAP(CSTabDlg, CDialog)

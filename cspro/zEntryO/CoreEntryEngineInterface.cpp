@@ -19,7 +19,7 @@
 #include <zDataO/CaseAccessSaver.h>
 #include <zDataO/DataRepository.h>
 #include <zDictO/DDClass.h>
-#include <ZBRIDGEO/npff.h>
+#include <zBridgeO/npff.h>
 #include <zMessageO/Messages.h>
 #include <engine/EngineObjectTransporter.h>
 #include <engine/IntDrive.h>

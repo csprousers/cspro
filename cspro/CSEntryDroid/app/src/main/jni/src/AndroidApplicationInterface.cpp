@@ -28,7 +28,7 @@
 #include <zAppO/Application.h>
 #include <zAppO/Properties/ApplicationProperties.h>
 #include <zDictO/DDClass.h>
-#include <ZBRIDGEO/npff.h>
+#include <zBridgeO/npff.h>
 #include <zEntryO/Runaple.h>
 #include <engine/IntDrive.h>
 #include <zEngineO/PffExecutor.h>

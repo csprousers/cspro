@@ -13,7 +13,7 @@
 #include <zSql/SQLiteHelpers.h>
 #include <zUtilO/SqlLogicFunctions.h>
 #include <zDictO/DDClass.h>
-#include <ZBRIDGEO/npff.h>
+#include <zBridgeO/npff.h>
 #include <zParadataO/Logger.h>
 #include <zParadataO/Concatenator.h>
 #include <zDataO/DataRepositoryHelpers.h>

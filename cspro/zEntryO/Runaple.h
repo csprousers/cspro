@@ -5,7 +5,7 @@
 //////////////////////////////////////////////////////////////////////
 
 #include <zEntryO/zEntryO.h>
-#include <ZBRIDGEO/runapl.h>
+#include <zBridgeO/runapl.h>
 #include <engine/DEFLD.H>
 #include <engine/Entifaz.h>
 #include <engine/Settings.h>

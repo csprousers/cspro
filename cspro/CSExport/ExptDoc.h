@@ -4,7 +4,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-#include <ZBRIDGEO/npff.h>
+#include <zBridgeO/npff.h>
 #include <zDataO/DictionarySource.h>
 
 class CExportOptionsView;

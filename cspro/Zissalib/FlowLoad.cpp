@@ -3,7 +3,7 @@
 #include "FlowCore.h"                                   // victor Jan 08, 01
 #include <engine/Tables.h>
 #include <engine/Engine.h>
-#include <ZBRIDGEO/npff.h>
+#include <zBridgeO/npff.h>
 
 
 #if defined(_DEBUG) && defined(WIN_DESKTOP)

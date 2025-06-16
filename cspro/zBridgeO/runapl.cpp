@@ -3,13 +3,13 @@
 //////////////////////////////////////////////////////////////////////
 #include "StdAfx.h"
 #include "runapl.h"
+#include <zBridgeO/npff.h>
 
 #ifdef _DEBUG
 #undef THIS_FILE
 static char THIS_FILE[]= __FILE__;
 #define new DEBUG_NEW
 #endif
-#include <ZBRIDGEO/npff.h>
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction

@@ -7,7 +7,7 @@
 #include <zUtilF/SystemIcon.h>
 #include <zUtilF/ThreadedProgressDlg.h>
 #include <zAppO/PFF.h>
-#include <ZBRIDGEO/DataFileDlg.h>
+#include <zBridgeO/DataFileDlg.h>
 #include <zCaseO/BinaryCaseItem.h>
 #include <zCaseO/NumericCaseItem.h>
 #include <zCaseO/StringCaseItem.h>

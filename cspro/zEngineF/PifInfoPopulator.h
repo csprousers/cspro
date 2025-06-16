@@ -2,7 +2,7 @@
 
 #include <zEngineF/zEngineF.h>
 #include <zUtilO/Interapp.h>
-#include <ZBRIDGEO/PifDlg.h>
+#include <zBridgeO/PifDlg.h>
 
 class Application;
 class CSymbolDict;

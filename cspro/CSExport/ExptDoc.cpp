@@ -18,11 +18,11 @@
 #include <zLogicO/ReservedWords.h>
 #include <Zsrcmgro/Compiler.h>
 #include <Zsrcmgro/SrcCode.h>
-#include <ZBRIDGEO/PifDlg.h>
+#include <zBridgeO/PifDlg.h>
 #include <zFormO/FormFile.h>
 #include <zDataO/ConnectionStringProperties.h>
 #include <zDataO/DataRepositoryHelpers.h>
-#include <ZBRIDGEO/DataFileDlg.h>
+#include <zBridgeO/DataFileDlg.h>
 #include <zInterfaceF/BatchLogicViewerDlg.h>
 #include <zInterfaceF/LogicSettingsDlg.h>
 #include <zBatchF/BatchExecutor.h>

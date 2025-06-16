@@ -9,7 +9,7 @@
 #include <zUtilF/ChoiceDlg.h>
 #include <zUtilF/TextInputDlg.h>
 #include <zAppO/Properties/ApplicationProperties.h>
-#include <ZBRIDGEO/npff.h>
+#include <zBridgeO/npff.h>
 #include <zCaseO/Case.h>
 #include <zCaseO/CaseItemReference.h>
 #include <zParadataO/Logger.h>

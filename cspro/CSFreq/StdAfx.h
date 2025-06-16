@@ -12,7 +12,7 @@
 #include <zUtilO/WindowsUtf8.h>
 #include <zEditO/UWM.h>
 #include <zDictO/DDClass.h>
-#include <ZBRIDGEO/npff.h>
+#include <zBridgeO/npff.h>
 #include <CSFreq/resource.h>
 #include <CSFreq/FreqDoc.h>
 #include <CSFreq/FreqView.h>

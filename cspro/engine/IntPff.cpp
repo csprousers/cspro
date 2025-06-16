@@ -6,7 +6,7 @@
 #include <zEngineO/PffExecutor.h>
 #include <zEngineO/Messages/EngineMessages.h>
 #include <zUtilO/TemporaryFile.h>
-#include <ZBRIDGEO/npff.h>
+#include <zBridgeO/npff.h>
 
 
 double CIntDriver::expffcompute(int iExpr)

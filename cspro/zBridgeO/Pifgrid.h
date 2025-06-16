@@ -19,8 +19,8 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-#include <ZBRIDGEO/DataFileFilterManager.h>
-#include <ZBRIDGEO/FilteredExtensionProcessor.h>
+#include <zBridgeO/DataFileFilterManager.h>
+#include <zBridgeO/FilteredExtensionProcessor.h>
 #include <zGridO/Ugctelps.h>
 #include <zGridO/Ugctrl.h>
 #include <zGridO/Ugmedit.h>

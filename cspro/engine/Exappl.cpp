@@ -15,7 +15,7 @@
 #include <zUtilO/AppLdr.h>
 #include <zUtilO/ExecutionStack.h>
 #include <zMessageO/MessageEvaluator.h>
-#include <ZBRIDGEO/npff.h>
+#include <zBridgeO/npff.h>
 #include <zListingO/ErrorLister.h>
 #include <zListingO/WriteFile.h>
 

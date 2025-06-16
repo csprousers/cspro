@@ -7,5 +7,5 @@
 #include <zUtilF/ProcessSummaryReporter.h>
 #include <zDictO/DDClass.h>
 #include <zFormO/FormFile.h>
-#include <ZBRIDGEO/npff.h>
+#include <zBridgeO/npff.h>
 #include <zEngineO/Block.h>

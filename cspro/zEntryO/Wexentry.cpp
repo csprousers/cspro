@@ -7,7 +7,7 @@
 #include <engine/Entifaz.h>
 #include <zUtilO/AppLdr.h>
 #include <zCapiO/CapiQuestionManager.h>
-#include <ZBRIDGEO/npff.h>
+#include <zBridgeO/npff.h>
 #include <zDataO/DataRepository.h>
 
 #ifdef WIN_DESKTOP

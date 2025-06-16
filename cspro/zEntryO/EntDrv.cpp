@@ -23,7 +23,7 @@
 #include <zAppO/Application.h>
 #include <zMessageO/Messages.h>
 #include <zDictO/ValueProcessor.h>
-#include <ZBRIDGEO/npff.h>
+#include <zBridgeO/npff.h>
 #include <zCapiO/CapiQuestionManager.h>
 #include <zCaseO/Case.h>
 #include <zCaseO/CaseItemReference.h>

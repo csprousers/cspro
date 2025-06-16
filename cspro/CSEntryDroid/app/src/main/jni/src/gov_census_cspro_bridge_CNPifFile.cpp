@@ -8,7 +8,7 @@
 #include <zUtilO/ConnectionString.h>
 #include <zUtilO/Interapp.h>
 #include <zNetwork/ParsedUri.h>
-#include <ZBRIDGEO/npff.h>
+#include <zBridgeO/npff.h>
 #include <zEngineO/PffExecutor.h>
 
 

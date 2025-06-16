@@ -7,7 +7,7 @@
 #include <zMessageO/MessageEvaluator.h>
 #include <zMessageO/MessageManager.h>
 #include <zListingO/WriteFile.h>
-#include <ZBRIDGEO/npff.h>
+#include <zBridgeO/npff.h>
 #include <zParadataO/Logger.h>
 #include <Zissalib/CsDriver.h>
 

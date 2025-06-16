@@ -9,8 +9,8 @@
 #include "OperatorStatistics.h"
 #include "OperatorStatisticsLog.h"
 #include "RunView.h"
-#include <ZBRIDGEO/npff.h>
-#include <ZBRIDGEO/PifDlg.h>
+#include <zBridgeO/npff.h>
+#include <zBridgeO/PifDlg.h>
 #include <zParadataO/KeyingInstance.h>
 #include <zCapiO/QSFView.h>
 

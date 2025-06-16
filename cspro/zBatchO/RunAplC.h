@@ -4,7 +4,7 @@
 //////////////////////////////////////////////////////////////////////
 
 #include <zBatchO/zBatchO.h>
-#include <ZBRIDGEO/runapl.h>
+#include <zBridgeO/runapl.h>
 #include <engine/calcifaz.h>
 #include <zEngineO/AllSymbolDeclarations.h>
 

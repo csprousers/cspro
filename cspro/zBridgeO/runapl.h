@@ -2,7 +2,7 @@
 // RunApl.h: base class for Running class (ENtry/BAtch)
 //////////////////////////////////////////////////////////////////////
 
-#include <ZBRIDGEO/zBridgeO.h>
+#include <zBridgeO/zBridgeO.h>
 #include <engine/runmodes.h>
 
 class CNPifFile;

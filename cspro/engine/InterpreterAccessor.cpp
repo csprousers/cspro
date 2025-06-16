@@ -7,7 +7,7 @@
 #include <zMessageO/MessageManager.h>
 #include <zCaseO/Case.h>
 #include <zDataO/DataRepositoryHelpers.h>
-#include <ZBRIDGEO/npff.h>
+#include <zBridgeO/npff.h>
 
 
 // --------------------------------------------------------------------------

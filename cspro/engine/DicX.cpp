@@ -9,7 +9,7 @@
 #include <zDataO/CaseIterator.h>
 #include <zDataO/DataRepository.h>
 #include <zDataO/NullRepositoryIterators.h>
-#include <ZBRIDGEO/npff.h>
+#include <zBridgeO/npff.h>
 
 
 //////////////////////////////////////////////////////////////////////////////

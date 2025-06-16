@@ -4,7 +4,7 @@
 #include <zUtilO/FileDlg.h>
 #include <zUtilO/imsaDlg.H>
 #include <zUtilO/PathHelpers.h>
-#include <ZBRIDGEO/DataFileDlg.h>
+#include <zBridgeO/DataFileDlg.h>
 #include <iterator>
 
 

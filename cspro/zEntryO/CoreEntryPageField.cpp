@@ -4,7 +4,7 @@
 #include "Runaple.h"
 #include <zToolsO/NewlineSubstitutor.h>
 #include <zDictO/ValueProcessor.h>
-#include <ZBRIDGEO/npff.h>
+#include <zBridgeO/npff.h>
 #include <engine/IntDrive.h>
 #include <zEngineO/ResponseProcessor.h>
 #include <zEngineO/ValueSet.h>

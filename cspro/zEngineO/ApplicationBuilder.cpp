@@ -3,7 +3,7 @@
 #include "ApplicationLoader.h"
 #include <zToolsO/CaseInsensitiveComparer.h>
 #include <zUtilF/ProgressDlg.h>
-#include <ZBRIDGEO/npff.h>
+#include <zBridgeO/npff.h>
 
 
 // --------------------------------------------------------------------------

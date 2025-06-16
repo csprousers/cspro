@@ -15,4 +15,4 @@
 #include <zDictO/DDClass.h>
 #include <zFormO/FormFile.h>
 #include <zDataO/DataRepositoryHelpers.h>
-#include <ZBRIDGEO/resource.h>
+#include <zBridgeO/resource.h>

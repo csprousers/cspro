@@ -5,7 +5,7 @@
 #include <zEngineO/EngineDictionary.h>
 #include <zPlatformO/PlatformInterface.h>
 #include <zMessageO/Messages.h>
-#include <ZBRIDGEO/npff.h>
+#include <zBridgeO/npff.h>
 #include <zDataO/ISyncableDataRepository.h>
 #include <zNetwork/LoginAccessor.h>
 #include <zSyncO/ApplicationPackageManager.h>

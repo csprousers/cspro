@@ -9,7 +9,7 @@
 #include <zMessageO/MessageSummary.h>
 #include <zListingO/HeaderAttribute.h>
 #include <zListingO/ListerWriteFile.h>
-#include <ZBRIDGEO/npff.h>
+#include <zBridgeO/npff.h>
 #include <zBatchO/Runaplb.h>
 #include <zBatchO/RunAplC.h>
 #include <ZTBDO/TbdFileM.h>

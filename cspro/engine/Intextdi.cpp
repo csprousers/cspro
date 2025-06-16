@@ -21,7 +21,7 @@
 #include <zDataO/CaseIterator.h>
 #include <zDataO/DataRepository.h>
 #include <zParadataO/Logger.h>
-#include <ZBRIDGEO/npff.h>
+#include <zBridgeO/npff.h>
 #include <zCapiO/SelectCtrl.h>
 
 
