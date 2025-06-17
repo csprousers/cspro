@@ -37,7 +37,7 @@
 /////////////////////////////////////////////////////////////////////////////
 
 #include <zUToolO/OXDllExt.h>
-#include <zUToolO/zUtoolO.h>
+#include <zUToolO/zUToolO.h>
 
 #define SPLITTER_VERT   1
 #define SPLITTER_HORZ   2

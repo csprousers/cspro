@@ -80,10 +80,10 @@ BEGIN
     BEGIN
         BLOCK "040904B0"
         BEGIN
-            VALUE "FileDescription", "zUtoolO DLL"
+            VALUE "FileDescription", "zUToolO DLL"
             VALUE "FileVersion", "8.0.1.0"
-            VALUE "InternalName", "zUtoolO"
-            VALUE "OriginalFilename", "zUtoolO.DLL"
+            VALUE "InternalName", "zUToolO"
+            VALUE "OriginalFilename", "zUToolO.DLL"
             VALUE "ProductName", "CSPro 8.0"
             VALUE "ProductVersion", "8.0.1.0"
         END

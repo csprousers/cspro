@@ -70,7 +70,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Csbatch.cpp" />
+    <ClCompile Include="CSBatch.cpp" />
     <ClCompile Include="SelectApplicationDlg.cpp" />
     <ClCompile Include="StdAfx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -78,7 +78,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Csbatch.h" />
+    <ClInclude Include="CSBatch.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="SelectApplicationDlg.h" />
     <ClInclude Include="StdAfx.h" />

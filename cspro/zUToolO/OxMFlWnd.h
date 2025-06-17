@@ -37,7 +37,7 @@
 /////////////////////////////////////////////////////////////////////////////
 
 #include <zUToolO/OXDllExt.h>
-#include <zUToolO/zUtoolO.h>
+#include <zUToolO/zUToolO.h>
 #include <zUToolO/OxFWndDk.h>
 
 #ifndef CMDIFloat_Parent

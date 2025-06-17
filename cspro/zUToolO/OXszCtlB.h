@@ -68,7 +68,7 @@
 
 /////////////////////////////////////////////////////////////////////////////
 
-#include <zUToolO/zUtoolO.h>
+#include <zUToolO/zUToolO.h>
 #include <zUToolO/OXDllExt.h>
 
 #ifdef IsMaximized

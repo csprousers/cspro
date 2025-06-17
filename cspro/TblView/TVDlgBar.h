@@ -2,7 +2,7 @@
 
 // TDlgBar.h : header file
 //
-#include <zUToolO/zUtoolO.h>
+#include <zUToolO/zUToolO.h>
 #include <zTableF/TabTrCtl.h>
 
 #define ID_FIXEDDLGBAR                  0xe881

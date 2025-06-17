@@ -45,7 +45,7 @@
 
 /////////////////////////////////////////////////////////////////////////////
 
-#include <zUToolO/zUtoolO.h>
+#include <zUToolO/zUToolO.h>
 #include <zUToolO/OXDllExt.h>
 #include <zUToolO/OXszCtlB.h>
 

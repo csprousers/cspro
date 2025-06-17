@@ -1,6 +1,6 @@
 //{{NO_DEPENDENCIES}}
 // Microsoft Visual C++ generated include file.
-// Used by Csbatch.rc
+// Used by CSBatch.rc
 //
 #define IDM_ABOUTBOX                    16
 #define IDR_MAINFRAME                   101

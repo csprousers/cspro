@@ -5,7 +5,7 @@
 /////////////////////////////////////////////////////////////////////////////
 // CMDlgBar dialog
 
-#include <zUToolO/zUtoolO.h>
+#include <zUToolO/zUToolO.h>
 #include <zFormF/FrmTrCtl.H>
 #include <zOrderF/OrdTrCtl.H>
 #include <zTableF/TabTrCtl.h>

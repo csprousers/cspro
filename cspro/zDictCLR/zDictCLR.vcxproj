@@ -122,7 +122,7 @@
       <Project>{9b29cb57-8263-4e12-8908-cc9641fdf0dc}</Project>
       <Private>false</Private>
     </ProjectReference>
-    <ProjectReference Include="..\zUToolO\Zutoolo.vcxproj">
+    <ProjectReference Include="..\zUToolO\zUToolO.vcxproj">
       <Project>{28f15179-5b3d-4a06-a076-2774611ca534}</Project>
       <Private>false</Private>
     </ProjectReference>

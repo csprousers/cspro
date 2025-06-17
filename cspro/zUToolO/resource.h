@@ -1,6 +1,6 @@
 //{{NO_DEPENDENCIES}}
 // Microsoft Visual C++ generated include file.
-// Used by zUtoolO.rc
+// Used by zUToolO.rc
 //
 #define IDD_TREE_PROP_DLG               4001
 #define IDS_OX_MDICHILDITEM             4002

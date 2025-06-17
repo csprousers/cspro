@@ -59,12 +59,12 @@
     <ClCompile Include="TreePrps.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="zUtoolO.cpp">
+    <ClCompile Include="zUToolO.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="zUtoolO.rc">
+    <ResourceCompile Include="zUToolO.rc">
       <Filter>Source Files</Filter>
     </ResourceCompile>
   </ItemGroup>
@@ -135,7 +135,7 @@
     <ClInclude Include="UWM.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="zUtoolO.h">
+    <ClInclude Include="zUToolO.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
