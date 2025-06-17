@@ -17,9 +17,9 @@
 //
 //---------------------------------------------------------------------------
 
-#include <ZTBDO/zTbdO.h>
-#include <ZTBDO/ctstat.h>
-#include <ZTBDO/cttree.h>
+#include <zTbdO/zTbdO.h>
+#include <zTbdO/ctstat.h>
+#include <zTbdO/cttree.h>
 
 namespace Logic { class SymbolTable; }
 

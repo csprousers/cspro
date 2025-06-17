@@ -12,9 +12,9 @@
 //
 //---------------------------------------------------------------------------
 
-#include <ZTBDO/zTbdO.h>
-#include <ZTBDO/cLinkSub.h>
-#include <ZTBDO/ctstat.h>
+#include <zTbdO/zTbdO.h>
+#include <zTbdO/cLinkSub.h>
+#include <zTbdO/ctstat.h>
 
 
 class CLASS_DECL_ZTBDO CLinkStatVar

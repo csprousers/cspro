@@ -13,8 +13,8 @@
 //
 //---------------------------------------------------------------------------
 
-#include <ZTBDO/zTbdO.h>
-#include <ZTBDO/cttree.h>
+#include <zTbdO/zTbdO.h>
+#include <zTbdO/cttree.h>
 #include <engine/ttype.h>
 
 class CTableAcum;

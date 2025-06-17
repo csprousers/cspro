@@ -12,8 +12,8 @@
 //
 //--------------------------------------------------------------------------------------
 
-#include <ZTBDO/zTbdO.h>
-#include <ZTBDO/TbdFile.h>
+#include <zTbdO/zTbdO.h>
+#include <zTbdO/TbdFile.h>
 
 class CLASS_DECL_ZTBDO CTbdFileMgr  {
 protected:

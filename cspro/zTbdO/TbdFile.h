@@ -12,12 +12,12 @@
 //
 //---------------------------------------------------------------------------
 
-#include <ZTBDO/zTbdO.h>
-#include <ZTBDO/TbiFile.h>
-#include <ZTBDO/BreakIt.h>
-#include <ZTBDO/TbdTable.h>
-#include <ZTBDO/TbdSlice.h>
-#include <ZTBDO/TbdFile.h>
+#include <zTbdO/zTbdO.h>
+#include <zTbdO/TbiFile.h>
+#include <zTbdO/BreakIt.h>
+#include <zTbdO/TbdTable.h>
+#include <zTbdO/TbdSlice.h>
+#include <zTbdO/TbdFile.h>
 
 
 class CLASS_DECL_ZTBDO CTbdFile  {

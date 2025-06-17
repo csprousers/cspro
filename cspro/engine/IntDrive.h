@@ -28,7 +28,7 @@
 #include <engine/NODES.H>
 #include <engine/ParameterManager.h>
 #include <engine/DEFLD.H>
-#include <ZTBDO/cttree.h>
+#include <zTbdO/cttree.h>
 
 class CapiCondition;
 class CapiQuestion;

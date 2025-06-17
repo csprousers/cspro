@@ -216,7 +216,7 @@
       <Project>{192cbdce-78bc-4c95-9c9e-9bee530d677c}</Project>
       <Private>false</Private>
     </ProjectReference>
-    <ProjectReference Include="..\ZTBDO\ZTBDO.vcxproj">
+    <ProjectReference Include="..\zTbdO\zTbdO.vcxproj">
       <Project>{a9645bd1-4083-4c76-81c8-12bbd26dedb2}</Project>
       <Private>false</Private>
     </ProjectReference>

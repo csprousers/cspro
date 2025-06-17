@@ -12,8 +12,8 @@
 //
 //---------------------------------------------------------------------------
 
-#include <ZTBDO/zTbdO.h>
-#include <ZTBDO/cttree.h>
+#include <zTbdO/zTbdO.h>
+#include <zTbdO/cttree.h>
 
 class CLASS_DECL_ZTBDO CSubRange {
 private:

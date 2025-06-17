@@ -12,7 +12,7 @@
 #include <zBridgeO/npff.h>
 #include <zBatchO/Runaplb.h>
 #include <zBatchO/RunAplC.h>
-#include <ZTBDO/TbdFileM.h>
+#include <zTbdO/TbdFileM.h>
 #include <engine/ttype.h>
 #include <iostream>
 

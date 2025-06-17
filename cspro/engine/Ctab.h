@@ -28,10 +28,10 @@
 #include <zToolsO/Range.h>
 #include <zToolsO/Tools.h>
 
-#include <ZTBDO/cttree.h>
-#include <ZTBDO/ccross.h>
-#include <ZTBDO/TbdSlice.h>
-#include <ZTBDO/cLinkTab.h>
+#include <zTbdO/cttree.h>
+#include <zTbdO/ccross.h>
+#include <zTbdO/TbdSlice.h>
+#include <zTbdO/cLinkTab.h>
 
 
 #ifndef _DEF_MEANACUM_

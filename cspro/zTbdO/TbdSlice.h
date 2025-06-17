@@ -12,9 +12,9 @@
 //              6 Jul 01   DVB      Created
 //
 //---------------------------------------------------------------------------
-#include <ZTBDO/zTbdO.h>
-#include <ZTBDO/TbdTable.h>
-#include <ZTBDO/TableAc.h>
+#include <zTbdO/zTbdO.h>
+#include <zTbdO/TbdTable.h>
+#include <zTbdO/TableAc.h>
 
 // ---------------------------
 // Slice file header structure

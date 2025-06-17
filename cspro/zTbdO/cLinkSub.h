@@ -11,8 +11,8 @@
 //              25 Feb 03   RHF      Created
 //
 //---------------------------------------------------------------------------
-#include <ZTBDO/zTbdO.h>
-#include <ZTBDO/cttree.h>
+#include <zTbdO/zTbdO.h>
+#include <zTbdO/cttree.h>
 #include <engine/dimens.h>
 
 //class CLinkSubTable;

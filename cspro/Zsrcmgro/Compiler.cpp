@@ -8,8 +8,8 @@
 #include <zMessageO/MessageManager.h>
 #include <zCapiO/CapiLogicParameters.h>
 #include <zCapiO/CapiQuestionManager.h>
-#include <ZTBDO/cLinkSub.h>
-#include <ZTBDO/cLinkTab.h>
+#include <zTbdO/cLinkSub.h>
+#include <zTbdO/cLinkTab.h>
 
 
 static bool bRunning = false;

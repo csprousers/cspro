@@ -10,7 +10,7 @@
 #include <zTableO/Table.h>
 #include <zDesignerF/ApplicationDoc.h>
 #include <Zsrcmgro/SrcCode.h>
-#include <ZTBDO/cLinkTab.h>
+#include <zTbdO/cLinkTab.h>
 
 #define TD_TABLE_FORMAT 0
 

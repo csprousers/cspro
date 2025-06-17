@@ -13,8 +13,8 @@
 //---------------------------------------------------------------------------
 
 #include <engine/Defines.h>
-#include <ZTBDO/cttree.h>
-#include <ZTBDO/ctstadef.h>
+#include <zTbdO/cttree.h>
+#include <zTbdO/ctstadef.h>
 
 class CtStat;
 

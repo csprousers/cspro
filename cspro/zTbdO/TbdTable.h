@@ -12,9 +12,9 @@
 //
 //---------------------------------------------------------------------------
 
-#include <ZTBDO/zTbdO.h>
-#include <ZTBDO/basetab2.h>
-#include <ZTBDO/BreakIt.h>
+#include <zTbdO/zTbdO.h>
+#include <zTbdO/basetab2.h>
+#include <zTbdO/BreakIt.h>
 
 // ---------------------------------
 // Defines

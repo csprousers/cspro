@@ -38,7 +38,7 @@ struct EXP_HEADER_NODE;
 
 #include <engine/NODES.H>
 
-#include <ZTBDO/cttree.h>
+#include <zTbdO/cttree.h>
 
 #include <zEngineO/Compiler/LogicCompiler.h>
 

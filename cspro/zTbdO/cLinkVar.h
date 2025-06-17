@@ -12,8 +12,8 @@
 //
 //---------------------------------------------------------------------------
 
-#include <ZTBDO/zTbdO.h>
-#include <ZTBDO/subrange.h>
+#include <zTbdO/zTbdO.h>
+#include <zTbdO/subrange.h>
 
 
 class CLASS_DECL_ZTBDO CLinkVar

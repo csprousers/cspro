@@ -12,7 +12,7 @@
 //
 //---------------------------------------------------------------------------
 
-#include <ZTBDO/zTbdO.h>
+#include <zTbdO/zTbdO.h>
 
 namespace Logic { class SymbolTable; }
 

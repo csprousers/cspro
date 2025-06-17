@@ -13,11 +13,11 @@
 //
 //---------------------------------------------------------------------------
 
-#include <ZTBDO/zTbdO.h>
-#include <ZTBDO/ctstatv.h>
-#include <ZTBDO/subrange.h>
-#include <ZTBDO/cttree.h>
-#include <ZTBDO/ctstadef.h>
+#include <zTbdO/zTbdO.h>
+#include <zTbdO/ctstatv.h>
+#include <zTbdO/subrange.h>
+#include <zTbdO/cttree.h>
+#include <zTbdO/ctstadef.h>
 
 
 class CLASS_DECL_ZTBDO CtStatBase

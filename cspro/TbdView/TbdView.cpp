@@ -4,7 +4,7 @@
 #include "Stdafx.h"
 #include <io.h>
 #include <fcntl.h>
-#include <ZTBDO/TbdFileM.h>
+#include <zTbdO/TbdFileM.h>
 
 #ifdef _DEBUG
 #define new DEBUG_NEW

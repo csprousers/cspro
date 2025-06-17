@@ -85,7 +85,7 @@
     <ClInclude Include="Stdafx.h" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ZTBDO\ZTBDO.vcxproj">
+    <ProjectReference Include="..\zTbdO\zTbdO.vcxproj">
       <Project>{a9645bd1-4083-4c76-81c8-12bbd26dedb2}</Project>
       <Private>false</Private>
     </ProjectReference>

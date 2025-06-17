@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include <ZTBDO/TbdFile.h>
+#include <zTbdO/TbdFile.h>
 
 class CBatchDriverBase;
 

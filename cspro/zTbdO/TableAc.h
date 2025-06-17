@@ -14,9 +14,9 @@
 //
 //---------------------------------------------------------------------------
 
-#include <ZTBDO/zTbdO.h>
-#include <ZTBDO/defslot.h>
-#include <ZTBDO/basetab2.h>
+#include <zTbdO/zTbdO.h>
+#include <zTbdO/defslot.h>
+#include <zTbdO/basetab2.h>
 #include <zToolsO/acum.h>
 
 // Manipulate data information in memory.

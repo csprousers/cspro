@@ -13,7 +13,7 @@
 //
 //---------------------------------------------------------------------------
 
-#include <ZTBDO/zTbdO.h>
+#include <zTbdO/zTbdO.h>
 
 class SimpleDbMap;
 

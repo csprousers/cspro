@@ -12,10 +12,10 @@
 //
 //---------------------------------------------------------------------------
 
-#include <ZTBDO/zTbdO.h>
-#include <ZTBDO/cLinkTer.h>
-#include <ZTBDO/cLinkUnt.h>
-#include <ZTBDO/cLinkSta.h>
+#include <zTbdO/zTbdO.h>
+#include <zTbdO/cLinkTer.h>
+#include <zTbdO/cLinkUnt.h>
+#include <zTbdO/cLinkSta.h>
 #include <zToolsO/StringPos.h>
 #include <zEngineO/AllSymbolDeclarations.h>
 

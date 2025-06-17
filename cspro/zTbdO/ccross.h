@@ -11,10 +11,10 @@
 //              30 Jul 01   RHF      Created
 //
 //---------------------------------------------------------------------------
-#include <ZTBDO/zTbdO.h>
-#include <ZTBDO/basetab2.h>
-#include <ZTBDO/subexpr.h>
-#include <ZTBDO/coordmem.h>
+#include <zTbdO/zTbdO.h>
+#include <zTbdO/basetab2.h>
+#include <zTbdO/subexpr.h>
+#include <zTbdO/coordmem.h>
 
 
 /* definition to expand macro then apply to pragma message */

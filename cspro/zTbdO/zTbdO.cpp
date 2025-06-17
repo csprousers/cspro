@@ -22,7 +22,7 @@ DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
 
     if (dwReason == DLL_PROCESS_ATTACH)
     {
-        TRACE0("ZTBDO.DLL Initializing!\n");
+        TRACE0("zTbdO.DLL Initializing!\n");
 
         // Extension DLL one-time initialization
 
@@ -45,7 +45,7 @@ DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
     }
     else if (dwReason == DLL_PROCESS_DETACH)
     {
-        TRACE0("ZTBDO.DLL Terminating!\n");
+        TRACE0("zTbdO.DLL Terminating!\n");
         // Terminate the library before destructors are called
         AfxTermExtensionModule(ZTbdODLL);
     }
