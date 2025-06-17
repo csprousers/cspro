@@ -11,7 +11,7 @@
 //***************************************************************************
 
 #include "StdAfx.h"
-#include "Recgrid.h"
+#include "RecGrid.h"
 #include "StartPositionDlg.h"
 #include <zDictO/Definitions.h>
 #include <zDictO/ValueSetFixer.h>

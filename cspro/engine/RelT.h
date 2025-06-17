@@ -12,7 +12,7 @@
 //
 //---------------------------------------------------------------------------
 
-#include <engine/dimens.h>
+#include <engine/Dimens.h>
 #include <zLogicO/Symbol.h>
 #include <zEngineO/AllSymbolDeclarations.h>
 

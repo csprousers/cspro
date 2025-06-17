@@ -1,17 +1,17 @@
 ﻿#include "StandardSystemIncludes.h"
-#include "INTERPRE.H"
+#include "Interpreter.h"
 #include "Engine.h"
 #include <zEngineO/Nodes/GPS.h>
 #include <zPlatformO/PlatformInterface.h>
 #include <zMapping/DefaultBaseMapEvaluator.h>
 #include <zMapping/GreatCircle.h>
-#include <zBridgeO/npff.h>
+#include <zBridgeO/NPff.h>
 #include <zParadataO/Logger.h>
 
 
 #ifdef WIN_DESKTOP // 20110524 adding GPS functionality for desktops
 
-#include "GPSThreadInfo.h"
+#include "GpsThreadInfo.h"
 
 
 LPSTR GetNextToken(LPSTR lpSentence,LPSTR lpToken)

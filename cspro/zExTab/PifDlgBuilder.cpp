@@ -1,7 +1,7 @@
 ﻿#include "StdAfx.h"
 #include "PifDlgBuilder.h"
 #include <zUtilO/StdioFileUnicode.h>
-#include <zUtilO/Specfile.h>
+#include <zUtilO/SpecFile.h>
 #include <zUtilO/Interapp.h>
 #include <zJson/JsonStream.h>
 

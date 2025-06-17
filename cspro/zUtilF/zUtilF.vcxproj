@@ -91,8 +91,8 @@
     <ClCompile Include="ProgressDlgFactory.cpp" />
     <ClCompile Include="SelectDlg.cpp" />
     <ClCompile Include="SelectFileDlg.cpp" />
-    <ClCompile Include="SrtHdrCt.cpp" />
-    <ClCompile Include="SrtLstCt.cpp" />
+    <ClCompile Include="SortHeaderCtrl.cpp" />
+    <ClCompile Include="SortListCtrl.cpp" />
     <ClCompile Include="StdAfx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
@@ -146,10 +146,10 @@
     <ClInclude Include="resource_shared.h" />
     <ClInclude Include="SelectDlg.h" />
     <ClInclude Include="SelectFileDlg.h" />
+    <ClInclude Include="SortHeaderCtrl.h" />
+    <ClInclude Include="SortListCtrl.h" />
     <ClInclude Include="SplitterWndTwoColumnProportionalResize.h" />
     <ClInclude Include="SplitterWndWithDifferingViews.h" />
-    <ClInclude Include="SrtHdrCt.h" />
-    <ClInclude Include="SrtLstCt.h" />
     <ClInclude Include="StdAfx.h" />
     <ClInclude Include="StyledComboBox.h" />
     <ClInclude Include="SystemIcon.h" />

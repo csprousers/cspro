@@ -14,7 +14,7 @@ Purpose:  Provides a sortable list control, it will sort text, numbers
 
 #include <zUtilF/zUtilF.h>
 #include <zUtilF/DropFilesListCtrl.h>
-#include <zUtilF/SrtHdrCt.h>
+#include <zUtilF/SortHeaderCtrl.h>
 
 
 class CLASS_DECL_ZUTILF CSortListCtrl : public DropFilesListCtrl

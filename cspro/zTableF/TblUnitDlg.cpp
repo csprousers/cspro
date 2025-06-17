@@ -1,8 +1,8 @@
-﻿// TblUtDlg.cpp : implementation file
+﻿// TblUnitDlg.cpp : implementation file
 //
 
 #include "StdAfx.h"
-#include "TblUtDlg.h"
+#include "TblUnitDlg.h"
 
 
 // CTblUnitDlg dialog

@@ -5,7 +5,7 @@
 #include "DataSourceFrame.h"
 #include "ProductionSyncer.h"
 #include <zUtilO/CommandLineParsers.h>
-#include <zUtilO/imsaDlg.H>
+#include <zUtilO/ImsaDlg.h>
 #include <zUtilF/CommonControls.h>
 
 

@@ -4,7 +4,7 @@
 #include <zUtilO/ArrUtil.h>
 #include <zUtilO/ConnectionString.h>
 #include <zUtilO/Interapp.h>
-#include <zUtilO/Specfile.h>
+#include <zUtilO/SpecFile.h>
 #include <zJson/JsonSpecFile.h>
 #include <zAppO/PFF.h>
 

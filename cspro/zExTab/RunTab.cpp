@@ -9,11 +9,11 @@
 #include <zMessageO/MessageSummary.h>
 #include <zListingO/HeaderAttribute.h>
 #include <zListingO/ListerWriteFile.h>
-#include <zBridgeO/npff.h>
+#include <zBridgeO/NPff.h>
 #include <zBatchO/Runaplb.h>
 #include <zBatchO/RunAplC.h>
 #include <zTbdO/TbdFileM.h>
-#include <engine/ttype.h>
+#include <engine/TableDef.h>
 #include <iostream>
 
 

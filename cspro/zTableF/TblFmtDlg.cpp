@@ -1,13 +1,14 @@
-﻿// TblFmtD.cpp : implementation file
+﻿// TblFmtDlg.cpp : implementation file
 //
 
 #include "StdAfx.h"
-#include "TblFmtD.h"
+#include "TblFmtDlg.h"
 
 
 // CTblFmtDlg dialog
 
 IMPLEMENT_DYNAMIC(CTblFmtDlg, CDialog)
+
 CTblFmtDlg::CTblFmtDlg(CWnd* pParent /*=NULL*/)
     : CDialog(CTblFmtDlg::IDD, pParent)
     , m_bIncludeSubTitle(FALSE)

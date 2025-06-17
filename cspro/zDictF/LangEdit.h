@@ -1,6 +1,10 @@
 ﻿#pragma once
+
+#include <zDictF/LangGrid.h>
+
+
 //***************************************************************************
-//  File name: langedt.h
+//  File name: LangEdit.h
 //
 //  Description:
 //       Header for edit controls classes
@@ -16,7 +20,7 @@
 //                             CLabelEdit2
 //
 /////////////////////////////////////////////////////////////////////////////
-#include <zDictF/langgrid.h>
+
 class CLabelEdit2 : public CEdit  {
 
 // Implementation

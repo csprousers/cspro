@@ -5,8 +5,8 @@
 //////////////////////////////////////////////////////////////////////
 
 #include <zEntryO/zEntryO.h>
-#include <zBridgeO/runapl.h>
-#include <engine/DEFLD.H>
+#include <zBridgeO/RunApl.h>
+#include <engine/DeFld.h>
 #include <engine/Entifaz.h>
 #include <engine/Settings.h>
 #include <zMessageO/Messages.h>

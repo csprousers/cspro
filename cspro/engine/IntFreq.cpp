@@ -1,6 +1,6 @@
 ﻿#include "StandardSystemIncludes.h"
-#include "INTERPRE.H"
-#include "citer.h"
+#include "Interpreter.h"
+#include "CIterator.h"
 #include "FrequencyDriver.h"
 #include <zEngineO/NamedFrequency.h>
 #include <zEngineO/Report.h>
@@ -11,7 +11,7 @@
 #include <zEngineF/EngineUI.h>
 #include <zJson/Json.h>
 #include <zHtml/HtmlWriter.h>
-#include <zBridgeO/npff.h>
+#include <zBridgeO/NPff.h>
 #include <zFreqO/ExcelFrequencyPrinter.h>
 #include <zFreqO/Frequency.h>
 #include <zFreqO/FrequencyCounter.h>

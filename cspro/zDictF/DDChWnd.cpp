@@ -11,7 +11,7 @@
 //***************************************************************************
 
 #include "StdAfx.h"
-#include "DDChWnd.H"
+#include "DDChWnd.h"
 #include "DDLView.h"
 #include "FindDlg.h"
 #include <zUtilF/TextReportDlg.h>

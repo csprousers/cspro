@@ -1,9 +1,10 @@
-#pragma once
+﻿#pragma once
 
 //------------------------------------------------------------------------------
-//  EXENTRY.h
+//  ExEntry.h
 //------------------------------------------------------------------------------
+
 #include <engine/Exappl.h>
-#include <engine/DEPROG.H>
+#include <engine/DeProg.h>
 
 #include <engine/Entdrv.h>

@@ -1,5 +1,5 @@
 ﻿//***************************************************************************
-//  File name: TVBlock.cpp
+//  File name: TvBlock.cpp
 //
 //  Description:
 //       Blocking view source implementation, CBlockScrollView:public CScrollView

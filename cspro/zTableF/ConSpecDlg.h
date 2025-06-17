@@ -1,6 +1,7 @@
 ﻿#pragma once
 
-#include <zTableF/ConGrid.h>
+#include <zTableF/ConSpecGrid.h>
+
 
 // CConSpecDlg dialog
 

@@ -1,6 +1,6 @@
 ﻿#include "StdAfx.h"
-#include "OrdDoc.H"
-#include <zUtilO/Specfile.h>
+#include "OrdDoc.h"
+#include <zUtilO/SpecFile.h>
 
 
 IMPLEMENT_DYNCREATE(COrderDoc, FormFileBasedDoc)

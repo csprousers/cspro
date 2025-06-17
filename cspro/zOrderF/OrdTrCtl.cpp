@@ -11,11 +11,11 @@
 //***************************************************************************
 
 #include "StdAfx.h"
-#include "OrdTrCtl.H"
+#include "OrdTrCtl.h"
 #include <zToolsO/SharedSettings.h>
 #include <zToolsO/WinClipboard.h>
 #include <zUtilO/BCMenu.h>
-#include <zUtilO/Specfile.h>
+#include <zUtilO/SpecFile.h>
 #include <zAppO/Application.h>
 #include <zInterfaceF/resource_shared.h>
 

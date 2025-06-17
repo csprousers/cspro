@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 #include <zUtilF/LinkCtrls.h>
-#include <zUtilF/SrtLstCt.h>
+#include <zUtilF/SortListCtrl.h>
 
 
 class IndexDlg : public CDialog

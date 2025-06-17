@@ -11,7 +11,7 @@
 //***************************************************************************
 
 #include "StdAfx.h"
-#include "OrdChWnd.H"
+#include "OrdChWnd.h"
 
 
 #ifdef _DEBUG

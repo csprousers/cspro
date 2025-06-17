@@ -1,8 +1,7 @@
-﻿// ConGrid.cpp : implementation file
+﻿// ConSpecGrid.cpp : implementation file
 //
 #include "StdAfx.h"
-#include "ConGrid.h"
-#include <math.h>
+#include "ConSpecGrid.h"
 
 // CConSpecGrid
 

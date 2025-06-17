@@ -1,9 +1,9 @@
 ﻿#include "StdAfx.h"
-#include "npff.h"
+#include "NPff.h"
 #include <zPlatformO/PlatformInterface.h>
 #include <zToolsO/BinaryGen.h>
 #include <zToolsO/Serializer.h>
-#include <zUtilO/AppLdr.h>
+#include <zUtilO/AppLoader.h>
 #include <zMessageO/Messages.h>
 
 #ifdef WIN_DESKTOP

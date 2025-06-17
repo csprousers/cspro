@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 //---------------------------------------------------------------------------
-//  File name: citer.h
+//  File name: CIterator.h
 //
 //  Description:
 //          Header for iterator class
@@ -13,7 +13,7 @@
 //---------------------------------------------------------------------------
 
 #include <zIssaLib/GroupT.h>
-#include <engine/NODES.H>
+#include <engine/Nodes.h>
 
 class CIntDriver;
 class CIteratorException;

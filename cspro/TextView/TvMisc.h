@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 //***************************************************************************
-//  File name: TVMisc.h
+//  File name: TvMisc.h
 //
 //  Description:
 //       Interface for the miscellaneous TextView code and classes

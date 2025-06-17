@@ -1,5 +1,5 @@
 ﻿#include "StdAfx.h"
-#include "Dddoc.h"
+#include "DDDoc.h"
 #include "DDLView.h"
 #include "RelDlg.h"
 #include "SecurityOptionsDlg.h"

@@ -1,7 +1,7 @@
 ﻿#include "StdAfx.h"
 #include "ReformatDlg.h"
 #include <zUtilO/FileDlg.h>
-#include <zUtilO/imsaDlg.H>
+#include <zUtilO/ImsaDlg.h>
 #include <zBridgeO/DataFileDlg.h>
 #include <zDataO/DictionarySource.h>
 #include <zReformatO/ToolReformatter.h>

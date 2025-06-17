@@ -1,5 +1,5 @@
 ﻿#include "StandardSystemIncludes.h"
-#include "INTERPRE.H"
+#include "Interpreter.h"
 #include "Engine.h"
 #include "ParadataDriver.h"
 #include <zEngineO/AllSymbols.h>
@@ -8,7 +8,7 @@
 #include <zParadataO/Logger.h>
 #include <zDictO/DDClass.h>
 #include <zMessageO/MessageManager.h>
-#include <zBridgeO/npff.h>
+#include <zBridgeO/NPff.h>
 #include <zCaseO/Case.h>
 #include <zIssaLib/CsDriver.h>
 

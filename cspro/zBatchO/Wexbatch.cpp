@@ -10,7 +10,7 @@
 //    Batch processor null functions & symbols
 //----------------------------------------------------------------------------
 // compiling forbidden objects
-#include <engine/COMPILAD.H>
+#include <engine/CompIlad.h>
 #include <engine/ProgramControl.h>
 #include <zIssaLib/CsDriver.h>
 

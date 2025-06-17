@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 //***************************************************************************
-//  File name: SelDlg.h
+//  File name: SelectionDlg.h
 //
 //  Description:
 //       Interface for the CSelectionDialog class

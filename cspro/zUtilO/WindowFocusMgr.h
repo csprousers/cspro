@@ -1,6 +1,7 @@
 ﻿#pragma once
+
 //***************************************************************************
-//  File name: WinFocSw.h
+//  File name: WindowFocusMgr.h
 //
 //  Description:
 //       Utility for switching focus between main application windows

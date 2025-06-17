@@ -13,7 +13,7 @@
 //---------------------------------------------------------------------------
 #include <zTbdO/zTbdO.h>
 #include <zTbdO/cttree.h>
-#include <engine/dimens.h>
+#include <engine/Dimens.h>
 
 //class CLinkSubTable;
 class CLASS_DECL_ZTBDO CLinkSubTableDim {

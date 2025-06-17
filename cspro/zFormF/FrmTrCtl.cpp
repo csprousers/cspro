@@ -11,7 +11,7 @@
 //***************************************************************************
 
 #include "StdAfx.h"
-#include "FrmTrCtl.H"
+#include "FrmTrCtl.h"
 #include "BlockPropertiesDlg.h"
 #include "QSFCndVw.h"
 #include <zToolsO/SharedSettings.h>

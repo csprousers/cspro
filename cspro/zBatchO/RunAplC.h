@@ -4,8 +4,8 @@
 //////////////////////////////////////////////////////////////////////
 
 #include <zBatchO/zBatchO.h>
-#include <zBridgeO/runapl.h>
-#include <engine/calcifaz.h>
+#include <zBridgeO/RunApl.h>
+#include <engine/CalcIFaz.h>
 #include <zEngineO/AllSymbolDeclarations.h>
 
 class CTbdTable;

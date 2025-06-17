@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include <zDictF/Dddoc.h>
+#include <zDictF/DDDoc.h>
 #include <zDesignerF/PropertyGrid/CustomProperties.h>
 #include <zDesignerF/PropertyGrid/PropertyBuilder.h>
 #include <zDesignerF/PropertyGrid/PropertyManager.h>

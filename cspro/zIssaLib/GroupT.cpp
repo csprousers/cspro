@@ -55,7 +55,7 @@ void TRACE( csprochar* pszFormat, ... ) {
 
 #define DebugMsg( a, b )
 
-#include <zUtilO/AppLdr.h>
+#include <zUtilO/AppLoader.h>
 
 //////////////////////////////////////////////////////////////////////////
 //

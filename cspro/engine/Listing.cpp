@@ -2,7 +2,7 @@
 #include "Engdrv.h"
 #include "IntDrive.h"
 #include <zEngineO/AllSymbols.h>
-#include <zBridgeO/npff.h>
+#include <zBridgeO/NPff.h>
 #include <zMessageO/MessageManager.h>
 #include <zListingO/ErrorLister.h>
 #include <zListingO/HeaderAttribute.h>

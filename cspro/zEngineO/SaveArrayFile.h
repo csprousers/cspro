@@ -10,7 +10,7 @@
 //***************************************************************************
 
 #include <zEngineO/zEngineO.h>
-#include <zUtilO/Specfile.h>
+#include <zUtilO/SpecFile.h>
 
 class LogicArray;
 class PFF;

@@ -1,7 +1,7 @@
 ﻿#include "StdAfx.h"
 #include "SyncHelpers.h"
 #include "SyncTask.h"
-#include <zUtilF/SrtLstCt.h>
+#include <zUtilF/SortListCtrl.h>
 #include <zDataO/DataRepositoryHelpers.h>
 #include <zSyncO/SyncDictionaryInfo.h>
 #include <zSyncF/DialogBasedSyncListener.h>

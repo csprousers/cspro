@@ -1,10 +1,9 @@
 ﻿#include "StdAfx.h"
-#include "TTallyFD.h"
-#include "TTallyFD.h"
+#include "TblTallyFmtDlg.h"
 #include "LogicDlg.h"
-#include "TblUtDlg.h"
 #include "TabDoc.h"
 #include "TabView.h"
+#include "TblUnitDlg.h"
 #include <zInterfaceF/UniverseDlg.h>
 
 
@@ -964,5 +963,3 @@ BOOL CTblTallyFmtDlg::PreTranslateMessage(MSG* pMsg)
 
     return CDialog::PreTranslateMessage(pMsg);
 }
-
-

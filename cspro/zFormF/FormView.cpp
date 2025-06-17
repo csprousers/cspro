@@ -12,7 +12,7 @@
 #include <zUtilO/BCMenu.h>
 #include <zUtilO/TreeCtrlHelpers.h>
 #include <zAppO/Application.h>
-#include <zDictF/DDTrCtl.H>
+#include <zDictF/DDTrCtl.h>
 #include <zDictF/UWM.h>
 #include <numeric>
 

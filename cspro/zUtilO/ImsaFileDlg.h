@@ -4,7 +4,7 @@
 //
 //  FOR NEW USES, LOOK AT zUtilO/FileDlg.h
 //
-//  File name: FILEDLG.H
+//  File name: ImsaFileDlg.h
 //
 //  Description:
 //       Header for CIMSAFileDialog

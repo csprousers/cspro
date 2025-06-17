@@ -7,10 +7,10 @@
 #include <zPlatformO/PortableMFC.h>
 #include <zToolsO/Serializer.h>
 #include <zToolsO/Tools.h>
-#include <zUtilO/AppLdr.h>
+#include <zUtilO/AppLoader.h>
 #include <zUtilO/CommonStore.h>
 #include <zUtilO/ExecutionStack.h>
-#include <zUtilO/imsaStr.h>
+#include <zUtilO/ImsaStr.h>
 #include <zUtilO/MemoryHelpers.h>
 #include <zAppO/Application.h>
 #include <zCaseO/Case.h>
@@ -19,7 +19,7 @@
 #include <zDataO/CaseAccessSaver.h>
 #include <zDataO/DataRepository.h>
 #include <zDictO/DDClass.h>
-#include <zBridgeO/npff.h>
+#include <zBridgeO/NPff.h>
 #include <zMessageO/Messages.h>
 #include <engine/EngineObjectTransporter.h>
 #include <engine/IntDrive.h>

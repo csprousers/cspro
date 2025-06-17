@@ -1,6 +1,6 @@
 ﻿#include "StandardSystemIncludes.h"
 #include "Tables.h"
-#include "COMPILAD.H"
+#include "CompIlad.h"
 #include <zUtilO/MemoryHelpers.h>
 #include <zAppO/Application.h>
 #include <zLogicO/Preprocessor.h>

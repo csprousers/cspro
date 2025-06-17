@@ -2,8 +2,8 @@
 //
 //////////////////////////////////////////////////////////////////////
 #include "StdAfx.h"
-#include "runapl.h"
-#include <zBridgeO/npff.h>
+#include "RunApl.h"
+#include <zBridgeO/NPff.h>
 
 #ifdef _DEBUG
 #undef THIS_FILE

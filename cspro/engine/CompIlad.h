@@ -2,12 +2,12 @@
 
 //-----------------------------------------------------------------------
 //
-//  COMPILAD.h  common data to every compiler functions
+//  CompIlad.h  common data to every compiler functions
 //
 //-----------------------------------------------------------------------
 #include <zLogicO/KeywordTable.h>
 #include <engine/Comp.h>
-#include <engine/NODES.H>
+#include <engine/Nodes.h>
 #include <zEngineO/Nodes/Set.h>
 
 //-----------------------------------------------------------------------

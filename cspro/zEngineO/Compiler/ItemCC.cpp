@@ -1,7 +1,7 @@
 ﻿#include "stdafx.h"
 #include "IncludesCC.h"
 #include "EngineItem.h"
-#include <engine/Dict.h>
+#include <engine/DicT.h>
 
 
 namespace
@@ -243,7 +243,7 @@ int LogicCompiler::ValidateItemSubscriptAndCreateNode(const EngineItem& engine_i
     if( uses_implicit_subscripts )
     {
         auto& item_subscript_node = CreateVariableSizeNode<Nodes::ItemSubscript>(std::nullopt, 0);
-        
+
         item_subscript_node.subscript_type = item_index_helper.HasOccurrences() ? Nodes::ItemSubscript::SubscriptType::ImplicitMustEvaluate :
                                                                                   Nodes::ItemSubscript::SubscriptType::ImplicitSinglyOccurring ;
 

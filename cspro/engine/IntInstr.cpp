@@ -16,11 +16,11 @@
 //
 //---------------------------------------------------------------------------
 #include "StandardSystemIncludes.h"
-#include "INTERPRE.H"
+#include "Interpreter.h"
 #include "Engine.h"
-#include "VARX.h"
-#include "ProgramControl.h"
 #include "3dException.h"
+#include "ProgramControl.h"
+#include "VarX.h"
 #include <zEngineO/AllSymbols.h>
 #include <zEngineO/LoopStack.h>
 #include <zEngineO/Nodes/ControlFlow.h>
@@ -737,7 +737,7 @@ double CIntDriver::exfor_relation( int iForRelation ) {
 
 // Modify Unit's MVAR_NODE info to create constant values
 // for table generation [Do_xtab.cpp/CIntDriver::CtPos_FillIndexArray]
-// + [citer.cpp/MakeTableIterator]
+// + [CIterator.cpp/MakeTableIterator]
 static
 int modifyVarNode_GetMaxValue( MVAR_NODE* pMvarNode, VART* pVarT, CIntDriver* theDriver, double dMaxValue )
 {

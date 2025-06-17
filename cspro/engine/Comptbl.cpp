@@ -6,8 +6,8 @@
 
 #include "StandardSystemIncludes.h"
 #include "Tables.h"
-#include "COMPILAD.H"
-#include "COMPUTIL.H"
+#include "CompIlad.h"
+#include "CompUtil.h"
 #include "Engine.h"
 #include "Ctab.h"
 

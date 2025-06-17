@@ -2,7 +2,7 @@
 
 #include <zUtilO/ResizableDlg.h>
 #include <zUtilO/SyncConnectionString.h>
-#include <zUtilF/SrtLstCt.h>
+#include <zUtilF/SortListCtrl.h>
 #include <zSyncO/SyncDictionaryInfo.h>
 
 class CSWebConnection;

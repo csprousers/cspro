@@ -1,8 +1,8 @@
-﻿// LeftProp.cpp : implementation file
+﻿// LeftPropSheet.cpp : implementation file
 //
 
 #include "StdAfx.h"
-#include "leftprop.h"
+#include "LeftPropSheet.h"
 #include "MainFrm.h"
 #include "RunView.h"
 

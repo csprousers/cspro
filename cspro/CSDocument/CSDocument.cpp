@@ -7,7 +7,7 @@
 #include "DocSetComponentDocTemplate.h"
 #include "DocSetComponentFrame.h"
 #include "DocSetSpecFrame.h"
-#include <zUtilO/imsaDlg.H>
+#include <zUtilO/ImsaDlg.h>
 #include <zUtilF/CommonControls.h>
 #include <zUtilF/MDIFrameWndHelpers.h>
 

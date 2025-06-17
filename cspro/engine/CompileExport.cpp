@@ -6,7 +6,7 @@
 
 #include "StandardSystemIncludes.h"
 #include "Export.h"
-#include "COMPILAD.H"
+#include "CompIlad.h"
 #include <zEngineO/File.h>
 #include <zToolsO/Tools.h>
 #include <zLogicO/BaseCompilerSettings.h>

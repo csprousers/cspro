@@ -18,13 +18,13 @@
     <ClCompile Include="ChildFrm.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Finddlg.cpp">
+    <ClCompile Include="FindDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Fsizedlg.cpp">
+    <ClCompile Include="FontSizeDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Gotodlg.cpp">
+    <ClCompile Include="GotoDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MainFrm.cpp">
@@ -33,7 +33,7 @@
     <ClCompile Include="OpenInDataManagerDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Seldlg.cpp">
+    <ClCompile Include="SelectionDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="StdAfx.cpp">
@@ -42,16 +42,16 @@
     <ClCompile Include="TextView.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Tvblock.cpp">
+    <ClCompile Include="TvBlock.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="TVDoc.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Tvmisc.cpp">
+    <ClCompile Include="TvMisc.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Tvruler.cpp">
+    <ClCompile Include="TvRuler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="TVView.cpp">
@@ -62,13 +62,13 @@
     <ClInclude Include="ChildFrm.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Finddlg.h">
+    <ClInclude Include="FindDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Fsizedlg.h">
+    <ClInclude Include="FontSizeDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Gotodlg.h">
+    <ClInclude Include="GotoDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="MainFrm.h">
@@ -80,7 +80,7 @@
     <ClInclude Include="resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Seldlg.h">
+    <ClInclude Include="SelectionDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="StdAfx.h">
@@ -89,16 +89,16 @@
     <ClInclude Include="TextView.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Tvblock.h">
+    <ClInclude Include="TvBlock.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="TVDoc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Tvmisc.h">
+    <ClInclude Include="TvMisc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Tvruler.h">
+    <ClInclude Include="TvRuler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="TVView.h">

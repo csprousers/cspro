@@ -4,10 +4,10 @@
 #include <engine/StrictCompilerErrors.h>
 
 #include <zToolsO/Utf8.h>
-#include <zUtilO/imsaStr.h>
+#include <zUtilO/ImsaStr.h>
 #include <zUtilO/Interapp.h>
 #include <zUtilO/StdioFileUnicode.h>
-#include <zUtilO/Specfile.h>
+#include <zUtilO/SpecFile.h>
 #include <zDictO/DDClass.h>
 #include <zDesignerF/resource_shared.h>
 #include <zDesignerF/UWM.h>

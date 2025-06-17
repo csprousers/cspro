@@ -2,7 +2,7 @@
 
 #include <zEntryO/zEntryO.h>
 #include <zCapiO/CapiContentVirtualFileMapping.h>
-#include <engine/DEFLD.H>
+#include <engine/DeFld.h>
 
 class CRunAplEntry;
 class CDEField;

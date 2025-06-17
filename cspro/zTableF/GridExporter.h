@@ -1,6 +1,6 @@
 ﻿#pragma once
 //***************************************************************************
-//  File name: GridExpt.h
+//  File name: GridExporter.h
 //
 //  Description:
 //       Interface for table grid exporter.  Table grid exproters are used

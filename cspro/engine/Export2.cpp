@@ -28,7 +28,7 @@
 #include <zToolsO/Tools.h>
 #include <zUtilO/StdioFileUnicode.h>
 #include <zDictO/ValueProcessor.h>
-#include <zBridgeO/npff.h>
+#include <zBridgeO/NPff.h>
 
 
 #ifdef _DEBUG

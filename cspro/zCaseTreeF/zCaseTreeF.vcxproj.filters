@@ -27,7 +27,7 @@
     <ClCompile Include="GTCtrl.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="HITEM.cpp">
+    <ClCompile Include="HItem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Icons.cpp">
@@ -304,7 +304,7 @@
     <ClInclude Include="GTCtrl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="HITEM.h">
+    <ClInclude Include="HItem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Icons.h">

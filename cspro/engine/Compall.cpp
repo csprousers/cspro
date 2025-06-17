@@ -3,7 +3,7 @@
 //------------------------------------------------------------------------------
 #include "StandardSystemIncludes.h"
 #include "Exappl.h"
-#include "COMPILAD.H"
+#include "CompIlad.h"
 #include "Engine.h"
 #include "Ctab.h"
 #include <zToolsO/Tools.h>

@@ -17,8 +17,8 @@
 #include <zPlatformO/PlatformInterface.h>
 #include <zToolsO/Tools.h>
 #include <zJson/Json.h>
-#include <zUtilO/AppLdr.h>
-#include <zUtilO/imsaStr.h>
+#include <zUtilO/AppLoader.h>
+#include <zUtilO/ImsaStr.h>
 #include <zUtilO/MemoryHelpers.h>
 #include <zUtilO/TemporaryFile.h>
 #include <zUtilO/Viewers.h>
@@ -28,7 +28,7 @@
 #include <zAppO/Application.h>
 #include <zAppO/Properties/ApplicationProperties.h>
 #include <zDictO/DDClass.h>
-#include <zBridgeO/npff.h>
+#include <zBridgeO/NPff.h>
 #include <zEntryO/Runaple.h>
 #include <engine/IntDrive.h>
 #include <zEngineO/PffExecutor.h>

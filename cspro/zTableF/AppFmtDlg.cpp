@@ -1,8 +1,8 @@
-﻿// AppFmtD.cpp : implementation file
+﻿// AppFmtDlg.cpp : implementation file
 //
 
 #include "StdAfx.h"
-#include "AppFmtD.h"
+#include "AppFmtDlg.h"
 
 
 

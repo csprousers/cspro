@@ -27,16 +27,16 @@
     <ClCompile Include="FilteredExtensionProcessor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="NPFF.cpp">
+    <ClCompile Include="NPff.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="PifDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Pifgrid.cpp">
+    <ClCompile Include="PifGrid.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="runapl.cpp">
+    <ClCompile Include="RunApl.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="StdAfx.cpp">
@@ -59,19 +59,19 @@
     <ClInclude Include="FilteredExtensionProcessor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="npff.h">
+    <ClInclude Include="NPff.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="PifDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Pifgrid.h">
+    <ClInclude Include="PifGrid.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="runapl.h">
+    <ClInclude Include="RunApl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="StdAfx.h">

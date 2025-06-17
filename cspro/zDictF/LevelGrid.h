@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 //***************************************************************************
-//  File name: LevGrid.h
+//  File name: LevelGrid.h
 //
 //  Description:
 //       Header for Data Dictionary level properties grid application

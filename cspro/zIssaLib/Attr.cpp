@@ -5,7 +5,7 @@
 #include "CFlow.h"                                      // victor Dec 28, 99
 #include "FlowCore.h"                                   // victor Jan 08, 01
 #include <zUtilO/ExecutionStack.h>
-#include <zBridgeO/npff.h>
+#include <zBridgeO/NPff.h>
 #include <zEngineO/Report.h>
 #include <engine/Tables.h>
 #include <engine/Engine.h>

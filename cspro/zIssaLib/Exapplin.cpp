@@ -6,19 +6,19 @@
 
 #include "StdAfx.h"
 #include <zPlatformO/PlatformInterface.h>
+#include <engine/CommonInfo.h>
 #include <engine/Ctab.h>
 #include <engine/Exappl.h>
-#include <engine/Dicx.h>
+#include <engine/DicX.h>
 #include <engine/Engine.h>
-#include <engine/COMMONIN.H>
 #include <engine/Comp.h>
 #include <zEngineO/PenWriterApplicationLoader.h>
 #include <zToolsO/BinaryGen.h>
 #include <zToolsO/Serializer.h>
-#include <zUtilO/AppLdr.h>
+#include <zUtilO/AppLoader.h>
 #include <zUtilO/ConnectionString.h>
 #include <zCapiO/CapiQuestionManager.h>
-#include <zBridgeO/npff.h>
+#include <zBridgeO/NPff.h>
 #include <zListingO/ErrorLister.h>
 #include <zLogicO/SpecialFunction.h>
 #include <zLogicO/SourceBuffer.h>

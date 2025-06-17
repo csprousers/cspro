@@ -12,7 +12,7 @@ Purpose:  Provides the header control, with drawing of the arrows, for
 ----------------------------------------------------------------------*/
 
 #include "StdAfx.h"
-#include "SrtHdrCt.h"
+#include "SortHeaderCtrl.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW

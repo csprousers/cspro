@@ -80,10 +80,10 @@
     <ClCompile Include="DynamicMenu.cpp" />
     <ClCompile Include="GoToDlg.cpp" />
     <ClCompile Include="IntEDlg.cpp" />
-    <ClCompile Include="leftprop.cpp" />
+    <ClCompile Include="LeftPropSheet.cpp" />
     <ClCompile Include="LeftView.cpp" />
     <ClCompile Include="MainFrm.cpp" />
-    <ClCompile Include="Opdlg.cpp" />
+    <ClCompile Include="OperatorIdDlg.cpp" />
     <ClCompile Include="OperatorStatistics.cpp" />
     <ClCompile Include="OperatorStatisticsLog.cpp" />
     <ClCompile Include="Page1.cpp" />
@@ -115,11 +115,11 @@
     <ClInclude Include="DynamicMenu.h" />
     <ClInclude Include="GoToDlg.h" />
     <ClInclude Include="IntEDlg.h" />
-    <ClInclude Include="leftprop.h" />
+    <ClInclude Include="LeftPropSheet.h" />
     <ClInclude Include="LeftView.h" />
     <ClInclude Include="MainFrm.h" />
     <ClInclude Include="MessageOverrides.h" />
-    <ClInclude Include="Opdlg.h" />
+    <ClInclude Include="OperatorIdDlg.h" />
     <ClInclude Include="OperatorStatistics.h" />
     <ClInclude Include="OperatorStatisticsLog.h" />
     <ClInclude Include="Page1.h" />

@@ -1,5 +1,5 @@
 ﻿//***************************************************************************
-//  File name: LevGrid.cpp
+//  File name: LevelGrid.cpp
 //
 //  Description:
 //       Data Dictionary level properties grid implementation
@@ -11,7 +11,7 @@
 //***************************************************************************
 
 #include "StdAfx.h"
-#include "Levgrid.h"
+#include "LevelGrid.h"
 
 namespace
 {

@@ -1,5 +1,5 @@
 ﻿#include "StandardSystemIncludes.h"
-#include "INTERPRE.H"
+#include "Interpreter.h"
 #include "InterpreterAccessor.h"
 #include "EngineExecutor.h"
 #include <zEngineO/BinarySymbol.h>
@@ -7,7 +7,7 @@
 #include <zMessageO/MessageManager.h>
 #include <zCaseO/Case.h>
 #include <zDataO/DataRepositoryHelpers.h>
-#include <zBridgeO/npff.h>
+#include <zBridgeO/NPff.h>
 
 
 // --------------------------------------------------------------------------

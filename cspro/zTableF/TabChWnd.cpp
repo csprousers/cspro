@@ -1,11 +1,11 @@
 ﻿#include "StdAfx.h"
 #include "TabChWnd.h"
-#include "DfStylDg.h"
-#include "FlashMsg.h"
+#include "DefaultStylesDlg.h"
+#include "FlashMsgDlg.h"
 #include "TabDoc.h"
 #include "TabView.h"
 #include "Tblgrid.h"
-#include "TTallyFD.h"
+#include "TblTallyFmtDlg.h"
 #include <zDictF/UWM.h>
 
 

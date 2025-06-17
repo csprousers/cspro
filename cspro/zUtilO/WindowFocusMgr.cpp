@@ -1,5 +1,5 @@
 ﻿//***************************************************************************
-//  File name: WinFocSw.h
+//  File name: WindowFocusMgr.h
 //
 //  Description:
 //       Utility for switching focus between main application windows
@@ -8,7 +8,7 @@
 //***************************************************************************
 
 #include "StdAfx.h"
-#include "WinFocSw.h"
+#include "WindowFocusMgr.h"
 #include <zUtilO/ArrUtil.h>
 
 // destructor

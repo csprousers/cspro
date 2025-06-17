@@ -14,7 +14,7 @@
 
 #include <zDictO/DictLevel.h>
 #include <zDictO/DictRelation.h>
-#include <zUtilO/imsaStr.h>
+#include <zUtilO/ImsaStr.h>
 #include <zAppO/Language.h>
 
 class CSpecFile;

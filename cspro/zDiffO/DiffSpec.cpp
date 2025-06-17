@@ -1,7 +1,7 @@
 ﻿#include "stdafx.h"
 #include "DiffSpec.h"
 #include <zUtilO/Interapp.h>
-#include <zUtilO/Specfile.h>
+#include <zUtilO/SpecFile.h>
 #include <zUtilO/UWM.h>
 #include <zJson/JsonSpecFile.h>
 #include <zDictO/DictionaryIterator.h>

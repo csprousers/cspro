@@ -3,7 +3,7 @@
 //////////////////////////////////////////////////////////////////////
 #include "StdAfx.h"
 #include "RunAplC.h"
-#include <engine/calcifaz.h>
+#include <engine/CalcIFaz.h>
 
 #ifdef _DEBUG
 #undef THIS_FILE
@@ -128,4 +128,3 @@ bool CRunAplCsCalc::LoadBreak( CString csCurrentBreakKey, int iBreakKeyNum, CArr
 void CRunAplCsCalc::SetRunTimeBreakKeys( CStringArray* aBreakKeys, CUIntArray*  aBreakNumKeys, CArray<CTAB*, CTAB*>* aUsedCtabs ) {
     m_pCalcIFaz->C_SetRunTimeBreakKeys( aBreakKeys, aBreakNumKeys, aUsedCtabs );
 }
-

@@ -81,7 +81,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\engine\export2.cpp">
+    <ClCompile Include="..\engine\Export2.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
@@ -97,7 +97,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\engine\relt.cpp">
+    <ClCompile Include="..\engine\RelT.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
@@ -105,7 +105,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\engine\subtable.cpp">
+    <ClCompile Include="..\engine\SubTable.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
@@ -125,10 +125,10 @@
     <ClCompile Include="CFlAdmin.cpp" />
     <ClCompile Include="CFlow.cpp" />
     <ClCompile Include="CsDriver.cpp" />
-    <ClCompile Include="csdriver1.cpp" />
+    <ClCompile Include="CsDriver1.cpp" />
     <ClCompile Include="CsKernel.cpp" />
     <ClCompile Include="Defuncs.cpp" />
-    <ClCompile Include="Dict.cpp" />
+    <ClCompile Include="DicT.cpp" />
     <ClCompile Include="Dictload.cpp" />
     <ClCompile Include="EngineAccessor.cpp" />
     <ClCompile Include="EngineLoader.cpp" />
@@ -138,9 +138,9 @@
     <ClCompile Include="ExNotes.cpp" />
     <ClCompile Include="FlowCore.cpp" />
     <ClCompile Include="FlowLoad.cpp" />
-    <ClCompile Include="form2.cpp" />
+    <ClCompile Include="Form2.cpp" />
     <ClCompile Include="GroupT.cpp" />
-    <ClCompile Include="groupt2.cpp" />
+    <ClCompile Include="GroupT2.cpp" />
     <ClCompile Include="GroupVisitor.cpp" />
     <ClCompile Include="Labsalo.cpp" />
     <ClCompile Include="OccurrenceInfo.cpp">
@@ -154,17 +154,17 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="Vart.cpp" />
+    <ClCompile Include="VarT.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CFlAdmin.h" />
     <ClInclude Include="CFlow.h" />
     <ClInclude Include="CsDriver.h" />
     <ClInclude Include="CsKernel.h" />
-    <ClInclude Include="flowatom.h" />
+    <ClInclude Include="FlowAtom.h" />
     <ClInclude Include="FlowCore.h" />
     <ClInclude Include="GroupT.h" />
-    <ClInclude Include="groupt2.h" />
+    <ClInclude Include="GroupT2.h" />
     <ClInclude Include="OccurrenceInfo.h" />
     <ClInclude Include="OccurrenceInfoSet.h" />
     <ClInclude Include="OccurrenceVisitor.h" />

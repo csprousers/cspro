@@ -5,9 +5,9 @@
 #include <zUtilO/Interapp.h>
 #include <zMessageO/SystemMessageIssuer.h>
 #include <zJson/Json.h>
-#include <ZCAPIO/CapiQuestionManager.h>
+#include <zCapiO/CapiQuestionManager.h>
 #include <zTableO/Table.h>
-#include <zBridgeO/npff.h>
+#include <zBridgeO/NPff.h>
 #include <zEngineO/SaveArrayFile.h>
 
 

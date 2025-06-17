@@ -1,5 +1,5 @@
 ﻿//***************************************************************************
-//  File name: DfStylDg.cpp
+//  File name: DefaultStylesDlg.cpp
 //
 //  Description:
 //  Dialog for picking default styles for tables and table elements.
@@ -8,7 +8,7 @@
 //***************************************************************************
 
 #include "StdAfx.h"
-#include "DfStylDg.h"
+#include "DefaultStylesDlg.h"
 #include "TabDoc.h"
 #include "TabView.h"
 

@@ -12,8 +12,8 @@
 //***************************************************************************
 
 #include <zTableF/zTableF.h>
-#include <zTableF/prtvundo.h>
 #include <zTableF/PrtNvBar.h>
+#include <zTableF/PrtViewUndo.h>
 #include <zUtilO/UndoStack.h>
 
 

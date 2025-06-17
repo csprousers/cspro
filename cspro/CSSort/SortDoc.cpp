@@ -26,7 +26,7 @@
 #include "SortDoc.h"
 #include "CSSort.h"
 #include "SortView.h"
-#include "TwoFldlg.h"
+#include "TwoFileDialog.h"
 #include "TypeDlg.h"
 #include <zSortO/Sorter.h>
 

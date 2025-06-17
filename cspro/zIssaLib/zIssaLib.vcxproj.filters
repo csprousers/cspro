@@ -23,7 +23,7 @@
     <ClCompile Include="..\engine\Export.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\engine\export2.cpp">
+    <ClCompile Include="..\engine\Export2.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\engine\Form.cpp">
@@ -35,13 +35,13 @@
     <ClCompile Include="..\engine\Messages.cpp">
       <Filter>Source Files\issa</Filter>
     </ClCompile>
-    <ClCompile Include="..\engine\relt.cpp">
+    <ClCompile Include="..\engine\RelT.cpp">
       <Filter>Source Files\issa</Filter>
     </ClCompile>
     <ClCompile Include="..\engine\Settings.cpp">
       <Filter>Source Files\issa</Filter>
     </ClCompile>
-    <ClCompile Include="..\engine\subtable.cpp">
+    <ClCompile Include="..\engine\SubTable.cpp">
       <Filter>Source Files\issa</Filter>
     </ClCompile>
     <ClCompile Include="..\engine\Tables.cpp">
@@ -65,7 +65,7 @@
     <ClCompile Include="CsDriver.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="csdriver1.cpp">
+    <ClCompile Include="CsDriver1.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CsKernel.cpp">
@@ -74,7 +74,7 @@
     <ClCompile Include="Defuncs.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Dict.cpp">
+    <ClCompile Include="DicT.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Dictload.cpp">
@@ -104,13 +104,13 @@
     <ClCompile Include="FlowLoad.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="form2.cpp">
+    <ClCompile Include="Form2.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="GroupT.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="groupt2.cpp">
+    <ClCompile Include="GroupT2.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="GroupVisitor.cpp">
@@ -134,7 +134,7 @@
     <ClCompile Include="StdAfx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Vart.cpp">
+    <ClCompile Include="VarT.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -151,7 +151,7 @@
     <ClInclude Include="CsKernel.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="flowatom.h">
+    <ClInclude Include="FlowAtom.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="FlowCore.h">
@@ -160,7 +160,7 @@
     <ClInclude Include="GroupT.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="groupt2.h">
+    <ClInclude Include="GroupT2.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="OccurrenceInfo.h">

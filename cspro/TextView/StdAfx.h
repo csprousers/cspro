@@ -18,7 +18,7 @@ const int TAB_SPACES = 4; // GHM 20120514
 
 #include <zToolsO/Tools.h>
 #include <zUtilO/ImsaFileDlg.h>
-#include <zUtilO/imsaStr.h>
+#include <zUtilO/ImsaStr.h>
 #include <zUtilO/Interapp.h>
 #include <zUtilO/StdioFileUnicode.h>
 #include <zUtilF/ProgressDlg.h>
@@ -26,15 +26,15 @@ const int TAB_SPACES = 4; // GHM 20120514
 /*--- TextView includes ---*/
 #include <TextView/resource.h>
 #include <TextView/ChildFrm.h>
-#include <TextView/Finddlg.h>
-#include <TextView/Fsizedlg.h>
-#include <TextView/Gotodlg.h>
+#include <TextView/FindDlg.h>
+#include <TextView/FontSizeDlg.h>
+#include <TextView/GotoDlg.h>
 #include <TextView/MainFrm.h>
-#include <TextView/Seldlg.h>
+#include <TextView/SelectionDlg.h>
 #include <TextView/TextView.h>
-#include <TextView/Tvblock.h>
+#include <TextView/TvBlock.h>
 #include <TextView/TVDoc.h>
-#include <TextView/Tvmisc.h>
-#include <TextView/Tvruler.h>
+#include <TextView/TvMisc.h>
+#include <TextView/TvRuler.h>
 #include <TextView/TVView.h>
 #include <TextView/UWM.h>

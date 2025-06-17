@@ -3,7 +3,7 @@
 #include "Csdfdoc.h"
 #include "Csdfview.h"
 #include "MainFrm.h"
-#include <zUtilO/imsaDlg.H>
+#include <zUtilO/ImsaDlg.h>
 
 
 // The one and only CCSDiffApp object

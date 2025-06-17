@@ -1,5 +1,5 @@
 ﻿//***************************************************************************
-//  File name: MyView.cpp
+//  File name: TSourceEditView.cpp
 //
 //  Description:
 //       My customized CHHGenericFormater object
@@ -11,7 +11,7 @@
 //***************************************************************************
 
 #include "StdAfx.h"
-#include "TSview.h"
+#include "TSourceEditView.h"
 #include "TabChWnd.h"
 
 #ifdef _DEBUG

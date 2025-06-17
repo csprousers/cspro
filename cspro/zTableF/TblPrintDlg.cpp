@@ -1,5 +1,5 @@
 ﻿//***************************************************************************
-//  File name: TblPrtDlg.cpp
+//  File name: TblPrintDlg.cpp
 //
 //  Description:
 //       Custom print dialog for printing tables.  Adds "current page" and "current table"
@@ -8,12 +8,9 @@
 //
 //***************************************************************************
 
-// TblPrtDg.cpp : implementation file
-//
-
 #include "StdAfx.h"
-#include "TblPrtDg.h"
-#include "Tvdlg.h"
+#include "TblPrintDlg.h"
+#include "PickTablesDlg.h"
 
 /////////////////////////////////////////////////////////////////////////////////
 //                      PrintHookProc

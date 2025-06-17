@@ -18,7 +18,7 @@
 //-----------------------------------------------------------------------------
 #undef new
 
-#include <engine/dimens.h>
+#include <engine/Dimens.h>
 
 
 const int ZERO_BASED = 0;

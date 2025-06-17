@@ -1,5 +1,5 @@
 ﻿//***************************************************************************
-//  File name: SPECFILE.CPP
+//  File name: SpecFile.cpp
 //
 //  Description:
 //       Implementation for CSpecFile class.
@@ -9,7 +9,7 @@
 //***************************************************************************
 
 #include "StdAfx.h"
-#include "Specfile.h"
+#include "SpecFile.h"
 
 
 /////////////////////////////////////////////////////////////////////////////

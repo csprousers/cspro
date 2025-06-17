@@ -63,7 +63,7 @@
     <ClCompile Include="IntEDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="leftprop.cpp">
+    <ClCompile Include="LeftPropSheet.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="LeftView.cpp">
@@ -72,7 +72,7 @@
     <ClCompile Include="MainFrm.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Opdlg.cpp">
+    <ClCompile Include="OperatorIdDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="OperatorStatistics.cpp">
@@ -155,7 +155,7 @@
     <ClInclude Include="IntEDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="leftprop.h">
+    <ClInclude Include="LeftPropSheet.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="LeftView.h">
@@ -167,7 +167,7 @@
     <ClInclude Include="MessageOverrides.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Opdlg.h">
+    <ClInclude Include="OperatorIdDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="OperatorStatistics.h">

@@ -4,7 +4,7 @@
 #include "StdAfx.h"
 #include "DEEdit.h"
 #include "CSEntry.h"
-#include "leftprop.h"
+#include "LeftPropSheet.h"
 #include "LeftView.h"
 #include "MainFrm.h"
 #include "OperatorStatisticsLog.h"

@@ -16,7 +16,7 @@
 //---------------------------------------------------------------------------
 
 #include <zIssaLib/CsKernel.h>
-#include <engine/DEFLD.H>
+#include <engine/DeFld.h>
 #include <engine/Exappl.h>
 #include <engine/Engarea.h>
 #include <engine/Messages.h>

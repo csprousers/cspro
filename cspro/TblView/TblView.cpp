@@ -6,7 +6,7 @@
 #include "MainFrm.h"
 #include "TableChartWnd.h"
 #include "TblDoc.h"
-#include <zUtilO/imsaDlg.H>
+#include <zUtilO/ImsaDlg.h>
 #include <zUtilO/ImsaFileDlg.h>
 #include <zUtilF/CommonControls.h>
 #include <zTableO/Table.h>

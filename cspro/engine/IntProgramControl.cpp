@@ -1,5 +1,5 @@
 ﻿#include "StandardSystemIncludes.h"
-#include "INTERPRE.H"
+#include "Interpreter.h"
 #include "ProgramControl.h"
 #include <zEngineO/UserFunction.h>
 #include <zLogicO/KeywordTable.h>

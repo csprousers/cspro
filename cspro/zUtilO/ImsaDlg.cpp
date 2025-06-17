@@ -1,5 +1,5 @@
 ﻿//***************************************************************************
-//  File name: IMSADLG.CPP
+//  File name: ImsaDlg.cpp
 //
 //  Description:
 //       Implementation of special dialog box classes
@@ -9,7 +9,7 @@
 //***************************************************************************
 
 #include "StdAfx.h"
-#include "imsaDlg.H"
+#include "ImsaDlg.h"
 #include "CustomFont.h"
 #include "WindowsUtf8.h"
 #include <afxpriv.h>

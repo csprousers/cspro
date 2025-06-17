@@ -2,7 +2,7 @@
 #include "CaseTreeBuilder.h"
 #include <zDictO/ValueProcessor.h>
 #include <zDictO/ValueSetResponse.h>
-#include <zBridgeO/npff.h>
+#include <zBridgeO/NPff.h>
 #include <zEngineO/ResponseProcessor.h>
 #include <zEngineO/ValueSet.h>
 #include <zEntryO/CoreEntryPage.h>

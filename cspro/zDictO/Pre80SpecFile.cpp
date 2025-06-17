@@ -1,6 +1,6 @@
 ﻿#include "StdAfx.h"
 #include "DDClass.h"
-#include <zUtilO/Specfile.h>
+#include <zUtilO/SpecFile.h>
 #include <zAppO/LanguageSerializerHelper.h>
 
 

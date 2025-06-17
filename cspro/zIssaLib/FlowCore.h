@@ -20,8 +20,8 @@
 //---------------------------------------------------------------------------
 
 #include <zIssaLib/CsKernel.h>
-#include <zIssaLib/flowatom.h>
-#include <engine/dimens.h>
+#include <zIssaLib/FlowAtom.h>
+#include <engine/Dimens.h>
 #include <zDictO/DDClass.h>
 
 class CSymbolFlow;

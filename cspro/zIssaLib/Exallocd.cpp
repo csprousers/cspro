@@ -5,8 +5,8 @@
 
 #include <engine/Exappl.h>
 #include <engine/Engine.h>
-#include <engine/VARX.h>
-#include <engine/Dicx.h>
+#include <engine/VarX.h>
+#include <engine/DicX.h>
 
 
 #define RTRACE TRACE

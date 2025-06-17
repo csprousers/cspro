@@ -37,7 +37,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\zBridgeO\runapl.h">
+    <ClInclude Include="..\zBridgeO\RunApl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="CapiHandler.h">

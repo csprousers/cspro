@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-//  DEFINES.H       CSPRO basic engine header
+//  Defines.h       CSPRO basic engine header
 
 #include <zEngineO/AllSymbolDeclarations.h>
 #include <zEngineO/RunnableSymbol.h>

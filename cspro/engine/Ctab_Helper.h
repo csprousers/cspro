@@ -8,7 +8,7 @@
 // rcl, Nov 2004
 //
 #include <zIssaLib/GroupT.h>
-#include <engine/NODES.H>
+#include <engine/Nodes.h>
 
 const int MAGIC_NUMBER = -345; // magic number to discover proper assignment
 

@@ -2,7 +2,7 @@
 #include "Wcompile.h"
 #include "SrcCode.h"
 #include <zLogicO/ProcDirectory.h>
-#include <engine/COMPILAD.H>
+#include <engine/CompIlad.h>
 #include <engine/Ctab.h>
 
 

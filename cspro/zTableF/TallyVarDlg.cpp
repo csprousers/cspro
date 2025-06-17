@@ -1,8 +1,8 @@
-﻿// TlyVrDlg.cpp : implementation file
+﻿// TallyVarDlg.cpp : implementation file
 //
 
 #include "StdAfx.h"
-#include "TlyVrDlg.h"
+#include "TallyVarDlg.h"
 #include <zTableO/TllyStat.h>
 #include <zUtilO/ArrUtil.h>
 

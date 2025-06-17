@@ -1,8 +1,8 @@
 ﻿//***************************************************************************
-//  File name: TVDlg.cpp
+//  File name: PickTablesDlg.cpp
 //
 //  Description:
-//       Implementation of the TVDlg class
+//       Implementation of the CPickTablesDlg class
 //
 //  History:    Date       Author     Comment
 //              -----------------------------
@@ -12,7 +12,7 @@
 //***************************************************************************
 
 #include "StdAfx.h"
-#include "Tvdlg.h"
+#include "PickTablesDlg.h"
 #include "TabDoc.h"
 
 #ifdef _DEBUG

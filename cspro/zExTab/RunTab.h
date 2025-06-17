@@ -5,7 +5,7 @@
 //////////////////////////////////////////////////////////////////////
 
 #include <zExTab/zExTab.h>
-#include <zBridgeO/npff.h>
+#include <zBridgeO/NPff.h>
 #include <zListingO/Lister.h>
 
 class CConsolidate;

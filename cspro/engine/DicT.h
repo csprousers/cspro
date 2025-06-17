@@ -16,8 +16,8 @@
 //
 //---------------------------------------------------------------------------
 #include <zLogicO/Symbol.h>
+#include <engine/CommonInfo.h>
 #include <engine/Defines.h>
-#include <engine/COMMONIN.H>
 
 struct BinaryStorageFor80;
 class CaseAccess;

@@ -4,7 +4,7 @@
 #include "LoopStack.h"
 #include "Nodes/Dictionaries.h"
 #include "WorkString.h"
-#include <engine/Dict.h>
+#include <engine/DicT.h>
 
 
 namespace

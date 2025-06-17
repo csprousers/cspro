@@ -12,10 +12,10 @@
 #include <zEngineO/Block.h>
 #include <zEngineO/Userbar.h>
 #include <zPlatformO/PlatformInterface.h>
-#include <zUtilO/AppLdr.h>
+#include <zUtilO/AppLoader.h>
 #include <zUtilO/ExecutionStack.h>
 #include <zMessageO/MessageEvaluator.h>
-#include <zBridgeO/npff.h>
+#include <zBridgeO/NPff.h>
 #include <zListingO/ErrorLister.h>
 #include <zListingO/WriteFile.h>
 

@@ -1,6 +1,6 @@
 ﻿//------------------------------------------------------------------------
 //
-//  INTCAPI.CPP        CSPRO CAPI INTERPRETER
+//  IntCapi.cpp        CSPRO CAPI INTERPRETER
 //
 //  History:    Date       Author   Comment
 //              ---------------------------
@@ -8,7 +8,7 @@
 //
 //------------------------------------------------------------------------
 #include "StandardSystemIncludes.h"
-#include "INTERPRE.H"
+#include "Interpreter.h"
 #include "Engine.h"
 #include "Entdrv.h"
 #include "ProgramControl.h"

@@ -27,9 +27,9 @@
 
 
 #include <engine/Apl.h>
-#include <engine/Dict.h>
+#include <engine/DicT.h>
 #include <engine/Form2.h>
-#include <engine/relt.h>
+#include <engine/RelT.h>
 #include <engine/VarT.h>
 #include <zIssaLib/CFlow.h>
 #include <zIssaLib/GroupT.h>

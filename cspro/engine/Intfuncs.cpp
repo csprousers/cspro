@@ -10,7 +10,7 @@
 //-------------------------------------------------------------------
 
 #include "StandardSystemIncludes.h"
-#include "INTERPRE.H"
+#include "Interpreter.h"
 #include "Engine.h"
 #include "VariableWorker.h"
 #include <zEngineO/AllSymbols.h>
@@ -38,7 +38,7 @@
 #include <zFormO/FormFile.h>
 #include <zFormO/Roster.h>
 #include <zIssaLib/CsDriver.h>
-#include <zBridgeO/npff.h>
+#include <zBridgeO/NPff.h>
 #include <zCapiO/SelectDlg.h>
 #include <zCaseO/Case.h>
 #include <zConcatO/Concatenator.h>

@@ -11,7 +11,7 @@
 //***************************************************************************
 
 #include "StdAfx.h"
-#include "DDTrCtl.H"
+#include "DDTrCtl.h"
 #include "CapiLDlg.h"
 #include "DictionaryMacros.h"
 #include <zToolsO/SharedSettings.h>

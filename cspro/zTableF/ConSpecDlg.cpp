@@ -1,8 +1,8 @@
-﻿// ConDlg.cpp : implementation file
+﻿// ConSpecDlg.cpp : implementation file
 //
 
 #include "StdAfx.h"
-#include "ConDlg.h"
+#include "ConSpecDlg.h"
 
 
 // CConSpecDlg dialog

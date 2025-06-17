@@ -7,7 +7,7 @@
 #include <zUtilO/ArrUtil.h> // remove once CString is gone
 #include <zUtilO/CSProExecutables.h>
 #include <zUtilO/PathHelpers.h>
-#include <zUtilO/Specfile.h>
+#include <zUtilO/SpecFile.h>
 #include <zUtilO/Viewers.h>
 #include <zDataO/DataRepositoryHelpers.h>
 

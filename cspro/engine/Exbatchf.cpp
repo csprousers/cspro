@@ -4,10 +4,10 @@
 #define GENCODE
 
 #include "Exappl.h"
-#include "COMPILAD.H"
+#include "CompIlad.h"
 #include "Engine.h"
 #include "Batdrv.h"
-#include "runmodes.h"
+#include "RunModes.h"
 #include "Ctab.h"
 #include <zEngineO/Block.h>
 #include <zToolsO/Tools.h>

@@ -12,8 +12,8 @@ class CWnd;
 class CExtendedControl;
 
 #include <zEntryO/zEntryO.h>
-#include <zUtilO/imsaStr.h>
-#include <engine/DEFLD.H>
+#include <zUtilO/ImsaStr.h>
+#include <engine/DeFld.h>
 #include <zEngineO/AllSymbolDeclarations.h>
 #include <zCapiO/CapiContent.h>
 #include <zCapiO/CapiStyle.h>

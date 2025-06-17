@@ -11,7 +11,7 @@
 //***************************************************************************
 
 #include "StdAfx.h"
-#include "FormID.H"
+#include "FormID.h"
 
 
 IMPLEMENT_DYNAMIC(CFormID, CObject)

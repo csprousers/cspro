@@ -20,9 +20,9 @@
 
 #ifdef WIN_DESKTOP
 
-#include <engine/citer.h>
-#include <engine/ctterm.h>
-#include <engine/ttype.h>
+#include <engine/CIterator.h>
+#include <engine/CtTerm.h>
+#include <engine/TableDef.h>
 #include <engine/CtDef.h>
 
 #include <zToolsO/Range.h>
@@ -74,7 +74,7 @@ typedef struct {
 #endif // _DEF_MEANACUM
 
 #include <engine/CtUnit.h>
-#include <engine/subtable.h>
+#include <engine/SubTable.h>
 
 class CBorder;
 

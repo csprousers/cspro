@@ -2,10 +2,9 @@
 #include <zEngineO/DeprecatedSymbol.h>
 #include <zEngineO/EngineItem.h>
 #include <zEngineO/ValueSet.h>
-#include <engine/COMMONIN.H>
-#include <engine/Tables.h>
-#include <engine/COMMONIN.H>
+#include <engine/CommonInfo.h>
 #include <engine/Engine.h>
+#include <engine/Tables.h>
 
 
 #define RTRACE TRACE

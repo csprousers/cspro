@@ -1,6 +1,6 @@
 ﻿#include "stdafx.h"
 #include "IncludesCC.h"
-#include <engine/Dict.h>
+#include <engine/DicT.h>
 #include <zCaseO/CaseAccess.h>
 
 

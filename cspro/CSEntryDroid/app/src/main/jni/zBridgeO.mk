@@ -6,7 +6,7 @@ include $(CLEAR_VARS)
 LOCAL_MODULE            := zBridgeO
 ZBRIDGEO_SRC_PATH       := ../../../../../zBridgeO
 
-LOCAL_SRC_FILES         += $(ZBRIDGEO_SRC_PATH)/NPFF.cpp
+LOCAL_SRC_FILES         += $(ZBRIDGEO_SRC_PATH)/NPff.cpp
 LOCAL_SRC_FILES         += $(ZBRIDGEO_SRC_PATH)/RunApl.cpp
 
 include $(LOCAL_PATH)/LOCAL_CFLAGS.mk

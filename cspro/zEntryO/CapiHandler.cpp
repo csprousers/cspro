@@ -11,7 +11,7 @@
 #include <zEngineO/Block.h>
 #include <zEngineO/ResponseProcessor.h>
 #include <engine/Entdrv.h>
-#include <engine/INTERPRE.H>
+#include <engine/Interpreter.h>
 
 #ifdef WIN_DESKTOP
 #include <zCapiO/ExtendedControl.h>

@@ -16,16 +16,15 @@
 
 #include "StdAfx.h"
 #include "TabDoc.h"
-#include "PrtView.h"
-#include "facing.h"
-#include "PrtView.h"
-#include "TblPFmtD.h"
+#include "FacingPagesDlg.h"
+#include "FlashMsgDlg.h"
 #include "PrtVDlg.h"
-#include "TblPrtDg.h"
+#include "PrtView.h"
 #include "TabChWnd.h"
-#include "FlashMsg.h"
+#include "TblPrintDlg.h"
+#include "TblPrintFmtDlg.h"
 #include <zUtilO/BCMenu.h>
-#include <zUtilO/Pgsetup.h>
+#include <zUtilO/PageSetup.h>
 #include <zUToolO/TreePrps.h>
 #include <zGridO/Ugcell.h>
 

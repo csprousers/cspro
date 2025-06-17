@@ -5,7 +5,7 @@
 #include "List.h"
 #include "Nodes/Dictionaries.h"
 #include "Nodes/Query.h"
-#include <engine/Dict.h>
+#include <engine/DicT.h>
 #include <zIssaLib/SecT.h>
 
 

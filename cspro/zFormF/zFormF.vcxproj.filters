@@ -63,7 +63,7 @@
     <ClCompile Include="FormGrid.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="FormID.CPP">
+    <ClCompile Include="FormID.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="FormPropertiesDlg.cpp">
@@ -75,7 +75,7 @@
     <ClCompile Include="FrmChWnd.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="FrmTrCtl.CPP">
+    <ClCompile Include="FrmTrCtl.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="FSplWnd.cpp">
@@ -126,10 +126,10 @@
     <ClCompile Include="RunAsBatchDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="StdAfx.cpp">
+    <ClCompile Include="SourceEditView.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SView.CPP">
+    <ClCompile Include="StdAfx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="SyncParamsDlg.cpp">
@@ -277,7 +277,7 @@
     <ClInclude Include="FormGrid.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="FormID.H">
+    <ClInclude Include="FormID.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="FormPropertiesDlg.h">
@@ -289,7 +289,7 @@
     <ClInclude Include="FrmChWnd.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="FrmTrCtl.H">
+    <ClInclude Include="FrmTrCtl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="FSplWnd.h">
@@ -340,10 +340,10 @@
     <ClInclude Include="RunAsBatchDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="StdAfx.h">
+    <ClInclude Include="SourceEditView.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SView.H">
+    <ClInclude Include="StdAfx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="SyncParamsDlg.h">

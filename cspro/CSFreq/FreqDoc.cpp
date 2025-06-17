@@ -4,7 +4,7 @@
 #include "MainFrm.h"
 #include <zUtilO/Filedlg.h>
 #include <zUtilO/PathHelpers.h>
-#include <zUtilO/Specfile.h>
+#include <zUtilO/SpecFile.h>
 #include <zJson/JsonSpecFile.h>
 #include <zSrcMgrO/Compiler.h>
 #include <zSrcMgrO/SrcCode.h>

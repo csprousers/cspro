@@ -1,6 +1,6 @@
 ﻿#include "StdAfx.h"
 #include "DictionaryMacros.h"
-#include "Itemgrid.h"
+#include "ItemGrid.h"
 #include <zUtilO/NameShortener.h>
 #include <zUtilO/MimeType.h>
 #include <zUtilO/PathHelpers.h>

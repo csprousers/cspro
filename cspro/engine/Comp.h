@@ -34,9 +34,9 @@ class CodeFile;
 struct EXP_HEADER_NODE;
 
 #include <engine/Engdrv.h>
-#include <engine/COMPILAD.H>
+#include <engine/CompIlad.h>
 
-#include <engine/NODES.H>
+#include <engine/Nodes.h>
 
 #include <zTbdO/cttree.h>
 
@@ -45,8 +45,8 @@ struct EXP_HEADER_NODE;
 
 //////////////////////////////////////////////////////////////////////////
 
-#include <engine/ttype.h>
-#include <engine/ctterm.h>
+#include <engine/TableDef.h>
+#include <engine/CtTerm.h>
 
 #include <engine/ReadyFlags.h>
 #include <engine/3dException.h>

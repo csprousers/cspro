@@ -1,5 +1,5 @@
 ﻿//***************************************************************************
-//  File name: SelDlg.cpp
+//  File name: SelectionDlg.cpp
 //
 //  Description:
 //       Implementation of CSelectionDialog class

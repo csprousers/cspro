@@ -14,7 +14,7 @@
 //***************************************************************************
 
 #include <zTableO/zTableO.h>
-#include <zUtilO/imsaStr.h>
+#include <zUtilO/ImsaStr.h>
 
 class DictValueSet;
 

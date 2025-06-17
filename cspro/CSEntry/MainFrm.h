@@ -13,7 +13,7 @@
 #include <zUtilO/CustomFont.h>
 #include <zUtilO/BCMenu.h>
 #include <zUtilF/ApplicationShutdownRunner.h>
-#include <zBridgeO/npff.h>
+#include <zBridgeO/NPff.h>
 
 #include <zParadataO/KeyingInstance.h>
 #include <zEngineF/EngineUI.h>

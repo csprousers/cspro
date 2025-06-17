@@ -11,7 +11,7 @@
 #include "DisPMDlg.h"
 #include "GoToDlg.h"
 #include "IntEDlg.h"
-#include "leftprop.h"
+#include "LeftPropSheet.h"
 #include "LeftView.h"   //FABN Nov 5, 2002
 #include "OperatorStatistics.h"
 #include "OperatorStatisticsLog.h"
@@ -21,7 +21,7 @@
 #include "StatDlg.h"
 #include <zToolsO/UWM.h>
 #include <zUtilO/ArrUtil.h>
-#include <zUtilO/imsaDlg.H>
+#include <zUtilO/ImsaDlg.h>
 #include <zUtilF/ManageCredentialsDlg.h>
 #include <zUtilF/MsgDial.h>
 #include <zUtilF/UIThreadRunner.h>
@@ -34,8 +34,8 @@
 #include <zCaseTreeF/MsgParam.h>
 #include <zCaseTreeF/CEUtils.h>
 #include <engine/EngineObjectTransporter.h>
-#include <engine/GPSThreadInfo.h>
-#include <engine/flddef.h>
+#include <engine/FieldBehavior.h>
+#include <engine/GpsThreadInfo.h>
 #include <zEngineO/Userbar.h>
 #include <regex>
 

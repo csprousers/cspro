@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include <engine/dimens.h>
+#include <engine/Dimens.h>
 
 const int MAX_TALLYCELLS_V = 10100; // local definition for vector
 

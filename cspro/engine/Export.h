@@ -51,7 +51,7 @@ struct EXP_ENSEMBLE_NODE            // ENSEMBLED    // victor Dec 12, 00
 //---------------------------------------------------------------------------
 
 #include <engine/Settings.h>
-#include <engine/citer.h>
+#include <engine/CIterator.h>
 
 class CEngineArea;
 class CEngineDriver;

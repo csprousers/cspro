@@ -13,7 +13,7 @@
 //***************************************************************************
 
 #include <zDictF/zDictF.h>
-#include <zDictF/DDDpTgt.H>
+#include <zDictF/DDDropTarget.h>
 
 class CDDDoc;
 class DictionaryDictTreeNode;

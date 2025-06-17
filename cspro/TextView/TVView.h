@@ -14,7 +14,7 @@
 //
 //***************************************************************************
 
-#include <zUtilO/Pgsetup.h>
+#include <zUtilO/PageSetup.h>
 
 class CFindDlg;
 

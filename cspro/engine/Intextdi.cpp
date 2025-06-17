@@ -5,7 +5,7 @@
 //---------------------------------------------------------------------------
 #include "StandardSystemIncludes.h"
 #include "Engine.h"
-#include "INTERPRE.H"
+#include "Interpreter.h"
 #include "ProgramControl.h"
 #include "SelcaseManager.h"
 #include <zEngineO/AllSymbols.h>
@@ -21,7 +21,7 @@
 #include <zDataO/CaseIterator.h>
 #include <zDataO/DataRepository.h>
 #include <zParadataO/Logger.h>
-#include <zBridgeO/npff.h>
+#include <zBridgeO/NPff.h>
 #include <zCapiO/SelectCtrl.h>
 
 

@@ -82,11 +82,11 @@
     <ClCompile Include="FormFileOptionsDlg.cpp" />
     <ClCompile Include="FormFilePropertiesDlg.cpp" />
     <ClCompile Include="FormGrid.cpp" />
-    <ClCompile Include="FormID.CPP" />
+    <ClCompile Include="FormID.cpp" />
     <ClCompile Include="FormPropertiesDlg.cpp" />
     <ClCompile Include="FormView.cpp" />
     <ClCompile Include="FrmChWnd.cpp" />
-    <ClCompile Include="FrmTrCtl.CPP" />
+    <ClCompile Include="FrmTrCtl.cpp" />
     <ClCompile Include="FSplWnd.cpp" />
     <ClCompile Include="GlobalFontDlg.cpp" />
     <ClCompile Include="GridDlgs.cpp" />
@@ -103,11 +103,11 @@
     <ClCompile Include="QuestionTextHtmlEditor.cpp" />
     <ClCompile Include="QuestionTextTextEditor.cpp" />
     <ClCompile Include="RunAsBatchDlg.cpp" />
+    <ClCompile Include="SourceEditView.cpp" />
     <ClCompile Include="StdAfx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="SView.CPP" />
     <ClCompile Include="SyncParamsDlg.cpp" />
     <ClCompile Include="TableToolbarButton.cpp" />
     <ClCompile Include="TableToolbarDropdown.cpp" />
@@ -162,11 +162,11 @@
     <ClInclude Include="FormFileOptionsDlg.h" />
     <ClInclude Include="FormFilePropertiesDlg.h" />
     <ClInclude Include="FormGrid.h" />
-    <ClInclude Include="FormID.H" />
+    <ClInclude Include="FormID.h" />
     <ClInclude Include="FormPropertiesDlg.h" />
     <ClInclude Include="FormView.h" />
     <ClInclude Include="FrmChWnd.h" />
-    <ClInclude Include="FrmTrCtl.H" />
+    <ClInclude Include="FrmTrCtl.h" />
     <ClInclude Include="FSplWnd.h" />
     <ClInclude Include="GlobalFontDlg.h" />
     <ClInclude Include="GridDlgs.h" />
@@ -183,8 +183,8 @@
     <ClInclude Include="QuestionTextEditor.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="RunAsBatchDlg.h" />
+    <ClInclude Include="SourceEditView.h" />
     <ClInclude Include="StdAfx.h" />
-    <ClInclude Include="SView.H" />
     <ClInclude Include="SyncParamsDlg.h" />
     <ClInclude Include="TableToolbarButton.h" />
     <ClInclude Include="TableToolbarDropdown.h" />

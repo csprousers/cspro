@@ -15,7 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="AppFmtD.cpp">
+    <ClCompile Include="AppFmtDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="AreaDlg.cpp">
@@ -24,28 +24,28 @@
     <ClCompile Include="ASCIIExp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CmpFmtD.cpp">
+    <ClCompile Include="CompFmtDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ConDlg.cpp">
+    <ClCompile Include="ConSpecDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ConGrid.cpp">
+    <ClCompile Include="ConSpecGrid.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DfStylDg.cpp">
+    <ClCompile Include="DefaultStylesDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="facing.cpp">
+    <ClCompile Include="FacingPagesDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="FlashMsg.cpp">
+    <ClCompile Include="FlashMsgDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="FmtClDlg.cpp">
+    <ClCompile Include="FmtColorDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="FmtFontD.cpp">
+    <ClCompile Include="FmtFontDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="GTblob.cpp">
@@ -57,6 +57,9 @@
     <ClCompile Include="LogicDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="PickTablesDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="PrtNvBar.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -66,7 +69,7 @@
     <ClCompile Include="PrtView.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="prtvundo.cpp">
+    <ClCompile Include="PrtViewUndo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="RTFExpt.cpp">
@@ -93,34 +96,31 @@
     <ClCompile Include="TabView.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="TallyVarDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="TbHdrClc.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="TblFmtD.cpp">
+    <ClCompile Include="TblFmtDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Tblgrid.cpp">
+    <ClCompile Include="TblGrid.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="TblPFmtD.cpp">
+    <ClCompile Include="TblPrintDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="TblPrtDg.cpp">
+    <ClCompile Include="TblPrintFmtDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="TblUtDlg.cpp">
+    <ClCompile Include="TblTallyFmtDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="TlyVrDlg.cpp">
+    <ClCompile Include="TblUnitDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="TSView.CPP">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="TTallyFD.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Tvdlg.cpp">
+    <ClCompile Include="TSourceEditView.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="zTableF.cpp">
@@ -208,7 +208,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="AppFmtD.h">
+    <ClInclude Include="AppFmtDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="AreaDlg.h">
@@ -217,31 +217,31 @@
     <ClInclude Include="ASCIIExp.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CmpFmtD.h">
+    <ClInclude Include="CompFmtDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ConDlg.h">
+    <ClInclude Include="ConSpecDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ConGrid.h">
+    <ClInclude Include="ConSpecGrid.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DfStylDg.h">
+    <ClInclude Include="DefaultStylesDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="facing.h">
+    <ClInclude Include="FacingPagesDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="FlashMsg.h">
+    <ClInclude Include="FlashMsgDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="FmtClDlg.h">
+    <ClInclude Include="FmtColorDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="FmtFontD.h">
+    <ClInclude Include="FmtFontDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="GridExpt.h">
+    <ClInclude Include="GridExporter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="GTblob.h">
@@ -253,6 +253,9 @@
     <ClInclude Include="LogicDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="PickTablesDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="PrtNvBar.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -262,7 +265,7 @@
     <ClInclude Include="PrtView.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="prtvundo.h">
+    <ClInclude Include="PrtViewUndo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="resource.h">
@@ -298,34 +301,31 @@
     <ClInclude Include="TabView.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="TallyVarDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="TbHdrClc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="TblFmtD.h">
+    <ClInclude Include="TblFmtDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Tblgrid.h">
+    <ClInclude Include="TblGrid.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="TblPFmtD.h">
+    <ClInclude Include="TblPrintDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="TblPrtDg.h">
+    <ClInclude Include="TblPrintFmtDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="TblUtDlg.h">
+    <ClInclude Include="TblTallyFmtDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="TlyVrDlg.h">
+    <ClInclude Include="TblUnitDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="TSView.H">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="TTallyFD.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Tvdlg.h">
+    <ClInclude Include="TSourceEditView.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="UWM.h">

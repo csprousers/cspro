@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include <zBridgeO/npff.h>
+#include <zBridgeO/NPff.h>
 #include <zBridgeO/PifDlg.h>
 
 ///<summary>Class for creating pff dialog for tabulation</summary>

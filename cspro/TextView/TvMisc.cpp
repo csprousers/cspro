@@ -1,5 +1,5 @@
 ﻿//***************************************************************************
-//  File name: TVMISC.CPP
+//  File name: TvMisc.cpp
 //
 //  Description:
 //       Misc view code for IMPS 4.0 TextView
@@ -12,12 +12,8 @@
 //***************************************************************************
 
 #include "StdAfx.h"
-#include "afx.h"
-#include <afxcoll.h>
-#include <io.h>
-#include <stdio.h>
-#include <dos.h>
 #include <zUtilO/FileUtil.h>
+
 
 //////////////////////////////////////////////////////////////////////////////
 // global variables

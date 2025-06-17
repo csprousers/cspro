@@ -15,7 +15,7 @@
 //
 //---------------------------------------------------------------------------
 
-#include <engine/dimens.h>
+#include <engine/Dimens.h>
 #include <engine/Defines.h>
 #include <zEngineO/Nodes/BaseNodes.h>
 #include <zLogicO/FunctionTable.h>

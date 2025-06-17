@@ -29,10 +29,10 @@
 //
 //---------------------------------------------------------------------------
 
-#include <zIssaLib/flowatom.h>
+#include <zIssaLib/FlowAtom.h>
 #include <zIssaLib/CsKernel.h>
 #include <zIssaLib/FlowCore.h>
-#include <engine/DEFLD.H>
+#include <engine/DeFld.h>
 #include <engine/3dException.h>
 
 class CEngineArea;

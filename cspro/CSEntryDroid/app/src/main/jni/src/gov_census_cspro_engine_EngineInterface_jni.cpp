@@ -10,7 +10,7 @@
 #include <zToolsO/Screen.h>
 #include <zAppO/Properties/ApplicationProperties.h>
 #include <zMessageO/Messages.h>
-#include <zBridgeO/npff.h>
+#include <zBridgeO/NPff.h>
 #include <zCaseO/CaseSummary.h>
 #include <zCapiO/CapiStyle.h>
 #include <zMapping/CoordinateConverter.h>

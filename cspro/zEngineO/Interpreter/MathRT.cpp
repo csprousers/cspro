@@ -1,7 +1,7 @@
 ﻿#include "stdafx.h"
 #include "IncludesRT.h"
 #include "WorkVariable.h"
-#include <engine/NODES.H>
+#include <engine/Nodes.h>
 #include <zToolsO/FloatingPointMath.h>
 #include <zUtilO/Randomizer.h>
 

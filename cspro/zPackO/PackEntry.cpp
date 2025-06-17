@@ -2,7 +2,7 @@
 #include "PackEntry.h"
 #include <zToolsO/DirectoryLister.h>
 #include <zUtilO/ApplicationLoadException.h>
-#include <zUtilO/Specfile.h>
+#include <zUtilO/SpecFile.h>
 #include <zAppO/Application.h>
 #include <zDictO/DDClass.h>
 #include <zDictO/DictionaryIterator.h>

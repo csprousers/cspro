@@ -11,7 +11,7 @@
 //***************************************************************************
 
 #include "StdAfx.h"
-#include "Itemgrid.h"
+#include "ItemGrid.h"
 #include "GenerateVSDlg.h"
 #include "VSLabelRenamerDlg.h"
 #include <zUtilO/ArrUtil.h>

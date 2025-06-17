@@ -1,4 +1,4 @@
-﻿// FSizeDlg.cpp : implementation file
+﻿// FontSizeDlg.cpp : implementation file
 //
 
 #include "StdAfx.h"

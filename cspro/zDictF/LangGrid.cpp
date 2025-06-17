@@ -1,10 +1,10 @@
-﻿// RelGrid.cpp: implementation of the CLangGrid class.
+﻿// LangGrid.cpp: implementation of the CLangGrid class.
 //
 //////////////////////////////////////////////////////////////////////
 
 #include "StdAfx.h"
-#include "langgrid.h"
-#include "langedt.h"
+#include "LangGrid.h"
+#include "LangEdit.h"
 #include "CapiLDlg.h"
 
 

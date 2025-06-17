@@ -5,11 +5,11 @@
 #include "Runaple.h"
 #include <zPlatformO/PlatformInterface.h>
 #include <zToolsO/BinaryGen.h>
-#include <zUtilO/AppLdr.h>
+#include <zUtilO/AppLoader.h>
 #include <zUtilF/ChoiceDlg.h>
 #include <zUtilF/TextInputDlg.h>
 #include <zAppO/Properties/ApplicationProperties.h>
-#include <zBridgeO/npff.h>
+#include <zBridgeO/NPff.h>
 #include <zCaseO/Case.h>
 #include <zCaseO/CaseItemReference.h>
 #include <zParadataO/Logger.h>
@@ -20,7 +20,7 @@
 #include <zEngineO/ValueSet.h>
 #include <zNetwork/LoginCredentials.h>
 #include <zEngineO/Userbar.h>
-#include <engine/DEFLD.H>
+#include <engine/DeFld.h>
 #include <engine/Entifaz.h>
 #include <engine/IntDrive.h>
 #include <engine/ParadataDriver.h>

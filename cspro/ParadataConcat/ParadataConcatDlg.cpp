@@ -1,7 +1,7 @@
 ﻿#include "stdafx.h"
 #include "ParadataConcatDlg.h"
 #include <zUtilO/FileDlg.h>
-#include <zUtilO/imsaDlg.H>
+#include <zUtilO/ImsaDlg.h>
 #include <zUtilO/WindowsWS.h>
 #include <zParadataO/GuiConcatenator.h>
 

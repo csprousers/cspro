@@ -1,11 +1,11 @@
 ﻿#pragma once
 
 #include <zUtilO/zUtilO.h>
-#include <zUtilO/imsaStr.H>
+#include <zUtilO/ImsaStr.h>
 
 
 //***************************************************************************
-//  File name: IMSADLG.H
+//  File name: ImsaDlg.h
 //
 //  Description:
 //       Header for dialog box classes.

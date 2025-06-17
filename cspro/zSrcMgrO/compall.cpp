@@ -8,7 +8,7 @@
 #include <zToolsO/Tools.h>
 #include <zAppO/Application.h>
 #include <zLogicO/SourceBuffer.h>
-#include <engine/COMPILAD.H>
+#include <engine/CompIlad.h>
 
 
 bool CEngineCompFunc::compobjOk(Symbol* objp)

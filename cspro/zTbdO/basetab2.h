@@ -15,7 +15,7 @@
 
 #include <zTbdO/zTbdO.h>
 #include <zTbdO/cttree.h>
-#include <engine/ttype.h>
+#include <engine/TableDef.h>
 
 class CTableAcum;
 

@@ -1,9 +1,11 @@
 ﻿#pragma once
-// HITEM.h: interface for the CHITEM class.
+
+// HItem.h: interface for the CHITEM class.
 //
 //////////////////////////////////////////////////////////////////////
 
 #include <zCaseTreeF/TItmInfo.h>
+
 
 class CHITEM
 {

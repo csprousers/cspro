@@ -1,12 +1,10 @@
 ﻿#pragma once
 
 //***************************************************************************
-//  File name: AppLdr.h
+//  File name: AppLoader.h
 //
 //  Description:
 //      CAppLoader class manages load of binary vs. regular applications.
-//
-//
 //***************************************************************************
 
 

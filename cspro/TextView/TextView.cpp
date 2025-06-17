@@ -16,7 +16,7 @@
 #include "TextView.h"
 #include "OpenInDataManagerDlg.h"
 #include <zToolsO/RaiiHelpers.h>
-#include <zUtilO/imsaDlg.H>
+#include <zUtilO/ImsaDlg.h>
 
 
 BEGIN_MESSAGE_MAP(CTextViewApp, CWinApp)

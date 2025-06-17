@@ -1,9 +1,9 @@
 ﻿#include "StandardSystemIncludes.h"
-#include "INTERPRE.H"
-#include "citer.h"
+#include "Interpreter.h"
+#include "CIterator.h"
 
 //---------------------------------------------------------------------------
-//  File name: citer.cpp
+//  File name: CIterator.cpp
 //
 //  Description:
 //          Manipulate a 3-d iterator

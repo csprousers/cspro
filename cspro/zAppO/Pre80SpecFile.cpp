@@ -1,7 +1,7 @@
 ﻿#include "stdafx.h"
 #include "Application.h"
 #include "Properties/ApplicationProperties.h"
-#include <zUtilO/Specfile.h>
+#include <zUtilO/SpecFile.h>
 
 
 namespace

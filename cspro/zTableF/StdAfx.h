@@ -4,12 +4,12 @@
 
 #include <zToolsO/Utf8.h>
 #include <zUtilO/ImsaFileDlg.h>
-#include <zUtilO/imsaStr.h>
+#include <zUtilO/ImsaStr.h>
 #include <zUtilO/Interapp.h>
+#include <zUtilO/SpecFile.h>
 #include <zUtilO/StdioFileUnicode.h>
-#include <zUtilO/Specfile.h>
 #include <zDictO/DDClass.h>
-#include <zDictF/Dddoc.h>
+#include <zDictF/DDDoc.h>
 #include <zDictF/DictTreeNode.h>
 #include <zTableO/Table.h>
 #include <zEditO/UWM.h>

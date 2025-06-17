@@ -1,8 +1,8 @@
-﻿// facing.cpp : implementation file
+﻿// FacingPagesDlg.cpp : implementation file
 //
 
 #include "StdAfx.h"
-#include "facing.h"
+#include "FacingPagesDlg.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW

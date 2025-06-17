@@ -3,7 +3,7 @@
 #include <zFormO/zFormO.h>
 #include <zFormO/ItemBase.h>
 #include <zFormO/Text.h>
-#include <zUtilO/imsaStr.h>
+#include <zUtilO/ImsaStr.h>
 #include <zUtilO/PortableFont.h>
 #include <zDictO/CaptureInfo.h>
 

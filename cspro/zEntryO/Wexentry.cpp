@@ -2,12 +2,12 @@
 //      Wexentry.cpp: Windows Data Entry Kernel and Support methods
 //---------------------------------------------------------------------------
 #include "StdAfx.h"
-#include <engine/EXENTRY.H>
+#include <engine/ExEntry.h>
 #include <engine/Engine.h>
 #include <engine/Entifaz.h>
-#include <zUtilO/AppLdr.h>
+#include <zUtilO/AppLoader.h>
 #include <zCapiO/CapiQuestionManager.h>
-#include <zBridgeO/npff.h>
+#include <zBridgeO/NPff.h>
 #include <zDataO/DataRepository.h>
 
 #ifdef WIN_DESKTOP

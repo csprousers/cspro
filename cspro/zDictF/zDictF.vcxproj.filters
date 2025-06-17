@@ -27,13 +27,13 @@
     <ClCompile Include="CapiLDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DDChWnd.CPP">
+    <ClCompile Include="DDChWnd.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DDDoc.CPP">
+    <ClCompile Include="DDDoc.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DDDpTgt.CPP">
+    <ClCompile Include="DDDropTarget.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="DDEdit.cpp">
@@ -48,7 +48,7 @@
     <ClCompile Include="DDLView.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DDTrCtl.CPP">
+    <ClCompile Include="DDTrCtl.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="DictClipboard.cpp">
@@ -99,16 +99,16 @@
     <ClCompile Include="GenerateVSDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Itemgrid.cpp">
+    <ClCompile Include="ItemGrid.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="langedt.cpp">
+    <ClCompile Include="LangEdit.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="langgrid.cpp">
+    <ClCompile Include="LangGrid.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Levgrid.cpp">
+    <ClCompile Include="LevelGrid.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="OccDlg.cpp">
@@ -120,7 +120,7 @@
     <ClCompile Include="PrintDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Recgrid.cpp">
+    <ClCompile Include="RecGrid.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="RelDlg.cpp">
@@ -208,13 +208,13 @@
     <ClInclude Include="CapiLDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DDChWnd.H">
+    <ClInclude Include="DDChWnd.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Dddoc.h">
+    <ClInclude Include="DDDoc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DDDpTgt.H">
+    <ClInclude Include="DDDropTarget.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DDEdit.h">
@@ -229,7 +229,7 @@
     <ClInclude Include="DDLView.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DDTrCtl.H">
+    <ClInclude Include="DDTrCtl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DictClipboard.h">
@@ -280,16 +280,16 @@
     <ClInclude Include="GenerateVSDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Itemgrid.h">
+    <ClInclude Include="ItemGrid.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="langedt.h">
+    <ClInclude Include="LangEdit.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="langgrid.h">
+    <ClInclude Include="LangGrid.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Levgrid.h">
+    <ClInclude Include="LevelGrid.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="OccDlg.h">
@@ -301,7 +301,7 @@
     <ClInclude Include="PrintDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Recgrid.h">
+    <ClInclude Include="RecGrid.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="RelDlg.h">

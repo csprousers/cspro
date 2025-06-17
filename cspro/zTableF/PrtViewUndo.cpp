@@ -1,5 +1,5 @@
 ﻿//***************************************************************************
-//  File name: PrtVUndo.cpp
+//  File name: PrtViewUndo.cpp
 //
 //  Description:
 //       Implementation of undo commands for print view
@@ -11,7 +11,7 @@
 //***************************************************************************
 
 #include "StdAfx.h"
-#include "prtvundo.h"
+#include "PrtViewUndo.h"
 #include "PrtView.h"
 
 IMPLEMENT_DYNCREATE(CBoxheadResizeCommand, CResizeCommand)
@@ -152,5 +152,3 @@ CFormatPrintCommand::CFormatPrintCommand(CTabPrtView* pView, int iTbl)
 
 
 }
-
-

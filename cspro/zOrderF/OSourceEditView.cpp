@@ -8,7 +8,7 @@
 //***************************************************************************
 
 #include "StdAfx.h"
-#include "OSview.h"
+#include "OSourceEditView.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW

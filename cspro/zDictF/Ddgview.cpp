@@ -14,8 +14,8 @@
 #include "Ddgview.h"
 #include "OccDlg.h"
 #include "PrintDlg.h"
-#include <zUtilO/Pgsetup.h>
-#include <zUtilO/Specfile.h>
+#include <zUtilO/PageSetup.h>
+#include <zUtilO/SpecFile.h>
 
 
 IMPLEMENT_DYNCREATE(CDDGView, CView)

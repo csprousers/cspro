@@ -16,7 +16,7 @@
 //---------------------------------------------------------------------------
 #include <engine/Engdrv.h>
 #include <engine/Tbd_save.h>
-#include <engine/runmodes.h>
+#include <engine/RunModes.h>
 
 class Pre74_Case;
 

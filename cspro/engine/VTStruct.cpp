@@ -1,6 +1,6 @@
 ﻿#include "StandardSystemIncludes.h"
-#include "INTERPRE.H"
-#include "VTSTRUCT.h"
+#include "Interpreter.h"
+#include "VTStruct.h"
 
 
 std::shared_ptr<VTSTRUCT> CIntDriver::GetVTStructFromPool()

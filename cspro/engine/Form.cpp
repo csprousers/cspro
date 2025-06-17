@@ -12,7 +12,7 @@
 //
 //---------------------------------------------------------------------------
 #include "StandardSystemIncludes.h"
-#include "INTERPRE.H"
+#include "Interpreter.h"
 #include <zFormO/FormFile.h>
 #include <CSEntry/UWM.h>
 

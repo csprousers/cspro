@@ -11,7 +11,7 @@ Purpose:  Provides a sortable list control, it will sort text, numbers
 ----------------------------------------------------------------------*/
 
 #include "StdAfx.h"
-#include "SrtLstCt.h"
+#include "SortListCtrl.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW

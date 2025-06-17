@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 #include <engine/Batdrv.h>
-#include <engine/BATIFAZ.H>
+#include <engine/BatIFaz.h>
 
 
 class CCalcIFaz : public CBatchIFaz

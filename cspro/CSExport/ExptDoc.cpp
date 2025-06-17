@@ -12,7 +12,7 @@
 #include "ExptView.h"
 #include "MainFrm.h"
 #include <zUtilO/PathHelpers.h>
-#include <zUtilO/Specfile.h>
+#include <zUtilO/SpecFile.h>
 #include <zJson/JsonObjectCreator.h>
 #include <zJson/JsonSpecFile.h>
 #include <zLogicO/ReservedWords.h>

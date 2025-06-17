@@ -4,12 +4,12 @@
 #include <engine/StrictCompilerErrors.h>
 
 #include <zDictF/BeforeAfterDlg.h>
-#include <zDictF/DDChWnd.H>
-#include <zDictF/Dddoc.h>
+#include <zDictF/DDChWnd.h>
+#include <zDictF/DDDoc.h>
 #include <zDictF/DDEdit.h>
 #include <zDictF/DDGrid.h>
 #include <zDictF/Ddgview.h>
-#include <zDictF/DDTrCtl.H>
+#include <zDictF/DDTrCtl.h>
 #include <zDictF/DictClipboard.h>
 #include <zDictF/DictTreeNode.h>
 #include <zDictF/resource.h>
@@ -20,7 +20,7 @@
 #include <zUtilO/BCMenu.h>
 #include <zUtilO/DataExchange.h>
 #include <zUtilO/FileDlg.h>
-#include <zUtilO/imsaDlg.H>
+#include <zUtilO/ImsaDlg.h>
 #include <zUtilO/Interapp.h>
 #include <zUtilO/WindowsUtf8.h>
 #include <zDictO/DDClass.h>

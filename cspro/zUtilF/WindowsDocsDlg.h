@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include <zUtilF/SrtLstCt.h>
+#include <zUtilF/SortListCtrl.h>
 
 
 // a dialog that displays the list of documents and allows the user to activate / save / close them

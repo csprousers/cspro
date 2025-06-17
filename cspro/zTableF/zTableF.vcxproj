@@ -63,24 +63,25 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="AppFmtD.cpp" />
+    <ClCompile Include="AppFmtDlg.cpp" />
     <ClCompile Include="AreaDlg.cpp" />
     <ClCompile Include="ASCIIExp.cpp" />
-    <ClCompile Include="CmpFmtD.cpp" />
-    <ClCompile Include="ConDlg.cpp" />
-    <ClCompile Include="ConGrid.cpp" />
-    <ClCompile Include="DfStylDg.cpp" />
-    <ClCompile Include="facing.cpp" />
-    <ClCompile Include="FlashMsg.cpp" />
-    <ClCompile Include="FmtClDlg.cpp" />
-    <ClCompile Include="FmtFontD.cpp" />
+    <ClCompile Include="CompFmtDlg.cpp" />
+    <ClCompile Include="ConSpecDlg.cpp" />
+    <ClCompile Include="ConSpecGrid.cpp" />
+    <ClCompile Include="DefaultStylesDlg.cpp" />
+    <ClCompile Include="FacingPagesDlg.cpp" />
+    <ClCompile Include="FlashMsgDlg.cpp" />
+    <ClCompile Include="FmtColorDlg.cpp" />
+    <ClCompile Include="FmtFontDlg.cpp" />
     <ClCompile Include="GTblob.cpp" />
     <ClCompile Include="HTMLExpt.cpp" />
     <ClCompile Include="LogicDlg.cpp" />
+    <ClCompile Include="PickTablesDlg.cpp" />
     <ClCompile Include="PrtNvBar.cpp" />
     <ClCompile Include="PrtVDlg.cpp" />
     <ClCompile Include="PrtView.cpp" />
-    <ClCompile Include="prtvundo.cpp" />
+    <ClCompile Include="PrtViewUndo.cpp" />
     <ClCompile Include="RTFExpt.cpp" />
     <ClCompile Include="StdAfx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -92,16 +93,15 @@
     <ClCompile Include="TabTrCtl.cpp" />
     <ClCompile Include="TabTreeNode.cpp" />
     <ClCompile Include="TabView.cpp" />
+    <ClCompile Include="TallyVarDlg.cpp" />
     <ClCompile Include="TbHdrClc.cpp" />
-    <ClCompile Include="TblFmtD.cpp" />
-    <ClCompile Include="Tblgrid.cpp" />
-    <ClCompile Include="TblPFmtD.cpp" />
-    <ClCompile Include="TblPrtDg.cpp" />
-    <ClCompile Include="TblUtDlg.cpp" />
-    <ClCompile Include="TlyVrDlg.cpp" />
-    <ClCompile Include="TSView.CPP" />
-    <ClCompile Include="TTallyFD.cpp" />
-    <ClCompile Include="Tvdlg.cpp" />
+    <ClCompile Include="TblFmtDlg.cpp" />
+    <ClCompile Include="TblGrid.cpp" />
+    <ClCompile Include="TblPrintDlg.cpp" />
+    <ClCompile Include="TblPrintFmtDlg.cpp" />
+    <ClCompile Include="TblTallyFmtDlg.cpp" />
+    <ClCompile Include="TblUnitDlg.cpp" />
+    <ClCompile Include="TSourceEditView.cpp" />
     <ClCompile Include="zTableF.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -136,25 +136,26 @@
     <ResourceCompile Include="zTableF.rc" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="AppFmtD.h" />
+    <ClInclude Include="AppFmtDlg.h" />
     <ClInclude Include="AreaDlg.h" />
     <ClInclude Include="ASCIIExp.h" />
-    <ClInclude Include="CmpFmtD.h" />
-    <ClInclude Include="ConDlg.h" />
-    <ClInclude Include="ConGrid.h" />
-    <ClInclude Include="DfStylDg.h" />
-    <ClInclude Include="facing.h" />
-    <ClInclude Include="FlashMsg.h" />
-    <ClInclude Include="FmtClDlg.h" />
-    <ClInclude Include="FmtFontD.h" />
-    <ClInclude Include="GridExpt.h" />
+    <ClInclude Include="CompFmtDlg.h" />
+    <ClInclude Include="ConSpecDlg.h" />
+    <ClInclude Include="ConSpecGrid.h" />
+    <ClInclude Include="DefaultStylesDlg.h" />
+    <ClInclude Include="FacingPagesDlg.h" />
+    <ClInclude Include="FlashMsgDlg.h" />
+    <ClInclude Include="FmtColorDlg.h" />
+    <ClInclude Include="FmtFontDlg.h" />
+    <ClInclude Include="GridExporter.h" />
     <ClInclude Include="GTblob.h" />
     <ClInclude Include="HTMLExpt.h" />
     <ClInclude Include="LogicDlg.h" />
+    <ClInclude Include="PickTablesDlg.h" />
     <ClInclude Include="PrtNvBar.h" />
     <ClInclude Include="PrtVDlg.h" />
     <ClInclude Include="PrtView.h" />
-    <ClInclude Include="prtvundo.h" />
+    <ClInclude Include="PrtViewUndo.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="resource_shared.h" />
     <ClInclude Include="RTFExpt.h" />
@@ -166,16 +167,15 @@
     <ClInclude Include="TabTrCtl.h" />
     <ClInclude Include="TabTreeNode.h" />
     <ClInclude Include="TabView.h" />
+    <ClInclude Include="TallyVarDlg.h" />
     <ClInclude Include="TbHdrClc.h" />
-    <ClInclude Include="TblFmtD.h" />
-    <ClInclude Include="Tblgrid.h" />
-    <ClInclude Include="TblPFmtD.h" />
-    <ClInclude Include="TblPrtDg.h" />
-    <ClInclude Include="TblUtDlg.h" />
-    <ClInclude Include="TlyVrDlg.h" />
-    <ClInclude Include="TSView.H" />
-    <ClInclude Include="TTallyFD.h" />
-    <ClInclude Include="Tvdlg.h" />
+    <ClInclude Include="TblFmtDlg.h" />
+    <ClInclude Include="TblGrid.h" />
+    <ClInclude Include="TblPrintDlg.h" />
+    <ClInclude Include="TblPrintFmtDlg.h" />
+    <ClInclude Include="TblTallyFmtDlg.h" />
+    <ClInclude Include="TblUnitDlg.h" />
+    <ClInclude Include="TSourceEditView.h" />
     <ClInclude Include="UWM.h" />
     <ClInclude Include="zTableF.h" />
   </ItemGroup>

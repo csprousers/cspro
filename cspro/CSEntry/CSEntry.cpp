@@ -6,11 +6,11 @@
 #include "LeftView.h"
 #include "DynamicMenu.h"
 #include <zToolsO/Serializer.h>
-#include <zUtilO/AppLdr.h>
+#include <zUtilO/AppLoader.h>
 #include <zUtilO/CSProExecutables.h>
 #include <zUtilO/FileDlg.h>
-#include <zUtilO/imsaDlg.H>
-#include <zUtilO/WinFocSw.h>
+#include <zUtilO/ImsaDlg.h>
+#include <zUtilO/WindowFocusMgr.h>
 #include <zUtilF/CommonControls.h>
 #include <zBridgeO/PifDlg.h>
 #include <zEngineF/PifInfoPopulator.h>

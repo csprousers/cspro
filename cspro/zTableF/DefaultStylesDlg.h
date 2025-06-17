@@ -1,6 +1,7 @@
 ﻿#pragma once
+
 //***************************************************************************
-//  File name: DfStylDg.h
+//  File name: DefaultStylesDlg.h
 //
 //  Description:
 //  Dialog for picking default styles for tables and table elements.
@@ -8,17 +9,14 @@
 //
 //***************************************************************************
 
-class CFmtReg;
-
-#include <zUToolO/TreePrps.h>
+#include <zTableF/AppFmtDlg.h>
+#include <zTableF/CompFmtDlg.h>
+#include <zTableF/TallyVarDlg.h>
+#include <zTableF/TblFmtDlg.h>
+#include <zTableF/TblPrintFmtDlg.h>
 #include <zTableO/Style.h>
-#include <zTableF/AppFmtD.h>
-#include <zTableF/CmpFmtD.h>
-#include <zTableF/TblFmtD.h>
-#include <zTableF/TblPFmtD.h>
-#include <zTableF/TlyVrDlg.h>
+#include <zUToolO/TreePrps.h>
 
-class CTabView;
 
 class CDefaultStylesDlg : public CTreePropertiesDlg
 {

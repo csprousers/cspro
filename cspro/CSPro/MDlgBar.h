@@ -6,8 +6,8 @@
 // CMDlgBar dialog
 
 #include <zUToolO/zUToolO.h>
-#include <zFormF/FrmTrCtl.H>
-#include <zOrderF/OrdTrCtl.H>
+#include <zFormF/FrmTrCtl.h>
+#include <zOrderF/OrdTrCtl.h>
 #include <zTableF/TabTrCtl.h>
 #include <CSPro/ObjTCtrl.h>
 #include <CSPro/MTabCtl.h>

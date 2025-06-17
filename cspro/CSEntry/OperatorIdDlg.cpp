@@ -1,8 +1,8 @@
-﻿// OPDlg.cpp : implementation file
+﻿// OperatorIdDlg.cpp : implementation file
 //
 
 #include "StdAfx.h"
-#include "Opdlg.h"
+#include "OperatorIdDlg.h"
 #include "CSEntry.h"
 
 #ifdef _DEBUG

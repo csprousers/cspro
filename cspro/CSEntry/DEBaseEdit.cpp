@@ -3,7 +3,7 @@
 
 #include "StdAfx.h"
 #include "DEBaseEdit.h"
-#include "leftprop.h"
+#include "LeftPropSheet.h"
 #include "LeftView.h"
 #include "MainFrm.h"
 #include "RunView.h"

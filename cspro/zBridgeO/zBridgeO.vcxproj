@@ -67,10 +67,10 @@
     <ClCompile Include="DataFileFilterManager.cpp" />
     <ClCompile Include="DatFDlg.cpp" />
     <ClCompile Include="FilteredExtensionProcessor.cpp" />
-    <ClCompile Include="NPFF.cpp" />
+    <ClCompile Include="NPff.cpp" />
     <ClCompile Include="PifDlg.cpp" />
-    <ClCompile Include="Pifgrid.cpp" />
-    <ClCompile Include="runapl.cpp" />
+    <ClCompile Include="PifGrid.cpp" />
+    <ClCompile Include="RunApl.cpp" />
     <ClCompile Include="StdAfx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
@@ -82,11 +82,11 @@
     <ClInclude Include="DataFileFilterManager.h" />
     <ClInclude Include="DatFDlg.h" />
     <ClInclude Include="FilteredExtensionProcessor.h" />
-    <ClInclude Include="npff.h" />
+    <ClInclude Include="NPff.h" />
     <ClInclude Include="PifDlg.h" />
-    <ClInclude Include="Pifgrid.h" />
+    <ClInclude Include="PifGrid.h" />
     <ClInclude Include="resource.h" />
-    <ClInclude Include="runapl.h" />
+    <ClInclude Include="RunApl.h" />
     <ClInclude Include="StdAfx.h" />
     <ClInclude Include="zBridgeO.h" />
   </ItemGroup>

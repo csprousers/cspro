@@ -1,11 +1,11 @@
 ﻿#include "StandardSystemIncludes.h"
-#include "INTERPRE.H"
+#include "Interpreter.h"
 #include "Engine.h"
 #include <zEngineO/Array.h>
 #include <zEngineO/List.h>
 #include <zEngineO/Nodes/Query.h>
 #include <zJson/Json.h>
-#include <zBridgeO/npff.h>
+#include <zBridgeO/NPff.h>
 #include <zDataO/DataRepositoryHelpers.h>
 #include <zDataO/SQLiteRepository.h>
 #include <zDataO/TextRepository.h>

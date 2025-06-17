@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 //***************************************************************************
-//  File name: SPECFILE.H
+//  File name: SpecFile.h
 //
 //  Description:
 //       Header for CSpecFile class.

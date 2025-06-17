@@ -1,6 +1,6 @@
 ﻿#include "StdAfx.h"
 #include "DETextEdit.h"
-#include "leftprop.h"
+#include "LeftPropSheet.h"
 #include "LeftView.h"
 #include "MainFrm.h"
 #include "OperatorStatisticsLog.h"

@@ -113,7 +113,7 @@
 //---------------------------------------------------------------------------
 
 #include <engine/Defines.h>
-#include <engine/Dict.h>
+#include <engine/DicT.h>
 
 
 class CSettings

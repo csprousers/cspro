@@ -1,9 +1,9 @@
 ﻿#pragma once
 
-#include <TextView/Tvmisc.h>
+#include <TextView/TvMisc.h>
 
 //***************************************************************************
-//  File name: TVBlock.h
+//  File name: TvBlock.h
 //
 //  Description:
 //       Interface for the CBlockScrollView class

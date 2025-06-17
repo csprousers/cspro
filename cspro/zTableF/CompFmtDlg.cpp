@@ -1,10 +1,10 @@
-﻿// CmpFmtD.cpp : implementation file
+﻿// CompFmtDlg.cpp : implementation file
 //
 
 #include "StdAfx.h"
-#include "CmpFmtD.h"
-#include "FmtClDlg.h"
-#include "FmtFontD.h"
+#include "CompFmtDlg.h"
+#include "FmtColorDlg.h"
+#include "FmtFontDlg.h"
 #include "TabDoc.h"
 #include "TabView.h"
 

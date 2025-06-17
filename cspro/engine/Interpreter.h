@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 /*------------------------------------------------------------------------*/
-/*  INTERPRE.h      ISSA interpreter header                               */
+/*  Interpreter.h   ISSA interpreter header                               */
 /*------------------------------------------------------------------------*/
 
 #include <engine/IntDrive.h>
@@ -12,5 +12,5 @@
 #define GENCODE
 #endif
 
-#include <engine/COMPILAD.H>
+#include <engine/CompIlad.h>
 #include <zEngineO/Interpreter/IncludesRT.h>

@@ -1,5 +1,5 @@
 ﻿//***************************************************************************
-//  File name: MyView.cpp
+//  File name: SourceEditView.cpp
 //
 //  Description:
 //       My customized CHHGenericFormater object
@@ -11,7 +11,7 @@
 //***************************************************************************
 
 #include "StdAfx.h"
-#include "Sview.h"
+#include "SourceEditView.h"
 #include <zUtilO/BCMenu.h>
 
 #ifdef _DEBUG

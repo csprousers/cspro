@@ -1,8 +1,8 @@
 ﻿#include "StdAfx.h"
 #include "TabDoc.h"
+#include "FlashMsgDlg.h"
 #include "TabView.h"
 #include "TabChWnd.h"
-#include "FlashMsg.h"
 #include <zToolsO/Tools.h>
 
 

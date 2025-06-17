@@ -5,9 +5,9 @@
 //-------------------------------------------------------------------------//
 #include "StdAfx.h"
 #include "CsDriver.h"
-#include <engine/EXENTRY.H>
+#include <engine/ExEntry.h>
 #include <engine/Engine.h>
-#include <engine/INTERPRE.H>
+#include <engine/Interpreter.h>
 #include <zCaseO/Case.h>
 #include <zMessageO/MessageManager.h>
 #include <zMessageO/Messages.h>

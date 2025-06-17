@@ -3,7 +3,7 @@
 #include "CSTab.h"
 #include <zToolsO/WinSettings.h>
 #include <zUtilO/FileDlg.h>
-#include <zUtilO/imsaDlg.H>
+#include <zUtilO/ImsaDlg.h>
 #include <zJson/JsonStream.h>
 #include <zBridgeO/PifDlg.h>
 

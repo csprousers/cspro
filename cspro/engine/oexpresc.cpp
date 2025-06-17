@@ -8,12 +8,12 @@
 #else
 #include "Tables.h"
 #endif
-#include "COMPILAD.H"
+#include "CompIlad.h"
 #include "Engine.h"
 
 #include "Ctab.h"
 #include <zDictO/DDClass.h>
-#include "COMPUTIL.H"
+#include "CompUtil.h"
 
 
 

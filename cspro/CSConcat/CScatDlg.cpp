@@ -1,7 +1,7 @@
 ﻿#include "StdAfx.h"
 #include "CScatDlg.h"
 #include <zUtilO/FileDlg.h>
-#include <zUtilO/imsaDlg.H>
+#include <zUtilO/ImsaDlg.h>
 #include <zUtilO/PathHelpers.h>
 #include <zConcatO/Concatenator.h>
 #include <zBridgeO/DataFileDlg.h>

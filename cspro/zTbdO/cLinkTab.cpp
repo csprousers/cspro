@@ -3,6 +3,8 @@
 #include "cLinkUnt.h"
 #include "cLinkSub.h"
 #include "ctstat.h"
+#include <engine/Dimens.h>
+
 
 #ifdef _DEBUG
 #undef THIS_FILE
@@ -130,12 +132,6 @@ CArray<CLinkTerm, CLinkTerm>& CLinkTable::GetLayTermExpr() {
     return m_LayTermExpr;
 }
 
-
-
-
-
-
-#include <engine/dimens.h>
 int CLinkTable::GetNumCells( int iDim ) {
     int     iNumCells=0;
     ASSERT( iDim == DIM_ROW || iDim == DIM_COL || iDim == DIM_LAYER );

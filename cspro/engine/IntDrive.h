@@ -25,9 +25,9 @@
 //---------------------------------------------------------------------------
 
 #include <zEngineO/Interpreter/LogicInterpreter.h>
-#include <engine/NODES.H>
+#include <engine/Nodes.h>
 #include <engine/ParameterManager.h>
-#include <engine/DEFLD.H>
+#include <engine/DeFld.h>
 #include <zTbdO/cttree.h>
 
 class CapiCondition;

@@ -12,7 +12,7 @@
 //
 //---------------------------------------------------------------------------
 #include "StdAfx.h"
-#include "groupt2.h"
+#include "GroupT2.h"
 #include <engine/Tables.h>
 #include <engine/Engdrv.h>
 #include <engine/IntDrive.h>

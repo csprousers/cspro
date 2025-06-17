@@ -1,5 +1,5 @@
 ﻿#include "StandardSystemIncludes.h"
-#include "INTERPRE.H"
+#include "Interpreter.h"
 #include "Engine.h"
 #include <zEngineO/EngineDictionary.h>
 #include <zAppO/Application.h>
@@ -7,7 +7,7 @@
 #include <zMessageO/MessageManager.h>
 #include <zDictO/DDClass.h>
 #include <zFormO/FormFile.h>
-#include <zBridgeO/npff.h>
+#include <zBridgeO/NPff.h>
 #include <zParadataO/Logger.h>
 #include <zCapiO/CapiQuestionManager.h>
 #include <CSEntry/UWM.h>

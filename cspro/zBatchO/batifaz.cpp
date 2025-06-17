@@ -5,7 +5,7 @@
 //---------------------------------------------------------------------------
 #include "StdAfx.h"
 #include <engine/3dException.h>
-#include <engine/BATIFAZ.H>
+#include <engine/BatIFaz.h>
 #include <engine/Ctab.h>
 #include <engine/IntDrive.h>
 #include <engine/ParadataDriver.h>

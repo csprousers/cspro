@@ -16,7 +16,7 @@
 #include <zTableF/GTblob.h>
 #include <zGridO/Ugctrl.h>
 #include <zGridO/Ugmedit.h>
-#include <zTableF/GridExpt.h>
+#include <zTableF/GridExporter.h>
 
 //forward declaration
 class CTable;

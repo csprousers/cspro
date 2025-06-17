@@ -1,9 +1,9 @@
-﻿// TblPFmtD.cpp : implementation file
+﻿// TblPrintFmtDlg.cpp : implementation file
 //
 
 #include "StdAfx.h"
-#include "TblPFmtD.h"
-#include "FmtFontD.h"
+#include "TblPrintFmtDlg.h"
+#include "FmtFontDlg.h"
 
 const CIMSAString AUTO_STR= _T("(default)");
 

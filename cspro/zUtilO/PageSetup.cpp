@@ -1,5 +1,5 @@
 ﻿//***************************************************************************
-//  File name: PGSETUP.CPP
+//  File name: PageSetup.cpp
 //
 //  Description:
 //       Implementation for CPageMetrics
@@ -11,7 +11,7 @@
 //***************************************************************************
 
 #include "StdAfx.h"
-#include "Pgsetup.h"
+#include "PageSetup.h"
 
 
 #ifdef _DEBUG

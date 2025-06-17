@@ -3,7 +3,7 @@
 //////////////////////////////////////////////////////////////////////
 
 #include <zBridgeO/zBridgeO.h>
-#include <engine/runmodes.h>
+#include <engine/RunModes.h>
 
 class CNPifFile;
 

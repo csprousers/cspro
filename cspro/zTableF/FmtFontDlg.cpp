@@ -1,8 +1,8 @@
-﻿// FmtFontD.cpp : implementation file
+﻿// FmtFontDlg.cpp : implementation file
 //
 
 #include "StdAfx.h"
-#include "FmtFontD.h"
+#include "FmtFontDlg.h"
 
 namespace {
 

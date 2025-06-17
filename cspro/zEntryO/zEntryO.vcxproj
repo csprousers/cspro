@@ -76,7 +76,7 @@
     <ClCompile Include="zEntryO.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\zBridgeO\runapl.h" />
+    <ClInclude Include="..\zBridgeO\RunApl.h" />
     <ClInclude Include="CapiHandler.h" />
     <ClInclude Include="Runaple.h" />
     <ClInclude Include="StdAfx.h" />

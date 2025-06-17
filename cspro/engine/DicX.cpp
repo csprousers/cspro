@@ -1,15 +1,15 @@
 ﻿// Dicx functions
 #include "StandardSystemIncludes.h"
-#include "Dicx.h"
+#include "DicX.h"
 #include "Engine.h"
-#include "RELATION.H"
+#include "Relation.h"
 #include <zEngineO/EngineCaseConstructionReporter.h>
 #include <zToolsO/Tools.h>
 #include <zCaseO/Case.h>
 #include <zDataO/CaseIterator.h>
 #include <zDataO/DataRepository.h>
 #include <zDataO/NullRepositoryIterators.h>
-#include <zBridgeO/npff.h>
+#include <zBridgeO/NPff.h>
 
 
 //////////////////////////////////////////////////////////////////////////////

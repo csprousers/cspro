@@ -1,9 +1,9 @@
-﻿// HITEM.cpp: implementation of the CHITEM class.
+﻿// HItem.cpp: implementation of the CHITEM class.
 //
 //////////////////////////////////////////////////////////////////////
 
 #include "StdAfx.h"
-#include "HITEM.h"
+#include "HItem.h"
 
 #ifdef _DEBUG
 #undef THIS_FILE

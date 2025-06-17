@@ -1,5 +1,5 @@
 ﻿//***************************************************************************
-//  File name: TwoFldlg.cpp
+//  File name: TwoFileDialog.cpp
 //
 //  Description:
 //       CSSort two file dialog implementation
@@ -11,7 +11,7 @@
 //***************************************************************************
 
 #include "StdAfx.h"
-#include "TwoFldlg.h"
+#include "TwoFileDialog.h"
 #include <zUtilO/PathHelpers.h>
 #include <zBridgeO/DataFileDlg.h>
 

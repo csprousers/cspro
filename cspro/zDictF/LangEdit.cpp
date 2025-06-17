@@ -1,5 +1,5 @@
 ﻿//***************************************************************************
-//  File name: condedt.cpp
+//  File name: LangEdit.cpp
 //
 //  Description:
 //       Data Dictionary edit controls implementation
@@ -11,7 +11,7 @@
 //***************************************************************************
 
 #include "StdAfx.h"
-#include "langedt.h"
+#include "LangEdit.h"
 
 #ifdef _DEBUG
 #undef THIS_FILE

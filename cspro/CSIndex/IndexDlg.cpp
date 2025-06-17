@@ -2,7 +2,7 @@
 #include "IndexDlg.h"
 #include "ToolIndexer.h"
 #include <zUtilO/FileDlg.h>
-#include <zUtilO/imsaDlg.H>
+#include <zUtilO/ImsaDlg.h>
 #include <zUtilO/PathHelpers.h>
 #include <zBridgeO/DataFileDlg.h>
 #include <iterator>

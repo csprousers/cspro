@@ -32,16 +32,16 @@
     <ClInclude Include="Batdrv.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="BATIFAZ.H">
+    <ClInclude Include="BatIFaz.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="BinaryStorageFor80.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="BREAKID.H">
+    <ClInclude Include="BreakId.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="calcifaz.h">
+    <ClInclude Include="CalcIFaz.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="CBorder.h">
@@ -50,10 +50,10 @@
     <ClInclude Include="ChainedSymbol.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="citer.h">
+    <ClInclude Include="CIterator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="COMMONIN.H">
+    <ClInclude Include="CommonInfo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Comp.h">
@@ -62,13 +62,13 @@
     <ClInclude Include="CompCTab.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="COMPILAD.H">
+    <ClInclude Include="CompIlad.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="CompilerCreator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="COMPUTIL.H">
+    <ClInclude Include="CompUtil.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Ctab.h">
@@ -80,7 +80,7 @@
     <ClInclude Include="CtDef.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ctterm.h">
+    <ClInclude Include="CtTerm.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="CtUnit.h">
@@ -89,19 +89,19 @@
     <ClInclude Include="Defines.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DEFLD.H">
+    <ClInclude Include="DeFld.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DEPROG.H">
+    <ClInclude Include="DeProg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Dict.h">
+    <ClInclude Include="DicT.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Dicx.h">
+    <ClInclude Include="DicX.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="dimens.h">
+    <ClInclude Include="Dimens.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Engarea.h">
@@ -131,7 +131,7 @@
     <ClInclude Include="Exappl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="EXENTRY.H">
+    <ClInclude Include="ExEntry.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Export.h">
@@ -140,7 +140,7 @@
     <ClInclude Include="ExpresC_Include.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="flddef.h">
+    <ClInclude Include="FieldBehavior.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Form2.h">
@@ -149,7 +149,7 @@
     <ClInclude Include="FrequencyDriver.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="GPSThreadInfo.h">
+    <ClInclude Include="GpsThreadInfo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="helper.h">
@@ -161,7 +161,7 @@
     <ClInclude Include="IntDrive.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="INTERPRE.H">
+    <ClInclude Include="Interpreter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="InterpreterAccessor.h">
@@ -170,7 +170,7 @@
     <ClInclude Include="InterpreterMessageIssuer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ITEMDATA.H">
+    <ClInclude Include="ItemData.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="LogicStackSaver.h">
@@ -179,7 +179,7 @@
     <ClInclude Include="Messages.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="NODES.H">
+    <ClInclude Include="Nodes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ParadataDriver.h">
@@ -200,19 +200,19 @@
     <ClInclude Include="ReadyFlags.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="RELATION.H">
+    <ClInclude Include="Relation.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="relt.h">
+    <ClInclude Include="RelT.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="runmodes.h">
+    <ClInclude Include="RunModes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ScopeChangeNodeIterator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SECX.H">
+    <ClInclude Include="SecX.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="SelcaseManager.h">
@@ -227,19 +227,16 @@
     <ClInclude Include="StrictCompilerErrors.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="subtable.h">
+    <ClInclude Include="SubTable.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TableDef.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Tables.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="TBDIFAZ.H">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Tbd_save.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ttype.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="VariableWorker.h">
@@ -248,10 +245,10 @@
     <ClInclude Include="VarT.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="VARX.h">
+    <ClInclude Include="VarX.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="VTSTRUCT.h">
+    <ClInclude Include="VTStruct.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -262,7 +259,7 @@
     <ClCompile Include="Cdeclare.cpp">
       <Filter>Source Files\ex1</Filter>
     </ClCompile>
-    <ClCompile Include="citer.cpp">
+    <ClCompile Include="CIterator.cpp">
       <Filter>Source Files\ex2</Filter>
     </ClCompile>
     <ClCompile Include="Common.cpp">
@@ -337,7 +334,7 @@
     <ClCompile Include="Expresc_Helper.cpp">
       <Filter>Source Files\ex1</Filter>
     </ClCompile>
-    <ClCompile Include="gpsfuncs.cpp">
+    <ClCompile Include="GpsFuncs.cpp">
       <Filter>Source Files\ex2</Filter>
     </ClCompile>
     <ClCompile Include="Instruc.cpp">
@@ -490,7 +487,7 @@
     <ClCompile Include="VarX.cpp">
       <Filter>Source Files\CEXEntry</Filter>
     </ClCompile>
-    <ClCompile Include="VTSTRUCT.cpp">
+    <ClCompile Include="VTStruct.cpp">
       <Filter>Source Files\ex2</Filter>
     </ClCompile>
   </ItemGroup>

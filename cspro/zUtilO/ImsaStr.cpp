@@ -1,5 +1,5 @@
 ﻿//***************************************************************************
-//  File name: IMSAStr.CPP
+//  File name: ImsaStr.cpp
 //
 //  Description:
 //       Implementation of CIMSAString class
@@ -9,7 +9,7 @@
 //***************************************************************************
 
 #include "StdAfx.h"
-#include "imsaStr.h"
+#include "ImsaStr.h"
 #include <zToolsO/Special.h>
 
 

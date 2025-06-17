@@ -15,8 +15,8 @@
 //---------------------------------------------------------------------------
 
 #include "StandardSystemIncludes.h"
-#include "INTERPRE.H"
-#include "EXENTRY.H"
+#include "Interpreter.h"
+#include "ExEntry.h"
 #include "ProgramControl.h"
 #include <zIssaLib/CFlAdmin.h>
 

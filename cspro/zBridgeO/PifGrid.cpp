@@ -4,7 +4,7 @@ Skeleton Class for a Derived CPifGrid v3.5
 ****************************************************
 ****************************************************/
 #include "StdAfx.h"
-#include "Pifgrid.h"
+#include "PifGrid.h"
 #include "DataFileDlg.h"
 #include "DatFDlg.h"
 #include "PifDlg.h"

@@ -17,10 +17,10 @@
 #include <zPlatformO/PlatformInterface.h>
 #include <zToolsO/VarFuncs.h>
 #include <engine/BinaryStorageFor80.h>
-#include <engine/Exappl.h>
-#include <engine/COMMONIN.H>
-#include <engine/Engine.h>
+#include <engine/CommonInfo.h>
 #include <engine/Comp.h>
+#include <engine/Engine.h>
+#include <engine/Exappl.h>
 #include <zCaseO/BinaryCaseItem.h>
 #include <zCaseO/Case.h>
 

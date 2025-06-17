@@ -1,6 +1,6 @@
 ﻿#include "StdAfx.h"
 #include "CSCode.h"
-#include <zUtilO/imsaDlg.H>
+#include <zUtilO/ImsaDlg.h>
 #include <zUtilF/CommonControls.h>
 #include <zUtilF/MDIFrameWndHelpers.h>
 

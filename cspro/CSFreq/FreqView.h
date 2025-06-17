@@ -5,7 +5,7 @@
 /////////////////////////////////////////////////////////////////////////////
 
 #include <CSFreq/FreqDoc.h>
-#include <CSFreq/Ddtrctl.h>
+#include <CSFreq/DDTrCtl.h>
 
 
 class CSFreqView : public CFormView

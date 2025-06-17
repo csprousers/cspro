@@ -1,8 +1,8 @@
-﻿// FlashMsg.cpp : implementation file
+﻿// FlashMsgDlg.cpp : implementation file
 //
 
 #include "StdAfx.h"
-#include "FlashMsg.h"
+#include "FlashMsgDlg.h"
 
 
 // CFlashMsgDlg dialog

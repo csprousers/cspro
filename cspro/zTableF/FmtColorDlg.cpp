@@ -1,8 +1,8 @@
-﻿// FmtClDlg.cpp : implementation file
+﻿// FmtColorDlg.cpp : implementation file
 //
 
 #include "StdAfx.h"
-#include "FmtClDlg.h"
+#include "FmtColorDlg.h"
 
 UINT iRGBMSG;
 bool bDefColor;

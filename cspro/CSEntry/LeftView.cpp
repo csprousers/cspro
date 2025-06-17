@@ -4,7 +4,7 @@
 #include "StdAfx.h"
 #include "LeftView.h"
 #include "CaseView.h"
-#include "leftprop.h"
+#include "LeftPropSheet.h"
 #include "MainFrm.h"
 #include "Rundoc.h"
 

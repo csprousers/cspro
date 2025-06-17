@@ -67,7 +67,7 @@
     <ClCompile Include="CEUtils.cpp" />
     <ClCompile Include="CRunAplE.cpp" />
     <ClCompile Include="GTCtrl.cpp" />
-    <ClCompile Include="HITEM.cpp" />
+    <ClCompile Include="HItem.cpp" />
     <ClCompile Include="Icons.cpp" />
     <ClCompile Include="IItemCnf.cpp" />
     <ClCompile Include="MsgParam.cpp" />
@@ -168,7 +168,7 @@
     <ClInclude Include="CEUtils.h" />
     <ClInclude Include="CRunAplE.h" />
     <ClInclude Include="GTCtrl.h" />
-    <ClInclude Include="HITEM.h" />
+    <ClInclude Include="HItem.h" />
     <ClInclude Include="Icons.h" />
     <ClInclude Include="IItemCnf.h" />
     <ClInclude Include="MsgParam.h" />
