@@ -15,7 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\Zissalib\CsKernel.cpp">
+    <ClCompile Include="..\zIssaLib\CsKernel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="BinaryCommandLineInfo.cpp">

@@ -4,7 +4,7 @@
 #include <zCapiO/CapiName.h>
 #include <zCapiO/CapiQuestionManager.h>
 #include <zDesignerF/UWM.h>
-#include <Zsrcmgro/DesignerCapiLogicCompiler.h>
+#include <zSrcMgrO/DesignerCapiLogicCompiler.h>
 
 
 CapiEditorViewModel::CapiEditorViewModel()

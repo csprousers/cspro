@@ -17,7 +17,7 @@
 #include <engine/DEPROG.H>
 #include <engine/Engarea.h>
 #include <engine/Engdrv.h>
-#include <Zissalib/flowatom.h>
+#include <zIssaLib/flowatom.h>
 
 class CapiQuestionManager;
 class CaseItemReference;

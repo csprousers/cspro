@@ -15,7 +15,7 @@
 //              05 Nov 02   RHF     Adding notes & form support
 //---------------------------------------------------------------------------
 
-#include <Zissalib/CsKernel.h>
+#include <zIssaLib/CsKernel.h>
 #include <engine/DEFLD.H>
 #include <engine/Exappl.h>
 #include <engine/Engarea.h>

@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include <Zissalib/OccurrenceInfoSet.h>
+#include <zIssaLib/OccurrenceInfoSet.h>
 
 
 // Base class for visitors

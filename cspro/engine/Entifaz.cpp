@@ -10,8 +10,8 @@
 #include <zFormO/FormFile.h>
 #include <zFormO/Roster.h>
 #include <zBridgeO/npff.h>
-#include <Zissalib/CFlAdmin.h>
-#include <Zissalib/groupt2.h>
+#include <zIssaLib/CFlAdmin.h>
+#include <zIssaLib/groupt2.h>
 
 
 #if defined(_DEBUG) && defined(WIN_DESKTOP)

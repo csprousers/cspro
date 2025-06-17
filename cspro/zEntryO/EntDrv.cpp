@@ -31,8 +31,8 @@
 #include <zDataO/DataRepository.h>
 #include <engine/Entdrv.h>
 #include <engine/IntDrive.h>
-#include <Zissalib/CFlAdmin.h>
-#include <Zissalib/CsDriver.h>
+#include <zIssaLib/CFlAdmin.h>
+#include <zIssaLib/CsDriver.h>
 #include <zEngineO/ResponseProcessor.h>
 #include <zEngineO/ValueSet.h>
 #include <zEngineF/ErrmsgDlg.h>

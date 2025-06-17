@@ -8,8 +8,8 @@
 #include <zLogicO/GeneralizedFunction.h>
 #include <zLogicO/SourceBuffer.h>
 #include <zFreqO/Frequency.h>
-#include <Zsrcmgro/BackgroundCompiler.h>
-#include <Zsrcmgro/ProcGlobalConditionalCompiler.h>
+#include <zSrcMgrO/BackgroundCompiler.h>
+#include <zSrcMgrO/ProcGlobalConditionalCompiler.h>
 #include <zEngineO/AllSymbols.h>
 #include <engine/Engarea.h>
 

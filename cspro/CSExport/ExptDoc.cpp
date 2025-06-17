@@ -16,8 +16,8 @@
 #include <zJson/JsonObjectCreator.h>
 #include <zJson/JsonSpecFile.h>
 #include <zLogicO/ReservedWords.h>
-#include <Zsrcmgro/Compiler.h>
-#include <Zsrcmgro/SrcCode.h>
+#include <zSrcMgrO/Compiler.h>
+#include <zSrcMgrO/SrcCode.h>
 #include <zBridgeO/PifDlg.h>
 #include <zFormO/FormFile.h>
 #include <zDataO/ConnectionStringProperties.h>

@@ -19,8 +19,8 @@
 
 //---------------------------------------------------------------------------
 
-#include <Zissalib/CsKernel.h>
-#include <Zissalib/flowatom.h>
+#include <zIssaLib/CsKernel.h>
+#include <zIssaLib/flowatom.h>
 #include <engine/dimens.h>
 #include <zDictO/DDClass.h>
 
@@ -293,8 +293,8 @@ public:
     // --- moving accross the flow-strip
 public:
     CFlowAtom*      FlowStripCurr()                           { return m_aAtomStrip[m_iCurAtom]; }
-    CFlowAtom*      FlowStripNext();                         
-    CFlowAtom*      FlowStripPrev();                         
+    CFlowAtom*      FlowStripNext();
+    CFlowAtom*      FlowStripPrev();
     void            FlowStripRestart()                        { FlowStripSetCurrIndex( 0 ); } // point to the BeforeStrip' atom
     int             FlowStripGetCurrIndex()                   { return m_iCurAtom; }  // victor May 30, 01
     void            FlowStripSetCurrIndex( int iAtom )        { m_iCurAtom = iAtom; } // victor May 30, 01

@@ -12,7 +12,7 @@
 // compiling forbidden objects
 #include <engine/COMPILAD.H>
 #include <engine/ProgramControl.h>
-#include <Zissalib/CsDriver.h>
+#include <zIssaLib/CsDriver.h>
 
 void CEntryDriver::BuildQuestMgr() { ASSERT(0); }
 void CEntryDriver::dedriver_start(void) { ASSERT(0); }
@@ -65,7 +65,7 @@ bool CsDriver::SetLogicRequestNature(CsDriver::RequestNature,bool) { ASSERT(0);r
 bool CsDriver::IsValidAdvanceTarget(bool,C3DObject*) { ASSERT(0);return false; }
 bool CsDriver::IsValidReenterTarget(bool,bool,C3DObject*) { ASSERT(0);return false; }
 void CsDriver::CopyPendingAdvance(CsDriver* pCsDriver ) { ASSERT(0); }
-//savy modidied signature in zissalib to optimize skip to target computation
+//savy modidied signature in zIssaLib to optimize skip to target computation
 int CsDriver::SearchTargetLocation( C3DObject* p3DTarget, int iRefAtom, int iSearchWay, bool bFillTargetAtomIndex /*= false*/) { ASSERT(0); return 0; }
 
 void CsDriver::SetEnterFlowLogicStack(const LogicStackSaver&) { ASSERT(false); }

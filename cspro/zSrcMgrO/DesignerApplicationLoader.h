@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include <Zsrcmgro/zSrcMgrO.h>
+#include <zSrcMgrO/zSrcMgrO.h>
 #include <zEngineO/FileApplicationLoader.h>
 #include <zAppO/Application.h>
 

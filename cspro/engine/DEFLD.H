@@ -13,7 +13,7 @@
 //              21 May 01   vc      Now SetIndexes allow for a NULL aIndex
 //
 //---------------------------------------------------------------------------
-#include <Zissalib/CsKernel.h>
+#include <zIssaLib/CsKernel.h>
 #include <engine/VarT.h>
 
 //---------------------------------------------------------------------------

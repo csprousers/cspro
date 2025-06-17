@@ -131,7 +131,7 @@
       <Project>{44a4fe38-ca5a-487c-a227-4be1ebd4874d}</Project>
       <Private>false</Private>
     </ProjectReference>
-    <ProjectReference Include="..\Zsrcmgro\ZSRCMGRO.vcxproj">
+    <ProjectReference Include="..\zSrcMgrO\zSrcMgrO.vcxproj">
       <Project>{89d69981-4131-4b75-8adb-a596219f7ed3}</Project>
       <Private>false</Private>
     </ProjectReference>

@@ -17,7 +17,7 @@
 #include <zEngineO/WorkVariable.h>
 #include <zEngineO/Nodes/Switch.h>
 #include <zDictO/ValueProcessor.h>
-#include <Zissalib/groupt2.h>
+#include <zIssaLib/groupt2.h>
 
 
 /*--------------------------------------------------------------------------*/

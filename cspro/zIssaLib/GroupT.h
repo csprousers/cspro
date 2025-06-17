@@ -22,7 +22,7 @@
 //
 //---------------------------------------------------------------------------
 #include <zDictO/DDClass.h>
-#include <Zissalib/CsKernel.h>
+#include <zIssaLib/CsKernel.h>
 #include <engine/3dException.h>
 #include <engine/ChainedSymbol.h>
 #include <zEngineO/AllSymbolDeclarations.h>
@@ -37,7 +37,7 @@ class GroupVisitor;
 
 #pragma warning(disable:4786)
 #pragma warning(disable:4290) // complete exception specification not being considered
-#include <Zissalib/OccurrenceInfoSet.h>
+#include <zIssaLib/OccurrenceInfoSet.h>
 
 //---------------------------------------------------------------------------
 //

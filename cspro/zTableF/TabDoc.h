@@ -9,7 +9,7 @@
 #include <zTableF/TabTrCtl.h>
 #include <zTableO/Table.h>
 #include <zDesignerF/ApplicationDoc.h>
-#include <Zsrcmgro/SrcCode.h>
+#include <zSrcMgrO/SrcCode.h>
 #include <zTbdO/cLinkTab.h>
 
 #define TD_TABLE_FORMAT 0

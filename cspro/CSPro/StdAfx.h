@@ -41,8 +41,8 @@
 #include <zTableF/UWM.h>
 #include <zCapiO/CapiName.h>
 #include <zCapiO/CapiQuestionManager.h>
-#include <Zsrcmgro/Compiler.h>
-#include <Zsrcmgro/SrcCode.h>
+#include <zSrcMgrO/Compiler.h>
+#include <zSrcMgrO/SrcCode.h>
 #include <zInterfaceF/resource_shared.h>
 #include <zDesignerF/OnUpdateHints.h>
 #include <zDesignerF/resource_shared.h>

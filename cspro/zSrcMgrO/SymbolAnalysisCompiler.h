@@ -1,7 +1,7 @@
 ﻿#pragma once
 
-#include <Zsrcmgro/zSrcMgrO.h>
-#include <Zsrcmgro/Compiler.h>
+#include <zSrcMgrO/zSrcMgrO.h>
+#include <zSrcMgrO/Compiler.h>
 #include <zLogicO/Symbol.h>
 
 

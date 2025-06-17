@@ -64,7 +64,7 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\Zissalib\CsKernel.cpp" />
+    <ClCompile Include="..\zIssaLib\CsKernel.cpp" />
     <ClCompile Include="BinaryCommandLineInfo.cpp" />
     <ClCompile Include="CaseView.cpp" />
     <ClCompile Include="CSEntry.cpp" />

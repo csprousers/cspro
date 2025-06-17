@@ -20,9 +20,9 @@
 #include <zTableF/TabChWnd.h>
 #include <zCapiO/QSFView.h>
 #include <zCapiO/UWM.h>
-#include <Zsrcmgro/DesignerApplicationLoader.h>
-#include <Zsrcmgro/DesignerCapiLogicCompiler.h>
-#include <Zsrcmgro/DesignerCompiler.h>
+#include <zSrcMgrO/DesignerApplicationLoader.h>
+#include <zSrcMgrO/DesignerCapiLogicCompiler.h>
+#include <zSrcMgrO/DesignerCompiler.h>
 #include <zEngineF/EngineUI.h>
 
 

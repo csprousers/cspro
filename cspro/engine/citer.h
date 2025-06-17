@@ -12,7 +12,7 @@
 //
 //---------------------------------------------------------------------------
 
-#include <Zissalib/GroupT.h>
+#include <zIssaLib/GroupT.h>
 #include <engine/NODES.H>
 
 class CIntDriver;

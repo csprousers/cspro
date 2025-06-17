@@ -18,7 +18,7 @@
 //              12 May 04   rcl     RemapDoubleIndexes changed to int index array.and renamed to RemapIndexes
 //                                  IndexUsedException class added.
 //---------------------------------------------------------------------------
-#include <Zissalib/CsKernel.h>
+#include <zIssaLib/CsKernel.h>
 #include <engine/Exappl.h>
 
 class CEngineArea;

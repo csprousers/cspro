@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include <Zissalib/OccurrenceInfo.h>
+#include <zIssaLib/OccurrenceInfo.h>
 
 #pragma warning (disable: 4786 4100) // Prevent some warnings related to stl
 

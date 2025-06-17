@@ -29,7 +29,7 @@
 #include <engine/dimens.h>
 #include <zEngineO/AllSymbolDeclarations.h>
 #include <zEngineO/RunnableSymbol.h>
-#include <Zissalib/SecT.h>
+#include <zIssaLib/SecT.h>
 
 
 class CaseItem;

@@ -7,7 +7,7 @@
 //                CSourceCode
 //////////////////////////////////////////////////////////////////////
 
-#include <Zsrcmgro/zSrcMgrO.h>
+#include <zSrcMgrO/zSrcMgrO.h>
 #include <zAppO/Application.h>
 
 

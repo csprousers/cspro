@@ -13,7 +13,7 @@
 //
 //---------------------------------------------------------------------------
 
-#include <Zissalib/GroupT.h>
+#include <zIssaLib/GroupT.h>
 #include <zEngineO/AllSymbolDeclarations.h>
 
 

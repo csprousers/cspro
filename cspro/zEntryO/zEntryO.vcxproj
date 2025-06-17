@@ -143,7 +143,7 @@
       <Project>{5f74a167-59d5-48a7-a54c-1964bd5543c2}</Project>
       <Private>false</Private>
     </ProjectReference>
-    <ProjectReference Include="..\Zissalib\ZISSALIB.vcxproj">
+    <ProjectReference Include="..\zIssaLib\zIssaLib.vcxproj">
       <Project>{84348842-9928-4376-9e52-ff736b61c05f}</Project>
       <Private>false</Private>
     </ProjectReference>

@@ -33,8 +33,8 @@
 #include <zEngineO/Block.h>
 #include <zEngineO/WorkString.h>
 #include <zMessageO/Messages.h>
-#include <Zissalib/CsDriver.h>
-#include <Zissalib/CFlAdmin.h>
+#include <zIssaLib/CsDriver.h>
+#include <zIssaLib/CFlAdmin.h>
 
 
 namespace

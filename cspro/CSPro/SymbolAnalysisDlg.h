@@ -2,7 +2,7 @@
 
 #include <zAppO/Application.h>
 #include <zEditO/LogicCtrl.h>
-#include <Zsrcmgro/SymbolAnalysisCompiler.h>
+#include <zSrcMgrO/SymbolAnalysisCompiler.h>
 
 
 class SymbolAnalysisDlg : public CDialog

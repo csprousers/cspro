@@ -24,8 +24,8 @@
 #include <zEngineO/AllSymbols.h>
 #include <zEngineO/LoopStack.h>
 #include <zEngineO/Nodes/ControlFlow.h>
-#include <Zissalib/CFlAdmin.h>
-#include <Zissalib/GroupVisitor.h>
+#include <zIssaLib/CFlAdmin.h>
+#include <zIssaLib/GroupVisitor.h>
 #include <zToolsO/Serializer.h>
 
 #ifdef WIN_DESKTOP

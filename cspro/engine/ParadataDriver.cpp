@@ -10,7 +10,7 @@
 #include <zMessageO/MessageManager.h>
 #include <zBridgeO/npff.h>
 #include <zCaseO/Case.h>
-#include <Zissalib/CsDriver.h>
+#include <zIssaLib/CsDriver.h>
 
 using namespace Paradata;
 

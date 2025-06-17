@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include <Zsrcmgro/zSrcMgrO.h>
+#include <zSrcMgrO/zSrcMgrO.h>
 #include <zLogicO/BasicTokenCompiler.h>
 #include <engine/CompilerCreator.h>
 

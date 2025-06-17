@@ -18,7 +18,7 @@
 #include "INTERPRE.H"
 #include "EXENTRY.H"
 #include "ProgramControl.h"
-#include <Zissalib/CFlAdmin.h>
+#include <zIssaLib/CFlAdmin.h>
 
 //--------------------------------------------------------
 //  exenter : entering to an external flow

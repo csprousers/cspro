@@ -31,6 +31,6 @@
 #include <engine/Form2.h>
 #include <engine/relt.h>
 #include <engine/VarT.h>
-#include <Zissalib/CFlow.h>
-#include <Zissalib/GroupT.h>
-#include <Zissalib/SecT.h>
+#include <zIssaLib/CFlow.h>
+#include <zIssaLib/GroupT.h>
+#include <zIssaLib/SecT.h>

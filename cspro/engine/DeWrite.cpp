@@ -26,7 +26,7 @@
 #include <zCaseO/Case.h>
 #include <zCaseO/CaseItemReference.h>
 #include <zDataO/DataRepository.h>
-#include <Zissalib/CsDriver.h>
+#include <zIssaLib/CsDriver.h>
 
 
 #ifdef _DEBUG

@@ -11,14 +11,14 @@
 #include <engine/Settings.h>
 
 #include <engine/Apl.h>
-#include <Zissalib/CFlow.h>
-#include <Zissalib/GroupT.h>
+#include <zIssaLib/CFlow.h>
+#include <zIssaLib/GroupT.h>
 #include <engine/Form2.h>
 #include <engine/BREAKID.H>
 
 // dictionary symbols
 #include <engine/Dict.h>
-#include <Zissalib/SecT.h>
+#include <zIssaLib/SecT.h>
 #include <engine/VarT.h>
 #include <engine/relt.h>
 

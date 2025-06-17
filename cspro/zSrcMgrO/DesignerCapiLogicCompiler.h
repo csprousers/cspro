@@ -1,8 +1,8 @@
 ﻿#pragma once
 
-#include <Zsrcmgro/zSrcMgrO.h>
-#include <Zsrcmgro/BackgroundCompiler.h>
-#include <Zsrcmgro/DesignerCompilerMessageProcessor.h>
+#include <zSrcMgrO/zSrcMgrO.h>
+#include <zSrcMgrO/BackgroundCompiler.h>
+#include <zSrcMgrO/DesignerCompilerMessageProcessor.h>
 #include <zCapiO/CapiLogicParameters.h>
 
 

@@ -29,9 +29,9 @@
 //
 //---------------------------------------------------------------------------
 
-#include <Zissalib/flowatom.h>
-#include <Zissalib/CsKernel.h>
-#include <Zissalib/FlowCore.h>
+#include <zIssaLib/flowatom.h>
+#include <zIssaLib/CsKernel.h>
+#include <zIssaLib/FlowCore.h>
 #include <engine/DEFLD.H>
 #include <engine/3dException.h>
 

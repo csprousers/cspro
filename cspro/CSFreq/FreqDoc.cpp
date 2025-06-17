@@ -6,8 +6,8 @@
 #include <zUtilO/PathHelpers.h>
 #include <zUtilO/Specfile.h>
 #include <zJson/JsonSpecFile.h>
-#include <Zsrcmgro/Compiler.h>
-#include <Zsrcmgro/SrcCode.h>
+#include <zSrcMgrO/Compiler.h>
+#include <zSrcMgrO/SrcCode.h>
 #include <zBridgeO/DataFileDlg.h>
 #include <zFormO/FormFile.h>
 #include <zInterfaceF/BatchLogicViewerDlg.h>
