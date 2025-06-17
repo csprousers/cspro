@@ -16,7 +16,7 @@ bool PortableFileSystem::IsSharableUri(const std::string_view uri_sv)
     return SO::StartsWith(uri_sv, AndroidContentUriPrefix_sv);
 
 #else
-    UNREFERENCED_PARAMETER(uri_sv);
+    uri_sv; // UNREFERENCED_PARAMETER
     return false;
 
 #endif
@@ -33,7 +33,7 @@ std::string PortableFileSystem::CreateSharableUri(const std::string& path, const
     return sharable_uri;
 
 #else
-    UNREFERENCED_PARAMETER(add_write_permission);
+    add_write_permission; // UNREFERENCED_PARAMETER
     return path;
 
 #endif

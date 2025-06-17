@@ -64,7 +64,12 @@ public:
 
 
 private:
+#ifdef _DEBUG
+    // this method is overridden by the Update Example Files build tool
+    virtual std::vector<std::shared_ptr<CDEFormFile>> GetRuntimeFormFiles() const;
+#else
     static std::vector<std::shared_ptr<CDEFormFile>> GetRuntimeFormFiles();
+#endif
 
     class Pre76FileConverter;
     bool IsPre76File(std::istream& is) const;

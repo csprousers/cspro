@@ -33,24 +33,29 @@ cspro/external/zlib/lib/x64
 
 # exclude some build tools
 
-/build-tools/Create Installer.bat
 /build-tools/CSPro Installer Generator/*
 !/build-tools/CSPro Installer Generator/inputs.json
 !/build-tools/CSPro Installer Generator/readme.txt
+/build-tools/Create Installer.bat
 
-/build-tools/Run Update Example Files.bat
-/build-tools/Update Example Files
+/build-tools/CSPro Users Website Builder
 
-/build-tools/Run Update SQLite Encryption Extension (SEE).bat
-/build-tools/Update SQLite Encryption Extension (SEE)
-
-/build-tools/Run Update Version.bat
-/build-tools/Update Version
-
-/build-tools/Create Open Source Release.bat
 /build-tools/Open Source Release Creator
+/build-tools/Create Open Source Release.bat
+
+/Project File Manager
+/Run Project File Manager.bat
 
 /build-tools/Stygitan
+
+/build-tools/Update Example Files
+/build-tools/Run Update Example Files.bat
+
+/build-tools/Update SQLite Encryption Extension (SEE)
+/build-tools/Run Update SQLite Encryption Extension (SEE).bat
+
+/build-tools/Update Version
+/build-tools/Run Update Version.bat
 
 
 # exclude most tools
@@ -63,3 +68,10 @@ cspro/external/zlib/lib/x64
 # exclude some miscellaneous files
 
 /GITWorkflow.md
+
+
+# exclude WASM and related projects (for now)
+
+/cspro/CSProRT
+/cspro/WASM
+/cspro/zRuntimeO

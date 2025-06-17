@@ -170,7 +170,7 @@ void ExampleFileUpdater::Update(const std::string& examples_directory)
     std::wcout << L"\n\nSuccess\n-------\n";
 
     for( const auto& [extension, count] : m_updateCounts )
-        std::wcout << FormatTextCS2WS(L"%6s : %2d\n", TC::ToWide(extension).c_str(), static_cast<int>(count)).c_str();
+        std::wcout << TC::ToWide(FormatText("%6s : %2d\n", extension.c_str(), static_cast<int>(count))).c_str();
 }
 
 
@@ -205,19 +205,19 @@ void ExampleFileUpdater::UpdateApplication(const std::string& application_file_p
     {
         std::vector<std::shared_ptr<CDEFormFile>> form_files;
 
-        for( const CString& form_file_path : application.GetFormFilenames() )
-            form_files.emplace_back(UpdateFormFile(UTF8_TODO::GetUtf8(form_file_path)));
+        for( const std::string& form_file_path : application.GetFormFilePaths() )
+            form_files.emplace_back(UpdateFormFile(form_file_path));
 
-        if( !application.GetQuestionTextFilename().IsEmpty() )
-            UpdateQuestionText(UTF8_TODO::GetUtf8(application.GetQuestionTextFilename()), form_files);
+        if( !application.GetQuestionTextFilePath().empty() )
+            UpdateQuestionText(application.GetQuestionTextFilePath(), form_files);
     }
 
     else
     {
         ASSERT(application.GetEngineAppType() == EngineAppType::Tabulation);
 
-        for( const CString& tab_spec_file_path : application.GetTabSpecFilenames() )
-            UpdateTabSpec(UTF8_TODO::GetUtf8(tab_spec_file_path));
+        for( const std::string& tab_spec_file_path : application.GetTableSpecFilePaths() )
+            UpdateTabSpec(tab_spec_file_path);
     }
 
     application.Save(application_file_path);
@@ -291,7 +291,7 @@ void ExampleFileUpdater::UpdateTabSpec(const std::string& tab_spec_file_path)
     if( !spec_file.Open(UTF8_TODO::GetCString(tab_spec_file_path), CFile::modeRead) )
         fuh.LoadError();
 
-    const std::vector<std::wstring> dictionary_file_paths = GetFileNameArrayFromSpecFile(spec_file, CSPRO_DICTS);
+    const std::vector<std::string> dictionary_file_paths = GetFileNameArrayFromSpecFile(spec_file, CSPRO_DICTS);
     ASSERT(dictionary_file_paths.size() == 1);
 
     spec_file.Close();
@@ -310,7 +310,7 @@ void ExampleFileUpdater::UpdateTabSpec(const std::string& tab_spec_file_path)
         pTblPrintFmt->SetPrinterOutput(CString());
     }
 
-    if( !table_set.Save(UTF8_TODO::GetCString(tab_spec_file_path), WS2CS(dictionary_file_paths.front())) )
+    if( !table_set.Save(UTF8_TODO::GetCString(tab_spec_file_path), UTF8_TODO::GetCString(dictionary_file_paths.front())) )
         fuh.SaveError();
 }
 
