@@ -98,7 +98,7 @@
       <Project>{a417c381-2afd-4889-ae6b-a15e8436da45}</Project>
       <Private>false</Private>
     </ProjectReference>
-    <ProjectReference Include="..\ZBRIDGEO\ZBRIDGEO.vcxproj">
+    <ProjectReference Include="..\zBridgeO\zBridgeO.vcxproj">
       <Project>{e525331a-400f-4d7c-9f69-451e14844a3b}</Project>
       <Private>false</Private>
     </ProjectReference>
@@ -146,7 +146,7 @@
       <Project>{5f74a167-59d5-48a7-a54c-1964bd5543c2}</Project>
       <Private>false</Private>
     </ProjectReference>
-    <ProjectReference Include="..\Zissalib\ZISSALIB.vcxproj">
+    <ProjectReference Include="..\zIssaLib\zIssaLib.vcxproj">
       <Project>{84348842-9928-4376-9e52-ff736b61c05f}</Project>
       <Private>false</Private>
     </ProjectReference>
@@ -198,7 +198,7 @@
       <Project>{192cbdce-78bc-4c95-9c9e-9bee530d677c}</Project>
       <Private>false</Private>
     </ProjectReference>
-    <ProjectReference Include="..\ZTBDO\ZTBDO.vcxproj">
+    <ProjectReference Include="..\zTbdO\zTbdO.vcxproj">
       <Project>{a9645bd1-4083-4c76-81c8-12bbd26dedb2}</Project>
       <Private>false</Private>
     </ProjectReference>
@@ -214,7 +214,7 @@
       <Project>{9b29cb57-8263-4e12-8908-cc9641fdf0dc}</Project>
       <Private>false</Private>
     </ProjectReference>
-    <ProjectReference Include="..\zZipo\zZipo.vcxproj">
+    <ProjectReference Include="..\zZip\zZip.vcxproj">
       <Project>{bde6d79f-d295-48ba-8e8c-e2ab1eda0646}</Project>
       <Private>false</Private>
     </ProjectReference>

@@ -25,11 +25,11 @@
 
 #include <zDictO/CaptureInfo.h>
 #include <engine/ChainedSymbol.h>
-#include <engine/Dict.h>
-#include <engine/dimens.h>
+#include <engine/DicT.h>
+#include <engine/Dimens.h>
 #include <zEngineO/AllSymbolDeclarations.h>
 #include <zEngineO/RunnableSymbol.h>
-#include <Zissalib/SecT.h>
+#include <zIssaLib/SecT.h>
 
 
 class CaseItem;
@@ -153,7 +153,7 @@ struct VARX;                                            // victor May 24, 00
 //
 //---------------------------------------------------------------------------
 
-#include <engine/flddef.h>
+#include <engine/FieldBehavior.h>
 
 // VART : variable
 class CSymbolVar : public RunnableSymbol, public ChainedSymbol

@@ -27,7 +27,7 @@
 #else
 #include "Tables.h"
 #endif
-#include "COMPILAD.H"
+#include "CompIlad.h"
 #include "Ctab.h"
 #include "Ctab_Helper.h" // rcl, Dec 2004
 #include "Engine.h"

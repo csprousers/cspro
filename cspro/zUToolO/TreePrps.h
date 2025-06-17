@@ -10,7 +10,7 @@
 //
 //***************************************************************************
 
-#include <zUToolO/zUtoolO.h>
+#include <zUToolO/zUToolO.h>
 #include <zUToolO/GradLbl.h>
 #include <zUToolO/TreePropertiesPageValidator.h>
 

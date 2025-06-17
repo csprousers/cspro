@@ -7,7 +7,7 @@
 #include "StringLiteralParser.h"
 #include "SymbolTable.h"
 #include <zToolsO/VarFuncs.h>
-#include <zUtilO/imsaStr.h>
+#include <zUtilO/ImsaStr.h>
 
 using namespace Logic;
 

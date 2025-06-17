@@ -13,11 +13,11 @@
 //              25 Jul 01   vc      Adding flow-administrator for Entry runs            // victor Jul 25, 01
 //
 //---------------------------------------------------------------------------
-#include <engine/DEFLD.H>
-#include <engine/DEPROG.H>
+#include <engine/DeFld.h>
+#include <engine/DeProg.h>
 #include <engine/Engarea.h>
 #include <engine/Engdrv.h>
-#include <Zissalib/flowatom.h>
+#include <zIssaLib/FlowAtom.h>
 
 class CapiQuestionManager;
 class CaseItemReference;

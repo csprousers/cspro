@@ -67,7 +67,7 @@
     <ClCompile Include="CEUtils.cpp" />
     <ClCompile Include="CRunAplE.cpp" />
     <ClCompile Include="GTCtrl.cpp" />
-    <ClCompile Include="HITEM.cpp" />
+    <ClCompile Include="HItem.cpp" />
     <ClCompile Include="Icons.cpp" />
     <ClCompile Include="IItemCnf.cpp" />
     <ClCompile Include="MsgParam.cpp" />
@@ -168,7 +168,7 @@
     <ClInclude Include="CEUtils.h" />
     <ClInclude Include="CRunAplE.h" />
     <ClInclude Include="GTCtrl.h" />
-    <ClInclude Include="HITEM.h" />
+    <ClInclude Include="HItem.h" />
     <ClInclude Include="Icons.h" />
     <ClInclude Include="IItemCnf.h" />
     <ClInclude Include="MsgParam.h" />
@@ -182,7 +182,7 @@
     <ClInclude Include="zCaseTreeF.h" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ZBRIDGEO\ZBRIDGEO.vcxproj">
+    <ProjectReference Include="..\zBridgeO\zBridgeO.vcxproj">
       <Project>{e525331a-400f-4d7c-9f69-451e14844a3b}</Project>
       <Private>false</Private>
     </ProjectReference>
@@ -194,7 +194,7 @@
       <Project>{b33d6166-52a8-453e-837e-e23b233149e9}</Project>
       <Private>false</Private>
     </ProjectReference>
-    <ProjectReference Include="..\Zentryo\ZENTRYO.vcxproj">
+    <ProjectReference Include="..\zEntryO\zEntryO.vcxproj">
       <Project>{cfe980f3-5fc0-4c53-9eb5-1c63254503cd}</Project>
       <Private>false</Private>
     </ProjectReference>

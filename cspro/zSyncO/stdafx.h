@@ -12,8 +12,8 @@
 #include <zUtilO/FileExtensions.h>
 #include <zUtilO/SyncConnectionString.h>
 #include <zUtilO/TemporaryFile.h>
-#include <zZipo/ZipFile.h>
-#include <zZipo/ZLib.h>
+#include <zZip/ZipFile.h>
+#include <zZip/ZLib.h>
 #include <zNetwork/ConnectResponse.h>
 #include <zNetwork/FileInfo.h>
 #include <zNetwork/LoginCredentials.h>

@@ -15,7 +15,7 @@
 #include "MainFrm.h"
 #include "SortDoc.h"
 #include "SortView.h"
-#include <zUtilO/imsaDlg.H>
+#include <zUtilO/ImsaDlg.h>
 
 
 // The one and only CSortApp object

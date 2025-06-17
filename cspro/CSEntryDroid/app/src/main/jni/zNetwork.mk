@@ -28,6 +28,6 @@ LOCAL_SRC_FILES         += $(ZNETWORK_SRC_PATH)/../external/easylogging/easylogg
 include $(LOCAL_PATH)/LOCAL_CFLAGS.mk
 LOCAL_CFLAGS            += -DUNICODE=1
 LOCAL_CFLAGS            += -D_UNICODE=1
-LOCAL_STATIC_LIBRARIES  := zPlatformO zToolsO zUtilO zJson zZipO zMessageO
+LOCAL_STATIC_LIBRARIES  := zPlatformO zToolsO zUtilO zJson zZip zMessageO
 
 include $(BUILD_STATIC_LIBRARY)

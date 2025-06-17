@@ -1,5 +1,5 @@
 ﻿#include "StandardSystemIncludes.h"
-#include "INTERPRE.H"
+#include "Interpreter.h"
 #include "Engine.h"
 #include <zEngineO/EngineDictionary.h>
 #include <zEngineO/File.h>
@@ -11,7 +11,7 @@
 #include <zUtilO/CSProExecutables.h>
 #include <zUtilO/SpecialDirectoryLister.h>
 #include <zUtilF/SelectFileDlg.h>
-#include <ZBRIDGEO/npff.h>
+#include <zBridgeO/NPff.h>
 
 
 namespace

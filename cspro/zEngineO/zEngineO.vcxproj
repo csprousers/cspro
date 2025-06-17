@@ -314,7 +314,7 @@
       <Project>{a417c381-2afd-4889-ae6b-a15e8436da45}</Project>
       <Private>false</Private>
     </ProjectReference>
-    <ProjectReference Include="..\ZBRIDGEO\ZBRIDGEO.vcxproj">
+    <ProjectReference Include="..\zBridgeO\zBridgeO.vcxproj">
       <Project>{e525331a-400f-4d7c-9f69-451e14844a3b}</Project>
       <Private>false</Private>
     </ProjectReference>
@@ -414,7 +414,7 @@
       <Project>{27008d1d-bbbc-4506-8679-be5db42026bc}</Project>
       <Private>false</Private>
     </ProjectReference>
-    <ProjectReference Include="..\zZipo\zZipo.vcxproj">
+    <ProjectReference Include="..\zZip\zZip.vcxproj">
       <Project>{bde6d79f-d295-48ba-8e8c-e2ab1eda0646}</Project>
       <Private>false</Private>
     </ProjectReference>

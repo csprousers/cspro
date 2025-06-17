@@ -11,8 +11,8 @@
 #else
 #include "Tables.h"
 #endif
-#include "COMPILAD.H"
-#include "COMPUTIL.H"
+#include "CompIlad.h"
+#include "CompUtil.h"
 #include <zEngineO/Compiler/TokenHelper.h>
 #include <zAppO/Application.h>
 #include <zDictO/DDClass.h>

@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 #include "afxdialogex.h"
-#include <zUtilO/imsaDlg.H>
+#include <zUtilO/ImsaDlg.h>
 
 class CTroubleshootingDialog : public CDialog // GHM 20120522
 {

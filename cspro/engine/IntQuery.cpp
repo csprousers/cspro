@@ -1,5 +1,5 @@
 ﻿#include "StandardSystemIncludes.h"
-#include "INTERPRE.H"
+#include "Interpreter.h"
 #include "Engine.h"
 #include "Exappl.h"
 #include <zLogicO/SymbolTableIterator.h>
@@ -13,7 +13,7 @@
 #include <zSql/SQLiteHelpers.h>
 #include <zUtilO/SqlLogicFunctions.h>
 #include <zDictO/DDClass.h>
-#include <ZBRIDGEO/npff.h>
+#include <zBridgeO/NPff.h>
 #include <zParadataO/Logger.h>
 #include <zParadataO/Concatenator.h>
 #include <zDataO/DataRepositoryHelpers.h>

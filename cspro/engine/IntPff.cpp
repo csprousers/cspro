@@ -1,12 +1,12 @@
 ﻿#include "StandardSystemIncludes.h"
-#include "INTERPRE.H"
+#include "Interpreter.h"
 #include <zEngineO/EngineDictionary.h>
 #include <zEngineO/List.h>
 #include <zEngineO/Pff.h>
 #include <zEngineO/PffExecutor.h>
 #include <zEngineO/Messages/EngineMessages.h>
 #include <zUtilO/TemporaryFile.h>
-#include <ZBRIDGEO/npff.h>
+#include <zBridgeO/NPff.h>
 
 
 double CIntDriver::expffcompute(int iExpr)

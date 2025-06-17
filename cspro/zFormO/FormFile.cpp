@@ -14,7 +14,7 @@
 #include "RenDlg.h"
 #include <zToolsO/BinaryGen.h>
 #include <zToolsO/Serializer.h>
-#include <zUtilO/AppLdr.h>
+#include <zUtilO/AppLoader.h>
 #include <zUtilO/Versioning.h>
 #include <zUtilF/ProgressDlg.h>
 #include <zMessageO/Messages.h>

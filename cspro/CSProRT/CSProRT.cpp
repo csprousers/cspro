@@ -2,7 +2,7 @@
 #include "CSProRT.h"
 #include "RuntimeDoc.h"
 #include "RuntimeView.h"
-#include <zUtilO/imsaDlg.H>
+#include <zUtilO/ImsaDlg.h>
 #include <zUtilF/CommonControls.h>
 
 

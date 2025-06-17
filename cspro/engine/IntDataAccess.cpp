@@ -1,5 +1,5 @@
 ﻿#include "StandardSystemIncludes.h"
-#include "INTERPRE.H"
+#include "Interpreter.h"
 #include <zEngineO/EngineDictionary.h>
 #include <zEngineO/Messages/EngineMessages.h>
 #include <zEngineO/Nodes/DataAccess.h>
@@ -45,7 +45,7 @@ bool CIntDriver::IsDataAccessible(const Symbol& symbol, const bool issue_error_i
 
         if( dictionary_based_symbol == nullptr )
         {
-            dictionary_based_symbol = SymbolCalculator::GetEngineDictionary(symbol);                                                                                   
+            dictionary_based_symbol = SymbolCalculator::GetEngineDictionary(symbol);
 
             if( dictionary_based_symbol == nullptr )
                 return ReturnProgrammingError(true);

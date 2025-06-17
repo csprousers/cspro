@@ -1,4 +1,5 @@
 ﻿#pragma once
+
 //---------------------------------------------------------------------------
 //  File name: Entifaz.h
 //
@@ -20,10 +21,10 @@
 #define ENGINE_NEXTFIELD    1
 #define ENGINE_BACKFIELD    2
 
-#include <engine/DEFLD.H>
+#include <engine/DeFld.h>
 #include <engine/Entdrv.h>
-#include <Zissalib/CsDriver.h>
-#include <Zentryo/CapiHandler.h>
+#include <zIssaLib/CsDriver.h>
+#include <zEntryO/CapiHandler.h>
 
 enum class SpecialFunction : int;
 

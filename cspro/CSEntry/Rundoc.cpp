@@ -5,12 +5,12 @@
 #include "Rundoc.h"
 #include "CSEntry.h"
 #include "MainFrm.h"
-#include "Opdlg.h"
+#include "OperatorIdDlg.h"
 #include "OperatorStatistics.h"
 #include "OperatorStatisticsLog.h"
 #include "RunView.h"
-#include <ZBRIDGEO/npff.h>
-#include <ZBRIDGEO/PifDlg.h>
+#include <zBridgeO/NPff.h>
+#include <zBridgeO/PifDlg.h>
 #include <zParadataO/KeyingInstance.h>
 #include <zCapiO/QSFView.h>
 

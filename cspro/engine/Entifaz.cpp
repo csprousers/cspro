@@ -4,14 +4,14 @@
 #include "Engine.h"
 #include "Exappl.h"
 #include "ProgramControl.h"
-#include "runmodes.h"
+#include "RunModes.h"
 #include <zEngineO/Block.h>
 #include <zToolsO/Tools.h>
 #include <zFormO/FormFile.h>
 #include <zFormO/Roster.h>
-#include <ZBRIDGEO/npff.h>
-#include <Zissalib/CFlAdmin.h>
-#include <Zissalib/groupt2.h>
+#include <zBridgeO/NPff.h>
+#include <zIssaLib/CFlAdmin.h>
+#include <zIssaLib/GroupT2.h>
 
 
 #if defined(_DEBUG) && defined(WIN_DESKTOP)

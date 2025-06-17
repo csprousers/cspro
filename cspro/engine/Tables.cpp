@@ -1,5 +1,5 @@
 ﻿//--------------------------------------------------------------------------
-//    TABLES.CPP     functions for Symbol Table handling
+//    Tables.cpp     functions for Symbol Table handling
 //--------------------------------------------------------------------------
 
 #include "StandardSystemIncludes.h"
@@ -7,7 +7,7 @@
 #ifndef  GENCODE
 #define  GENCODE
 #endif
-#include "COMPILAD.H"
+#include "CompIlad.h"
 #include "Engine.h"
 #include "Tables.h"
 #include "Ctab.h"

@@ -1,0 +1,35 @@
+﻿#pragma once
+
+#include <engine/StandardSystemIncludes.h>
+
+#include <zToolsO/Utf8.h>
+#include <zUtilO/DataExchange.h>
+#include <zUtilO/ImsaStr.h>
+#include <zUtilO/Interapp.h>
+#include <zUtilO/SpecFile.h>
+#include <zUtilO/WindowsUtf8.h>
+#include <zHtml/CssStyleParser.h>
+#include <zDictO/DDClass.h>
+#include <zFormO/FormFile.h>
+#include <zEditO/UWM.h>
+#include <zDesignerF/OnUpdateHints.h>
+#include <zDesignerF/resource_shared.h>
+#include <zDesignerF/UWM.h>
+#include <zDictF/DDChWnd.h>
+#include <zDictF/DDDoc.h>
+#include <zDictF/DDTrCtl.h>
+#include <zDictF/DictTreeNode.h>
+#include <zFormO/FormFileIterator.h>
+#include <zFormF/resource.h>
+#include <zFormF/UWM.h>
+#include <zFormF/FormDoc.h>
+#include <zFormF/FormGrid.h>
+#include <zFormF/FormID.h>
+#include <zFormF/FormView.h>
+#include <zFormF/FrmChWnd.h>
+#include <zFormF/FrmTrCtl.h>
+#include <zFormF/TextFontDlg.h>
+#include <zFormF/Tracker.h>
+#include <afxcontrolbars.h>
+#include <afxtoolbarcomboboxbutton.h>
+#include <iterator>

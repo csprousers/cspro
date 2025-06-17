@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include <zUtilO/imsaDlg.H>
+#include <zUtilO/ImsaDlg.h>
 
 
 class RuntimeNoteDlg : public CNoteDlg

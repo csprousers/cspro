@@ -64,38 +64,38 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="ChildFrm.cpp" />
-    <ClCompile Include="Finddlg.cpp" />
-    <ClCompile Include="Fsizedlg.cpp" />
-    <ClCompile Include="Gotodlg.cpp" />
+    <ClCompile Include="FindDlg.cpp" />
+    <ClCompile Include="FontSizeDlg.cpp" />
+    <ClCompile Include="GotoDlg.cpp" />
     <ClCompile Include="MainFrm.cpp" />
     <ClCompile Include="OpenInDataManagerDlg.cpp" />
-    <ClCompile Include="Seldlg.cpp" />
+    <ClCompile Include="SelectionDlg.cpp" />
     <ClCompile Include="StdAfx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="TextView.cpp" />
-    <ClCompile Include="Tvblock.cpp" />
+    <ClCompile Include="TvBlock.cpp" />
     <ClCompile Include="TVDoc.cpp" />
-    <ClCompile Include="Tvmisc.cpp" />
-    <ClCompile Include="Tvruler.cpp" />
+    <ClCompile Include="TvMisc.cpp" />
+    <ClCompile Include="TvRuler.cpp" />
     <ClCompile Include="TVView.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ChildFrm.h" />
-    <ClInclude Include="Finddlg.h" />
-    <ClInclude Include="Fsizedlg.h" />
-    <ClInclude Include="Gotodlg.h" />
+    <ClInclude Include="FindDlg.h" />
+    <ClInclude Include="FontSizeDlg.h" />
+    <ClInclude Include="GotoDlg.h" />
     <ClInclude Include="MainFrm.h" />
     <ClInclude Include="OpenInDataManagerDlg.h" />
     <ClInclude Include="resource.h" />
-    <ClInclude Include="Seldlg.h" />
+    <ClInclude Include="SelectionDlg.h" />
     <ClInclude Include="StdAfx.h" />
     <ClInclude Include="TextView.h" />
-    <ClInclude Include="Tvblock.h" />
+    <ClInclude Include="TvBlock.h" />
     <ClInclude Include="TVDoc.h" />
-    <ClInclude Include="Tvmisc.h" />
-    <ClInclude Include="Tvruler.h" />
+    <ClInclude Include="TvMisc.h" />
+    <ClInclude Include="TvRuler.h" />
     <ClInclude Include="TVView.h" />
     <ClInclude Include="UWM.h" />
   </ItemGroup>

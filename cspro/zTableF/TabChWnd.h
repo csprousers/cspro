@@ -1,11 +1,11 @@
 ﻿#pragma once
 
 #include <zTableF/zTableF.h>
+#include <zTableF/PrtView.h>
+#include <zTableF/TSourceEditView.h>
 #include <zDesignerF/ApplicationChildWnd.h>
 #include <zDesignerF/LogicDialogBar.h>
 #include <zDesignerF/LogicReferenceWnd.h>
-#include <zTableF/TSView.H>
-#include <zTableF/PrtView.h>
 
 class CCompFmtDlg;
 class CTreePropertiesDlg;

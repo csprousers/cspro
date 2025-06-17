@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 #include <zUtilO/ConnectionStringFileSimulator.h>
-#include <ZBRIDGEO/PifDlg.h>
+#include <zBridgeO/PifDlg.h>
 
 class CExportDoc;
 

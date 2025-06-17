@@ -1,6 +1,6 @@
 ﻿#include <engine/StandardSystemIncludes.h>
 #include <zPlatformO/PlatformInterface.h>
-#include <Zentryo/DeploymentPackageDownloader.h>
+#include <zEntryO/DeploymentPackageDownloader.h>
 #include <zSyncO/BarcodeCredentials.h>
 #include "gov_census_cspro_smartsync_addapp_DeploymentPackageDownloader.h"
 #include "JNIHelpers.h"

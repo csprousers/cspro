@@ -8,7 +8,7 @@
 #include <zToolsO/Utf8.h>
 #include <zUtilO/Interapp.h>
 #include <zJson/Json.h>
-#include <zZipo/ZLib.h>
+#include <zZip/ZLib.h>
 #include <zNetwork/ConnectResponse.h>
 #include <zNetwork/FileInfo.h>
 #include <zNetwork/LoginCredentials.h>

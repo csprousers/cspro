@@ -144,7 +144,7 @@ COXMDIChildWndSizeDock:
 
 */
 
-#include <zUToolO/zUtoolO.h>
+#include <zUToolO/zUToolO.h>
 
 #include <zUToolO/OXszCtlB.h>
 #include <zUToolO/oxMDkFW.h>

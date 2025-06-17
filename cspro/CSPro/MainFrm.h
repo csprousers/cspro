@@ -4,10 +4,10 @@
 #include <zToolsO/RaiiHelpers.h>
 #include <zUtilO/BCMenu.h>
 #include <zUtilF/ApplicationShutdownRunner.h>
-#include <zUToolO/zUtoolO.h>
+#include <zUToolO/zUToolO.h>
 #include <zExTab/zExTab.h>
 #include <zInterfaceF/LangDlgBar.h>
-#include <ZBRIDGEO/npff.h>
+#include <zBridgeO/NPff.h>
 #include <zTableF/TabDoc.h>
 
 class ObjectTransporter;

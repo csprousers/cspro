@@ -23,7 +23,7 @@ namespace UWM::Ranges
     constexpr unsigned DictionaryStart = DesignerLast + 1;
     constexpr unsigned DictionaryLast  = DictionaryStart + 20;
 
-    // zEdit2O
+    // zEditO
     constexpr unsigned EditStart       = DictionaryLast + 1;
     constexpr unsigned EditLast        = EditStart + 10;
 

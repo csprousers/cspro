@@ -11,7 +11,7 @@ class CGenericTreeCtrl;
 #include <zCaseTreeF/TreeItem.h>
 
 #include <zCaseTreeF/MsgParam.h>
-#include <zCaseTreeF/HITEM.h>
+#include <zCaseTreeF/HItem.h>
 
 enum class TreeFilterType { FieldNote, None };
 typedef void (*FuncPtr) (); //FuncPtr is a pointer to a function taking no args and returning void

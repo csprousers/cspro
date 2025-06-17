@@ -141,6 +141,6 @@ LOCAL_C_INCLUDES        += $(JNI_PATH)/../../../../../zEngineO
 LOCAL_C_INCLUDES        += $(JNI_PATH)/../../../../../external/geometry.hpp/include
 LOCAL_C_INCLUDES        += $(JNI_PATH)/../../../../../external/variant/include
 
-LOCAL_STATIC_LIBRARIES  := zAppO zCaseO zConcatO zDataO zDictO zDiffO zFreqO zFormO zIndexO zJavaScript zListingO zLogicO zMapping zMessageO zMultimediaO zPackO zParadataO zReformatO zSortO zUtilF zHtml zUtilO zJson zZipO zToolsO zPlatformO
+LOCAL_STATIC_LIBRARIES  := zAppO zCaseO zConcatO zDataO zDictO zDiffO zFreqO zFormO zIndexO zJavaScript zListingO zLogicO zMapping zMessageO zMultimediaO zPackO zParadataO zReformatO zSortO zUtilF zHtml zUtilO zJson zZip zToolsO zPlatformO
 
 include $(BUILD_STATIC_LIBRARY)

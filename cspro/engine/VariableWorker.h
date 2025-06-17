@@ -3,8 +3,8 @@
 #include <zEngineO/Block.h>
 #include <engine/Form2.h>
 #include <engine/VarT.h>
-#include <Zissalib/GroupT.h>
-#include <Zissalib/SecT.h>
+#include <zIssaLib/GroupT.h>
+#include <zIssaLib/SecT.h>
 
 
 template<typename VariableFunction>

@@ -4,7 +4,7 @@
 #include "FreqView.h"
 #include "MainFrm.h"
 #include <zUtilO/CommandLineParsers.h>
-#include <zUtilO/imsaDlg.H>
+#include <zUtilO/ImsaDlg.h>
 #include <zUtilF/CommonControls.h>
 
 

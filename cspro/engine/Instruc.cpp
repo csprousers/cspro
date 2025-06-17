@@ -28,10 +28,10 @@
 #else
 #include "Tables.h"
 #endif
-#include "COMPILAD.H"
+#include "CompIlad.h"
 #include "Engine.h"
 #include "Ctab.h"
-#include "COMPUTIL.H"
+#include "CompUtil.h"
 #include <zEngineO/AllSymbols.h>
 #include <zEngineO/LoopStack.h>
 #include <zEngineO/Compiler/TokenHelper.h>

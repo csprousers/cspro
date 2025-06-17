@@ -3,7 +3,7 @@
 #include <zUtilO/ArrUtil.h>
 #include <zUtilF/ProgressDlg.h>
 #include <zCapiO/QSFView.h>
-#include <Zentryo/Runaple.h>
+#include <zEntryO/Runaple.h>
 #include <zDesignerF/NewFileCreator.h>
 #include <regex>
 

@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include <zDictF/DDTrCtl.H>
+#include <zDictF/DDTrCtl.h>
 
 
 class TabDropSource : public COleDropSource

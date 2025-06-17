@@ -4,7 +4,7 @@
 //
 
 #include <zAppO/Application.h>
-#include <zDictF/langgrid.h>
+#include <zDictF/LangGrid.h>
 
 class CapiQuestionManager;
 class CDEItemBase;

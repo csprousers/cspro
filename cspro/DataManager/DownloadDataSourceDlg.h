@@ -2,7 +2,7 @@
 
 #include <DataManager/SyncTask.h>
 #include <zUtilO/ResizableDlg.h>
-#include <zUtilF/SrtLstCt.h>
+#include <zUtilF/SortListCtrl.h>
 #include <zSyncO/SyncDictionaryInfo.h>
 #include <zSyncF/SyncServiceSelectorDlg.h>
 

@@ -2,7 +2,7 @@
 #include "FileBasedParadataSyncer.h"
 #include "ISyncService.h"
 #include <zToolsO/FileIO.h>
-#include <zUtilO/imsaStr.h>
+#include <zUtilO/ImsaStr.h>
 
 
 namespace

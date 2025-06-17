@@ -11,5 +11,5 @@
 #include <zToolsO/Serializer.h>
 #include <zToolsO/Utf8.h>
 #include <zUtilO/Interapp.h>
-#include <zUtilO/Specfile.h>
+#include <zUtilO/SpecFile.h>
 #include <zJson/JsonSpecFile.h>

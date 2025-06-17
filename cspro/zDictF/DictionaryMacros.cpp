@@ -1,13 +1,13 @@
 ﻿#include "StdAfx.h"
 #include "DictionaryMacros.h"
-#include "Itemgrid.h"
+#include "ItemGrid.h"
 #include <zUtilO/NameShortener.h>
 #include <zUtilO/MimeType.h>
 #include <zUtilO/PathHelpers.h>
 #include <zUtilF/SystemIcon.h>
 #include <zUtilF/ThreadedProgressDlg.h>
 #include <zAppO/PFF.h>
-#include <ZBRIDGEO/DataFileDlg.h>
+#include <zBridgeO/DataFileDlg.h>
 #include <zCaseO/BinaryCaseItem.h>
 #include <zCaseO/NumericCaseItem.h>
 #include <zCaseO/StringCaseItem.h>

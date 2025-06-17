@@ -3,8 +3,8 @@
 //////////////////////////////////////////////////////////////////////
 
 #include <zBatchO/zBatchO.h>
-#include <ZBRIDGEO/runapl.h>
-#include <engine/BATIFAZ.H>
+#include <zBridgeO/RunApl.h>
+#include <engine/BatIFaz.h>
 
 class CBatchIFaz;
 class CSettings;

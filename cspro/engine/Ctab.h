@@ -20,18 +20,18 @@
 
 #ifdef WIN_DESKTOP
 
-#include <engine/citer.h>
-#include <engine/ctterm.h>
-#include <engine/ttype.h>
+#include <engine/CIterator.h>
+#include <engine/CtTerm.h>
+#include <engine/TableDef.h>
 #include <engine/CtDef.h>
 
 #include <zToolsO/Range.h>
 #include <zToolsO/Tools.h>
 
-#include <ZTBDO/cttree.h>
-#include <ZTBDO/ccross.h>
-#include <ZTBDO/TbdSlice.h>
-#include <ZTBDO/cLinkTab.h>
+#include <zTbdO/cttree.h>
+#include <zTbdO/ccross.h>
+#include <zTbdO/TbdSlice.h>
+#include <zTbdO/cLinkTab.h>
 
 
 #ifndef _DEF_MEANACUM_
@@ -74,7 +74,7 @@ typedef struct {
 #endif // _DEF_MEANACUM
 
 #include <engine/CtUnit.h>
-#include <engine/subtable.h>
+#include <engine/SubTable.h>
 
 class CBorder;
 

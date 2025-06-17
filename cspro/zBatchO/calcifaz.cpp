@@ -4,7 +4,7 @@
 //
 //---------------------------------------------------------------------------
 #include "StdAfx.h"
-#include <engine/calcifaz.h>
+#include <engine/CalcIFaz.h>
 #include <engine/Ctab.h>
 #include <engine/IntDrive.h>
 

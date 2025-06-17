@@ -87,17 +87,17 @@
     <ClCompile Include="FileDlg.cpp" />
     <ClCompile Include="FileExtensions.cpp" />
     <ClCompile Include="fileutil.cpp" />
-    <ClCompile Include="imsaDlg.CPP" />
+    <ClCompile Include="ImsaDlg.cpp" />
     <ClCompile Include="ImsaFileDlg.cpp" />
-    <ClCompile Include="imsaStr.CPP" />
+    <ClCompile Include="ImsaStr.cpp" />
     <ClCompile Include="Interapp.cpp" />
     <ClCompile Include="MediaStore.cpp" />
     <ClCompile Include="MimeType.cpp" />
     <ClCompile Include="MimeTypeMap.cpp" />
     <ClCompile Include="NameShortener.cpp" />
     <ClCompile Include="NumEdit.cpp" />
+    <ClCompile Include="PageSetup.cpp" />
     <ClCompile Include="PathHelpers.cpp" />
-    <ClCompile Include="Pgsetup.cpp" />
     <ClCompile Include="PortableColor.cpp" />
     <ClCompile Include="PortableFileSystem.cpp" />
     <ClCompile Include="PortableFont.cpp" />
@@ -107,7 +107,7 @@
     <ClCompile Include="ResizableDlg.cpp" />
     <ClCompile Include="SettingsDb.cpp" />
     <ClCompile Include="SimpleDbMap.cpp" />
-    <ClCompile Include="Specfile.cpp" />
+    <ClCompile Include="SpecFile.cpp" />
     <ClCompile Include="SpecialDirectoryLister.cpp" />
     <ClCompile Include="SQLiteSchema.cpp" />
     <ClCompile Include="SqlLogicFunctions.cpp" />
@@ -126,18 +126,18 @@
     <ClCompile Include="Viewers.cpp" />
     <ClCompile Include="VirtualDirectoryLister.cpp" />
     <ClCompile Include="WinBluetoothFunctions.cpp" />
+    <ClCompile Include="WindowFocusMgr.cpp" />
     <ClCompile Include="WindowHelpers.cpp" />
     <ClCompile Include="WindowsInterapp.cpp" />
     <ClCompile Include="WindowsUtf8.cpp" />
-    <ClCompile Include="WinFocSw.cpp" />
     <ClCompile Include="zUtilO.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="zUtilO.rc" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="AppLdr.h" />
     <ClInclude Include="ApplicationLoadException.h" />
+    <ClInclude Include="AppLoader.h" />
     <ClInclude Include="ArrUtil.h" />
     <ClInclude Include="BasicLogger.h" />
     <ClInclude Include="BCMenu.h" />
@@ -164,17 +164,17 @@
     <ClInclude Include="FileExtensions.h" />
     <ClInclude Include="FileUtil.h" />
     <ClInclude Include="FromString.h" />
-    <ClInclude Include="imsaDlg.H" />
+    <ClInclude Include="ImsaDlg.h" />
     <ClInclude Include="ImsaFileDlg.h" />
-    <ClInclude Include="imsaStr.h" />
+    <ClInclude Include="ImsaStr.h" />
     <ClInclude Include="Interapp.h" />
     <ClInclude Include="MediaStore.h" />
     <ClInclude Include="MemoryHelpers.h" />
     <ClInclude Include="MimeType.h" />
     <ClInclude Include="NameShortener.h" />
     <ClInclude Include="NumEdit.h" />
+    <ClInclude Include="PageSetup.h" />
     <ClInclude Include="PathHelpers.h" />
-    <ClInclude Include="Pgsetup.h" />
     <ClInclude Include="PortableColor.h" />
     <ClInclude Include="PortableFileSystem.h" />
     <ClInclude Include="PortableFont.h" />
@@ -185,7 +185,7 @@
     <ClInclude Include="resource.h" />
     <ClInclude Include="SettingsDb.h" />
     <ClInclude Include="SimpleDbMap.h" />
-    <ClInclude Include="Specfile.h" />
+    <ClInclude Include="SpecFile.h" />
     <ClInclude Include="SpecialDirectoryLister.h" />
     <ClInclude Include="SQLiteSchema.h" />
     <ClInclude Include="SqlLogicFunctions.h" />
@@ -207,11 +207,11 @@
     <ClInclude Include="Viewers.h" />
     <ClInclude Include="VirtualDirectoryLister.h" />
     <ClInclude Include="WinBluetoothFunctions.h" />
+    <ClInclude Include="WindowFocusMgr.h" />
     <ClInclude Include="WindowHelpers.h" />
     <ClInclude Include="WindowsInterapp.h" />
     <ClInclude Include="WindowsUtf8.h" />
     <ClInclude Include="WindowsWS.h" />
-    <ClInclude Include="WinFocSw.h" />
     <ClInclude Include="zUtilO.h" />
   </ItemGroup>
   <ItemGroup>

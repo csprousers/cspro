@@ -10,7 +10,7 @@
 #include <zUtilF/resource_shared.h>
 #include <zUtilF/UIThreadRunner.h>
 #include <zUtilF/WindowsMenuManager.h>
-#include <zEdit2O/UWM.h>
+#include <zEditO/UWM.h>
 #include <zLogicO/ReservedWords.h>
 #include <zDesignerF/DesignerObjectTransporter.h>
 #include <zEngineF/EngineUI.h>

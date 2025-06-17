@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include <TextView/Tvmisc.h>
+#include <TextView/TvMisc.h>
 
 //***************************************************************************
 //  File name: TVDoc.h

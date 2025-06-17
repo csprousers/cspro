@@ -6,11 +6,11 @@
 #include <engine/IntDrive.h>
 #include <engine/ParadataDriver.h>
 #include <engine/Messages.h>
-#include <engine/EXENTRY.H>
+#include <engine/ExEntry.h>
 
 #ifdef GENCODE
-#include <engine/COMPILAD.H>
+#include <engine/CompIlad.h>
 #endif
 
-#include <engine/EXENTRY.H>
-#include <engine/VARX.h>
+#include <engine/ExEntry.h>
+#include <engine/VarX.h>

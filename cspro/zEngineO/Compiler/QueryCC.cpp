@@ -5,8 +5,8 @@
 #include "List.h"
 #include "Nodes/Dictionaries.h"
 #include "Nodes/Query.h"
-#include <engine/Dict.h>
-#include <Zissalib/SecT.h>
+#include <engine/DicT.h>
+#include <zIssaLib/SecT.h>
 
 
 int LogicCompiler::CompileParadataFunction()

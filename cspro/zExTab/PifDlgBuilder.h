@@ -1,7 +1,7 @@
 ﻿#pragma once
 
-#include <ZBRIDGEO/npff.h>
-#include <ZBRIDGEO/PifDlg.h>
+#include <zBridgeO/NPff.h>
+#include <zBridgeO/PifDlg.h>
 
 ///<summary>Class for creating pff dialog for tabulation</summary>
 class PifDlgBuilder

@@ -5,7 +5,7 @@
 #include <zUtilO/ConnectionString.h>
 #include <zUtilO/Interapp.h>
 #include <zUtilO/resource.h>
-#include <zUtilO/Specfile.h>
+#include <zUtilO/SpecFile.h>
 #include <zUtilO/UWM.h>
 #include <zToolsO/Encoders.h>
 #include <zToolsO/FileIO.h>

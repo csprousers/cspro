@@ -1,7 +1,7 @@
 ﻿#include "StdAfx.h"
 #include "Pre76CapiQuestionFile.h"
 #include <zToolsO/Special.h>
-#include <zUtilO/Specfile.h>
+#include <zUtilO/SpecFile.h>
 #include <zUtilF/ProgressDlg.h>
 #include <zUtilF/ProgressDlgFactory.h>
 

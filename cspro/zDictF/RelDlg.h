@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include <zDictF/Dddoc.h>
+#include <zDictF/DDDoc.h>
 #include <zDictF/RelGrid.h>
 
 

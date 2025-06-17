@@ -15,18 +15,18 @@
 //
 //---------------------------------------------------------------------------
 #include "StandardSystemIncludes.h"
-#include "EXENTRY.H"
+#include "ExEntry.h"
 #include "Engine.h"
-#include "Dicx.h"
+#include "DicX.h"
 #include <zPlatformO/PlatformInterface.h>
 #include <zToolsO/Tools.h>
 #include <zMessageO/Messages.h>
 #include <zDictO/DDClass.h>
-#include <ZBRIDGEO/npff.h>
+#include <zBridgeO/NPff.h>
 #include <zCaseO/Case.h>
 #include <zCaseO/CaseItemReference.h>
 #include <zDataO/DataRepository.h>
-#include <Zissalib/CsDriver.h>
+#include <zIssaLib/CsDriver.h>
 
 
 #ifdef _DEBUG

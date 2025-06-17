@@ -3,7 +3,7 @@
 #include <zPlatformO/PlatformInterface.h>
 #include <zPlatformO/PortableMFC.h>
 #include <zEngineF/EngineUI.h>
-#include <Zentryo/CoreEntryEngineInterface.h>
+#include <zEntryO/CoreEntryEngineInterface.h>
 #include <jni.h>
 
 struct ActionInvokerData;

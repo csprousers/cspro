@@ -2,7 +2,7 @@
 #include "CaptureInfo.h"
 #include "ValueProcessor.h"
 #include <zToolsO/Serializer.h>
-#include <zUtilO/Specfile.h>
+#include <zUtilO/SpecFile.h>
 
 
 // --------------------------------------------------------------------------

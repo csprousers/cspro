@@ -1,7 +1,7 @@
 ﻿#include <engine/StandardSystemIncludes.h>
 #include <zDictO/ValueSetResponse.h>
 #include <zFormO/FormFile.h>
-#include <Zentryo/CoreEntryPageField.h>
+#include <zEntryO/CoreEntryPageField.h>
 #include "gov_census_cspro_form_CDEField_jni.h"
 #include "JNIHelpers.h"
 
@@ -32,11 +32,11 @@ JNIEXPORT void JNICALL Java_gov_census_cspro_form_CDEField_setBlankValue
     {
         auto* pField = reinterpret_cast<CoreEntryPageField*>(reference);
 
-		if( pField->IsNumeric() )
-			pField->SetNumericValue(NOTAPPL);
+        if( pField->IsNumeric() )
+            pField->SetNumericValue(NOTAPPL);
 
-		else
-			pField->SetAlphaValue(SO::Empty_CString);
+        else
+            pField->SetAlphaValue(SO::Empty_CString);
     }
 }
 

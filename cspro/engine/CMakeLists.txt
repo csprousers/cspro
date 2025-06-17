@@ -2,7 +2,7 @@ project(engine)
 
 include(../WASM/Definitions.cmake)
 
-set(CEXENTRY_DIRECTORY ${CSPRO_DIRECTORY}/CEXEntry)
+set(CEXENTRY_DIRECTORY ${CSPRO_DIRECTORY}/engine)
 set(ZCAPIO_DIRECTORY ${CSPRO_DIRECTORY}/zCapiO)
 set(ZENTRYO_DIRECTORY ${CSPRO_DIRECTORY}/zEntryO)
 set(ZISSALIB_DIRECTORY ${CSPRO_DIRECTORY}/zIssaLib)
@@ -31,12 +31,12 @@ add_library(${PROJECT_NAME}
     intenter.cpp
 
     # ex2
-    citer.cpp
+    CIterator.cpp
     engdrv.cpp
     Exappl.cpp
     Exapplva.cpp
     Exopfile.cpp
-    gpsfuncs.cpp
+    GpsFuncs.cpp
     Int_set.cpp
     intcapi.cpp
     IntCase.cpp
@@ -80,7 +80,7 @@ add_library(${PROJECT_NAME}
     Form.cpp
     Issafunc.cpp
     Messages.cpp
-    relt.cpp
+    RelT.cpp
     Settings.cpp
     Tables.cpp
     Tablesen.cpp
@@ -117,7 +117,7 @@ add_library(${PROJECT_NAME}
     ${ZISSALIB_DIRECTORY}/CsDriver1.cpp
     ${ZISSALIB_DIRECTORY}/CsKernel.cpp
     ${ZISSALIB_DIRECTORY}/Defuncs.cpp
-    ${ZISSALIB_DIRECTORY}/Dict.cpp
+    ${ZISSALIB_DIRECTORY}/DicT.cpp
     ${ZISSALIB_DIRECTORY}/Dictload.cpp
     ${ZISSALIB_DIRECTORY}/EngineAccessor.cpp
     ${ZISSALIB_DIRECTORY}/EngineLoader.cpp

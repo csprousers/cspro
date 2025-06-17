@@ -5,7 +5,7 @@
 //---------------------------------------------------------------------------
 #include "StandardSystemIncludes.h"
 #include "Exappl.h"
-#include "COMPILAD.H"
+#include "CompIlad.h"
 
 
 #define MAX_SETSYMBOLS  100

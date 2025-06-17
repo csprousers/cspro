@@ -11,16 +11,16 @@
 #include <engine/Settings.h>
 
 #include <engine/Apl.h>
-#include <Zissalib/CFlow.h>
-#include <Zissalib/GroupT.h>
+#include <zIssaLib/CFlow.h>
+#include <zIssaLib/GroupT.h>
 #include <engine/Form2.h>
-#include <engine/BREAKID.H>
+#include <engine/BreakId.h>
 
 // dictionary symbols
-#include <engine/Dict.h>
-#include <Zissalib/SecT.h>
+#include <engine/DicT.h>
+#include <zIssaLib/SecT.h>
 #include <engine/VarT.h>
-#include <engine/relt.h>
+#include <engine/RelT.h>
 
 // some other forward declarations
 class CaseItemReference;

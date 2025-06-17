@@ -3,7 +3,7 @@
 #include <zToolsO/PortableFunctions.h>
 #include <zUtilO/ConnectionString.h>
 #include <zDataO/DataRepositoryHelpers.h>
-#include <ZBRIDGEO/DataFileDlg.h>
+#include <zBridgeO/DataFileDlg.h>
 
 
 CSPro::Util::ConnectionString::ConnectionString(::ConnectionString connection_string)

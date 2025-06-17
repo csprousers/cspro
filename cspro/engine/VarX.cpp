@@ -21,11 +21,11 @@
 #include "StandardSystemIncludes.h"
 #include "Tables.h"
 #include "Engine.h"
-#include "RELATION.H"
-#include "VARX.h"
+#include "Relation.h"
+#include "VarX.h"
 #include <zEngineF/TraceHandler.h>
 #include <zToolsO/VarFuncs.h>
-#include <zUtilO/AppLdr.h>
+#include <zUtilO/AppLoader.h>
 #include <zAppO/Application.h>
 #include <zDictO/ValueProcessor.h>
 

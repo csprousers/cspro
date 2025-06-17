@@ -2,7 +2,7 @@
 #include "CSView.h"
 #include "ViewDoc.h"
 #include "ViewView.h"
-#include <zUtilO/imsaDlg.H>
+#include <zUtilO/ImsaDlg.h>
 #include <zUtilF/CommonControls.h>
 
 

@@ -1,5 +1,5 @@
 ﻿//-----------------------------------------------------------------------//
-//  ISSAFUNC.CPP    general purpose functions                            //
+//  IssaFunc.cpp    general purpose functions                            //
 //-----------------------------------------------------------------------//
 #include "StandardSystemIncludes.h"
 #include "Tables.h"

@@ -5,7 +5,7 @@
 /*------------------------------------------------------------------------*/
 
 #include "StandardSystemIncludes.h"
-#include "INTERPRE.H"
+#include "Interpreter.h"
 #include "Engine.h"
 #include "Ctab.h"
 

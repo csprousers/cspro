@@ -4,7 +4,7 @@
 //
 //-----------------------------------------------------------------------
 #include "StandardSystemIncludes.h"
-#include "EXENTRY.H"
+#include "ExEntry.h"
 
 void CEntryDriver::corr_init() {
     // corr_init: initialize corrector

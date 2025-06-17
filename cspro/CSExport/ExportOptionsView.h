@@ -6,7 +6,7 @@
 /////////////////////////////////////////////////////////////////////////////
 // CExportOptionsView form view
 
-#include <zEdit2O/LogicCtrl.h>
+#include <zEditO/LogicCtrl.h>
 
 class CExportSplitterFrame;
 class CExportDoc;

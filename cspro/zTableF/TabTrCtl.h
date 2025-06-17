@@ -2,7 +2,7 @@
 
 #include <zTableF/zTableF.h>
 #include <zTableF/TabTreeNode.h>
-#include <zDictF/DDTrCtl.H>
+#include <zDictF/DDTrCtl.h>
 
 
 /////////////////////////////////////////////////////////////////////////////

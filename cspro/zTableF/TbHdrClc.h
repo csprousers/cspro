@@ -1,4 +1,5 @@
 ﻿#pragma once
+
 //***************************************************************************
 //  File name: TbHdrClc.h
 //
@@ -9,7 +10,7 @@
 //
 //***************************************************************************
 
-#include <zTableF/GridExpt.h>
+#include <zTableF/GridExporter.h>
 
 
 class CRowHeaderCalculator

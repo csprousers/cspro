@@ -10,13 +10,13 @@
 #include <zToolsO/Screen.h>
 #include <zAppO/Properties/ApplicationProperties.h>
 #include <zMessageO/Messages.h>
-#include <ZBRIDGEO/npff.h>
+#include <zBridgeO/NPff.h>
 #include <zCaseO/CaseSummary.h>
 #include <zCapiO/CapiStyle.h>
 #include <zMapping/CoordinateConverter.h>
 #include <zMapping/DefaultBaseMapEvaluator.h>
 #include <zMapping/TPKReader.h>
-#include <Zentryo/CoreEntryEngineInterface.h>
+#include <zEntryO/CoreEntryEngineInterface.h>
 #include <zEngineO/PffExecutor.h>
 
 

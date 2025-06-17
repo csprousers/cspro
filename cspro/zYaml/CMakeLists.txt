@@ -1,4 +1,4 @@
-project(yaml-cpp)
+project(zYaml)
 
 include(../WASM/Definitions.cmake)
 

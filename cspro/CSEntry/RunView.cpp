@@ -7,7 +7,7 @@
 #include "DETextEdit.h"
 #include "MainFrm.h"
 #include "Rundoc.h"
-#include <ZBRIDGEO/npff.h>
+#include <zBridgeO/NPff.h>
 
 
 #ifdef _DEBUG

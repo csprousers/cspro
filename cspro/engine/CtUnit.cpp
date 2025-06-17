@@ -14,7 +14,7 @@
 #include "StandardSystemIncludes.h"
 #include "Comp.h"
 #include "CtUnit.h"
-#include "subtable.h"
+#include "SubTable.h"
 #include "Ctab.h"
 
 

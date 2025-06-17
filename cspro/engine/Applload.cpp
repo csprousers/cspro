@@ -6,7 +6,7 @@
 #include "Comp.h"
 #include "IntDrive.h"
 #include <zToolsO/Tools.h>
-#include <zUtilO/AppLdr.h>
+#include <zUtilO/AppLoader.h>
 #include <zAppO/Application.h>
 #include <zMessageO/Messages.h>
 #include <zLogicO/SourceBuffer.h>

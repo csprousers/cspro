@@ -2,7 +2,7 @@
 #include "Packer.h"
 #include "PackSpec.h"
 #include <zToolsO/File.h>
-#include <zZipo/ZipFile.h>
+#include <zZip/ZipFile.h>
 
 
 namespace

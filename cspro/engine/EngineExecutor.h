@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 #include <engine/StandardSystemIncludes.h>
-#include <engine/INTERPRE.H>
+#include <engine/Interpreter.h>
 #include <engine/InterpreterAccessor.h>
 #include <engine/ProgramControl.h>
 

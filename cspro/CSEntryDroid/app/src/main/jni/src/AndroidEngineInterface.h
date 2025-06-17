@@ -1,10 +1,10 @@
 ﻿#pragma once
 
 #include <zPlatformO/PortableMFC.h>
-#include <Zentryo/Runaple.h>
-#include <Zentryo/CoreEntryPage.h>
-#include <Zentryo/CoreEntryPageField.h>
-#include <Zentryo/CoreEntryEngineInterface.h>
+#include <zEntryO/Runaple.h>
+#include <zEntryO/CoreEntryPage.h>
+#include <zEntryO/CoreEntryPageField.h>
+#include <zEntryO/CoreEntryEngineInterface.h>
 #include "AndroidApplicationInterface.h"
 
 class AndroidEngineInterface : public CoreEntryEngineInterface

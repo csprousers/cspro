@@ -5,7 +5,7 @@
 //----------------------------------------------------------------------
 
 #include "StandardSystemIncludes.h"
-#include "INTERPRE.H"
+#include "Interpreter.h"
 #include "Engine.h"
 #include "Ctab.h"
 #include "ScopeChangeNodeIterator.h"
@@ -20,8 +20,8 @@
 #include <zDictO/ValueProcessor.h>
 #include <zCaseO/Case.h>
 #include <zCaseO/CaseItemReference.h>
-#include <ZBRIDGEO/npff.h>
-#include <Zissalib/CsDriver.h>
+#include <zBridgeO/NPff.h>
+#include <zIssaLib/CsDriver.h>
 #include <zParadataO/Logger.h>
 #include <zEngineF/EngineUI.h>
 

@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 #include <CSCode/HtmlDialogTemplates.h>
-#include <zEdit2O/ReadOnlyEditCtrl.h>
+#include <zEditO/ReadOnlyEditCtrl.h>
 
 class DynamicLayoutControlResizer;
 

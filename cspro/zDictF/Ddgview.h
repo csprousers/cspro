@@ -13,10 +13,10 @@
 //***************************************************************************
 
 #include <zDictF/Dictgrid.h>
-#include <zDictF/Levgrid.h>
-#include <zDictF/Recgrid.h>
-#include <zDictF/Itemgrid.h>
-#include <zUtilO/Pgsetup.h>
+#include <zDictF/LevelGrid.h>
+#include <zDictF/RecGrid.h>
+#include <zDictF/ItemGrid.h>
+#include <zUtilO/PageSetup.h>
 
 
 namespace DictionaryGrid

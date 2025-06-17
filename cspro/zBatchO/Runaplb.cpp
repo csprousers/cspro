@@ -3,7 +3,7 @@
 //////////////////////////////////////////////////////////////////////
 #include "StdAfx.h"
 #include "Runaplb.h"
-#include <engine/BATIFAZ.H>
+#include <engine/BatIFaz.h>
 
 
 #ifdef _DEBUG

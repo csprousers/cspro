@@ -2,7 +2,7 @@
 #include "IncludesRT.h"
 #include "EngineDictionary.h"
 #include "HashMap.h"
-#include <engine/Dicx.h>
+#include <engine/DicX.h>
 #include <zUtilO/CommonStore.h>
 
 

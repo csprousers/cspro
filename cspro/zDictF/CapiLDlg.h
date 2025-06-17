@@ -6,7 +6,7 @@
 // CCapilangDlg dialog
 
 #include <zDictF/zDictF.h>
-#include <zDictF/langgrid.h>
+#include <zDictF/LangGrid.h>
 
 class CLASS_DECL_ZDICTF CCapilangDlg : public CDialog
 {

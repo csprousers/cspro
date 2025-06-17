@@ -15,16 +15,16 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="OrdChWnd.CPP">
+    <ClCompile Include="OrdChWnd.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="OrdDoc.CPP">
+    <ClCompile Include="OrdDoc.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="OrdTrCtl.CPP">
+    <ClCompile Include="OrdTrCtl.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="OSView.CPP">
+    <ClCompile Include="OSourceEditView.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="StdAfx.cpp">
@@ -35,16 +35,16 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="OrdChWnd.H">
+    <ClInclude Include="OrdChWnd.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="OrdDoc.H">
+    <ClInclude Include="OrdDoc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="OrdTrCtl.H">
+    <ClInclude Include="OrdTrCtl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="OSView.H">
+    <ClInclude Include="OSourceEditView.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="resource.h">

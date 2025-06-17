@@ -1,7 +1,7 @@
 ﻿#include "stdafx.h"
 #include "Block.h"
 #include <engine/VarT.h>
-#include <Zissalib/GroupT.h>
+#include <zIssaLib/GroupT.h>
 
 
 EngineBlock::EngineBlock(const CDEBlock& form_block, const Logic::SymbolTable& symbol_table)

@@ -63,10 +63,10 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="OrdChWnd.CPP" />
-    <ClCompile Include="OrdDoc.CPP" />
-    <ClCompile Include="OrdTrCtl.CPP" />
-    <ClCompile Include="OSView.CPP" />
+    <ClCompile Include="OrdChWnd.cpp" />
+    <ClCompile Include="OrdDoc.cpp" />
+    <ClCompile Include="OrdTrCtl.cpp" />
+    <ClCompile Include="OSourceEditView.cpp" />
     <ClCompile Include="StdAfx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
@@ -74,10 +74,10 @@
     <ClCompile Include="zOrderF.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="OrdChWnd.H" />
-    <ClInclude Include="OrdDoc.H" />
-    <ClInclude Include="OrdTrCtl.H" />
-    <ClInclude Include="OSView.H" />
+    <ClInclude Include="OrdChWnd.h" />
+    <ClInclude Include="OrdDoc.h" />
+    <ClInclude Include="OrdTrCtl.h" />
+    <ClInclude Include="OSourceEditView.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="StdAfx.h" />
     <ClInclude Include="UWM.h" />
@@ -119,7 +119,7 @@
       <Project>{b33d6166-52a8-453e-837e-e23b233149e9}</Project>
       <Private>false</Private>
     </ProjectReference>
-    <ProjectReference Include="..\zEdit2O\zEdit2O.vcxproj">
+    <ProjectReference Include="..\zEditO\zEditO.vcxproj">
       <Project>{adef6fc1-00ee-4f3a-84dd-43ee2f108bb0}</Project>
       <Private>false</Private>
     </ProjectReference>
@@ -147,7 +147,7 @@
       <Project>{9b29cb57-8263-4e12-8908-cc9641fdf0dc}</Project>
       <Private>false</Private>
     </ProjectReference>
-    <ProjectReference Include="..\zUToolO\Zutoolo.vcxproj">
+    <ProjectReference Include="..\zUToolO\zUToolO.vcxproj">
       <Project>{28f15179-5b3d-4a06-a076-2774611ca534}</Project>
       <Private>false</Private>
     </ProjectReference>

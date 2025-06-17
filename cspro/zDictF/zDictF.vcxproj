@@ -65,14 +65,14 @@
   <ItemGroup>
     <ClCompile Include="BeforeAfterDlg.cpp" />
     <ClCompile Include="CapiLDlg.cpp" />
-    <ClCompile Include="DDChWnd.CPP" />
-    <ClCompile Include="DDDoc.CPP" />
-    <ClCompile Include="DDDpTgt.CPP" />
+    <ClCompile Include="DDChWnd.cpp" />
+    <ClCompile Include="DDDoc.cpp" />
+    <ClCompile Include="DDDropTarget.cpp" />
     <ClCompile Include="DDEdit.cpp" />
     <ClCompile Include="DDGrid.cpp" />
     <ClCompile Include="Ddgview.cpp" />
     <ClCompile Include="DDLView.cpp" />
-    <ClCompile Include="DDTrCtl.CPP" />
+    <ClCompile Include="DDTrCtl.cpp" />
     <ClCompile Include="DictClipboard.cpp" />
     <ClCompile Include="DictDialogBar.cpp" />
     <ClCompile Include="Dictgrid.cpp" />
@@ -89,14 +89,14 @@
     <ClCompile Include="DSplWnd.cpp" />
     <ClCompile Include="FindDlg.cpp" />
     <ClCompile Include="GenerateVSDlg.cpp" />
-    <ClCompile Include="Itemgrid.cpp" />
-    <ClCompile Include="langedt.cpp" />
-    <ClCompile Include="langgrid.cpp" />
-    <ClCompile Include="Levgrid.cpp" />
+    <ClCompile Include="ItemGrid.cpp" />
+    <ClCompile Include="LangEdit.cpp" />
+    <ClCompile Include="LangGrid.cpp" />
+    <ClCompile Include="LevelGrid.cpp" />
     <ClCompile Include="OccDlg.cpp" />
     <ClCompile Include="OccGrid.cpp" />
     <ClCompile Include="PrintDlg.cpp" />
-    <ClCompile Include="Recgrid.cpp" />
+    <ClCompile Include="RecGrid.cpp" />
     <ClCompile Include="RelDlg.cpp" />
     <ClCompile Include="RelGrid.cpp" />
     <ClCompile Include="SecurityOptionsDlg.cpp" />
@@ -134,14 +134,14 @@
   <ItemGroup>
     <ClInclude Include="BeforeAfterDlg.h" />
     <ClInclude Include="CapiLDlg.h" />
-    <ClInclude Include="DDChWnd.H" />
-    <ClInclude Include="Dddoc.h" />
-    <ClInclude Include="DDDpTgt.H" />
+    <ClInclude Include="DDChWnd.h" />
+    <ClInclude Include="DDDoc.h" />
+    <ClInclude Include="DDDropTarget.h" />
     <ClInclude Include="DDEdit.h" />
     <ClInclude Include="DDGrid.h" />
     <ClInclude Include="Ddgview.h" />
     <ClInclude Include="DDLView.h" />
-    <ClInclude Include="DDTrCtl.H" />
+    <ClInclude Include="DDTrCtl.h" />
     <ClInclude Include="DictClipboard.h" />
     <ClInclude Include="DictDialogBar.h" />
     <ClInclude Include="Dictgrid.h" />
@@ -158,14 +158,14 @@
     <ClInclude Include="DSplWnd.h" />
     <ClInclude Include="FindDlg.h" />
     <ClInclude Include="GenerateVSDlg.h" />
-    <ClInclude Include="Itemgrid.h" />
-    <ClInclude Include="langedt.h" />
-    <ClInclude Include="langgrid.h" />
-    <ClInclude Include="Levgrid.h" />
+    <ClInclude Include="ItemGrid.h" />
+    <ClInclude Include="LangEdit.h" />
+    <ClInclude Include="LangGrid.h" />
+    <ClInclude Include="LevelGrid.h" />
     <ClInclude Include="OccDlg.h" />
     <ClInclude Include="OccGrid.h" />
     <ClInclude Include="PrintDlg.h" />
-    <ClInclude Include="Recgrid.h" />
+    <ClInclude Include="RecGrid.h" />
     <ClInclude Include="RelDlg.h" />
     <ClInclude Include="RelGrid.h" />
     <ClInclude Include="resource.h" />
@@ -181,7 +181,7 @@
       <Project>{a417c381-2afd-4889-ae6b-a15e8436da45}</Project>
       <Private>false</Private>
     </ProjectReference>
-    <ProjectReference Include="..\ZBRIDGEO\ZBRIDGEO.vcxproj">
+    <ProjectReference Include="..\zBridgeO\zBridgeO.vcxproj">
       <Project>{e525331a-400f-4d7c-9f69-451e14844a3b}</Project>
       <Private>false</Private>
     </ProjectReference>
@@ -225,7 +225,7 @@
       <Project>{9b29cb57-8263-4e12-8908-cc9641fdf0dc}</Project>
       <Private>false</Private>
     </ProjectReference>
-    <ProjectReference Include="..\zUToolO\Zutoolo.vcxproj">
+    <ProjectReference Include="..\zUToolO\zUToolO.vcxproj">
       <Project>{28f15179-5b3d-4a06-a076-2774611ca534}</Project>
       <Private>false</Private>
     </ProjectReference>

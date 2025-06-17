@@ -5,7 +5,7 @@
 //////////////////////////////////////////////////////////////////////
 
 #include <zCaseTreeF/zCaseTreeF.h>
-#include <engine/DEFLD.H>
+#include <engine/DeFld.h>
 
 class CDEFormFile;
 class CEngineDriver;

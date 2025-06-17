@@ -1,5 +1,5 @@
 ﻿#include "StandardSystemIncludes.h"
-#include "INTERPRE.H"
+#include "Interpreter.h"
 
 //---------------------------------------------------------------------------
 //  File name: tabfuncs.cpp
@@ -234,4 +234,3 @@ double CEngineArea::cthighnumvalue( int iCtNode ) {
     return( rLastValidValue );
 }
 // RHF END Jul 15, 2002
-

@@ -3,7 +3,7 @@
 #include <zUtilO/ArrUtil.h>
 #include <zUtilO/FileDlg.h>
 #include <zUtilO/FileUtil.h>
-#include <zUtilO/imsaDlg.H>
+#include <zUtilO/ImsaDlg.h>
 #include <zUtilO/TemporaryFile.h>
 #include <zUtilO/WindowsUtf8.h>
 #include <zUtilO/WindowsWS.h>

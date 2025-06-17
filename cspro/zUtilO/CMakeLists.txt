@@ -16,7 +16,7 @@ add_library(${PROJECT_NAME}
     ExecutionStack.cpp
     ExpansiveMap.cpp
     FileExtensions.cpp
-    imsaStr.cpp
+    ImsaStr.cpp
     Interapp.cpp
     MediaStore.cpp
     MimeType.cpp
@@ -31,7 +31,7 @@ add_library(${PROJECT_NAME}
     Randomizer.cpp
     SettingsDb.cpp
     SimpleDbMap.cpp
-    Specfile.cpp
+    SpecFile.cpp
     SpecialDirectoryLister.cpp
     SQLiteSchema.cpp
     SqlLogicFunctions.cpp

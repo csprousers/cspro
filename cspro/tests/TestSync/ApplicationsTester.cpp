@@ -2,7 +2,7 @@
 #include "ApplicationsTester.h"
 #include "CaseTestHelpers.h"
 #include <zToolsO/DirectoryLister.h>
-#include <zZipo/ZipFile.h>
+#include <zZip/ZipFile.h>
 #include <zSyncO/SyncDictionaryInfo.h>
 #include <zSyncO/SyncServiceFactory.h>
 

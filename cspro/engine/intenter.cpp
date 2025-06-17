@@ -15,10 +15,10 @@
 //---------------------------------------------------------------------------
 
 #include "StandardSystemIncludes.h"
-#include "INTERPRE.H"
-#include "EXENTRY.H"
+#include "Interpreter.h"
+#include "ExEntry.h"
 #include "ProgramControl.h"
-#include <Zissalib/CFlAdmin.h>
+#include <zIssaLib/CFlAdmin.h>
 
 //--------------------------------------------------------
 //  exenter : entering to an external flow

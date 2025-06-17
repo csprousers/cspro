@@ -20,9 +20,9 @@
 #include <zTableF/TabChWnd.h>
 #include <zCapiO/QSFView.h>
 #include <zCapiO/UWM.h>
-#include <Zsrcmgro/DesignerApplicationLoader.h>
-#include <Zsrcmgro/DesignerCapiLogicCompiler.h>
-#include <Zsrcmgro/DesignerCompiler.h>
+#include <zSrcMgrO/DesignerApplicationLoader.h>
+#include <zSrcMgrO/DesignerCapiLogicCompiler.h>
+#include <zSrcMgrO/DesignerCompiler.h>
 #include <zEngineF/EngineUI.h>
 
 
@@ -120,12 +120,12 @@ BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWnd)
     ON_MESSAGE(UWM::Table::ReconcileLinkObj, ReconcileLinkObj)
     ON_MESSAGE(UWM::Table::DeleteLogic, DeleteTblLogic)
 
-    ON_MESSAGE(ZEDIT2O_SEL_CHANGE, OnSelChange)
-    ON_MESSAGE(ZEDIT2O_LOGIC_REFERENCE, OnLogicReference)
+    ON_MESSAGE(ZEDITO_SEL_CHANGE, OnSelChange)
+    ON_MESSAGE(ZEDITO_LOGIC_REFERENCE, OnLogicReference)
     ON_MESSAGE(WM_IMSA_SYMBOLS_ADDED, OnSymbolsAdded)
     ON_COMMAND(ID_VIEW_TOP_LOGIC, OnViewTopLogic)
-    ON_MESSAGE(ZEDIT2O_LOGIC_AUTO_COMPLETE, OnLogicAutoComplete)
-    ON_MESSAGE(ZEDIT2O_LOGIC_INSERT_PROC_NAME, OnLogicInsertProcName)
+    ON_MESSAGE(ZEDITO_LOGIC_AUTO_COMPLETE, OnLogicAutoComplete)
+    ON_MESSAGE(ZEDITO_LOGIC_INSERT_PROC_NAME, OnLogicInsertProcName)
 
     ON_MESSAGE(WM_IMSA_SET_STATUSBAR_PANE, SetStatusBarPane)
     ON_MESSAGE(WM_IMSA_SETFOCUS, OnIMSASetFocus)

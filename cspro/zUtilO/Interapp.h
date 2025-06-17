@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 //***************************************************************************
-//  File name: INTERAPP.H
+//  File name: Interapp.h
 //
 //  Description:
 //       Stuff for inter-application communication.
@@ -36,7 +36,7 @@
 
 #include <zUtilO/zUtilO.h>
 #include <zUtilO/FileExtensions.h>
-#include <zUtilO/imsaStr.h>
+#include <zUtilO/ImsaStr.h>
 #include <zUtilO/Versioning.h>
 #include <zToolsO/Tools.h>
 

@@ -1,5 +1,6 @@
 ﻿#include "stdafx.h"
 #include "DB.h"
+#include "Encryption.h"
 
 
 Sqlite::DB::DB(std::string file_path, const int open_flags/* = DefaultOpenFlags*/)
@@ -73,7 +74,7 @@ void Sqlite::DB::OpenEncrypted(const std::string& file_path, const std::vector<s
 
     try
     {
-        if( sqlite3_key(m_db, key.get(), static_cast<int>(key_length)) != SQLITE_OK )
+        if( SqliteEncryption::sqlite3_key(m_db, key.get(), static_cast<int>(key_length)) != SQLITE_OK )
             throw std::exception();
 
         // if the file already exists, check that the password is correct with a simple query

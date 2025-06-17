@@ -1,5 +1,5 @@
 ﻿//***************************************************************************
-//  File name: INTERAPP.CPP
+//  File name: Interapp.cpp
 //
 //  Description:
 //       Stuff for inter-application communication

@@ -89,10 +89,10 @@
     <ClCompile Include="SelectFileDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SrtHdrCt.cpp">
+    <ClCompile Include="SortHeaderCtrl.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SrtLstCt.cpp">
+    <ClCompile Include="SortListCtrl.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="StdAfx.cpp">
@@ -235,16 +235,16 @@
     <ClInclude Include="SelectFileDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="SortHeaderCtrl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SortListCtrl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="SplitterWndTwoColumnProportionalResize.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="SplitterWndWithDifferingViews.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="SrtHdrCt.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="SrtLstCt.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="StdAfx.h">

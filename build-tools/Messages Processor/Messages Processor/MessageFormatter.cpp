@@ -1,7 +1,7 @@
-#include "stdafx.h"
+﻿#include "stdafx.h"
 #include "Main.h"
 #include <zToolsO/FileIO.h>
-#include <zUtilO/imsaStr.h>
+#include <zUtilO/ImsaStr.h>
 
 
 namespace
@@ -19,10 +19,10 @@ void MessageFormatter::FormatMessageFiles()
         std::vector<std::string> current_lines_before_message;
         std::vector<int> message_numbers;
 
-        SO::ForeachLine(FileIO::ReadText(message_file_path), true, 
+        SO::ForeachLine(FileIO::ReadText(message_file_path), true,
             [&](const std::string_view line_sv)
             {
-                if( line_sv.empty() || 
+                if( line_sv.empty() ||
                     line_sv.front() == '{' || line_sv.front() == '/' ||
                     SO::StartsWith(line_sv, "Language=") )
                 {
@@ -96,14 +96,14 @@ void MessageFormatter::FormatMessageFiles()
             // write the message text, escaping it only as necessary
             std::string message_text = message_file.GetMessageText(message_number).Release();
             ASSERT(!message_text.empty());
-            
+
             if( message_text.front() == '\'' || message_text.front() == '"' || SO::ContainsNewlineCharacter(message_text) )
                 message_text = Encoders::ToLogicString(message_text);
 
             formatted_message_lines.emplace_back(FormatText("%-*d %s", MaxMessageNumberDigits, message_number, message_text.c_str()));
         }
 
-        
+
         // write the formatted message text
         const std::string formatted_message_text = SO::CreateSingleString(formatted_message_lines, "\r\n") + "\r\n";
         FileIO::WriteText(message_file_path, formatted_message_text, true);

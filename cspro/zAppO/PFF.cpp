@@ -7,7 +7,7 @@
 #include <zUtilO/ArrUtil.h> // remove once CString is gone
 #include <zUtilO/CSProExecutables.h>
 #include <zUtilO/PathHelpers.h>
-#include <zUtilO/Specfile.h>
+#include <zUtilO/SpecFile.h>
 #include <zUtilO/Viewers.h>
 #include <zDataO/DataRepositoryHelpers.h>
 
@@ -1509,7 +1509,7 @@ void PFF::AdjustAttributesFromOldFiles()
 }
 
 
-std::optional<std::string> PFF::GetExecutableProgram() const // 20111012 for execpff and runpff
+std::optional<std::string> PFF::GetExecutableProgram() const // 20111012 for execpff and RunPff
 {
 #ifdef WIN_DESKTOP
     CSProExecutables::Program program;

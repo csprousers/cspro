@@ -265,7 +265,11 @@ std::vector<CapiQuestion> CapiQuestionManager::GetQuestionsSortedInFormOrder() c
 }
 
 
+#ifdef _DEBUG
+std::vector<std::shared_ptr<CDEFormFile>> CapiQuestionManager::GetRuntimeFormFiles() const
+#else
 std::vector<std::shared_ptr<CDEFormFile>> CapiQuestionManager::GetRuntimeFormFiles()
+#endif
 {
     Application* application;
 

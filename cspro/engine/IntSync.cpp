@@ -1,11 +1,11 @@
 ﻿#include "StandardSystemIncludes.h"
-#include "INTERPRE.H"
+#include "Interpreter.h"
 #include <zToolsO/Encoders.h>
 #include <zLogicO/SpecialFunction.h>
 #include <zEngineO/EngineDictionary.h>
 #include <zPlatformO/PlatformInterface.h>
 #include <zMessageO/Messages.h>
-#include <ZBRIDGEO/npff.h>
+#include <zBridgeO/NPff.h>
 #include <zDataO/ISyncableDataRepository.h>
 #include <zNetwork/LoginAccessor.h>
 #include <zSyncO/ApplicationPackageManager.h>

@@ -1,5 +1,5 @@
 ﻿#include "StandardSystemIncludes.h"
-#include "VARX.h"
+#include "VarX.h"
 
 #ifdef WIN_DESKTOP
 #include "Export.h"

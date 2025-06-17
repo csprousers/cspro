@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 #include <zDictF/zDictF.h>
-#include <zDictF/Dddoc.h>
+#include <zDictF/DDDoc.h>
 #include <zInterfaceF/TreeNode.h>
 
 

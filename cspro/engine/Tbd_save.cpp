@@ -170,7 +170,7 @@ void CTbd::tbd_init( const TCHAR* pszTbdName ) {   // alloc/fill TbTable; open T
                 aDimSize.Add( pCtab->GetTotDim(iDim) );
 
             // Fill the table
-            CTbdTable* pTable = new CTbdTable( csName, csNextTable,  aDimSize, (CTableDef::ETableType)iTableType, iCellSize, cTableOtherInfo ); // TODO Talvez Mejor en CTAB.H
+            CTbdTable* pTable = new CTbdTable( csName, csNextTable,  aDimSize, (CTableDef::ETableType)iTableType, iCellSize, cTableOtherInfo ); // TODO Talvez Mejor en Ctab.h
             // Add Break vars to pTable
 
             // RHF INIC Apr 17, 2003

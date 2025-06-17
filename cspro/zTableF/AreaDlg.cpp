@@ -3,7 +3,7 @@
 
 #include "StdAfx.h"
 #include "AreaDlg.h"
-#include "ConDlg.h"
+#include "ConSpecDlg.h"
 
 
 // CAreaDlg dialog

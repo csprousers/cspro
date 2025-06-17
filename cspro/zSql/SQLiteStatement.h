@@ -313,7 +313,8 @@ public:
         else if constexpr(std::is_same_v<VT, uint32_t> ||
                           std::is_same_v<VT, int64_t> ||
                           std::is_same_v<VT, uint64_t> ||
-                          std::is_same_v<VT, long>)
+                          std::is_same_v<VT, long> ||
+                          std::is_same_v<VT, unsigned long>)
         {
             return static_cast<VT>(sqlite3_column_int64(m_stmt, column_num));
         }

@@ -255,13 +255,13 @@ namespace PFF_Editor
 
         private void menuRun_Click(object sender,EventArgs e)
         {
-            if( runpffExecutable == null ) // find the most up to date runpff.exe
+            if( runpffExecutable == null ) // find the most up to date RunPff.exe
             {
-                runpffExecutable = FindLatestCSProFile("runpff.exe");
+                runpffExecutable = FindLatestCSProFile("RunPff.exe");
 
                 if( runpffExecutable == null )
                 {
-                    MessageBox.Show("The CSPro application folder with runpff.exe could not be located.");
+                    MessageBox.Show("The CSPro application folder with RunPff.exe could not be located.");
                     return;
                 }
             }
@@ -375,7 +375,7 @@ namespace PFF_Editor
             if( pff != null && tabControl.SelectedTab == tabPageLogic )
             {
                 var pffCreationOptions = new PFF.PFFCreationOptions(comboBoxObjectType.SelectedIndex == 0, textBoxObjectName.Text,
-                    checkBoxRunPFF.Checked, checkBoxOptionsAsParameters.Checked);
+                    checkBoxRunPff.Checked, checkBoxOptionsAsParameters.Checked);
                 logicContents = pff.GeneratePFFContents(pffCreationOptions);
                 ShowLogicContentsAsHtml();
             }

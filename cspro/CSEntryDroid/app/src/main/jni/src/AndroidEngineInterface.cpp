@@ -5,7 +5,7 @@
 #include "gov_census_cspro_bridge_CNPifFile.h"
 #include "JNIHelpers.h"
 #include <zPlatformO/PlatformInterface.h>
-#include <ZBRIDGEO/npff.h>
+#include <zBridgeO/NPff.h>
 #include <android/log.h>
 #include <sys/stat.h>
 

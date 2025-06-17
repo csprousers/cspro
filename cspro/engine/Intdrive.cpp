@@ -10,7 +10,7 @@
 //------------------------------------------------------------------------
 
 #include "StandardSystemIncludes.h"
-#include "INTERPRE.H"
+#include "Interpreter.h"
 #include "Engine.h"
 #include "Ctab.h"
 #include "FrequencyDriver.h"
@@ -31,7 +31,7 @@
 #include <zToolsO/Tools.h>
 #include <zUtilO/MemoryHelpers.h>
 #include <zUtilF/KeyboardLoader.h>
-#include <ZBRIDGEO/npff.h>
+#include <zBridgeO/NPff.h>
 #include <zMessageO/Messages.h>
 #include <zCapiO/CapiQuestionManager.h>
 #include <zFreqO/Frequency.h>

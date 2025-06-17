@@ -4,7 +4,7 @@
 #include <zUtilO/DataExchange.h>
 #include <zUtilO/FileDlg.h>
 #include <zUtilO/FileExtensions.h>
-#include <zUtilO/imsaDlg.H>
+#include <zUtilO/ImsaDlg.h>
 #include <zUtilO/WindowHelpers.h>
 
 

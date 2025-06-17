@@ -1,5 +1,5 @@
 ﻿#include "StandardSystemIncludes.h"
-#include "INTERPRE.H"
+#include "Interpreter.h"
 #include "Engdrv.h"
 #include "Engine.h"
 #include <zEngineO/Nodes/Messages.h>
@@ -7,9 +7,9 @@
 #include <zMessageO/MessageEvaluator.h>
 #include <zMessageO/MessageManager.h>
 #include <zListingO/WriteFile.h>
-#include <ZBRIDGEO/npff.h>
+#include <zBridgeO/NPff.h>
 #include <zParadataO/Logger.h>
-#include <Zissalib/CsDriver.h>
+#include <zIssaLib/CsDriver.h>
 
 
 // --------------------------------------------------------------------------

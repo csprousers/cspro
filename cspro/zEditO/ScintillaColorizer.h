@@ -1,0 +1,69 @@
+﻿#pragma once
+
+#include <zEditO/zEditO.h>
+#include <zEditO/LexerProperties.h>
+#include <zEditO/LogicCtrl.h>
+#include <iosfwd>
+
+enum class SymbolType : int;
+namespace Logic { struct FunctionNamespaceDetails; }
+
+
+class CLASS_DECL_ZEDITO ScintillaColorizer
+{
+public:
+    struct HtmlProcessor;
+
+    // colorize an existing Scintilla control
+    ScintillaColorizer(Scintilla::CScintillaCtrl& scintilla_ctrl, Sci_Position start_pos, Sci_Position end_pos);
+
+    // colorize text that is not part of a Scintilla control
+    ScintillaColorizer(int lexer_language, std::string_view text_sv);
+
+    // colorize for HTML
+    enum class HtmlProcessorType { FullHtml, SpanOnly, ContentOnly };
+    std::string GetHtml(std::variant<HtmlProcessorType, HtmlProcessor*> html_processor_or_type);
+
+    // colorize for the CSPro Users Forum
+    std::string GetCSProUsersForumCode();
+
+    // colorize for the CSPro Users Blog
+    std::string GetCSProUsersBlogCode();
+
+    // style lookups
+    LexerStyle GetStyle(unsigned char style_index);
+    const char* GetHtmlColor(COLORREF color);
+
+
+    struct Entity
+    {
+        std::string text;
+        unsigned char style_index;
+    };
+
+    struct ExtendedEntity
+    {
+        std::string text;
+        unsigned char style_index;
+        std::variant<std::monostate, SymbolType, const Logic::FunctionNamespaceDetails*> details;
+        std::vector<std::tuple<std::string, std::string>> entity_spanning_tags;
+        std::vector<std::tuple<std::string, std::string>> entity_specific_tags;
+    };
+
+    struct HtmlProcessor
+    {
+        virtual ~HtmlProcessor() { }
+
+        virtual void WriteHtmlHeader(std::stringstream& output) const = 0;
+        virtual void WriteHtmlFooter(std::stringstream& output) const = 0;
+
+        virtual std::vector<ExtendedEntity> GetExtendedEntities(const std::vector<Entity>& /*entities*/) const { return {}; }
+    };
+
+private:
+    void GenerateEntities(std::unique_ptr<char[]> chars_and_styles);
+
+private:
+    const std::map<unsigned char, LexerStyle>& m_styleMap;
+    std::vector<Entity> m_entities;
+};

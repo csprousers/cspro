@@ -1,7 +1,7 @@
 ﻿#include "StdAfx.h"
 #include "Filebrow.h"
 #include "Csdfdoc.h"
-#include <ZBRIDGEO/DataFileDlg.h>
+#include <zBridgeO/DataFileDlg.h>
 
 
 BEGIN_MESSAGE_MAP(CFilesBrow, CDialog)

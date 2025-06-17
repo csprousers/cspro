@@ -30,7 +30,7 @@
     <ClCompile Include="StdAfx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="TwoFldlg.cpp">
+    <ClCompile Include="TwoFileDialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="TypeDlg.cpp">
@@ -56,7 +56,7 @@
     <ClInclude Include="StdAfx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="TwoFldlg.h">
+    <ClInclude Include="TwoFileDialog.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="TypeDlg.h">

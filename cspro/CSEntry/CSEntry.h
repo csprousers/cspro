@@ -3,7 +3,7 @@
 //
 
 #include "BinaryCommandLineInfo.h"
-#include <ZBRIDGEO/npff.h>
+#include <zBridgeO/NPff.h>
 
 /////////////////////////////////////////////////////////////////////////////
 // CEntryrunApp:

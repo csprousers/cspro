@@ -2,7 +2,7 @@
 
 #include <zDesignerF/zDesignerF.h>
 #include <zDesignerF/UnfloatableDialogBar.h>
-#include <zEdit2O/ReadOnlyEditCtrl.h>
+#include <zEditO/ReadOnlyEditCtrl.h>
 
 
 class CLASS_DECL_ZDESIGNERF LogicReferenceWnd : public UnfloatableDialogBar

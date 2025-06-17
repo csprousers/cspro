@@ -15,7 +15,7 @@
 
 #include <zTableO/zTableO.h>
 #include <zTableO/Style.h>
-#include <engine/ttype.h>
+#include <engine/TableDef.h>
 
 class CDictItem;
 class CDictRecord;

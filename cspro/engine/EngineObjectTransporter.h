@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 #include <engine/Engdrv.h>
-#include <engine/INTERPRE.H>
+#include <engine/Interpreter.h>
 #include <engine/InterpreterAccessor.h>
 #include <zToolsO/CommonObjectTransporter.h>
 #include <zSyncO/SyncRunnerActionInvoker.h>

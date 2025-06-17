@@ -1,5 +1,5 @@
 ﻿//----------------------------------------------------------------------
-//  COMPISSA.CPP
+//  Compissa.cpp
 //----------------------------------------------------------------------
 #include "StandardSystemIncludes.h"
 
@@ -8,7 +8,7 @@
 #else
 #include "Tables.h"
 #endif
-#include "COMPILAD.H"
+#include "CompIlad.h"
 #include "Engine.h"
 #include "Ctab.h"
 #include "Preprocessor.h"

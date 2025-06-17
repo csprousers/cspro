@@ -3,7 +3,7 @@
 #include "EngineDictionary.h"
 #include "Nodes/Dictionaries.h"
 #include <zLogicO/BaseCompilerSettings.h>
-#include <engine/Dict.h>
+#include <engine/DicT.h>
 
 
 int LogicCompiler::CompileSyncFunctions()

@@ -5,13 +5,13 @@
 //---------------------------------------------------------------------------
 #include "StdAfx.h"
 #include <engine/3dException.h>
-#include <engine/BATIFAZ.H>
+#include <engine/BatIFaz.h>
 #include <engine/Ctab.h>
 #include <engine/IntDrive.h>
 #include <engine/ParadataDriver.h>
 #include <zEngineO/FileApplicationLoader.h>
 #include <zToolsO/WinSettings.h>
-#include <ZBRIDGEO/PifDlg.h>
+#include <zBridgeO/PifDlg.h>
 
 
 #ifdef _DEBUG

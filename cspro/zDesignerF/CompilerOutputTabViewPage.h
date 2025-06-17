@@ -3,7 +3,7 @@
 #include <zDesignerF/zDesignerF.h>
 #include <zDesignerF/ApplicationChildWnd.h>
 #include <zUToolO/oxtbvw.h>
-#include <zEdit2O/ReadOnlyEditCtrl.h>
+#include <zEditO/ReadOnlyEditCtrl.h>
 #include <zLogicO/ParserMessage.h>
 
 

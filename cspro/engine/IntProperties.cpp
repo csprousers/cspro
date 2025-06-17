@@ -1,5 +1,5 @@
 ﻿#include "StandardSystemIncludes.h"
-#include "INTERPRE.H"
+#include "Interpreter.h"
 #include "Engine.h"
 #include "ParameterManager.h"
 #include "VariableWorker.h"
@@ -10,7 +10,7 @@
 #include <zAppO/Properties/ApplicationProperties.h>
 #include <zDictO/DDClass.h>
 #include <zFormO/FormFile.h>
-#include <ZBRIDGEO/npff.h>
+#include <zBridgeO/NPff.h>
 #include <zParadataO/Logger.h>
 
 

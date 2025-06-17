@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include <Zsrcmgro/DesignerApplicationLoader.h>
+#include <zSrcMgrO/DesignerApplicationLoader.h>
 
 
 // --------------------------------------------------------------------------

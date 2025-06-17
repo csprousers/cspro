@@ -16,7 +16,7 @@
 #include <zDataO/DataRepositoryHelpers.h>
 #include <zDataO/ParadataWrapperRepository.h>
 #include <zParadataO/Logger.h>
-#include <ZBRIDGEO/npff.h>
+#include <zBridgeO/NPff.h>
 #include <zSyncO/AppSyncParamRunner.h>
 
 

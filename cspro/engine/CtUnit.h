@@ -14,10 +14,10 @@
 //---------------------------------------------------------------------------
 
 #include <engine/Defines.h>
-#include <ZTBDO/cttree.h>
+#include <zTbdO/cttree.h>
 class CtStat;
 
-#include <ZTBDO/ctstadef.h>
+#include <zTbdO/ctstadef.h>
 
 
 class CtUnit {

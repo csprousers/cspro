@@ -4,7 +4,7 @@
 //
 //--------------------------------------------------------------------------
 #include "StandardSystemIncludes.h"
-#include "INTERPRE.H"
+#include "Interpreter.h"
 #include "Engine.h"
 #include <zEngineO/Nodes/Dictionaries.h>
 #include <CSEntry/MessageOverrides.h>

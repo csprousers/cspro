@@ -6,13 +6,13 @@
 #include <zToolsO/SharedSettings.h>
 #include <zToolsO/Utf8.h>
 #include <zUtilO/FileDlg.h>
-#include <zUtilO/imsaStr.h>
+#include <zUtilO/ImsaStr.h>
 #include <zUtilO/Interapp.h>
 #include <zUtilO/WindowsWS.h>
 #include <zUtilO/WindowsUtf8.h>
-#include <zEdit2O/UWM.h>
+#include <zEditO/UWM.h>
 #include <zDictO/DDClass.h>
-#include <ZBRIDGEO/npff.h>
+#include <zBridgeO/NPff.h>
 #include <CSFreq/resource.h>
 #include <CSFreq/FreqDoc.h>
 #include <CSFreq/FreqView.h>

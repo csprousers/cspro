@@ -6,7 +6,7 @@
 #include "Nodes/Dictionaries.h"
 #include "Nodes/File.h"
 #include <zToolsO/DirectoryLister.h>
-#include <engine/Dict.h>
+#include <engine/DicT.h>
 
 
 LogicFile* LogicCompiler::CompileLogicFileDeclaration(const bool compiling_function_parameter)

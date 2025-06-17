@@ -25,7 +25,7 @@
 #include <zEngineO/ValueSet.h>
 #include <zToolsO/Tools.h>
 #include <zDictO/ValueProcessor.h>
-#include <ZBRIDGEO/npff.h>
+#include <zBridgeO/NPff.h>
 
 #ifdef _DEBUG
 #undef THIS_FILE

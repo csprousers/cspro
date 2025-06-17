@@ -189,7 +189,7 @@
       <Project>{a417c381-2afd-4889-ae6b-a15e8436da45}</Project>
       <Private>false</Private>
     </ProjectReference>
-    <ProjectReference Include="..\ZBRIDGEO\ZBRIDGEO.vcxproj">
+    <ProjectReference Include="..\zBridgeO\zBridgeO.vcxproj">
       <Project>{e525331a-400f-4d7c-9f69-451e14844a3b}</Project>
       <Private>false</Private>
     </ProjectReference>
@@ -213,7 +213,7 @@
       <Project>{b33d6166-52a8-453e-837e-e23b233149e9}</Project>
       <Private>false</Private>
     </ProjectReference>
-    <ProjectReference Include="..\zEdit2O\zEdit2O.vcxproj">
+    <ProjectReference Include="..\zEditO\zEditO.vcxproj">
       <Project>{adef6fc1-00ee-4f3a-84dd-43ee2f108bb0}</Project>
       <Private>false</Private>
     </ProjectReference>
@@ -233,7 +233,7 @@
       <Project>{eaa667d9-6593-4bf4-abe3-ca8231b4efec}</Project>
       <Private>false</Private>
     </ProjectReference>
-    <ProjectReference Include="..\zformf\Zformf.vcxproj">
+    <ProjectReference Include="..\zFormF\zFormF.vcxproj">
       <Project>{263e1e29-23a3-4ee4-a584-4c7388ca2cff}</Project>
       <Private>false</Private>
     </ProjectReference>
@@ -293,7 +293,7 @@
       <Project>{f067b9e5-0940-4a24-b1dd-29654408f28b}</Project>
       <Private>false</Private>
     </ProjectReference>
-    <ProjectReference Include="..\Zsrcmgro\ZSRCMGRO.vcxproj">
+    <ProjectReference Include="..\zSrcMgrO\zSrcMgrO.vcxproj">
       <Project>{89d69981-4131-4b75-8adb-a596219f7ed3}</Project>
       <Private>false</Private>
     </ProjectReference>
@@ -321,7 +321,7 @@
       <Project>{9b29cb57-8263-4e12-8908-cc9641fdf0dc}</Project>
       <Private>false</Private>
     </ProjectReference>
-    <ProjectReference Include="..\zUToolO\Zutoolo.vcxproj">
+    <ProjectReference Include="..\zUToolO\zUToolO.vcxproj">
       <Project>{28f15179-5b3d-4a06-a076-2774611ca534}</Project>
       <Private>false</Private>
     </ProjectReference>

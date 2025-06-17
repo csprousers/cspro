@@ -13,13 +13,13 @@
 //
 //---------------------------------------------------------------------------
 #include "StandardSystemIncludes.h"
-#include "INTERPRE.H"
+#include "Interpreter.h"
 #include "Engine.h"
 #include "CBorder.h"
 #include "Ctab.h"
 #include "Ctab_Helper.h"
 #include "ProgramControl.h"
-#include "VTSTRUCT.h"
+#include "VTStruct.h"
 #include <zEngineO/ValueSet.h>
 #include <zEngineO/WorkVariable.h>
 

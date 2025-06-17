@@ -1,7 +1,7 @@
 ﻿#include "stdafx.h"
 #include "Application.h"
 #include "Properties/ApplicationProperties.h"
-#include <zUtilO/AppLdr.h>
+#include <zUtilO/AppLoader.h>
 #include <zUtilO/ArrUtil.h>
 #include <zUtilO/TextSourceEditable.h>
 #include <zUtilO/TextSourceExternal.h>

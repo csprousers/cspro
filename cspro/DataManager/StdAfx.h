@@ -21,7 +21,7 @@
 #include <zUtilF/DialogValidators.h>
 #include <zUtilF/DocViewIterators.h>
 #include <zHtml/SharedHtmlLocalFileServer.h>
-#include <ZBRIDGEO/DataFileDlg.h>
+#include <zBridgeO/DataFileDlg.h>
 #include <zCaseO/StringVectorCaseConstructionReporter.h>
 #include <zDataO/ConnectionStringProperties.h>
 #include <zDataO/DictionarySource.h>

@@ -3,7 +3,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-#include <zUToolO/zUtoolO.h>
+#include <zUToolO/zUToolO.h>
 
 class CChildFrame : public COXMDIChildWndSizeDock
 {

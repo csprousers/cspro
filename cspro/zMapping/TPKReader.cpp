@@ -1,7 +1,7 @@
 ﻿#include "stdafx.h"
 #include "TPKReader.h"
 #include <zXml/SimpleXml.h>
-#include <zZipo/ZipFile.h>
+#include <zZip/ZipFile.h>
 
 
 // --------------------------------------------------------------------------

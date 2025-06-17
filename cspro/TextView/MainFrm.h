@@ -14,7 +14,7 @@
 //***************************************************************************
 
 #include <zUtilO/BCMenu.h>
-#include <TextView/Tvmisc.h>
+#include <TextView/TvMisc.h>
 
 // .ini file stuff
 #define INI_SECTION_WINDOWSIZE      _T("Window size")

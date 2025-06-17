@@ -9,7 +9,7 @@
 //
 //--------------------------------------------------------------------------
 #include "StandardSystemIncludes.h"
-#include "INTERPRE.H"
+#include "Interpreter.h"
 #include "Engine.h"
 #include "Ctab.h"
 #include "helper.h"
@@ -17,7 +17,7 @@
 #include <zEngineO/WorkVariable.h>
 #include <zEngineO/Nodes/Switch.h>
 #include <zDictO/ValueProcessor.h>
-#include <Zissalib/groupt2.h>
+#include <zIssaLib/GroupT2.h>
 
 
 /*--------------------------------------------------------------------------*/

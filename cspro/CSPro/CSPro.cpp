@@ -15,7 +15,7 @@
 #include <zUtilO/ArrUtil.h>
 #include <zUtilO/FileUtil.h>
 #include <zUtilO/TreeCtrlHelpers.h>
-#include <zUtilO/WinFocSw.h>
+#include <zUtilO/WindowFocusMgr.h>
 #include <zUtilF/CommonControls.h>
 #include <zUtilF/DocViewIterators.h>
 #include <zUtilF/ManageCredentialsDlg.h>

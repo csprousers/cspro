@@ -1,5 +1,5 @@
 ﻿//***************************************************************************
-//  File name: PrtNvBar.h
+//  File name: PrtNvBar.cpp
 //
 //  Description:
 //       Print view navigation dialog bar.
