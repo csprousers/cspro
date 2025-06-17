@@ -12,7 +12,7 @@
 //
 //***************************************************************************
 
-#include <zformf/zFormF.h>
+#include <zFormF/zFormF.h>
 
 class CDDTreeCtrl;
 class CFormNodeID;

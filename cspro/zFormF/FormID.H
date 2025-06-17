@@ -12,7 +12,7 @@
 //
 //***************************************************************************
 
-#include <zformf/zFormF.h>
+#include <zFormF/zFormF.h>
 #include <zAppO/Application.h>
 
 class CFormDoc;

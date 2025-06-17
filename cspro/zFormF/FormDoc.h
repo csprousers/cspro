@@ -1,7 +1,7 @@
 ﻿#pragma once
 
-#include <zformf/zFormF.h>
-#include <zformf/CapiEditorViewModel.h>
+#include <zFormF/zFormF.h>
+#include <zFormF/CapiEditorViewModel.h>
 #include <zUtilO/UndoStack.h>
 #include <zFormO/FormFile.h>
 #include <zDesignerF/FormFileBasedDoc.h>

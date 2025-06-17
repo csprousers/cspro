@@ -25,11 +25,11 @@
 #include <zDictF/Dddoc.h>
 #include <zDictF/DictTreeNode.h>
 #include <zEditO/UWM.h>
-#include <zformf/FrmChWnd.h>
-#include <zformf/FormDoc.h>
-#include <zformf/FormID.h>
-#include <zformf/FormView.h>
-#include <zformf/UWM.h>
+#include <zFormF/FrmChWnd.h>
+#include <zFormF/FormDoc.h>
+#include <zFormF/FormID.h>
+#include <zFormF/FormView.h>
+#include <zFormF/UWM.h>
 #include <zOrderF/OrdChWnd.H>
 #include <zOrderF/OrdDoc.H>
 #include <zOrderF/OSView.H>

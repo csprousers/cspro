@@ -1,8 +1,8 @@
 ﻿#pragma once
 
-#include <zformf/zFormF.h>
-#include <zformf/QSFEditToolbar.h>
-#include <zformf/QuestionTextEditor.h>
+#include <zFormF/zFormF.h>
+#include <zFormF/QSFEditToolbar.h>
+#include <zFormF/QuestionTextEditor.h>
 
 struct CapiStyle;
 

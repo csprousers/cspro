@@ -233,7 +233,7 @@
       <Project>{eaa667d9-6593-4bf4-abe3-ca8231b4efec}</Project>
       <Private>false</Private>
     </ProjectReference>
-    <ProjectReference Include="..\zformf\Zformf.vcxproj">
+    <ProjectReference Include="..\zFormF\zFormF.vcxproj">
       <Project>{263e1e29-23a3-4ee4-a584-4c7388ca2cff}</Project>
       <Private>false</Private>
     </ProjectReference>

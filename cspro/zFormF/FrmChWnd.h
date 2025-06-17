@@ -16,9 +16,9 @@
 /////////////////////////////////////////////////////////////////////////////
 // CFormChildWnd frame
 
-#include <zformf/zFormF.h>
-#include <zformf/SView.H>
-#include <zformf/FSplWnd.h>
+#include <zFormF/zFormF.h>
+#include <zFormF/SView.H>
+#include <zFormF/FSplWnd.h>
 #include <zFormO/FormFile.h>
 #include <zFormO/DragOptions.h>
 #include <zDesignerF/ApplicationChildWnd.h>

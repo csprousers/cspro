@@ -113,7 +113,7 @@
     <ClCompile Include="TableToolbarDropdown.cpp" />
     <ClCompile Include="TextFontDlg.cpp" />
     <ClCompile Include="TextPropertiesDlg.cpp" />
-    <ClCompile Include="tracker.cpp" />
+    <ClCompile Include="Tracker.cpp" />
     <ClCompile Include="zFormF.cpp" />
   </ItemGroup>
   <ItemGroup>

@@ -19,10 +19,10 @@
 //             ddddddd  ttttttttttt
 //***************************************************************************
 
-#include <zformf/zFormF.h>
-#include <zformf/DropRule.h>
-#include <zformf/FormGrid.h>
-#include <zformf/Tracker.h>
+#include <zFormF/zFormF.h>
+#include <zFormF/DropRule.h>
+#include <zFormF/FormGrid.h>
+#include <zFormF/Tracker.h>
 #include <zGrid2O/zGrid2O.h>
 
 class DictTreeNode;
@@ -83,13 +83,13 @@ public:
 //  funcs related to the tracker items; rename to reflect Items, rather than Boxes (once i get that part wkg)
     template<typename T>
     CFormTracker& AddTrackerT(const CRect& rect, int index);
-    
+
     void    AddTracker(const CRect& rect, int i, bool bIsFldTxt=false, bool bIsBoxSel=false);
     void    AddTracker(int i, CRect rect);
     void    AddTracker(const CFormTracker& track) { m_aTrackerItems.Add(track); }
 
     void    SetTrackerAt(int i, CFormTracker t) { m_aTrackerItems.SetAt (i,t); }
-    
+
     const CFormTracker& GetTracker(int i) const { return m_aTrackerItems[i]; }
     CFormTracker& GetTracker(int i)             { return m_aTrackerItems[i]; }
 
@@ -345,7 +345,7 @@ public:
     CDEItemBase*    m_pRightClickItem;   // ptr to the item over which a right click occurred
     CDERoster*      m_pRightClickRoster; // csc 9/11/00
     int             m_iRosterColIndex;   // smg 10-05-00; if editing the col, nds it's index
-	
+
 private:
     CFormDropRules  m_cRules;   // this member contains all the rules to eval a valid drop
 
@@ -374,5 +374,5 @@ public:
 private:
     CRect           m_pgRect;
 
-    bool            m_okToDrawTrackerOutlines;	
+    bool            m_okToDrawTrackerOutlines;
 };

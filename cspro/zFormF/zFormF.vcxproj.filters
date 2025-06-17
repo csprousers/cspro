@@ -147,7 +147,7 @@
     <ClCompile Include="TextPropertiesDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="tracker.cpp">
+    <ClCompile Include="Tracker.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="zFormF.cpp">
