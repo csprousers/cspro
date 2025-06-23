@@ -28,6 +28,8 @@ namespace
         L"Deprecation Warnings",
         L"Word Wrap",
 
+        L"Question Text",
+
         L"String Encoder: Split Newlines",
         L"String Encoder: Use Verbatim String Literals",
         L"String Encoder: Escape JSON Forward Slashes",

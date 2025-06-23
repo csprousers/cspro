@@ -120,6 +120,12 @@
     <ClCompile Include="QuestionTextHtmlEditor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="QuestionTextProperties.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="QuestionTextPropertiesDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="QuestionTextTextEditor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -332,6 +338,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="QuestionTextEditor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="QuestionTextProperties.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="QuestionTextPropertiesDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="resource.h">

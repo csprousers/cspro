@@ -21,6 +21,7 @@
 #include "QSFCndVw.h"
 #include "QSFEditStyleDlg.h"
 #include "QSFEView.h"
+#include "QuestionTextPropertiesDlg.h"
 #include "RunAsBatchDlg.h"
 #include "SyncParamsDlg.h"
 #include <zAppO/Application.h>
@@ -82,6 +83,8 @@ BEGIN_MESSAGE_MAP(CFormChildWnd, ApplicationChildWnd)
     ON_WM_CLOSE()
     ON_COMMAND(ID_ADDCAPI_LANG, OnAddcapiLang)
     ON_UPDATE_COMMAND_UI(ID_ADDCAPI_LANG, OnUpdateIfUsingQuestionText)
+    ON_COMMAND(ID_QSF_PROPERTIES, OnQuestionTextProperties)
+    ON_UPDATE_COMMAND_UI(ID_QSF_PROPERTIES, OnUpdateIfUsingQuestionText)
     ON_COMMAND(ID_CAPI_MACROS, OnCapiMacros)
     ON_UPDATE_COMMAND_UI(ID_CAPI_MACROS, OnUpdateIfUsingQuestionText)
     ON_COMMAND(ID_RUNAS_BCH, OnRunasBch)
@@ -1399,11 +1402,7 @@ void CFormChildWnd::DisplayEditorMode()
 {
     ASSERT(m_bUseQuestionText);
 
-    CFormDoc* const pFormDoc = assert_nullable_cast<CFormDoc*>(GetActiveDocument());
-
-    if( pFormDoc == nullptr )
-        return;
-
+    CFormDoc* const pFormDoc = assert_cast<CFormDoc*>(GetActiveDocument());
     const CapiQuestionManager* const question_manager = pFormDoc->GetCapiQuestionManager();
     ASSERT(question_manager != nullptr);
 
@@ -1890,6 +1889,32 @@ void CFormChildWnd::OnUpdateIfUsingQuestionText(CCmdUI* pCmdUI)
 {
     pCmdUI->Enable(m_bUseQuestionText ? TRUE : FALSE);
 }
+
+
+void CFormChildWnd::OnQuestionTextProperties()
+{
+    ASSERT(m_bUseQuestionText);
+
+    CFormDoc* const pFormDoc = assert_cast<CFormDoc*>(GetActiveDocument());
+    CapiQuestionManager* const question_manager = pFormDoc->GetCapiQuestionManager();
+    ASSERT(question_manager != nullptr);
+
+    std::optional<CapiText::Format> initial_application_capi_text_format = question_manager->GetDefaultCapiTextFormat();
+
+    QuestionTextPropertiesDlg dlg(initial_application_capi_text_format);
+
+    if( dlg.DoModal() != IDOK )
+        return;
+
+    if( initial_application_capi_text_format != dlg.GetDefaultApplicationCapiTextFormat() )
+    {
+        question_manager->SetDefaultCapiTextFormat(dlg.GetDefaultApplicationCapiTextFormat());
+        question_manager->SetModifiedFlag(true);
+    }
+
+    QuestionTextProperties::Set(dlg.GetQuestionTextProperties());
+}
+
 
 void CFormChildWnd::OnCapiMacros()
 {

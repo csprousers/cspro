@@ -77,12 +77,10 @@ namespace YAML
     template<>
     struct convert<CapiText::Format>
     {
-        static constexpr const char* FormatTexts[] = { "HTML", "HTML-Report", "Markdown-Report" };
-
         static Node encode(const CapiText::Format& rhs)
         {
-            ASSERT(static_cast<int>(rhs) < _countof(FormatTexts));
-            return Node(FormatTexts[static_cast<int>(rhs)]);
+            ASSERT(static_cast<int>(rhs) < _countof(CapiText::FormatTexts));
+            return Node(CapiText::FormatTexts[static_cast<int>(rhs)]);
         }
 
         static bool decode(const Node& node, CapiText::Format& rhs)
@@ -91,9 +89,9 @@ namespace YAML
             {
                 const std::string this_format_text = node.as<std::string>();
 
-                for( int i = 0; i < _countof(FormatTexts); ++i )
+                for( int i = 0; i < _countof(CapiText::FormatTexts); ++i )
                 {
-                    if( this_format_text == FormatTexts[i] )
+                    if( this_format_text == CapiText::FormatTexts[i] )
                     {
                         rhs = static_cast<CapiText::Format>(i);
                         return true;
@@ -220,6 +218,12 @@ std::string WriteToYaml(const CapiQuestionManager& question_manager)
     out << YAML::Key << "version";
     out << Versioning::CSProVersionText;
 
+    if( question_manager.GetDefaultCapiTextFormat().has_value() )
+    {
+        out << YAML::Key << "defaultFormat";
+        out << YAML::Value << *question_manager.GetDefaultCapiTextFormat();
+    }
+
     out << YAML::Key << "languages";
     out << YAML::Value << question_manager.GetLanguages();
 
@@ -326,6 +330,9 @@ void ReadFromYaml(CapiQuestionManager& question_manager, const YAML::Node& yaml)
 
     if( file_type != "Question Text" )
         throw CSProException("Invalid file type");
+
+    if( yaml["defaultFormat"] )
+        question_manager.SetDefaultCapiTextFormat(yaml["defaultFormat"].as<CapiText::Format>());
 
     std::vector<Language> languages = yaml["languages"].as<std::vector<Language>>();
 

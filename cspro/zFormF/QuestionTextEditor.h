@@ -2,6 +2,8 @@
 
 #include <zHtml/HtmlEditorCtrl.h>
 
+struct QuestionTextProperties;
+
 
 // --------------------------------------------------------------------------
 // QuestionTextEditor
@@ -196,4 +198,5 @@ private:
     class CustomLogicCtrl;
     std::unique_ptr<CLogicCtrl> m_logicCtrl;
     CapiText::Format m_format;
+    std::shared_ptr<const QuestionTextProperties> m_questionTextProperties;
 };

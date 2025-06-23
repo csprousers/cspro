@@ -145,6 +145,7 @@ protected:
     afx_msg void OnClose();
     afx_msg void OnAddcapiLang();
     afx_msg void OnUpdateIfUsingQuestionText(CCmdUI* pCmdUI);
+    afx_msg void OnQuestionTextProperties();
     afx_msg void OnCapiMacros();
     afx_msg void OnRunasBch();
     afx_msg void OnUpdateRunasBch(CCmdUI* pCmdUI);

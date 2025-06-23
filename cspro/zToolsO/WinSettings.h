@@ -31,6 +31,8 @@ public:
         DeprecationWarnings,
         WordWrap,
 
+        QuestionText,
+
         CodeLogicSplitNewlines,
         CodeLogicUseVerbatimStringLiterals,
         CodeEscapeJsonForwardSlashes,
