@@ -108,7 +108,7 @@ CFormChildWnd::CFormChildWnd()
         m_pQSFEditView2(nullptr),
         m_pQuestionnaireView(nullptr),
         m_bUseQuestionText(false),
-        m_eViewMode(FormViewMode),
+        m_viewMode(FormViewMode::Form),
         m_bAppAssociated(true),
         m_bFirstTime(true)
 {
@@ -628,14 +628,10 @@ bool CFormChildWnd::IsLogicViewActive()
         return true;
 }
 
+
 void CFormChildWnd::OnUpdateGenerateForm(CCmdUI* pCmdUI)
 {
-    if (GetViewMode() != FormViewMode) {
-        pCmdUI->Enable(FALSE);
-    }
-    else {
-        pCmdUI->Enable(TRUE);
-    }
+    pCmdUI->Enable(( GetViewMode() == FormViewMode::Form ));
 }
 
 
@@ -649,13 +645,7 @@ void CFormChildWnd::OnUpdateViewLogic(CCmdUI* pCmdUI)
     }
 
     pCmdUI->Enable(TRUE);
-    if(m_eViewMode == LogicViewMode){
-        pCmdUI->SetCheck(TRUE);
-    }
-    else {
-        pCmdUI->SetCheck(FALSE);
-    }
-
+    pCmdUI->SetCheck(( m_viewMode == FormViewMode::Logic ));
 }
 
 // *************************************************************************************
@@ -672,7 +662,7 @@ void CFormChildWnd::OnUpdateViewLogic(CCmdUI* pCmdUI)
 
 void CFormChildWnd::OnViewLogic()
 {
-    if(m_eViewMode == LogicViewMode){
+    if(m_viewMode == FormViewMode::Logic){
         DisplayActiveMode();
         return;
     }
@@ -686,7 +676,7 @@ void CFormChildWnd::OnViewLogic()
 
     if(m_pSourceEditView)   // then user trying to toggle off logic view via the menubar
     {
-        m_eViewMode = LogicViewMode;
+        m_viewMode = FormViewMode::Logic;
     }
 
 //  see if it's already active
@@ -788,7 +778,7 @@ void CFormChildWnd::OnViewLogic()
         return;
     }
 
-    m_eViewMode = LogicViewMode;
+    m_viewMode = FormViewMode::Logic;
     if(pFScrollView) {
         pFScrollView->ShowWindow(SW_HIDE);
     }
@@ -853,13 +843,7 @@ bool CFormChildWnd::IsFormViewActive()
 void CFormChildWnd::OnUpdateViewForm(CCmdUI* pCmdUI)
 {
     pCmdUI->Enable(TRUE);
-    if(m_eViewMode == FormViewMode){
-        pCmdUI->SetCheck(TRUE);
-    }
-    else {
-        pCmdUI->SetCheck(FALSE);
-    }
-
+    pCmdUI->SetCheck(( m_viewMode == FormViewMode::Form ));
 }
 
 // *************************************************************************************
@@ -869,7 +853,7 @@ void CFormChildWnd::OnViewForm()
     // in the event the form tree ctrl is up, but somebody else is in the view, do this
     // in the event the form tree ctrl is up, but somebody else is in the view, do this
     CFormDoc* pDoc = (CFormDoc*) GetActiveDocument();
-    if(m_eViewMode == FormViewMode){
+    if(m_viewMode == FormViewMode::Form){
         DisplayActiveMode();
         return;
     }
@@ -882,7 +866,7 @@ void CFormChildWnd::OnViewForm()
 
 //  see if it's already active
     if(!m_pSourceEditView){
-        m_eViewMode = FormViewMode;
+        m_viewMode = FormViewMode::Form;
         DisplayActiveMode();
 
         if( m_bUseQuestionText && pDoc->GetFormTreeCtrl()->m_bSendMsg )
@@ -944,7 +928,7 @@ void CFormChildWnd::OnViewForm()
         m_logicReferenceWnd.ShowWindow(SW_HIDE);
     }
 
-    m_eViewMode = FormViewMode;
+    m_viewMode = FormViewMode::Form;
     pFScrollView->ShowWindow(SW_SHOW);
     pFScrollView->SetDlgCtrlID(iID);
     SetActiveView(pFScrollView);
@@ -1069,8 +1053,8 @@ void CFormChildWnd::OnEditOptions()
         pDoc->UpdateAllViews(nullptr, Hint::UseQuestionTextChanged);
 
         // transition from CAPI to non-CAPI
-        if( m_eViewMode == QSFEditorViewMode )
-            m_eViewMode = FormViewMode;
+        if( m_viewMode == FormViewMode::QuestionText )
+            m_viewMode = FormViewMode::Form;
     }
 
     DisplayActiveMode();
@@ -1413,102 +1397,81 @@ void CFormChildWnd::DisplayQuestionnaireViewMode()
 /////////////////////////////////////////////////////////////////////////////////
 void CFormChildWnd::DisplayEditorMode()
 {
-    CFormDoc* pFormDoc = (CFormDoc*) GetActiveDocument();
+    ASSERT(m_bUseQuestionText);
 
-    if(!pFormDoc)
+    CFormDoc* const pFormDoc = assert_nullable_cast<CFormDoc*>(GetActiveDocument());
+
+    if( pFormDoc == nullptr )
         return;
 
+    const CapiQuestionManager* const question_manager = pFormDoc->GetCapiQuestionManager();
+    ASSERT(question_manager != nullptr);
+
     // check if there are multiple lanuages
-    m_bMultiLangMode = false;
+    m_bMultiLangMode = ( question_manager->GetLanguages().size() > 1 );
 
-    Application* pApplication = nullptr;
-    AfxGetMainWnd()->SendMessage(UWM::Designer::GetApplication, (WPARAM)&pApplication, (LPARAM)pFormDoc);
-
-    if( pApplication != nullptr && pApplication->GetUseQuestionText() )
+    if( m_bMultiLangMode && !m_bHideSecondLang )
     {
-        CArray<CLangInfo, CLangInfo&> aLangInfo;
-        AfxGetMainWnd()->SendMessage(UWM::Form::GetCapiLanguages, (WPARAM)&aLangInfo, (LPARAM)pFormDoc);
-
-        if( aLangInfo.GetSize() > 1 )
-            m_bMultiLangMode = true;
-    }
-
-
-    if(m_bMultiLangMode && !m_bHideSecondLang) {
         DisplayMultiLangMode();
     }
-    else {
+
+    else
+    {
         DisplaySingleLangMode();
     }
 
-    if(m_pQSFEditView1 && m_pQSFEditView2) {
-        if(m_bMultiLangMode && bInterfaceRequest){
+    if( m_pQSFEditView1 != nullptr && m_pQSFEditView2 != nullptr )
+    {
+        if( m_bMultiLangMode && bInterfaceRequest )
+        {
             bInterfaceRequest = false;
-            if(m_pQSFEditView2->GetNumLanguages()  > 1) {
+
+            if( m_pQSFEditView2->GetNumLanguages() > 1 )
                 m_pQSFEditView2->SetLanguage(1);
-            }
         }
     }
-
-    return;
 }
+
 
 void CFormChildWnd::DisplayActiveMode()
 {
-    if(m_bUseQuestionText) {
-        switch(m_eViewMode){
-        case FormViewMode:
-            DisplayQuestionTextMode(true);
+    switch( m_viewMode )
+    {
+        case FormViewMode::Form:
+            m_bUseQuestionText ? DisplayQuestionTextMode(true) : DisplayNoQuestionTextMode(true);
             break;
-        case LogicViewMode:
-            DisplayQuestionTextMode(false);
+
+        case FormViewMode::Logic:
+            m_bUseQuestionText ? DisplayQuestionTextMode(false) : DisplayNoQuestionTextMode(false);
             break;
-        case QSFEditorViewMode:
+
+        case FormViewMode::QuestionText:
             DisplayEditorMode();
             break;
-        case QuestionnaireViewMode:
+
+        case FormViewMode::QuestionnaireView:
             DisplayQuestionnaireViewMode();
             break;
+
         default:
-            ASSERT(FALSE);
+            ASSERT(false);
             break;
-        }
-    }
-    else {
-        switch(m_eViewMode){
-        case FormViewMode:
-            DisplayNoQuestionTextMode(true);
-            break;
-        case LogicViewMode:
-            DisplayNoQuestionTextMode(false);
-            break;
-        case QSFEditorViewMode:
-            DisplayEditorMode();
-            break;
-        case QuestionnaireViewMode:
-            DisplayQuestionnaireViewMode();
-            break;
-        default:
-            ASSERT(FALSE);
-            break;
-        }
     }
 }
-
 
 
 void CFormChildWnd::OnQsfEditor()
 {
-    if(m_eViewMode==QSFEditorViewMode)
+    if( m_viewMode == FormViewMode::QuestionText )
         return;
 
-    if(m_eViewMode == LogicViewMode || m_eViewMode == QuestionnaireViewMode){
+    if(m_viewMode == FormViewMode::Logic || m_viewMode == FormViewMode::QuestionnaireView){
         OnViewForm();
     }
     CFormDoc* pFormDoc = (CFormDoc*) GetActiveDocument();
 
     bInterfaceRequest = true;
-    m_eViewMode=QSFEditorViewMode;
+    m_viewMode = FormViewMode::QuestionText;
     DisplayActiveMode();
     //Update text
     CFormTreeCtrl* pTreeCtrl = pFormDoc->GetFormTreeCtrl();
@@ -1522,19 +1485,10 @@ void CFormChildWnd::OnQsfEditor()
 
 void CFormChildWnd::OnUpdateQsfEditor(CCmdUI* pCmdUI)
 {
-    if(m_bUseQuestionText){
-        pCmdUI->Enable(TRUE);
-        if(m_eViewMode == QSFEditorViewMode){
-            pCmdUI->SetCheck(TRUE);
-        }
-        else {
-            pCmdUI->SetCheck(FALSE);
-        }
-    }
-    else {
-        pCmdUI->Enable(FALSE);
-    }
+    pCmdUI->Enable(m_bUseQuestionText);
 
+    if( m_bUseQuestionText )
+        pCmdUI->SetCheck(( m_viewMode == FormViewMode::QuestionText ));
 }
 
 
@@ -1903,8 +1857,8 @@ void CFormChildWnd::OnAddcapiLang()
 {
     //Get the lang info from the mainframe
     //Now instantiate the dialog
-    if(m_eViewMode == QSFEditorViewMode) {
-        m_eViewMode = FormViewMode;
+    if(m_viewMode == FormViewMode::QuestionText) {
+        m_viewMode = FormViewMode::Form;
         DisplayActiveMode();
     }
     CFormDoc* pFormDoc = (CFormDoc*) GetActiveDocument();
@@ -1927,7 +1881,7 @@ void CFormChildWnd::OnAddcapiLang()
     WindowsDesktopMessage::Send(UWM::Form::UpdateCapiLanguages, &dlg.m_Langgrid.m_aLangInfo, pFormDoc);
     pFormDoc->UpdateAllViews(nullptr, Hint::CapiEditorUpdateLanguages);
 
-    if( m_eViewMode == QSFEditorViewMode )
+    if( m_viewMode == FormViewMode::QuestionText )
         DisplayEditorMode();
 }
 
@@ -2105,7 +2059,7 @@ CFormDoc* CFormChildWnd::PreRunPublish()
         return pFormDoc;
     }
 
-    else if (m_eViewMode == QSFEditorViewMode || m_eViewMode == QuestionnaireViewMode) {
+    else if (m_viewMode == FormViewMode::QuestionText || m_viewMode == FormViewMode::QuestionnaireView) {
         return pFormDoc;
     }
     else {
@@ -2244,7 +2198,8 @@ void CFormChildWnd::RunMultipleFieldPropertiesDialog(std::vector<CDEField*>* sel
 void CFormChildWnd::OnOptionsFieldProperties()
 {
     RunMultipleFieldPropertiesDialog(nullptr, nullptr, _T(""));
-    if (m_eViewMode == QuestionnaireViewMode)
+
+    if( m_viewMode == FormViewMode::QuestionnaireView )
         DisplayActiveMode();
 }
 
@@ -2284,14 +2239,14 @@ bool CFormChildWnd::IsQuestionTextModified() const
 
 void CFormChildWnd::OnViewQuestionnaire()
 {
-    if (m_eViewMode == QuestionnaireViewMode)
+    if( m_viewMode == FormViewMode::QuestionnaireView )
         return;
 
-    if (m_eViewMode == LogicViewMode || m_eViewMode == QSFEditorViewMode) {
+    if( m_viewMode == FormViewMode::Logic || m_viewMode == FormViewMode::QuestionText )
         OnViewForm();
-    }
+
     bInterfaceRequest = true;
-    m_eViewMode = QuestionnaireViewMode;
+    m_viewMode = FormViewMode::QuestionnaireView;
     DisplayActiveMode();
     AfxGetMainWnd()->SendMessage(UWM::Designer::ShowToolbar, (WPARAM)FrameType::Form);
 }
@@ -2300,10 +2255,5 @@ void CFormChildWnd::OnViewQuestionnaire()
 void CFormChildWnd::OnUpdateViewQuestionnaire(CCmdUI* pCmdUI)
 {
     pCmdUI->Enable(TRUE);
-    if (m_eViewMode == QuestionnaireViewMode) {
-        pCmdUI->SetCheck(TRUE);
-    }
-    else {
-        pCmdUI->SetCheck(FALSE);
-    }
+    pCmdUI->SetCheck(( m_viewMode == FormViewMode::QuestionnaireView ));
 }

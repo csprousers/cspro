@@ -5160,12 +5160,12 @@ void CFormScrollView::OnDeleteForm()
     m_bAddRFT = false;
 
     CFormChildWnd* pParent = assert_cast<CFormChildWnd*>(GetParentFrame());
-    if (pParent->GetViewMode() != FormViewMode) { //switch to formview
+    if (pParent->GetViewMode() != FormViewMode::Form) { //switch to formview
         pParent->OnViewForm();
     }
-    if (pGroup == nullptr)
-
+    if (pGroup == nullptr) {
         ASSERT (false);     // little prob here folx...
+    }
     else
     {
         if (OkToDeleteForm())   // now that user can undo delete, don't ask if they're sure!

@@ -157,7 +157,7 @@ void CFormTreeCtrl::OnSelchanging(NMHDR* pNMHDR, LRESULT* pResult)
     if(m_bSendMsg && pView){
         CFormChildWnd* pFrame = (CFormChildWnd*)pView->GetParentFrame();
 
-        if(pFrame->GetViewMode() != QSFEditorViewMode){
+        if(pFrame->GetViewMode() != FormViewMode::QuestionText){
           if (pView && !pView->IsWindowVisible()){
 
 
@@ -206,8 +206,8 @@ void CFormTreeCtrl::OnSelchanged (NMHDR* pNMHDR, LRESULT* pResult)
         if(!pFrame)
             return;
 
-        bool bSendSourceViewMessage = pFrame->GetSourceView() && (pFrame->GetSourceView()->IsWindowVisible() || pFrame->GetViewMode() == LogicViewMode);
-        bool bSendQuestionViewMessage = pFrame->GetQuestionnaireView() && (pFrame->GetQuestionnaireView()->IsWindowVisible() || pFrame->GetViewMode() == QuestionnaireViewMode);
+        bool bSendSourceViewMessage = pFrame->GetSourceView() && (pFrame->GetSourceView()->IsWindowVisible() || pFrame->GetViewMode() == FormViewMode::Logic);
+        bool bSendQuestionViewMessage = pFrame->GetQuestionnaireView() && (pFrame->GetQuestionnaireView()->IsWindowVisible() || pFrame->GetViewMode() == FormViewMode::QuestionnaireView);
         if(bSendSourceViewMessage || bSendQuestionViewMessage)
         {
             CFormID* pCurrentId = pID;
@@ -258,12 +258,12 @@ void CFormTreeCtrl::OnSelchanged (NMHDR* pNMHDR, LRESULT* pResult)
             if( bActivate )
                 pFrame->ActivateFrame();
 
-            if( m_bSendMsg && pFrame->GetViewMode() == FormViewMode )
+            if( m_bSendMsg && pFrame->GetViewMode() == FormViewMode::Form )
             {
                 WindowsDesktopMessage::Send(UWM::Form::ShowCapiText, pDoc);
             }
 
-            else if( m_bSendMsg && pFrame->GetViewMode() == QSFEditorViewMode )
+            else if( m_bSendMsg && pFrame->GetViewMode() == FormViewMode::QuestionText )
             {
                 pDoc->SetSelectedCapiQuestion(pID);
                 pDoc->UpdateAllViews(nullptr, Hint::CapiEditorUpdateQuestionStyles);
@@ -1779,7 +1779,7 @@ void CFormTreeCtrl::DeleteActiveItem (HTREEITEM origTI)
     CFormScrollView*    pView = GetFormView();
 
     CFormChildWnd* pFrame = (CFormChildWnd*)pView->GetParentFrame();
-    if (pFrame->GetViewMode() != FormViewMode) {
+    if (pFrame->GetViewMode() != FormViewMode::Form) {
         return;
     }
     pFormDoc->SetModifiedFlag(true);    // mark the file as dirty
@@ -3233,11 +3233,11 @@ void CFormTreeCtrl::OnRButtonUp(UINT nFlags, CPoint point)
 
     CFormScrollView*    pFV = GetFormView();    // get the currently displayed form
     CFormChildWnd* pFrame = (CFormChildWnd*)pFV->GetParentFrame();
-    bool bIsFormViewActive = pFrame->GetViewMode() == FormViewMode;
+    bool bIsFormViewActive = ( pFrame->GetViewMode() == FormViewMode::Form );
     UINT deleteFlags = 0;
 
     // get the proper form up in the view
-    const bool isQuestionnaireView = ( pFrame->GetViewMode() == QuestionnaireViewMode );
+    const bool isQuestionnaireView = ( pFrame->GetViewMode() == FormViewMode::QuestionnaireView );
 
     pFV->TreeSelectionChanged(GetSelectedFormItems());
 
@@ -3385,7 +3385,7 @@ void CFormTreeCtrl::OnRButtonUp(UINT nFlags, CPoint point)
                 popMenu.AppendMenu(MF_SEPARATOR);
                 popMenu.AppendMenu(MF_STRING | MF_GRAYED, ID_SHOW_BOXTOOLBAR, _T("Add &Text"));
                 popMenu.AppendMenu(MF_STRING | MF_GRAYED, ID_ADD_FORM, _T("Add &Boxes"));
-                popMenu.AppendMenu(pFrame->GetViewMode() == QuestionnaireViewMode ? MF_STRING | MF_GRAYED : MF_STRING, ID_ADD_FORM, _T("Add &Form"));
+                popMenu.AppendMenu(pFrame->GetViewMode() == FormViewMode::QuestionnaireView ? MF_STRING | MF_GRAYED : MF_STRING, ID_ADD_FORM, _T("Add &Form"));
                 popMenu.AppendMenu(MF_STRING | (addBlockEnabled && !isQuestionnaireView ? 0 : MF_GRAYED), ID_ADD_BLOCK, _T("Add B&lock"));
                 popMenu.AppendMenu(MF_SEPARATOR);
             }
