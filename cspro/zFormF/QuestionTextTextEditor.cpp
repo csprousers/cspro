@@ -1,6 +1,7 @@
 ﻿#include "StdAfx.h"
 #include "QuestionTextEditor.h"
 #include <zToolsO/Encoders.h>
+#include <zMarkdown/Markdown.h>
 
 
 // --------------------------------------------------------------------------
@@ -332,7 +333,7 @@ void QuestionTextTextEditor::InsertImage(const std::string& image_url)
 
     else
     {
-        WrapSelection(FormatText("![](%s)", ToMarkdownUrl(image_url).c_str()), nullptr);
+        WrapSelection(FormatText("![](%s)", CreateMarkdownUrl(image_url).c_str()), nullptr);
     }
 }
 
@@ -398,16 +399,9 @@ void QuestionTextTextEditor::InsertLink(const std::string& text, const std::stri
     else
     {
         const std::string link = FormatText("[%s](%s)", Encoders::ToMarkdown(text).c_str(),
-                                                        ToMarkdownUrl(url).c_str());
+                                                        CreateMarkdownUrl(url).c_str());
         WrapSelection(link, nullptr);
     }
-}
-
-
-std::string QuestionTextTextEditor::ToMarkdownUrl(std::string url)
-{
-    // because ) closes the URL, replace it with its percent-encoded equivalent
-    return SO::Replace(url, ")", "%29");
 }
 
 

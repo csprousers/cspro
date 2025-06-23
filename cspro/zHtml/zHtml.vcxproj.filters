@@ -87,6 +87,9 @@
     <ClCompile Include="HtmlishSanitizer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="HtmlMarkdownConverter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="HtmlTemplates.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -176,6 +179,9 @@
     <ClInclude Include="HtmlBrowserView.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="HtmlConverter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="HtmlDlgBase.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -189,9 +195,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="HtmlTemplates.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="HtmlTextConverter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="HtmlViewCtrl.h">

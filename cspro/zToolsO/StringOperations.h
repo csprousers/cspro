@@ -286,6 +286,7 @@ public:
 
     // makes sure that newlines are only "\n", not "\r\n"
     static void MakeNewlineLF(std::string& text);
+    static std::string ToNewlineLF(std::string text);
     CLASS_DECL_ZTOOLSO static void MakeNewlineLF(std::wstring& text);
     static std::wstring ToNewlineLF(std::wstring text);
 
@@ -1156,6 +1157,13 @@ inline void SO::MakeNewlineLF(std::string& text)
     SO::Replace(replace_test, "\r", "\n");
     ASSERT(replace_test == text);
 #endif
+}
+
+
+inline std::string SO::ToNewlineLF(std::string text)
+{
+    SO::MakeNewlineLF(text);
+    return text;
 }
 
 

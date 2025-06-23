@@ -203,6 +203,12 @@ std::unique_ptr<std::string> Encoders::ToMarkdownWorker(const std::string_view t
 }
 
 
+std::string Encoders::GetMarkdownNonHtmlEscapeChars()
+{
+    return std::string(MarkdownEscapeChars_sv.substr(HtmlEscapeChars_sv.length()));
+}
+
+
 
 // --------------------------------------------------------------------------
 // PERCENT-ENCODING + URI
