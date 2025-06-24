@@ -35,7 +35,7 @@ inline bool CodeDocVirtualFileMappingHandler::ServeDocumentContent(VirtualFileMa
 
     // if not found, search by pointer
     if( code_doc == nullptr )
-        code_doc = m_mainFrame.FindDocument(m_filePath);
+        code_doc = m_mainFrame.FindDocument(&m_document);
 
     // if the document is still open, get the current text
     if( code_doc != nullptr )
@@ -50,7 +50,7 @@ inline bool CodeDocVirtualFileMappingHandler::ServeDocumentContent(VirtualFileMa
 
             if( !m_filePath.empty() )
                 mime_type = MimeType::GetServerTypeFromFileExtension(PortableFunctions::PathGetFileExtension(m_filePath));
-                
+
             if( !mime_type.has_value() )
                 mime_type = Lexers::GetLexerDefaultServerMimeType(code_doc->GetLanguageSettings().GetLexerLanguage());
 
