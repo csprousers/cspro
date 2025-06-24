@@ -63,7 +63,7 @@
 #define ID_FILE_NEW_DOCUMENT_SET        40018
 #define ID_FILE_SAVE_ALL                40019
 #define ID_FORMAT_BOLD                  40020
-#define ID_FORMAT_ITALICS               40021
+#define ID_FORMAT_ITALIC                40021
 #define ID_FORMAT_FONT_TAG              40022
 #define ID_FORMAT_SUBHEADER             40023
 #define ID_FORMAT_CENTER                40024

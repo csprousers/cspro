@@ -298,7 +298,7 @@ void CSDocFrame::WrapSelectionInTags(const char* const start_tag, const char* co
 void CSDocFrame::OnFormatStyle(const UINT nID)
 {
     ( nID == ID_FORMAT_BOLD )        ? WrapSelectionInTags("<b>",                 "</b>") :
-    ( nID == ID_FORMAT_ITALICS )     ? WrapSelectionInTags("<i>",                 "</i>") :
+    ( nID == ID_FORMAT_ITALIC )      ? WrapSelectionInTags("<i>",                 "</i>") :
     ( nID == ID_FORMAT_FONT_TAG )    ? WrapSelectionInTags("<font ...>",          "</font>") :
     ( nID == ID_FORMAT_SUBHEADER )   ? WrapSelectionInTags("<subheader>",         "</subheader>") :
     ( nID == ID_FORMAT_CENTER )      ? WrapSelectionInTags("<center>",            "</center>") :

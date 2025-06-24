@@ -329,7 +329,7 @@ void ExcelFrequencyPrinterWorker::AddTotalAndRows()
     // if necessary, indicate why the cumulative columns are not filled
     if( m_frequencyTable->has_multiple_labels_per_value )
     {
-        lxw_format* const warning_format = CreateFormat(ExcelWriter::Format::Italics | ExcelWriter::Format::LineOnLeft |
+        lxw_format* const warning_format = CreateFormat(ExcelWriter::Format::Italic | ExcelWriter::Format::LineOnLeft |
                                                         ExcelWriter::Format::Center | ExcelWriter::Format::Middle | ExcelWriter::Format::TextWrap);
         const uint16_t cumulative_start_column = m_totalColumns - 1 - ( m_showNetPercents ? 2 : 1 );
         m_excelWriter.WriteMerged(starting_row, cumulative_start_column, m_row - 1, m_totalColumns - 1, FPH::NoCumulativeColumnsWarning, warning_format);

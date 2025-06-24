@@ -12,7 +12,7 @@ public:
 
     bool IsFontDefined(FontType font_type) const;
     CFont* GetFont(FontType font_type) const;
-    bool SetFont(FontType font_type, const std::wstring& font_name, int font_size, bool is_bold, bool is_italics);
+    bool SetFont(FontType font_type, const std::wstring& font_name, int font_size, bool is_bold, bool is_italic);
     void ResetFont(FontType font_type);
 
 private:

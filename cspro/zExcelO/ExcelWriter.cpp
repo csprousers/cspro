@@ -195,7 +195,7 @@ lxw_format* ExcelWriter::GetFormat(const Format format, const char* const numeri
     if( selected(Format::Bold) )
         format_set_bold(excel_format);
 
-    if( selected(Format::Italics) )
+    if( selected(Format::Italic) )
         format_set_italic(excel_format);
 
     if( selected(Format::Underline) )

@@ -40,13 +40,13 @@ CFont* UserDefinedFonts::GetFont(FontType font_type) const
 }
 
 
-bool UserDefinedFonts::SetFont(FontType font_type, const std::wstring& font_name, int font_size, bool is_bold, bool is_italics)
+bool UserDefinedFonts::SetFont(FontType font_type, const std::wstring& font_name, int font_size, bool is_bold, bool is_italic)
 {
     auto new_font = std::make_unique<CFont>();
 
     BOOL create_font_success = new_font->CreateFont(-1 * font_size, 0, 0, 0,
                                                     is_bold ? FW_BOLD : FW_NORMAL,
-                                                    is_italics,
+                                                    is_italic,
                                                     FALSE, 0, ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, FF_DONTCARE,
                                                     font_name.c_str());
 
@@ -69,7 +69,7 @@ bool UserDefinedFonts::SetFont(FontType font_type, const std::wstring& font_name
 
     if( !SO::EqualsNoCase(font_name, szFaceName) ||
         ( tm.tmWeight != ( is_bold ? FW_BOLD : FW_NORMAL ) ) ||
-        ( ( tm.tmItalic != 0 ) != is_italics ) )
+        ( ( tm.tmItalic != 0 ) != is_italic ) )
     {
         DeleteObject(new_font.get());
         return false;

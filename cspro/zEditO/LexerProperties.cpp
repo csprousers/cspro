@@ -248,7 +248,7 @@ std::vector<std::tuple<int, LexerStyle>> LexerProperties::GetExternalLanguageSty
 std::vector<std::tuple<int, LexerStyle>> LexerProperties::GetMarkdownStylesWorker()
 {
     constexpr COLORREF BoldColor           = RGB(70, 130, 180);
-    constexpr COLORREF ItalicsColor        = RGB(185, 135, 10);
+    constexpr COLORREF ItalicColor         = RGB(185, 135, 10);
     constexpr COLORREF HeaderColor         = RGB(0, 135, 50);
     constexpr COLORREF BulletsColor        = RGB(30, 0, 150);
     constexpr COLORREF LinkColor           = RGB(30, 145, 255);
@@ -263,8 +263,8 @@ std::vector<std::tuple<int, LexerStyle>> LexerProperties::GetMarkdownStylesWorke
         { SCE_MARKDOWN_DEFAULT,    { LexerColor::Default } },
         { SCE_MARKDOWN_STRONG1,    { BoldColor, LexerStyle::NoOverride, true, false } },
         { SCE_MARKDOWN_STRONG2,    { BoldColor, LexerStyle::NoOverride, true, false } },
-        { SCE_MARKDOWN_EM1,        { ItalicsColor, LexerStyle::NoOverride, false, true } },
-        { SCE_MARKDOWN_EM2,        { ItalicsColor, LexerStyle::NoOverride, false, true } },
+        { SCE_MARKDOWN_EM1,        { ItalicColor, LexerStyle::NoOverride, false, true } },
+        { SCE_MARKDOWN_EM2,        { ItalicColor, LexerStyle::NoOverride, false, true } },
         { SCE_MARKDOWN_HEADER1,    { HeaderColor } },
         { SCE_MARKDOWN_HEADER2,    { HeaderColor } },
         { SCE_MARKDOWN_HEADER3,    { HeaderColor } },

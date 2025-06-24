@@ -11,7 +11,7 @@ namespace FTD // frequency table definitions
     constexpr int TitlePaddingBottom = 10;
 
     constexpr COLORREF NoCumulativeColumnsColor = RGB(50, 50, 50);
-    constexpr bool NoCumulativeColumnsItalics   = true;
+    constexpr bool NoCumulativeColumnsItalic    = true;
 
     constexpr int PercentDecimals = 1;
 
@@ -175,7 +175,7 @@ void TableFrequencyPrinterWorker::Initialize()
         {
             LOGFONT lf;
             format->GetFont()->GetLogFont(&lf);
-            lf.lfItalic = FTD::NoCumulativeColumnsItalics;
+            lf.lfItalic = FTD::NoCumulativeColumnsItalic;
             format->SetFont(&lf);
             format->SetTextColor(FMT_COLOR{ FTD::NoCumulativeColumnsColor, false });
         });
@@ -228,11 +228,11 @@ void TableFrequencyPrinterWorker::SetupPageAndEndNote()
                 }
 
                 if( m_table->m_bHasFreqStats )
-                    format->SetIncludeEndNote(true);                    
+                    format->SetIncludeEndNote(true);
             });
-    
+
         m_table->SetFmt(table_format);
-    }        
+    }
 }
 
 
@@ -246,7 +246,7 @@ void TableFrequencyPrinterWorker::SetupColumns()
     label_table_var->SetName(UTF8_TODO::GetCString(m_frequencyTable->symbol_name));
     label_table_var->SetText(( m_frequencyTable->dict_item != nullptr ) ? m_frequencyTable->dict_item->GetLabel() :
                                                                           UTF8_TODO::GetCString(m_frequencyTable->symbol_name));
-    label_table_var->SetFmt(table_tally_format);        
+    label_table_var->SetFmt(table_tally_format);
 
     // add the total row
     CTabValue* const first_column_total_cell = new CTabValue();
@@ -425,7 +425,7 @@ void TableFrequencyPrinterWorker::AddTotalAndRows()
 
         std::string display_label = frequency_row.display_label;
 
-        // modify the default label for notappl and the formatted value for default 
+        // modify the default label for notappl and the formatted value for default
         if( std::holds_alternative<double>(frequency_row.values.front()) )
         {
             if( frequency_row.value_is_blank )
@@ -462,7 +462,7 @@ void TableFrequencyPrinterWorker::AddTotalAndRows()
             label_cell->SetFmt(row_format);
 
         label_cell->SetText(UTF8_TODO::GetCString(display_label));
-			
+
         table_var->GetArrTabVals().Add(label_cell);
 
         fill_row(label_cell, out_of_range_row, line_on_bottom_row, frequency_row.count, m_frequencyTable->frequency_row_statistics[i]);
@@ -563,7 +563,7 @@ TableFrequencyPrinter::~TableFrequencyPrinter()
     // save the tables
     m_worker->Save(m_filePath);
 }
-    
+
 
 void TableFrequencyPrinter::Print(const FrequencyTable& frequency_table)
 {

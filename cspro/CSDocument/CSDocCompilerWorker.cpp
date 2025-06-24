@@ -13,7 +13,7 @@ namespace
     constexpr std::string_view IndentTag_sv                 = "indent";
     constexpr std::string_view CenterTag_sv                 = "center";
     constexpr std::string_view BoldTag_sv                   = "b";
-    constexpr std::string_view ItalicsTag_sv                = "i";
+    constexpr std::string_view ItalicTag_sv                 = "i";
     constexpr std::string_view SuperscriptTag_sv            = "sup";
     constexpr std::string_view FontTag_sv                   = "font";
     constexpr std::string_view ListTag_sv                   = "list";
@@ -76,7 +76,7 @@ const CSDocCompilerWorker::SD& CSDocCompilerWorker::GetStaticData()
             { IndentTag_sv,        TagDefinition { true,   &IndentStartHandler, &EndTagWithContentsOfTextStack, 0, 1 } },
             { CenterTag_sv,        TagDefinition { true,   "<div align=\"center\">", "</div>" } },
             { BoldTag_sv,          TagDefinition { true,   HT::Bold[0], HT::Bold[1] } },
-            { ItalicsTag_sv,       TagDefinition { true,   HT::Italics[0], HT::Italics[1] } },
+            { ItalicTag_sv,        TagDefinition { true,   HT::Italic[0], HT::Italic[1] } },
             { SuperscriptTag_sv,   TagDefinition { true,   "<sup>", "</sup>" } },
             { FontTag_sv,          TagDefinition { true,   &FontStartHandler, "</span>", 1, 3 } },
             { ListTag_sv,          TagDefinition { true,   &ListStartHandler, &EndTagWithContentsOfTextStack, 0, 1 } },

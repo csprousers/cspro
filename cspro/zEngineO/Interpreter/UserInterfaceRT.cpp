@@ -396,7 +396,7 @@ double LogicInterpreter::ex_setfont(const int program_index)
     const SharableString font_name = EvaluateSharableString(setfont_node.font_name_expression);
     const int font_size = Evaluate<int>(setfont_node.font_size_expression);
 
-    if( !user_defined_fonts->SetFont(font_type, TC::ToWide(*font_name), font_size, is_attribute(Nodes::SetFont::BoldMask), is_attribute(Nodes::SetFont::ItalicsMask)) )
+    if( !user_defined_fonts->SetFont(font_type, TC::ToWide(*font_name), font_size, is_attribute(Nodes::SetFont::BoldMask), is_attribute(Nodes::SetFont::ItalicMask)) )
         return 0;
 
     if( font_type == UserDefinedFonts::FontType::ValueSets ||
