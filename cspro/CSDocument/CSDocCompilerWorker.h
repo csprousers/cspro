@@ -165,6 +165,7 @@ private:
     std::string ColorStartHandler(cs::span<const std::string> tag_components);
     std::string ColorEndHandler(const std::string& inner_text);
     std::string ColorInlineEndHandler(const std::string& inner_text);
+    std::string ColorTagEndHandler(const std::string& inner_text);
     std::string ColorEndHandlerWorker(const std::string& inner_text, HelpsHtmlProcessorMode mode);
 
     std::string PffEndHandler(const std::string& inner_text);

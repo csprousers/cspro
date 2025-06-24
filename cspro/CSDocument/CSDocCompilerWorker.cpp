@@ -37,6 +37,7 @@ namespace
     constexpr std::string_view ReportTag_sv                 = "report";
     constexpr std::string_view ColorTag_sv                  = "color";
     constexpr std::string_view ColorInlineTag_sv            = "colorinline";
+    constexpr std::string_view ColorTagTag_sv               = "colortag";
     constexpr std::string_view PffTag_sv                    = "pff";
     constexpr std::string_view PffColorTag_sv               = "pffcolor";
     constexpr std::string_view HtmlTag_sv                   = "html";
@@ -100,6 +101,7 @@ const CSDocCompilerWorker::SD& CSDocCompilerWorker::GetStaticData()
             { ReportTag_sv,        TagDefinition { true,   &ReportStartHandler, &ReportEndHandler, 0, 1 } },
             { ColorTag_sv,         TagDefinition { true,   &ColorStartHandler, &ColorEndHandler, 1, 1 } },
             { ColorInlineTag_sv,   TagDefinition { true,   &ColorStartHandler, &ColorInlineEndHandler, 1, 1 } },
+            { ColorTagTag_sv,      TagDefinition { true,   &ColorStartHandler, &ColorTagEndHandler, 1, 1 } },
             { PffTag_sv,           TagDefinition { true,   { }, &PffEndHandler } },
             { PffColorTag_sv,      TagDefinition { true,   { }, &PffColorEndHandler } },
             { HtmlTag_sv,          TagDefinition { true,   { }, { } } },
@@ -121,6 +123,7 @@ const CSDocCompilerWorker::SD& CSDocCompilerWorker::GetStaticData()
                                                 MessageTag_sv,
                                                 ReportTag_sv,
                                                 ColorTag_sv,
+                                                ColorTagTag_sv,
                                                 PffTag_sv,
                                                 HtmlTag_sv,
                                                 MdTag_sv } )

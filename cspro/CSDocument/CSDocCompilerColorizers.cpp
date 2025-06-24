@@ -1001,6 +1001,7 @@ std::string CSDocCompilerWorker::ColorStartHandler(const cs::span<const std::str
 
     m_lexerLanguage = SO::StartsWithNoCase(language_name, "C++" )        ? SCLEX_CPP :
                       SO::StartsWithNoCase(language_name, "cspro_v0" )   ? SCLEX_CSPRO_LOGIC_V0 :
+                      SO::StartsWithNoCase(language_name, "csdoc" )      ? SCLEX_CSPRO_DOCUMENT :
                       SO::StartsWithNoCase(language_name, "HTML" )       ? SCLEX_HTML :
                       SO::StartsWithNoCase(language_name, "JavaScript" ) ? SCLEX_JAVASCRIPT :
                       SO::StartsWithNoCase(language_name, "JSON" )       ? SCLEX_JSON :
@@ -1009,6 +1010,7 @@ std::string CSDocCompilerWorker::ColorStartHandler(const cs::span<const std::str
                       SO::StartsWithNoCase(language_name, "message" )    ? SCLEX_CSPRO_MESSAGE_V8_0 :
                       SO::StartsWithNoCase(language_name, "SQL" )        ? SCLEX_SQL :
                       SO::StartsWithNoCase(language_name, "text" )       ? SCLEX_NULL :
+                      SO::StartsWithNoCase(language_name, "YAML" )       ? SCLEX_YAML :
                                                                            throw CSProException("Coloring the language '%s' is not supported.", language_name.c_str());
 
     return std::string();
@@ -1024,6 +1026,17 @@ std::string CSDocCompilerWorker::ColorEndHandler(const std::string& inner_text)
 std::string CSDocCompilerWorker::ColorInlineEndHandler(const std::string& inner_text)
 {
     return ColorEndHandlerWorker(inner_text, HelpsHtmlProcessorMode::Inline);
+}
+
+
+std::string CSDocCompilerWorker::ColorTagEndHandler(const std::string& inner_text)
+{
+    // to support coloring block tags, replace &lt; with <, so a tag like <md> can be specified as:
+    // <colortag csdoc>&lt;md></colortag>
+    std::string unescaped_inner_text = inner_text;
+    SO::Replace(unescaped_inner_text, "&lt;", "<");
+
+    return ColorEndHandlerWorker(unescaped_inner_text, HelpsHtmlProcessorMode::Inline);
 }
 
 
