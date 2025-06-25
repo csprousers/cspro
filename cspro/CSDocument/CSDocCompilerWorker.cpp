@@ -16,6 +16,7 @@ namespace
     constexpr std::string_view ItalicTag_sv                 = "i";
     constexpr std::string_view SuperscriptTag_sv            = "sup";
     constexpr std::string_view FontTag_sv                   = "font";
+    constexpr std::string_view NoWrapTag_sv                 = "nowrap";
     constexpr std::string_view ListTag_sv                   = "list";
     constexpr std::string_view ListItemTag_sv               = "li";
     constexpr std::string_view SubheaderTag_sv              = "subheader";
@@ -80,6 +81,7 @@ const CSDocCompilerWorker::SD& CSDocCompilerWorker::GetStaticData()
             { ItalicTag_sv,        TagDefinition { true,   HT::Italic[0], HT::Italic[1] } },
             { SuperscriptTag_sv,   TagDefinition { true,   "<sup>", "</sup>" } },
             { FontTag_sv,          TagDefinition { true,   &FontStartHandler, "</span>", 1, 3 } },
+            { NoWrapTag_sv,        TagDefinition { true,   "<span style=\"white-space: nowrap;\">", "</span>" } },
             { ListTag_sv,          TagDefinition { true,   &ListStartHandler, &EndTagWithContentsOfTextStack, 0, 1 } },
             { ListItemTag_sv,      TagDefinition { true,   "<li>", "</li>" } },
             { SubheaderTag_sv,     TagDefinition { true,   HT::Subheader[0], HT::Subheader[1] } },
