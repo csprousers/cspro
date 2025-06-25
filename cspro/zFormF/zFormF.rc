@@ -1634,11 +1634,12 @@ BEGIN
     ID_OPTIONS_MAPPING      "Set mapping options"
     ID_OPTIONS_SYNCHRONIZATION "Set synchronization options"
     ID_QSF_EDITOR           "View currently-selected CAPI Questions\nCAPI Questions"
-    ID_QSF_EDITOR_EDIT_HTML_VISUAL "Edit HTML visually\nEdit HTML Visually"
-    ID_QSF_EDITOR_EDIT_HTML_VISUAL_CODE "Edit HTML code\nEdit HTML Code"
-    ID_QSF_EDITOR_EDIT_TEXT_HTML "Edit as HTML report\nEdit as HTML Report"
+    ID_QSF_EDITOR_EDIT_HTML_VISUAL "Edit HTML visually\nEdit HTML visually"
+    ID_QSF_EDITOR_EDIT_HTML_VISUAL_CODE "Edit HTML code\nEdit HTML code"
+    ID_QSF_EDITOR_EDIT_TEXT_HTML 
+                            "Edit as HTML text template\nEdit as HTML text template"
     ID_QSF_EDITOR_EDIT_TEXT_MARKDOWN 
-                            "Edit as Markdown report\nEdit as Markdown Report"
+                            "Edit as Markdown text template\nEdit as Markdown text template"
     ID_QSF_EDITOR_VIEW_QUESTION "View the question text\nView Question Text"
     ID_QSF_EDITOR_VIEW_HELP "View the help text\nView Help Text"
     ID_QSF_PROPERTIES       "Modify properties used when editing question text\nQuestion Text Properties"

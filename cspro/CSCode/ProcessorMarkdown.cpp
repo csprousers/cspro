@@ -34,9 +34,9 @@ void ProcessorMarkdown::SaveAsHtml(CodeDoc& code_doc)
 }
 
 
-void ProcessorMarkdown::SaveReportAsHtml(CodeDoc& code_doc)
+void ProcessorMarkdown::SaveTextTemplateAsHtml(CodeDoc& code_doc)
 {
-    // save Markdown reports to HTML using the output of the text template preview
+    // save Markdown text templates to HTML using the output of the text template preview
     SaveAsHtml(code_doc,
         [&](const std::string& markdown_file_path, const std::string_view markdown_sv)
         {

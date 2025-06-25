@@ -301,7 +301,7 @@ void CodeFrame::PopulateRunMenu(CMenu& popup_menu)
             dynamic_menu_builder.AddOption(ID_RUN_STOP, L"Stop");
     }
 
-    if( doc_language_settings.CanViewReportPreview() )
+    if( doc_language_settings.CanViewTextTemplatePreview() )
     {
         dynamic_menu_builder.AddSeparator();
         dynamic_menu_builder.AddOption(ID_RUN_PREVIEW_TEXT_TEMPLATE, L"Preview Text Template\tCtrl+F5");
@@ -337,7 +337,7 @@ void CodeFrame::PopulateRunMenu(CMenu& popup_menu)
 
 
     // add Markdown options
-    if( view_language_settings.GetLanguageType() == LanguageType::CSProReportMarkdown ||
+    if( view_language_settings.GetLanguageType() == LanguageType::CSProTextTemplateMarkdown ||
         view_language_settings.GetLanguageType() == LanguageType::Markdown )
     {
         dynamic_menu_builder.AddSeparator();
@@ -452,8 +452,8 @@ void CodeFrame::OnRunPreviewTextTemplate()
 
     try
     {
-        const bool html_type = ( doc_language_settings.GetLanguageType() == LanguageType::CSProReportHtml );
-        ASSERT(html_type || doc_language_settings.GetLanguageType() == LanguageType::CSProReportMarkdown);
+        const bool html_type = ( doc_language_settings.GetLanguageType() == LanguageType::CSProTextTemplateHtml );
+        ASSERT(html_type || doc_language_settings.GetLanguageType() == LanguageType::CSProTextTemplateMarkdown);
 
         m_textTemplatePreviewer = std::make_unique<TextTemplatePreviewer>(code_doc.GetActualOrTempFilePath(html_type ? FileExtensions::HTML : FileExtensions::Markdown),
                                                                           logic_ctrl->GetText(),
@@ -473,7 +473,7 @@ void CodeFrame::OnUpdateRunPreviewTextTemplate(CCmdUI* const pCmdUI)
 {
     const LanguageSettings& doc_language_settings = GetCodeDoc().GetLanguageSettings();
 
-    pCmdUI->Enable(doc_language_settings.CanViewReportPreview());
+    pCmdUI->Enable(doc_language_settings.CanViewTextTemplatePreview());
 }
 
 
@@ -586,8 +586,8 @@ void CodeFrame::OnRunSaveAsHtml()
 
     switch( code_doc.GetLanguageSettings().GetLanguageType() )
     {
-        case LanguageType::CSProReportMarkdown:
-            ProcessorMarkdown::SaveReportAsHtml(code_doc);
+        case LanguageType::CSProTextTemplateMarkdown:
+            ProcessorMarkdown::SaveTextTemplateAsHtml(code_doc);
             break;
 
         case LanguageType::Markdown:

@@ -7,7 +7,7 @@ public:
     static void Run(CodeDoc& code_doc);
 
     static void SaveAsHtml(CodeDoc& code_doc);
-    static void SaveReportAsHtml(CodeDoc& code_doc);
+    static void SaveTextTemplateAsHtml(CodeDoc& code_doc);
 
 private:
     template<typename CF>

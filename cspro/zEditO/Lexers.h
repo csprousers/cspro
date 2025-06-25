@@ -31,24 +31,24 @@ public:
     }
 
 
-    static constexpr bool IsCSProReportHtml(int lexer_language)
+    static constexpr bool IsCSProTextTemplateHtml(int lexer_language)
     {
         return ( lexer_language == SCLEX_CSPRO_REPORT_HTML_V0 ||
                  lexer_language == SCLEX_CSPRO_REPORT_HTML_V8_0 );
     }
 
 
-    static constexpr bool IsCSProReportMarkdown(int lexer_language)
+    static constexpr bool IsCSProTextTemplateMarkdown(int lexer_language)
     {
         return ( lexer_language == SCLEX_CSPRO_REPORT_MARKDOWN_V0 ||
                  lexer_language == SCLEX_CSPRO_REPORT_MARKDOWN_V8_0 );
     }
 
 
-    static constexpr bool IsCSProReport(int lexer_language)
+    static constexpr bool IsCSProTextTemplate(int lexer_language)
     {
-        return ( IsCSProReportHtml(lexer_language) ||
-                 IsCSProReportMarkdown(lexer_language) ||
+        return ( IsCSProTextTemplateHtml(lexer_language) ||
+                 IsCSProTextTemplateMarkdown(lexer_language) ||
                  lexer_language == SCLEX_CSPRO_REPORT_V0 ||
                  lexer_language == SCLEX_CSPRO_REPORT_V8_0 );
     }
@@ -57,7 +57,7 @@ public:
     static constexpr bool UsesCSProLogic(int lexer_language)
     {
         return ( IsCSProLogic(lexer_language) ||
-                 IsCSProReport(lexer_language) );
+                 IsCSProTextTemplate(lexer_language) );
     }
 
 

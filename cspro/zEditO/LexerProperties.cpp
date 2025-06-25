@@ -79,12 +79,12 @@ std::vector<std::tuple<int, LexerStyle>> LexerProperties::GetStylesWorker(const 
             { SCE_CSPRO_FUNCTION_NAMESPACE_CHILD,   { RGB(0, 175, 200) } },
             { SCE_CSPRO_NAMED_ARGUMENT,             { LexerColor::JY_PropertyName } },
 
-            // report colors
+            // text template colors
             { SCE_CSPRO_REPORT_DOUBLE_TILDE,        { RGB(161, 126, 0) } },
             { SCE_CSPRO_REPORT_TRIPLE_TILDE,        { RGB(210, 82, 22) } },
             { SCE_CSPRO_REPORT_LOGIC_TAG,           { RGB(216, 60, 135) } },
 
-            // HTML report colors
+            // HTML text template colors
             { SCE_CSPRO_REPORT_HTML_DEFAULT,        { LexerColor::HtmlDefault } },
             { SCE_CSPRO_REPORT_HTML_TAG,            { LexerColor::HtmlTag } },
             { SCE_CSPRO_REPORT_HTML_ATTR,           { LexerColor::HtmlAttribute } },
@@ -98,8 +98,8 @@ std::vector<std::tuple<int, LexerStyle>> LexerProperties::GetStylesWorker(const 
             { SCE_CSPRO_DOCUMENT_VALUE,             { LexerColor::HtmlQuote } },
         };
 
-        // for Markdown reports, add the Markdown colors
-        if( Lexers::IsCSProReportMarkdown(lexer_language) )
+        // for Markdown text templates, add the Markdown colors
+        if( Lexers::IsCSProTextTemplateMarkdown(lexer_language) )
             VectorHelpers::Append(styles, GetMarkdownStylesWorker());
 
         return styles;
