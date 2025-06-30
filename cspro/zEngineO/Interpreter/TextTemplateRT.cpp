@@ -90,6 +90,10 @@ SharableString LogicInterpreter::EncodeText(SharableString text, const Symbol& s
         const StringWriter& string_writer = assert_cast<const StringWriter&>(symbol);
         ASSERT(std::holds_alternative<SharableString>(string_writer.GetOutput()));
 
+        // no encoding if the StringWriter does not define an encoding
+        if( string_writer.GetEncodeType() == EncodeType::Default )
+            return text;
+
         return EncodeText(std::move(text), string_writer.GetEncodeType());
     }
 
