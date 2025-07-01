@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
   xmlns:tools="http://schemas.android.com/tools"
   android:installLocation="auto"
-  android:versionCode="20250616"
+  android:versionCode="20250619"
   android:versionName="8.0.1">
 
   <supports-screens
