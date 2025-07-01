@@ -188,16 +188,26 @@ const CapiQuestion* CapiQuestionManager::GetQuestion(const std::string& item_nam
 }
 
 
-void CapiQuestionManager::SetQuestion(CapiQuestion question)
+void CapiQuestionManager::SetQuestion(CapiQuestion question, const bool set_only_when_defined/* = false*/)
 {
+    const bool clear_question = ( set_only_when_defined && !question.IsDefined() );
+
     auto lookup = m_questions.find(question.GetItemName());
 
     if( lookup != m_questions.end() )
     {
-        lookup->second = std::move(question);
+        if( clear_question )
+        {
+            m_questions.erase(lookup);
+        }
+
+        else
+        {
+            lookup->second = std::move(question);
+        }
     }
 
-    else
+    else if( !clear_question )
     {
         m_questions.try_emplace(question.GetItemName(), std::move(question));
     }

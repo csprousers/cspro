@@ -68,7 +68,7 @@ void CapiEditorViewModel::SetText(const size_t language_index, const CapiText::T
     condition.SetText(std::move(capi_text), language_name, type);
     question.SetCondition(std::move(condition));
 
-    m_questionManager->SetQuestion(std::move(question));
+    m_questionManager->SetQuestion(std::move(question), true);
 }
 
 

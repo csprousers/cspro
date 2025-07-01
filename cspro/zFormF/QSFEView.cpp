@@ -409,7 +409,7 @@ void CQSFEView::SetCorrectEditor()
 }
 
 
-void CQSFEView::UpdateDisplayText()
+void CQSFEView::UpdateDisplayText(const CapiText::Format* const format_for_undefined_capi_text/* = nullptr*/)
 {
     CFormDoc* const form_doc = GetFormDoc();
     CapiEditorViewModel& view_model = form_doc->GetCapiEditorViewModel();
@@ -420,6 +420,9 @@ void CQSFEView::UpdateDisplayText()
         m_currentEditor->GetWnd().EnableWindow(TRUE);
 
         std::optional<CapiText> existing_capi_text = view_model.GetText<std::optional<CapiText>>(m_languageIndex, m_textTypeEditing);
+
+        if( !existing_capi_text.has_value() && format_for_undefined_capi_text != nullptr )
+            existing_capi_text.emplace(SharableString(), *format_for_undefined_capi_text);
 
         if( existing_capi_text.has_value() )
         {
@@ -957,12 +960,16 @@ void CQSFEView::OnChangeEditorType(const UINT nID)
             ASSERT(m_application != nullptr);
             CapiTextConverter converter(m_application->GetLogicSettings(), m_currentCapiText, output_format);
 
-            if( AfxMessageBox(converter.GetConfirmationMessage(), MB_YESNOCANCEL | MB_ICONEXCLAMATION) != IDYES )
+            // confirm the change (when the text is defined)
+            if( !SO::IsWhitespace(m_currentCapiText.GetText().GetString()) &&
+                AfxMessageBox(converter.GetConfirmationMessage(), MB_YESNOCANCEL | MB_ICONEXCLAMATION) != IDYES )
+            {
                 return;
+            }
 
             view_model.SetText(m_languageIndex, m_textTypeEditing, converter.Convert());
 
-            UpdateDisplayText();
+            UpdateDisplayText(&output_format);
 
             if( use_html_editor )
                 ensure_correct_html_editor_showing();

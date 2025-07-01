@@ -50,7 +50,7 @@ public:
     // questions
     // --------------------------------------------------------------------------
     const CapiQuestion* GetQuestion(const std::string& item_name) const;
-    void SetQuestion(CapiQuestion question);
+    void SetQuestion(CapiQuestion question, bool set_only_when_defined = false);
     std::vector<CapiQuestion> GetQuestions() const;
     std::vector<CapiQuestion> GetQuestionsSortedInFormOrder() const;
     void RemoveQuestion(const std::string& item_name);

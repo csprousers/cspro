@@ -127,7 +127,7 @@ private:
 
     void SetCorrectEditor();
 
-    void UpdateDisplayText();
+    void UpdateDisplayText(const CapiText::Format* format_for_undefined_capi_text = nullptr);
     void UpdateToolbar();
 
     void StartIdleTimer();
