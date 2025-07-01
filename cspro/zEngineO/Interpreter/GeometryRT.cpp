@@ -189,12 +189,12 @@ double LogicInterpreter::ex_Geometry_tracePolygon_walkPolygon(const int program_
 
     if( captured_polygon != nullptr )
     {
-        logic_geometry->SetGeometry(std::move(*captured_polygon));
-
-        BinaryDataMetadata& binary_data_metadata = logic_geometry->GetMetadata();
+        BinaryDataMetadata binary_data_metadata;
         binary_data_metadata.SetProperty("label", trace_polgyon ? "Polygon (Traced)" : "Polygon (Walked)");
         binary_data_metadata.SetProperty("source", trace_polgyon ? "Geometry.tracePolygon" : "Geometry.walkPolygon");
         binary_data_metadata.SetProperty("timestamp", GetTimestamp());
+
+        logic_geometry->SetGeometry(std::move(*captured_polygon), std::move(binary_data_metadata));
 
         return 1;
     }

@@ -35,8 +35,8 @@ public:
     void Load(std::string file_path);
     void Save(std::string file_path);
 
-    void SetGeometry(std::shared_ptr<Geometry::FeatureCollection> geometry);
-    void SetGeometry(Geometry::Polygon polygon);
+    void SetGeometry(std::shared_ptr<Geometry::FeatureCollection> geometry, BinaryDataMetadata binary_data_metadata);
+    void SetGeometry(Geometry::Polygon polygon, BinaryDataMetadata binary_data_metadata);
 
     std::string GetProperty(const std::string& key) const;
     void SetProperty(const std::string& key, const std::variant<double, SharableString>& value);

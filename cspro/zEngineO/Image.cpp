@@ -214,8 +214,9 @@ void LogicImage::Resample(const int width, const int height)
 
     SetImage(m_runtimeData->image->GetResizedImage(width, height));
 
-    // if saved, the content must be modified
     m_binarySymbolData.SetBinaryData(CreateBinaryDataContentFromImageCallback());
+
+    // clear the path because the content no longer matches what may have been loaded from the disk
     m_binarySymbolData.ClearPath();
 }
 
@@ -263,7 +264,6 @@ void LogicImage::Load(std::unique_ptr<const Multimedia::Image> image, std::strin
 
     SetImage(std::move(image));
 
-    // if saved, the content must be modified
     m_binarySymbolData.SetBinaryData(CreateBinaryDataContentFromImageCallback(), std::move(path_or_filename));
 }
 
