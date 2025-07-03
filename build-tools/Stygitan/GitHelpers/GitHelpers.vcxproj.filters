@@ -15,6 +15,12 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="GitAccessor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GitCommit.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="GitHelpers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -29,6 +35,12 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="GitAccessor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GitCommit.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="GitHelpers.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

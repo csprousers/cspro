@@ -213,11 +213,10 @@ void Creator::GenerateFileList(const cs::string_sz commit_string)
 template<typename git_oidT>
 std::string Creator::ObjectIdToString(const git_oidT* const oid)
 {
-    constexpr size_t SHA256HexSize = 64;
-    char buffer[SHA256HexSize + 1];
+    char buffer[GIT_OID_MAX_HEXSIZE + 1];
 
     return std::string(git_oid_tostr(buffer, _countof(buffer), oid),
-                       SHA256HexSize);
+                       GIT_OID_MAX_HEXSIZE);
 }
 
 

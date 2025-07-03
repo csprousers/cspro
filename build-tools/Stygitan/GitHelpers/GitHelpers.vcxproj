@@ -22,12 +22,16 @@
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="GitAccessor.h" />
+    <ClInclude Include="GitCommit.h" />
     <ClInclude Include="GitHelpers.h" />
     <ClInclude Include="GitHelpersDlg.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="StdAfx.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="GitAccessor.cpp" />
+    <ClCompile Include="GitCommit.cpp" />
     <ClCompile Include="GitHelpers.cpp" />
     <ClCompile Include="GitHelpersDlg.cpp" />
     <ClCompile Include="StdAfx.cpp">
@@ -36,6 +40,16 @@
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="GitHelpers.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\cspro\zToolsO\zToolsO.vcxproj">
+      <Project>{fb0e28ec-927d-41d0-996c-01c21a7a346b}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\cspro\zUtilO\zUtilO.vcxproj">
+      <Project>{9b29cb57-8263-4e12-8908-cc9641fdf0dc}</Project>
+      <Private>false</Private>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>
