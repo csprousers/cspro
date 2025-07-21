@@ -334,7 +334,7 @@ bool CCalcDriver::LoadBreak( CString csCurrentBreakKey, int iBreakKeyNum, CArray
             // GetInfo
             pKey = pTbiFile->GetCurrentReg();
 
-            ASSERT( CTbdFile::GetTableNum(pKey, sizeof(short)) == iCtab + 1 );
+            ASSERT( CTbdFile::GetTableNum(pKey, sizeof(TCHAR)) == iCtab + 1 );
 
             lFilePos = pTbiFile->GetCurrentOffset()-1;
             pszKey = pKey + sizeof(short)/sizeof(TCHAR);

@@ -40,7 +40,7 @@ bool CCompIFaz::C_CompilerInit( CString* pcsLines, bool& bSomeError )// RHF Jun 
 {
     bSomeError = false;
     m_pEngineDriver->InitAppName();
-    m_pEngineArea->inittables();
+    // m_pEngineArea->inittables(); moved inittables call to LoadApplChildren, to get the number of crosstabs dynamically after the scantables adds the symbols     
 
     // load the messages
     m_pEngineDriver->BuildMessageManagers();

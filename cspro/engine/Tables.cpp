@@ -21,12 +21,14 @@
 //---------------------------------------------------------
 //  inittables: allocates internal tables
 //---------------------------------------------------------
-int CEngineArea::inittables()
+int CEngineArea::inittables(bool bClearSymbolTable /*= true*/)
 {
-    mem_model();
+    int estimatedTables = static_cast<int>(m_engineData->crosstabs.size());
+    mem_model(estimatedTables);
 
     // install symbol table
-    GetSymbolTable().Clear();
+    if(bClearSymbolTable)
+        GetSymbolTable().Clear();
 
     CtNodenext = 0;
     if (CtNodemxent > 0) {
@@ -47,9 +49,9 @@ int CEngineArea::inittables()
 //----------------------------------------------------------
 //  mem_model : setup size of tables to be used
 //----------------------------------------------------------
-void CEngineArea::mem_model()
+void CEngineArea::mem_model(int iEstimatedTables /*=200*/)
 {
-    int iEstimatedTables = 200; //99;
+    //int iEstimatedTables = 200; //99;
     //Savy increasing memory to fix Tom's problem when tabulation application crashes.
     //the current model allocates 192K . Increasing it to ~19MB by increasing the multiplying factor from 10 t0 1000
     CtNodemxent = iEstimatedTables * 1000 * (sizeof(CTNODE) + 2 * sizeof(CTRANGE));
