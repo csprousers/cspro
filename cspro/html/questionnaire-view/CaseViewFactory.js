@@ -33,6 +33,7 @@ class Item extends FormElement {
         //setting labels per language
         //QSF text
         dataJson["qsfText-lang"] = factory.resolveLabelLanguage(dataJson.qsfText);
+        dataJson["helpText-lang"] = factory.resolveLabelLanguage(dataJson.helpText);
         dataJson["dcfLabel-lang"] = factory.resolveLabelLanguage(dataJson.dcfLabel);
 
         //Values
@@ -85,6 +86,7 @@ class Block extends FormElement {
 
         //QSF text
         dataJson["qsfText-lang"] = factory.resolveLabelLanguage(dataJson.qsfText);
+        dataJson["helpText-lang"] = factory.resolveLabelLanguage(dataJson.helpText);
         dataJson["label-lang"] = factory.resolveLabelLanguage(dataJson.label);
 
         var templateName = factory.getTemplateName(`${this.type}Template`);
@@ -124,12 +126,19 @@ class Roster extends FormElement {
 
         //QSF text
         dataJson["qsfText-lang"] = factory.resolveLabelLanguage(dataJson.qsfText);
+        dataJson["helpText-lang"] = factory.resolveLabelLanguage(dataJson.helpText);
         dataJson["label-lang"] = factory.resolveLabelLanguage(dataJson.label);
 
         //item language labels
         if (dataJson.horizontal && dataJson.horizontal.items && dataJson.horizontal.items.length > 0) {
             dataJson.horizontal.items.forEach(function (item) {
+                if(item.block){
+                    item.block["qsfText-lang"] = factory.resolveLabelLanguage(item.block.qsfText);
+                    item.block["helpText-lang"] = factory.resolveLabelLanguage(item.block.helpText);
+                    item.block["dcfLabel-lang"] = factory.resolveLabelLanguage(item.block.dcfLabel);
+                }
                 item["qsfText-lang"] = factory.resolveLabelLanguage(item.qsfText);
+                item["helpText-lang"] = factory.resolveLabelLanguage(item.helpText);
                 item["dcfLabel-lang"] = factory.resolveLabelLanguage(item.dcfLabel);
             });
         }
@@ -285,6 +294,7 @@ class Roster extends FormElement {
                             name: "",
                             label: roster.flat.occurrences[i].cells[j].block.label,
                             qsfText: roster.flat.occurrences[i].cells[j].block.qsfText,
+                            helpText: roster.flat.occurrences[i].cells[j].block.helpText,
                             items: []
                         };
                         newCells.push(block);
