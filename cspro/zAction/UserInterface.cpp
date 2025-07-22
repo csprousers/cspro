@@ -67,6 +67,7 @@ ActionInvoker::Result ActionInvoker::Runtime::UI_setWebViewOptions(const JsonNod
 
             permissions->emplace_back(
                 ( permission_sv == "camera" )      ? WebViewPermission::Camera :
+                ( permission_sv == "geolocation" ) ? WebViewPermission::Geolocation :
                 ( permission_sv == "microphone" )  ? WebViewPermission::Microphone :
                 throw CSProException(SO::Concatenate("Unknown permission: ", permission_sv))
             );

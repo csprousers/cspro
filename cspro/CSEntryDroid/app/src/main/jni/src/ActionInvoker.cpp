@@ -168,6 +168,10 @@ void ActionInvoker::WebListener::OnSetWebViewOptions(const std::vector<WebViewPe
                     add_option("android.webkit.resource.VIDEO_CAPTURE");
                     break;
 
+                case WebViewPermission::Geolocation:
+                    add_option("cspro.geolocation");
+                    break;
+
                 case WebViewPermission::Microphone:
                     add_option("android.webkit.resource.AUDIO_CAPTURE");
                     break;

@@ -594,6 +594,7 @@ void HtmlViewCtrl::OnPermissionRequested(ICoreWebView2PermissionRequestedEventAr
     switch( permission_kind )
     {
         case COREWEBVIEW2_PERMISSION_KIND_CAMERA:       return enable_if_permitted(WebViewPermission::Camera);
+        case COREWEBVIEW2_PERMISSION_KIND_GEOLOCATION:  return enable_if_permitted(WebViewPermission::Geolocation);
         case COREWEBVIEW2_PERMISSION_KIND_MICROPHONE:   return enable_if_permitted(WebViewPermission::Microphone);
     }
 }
