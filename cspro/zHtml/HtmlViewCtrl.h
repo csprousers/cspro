@@ -8,8 +8,10 @@ struct ICoreWebView2;
 struct ICoreWebView2Controller;
 struct ICoreWebView2NavigationCompletedEventArgs;
 struct ICoreWebView2NavigationStartingEventArgs;
+struct ICoreWebView2PermissionRequestedEventArgs;
 struct ICoreWebView2WebMessageReceivedEventArgs;
 class UriResolver;
+enum class WebViewPermission;
 namespace ActionInvoker { class WebController; }
 
 
@@ -28,6 +30,7 @@ public:
     void SetContextMenuEnabled(bool enabled);
     void SetZoomControlEnabled(bool enabled);
     void SetOpenNonLocalhostLinksInBrowser(bool open_in_browser);
+    void SetPermissions(const std::vector<WebViewPermission>& permissions);
 
     void NavigateTo(std::shared_ptr<UriResolver> uri_resolver);
     void NavigateTo(std::string_view uri_sv);
@@ -87,6 +90,7 @@ private:
     void OnSourceChanged();
     void OnNavigationCompleted(ICoreWebView2NavigationCompletedEventArgs* args);
     void OnWebMessageReceived(ICoreWebView2WebMessageReceivedEventArgs* args);
+    void OnPermissionRequested(ICoreWebView2PermissionRequestedEventArgs* args);
     void ConfigureSettings();
     void FitWebViewToWindow();
     void SetupAcceleratorHandler();
@@ -114,6 +118,7 @@ private:
     bool m_contextMenuEnabled;
     bool m_zoomControlEnabled;
     bool m_openNonLocalhostLinksInBrowser;
+    std::unique_ptr<std::vector<WebViewPermission>> m_permissions;
     bool m_initialized;
 
     std::unique_ptr<CSProHostObject> m_csproHostObject;

@@ -133,6 +133,54 @@ struct ActionInvokerData
 // ActionInvoker::WebListener
 // --------------------------------------------------------------------------
 
+void ActionInvoker::WebListener::OnSetWebViewOptions(const std::vector<WebViewPermission>* const permissions)
+{
+    auto aai = assert_cast<AndroidApplicationInterface*>(PlatformInterface::GetInstance()->GetApplicationInterface());
+    const std::shared_ptr<ActionInvokerData> action_invoker_data = aai->ActionInvokerGetWebController(m_callerId, false);
+
+    if( action_invoker_data == nullptr || action_invoker_data->current_listener == nullptr )
+    {
+        ASSERT(false);
+        return;
+    }
+
+    JNIEnv* pEnv;
+    jobject jListener;
+    std::tie(pEnv, jListener) = action_invoker_data->current_listener->GetJNIEnvAndListener();
+
+    auto add_option = [&](const std::string& option)
+    {
+        JNIReferences::scoped_local_ref<jstring> jOption(pEnv, JavaString::ToJava(*pEnv, option));
+
+        pEnv->CallVoidMethod(jListener, JNIReferences::methodActionInvokerListener_onSetWebViewOptions,
+                             jOption.get());
+
+        ThrowJavaExceptionAsCSProException(pEnv);
+    };
+
+    if( permissions != nullptr )
+    {
+        for( const WebViewPermission permission : *permissions )
+        {
+            switch( permission )
+            {
+                case WebViewPermission::Camera:
+                    add_option("android.webkit.resource.VIDEO_CAPTURE");
+                    break;
+
+                case WebViewPermission::Microphone:
+                    add_option("android.webkit.resource.AUDIO_CAPTURE");
+                    break;
+
+                default:
+                    ASSERT(false);
+                    break;
+            }
+        }
+    }
+}
+
+
 void ActionInvoker::WebListener::OnPostWebMessage(const std::string& message, const std::optional<std::string>& target_origin)
 {
     auto aai = assert_cast<AndroidApplicationInterface*>(PlatformInterface::GetInstance()->GetApplicationInterface());

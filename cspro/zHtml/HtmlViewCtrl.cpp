@@ -3,6 +3,7 @@
 #include "CSProHostObject.h"
 #include "UriResolver.h"
 #include <zToolsO/DirectoryLister.h>
+#include <zToolsO/VectorHelpers.h>
 #include <zUtilO/Viewers.h>
 #include <WebView2.h>
 #include <wrl.h>
@@ -109,6 +110,20 @@ void HtmlViewCtrl::SetZoomControlEnabled(const bool enabled)
 void HtmlViewCtrl::SetOpenNonLocalhostLinksInBrowser(bool open_in_browser)
 {
     m_openNonLocalhostLinksInBrowser = open_in_browser;
+}
+
+
+void HtmlViewCtrl::SetPermissions(const std::vector<WebViewPermission>& permissions)
+{
+    if( m_permissions == nullptr )
+    {
+        m_permissions = std::make_unique<std::vector<WebViewPermission>>(permissions);
+    }
+
+    else
+    {
+        VectorHelpers::Append(*m_permissions, permissions);
+    }
 }
 
 
@@ -365,6 +380,14 @@ void HtmlViewCtrl::OnWebViewCreated(ICoreWebView2Controller* const controller)
         }).Get(), nullptr);
     ASSERT(SUCCEEDED(hr));
 
+    hr = m_impl->view->add_PermissionRequested(
+        Microsoft::WRL::Callback<ICoreWebView2PermissionRequestedEventHandler>(
+        [this](ICoreWebView2* /*sender*/, ICoreWebView2PermissionRequestedEventArgs* const args) -> HRESULT
+        {
+            OnPermissionRequested(args);
+            return S_OK;
+        }).Get(), nullptr);
+
     if( m_csproHostObject != nullptr )
         AddCSProHostObject();
 
@@ -535,6 +558,44 @@ void HtmlViewCtrl::OnWebMessageReceived(ICoreWebView2WebMessageReceivedEventArgs
         observer(message_sv);
 
     CoTaskMemFree(message);
+}
+
+
+void HtmlViewCtrl::OnPermissionRequested(ICoreWebView2PermissionRequestedEventArgs* const args)
+{
+    ASSERT(args != nullptr);
+
+#ifdef _DEBUG
+    COREWEBVIEW2_PERMISSION_STATE current_state;
+    ASSERT(args->get_State(&current_state) == S_OK);
+    ASSERT(current_state == COREWEBVIEW2_PERMISSION_STATE_DEFAULT);
+#endif
+
+    // if no permissions are allowed, we can exit
+    if( m_permissions == nullptr )
+        return;
+
+    // get the requested permission
+    COREWEBVIEW2_PERMISSION_KIND permission_kind;
+
+    if( args->get_PermissionKind(&permission_kind) != S_OK )
+    {
+        ASSERT(false);
+        return;
+    }
+
+    // check if this permission has been allowed (without requiring user confirmation)
+    auto enable_if_permitted = [&](const WebViewPermission web_view_permission)
+    {
+        if( std::find(m_permissions->cbegin(), m_permissions->cend(), web_view_permission) != m_permissions->cend() )
+            args->put_State(COREWEBVIEW2_PERMISSION_STATE_ALLOW);
+    };
+
+    switch( permission_kind )
+    {
+        case COREWEBVIEW2_PERMISSION_KIND_CAMERA:       return enable_if_permitted(WebViewPermission::Camera);
+        case COREWEBVIEW2_PERMISSION_KIND_MICROPHONE:   return enable_if_permitted(WebViewPermission::Microphone);
+    }
 }
 
 

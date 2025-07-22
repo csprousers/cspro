@@ -74,6 +74,11 @@ private:
     template<typename CF>
     void IterateOverListeners(CF callback_function);
 
+    // iterates over the listeners (as above) but only executes the callback when the listener's caller ID
+    // matches the supplied caller's ID
+    template<typename CF>
+    void IterateOverListeners(const Caller& caller, CF callback_function);
+
     JsonNode ParseJson(std::string_view json_arguments_sv, Caller& caller, const Action* action);
 
     Action GetActionFromJson(const JsonNode& json_node);
@@ -255,6 +260,7 @@ private:
     Result UI_getMaxDisplayDimensions(const JsonNode& json_node, Caller& caller);
     Result UI_postWebMessage(const JsonNode& json_node, Caller& caller);
     Result UI_setDisplayOptions(const JsonNode& json_node, Caller& caller);
+    Result UI_setWebViewOptions(const JsonNode& json_node, Caller& caller);
     Result UI_showDialog(const JsonNode& json_node, Caller& caller);
     Result UI_view(const JsonNode& json_node, Caller& caller);
 

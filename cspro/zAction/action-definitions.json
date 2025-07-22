@@ -2599,6 +2599,22 @@
   },
   {
     "namespace": "UI",
+    "name": "setWebViewOptions",
+    "description": "Sets options for the current web view.",
+    "parameters": [
+      {
+        "name": "permissions",
+        "description": "Privileged resources allowed, in the context of this web view, without requiring the user's consent.",
+        "types": [
+          "string",
+          "array"
+        ],
+        "required": false
+      }
+    ]
+  },
+  {
+    "namespace": "UI",
     "name": "showDialog",
     "description": "Shows a HTML dialog.",
     "parameters": [

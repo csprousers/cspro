@@ -70,6 +70,7 @@ const std::map<ActionInvoker::Action, ActionInvoker::Runtime::ActionFunctionPoin
     { Action::UI_getMaxDisplayDimensions,          &Runtime::UI_getMaxDisplayDimensions          },
     { Action::UI_postWebMessage,                   &Runtime::UI_postWebMessage                   },
     { Action::UI_setDisplayOptions,                &Runtime::UI_setDisplayOptions                },
+    { Action::UI_setWebViewOptions,                &Runtime::UI_setWebViewOptions                },
     { Action::UI_showDialog,                       &Runtime::UI_showDialog                       },
     { Action::UI_view,                             &Runtime::UI_view                             },
 
