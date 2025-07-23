@@ -85,7 +85,17 @@
                 {{dcfLabel-lang}}
             </div>
             <div class="col-md-9">
-                {{{qsfText-lang}}}
+                <div class="qsfText">
+                  {{{qsfText-lang}}}
+                </div>
+            {{#if this.[helpText-lang]}}
+                <div class="d-flex align-items-start">
+                    <small class="text-muted me-2">
+                        <i class="bi bi-question-circle text-warning"></i>
+                    </small>
+                    <small class="text-muted flex-grow-1">{{{this.[helpText-lang]}}}</small>
+                </div>
+            {{/if}}
             </div>
         </div>
         <div class="dashed-separator"></div>
@@ -145,7 +155,17 @@
             <div class="card-header cs-block-header">
                 <div class="form-collapse-button" data-bs-toggle="collapse" data-bs-target="#blockCollapseOne{{id}}" aria-expanded="true" aria-controls="collapseOne">
                     <div class="dcf-label">{{name}}: {{label}}</div>
-                    {{{qsfText-lang}}}
+                     <div class="qsfText">
+                        {{{qsfText-lang}}}
+                    </div>
+                    {{#if this.[helpText-lang]}}
+                    <div class="d-flex align-items-start">
+                        <small class="text-muted me-2">
+                            <i class="bi bi-question-circle text-warning"></i>
+                        </small>
+                        <small class="text-muted flex-grow-1">{{{this.[helpText-lang]}}}</small>
+                    </div>
+                {{/if}}
                 </div>
             </div>
             <div id="blockCollapseOne{{id}}" class="collapse show" aria-labelledby="headingOne" data-bs-parent="#blockAccordion{{id}}">
@@ -204,7 +224,15 @@
                         {{#blockStart}}
                         <div class="hroster-block-start-marker">
                             <div class="label dcf-label">{{block.label}}</div>
-                            <div class="qsfText">{{{block.qsfText-lang}}}</div>
+                            <div class="qsfText">{{{block.[qsfText-lang]}}}</div>
+                            {{#if this.block.[helpText-lang]}}
+                            <div class="d-flex align-items-start">
+                                <small class="text-muted me-2">
+                                    <i class="bi bi-question-circle text-warning"></i>
+                                </small>
+                                <small class="text-muted flex-grow-1">{{{block.[helpText-lang]}}}</small>
+                            </div>
+                            {{/if}}
                         </div>
                         {{/blockStart}}
                         {{#blockEnd}}
@@ -215,8 +243,18 @@
                                 <div class="col-12 dcf-label">
                                     {{dcfLabel-lang}}
                                 </div>
-                                <div class="col-12">
-                                    {{{qsfText-lang}}}
+                                 <div class="col-12">
+                                    <div class="qsfText">
+                                        {{{qsfText-lang}}}
+                                    </div>
+                                    {{#if this.[helpText-lang]}}
+                                    <div class="d-flex align-items-start">
+                                        <small class="text-muted me-2">
+                                            <i class="bi bi-question-circle text-warning"></i>
+                                        </small>
+                                        <small class="text-muted flex-grow-1">{{{this.[helpText-lang]}}}</small>
+                                    </div>
+                                    {{/if}}
                                 </div>
                             </div>
                         </div>
@@ -317,7 +355,15 @@
                     {{#block}}
                     <td colspan="{{../colSpan}}">
                         <div class="dcf-label">{{label}}</div>
-                        <div>{{{qsfText-lang}}}</div>
+                        <div class="qsfText">{{{qsfText-lang}}}</div>
+                        {{#if this.[helpText-lang]}}
+                        <div class="d-flex align-items-start">
+                            <small class="text-muted me-2">
+                                <i class="bi bi-question-circle text-warning"></i>
+                            </small>
+                            <small class="text-muted flex-grow-1">{{{this.[helpText-lang]}}}</small>
+                        </div>
+                        {{/if}}
                     </td>
                     {{/block}}
                 </tr>
@@ -340,7 +386,17 @@
                                     {{dcfLabel}}
                                 </div>
                                 <div class="col-12">
-                                    {{{qsfText-lang}}}
+                                    <div class="qsfText">
+                                        {{{qsfText-lang}}}
+                                    </div>
+                                    {{#if this.[helpText-lang]}}
+                                    <div class="d-flex align-items-start">
+                                        <small class="text-muted me-2">
+                                            <i class="bi bi-question-circle text-warning"></i>
+                                        </small>
+                                        <small class="text-muted flex-grow-1">{{{this.[helpText-lang]}}}</small>
+                                    </div>
+                                    {{/if}}
                                 </div>
                             </div>
                         </div>
@@ -515,7 +571,15 @@
             <div class="card-header cs-block-header">
                 <div class="form-collapse-button" data-bs-toggle="collapse" data-bs-target="#blockCollapseOne{{id}}" aria-expanded="true" aria-controls="collapseOne">
                     <div class="dcf-label">{{name}}: {{label}}</div>
-                    {{{qsfText-lang}}}
+                    <div class="qsfText">{{{qsfText-lang}}}</div>
+                    {{#if this.[helpText-lang]}}
+                    <div class="d-flex align-items-start">
+                        <small class="text-muted me-2">
+                            <i class="bi bi-question-circle text-warning"></i>
+                        </small>
+                        <small class="text-muted flex-grow-1">{{{this.[helpText-lang]}}}</small>
+                    </div>
+                    {{/if}}
                 </div>
             </div>
             <div id="blockCollapseOne{{id}}" class="collapse show" aria-labelledby="headingOne" data-bs-parent="#blockAccordion{{id}}">
@@ -568,7 +632,17 @@
                             {{dcfLabel-lang}}
                         </div>
                     </th>
-                    <th>{{{qsfText-lang}}}</th>
+                    <th>
+                        <div class="qsfText">{{{qsfText-lang}}}</div>
+                        {{#if this.[helpText-lang]}}
+                        <div class="d-flex align-items-start">
+                            <small class="text-muted me-2">
+                                <i class="bi bi-question-circle text-warning"></i>
+                            </small>
+                            <small class="text-muted flex-grow-1">{{{this.[helpText-lang]}}}</small>
+                        </div>
+                        {{/if}}
+                    </th>
                 </tr>
             </thead>
             <tbody>
@@ -641,7 +715,15 @@
                         {{#blockStart}}
                         <div class="hroster-block-start-marker">
                             <div class="label dcf-label">{{block.label}}</div>
-                            <div class="qsfText">{{{block.qsfText-lang}}}</div>
+                             <div class="qsfText">{{{block.[qsfText-lang]}}}</div>
+                            {{#if block.[helpText-lang]}}
+                            <div class="d-flex align-items-start">
+                                <small class="text-muted me-2">
+                                    <i class="bi bi-question-circle text-warning"></i>
+                                </small>
+                                <small class="text-muted flex-grow-1">{{{block.[helpText-lang]}}}</small>
+                            </div>
+                            {{/if}}
                         </div>
                         {{/blockStart}}
                         {{#blockEnd}}
@@ -650,7 +732,17 @@
                         <div class="dcf-label">
                             {{dcfLabel}}
                         </div>
-                        <div>{{{qsfText-lang}}}</div>
+                         <div class="qsfText">
+                            {{{qsfText-lang}}}
+                        </div>
+                        {{#if this.[helpText-lang]}}
+                        <div class="d-flex align-items-start">
+                            <small class="text-muted me-2">
+                                <i class="bi bi-question-circle text-warning"></i>
+                            </small>
+                            <small class="text-muted flex-grow-1">{{{this.[helpText-lang]}}}</small>
+                        </div>
+                        {{/if}}
                     </th>
                     {{/horizontal.items}}
                 </tr>
@@ -737,7 +829,15 @@
                     {{#block}}
                     <td colspan="{{../colSpan}}">
                         <div class="dcf-label">{{label}}</div>
-                        <div>{{{qsfText-lang}}}</div>
+                        <div class="qsfText">{{{qsfText-lang}}}</div>
+                        {{#if this.[helpText-lang]}}
+                        <div class="d-flex align-items-start">
+                            <small class="text-muted me-2">
+                                <i class="bi bi-question-circle text-warning"></i>
+                            </small>
+                            <small class="text-muted flex-grow-1">{{{this.[helpText-lang]}}}</small>
+                        </div>
+                        {{/if}}
                     </td>
                     {{/block}}
                 </tr>
@@ -754,7 +854,15 @@
                         <div class="dcf-label">
                             {{dcfLabel}}
                         </div>
-                        <div>{{{qsfText-lang}}}</div>
+                        <div class="qsfText">{{{qsfText-lang}}}</div>
+                        {{#if this.[helpText-lang]}}
+                        <div class="d-flex align-items-start">
+                            <small class="text-muted me-2">
+                                <i class="bi bi-question-circle text-warning"></i>
+                            </small>
+                            <small class="text-muted flex-grow-1">{{{this.[helpText-lang]}}}</small>
+                        </div>
+                        {{/if}}
                         {{/item}}
                     </td>
                     {{#occurrences}}

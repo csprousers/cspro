@@ -422,6 +422,7 @@ bool CTabTreeCtrl::OpenTableFile(const std::string& table_spec_file_path, const 
 void CTabTreeCtrl::ReBuildTree(bool bAll /*=false*/)
 {
     SetRedraw(FALSE);               // Don't draw while changing
+    m_bOkToRedraw = false;
 
     // find node corresponding to this table
     TableSpecTabTreeNode* const table_spec_tab_tree_node = GetTableSpecTabTreeNode(*m_pDoc);
@@ -471,6 +472,7 @@ void CTabTreeCtrl::ReBuildTree(bool bAll /*=false*/)
     if(table_spec_tab_tree_node != nullptr && table_spec_tab_tree_node->GetHItem() != nullptr){
         Expand(table_spec_tab_tree_node->GetHItem(), TVE_EXPAND);
     }
+    m_bOkToRedraw = true;
 }
 
 
@@ -1740,8 +1742,8 @@ void CTabTreeCtrl::OnSelchanged(NMHDR* pNMHDR, LRESULT* pResult)
             pView2->GetEditCtrl()->EmptyUndoBuffer();
         }
     }
-
-    UpdateTableOnSelect();
+    if(m_bOkToRedraw)
+        UpdateTableOnSelect();
     SetFocus();
 
     *pResult = 0;

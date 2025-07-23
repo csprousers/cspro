@@ -205,7 +205,7 @@ public:
 
     // --- main tables management
 public:
-    int     inittables();
+    int     inittables(bool bClearSymbolTable = true);
     void    tablesend();
     int     DicxStart();
     int     SecxStart();
@@ -250,7 +250,7 @@ public:
 
     // --- miscellaneous purpose methods
 private:
-    void    mem_model();
+    void mem_model(int iEstimatedTables = 200);
 public:
     double  cthighnumvalue( int ct_node );
     int     setup_vmark( Symbol* ps );

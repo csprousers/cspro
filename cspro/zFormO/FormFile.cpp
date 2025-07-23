@@ -3913,7 +3913,7 @@ bool CDEFormFile::Open(const InterfaceString& file_path, bool bSilent /* =false 
                 bRetVal = false;
             }
             else  {
-                dlgProgress->SetPos((int)( frmFile.GetLength() / 100 ));
+                dlgProgress->SetPos((int)( frmFile.GetPosition() / 100 ));
             }
         }
         frmFile.Close();
@@ -3982,7 +3982,7 @@ bool CDEFormFile::Build(CSpecFile& frmFile, std::shared_ptr<ProgressDlg> pDlgPro
         {
             if (pDlgProgress)
             {
-                pDlgProgress->SetPos((int)( frmFile.GetLength() / 100 ));
+                pDlgProgress->SetPos((int)( frmFile.GetPosition() / 100 ));
 
                 if (pDlgProgress->CheckCancelButton())
                 {

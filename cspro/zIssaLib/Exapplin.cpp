@@ -47,9 +47,6 @@ bool CEngineDriver::exapplinit()
         // load the messages
         BuildMessageManagers();
 
-        m_pEngineArea->inittables();
-
-
         if( UseNewDriver() )
         {
             LoadApplication();
@@ -69,6 +66,8 @@ bool CEngineDriver::exapplinit()
 
 
             // load application main members (Dicts & Flows)
+            //Savy moved inittables to into loadapplication children, to get the number or crosstabs dynamically after the scantables adds the symbols
+            //without this change, having a constant max tables caused insufficient memory crash
             if( !LoadApplChildren(NULL) ) // RHF Jun 12, 2003 Add Null
             {
 #ifdef WIN_DESKTOP

@@ -85,6 +85,8 @@ bool CEngineDriver::LoadApplChildren(CString* pcsLines)
     if( Appl.ApplicationType != ModuleType::Entry && !m_pEngineCompFunc->ScanTables() )
         return false;
 
+    //calling inittables after the ScanTables to get the number of tables dynamically. Do not clear the symbol table. This is a memory only allocation
+    m_pEngineArea->inittables(false);
     if( Issamod != ModuleType::Designer )
     {
         m_pEngineCompFunc->SetSourceBuffer(Appl.m_AppTknSource);

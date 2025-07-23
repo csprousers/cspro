@@ -9,6 +9,7 @@ Because most CSPro development occurs on a [private repository](https://github.c
 
 | Date | Branch | Pull Request Message |
 | --- | --- | --- |
+| 2025&#8209;07&#8209;23 | [bug-fixes-2025-07](https://github.com/CSProDevelopment/cspro/commit/12d0ee5923109fcb0308b6cc2a9ed0639ee183ff) | fixed some bugs |
 | 2025&#8209;06&#8209;17 | [path-case-fixes](https://github.com/CSProDevelopment/cspro/commit/47585eec4a52f93801927cbe388e44f76c431a43) | standardized the case of many file and directory names |
 | 2025&#8209;06&#8209;16 | [html-mapping](https://github.com/CSProDevelopment/cspro/commit/bcc33537068bd26a207da6261176eab5f25107dd) | allowed Leaflet to be used for mapping on Android |
 | 2025&#8209;06&#8209;16 | [image-exif](https://github.com/CSProDevelopment/cspro/commit/e7689cc0480b0ac25d384e41c05b90ef73f6ec99) | added the Image.getExif logic function |

@@ -109,6 +109,7 @@ bool CTbiFile::Locate(CTbiFile_LocateMode eLocateMode, CString* pcsRefKeyPrefix,
     else if( eLocateMode == Exact )
     {
         ASSERT(pcsRefKeyPrefix != NULL);
+        m_csKey = *pcsRefKeyPrefix; //sets the GetCurrentReg
 
         const std::optional<long> value = m_pTableIndex->GetLongUsingKeyPrefix(UTF8_TODO::GetUtf8(*pcsRefKeyPrefix));
 

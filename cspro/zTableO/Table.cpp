@@ -3283,7 +3283,7 @@ bool CTabSet::Open(const CString& sSpecFilePath, bool bSilent /*=false*/)
                 bResult = false;
             }
             else  {
-                dlgProgress->SetPos((int)specFile.GetLength() / 100);
+                dlgProgress->SetPos((int)specFile.GetPosition() / 100);
             }
         }
         specFile.Close();
