@@ -3,6 +3,7 @@
 #include <zSql/zSql.h>
 #include <zSql/Definitions.h>
 #include <zSql/Statement.h>
+#include <zSql/Transaction.h>
 
 
 // --------------------------------------------------------------------------
@@ -50,6 +51,9 @@ public:
     void PrepareOrResetStatement(Statement& statement, const char* sql)         { PrepareOrResetStatementWorker(statement, sql); }
     void PrepareOrResetStatement(Statement& statement, std::string_view sql_sv) { PrepareOrResetStatementWorker(statement, sql_sv); }
 
+    // Returns a Transaction object for the SQLite database. The transaction is not immediately started.
+    Transaction CreateTransaction();
+
     // Attaches a SQLite database, throwing exceptions on error.
     // Attaching the same database using the same schema name will not result in an error.
     void Attach(std::string file_path, std::string schema_name);
@@ -57,6 +61,9 @@ public:
 
     // Detaches a SQLite database, throwing exceptions on error.
     void Detach(const std::string& schema_name);
+
+    // Returns the row ID of the last inserted row, or 0 if no row has been inserted or if the database is not open.
+    int64_t GetLastInsertedRowId() const noexcept;
 
 private:
     // Throws an exception if no database is open.

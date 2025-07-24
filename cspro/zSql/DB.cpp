@@ -160,6 +160,14 @@ Sqlite::Statement Sqlite::DB::PrepareStatement(const char* const sql, const int 
 }
 
 
+Sqlite::Transaction Sqlite::DB::CreateTransaction()
+{
+    CheckDatabaseIsOpen();
+
+    return Transaction(m_db);
+}
+
+
 void Sqlite::DB::Attach(std::string file_path, std::string schema_name)
 {
     CheckDatabaseIsOpen();
@@ -240,4 +248,11 @@ void Sqlite::DB::Detach(const std::string& schema_name)
     }
 
     throw Exception(static_cast<sqlite3*>(nullptr), m_filePath, "No database is attached as '%s'", schema_name.c_str());
+}
+
+
+int64_t Sqlite::DB::GetLastInsertedRowId() const noexcept
+{
+    return ( m_db != nullptr ) ? sqlite3_last_insert_rowid(m_db) :
+                                 0;
 }
