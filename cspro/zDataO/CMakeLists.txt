@@ -11,6 +11,7 @@ add_library(${PROJECT_NAME}
     CaseIteratorSettings.cpp
     CSWebBinaryContentReader.cpp
     CSWebRepository.cpp
+    CSWebRepositoryCache.cpp
     DataRepository.cpp
     DataRepositoryDefines.cpp
     DataRepositoryHelpers.cpp

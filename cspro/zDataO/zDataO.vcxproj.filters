@@ -114,6 +114,12 @@
     <ClInclude Include="CSWebRepository.h">
       <Filter>Header Files\CSWebRepository</Filter>
     </ClInclude>
+    <ClInclude Include="CSWebRepositoryCache.h">
+      <Filter>Header Files\CSWebRepository</Filter>
+    </ClInclude>
+    <ClInclude Include="CSWebRepositoryCacheCredential.h">
+      <Filter>Header Files\CSWebRepository</Filter>
+    </ClInclude>
     <ClInclude Include="CSWebRepositoryIterators.h">
       <Filter>Header Files\CSWebRepository</Filter>
     </ClInclude>
@@ -285,6 +291,9 @@
       <Filter>Source Files\CSWebRepository</Filter>
     </ClCompile>
     <ClCompile Include="CSWebRepository.cpp">
+      <Filter>Source Files\CSWebRepository</Filter>
+    </ClCompile>
+    <ClCompile Include="CSWebRepositoryCache.cpp">
       <Filter>Source Files\CSWebRepository</Filter>
     </ClCompile>
     <ClCompile Include="DataRepository.cpp">

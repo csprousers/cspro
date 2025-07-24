@@ -14,6 +14,7 @@ class SyncErrorFormatter;
 class ZDATAO_API CSWebRepository : public DataRepository
 {
     friend class CSWebBinaryContentReader;
+    friend class CSWebRepositoryCache;
     friend class CSWebRepositoryIterator;
 
 public:
@@ -96,6 +97,7 @@ private:
 
     std::shared_ptr<CSWebConnection> m_cswebConnection;
     std::unique_ptr<const ConnectResponse> m_cswebConnectResponse;
+    std::unique_ptr<CSWebRepositoryCache> m_cache;
 
     std::unique_ptr<SyncErrorFormatter> m_syncErrorFormatter;
 

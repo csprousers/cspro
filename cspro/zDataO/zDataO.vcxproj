@@ -72,6 +72,8 @@
     <ClInclude Include="ConnectionStringProperties.h" />
     <ClInclude Include="CSWebBinaryContentReader.h" />
     <ClInclude Include="CSWebRepository.h" />
+    <ClInclude Include="CSWebRepositoryCache.h" />
+    <ClInclude Include="CSWebRepositoryCacheCredential.h" />
     <ClInclude Include="CSWebRepositoryIterators.h" />
     <ClInclude Include="CSWebRepositoryJsonKeys.h" />
     <ClInclude Include="DataRepository.h" />
@@ -131,6 +133,7 @@
     <ClCompile Include="CaseListingCtrl.cpp" />
     <ClCompile Include="CSWebBinaryContentReader.cpp" />
     <ClCompile Include="CSWebRepository.cpp" />
+    <ClCompile Include="CSWebRepositoryCache.cpp" />
     <ClCompile Include="DataRepository.cpp" />
     <ClCompile Include="DataRepositoryDefines.cpp" />
     <ClCompile Include="DataRepositoryHelpers.cpp" />

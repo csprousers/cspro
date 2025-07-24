@@ -10,6 +10,7 @@
 #include <zNetwork/CurlHttpConnection.h>
 #include <zDictO/DDClass.h>
 #include <zDataO/CSWebRepository.h>
+#include <zDataO/CSWebRepositoryJsonKeys.h>
 #include <zSyncO/CaseObservable.h>
 #include <zSyncO/CSWebSyncService.h>
 #include <fstream>
@@ -908,9 +909,9 @@ namespace SyncUnitTest
             if( !DefaultToCSWebApiV2 )
             {
                 const JsonNode metadata_node = sync_service.GetCSWebConnection().GetDictionaryMetadata(dictionary_with_unique_name->GetSyncableName());
-                Assert::AreEqual(metadata_node.Get<std::string>("dictionaryKeyStructure"), CSWebRepository::CalculateDictionaryKeyStructure(*dictionary_with_unique_name));
-                Assert::IsFalse(metadata_node.Contains("minRevision"));
-                Assert::IsFalse(metadata_node.Contains("maxRevision"));
+                Assert::AreEqual(metadata_node.Get<std::string>(JK::dictionaryKeyStructure), CSWebRepository::CalculateDictionaryKeyStructure(*dictionary_with_unique_name));
+                Assert::IsFalse(metadata_node.Contains(JK::minRevision));
+                Assert::IsFalse(metadata_node.Contains(JK::maxRevision));
             }
 
             // test 8: delete the dictionary (again)

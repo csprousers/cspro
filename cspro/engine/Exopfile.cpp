@@ -470,6 +470,11 @@ bool CEngineDriver::OpenRepositories(const bool open_input_repository)
 
             else
             {
+                // BATCH_TODO this should not be necessary, as batch execution should not proceed if this function
+                // returns false, but until that is fixed, this at least ensures that the repository is set to something valid
+                if( Appl.ApplicationType != ModuleType::Entry )
+                    OpenRepository(pDicX, ConnectionString::CreateNullRepositoryConnectionString(), DataRepositoryOpenFlag::OpenOrCreate, false);
+
                 return false;
             }
         }
@@ -544,6 +549,8 @@ bool CEngineDriver::OpenRepositories(const bool open_input_repository)
 
         if( open_action == OpenAction::TryAgainWithNullRepository )
             open_repository();
+
+        // BATCH_TODO ... look at the note above: "this should not be necessary"
 
         if( open_action != OpenAction::Success )
             return false;

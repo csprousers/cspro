@@ -2,6 +2,7 @@
 #include "CSWebRepository.h"
 #include "CaseIterator.h"
 #include "CSWebBinaryContentReader.h"
+#include "CSWebRepositoryCache.h"
 #include "CSWebRepositoryIterators.h"
 #include "CSWebRepositoryJsonKeys.h"
 #include "SyncBinaryDataUploadManager.h"
@@ -100,7 +101,7 @@ void CSWebRepository::ModifyCaseAccess(std::shared_ptr<const CaseAccess> case_ac
 
 void CSWebRepository::Open(const DataRepositoryOpenFlag open_flag)
 {
-    ASSERT(m_cswebConnection == nullptr);
+    ASSERT(m_cswebConnection == nullptr && m_cache == nullptr);
 
     // allow the syncable dictionary name to be overridden in the connection string
     const std::string* const dictionary_name_override = m_connectionString.GetProperty(CSProperty::dictionaryName);
@@ -137,10 +138,16 @@ void CSWebRepository::Open(const DataRepositoryOpenFlag open_flag)
         }
 
         const JsonNode dictionary_metadata_json_node = EnsureDictionaryExistsAndGetDictionaryMetadata(*csweb_connection, open_flag);
-        const std::optional<int64_t> min_revision = dictionary_metadata_json_node.GetOptional<int64_t>(JK::minRevision);
-        const std::optional<int64_t> max_revision = dictionary_metadata_json_node.GetOptional<int64_t>(JK::maxRevision);
-        // CSWEB_TODO: check versus cache;
-        // if min_revision is std::nullopt or is > the cache's revision, it means that the data was deleted via the CSWeb UI, so the entire cache should be cleared
+
+        // potentially open the cache (enabled by default)
+        if( m_connectionString.HasPropertyOrDefault(CSProperty::cacheLocally, CSValue::true_, true) )
+        {
+            try
+            {
+                m_cache = CSWebRepositoryCache::Create(*this, *csweb_connection->GetUser(), dictionary_metadata_json_node);
+            }
+            catch(...) { ASSERT(false); }
+        }
 
         m_cswebConnection = std::move(csweb_connection);
         m_cswebConnectResponse = std::move(csweb_connect_response);
@@ -299,6 +306,7 @@ void CSWebRepository::ToggleReadWriteMode()
 void CSWebRepository::Close()
 {
     m_cswebConnection.reset();
+    m_cache.reset();
 }
 
 
