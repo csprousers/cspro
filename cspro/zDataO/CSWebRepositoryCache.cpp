@@ -3,6 +3,7 @@
 #include "CSWebRepositoryCacheCredential.h"
 #include "CSWebRepositoryJsonKeys.h"
 #include <zToolsO/FileIO.h>
+#include <zUtilO/CredentialStore.h>
 #include <zUtilO/Interapp.h>
 
 
@@ -11,41 +12,12 @@ namespace
     constexpr bool EncryptCache          = !DebugMode();
     constexpr const char* CacheExtension = EncryptCache ? "dbe" : "db";
 
-    constexpr size_t CredentialHashLength    = 8; // used as 16 hex characters
+    constexpr std::string_view CredentialAttribute_sv = "CSPro_csweb_cache";
+    constexpr size_t CredentialHashLength             = 8; // used as 16 hex characters
+
     constexpr size_t CachePasswordHashLength = 128;
 }
 
-
-// --------------------------------------------------------------------------
-// CSWebRepositoryCacheCredentialStore
-// --------------------------------------------------------------------------
-
-CSWebRepositoryCacheCredentialStore::CSWebRepositoryCacheCredentialStore(const std::string& dictionary_name, const CSWebUser& user)
-    :   m_prefix("CSPro_csweb_cache_")
-{
-    ASSERT(!dictionary_name.empty() && !user.id.empty() && !user.role_name.empty());
-
-    // the credential will be stored using a hash of the concatenated user ID, role, and cache extension,
-    // using the dictionary name as a salt;
-    // adding the cache extension allows debug/release builds to use different credentials
-    // that point to different cache files
-    m_prefix.append(Hash::Hash(FormatText("%s-%s-%s", user.id.c_str(), user.role_name.c_str(), CacheExtension),
-                               CredentialHashLength,
-                               dictionary_name));
-}
-
-
-std::string CSWebRepositoryCacheCredentialStore::PrefixAttribute(const std::string& attribute)
-{
-    ASSERT(attribute.empty());
-    return m_prefix;
-}
-
-
-
-// --------------------------------------------------------------------------
-// CSWebRepositoryCache
-// --------------------------------------------------------------------------
 
 CSWebRepositoryCache::CSWebRepositoryCache(CSWebRepository& repository, const CSWebRepositoryCacheCredential& credential,
                                            const JsonNode& dictionary_metadata_json_node)
@@ -53,9 +25,9 @@ CSWebRepositoryCache::CSWebRepositoryCache(CSWebRepository& repository, const CS
 {
     constexpr int open_flags = Sqlite::OpenFlags::ReadWrite | Sqlite::OpenFlags::Create;
 
-    if constexpr(EncryptCache)
+    if( credential.cache_password.has_value() )
     {
-        m_db.OpenEncrypted(credential.cache_file_path, credential.cache_password, open_flags);
+        m_db.OpenEncrypted(credential.cache_file_path, *credential.cache_password, open_flags);
     }
 
     else
@@ -67,59 +39,78 @@ CSWebRepositoryCache::CSWebRepositoryCache(CSWebRepository& repository, const CS
 }
 
 
-std::unique_ptr<CSWebRepositoryCache> CSWebRepositoryCache::Create(CSWebRepository& repository, const CSWebUser& user,
-                                                                   const JsonNode& dictionary_metadata_json_node)
+std::unique_ptr<CSWebRepositoryCache> CSWebRepositoryCache::Create(CSWebRepository& repository, const DeviceId& server_device_id,
+                                                                   const CSWebUser& user, const JsonNode& dictionary_metadata_json_node)
 {
+    const std::string& dictionary_name = repository.m_syncableDictionaryName;
+
     // see if there already is a cache created for this user
-    CSWebRepositoryCacheCredentialStore credential_store(repository.m_syncableDictionaryName, user);
-    std::optional<CSWebRepositoryCacheCredential> credential = credential_store.RetrieveOptionalFromJson<CSWebRepositoryCacheCredential>("");
+    CredentialStore credential_store;
+    std::vector<CSWebRepositoryCacheCredential> credentials;
 
-    if( credential.has_value() )
+    try
     {
-        try
-        {
-            return std::unique_ptr<CSWebRepositoryCache>(new CSWebRepositoryCache(repository, *credential, dictionary_metadata_json_node));
-        }
+        const JsonNode json_node = credential_store.RetrieveFromJson<JsonNode>(CredentialAttribute_sv);
+        credentials = json_node.GetArray().GetVector<CSWebRepositoryCacheCredential>();
 
-        catch(...)
-        {
-            // on error we will simply create a new cache
-            ASSERT(false);
-        }
+        const auto& lookup = std::find_if(credentials.crbegin(), credentials.crend(),
+            [&](const CSWebRepositoryCacheCredential& credential)
+            {
+                return ( server_device_id == credential.server_device_id &&
+                         user == credential.user &&
+                         dictionary_name == credential.dictionary_name &&
+                         EncryptCache == credential.cache_password.has_value() );
+            });
+
+        if( lookup != credentials.crend() )
+            return std::unique_ptr<CSWebRepositoryCache>(new CSWebRepositoryCache(repository, *lookup, dictionary_metadata_json_node));
+    }
+
+    catch(...)
+    {
+        // errors are ignored in favor of creating a new cache
+        ASSERT(credential_store.Retrieve(CredentialAttribute_sv).empty());
     }
 
     // if here, we will create a new cache file in %AppData%/CSPro/csweb_cache/[dictionary_name]/
-    ASSERT(repository.m_syncableDictionaryName == Path::CreateValidFilename(repository.m_syncableDictionaryName));
+    ASSERT(dictionary_name == Path::CreateValidFilename(dictionary_name));
 
-    const std::string cache_directory = Path::Combine(GetAppDataPath(), "csweb_cache", repository.m_syncableDictionaryName);
+    const std::string cache_directory = Path::Combine(GetAppDataPath(), "csweb_cache", dictionary_name);
     std::string cache_file_path = PortableFunctions::GetUniqueFilePathInDirectory(cache_directory, CacheExtension);
     FileIO::CreateDirectoriesForFile(cache_file_path);
 
-    // the file password will be randomly generated by hashing some values together and using
+    // when used, the file password will be randomly generated by hashing some values together and using
     // the dictionary name as a salt;
     // CRYPT_TODO: if added to CSPro at some point, modify this to use a key derivation scheme
-    const std::string values_for_password_hash = SO::Concatenate(user.id, user.role_name, DoubleToString(GetTimestamp()));
+    std::optional<std::vector<std::byte>> cache_password;
 
-    std::vector<std::byte> cache_password = Hash::Hash(
-        reinterpret_cast<const std::byte*>(values_for_password_hash.data()),
-        values_for_password_hash.length(),
-        reinterpret_cast<const std::byte*>(repository.m_syncableDictionaryName.data()),
-        repository.m_syncableDictionaryName.length(),
-        CachePasswordHashLength
-    );
-
-    credential = CSWebRepositoryCacheCredential
+    if constexpr(EncryptCache)
     {
-        repository.m_syncableDictionaryName,
+        const std::string values_for_password_hash = SO::Concatenate(user.id, user.role_name, DoubleToString(GetTimestamp()));
+
+        cache_password.emplace(Hash::Hash(
+            reinterpret_cast<const std::byte*>(values_for_password_hash.data()),
+            values_for_password_hash.length(),
+            reinterpret_cast<const std::byte*>(dictionary_name.data()),
+            dictionary_name.length(),
+            CachePasswordHashLength
+        ));
+    }
+
+    CSWebRepositoryCacheCredential credential
+    {
+        server_device_id,
         user,
+        dictionary_name,
         std::move(cache_file_path),
         std::move(cache_password)
     };
 
-    auto cache = std::unique_ptr<CSWebRepositoryCache>(new CSWebRepositoryCache(repository, *credential, dictionary_metadata_json_node));
+    auto cache = std::unique_ptr<CSWebRepositoryCache>(new CSWebRepositoryCache(repository, credential, dictionary_metadata_json_node));
 
-    // on success, store the credential
-    credential_store.StoreAsJson("", *credential);
+    // on success, store the new credential
+    credentials.emplace_back(std::move(credential));
+    credential_store.StoreAsJson(CredentialAttribute_sv, credentials);
 
     return cache;
 }

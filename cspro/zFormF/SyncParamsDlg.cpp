@@ -14,8 +14,8 @@ namespace
     class NullSyncCredentialStore : public SyncCredentialStore
     {
     public:
-        void Store(const std::string& /*attribute*/, const std::string& /*secret_value*/) override { }
-        std::string Retrieve(const std::string& /*attribute*/) override { return std::string(); }
+        void Store(const std::string_view /*attribute_sv*/, const std::string& /*secret_value*/) override { }
+        std::string Retrieve(const std::string_view /*attribute_sv*/) override { return std::string(); }
     };
 
 

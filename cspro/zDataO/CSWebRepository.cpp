@@ -144,7 +144,8 @@ void CSWebRepository::Open(const DataRepositoryOpenFlag open_flag)
         {
             try
             {
-                m_cache = CSWebRepositoryCache::Create(*this, *csweb_connection->GetUser(), dictionary_metadata_json_node);
+                m_cache = CSWebRepositoryCache::Create(*this, csweb_connect_response->GetServerDeviceId(),
+                                                       *csweb_connection->GetUser(), dictionary_metadata_json_node);
             }
             catch(...) { ASSERT(false); }
         }

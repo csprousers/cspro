@@ -13,21 +13,9 @@ const std::optional<std::tuple<double, double>>& CurrentLocation::GetCurrentLoca
 
     if( !current_location.has_value() )
     {
-        class CurrentLocationCredentialStore : public CredentialStore
-        {
-        public:
-            std::string AttributeName;
-
-        protected:
-            std::string PrefixAttribute(const std::string& attribute) override
-            {
-                ASSERT(attribute == AttributeName);
-                return "CSPro_location";
-            }
-        };
-
-        CurrentLocationCredentialStore credential_store;
-        const std::string location_cache = credential_store.Retrieve(credential_store.AttributeName);
+        constexpr std::string_view AttributeName_sv = "CSPro_location";
+        CredentialStore credential_store;
+        const std::string location_cache = credential_store.Retrieve(AttributeName_sv);
         double cached_timestamp = 0;
 
         // first check the cached location (to avoid using the API too often)
@@ -66,7 +54,7 @@ const std::optional<std::tuple<double, double>>& CurrentLocation::GetCurrentLoca
                         { JK::longitude, std::get<1>(*current_location) }
                     });
 
-                credential_store.Store(credential_store.AttributeName, new_cache);
+                credential_store.Store(AttributeName_sv, new_cache);
             }
 
             // ignore connection errors

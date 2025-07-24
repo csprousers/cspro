@@ -3,6 +3,7 @@
 #include <zToolsO/VariantVisitOverload.h>
 #include <zUtilO/TreeCtrlHelpers.h>
 #include <zMessageO/Messages.h>
+#include <zDataO/CSWebRepositoryCacheCredential.h>
 #include <zDataO/EncryptedSQLiteRepositoryCredential.h>
 #include <zNetwork/CSWebUser.h>
 #include <afxmenubutton.h>
@@ -18,9 +19,10 @@ END_MESSAGE_MAP()
 
 namespace
 {
-    constexpr std::wstring_view CredentialPrefixSync_sv     = L"CSPro_sync_";
-    constexpr std::wstring_view CredentialPrefixData_sv     = L"CSPro_data_";
-    constexpr std::wstring_view CredentialPrefixLocation_sv = L"CSPro_location";
+    constexpr std::wstring_view CredentialPrefixSync_sv       = L"CSPro_sync_";
+    constexpr std::wstring_view CredentialPrefixData_sv       = L"CSPro_data_";
+    constexpr std::wstring_view CredentialPrefixCSWebCache_sv = L"CSPro_csweb_cache";
+    constexpr std::wstring_view CredentialPrefixLocation_sv   = L"CSPro_location";
 }
 
 
@@ -72,6 +74,7 @@ const wchar_t* ManageCredentialsDlg::ToString(const CredentialType credential_ty
     {
         { L"Synchronization Services", L"Credentials for synchronization services." },
         { L"Encrypted Data",           L"Credentials for Encrypted CSPro DB data sources." },
+        { L"CSWeb Data Cache",         L"Credentials for cached data from CSWeb data sources (used internally by CSPro)." },
         { L"Locations",                L"Cached locations used for mapping." }
     };
 
@@ -119,6 +122,11 @@ void ManageCredentialsDlg::GetCredentials()
                 else if( SO::StartsWith(credential->target_name, CredentialPrefixData_sv) )
                 {
                     SetUpCredentialData(*credential);
+                }
+
+                else if( SO::StartsWith(credential->target_name, CredentialPrefixCSWebCache_sv) )
+                {
+                    SetUpCredentialCSWebCache(*credential);
                 }
 
                 else if( SO::StartsWith(credential->target_name, CredentialPrefixLocation_sv) )
@@ -285,6 +293,34 @@ void ManageCredentialsDlg::SetUpCredentialData(Credential& credential)
 
     if( !data_credential.GetFilePath().empty() )
         credential.details.append("\n\nData file path: ").append(data_credential.GetFilePath());
+}
+
+
+void ManageCredentialsDlg::SetUpCredentialCSWebCache(Credential& credential)
+{
+    credential.type = CredentialType::CSWebCache;
+    credential.display_name = L"Credentials";
+
+    try
+    {
+        const JsonNode json_node = Json::Parse(TC::ToUtf8(credential.credential));
+        const std::vector<CSWebRepositoryCacheCredential> csweb_cache_credentials = json_node.GetArray().GetVector<CSWebRepositoryCacheCredential>();
+
+        // list details about each credential
+        for( const CSWebRepositoryCacheCredential& csweb_cache_credential : csweb_cache_credentials )
+        {
+            if( !credential.details.empty() )
+                credential.details.append("\n\n");
+
+            credential.details.append("Server device ID: ").append(csweb_cache_credential.server_device_id)
+                              .append("\nUser ID: ").append(csweb_cache_credential.user.id)
+                              .append("\nRole: ").append(csweb_cache_credential.user.role_name)
+                              .append("\nDictionary name: ").append(csweb_cache_credential.dictionary_name)
+                              .append("\nCache file path: ").append(csweb_cache_credential.cache_file_path)
+                              .append("\nEncrypted cache: ").append(csweb_cache_credential.cache_password.has_value() ? "true" : "false");
+        }
+    }
+    catch(...) { ASSERT(false); }
 }
 
 

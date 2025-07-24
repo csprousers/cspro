@@ -6,6 +6,8 @@ struct CSWebUser
     std::string id;
     std::string role_name;
 
+    bool operator==(const CSWebUser& rhs) const;
+
     bool IsAdmin() const { return SO::EqualsNoCase(role_name, "Administrator"); }
 
     static CSWebUser CreateFromJson(const JsonNode& json_node);
@@ -17,6 +19,13 @@ struct CSWebUser
 // --------------------------------------------------------------------------
 // inline implementations
 // --------------------------------------------------------------------------
+
+inline bool CSWebUser::operator==(const CSWebUser& rhs) const
+{
+    return ( id == rhs.id &&
+             role_name == rhs.role_name );
+}
+
 
 inline CSWebUser CSWebUser::CreateFromJson(const JsonNode& json_node)
 {

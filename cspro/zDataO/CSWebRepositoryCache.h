@@ -27,8 +27,8 @@ public:
     // Returns an instance if the cache is successfully created or opened.
     // The current cache is cleared if the revisions on the server differ from the existing cache.
     // Exceptions are thrown on error.
-    static std::unique_ptr<CSWebRepositoryCache> Create(CSWebRepository& repository, const CSWebUser& user,
-                                                        const JsonNode& dictionary_metadata_json_node);
+    static std::unique_ptr<CSWebRepositoryCache> Create(CSWebRepository& repository, const DeviceId& server_device_id,
+                                                        const CSWebUser& user, const JsonNode& dictionary_metadata_json_node);
 
 private:
     void Initialize(const JsonNode& dictionary_metadata_json_node);

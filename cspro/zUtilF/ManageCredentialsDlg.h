@@ -25,7 +25,7 @@ protected:
 
 private:
     struct Credential;
-    enum class CredentialType { Sync, Data, Location };
+    enum class CredentialType { Sync, Data, CSWebCache, Location };
 
     static const wchar_t* ToString(CredentialType credential_type, bool for_details);
 
@@ -36,6 +36,8 @@ private:
     static void SetUpCredentialSync_OAuth2Token(Credential& credential, const JsonNode& json_node);
 
     static void SetUpCredentialData(Credential& credential);
+
+    static void SetUpCredentialCSWebCache(Credential& credential);
 
     static void SetUpCredentialLocation(Credential& credential);
 
