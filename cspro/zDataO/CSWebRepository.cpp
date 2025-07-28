@@ -394,9 +394,19 @@ void CSWebRepository::ParseJsonCase(Case& data_case, const JsonNode& case_json_n
 
 size_t CSWebRepository::ExecuteCaseCountQuery(const std::string_view arguments_json_text_sv) const
 {
+    size_t count;
+
+    if( m_cache != nullptr && m_cache->GetCaseCount(arguments_json_text_sv, count) )
+        return count;
+
     const JsonNode json_node = m_cswebConnection->QueryCasesRepository(m_syncableDictionaryName, arguments_json_text_sv);
 
-    return ParseJsonCount(json_node);
+    count = ParseJsonCount(json_node);
+
+    if( m_cache != nullptr )
+        m_cache->CacheCaseCount(arguments_json_text_sv, count);
+
+    return count;
 }
 
 
@@ -437,7 +447,9 @@ void CSWebRepository::ExecuteSingleCaseQuery(const char* const content, const ch
 
 bool CSWebRepository::ContainsCase(const std::string& key)
 {
-    // CSWEB_TODO: access + update cache
+    if( m_cache != nullptr && m_cache->HasCaseByKey(key) )
+        return true;
+
     try
     {
         const std::string arguments_json_text = SO::Concatenate(R"({"content":"count","status":"notDeletedOnly","filter":{"operator":"=","type":"key","value":)",
@@ -631,14 +643,12 @@ void CSWebRepository::ReadCase(Case& data_case, const char* const status, const 
     {
         throw DataRepositoryException::GenericReadError(); // CSWEB_TODO revisit when this is a CSWeb communication error?
     }
-
-    // CSWEB_TODO: update cache
 }
 
 
 void CSWebRepository::ReadCase(Case& data_case, const std::string& key)
 {
-    if( m_cache != nullptr && m_cache->ReadCaseByKey(data_case, key) )
+    if( m_cache != nullptr && m_cache->GetCaseByKey(data_case, key) )
         return;
 
     ReadCase(data_case, JV::notDeletedOnly, JK::key, Encoders::ToJsonString(key));
@@ -650,7 +660,7 @@ void CSWebRepository::ReadCase(Case& data_case, const double position_in_reposit
     ASSERT(static_cast<int64_t>(position_in_repository) == position_in_repository);
     const int64_t position = static_cast<int64_t>(position_in_repository);
 
-    if( m_cache != nullptr && m_cache->ReadCaseByPosition(data_case, position) )
+    if( m_cache != nullptr && m_cache->GetCaseByPosition(data_case, position) )
         return;
 
     ReadCase(data_case, JV::all, JK::position, IntToString(position));
@@ -659,7 +669,9 @@ void CSWebRepository::ReadCase(Case& data_case, const double position_in_reposit
 
 void CSWebRepository::ReadCaseByUuid(Case& data_case, const std::string& uuid)
 {
-    // CSWEB_TODO: access cache
+    if( m_cache != nullptr && m_cache->GetCaseByUuid(data_case, uuid) )
+        return;
+
     ReadCase(data_case, JV::all, JK::uuid, Encoders::ToJsonString(uuid));
 }
 
@@ -670,6 +682,9 @@ void CSWebRepository::WriteCase(Case& data_case, WriteCaseParameter* /*write_cas
 
     if( IsReadOnly() )
         throw DataRepositoryException::WriteAccessRequired();
+
+    if( m_cache != nullptr )
+        m_cache->MarkCacheDirty();
 
     data_case.GetOrCreateUuid();
     data_case.GetVectorClock().increment(m_deviceId);
@@ -695,8 +710,6 @@ void CSWebRepository::WriteCase(Case& data_case, WriteCaseParameter* /*write_cas
         throw DataRepositoryException::GenericWriteError(); // CSWEB_TODO revisit when this is a CSWeb communication error?
     }
 
-    // CSWEB_TODO: update case cache
-
     if( *m_syncBinaryDataUploadManager != nullptr )
     {
         (*m_syncBinaryDataUploadManager)->ForeachBinaryCaseItemInChunk(
@@ -713,7 +726,9 @@ void CSWebRepository::DeleteCase(const double position_in_repository, const bool
     if( IsReadOnly() )
         throw DataRepositoryException::WriteAccessRequired();
 
-    // CSWEB_TODO: access + update cache
+    if( m_cache != nullptr )
+        m_cache->MarkCacheDirty();
+
     // CSWEB_TODO: for deleting cases, revisit if we should hit the delete endpoint, sending the device ID in the header so CSWeb can update the vector clock
     try
     {
@@ -740,7 +755,6 @@ void CSWebRepository::DeleteCase(const double position_in_repository, const bool
 
 size_t CSWebRepository::GetNumberCases()
 {
-    // CSWEB_TODO: access + update cache
     try
     {
         constexpr std::string_view arguments_json_text_sv = R"({"content":"count","status":"notDeletedOnly"})";
@@ -761,7 +775,6 @@ size_t CSWebRepository::GetNumberCases(const CaseIterationCaseStatus case_status
     if( case_status == CaseIterationCaseStatus::NotDeletedOnly && start_parameters == nullptr )
         return CSWebRepository::GetNumberCases();
 
-    // CSWEB_TODO: access + update cache
     try
     {
         const std::string arguments_json_text = CreateKeySearchQuery(JK::count,

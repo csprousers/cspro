@@ -38,17 +38,35 @@ public:
     // Deletes the cache file and resets the unique pointer.
     static void DeleteCache(std::unique_ptr<CSWebRepositoryCache>& cache) noexcept;
 
+    // Marks the cache as dirty (due to a write operation).
+    void MarkCacheDirty() noexcept { m_currentServerRevision.reset(); }
+
+    // Writes the case count to the cache.
+    void CacheCaseCount(std::string_view arguments_json_text_sv, size_t count) noexcept;
+
+    // Returns true if the count associated with the arguments was retrieved from the cache.
+    bool GetCaseCount(std::string_view arguments_json_text_sv, size_t& count) noexcept;
+
     // Parses the case returned from CSWeb and writes it to the cache.
     void CacheCase(const JsonNode& case_json_node, const JsonNode& metadata_json_node) noexcept;
 
+    // Returns true if a non-deleted case with the given key exists in the cache.
+    bool HasCaseByKey(const std::string& key) noexcept;
+
     // Returns true if a non-deleted case with the given key was retrieved from the cache.
-    bool ReadCaseByKey(Case& data_case, const std::string& key) noexcept;
+    bool GetCaseByKey(Case& data_case, const std::string& key) noexcept;
 
     // Returns true if a case with the given position was retrieved from the cache.
-    bool ReadCaseByPosition(Case& data_case, int64_t position) noexcept;
+    bool GetCaseByPosition(Case& data_case, int64_t position) noexcept;
+
+    // Returns true if a case with the given UUID was retrieved from the cache.
+    bool GetCaseByUuid(Case& data_case, const std::string& uuid) noexcept;
 
 private:
     void Initialize(const JsonNode& dictionary_metadata_json_node);
+    void CreateTablesAndIndices();
+
+    bool IsServerRevisionKnown() noexcept;
 
 private:
     CSWebRepository& m_repository;
@@ -59,7 +77,12 @@ private:
     std::unique_ptr<SyncCaseV3JsonSerializer> m_syncCaseJsonSerializer;
 
     Sqlite::DB m_db;
+
+    Sqlite::Statement m_stmtWriteCount;
+    Sqlite::Statement m_stmtQueryCount;
+
     Sqlite::Statement m_stmtWriteCase;
-    Sqlite::Statement m_stmtQueryCasesByKey;
-    Sqlite::Statement m_stmtQueryCasesByPosition;
+    Sqlite::Statement m_stmtQueryCaseExistence;
+    Sqlite::Statement m_stmtQueryCaseByKey;
+    Sqlite::Statement m_stmtQueryCaseByPosition;
 };
