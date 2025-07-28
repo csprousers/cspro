@@ -371,42 +371,31 @@ CaseSummary CSWebRepository::ParseJsonSummary(const JsonNode& json_node)
 }
 
 
-void CSWebRepository::ParseJsonCase(Case& data_case, const JsonNode& case_json_node, const JsonNode& metadata_json_node,
-                                    SyncCaseJsonSerializer& sync_case_json_serializer)
+void CSWebRepository::ParseJsonCase(Case& data_case, const JsonNode& case_json_node, const JsonNode& metadata_json_node, SyncCaseSerializer& sync_case_serializer)
 {
-    sync_case_json_serializer.ParseCase(data_case, case_json_node);
+    sync_case_serializer.GetSyncCaseJsonSerializer().ParseCase(data_case, case_json_node);
 
     data_case.SetPositionInRepository(metadata_json_node.Get<double>(JK::position));
     ASSERT(data_case.GetPositionInRepository() >= 1);
 }
 
 
-void CSWebRepository::ParseJsonCase(Case& data_case, const JsonNode& case_json_node, const JsonNode& metadata_json_node)
-{
-    ASSERT(m_syncCaseSerializer != nullptr);
-
-    ParseJsonCase(data_case, case_json_node, metadata_json_node, m_syncCaseSerializer->GetSyncCaseJsonSerializer());
-
-    if( m_cache != nullptr )
-        m_cache->CacheCase(case_json_node, metadata_json_node);
-}
-
-
 size_t CSWebRepository::ExecuteCaseCountQuery(const std::string_view arguments_json_text_sv) const
 {
-    size_t count;
-
-    if( m_cache != nullptr && m_cache->GetCaseCount(arguments_json_text_sv, count) )
-        return count;
-
-    const JsonNode json_node = m_cswebConnection->QueryCasesRepository(m_syncableDictionaryName, arguments_json_text_sv);
-
-    count = ParseJsonCount(json_node);
+    std::optional<JsonNode> json_node;
 
     if( m_cache != nullptr )
-        m_cache->CacheCaseCount(arguments_json_text_sv, count);
+        json_node = m_cache->RetrieveCaseCountQuery(arguments_json_text_sv);
 
-    return count;
+    if( !json_node.has_value() )
+    {
+        json_node = m_cswebConnection->QueryCasesRepository(m_syncableDictionaryName, arguments_json_text_sv);
+
+        if( m_cache != nullptr )
+            m_cache->CacheCaseCountQuery(arguments_json_text_sv, *json_node);
+    }
+
+    return ParseJsonCount(*json_node);
 }
 
 
@@ -421,6 +410,41 @@ void CSWebRepository::ExecuteSingleCaseQuery(const char* const content, const ch
                                                             R"(","value":)", filter_value_sv,
                                                             R"(},"order":"position","limit":1})");
 
+    // check the cache
+    if( m_cache != nullptr )
+    {
+        try
+        {
+            std::optional<JsonNode> case_json_node;
+
+            if constexpr(requires_metadata)
+            {
+                std::optional<JsonNode> metadata_json_node;
+                case_json_node = m_cache->RetrieveSingleCaseQuery(arguments_json_text, &metadata_json_node);
+
+                if( case_json_node.has_value() )
+                {
+                    ASSERT(metadata_json_node.has_value());
+                    callback_function(*case_json_node, *metadata_json_node);
+                    return;
+                }
+            }
+
+            else
+            {
+                case_json_node = m_cache->RetrieveSingleCaseQuery(arguments_json_text, nullptr);
+
+                if( case_json_node.has_value() )
+                {
+                    callback_function(*case_json_node);
+                    return;
+                }
+            }
+        }
+        catch(...) { ASSERT(false); }
+    }
+
+    // if not in the cache, query CSWeb
     const JsonNode json_node = m_cswebConnection->QueryCasesRepository(m_syncableDictionaryName, arguments_json_text);
     ASSERT(json_node.IsObject() && json_node.Contains(content) && json_node.Get(content).IsArray());
 
@@ -435,19 +459,31 @@ void CSWebRepository::ExecuteSingleCaseQuery(const char* const content, const ch
         const JsonNodeArray metadata_json_array_node = json_node.GetArray(JK::metadata);
         ASSERT(metadata_json_array_node.size() == content_json_array_node.size());
 
-        callback_function(content_json_array_node[0], metadata_json_array_node[0]);
+        const JsonNode& case_json_node = content_json_array_node[0];
+        const JsonNode& metadata_json_node = metadata_json_array_node[0];
+
+        callback_function(case_json_node, metadata_json_node);
+
+        if( m_cache != nullptr )
+            m_cache->CacheSingleCaseQuery(arguments_json_text, case_json_node, metadata_json_node);
     }
 
     else
     {
-        callback_function(content_json_array_node[0]);
+        const JsonNode& identifiers_json_node = content_json_array_node[0];
+
+        callback_function(identifiers_json_node);
+
+        if( m_cache != nullptr )
+            m_cache->CacheSingleCaseQuery(arguments_json_text, identifiers_json_node);
     }
 }
 
 
 bool CSWebRepository::ContainsCase(const std::string& key)
 {
-    if( m_cache != nullptr && m_cache->HasCaseByKey(key) )
+    // if not found in the cache here, the cache will be further checked/updated in ExecuteCaseCountQuery
+    if( m_cache != nullptr && m_cache->HasNonDeletedCaseByKey(key) )
         return true;
 
     try
@@ -469,7 +505,7 @@ bool CSWebRepository::ContainsCase(const std::string& key)
 
 void CSWebRepository::PopulateCaseIdentifiers(std::string& key, std::string& uuid, double& position_in_repository)
 {
-    // CSWEB_TODO: access + update cache
+    // the cache will be checked/updated in ExecuteSingleCaseQuery
     try
     {
         if( !key.empty() )
@@ -625,12 +661,13 @@ void CSWebRepository::ReadCase(Case& data_case, const char* const status, const 
 {
     ASSERT(m_syncCaseSerializer != nullptr);
 
+    // the cache will be checked/updated in ExecuteSingleCaseQuery
     try
     {
         ExecuteSingleCaseQuery<true>(JK::cases, status, filter_type, filter_value_sv,
             [&](const JsonNode& case_json_node, const JsonNode& metadata_json_node)
             {
-                ParseJsonCase(data_case, case_json_node, metadata_json_node);
+                ParseJsonCase(data_case, case_json_node, metadata_json_node, *m_syncCaseSerializer);
             });
     }
 
@@ -648,9 +685,6 @@ void CSWebRepository::ReadCase(Case& data_case, const char* const status, const 
 
 void CSWebRepository::ReadCase(Case& data_case, const std::string& key)
 {
-    if( m_cache != nullptr && m_cache->GetCaseByKey(data_case, key) )
-        return;
-
     ReadCase(data_case, JV::notDeletedOnly, JK::key, Encoders::ToJsonString(key));
 }
 
@@ -660,18 +694,12 @@ void CSWebRepository::ReadCase(Case& data_case, const double position_in_reposit
     ASSERT(static_cast<int64_t>(position_in_repository) == position_in_repository);
     const int64_t position = static_cast<int64_t>(position_in_repository);
 
-    if( m_cache != nullptr && m_cache->GetCaseByPosition(data_case, position) )
-        return;
-
     ReadCase(data_case, JV::all, JK::position, IntToString(position));
 }
 
 
 void CSWebRepository::ReadCaseByUuid(Case& data_case, const std::string& uuid)
 {
-    if( m_cache != nullptr && m_cache->GetCaseByUuid(data_case, uuid) )
-        return;
-
     ReadCase(data_case, JV::all, JK::uuid, Encoders::ToJsonString(uuid));
 }
 
@@ -755,6 +783,7 @@ void CSWebRepository::DeleteCase(const double position_in_repository, const bool
 
 size_t CSWebRepository::GetNumberCases()
 {
+    // the cache will be checked/updated in ExecuteCaseCountQuery
     try
     {
         constexpr std::string_view arguments_json_text_sv = R"({"content":"count","status":"notDeletedOnly"})";
@@ -775,6 +804,7 @@ size_t CSWebRepository::GetNumberCases(const CaseIterationCaseStatus case_status
     if( case_status == CaseIterationCaseStatus::NotDeletedOnly && start_parameters == nullptr )
         return CSWebRepository::GetNumberCases();
 
+    // the cache will be checked/updated in ExecuteCaseCountQuery
     try
     {
         const std::string arguments_json_text = CreateKeySearchQuery(JK::count,
@@ -1034,7 +1064,11 @@ bool CSWebRepositoryIterator::NextCase(Case& data_case)
         if( !case_and_metadata_json_nodes.has_value() )
             return false;
 
-        m_cswebRepository.ParseJsonCase(data_case, std::get<0>(*case_and_metadata_json_nodes), std::get<1>(*case_and_metadata_json_nodes));
+        ASSERT(m_cswebRepository.m_syncCaseSerializer != nullptr);
+
+        CSWebRepository::ParseJsonCase(data_case,
+                                       std::get<0>(*case_and_metadata_json_nodes), std::get<1>(*case_and_metadata_json_nodes),
+                                       *m_cswebRepository.m_syncCaseSerializer);
     }
 
     else

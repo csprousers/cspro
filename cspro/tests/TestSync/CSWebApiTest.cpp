@@ -376,8 +376,7 @@ void SyncUnitTest::CSWebApiTest::TestCasesEndpoint_Cases(std::shared_ptr<CSWebCo
             Assert::IsTrue(metadata_json_node.has_value());
 
             const std::shared_ptr<Case> this_data_case = m_caseAccess->CreateCase();
-            CSWebRepository::ParseJsonCase(*this_data_case, content_json_node, *metadata_json_node,
-                                           sync_case_serializer->GetSyncCaseJsonSerializer());
+            CSWebRepository::ParseJsonCase(*this_data_case, content_json_node, *metadata_json_node, *sync_case_serializer);
 
             return std::make_tuple(this_data_case, std::find_if(cases.cbegin(), cases.cend(),
                 [&](const std::shared_ptr<Case>& data_case)

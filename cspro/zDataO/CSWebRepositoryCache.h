@@ -5,7 +5,6 @@
 
 struct CSWebRepositoryCacheCredential;
 struct CSWebUser;
-class SyncCaseV3JsonSerializer;
 
 
 // --------------------------------------------------------------------------
@@ -21,8 +20,6 @@ class SyncCaseV3JsonSerializer;
 class CSWebRepositoryCache
 {
 private:
-    enum class DataType { Count = 10, CaseKey = 20, CaseSummary = 30, Case = 40 };
-
     CSWebRepositoryCache(CSWebRepository& repository, const CSWebRepositoryCacheCredential& credential,
                          const JsonNode& dictionary_metadata_json_node);
 
@@ -41,26 +38,26 @@ public:
     // Marks the cache as dirty (due to a write operation).
     void MarkCacheDirty() noexcept { m_currentServerRevision.reset(); }
 
-    // Writes the case count to the cache.
-    void CacheCaseCount(std::string_view arguments_json_text_sv, size_t count) noexcept;
+    // Writes CSWeb's response to a case count query to the cache.
+    void CacheCaseCountQuery(std::string_view arguments_json_text_sv, const JsonNode& count_json_node) noexcept;
 
-    // Returns true if the count associated with the arguments was retrieved from the cache.
-    bool GetCaseCount(std::string_view arguments_json_text_sv, size_t& count) noexcept;
+    // Returns the cached response to a case count query, or std::nullopt if not in the cache.
+    std::optional<JsonNode> RetrieveCaseCountQuery(std::string_view arguments_json_text_sv) noexcept;
 
-    // Parses the case returned from CSWeb and writes it to the cache.
-    void CacheCase(const JsonNode& case_json_node, const JsonNode& metadata_json_node) noexcept;
+    // Writes CSWeb's response to a single case query that returned case JSON.
+    void CacheSingleCaseQuery(std::string_view arguments_json_text_sv, const JsonNode& case_json_node,
+                              const JsonNode& metadata_json_node) noexcept;
+
+    // Writes CSWeb's response to a single case query that returned identifiers JSON.
+    void CacheSingleCaseQuery(std::string_view arguments_json_text_sv, const JsonNode& identifiers_json_node) noexcept;
+
+    // Returns the cached response to a single case query, or std::nullopt if not in the cache.
+    // If metadata_json_node is non-null, the response will only be returned if it represents a full case.
+    std::optional<JsonNode> RetrieveSingleCaseQuery(std::string_view arguments_json_text_sv,
+                                                    std::optional<JsonNode>* metadata_json_node) noexcept;
 
     // Returns true if a non-deleted case with the given key exists in the cache.
-    bool HasCaseByKey(const std::string& key) noexcept;
-
-    // Returns true if a non-deleted case with the given key was retrieved from the cache.
-    bool GetCaseByKey(Case& data_case, const std::string& key) noexcept;
-
-    // Returns true if a case with the given position was retrieved from the cache.
-    bool GetCaseByPosition(Case& data_case, int64_t position) noexcept;
-
-    // Returns true if a case with the given UUID was retrieved from the cache.
-    bool GetCaseByUuid(Case& data_case, const std::string& uuid) noexcept;
+    bool HasNonDeletedCaseByKey(const std::string& key) noexcept;
 
 private:
     void Initialize(const JsonNode& dictionary_metadata_json_node);
@@ -68,21 +65,21 @@ private:
 
     bool IsServerRevisionKnown() noexcept;
 
+    void CacheSingleCaseQuery(std::string_view arguments_json_text_sv, int64_t position, const JsonNode& case_or_identifiers_json_node, const JsonNode* metadata_json_node);
+
 private:
     CSWebRepository& m_repository;
     std::optional<int64_t> m_currentServerRevision;
-
-    std::shared_ptr<const CaseAccess> m_caseAccess;
-    std::unique_ptr<Case> m_case;
-    std::unique_ptr<SyncCaseV3JsonSerializer> m_syncCaseJsonSerializer;
 
     Sqlite::DB m_db;
 
     Sqlite::Statement m_stmtWriteCount;
     Sqlite::Statement m_stmtQueryCount;
 
+    Sqlite::Statement m_stmtWriteSingleCasePosition;
+    Sqlite::Statement m_stmtQuerySingleCasePosition;
+
     Sqlite::Statement m_stmtWriteCase;
-    Sqlite::Statement m_stmtQueryCaseExistence;
-    Sqlite::Statement m_stmtQueryCaseByKey;
-    Sqlite::Statement m_stmtQueryCaseByPosition;
+    Sqlite::Statement m_stmtQueryCaseExistenceByFullCase;
+    Sqlite::Statement m_stmtQueryCaseNotDeletedExistenceByKey;
 };
