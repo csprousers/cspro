@@ -256,3 +256,17 @@ int64_t Sqlite::DB::GetLastInsertedRowId() const noexcept
     return ( m_db != nullptr ) ? sqlite3_last_insert_rowid(m_db) :
                                  0;
 }
+
+
+bool Sqlite::DB::TableExists(const std::string_view table_name_sv)
+{
+    Sqlite::Statement stmt = PrepareStatement(
+        "SELECT 1 "
+        "FROM `sqlite_master` "
+        "WHERE `type` = 'table' AND `name` = ?;"
+    );
+
+    stmt.Bind(1, table_name_sv);
+
+    return ( stmt.Step() == Sqlite::Result::Row );
+}

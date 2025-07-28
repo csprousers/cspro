@@ -3,9 +3,6 @@
 #include <zJson/Json.h>
 
 
-CREATE_JSON_KEY(revision)
-
-
 int VectorClock::getVersion(const DeviceId& device_id) const
 {
     const auto& lookup = m_vector.find(device_id);

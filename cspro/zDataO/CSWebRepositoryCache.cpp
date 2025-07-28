@@ -2,6 +2,8 @@
 #include "CSWebRepositoryCache.h"
 #include "CSWebRepositoryCacheCredential.h"
 #include "CSWebRepositoryJsonKeys.h"
+#include "SyncCaseJsonSerializer.h"
+#include <zSql/Commands.h>
 #include <zToolsO/FileIO.h>
 #include <zUtilO/CredentialStore.h>
 #include <zUtilO/Interapp.h>
@@ -36,6 +38,11 @@ CSWebRepositoryCache::CSWebRepositoryCache(CSWebRepository& repository, const CS
     }
 
     Initialize(dictionary_metadata_json_node);
+}
+
+
+CSWebRepositoryCache::~CSWebRepositoryCache()
+{
 }
 
 
@@ -118,9 +125,160 @@ std::unique_ptr<CSWebRepositoryCache> CSWebRepositoryCache::Create(CSWebReposito
 
 void CSWebRepositoryCache::Initialize(const JsonNode& dictionary_metadata_json_node)
 {
-    const std::optional<int64_t> min_revision = dictionary_metadata_json_node.GetOptional<int64_t>(JK::minRevision);
-    const std::optional<int64_t> max_revision = dictionary_metadata_json_node.GetOptional<int64_t>(JK::maxRevision);
+    ASSERT(m_repository.m_caseAccess != nullptr);
+    ASSERT(!m_currentServerRevision.has_value());
 
-    // CSWEB_TODO: check versus cache;
-    // if min_revision is std::nullopt or is > the cache's revision, it means that the data was deleted via the CSWeb UI, so the entire cache should be cleared
+    // get details on the server's current max revision
+    m_currentServerRevision = dictionary_metadata_json_node.GetOptional<int64_t>(JK::maxRevision);
+
+    // all serializers will be created using full case access
+    m_caseAccess = CaseAccess::CreateAndInitializeFullCaseAccess(m_repository.m_caseAccess->GetDataDict());
+    m_case = m_caseAccess->CreateCase();
+    m_syncCaseJsonSerializer = std::make_unique<SyncCaseV3JsonSerializer>(m_caseAccess);
+
+    // create the cache tables and indices if necessary
+    if( !m_db.TableExists("cases") )
+    {
+        m_db.Execute(
+            "CREATE TABLE `cases` ("
+            "`id` INTEGER NOT NULL,"
+            "`uuid` TEXT NOT NULL,"
+            "`key` TEXT NOT NULL,"
+            "`deleted` INTEGER NOT NULL,"
+            "`server_revision` INTEGER NOT NULL,"
+            "`data_revision` INTEGER NOT NULL,"
+            "`data_type` INTEGER NOT NULL,"
+            "`data` TEXT NOT NULL,"
+            "PRIMARY KEY(`id`)"
+            ");"
+        );
+
+        m_db.Execute(
+            "CREATE INDEX `cases-key` "
+            "ON `cases` (`key`)"
+        );
+    }
+
+    // speed up access to the database by disabling journaling and synchronous writes
+    m_db.Execute(Sqlite::Commands::SetJournalModeToOff);
+    m_db.Execute(Sqlite::Commands::SetSynchronousOff);
+}
+
+
+void CSWebRepositoryCache::DeleteCache(std::unique_ptr<CSWebRepositoryCache>& cache) noexcept
+{
+    if( cache == nullptr )
+        return;
+
+    try
+    {
+        const std::string cache_file_path = cache->m_db.GetFilePath();
+        cache.reset();
+        PortableFunctions::FileDeleteWithExceptions(cache_file_path);
+    }
+    catch(...) { ASSERT(false); }
+}
+
+
+void CSWebRepositoryCache::CacheCase(const JsonNode& case_json_node, const JsonNode& metadata_json_node) noexcept
+{
+    if( !m_currentServerRevision.has_value() )
+        return;
+
+    try
+    {
+        CSWebRepository::ParseJsonCase(*m_case, case_json_node, metadata_json_node, *m_syncCaseJsonSerializer);
+
+        const std::unique_ptr<JsonStringWriter> case_data_json_writer = Json::CreateStringWriter(JsonFormattingOptions::Compact);
+        m_syncCaseJsonSerializer->WriteCase(*case_data_json_writer, *m_case);
+        const std::string parsed_case_json = case_data_json_writer->ReleaseString();
+
+        m_db.PrepareOrResetStatement(m_stmtWriteCase,
+            "INSERT OR REPLACE INTO `cases` "
+            "(`id`, `uuid`, `key`, `deleted`, `server_revision`, `data_revision`, `data_type`, `data`) "
+            "VALUES(?,?,?,?,?,?,?,?);"
+        );
+
+        ASSERT(static_cast<int64_t>(m_case->GetPositionInRepository()) == metadata_json_node.Get<int64_t>(JK::position));
+        ASSERT(static_cast<int64_t>(m_case->GetPositionInRepository()) == m_case->GetPositionInRepository());
+
+        m_stmtWriteCase.Bind(1, static_cast<int64_t>(m_case->GetPositionInRepository()))
+                       .Bind(2, m_case->GetUuid())
+                       .Bind(3, m_case->GetKey())
+                       .Bind(4, m_case->GetDeleted())
+                       .Bind(5, *m_currentServerRevision)
+                       .Bind(6, metadata_json_node.Get<int64_t>(JK::revision))
+                       .Bind(7, static_cast<int>(DataType::Case))
+                       .Bind(8, parsed_case_json);
+
+        if( m_stmtWriteCase.Step() != Sqlite::Result::Done )
+            throw ProgrammingErrorException();
+    }
+    catch(...) { ASSERT(false); }
+}
+
+
+bool CSWebRepositoryCache::ReadCaseByKey(Case& data_case, const std::string& key) noexcept
+{
+    if( !m_currentServerRevision.has_value() )
+        return false;
+
+    try
+    {
+        m_db.PrepareOrResetStatement(m_stmtQueryCasesByKey,
+            "SELECT `id`, `data` "
+            "FROM `cases` "
+            "WHERE `key` = ? AND `deleted` = 0 AND `server_revision` >= ? AND `data_type` >= ? "
+            "LIMIT 1;"
+        );
+
+        m_stmtQueryCasesByKey.Bind(1, key)
+                             .Bind(2, *m_currentServerRevision)
+                             .Bind(3, static_cast<int>(DataType::Case));
+
+        if( m_stmtQueryCasesByKey.Step() == Sqlite::Result::Row )
+        {
+            const JsonNode& json_node = Json::Parse(m_stmtQueryCasesByKey.GetColumn<std::string>(1));
+            data_case.ParseJson(json_node);
+
+            data_case.SetPositionInRepository(m_stmtQueryCasesByKey.GetColumn<double>(0));
+
+            return true;
+        }
+    }
+    catch(...) { ASSERT(false); }
+
+    return false;
+}
+
+
+bool CSWebRepositoryCache::ReadCaseByPosition(Case& data_case, const int64_t position) noexcept
+{
+    if( !m_currentServerRevision.has_value() )
+        return false;
+
+    try
+    {
+        m_db.PrepareOrResetStatement(m_stmtQueryCasesByPosition,
+            "SELECT `data` "
+            "FROM `cases` "
+            "WHERE `id` = ? AND `server_revision` >= ? AND `data_type` >= ? "
+            "LIMIT 1;"
+        );
+
+        m_stmtQueryCasesByPosition.Bind(1, position)
+                                  .Bind(2, *m_currentServerRevision)
+                                  .Bind(3, static_cast<int>(DataType::Case));
+
+        if( m_stmtQueryCasesByPosition.Step() == Sqlite::Result::Row )
+        {
+            const JsonNode& json_node = Json::Parse(m_stmtQueryCasesByPosition.GetColumn<std::string>(0));
+            data_case.ParseJson(json_node);
+
+            return true;
+        }
+    }
+    catch(...) { ASSERT(false); }
+
+    return false;
 }

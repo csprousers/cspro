@@ -262,6 +262,7 @@ namespace JK
     CJK(results)
     CJK(returns)
     CJK(returnType)
+    CJK(revision)
     CJK(roleName)
     CJK(rootDirectory)
     CJK(rows)

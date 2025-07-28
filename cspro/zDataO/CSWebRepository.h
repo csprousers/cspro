@@ -7,6 +7,7 @@ class ConnectResponse;
 class CSWebConnection;
 class LoginCredentials;
 class SyncBinaryDataUploadManager;
+class SyncCaseJsonSerializer;
 class SyncCaseSerializer;
 class SyncErrorFormatter;
 
@@ -50,7 +51,8 @@ public:
     static size_t ParseJsonCount(const JsonNode& json_node);
     static CaseKey ParseJsonIdentifier(const JsonNode& json_node);
     static CaseSummary ParseJsonSummary(const JsonNode& json_node);
-    static void ParseJsonCase(Case& data_case, const JsonNode& case_json_node, const JsonNode& metadata_json_node, SyncCaseSerializer& sync_case_serializer);
+    static void ParseJsonCase(Case& data_case, const JsonNode& case_json_node, const JsonNode& metadata_json_node, SyncCaseJsonSerializer& sync_case_json_serializer);
+    void ParseJsonCase(Case& data_case, const JsonNode& case_json_node, const JsonNode& metadata_json_node);
 
     // Returns the dictionary from CSWeb using any credentials specified in the connection string.
     // Exceptions will be thrown on read errors.

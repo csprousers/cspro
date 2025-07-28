@@ -65,6 +65,9 @@ public:
     // Returns the row ID of the last inserted row, or 0 if no row has been inserted or if the database is not open.
     int64_t GetLastInsertedRowId() const noexcept;
 
+    // Returns true if a table with the given name exists in the database (from `sqlite_master`).
+    bool TableExists(std::string_view table_name_sv);
+
 private:
     // Throws an exception if no database is open.
     void CheckDatabaseIsOpen() const;
