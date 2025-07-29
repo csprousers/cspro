@@ -384,15 +384,17 @@ size_t CSWebRepository::ExecuteCaseCountQuery(const std::string_view arguments_j
 {
     std::optional<JsonNode> json_node;
 
+    // check the cache
     if( m_cache != nullptr )
-        json_node = m_cache->RetrieveCaseCountQuery(arguments_json_text_sv);
+        json_node = m_cache->RetrieveQuery(arguments_json_text_sv);
 
     if( !json_node.has_value() )
     {
         json_node = m_cswebConnection->QueryCasesRepository(m_syncableDictionaryName, arguments_json_text_sv);
 
+        // update the cache
         if( m_cache != nullptr )
-            m_cache->CacheCaseCountQuery(arguments_json_text_sv, *json_node);
+            m_cache->CacheQuery(arguments_json_text_sv, *json_node);
     }
 
     return ParseJsonCount(*json_node);
@@ -464,8 +466,12 @@ void CSWebRepository::ExecuteSingleCaseQuery(const char* const content, const ch
 
         callback_function(case_json_node, metadata_json_node);
 
+        // update the cache
         if( m_cache != nullptr )
+        {
+            ASSERT(content == JK::cases);
             m_cache->CacheSingleCaseQuery(arguments_json_text, case_json_node, metadata_json_node);
+        }
     }
 
     else
@@ -474,8 +480,12 @@ void CSWebRepository::ExecuteSingleCaseQuery(const char* const content, const ch
 
         callback_function(identifiers_json_node);
 
+        // update the cache
         if( m_cache != nullptr )
-            m_cache->CacheSingleCaseQuery(arguments_json_text, identifiers_json_node);
+        {
+            ASSERT(content == JK::identifiers);
+            m_cache->CacheSingleIdentifierQuery(arguments_json_text, identifiers_json_node);
+        }
     }
 }
 
@@ -711,6 +721,7 @@ void CSWebRepository::WriteCase(Case& data_case, WriteCaseParameter* /*write_cas
     if( IsReadOnly() )
         throw DataRepositoryException::WriteAccessRequired();
 
+    // update the cache because the server will now have a new revision number
     if( m_cache != nullptr )
         m_cache->MarkCacheDirty();
 
@@ -754,6 +765,7 @@ void CSWebRepository::DeleteCase(const double position_in_repository, const bool
     if( IsReadOnly() )
         throw DataRepositoryException::WriteAccessRequired();
 
+    // update the cache because the server will now have a new revision number
     if( m_cache != nullptr )
         m_cache->MarkCacheDirty();
 

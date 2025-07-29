@@ -38,21 +38,31 @@ public:
     // Marks the cache as dirty (due to a write operation).
     void MarkCacheDirty() noexcept { m_currentServerRevision.reset(); }
 
-    // Writes CSWeb's response to a case count query to the cache.
-    void CacheCaseCountQuery(std::string_view arguments_json_text_sv, const JsonNode& count_json_node) noexcept;
+    // Writes CSWeb's response to a query to the cache.
+    void CacheQuery(std::string_view arguments_json_text_sv, const JsonNode& count_json_node) noexcept;
 
-    // Returns the cached response to a case count query, or std::nullopt if not in the cache.
-    std::optional<JsonNode> RetrieveCaseCountQuery(std::string_view arguments_json_text_sv) noexcept;
+    // Returns the cached response to a query, or std::nullopt if not in the cache.
+    std::optional<JsonNode> RetrieveQuery(std::string_view arguments_json_text_sv) noexcept;
 
-    // Writes CSWeb's response to a single case query that returned case JSON.
+    // Writes CSWeb's representation of a case to the cache.
+    void CacheCase(const JsonNode& case_json_node, const JsonNode& metadata_json_node) noexcept;
+
+    // Writes CSWeb's representation of an identifier or summary to the cache.
+    // The cache will not be updated if what is present has more details about the case
+    // (e.g., updating with an identifier when a case is already present).
+    void CacheIdentifierOrSummary(const JsonNode& identifiers_or_summaries_json_node, CaseIterationContent content) noexcept;
+
+    // Writes CSWeb's response to a single case query that returned case JSON (calling CacheCase).
     void CacheSingleCaseQuery(std::string_view arguments_json_text_sv, const JsonNode& case_json_node,
                               const JsonNode& metadata_json_node) noexcept;
 
-    // Writes CSWeb's response to a single case query that returned identifiers JSON.
-    void CacheSingleCaseQuery(std::string_view arguments_json_text_sv, const JsonNode& identifiers_json_node) noexcept;
+    // Writes CSWeb's response to a single case query that returned identifier JSON (calling CacheIdentifierOrSummary).
+    void CacheSingleIdentifierQuery(std::string_view arguments_json_text_sv, const JsonNode& identifiers_json_node) noexcept;
 
     // Returns the cached response to a single case query, or std::nullopt if not in the cache.
     // If metadata_json_node is non-null, the response will only be returned if it represents a full case.
+    // If metadata_json_node is null, the response will be returned even if the cache only contains the data
+    // for identifiers (not summaries), so this should not be used for summaries.
     std::optional<JsonNode> RetrieveSingleCaseQuery(std::string_view arguments_json_text_sv,
                                                     std::optional<JsonNode>* metadata_json_node) noexcept;
 
@@ -62,10 +72,15 @@ public:
 private:
     void Initialize(const JsonNode& dictionary_metadata_json_node);
     void CreateTablesAndIndices();
+    void ClearOldQueries();
 
     bool IsServerRevisionKnown() noexcept;
 
-    void CacheSingleCaseQuery(std::string_view arguments_json_text_sv, int64_t position, const JsonNode& case_or_identifiers_json_node, const JsonNode* metadata_json_node);
+    void CacheCase(CaseIterationContent content, int64_t position, const JsonNode& identifiers_or_summaries_or_case_json_node,
+                   const JsonNode* metadata_json_node);
+
+    void CacheSingleCaseQuery(std::string_view arguments_json_text_sv, CaseIterationContent content, int64_t position,
+                              const JsonNode& identifiers_or_case_json_node, const JsonNode* metadata_json_node);
 
 private:
     CSWebRepository& m_repository;
@@ -73,13 +88,13 @@ private:
 
     Sqlite::DB m_db;
 
-    Sqlite::Statement m_stmtWriteCount;
-    Sqlite::Statement m_stmtQueryCount;
-
-    Sqlite::Statement m_stmtWriteSingleCasePosition;
-    Sqlite::Statement m_stmtQuerySingleCasePosition;
+    Sqlite::Statement m_stmtWriteQuery;
+    Sqlite::Statement m_stmtReadQuery;
 
     Sqlite::Statement m_stmtWriteCase;
-    Sqlite::Statement m_stmtQueryCaseExistenceByFullCase;
-    Sqlite::Statement m_stmtQueryCaseNotDeletedExistenceByKey;
+    Sqlite::Statement m_stmtReadCaseExistenceByDataCompleteness;
+    Sqlite::Statement m_stmtReadCaseExistenceNotDeletedByKey;
+
+    Sqlite::Statement m_stmtWriteSingleCasePosition;
+    Sqlite::Statement m_stmtReadSingleCasePosition;
 };
