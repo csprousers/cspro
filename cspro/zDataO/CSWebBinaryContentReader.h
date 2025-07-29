@@ -1,9 +1,8 @@
 ﻿#pragma once
 
+#include <zDataO/CSWebRepository.h>
 #include <zDataO/SyncBinaryContentReader.h>
 #include <zCaseO/CaseJsonSerializer.h>
-
-class CSWebConnection;
 
 
 // --------------------------------------------------------------------------
@@ -15,7 +14,7 @@ class CSWebBinaryContentReader : public SyncBinaryContentReader
     friend class CSWebCaseJsonParserHelper;
     struct Data;
 
-public:    
+public:
     CSWebBinaryContentReader(std::shared_ptr<Data> data, std::optional<uint64_t> size);
 
     // BinaryContentReader overrides
@@ -23,11 +22,11 @@ public:
 
 protected:
     BinaryContentCacher::CacheableContent GetContentWorker(const std::string& signature) override;
-    
+
 private:
     struct Data
     {
-        UniqueId repository_id;
+        std::variant<CSWebRepository*, UniqueId> repository_or_repository_id;
         std::string dictionary_name;
         std::shared_ptr<CSWebConnection> csweb_connection;
     };
@@ -43,7 +42,9 @@ private:
 class CSWebCaseJsonParserHelper : public CaseJsonParserHelper
 {
 public:
-    CSWebCaseJsonParserHelper(UniqueId repository_id, std::shared_ptr<const CaseAccess> case_access, std::shared_ptr<CSWebConnection> csweb_connection);
+    CSWebCaseJsonParserHelper(std::variant<CSWebRepository*, UniqueId> repository_or_repository_id,
+                              std::shared_ptr<const CaseAccess> case_access,
+                              std::shared_ptr<CSWebConnection> csweb_connection);
 
     std::unique_ptr<BinaryContentReader> CreateBinaryContentReader(std::optional<uint64_t> size) override;
 

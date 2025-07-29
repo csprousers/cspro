@@ -43,7 +43,7 @@ public:
 
     static std::string CalculateDictionaryKeyStructure(const CDataDict& dictionary);
 
-    static std::unique_ptr<SyncCaseSerializer> CreateSyncCaseSerializer(UniqueId repository_id,
+    static std::unique_ptr<SyncCaseSerializer> CreateSyncCaseSerializer(std::variant<CSWebRepository*, UniqueId> repository_or_repository_id,
                                                                         std::shared_ptr<const CaseAccess> case_access,
                                                                         std::shared_ptr<CSWebConnection> csweb_connection);
 

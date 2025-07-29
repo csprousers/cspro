@@ -2,6 +2,7 @@
 #include "CSWebRepositoryCache.h"
 #include "CSWebRepositoryCacheCredential.h"
 #include "CSWebRepositoryJsonKeys.h"
+#include "SyncBinaryDataUploadManager.h"
 #include <zSql/Commands.h>
 #include <zToolsO/FileIO.h>
 #include <zUtilO/CredentialStore.h>
@@ -185,10 +186,19 @@ void CSWebRepositoryCache::CreateTablesAndIndices()
         ");"
     );
 
-    // `cases`: index on `key`
+    // `cases_key_index`: index on `cases`.`key`
     m_db.Execute(
-        "CREATE INDEX `cases-key` "
+        "CREATE INDEX `cases_key_index` "
         "ON `cases` (`key`)"
+    );
+
+    // `binary_data`
+    m_db.Execute(
+        "CREATE TABLE `binary_data` ("
+        "`signature` TEXT NOT NULL,"
+        "`data` BLOB NOT NULL,"
+        "PRIMARY KEY(`signature`)"
+        ");"
     );
 }
 
@@ -271,8 +281,7 @@ std::optional<JsonNode> CSWebRepositoryCache::RetrieveQuery(const std::string_vi
         m_db.PrepareOrResetStatement(m_stmtReadQuery,
             "SELECT `json` "
             "FROM `queries` "
-            "WHERE `arguments` = ? AND `server_revision` >= ? "
-            "LIMIT 1;"
+            "WHERE `arguments` = ? AND `server_revision` >= ?;"
         );
 
         m_stmtReadQuery.Bind(1, arguments_json_text_sv)
@@ -304,8 +313,7 @@ void CSWebRepositoryCache::CacheCase(const CaseIterationContent content, const i
         m_db.PrepareOrResetStatement(m_stmtReadCaseExistenceByDataCompleteness,
             "SELECT `deleted`, `metadata_json` "
             "FROM `cases` "
-            "WHERE `position` = ? AND `server_revision` >= ? "
-            "LIMIT 1;"
+            "WHERE `position` = ? AND `server_revision` >= ?;"
         );
 
         m_stmtReadCaseExistenceByDataCompleteness.Bind(1, position)
@@ -466,8 +474,7 @@ std::optional<JsonNode> CSWebRepositoryCache::RetrieveSingleCaseQuery(const std:
             "FROM `single_case_positions` "
             "JOIN `cases` ON `cases`.`position` = `single_case_positions`.`position` "
             "WHERE `single_case_positions`.`arguments` = ? AND "
-                  "`single_case_positions`.`server_revision` >= @sr AND `cases`.`server_revision` >= @sr "
-            "LIMIT 1;"
+                  "`single_case_positions`.`server_revision` >= @sr AND `cases`.`server_revision` >= @sr;"
         );
 
         m_stmtReadSingleCasePosition.Bind(1, arguments_json_text_sv)
@@ -535,4 +542,91 @@ bool CSWebRepositoryCache::HasNonDeletedCaseByKey(const std::string& key) noexce
     catch(...) { ASSERT(false); }
 
     return false;
+}
+
+
+void CSWebRepositoryCache::CacheBinaryData(const std::string& signature, const std::vector<std::byte>& content) noexcept
+{
+    // unlike the other methods, the server revision does not need to be checked
+    // because binary data is stored using its MD5 so it is immutable
+
+    try
+    {
+        m_db.PrepareOrResetStatement(m_stmtWriteBinaryData,
+            "INSERT OR IGNORE INTO `binary_data` "
+            "(`signature`, `data`) "
+            "VALUES(?,?);"
+        );
+
+        m_stmtWriteBinaryData.Bind(1, signature)
+                             .BindBlob(2, content);
+
+        if( m_stmtWriteBinaryData.Step() != Sqlite::Result::Done )
+            throw ProgrammingErrorException();
+    }
+    catch(...) { ASSERT(false); }
+}
+
+
+void CSWebRepositoryCache::CacheBinaryData(const SyncBinaryDataUploadManager& sync_binary_data_upload_manager) noexcept
+{
+    try
+    {
+        sync_binary_data_upload_manager.ForeachBinaryCaseItemInChunk(
+            [&](const BinaryCaseItem& binary_case_item, const CaseItemIndex& index)
+            {
+                const BinaryDataAccessor& binary_data_accessor = binary_case_item.GetBinaryDataAccessor(index);
+                const std::string& signature = binary_data_accessor.GetSignature();
+
+                // check if the binary data has already been cached before actually loading the content
+                if( !HasBinaryData(signature) )
+                    CacheBinaryData(signature, binary_data_accessor.GetBinaryData().GetContent());
+            });
+    }
+    catch(...) { ASSERT(false); }
+}
+
+
+bool CSWebRepositoryCache::HasBinaryData(const std::string& signature)
+{
+    m_db.PrepareOrResetStatement(m_stmtHasBinaryData,
+        "SELECT 1 "
+        "FROM `binary_data` "
+        "WHERE `signature` = ?;"
+    );
+
+    m_stmtHasBinaryData.Bind(1, signature);
+
+    const int result = m_stmtHasBinaryData.Step();
+    ASSERT(result == Sqlite::Result::Row || result == Sqlite::Result::Done);
+
+    return ( result == Sqlite::Result::Row );
+}
+
+
+std::optional<std::vector<std::byte>> CSWebRepositoryCache::RetrieveBinaryData(const std::string& signature) noexcept
+{
+    // unlike the other methods, the server revision does not need to be checked
+    // because binary data is stored using its MD5 so it is immutable
+
+    try
+    {
+        m_db.PrepareOrResetStatement(m_stmtReadBinaryData,
+            "SELECT `data` "
+            "FROM `binary_data` "
+            "WHERE `signature` = ?;"
+        );
+
+        m_stmtReadBinaryData.Bind(1, signature);
+
+        const int result = m_stmtReadBinaryData.Step();
+
+        if( result == Sqlite::Result::Row )
+            return m_stmtReadBinaryData.GetColumn<std::vector<std::byte>>(0);
+
+        ASSERT(result == Sqlite::Result::Done);
+    }
+    catch(...) { ASSERT(false); }
+
+    return std::nullopt;
 }

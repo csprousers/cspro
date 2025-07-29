@@ -69,6 +69,15 @@ public:
     // Returns true if a non-deleted case with the given key exists in the cache.
     bool HasNonDeletedCaseByKey(const std::string& key) noexcept;
 
+    // Writes binary data to the cache.
+    void CacheBinaryData(const std::string& signature, const std::vector<std::byte>& content) noexcept;
+
+    // Writes binary data from a sync operation to the cache.
+    void CacheBinaryData(const SyncBinaryDataUploadManager& sync_binary_data_upload_manager) noexcept;
+
+    // Returns the cached binary data, or std::nullopt if not in the cache.
+    std::optional<std::vector<std::byte>> RetrieveBinaryData(const std::string& signature) noexcept;
+
 private:
     void Initialize(const JsonNode& dictionary_metadata_json_node);
     void CreateTablesAndIndices();
@@ -81,6 +90,8 @@ private:
 
     void CacheSingleCaseQuery(std::string_view arguments_json_text_sv, CaseIterationContent content, int64_t position,
                               const JsonNode& identifiers_or_case_json_node, const JsonNode* metadata_json_node);
+
+    bool HasBinaryData(const std::string& signature);
 
 private:
     CSWebRepository& m_repository;
@@ -97,4 +108,8 @@ private:
 
     Sqlite::Statement m_stmtWriteSingleCasePosition;
     Sqlite::Statement m_stmtReadSingleCasePosition;
+
+    Sqlite::Statement m_stmtWriteBinaryData;
+    Sqlite::Statement m_stmtReadBinaryData;
+    Sqlite::Statement m_stmtHasBinaryData;
 };

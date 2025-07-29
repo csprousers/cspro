@@ -82,7 +82,7 @@ void CSWebRepository::ResetCaseObjects()
 
     else
     {
-        m_syncCaseSerializer = CreateSyncCaseSerializer(m_repositoryId, m_caseAccess, m_cswebConnection);
+        m_syncCaseSerializer = CreateSyncCaseSerializer(this, m_caseAccess, m_cswebConnection);
     }
 
     m_syncBinaryDataUploadManager.reset();
@@ -327,11 +327,11 @@ void CSWebRepository::DeleteRepository()
 }
 
 
-std::unique_ptr<SyncCaseSerializer> CSWebRepository::CreateSyncCaseSerializer(UniqueId repository_id,
+std::unique_ptr<SyncCaseSerializer> CSWebRepository::CreateSyncCaseSerializer(std::variant<CSWebRepository*, UniqueId> repository_or_repository_id,
                                                                               std::shared_ptr<const CaseAccess> case_access,
                                                                               std::shared_ptr<CSWebConnection> csweb_connection)
 {
-    auto case_json_parser_helper = std::make_unique<CSWebCaseJsonParserHelper>(std::move(repository_id), case_access, std::move(csweb_connection));
+    auto case_json_parser_helper = std::make_unique<CSWebCaseJsonParserHelper>(std::move(repository_or_repository_id), case_access, std::move(csweb_connection));
 
     return std::make_unique<SyncCaseSerializer>(std::move(case_access), SyncCaseSerializer::Version::V3, std::move(case_json_parser_helper));
 }
@@ -749,14 +749,9 @@ void CSWebRepository::WriteCase(Case& data_case, WriteCaseParameter* /*write_cas
         throw DataRepositoryException::GenericWriteError(); // CSWEB_TODO revisit when this is a CSWeb communication error?
     }
 
-    if( *m_syncBinaryDataUploadManager != nullptr )
-    {
-        (*m_syncBinaryDataUploadManager)->ForeachBinaryCaseItemInChunk(
-            [&](const std::string& signature)
-            {
-                signature; // CSWEB_TODO: update binary data cache
-            });
-    }
+    // cache any binary data
+    if( m_cache != nullptr && *m_syncBinaryDataUploadManager != nullptr )
+        m_cache->CacheBinaryData(*(*m_syncBinaryDataUploadManager));
 }
 
 

@@ -1,6 +1,6 @@
 ﻿#include "stdafx.h"
 #include "CSWebBinaryContentReader.h"
-#include "CSWebRepository.h"
+#include "CSWebRepositoryCache.h"
 #include <zNetwork/CSWebConnection.h>
 #include <zNetwork/SyncException.h>
 
@@ -19,7 +19,16 @@ CSWebBinaryContentReader::CSWebBinaryContentReader(std::shared_ptr<Data> data, s
 
 const UniqueId* CSWebBinaryContentReader::GetUniqueId() const
 {
-    return &m_data->repository_id;
+    if( std::holds_alternative<CSWebRepository*>(m_data->repository_or_repository_id) )
+    {
+        return &std::get<CSWebRepository*>(m_data->repository_or_repository_id)->GetRepositoryId();
+    }
+
+    else
+    {
+        ASSERT(std::holds_alternative<UniqueId>(m_data->repository_or_repository_id));
+        return &std::get<UniqueId>(m_data->repository_or_repository_id);
+    }
 }
 
 
@@ -27,8 +36,27 @@ BinaryContentCacher::CacheableContent CSWebBinaryContentReader::GetContentWorker
 {
     try
     {
-        const std::string data = m_data->csweb_connection->DownloadDictionaryBinaryData(m_data->dictionary_name, signature);
-        return SO::CreateByteVector(data);
+        std::optional<std::vector<std::byte>> content;
+
+        CSWebRepositoryCache* const cache = std::holds_alternative<CSWebRepository*>(m_data->repository_or_repository_id) ?
+            std::get<CSWebRepository*>(m_data->repository_or_repository_id)->m_cache.get() :
+            nullptr;
+
+        // check the cache
+        if( cache != nullptr )
+            content = cache->RetrieveBinaryData(signature);
+
+        if( !content.has_value() )
+        {
+            const std::string data = m_data->csweb_connection->DownloadDictionaryBinaryData(m_data->dictionary_name, signature);
+            content = SO::CreateByteVector(data);
+
+            // update the cache
+            if( cache != nullptr )
+                cache->CacheBinaryData(signature, *content);
+        }
+
+        return std::move(*content);
     }
 
     catch( const std::exception& exception )
@@ -44,9 +72,11 @@ BinaryContentCacher::CacheableContent CSWebBinaryContentReader::GetContentWorker
 // CSWebCaseJsonParserHelper
 // --------------------------------------------------------------------------
 
-CSWebCaseJsonParserHelper::CSWebCaseJsonParserHelper(UniqueId repository_id, std::shared_ptr<const CaseAccess> case_access, std::shared_ptr<CSWebConnection> csweb_connection)
+CSWebCaseJsonParserHelper::CSWebCaseJsonParserHelper(std::variant<CSWebRepository*, UniqueId> repository_or_repository_id,
+                                                     std::shared_ptr<const CaseAccess> case_access,
+                                                     std::shared_ptr<CSWebConnection> csweb_connection)
     :   CaseJsonParserHelper(case_access),
-        m_data(std::make_unique<CSWebBinaryContentReader::Data>(CSWebBinaryContentReader::Data { std::move(repository_id),
+        m_data(std::make_unique<CSWebBinaryContentReader::Data>(CSWebBinaryContentReader::Data { std::move(repository_or_repository_id),
                                                                                                  case_access->GetDataDict().GetName(),
                                                                                                  std::move(csweb_connection) }))
 {
