@@ -3,15 +3,15 @@
 #include <zPlatformO/PlatformInterface.h>
 
 
-#ifdef WIN32
-
-#include <wincred.h>
-
-
 std::string CredentialStore::PrefixAttribute(const std::string_view attribute_sv)
 {
     return std::string(attribute_sv);
 }
+
+
+#ifdef WIN32
+
+#include <wincred.h>
 
 
 void CredentialStore::Store(const std::string_view attribute_sv, const std::string& secret_value)

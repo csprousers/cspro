@@ -401,92 +401,109 @@ size_t CSWebRepository::ExecuteCaseCountQuery(const std::string_view arguments_j
 }
 
 
-template<bool requires_metadata/* = false*/, typename CF>
-void CSWebRepository::ExecuteSingleCaseQuery(const char* const content, const char* const status,
-                                             const char* const filter_type, const std::string_view filter_value_sv,
-                                             const CF& callback_function) const
+constexpr const char* CSWebRepository::GetContentKey(const CSWebCaseQuery query)
 {
-    const std::string arguments_json_text = SO::Concatenate(requires_metadata ? R"({"requestMetadata":true,"content":")" : R"({"content":")", content,
-                                                            R"(","status":")", status,
-                                                            R"(","filter":{"operator":"=","type":")", filter_type,
-                                                            R"(","value":)", filter_value_sv,
-                                                            R"(},"order":"position","limit":1})");
+    return ( query == CSWebCaseQuery::identifiers ) ? JK::identifiers :
+           ( query == CSWebCaseQuery::summaries )   ? JK::summaries :
+         /*( query == CSWebCaseQuery::cases ) */      JK::cases;
+}
+
+
+template<CSWebCaseQuery query>
+CSWebCaseResponse<query> CSWebRepository::ExecuteSingleCaseQuery(const char* const status, const char* const filter_type,
+                                                                 const std::string_view filter_value_sv) const
+{
+    static_assert(query == CSWebCaseQuery::cases || query == CSWebCaseQuery::identifiers);
+    constexpr const char* content_key = GetContentKey(query);
+    constexpr bool requires_metadata = ( query == CSWebCaseQuery::cases );
+
+    const std::string arguments_json_text = SO::Concatenate(
+        R"({"content":")", content_key,
+        R"(","status":")", status,
+        R"(","filter":{"operator":"=","type":")", filter_type,
+        R"(","value":)", filter_value_sv,
+        R"(},"order":"position","limit":1)",
+        ( requires_metadata || m_cache != nullptr ) ? R"(,"requestMetadata":true})" : R"(})"
+    );
+
+    std::optional<std::tuple<int64_t, std::unique_ptr<std::string>>> old_case_position_and_cache_json_text;
 
     // check the cache
     if( m_cache != nullptr )
     {
-        try
+        CSWebCacheCaseResponse<query> cache_response = m_cache->RetrieveSingleCaseQuery<query>(arguments_json_text);
+
+        // return an up-to-date case...
+        if( std::holds_alternative<CSWebCaseResponse<query>>(cache_response.response) )
         {
-            std::optional<JsonNode> case_json_node;
-
-            if constexpr(requires_metadata)
-            {
-                std::optional<JsonNode> metadata_json_node;
-                case_json_node = m_cache->RetrieveSingleCaseQuery(arguments_json_text, &metadata_json_node);
-
-                if( case_json_node.has_value() )
-                {
-                    ASSERT(metadata_json_node.has_value());
-                    callback_function(*case_json_node, *metadata_json_node);
-                    return;
-                }
-            }
-
-            else
-            {
-                case_json_node = m_cache->RetrieveSingleCaseQuery(arguments_json_text, nullptr);
-
-                if( case_json_node.has_value() )
-                {
-                    callback_function(*case_json_node);
-                    return;
-                }
-            }
+            return std::move(std::get<CSWebCaseResponse<query>>(cache_response.response));
         }
-        catch(...) { ASSERT(false); }
+
+        // ...or potentially query with information about an old case
+        else if( std::holds_alternative<typename CSWebCacheCaseResponse<query>::OldCaseData>(cache_response.response) )
+        {
+            const auto& old_case_data = std::get<typename CSWebCacheCaseResponse<query>::OldCaseData>(cache_response.response);
+
+            old_case_position_and_cache_json_text.emplace(
+                old_case_data.position,
+                std::make_unique<std::string>(
+                    FormatText(R"({"exclude":{"serverRevision":)" Formatter_int64_t
+                               R"(,"positions":[)" Formatter_int64_t R"(]}})",
+                               old_case_data.server_revision, old_case_data.position))
+            );
+        }
     }
 
-    // if not in the cache, query CSWeb
-    const JsonNode json_node = m_cswebConnection->QueryCasesRepository(m_syncableDictionaryName, arguments_json_text);
-    ASSERT(json_node.IsObject() && json_node.Contains(content) && json_node.Get(content).IsArray());
+    // if not in the cache, or not up-to-date, query CSWeb
+    const JsonNode json_node = m_cswebConnection->QueryCasesRepository(
+        m_syncableDictionaryName,
+        arguments_json_text,
+        old_case_position_and_cache_json_text.has_value() ? std::move(std::get<1>(*old_case_position_and_cache_json_text)) : nullptr
+    );
 
-    const JsonNodeArray content_json_array_node = json_node.GetArray(content);
+    ASSERT(json_node.IsObject() && json_node.Contains(content_key) && json_node.Get(content_key).IsArray());
+
+    const JsonNodeArray content_json_array_node = json_node.GetArray(content_key);
     ASSERT(content_json_array_node.size() <= 1);
 
     if( content_json_array_node.empty() )
         throw DataRepositoryException::CaseNotFound();
+
+    const JsonNode& content_json_node = content_json_array_node[0];
+    ASSERT(!content_json_node.IsEmpty() || old_case_position_and_cache_json_text.has_value());
+
+    // CSWeb returns empty objects if the case has not been modified from what we have in the cache,
+    // so we can return what we have in the cache
+    if( content_json_node.IsEmpty() && old_case_position_and_cache_json_text.has_value() )
+    {
+        try
+        {
+            return m_cache->RetrieveCaseUnmodifiedOnServer<query>(std::get<0>(*old_case_position_and_cache_json_text));
+        }
+        catch(...) { ASSERT(false); }
+    }
+
+    // otherwise we have a never-cached, or an updated, case
+    std::optional<CSWebCaseResponse<query>> response;
 
     if constexpr(requires_metadata)
     {
         const JsonNodeArray metadata_json_array_node = json_node.GetArray(JK::metadata);
         ASSERT(metadata_json_array_node.size() == content_json_array_node.size());
 
-        const JsonNode& case_json_node = content_json_array_node[0];
-        const JsonNode& metadata_json_node = metadata_json_array_node[0];
-
-        callback_function(case_json_node, metadata_json_node);
-
-        // update the cache
-        if( m_cache != nullptr )
-        {
-            ASSERT(content == JK::cases);
-            m_cache->CacheSingleCaseQuery(arguments_json_text, case_json_node, metadata_json_node);
-        }
+        response.template emplace<CSWebCaseResponse<query>>({ content_json_node, metadata_json_array_node[0] });
     }
 
     else
     {
-        const JsonNode& identifiers_json_node = content_json_array_node[0];
-
-        callback_function(identifiers_json_node);
-
-        // update the cache
-        if( m_cache != nullptr )
-        {
-            ASSERT(content == JK::identifiers);
-            m_cache->CacheSingleIdentifierQuery(arguments_json_text, identifiers_json_node);
-        }
+        response.template emplace<CSWebCaseResponse<query>>({ content_json_node });
     }
+
+    // update the cache
+    if( m_cache != nullptr )
+        m_cache->CacheSingleCaseQuery(arguments_json_text, *response);
+
+    return std::move(*response);
 }
 
 
@@ -518,27 +535,32 @@ void CSWebRepository::PopulateCaseIdentifiers(std::string& key, std::string& uui
     // the cache will be checked/updated in ExecuteSingleCaseQuery
     try
     {
+        // search by key
         if( !key.empty() )
         {
-            ExecuteSingleCaseQuery(JK::identifiers, JV::notDeletedOnly, JK::key, Encoders::ToJsonString(key),
-                [&](const JsonNode& identifiers_json_node)
-                {
-                    ASSERT(key == identifiers_json_node.Get<std::string>(JK::key));
-                    uuid = identifiers_json_node.Get<std::string>(JK::uuid);
-                    position_in_repository = identifiers_json_node.Get<double>(JK::position);
-                });
+            const CSWebCaseResponse<CSWebCaseQuery::identifiers> identifier = ExecuteSingleCaseQuery<CSWebCaseQuery::identifiers>(
+                JV::notDeletedOnly,
+                JK::key,
+                Encoders::ToJsonString(key)
+            );
+
+            ASSERT(key == identifier.response.Get<std::string>(JK::key));
+            uuid = identifier.response.Get<std::string>(JK::uuid);
+            position_in_repository = identifier.response.Get<double>(JK::position);
         }
 
         // or by UUID
         else if( !uuid.empty() )
         {
-            ExecuteSingleCaseQuery(JK::identifiers, JV::all, JK::uuid, Encoders::ToJsonString(uuid),
-                [&](const JsonNode& identifiers_json_node)
-                {
-                    key = identifiers_json_node.Get<std::string>(JK::key);
-                    ASSERT(uuid == identifiers_json_node.Get<std::string>(JK::uuid));
-                    position_in_repository = identifiers_json_node.Get<double>(JK::position);
-                });
+            const CSWebCaseResponse<CSWebCaseQuery::identifiers> identifier = ExecuteSingleCaseQuery<CSWebCaseQuery::identifiers>(
+                JV::all,
+                JK::uuid,
+                Encoders::ToJsonString(uuid)
+            );
+
+            key = identifier.response.Get<std::string>(JK::key);
+            ASSERT(uuid == identifier.response.Get<std::string>(JK::uuid));
+            position_in_repository = identifier.response.Get<double>(JK::position);
         }
 
         // or by position
@@ -546,13 +568,15 @@ void CSWebRepository::PopulateCaseIdentifiers(std::string& key, std::string& uui
         {
             ASSERT(static_cast<int64_t>(position_in_repository) == position_in_repository);
 
-            ExecuteSingleCaseQuery(JK::identifiers, JV::all, JK::position, IntToString(static_cast<int64_t>(position_in_repository)),
-                [&](const JsonNode& identifiers_json_node)
-                {
-                    key = identifiers_json_node.Get<std::string>(JK::key);
-                    uuid = identifiers_json_node.Get<std::string>(JK::uuid);
-                    ASSERT(position_in_repository == identifiers_json_node.Get<double>(JK::position));
-                });
+            const CSWebCaseResponse<CSWebCaseQuery::identifiers> identifier = ExecuteSingleCaseQuery<CSWebCaseQuery::identifiers>(
+                JV::all,
+                JK::position,
+                IntToString(static_cast<int64_t>(position_in_repository))
+            );
+
+            key = identifier.response.Get<std::string>(JK::key);
+            uuid = identifier.response.Get<std::string>(JK::uuid);
+            ASSERT(position_in_repository == identifier.response.Get<double>(JK::position));
         }
     }
 
@@ -583,11 +607,13 @@ std::string CSWebRepository::CreateKeySearchQuery(const char* const content, con
 
     json_writer->BeginObject()
                 .Write(JK::content, content)
-                .WriteIfNot(JK::requestMetadata, requires_metadata, false)
                 .Write(JK::status, ( case_status == CaseIterationCaseStatus::All )            ? JV::all :
                                    ( case_status == CaseIterationCaseStatus::NotDeletedOnly ) ? JV::notDeletedOnly :
                                    ( case_status == CaseIterationCaseStatus::PartialsOnly )   ? JV::partialsOnly :
                                                                                                 JV::duplicatesOnly);
+
+    if( requires_metadata || m_cache != nullptr )
+        json_writer->Write(JK::requestMetadata, true);
 
     if( iteration_method.has_value() || iteration_order.has_value() )
     {
@@ -674,11 +700,13 @@ void CSWebRepository::ReadCase(Case& data_case, const char* const status, const 
     // the cache will be checked/updated in ExecuteSingleCaseQuery
     try
     {
-        ExecuteSingleCaseQuery<true>(JK::cases, status, filter_type, filter_value_sv,
-            [&](const JsonNode& case_json_node, const JsonNode& metadata_json_node)
-            {
-                ParseJsonCase(data_case, case_json_node, metadata_json_node, *m_syncCaseSerializer);
-            });
+        const CSWebCaseResponse<CSWebCaseQuery::cases> case_response = ExecuteSingleCaseQuery<CSWebCaseQuery::cases>(
+            status,
+            filter_type,
+            filter_value_sv
+        );
+
+        ParseJsonCase(data_case, case_response.response.case_json_node, case_response.response.metadata_json_node, *m_syncCaseSerializer);
     }
 
     catch( const DataRepositoryException::CaseNotFound& )

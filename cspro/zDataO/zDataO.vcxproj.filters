@@ -111,6 +111,9 @@
     <ClInclude Include="CSWebBinaryContentReader.h">
       <Filter>Header Files\CSWebRepository</Filter>
     </ClInclude>
+    <ClInclude Include="CSWebCaseResponse.h">
+      <Filter>Header Files\CSWebRepository</Filter>
+    </ClInclude>
     <ClInclude Include="CSWebRepository.h">
       <Filter>Header Files\CSWebRepository</Filter>
     </ClInclude>

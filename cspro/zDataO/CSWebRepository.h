@@ -1,15 +1,21 @@
 ﻿#pragma once
 
 #include <zDataO/zDataO.h>
+#include <zDataO/CSWebCaseResponse.h>
 #include <zDataO/DataRepository.h>
 
 class ConnectResponse;
 class CSWebConnection;
+class CSWebRepositoryCache;
 class LoginCredentials;
 class SyncBinaryDataUploadManager;
 class SyncCaseSerializer;
 class SyncErrorFormatter;
 
+
+// --------------------------------------------------------------------------
+// CSWebRepository
+// --------------------------------------------------------------------------
 
 class ZDATAO_API CSWebRepository : public DataRepository
 {
@@ -75,10 +81,11 @@ private:
 
     size_t ExecuteCaseCountQuery(std::string_view arguments_json_text_sv) const;
 
-    template<bool requires_metadata = false, typename CF>
-    void ExecuteSingleCaseQuery(const char* content, const char* status,
-                                const char* filter_type, std::string_view filter_value_sv,
-                                const CF& callback_function) const;
+    static constexpr const char* GetContentKey(CSWebCaseQuery query);
+
+    template<CSWebCaseQuery query>
+    CSWebCaseResponse<query> ExecuteSingleCaseQuery(const char* status, const char* filter_type,
+                                                    std::string_view filter_value_sv) const;
 
     // CSWeb has its own limit on the content entries it returns in one request,
     // so the specified limit may not be completely fulfilled in a single request.

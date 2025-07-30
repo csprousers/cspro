@@ -71,6 +71,7 @@
     <ClInclude Include="CaseListingCtrl.h" />
     <ClInclude Include="ConnectionStringProperties.h" />
     <ClInclude Include="CSWebBinaryContentReader.h" />
+    <ClInclude Include="CSWebCaseResponse.h" />
     <ClInclude Include="CSWebRepository.h" />
     <ClInclude Include="CSWebRepositoryCache.h" />
     <ClInclude Include="CSWebRepositoryCacheCredential.h" />

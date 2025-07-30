@@ -96,7 +96,7 @@ public:
 
     // Executes a query using the /cases endpoint.
     JsonNode QueryCasesRepository(const std::string& dictionary_name, std::string_view arguments_json_text_sv,
-                                  std::optional<std::string> cache_json_text = std::nullopt);
+                                  std::unique_ptr<std::string> cache_json_text = nullptr);
 
     // Uploads one of more cases (specified as a JSON array) using the /cases endpoint.
     void UploadCase(const std::string& dictionary_name, const std::string& device_id, std::string case_json_text);
