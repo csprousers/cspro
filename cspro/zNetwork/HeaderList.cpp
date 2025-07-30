@@ -1,7 +1,9 @@
 ﻿#include "stdafx.h"
 #include "HeaderList.h"
+#include <zToolsO/base64.h>
 #include <zJson/ValidJsonAsserter.h>
 #include <zUtilO/Versioning.h>
+#include <zZip/ZLib.h>
 
 
 std::string HeaderList::GetValue(const std::string_view name_sv) const
@@ -88,6 +90,21 @@ HeaderList& HeaderList::AddJson(const std::string_view name_sv, const std::strin
     ASSERT81(Json::Parse(json_text_sv).GetNodeAsString() == Json::Parse(*encoded_json_text).GetNodeAsString());
 
     return Add(name_sv, *encoded_json_text);
+}
+
+
+HeaderList& HeaderList::AddAsBase64(std::string_view name_sv, const std::string_view value_sv)
+{
+    return Add(name_sv, Base64::Encode(value_sv));
+}
+
+
+HeaderList& HeaderList::AddAsDeflatedBase64(std::string_view name_sv, std::string value)
+{
+    const bool success = ZLib::Deflate(value);
+    ASSERT(success);
+
+    return AddAsBase64(name_sv, value);
 }
 
 

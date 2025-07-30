@@ -7,7 +7,6 @@
 #include "IDataChunk.h"
 #include "JsonConverter.h"
 #include "SyncMessage.h"
-#include <zToolsO/base64.h>
 #include <zUtilO/Versioning.h>
 #include <zNetwork/SyncCustomHeaders.h>
 #include <zDictO/DDClass.h>
@@ -470,7 +469,7 @@ bool BluetoothSyncService::DownloadApplicationPackage(const std::string& package
         if (!ZLib::Deflate(fileJson)) {
             SYNCLOG_ERROR << "Failed to compress package json, fallback to full package download";
         } else {
-            requestHeaders.Add(SyncCustomHeaders::APP_PACKAGE_FILES_HEADER, Base64::Encode(fileJson));
+            requestHeaders.AddAsBase64(SyncCustomHeaders::APP_PACKAGE_FILES_HEADER, fileJson);
         }
     }
 
