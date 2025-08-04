@@ -6380,8 +6380,8 @@ bool CFormScrollView::ComputeRect(CDEField* pField)
     int iX  = clientRect.left;
     int iY =  clientRect.top;
 
-    int iXB = GetSystemMetrics(SM_CXBORDER);
-    int iYB = GetSystemMetrics(SM_CYBORDER);
+    int iXB = GetSystemMetrics(SM_CXEDGE);
+    int iYB = GetSystemMetrics(SM_CYEDGE);
 
     int iRight = iX + sizeChar.cx*iLength + 2*iXB;
     int iHeight = sizeChar.cy + 2*iYB;
