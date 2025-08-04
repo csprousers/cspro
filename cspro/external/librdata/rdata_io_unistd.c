@@ -3,8 +3,8 @@
 #include <fcntl.h>
 #include <stdlib.h>
 
-#ifdef WASM // CSPRO_LIBRDATA_MODIFICATIONS 
-    #include <unistd.h>
+#if defined(WASM) || defined(__ANDROID__) // CSPRO_LIBRDATA_MODIFICATIONS
+#include <unistd.h>
 #endif
 
 #include "rdata.h"
@@ -63,7 +63,7 @@ ssize_t rdata_unistd_read_handler(void *buf, size_t nbyte, void *io_ctx) {
     return out;
 }
 
-rdata_error_t rdata_unistd_update_handler(long file_size, 
+rdata_error_t rdata_unistd_update_handler(long file_size,
         rdata_progress_handler progress_handler, void *user_ctx,
         void *io_ctx) {
     if (!progress_handler)

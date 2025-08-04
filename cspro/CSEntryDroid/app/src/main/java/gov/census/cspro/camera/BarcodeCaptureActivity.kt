@@ -80,8 +80,8 @@ class BarcodeCaptureActivity : BaseCameraActivity(), BarcodeTracker.BarcodeGraph
             if (uriValue != null
                 && server != null
                 && (URLUtil.isValidUrl(server)
-                    || server.toLowerCase(Locale.ROOT).contains("ftp")
-                    || server.toLowerCase(Locale.ROOT).contains("dropbox"))
+                    || server.lowercase(Locale.ROOT).contains("ftp")
+                    || server.lowercase(Locale.ROOT).contains("dropbox"))
                 && app != null
             ) {
                 val intent = Intent()

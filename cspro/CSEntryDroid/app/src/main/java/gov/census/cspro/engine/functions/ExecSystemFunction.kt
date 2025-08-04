@@ -111,7 +111,7 @@ class ExecSystemFunction(private val m_command: String, private val m_wait: Bool
     private fun parseCommand(command: String): Pair<String, String> {
         val colonPos = command.indexOf(':')
         if (colonPos == -1) throw Exception("Invalid execsystem command: missing colon")
-        val action = command.substring(0, colonPos).toLowerCase(Locale.ROOT)
+        val action = command.substring(0, colonPos).lowercase(Locale.ROOT)
         val argument = command.substring(colonPos + 1).trim()
         return Pair(action, argument)
     }

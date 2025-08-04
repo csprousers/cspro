@@ -189,3 +189,9 @@ bool JavaScript::Value::IsException() const
 {
     return JS_IsException(GetValue());
 }
+
+void JavaScript::Value::FreeValue()
+{
+    if( m_qjs != nullptr )
+        JS_FreeValue(m_qjs->ctx, GetValue());
+}

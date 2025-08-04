@@ -8,9 +8,9 @@ plugins {
 
 android {
     namespace 'gov.census.cspro.csentry'
+    compileSdk 36
 
-    compileSdk 34
-    buildToolsVersion = '34.0.0'
+    buildToolsVersion = '36.0.0'
 
     lintOptions {
         checkReleaseBuilds true
@@ -27,8 +27,8 @@ android {
 
     defaultConfig {
         applicationId "gov.census.cspro.csentry"
-        minSdkVersion 21
-        targetSdkVersion 34
+        minSdkVersion 24
+        targetSdk 36
         multiDexEnabled true
         externalNativeBuild {
             ndkBuild {
@@ -120,11 +120,11 @@ android {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
-
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_1_8.toString()
     }
-    ndkVersion '25.2.9519653'
+
+    ndkVersion '27.0.12077973'
 }
 
 dependencies {
