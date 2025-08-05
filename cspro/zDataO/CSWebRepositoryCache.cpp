@@ -645,23 +645,6 @@ void CSWebRepositoryCache::CacheBinaryData(const SyncBinaryDataUploadManager& sy
 }
 
 
-bool CSWebRepositoryCache::HasBinaryData(const std::string& signature)
-{
-    m_db.PrepareOrResetStatement(m_stmtHasBinaryData,
-        "SELECT 1 "
-        "FROM `binary_data` "
-        "WHERE `signature` = ?;"
-    );
-
-    m_stmtHasBinaryData.Bind(1, signature);
-
-    const int result = m_stmtHasBinaryData.Step();
-    ASSERT(result == Sqlite::Result::Row || result == Sqlite::Result::Done);
-
-    return ( result == Sqlite::Result::Row );
-}
-
-
 std::optional<std::vector<std::byte>> CSWebRepositoryCache::RetrieveBinaryData(const std::string& signature) noexcept
 {
     // unlike the other methods, the server revision does not need to be checked
@@ -687,4 +670,27 @@ std::optional<std::vector<std::byte>> CSWebRepositoryCache::RetrieveBinaryData(c
     catch(...) { ASSERT(false); }
 
     return std::nullopt;
+}
+
+
+bool CSWebRepositoryCache::HasBinaryData(const std::string& signature) noexcept
+{
+    try
+    {
+        m_db.PrepareOrResetStatement(m_stmtHasBinaryData,
+            "SELECT 1 "
+            "FROM `binary_data` "
+            "WHERE `signature` = ?;"
+        );
+
+        m_stmtHasBinaryData.Bind(1, signature);
+
+        const int result = m_stmtHasBinaryData.Step();
+        ASSERT(result == Sqlite::Result::Row || result == Sqlite::Result::Done);
+
+        return ( result == Sqlite::Result::Row );
+    }
+    catch(...) { ASSERT(false); }
+
+    return false;
 }

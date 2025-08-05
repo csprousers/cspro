@@ -1184,7 +1184,24 @@ void CSWebRepositorySyncBinaryDataUploadManager::AddBinarySignaturesNotSyncedWit
             const std::string& signature = binary_data_accessor.GetSignature();
             ASSERT(BinaryDataAccessor::IsValidSignature(signature));
 
-            // CSWEB_TODO check cache to see if the binary item has already been synced
+            // if this binary content originated from this repository, we do not need to sync it
+            const CSWebBinaryContentReader* const csweb_binary_content_reader = dynamic_cast<const CSWebBinaryContentReader*>(binary_data_accessor.GetBinaryContentReader());
+
+            if( csweb_binary_content_reader != nullptr &&
+                csweb_binary_content_reader->GetUniqueId() == &m_repository.m_repositoryId )
+            {
+                return;
+            }
+
+            // check the cache to see if the binary item has already been synced;
+            // because the above check ensures that binary content read from this repository is not synced,
+            // this would only be true if data was loaded from the disk, or from another repository, that
+            // happened to be the same as previously synced (and eventually cached) binary content
+            if( m_repository.m_cache != nullptr &&
+                m_repository.m_cache->HasBinaryData(signature) )
+            {
+                return;
+            }
 
             signatures_to_sync.emplace_back(signature);
         });

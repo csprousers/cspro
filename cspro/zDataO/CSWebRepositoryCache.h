@@ -74,6 +74,9 @@ public:
     // Returns the cached binary data, or std::nullopt if not in the cache.
     std::optional<std::vector<std::byte>> RetrieveBinaryData(const std::string& signature) noexcept;
 
+    // Returns true if binary data with this signature exists in the cache.
+    bool HasBinaryData(const std::string& signature) noexcept;
+
 private:
     void Initialize(const JsonNode& dictionary_metadata_json_node);
     void CreateTablesAndIndices();
@@ -89,8 +92,6 @@ private:
 
     void WriteCasePositions(std::string_view arguments_json_text_sv, const std::vector<int64_t>& positions);
     std::optional<CSWebCacheStaleCaseData> RetrieveCasePositions(std::string_view arguments_json_text_sv);
-
-    bool HasBinaryData(const std::string& signature);
 
 private:
     CSWebRepository& m_repository;

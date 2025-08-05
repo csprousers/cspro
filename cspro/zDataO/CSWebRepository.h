@@ -7,6 +7,7 @@
 class ConnectResponse;
 class CSWebConnection;
 class CSWebRepositoryCache;
+class CSWebRepositorySyncBinaryDataUploadManager;
 class LoginCredentials;
 class SyncBinaryDataUploadManager;
 class SyncCaseSerializer;
@@ -22,6 +23,7 @@ class ZDATAO_API CSWebRepository : public DataRepository
     friend class CSWebBinaryContentReader;
     friend class CSWebRepositoryCache;
     friend class CSWebRepositoryIterator;
+    friend class CSWebRepositorySyncBinaryDataUploadManager;
 
 public:
     CSWebRepository(std::shared_ptr<const CaseAccess> case_access, DataRepositoryAccess access_type);
