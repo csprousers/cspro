@@ -20,6 +20,9 @@ public:
     bool NextCase(Case& data_case) override;
     int GetPercentRead() const override;
 
+private:
+    size_t GetQueryLimit();
+
     template<CSWebCaseQuery query>
     std::optional<CSWebCaseResponse> Step();
 
@@ -40,12 +43,17 @@ private:
     size_t m_offset;
     size_t m_limit;
 
+    size_t m_limitRequestIndex;
+    bool m_fullLimitRequested;
+
     struct QueryResult
     {
         CSWebCaseQueryResponse case_query_response;
         size_t case_count;
-        bool limit_satisfied;
         size_t iterator_case_pos;
+        bool results_potentially_limited_by_csweb;
+
+        QueryResult(CSWebCaseQueryResponse case_query_response_);
     };
 
     std::optional<QueryResult> m_queryResult;

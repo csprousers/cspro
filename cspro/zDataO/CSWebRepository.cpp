@@ -902,8 +902,35 @@ CSWebRepositoryIterator::CSWebRepositoryIterator(CSWebRepository& csweb_reposito
         m_startParameters(CreateCopyOfPointerValue(start_parameters)),
         m_offset(offset),
         m_limit(limit),
+        m_limitRequestIndex(0),
+        m_fullLimitRequested(false),
         m_casesRead(0)
 {
+}
+
+
+size_t CSWebRepositoryIterator::GetQueryLimit()
+{
+    // uses CSWeb's actual limit for keys and summaries
+    constexpr static size_t LimitForKeysSummaries = 1000;
+
+    // because case iterators are used even when not iterating over cases (e.g., locate followed by a loadcase),
+    // initally use a lower number for cases, increasing it at each subsequent request
+    constexpr static size_t InitialLimitForCases = 50;
+
+    const size_t limit = ( m_query == CSWebCaseQuery::cases ) ? std::min(++m_limitRequestIndex * InitialLimitForCases, LimitForKeysSummaries) :
+                                                                LimitForKeysSummaries;
+
+    // no need to request more cases than necessary
+    const size_t potential_cases_remaining = m_limit - m_casesRead;
+
+    if( potential_cases_remaining <= limit )
+    {
+        m_fullLimitRequested = true;
+        return potential_cases_remaining;
+    }
+
+    return limit;
 }
 
 
@@ -923,8 +950,11 @@ std::optional<CSWebCaseResponse> CSWebRepositoryIterator::Step()
     // ...potentially query content again if all content was not previously received...
     else if( m_queryResult->iterator_case_pos == m_queryResult->case_count )
     {
-        if( m_queryResult->limit_satisfied || m_casesRead == m_limit )
+        if( ( m_casesRead == m_limit ) ||
+            ( m_fullLimitRequested && !m_queryResult->results_potentially_limited_by_csweb ) )
+        {
             return std::nullopt;
+        }
 
         query_next_set = true;
 
@@ -942,13 +972,14 @@ std::optional<CSWebCaseResponse> CSWebRepositoryIterator::Step()
     {
         QueryNextSet(m_cswebRepository.CreateKeySearchQuery<requires_metadata>(m_iterationContent, m_caseStatus,
                                                                                m_iterationMethod, m_iterationOrder,
-                                                                               m_startParameters.get(), m_offset, m_limit));
+                                                                               m_startParameters.get(), m_offset,
+                                                                               GetQueryLimit()));
         ASSERT(m_queryResult.has_value());
         ASSERT(requires_metadata == m_queryResult->case_query_response.IsCaseResponse());
 
-        if( m_queryResult->iterator_case_pos == m_queryResult->case_count )
+        if( m_queryResult->case_count == 0 )
         {
-            ASSERT(m_queryResult->limit_satisfied);
+            ASSERT(!m_queryResult->results_potentially_limited_by_csweb);
             return std::nullopt;
         }
     }
@@ -962,23 +993,23 @@ std::optional<CSWebCaseResponse> CSWebRepositoryIterator::Step()
 }
 
 
+CSWebRepositoryIterator::QueryResult::QueryResult(CSWebCaseQueryResponse case_query_response_)
+    :   case_query_response(std::move(case_query_response_)),
+        case_count(case_query_response.GetCaseCount()),
+        iterator_case_pos(0),
+        results_potentially_limited_by_csweb(case_query_response.GetJsonNode().Contains(JK::resultLimit))
+{
+}
+
+
 void CSWebRepositoryIterator::QueryNextSet(const std::string& arguments_json_text)
 {
     try
     {
         // the cache will be checked/updated in ExecuteCaseQuery
-        CSWebCaseQueryResponse case_query_response = m_cswebRepository.ExecuteCaseQuery(m_query, arguments_json_text);
-        const size_t case_count = case_query_response.GetCaseCount();
-        const bool limit_satisfied = case_query_response.IsLimitSatisfied();
+        m_queryResult.emplace(m_cswebRepository.ExecuteCaseQuery(m_query, arguments_json_text));
 
-        m_queryResult.emplace(
-            QueryResult
-            {
-                std::move(case_query_response),
-                case_count,
-                limit_satisfied,
-                0
-            });
+        ASSERT(( m_casesRead + m_queryResult->case_count ) <= m_limit);
     }
 
     catch( const std::exception& exception )

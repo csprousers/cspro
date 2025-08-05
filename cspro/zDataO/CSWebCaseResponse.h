@@ -37,8 +37,6 @@ public:
 
     bool IsCaseResponse() const { return ( m_contentJsonNodeArray != m_metadataJsonNodeArray ); }
 
-    bool IsLimitSatisfied() const { return !m_responseJsonNode.Contains(JK::limit); }
-
     size_t GetCaseCount() const { return m_contentJsonNodeArray->size(); }
 
     CSWebCaseResponse GetCase(size_t index) const;
