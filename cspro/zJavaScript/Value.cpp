@@ -10,6 +10,12 @@ JavaScript::Value::Value()
 }
 
 
+JavaScript::Value::~Value()
+{
+    FreeValue();
+}
+
+
 JavaScript::Value JavaScript::Value::Null()
 {
     return Value(nullptr, JS_NULL);
@@ -188,10 +194,4 @@ bool JavaScript::Value::IsObject() const
 bool JavaScript::Value::IsException() const
 {
     return JS_IsException(GetValue());
-}
-
-void JavaScript::Value::FreeValue()
-{
-    if( m_qjs != nullptr )
-        JS_FreeValue(m_qjs->ctx, GetValue());
 }

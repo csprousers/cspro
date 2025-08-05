@@ -45,6 +45,13 @@ inline auto& JavaScript::Value::GetValue()
 }
 
 
+inline void JavaScript::Value::FreeValue()
+{
+    if( m_qjs != nullptr )
+        JS_FreeValue(m_qjs->ctx, GetValue());
+}
+
+
 template<typename JSValueT>
 void JavaScript::Value::SetValue(JSValueT&& value)
 {

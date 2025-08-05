@@ -55,5 +55,19 @@ T NumericStringValuesOnlyUserFunctionArgumentEvaluator<ArgumentsAreCorrectType>:
 }
 
 
+template<bool ArgumentsAreCorrectType>
+double NumericStringValuesOnlyUserFunctionArgumentEvaluator<ArgumentsAreCorrectType>::GetNumeric(const size_t parameter_number)
+{
+    return GetArgument<double>(parameter_number);
+}
+
+
+template<bool ArgumentsAreCorrectType>
+SharableString NumericStringValuesOnlyUserFunctionArgumentEvaluator<ArgumentsAreCorrectType>::GetString(const size_t parameter_number)
+{
+    return GetArgument<SharableString>(parameter_number);
+}
+
+
 template class NumericStringValuesOnlyUserFunctionArgumentEvaluator<true>;
 template class NumericStringValuesOnlyUserFunctionArgumentEvaluator<false>;
