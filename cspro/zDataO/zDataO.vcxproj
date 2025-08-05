@@ -133,6 +133,7 @@
     <ClCompile Include="CaseIteratorSettings.cpp" />
     <ClCompile Include="CaseListingCtrl.cpp" />
     <ClCompile Include="CSWebBinaryContentReader.cpp" />
+    <ClCompile Include="CSWebCaseResponse.cpp" />
     <ClCompile Include="CSWebRepository.cpp" />
     <ClCompile Include="CSWebRepositoryCache.cpp" />
     <ClCompile Include="DataRepository.cpp" />

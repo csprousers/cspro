@@ -16,7 +16,7 @@ struct CSWebUser;
 //
 // No public methods throw exceptions other than:
 //     - Create
-//     - RetrieveCaseUnmodifiedOnServer
+//     - RetrieveCase
 // --------------------------------------------------------------------------
 
 class CSWebRepositoryCache
@@ -41,31 +41,26 @@ public:
     void MarkCacheDirty() noexcept { m_currentServerRevision.reset(); }
 
     // Writes CSWeb's response to a query to the cache.
-    void CacheQuery(std::string_view arguments_json_text_sv, const JsonNode& count_json_node) noexcept;
+    void CacheQuery(std::string_view arguments_json_text_sv, const JsonNode& json_node) noexcept;
 
     // Returns the cached response to a query, or std::nullopt if not in the cache.
     std::optional<JsonNode> RetrieveQuery(std::string_view arguments_json_text_sv) noexcept;
 
-    // Writes CSWeb's representation of a case (or identifiers or summaries) to the cache.
-    // The cache will not be updated if what is present has more details about the case
-    // (e.g., updating with an identifier when a case is already present).
-    template<CSWebCaseQuery query>
-    void CacheCase(const CSWebCaseResponse<query>& response) noexcept;
+    // Writes CSWeb's response to a case query.
+    // In addition to the query itself, each case will be written to the cache.
+    // The case cache will not be updated if what is currently present has more details
+    // about the case (e.g., updating with an identifier when a case is already present).
+    // If the case is up-to-date, but with a server_revision lower than the current one,
+    // the server_revision will be updated.
+    void CacheCaseQuery(std::string_view arguments_json_text_sv, const CSWebCaseQueryResponse& case_query_response) noexcept;
 
-    // Returns an old cached case (or identifiers or summary).
-    // The case's server_revision is updated to indicate that it is current as of the current server revision.
+    // Returns the cached response to a case query.
+    // See the notes in CSWebCacheCaseResponse's declaration for details on the return value.
+    CSWebCacheCaseResponse RetrieveCaseQuery(CSWebCaseQuery query, std::string_view arguments_json_text_sv) noexcept;
+
+    // Returns a cached case (or identifier or summary).
     // Exceptions are thrown on error.
-    template<CSWebCaseQuery query>
-    CSWebCaseResponse<query> RetrieveCaseUnmodifiedOnServer(int64_t position);
-
-    // Writes CSWeb's response to a single case query that returned case JSON (calling CacheCase).
-    template<CSWebCaseQuery query>
-    void CacheSingleCaseQuery(std::string_view arguments_json_text_sv, const CSWebCaseResponse<query>& response) noexcept;
-
-    // Returns the cached response to a single case query.
-    // See the notes in CSWebCacheCaseResponse for details on the return value.
-    template<CSWebCaseQuery query>
-    CSWebCacheCaseResponse<query> RetrieveSingleCaseQuery(std::string_view arguments_json_text_sv) noexcept;
+    CSWebCaseResponse RetrieveCase(CSWebCaseQuery query, const CSWebCaseResponse& case_response);
 
     // Returns true if a non-deleted case with the given key exists in the cache.
     bool HasNonDeletedCaseByKey(const std::string& key) noexcept;
@@ -86,14 +81,14 @@ private:
 
     bool IsServerRevisionKnown() noexcept;
 
-    template<CSWebCaseQuery query>
-    static const JsonNode& GetContentJsonNode(const CSWebCaseResponse<query>& response);
+    std::vector<int64_t> CacheCases(const CSWebCaseQueryResponse& case_query_response);
+    void CacheCase(CSWebCaseQuery query, const CSWebCaseResponse& case_response);
 
-    template<CSWebCaseQuery query>
-    static const JsonNode& GetMetadataJsonNode(const CSWebCaseResponse<query>& response);
+    template<int json_column_number, int metadata_column_number>
+    CSWebCaseResponse CreateCaseFromQuery(CSWebCaseQuery query, Sqlite::Statement& stmt);
 
-    template<CSWebCaseQuery query, int position_column_number, int json_column_number, int metadata_column_number>
-    CSWebCaseResponse<query> CreateCaseResponseFromQuery(Sqlite::Statement& stmt);
+    void WriteCasePositions(std::string_view arguments_json_text_sv, const std::vector<int64_t>& positions);
+    std::optional<CSWebCacheStaleCaseData> RetrieveCasePositions(std::string_view arguments_json_text_sv);
 
     bool HasBinaryData(const std::string& signature);
 
@@ -112,8 +107,8 @@ private:
     Sqlite::Statement m_stmtReadCaseExistenceByQueryType;
     Sqlite::Statement m_stmtReadCaseExistenceNotDeletedByKey;
 
-    Sqlite::Statement m_stmtWriteSingleCasePosition;
-    Sqlite::Statement m_stmtReadSingleCasePosition;
+    Sqlite::Statement m_stmtWriteCasePositions;
+    Sqlite::Statement m_stmtReadCasePositions;
 
     Sqlite::Statement m_stmtWriteBinaryData;
     Sqlite::Statement m_stmtReadBinaryData;

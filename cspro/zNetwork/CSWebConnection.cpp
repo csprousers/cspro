@@ -725,16 +725,16 @@ void CSWebConnection::DeleteDictionaryData(const std::string& dictionary_name)
 
 
 JsonNode CSWebConnection::QueryCasesRepository(const std::string& dictionary_name, const std::string_view arguments_json_text_sv,
-                                               std::unique_ptr<std::string> cache_json_text/* = nullptr*/)
+                                               std::unique_ptr<std::string> cache_header_json_text/* = nullptr*/)
 {
     auto additional_headers = std::make_unique<HeaderList>();
     additional_headers->AddJson(SyncCustomHeaders::CASES_REPOSITORY_OPTIONS_HEADER, arguments_json_text_sv);
 
     // the cache header must by compressed and added as Base64
-    if( cache_json_text != nullptr )
+    if( cache_header_json_text != nullptr )
     {
-        AssertValidJson(*cache_json_text);
-        additional_headers->AddAsDeflatedBase64(SyncCustomHeaders::CASES_REPOSITORY_CACHE_HEADER, std::move(*cache_json_text));
+        AssertValidJson(*cache_header_json_text);
+        additional_headers->AddAsDeflatedBase64(SyncCustomHeaders::CASES_REPOSITORY_CACHE_HEADER, std::move(*cache_header_json_text));
     }
 
     return ExecuteRestGet<JsonNode>("dictionaries/" + dictionary_name + "/cases", 100176, std::move(additional_headers));

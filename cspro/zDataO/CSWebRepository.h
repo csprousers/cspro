@@ -79,13 +79,15 @@ private:
     JsonNode EnsureDictionaryExistsAndGetDictionaryMetadata(CSWebConnection& csweb_connection, DataRepositoryOpenFlag open_flag) const;
     static void PutDictionaryThatDoesNotExist(CSWebConnection& csweb_connection, const CDataDict& dictionary, const std::string& syncable_name);
 
+    void ParseJsonCase(Case& data_case, const CSWebCaseResponse& case_response) const;
+    void ParseJsonCaseFromCache(Case& data_case, const CSWebCaseResponse& case_response) const;
+
     size_t ExecuteCaseCountQuery(std::string_view arguments_json_text_sv) const;
 
-    static constexpr const char* GetContentKey(CSWebCaseQuery query);
+    CSWebCaseQueryResponse ExecuteCaseQuery(CSWebCaseQuery query, const std::string& arguments_json_text) const;
 
-    template<CSWebCaseQuery query>
-    CSWebCaseResponse<query> ExecuteSingleCaseQuery(const char* status, const char* filter_type,
-                                                    std::string_view filter_value_sv) const;
+    CSWebCaseResponse ExecuteSingleCaseQuery(CSWebCaseQuery query, const char* status,
+                                             const char* filter_type, std::string_view filter_value_sv) const;
 
     // CSWeb has its own limit on the content entries it returns in one request,
     // so the specified limit may not be completely fulfilled in a single request.

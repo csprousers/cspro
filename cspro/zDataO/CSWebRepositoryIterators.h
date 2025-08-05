@@ -20,9 +20,8 @@ public:
     bool NextCase(Case& data_case) override;
     int GetPercentRead() const override;
 
-private:
-    template<bool requires_metadata>
-    typename std::conditional<requires_metadata, std::optional<std::tuple<JsonNode, JsonNode>>, std::optional<JsonNode>>::type Step();
+    template<CSWebCaseQuery query>
+    std::optional<CSWebCaseResponse> Step();
 
     void QueryNextSet(const std::string& arguments_json_text);
 
@@ -32,6 +31,7 @@ private:
 private:
     CSWebRepository& m_cswebRepository;
 
+    CSWebCaseQuery m_query;
     const char* m_iterationContent;
     CaseIterationCaseStatus m_caseStatus;
     std::optional<CaseIterationMethod> m_iterationMethod;
@@ -40,17 +40,15 @@ private:
     size_t m_offset;
     size_t m_limit;
 
-    struct Query
+    struct QueryResult
     {
-        JsonNode json_node;
-        JsonNodeArray content_json_array_node;
-        std::optional<JsonNodeArray> metadata_json_array_node;
+        CSWebCaseQueryResponse case_query_response;
         size_t case_count;
         bool limit_satisfied;
         size_t iterator_case_pos;
     };
 
-    std::optional<Query> m_query;
+    std::optional<QueryResult> m_queryResult;
 
     mutable std::optional<double> m_percentMultiplier;
     size_t m_casesRead;

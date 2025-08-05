@@ -162,12 +162,12 @@ void CSWebRepositoryCache::CreateTablesAndIndices()
         ");"
     );
 
-    // `single_case_positions`
+    // `case_query_positions`
     m_db.Execute(
-        "CREATE TABLE `single_case_positions` ("
+        "CREATE TABLE `case_query_positions` ("
         "`arguments` TEXT NOT NULL,"
         "`server_revision` INTEGER NOT NULL,"
-        "`position` INTEGER NOT NULL,"
+        "`positions` TEXT NOT NULL,"
         "PRIMARY KEY(`arguments`)"
         ");"
     );
@@ -207,7 +207,7 @@ void CSWebRepositoryCache::CreateTablesAndIndices()
 
 void CSWebRepositoryCache::ClearOldQueries()
 {
-    for( const char* const table_name : { "queries", "single_case_positions" } )
+    for( const char* const table_name : { "queries" } )
     {
         const std::string sql = FormatText("DELETE FROM `%s` WHERE `server_revision` < " Formatter_int64_t ";",
                                            table_name,
@@ -249,7 +249,7 @@ bool CSWebRepositoryCache::IsServerRevisionKnown() noexcept
 }
 
 
-void CSWebRepositoryCache::CacheQuery(const std::string_view arguments_json_text_sv, const JsonNode& count_json_node) noexcept
+void CSWebRepositoryCache::CacheQuery(const std::string_view arguments_json_text_sv, const JsonNode& json_node) noexcept
 {
     if( !IsServerRevisionKnown() )
         return;
@@ -264,7 +264,7 @@ void CSWebRepositoryCache::CacheQuery(const std::string_view arguments_json_text
 
         m_stmtWriteQuery.Bind(1, arguments_json_text_sv)
                         .Bind(2, *m_currentServerRevision)
-                        .Bind(3, count_json_node.GetNodeAsString());
+                        .Bind(3, json_node.GetNodeAsString());
 
         if( m_stmtWriteQuery.Step() != Sqlite::Result::Done )
             throw ProgrammingErrorException();
@@ -302,51 +302,41 @@ std::optional<JsonNode> CSWebRepositoryCache::RetrieveQuery(const std::string_vi
 }
 
 
-template<CSWebCaseQuery query>
-const JsonNode& CSWebRepositoryCache::GetContentJsonNode(const CSWebCaseResponse<query>& response)
+std::vector<int64_t> CSWebRepositoryCache::CacheCases(const CSWebCaseQueryResponse& case_query_response)
 {
-    if constexpr(query == CSWebCaseQuery::cases)
+    ASSERT(IsServerRevisionKnown());
+
+    const CSWebCaseQuery query = case_query_response.GetQuery();
+    const size_t case_count = case_query_response.GetCaseCount();
+
+    std::vector<int64_t> positions;
+    positions.reserve(case_count);
+
+    for( size_t i = 0; i < case_count; ++i )
     {
-        return response.response.case_json_node;
+        const CSWebCaseResponse& case_response = case_query_response.GetCase(i);
+
+        positions.emplace_back(case_response.GetPosition());
+
+        CacheCase(query, case_response);
     }
 
-    else
-    {
-        return response.response;
-    }
+    return positions;
 }
 
 
-template<CSWebCaseQuery query>
-const JsonNode& CSWebRepositoryCache::GetMetadataJsonNode(const CSWebCaseResponse<query>& response)
+void CSWebRepositoryCache::CacheCase(const CSWebCaseQuery query, const CSWebCaseResponse& case_response)
 {
-    if constexpr(query == CSWebCaseQuery::cases)
-    {
-        return response.response.metadata_json_node;
-    }
-
-    else
-    {
-        return response.response;
-    }
-}
-
-
-template<CSWebCaseQuery query>
-void CSWebRepositoryCache::CacheCase(const CSWebCaseResponse<query>& response) noexcept
-{
-    if( !IsServerRevisionKnown() )
-        return;
+    ASSERT(IsServerRevisionKnown());
 
     try
     {
-        const JsonNode& metadata_json_node = GetMetadataJsonNode(response);
-        const int64_t position = metadata_json_node.Get<int64_t>(JK::position);
-        const int64_t case_revision = metadata_json_node.Get<int64_t>(JK::revision);
+        const int64_t position = case_response.GetPosition();
+        const int64_t case_revision = case_response.GetRevision();
 
         // do not update the case cache if it already exists with the same or more details
         m_db.PrepareOrResetStatement(m_stmtReadCaseExistenceByQueryType,
-            "SELECT 1 "
+            "SELECT `server_revision` "
             "FROM `cases` "
             "WHERE `position` = ? AND `case_revision` >= ? AND `query_type` >= ?;"
         );
@@ -356,7 +346,35 @@ void CSWebRepositoryCache::CacheCase(const CSWebCaseResponse<query>& response) n
                                           .Bind(3, static_cast<int>(query));
 
         if( m_stmtReadCaseExistenceByQueryType.Step() == Sqlite::Result::Row )
+        {
+            // update the server revision (if necessary)
+            const int64_t server_revision = m_stmtReadCaseExistenceByQueryType.GetColumn<int64_t>(0);
+
+            if( server_revision < *m_currentServerRevision )
+            {
+                m_db.PrepareOrResetStatement(m_stmtUpdateCaseServerRevision,
+                    "UPDATE `cases` "
+                    "SET `server_revision` = ? "
+                    "WHERE `position` = ?;"
+                );
+
+                m_stmtUpdateCaseServerRevision.Bind(1, *m_currentServerRevision)
+                                              .Bind(2, position);
+
+                if( m_stmtUpdateCaseServerRevision.Step() != Sqlite::Result::Done )
+                    throw ProgrammingErrorException();
+            }
+
             return;
+        }
+
+        // if the content is empty, then this case is already in the cache;
+        // this should not occur because the case should have been handled by the above code
+        if( case_response.IsContentEmpty() )
+        {
+            ASSERT(false);
+            return;
+        }
 
         // update the case cache
         m_db.PrepareOrResetStatement(m_stmtWriteCase,
@@ -365,188 +383,85 @@ void CSWebRepositoryCache::CacheCase(const CSWebCaseResponse<query>& response) n
             "VALUES(?,?,?,?,?,?,?,?,?);"
         );
 
-        const JsonNode& content_json_node = GetContentJsonNode(response);
-
         m_stmtWriteCase.Bind(1, position)
-                       .Bind(2, content_json_node.Get<std::string>(JK::uuid))
-                       .Bind(3, content_json_node.Get<std::string>(JK::key));
+                       .Bind(2, case_response.GetUuid())
+                       .Bind(3, case_response.GetKey());
 
-        if constexpr(query == CSWebCaseQuery::identifiers)
+        if( query == CSWebCaseQuery::identifiers )
         {
             m_stmtWriteCase.BindNull(4);
         }
 
         else
         {
-            m_stmtWriteCase.Bind(4, content_json_node.GetOrDefault(JK::deleted, false));
+            m_stmtWriteCase.Bind(4, case_response.GetContentJsonNode().GetOrDefault(JK::deleted, false));
         }
 
         m_stmtWriteCase.Bind(5, case_revision)
                        .Bind(6, *m_currentServerRevision)
                        .Bind(7, static_cast<int>(query))
-                       .Bind(8, content_json_node.GetNodeAsString());
+                       .Bind(8, case_response.GetContentJsonNode().GetNodeAsString());
 
-        if constexpr(query != CSWebCaseQuery::cases)
+        if( case_response.IsCaseResponse() )
         {
-            m_stmtWriteCase.BindNull(9);
+            ASSERT(query == CSWebCaseQuery::cases);
+            m_stmtWriteCase.Bind(9, case_response.GetMetadataJsonNode().GetNodeAsString());
         }
 
         else
         {
-            m_stmtWriteCase.Bind(9, response.response.metadata_json_node.GetNodeAsString());
+            ASSERT(query != CSWebCaseQuery::cases);
+            m_stmtWriteCase.BindNull(9);
         }
 
         if( m_stmtWriteCase.Step() != Sqlite::Result::Done )
             throw ProgrammingErrorException();
-   }
+    }
     catch(...) { ASSERT(false); }
 }
 
 
-template<CSWebCaseQuery query, int position_column_number, int json_column_number, int metadata_column_number>
-CSWebCaseResponse<query> CSWebRepositoryCache::CreateCaseResponseFromQuery(Sqlite::Statement& stmt)
-{
-    if constexpr(query == CSWebCaseQuery::cases)
-    {
-        ASSERT(!stmt.IsColumnNull(metadata_column_number));
-
-        return { Json::Parse(stmt.GetColumn<std::string>(json_column_number)),
-                 Json::Parse(stmt.GetColumn<std::string>(metadata_column_number)) };
-    }
-
-    else
-    {
-        std::string content_json_text = stmt.GetColumn<std::string>(json_column_number);
-
-        // if a full case is stored but identifiers or summaries are requested, add the position
-        // into the JSON (because the full case JSON does not have the positino)
-        if( !stmt.IsColumnNull(metadata_column_number) )
-        {
-            SO::MakeTrimRight(content_json_text);
-            ASSERT(!content_json_text.empty() && content_json_text.back() == '}');
-
-            content_json_text.replace(content_json_text.length() - 1, 1,
-                                        FormatText(",\"position\":" Formatter_int64_t "}",
-                                                    stmt.GetColumn<int64_t>(position_column_number)));
-        }
-
-        return { Json::Parse(content_json_text) };
-    }
-}
-
-
-template<CSWebCaseQuery query>
-CSWebCaseResponse<query> CSWebRepositoryCache::RetrieveCaseUnmodifiedOnServer(const int64_t position)
-{
-    if( !IsServerRevisionKnown() )
-        throw ProgrammingErrorException();
-
-    // update the server revision
-    m_db.PrepareOrResetStatement(m_stmtUpdateCaseServerRevision,
-        "UPDATE `cases` "
-        "SET `server_revision` = ? "
-        "WHERE `position` = ?;"
-    );
-
-    m_stmtUpdateCaseServerRevision.Bind(1, *m_currentServerRevision)
-                                  .Bind(2, position);
-
-    if( m_stmtUpdateCaseServerRevision.Step() != Sqlite::Result::Done )
-        throw ProgrammingErrorException();
-
-    // query the case
-    m_db.PrepareOrResetStatement(m_stmtReadCase,
-        "SELECT `position`, `json`, `metadata_json` "
-        "FROM `cases` "
-        "WHERE `position` = ?;"
-    );
-
-    m_stmtReadCase.Bind(1, position);
-
-    if( m_stmtReadCase.Step() != Sqlite::Result::Row )
-        throw ProgrammingErrorException();
-
-    return CreateCaseResponseFromQuery<query, 0, 1, 2>(m_stmtReadCase);
-}
-
-template CSWebCaseResponse<CSWebCaseQuery::identifiers> CSWebRepositoryCache::RetrieveCaseUnmodifiedOnServer(int64_t position);
-template CSWebCaseResponse<CSWebCaseQuery::cases> CSWebRepositoryCache::RetrieveCaseUnmodifiedOnServer(int64_t position);
-
-
-template<CSWebCaseQuery query>
-void CSWebRepositoryCache::CacheSingleCaseQuery(const std::string_view arguments_json_text_sv,
-                                                const CSWebCaseResponse<query>& response) noexcept
+void CSWebRepositoryCache::CacheCaseQuery(const std::string_view arguments_json_text_sv, const CSWebCaseQueryResponse& case_query_response) noexcept
 {
     if( !IsServerRevisionKnown() )
         return;
 
     try
     {
-        const int64_t position = GetMetadataJsonNode(response).template Get<int64_t>(JK::position);
+        // cache the query
+        CacheQuery(arguments_json_text_sv, case_query_response.GetJsonNode());
 
-        // update the arguments -> case position cache
-        m_db.PrepareOrResetStatement(m_stmtWriteSingleCasePosition,
-            "INSERT OR REPLACE INTO `single_case_positions` "
-            "(`arguments`, `server_revision`, `position`) "
-            "VALUES(?,?,?);"
-        );
+        // cache the cases
+        const std::vector<int64_t> positions = CacheCases(case_query_response);
 
-        m_stmtWriteSingleCasePosition.Bind(1, arguments_json_text_sv)
-                                     .Bind(2, *m_currentServerRevision)
-                                     .Bind(3, position);
-
-        if( m_stmtWriteSingleCasePosition.Step() != Sqlite::Result::Done )
-            throw ProgrammingErrorException();
-
-        // update the case cache
-        CacheCase(response);
+        // cache the positions related to this query
+        WriteCasePositions(arguments_json_text_sv, positions);
     }
     catch(...) { ASSERT(false); }
 }
 
-template void CSWebRepositoryCache::CacheSingleCaseQuery(std::string_view arguments_json_text_sv, const CSWebCaseResponse<CSWebCaseQuery::identifiers>& response) noexcept;
-template void CSWebRepositoryCache::CacheSingleCaseQuery(std::string_view arguments_json_text_sv, const CSWebCaseResponse<CSWebCaseQuery::cases>& response) noexcept;
 
-
-template<CSWebCaseQuery query>
-CSWebCacheCaseResponse<query> CSWebRepositoryCache::RetrieveSingleCaseQuery(const std::string_view arguments_json_text_sv) noexcept
+CSWebCacheCaseResponse CSWebRepositoryCache::RetrieveCaseQuery(const CSWebCaseQuery query, const std::string_view arguments_json_text_sv) noexcept
 {
     if( !IsServerRevisionKnown() )
         return { };
 
     try
     {
-        m_db.PrepareOrResetStatement(m_stmtReadSingleCasePosition,
-            "SELECT `cases`.`position`, `cases`.`server_revision`, `cases`.`json`, `cases`.`metadata_json` "
-            "FROM `single_case_positions` "
-            "JOIN `cases` ON `cases`.`position` = `single_case_positions`.`position` "
-            "WHERE `single_case_positions`.`arguments` = ? AND "
-                  "`single_case_positions`.`server_revision` >= ? AND "
-                  "`cases`.`query_type` >= ?;"
-        );
+        // if the query exists (at this server revision), we can reuse it
+        std::optional<JsonNode> json_node = RetrieveQuery(arguments_json_text_sv);
 
-        m_stmtReadSingleCasePosition.Bind(1, arguments_json_text_sv)
-                                    .Bind(2, *m_currentServerRevision)
-                                    .Bind(3, static_cast<int>(query));
+        if( json_node.has_value() )
+            return CSWebCaseQueryResponse(query, std::move(*json_node));
 
-        if( m_stmtReadSingleCasePosition.Step() != Sqlite::Result::Row )
-            return { };
-
-        // if the cache contains the case but with an earlier server revision value,
-        // indicate that we have the case but that CSWeb needs to be queried to see if
-        // there is a newer case
-        const int64_t server_revision = m_stmtReadSingleCasePosition.GetColumn<int64_t>(1);
-
-        if( server_revision < *m_currentServerRevision )
+        // otherwise see if this query occurred at an earlier revision;
+        // if so, we can exclude retrieving the cases retrieved at that point
+        if( query == CSWebCaseQuery::cases )
         {
-            using OldCaseDataT = typename CSWebCacheCaseResponse<query>::OldCaseData;
-            return { OldCaseDataT { server_revision, m_stmtReadSingleCasePosition.GetColumn<int64_t>(0) } };
-        }
+            std::optional<CSWebCacheStaleCaseData> stale_case_data = RetrieveCasePositions(arguments_json_text_sv);
 
-        // otherwise, at this point, the case is up-to-date
-        else
-        {
-            return { CreateCaseResponseFromQuery<query, 0, 2, 3>(m_stmtReadSingleCasePosition) };
+            if( stale_case_data.has_value() )
+                return std::move(*stale_case_data);
         }
     }
     catch(...) { ASSERT(false); }
@@ -554,8 +469,113 @@ CSWebCacheCaseResponse<query> CSWebRepositoryCache::RetrieveSingleCaseQuery(cons
     return { };
 }
 
-template CSWebCacheCaseResponse<CSWebCaseQuery::identifiers> CSWebRepositoryCache::RetrieveSingleCaseQuery(std::string_view arguments_json_text_sv) noexcept;
-template CSWebCacheCaseResponse<CSWebCaseQuery::cases> CSWebRepositoryCache::RetrieveSingleCaseQuery(std::string_view arguments_json_text_sv) noexcept;
+
+template<int json_column_number, int metadata_column_number>
+CSWebCaseResponse CSWebRepositoryCache::CreateCaseFromQuery(const CSWebCaseQuery query, Sqlite::Statement& stmt)
+{
+    if( query == CSWebCaseQuery::cases )
+    {
+        ASSERT(!stmt.IsColumnNull(metadata_column_number));
+
+        return CSWebCaseResponse(std::make_unique<JsonNode>(Json::Parse(stmt.GetColumn<std::string>(json_column_number))),
+                                 std::make_unique<JsonNode>(Json::Parse(stmt.GetColumn<std::string>(metadata_column_number))));
+    }
+
+    else
+    {
+        std::string content_json_text = stmt.GetColumn<std::string>(json_column_number);
+
+        // if a full case is stored but identifiers or summaries are requested, add the position
+        // into the JSON (because the full case JSON does not have the position)
+        if( !stmt.IsColumnNull(metadata_column_number) )
+        {
+            SO::MakeTrimRight(content_json_text);
+            ASSERT(!content_json_text.empty() && content_json_text.back() == '}');
+
+            JsonNode metadata_json_node = Json::Parse(stmt.GetColumn<std::string>(metadata_column_number));
+
+            content_json_text.replace(content_json_text.length() - 1, 1,
+                                        FormatText(",\"position\":" Formatter_int64_t "}",
+                                                   metadata_json_node.Get<int64_t>(JK::position)));
+        }
+
+        auto content_json_node = std::make_shared<JsonNode>(Json::Parse(content_json_text));
+        return CSWebCaseResponse(content_json_node, content_json_node);
+    }
+}
+
+
+CSWebCaseResponse CSWebRepositoryCache::RetrieveCase(const CSWebCaseQuery query, const CSWebCaseResponse& case_response)
+{
+    ASSERT(case_response.IsCaseResponse() && case_response.IsContentEmpty());
+
+    if( !IsServerRevisionKnown() )
+        throw ProgrammingErrorException();
+
+    // query the case
+    m_db.PrepareOrResetStatement(m_stmtReadCase,
+        "SELECT `json`, `metadata_json` "
+#ifdef _DEBUG
+        ", `query_type` "
+#endif
+        "FROM `cases` "
+        "WHERE `position` = ?;"
+    );
+
+    m_stmtReadCase.Bind(1, case_response.GetPosition());
+
+    if( m_stmtReadCase.Step() != Sqlite::Result::Row )
+        throw ProgrammingErrorException();
+
+    ASSERT(static_cast<int>(query) <= m_stmtReadCase.GetColumn<int>(2));
+
+    return CreateCaseFromQuery<0, 1>(query, m_stmtReadCase);
+}
+
+
+void CSWebRepositoryCache::WriteCasePositions(const std::string_view arguments_json_text_sv,
+                                              const std::vector<int64_t>& positions)
+{
+    m_db.PrepareOrResetStatement(m_stmtWriteCasePositions,
+        "INSERT OR REPLACE INTO `case_query_positions` "
+        "(`arguments`, `server_revision`, `positions`) "
+        "VALUES(?,?,?);"
+    );
+
+    m_stmtWriteCasePositions.Bind(1, arguments_json_text_sv)
+                            .Bind(2, *m_currentServerRevision)
+                            .Bind(3, Json::ToJson(positions));
+
+    if( m_stmtWriteCasePositions.Step() != Sqlite::Result::Done )
+        throw ProgrammingErrorException();
+}
+
+
+std::optional<CSWebCacheStaleCaseData> CSWebRepositoryCache::RetrieveCasePositions(const std::string_view arguments_json_text_sv)
+{
+    m_db.PrepareOrResetStatement(m_stmtReadCasePositions,
+        "SELECT `server_revision`, `positions` "
+        "FROM `case_query_positions` "
+        "WHERE `arguments` = ?;"
+    );
+
+    m_stmtReadCasePositions.Bind(1, arguments_json_text_sv);
+
+    const int result = m_stmtReadCasePositions.Step();
+
+    if( result == Sqlite::Result::Row )
+    {
+        const JsonNode positions_json_node = Json::Parse(m_stmtReadCasePositions.GetColumn<std::string>(1));
+        ASSERT(positions_json_node.IsArray());
+
+        return CSWebCacheStaleCaseData { m_stmtReadCasePositions.GetColumn<int64_t>(0),
+                                         positions_json_node.GetArray().GetVector<int64_t>() };
+    }
+
+    ASSERT(result == Sqlite::Result::Done);
+
+    return std::nullopt;
+}
 
 
 bool CSWebRepositoryCache::HasNonDeletedCaseByKey(const std::string& key) noexcept

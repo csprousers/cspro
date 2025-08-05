@@ -293,6 +293,9 @@
     <ClCompile Include="CSWebBinaryContentReader.cpp">
       <Filter>Source Files\CSWebRepository</Filter>
     </ClCompile>
+    <ClCompile Include="CSWebCaseResponse.cpp">
+      <Filter>Source Files\CSWebRepository</Filter>
+    </ClCompile>
     <ClCompile Include="CSWebRepository.cpp">
       <Filter>Source Files\CSWebRepository</Filter>
     </ClCompile>

@@ -9,6 +9,7 @@ ZDATAO_SRC_PATH         := ../../../../../zDataO
 LOCAL_SRC_FILES         += $(ZDATAO_SRC_PATH)/CacheableCaseWrapperRepository.cpp
 LOCAL_SRC_FILES         += $(ZDATAO_SRC_PATH)/CaseIteratorSettings.cpp
 LOCAL_SRC_FILES         += $(ZDATAO_SRC_PATH)/CSWebBinaryContentReader.cpp
+LOCAL_SRC_FILES         += $(ZDATAO_SRC_PATH)/CSWebCaseResponse.cpp
 LOCAL_SRC_FILES         += $(ZDATAO_SRC_PATH)/CSWebRepository.cpp
 LOCAL_SRC_FILES         += $(ZDATAO_SRC_PATH)/CSWebRepositoryCache.cpp
 LOCAL_SRC_FILES         += $(ZDATAO_SRC_PATH)/DataRepository.cpp
