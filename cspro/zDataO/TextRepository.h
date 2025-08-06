@@ -35,9 +35,9 @@ public:
                                        const CaseIteratorParameters* start_parameters = nullptr) override;
     void WriteCase(Case& data_case, WriteCaseParameter* write_case_parameter = nullptr) override;
     size_t GetNumberCases(CaseIterationCaseStatus case_status, const CaseIteratorParameters* start_parameters = nullptr) override;
-    std::unique_ptr<CaseIterator> CreateIterator(CaseIterationContent iteration_content, CaseIterationCaseStatus case_status,
-                                                 std::optional<CaseIterationMethod> iteration_method, std::optional<CaseIterationOrder> iteration_order,
-                                                 const CaseIteratorParameters* start_parameters = nullptr, size_t offset = 0, size_t limit = SIZE_MAX) override;
+    std::unique_ptr<CaseIterator> CreateIterator(CaseIterationContent iteration_content,
+                                                 const CaseIteratorSettings& iterator_settings,
+                                                 size_t offset = 0, size_t limit = SIZE_MAX) override;
 
     // TransactionGenerator overrides
     bool CommitTransactions() override;
@@ -111,10 +111,8 @@ private:
 
     // Creates the SQLite prepared statement for key searches and iterators.
     SQLiteStatement CreateKeySearchIteratorStatement(const char* columns_to_query,
-                                                     size_t offset, size_t limit,
-                                                     std::optional<CaseIterationMethod> iteration_method,
-                                                     std::optional<CaseIterationOrder> iteration_order,
-                                                     const CaseIteratorParameters* start_parameters);
+                                                     const CaseIteratorSettings& iterator_settings,
+                                                     size_t offset, size_t limit);
 
 private:
     std::unique_ptr<TextToCaseConverter> m_textToCaseConverter;

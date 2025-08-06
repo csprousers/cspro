@@ -96,13 +96,17 @@ void DataRepository::DeleteCase(const std::string& key)
 
 std::unique_ptr<CaseIterator> DataRepository::CreateCaseIterator(const CaseIterationMethod iteration_method, const CaseIterationOrder iteration_order)
 {
-    return CreateIterator(CaseIterationContent::Case, CaseIterationCaseStatus::NotDeletedOnly, iteration_method, iteration_order);
+    const CaseIteratorSettings iterator_settings(CaseIterationCaseStatus::NotDeletedOnly, iteration_method, iteration_order);
+
+    return CreateIterator(CaseIterationContent::Case, iterator_settings);
 }
 
 
 std::unique_ptr<CaseIterator> DataRepository::CreateCaseKeyIterator(const CaseIterationMethod iteration_method, const CaseIterationOrder iteration_order)
 {
-    return CreateIterator(CaseIterationContent::CaseKey, CaseIterationCaseStatus::NotDeletedOnly, iteration_method, iteration_order);
+    const CaseIteratorSettings iterator_settings(CaseIterationCaseStatus::NotDeletedOnly, iteration_method, iteration_order);
+
+    return CreateIterator(CaseIterationContent::CaseKey, iterator_settings);
 }
 
 

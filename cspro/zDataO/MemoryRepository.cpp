@@ -143,7 +143,10 @@ DataRepositoryUniqueCaseIdentifer MemoryRepository::GetUniqueCaseIdentifer(const
 std::optional<CaseKey> MemoryRepository::FindCaseKey(const CaseIterationMethod iteration_method, const CaseIterationOrder iteration_order,
                                                      const CaseIteratorParameters* const start_parameters/* = nullptr*/)
 {
-    const std::vector<size_t> indices = GetFilteredIndices(CaseIterationCaseStatus::NotDeletedOnly, iteration_method, iteration_order, start_parameters);
+    const CaseIteratorSettings iterator_settings(CaseIterationCaseStatus::NotDeletedOnly,
+                                                 iteration_method, iteration_order, start_parameters);
+
+    const std::vector<size_t> indices = GetFilteredIndices(iterator_settings);
 
     if( !indices.empty() )
         return *m_cases[indices.front()];
@@ -250,15 +253,14 @@ void MemoryRepository::DeleteCase(const double position_in_repository, const boo
 }
 
 
-std::vector<size_t> MemoryRepository::GetFilteredIndices(const CaseIterationCaseStatus case_status,
-                                                         const std::optional<CaseIterationMethod> iteration_method,
-                                                         const std::optional<CaseIterationOrder> iteration_order,
-                                                         const CaseIteratorParameters* const start_parameters) const
+std::vector<size_t> MemoryRepository::GetFilteredIndices(const CaseIteratorSettings& iterator_settings) const
 {
     std::vector<size_t> indices(m_cases.size());
     std::iota(indices.begin(), indices.end(), 0);
 
     // process any filters
+    const CaseIteratorParameters* const start_parameters = iterator_settings.GetParameters();
+
     if( start_parameters != nullptr )
     {
         bool use_key_prefix = false;
@@ -312,7 +314,7 @@ std::vector<size_t> MemoryRepository::GetFilteredIndices(const CaseIterationCase
 
 
     // filter on case properties
-    if( case_status != CaseIterationCaseStatus::All )
+    if( iterator_settings.GetStatus() != CaseIterationCaseStatus::All )
     {
         FilterIndices(indices,
             [](const Case& data_case)
@@ -321,7 +323,7 @@ std::vector<size_t> MemoryRepository::GetFilteredIndices(const CaseIterationCase
             });
     }
 
-    if( case_status == CaseIterationCaseStatus::PartialsOnly )
+    if( iterator_settings.GetStatus() == CaseIterationCaseStatus::PartialsOnly )
     {
         FilterIndices(indices,
             [](const Case& data_case)
@@ -330,7 +332,7 @@ std::vector<size_t> MemoryRepository::GetFilteredIndices(const CaseIterationCase
             });
     }
 
-    else if( case_status == CaseIterationCaseStatus::DuplicatesOnly )
+    else if( iterator_settings.GetStatus() == CaseIterationCaseStatus::DuplicatesOnly )
     {
         FilterIndices(indices,
             [&](const Case& data_case)
@@ -348,7 +350,7 @@ std::vector<size_t> MemoryRepository::GetFilteredIndices(const CaseIterationCase
 
 
     // potentially sort in key order / descending order
-    if( iteration_method == CaseIterationMethod::KeyOrder )
+    if( iterator_settings.GetMethod() == CaseIterationMethod::KeyOrder )
     {
         std::sort(indices.begin(), indices.end(),
             [&](const size_t index1, const size_t index2)
@@ -357,7 +359,7 @@ std::vector<size_t> MemoryRepository::GetFilteredIndices(const CaseIterationCase
             });
     }
 
-    if( iteration_order == CaseIterationOrder::Descending )
+    if( iterator_settings.GetOrder() == CaseIterationOrder::Descending )
         std::reverse(indices.begin(), indices.end());
 
 
@@ -415,17 +417,18 @@ size_t MemoryRepository::GetNumberCases(const CaseIterationCaseStatus case_statu
     }
 
     // otherwise, get the value in a non-optimized way
-    const std::vector<size_t> indices = GetFilteredIndices(case_status, std::nullopt, std::nullopt, start_parameters);
+    const CaseIteratorSettings iterator_settings(case_status, std::nullopt, std::nullopt, start_parameters);
+    const std::vector<size_t> indices = GetFilteredIndices(iterator_settings);
 
     return indices.size();
 }
 
 
-std::unique_ptr<CaseIterator> MemoryRepository::CreateIterator(CaseIterationContent /*iteration_content*/, CaseIterationCaseStatus case_status,
-                                                               const std::optional<CaseIterationMethod> iteration_method, const std::optional<CaseIterationOrder> iteration_order,
-                                                               const CaseIteratorParameters* const start_parameters/* = nullptr*/, size_t offset/* = 0*/, size_t limit/* = SIZE_MAX*/)
+std::unique_ptr<CaseIterator> MemoryRepository::CreateIterator(CaseIterationContent /*iteration_content*/,
+                                                               const CaseIteratorSettings& iterator_settings,
+                                                               size_t offset/* = 0*/, size_t limit/* = SIZE_MAX*/)
 {
-    std::vector<size_t> indices = GetFilteredIndices(case_status, iteration_method, iteration_order, start_parameters);
+    std::vector<size_t> indices = GetFilteredIndices(iterator_settings);
 
     // process the offset and limit
     if( offset != 0 || limit != SIZE_MAX )

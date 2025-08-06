@@ -26,9 +26,9 @@ public:
     void WriteCase(Case& data_case, WriteCaseParameter* write_case_parameter = nullptr) override;
     void DeleteCase(double position_in_repository, bool deleted = true) override;
     void DeleteCase(const std::string& key) override;
-    std::unique_ptr<CaseIterator> CreateIterator(CaseIterationContent iteration_content, CaseIterationCaseStatus case_status,
-                                                 std::optional<CaseIterationMethod> iteration_method, std::optional<CaseIterationOrder> iteration_order,
-                                                 const CaseIteratorParameters* start_parameters = nullptr, size_t offset = 0, size_t limit = SIZE_MAX) override;
+    std::unique_ptr<CaseIterator> CreateIterator(CaseIterationContent iteration_content,
+                                                 const CaseIteratorSettings& iterator_settings,
+                                                 size_t offset = 0, size_t limit = SIZE_MAX) override;
 
 private:
     template<typename EventT, typename... Args>

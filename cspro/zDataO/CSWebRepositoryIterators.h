@@ -10,10 +10,8 @@
 class CSWebRepositoryIterator : public CaseIterator
 {
 public:
-    CSWebRepositoryIterator(CSWebRepository& csweb_repository,
-                            CaseIterationContent iteration_content, CaseIterationCaseStatus case_status,
-                            std::optional<CaseIterationMethod> iteration_method, std::optional<CaseIterationOrder> iteration_order,
-                            const CaseIteratorParameters* start_parameters, size_t offset, size_t limit);
+    CSWebRepositoryIterator(CSWebRepository& csweb_repository, CaseIterationContent iteration_content,
+                            CaseIteratorSettings iterator_settings, size_t offset, size_t limit);
 
     bool NextCaseKey(CaseKey& case_key) override;
     bool NextCaseSummary(CaseSummary& case_summary) override;
@@ -36,10 +34,7 @@ private:
 
     CSWebCaseQuery m_query;
     const char* m_iterationContent;
-    CaseIterationCaseStatus m_caseStatus;
-    std::optional<CaseIterationMethod> m_iterationMethod;
-    std::optional<CaseIterationOrder> m_iterationOrder;
-    std::unique_ptr<CaseIteratorParameters> m_startParameters;
+    CaseIteratorSettings m_caseIteratorSettings;
     size_t m_offset;
     size_t m_limit;
 

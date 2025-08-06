@@ -751,17 +751,18 @@ std::string TextRepository::GetKeyFromPosition(const int64_t file_position)
 
 
 SQLiteStatement TextRepository::CreateKeySearchIteratorStatement(const char* const columns_to_query,
-                                                                 const size_t offset, const size_t limit,
-                                                                 const std::optional<CaseIterationMethod> iteration_method,
-                                                                 const std::optional<CaseIterationOrder> iteration_order,
-                                                                 const CaseIteratorParameters* const start_parameters)
+                                                                 const CaseIteratorSettings& iterator_settings,
+                                                                 const size_t offset, const size_t limit)
 {
     std::string order_by_text;
 
-    if( iteration_method.has_value() )
+    if( iterator_settings.GetMethod().has_value() )
     {
-        const char* const column = ( *iteration_method == CaseIterationMethod::KeyOrder ) ? "`Key`" :
-                                                                                            "`Position`";
+        const CaseIterationMethod iteration_method = *iterator_settings.GetMethod();
+        const std::optional<CaseIterationOrder>& iteration_order = iterator_settings.GetOrder();
+
+        const char* const column = ( iteration_method == CaseIterationMethod::KeyOrder ) ? "`Key`" :
+                                                                                           "`Position`";
 
         const char* const order = ( !iteration_order.has_value() )                       ? "" :
                                   ( *iteration_order == CaseIterationOrder::Ascending )  ? "ASC" :
@@ -774,11 +775,12 @@ SQLiteStatement TextRepository::CreateKeySearchIteratorStatement(const char* con
                                               ( limit == SIZE_MAX ) ? -1 : static_cast<int>(limit),
                                               static_cast<int>(offset));
 
-    std::string where_text;
+    // process any filters
+    const CaseIteratorParameters* const start_parameters = iterator_settings.GetParameters();
     bool use_key_prefix = false;
     bool use_operators = false;
+    std::string where_text;
 
-    // process any filters
     if( start_parameters != nullptr )
     {
         // use the key prefix if it is set and is not empty
@@ -840,7 +842,9 @@ SQLiteStatement TextRepository::CreateKeySearchIteratorStatement(const char* con
 std::optional<CaseKey> TextRepository::FindCaseKey(const CaseIterationMethod iteration_method, const CaseIterationOrder iteration_order,
                                                    const CaseIteratorParameters* const start_parameters/* = nullptr*/)
 {
-    SQLiteStatement stmt_query_keys = CreateKeySearchIteratorStatement("`Key`, `Position`", 0, 1, iteration_method, iteration_order, start_parameters);
+    const CaseIteratorSettings iterator_settings(CaseIterationCaseStatus::NotDeletedOnly, iteration_method, iteration_order, start_parameters);
+
+    SQLiteStatement stmt_query_keys = CreateKeySearchIteratorStatement("`Key`, `Position`", iterator_settings, 0, 1);
 
     if( stmt_query_keys.Step() == SQLITE_ROW )
         return CaseKey(stmt_query_keys.GetColumn<std::string>(0), stmt_query_keys.GetColumn<double>(1));
@@ -1388,12 +1392,13 @@ size_t TextRepository::GetNumberCases(const CaseIterationCaseStatus case_status,
     }
 
     // otherwise we must apply some filter
+    const CaseIteratorSettings iterator_settings(case_status, std::nullopt, std::nullopt, start_parameters);
     size_t number_cases = 0;
 
     // if not filtering on partial saves, we can calculate the number easily
     if( !partials_only )
     {
-        SQLiteStatement stmt_query_keys = CreateKeySearchIteratorStatement("COUNT(*)", 0, SIZE_MAX, std::nullopt, std::nullopt, start_parameters);
+        SQLiteStatement stmt_query_keys = CreateKeySearchIteratorStatement("COUNT(*)", iterator_settings, 0, SIZE_MAX);
 
         if( stmt_query_keys.Step() == SQLITE_ROW )
             number_cases = stmt_query_keys.GetColumn<size_t>(0);
@@ -1402,8 +1407,7 @@ size_t TextRepository::GetNumberCases(const CaseIterationCaseStatus case_status,
     // otherwise, calculate the number by iterating through all the case keys
     else
     {
-        std::unique_ptr<CaseIterator> case_key_iterator = CreateIterator(CaseIterationContent::CaseKey,
-                                                                         case_status, std::nullopt, std::nullopt, start_parameters);
+        const std::unique_ptr<CaseIterator> case_key_iterator = CreateIterator(CaseIterationContent::CaseKey, iterator_settings);
 
         CaseKey case_key;
 
@@ -1415,22 +1419,26 @@ size_t TextRepository::GetNumberCases(const CaseIterationCaseStatus case_status,
 }
 
 
-std::unique_ptr<CaseIterator> TextRepository::CreateIterator(const CaseIterationContent iteration_content, const CaseIterationCaseStatus case_status,
-                                                             const std::optional<CaseIterationMethod> iteration_method, const std::optional<CaseIterationOrder> iteration_order,
-                                                             const CaseIteratorParameters* const start_parameters/* = nullptr*/, const size_t offset/* = 0*/, const size_t limit/* = SIZE_MAX*/)
+std::unique_ptr<CaseIterator> TextRepository::CreateIterator(const CaseIterationContent iteration_content,
+                                                             const CaseIteratorSettings& iterator_settings,
+                                                             const size_t offset/* = 0*/, const size_t limit/* = SIZE_MAX*/)
 {
-    const bool partials_only = ( case_status == CaseIterationCaseStatus::PartialsOnly );
+    const bool partials_only = ( iterator_settings.GetStatus() == CaseIterationCaseStatus::PartialsOnly );
 
     // text repositories don't have duplicates; also if no partials exist, return a null iterator
-    if( ( case_status == CaseIterationCaseStatus::DuplicatesOnly ) ||
+    if( ( iterator_settings.GetStatus() == CaseIterationCaseStatus::DuplicatesOnly ) ||
         ( partials_only && ( m_statusFile == nullptr || !m_statusFile->ContainsPartials() ) ) )
     {
         return std::make_unique<NullRepositoryCaseIterator>();
     }
 
     // we can use a fast batch iterator if reading cases in file order (and not using an offset or limit)
-    if( iteration_content == CaseIterationContent::Case && iteration_method == CaseIterationMethod::SequentialOrder &&
-        iteration_order == CaseIterationOrder::Ascending && start_parameters == nullptr && offset == 0 && limit == SIZE_MAX
+    if( iteration_content == CaseIterationContent::Case &&
+        iterator_settings.GetMethod() == CaseIterationMethod::SequentialOrder &&
+        iterator_settings.GetOrder() == CaseIterationOrder::Ascending &&
+        iterator_settings.GetParameters() == nullptr &&
+        offset == 0 &&
+        limit == SIZE_MAX
         // CR_TODO_ITERATOR eventually remove the next line, but for now, this fast iterator can't be used
         // until we set the repo position to something other than -1 in SetUpBatchCase
         && !m_requiresIndex )
@@ -1442,11 +1450,17 @@ std::unique_ptr<CaseIterator> TextRepository::CreateIterator(const CaseIteration
     {
         // partials have to be filtered by the iterator; otherwise, the offset and limit can be used
         SQLiteStatement stmt_query_keys = CreateKeySearchIteratorStatement("`Key`, `Position`, `Bytes`",
-                                                                           partials_only ? 0 : offset, partials_only ? SIZE_MAX : limit,
-                                                                           iteration_method, iteration_order, start_parameters);
+                                                                           iterator_settings,
+                                                                           partials_only ? 0 : offset,
+                                                                           partials_only ? SIZE_MAX : limit);
 
-        return std::make_unique<TextRepositoryCaseIterator>(*this, std::move(stmt_query_keys), case_status, start_parameters,
-                                                            partials_only ? std::make_optional(std::make_tuple(offset, limit)) : std::nullopt);
+        return std::make_unique<TextRepositoryCaseIterator>(
+            *this,
+            std::move(stmt_query_keys),
+            iterator_settings.GetStatus(),
+            iterator_settings.GetParameters(),
+            partials_only ? std::make_optional(std::make_tuple(offset, limit)) : std::nullopt
+        );
     }
 }
 

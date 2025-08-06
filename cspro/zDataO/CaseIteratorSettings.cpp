@@ -17,23 +17,27 @@ CaseIteratorSettings::CaseIteratorSettings()
 }
 
 
-CaseIteratorSettings::CaseIteratorSettings(const CaseIteratorSettings& rhs)
-    :   m_status(rhs.m_status),
-        m_method(rhs.m_method),
-        m_order(rhs.m_order),
-        m_parameters(CreateCopyOfPointerValue(rhs.m_parameters))
+CaseIteratorSettings::CaseIteratorSettings(const CaseIterationCaseStatus status,
+                                           std::optional<CaseIterationMethod> method/* = std::nullopt*/,
+                                           std::optional<CaseIterationOrder> order/* = std::nullopt*/,
+                                           std::optional<CaseIteratorParameters> parameters/* = std::nullopt*/)
+    :   m_status(status),
+        m_method(std::move(method)),
+        m_order(std::move(order)),
+        m_parameters(std::move(parameters))
 {
 }
 
 
-CaseIteratorSettings& CaseIteratorSettings::operator=(const CaseIteratorSettings& rhs)
+CaseIteratorSettings::CaseIteratorSettings(const CaseIterationCaseStatus status,
+                                           std::optional<CaseIterationMethod> method,
+                                           std::optional<CaseIterationOrder> order,
+                                           const CaseIteratorParameters* const parameters)
+    :   m_status(status),
+        m_method(std::move(method)),
+        m_order(std::move(order)),
+        m_parameters(( parameters != nullptr ) ? std::make_optional(*parameters) : std::nullopt)
 {
-    m_status = rhs.m_status;
-    m_method = rhs.m_method;
-    m_order = rhs.m_order;
-    m_parameters = CreateCopyOfPointerValue(rhs.m_parameters);
-
-    return *this;
 }
 
 
@@ -116,7 +120,7 @@ void CaseIteratorSettings::WriteJson(JsonWriter& json_writer, const bool write_t
         json_writer.EndObject();
     }
 
-    if( m_parameters != nullptr )
+    if( m_parameters.has_value() )
     {
         json_writer.BeginObject(JK::filter);
 

@@ -1,7 +1,6 @@
 ﻿#include "StdAfx.h"
 #include "LogicHelperContentCreator.h"
 #include <zEditO/ScintillaColorizer.h>
-#include <zDataO/CaseIteratorSettings.h>
 #include <sstream>
 
 

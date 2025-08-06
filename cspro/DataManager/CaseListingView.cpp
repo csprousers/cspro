@@ -175,7 +175,7 @@ void CaseListingView::UpdateSettingsFromKeyFilter()
     ASSERT(m_settings != nullptr && m_settings->GetViewFilters());
 
     std::string key_prefix = WindowsUtf8::GetText(m_keyFilterEdit);
-    std::unique_ptr<CaseIteratorParameters> parameters;
+    std::optional<CaseIteratorParameters> parameters;
 
     if( !key_prefix.empty() )
     {
@@ -314,7 +314,7 @@ void CaseListingView::SetFiltersVisibility()
         // when no filters are shown, we won't apply the filters
         if( m_settings->GetParameters() != nullptr )
         {
-            m_settings->SetParameters(nullptr);
+            m_settings->SetParameters(std::nullopt);
             m_caseListingCtrl.UpdateCaseListingAsync();
         }
     }

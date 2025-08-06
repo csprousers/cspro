@@ -536,13 +536,12 @@ CaseListingCtrl::CaseSummaryWithMeasuredText& CaseListingCtrl::GetCaseSummaryWit
     {
         const size_t number_cases_to_query = std::min(*m_numberCases, CaseSummariesQueryLimit);
 
-        const std::unique_ptr<CaseIterator> case_summary_iterator = m_dataRepository->CreateIterator(CaseIterationContent::CaseSummary,
-                                                                                                     m_viewableCaseIteratorSettings->GetStatus(),
-                                                                                                     m_viewableCaseIteratorSettings->GetMethod(),
-                                                                                                     m_viewableCaseIteratorSettings->GetOrder(),
-                                                                                                     m_viewableCaseIteratorSettings->GetParameters(),
-                                                                                                     block_start_index,
-                                                                                                     number_cases_to_query);
+        const std::unique_ptr<CaseIterator> case_summary_iterator = m_dataRepository->CreateIterator(
+            CaseIterationContent::CaseSummary,
+            *m_viewableCaseIteratorSettings,
+            block_start_index,
+            number_cases_to_query
+        );
 
         std::vector<CaseSummaryWithMeasuredText> case_summaries_with_measured_texts;
         case_summaries_with_measured_texts.reserve(number_cases_to_query);

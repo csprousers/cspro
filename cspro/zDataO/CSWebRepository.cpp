@@ -603,56 +603,18 @@ DataRepositoryUniqueCaseIdentifer CSWebRepository::GetUniqueCaseIdentifer(const 
 
 
 template<bool requires_metadata/* = false*/>
-std::string CSWebRepository::CreateKeySearchQuery(const char* const content, const CaseIterationCaseStatus case_status,
-                                                  const std::optional<CaseIterationMethod> iteration_method, const std::optional<CaseIterationOrder> iteration_order,
-                                                  const CaseIteratorParameters* const start_parameters, const size_t offset, const size_t limit)
+std::string CSWebRepository::CreateKeySearchQuery(const char* const content, const CaseIteratorSettings& iterator_settings,
+                                                  const size_t offset, const size_t limit)
 {
     const std::unique_ptr<JsonStringWriter> json_writer = Json::CreateStringWriter();
 
     json_writer->BeginObject()
-                .Write(JK::content, content)
-                .Write(JK::status, ( case_status == CaseIterationCaseStatus::All )            ? JV::all :
-                                   ( case_status == CaseIterationCaseStatus::NotDeletedOnly ) ? JV::notDeletedOnly :
-                                   ( case_status == CaseIterationCaseStatus::PartialsOnly )   ? JV::partialsOnly :
-                                                                                                JV::duplicatesOnly);
+                .Write(JK::content, content);
+
+    iterator_settings.WriteJson(*json_writer, false);
 
     if( requires_metadata || m_cache != nullptr )
         json_writer->Write(JK::requestMetadata, true);
-
-    if( iteration_method.has_value() || iteration_order.has_value() )
-    {
-        json_writer->BeginObject(JK::sort);
-
-        if( iteration_method.has_value() )
-            json_writer->Write(JK::order, ( *iteration_method == CaseIterationMethod::KeyOrder ) ? JK::key : JK::position);
-
-        if( iteration_order.has_value() )
-            json_writer->Write(JK::ascending, ( *iteration_order == CaseIterationOrder::Ascending ));
-
-        json_writer->EndObject();
-    }
-
-    if( start_parameters != nullptr )
-    {
-        json_writer->BeginObject(JK::filter);
-
-        // use the key prefix if it is set and and is not empty
-        if( start_parameters->key_prefix.has_value() && !start_parameters->key_prefix->empty() )
-        {
-            json_writer->Write(JK::operator_, "startswith")
-                        .Write(JK::type, "key")
-                        .Write(JK::value, *start_parameters->key_prefix);
-        }
-
-        else
-        {
-            json_writer->Write(JK::operator_, ToString(start_parameters->start_type))
-                        .Write(JK::type, std::holds_alternative<std::string>(start_parameters->first_key_or_position) ? JK::key : JK::position)
-                        .WriteVariant(JK::value, start_parameters->first_key_or_position);
-        }
-
-        json_writer->EndObject();
-    }
 
     if( offset != 0 )
         json_writer->Write(JK::offset, offset);
@@ -672,10 +634,9 @@ std::optional<CaseKey> CSWebRepository::FindCaseKey(const CaseIterationMethod it
     // the cache will be checked/updated in ExecuteCaseQuery
     try
     {
-        const std::string arguments_json_text = CreateKeySearchQuery(JK::identifiers,
-                                                                     CaseIterationCaseStatus::NotDeletedOnly,
-                                                                     iteration_method, iteration_order,
-                                                                     start_parameters, 0, 1);
+        const CaseIteratorSettings iterator_settings(CaseIterationCaseStatus::NotDeletedOnly, iteration_method, iteration_order, start_parameters);
+
+        const std::string arguments_json_text = CreateKeySearchQuery(JK::identifiers, iterator_settings, 0, 1);
 
         const CSWebCaseQueryResponse case_query_response = ExecuteCaseQuery(CSWebCaseQuery::identifiers, arguments_json_text);
         ASSERT(case_query_response.GetCaseCount() <= 1);
@@ -835,7 +796,7 @@ size_t CSWebRepository::GetNumberCases()
 }
 
 
-size_t CSWebRepository::GetNumberCases(const CaseIterationCaseStatus case_status, const CaseIteratorParameters* start_parameters/* = nullptr*/)
+size_t CSWebRepository::GetNumberCases(const CaseIterationCaseStatus case_status, const CaseIteratorParameters* const start_parameters/* = nullptr*/)
 {
     if( case_status == CaseIterationCaseStatus::NotDeletedOnly && start_parameters == nullptr )
         return CSWebRepository::GetNumberCases();
@@ -843,10 +804,9 @@ size_t CSWebRepository::GetNumberCases(const CaseIterationCaseStatus case_status
     // the cache will be checked/updated in ExecuteCaseCountQuery
     try
     {
-        const std::string arguments_json_text = CreateKeySearchQuery(JK::count,
-                                                                     case_status,
-                                                                     std::nullopt, std::nullopt,
-                                                                     start_parameters, 0, 1);
+        const CaseIteratorSettings iterator_settings(case_status, std::nullopt, std::nullopt, start_parameters);
+
+        const std::string arguments_json_text = CreateKeySearchQuery(JK::count, iterator_settings, 0, 1);
 
         return ExecuteCaseCountQuery(arguments_json_text);
     }
@@ -859,13 +819,11 @@ size_t CSWebRepository::GetNumberCases(const CaseIterationCaseStatus case_status
 }
 
 
-std::unique_ptr<CaseIterator> CSWebRepository::CreateIterator(const CaseIterationContent iteration_content, const CaseIterationCaseStatus case_status,
-                                                              const std::optional<CaseIterationMethod> iteration_method, const std::optional<CaseIterationOrder> iteration_order,
-                                                              const CaseIteratorParameters* const start_parameters/* = nullptr*/, const size_t offset/* = 0*/, const size_t limit/* = SIZE_MAX*/)
+std::unique_ptr<CaseIterator> CSWebRepository::CreateIterator(const CaseIterationContent iteration_content,
+                                                              const CaseIteratorSettings& iterator_settings,
+                                                              const size_t offset/* = 0*/, const size_t limit/* = SIZE_MAX*/)
 {
-    return std::make_unique<CSWebRepositoryIterator>(*this, iteration_content, case_status,
-                                                            iteration_method, iteration_order,
-                                                            start_parameters, offset, limit);
+    return std::make_unique<CSWebRepositoryIterator>(*this, iteration_content, iterator_settings, offset, limit);
 }
 
 
@@ -887,19 +845,14 @@ std::unique_ptr<CDataDict> CSWebRepository::GetDictionary(const std::string& dic
 // CSWebRepositoryIterator
 // --------------------------------------------------------------------------
 
-CSWebRepositoryIterator::CSWebRepositoryIterator(CSWebRepository& csweb_repository,
-                                                 const CaseIterationContent iteration_content, const CaseIterationCaseStatus case_status,
-                                                 const std::optional<CaseIterationMethod> iteration_method, const std::optional<CaseIterationOrder> iteration_order,
-                                                 const CaseIteratorParameters* const start_parameters/* = nullptr*/, const size_t offset/* = 0*/, const size_t limit/* = SIZE_MAX*/)
+CSWebRepositoryIterator::CSWebRepositoryIterator(CSWebRepository& csweb_repository, const CaseIterationContent iteration_content,
+                                                 CaseIteratorSettings iterator_settings, const size_t offset, const size_t limit)
     :   m_cswebRepository(csweb_repository),
         m_query(( iteration_content == CaseIterationContent::CaseKey )     ? CSWebCaseQuery::identifiers :
                 ( iteration_content == CaseIterationContent::CaseSummary ) ? CSWebCaseQuery::summaries :
               /*( iteration_content == CaseIterationContent::Case )*/        CSWebCaseQuery::cases),
         m_iterationContent(GetCSWebContentKey(m_query)),
-        m_caseStatus(case_status),
-        m_iterationMethod(iteration_method),
-        m_iterationOrder(iteration_order),
-        m_startParameters(CreateCopyOfPointerValue(start_parameters)),
+        m_caseIteratorSettings(std::move(iterator_settings)),
         m_offset(offset),
         m_limit(limit),
         m_limitRequestIndex(0),
@@ -970,10 +923,8 @@ std::optional<CSWebCaseResponse> CSWebRepositoryIterator::Step()
 
     if( query_next_set )
     {
-        QueryNextSet(m_cswebRepository.CreateKeySearchQuery<requires_metadata>(m_iterationContent, m_caseStatus,
-                                                                               m_iterationMethod, m_iterationOrder,
-                                                                               m_startParameters.get(), m_offset,
-                                                                               GetQueryLimit()));
+        QueryNextSet(m_cswebRepository.CreateKeySearchQuery<requires_metadata>(m_iterationContent, m_caseIteratorSettings,
+                                                                               m_offset, GetQueryLimit()));
         ASSERT(m_queryResult.has_value());
         ASSERT(requires_metadata == m_queryResult->case_query_response.IsCaseResponse());
 
@@ -1135,7 +1086,8 @@ int CSWebRepositoryIterator::GetPercentRead() const
     {
         try
         {
-            const size_t number_cases = m_cswebRepository.GetNumberCases(m_caseStatus, m_startParameters.get());
+            const size_t number_cases = m_cswebRepository.GetNumberCases(m_caseIteratorSettings.GetStatus(),
+                                                                         m_caseIteratorSettings.GetParameters());
             m_percentMultiplier = CreatePercentMultiplier(number_cases);
         }
 

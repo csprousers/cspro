@@ -1,5 +1,7 @@
 ﻿#pragma once
 
+#include <zDataO/CaseIteratorSettings.h>
+
 class Case;
 class CaseKey;
 class CaseSummary;

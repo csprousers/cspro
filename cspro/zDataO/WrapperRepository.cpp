@@ -131,11 +131,11 @@ size_t WrapperRepository::GetNumberCases(const CaseIterationCaseStatus case_stat
 }
 
 
-std::unique_ptr<CaseIterator> WrapperRepository::CreateIterator(const CaseIterationContent iteration_content, const CaseIterationCaseStatus case_status,
-                                                                const std::optional<CaseIterationMethod> iteration_method, const std::optional<CaseIterationOrder> iteration_order,
-                                                                const CaseIteratorParameters* const start_parameters/* = nullptr*/, const size_t offset/* = 0*/, const size_t limit/* = SIZE_MAX*/)
+std::unique_ptr<CaseIterator> WrapperRepository::CreateIterator(const CaseIterationContent iteration_content,
+                                                                const CaseIteratorSettings& iterator_settings,
+                                                                const size_t offset/* = 0*/, const size_t limit/* = SIZE_MAX*/)
 {
-    return m_repository->CreateIterator(iteration_content, case_status, iteration_method, iteration_order, start_parameters, offset, limit);
+    return m_repository->CreateIterator(iteration_content, iterator_settings, offset, limit);
 }
 
 

@@ -45,9 +45,9 @@ public:
     void DeleteCase(double position_in_repository, bool deleted = true) override;
     size_t GetNumberCases() override;
     size_t GetNumberCases(CaseIterationCaseStatus case_status, const CaseIteratorParameters* start_parameters = nullptr) override;
-    std::unique_ptr<CaseIterator> CreateIterator(CaseIterationContent iteration_content, CaseIterationCaseStatus case_status,
-                                                 std::optional<CaseIterationMethod> iteration_method, std::optional<CaseIterationOrder> iteration_order,
-                                                 const CaseIteratorParameters* start_parameters = nullptr, size_t offset = 0, size_t limit = SIZE_MAX) override;
+    std::unique_ptr<CaseIterator> CreateIterator(CaseIterationContent iteration_content,
+                                                 const CaseIteratorSettings& iterator_settings,
+                                                 size_t offset = 0, size_t limit = SIZE_MAX) override;
 
     static std::string CalculateDictionaryKeyStructure(const CDataDict& dictionary);
 
@@ -94,9 +94,7 @@ private:
     // CSWeb has its own limit on the content entries it returns in one request,
     // so the specified limit may not be completely fulfilled in a single request.
     template<bool requires_metadata = false>
-    std::string CreateKeySearchQuery(const char* content, CaseIterationCaseStatus case_status,
-                                     std::optional<CaseIterationMethod> iteration_method, std::optional<CaseIterationOrder> iteration_order,
-                                     const CaseIteratorParameters* start_parameters, size_t offset, size_t limit);
+    std::string CreateKeySearchQuery(const char* content, const CaseIteratorSettings& iterator_settings, size_t offset, size_t limit);
 
     void ReadCase(Case& data_case, const char* status, const char* filter_type, std::string_view filter_value_sv);
 
