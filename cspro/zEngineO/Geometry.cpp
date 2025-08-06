@@ -463,23 +463,21 @@ std::string LogicGeometry::SaveToString(const Geometry::FeatureCollection& featu
 }
 
 
-void LogicGeometry::SetGeometry(std::shared_ptr<Geometry::FeatureCollection> geometry)
+void LogicGeometry::SetGeometry(std::shared_ptr<Geometry::FeatureCollection> geometry, BinaryDataMetadata binary_data_metadata)
 {
     m_features = std::move(geometry);
     FixWindingOrder(*m_features);
 
     m_bounds = std::make_shared<Geometry::BoundingBox>(FeatureCollectionBounds(*m_features));
 
-    // if saved, the content must be modified
-    m_binarySymbolData.SetBinaryData(CreateBinaryDataContentFromGeometryCallback());
-    m_binarySymbolData.ClearPath();
+    m_binarySymbolData.SetBinaryData(CreateBinaryDataContentFromGeometryCallback(), std::move(binary_data_metadata));
 }
 
 
-void LogicGeometry::SetGeometry(Geometry::Polygon polygon)
+void LogicGeometry::SetGeometry(Geometry::Polygon polygon, BinaryDataMetadata binary_data_metadata)
 {
     std::shared_ptr<Geometry::FeatureCollection> geometry = makeFeatureCollection(std::move(polygon));
-    SetGeometry(std::move(geometry));
+    SetGeometry(std::move(geometry), std::move(binary_data_metadata));
 }
 
 
@@ -553,8 +551,9 @@ void LogicGeometry::SetProperty(const std::string& key, const std::variant<doubl
             feature.properties[key] = string_value;
     }
 
-    // if saved, the content must be modified
     m_binarySymbolData.SetBinaryData(CreateBinaryDataContentFromGeometryCallback());
+
+    // clear the path because the content no longer matches what may have been loaded from the disk
     m_binarySymbolData.ClearPath();
 }
 

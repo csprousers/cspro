@@ -9,6 +9,7 @@ Because most CSPro development occurs on a [private repository](https://github.c
 
 | Date | Branch | Pull Request Message |
 | --- | --- | --- |
+| 2025&#8209;08&#8209;06 | [bug-fixes-2025-08](https://github.com/CSProDevelopment/cspro/commit/049a945551c13203535727616299e3b55011e8fb) | fixed some bugs |
 | 2025&#8209;08&#8209;06 | [question-text-documentation](https://github.com/CSProDevelopment/cspro/commit/4f04820f90205a6186a9a98c664726fec5c53de7) | added more (Markdown) question text features + fixed issues noticed while documenting |
 | 2025&#8209;07&#8209;23 | [installer-upgrade-path](https://github.com/CSProDevelopment/cspro/commit/b0e5ea2a4ae9a28d482d6370fe666be4a7809d8a) | improved the installation of minor releases |
 | 2025&#8209;07&#8209;23 | [bug-fixes-2025-07](https://github.com/CSProDevelopment/cspro/commit/12d0ee5923109fcb0308b6cc2a9ed0639ee183ff) | fixed some bugs |
