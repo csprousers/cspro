@@ -377,6 +377,10 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
         return -1;      // fail to create
     }
 
+    // using ComCtl32.dll version 6.0 resulted in the language bar being docked to the right,
+    // but this fix fixes that, from: https://forums.codeguru.com/showthread.php?81436-The-UNANSWERABLE-CReBar-question
+    ASSERT(m_wndReBar.GetReBarCtrl().GetBandCount() - 1 == LANGDBARPOS);
+    m_wndReBar.GetReBarCtrl().MaximizeBand(LANGDBARPOS);
 
     // Create CSPro status bar
     if (!m_wndStatusBar.Create(this) ||
