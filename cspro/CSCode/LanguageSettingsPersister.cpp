@@ -36,22 +36,22 @@ CREATE_JSON_KEY(actionInvokerAbortOnException)
 CREATE_JSON_KEY(actionInvokerDisplayResultsAsJson)
 
 CREATE_ENUM_JSON_SERIALIZER(LanguageType,
-    { LanguageType::CSProLogic,          "CSPro-Logic" },
-    { LanguageType::CSProReportHtml,     "CSPro-Report-HTML" },
-    { LanguageType::CSProReportMarkdown, "CSPro-Report-Markdown" },
-    { LanguageType::CSProReport,         "CSPro-Report" },
-    { LanguageType::CSProMessages,       "CSPro-Messages" },
-    { LanguageType::CSProActionInvoker,  "CSPro-Action-Invoker" },
-    { LanguageType::CSProHtmlDialog,     "CSPro-HTML-Dialog" },
-    { LanguageType::CSProSpecFileJson,   "CSPro-Spec-JSON" },
-    { LanguageType::CSProSpecFileIni,    "CSPro-Spec-INI" },
-    { LanguageType::Html,                "HTML" },
-    { LanguageType::JavaScript,          "JavaScript" },
-    { LanguageType::Json,                "JSON" },
-    { LanguageType::Markdown,            "Markdown" },
-    { LanguageType::Sql,                 "SQL" },
-    { LanguageType::Yaml,                "YAML" },
-    { LanguageType::Text,                "text" })
+    { LanguageType::CSProLogic,                "CSPro-Logic" },
+    { LanguageType::CSProTextTemplateHtml,     "CSPro-Text-Template-HTML" },
+    { LanguageType::CSProTextTemplateMarkdown, "CSPro-Text-Template-Markdown" },
+    { LanguageType::CSProTextTemplate,         "CSPro-Text-Template" },
+    { LanguageType::CSProMessages,             "CSPro-Messages" },
+    { LanguageType::CSProActionInvoker,        "CSPro-Action-Invoker" },
+    { LanguageType::CSProHtmlDialog,           "CSPro-HTML-Dialog" },
+    { LanguageType::CSProSpecFileJson,         "CSPro-Spec-JSON" },
+    { LanguageType::CSProSpecFileIni,          "CSPro-Spec-INI" },
+    { LanguageType::Html,                      "HTML" },
+    { LanguageType::JavaScript,                "JavaScript" },
+    { LanguageType::Json,                      "JSON" },
+    { LanguageType::Markdown,                  "Markdown" },
+    { LanguageType::Sql,                       "SQL" },
+    { LanguageType::Yaml,                      "YAML" },
+    { LanguageType::Text,                      "text" })
 
 
 LanguageSettingsPersister::LanguageSettingsPersister()

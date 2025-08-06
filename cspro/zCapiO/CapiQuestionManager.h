@@ -20,6 +20,11 @@ public:
     void CompileCapiLogic(const std::function<int(const CapiLogicParameters&)>& compile_callback);
 
 
+    // properties
+    // --------------------------------------------------------------------------
+    const std::optional<CapiText::Format>& GetDefaultCapiTextFormat() const { return m_defaultCapiTextFormat; }
+    void SetDefaultCapiTextFormat(std::optional<CapiText::Format> format)   { m_defaultCapiTextFormat = format; }
+
     // languages
     // --------------------------------------------------------------------------
     const std::vector<Language>& GetLanguages() const { return m_languages; }
@@ -45,7 +50,7 @@ public:
     // questions
     // --------------------------------------------------------------------------
     const CapiQuestion* GetQuestion(const std::string& item_name) const;
-    void SetQuestion(CapiQuestion question);
+    void SetQuestion(CapiQuestion question, bool set_only_when_defined = false);
     std::vector<CapiQuestion> GetQuestions() const;
     std::vector<CapiQuestion> GetQuestionsSortedInFormOrder() const;
     void RemoveQuestion(const std::string& item_name);
@@ -76,6 +81,7 @@ private:
     void LoadPre76File(const std::string& file_path);
 
 private:
+    std::optional<CapiText::Format> m_defaultCapiTextFormat;
     std::vector<Language> m_languages;
     size_t m_languageIndex;
     std::vector<CapiStyle> m_styles;

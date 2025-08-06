@@ -4,6 +4,10 @@
 #include <zHtml/CssProvider.h>
 
 
+// --------------------------------------------------------------------------
+// Markdown
+// --------------------------------------------------------------------------
+
 class ZMARKDOWN_API Markdown
 {
 public:
@@ -33,3 +37,15 @@ private:
     template<typename CF>
     static std::string ToHtmlDocument(std::string_view title_sv, CssProvider* css_provider, const CF& callback_function);
 };
+
+
+
+// --------------------------------------------------------------------------
+// other Markdown functionality
+// --------------------------------------------------------------------------
+
+inline std::string CreateMarkdownUrl(std::string url)
+{
+    // because ) closes a URL, replace it with its percent-encoded equivalent
+    return SO::Replace(url, ")", "%29");
+}

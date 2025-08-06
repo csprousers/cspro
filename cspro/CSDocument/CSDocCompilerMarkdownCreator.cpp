@@ -103,7 +103,7 @@ void CSDocCompilerWorker::MarkdownCreator::EnterSpanWorker(const MD_SPANTYPE typ
     {
         case MD_SPAN_EM:
         {
-            m_html.append(HT::Italics[0]);
+            m_html.append(HT::Italic[0]);
             break;
         }
 
@@ -140,7 +140,7 @@ void CSDocCompilerWorker::MarkdownCreator::LeaveSpanWorker(const MD_SPANTYPE typ
     {
         case MD_SPAN_EM:
         {
-            m_html.append(HT::Italics[1]);
+            m_html.append(HT::Italic[1]);
             break;
         }
 

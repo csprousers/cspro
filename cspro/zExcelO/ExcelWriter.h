@@ -27,7 +27,7 @@ public:
     {
         None = 0x0,
         TextWrap = 0x1,
-        Bold = 0x2, Italics = 0x4, Underline = 0x8,
+        Bold = 0x2, Italic = 0x4, Underline = 0x8,
         Center = 0x10, Right = 0x20,
         Top = 0x100, Middle = 0x200,
         LineOnLeft = 0x1000,

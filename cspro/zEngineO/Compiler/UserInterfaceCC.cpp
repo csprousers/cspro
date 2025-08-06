@@ -70,7 +70,7 @@ int LogicCompiler::CompileUserInterfaceFunctions()
             NextToken();
             setfont_node.font_size_expression = exprlog();
 
-            // there can be up to two more parameters: bold, italics
+            // there can be up to two more parameters: bold, italics/italic
             for( int i = 0; i < 2; ++i )
             {
                 if( Tkn == TOKRPAREN )
@@ -78,10 +78,10 @@ int LogicCompiler::CompileUserInterfaceFunctions()
 
                 IssueErrorOnTokenMismatch(TOKCOMMA, MGF::function_call_comma_expected_528);
 
-                const size_t parameter_type = NextKeywordOrError( { "BOLD", "ITALICS" });
+                const size_t parameter_type = NextKeywordOrError( { "BOLD", "ITALICS", "ITALIC" });
 
                 setfont_node.font_attributes |= ( parameter_type == 1 ) ? Nodes::SetFont::BoldMask :
-                                                                          Nodes::SetFont::ItalicsMask;
+                                                                          Nodes::SetFont::ItalicMask;
 
                 NextToken();
             }

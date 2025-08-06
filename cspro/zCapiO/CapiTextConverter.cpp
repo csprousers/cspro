@@ -1,5 +1,6 @@
 ﻿#include "StdAfx.h"
 #include "CapiTextConverter.h"
+#include <zHtml/HtmlConverter.h>
 #include <zMarkdown/Markdown.h>
 #include <zLogicO/TextTemplateTokenizer.h>
 #include <zAppO/LogicSettings.h>
@@ -98,7 +99,7 @@ std::string CapiTextConverter::Worker::ConvertHtmlToMarkdown()
     return m_textTemplateTokenizer->ConvertDirectText(
         [&](std::string& direct_text)
         {
-            direct_text = "MARKDOWN_TODO";
+            direct_text = HtmlConverter::ToMarkdown(direct_text);
         });
 }
 

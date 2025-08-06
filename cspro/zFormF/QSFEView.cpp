@@ -1,5 +1,6 @@
 ﻿#include "StdAfx.h"
 #include "QSFEView.h"
+#include "QuestionTextProperties.h"
 #include "TableToolbarButton.h"
 #include <zToolsO/Encoders.h>
 #include <zToolsO/RaiiHelpers.h>
@@ -12,8 +13,7 @@
 
 namespace
 {
-    constexpr UINT CompilationInterval = 1000; // one second
-    constexpr UINT CompilationTimerId  = 20250414;
+    constexpr UINT CompilationTimerId = 20250414;
 }
 
 
@@ -115,10 +115,12 @@ CQSFEView::CQSFEView(CFormDoc* const pFormDoc)
     :   CFormView(IDD_QSF_EDIT_VIEW),
         m_editors{ &m_htmlEditor, &m_textEditor },
         m_currentEditor(&m_htmlEditor),
-        m_textTypeEditing(CapiText::Type::Question),
+        m_questionTextProperties(QuestionTextProperties::Get()),
         m_languageIndex(0),
+        m_textTypeEditing(CapiText::Type::Question),
         m_updatingDisplayText(false)
 {
+    ASSERT(m_questionTextProperties != nullptr);
     ASSERT(pFormDoc != nullptr);
 
     // get the file path for this form file's application
@@ -407,7 +409,7 @@ void CQSFEView::SetCorrectEditor()
 }
 
 
-void CQSFEView::UpdateDisplayText()
+void CQSFEView::UpdateDisplayText(const CapiText::Format* const format_for_undefined_capi_text/* = nullptr*/)
 {
     CFormDoc* const form_doc = GetFormDoc();
     CapiEditorViewModel& view_model = form_doc->GetCapiEditorViewModel();
@@ -417,7 +419,27 @@ void CQSFEView::UpdateDisplayText()
         EnableWindow(TRUE);
         m_currentEditor->GetWnd().EnableWindow(TRUE);
 
-        m_currentCapiText = view_model.GetText(m_languageIndex, m_textTypeEditing);
+        std::optional<CapiText> existing_capi_text = view_model.GetText<std::optional<CapiText>>(m_languageIndex, m_textTypeEditing);
+
+        if( !existing_capi_text.has_value() && format_for_undefined_capi_text != nullptr )
+            existing_capi_text.emplace(SharableString(), *format_for_undefined_capi_text);
+
+        if( existing_capi_text.has_value() )
+        {
+            m_currentCapiText = std::move(*existing_capi_text);
+        }
+
+        else
+        {
+            // check the application or global properties to determine how new question text should be added
+            std::optional<CapiText::Format> format = GetFormDoc()->GetCapiQuestionManager()->GetDefaultCapiTextFormat();
+
+            if( !format.has_value() )
+                format = m_questionTextProperties->default_capi_text_format;
+
+            m_currentCapiText = CapiText(SharableString(), *format);
+        }
+
         SetCorrectEditor();
 
         const RAII::SetValueAndRestoreOnDestruction updating_display_text_modifier(m_updatingDisplayText, true);
@@ -473,7 +495,11 @@ void CQSFEView::UpdateToolbar()
 
 void CQSFEView::StartIdleTimer()
 {
-    m_idleTimer = SetTimer(CompilationTimerId, CompilationInterval, nullptr);
+    if( m_questionTextProperties->automatic_compilation_seconds != 0 )
+    {
+        const unsigned int milliseconds = m_questionTextProperties->automatic_compilation_seconds * 1000;
+        m_idleTimer = SetTimer(CompilationTimerId, milliseconds, nullptr);
+    }
 }
 
 
@@ -481,6 +507,7 @@ void CQSFEView::StopIdleTimer()
 {
     if( m_idleTimer.has_value() )
     {
+        ASSERT(m_idleTimer == CompilationTimerId);
         KillTimer(CompilationTimerId);
         m_idleTimer.reset();
     }
@@ -933,12 +960,16 @@ void CQSFEView::OnChangeEditorType(const UINT nID)
             ASSERT(m_application != nullptr);
             CapiTextConverter converter(m_application->GetLogicSettings(), m_currentCapiText, output_format);
 
-            if( AfxMessageBox(converter.GetConfirmationMessage(), MB_YESNOCANCEL | MB_ICONEXCLAMATION) != IDYES )
+            // confirm the change (when the text is defined)
+            if( !SO::IsWhitespace(m_currentCapiText.GetText().GetString()) &&
+                AfxMessageBox(converter.GetConfirmationMessage(), MB_YESNOCANCEL | MB_ICONEXCLAMATION) != IDYES )
+            {
                 return;
+            }
 
             view_model.SetText(m_languageIndex, m_textTypeEditing, converter.Convert());
 
-            UpdateDisplayText();
+            UpdateDisplayText(&output_format);
 
             if( use_html_editor )
                 ensure_correct_html_editor_showing();

@@ -237,7 +237,7 @@ FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
     LTEXT           "Name:",IDC_STATIC,0,3,22,8
     EDITTEXT        IDC_NAME,36,0,186,14,ES_UPPERCASE | ES_AUTOHSCROLL
-    LTEXT           "Encode ~~ fills ~~ as:",IDC_STATIC,0,25,74,8
+    LTEXT           "Report format:",IDC_STATIC,0,25,49,8
     CONTROL         "HTML",IDC_ENCODING_HTML,"Button",BS_AUTORADIOBUTTON | WS_GROUP,18,41,33,10
     CONTROL         "Markdown",IDC_ENCODING_MARKDOWN,"Button",BS_AUTORADIOBUTTON,18,58,49,10
     CONTROL         "Comma Delimited (CSV)",IDC_ENCODING_CSV,"Button",BS_AUTORADIOBUTTON,18,75,90,10

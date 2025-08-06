@@ -36,7 +36,8 @@ void CapiEditorViewModel::Clear()
 }
 
 
-CapiText CapiEditorViewModel::GetText(const size_t language_index, const CapiText::Type type)
+template<typename T/* = CapiText*/>
+T CapiEditorViewModel::GetText(const size_t language_index, const CapiText::Type type)
 {
     ASSERT(!m_itemName.empty());
     const std::string& language_name = m_questionManager->GetLanguages()[language_index].GetName();
@@ -44,11 +45,16 @@ CapiText CapiEditorViewModel::GetText(const size_t language_index, const CapiTex
     const CapiQuestion question = GetQuestion();
     const CapiCondition condition = ( m_conditionIndex < question.GetConditions().size() ) ? question.GetConditions()[m_conditionIndex] :
                                                                                              CapiCondition();
-    const CapiText* const text = condition.GetText(language_name, type);
+    const CapiText* const capi_text = condition.GetText(language_name, type);
 
-    return ( text != nullptr ) ? *text :
-                                 CapiText();
+    if( capi_text != nullptr )
+        return *capi_text;
+
+    return T();
 }
+
+template CapiText CapiEditorViewModel::GetText(size_t language_index, CapiText::Type type);
+template std::optional<CapiText> CapiEditorViewModel::GetText(size_t language_index, CapiText::Type type);
 
 
 void CapiEditorViewModel::SetText(const size_t language_index, const CapiText::Type type, CapiText capi_text)
@@ -62,7 +68,7 @@ void CapiEditorViewModel::SetText(const size_t language_index, const CapiText::T
     condition.SetText(std::move(capi_text), language_name, type);
     question.SetCondition(std::move(condition));
 
-    m_questionManager->SetQuestion(std::move(question));
+    m_questionManager->SetQuestion(std::move(question), true);
 }
 
 

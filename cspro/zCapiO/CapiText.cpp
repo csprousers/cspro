@@ -73,3 +73,9 @@ void CapiText::serialize(Serializer& ar)
         ar & m_text;
     }
 }
+
+
+DEFINE_ENUM_JSON_SERIALIZER_CLASS(CapiText::Format,
+    { CapiText::Format::Html,           CapiText::FormatTexts[0] },
+    { CapiText::Format::ReportHtml,     CapiText::FormatTexts[1] },
+    { CapiText::Format::ReportMarkdown, CapiText::FormatTexts[2] })

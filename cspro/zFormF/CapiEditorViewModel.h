@@ -32,7 +32,9 @@ public:
 
     bool CanHaveText() const { return ( m_item != nullptr ); }
 
-    CapiText GetText(size_t language_index, CapiText::Type type);
+    template<typename T = CapiText> // can also return std::optional<CapiText>
+    T GetText(size_t language_index, CapiText::Type type);
+
     void SetText(size_t language_index, CapiText::Type type, CapiText capi_text);
 
     void SetCondition(int condition_index, std::string logic);

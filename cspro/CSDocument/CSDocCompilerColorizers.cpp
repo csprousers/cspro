@@ -760,9 +760,14 @@ void HelpsHtmlProcessor::CheckLogicCase(const std::string_view text_sv, const Lo
 // CSDocCompilerWorker
 // --------------------------------------------------------------------------
 
-std::string CSDocCompilerWorker::TrimOnlyOneNewlineFromBothEnds(const std::string& text)
+std::string CSDocCompilerWorker::TrimOnlyOneNewlineFromBothEnds(std::string text)
 {
     ASSERT(text.find('\r') == std::string::npos);
+
+    // trim any non-newline whitespace to account for spaces that may appear in syntax such as:
+    // <p>~~roof_image~~</p>
+    //     </report></cell>
+    SO::MakeTrim(text, " \t");
 
     if( !text.empty() )
     {
@@ -774,6 +779,33 @@ std::string CSDocCompilerWorker::TrimOnlyOneNewlineFromBothEnds(const std::strin
     }
 
     return text;
+}
+
+
+const std::string* CSDocCompilerWorker::ProcessHelpsHtmlProcessorModeOverride(const cs::span<const std::string> tag_components)
+{
+    ASSERT(!m_helpsHtmlProcessorModeOverride.has_value());
+    ASSERT(tag_components.size() <= 2);
+
+    for( size_t override_index = 0; override_index < tag_components.size(); ++override_index )
+    {
+        if( tag_components[override_index] == "inline" )
+        {
+            m_helpsHtmlProcessorModeOverride = HelpsHtmlProcessorMode::Inline;
+
+            // return a pointer to the non-overridden value (if one exists)
+            return ( override_index == 1 )       ? &tag_components[0] :
+                   ( tag_components.size() > 1 ) ? &tag_components[1] :
+                                                   nullptr;
+        }
+    }
+
+    switch( tag_components.size() )
+    {
+        case 0:  return nullptr;
+        case 1:  return &tag_components.front();
+        default: throw CSProException("The only valid override attribute is 'inline'");
+    }
 }
 
 
@@ -956,17 +988,19 @@ std::string CSDocCompilerWorker::ReportStartHandler(const cs::span<const std::st
 {
     ASSERT(!m_lexerLanguage.has_value());
 
-    if( tag_components.empty() )
+    const std::string* const language_name = ProcessHelpsHtmlProcessorModeOverride(tag_components);
+
+    if( language_name == nullptr )
     {
         m_lexerLanguage = SCLEX_CSPRO_REPORT_V8_0;
     }
 
-    else if( SO::EqualsNoCase(tag_components.front(), "HTML") )
+    else if( SO::EqualsNoCase(*language_name, "HTML") )
     {
         m_lexerLanguage = SCLEX_CSPRO_REPORT_HTML_V8_0;
     }
 
-    else if( SO::EqualsNoCase(tag_components.front(), "Markdown") )
+    else if( SO::EqualsNoCase(*language_name, "Markdown") )
     {
         m_lexerLanguage = SCLEX_CSPRO_REPORT_MARKDOWN_V8_0;
     }
@@ -984,7 +1018,10 @@ std::string CSDocCompilerWorker::ReportEndHandler(const std::string& inner_text)
 {
     ASSERT(m_lexerLanguage.has_value());
 
-    HelpsHtmlProcessor html_processor(HelpsHtmlProcessorMode::Normal, m_settings, SymbolType::Report);
+    const HelpsHtmlProcessorMode mode = m_helpsHtmlProcessorModeOverride.value_or(HelpsHtmlProcessorMode::Normal);
+    m_helpsHtmlProcessorModeOverride.reset();
+
+    HelpsHtmlProcessor html_processor(mode, m_settings, SymbolType::Report);
     ScintillaColorizer colorizer(*m_lexerLanguage, TrimOnlyOneNewlineFromBothEnds(inner_text));
 
     m_lexerLanguage.reset();
@@ -997,19 +1034,24 @@ std::string CSDocCompilerWorker::ColorStartHandler(const cs::span<const std::str
 {
     ASSERT(!m_lexerLanguage.has_value());
 
-    const std::string& language_name = tag_components.front();
+    const std::string* const language_name = ProcessHelpsHtmlProcessorModeOverride(tag_components);
 
-    m_lexerLanguage = SO::StartsWithNoCase(language_name, "C++" )        ? SCLEX_CPP :
-                      SO::StartsWithNoCase(language_name, "cspro_v0" )   ? SCLEX_CSPRO_LOGIC_V0 :
-                      SO::StartsWithNoCase(language_name, "HTML" )       ? SCLEX_HTML :
-                      SO::StartsWithNoCase(language_name, "JavaScript" ) ? SCLEX_JAVASCRIPT :
-                      SO::StartsWithNoCase(language_name, "JSON" )       ? SCLEX_JSON :
-                      SO::StartsWithNoCase(language_name, "Kotlin" )     ? SCLEX_JAVASCRIPT : // TODO: replace with a Kotlin lexer when available
-                      SO::StartsWithNoCase(language_name, "Markdown" )   ? SCLEX_MARKDOWN :
-                      SO::StartsWithNoCase(language_name, "message" )    ? SCLEX_CSPRO_MESSAGE_V8_0 :
-                      SO::StartsWithNoCase(language_name, "SQL" )        ? SCLEX_SQL :
-                      SO::StartsWithNoCase(language_name, "text" )       ? SCLEX_NULL :
-                                                                           throw CSProException("Coloring the language '%s' is not supported.", language_name.c_str());
+    if( language_name == nullptr )
+        throw CSProException("You must specify the language to color.");
+
+    m_lexerLanguage = SO::StartsWithNoCase(*language_name, "C++" )        ? SCLEX_CPP :
+                      SO::StartsWithNoCase(*language_name, "cspro_v0" )   ? SCLEX_CSPRO_LOGIC_V0 :
+                      SO::StartsWithNoCase(*language_name, "csdoc" )      ? SCLEX_CSPRO_DOCUMENT :
+                      SO::StartsWithNoCase(*language_name, "HTML" )       ? SCLEX_HTML :
+                      SO::StartsWithNoCase(*language_name, "JavaScript" ) ? SCLEX_JAVASCRIPT :
+                      SO::StartsWithNoCase(*language_name, "JSON" )       ? SCLEX_JSON :
+                      SO::StartsWithNoCase(*language_name, "Kotlin" )     ? SCLEX_JAVASCRIPT : // TODO: replace with a Kotlin lexer when available
+                      SO::StartsWithNoCase(*language_name, "Markdown" )   ? SCLEX_MARKDOWN :
+                      SO::StartsWithNoCase(*language_name, "message" )    ? SCLEX_CSPRO_MESSAGE_V8_0 :
+                      SO::StartsWithNoCase(*language_name, "SQL" )        ? SCLEX_SQL :
+                      SO::StartsWithNoCase(*language_name, "text" )       ? SCLEX_NULL :
+                      SO::StartsWithNoCase(*language_name, "YAML" )       ? SCLEX_YAML :
+                                                                            throw CSProException("Coloring the language '%s' is not supported.", language_name->c_str());
 
     return std::string();
 }
@@ -1017,13 +1059,27 @@ std::string CSDocCompilerWorker::ColorStartHandler(const cs::span<const std::str
 
 std::string CSDocCompilerWorker::ColorEndHandler(const std::string& inner_text)
 {
-    return ColorEndHandlerWorker(inner_text, HelpsHtmlProcessorMode::Normal);
+    const HelpsHtmlProcessorMode mode = m_helpsHtmlProcessorModeOverride.value_or(HelpsHtmlProcessorMode::Normal);
+    m_helpsHtmlProcessorModeOverride.reset();
+
+    return ColorEndHandlerWorker(inner_text, mode);
 }
 
 
 std::string CSDocCompilerWorker::ColorInlineEndHandler(const std::string& inner_text)
 {
     return ColorEndHandlerWorker(inner_text, HelpsHtmlProcessorMode::Inline);
+}
+
+
+std::string CSDocCompilerWorker::ColorTagEndHandler(const std::string& inner_text)
+{
+    // to support coloring block tags, replace &lt; with <, so a tag like <md> can be specified as:
+    // <colortag csdoc>&lt;md></colortag>
+    std::string unescaped_inner_text = inner_text;
+    SO::Replace(unescaped_inner_text, "&lt;", "<");
+
+    return ColorEndHandlerWorker(unescaped_inner_text, HelpsHtmlProcessorMode::Inline);
 }
 
 

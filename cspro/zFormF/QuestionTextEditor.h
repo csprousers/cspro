@@ -2,6 +2,8 @@
 
 #include <zHtml/HtmlEditorCtrl.h>
 
+struct QuestionTextProperties;
+
 
 // --------------------------------------------------------------------------
 // QuestionTextEditor
@@ -190,12 +192,11 @@ private:
     bool EditingHtml() const     { return ( m_format == CapiText::Format::ReportHtml ); }
     bool EditingMarkdown() const { return ( m_format == CapiText::Format::ReportMarkdown ); }
 
-    static std::string ToMarkdownUrl(std::string url);
-
     void WrapSelection(cs::string_view_sz start_text_sv, const char* end_text);
 
 private:
     class CustomLogicCtrl;
     std::unique_ptr<CLogicCtrl> m_logicCtrl;
     CapiText::Format m_format;
+    std::shared_ptr<const QuestionTextProperties> m_questionTextProperties;
 };

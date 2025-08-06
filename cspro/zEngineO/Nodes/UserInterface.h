@@ -38,7 +38,7 @@ namespace Nodes
 
         static constexpr int TypeMask    = 0x0FF;
         static constexpr int BoldMask    = 0x100;
-        static constexpr int ItalicsMask = 0x200;
+        static constexpr int ItalicMask  = 0x200;
         static constexpr int DefaultMask = 0x400;
     };
 

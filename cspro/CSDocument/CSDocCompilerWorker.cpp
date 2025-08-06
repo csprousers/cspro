@@ -13,9 +13,10 @@ namespace
     constexpr std::string_view IndentTag_sv                 = "indent";
     constexpr std::string_view CenterTag_sv                 = "center";
     constexpr std::string_view BoldTag_sv                   = "b";
-    constexpr std::string_view ItalicsTag_sv                = "i";
+    constexpr std::string_view ItalicTag_sv                 = "i";
     constexpr std::string_view SuperscriptTag_sv            = "sup";
     constexpr std::string_view FontTag_sv                   = "font";
+    constexpr std::string_view NoWrapTag_sv                 = "nowrap";
     constexpr std::string_view ListTag_sv                   = "list";
     constexpr std::string_view ListItemTag_sv               = "li";
     constexpr std::string_view SubheaderTag_sv              = "subheader";
@@ -37,6 +38,7 @@ namespace
     constexpr std::string_view ReportTag_sv                 = "report";
     constexpr std::string_view ColorTag_sv                  = "color";
     constexpr std::string_view ColorInlineTag_sv            = "colorinline";
+    constexpr std::string_view ColorTagTag_sv               = "colortag";
     constexpr std::string_view PffTag_sv                    = "pff";
     constexpr std::string_view PffColorTag_sv               = "pffcolor";
     constexpr std::string_view HtmlTag_sv                   = "html";
@@ -76,9 +78,10 @@ const CSDocCompilerWorker::SD& CSDocCompilerWorker::GetStaticData()
             { IndentTag_sv,        TagDefinition { true,   &IndentStartHandler, &EndTagWithContentsOfTextStack, 0, 1 } },
             { CenterTag_sv,        TagDefinition { true,   "<div align=\"center\">", "</div>" } },
             { BoldTag_sv,          TagDefinition { true,   HT::Bold[0], HT::Bold[1] } },
-            { ItalicsTag_sv,       TagDefinition { true,   HT::Italics[0], HT::Italics[1] } },
+            { ItalicTag_sv,        TagDefinition { true,   HT::Italic[0], HT::Italic[1] } },
             { SuperscriptTag_sv,   TagDefinition { true,   "<sup>", "</sup>" } },
             { FontTag_sv,          TagDefinition { true,   &FontStartHandler, "</span>", 1, 3 } },
+            { NoWrapTag_sv,        TagDefinition { true,   "<span style=\"white-space: nowrap;\">", "</span>" } },
             { ListTag_sv,          TagDefinition { true,   &ListStartHandler, &EndTagWithContentsOfTextStack, 0, 1 } },
             { ListItemTag_sv,      TagDefinition { true,   "<li>", "</li>" } },
             { SubheaderTag_sv,     TagDefinition { true,   HT::Subheader[0], HT::Subheader[1] } },
@@ -97,9 +100,10 @@ const CSDocCompilerWorker::SD& CSDocCompilerWorker::GetStaticData()
             { LogicTableTag_sv,    TagDefinition { false,  &LogicTableStartHandler, { }, 1, 1 } },
             { ActionTag_sv,        TagDefinition { true,   { }, &ActionEndHandler } },
             { MessageTag_sv,       TagDefinition { true,   { }, &MessageEndHandler } },
-            { ReportTag_sv,        TagDefinition { true,   &ReportStartHandler, &ReportEndHandler, 0, 1 } },
-            { ColorTag_sv,         TagDefinition { true,   &ColorStartHandler, &ColorEndHandler, 1, 1 } },
+            { ReportTag_sv,        TagDefinition { true,   &ReportStartHandler, &ReportEndHandler, 0, 2 } },
+            { ColorTag_sv,         TagDefinition { true,   &ColorStartHandler, &ColorEndHandler, 1, 2 } },
             { ColorInlineTag_sv,   TagDefinition { true,   &ColorStartHandler, &ColorInlineEndHandler, 1, 1 } },
+            { ColorTagTag_sv,      TagDefinition { true,   &ColorStartHandler, &ColorTagEndHandler, 1, 1 } },
             { PffTag_sv,           TagDefinition { true,   { }, &PffEndHandler } },
             { PffColorTag_sv,      TagDefinition { true,   { }, &PffColorEndHandler } },
             { HtmlTag_sv,          TagDefinition { true,   { }, { } } },
@@ -121,6 +125,7 @@ const CSDocCompilerWorker::SD& CSDocCompilerWorker::GetStaticData()
                                                 MessageTag_sv,
                                                 ReportTag_sv,
                                                 ColorTag_sv,
+                                                ColorTagTag_sv,
                                                 PffTag_sv,
                                                 HtmlTag_sv,
                                                 MdTag_sv } )

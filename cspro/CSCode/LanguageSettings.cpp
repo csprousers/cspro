@@ -235,24 +235,24 @@ std::tuple<int, std::optional<LogicSettings>> LanguageSettings::GetLexerLanguage
     };
 
     const int lexer_language =
-        ( language_type == LanguageType::CSProLogic )          ? ( use_logic_version_v8() ? SCLEX_CSPRO_LOGIC_V8_0 : SCLEX_CSPRO_LOGIC_V0 ) :
-        ( language_type == LanguageType::CSProReportHtml )     ? ( use_logic_version_v8() ? SCLEX_CSPRO_REPORT_HTML_V8_0 : SCLEX_CSPRO_REPORT_HTML_V0 ) :
-        ( language_type == LanguageType::CSProReportMarkdown ) ? ( use_logic_version_v8() ? SCLEX_CSPRO_REPORT_MARKDOWN_V8_0 : SCLEX_CSPRO_REPORT_MARKDOWN_V0 ) :
-        ( language_type == LanguageType::CSProReport )         ? ( use_logic_version_v8() ? SCLEX_CSPRO_REPORT_V8_0 : SCLEX_CSPRO_REPORT_V0 ) :
-        ( language_type == LanguageType::CSProMessages )       ? ( use_logic_version_v8() ? SCLEX_CSPRO_MESSAGE_V8_0 : SCLEX_CSPRO_MESSAGE_V0 ) :
-        ( language_type == LanguageType::CSProActionInvoker )  ? SCLEX_JSON :
-        ( language_type == LanguageType::CSProHtmlDialog )     ? SCLEX_HTML :
-        ( language_type == LanguageType::CSProDocument )       ? SCLEX_CSPRO_DOCUMENT :
-        ( language_type == LanguageType::CSProSpecFileJson )   ? SCLEX_JSON :
-        ( language_type == LanguageType::CSProSpecFileIni )    ? SCLEX_CSPRO_PRE80_SPEC_FILE :
-        ( language_type == LanguageType::Html )                ? SCLEX_HTML :
-        ( language_type == LanguageType::JavaScript )          ? SCLEX_JAVASCRIPT :
-        ( language_type == LanguageType::Json )                ? SCLEX_JSON :
-        ( language_type == LanguageType::Markdown )            ? SCLEX_MARKDOWN :
-        ( language_type == LanguageType::Sql )                 ? SCLEX_SQL :
-        ( language_type == LanguageType::Yaml )                ? SCLEX_YAML :
-        ( language_type == LanguageType::Text )                ? SCLEX_NULL :
-                                                                 ReturnProgrammingError(SCLEX_NULL);
+        ( language_type == LanguageType::CSProLogic )                ? ( use_logic_version_v8() ? SCLEX_CSPRO_LOGIC_V8_0 : SCLEX_CSPRO_LOGIC_V0 ) :
+        ( language_type == LanguageType::CSProTextTemplateHtml )     ? ( use_logic_version_v8() ? SCLEX_CSPRO_REPORT_HTML_V8_0 : SCLEX_CSPRO_REPORT_HTML_V0 ) :
+        ( language_type == LanguageType::CSProTextTemplateMarkdown ) ? ( use_logic_version_v8() ? SCLEX_CSPRO_REPORT_MARKDOWN_V8_0 : SCLEX_CSPRO_REPORT_MARKDOWN_V0 ) :
+        ( language_type == LanguageType::CSProTextTemplate )         ? ( use_logic_version_v8() ? SCLEX_CSPRO_REPORT_V8_0 : SCLEX_CSPRO_REPORT_V0 ) :
+        ( language_type == LanguageType::CSProMessages )             ? ( use_logic_version_v8() ? SCLEX_CSPRO_MESSAGE_V8_0 : SCLEX_CSPRO_MESSAGE_V0 ) :
+        ( language_type == LanguageType::CSProActionInvoker )        ? SCLEX_JSON :
+        ( language_type == LanguageType::CSProHtmlDialog )           ? SCLEX_HTML :
+        ( language_type == LanguageType::CSProDocument )             ? SCLEX_CSPRO_DOCUMENT :
+        ( language_type == LanguageType::CSProSpecFileJson )         ? SCLEX_JSON :
+        ( language_type == LanguageType::CSProSpecFileIni )          ? SCLEX_CSPRO_PRE80_SPEC_FILE :
+        ( language_type == LanguageType::Html )                      ? SCLEX_HTML :
+        ( language_type == LanguageType::JavaScript )                ? SCLEX_JAVASCRIPT :
+        ( language_type == LanguageType::Json )                      ? SCLEX_JSON :
+        ( language_type == LanguageType::Markdown )                  ? SCLEX_MARKDOWN :
+        ( language_type == LanguageType::Sql )                       ? SCLEX_SQL :
+        ( language_type == LanguageType::Yaml )                      ? SCLEX_YAML :
+        ( language_type == LanguageType::Text )                      ? SCLEX_NULL :
+                                                                       ReturnProgrammingError(SCLEX_NULL);
 
     return { lexer_language, std::move(logic_settings) };
 }

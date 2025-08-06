@@ -1469,7 +1469,7 @@ namespace
         },
         {
             "setfont",
-            "setfont(CSEntry_Control,Font_Name as String_Expression,Font_Size as Numeric_Expression[,Bold,Italics])",
+            "setfont(CSEntry_Control, Font_Name as String_Expression, Font_Size as Numeric_Expression[, Bold, Italic])",
             "setfont_function.html",
             FunctionCode::FNSETFONT_CODE,
             SymbolType::None,

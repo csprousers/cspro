@@ -209,8 +209,8 @@ void CSProUsersBlogTagModifier::ProcessTag(std::string& start_tag, std::string* 
         *end_tag = "</strong>";
     }
 
-    // italics i tags -> em
-    else if( start_tag == HT::Italics[0] && *end_tag == HT::Italics[1] )
+    // italic i tags -> em
+    else if( start_tag == HT::Italic[0] && *end_tag == HT::Italic[1] )
     {
         start_tag = "<em>";
         *end_tag = "</em>";

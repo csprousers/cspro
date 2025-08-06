@@ -13,9 +13,9 @@
 enum class LanguageType
 {
     CSProLogic,
-    CSProReportHtml,
-    CSProReportMarkdown,
-    CSProReport,
+    CSProTextTemplateHtml,
+    CSProTextTemplateMarkdown,
+    CSProTextTemplate,
     CSProMessages,
     CSProActionInvoker,
     CSProHtmlDialog,
@@ -107,7 +107,7 @@ public:
     bool CanCompileOrValidateCode() const;
     bool CanRunCode() const;
     bool CanStopCode() const;
-    bool CanViewReportPreview() const;
+    bool CanViewTextTemplatePreview() const;
 
     // other helpers
     bool UsesTwoCodeViews() const;
@@ -166,10 +166,10 @@ inline bool LanguageSettings::CanStopCode() const
 }
 
 
-inline bool LanguageSettings::CanViewReportPreview() const
+inline bool LanguageSettings::CanViewTextTemplatePreview() const
 {
-    return ( Lexers::IsCSProReportHtml(m_lexerLanguage) ||
-             Lexers::IsCSProReportMarkdown(m_lexerLanguage) );
+    return ( Lexers::IsCSProTextTemplateHtml(m_lexerLanguage) ||
+             Lexers::IsCSProTextTemplateMarkdown(m_lexerLanguage) );
 }
 
 

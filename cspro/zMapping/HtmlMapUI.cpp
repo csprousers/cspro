@@ -6,8 +6,8 @@
 #include "TPKReader.h"
 #include <zToolsO/Encoders.h>
 #include <zUtilO/PortableColor.h>
+#include <zHtml/HtmlConverter.h>
 #include <zHtml/HtmlishSanitizer.h>
-#include <zHtml/HtmlTextConverter.h>
 #include <zHtml/PortableLocalhost.h>
 #include <zAppO/Properties/MappingProperties.h>
 #include <sstream>
@@ -40,7 +40,7 @@ CREATE_JSON_KEY(zoom)
 //
 // variable names with the suffix:
 //     _html = passed through HtmlishSanitizer
-//     _text = passed through HtmlTextConverter
+//     _text = passed through HtmlConverter::ToText
 // --------------------------------------------------------------------------
 
 struct HtmlMapUI::Button
@@ -422,7 +422,7 @@ void HtmlMapUI::SetUpInitialMapIMIS()
 bool HtmlMapUI::SetTitle(SharableString title)
 {
     m_data->title_html = HtmlishSanitizer::Sanitize(std::move(title));
-    m_data->title_text = HtmlTextConverter::HtmlToText(*m_data->title_html);
+    m_data->title_text = HtmlConverter::ToText(*m_data->title_html);
 
     SetTitleIMIS();
 

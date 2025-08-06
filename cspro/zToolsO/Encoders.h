@@ -38,6 +38,8 @@ public:
     CLASS_DECL_ZTOOLSO static std::unique_ptr<std::string> ToMarkdownWorker(std::string_view text_sv);
     template<typename T> static std::string ToMarkdown(T&& text);
 
+    CLASS_DECL_ZTOOLSO static std::string GetMarkdownNonHtmlEscapeChars();
+
 
     // --- PERCENT-ENCODING + URI------------------------------------------------
 

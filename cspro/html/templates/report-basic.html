@@ -32,14 +32,15 @@
     // To start executing logic within a report, write < immediately followed by ?.
     // To end the section of logic, write ? immediately followed by >.
     //
-    // There are three ways of writing to CSPro logic-based reports:
+    // There are three ways of writing to CSPro text templates:
     //
-    //     1. ~~...~~ writes the results of the numeric or string expression specified between the tildes.
+    //     1. ~~...~~ writes the results of the expression specified between the tildes.
     //
-    //     2. ~~~...~~~ is similar to the above version except that the text will not be automatically escaped for HTML.
+    //     2. ~~~...~~~ is similar to the above version except the text will not be automatically encoded for HTML.
     //
-    //     3. $.write("...", ...); writes directly to the report. The text will not be escaped for HTML.
+    //     3. $.write("...", ...); writes directly to the report. The text will not be encoded for HTML.
     //        The $.write function uses the syntax of the errmsg/maketext family of functions.
+    //        There are also the functions: $.writeLine, $.writeEncoded, and $.writeEncodedLine.
     //
     // For example:
     ?>

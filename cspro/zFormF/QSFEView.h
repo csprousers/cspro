@@ -127,7 +127,7 @@ private:
 
     void SetCorrectEditor();
 
-    void UpdateDisplayText();
+    void UpdateDisplayText(const CapiText::Format* format_for_undefined_capi_text = nullptr);
     void UpdateToolbar();
 
     void StartIdleTimer();
@@ -147,6 +147,7 @@ private:
     QuestionTextEditor* m_editors[2];
     QuestionTextEditor* m_currentEditor;
     QSFEditToolbar m_toolbar;
+    std::shared_ptr<const QuestionTextProperties> m_questionTextProperties;
 
     Application* m_application;
     std::string m_applicationFilePath;

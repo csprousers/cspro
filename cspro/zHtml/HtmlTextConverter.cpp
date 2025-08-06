@@ -1,8 +1,8 @@
 ﻿#include "stdafx.h"
-#include "HtmlTextConverter.h"
+#include "HtmlConverter.h"
 
 
-std::string HtmlTextConverter::HtmlToText(std::string html)
+std::string HtmlConverter::ToText(std::string html)
 {
     // this is an incredibly crude implementation that...
 

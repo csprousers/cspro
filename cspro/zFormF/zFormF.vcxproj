@@ -101,6 +101,8 @@
     <ClCompile Include="QSFEditToolBarComboBoxButtons.cpp" />
     <ClCompile Include="QSFEView.cpp" />
     <ClCompile Include="QuestionTextHtmlEditor.cpp" />
+    <ClCompile Include="QuestionTextProperties.cpp" />
+    <ClCompile Include="QuestionTextPropertiesDlg.cpp" />
     <ClCompile Include="QuestionTextTextEditor.cpp" />
     <ClCompile Include="RunAsBatchDlg.cpp" />
     <ClCompile Include="SourceEditView.cpp" />
@@ -181,6 +183,8 @@
     <ClInclude Include="QSFEditToolBarComboBoxButtons.h" />
     <ClInclude Include="QSFEView.h" />
     <ClInclude Include="QuestionTextEditor.h" />
+    <ClInclude Include="QuestionTextProperties.h" />
+    <ClInclude Include="QuestionTextPropertiesDlg.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="RunAsBatchDlg.h" />
     <ClInclude Include="SourceEditView.h" />

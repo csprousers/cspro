@@ -20,6 +20,8 @@ public:
     std::vector<CapiCondition>& GetConditions()             { return m_conditions; }
     void SetCondition(CapiCondition condition);
 
+    bool IsDefined() const;
+
     const std::map<std::string, int>* GetPre81FillExpressions() const { return m_pre81FillExpressions.get(); }
 
     void WriteJson(JsonWriter& json_writer) const;

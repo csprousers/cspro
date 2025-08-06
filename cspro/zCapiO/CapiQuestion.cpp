@@ -25,6 +25,34 @@ void CapiQuestion::SetCondition(CapiCondition condition)
 }
 
 
+bool CapiQuestion::IsDefined() const
+{
+    // force the user to delete extra conditions before considering the question undefined
+    if( m_conditions.size() != 1 )
+        return !m_conditions.empty();
+
+    const CapiCondition& condition = m_conditions.front();
+
+    // if the condition has logic, consider this a defined question even if it has blank question text
+    if( !condition.GetLogic().empty() )
+        return true;
+
+    auto process = [](const std::map<std::string, CapiText>& texts)
+    {
+        for( const auto& [language, capi_text] : texts )
+        {
+            if( !SO::IsWhitespace(capi_text.GetText().GetString()) )
+                return true;
+        }
+
+        return false;
+    };
+
+    return ( process(condition.GetAllQuestionText()) ||
+             process(condition.GetAllHelpText()) );
+}
+
+
 void CapiQuestion::WriteJson(JsonWriter& json_writer) const
 {
     json_writer.BeginObject();

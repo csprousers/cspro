@@ -1,6 +1,8 @@
 ﻿#include "StdAfx.h"
 #include "QuestionTextEditor.h"
+#include "QuestionTextProperties.h"
 #include <zToolsO/Encoders.h>
+#include <zMarkdown/Markdown.h>
 
 
 // --------------------------------------------------------------------------
@@ -68,8 +70,10 @@ void QuestionTextTextEditor::CustomLogicCtrl::OnContextMenu(CWnd* const pWnd, co
 
 QuestionTextTextEditor::QuestionTextTextEditor()
     :   m_logicCtrl(std::make_unique<CustomLogicCtrl>()),
-        m_format(CapiText::Format::ReportMarkdown)
+        m_format(CapiText::Format::ReportMarkdown),
+        m_questionTextProperties(QuestionTextProperties::Get())
 {
+    ASSERT(m_questionTextProperties != nullptr);
 }
 
 
@@ -103,6 +107,7 @@ void QuestionTextTextEditor::Initialize(CWnd* const pParent, const std::string& 
     m_logicCtrl->StyleSetFore(SCE_CSPRO_ERROR_ANNOTATION, RGB(150, 0, 64));
     m_logicCtrl->StyleSetBack(SCE_CSPRO_ERROR_ANNOTATION, RGB(255, 240, 240));
     m_logicCtrl->AnnotationSetVisible(Scintilla::AnnotationVisible::Boxed);
+    m_logicCtrl->EOLAnnotationSetVisible(Scintilla::EOLAnnotationVisible::Boxed);
 }
 
 
@@ -127,6 +132,7 @@ bool QuestionTextTextEditor::IsDirty()
 void QuestionTextTextEditor::ClearCompilationResults()
 {
     m_logicCtrl->AnnotationClearAll();
+    m_logicCtrl->EOLAnnotationClearAll();
 }
 
 
@@ -136,20 +142,10 @@ void QuestionTextTextEditor::CompileFillsAndLogic(CapiEditorViewModel& view_mode
 
     try
     {
-        std::optional<CapiEditorViewModel::SyntaxCheckError> check_errors = view_model.CheckSyntax(&capi_text);
+        const std::optional<CapiEditorViewModel::SyntaxCheckError> check_errors = view_model.CheckSyntax(&capi_text);
 
         if( !check_errors.has_value() )
             return;
-
-        // sort the errors by line number
-        if( check_errors->size() > 1 )
-        {
-            std::sort(check_errors->begin(), check_errors->end(),
-                [&](const Logic::ParserMessage& pm1, const Logic::ParserMessage& pm2)
-                {
-                    return ( pm1.line_number < pm2.line_number );
-                });
-        }
 
         // add annotations, grouping all errors per-line into a single annotation
         auto parser_messages_itr = check_errors->cbegin();
@@ -174,8 +170,17 @@ void QuestionTextTextEditor::CompileFillsAndLogic(CapiEditorViewModel& view_mode
                 }
             }
 
-            m_logicCtrl->AnnotationSetStyle(line_number - 1, SCE_CSPRO_ERROR_ANNOTATION);
-            m_logicCtrl->AnnotationSetText(line_number - 1, message_text.c_str());
+            if( m_questionTextProperties->errors_use_end_of_line_annotations )
+            {
+                m_logicCtrl->EOLAnnotationSetStyle(line_number - 1, SCE_CSPRO_ERROR_ANNOTATION);
+                m_logicCtrl->EOLAnnotationSetText(line_number - 1, message_text.c_str());
+            }
+
+            else
+            {
+                m_logicCtrl->AnnotationSetStyle(line_number - 1, SCE_CSPRO_ERROR_ANNOTATION);
+                m_logicCtrl->AnnotationSetText(line_number - 1, message_text.c_str());
+            }
 
         } while( additional_messages_exist );
     }
@@ -332,7 +337,7 @@ void QuestionTextTextEditor::InsertImage(const std::string& image_url)
 
     else
     {
-        WrapSelection(FormatText("![](%s)", ToMarkdownUrl(image_url).c_str()), nullptr);
+        WrapSelection(FormatText("![](%s)", CreateMarkdownUrl(image_url).c_str()), nullptr);
     }
 }
 
@@ -398,16 +403,9 @@ void QuestionTextTextEditor::InsertLink(const std::string& text, const std::stri
     else
     {
         const std::string link = FormatText("[%s](%s)", Encoders::ToMarkdown(text).c_str(),
-                                                        ToMarkdownUrl(url).c_str());
+                                                        CreateMarkdownUrl(url).c_str());
         WrapSelection(link, nullptr);
     }
-}
-
-
-std::string QuestionTextTextEditor::ToMarkdownUrl(std::string url)
-{
-    // because ) closes the URL, replace it with its percent-encoded equivalent
-    return SO::Replace(url, ")", "%29");
 }
 
 

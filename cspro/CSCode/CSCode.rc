@@ -201,10 +201,10 @@ BEGIN
     POPUP "&Language"
     BEGIN
         MENUITEM "CSPro &Logic",                ID_LANGUAGE_CSPRO_LOGIC
-        MENUITEM "CSPro &Report (HTML)",        ID_LANGUAGE_CSPRO_REPORT_HTML
-        MENUITEM "CSPro Report (Markdown)",     ID_LANGUAGE_CSPRO_REPORT_MARKDOWN
-        MENUITEM "CSPro Report",                ID_LANGUAGE_CSPRO_REPORT
-        MENUITEM "CSPro &Messages",             ID_LANGUAGE_CSPRO_MESSAGES
+        MENUITEM "CSPro Text Template (HTML)",  ID_LANGUAGE_CSPRO_TEXT_TEMPLATE_HTML
+        MENUITEM "CSPro Text Template (Markdown)", ID_LANGUAGE_CSPRO_TEXT_TEMPLATE_MARKDOWN
+        MENUITEM "CSPro Text Template",         ID_LANGUAGE_CSPRO_TEXT_TEMPLATE
+        MENUITEM "CSPro Messages",              ID_LANGUAGE_CSPRO_MESSAGES
         MENUITEM SEPARATOR
         MENUITEM "CSPro Action Invoker",        ID_LANGUAGE_CSPRO_ACTION_INVOKER
         MENUITEM "CSPro HTML &Dialog",          ID_LANGUAGE_CSPRO_HTML_DIALOG
@@ -219,7 +219,7 @@ BEGIN
         MENUITEM "Java&Script",                 ID_LANGUAGE_JAVASCRIPT
         MENUITEM "&JSON",                       ID_LANGUAGE_JSON
         MENUITEM SEPARATOR
-        MENUITEM "Markdown",                    ID_LANGUAGE_MARKDOWN
+        MENUITEM "&Markdown",                   ID_LANGUAGE_MARKDOWN
         MENUITEM SEPARATOR
         MENUITEM "S&QL",                        ID_LANGUAGE_SQL
         MENUITEM SEPARATOR
@@ -324,7 +324,7 @@ BEGIN
     BUTTON      ID_EDIT_CLEAR
     BUTTON      ID_EDIT_SELECT_ALL
     BUTTON      ID_LANGUAGE_CSPRO_LOGIC
-    BUTTON      ID_LANGUAGE_CSPRO_REPORT_HTML
+    BUTTON      ID_LANGUAGE_CSPRO_TEXT_TEMPLATE_HTML
     BUTTON      ID_LANGUAGE_CSPRO_MESSAGES
     BUTTON      ID_LANGUAGE_JAVASCRIPT
     BUTTON      ID_LANGUAGE_JSON
@@ -580,33 +580,29 @@ BEGIN
     ID_FILE_RELOAD_FROM_DISK 
                             "Reload the file from its last saved version\nReload From Disk"
     ID_FILE_SAVE_ALL        "Save all documents\nSave All"
-    ID_LANGUAGE_CSPRO_LOGIC "Interpret file as CSPro Logic\nCSPro Logic"
-    ID_LANGUAGE_CSPRO_REPORT_HTML 
-                            "Interpret file as CSPro Report (HTML)\nCSPro Report (HTML)"
-    ID_LANGUAGE_CSPRO_REPORT_MARKDOWN
-                            "Interpret file as CSPro Report (Markdown)\nCSPro Report (Markdown)"
-    ID_LANGUAGE_CSPRO_REPORT "Interpret file as CSPro Report\nCSPro Report"
+    ID_LANGUAGE_CSPRO_LOGIC "Interpret file as CSPro logic\nCSPro Logic"
+    ID_LANGUAGE_CSPRO_TEXT_TEMPLATE_HTML 
+                            "Interpret file as CSPro text template (HTML)\nCSPro Text Template (HTML)"
+    ID_LANGUAGE_CSPRO_TEXT_TEMPLATE_MARKDOWN 
+                            "Interpret file as CSPro text template (Markdown)\nCSPro Text Template (Markdown)"
+    ID_LANGUAGE_CSPRO_TEXT_TEMPLATE 
+                            "Interpret file as CSPro text template\nCSPro Text Template"
     ID_LANGUAGE_CSPRO_MESSAGES 
-                            "Interpret file as CSPro Messages\nCSPro Messages"
+                            "Interpret file as CSPro messages\nCSPro Messages"
     ID_LANGUAGE_CSPRO_ACTION_INVOKER 
                             "Interpret file as CSPro Action Invoker\nCSPro Action Invoker"
     ID_LANGUAGE_CSPRO_HTML_DIALOG 
-                            "Interpret file as CSPro HTML Dialog\nCSPro HTML Dialog"
+                            "Interpret file as CSPro HTML dialog\nCSPro HTML Dialog"
     ID_LANGUAGE_CSPRO_DOCUMENT 
                             "Interpret file as CSPro Document\nCSPro Document"
+END
+
+STRINGTABLE
+BEGIN
     ID_LANGUAGE_CSPRO_SPEC_FILE_JSON 
-                            "Interpret file as CSPro Specification File (JSON)\nCSPro Specification File (JSON)"
-END
-
-STRINGTABLE
-BEGIN
-    ID_EDIT_FIND_NEXT       "Find next occurrence of search text\nFind Next"
-END
-
-STRINGTABLE
-BEGIN
+                            "Interpret file as CSPro specification file (JSON)\nCSPro Specification File (JSON)"
     ID_LANGUAGE_CSPRO_SPEC_FILE_INI 
-                            "Interpret file as CSPro Specification File (INI)\nCSPro Specification File (INI)"
+                            "Interpret file as CSPro specification file (INI)\nCSPro Specification File (INI)"
     ID_LANGUAGE_HTML        "Interpret file as HTML\nHTML"
     ID_LANGUAGE_JAVASCRIPT  "Interpret file as JavaScript\nJavaScript"
     ID_LANGUAGE_JSON        "Interpret file as JSON\nJSON"
@@ -626,12 +622,17 @@ BEGIN
                             "Stop processing actions on the first exception\nAbort on First Exception"
     ID_RUN_COMPILE_OR_VALIDATE 
                             "Compile or validate the code\nCompile or Validate"
-    ID_RUN_CSPRO_DOWNGRADE_SPEC_FILE 
-                            "Convert specification file to CSPro 7.7-compatible file\nConvert to CSPro 7.7 Format"
 END
 
 STRINGTABLE
 BEGIN
+    ID_EDIT_FIND_NEXT       "Find next occurrence of search text\nFind Next"
+END
+
+STRINGTABLE
+BEGIN
+    ID_RUN_CSPRO_DOWNGRADE_SPEC_FILE 
+                            "Convert specification file to CSPro 7.7-compatible file\nConvert to CSPro 7.7 Format"
     ID_RUN_CSPRO_LOGIC_V0   "Change logic version to original (before 8.0)\nOriginal"
     ID_RUN_CSPRO_LOGIC_V8   "Change logic version to CSPro 8.0+\nCSPro 8.0+"
     ID_RUN_CSPRO_SPEC_FILE_APP 
@@ -658,12 +659,12 @@ BEGIN
                             "Display the results of the actions as JSON\nDisplay Results as JSON"
     ID_RUN_FORMAT_JSON      "Format the JSON using a readable format\nFormat JSON"
     ID_RUN_COMPRESS_JSON    "Compress the JSON using a format with minimal whitespace\n&Compress JSON"
-    ID_RUN_HTML_DIALOG_TEMPLATES 
-                            "Use code or data from HTML dialog templates\nHTML Dialog Templates"
 END
 
 STRINGTABLE
 BEGIN
+    ID_RUN_HTML_DIALOG_TEMPLATES 
+                            "Use code or data from HTML dialog templates\nHTML Dialog Templates"
     ID_RUN_JAVASCRIPT_MODULE_AUTODETECT 
                             "Parse the JavaScript file to determine if it is a module\nAutodetect"
     ID_RUN_JAVASCRIPT_MODULE_GLOBAL 

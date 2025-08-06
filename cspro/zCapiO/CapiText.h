@@ -11,6 +11,7 @@ public:
     enum class Type { Question, Help };
 
     enum class Format { Html, ReportHtml, ReportMarkdown };
+    static constexpr const char* FormatTexts[] = { "HTML", "HTML-Report", "Markdown-Report" };
 
     CapiText(SharableString text = SharableString(), Format format = Format::Html);
 
@@ -50,6 +51,9 @@ private:
     Format m_format;
     int m_programIndex;
 };
+
+
+DECLARE_ENUM_JSON_SERIALIZER_CLASS(CapiText::Format, CLASS_DECL_ZCAPIO)
 
 
 

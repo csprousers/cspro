@@ -186,8 +186,10 @@ CCompiler::Result CCompiler::Compile(CapiQuestionManager& question_manager)
             return m_CompIFaz.m_pEngineCompFunc->CompileCapiLogic(capi_logic_parameters);
         });
 
-    return ( m_CompIFaz.m_pEngineCompFunc->getErrors() == 0 ) ? Result::NoErrors :
-                                                                Result::SomeErrors;
+    if( m_CompIFaz.m_pEngineCompFunc->getErrors() != 0 || !m_CompIFaz.m_pEngineSettings->m_failMessage.empty() )
+        return Result::SomeErrors;
+
+    return Result::NoErrors;
 }
 
 

@@ -35,12 +35,12 @@ public:
                ( language == SCLEX_CSPRO_LOGIC_V8_0 )           ? "csprologic" :
                ( language == SCLEX_CSPRO_MESSAGE_V0 )           ? "cspromessage_v0" :
                ( language == SCLEX_CSPRO_MESSAGE_V8_0 )         ? "cspromessage" :
-               ( language == SCLEX_CSPRO_REPORT_V0 )            ? "csproreport_v0" :
-               ( language == SCLEX_CSPRO_REPORT_V8_0 )          ? "csproreport" :
-               ( language == SCLEX_CSPRO_REPORT_HTML_V0 )       ? "csproreporthtml_v0" :
-               ( language == SCLEX_CSPRO_REPORT_HTML_V8_0 )     ? "csproreporthtml" :
-               ( language == SCLEX_CSPRO_REPORT_MARKDOWN_V0 )   ? "csproreportmarkdown_v0" :
-               ( language == SCLEX_CSPRO_REPORT_MARKDOWN_V8_0 ) ? "csproreportmarkdown" :
+               ( language == SCLEX_CSPRO_REPORT_V0 )            ? "csprotexttemplate_v0" :
+               ( language == SCLEX_CSPRO_REPORT_V8_0 )          ? "csprotexttemplate" :
+               ( language == SCLEX_CSPRO_REPORT_HTML_V0 )       ? "csprotexttemplatehtml_v0" :
+               ( language == SCLEX_CSPRO_REPORT_HTML_V8_0 )     ? "csprotexttemplatehtml" :
+               ( language == SCLEX_CSPRO_REPORT_MARKDOWN_V0 )   ? "csprotexttemplatemarkdown_v0" :
+               ( language == SCLEX_CSPRO_REPORT_MARKDOWN_V8_0 ) ? "csprotexttemplatemarkdown" :
                ( language == SCLEX_CSPRO_DOCUMENT )             ? "csprodocument" :
                                                                   "";
     }

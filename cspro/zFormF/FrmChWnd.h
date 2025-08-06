@@ -32,7 +32,7 @@ class CFormDoc;
 class CFormScrollView;
 class CQSFEView;
 
-enum eViewMode { FormViewMode, LogicViewMode, QSFEditorViewMode, QuestionnaireViewMode };
+enum class FormViewMode { Form, Logic, QuestionText, QuestionnaireView };
 
 
 class CLASS_DECL_ZFORMF CFormChildWnd : public ApplicationChildWnd
@@ -95,7 +95,8 @@ public:
 
     bool IsQuestionTextModified() const;
 
-    eViewMode GetViewMode() { return m_eViewMode;}
+    FormViewMode GetViewMode() const { return m_viewMode; }
+
     void SaveHeightSettings();
     void GetHeightSettings();
 
@@ -144,6 +145,7 @@ protected:
     afx_msg void OnClose();
     afx_msg void OnAddcapiLang();
     afx_msg void OnUpdateIfUsingQuestionText(CCmdUI* pCmdUI);
+    afx_msg void OnQuestionTextProperties();
     afx_msg void OnCapiMacros();
     afx_msg void OnRunasBch();
     afx_msg void OnUpdateRunasBch(CCmdUI* pCmdUI);
@@ -192,9 +194,10 @@ private:
     CFSplitterWnd           m_wndFSplitter;
     bool                    m_bUseQuestionText;
 
-    eViewMode               m_eViewMode;
+    FormViewMode            m_viewMode;
     bool                    m_bAppAssociated;
     bool                    m_bFirstTime;
+
 public:
     afx_msg void OnViewQuestionnaire();
     afx_msg void OnUpdateViewQuestionnaire(CCmdUI* pCmdUI);

@@ -146,7 +146,9 @@ private:
     // colorizer tag handlers
     // --------------------------------------------------------------------------
 
-    static std::string TrimOnlyOneNewlineFromBothEnds(const std::string& text);
+    static std::string TrimOnlyOneNewlineFromBothEnds(std::string text);
+
+    const std::string* ProcessHelpsHtmlProcessorModeOverride(cs::span<const std::string> tag_components);
 
     std::string LogicObjectStartHandler(cs::span<const std::string> tag_components);
     std::string LogicEndHandler(const std::string& inner_text);
@@ -165,6 +167,7 @@ private:
     std::string ColorStartHandler(cs::span<const std::string> tag_components);
     std::string ColorEndHandler(const std::string& inner_text);
     std::string ColorInlineEndHandler(const std::string& inner_text);
+    std::string ColorTagEndHandler(const std::string& inner_text);
     std::string ColorEndHandlerWorker(const std::string& inner_text, HelpsHtmlProcessorMode mode);
 
     std::string PffEndHandler(const std::string& inner_text);
@@ -190,8 +193,10 @@ private:
     std::stack<std::string> m_endTagTextStack;
     std::optional<std::string> m_title;
     std::stack<std::shared_ptr<TableSettings>> m_tableStack;
+
     std::optional<Logic::FunctionDomain> m_logicFunctionDomain;
     std::optional<int> m_lexerLanguage;
+    std::optional<HelpsHtmlProcessorMode> m_helpsHtmlProcessorModeOverride;
 
     struct TagDefinition
     {

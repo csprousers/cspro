@@ -69,7 +69,7 @@ void CFSplitterWnd::OnMouseMove(UINT nFlags, CPoint point)
     // TODO: Add your message handler code here and/or call default
     CFormChildWnd* pParentFrame = (CFormChildWnd*)GetParentFrame();
 
-    if( pParentFrame && pParentFrame->GetUseQuestionText() && pParentFrame->GetViewMode() != QSFEditorViewMode ) {
+    if( pParentFrame && pParentFrame->GetUseQuestionText() && pParentFrame->GetViewMode() != FormViewMode::QuestionText ) {
         int     vSplitterBar1           = 101;
 
         int iRow = HitTest(point) -vSplitterBar1;
@@ -95,7 +95,7 @@ void CFSplitterWnd::OnLButtonDown(UINT nFlags, CPoint point)
 {
     CFormChildWnd* pParentFrame = (CFormChildWnd*)GetParentFrame();
 
-    if( pParentFrame && pParentFrame->GetUseQuestionText() && pParentFrame->GetViewMode() != QSFEditorViewMode ) {
+    if( pParentFrame && pParentFrame->GetUseQuestionText() && pParentFrame->GetViewMode() != FormViewMode::QuestionText ) {
         int     vSplitterBar1           = 101;
         int iRow = HitTest(point) -vSplitterBar1;
         if(iRow ==0){//if it is first splitterbar do normal stuff
@@ -220,7 +220,7 @@ void CFSplitterWnd::OnLButtonUp(UINT nFlags, CPoint point)
         int iMin=0;
         if( pParentFrame && pParentFrame->GetUseQuestionText() ) {
             bool bMultiMode = pParentFrame->m_bMultiLangMode && !pParentFrame->m_bHideSecondLang;
-            if(pParentFrame->GetViewMode() == FormViewMode) {
+            if(pParentFrame->GetViewMode() == FormViewMode::Form) {
                 GetRowInfo(0, pParentFrame->m_iQuestPaneSz, iMin);
 
                 CFormDoc* pFormDoc = (CFormDoc*)pParentFrame->GetActiveDocument();
@@ -230,11 +230,11 @@ void CFSplitterWnd::OnLButtonUp(UINT nFlags, CPoint point)
                     pFormDoc->SetModifiedFlag(true);
                 }
             }
-            else if(pParentFrame->GetViewMode() == QSFEditorViewMode && !bMultiMode) {
+            else if(pParentFrame->GetViewMode() == FormViewMode::QuestionText && !bMultiMode) {
                 GetRowInfo(1,pParentFrame->m_iQsfVSz1,iMin);
                 pParentFrame->m_iQsfVSz2 = 0;
             }
-            else if(pParentFrame->GetViewMode() == QSFEditorViewMode && bMultiMode) {
+            else if(pParentFrame->GetViewMode() == FormViewMode::QuestionText && bMultiMode) {
                 GetRowInfo(0,pParentFrame->m_iQsfVSz1,iMin);
                 GetRowInfo(1,pParentFrame->m_iQsfVSz2,iMin);
             }
@@ -319,14 +319,14 @@ void CFSplitterWnd::SetSplitterBarSizes(int iRow /*=-1*/)
 {
     CFormChildWnd* pParentFrame = (CFormChildWnd*)GetParentFrame();
 
-    if( pParentFrame && pParentFrame->GetUseQuestionText() && pParentFrame->GetViewMode() != LogicViewMode ) { //later on check for logic view / editor mode
+    if(pParentFrame && pParentFrame->GetUseQuestionText() && pParentFrame->GetViewMode() != FormViewMode::Logic) { //later on check for logic view / editor mode
     /*  if(iRow == 1 || iCurRow == 2) {
             iCurRow = iRow;
         }
         else {
             iCurRow = -1;
         }*/
-        if(pParentFrame->GetViewMode() != QSFEditorViewMode){
+        if(pParentFrame->GetViewMode() != FormViewMode::QuestionText){
             iCurRow = iRow;
         }
         else {
