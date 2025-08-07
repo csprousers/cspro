@@ -2,9 +2,6 @@
  * Copyright (C) 2004-2024 Mark Adler
  * For conditions of distribution and use, see copyright notice in zlib.h
  */
-#ifdef __ANDROID__
-#include <unistd.h>  // Required for NDK 27 compatibility
-#endif
 
 #ifdef _LARGEFILE64_SOURCE
 #  ifndef _LARGEFILE_SOURCE

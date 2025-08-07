@@ -4,7 +4,7 @@ JNI_PATH := $(call my-dir)
 include $(CLEAR_VARS)
 
 LOCAL_MODULE            := zlib
-ZLIB_SRC_PATH	        := ../../../../../external/zlib
+ZLIB_SRC_PATH           := ../../../../../external/zlib
 
 LOCAL_SRC_FILES         += $(ZLIB_SRC_PATH)/adler32.c
 LOCAL_SRC_FILES         += $(ZLIB_SRC_PATH)/compress.c
@@ -25,5 +25,6 @@ LOCAL_SRC_FILES         += $(ZLIB_SRC_PATH)/zutil.c
 include $(LOCAL_PATH)/LOCAL_CFLAGS.mk
 LOCAL_CFLAGS            += -DUNICODE=1
 LOCAL_CFLAGS            += -D_UNICODE=1
+LOCAL_CFLAGS            += -DHAVE_UNISTD_H
 
 include $(BUILD_STATIC_LIBRARY)
