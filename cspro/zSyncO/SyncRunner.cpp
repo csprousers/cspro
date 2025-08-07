@@ -551,6 +551,4 @@ void SyncRunner::ParadataLogger::EventHolder<EventType>::SetResultFailure(const 
 }
 
 
-#ifdef ANDROID
 template class SyncRunner::ParadataLogger::EventHolder<Paradata::SyncConnectionEvent>;
-#endif

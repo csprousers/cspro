@@ -10,6 +10,12 @@ JavaScript::Value::Value()
 }
 
 
+JavaScript::Value::~Value()
+{
+    FreeValue();
+}
+
+
 JavaScript::Value JavaScript::Value::Null()
 {
     return Value(nullptr, JS_NULL);

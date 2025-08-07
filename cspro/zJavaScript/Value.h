@@ -146,12 +146,6 @@ inline JavaScript::Value::Value(Value&& rhs_value) noexcept
 }
 
 
-inline JavaScript::Value::~Value()
-{
-    FreeValue();
-}
-
-
 inline bool JavaScript::Value::operator==(const Value& rhs_value) const
 {
     return ( m_value == rhs_value.m_value );

@@ -64,8 +64,8 @@ public:
 protected:
     std::optional<size_t> GetNumberArguments() override { return m_arguments.size(); }
 
-    double GetNumeric(size_t parameter_number) override        { return GetArgument<double>(parameter_number); }
-    SharableString GetString(size_t parameter_number) override { return GetArgument<SharableString>(parameter_number); }
+    double GetNumeric(size_t parameter_number) override;
+    SharableString GetString(size_t parameter_number) override;
 
 private:
     template<typename T>

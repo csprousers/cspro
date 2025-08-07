@@ -2,6 +2,8 @@ project(zlib)
 
 include(../Definitions.cmake)
 
+add_compile_definitions(HAVE_UNISTD_H)
+
 set(ZLIB_DIRECTORY ${EXTERNAL_DIRECTORY}/zlib)
 
 add_library(${PROJECT_NAME}
