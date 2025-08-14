@@ -46,20 +46,25 @@ private:
 // LogicAudio
 // --------------------------------------------------------------------------
 
-LogicAudio::LogicAudio(std::string audio_name)
-    :   BinarySymbol(std::move(audio_name), SymbolType::Audio)
+LogicAudio::LogicAudio(std::string audio_name, const EngineData& engine_data)
+    :   BinarySymbol(std::move(audio_name), SymbolType::Audio),
+        m_engineData(engine_data)
 {
 }
 
 
-LogicAudio::LogicAudio(const EngineItem& engine_item, ItemIndex item_index, cs::non_null_shared_or_raw_ptr<BinaryDataAccessor> binary_data_accessor)
-    :   BinarySymbol(engine_item, std::move(item_index), std::move(binary_data_accessor))
+LogicAudio::LogicAudio(const EngineItem& engine_item, ItemIndex item_index,
+                       cs::non_null_shared_or_raw_ptr<BinaryDataAccessor> binary_data_accessor,
+                       const EngineData& engine_data)
+    :   BinarySymbol(engine_item, std::move(item_index), std::move(binary_data_accessor)),
+        m_engineData(engine_data)
 {
 }
 
 
 LogicAudio::LogicAudio(const LogicAudio& logic_audio)
-    :   BinarySymbol(logic_audio)
+    :   BinarySymbol(logic_audio),
+        m_engineData(logic_audio.m_engineData)
 {
     // the copy constructor is only used for symbols cloned in an initial state, so we do not need to copy the data from the other symbol
 }
@@ -342,7 +347,7 @@ double LogicAudio::StopCurrentRecording()
 }
 
 
-double LogicAudio::RecordInteractive(const std::string& message/* = std::string()*/)
+double LogicAudio::RecordInteractive(const SharableString& message/* = SharableString()*/)
 {
     if( m_currentRecording != nullptr )
         StopCurrentRecording();
@@ -364,7 +369,7 @@ double LogicAudio::RecordInteractive(const std::string& message/* = std::string(
 #ifdef WIN_DESKTOP
     UNREFERENCED_PARAMETER(message);
 #else
-    temporary_file = PlatformInterface::GetInstance()->GetApplicationInterface()->AudioRecordInteractive(message, sampling_rate);
+    temporary_file = PlatformInterface::GetInstance()->GetApplicationInterface()->AudioRecordInteractive(*message, sampling_rate);
 #endif
 
     if( temporary_file == nullptr )
@@ -382,7 +387,7 @@ double LogicAudio::RecordInteractive(const std::string& message/* = std::string(
 }
 
 
-void LogicAudio::Play(const std::string& message/* = std::string()*/)
+void LogicAudio::Play(const SharableString& message/* = SharableString()*/)
 {
     if( m_currentRecording != nullptr )
         StopCurrentRecording();
@@ -396,7 +401,7 @@ void LogicAudio::Play(const std::string& message/* = std::string()*/)
     UNREFERENCED_PARAMETER(message);
     parsed_data;
 #else
-    if( !PlatformInterface::GetInstance()->GetApplicationInterface()->AudioPlay(GetPath(parsed_data.audio_storage), message) )
+    if( !PlatformInterface::GetInstance()->GetApplicationInterface()->AudioPlay(GetPath(parsed_data.audio_storage), *message) )
 #endif
     {
         throw CSProException("Failed to play audio");

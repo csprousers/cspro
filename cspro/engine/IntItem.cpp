@@ -238,7 +238,7 @@ SymbolT CIntDriver::GetFromSymbolOrEngineItemWorker(const SymbolReference<Symbol
         switch( engine_item.GetWrappedType() )
         {
             case SymbolType::Audio:
-                binary_storage->wrapped_symbol = std::make_shared<LogicAudio>(engine_item, index, &binary_storage->binary_data_accessor);
+                binary_storage->wrapped_symbol = std::make_shared<LogicAudio>(engine_item, index, &binary_storage->binary_data_accessor, *m_engineData);
                 break;
 
             case SymbolType::Document:
