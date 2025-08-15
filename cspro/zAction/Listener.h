@@ -6,7 +6,7 @@
 namespace ActionInvoker { class Exception; class Listener; class ListenerHolder; }
 
 
-enum class WebViewPermission { Camera, Geolocation, Microphone, Storage };
+enum class WebViewPermission { Camera, Geolocation, Microphone, WebStorage };
 
 
 // --------------------------------------------------------------------------

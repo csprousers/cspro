@@ -26,7 +26,7 @@ open class ActionInvokerListener(private val webView: WebView) {
     @RequiresApi(Build.VERSION_CODES.O)
     fun onSetWebViewOptions(option: String) {
         webView.post {
-            if (option == "cspro.storage") {
+            if (option == "cspro.web_storage") {
                 webView.settings.domStorageEnabled = true
                 return@post
             }

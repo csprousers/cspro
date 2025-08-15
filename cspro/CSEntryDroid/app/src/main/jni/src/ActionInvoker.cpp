@@ -176,8 +176,8 @@ void ActionInvoker::WebListener::OnSetWebViewOptions(const std::vector<WebViewPe
                     add_option("android.webkit.resource.AUDIO_CAPTURE");
                     break;
 
-                case WebViewPermission::Storage:
-                    add_option("cspro.storage");
+                case WebViewPermission::WebStorage:
+                    add_option("cspro.web_storage");
                     break;
 
                 default:
