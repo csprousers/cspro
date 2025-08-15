@@ -100,6 +100,12 @@
     "licenseUrl": "https://raw.githubusercontent.com/bumptech/glide/master/LICENSE"
   },
   {
+    "projectName": "GPAC",
+    "projectUrl": "https://github.com/gpac/gpac",
+    "licenseFilename": "COPYING",
+    "licenseUrl": "https://raw.githubusercontent.com/gpac/gpac/refs/heads/master/COPYING"
+  },
+  {
     "projectName": "gumbo-parser",
     "projectUrl": "https://github.com/google/gumbo-parser",
     "licenseFilename": "gumbo.h / LICENSE-2.0.txt",
@@ -216,12 +222,6 @@
     "projectUrl": "https://github.com/richgel999/miniz",
     "licenseFilename": "LICENSE",
     "licenseUrl": "https://raw.githubusercontent.com/richgel999/miniz/master/LICENSE"
-  },
-  {
-    "projectName": "mp4v2",
-    "projectUrl": "https://github.com/CSProDevelopment/mp4v2",
-    "licenseFilename": "COPYING",
-    "licenseUrl": "https://raw.githubusercontent.com/CSProDevelopment/mp4v2/master/COPYING"
   },
   {
     "projectName": "mustache.js",
