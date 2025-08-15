@@ -22,7 +22,7 @@ public:
     LogicAudio& operator=(const LogicDocument& logic_document);
 
     void Load(std::string file_path);
-    void Save(const std::string& file_path, std::string application_name);
+    void Save(const std::string& file_path);
 
     void Record(std::optional<double> seconds);
     double Stop();

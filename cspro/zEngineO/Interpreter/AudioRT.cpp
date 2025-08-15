@@ -174,10 +174,7 @@ double LogicInterpreter::ex_Audio_save(const int program_index)
 
     try
     {
-        std::string application_name = ( m_engineData->application != nullptr ) ? m_engineData->application->GetLabel() :
-                                                                                  "CSPro";
-        logic_audio->Save(file_path, std::move(application_name));
-
+        logic_audio->Save(file_path);
         return 1;
     }
 

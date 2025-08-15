@@ -242,7 +242,7 @@ void LogicAudio::Load(std::string file_path)
 }
 
 
-void LogicAudio::Save(const std::string& file_path, std::string application_name)
+void LogicAudio::Save(const std::string& file_path)
 {
     if( m_currentRecording != nullptr )
         StopCurrentRecording();
@@ -269,6 +269,9 @@ void LogicAudio::Save(const std::string& file_path, std::string application_name
     try
     {
         Mp4Writer writer(file_path, false);
+
+        std::string application_name = ( m_engineData.application != nullptr ) ? m_engineData.application->GetLabel() :
+                                                                                 "CSPro";
 
         std::string artwork_image_path = Path::Combine(Html::GetDirectory(Html::Subdirectory::Images),
                                                        "cspro-logo-medium.png");
