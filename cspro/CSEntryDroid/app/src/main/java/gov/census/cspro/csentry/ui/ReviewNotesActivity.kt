@@ -11,6 +11,7 @@ import gov.census.cspro.csentry.ui.ReviewNotesActivity
 import gov.census.cspro.engine.EngineInterface
 import gov.census.cspro.engine.Util
 import gov.census.cspro.form.FieldNote
+import gov.census.cspro.util.EdgeToEdgeUtils
 import java.util.*
 
 class ReviewNotesActivity : AppCompatActivity() {
@@ -28,7 +29,8 @@ class ReviewNotesActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.notes_review_layout)
+        EdgeToEdgeUtils.setupEdgeToEdge(this, R.layout.notes_review_layout)
+
         m_fieldNotes = EngineInterface.getInstance().allNotes
         if (m_fieldNotes?.size == 0) {
             Toast.makeText(this, getString(R.string.notes_no_notes), Toast.LENGTH_LONG).show()

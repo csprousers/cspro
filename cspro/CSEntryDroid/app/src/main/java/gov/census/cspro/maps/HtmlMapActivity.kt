@@ -25,6 +25,7 @@ import gov.census.cspro.csentry.R
 import gov.census.cspro.engine.EngineInterface
 import gov.census.cspro.html.WebViewClientWithVirtualFileSupport
 import gov.census.cspro.location.GpsReader
+import gov.census.cspro.util.EdgeToEdgeUtils
 
 
 class HtmlMapActivity : AppCompatActivity() {
@@ -53,7 +54,8 @@ class HtmlMapActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        setContentView(R.layout.activity_generic_webview)
+        EdgeToEdgeUtils.setupEdgeToEdge(this, R.layout.activity_generic_webview)
+
 
         webView = findViewById<View>(R.id.generic_webview) as WebView
         webView.settings.javaScriptEnabled = true

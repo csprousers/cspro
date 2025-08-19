@@ -11,6 +11,7 @@ import gov.census.cspro.csentry.R
 import gov.census.cspro.csentry.ui.EntryActivity
 import gov.census.cspro.engine.EngineInterface
 import gov.census.cspro.engine.functions.GPSFunction
+import gov.census.cspro.util.EdgeToEdgeUtils
 import gov.census.cspro.util.getDataHolderExtra
 
 class CapturePolygonActivity : AppCompatActivity(), ErrorDialogFragment.OnErrorFragmentDismissed {
@@ -36,7 +37,7 @@ class CapturePolygonActivity : AppCompatActivity(), ErrorDialogFragment.OnErrorF
 
         supportActionBar?.hide()
 
-        setContentView(R.layout.activity_capture_polygon)
+        EdgeToEdgeUtils.setupEdgeToEdge(this, R.layout.activity_capture_polygon)
 
         supportFragmentManager.setFragmentResultListener(CapturePolygonMapFragment.CAPTURE_POLYGON_FRAGMENT_RESULT, this) { requestKey, bundle ->
             if (requestKey == CapturePolygonMapFragment.CAPTURE_POLYGON_FRAGMENT_RESULT) {

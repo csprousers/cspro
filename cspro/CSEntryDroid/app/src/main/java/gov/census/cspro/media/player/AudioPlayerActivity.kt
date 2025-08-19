@@ -3,9 +3,12 @@ package gov.census.cspro.media.player
 import android.os.Bundle
 import android.view.View
 import android.widget.SeekBar
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.databinding.DataBindingUtil
 import gov.census.cspro.csentry.R
 import gov.census.cspro.csentry.databinding.ActivityAudioPlayerBinding
@@ -26,7 +29,17 @@ class AudioPlayerActivity : AppCompatActivity(), SeekBar.OnSeekBarChangeListener
 
         setResult(RESULT_OK)
 
+        enableEdgeToEdge()
+
         binding = DataBindingUtil.setContentView(this, R.layout.activity_audio_player)
+
+        // Apply insets to the binding's root view specifically
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { view, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            insets
+        }
+
         binding.lifecycleOwner = this
 
         binding.viewModel = viewModel

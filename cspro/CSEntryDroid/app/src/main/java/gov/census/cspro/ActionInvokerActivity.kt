@@ -9,6 +9,7 @@ import gov.census.cspro.engine.EngineInterface
 import gov.census.cspro.engine.EngineMessage
 import gov.census.cspro.engine.IEngineMessageCompletedListener
 import gov.census.cspro.engine.Messenger
+import gov.census.cspro.util.EdgeToEdgeUtils
 
 
 class ActionInvokerActivity: AppCompatActivity(), IEngineMessageCompletedListener {
@@ -16,7 +17,7 @@ class ActionInvokerActivity: AppCompatActivity(), IEngineMessageCompletedListene
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_non_entry_application)
+        EdgeToEdgeUtils.setupEdgeToEdge(this, R.layout.activity_non_entry_application)
 
         // instantiate the application interface
         EngineInterface.CreateEngineInterfaceInstance(application)

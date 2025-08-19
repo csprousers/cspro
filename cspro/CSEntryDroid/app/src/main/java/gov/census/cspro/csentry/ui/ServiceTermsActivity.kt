@@ -17,6 +17,7 @@ import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import gov.census.cspro.csentry.R
+import gov.census.cspro.util.EdgeToEdgeUtils
 import timber.log.Timber
 import java.io.BufferedReader
 import java.io.IOException
@@ -32,7 +33,7 @@ class ServiceTermsActivity : AppCompatActivity(), View.OnClickListener {
         super.onCreate(savedInstance)
 
         // set the view
-        setContentView(R.layout.activity_service_terms)
+        EdgeToEdgeUtils.setupEdgeToEdge(this, R.layout.activity_service_terms)
         // setup buttons, events, load RTF
         val cancelButton: Button = findViewById(R.id.button_terms_cancel)
         cancelButton.setOnClickListener(this)

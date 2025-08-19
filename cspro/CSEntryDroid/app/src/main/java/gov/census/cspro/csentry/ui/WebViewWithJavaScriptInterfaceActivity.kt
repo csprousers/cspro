@@ -13,6 +13,7 @@ import androidx.appcompat.app.AppCompatActivity
 import gov.census.cspro.csentry.R
 import gov.census.cspro.engine.*
 import gov.census.cspro.html.WebViewClientWithVirtualFileSupport
+import gov.census.cspro.util.EdgeToEdgeUtils
 import java.io.File
 import java.net.URI
 import java.net.URISyntaxException
@@ -36,7 +37,8 @@ class WebViewWithJavaScriptInterfaceActivity : AppCompatActivity() {
 
         super.onCreate(savedInstanceState)
 
-        setContentView(R.layout.activity_generic_webview)
+        EdgeToEdgeUtils.setupEdgeToEdge(this, R.layout.activity_generic_webview)
+
 
         // keep weblinks inside the webview
         progressBar = findViewById<View>(R.id.progressbar_webview_loading) as ProgressBar

@@ -18,6 +18,7 @@ import gov.census.cspro.engine.EngineMessage
 import gov.census.cspro.engine.IEngineMessageCompletedListener
 import gov.census.cspro.smartsync.addapp.AddApplicationActivity
 import gov.census.cspro.smartsync.addapp.UpdateApplicationsActivity
+import gov.census.cspro.util.EdgeToEdgeUtils
 import java.io.File
 
 class ApplicationsListActivity constructor() : AppCompatActivity(), IEngineMessageCompletedListener {
@@ -77,8 +78,7 @@ class ApplicationsListActivity constructor() : AppCompatActivity(), IEngineMessa
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.applications_layout)
-
+        EdgeToEdgeUtils.setupEdgeToEdge(this, R.layout.applications_layout)
         // instantiate the application interface
         EngineInterface.CreateEngineInterfaceInstance(application)
     }

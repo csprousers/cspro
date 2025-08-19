@@ -31,6 +31,7 @@ import gov.census.cspro.engine.functions.AuthorizeDropboxFunction
 import gov.census.cspro.engine.functions.GPSFunction
 import gov.census.cspro.form.OnFormNavigatedListener
 import gov.census.cspro.util.Constants
+import gov.census.cspro.util.EdgeToEdgeUtils
 import timber.log.Timber
 import java.util.*
 import java.util.concurrent.Semaphore
@@ -120,15 +121,16 @@ class EntryActivity: AppCompatActivity(), IEngineMessageCompletedListener, OnNav
             m_useDrawerForCaseTree = !CSEntry.isTablet
         }
         if (m_useDrawerForCaseTree) {
-            setContentView(R.layout.activity_entry_application_with_drawer)
+            EdgeToEdgeUtils.setupEdgeToEdge(this, R.layout.activity_entry_application_with_drawer)
             m_qsfrag = fm.findFragmentById(R.id.fragment_questionnaire_layout) as QuestionnaireFragment?
 
             // create the drawer up front
             createDrawerLayout()
         } else {
-            setContentView(R.layout.activity_entry_application)
+            EdgeToEdgeUtils.setupEdgeToEdge(this, R.layout.activity_entry_application)
             m_qsfrag = fm.findFragmentById(R.id.fragment_questionnaire_layout_withnav) as QuestionnaireFragment?
         }
+
         m_navFrag = fm.findFragmentById(R.id.fragment_navigation_layout) as NavigationFragment?
         m_navFrag?.setNavigationButtonClickedListener(this)
 
