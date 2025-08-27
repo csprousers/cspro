@@ -59,7 +59,11 @@ public class GpsReader
             return;
         }
 
-        if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER))
+        // Check if ANY location provider is enabled
+        boolean gpsEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+        boolean networkEnabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+
+        if (!gpsEnabled && !networkEnabled)
         {
             askToEnableGpsInSettings(activity, enableListener);
         } else
