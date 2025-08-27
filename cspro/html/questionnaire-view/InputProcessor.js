@@ -388,8 +388,7 @@ class CaseViewInputProcessor {
 
             if (!vv)
                 vv = {};
-            if (!vv.code)
-                vv.code = "";
+            vv.code = vv.code ?? "";
             if (this.valueInRange(dictItem, from, to, vv.code, isCheckBox)) {
                 res["checked"] = "checked";
                 if (isRange) {
@@ -495,7 +494,7 @@ class CaseViewInputProcessor {
 
         //value
         var v = _ip.getValue(item.dictionary, item.name, occ);
-        if (v && v.code) {
+        if (v && v.code != null) {
             res.value.value = v.code;
         }
 
