@@ -15,6 +15,21 @@
     <Filter Include="libexif">
       <UniqueIdentifier>{619a0465-4fd3-4470-a1a6-b352a777956b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="gpac">
+      <UniqueIdentifier>{9fb4ca2f-f86b-4e1b-9d98-ef975acdce1a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="gpac\isomedia">
+      <UniqueIdentifier>{bcf1c809-4942-442d-8952-007cfa2fa3e4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="gpac\media_tools">
+      <UniqueIdentifier>{cd01d2bb-2254-4fef-86df-a070b27eba89}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="gpac\odf">
+      <UniqueIdentifier>{6b19ab15-4d41-4830-9f8a-dbaa5862ca70}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="gpac\utils">
+      <UniqueIdentifier>{61b2ab91-3783-46f9-8f22-1d12ca77cfdd}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BmpFile.h">
@@ -49,6 +64,147 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\external\gpac\src\isomedia\avc_ext.c">
+      <Filter>gpac\isomedia</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\gpac\src\isomedia\box_code_3gpp.c">
+      <Filter>gpac\isomedia</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\gpac\src\isomedia\box_code_apple.c">
+      <Filter>gpac\isomedia</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\gpac\src\isomedia\box_code_base.c">
+      <Filter>gpac\isomedia</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\gpac\src\isomedia\box_code_drm.c">
+      <Filter>gpac\isomedia</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\gpac\src\isomedia\box_code_meta.c">
+      <Filter>gpac\isomedia</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\gpac\src\isomedia\box_funcs.c">
+      <Filter>gpac\isomedia</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\gpac\src\isomedia\data_map.c">
+      <Filter>gpac\isomedia</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\gpac\src\isomedia\drm_sample.c">
+      <Filter>gpac\isomedia</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\gpac\src\isomedia\iff.c">
+      <Filter>gpac\isomedia</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\gpac\src\isomedia\isom_intern.c">
+      <Filter>gpac\isomedia</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\gpac\src\isomedia\isom_read.c">
+      <Filter>gpac\isomedia</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\gpac\src\isomedia\isom_store.c">
+      <Filter>gpac\isomedia</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\gpac\src\isomedia\isom_write.c">
+      <Filter>gpac\isomedia</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\gpac\src\isomedia\media.c">
+      <Filter>gpac\isomedia</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\gpac\src\isomedia\media_odf.c">
+      <Filter>gpac\isomedia</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\gpac\src\isomedia\meta.c">
+      <Filter>gpac\isomedia</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\gpac\src\isomedia\movie_fragments.c">
+      <Filter>gpac\isomedia</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\gpac\src\isomedia\sample_descs.c">
+      <Filter>gpac\isomedia</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\gpac\src\isomedia\stbl_read.c">
+      <Filter>gpac\isomedia</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\gpac\src\isomedia\stbl_write.c">
+      <Filter>gpac\isomedia</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\gpac\src\isomedia\track.c">
+      <Filter>gpac\isomedia</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\gpac\src\isomedia\tx3g.c">
+      <Filter>gpac\isomedia</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\gpac\src\media_tools\av_parsers.c">
+      <Filter>gpac\media_tools</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\gpac\src\media_tools\isom_tools.c">
+      <Filter>gpac\media_tools</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\gpac\src\odf\descriptors.c">
+      <Filter>gpac\odf</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\gpac\src\odf\desc_private.c">
+      <Filter>gpac\odf</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\gpac\src\odf\odf_code.c">
+      <Filter>gpac\odf</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\gpac\src\odf\odf_codec.c">
+      <Filter>gpac\odf</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\gpac\src\odf\odf_command.c">
+      <Filter>gpac\odf</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\gpac\src\odf\slc.c">
+      <Filter>gpac\odf</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\gpac\src\utils\alloc.c">
+      <Filter>gpac\utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\gpac\src\utils\base_encoding.c">
+      <Filter>gpac\utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\gpac\src\utils\bitstream.c">
+      <Filter>gpac\utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\gpac\src\utils\configfile.c">
+      <Filter>gpac\utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\gpac\src\utils\constants.c">
+      <Filter>gpac\utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\gpac\src\utils\error.c">
+      <Filter>gpac\utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\gpac\src\utils\list.c">
+      <Filter>gpac\utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\gpac\src\utils\module.c">
+      <Filter>gpac\utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\gpac\src\utils\os_config_init.c">
+      <Filter>gpac\utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\gpac\src\utils\os_divers.c">
+      <Filter>gpac\utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\gpac\src\utils\os_file.c">
+      <Filter>gpac\utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\gpac\src\utils\os_module.c">
+      <Filter>gpac\utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\gpac\src\utils\sha1.c">
+      <Filter>gpac\utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\gpac\src\utils\url.c">
+      <Filter>gpac\utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\gpac\src\utils\utf.c">
+      <Filter>gpac\utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\gpac\src\utils\xml_parser.c">
+      <Filter>gpac\utils</Filter>
+    </ClCompile>
     <ClCompile Include="..\external\libexif\canon\exif-mnote-data-canon.c">
       <Filter>libexif</Filter>
     </ClCompile>
