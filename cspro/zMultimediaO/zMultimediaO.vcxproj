@@ -27,10 +27,12 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\external\gpac\include\gpac\configuration_cspro.h" />
     <ClInclude Include="BmpFile.h" />
     <ClInclude Include="ExifReader.h" />
     <ClInclude Include="Icon.h" />
     <ClInclude Include="Image.h" />
+    <ClInclude Include="Mp4Accessor.h" />
     <ClInclude Include="Mp4Reader.h" />
     <ClInclude Include="Mp4Writer.h" />
     <ClInclude Include="QRCode.h" />
@@ -262,6 +264,7 @@
     <ClCompile Include="ExifReader.cpp" />
     <ClCompile Include="Icon.cpp" />
     <ClCompile Include="Image.cpp" />
+    <ClCompile Include="Mp4Accessor.cpp" />
     <ClCompile Include="Mp4Reader.cpp" />
     <ClCompile Include="Mp4Writer.cpp" />
     <ClCompile Include="QRCode.cpp" />

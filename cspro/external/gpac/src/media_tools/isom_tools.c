@@ -3806,6 +3806,8 @@ static Bool on_frag_event(void *_udta, GF_Event *evt)
 	return GF_FALSE;
 }
 
+#ifndef GPAC_CSPRO
+
 GF_EXPORT
 GF_Err gf_media_fragment_file(GF_ISOFile *input, const char *output_file, Double max_duration_sec, Bool use_mfra)
 {
@@ -3861,6 +3863,8 @@ GF_Err gf_media_fragment_file(GF_ISOFile *input, const char *output_file, Double
 	gf_fs_del(fsess);
 	return e;
 }
+
+#endif // !GPAC_CSPRO
 
 #endif /*GPAC_DISABLE_ISOM_FRAGMENTS*/
 
@@ -4198,6 +4202,8 @@ GF_Err rfc6381_codec_name_default(char *szCodec, u32 subtype, u32 codec_id)
 
 #ifndef GPAC_DISABLE_ISOM
 
+#ifndef GPAC_CSPRO
+
 GF_EXPORT
 GF_Err gf_media_get_rfc_6381_codec_name(GF_ISOFile *movie, u32 track, u32 stsd_idx, char *szCodec, Bool force_inband, Bool force_sbr)
 {
@@ -4439,6 +4445,8 @@ GF_Err gf_media_get_rfc_6381_codec_name(GF_ISOFile *movie, u32 track, u32 stsd_i
 	}
 	return GF_OK;
 }
+
+#endif // !GPAC_CSPRO
 
 
 GF_Err gf_media_av1_layer_size_get(GF_ISOFile *file, u32 trackNumber, u32 sample_number, u8 op_index, u32 layer_size[3])

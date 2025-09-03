@@ -2,6 +2,7 @@
 #include "Audio.h"
 #include "Document.h"
 #include <zUtilO/Interapp.h>
+#include <zMultimediaO/Mp4Accessor.h>
 #include <zMultimediaO/Mp4Reader.h>
 #include <zMultimediaO/Mp4Writer.h>
 
@@ -268,22 +269,34 @@ void LogicAudio::Save(const std::string& file_path)
     // on a successful write, set the tags, ignoring errors doing so
     try
     {
-        Mp4Writer writer(file_path, false);
+        Mp4TagSetter mp4_tag_setter;
+        mp4_tag_setter.Open(file_path);
 
-        std::string application_name = ( m_engineData.application != nullptr ) ? m_engineData.application->GetLabel() :
-                                                                                 "CSPro";
+        mp4_tag_setter.SetTextTag(Mp4TagSetter::TextTag::AlbumArtist, "CSPro");
 
-        std::string artwork_image_path = Path::Combine(Html::GetDirectory(Html::Subdirectory::Images),
-                                                       "cspro-logo-medium.png");
-        ASSERT(PortableFunctions::FileIsRegular(artwork_image_path));
+        if( m_engineData.application != nullptr )
+            mp4_tag_setter.SetTextTag(Mp4TagSetter::TextTag::AlbumName, m_engineData.application->GetLabel());
 
-        writer.SetTags(Mp4Metadata { Path::GetFilenameWithoutExtension(file_path),
-                                     "CSPro",
-                                     std::move(application_name),
-                                     std::move(artwork_image_path),
-                                   });
+        mp4_tag_setter.SetTextTag(Mp4TagSetter::TextTag::TitleName, Path::GetFilenameWithoutExtension(file_path));
+
+        mp4_tag_setter.SetTextTag(Mp4TagSetter::TextTag::EncodingTool, "CSPro");
+
+        const std::string artwork_image_path = Path::Combine(Html::GetDirectory(Html::Subdirectory::Images),
+                                                             "cspro-logo-medium.png");
+
+        if( PortableFunctions::FileIsRegular(artwork_image_path) )
+        {
+            mp4_tag_setter.SetBinaryTag(Mp4TagSetter::BinaryTag::CoverArt, artwork_image_path);
+        }
+
+        else
+        {
+            ASSERT(false);
+        }
+
+        mp4_tag_setter.Close();
     }
-    catch(...) { }
+    catch(...) { ASSERT(false); }
 }
 
 

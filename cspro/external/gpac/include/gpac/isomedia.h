@@ -670,7 +670,8 @@ u32 gf_isom_probe_data(const u8*inBuf, u32 inSize);
 \param tmp_dir for the 2 edit modes only, specifies a location for temp file. If NULL, the library will use the default libgpac temporary file management schemes.
 \return the created ISO file if no error
 */
-GF_ISOFile *gf_isom_open(const char *fileName, GF_ISOOpenMode OpenMode, const char *tmp_dir);
+GF_ISOFile *gf_isom_open_GPAC_CSPRO(const char *fileName, GF_ISOOpenMode OpenMode, const char *tmp_dir,
+                                    const char* file_path_for_non_inplace_edits);
 
 /*! closes the file, write it if new/edited or if pending fragment
 \param isom_file the target ISO file

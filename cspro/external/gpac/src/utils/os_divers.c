@@ -3272,6 +3272,7 @@ Bool gf_read_line_input(char * line, int maxSize, Bool showContent)
 	return GF_TRUE;
 }
 
+#ifndef GPAC_CSPRO
 
 GF_EXPORT
 GF_Err gf_creds_check_password(const char *user, char *password)
@@ -3353,3 +3354,5 @@ Bool gf_creds_check_membership(const char *username, const char *users, const ch
 	gf_cfg_del(creds);
 	return GF_FALSE;
 }
+
+#endif // !GPAC_CSPRO

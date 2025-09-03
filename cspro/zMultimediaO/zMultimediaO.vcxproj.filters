@@ -32,6 +32,9 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\external\gpac\include\gpac\configuration_cspro.h">
+      <Filter>gpac</Filter>
+    </ClInclude>
     <ClInclude Include="BmpFile.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -42,6 +45,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Image.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Mp4Accessor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Mp4Reader.h">
@@ -293,6 +299,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Image.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Mp4Accessor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Mp4Reader.cpp">

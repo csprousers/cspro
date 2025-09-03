@@ -120,36 +120,3 @@ void Mp4Writer::AppendAudioTracks(const cs::string_sz other_file_path)
         }
     }
 }
-
-
-void Mp4Writer::SetTags(const Mp4Metadata& metadata)
-{
-    const MP4Tags* mdata = MP4TagsAlloc();
-    MP4TagsFetch(mdata, m_file_handle);
-
-    MP4TagArtwork artwork;
-
-    if( !metadata.artwork_image_path.empty() )
-    {
-        try
-        {
-            std::unique_ptr<std::vector<std::byte>> artwork_image = FileIO::Read(metadata.artwork_image_path);
-
-            ASSERT(PortableFunctions::PathGetFileExtension(metadata.artwork_image_path) == "png");
-            artwork.type = MP4_ART_PNG;
-
-            artwork.size = artwork_image->size();
-            artwork.data = artwork_image->data();
-
-            MP4TagsAddArtwork(mdata, &artwork);
-        }
-        catch(...) { ASSERT(false); }
-    }
-
-    MP4TagsSetAlbumArtist(mdata, metadata.artist.c_str());
-    MP4TagsSetName(mdata, metadata.name.c_str());
-    MP4TagsSetAlbum(mdata, metadata.album.c_str());
-    MP4TagsSetEncodingTool(mdata, "CSPro");
-    MP4TagsStore(mdata, m_file_handle);
-    MP4TagsFree(mdata);
-}

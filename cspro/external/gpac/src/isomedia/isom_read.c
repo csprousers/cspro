@@ -520,8 +520,11 @@ GF_Err gf_isom_load_fragments(GF_ISOFile *movie, u64 start_range, u64 end_range,
 **************************************************************/
 
 GF_EXPORT
-GF_ISOFile *gf_isom_open(const char *fileName, GF_ISOOpenMode OpenMode, const char *tmp_dir)
+GF_ISOFile *gf_isom_open_GPAC_CSPRO(const char *fileName, GF_ISOOpenMode OpenMode, const char *tmp_dir,
+                                    const char* const file_path_for_non_inplace_edits)
 {
+    gf_assert(file_path_for_non_inplace_edits != NULL);
+
 	GF_ISOFile *movie;
 	MP4_API_IO_Err = GF_OK;
 
@@ -550,6 +553,22 @@ GF_ISOFile *gf_isom_open(const char *fileName, GF_ISOOpenMode OpenMode, const ch
 	default:
 		return NULL;
 	}
+    
+#ifdef GPAC_CSPRO
+    if( movie != NULL )
+    {
+        // the finalName value set in gf_isom_open_file fails when the filename
+        // is a full path, so we modify the value here
+        gf_assert(movie->finalName != NULL);
+        gf_assert(strncmp(movie->finalName, "out", 3) == 0);
+
+        gf_free(movie->finalName);
+
+        movie->finalName = gf_strdup(file_path_for_non_inplace_edits);
+        gf_assert(movie->finalName != NULL);
+    }
+#endif
+
 	return (GF_ISOFile *) movie;
 }
 
