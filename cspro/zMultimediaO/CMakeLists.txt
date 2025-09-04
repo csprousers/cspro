@@ -17,7 +17,7 @@ add_library(${PROJECT_NAME}
     ExifReader.cpp
     Icon.cpp
     Image.cpp
-    Mp4Accessor.cpp
+    Mp4File.cpp
     Mp4Reader.cpp
     Mp4Writer.cpp
     QRCode.cpp

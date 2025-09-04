@@ -47,7 +47,7 @@
     <ClInclude Include="Image.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Mp4Accessor.h">
+    <ClInclude Include="Mp4File.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Mp4Reader.h">
@@ -301,7 +301,7 @@
     <ClCompile Include="Image.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Mp4Accessor.cpp">
+    <ClCompile Include="Mp4File.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Mp4Reader.cpp">

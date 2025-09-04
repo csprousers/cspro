@@ -2,7 +2,7 @@
 #include "Audio.h"
 #include "Document.h"
 #include <zUtilO/Interapp.h>
-#include <zMultimediaO/Mp4Accessor.h>
+#include <zMultimediaO/Mp4File.h>
 #include <zMultimediaO/Mp4Writer.h>
 
 
@@ -161,7 +161,9 @@ std::unique_ptr<LogicAudio::Data> LogicAudio::CreateData(AudioStorage audio_stor
 
     try
     {
-        data->mp4_metadata = Mp4MetadataReader::Read(GetPath(data->audio_storage));
+        Mp4File mp4_file;
+        mp4_file.Open(GetPath(data->audio_storage), Mp4File::OpenType::ReadOnlyExisting);
+        data->mp4_metadata = mp4_file.GetMetadata();
     }
 
     catch(...)
@@ -273,24 +275,24 @@ void LogicAudio::Save(const std::string& file_path)
     // on a successful write, set the tags, ignoring errors doing so
     try
     {
-        Mp4TagSetter mp4_tag_setter;
-        mp4_tag_setter.Open(file_path);
+        Mp4File mp4_file;
+        mp4_file.Open(file_path, Mp4File::OpenType::ReadWriteExisting);
 
-        mp4_tag_setter.SetTextTag(Mp4TagSetter::TextTag::AlbumArtist, "CSPro");
+        mp4_file.SetTextTag(Mp4File::TextTag::AlbumArtist, "CSPro");
 
         if( m_engineData.application != nullptr )
-            mp4_tag_setter.SetTextTag(Mp4TagSetter::TextTag::AlbumName, m_engineData.application->GetLabel());
+            mp4_file.SetTextTag(Mp4File::TextTag::AlbumName, m_engineData.application->GetLabel());
 
-        mp4_tag_setter.SetTextTag(Mp4TagSetter::TextTag::TitleName, Path::GetFilenameWithoutExtension(file_path));
+        mp4_file.SetTextTag(Mp4File::TextTag::TitleName, Path::GetFilenameWithoutExtension(file_path));
 
-        mp4_tag_setter.SetTextTag(Mp4TagSetter::TextTag::EncodingTool, "CSPro");
+        mp4_file.SetTextTag(Mp4File::TextTag::EncodingTool, "CSPro");
 
         const std::string artwork_image_path = Path::Combine(Html::GetDirectory(Html::Subdirectory::Images),
                                                              "cspro-logo-medium.png");
 
         if( PortableFunctions::FileIsRegular(artwork_image_path) )
         {
-            mp4_tag_setter.SetBinaryTag(Mp4TagSetter::BinaryTag::CoverArt, artwork_image_path);
+            mp4_file.SetBinaryTag(Mp4File::BinaryTag::CoverArt, artwork_image_path);
         }
 
         else
@@ -298,7 +300,7 @@ void LogicAudio::Save(const std::string& file_path)
             ASSERT(false);
         }
 
-        mp4_tag_setter.Close();
+        mp4_file.SaveAndClose();
     }
     catch(...) { ASSERT(false); }
 }
