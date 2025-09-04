@@ -90,9 +90,9 @@ public:
     virtual std::unique_ptr<FtpConnection> CreateFtpConnection() = 0;
 
     virtual bool AudioPlay(const std::string& file_path, const std::string& message_text) = 0;
-    virtual bool AudioStartRecording(const std::string& file_path, std::optional<double> seconds, std::optional<int> sampling_rate) = 0;
+    virtual bool AudioStartRecording(const std::string& file_path, std::optional<double> seconds, std::optional<unsigned int> sampling_rate) = 0;
     virtual bool AudioStopRecording() = 0;
-    virtual std::unique_ptr<TemporaryFile> AudioRecordInteractive(const std::string& message_text, std::optional<int> sampling_rate) = 0;
+    virtual std::unique_ptr<TemporaryFile> AudioRecordInteractive(const std::string& message_text, std::optional<unsigned int> sampling_rate) = 0;
 
     virtual void CapturePolygonTrace(std::unique_ptr<Geometry::Polygon>& captured_polygon, const Geometry::Polygon* polygon, IMapUI* map) = 0;
     virtual void CapturePolygonWalk(std::unique_ptr<Geometry::Polygon>& captured_polygon, const Geometry::Polygon* polygon, IMapUI* map) = 0;

@@ -523,7 +523,8 @@ GF_EXPORT
 GF_ISOFile *gf_isom_open_GPAC_CSPRO(const char *fileName, GF_ISOOpenMode OpenMode, const char *tmp_dir,
                                     const char* const file_path_for_non_inplace_edits)
 {
-    gf_assert(file_path_for_non_inplace_edits != NULL);
+    const int read_mode = ( ( OpenMode & 0xFF ) == GF_ISOM_OPEN_READ );
+    gf_assert(read_mode || file_path_for_non_inplace_edits != NULL);
 
 	GF_ISOFile *movie;
 	MP4_API_IO_Err = GF_OK;
@@ -555,7 +556,7 @@ GF_ISOFile *gf_isom_open_GPAC_CSPRO(const char *fileName, GF_ISOOpenMode OpenMod
 	}
     
 #ifdef GPAC_CSPRO
-    if( movie != NULL )
+    if( !read_mode && movie != NULL )
     {
         // the finalName value set in gf_isom_open_file fails when the filename
         // is a full path, so we modify the value here

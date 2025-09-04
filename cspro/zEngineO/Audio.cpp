@@ -3,8 +3,19 @@
 #include "Document.h"
 #include <zUtilO/Interapp.h>
 #include <zMultimediaO/Mp4Accessor.h>
-#include <zMultimediaO/Mp4Reader.h>
 #include <zMultimediaO/Mp4Writer.h>
+
+
+// --------------------------------------------------------------------------
+// LogicAudio::Data
+// --------------------------------------------------------------------------
+
+struct LogicAudio::Data
+{
+    AudioStorage audio_storage;
+    Mp4Metadata mp4_metadata;
+};
+
 
 
 // --------------------------------------------------------------------------
@@ -117,7 +128,7 @@ LogicAudio& LogicAudio::operator=(const LogicDocument& logic_document)
         // make sure this is compatible audio
         document_audio_data = CreateData(std::move(audio_storage));
 
-        if( document_audio_data->is_mp4a_format != true )
+        if( document_audio_data->mp4_metadata.is_mp4a_format != true )
             throw CSProException("The Document '%s' has data that cannot be converted to Audio.", logic_document.GetName().c_str());
     }
 
@@ -150,19 +161,12 @@ std::unique_ptr<LogicAudio::Data> LogicAudio::CreateData(AudioStorage audio_stor
 
     try
     {
-        Mp4Reader reader(GetPath(data->audio_storage));
-
-        // catch all errors reading the properties
-        try { data->sampling_rate = reader.GetAudioTimeScale(); } catch( const Mp4ReaderError& ) { }
-
-        try { data->duration = reader.GetDuration(); } catch( const Mp4ReaderError& ) { }
-
-        try { data->is_mp4a_format = ( strcmp(reader.GetAudioFormat(), "mp4a") == 0 ); } catch( const Mp4ReaderError& ) { }
+        data->mp4_metadata = Mp4MetadataReader::Read(GetPath(data->audio_storage));
     }
 
     catch(...)
     {
-        // probably not mp4 which is okay as long as we don't append to it
+        // probably not MP4 which is okay as long as we don't append to it
     }
 
     return data;
@@ -209,7 +213,7 @@ bool LogicAudio::HasValidContent() const
     const Data* const parsed_data = GetParsedData();
 
     return ( parsed_data != nullptr &&
-             parsed_data->is_mp4a_format == true );
+             parsed_data->mp4_metadata.is_mp4a_format == true );
 }
 
 
@@ -305,16 +309,16 @@ void LogicAudio::Record(const std::optional<double> seconds)
     if( m_currentRecording != nullptr )
         StopCurrentRecording();
 
-    std::optional<int> sampling_rate;
+    std::optional<unsigned int> sampling_rate;
 
     if( m_binarySymbolData.IsDefined() )
     {
         const Data& parsed_data = GetParsedDataWithExceptions();
 
-        if( parsed_data.is_mp4a_format != true )
+        if( parsed_data.mp4_metadata.is_mp4a_format != true )
             throw CSProException("The format and bitrate of this audio file are not compatible with CSPro audio recording");
 
-        sampling_rate = parsed_data.sampling_rate;
+        sampling_rate = parsed_data.mp4_metadata.sampling_rate;
     }
 
 #ifdef WIN_DESKTOP
@@ -358,8 +362,10 @@ double LogicAudio::StopCurrentRecording()
 
     Concat(std::move(recorded_data->audio_storage), "Audio Recording (Background)", "Audio.record");
 
-    ASSERT(recorded_data->duration.has_value());
-    return recorded_data->duration.value_or(DEFAULT);
+    if( recorded_data->mp4_metadata.duration.has_value() )
+        return *recorded_data->mp4_metadata.duration;
+
+    return ReturnProgrammingError(DEFAULT);
 }
 
 
@@ -368,16 +374,16 @@ double LogicAudio::RecordInteractive(const SharableString& message/* = SharableS
     if( m_currentRecording != nullptr )
         StopCurrentRecording();
 
-    std::optional<int> sampling_rate;
+    std::optional<unsigned int> sampling_rate;
 
     if( m_binarySymbolData.IsDefined() )
     {
         const Data& parsed_data = GetParsedDataWithExceptions();
 
-        if( parsed_data.is_mp4a_format != true )
+        if( parsed_data.mp4_metadata.is_mp4a_format != true )
             throw CSProException("The format and bitrate of this audio file are not compatible with CSPro audio recording");
 
-        sampling_rate = parsed_data.sampling_rate;
+        sampling_rate = parsed_data.mp4_metadata.sampling_rate;
     }
 
     std::unique_ptr<TemporaryFile> temporary_file;
@@ -398,8 +404,10 @@ double LogicAudio::RecordInteractive(const SharableString& message/* = SharableS
 
     Concat(std::move(recorded_data->audio_storage), "Audio Recording (Interactive)", "Audio.recordInteractive");
 
-    ASSERT(recorded_data->duration.has_value());
-    return recorded_data->duration.value_or(DEFAULT);
+    if( recorded_data->mp4_metadata.duration.has_value() )
+        return *recorded_data->mp4_metadata.duration;
+
+    return ReturnProgrammingError(DEFAULT);
 }
 
 
@@ -493,7 +501,7 @@ void LogicAudio::Concat(AudioStorage audio_storage, const char* const label, con
 
     m_binarySymbolData.SetBinaryData(CreateBinaryDataContentFromAudioCallback(),
                                      std::string(), // no filename
-                                     m_data->is_mp4a_format.value_or(false) ? MimeType::Type::AudioM4A : std::string());
+                                     m_data->mp4_metadata.is_mp4a_format.value_or(false) ? MimeType::Type::AudioM4A : std::string());
 
     // update the metadata
     BinaryDataMetadata& binary_data_metadata = m_binarySymbolData.GetMetadata();
@@ -515,8 +523,8 @@ double LogicAudio::GetLength() const
 
     const Data* const parsed_data = GetParsedData();
 
-    if( parsed_data != nullptr && parsed_data->duration.has_value() )
-        return *parsed_data->duration;
+    if( parsed_data != nullptr && parsed_data->mp4_metadata.duration.has_value() )
+        return *parsed_data->mp4_metadata.duration;
 
     return DEFAULT;
 }
@@ -536,7 +544,7 @@ void LogicAudio::SetValueFromJson(const JsonNode& json_node)
 
             m_data = CreateData(std::move(audio_storage));
 
-            if( m_data->is_mp4a_format != true )
+            if( m_data->mp4_metadata.is_mp4a_format != true )
                 throw CSProException("The data cannot be converted to Audio.");
 
             return true;

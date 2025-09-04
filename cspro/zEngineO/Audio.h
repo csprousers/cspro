@@ -47,14 +47,7 @@ public:
 
 private:
     using AudioStorage = std::variant<std::string, std::shared_ptr<TemporaryFile>>;
-
-    struct Data
-    {
-        AudioStorage audio_storage;
-        std::optional<int> sampling_rate;
-        std::optional<double> duration;
-        std::optional<bool> is_mp4a_format;
-    };
+    struct Data;
 
 private:
     static const std::string& GetPath(const AudioStorage& audio_storage);

@@ -72,9 +72,9 @@ public:
     void GetParadataCachedEvents();
 
     bool AudioPlay(const std::string& file_path, const std::string& message_text) override;
-    bool AudioStartRecording(const std::string& file_path, std::optional<double> seconds, std::optional<int> sampling_rate) override;
+    bool AudioStartRecording(const std::string& file_path, std::optional<double> seconds, std::optional<unsigned int> sampling_rate) override;
     bool AudioStopRecording() override;
-    std::unique_ptr<TemporaryFile> AudioRecordInteractive(const std::string& message_text, std::optional<int> sampling_rate) override;
+    std::unique_ptr<TemporaryFile> AudioRecordInteractive(const std::string& message_text, std::optional<unsigned int> sampling_rate) override;
 
     void CapturePolygonTrace(std::unique_ptr<Geometry::Polygon>& captured_polygon, const Geometry::Polygon* polygon, IMapUI* map) override;
     void CapturePolygonWalk(std::unique_ptr<Geometry::Polygon>& captured_polygon, const Geometry::Polygon* polygon, IMapUI* map) override;

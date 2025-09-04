@@ -24,6 +24,69 @@ Mp4Accessor::~Mp4Accessor()
 
 
 // --------------------------------------------------------------------------
+// Mp4MetadataReader
+// --------------------------------------------------------------------------
+
+Mp4Metadata Mp4MetadataReader::Read(const std::string& file_path)
+{
+    // ensure GPAC is initialized
+    const Mp4Accessor mp4_accessor;
+
+    // open the file for reading
+    GF_ISOFile* const iso_file = gf_isom_open_GPAC_CSPRO(
+        file_path.c_str(),
+        GF_ISOM_OPEN_READ,
+        nullptr,
+        nullptr
+    );
+
+    if( iso_file == nullptr )
+    {
+        if( !PortableFunctions::FileIsRegular(file_path) )
+            throw FileIO::Exception::FileNotFound(file_path);
+
+        throw CSProException("The file is not a valid MP4 file: %s", file_path.c_str());
+    }
+
+    Mp4Metadata mp4_metadata;
+
+    // read the metadata from the first audio track
+    const unsigned int track_count = gf_isom_get_track_count(iso_file);
+
+    for( unsigned int i = 1; i <= track_count; ++i )
+    {
+        if( gf_isom_get_media_type(iso_file, i) != GF_ISOM_MEDIA_AUDIO )
+            continue;
+
+        // get the sampling rate from the audio sample description
+        unsigned int sample_rate;
+
+        if( gf_isom_get_audio_info(iso_file, i, 1, &sample_rate, nullptr, nullptr) == GF_OK )
+            mp4_metadata.sampling_rate = sample_rate;
+
+        // get the duration
+        const uint64_t duration = gf_isom_get_media_duration(iso_file, i);
+        const unsigned int timescale = ( duration != 0 ) ? gf_isom_get_media_timescale(iso_file, i) : 0;
+
+        if( timescale != 0 )
+            mp4_metadata.duration = static_cast<double>(duration) / timescale;
+
+        // check if the subtype is of type M4A
+        const unsigned int subtype = gf_isom_get_mpeg4_subtype(iso_file, i, 1);
+
+        if( subtype != 0 )
+            mp4_metadata.is_mp4a_format = ( subtype == GF_4CC('m', 'p', '4', 'a') );
+    }
+
+    // close the file
+    gf_isom_delete(iso_file);
+
+    return mp4_metadata;
+}
+
+
+
+// --------------------------------------------------------------------------
 // Mp4TagSetter
 // --------------------------------------------------------------------------
 
@@ -102,7 +165,7 @@ void Mp4TagSetter::CheckResult(const ErrorT error) const
     if( error != GF_OK )
     {
         throw CSProException("There was an error modifying '%s': %s",
-                             Path::GetFilename(m_data->file_path).c_str(), 
+                             Path::GetFilename(m_data->file_path).c_str(),
                              gf_error_to_string(error));
     }
 }
@@ -146,6 +209,7 @@ void Mp4TagSetter::SetTextTag(const TextTag tag_type, const std::string_view tex
         0
     ));
 }
+
 
 void Mp4TagSetter::SetBinaryTag(const BinaryTag tag_type, const std::string& binary_data_file_path)
 {

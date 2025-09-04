@@ -14,14 +14,6 @@ public:
     Mp4Reader(cs::string_sz file_path);
     ~Mp4Reader();
 
-    double GetDuration() const;
-
-    const char* GetAudioFormat() const;
-
-    int GetAudioTimeScale() const;
-
-    int GetAudioBitRate() const;
-
 private:
     typedef void* MP4FileHandle;
     MP4FileHandle m_file_handle;
