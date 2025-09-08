@@ -3,7 +3,6 @@
 #include "Document.h"
 #include <zUtilO/Interapp.h>
 #include <zMultimediaO/Mp4File.h>
-#include <zMultimediaO/Mp4Writer.h>
 
 
 // --------------------------------------------------------------------------
@@ -472,16 +471,25 @@ void LogicAudio::Concat(AudioStorage audio_storage, const char* const label, con
         const std::string& lhs_path = GetPath(lhs_parsed_data.audio_storage);
         const std::string& rhs_path = GetPath(audio_storage);
 
+        auto concat = [&](const std::string& file_path, const bool concatenting_in_place)
+        {
+            Mp4File mp4_file;
+            mp4_file.Open(file_path, concatenting_in_place ? Mp4File::OpenType::ReadWriteExisting :
+                                                             Mp4File::OpenType::CreateNew);
+
+            if( !concatenting_in_place )
+                mp4_file.AppendAudio(lhs_path);
+
+            mp4_file.AppendAudio(rhs_path);
+
+            mp4_file.SaveAndClose();
+        };
+
         // we can append in place when the destination is a temporary file that is not used by other objects
         if( std::holds_alternative<std::shared_ptr<TemporaryFile>>(lhs_parsed_data.audio_storage) &&
             std::get<std::shared_ptr<TemporaryFile>>(lhs_parsed_data.audio_storage).use_count() == 1 )
         {
-            // Mp4Writer closes the file on destruction
-            {
-                Mp4Writer writer(lhs_path, false);
-                writer.AppendAudioTracks(rhs_path);
-            }
-
+            concat(lhs_path, true);
             m_data = CreateData(lhs_parsed_data.audio_storage);
         }
 
@@ -489,14 +497,7 @@ void LogicAudio::Concat(AudioStorage audio_storage, const char* const label, con
         else
         {
             auto concatenated_file = std::make_unique<TemporaryFile>();
-
-            // Mp4Writer closes the file on destruction
-            {
-                Mp4Writer writer(concatenated_file->GetPath(), true);
-                writer.AppendAudioTracks(lhs_path);
-                writer.AppendAudioTracks(rhs_path);
-            }
-
+            concat(concatenated_file->GetPath(), false);
             m_data = CreateData(std::move(concatenated_file));
         }
     }

@@ -63,6 +63,12 @@ public:
     enum class BinaryTag { CoverArt };
     void SetBinaryTag(BinaryTag tag_type, const std::string& binary_data_file_path);
 
+    // Appends the audio from the first audio track in the source file.
+    // The audio is appended to the first audio track in the destination file,
+    // with the track being created if necessary.
+    // A CSProException is thrown on error.
+    void AppendAudio(std::string source_file_path);
+
 private:
     struct Data;
 
@@ -77,6 +83,11 @@ private:
 
     // Returns the track number of the first audio track, or 0 on error.
     unsigned int GetFirstAudioTrackNumber() const;
+
+    // Returns false if the files do not have compatible codecs for appending.
+    template<typename GF_ISOFileT>
+    static bool CheckCompatibilityForConcat(GF_ISOFileT* iso_file1, unsigned int track_number1,
+                                            GF_ISOFileT* iso_file2, unsigned int track_number2) noexcept;
 
 private:
     std::unique_ptr<Data> m_data;

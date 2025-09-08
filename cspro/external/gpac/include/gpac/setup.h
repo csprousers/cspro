@@ -311,8 +311,10 @@ char * my_str_lwr(char *str);
 #include <string.h>
 #include <assert.h>
 
+#ifndef GPAC_CSPRO // disabled because it led to occasional crashes on Android in gf_isom_fdm_del
 /*! file descriptor support*/
 #define GPAC_HAS_FD
+#endif
 
 #if __APPLE__ && defined GPAC_CONFIG_IOS
 #include <TargetConditionals.h>

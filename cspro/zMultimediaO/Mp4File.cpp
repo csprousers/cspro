@@ -165,7 +165,7 @@ void Mp4File::SaveAndClose()
     CheckResult(gf_isom_close(old_data->iso_file), old_data.get());
 
     // if the changes were not made in-place, replace the existing file with the new one
-    if( !old_data->temporary_file_for_non_in_place_edits.has_value()&&
+    if( old_data->temporary_file_for_non_in_place_edits.has_value() &&
         PortableFunctions::FileIsRegular(old_data->temporary_file_for_non_in_place_edits->GetPath()) )
     {
         old_data->temporary_file_for_non_in_place_edits->Rename(old_data->file_path);
@@ -264,4 +264,119 @@ void Mp4File::SetBinaryTag(const BinaryTag tag_type, const std::string& binary_d
         0,
         0
     ));
+}
+
+
+template<typename GF_ISOFileT>
+bool Mp4File::CheckCompatibilityForConcat(GF_ISOFileT* const iso_file1, unsigned int track_number1,
+                                          GF_ISOFileT* const iso_file2, unsigned int track_number2) noexcept
+{
+    ASSERT(iso_file1 != nullptr && iso_file2 != nullptr);
+
+    // do not allow for different codecs
+    if( gf_isom_get_media_subtype(iso_file1, track_number1, 1) !=
+        gf_isom_get_media_subtype(iso_file2, track_number2, 1) )
+    {
+        return false;
+    }
+
+    // do not allow different sample descriptions
+    const unsigned int sample_description_count = gf_isom_get_sample_description_count(iso_file1, track_number1);
+
+    if( sample_description_count != gf_isom_get_sample_description_count(iso_file2, track_number2) )
+        return false;
+
+    for( unsigned int i = 1; i <= sample_description_count; ++i )
+    {
+        if( !gf_isom_is_same_sample_description(iso_file1, track_number1, i,
+                                                iso_file2, track_number2, i) )
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+
+void Mp4File::AppendAudio(std::string source_file_path)
+{
+    CheckFileIsOpenForEditing();
+
+    Mp4File source_mp4_file;
+    source_mp4_file.Open(std::move(source_file_path), OpenType::ReadOnlyExisting);
+
+    const unsigned int source_track_number = source_mp4_file.GetFirstAudioTrackNumber();
+
+    // if there is no audio track in the source file, there is nothing to do
+    if( source_track_number == 0 )
+        return;
+
+    unsigned int destination_track_number = GetFirstAudioTrackNumber();
+    uint64_t DTS_offset;
+
+    // if there is no audio track in the destination file, clone it from the source's,
+    // which will copy over information about the source's samples' codecs
+    if( destination_track_number == 0 )
+    {
+        CheckResult(gf_isom_clone_track(
+            source_mp4_file.m_data->iso_file,
+            source_track_number,
+            m_data->iso_file,
+            static_cast<GF_ISOTrackCloneFlags>(0),
+            &destination_track_number
+        ));
+
+        DTS_offset = 0;
+    }
+
+    // otherwise, make sure that the existing samples use the same codec
+    // and determine the destination file's current duration, which will
+    // be used to offset the added samples so that they are added sequentially
+    // to the end of the existing audio
+    else
+    {
+        if( !CheckCompatibilityForConcat(m_data->iso_file, destination_track_number,
+                                         source_mp4_file.m_data->iso_file, source_track_number) )
+        {
+            throw CSProException("The audio samples in the MP4 file '%s' cannot be added to '%s' "
+                                 "because they are of an incompatible type.",
+                                 Path::GetFilename(source_mp4_file.m_data->file_path).c_str(),
+                                 Path::GetFilename(m_data->file_path).c_str());
+        }
+
+        DTS_offset = gf_isom_get_media_duration(m_data->iso_file, destination_track_number);
+    }
+
+    ASSERT(destination_track_number != 0);
+
+    const unsigned int sample_count = gf_isom_get_sample_count(source_mp4_file.m_data->iso_file, source_track_number);
+
+    // add each sample
+    for( unsigned int sample_index = 1; sample_index <= sample_count; ++sample_index )
+    {
+        unsigned int sample_description_index;
+        GF_ISOSample* sample = gf_isom_get_sample(source_mp4_file.m_data->iso_file, source_track_number,
+                                                  sample_index, &sample_description_index);
+
+        if( sample == nullptr )
+        {
+            throw CSProException("Sample %d could not be read from the MP4 file '%s'",
+                                 static_cast<int>(sample_index),
+                                 Path::GetFilename(source_mp4_file.m_data->file_path).c_str());
+        }
+
+        // adjust the timing offset
+        sample->DTS += DTS_offset;
+
+        // add the sample
+        CheckResult(gf_isom_add_sample(
+            m_data->iso_file,
+            destination_track_number,
+            sample_description_index,
+            sample
+        ));
+
+        gf_isom_sample_del(&sample);
+    }
 }

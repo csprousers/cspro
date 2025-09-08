@@ -1,4 +1,9 @@
-﻿// when upgrading, make sure all GPAC_CSPRO defines are copied over
+﻿// when upgrading, make sure all GPAC_CSPRO defines are copied over, including in:
+// - isomedia.h
+// - setup.h
+// - isom_read.c
+// - isom_tools.c
+// - os_divers.c
 #define GPAC_CSPRO
 
 #include "configuration_cspro.h"
