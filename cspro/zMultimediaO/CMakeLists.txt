@@ -9,7 +9,6 @@ set(QRCODEGEN_SRC_PATH ${EXTERNAL_DIRECTORY}/qrcodegen)
 include_directories(${PROJECT_NAME} PUBLIC
     ${EXTERNAL_DIRECTORY}
     ${EXTERNAL_DIRECTORY}/gpac/include
-    ${EXTERNAL_DIRECTORY}/mp4v2/include
 )
 
 add_library(${PROJECT_NAME}
@@ -18,8 +17,6 @@ add_library(${PROJECT_NAME}
     Icon.cpp
     Image.cpp
     Mp4File.cpp
-    Mp4Reader.cpp
-    Mp4Writer.cpp
     QRCode.cpp
 
     ${GPAC_SRC_PATH}/isomedia/avc_ext.c

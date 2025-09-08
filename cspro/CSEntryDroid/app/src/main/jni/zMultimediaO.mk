@@ -14,8 +14,6 @@ LOCAL_SRC_FILES         += $(ZMULTIMEDIAO_SRC_PATH)/ExifReader.cpp
 LOCAL_SRC_FILES         += $(ZMULTIMEDIAO_SRC_PATH)/Icon.cpp
 LOCAL_SRC_FILES         += $(ZMULTIMEDIAO_SRC_PATH)/Image.cpp
 LOCAL_SRC_FILES         += $(ZMULTIMEDIAO_SRC_PATH)/Mp4File.cpp
-LOCAL_SRC_FILES         += $(ZMULTIMEDIAO_SRC_PATH)/Mp4Reader.cpp
-LOCAL_SRC_FILES         += $(ZMULTIMEDIAO_SRC_PATH)/Mp4Writer.cpp
 LOCAL_SRC_FILES         += $(ZMULTIMEDIAO_SRC_PATH)/QRCode.cpp
 
 LOCAL_SRC_FILES         += $(GPAC_SRC_PATH)/isomedia/avc_ext.c
@@ -100,7 +98,6 @@ LOCAL_CFLAGS            += -DUNICODE=1
 LOCAL_CFLAGS            += -D_UNICODE=1
 LOCAL_C_INCLUDES        += $(JNI_PATH)/../../../../../external
 LOCAL_C_INCLUDES        += $(JNI_PATH)/../../../../../external/gpac/include
-LOCAL_C_INCLUDES        += $(JNI_PATH)/../../../../../external/mp4v2/include
-LOCAL_STATIC_LIBRARIES  := zToolsO zUtilO mp4v2 zlib
+LOCAL_STATIC_LIBRARIES  := zToolsO zUtilO zlib
 
 include $(BUILD_STATIC_LIBRARY)

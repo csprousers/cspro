@@ -50,12 +50,6 @@
     <ClInclude Include="Mp4File.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Mp4Reader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Mp4Writer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="QRCode.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -302,12 +296,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Mp4File.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Mp4Reader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Mp4Writer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="QRCode.cpp">

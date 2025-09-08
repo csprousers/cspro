@@ -16,15 +16,11 @@
   <ItemDefinitionGroup>
     <ClCompile>
       <PreprocessorDefinitions>ZMULTIMEDIAO_EXPORTS;_AFXEXT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(CSProDir)external;$(CSProDir)external\mp4v2\include;$(CSProDir)external\gpac\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(CSProDir)external;$(CSProDir)external\gpac\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>$(CSProDir)external\mp4v2\lib\$(PlatformTarget)\libmp4v2.lib;$(CSProDir)external\zlib\lib\$(PlatformTarget)\zlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(CSProDir)external\zlib\lib\$(PlatformTarget)\zlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
-    <PostBuildEvent>
-      <Command>xcopy "$(CSProDir)external\mp4v2\lib\$(PlatformTarget)\*.dll" "$(TargetDir)" /D /I /Y</Command>
-      <Message>Copy mp4v2 dll to bin directory</Message>
-    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\external\gpac\include\gpac\configuration_cspro.h" />
@@ -33,8 +29,6 @@
     <ClInclude Include="Icon.h" />
     <ClInclude Include="Image.h" />
     <ClInclude Include="Mp4File.h" />
-    <ClInclude Include="Mp4Reader.h" />
-    <ClInclude Include="Mp4Writer.h" />
     <ClInclude Include="QRCode.h" />
     <ClInclude Include="Screenshot.h" />
     <ClInclude Include="stdafx.h" />
@@ -265,8 +259,6 @@
     <ClCompile Include="Icon.cpp" />
     <ClCompile Include="Image.cpp" />
     <ClCompile Include="Mp4File.cpp" />
-    <ClCompile Include="Mp4Reader.cpp" />
-    <ClCompile Include="Mp4Writer.cpp" />
     <ClCompile Include="QRCode.cpp" />
     <ClCompile Include="Screenshot.cpp" />
     <ClCompile Include="stdafx.cpp">
