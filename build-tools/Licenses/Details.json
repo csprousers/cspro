@@ -201,6 +201,12 @@
     "licenseUrl": "https://raw.githubusercontent.com/WizardMac/librdata/master/LICENSE"
   },
   {
+    "projectName": "libwebm",
+    "projectUrl": "https://chromium.googlesource.com/webm/libwebm",
+    "licenseFilename": "LICENSE.TXT",
+    "licenseUrl": "https://chromium.googlesource.com/webm/libwebm/+/refs/heads/main/LICENSE.TXT"
+  },
+  {
     "projectName": "libwebp",
     "projectUrl": "https://chromium.googlesource.com/webm/libwebp",
     "licenseFilename": "COPYING",
