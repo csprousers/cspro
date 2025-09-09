@@ -52,6 +52,7 @@ add_library(${PROJECT_NAME}
     UserFunctionArgumentEvaluator.cpp
     UserFunctionLocalSymbolsManager.cpp
     ValueSet.cpp
+    Video.cpp
     WorkString.cpp
     WorkVariable.cpp
 
@@ -107,6 +108,7 @@ add_library(${PROJECT_NAME}
     Compiler/UserInterfaceCC.cpp
     Compiler/ValueSetCC.cpp
     Compiler/VariableCC.cpp
+    Compiler/VideoCC.cpp
 
     Interpreter/ActionInvokerRT.cpp
     Interpreter/ArrayRT.cpp
@@ -139,4 +141,5 @@ add_library(${PROJECT_NAME}
     Interpreter/SystemRT.cpp
     Interpreter/TextTemplateRT.cpp
     Interpreter/UserInterfaceRT.cpp
+    Interpreter/VideoRT.cpp
 )

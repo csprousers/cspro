@@ -837,6 +837,7 @@ CIntDriver::pDoubleFunction CIntDriver::m_pExFuncs[] =
 /* 468 */   &CIntDriver::ex_StringWriter_toString,
 /* 469 */   &CIntDriver::ex_Image_getExif,
 /* 470 */   &CIntDriver::ex_StringWriter_clear,
+/* 471 */   &CIntDriver::ex_Video_compute,
 
 
             // placeholders to allow new logic functions to be added to an existing serialization

@@ -565,6 +565,17 @@ public:
 
 
     // --------------------------------------------------------------------------
+    // Video object
+    // (VideoCC.cpp)
+    // --------------------------------------------------------------------------
+public:
+    LogicVideo* CompileLogicVideoDeclaration();
+    int CompileLogicVideoDeclarations();
+    int CompileLogicVideoComputeInstruction(const LogicVideo* logic_video_from_declaration = nullptr);
+    int CompileLogicVideoFunctions();
+
+
+    // --------------------------------------------------------------------------
     // generic function compilers
     // (FunctionsGenericCC.cpp + FunctionsVariousCC.cpp)
     // --------------------------------------------------------------------------

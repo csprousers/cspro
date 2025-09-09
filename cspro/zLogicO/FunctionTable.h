@@ -577,6 +577,7 @@ enum FunctionCode : int
     STRINGWRITERFN_TOSTRING_CODE            = 468, // 20250417
     IMAGEFN_GETEXIF_CODE                    = 469, // 20250507
     STRINGWRITERFN_CLEAR_CODE               = 470, // 20250604
+    VIDEOFN_COMPUTE_CODE                    = 471, // 20250909
 };
 
 
@@ -701,6 +702,7 @@ namespace Logic
         JS                      =  278,
         StringWriter            =  279,
         TextTemplate            =  280,
+        Video                   =  281,
     };
 
 

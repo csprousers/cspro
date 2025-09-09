@@ -131,6 +131,7 @@ const std::map<std::string, SymbolType>& Symbol::GetDeclarationTextMap()
                 { SymbolType::SystemApp,      TokenCode::TOKKWSYSTEMAPP },
                 { SymbolType::UserFunction,   TokenCode::TOKKWFUNCTION },
                 { SymbolType::ValueSet,       TokenCode::TOKKWVALUESET },
+                { SymbolType::Video,          TokenCode::TOKKWVIDEO },
                 { SymbolType::WorkString,     TokenCode::TOKALPHA },
                 { SymbolType::WorkString,     TokenCode::TOKSTRING },
                 { SymbolType::WorkVariable,   TokenCode::TOKNUMERIC },

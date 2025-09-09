@@ -2110,7 +2110,7 @@ namespace
                 SymbolType::Array,          SymbolType::Audio,          SymbolType::Document,       SymbolType::Dictionary,     SymbolType::Pre80Dictionary,
                 SymbolType::File,           SymbolType::Geometry,       SymbolType::HashMap,        SymbolType::Image,          SymbolType::List,
                 SymbolType::NamedFrequency, SymbolType::Record,         SymbolType::Report,         SymbolType::StringWriter,   SymbolType::SystemApp,
-                SymbolType::ValueSet,       SymbolType::WorkString,     SymbolType::WorkVariable
+                SymbolType::ValueSet,       SymbolType::Video,          SymbolType::WorkString,     SymbolType::WorkVariable
             },
             DataType::String,
             FunctionCompilationType::Symbol,
@@ -2125,7 +2125,7 @@ namespace
             {
                 SymbolType::Array,          SymbolType::Audio,          SymbolType::Document,       SymbolType::Geometry,       SymbolType::HashMap,
                 SymbolType::Image,          SymbolType::List,           SymbolType::Report,         SymbolType::StringWriter,   SymbolType::SystemApp,
-                SymbolType::ValueSet,       SymbolType::WorkString,     SymbolType::WorkVariable
+                SymbolType::ValueSet,       SymbolType::Video,          SymbolType::WorkString,     SymbolType::WorkVariable
             },
             DataType::Numeric,
             FunctionCompilationType::Symbol,

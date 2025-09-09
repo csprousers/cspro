@@ -209,6 +209,9 @@
     <ClCompile Include="Compiler\VariableCC.cpp">
       <Filter>Source Files\Compiler</Filter>
     </ClCompile>
+    <ClCompile Include="Compiler\VideoCC.cpp">
+      <Filter>Source Files\Compiler</Filter>
+    </ClCompile>
     <ClCompile Include="Document.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -344,6 +347,9 @@
     <ClCompile Include="Interpreter\UserInterfaceRT.cpp">
       <Filter>Source Files\Interpreter</Filter>
     </ClCompile>
+    <ClCompile Include="Interpreter\VideoRT.cpp">
+      <Filter>Source Files\Interpreter</Filter>
+    </ClCompile>
     <ClCompile Include="JavaScriptProcessor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -423,6 +429,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ValueSet.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Video.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="WorkString.cpp">
@@ -743,6 +752,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ValueSet.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Video.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="WorkString.h">

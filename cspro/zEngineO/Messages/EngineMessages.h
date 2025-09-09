@@ -229,6 +229,8 @@ namespace MGF
     constexpr int TextTemplate_unsupported_functionality_48103              =  48103;
     constexpr int TextTemplate_accessed_in_invalid_location_48104           =  48104;
 
+    constexpr int Video_invalid_assignment_48151                            =  48151;
+
     constexpr int UserFunction_expects_argument_50000                       =  50000;
     constexpr int UserFunction_function_pointer_invalid_50001               =  50001;
     constexpr int UserFunction_sql_callback_invalid_50002                   =  50002;

@@ -58,6 +58,7 @@ namespace
             { SymbolType::Report,           { "Report"                      } },
             { SymbolType::Item,             { "Item"                        } },
             { SymbolType::StringWriter,     { "StringWriter"                } },
+            { SymbolType::Video,            { "Video"                       } },
             { SymbolType::None,             { "None"                        } },
         };
 

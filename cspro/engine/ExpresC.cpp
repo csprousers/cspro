@@ -1505,6 +1505,7 @@ int CEngineCompFunc::rutfunc()
         { Logic::FunctionCompilationType::TextTemplate,             &LogicCompiler::CompileTextTemplateFunctions },
         { Logic::FunctionCompilationType::UserInterface,            &LogicCompiler::CompileUserInterfaceFunctions },
         { Logic::FunctionCompilationType::ValueSet,                 &LogicCompiler::CompileValueSetFunctions },
+        { Logic::FunctionCompilationType::Video,                    &LogicCompiler::CompileLogicVideoFunctions },
 
         // other
         { Logic::FunctionCompilationType::FN2,                      &CEngineCompFunc::cfun_compile_count },

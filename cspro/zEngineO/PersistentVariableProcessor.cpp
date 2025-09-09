@@ -34,6 +34,7 @@ void PersistentVariableProcessor::AddSymbol(const Symbol& symbol)
                           SymbolType::List,
                           SymbolType::SystemApp,
                           SymbolType::ValueSet,
+                          SymbolType::Video,
                           SymbolType::WorkString,
                           SymbolType::WorkVariable));
 

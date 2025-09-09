@@ -603,6 +603,9 @@ Language=EN
 48103  The text template uses functionality that is not supported
 48104  Accessing or writing to the text template based on '%s' is only allowed within the template's logic or from a user-defined function
 
+/* --- Video */
+48151  A Video object can only be assigned a value of type Video
+
 /* --- User-Defined Function Messages */
 50000  The user-defined function '%s' expects %s
 50001  When declaring functions pointers, %s

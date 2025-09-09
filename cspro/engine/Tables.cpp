@@ -208,6 +208,9 @@ std::unique_ptr<Symbol> CEngineArea::CreateSymbol(std::string symbol_name, const
             case SymbolType::ValueSet:
                 return std::make_unique<DynamicValueSet>(std::move(symbol_name), *m_engineData);
 
+            case SymbolType::Video:
+                return std::make_unique<LogicVideo>(std::move(symbol_name));
+
             case SymbolType::WorkString:
                 return ( symbol_subtype == SymbolSubType::WorkAlpha ) ? std::make_unique<WorkAlpha>(std::move(symbol_name)) :
                                                                         std::make_unique<WorkString>(std::move(symbol_name));

@@ -152,6 +152,7 @@ namespace
         { "persistent",         "persistent_modifier.html",             TokenCode::TOKPERSISTENT },
         { "declare",            "declare_modifier.html",                TokenCode::TOKDECLARE },
         { "StringWriter",       "StringWriter_statement.html",          TokenCode::TOKKWSTRINGWRITER },
+        { "Video",              "Video_statement.html",                 TokenCode::TOKKWVIDEO },
     };
 }
 

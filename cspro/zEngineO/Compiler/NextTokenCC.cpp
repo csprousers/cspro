@@ -278,6 +278,10 @@ std::optional<SymbolType> LogicCompiler::GetNextTokenSymbolType()
             case TOKVALUESET:
                 symbol_type = SymbolType::ValueSet;
                 break;
+
+            case TOKVIDEO:
+                symbol_type = SymbolType::Video;
+                break;
         }
     }
 

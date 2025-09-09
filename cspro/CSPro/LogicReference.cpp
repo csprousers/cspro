@@ -825,6 +825,12 @@ namespace
                 break;
             }
 
+            case SymbolType::Video:
+            {
+                reference_text.Append(L"Variable Type: Video\n");
+                break;
+            }
+
             case SymbolType::WorkString:
             {
                 if( symbol.GetSubType() == SymbolSubType::WorkAlpha )
@@ -845,6 +851,9 @@ namespace
                 reference_text.Append(L"Variable Type: Numeric\n");
                 break;
             }
+
+            default:
+                ASSERT(false);
         }
     }
 
@@ -2107,18 +2116,19 @@ LRESULT CMainFrame::OnLogicReference(const WPARAM wParam, const LPARAM lParam)
                     else if( symbol->IsOneOf(SymbolType::Audio, SymbolType::Document, SymbolType::File,
                                              SymbolType::Geometry, SymbolType::Image, SymbolType::List,
                                              SymbolType::Map, SymbolType::Pff, SymbolType::SystemApp,
-                                             SymbolType::WorkString, SymbolType::WorkVariable) )
+                                             SymbolType::Video, SymbolType::WorkString, SymbolType::WorkVariable) )
                     {
                         AddBasicSymbol(reference_text, *symbol);
                     }
                 }
 
-                bool search_for_symbol_declaration =
+                const bool search_for_symbol_declaration =
                     symbol->IsOneOf(SymbolType::Array, SymbolType::Audio, SymbolType::Document, SymbolType::File,
                                     SymbolType::Geometry, SymbolType::HashMap, SymbolType::Image,
                                     SymbolType::List, SymbolType::Map, SymbolType::NamedFrequency,
                                     SymbolType::Pff, SymbolType::Relation, SymbolType::SystemApp,
-                                    SymbolType::UserFunction, SymbolType::WorkString, SymbolType::WorkVariable) ||
+                                    SymbolType::UserFunction, SymbolType::Video,
+                                    SymbolType::WorkString, SymbolType::WorkVariable) ||
                     ( symbol->IsA(SymbolType::Dictionary) && !assert_cast<const EngineDictionary*>(symbol)->IsDictionaryObject() ) ||
                     ( symbol->IsA(SymbolType::ValueSet) && assert_cast<const ValueSet*>(symbol)->IsDynamic() );
 

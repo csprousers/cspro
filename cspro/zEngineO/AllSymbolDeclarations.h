@@ -22,6 +22,7 @@ class LogicImage;
 class LogicList;
 class LogicMap;
 class LogicPff;
+class LogicVideo;
 class NamedFrequency;
 class Report;
 class StringWriter;

@@ -46,6 +46,7 @@ LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/UserFunctionArgumentChecker.cpp
 LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/UserFunctionArgumentEvaluator.cpp
 LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/UserFunctionLocalSymbolsManager.cpp
 LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/ValueSet.cpp
+LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/Video.cpp
 LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/WorkString.cpp
 LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/WorkVariable.cpp
 
@@ -101,6 +102,7 @@ LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/Compiler/UserFunctionCC.cpp
 LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/Compiler/UserInterfaceCC.cpp
 LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/Compiler/ValueSetCC.cpp
 LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/Compiler/VariableCC.cpp
+LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/Compiler/VideoCC.cpp
 
 LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/Interpreter/ActionInvokerRT.cpp
 LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/Interpreter/ArrayRT.cpp
@@ -133,6 +135,7 @@ LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/Interpreter/SystemAppRT.cpp
 LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/Interpreter/SystemRT.cpp
 LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/Interpreter/TextTemplateRT.cpp
 LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/Interpreter/UserInterfaceRT.cpp
+LOCAL_SRC_FILES         += $(ZENGINEO_SRC_PATH)/Interpreter/VideoRT.cpp
 
 include $(LOCAL_PATH)/LOCAL_CFLAGS.mk
 LOCAL_CFLAGS            += -DUNICODE=1

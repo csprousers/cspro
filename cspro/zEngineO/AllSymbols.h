@@ -22,6 +22,7 @@
 #include <zEngineO/SystemApp.h>
 #include <zEngineO/UserFunction.h>
 #include <zEngineO/ValueSet.h>
+#include <zEngineO/Video.h>
 #include <zEngineO/WorkString.h>
 #include <zEngineO/WorkVariable.h>
 
