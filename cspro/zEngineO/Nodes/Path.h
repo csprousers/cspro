@@ -7,7 +7,7 @@ namespace Nodes
 {
     namespace Path
     {
-        enum class FilterType : int { Audio = -2, Geometry = -3, Image = -4 };
+        enum class FilterType : int { Audio = -2, Geometry = -3, Image = -4, Video = -5 };
 
         namespace Text
         {
@@ -15,6 +15,7 @@ namespace Nodes
             constexpr const char* Audio    = "Audio";
             constexpr const char* Geometry = "Geometry";
             constexpr const char* Image    = "Image";
+            constexpr const char* Video    = "Video";
         }
     }
 
@@ -38,7 +39,7 @@ namespace Nodes
             CSEntryExternal,
             Html,
             Downloads,
-        };            
+        };
 
         Type type;
         int code_or_expression;

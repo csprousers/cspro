@@ -7,42 +7,49 @@
 class CLASS_DECL_ZUTILO MimeType
 {
 public:
-    // returns the file extension for known MIME types (or null if none); the returned extension does not include the dot
+    // Returns the file extension for known MIME types (or null if none).
+    // The returned extension does not include the dot.
     static const char* GetFileExtensionFromType(std::string_view mime_type_text_sv);
 
-    // returns the file extension(s) for known MIME types; the returned extensions do not include the dot;
-    // if subtype is *, all known extensions for the type are returned
+    // Returns the file extension(s) for known MIME types
+    // The returned extensions do not include the dot.
+    // If subtype is *, all known extensions for the type are returned.
     static std::vector<const char*> GetFileExtensionsFromTypeWithWildcardSupport(std::string_view mime_type_text_sv);
 
-    // returns the typical MIME type for a given extension; the extension should not include the dot
+    // Returns the typical MIME type for a given extension.
+    // The extension should not include the dot.
     static std::optional<std::string> GetTypeFromFileExtension(std::string_view extension_sv);
     static std::optional<std::string> GetServerTypeFromFileExtension(std::string_view extension_sv);
 
-    // returns whether the MIME type is "text", or is a known text type such as "application/json"
+    // Returns whether the MIME type is "text", or is a known text type such as "application/json".
     static bool IsTextTypeOrTextBased(std::string_view mime_type_text_sv);
 
-    // returns the file extensions (without leading dots) that CSPro supports for the given type
+    // Returns the file extensions (without leading dots) that CSPro supports for the given type.
     static std::vector<const char*> GetExtensionsForSupportedContentType(ContentType content_type);
 
-    // returns true if the text matches the appropriate type in our list of MIME types;
-    // the type may not be fully supported by CSPro (e.g., a .gif file)
+    // Returns true if the text matches the appropriate type in our list of MIME types.
+    // The type may not be fully supported by CSPro (e.g., a .gif file).
     static bool IsAudioType(std::string_view mime_type_text_sv);
     static bool IsImageType(std::string_view mime_type_text_sv);
+    static bool IsVideoType(std::string_view mime_type_text_sv);
 
-    // returns std::nullopt if the text does not match a type fully supported by CSPro
+    // Returns std::nullopt if the text does not match a type fully supported by CSPro.
     static std::optional<AudioType> GetSupportedAudioType(std::string_view mime_type_text_sv);
     static std::optional<ImageType> GetSupportedImageType(std::string_view mime_type_text_sv);
+    static std::optional<VideoType> GetSupportedVideoType(std::string_view mime_type_text_sv);
 
-    // returns std::nullopt if the file extension does not match a type fully supported by CSPro
+    // Returns std::nullopt if the file extension does not match a type fully supported by CSPro.
     static std::optional<AudioType> GetSupportedAudioTypeFromFileExtension(std::string_view extension_sv);
     static std::optional<ImageType> GetSupportedImageTypeFromFileExtension(std::string_view extension_sv);
+    static std::optional<VideoType> GetSupportedVideoTypeFromFileExtension(std::string_view extension_sv);
 
-    // returns the MIME type for the supported CSPro type
+    // Returns the MIME type for the supported CSPro type.
     static const char* GetType(AudioType audio_type);
     static const char* GetType(ImageType image_type);
+    static const char* GetType(VideoType video_type);
 
 
-    // some common types
+    // Some common types:
     struct Type
     {
         static constexpr const char* Unknown     = "application/octet-stream";
@@ -63,6 +70,8 @@ public:
         static constexpr const char* ImageJpeg   = "image/jpeg";
         static constexpr const char* ImagePng    = "image/png";
         static constexpr const char* ImageWebP   = "image/webp";
+
+        static constexpr const char* VideoWebM   = "video/webm";
     };
 
     struct ServerType

@@ -12,8 +12,8 @@ namespace MimeTypeMap
 
 namespace
 {
-    // splits the text into its type and subtype;
-    // note that string_view objects are returned, so the function argument should not be a temporary string
+    // Splits the text into its type and subtype.
+    // Note that string_view objects are returned, so the function argument should not be a temporary string.
     std::tuple<std::string_view, std::string_view> GetTypeSubtype(const std::string_view mime_type_text_sv)
     {
         const size_t slash_pos = mime_type_text_sv.find('/');
@@ -31,18 +31,19 @@ namespace
 #endif
 
 
-    using SupportedType = std::variant<std::monostate, AudioType, GeometryType, ImageType>;
+    using SupportedType = std::variant<std::monostate, AudioType, GeometryType, ImageType, VideoType>;
 
     constexpr size_t SupportedIndexType(const ContentType content_type)
     {
         return ( content_type == ContentType::Audio )    ? SupportedType(AudioType()).index() :
                ( content_type == ContentType::Geometry ) ? SupportedType(GeometryType()).index() :
                ( content_type == ContentType::Image )    ? SupportedType(ImageType()).index() :
+               ( content_type == ContentType::Video )    ? SupportedType(VideoType()).index() :
                                                            SupportedType({ }).index();
     }
 
 
-    // the mapping of MIME types to extensions
+    // A mapping of MIME types to extensions.
     struct ExtensionMapping
     {
         const char* const type_and_subtype;
@@ -78,6 +79,10 @@ namespace
             CREATE_MAPPING(MimeType::Type::ImageJpeg,   "jpeg",     ImageType::Jpeg),
             CREATE_MAPPING(MimeType::Type::ImagePng,    "png",      ImageType::Png),
             CREATE_MAPPING(MimeType::Type::ImageWebP,   "webp",     ImageType::WebP),
+
+            // video
+            CREATE_MAPPING("video/mp4",                 "mp4",      { }),
+            CREATE_MAPPING(MimeType::Type::VideoWebM,   "webm",     VideoType::WebM),
 
 #undef CREATE_MAPPING
         };
@@ -304,6 +309,7 @@ namespace
 
 bool MimeType::IsAudioType(const std::string_view mime_type_text_sv) { return IsTypeWorker(mime_type_text_sv, "audio"); }
 bool MimeType::IsImageType(const std::string_view mime_type_text_sv) { return IsTypeWorker(mime_type_text_sv, "image"); }
+bool MimeType::IsVideoType(const std::string_view mime_type_text_sv) { return IsTypeWorker(mime_type_text_sv, "video"); }
 
 
 namespace
@@ -338,9 +344,11 @@ namespace
 
 std::optional<AudioType> MimeType::GetSupportedAudioType(const std::string_view mime_type_text_sv) { return GetSupportedTypeWorker<AudioType>(mime_type_text_sv); }
 std::optional<ImageType> MimeType::GetSupportedImageType(const std::string_view mime_type_text_sv) { return GetSupportedTypeWorker<ImageType>(mime_type_text_sv); }
+std::optional<VideoType> MimeType::GetSupportedVideoType(const std::string_view mime_type_text_sv) { return GetSupportedTypeWorker<VideoType>(mime_type_text_sv); }
 
 std::optional<AudioType> MimeType::GetSupportedAudioTypeFromFileExtension(const std::string_view extension_sv) { return GetSupportedTypeFromFileExtensionWorker<AudioType>(extension_sv); }
 std::optional<ImageType> MimeType::GetSupportedImageTypeFromFileExtension(const std::string_view extension_sv) { return GetSupportedTypeFromFileExtensionWorker<ImageType>(extension_sv); }
+std::optional<VideoType> MimeType::GetSupportedVideoTypeFromFileExtension(const std::string_view extension_sv) { return GetSupportedTypeFromFileExtensionWorker<VideoType>(extension_sv); }
 
 
 namespace
@@ -360,3 +368,4 @@ namespace
 
 const char* MimeType::GetType(const AudioType audio_type) { return GetTypeWorker(audio_type); }
 const char* MimeType::GetType(const ImageType image_type) { return GetTypeWorker(image_type); }
+const char* MimeType::GetType(const VideoType video_type) { return GetTypeWorker(video_type); }

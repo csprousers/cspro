@@ -94,12 +94,14 @@ int LogicCompiler::CompilePathFilter()
 
         const size_t filter_type = NextKeywordOrError({ Nodes::Path::Text::Audio,
                                                         Nodes::Path::Text::Geometry,
-                                                        Nodes::Path::Text::Image });
+                                                        Nodes::Path::Text::Image,
+                                                        Nodes::Path::Text::Video });
         NextToken();
 
         return static_cast<int>(( filter_type == 1 ) ? Nodes::Path::FilterType::Audio :
                                 ( filter_type == 2 ) ? Nodes::Path::FilterType::Geometry :
-                                                       Nodes::Path::FilterType::Image);
+                                ( filter_type == 3 ) ? Nodes::Path::FilterType::Image :
+                                                       Nodes::Path::FilterType::Video);
     }
 
     // ...or a string expression
