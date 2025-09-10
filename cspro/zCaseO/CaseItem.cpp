@@ -56,6 +56,7 @@ std::unique_ptr<CaseItem> CaseItem::Create(const CDictItem& dict_item)
         case ContentType::Document:
         case ContentType::Geometry:
         case ContentType::Image:
+        case ContentType::Video:
             return Create(dict_item, Type::Binary);
 
         default:
@@ -80,7 +81,7 @@ const void* CaseItem::GetDataBuffer(const CaseItemIndex& index) const
             ASSERT(index.GetItemOccurrence() == 0 && index.GetSubitemOccurrence() == 0);
         }
 
-        else if( m_parentDictionaryItem == nullptr ) 
+        else if( m_parentDictionaryItem == nullptr )
         {
             ASSERT(index.GetItemOccurrence() < m_itemOccurrenceMultiplier && index.GetSubitemOccurrence() == 0);
             index.m_lastCalculatedDataBuffer += ( index.GetItemOccurrence() * m_memorySize );

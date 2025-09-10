@@ -8,6 +8,13 @@ LogicVideo::LogicVideo(std::string video_name)
 }
 
 
+LogicVideo::LogicVideo(const EngineItem& engine_item, ItemIndex item_index,
+                       cs::non_null_shared_or_raw_ptr<BinaryDataAccessor> binary_data_accessor)
+    :   BinarySymbol(engine_item, std::move(item_index), std::move(binary_data_accessor))
+{
+}
+
+
 LogicVideo::LogicVideo(const LogicVideo& logic_video)
     :   BinarySymbol(logic_video)
 {

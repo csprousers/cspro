@@ -7,6 +7,7 @@
 #include <zEngineO/EngineItem.h>
 #include <zEngineO/Geometry.h>
 #include <zEngineO/Image.h>
+#include <zEngineO/Video.h>
 #include <zEngineO/Messages/EngineMessages.h>
 
 
@@ -251,6 +252,10 @@ SymbolT CIntDriver::GetFromSymbolOrEngineItemWorker(const SymbolReference<Symbol
 
             case SymbolType::Image:
                 binary_storage->wrapped_symbol = std::make_shared<LogicImage>(engine_item, index, &binary_storage->binary_data_accessor);
+                break;
+
+            case SymbolType::Video:
+                binary_storage->wrapped_symbol = std::make_shared<LogicVideo>(engine_item, index, &binary_storage->binary_data_accessor);
                 break;
 
             default:

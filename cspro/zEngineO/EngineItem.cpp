@@ -19,6 +19,7 @@ EngineItem::EngineItem(CSymbolVar& vart)
         case ContentType::Document: m_wrappedSymbolType = SymbolType::Document; break;
         case ContentType::Geometry: m_wrappedSymbolType = SymbolType::Geometry; break;
         case ContentType::Image:    m_wrappedSymbolType = SymbolType::Image;    break;
+        case ContentType::Video:    m_wrappedSymbolType = SymbolType::Video;    break;
         default:                    throw ProgrammingErrorException();
     }
 }

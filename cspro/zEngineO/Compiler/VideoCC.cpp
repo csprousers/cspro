@@ -52,7 +52,7 @@ int LogicCompiler::CompileLogicVideoComputeInstruction(const LogicVideo* const l
     {
         ASSERT(Tkn == TOKVIDEO);
         lhs_symbol = &NPT_Ref(Tokstindex);
-        ASSERT(lhs_symbol->IsA(SymbolType::Video));
+        ASSERT(lhs_symbol->IsA(SymbolType::Video) || ( lhs_symbol->IsA(SymbolType::Item) && lhs_subscript_compilation != -1 ));
 
         NextToken();
 
@@ -88,7 +88,7 @@ int LogicCompiler::CompileLogicVideoFunctions()
 {
     const FunctionCode function_code = CurrentToken.function_details->code;
 
-    ASSERT(CurrentToken.symbol != nullptr && CurrentToken.symbol->IsA(SymbolType::Video));
+    ASSERT(CurrentToken.symbol != nullptr && CurrentToken.symbol->IsOneOf(SymbolType::Video, SymbolType::Item));
     const Symbol& symbol = *CurrentToken.symbol;
 
     NextToken();

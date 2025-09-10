@@ -54,6 +54,7 @@ enum class ContentType : int
     Audio    = 3,
     Image    = 4,
     Geometry = 5,
+    Video    = 6,
 };
 
 
@@ -63,10 +64,13 @@ constexpr bool IsNumeric(ContentType content_type) { return ( content_type == Co
 
 constexpr bool IsString(ContentType content_type)  { return ( content_type == ContentType::Alpha ); }
 
-constexpr bool IsBinary(ContentType content_type)  { return ( content_type == ContentType::Document ||
-                                                              content_type == ContentType::Audio ||
-                                                              content_type == ContentType::Image ||
-                                                              content_type == ContentType::Geometry ); }
+constexpr bool IsBinary(ContentType content_type)  { return ( content_type >= ContentType::Document &&
+                                                           // content_type == ContentType::Document ||
+                                                           // content_type == ContentType::Audio ||
+                                                           // content_type == ContentType::Image ||
+                                                           // content_type == ContentType::Geometry ||
+                                                           // content_type == ContentType::Video ||
+                                                              content_type <= ContentType::Video ); }
 
 CLASS_DECL_ZUTILO const char* ToString(ContentType content_type);
 CLASS_DECL_ZUTILO std::string ToString(ContentType content_type, bool json_format);
@@ -98,7 +102,10 @@ namespace CONTENT_TYPE_REFACTOR
 
 
 // --------------------------------------------------------------------------
-// AudioType 
+// AudioType
+// GeometryType
+// ImageType
+// VideoType
 // --------------------------------------------------------------------------
 
 enum class AudioType : int
@@ -106,11 +113,10 @@ enum class AudioType : int
     M4A = 0
 };
 
-
-
-// --------------------------------------------------------------------------
-// ImageType 
-// --------------------------------------------------------------------------
+enum class GeometryType : int
+{
+    GeoJSON = 0
+};
 
 enum class ImageType : int
 {
@@ -120,13 +126,7 @@ enum class ImageType : int
     WebP   = 3,
 };
 
-
-
-// --------------------------------------------------------------------------
-// GeometryType
-// --------------------------------------------------------------------------
-
-enum class GeometryType : int
+enum class VideoType : int
 {
-    GeoJSON = 0
+    WebM = 0,
 };

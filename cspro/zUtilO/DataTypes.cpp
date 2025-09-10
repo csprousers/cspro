@@ -63,6 +63,7 @@ namespace
         "Audio",
         "Image",
         "Geometry",
+        "Video",
     };
 }
 
@@ -77,6 +78,7 @@ const std::vector<ContentType>& GetContentTypesSupportedByDictionary()
         ContentType::Document,
         ContentType::Geometry,
         ContentType::Image,
+        ContentType::Video,
     };
 
     return ContentTypes;
@@ -120,7 +122,7 @@ ContentType JsonSerializer<ContentType>::CreateFromJson(const JsonNode& json_nod
     if( content_type.has_value() )
         return *content_type;
 
-    throw JsonParseException("'%s' is not a valid content type", std::string(text_sv).c_str());    
+    throw JsonParseException("'%s' is not a valid content type", std::string(text_sv).c_str());
 }
 
 
