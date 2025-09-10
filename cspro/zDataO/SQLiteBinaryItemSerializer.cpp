@@ -10,7 +10,7 @@ SQLiteBinaryItemSerializer::SQLiteBinaryItemSerializer(UniqueId repository_id, s
         m_db(db),
         m_stmtGetContent(db, "SELECT `data` FROM `binary-data` WHERE `signature` = ?;"),
         m_stmtGetContentSize(db, "SELECT length(`data`) FROM `binary-data` WHERE `signature` = ?;"),
-        m_stmtHasContentAssociatedWithCaseUuid(db, "SELECT 1 FROM `case-binary-data` WHERE `case-id` = ? LIMIT 1;"),
+        m_stmtHasContentAssociatedWithCaseUuid(db, "SELECT 1 FROM `case-binary-data` WHERE `binary-data-signature` = ? AND `case-id` = ? LIMIT 1;"),
         m_stmtHasContentAssociatedWithAnyCase(db, "SELECT 1 FROM `binary-data` WHERE `signature` = ? LIMIT 1;"),
         m_stmtAssociateContentWithCase(db, "INSERT INTO `case-binary-data` ( `case-id`, `binary-data-signature` ) VALUES( ?, ? );"),
         m_stmtInsertContent(db, "INSERT INTO `binary-data` ( `signature`, `data`, `last_modified_revision`) VALUES( ?, ?, ? )")
@@ -52,11 +52,16 @@ std::string SQLiteBinaryItemSerializer::InsertContent(const BinaryDataAccessor& 
     const std::string& signature = binary_data_accessor.GetSignature();
     ASSERT(BinaryDataAccessor::IsValidSignature(signature));
 
-    // we only want to add the content when necessary, as it may be an expensive operation to retrieve
-    auto bind_and_execute_scalar_query = [&](SQLiteStatement& stmt, const std::string& bind_value)
+    // we only want to add the content when necessary, as it may be an expensive operation to retrieve;
+    // this method binds the signature (first), and optionally, another value
+
+    auto bind_and_execute_scalar_query = [&](SQLiteStatement& stmt, const std::string* const optional_bind_value)
     {
         const SQLiteResetOnDestruction rod(stmt);
-        stmt.Bind(1, bind_value);
+        stmt.Bind(1, signature);
+
+        if( optional_bind_value != nullptr )
+            stmt.Bind(2, *optional_bind_value);
 
         switch( stmt.Step() )
         {
@@ -67,14 +72,14 @@ std::string SQLiteBinaryItemSerializer::InsertContent(const BinaryDataAccessor& 
     };
 
     // if the content already exists and is already associated with this case, there is nothing to do
-    if( bind_and_execute_scalar_query(m_stmtHasContentAssociatedWithCaseUuid, case_uuid) )
+    if( bind_and_execute_scalar_query(m_stmtHasContentAssociatedWithCaseUuid, &case_uuid) )
         return signature;
 
     // if the content is not associated with any case, add it
-    if( !bind_and_execute_scalar_query(m_stmtHasContentAssociatedWithAnyCase, signature) )
+    if( !bind_and_execute_scalar_query(m_stmtHasContentAssociatedWithAnyCase, nullptr) )
     {
         GetContentAndInsert(binary_data_accessor, signature, revision);
-        ASSERT81(bind_and_execute_scalar_query(m_stmtHasContentAssociatedWithAnyCase, signature));
+        ASSERT81(bind_and_execute_scalar_query(m_stmtHasContentAssociatedWithAnyCase, nullptr));
     }
 
     // associate this content with this case
