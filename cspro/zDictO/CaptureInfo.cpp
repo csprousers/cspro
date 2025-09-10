@@ -26,27 +26,31 @@ namespace
         "Photo",
         "Signature",
         "Audio",
+        "Video",
     };
 
     constexpr const char* UnspecifiedCaptureTypeName = "Unspecified";
 
 
-    bool CaptureTypeSupportedOnPlatform(const CaptureType capture_type)
+    constexpr bool CaptureTypeSupportedOnPlatform(const CaptureType capture_type)
     {
-#ifdef WIN_DESKTOP
-        if( capture_type == CaptureType::Barcode ||
-            capture_type == CaptureType::Slider ||
-            capture_type == CaptureType::Photo ||
-            capture_type == CaptureType::Signature ||
-            capture_type == CaptureType::Audio )
-#else
-        if( capture_type == CaptureType::NumberPad )
-#endif
+        switch( capture_type )
         {
-            return false;
-        }
+#ifdef WIN_DESKTOP
+            case CaptureType::Barcode:
+            case CaptureType::Slider:
+            case CaptureType::Photo:
+            case CaptureType::Signature:
+            case CaptureType::Audio:
+#else
+            case CaptureType::NumberPad:
+#endif
+            case CaptureType::Video:
+                return false;
 
-        return true;
+            default:
+                return true;
+        }
     }
 }
 
@@ -134,7 +138,7 @@ void CaptureInfo::Build(CSpecFile& spec_file, const CString& argument)
 
 void CaptureInfo::Save(CSpecFile& spec_file, const bool use_pre77_command_names) const
 {
-    const TCHAR* command = CMD_CAPTURE_TYPE;
+    const wchar_t* command = CMD_CAPTURE_TYPE;
 
     // to keep the form file from changing too much from 7.6 to 7.7, we will
     // use the old command name when the capture type is a <= 7.6 capture type
@@ -151,7 +155,7 @@ void CaptureInfo::Save(CSpecFile& spec_file, const bool use_pre77_command_names)
             case CaptureType::NumberPad:
             case CaptureType::Barcode:
             case CaptureType::Slider:
-                command = _T("DataCaptureType");
+                command = L"DataCaptureType";
                 break;
         }
     }
@@ -272,8 +276,12 @@ CaptureType CaptureInfo::GetBaseCaptureType(const CDictItem& dict_item)
         case ContentType::Audio:
             return CaptureType::Audio;
 
+        case ContentType::Video:
+            return CaptureType::Video;
+
         default:
-            ASSERT(false);
+            ASSERT(dict_item.GetContentType() == ContentType::Document ||
+                   dict_item.GetContentType() == ContentType::Geometry);
             return CaptureType::TextBox;
     }
 }
@@ -282,9 +290,9 @@ CaptureType CaptureInfo::GetBaseCaptureType(const CDictItem& dict_item)
 CaptureInfo CaptureInfo::GetDefaultCaptureInfo(const CDictItem& dict_item)
 {
     const DictValueSet* dict_value_set = dict_item.GetFirstValueSetOrNull();
-    bool has_value_set = ( dict_value_set != nullptr );
-    size_t num_values = has_value_set ? dict_value_set->GetNumValues() : 0;
-    size_t num_to_values = has_value_set ? dict_value_set->GetNumToValues() : 0;
+    const bool has_value_set = ( dict_value_set != nullptr );
+    const size_t num_values = has_value_set ? dict_value_set->GetNumValues() : 0;
+    const size_t num_to_values = has_value_set ? dict_value_set->GetNumToValues() : 0;
 
     CaptureType default_capture_type = GetBaseCaptureType(dict_item);
 
@@ -367,9 +375,12 @@ bool CaptureInfo::IsCaptureTypePossible(const CDictItem& dict_item, const Captur
         case CaptureType::Audio:
             return ( dict_item.GetContentType() == ContentType::Audio );
 
+        // video only
+        case CaptureType::Video:
+            return ( dict_item.GetContentType() == ContentType::Video );
+
         default:
-            ASSERT(false);
-            return false;
+            return ReturnProgrammingError(false);
     }
 }
 
@@ -788,14 +799,14 @@ T CheckBoxCaptureInfo::SharedResponseProcessor(const CString& checkbox_text, con
 
     std::vector<const DictValue*> selected_values;
 
-    for( const TCHAR* checkbox_itr = checkbox_text; *checkbox_itr != 0; checkbox_itr += checkbox_length )
+    for( const wchar_t* checkbox_itr = checkbox_text; *checkbox_itr != 0; checkbox_itr += checkbox_length )
     {
         // only check non-blank values
         bool has_non_blank_values = false;
 
         for( int i = 0; i < checkbox_length; ++i )
         {
-            if( checkbox_itr[i] != _T(' ') )
+            if( checkbox_itr[i] != ' ' )
             {
                 has_non_blank_values = true;
                 break;
@@ -852,7 +863,7 @@ CString CheckBoxCaptureInfo::GetResponseLabel(const CString& checkbox_text, cons
         if( dict_value != nullptr )
         {
             if( !checkbox_label.IsEmpty() )
-                checkbox_label.Append(_T(", "));
+                checkbox_label.Append(L", ");
 
             checkbox_label.Append(dict_value->GetLabel());
         }

@@ -8,8 +8,8 @@ class DictValueSet;
 class ExtendedCaptureInfo;
 class ValueProcessor;
 
-#define CMD_CAPTURE_TYPE        _T("CaptureType")
-#define CMD_CAPTURE_TYPE_DATE   _T("CaptureDateFormat")
+#define CMD_CAPTURE_TYPE        L"CaptureType"
+#define CMD_CAPTURE_TYPE_DATE   L"CaptureDateFormat"
 
 
 enum class CaptureType : int
@@ -29,7 +29,8 @@ enum class CaptureType : int
     Photo        = 10,
     Signature    = 11,
     Audio        = 12,
-    LastDefined  = 12,
+    Video        = 13,
+    LastDefined  = 13,
 };
 
 
@@ -79,7 +80,7 @@ public:
 
     // returns a valid capture info (for data entry runtime) using as many attributes as possible from this object's capture info
     CaptureInfo MakeValid(const CDictItem& dict_item, const DictValueSet* dict_value_set,
-        bool get_capture_type_supported_on_current_platform = true) const;
+                          bool get_capture_type_supported_on_current_platform = true) const;
 
 
     // serialization

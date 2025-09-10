@@ -436,6 +436,7 @@ void CFieldPropDlg::PopulateCaptureInfo()
                                       CaptureType::Photo,
                                       CaptureType::Signature,
                                       CaptureType::Audio,
+                                      CaptureType::Video,
                                       CaptureType::NumberPad } )
     {
         if( CaptureInfo::IsCaptureTypePossible(*m_pDictItem, capture_type) )

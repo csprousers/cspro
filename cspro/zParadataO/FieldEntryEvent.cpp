@@ -7,7 +7,7 @@ using namespace Paradata;
 
 Table& FieldEntryEvent::AddCaptureType(const char* const column_name, Table& table)
 {
-    static_assert(CaptureType::Audio == CaptureType::LastDefined);
+    static_assert(CaptureType::Video == CaptureType::LastDefined);
 
     return table
             .AddColumn(column_name, Table::ColumnType::Integer)
@@ -25,6 +25,7 @@ Table& FieldEntryEvent::AddCaptureType(const char* const column_name, Table& tab
                     .AddCode(CaptureType::Photo, "photo")
                     .AddCode(CaptureType::Signature, "signature")
                     .AddCode(CaptureType::Audio, "audio")
+                    .AddCode(CaptureType::Video, "video")
         ;
 }
 

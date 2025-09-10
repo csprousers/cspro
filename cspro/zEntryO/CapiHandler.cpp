@@ -219,7 +219,8 @@ int CCapi::DoLabelsModeless(const DEFLD* const pDeField)
     {
         if( evaluated_capture_info.GetCaptureType() == CaptureType::Photo ||
             evaluated_capture_info.GetCaptureType() == CaptureType::Signature ||
-            evaluated_capture_info.GetCaptureType() == CaptureType::Audio )
+            evaluated_capture_info.GetCaptureType() == CaptureType::Audio ||
+            evaluated_capture_info.GetCaptureType() == CaptureType::Video )
         {
             return iRet; // BINARY_TYPES_TO_ENGINE_TODO temporarily ignoring these capture types
         }
