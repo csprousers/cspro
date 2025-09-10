@@ -237,8 +237,8 @@ CLASS_DECL_ZUTILO std::vector<std::string> GetFileNameArrayFromSpecFile(CSpecFil
 
 namespace Html
 {
-    enum class Subdirectory { Charting, CSS, Dialogs, Document, HtmlEditor, Images, Mapping, Mustache,
-                              QuestionnaireView, Runtime, Templates, Utilities, Visualizations };
+    enum class Subdirectory { Charting, CSS, Dialogs, Document, HtmlEditor, Images, Mapping, Media,
+                              Mustache, QuestionnaireView, Runtime, Templates, Utilities, Visualizations };
 
     CLASS_DECL_ZUTILO const std::string& GetDirectory();
     CLASS_DECL_ZUTILO std::string GetDirectory(Subdirectory html_subdirectory);

@@ -730,15 +730,18 @@ void CaseToHtmlConverter::WriteBinaryCaseItem(HtmlWriter& html_writer, const Bin
     }
 
 
-    // if this is audio, add an audio control to play it
-    else if( !data_access_url.empty() && MimeType::IsAudioType(mime_type) )
+    // if this is audio or video, add a control to play it
+    else if( bool is_audio;
+             !data_access_url.empty() &&
+             ( ( is_audio = MimeType::IsAudioType(mime_type) ) || MimeType::IsVideoType(mime_type) ) )
     {
         html_writer.WriteNewline();
-        html_writer << "<audio controls controlsList=\"nodownload\" preload=\"none\">"
+        html_writer << ( is_audio ? "<audio" : "<video" )
+                    << " controls controlsList=\"nodownload\" preload=\"none\">"
                        "<source src=\"";
         html_writer.WriteTagValue(data_access_url);
         html_writer << "\" />"
-                       "</audio>";
+                    << ( is_audio ? "</audio>" : "</video>" );
     }
 
 
