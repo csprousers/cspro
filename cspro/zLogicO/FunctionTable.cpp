@@ -529,7 +529,7 @@ namespace
         },
         {
             "filename",
-            "filename(dictionary_name | file_name | pff_name | audio_name)",
+            "filename(dictionary_name | file_name | object_name)",
             "filename_function.html",
             FunctionCode::FNFILENAME_CODE,
             SymbolType::None,
@@ -3627,6 +3627,41 @@ namespace
             DataType::Numeric,
             FunctionCompilationType::ValueSet,
             2,
+        },
+
+
+        // --------------------------------------------------------------------------
+        // Video functions
+        // --------------------------------------------------------------------------
+        {
+            "clear",
+            "video_name.clear()",
+            "Video_clear_function.html",
+            FunctionCode::VIDEOFN_CLEAR_CODE,
+            SymbolType::Video,
+            DataType::Numeric,
+            FunctionCompilationType::Video,
+            0,
+        },
+        {
+            "load",
+            "video_name.load(filename)",
+            "Video_load_function.html",
+            FunctionCode::VIDEOFN_LOAD_CODE,
+            SymbolType::Video,
+            DataType::Numeric,
+            FunctionCompilationType::Video,
+            1,
+        },
+        {
+            "save",
+            "video_name.save(filename)",
+            "Video_save_function.html",
+            FunctionCode::VIDEOFN_SAVE_CODE,
+            SymbolType::Video,
+            DataType::Numeric,
+            FunctionCompilationType::Video,
+            1,
         },
     };
 }

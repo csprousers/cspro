@@ -91,14 +91,37 @@ int LogicCompiler::CompileLogicVideoFunctions()
     ASSERT(CurrentToken.symbol != nullptr && CurrentToken.symbol->IsOneOf(SymbolType::Video, SymbolType::Item));
     const Symbol& symbol = *CurrentToken.symbol;
 
+    Nodes::SymbolVariableArgumentsWithSubscript& symbol_va_with_subscript_node =
+        CreateSymbolVariableArgumentsWithSubscriptNode(function_code, symbol, CurrentToken.symbol_subscript_compilation,
+                                                       CurrentToken.function_details->number_arguments, -1);
+
     NextToken();
     IssueErrorOnTokenMismatch(TOKLPAREN, MGF::left_parenthesis_expected_in_function_call_14);
 
     NextToken();
 
+    // video_name.clear()
+    if( function_code == FunctionCode::VIDEOFN_CLEAR_CODE )
+    {
+        // no arguments
+    }
+
+    // video_name.load(filename)
+    // video_name.save(filename)
+    else if( function_code == FunctionCode::VIDEOFN_LOAD_CODE ||
+             function_code == FunctionCode::VIDEOFN_SAVE_CODE )
+    {
+        symbol_va_with_subscript_node.arguments[0] = CompileStringExpression();
+    }
+
+    else
+    {
+        ASSERT(false);
+    }
+
     IssueErrorOnTokenMismatch(TOKRPAREN, MGF::right_parenthesis_expected_in_function_call_17);
 
     NextToken();
 
-    return -1; // TODO
+    return GetProgramIndex(symbol_va_with_subscript_node);
 }

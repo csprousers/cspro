@@ -156,7 +156,7 @@ const std::string& LogicAudio::GetPath(const AudioStorage& audio_storage)
 
 std::unique_ptr<LogicAudio::Data> LogicAudio::CreateData(AudioStorage audio_storage) noexcept
 {
-    auto data = std::make_unique<Data>(Data { std::move(audio_storage) });
+    std::unique_ptr<Data> data(new Data { std::move(audio_storage) });
 
     try
     {

@@ -106,6 +106,7 @@
           * Report functions: writeEncoded, writeEncodedLine, writeLine
           * StringWriter functions: clear, toString, write, writeEncoded,
               writeEncodedLine, writeLine
+          * Video functions: clear, load, save
 
     -  Action Invoker additions:
           * throwException

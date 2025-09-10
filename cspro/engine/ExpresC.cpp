@@ -3567,10 +3567,11 @@ int CEngineCompFunc::cfun_fn8()
         NextToken();
     }
 
-    // filename can also be used to get the filenames of audio, document, geometry, image, and pff objects
+    // filename can also be used to get the filenames of Audio, Document, Geometry, Image, Pff, Report, and Video objects
     else if( fn8_node.function_code == FunctionCode::FNFILENAME_CODE && ( Tkn == TOKAUDIO    || Tkn == TOKDOCUMENT ||
                                                                           Tkn == TOKGEOMETRY || Tkn == TOKIMAGE ||
-                                                                          Tkn == TOKPFF      || Tkn == TOKREPORT ) )
+                                                                          Tkn == TOKPFF      || Tkn == TOKREPORT ||
+                                                                          Tkn == TOKVIDEO ) )
     {
         symbol = NPT(Tokstindex);
         fn8_node.extra_parameter = CurrentToken.symbol_subscript_compilation;

@@ -230,6 +230,8 @@ namespace MGF
     constexpr int TextTemplate_accessed_in_invalid_location_48104           =  48104;
 
     constexpr int Video_invalid_assignment_48151                            =  48151;
+    constexpr int Video_load_error_48152                                    =  48152;
+    constexpr int Video_save_error_48153                                    =  48153;
 
     constexpr int UserFunction_expects_argument_50000                       =  50000;
     constexpr int UserFunction_function_pointer_invalid_50001               =  50001;

@@ -578,6 +578,9 @@ enum FunctionCode : int
     IMAGEFN_GETEXIF_CODE                    = 469, // 20250507
     STRINGWRITERFN_CLEAR_CODE               = 470, // 20250604
     VIDEOFN_COMPUTE_CODE                    = 471, // 20250909
+    VIDEOFN_CLEAR_CODE                      = 472, // 20250910
+    VIDEOFN_LOAD_CODE                       = 473, // 20250910
+    VIDEOFN_SAVE_CODE                       = 474, // 20250910
 };
 
 

@@ -2085,7 +2085,7 @@ double CIntDriver::exfilename(int iExpr)
         return AssignString(report.GetFilePath());
     }
 
-    // Audio, Document, Geometry, Image
+    // Audio, Document, Geometry, Image, Video
     else if( BinarySymbol::IsBinarySymbol(*symbol) )
     {
         return AssignString(assert_cast<const BinarySymbol&>(*symbol).GetPath());

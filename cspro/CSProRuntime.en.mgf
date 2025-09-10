@@ -386,6 +386,10 @@ Language=EN
 /* --- Text Templates */
 48111  Error generating the text template %s: %s
 
+/* --- Video */
+48152  Error loading video file '%s': %s.
+48153  Error saving video file '%s': %s.
+
 /* --- User-Defined Function Messages */
 
 /* --- Dynamic Logic Evaluation */
