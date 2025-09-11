@@ -2,14 +2,29 @@
 #include "SQLiteRepositoryIterators.h"
 
 
-SQLiteRepositoryCaseIterator::SQLiteRepositoryCaseIterator(SQLiteRepository& repository, CaseIterationContent iteration_content,
+SQLiteRepositoryCaseIterator::SQLiteRepositoryCaseIterator(SQLiteRepository& repository, const CaseIterationContent iteration_content,
                                                            std::unique_ptr<SQLiteStatement> statement)
     :   m_repository(repository),
         m_iterationContent(iteration_content),
         m_statement(std::move(statement)),
         m_casesRead(0)
 {
-    m_processCaseNote = ( iteration_content == CaseIterationContent::CaseSummary && m_repository.GetCaseAccess().GetUsesNotes() && RequiresCaseNote() );
+    m_processCaseNote = ( iteration_content == CaseIterationContent::CaseSummary &&
+                          m_repository.GetCaseAccess().GetUsesNotes() &&
+                          RequiresCaseNote() );
+}
+
+
+SQLiteRepositoryCaseIterator::SQLiteRepositoryCaseIterator(SQLiteRepository& repository, const CaseIterationContent iteration_content,
+                                                           std::unique_ptr<SQLiteStatement> statement,
+                                                           const CaseIteratorSettings* const iterator_settings)
+    :   SQLiteRepositoryCaseIterator(repository, iteration_content, std::move(statement))
+{
+    if( iterator_settings != nullptr )
+    {
+        m_progressBarParameters.emplace(iterator_settings->GetStatus(),
+                                        CreateCopyOfPointerValue(iterator_settings->GetParameters()));
+    }
 }
 
 
