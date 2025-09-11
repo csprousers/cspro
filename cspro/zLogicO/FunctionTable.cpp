@@ -3644,6 +3644,16 @@ namespace
             0,
         },
         {
+            "length",
+            "video_name.length()",
+            "Video_length_function.html",
+            FunctionCode::VIDEOFN_LENGTH_CODE,
+            SymbolType::Video,
+            DataType::Numeric,
+            FunctionCompilationType::Video,
+            0,
+        },
+        {
             "load",
             "video_name.load(filename)",
             "Video_load_function.html",

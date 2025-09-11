@@ -101,7 +101,9 @@ int LogicCompiler::CompileLogicVideoFunctions()
     NextToken();
 
     // video_name.clear()
-    if( function_code == FunctionCode::VIDEOFN_CLEAR_CODE )
+    // video_name.length()
+    if( function_code == FunctionCode::VIDEOFN_CLEAR_CODE ||
+        function_code == FunctionCode::VIDEOFN_LENGTH_CODE )
     {
         // no arguments
     }

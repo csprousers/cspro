@@ -23,6 +23,18 @@ double LogicInterpreter::ex_Video_clear(const int program_index)
 }
 
 
+double LogicInterpreter::ex_Video_length(const int program_index)
+{
+    const auto& symbol_va_with_subscript_node = GetOrConvertPre80SymbolVariableArgumentsWithSubscriptNode(program_index);
+    LogicVideo* const logic_video = GetFromSymbolOrEngineItem<LogicVideo*>(symbol_va_with_subscript_node.symbol_index, symbol_va_with_subscript_node.subscript_compilation);
+
+    if( logic_video == nullptr )
+        return DEFAULT;
+
+    return logic_video->GetLength();
+}
+
+
 double LogicInterpreter::ex_Video_load(const int program_index)
 {
     const auto& symbol_va_with_subscript_node = GetOrConvertPre80SymbolVariableArgumentsWithSubscriptNode(program_index);
