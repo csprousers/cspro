@@ -582,6 +582,8 @@ enum FunctionCode : int
     VIDEOFN_LOAD_CODE                       = 473, // 20250910
     VIDEOFN_SAVE_CODE                       = 474, // 20250910
     VIDEOFN_LENGTH_CODE                     = 475, // 20250911
+    VIDEOFN_WIDTH_CODE                      = 476, // 20250915
+    VIDEOFN_HEIGHT_CODE                     = 477, // 20250915
 };
 
 

@@ -842,6 +842,8 @@ CIntDriver::pDoubleFunction CIntDriver::m_pExFuncs[] =
 /* 473 */   &CIntDriver::ex_Video_load,
 /* 474 */   &CIntDriver::ex_Video_save,
 /* 475 */   &CIntDriver::ex_Video_length,
+/* 476 */   &CIntDriver::ex_Video_width_height, // Video.width
+/* 477 */   &CIntDriver::ex_Video_width_height, // Video.height
 
 
             // placeholders to allow new logic functions to be added to an existing serialization

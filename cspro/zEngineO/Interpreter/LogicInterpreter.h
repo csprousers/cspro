@@ -707,6 +707,7 @@ public:
     double ex_Video_length(int program_index);
     double ex_Video_load(int program_index);
     double ex_Video_save(int program_index);
+    double ex_Video_width_height(int program_index);
 
 
     // --------------------------------------------------------------------------

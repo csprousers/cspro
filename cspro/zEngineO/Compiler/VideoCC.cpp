@@ -102,8 +102,12 @@ int LogicCompiler::CompileLogicVideoFunctions()
 
     // video_name.clear()
     // video_name.length()
+    // video_name.width()
+    // video_name.height()
     if( function_code == FunctionCode::VIDEOFN_CLEAR_CODE ||
-        function_code == FunctionCode::VIDEOFN_LENGTH_CODE )
+        function_code == FunctionCode::VIDEOFN_LENGTH_CODE ||
+        function_code == FunctionCode::VIDEOFN_WIDTH_CODE ||
+        function_code == FunctionCode::VIDEOFN_HEIGHT_CODE )
     {
         // no arguments
     }

@@ -3644,6 +3644,16 @@ namespace
             0,
         },
         {
+            "height",
+            "video_name.height()",
+            "Video_height_function.html",
+            FunctionCode::VIDEOFN_HEIGHT_CODE,
+            SymbolType::Video,
+            DataType::Numeric,
+            FunctionCompilationType::Video,
+            0,
+        },
+        {
             "length",
             "video_name.length()",
             "Video_length_function.html",
@@ -3672,6 +3682,16 @@ namespace
             DataType::Numeric,
             FunctionCompilationType::Video,
             1,
+        },
+        {
+            "width",
+            "video_name.width()",
+            "Video_width_function.html",
+            FunctionCode::VIDEOFN_WIDTH_CODE,
+            SymbolType::Video,
+            DataType::Numeric,
+            FunctionCompilationType::Video,
+            0,
         },
     };
 }

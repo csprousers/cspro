@@ -31,6 +31,36 @@ std::unique_ptr<mkvparser::MkvReader> WebMFile::CreateReader(const std::variant<
 }
 
 
+struct WebMFile::ReaderAndSegment
+{
+    std::unique_ptr<mkvparser::MkvReader> reader;
+    std::unique_ptr<mkvparser::Segment> segment;
+    const mkvparser::SegmentInfo* segment_info;
+};
+
+
+WebMFile::ReaderAndSegment WebMFile::CreateReaderLoadSegment(const std::variant<cs::string_sz, FILE*> file_path_or_file)
+{
+    WebMFile::ReaderAndSegment reader_and_segment { CreateReader(file_path_or_file) };
+
+    long long pos = 0;
+    mkvparser::Segment* segment_ptr;
+
+    if( mkvparser::Segment::CreateInstance(reader_and_segment.reader.get(), pos, segment_ptr) != 0 )
+        throw CSProException("Could not find the WebM segment.");
+
+    reader_and_segment.segment.reset(segment_ptr);
+
+    if( ( reader_and_segment.segment->Load() != 0 ) ||
+        ( ( reader_and_segment.segment_info = reader_and_segment.segment->GetInfo() ) == nullptr ) )
+    {
+        throw CSProException("Error reading WebM segment info.");
+    }
+
+    return reader_and_segment;
+}
+
+
 bool WebMFile::IsValidFile(const std::variant<cs::string_sz, FILE*> file_path_or_file)
 {
     const std::unique_ptr<mkvparser::MkvReader> reader = CreateReader(file_path_or_file);
@@ -44,34 +74,19 @@ bool WebMFile::IsValidFile(const std::variant<cs::string_sz, FILE*> file_path_or
 
 double WebMFile::GetDuration(const std::variant<cs::string_sz, FILE*> file_path_or_file, const bool use_segment_duration_if_set)
 {
-    const std::unique_ptr<mkvparser::MkvReader> reader = CreateReader(file_path_or_file);
-
-    long long pos = 0;
-    mkvparser::Segment* segment_ptr;
-
-    if( mkvparser::Segment::CreateInstance(reader.get(), pos, segment_ptr) != 0 )
-        throw CSProException("Could not find the WebM segment.");
-
-    const std::unique_ptr<mkvparser::Segment> segment(segment_ptr);
-    const mkvparser::SegmentInfo* segment_info;
-
-    if( ( segment->Load() != 0 ) ||
-        ( ( segment_info = segment->GetInfo() ) == nullptr ) )
-    {
-        throw CSProException("Error reading WebM segment info.");
-    }
-
     constexpr long long TimeCodeScale_ns = static_cast<long long>(1e9);
     constexpr long long TimeCodeScale_ms = static_cast<long long>(1e6);
+
+    const WebMFile::ReaderAndSegment reader_and_segment = CreateReaderLoadSegment(file_path_or_file);
 
     // when allowed, we can use the segment's metadata if it contains a valid duration value
     if( use_segment_duration_if_set )
     {
-        const long long duration = segment_info->GetDuration();
+        const long long duration = reader_and_segment.segment_info->GetDuration();
 
         if( duration > 0 )
         {
-            const double time_code_scale = static_cast<double>(segment_info->GetTimeCodeScale());
+            const double time_code_scale = static_cast<double>(reader_and_segment.segment_info->GetTimeCodeScale());
             ASSERT(time_code_scale == TimeCodeScale_ms);
 
             // the duration's time code scale is for milliseconds, but the duration is reported in nanoseconds,
@@ -90,7 +105,7 @@ double WebMFile::GetDuration(const std::variant<cs::string_sz, FILE*> file_path_
 
     MaxValues cluster_max_values;
 
-    const mkvparser::Cluster* cluster = segment->GetFirst();
+    const mkvparser::Cluster* cluster = reader_and_segment.segment->GetFirst();
 
     while( cluster != nullptr && !cluster->EOS() )
     {
@@ -124,13 +139,13 @@ double WebMFile::GetDuration(const std::variant<cs::string_sz, FILE*> file_path_
         }
 
         // offset by the cluster start time
-        ASSERT(( cluster->GetTimeCode() * segment_info->GetTimeCodeScale() ) == cluster->GetTime());
+        ASSERT(( cluster->GetTimeCode() * reader_and_segment.segment_info->GetTimeCodeScale() ) == cluster->GetTime());
         block_max_values.time_unscaled += cluster->GetTimeCode();
 
         if( block_max_values.time_unscaled > cluster_max_values.time_unscaled )
             cluster_max_values = block_max_values;
 
-        cluster = segment->GetNext(cluster);
+        cluster = reader_and_segment.segment->GetNext(cluster);
     }
 
     // because the calculations were made without scaling,
@@ -141,7 +156,7 @@ double WebMFile::GetDuration(const std::variant<cs::string_sz, FILE*> file_path_
     // the expected duration of the selected block (which is based in nanoseconds)
     if( cluster_max_values.block_frame_count != 0 )
     {
-        const mkvparser::Track* const track = segment->GetTracks()->GetTrackByNumber(static_cast<long>(cluster_max_values.track_number));
+        const mkvparser::Track* const track = reader_and_segment.segment->GetTracks()->GetTrackByNumber(static_cast<long>(cluster_max_values.track_number));
         const unsigned long long default_duration = ( track != nullptr ) ? track->GetDefaultDuration() : 0;
 
         if( default_duration > 0 )
@@ -152,4 +167,26 @@ double WebMFile::GetDuration(const std::variant<cs::string_sz, FILE*> file_path_
     }
 
     return duration_s;
+}
+
+
+std::tuple<long long, long long> WebMFile::GetWidthHeight(const std::variant<cs::string_sz, FILE*> file_path_or_file)
+{
+    const WebMFile::ReaderAndSegment reader_and_segment = CreateReaderLoadSegment(file_path_or_file);
+    const mkvparser::Tracks* const tracks = reader_and_segment.segment->GetTracks();
+    const unsigned long num_tracks = ( tracks != nullptr ) ? tracks->GetTracksCount() : 0;
+
+    for( unsigned long i = 0; i < num_tracks; ++i )
+    {
+        const mkvparser::Track* const track = tracks->GetTrackByIndex(i);
+
+        if( track != nullptr && track->GetType() == mkvparser::Track::kVideo )
+        {
+            const mkvparser::VideoTrack* const video_track = static_cast<const mkvparser::VideoTrack*>(track);
+
+            return std::make_tuple(video_track->GetDisplayWidth(), video_track->GetDisplayHeight());
+        }
+    }
+
+    throw CSProException("Could not find the video track in the WebM file.");
 }

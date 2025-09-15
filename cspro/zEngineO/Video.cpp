@@ -12,6 +12,7 @@ struct LogicVideo::Data
     VideoStorage video_storage;
     std::optional<bool> is_webm;
     std::optional<double> length;
+    std::optional<std::tuple<long long, long long>> width_height;
 };
 
 
@@ -247,4 +248,23 @@ double LogicVideo::GetLength() const noexcept
     }
 
     return *length;
+}
+
+
+const std::tuple<long long, long long>& LogicVideo::GetWidthHeight() const
+{
+    ASSERT(HasValidContent());
+
+    const Data& evaluated_data = GetEvaluatedData();
+
+    if( !evaluated_data.width_height.has_value() )
+    {
+        DoWithFilePathOrFile(
+            [&](const std::variant<cs::string_sz, FILE*> file_path_or_file)
+            {
+                const_cast<LogicVideo*>(this)->m_data->width_height = WebMFile::GetWidthHeight(file_path_or_file);
+            });
+    }
+
+    return *evaluated_data.width_height;
 }

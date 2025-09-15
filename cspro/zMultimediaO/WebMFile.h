@@ -27,6 +27,14 @@ public:
     // A CSProException is thrown on error.
     static double GetDuration(std::variant<cs::string_sz, FILE*> file_path_or_file, bool use_segment_duration_if_set);
 
+    // Returns the display width and height of a WebM file's video track.
+    // If passing in a non-null FILE* pointer, the caller retains ownership of the FILE*.
+    // A CSProException is thrown on error.
+    static std::tuple<long long, long long> GetWidthHeight(std::variant<cs::string_sz, FILE*> file_path_or_file);
+
 private:
     static std::unique_ptr<mkvparser::MkvReader> CreateReader(std::variant<cs::string_sz, FILE*> file_path_or_file);
+
+    struct ReaderAndSegment;
+    static ReaderAndSegment CreateReaderLoadSegment(std::variant<cs::string_sz, FILE*> file_path_or_file);
 };
