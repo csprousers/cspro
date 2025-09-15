@@ -132,7 +132,7 @@ class Roster extends FormElement {
         //item language labels
         if (dataJson.horizontal && dataJson.horizontal.items && dataJson.horizontal.items.length > 0) {
             dataJson.horizontal.items.forEach(function (item) {
-                if(item.block){
+                if (item.block) {
                     item.block["qsfText-lang"] = factory.resolveLabelLanguage(item.block.qsfText);
                     item.block["helpText-lang"] = factory.resolveLabelLanguage(item.block.helpText);
                     item.block["dcfLabel-lang"] = factory.resolveLabelLanguage(item.block.dcfLabel);
@@ -215,7 +215,7 @@ class Roster extends FormElement {
         }
 
         if (!dataJson["flat"]) {
-            //flipping rosters data        
+            //flipping rosters data
             this.flipRoster(dataJson);
         } else {
             this.flattenRoster(dataJson);
@@ -602,24 +602,24 @@ class CaseViewFactory {
     }
 
     showHideMenuItems(menuContainer) {
-        //The side bar includes menu item entries that references to the ids of the items in the view. When the menu entry is clicked 
+        //The side bar includes menu item entries that references to the ids of the items in the view. When the menu entry is clicked
         //it scrolls to the element in the view. However, when there are rosters, the sidebar entries include both the horizontal and
-        //vertical roster elements. This function hides the entries that for either horizontal or vertical rosters depending on which 
+        //vertical roster elements. This function hides the entries that for either horizontal or vertical rosters depending on which
         //container is hidden. Using isVisible takes more than 30 seconds on some devices.  Refactored the code to check if the id element
         //the menu entry is refering to is a table cell or header that is contained in a roster and hiding those menu entries on the sidebar
         //as needed. For a given roster, there are two containers in the view depeneding on the orientation the display for the other is turned off
         $(".menu-entry").each(function () {
             let anchorId = $(this).attr("aid"); // Get the ID of the anchor
             let anchorElement = document.getElementById(anchorId); // Get the anchor element
-          
+
             $(this).show(); // Show the menu entry
 
             // Check if the anchor element exists and is contained in a visible parent table
             if ($(anchorElement).closest('td, th').length > 0) {
-                 // Find the closest container with class "vertical-roster-container"
+                // Find the closest container with class "vertical-roster-container"
                 const rosterContainer = $(anchorElement).closest('.vertical-roster-container, .horizontal-roster-container')[0];
-                if(rosterContainer && getComputedStyle(rosterContainer).display == "none") {
-                    $(this).hide(); 
+                if (rosterContainer && getComputedStyle(rosterContainer).display == "none") {
+                    $(this).hide();
                 }
             }
         });
@@ -867,7 +867,7 @@ class CaseViewFactory {
     renderPage(dataJson) {
         if (!("forms" in dataJson))
             return;
-            
+
         this.showSpinner();
         setTimeout(() => {
             if (this.container === undefined ||
@@ -984,4 +984,3 @@ class CaseViewFactory {
         return ip.result;
     }
 }
-

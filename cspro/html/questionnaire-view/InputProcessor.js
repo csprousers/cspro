@@ -262,7 +262,7 @@ class CaseViewInputProcessor {
             return res;
 
         // Get only "question" type texts
-        const questionTexts = qsf.conditions[0].texts.filter(text => text.type ===  type);
+        const questionTexts = qsf.conditions[0].texts.filter(text => text.type === type);
 
         questionTexts.forEach(t => {
             res[t.language] = t.html.replace(/~~~|~~/g, '');
@@ -271,7 +271,7 @@ class CaseViewInputProcessor {
         return res;
     }
 
-    
+
     getValue(dictName, itemName, occ) {
         var res = this.rawInput["case"];
         if (!res)
@@ -578,7 +578,7 @@ class CaseViewInputProcessor {
 
         //qsf
         i1.qsfText = _ip.getQsfText(i.dictionary, i.name);
-        i1.helpText = _ip.getQsfText(i.dictionary, i.name,"help");
+        i1.helpText = _ip.getQsfText(i.dictionary, i.name, "help");
 
         //adding block data
         if (blockData) {
