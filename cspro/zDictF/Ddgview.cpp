@@ -600,15 +600,15 @@ void CDDGView::OnEditPasteValueSetLink()
     m_gridItem.SendMessage(WM_COMMAND, ID_PASTE_VS_LINK);
 }
 
-void CDDGView::OnUpdateEditPasteValueSetLink(CCmdUI* pCmdUI)
+void CDDGView::OnUpdateEditPasteValueSetLink(CCmdUI* const pCmdUI)
 {
-    CDictChildWnd* pDictChildWnd = assert_cast<CDictChildWnd*>(GetParentFrame());
-    if (pDictChildWnd->isQuestionnaireView()) {
-        pCmdUI->Enable(FALSE);
-        return;
-    }
-    pCmdUI->Enable(( m_iGrid == DictionaryGrid::Item && GetFocus() == m_gridItem.m_CUGGrid ));
+    CDictChildWnd* const pDictChildWnd = assert_cast<CDictChildWnd*>(GetParentFrame());
+
+    pCmdUI->Enable(( !pDictChildWnd->isQuestionnaireView() &&
+                     m_iGrid == DictionaryGrid::Item &&
+                     GetFocus() == m_gridItem.m_CUGGrid ));
 }
+
 
 /////////////////////////////////////////////////////////////////////////////
 //

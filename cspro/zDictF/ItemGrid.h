@@ -99,6 +99,8 @@ private:
     void EditCopy(bool bCut);
     void EditDelete();
 
+    bool ValueSetOnClipboardIsFromSameDictionary(const CDDDoc* pDoc) noexcept;
+
 private:
     int m_iLevel;
     int m_iRec;
