@@ -51,9 +51,10 @@ inline bool BinaryCaseItemConverter::ToBinary(const BinaryCaseItem& output_binar
     ASSERT(output_content_type == ContentType::Audio ||
            output_content_type == ContentType::Document ||
            output_content_type == ContentType::Geometry ||
-           output_content_type == ContentType::Image);
+           output_content_type == ContentType::Image ||
+           output_content_type == ContentType::Video);
 
-    const BinaryData* binary_data = m_inputBinaryCaseItem.GetBinaryData_noexcept(m_inputIndex);
+    const BinaryData* const binary_data = m_inputBinaryCaseItem.GetBinaryData_noexcept(m_inputIndex);
 
     // if there was an error getting the binary data, return success
     // (because the error will already have been logged by GetBinaryData_noexcept)
@@ -82,6 +83,11 @@ inline bool BinaryCaseItemConverter::ToBinary(const BinaryCaseItem& output_binar
             else if( output_content_type == ContentType::Image )
             {
                 can_convert = MimeType::IsImageType(*mime_type);
+            }
+
+            else if( output_content_type == ContentType::Video )
+            {
+                can_convert = MimeType::IsVideoType(*mime_type);
             }
         }
     }

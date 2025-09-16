@@ -1,5 +1,6 @@
 ﻿#include "stdafx.h"
 #include "IncludesRT.h"
+#include "Document.h"
 #include "Video.h"
 
 
@@ -51,7 +52,44 @@ bool VideoRT::EnsureVideoExistsAndIsValid(LogicInterpreter& interpreter, const L
 
 double LogicInterpreter::ex_Video_compute(const int program_index)
 {
-    return DEFAULT; // TODO
+    const auto& symbol_compute_with_subscript_node = GetNode<Nodes::SymbolComputeWithSubscript>(program_index);
+    const SymbolReference<Symbol*> lhs_symbol_reference = EvaluateSymbolReference<Symbol*>(symbol_compute_with_subscript_node.lhs_symbol_index, symbol_compute_with_subscript_node.lhs_subscript_compilation);
+    const Symbol* const rhs_symbol = GetFromSymbolOrEngineItem<Symbol*>(symbol_compute_with_subscript_node.rhs_symbol_index, symbol_compute_with_subscript_node.rhs_subscript_compilation);
+
+    if( rhs_symbol == nullptr )
+        return 0;
+
+    LogicVideo* const lhs_logic_video = GetFromSymbolOrEngineItem<LogicVideo*>(lhs_symbol_reference);
+
+    if( lhs_logic_video == nullptr )
+        return 0;
+
+    try
+    {
+        if( rhs_symbol->IsA(SymbolType::Video) )
+        {
+            *lhs_logic_video = assert_cast<const LogicVideo&>(*rhs_symbol);
+        }
+
+        else if( rhs_symbol->IsA(SymbolType::Document) )
+        {
+            *lhs_logic_video = assert_cast<const LogicDocument&>(*rhs_symbol);
+        }
+
+        else
+        {
+            ASSERT(false);
+        }
+    }
+
+    catch( const CSProException& exception )
+    {
+        IssueMessage(MessageType::Error, MGF::Video_assignment_error_48156,
+                                         rhs_symbol->GetName().c_str(), lhs_logic_video->GetName().c_str(),
+                                         exception.what());
+    }
+
+    return 0;
 }
 
 

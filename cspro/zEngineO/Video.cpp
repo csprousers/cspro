@@ -1,4 +1,5 @@
 ﻿#include "stdafx.h"
+#include "Document.h"
 #include "Video.h"
 #include <zMultimediaO/WebMFile.h>
 
@@ -49,6 +50,54 @@ LogicVideo::~LogicVideo()
 std::unique_ptr<Symbol> LogicVideo::CloneInInitialState() const
 {
     return std::unique_ptr<LogicVideo>(new LogicVideo(*this));
+}
+
+
+LogicVideo& LogicVideo::operator=(const LogicVideo& logic_video)
+{
+    if( this != &logic_video )
+    {
+        m_binarySymbolData = logic_video.m_binarySymbolData;
+
+        m_data = ( logic_video.m_data != nullptr) ? std::make_unique<Data>(*logic_video.m_data) :
+                                                    nullptr;
+    }
+
+    return *this;
+}
+
+
+LogicVideo& LogicVideo::operator=(const LogicDocument& logic_document)
+{
+    const BinarySymbolData& document_binary_symbol_data = logic_document.GetBinarySymbolData();
+    std::unique_ptr<Data> document_video_data;
+
+    if( document_binary_symbol_data.IsDefined() )
+    {
+        VideoStorage video_storage = document_binary_symbol_data.GetPath();
+
+        // if the Document exists on the disk, use it; otherwise save it to a temporary file
+        if( !PortableFunctions::FileIsRegular(GetPath(video_storage)) )
+        {
+            video_storage = std::make_shared<TemporaryFile>();
+            FileIO::Write(GetPath(video_storage), document_binary_symbol_data.GetContent());
+        }
+
+        // make sure this is compatible video
+        if( !WebMFile::IsValidFile(GetPath(video_storage)) )
+            throw CSProException("The Document '%s' has data that cannot be converted to Video.", logic_document.GetName().c_str());
+
+        document_video_data.reset(new Data { std::move(video_storage), true });
+    }
+
+    m_binarySymbolData = document_binary_symbol_data;
+
+    if( document_video_data != nullptr )
+        m_binarySymbolData.GetMetadata().SetMimeType(MimeType::Type::VideoWebM);
+
+    m_data = std::move(document_video_data);
+
+    return *this;
 }
 
 
@@ -267,4 +316,40 @@ const std::tuple<long long, long long>& LogicVideo::GetWidthHeight() const
     }
 
     return *evaluated_data.width_height;
+}
+
+
+void LogicVideo::SetValueFromJson(const JsonNode& json_node)
+{
+    class LogicVideoContentValidator : public BinarySymbolDataContentValidator
+    {
+    public:
+        std::unique_ptr<Data> ReleaseData() { return std::move(m_data); }
+
+        bool ValidateContent(std::shared_ptr<const std::vector<std::byte>> content) override
+        {
+            auto temporary_file = std::make_unique<TemporaryFile>();
+            FileIO::Write(temporary_file->GetPath(), *content);
+
+            // make sure this is compatible video
+            if( !WebMFile::IsValidFile(temporary_file->GetPath()) )
+                throw CSProException("The data cannot be converted to Video.");
+
+            m_data.reset(new Data { std::move(temporary_file), true });
+
+            return true;
+        }
+
+    private:
+        std::unique_ptr<Data> m_data;
+    };
+
+    LogicVideoContentValidator logic_video_content_validator;
+
+    m_binarySymbolData.SetSymbolValueFromJson(*this, json_node, &logic_video_content_validator);
+
+    if( m_binarySymbolData.IsDefined() )
+        m_binarySymbolData.GetMetadata().SetMimeType(MimeType::Type::VideoWebM);
+
+    m_data = logic_video_content_validator.ReleaseData();
 }

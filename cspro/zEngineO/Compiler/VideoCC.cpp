@@ -63,8 +63,8 @@ int LogicCompiler::CompileLogicVideoComputeInstruction(const LogicVideo* const l
 
     NextToken();
 
-    // a Video can be assigned another Video object
-    if( Tkn != TOKVIDEO )
+    // a Video can be assigned another Video or a Document object
+    if( Tkn != TOKVIDEO && Tkn != TOKDOCUMENT )
         IssueError(MGF::Video_invalid_assignment_48151);
 
     auto& symbol_compute_with_subscript_node = CreateNode<Nodes::SymbolComputeWithSubscript>(FunctionCode::VIDEOFN_COMPUTE_CODE);

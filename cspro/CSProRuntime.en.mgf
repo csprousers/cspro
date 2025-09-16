@@ -391,6 +391,7 @@ Language=EN
 48153  The content in '%s' is not a valid WebM video so you cannot %s
 48154  Error loading video file '%s': %s.
 48155  Error saving video file '%s': %s.
+48156  Error assigning '%s' to Video '%s': %s
 
 /* --- User-Defined Function Messages */
 

@@ -6,6 +6,7 @@
 class LogicAudio;
 class LogicGeometry;
 class LogicImage;
+class LogicVideo;
 struct ViewerOptions;
 
 
@@ -22,6 +23,7 @@ public:
     LogicDocument& operator=(const LogicAudio& logic_audio);
     LogicDocument& operator=(const LogicGeometry& logic_geometry);
     LogicDocument& operator=(const LogicImage& logic_image);
+    LogicDocument& operator=(const LogicVideo& logic_video);
     LogicDocument& operator=(std::string document_text);
 
     void Load(std::string file_path);

@@ -234,6 +234,7 @@ namespace MGF
     constexpr int Video_invalid_content_error_48153                         =  48153;
     constexpr int Video_load_error_48154                                    =  48154;
     constexpr int Video_save_error_48155                                    =  48155;
+    constexpr int Video_assignment_error_48156                              =  48156;
 
     constexpr int UserFunction_expects_argument_50000                       =  50000;
     constexpr int UserFunction_function_pointer_invalid_50001               =  50001;

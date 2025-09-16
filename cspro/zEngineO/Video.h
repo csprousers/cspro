@@ -15,6 +15,9 @@ public:
     LogicVideo(const EngineItem& engine_item, ItemIndex item_index, cs::non_null_shared_or_raw_ptr<BinaryDataAccessor> binary_data_accessor);
     ~LogicVideo();
 
+    LogicVideo& operator=(const LogicVideo& logic_video);
+    LogicVideo& operator=(const LogicDocument& logic_document);
+
     // Loads the file, throwing exceptions on error.
     void Load(std::string file_path);
 
@@ -35,6 +38,8 @@ public:
     std::unique_ptr<Symbol> CloneInInitialState() const override;
 
     void Reset() override;
+
+    void SetValueFromJson(const JsonNode& json_node) override;
 
     // BinarySymbol overrides
     bool HasValidContent() const override;

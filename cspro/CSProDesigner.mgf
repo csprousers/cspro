@@ -544,7 +544,7 @@ Language=EN
 47201  An Audio object can only be assigned a value of type Audio or Document
 
 /* --- Document */
-47221  A Document object can only be assigned a value of type Document, Audio, Geometry, or Image; or a string expression
+47221  A Document object can only be assigned a value of type Document, Audio, Geometry, Image, or Video; or a string expression
 
 /* --- HashMap */
 47231  A HashMap object can only be assigned to another HashMap object
@@ -604,7 +604,7 @@ Language=EN
 48104  Accessing or writing to the text template based on '%s' is only allowed within the template's logic or from a user-defined function
 
 /* --- Video */
-48151  A Video object can only be assigned a value of type Video
+48151  A Video object can only be assigned a value of type Video or Document
 
 /* --- User-Defined Function Messages */
 50000  The user-defined function '%s' expects %s
