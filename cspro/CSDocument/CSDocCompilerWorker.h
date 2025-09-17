@@ -155,6 +155,7 @@ private:
     std::string LogicSyntaxEndHandler(const std::string& inner_text);
     std::string LogicColorEndHandler(const std::string& inner_text);
     std::string LogicEndHandlerWorker(std::string text, HelpsHtmlProcessorMode mode);
+    std::string LogicDeclareStartHandler(cs::span<const std::string> tag_components);
     std::string LogicTableStartHandler(cs::span<const std::string> tag_components);
 
     std::string ActionEndHandler(const std::string& inner_text);
@@ -195,6 +196,7 @@ private:
     std::stack<std::shared_ptr<TableSettings>> m_tableStack;
 
     std::optional<Logic::FunctionDomain> m_logicFunctionDomain;
+    std::map<std::string, SymbolType> m_logicDeclarations;
     std::optional<int> m_lexerLanguage;
     std::optional<HelpsHtmlProcessorMode> m_helpsHtmlProcessorModeOverride;
 

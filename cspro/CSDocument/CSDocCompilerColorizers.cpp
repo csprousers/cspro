@@ -29,7 +29,10 @@ class HelpsHtmlProcessor : public ScintillaColorizer::HtmlProcessor
 {
 public:
     HelpsHtmlProcessor(HelpsHtmlProcessorMode mode);
-    HelpsHtmlProcessor(HelpsHtmlProcessorMode mode, CSDocCompilerSettings& settings, std::optional<Logic::FunctionDomain> logic_function_domain);
+
+    HelpsHtmlProcessor(HelpsHtmlProcessorMode mode, CSDocCompilerSettings& settings,
+                       std::optional<Logic::FunctionDomain> logic_function_domain,
+                       const std::map<std::string, SymbolType>* logic_declarations);
 
     std::string PreprocessLogic(std::string text) const;
     static void CheckLogicCase(std::string_view text_sv, const Logic::FunctionDomain& logic_function_domain = SymbolType::None);
@@ -54,9 +57,10 @@ private:
     void PostprocessExtendedEntities(std::vector<ScintillaColorizer::ExtendedEntity>& extended_entities) const;
 
 private:
-    const HelpsHtmlProcessorMode m_mode;
+    HelpsHtmlProcessorMode m_mode;
     CSDocCompilerSettings* m_settings;
-    const std::optional<Logic::FunctionDomain> m_logicFunctionDomain;
+    std::optional<Logic::FunctionDomain> m_logicFunctionDomain;
+    const std::map<std::string, SymbolType>* m_logicDeclarations;
 
     static constexpr std::string_view ArgTagStart_sv              = "<arg>";
     static constexpr std::string_view ArgTagEnd_sv                = "</arg>";
@@ -73,15 +77,19 @@ private:
 
 HelpsHtmlProcessor::HelpsHtmlProcessor(const HelpsHtmlProcessorMode mode)
     :   m_mode(mode),
-        m_settings(nullptr)
+        m_settings(nullptr),
+        m_logicDeclarations(nullptr)
 {
 }
 
 
-HelpsHtmlProcessor::HelpsHtmlProcessor(const HelpsHtmlProcessorMode mode, CSDocCompilerSettings& settings, std::optional<Logic::FunctionDomain> logic_function_domain)
+HelpsHtmlProcessor::HelpsHtmlProcessor(const HelpsHtmlProcessorMode mode, CSDocCompilerSettings& settings,
+                                      std::optional<Logic::FunctionDomain> logic_function_domain,
+                                      const std::map<std::string, SymbolType>* const logic_declarations)
     :   m_mode(mode),
         m_settings(&settings),
-        m_logicFunctionDomain(std::move(logic_function_domain))
+        m_logicFunctionDomain(std::move(logic_function_domain)),
+        m_logicDeclarations(logic_declarations)
 {
 }
 
@@ -210,8 +218,17 @@ std::optional<SymbolType> HelpsHtmlProcessor::FindSymbolTypeFromVariableDeclarat
                                                                                     const std::map<std::string, size_t>& first_identifier_location_map,
                                                                                     const std::string& symbol_name) const
 {
-    // search for the first symbol declaration text appearing before the first location that the symbol was used,
-    // which will, for example, properly locate 'Array' here: Array alpha (30) xxx;
+    // first see if the type has been specified using the logicdeclare tag
+    if( m_logicDeclarations != nullptr )
+    {
+        const auto& logic_declaration_lookup = m_logicDeclarations->find(symbol_name);
+
+        if( logic_declaration_lookup != m_logicDeclarations->cend() )
+            return logic_declaration_lookup->second;
+    }
+
+    // if not, search for the first symbol declaration text appearing before the first location that the symbol
+    // was used, which will, for example, properly locate 'Array' here: Array alpha (30) xxx;
     const auto& symbol_declaration_lookup = first_identifier_location_map.find(symbol_name);
 
     if( symbol_declaration_lookup == first_identifier_location_map.cend() )
@@ -869,11 +886,41 @@ std::string CSDocCompilerWorker::LogicColorEndHandler(const std::string& inner_t
 
 std::string CSDocCompilerWorker::LogicEndHandlerWorker(std::string text, const HelpsHtmlProcessorMode mode)
 {
-    HelpsHtmlProcessor html_processor(mode, m_settings, m_logicFunctionDomain);
+    HelpsHtmlProcessor html_processor(mode, m_settings, m_logicFunctionDomain, &m_logicDeclarations);
     m_logicFunctionDomain.reset();
 
     ScintillaColorizer colorizer(SCLEX_CSPRO_LOGIC_V8_0, html_processor.PreprocessLogic(std::move(text)));
     return colorizer.GetHtml(&html_processor);
+}
+
+
+std::string CSDocCompilerWorker::LogicDeclareStartHandler(const cs::span<const std::string> tag_components)
+{
+    const std::string& symbol_type_name = tag_components.front();
+    const std::string& symbol_name = tag_components.back();
+
+    const std::map<std::string, SymbolType>& symbol_declaration_text_map = ::Symbol::GetDeclarationTextMap();
+    const auto& symbol_type_lookup = std::find_if(symbol_declaration_text_map.cbegin(), symbol_declaration_text_map.cend(),
+                                                  [&](const auto& name_and_symbol_type) { return SO::EqualsNoCase(symbol_type_name, name_and_symbol_type.first); });
+
+    const SymbolType symbol_type = ( symbol_type_lookup != symbol_declaration_text_map.cend() )
+        ? symbol_type_lookup->second
+        : throw CSProException("The logic symbol type '%s' is not valid.", symbol_type_name.c_str());
+
+    const auto& lookup = m_logicDeclarations.find(symbol_name);
+
+    if( lookup == m_logicDeclarations.cend() )
+    {
+        m_logicDeclarations.emplace(symbol_name, symbol_type);
+    }
+
+    else if( symbol_type != lookup->second )
+    {
+        throw CSProException("The logic symbol '%s' has already been declared as: '%s'",
+                             symbol_name.c_str(), ToString(lookup->second));
+    }
+
+    return std::string();
 }
 
 
@@ -925,7 +972,7 @@ std::string CSDocCompilerWorker::ActionEndHandler(const std::string& inner_text)
     {
     public:
         ActionInvokerHelpsHtmlProcessor(const bool cs_was_specified, const bool async_was_specified, CSDocCompilerSettings& settings)
-            :   HelpsHtmlProcessor(HelpsHtmlProcessorMode::Inline, settings, std::nullopt),
+            :   HelpsHtmlProcessor(HelpsHtmlProcessorMode::Inline, settings, std::nullopt, nullptr),
                 m_csWasSpecified(cs_was_specified),
                 m_asyncWasSpecified(async_was_specified)
         {
@@ -1021,7 +1068,7 @@ std::string CSDocCompilerWorker::ReportEndHandler(const std::string& inner_text)
     const HelpsHtmlProcessorMode mode = m_helpsHtmlProcessorModeOverride.value_or(HelpsHtmlProcessorMode::Normal);
     m_helpsHtmlProcessorModeOverride.reset();
 
-    HelpsHtmlProcessor html_processor(mode, m_settings, SymbolType::Report);
+    HelpsHtmlProcessor html_processor(mode, m_settings, SymbolType::Report, &m_logicDeclarations);
     ScintillaColorizer colorizer(*m_lexerLanguage, TrimOnlyOneNewlineFromBothEnds(inner_text));
 
     m_lexerLanguage.reset();
