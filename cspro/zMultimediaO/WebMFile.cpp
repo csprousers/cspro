@@ -1,5 +1,6 @@
 ﻿#include "stdafx.h"
 #include "WebMFile.h"
+#include <zToolsO/SafePath.h>
 #include <mkvparser/mkvreader.h>
 
 
@@ -14,7 +15,7 @@ std::unique_ptr<mkvparser::MkvReader> WebMFile::CreateReader(const std::variant<
     const char* const file_path = std::get<cs::string_sz>(file_path_or_file).c_str();
     auto reader = std::make_unique<mkvparser::MkvReader>();
 
-    if( reader->Open(file_path) == 0 )
+    if( reader->Open(SafePath(file_path).GetPath()) == 0 )
     {
         return reader;
     }

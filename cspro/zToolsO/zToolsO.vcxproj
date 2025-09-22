@@ -90,6 +90,7 @@
     <ClCompile Include="rijndael\rijndael-alg-fst.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="SafePath.cpp" />
     <ClCompile Include="Screen.cpp" />
     <ClCompile Include="serializer.cpp" />
     <ClCompile Include="SharableString.cpp" />
@@ -170,6 +171,7 @@
     <ClInclude Include="RaiiHelpers.h" />
     <ClInclude Include="Range.h" />
     <ClInclude Include="rijndael\rijndael-alg-fst.h" />
+    <ClInclude Include="SafePath.h" />
     <ClInclude Include="Screen.h" />
     <ClInclude Include="Serializer.h" />
     <ClInclude Include="SerializerHelper.h" />

@@ -143,6 +143,9 @@
     <ClCompile Include="rijndael\rijndael-alg-fst.c">
       <Filter>Source Files\rijndael</Filter>
     </ClCompile>
+    <ClCompile Include="SafePath.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="Screen.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -372,6 +375,9 @@
     </ClInclude>
     <ClInclude Include="rijndael\rijndael-alg-fst.h">
       <Filter>Header Files\rijndael</Filter>
+    </ClInclude>
+    <ClInclude Include="SafePath.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Screen.h">
       <Filter>Header Files</Filter>
