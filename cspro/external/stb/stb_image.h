@@ -1,6 +1,6 @@
 ﻿// CSPro modifications marked with // CSPro
 
-enum class LoadedImageType { Jpeg = 0, Png = 1, Bitmap = 2, Gif = 3 }; // CSPro these numbers should match ImageType
+enum class LoadedImageType : int { Jpeg = 0, Png = 1, Bitmap = 2, Gif = -1 }; // CSPro these numbers should match ImageType
 
 /* stb_image - v2.30 - public domain image loader - http://nothings.org/stb
                                   no warranty implied; use at your own risk

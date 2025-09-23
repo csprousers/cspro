@@ -77,6 +77,7 @@ namespace
             CREATE_MAPPING(MimeType::Type::ImageJpeg,   "jpg",      ImageType::Jpeg),
             CREATE_MAPPING(MimeType::Type::ImageJpeg,   "jpeg",     ImageType::Jpeg),
             CREATE_MAPPING(MimeType::Type::ImagePng,    "png",      ImageType::Png),
+            CREATE_MAPPING(MimeType::Type::ImageWebP,   "webp",     ImageType::WebP),
 
 #undef CREATE_MAPPING
         };

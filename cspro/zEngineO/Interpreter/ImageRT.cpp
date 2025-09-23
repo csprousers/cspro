@@ -337,7 +337,7 @@ double LogicInterpreter::ex_Image_save(const int program_index)
     const auto& symbol_va_with_subscript_node = GetOrConvertPre80SymbolVariableArgumentsWithSubscriptNode(program_index);
 
     std::string file_path = EvaluatePath(symbol_va_with_subscript_node.arguments[0]);
-    const std::optional<double> specified_jpeg_quality = EvaluateOptional(symbol_va_with_subscript_node.arguments[1]);
+    const std::optional<double> specified_lossy_quality = EvaluateOptional(symbol_va_with_subscript_node.arguments[1]);
 
     LogicImage* const logic_image = GetFromSymbolOrEngineItem<LogicImage*>(symbol_va_with_subscript_node.symbol_index, symbol_va_with_subscript_node.subscript_compilation);
 
@@ -346,20 +346,28 @@ double LogicInterpreter::ex_Image_save(const int program_index)
 
     try
     {
-        std::optional<int> jpeg_quality;
+        std::optional<int> lossy_quality;
 
-        if( specified_jpeg_quality.has_value() )
+        if( specified_lossy_quality.has_value() )
         {
-            if( *specified_jpeg_quality < 0 || *specified_jpeg_quality > 100 )
+            if( *specified_lossy_quality == NOTAPPL )
             {
-                throw CSProException("The quality '%s' is invalid; the value must be between 0 and 100.",
-                                     DoubleToString(*specified_jpeg_quality).c_str());
+                lossy_quality = std::numeric_limits<int>::max();
             }
 
-            jpeg_quality.emplace(static_cast<int>(*specified_jpeg_quality));
+            else if( *specified_lossy_quality < 0 || *specified_lossy_quality > 100 )
+            {
+                throw CSProException("The quality '%s' is invalid; the value must be between 0 and 100.",
+                                     DoubleToString(*specified_lossy_quality).c_str());
+            }
+
+            else
+            {
+                lossy_quality = static_cast<int>(*specified_lossy_quality);
+            }
         }
 
-        logic_image->Save(std::move(file_path), jpeg_quality);
+        logic_image->Save(std::move(file_path), lossy_quality);
     }
 
     catch( const CSProException& exception )

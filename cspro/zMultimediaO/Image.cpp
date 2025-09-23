@@ -3,13 +3,9 @@
 #include "Icon.h"
 #include <zToolsO/Tools.h>
 #include <zUtilO/MimeType.h>
+#include <external/libwebp/src/webp/decode.h>
+#include <external/libwebp/src/webp/encode.h>
 #include <external/zlib/zlib.h>
-
-
-namespace
-{
-    constexpr int DefaultJpegQuality = 95;
-}
 
 
 #define STBI_WINDOWS_UTF8
@@ -130,6 +126,36 @@ private:
 
 
 // --------------------------------------------------------------------------
+// WebPImage
+// --------------------------------------------------------------------------
+
+class WebPImage : public Multimedia::Image
+{
+public:
+    WebPImage(uint8_t* const image_data, Multimedia::ImageDetails details)
+        :   Image(std::move(details)),
+            m_imageData(image_data)
+    {
+        ASSERT(m_imageData != nullptr);
+    }
+
+    ~WebPImage()
+    {
+        WebPFree(m_imageData);
+    }
+
+    const std::byte* GetData() const override
+    {
+        return reinterpret_cast<const std::byte*>(m_imageData);
+    }
+
+private:
+    uint8_t* m_imageData;
+};
+
+
+
+// --------------------------------------------------------------------------
 // Multimedia::Image
 // --------------------------------------------------------------------------
 
@@ -145,34 +171,65 @@ std::unique_ptr<Multimedia::Image> Multimedia::Image::FromImage(const Multimedia
 }
 
 
-std::unique_ptr<Multimedia::Image> Multimedia::Image::FromFile(const cs::string_sz file_path)
+std::unique_ptr<Multimedia::Image> Multimedia::Image::FromFile(const std::string& file_path)
 {
     ImageDetails details;
 
-    stbi_uc* const image_data = stbi_load(file_path.c_str(),
-                                          &details.width, &details.height, &details.channels, 0);
+    // WebP
+    if( MimeType::GetSupportedImageTypeFromFileExtension(Path::GetExtension(file_path)) == ImageType::WebP )
+    {
+        try
+        {
+            const std::unique_ptr<std::vector<std::byte>> webp_data = FileIO::Read(file_path);
+            std::unique_ptr<Image> image = GetWebPImageFromBuffer(*webp_data);
 
-    if( image_data == nullptr )
-        throw ImageException("Could not read the image file: %s", file_path.c_str());
+            if( image != nullptr )
+                return image;
+        }
+        catch(...) { }
+    }
 
-    return std::make_unique<StbImage>(image_data, std::move(details));
+    // stb_image-supported images
+    else
+    {
+        stbi_uc* const image_data = stbi_load(file_path.c_str(),
+                                              &details.width, &details.height, &details.channels, 0);
+
+        if( image_data != nullptr )
+            return std::make_unique<StbImage>(image_data, std::move(details));
+    }
+
+    throw ImageException("Could not read the image file: %s", file_path.c_str());
 }
 
 
 std::unique_ptr<Multimedia::Image> Multimedia::Image::FromBuffer(const cs::span<const std::byte> content)
 {
-    ImageDetails details;
-    LoadedImageType loaded_image_type;
+    // stb_image-supported images
+    {
+        ImageDetails details;
+        LoadedImageType loaded_image_type;
 
-    stbi_uc* const image_data = stbi_load_from_memory(reinterpret_cast<const stbi_uc*>(content.data()), int32_cast(content.size()),
-                                                      &details.width, &details.height, &details.channels, 0, &loaded_image_type);
+        stbi_uc* const image_data = stbi_load_from_memory(reinterpret_cast<const stbi_uc*>(content.data()), int32_cast(content.size()),
+                                                          &details.width, &details.height, &details.channels, 0, &loaded_image_type);
 
-    if( image_data == nullptr )
-        throw ImageException("Could not parse the image");
+        if( image_data != nullptr )
+        {
+            details.image_type = StbImage::ToImageType(loaded_image_type);
 
-    details.image_type = StbImage::ToImageType(loaded_image_type);
+            return std::make_unique<StbImage>(image_data, std::move(details));
+        }
+    }
 
-    return std::make_unique<StbImage>(image_data, std::move(details));
+    // WebP
+    {
+        std::unique_ptr<Image> image = GetWebPImageFromBuffer(content);
+
+        if( image != nullptr )
+            return image;
+    }
+
+    throw ImageException("Could not parse the image");
 }
 
 
@@ -181,11 +238,18 @@ std::optional<Multimedia::ImageDetails> Multimedia::Image::GetDetailsFromBuffer(
     ImageDetails details;
     LoadedImageType loaded_image_type;
 
+    // stb_image-supported images
     if( stbi_info_from_memory(reinterpret_cast<const stbi_uc*>(content.data()), int32_cast(content.size()),
                               &details.width, &details.height, &details.channels, &loaded_image_type) == 1 )
     {
         details.image_type = StbImage::ToImageType(loaded_image_type);
+        return details;
+    }
 
+    // WebP
+    if( GetWebPDetailsFromBuffer(content, details) )
+    {
+        ASSERT(details.image_type == ImageType::WebP);
         return details;
     }
 
@@ -193,8 +257,47 @@ std::optional<Multimedia::ImageDetails> Multimedia::Image::GetDetailsFromBuffer(
 }
 
 
-void Multimedia::Image::ToFile(const std::string& file_path, const std::optional<int> jpeg_quality/* = std::nullopt*/) const
+bool Multimedia::Image::GetWebPDetailsFromBuffer(const cs::span<const std::byte> content, ImageDetails& details)
 {
+    WebPBitstreamFeatures webp_features;
+
+    if( WebPGetFeatures(reinterpret_cast<const uint8_t*>(content.data()), content.size(), &webp_features) != VP8_STATUS_OK )
+        return false;
+
+    details.width = webp_features.width;
+    details.height = webp_features.height;
+    details.channels = webp_features.has_alpha ? 4 : 3;
+    details.image_type = ImageType::WebP;
+
+    return true;
+}
+
+
+std::unique_ptr<Multimedia::Image> Multimedia::Image::GetWebPImageFromBuffer(const cs::span<const std::byte> content)
+{
+    ImageDetails details;
+
+    if( GetWebPDetailsFromBuffer(content, details) )
+    {
+        ASSERT(details.image_type == ImageType::WebP);
+
+        uint8_t* const image_data = ( details.channels == 3 )
+            ? WebPDecodeRGB(reinterpret_cast<const uint8_t*>(content.data()), content.size(), nullptr, nullptr)
+            : WebPDecodeRGBA(reinterpret_cast<const uint8_t*>(content.data()), content.size(), nullptr, nullptr);
+
+        if( image_data != nullptr )
+            return std::make_unique<WebPImage>(image_data, std::move(details));
+    }
+
+    return nullptr;
+}
+
+
+void Multimedia::Image::ToFile(const std::string& file_path, const int lossy_quality/* = DefaultLossyQuality*/) const
+{
+    ASSERT(( lossy_quality >= 0 && lossy_quality <= 100 ) ||
+           ( lossy_quality == std::numeric_limits<int>::max() ));
+
     try
     {
         FileIO::CreateDirectoriesForFile(file_path);
@@ -211,9 +314,10 @@ void Multimedia::Image::ToFile(const std::string& file_path, const std::optional
     if( image_type == ImageType::Jpeg )
     {
         const cs::non_null_shared_or_raw_ptr<const Image> rgb_image = GetRgbImage();
+        const int jpeg_quality = std::min(lossy_quality, 100);
 
         result = stbi_write_jpg(file_path.c_str(), rgb_image->m_details.width, rgb_image->m_details.height,
-                                rgb_image->m_details.channels, rgb_image->GetData(), jpeg_quality.value_or(DefaultJpegQuality));
+                                rgb_image->m_details.channels, rgb_image->GetData(), jpeg_quality);
     }
 
     else if( image_type == ImageType::Png )
@@ -228,6 +332,22 @@ void Multimedia::Image::ToFile(const std::string& file_path, const std::optional
     {
         result = stbi_write_bmp(file_path.c_str(), m_details.width, m_details.height,
                                 m_details.channels, GetData());
+    }
+
+    else if( image_type == ImageType::WebP )
+    {
+        result = 0;
+
+        try
+        {
+            ToWebP(lossy_quality,
+                [&](const std::byte* const webp_data, const size_t webp_data_length)
+                {
+                    FileIO::Write(file_path, webp_data, webp_data_length);
+                    result = 1;
+                });
+        }
+        catch(...) { ASSERT(result == 0); }
     }
 
     else if( Icon::IsExtensionIcon(file_path) )
@@ -245,11 +365,29 @@ void Multimedia::Image::ToFile(const std::string& file_path, const std::optional
 }
 
 
-std::unique_ptr<std::vector<std::byte>> Multimedia::Image::ToBuffer(const ImageType image_type, const std::optional<int> jpeg_quality/* = std::nullopt*/) const
+std::unique_ptr<std::vector<std::byte>> Multimedia::Image::ToBuffer(const ImageType image_type, const int lossy_quality/* = DefaultLossyQuality*/) const
 {
-    auto image_buffer = std::make_unique<std::vector<std::byte>>();
+    ASSERT(( lossy_quality >= 0 && lossy_quality <= 100 ) ||
+           ( lossy_quality == std::numeric_limits<int>::max() ));
+
+    std::unique_ptr<std::vector<std::byte>> image_buffer;
+
+    // WebP
+    if( image_type == ImageType::WebP )
+    {
+        ToWebP(lossy_quality,
+            [&](const std::byte* const webp_data, const size_t webp_data_length)
+            {
+                image_buffer = std::make_unique<std::vector<std::byte>>(webp_data, webp_data + webp_data_length);
+            });
+
+        return image_buffer;
+    }
+
+    // stb_image-supported images
 
     // to avoid a lot of buffer reallocations, reserve 64k in space
+    image_buffer = std::make_unique<std::vector<std::byte>>();
     image_buffer->reserve(64 * 1024);
 
     int result = 0;
@@ -257,9 +395,10 @@ std::unique_ptr<std::vector<std::byte>> Multimedia::Image::ToBuffer(const ImageT
     if( image_type == ImageType::Jpeg )
     {
         const cs::non_null_shared_or_raw_ptr<const Image> rgb_image = GetRgbImage();
+        const int jpeg_quality = std::min(lossy_quality, 100);
 
         result = stbi_write_jpg_to_func(ToBufferFromStbImageCallback, image_buffer.get(), rgb_image->m_details.width, rgb_image->m_details.height,
-                                        rgb_image->m_details.channels, rgb_image->GetData(), jpeg_quality.value_or(DefaultJpegQuality));
+                                        rgb_image->m_details.channels, rgb_image->GetData(), jpeg_quality);
     }
 
     else if( image_type == ImageType::Png )
@@ -285,6 +424,31 @@ std::unique_ptr<std::vector<std::byte>> Multimedia::Image::ToBuffer(const ImageT
         image_buffer.reset();
 
     return image_buffer;
+}
+
+
+template<typename CF>
+void Multimedia::Image::ToWebP(const int lossy_quality, const CF& callback_function) const
+{
+    const int stride = m_details.width * m_details.channels;
+    const bool has_alpha = ( m_details.channels == 4 );
+    const bool lossless = ( lossy_quality == std::numeric_limits<int>::max() );
+    const uint8_t* const image_data = reinterpret_cast<const uint8_t*>(GetData());
+
+    ASSERT(lossless || ( lossy_quality >= 0 && lossy_quality <= 100 ));
+
+    uint8_t* webp_data;
+    const size_t webp_data_length =
+        ( lossless && has_alpha ) ? WebPEncodeLosslessRGBA(image_data, m_details.width, m_details.height, stride, &webp_data) :
+        ( lossless              ) ? WebPEncodeLosslessRGB(image_data, m_details.width, m_details.height, stride, &webp_data) :
+        ( has_alpha )             ? WebPEncodeRGBA(image_data, m_details.width, m_details.height, stride, static_cast<float>(lossy_quality), &webp_data) :
+                                    WebPEncodeRGB(image_data, m_details.width, m_details.height, stride, static_cast<float>(lossy_quality), &webp_data);
+
+    if( webp_data_length != 0 )
+    {
+        callback_function(reinterpret_cast<const std::byte*>(webp_data), webp_data_length);
+        WebPFree(webp_data);
+    }
 }
 
 

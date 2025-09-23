@@ -38,10 +38,11 @@ public:
     void Load(std::string file_path, bool file_path_is_temporary = false);
     void Load(std::unique_ptr<const Multimedia::Image> image, std::string path_or_filename);
 
-    // loads the image from a data URL, using binary_data_metadata as the base metadata
+    // Loads the image from a data URL, using binary_data_metadata as the base metadata.
     void LoadFromDataUrl(std::string_view data_url_sv, BinaryDataMetadata binary_data_metadata = BinaryDataMetadata());
 
-    void Save(std::string file_path, std::optional<int> jpeg_quality = std::nullopt);
+    // Look at the notes for Multimedia::Image::ToFile for information on lossy_quality.
+    void Save(std::string file_path, std::optional<int> lossy_quality);
 
     void View(const ViewerOptions* viewer_options) const;
     static void View(const std::vector<std::byte>& image_content, std::optional<Multimedia::ImageDetails> image_details, const std::string& image_file_path,
