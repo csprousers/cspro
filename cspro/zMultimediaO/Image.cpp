@@ -51,70 +51,32 @@ unsigned char* zlib_compress(unsigned char* const data, const int data_len, int*
 }
 
 
-Multimedia::Image::Image(ImageDetails details)
-    :   m_details(std::move(details))
+
+// --------------------------------------------------------------------------
+// StbImage
+// --------------------------------------------------------------------------
+
+class StbImage : public Multimedia::Image
 {
-}
-
-
-namespace
-{
-    class StbImage : public Multimedia::Image
+public:
+    StbImage(stbi_uc* const image_data, Multimedia::ImageDetails details)
+        :   Image(std::move(details)),
+            m_imageData(image_data)
     {
-    public:
-        StbImage(stbi_uc* const image_data, Multimedia::ImageDetails details)
-            :   Image(std::move(details)),
-                m_imageData(image_data)
-        {
-            ASSERT(m_imageData != nullptr);
-        }
+        ASSERT(m_imageData != nullptr);
+    }
 
-        ~StbImage()
-        {
-            stbi_image_free(m_imageData);
-        }
-
-        const std::byte* GetData() const override
-        {
-            return reinterpret_cast<const std::byte*>(m_imageData);
-        }
-
-    private:
-        stbi_uc* m_imageData;
-    };
-
-
-    class VectorImage : public Multimedia::Image
+    ~StbImage()
     {
-    public:
-        VectorImage(Multimedia::ImageDetails details)
-            :   Image(std::move(details)),
-                m_image(m_details.width * m_details.height * m_details.channels)
-        {
-        }
+        stbi_image_free(m_imageData);
+    }
 
-        VectorImage(const Image& image)
-            :   Image(image.GetDetails()),
-                m_image(image.GetData(), image.GetData() + ( m_details.width * m_details.height * m_details.channels ))
-        {
-        }
+    const std::byte* GetData() const override
+    {
+        return reinterpret_cast<const std::byte*>(m_imageData);
+    }
 
-        const std::byte* GetData() const override
-        {
-            return m_image.data();
-        }
-
-        std::byte* GetDataBuffer()
-        {
-            return m_image.data();
-        }
-
-    private:
-        std::vector<std::byte> m_image;
-    };
-
-
-    std::optional<ImageType> ToImageType(const LoadedImageType loaded_image_type)
+    static std::optional<ImageType> ToImageType(const LoadedImageType loaded_image_type)
     {
         if( loaded_image_type == LoadedImageType::Gif )
             return std::nullopt;
@@ -125,12 +87,61 @@ namespace
 
         return static_cast<ImageType>(loaded_image_type);
     }
+
+private:
+    stbi_uc* m_imageData;
+};
+
+
+
+// --------------------------------------------------------------------------
+// BinaryBlockImage
+// --------------------------------------------------------------------------
+
+class BinaryBlockImage : public Multimedia::Image
+{
+public:
+    BinaryBlockImage(Multimedia::ImageDetails details)
+        :   Image(std::move(details)),
+            m_imageData(m_details.width * m_details.height * m_details.channels)
+    {
+    }
+
+    BinaryBlockImage(const Image& image)
+        :   BinaryBlockImage(image.GetDetails())
+    {
+        memcpy(m_imageData.data(), image.GetData(), m_imageData.size());
+    }
+
+    const std::byte* GetData() const override
+    {
+        return m_imageData.data();
+    }
+
+    std::byte* GetDataBuffer()
+    {
+        return m_imageData.data();
+    }
+
+private:
+    BinaryBlock m_imageData;
+};
+
+
+
+// --------------------------------------------------------------------------
+// Multimedia::Image
+// --------------------------------------------------------------------------
+
+Multimedia::Image::Image(ImageDetails details)
+    :   m_details(std::move(details))
+{
 }
 
 
 std::unique_ptr<Multimedia::Image> Multimedia::Image::FromImage(const Multimedia::Image& image)
 {
-    return std::make_unique<VectorImage>(image);
+    return std::make_unique<BinaryBlockImage>(image);
 }
 
 
@@ -159,7 +170,7 @@ std::unique_ptr<Multimedia::Image> Multimedia::Image::FromBuffer(const cs::span<
     if( image_data == nullptr )
         throw ImageException("Could not parse the image");
 
-    details.image_type = ToImageType(loaded_image_type);
+    details.image_type = StbImage::ToImageType(loaded_image_type);
 
     return std::make_unique<StbImage>(image_data, std::move(details));
 }
@@ -173,7 +184,7 @@ std::optional<Multimedia::ImageDetails> Multimedia::Image::GetDetailsFromBuffer(
     if( stbi_info_from_memory(reinterpret_cast<const stbi_uc*>(content.data()), int32_cast(content.size()),
                               &details.width, &details.height, &details.channels, &loaded_image_type) == 1 )
     {
-        details.image_type = ToImageType(loaded_image_type);
+        details.image_type = StbImage::ToImageType(loaded_image_type);
 
         return details;
     }
@@ -199,20 +210,24 @@ void Multimedia::Image::ToFile(const std::string& file_path, const std::optional
 
     if( image_type == ImageType::Jpeg )
     {
-        result = stbi_write_jpg(file_path.c_str(), m_details.width, m_details.height, m_details.channels,
-                                GetData(), jpeg_quality.value_or(DefaultJpegQuality));
+        const cs::non_null_shared_or_raw_ptr<const Image> rgb_image = GetRgbImage();
+
+        result = stbi_write_jpg(file_path.c_str(), rgb_image->m_details.width, rgb_image->m_details.height,
+                                rgb_image->m_details.channels, rgb_image->GetData(), jpeg_quality.value_or(DefaultJpegQuality));
     }
 
     else if( image_type == ImageType::Png )
     {
-        result = stbi_write_png(file_path.c_str(), m_details.width, m_details.height, m_details.channels,
-                                GetData(), m_details.width * m_details.channels);
+        const int stride = m_details.width * m_details.channels;
+
+        result = stbi_write_png(file_path.c_str(), m_details.width, m_details.height,
+                                m_details.channels, GetData(), stride);
     }
 
     else if( image_type == ImageType::Bitmap )
     {
-        result = stbi_write_bmp(file_path.c_str(), m_details.width, m_details.height, m_details.channels,
-                                GetData());
+        result = stbi_write_bmp(file_path.c_str(), m_details.width, m_details.height,
+                                m_details.channels, GetData());
     }
 
     else if( Icon::IsExtensionIcon(file_path) )
@@ -230,20 +245,6 @@ void Multimedia::Image::ToFile(const std::string& file_path, const std::optional
 }
 
 
-namespace
-{
-    void ToBufferCallback(void* const context, void* const data, const int size)
-    {
-        std::vector<std::byte>* image_buffer = static_cast<std::vector<std::byte>*>(context);
-
-        const size_t current_size = image_buffer->size();
-        image_buffer->resize(current_size + size);
-
-        memcpy(image_buffer->data() + current_size, data, size);
-    }
-}
-
-
 std::unique_ptr<std::vector<std::byte>> Multimedia::Image::ToBuffer(const ImageType image_type, const std::optional<int> jpeg_quality/* = std::nullopt*/) const
 {
     auto image_buffer = std::make_unique<std::vector<std::byte>>();
@@ -255,20 +256,24 @@ std::unique_ptr<std::vector<std::byte>> Multimedia::Image::ToBuffer(const ImageT
 
     if( image_type == ImageType::Jpeg )
     {
-        result = stbi_write_jpg_to_func(ToBufferCallback, image_buffer.get(), m_details.width, m_details.height, m_details.channels,
-                                        GetData(), jpeg_quality.value_or(DefaultJpegQuality));
+        const cs::non_null_shared_or_raw_ptr<const Image> rgb_image = GetRgbImage();
+
+        result = stbi_write_jpg_to_func(ToBufferFromStbImageCallback, image_buffer.get(), rgb_image->m_details.width, rgb_image->m_details.height,
+                                        rgb_image->m_details.channels, rgb_image->GetData(), jpeg_quality.value_or(DefaultJpegQuality));
     }
 
     else if( image_type == ImageType::Png )
     {
-        result = stbi_write_png_to_func(ToBufferCallback, image_buffer.get(), m_details.width, m_details.height, m_details.channels,
-                                        GetData(), m_details.width * m_details.channels);
+        const int stride = m_details.width * m_details.channels;
+
+        result = stbi_write_png_to_func(ToBufferFromStbImageCallback, image_buffer.get(), m_details.width, m_details.height,
+                                        m_details.channels, GetData(), stride);
     }
 
     else if( image_type == ImageType::Bitmap )
     {
-        result = stbi_write_bmp_to_func(ToBufferCallback, image_buffer.get(), m_details.width, m_details.height, m_details.channels,
-                                        GetData());
+        result = stbi_write_bmp_to_func(ToBufferFromStbImageCallback, image_buffer.get(), m_details.width, m_details.height,
+                                        m_details.channels, GetData());
     }
 
     else
@@ -283,9 +288,20 @@ std::unique_ptr<std::vector<std::byte>> Multimedia::Image::ToBuffer(const ImageT
 }
 
 
+void Multimedia::Image::ToBufferFromStbImageCallback(void* const context, void* const data, const int size)
+{
+    std::vector<std::byte>* image_buffer = static_cast<std::vector<std::byte>*>(context);
+
+    const size_t current_size = image_buffer->size();
+    image_buffer->resize(current_size + size);
+
+    memcpy(image_buffer->data() + current_size, data, size);
+}
+
+
 std::unique_ptr<Multimedia::Image> Multimedia::Image::GetResizedImage(const int new_width, const int new_height) const
 {
-    auto resized_image = std::make_unique<VectorImage>(ImageDetails { new_width, new_height, m_details.channels, m_details.image_type });
+    auto resized_image = std::make_unique<BinaryBlockImage>(ImageDetails { new_width, new_height, m_details.channels, m_details.image_type });
 
     unsigned char* const output_pixels = reinterpret_cast<unsigned char*>(resized_image->GetDataBuffer());
 
@@ -332,4 +348,64 @@ int Multimedia::Image::ToIconFile(const std::string& file_path) const
     Icon::SavePngAsIcon(file_path, *png_data, image_to_convert->m_details.width, image_to_convert->m_details.height);
 
     return 1;
+}
+
+
+cs::non_null_shared_or_raw_ptr<const Multimedia::Image> Multimedia::Image::GetRgbImage() const
+{
+    constexpr int RgbChannels = 3;
+    constexpr int RgbAChannels = 4;
+    constexpr std::byte BackgroundColor = std::byte(255);
+
+    if( m_details.channels != RgbAChannels )
+        return this;
+
+    const std::byte* from_buffer_itr = GetData();
+    const std::byte* const from_buffer_end = from_buffer_itr + ( m_details.width * m_details.height * RgbAChannels );
+
+    // create a new image, removing the alpha channel
+    ImageDetails rgb_image_details = m_details;
+    rgb_image_details.channels = RgbChannels;
+
+    auto rgb_image = std::make_unique<BinaryBlockImage>(std::move(rgb_image_details));
+    std::byte* to_buffer = rgb_image->GetDataBuffer();
+
+    while( from_buffer_itr != from_buffer_end )
+    {
+        const int alpha = static_cast<int>(from_buffer_itr[3]);
+
+        // if fully transparent, set to white
+        if( alpha == 0 )
+        {
+            to_buffer[0] = BackgroundColor;
+            to_buffer[1] = BackgroundColor;
+            to_buffer[2] = BackgroundColor;
+        }
+
+        else
+        {
+            to_buffer[0] = from_buffer_itr[0];
+            to_buffer[1] = from_buffer_itr[1];
+            to_buffer[2] = from_buffer_itr[2];
+
+            // if fully opaque, we do not need to do anything,
+            // but otherwise we must apply an alpha blend
+            if( alpha != 255 )
+            {
+                for( int i = 0; i < RgbChannels; ++i )
+                {
+                    const int combined_value = ( static_cast<unsigned char>(to_buffer[i]) * alpha ) +
+                                               ( static_cast<unsigned char>(BackgroundColor) * ( 255 - alpha ) );
+                    to_buffer[i] = static_cast<std::byte>(combined_value / 255);
+                }
+            }
+        }
+
+        from_buffer_itr += RgbAChannels;
+        to_buffer += RgbChannels;
+    }
+
+    ASSERT(to_buffer == ( rgb_image->GetData() + ( rgb_image->m_details.width * rgb_image->m_details.height * RgbChannels ) ));
+
+    return rgb_image;
 }

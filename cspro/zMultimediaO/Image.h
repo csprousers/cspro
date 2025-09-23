@@ -61,6 +61,11 @@ protected:
     const ImageDetails m_details;
 
 private:
+    static void ToBufferFromStbImageCallback(void* context, void* data, int size);
+
     // The method returns an integer so as to match the signature of the stbi_write_... functions.
     int ToIconFile(const std::string& file_path) const;
+
+    // If the image has an alpha channel, it is blended against a white background.
+    cs::non_null_shared_or_raw_ptr<const Image> GetRgbImage() const;
 };
