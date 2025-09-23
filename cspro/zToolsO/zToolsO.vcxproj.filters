@@ -194,6 +194,9 @@
     <ClCompile Include="WindowsDesktopMessage.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="WinMemoryStream.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="WinRegistry.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -467,6 +470,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="WindowsDesktopMessage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="WinMemoryStream.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="WinRegistry.h">

@@ -4,11 +4,12 @@ JNI_PATH := $(call my-dir)
 include $(CLEAR_VARS)
 
 LOCAL_MODULE            := zMultimediaO
-ZMULTIMEDIAO_SRC_PATH   := ../../../../../zMultimediaO
-GPAC_SRC_PATH           := ../../../../../external/gpac/src
-LIBEXIF_SRC_PATH        := ../../../../../external/libexif
-LIBWEBP_SRC_PATH        := ../../../../../external/libwebp
-QRCODEGEN_SRC_PATH      := ../../../../../external/qrcodegen
+SOLUTION_SRC_PATH       := $(JNI_PATH)/../../../../..
+ZMULTIMEDIAO_SRC_PATH   := $(SOLUTION_SRC_PATH)/zMultimediaO
+GPAC_SRC_PATH           := $(SOLUTION_SRC_PATH)/external/gpac/src
+LIBEXIF_SRC_PATH        := $(SOLUTION_SRC_PATH)/external/libexif
+LIBWEBP_SRC_PATH        := $(SOLUTION_SRC_PATH)/external/libwebp
+QRCODEGEN_SRC_PATH      := $(SOLUTION_SRC_PATH)/external/qrcodegen
 
 # to overcome Window's command line character limit
 LOCAL_SHORT_COMMANDS    := true
@@ -219,9 +220,10 @@ LOCAL_SRC_FILES         += $(QRCODEGEN_SRC_PATH)/qrcodegen.cpp
 include $(LOCAL_PATH)/LOCAL_CFLAGS.mk
 LOCAL_CFLAGS            += -DUNICODE=1
 LOCAL_CFLAGS            += -D_UNICODE=1
-LOCAL_C_INCLUDES        += $(JNI_PATH)/../../../../../external
-LOCAL_C_INCLUDES        += $(JNI_PATH)/../../../../../external/gpac/include
-LOCAL_C_INCLUDES        += $(JNI_PATH)/../../../../../external/libwebp
+LOCAL_C_INCLUDES        += $(SOLUTION_SRC_PATH)
+LOCAL_C_INCLUDES        += $(SOLUTION_SRC_PATH)/external
+LOCAL_C_INCLUDES        += $(SOLUTION_SRC_PATH)/external/gpac/include
+LOCAL_C_INCLUDES        += $(SOLUTION_SRC_PATH)/external/libwebp
 LOCAL_STATIC_LIBRARIES  := zToolsO zUtilO zlib
 
 include $(BUILD_STATIC_LIBRARY)

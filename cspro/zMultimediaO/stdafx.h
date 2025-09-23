@@ -6,3 +6,4 @@
 #include <zToolsO/FileIO.h>
 #include <zToolsO/PortableFunctions.h>
 #include <zToolsO/Utf8.h>
+#include <zUtilO/MimeType.h>
