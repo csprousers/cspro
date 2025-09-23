@@ -201,6 +201,12 @@
     "licenseUrl": "https://raw.githubusercontent.com/WizardMac/librdata/master/LICENSE"
   },
   {
+    "projectName": "libwebp",
+    "projectUrl": "https://chromium.googlesource.com/webm/libwebp",
+    "licenseFilename": "COPYING",
+    "licenseUrl": "https://chromium.googlesource.com/webm/libwebp/+/refs/heads/main/COPYING"
+  },
+  {
     "projectName": "libxlsxwriter",
     "projectUrl": "https://github.com/jmcnamara/libxlsxwriter",
     "licenseFilename": "License.txt",
