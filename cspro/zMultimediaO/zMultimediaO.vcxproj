@@ -28,8 +28,11 @@
     <ClInclude Include="ExifReader.h" />
     <ClInclude Include="Icon.h" />
     <ClInclude Include="Image.h" />
+    <ClInclude Include="ImageManager.h" />
+    <ClInclude Include="ImageSelectorDlg.h" />
     <ClInclude Include="Mp4File.h" />
     <ClInclude Include="QRCode.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="Screenshot.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="zMultimediaO.h" />
@@ -806,6 +809,8 @@
     <ClCompile Include="ExifReader.cpp" />
     <ClCompile Include="Icon.cpp" />
     <ClCompile Include="Image.cpp" />
+    <ClCompile Include="ImageManager.cpp" />
+    <ClCompile Include="ImageSelectorDlg.cpp" />
     <ClCompile Include="Mp4File.cpp" />
     <ClCompile Include="QRCode.cpp" />
     <ClCompile Include="Screenshot.cpp" />
@@ -815,8 +820,15 @@
     <ClCompile Include="zMultimediaO.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ResourceCompile Include="zMultimediaO.rc" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\zToolsO\zToolsO.vcxproj">
       <Project>{fb0e28ec-927d-41d0-996c-01c21a7a346b}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zUtilF\zUtilF.vcxproj">
+      <Project>{40427473-971c-41ee-adeb-23795522e112}</Project>
       <Private>false</Private>
     </ProjectReference>
     <ProjectReference Include="..\zUtilO\zUtilO.vcxproj">

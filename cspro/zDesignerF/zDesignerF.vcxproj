@@ -163,6 +163,10 @@
       <Project>{4b7117ac-94a3-429e-bc5e-a59fbb34051e}</Project>
       <Private>false</Private>
     </ProjectReference>
+    <ProjectReference Include="..\zMultimediaO\zMultimediaO.vcxproj">
+      <Project>{ea52b4fa-021b-4f0c-8209-ef54aa538476}</Project>
+      <Private>false</Private>
+    </ProjectReference>
     <ProjectReference Include="..\zTableO\zTableO.vcxproj">
       <Project>{192cbdce-78bc-4c95-9c9e-9bee530d677c}</Project>
       <Private>false</Private>

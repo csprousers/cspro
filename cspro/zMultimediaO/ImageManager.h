@@ -1,13 +1,13 @@
 ﻿#pragma once
 
-#include <zUtilF/zUtilF.h>
+#include <zMultimediaO/zMultimediaO.h>
 #include <atlimage.h>
 
 
 // A class for managing CImage objects on Windows.
 // The class will cache some number of images in memory to avoid repeatedly reading the files from the disk.
 
-class CLASS_DECL_ZUTILF ImageManager
+class ZMULTIMEDIAO_API ImageManager
 {
     static constexpr int64_t MaxCacheFileSizeBytes = 50 * 1024 * 1024;
 

@@ -48,6 +48,10 @@
     <Filter Include="libwebp\sharpyuv">
       <UniqueIdentifier>{c1d7b78b-6bb3-438e-885f-4aff6ed5686c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\external\gpac\include\gpac\configuration_cspro.h">
@@ -65,10 +69,19 @@
     <ClInclude Include="Image.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ImageManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ImageSelectorDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="Mp4File.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="QRCode.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Screenshot.h">
@@ -670,6 +683,12 @@
     <ClCompile Include="Image.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ImageManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageSelectorDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="Mp4File.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -685,5 +704,10 @@
     <ClCompile Include="zMultimediaO.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="zMultimediaO.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
   </ItemGroup>
 </Project>

@@ -4,7 +4,6 @@
 #include <zToolsO/File.h>
 
 #ifdef WIN_DESKTOP
-#include <zToolsO/Utf8.h>
 #include <zUtilF/IconToPngConverter.h>
 #include <atlimage.h>
 #endif

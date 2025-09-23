@@ -29,8 +29,6 @@
     <ClCompile Include="HtmlDialogFunctionRunner.cpp" />
     <ClCompile Include="ImageCaptureDlg.cpp" />
     <ClCompile Include="ImageFileDialog.cpp" />
-    <ClCompile Include="ImageManager.cpp" />
-    <ClCompile Include="ImageSelectorDlg.cpp" />
     <ClCompile Include="ImageViewDlg.cpp" />
     <ClCompile Include="KeyboardLoader.cpp" />
     <ClCompile Include="LinkCtrls.cpp" />
@@ -78,8 +76,6 @@
     <ClInclude Include="IconToPngConverter.h" />
     <ClInclude Include="ImageCaptureDlg.h" />
     <ClInclude Include="ImageFileDialog.h" />
-    <ClInclude Include="ImageManager.h" />
-    <ClInclude Include="ImageSelectorDlg.h" />
     <ClInclude Include="ImageViewDlg.h" />
     <ClInclude Include="KeyboardLoader.h" />
     <ClInclude Include="LinkCtrls.h" />

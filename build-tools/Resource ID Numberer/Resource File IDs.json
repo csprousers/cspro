@@ -112,7 +112,12 @@
     "zCapiO": {
       "resource": 20001,
       "command": 50001,
-      "control": 20500
+      "control": 20100
+    },
+    "zMultimediaO": {
+      "resource": 20201,
+      "command": 50101,
+      "control": 20300
     }
   },
   "orderedRanges": {

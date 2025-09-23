@@ -19,15 +19,15 @@
 #define IDS_TOOLTIP_OKBTN               20015
 #define IDS_TOOLTIP_PREV                20016
 #define IDS_TOOLTIP_SEARCH              20017
-#define IDC_BUTTON_NEXT_FIELD           20500
-#define IDC_BUTTON_PREVIOUS_FIELD       20501
-#define IDC_BUTTON_SEARCH               20502
-#define IDC_CASELIST                    20503
-#define IDC_EDIT_SEARCH_TEXT            20504
-#define IDC_FIND_BTN                    20505
-#define IDC_HTML_VIEW                   20506
-#define IDC_INVERTMARKS_BTN             20507
-#define IDC_SEARCHBOX_EDIT              20508
+#define IDC_BUTTON_NEXT_FIELD           20100
+#define IDC_BUTTON_PREVIOUS_FIELD       20101
+#define IDC_BUTTON_SEARCH               20102
+#define IDC_CASELIST                    20103
+#define IDC_EDIT_SEARCH_TEXT            20104
+#define IDC_FIND_BTN                    20105
+#define IDC_HTML_VIEW                   20106
+#define IDC_INVERTMARKS_BTN             20107
+#define IDC_SEARCHBOX_EDIT              20108
 
 // Next default values for new objects
 // 
@@ -35,7 +35,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        20018
 #define _APS_NEXT_COMMAND_VALUE         50001
-#define _APS_NEXT_CONTROL_VALUE         20509
+#define _APS_NEXT_CONTROL_VALUE         20109
 #define _APS_NEXT_SYMED_VALUE           20018
 #endif
 #endif
