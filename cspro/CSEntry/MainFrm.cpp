@@ -4671,12 +4671,20 @@ void CMainFrame::BuildKeyArray()
             }
         }
 
-        auto add_case_summaries = [&](CaseIterationCaseStatus case_status, std::vector<CaseSummary>& case_summaries)
+        auto add_case_summaries = [&](const CaseIterationCaseStatus case_status, std::vector<CaseSummary>& case_summaries)
         {
-            CaseSummary case_summary;
-            auto case_summary_iterator = pInputRepo->CreateIterator(CaseIterationContent::CaseSummary, case_status,
+            const CaseIteratorSettings iterator_settings(
+                case_status,
                 m_bCaseTreeSortedOrder ? CaseIterationMethod::KeyOrder : CaseIterationMethod::SequentialOrder,
-                CaseIterationOrder::Ascending);
+                CaseIterationOrder::Ascending
+            );
+
+            const std::unique_ptr<CaseIterator> case_summary_iterator = pInputRepo->CreateIterator(
+                CaseIterationContent::CaseSummary,
+                iterator_settings
+            );
+
+            CaseSummary case_summary;
 
             while( case_summary_iterator->NextCaseSummary(case_summary) )
             {

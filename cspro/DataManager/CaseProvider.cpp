@@ -1,7 +1,6 @@
 ﻿#include "StdAfx.h"
 #include "CaseProvider.h"
 #include <zDataO/CaseIterator.h>
-#include <zDataO/CaseIteratorSettings.h>
 
 
 // --------------------------------------------------------------------------
@@ -80,13 +79,7 @@ size_t DataRepositoryCaseProvider::GetNumberCases()
 bool DataRepositoryCaseProvider::NextCase(Case& data_case)
 {
     if( m_caseIterator == nullptr )
-    {
-        m_caseIterator = m_dataRepository->CreateIterator(CaseIterationContent::Case,
-                                                          m_caseIteratorSettings->GetStatus(),
-                                                          m_caseIteratorSettings->GetMethod(),
-                                                          m_caseIteratorSettings->GetOrder(),
-                                                          m_caseIteratorSettings->GetParameters());
-    }
+        m_caseIterator = m_dataRepository->CreateIterator(CaseIterationContent::Case, *m_caseIteratorSettings);
 
     return m_caseIterator->NextCase(data_case);
 }

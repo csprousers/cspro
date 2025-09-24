@@ -317,7 +317,7 @@ void DICX::CreateCaseIterator(const CaseIteratorStyle case_iterator_style, const
     CaseIterationCaseStatus case_iteration_case_status;
     std::tie(case_iteration_method, case_iteration_order, case_iteration_case_status) = GetDictionaryAccessParameters(dictionary_access);
 
-    std::unique_ptr<CaseIteratorParameters> start_parameters;
+    CaseIteratorSettings iterator_settings(case_iteration_case_status, case_iteration_method, case_iteration_order);
 
     if( case_key != nullptr || key_prefix.has_value() )
     {
@@ -337,19 +337,18 @@ void DICX::CreateCaseIterator(const CaseIteratorStyle case_iterator_style, const
 
         if( case_iteration_method == CaseIterationMethod::KeyOrder )
         {
-            start_parameters = std::make_unique<CaseIteratorParameters>(iteration_start_type, ( case_key != nullptr ) ? case_key->GetKey() : std::string(), key_prefix);
+            iterator_settings.SetParameters(CaseIteratorParameters(iteration_start_type, ( case_key != nullptr ) ? case_key->GetKey() : std::string(), key_prefix));
         }
 
         else
         {
-            start_parameters = std::make_unique<CaseIteratorParameters>(iteration_start_type, ( case_key != nullptr ) ? case_key->GetPositionInRepository() : -1, key_prefix);
+            iterator_settings.SetParameters(CaseIteratorParameters(iteration_start_type, ( case_key != nullptr ) ? case_key->GetPositionInRepository() : -1, key_prefix));
         }
     }
 
     try
     {
-        m_rd->m_caseIterator = m_dataRepository->CreateIterator(iteration_content, case_iteration_case_status,
-                                                                case_iteration_method, case_iteration_order, start_parameters.get());
+        m_rd->m_caseIterator = m_dataRepository->CreateIterator(iteration_content, iterator_settings);
     }
 
     catch(...)

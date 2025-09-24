@@ -77,6 +77,9 @@ public:
     template<typename PT>
     Statement& BindBlob(PT&& parameter_number_or_name, const std::vector<std::byte>& value, bool value_should_be_copied = false);
 
+    template<typename PT>
+    Statement& BindBlob(PT&& parameter_number_or_name, const BinaryBlock& value, bool value_should_be_copied = false);
+
     // Binds null to a parameter.
     // Numbering is from left to right starting at 1.
     template<typename PT>
@@ -119,10 +122,15 @@ public:
     template <typename VT>
     VT GetColumn(int column_number);
 
+    // Returns the value of the column if not null.
+    // Column numbers start with 0.
+    template <typename VT>
+    std::optional<VT> GetOptionalColumn(int column_number);
+
 
 private:
     // A method, never called, that ensures (using static_assert) that all definitions are valid.
-    static constexpr int Code_SQLITE_TRANSIENT = -1;
+    static constexpr INT_PTR Code_SQLITE_TRANSIENT = -1;
     static void CheckDefinitionsAtCompileTime();
 
     // Throws an exception if the statement is not prepared.
@@ -231,7 +239,7 @@ Sqlite::Statement& Sqlite::Statement::Bind(PT&& parameter_number_or_name, VT val
 
     else if constexpr(std::is_same_v<VT, std::string_view>)
     {
-        result = sqlite3_bind_text(*m_statementPtr, parameter_number, value.data(), value.length(),
+        result = sqlite3_bind_text(*m_statementPtr, parameter_number, value.data(), static_cast<int>(value.length()),
                                    reinterpret_cast<void(*)(void*)>(Code_SQLITE_TRANSIENT));
     }
 
@@ -280,6 +288,14 @@ Sqlite::Statement& Sqlite::Statement::BindBlob(PT&& parameter_number_or_name, co
 
 template<typename PT>
 Sqlite::Statement& Sqlite::Statement::BindBlob(PT&& parameter_number_or_name, const std::vector<std::byte>& value,
+                                               const bool value_should_be_copied/* = false*/)
+{
+    return BindBlob(std::forward<PT>(parameter_number_or_name), value.data(), value.size(), value_should_be_copied);
+}
+
+
+template<typename PT>
+Sqlite::Statement& Sqlite::Statement::BindBlob(PT&& parameter_number_or_name, const BinaryBlock& value,
                                                const bool value_should_be_copied/* = false*/)
 {
     return BindBlob(std::forward<PT>(parameter_number_or_name), value.data(), value.size(), value_should_be_copied);
@@ -404,4 +420,14 @@ VT Sqlite::Statement::GetColumn(const int column_number)
     {
         static_assert_false();
     }
+}
+
+
+template <typename VT>
+std::optional<VT> Sqlite::Statement::GetOptionalColumn(const int column_number)
+{
+    if( IsColumnNull(column_number) )
+        return std::nullopt;
+
+    return GetColumn<VT>(column_number);
 }

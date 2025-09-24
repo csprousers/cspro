@@ -18,4 +18,5 @@ namespace SyncCustomHeaders
     static constexpr std::string_view PARADATA_LOG_UUID                 = "x-csw-paradata-log-uuid";
     static constexpr std::string_view GET_FILE_MD5_HEADER               = "x-csw-get-file-md5";
     static constexpr std::string_view CASES_REPOSITORY_OPTIONS_HEADER   = "x-csw-cases-options";
-};
+    static constexpr std::string_view CASES_REPOSITORY_CACHE_HEADER     = "x-csw-cases-cache";
+}

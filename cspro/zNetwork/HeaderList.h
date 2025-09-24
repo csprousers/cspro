@@ -29,6 +29,12 @@ public:
     // Adds a header whose value is specified as JSON. The JSON is escaped to be "HTTP header safe".
     HeaderList& AddJson(std::string_view name_sv, std::string_view json_text_sv);
 
+    // Adds a header with the value encoded as Base64 prior to adding.
+    HeaderList& AddAsBase64(std::string_view name_sv, std::string_view value_sv);
+
+    // Adds a header with the value deflated (using ZLib::Deflate) and encoded as Base64 prior to adding.
+    HeaderList& AddAsDeflatedBase64(std::string_view name_sv, std::string value);
+
     // Adds all headers from another header list.
     void Append(const HeaderList& header_list);
     void Append(HeaderList&& header_list);

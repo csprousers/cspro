@@ -10,22 +10,23 @@ public:
     virtual ~CredentialStore() { }
 
     // string-based functions (that can be overridden)
-    virtual void Store(const std::string& attribute, const std::string& secret_value);
+    virtual void Store(std::string_view attribute_sv, const std::string& secret_value);
 
-    virtual std::string Retrieve(const std::string& attribute);
+    virtual std::string Retrieve(std::string_view attribute_sv);
 
     // JSON-based functions (that throw JSON serialization exceptions)
     template<typename T>
-    void StoreAsJson(const std::string& attribute, T& secret_value);
+    void StoreAsJson(std::string_view attribute_sv, T& secret_value);
 
     template<typename T>
-    T RetrieveFromJson(const std::string& attribute);
+    T RetrieveFromJson(std::string_view attribute_sv);
 
     template<typename T>
-    std::optional<T> RetrieveOptionalFromJson(const std::string& attribute) noexcept;
+    std::optional<T> RetrieveOptionalFromJson(std::string_view attribute_sv) noexcept;
 
 protected:
-    virtual std::string PrefixAttribute(const std::string& attribute) = 0;
+    // by default, no prefix is added to the attribute
+    virtual std::string PrefixAttribute(std::string_view attribute_sv);
 };
 
 
@@ -35,25 +36,25 @@ protected:
 // --------------------------------------------------------------------------
 
 template<typename T>
-void CredentialStore::StoreAsJson(const std::string& attribute, T& secret_value)
+void CredentialStore::StoreAsJson(const std::string_view attribute_sv, T& secret_value)
 {
-    Store(attribute, Json::ToJson(secret_value, JsonFormattingOptions::Compact));
+    Store(attribute_sv, Json::ToJson(secret_value, JsonFormattingOptions::Compact));
 }
 
 
 template<typename T>
-T CredentialStore::RetrieveFromJson(const std::string& attribute)
+T CredentialStore::RetrieveFromJson(const std::string_view attribute_sv)
 {
-    return Json::FromJson<T>(Retrieve(attribute));
+    return Json::FromJson<T>(Retrieve(attribute_sv));
 }
 
 
 template<typename T>
-std::optional<T> CredentialStore::RetrieveOptionalFromJson(const std::string& attribute) noexcept
+std::optional<T> CredentialStore::RetrieveOptionalFromJson(const std::string_view attribute_sv) noexcept
 {
     try
     {
-        const std::string json_text = Retrieve(attribute);
+        const std::string json_text = Retrieve(attribute_sv);
 
         if( !json_text.empty() )
             return Json::FromJson<T>(json_text);

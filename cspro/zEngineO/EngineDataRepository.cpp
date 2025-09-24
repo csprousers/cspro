@@ -182,7 +182,7 @@ void EngineDataRepository::CreateCaseIterator(const CaseIteratorStyle case_itera
         iteration_start_type = CaseIterationStartType::GreaterThanEquals;
         case_key = &(*m_lastSearchedCaseKey);
     }
-    
+
     else if( case_iterator_style == CaseIteratorStyle::FromNextKey )
     {
         ASSERT(starting_key.has_value());
@@ -190,8 +190,8 @@ void EngineDataRepository::CreateCaseIterator(const CaseIteratorStyle case_itera
     }
 
     const DictionaryAccessParameters dictionary_access_parameters = GetDictionaryAccessParameters(dictionary_access);
-    std::unique_ptr<CaseIteratorParameters> start_parameters;
-    
+    std::optional<CaseIteratorParameters> start_parameters;
+
     if( case_key != nullptr || key_prefix.has_value() )
     {
         // flip the order for a descending iterator
@@ -210,20 +210,23 @@ void EngineDataRepository::CreateCaseIterator(const CaseIteratorStyle case_itera
 
         if( dictionary_access_parameters.case_iteration_method == CaseIterationMethod::KeyOrder )
         {
-            start_parameters = std::make_unique<CaseIteratorParameters>(iteration_start_type, ( case_key != nullptr ) ? case_key->GetKey() : std::string(), key_prefix);
+            start_parameters.emplace(iteration_start_type, ( case_key != nullptr ) ? case_key->GetKey() : std::string(), key_prefix);
         }
 
         else
         {
-            start_parameters = std::make_unique<CaseIteratorParameters>(iteration_start_type, ( case_key != nullptr ) ? case_key->GetPositionInRepository() : -1, key_prefix);
+            start_parameters.emplace(iteration_start_type, ( case_key != nullptr ) ? case_key->GetPositionInRepository() : -1, key_prefix);
         }
     }
 
-    m_caseIterator = GetDataRepository().CreateIterator(iteration_content,
-                                                        dictionary_access_parameters.case_iteration_status,
-                                                        dictionary_access_parameters.case_iteration_method,
-                                                        dictionary_access_parameters.case_iteration_order,
-                                                        start_parameters.get());
+    const CaseIteratorSettings iterator_settings(
+        dictionary_access_parameters.case_iteration_status,
+        dictionary_access_parameters.case_iteration_method,
+        dictionary_access_parameters.case_iteration_order,
+        std::move(start_parameters)
+    );
+
+    m_caseIterator = GetDataRepository().CreateIterator(iteration_content, iterator_settings);
 }
 
 

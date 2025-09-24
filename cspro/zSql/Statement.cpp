@@ -17,7 +17,7 @@ void Sqlite::Statement::CheckDefinitionsAtCompileTime()
     static_assert(ColumnType::Null == SQLITE_NULL);
 
 #ifdef WIN32
-    static_assert(Code_SQLITE_TRANSIENT == reinterpret_cast<int>(SQLITE_TRANSIENT));
+    static_assert(Code_SQLITE_TRANSIENT == reinterpret_cast<INT_PTR>(SQLITE_TRANSIENT));
 #endif
 }
 

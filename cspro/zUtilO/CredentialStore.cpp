@@ -3,14 +3,20 @@
 #include <zPlatformO/PlatformInterface.h>
 
 
+std::string CredentialStore::PrefixAttribute(const std::string_view attribute_sv)
+{
+    return std::string(attribute_sv);
+}
+
+
 #ifdef WIN32
 
 #include <wincred.h>
 
 
-void CredentialStore::Store(const std::string& attribute, const std::string& secret_value)
+void CredentialStore::Store(const std::string_view attribute_sv, const std::string& secret_value)
 {
-    std::wstring wide_prefixed_attribute = TC::ToWide(PrefixAttribute(attribute));
+    std::wstring wide_prefixed_attribute = TC::ToWide(PrefixAttribute(attribute_sv));
     std::wstring wide_secret_value = TC::ToWide(secret_value);
 
     CREDENTIAL cred = { 0 };
@@ -25,9 +31,9 @@ void CredentialStore::Store(const std::string& attribute, const std::string& sec
 }
 
 
-std::string CredentialStore::Retrieve(const std::string& attribute)
+std::string CredentialStore::Retrieve(const std::string_view attribute_sv)
 {
-    const std::wstring wide_prefixed_attribute = TC::ToWide(PrefixAttribute(attribute));
+    const std::wstring wide_prefixed_attribute = TC::ToWide(PrefixAttribute(attribute_sv));
 
     PCREDENTIAL credential;
 
@@ -44,16 +50,16 @@ std::string CredentialStore::Retrieve(const std::string& attribute)
 
 #else
 
-void CredentialStore::Store(const std::string& attribute, const std::string& secret_value)
+void CredentialStore::Store(const std::string_view attribute_sv, const std::string& secret_value)
 {
-    const std::string prefixed_attribute = PrefixAttribute(attribute);
+    const std::string prefixed_attribute = PrefixAttribute(attribute_sv);
 
     PlatformInterface::GetInstance()->GetApplicationInterface()->StoreCredential(prefixed_attribute, secret_value);
 }
 
-std::string CredentialStore::Retrieve(const std::string& attribute)
+std::string CredentialStore::Retrieve(const std::string_view attribute_sv)
 {
-    const std::string prefixed_attribute = PrefixAttribute(attribute);
+    const std::string prefixed_attribute = PrefixAttribute(attribute_sv);
 
     return PlatformInterface::GetInstance()->GetApplicationInterface()->RetrieveCredential(prefixed_attribute);
 }

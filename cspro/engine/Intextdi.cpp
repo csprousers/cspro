@@ -1028,17 +1028,26 @@ double CIntDriver::exkeylist(int iExpr)
         EngineDictionary* engine_dictionary = assert_cast<EngineDictionary*>(symbol);
         EngineDataRepository& engine_data_repository = engine_dictionary->GetEngineDataRepository();
         DataRepository& data_repository = engine_data_repository.GetDataRepository();
-        DictionaryAccessParameters dictionary_access_parameters = engine_data_repository.GetDictionaryAccessParameters(fn8_node.dictionary_access);
-        std::unique_ptr<CaseIteratorParameters> start_parameters;
+        const DictionaryAccessParameters dictionary_access_parameters = engine_data_repository.GetDictionaryAccessParameters(fn8_node.dictionary_access);
+
+        CaseIteratorSettings iterator_settings(dictionary_access_parameters.case_iteration_status,
+                                               dictionary_access_parameters.case_iteration_method,
+                                               dictionary_access_parameters.case_iteration_order);
 
         if( fn8_node.starts_with_expression != -1 )
-            start_parameters = std::make_unique<CaseIteratorParameters>(CaseIterationStartType::GreaterThanEquals, std::string(), EvaluateString(fn8_node.starts_with_expression));
+        {
+            iterator_settings.SetParameters(CaseIteratorParameters(
+                CaseIterationStartType::GreaterThanEquals,
+                std::string(),
+                EvaluateString(fn8_node.starts_with_expression))
+            );
+        }
 
         try
         {
             // if they don't specify a list, return the number of cases
             if( fn8_node.extra_parameter < 0 )
-                return data_repository.GetNumberCases(dictionary_access_parameters.case_iteration_status, start_parameters.get());
+                return data_repository.GetNumberCases(iterator_settings.GetStatus(), iterator_settings.GetParameters());
 
             // fill in the list
             LogicList& logic_list = GetSymbolLogicList(fn8_node.extra_parameter);
@@ -1051,10 +1060,12 @@ double CIntDriver::exkeylist(int iExpr)
 
             logic_list.Reset();
 
+            const std::unique_ptr<CaseIterator> case_key_iterator = data_repository.CreateIterator(
+                CaseIterationContent::CaseKey,
+                iterator_settings
+            );
+
             CaseKey case_key;
-            std::unique_ptr<CaseIterator> case_key_iterator = data_repository.CreateIterator(CaseIterationContent::CaseKey,
-                dictionary_access_parameters.case_iteration_status, dictionary_access_parameters.case_iteration_method,
-                dictionary_access_parameters.case_iteration_order, start_parameters.get());
 
             while( case_key_iterator->NextCaseKey(case_key) )
                 logic_list.AddValue<SharableString>(case_key.GetKey());
@@ -1074,17 +1085,26 @@ double CIntDriver::exkeylist(int iExpr)
     {
         DICT* pDicT = assert_cast<DICT*>(symbol);
         DICX* pDicX = pDicT->GetDicX();
-        auto dictionary_access_parameters = pDicX->GetDictionaryAccessParameters(fn8_node.dictionary_access);
-        std::unique_ptr<CaseIteratorParameters> start_parameters;
+        const auto dictionary_access_parameters = pDicX->GetDictionaryAccessParameters(fn8_node.dictionary_access);
+
+        CaseIteratorSettings iterator_settings(std::get<2>(dictionary_access_parameters),
+                                               std::get<0>(dictionary_access_parameters),
+                                               std::get<1>(dictionary_access_parameters));
 
         if( fn8_node.starts_with_expression != -1 )
-            start_parameters = std::make_unique<CaseIteratorParameters>(CaseIterationStartType::GreaterThanEquals, std::string(), EvaluateString(fn8_node.starts_with_expression));
+        {
+            iterator_settings.SetParameters(CaseIteratorParameters(
+                CaseIterationStartType::GreaterThanEquals,
+                std::string(),
+                EvaluateString(fn8_node.starts_with_expression))
+            );
+        }
 
         try
         {
             // if they don't specify a list, return the number of cases
             if( fn8_node.extra_parameter < 0 )
-                return pDicX->GetDataRepository().GetNumberCases(std::get<2>(dictionary_access_parameters), start_parameters.get());
+                return pDicX->GetDataRepository().GetNumberCases(iterator_settings.GetStatus(), iterator_settings.GetParameters());
 
             // fill in the list
             LogicList& logic_list = GetSymbolLogicList(fn8_node.extra_parameter);
@@ -1097,10 +1117,12 @@ double CIntDriver::exkeylist(int iExpr)
 
             logic_list.Reset();
 
+            const std::unique_ptr<CaseIterator> case_key_iterator = pDicX->GetDataRepository().CreateIterator(
+                CaseIterationContent::CaseKey,
+                iterator_settings
+            );
+
             CaseKey case_key;
-            std::unique_ptr<CaseIterator> case_key_iterator = pDicX->GetDataRepository().CreateIterator(CaseIterationContent::CaseKey,
-                std::get<2>(dictionary_access_parameters), std::get<0>(dictionary_access_parameters),
-                std::get<1>(dictionary_access_parameters), start_parameters.get());
 
             while( case_key_iterator->NextCaseKey(case_key) )
                 logic_list.AddValue<SharableString>(case_key.GetKey());

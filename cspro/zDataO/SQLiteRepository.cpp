@@ -705,11 +705,13 @@ DataRepositoryUniqueCaseIdentifer SQLiteRepository::GetUniqueCaseIdentifer(const
 std::optional<CaseKey> SQLiteRepository::FindCaseKey(const CaseIterationMethod iteration_method, const CaseIterationOrder iteration_order,
                                                      const CaseIteratorParameters* const start_parameters/* = nullptr*/)
 {
-    std::unique_ptr<SQLiteStatement> statement = GetKeySearchIteratorStatement(0, 1, CaseIterationCaseStatus::NotDeletedOnly,
-        iteration_method, iteration_order, start_parameters,
-        _T("SELECT `cases`.`key`, `cases`.`file_order` "
-           "FROM `cases` "
-           "JOIN ( %s ) AS `filtered_cases` ON `cases`.`file_order` = `filtered_cases`.`file_order`"));
+    const CaseIteratorSettings iterator_settings(CaseIterationCaseStatus::NotDeletedOnly, iteration_method, iteration_order, start_parameters);
+
+    std::unique_ptr<SQLiteStatement> statement = GetKeySearchIteratorStatement(iterator_settings, 0, 1,
+        "SELECT `cases`.`key`, `cases`.`file_order` "
+        "FROM `cases` "
+        "JOIN ( %s ) AS `filtered_cases` ON `cases`.`file_order` = `filtered_cases`.`file_order`"
+    );
 
     std::optional<CaseKey> case_key;
 
@@ -1037,15 +1039,18 @@ size_t SQLiteRepository::GetNumberCases()
 }
 
 
-size_t SQLiteRepository::GetNumberCases(CaseIterationCaseStatus case_status, const CaseIteratorParameters* const start_parameters/* = nullptr*/)
+size_t SQLiteRepository::GetNumberCases(const CaseIterationCaseStatus case_status, const CaseIteratorParameters* const start_parameters/* = nullptr*/)
 {
     if( case_status == CaseIterationCaseStatus::NotDeletedOnly && start_parameters == nullptr )
         return GetNumberCases();
 
-    std::unique_ptr<SQLiteStatement> statement = GetKeySearchIteratorStatement(0, SIZE_MAX, case_status, std::nullopt, std::nullopt, start_parameters,
-        _T("SELECT COUNT(*) "
-           "FROM `cases` "
-           "JOIN ( %s ) AS `filtered_cases` ON `cases`.`file_order` = `filtered_cases`.`file_order`"));
+    const CaseIteratorSettings iterator_settings(case_status, std::nullopt, std::nullopt, start_parameters);
+
+    std::unique_ptr<SQLiteStatement> statement = GetKeySearchIteratorStatement(iterator_settings, 0, SIZE_MAX,
+        "SELECT COUNT(*) "
+        "FROM `cases` "
+        "JOIN ( %s ) AS `filtered_cases` ON `cases`.`file_order` = `filtered_cases`.`file_order`"
+    );
 
     if( statement->Step() == SQLITE_ROW )
         return statement->GetColumn<size_t>(0);
@@ -1092,9 +1097,9 @@ void SQLiteRepository::WriteIteratorSelectFromSql(std::stringstream& sql, CaseIt
 }
 
 
-std::unique_ptr<CaseIterator> SQLiteRepository::CreateIterator(CaseIterationContent iteration_content, CaseIterationCaseStatus case_status,
-    std::optional<CaseIterationMethod> iteration_method, std::optional<CaseIterationOrder> iteration_order,
-    const CaseIteratorParameters* start_parameters/* = nullptr*/, size_t offset/* = 0*/, size_t limit/* = SIZE_MAX*/)
+std::unique_ptr<CaseIterator> SQLiteRepository::CreateIterator(const CaseIterationContent iteration_content,
+                                                               const CaseIteratorSettings& iterator_settings,
+                                                               const size_t offset/* = 0*/, const size_t limit/* = SIZE_MAX*/)
 {
     const bool get_case_note_for_case_summary = ( iteration_content == CaseIterationContent::CaseSummary &&
                                                   m_caseAccess->GetUsesNotes() && CaseIterator::RequiresCaseNote() );
@@ -1109,37 +1114,47 @@ std::unique_ptr<CaseIterator> SQLiteRepository::CreateIterator(CaseIterationCont
                "`notes`.`field_name` = '" << m_caseAccess->GetDataDict().GetName().c_str() << "' AND `notes`.`operator_id`='' ";
     }
 
-    return std::make_unique<SQLiteRepositoryCaseIterator>(*this, iteration_content,
-        GetKeySearchIteratorStatement(offset, limit, case_status, iteration_method, iteration_order, start_parameters, UTF8_TODO::GetWide(sql.str()).c_str()),
-        case_status, start_parameters);
+    return std::make_unique<SQLiteRepositoryCaseIterator>(
+        *this,
+        iteration_content,
+        GetKeySearchIteratorStatement(iterator_settings, offset, limit, sql.str().c_str())
+    );
 }
 
 
-std::unique_ptr<SQLiteStatement> SQLiteRepository::GetKeySearchIteratorStatement(size_t offset, size_t limit,
-    CaseIterationCaseStatus case_status, std::optional<CaseIterationMethod> iteration_method, std::optional<CaseIterationOrder> iteration_order,
-    const CaseIteratorParameters* start_parameters, const TCHAR* base_sql) const
+std::unique_ptr<SQLiteStatement> SQLiteRepository::GetKeySearchIteratorStatement(const CaseIteratorSettings& iterator_settings,
+                                                                                 const size_t offset, const size_t limit,
+                                                                                 const char* const base_sql) const
 {
-    CString order_by_text;
+    std::string order_by_text;
 
-    if( iteration_method.has_value() )
+    if( iterator_settings.GetMethod().has_value() )
     {
-        order_by_text.Format(_T("ORDER BY %s %s "),
-            ( iteration_method == CaseIterationMethod::KeyOrder ) ? _T("`cases`.`key`") : _T("`cases`.`file_order`"),
-            ( ( iteration_order == CaseIterationOrder::Ascending )  ? _T("ASC") :
-              ( iteration_order == CaseIterationOrder::Descending ) ? _T("DESC") :
-                                                                      _T("") ));
+        const CaseIterationMethod iteration_method = *iterator_settings.GetMethod();
+        const std::optional<CaseIterationOrder>& iteration_order = iterator_settings.GetOrder();
+
+        order_by_text = FormatText("ORDER BY %s %s ",
+            ( iteration_method == CaseIterationMethod::KeyOrder ) ? "`cases`.`key`" : "`cases`.`file_order`",
+            ( ( iteration_order == CaseIterationOrder::Ascending )  ? "ASC" :
+              ( iteration_order == CaseIterationOrder::Descending ) ? "DESC" :
+                                                                      "" ));
     }
 
-    const std::wstring limit_text = FormatText(L"LIMIT %d OFFSET %d ", ( limit == SIZE_MAX ) ? -1 : (int)limit, (int)offset);
+    const std::string limit_text = FormatText("LIMIT %d OFFSET %d ",
+                                              ( limit == SIZE_MAX ) ? -1 : static_cast<int>(limit),
+                                              static_cast<int>(offset));
 
-    CString where_text;
+    std::string where_text;
 
-    auto add_to_where_text = [&](const cs::string_sz condition)
+    auto add_to_where_text = [&](const auto& condition)
     {
-        where_text.AppendFormat(_T("%s ( %s ) "), where_text.IsEmpty() ? _T("WHERE") : _T("AND"), UTF8_TODO::GetWide(condition).c_str());
+        where_text.append(where_text.empty() ? "WHERE (" : "AND (")
+                  .append(condition)
+                  .append(") ");
     };
 
     // process any filters
+    const CaseIteratorParameters* const start_parameters = iterator_settings.GetParameters();
     bool use_key_prefix = false;
     bool use_operators = false;
 
@@ -1149,7 +1164,7 @@ std::unique_ptr<SQLiteStatement> SQLiteRepository::GetKeySearchIteratorStatement
         if( start_parameters->key_prefix.has_value() && !start_parameters->key_prefix->empty() )
         {
             use_key_prefix = true;
-            where_text = _T("WHERE `cases`.`key` >= ? AND `cases`.`key` < ? ");
+            where_text = "WHERE `cases`.`key` >= ? AND `cases`.`key` < ? ";
 
             use_operators = std::holds_alternative<std::string>(start_parameters->first_key_or_position) ?
                 !std::get<std::string>(start_parameters->first_key_or_position).empty() :
@@ -1170,27 +1185,27 @@ std::unique_ptr<SQLiteStatement> SQLiteRepository::GetKeySearchIteratorStatement
     }
 
     // filter on case properties
-    if( case_status != CaseIterationCaseStatus::All )
+    if( iterator_settings.GetStatus() != CaseIterationCaseStatus::All )
     {
         add_to_where_text("`cases`.`deleted` = 0");
 
-        if( case_status == CaseIterationCaseStatus::PartialsOnly )
+        if( iterator_settings.GetStatus() == CaseIterationCaseStatus::PartialsOnly )
         {
             add_to_where_text("`cases`.`partial_save_mode` IS NOT NULL");
         }
 
-        else if( case_status == CaseIterationCaseStatus::DuplicatesOnly )
+        else if( iterator_settings.GetStatus() == CaseIterationCaseStatus::DuplicatesOnly )
         {
             add_to_where_text("`cases`.`key` IN ( SELECT `cases`.`key` FROM `cases` WHERE `cases`.`deleted` = 0 GROUP BY `cases`.`key` HAVING COUNT(*) > 1 )");
         }
     }
 
     // generate the complete SQL statement
-    const std::wstring filter_sql = FormatText(L"SELECT `cases`.`file_order` FROM `cases` %s %s %s ", where_text.GetString(), order_by_text.GetString(), limit_text.c_str());
+    const std::string filter_sql = FormatText("SELECT `cases`.`file_order` FROM `cases` %s %s %s ",
+                                              where_text.c_str(), order_by_text.c_str(), limit_text.c_str());
 
-    CString sql;
-    sql.Format(base_sql, filter_sql.c_str());
-    sql.AppendFormat(order_by_text);
+    std::string sql = FormatText(base_sql, filter_sql.c_str());
+    sql.append(order_by_text);
 
     auto statement = std::make_unique<SQLiteStatement>(m_db, sql);
 
@@ -1202,7 +1217,7 @@ std::unique_ptr<SQLiteStatement> SQLiteRepository::GetKeySearchIteratorStatement
 
     if( use_operators )
     {
-        int operator_argument_index = use_key_prefix ? 3 : 1;
+        const int operator_argument_index = use_key_prefix ? 3 : 1;
 
         if( std::holds_alternative<std::string>(start_parameters->first_key_or_position) )
         {

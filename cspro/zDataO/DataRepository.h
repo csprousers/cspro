@@ -9,6 +9,7 @@
 #include <zCaseO/CaseKey.h>
 
 class CaseIterator;
+class CaseIteratorSettings;
 class CaseSummary;
 class DataRepositoryUniqueCaseIdentifer;
 class ISyncableDataRepository;
@@ -138,9 +139,9 @@ public:
     // Returns an iterator that can be used to process all of the cases in the repository matching the
     // specified parameters. The iteration is optimized for the specified iteration content, but can
     // be used to read any of the applicable objects.
-    virtual std::unique_ptr<CaseIterator> CreateIterator(CaseIterationContent iteration_content, CaseIterationCaseStatus case_status,
-                                                         std::optional<CaseIterationMethod> iteration_method, std::optional<CaseIterationOrder> iteration_order,
-                                                         const CaseIteratorParameters* start_parameters = nullptr, size_t offset = 0, size_t limit = SIZE_MAX) = 0;
+    virtual std::unique_ptr<CaseIterator> CreateIterator(CaseIterationContent iteration_content,
+                                                         const CaseIteratorSettings& iterator_settings,
+                                                         size_t offset = 0, size_t limit = SIZE_MAX) = 0;
 
     // Returns an iterator that can be used to process all of the cases in the repository.
     std::unique_ptr<CaseIterator> CreateCaseIterator(CaseIterationMethod iteration_method, CaseIterationOrder iteration_order);

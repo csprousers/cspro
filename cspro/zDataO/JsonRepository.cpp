@@ -654,18 +654,18 @@ DataRepositoryUniqueCaseIdentifer JsonRepository::GetUniqueCaseIdentifer(const C
 
 
 SQLiteStatement JsonRepository::CreateKeySearchIteratorStatement(const char* const columns_to_query,
-                                                                 const size_t offset, const size_t limit,
-                                                                 const CaseIterationCaseStatus case_status,
-                                                                 const std::optional<CaseIterationMethod>& iteration_method,
-                                                                 const std::optional<CaseIterationOrder>& iteration_order,
-                                                                 const CaseIteratorParameters* const start_parameters)
+                                                                 const CaseIteratorSettings& iterator_settings,
+                                                                 const size_t offset, const size_t limit)
 {
     std::string order_by_text;
 
-    if( iteration_method.has_value() )
+    if( iterator_settings.GetMethod().has_value() )
     {
-        const char* const column = ( *iteration_method == CaseIterationMethod::KeyOrder ) ? "`key`" :
-                                                                                            "`position`";
+        const CaseIterationMethod iteration_method = *iterator_settings.GetMethod();
+        const std::optional<CaseIterationOrder>& iteration_order = iterator_settings.GetOrder();
+
+        const char* const column = ( iteration_method == CaseIterationMethod::KeyOrder ) ? "`key`" :
+                                                                                           "`position`";
 
         const char* const order = ( !iteration_order.has_value() )                       ? "" :
                                   ( *iteration_order == CaseIterationOrder::Ascending )  ? "ASC" :
@@ -678,12 +678,15 @@ SQLiteStatement JsonRepository::CreateKeySearchIteratorStatement(const char* con
 
     std::string where_text;
 
-    auto add_to_where_text = [&](const cs::string_sz condition)
+    auto add_to_where_text = [&](const auto& condition)
     {
-        where_text.append(FormatText("%s ( %s ) ", where_text.empty() ? "WHERE" : "AND", condition.c_str()));
+        where_text.append(where_text.empty() ? "WHERE (" : "AND (")
+                  .append(condition)
+                  .append(") ");
     };
 
     // process any filters
+    const CaseIteratorParameters* const start_parameters = iterator_settings.GetParameters();
     bool use_key_prefix = false;
     bool use_operators = false;
 
@@ -714,16 +717,16 @@ SQLiteStatement JsonRepository::CreateKeySearchIteratorStatement(const char* con
     }
 
     // filter on case properties
-    if( case_status != CaseIterationCaseStatus::All )
+    if( iterator_settings.GetStatus() != CaseIterationCaseStatus::All )
     {
         add_to_where_text("`deleted` = 0");
 
-        if( case_status == CaseIterationCaseStatus::PartialsOnly )
+        if( iterator_settings.GetStatus() == CaseIterationCaseStatus::PartialsOnly )
         {
             add_to_where_text("`partial` != 0");
         }
 
-        else if( case_status == CaseIterationCaseStatus::DuplicatesOnly )
+        else if( iterator_settings.GetStatus() == CaseIterationCaseStatus::DuplicatesOnly )
         {
             add_to_where_text("`key` IN ( SELECT `key` FROM `keys` WHERE `deleted` = 0 GROUP BY `key` HAVING COUNT(*) > 1 )");
         }
@@ -764,10 +767,9 @@ SQLiteStatement JsonRepository::CreateKeySearchIteratorStatement(const char* con
 std::optional<CaseKey> JsonRepository::FindCaseKey(const CaseIterationMethod iteration_method, const CaseIterationOrder iteration_order,
                                                    const CaseIteratorParameters* const start_parameters/* = nullptr*/)
 {
-    SQLiteStatement stmt_query_keys = CreateKeySearchIteratorStatement("`key`, `position`", 0, 1,
-                                                                       CaseIterationCaseStatus::NotDeletedOnly,
-                                                                       iteration_method, iteration_order,
-                                                                       start_parameters);
+    const CaseIteratorSettings iterator_settings(CaseIterationCaseStatus::NotDeletedOnly, iteration_method, iteration_order, start_parameters);
+
+    SQLiteStatement stmt_query_keys = CreateKeySearchIteratorStatement("`key`, `position`", iterator_settings, 0, 1);
 
     if( stmt_query_keys.Step() == SQLITE_ROW )
         return CaseKey(stmt_query_keys.GetColumn<std::string>(0), stmt_query_keys.GetColumn<double>(1));
@@ -1309,10 +1311,9 @@ size_t JsonRepository::GetNumberCases(const CaseIterationCaseStatus case_status,
     if( case_status == CaseIterationCaseStatus::NotDeletedOnly && start_parameters == nullptr )
         return IndexableTextRepository::GetNumberCases();
 
-    SQLiteStatement stmt_query_keys = CreateKeySearchIteratorStatement("COUNT(*)", 0, SIZE_MAX,
-                                                                       case_status,
-                                                                       std::nullopt, std::nullopt,
-                                                                       start_parameters);
+    const CaseIteratorSettings iterator_settings(case_status, std::nullopt, std::nullopt, start_parameters);
+
+    SQLiteStatement stmt_query_keys = CreateKeySearchIteratorStatement("COUNT(*)", iterator_settings, 0, SIZE_MAX);
 
     if( stmt_query_keys.Step() != SQLITE_ROW )
         throw DataRepositoryException::SQLiteError();
@@ -1321,16 +1322,21 @@ size_t JsonRepository::GetNumberCases(const CaseIterationCaseStatus case_status,
 }
 
 
-std::unique_ptr<CaseIterator> JsonRepository::CreateIterator(const CaseIterationContent iteration_content, const CaseIterationCaseStatus case_status,
-                                                             const std::optional<CaseIterationMethod> iteration_method, const std::optional<CaseIterationOrder> iteration_order,
-                                                             const CaseIteratorParameters* const start_parameters/* = nullptr*/, const size_t offset/* = 0*/, const size_t limit/* = SIZE_MAX*/)
+std::unique_ptr<CaseIterator> JsonRepository::CreateIterator(const CaseIterationContent iteration_content,
+                                                             const CaseIteratorSettings& iterator_settings,
+                                                             const size_t offset/* = 0*/, const size_t limit/* = SIZE_MAX*/)
 {
     // use a fast batch iterator when possible
-    if( m_jsonStream != nullptr && iteration_content == CaseIterationContent::Case && case_status != CaseIterationCaseStatus::DuplicatesOnly &&
-        iteration_method == CaseIterationMethod::SequentialOrder && iteration_order == CaseIterationOrder::Ascending &&
-        start_parameters == nullptr && offset == 0 && limit == SIZE_MAX )
+    if( m_jsonStream != nullptr &&
+        iteration_content == CaseIterationContent::Case &&
+        iterator_settings.GetStatus() != CaseIterationCaseStatus::DuplicatesOnly &&
+        iterator_settings.GetMethod() == CaseIterationMethod::SequentialOrder &&
+        iterator_settings.GetOrder() == CaseIterationOrder::Ascending &&
+        iterator_settings.GetParameters() == nullptr &&
+        offset == 0 &&
+        limit == SIZE_MAX )
     {
-        return CreateBatchIterator(case_status);
+        return CreateBatchIterator(iterator_settings.GetStatus());
     }
 
     else
@@ -1339,12 +1345,15 @@ std::unique_ptr<CaseIterator> JsonRepository::CreateIterator(const CaseIteration
                                              ( iteration_content == CaseIterationContent::CaseSummary ) ? "`position`, `bytes`, `key`, `label`, `note`, `deleted`, `verified`, `partial`" :
                                            /*( iteration_content == CaseIterationContent::Case ) */       "`position`, `bytes`";
 
-        SQLiteStatement stmt_query_keys = CreateKeySearchIteratorStatement(columns_to_query, offset, limit,
-                                                                           case_status,
-                                                                           iteration_method, iteration_order,
-                                                                           start_parameters);
+        SQLiteStatement stmt_query_keys = CreateKeySearchIteratorStatement(columns_to_query, iterator_settings, offset, limit);
 
-        return std::make_unique<JsonRepositoryCaseIterator>(*this, iteration_content, std::move(stmt_query_keys), case_status, start_parameters);
+        return std::make_unique<JsonRepositoryCaseIterator>(
+            *this,
+            iteration_content,
+            std::move(stmt_query_keys),
+            iterator_settings.GetStatus(),
+            iterator_settings.GetParameters()
+        );
     }
 }
 

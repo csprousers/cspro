@@ -31,9 +31,9 @@ public:
     void DeleteCase(const std::string& key) override;
     size_t GetNumberCases() override;
     size_t GetNumberCases(CaseIterationCaseStatus case_status, const CaseIteratorParameters* start_parameters = nullptr) override;
-    std::unique_ptr<CaseIterator> CreateIterator(CaseIterationContent iteration_content, CaseIterationCaseStatus case_status,
-                                                 std::optional<CaseIterationMethod> iteration_method, std::optional<CaseIterationOrder> iteration_order,
-                                                 const CaseIteratorParameters* start_parameters = nullptr, size_t offset = 0, size_t limit = SIZE_MAX) override;
+    std::unique_ptr<CaseIterator> CreateIterator(CaseIterationContent iteration_content,
+                                                 const CaseIteratorSettings& iterator_settings,
+                                                 size_t offset = 0, size_t limit = SIZE_MAX) override;
     void StartTransaction() override;
     void EndTransaction() override;
 

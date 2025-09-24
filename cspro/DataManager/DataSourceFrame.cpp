@@ -755,7 +755,7 @@ bool DataSourceFrame::ToggleReadOnly()
     catch( const CSProException& exception )
     {
         ErrorMessage::Display(FormatText("There was an error opening the data source in %s mode:\n\n%s\n\nTry opening the data source again.",
-                                         initially_read_only ? "read-only" : "read-write", exception.what()));
+                                         initially_read_only ? "read-write" : "read-only", exception.what()));
         SendMessage(WM_CLOSE);
         return false;
     }

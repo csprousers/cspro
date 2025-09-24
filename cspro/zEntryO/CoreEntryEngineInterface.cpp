@@ -618,8 +618,16 @@ CoreEntryEngineInterface::GetSequentialCaseIds(bool sort_ascending,
             }
         }
 
-        auto case_summary_iterator = pInputRepo->CreateIterator(lat_lon_getter ? CaseIterationContent::Case : CaseIterationContent::CaseSummary,
-            CaseIterationCaseStatus::NotDeletedOnly, CaseIterationMethod::SequentialOrder, sort_ascending ? CaseIterationOrder::Ascending : CaseIterationOrder::Descending);
+        const CaseIteratorSettings iterator_settings(
+            CaseIterationCaseStatus::NotDeletedOnly,
+            CaseIterationMethod::SequentialOrder,
+            sort_ascending ? CaseIterationOrder::Ascending : CaseIterationOrder::Descending
+        );
+
+        const std::unique_ptr<CaseIterator> case_summary_iterator = pInputRepo->CreateIterator(
+            lat_lon_getter ? CaseIterationContent::Case : CaseIterationContent::CaseSummary,
+            iterator_settings
+        );
 
         if (lat_lon_getter) {
             Case data_case(pInputRepo->GetCaseAccess().GetCaseMetadata());

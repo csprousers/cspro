@@ -1,20 +1,29 @@
 ﻿#pragma once
 
 #include <zDataO/zDataO.h>
+#include <zDataO/CSWebCaseResponse.h>
 #include <zDataO/DataRepository.h>
 
-class ConnectResponse;
 class CSWebConnection;
+enum class CSWebDictionaryPermission;
+class CSWebRepositoryCache;
+class CSWebRepositorySyncBinaryDataUploadManager;
 class LoginCredentials;
 class SyncBinaryDataUploadManager;
 class SyncCaseSerializer;
 class SyncErrorFormatter;
 
 
+// --------------------------------------------------------------------------
+// CSWebRepository
+// --------------------------------------------------------------------------
+
 class ZDATAO_API CSWebRepository : public DataRepository
 {
     friend class CSWebBinaryContentReader;
+    friend class CSWebRepositoryCache;
     friend class CSWebRepositoryIterator;
+    friend class CSWebRepositorySyncBinaryDataUploadManager;
 
 public:
     CSWebRepository(std::shared_ptr<const CaseAccess> case_access, DataRepositoryAccess access_type);
@@ -36,13 +45,13 @@ public:
     void DeleteCase(double position_in_repository, bool deleted = true) override;
     size_t GetNumberCases() override;
     size_t GetNumberCases(CaseIterationCaseStatus case_status, const CaseIteratorParameters* start_parameters = nullptr) override;
-    std::unique_ptr<CaseIterator> CreateIterator(CaseIterationContent iteration_content, CaseIterationCaseStatus case_status,
-                                                 std::optional<CaseIterationMethod> iteration_method, std::optional<CaseIterationOrder> iteration_order,
-                                                 const CaseIteratorParameters* start_parameters = nullptr, size_t offset = 0, size_t limit = SIZE_MAX) override;
+    std::unique_ptr<CaseIterator> CreateIterator(CaseIterationContent iteration_content,
+                                                 const CaseIteratorSettings& iterator_settings,
+                                                 size_t offset = 0, size_t limit = SIZE_MAX) override;
 
     static std::string CalculateDictionaryKeyStructure(const CDataDict& dictionary);
 
-    static std::unique_ptr<SyncCaseSerializer> CreateSyncCaseSerializer(UniqueId repository_id,
+    static std::unique_ptr<SyncCaseSerializer> CreateSyncCaseSerializer(std::variant<CSWebRepository*, UniqueId> repository_or_repository_id,
                                                                         std::shared_ptr<const CaseAccess> case_access,
                                                                         std::shared_ptr<CSWebConnection> csweb_connection);
 
@@ -69,22 +78,28 @@ private:
 
     static LoginCredentials CreateLoginCredentials(const ConnectionString& connection_string);
 
-    JsonNode EnsureDictionaryExistsAndGetDictionaryMetadata(CSWebConnection& csweb_connection, DataRepositoryOpenFlag open_flag) const;
+    // Makes sure the dictionary exists on the server, uploading it if necessary.
+    // The dictionary metadata is returned following the validation of the user's access privileges.
+    JsonNode EnsureDictionaryExistsAndUserHasPermissions(CSWebConnection& csweb_connection, DataRepositoryOpenFlag open_flag);
     static void PutDictionaryThatDoesNotExist(CSWebConnection& csweb_connection, const CDataDict& dictionary, const std::string& syncable_name);
+
+    // Throws an exception if the user does not the proper permission.
+    void EnsureUserHasPermission(const CSWebConnection& csweb_connection, CSWebDictionaryPermission permission);
+
+    void ParseJsonCase(Case& data_case, const CSWebCaseResponse& case_response) const;
+    void ParseJsonCaseFromCache(Case& data_case, const CSWebCaseResponse& case_response) const;
 
     size_t ExecuteCaseCountQuery(std::string_view arguments_json_text_sv) const;
 
-    template<bool requires_metadata = false, typename CF>
-    void ExecuteSingleCaseQuery(const char* content, const char* status,
-                                const char* filter_type, std::string_view filter_value_sv,
-                                const CF& callback_function) const;
+    CSWebCaseQueryResponse ExecuteCaseQuery(CSWebCaseQuery query, const std::string& arguments_json_text) const;
+
+    CSWebCaseResponse ExecuteSingleCaseQuery(CSWebCaseQuery query, const char* status,
+                                             const char* filter_type, std::string_view filter_value_sv) const;
 
     // CSWeb has its own limit on the content entries it returns in one request,
     // so the specified limit may not be completely fulfilled in a single request.
     template<bool requires_metadata = false>
-    std::string CreateKeySearchQuery(const char* content, CaseIterationCaseStatus case_status,
-                                     std::optional<CaseIterationMethod> iteration_method, std::optional<CaseIterationOrder> iteration_order,
-                                     const CaseIteratorParameters* start_parameters, size_t offset, size_t limit);
+    std::string CreateKeySearchQuery(const char* content, const CaseIteratorSettings& iterator_settings, size_t offset, size_t limit);
 
     void ReadCase(Case& data_case, const char* status, const char* filter_type, std::string_view filter_value_sv);
 
@@ -95,7 +110,8 @@ private:
     std::string m_syncableDictionaryName;
 
     std::shared_ptr<CSWebConnection> m_cswebConnection;
-    std::unique_ptr<const ConnectResponse> m_cswebConnectResponse;
+    std::set<CSWebDictionaryPermission> m_permissions;
+    std::unique_ptr<CSWebRepositoryCache> m_cache;
 
     std::unique_ptr<SyncErrorFormatter> m_syncErrorFormatter;
 

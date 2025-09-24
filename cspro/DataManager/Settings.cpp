@@ -8,7 +8,6 @@
 #include "ExportDataSettings.h"
 #include "ExtractBinaryDataSettings.h"
 #include "ExtractNotesSettings.h"
-#include <zDataO/CaseIteratorSettings.h>
 
 
 CREATE_JSON_KEY(caseViewHtml)

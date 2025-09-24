@@ -110,9 +110,9 @@ size_t NullRepository::GetNumberCases(CaseIterationCaseStatus /*case_status*/, c
 }
 
 
-std::unique_ptr<CaseIterator> NullRepository::CreateIterator(CaseIterationContent /*iteration_content*/, CaseIterationCaseStatus /*case_status*/,
-                                                             std::optional<CaseIterationMethod> /*iteration_method*/, std::optional<CaseIterationOrder> /*iteration_order*/,
-                                                             const CaseIteratorParameters* /*start_parameters = nullptr*/, size_t /*offset = 0*/, size_t /*limit = SIZE_MAX*/)
+std::unique_ptr<CaseIterator> NullRepository::CreateIterator(CaseIterationContent /*iteration_content*/,
+                                                             const CaseIteratorSettings& /*iterator_settings*/,
+                                                             size_t /*offset = 0*/, size_t /*limit = SIZE_MAX*/)
 {
     return std::make_unique<NullRepositoryCaseIterator>();
 }

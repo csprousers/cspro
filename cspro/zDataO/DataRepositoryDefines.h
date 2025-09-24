@@ -63,10 +63,10 @@ struct CaseIteratorParameters
                                       std::variant<std::string, double> first_key_or_position_,
                                       std::optional<std::string> key_prefix_);
 
-    ZDATAO_API static std::unique_ptr<CaseIteratorParameters> CreateForKey(CaseIterationStartType start_type,
-                                                                           std::variant<std::string, double> first_key_or_position);
+    ZDATAO_API static CaseIteratorParameters CreateForKey(CaseIterationStartType start_type,
+                                                          std::variant<std::string, double> first_key_or_position);
 
-    ZDATAO_API static std::unique_ptr<CaseIteratorParameters> CreateForKeyPrefix(std::string key_prefix);
+    ZDATAO_API static CaseIteratorParameters CreateForKeyPrefix(std::string key_prefix);
 };
 
 

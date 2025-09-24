@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include <zDataO/zDataO.h>
+#include <zDataO/DataRepositoryDefines.h>
 
 
 // --------------------------------------------------------------------------
@@ -12,11 +13,21 @@ class ZDATAO_API CaseIteratorSettings
 public:
     CaseIteratorSettings();
 
-    CaseIteratorSettings(const CaseIteratorSettings& rhs);
-    CaseIteratorSettings(CaseIteratorSettings&& rhs) = default;
+    CaseIteratorSettings(CaseIterationCaseStatus status,
+                         std::optional<CaseIterationMethod> method = std::nullopt,
+                         std::optional<CaseIterationOrder> order = std::nullopt,
+                         std::optional<CaseIteratorParameters> parameters = std::nullopt);
 
-    CaseIteratorSettings& operator=(const CaseIteratorSettings& rhs);
-    CaseIteratorSettings& operator=(CaseIteratorSettings&& rhs) = default;
+    CaseIteratorSettings(CaseIterationCaseStatus status,
+                         std::optional<CaseIterationMethod> method,
+                         std::optional<CaseIterationOrder> order,
+                         const CaseIteratorParameters* parameters);
+
+    CaseIteratorSettings(const CaseIteratorSettings& rhs) = default;
+    CaseIteratorSettings(CaseIteratorSettings&& rhs) noexcept = default;
+
+    CaseIteratorSettings& operator=(const CaseIteratorSettings& rhs) = default;
+    CaseIteratorSettings& operator=(CaseIteratorSettings&& rhs) noexcept = default;
 
     CaseIterationCaseStatus GetStatus() const      { return m_status; }
     void SetStatus(CaseIterationCaseStatus status) { m_status = status; }
@@ -30,8 +41,8 @@ public:
     CaseIterationOrder GetEvaluatedOrder() const       { return m_order.value_or(CaseIterationOrder::Ascending); }
     void SetOrder(CaseIterationOrder order)            { m_order = order; }
 
-    const CaseIteratorParameters* GetParameters() const                    { return m_parameters.get(); }
-    void SetParameters(std::unique_ptr<CaseIteratorParameters> parameters) { m_parameters = std::move(parameters); }
+    const CaseIteratorParameters* GetParameters() const                  { return m_parameters.has_value() ? &(*m_parameters) : nullptr; }
+    void SetParameters(std::optional<CaseIteratorParameters> parameters) { m_parameters = std::move(parameters); }
 
     static CaseIteratorSettings CreateFromJson(const JsonNode& json_node);
     void WriteJson(JsonWriter& json_writer, bool write_to_new_json_object = true) const;
@@ -40,7 +51,7 @@ private:
     CaseIterationCaseStatus m_status;
     std::optional<CaseIterationMethod> m_method;
     std::optional<CaseIterationOrder> m_order;
-    std::unique_ptr<CaseIteratorParameters> m_parameters;
+    std::optional<CaseIteratorParameters> m_parameters;
 };
 
 

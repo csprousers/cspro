@@ -233,9 +233,9 @@ size_t ExportWriterRepository::GetNumberCases(CaseIterationCaseStatus /*case_sta
 }
 
 
-std::unique_ptr<CaseIterator> ExportWriterRepository::CreateIterator(CaseIterationContent /*iteration_content*/, CaseIterationCaseStatus /*case_status*/,
-                                                                     std::optional<CaseIterationMethod> /*iteration_method*/, std::optional<CaseIterationOrder> /*iteration_order*/,
-                                                                     const CaseIteratorParameters* /*start_parameters = nullptr*/, size_t /*offset = 0*/, size_t /*limit = SIZE_MAX*/)
+std::unique_ptr<CaseIterator> ExportWriterRepository::CreateIterator(CaseIterationContent /*iteration_content*/,
+                                                                     const CaseIteratorSettings& /*iterator_settings*/,
+                                                                     size_t /*offset = 0*/, size_t /*limit = SIZE_MAX*/)
 {
     LogInvalidAccess("iterate over cases");
     return std::make_unique<NullRepositoryCaseIterator>();

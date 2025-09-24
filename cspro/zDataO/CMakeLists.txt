@@ -10,7 +10,9 @@ add_library(${PROJECT_NAME}
     CacheableCaseWrapperRepository.cpp
     CaseIteratorSettings.cpp
     CSWebBinaryContentReader.cpp
+    CSWebCaseResponse.cpp
     CSWebRepository.cpp
+    CSWebRepositoryCache.cpp
     DataRepository.cpp
     DataRepositoryDefines.cpp
     DataRepositoryHelpers.cpp

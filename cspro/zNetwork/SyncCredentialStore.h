@@ -13,9 +13,9 @@ class OAuth2Token;
 class SyncCredentialStore : public CredentialStore
 {
 protected:
-    std::string PrefixAttribute(const std::string& attribute) override
+    std::string PrefixAttribute(const std::string_view attribute_sv) override
     {
-        return "CSPro_sync_" + attribute;
+        return SO::Concatenate("CSPro_sync_", attribute_sv);
     }
 
 public:

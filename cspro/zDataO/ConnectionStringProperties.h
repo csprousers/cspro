@@ -8,6 +8,7 @@ namespace CSProperty // connection string property
     constexpr const char* binaryDataDirectory   = "binaryDataDirectory";    // JsonRepository
     constexpr const char* binaryDataFormat      = JK::binaryDataFormat;     // JsonRepository
     constexpr const char* cache                 = "cache";                  // CacheableCaseWrapperRepository
+    constexpr const char* cacheLocally          = "cacheLocally";           // CSWebRepository
     constexpr const char* decimalMark           = JK::decimalMark;          // export writers: CSV, semicolon, tab
     constexpr const char* dictionaryName        = "dictionaryName";         // CSWebRepository
     constexpr const char* dictionaryPath        = "dictionaryPath";         // export writers: CSPro; Data Manager (via cspro:// URIs)

@@ -755,8 +755,8 @@ namespace SyncUnitTest
             std::string refreshToken;
 
             Mock<SyncCredentialStore> mockCredentialStore1;
-            When(Method(mockCredentialStore1, Store)).AlwaysDo([&refreshToken](const std::string& h, const std::string& s) {
-                if( h.find("refresh") != std::string::npos ) {
+            When(Method(mockCredentialStore1, Store)).AlwaysDo([&refreshToken](const std::string_view h_sv, const std::string& s) {
+                if( h_sv.find("refresh") != std::string_view::npos ) {
                     refreshToken = s;
                 }
             });
@@ -776,8 +776,8 @@ namespace SyncUnitTest
 
             Mock<SyncCredentialStore> mockCredentialStore2;
             When(Method(mockCredentialStore2, Store)).AlwaysReturn();
-            When(Method(mockCredentialStore2, Retrieve)).AlwaysDo([refreshToken](const std::string& h) {
-                return ( h.find("refresh") != std::string::npos ) ? refreshToken : "expired";
+            When(Method(mockCredentialStore2, Retrieve)).AlwaysDo([refreshToken](const std::string_view h_sv) {
+                return ( h_sv.find("refresh") != std::string_view::npos ) ? refreshToken : "expired";
             });
 
             Mock<SyncLoginAccessor> mockSyncLoginAccessor2;

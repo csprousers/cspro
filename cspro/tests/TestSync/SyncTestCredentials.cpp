@@ -3,7 +3,9 @@
 #include "CaseTestHelpers.h"
 
 
-/* ------------ the credentials file should contain sync connection strings like:
+/* --------------------------------------------------------------------------
+The credentials file should contain sync connection strings like:
+
 {
   "csweb": {
     "url": "...",
@@ -14,7 +16,10 @@
     <same format as above>
   }
 }
------------- */
+
+The CSWeb user's role should allow read/write/delete access for the
+default dictionary.
+--------------------------------------------------------------------------*/
 
 
 std::map<std::string, SyncTestCredentials::Credentials> SyncTestCredentials::m_credentials;

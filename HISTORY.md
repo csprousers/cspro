@@ -9,6 +9,7 @@ Because most CSPro development occurs on a [private repository](https://github.c
 
 | Date | Branch | Pull Request Message |
 | --- | --- | --- |
+| 2025&#8209;09&#8209;24 | [csweb-cache](https://github.com/CSProDevelopment/cspro/commit/ecb80e1a2ca3574fbc475e9a101d61084d750b4d) | implemented caching cases and iterator results, and checking user permissions, when using the CSWeb data source |
 | 2025&#8209;08&#8209;27 | [questionview-bug-fix](https://github.com/CSProDevelopment/cspro/commit/1af96c61d454d71214668757e775c326ebd9b9fd) | Closes #2712 - Value with 0 showing as Not Applicable in the Questionn… |
 | 2025&#8209;08&#8209;07 | [android-36](https://github.com/CSProDevelopment/cspro/commit/55a43f8b4058f4197f2b96a73aad3eda7de2e37d) | upgraded the Android build to use target SDK 36 and NDK 28 |
 | 2025&#8209;08&#8209;06 | [bug-fixes-2025-08](https://github.com/CSProDevelopment/cspro/commit/049a945551c13203535727616299e3b55011e8fb) | fixed some bugs |

@@ -221,22 +221,24 @@ void CacheableCaseWrapperRepository::DeleteCase(const std::string& key)
 }
 
 
-std::unique_ptr<CaseIterator> CacheableCaseWrapperRepository::CreateIterator(const CaseIterationContent iteration_content, const CaseIterationCaseStatus case_status,
-                                                                             const std::optional<CaseIterationMethod> iteration_method, const std::optional<CaseIterationOrder> iteration_order,
-                                                                             const CaseIteratorParameters* const start_parameters/* = nullptr*/, const size_t offset/* = 0*/, const size_t limit/* = SIZE_MAX*/)
+std::unique_ptr<CaseIterator> CacheableCaseWrapperRepository::CreateIterator(const CaseIterationContent iteration_content,
+                                                                             const CaseIteratorSettings& iterator_settings,
+                                                                             const size_t offset/* = 0*/, const size_t limit/* = SIZE_MAX*/)
 {
     // create a hash value representing the options (except for the iteration content);
     // this method could be smarter and, for example, reuse a past iteration if only the
     // iteration order has changed, but that is rare so it won't be implemented (for now)
     size_t iteration_hash_value = 0;
 
-    Hash::Combine(iteration_hash_value, static_cast<int>(case_status));
+    Hash::Combine(iteration_hash_value, static_cast<int>(iterator_settings.GetStatus()));
 
-    if( iteration_method.has_value() )
-        Hash::Combine(iteration_hash_value, static_cast<int>(*iteration_method));
+    if( iterator_settings.GetMethod().has_value() )
+        Hash::Combine(iteration_hash_value, static_cast<int>(*iterator_settings.GetMethod()));
 
-    if( iteration_order.has_value() )
-        Hash::Combine(iteration_hash_value, static_cast<int>(*iteration_order));
+    if( iterator_settings.GetOrder().has_value() )
+        Hash::Combine(iteration_hash_value, static_cast<int>(*iterator_settings.GetOrder()));
+
+    const CaseIteratorParameters* const start_parameters = iterator_settings.GetParameters();
 
     if( start_parameters != nullptr )
     {
@@ -269,9 +271,8 @@ std::unique_ptr<CaseIterator> CacheableCaseWrapperRepository::CreateIterator(con
 
     else
     {
-        std::unique_ptr<CaseIterator> case_iterator = WrapperRepository::CreateIterator(iteration_content, case_status,
-                                                                                        iteration_method, iteration_order,
-                                                                                        start_parameters, offset, limit);
+        std::unique_ptr<CaseIterator> case_iterator = WrapperRepository::CreateIterator(iteration_content, iterator_settings,
+                                                                                        offset, limit);
 
         // if not iterating cases, there is no need to wrap the iterator
         if( iteration_content != CaseIterationContent::Case )
