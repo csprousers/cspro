@@ -56,7 +56,6 @@ class HtmlMapActivity : AppCompatActivity() {
 
         EdgeToEdgeUtils.setupEdgeToEdge(this, R.layout.activity_generic_webview)
 
-
         webView = findViewById<View>(R.id.generic_webview) as WebView
         webView.settings.javaScriptEnabled = true
 

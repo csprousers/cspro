@@ -79,6 +79,7 @@ class ApplicationsListActivity constructor() : AppCompatActivity(), IEngineMessa
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         EdgeToEdgeUtils.setupEdgeToEdge(this, R.layout.applications_layout)
+
         // instantiate the application interface
         EngineInterface.CreateEngineInterfaceInstance(application)
     }

@@ -32,7 +32,6 @@ class SelectStyleActivity : AppCompatActivity(), View.OnClickListener, AdapterVi
         setFinishOnTouchOutside(false)
         EdgeToEdgeUtils.setupEdgeToEdge(this, R.layout.activity_select_style)
 
-
         // populate the style list
         val styleListview: ListView = findViewById<View>(R.id.listview_styles) as ListView
         val adapter = StyleListAdapter(this)

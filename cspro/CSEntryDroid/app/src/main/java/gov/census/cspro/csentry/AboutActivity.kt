@@ -14,7 +14,6 @@ import gov.census.cspro.engine.EngineInterface
 import gov.census.cspro.util.EdgeToEdgeUtils
 import timber.log.Timber
 
-
 class AboutActivity : AppCompatActivity(), View.OnClickListener {
     /***
      * Create the activity view and controls
@@ -22,7 +21,6 @@ class AboutActivity : AppCompatActivity(), View.OnClickListener {
     override fun onCreate(savedInstanceState: Bundle?) {
 
         super.onCreate(savedInstanceState)
-
         EdgeToEdgeUtils.setupEdgeToEdge(this, R.layout.activity_about_csentry)
 
         try {

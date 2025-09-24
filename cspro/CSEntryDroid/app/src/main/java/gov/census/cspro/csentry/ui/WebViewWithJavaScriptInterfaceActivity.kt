@@ -39,7 +39,6 @@ class WebViewWithJavaScriptInterfaceActivity : AppCompatActivity() {
 
         EdgeToEdgeUtils.setupEdgeToEdge(this, R.layout.activity_generic_webview)
 
-
         // keep weblinks inside the webview
         progressBar = findViewById<View>(R.id.progressbar_webview_loading) as ProgressBar
         webView = findViewById<View>(R.id.generic_webview) as WebView

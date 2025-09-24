@@ -521,7 +521,7 @@ class EntryActivity: AppCompatActivity(), IEngineMessageCompletedListener, OnNav
                 return true
             }
             R.id.questionnaire_menuitem_view_questionnaire -> {
-				viewCurrentCase()
+                viewCurrentCase()
                 return true
             }
         }
