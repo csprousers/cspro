@@ -215,6 +215,7 @@
       </intent-filter>
     </activity>
 
+    <!-- deep links are registered to both csprousers.org and www.csprousers.org -->
     <activity
       android:name="gov.census.cspro.commonui.DeepLinkListener"
       android:exported="true"
@@ -224,7 +225,9 @@
         <category android:name="android.intent.category.BROWSABLE" />
         <category android:name="android.intent.category.DEFAULT" />
         <data android:scheme="@string/deeplink_https_scheme" android:host="@string/deeplink_host" android:pathPrefix="@string/deeplink_apps_path_prefix" />
+        <data android:scheme="@string/deeplink_https_scheme" android:host="@string/deeplink_host_www" android:pathPrefix="@string/deeplink_apps_path_prefix" />
         <data android:scheme="@string/deeplink_https_scheme" android:host="@string/deeplink_host" android:pathPrefix="@string/deeplink_pff_path_prefix" />
+        <data android:scheme="@string/deeplink_https_scheme" android:host="@string/deeplink_host_www" android:pathPrefix="@string/deeplink_pff_path_prefix" />
         <data android:scheme="@string/deeplink_http_scheme" />
       </intent-filter>
     </activity>

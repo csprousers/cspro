@@ -3,7 +3,8 @@
     <string name="app_name" translatable="false">CSEntry</string>
     <string name="activity_case_list_name" translatable="false">Case Listing</string>
     <string name="activity_entry" translatable="false">Entry</string>
-    <string name="deeplink_host" translatable="false">www.csprousers.org</string>
+    <string name="deeplink_host" translatable="false">csprousers.org</string>
+    <string name="deeplink_host_www" translatable="false">www.csprousers.org</string>
     <string name="deeplink_apps_path_prefix" translatable="false">/apps/</string>
     <string name="deeplink_pff_path_prefix" translatable="false">/pff/</string>
     <string name="deeplink_https_scheme" translatable="false">https</string>
