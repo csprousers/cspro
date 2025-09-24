@@ -112,7 +112,7 @@ BOOL DataManagerApp::InitInstance()
     else
     {
         for( const std::wstring& file_path : command_line_parser.GetFilePaths() )
-            OpenDocumentFile(file_path.c_str());
+            OpenDocumentFile(connection_string_file_simulator->GetFilePath(ConnectionString(TC::ToUtf8(file_path))).c_str());
     }
 
     // The main window has been initialized, so show and update it

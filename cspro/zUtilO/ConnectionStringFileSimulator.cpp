@@ -5,10 +5,16 @@
 
 std::wstring ConnectionStringFileSimulator::GetFilePath(const ConnectionString& connection_string)
 {
-    // although there may be non-path characters such as | in the connection string, the
-    // MFC framework handles these fine
+    // although there may be non-path characters such as | in the connection string,
+    // the MFC framework handles these fine
     if( connection_string.HasFilePath() )
-        return TC::ToWide(connection_string.ToString());
+    {
+        // however, only do this if the path, along with any properties, is of a proper size
+        std::wstring wide_file_path = TC::ToWide(connection_string.ToString());
+
+        if( wide_file_path.length() < _MAX_PATH )
+            return wide_file_path;
+    }
 
     // for non-files, reuse a temporary file if one already exists for this connection string
     for( const auto& [temporary_file, non_file_based_connection_string] : m_nonFileBasedConnectionStrings )
