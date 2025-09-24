@@ -18,6 +18,7 @@ import gov.census.cspro.commonui.StyleListAdapter
 import gov.census.cspro.commonui.StyleListAdapter.OnStyleItemChanged
 import gov.census.cspro.csentry.CSEntry
 import gov.census.cspro.csentry.R
+import gov.census.cspro.util.EdgeToEdgeUtils
 
 //Android Imports
 //Project Imports
@@ -29,7 +30,7 @@ class SelectStyleActivity : AppCompatActivity(), View.OnClickListener, AdapterVi
 
         super.onCreate(savedInstanceState)
         setFinishOnTouchOutside(false)
-        setContentView(R.layout.activity_select_style)
+        EdgeToEdgeUtils.setupEdgeToEdge(this, R.layout.activity_select_style)
 
         // populate the style list
         val styleListview: ListView = findViewById<View>(R.id.listview_styles) as ListView

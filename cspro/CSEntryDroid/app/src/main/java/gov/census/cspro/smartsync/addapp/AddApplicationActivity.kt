@@ -17,6 +17,7 @@ import gov.census.cspro.smartsync.addapp.ChooseApplicationFragment.OnAddAppChoos
 import gov.census.cspro.smartsync.addapp.ChooseApplicationSourceFragment.OnAddAppChooseSourceListener
 import gov.census.cspro.smartsync.addapp.ServerDetailsFragment.OnAddAppServerDetailsListener
 import gov.census.cspro.util.Constants
+import gov.census.cspro.util.EdgeToEdgeUtils
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -34,7 +35,8 @@ class AddApplicationActivity : AppCompatActivity(), OnAddAppChooseSourceListener
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_add_application)
+        EdgeToEdgeUtils.setupEdgeToEdge(this, R.layout.activity_add_application)
+
         if (savedInstanceState == null) {
             // First time - start at the first state
             gotoState(CHOOSE_SOURCE)

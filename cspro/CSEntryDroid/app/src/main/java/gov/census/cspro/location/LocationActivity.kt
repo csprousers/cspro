@@ -12,6 +12,7 @@ import gov.census.cspro.engine.Messenger
 import gov.census.cspro.engine.functions.GPSFunction
 import gov.census.cspro.location.GpsReader.EnableListener
 import gov.census.cspro.maps.MapData
+import gov.census.cspro.util.EdgeToEdgeUtils
 
 
 class LocationActivity : AppCompatActivity(),
@@ -34,7 +35,7 @@ class LocationActivity : AppCompatActivity(),
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        setContentView(R.layout.activity_location)
+        EdgeToEdgeUtils.setupEdgeToEdge(this, R.layout.activity_location)
 
         val dialogText = intent.getStringExtra(DIALOG_TEXT)
         val dialogTextView: TextView = findViewById(R.id.previewText)

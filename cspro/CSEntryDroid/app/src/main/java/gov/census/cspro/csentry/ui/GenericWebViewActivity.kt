@@ -19,6 +19,7 @@ import android.widget.ProgressBar
 import androidx.appcompat.app.AppCompatActivity
 import gov.census.cspro.csentry.R
 import gov.census.cspro.engine.*
+import gov.census.cspro.util.EdgeToEdgeUtils
 
 
 class GenericWebViewActivity : AppCompatActivity() {
@@ -30,7 +31,7 @@ class GenericWebViewActivity : AppCompatActivity() {
 
         super.onCreate(savedInstanceState)
 
-        setContentView(R.layout.activity_generic_webview)
+        EdgeToEdgeUtils.setupEdgeToEdge(this, R.layout.activity_generic_webview)
 
         // keep weblinks inside the webview
         progressBar = findViewById<View>(R.id.progressbar_webview_loading) as ProgressBar

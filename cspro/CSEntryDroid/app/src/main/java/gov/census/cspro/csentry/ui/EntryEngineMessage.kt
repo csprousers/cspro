@@ -72,42 +72,63 @@ class EntryEngineMessage internal constructor(activity: Activity?,
         var appStarted = false
         val engineInterface = EngineInterface.getInstance()
         var startMode = m_activity.intent.getStringExtra(EntryActivity.START_MODE_PARAM)
-        var casePosition = m_activity.intent.getDoubleExtra(EntryActivity.CASEPOS_PARAM, -1.0)
-        if (startMode == null) {
-            // Start params not defined in the intent, use parameters from the pff file
+        var casePosition = m_activity.intent.getDoubleExtra(EntryActivity.CASEPOS_PARAM, Double.NaN)
+
+        if (casePosition.isNaN()) {
+            // start parameters with a specific case are not defined in the intent, so use parameters from the PFF
             val pffStartMode = engineInterface.queryPffStartMode()
             when (pffStartMode.action) {
-                PffStartModeParameter.ADD_NEW_CASE -> startMode = "Add"
+                PffStartModeParameter.ADD_NEW_CASE -> {
+                    startMode = "Add"
+                }
+
                 PffStartModeParameter.MODIFY_CASE -> {
                     startMode = "Modify"
                     casePosition = pffStartMode.modifyCasePosition
                 }
+
                 PffStartModeParameter.MODIFY_ERROR -> {
-                    errorMessage = String.format(activity.getString(R.string.app_startup_failure_case_missing), engineInterface.startCaseKey)
+                    errorMessage = String.format(
+                        activity.getString(R.string.app_startup_failure_case_missing),
+                        engineInterface.startCaseKey
+                    )
                     return false
                 }
+
                 PffStartModeParameter.NO_ACTION -> {
-                    errorMessage = activity.getString(R.string.app_startup_failure_start_mode_missing)
+                    errorMessage =
+                        activity.getString(R.string.app_startup_failure_start_mode_missing)
                     return false
                 }
+
                 else -> {
-                    errorMessage = activity.getString(R.string.app_startup_failure_start_mode_missing)
+                    errorMessage =
+                        activity.getString(R.string.app_startup_failure_start_mode_missing)
                     return false
                 }
             }
         }
-        if (startMode.equals("Add", ignoreCase = true)) { // add new case
-            appStarted = if (casePosition >= 0) {
+
+        // add new case
+        if (startMode.equals("Add", ignoreCase = true)) {
+            appStarted = if (!casePosition.isNaN()) {
                 // If add mode includes a case position then launch existing case at that pos
                 engineInterface.modifyCase(casePosition)
             } else {
                 // No pos given so start new case
                 engineInterface.start()
             }
-        } else if (startMode.equals("Insert", ignoreCase = true)) // insert a case
-            appStarted = engineInterface.insertCase(casePosition) else if (startMode.equals("Modify", ignoreCase = true)) { //modify a case
+        }
+        // insert a case
+        else if (startMode.equals("Insert", ignoreCase = true)) {
+            appStarted = engineInterface.insertCase(casePosition)
+        }
+        // modify a case
+        else if (startMode.equals("Modify", ignoreCase = true)) {
             appStarted = engineInterface.modifyCase(casePosition)
-        } else {
+        }
+        // invalid option
+        else {
             errorMessage = activity.getString(R.string.app_startup_failure_start_mode_missing)
         }
         return appStarted

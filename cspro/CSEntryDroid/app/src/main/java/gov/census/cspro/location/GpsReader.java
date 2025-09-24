@@ -59,11 +59,13 @@ public class GpsReader
             return;
         }
 
-        if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER))
-        {
+        // Check if ANY location provider is enabled
+        boolean gpsEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+        boolean networkEnabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+
+        if (!gpsEnabled && !networkEnabled) {
             askToEnableGpsInSettings(activity, enableListener);
-        } else
-        {
+        } else {
             startCallback(activity, enableListener);
         }
     }
@@ -71,12 +73,11 @@ public class GpsReader
     public void onSettingsResult(Activity activity)
     {
         LocationManager locationManager = (LocationManager) activity.getSystemService(Context.LOCATION_SERVICE);
-        if (locationManager == null || !locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER))
-        {
-            if (m_enableListener != null)
+        if (locationManager == null || !locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+            if (m_enableListener != null) {
                 m_enableListener.onFailure();
-        } else
-        {
+            }
+        } else {
             startCallback(activity, m_enableListener);
         }
         m_enableListener = null;

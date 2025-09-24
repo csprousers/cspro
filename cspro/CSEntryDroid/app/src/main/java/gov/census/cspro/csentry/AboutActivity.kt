@@ -11,6 +11,7 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import gov.census.cspro.csentry.ui.GenericWebViewActivity
 import gov.census.cspro.engine.EngineInterface
+import gov.census.cspro.util.EdgeToEdgeUtils
 import timber.log.Timber
 
 class AboutActivity : AppCompatActivity(), View.OnClickListener {
@@ -20,7 +21,7 @@ class AboutActivity : AppCompatActivity(), View.OnClickListener {
     override fun onCreate(savedInstanceState: Bundle?) {
 
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_about_csentry)
+        EdgeToEdgeUtils.setupEdgeToEdge(this, R.layout.activity_about_csentry)
 
         try {
             // pull the about text and get the HTML links working

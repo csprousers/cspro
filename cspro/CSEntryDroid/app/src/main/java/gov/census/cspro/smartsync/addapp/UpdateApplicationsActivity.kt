@@ -3,7 +3,10 @@ package gov.census.cspro.smartsync.addapp
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
+import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -26,7 +29,17 @@ class UpdateApplicationsActivity : AppCompatActivity() {
 
         viewModel = ViewModelProvider(this).get(UpdateApplicationViewModel::class.java)
 
+        enableEdgeToEdge()
+
         val binding: ActivityUpdateApplicationsBinding = DataBindingUtil.setContentView(this, R.layout.activity_update_applications)
+
+        // Apply insets to the binding's root view specifically
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { view, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            insets
+        }
+
         binding.viewModel = viewModel
         binding.lifecycleOwner = this
         val adapter = DeploymentPackageListAdapter({ dp : DeploymentPackage -> updateApp(dp)}, false)

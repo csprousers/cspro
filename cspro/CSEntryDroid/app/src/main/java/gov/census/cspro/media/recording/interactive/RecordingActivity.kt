@@ -8,10 +8,13 @@ import android.os.Build
 import android.os.Bundle
 import android.view.View
 import android.view.View.GONE
+import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.core.widget.ImageViewCompat
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.ViewModelProvider
@@ -69,7 +72,16 @@ class RecordingActivity : AppCompatActivity(), RecorderCallback {
         mAudioFilePath = intent.getStringExtra(Constants.EXTRA_RECORDING_FILE_URL_KEY)!!
         audioState = intent.action?.let { AudioState.valueOf(it) }!!
 
+        enableEdgeToEdge()
         binding = DataBindingUtil.setContentView(this, R.layout.activity_audio_recorder)
+
+        // Apply insets to the binding's root view specifically
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { view, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            insets
+        }
+
         binding.lifecycleOwner = this
 
         recorderViewModel = ViewModelProvider(this)[InteractiveRecorderViewModel::class.java]

@@ -14,6 +14,7 @@ import com.google.android.gms.vision.barcode.BarcodeDetector
 import gov.census.cspro.csentry.R
 import gov.census.cspro.engine.Util
 import gov.census.cspro.util.Constants
+import gov.census.cspro.util.EdgeToEdgeUtils
 import java.util.*
 
 class BarcodeCaptureActivity : BaseCameraActivity(), BarcodeTracker.BarcodeGraphicTrackerCallback {
@@ -25,7 +26,8 @@ class BarcodeCaptureActivity : BaseCameraActivity(), BarcodeTracker.BarcodeGraph
      */
     override fun onCreate(icicle: Bundle?) {
         super.onCreate(icicle)
-        setContentView(R.layout.activity_barcode_capture)
+        // Enable edge-to-edge
+        EdgeToEdgeUtils.setupEdgeToEdge(this, R.layout.activity_barcode_capture)
         initUI()
         initCamera(barcodeDetector)
     }

@@ -9,6 +9,7 @@ import android.widget.TextView
 import gov.census.cspro.csentry.R
 import gov.census.cspro.engine.Util
 import gov.census.cspro.util.Constants
+import gov.census.cspro.util.EdgeToEdgeUtils
 import timber.log.Timber
 import java.io.File
 import java.io.FileOutputStream
@@ -18,7 +19,8 @@ class PictureCaptureActivity : BaseCameraActivity() {
     override var cameraSourcePreview: CameraSourcePreview? = null
     override fun onCreate(icicle: Bundle?) {
         super.onCreate(icicle)
-        setContentView(R.layout.activity_picture_capture)
+        // Enable edge-to-edge
+        EdgeToEdgeUtils.setupEdgeToEdge(this, R.layout.activity_picture_capture)
         initUI()
         initCamera(null)
     }

@@ -15,6 +15,7 @@ import gov.census.cspro.csentry.ui.EntryActivity
 import gov.census.cspro.data.CaseSummary
 import gov.census.cspro.engine.*
 import gov.census.cspro.engine.functions.AuthorizeDropboxFunction
+import gov.census.cspro.util.EdgeToEdgeUtils
 
 class CaseListActivity : AppCompatActivity(), CasesFragment.OnFragmentInteractionListener, AppLoadingFragment.OnFragmentInteractionListener, GetOperatorIdFragment.OnFragmentInteractionListener, OnErrorFragmentDismissed {
     private var mState: Int = 0
@@ -32,7 +33,7 @@ class CaseListActivity : AppCompatActivity(), CasesFragment.OnFragmentInteractio
             finish()
             return
         }
-        setContentView(R.layout.activity_case_list)
+        EdgeToEdgeUtils.setupEdgeToEdge(this, R.layout.activity_case_list)
         if (savedInstanceState == null) {
             // No savedInstanceState so this is the first time the activity has been created
             // i.e. this is not from a config change. When first created we start with app loading.

@@ -27,6 +27,7 @@ import gov.census.cspro.csentry.ui.EntryActivity;
 import gov.census.cspro.engine.EngineInterface;
 import gov.census.cspro.engine.Util;
 import gov.census.cspro.engine.functions.GPSFunction;
+import gov.census.cspro.util.EdgeToEdgeUtils;
 
 public class MapsActivity extends AppCompatActivity implements
     MapListFragment.OnFragmentInteractionListener,
@@ -61,7 +62,8 @@ public class MapsActivity extends AppCompatActivity implements
         {
             m_searchText = savedInstanceState.getString(SEARCH_TEXT);
         }
-        setContentView(R.layout.activity_maps);
+        // Enable edge-to-edge
+        EdgeToEdgeUtils.INSTANCE.setupEdgeToEdge(this, R.layout.activity_maps, android.R.id.content);
 
         getMapFragment().setEventListener(this);
 

@@ -4,12 +4,13 @@ import android.os.Bundle
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import gov.census.cspro.engine.*
+import gov.census.cspro.util.EdgeToEdgeUtils
 
 class ViewQuestionnaireActivity : AppCompatActivity(), IEngineMessageCompletedListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_non_entry_application)
+        EdgeToEdgeUtils.setupEdgeToEdge(this, R.layout.activity_non_entry_application)
 
         // instantiate the application interface
         EngineInterface.CreateEngineInterfaceInstance(application)

@@ -5,10 +5,13 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.os.Bundle
 import android.text.TextUtils
+import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import gov.census.cspro.csentry.R
 import gov.census.cspro.csentry.databinding.ActivitySignatureBinding
 import gov.census.cspro.engine.EngineInterface
 import gov.census.cspro.util.Constants
+import gov.census.cspro.util.EdgeToEdgeUtils
 import timber.log.Timber
 import java.io.File
 import java.io.FileOutputStream
@@ -32,8 +35,10 @@ class SignatureActivity :
             finish()
         }
 
+        enableEdgeToEdge()
         binding = ActivitySignatureBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        EdgeToEdgeUtils.setupWindowInsets(this)
 
         initUI()
     }
