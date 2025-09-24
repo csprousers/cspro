@@ -248,7 +248,7 @@ class CaseViewInputProcessor {
         return this.itemsByName[iName];
     }
 
-    getQsfText(dictName, itemName) {
+    getQsfText(dictName, itemName, type = "question") {
         var res = {};
         var iName = `${dictName}.${itemName}`;
         var qsf = this.qsfByName[iName];
@@ -261,13 +261,16 @@ class CaseViewInputProcessor {
         if (!qsf.conditions[0]["texts"])
             return res;
 
-        qsf.conditions[0].texts.forEach(t => {
-            res[t.language] = t.html.replace(/~~/g, '');
-            //res.push(t.html.replace(/~~/g, ''));
+        // Get only "question" type texts
+        const questionTexts = qsf.conditions[0].texts.filter(text => text.type === type);
+
+        questionTexts.forEach(t => {
+            res[t.language] = t.html.replace(/~~~|~~/g, '');
         });
 
         return res;
     }
+
 
     getValue(dictName, itemName, occ) {
         var res = this.rawInput["case"];
@@ -385,8 +388,7 @@ class CaseViewInputProcessor {
 
             if (!vv)
                 vv = {};
-            if (!vv.code)
-                vv.code = "";
+            vv.code = vv.code ?? "";
             if (this.valueInRange(dictItem, from, to, vv.code, isCheckBox)) {
                 res["checked"] = "checked";
                 if (isRange) {
@@ -461,6 +463,7 @@ class CaseViewInputProcessor {
             "type": "item",
             "label": "",
             "qsfText": "",
+            "helpText": "",
             "captureType": "ct-text-box",
             "showTextBox": true,
             "showValueSets": false,
@@ -485,13 +488,13 @@ class CaseViewInputProcessor {
 
         //qsf
         res["qsfText"] = _ip.getQsfText(item.dictionary, item.name);
-
+        res["helpText"] = _ip.getQsfText(item.dictionary, item.name, "help");
         //size
         res.value.size = i.length;
 
         //value
         var v = _ip.getValue(item.dictionary, item.name, occ);
-        if (v && v.code) {
+        if (v && v.code != null) {
             res.value.value = v.code;
         }
 
@@ -575,6 +578,7 @@ class CaseViewInputProcessor {
 
         //qsf
         i1.qsfText = _ip.getQsfText(i.dictionary, i.name);
+        i1.helpText = _ip.getQsfText(i.dictionary, i.name, "help");
 
         //adding block data
         if (blockData) {
@@ -625,6 +629,7 @@ class CaseViewInputProcessor {
 
                         blockData["block"] = {
                             qsfText: _ip.getQsfText("block", i.name),
+                            helpText: _ip.getQsfText("block", i.name, "help"),
                             label: `${i.name}: ${i.label}`
                         };
                     } else if (idx == i.items.length - 1) {
@@ -704,6 +709,7 @@ class CaseViewInputProcessor {
 
         //qsf
         res["qsfText"] = _ip.getQsfText("block", item.name);
+        res["helpText"] = _ip.getQsfText("block", item.name, "help");
 
         if (item.items) {
             item.items.forEach(it => {

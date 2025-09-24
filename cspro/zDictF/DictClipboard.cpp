@@ -98,9 +98,10 @@ DictClipboard::DictClipboard(CDDDoc& dictionary_doc)
 
 
 template<typename T>
-void DictClipboard::PutOnClipboard(CWnd* pWnd, std::vector<const T*> dict_elements, const DictNamedBase* parent_dict_element/* = nullptr*/) const
+void DictClipboard::PutOnClipboard(CWnd* const pWnd, const std::vector<const T*>& dict_elements,
+                                   const DictNamedBase* const parent_dict_element/* = nullptr*/) const
 {
-    unsigned clipboard_format = GetClipboardFormat<T>();
+    const unsigned clipboard_format = GetClipboardFormat<T>();
 
     const std::unique_ptr<JsonStringWriter> json_writer = Json::CreateStringWriter();
 
@@ -109,17 +110,19 @@ void DictClipboard::PutOnClipboard(CWnd* pWnd, std::vector<const T*> dict_elemen
 
     json_writer->BeginObject();
 
+    json_writer->Write(JK::dictionary, m_dictionaryDoc.GetDictionary().GetName());
+
     // write the parent name when applicable
     if( parent_dict_element != nullptr )
         json_writer->Write(JK::parent, parent_dict_element->GetName());
 
     // write labels with the proper languages
     const CDataDict& dictionary = m_dictionaryDoc.GetDictionary();
-    auto language_serializer_holder = json_writer->GetSerializerHelper().Register(std::make_shared<LanguageSerializerHelper>(dictionary.GetLanguages()));
+    const auto language_serializer_holder = json_writer->GetSerializerHelper().Register(std::make_unique<LanguageSerializerHelper>(dictionary.GetLanguages()));
 
     json_writer->BeginArray(JK::values);
 
-    for( const auto& dict_element : dict_elements )
+    for( const T* const dict_element : dict_elements )
         json_writer->Write(*dict_element);
 
     json_writer->EndArray();
@@ -159,7 +162,7 @@ DictPastedValues<T> DictClipboard::GetFromClipboardWorker(CWnd* const pWnd) cons
 
 
 template<typename T>
-std::vector<T> DictClipboard::GetFromClipboard(CWnd* pWnd) const
+std::vector<T> DictClipboard::GetFromClipboard(CWnd* const pWnd) const
 {
     try
     {
@@ -319,7 +322,7 @@ DictPastedValues<T> DictClipboard::GetNamedElementsFromClipboard(CWnd* pWnd) con
 
 
 #define INSTANTIATE(T, RT, FN)                                                                                 \
-    template void DictClipboard::PutOnClipboard(CWnd* pWnd, std::vector<const T*> dict_elements,               \
+    template void DictClipboard::PutOnClipboard(CWnd* pWnd, const std::vector<const T*>& dict_elements,        \
                                                 const DictNamedBase* parent_dict_element/* = nullptr*/) const; \
     template RT<T> DictClipboard::##FN##(CWnd* pWnd) const;
 

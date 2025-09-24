@@ -1102,7 +1102,8 @@ std::unique_ptr<CaseIterator> SQLiteRepository::CreateIterator(const CaseIterati
                                                                const size_t offset/* = 0*/, const size_t limit/* = SIZE_MAX*/)
 {
     const bool get_case_note_for_case_summary = ( iteration_content == CaseIterationContent::CaseSummary &&
-                                                  m_caseAccess->GetUsesNotes() && CaseIterator::RequiresCaseNote() );
+                                                  m_caseAccess->GetUsesNotes() &&
+                                                  CaseIterator::RequiresCaseNote() );
 
     std::stringstream sql;
     WriteIteratorSelectFromSql(sql, iteration_content);
@@ -1117,7 +1118,8 @@ std::unique_ptr<CaseIterator> SQLiteRepository::CreateIterator(const CaseIterati
     return std::make_unique<SQLiteRepositoryCaseIterator>(
         *this,
         iteration_content,
-        GetKeySearchIteratorStatement(iterator_settings, offset, limit, sql.str().c_str())
+        GetKeySearchIteratorStatement(iterator_settings, offset, limit, sql.str().c_str()),
+        &iterator_settings
     );
 }
 
@@ -1930,7 +1932,7 @@ std::unique_ptr<CaseIterator> SQLiteRepository::GetCasesModifiedSinceRevisionIte
                                                                              "LIMIT @lim"));
     bind_shared_options(*statement, true);
 
-    return std::make_unique<SQLiteRepositoryCaseIterator>(*this, CaseIterationContent::Case, std::move(statement));
+    return std::make_unique<SQLiteRepositoryCaseIterator>(*this, CaseIterationContent::Case, std::move(statement), nullptr);
 }
 
 

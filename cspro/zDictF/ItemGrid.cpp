@@ -14,6 +14,7 @@
 #include "ItemGrid.h"
 #include "GenerateVSDlg.h"
 #include "VSLabelRenamerDlg.h"
+#include <zJson/JsonStream.h>
 #include <zUtilO/ArrUtil.h>
 #include <zDictO/ValueSetFixer.h>
 #include <sstream>
@@ -616,9 +617,9 @@ void CItemGrid::OnRClicked(int /*col*/, long row, int updn, RECT* /*rect*/, POIN
     if( GetNumberRows() == 0 ) // 20110811
         row = -1; // a crash would occur if a value set didn't already exist
 
-    long current_row = std::min(GetCurrentRow(), GetNumberRows() - 1);
+    const long current_row = std::min(GetCurrentRow(), GetNumberRows() - 1);
 
-    std::vector<long> selected_rows = GetSelectedRows();
+    const std::vector<long> selected_rows = GetSelectedRows();
 
     // 20110901 see if only values from the same value set are selected
     std::optional<int> selected_vset;
@@ -659,31 +660,33 @@ void CItemGrid::OnRClicked(int /*col*/, long row, int updn, RECT* /*rect*/, POIN
     BCMenu popMenu;    // BMD 29 Sep 2003
     popMenu.CreatePopupMenu();
 
-    bool has_rows_selected = ( GetNumberRows() > 0 );
+    const bool has_rows_selected = ( GetNumberRows() > 0 );
     popMenu.AppendMenuItems(has_rows_selected, { { ID_EDIT_CUT,  L"Cu&t\tCtrl+X" },
                                                  { ID_EDIT_COPY, L"&Copy\tCtrl+C" } });
 
-    CView* pView = assert_cast<CView*>(GetParent());
-    CDDDoc* pDoc = assert_cast<CDDDoc*>(pView->GetDocument());
+    CView* const pView = assert_cast<CView*>(GetParent());
+    CDDDoc* const pDoc = assert_cast<CDDDoc*>(pView->GetDocument());
 
-    bool can_paste = IsClipboardValidForValueSetPaste(*pDoc);
+    const bool can_paste = IsClipboardValidForValueSetPaste(*pDoc);
     popMenu.AppendMenuItems(can_paste, { { ID_EDIT_PASTE, L"&Paste\tCtrl+V" } });
 
     popMenu.AppendMenu(MF_SEPARATOR);
 
-    CDictItem* pItem = m_pDict->GetLevel(m_iLevel).GetRecord(m_iRec)->GetItem(m_iItem);
+    const CDictItem* const dict_item = m_pDict->GetLevel(m_iLevel).GetRecord(m_iRec)->GetItem(m_iItem);
 
     if( can_paste && pDoc->GetDictClipboard().IsAvailable<DictValueSet>() ) // 20110118
     {
+        const bool from_same_dictionary = ValueSetOnClipboardIsFromSameDictionary(pDoc);
+
         // the spaces prior to the tab prevent the accelerator text from overlapping
-        popMenu.AppendMenu(MF_STRING, ID_PASTE_VS_LINK, L"Paste Value Set Link   \tCtrl+Alt+V");
+        popMenu.AppendMenuItems(from_same_dictionary, { { ID_PASTE_VS_LINK, L"Paste Value Set Link   \tCtrl+Alt+V" } });
     }
 
-    bool value_set_header_selected = ( !selected_rows.empty() && GetValue(selected_rows.front()) == NONE );
+    const bool value_set_header_selected = ( !selected_rows.empty() && GetValue(selected_rows.front()) == NONE );
 
     if( value_set_header_selected )
     {
-        const DictValueSet& dict_value_set = pItem->GetValueSet(m_aValue[selected_rows.front()].vset);
+        const DictValueSet& dict_value_set = dict_item->GetValueSet(m_aValue[selected_rows.front()].vset);
         size_t value_set_links = m_pDict->CountValueSetLinks(dict_value_set);
 
         if( value_set_links >= 2 ) // 20110120
@@ -711,14 +714,14 @@ void CItemGrid::OnRClicked(int /*col*/, long row, int updn, RECT* /*rect*/, POIN
 
         popMenu.AppendMenu(MF_SEPARATOR);
 
-        bool first_value_set_selected = ( &dict_value_set == &pItem->GetValueSet(0) );
+        const bool first_value_set_selected = ( &dict_value_set == &dict_item->GetValueSet(0) );
         popMenu.AppendMenuItems(!first_value_set_selected, { { ID_VS_MAKE_FIRST_VS, L"Make Primary Value Set" } });
     }
 
     if( *only_values_selected ) // 20110901
         popMenu.AppendMenu(MF_STRING, ID_MERGE_VS_VALUES, L"M&erge Value Pairs");
 
-    popMenu.AppendMenuItems(IsNumeric(*pItem), { { ID_EDIT_GEN_VALUE_SET, L"&Generate Value Set\tCtrl+G" } });
+    popMenu.AppendMenuItems(IsNumeric(*dict_item), { { ID_EDIT_GEN_VALUE_SET, L"&Generate Value Set\tCtrl+G" } });
 
     popMenu.AppendMenu(MF_SEPARATOR);
 
@@ -755,8 +758,8 @@ void CItemGrid::OnRClicked(int /*col*/, long row, int updn, RECT* /*rect*/, POIN
 
     popMenu.AppendMenu(MF_SEPARATOR);
 
-    long currow = GetCurrentRow();
-    bool enable_notes = ( row >= 0 && GetVPair(currow) == 0 );
+    const long currow = GetCurrentRow();
+    const bool enable_notes = ( row >= 0 && GetVPair(currow) == 0 );
     popMenu.AppendMenuItems(enable_notes, { { ID_EDIT_NOTES, L"&Notes...\tCtrl+D" } });
 
     popMenu.LoadToolbar(IDR_DICT_FRAME);   // BMD 29 Sep 2003
@@ -1917,7 +1920,7 @@ bool CItemGrid::IsClipboardValidForValueSetPaste(const CDDDoc& dictionary_doc)
         bool valid_line_found = false;
 
         SO::ForeachLine(WinClipboard::GetText(), false,
-            [&](wstring_view line_sv)
+            [&](const wstring_view line_sv)
             {
                 valid_line_found = !GetTabDelimitedComponents(line_sv).empty();
                 return !valid_line_found;
@@ -2402,8 +2405,8 @@ void CItemGrid::OnPasteValueSetLink() // 20110118
         return;
 
     // code modified from the regular paste function
-    CDDDoc* pDoc = assert_cast<CDDDoc*>(assert_cast<CView*>(GetParent())->GetDocument());
-    std::vector<DictValueSet> pasted_value_sets = pDoc->GetDictClipboard().GetFromClipboard<DictValueSet>(this);
+    CDDDoc* const pDoc = assert_cast<CDDDoc*>(assert_cast<CView*>(GetParent())->GetDocument());
+    const std::vector<DictValueSet> pasted_value_sets = pDoc->GetDictClipboard().GetFromClipboard<DictValueSet>(this);
 
     if( pasted_value_sets.empty() )
     {
@@ -2415,7 +2418,8 @@ void CItemGrid::OnPasteValueSetLink() // 20110118
     DictValueSet* source_dict_value_set;
 
     // search for the source value set
-    if( !m_pDict->LookupName<DictValueSet>(pasted_value_sets.front().GetName(), nullptr, nullptr, &source_dict_item, &source_dict_value_set) )
+    if( !m_pDict->LookupName<DictValueSet>(pasted_value_sets.front().GetName(), nullptr, nullptr,
+                                           &source_dict_item, &source_dict_value_set) )
     {
         // if the source value set could not be found, paste the value set as as an unlinked value set
         OnEditPaste();
@@ -2423,7 +2427,7 @@ void CItemGrid::OnPasteValueSetLink() // 20110118
     }
 
     // make sure the item's attributes are the same
-    CDictItem* dest_dict_item = m_pDict->GetLevel(m_iLevel).GetRecord(m_iRec)->GetItem(m_iItem);
+    CDictItem* const dest_dict_item = m_pDict->GetLevel(m_iLevel).GetRecord(m_iRec)->GetItem(m_iItem);
 
     if( dest_dict_item->GetContentType() != source_dict_item->GetContentType() ||
         dest_dict_item->GetLen() != source_dict_item->GetLen() ||
@@ -3055,4 +3059,25 @@ void CItemGrid::OnValuesReplaceValueLabels()
     GotoRow(cursel);
     InvalidateRect(NULL);
     SetFocus();
+}
+
+
+bool CItemGrid::ValueSetOnClipboardIsFromSameDictionary(const CDDDoc* const pDoc) noexcept
+{
+    ASSERT(pDoc->GetDictClipboard().IsAvailable<DictValueSet>());
+
+    try
+    {
+        const unsigned clipboard_format = pDoc->GetDictClipboard().GetClipboardFormat<DictValueSet>();
+
+        // rather than parse the entire contents on the clipboard, read only to get the dictionary name
+        JsonStream json_stream = JsonStream::FromString(WinClipboard::GetTextWithFormat<std::string>(clipboard_format, this));
+        const JsonNode dictionary_json_node = json_stream.ReadUntilKey(JK::dictionary);
+
+        if( dictionary_json_node.GetOnlyString() == pDoc->GetDictionary().GetName() )
+            return true;
+    }
+    catch(...) { }
+
+    return false;
 }

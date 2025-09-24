@@ -7,9 +7,14 @@
 
 class SQLiteRepositoryCaseIterator : public CaseIterator
 {
-public:
+private:
     SQLiteRepositoryCaseIterator(SQLiteRepository& repository, CaseIterationContent iteration_content,
                                  std::unique_ptr<SQLiteStatement> statement);
+
+public:
+    SQLiteRepositoryCaseIterator(SQLiteRepository& repository, CaseIterationContent iteration_content,
+                                 std::unique_ptr<SQLiteStatement> statement,
+                                 const CaseIteratorSettings* iterator_settings);
 
     SQLiteRepositoryCaseIterator(SQLiteRepository& repository, CaseIterationContent iteration_content,
                                  std::unique_ptr<SQLiteStatement> statement,
