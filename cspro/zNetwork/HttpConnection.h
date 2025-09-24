@@ -54,6 +54,7 @@ struct HttpResponse
     static constexpr int Status_304_NotModified         = 304;
     static constexpr int Status_400_BadRequest          = 400;
     static constexpr int Status_401_Unauthorized        = 401;
+    static constexpr int Status_403_Forbidden           = 403;
     static constexpr int Status_404_NotFound            = 404;
     static constexpr int Status_412_Precondition_Failed = 412;
     static constexpr int Status_429_TooManyRequests     = 429;

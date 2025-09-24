@@ -4,8 +4,8 @@
 #include <zDataO/CSWebCaseResponse.h>
 #include <zDataO/DataRepository.h>
 
-class ConnectResponse;
 class CSWebConnection;
+enum class CSWebDictionaryPermission;
 class CSWebRepositoryCache;
 class CSWebRepositorySyncBinaryDataUploadManager;
 class LoginCredentials;
@@ -78,8 +78,13 @@ private:
 
     static LoginCredentials CreateLoginCredentials(const ConnectionString& connection_string);
 
-    JsonNode EnsureDictionaryExistsAndGetDictionaryMetadata(CSWebConnection& csweb_connection, DataRepositoryOpenFlag open_flag) const;
+    // Makes sure the dictionary exists on the server, uploading it if necessary.
+    // The dictionary metadata is returned following the validation of the user's access privileges.
+    JsonNode EnsureDictionaryExistsAndUserHasPermissions(CSWebConnection& csweb_connection, DataRepositoryOpenFlag open_flag);
     static void PutDictionaryThatDoesNotExist(CSWebConnection& csweb_connection, const CDataDict& dictionary, const std::string& syncable_name);
+
+    // Throws an exception if the user does not the proper permission.
+    void EnsureUserHasPermission(const CSWebConnection& csweb_connection, CSWebDictionaryPermission permission);
 
     void ParseJsonCase(Case& data_case, const CSWebCaseResponse& case_response) const;
     void ParseJsonCaseFromCache(Case& data_case, const CSWebCaseResponse& case_response) const;
@@ -105,7 +110,7 @@ private:
     std::string m_syncableDictionaryName;
 
     std::shared_ptr<CSWebConnection> m_cswebConnection;
-    std::unique_ptr<const ConnectResponse> m_cswebConnectResponse;
+    std::set<CSWebDictionaryPermission> m_permissions;
     std::unique_ptr<CSWebRepositoryCache> m_cache;
 
     std::unique_ptr<SyncErrorFormatter> m_syncErrorFormatter;

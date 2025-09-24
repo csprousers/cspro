@@ -533,14 +533,29 @@ std::string CSWebConnection::GetDictionarySpec(const std::string& dictionary_nam
 
 void CSWebConnection::PutDictionarySpec(std::string dictionary_spec)
 {
-    ExecuteRestPostJson<void>("dictionaries/", 100143,
-                              std::move(dictionary_spec), ApiSupportsCompressingFileUpload());
+    try
+    {
+        ExecuteRestPostJson<void>("dictionaries/", 100143,
+                                  std::move(dictionary_spec), ApiSupportsCompressingFileUpload());
+    }
+
+    catch( const SyncError& exception )
+    {
+        if( exception.GetHttpResponseCode() == HttpResponse::Status_403_Forbidden )
+        {
+            SyncError::ThrowByMessageNumberAndHttpResponseCode(GetGenericErrorMessageNumber(), HttpResponse::Status_403_Forbidden,
+                FormatText("You cannot add or update a dictionary on CSWeb due to insufficient privileges using the role '%s'.",
+                           m_user.has_value() ? m_user->role_name.c_str() : "<unknown>"));
+        }
+
+        throw;
+    }
 }
 
 
 void CSWebConnection::DeleteDictionarySpec(const std::string& dictionary_name)
 {
-    ExecuteRestDelete("dictionaries/" + dictionary_name, 100176);
+    ExecuteRestDelete("dictionaries/" + dictionary_name, GetGenericErrorMessageNumber());
 }
 
 
@@ -708,19 +723,99 @@ JsonNode CSWebConnection::GetApplicationsList()
 
 void CSWebConnection::DeleteApplication(const std::string& package_name)
 {
-    ExecuteRestDelete("apps/" + Encoders::ToUri(package_name), 100176);
+    ExecuteRestDelete("apps/" + Encoders::ToUri(package_name), GetGenericErrorMessageNumber());
 }
 
 
 JsonNode CSWebConnection::GetDictionaryMetadata(const std::string& dictionary_name)
 {
-    return ExecuteRestGet<JsonNode>("dictionaries/" + dictionary_name + "/metadata", 100176);
+    try
+    {
+        return ExecuteRestGet<JsonNode>("dictionaries/" + dictionary_name + "/metadata", GetGenericErrorMessageNumber());
+    }
+
+    catch( const SyncError& exception )
+    {
+        if( exception.GetHttpResponseCode() == HttpResponse::Status_403_Forbidden )
+        {
+            SyncError::ThrowByMessageNumberAndHttpResponseCode(GetGenericErrorMessageNumber(), HttpResponse::Status_403_Forbidden,
+                FormatText("The data source '%s' is not accessible due to insufficient privileges using the role '%s'.",
+                           dictionary_name.c_str(),
+                           m_user.has_value() ? m_user->role_name.c_str() : "<unknown>"));
+        }
+
+        throw;
+    }
+}
+
+
+std::set<CSWebDictionaryPermission> CSWebConnection::ParseDictionaryPermissions(const JsonNode& dictionary_metadata_json_node) noexcept
+{
+    std::set<CSWebDictionaryPermission> permissions;
+
+    try
+    {
+        const JsonNodeArray permissions_json_node_array = dictionary_metadata_json_node.Get(JK::permissions).GetArray();
+
+        for( const JsonNode& permission_json_node : permissions_json_node_array )
+        {
+            const std::string_view permission_sv = permission_json_node.Get<std::string_view>();
+
+            if( permission_sv == "data" )
+            {
+                ASSERT(permissions_json_node_array.size() == 1);
+                permissions.emplace(CSWebDictionaryPermission::Read);
+                permissions.emplace(CSWebDictionaryPermission::Write);
+                permissions.emplace(CSWebDictionaryPermission::Clear);
+            }
+
+            else if( permission_sv == "data.read" )
+            {
+                permissions.emplace(CSWebDictionaryPermission::Read);
+            }
+
+            else if( permission_sv == "data.write" )
+            {
+                permissions.emplace(CSWebDictionaryPermission::Write);
+            }
+
+            else if( permission_sv == "data.clear" )
+            {
+                permissions.emplace(CSWebDictionaryPermission::Clear);
+            }
+
+            else
+            {
+                ASSERT(( permission_sv == "data.none" && permissions.empty() ) ||
+                       ( permission_sv == "data.clear.dashboard" ));
+            }
+        }
+    }
+    catch(...) { ASSERT(false); }
+
+    return permissions;
 }
 
 
 void CSWebConnection::DeleteDictionaryData(const std::string& dictionary_name)
 {
-    return ExecuteRestDelete("dictionaries/" + dictionary_name + "/data", 100176);
+    try
+    {
+        return ExecuteRestDelete("dictionaries/" + dictionary_name + "/data", GetGenericErrorMessageNumber());
+    }
+
+    catch( const SyncError& exception )
+    {
+        if( exception.GetHttpResponseCode() == HttpResponse::Status_403_Forbidden )
+        {
+            SyncError::ThrowByMessageNumberAndHttpResponseCode(GetGenericErrorMessageNumber(), HttpResponse::Status_403_Forbidden,
+                FormatText("The cases in data source '%s' cannot be deleted due to insufficient privileges using the role '%s'.",
+                           dictionary_name.c_str(),
+                           m_user.has_value() ? m_user->role_name.c_str() : "<unknown>"));
+        }
+
+        throw;
+    }
 }
 
 
@@ -737,7 +832,7 @@ JsonNode CSWebConnection::QueryCasesRepository(const std::string& dictionary_nam
         additional_headers->AddAsDeflatedBase64(SyncCustomHeaders::CASES_REPOSITORY_CACHE_HEADER, std::move(*cache_header_json_text));
     }
 
-    return ExecuteRestGet<JsonNode>("dictionaries/" + dictionary_name + "/cases", 100176, std::move(additional_headers));
+    return ExecuteRestGet<JsonNode>("dictionaries/" + dictionary_name + "/cases", GetGenericErrorMessageNumber(), std::move(additional_headers));
 }
 
 

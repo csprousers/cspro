@@ -14,6 +14,8 @@ class JsonParseException;
 class SyncListener;
 
 
+enum class CSWebDictionaryPermission { Read, Write, Clear };
+
 namespace CSWebVersion
 {
     constexpr double V1 = 1.0;
@@ -47,6 +49,7 @@ public:
     JsonNode GetDictionariesList();
 
     // Gets / puts / deletes a dictionary specification.
+    // When putting a dictionary, a specialized exception is thrown if the user's role does not permit this operation.
     std::string GetDictionarySpec(const std::string& dictionary_name);
     void PutDictionarySpec(std::string dictionary_spec);
     void DeleteDictionarySpec(const std::string& dictionary_name);
@@ -89,9 +92,15 @@ public:
     // --------------------------------------------------------------------------
 
     // Gets the metadata associated with a dictionary.
+    // A specialized exception is thrown if the user's role does not permit this operation.
     JsonNode GetDictionaryMetadata(const std::string& dictionary_name);
 
+    // Parses the dictionary metadata, returning the dictionary-specific permissions allowed for the given role.
+    // Parser errors will be ignored.
+    static std::set<CSWebDictionaryPermission> ParseDictionaryPermissions(const JsonNode& dictionary_metadata_json_node) noexcept;
+
     // Delete all cases associated with a dictionary.
+    // A specialized exception is thrown if the user's role does not permit this operation.
     void DeleteDictionaryData(const std::string& dictionary_name);
 
     // Executes a query using the /cases endpoint.
@@ -107,8 +116,11 @@ public:
     // --------------------------------------------------------------------------
     // other functionality
     // --------------------------------------------------------------------------
+
     std::shared_ptr<SyncListener> GetSharedSyncListener();
     void SetSyncListener(std::shared_ptr<SyncListener> sync_listener);
+
+    static constexpr int GetGenericErrorMessageNumber() { return 100176; } // "Error interacting with CSWeb: %s
 
 protected:
     // Returns the access token, refresh token, and user details, throwing an exception on error.

@@ -53,9 +53,23 @@ void CSWebRepository::RethrowException(const std::exception& exception, const st
     if( sync_error_formatter == nullptr )
         sync_error_formatter = std::make_unique<SyncErrorFormatter>();
 
-    throw DataRepositoryException::IOError("Error communicating with CSWeb data source '%s': %s",
-                                           dictionary_name.c_str(),
-                                           sync_error_formatter->GetFormattedError(exception).c_str());
+    const std::string message = sync_error_formatter->GetFormattedError(exception);
+
+    const SyncError* const sync_error = dynamic_cast<const SyncError*>(&exception);
+
+    // because the generic error message starts with "Error interacting with CSWeb",
+    // the message will not be prefaced with "Error communicating..."
+    if( sync_error != nullptr &&
+        sync_error->GetErrorMessageNumber() == CSWebConnection::GetGenericErrorMessageNumber() )
+    {
+        throw DataRepositoryException::IOError(message);
+    }
+
+    else
+    {
+        throw DataRepositoryException::IOError("Error communicating with CSWeb data source '%s': %s",
+                                               dictionary_name.c_str(), message.c_str());
+    }
 }
 
 
@@ -101,7 +115,7 @@ void CSWebRepository::ModifyCaseAccess(std::shared_ptr<const CaseAccess> case_ac
 
 void CSWebRepository::Open(const DataRepositoryOpenFlag open_flag)
 {
-    ASSERT(m_cswebConnection == nullptr && m_cache == nullptr);
+    ASSERT(m_cswebConnection == nullptr && m_permissions.empty() && m_cache == nullptr);
 
     // allow the syncable dictionary name to be overridden in the connection string
     const std::string* const dictionary_name_override = m_connectionString.GetProperty(CSProperty::dictionaryName);
@@ -128,7 +142,7 @@ void CSWebRepository::Open(const DataRepositoryOpenFlag open_flag)
                                                                                               m_connectionString.ToString(),
                                                                                               CreateLoginCredentials(m_connectionString));
 
-        std::unique_ptr<const ConnectResponse> csweb_connect_response = csweb_connection->Connect(CSWebVersion::V3);
+        const std::unique_ptr<const ConnectResponse> csweb_connect_response = csweb_connection->Connect(CSWebVersion::V3);
         ASSERT(csweb_connection->GetUser().has_value());
 
         if( csweb_connection->GetUser()->IsAdmin() )
@@ -137,7 +151,10 @@ void CSWebRepository::Open(const DataRepositoryOpenFlag open_flag)
                                                     csweb_connection->GetUser()->role_name.c_str());
         }
 
-        const JsonNode dictionary_metadata_json_node = EnsureDictionaryExistsAndGetDictionaryMetadata(*csweb_connection, open_flag);
+        const JsonNode dictionary_metadata_json_node = EnsureDictionaryExistsAndUserHasPermissions(*csweb_connection, open_flag);
+
+        ASSERT(m_permissions.find(CSWebDictionaryPermission::Read) != m_permissions.cend());
+        ASSERT(( m_permissions.find(CSWebDictionaryPermission::Write) != m_permissions.cend() ) || IsReadOnly());
 
         // potentially open the cache (enabled by default)
         if( m_connectionString.HasPropertyOrDefault(CSProperty::cacheLocally, CSValue::true_, true) )
@@ -151,7 +168,6 @@ void CSWebRepository::Open(const DataRepositoryOpenFlag open_flag)
         }
 
         m_cswebConnection = std::move(csweb_connection);
-        m_cswebConnectResponse = std::move(csweb_connect_response);
 
         ResetCaseObjects();
     }
@@ -198,18 +214,32 @@ LoginCredentials CSWebRepository::CreateLoginCredentials(const ConnectionString&
 }
 
 
-JsonNode CSWebRepository::EnsureDictionaryExistsAndGetDictionaryMetadata(CSWebConnection& csweb_connection, const DataRepositoryOpenFlag open_flag) const
+JsonNode CSWebRepository::EnsureDictionaryExistsAndUserHasPermissions(CSWebConnection& csweb_connection, const DataRepositoryOpenFlag open_flag)
 {
-    // CSWEB_TODO check that user's upload/download/truncate roles permit the options
-
     bool delete_existing_data = ( open_flag == DataRepositoryOpenFlag::CreateNew ||
                                   m_accessType == DataRepositoryAccess::BatchOutput );
 
     std::optional<JsonNode> dictionary_metadata_json_node;
 
-    try
+    auto get_dictionary_metadata_and_check_permissions = [&]()
     {
         dictionary_metadata_json_node = csweb_connection.GetDictionaryMetadata(m_syncableDictionaryName);
+
+        // ensure that the user (via their role) has permission to access this data
+        m_permissions = CSWebConnection::ParseDictionaryPermissions(*dictionary_metadata_json_node);
+
+        EnsureUserHasPermission(csweb_connection, CSWebDictionaryPermission::Read);
+
+        if( !IsReadOnly() )
+            EnsureUserHasPermission(csweb_connection, CSWebDictionaryPermission::Write);
+
+        if( delete_existing_data )
+            EnsureUserHasPermission(csweb_connection, CSWebDictionaryPermission::Clear);
+    };
+
+    try
+    {
+        get_dictionary_metadata_and_check_permissions();
     }
 
     catch( const SyncError& exception )
@@ -237,7 +267,7 @@ JsonNode CSWebRepository::EnsureDictionaryExistsAndGetDictionaryMetadata(CSWebCo
     }
 
     if( !dictionary_metadata_json_node.has_value() )
-        dictionary_metadata_json_node = csweb_connection.GetDictionaryMetadata(m_syncableDictionaryName);
+        get_dictionary_metadata_and_check_permissions();
 
     const std::string key_structure = dictionary_metadata_json_node->GetOrConstruct<std::string>(JK::dictionaryKeyStructure);
 
@@ -293,20 +323,46 @@ std::string CSWebRepository::CalculateDictionaryKeyStructure(const CDataDict& di
 }
 
 
+void CSWebRepository::EnsureUserHasPermission(const CSWebConnection& csweb_connection, const CSWebDictionaryPermission permission)
+{
+    if( m_permissions.find(permission) != m_permissions.cend() )
+        return;
+
+    const char* const permission_text =
+        ( permission == CSWebDictionaryPermission::Read )  ? "read" :
+        ( permission == CSWebDictionaryPermission::Write ) ? "write" :
+        ( permission == CSWebDictionaryPermission::Clear ) ? "delete" :
+                                                             ReturnProgrammingError("");
+    ASSERT(csweb_connection.GetUser().has_value());
+
+    throw DataRepositoryException::IOError("The data source '%s' cannot be opened with %s access due to insufficient privileges using the role '%s'.",
+                                            m_syncableDictionaryName.c_str(),
+                                            permission_text,
+                                            csweb_connection.GetUser()->role_name.c_str());
+}
+
+
 void CSWebRepository::ToggleReadWriteMode()
 {
     ASSERT(m_accessType == DataRepositoryAccess::ReadOnly || m_accessType == DataRepositoryAccess::ReadWrite);
 
-    // CSWEB_TODO check that user's upload/download/truncate roles permit the options
+    if( m_accessType == DataRepositoryAccess::ReadOnly )
+    {
+        EnsureUserHasPermission(*m_cswebConnection, CSWebDictionaryPermission::Write);
+        m_accessType = DataRepositoryAccess::ReadWrite;
+    }
 
-    m_accessType = ( m_accessType == DataRepositoryAccess::ReadOnly ) ? DataRepositoryAccess::ReadWrite :
-                                                                        DataRepositoryAccess::ReadOnly;
+    else
+    {
+        m_accessType = DataRepositoryAccess::ReadOnly;
+    }
 }
 
 
 void CSWebRepository::Close()
 {
     m_cswebConnection.reset();
+    m_permissions.clear();
     m_cache.reset();
 }
 
