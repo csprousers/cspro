@@ -2,7 +2,6 @@ CloseDocument.svg
 CloseAll.svg
 Refresh.svg
 SaveAs.svg
-SaveAll.svg
 Cancel.svg
 SelectAll.svg
 Language - CSPro Logic.png

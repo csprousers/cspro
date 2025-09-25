@@ -1,6 +1,7 @@
 NewDocument.svg
 OpenFile.svg
 Save.svg
+SaveAll.svg
 Compile.svg
 Undo.svg
 Redo.svg
