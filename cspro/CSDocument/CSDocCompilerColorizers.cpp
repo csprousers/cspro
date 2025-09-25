@@ -350,8 +350,9 @@ std::vector<ScintillaColorizer::ExtendedEntity> HelpsHtmlProcessor::GetExtendedE
 
 
         // 2. symbol dot-notation functions specified without the dot-notation but by specifying the logic function domain
-        //    e.g.: $.write("..."); (with m_logicFunctionDomain == SymbolType::Report)
+        //    e.g.: <logiccolor Image>getExif</logiccolor>
         if( m_logicFunctionDomain.has_value() &&
+            ( entity.style_index == SCE_CSPRO_KEYWORD || entity.style_index == SCE_CSPRO_IDENTIFIER ) &&
             Logic::FunctionTable::IsFunctionExtended(entity.text, *m_logicFunctionDomain, &function_details) )
         {
             CheckLogicCase(entity.text, *m_logicFunctionDomain);
@@ -444,8 +445,15 @@ std::vector<ScintillaColorizer::ExtendedEntity> HelpsHtmlProcessor::GetExtendedE
 
             if( previous_word_index.has_value() )
             {
+                // if using $ when a logic function domain has been specified (e.g., Report), use that domain
+                // e.g.,: $.write("...");
+                if( m_logicFunctionDomain.has_value() && extended_entities[*previous_word_index].text == "$" )
+                {
+                    logic_function_domain = *m_logicFunctionDomain;
+                }
+
                 // if the previous word was a symbol type (from #5 above), lookup the function in that symbol domain...
-                if( std::holds_alternative<SymbolType>(extended_entities[*previous_word_index].details) )
+                else if( std::holds_alternative<SymbolType>(extended_entities[*previous_word_index].details) )
                 {
                     logic_function_domain = std::get<SymbolType>(extended_entities[*previous_word_index].details);
                 }
@@ -901,11 +909,12 @@ std::string CSDocCompilerWorker::LogicDeclareStartHandler(const cs::span<const s
 
     const std::map<std::string, SymbolType>& symbol_declaration_text_map = ::Symbol::GetDeclarationTextMap();
     const auto& symbol_type_lookup = std::find_if(symbol_declaration_text_map.cbegin(), symbol_declaration_text_map.cend(),
-                                                  [&](const auto& name_and_symbol_type) { return SO::EqualsNoCase(symbol_type_name, name_and_symbol_type.first); });
+                                                  [&](const auto& name_and_symbol_type) { return ( symbol_type_name == name_and_symbol_type.first ); });
 
-    const SymbolType symbol_type = ( symbol_type_lookup != symbol_declaration_text_map.cend() )
-        ? symbol_type_lookup->second
-        : throw CSProException("The logic symbol type '%s' is not valid.", symbol_type_name.c_str());
+    const SymbolType symbol_type =
+        ( symbol_type_lookup != symbol_declaration_text_map.cend() ) ? symbol_type_lookup->second :
+        ( symbol_type_name == CaseSymbolDomainText )                 ? SymbolType::Pre80Dictionary : // ENGINECR_TODO remove because this should be part of Symbol::GetDeclarationTextMap
+        throw CSProException("The logic symbol type '%s' is not valid.", symbol_type_name.c_str());
 
     const auto& lookup = m_logicDeclarations.find(symbol_name);
 
