@@ -18,25 +18,6 @@
 
 IMPLEMENT_DYNCREATE(CQSFCndView, CView)
 
-CQSFCndView::CQSFCndView()
-{
-    EnableAutomation();
-}
-
-CQSFCndView::~CQSFCndView()
-{
-}
-
-void CQSFCndView::OnFinalRelease()
-{
-    // When the last reference for an automation object is released
-    // OnFinalRelease is called.  The base class will automatically
-    // deletes the object.  Add additional cleanup required for your
-    // object before calling the base class.
-
-    CView::OnFinalRelease();
-}
-
 
 BEGIN_MESSAGE_MAP(CQSFCndView, CView)
     //{{AFX_MSG_MAP(CQSFCndView)
@@ -57,6 +38,16 @@ BEGIN_MESSAGE_MAP(CQSFCndView, CView)
     ON_COMMAND(ID_EDIT_UNDO, OnEditUndo)
     //}}AFX_MSG_MAP
 END_MESSAGE_MAP()
+
+
+CQSFCndView::CQSFCndView()
+{
+    EnableAutomation();
+}
+
+CQSFCndView::~CQSFCndView()
+{
+}
 
 
 /////////////////////////////////////////////////////////////////////////////

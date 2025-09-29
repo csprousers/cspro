@@ -166,13 +166,22 @@ void CQSFEView::OnUpdate(CView* const pSender, const LPARAM lHint, CObject* /*pH
         return;
 
     if( lHint == Hint::CapiEditorUpdateLanguages )
+    {
         SetLanguages(GetFormDoc()->GetCapiQuestionManager()->GetLanguages());
+    }
 
-    if( lHint == Hint::CapiEditorUpdateStyles || lHint == Hint::CapiEditorUpdateQuestionStyles )
+    if( lHint == Hint::CapiEditorUpdateStyles ||
+        lHint == Hint::CapiEditorUpdateQuestionStyles )
+    {
         SetStyles(GetFormDoc()->GetCapiQuestionManager()->GetStyles());
+    }
 
-    if( lHint == Hint::CapiEditorUpdateQuestion || lHint == Hint::CapiEditorUpdateQuestionStyles )
+    if( lHint == Hint::CapiEditorUpdateQuestion ||
+        lHint == Hint::CapiEditorUpdateQuestionStyles ||
+        lHint == Hint::CapiEditorUpdateCondition )
+    {
         UpdateDisplayText();
+    }    
 }
 
 

@@ -41,8 +41,7 @@ public:
 // Overrides
     // ClassWizard generated virtual function overrides
     //{{AFX_VIRTUAL(CQSFCndView)
-    public:
-    virtual void OnFinalRelease();
+public:
     virtual BOOL PreTranslateMessage(MSG* pMsg);
     virtual void OnInitialUpdate();
     protected:
