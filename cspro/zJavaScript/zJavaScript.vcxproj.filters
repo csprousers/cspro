@@ -17,9 +17,6 @@
     <ClCompile Include="..\external\QuickJS\cutils.c">
       <Filter>QuickJS</Filter>
     </ClCompile>
-    <ClCompile Include="..\external\QuickJS\libbf.c">
-      <Filter>QuickJS</Filter>
-    </ClCompile>
     <ClCompile Include="..\external\QuickJS\libregexp.c">
       <Filter>QuickJS</Filter>
     </ClCompile>
@@ -27,6 +24,9 @@
       <Filter>QuickJS</Filter>
     </ClCompile>
     <ClCompile Include="..\external\QuickJS\quickjs.c">
+      <Filter>QuickJS</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\QuickJS\xsum.c">
       <Filter>QuickJS</Filter>
     </ClCompile>
     <ClCompile Include="ActionInvokerJS.cpp">
