@@ -25,14 +25,6 @@ static char THIS_FILE[] = __FILE__;
 
 IMPLEMENT_DYNCREATE(COrderChildWnd, ApplicationChildWnd)
 
-COrderChildWnd::COrderChildWnd() : m_bQuestionnaireView(FALSE), m_pQuestionnaireView(NULL), m_pOSourceEditView(NULL)
-{
-}
-
-COrderChildWnd::~COrderChildWnd()
-{
-}
-
 
 BEGIN_MESSAGE_MAP(COrderChildWnd, ApplicationChildWnd)
     //{{AFX_MSG_MAP(COrderChildWnd)
@@ -44,6 +36,7 @@ BEGIN_MESSAGE_MAP(COrderChildWnd, ApplicationChildWnd)
     ON_COMMAND(ID_VIEW_GOTO_LOGIC_WORD, OnGotoLogicWord)
     ON_COMMAND(ID_COMMENT_CODE, OnCommentCode)
     ON_COMMAND(ID_LOGIC_FORMAT, OnFormatLogic)
+    ON_UPDATE_COMMAND_UI(ID_LOGIC_FORMAT, OnUpdateFormatLogic)
     ON_COMMAND(ID_VIEW_QUESTIONNAIRE, &COrderChildWnd::OnViewQuestionnaire)
     ON_UPDATE_COMMAND_UI(ID_VIEW_QUESTIONNAIRE, &COrderChildWnd::OnUpdateViewQuestionnaire)
     //}}AFX_MSG_MAP
@@ -52,6 +45,15 @@ BEGIN_MESSAGE_MAP(COrderChildWnd, ApplicationChildWnd)
     ON_UPDATE_COMMAND_UI(ID_ORD_COMPILE, &COrderChildWnd::OnUpdateOrdCompile)
     ON_UPDATE_COMMAND_UI(ID_LOGIC_FORMAT, &COrderChildWnd::OnUpdateLogicFormat)
 END_MESSAGE_MAP()
+
+
+COrderChildWnd::COrderChildWnd()
+    :   m_bQuestionnaireView(FALSE),
+        m_pQuestionnaireView(nullptr),
+        m_pOSourceEditView(nullptr)
+{
+}
+
 
 /////////////////////////////////////////////////////////////////////////////
 // COrderChildWnd message handlers
@@ -401,9 +403,9 @@ void COrderChildWnd::ModifyDocumentAndDoWithLogicCtrl(CF callback_function)
 void COrderChildWnd::OnCommentCode()
 {
     ModifyDocumentAndDoWithLogicCtrl(
-        [](CLogicCtrl* logic_control)
+        [](CLogicCtrl* const logic_ctrl)
         {
-            logic_control->CommentCode();
+            logic_ctrl->CommentCode();
         });
 }
 
@@ -411,10 +413,19 @@ void COrderChildWnd::OnCommentCode()
 void COrderChildWnd::OnFormatLogic()
 {
     ModifyDocumentAndDoWithLogicCtrl(
-        [](CLogicCtrl* logic_control)
+        [](CLogicCtrl* const logic_ctrl)
         {
-            logic_control->FormatLogic();
+            logic_ctrl->FormatLogic();
         });
+}
+
+
+void COrderChildWnd::OnUpdateFormatLogic(CCmdUI* const pCmdUI)
+{
+    CLogicCtrl* const logic_ctrl = COrderChildWnd::GetSourceLogicCtrl();
+
+    pCmdUI->Enable(( logic_ctrl != nullptr &&
+                     Lexers::IsCSProLogic(logic_ctrl->GetLexer()) ));
 }
 
 

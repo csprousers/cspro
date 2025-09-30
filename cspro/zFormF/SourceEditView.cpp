@@ -25,31 +25,10 @@ static char THIS_FILE[] = __FILE__;
 
 IMPLEMENT_DYNCREATE(CFSourceEditView, CLogicView)
 
-CFSourceEditView::CFSourceEditView()
-{
-}
-
-
-CFSourceEditView::~CFSourceEditView()
-{
-}
-
-
-void CFSourceEditView::OnFinalRelease()
-{
-    // When the last reference for an automation object is released
-    // OnFinalRelease is called.  The base class will automatically
-    // deletes the object.  Add additional cleanup required for your
-    // object before calling the base class.
-
-    CView::OnFinalRelease();
-}
-
 
 BEGIN_MESSAGE_MAP(CFSourceEditView, CLogicView)
     //{{AFX_MSG_MAP(CFSourceEditView)
     ON_WM_CREATE()
-    ON_WM_SIZE()
     ON_WM_MOUSEWHEEL()
     ON_COMMAND(ID_FRM_EDIT_FIND, OnFrmEditFind)
     ON_UPDATE_COMMAND_UI(ID_FRM_EDIT_FIND, OnUpdateFrmEditFind)
@@ -72,8 +51,8 @@ BEGIN_MESSAGE_MAP(CFSourceEditView, CLogicView)
     ON_COMMAND(ID_EDIT_PASTE, OnEditPaste)
     ON_UPDATE_COMMAND_UI(ID_EDIT_PASTE, OnUpdateEditPaste)
     ON_COMMAND(ID_SHIFT_F10, OnShiftF10)
-    ON_UPDATE_COMMAND_UI(ID_LOGIC_FORMAT, OnUpdateLogicIsShowing)
     ON_COMMAND(ID_LOGIC_FORMAT, OnFormatLogic)
+    ON_UPDATE_COMMAND_UI(ID_LOGIC_FORMAT, OnUpdateFormatLogic)
     ON_COMMAND(ID_VIEW_PEEK_LOGIC_WORD, OnPeekLogicWord)
     ON_COMMAND(ID_VIEW_GOTO_LOGIC_WORD, OnGotoLogicWord)
     ON_COMMAND(ID_COMMENT_CODE, OnCommentCode)
@@ -97,18 +76,6 @@ void CFSourceEditView::OnDraw(CDC* /*pDC*/)
 
 void CFSourceEditView::OnUpdate(CView* /*pSender*/, LPARAM /*lHint*/, CObject* /*pHint*/)
 {
-}
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
-//                            CFSourceEditView::OnSize
-//
-/////////////////////////////////////////////////////////////////////////////
-
-void CFSourceEditView::OnSize(UINT nType, int cx, int cy)
-{
-    CLogicView::OnSize(nType, cx, cy);
 }
 
 
@@ -343,16 +310,19 @@ void CFSourceEditView::OnShiftF10()
 }
 
 
-void CFSourceEditView::OnUpdateLogicIsShowing(CCmdUI* pCmdUI)
-{
-    pCmdUI->Enable(GetFocus() == GetLogicCtrl());
-}
-
-
 void CFSourceEditView::OnFormatLogic()
 {
     GetDocument()->SetModifiedFlag(true);
     GetEditCtrl()->FormatLogic();
+}
+
+
+void CFSourceEditView::OnUpdateFormatLogic(CCmdUI* const pCmdUI)
+{
+    CLogicCtrl* const logic_ctrl = GetLogicCtrl();
+
+    pCmdUI->Enable(( logic_ctrl == GetFocus() &&
+                     Lexers::IsCSProLogic(logic_ctrl->GetLexer()) ));
 }
 
 
