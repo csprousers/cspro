@@ -67,9 +67,8 @@ void EngineJavaScriptProcessor::CompileCodeFile(const CodeFile& code_file)
     ASSERT(code_file.IsJavaScript());
 
     const JavaScript::ModuleType module_type =
-        ( code_file.GetCodeType() == CodeType::JavaScriptAutodetect ) ? JavaScript::ModuleType::Autodetect :
-        ( code_file.GetCodeType() == CodeType::JavaScriptGlobal )     ? JavaScript::ModuleType::Global :
-                                                                        JavaScript::ModuleType::Module;
+        ( code_file.GetCodeType() == CodeType::JavaScriptGlobal ) ? JavaScript::ModuleType::Global :
+                                                                    JavaScript::ModuleType::Module;
 
     CompileScript(code_file.GetTextSource().GetTextAsSharableString(), module_type, code_file.GetTextSource().GetFilePath(), true);
 }

@@ -8,9 +8,9 @@
 // CodeType
 // --------------------------------------------------------------------------
 
-enum class CodeType : int { LogicMain, LogicExternal, JavaScriptAutodetect, JavaScriptGlobal, JavaScriptModule };
+enum class CodeType : int { LogicMain, LogicExternal, JavaScriptGlobal, JavaScriptModule };
 
-ZAPPO_API constexpr const char* ToString(CodeType code_type);
+ZAPPO_API const char* ToString(CodeType code_type);
 
 constexpr bool IsLogic(CodeType code_type);
 constexpr bool IsJavaScript(CodeType code_type);
@@ -40,6 +40,8 @@ public:
 
     const std::string& GetFilePath() const { ASSERT(m_textSource != nullptr); return m_textSource->GetFilePath(); }
 
+    static CodeType GetSuggestedCodeTypeForExternalCode(std::string_view file_path_sv);
+
     // serialization
     // --------------------------------------------------------------------------
     static CodeFile CreateFromJson(const JsonNode& json_node,
@@ -67,5 +69,5 @@ constexpr bool IsLogic(const CodeType code_type)
 
 constexpr bool IsJavaScript(const CodeType code_type)
 {
-    return ( code_type >= CodeType::JavaScriptAutodetect );
+    return ( code_type >= CodeType::JavaScriptGlobal );
 }

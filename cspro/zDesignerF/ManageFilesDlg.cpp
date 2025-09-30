@@ -994,10 +994,7 @@ void ManageFilesDlg::OnAddCode()
 
         try
         {
-            const std::string extension = Path::GetExtension(file_path);
-            const CodeType code_type = SO::EqualsNoCase(extension, FileExtensions::JavaScript)       ? CodeType::JavaScriptAutodetect :
-                                       SO::EqualsNoCase(extension, FileExtensions::JavaScriptModule) ? CodeType::JavaScriptModule :
-                                                                                                       CodeType::LogicExternal;
+            const CodeType code_type = CodeFile::GetSuggestedCodeTypeForExternalCode(file_path);
 
             m_application.AddCodeFile(NewFileCreator::CreateOrOpenCodeFile(file_path, code_type, m_application));
 

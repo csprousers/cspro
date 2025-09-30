@@ -13,7 +13,6 @@ CodeFilePropertiesPageDlg::CodeFilePropertiesPageDlg(CodeFile code_file, CWnd* c
         m_codeFile(std::move(code_file)),
         m_codeTypeRadioEnumHelper({ CodeType::LogicMain,
                                     CodeType::LogicExternal,
-                                    CodeType::JavaScriptAutodetect,
                                     CodeType::JavaScriptGlobal,
                                     CodeType::JavaScriptModule }),
         m_codeType(m_codeTypeRadioEnumHelper.ToForm(m_codeFile.GetCodeType()))
@@ -37,7 +36,6 @@ BOOL CodeFilePropertiesPageDlg::OnInitDialog()
     if( m_codeFile.IsLogicMain() )
     {
         GetDlgItem(IDC_CODE_CSPRO_LOGIC_EXTERNAL)->EnableWindow(FALSE);
-        GetDlgItem(IDC_CODE_JAVASCRIPT_AUTODETECT)->EnableWindow(FALSE);
         GetDlgItem(IDC_CODE_JAVASCRIPT_GLOBAL)->EnableWindow(FALSE);
         GetDlgItem(IDC_CODE_JAVASCRIPT_MODULE)->EnableWindow(FALSE);
     }

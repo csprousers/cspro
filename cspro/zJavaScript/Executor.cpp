@@ -103,37 +103,44 @@ void JavaScript::Executor::Reset()
 }
 
 
-std::string JavaScript::Executor::EvaluateScript(const std::string& script, const ModuleType module_type/* = ModuleType::Autodetect*/,
+constexpr int JavaScript::Executor::GetFlagFromModuleType(ModuleType module_type)
+{
+    return ( module_type == JavaScript::ModuleType::Global ) ? JS_EVAL_TYPE_GLOBAL :
+                                                               JS_EVAL_TYPE_MODULE;
+}
+
+
+std::string JavaScript::Executor::EvaluateScript(const std::string& script, const ModuleType module_type/* = ModuleType::Global*/,
                                                  const std::string& file_path/* = std::string()*/, const int line_number/* = 1*/)
 {
-    const int flags = GetFlagFromModuleType(script, module_type, file_path);
+    const int flags = GetFlagFromModuleType(module_type);
     return EvaluateScript<std::string>(script, file_path, line_number, flags);
 }
 
 
-JavaScript::Bytecode JavaScript::Executor::CompileScript(const std::string& script, const ModuleType module_type/* = ModuleType::Autodetect*/,
+JavaScript::Bytecode JavaScript::Executor::CompileScript(const std::string& script, const ModuleType module_type/* = ModuleType::Global*/,
                                                          const std::string& file_path/* = std::string()*/, const int line_number/* = 1*/)
 {
-    const int flags = JS_EVAL_FLAG_COMPILE_ONLY | GetFlagFromModuleType(script, module_type, file_path);
+    const int flags = JS_EVAL_FLAG_COMPILE_ONLY | GetFlagFromModuleType(module_type);
     return CompileScript<Bytecode>(script, file_path, line_number, flags);
 }
 
 
-void JavaScript::Executor::CompileScriptOnly(const std::string& script, const ModuleType module_type/* = ModuleType::Autodetect*/,
+void JavaScript::Executor::CompileScriptOnly(const std::string& script, const ModuleType module_type/* = ModuleType::Global*/,
                                              const std::string& file_path/* = std::string()*/, const int line_number/* = 1*/)
 {
-    const int flags = JS_EVAL_FLAG_COMPILE_ONLY | GetFlagFromModuleType(script, module_type, file_path);
+    const int flags = JS_EVAL_FLAG_COMPILE_ONLY | GetFlagFromModuleType(module_type);
     CompileScript<void>(script, file_path, line_number, flags);
 }
 
 
-std::string JavaScript::Executor::EvaluateFile(const std::string& file_path, const ModuleType module_type/* = ModuleType::Autodetect*/)
+std::string JavaScript::Executor::EvaluateFile(const std::string& file_path, const ModuleType module_type/* = ModuleType::Global*/)
 {
     return EvaluateScript(FileIO::ReadText(file_path), module_type, file_path);
 }
 
 
-JavaScript::Bytecode JavaScript::Executor::CompileFile(const std::string& file_path, const ModuleType module_type/* = ModuleType::Autodetect*/)
+JavaScript::Bytecode JavaScript::Executor::CompileFile(const std::string& file_path, const ModuleType module_type/* = ModuleType::Global*/)
 {
     return CompileScript(FileIO::ReadText(file_path), module_type, file_path);
 }
@@ -275,36 +282,6 @@ std::string JavaScript::Executor::GetRelativeFilePath(std::string file_path)
 
     // use forward slashes for the path
     return Path::MakeToForwardSlash(file_path);
-}
-
-
-int JavaScript::Executor::GetFlagFromModuleType(const std::string& script, const ModuleType module_type, const std::string& file_path)
-{
-    if( module_type == ModuleType::Global )
-    {
-        return JS_EVAL_TYPE_GLOBAL;
-    }
-
-    else if( module_type == ModuleType::Module )
-    {
-        return JS_EVAL_TYPE_MODULE;
-    }
-
-    else
-    {
-        ASSERT(module_type == ModuleType::Autodetect);
-
-        if( Path::ExtensionMatches(file_path, FileExtensions::JavaScriptModule) ||
-            JS_DetectModule(script.c_str(), script.length()) )
-        {
-            return JS_EVAL_TYPE_MODULE;
-        }
-
-        else
-        {
-            return JS_EVAL_TYPE_GLOBAL;
-        }
-    }
 }
 
 

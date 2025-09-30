@@ -787,6 +787,24 @@ void Application::CreateFromJsonWorker(const JsonNode& json_node, const bool loa
             if( IsFilePathInUse(m_codeFiles, code_file.GetFilePath()) )
                 continue;
 
+            // make sure that there is only one main logic file
+            if( code_file.IsLogicMain() )
+            {
+                const CodeFile* const logic_main_code_file = GetLogicMainCodeFile();
+
+                if( logic_main_code_file != nullptr )
+                {
+                    const CodeType new_code_type = CodeFile::GetSuggestedCodeTypeForExternalCode(code_file.GetFilePath());
+
+                    json_node.LogWarning("The application already has a main logic file, '%s', so '%s' is being set to: '%s'",
+                                         Path::GetFilename(logic_main_code_file->GetFilePath()).c_str(),
+                                         Path::GetFilename(code_file.GetFilePath()).c_str(),
+                                         ToString(new_code_type));
+
+                    code_file.SetCodeType(new_code_type);
+                }
+            }
+
             AddCodeFile(std::move(code_file));
         }
 

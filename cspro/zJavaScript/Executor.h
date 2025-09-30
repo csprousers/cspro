@@ -31,22 +31,22 @@ public:
     void Reset();
 
     // Evaluates the script.
-    std::string EvaluateScript(const std::string& script, ModuleType module_type = ModuleType::Autodetect,
+    std::string EvaluateScript(const std::string& script, ModuleType module_type = ModuleType::Global,
                                const std::string& file_path = std::string(), int line_number = 1);
 
     // Compiles the script, returning the bytecode for later evaluation.
-    Bytecode CompileScript(const std::string& script, ModuleType module_type = ModuleType::Autodetect,
+    Bytecode CompileScript(const std::string& script, ModuleType module_type = ModuleType::Global,
                            const std::string& file_path = std::string(), int line_number = 1);
 
     // Compiles the script.
-    void CompileScriptOnly(const std::string& script, ModuleType module_type = ModuleType::Autodetect,
+    void CompileScriptOnly(const std::string& script, ModuleType module_type = ModuleType::Global,
                            const std::string& file_path = std::string(), int line_number = 1);
 
     // Loads the script from the file and evaluates it.
-    std::string EvaluateFile(const std::string& file_path, ModuleType module_type = ModuleType::Autodetect);
+    std::string EvaluateFile(const std::string& file_path, ModuleType module_type = ModuleType::Global);
 
     // Loads the script from the file and compiles it.
-    Bytecode CompileFile(const std::string& file_path, ModuleType module_type = ModuleType::Autodetect);
+    Bytecode CompileFile(const std::string& file_path, ModuleType module_type = ModuleType::Global);
 
     // Evaluates the bytecode.
     std::string EvaluateBytecode(const Bytecode& bytecode);
@@ -157,7 +157,7 @@ private:
 
     std::string GetRelativeFilePath(std::string file_path);
 
-    static int GetFlagFromModuleType(const std::string& script, ModuleType module_type, const std::string& file_path);
+    constexpr int GetFlagFromModuleType(ModuleType module_type);
 
     // EvaluateScript will throw an exception on error.
     template<typename T>
