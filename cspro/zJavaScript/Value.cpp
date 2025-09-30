@@ -137,7 +137,7 @@ const char* JavaScript::Value::GetType() const
 
         case JS_TAG_OBJECT:
             ASSERT(m_qjs != nullptr);
-            return JS_IsArray(m_qjs->ctx, GetValue()) ? "array" : "object";
+            return JS_IsArray(GetValue()) ? "array" : "object";
 
         case JS_TAG_SYMBOL:
             return "symbol";
@@ -181,7 +181,7 @@ bool JavaScript::Value::IsNull() const
 
 bool JavaScript::Value::IsArray() const
 {
-    return JS_IsArray(m_qjs->ctx, GetValue());
+    return JS_IsArray(GetValue());
 }
 
 

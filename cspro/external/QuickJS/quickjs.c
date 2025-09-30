@@ -1,4 +1,4 @@
-/*
+﻿/*
  * QuickJS Javascript Engine
  *
  * Copyright (c) 2017-2025 Fabrice Bellard
@@ -7902,7 +7902,7 @@ static int num_keys_cmp(const void *p1, const void *p2, void *opaque)
         return 1;
 }
 
-static void js_free_prop_enum(JSContext *ctx, JSPropertyEnum *tab, uint32_t len)
+void js_free_prop_enum(JSContext *ctx, JSPropertyEnum *tab, uint32_t len)
 {
     uint32_t i;
     if (tab) {
@@ -57740,3 +57740,19 @@ uintptr_t js_std_cmd(int cmd, ...) {
 #undef malloc
 #undef free
 #undef realloc
+
+
+// --------------------------------------------------------------------------
+// CSPro additions
+// --------------------------------------------------------------------------
+
+int csjs_get_export_entry_count(JSModuleDef* m)
+{
+    return m->export_entries_count;
+}
+
+void csjs_get_export_entry_names(JSModuleDef* m, JSAtom* export_names)
+{
+    for( int i = 0; i < m->export_entries_count; ++i )
+        export_names[i] = m->export_entries[i].export_name;
+}

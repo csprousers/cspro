@@ -315,8 +315,15 @@ T JavaScript::Executor::EvaluateScript(const std::string& script, const std::str
                                                                  std::string(QuickJSAccess::UnnamedScriptFilename_sv);
 
     // evaluate the script
-    Value js_result(m_qjs, JS_Eval2(m_qjs->ctx, script.data(), script.length(), evaluated_file_path.c_str(), flags, line_number));
+    JSEvalOptions options =
+    {
+        JS_EVAL_OPTIONS_VERSION,
+        flags,
+        evaluated_file_path.c_str(),
+        line_number
+    };
 
+    Value js_result(m_qjs, JS_Eval2(m_qjs->ctx, script.data(), script.length(), &options));
     ProcessPostEvaluationResult(*js_result);
 
     if constexpr(std::is_same_v<T, Value>)
@@ -462,7 +469,7 @@ JavaScript::Value JavaScript::Executor::CreateArray(const size_t size, const Val
 
 uint32_t JavaScript::Executor::GetArrayLength(const Value& array_value)
 {
-    if( !JS_IsArray(m_qjs->ctx, array_value.GetValue()) )
+    if( !JS_IsArray(array_value.GetValue()) )
         throw Exception(FormatText("A value of type '%s' is not an array.", array_value.GetType()));
 
     const Value js_length(m_qjs, JS_GetPropertyStr(m_qjs->ctx, array_value.GetValue(), "length"));

@@ -32,7 +32,7 @@
 #include <sys/time.h>
 #endif
 #if defined(_WIN32)
-#include <windows.h>
+// #include <windows.h> // CSPro
 #include <process.h> // _beginthread
 #endif
 #if defined(__APPLE__)

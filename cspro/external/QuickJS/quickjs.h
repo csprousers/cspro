@@ -1,3 +1,8 @@
+﻿// CSPro: to get the console application building in the 64-bit environment
+#ifdef _CONSOLE
+#define JS_NAN_BOXING 1
+#endif
+
 /*
  * QuickJS Javascript Engine
  *
@@ -553,6 +558,8 @@ typedef struct JSPropertyEnum {
     bool is_enumerable;
     JSAtom atom;
 } JSPropertyEnum;
+
+void js_free_prop_enum(JSContext *ctx, JSPropertyEnum *tab, uint32_t len); // CSPro
 
 typedef struct JSPropertyDescriptor {
     int flags;
@@ -1259,6 +1266,15 @@ JS_EXTERN uintptr_t js_std_cmd(int cmd, ...);
 
 #undef JS_EXTERN
 #undef js_force_inline
+
+
+// --------------------------------------------------------------------------
+// CSPro additions
+// --------------------------------------------------------------------------
+
+int csjs_get_export_entry_count(JSModuleDef* m);
+void csjs_get_export_entry_names(JSModuleDef* m, JSAtom* export_names);
+
 
 #ifdef __cplusplus
 } /* extern "C" { */

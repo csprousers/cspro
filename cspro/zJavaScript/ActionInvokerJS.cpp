@@ -37,7 +37,7 @@ void JavaScript::Executor::UseActionInvoker(const std::vector<const Logic::Funct
             ASSERT(function_namespace_to_class_id_map.find(function_namespace) == function_namespace_to_class_id_map.cend());
 
             JSClassID class_id = 0;
-            JS_NewClassID(&class_id);
+            JS_NewClassID(m_qjs->rt, &class_id);
 
             const char* class_name;
 
