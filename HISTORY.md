@@ -9,6 +9,7 @@ Because most CSPro development occurs on a [private repository](https://github.c
 
 | Date | Branch | Pull Request Message |
 | --- | --- | --- |
+| 2025&#8209;11&#8209;13 | [vs-2026-upgrade](https://github.com/CSProDevelopment/cspro/commit/92585072ff52c23d32b6e28420d976ed22fefafb) | upgraded the solution to use Visual Studio 2026 |
 | 2025&#8209;09&#8209;24 | [android-edge-to-edge](https://github.com/CSProDevelopment/cspro/commit/5d759d664951e632228f7d5cbaca60b1b44549f9) | modified the Android UI to support the new edge-to-edge requirement |
 | 2025&#8209;09&#8209;24 | [bug-fixes-2025-09](https://github.com/CSProDevelopment/cspro/commit/f945f35d37d90c1c0d44b31dd3d9edd70fc522f7) | fixed some bugs |
 | 2025&#8209;09&#8209;24 | [csweb-cache](https://github.com/CSProDevelopment/cspro/commit/ecb80e1a2ca3574fbc475e9a101d61084d750b4d) | implemented caching cases and iterator results, and checking user permissions, when using the CSWeb data source |

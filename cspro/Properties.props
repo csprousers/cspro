@@ -22,7 +22,6 @@
     <Link>
       <AdditionalLibraryDirectories>$(SolutionDir)$(Configuration)\lib\</AdditionalLibraryDirectories>
       <ImportLibrary>$(SolutionDir)$(Configuration)\lib\$(AssemblyName).lib</ImportLibrary>
-      <GenerateDebugInformation>DebugFastLink</GenerateDebugInformation>
       <MinimumRequiredVersion>5.01</MinimumRequiredVersion>
       <SubSystem>Windows</SubSystem>
       <TargetMachine>MachineX86</TargetMachine>
