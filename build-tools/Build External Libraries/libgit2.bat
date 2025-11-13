@@ -10,7 +10,7 @@ rem ... build the project
 cd libgit2-%libgit2-version%
 mkdir build32
 cd build32
-cmake -G "Visual Studio 17 2022" -A Win32 -S .. -B build32
+cmake -G "Visual Studio 18 2026" -A Win32 -S .. -B build32
 cmake --build .
 
 

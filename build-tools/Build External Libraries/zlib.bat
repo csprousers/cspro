@@ -4,10 +4,10 @@ tar -xvzf zlib.tar.gz
 
 
 rem ... build the projects
-cmake -G "Visual Studio 17 2022" -A Win32 -S zlib-master -B zlib-build-x86
+cmake -G "Visual Studio 18 2026" -A Win32 -S zlib-master -B zlib-build-x86
 cmake --build zlib-build-x86 --config Release
 
-cmake -G "Visual Studio 17 2022" -A x64 -S zlib-master -B zlib-build-x64
+cmake -G "Visual Studio 18 2026" -A x64 -S zlib-master -B zlib-build-x64
 cmake --build zlib-build-x64 --config Release
 
 
