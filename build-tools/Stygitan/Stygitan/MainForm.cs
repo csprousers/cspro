@@ -252,13 +252,54 @@ namespace Stygitan
         private void listViewModifiedFiles_DoubleClick(object sender, EventArgs e)
         {
             if( listViewModifiedFiles.SelectedIndices.Count > 0 )
+                OpenFile(listViewModifiedFiles.SelectedItems[0]);
+        }
+
+        private void listViewModifiedFiles_MouseUp(object sender, MouseEventArgs e)
+        {
+            // show a context menu when right-clicking on items
+            if( e.Button == MouseButtons.Right )
             {
-                Process.Start(new ProcessStartInfo()
+                ListViewHitTestInfo hit_test_info = listViewModifiedFiles.HitTest(e.Location);;
+
+                if( hit_test_info.Item != null && hit_test_info.SubItem == hit_test_info.Item.SubItems[0] )
                 {
-                    FileName = _modifiedFiles[listViewModifiedFiles.SelectedIndices[0]].FilePath,
-                    UseShellExecute = true
-                });
+                    ContextMenuStrip menu = new ContextMenuStrip();
+
+                    ToolStripMenuItem menu_item = new ToolStripMenuItem("Copy Path");
+                    menu_item.Click += (s, args) => { CopyPath(hit_test_info.Item); };
+                    menu.Items.Add(menu_item);
+
+                    menu_item = new ToolStripMenuItem("Open File");
+                    menu_item.Click += (s, args) => { OpenFile(hit_test_info.Item); };
+                    menu.Items.Add(menu_item);
+
+                    menu_item = new ToolStripMenuItem("Open Containing Folder");
+                    menu_item.Click += (s, args) => { OpenContainingFolder(hit_test_info.Item); };
+                    menu.Items.Add(menu_item);
+
+                    menu.Show(listViewModifiedFiles, e.Location);
+                }
             }
+        }
+
+        private void CopyPath(ListViewItem lvi)
+        {
+            Clipboard.SetText(_modifiedFiles[lvi.Index].FilePath);
+        }
+
+        private void OpenFile(ListViewItem lvi)
+        {
+            Process.Start(new ProcessStartInfo()
+            {
+                FileName = _modifiedFiles[lvi.Index].FilePath,
+                UseShellExecute = true
+            });
+        }
+
+        private void OpenContainingFolder(ListViewItem lvi)
+        {
+            Process.Start("explorer.exe", $"/select,\"{_modifiedFiles[lvi.Index].FilePath}\"");
         }
     }
 }

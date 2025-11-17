@@ -156,6 +156,7 @@
             listViewModifiedFiles.UseCompatibleStateImageBehavior = false;
             listViewModifiedFiles.View = View.Details;
             listViewModifiedFiles.DoubleClick +=  listViewModifiedFiles_DoubleClick ;
+            listViewModifiedFiles.MouseUp +=  listViewModifiedFiles_MouseUp ;
             //
             // columnHeaderPath
             //
