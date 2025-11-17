@@ -22,7 +22,7 @@ JavaScript::Exception JavaScript::QuickJSAccess::CreateException()
     const size_t original_exception_message_length = exception_message.length();
     std::optional<std::tuple<std::string, int>> file_path_and_line_number;
 
-    if( JS_IsError(ctx, *js_exception) )
+    if( JS_IsError(*js_exception) )
     {
         const Value js_stack(this, JS_GetPropertyStr(ctx, *js_exception, "stack"));
 
