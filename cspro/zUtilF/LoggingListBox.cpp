@@ -16,9 +16,20 @@ namespace Action
     constexpr WPARAM SetHorizontalExtent = 3;
 }
 
+namespace TimerCode
+{
+    constexpr UINT AddText = 1;
+    constexpr UINT Scroll  = 2;
+}
+
+namespace AddText
+{
+    constexpr size_t MaxLinesForDirectUpdate = 10;
+    constexpr UINT ElapseTimeMilliseconds    = 100;
+}
+
 namespace Scroll
 {
-    constexpr UINT_PTR TimerCode          = 1;
     constexpr UINT ElapseTimeMilliseconds = 3;
 }
 
@@ -54,7 +65,8 @@ LoggingListBox::LoggingListBox()
         m_maxLineLengthAndHorizontalExtent(0, 0),
         m_scrollLinesDelta(3),
         m_pendingMouseWheelActions(0),
-        m_userScrolledManually(false)
+        m_userScrolledManually(false),
+        m_addTextMessagePending(false)
 {
     // create a fixed-width font
     m_logfont.lfHeight = 18;
@@ -194,7 +206,7 @@ BOOL LoggingListBox::OnMouseWheel(UINT /*nFlags*/, const short zDelta, CPoint /*
         ++m_pendingMouseWheelActions;
     }
 
-    SetTimer(Scroll::TimerCode, Scroll::ElapseTimeMilliseconds, nullptr);
+    SetTimer(TimerCode::Scroll, Scroll::ElapseTimeMilliseconds, nullptr);
 
     return TRUE;
 }
@@ -202,7 +214,14 @@ BOOL LoggingListBox::OnMouseWheel(UINT /*nFlags*/, const short zDelta, CPoint /*
 
 void LoggingListBox::OnTimer(const UINT_PTR nIDEvent)
 {
-    if( nIDEvent == Scroll::TimerCode )
+    if( nIDEvent == TimerCode::AddText )
+    {
+        ASSERT(m_addTextMessagePending);
+        KillTimer(TimerCode::AddText);
+        ProcessAddText(GetCount());
+    }
+
+    else if( nIDEvent == TimerCode::Scroll )
     {
         // scrolling up
         if( m_pendingMouseWheelActions < 0 )
@@ -244,7 +263,7 @@ void LoggingListBox::OnTimer(const UINT_PTR nIDEvent)
         }
 
         if( m_pendingMouseWheelActions == 0 )
-            KillTimer(Scroll::TimerCode);
+            KillTimer(TimerCode::Scroll);
     }
 
     else
@@ -336,34 +355,20 @@ LRESULT LoggingListBox::OnLoggingListBoxUpdate(const WPARAM wParam, LPARAM /*lPa
     // can continue without waiting for any list box UI thread to end
     if( wParam == Action::AddText )
     {
-        auto auto_scroll = [&]()
+        ASSERT(m_addTextMessagePending);
+
+        const int current_lines = GetCount();
+
+        // when there are many lines to add, add the text using a timer so that
+        // the UI thread is not blocked by constantly processing messages to add text
+        if( ( m_lines.size() - current_lines ) > AddText::MaxLinesForDirectUpdate )
         {
-            // scroll automatically only if the user hasn't manually scroled
-            if( !m_userScrolledManually )
-                SetTopIndex(GetCount() - 1);
-        };
-
-        int strings_to_add = m_lines.size() - GetCount();
-
-        // if there are multiple strings to add, suspend UI updates temporarily
-        if( strings_to_add > 1 )
-        {
-            SetRedraw(FALSE);
-
-            while( strings_to_add-- > 0 )
-                AddString(nullptr);
-
-            auto_scroll();
-
-            SetRedraw(TRUE);
-
-            Invalidate();
+            SetTimer(TimerCode::AddText, AddText::ElapseTimeMilliseconds, nullptr);
         }
 
-        else if( strings_to_add == 1 )
+        else
         {
-            AddString(nullptr);
-            auto_scroll();
+            ProcessAddText(current_lines);
         }
     }
 
@@ -381,6 +386,44 @@ LRESULT LoggingListBox::OnLoggingListBoxUpdate(const WPARAM wParam, LPARAM /*lPa
     }
 
     return 1;
+}
+
+
+void LoggingListBox::ProcessAddText(const int current_lines)
+{
+    ASSERT(m_addTextMessagePending);
+
+    int strings_to_add = m_lines.size() - current_lines;
+
+    m_addTextMessagePending = false;
+
+    auto auto_scroll = [&]()
+    {
+        // scroll automatically only if the user hasn't manually scroled
+        if( !m_userScrolledManually )
+            SetTopIndex(GetCount() - 1);
+    };
+
+    // if there are multiple strings to add, suspend UI updates temporarily
+    if( strings_to_add > 1 )
+    {
+        SetRedraw(FALSE);
+
+        while( strings_to_add-- > 0 )
+            AddString(nullptr);
+
+        auto_scroll();
+
+        SetRedraw(TRUE);
+
+        Invalidate();
+    }
+
+    else if( strings_to_add == 1 )
+    {
+        AddString(nullptr);
+        auto_scroll();
+    }
 }
 
 
@@ -418,7 +461,11 @@ void LoggingListBox::AddText(SharableString text)
         }
     }
 
-    PostMessage(UWM::UtilF::UpdateLoggingListBox, Action::AddText);
+    if( !m_addTextMessagePending )
+    {
+        m_addTextMessagePending = true;
+        PostMessage(UWM::UtilF::UpdateLoggingListBox, Action::AddText);
+    }
 }
 
 

@@ -57,6 +57,8 @@ private:
     // the mutex must be locked by the calling method; the pointer returned is non-null
     const std::wstring* GetWideLine(size_t index, bool line_is_for_displaying);
 
+    void ProcessAddText(int current_lines);
+
 private:
     LOGFONT m_logfont;
     CFont m_font;
@@ -75,4 +77,5 @@ private:
 
     std::vector<Line> m_lines;
     std::mutex m_linesMutex;
+    bool m_addTextMessagePending;
 };
