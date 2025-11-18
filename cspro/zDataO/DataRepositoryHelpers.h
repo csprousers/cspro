@@ -19,6 +19,8 @@ namespace DataRepositoryHelpers
 
     constexpr bool IsTypeExportWriter(DataRepositoryType data_repository_type);
 
+    constexpr bool TypeUsesUuid(DataRepositoryType data_repository_type);
+
     constexpr bool TypeSupportsUndeletes(DataRepositoryType data_repository_type);
 
     constexpr bool TypeSupportsDuplicates(DataRepositoryType data_repository_type);
@@ -88,7 +90,7 @@ constexpr bool DataRepositoryHelpers::IsTypeExportWriter(const DataRepositoryTyp
 }
 
 
-constexpr bool DataRepositoryHelpers::TypeSupportsUndeletes(const DataRepositoryType data_repository_type)
+constexpr bool DataRepositoryHelpers::TypeUsesUuid(const DataRepositoryType data_repository_type)
 {
     return ( DataRepositoryHelpers::IsTypeSQLiteOrDerived(data_repository_type) ||
              data_repository_type == DataRepositoryType::Memory ||
@@ -97,12 +99,15 @@ constexpr bool DataRepositoryHelpers::TypeSupportsUndeletes(const DataRepository
 }
 
 
+constexpr bool DataRepositoryHelpers::TypeSupportsUndeletes(const DataRepositoryType data_repository_type)
+{
+    return TypeUsesUuid(data_repository_type);
+}
+
+
 constexpr bool DataRepositoryHelpers::TypeSupportsDuplicates(const DataRepositoryType data_repository_type)
 {
-    return ( DataRepositoryHelpers::IsTypeSQLiteOrDerived(data_repository_type) ||
-             data_repository_type == DataRepositoryType::Memory ||
-             data_repository_type == DataRepositoryType::Json ||
-             data_repository_type == DataRepositoryType::CSWeb );
+    return TypeUsesUuid(data_repository_type);
 }
 
 

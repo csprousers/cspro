@@ -1,16 +1,12 @@
 ﻿#pragma once
 
 #include <zDiffO/zDiffO.h>
+#include <zCaseO/CaseKey.h>
+#include <zDataO/DataRepositoryDefines.h>
 
-class Case;
-class CaseAccess;
-class CaseItem;
 class CaseItemPrinter;
-class CaseLevel;
 class CDataDict;
 class CDictRecord;
-class ConnectionString;
-class DataRepository;
 class DiffSpec;
 class PFF;
 namespace FileIO { class TextFile; }
@@ -28,19 +24,50 @@ protected:
     virtual void HandleNoDifferences(const PFF& pff);
 
 private:
+    struct CaseCompareData;
+    struct RunData;
+
+    struct UuidMatchingData
+    {
+        CaseKey case_key;
+        std::string uuid; // UUID filled in on demand
+
+        UuidMatchingData(const CaseKey& case_key_) : case_key(case_key_) {}
+    };
+
+    template<bool UseUuidMatching>
+    using MatchIdentifier = std::conditional_t<UseUuidMatching, UuidMatchingData, std::string>;
+
     void InitializeComparison();
 
-    struct RunData;
     void Run(const ConnectionString& input_connection_string, const ConnectionString& output_connection_string);
+
+    template<bool UseUuidMatching>
     void RunCompare(RunData& rd);
 
-    static void CheckAndUpdateProcessBar(RunData& rd, const std::string& key, size_t counts = 1);
+    static void CheckAndUpdateProcessBar(RunData& rd, const std::string& key, size_t counts);
 
-    std::vector<std::string> GetAllCaseKeys(RunData& rd, DataRepository& repository) const;
+    template<typename T>
+    static const std::string& GetCaseKey(const T& identifier);
 
-    void CompareCase(const Case& input_case, const Case& reference_case);
+    template<bool UseUuidMatching>
+    std::vector<MatchIdentifier<UseUuidMatching>> GetIdentifiers(
+        RunData& rd,
+        DataRepository& repository,
+        CaseIterationMethod iteration_method) const;
 
-    void CompareLevel(const CaseLevel& input_case_level, const CaseLevel& reference_case_level);
+    static bool IdentifiersContainDuplicates(
+        const std::vector<MatchIdentifier<true>>& input_identifiers,
+        const std::vector<MatchIdentifier<true>>& reference_identifiers);
+
+    std::vector<Differ::MatchIdentifier<true>>::const_iterator MatchCaseByUuid(
+        RunData& rd,
+        std::vector<MatchIdentifier<true>>& input_identifiers,
+        std::vector<MatchIdentifier<true>>& reference_identifiers);
+
+    void CompareCase(const CaseCompareData& ccd);
+
+    std::string CompareLevel(const CaseLevel& input_case_level, const CaseLevel& reference_case_level);
 
 private:
     std::shared_ptr<DiffSpec> m_diffSpec;

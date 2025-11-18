@@ -22,13 +22,12 @@ CREATE_ENUM_JSON_SERIALIZER(DiffSpec::DiffOrder,
     { DiffSpec::DiffOrder::Sequential, JV::sequential })
 
 CREATE_ENUM_JSON_SERIALIZER(DiffSpec::ItemDisplay,
-    { DiffSpec::ItemDisplay::Labels, "labels" },
+    { DiffSpec::ItemDisplay::Labels, JK::labels },
     { DiffSpec::ItemDisplay::Names,  "names" })
 
 CREATE_ENUM_JSON_SERIALIZER(DiffSpec::ItemSerialization,
     { DiffSpec::ItemSerialization::Included, "included" },
     { DiffSpec::ItemSerialization::Excluded, "excluded" })
-
 
 
 DiffSpec::DiffSpec()
@@ -134,7 +133,7 @@ void DiffSpec::Load(const JsonNode& json_node, const bool silent, std::shared_pt
     }
 
     // get the comparison attributes
-    const auto& comparison_node = json_node.GetOrEmpty(JK::comparison);
+    const JsonNode comparison_node = json_node.GetOrEmpty(JK::comparison);
     m_diffMethod = comparison_node.GetOrDefault(JK::method, m_diffMethod);
     m_diffOrder = comparison_node.GetOrDefault(JK::order, m_diffOrder);
 

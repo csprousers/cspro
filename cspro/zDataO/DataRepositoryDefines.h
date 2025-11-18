@@ -6,6 +6,20 @@
 
 
 // --------------------------------------------------------------------------
+// Forward declarations of common objects
+// --------------------------------------------------------------------------
+
+class Case;
+class CaseAccess;
+class CaseItem;
+class CaseLevel;
+class CaseRecord;
+class ConnectionString;
+class DataRepository;
+
+
+
+// --------------------------------------------------------------------------
 // Data repository definitions
 // --------------------------------------------------------------------------
 
