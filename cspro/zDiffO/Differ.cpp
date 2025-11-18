@@ -121,24 +121,50 @@ void Differ::InitializeComparison()
 }
 
 
+struct Differ::RunData
+{
+    std::unique_ptr<DataRepository> input_repository;
+    std::unique_ptr<DataRepository> reference_repository;
+
+    std::shared_ptr<StdioCaseConstructionReporter> case_construction_reporter;
+    std::unique_ptr<Case> input_case;
+    std::unique_ptr<Case> reference_case;
+
+    std::shared_ptr<ProcessSummary> process_summary;
+    ProcessSummaryDlg process_summary_dlg;
+
+    static constexpr double CaseKeyReadingPercent = 25;
+    double progress_bar_value = 0;
+    double progress_bar_increment_value = 0;
+    size_t progress_bar_update_counter = ProgressBarCaseUpdateFrequency;
+    size_t progress_bar_counts = 0;
+};
+
+
 void Differ::Run(const ConnectionString& input_connection_string, const ConnectionString& output_connection_string)
 {
-    // open the repositories
-    const std::unique_ptr<DataRepository> input_repository = DataRepository::CreateAndOpen(m_caseAccess,
-                                                                                           input_connection_string,
-                                                                                           DataRepositoryAccess::ReadOnly,
-                                                                                           DataRepositoryOpenFlag::OpenMustExist);
+    RunData rd;
 
-    const std::unique_ptr<DataRepository> reference_repository = DataRepository::CreateAndOpen(m_caseAccess,
-                                                                                               output_connection_string,
-                                                                                               DataRepositoryAccess::ReadOnly,
-                                                                                               DataRepositoryOpenFlag::OpenMustExist);
+    // open the repositories
+    rd.input_repository = DataRepository::CreateAndOpen(
+        m_caseAccess,
+        input_connection_string,
+        DataRepositoryAccess::ReadOnly,
+        DataRepositoryOpenFlag::OpenMustExist
+    );
+
+    rd.reference_repository = DataRepository::CreateAndOpen(
+        m_caseAccess,
+        output_connection_string,
+        DataRepositoryAccess::ReadOnly,
+        DataRepositoryOpenFlag::OpenMustExist
+    );
 
     // write the listing header
     constexpr std::string_view Divider_sv = "-----------------------------------------------------------------------------------------------";
 
-    m_log->WriteLine("Input:      " + input_repository->GetName(DataRepositoryNameType::ForListing));
-    m_log->WriteLine("Reference:  " + reference_repository->GetName(DataRepositoryNameType::ForListing));
+    m_log->WriteLine("Input:      " + rd.input_repository->GetName(DataRepositoryNameType::ForListing));
+    m_log->WriteLine("Reference:  " + rd.reference_repository->GetName(DataRepositoryNameType::ForListing));
     m_log->WriteLine(Divider_sv);
 
     m_log->WriteLine("Case Id");
@@ -146,170 +172,171 @@ void Differ::Run(const ConnectionString& input_connection_string, const Connecti
     m_log->WriteLine(Divider_sv);
     m_log->WriteLine();
 
-    // setup the cases and the reporter
-    std::shared_ptr<ProcessSummary> process_summary = m_diffSpec->GetDictionary().CreateProcessSummary();
-    auto case_construction_reporter = std::make_shared<StdioCaseConstructionReporter>(*m_log, process_summary);
+    // set up the cases and the reporter
+    rd.input_case = m_caseAccess->CreateCase();
+    rd.reference_case = m_caseAccess->CreateCase();
 
-    const std::unique_ptr<Case> input_case = m_caseAccess->CreateCase();
-    input_case->SetCaseConstructionReporter(case_construction_reporter);
+    rd.case_construction_reporter = std::make_unique<StdioCaseConstructionReporter>(*m_log, rd.process_summary);
+    rd.input_case->SetCaseConstructionReporter(rd.case_construction_reporter);
+    rd.reference_case->SetCaseConstructionReporter(rd.case_construction_reporter);
 
-    const std::unique_ptr<Case> reference_case = m_caseAccess->CreateCase();
-    reference_case->SetCaseConstructionReporter(case_construction_reporter);
+    rd.process_summary = m_diffSpec->GetDictionary().CreateProcessSummary();
+
+    // a progress bar will be shown while RunCompare runs in a background thread
+    rd.process_summary_dlg.SetTask([&]() { RunCompare(rd); });
+
+    rd.process_summary_dlg.DoModal();
+
+    rd.process_summary_dlg.RethrowTaskExceptions();
+}
 
 
-    // display a progress bar while doing the comparison, allocating 25% of the
-    // comparison time to reading the keys
-    ProcessSummaryDlg process_summary_dlg;
+void Differ::RunCompare(RunData& rd)
+{
+    // get a listing of all of the keys in the files
+    rd.process_summary_dlg.Initialize("Reading keys...", rd.process_summary);
 
-    process_summary_dlg.SetTask([&]
+    rd.process_summary_dlg.SetSource(
+        FormatText("Input / Reference Data: %s / %s",
+            rd.input_repository->GetName(DataRepositoryNameType::Concise).c_str(),
+            rd.reference_repository->GetName(DataRepositoryNameType::Concise).c_str()
+        )
+    );
+
+    const size_t total_case_keys = rd.input_repository->GetNumberCases() + rd.reference_repository->GetNumberCases();
+    rd.progress_bar_increment_value = RunData::CaseKeyReadingPercent / std::max<size_t>(total_case_keys, 1);
+
+    std::vector<std::string> input_keys = GetAllCaseKeys(rd, *rd.input_repository);
+    std::vector<std::string> reference_keys = GetAllCaseKeys(rd, *rd.reference_repository);
+
+    // compare the differences
+    rd.process_summary_dlg.Initialize("Comparing...", rd.process_summary);
+
+    rd.progress_bar_value = RunData::CaseKeyReadingPercent;
+    rd.progress_bar_increment_value = ( 100 - RunData::CaseKeyReadingPercent ) / std::max<size_t>(total_case_keys, 1);
+
+    while( !input_keys.empty() || !reference_keys.empty() )
     {
-        // setup the progress bar handling
-        constexpr double CaseKeyReadingPercent = 25;
-        double progress_bar_value = 0;
-        double progress_bar_increment_value = 0;
-        size_t progress_bar_update_counter = ProgressBarCaseUpdateFrequency;
-        size_t progress_bar_counts = 0;
+        std::vector<std::string>::const_iterator input_index = input_keys.cbegin();
+        std::vector<std::string>::const_iterator reference_index = reference_keys.cbegin();
 
-        auto check_and_update_progress_bar = [&](const std::string& key, const size_t counts = 1)
+        if( !input_keys.empty() && !reference_keys.empty() )
         {
-            if( process_summary_dlg.IsCanceled() )
-                throw UserCanceledException();
-
-            progress_bar_counts += counts;
-
-            if( --progress_bar_update_counter == 0 )
+            if( m_diffSpec->GetDiffOrder() == DiffSpec::DiffOrder::Indexed )
             {
-                progress_bar_value += progress_bar_increment_value * progress_bar_counts;
-                process_summary->SetPercentSourceRead(progress_bar_value);
-                process_summary_dlg.SetKey(key);
-                progress_bar_update_counter = ProgressBarCaseUpdateFrequency;
-                progress_bar_counts = 0;
-            }
-        };
+                // if both have keys remaining, compare the current key for each
+                const int key_comparison = input_keys.front().compare(reference_keys.front());
 
-
-        // get a listing of all of the keys in the files
-        process_summary_dlg.Initialize("Reading keys...", process_summary);
-        process_summary_dlg.SetSource(FormatText("Input / Reference Data: %s / %s",
-                                                 input_repository->GetName(DataRepositoryNameType::Concise).c_str(),
-                                                 reference_repository->GetName(DataRepositoryNameType::Concise).c_str()));
-
-        const size_t total_case_keys = input_repository->GetNumberCases() + reference_repository->GetNumberCases();
-        progress_bar_increment_value = CaseKeyReadingPercent / std::max<size_t>(total_case_keys, 1);
-
-        auto get_all_case_keys = [&](DataRepository& repository)
-        {
-            std::vector<std::string> keys;
-            CaseKey case_key;
-
-            std::unique_ptr<CaseIterator> case_key_iterator = repository.CreateCaseKeyIterator(
-                ( m_diffSpec->GetDiffOrder() == DiffSpec::DiffOrder::Indexed ) ? CaseIterationMethod::KeyOrder : CaseIterationMethod::SequentialOrder,
-                CaseIterationOrder::Ascending);
-
-            while( case_key_iterator->NextCaseKey(case_key) )
-            {
-                keys.emplace_back(case_key.GetKey());
-
-                check_and_update_progress_bar(case_key.GetKey());
-            }
-
-            return keys;
-        };
-
-        std::vector<std::string> input_keys = get_all_case_keys(*input_repository);
-        std::vector<std::string> reference_keys = get_all_case_keys(*reference_repository);
-
-
-        // compare the differences
-        process_summary_dlg.Initialize("Comparing...", process_summary);
-
-        progress_bar_value = CaseKeyReadingPercent;
-        progress_bar_increment_value = ( 100 - CaseKeyReadingPercent ) / std::max<size_t>(total_case_keys, 1);
-
-        while( !input_keys.empty() || !reference_keys.empty() )
-        {
-            auto input_index = input_keys.cbegin();
-            auto reference_index = reference_keys.cbegin();
-
-            if( !input_keys.empty() && !reference_keys.empty() )
-            {
-                if( m_diffSpec->GetDiffOrder() == DiffSpec::DiffOrder::Indexed )
+                if( key_comparison < 0 )
                 {
-                    // if both have keys remaining, compare the current key for each
-                    const int key_comparison = input_keys.front().compare(reference_keys.front());
-
-                    if( key_comparison < 0 )
-                    {
-                        reference_index = reference_keys.cend();
-                    }
-
-                    else if( key_comparison > 0 )
-                    {
-                        input_index = input_keys.cend();
-                    }
+                    reference_index = reference_keys.cend();
                 }
 
-                else // sequential order
+                else if( key_comparison > 0 )
                 {
-                    // search for the input key in the reference keys
-                    reference_index = std::find(reference_keys.cbegin(), reference_keys.cend(), input_keys.front());
+                    input_index = input_keys.cend();
                 }
             }
 
-            // there are no more input keys or the reference key comes before the input key
-            if( input_index == input_keys.cend() )
+            else // sequential order
             {
-                if( m_diffSpec->GetDiffMethod() == DiffSpec::DiffMethod::BothWays )
-                {
-                    const std::string key = FormatText("[%s]", NewlineSubstitutor::NewlineToUnicodeNL(*reference_index).c_str());
-                    m_log->WriteFormattedLine("%-59sCase Missing", key.c_str());
-                    m_log->WriteLine();
-                    m_differencesExist = true;
-                }
-
-                check_and_update_progress_bar(*reference_index);
-
-                reference_keys.erase(reference_index, reference_index + 1);
-            }
-
-            // there are no more reference keys or the input key comes before the reference key
-            else if( reference_index == reference_keys.cend() )
-            {
-                const std::string key = FormatText("[%s]", NewlineSubstitutor::NewlineToUnicodeNL(*input_index).c_str());
-                m_log->WriteFormattedLine("%-59s%-20sCase Missing", key.c_str(), "");
-                m_log->WriteLine();
-                m_differencesExist = true;
-
-                check_and_update_progress_bar(*input_index);
-
-                input_keys.erase(input_index, input_index + 1);
-            }
-
-            // the keys are the same, so we must compare them
-            else
-            {
-                input_repository->ReadCase(*input_case, *input_index);
-                reference_repository->ReadCase(*reference_case, *reference_index);
-
-                CompareCase(*input_case, *reference_case);
-
-                check_and_update_progress_bar(*input_index, 2);
-
-                input_keys.erase(input_index, input_index + 1);
-                reference_keys.erase(reference_index, reference_index + 1);
+                // search for the input key in the reference keys
+                reference_index = std::find(reference_keys.cbegin(), reference_keys.cend(), input_keys.front());
             }
         }
 
-        input_repository->Close();
-        reference_repository->Close();
+        // there are no more input keys or the reference key comes before the input key
+        if( input_index == input_keys.cend() )
+        {
+            if( m_diffSpec->GetDiffMethod() == DiffSpec::DiffMethod::BothWays )
+            {
+                const std::string key = FormatText("[%s]", NewlineSubstitutor::NewlineToUnicodeNL(*reference_index).c_str());
+                m_log->WriteFormattedLine("%-59sCase Missing", key.c_str());
+                m_log->WriteLine();
+                m_differencesExist = true;
+            }
 
-        if( !m_differencesExist )
-            m_log->WriteLine("No differences were found.");
-    });
+            CheckAndUpdateProcessBar(rd, *reference_index);
 
-    process_summary_dlg.DoModal();
+            reference_keys.erase(reference_index, reference_index + 1);
+        }
 
-    process_summary_dlg.RethrowTaskExceptions();
+        // there are no more reference keys or the input key comes before the reference key
+        else if( reference_index == reference_keys.cend() )
+        {
+            const std::string key = FormatText("[%s]", NewlineSubstitutor::NewlineToUnicodeNL(*input_index).c_str());
+            m_log->WriteFormattedLine("%-59s%-20sCase Missing", key.c_str(), "");
+            m_log->WriteLine();
+            m_differencesExist = true;
+
+            CheckAndUpdateProcessBar(rd, *input_index);
+
+            input_keys.erase(input_index, input_index + 1);
+        }
+
+        // the keys are the same, so we must compare them
+        else
+        {
+            rd.input_repository->ReadCase(*rd.input_case, *input_index);
+            rd.reference_repository->ReadCase(*rd.reference_case, *reference_index);
+
+            CompareCase(*rd.input_case, *rd.reference_case);
+
+            CheckAndUpdateProcessBar(rd, *input_index, 2);
+
+            input_keys.erase(input_index, input_index + 1);
+            reference_keys.erase(reference_index, reference_index + 1);
+        }
+    }
+
+    rd.input_repository->Close();
+    rd.reference_repository->Close();
+
+    if( !m_differencesExist )
+        m_log->WriteLine("No differences were found.");
+}
+
+
+void Differ::CheckAndUpdateProcessBar(RunData& rd, const std::string& key, const size_t counts/* = 1*/)
+{
+    if( rd.process_summary_dlg.IsCanceled() )
+        throw UserCanceledException();
+
+    rd.progress_bar_counts += counts;
+
+    if( --rd.progress_bar_update_counter == 0 )
+    {
+        rd.progress_bar_value += rd.progress_bar_increment_value * rd.progress_bar_counts;
+        rd.process_summary->SetPercentSourceRead(rd.progress_bar_value);
+        rd.process_summary_dlg.SetKey(key);
+        rd.progress_bar_update_counter = ProgressBarCaseUpdateFrequency;
+        rd.progress_bar_counts = 0;
+    }
+}
+
+
+std::vector<std::string> Differ::GetAllCaseKeys(RunData& rd, DataRepository& repository) const
+{
+    std::vector<std::string> keys;
+
+    const CaseIterationMethod iteration_method = ( m_diffSpec->GetDiffOrder() == DiffSpec::DiffOrder::Indexed )
+        ? CaseIterationMethod::KeyOrder
+        : CaseIterationMethod::SequentialOrder;
+
+    const std::unique_ptr<CaseIterator> case_key_iterator = repository.CreateCaseKeyIterator(
+        iteration_method,
+        CaseIterationOrder::Ascending
+    );
+
+    CaseKey case_key;
+
+    while( case_key_iterator->NextCaseKey(case_key) )
+    {
+        keys.emplace_back(case_key.GetKey());
+        CheckAndUpdateProcessBar(rd, case_key.GetKey());
+    }
+
+    return keys;
 }
 
 

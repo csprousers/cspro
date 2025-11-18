@@ -10,6 +10,7 @@ class CaseLevel;
 class CDataDict;
 class CDictRecord;
 class ConnectionString;
+class DataRepository;
 class DiffSpec;
 class PFF;
 namespace FileIO { class TextFile; }
@@ -29,7 +30,13 @@ protected:
 private:
     void InitializeComparison();
 
+    struct RunData;
     void Run(const ConnectionString& input_connection_string, const ConnectionString& output_connection_string);
+    void RunCompare(RunData& rd);
+
+    static void CheckAndUpdateProcessBar(RunData& rd, const std::string& key, size_t counts = 1);
+
+    std::vector<std::string> GetAllCaseKeys(RunData& rd, DataRepository& repository) const;
 
     void CompareCase(const Case& input_case, const Case& reference_case);
 

@@ -1,10 +1,11 @@
 ﻿#include "StdAfx.h"
 #include "Filebrow.h"
 #include "Csdfdoc.h"
+#include <zUtilO/WindowHelpers.h>
 #include <zBridgeO/DataFileDlg.h>
 
 
-BEGIN_MESSAGE_MAP(CFilesBrow, CDialog)
+BEGIN_MESSAGE_MAP(CFilesBrow, ResizableDlg)
     ON_BN_CLICKED(IDC_LISTBROW, OnListbrow)
     ON_BN_CLICKED(IDC_INPBROW, OnInpbrow)
     ON_BN_CLICKED(IDC_REFBROW, OnRefbrow)
@@ -15,7 +16,7 @@ END_MESSAGE_MAP()
 
 
 CFilesBrow::CFilesBrow(CCSDiffDoc* const pDoc, PFF& pff, CWnd* const pParent/* = nullptr*/)
-    :   CDialog(CFilesBrow::IDD, pParent),
+    :   ResizableDlg(IDD_FILEBROW, pParent),
         m_pDoc(pDoc),
         m_diffSpec(m_pDoc->GetDiffSpec()),
         m_pff(pff),
@@ -30,6 +31,8 @@ CFilesBrow::CFilesBrow(CCSDiffDoc* const pDoc, PFF& pff, CWnd* const pParent/* =
                                      DiffSpec::DiffOrder::Sequential })
 {
     ASSERT(m_diffSpec.IsDictionaryDefined());
+
+    SerializeDialogSize("CFilesBrow");
 }
 
 
@@ -96,9 +99,12 @@ BOOL CFilesBrow::OnInitDialog()
 {
     __super::OnInitDialog();
 
+    WindowHelpers::RemoveDialogSystemIcon(*this);
+
     UpdateData(FALSE);
     GetDlgItem(IDOK)->EnableWindow(FALSE);
     EnableDisable();
+
     return TRUE;  // return TRUE unless you set the focus to a control
                   // EXCEPTION: OCX Property Pages should return FALSE
 }
