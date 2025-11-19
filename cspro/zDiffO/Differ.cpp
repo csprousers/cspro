@@ -254,15 +254,17 @@ void Differ::RunCompare(RunData& rd)
     {
         auto input_index = input_identifiers.cbegin();
         auto reference_index = reference_identifiers.cbegin();
-        bool this_case_had_duplicates = false;
+        bool this_case_key_had_duplicates = false;
 
         if( !input_identifiers.empty() && !reference_identifiers.empty() )
         {
+            const std::string& input_case_key = input_identifiers.front().GetKey();
+
             // indexed order
             if( indexed_order )
             {
                 // if both have keys remaining, compare the current key for each
-                const int key_comparison = GetCaseKey(input_identifiers.front()).compare(GetCaseKey(reference_identifiers.front()));
+                const int key_comparison = input_case_key.compare(reference_identifiers.front().GetKey());
 
                 if( key_comparison < 0 )
                 {
@@ -279,14 +281,14 @@ void Differ::RunCompare(RunData& rd)
                 {
                     if( IdentifiersContainDuplicates(input_identifiers, reference_identifiers) )
                     {
-                        last_case_key_with_duplicates = GetCaseKey(input_identifiers.front());
-                        this_case_had_duplicates = true;
+                        last_case_key_with_duplicates = input_case_key;
+                        this_case_key_had_duplicates = true;
                         reference_index = MatchCaseByUuid(rd, input_identifiers, reference_identifiers);
                     }
 
-                    else if( GetCaseKey(input_identifiers.front()) == last_case_key_with_duplicates )
+                    else if( input_case_key == last_case_key_with_duplicates )
                     {
-                        this_case_had_duplicates = true;
+                        this_case_key_had_duplicates = true;
                     }
                 }
             }
@@ -294,8 +296,12 @@ void Differ::RunCompare(RunData& rd)
             // sequential order
             else if constexpr(!UseUuidMatching)
             {
-                // search for the input key in the reference keys
-                reference_index = std::find(reference_identifiers.cbegin(), reference_identifiers.cend(), input_identifiers.front());
+                // search for the first reference key that matches the input key
+                reference_index = std::find_if(reference_identifiers.cbegin(), reference_identifiers.cend(),
+                    [&](const auto& reference_identifier)
+                    {
+                        return ( input_case_key == reference_identifier.GetKey() );
+                    });
             }
 
             else
@@ -309,14 +315,14 @@ void Differ::RunCompare(RunData& rd)
         {
             if( m_diffSpec->GetDiffMethod() == DiffSpec::DiffMethod::BothWays )
             {
-                const std::string key = FormatText("[%s]", NewlineSubstitutor::NewlineToUnicodeNL(GetCaseKey(*reference_index)).c_str());
+                const std::string key = FormatText("[%s]", NewlineSubstitutor::NewlineToUnicodeNL(reference_index->GetKey()).c_str());
                 m_log->WriteFormattedLine("%-59sCase Missing", key.c_str());
 
                 if constexpr(UseUuidMatching)
                 {
-                    this_case_had_duplicates = ( GetCaseKey(*reference_index) == last_case_key_with_duplicates );
+                    this_case_key_had_duplicates = ( reference_index->GetKey() == last_case_key_with_duplicates );
 
-                    if( this_case_had_duplicates )
+                    if( this_case_key_had_duplicates )
                         m_log->WriteFormattedLine("[UUID: %s]", reference_index->uuid.c_str());
                 }
 
@@ -324,7 +330,7 @@ void Differ::RunCompare(RunData& rd)
                 m_differencesExist = true;
             }
 
-            CheckAndUpdateProcessBar(rd, GetCaseKey(*reference_index), 1);
+            CheckAndUpdateProcessBar(rd, reference_index->GetKey(), 1);
 
             reference_identifiers.erase(reference_index, reference_index + 1);
         }
@@ -332,21 +338,21 @@ void Differ::RunCompare(RunData& rd)
         // there are no more reference keys or the input key comes before the reference key
         else if( reference_index == reference_identifiers.cend() )
         {
-            const std::string key = FormatText("[%s]", NewlineSubstitutor::NewlineToUnicodeNL(GetCaseKey(*input_index)).c_str());
+            const std::string key = FormatText("[%s]", NewlineSubstitutor::NewlineToUnicodeNL(input_index->GetKey()).c_str());
             m_log->WriteFormattedLine("%-59s%-20sCase Missing", key.c_str(), "");
 
             if constexpr(UseUuidMatching)
             {
-                this_case_had_duplicates = ( GetCaseKey(*input_index) == last_case_key_with_duplicates );
+                this_case_key_had_duplicates = ( input_index->GetKey() == last_case_key_with_duplicates );
 
-                if( this_case_had_duplicates )
+                if( this_case_key_had_duplicates )
                     m_log->WriteFormattedLine("[UUID: %s]", input_index->uuid.c_str());
             }
 
             m_log->WriteLine();
             m_differencesExist = true;
 
-            CheckAndUpdateProcessBar(rd, GetCaseKey(*input_index), 1);
+            CheckAndUpdateProcessBar(rd, input_index->GetKey(), 1);
 
             input_identifiers.erase(input_index, input_index + 1);
         }
@@ -356,7 +362,7 @@ void Differ::RunCompare(RunData& rd)
         {
             if constexpr(UseUuidMatching)
             {
-                if( this_case_had_duplicates )
+                if( this_case_key_had_duplicates )
                 {
                     ccd.duplicate_case_uuids.emplace(&input_index->uuid, &reference_index->uuid);
                 }
@@ -367,29 +373,15 @@ void Differ::RunCompare(RunData& rd)
                 }
             }
 
-            ASSERT(this_case_had_duplicates == ccd.duplicate_case_uuids.has_value());
+            ASSERT(this_case_key_had_duplicates == ccd.duplicate_case_uuids.has_value());
 
-            // read by key, or by position when there are duplicates
-            if( !this_case_had_duplicates )
-            {
-                rd.input_repository->ReadCase(*rd.input_case, GetCaseKey(*input_index));
-                rd.reference_repository->ReadCase(*rd.reference_case, GetCaseKey(*reference_index));
-            }
-
-            else if constexpr(UseUuidMatching)
-            {
-                rd.input_repository->ReadCase(*rd.input_case, input_index->case_key.GetPositionInRepository());
-                rd.reference_repository->ReadCase(*rd.reference_case, reference_index->case_key.GetPositionInRepository());
-            }
-
-            else
-            {
-                ASSERT(false);
-            }
+            // read the case by position (so that duplicate cases can be properly read)
+            rd.input_repository->ReadCase(*rd.input_case, input_index->GetPositionInRepository());
+            rd.reference_repository->ReadCase(*rd.reference_case, reference_index->GetPositionInRepository());
 
             CompareCase(ccd);
 
-            CheckAndUpdateProcessBar(rd, GetCaseKey(*input_index), 2);
+            CheckAndUpdateProcessBar(rd, input_index->GetKey(), 2);
 
             input_identifiers.erase(input_index, input_index + 1);
             reference_identifiers.erase(reference_index, reference_index + 1);
@@ -422,20 +414,6 @@ void Differ::CheckAndUpdateProcessBar(RunData& rd, const std::string& key, const
 }
 
 
-template<>
-const std::string& Differ::GetCaseKey(const MatchIdentifier<true>& identifier)
-{
-    return identifier.case_key.GetKey();
-}
-
-
-template<>
-const std::string& Differ::GetCaseKey(const MatchIdentifier<false>& identifier)
-{
-    return identifier;
-}
-
-
 template<bool UseUuidMatching>
 std::vector<Differ::MatchIdentifier<UseUuidMatching>> Differ::GetIdentifiers(
     RunData& rd,
@@ -452,16 +430,7 @@ std::vector<Differ::MatchIdentifier<UseUuidMatching>> Differ::GetIdentifiers(
 
     while( case_key_iterator->NextCaseKey(case_key) )
     {
-        if constexpr(UseUuidMatching)
-        {
-            identifiers.emplace_back(case_key);
-        }
-
-        else
-        {
-            identifiers.emplace_back(case_key.GetKey());
-        }
-
+        identifiers.emplace_back(case_key);
         CheckAndUpdateProcessBar(rd, case_key.GetKey(), 1);
     }
 
@@ -472,21 +441,24 @@ std::vector<Differ::MatchIdentifier<UseUuidMatching>> Differ::GetIdentifiers(
 bool Differ::IdentifiersContainDuplicates(const std::vector<MatchIdentifier<true>>& input_identifiers,
                                           const std::vector<MatchIdentifier<true>>& reference_identifiers)
 {
-    const std::string& case_key = GetCaseKey(input_identifiers.front());
-    ASSERT(case_key == GetCaseKey(reference_identifiers.front()));
+    ASSERT(!input_identifiers.empty() && !reference_identifiers.empty());
 
-    return ( ( input_identifiers.size() > 1 && case_key == GetCaseKey(input_identifiers[1]) ) ||
-             ( reference_identifiers.size() > 1 && case_key == GetCaseKey(reference_identifiers[1]) ) );
+    const std::string& case_key = input_identifiers.front().GetKey();
+    ASSERT(case_key == reference_identifiers.front().GetKey());
+
+    return ( ( input_identifiers.size() > 1 && case_key == input_identifiers[1].GetKey() ) ||
+             ( reference_identifiers.size() > 1 && case_key == reference_identifiers[1].GetKey() ) );
 }
 
 
-std::vector<Differ::MatchIdentifier<true>>::const_iterator Differ::MatchCaseByUuid(RunData& rd,
+std::vector<Differ::MatchIdentifier<true>>::const_iterator Differ::MatchCaseByUuid(
+    RunData& rd,
     std::vector<MatchIdentifier<true>>& input_identifiers,
     std::vector<MatchIdentifier<true>>& reference_identifiers)
 {
     ASSERT(IdentifiersContainDuplicates(input_identifiers, reference_identifiers));
 
-    const std::string& case_key = GetCaseKey(input_identifiers.front());
+    const std::string& case_key = input_identifiers.front().GetKey();
 
     // load the UUIDs for all of the cases with this key (if they have not already been loaded)
     auto load_uuids = [&](std::vector<MatchIdentifier<true>>& identifiers, DataRepository& repository, Case& data_case)
@@ -495,17 +467,17 @@ std::vector<Differ::MatchIdentifier<true>>::const_iterator Differ::MatchCaseByUu
 
         do
         {
-            ASSERT(case_key == GetCaseKey(*identifiers_itr));
+            ASSERT(case_key == identifiers_itr->GetKey());
 
             if( identifiers_itr->uuid.empty() )
             {
-                repository.ReadCase(data_case, identifiers_itr->case_key.GetPositionInRepository());
+                repository.ReadCase(data_case, identifiers_itr->GetPositionInRepository());
                 identifiers_itr->uuid = data_case.GetUuid();
             }
 
             ASSERT(!identifiers_itr->uuid.empty());
 
-        } while( ++identifiers_itr != identifiers.end() && case_key == GetCaseKey(*identifiers_itr) );
+        } while( ++identifiers_itr != identifiers.end() && case_key == identifiers_itr->GetKey() );
 
         return identifiers_itr;
     };
@@ -530,19 +502,19 @@ std::vector<Differ::MatchIdentifier<true>>::const_iterator Differ::MatchCaseByUu
 
     do
     {
-        ASSERT(case_key == GetCaseKey(*reference_itr));
+        ASSERT(case_key == reference_itr->GetKey());
 
         auto input_lookup = std::find_if(input_identifiers.begin() + 1, input_with_key_end,
             [&](const auto& input_identifier)
             {
-                ASSERT(input_identifier.case_key.GetKey() == reference_itr->case_key.GetKey());
+                ASSERT(input_identifier.GetKey() == reference_itr->GetKey());
                 return ( input_identifier.uuid == reference_itr->uuid );
             });
 
         if( input_lookup == input_with_key_end )
             return reference_itr;
 
-    } while( ++reference_itr != reference_identifiers.cend() && case_key == GetCaseKey(*reference_itr) );
+    } while( ++reference_itr != reference_identifiers.cend() && case_key == reference_itr->GetKey() );
 
     // no matching case
     return reference_identifiers.cend();

@@ -27,16 +27,15 @@ private:
     struct CaseCompareData;
     struct RunData;
 
-    struct UuidMatchingData
+    struct CaseKeyWithUuid : public CaseKey
     {
-        CaseKey case_key;
-        std::string uuid; // UUID filled in on demand
+        CaseKeyWithUuid(const CaseKey& case_key) : CaseKey(case_key) { }
 
-        UuidMatchingData(const CaseKey& case_key_) : case_key(case_key_) {}
+        std::string uuid; // UUID filled in on demand
     };
 
     template<bool UseUuidMatching>
-    using MatchIdentifier = std::conditional_t<UseUuidMatching, UuidMatchingData, std::string>;
+    using MatchIdentifier = std::conditional_t<UseUuidMatching, CaseKeyWithUuid, CaseKey>;
 
     void InitializeComparison();
 
@@ -46,9 +45,6 @@ private:
     void RunCompare(RunData& rd);
 
     static void CheckAndUpdateProcessBar(RunData& rd, const std::string& key, size_t counts);
-
-    template<typename T>
-    static const std::string& GetCaseKey(const T& identifier);
 
     template<bool UseUuidMatching>
     std::vector<MatchIdentifier<UseUuidMatching>> GetIdentifiers(
