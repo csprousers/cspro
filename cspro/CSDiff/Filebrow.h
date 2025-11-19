@@ -1,16 +1,15 @@
 ﻿#pragma once
 
 #include <zUtilF/DialogValidators.h>
+#include <zUtilO/ResizableDlg.h>
 
 class CCSDiffDoc;
 
 
-class CFilesBrow : public CDialog
+class CFilesBrow : public ResizableDlg
 {
 public:
     CFilesBrow(CCSDiffDoc* pDoc, PFF& pff, CWnd* pParent = nullptr);   // standard constructor
-
-    enum { IDD = IDD_FILEBROW };
 
 protected:
     DECLARE_MESSAGE_MAP()
