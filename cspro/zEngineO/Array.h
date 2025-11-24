@@ -107,6 +107,9 @@ private:
     template<typename T>
     JavaScript::Value GetJavaScriptValueWorker(JavaScript::Executor& executor) const;
 
+    static std::vector<size_t> GetJavaScriptArrayDimensions(JavaScript::Executor& executor, const JavaScript::Value& js_array,
+                                                            size_t num_dimensions);
+
     template<typename T>
     void SetValueFromJavaScriptWorker(JavaScript::Executor& executor, const JavaScript::Value& js_value);
 
