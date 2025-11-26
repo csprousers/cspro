@@ -1,30 +1,31 @@
 ﻿#pragma once
 
 #include <zUtilO/zUtilO.h>
-#include <zUtilO/CSProExecutables.h>
 #include <zJson/Json.h>
+
+namespace CSProExecutables { enum class Program; }
 
 
 // --------------------------------------------------------------------------
 // SettingsDb
 //
-// a simple way to store settings that persist across application runs:
+// A simple way to store settings that persist across application runs:
 //
-// - the settings are stored in a SQLite database in %AppData%/CSPro
+// - The settings are stored in a SQLite database in: %AppData%/CSPro
 //
-// - settings are queried on demand, and potentially cached to minimize
-//   hits to the database
+// - Settings are queried on demand, and potentially cached to minimize
+//   hits to the database.
 //
-// - settings can be set to expire at some point
+// - Settings can be set to expire at some point.
 //
-// - modifications are only written to the database on application close
-//   unless otherwise specified
+// - Modifications are only written to the database on application close
+//   unless otherwise specified.
 //
-// - the keys used to store settings can be obfuscated
+// - The keys used to store settings can be obfuscated.
 //
-// - no exceptions are thrown at any point
+// - No exceptions are thrown at any point.
 //
-// - look at SimpleDbMap and WinRegistry for similar functionality
+// - Look at SimpleDbMap and WinRegistry for similar functionality.
 // --------------------------------------------------------------------------
 
 class CLASS_DECL_ZUTILO SettingsDb
@@ -33,57 +34,48 @@ public:
     enum class KeyObfuscator { Hash };
 
     SettingsDb(std::string_view filename_only_sv, std::string settings_name = "settings",
-               std::optional<int64_t> expiration_seconds = std::nullopt, std::optional<KeyObfuscator> key_obfuscator = std::nullopt);
+               std::optional<int64_t> expiration_seconds = std::nullopt,
+               std::optional<KeyObfuscator> key_obfuscator = std::nullopt) noexcept;
 
     SettingsDb(CSProExecutables::Program program, std::string settings_name = "settings",
-               std::optional<int64_t> expiration_seconds = std::nullopt, std::optional<KeyObfuscator> key_obfuscator = std::nullopt);
+               std::optional<int64_t> expiration_seconds = std::nullopt,
+               std::optional<KeyObfuscator> key_obfuscator = std::nullopt) noexcept;
 
-    // the Read and Write methods are defined for most basic types;
-    // if not a basic type and a JSON serializer exists, the object is serialized to JSON;
-    // if neither of the above are true, the object interpreted as a std::string
+    // The Read and Write methods are defined for most basic types.
+    // If not a basic type and a JSON serializer exists, the object is serialized to JSON.
+    // If neither of the above are true, the object is interpreted as a std::string.
     template<typename T>
-    constexpr static bool IsBasicType()
-    {
-        return ( std::is_same_v<T, bool> ||
-                 std::is_same_v<T, int> ||
-                 std::is_same_v<T, unsigned int> ||
-                 std::is_same_v<T, int64_t> ||
-                 std::is_same_v<T, size_t> ||
-                 std::is_same_v<T, float> ||
-                 std::is_same_v<T, double> ||
-                 std::is_same_v<T, std::string> );
-    }
+    constexpr static bool IsBasicType() noexcept;
 
-    // if T is a pointer, the return type will be const T* and the type must be cachable;
-    // otherwise the return type will be std::optional<T>
+    // If T is a pointer, the return type will be const T* and the type must be cachable.
+    // Otherwise the return type will be std::optional<T>.
     template<typename T>
-    [[nodiscard]] auto Read(std::string_view key_sv, bool cache_value = true);
+    [[nodiscard]] auto Read(std::string_view key_sv, bool cache_value = true) noexcept;
 
     template<typename T, class = typename std::enable_if<!std::is_lvalue_reference<T>::value>::type>
-    [[nodiscard]] T ReadOrDefault(std::string_view key_sv, T&& default_value = T(), bool cache_value = true);
+    [[nodiscard]] T ReadOrDefault(std::string_view key_sv, T&& default_value = T(), bool cache_value = true) noexcept;
 
     template<typename T>
-    [[nodiscard]] T ReadOrDefault(std::string_view key_sv, const T& default_value, bool cache_value = true);
+    [[nodiscard]] T ReadOrDefault(std::string_view key_sv, const T& default_value, bool cache_value = true) noexcept;
 
     template<typename T>
-    void Write(std::string_view key_sv, const T& value, bool cache_value = true);
+    void Write(std::string_view key_sv, const T& value, bool cache_value = true) noexcept;
 
 private:
     template<typename T>
-    [[nodiscard]] const T* ReadPointer(std::string_view key_sv);
+    [[nodiscard]] const T* ReadPointer(std::string_view key_sv) noexcept;
 
     template<typename T>
-    std::optional<T> ReadWorker(std::string_view key_sv, bool cache_value);
+    std::optional<T> ReadWorker(std::string_view key_sv, bool cache_value) noexcept;
 
     template<typename T>
-    void WriteWorker(std::string_view key_sv, const T& value, bool cache_value);
+    void WriteWorker(std::string_view key_sv, const T& value, bool cache_value) noexcept;
 
-public:
+private:
     class ImplDb;
     struct ImplTable;
     class ImplCache;
 
-private:
     ImplDb* m_implDb;
     ImplTable* m_implTable;
     std::optional<int64_t> m_expirationSeconds;
@@ -97,7 +89,21 @@ private:
 // --------------------------------------------------------------------------
 
 template<typename T>
-const T* SettingsDb::ReadPointer(const std::string_view key_sv)
+constexpr bool SettingsDb::IsBasicType() noexcept
+{
+    return ( std::is_same_v<T, bool> ||
+             std::is_same_v<T, int> ||
+             std::is_same_v<T, unsigned int> ||
+             std::is_same_v<T, int64_t> ||
+             std::is_same_v<T, size_t> ||
+             std::is_same_v<T, float> ||
+             std::is_same_v<T, double> ||
+             std::is_same_v<T, std::string> );
+}
+
+
+template<typename T>
+const T* SettingsDb::ReadPointer(const std::string_view key_sv) noexcept
 {
     const std::optional<const T*> value_ptr = ReadWorker<const T*>(key_sv, true);
     return value_ptr.value_or(nullptr);
@@ -105,7 +111,7 @@ const T* SettingsDb::ReadPointer(const std::string_view key_sv)
 
 
 template<typename T>
-auto SettingsDb::Read(const std::string_view key_sv, const bool cache_value/* = true*/)
+auto SettingsDb::Read(const std::string_view key_sv, const bool cache_value/* = true*/) noexcept
 {
     if constexpr(std::is_pointer_v<T>)
     {
@@ -129,7 +135,7 @@ auto SettingsDb::Read(const std::string_view key_sv, const bool cache_value/* = 
                     const JsonNode json_node = Json::Parse(json_text);
                     value = json_node.Get<T>();
                 }
-                catch(...) { }
+                catch(...) { ASSERT(false); }
             };
 
             if( cache_value )
@@ -160,7 +166,7 @@ auto SettingsDb::Read(const std::string_view key_sv, const bool cache_value/* = 
 
 
 template<typename T, class/* = typename std::enable_if<!std::is_lvalue_reference<T>::value>::type*/>
-T SettingsDb::ReadOrDefault(const std::string_view key_sv, T&& default_value/* = T()*/, const bool cache_value/* = true*/)
+T SettingsDb::ReadOrDefault(const std::string_view key_sv, T&& default_value/* = T()*/, const bool cache_value/* = true*/) noexcept
 {
     static_assert(!std::is_pointer_v<T>);
 
@@ -174,7 +180,7 @@ T SettingsDb::ReadOrDefault(const std::string_view key_sv, T&& default_value/* =
 
 
 template<typename T>
-T SettingsDb::ReadOrDefault(const std::string_view key_sv, const T& default_value, const bool cache_value/* = true*/)
+T SettingsDb::ReadOrDefault(const std::string_view key_sv, const T& default_value, const bool cache_value/* = true*/) noexcept
 {
     static_assert(!std::is_pointer_v<T>);
 
@@ -188,7 +194,7 @@ T SettingsDb::ReadOrDefault(const std::string_view key_sv, const T& default_valu
 
 
 template<typename T>
-void SettingsDb::Write(const std::string_view key_sv, const T& value, const bool cache_value/* = true*/)
+void SettingsDb::Write(const std::string_view key_sv, const T& value, const bool cache_value/* = true*/) noexcept
 {
     if constexpr(IsBasicType<T>())
     {
@@ -201,7 +207,7 @@ void SettingsDb::Write(const std::string_view key_sv, const T& value, const bool
         {
             WriteWorker(key_sv, Json::ToJson(value), cache_value);
         }
-        catch(...) { }
+        catch(...) { ASSERT(false); }
     }
 
     else

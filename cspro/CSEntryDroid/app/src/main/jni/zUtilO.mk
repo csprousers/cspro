@@ -18,6 +18,7 @@ LOCAL_SRC_FILES         += $(ZUTILO_SRC_PATH)/CSProExecutables.cpp
 LOCAL_SRC_FILES         += $(ZUTILO_SRC_PATH)/CustomUri.cpp
 LOCAL_SRC_FILES         += $(ZUTILO_SRC_PATH)/DataTypes.cpp
 LOCAL_SRC_FILES         += $(ZUTILO_SRC_PATH)/ExecutionStack.cpp
+LOCAL_SRC_FILES         += $(ZUTILO_SRC_PATH)/ExpansiveList.cpp
 LOCAL_SRC_FILES         += $(ZUTILO_SRC_PATH)/ExpansiveMap.cpp
 LOCAL_SRC_FILES         += $(ZUTILO_SRC_PATH)/FileExtensions.cpp
 LOCAL_SRC_FILES         += $(ZUTILO_SRC_PATH)/ImsaStr.cpp

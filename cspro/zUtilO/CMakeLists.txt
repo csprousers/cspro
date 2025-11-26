@@ -14,6 +14,7 @@ add_library(${PROJECT_NAME}
     CustomUri.cpp
     DataTypes.cpp
     ExecutionStack.cpp
+    ExpansiveList.cpp
     ExpansiveMap.cpp
     FileExtensions.cpp
     ImsaStr.cpp

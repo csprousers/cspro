@@ -62,6 +62,9 @@
     <ClCompile Include="ExecutionStack.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ExpansiveList.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="ExpansiveMap.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

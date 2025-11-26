@@ -132,3 +132,18 @@ std::string SQLiteHelpers::GetTextPrefixBoundary(std::string text)
 
     return text;
 }
+
+
+std::string SQLiteHelpers::EscapeText(std::string text)
+{
+    constexpr char QuoteChar = '\'';
+    size_t ch_pos = 0;
+
+    while( ( ch_pos = text.find(QuoteChar, ch_pos) ) != std::string::npos )
+    {
+        text.insert(ch_pos, 1, QuoteChar);
+        ch_pos += 2;
+    }
+
+    return text;
+}

@@ -10,6 +10,7 @@
 #include <zToolsO/Utf8.h>
 #include <zToolsO/VectorHelpers.h>
 #include <zToolsO/WinClipboard.h>
+#include <zUtilO/CSProExecutables.h>
 #include <zUtilO/FileDlg.h>
 #include <zUtilO/Interapp.h>
 #include <zUtilO/MimeType.h>
