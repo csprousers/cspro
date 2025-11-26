@@ -3,8 +3,7 @@
 #include <zToolsO/File.h>
 #include <zToolsO/NewlineSubstitutor.h>
 #include <zToolsO/Tools.h>
-#include <zSql/SQLite.h>
-#include <zSql/SQLiteHelpers.h>
+#include <zSql/DB.h>
 #include <zUtilO/BasicLogger.h>
 #include <zUtilO/FileExtensions.h>
 #include <zUtilF/ProcessSummaryDlg.h>
@@ -66,15 +65,6 @@ namespace
 
 Indexer::Indexer()
     :   m_pff(nullptr),
-        m_db(nullptr),
-        m_stmtPutCase(nullptr),
-        m_stmtDeleteCasesByFileIndex(nullptr),
-        m_stmtMinimalDuplicateIteratorByKey(nullptr),
-        m_stmtFullDuplicateIteratorByKey(nullptr),
-        m_stmtReadDuplicatesIterator(nullptr),
-        m_stmtUpdateCaseDoNotKeepByIndex(nullptr),
-        m_stmtUpdateCaseDoNotKeepByKey(nullptr),
-        m_stmtWriteCaseIterator(nullptr),
         m_currentlyProcessingIndexResult(nullptr),
         m_maxRepositoryNameLength(0),
         m_numberDuplicates(0),
@@ -85,18 +75,6 @@ Indexer::Indexer()
 
 Indexer::~Indexer()
 {
-    if( m_db == nullptr )
-        return;
-
-    safe_sqlite3_finalize(m_stmtWriteCaseIterator);
-    safe_sqlite3_finalize(m_stmtUpdateCaseDoNotKeepByKey);
-    safe_sqlite3_finalize(m_stmtUpdateCaseDoNotKeepByIndex);
-    safe_sqlite3_finalize(m_stmtReadDuplicatesIterator);
-    safe_sqlite3_finalize(m_stmtFullDuplicateIteratorByKey);
-    safe_sqlite3_finalize(m_stmtMinimalDuplicateIteratorByKey);
-    safe_sqlite3_finalize(m_stmtDeleteCasesByFileIndex);
-    safe_sqlite3_finalize(m_stmtPutCase);
-    sqlite3_close(m_db);
 }
 
 
@@ -189,13 +167,14 @@ void Indexer::RunIndexer(const bool silent)
     m_fullCaseAccess->SetCaseConstructionReporter(std::make_unique<StdioCaseConstructionReporter>(*m_log));
 
     // open the key information (in memory) database and create some prepared statements
-    if( sqlite3_open("", &m_db) != SQLITE_OK ||
-        sqlite3_exec(m_db, CreateTableSql, nullptr, nullptr, nullptr) != SQLITE_OK ||
-        sqlite3_prepare_v2(m_db, PutCaseSql, -1, &m_stmtPutCase, nullptr ) != SQLITE_OK ||
-        sqlite3_prepare_v2(m_db, DeleteCasesByFileIndexSql, -1, &m_stmtDeleteCasesByFileIndex, nullptr ) != SQLITE_OK )
+    try
     {
-        throw IndexerDatabaseException();
+        m_db.Open("", Sqlite::OpenFlags::ReadWrite | Sqlite::OpenFlags::Create);
+        m_db.Execute(CreateTableSql);
+        m_stmtPutCase = m_db.PrepareStatement(PutCaseSql);
+        m_stmtDeleteCasesByFileIndex = m_db.PrepareStatement(DeleteCasesByFileIndexSql);
     }
+    catch(...) {  throw IndexerDatabaseException(); }
 
 
     // try to index the files
@@ -346,9 +325,11 @@ void Indexer::IndexFile()
 {
     try
     {
-        const std::unique_ptr<DataRepository> repository = DataRepository::Create(m_keyReaderCaseAccess,
-                                                                                  m_currentlyProcessingIndexResult->input_connection_string,
-                                                                                  DataRepositoryAccess::ReadOnly);
+        const std::unique_ptr<DataRepository> repository = DataRepository::Create(
+            m_keyReaderCaseAccess,
+            m_currentlyProcessingIndexResult->input_connection_string,
+            DataRepositoryAccess::ReadOnly
+        );
 
         // for text-based repositories, use the indexer callback
         if( DataRepositoryHelpers::TypeUsesIndexableText(repository->GetRepositoryType()) )
@@ -378,9 +359,12 @@ void Indexer::IndexFile()
                 process_summary_dlg.SetSource("Input Data: " + repository->GetName(DataRepositoryNameType::Full));
 
                 size_t progress_bar_update_counter = ProgressBarCaseUpdateFrequency;
-
                 CaseKey case_key;
-                auto case_key_iterator = repository->CreateCaseKeyIterator(CaseIterationMethod::SequentialOrder, CaseIterationOrder::Ascending);
+
+                const std::unique_ptr<CaseIterator> case_key_iterator = repository->CreateCaseKeyIterator(
+                    CaseIterationMethod::SequentialOrder,
+                    CaseIterationOrder::Ascending
+                );
 
                 while( case_key_iterator->NextCaseKey(case_key) )
                 {
@@ -416,10 +400,10 @@ void Indexer::IndexFile()
         m_currentlyProcessingIndexResult->exception_message = exception.what();
 
         // delete any case data for this file
-        sqlite3_reset(m_stmtDeleteCasesByFileIndex);
-        sqlite3_bind_int(m_stmtDeleteCasesByFileIndex, 1, static_cast<int>(m_currentlyProcessingIndexResult->file_index));
+        m_stmtDeleteCasesByFileIndex.Reset()
+                                    .Bind(1, m_currentlyProcessingIndexResult->file_index);
 
-        if( sqlite3_step(m_stmtDeleteCasesByFileIndex) != SQLITE_DONE )
+        if( m_stmtDeleteCasesByFileIndex.Step() != Sqlite::Result::Done )
             throw IndexerDatabaseException();
     }
 }
@@ -435,15 +419,15 @@ void Indexer::IndexCallback(const std::string& key, const double position_in_rep
 {
     ++m_currentlyProcessingIndexResult->number_cases;
 
-    sqlite3_reset(m_stmtPutCase);
-    sqlite3_bind_text(m_stmtPutCase, 1, key.data(), int32_cast(key.length()), SQLITE_TRANSIENT);
-    sqlite3_bind_int(m_stmtPutCase, 2, static_cast<int>(m_currentlyProcessingIndexResult->file_index));
-    sqlite3_bind_int(m_stmtPutCase, 3, static_cast<int>(m_currentlyProcessingIndexResult->number_cases));
-    sqlite3_bind_double(m_stmtPutCase, 4, position_in_repository);
-    sqlite3_bind_int(m_stmtPutCase, 5, static_cast<int>(bytes_for_case));
-    sqlite3_bind_int64(m_stmtPutCase, 6, line_number);
+    m_stmtPutCase.Reset()
+                 .Bind(1, key)
+                 .Bind(2, m_currentlyProcessingIndexResult->file_index)
+                 .Bind(3, m_currentlyProcessingIndexResult->number_cases)
+                 .Bind(4, position_in_repository)
+                 .Bind(5, bytes_for_case)
+                 .Bind(6, line_number);
 
-    if( sqlite3_step(m_stmtPutCase) != SQLITE_DONE )
+    if( m_stmtPutCase.Step() != Sqlite::Result::Done )
         throw IndexerDatabaseException();
 }
 
@@ -451,17 +435,18 @@ void Indexer::IndexCallback(const std::string& key, const double position_in_rep
 void Indexer::CalculateDuplicateCounts()
 {
     // create a new table with just the duplicates
-    if( sqlite3_exec(m_db, CreateDuplicatesTableSql, nullptr, nullptr, nullptr) != SQLITE_OK ||
-        sqlite3_exec(m_db, CreateDuplicatesTableIndexSql, nullptr, nullptr, nullptr) != SQLITE_OK ||
-        sqlite3_prepare_v2(m_db, DuplicateMinimalIteratorByKeySql, -1, &m_stmtMinimalDuplicateIteratorByKey, nullptr) != SQLITE_OK ||
-        sqlite3_prepare_v2(m_db, DuplicateFullIteratorByKeySql, -1, &m_stmtFullDuplicateIteratorByKey, nullptr) != SQLITE_OK ||
-        sqlite3_prepare_v2(m_db, ReadDuplicatesIteratorSql, -1, &m_stmtReadDuplicatesIterator, nullptr) != SQLITE_OK ||
-        sqlite3_prepare_v2(m_db, UpdateCaseDoNotKeepByIndexSql, -1, &m_stmtUpdateCaseDoNotKeepByIndex, nullptr) != SQLITE_OK ||
-        sqlite3_prepare_v2(m_db, UpdateCaseDoNotKeepByKeySql, -1, &m_stmtUpdateCaseDoNotKeepByKey, nullptr) != SQLITE_OK ||
-        sqlite3_prepare_v2(m_db, WriteCaseIteratorSql, -1, &m_stmtWriteCaseIterator, nullptr) != SQLITE_OK )
+    try
     {
-        throw IndexerDatabaseException();
+        m_db.Execute(CreateDuplicatesTableSql);
+        m_db.Execute(CreateDuplicatesTableIndexSql);
+        m_stmtMinimalDuplicateIteratorByKey = m_db.PrepareStatement(DuplicateMinimalIteratorByKeySql);
+        m_stmtFullDuplicateIteratorByKey = m_db.PrepareStatement(DuplicateFullIteratorByKeySql);
+        m_stmtReadDuplicatesIterator = m_db.PrepareStatement(ReadDuplicatesIteratorSql);
+        m_stmtUpdateCaseDoNotKeepByIndex = m_db.PrepareStatement(UpdateCaseDoNotKeepByIndexSql);
+        m_stmtUpdateCaseDoNotKeepByKey = m_db.PrepareStatement(UpdateCaseDoNotKeepByKeySql);
+        m_stmtWriteCaseIterator = m_db.PrepareStatement(WriteCaseIteratorSql);
     }
+    catch(...)  { throw IndexerDatabaseException(); }
 
     std::string previous_duplicate_key;
     std::vector<size_t> file_indices;
@@ -494,12 +479,12 @@ void Indexer::CalculateDuplicateCounts()
         }
     };
 
-    sqlite3_reset(m_stmtMinimalDuplicateIteratorByKey);
+    m_stmtMinimalDuplicateIteratorByKey.Reset();
 
-    while( sqlite3_step(m_stmtMinimalDuplicateIteratorByKey) == SQLITE_ROW )
+    while( m_stmtMinimalDuplicateIteratorByKey.Step() == Sqlite::Result::Row )
     {
-        std::string key(reinterpret_cast<const char*>(sqlite3_column_text(m_stmtMinimalDuplicateIteratorByKey, 0)));
-        const size_t file_index = sqlite3_column_int(m_stmtMinimalDuplicateIteratorByKey, 1);
+        std::string key = m_stmtMinimalDuplicateIteratorByKey.GetColumn<std::string>(0);
+        const size_t file_index = m_stmtMinimalDuplicateIteratorByKey.GetColumn<size_t>(1);
 
         if( previous_duplicate_key.compare(key) != 0 )
         {
@@ -587,19 +572,19 @@ void Indexer::WriteDuplicatesToLog()
     std::string duplicate_line;
     std::string previous_duplicate_key;
 
-    sqlite3_reset(m_stmtFullDuplicateIteratorByKey);
+    m_stmtFullDuplicateIteratorByKey.Reset();
 
-    while( sqlite3_step(m_stmtFullDuplicateIteratorByKey) == SQLITE_ROW )
+    while( m_stmtFullDuplicateIteratorByKey.Step() == Sqlite::Result::Row )
     {
         if( duplicate_line.empty() )
             m_log->WriteLine("The following duplicate cases were located in your data sources:");
 
-        std::string key = sqlite3_column_string(m_stmtFullDuplicateIteratorByKey, 0);
+        std::string key = m_stmtFullDuplicateIteratorByKey.GetColumn<std::string>(0);
 
         // write the header if this is the first duplicate with the key
         if( previous_duplicate_key != key )
         {
-            const int number_duplicates = sqlite3_column_int(m_stmtFullDuplicateIteratorByKey, 4);
+            const int number_duplicates = m_stmtFullDuplicateIteratorByKey.GetColumn<int>(4);
 
             duplicate_line = FormatText("*** Case [%s] has %d duplicate%s",
                                         NewlineSubstitutor::NewlineToUnicodeNL(key).c_str(),
@@ -610,9 +595,9 @@ void Indexer::WriteDuplicatesToLog()
             previous_duplicate_key = std::move(key);
         }
 
-        const size_t file_index = sqlite3_column_int(m_stmtFullDuplicateIteratorByKey, 1);
-        const size_t case_index = sqlite3_column_int(m_stmtFullDuplicateIteratorByKey, 2);
-        const int64_t line_number = sqlite3_column_int64(m_stmtFullDuplicateIteratorByKey, 3);
+        const size_t file_index = m_stmtFullDuplicateIteratorByKey.GetColumn<size_t>(1);
+        const size_t case_index = m_stmtFullDuplicateIteratorByKey.GetColumn<size_t>(2);
+        const int64_t line_number = m_stmtFullDuplicateIteratorByKey.GetColumn<int64_t>(3);
 
         const std::string index_text = FormatText(( line_number == 0 ) ? "#%d" : "#%d Line #%d",
                                                   static_cast<int>(case_index),
@@ -634,8 +619,11 @@ void Indexer::WriteDuplicatesToLog()
 
 void Indexer::CalculateOutputConnectionStrings()
 {
-    if( m_pff->GetDuplicateCase() == DuplicateCase::List || m_pff->GetDuplicateCase() == DuplicateCase::View )
+    if( m_pff->GetDuplicateCase() == DuplicateCase::List ||
+        m_pff->GetDuplicateCase() == DuplicateCase::View )
+    {
         return;
+    }
 
     std::string filename_mask;
 
@@ -669,7 +657,7 @@ void Indexer::CalculateOutputConnectionStrings()
             {
                 const std::string directory = PortableFunctions::PathGetDirectory(index_result.output_connection_string.GetFilePath());
                 const std::string filename = Path::GetFilenameWithoutExtension(index_result.output_connection_string.GetFilePath());
-                const std::string extension = PortableFunctions::PathGetFileExtension(index_result.output_connection_string.GetFilePath());
+                const std::string extension = Path::GetExtension(index_result.output_connection_string.GetFilePath());
 
                 std::string new_filename = filename_mask;
                 SO::Replace(new_filename, IndexerFilenameWildcard, filename);
@@ -704,11 +692,11 @@ void Indexer::ReadDuplicates()
         bool using_text_based_repository = false;
         size_t current_file_index = SIZE_MAX;
 
-        sqlite3_reset(m_stmtReadDuplicatesIterator);
+        m_stmtReadDuplicatesIterator.Reset();
 
-        while( sqlite3_step(m_stmtReadDuplicatesIterator) == SQLITE_ROW )
+        while( m_stmtReadDuplicatesIterator.Step() == Sqlite::Result::Row )
         {
-            const size_t file_index = sqlite3_column_int(m_stmtReadDuplicatesIterator, 0);
+            const size_t file_index = m_stmtReadDuplicatesIterator.GetColumn<size_t>(0);
 
             // open a different file if necessary
             if( current_file_index != file_index )
@@ -716,10 +704,12 @@ void Indexer::ReadDuplicates()
                 // if a text-based repository has duplicates, it can't be opened using read only mode, so open in batch mode
                 using_text_based_repository = DataRepositoryHelpers::TypeUsesIndexableText(m_indexResults[file_index].input_connection_string.GetType());
 
-                input_repository = DataRepository::CreateAndOpen(m_fullCaseAccess,
-                                                                 m_indexResults[file_index].input_connection_string,
-                                                                 using_text_based_repository ? DataRepositoryAccess::BatchInput : DataRepositoryAccess::ReadOnly,
-                                                                 DataRepositoryOpenFlag::OpenMustExist);
+                input_repository = DataRepository::CreateAndOpen(
+                    m_fullCaseAccess,
+                    m_indexResults[file_index].input_connection_string,
+                    using_text_based_repository ? DataRepositoryAccess::BatchInput : DataRepositoryAccess::ReadOnly,
+                    DataRepositoryOpenFlag::OpenMustExist
+                );
 
                 process_summary_dlg.SetSource("Input Data: " + input_repository->GetName(DataRepositoryNameType::Full));
 
@@ -727,8 +717,8 @@ void Indexer::ReadDuplicates()
             }
 
             // read the case
-            const size_t case_index = sqlite3_column_int(m_stmtReadDuplicatesIterator, 1);
-            const double position_in_repository = sqlite3_column_double(m_stmtReadDuplicatesIterator, 2);
+            const size_t case_index = m_stmtReadDuplicatesIterator.GetColumn<size_t>(1);
+            const double position_in_repository = m_stmtReadDuplicatesIterator.GetColumn<double>(2);
 
             DuplicateInfo duplicate { &m_indexResults[file_index], case_index, 0, m_fullCaseAccess->CreateCase(), true };
             Case& duplicate_case = *duplicate.data_case;
@@ -737,8 +727,8 @@ void Indexer::ReadDuplicates()
 
             if( using_text_based_repository )
             {
-                const size_t bytes_for_case = sqlite3_column_int(m_stmtReadDuplicatesIterator, 3);
-                duplicate.line_number = sqlite3_column_int64(m_stmtReadDuplicatesIterator, 4);
+                const size_t bytes_for_case = m_stmtReadDuplicatesIterator.GetColumn<size_t>(3);
+                duplicate.line_number = m_stmtReadDuplicatesIterator.GetColumn<int64_t>(4);
                 assert_cast<IndexableTextRepository&>(*input_repository).ReadCase(duplicate_case, static_cast<int64_t>(position_in_repository), bytes_for_case);
                 duplicate_case.LoadAllBinaryData();
             }
@@ -823,11 +813,11 @@ void Indexer::ChooseDuplicatesToKeep()
         {
             if( !duplicate.keep )
             {
-                sqlite3_reset(m_stmtUpdateCaseDoNotKeepByIndex);
-                sqlite3_bind_int(m_stmtUpdateCaseDoNotKeepByIndex, 1, static_cast<int>(duplicate.index_result->file_index));
-                sqlite3_bind_int(m_stmtUpdateCaseDoNotKeepByIndex, 2, static_cast<int>(duplicate.case_index));
+                m_stmtUpdateCaseDoNotKeepByIndex.Reset()
+                                                .Bind(1, duplicate.index_result->file_index)
+                                                .Bind(2, duplicate.case_index);
 
-                if( sqlite3_step(m_stmtUpdateCaseDoNotKeepByIndex) != SQLITE_DONE )
+                if( m_stmtUpdateCaseDoNotKeepByIndex.Step() != Sqlite::Result::Done )
                     throw IndexerDatabaseException();
             }
         }
@@ -894,10 +884,12 @@ void Indexer::WriteCases()
     {
         verify_output_connection_string_is_unique(m_pff->GetSingleOutputDataConnectionString());
 
-        std::unique_ptr<DataRepository> combined_output_repository = DataRepository::CreateAndOpen(m_fullCaseAccess,
-                                                                                                   m_pff->GetSingleOutputDataConnectionString(),
-                                                                                                   DataRepositoryAccess::BatchOutput,
-                                                                                                   DataRepositoryOpenFlag::CreateNew);
+        const std::unique_ptr<DataRepository> combined_output_repository = DataRepository::CreateAndOpen(
+            m_fullCaseAccess,
+            m_pff->GetSingleOutputDataConnectionString(),
+            DataRepositoryAccess::BatchOutput,
+            DataRepositoryOpenFlag::CreateNew
+        );
 
         size_t number_files_processed = 0;
         size_t number_cases_written = 0;
@@ -944,10 +936,12 @@ void Indexer::WriteCases()
 
             verify_output_connection_string_is_unique(index_result.output_connection_string);
 
-            const std::unique_ptr<DataRepository> output_repository = DataRepository::CreateAndOpen(m_fullCaseAccess,
-                                                                                                    index_result.output_connection_string,
-                                                                                                    DataRepositoryAccess::BatchOutput,
-                                                                                                    DataRepositoryOpenFlag::CreateNew);
+            const std::unique_ptr<DataRepository> output_repository = DataRepository::CreateAndOpen(
+                m_fullCaseAccess,
+                index_result.output_connection_string,
+                DataRepositoryAccess::BatchOutput,
+                DataRepositoryOpenFlag::CreateNew
+            );
 
             WriteCases(*output_repository, index_result);
 
@@ -968,17 +962,19 @@ void Indexer::WriteCases()
 void Indexer::WriteCases(DataRepository& output_repository, IndexResult& index_result)
 {
     // open the input in batch mode
-    const std::unique_ptr<DataRepository> input_repository = DataRepository::CreateAndOpen(m_fullCaseAccess,
-                                                                                           index_result.input_connection_string,
-                                                                                           DataRepositoryAccess::BatchInput,
-                                                                                           DataRepositoryOpenFlag::OpenMustExist);
+    const std::unique_ptr<DataRepository> input_repository = DataRepository::CreateAndOpen(
+        m_fullCaseAccess,
+        index_result.input_connection_string,
+        DataRepositoryAccess::BatchInput,
+        DataRepositoryOpenFlag::OpenMustExist
+    );
 
     // show a progress bar
     ProcessSummaryDlg process_summary_dlg;
 
     process_summary_dlg.SetTask([&]
     {
-        std::shared_ptr<ProcessSummary> process_summary = m_dictionary->CreateProcessSummary();
+        const std::shared_ptr<ProcessSummary> process_summary = m_dictionary->CreateProcessSummary();
         process_summary_dlg.Initialize("Reading and writing cases...", process_summary);
         process_summary_dlg.SetSource("Input Data: " + input_repository->GetName(DataRepositoryNameType::Full));
 
@@ -994,19 +990,19 @@ void Indexer::WriteCases(DataRepository& output_repository, IndexResult& index_r
 
         auto get_next_duplicate_information = [&]()
         {
-            sqlite3_reset(m_stmtWriteCaseIterator);
-            sqlite3_bind_int(m_stmtWriteCaseIterator, 1, static_cast<int>(index_result.file_index));
-            sqlite3_bind_int(m_stmtWriteCaseIterator, 2, static_cast<int>(case_index));
+            m_stmtWriteCaseIterator.Reset()
+                                   .Bind(1, index_result.file_index)
+                                   .Bind(2, case_index);
 
-            if( sqlite3_step(m_stmtWriteCaseIterator) == SQLITE_DONE )
+            if( m_stmtWriteCaseIterator.Step() == Sqlite::Result::Done )
             {
                 next_duplicate_case_index = SIZE_MAX;
             }
 
             else
             {
-                next_duplicate_case_index = sqlite3_column_int(m_stmtWriteCaseIterator, 0);
-                next_duplicate_keep = ( sqlite3_column_int(m_stmtWriteCaseIterator, 1) == 1 );
+                next_duplicate_case_index = m_stmtWriteCaseIterator.GetColumn<size_t>(0);
+                next_duplicate_keep = ( m_stmtWriteCaseIterator.GetColumn<int>(1) == 1 );
             }
         };
 
@@ -1036,12 +1032,10 @@ void Indexer::WriteCases(DataRepository& output_repository, IndexResult& index_r
                     // when processing the first kept case, mark all other cases as to not be kept
                     if( m_pff->GetDuplicateCase() == DuplicateCase::KeepFirst )
                     {
-                        sqlite3_reset(m_stmtUpdateCaseDoNotKeepByKey);
+                        m_stmtUpdateCaseDoNotKeepByKey.Reset()
+                                                      .Bind(1, data_case->GetKey());
 
-                        const std::string& key = data_case->GetKey();
-                        sqlite3_bind_text(m_stmtUpdateCaseDoNotKeepByKey, 1, key.data(), int32_cast(key.length()), SQLITE_TRANSIENT);
-
-                        if( sqlite3_step(m_stmtUpdateCaseDoNotKeepByKey) != SQLITE_DONE )
+                        if( m_stmtUpdateCaseDoNotKeepByKey.Step() != Sqlite::Result::Done )
                             throw IndexerDatabaseException();
                     }
                 }

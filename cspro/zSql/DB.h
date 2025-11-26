@@ -38,8 +38,11 @@ public:
     // Closes the SQLite database, throwing exceptions on error.
     void Close();
 
+    // Closes the SQLite database without throwing exceptions.
+    bool Close_noexcept() noexcept;
+
     // Returns true if a SQLite database is open.
-    bool IsOpen() const { return ( m_db != nullptr ); }
+    bool IsOpen() const noexcept { return ( m_db != nullptr ); }
 
     // Returns the file path of the open database.
     const std::string& GetFilePath() const { return m_filePath; }

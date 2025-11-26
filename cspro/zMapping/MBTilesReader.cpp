@@ -1,57 +1,38 @@
 ﻿#include "stdafx.h"
 #include "MBTilesReader.h"
-#include <zSql/SQLite.h>
-#include <zSql/SQLiteHelpers.h>
-#include <zSql/SQLiteStatement.h>
 
 
 MBTilesReader::MBTilesReader(const std::string& file_path)
-    :   m_db(nullptr),
-        m_stmtTileQuery(nullptr)
 {
     try
     {
         // open the database
-        if( sqlite3_open_v2(file_path.c_str(), &m_db, SQLITE_OPEN_READONLY, nullptr) != SQLITE_OK )
-            throw CSProException("database could not be opened");
+        try
+        {
+            m_db.Open(file_path, Sqlite::OpenFlags::ReadOnly);
+        }
+        catch(...) { throw CSProException("database could not be opened"); }
 
         // read the metadata
         ReadMetadata();
 
         // prepare the tile reading statement
-       constexpr const char* sql = "SELECT `tile_data` "
-                                   "FROM `tiles` "
-                                   "WHERE `zoom_level` = ? AND `tile_column` = ? AND `tile_row` = ? "
-                                   "LIMIT 1;";
-
-        if( sqlite3_prepare_v2(m_db, sql, -1, &m_stmtTileQuery, nullptr) != SQLITE_OK )
-            throw CSProException("tiles could not be read");
+        try
+        {
+            m_stmtTileQuery = m_db.PrepareStatement(
+               "SELECT `tile_data` "
+               "FROM `tiles` "
+               "WHERE `zoom_level` = ? AND `tile_column` = ? AND `tile_row` = ? "
+               "LIMIT 1;"
+            );
+        }
+        catch(...) { throw CSProException("tiles could not be read"); }
     }
 
     catch( const CSProException& exception )
     {
-        CloseDatabase();
-
-        throw CSProException("Could not read the MBTiles file %s (%s)",
+        throw CSProException("Could not read the MBTiles file '%s': %s",
                              PortableFunctions::PathGetFilename(file_path).c_str(), exception.what());
-    }
-}
-
-
-MBTilesReader::~MBTilesReader()
-{
-    CloseDatabase();
-}
-
-
-void MBTilesReader::CloseDatabase()
-{
-    if( m_db != nullptr )
-    {
-        safe_sqlite3_finalize(m_stmtTileQuery);
-
-        sqlite3_close(m_db);
-        m_db = nullptr;
     }
 }
 
@@ -62,10 +43,12 @@ void MBTilesReader::ReadMetadata()
 
     try
     {
-        SQLiteStatement stmt_metadata_query(m_db, "SELECT `name`, `value` FROM `metadata`;", true);
+        Sqlite::Statement stmt_metadata_query = m_db.PrepareStatement(
+            "SELECT `name`, `value` FROM `metadata`;"
+        );
 
-        if( stmt_metadata_query.Step() == SQLITE_ROW )
-            metadata[stmt_metadata_query.GetColumn<std::string>(0)] = stmt_metadata_query.GetColumn<std::string>(0);
+        while( stmt_metadata_query.Step() == Sqlite::Result::Row )
+            metadata[stmt_metadata_query.GetColumn<std::string>(0)] = stmt_metadata_query.GetColumn<std::string>(1);
     }
 
     catch(...)
@@ -133,24 +116,30 @@ std::optional<OfflineTileReader::Tile> MBTilesReader::GetTile(const int z, const
     // only allow one query to the database at any time
     std::lock_guard lock_guard(m_tileQueryMutex);
 
-    // "Note that in the TMS tiling scheme, the Y axis is reversed from the "XYZ" coordinate system
-    //  commonly used in the URLs to request individual tiles, so the tile commonly referred to as 11/327/791
-    //  is inserted as zoom_level 11, tile_column 327, and tile_row 1256, since 1256 is 2^11 - 1 - 791."
-    y = ( 1 << z ) - y - 1;
-
-    sqlite3_reset(m_stmtTileQuery);
-    sqlite3_bind_int(m_stmtTileQuery, 1, z);
-    sqlite3_bind_int(m_stmtTileQuery, 2, x);
-    sqlite3_bind_int(m_stmtTileQuery, 3, y);
-
-    std::optional<Tile> tile;
-
-    if( sqlite3_step(m_stmtTileQuery) == SQLITE_ROW )
+    try
     {
-        const size_t tile_size = sqlite3_column_bytes(m_stmtTileQuery, 0);
-        tile.emplace(Tile { BinaryBlock(tile_size), m_tileMimeType });
-        memcpy(tile->image.data(), sqlite3_column_blob(m_stmtTileQuery, 0), tile_size);
-    }
+        // "Note that in the TMS tiling scheme, the Y axis is reversed from the "XYZ" coordinate system
+        //  commonly used in the URLs to request individual tiles, so the tile commonly referred to as 11/327/791
+        //  is inserted as zoom_level 11, tile_column 327, and tile_row 1256, since 1256 is 2^11 - 1 - 791."
+        y = ( 1 << z ) - y - 1;
 
-    return tile;
+        m_stmtTileQuery.Reset()
+                       .Bind(1, z)
+                       .Bind(2, x)
+                       .Bind(3, y);
+
+        std::optional<Tile> tile;
+
+        if( m_stmtTileQuery.Step() == Sqlite::Result::Row )
+        {
+            return Tile
+            {
+                m_stmtTileQuery.GetColumn<BinaryBlock>(0),
+                m_tileMimeType
+            };
+        }
+    }
+    catch(...) { ASSERT(false); }
+
+    return std::nullopt;
 }

@@ -140,6 +140,27 @@ void Sqlite::DB::Close()
 }
 
 
+bool Sqlite::DB::Close_noexcept() noexcept
+{
+    try
+    {
+        Close();
+        return true;
+    }
+
+    catch(...)
+    {
+        ASSERT(m_db != nullptr);
+        sqlite3_close(m_db);
+
+        m_db = nullptr;
+        m_filePath.clear();
+
+        return false;
+    }
+}
+
+
 void Sqlite::DB::CheckDatabaseIsOpen() const
 {
     if( m_db == nullptr )

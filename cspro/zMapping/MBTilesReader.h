@@ -1,20 +1,24 @@
 ﻿#pragma once
 
 #include <zMapping/OfflineTileReader.h>
+#include <zSql/DB.h>
 #include <mutex>
 
-struct sqlite3;
-struct sqlite3_stmt;
 
-
-// the constructor will throw a CSProException if there are problems reading the MBTiles file;
-// details on the format of MBtiles are available at https://github.com/mapbox/mbtiles-spec/blob/master/1.3/spec.md
+// --------------------------------------------------------------------------
+// MBTilesReader
+//
+// The constructor will throw a CSProException if there are problems reading
+// the MBTiles file.
+//
+// Details on the format of MBtiles are available at:
+//     https://github.com/mapbox/mbtiles-spec/blob/master/1.3/spec.md
+// --------------------------------------------------------------------------
 
 class MBTilesReader : public OfflineTileReader
 {
 public:
     MBTilesReader(const std::string& file_path);
-    ~MBTilesReader();
 
     int GetTileWidth() override  { return 256; }
     int GetTileHeight() override { return 256; }
@@ -29,13 +33,11 @@ public:
     std::optional<Tile> GetTile(int z, int x, int y) override;
 
 private:
-    void CloseDatabase();
-
     void ReadMetadata();
 
 private:
-    sqlite3* m_db;
-    sqlite3_stmt* m_stmtTileQuery;
+    Sqlite::DB m_db;
+    Sqlite::Statement m_stmtTileQuery;
     std::mutex m_tileQueryMutex;
 
     SharableString m_tileMimeType;
