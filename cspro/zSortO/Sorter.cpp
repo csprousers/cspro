@@ -155,8 +155,7 @@ Sorter::RunSuccess Sorter::Run(const PFF& pff)
     for( const SortSpec::SortItem& sort_item : m_sortSpec->GetSortItems() )
         m_sortableKeyDatabase->AddKeyType(sort_item.dict_item->GetContentType(), ( sort_item.order == SortSpec::SortOrder::Ascending ));
 
-    if( !m_sortableKeyDatabase->Open() )
-        throw CSProException("There was a problem opening the sortable key database.");
+    m_sortableKeyDatabase->Open();
 
 
     // run the sort
@@ -296,7 +295,7 @@ Sorter::RunSuccess Sorter::RunCaseSort()
         // write the sorted cases
         double position_in_repository;
 
-        while( m_sortableKeyDatabase->NextPosition(&position_in_repository) )
+        while( m_sortableKeyDatabase->NextPosition(position_in_repository) )
         {
             m_inputRepository->ReadCase(*data_case, position_in_repository);
             m_sortedRepository->WriteCase(*data_case);
@@ -446,8 +445,7 @@ Sorter::RunSuccess Sorter::RunRecordSort()
                     const std::vector<std::byte> record_binary_buffer = case_record_for_record_sort.GetBinaryValues(record_occurrence);
 
                     m_sortableKeyDatabase->InitRecordInfo(case_record_for_record_sort.GetCaseRecordMetadata().GetRecordIndex(),
-                                                          id_binary_buffer.data(), id_binary_buffer.size(),
-                                                          record_binary_buffer.data(), record_binary_buffer.size());
+                                                          id_binary_buffer, record_binary_buffer);
 
                     // generate the sortable key
                     for( const SortCaseItem& sort_case_item : VI_V(m_sortCaseItems) )
@@ -500,9 +498,7 @@ Sorter::RunSuccess Sorter::RunRecordSort()
 
         // this will be used to determine whether or not there are duplicate keys (rather than use any indexer code)
         SortableKeyDatabase duplicate_key_database(SortableKeyDatabase::SortType::CaseOnly);
-
-        if( !duplicate_key_database.Open() )
-            throw CSProException("There was a problem opening the sortable key database.");
+        duplicate_key_database.Open();
 
 
         // a routine for writing out cases
@@ -552,7 +548,7 @@ Sorter::RunSuccess Sorter::RunRecordSort()
         std::vector<std::byte> record_binary_buffer;
         size_t record_index;
 
-        while( m_sortableKeyDatabase->NextRecord(&record_index, &id_binary_buffer, &record_binary_buffer) )
+        while( m_sortableKeyDatabase->NextRecord(record_index, id_binary_buffer, record_binary_buffer) )
         {
             process_summary->IncrementAttributesRead();
 

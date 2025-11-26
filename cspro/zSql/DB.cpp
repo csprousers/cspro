@@ -60,21 +60,14 @@ void Sqlite::DB::Open(std::string file_path, const int open_flags/* = DefaultOpe
 
 void Sqlite::DB::OpenEncrypted(const std::string& file_path, const std::vector<std::byte>& password_hash, const int open_flags/* = DefaultOpenFlags*/)
 {
-    constexpr std::string_view EncryptionType_sv = "aes256:";
-    ASSERT(!password_hash.empty());
+    const BinaryBlock key = GetEncryptionKey(password_hash);
 
     const bool file_already_exists = PortableFunctions::FileIsRegular(file_path);
     Open(file_path, open_flags);
 
-    // to get the SQLite key, prefix the password hash with the encryption type
-    const size_t key_length = EncryptionType_sv.length() + password_hash.size();
-    auto key = std::make_unique_for_overwrite<char[]>(key_length);
-    memcpy(key.get(), EncryptionType_sv.data(), EncryptionType_sv.length());
-    memcpy(key.get() + EncryptionType_sv.length(), password_hash.data(), password_hash.size());
-
     try
     {
-        if( SqliteEncryption::sqlite3_key(m_db, key.get(), static_cast<int>(key_length)) != SQLITE_OK )
+        if( SqliteEncryption::sqlite3_key(m_db, key.data(), static_cast<int>(key.size())) != SQLITE_OK )
             throw std::exception();
 
         // if the file already exists, check that the password is correct with a simple query
@@ -103,6 +96,22 @@ void Sqlite::DB::OpenEncrypted(const std::string& file_path, const std::vector<s
 
         throw Exception(static_cast<sqlite3*>(nullptr), file_path, "Could not open an encrypted SQLite database with the supplied password");
     }
+}
+
+
+BinaryBlock Sqlite::DB::GetEncryptionKey(const std::vector<std::byte>& password_hash)
+{
+    constexpr std::string_view EncryptionType_sv = "aes256:";
+    ASSERT(!password_hash.empty());
+
+    // to get the SQLite key, prefix the password hash with the encryption type
+    const size_t key_length = EncryptionType_sv.length() + password_hash.size();
+    BinaryBlock key(key_length);
+
+    memcpy(key.data(), EncryptionType_sv.data(), EncryptionType_sv.length());
+    memcpy(key.data() + EncryptionType_sv.length(), password_hash.data(), password_hash.size());
+
+    return key;
 }
 
 

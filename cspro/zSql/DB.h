@@ -32,11 +32,20 @@ public:
     // as a 0-byte file (without the encryption parameters written).
     void OpenEncrypted(const std::string& file_path, const std::vector<std::byte>& password_hash, int open_flags = DefaultOpenFlags);
 
+    // Returns the SQLite encryption key for the given password hash.
+    static BinaryBlock GetEncryptionKey(const std::vector<std::byte>& password_hash);
+
     // Closes the SQLite database, throwing exceptions on error.
     void Close();
 
+    // Returns true if a SQLite database is open.
+    bool IsOpen() const { return ( m_db != nullptr ); }
+
     // Returns the file path of the open database.
     const std::string& GetFilePath() const { return m_filePath; }
+
+    // Returns the "English language explanation of the most recent error."
+    std::string GetLastErrorMessage() const { return sqlite3_errmsg(m_db); }
 
     // Executes the SQL statement, throwing exceptions on error.
     void Execute(cs::string_sz sql);

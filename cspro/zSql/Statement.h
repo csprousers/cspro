@@ -95,7 +95,7 @@ public:
 
     // Resets the underlying prepared statement so that it may be executed again.
     // Resetting does not clear the bindings.
-    void Reset();
+    Sqlite::Statement& Reset();
 
 
     // --------------------------------------------------------------------------
@@ -323,11 +323,13 @@ inline int Sqlite::Statement::Step()
 }
 
 
-inline void Sqlite::Statement::Reset()
+inline Sqlite::Statement& Sqlite::Statement::Reset()
 {
     CheckStatementIsPrepared();
 
     sqlite3_reset(*m_statementPtr);
+
+    return *this;
 }
 
 
