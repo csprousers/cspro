@@ -2,51 +2,58 @@
 
 #include <zUtilO/zUtilO.h>
 #include <zUtilO/SimpleDbMap.h>
+#include <zToolsO/CaseInsensitiveComparer.h>
 
 
-// the CommonStore is used for:
+// --------------------------------------------------------------------------
+// The CommonStore is used for:
+//
 // - the settings used by the loadsetting/savesetting functions
 // - system settings used on Android
 // - config variables
 // - persistent variables
 // - settings stored as part of the Action Invoker (prefixed with CS_)
-
+// --------------------------------------------------------------------------
 
 class CLASS_DECL_ZUTILO CommonStore : public SimpleDbMap
 {
 public:
     enum class TableType { UserSettings, ConfigVariables, PersistentVariables };
 
-    CommonStore();
-    ~CommonStore();
+    CommonStore() noexcept;
+    ~CommonStore() noexcept;
 
-    bool Open(std::vector<TableType> table_types, std::string common_store_file_path = std::string());
+    bool Open(const std::vector<TableType>& table_types,
+              std::string common_store_file_path = std::string()) noexcept;
 
-    void SwitchTable(TableType table_type);
-    void SwitchTable(std::string_view table_name_sv, bool make_table_name_valid); // throws on table creation error
+    void SwitchTable(TableType table_type) noexcept;
 
-    void Close() override;
+    // An exception is thrown when there is an error creating a table.
+    void SwitchTable(cs::string_sz table_name, bool make_table_name_valid);
 
-    bool Clear() override;
-    bool Delete(const std::string& key) override;
+    void Close() noexcept override;
 
-    bool PutString(const std::string& key, const std::string& value) override;
-    std::optional<std::string> GetString(const std::string& key) override;
+    bool Clear() noexcept override;
+    bool Delete(const std::string& key) noexcept override;
 
-    static std::string GetSystemSetting(const std::string& key);
+    bool PutString(const std::string& key, const std::string& value) noexcept override;
+    std::optional<std::string> GetString(const std::string& key) noexcept override;
+
+    static std::string GetSystemSetting(const std::string& key) noexcept;
 
 private:
-    bool UseGlobalCommonStoreAndCaching() const;
+    static constexpr const char* ToString(TableType table_type);
+
+    static std::string GetGlobalCommonStoreFilename();
+    bool UseGlobalCommonStoreAndCaching() const noexcept;
 
     // instead of accessing the database, system settings will be cached
-    void CacheSystemSettings(std::map<std::string, std::string>& cached_system_settings);
+    void CacheSystemSettings(std::map<std::string, std::string>& cached_system_settings) noexcept;
 
-    std::map<std::string, std::string>* GetCurrentCachedSystemSettings(std::string_view key_for_system_setting_check_sv = std::string_view()) const;
+    std::map<std::string, std::string>* GetCurrentCachedSystemSettings(std::string_view key_for_system_setting_check_sv = std::string_view()) const noexcept;
 
 private:
-    std::vector<TableType> m_tableTypes;
-    std::variant<std::monostate, TableType, std::string> m_currentTableTypeOrName;
-    std::unique_ptr<std::vector<std::tuple<std::string, std::string>>> m_createdValidTableNames; // table name -> valid table name
+    std::map<std::string, std::string, cs::case_insensitive_less> m_createdValidTableNames; // table name -> valid table name
 
     std::unique_ptr<std::map<std::string, std::string>> m_cachedSystemSettings;
     std::unique_ptr<CommonStore> m_globalCommonStore;

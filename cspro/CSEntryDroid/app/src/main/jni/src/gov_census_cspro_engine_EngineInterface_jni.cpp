@@ -858,7 +858,12 @@ JNIEXPORT void JNICALL Java_gov_census_cspro_engine_EngineInterface_GetParadataC
 JNIEXPORT jstring JNICALL Java_gov_census_cspro_engine_EngineInterface_GetSystemSettingString
 (JNIEnv* pEnv, jobject object, jstring setting_name, jstring default_value)
 {
-    return JavaString::ToJava(*pEnv, CoreEntryEngineInterface::GetSystemSetting(JavaToWSZ(pEnv, setting_name), JavaToWSZ(pEnv, default_value)));
+    const std::string setting_value = CoreEntryEngineInterface::GetSystemSetting(
+        JavaString::ToUtf8(*pEnv, setting_name),
+        JavaString::ToUtf8(*pEnv, default_value)
+    );
+
+    return JavaString::ToJava(*pEnv, setting_value);
 }
 
 /*
@@ -868,7 +873,10 @@ JNIEXPORT jstring JNICALL Java_gov_census_cspro_engine_EngineInterface_GetSystem
 JNIEXPORT jboolean JNICALL Java_gov_census_cspro_engine_EngineInterface_GetSystemSettingBoolean
 (JNIEnv* pEnv, jobject object, jstring setting_name, jboolean default_value)
 {
-    return CoreEntryEngineInterface::GetSystemSetting(JavaToWSZ(pEnv, setting_name), default_value) ? JNI_TRUE : JNI_FALSE;
+    return CoreEntryEngineInterface::GetSystemSetting(
+        JavaString::ToUtf8(*pEnv, setting_name),
+        default_value
+    );
 }
 
 

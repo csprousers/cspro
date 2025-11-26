@@ -1,6 +1,6 @@
 ﻿#include "StdAfx.h"
 #include "CommonStore.h"
-#include <zSql/SQLiteHelpers.h>
+#include <zSql/DB.h>
 #include <zSql/TableNamer.h>
 
 
@@ -8,33 +8,36 @@ namespace
 {
     constexpr const char* SystemSettingPrefix = "CSEntry.";
 
-    std::string GetGlobalCommonStoreFilename()
-    {
-        return Path::Combine(GetAppDataPath(), "CommonStore.db");
-    }
-
     std::vector<CommonStore*> CommonStores;
     std::unique_ptr<std::map<std::string, std::string>> GlobalCachedSystemSettings;
 }
 
 
-CommonStore::CommonStore()
+CommonStore::CommonStore() noexcept
 {
 }
 
 
-CommonStore::~CommonStore()
+CommonStore::~CommonStore() noexcept
 {
     Close();
 }
 
 
-bool CommonStore::Open(std::vector<TableType> table_types, std::string common_store_file_path/* = std::string()*/)
+constexpr const char* CommonStore::ToString(const TableType table_type)
 {
-    m_tableTypes = std::move(table_types);
-    ASSERT(!m_tableTypes.empty());
+    return ( table_type == TableType::UserSettings )        ? "UserSettings":
+           ( table_type == TableType::ConfigVariables )     ? "Configurations" :
+         /*( table_type == TableType::PersistentVariables )*/ "PersistentVariables";
+}
 
-    const bool accessing_user_settings = ( std::find(m_tableTypes.cbegin(), m_tableTypes.cend(), TableType::UserSettings) != m_tableTypes.cend() );
+
+bool CommonStore::Open(const std::vector<TableType>& table_types,
+                       std::string common_store_file_path/* = std::string()*/) noexcept
+{
+    ASSERT(!table_types.empty());
+
+    const bool accessing_user_settings = ( std::find(table_types.cbegin(), table_types.cend(), TableType::UserSettings) != table_types.cend() );
 
     if( common_store_file_path.empty() )
     {
@@ -54,18 +57,11 @@ bool CommonStore::Open(std::vector<TableType> table_types, std::string common_st
     // all tables will be created with string values
     std::vector<std::tuple<std::string, ValueType>> table_names_and_value_types;
 
-    for( const TableType table_type : m_tableTypes )
-    {
-        const char* const table_name = ( table_type == TableType::UserSettings )    ? "UserSettings" :
-                                       ( table_type == TableType::ConfigVariables ) ? "Configurations" :
-                                                                                      "PersistentVariables";
-        table_names_and_value_types.emplace_back(table_name, ValueType::String);
-    }
+    for( const TableType table_type : table_types )
+        table_names_and_value_types.emplace_back(ToString(table_type), ValueType::String);
 
     if( !SimpleDbMap::Open(std::move(common_store_file_path), table_names_and_value_types) )
         return false;
-
-    m_currentTableTypeOrName = m_tableTypes.front();
 
     if( accessing_user_settings )
         CommonStores.emplace_back(this);
@@ -74,70 +70,54 @@ bool CommonStore::Open(std::vector<TableType> table_types, std::string common_st
 }
 
 
-void CommonStore::SwitchTable(const TableType table_type)
+void CommonStore::SwitchTable(const TableType table_type) noexcept
 {
-    if( std::holds_alternative<TableType>(m_currentTableTypeOrName) && table_type == std::get<TableType>(m_currentTableTypeOrName) )
-        return;
-
-    const size_t index = std::distance(m_tableTypes.cbegin(), std::find(m_tableTypes.cbegin(), m_tableTypes.cend(), table_type));
-    ASSERT(index < m_tableDetails.size());
-    m_currentTable = m_tableDetails[index].get();
-    m_currentTableTypeOrName = table_type;
+    try
+    {
+        SimpleDbMap::SwitchTable(ToString(table_type), std::nullopt);
+    }
+    catch(...) { ASSERT(false); }
 }
 
 
-void CommonStore::SwitchTable(std::string_view table_name_sv, const bool make_table_name_valid)
+void CommonStore::SwitchTable(const cs::string_sz table_name, const bool make_table_name_valid)
 {
-    auto get_valid_table_name = [&]() -> const std::string&
-    {
-        if( m_createdValidTableNames == nullptr )
-        {
-            m_createdValidTableNames = std::make_unique<std::vector<std::tuple<std::string, std::string>>>();
-        }
-
-        else
-        {
-            for( const auto& [this_table_name, this_valid_table_name] : *m_createdValidTableNames )
-            {
-                if( SO::EqualsNoCase(this_table_name, table_name_sv) )
-                    return this_valid_table_name;
-            }
-        }
-
-        return std::get<1>(m_createdValidTableNames->emplace_back(std::string(table_name_sv), Sqlite::CreateValidTableName(std::string(table_name_sv))));
-    };
+    const char* actual_table_name = table_name.c_str();
 
     if( make_table_name_valid )
-        table_name_sv = get_valid_table_name();
+    {
+        auto lookup = m_createdValidTableNames.find(actual_table_name);
 
-    if( std::holds_alternative<std::string>(m_currentTableTypeOrName) && SO::EqualsNoCase(table_name_sv, std::get<std::string>(m_currentTableTypeOrName)) )
-        return;
-
-    // the table may already be open
-    const auto& table_lookup = std::find_if(m_tableDetails.cbegin(), m_tableDetails.cend(),
-        [&](const std::unique_ptr<TableDetails>& table_details)
+        if( lookup == m_createdValidTableNames.cend() )
         {
-            return SO::EqualsNoCase(table_name_sv, table_details->table_name);
-        });
+            std::string table_name_str(actual_table_name);
+            std::string valid_table_name = Sqlite::CreateValidTableName(table_name_str);
+            lookup = m_createdValidTableNames.try_emplace(std::move(table_name_str), std::move(valid_table_name)).first;
+        }
 
-    m_currentTable = ( table_lookup != m_tableDetails.cend() ) ? table_lookup->get() :
-                                                                 CreateTableIfNotExists(std::string(table_name_sv), ValueType::String);
-    m_currentTableTypeOrName = m_currentTable->table_name;
+        actual_table_name = lookup->second.c_str();
+    }
+
+    SimpleDbMap::SwitchTable(actual_table_name, ValueType::String);
 }
 
 
-void CommonStore::Close()
+void CommonStore::Close() noexcept
 {
-    CommonStores.erase(std::remove(CommonStores.begin(), CommonStores.end(), this), CommonStores.end());
+    try
+    {
+        CommonStores.erase(std::remove(CommonStores.begin(), CommonStores.end(), this), CommonStores.end());
 
-    SimpleDbMap::Close();
+        SimpleDbMap::Close();
 
-    m_cachedSystemSettings.reset();
-    m_globalCommonStore.reset();
+        m_cachedSystemSettings.reset();
+        m_globalCommonStore.reset();
+    }
+    catch(...) { ASSERT(false); }
 }
 
 
-bool CommonStore::Clear()
+bool CommonStore::Clear() noexcept
 {
     std::map<std::string, std::string>* current_cached_system_settings = GetCurrentCachedSystemSettings();
 
@@ -148,7 +128,7 @@ bool CommonStore::Clear()
 }
 
 
-bool CommonStore::Delete(const std::string& key)
+bool CommonStore::Delete(const std::string& key) noexcept
 {
     std::map<std::string, std::string>* current_cached_system_settings = GetCurrentCachedSystemSettings(key);
 
@@ -159,7 +139,7 @@ bool CommonStore::Delete(const std::string& key)
 }
 
 
-bool CommonStore::PutString(const std::string& key, const std::string& value)
+bool CommonStore::PutString(const std::string& key, const std::string& value) noexcept
 {
     // if this is a system setting and the settings have already been cached, add or clear this setting
     std::map<std::string, std::string>* current_cached_system_settings = GetCurrentCachedSystemSettings(key);
@@ -181,24 +161,30 @@ bool CommonStore::PutString(const std::string& key, const std::string& value)
 }
 
 
-std::optional<std::string> CommonStore::GetString(const std::string& key)
+std::optional<std::string> CommonStore::GetString(const std::string& key) noexcept
 {
     std::optional<std::string> value = SimpleDbMap::GetString(key);
 
-    if( !value.has_value() && UseGlobalCommonStoreAndCaching() && m_globalCommonStore != nullptr )
+    if( !value.has_value() && m_globalCommonStore != nullptr && UseGlobalCommonStoreAndCaching() )
         value = m_globalCommonStore->GetString(key);
 
     return value;
 }
 
 
-bool CommonStore::UseGlobalCommonStoreAndCaching() const
+std::string CommonStore::GetGlobalCommonStoreFilename()
 {
-    return ( std::holds_alternative<TableType>(m_currentTableTypeOrName) && std::get<TableType>(m_currentTableTypeOrName) == TableType::UserSettings );
+    return Path::Combine(GetAppDataPath(), "CommonStore.db");
 }
 
 
-std::map<std::string, std::string>* CommonStore::GetCurrentCachedSystemSettings(std::string_view key_for_system_setting_check_sv/* = std::string_view()*/) const
+bool CommonStore::UseGlobalCommonStoreAndCaching() const noexcept
+{
+    return ( GetCurrentTableName() == ToString(TableType::UserSettings) );
+}
+
+
+std::map<std::string, std::string>* CommonStore::GetCurrentCachedSystemSettings(const std::string_view key_for_system_setting_check_sv/* = std::string_view()*/) const noexcept
 {
     std::map<std::string, std::string>* current_cached_system_settings = nullptr;
 
@@ -214,25 +200,36 @@ std::map<std::string, std::string>* CommonStore::GetCurrentCachedSystemSettings(
 }
 
 
-void CommonStore::CacheSystemSettings(std::map<std::string, std::string>& cached_system_settings)
+void CommonStore::CacheSystemSettings(std::map<std::string, std::string>& cached_system_settings) noexcept
 {
     ASSERT(UseGlobalCommonStoreAndCaching());
 
-    const std::string sql = FormatText("SELECT `Key`, `Value` FROM `%s` WHERE `Key` LIKE '%s%%';",
-                                       m_currentTable->table_name.c_str(), SystemSettingPrefix);
-    SQLiteStatement iterator_stmt(m_db, sql);
+    try
+    {
+        const std::string sql = FormatText(
+            "SELECT `Key`, `Value` "
+            "FROM `%s` "
+            "WHERE `Key` LIKE '%s%%';",
+            GetCurrentTableName().c_str(),
+            SystemSettingPrefix
+        );
 
-    while( iterator_stmt.Step() == SQLITE_ROW )
-        cached_system_settings[iterator_stmt.GetColumn<std::string>(0)] = iterator_stmt.GetColumn<std::string>(1);
+        Sqlite::Statement iterator_stmt = GetDb().PrepareStatement(sql);
+
+        while( iterator_stmt.Step() == Sqlite::Result::Row )
+            cached_system_settings[iterator_stmt.GetColumn<std::string>(0)] = iterator_stmt.GetColumn<std::string>(1);
+    }
+
+    catch(...) { ASSERT(false); }
 }
 
 
-std::string CommonStore::GetSystemSetting(const std::string& key)
+std::string CommonStore::GetSystemSetting(const std::string& key) noexcept
 {
     ASSERT(SO::StartsWith(key, SystemSettingPrefix));
 
-    CommonStore* current_common_store = CommonStores.empty() ? nullptr :
-                                                               CommonStores.back();
+    CommonStore* const current_common_store = CommonStores.empty() ? nullptr :
+                                                                     CommonStores.back();
 
     // if the global common store settings haven't been cached yet, cache the settings
     if( GlobalCachedSystemSettings == nullptr )

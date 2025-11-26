@@ -2,7 +2,7 @@
 #include "Transaction.h"
 
 
-Sqlite::Transaction::Transaction(sqlite3* const db)
+Sqlite::Transaction::Transaction(sqlite3* const db) noexcept
     :   m_db(db),
         m_startedTransaction(false)
 {
@@ -20,24 +20,41 @@ Sqlite::Transaction::Transaction(Transaction&& rhs) noexcept
 }
 
 
-Sqlite::Transaction::~Transaction()
+Sqlite::Transaction::~Transaction() noexcept
 {
     if( m_db != nullptr && IsTransactionOrSavepointInUse() )
-        Rollback();
+    {
+        try
+        {
+            Rollback();
+        }
+        catch(...) { ASSERT(false); }
+    }
 }
 
 
-bool Sqlite::Transaction::IsTransactionOrSavepointInUse() const
+bool Sqlite::Transaction::IsTransactionOrSavepointInUse() const noexcept
 {
     return ( m_startedTransaction || m_savepointName != nullptr );
+}
+
+
+void Sqlite::Transaction::ExecuteSql(const cs::string_sz sql, const char* const exception_message) const
+{
+    ASSERT(m_db != nullptr);
+
+    if( sqlite3_exec(m_db, sql.c_str(), nullptr, nullptr, nullptr) != SQLITE_OK )
+        throw CSProException(exception_message);
 }
 
 
 void Sqlite::Transaction::Begin()
 {
     ASSERT(!IsTransactionOrSavepointInUse());
+
+    ExecuteSql("BEGIN", "Could not start a SQLite transaction.");
+
     m_startedTransaction = true;
-    sqlite3_exec(m_db, "BEGIN", nullptr, nullptr, nullptr);
 }
 
 
@@ -54,22 +71,26 @@ void Sqlite::Transaction::Begin(const size_t commit_periodically_counter)
 void Sqlite::Transaction::Savepoint(std::string name)
 {
     ASSERT(!IsTransactionOrSavepointInUse());
+
+    ExecuteSql("SAVEPOINT " + name, "Could not start a SQLite savepoint.");
+
     m_savepointName = std::make_unique<std::string>(std::move(name));
-    sqlite3_exec(m_db, ( "SAVEPOINT " + *m_savepointName ).c_str(), nullptr, nullptr, nullptr);
 }
 
 
 void Sqlite::Transaction::Rollback()
 {
+    constexpr const char* exception_message = "Could not rollback a SQLite transaction.";
+
     if( m_startedTransaction )
     {
-        sqlite3_exec(m_db, "ROLLBACK", nullptr, nullptr, nullptr);
+        ExecuteSql("ROLLBACK", exception_message);
         m_startedTransaction = false;
     }
 
     else if( m_savepointName != nullptr )
     {
-        sqlite3_exec(m_db, ( "ROLLBACK TO " + *m_savepointName ).c_str(), nullptr, nullptr, nullptr);
+        ExecuteSql("ROLLBACK TO " + *m_savepointName, exception_message);
         m_savepointName.reset();
     }
 
@@ -84,16 +105,16 @@ void Sqlite::Transaction::Commit()
 {
     if( m_startedTransaction )
     {
-        sqlite3_exec(m_db, "COMMIT", nullptr, nullptr, nullptr);
+        ExecuteSql("COMMIT", "Could not commit a SQLite transaction.");
         m_startedTransaction = false;
     }
 
     else if( m_savepointName != nullptr )
     {
-        // Savepoints are not really comitted since nothing is really comitted
-        // until the parent transaction is comitted so we just get rid of the
-        // savepoint since we will no longer need it to rollback to.
-        sqlite3_exec(m_db, ( "RELEASE " + *m_savepointName ).c_str(), nullptr, nullptr, nullptr);
+        // savepoints are not really committed since nothing is really committed
+        // until the parent transaction is committed so we just get rid of the
+        // savepoint since we will no longer need it to rollback to
+        ExecuteSql("RELEASE " + *m_savepointName, "Could not release a SQLite savepoint.");
         m_savepointName.reset();
     }
 

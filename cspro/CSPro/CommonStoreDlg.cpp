@@ -71,8 +71,8 @@ void CommonStoreDlg::OnCbnSelchangeComboCommonStoreType()
     std::string attribute;
     std::string value;
 
-    while( m_commonStore.NextString(&attribute, &value) )
-        AddSetting(UTF8_TODO::GetWide(attribute), UTF8_TODO::GetWide(value));
+    while( m_commonStore.NextString(attribute, value) )
+        AddSetting(TC::ToWide(attribute), TC::ToWide(value));
 
     // start in Add mode
     OnBnClickedRadioCommonStoreAdd();
@@ -100,10 +100,17 @@ void CommonStoreDlg::UpdateSelections()
 
     // when adding a setting, clear all selections
     if( adding_setting )
+    {
         m_pListCtrl->SetItemState(-1, 0, LVIS_SELECTED);
+        m_attribute.clear();
+        m_value.clear();
+    }
 
-    m_attribute = adding_setting ? L"" : m_pListCtrl->GetItemText(m_selectedItem, 0);
-    m_value = adding_setting ? L"" : m_pListCtrl->GetItemText(m_selectedItem, 1);
+    else
+    {
+        m_attribute = m_pListCtrl->GetItemText(m_selectedItem, 0);
+        m_value = m_pListCtrl->GetItemText(m_selectedItem, 1);
+    }
 
     UpdateData(FALSE);
 
@@ -148,7 +155,7 @@ void CommonStoreDlg::OnBnClickedButtonCommonStoreModify()
 
         if( adding_setting || modify_setting_changing_attribute )
         {
-            if( m_commonStore.Exists(UTF8_TODO::GetUtf8(m_attribute)) )
+            if( m_commonStore.Exists(TC::ToUtf8(m_attribute)) )
                 throw CSProException("A setting with the specified attribute already exists.");
         }
 
@@ -156,11 +163,11 @@ void CommonStoreDlg::OnBnClickedButtonCommonStoreModify()
 
         // delete the existing setting
         if( !adding_setting )
-            success = m_commonStore.Delete(UTF8_TODO::GetUtf8(m_pListCtrl->GetItemText(m_selectedItem, 0)));
+            success = m_commonStore.Delete(TC::ToUtf8(m_pListCtrl->GetItemText(m_selectedItem, 0)));
 
         // add the setting
         if( success )
-            success = m_commonStore.PutString(UTF8_TODO::GetUtf8(m_attribute), UTF8_TODO::GetUtf8(m_value));
+            success = m_commonStore.PutString(TC::ToUtf8(m_attribute), TC::ToUtf8(m_value));
 
         if( !success )
             throw CSProException("There was an error %s the setting.", adding_setting ? "adding" : "modifying");
@@ -193,9 +200,9 @@ void CommonStoreDlg::OnBnClickedButtonCommonStoreModify()
 
 void CommonStoreDlg::OnBnClickedButtonCommonStoreDelete()
 {
-    const std::wstring attribute = m_pListCtrl->GetItemText(m_selectedItem, 0);
+    const std::string attribute = TC::ToUtf8(m_pListCtrl->GetItemText(m_selectedItem, 0));
 
-    if( m_commonStore.Delete(UTF8_TODO::GetUtf8(attribute)) )
+    if( m_commonStore.Delete(attribute) )
     {
         m_pListCtrl->DeleteItem(m_selectedItem);
         --m_selectedItem;

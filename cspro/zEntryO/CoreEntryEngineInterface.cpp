@@ -7,10 +7,8 @@
 #include <zPlatformO/PortableMFC.h>
 #include <zToolsO/Serializer.h>
 #include <zToolsO/Tools.h>
-#include <zUtilO/AppLoader.h>
 #include <zUtilO/CommonStore.h>
 #include <zUtilO/ExecutionStack.h>
-#include <zUtilO/ImsaStr.h>
 #include <zUtilO/MemoryHelpers.h>
 #include <zAppO/Application.h>
 #include <zCaseO/Case.h>
@@ -584,7 +582,7 @@ CoreEntryEngineInterface::GetSequentialCaseIds(bool sort_ascending,
     std::unique_ptr<std::regex> caseFilterRegex;
     if (!csFilterRegex.IsEmpty()) {
         try {
-            caseFilterRegex = std::unique_ptr<std::regex>(new std::regex(UTF8Convert::WideToUTF8(csFilterRegex)));
+            caseFilterRegex = std::unique_ptr<std::regex>(new std::regex(UTF8_TODO::GetUtf8(csFilterRegex)));
             key_filter = [&caseFilterRegex](const CaseSummary &case_summary) { return std::regex_search(case_summary.GetKey(), *caseFilterRegex); };
         }
         catch (const std::regex_error&) {
@@ -1284,25 +1282,36 @@ CommonStore* CoreEntryEngineInterface::GetCommonStore()
 }
 
 
-std::string CoreEntryEngineInterface::GetSystemSetting(const wstring_view setting_name_sv, const wstring_view default_value_sv)
+std::string CoreEntryEngineInterface::GetSystemSetting(const std::string& setting_name,
+                                                       std::variant<cs::string_sz, std::string> default_value)
 {
-    std::string setting_value = CommonStore::GetSystemSetting(UTF8_TODO::GetUtf8(setting_name_sv));
+    std::string setting_value = CommonStore::GetSystemSetting(setting_name);
 
-    if( setting_value.empty() )
-        return UTF8_TODO::GetUtf8(default_value_sv);
+    if( !setting_value.empty() )
+    {
+        return setting_value;
+    }
 
-    return setting_value;
+    else if( std::holds_alternative<cs::string_sz>(default_value) )
+    {
+        return std::get<cs::string_sz>(default_value).c_str();
+    }
+
+    else
+    {
+        return std::move(std::get<std::string>(default_value));
+    }
 }
 
 
-bool CoreEntryEngineInterface::GetSystemSetting(const wstring_view setting_name_sv, const bool default_value)
+bool CoreEntryEngineInterface::GetSystemSetting(const std::string& setting_name, const bool default_value)
 {
-    const std::string setting_value = CommonStore::GetSystemSetting(UTF8_TODO::GetUtf8(setting_name_sv));
+    const std::string setting_value = CommonStore::GetSystemSetting(setting_name);
 
     if( setting_value.empty() )
         return default_value;
 
-    return SO::EqualsNoCase(setting_value, static_cast<const char*>("Yes")); // UTF8_TODO remove the cast
+    return SO::EqualsNoCase(setting_value, "Yes");
 }
 
 
