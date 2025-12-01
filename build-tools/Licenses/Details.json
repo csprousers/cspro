@@ -248,10 +248,10 @@
     "licenseUrl": "https://raw.githubusercontent.com/nayuki/QR-Code-generator/master/cpp/qrcodegen.hpp"
   },
   {
-    "projectName": "QuickJS",
-    "projectUrl": "https://bellard.org/quickjs",
+    "projectName": "QuickJS-NG",
+    "projectUrl": "https://github.com/quickjs-ng/quickjs",
     "licenseFilename": "LICENSE",
-    "licenseUrl": "https://raw.githubusercontent.com/bellard/quickjs/master/LICENSE"
+    "licenseUrl": "https://raw.githubusercontent.com/quickjs-ng/quickjs/master/LICENSE"
   },
   {
     "projectName": "RapidFuzz",

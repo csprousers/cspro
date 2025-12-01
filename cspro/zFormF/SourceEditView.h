@@ -17,31 +17,15 @@
 /////////////////////////////////////////////////////////////////////////////
 // CFSourceEditView view
 
-class CLASS_DECL_ZFORMF CFSourceEditView : public CLogicView {
-
+class CLASS_DECL_ZFORMF CFSourceEditView : public CLogicView
+{
     DECLARE_DYNCREATE(CFSourceEditView)
-
-// Members
-protected:
-
-public:
-    CFSourceEditView();
-    ~CFSourceEditView();
-
-// Attributes
-public:
 
 // Operations
 public:
-    CLogicCtrl* GetEditCtrl(void) { return CLogicView::GetLogicCtrl(); }
-private:
+    CLogicCtrl* GetEditCtrl() { return CLogicView::GetLogicCtrl(); }
 
-// Overrides
-    // ClassWizard generated virtual function overrides
-    //{{AFX_VIRTUAL(CFSourceEditView)
-    public:
-    virtual void OnFinalRelease();
-    protected:
+protected:
     virtual void OnDraw(CDC* pDC);      // overridden to draw this view
     virtual void OnUpdate(CView* pSender, LPARAM lHint, CObject* pHint);
     //}}AFX_VIRTUAL
@@ -49,7 +33,6 @@ private:
     // Generated message map functions
 protected:
     //{{AFX_MSG(CFSourceEditView)
-    afx_msg void OnSize(UINT nType, int cx, int cy);
     afx_msg void OnEditCut();
     afx_msg void OnEditCopy();
     afx_msg void OnUpdateEditCutOrCopy(CCmdUI* pCmdUI);
@@ -70,8 +53,8 @@ protected:
     afx_msg void OnQsfEditor();
     afx_msg void OnSetFocus(CWnd* pOldWnd);
     afx_msg void OnShiftF10();
-    afx_msg void OnUpdateLogicIsShowing(CCmdUI* pCmdUI);
     afx_msg void OnFormatLogic();
+    afx_msg void OnUpdateFormatLogic(CCmdUI* pCmdUI);
     afx_msg void OnPeekLogicWord();
     afx_msg void OnGotoLogicWord();
     afx_msg void OnCommentCode();

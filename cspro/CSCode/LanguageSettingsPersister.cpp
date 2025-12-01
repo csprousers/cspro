@@ -12,7 +12,7 @@ namespace
 
     constexpr std::optional<unsigned> JavaScriptModuleTypeToJson(const std::optional<unsigned>& index)
     {
-        return index.has_value() ? std::make_optional(*index - ID_RUN_JAVASCRIPT_MODULE_AUTODETECT) :
+        return index.has_value() ? std::make_optional(*index - ID_RUN_JAVASCRIPT_MODULE_GLOBAL) :
                                    std::nullopt;
     }
 
@@ -21,9 +21,9 @@ namespace
     {
         if( index.has_value() )
         {
-            const unsigned adjusted_index = *index + ID_RUN_JAVASCRIPT_MODULE_AUTODETECT;
+            const unsigned adjusted_index = *index + ID_RUN_JAVASCRIPT_MODULE_GLOBAL;
 
-            if( adjusted_index >= ID_RUN_JAVASCRIPT_MODULE_AUTODETECT && adjusted_index <= ID_RUN_JAVASCRIPT_MODULE_MODULE )
+            if( adjusted_index >= ID_RUN_JAVASCRIPT_MODULE_GLOBAL && adjusted_index <= ID_RUN_JAVASCRIPT_MODULE_MODULE )
                 return adjusted_index;
         }
 

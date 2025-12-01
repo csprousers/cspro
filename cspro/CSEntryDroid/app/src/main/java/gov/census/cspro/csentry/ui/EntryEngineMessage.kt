@@ -74,7 +74,8 @@ class EntryEngineMessage internal constructor(activity: Activity?,
         var startMode = m_activity.intent.getStringExtra(EntryActivity.START_MODE_PARAM)
         var casePosition = m_activity.intent.getDoubleExtra(EntryActivity.CASEPOS_PARAM, Double.NaN)
 
-        if (casePosition.isNaN()) {
+        // the second condition is to support CaseListActivity's onAddCase, which calls: launchEntry("Add")
+        if (casePosition.isNaN() && startMode != "Add")  {
             // start parameters with a specific case are not defined in the intent, so use parameters from the PFF
             val pffStartMode = engineInterface.queryPffStartMode()
             when (pffStartMode.action) {

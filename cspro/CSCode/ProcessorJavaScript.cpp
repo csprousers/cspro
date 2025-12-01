@@ -137,9 +137,8 @@ JavaScript::ModuleType ProcessorJavaScript::GetModuleType()
     const std::optional<unsigned>& javascript_module_type = m_codeDoc.GetLanguageSettings().GetJavaScriptModuleType();
     ASSERT(javascript_module_type.has_value());
 
-    return ( *javascript_module_type == ID_RUN_JAVASCRIPT_MODULE_AUTODETECT ) ? JavaScript::ModuleType::Autodetect :
-           ( *javascript_module_type == ID_RUN_JAVASCRIPT_MODULE_GLOBAL )     ? JavaScript::ModuleType::Global :
-                                                                                JavaScript::ModuleType::Module;
+    return ( *javascript_module_type == ID_RUN_JAVASCRIPT_MODULE_GLOBAL ) ? JavaScript::ModuleType::Global :
+                                                                            JavaScript::ModuleType::Module;
 }
 
 

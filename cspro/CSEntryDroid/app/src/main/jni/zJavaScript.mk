@@ -14,7 +14,7 @@ LOCAL_SRC_FILES         += $(ZJAVASCRIPT_SRC_PATH)/Value.cpp
 LOCAL_SRC_FILES         += $(ZJAVASCRIPT_SRC_PATH)/VariablePropertyNameEvaluator.cpp
 
 LOCAL_SRC_FILES         += $(QUICKJS_SRC_PATH)/cutils.c
-LOCAL_SRC_FILES         += $(QUICKJS_SRC_PATH)/libbf.c
+LOCAL_SRC_FILES         += $(QUICKJS_SRC_PATH)/dtoa.c
 LOCAL_SRC_FILES         += $(QUICKJS_SRC_PATH)/libregexp.c
 LOCAL_SRC_FILES         += $(QUICKJS_SRC_PATH)/libunicode.c
 LOCAL_SRC_FILES         += $(QUICKJS_SRC_PATH)/quickjs.c

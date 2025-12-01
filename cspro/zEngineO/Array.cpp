@@ -1115,17 +1115,65 @@ void LogicArray::SetValueFromJavaScript(JavaScript::Executor& executor, const Ja
 }
 
 
+std::vector<size_t> LogicArray::GetJavaScriptArrayDimensions(JavaScript::Executor& executor, const JavaScript::Value& js_array,
+                                                             const size_t num_dimensions)
+{
+    std::vector<size_t> dimensions(num_dimensions, 1);
+
+    const std::function<void(const JavaScript::Value&, size_t)> js_array_parser =
+        [&](const JavaScript::Value& js_array, const size_t dimension_index_modifying)
+        {
+            ASSERT(js_array.IsArray());
+            ASSERT(dimension_index_modifying < dimensions.size());
+
+            const uint32_t array_size = executor.GetArrayLength(js_array);
+
+            // adjust the current dimension to fit all possible values,
+            // accounting for one-based indices
+            size_t& current_dimension_size = dimensions[dimension_index_modifying];
+            current_dimension_size = std::max<size_t>(current_dimension_size, array_size + 1);
+
+            // iterate through subarrays
+            if( ( dimension_index_modifying + 1 ) < num_dimensions )
+            {
+                for( uint32_t i = 0; i < array_size; ++i )
+                {
+                    const JavaScript::Value js_element = executor.GetArrayElement(js_array, i);
+
+                    if( js_element.IsArray() )
+                        js_array_parser(js_element, dimension_index_modifying + 1);
+                }
+            }
+        };
+
+    js_array_parser(js_array, 0);
+
+    return dimensions;
+}
+
+
 template<typename T>
 void LogicArray::SetValueFromJavaScriptWorker(JavaScript::Executor& executor, const JavaScript::Value& js_value)
 {
+    ASSERT(!m_dimensions.empty());
+
     // this routine is modeled after the JSON parser
     if( !js_value.IsArray() )
         throw CSProException("An Array must be specified as an array.");
 
+    // if this is a function parameter that is being set by JavaScript, we need
+    // to dynamically size the array based on the JavaScript array provided
+    if( m_dimensions.front() == SIZE_MAX )
+    {
+        ASSERT(IsInResetState());
+        SetDimensions(GetJavaScriptArrayDimensions(executor, js_value, m_dimensions.size()));
+    }
+
     Impl<T>& impl = GetImpl<T>();
     const IndicesProcessor& indices_processor = impl.GetIndicesProcessor();
 
-    // initially read the array into a separate structure so the initial array is not touched unless the JavaScript input is fully valid
+    // initially read the array into a separate structure so that the initial
+    // array is not touched unless the JavaScript input is fully valid
     std::vector<std::tuple<size_t, T>> indices_and_values;
     std::vector<size_t> indices;
 

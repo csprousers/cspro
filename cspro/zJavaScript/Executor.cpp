@@ -103,37 +103,44 @@ void JavaScript::Executor::Reset()
 }
 
 
-std::string JavaScript::Executor::EvaluateScript(const std::string& script, const ModuleType module_type/* = ModuleType::Autodetect*/,
+constexpr int JavaScript::Executor::GetFlagFromModuleType(ModuleType module_type)
+{
+    return ( module_type == JavaScript::ModuleType::Global ) ? JS_EVAL_TYPE_GLOBAL :
+                                                               JS_EVAL_TYPE_MODULE;
+}
+
+
+std::string JavaScript::Executor::EvaluateScript(const std::string& script, const ModuleType module_type/* = ModuleType::Global*/,
                                                  const std::string& file_path/* = std::string()*/, const int line_number/* = 1*/)
 {
-    const int flags = GetFlagFromModuleType(script, module_type, file_path);
+    const int flags = GetFlagFromModuleType(module_type);
     return EvaluateScript<std::string>(script, file_path, line_number, flags);
 }
 
 
-JavaScript::Bytecode JavaScript::Executor::CompileScript(const std::string& script, const ModuleType module_type/* = ModuleType::Autodetect*/,
+JavaScript::Bytecode JavaScript::Executor::CompileScript(const std::string& script, const ModuleType module_type/* = ModuleType::Global*/,
                                                          const std::string& file_path/* = std::string()*/, const int line_number/* = 1*/)
 {
-    const int flags = JS_EVAL_FLAG_COMPILE_ONLY | GetFlagFromModuleType(script, module_type, file_path);
+    const int flags = JS_EVAL_FLAG_COMPILE_ONLY | GetFlagFromModuleType(module_type);
     return CompileScript<Bytecode>(script, file_path, line_number, flags);
 }
 
 
-void JavaScript::Executor::CompileScriptOnly(const std::string& script, const ModuleType module_type/* = ModuleType::Autodetect*/,
+void JavaScript::Executor::CompileScriptOnly(const std::string& script, const ModuleType module_type/* = ModuleType::Global*/,
                                              const std::string& file_path/* = std::string()*/, const int line_number/* = 1*/)
 {
-    const int flags = JS_EVAL_FLAG_COMPILE_ONLY | GetFlagFromModuleType(script, module_type, file_path);
+    const int flags = JS_EVAL_FLAG_COMPILE_ONLY | GetFlagFromModuleType(module_type);
     CompileScript<void>(script, file_path, line_number, flags);
 }
 
 
-std::string JavaScript::Executor::EvaluateFile(const std::string& file_path, const ModuleType module_type/* = ModuleType::Autodetect*/)
+std::string JavaScript::Executor::EvaluateFile(const std::string& file_path, const ModuleType module_type/* = ModuleType::Global*/)
 {
     return EvaluateScript(FileIO::ReadText(file_path), module_type, file_path);
 }
 
 
-JavaScript::Bytecode JavaScript::Executor::CompileFile(const std::string& file_path, const ModuleType module_type/* = ModuleType::Autodetect*/)
+JavaScript::Bytecode JavaScript::Executor::CompileFile(const std::string& file_path, const ModuleType module_type/* = ModuleType::Global*/)
 {
     return CompileScript(FileIO::ReadText(file_path), module_type, file_path);
 }
@@ -278,36 +285,6 @@ std::string JavaScript::Executor::GetRelativeFilePath(std::string file_path)
 }
 
 
-int JavaScript::Executor::GetFlagFromModuleType(const std::string& script, const ModuleType module_type, const std::string& file_path)
-{
-    if( module_type == ModuleType::Global )
-    {
-        return JS_EVAL_TYPE_GLOBAL;
-    }
-
-    else if( module_type == ModuleType::Module )
-    {
-        return JS_EVAL_TYPE_MODULE;
-    }
-
-    else
-    {
-        ASSERT(module_type == ModuleType::Autodetect);
-
-        if( Path::ExtensionMatches(file_path, FileExtensions::JavaScriptModule) ||
-            JS_DetectModule(script.c_str(), script.length()) )
-        {
-            return JS_EVAL_TYPE_MODULE;
-        }
-
-        else
-        {
-            return JS_EVAL_TYPE_GLOBAL;
-        }
-    }
-}
-
-
 template<typename T>
 T JavaScript::Executor::EvaluateScript(const std::string& script, const std::string& file_path, const int line_number, const int flags)
 {
@@ -315,8 +292,15 @@ T JavaScript::Executor::EvaluateScript(const std::string& script, const std::str
                                                                  std::string(QuickJSAccess::UnnamedScriptFilename_sv);
 
     // evaluate the script
-    Value js_result(m_qjs, JS_Eval2(m_qjs->ctx, script.data(), script.length(), evaluated_file_path.c_str(), flags, line_number));
+    JSEvalOptions options =
+    {
+        JS_EVAL_OPTIONS_VERSION,
+        flags,
+        evaluated_file_path.c_str(),
+        line_number
+    };
 
+    Value js_result(m_qjs, JS_Eval2(m_qjs->ctx, script.data(), script.length(), &options));
     ProcessPostEvaluationResult(*js_result);
 
     if constexpr(std::is_same_v<T, Value>)
@@ -462,7 +446,7 @@ JavaScript::Value JavaScript::Executor::CreateArray(const size_t size, const Val
 
 uint32_t JavaScript::Executor::GetArrayLength(const Value& array_value)
 {
-    if( !JS_IsArray(m_qjs->ctx, array_value.GetValue()) )
+    if( !JS_IsArray(array_value.GetValue()) )
         throw Exception(FormatText("A value of type '%s' is not an array.", array_value.GetType()));
 
     const Value js_length(m_qjs, JS_GetPropertyStr(m_qjs->ctx, array_value.GetValue(), "length"));

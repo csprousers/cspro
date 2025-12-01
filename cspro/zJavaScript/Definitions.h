@@ -11,7 +11,7 @@ namespace JavaScript
 
     using Bytecode = std::vector<uint8_t>;
 
-    enum class ModuleType { Autodetect, Global, Module };
+    enum class ModuleType { Global, Module };
 }
 
 

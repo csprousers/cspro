@@ -12,7 +12,7 @@ add_library(${PROJECT_NAME}
     VariablePropertyNameEvaluator.cpp
 
     ${QUICKJS_DIRECTORY}/cutils.c
-    ${QUICKJS_DIRECTORY}/libbf.c
+    ${QUICKJS_DIRECTORY}/dtoa.c
     ${QUICKJS_DIRECTORY}/libregexp.c
     ${QUICKJS_DIRECTORY}/libunicode.c
     ${QUICKJS_DIRECTORY}/quickjs.c

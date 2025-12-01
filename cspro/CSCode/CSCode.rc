@@ -665,8 +665,6 @@ STRINGTABLE
 BEGIN
     ID_RUN_HTML_DIALOG_TEMPLATES 
                             "Use code or data from HTML dialog templates\nHTML Dialog Templates"
-    ID_RUN_JAVASCRIPT_MODULE_AUTODETECT 
-                            "Parse the JavaScript file to determine if it is a module\nAutodetect"
     ID_RUN_JAVASCRIPT_MODULE_GLOBAL 
                             "Treat the JavaScript file as part of the global object (not a module)\nGlobal"
     ID_RUN_JAVASCRIPT_MODULE_MODULE 

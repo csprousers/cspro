@@ -67,9 +67,8 @@ void EngineJavaScriptProcessor::CompileCodeFile(const CodeFile& code_file)
     ASSERT(code_file.IsJavaScript());
 
     const JavaScript::ModuleType module_type =
-        ( code_file.GetCodeType() == CodeType::JavaScriptAutodetect ) ? JavaScript::ModuleType::Autodetect :
-        ( code_file.GetCodeType() == CodeType::JavaScriptGlobal )     ? JavaScript::ModuleType::Global :
-                                                                        JavaScript::ModuleType::Module;
+        ( code_file.GetCodeType() == CodeType::JavaScriptGlobal ) ? JavaScript::ModuleType::Global :
+                                                                    JavaScript::ModuleType::Module;
 
     CompileScript(code_file.GetTextSource().GetTextAsSharableString(), module_type, code_file.GetTextSource().GetFilePath(), true);
 }
@@ -412,14 +411,14 @@ void EngineJavaScriptProcessor::CompiledApplicationModuleLoaderHelper::CompileSc
 
     try
     {
-        bytecode_data.bytecode = m_javascriptProcessor.m_executor->CompileScript(bytecode_data.script.GetString(), bytecode_data.module_type);
+        bytecode_data.bytecode = m_javascriptProcessor.m_executor->CompileScript(bytecode_data.script.GetString(), bytecode_data.module_type,
+                                                                                 bytecode_data.file_path);
     }
 
     catch( const CSProException& exception )
     {
         throw ApplicationLoadException("The compiled application could not be loaded due to an error recompiling JavaScript "
                                        "for this platform: %s", exception.what());
-
     }
 }
 
@@ -527,6 +526,7 @@ protected:
     double GetNumeric(size_t parameter_number) override;
     SharableString GetString(size_t parameter_number) override;
     bool ConstructSymbolInPlace(size_t parameter_number, Symbol& parameter_symbol) override;
+    std::shared_ptr<Symbol> GetSymbol(size_t parameter_number) override;
 
 private:
     template<typename CF>
@@ -596,6 +596,11 @@ SharableString EngineJavaScriptProcessor::ArgumentEvaluator::GetString(const siz
 
 bool EngineJavaScriptProcessor::ArgumentEvaluator::ConstructSymbolInPlace(const size_t parameter_number, Symbol& parameter_symbol)
 {
+    // because Array parameters do not have a fixed size with allocated memory, we cannot construct
+    // an Array in place and instead must create a new one (in GetSymbol)
+    if( parameter_symbol.IsA(SymbolType::Array) )
+        return false;
+
     ConvertValueWorker(parameter_number,
         [&](const JavaScript::Value& js_value)
         {
@@ -603,6 +608,28 @@ bool EngineJavaScriptProcessor::ArgumentEvaluator::ConstructSymbolInPlace(const 
         });
 
     return true;
+}
+
+
+std::shared_ptr<Symbol> EngineJavaScriptProcessor::ArgumentEvaluator::GetSymbol(const size_t parameter_number)
+{
+    // for parameter symbols that cannot be used (in ConstructSymbolInPlace), we construct new symbols here
+    const Symbol& base_parameter_symbol = m_userFunction.GetParameterSymbol(parameter_number);
+    std::unique_ptr<Symbol> argument_symbol = base_parameter_symbol.CloneInInitialState();
+
+    // Array
+    {
+        ASSERT(argument_symbol->IsA(SymbolType::Array));
+        // the dimension size calculations of will be handled in LogicArray::SetValueFromJavaScriptWorker
+    }
+
+    ConvertValueWorker(parameter_number,
+        [&](const JavaScript::Value& js_value)
+        {
+            m_javascriptProcessor.ConvertSymbol(js_value, *argument_symbol);
+        });
+
+    return argument_symbol;
 }
 
 

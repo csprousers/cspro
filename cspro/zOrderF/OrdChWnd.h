@@ -33,8 +33,6 @@ protected:
     COrderChildWnd();           // protected constructor used by dynamic creation
 
 public:
-    virtual ~COrderChildWnd();
-
     // ApplicationChildWnd overrides
     CLogicView* GetSourceLogicView() override;
     CLogicCtrl* GetSourceLogicCtrl() override;
@@ -58,16 +56,18 @@ protected:
 protected:
     DECLARE_MESSAGE_MAP()
 
-    afx_msg void OnSysCommand( UINT nID, LPARAM lParam );
-    afx_msg void OnMDIActivate(BOOL bActivate, CWnd* pActivateWnd, CWnd* pDeactivateWnd);
-    afx_msg void OnRun();
-    afx_msg void OnCompile();
-    afx_msg void OnPeekLogicWord();
-    afx_msg void OnGotoLogicWord();
-    afx_msg void OnCommentCode();
-    afx_msg void OnFormatLogic();
-    afx_msg void OnViewQuestionnaire();
-    afx_msg void OnUpdateViewQuestionnaire(CCmdUI* pCmdUI);
+    void OnSysCommand( UINT nID, LPARAM lParam );
+    void OnMDIActivate(BOOL bActivate, CWnd* pActivateWnd, CWnd* pDeactivateWnd);
+    void OnRun();
+    void OnCompile();
+    void OnPeekLogicWord();
+    void OnGotoLogicWord();
+    void OnCommentCode();
+    void OnFormatLogic();
+    void OnUpdateFormatLogic(CCmdUI* pCmdUI);
+    void OnViewQuestionnaire();
+    void OnUpdateViewQuestionnaire(CCmdUI* pCmdUI);
+
 private:
     template<typename CF>
     void ModifyDocumentAndDoWithLogicCtrl(CF callback_function);
@@ -84,9 +84,10 @@ private:
 
 public:
     QuestionnaireView* GetQuestionnaireView() { return m_pQuestionnaireView; }
-    BOOL isQuestionnaireView() {return m_bQuestionnaireView; }
-    afx_msg void OnViewLogic();
-    afx_msg void OnUpdateViewLogic(CCmdUI* pCmdUI);
-    afx_msg void OnUpdateOrdCompile(CCmdUI* pCmdUI);
-    afx_msg void OnUpdateLogicFormat(CCmdUI* pCmdUI);
+    BOOL isQuestionnaireView() const          { return m_bQuestionnaireView; }
+
+    void OnViewLogic();
+    void OnUpdateViewLogic(CCmdUI* pCmdUI);
+    void OnUpdateOrdCompile(CCmdUI* pCmdUI);
+    void OnUpdateLogicFormat(CCmdUI* pCmdUI);
 };

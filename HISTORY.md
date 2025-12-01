@@ -9,6 +9,7 @@ Because most CSPro development occurs on a [private repository](https://github.c
 
 | Date | Branch | Pull Request Message |
 | --- | --- | --- |
+| 2025&#8209;12&#8209;01 | [quickjs-ng](https://github.com/CSProDevelopment/cspro/commit/f3e04ac26a4945a4642532208045962c4ebd55d9) | modified the JavaScript engine to use QuickJS-NG + fixed issues noticed while documenting JavaScript use in CSPro |
 | 2025&#8209;11&#8209;19 | [diff-duplicate-support](https://github.com/CSProDevelopment/cspro/commit/54bed19390f9eef15f5f793c35b562c53e683712) | improved the Compare Data tool to support comparing data sources with duplicate cases |
 | 2025&#8209;11&#8209;13 | [vs-2026-upgrade](https://github.com/CSProDevelopment/cspro/commit/92585072ff52c23d32b6e28420d976ed22fefafb) | upgraded the solution to use Visual Studio 2026 |
 | 2025&#8209;09&#8209;24 | [android-edge-to-edge](https://github.com/CSProDevelopment/cspro/commit/5d759d664951e632228f7d5cbaca60b1b44549f9) | modified the Android UI to support the new edge-to-edge requirement |

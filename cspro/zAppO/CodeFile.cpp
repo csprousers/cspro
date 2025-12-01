@@ -6,21 +6,19 @@
 // CodeType
 // --------------------------------------------------------------------------
 
-constexpr const char* ToString(const CodeType code_type)
+const char* ToString(const CodeType code_type)
 {
-    return ( code_type == CodeType::LogicMain )       ?      "Logic" :
-           ( code_type == CodeType::LogicExternal )   ?      "Logic (External)" :
-           ( code_type == CodeType::JavaScriptAutodetect ) ? "JavaScript (Autodetect)" :
-           ( code_type == CodeType::JavaScriptGlobal ) ?     "JavaScript (Global)" :
-         /*( code_type == CodeType::JavaScriptModule ) ? */  "JavaScript (Module)";
+    return ( code_type == CodeType::LogicMain )        ?    "Logic" :
+           ( code_type == CodeType::LogicExternal )    ?    "Logic (External)" :
+           ( code_type == CodeType::JavaScriptGlobal ) ?    "JavaScript (Global)" :
+         /*( code_type == CodeType::JavaScriptModule ) ? */ "JavaScript (Module)";
 }
 
 CREATE_ENUM_JSON_SERIALIZER(CodeType,
-    { CodeType::LogicMain,            "main" },
-    { CodeType::LogicExternal,        "external" },
-    { CodeType::JavaScriptAutodetect, "JavaScript" },
-    { CodeType::JavaScriptGlobal,     "JavaScript:global" },
-    { CodeType::JavaScriptModule,     "JavaScript:module" })
+    { CodeType::LogicMain,        "main" },
+    { CodeType::LogicExternal,    "external" },
+    { CodeType::JavaScriptGlobal, "JavaScript:global" },
+    { CodeType::JavaScriptModule, "JavaScript:module" })
 
 
 
@@ -40,6 +38,16 @@ CodeFile::CodeFile()
     :   m_codeType(CodeType::LogicExternal)
 {
     // this should never be called explicitly but allows serialization routines to work properly
+}
+
+
+CodeType CodeFile::GetSuggestedCodeTypeForExternalCode(const std::string_view file_path_sv)
+{
+    const std::string extension = Path::GetExtension(file_path_sv);
+
+    return SO::EqualsNoCase(extension, FileExtensions::JavaScript)       ? CodeType::JavaScriptGlobal :
+           SO::EqualsNoCase(extension, FileExtensions::JavaScriptModule) ? CodeType::JavaScriptModule :
+                                                                           CodeType::LogicExternal;
 }
 
 

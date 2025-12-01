@@ -17,7 +17,7 @@
     <ClCompile Include="..\external\QuickJS\cutils.c">
       <Filter>QuickJS</Filter>
     </ClCompile>
-    <ClCompile Include="..\external\QuickJS\libbf.c">
+    <ClCompile Include="..\external\QuickJS\dtoa.c">
       <Filter>QuickJS</Filter>
     </ClCompile>
     <ClCompile Include="..\external\QuickJS\libregexp.c">

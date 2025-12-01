@@ -185,7 +185,7 @@ void LanguageSettings::SyncPropertiesFollowingLanguageChange(const std::string& 
     }
 
 
-    // sync the JavaScript module type, defaulting to autodetect
+    // sync the JavaScript module type, defaulting to global
     if( m_languageType == LanguageType::JavaScript )
     {
         // CODE_TODO for JavaScript files, can look at the application file to see if the file is a module
@@ -196,7 +196,7 @@ void LanguageSettings::SyncPropertiesFollowingLanguageChange(const std::string& 
             if( !m_javascriptModuleType.has_value() )
             {
                 m_javascriptModuleType =  Path::ExtensionMatches(file_path, FileExtensions::JavaScriptModule) ? ID_RUN_JAVASCRIPT_MODULE_MODULE :
-                                                                                                                ID_RUN_JAVASCRIPT_MODULE_AUTODETECT;
+                                                                                                                ID_RUN_JAVASCRIPT_MODULE_GLOBAL;
             }
         }
     }
@@ -316,9 +316,8 @@ std::string LanguageSettings::GetFileTypeDescription() const
     else if( m_javascriptModuleType.has_value() )
     {
         ASSERT(m_languageType == LanguageType::JavaScript);
-        description.append(FormatText(" (%s)", ( *m_javascriptModuleType == ID_RUN_JAVASCRIPT_MODULE_AUTODETECT ) ? "Autodetect" :
-                                               ( *m_javascriptModuleType == ID_RUN_JAVASCRIPT_MODULE_GLOBAL )     ? "Global" :
-                                                                                                                    "Module"));
+        description.append(FormatText(" (%s)", ( *m_javascriptModuleType == ID_RUN_JAVASCRIPT_MODULE_GLOBAL ) ? "Global" :
+                                                                                                                "Module"));
     }
 
     return description;

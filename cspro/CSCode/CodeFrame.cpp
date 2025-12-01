@@ -47,8 +47,8 @@ BEGIN_MESSAGE_MAP(CodeFrame, CMDIChildWndEx)
     ON_COMMAND_RANGE(ID_RUN_CSPRO_SPEC_FILE_APP, ID_RUN_CSPRO_SPEC_FILE_XL2CS, OnRunSpecFileType)
     ON_UPDATE_COMMAND_UI_RANGE(ID_RUN_CSPRO_SPEC_FILE_APP, ID_RUN_CSPRO_SPEC_FILE_XL2CS, OnUpdateRunSpecFileType)
 
-    ON_COMMAND_RANGE(ID_RUN_JAVASCRIPT_MODULE_AUTODETECT, ID_RUN_JAVASCRIPT_MODULE_MODULE, OnRunJavaScriptModuleType)
-    ON_UPDATE_COMMAND_UI_RANGE(ID_RUN_JAVASCRIPT_MODULE_AUTODETECT, ID_RUN_JAVASCRIPT_MODULE_MODULE, OnUpdateRunJavaScriptModuleType)
+    ON_COMMAND_RANGE(ID_RUN_JAVASCRIPT_MODULE_GLOBAL, ID_RUN_JAVASCRIPT_MODULE_MODULE, OnRunJavaScriptModuleType)
+    ON_UPDATE_COMMAND_UI_RANGE(ID_RUN_JAVASCRIPT_MODULE_GLOBAL, ID_RUN_JAVASCRIPT_MODULE_MODULE, OnUpdateRunJavaScriptModuleType)
 
     ON_COMMAND(ID_RUN_SAVE_AS_HTML, OnRunSaveAsHtml)
 
@@ -375,7 +375,6 @@ void CodeFrame::PopulateRunMenu(CMenu& popup_menu)
     {
         static const std::vector<std::tuple<unsigned, std::wstring>> module_texts =
         {
-            dynamic_menu_builder.GetIdAndMenuText(ID_RUN_JAVASCRIPT_MODULE_AUTODETECT),
             dynamic_menu_builder.GetIdAndMenuText(ID_RUN_JAVASCRIPT_MODULE_GLOBAL),
             dynamic_menu_builder.GetIdAndMenuText(ID_RUN_JAVASCRIPT_MODULE_MODULE),
         };
