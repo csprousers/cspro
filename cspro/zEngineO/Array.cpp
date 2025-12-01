@@ -1131,7 +1131,7 @@ std::vector<size_t> LogicArray::GetJavaScriptArrayDimensions(JavaScript::Executo
             // adjust the current dimension to fit all possible values,
             // accounting for one-based indices
             size_t& current_dimension_size = dimensions[dimension_index_modifying];
-            current_dimension_size = std::max(current_dimension_size, array_size + 1);
+            current_dimension_size = std::max<size_t>(current_dimension_size, array_size + 1);
 
             // iterate through subarrays
             if( ( dimension_index_modifying + 1 ) < num_dimensions )

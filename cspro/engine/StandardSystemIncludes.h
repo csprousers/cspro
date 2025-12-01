@@ -195,6 +195,7 @@ class JsonWriter;
 class Serializer;
 
 
+#include <engine/x64_transition.h>
 #include <zToolsO/assert_cast.h>
 #include <zToolsO/BinaryBlock.h>
 #include <zToolsO/CSProException.h>

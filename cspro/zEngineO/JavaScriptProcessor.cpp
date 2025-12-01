@@ -411,14 +411,14 @@ void EngineJavaScriptProcessor::CompiledApplicationModuleLoaderHelper::CompileSc
 
     try
     {
-        bytecode_data.bytecode = m_javascriptProcessor.m_executor->CompileScript(bytecode_data.script.GetString(), bytecode_data.module_type);
+        bytecode_data.bytecode = m_javascriptProcessor.m_executor->CompileScript(bytecode_data.script.GetString(), bytecode_data.module_type,
+                                                                                 bytecode_data.file_path);
     }
 
     catch( const CSProException& exception )
     {
         throw ApplicationLoadException("The compiled application could not be loaded due to an error recompiling JavaScript "
                                        "for this platform: %s", exception.what());
-
     }
 }
 
@@ -613,7 +613,7 @@ bool EngineJavaScriptProcessor::ArgumentEvaluator::ConstructSymbolInPlace(const 
 
 std::shared_ptr<Symbol> EngineJavaScriptProcessor::ArgumentEvaluator::GetSymbol(const size_t parameter_number)
 {
-    // for parameter symbols that cannot be used (in ConstructSymbolInPlace), we construct new symbols here    
+    // for parameter symbols that cannot be used (in ConstructSymbolInPlace), we construct new symbols here
     const Symbol& base_parameter_symbol = m_userFunction.GetParameterSymbol(parameter_number);
     std::unique_ptr<Symbol> argument_symbol = base_parameter_symbol.CloneInInitialState();
 

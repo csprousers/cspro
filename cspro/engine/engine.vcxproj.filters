@@ -251,6 +251,9 @@
     <ClInclude Include="VTStruct.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="x64_transition.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Break.cpp">

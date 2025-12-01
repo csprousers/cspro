@@ -98,11 +98,16 @@ private:
     QuickJSAccess* m_qjs;
 
     // wraps JSValue
-#if ( INTPTR_MAX >= INT64_MAX ) && !defined(_CONSOLE)
-    __int128 m_value;
+#if !defined(X64_BUILD)
+    using ValueT = uint64_t;
+#elif defined(WIN32)
+    using ValueT = std::tuple<uint64_t, uint64_t>;
 #else
-    uint64_t m_value;
+    using ValueT = __int128;
 #endif
+
+    ValueT m_value;
+    static_assert(sizeof(m_value) == ( 2 * sizeof(size_t) ));
 };
 
 
