@@ -1,28 +1,19 @@
-#include "stdafx.h"
+﻿#include "stdafx.h"
 #include "Main.h"
 #include <zToolsO/DirectoryLister.h>
 #include <zToolsO/Tools.h>
 #include <zToolsO/VectorHelpers.h>
 
 
-std::string MessageLoader::GetCSProDevelopmentDirectory()
-{
-    auto module_file_name = std::make_unique_for_overwrite<wchar_t[]>(_MAX_PATH);
-    GetModuleFileName(nullptr, module_file_name.get(), _MAX_PATH);
-
-    return MakeFullPath(PortableFunctions::PathGetDirectory(TC::ToUtf8(module_file_name.get())), 
-                        "..\\..\\..\\cspro\\");
-}
-
-
 std::vector<std::string> MessageLoader::GetMessageFilePaths(const bool include_designer_messages)
 {
+    const std::string cspro_solution_directory = MakeFullPath(PortableFunctions::PathGetDirectory(__FILE__), "..\\..\\cspro");
     std::vector<std::string> message_file_paths;
 
     auto add_messages = [&](const std::string_view file_spec_sv)
     {
         VectorHelpers::Append(message_file_paths, DirectoryLister().SetNameFilter(file_spec_sv)
-                                                                   .GetPaths(GetCSProDevelopmentDirectory()));
+                                                                   .GetPaths(cspro_solution_directory));
     };
 
     if( include_designer_messages )

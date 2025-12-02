@@ -22,6 +22,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Resource ID Numberer", "Res
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Project File Manager", "Project File Manager\Project File Manager.vcxproj", "{1E323209-A098-4688-8A2D-8C60DB1963C1}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zMessageO", "..\cspro\zMessageO\zMessageO.vcxproj", "{4B7117AC-94A3-429E-BC5E-A59FBB34051E}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Messages Processor", "Messages Processor\Messages Processor.vcxproj", "{950EBAF2-8A41-4D60-9A26-CB6BA506A56A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -41,6 +45,10 @@ Global
 		{7BE1BA82-8D4D-486B-9FB7-7647B2D2E09F}.Debug|x64.Build.0 = Debug|x64
 		{1E323209-A098-4688-8A2D-8C60DB1963C1}.Debug|x64.ActiveCfg = Debug|x64
 		{1E323209-A098-4688-8A2D-8C60DB1963C1}.Debug|x64.Build.0 = Debug|x64
+		{4B7117AC-94A3-429E-BC5E-A59FBB34051E}.Debug|x64.ActiveCfg = Debug|x64
+		{4B7117AC-94A3-429E-BC5E-A59FBB34051E}.Debug|x64.Build.0 = Debug|x64
+		{950EBAF2-8A41-4D60-9A26-CB6BA506A56A}.Debug|x64.ActiveCfg = Debug|x64
+		{950EBAF2-8A41-4D60-9A26-CB6BA506A56A}.Debug|x64.Build.0 = Debug|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

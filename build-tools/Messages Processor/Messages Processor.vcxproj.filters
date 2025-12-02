@@ -11,14 +11,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="..\..\..\cspro\debug\bin\zToolsO.dll" />
-    <CustomBuild Include="..\..\..\cspro\debug\bin\zSql.dll" />
-    <CustomBuild Include="..\..\..\cspro\debug\bin\zUtilO.dll" />
-    <CustomBuild Include="..\..\..\cspro\debug\bin\zJson.dll" />
-    <CustomBuild Include="..\..\..\cspro\debug\bin\zAppO.dll" />
-    <CustomBuild Include="..\..\..\cspro\debug\bin\zMessageO.dll" />
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="Main.h">
       <Filter>Header Files</Filter>
     </ClInclude>
