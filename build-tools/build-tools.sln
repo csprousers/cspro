@@ -18,6 +18,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zUtilO", "..\cspro\zUtilO\z
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Generate Combined License", "Licenses\Generate Combined License\Generate Combined License.vcxproj", "{136E9F86-E8BC-4B65-9977-269D351BC8F6}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Resource ID Numberer", "Resource ID Numberer\Resource ID Numberer\Resource ID Numberer.vcxproj", "{7BE1BA82-8D4D-486B-9FB7-7647B2D2E09F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -33,6 +35,8 @@ Global
 		{9B29CB57-8263-4E12-8908-CC9641FDF0DC}.Debug|x64.Build.0 = Debug|x64
 		{136E9F86-E8BC-4B65-9977-269D351BC8F6}.Debug|x64.ActiveCfg = Debug|x64
 		{136E9F86-E8BC-4B65-9977-269D351BC8F6}.Debug|x64.Build.0 = Debug|x64
+		{7BE1BA82-8D4D-486B-9FB7-7647B2D2E09F}.Debug|x64.ActiveCfg = Debug|x64
+		{7BE1BA82-8D4D-486B-9FB7-7647B2D2E09F}.Debug|x64.Build.0 = Debug|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

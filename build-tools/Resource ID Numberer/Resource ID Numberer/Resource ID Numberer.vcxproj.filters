@@ -22,10 +22,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <CopyFileToFolders Include="..\..\..\cspro\$(Configuration)\bin\zJson.dll" />
-    <CopyFileToFolders Include="..\..\..\cspro\$(Configuration)\bin\zToolsO.dll" />
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="Numberer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
