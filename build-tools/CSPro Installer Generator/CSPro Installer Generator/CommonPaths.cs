@@ -31,8 +31,8 @@ namespace CSPro_Installer_Generator
 
             BuildToolsDirectory = Path.Combine(RootDirectory, "build-tools");
             CSProDirectory = Path.Combine(RootDirectory, "cspro");
-            CSProDebugDirectory = Path.Combine(CSProDirectory, @"debug\bin");
-            CSProReleaseDirectory = Path.Combine(CSProDirectory, @"release\bin");
+            CSProDebugDirectory = Path.Combine(CSProDirectory, "build", Build.PlatformTarget, @"Debug\bin");
+            CSProReleaseDirectory = Path.Combine(CSProDirectory, "build", Build.PlatformTarget, @"Release\bin");
             ToolsDirectory = Path.Combine(RootDirectory, "tools");
 
             AndroidAssetsDirectory = Path.Combine(CSProDirectory, @"CSEntryDroid\app\src\main\assets");

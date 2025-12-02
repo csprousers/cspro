@@ -78,6 +78,7 @@ namespace CSPro_Installer_Generator
                     checkBoxBuildCSPro.Checked = ( tr.ReadLine() == "1" );
                     checkBoxBuildTools.Checked = ( tr.ReadLine() == "1" );
                     checkBoxBuildHelps.Checked = ( tr.ReadLine() == "1" );
+                    ( ( tr.ReadLine() == "32" ) ? radioButton32Bit : radioButton64Bit ).Checked = true;
                 }
 
                 AddToLog(LogType.Log, "Successfully loaded settings.", LogExtra.EndSection);
@@ -106,6 +107,7 @@ namespace CSPro_Installer_Generator
                     tw.WriteLine(checkBoxBuildCSPro.Checked ? "1" : "0");
                     tw.WriteLine(checkBoxBuildTools.Checked ? "1" : "0");
                     tw.WriteLine(checkBoxBuildHelps.Checked ? "1" : "0");
+                    tw.WriteLine(radioButton32Bit.Checked ? "32" : "64");
                 }
             }
 
@@ -223,6 +225,8 @@ namespace CSPro_Installer_Generator
 
             if( !File.Exists(textBoxNSIS.Text) )
                 throw new Exception($"Could not find NSIS here: {textBoxNSIS.Text}");
+
+            Build.Is32Bit = radioButton32Bit.Checked;
 
             Inputs inputs = new Inputs(_commonPaths);
 
@@ -386,10 +390,10 @@ namespace CSPro_Installer_Generator
         }
 
 
-        private void SetupPaths()
+        private void SetUpPaths()
         {
             // set up the paths
-            _installerExe = Path.Combine(_commonPaths.InstallerDirectory, $"Installer\\cspro{_versionMajor}{_versionMinor}.exe");
+            _installerExe = Path.Combine(_commonPaths.InstallerDirectory, $"Installer\\cspro{_versionMajor}{_versionMinor}{( Build.Is32Bit ? "" : "-x64" )}.exe");
 
             _componentsDirectory = Path.Combine(_commonPaths.InstallerDirectory, "Components");
             _componentsExamplesDirectory = Path.Combine(_componentsDirectory, "Examples");
@@ -407,7 +411,7 @@ namespace CSPro_Installer_Generator
             {
                 DateTime start_time = DateTime.Now;
 
-                SetupPaths();
+                SetUpPaths();
 
                 CleanComponents();
 
@@ -577,8 +581,11 @@ namespace CSPro_Installer_Generator
 
             int files = 0;
 
-            foreach( string redistributable in File.ReadAllLines(Path.Combine(_commonPaths.InstallerDirectory, "redistributables.txt")) )
+            foreach( string redistributable_with_wildcards in File.ReadAllLines(Path.Combine(_commonPaths.InstallerDirectory, "redistributables.txt")) )
             {
+                // get the right redistributables for the target architecture
+                string redistributable = redistributable_with_wildcards.Replace("{PlatformTarget}", Build.PlatformTarget);
+
                 // a pipe character allows for multiple paths to be specified as options
                 string[] redistributable_options = redistributable.Split(new char[] { '|' });
 
@@ -643,12 +650,6 @@ namespace CSPro_Installer_Generator
         }
 
 
-        private string GetBuildArguments(bool rebuild, bool release)
-        {
-            return $"/p:Configuration={( release ? "Release" : "Debug" )} /t:{( rebuild ? "Clean," : "" )}Build";
-        }
-
-
         private void BuildTools(Inputs inputs, bool build_tools, bool copy_tools, bool rebuild)
         {
             const string build_type = "tool";
@@ -662,22 +663,16 @@ namespace CSPro_Installer_Generator
 
             foreach( Inputs.Tool tool in inputs.Tools )
             {
-                string base_directory = _commonPaths.ToolsDirectory;
+                string solution = Path.Combine(_commonPaths.ToolsDirectory, tool.directory, $"{tool.solution}.sln");
+                var build = new Build(textBoxMSBuild.Text, solution, true);
 
                 if( build_tools )
                 {
-                    string solution = Path.Combine(base_directory, tool.directory, $"{tool.solution}.sln");
-                    string build_arguments = GetBuildArguments(rebuild, true);
-
                     AddToLog(LogType.Log, $"Building {tool.solution}...", LogExtra.InSection);
-
-                    var process = new Process();
-                    process.StartInfo = new ProcessStartInfo(textBoxMSBuild.Text, $"\"{solution}\" {build_arguments}");
-                    process.Start();
-                    process.WaitForExit();
+                    build.Run(rebuild);
                 }
 
-                string exe = Path.Combine(base_directory, tool.directory, tool.solution, @"bin\Release", $"{tool.solution}.exe");
+                string exe = build.GetExecutableFilePath(tool.solution);
 
                 if( !File.Exists(exe) )
                     throw new Exception($"The {build_type} {tool.solution} was not created successfully.");
@@ -785,6 +780,7 @@ namespace CSPro_Installer_Generator
                 tw.WriteLine($"!define VERSIONMAJOR {_versionMajor}");
                 tw.WriteLine($"!define VERSIONMINOR {_versionMinor}");
                 tw.WriteLine($"!define VERSIONBUILD {_versionBuild}");
+                tw.WriteLine($"!define IS_WIN32 {( Build.Is32Bit ? "1" : "0" )}");
                 tw.WriteLine($"!define ISBETA {( _beta ? "1" : "0" )}");
                 tw.WriteLine($"!define DATE \"{_releaseDate.ToString("dd MMMM yyyy")}\"");
                 tw.WriteLine($"OutFile \"{_installerExe}\"");
@@ -813,25 +809,20 @@ namespace CSPro_Installer_Generator
             if( copy_cspro )
                 Directory.CreateDirectory(_componentsReleaseDirectory);
 
+            string solution = Path.Combine(_commonPaths.CSProDirectory, "cspro.sln");
+            var build = new Build(textBoxMSBuild.Text, solution, release);
+
             if( build_cspro )
             {
-                string solution = Path.Combine(_commonPaths.CSProDirectory, "cspro.sln");
-                string build_arguments = GetBuildArguments(rebuild, release);
-
                 AddToLog(LogType.Log, "Building the solution...", LogExtra.InSection);
-
-                var process = new Process();
-                process.StartInfo = new ProcessStartInfo(textBoxMSBuild.Text, $"\"{solution}\" {build_arguments}");
-                process.Start();
-                process.WaitForExit();
+                build.Run(rebuild);
             }
 
             int files = 0;
-            string base_directory = release ? _commonPaths.CSProReleaseDirectory : _commonPaths.CSProDebugDirectory;
 
             foreach( string bin in inputs.Bin )
             {
-                string release_file = Path.Combine(base_directory, bin);
+                string release_file = build.GetBuiltFilePath(bin);
 
                 if( !File.Exists(release_file) )
                     throw new Exception($"The file {Path.GetFileName(release_file)} was not created successfully.");
@@ -900,7 +891,7 @@ namespace CSPro_Installer_Generator
 
                 ReadVersionInformation();
 
-                SetupPaths();
+                SetUpPaths();
 
                 CleanComponents();
 
@@ -968,7 +959,7 @@ namespace CSPro_Installer_Generator
                 Inputs inputs = CheckInputs();
 
                 // create the debug build of CSPro
-                string csentry_exe = Path.Combine(_commonPaths.CSProDirectory, @"debug\bin\CSEntry.exe");
+                string csentry_exe = Path.Combine(_commonPaths.CSProDebugDirectory, "CSEntry.exe");
 
                 try
                 {

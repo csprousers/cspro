@@ -30,6 +30,10 @@
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.panel1 = new System.Windows.Forms.Panel();
+            this.radioButton64Bit = new System.Windows.Forms.RadioButton();
+            this.label14 = new System.Windows.Forms.Label();
+            this.radioButton32Bit = new System.Windows.Forms.RadioButton();
             this.label4 = new System.Windows.Forms.Label();
             this.textBoxGitHubPAT = new System.Windows.Forms.TextBox();
             this.textBoxBranchHelps = new System.Windows.Forms.TextBox();
@@ -76,6 +80,7 @@
             this.label12 = new System.Windows.Forms.Label();
             this.comboBoxBuildActions = new System.Windows.Forms.ComboBox();
             this.groupBox1.SuspendLayout();
+            this.panel1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.groupBox3.SuspendLayout();
             this.groupBox4.SuspendLayout();
@@ -87,6 +92,7 @@
             // 
             // groupBox1
             // 
+            this.groupBox1.Controls.Add(this.panel1);
             this.groupBox1.Controls.Add(this.label4);
             this.groupBox1.Controls.Add(this.textBoxGitHubPAT);
             this.groupBox1.Controls.Add(this.textBoxBranchHelps);
@@ -104,10 +110,51 @@
             this.groupBox1.Controls.Add(this.label2);
             this.groupBox1.Location = new System.Drawing.Point(12, 12);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(524, 211);
+            this.groupBox1.Size = new System.Drawing.Size(524, 244);
             this.groupBox1.TabIndex = 6;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Inputs";
+            // 
+            // panel1
+            // 
+            this.panel1.Controls.Add(this.radioButton64Bit);
+            this.panel1.Controls.Add(this.label14);
+            this.panel1.Controls.Add(this.radioButton32Bit);
+            this.panel1.Location = new System.Drawing.Point(19, 208);
+            this.panel1.Name = "panel1";
+            this.panel1.Size = new System.Drawing.Size(423, 19);
+            this.panel1.TabIndex = 20;
+            // 
+            // radioButton64Bit
+            // 
+            this.radioButton64Bit.AutoSize = true;
+            this.radioButton64Bit.Location = new System.Drawing.Point(199, -2);
+            this.radioButton64Bit.Name = "radioButton64Bit";
+            this.radioButton64Bit.Size = new System.Drawing.Size(51, 17);
+            this.radioButton64Bit.TabIndex = 19;
+            this.radioButton64Bit.Text = "64-bit";
+            this.radioButton64Bit.UseVisualStyleBackColor = true;
+            // 
+            // label14
+            // 
+            this.label14.AutoSize = true;
+            this.label14.Location = new System.Drawing.Point(-3, 0);
+            this.label14.Name = "label14";
+            this.label14.Size = new System.Drawing.Size(64, 13);
+            this.label14.TabIndex = 17;
+            this.label14.Text = "Architecture";
+            // 
+            // radioButton32Bit
+            // 
+            this.radioButton32Bit.AutoSize = true;
+            this.radioButton32Bit.Checked = true;
+            this.radioButton32Bit.Location = new System.Drawing.Point(132, -2);
+            this.radioButton32Bit.Name = "radioButton32Bit";
+            this.radioButton32Bit.Size = new System.Drawing.Size(51, 17);
+            this.radioButton32Bit.TabIndex = 18;
+            this.radioButton32Bit.TabStop = true;
+            this.radioButton32Bit.Text = "32-bit";
+            this.radioButton32Bit.UseVisualStyleBackColor = true;
             // 
             // label4
             // 
@@ -599,6 +646,8 @@
             this.Load += new System.EventHandler(this.MainForm_Load);
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
+            this.panel1.ResumeLayout(false);
+            this.panel1.PerformLayout();
             this.groupBox2.ResumeLayout(false);
             this.groupBox2.PerformLayout();
             this.groupBox3.ResumeLayout(false);
@@ -665,6 +714,10 @@
         private System.Windows.Forms.TextBox textBoxGitHubPAT;
         private System.Windows.Forms.ComboBox comboBoxZipActions;
         private System.Windows.Forms.Label label5;
+        private System.Windows.Forms.Panel panel1;
+        private System.Windows.Forms.RadioButton radioButton64Bit;
+        private System.Windows.Forms.RadioButton radioButton32Bit;
+        private System.Windows.Forms.Label label14;
     }
 }
 
