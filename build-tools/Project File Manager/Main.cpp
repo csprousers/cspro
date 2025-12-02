@@ -26,8 +26,8 @@ int wmain(const int argc, const wchar_t* const argv[])
 {
     try
     {
-        const std::string solution_directory = ( argc == 2 ) ? MakeFullPath(UTF8_TODO::GetUtf8(GetWorkingFolder()), TC::ToUtf8(argv[1])) :
-                                                               MakeFullPath(CSProExecutables::GetModuleDirectory(), "..\\..\\..\\");
+        const std::string solution_directory = ( argc == 2 ) ? MakeFullPath(GetWorkingDirectory(), TC::ToUtf8(argv[1])) :
+                                                               MakeFullPath(PortableFunctions::PathGetDirectory(__FILE__), "..\\..\\cspro");
 
         if( !PortableFunctions::FileIsDirectory(solution_directory) )
             throw CSProException("The solution directory does not exist: " + solution_directory);
