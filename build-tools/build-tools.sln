@@ -1,0 +1,43 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 18
+VisualStudioVersion = 18.0.11217.181
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{5CF05088-C7EC-4D59-9D52-342F096BD187}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zToolsO", "..\cspro\zToolsO\zToolsO.vcxproj", "{FB0E28EC-927D-41D0-996C-01C21A7A346B}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zSql", "..\cspro\zSql\zSql.vcxproj", "{D20EDED4-35E5-465C-A43E-746F632D4EAF}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zJson", "..\cspro\zJson\zJson.vcxproj", "{44A4FE38-CA5A-487C-A227-4BE1EBD4874D}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zUtilO", "..\cspro\zUtilO\zUtilO.vcxproj", "{9B29CB57-8263-4E12-8908-CC9641FDF0DC}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Generate Combined License", "Licenses\Generate Combined License\Generate Combined License.vcxproj", "{136E9F86-E8BC-4B65-9977-269D351BC8F6}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FB0E28EC-927D-41D0-996C-01C21A7A346B}.Debug|x64.ActiveCfg = Debug|x64
+		{FB0E28EC-927D-41D0-996C-01C21A7A346B}.Debug|x64.Build.0 = Debug|x64
+		{D20EDED4-35E5-465C-A43E-746F632D4EAF}.Debug|x64.ActiveCfg = Debug|x64
+		{D20EDED4-35E5-465C-A43E-746F632D4EAF}.Debug|x64.Build.0 = Debug|x64
+		{44A4FE38-CA5A-487C-A227-4BE1EBD4874D}.Debug|x64.ActiveCfg = Debug|x64
+		{44A4FE38-CA5A-487C-A227-4BE1EBD4874D}.Debug|x64.Build.0 = Debug|x64
+		{9B29CB57-8263-4E12-8908-CC9641FDF0DC}.Debug|x64.ActiveCfg = Debug|x64
+		{9B29CB57-8263-4E12-8908-CC9641FDF0DC}.Debug|x64.Build.0 = Debug|x64
+		{136E9F86-E8BC-4B65-9977-269D351BC8F6}.Debug|x64.ActiveCfg = Debug|x64
+		{136E9F86-E8BC-4B65-9977-269D351BC8F6}.Debug|x64.Build.0 = Debug|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {9184DAA8-07AF-4346-B069-EB6241FCCEAF}
+	EndGlobalSection
+EndGlobal

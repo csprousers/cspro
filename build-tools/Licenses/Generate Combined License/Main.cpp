@@ -1,11 +1,10 @@
-﻿#define WIN_DESKTOP
-#include <engine/StandardSystemIncludes.h>
+﻿#include <engine/StandardSystemIncludes.h>
 #include <engine/StrictCompilerErrors.h>
+#include <engine/x64_transition_strict.h>
 #include <zToolsO/FileIO.h>
 #include <zToolsO/Tools.h>
 #include <zToolsO/Utf8.h>
 #include <zJson/Json.h>
-#include <zUtilO/CSProExecutables.h>
 #include <zHtml/HtmlWriter.h>
 
 
@@ -84,7 +83,7 @@ int wmain()
 
 void LicenseGenerator::Generate()
 {
-    m_inputsDirectory = MakeFullPath(CSProExecutables::GetModuleDirectory(), "..\\..\\");
+    m_inputsDirectory = MakeFullPath(PortableFunctions::PathGetDirectory(__FILE__), "..\\");
     m_licensesDirectory = Path::Combine(m_inputsDirectory, "Licenses");
 
     // path overrides come from the CSPro Users Website Builder
