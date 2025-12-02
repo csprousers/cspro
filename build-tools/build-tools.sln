@@ -32,6 +32,14 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zLogicO", "..\cspro\zLogicO
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Action Invoker Definition Updater", "Action Invoker Definition Updater\Action Invoker Definition Updater.vcxproj", "{FEC7FFEC-B20F-4ADC-9D6B-CEAA82F844AB}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zZip", "..\cspro\zZip\zZip.vcxproj", "{BDE6D79F-D295-48BA-8E8C-E2AB1EDA0646}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zHtml", "..\cspro\zHtml\zHtml.vcxproj", "{5F74A167-59D5-48A7-A54C-1964BD5543C2}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zUtilF", "..\cspro\zUtilF\zUtilF.vcxproj", "{40427473-971C-41EE-ADEB-23795522E112}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CSProUsersWebsiteBuilder", "CSPro Users Website Builder\CSProUsersWebsiteBuilder.vcxproj", "{E8E3C360-2D0C-403A-AD8B-26B0905EF76D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -61,6 +69,14 @@ Global
 		{BC0D77B3-18EF-4554-A94F-650AF6F7C87C}.Debug|x64.Build.0 = Debug|x64
 		{FEC7FFEC-B20F-4ADC-9D6B-CEAA82F844AB}.Debug|x64.ActiveCfg = Debug|x64
 		{FEC7FFEC-B20F-4ADC-9D6B-CEAA82F844AB}.Debug|x64.Build.0 = Debug|x64
+		{BDE6D79F-D295-48BA-8E8C-E2AB1EDA0646}.Debug|x64.ActiveCfg = Debug|x64
+		{BDE6D79F-D295-48BA-8E8C-E2AB1EDA0646}.Debug|x64.Build.0 = Debug|x64
+		{5F74A167-59D5-48A7-A54C-1964BD5543C2}.Debug|x64.ActiveCfg = Debug|x64
+		{5F74A167-59D5-48A7-A54C-1964BD5543C2}.Debug|x64.Build.0 = Debug|x64
+		{40427473-971C-41EE-ADEB-23795522E112}.Debug|x64.ActiveCfg = Debug|x64
+		{40427473-971C-41EE-ADEB-23795522E112}.Debug|x64.Build.0 = Debug|x64
+		{E8E3C360-2D0C-403A-AD8B-26B0905EF76D}.Debug|x64.ActiveCfg = Debug|x64
+		{E8E3C360-2D0C-403A-AD8B-26B0905EF76D}.Debug|x64.Build.0 = Debug|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

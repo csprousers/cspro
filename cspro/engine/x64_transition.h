@@ -24,7 +24,7 @@ constexpr bool IsX64() { return false; }
 template<typename T>
 int int32_cast(const T value)
 {
-    static_assert(sizeof(int) == 4 && std::is_same_v<T, size_t>);
+    static_assert(sizeof(int) == 4 && sizeof(T) == ( IsX64() ? 8 : 4 ));
     ASSERT(value == static_cast<int>(value));
     return static_cast<int>(value);
 }
@@ -33,7 +33,7 @@ int int32_cast(const T value)
 template<typename T>
 unsigned int uint32_cast(const T value)
 {
-    static_assert(sizeof(unsigned int) == 4 && std::is_same_v<T, size_t>);
+    static_assert(sizeof(unsigned int) == 4 && sizeof(T) == ( IsX64() ? 8 : 4 ));
     ASSERT(value == static_cast<unsigned int>(value));
     return static_cast<unsigned int>(value);
 }

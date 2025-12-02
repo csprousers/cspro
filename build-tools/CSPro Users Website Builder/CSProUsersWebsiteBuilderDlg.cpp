@@ -31,7 +31,7 @@ END_MESSAGE_MAP()
 CSProUsersWebsiteBuilderDlg::CSProUsersWebsiteBuilderDlg(CWnd* const pParent/* = nullptr*/)
     :   ResizableDlg(IDD_BUILDER, pParent),
         m_settingsDb("CSProUsersWebsiteBuilder.db"),
-        m_directories{ MakeFullPath(CSProExecutables::GetApplicationDirectory(), "..\\..\\.."),
+        m_directories{ MakeFullPath(PortableFunctions::PathGetDirectory(__FILE__), "..\\.."),
                        m_settingsDb.ReadOrDefault<std::string>(HelpsDirectoryKey_sv),
                        m_settingsDb.ReadOrDefault<std::string>(MobileWorkshopDirectoryKey_sv),
                        m_settingsDb.ReadOrDefault<std::string>(RubyDirectoryKey_sv),
