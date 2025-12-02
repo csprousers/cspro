@@ -1,10 +1,9 @@
-#pragma once
+﻿#pragma once
 
-#define WIN_DESKTOP
 #include <engine/StandardSystemIncludes.h>
 
 
-namespace CSPro 
+namespace CSPro
 {
     int getc(FILE* stream);
     int putc(int ch, FILE* stream);

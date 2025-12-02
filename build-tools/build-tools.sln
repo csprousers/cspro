@@ -26,6 +26,12 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zMessageO", "..\cspro\zMess
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Messages Processor", "Messages Processor\Messages Processor.vcxproj", "{950EBAF2-8A41-4D60-9A26-CB6BA506A56A}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zAppO", "..\cspro\zAppO\zAppO.vcxproj", "{A417C381-2AFD-4889-AE6B-A15E8436DA45}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zLogicO", "..\cspro\zLogicO\zLogicO.vcxproj", "{BC0D77B3-18EF-4554-A94F-650AF6F7C87C}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Action Invoker Definition Updater", "Action Invoker Definition Updater\Action Invoker Definition Updater.vcxproj", "{FEC7FFEC-B20F-4ADC-9D6B-CEAA82F844AB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -49,6 +55,12 @@ Global
 		{4B7117AC-94A3-429E-BC5E-A59FBB34051E}.Debug|x64.Build.0 = Debug|x64
 		{950EBAF2-8A41-4D60-9A26-CB6BA506A56A}.Debug|x64.ActiveCfg = Debug|x64
 		{950EBAF2-8A41-4D60-9A26-CB6BA506A56A}.Debug|x64.Build.0 = Debug|x64
+		{A417C381-2AFD-4889-AE6B-A15E8436DA45}.Debug|x64.ActiveCfg = Debug|x64
+		{A417C381-2AFD-4889-AE6B-A15E8436DA45}.Debug|x64.Build.0 = Debug|x64
+		{BC0D77B3-18EF-4554-A94F-650AF6F7C87C}.Debug|x64.ActiveCfg = Debug|x64
+		{BC0D77B3-18EF-4554-A94F-650AF6F7C87C}.Debug|x64.Build.0 = Debug|x64
+		{FEC7FFEC-B20F-4ADC-9D6B-CEAA82F844AB}.Debug|x64.ActiveCfg = Debug|x64
+		{FEC7FFEC-B20F-4ADC-9D6B-CEAA82F844AB}.Debug|x64.Build.0 = Debug|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
