@@ -4,6 +4,7 @@
 #pragma warning(disable:4800)
 
 #include <engine/StandardSystemIncludes.h>
+// X64_TODO #include <engine/x64_transition_strict.h>
 
 #define HINT_CHANGEFONT        1      // hints OnUpate() to recalc after font changes (in CMainFrame::OnOptionsFont)
 

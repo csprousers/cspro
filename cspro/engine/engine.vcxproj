@@ -224,6 +224,7 @@
     <ClInclude Include="VarX.h" />
     <ClInclude Include="VTStruct.h" />
     <ClInclude Include="x64_transition.h" />
+    <ClInclude Include="x64_transition_strict.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

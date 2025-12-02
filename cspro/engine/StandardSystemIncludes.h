@@ -160,6 +160,7 @@
 #ifdef WIN32
 #pragma warning(error:4005) // macro redefinition
 #pragma warning(error:4150) // deletion of pointer to incomplete type 'type'; no destructor called
+#pragma warning(error:4311) // 'variable' : pointer truncation from 'type' to 'type'
 #pragma warning(error:4840) // non-portable use of class 'type' as an argument to a variadic function
 #endif
 
