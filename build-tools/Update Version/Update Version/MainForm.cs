@@ -44,7 +44,7 @@ namespace UpdateVersion
             try
             {
                 string exe_directory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-                string code_directory = Path.GetFullPath(Path.Combine(exe_directory, @"..\..\..\..\..\cspro"));
+                string code_directory = Path.GetFullPath(Path.Combine(exe_directory, @"..\..\..\..\..\..\cspro"));
                 var code_directory_info = new DirectoryInfo(code_directory);
 
                 if( !code_directory_info.Exists )

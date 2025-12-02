@@ -8,6 +8,10 @@
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
     <ApplicationIcon>Stygitan.ico</ApplicationIcon>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <BaseOutputPath>$(SolutionDir)build\$(PlatformTarget)\$(Configuration)\</BaseOutputPath>
+    <OutputPath>$(BaseOutputPath)bin</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
   </PropertyGroup>
 
   <ItemGroup>

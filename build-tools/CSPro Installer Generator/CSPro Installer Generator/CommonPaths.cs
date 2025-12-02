@@ -17,15 +17,15 @@ namespace CSPro_Installer_Generator
         public string CSProReleaseDirectory { get; private set; }
         public string ToolsDirectory { get; private set; }
 
-		public string[] AssetsDirectories { get; private set; }
-		public string AndroidAssetsDirectory { get; private set; }
+        public string[] AssetsDirectories { get; private set; }
+        public string AndroidAssetsDirectory { get; private set; }
 
 
         public CommonPaths()
         {
             ExeFilename = Assembly.GetExecutingAssembly().Location;
 
-            InstallerDirectory = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(ExeFilename), @"..\..\..\"));
+            InstallerDirectory = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(ExeFilename), @"..\..\..\..\..\"));
 
             RootDirectory = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(InstallerDirectory), @"..\.."));
 
@@ -36,11 +36,11 @@ namespace CSPro_Installer_Generator
             ToolsDirectory = Path.Combine(RootDirectory, "tools");
 
             AndroidAssetsDirectory = Path.Combine(CSProDirectory, @"CSEntryDroid\app\src\main\assets");
-            
-            AssetsDirectories = new string[] 
-            { 
+
+            AssetsDirectories = new string[]
+            {
                 AndroidAssetsDirectory
-                // reenable for WASM --> Path.Combine(CSProDirectory, @"WASM\Assets") 
+                // reenable for WASM --> Path.Combine(CSProDirectory, @"WASM\Assets")
             };
         }
 
