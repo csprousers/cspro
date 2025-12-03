@@ -23,9 +23,11 @@ struct Creator::Data
 Creator::Creator()
     :   m_data(std::make_unique<Data>())
 {
-    m_data->overrides_directory = MakeFullPath(CSProExecutables::GetApplicationDirectory(), "..\\Overrides");
+    const std::string this_source_directory = PortableFunctions::PathGetDirectory(__FILE__);
 
-    const std::string git_directory = MakeFullPath(CSProExecutables::GetApplicationDirectory(), "..\\..\\..\\.git");
+    m_data->overrides_directory = MakeFullPath(this_source_directory, "Overrides");
+
+    const std::string git_directory = MakeFullPath(this_source_directory, "..\\..\\.git");
 
     if( git_repository_open_bare(&m_data->repo, git_directory.c_str()) < 0 )
         ThrowGitException();

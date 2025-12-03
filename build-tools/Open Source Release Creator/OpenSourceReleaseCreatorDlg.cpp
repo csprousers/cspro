@@ -50,6 +50,24 @@ BOOL OpenSourceReleaseCreatorDlg::OnInitDialog()
     try
     {
         m_creator = std::make_unique<Creator>();
+
+        // populate the tags
+        m_tags = m_creator->GetTags();
+
+        for( const Git::Tag& tag : m_tags )
+        {
+            constexpr std::string_view TagPrefix_sv = "refs/tags/";
+
+            std::string_view tag_name_sv = tag.name;
+
+            if( SO::StartsWith(tag_name_sv, TagPrefix_sv) )
+                tag_name_sv.remove_prefix(TagPrefix_sv.length());
+
+            m_tagsComboBox.AddString(TC::ToWide(tag_name_sv).c_str());
+        }
+
+        m_tagsComboBox.AddString(L"Custom");
+        m_tagsComboBox.SetCurSel(m_tagsComboBox.GetCount() - 1);
     }
 
     catch( const CSProException& exception )
@@ -57,24 +75,6 @@ BOOL OpenSourceReleaseCreatorDlg::OnInitDialog()
         ErrorMessage::Display(exception);
         PostQuitMessage(0);
     }
-
-    // populate the tags
-    m_tags = m_creator->GetTags();
-
-    for( const Git::Tag& tag : m_tags )
-    {
-        constexpr std::string_view TagPrefix_sv = "refs/tags/";
-
-        std::string_view tag_name_sv = tag.name;
-
-        if( SO::StartsWith(tag_name_sv, TagPrefix_sv) )
-            tag_name_sv.remove_prefix(TagPrefix_sv.length());
-
-        m_tagsComboBox.AddString(TC::ToWide(tag_name_sv).c_str());
-    }
-
-    m_tagsComboBox.AddString(L"Custom");
-    m_tagsComboBox.SetCurSel(m_tagsComboBox.GetCount() - 1);
 
     return TRUE;
 }

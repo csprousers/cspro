@@ -40,6 +40,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zUtilF", "..\cspro\zUtilF\z
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CSProUsersWebsiteBuilder", "CSPro Users Website Builder\CSProUsersWebsiteBuilder.vcxproj", "{E8E3C360-2D0C-403A-AD8B-26B0905EF76D}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zNetwork", "..\cspro\zNetwork\zNetwork.vcxproj", "{07D7DA9D-03ED-437C-8A1F-CB2E76A3EF6A}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OpenSourceReleaseCreator", "Open Source Release Creator\OpenSourceReleaseCreator.vcxproj", "{6DC25DFA-F0E9-4E2F-88C2-EDB6FE911C67}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -77,6 +81,10 @@ Global
 		{40427473-971C-41EE-ADEB-23795522E112}.Debug|x64.Build.0 = Debug|x64
 		{E8E3C360-2D0C-403A-AD8B-26B0905EF76D}.Debug|x64.ActiveCfg = Debug|x64
 		{E8E3C360-2D0C-403A-AD8B-26B0905EF76D}.Debug|x64.Build.0 = Debug|x64
+		{07D7DA9D-03ED-437C-8A1F-CB2E76A3EF6A}.Debug|x64.ActiveCfg = Debug|x64
+		{07D7DA9D-03ED-437C-8A1F-CB2E76A3EF6A}.Debug|x64.Build.0 = Debug|x64
+		{6DC25DFA-F0E9-4E2F-88C2-EDB6FE911C67}.Debug|x64.ActiveCfg = Debug|x64
+		{6DC25DFA-F0E9-4E2F-88C2-EDB6FE911C67}.Debug|x64.Build.0 = Debug|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
