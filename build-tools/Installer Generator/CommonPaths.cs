@@ -5,8 +5,6 @@ namespace CSPro_Installer_Generator
 {
     class CommonPaths
     {
-        public string ExeFilename { get; private set; }
-
         public string InstallerDirectory { get; private set; }
 
         public string RootDirectory { get; private set; }
@@ -23,13 +21,9 @@ namespace CSPro_Installer_Generator
 
         public CommonPaths()
         {
-            ExeFilename = Assembly.GetExecutingAssembly().Location;
-
-            InstallerDirectory = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(ExeFilename), @"..\..\..\..\..\"));
-
-            RootDirectory = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(InstallerDirectory), @"..\.."));
-
-            BuildToolsDirectory = Path.Combine(RootDirectory, "build-tools");
+            BuildToolsDirectory = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), @"..\..\..\.."));
+            InstallerDirectory = Path.Combine(BuildToolsDirectory, "Installer Inputs");
+            RootDirectory = Path.GetFullPath(Path.Combine(BuildToolsDirectory, ".."));
             CSProDirectory = Path.Combine(RootDirectory, "cspro");
             CSProDebugDirectory = Path.Combine(CSProDirectory, "build", Build.PlatformTarget, @"Debug\bin");
             CSProReleaseDirectory = Path.Combine(CSProDirectory, "build", Build.PlatformTarget, @"Release\bin");

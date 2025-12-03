@@ -50,6 +50,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Update SQLite Encryption Ex
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Toolbar Creator", "Toolbar Creator\Toolbar Creator.csproj", "{26E6C556-F2ED-4DC2-B41B-19777E615EF4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Installer Generator", "Installer Generator\Installer Generator.csproj", "{4916320C-B9BB-4C82-822E-73A95EC8D569}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -97,6 +99,8 @@ Global
 		{641D2930-922C-4FC7-A4E0-50F9160AE70E}.Debug|x64.Build.0 = Debug|x64
 		{26E6C556-F2ED-4DC2-B41B-19777E615EF4}.Debug|x64.ActiveCfg = Debug|x64
 		{26E6C556-F2ED-4DC2-B41B-19777E615EF4}.Debug|x64.Build.0 = Debug|x64
+		{4916320C-B9BB-4C82-822E-73A95EC8D569}.Debug|x64.ActiveCfg = Debug|x64
+		{4916320C-B9BB-4C82-822E-73A95EC8D569}.Debug|x64.Build.0 = Debug|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

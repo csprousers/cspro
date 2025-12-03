@@ -46,9 +46,8 @@ namespace CSPro_Installer_Generator
                 _commonPaths = new CommonPaths();
                 textBoxRoot.Text = _commonPaths.RootDirectory;
 
-                string application_name = Path.GetFileNameWithoutExtension(_commonPaths.ExeFilename);
-                string settings_directory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), application_name);
-                _settingsFilename = Path.Combine(settings_directory, $"{application_name}.txt");
+                string settings_directory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "CSPro");
+                _settingsFilename = Path.Combine(settings_directory, "Installer Generator.txt");
 
                 if( !File.Exists(_settingsFilename) )
                 {
