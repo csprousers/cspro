@@ -5,5 +5,5 @@ if exist %msbuild% goto :start
 set msbuild="C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Current\Bin\MSBuild.exe"
 
 :start
-%msbuild% "build-tools.sln" /p:Configuration=Debug /p:Platform=x64 /t:Build /target:"Messages Processor"
+%msbuild% build-tools.sln /p:Configuration=Debug /p:Platform=x64 /target:"Messages Processor"
 "build\x64\Debug\bin\Messages Processor.exe" format

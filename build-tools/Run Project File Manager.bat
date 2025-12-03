@@ -5,5 +5,5 @@ if exist %msbuild% goto :start
 set msbuild="C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Current\Bin\MSBuild.exe"
 
 :start
-%msbuild% "build-tools.sln" /p:Configuration=Debug /p:Platform=x64 /t:Build /target:"Project File Manager"
+%msbuild% build-tools.sln /p:Configuration=Debug /p:Platform=x64 /target:"Project File Manager"
 "build\x64\Debug\bin\Project File Manager.exe"
