@@ -44,6 +44,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zNetwork", "..\cspro\zNetwo
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OpenSourceReleaseCreator", "Open Source Release Creator\OpenSourceReleaseCreator.vcxproj", "{6DC25DFA-F0E9-4E2F-88C2-EDB6FE911C67}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Update Version", "Update Version\Update Version.csproj", "{47FCCC02-4D56-4CB6-87E5-EA3D1954AB00}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Update SQLite Encryption Extension (SEE)", "Update SQLite Encryption Extension (SEE)\Update SQLite Encryption Extension (SEE).csproj", "{641D2930-922C-4FC7-A4E0-50F9160AE70E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -85,6 +89,10 @@ Global
 		{07D7DA9D-03ED-437C-8A1F-CB2E76A3EF6A}.Debug|x64.Build.0 = Debug|x64
 		{6DC25DFA-F0E9-4E2F-88C2-EDB6FE911C67}.Debug|x64.ActiveCfg = Debug|x64
 		{6DC25DFA-F0E9-4E2F-88C2-EDB6FE911C67}.Debug|x64.Build.0 = Debug|x64
+		{47FCCC02-4D56-4CB6-87E5-EA3D1954AB00}.Debug|x64.ActiveCfg = Debug|x64
+		{47FCCC02-4D56-4CB6-87E5-EA3D1954AB00}.Debug|x64.Build.0 = Debug|x64
+		{641D2930-922C-4FC7-A4E0-50F9160AE70E}.Debug|x64.ActiveCfg = Debug|x64
+		{641D2930-922C-4FC7-A4E0-50F9160AE70E}.Debug|x64.Build.0 = Debug|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
