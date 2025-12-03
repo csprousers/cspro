@@ -72,13 +72,6 @@
 
 #include <afxtempl.h>
 
-#pragma warning(push)
-// temporarily disable warning "declaration of 'identifier' hides class member"
-// that is triggered by gdiplus.h
-#pragma warning(disable:4458)
-#include <gdiplus.h>
-#pragma warning(pop)
-
 #endif // WIN_DESKTOP (MFC includes)
 
 #if defined(WIN32) && !defined(WIN_DESKTOP)
