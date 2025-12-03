@@ -1,66 +1,21 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ItemGroup Label="ProjectConfigurations">
-    <ProjectConfiguration Include="Debug|Win32">
-      <Configuration>Debug</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="Debug|x64">
-      <Configuration>Debug</Configuration>
-      <Platform>x64</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="Release|Win32">
-      <Configuration>Release</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="Release|x64">
-      <Configuration>Release</Configuration>
-      <Platform>x64</Platform>
-    </ProjectConfiguration>
-  </ItemGroup>
+  <Import Project="..\properties\project-configurations.props" />
+  <Import Project="..\properties\project-globals.props" />
   <PropertyGroup Label="Globals">
     <ProjectGuid>{4B7117AC-94A3-429E-BC5E-A59FBB34051E}</ProjectGuid>
-    <RootNamespace>zMessageO</RootNamespace>
     <Keyword>MFCDLLProj</Keyword>
-    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
-  <PropertyGroup Label="CSPro Solution Directory">
-    <CSProDir>$(SolutionDir)</CSProDir>
-    <CSProDir Condition="$(SolutionName)=='build-tools'">$(SolutionDir)..\cspro\</CSProDir>
-  </PropertyGroup>
   <PropertyGroup Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseOfMfc>Dynamic</UseOfMfc>
-    <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v145</PlatformToolset>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)'=='Debug'" Label="Debug Configuration">
-    <UseDebugLibraries>true</UseDebugLibraries>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)'=='Release'" Label="Release Configuration">
-    <UseDebugLibraries>false</UseDebugLibraries>
-    <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
-  <ImportGroup Label="PropertySheets">
-    <Import Project="$(CSProDir)Properties.props" Label="CSPro Properties" />
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-  </ImportGroup>
+  <Import Project="..\properties\project-settings.props" />
   <ItemDefinitionGroup>
     <ClCompile>
-      <AdditionalIncludeDirectories>$(CSProDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ClCompile>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)'=='Debug'">
-    <ClCompile>
-      <PreprocessorDefinitions>WIN_DESKTOP;WIN32;_DEBUG;_WINDOWS;_USRDLL;ZMESSAGEO_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-    </ClCompile>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)'=='Release'">
-    <ClCompile>
-      <PreprocessorDefinitions>WIN_DESKTOP;WIN32;NDEBUG;_WINDOWS;_USRDLL;ZMESSAGEO_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <DebugInformationFormat>None</DebugInformationFormat>
+      <PreprocessorDefinitions>ZMESSAGEO_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -95,64 +50,64 @@
     <CustomBuild Include="..\CSProDesigner.mgf">
       <ExcludedFromBuild>false</ExcludedFromBuild>
       <FileType>Document</FileType>
-      <Command >xcopy /D /Y /F /R "%(FullPath)" "$(OutDir)"</Command>
-      <Outputs >$(OutDir)CSProDesigner.mgf</Outputs>
+      <Command>xcopy /D /Y /F /R "%(FullPath)" "$(TargetDir)"</Command>
+      <Outputs>$(TargetDir)CSProDesigner.mgf</Outputs>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\CSProRuntime.en.mgf">
       <ExcludedFromBuild>false</ExcludedFromBuild>
       <FileType>Document</FileType>
-      <Command>xcopy /D /Y /F /R "%(FullPath)" "$(OutDir)"</Command>
-      <Outputs>$(OutDir)CSProRuntime.en.mgf</Outputs>
+      <Command>xcopy /D /Y /F /R "%(FullPath)" "$(TargetDir)"</Command>
+      <Outputs>$(TargetDir)CSProRuntime.en.mgf</Outputs>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\CSProRuntime.es.mgf">
       <ExcludedFromBuild>false</ExcludedFromBuild>
       <FileType>Document</FileType>
-      <Command>xcopy /D /Y /F /R "%(FullPath)" "$(OutDir)"</Command>
-      <Outputs>$(OutDir)CSProRuntime.es.mgf</Outputs>
+      <Command>xcopy /D /Y /F /R "%(FullPath)" "$(TargetDir)"</Command>
+      <Outputs>$(TargetDir)CSProRuntime.es.mgf</Outputs>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\CSProRuntime.fr.mgf">
       <ExcludedFromBuild>false</ExcludedFromBuild>
       <FileType>Document</FileType>
-      <Command>xcopy /D /Y /F /R "%(FullPath)" "$(OutDir)"</Command>
-      <Outputs>$(OutDir)CSProRuntime.fr.mgf</Outputs>
+      <Command>xcopy /D /Y /F /R "%(FullPath)" "$(TargetDir)"</Command>
+      <Outputs>$(TargetDir)CSProRuntime.fr.mgf</Outputs>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\CSProRuntime.pt.mgf">
       <ExcludedFromBuild>false</ExcludedFromBuild>
       <FileType>Document</FileType>
-      <Command>xcopy /D /Y /F /R "%(FullPath)" "$(OutDir)"</Command>
-      <Outputs>$(OutDir)CSProRuntime.pt.mgf</Outputs>
+      <Command>xcopy /D /Y /F /R "%(FullPath)" "$(TargetDir)"</Command>
+      <Outputs>$(TargetDir)CSProRuntime.pt.mgf</Outputs>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\CSProRuntime.ru.mgf">
       <ExcludedFromBuild>false</ExcludedFromBuild>
       <FileType>Document</FileType>
-      <Command>xcopy /D /Y /F /R "%(FullPath)" "$(OutDir)"</Command>
-      <Outputs>$(OutDir)CSProRuntime.ru.mgf</Outputs>
+      <Command>xcopy /D /Y /F /R "%(FullPath)" "$(TargetDir)"</Command>
+      <Outputs>$(TargetDir)CSProRuntime.ru.mgf</Outputs>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\CSProRuntime.vi.mgf">
       <ExcludedFromBuild>false</ExcludedFromBuild>
       <FileType>Document</FileType>
-      <Command>xcopy /D /Y /F /R "%(FullPath)" "$(OutDir)"</Command>
-      <Outputs>$(OutDir)CSProRuntime.vi.mgf</Outputs>
+      <Command>xcopy /D /Y /F /R "%(FullPath)" "$(TargetDir)"</Command>
+      <Outputs>$(TargetDir)CSProRuntime.vi.mgf</Outputs>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\CSProRuntime.zh.mgf">
       <ExcludedFromBuild>false</ExcludedFromBuild>
       <FileType>Document</FileType>
-      <Command>xcopy /D /Y /F /R "%(FullPath)" "$(OutDir)"</Command>
-      <Outputs>$(OutDir)CSProRuntime.zh.mgf</Outputs>
+      <Command>xcopy /D /Y /F /R "%(FullPath)" "$(TargetDir)"</Command>
+      <Outputs>$(TargetDir)CSProRuntime.zh.mgf</Outputs>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
