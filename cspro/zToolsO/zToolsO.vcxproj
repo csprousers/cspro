@@ -19,7 +19,7 @@
       <AdditionalIncludeDirectories>$(CSProDir)external;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Platform)'=='Win32'" Label="char -> unsigned char (X64_TODO remove)">
+  <ItemDefinitionGroup Condition="'$(Platform)'=='Win32'" Label="/J means char is treated as unsigned char (X64_TODO remove)">
     <ClCompile>
       <AdditionalOptions> /J</AdditionalOptions>
     </ClCompile>
@@ -98,7 +98,6 @@
     <ClInclude Include="acum.h" />
     <ClInclude Include="ApiKeys.h" />
     <ClInclude Include="ApplicationInterface.h" />
-    <ClInclude Include="assert_cast.h" />
     <ClInclude Include="base64.h" />
     <ClInclude Include="BinaryBlock.h" />
     <ClInclude Include="BinaryGen.h" />

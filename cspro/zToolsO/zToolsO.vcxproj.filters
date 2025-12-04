@@ -199,9 +199,6 @@
     <ClInclude Include="ApplicationInterface.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="assert_cast.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="base64.h">
       <Filter>Header Files</Filter>
     </ClInclude>
