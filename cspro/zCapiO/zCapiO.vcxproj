@@ -1,68 +1,23 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build" ToolsVersion="15.0">
-  <ItemGroup Label="ProjectConfigurations">
-    <ProjectConfiguration Include="Debug|Win32">
-      <Configuration>Debug</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="Release|Win32">
-      <Configuration>Release</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
-  </ItemGroup>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\properties\project-configurations.props" />
+  <Import Project="..\properties\project-globals.props" />
   <PropertyGroup Label="Globals">
     <ProjectGuid>{9CFF378D-0D09-4800-866D-5FAB8DF44FBF}</ProjectGuid>
     <Keyword>MFCProj</Keyword>
-    <ProjectName>zCapiO</ProjectName>
-    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+  <PropertyGroup Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseOfMfc>Dynamic</UseOfMfc>
-    <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v145</PlatformToolset>
-    <UseDebugLibraries>true</UseDebugLibraries>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <UseOfMfc>Dynamic</UseOfMfc>
-    <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v145</PlatformToolset>
-    <UseDebugLibraries>false</UseDebugLibraries>
-    <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
-  <ImportGroup Label="ExtensionSettings">
-  </ImportGroup>
-  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <Import Project="$(SolutionDir)Properties.props" />
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-  </ImportGroup>
-  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <Import Project="$(SolutionDir)Properties.props" />
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-  </ImportGroup>
-  <PropertyGroup Label="UserMacros" />
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+  <Import Project="..\properties\project-settings.props" />
+  <ItemDefinitionGroup>
     <ClCompile>
-      <PreprocessorDefinitions>YAML_CPP_DLL;WIN_DESKTOP;NDEBUG;MSVC;WIN32;_WINDOWS;_AFXEXT;ZCAPIO_IMPL;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir);$(SolutionDir)external;$(SolutionDir)external/yaml-cpp/include</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>ZCAPIO_IMPL;YAML_CPP_DLL;AFXEXT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(CSProDir)external;$(CSProDir)external/yaml-cpp/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
-    <ResourceCompile>
-      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <Culture>0x0409</Culture>
-    </ResourceCompile>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <ClCompile>
-      <PreprocessorDefinitions>YAML_CPP_DLL;WIN_DESKTOP;_DEBUG;MSVC;WIN32;_WINDOWS;_AFXEXT;ZCAPIO_IMPL;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir);$(SolutionDir)external;$(SolutionDir)external/yaml-cpp/include</AdditionalIncludeDirectories>
-    </ClCompile>
-    <ResourceCompile>
-      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <Culture>0x0409</Culture>
-    </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="CapiCondition.cpp" />
@@ -82,8 +37,7 @@
     <ClCompile Include="SelectCtrl.cpp" />
     <ClCompile Include="SelectDlg.cpp" />
     <ClCompile Include="StdAfx.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="zCapiO.cpp" />
   </ItemGroup>
@@ -167,7 +121,7 @@
       <Project>{4b7117ac-94a3-429e-bc5e-a59fbb34051e}</Project>
       <Private>false</Private>
     </ProjectReference>
-    <ProjectReference Include="..\zToolso\zToolsO.vcxproj">
+    <ProjectReference Include="..\zToolsO\zToolsO.vcxproj">
       <Project>{fb0e28ec-927d-41d0-996c-01c21a7a346b}</Project>
       <Private>false</Private>
     </ProjectReference>
@@ -181,11 +135,4 @@
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
-  <ImportGroup Label="ExtensionTargets">
-  </ImportGroup>
-  <ProjectExtensions>
-    <VisualStudio>
-      <UserProperties RESOURCE_FILE="zCapiO.rc" />
-    </VisualStudio>
-  </ProjectExtensions>
 </Project>

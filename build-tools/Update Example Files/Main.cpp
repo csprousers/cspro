@@ -1,4 +1,4 @@
-#include "stdafx.h"
+﻿#include "stdafx.h"
 #include "ExampleFileUpdater.h"
 
 
@@ -24,7 +24,7 @@ int wmain(const int argc, const wchar_t* const argv[])
             GetModuleFileName(nullptr, application_directory.get(), _MAX_PATH);
 
             examples_directory = MakeFullPath(PortableFunctions::PathGetDirectory(TC::ToUtf8(application_directory.get())), 
-                                              "..\\..\\..\\..\\code\\examples");
+                                              "..\\..\\..\\..\\..\\..\\code\\examples");
         }
 
         if( !PortableFunctions::FileIsDirectory(examples_directory) )
