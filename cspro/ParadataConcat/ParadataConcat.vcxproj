@@ -39,6 +39,7 @@
     </ProjectReference>
     <ProjectReference Include="..\zAppO\zAppO.vcxproj">
       <Project>{a417c381-2afd-4889-ae6b-a15e8436da45}</Project>
+      <Private>false</Private>
     </ProjectReference>
     <ProjectReference Include="..\zParadataO\zParadataO.vcxproj">
       <Project>{f067b9e5-0940-4a24-b1dd-29654408f28b}</Project>

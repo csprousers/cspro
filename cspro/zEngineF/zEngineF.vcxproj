@@ -19,11 +19,6 @@
       <AdditionalIncludeDirectories>$(CSProDir)external;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Platform)'=='Win32'" Label="/J means char is treated as unsigned char (X64_TODO remove)">
-    <ClCompile>
-      <AdditionalOptions> /J</AdditionalOptions>
-    </ClCompile>
-  </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="EngineUI.cpp" />
     <ClCompile Include="EngineUIWindows.cpp" />
