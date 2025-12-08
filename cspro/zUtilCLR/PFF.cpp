@@ -101,7 +101,7 @@ CSPro::Util::ConnectionString^ CSPro::Util::PFF::SingleOutputDataConnectionStrin
 array<System::String^>^ CSPro::Util::PFF::ExternalDictionaryNames::get()
 {
     const auto& external_data_connection_strings = m_pff->GetExternalDataConnectionStrings();
-    auto dictionary_names = gcnew array<System::String^>(external_data_connection_strings.size());
+    auto dictionary_names = gcnew array<System::String^>(int32_cast(external_data_connection_strings.size()));
 
     int i = 0;
 

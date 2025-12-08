@@ -45,7 +45,7 @@ void BuildWndReadOnlyEditCtrl::OnLButtonDblClk(const UINT nFlags, const CPoint p
 
     // get the line number and then clear whatever was selected by the double-click
     const Sci_Position nPos = GetCurrentPos();
-    const int build_wnd_line_number_base0 = LineFromPosition(nPos);
+    const int build_wnd_line_number_base0 = int32_cast(LineFromPosition(nPos));
 
     ClearSelections();
 
@@ -170,7 +170,7 @@ void BuildWnd::AddMessage(const CompilerMessageType compiler_message_type, const
     MessageDetails& message_details = m_messageDetails.emplace_back(
         MessageDetails
         {
-            m_editCtrl->GetLineCount() - 1,
+            int32_cast(m_editCtrl->GetLineCount()) - 1,
             line_number_base1 - 1,
             ( file_path != nullptr ) ? *file_path : std::string()
         });

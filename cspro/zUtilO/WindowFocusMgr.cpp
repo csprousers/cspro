@@ -128,7 +128,6 @@ void CWindowFocusMgr::AddWindow(CWnd* pWnd, CWindowFocusSwitcher* pSwitcher)
 
 void CWindowFocusMgr::FindFocusCandidatesRec(CWnd* pWnd, CWindowFocusSwitcher* pSwitcher)
 {
-
     // check for hidden windows (including those whose rects are empty e.g. case tree in full screen mode)
     bool bHidden = false;
     if (!pWnd->IsWindowVisible()) {
@@ -152,7 +151,7 @@ void CWindowFocusMgr::FindFocusCandidatesRec(CWnd* pWnd, CWindowFocusSwitcher* p
     }
 
     CString sOutput;
-    sOutput.Format(_T("%x  %s\n"), (UINT)pWnd->m_hWnd, (LPCTSTR)pWnd->GetRuntimeClass()->m_lpszClassName);
+    sOutput.Format(_T("%p  %s\n"), (LPARAM)pWnd->m_hWnd, (LPCTSTR)pWnd->GetRuntimeClass()->m_lpszClassName);
     OutputDebugString(sOutput);
 
     if (bMatch) {

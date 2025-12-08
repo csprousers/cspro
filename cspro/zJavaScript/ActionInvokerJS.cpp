@@ -189,7 +189,7 @@ void JavaScript::Executor::ActionInvokerJS::AddToGlobalObject(JSContext* const c
         const JSValue js_object = JS_NewObjectClass(ctx, class_details.class_id);
 
         // apply the functions to the object
-        JS_SetPropertyFunctionList(ctx, js_object, class_details.functions.data(), class_details.functions.size());
+        JS_SetPropertyFunctionList(ctx, js_object, class_details.functions.data(), int32_cast(class_details.functions.size()));
 
         // add it the global object or the previously-created CS object
         JS_DefinePropertyValueStr(ctx, js_parent_object, class_details.name, js_object, 0);

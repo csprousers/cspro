@@ -634,7 +634,7 @@ bool CTbdFile::WriteTrailer() {
 
         csBreakName = m_aBreakItem.GetAt(i)->GetName();
 
-        memcpy(tBI.cName, csBreakName, std::min( (unsigned int) TBD_BI_NAMELEN, csBreakName.GetLength() * sizeof(TCHAR) ) );
+        memcpy(tBI.cName, csBreakName, std::min<int>(TBD_BI_NAMELEN, csBreakName.GetLength() * sizeof(TCHAR)));
         write(m_iFd, (void *)&tBI, sizeof(TBD_BI));
     }
 

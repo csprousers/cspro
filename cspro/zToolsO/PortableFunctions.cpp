@@ -653,7 +653,7 @@ std::string PortableFunctions::FileMd5(InterfaceString file_path)
         return std::string();
 
     constexpr size_t BufferSize = 64 * 1024;
-    auto buffer = std::make_unique<char[]>(BufferSize);
+    auto buffer = std::make_unique_for_overwrite<char[]>(BufferSize);
 
     std::string md5_string;
     class Md5Error { };
@@ -663,7 +663,7 @@ std::string PortableFunctions::FileMd5(InterfaceString file_path)
         md5_string = GenerateMd5([&](MD5_CTX& ctx) -> bool
         {
             const size_t bytes_read = fread(buffer.get(), 1, BufferSize, file);
-            MD5_Update(&ctx, buffer.get(), bytes_read);
+            MD5_Update(&ctx, buffer.get(), uint32_cast(bytes_read));
 
             if( ferror(file) )
                 throw Md5Error();
@@ -683,7 +683,7 @@ std::string PortableFunctions::BinaryMd5(const std::byte* const contents, const 
 {
     return GenerateMd5([&](MD5_CTX& ctx) -> bool
     {
-        MD5_Update(&ctx, contents, size);
+        MD5_Update(&ctx, contents, uint32_cast(size));
         return false;
     });
 }
@@ -805,12 +805,12 @@ T PortableFunctions::PathGetDirectory(const wstring_view path_sv)
 
     if( path_length != 0 )
     {
-        const TCHAR* path_itr = path_sv.data() + path_length - 1;
+        const wchar_t* path_itr = path_sv.data() + path_length - 1;
 
         do
         {
             if( Path::IsSlashChar(*path_itr) )
-                return T(path_sv.data(), path_length);
+                return T(path_sv.data(), string_len_cast<T>(path_length));
 
              --path_length;
              --path_itr;
@@ -877,7 +877,7 @@ T PortableFunctions::PathAppendFileExtension(T filename, const wstring_view exte
             if( extension_sv.front() != '.' )
                 filename.AppendChar('.');
 
-            filename.Append(extension_sv.data(), extension_sv.length());
+            filename.Append(extension_sv.data(), int32_cast(extension_sv.length()));
         }
     }
 
@@ -970,7 +970,7 @@ T PortableFunctions::PathAppendToPath(T path, wstring_view append_text_sv, const
             path.AppendChar(separator);
         }
 
-        path.Append(append_text_sv.data(), append_text_sv.length());
+        path.Append(append_text_sv.data(), string_len_cast<T>(append_text_sv.length()));
 
         return path;
     }

@@ -77,7 +77,7 @@ void CCrossTable::MakeSubExpresion( CArray<int,int>& aNodeExpr, int* pCtNodebase
     for( int iDim=0; iDim < iNumDim; iDim++ ) {
         if( aCoordMember[iDim].GetSize() > 0 )
             iNumSubExpresions *= aCoordMember[iDim].GetSize();
-        iMax[iDim] = std::max( 1, aCoordMember[iDim].GetSize() );
+        iMax[iDim] = std::max( 1, (int)aCoordMember[iDim].GetSize() );
     }
 
     //m_aSubExpresion.SetSize( iNumSubExpresions );

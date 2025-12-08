@@ -58,5 +58,5 @@ void SqlLogicFunctions::cspro_timestring(sqlite3_context* const context, const i
 
     const std::string timestring = FormatTimestamp(timestamp, formatter);
 
-    sqlite3_result_text(context, timestring.data(), timestring.length(), SQLITE_TRANSIENT);
+    sqlite3_result_text(context, timestring.data(), int32_cast(timestring.length()), SQLITE_TRANSIENT);
 }

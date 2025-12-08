@@ -121,7 +121,6 @@ LOCAL_SRC_FILES         += $(ZISSALIB_SRC_PATH)/GroupT.cpp
 LOCAL_SRC_FILES         += $(ZISSALIB_SRC_PATH)/GroupT2.cpp
 LOCAL_SRC_FILES         += $(ZISSALIB_SRC_PATH)/GroupVisitor.cpp
 LOCAL_SRC_FILES         += $(ZISSALIB_SRC_PATH)/Labsalo.cpp
-LOCAL_SRC_FILES         += $(ZISSALIB_SRC_PATH)/OccurrenceInfo.cpp
 LOCAL_SRC_FILES         += $(ZISSALIB_SRC_PATH)/OccurrenceInfoSet.cpp
 LOCAL_SRC_FILES         += $(ZISSALIB_SRC_PATH)/OccurrenceVisitor.cpp
 LOCAL_SRC_FILES         += $(ZISSALIB_SRC_PATH)/SecT.cpp

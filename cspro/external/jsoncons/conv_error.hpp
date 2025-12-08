@@ -79,7 +79,7 @@ namespace jsoncons {
 
         int CSPro_get_line_number() const override // CSPro
         { 
-            return line(); 
+            return int32_cast(line()); 
         }
 
         std::size_t column() const noexcept

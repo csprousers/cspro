@@ -11,62 +11,63 @@
 //
 //---------------------------------------------------------------------------
 
+#include <StandardIncludes/minimal.h>
+#include <StandardIncludes/strict_errors.h>
 #include <process.h>
-#include <tchar.h>
-#include <Windows.h>
+#include <windows.h>
 #include <vector>
 
 
-int _tmain(int argc, TCHAR* argv[])
+int wmain(const int argc, const wchar_t* const argv[])
 {
     if( argc <= 1 )
         return 0;
 
-    std::vector<std::vector<TCHAR>> argument_data;
-    std::vector<const TCHAR*> argument_pointers;
+    std::vector<std::vector<wchar_t>> argument_data;
+    std::vector<const wchar_t*> argument_pointers;
 
     for( int i = 1; i < argc; ++i )
     {
-        const TCHAR* this_argument = argv[i];
+        const wchar_t* const this_argument = argv[i];
 
         // check if the argument need to be escaped
-        const TCHAR* EscapeCharacters = _T(" \t\n;,\'\"()[]{}");
+        constexpr const wchar_t* EscapeCharacters = L" \t\n;,\'\"()[]{}";
         bool needs_escaping = false;
 
-        for( const TCHAR* escape_itr = EscapeCharacters; *escape_itr != 0; ++escape_itr )
+        for( const wchar_t* escape_itr = EscapeCharacters; *escape_itr != 0; ++escape_itr )
         {
-            if( _tcschr(this_argument, *escape_itr) != nullptr )
+            if( wcschr(this_argument, *escape_itr) != nullptr )
             {
                 needs_escaping = true;
                 break;
             }
         }
 
-        size_t argument_length = _tcslen(this_argument);
+        const size_t argument_length = wcslen(this_argument);
 
-        auto& argument_data_vector = argument_data.emplace_back(argument_length + 1 + ( needs_escaping ? 2 : 0 ));
-        TCHAR* argument_pointer = argument_data_vector.data();
+        std::vector<wchar_t>& argument_data_vector = argument_data.emplace_back(argument_length + 1 + ( needs_escaping ? 2 : 0 ));
+        wchar_t* argument_pointer = argument_data_vector.data();
         argument_pointers.emplace_back(argument_pointer);
 
         if( needs_escaping )
-            *(argument_pointer++) = _T('"');
+            *(argument_pointer++) = '"';
 
-        _tcscpy(argument_pointer, this_argument);
+        wcscpy(argument_pointer, this_argument);
 
         if( needs_escaping )
-            *(argument_pointer + argument_length) = _T('"');
+            *(argument_pointer + argument_length) = '"';
     }
 
     argument_pointers.emplace_back(nullptr);
 
     // run the program
-    int return_value = _tspawnvp(_P_WAIT, argv[1], argument_pointers.data());
+    const intptr_t return_value = _wspawnvp(_P_WAIT, argv[1], argument_pointers.data());
 
     // refocus the foreground window
-    HWND hWnd = GetForegroundWindow();
+    const HWND hWnd = GetForegroundWindow();
 
     if( hWnd != nullptr )
         ShowWindow(hWnd, SW_RESTORE);
 
-    return return_value;
+    return int32_cast(return_value);
 }

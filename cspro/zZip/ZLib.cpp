@@ -24,7 +24,7 @@ bool ZLib::DeflateInflate(std::istream& in, std::ostream& out)
         return false;
 
     // Empty stream, so do nothing
-    if( inputSize == std::streampos(0) ) 
+    if( inputSize == std::streampos(0) )
         return true;
 
     size_t input_remaining = static_cast<size_t>(inputSize);
@@ -38,7 +38,7 @@ bool ZLib::DeflateInflate(std::istream& in, std::ostream& out)
     stream.next_in = reinterpret_cast<const unsigned char*>(buffer_in.get());
     stream.avail_in = 0;
     stream.next_out = reinterpret_cast<unsigned char*>(buffer_out.get());
-    stream.avail_out = buffer_size;
+    stream.avail_out = uint32_cast(buffer_size);
 
     // initialize compression or decompression
     if constexpr(IsDeflate)
@@ -64,7 +64,7 @@ bool ZLib::DeflateInflate(std::istream& in, std::ostream& out)
                 return false;
 
             stream.next_in = reinterpret_cast<const unsigned char*>(buffer_in.get());
-            stream.avail_in = read_size;
+            stream.avail_in = uint32_cast(read_size);
 
             input_remaining -= read_size;
         }
@@ -88,7 +88,7 @@ bool ZLib::DeflateInflate(std::istream& in, std::ostream& out)
                 return false;
 
             stream.next_out = reinterpret_cast<unsigned char*>(buffer_out.get());
-            stream.avail_out = buffer_size;
+            stream.avail_out = uint32_cast(buffer_size);
         }
 
         if( status == Z_STREAM_END )

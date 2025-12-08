@@ -555,7 +555,7 @@ bool AndroidApplicationInterface::ExecSystemApp(EngineUI::ExecSystemAppNode& exe
 
 std::string AndroidApplicationInterface::GetHtmlDialogsDirectory()
 {
-    return UTF8_TODO::GetUtf8((m_pCoreEngineInterface->GetPifFile()->GetHtmlDialogsDirectory()));
+    return UTF8_TODO::GetUtf8(m_pCoreEngineInterface->GetPifFile()->GetHtmlDialogsDirectory());
 }
 
 

@@ -115,7 +115,8 @@ std::vector<std::string> GetArgumentsFromCommandLineWithCSProUriSupport()
 //
 /////////////////////////////////////////////////////////////////////////////
 
-int IMSASpawnApp(const std::wstring& exe_path, CString csWindow, CString csFileName, BOOL bChild)  {
+void IMSASpawnApp(const std::wstring& exe_path, CString csWindow, CString csFileName, BOOL bChild)
+{
     ASSERT(!exe_path.empty());
 
     if (!PortableFunctions::FileExists(exe_path))  {
@@ -124,10 +125,10 @@ int IMSASpawnApp(const std::wstring& exe_path, CString csWindow, CString csFileN
         csLoad.LoadString(IDS_CANTFINDAPP);
         csMsg.Format(csLoad, exe_path.c_str());
         AfxMessageBox(csMsg,MB_OK|MB_ICONSTOP);
-        return 0;
+        return;
     }
 
-    CString csParm; // GHM 20111213
+    CString csParm; // 20111213
 
     bool bCSProProgramCandidate = !csWindow.IsEmpty();
 
@@ -143,7 +144,7 @@ int IMSASpawnApp(const std::wstring& exe_path, CString csWindow, CString csFileN
         else  {
             pTargetWnd->SendMessage(WM_IMSA_SETFOCUS);
         }
-        return 32;
+        return;
     }
     else  {
         // App is *not* active, launch it!
@@ -162,16 +163,16 @@ int IMSASpawnApp(const std::wstring& exe_path, CString csWindow, CString csFileN
 
         //Savy replaced winexec with ShellExecute for unicode
         //return ::WinExec((char*) csApp, SW_SHOW);
-        int retCode = (int)ShellExecute(NULL, NULL, exe_path.c_str(), csParm, NULL, SW_SHOW);
+        HINSTANCE retCode = ShellExecute(NULL, NULL, exe_path.c_str(), csParm, NULL, SW_SHOW);
 
         if( bCSProProgramCandidate )
         {
             // Savy added this code to wait for the ShellExecute delay in launching an App.
             // We wait a max of 200 milliseconds to check if the process window is launched.
-            if( retCode > 32 )
+            if( retCode > reinterpret_cast<HINSTANCE>(32) )
             {
                 DWORD startTime = GetTickCount();
-                const int MAX_WAIT_TIME = 1000; // GHM 20120809 made a higher number // 200;
+                const int MAX_WAIT_TIME = 1000; // 20120809 made a higher number // 200;
 
                 while( !AfxGetMainWnd()->FindWindow(csWindow,NULL) )
                 {
@@ -180,8 +181,6 @@ int IMSASpawnApp(const std::wstring& exe_path, CString csWindow, CString csFileN
                 }
             }
         }
-
-        return retCode;
     }
 }
 
@@ -220,7 +219,7 @@ BOOL IMSASendMessage(const CString& csWindow, const UINT uMsg, const wstring_vie
         // Create the file-mapping object backed by the system's
         // paging file. The size should match the amount of data
         // we want to transfer to the child process.
-        hFileMap = CreateFileMapping((HANDLE) 0xFFFFFFFF, &sa, PAGE_READWRITE, 0, (param_sv.length()+1)*sizeof(TCHAR), IMSA_SHARED_MEMFILE);
+        hFileMap = CreateFileMapping(INVALID_HANDLE_VALUE, &sa, PAGE_READWRITE, 0, (param_sv.length()+1)*sizeof(TCHAR), IMSA_SHARED_MEMFILE);
         ASSERT(hFileMap != NULL);
 
         // Map a view of the file-mapping object so that we can
@@ -696,7 +695,7 @@ const std::string& Html::GetDirectory()
             // the html directory is copied to the executables folder in a post build event,
             // but in case other DLLs are being worked on that depend on the contents of that folder,
             // use the direct folder while in debug mode
-            return MakeFullPath(CSProExecutables::GetApplicationDirectory(), "..\\..\\html");
+            return MakeFullPath(CSProExecutables::GetApplicationDirectory(), "..\\..\\..\\..\\html");
 #else
             return Path::Combine(CSProExecutables::GetApplicationOrAssetsDirectory(), "html");
 #endif

@@ -64,7 +64,7 @@ BOOL UniverseDlg::PreTranslateMessage(MSG* const pMsg)
     // override Ctrl+T (to toggle the dictionary tree control) and Ctrl+K to compile the univesre
     if( pMsg->message == WM_KEYDOWN && GetKeyState(VK_CONTROL) < 0 )
     {
-        const int key = std::toupper(pMsg->wParam);
+        const int key = std::toupper(int32_cast(pMsg->wParam));
 
         if( key == 'T' )
         {

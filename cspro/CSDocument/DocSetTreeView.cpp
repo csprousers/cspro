@@ -51,7 +51,7 @@ void DocSetTreeView::OnInitialUpdate()
         { DocSetComponent::Type::Document,        IDR_CSDOC_FRAME },
     };
 
-    if( m_imageList.Create(16, 16, ILC_COLOR32, 0, icon_resource_ids.size()) )
+    if( m_imageList.Create(16, 16, ILC_COLOR32, 0, int32_cast(icon_resource_ids.size())) )
     {
         m_imageList.SetBkColor(GetSysColor(COLOR_WINDOW));
 

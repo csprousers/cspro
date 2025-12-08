@@ -282,7 +282,7 @@ void IndexDlg::AddConnectionStrings(const std::vector<ConnectionString>& connect
             auto add = [&](const std::string_view name_sv, const wchar_t* const directory)
             {
                 const int pos = m_fileList.AddItem(TC::ToWide(name_sv).c_str(), directory);
-                m_fileList.SetItemData(pos, m_fileListConnectionStrings.size());
+                m_fileList.SetItemData(pos, uint32_cast(m_fileListConnectionStrings.size()));
                 m_fileListConnectionStrings.emplace_back(std::move(expanded_connection_string));
             };
 

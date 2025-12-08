@@ -33,7 +33,7 @@ void SymbolTable::AddSymbol(std::shared_ptr<Symbol> symbol, const NameMapAdditio
     ASSERT(symbol != nullptr);
 
     // set the index of the symbol to its position in the symbol table
-    symbol->m_symbolIndex = m_symbols.size();
+    symbol->m_symbolIndex = int32_cast(m_symbols.size());
 
     // add the symbol to the symbol table
     m_symbols.emplace_back(symbol);
@@ -59,9 +59,9 @@ void SymbolTable::AddReusableSymbol(std::shared_ptr<Symbol> symbol)
 }
 
 
-void SymbolTable::AddSymbolToNameMap(std::string symbol_name, const size_t symbol_index, const NameMapAddition name_map_addition)
+void SymbolTable::AddSymbolToNameMap(std::string symbol_name, const int symbol_index, const NameMapAddition name_map_addition)
 {
-    ASSERT(!symbol_name.empty() && symbol_index < m_symbols.size());
+    ASSERT(!symbol_name.empty() && symbol_index >= 1 && symbol_index < static_cast<int>(m_symbols.size()));
 
     if( name_map_addition == NameMapAddition::DoNotAdd )
         return;

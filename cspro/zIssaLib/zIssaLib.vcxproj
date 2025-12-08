@@ -80,7 +80,6 @@
     <ClCompile Include="GroupT2.cpp" />
     <ClCompile Include="GroupVisitor.cpp" />
     <ClCompile Include="Labsalo.cpp" />
-    <ClCompile Include="OccurrenceInfo.cpp" />
     <ClCompile Include="OccurrenceInfoSet.cpp" />
     <ClCompile Include="OccurrenceVisitor.cpp" />
     <ClCompile Include="SecT.cpp" />

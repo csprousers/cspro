@@ -52,16 +52,15 @@ namespace Pre77Report
 
         if( !m_mapData.empty() )
         {
-            for( const auto& itr : m_mapData )
+            for( const auto& [attribute, value] : m_mapData )
             {
-                const auto& sValue = itr.second;
                 int iStartingPos = 1; // skip past the {
-                int iEndingPos = sValue.length() - 1; // don't include the }
+                int iEndingPos = value.length() - 1; // don't include the }
 
-                if( sValue[iEndingPos - 1] == '\n' ) // if the JSON is created using the PrettyWriter, it will have a newline
+                if( value[iEndingPos - 1] == '\n' ) // if the JSON is created using the PrettyWriter, it will have a newline
                     iEndingPos--;
 
-                sAllValues = sAllValues + ( sAllValues.empty() ? "\n{" : ",\n" ) + sValue.substr(iStartingPos, iEndingPos - iStartingPos);
+                sAllValues = sAllValues + ( sAllValues.empty() ? "\n{" : ",\n" ) + value.substr(iStartingPos, iEndingPos - iStartingPos);
             }
 
             sAllValues = sAllValues + "\n}\n";

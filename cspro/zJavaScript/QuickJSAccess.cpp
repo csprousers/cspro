@@ -193,7 +193,7 @@ int JavaScript::QuickJSAccess::InterruptHandler(JSRuntime* const rt, void* /*opa
         const std::lock_guard<std::mutex> lock(context_map_mutex);
 
         // 0 means to continue, so 1 will only be returned when the runtime was in the set
-        return runtime_interrupt_requests.erase(rt);
+        return static_cast<int>(runtime_interrupt_requests.erase(rt));
     }
 
     return 0;

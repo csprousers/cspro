@@ -826,7 +826,7 @@ LRESULT HtmlViewCtrl::OnActionInvokerProcessAsyncMessage(WPARAM wParam, LPARAM /
     //      2) async message 2
     //      4) processing message 2 prior to the AfxMessageBox processing, which would lead to a deadlock in ActionInvoker::WebController::ProcessMessage
 
-    m_csproHostObjectAsyncMessageIds.push(wParam);
+    m_csproHostObjectAsyncMessageIds.push(int32_cast(wParam));
 
     // only process messages if this is the initial method processing these calls
     if( m_csproHostObjectAsyncMessageIds.size() == 1 )

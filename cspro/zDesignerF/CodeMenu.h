@@ -158,7 +158,7 @@ namespace CodeMenu
             else
             {
                 ASSERT(nID == ID_CODE_FOLDING_TOGGLE);
-                int line_number = logic_ctrl->LineFromPosition(logic_ctrl->GetCurrentPos());
+                const Scintilla::Line line_number = logic_ctrl->LineFromPosition(logic_ctrl->GetCurrentPos());
                 logic_ctrl->FoldLine(line_number, Scintilla::FoldAction::Toggle);
             }
         }

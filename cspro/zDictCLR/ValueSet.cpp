@@ -20,7 +20,7 @@ System::String^ CSPro::Dictionary::ValueSet::Label::get()
 
 array<CSPro::Dictionary::DictionaryValue^>^ CSPro::Dictionary::ValueSet::Values::get()
 {
-    array<DictionaryValue^>^ values = gcnew array<DictionaryValue^>(m_dictValueSet.GetNumValues());
+    array<DictionaryValue^>^ values = gcnew array<DictionaryValue^>(int32_cast(m_dictValueSet.GetNumValues()));
 
     int i = 0;
 

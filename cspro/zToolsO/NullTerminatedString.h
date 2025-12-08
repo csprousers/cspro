@@ -102,7 +102,7 @@ public:
 
     operator CStringW() const
     {
-        return CStringW(c_str(), length());
+        return CStringW(c_str(), int32_cast(length()));
     }
 
 private:

@@ -378,15 +378,15 @@ Serializer& serialize(Serializer& ar, size_t& value)
 {
     if( ar.IsSaving() )
     {
-#ifdef WIN_DESKTOP
-        static_assert(sizeof(size_t) == sizeof(unsigned));
+#if defined(WIN_DESKTOP) && !defined(_WIN64)
+        static_assert(sizeof(size_t) == sizeof(unsigned int));
 #endif
-        ar.Write<unsigned>(value);
+        ar.Write<unsigned int>(uint32_cast(value));
     }
 
     else
     {
-        value = static_cast<size_t>(ar.Read<unsigned>());
+        value = ar.Read<unsigned int>();
     }
 
     return ar;

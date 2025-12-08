@@ -432,7 +432,7 @@ std::unique_ptr<RExportWriter::FactoredVector> RExportWriter::FactorVector(const
             }
 
             factored_vector->labels.emplace_back(std::move(label));
-            one_based_code = factored_vector->labels.size();
+            one_based_code = int32_cast(factored_vector->labels.size());
 
             // add the value / one-based-code to the lookup
             one_based_code_expansive_list_map[value] = one_based_code;

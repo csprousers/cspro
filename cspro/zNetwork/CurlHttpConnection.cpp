@@ -43,7 +43,7 @@ namespace
                  header_sv.substr(header_sv.length() - 12) == "100 Continue" );
     }
 
-    int writeCallback(char* const data, const size_t size, const size_t nmemb, CurlOperationState* const state)
+    size_t writeCallback(char* const data, const size_t size, const size_t nmemb, CurlOperationState* const state)
     {
         if( state->m_body_subscriber.has_value() )
         {

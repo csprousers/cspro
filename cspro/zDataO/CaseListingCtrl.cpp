@@ -220,7 +220,7 @@ void CaseListingCtrl::OnCustomDraw(NMHDR* const pNMHDR, LRESULT* const pResult)
                 ASSERT(!text->empty());
 
                 CRect text_rect;
-                pDC->DrawText(text->c_str(), text->length(), &text_rect, DT_CALCRECT);
+                pDC->DrawText(text->c_str(), int32_cast(text->length()), &text_rect, DT_CALCRECT);
 
                 case_summary_with_measured_text.last_displayed_text.emplace(view_case_key, text, text_rect.Width());
             }
@@ -269,7 +269,8 @@ void CaseListingCtrl::OnCustomDraw(NMHDR* const pNMHDR, LRESULT* const pResult)
         pLVCD->clrText = m_textColors[color_index];
 
         ASSERT(text != nullptr);
-        pDC->DrawText(text->c_str(), text->length(), &text_rect, DT_LEFT | DT_SINGLELINE | DT_NOPREFIX | DT_NOCLIP | DT_VCENTER);
+        pDC->DrawText(text->c_str(), int32_cast(text->length()), &text_rect,
+                      DT_LEFT | DT_SINGLELINE | DT_NOPREFIX | DT_NOCLIP | DT_VCENTER);
 
         *pResult = CDRF_SKIPDEFAULT;
     }

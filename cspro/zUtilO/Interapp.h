@@ -195,7 +195,7 @@ CLASS_DECL_ZUTILO std::vector<std::string> GetArgumentsFromCommandLineWithCSProU
 
 
 // non-class prototypes
-CLASS_DECL_ZUTILO int IMSASpawnApp(const std::wstring& exe_path, CString csWindow, CString csFileName, BOOL bChild);
+CLASS_DECL_ZUTILO void IMSASpawnApp(const std::wstring& exe_path, CString csWindow, CString csFileName, BOOL bChild);
 CLASS_DECL_ZUTILO BOOL IMSASendMessage(const CString& csWindow, UINT uMsg, wstring_view param_sv);
 CLASS_DECL_ZUTILO BOOL IMSASendMessage(const CString& csWindow, UINT uMsg, UINT uParam=0);
 CLASS_DECL_ZUTILO BOOL IMSAOpenSharedFile(CString& csContents);

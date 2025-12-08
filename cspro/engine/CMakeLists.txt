@@ -132,7 +132,6 @@ add_library(${PROJECT_NAME}
     ${ZISSALIB_DIRECTORY}/GroupT2.cpp
     ${ZISSALIB_DIRECTORY}/GroupVisitor.cpp
     ${ZISSALIB_DIRECTORY}/Labsalo.cpp
-    ${ZISSALIB_DIRECTORY}/OccurrenceInfo.cpp
     ${ZISSALIB_DIRECTORY}/OccurrenceInfoSet.cpp
     ${ZISSALIB_DIRECTORY}/OccurrenceVisitor.cpp
     ${ZISSALIB_DIRECTORY}/SecT.cpp

@@ -37,7 +37,7 @@ Listing::ExcelLister::ExcelLister(std::shared_ptr<ProcessSummary> process_summar
     auto add_column = [&](const cs::string_sz text)
     {
         m_excelWriter->Write(m_row, column, text, header_format);
-        column_widths.emplace_back(ExcelWriter::GetWidthForText(ExcelWriter::TextType::Characters, SO::WideLength(text)));
+        column_widths.emplace_back(ExcelWriter::GetWidthForText(ExcelWriter::TextType::Characters, uint32_cast(SO::WideLength(text))));
         ++column;
     };
 

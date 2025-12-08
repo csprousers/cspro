@@ -1533,7 +1533,7 @@ void CFormTreeCtrl::OnLButtonDown(UINT nFlags, CPoint point)
             {
                 if (((CFormID*)GetItemData(hItem))->GetItemPtr())
                 {
-                    AfxTrace(L"OnLButtonDown on sel item %x %s\n", (DWORD)hItem, ((CFormID*)GetItemData(hItem))->GetItemPtr()->GetName().GetString());
+                    AfxTrace(L"OnLButtonDown on sel item %p %s\n", (LPARAM)hItem, ((CFormID*)GetItemData(hItem))->GetItemPtr()->GetName().GetString());
                 }
 
                 // Left click on selected item could be start of drag
@@ -3229,7 +3229,7 @@ void CFormTreeCtrl::OnRButtonUp(UINT nFlags, CPoint point)
     CFormID* pID = (CFormID*) GetItemData (hItem);
     if (pID->GetItemPtr())
     {
-        AfxTrace(L"OnRButtonUp sel item %x %s\n", (DWORD)hItem, ((CFormID*)GetItemData(hItem))->GetItemPtr()->GetName().GetString());
+        AfxTrace(L"OnRButtonUp sel item %p %s\n", (LPARAM)hItem, ((CFormID*)GetItemData(hItem))->GetItemPtr()->GetName().GetString());
     }
 
     CFormScrollView*    pFV = GetFormView();    // get the currently displayed form

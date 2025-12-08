@@ -29,7 +29,7 @@ public:
 
     operator CStringW() const
     {
-        return CStringW(data(), length());
+        return CStringW(data(), int32_cast(length()));
     }
 
     size_t hash_code() const

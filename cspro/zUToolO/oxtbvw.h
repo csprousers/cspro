@@ -553,7 +553,7 @@ public:
     inline BOOL AddPage(
         CRuntimeClass* pClass, CCreateContext* pContext, LPCTSTR lpszTitle=NULL)
     {
-        return InsertPage(GetPageCount(),pClass,pContext,lpszTitle);
+        return InsertPage(int32_cast(GetPageCount()),pClass,pContext,lpszTitle);
     }
 
     // --- In  :    pWnd        -   pointer to created window to be added
@@ -567,7 +567,7 @@ public:
     //              TabView container.
     inline BOOL AddPage(CWnd* pWnd, LPCTSTR lpszTitle=NULL)
     {
-        return InsertPage(GetPageCount(),pWnd,lpszTitle);
+        return InsertPage(int32_cast(GetPageCount()),pWnd,lpszTitle);
     }
 
     // --- In  :    nIndex      -   zero-based index of the new page
@@ -705,7 +705,7 @@ public:
     // --- Out :
     // --- Returns: number of pages in the Tab View container
     // --- Effect : Retrieves the number of pages in the Tab View container
-    inline int GetPageCount() const { return m_arrPages.GetSize(); }
+    inline INT_PTR GetPageCount() const { return m_arrPages.GetSize(); }
 
 
     // --- In  :    pTestWnd    -   pointer to the window to be tested

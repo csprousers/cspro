@@ -62,7 +62,7 @@ public:
 
 private:
     // Adds an existing symbol to the name map using the given name.
-    void AddSymbolToNameMap(std::string symbol_name, size_t symbol_index, NameMapAddition name_map_addition);
+    void AddSymbolToNameMap(std::string symbol_name, int symbol_index, NameMapAddition name_map_addition);
 
     // Removes an existing symbol from the name map.
     void RemoveSymbolFromNameMap(const Symbol& symbol);

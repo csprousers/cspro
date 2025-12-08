@@ -1292,7 +1292,7 @@ BOOL CScintillaView::FindTextSimple(_In_z_ LPCTSTR lpszFind, _In_ BOOL bNext, _I
     else
     {
       ft.chrg.cpMin = rCtrl.GetLength();
-      ft.chrg.cpMax = std::max(m_lInitialSearchPos - CString(lpszFind).GetLength(), 0);
+      ft.chrg.cpMax = std::max<Position>(m_lInitialSearchPos - CString(lpszFind).GetLength(), 0);
       m_lInitialSearchPos = ft.chrg.cpMin;
     }
 

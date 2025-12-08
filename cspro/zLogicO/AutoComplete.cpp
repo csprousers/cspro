@@ -153,7 +153,7 @@ void AutoComplete::UpdateWithCompiledSymbols(const SymbolTable& symbol_table, co
     // add the new symbols
     for( ; m_symbolTableSizeOnLastUpdate < symbol_table.GetTableSize(); ++m_symbolTableSizeOnLastUpdate )
     {
-        const Symbol& symbol = symbol_table.GetAt(m_symbolTableSizeOnLastUpdate);
+        const Symbol& symbol = symbol_table.GetAt(int32_cast(m_symbolTableSizeOnLastUpdate));
 
         // only add symbols that can be used in logic
         if( symbol.GetName().front() != '_' )

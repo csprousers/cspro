@@ -111,7 +111,7 @@ HTREEITEM HtmlDialogTemplatesDlg::BuildSamplesTree()
 
             tvi.hParent = parent_node;
             tvi.item.pszText = wide_text.data();
-            tvi.item.cchTextMax = wide_text.length();
+            tvi.item.cchTextMax = int32_cast(wide_text.length());
             tvi.item.lParam = reinterpret_cast<LPARAM>(&sample_pair);
 
             return m_samplesTreeCtrl.InsertItem(&tvi);

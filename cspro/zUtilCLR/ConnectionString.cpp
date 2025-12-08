@@ -155,7 +155,7 @@ CSPro::Util::ConnectionString^ CSPro::Util::ConnectionString::ShowDataFileDlg(Sy
                                                                                      ::ConnectionString();
 
     std::optional<::ConnectionString> selected_connection_string =
-        DataFileDlg::ShowDialogFromWinForms(CWnd::FromHandle(reinterpret_cast<HWND>(hWndOwner->ToInt32())),
+        DataFileDlg::ShowDialogFromWinForms(CWnd::FromHandle(static_cast<HWND>(hWndOwner->ToPointer())),
                                             native_type,
                                             add_only_readable_types,
                                             std::move(native_connection_string));

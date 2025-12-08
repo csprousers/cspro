@@ -55,7 +55,7 @@ BOOL DuplicateChooserDlg::OnInitDialog()
     {
         tv_insert_struct.hParent = parent_node;
         tv_insert_struct.item.pszText = text.data();
-        tv_insert_struct.item.cchTextMax = text.length();
+        tv_insert_struct.item.cchTextMax = int32_cast(text.length());
         tv_insert_struct.item.lParam = lParam;
 
         HTREEITEM node = m_caseList.InsertItem(&tv_insert_struct);

@@ -178,7 +178,7 @@ public:
         else if constexpr(std::is_same_v<VT, std::string> ||
                           std::is_same_v<VT, std::string_view>)
         {
-            sqlite3_bind_text(m_stmt, pn, value.data(), value.length(), SQLITE_TRANSIENT);
+            sqlite3_bind_text(m_stmt, pn, value.data(), int32_cast(value.length()), SQLITE_TRANSIENT);
         }
 
         else if constexpr(std::is_convertible_v<VT, const char*>)
