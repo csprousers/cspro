@@ -1801,7 +1801,7 @@ BEGIN_MESSAGE_MAP(COXMDIChildWndSizeDock, CMDIChildWnd)
     ON_WM_NCRBUTTONDOWN()
     //}}AFX_MSG_MAP
     ON_WM_STYLECHANGING()
-    ON_MESSAGE(WM_SETTEXT,OnSetText)
+    ON_MESSAGE(WM_SETTEXT, OnSetText)
 #ifdef _OXIE4PATCH
     ON_COMMAND(WM_DOCKCHILDWND,OnMakeItDockable)
 #else
@@ -1867,7 +1867,7 @@ BOOL COXMDIChildWndSizeDock::Create(LPCTSTR lpszClassName,
 
     // first copy into a CREATESTRUCT for PreCreate
     CREATESTRUCT cs;
-    cs.dwExStyle = 0L;
+    cs.dwExStyle = 0;
     cs.lpszClass = lpszClassName;
     cs.lpszName = lpszWindowName;
     cs.style = dwStyle;
@@ -1898,7 +1898,7 @@ BOOL COXMDIChildWndSizeDock::Create(LPCTSTR lpszClassName,
     mcs.cx = cs.cx;
     mcs.cy = cs.cy;
     mcs.style = cs.style & ~(WS_MAXIMIZE | WS_VISIBLE);
-    mcs.lParam = (LONG)cs.lpCreateParams;
+    mcs.lParam = (LPARAM)cs.lpCreateParams;
 
     // create the window through the MDICLIENT window
     AfxHookWindowCreate(this);
@@ -2260,7 +2260,7 @@ void COXMDIChildWndSizeDock::OnStyleChanging(int nStyleType, LPSTYLESTRUCT lpSty
     }
 }
 
-LONG COXMDIChildWndSizeDock::OnSetText(UINT wParam, LONG lParam)
+LRESULT COXMDIChildWndSizeDock::OnSetText(WPARAM wParam, LPARAM lParam)
 {
     // TODO: Add your specialized code here and/or call the base class
 
@@ -2445,7 +2445,7 @@ BEGIN_MESSAGE_MAP(COXSizeViewBar, COXSizeControlBar)
     ON_WM_NCDESTROY()
     ON_WM_CONTEXTMENU()
     //}}AFX_MSG_MAP
-    ON_MESSAGE(WM_SETTEXT,OnSetText)
+    ON_MESSAGE(WM_SETTEXT, OnSetText)
     ON_MESSAGE(UWM::UTool::ACTIVATEVIEWBAR, OnActivateViewBar)
 END_MESSAGE_MAP()
 
@@ -2624,7 +2624,7 @@ BOOL COXSizeViewBar::DetachMDIChild(BOOL bRedraw)
     return FALSE;
 }
 
-LONG COXSizeViewBar::OnActivateViewBar(UINT wParam, LONG lParam)
+LRESULT COXSizeViewBar::OnActivateViewBar(WPARAM wParam, LPARAM lParam)
 {
     BOOL bActive=wParam;
 
@@ -2733,6 +2733,11 @@ void COXSizeViewBar::OnNcDestroy()
     TRACE(_T("ViewBarWindow destroyed\n"));
 }
 
+INT_PTR COXSizeViewBar::OnToolHitTest(CPoint /*point*/, TOOLINFO* /*pTI*/) const
+{
+    return -1;
+}
+
 void COXSizeViewBar::OnUpdateCmdUI(CFrameWnd* pTarget, BOOL bDisableIfNoHndler)
 {
     // don't call the default implementation that resets the
@@ -2741,18 +2746,16 @@ void COXSizeViewBar::OnUpdateCmdUI(CFrameWnd* pTarget, BOOL bDisableIfNoHndler)
     UpdateDialogControls(pTarget, bDisableIfNoHndler);
 }
 
-LONG COXSizeViewBar::OnAddContextMenuItems(WPARAM wParam, LPARAM lParam)
+LRESULT COXSizeViewBar::OnAddContextMenuItems(WPARAM /*wParam*/, LPARAM lParam)
 {
     ASSERT(::IsWindow(m_pChildWnd->m_hWnd));
-
-    UNREFERENCED_PARAMETER(wParam);
 
     m_pChildWnd->OnAddContextMenuItems((HMENU)lParam);
 
     return TRUE;
 }
 
-LONG COXSizeViewBar::OnSetText(UINT wParam, LONG lParam)
+LRESULT COXSizeViewBar::OnSetText(WPARAM wParam, LPARAM lParam)
 {
     // TODO: Add your specialized code here and/or call the base class
 
@@ -3070,9 +3073,3 @@ BEGIN_MESSAGE_MAP(COXDockDocument, CDocument)
 END_MESSAGE_MAP()
 
 IMPLEMENT_DYNAMIC(COXDockDocument, CDocument)
-
-
-
-
-
-

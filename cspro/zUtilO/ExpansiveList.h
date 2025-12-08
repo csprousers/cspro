@@ -46,7 +46,7 @@ private:
     void BindValue(double value)                        { sqlite3_bind_double(m_stmtPut, 1, value); }
     void GetValueFromSQLite(double& value)              { value = sqlite3_column_double(m_stmtIterator, 0); }
 
-    void BindValue(const std::string& value)            { sqlite3_bind_text(m_stmtPut, 1, value.data(), value.length(), SQLITE_TRANSIENT); }
+    void BindValue(const std::string& value)            { sqlite3_bind_text(m_stmtPut, 1, value.data(), int32_cast(value.length()), SQLITE_TRANSIENT); }
     void GetValueFromSQLite(std::string& value)         { value = reinterpret_cast<const char*>(sqlite3_column_text(m_stmtIterator, 0)); }
 
 private:

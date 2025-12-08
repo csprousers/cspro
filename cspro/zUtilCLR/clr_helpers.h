@@ -51,7 +51,7 @@ inline std::string clr_helpers::to_string(System::String^ text)
 template<typename T>
 System::String^ clr_helpers::to_SystemString(const T& text)
 {
-    return gcnew System::String(text.data(), 0, text.length(), System::Text::Encoding::UTF8);
+    return gcnew System::String(text.data(), 0, int32_cast(text.length()), System::Text::Encoding::UTF8);
 }
 
 

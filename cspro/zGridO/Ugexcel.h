@@ -93,10 +93,10 @@ public:
     virtual void OnSetCell(int col,long row,CUGCell *cell);
 
     //data source notifications
-    virtual void OnDataSourceNotify(int ID,long msg,long param);
+    virtual void OnDataSourceNotify(int ID,long msg,LPARAM param);
 
     //cell type notifications
-    virtual int OnCellTypeNotify(long ID,int col,long row,long msg,long param);
+    virtual int OnCellTypeNotify(long ID,int col,long row,long msg,LPARAM param);
 
     //editing
     virtual int OnEditStart(int col, long row,CWnd **edit);

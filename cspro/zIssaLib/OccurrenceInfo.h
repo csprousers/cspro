@@ -1,10 +1,9 @@
 ﻿#pragma once
 
-class OccurrenceInfo
+
+struct OccurrenceInfo
 {
-public:
-    int m_iCurrent;
-    int m_iTotal;
-    int m_iData;
-    OccurrenceInfo();
+    int m_iCurrent = 0;
+    int m_iTotal = 0;
+    int m_iData = 0;
 };

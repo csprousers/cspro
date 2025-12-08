@@ -84,7 +84,7 @@ public:
     //virtual functions
     virtual int GetEditArea(RECT *rect);
 
-    virtual int SetOption(long option,long param);
+    virtual int SetOption(long option,LPARAM param);
     virtual int GetOption(long option,long* param);
 
     virtual int OnSystemChange();

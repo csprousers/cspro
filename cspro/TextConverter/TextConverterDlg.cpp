@@ -241,7 +241,7 @@ void TextConverterDlg::RefreshEncodings()
         GetFileBOM(m_fileList.GetItemText(i, 0), encoding);
 
         m_fileList.SetItemText(i, 1, TC::ToWide(ToString(encoding)).c_str());
-        m_fileList.SetItemData(i, static_cast<DWORD>(encoding));
+        m_fileList.SetItemData(i, static_cast<DWORD_PTR>(encoding));
     }
 }
 
@@ -285,6 +285,6 @@ void TextConverterDlg::AddFile(const std::string& file_path) // 20120620
         GetFileBOM(file_path, encoding);
 
         const int item = m_fileList.AddItem(wide_file_path.c_str(), TC::ToWide(ToString(encoding)).c_str());
-        m_fileList.SetItemData(item, static_cast<DWORD>(encoding));
+        m_fileList.SetItemData(item, static_cast<DWORD_PTR>(encoding));
     }
 }

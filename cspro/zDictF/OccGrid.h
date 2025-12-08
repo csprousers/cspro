@@ -39,7 +39,7 @@ public:
     void OnCharDown(UINT* vcKey,BOOL processed) override;
 
     //cell type notifications
-    int OnCellTypeNotify(long ID, int col, long row, long msg, long param) override;
+    int OnCellTypeNotify(long ID, int col, long row, long msg, LPARAM param) override;
 
     //editing
     int OnEditStart(int col, long row,CWnd **edit) override;

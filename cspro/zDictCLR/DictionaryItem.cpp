@@ -122,7 +122,7 @@ void CSPro::Dictionary::DictionaryItem::ZeroFill::set(bool b)
 
 array<CSPro::Dictionary::ValueSet^>^ CSPro::Dictionary::DictionaryItem::ValueSets::get()
 {
-    array<ValueSet^>^ value_sets = gcnew array<ValueSet^>(m_pNativeItem->GetNumValueSets());
+    array<ValueSet^>^ value_sets = gcnew array<ValueSet^>(int32_cast(m_pNativeItem->GetNumValueSets()));
 
     int v = 0;
     for( const auto& dict_value_set : m_pNativeItem->GetValueSets() )

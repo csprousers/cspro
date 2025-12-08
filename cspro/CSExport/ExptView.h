@@ -79,18 +79,19 @@ public:
 
 // Generated message map functions
 protected:
+    DECLARE_MESSAGE_MAP()
+
     //{{AFX_MSG(CExportView)
     afx_msg void OnSize(UINT nType, int cx, int cy);
     afx_msg void OnClickDatadictTree(NMHDR* pNMHDR, LRESULT* pResult);
     afx_msg void OnKeydownDatadictTree(NMHDR* pNMHDR, LRESULT* pResult);
-    afx_msg LRESULT OnTvCheckbox(WPARAM wp, LPARAM lp);
+    afx_msg LRESULT OnTvCheckbox(WPARAM wParam, LPARAM lParam);
     afx_msg void OnToggle();
     afx_msg void OnUpdateToggle(CCmdUI* pCmdUI);
-    
+
     afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
     //}}AFX_MSG
-    LONG OnInitializeView(WPARAM wParam, LPARAM lParam);
-    DECLARE_MESSAGE_MAP()
+    LRESULT OnInitializeView(WPARAM wParam, LPARAM lParam);
 
     const DictRelation* GetRelation(HTREEITEM hItem);
     int                 GetSelItemsByRelation(const DictRelation& dict_relation, CArray<HTREEITEM,HTREEITEM>& raSelItems);

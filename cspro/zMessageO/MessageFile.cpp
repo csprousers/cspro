@@ -460,10 +460,10 @@ void MessageFile::Compiler::InsertMessageIntoLanguageSets(const size_t language_
     {
         const bool is_primary_language_message_previously_defined_from_other_language =
             ( language_set_index == 0 &&
-              m_messageFile.m_primaryLanguageMessageNumbersDefinedFromOtherLanguage.count(message_number) != 0 );
+              m_messageFile.m_primaryLanguageMessageNumbersDefinedFromOtherLanguage.find(message_number) != m_messageFile.m_primaryLanguageMessageNumbersDefinedFromOtherLanguage.cend() );
 
         if( is_primary_language_message_previously_defined_from_other_language )
-            m_messageFile.m_primaryLanguageMessageNumbersDefinedFromOtherLanguage.erase(language_set_index);
+            m_messageFile.m_primaryLanguageMessageNumbersDefinedFromOtherLanguage.erase(message_number);
 
         if( *lookup->second != *message_text )
         {

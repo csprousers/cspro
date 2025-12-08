@@ -279,7 +279,7 @@ BEGIN_MESSAGE_MAP(CUGCtrl, CWnd)
     ON_WM_HSCROLL()
     ON_WM_VSCROLL()
     ON_WM_GETDLGCODE()
-    ON_REGISTERED_MESSAGE(ugmsg_FindDialog ,ProcessFindDialog)
+    ON_REGISTERED_MESSAGE(ugmsg_FindDialog, ProcessFindDialog)
     //}}AFX_MSG_MAP
 
 END_MESSAGE_MAP()
@@ -2117,7 +2117,7 @@ int CUGCtrl::GetJoinStartCell(int *col,long *row,CUGCell *cell){
 }
 
 
-// GHM 20100216 for FixLines routine
+// 20100216 for FixLines routine
 void CUGCtrl::GetJoinStartCellFast(int *col,long *row,CUGCell * cell){
 
     if( m_GI->m_enableJoins == FALSE )
@@ -2979,7 +2979,7 @@ int CUGCtrl::SetNumberRows(long rows,BOOL redraw){
     long oldNumRows = m_GI->m_numberRows;
 
     //check to see if uniform row height should be used
-    if(rows > 640000/*64000*/ && m_GI->m_uniformRowHeightFlag == FALSE) // GHM 20100215 see no need for the 64000 limitation
+    if(rows > 640000/*64000*/ && m_GI->m_uniformRowHeightFlag == FALSE) // 20100215 see no need for the 64000 limitation
         SetUniformRowHeight(TRUE);
 
     //store the number of rows and create the new row height array
@@ -3695,7 +3695,8 @@ int CUGCtrl::FindInAllCols(BOOL state){
     Params
     Return
 ***************************************************/
-long CUGCtrl::ProcessFindDialog(UINT,long){
+LRESULT CUGCtrl::ProcessFindDialog(WPARAM wParam, LPARAM lParam)
+{
 #ifdef UG_ENABLE_FINDDIALOG
     if(m_findReplaceDialog == NULL)
         return 0;
@@ -5876,7 +5877,7 @@ OnDataSourceNotify
     on the data source(s) being used
     - The ID of the Data source is also returned
 ****************************************************/
-void CUGCtrl::OnDataSourceNotify(int ID,long msg,long param){
+void CUGCtrl::OnDataSourceNotify(int ID,long msg,LPARAM param){
 }
 
 /***************************************************
@@ -5886,7 +5887,7 @@ OnCellTypeNotify
     on the cell type classes
     - The ID of the cell type is given
 ****************************************************/
-int CUGCtrl::OnCellTypeNotify(long ID,int col,long row,long msg,long param){
+int CUGCtrl::OnCellTypeNotify(long ID,int col,long row,long msg,LPARAM param){
     return TRUE;
 }
 

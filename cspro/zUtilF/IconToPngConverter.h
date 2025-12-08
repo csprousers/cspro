@@ -1,5 +1,7 @@
 ﻿#pragma once
 
+#include <gdiplus.h>
+
 
 namespace IconToPngConverter
 {

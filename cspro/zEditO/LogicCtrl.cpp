@@ -1015,14 +1015,14 @@ BOOL CLogicCtrl::FindTextSimple(_In_z_ LPCTSTR lpszFind, _In_ BOOL bNext, _In_ B
         {
             ft.chrg.cpMin = 0;
 #pragma warning(suppress: 26472)
-            ft.chrg.cpMax = static_cast<Sci_PositionCR>(std::min(m_lInitialSearchPos + CString(lpszFind).GetLength(), nLength));
+            ft.chrg.cpMax = static_cast<Sci_PositionCR>(std::min((Sci_PositionCR)m_lInitialSearchPos + (Sci_PositionCR)CString(lpszFind).GetLength(), (Sci_PositionCR)nLength));
             m_lInitialSearchPos = 0;
         }
         else
         {
             ft.chrg.cpMin = rCtrl.GetLength();
 #pragma warning(suppress: 26472)
-            ft.chrg.cpMax = static_cast<Sci_PositionCR>(std::max(m_lInitialSearchPos - CString(lpszFind).GetLength(), 0));
+            ft.chrg.cpMax = static_cast<Sci_PositionCR>(std::max((Sci_PositionCR)m_lInitialSearchPos - (Sci_PositionCR)CString(lpszFind).GetLength(), (Sci_PositionCR)0));
             m_lInitialSearchPos = ft.chrg.cpMin;
         }
 

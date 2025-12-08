@@ -336,7 +336,7 @@ void CMainFrame::SetStatusBarPaneText(const UINT indicator, const wchar_t* text)
         constexpr LONG Margin = 10;
         CDC* const pDC = m_wndStatusBar.GetDC();
         pDC->SelectObject(m_wndStatusBar.GetFont());
-        m_wndStatusBar.SetPaneInfo(pane_index, StatusBarIndicators[pane_index], SBPS_NORMAL, pDC->GetTextExtent(text, wcslen(text)).cx + Margin);
+        m_wndStatusBar.SetPaneInfo(pane_index, StatusBarIndicators[pane_index], SBPS_NORMAL, pDC->GetTextExtent(text, int32_cast(wcslen(text))).cx + Margin);
     }
 
     m_wndStatusBar.SetPaneText(pane_index, text);

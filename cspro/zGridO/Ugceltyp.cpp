@@ -359,7 +359,7 @@ SetOption
         UG_SUCCESS - success
         UG_ERROR - error
 ****************************************************/
-int CUGCellType::SetOption(long option,long param){
+int CUGCellType::SetOption(long option,LPARAM param){
     return UG_NA;
 }
 /***************************************************

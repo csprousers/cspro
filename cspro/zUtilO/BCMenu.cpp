@@ -1668,7 +1668,7 @@ BOOL BCMenu::LoadMenu(LPCTSTR lpszResourceName)
         if(GetSubMenu(i)){
             m_MenuList[i]->nFlags=MF_POPUP|MF_BYPOSITION;
             ModifyMenu(i,MF_POPUP|MF_BYPOSITION,
-                (UINT)GetSubMenu(i)->m_hMenu,str);
+                (UINT_PTR)GetSubMenu(i)->m_hMenu,str);
         }
         else{
             m_MenuList[i]->nFlags=MF_STRING|MF_BYPOSITION;
@@ -1721,7 +1721,7 @@ void BCMenu::RemoveTopLevelOwnerDraw(void)
             if(GetSubMenu(i)){
                 m_MenuList[j]->nFlags=MF_POPUP|MF_BYPOSITION;
                 ModifyMenu(i,MF_POPUP|MF_BYPOSITION,
-                    (UINT)GetSubMenu(i)->m_hMenu,str);
+                    (UINT_PTR)GetSubMenu(i)->m_hMenu,str);
             }
         }
     }

@@ -117,16 +117,16 @@ public:
     bool CopyEnt2Bch(CAplDoc* pAplDoc);
     bool PreparePieceRun(CNPifFile* pPIFFile,PROCESS eProcess);
 
-    LONG OnIMSATabConvert(WPARAM wParam, LPARAM lParam);
+    LRESULT OnIMSATabConvert(WPARAM wParam, LPARAM lParam);
 
     bool PutTabSourceCode(const TableElementTreeNode& table_element_tree_node, bool bForceCompile);
     bool CheckSyntax4TableLogic(const TableElementTreeNode& table_element_tree_node, XTABSTMENT_TYPE eXTabStatementType);
 
     LRESULT IsTabNameUnique(WPARAM wParam, LPARAM lParam);
-    LONG PutTallyProc (UINT, LPARAM);
-    LONG ReplaceLvlProc4Area(UINT wParam ,LPARAM lParam);
-    LONG RenameProc(UINT wParam, LPARAM lParam);
-    LONG DeleteTblLogic (UINT, LPARAM);
+    LRESULT PutTallyProc(WPARAM wParam, LPARAM lParam);
+    LRESULT ReplaceLvlProc4Area(WPARAM wParam, LPARAM lParam);
+    LRESULT RenameProc(WPARAM wParam, LPARAM lParam);
+    LRESULT DeleteTblLogic(WPARAM wParam, LPARAM lParam);
     LRESULT ShowTblSrcCode(WPARAM wParam, LPARAM lParam);
     LRESULT ReconcileLinkObj(WPARAM wParam, LPARAM lParam);
     void SetTblSourceCode(CAplDoc* pDoc);

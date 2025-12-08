@@ -1288,7 +1288,7 @@ void CRecordGrid::OnCharDown(UINT* vcKey, BOOL /*processed*/)
 //
 /////////////////////////////////////////////////////////////////////////////
 
-int CRecordGrid::OnCellTypeNotify(long /*ID*/, int col, long row, long msg, long /*param*/)
+int CRecordGrid::OnCellTypeNotify(long /*ID*/, int col, long row, long msg, LPARAM /*param*/)
 {
     CUGCell cell;
     GetCell(REC_LABEL_COL, row, &cell);

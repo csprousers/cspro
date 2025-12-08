@@ -17,6 +17,7 @@ class CFont;
 
 #ifndef WIN32
 
+#include <stdint.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -332,21 +333,25 @@ typedef unsigned int        *PUINT;
 #define TRUE  1
 
 // the following are from BaseTsd.h
-//TODO: Savy fix the int INT_PTR define and _W64 stuff
-//typedef int               INT_PTR;
-
-
-typedef _W64 long INT_PTR, *PINT_PTR;
-typedef _W64 unsigned long UINT_PTR, *PUINT_PTR;
-
-typedef long LONG_PTR, *PLONG_PTR;
-typedef _W64 unsigned long ULONG_PTR, *PULONG_PTR;
+//TODO: Savy fix the int INT_PTR define and _W64 stuff ... X64_TODO review
 
 #define __int64     int64_t
 
-#ifndef INT_MAX
-#define INT_MAX 2147483647
+#if INTPTR_MAX == INT64_MAX
+    typedef __int64 INT_PTR, *PINT_PTR;
+    typedef __uint64_t UINT_PTR, *PUINT_PTR;
+    typedef __int64 LONG_PTR, *PLONG_PTR;
+    typedef __uint64_t ULONG_PTR, *PULONG_PTR;
+#else
+    typedef _W64 int INT_PTR, *PINT_PTR;
+    typedef _W64 unsigned int UINT_PTR, *PUINT_PTR;
+    typedef _W64 long LONG_PTR, *PLONG_PTR;
+    typedef _W64 unsigned long ULONG_PTR, *PULONG_PTR;
 #endif
+
+typedef UINT_PTR            WPARAM;
+typedef LONG_PTR            LPARAM;
+typedef LONG_PTR            LRESULT;
 
 #ifndef SIZE_MAX
     #ifdef _WIN64

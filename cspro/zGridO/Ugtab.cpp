@@ -736,7 +736,8 @@ int CUGTab::SetTabFont(CFont * font){
     return TRUE;
 }
 
-int CUGTab::OnToolHitTest(CPoint point, TOOLINFO* pTI) const{
+INT_PTR CUGTab::OnToolHitTest(CPoint point, TOOLINFO* pTI) const
+{
     //Get the tab on which this falls
 
     int left = m_scrollWidth - m_tabOffset;
@@ -768,4 +769,3 @@ int CUGTab::OnToolHitTest(CPoint point, TOOLINFO* pTI) const{
 
     return -1;
 }
-

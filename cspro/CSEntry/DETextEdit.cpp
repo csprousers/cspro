@@ -279,7 +279,7 @@ void CDETextEdit::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
             int nCharIndex = LOWORD(nCharPos);
 
             if(nCharIndex  == m_pField->GetDictItem()->GetLen() - 1) { // SERPRO Add ()
-                pParent->SendMessage(UWM::CSEntry::ChangeEdit, VK_RIGHT, (long)this);
+                pParent->SendMessage(UWM::CSEntry::ChangeEdit, VK_RIGHT, (LPARAM)this);
             }
         }
         SetModifiedFlag(true);
@@ -301,7 +301,7 @@ void CDETextEdit::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
             m_bRemoveText = false;  // BMD 13 Jan 2004
 
             if(nCharPos ==0 ) {
-                pParent->SendMessage(UWM::CSEntry::ChangeEdit, nChar, (long)this);
+                pParent->SendMessage(UWM::CSEntry::ChangeEdit, nChar, (LPARAM)this);
             }
         }
 
@@ -315,7 +315,7 @@ void CDETextEdit::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
             int nCharIndex = LOWORD(nCharPos);
 
             if(nCharIndex == m_pField->GetDictItem()->GetLen() ) { // SERPRO Add ()
-                pParent->SendMessage(UWM::CSEntry::ChangeEdit, VK_RIGHT, (long)this);
+                pParent->SendMessage(UWM::CSEntry::ChangeEdit, VK_RIGHT, (LPARAM)this);
             }
         }
 
@@ -327,13 +327,13 @@ void CDETextEdit::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
                 m_bRemoveText = false;
                 return;
             }
-            pParent->SendMessage(UWM::CSEntry::ChangeEdit, nChar, (long)this);
+            pParent->SendMessage(UWM::CSEntry::ChangeEdit, nChar, (LPARAM)this);
         }
     }
 
     // handles only up and down arrows, otherwise they get grabbed before OnChar
     else if ((nChar == VK_DOWN || nChar == VK_UP || nChar == VK_RIGHT || nChar == VK_LEFT|| nChar == VK_PRIOR || nChar == VK_NEXT || nChar == VK_F2  ) && pParent)  {// RHF Jan 30, 2000
-        pParent->SendMessage(UWM::CSEntry::ChangeEdit, nChar, (long)this);
+        pParent->SendMessage(UWM::CSEntry::ChangeEdit, nChar, (LPARAM)this);
     }
 }
 
@@ -478,7 +478,7 @@ void CDETextEdit::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
     }
     else if(nChar == VK_RETURN){
         if (GetParent())  {
-            GetParent()->SendMessage(UWM::CSEntry::ChangeEdit, VK_RETURN, (long)this);
+            GetParent()->SendMessage(UWM::CSEntry::ChangeEdit, VK_RETURN, (LPARAM)this);
         }
         return;
     }
@@ -523,7 +523,7 @@ void CDETextEdit::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
 
 
         if(bFldDone  && !m_pField->IsEnterKeyRequired())
-            GetParent()->SendMessage(UWM::CSEntry::ChangeEdit, VK_RETURN, (long)this);
+            GetParent()->SendMessage(UWM::CSEntry::ChangeEdit, VK_RETURN, (LPARAM)this);
 
 
     }
@@ -531,7 +531,7 @@ void CDETextEdit::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
         nChar == VK_DOWN || nChar == VK_PRIOR || nChar == VK_NEXT || nChar == VK_F2 ) {
 
         if (GetParent())  {
-            GetParent()->SendMessage(UWM::CSEntry::ChangeEdit, nChar, (long)this);
+            GetParent()->SendMessage(UWM::CSEntry::ChangeEdit, nChar, (LPARAM)this);
         }
         else  {
             //            CEdit::OnChar(nChar, uRepCnt, nFlags);

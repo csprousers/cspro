@@ -143,7 +143,7 @@
     <None Include="Res\ent_file.ico">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="RES\ico00001.ico">
+    <None Include="Res\ico00001.ico">
       <Filter>Resource Files</Filter>
     </None>
     <None Include="Res\ico00002.ico">
@@ -167,13 +167,7 @@
     <None Include="Res\qsf_file.ico">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="Res\samerr.ico">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="RES\SPLASH.BMP">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="res\Toolbar.bmp">
+    <None Include="Res\Toolbar.bmp">
       <Filter>Resource Files</Filter>
     </None>
     <None Include="Res\xtb_file.ico">
@@ -191,7 +185,7 @@
     <None Include="Res\iconAssociationFiller.ico">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="res\Resource Folder.ico">
+    <None Include="Res\Resource Folder.ico">
       <Filter>Resource Files</Filter>
     </None>
     <None Include="Res\CSPro.rc2">

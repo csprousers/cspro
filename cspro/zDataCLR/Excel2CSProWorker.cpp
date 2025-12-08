@@ -343,7 +343,7 @@ void CSPro::Data::Excel2CSPro::RecordConversionInformation::ConstructRecord(Case
 
 int CSPro::Data::Excel2CSPro::RecordConversionInformation::GetPercentProcessed()
 {
-    return ( m_rowsToProcess == 0 ) ? 0 : ( 100 * m_rowIndex / m_rowsToProcess);
+    return ( m_rowsToProcess == 0 ) ? 0 : int32_cast(100 * m_rowIndex / m_rowsToProcess);
 }
 
 
@@ -466,13 +466,13 @@ void CSPro::Data::Excel2CSPro::Worker::ConstructCases(System::ComponentModel::Ba
 
             for( size_t i = 0; i < include_record.size(); ++i )
             {
-                const std::string key = m_records[i]->ConstructKey();
+                const std::string key = m_records[int32_cast(i)]->ConstructKey();
                 bool include_this_record = true;
 
                 if( key.empty() )
                 {
                     // if more data exists, read it before continuing the processing
-                    if( m_records[i]->MoreDataExistsToRead )
+                    if( m_records[int32_cast(i)]->MoreDataExistsToRead )
                         goto stop_processing;
 
                     include_this_record = false;
@@ -547,7 +547,7 @@ void CSPro::Data::Excel2CSPro::Worker::ConstructCases(System::ComponentModel::Ba
                 else
                 {
                     m_compareCaseBeforeWriting = false;
-                    m_records[last_record_to_use_index]->CopyIdItems(root_case_level.GetIdCaseRecord());
+                    m_records[int32_cast(last_record_to_use_index)]->CopyIdItems(root_case_level.GetIdCaseRecord());
                 }
             }
 
@@ -558,7 +558,7 @@ void CSPro::Data::Excel2CSPro::Worker::ConstructCases(System::ComponentModel::Ba
                 for( size_t i = 0; i < include_record.size(); ++i )
                 {
                     if( include_record[i] )
-                        m_records[i]->ConstructRecord(root_case_level);
+                        m_records[int32_cast(i)]->ConstructRecord(root_case_level);
                 }
             }
 

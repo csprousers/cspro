@@ -390,7 +390,7 @@ void CFieldPropDlg::PopulateCaptureInfo()
     auto add_entry = [&](auto capture_type, const char* const text, std::optional<bool> selected = std::nullopt)
     {
         const int capture_type_pos = m_cmbCaptureType.AddString(TC::ToWide(text).c_str());
-        m_cmbCaptureType.SetItemDataPtr(capture_type_pos, (void*)capture_type);
+        m_cmbCaptureType.SetItemData(capture_type_pos, static_cast<DWORD_PTR>(capture_type));
 
         if( !selected.has_value() )
             selected = ( (int)capture_type == (int)m_captureInfo.GetCaptureType() );
@@ -458,7 +458,7 @@ void CFieldPropDlg::PopulateCaptureInfo()
 
 void CFieldPropDlg::OnCbnSelchangeCaptureInfo()
 {
-    int int_capture_type = (int)m_cmbCaptureType.GetItemDataPtr(m_cmbCaptureType.GetCurSel());
+    int int_capture_type = static_cast<int>(m_cmbCaptureType.GetItemData(m_cmbCaptureType.GetCurSel()));
 
     if( int_capture_type == CAPTURETYPE_TEXTBOX_NO_TICKMARKS || int_capture_type == CAPTURETYPE_TEXTBOX_MULTILINE )
     {

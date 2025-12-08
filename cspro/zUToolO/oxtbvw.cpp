@@ -39,8 +39,7 @@ COXTabViewContainer* PASCAL GetParentTabViewContainer(CWnd* pWnd,
         ASSERT(::IsWindow(pContainer->m_hWnd));
         if(::IsWindow(pContainer->m_hWnd))
         {
-            if(::GetWindowLong(pContainer->m_hWnd,GWL_USERDATA)==
-                ID_TABVIEWCONTAINER_SIGN)
+            if(::GetWindowLongPtr(pContainer->m_hWnd, GWLP_USERDATA) == ID_TABVIEWCONTAINER_SIGN)
             {
                 if(!bOnlyActive || pContainer->IsActivePage(pWnd))
                 {
@@ -75,7 +74,7 @@ COXTabViewContainer::COXTabViewContainer()
     m_bIsSplitterPressed=FALSE;
 
     //m_nLastTabBtnAreaWidth=ID_INITABBTNAREAWIDTH;
-    m_nLastTabBtnAreaWidth = 250; // GHM 20110407 upon adding the Reference tab
+    m_nLastTabBtnAreaWidth = 250; // 20110407 upon adding the Reference tab
 
     if((HFONT)m_fontTabBtnText==NULL)
         m_fontTabBtnText.CreatePointFont(80,_T("MS Sans Serif"));
@@ -169,7 +168,7 @@ BOOL COXTabViewContainer::Create(CWnd* pParentWnd, CRect rect/*=CRect(0,0,0,0)*/
     pParentWnd->ModifyStyleEx(WS_EX_CLIENTEDGE, 0, SWP_DRAWFRAME);
 
     // sign
-    ::SetWindowLong(GetSafeHwnd(),GWL_USERDATA,ID_TABVIEWCONTAINER_SIGN);
+    ::SetWindowLongPtr(GetSafeHwnd(), GWLP_USERDATA, ID_TABVIEWCONTAINER_SIGN);
 
     SetScrollStyle(0,TRUE);
 
@@ -275,8 +274,7 @@ void COXTabViewContainer::OnPaint()
                 {
                     CBrush* pBrush=NULL;
                     CBrush brush;
-                    HBRUSH hBrush=(HBRUSH)::GetClassLong(pWnd->m_hWnd,
-                        GCL_HBRBACKGROUND);
+                    HBRUSH hBrush=(HBRUSH)::GetClassLongPtr(pWnd->m_hWnd, GCLP_HBRBACKGROUND);
                     if(hBrush==NULL)
                     {
                         if(brush.CreateSolidBrush(::GetSysColor(COLOR_WINDOW)))
@@ -399,11 +397,11 @@ void COXTabViewContainer::OnLButtonUp(UINT nFlags, CPoint point)
 }
 
 
-void COXTabViewContainer::OnTimer(UINT nIDEvent)
+void COXTabViewContainer::OnTimer(UINT_PTR nIDEvent)
 {
     // TODO: Add your message handler code here and/or call default
 
-    if((int)nIDEvent==m_nScrollPageTimer)
+    if(nIDEvent==m_nScrollPageTimer)
     {
         if(m_nPressedScrlBtn!=TAB_NONE && m_bIsScrlBtnPressed)
             ScrollPage(m_nPressedScrlBtn);

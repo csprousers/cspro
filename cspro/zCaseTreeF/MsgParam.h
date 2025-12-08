@@ -1,26 +1,14 @@
 ﻿#pragma once
-// MsgParam.h: interface for the CMsgParam class.
-//
-//////////////////////////////////////////////////////////////////////
-
-#include <zCaseTreeF/zCaseTreeF.h>
 
 
-class ZCASETREEF_API CMsgParam  : public CObject
+struct CMsgParam
 {
-public:
-        CMsgParam();
-        virtual ~CMsgParam();
+    HTREEITEM hParam = nullptr;
+    bool bParam = false;
+    int iParam = -1;
+    CString csParam;
+    RECT rect;
+    bool bMustBeDestroyedAfterLastCatchMessage = false;
 
-public:
-
-        HTREEITEM       hParam;
-        bool            bParam;
-    //DWORD       dwParam;
-    int         iParam;
-    CString     csParam;
-        RECT            rect;
-        bool            bMustBeDestroyedAfterLastCatchMessage;
-
-    CArray<DWORD,DWORD> dwArrayParam;
+    CArray<DWORD_PTR, DWORD_PTR> dwArrayParam;
 };

@@ -1,4 +1,4 @@
-#include "stdafx.h"
+﻿#include "stdafx.h"
 #include "Numberer.h"
 
 
@@ -23,7 +23,7 @@ int wmain(const int argc, const wchar_t* const argv[])
 
             else if( definitions_file_path.empty() )
             {
-                definitions_file_path = MakeFullPath(UTF8_TODO::GetUtf8(GetWorkingFolder()), std::move(argument));
+                definitions_file_path = MakeFullPath(GetWorkingDirectory(), std::move(argument));
             }
 
             else

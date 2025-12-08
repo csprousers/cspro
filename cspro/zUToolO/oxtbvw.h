@@ -1,4 +1,5 @@
 ﻿#pragma once
+
 // ==========================================================================
 //                         Class Specification :
 //                          COXTabViewContainer
@@ -496,7 +497,7 @@ protected:
     // flag that specifies if last pressed scroll button is still pressed
     BOOL m_bIsScrlBtnPressed;
     // timer for tab buttons scrolling operations
-    int m_nScrollPageTimer;
+    UINT_PTR m_nScrollPageTimer;
 
     // flag that specifies that splitter has been pressed
     BOOL m_bIsSplitterPressed;
@@ -552,7 +553,7 @@ public:
     inline BOOL AddPage(
         CRuntimeClass* pClass, CCreateContext* pContext, LPCTSTR lpszTitle=NULL)
     {
-        return InsertPage(GetPageCount(),pClass,pContext,lpszTitle);
+        return InsertPage(int32_cast(GetPageCount()),pClass,pContext,lpszTitle);
     }
 
     // --- In  :    pWnd        -   pointer to created window to be added
@@ -566,7 +567,7 @@ public:
     //              TabView container.
     inline BOOL AddPage(CWnd* pWnd, LPCTSTR lpszTitle=NULL)
     {
-        return InsertPage(GetPageCount(),pWnd,lpszTitle);
+        return InsertPage(int32_cast(GetPageCount()),pWnd,lpszTitle);
     }
 
     // --- In  :    nIndex      -   zero-based index of the new page
@@ -704,7 +705,7 @@ public:
     // --- Out :
     // --- Returns: number of pages in the Tab View container
     // --- Effect : Retrieves the number of pages in the Tab View container
-    inline int GetPageCount() const { return m_arrPages.GetSize(); }
+    inline INT_PTR GetPageCount() const { return m_arrPages.GetSize(); }
 
 
     // --- In  :    pTestWnd    -   pointer to the window to be tested
@@ -1067,7 +1068,7 @@ protected:
     afx_msg void OnMouseMove(UINT nFlags, CPoint point);
     afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
     afx_msg void OnLButtonUp(UINT nFlags, CPoint point);
-    afx_msg void OnTimer(UINT nIDEvent);
+    afx_msg void OnTimer(UINT_PTR nIDEvent);
     afx_msg BOOL OnSetCursor(CWnd* pWnd, UINT nHitTest, UINT message);
     afx_msg BOOL OnEraseBkgnd(CDC* pDC);
     afx_msg void OnCancelMode();

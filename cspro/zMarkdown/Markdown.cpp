@@ -20,7 +20,7 @@ void Markdown::AddToStringCallback(const char* const text, const unsigned int te
 
 void Markdown::ToHtml(std::string& html, const std::string_view markdown_sv)
 {
-    const int result = md_html(markdown_sv.data(), markdown_sv.length(),
+    const int result = md_html(markdown_sv.data(), uint32_cast(markdown_sv.length()),
                                AddToStringCallback, &html,
                                ParserFlags, HtmlRendererFlags);
 
@@ -136,7 +136,7 @@ void Markdown::Parse(ParserCallback& parser_callback, const std::string_view mar
 
     ParserCallbackWrapper parser_callback_wrapper { parser_callback };
 
-    const int result = md_parse(markdown_sv.data(), markdown_sv.length(), &parser, &parser_callback_wrapper);
+    const int result = md_parse(markdown_sv.data(), uint32_cast(markdown_sv.length()), &parser, &parser_callback_wrapper);
 
     if( parser_callback_wrapper.thrown_exception )
     {

@@ -119,9 +119,6 @@
     <ClCompile Include="Labsalo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="OccurrenceInfo.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="OccurrenceInfoSet.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

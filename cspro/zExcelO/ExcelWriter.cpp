@@ -38,7 +38,7 @@ void ExcelWriter::CreateWorkbook(const InterfaceString file_path, const bool use
 
 #ifdef ANDROID
     // on Android the temp directory must be specified
-    std::string temp_directory = PlatformInterface::GetInstance()->GetTempDirectory();
+    const std::string temp_directory = PlatformInterface::GetInstance()->GetTempDirectory();
     options.tmpdir = temp_directory.data();
 #endif
 

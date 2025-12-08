@@ -18,8 +18,7 @@
 // Specifically when user clicks on "All" or "Range" for pages so we can
 // uncheck the additional radio buttons we added.
 /////////////////////////////////////////////////////////////////////////////////
-UINT APIENTRY PrintHookProc(HWND hdlg, UINT uiMsg, WPARAM wParam,
-                            LPARAM lParam)
+UINT_PTR APIENTRY PrintHookProc(HWND hdlg, UINT uiMsg, WPARAM wParam, LPARAM /*lParam*/)
 {
     switch(uiMsg)
     {

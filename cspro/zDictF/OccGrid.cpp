@@ -229,7 +229,7 @@ depends on the cell type - check the information
 on the cell type classes
 - The ID of the cell type is given
 ****************************************************/
-int COccGrid::OnCellTypeNotify(long /*ID*/,int /*col*/,long /*row*/,long /*msg*/,long /*param*/){
+int COccGrid::OnCellTypeNotify(long /*ID*/,int /*col*/,long /*row*/,long /*msg*/,LPARAM /*param*/){
     return 0;
 }
 

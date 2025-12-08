@@ -13,7 +13,6 @@ namespace
 }
 
 
-
 int Versioning::GetReleaseDate()
 {
     return CSProReleaseDate;
@@ -58,4 +57,21 @@ std::string Versioning::GetVersionString(std::string version, const bool include
         version.append(" (beta)");
 
     return version;
+}
+
+
+std::string Versioning::GetVersionString(const bool include_cspro/* = false*/)
+{
+    return GetVersionString(NumberText, include_cspro);
+}
+
+
+std::string Versioning::GetVersionDetailedString(const bool include_cspro/* = false*/)
+{
+    std::string version_text = GetVersionString(NumberDetailedText, include_cspro);
+
+    // add the architecture
+    version_text.append(IsX64() ? " (64-bit)" : " (32-bit)");
+
+    return version_text;
 }

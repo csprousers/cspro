@@ -450,7 +450,7 @@ depends on the data source - check the information
 on the data source(s) being used
 - The ID of the Data source is also returned
 ****************************************************/
-void CConSpecGrid::OnDataSourceNotify(int ID,long msg,long param){
+void CConSpecGrid::OnDataSourceNotify(int ID,long msg,LPARAM param){
 }
 /***************************************************
 OnCellTypeNotify
@@ -459,7 +459,7 @@ depends on the cell type - check the information
 on the cell type classes
 - The ID of the cell type is given
 ****************************************************/
-int CConSpecGrid::OnCellTypeNotify(long ID,int col,long row,long msg,long param){
+int CConSpecGrid::OnCellTypeNotify(long ID,int col,long row,long msg,LPARAM param){
     return 0;
 }
 /***************************************************

@@ -13,7 +13,7 @@
 
 namespace
 {
-    constexpr UINT CompilationTimerId = 20250414;
+    constexpr UINT_PTR CompilationTimerId = 20250414;
 }
 
 
@@ -296,7 +296,7 @@ void CQSFEView::OnContextMenu(CWnd* /*pWnd*/, const CPoint point)
 }
 
 
-void CQSFEView::OnTimer(const UINT nIDEvent)
+void CQSFEView::OnTimer(const UINT_PTR nIDEvent)
 {
     if( nIDEvent != CompilationTimerId )
         return;

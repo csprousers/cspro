@@ -470,7 +470,7 @@ OnDataSourceNotify
     on the data source(s) being used
     - The ID of the Data source is also returned
 ****************************************************/
-void CUGExcelCtrl::OnDataSourceNotify(int ID,long msg,long param){
+void CUGExcelCtrl::OnDataSourceNotify(int ID,long msg,LPARAM param){
 }
 /***************************************************
 OnCellTypeNotify
@@ -479,7 +479,7 @@ OnCellTypeNotify
     on the cell type classes
     - The ID of the cell type is given
 ****************************************************/
-int CUGExcelCtrl::OnCellTypeNotify(long ID,int col,long row,long msg,long param){
+int CUGExcelCtrl::OnCellTypeNotify(long ID,int col,long row,long msg,LPARAM param){
     return TRUE;
 }
 /***************************************************
@@ -587,4 +587,3 @@ void CUGExcelCtrl::OnDrawFocusRect(CDC *dc,RECT *rect){
 
     DrawExcelFocusRect(dc,rect);
 }
-

@@ -436,7 +436,7 @@ void Indexer::IndexCallback(const std::string& key, const double position_in_rep
     ++m_currentlyProcessingIndexResult->number_cases;
 
     sqlite3_reset(m_stmtPutCase);
-    sqlite3_bind_text(m_stmtPutCase, 1, key.data(), key.length(), SQLITE_TRANSIENT);
+    sqlite3_bind_text(m_stmtPutCase, 1, key.data(), int32_cast(key.length()), SQLITE_TRANSIENT);
     sqlite3_bind_int(m_stmtPutCase, 2, static_cast<int>(m_currentlyProcessingIndexResult->file_index));
     sqlite3_bind_int(m_stmtPutCase, 3, static_cast<int>(m_currentlyProcessingIndexResult->number_cases));
     sqlite3_bind_double(m_stmtPutCase, 4, position_in_repository);
@@ -1039,7 +1039,7 @@ void Indexer::WriteCases(DataRepository& output_repository, IndexResult& index_r
                         sqlite3_reset(m_stmtUpdateCaseDoNotKeepByKey);
 
                         const std::string& key = data_case->GetKey();
-                        sqlite3_bind_text(m_stmtUpdateCaseDoNotKeepByKey, 1, key.data(), key.length(), SQLITE_TRANSIENT);
+                        sqlite3_bind_text(m_stmtUpdateCaseDoNotKeepByKey, 1, key.data(), int32_cast(key.length()), SQLITE_TRANSIENT);
 
                         if( sqlite3_step(m_stmtUpdateCaseDoNotKeepByKey) != SQLITE_DONE )
                             throw IndexerDatabaseException();

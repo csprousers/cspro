@@ -42,9 +42,6 @@ public:
     //Actions
     void PressButton( int iPressedButton );  //Only called by any CCSButton child
 
-    static int GetOption(CString csTitle, CString csMsg, ...);
-
-
     //Extraction :
     int  GetActiveButtonIndex();      //Zero based index of the button that has focus.
     bool ExistActiveButton();         //true when some button has focus.

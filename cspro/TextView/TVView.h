@@ -50,14 +50,14 @@ public:
 
 // Implementation
 private:
-    void SetScrollParameters (void);         // sets page, total sizes ... called from OnInitialUpdate and OnSize
-    void ResizeRulers (void);                // causes ruler positioning to be redone
-    void UpdateRulers (void);                // tells the rulers the current line and column position
-    void UpdateStatusBar (void);             // causes the main frame to update the status bar current screen position
+    void SetScrollParameters();         // sets page, total sizes ... called from OnInitialUpdate and OnSize
+    void ResizeRulers();                // causes ruler positioning to be redone
+    void UpdateRulers();                // tells the rulers the current line and column position
+    void UpdateStatusBar();             // causes the main frame to update the status bar current screen position
     BOOL OnScrollBy( CSize sizeScroll, BOOL bDoScroll); // csc 1/16/2005
-//    void DoSearch (void);                    // performs the search, called via a timer set after the find dialog box
+//    void DoSearch()                   // performs the search, called via a timer set after the find dialog box
 
-    void ChangeFontSize(bool increase); // GHM 20110802
+    void ChangeFontSize(bool increase); // 20110802
 
 
 public:
@@ -71,16 +71,16 @@ protected:
 
 protected:
     // "find" dialog box
-    LONG OnSearch (UINT, LONG);
-    LONG OnSearchClose (UINT, LONG);
+    LRESULT OnSearch(WPARAM wParam, LPARAM lParam);
+    LRESULT OnSearchClose(WPARAM wParam, LPARAM lParam);
 
 private:
     // "scanning file ... please wait" dialog box
-    void ClearFindSelection (void);
-    void SetLastFind (CLPoint ptlX)   { m_ptlLastFind = ptlX;    }
-    CLPoint GetLastFind (void)        { return m_ptlLastFind;    }
-    BOOL ShowLastFind (void)          { return m_bShowLastFind;  }
-    void SetShowLastFind (BOOL bX)    { m_bShowLastFind = bX;    }
+    void ClearFindSelection();
+    void SetLastFind (CLPoint ptlX) { m_ptlLastFind = ptlX;    }
+    CLPoint GetLastFind()           { return m_ptlLastFind;    }
+    BOOL ShowLastFind()             { return m_bShowLastFind;  }
+    void SetShowLastFind (BOOL bX)  { m_bShowLastFind = bX;    }
 
 // Overrides
     // ClassWizard generated virtual function overrides
@@ -95,7 +95,7 @@ private:
     virtual void OnUpdate(CView* pSender, LPARAM lHint, CObject* pHint);
     //}}AFX_VIRTUAL
 
-    void OnFilePrintPreview(void);
+    void OnFilePrintPreview();
 
 // Implementation
 public:
@@ -126,7 +126,7 @@ protected:
     afx_msg void OnViewGotoline();
     afx_msg void OnUpdateEditCopy(CCmdUI* pCmdUI);
     afx_msg void OnUpdateEditCopySs(CCmdUI* pCmdUI);
-    afx_msg void OnTimer(UINT nIDEvent);
+    afx_msg void OnTimer(UINT_PTR nIDEvent);
     afx_msg void OnUpdateEditFind(CCmdUI* pCmdUI);
     afx_msg void OnUpdateViewGotoline(CCmdUI* pCmdUI);
     afx_msg BOOL OnMouseWheel(UINT nFlags, short zDelta, CPoint pt);
@@ -135,7 +135,7 @@ protected:
     afx_msg void OnUpdateEditFindNext(CCmdUI* pCmdUI);
     afx_msg void OnEditFindPrev();
     afx_msg void OnUpdateEditFindPrev(CCmdUI* pCmdUI);
-    afx_msg void OnFileClose(); // GHM 20110802 three new shortcuts
+    afx_msg void OnFileClose(); // 20110802 three new shortcuts
     afx_msg void OnFontBigger();
     afx_msg void OnFontSmaller();
     //}}AFX_MSG

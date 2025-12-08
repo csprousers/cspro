@@ -30,7 +30,7 @@ protected:
     typedef struct UGPtrListTag{
         BOOL    isUsed;
         LPVOID  pointer;
-        long    param;
+        LPARAM  param;
         UGID    id;
     }UGPtrList;
 
@@ -46,7 +46,7 @@ public:
     CUGPtrList();
     ~CUGPtrList();
 
-    int AddPointer(void *ptr,long param = 0,UGID *id = NULL);
+    int AddPointer(void *ptr,LPARAM param = 0,UGID *id = NULL);
 
     LPVOID GetPointer(int index);
     long GetParam(int index);
@@ -54,7 +54,7 @@ public:
 
     int GetPointerIndex(void * ptr);
 
-    int UpdateParam(int index,long param);
+    int UpdateParam(int index,LPARAM param);
 
     int DeletePointer(int index);
     int EmptyList();

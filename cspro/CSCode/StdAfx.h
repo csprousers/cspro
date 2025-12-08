@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 #include <engine/StandardSystemIncludes.h>
-#include <engine/StrictCompilerErrors.h>
+#include <StandardIncludes/strict_errors.h>
 
 #include <afxcontrolbars.h>
 #include <CSCode/CodeDoc.h>

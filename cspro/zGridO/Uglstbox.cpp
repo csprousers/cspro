@@ -144,7 +144,7 @@ void CUGLstBox::Select(){
 
     //notify the user of the selection
     if(m_ctrl->OnCellTypeNotify(m_cellTypeId,col,row, //set the id
-        UGCT_DROPLISTSELECT,(long)&string) != FALSE){
+        UGCT_DROPLISTSELECT,(LPARAM)&string) != FALSE){
 
         m_ctrl->GetCell(col,row,&cell);
         cell.SetText(string);

@@ -892,27 +892,6 @@ int  CMsgDialog::GetAditionalFontHeigth( CString CSFontName )
 
 }
 
-int CMsgDialog::GetOption(CString csTitle, CString csMsg, ...)
-{
-    std::vector<CString> buttons;
-
-    va_list parg;
-    va_start(parg, csMsg);
-
-    const TCHAR* pszButtonText;
-    while( ( pszButtonText = (const TCHAR*)va_arg( parg, const TCHAR* ) ) != nullptr )
-        buttons.push_back(pszButtonText);
-
-    va_end(parg);
-
-    // The user choose the apropiate action
-    CMsgOptions cMsgOptions(csTitle, csMsg, MB_OK, -1, -1, buttons);
-    CMsgDialog cMsgDialog(cMsgOptions, AfxGetMainWnd());
-
-    cMsgDialog.DoModal();
-    return cMsgDialog.GetLastPressedButtonIndex();
-}
-
 
 // JH 7/05 - set character set for font, see CreateFont for valid values
 void CMsgDialog::SetMessageFont(LPCTSTR sFontName, BYTE charSet)

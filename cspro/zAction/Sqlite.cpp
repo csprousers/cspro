@@ -49,7 +49,7 @@ public:
     struct EncryptionKey
     {
         std::unique_ptr<BinaryBlock> key;
-        int key_size;
+        size_t key_size;
     };
 
     static EncryptionKey GetEncryptionKey(Runtime& runtime, const JsonNode& json_node, bool encryption_key_must_be_specified);
@@ -69,7 +69,7 @@ public:
     static void exec_WriteValue(JsonWriter& json_writer, BytesToStringConverter& bytes_to_string_converter, const DbValue& value);
     static void exec_WriteValues(JsonWriter& json_writer, BytesToStringConverter& bytes_to_string_converter,
                                  const std::variant<std::vector<std::string>, bool>& column_names_or_write_into_array,
-                                 const DbValue* values, size_t column_count);
+                                 const DbValue* values, int column_count);
 
 private:
     sqlite3* GetDb(SqliteDb& db, bool for_querying);
@@ -142,7 +142,7 @@ std::unique_ptr<ActionInvoker::Runtime::SqliteDbWrapper> ActionInvoker::Runtime:
 
     // key the database regardless of whether using an encryption key;
     // it is important for non-encrypted databases in case they are eventually rekeyed: https://www.sqlite.org/see/doc/trunk/www/readme.wiki
-    if( SqliteEncryption::sqlite3_key(db, encryption_key.key.get(), encryption_key.key_size) != SQLITE_OK )
+    if( SqliteEncryption::sqlite3_key(db, encryption_key.key.get(), int32_cast(encryption_key.key_size)) != SQLITE_OK )
         throw_exception();
 
     // make sure the database is valid
@@ -473,7 +473,7 @@ void ActionInvoker::Runtime::SqliteDbWrapper::exec_WriteValue(JsonWriter& json_w
 
 void ActionInvoker::Runtime::SqliteDbWrapper::exec_WriteValues(JsonWriter& json_writer, BytesToStringConverter& bytes_to_string_converter,
                                                                const std::variant<std::vector<std::string>, bool>& column_names_or_write_into_array,
-                                                               const DbValue* values, const size_t column_count)
+                                                               const DbValue* values, const int column_count)
 {
     ASSERT(std::holds_alternative<bool>(column_names_or_write_into_array) ||
            std::get<std::vector<std::string>>(column_names_or_write_into_array).size() == column_count);
@@ -591,7 +591,7 @@ ActionInvoker::Result ActionInvoker::Runtime::Sqlite_rekey(const JsonNode& json_
     sqlite3* const db = db_wrapper.GetDb(false);
 
     // if the encryption key is null, the database will be decrypted
-    if( SqliteEncryption::sqlite3_rekey(db, encryption_key.key.get(), encryption_key.key_size ) != SQLITE_OK )
+    if( SqliteEncryption::sqlite3_rekey(db, encryption_key.key.get(), int32_cast(encryption_key.key_size)) != SQLITE_OK )
         throw CSProException("There was an error rekeying the database: %s", sqlite3_errmsg(db));
 
     return Result::Undefined();
@@ -662,7 +662,7 @@ ActionInvoker::Result ActionInvoker::Runtime::Sqlite_exec(const JsonNode& json_n
         return Result::Undefined();
 
     SQLiteStatement& final_sql_statement = sql_statements.back();
-    const size_t column_count = final_sql_statement.GetColumnCount();
+    const int column_count = final_sql_statement.GetColumnCount();
     ASSERT(column_count > 0);
 
     // 2) return a scalar
@@ -727,7 +727,7 @@ ActionInvoker::Result ActionInvoker::Runtime::Sqlite_exec(const JsonNode& json_n
 
     if( *row_format_type == RowFormatType::Object )
     {
-        for( size_t i = 0; i < column_count; ++i )
+        for( int i = 0; i < column_count; ++i )
             std::get<std::vector<std::string>>(column_names_or_write_into_array).emplace_back(final_sql_statement.GetColumnName(i));
     }
 
@@ -743,7 +743,7 @@ ActionInvoker::Result ActionInvoker::Runtime::Sqlite_exec(const JsonNode& json_n
 
     for( ; result == SQLITE_ROW; result = final_sql_statement.Step() )
     {
-        for( size_t i = 0; i < column_count; ++i )
+        for( int i = 0; i < column_count; ++i )
             cells[i] = SqliteDbWrapper::exec_GetValue(final_sql_statement, i);
 
         SqliteDbWrapper::exec_WriteValues(*json_writer, bytes_to_string_converter, column_names_or_write_into_array, cells.get(), column_count);

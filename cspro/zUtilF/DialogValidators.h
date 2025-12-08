@@ -53,7 +53,7 @@ template<typename T>
 int RadioEnumHelper<T>::ToForm(const T value) const
 {
     const auto& lookup = std::find(m_values.cbegin(), m_values.cend(), value);
-    return ( lookup != m_values.cend() ) ? std::distance(m_values.cbegin(), lookup) :
+    return ( lookup != m_values.cend() ) ? static_cast<int>(std::distance(m_values.cbegin(), lookup)) :
                                            ReturnProgrammingError(0);
 }
 

@@ -198,11 +198,11 @@ void CDDTreeCtrl::OnGetDisplayInfo(NMHDR* pNMHDR, LRESULT* pResult)
         ASSERT(dict_tree_node->GetDictElementType() == DictElementType::Item ||
                dict_tree_node->GetDictElementType() == DictElementType::ValueSet);
 
-        SO::AppendFormat(display_text, _T("(%d)"), dict_tree_node->GetItemOccurs() + 1);
+        SO::AppendFormat(display_text, L"(%d)", dict_tree_node->GetItemOccurs() + 1);
     }
 
     if( view_name && SharedSettings::AppendLabelsToNamesInTree() )
-        SO::Append(display_text, _T(": "), dict_tree_node->GetLabel());
+        SO::Append(display_text, L": ", dict_tree_node->GetLabel());
 
     lstrcpyn(pTVDispInfo->item.pszText, display_text.c_str(), pTVDispInfo->item.cchTextMax);
 
@@ -866,7 +866,7 @@ void CDDTreeCtrl::DefaultExpand(HTREEITEM hItem)
     DictTreeNode* dict_tree_node = GetTreeNode(hNode);
     if (dict_tree_node->GetDictElementType() == DictElementType::Dictionary) {
         CString sFile = dict_tree_node->GetDDDoc()->GetPathName();
-        if (sFile.Right(7).CompareNoCase(_T("wrk.dcf")) != 0) {
+        if (sFile.Right(7).CompareNoCase(L"wrk.dcf") != 0) {
             Expand(hNode, TVE_EXPAND);
         }
     }
@@ -1272,26 +1272,26 @@ void CDDTreeCtrl::OnRButtonUp(UINT nFlags, CPoint point)
     CString csTree;
     CString csGrid;
     if (dict_tree_node->GetLevelIndex() == NONE) {
-        csTree = _T(" Dict");
-        csGrid = _T(" Level");
+        csTree = L" Dict";
+        csGrid = L" Level";
     }
     else if (dict_tree_node->GetRecordIndex() == NONE) {
-        csTree = _T(" Level");
-        csGrid = _T(" Record");
+        csTree = L" Level";
+        csGrid = L" Record";
     }
     else if (dict_tree_node->GetItemIndex() == NONE) {
-        csTree = _T(" Record");
-        csGrid = _T(" Item");
+        csTree = L" Record";
+        csGrid = L" Item";
     }
     else if (dict_tree_node->GetValueSetIndex() == NONE) {
-        csTree = _T(" Item");
+        csTree = L" Item";
         const CDictItem* dict_item = selected_dictionary->GetLevel(dict_tree_node->GetLevelIndex()).GetRecord(dict_tree_node->GetRecordIndex())->GetItem(dict_tree_node->GetItemIndex());
         if (DictionaryRules::CanHaveValueSet(*dict_item))
-            csGrid = _T(" Value Set");
+            csGrid = L" Value Set";
     }
     else {
-        csTree = _T(" Value Set");
-        csGrid = _T(" Value Set");
+        csTree = L" Value Set";
+        csGrid = L" Value Set";
     }
 
     // Need to change events to go to mainframe - mainframe will bring up correct frame and dispatch message to frame
@@ -1303,32 +1303,32 @@ void CDDTreeCtrl::OnRButtonUp(UINT nFlags, CPoint point)
 
     UINT dynamicFlag = isQuestionnaireView ? MF_STRING | MF_GRAYED : MF_STRING;
     // 20101106, rosie request ... allow the user to copy the name of the node (for logic editing)
-    popup_menu.AppendMenu(MF_STRING, ID_COPY_DICT_NAME, _T("&Copy Name"));
+    popup_menu.AppendMenu(MF_STRING, ID_COPY_DICT_NAME, L"&Copy Name");
     popup_menu.AppendMenu(MF_SEPARATOR);
-    popup_menu.AppendMenu(MF_STRING, ID_VIEW_DICTIONARY, _T("View Dictionary"));
-    popup_menu.AppendMenu(MF_STRING, ID_VIEW_QUESTIONNAIRE, _T("View Questionnaire"));
+    popup_menu.AppendMenu(MF_STRING, ID_VIEW_DICTIONARY, L"View Dictionary");
+    popup_menu.AppendMenu(MF_STRING, ID_VIEW_QUESTIONNAIRE, L"View Questionnaire");
     popup_menu.AppendMenu(MF_SEPARATOR);
 
     if (dict_tree_node->GetDictElementType() == DictElementType::Relation) {
-        popup_menu.AppendMenu(dynamicFlag, ID_EDIT_RELATION, _T("&Modify Relations"));
+        popup_menu.AppendMenu(dynamicFlag, ID_EDIT_RELATION, L"&Modify Relations");
     }
     else {
         if( dict_tree_node->GetLevelIndex() == NONE ) {
-            popup_menu.AppendMenu(MF_STRING,ID_DICTIONARY_MACROS,_T("Dictionary Macros"));
+            popup_menu.AppendMenu(MF_STRING,ID_DICTIONARY_MACROS, L"Dictionary Macros");
 
             // add some "open with" options
             open_with_menu = std::make_unique<CMenu>();
             open_with_menu->CreatePopupMenu();
 
-            open_with_menu->AppendMenu(MF_STRING, ID_OPEN_WITH_CSDIFF, _T("Compare Data"));
-            open_with_menu->AppendMenu(MF_STRING, ID_OPEN_WITH_EXCEL2CSPRO, _T("Excel to CSPro"));
-            open_with_menu->AppendMenu(MF_STRING | ( selected_dictionary->GetAllowExport() ? 0 : MF_GRAYED ), ID_OPEN_WITH_CSEXPORT, _T("Export Data"));
-            open_with_menu->AppendMenu(MF_STRING, ID_OPEN_WITH_CSINDEX, _T("Index Data"));
-            open_with_menu->AppendMenu(MF_STRING, ID_OPEN_WITH_CSSORT, _T("Sort Data"));
-            open_with_menu->AppendMenu(MF_STRING, ID_OPEN_WITH_CSFREQ, _T("Tabulate Frequencies"));
+            open_with_menu->AppendMenu(MF_STRING, ID_OPEN_WITH_CSDIFF, L"Compare Data");
+            open_with_menu->AppendMenu(MF_STRING, ID_OPEN_WITH_EXCEL2CSPRO, L"Excel to CSPro");
+            open_with_menu->AppendMenu(MF_STRING | ( selected_dictionary->GetAllowExport() ? 0 : MF_GRAYED ), ID_OPEN_WITH_CSEXPORT, L"Export Data");
+            open_with_menu->AppendMenu(MF_STRING, ID_OPEN_WITH_CSINDEX, L"Index Data");
+            open_with_menu->AppendMenu(MF_STRING, ID_OPEN_WITH_CSSORT, L"Sort Data");
+            open_with_menu->AppendMenu(MF_STRING, ID_OPEN_WITH_CSFREQ, L"Tabulate Frequencies");
 
             popup_menu.AppendMenu(MF_SEPARATOR);
-            popup_menu.AppendMenu(MF_POPUP, (UINT)open_with_menu->GetSafeHmenu(), _T("Open With"));
+            popup_menu.AppendMenu(MF_POPUP, (UINT_PTR)open_with_menu->GetSafeHmenu(), L"Open With");
 
             // add a view data option
             UWM::Dictionary::GetApplicationPffParameters get_application_pff_parameters { *selected_dictionary, false, nullptr };
@@ -1378,35 +1378,35 @@ void CDDTreeCtrl::OnRButtonUp(UINT nFlags, CPoint point)
 
         else
         {
-            if (/*dict_tree_node->GetLevelIndex() == NONE || */(dict_tree_node->GetRecordIndex() == COMMON && csTree == _T(" Record"))) {
-                popup_menu.AppendMenu(MF_STRING | MF_GRAYED, ID_EDIT_MODIFY, _T("&Modify\tCtrl+M"));
+            if (/*dict_tree_node->GetLevelIndex() == NONE || */(dict_tree_node->GetRecordIndex() == COMMON && csTree == L" Record")) {
+                popup_menu.AppendMenu(MF_STRING | MF_GRAYED, ID_EDIT_MODIFY, L"&Modify\tCtrl+M");
             }
             else {
-                popup_menu.AppendMenu(dynamicFlag, ID_EDIT_MODIFY,_T("&Modify") + csTree + _T("\tCtrl+M"));
+                popup_menu.AppendMenu(dynamicFlag, ID_EDIT_MODIFY, L"&Modify" + csTree + L"\tCtrl+M");
             }
             /*if (dict_tree_node->GetLevelIndex() == NONE) {
                 popup_menu.AppendMenu(MF_STRING | MF_GRAYED, ID_EDIT_ADD, "&Add\tCtrl+A");
             }
             else*/ {
-                popup_menu.AppendMenu(dynamicFlag, ID_EDIT_ADD,_T("&Add") + csTree + _T("\tCtrl+A"));
+                popup_menu.AppendMenu(dynamicFlag, ID_EDIT_ADD, L"&Add" + csTree + L"\tCtrl+A");
             }
-            if (/*dict_tree_node->GetLevelIndex() == NONE || */(dict_tree_node->GetRecordIndex() == COMMON && csTree == _T(" Record"))) {
-                popup_menu.AppendMenu(MF_STRING | MF_GRAYED, ID_EDIT_INSERT, _T("&Insert\tIns"));
-            }
-            else {
-                popup_menu.AppendMenu(dynamicFlag, ID_EDIT_INSERT,_T("&Insert") + csTree + _T("\tIns"));
-            }
-            if (/*dict_tree_node->GetLevelIndex() == NONE || */(dict_tree_node->GetRecordIndex() == COMMON && csTree == _T(" Record"))) {
-                popup_menu.AppendMenu(MF_STRING | MF_GRAYED, ID_EDIT_DELETE, _T("&Delete\tDel"));
+            if (/*dict_tree_node->GetLevelIndex() == NONE || */(dict_tree_node->GetRecordIndex() == COMMON && csTree == L" Record")) {
+                popup_menu.AppendMenu(MF_STRING | MF_GRAYED, ID_EDIT_INSERT, L"&Insert\tIns");
             }
             else {
-                popup_menu.AppendMenu(dynamicFlag, ID_EDIT_DELETE,_T("&Delete") + csTree + _T("\tDel"));
+                popup_menu.AppendMenu(dynamicFlag, ID_EDIT_INSERT, L"&Insert" + csTree + L"\tIns");
+            }
+            if (/*dict_tree_node->GetLevelIndex() == NONE || */(dict_tree_node->GetRecordIndex() == COMMON && csTree == L" Record")) {
+                popup_menu.AppendMenu(MF_STRING | MF_GRAYED, ID_EDIT_DELETE, L"&Delete\tDel");
+            }
+            else {
+                popup_menu.AppendMenu(dynamicFlag, ID_EDIT_DELETE, L"&Delete" + csTree + L"\tDel");
             }
         }
         if (csTree != csGrid && !csGrid.IsEmpty()) {
 
             popup_menu.AppendMenu(MF_SEPARATOR);
-            CString sMenuItem = _T("Add") + csGrid;
+            CString sMenuItem = L"Add" + csGrid;
             popup_menu.AppendMenu(dynamicFlag, ID_EDIT_ADD_NEXT, sMenuItem.GetString());
         }
     }
@@ -1726,7 +1726,7 @@ CDataDict* CDDTreeCtrl::GetSelectedDictionary(bool requires_saved_dictionary/* =
 
         if( requires_saved_dictionary && dictionary_doc->IsModified() )
         {
-            AfxMessageBox(_T("You must save the dictionary before you can open it in a tool."));
+            AfxMessageBox(L"You must save the dictionary before you can open it in a tool.");
         }
 
         else

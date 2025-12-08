@@ -126,10 +126,10 @@ void DataDictionary::ZeroFill::set(bool b)
 
 array<DictionaryLevel^>^ DataDictionary::Levels::get()
 {
-    array<DictionaryLevel^>^ levels = gcnew array<DictionaryLevel^>(m_pNativeDict->GetNumLevels());
+    array<DictionaryLevel^>^ levels = gcnew array<DictionaryLevel^>(int32_cast(m_pNativeDict->GetNumLevels()));
 
     for( size_t level_number = 0; level_number < m_pNativeDict->GetNumLevels(); ++level_number )
-        levels[level_number] = gcnew DictionaryLevel(&m_pNativeDict->GetLevel(level_number));
+        levels[int32_cast(level_number)] = gcnew DictionaryLevel(&m_pNativeDict->GetLevel(level_number));
 
     return levels;
 }
@@ -140,9 +140,9 @@ array<Tuple<String^, String^>^>^ DataDictionary::Languages::get()
     const auto& dictionary = *m_pNativeDict;
     const auto& languages = dictionary.GetLanguages();
 
-    auto clr_languages = gcnew array<Tuple<String^, String^>^>(languages.size());
+    auto clr_languages = gcnew array<Tuple<String^, String^>^>(int32_cast(languages.size()));
 
-    size_t index = 0;
+    int index = 0;
 
     for( const auto& language : languages )
     {

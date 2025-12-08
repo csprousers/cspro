@@ -438,7 +438,7 @@ JavaScript::Value JavaScript::Executor::CreateArray(const size_t size, const Val
     Value js_array(m_qjs, JS_NewArray(m_qjs->ctx));
 
     for( size_t i = 0; i < size; ++i )
-        JS_DefinePropertyValueUint32(m_qjs->ctx, *js_array, i, data[i].Duplicate(), JS_PROP_C_W_E);
+        JS_DefinePropertyValueUint32(m_qjs->ctx, *js_array, uint32_cast(i), data[i].Duplicate(), JS_PROP_C_W_E);
 
     return js_array;
 }
@@ -591,7 +591,7 @@ JavaScript::Value JavaScript::Executor::CreateFunction(std::function<Value(int a
 {
     ASSERT(callback_function);
 
-    const int callback_function_index = m_callbackFunctions.size();
+    const int callback_function_index = int32_cast(m_callbackFunctions.size());
     m_callbackFunctions.emplace_back(std::move(callback_function));
 
     return Value(m_qjs, JS_NewCFunctionMagic(m_qjs->ctx, CallbackFunctionExecutor::Run, nullptr, 1,
@@ -662,7 +662,8 @@ void JavaScript::Executor::SetPropertyValue(const std::string& name, Value value
 
 
 JavaScript::Value JavaScript::Executor::InvokeFunction(const std::string& function_name,
-                                                       const size_t number_function_arguments, const Value* const function_arguments)
+                                                       const size_t number_function_arguments,
+                                                       const Value* const function_arguments)
 {
     std::optional<VariablePropertyNameEvaluator::ForGetting> name_evaluator;
 
@@ -683,7 +684,7 @@ JavaScript::Value JavaScript::Executor::InvokeFunction(const std::string& functi
     Value js_result(m_qjs, JS_Call(m_qjs->ctx,
                                    name_evaluator->GetValue().GetValue(),
                                    name_evaluator->IsObjectValueGlobalObject() ? JS_UNDEFINED : name_evaluator->GetObjectValue().GetValue(),
-                                   number_function_arguments, js_function_arguments.get()));
+                                   int32_cast(number_function_arguments), js_function_arguments.get()));
 
     ProcessPostEvaluationResult(*js_result);
 

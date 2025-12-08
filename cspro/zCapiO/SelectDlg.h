@@ -34,11 +34,11 @@ public:
 
 // Overrides
 public:
-    virtual int DoModal( CSelectListCtrlOptions* pSelCaseOptions );
-    virtual BOOL PreTranslateMessage(MSG* pMsg);
-    protected:
-    virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
-    virtual BOOL OnNotify(WPARAM wParam, LPARAM lParam, LRESULT* pResult);
+    INT_PTR DoModal(CSelectListCtrlOptions* pSelCaseOptions);
+    BOOL PreTranslateMessage(MSG* pMsg) override;
+protected:
+    void DoDataExchange(CDataExchange* pDX) override;    // DDX/DDV support
+    BOOL OnNotify(WPARAM wParam, LPARAM lParam, LRESULT* pResult) override;
 
 // Implementation
 protected:
@@ -81,7 +81,7 @@ protected:
     afx_msg void OnSetfocusSearchBox();
     afx_msg BOOL OnHelpInfo(HELPINFO* pHelpInfo);
     afx_msg void OnKillfocusSearchboxEdit();
-    afx_msg LONG OnFinishedDialog(UINT wParam, LONG lParam);
+    afx_msg LRESULT OnFinishedDialog(WPARAM wParam, LPARAM lParam);
     virtual void OnCancel();
     afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
     afx_msg void OnLButtonUp(UINT nFlags, CPoint point);

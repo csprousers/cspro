@@ -61,7 +61,7 @@ bool WinBluetoothNameSetter::SetBluetoothName(const std::string& bluetooth_name)
     if( ret != ERROR_SUCCESS )
         return false; // Failed to open registry key. Error code: ret
 
-    ret = RegSetValueEx(hKey, L"Local Name", 0, REG_BINARY, reinterpret_cast<const BYTE*>(bluetooth_name.c_str()), bluetooth_name.length());
+    ret = RegSetValueEx(hKey, L"Local Name", 0, REG_BINARY, reinterpret_cast<const BYTE*>(bluetooth_name.c_str()), uint32_cast(bluetooth_name.length()));
 
     if( ret != ERROR_SUCCESS )
         return false; // Failed to set registry key. Error code: ret

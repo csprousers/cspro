@@ -201,7 +201,7 @@ void CCSConcatDlg::AddConnectionStrings(const std::vector<ConnectionString>& con
                                                    date,
                                                    size);
 
-                m_fileList.SetItemData(pos, m_fileListConnectionStrings.size());
+                m_fileList.SetItemData(pos, uint32_cast(m_fileListConnectionStrings.size()));
                 m_fileListConnectionStrings.emplace_back(std::move(expanded_connection_string));
             };
 

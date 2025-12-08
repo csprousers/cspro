@@ -46,9 +46,9 @@ public:
 // Overrides
     // ClassWizard generated virtual function overrides
     //{{AFX_VIRTUAL(CUGTab)
-    protected:
-    virtual BOOL PreCreateWindow(CREATESTRUCT& cs);
-    virtual int OnToolHitTest( CPoint point, TOOLINFO* pTI ) const;
+protected:
+    BOOL PreCreateWindow(CREATESTRUCT& cs) override;
+    INT_PTR OnToolHitTest( CPoint point, TOOLINFO* pTI ) const override;
 
     //}}AFX_VIRTUAL
 

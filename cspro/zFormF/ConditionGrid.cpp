@@ -487,7 +487,7 @@ void CCondGrid::OnCharDown(UINT* vcKey, BOOL /*processed*/)
 //
 /////////////////////////////////////////////////////////////////////////////
 
-int CCondGrid::OnCellTypeNotify(long /*ID*/, int /*col*/, long /*row*/, long /*msg*/, long /*param*/)
+int CCondGrid::OnCellTypeNotify(long /*ID*/, int /*col*/, long /*row*/, long /*msg*/, LPARAM /*param*/)
 {
     return TRUE;
 }

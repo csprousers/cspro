@@ -530,8 +530,8 @@ LRESULT CMainFrame::OnDDEExecute(WPARAM wParam, LPARAM lParam)
 //
 /////////////////////////////////////////////////////////////////////////////
 
-LONG CMainFrame::OnIMSAFileOpen (UINT, LPARAM)  {
-
+LRESULT CMainFrame::OnIMSAFileOpen(WPARAM /*wParam*/, LPARAM /*lParam*/)
+{
 //    This function responds to the message WM_IMSA_FILEOPEN, which is sent by other
 //    IMPS 40 modules to invoke a file to be viewed.
 
@@ -590,11 +590,10 @@ LONG CMainFrame::OnIMSAFileOpen (UINT, LPARAM)  {
 //
 /////////////////////////////////////////////////////////////////////////////
 
-LONG CMainFrame::OnIMSAFileClose (UINT, LPARAM)  {
-
-//    This function responds to the message WM_IMPS40_FILECLOSE which is sent by other
-//    IMPS 40 modules to cause us to close a file (if we've got it opened!)
-
+LRESULT CMainFrame::OnIMSAFileClose(WPARAM /*wParam*/, LPARAM /*lParam*/)
+{
+    // This function responds to the message WM_IMPS40_FILECLOSE which is sent by other
+    // IMPS 40 modules to cause us to close a file (if we've got it opened!)
 
     CString csWndClass = ((CTblViewApp*)AfxGetApp())->m_csWndClassName;
     CString csFileName, csTemp;
@@ -628,8 +627,8 @@ LONG CMainFrame::OnIMSAFileClose (UINT, LPARAM)  {
 //
 /////////////////////////////////////////////////////////////////////////////
 
-LONG CMainFrame::OnIMSASetFocus (UINT, LPARAM)  {
-
+LRESULT CMainFrame::OnIMSASetFocus(WPARAM /*wParam*/, LPARAM /*lParam*/)
+{
     CString csWndClass = ((CTblViewApp*)AfxGetApp())->m_csWndClassName;
     CString csFileName, csTemp;
 
@@ -667,4 +666,3 @@ void CMainFrame::OnQuickQuit() {
         SendMessage(WM_COMMAND, ID_APP_EXIT);
     }
 }
-

@@ -14,7 +14,7 @@ System::String^ CSPro::Dictionary::DictionaryValue::Label::get()
 
 array<CSPro::Dictionary::ValuePair^>^ CSPro::Dictionary::DictionaryValue::ValuePairs::get()
 {
-    array<CSPro::Dictionary::ValuePair^>^ value_pairs = gcnew array<ValuePair^>(m_dictValue.GetNumValuePairs());
+    array<CSPro::Dictionary::ValuePair^>^ value_pairs = gcnew array<ValuePair^>(int32_cast(m_dictValue.GetNumValuePairs()));
 
     int i = 0;
 

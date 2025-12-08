@@ -1,4 +1,5 @@
 ﻿#pragma once
+
 //***************************************************************************
 //  File name: DDLView.h
 //
@@ -182,7 +183,7 @@ private:
     void LayoutRuler(CDC* pDC);
 
     // Tool tip support
-    virtual int OnToolHitTest(CPoint point, TOOLINFO* pTI) const;
+    INT_PTR OnToolHitTest(CPoint point, TOOLINFO* pTI) const override;
 
     LRESULT OnFind(WPARAM wParam,LPARAM lParam);
 

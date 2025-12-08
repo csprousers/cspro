@@ -110,7 +110,7 @@ std::wstring KeyboardLoader::GetDisplayName(const HKL hKL, const bool strip_coun
     constexpr int DisplayNameBufferSize = 512;
     auto display_name = std::make_unique_for_overwrite<wchar_t[]>(DisplayNameBufferSize);
 
-    const int display_name_length_with_null = GetLocaleInfo(MAKELCID(reinterpret_cast<DWORD>(hKL), SORT_DEFAULT),
+    const int display_name_length_with_null = GetLocaleInfo(MAKELCID(reinterpret_cast<DWORD_PTR>(hKL), SORT_DEFAULT),
                                                             LOCALE_SLANGUAGE, display_name.get(), DisplayNameBufferSize);
 
     if( display_name_length_with_null == 0 )

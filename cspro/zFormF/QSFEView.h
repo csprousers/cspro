@@ -49,7 +49,7 @@ protected:
 
     void OnContextMenu(CWnd* pWnd, CPoint point);
 
-    void OnTimer(UINT nIDEvent);
+    void OnTimer(UINT_PTR nIDEvent);
 
     void OnViewForm();
     void OnViewLogic();

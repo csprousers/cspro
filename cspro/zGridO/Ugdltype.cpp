@@ -291,7 +291,7 @@ int CUGDropListType::StartDropList(){
     }
 
     //notify the user of the list, so it can be modified if needed
-    m_ctrl->OnCellTypeNotify(m_ID,m_btnCol,m_btnRow,UGCT_DROPLISTSTART,(long)&list);
+    m_ctrl->OnCellTypeNotify(m_ID,m_btnCol,m_btnRow,UGCT_DROPLISTSTART,(LPARAM)&list);
 
     //get the font
     if(cell.IsPropertySet(UGCELL_FONT_SET))

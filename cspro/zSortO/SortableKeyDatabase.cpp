@@ -88,13 +88,13 @@ bool SortableKeyDatabase::Open()
         if( sqlite3_exec(m_db, create_sql.c_str(), nullptr, nullptr, nullptr) == SQLITE_OK )
         {
             // generate the prepared statements
-            if( sqlite3_prepare_v2(m_db, put_sql.c_str(), put_sql.length(), &m_stmtPut, nullptr) == SQLITE_OK  )
+            if( sqlite3_prepare_v2(m_db, put_sql.c_str(), int32_cast(put_sql.length()), &m_stmtPut, nullptr) == SQLITE_OK  )
             {
                 if( m_sortType == SortType::RecordSort ||
                     sqlite3_prepare_v2(m_db, "SELECT 1 FROM `CSSort` WHERE `Key` = ? LIMIT 1;", -1, &m_stmtExists, nullptr) == SQLITE_OK  )
                 {
                     if( m_sortType == SortType::CaseOnly ||
-                        sqlite3_prepare_v2(m_db, iterator_sql.c_str(), iterator_sql.length(), &m_stmtIterator, nullptr) == SQLITE_OK  )
+                        sqlite3_prepare_v2(m_db, iterator_sql.c_str(), int32_cast(iterator_sql.length()), &m_stmtIterator, nullptr) == SQLITE_OK  )
                     {
                         return true;
                     }
@@ -112,7 +112,7 @@ bool SortableKeyDatabase::CaseExists(const std::string& key)
     ASSERT(m_sortType != SortType::RecordSort);
 
     sqlite3_reset(m_stmtExists);
-    sqlite3_bind_text(m_stmtExists, 1, key.data(), key.length(), SQLITE_TRANSIENT);
+    sqlite3_bind_text(m_stmtExists, 1, key.data(), int32_cast(key.length()), SQLITE_TRANSIENT);
 
     return ( sqlite3_step(m_stmtExists) == SQLITE_ROW );
 }
@@ -124,7 +124,7 @@ void SortableKeyDatabase::InitCaseInfo(const double position_in_repository, cons
 
     m_putArgumentCounter = 0;
     sqlite3_reset(m_stmtPut);
-    sqlite3_bind_text(m_stmtPut, ++m_putArgumentCounter, key.data(), key.length(), SQLITE_TRANSIENT);
+    sqlite3_bind_text(m_stmtPut, ++m_putArgumentCounter, key.data(), int32_cast(key.length()), SQLITE_TRANSIENT);
     sqlite3_bind_double(m_stmtPut, ++m_putArgumentCounter, position_in_repository);
 }
 
@@ -138,8 +138,8 @@ void SortableKeyDatabase::InitRecordInfo(const size_t record_index,
     m_putArgumentCounter = 0;
     sqlite3_reset(m_stmtPut);
     sqlite3_bind_int(m_stmtPut, ++m_putArgumentCounter, static_cast<int>(record_index));
-    sqlite3_bind_blob(m_stmtPut, ++m_putArgumentCounter, id_record_buffer, id_buffer_size, nullptr);
-    sqlite3_bind_blob(m_stmtPut, ++m_putArgumentCounter, record_buffer, buffer_size, nullptr);
+    sqlite3_bind_blob(m_stmtPut, ++m_putArgumentCounter, id_record_buffer, int32_cast(id_buffer_size), nullptr);
+    sqlite3_bind_blob(m_stmtPut, ++m_putArgumentCounter, record_buffer, int32_cast(buffer_size), nullptr);
 }
 
 
@@ -151,7 +151,7 @@ void SortableKeyDatabase::AddCaseKeyValue(const double value)
 
 void SortableKeyDatabase::AddCaseKeyValue(const std::string& value)
 {
-    sqlite3_bind_text(m_stmtPut, ++m_putArgumentCounter, value.data(), value.length(), SQLITE_TRANSIENT);
+    sqlite3_bind_text(m_stmtPut, ++m_putArgumentCounter, value.data(), int32_cast(value.length()), SQLITE_TRANSIENT);
 }
 
 

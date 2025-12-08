@@ -574,7 +574,7 @@ std::optional<int64_t> CurlFtpConnection::ParseUnixFileTime(std::string_view tim
 
     DateTime::Components date_time_components { 0 };
 
-    date_time_components.month = 1 + std::distance(std::cbegin(MonthStrings), month_lookup);
+    date_time_components.month = 1 + static_cast<int>(std::distance(std::cbegin(MonthStrings), month_lookup));
 
     time_text_sv = time_text_sv.substr(3);
     date_time_components.day = GetNextNumericToken(time_text_sv);

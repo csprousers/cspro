@@ -61,46 +61,46 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="res\FIELD32.ICO">
+    <None Include="res\Field32.ico">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="res\FORM.ICO">
+    <None Include="res\Form.ico">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="res\FORMFILE.ICO">
+    <None Include="res\Formfile.ico">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="res\FORMLOOP.ICO">
+    <None Include="res\Formloop.ico">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="res\FRMFRAME.ICO">
+    <None Include="res\Frmframe.ico">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="Res\ico00001.ico">
+    <None Include="res\ico00001.ico">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="Res\ico00003.ico">
+    <None Include="res\ico00003.ico">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="Res\icon1.ico">
+    <None Include="res\icon1.ico">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="res\LEVEL.ICO">
+    <None Include="res\Level.ico">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="Res\levelc.ico">
+    <None Include="res\levelc.ico">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="Res\ord_fiel.ico">
+    <None Include="res\ord_fiel.ico">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="Res\ord_rost.ico">
+    <None Include="res\ord_rost.ico">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="res\ROSTER32.ICO">
+    <None Include="res\Roster32.ico">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="res\TOOLBAR.BMP">
+    <None Include="res\Toolbar.bmp">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>

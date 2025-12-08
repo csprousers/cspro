@@ -822,7 +822,7 @@ double LogicInterpreter::AssignString(T&& value)
     else
     {
         m_workingStrings.emplace_back(std::forward<T>(value));
-        return m_workingStrings.size() - 1;
+        return static_cast<double>(m_workingStrings.size() - 1);
     }
 }
 

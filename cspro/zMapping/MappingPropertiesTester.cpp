@@ -42,7 +42,7 @@ public:
 
     void AddButton(SharableString button_text, std::function<void(int)> callback_function)
     {
-        AddTextButton(std::move(button_text), m_callbackFunctions.size());
+        AddTextButton(std::move(button_text), int32_cast(m_callbackFunctions.size()));
         m_callbackFunctions.emplace_back(std::move(callback_function));
     }
 

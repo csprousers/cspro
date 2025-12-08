@@ -80,16 +80,16 @@ public:
     void CapturePolygonWalk(std::unique_ptr<Geometry::Polygon>& captured_polygon, const Geometry::Polygon* polygon, IMapUI* map) override;
 
     // for EngineUIProcessor
-    long RunEngineUIProcessor(WPARAM wParam, LPARAM lParam) override;
+    LRESULT RunEngineUIProcessor(WPARAM wParam, LPARAM lParam) override;
     bool CaptureImage(EngineUI::CaptureImageNode& capture_image_node) override;
     void CreateMapUI(EngineUI::CreateMapUINode& create_map_ui_node) override;
     void CreateUserbar(std::unique_ptr<Userbar>& userbar) override;
     CString EditNote(const CString& note, const CString& title, bool case_note) override;
     bool ExecSystemApp(EngineUI::ExecSystemAppNode& exec_system_app_node) override;
-    std::wstring GetHtmlDialogsDirectory() override;
+    std::string GetHtmlDialogsDirectory() override;
     void Prompt(EngineUI::PromptNode& options) override;
     bool RunPffExecutor(EngineUI::RunPffExecutorNode& run_pff_executor_node) override;
-    long View(const Viewer& viewer) override;
+    bool View(const Viewer& viewer) override;
 
     // Android-only BaseApplicationInterface overrides
     void MediaScanFiles(const std::vector<CString>& paths) override;

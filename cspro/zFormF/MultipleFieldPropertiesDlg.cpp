@@ -146,9 +146,9 @@ void CMultipleFieldPropertiesDlg::SetPropertiesBasedOnFieldValues()
     CComboBox* pComboBox = (CComboBox*)GetDlgItem(IDC_CAPTURETYPE);
     pComboBox->ResetContent();
 
-    pComboBox->SetItemDataPtr(pComboBox->AddString(_T("<no change>")), (void*)CAPTURETYPE_NO_CHANGE);
-    pComboBox->SetItemDataPtr(pComboBox->AddString(_T("<default for field>")), (void*)CAPTURETYPE_DEFAULT);
-    pComboBox->SetItemDataPtr(pComboBox->AddString(_T("<linked to dictionary item when possible>")), (void*)CAPTURETYPE_LINK_TO_DICT_IF_DEFINED);
+    pComboBox->SetItemData(pComboBox->AddString(L"<no change>"), CAPTURETYPE_NO_CHANGE);
+    pComboBox->SetItemData(pComboBox->AddString(L"<default for field>"), CAPTURETYPE_DEFAULT);
+    pComboBox->SetItemData(pComboBox->AddString(L"<linked to dictionary item when possible>"), CAPTURETYPE_LINK_TO_DICT_IF_DEFINED);
 
     for( const int int_capture_type : valid_capture_types )
     {
@@ -158,7 +158,7 @@ void CMultipleFieldPropertiesDlg::SetPropertiesBasedOnFieldValues()
                                                                                                       CaptureInfo::GetCaptureTypeName(static_cast<CaptureType>(int_capture_type), true);
 
         const int index = pComboBox->AddString(TC::ToWide(text).c_str());
-        pComboBox->SetItemDataPtr(index, (void*)int_capture_type);
+        pComboBox->SetItemData(index, int_capture_type);
     }
 
     int capture_type_to_select = ( capture_types_used.size() == 1 ) ? *capture_types_used.begin() :
@@ -166,7 +166,7 @@ void CMultipleFieldPropertiesDlg::SetPropertiesBasedOnFieldValues()
 
     for( int i = 0; i < pComboBox->GetCount(); ++i )
     {
-        if( capture_type_to_select == (int)pComboBox->GetItemDataPtr(i) )
+        if( capture_type_to_select == pComboBox->GetItemData(i) )
         {
             pComboBox->SetCurSel(i);
             break;
@@ -187,7 +187,7 @@ void CMultipleFieldPropertiesDlg::SetPropertiesBasedOnFieldValues()
     pComboBox->ResetContent();
     int keyboard_selection_index = 0;
 
-    pComboBox->SetItemDataPtr(pComboBox->AddString(_T("<no change>")), (void*)HKL_NEXT); // HKL_NEXT will signify no change
+    pComboBox->SetItemData(pComboBox->AddString(L"<no change>"), HKL_NEXT); // HKL_NEXT will signify no change
 
     for( const auto& [hKL, display_name] : KeyboardLoader::GetKeyboardLayouts(true) )
     {
@@ -247,7 +247,7 @@ void CMultipleFieldPropertiesDlg::OnBnClickedOk()
 
 
     CComboBox* pComboBox = (CComboBox*)GetDlgItem(IDC_CAPTURETYPE);
-    m_iCaptureType = (int)pComboBox->GetItemDataPtr(pComboBox->GetCurSel());
+    m_iCaptureType = pComboBox->GetItemData(pComboBox->GetCurSel());
 
     m_iValidationMethod = ((CComboBox*)GetDlgItem(IDC_VALIDATION_METHOD))->GetCurSel();
 

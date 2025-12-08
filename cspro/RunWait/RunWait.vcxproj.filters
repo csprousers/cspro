@@ -5,10 +5,6 @@
       <UniqueIdentifier>{73392ebd-bb8b-42d4-9263-98792155bcc3}</UniqueIdentifier>
       <Extensions>cpp;c;cxx;rc;def;r;odl;idl;hpj;bat</Extensions>
     </Filter>
-    <Filter Include="Header Files">
-      <UniqueIdentifier>{ea51ac02-8d54-4bac-aba9-ce2ad7941947}</UniqueIdentifier>
-      <Extensions>h;hpp;hxx;hm;inl</Extensions>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="RunWait.cpp">

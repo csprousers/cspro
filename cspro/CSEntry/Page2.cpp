@@ -253,7 +253,7 @@ void CPage2::OnShowWindow(BOOL bShow, UINT nStatus)
                         int                      iCurOcc        = pCurField ? pCurField->GetParent()->GetCurOccurrence() : -1;
 
                         CMsgParam * pMsgParam   = new CMsgParam();
-                        pMsgParam->dwArrayParam.Add( (DWORD) pCurField );
+                        pMsgParam->dwArrayParam.Add( (DWORD_PTR) pCurField );
                         pMsgParam->iParam               = iCurOcc;
                         pMsgParam->bMustBeDestroyedAfterLastCatchMessage = true;
 

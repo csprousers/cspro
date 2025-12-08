@@ -1,7 +1,9 @@
+cd /d %~dp0
+
 set msbuild="C:\Program Files\Microsoft Visual Studio\18\Professional\MSBuild\Current\Bin\MSBuild.exe"
 if exist %msbuild% goto :start
 set msbuild="C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Current\Bin\MSBuild.exe"
 
 :start
-%msbuild% "Messages Processor\Messages Processor.sln" /p:Configuration=Debug /t:Build
-"Messages Processor\Debug\Messages Processor.exe" audit
+%msbuild% build-tools.sln /p:Configuration=Debug /p:Platform=x64 /target:"Messages Processor"
+"build\x64\Debug\bin\Messages Processor.exe" audit

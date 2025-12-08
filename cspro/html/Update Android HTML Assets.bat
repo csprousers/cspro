@@ -5,6 +5,5 @@ if exist %msbuild% goto :start
 set msbuild="C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Current\Bin\MSBuild.exe"
 
 :start
-%msbuild% "..\..\build-tools\CSPro Installer Generator\CSPro Installer Generator\CSPro Installer Generator.sln" /p:Configuration=Release /t:Build
-
-"..\..\build-tools\CSPro Installer Generator\CSPro Installer Generator\bin\Release\CSPro Installer Generator.exe" /android-assets-update-html
+%msbuild% ..\..\build-tools\build-tools.sln /p:Configuration=Debug /p:Platform=x64 /target:"Installer Generator"
+"..\..\build-tools\build\x64\Debug\bin\Installer Generator.exe" /android-assets-update-html

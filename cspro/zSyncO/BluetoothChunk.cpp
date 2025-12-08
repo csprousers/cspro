@@ -68,7 +68,7 @@ void BluetoothDataChunk::Optimize(uint64_t dataSize, const size_t packetSize)
         case Resize::Shrink:
         {
             // The data size will be 2 to 4 times larger than the packet size
-            double new_size = m_caseSize;
+            double new_size = static_cast<double>(m_caseSize);
 
             while( dataSize > packetSize )
             {

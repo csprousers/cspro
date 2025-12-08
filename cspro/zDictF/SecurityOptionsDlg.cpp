@@ -139,7 +139,7 @@ std::string SecurityOptionsDlg::MinutesToText(const int minutes)
 
 int SecurityOptionsDlg::MinutesToComboBoxIndex(const int minutes)
 {
-    for( size_t i = 0; i < _countof(MinuteOptions) - 1; i++ )
+    for( int i = 0; i < _countof(MinuteOptions) - 1; ++i )
     {
         if( minutes == MinuteOptions[i].minutes )
             return i;

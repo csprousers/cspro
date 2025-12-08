@@ -99,7 +99,7 @@ public:
     virtual void OnKeyDown(UINT* vcKey, BOOL processed);
 
     //cell type notifications
-    virtual int OnCellTypeNotify(long ID, int col, long row, long msg, long param);
+    virtual int OnCellTypeNotify(long ID, int col, long row, long msg, LPARAM param);
 
     //focus rect setup
     virtual void OnKillFocus(int section);

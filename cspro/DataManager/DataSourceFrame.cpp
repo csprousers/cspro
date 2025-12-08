@@ -368,7 +368,7 @@ LRESULT DataSourceFrame::OnProcessConnectionStringParameters(const WPARAM wParam
     cs::shared_or_raw_ptr<const ConnectionString> connection_string;
 
     // the connection string comes from this object (in OnShowDefaultPage) or from
-    // DocSetComponentDocTemplate (when trying to open the data source another time, say from the URI handler)
+    // DataSourceDocTemplate (when trying to open the data source another time, say from the URI handler)
     if( wParam == 0 )
     {
         connection_string = &data_source_doc.GetConnectionString();

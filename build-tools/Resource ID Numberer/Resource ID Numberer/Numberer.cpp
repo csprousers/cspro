@@ -1,4 +1,4 @@
-#include "stdafx.h"
+﻿#include "stdafx.h"
 #include "Numberer.h"
 #include <zToolsO/DirectoryLister.h>
 #include <zJson/JsonSpecFile.h>
@@ -182,7 +182,7 @@ namespace NamePrefixes
         const auto& lookup = std::find_if(name_prefixes.cbegin(), name_prefixes.cend(),
                                           [&](const char* name_prefix) { return SO::StartsWith(name, name_prefix); });
 
-        return ( lookup != name_prefixes.cend() ) ? std::distance(name_prefixes.cbegin(), lookup) :
+        return ( lookup != name_prefixes.cend() ) ? int32_cast(std::distance(name_prefixes.cbegin(), lookup)) :
                                                     -1;
     }
 }

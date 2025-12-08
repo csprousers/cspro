@@ -557,7 +557,7 @@ LRESULT CTableChildWnd::OnTabSetIcon(WPARAM /*wParam*/, LPARAM /*lParam*/)
     if(IsTableFrameActive()) {
         CView* pView = GetActiveView();
         if(!pView)
-            return 0l;
+            return 0;
         if(pView->IsKindOf(RUNTIME_CLASS(CTabView))) {
             CTabView* pTabView = (CTabView*)pView;
             CPoint point;
@@ -571,12 +571,12 @@ LRESULT CTableChildWnd::OnTabSetIcon(WPARAM /*wParam*/, LPARAM /*lParam*/)
                 return pTabView->GetDropCursor(point);
             }
             else {
-                return -1L;
+                return -1;
 
             }
         }
     }
-    return 0l;
+    return 0;
 }
 
 void CTableChildWnd::OnViewPageprintview()

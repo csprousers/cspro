@@ -12,7 +12,7 @@ class TemporaryFile;
 // To facilitate opening non-file data sources from the MFC framework, this
 // class creates temporary file paths for connection strings that would be
 // mishandled by MFC (e.g., by adding working directory information to
-// a connection string like: "|type=none"
+// a connection string like: "|type=none")
 // --------------------------------------------------------------------------
 
 class CLASS_DECL_ZUTILO ConnectionStringFileSimulator

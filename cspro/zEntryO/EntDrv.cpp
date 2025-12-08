@@ -937,7 +937,7 @@ int CEntryDriver::DisplayMessage_pre77(const MessageType message_type, const int
     while( true )
     {
 #ifdef WIN_DESKTOP
-        const int selected_button_number = WindowsDesktopMessage::Send(WM_IMSA_ENGINEMSG, &message_options);
+        const LRESULT selected_button_number = WindowsDesktopMessage::Send(WM_IMSA_ENGINEMSG, &message_options);
 #else
         const int selected_button_number = PlatformInterface::GetInstance()->GetApplicationInterface()->ShowMessage(title, message, message_buttons);
 #endif

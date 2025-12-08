@@ -1534,8 +1534,8 @@ bool DictionaryValidator::CheckLen(CDictItem* pItem)
 
             dict_level.GetRecord(m_iRecordNum)->SetRecLen(iRecLen);
 
-            // GHM 20111026 if the IDs were moved past all the items in a record, the record lengths of each of the records
-            // weren't getting reset; this caused problems with the reformatting tool
+            // 20111026 if the IDs were moved past all the items in a record, the record lengths of
+            // each of the records weren't getting reset; this caused problems with the reformatting tool
             if( m_iRecordNum == COMMON )
             {
                 for( int i = 0; i < dict_level.GetNumRecords(); i++ )
@@ -3566,7 +3566,7 @@ CString DictionaryValidator::GetDefaultRecTypeVal() const
     }
 
     if (m_pDict->GetRecTypeLen() < 6)  {
-        iMaxNumeric = (int) pow(10.0, iLen) - 1L; // RHF Make compatible with Visual 2005
+        iMaxNumeric = (int) pow(10.0, iLen) - 1; // RHF Make compatible with Visual 2005
     }
     csRetVal.Str(iUnique + 1, iLen, ZERO);
     CString csAlphaUnique(TCHAR('A' - 1), 1);

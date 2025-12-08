@@ -243,8 +243,8 @@ void CLogicView::UpdateMarginWidth(bool force_margin_width_update/* = false*/)
 {
     // when there are few lines, use a margin that will account for at least 10 lines so
     // that the view don't have a jarring update upon the frequent task of adding more 9 lines
-    int line_count = std::max(GetLogicCtrl()->GetLineCount(), 10);
-    int line_count_number_digits = IntToStringLength(line_count);
+    const int line_count = std::max(static_cast<int>(GetLogicCtrl()->GetLineCount()), 10);
+    const int line_count_number_digits = IntToStringLength(line_count);
 
     if( force_margin_width_update || m_lineCountNumberDigitsAtLastUpdateMarginWidth != line_count_number_digits )
     {
@@ -322,5 +322,5 @@ LRESULT CLogicView::OnFindReplaceCmd(WPARAM /*wParam*/, LPARAM lParam)
          m_pEdit->SendMessage(_ScintillaMsgFindReplace, 0, lParam);
     }
 
-    return 0L;
+    return 0;
 }

@@ -26,7 +26,7 @@ namespace Stygitan
             string[] command_line_arguments = Environment.GetCommandLineArgs();
 
             _gitDirectory = ( command_line_arguments.Length > 1 ) ? Path.GetFullPath(command_line_arguments[1]) :
-                                                                    Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\..\..\..\.git"));
+                                                                    Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\..\..\..\..\.git"));
 
             _comparisonBranchName = ( command_line_arguments.Length > 2 ) ? command_line_arguments[2] :
                                                                             "refs/remotes/origin/dev";

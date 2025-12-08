@@ -90,12 +90,12 @@ void CxTreeCtrl::OnAfterLButtonDown(UINT /*nFlags*/, CPoint point){
             int iHScrollPos = ScrollInfoH.nPos;
             int iVScrollPos = ScrollInfoV.nPos;
 
-            CMsgParam * pMsgParam                               = new CMsgParam();
-            pMsgParam->hParam                                   = SelectedItem;
-            pMsgParam->bParam                                   = true;
+            CMsgParam* pMsgParam = new CMsgParam();
+            pMsgParam->hParam = SelectedItem;
+            pMsgParam->bParam = true;
             pMsgParam->dwArrayParam.Add(iHScrollPos);
             pMsgParam->dwArrayParam.Add(iVScrollPos);
-            pMsgParam->bMustBeDestroyedAfterLastCatchMessage    = true;
+            pMsgParam->bMustBeDestroyedAfterLastCatchMessage = true;
             m_pParent->PostMessage(UWM::CaseTree::SelectTreeItem, (WPARAM)pMsgParam, 0);
         }
         return;
@@ -840,7 +840,7 @@ void CxTreeCtrl::DestroyItemInfo(HTREEITEM hItem, bool bRecursiveChilds)
     if( pItemInfo!=NULL ){
         delete( pItemInfo );
         pItemInfo = NULL;
-        SetItemData(hItem,(DWORD)NULL);
+        SetItemData(hItem,(DWORD_PTR)NULL);
     }
 
     //and recursive destroy the info of every hitem childs
@@ -882,7 +882,7 @@ int CxTreeCtrl::GetTypeOfTree()
 
 
 //
-int CxTreeCtrl::OnToolHitTest(CPoint point, TOOLINFO * pTI) const
+INT_PTR CxTreeCtrl::OnToolHitTest(CPoint point, TOOLINFO* pTI) const
 {
     RECT rect;
 
@@ -903,7 +903,7 @@ int CxTreeCtrl::OnToolHitTest(CPoint point, TOOLINFO * pTI) const
             if( pTI==NULL )  return -1;
 
             pTI->hwnd       = m_hWnd;
-            pTI->uId        = (UINT)hitem;
+            pTI->uId        = (UINT_PTR)hitem;
             pTI->lpszText   = _tcsdup(pItemInfo->GetToolTip());   // MFC will free this pointer!
             pTI->rect       = rect;
 

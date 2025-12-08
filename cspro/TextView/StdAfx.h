@@ -4,6 +4,7 @@
 #pragma warning(disable:4800)
 
 #include <engine/StandardSystemIncludes.h>
+// X64_TODO #include <StandardIncludes/strict_errors.h>
 
 #define HINT_CHANGEFONT        1      // hints OnUpate() to recalc after font changes (in CMainFrame::OnOptionsFont)
 
@@ -13,7 +14,7 @@ BOOL IsProgressDlgActive(void);       // csc 9/9/96 moved over from IMPSUtil
 #define MAXFILTER       60
 #define MAXCLIP95  1000000
 
-const int TAB_SPACES = 4; // GHM 20120514
+const int TAB_SPACES = 4; // 20120514
 
 
 #include <zToolsO/Tools.h>

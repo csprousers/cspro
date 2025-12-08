@@ -509,7 +509,7 @@ namespace SyncUnitTest
             // Initial sync with server using get to get baseline num cases
             result = client.SyncData(SyncDirection::Get, *pClient1Repo, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
-            const int numInitialServerCases = pClient1Repo->GetNumberCases();
+            const size_t numInitialServerCases = pClient1Repo->GetNumberCases();
 
             // Add a couple of new cases
             std::string newCase1Guid = CreateUuid();
@@ -520,7 +520,7 @@ namespace SyncUnitTest
             // Put local cases to server - results in 2 new cases on server, same number in client1
             result = client.SyncData(SyncDirection::Put, *pClient1Repo, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
-            Assert::AreEqual(size_t(numInitialServerCases + 2), pClient1Repo->GetNumberCases());
+            Assert::AreEqual(numInitialServerCases + 2, pClient1Repo->GetNumberCases());
 
             // Sync with a second client to check if our changes were saved to the server
             DeviceId client2DeviceId = MakeUniqueDeviceId("it2-");
@@ -541,12 +541,12 @@ namespace SyncUnitTest
             // has one more case than server
             result = client2.SyncData(SyncDirection::Get, *pClient2Repo, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
-            Assert::AreEqual(size_t(numInitialServerCases + 3), pClient2Repo->GetNumberCases());
+            Assert::AreEqual(numInitialServerCases + 3, pClient2Repo->GetNumberCases());
 
             // Do a get with client1 to make sure the previous get didn't upload anything
             result = client.SyncData(SyncDirection::Get, *pClient1Repo, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
-            Assert::AreEqual(size_t(numInitialServerCases + 2), pClient1Repo->GetNumberCases());
+            Assert::AreEqual(numInitialServerCases + 2, pClient1Repo->GetNumberCases());
 
             // Add a new case and do a put with client1 - results is that server now has 3 cases beyond what it started with,
             // client1 matches server
@@ -559,13 +559,13 @@ namespace SyncUnitTest
             // all 4 new cases but client2 doesn't have case4
             result = client2.SyncData(SyncDirection::Put, *pClient2Repo, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
-            Assert::AreEqual(size_t(numInitialServerCases + 3), pClient2Repo->GetNumberCases());
+            Assert::AreEqual(numInitialServerCases + 3, pClient2Repo->GetNumberCases());
 
             // Do a get with client2 - make sure we do get case4 (server should send everything since direction changed)
             // Server and client2 now both have all four new cases
             result = client2.SyncData(SyncDirection::Get, *pClient2Repo, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
-            Assert::AreEqual(size_t(numInitialServerCases + 4), pClient2Repo->GetNumberCases());
+            Assert::AreEqual(numInitialServerCases + 4, pClient2Repo->GetNumberCases());
         }
 
 

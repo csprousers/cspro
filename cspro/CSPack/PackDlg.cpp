@@ -145,7 +145,7 @@ LRESULT PackDlg::OnUpdateDialogUI(const WPARAM wParam, const LPARAM lParam)
         {
             const PackEntry& pack_entry = m_packSpec->GetEntry(i);
             const int icon_index = m_systemIconImageList.GetIconIndexFromPath(pack_entry.GetPath().c_str());
-            m_inputsListCtrl.InsertItem(i, TC::ToWide(pack_entry.GetPath()).c_str(), icon_index);
+            m_inputsListCtrl.InsertItem(int32_cast(i), TC::ToWide(pack_entry.GetPath()).c_str(), icon_index);
         }
 
         // select an entry (which will call this method with the UpdateOptions action)

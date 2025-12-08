@@ -167,10 +167,10 @@
     <None Include="Res\col_orie.bmp">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="res\form.ico">
+    <None Include="Res\form.ico">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="RES\IDR_FORM.ICO">
+    <None Include="Res\Idr_form.ico">
       <Filter>Resource Files</Filter>
     </None>
     <None Include="Res\level.ico">
@@ -182,7 +182,7 @@
     <None Include="Res\row_orie.bmp">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="res\TOOLBAR.BMP">
+    <None Include="Res\Toolbar.bmp">
       <Filter>Resource Files</Filter>
     </None>
     <None Include="Res\Warning_yellow_7231.ico">
@@ -194,13 +194,13 @@
     <None Include="Res\level_logic.ico">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="res\form_logic.ico">
+    <None Include="Res\form_logic.ico">
       <Filter>Resource Files</Filter>
     </None>
     <None Include="Res\form_looping.ico">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="res\form_looping_logic.ico">
+    <None Include="Res\form_looping_logic.ico">
       <Filter>Resource Files</Filter>
     </None>
     <None Include="Res\formfile.ico">
@@ -212,19 +212,19 @@
     <None Include="Res\roster.ico">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="res\roster_logic.ico">
+    <None Include="Res\roster_logic.ico">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="res\mirror_logic.ico">
+    <None Include="Res\mirror_logic.ico">
       <Filter>Resource Files</Filter>
     </None>
     <None Include="Res\protected.ico">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="res\protected_logic.ico">
+    <None Include="Res\protected_logic.ico">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="res\field_logic.ico">
+    <None Include="Res\field_logic.ico">
       <Filter>Resource Files</Filter>
     </None>
     <None Include="Res\field_question.ico">

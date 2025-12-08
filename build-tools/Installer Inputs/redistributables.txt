@@ -1,0 +1,4 @@
+﻿C:\Program Files\Microsoft Visual Studio\18\*.*\VC\Redist\MSVC\1*.*\{PlatformTarget}\Microsoft.VC???.MFC\mfc140u.dll
+C:\Program Files\Microsoft Visual Studio\18\*.*\VC\Redist\MSVC\1*.*\{PlatformTarget}\Microsoft.VC???.CRT\msvcp140.dll
+C:\Program Files\Microsoft Visual Studio\18\*.*\VC\Redist\MSVC\1*.*\{PlatformTarget}\Microsoft.VC???.CRT\vcruntime140.dll
+C:\Program Files (x86)\Windows Kits\10\Redist\10*.*\ucrt\DLLs\{PlatformTarget}\*.*

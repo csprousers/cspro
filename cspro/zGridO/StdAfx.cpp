@@ -1,8 +1,4 @@
-﻿// stdafx.cpp : source file that includes just the standard includes
-//  zGridO.pch will be the pre-compiled header
-//  stdafx.obj will contain the pre-compiled type information
-
-#include "StdAfx.h"
+﻿#include "StdAfx.h"
 
 ///////////////////////////////////////////////
 //
@@ -56,7 +52,7 @@
 // 2. int CUGTab::SetTabText(long ID , CString sString)   (UGTab.h && UGTab.cpp)
 // Savy 10/27/98
 // Added function to CUGTab for Enabling Tool tips
-//  1. int CUGTab::OnToolHitTest(CPoint point, TOOLINFO* pTI) const
+//  1. INT_PTR CUGTab::OnToolHitTest(CPoint point, TOOLINFO* pTI) const
 //  2. Added EnableToolTips(TRUE) to int CUGTab::OnCreate(LPCREATESTRUCT lpCreateStruct) function
 //  3. Changed the GetTabItemWidth to get the width of string upto 20 characters
 //  4. changed the Textout thing to get only the first twenty characters of the tab string

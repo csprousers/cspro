@@ -779,7 +779,7 @@ void CLangGrid::OnKillFocus(int /*section*/) {
 //
 /////////////////////////////////////////////////////////////////////////////
 
-int CLangGrid::OnCellTypeNotify(long /*ID*/,int /*col*/,long /*row*/,long /*msg*/,long /*param*/){
+int CLangGrid::OnCellTypeNotify(long /*ID*/,int /*col*/,long /*row*/,long /*msg*/,LPARAM /*param*/){
 
     return TRUE;
 }

@@ -1,4 +1,5 @@
 ﻿#pragma once
+
 //***************************************************************************
 //  File name: PrtView.h
 //
@@ -706,7 +707,7 @@ protected:
     afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
     afx_msg BOOL OnMouseWheel(UINT nFlags, short zDelta, CPoint pt);
     //}}AFX_MSG
-    LONG OnZoom(WPARAM wParam, LPARAM lParam);
+    LRESULT OnZoom(WPARAM wParam, LPARAM lParam);
     void OnEditTablePrintFmt();
     void OnEditColBreak();
     void OnEditStubBreak();

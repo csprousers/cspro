@@ -35,7 +35,7 @@ END_MESSAGE_MAP()
 
 // CFlashMsgDlg message handlers
 
-void CFlashMsgDlg::OnTimer(UINT nIDEvent)
+void CFlashMsgDlg::OnTimer(UINT_PTR nIDEvent)
 {
     if (nIDEvent==FLASH_TIMER) {
         KillTimer(FLASH_TIMER);

@@ -485,7 +485,7 @@ Sorter::RunSuccess Sorter::RunRecordSort()
 
         // write out the sorted file
         double progress_bar_value = 50;
-        const double progress_bar_increment_value = 50 / std::max<double>(records_processed, 1.0);
+        const double progress_bar_increment_value = 50 / std::max(static_cast<double>(records_processed), 1.0);
 
         process_summary = m_caseAccess->GetDataDict().CreateProcessSummary();
         process_summary->SetPercentSourceRead(progress_bar_value);

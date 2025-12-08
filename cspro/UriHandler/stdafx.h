@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 #include <engine/StandardSystemIncludes.h>
-#include <engine/StrictCompilerErrors.h>
+#include <StandardIncludes/strict_errors.h>
 
 #include <UriHandler/UriHandler.h>
 #include <zUtilO/CustomUri.h>

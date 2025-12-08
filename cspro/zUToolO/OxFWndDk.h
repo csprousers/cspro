@@ -935,12 +935,8 @@ public:
 
     inline BOOL IsBeingDestroyed() { return m_bBeingDestroyed; }
 
-    virtual int OnToolHitTest(CPoint point, TOOLINFO* pTI) const {
-        UNREFERENCED_PARAMETER(pTI);
-        UNREFERENCED_PARAMETER(point);
-        return -1;
-    }
-    virtual void OnUpdateCmdUI(CFrameWnd* pTarget, BOOL bDisableIfNoHndler);
+    INT_PTR OnToolHitTest(CPoint point, TOOLINFO* pTI) const override;
+    void OnUpdateCmdUI(CFrameWnd* pTarget, BOOL bDisableIfNoHndler) override;
 
 protected:
 
@@ -950,9 +946,9 @@ protected:
     afx_msg void OnNcDestroy();
     afx_msg void OnContextMenu(CWnd* pWnd, CPoint point);
     //}}AFX_MSG
-    afx_msg LONG OnSetText(UINT wParam, LONG lParam);
-    afx_msg LONG OnAddContextMenuItems(UINT wParam, LPARAM lParam);
-    afx_msg LONG OnActivateViewBar(UINT wParam, LONG lParam);
+    afx_msg LRESULT OnSetText(WPARAM wParam, LPARAM lParam);
+    afx_msg LRESULT OnAddContextMenuItems(WPARAM wParam, LPARAM lParam);
+    afx_msg LRESULT OnActivateViewBar(WPARAM wParam, LPARAM lParam);
 
     DECLARE_MESSAGE_MAP()
 
@@ -1092,7 +1088,7 @@ protected:
     afx_msg void OnNcRButtonDown(UINT nHitTest, CPoint point);
     //}}AFX_MSG
     afx_msg void OnStyleChanging(int nStyleType, LPSTYLESTRUCT lpStyleStruct);
-    afx_msg LONG OnSetText(UINT wParam, LONG lParam);
+    afx_msg LRESULT OnSetText(WPARAM wParam, LPARAM lParam);
     afx_msg void OnMakeItDockable();
     DECLARE_MESSAGE_MAP()
 

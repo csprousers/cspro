@@ -898,7 +898,7 @@ void CRulerFillerView::OnSetFocus(CWnd* /*pOldWnd*/ )  {
 *
 ******************************************************************************/
 CRulerViewMgr::CRulerViewMgr (void)  {
-    m_ptlCurrPos = CLPoint ((long) NONE, (long) NONE);   // NONE's will cause the rulers to be updated the first time they are activated
+    m_ptlCurrPos = CLPoint(NONE, NONE);   // NONE's will cause the rulers to be updated the first time they are activated
 }
 
 
@@ -1293,7 +1293,7 @@ void CVRulerView::OnLButtonUp(UINT nFlags, CPoint point)
     CRulerView::OnLButtonUp(nFlags, point);
 }
 
-void CVRulerView::OnTimer(UINT nIDEvent)
+void CVRulerView::OnTimer(UINT_PTR /*nIDEvent*/)
 {
     ASSERT ( m_iTimer != NONE );
     ASSERT_KINDOF(CMDIChildWnd, ((CMDIFrameWnd*) AfxGetMainWnd())->MDIGetActive());
@@ -1321,7 +1321,7 @@ void CVRulerView::OnTimer(UINT nIDEvent)
     }
 }
 
-void CHRulerView::OnTimer(UINT nIDEvent)
+void CHRulerView::OnTimer(UINT_PTR /*nIDEvent*/)
 {
     ASSERT ( m_iTimer != NONE );
     ASSERT_KINDOF(CMDIChildWnd, ((CMDIFrameWnd*) AfxGetMainWnd())->MDIGetActive());

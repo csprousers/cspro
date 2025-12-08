@@ -76,7 +76,7 @@ public:
     CTreeItem *     GetXRootItem();
 
     //EVENTS
-    int     OnToolHitTest(CPoint point, TOOLINFO * pTI) const;
+    INT_PTR OnToolHitTest(CPoint point, TOOLINFO* pTI) const override;
 
     //VIRTUAL FUNCTIONS
     virtual bool OnBeforeSetFocus       (CWnd* pOldWnd);

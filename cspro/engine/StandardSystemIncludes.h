@@ -72,13 +72,6 @@
 
 #include <afxtempl.h>
 
-#pragma warning(push)
-// temporarily disable warning "declaration of 'identifier' hides class member"
-// that is triggered by gdiplus.h
-#pragma warning(disable:4458)
-#include <gdiplus.h>
-#pragma warning(pop)
-
 #endif // WIN_DESKTOP (MFC includes)
 
 #if defined(WIN32) && !defined(WIN_DESKTOP)
@@ -99,7 +92,6 @@
 #ifdef WIN32
 
 // Get rid of min/max macros that come from MFC/Windows.h to avoid name collisions
-// Note that this needs to be done AFTER including gdiplus.h which uses those macros.
 #undef min
 #undef max
 
@@ -151,19 +143,6 @@
 #endif
 
 
-// assert definitions that can be disabled in future versions
-#define ASSERT80(f) ASSERT(f)
-#define ASSERT81(f) ASSERT(f)
-
-
-// for more serious warning checking, make some warnings errors
-#ifdef WIN32
-#pragma warning(error:4005) // macro redefinition
-#pragma warning(error:4150) // deletion of pointer to incomplete type 'type'; no destructor called
-#pragma warning(error:4840) // non-portable use of class 'type' as an argument to a variadic function
-#endif
-
-
 // turn off some warnings for the console application
 #ifdef _CONSOLE
 #pragma warning(disable:4251) // 'type' : class 'type1' needs to have dll-interface to be used by clients of class 'type2'
@@ -171,32 +150,7 @@
 #endif
 
 
-// harmonize the DEBUG and _DEBUG preprocessor definitions
-#if defined(DEBUG) && !defined(_DEBUG)
-#define _DEBUG
-#elif defined(_DEBUG) && !defined(DEBUG)
-#define DEBUG
-#endif
-
-
-constexpr bool DebugMode()
-{
-#ifdef _DEBUG
-    return true;
-#else
-    return false;
-#endif
-}
-
-
-// forward declarations of commonly used classes
-class JsonNode;
-class JsonWriter;
-class Serializer;
-
-
-#include <engine/x64_transition.h>
-#include <zToolsO/assert_cast.h>
+#include <StandardIncludes/minimal.h>
 #include <zToolsO/BinaryBlock.h>
 #include <zToolsO/CSProException.h>
 #include <zToolsO/ErrorMessageDisplayer.h>

@@ -660,7 +660,7 @@ LRESULT CCapiControl::WindowProc(UINT message,WPARAM wParam,LPARAM lParam)
         {
             if( buttonClicked >= 1 && buttonClicked <= m_buttons.GetSize() ) // otherwise it's a different button
             {
-                AfxTrace(_T("CHECKBOX: %d current=%d handle=%x\n"), buttonClicked, m_buttons.GetAt(buttonClicked-1).GetCheck(),
+                AfxTrace(_T("CHECKBOX: %d current=%d handle=%p\n"), buttonClicked, m_buttons.GetAt(buttonClicked-1).GetCheck(),
                     lParam);
                 // If they clicked on label or image instead of checkbox need to toggle checkbox,
                 // otherwise Windows does the toggle for us

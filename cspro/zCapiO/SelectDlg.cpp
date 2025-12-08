@@ -153,7 +153,7 @@ void CSelectDlg::Start() {
     CFont*  pOldFont=NULL;
     if( pFont != NULL ) {
 
-        // GHM 20111026 so that the sizing of the font in the accept statement is correct
+        // 20111026 so that the sizing of the font in the accept statement is correct
         UserDefinedFonts* pUserFonts = nullptr;
         AfxGetApp()->GetMainWnd()->SendMessage(WM_IMSA_GET_USER_FONTS, (WPARAM)&pUserFonts);
 
@@ -309,7 +309,7 @@ void CSelectDlg::SetDefaults()
     m_pToolTipsCtrl = new CToolTipCtrl;
     ASSERT( m_pToolTipsCtrl );
 
-    m_pToolTipsCtrl->Create(this, TTS_ALWAYSTIP | WS_VISIBLE); // GHM 20120125 removed the WS_CHILD property as that seemed not to work with either VS2010 or unicode
+    m_pToolTipsCtrl->Create(this, TTS_ALWAYSTIP | WS_VISIBLE); // 20120125 removed the WS_CHILD property as that seemed not to work with either VS2010 or unicode
 
     m_pToolTipsCtrl->AddTool(&m_OkBtn, IDS_TOOLTIP_OKBTN);
     m_pToolTipsCtrl->AddTool(&m_CancelBtn, IDS_TOOLTIP_CANCELBTN);
@@ -385,7 +385,7 @@ void CSelectDlg::SetRelCoords()
 }
 
 
-int CSelectDlg::DoModal( CSelectListCtrlOptions* pOptions )
+INT_PTR CSelectDlg::DoModal(CSelectListCtrlOptions* pOptions)
 {
     ASSERT( pOptions->m_paData && pOptions->m_paData->size()>0 );
 
@@ -588,7 +588,7 @@ BOOL CSelectDlg::OnNotify(WPARAM wParam, LPARAM lParam, LRESULT* pResult)
     return CDialog::OnNotify(wParam, lParam, pResult);
 }
 
-LONG CSelectDlg::OnFinishedDialog(UINT wParam, LONG /*lParam*/)
+LRESULT CSelectDlg::OnFinishedDialog(WPARAM wParam, LPARAM /*lParam*/)
 {
     //  GetListStatus still not called
     if( m_pOptions->m_pbaSelections != NULL )

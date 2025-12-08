@@ -34,7 +34,7 @@ protected:
     afx_msg void OnSize(UINT nType, int cx, int cy);
     afx_msg void OnClickDatadictTree(NMHDR* pNMHDR, LRESULT* pResult);
     afx_msg void OnKeydownDatadictTree(NMHDR* pNMHDR, LRESULT* pResult);
-    afx_msg LRESULT OnTvCheckbox(WPARAM wp, LPARAM lp);
+    afx_msg LRESULT OnTvCheckbox(WPARAM wParam, LPARAM lParam);
 
 public:
     void SetParentStates(HTREEITEM hItem);

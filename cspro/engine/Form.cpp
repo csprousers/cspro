@@ -40,7 +40,7 @@ int CIntDriver::frm_varpause( int iSymVar, FieldBehavior eBehavior ) {
 
         cField.SetSymbol( iSymVar );
 
-        pMainWnd->SendMessage(WM_IMSA_FIELD_BEHAVIOR,  (UINT) &cField, (long) eBehavior );
+        pMainWnd->SendMessage(WM_IMSA_FIELD_BEHAVIOR,  (WPARAM)&cField, (LPARAM)eBehavior );
         pMainWnd->SendMessage(WM_IMSA_CSENTRY_REFRESH_DATA);
     }
 #endif
@@ -66,7 +66,7 @@ int CIntDriver::frm_varvisible( int iSymVar, bool bOnOff ) {
 
         cField.SetSymbol( iSymVar );
 
-        pMainWnd->SendMessage(WM_IMSA_FIELD_VISIBILITY, (UINT) &cField, (long) bOnOff ? 1 : 0 );
+        pMainWnd->SendMessage(WM_IMSA_FIELD_VISIBILITY, (WPARAM)&cField, bOnOff ? 1 : 0 );
         pMainWnd->SendMessage(WM_IMSA_CSENTRY_REFRESH_DATA);
     }
 #endif

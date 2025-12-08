@@ -1,10 +1,9 @@
 ﻿#pragma once
 
 #include <engine/StandardSystemIncludes.h>
-#include <engine/StrictCompilerErrors.h>
+#include <StandardIncludes/strict_errors.h>
 
 #include <zToolsO/Tools.h>
-
 #include <external/jsoncons/json.hpp>
 
 #ifndef JSONCONS_NO_DEPRECATED

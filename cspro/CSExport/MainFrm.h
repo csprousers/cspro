@@ -31,11 +31,6 @@ public:
     BCMenu m_menu;
     virtual ~CMainFrame();
 
-#ifdef _DEBUG
-    virtual void AssertValid() const;
-    virtual void Dump(CDumpContext& dc) const;
-#endif
-
 private:
     bool PostRunFileCheck(CString csFilename);
 
@@ -65,7 +60,7 @@ protected:
     LRESULT OnSelectLanguage(WPARAM wParam, LPARAM lParam);
     LRESULT OnGetLexerLanguage(WPARAM wParam, LPARAM lParam);
 
-    LONG OnIMSAExportDone(UINT, LPARAM);
+    LRESULT OnIMSAExportDone(WPARAM wParam, LPARAM lParam);
 };
 
 

@@ -1,11 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Drawing;
-using System.Data;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.IO;
 using Microsoft.WindowsAPICodePack.Dialogs;
@@ -112,7 +107,7 @@ namespace CSDeploy
                 ContextMenuStrip contextMenuStrip;
 
                 treeViewFiles.SelectedNode = e.Node;
-                
+
                 if( e.Node.Tag == null )
                     contextMenuStrip = folderContextMenuStrip;
 

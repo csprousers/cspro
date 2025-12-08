@@ -667,7 +667,7 @@ depends on the data source - check the information
 on the data source(s) being used
 - The ID of the Data source is also returned
 ****************************************************/
-void CPifGrid::OnDataSourceNotify(int ,long ,long ){
+void CPifGrid::OnDataSourceNotify(int /*ID*/, long /*msg*/, LPARAM /*param*/){
 }
 /***************************************************
 OnCellTypeNotify
@@ -676,7 +676,7 @@ depends on the cell type - check the information
 on the cell type classes
 - The ID of the cell type is given
 ****************************************************/
-int CPifGrid::OnCellTypeNotify(long,int col,long row,long msg,long param)
+int CPifGrid::OnCellTypeNotify(long,int col,long row,long msg,LPARAM param)
 {
     PIFINFO* pPifInfo = GetRowInfo(row);
 
