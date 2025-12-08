@@ -123,7 +123,7 @@ class CLASS_DECL_ZUTILO CIMSAAboutDlg : public CDialog
 {
 public:
     // client exe must pass these members in before DoModal()
-    CIMSAString         m_csModuleName;
+    CString             m_csModuleName;
     HICON               m_hIcon;
     CHtmlStatic         m_staticWWW;
     CHtmlStatic         m_staticEmail;

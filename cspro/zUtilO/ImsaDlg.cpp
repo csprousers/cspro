@@ -82,7 +82,7 @@ BOOL CNoteDlg::OnInitDialog()
     }
 
     if( m_treatHelpButtonAsClear )
-        GetDlgItem(IDC_HELPBUTTON)->SetWindowText(_T("&Clear"));
+        GetDlgItem(IDC_HELPBUTTON)->SetWindowText(L"&Clear");
 
     SetCapture();
     ReleaseCapture();
@@ -192,7 +192,7 @@ void CHtmlStatic::OnPaint()
     font.CreateFont (-10, 0, 0, 0, FW_NORMAL, FALSE, FALSE, 0, DEFAULT_CHARSET,
                     OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
                     DEFAULT_QUALITY, FF_DONTCARE,
-                   _T("MS Shell Dlg"));
+                    L"MS Shell Dlg");
     CFont* pOldFont=dc.SelectObject(&font);
     dc.SetTextColor(rgbBlue);
     dc.SetBkMode(TRANSPARENT);
@@ -269,20 +269,20 @@ BOOL CIMSAAboutDlg::OnInitDialog()
 
     // Prep hyperlinks
     m_staticWWW.SubclassDlgItem(IDC_STATIC_WWW, this);
-    m_staticWWW.SetText(_T("www.census.gov/data/software/cspro.html"));
-    m_staticWWW.SetShellAction(_T("https://www.census.gov/data/software/cspro.html"));
+    m_staticWWW.SetText(L"www.census.gov/data/software/cspro.html");
+    m_staticWWW.SetShellAction(L"https://www.census.gov/data/software/cspro.html");
     m_staticEmail.SubclassDlgItem(IDC_STATIC_EMAIL, this);
-    m_staticEmail.SetText(_T("CSPro@lists.census.gov"));
-    m_staticEmail.SetShellAction(_T("mailto:cspro@lists.census.gov"));
+    m_staticEmail.SetText(L"CSPro@lists.census.gov");
+    m_staticEmail.SetShellAction(L"mailto:cspro@lists.census.gov");
 
     // Show caption
-    SetWindowText(_T("About ") + m_csModuleName);
+    SetWindowText(L"About " + m_csModuleName);
 
     // Show module name, version, and release date in about box
     CString csModule = m_csModuleName;
 
-    if( csModule.Find(_T("CSPro")) != 0 )
-        csModule.Insert(0, _T("CSPro "));
+    if( csModule.Find(L"CSPro") != 0 )
+        csModule.Insert(0, L"CSPro ");
 
     GetDlgItem(IDC_MODULE)->SetWindowText(csModule);
 
@@ -290,7 +290,7 @@ BOOL CIMSAAboutDlg::OnInitDialog()
     GetDlgItem(IDC_VERSION)->GetWindowText(csVersion);
 
     const std::wstring detailed_version_text = TC::ToWide(Versioning::GetVersionDetailedString());
-    csVersion.Append(detailed_version_text.c_str(), detailed_version_text.length());
+    csVersion.Append(detailed_version_text.c_str(), int32_cast(detailed_version_text.length()));
 
     GetDlgItem(IDC_VERSION)->SetWindowText(csVersion);
 
