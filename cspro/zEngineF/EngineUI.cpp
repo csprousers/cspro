@@ -4,7 +4,7 @@
 #include <zHtml/PortableLocalhost.h>
 
 
-long EngineUIProcessor::ProcessMessage(WPARAM wParam, LPARAM lParam)
+LRESULT EngineUIProcessor::ProcessMessage(const WPARAM wParam, const LPARAM lParam)
 {
     const EngineUI::Type type = static_cast<EngineUI::Type>(wParam);
 
@@ -84,14 +84,15 @@ long EngineUIProcessor::ProcessMessage(WPARAM wParam, LPARAM lParam)
 }
 
 
-long EngineUIProcessor::CreateVirtualFileMappingAroundViewHtmlContent(EngineUI::CreateVirtualFileMappingAroundViewHtmlContentNode& node)
+LRESULT EngineUIProcessor::CreateVirtualFileMappingAroundViewHtmlContent(EngineUI::CreateVirtualFileMappingAroundViewHtmlContentNode& node)
 {
     // if a directory is not specified, use the application directory (or the CSEntry directory on Android)
-    const std::string& directory = !node.local_file_server_root_directory.empty() ? node.local_file_server_root_directory :
+    const std::string& directory = !node.local_file_server_root_directory.empty()
+        ? node.local_file_server_root_directory
 #ifdef WIN_DESKTOP
-                                                                                    CSProExecutables::GetApplicationDirectory();
+        : CSProExecutables::GetApplicationDirectory();
 #else
-                                                                                    PlatformInterface::GetInstance()->GetCSEntryDirectory();
+        : PlatformInterface::GetInstance()->GetCSEntryDirectory();
 #endif
 
     ASSERT80(PortableFunctions::PathGetDirectory(PortableFunctions::PathEnsureTrailingSlash(directory)) == PortableFunctions::PathEnsureTrailingSlash(directory));

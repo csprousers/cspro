@@ -11,23 +11,23 @@ class Viewer;
 class CLASS_DECL_ZENGINEF EngineUIProcessor
 {
 public:
-    long ProcessMessage(WPARAM wParam, LPARAM lParam);
+    LRESULT ProcessMessage(WPARAM wParam, LPARAM lParam);
 
 private:
     // single implementation for Windows and Android
-    long CreateVirtualFileMappingAroundViewHtmlContent(EngineUI::CreateVirtualFileMappingAroundViewHtmlContentNode& node);
+    LRESULT CreateVirtualFileMappingAroundViewHtmlContent(EngineUI::CreateVirtualFileMappingAroundViewHtmlContentNode& node);
 
     // platform-specific
-    long CaptureImage(EngineUI::CaptureImageNode& capture_image_node);
-    long ColorizeLogic(EngineUI::ColorizeLogicNode& colorize_logic_node);
-    long CreateMapUI(EngineUI::CreateMapUINode& create_map_ui_node);
-    long CreateUserbar(std::unique_ptr<Userbar>& userbar);
-    long EditNote(EngineUI::EditNoteNode& edit_note_node);
-    long ExecSystemApp(EngineUI::ExecSystemAppNode& exec_system_app_node);
-    long HtmlDialogsDirectoryQuery(std::string& html_dialogs_directory);
-    long Prompt(EngineUI::PromptNode& prompt_node);
-    long RunPffExecutor(EngineUI::RunPffExecutorNode& run_pff_executor_node);
-    long View(const Viewer& viewer);
+    LRESULT CaptureImage(EngineUI::CaptureImageNode& capture_image_node);
+    LRESULT ColorizeLogic(EngineUI::ColorizeLogicNode& colorize_logic_node);
+    LRESULT CreateMapUI(EngineUI::CreateMapUINode& create_map_ui_node);
+    LRESULT CreateUserbar(std::unique_ptr<Userbar>& userbar);
+    LRESULT EditNote(EngineUI::EditNoteNode& edit_note_node);
+    LRESULT ExecSystemApp(EngineUI::ExecSystemAppNode& exec_system_app_node);
+    LRESULT HtmlDialogsDirectoryQuery(std::string& html_dialogs_directory);
+    LRESULT Prompt(EngineUI::PromptNode& prompt_node);
+    LRESULT RunPffExecutor(EngineUI::RunPffExecutorNode& run_pff_executor_node);
+    LRESULT View(const Viewer& viewer);
 
 
     // platform-specific constructors and data
@@ -60,7 +60,7 @@ LRESULT SendEngineUIMessage(EngineUI::Type engine_ui_type, T& engine_ui_node)
     return WindowsDesktopMessage::Send(WM_IMSA_PORTABLE_ENGINEUI, engine_ui_type, &engine_ui_node);
 
 #else
-    BaseApplicationInterface* app_interface = PlatformInterface::GetInstance()->GetApplicationInterface();
+    BaseApplicationInterface* const app_interface = PlatformInterface::GetInstance()->GetApplicationInterface();
 
     if( app_interface != nullptr )
         return app_interface->RunEngineUIProcessor(static_cast<WPARAM>(engine_ui_type), reinterpret_cast<LPARAM>(&engine_ui_node));

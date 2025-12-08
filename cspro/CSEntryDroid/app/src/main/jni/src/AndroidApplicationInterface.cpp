@@ -553,9 +553,9 @@ bool AndroidApplicationInterface::ExecSystemApp(EngineUI::ExecSystemAppNode& exe
 }
 
 
-std::wstring AndroidApplicationInterface::GetHtmlDialogsDirectory()
+std::string AndroidApplicationInterface::GetHtmlDialogsDirectory()
 {
-    return CS2WS(m_pCoreEngineInterface->GetPifFile()->GetHtmlDialogsDirectory());
+    return UTF8_TODO::GetUtf8((m_pCoreEngineInterface->GetPifFile()->GetHtmlDialogsDirectory()));
 }
 
 
@@ -1045,7 +1045,7 @@ void AndroidApplicationInterface::FileCopySharableUri(const std::string& sharabl
 }
 
 
-long AndroidApplicationInterface::View(const Viewer& viewer)
+bool AndroidApplicationInterface::View(const Viewer& viewer)
 {
     JNIEnv* pEnv = GetJNIEnvForCurrentThread();
     const auto& data = viewer.GetData();
@@ -1074,7 +1074,7 @@ long AndroidApplicationInterface::View(const Viewer& viewer)
         ViewWebPageWithJavaScriptInterface(viewer, data.content);
     }
 
-    return 1;
+    return true;
 }
 
 

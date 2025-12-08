@@ -8,7 +8,6 @@
 #include <zUtilO/Viewers.h>
 #include <zHtml/PortableLocalhost.h>
 #include <zEngineO/PffExecutor.h>
-#include <zEngineO/SystemApp.h>
 #include <zMapping/WindowsMapUI.h>
 #include <zMapping/WindowsMapUISingleThread.h>
 #include <zEditO/ScintillaColorizer.h>
@@ -21,13 +20,13 @@ EngineUIProcessor::EngineUIProcessor(const PFF* const pff, const bool engine_run
 }
 
 
-long EngineUIProcessor::CaptureImage(EngineUI::CaptureImageNode& /*capture_image_node*/)
+LRESULT EngineUIProcessor::CaptureImage(EngineUI::CaptureImageNode& /*capture_image_node*/)
 {
     return 0; // COMPONENTS_TODO_RESTORE_FOR_CSPRO81 return ReturnProgrammingError(0);
 }
 
 
-long EngineUIProcessor::ColorizeLogic(EngineUI::ColorizeLogicNode& colorize_logic_node)
+LRESULT EngineUIProcessor::ColorizeLogic(EngineUI::ColorizeLogicNode& colorize_logic_node)
 {
     if( m_pff == nullptr )
         return ReturnProgrammingError(0);
@@ -40,7 +39,7 @@ long EngineUIProcessor::ColorizeLogic(EngineUI::ColorizeLogicNode& colorize_logi
 }
 
 
-long EngineUIProcessor::CreateMapUI(EngineUI::CreateMapUINode& create_map_ui_node)
+LRESULT EngineUIProcessor::CreateMapUI(EngineUI::CreateMapUINode& create_map_ui_node)
 {
     if( m_engineRunsOnUIThread )
     {
@@ -56,14 +55,14 @@ long EngineUIProcessor::CreateMapUI(EngineUI::CreateMapUINode& create_map_ui_nod
 }
 
 
-long EngineUIProcessor::CreateUserbar(std::unique_ptr<Userbar>& userbar)
+LRESULT EngineUIProcessor::CreateUserbar(std::unique_ptr<Userbar>& userbar)
 {
     userbar = std::make_unique<WindowsUserbar>();
     return 1;
 }
 
 
-long EngineUIProcessor::EditNote(EngineUI::EditNoteNode& edit_note_node)
+LRESULT EngineUIProcessor::EditNote(EngineUI::EditNoteNode& edit_note_node)
 {
     RuntimeNoteDlg edit_note_dlg;
 
@@ -71,7 +70,7 @@ long EngineUIProcessor::EditNote(EngineUI::EditNoteNode& edit_note_node)
 
     ASSERT(edit_note_node.note.Find('\r') == -1);
     CString note_text_with_crlf = edit_note_node.note;
-    note_text_with_crlf.Replace(_T("\n"), _T("\r\n"));
+    note_text_with_crlf.Replace(L"\n", L"\r\n");
     edit_note_dlg.SetNote(note_text_with_crlf);
 
     if( edit_note_dlg.DoModal() == IDOK )
@@ -86,7 +85,7 @@ long EngineUIProcessor::EditNote(EngineUI::EditNoteNode& edit_note_node)
 }
 
 
-long EngineUIProcessor::ExecSystemApp(EngineUI::ExecSystemAppNode& exec_system_app_node)
+LRESULT EngineUIProcessor::ExecSystemApp(EngineUI::ExecSystemAppNode& exec_system_app_node)
 {
     ASSERT(exec_system_app_node.evaluated_call.find(*exec_system_app_node.package_name) == 0);
     std::string evaluated_call = exec_system_app_node.evaluated_call;
@@ -122,7 +121,7 @@ long EngineUIProcessor::ExecSystemApp(EngineUI::ExecSystemAppNode& exec_system_a
 }
 
 
-long EngineUIProcessor::HtmlDialogsDirectoryQuery(std::string& html_dialogs_directory)
+LRESULT EngineUIProcessor::HtmlDialogsDirectoryQuery(std::string& html_dialogs_directory)
 {
     if( m_pff == nullptr )
         return 0;
@@ -132,7 +131,7 @@ long EngineUIProcessor::HtmlDialogsDirectoryQuery(std::string& html_dialogs_dire
 }
 
 
-long EngineUIProcessor::Prompt(EngineUI::PromptNode& prompt_node)
+LRESULT EngineUIProcessor::Prompt(EngineUI::PromptNode& prompt_node)
 {
     CPromptFunctionDlg prompt_dlg(prompt_node.title, prompt_node.initial_value,
         prompt_node.multiline, prompt_node.numeric, prompt_node.password, prompt_node.upper_case);
@@ -144,7 +143,7 @@ long EngineUIProcessor::Prompt(EngineUI::PromptNode& prompt_node)
 }
 
 
-long EngineUIProcessor::RunPffExecutor(EngineUI::RunPffExecutorNode& run_pff_executor_node)
+LRESULT EngineUIProcessor::RunPffExecutor(EngineUI::RunPffExecutorNode& run_pff_executor_node)
 {
     try
     {
@@ -159,7 +158,7 @@ long EngineUIProcessor::RunPffExecutor(EngineUI::RunPffExecutorNode& run_pff_exe
 }
 
 
-long EngineUIProcessor::View(const Viewer& viewer)
+LRESULT EngineUIProcessor::View(const Viewer& viewer)
 {
     const Viewer::Data& data = viewer.GetData();
     ASSERT(data.use_embedded_viewers);
