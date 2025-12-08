@@ -114,7 +114,7 @@ protected:
 
     BOOL    m_readOnlyFlag; //TRUE for readonly
 
-    long    m_param;        //general purpose param
+    LPARAM  m_param;        //general purpose param
 
     short   m_numDecimals;  //number of decimal points for numbers
 
@@ -137,7 +137,7 @@ protected:
     LPBYTE  m_extraMem;     //extra memory pointer
     long    m_extraMemSize;
 
-    void * m_pExtraMem; // GHM 20100526 optimization
+    void * m_pExtraMem; // 20100526 optimization
 
     short   m_joinOrigin;   //joined cells
     long    m_joinRow;      //relative position
@@ -244,7 +244,7 @@ public:
     //void *    AllocExtraMem(long len);
     //void *    GetExtraMemPtr();
 
-    void *AllocExtraMem(long len) // GHM 20100526 optimization
+    void *AllocExtraMem(long len) // 20100526 optimization
     {
 
         ASSERT(len == sizeof(LPVOID));
@@ -255,7 +255,7 @@ public:
         return m_pExtraMem;
     }
 
-    void *  GetExtraMemPtr() // GHM 20100526 optimization
+    void *  GetExtraMemPtr() // 20100526 optimization
     {
         return m_propSetFlags & UGCELL_EXTRAMEMORY_SET ? m_pExtraMem : NULL;
     }
@@ -284,6 +284,6 @@ public:
     int SetDefaultInfo();
 
     //set/get the general param
-    int SetParam(long param);
-    long GetParam();
+    int SetParam(LPARAM param);
+    LPARAM GetParam();
 };

@@ -346,7 +346,7 @@ HTREEITEM CFormTreeCtrl::AddFormFile(const std::string& form_file_path, CFormDoc
     tvi.item.state = 0;
     tvi.item.stateMask = 0;
     tvi.item.pszText = (LPTSTR)LPSTR_TEXTCALLBACK;
-    tvi.item.lParam = (DWORD) pID;
+    tvi.item.lParam = (LPARAM) pID;
     tvi.item.iImage = I_IMAGECALLBACK;
     tvi.item.iSelectedImage = I_IMAGECALLBACK;
     tvi.item.cChildren = 1;
@@ -907,7 +907,7 @@ void CFormTreeCtrl::BuildTree (CFormNodeID* pNodeID, bool bRedraw)
         tvi.hParent = hRoot;
 //      tvi.hInsertAfter = TVI_LAST;    // nec?
 
-        tvi.item.lParam = (DWORD) pFormID;
+        tvi.item.lParam = (LPARAM) pFormID;
 
         hParent = InsertItem ( &tvi );
 
@@ -1008,7 +1008,7 @@ void CFormTreeCtrl::InsertExternalCodeAndReportNodes(const CFormNodeID* pFormNod
                 tvi.hInsertAfter = TVI_LAST;
             }
 
-            tvi.item.lParam = (DWORD)pFormId;
+            tvi.item.lParam = (LPARAM)pFormId;
 
             HTREEITEM hItem = InsertItem(&tvi);
             pFormId->SetHItem(hItem);
@@ -1069,7 +1069,7 @@ void CFormTreeCtrl::AddForm(CFormDoc* pFormDoc, CDEGroup* pGroup, HTREEITEM hPar
     tvi.item.state      = 0;
     tvi.item.stateMask  = 0;
     tvi.item.pszText    = (LPTSTR) LPSTR_TEXTCALLBACK;
-    tvi.item.lParam     = (DWORD) pFormID;
+    tvi.item.lParam     = (LPARAM) pFormID;
     tvi.item.iImage = I_IMAGECALLBACK;
     tvi.item.iSelectedImage = I_IMAGECALLBACK;
 
@@ -1126,7 +1126,7 @@ void CFormTreeCtrl::AddBaseItem(CFormDoc* pFormDoc, CDEItemBase* pItem, HTREEITE
     tvi.item.state      = 0;
     tvi.item.stateMask  = 0;
     tvi.item.pszText    = (LPTSTR) LPSTR_TEXTCALLBACK;
-    tvi.item.lParam     = (DWORD) pFormID;
+    tvi.item.lParam     = (LPARAM) pFormID;
     tvi.item.iImage     = I_IMAGECALLBACK;
     tvi.item.iSelectedImage = I_IMAGECALLBACK;
 
@@ -1181,7 +1181,7 @@ void CFormTreeCtrl::AddBlock(CFormDoc* pFormDoc, CDEBlock& form_block, HTREEITEM
     tvi.item.state = 0;
     tvi.item.stateMask = 0;
     tvi.item.pszText = (LPTSTR)LPSTR_TEXTCALLBACK;
-    tvi.item.lParam = (DWORD)pFormID;
+    tvi.item.lParam = (LPARAM)pFormID;
     tvi.item.iImage = I_IMAGECALLBACK;
     tvi.item.iSelectedImage = I_IMAGECALLBACK;
 
@@ -3123,7 +3123,8 @@ void CFormTreeCtrl::OnViewQuestionnaire()
         }
     }
 }
-void CFormTreeCtrl::OnCopyName() // GHM 20101104
+
+void CFormTreeCtrl::OnCopyName() // 20101104
 {
     CFormDoc* pDoc = GetFormDoc();
 
@@ -3134,7 +3135,7 @@ void CFormTreeCtrl::OnCopyName() // GHM 20101104
 
     CFormScrollView* pFV = GetFormView();
 
-    if( pFV->m_pRightClickItem != nullptr ) // GHM 20101206
+    if( pFV->m_pRightClickItem != nullptr ) // 20101206
     {
         name = pFV->m_pRightClickItem->GetName();
     }
@@ -3286,7 +3287,7 @@ void CFormTreeCtrl::OnRButtonUp(UINT nFlags, CPoint point)
     {
         bool add_report_options = ( pID->GetItemType() == eFFT_REPORT && pID->GetTextSource() != nullptr );
 
-        // GHM 20101104, rosie request ... allow the user to copy the name of the node (for logic editing)
+        // 20101104, rosie request ... allow the user to copy the name of the node (for logic editing)
         if( pFrame->IsLogicViewActive() && ( add_report_options || ( eNT != eFFT_EXTERNALCODE && eNT != eFFT_REPORT ) ) )
         {
             popMenu.AppendMenu(MF_STRING, ID_COPY_NAME, _T("&Copy Name"));

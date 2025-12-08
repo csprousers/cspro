@@ -68,7 +68,7 @@ public:
     friend class CEntryrunView;
     friend class CEntryrunApp;
 
-    LONG IsUniqNames (WPARAM wParam, LPARAM lParam);
+    LRESULT IsUniqNames(WPARAM wParam, LPARAM lParam);
 
     // Overrides
     // ClassWizard generated virtual function overrides
@@ -107,29 +107,29 @@ protected:  // control bar embedded members
 
     LRESULT OnGetObjectTransporter(WPARAM wParam, LPARAM lParam);
 
-    LONG OnPartialSaveFromApp(UINT wParam, LONG lParam);  // RHF Oct 15, 2003
+    LRESULT OnPartialSaveFromApp(WPARAM wParam, LPARAM lParam);  // RHF Oct 15, 2003
 
-    LONG OnKeyChanged(WPARAM wParam, LPARAM lParam);
-    LONG OnWriteCase(UINT wParam, LONG lParam);   // gsf 10-apr-00
-    LONG OnEngineAbort(WPARAM wParam, LPARAM lParam);
-    LONG OnPreprocessEngineMessage(WPARAM wParam, LPARAM lParam);
-    LONG OnEngineMessage(WPARAM wParam, LPARAM lParam);   // RHF Jan 03, 2001
+    LRESULT OnKeyChanged(WPARAM wParam, LPARAM lParam);
+    LRESULT OnWriteCase(WPARAM wParam, LPARAM lParam);   // gsf 10-apr-00
+    LRESULT OnEngineAbort(WPARAM wParam, LPARAM lParam);
+    LRESULT OnPreprocessEngineMessage(WPARAM wParam, LPARAM lParam);
+    LRESULT OnEngineMessage(WPARAM wParam, LPARAM lParam);   // RHF Jan 03, 2001
 
-    LONG OnFieldBehavior(WPARAM wParam, LPARAM lParam); // RHF Nov 21, 2002
-    LONG OnFieldVisibility(WPARAM wParam, LPARAM lParam);// RHF Nov 21, 2002
+    LRESULT OnFieldBehavior(WPARAM wParam, LPARAM lParam); // RHF Nov 21, 2002
+    LRESULT OnFieldVisibility(WPARAM wParam, LPARAM lParam);// RHF Nov 21, 2002
 
-    LONG OnEngineRefresh(WPARAM wParam, LPARAM lParam);  // RHF Nov 19, 2001
-    LONG OnEngineShowCapi(WPARAM wParam, LPARAM lParam); // RHF Nov 22, 2002
-    LONG OnRefreshSelected(WPARAM wParam, LPARAM lParam);
+    LRESULT OnEngineRefresh(WPARAM wParam, LPARAM lParam);  // RHF Nov 19, 2001
+    LRESULT OnEngineShowCapi(WPARAM wParam, LPARAM lParam); // RHF Nov 22, 2002
+    LRESULT OnRefreshSelected(WPARAM wParam, LPARAM lParam);
 
     LRESULT OnSetSequential(WPARAM wParam, LPARAM lParam);
     LRESULT OnSetCapiText(WPARAM wParam, LPARAM lParam);
     LRESULT OnGetWindowHeight(WPARAM wParam, LPARAM lParam);
     LRESULT OnSetWindowHeight(WPARAM wParam, LPARAM lParam);
 
-    LONG OnUserbarUpdate(WPARAM wParam, LPARAM lParam);
-    LONG OnSetMessageOverrides(WPARAM wParam, LPARAM lParam); // 20100518
-    LONG OnUsingOperatorControlledMessages(WPARAM wParam, LPARAM lParam);
+    LRESULT OnUserbarUpdate(WPARAM wParam, LPARAM lParam);
+    LRESULT OnSetMessageOverrides(WPARAM wParam, LPARAM lParam); // 20100518
+    LRESULT OnUsingOperatorControlledMessages(WPARAM wParam, LPARAM lParam);
     LRESULT OnGetUserFonts(WPARAM wParam, LPARAM lParam); // 20100621
     LRESULT OnShowGPSDialog(WPARAM wParam, LPARAM lParam); // 20110524
     LRESULT OnEngineUI(WPARAM wParam, LPARAM lParam);

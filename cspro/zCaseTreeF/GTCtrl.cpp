@@ -510,7 +510,7 @@ HTREEITEM CGenericTreeCtrl::InsertNode(CHITEM *chitem, HTREEITEM hParent)
     CTreeItemInfo*  pInfo               = chitem->m_pInfo;
     HTREEITEM       hInsertedItem       = Insert( csItemLabel, hItemParent, hInsertAfter, iNonSelectedIconIdx, iSelectedIconIdx );
 
-    SetItemData( hInsertedItem, (DWORD) pInfo );
+    SetItemData( hInsertedItem, (DWORD_PTR) pInfo );
 
 
     return          hInsertedItem;
@@ -727,12 +727,12 @@ bool CGenericTreeCtrl::OnBeforeKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
         int iHScrollPos = ScrollInfoH.nPos;
         int iVScrollPos = ScrollInfoV.nPos;
 
-        CMsgParam * pMsgParam                               = new CMsgParam();
-        pMsgParam->hParam                                   = SelectedItem;
-        pMsgParam->bParam                                   = true;
+        CMsgParam* pMsgParam = new CMsgParam();
+        pMsgParam->hParam = SelectedItem;
+        pMsgParam->bParam = true;
         pMsgParam->dwArrayParam.Add( iHScrollPos );
         pMsgParam->dwArrayParam.Add( iVScrollPos );
-        pMsgParam->bMustBeDestroyedAfterLastCatchMessage    = true;
+        pMsgParam->bMustBeDestroyedAfterLastCatchMessage = true;
 
         m_pParent->PostMessage(UWM::CaseTree::SelectTreeItem, (WPARAM)pMsgParam, 0);
 
@@ -823,12 +823,12 @@ void CGenericTreeCtrl::DoSelect( UINT nFlags, CPoint point ){
         int iHScrollPos = ScrollInfoH.nPos;
         int iVScrollPos = ScrollInfoV.nPos;
 
-        CMsgParam * pMsgParam                               = new CMsgParam();
-        pMsgParam->hParam                                   = SelectedItem;
-        pMsgParam->bParam                                   = true;
+        CMsgParam* pMsgParam = new CMsgParam();
+        pMsgParam->hParam = SelectedItem;
+        pMsgParam->bParam = true;
         pMsgParam->dwArrayParam.Add( iHScrollPos );
         pMsgParam->dwArrayParam.Add( iVScrollPos );
-        pMsgParam->bMustBeDestroyedAfterLastCatchMessage    = true;
+        pMsgParam->bMustBeDestroyedAfterLastCatchMessage = true;
 
         m_pParent->PostMessage(UWM::CaseTree::SelectTreeItem, (WPARAM)pMsgParam, 0);
     }

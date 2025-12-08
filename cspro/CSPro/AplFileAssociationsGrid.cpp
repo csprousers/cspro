@@ -77,7 +77,7 @@ void CAplFileAssociationsGrid::OnSetup(){
     }
 
     //m_font.CreateFont(15,0,0,0,400,0,0,0,0,0,0,0,0,_T("MS Sans Serif"));
-    m_font.CreateFont(15,0,0,0,400,0,0,0,0,0,0,0,0,_T("MS Shell Dlg")); // GHM 20111228 changed for unicode
+    m_font.CreateFont(15,0,0,0,400,0,0,0,0,0,0,0,0,_T("MS Shell Dlg")); // 20111228 changed for unicode
     SetDefFont(&m_font);
 
     QuickSetFont(-1,-1,&m_font);
@@ -470,7 +470,7 @@ depends on the data source - check the information
 on the data source(s) being used
 - The ID of the Data source is also returned
 ****************************************************/
-void CAplFileAssociationsGrid::OnDataSourceNotify(int ID,long msg,long param){
+void CAplFileAssociationsGrid::OnDataSourceNotify(int ID,long msg,LPARAM param){
 }
 /***************************************************
 OnCellTypeNotify
@@ -479,7 +479,7 @@ depends on the cell type - check the information
 on the cell type classes
 - The ID of the cell type is given
 ****************************************************/
-int CAplFileAssociationsGrid::OnCellTypeNotify(long ID,int col,long row,long msg,long param){
+int CAplFileAssociationsGrid::OnCellTypeNotify(long ID,int col,long row,long msg,LPARAM param){
     if(col == 0) {
         if(msg == UGCT_ELLIPSISBUTTONCLICK){
 

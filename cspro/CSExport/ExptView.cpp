@@ -249,12 +249,12 @@ bool CExportView::AddRecordIntree(int iRel, const CDictRecord* pRecord, HTREEITE
 }
 
 // InitializeView of the form
-LONG CExportView::OnInitializeView(WPARAM /*wParam*/, LPARAM /*lParam*/)
+LRESULT CExportView::OnInitializeView(WPARAM /*wParam*/, LPARAM /*lParam*/)
 {
     CWaitCursor wait;
     const CDataDict* pDataDict = GetDocument()->GetDataDict();
     if (pDataDict == NULL)
-        return 0L;
+        return 0;
 
     m_dicttree.DeleteAllItems ();
     m_aMapRel_Relation_by_hitem.clear();
@@ -834,11 +834,9 @@ CString CExportView::GetDetails(HTREEITEM hItem)
 }
 
 // When the user checks the tree check box.
-LRESULT CExportView::OnTvCheckbox(WPARAM wp, LPARAM lp)
+LRESULT CExportView::OnTvCheckbox(WPARAM /*wParam*/, LPARAM lParam)
 {
-    UNREFERENCED_PARAMETER(wp);
-
-    HTREEITEM hitem = (HTREEITEM) lp;
+    HTREEITEM hitem = (HTREEITEM) lParam;
     int checked ;
     checked = (m_dicttree.GetItemState(hitem, TVIS_STATEIMAGEMASK) >> 12) - 1;
     if (checked == 2 ) {
@@ -859,15 +857,17 @@ LRESULT CExportView::OnTvCheckbox(WPARAM wp, LPARAM lp)
         bool bIgnoreChildsOfSingleRecord = GetDocument()->WantFlatExport();
 
         if( /*single file*/GetDocument()->m_bmerge  &&
-                IsSelectedAnyRelation()                 &&
-                    IsSelectedAnyMultiple(false, bIgnoreChildsOfSingleRecord  ) ){
+            IsSelectedAnyRelation()                 &&
+            IsSelectedAnyMultiple(false, bIgnoreChildsOfSingleRecord  ) )
+        {
+            AfxMessageBox( DICT_RELATIONS_MULT_WARNING );
+            m_dicttree.SetCheck(hitem,FALSE);
+            TreeItemClicked(hitem);
 
-        AfxMessageBox( DICT_RELATIONS_MULT_WARNING );
-        m_dicttree.SetCheck(hitem,FALSE);
-        TreeItemClicked(hitem);
+        }
 
-        } else {
-
+        else
+        {
             //a change in the tree selection => new conditions to decide wich controls in
             //the options pane can be enabled/disabled
             GetDocument()->UpdateOptionsPane();

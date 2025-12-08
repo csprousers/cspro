@@ -29,7 +29,7 @@ protected:
     int                     m_iCheckFocus;
     bool                    m_bUseSequential; //for roster . to decide when to update from buffers and when to pick from sData of pField
 
-    static bool             m_bTrapNextHelp; // GHM 20120405
+    static bool             m_bTrapNextHelp; // 20120405
 
     // Construction
 public:
@@ -89,10 +89,10 @@ public:
 
 protected:
 
-    LONG OnRefreshSelected(WPARAM wParam, LPARAM lParam);
+    LRESULT OnRefreshSelected(WPARAM wParam, LPARAM lParam);
 
-    LRESULT OnSimulatedKeyDown( WPARAM wParam, LPARAM lParam ); //FABN Jan 16, 2003
-    LRESULT OnControlsSetWindowText(WPARAM wParam,LPARAM lParam); // GHM 201006016
+    LRESULT OnSimulatedKeyDown(WPARAM wParam, LPARAM lParam); //FABN Jan 16, 2003
+    LRESULT OnControlsSetWindowText(WPARAM wParam,LPARAM lParam); // 201006016
 
     DECLARE_MESSAGE_MAP()
 

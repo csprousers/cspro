@@ -40,9 +40,9 @@ public:
     LRESULT ShowTabToolBar(WPARAM wParam,LPARAM lParam);
     LRESULT HideTabToolBar(WPARAM wParam,LPARAM lParam);
     LRESULT OnUpdateTree(WPARAM wParam,LPARAM lParam);
-    LONG OnIMSAFileOpen(UINT, LPARAM);
-    LONG OnIMSAFileClose(UINT, LPARAM);
-    LONG OnIMSASetFocus(UINT, LPARAM);
+    LRESULT OnIMSAFileOpen(WPARAM wParam, LPARAM lParam);
+    LRESULT OnIMSAFileClose(WPARAM wParam, LPARAM lParam);
+    LRESULT OnIMSASetFocus(WPARAM wParam, LPARAM lParam);
 
     CToolBar*   m_pWndTabTBar;
 

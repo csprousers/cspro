@@ -806,7 +806,7 @@ namespace
         {
         }
 
-        LONG ProcessMessage(WPARAM wParam, LPARAM /*lParam*/) override
+        LRESULT ProcessMessage(WPARAM wParam, LPARAM /*lParam*/) override
         {
             std::unique_ptr<std::tuple<std::string, std::string>>& universe_and_weight = *reinterpret_cast<std::unique_ptr<std::tuple<std::string, std::string>>*>(wParam);
             ASSERT(universe_and_weight == nullptr);

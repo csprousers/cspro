@@ -487,9 +487,9 @@ void CSFreqView::OnClickDatadictTree(NMHDR* pNMHDR, LRESULT* pResult)
 
 
 // When the user checks the tree check box.
-LRESULT CSFreqView::OnTvCheckbox(WPARAM, LPARAM lp)
+LRESULT CSFreqView::OnTvCheckbox(WPARAM /*wParam*/, LPARAM lParam)
 {
-    HTREEITEM hitem = (HTREEITEM) lp;
+    HTREEITEM hitem = (HTREEITEM) lParam;
     int checked = (m_dicttree.GetItemState(hitem, TVIS_STATEIMAGEMASK) >> 12) - 1;
     if (checked == 2 ) {
         m_dicttree.SetCheck(hitem,FALSE);

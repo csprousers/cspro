@@ -277,7 +277,7 @@ LRESULT CDEBaseEdit::OnControlsSetWindowText(WPARAM wParam,LPARAM lParam)
 }
 
 
-LONG CDEBaseEdit::OnRefreshSelected(WPARAM wParam, LPARAM /*lParam*/)
+LRESULT CDEBaseEdit::OnRefreshSelected(WPARAM wParam, LPARAM /*lParam*/)
 {
     AfxGetMainWnd()->SendMessage(UWM::CSEntry::RefreshSelected, (WPARAM)this);
     return 0;

@@ -524,7 +524,7 @@ void CDictGrid::OnCharDown(UINT* vcKey, BOOL /*processed*/)
 //
 /////////////////////////////////////////////////////////////////////////////
 
-int CDictGrid::OnCellTypeNotify(long /*ID*/, int col, long row, long msg, long /*param*/)
+int CDictGrid::OnCellTypeNotify(long /*ID*/, int col, long row, long msg, LPARAM /*param*/)
 {
     if(msg == UGCT_BUTTONCLICK){
         if(col == DICT_NOTE_COL) {

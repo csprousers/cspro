@@ -313,7 +313,7 @@ void CSortListCtrl::Sort( int iColumn, BOOL bAscending )
     // show the appropriate arrow in the header control.
     m_ctlHeader.SetSortArrow( m_iSortColumn, m_bSortAscending );
 
-    VERIFY( SortItems( CompareFunction, reinterpret_cast<DWORD>( this ) ) );
+    VERIFY( SortItems( CompareFunction, reinterpret_cast<DWORD_PTR>( this ) ) );
 }
 
 
@@ -418,7 +418,7 @@ BOOL CSortListCtrl::SetTextArray( int iItem, LPTSTR* arrpsz )
     ASSERT( CListCtrl::GetItemData( iItem ) == NULL );
     ItemData* pid = new ItemData;
     pid->arrpsz = arrpsz;
-    return CListCtrl::SetItemData( iItem, reinterpret_cast<DWORD>( pid ) );
+    return CListCtrl::SetItemData( iItem, reinterpret_cast<DWORD_PTR>( pid ) );
 }
 
 

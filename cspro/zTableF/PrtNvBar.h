@@ -1,4 +1,5 @@
 ﻿#pragma once
+
 //***************************************************************************
 //  File name: PrtNvBar.h
 //
@@ -41,8 +42,9 @@ public:
     void SetPageInfo(int iCurrentPage, int iNumPages);
 
 protected:
-    virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
-    afx_msg LONG OnInitDialog(UINT, LONG);
-    afx_msg BOOL OnToolTipText(UINT nID, NMHDR* pNMHDR, LRESULT* pResult);
     DECLARE_MESSAGE_MAP()
+
+    void DoDataExchange(CDataExchange* pDX) override;    // DDX/DDV support
+    afx_msg LRESULT OnInitDialog(WPARAM wParam, LPARAM lParam);
+    afx_msg BOOL OnToolTipText(UINT nID, NMHDR* pNMHDR, LRESULT* pResult);
 };

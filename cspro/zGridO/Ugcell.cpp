@@ -66,7 +66,7 @@ Constructor
 CUGCell::CUGCell(){
 
     m_extraMem = NULL;
-    m_pExtraMem = &m_extraMem; // GHM 20100526 optimization
+    m_pExtraMem = &m_extraMem; // 20100526 optimization
     ClearAll();
 }
 /********************************************
@@ -98,7 +98,7 @@ void CUGCell::ClearAll(){
 
     //extra memory
     if(m_extraMem != NULL){
-        //////delete[] m_extraMem; GHM 2010 optimization
+        //////delete[] m_extraMem; 2010 optimization
         m_extraMem = NULL;
         m_extraMemSize =0;
     }
@@ -318,7 +318,7 @@ int CUGCell::AddCellInfo(CUGCell *src,CUGCell *dest){
 
     //extra memory
     if(src->m_propSetFlags&UGCELL_EXTRAMEMORY_SET){
-        // GHM 2010 optimization
+        // 2010 optimization
         //if(dest->m_extraMem != NULL)
         //      delete[] dest->m_extraMem;
         if(src->m_extraMem != NULL){
@@ -1576,7 +1576,7 @@ int CUGCell::ClearExtraMem(){
     }
 */
 
-    // GHM 20100526 optimization
+    // 20100526 optimization
     if( m_propSetFlags & UGCELL_EXTRAMEMORY_SET )
         m_propSetFlags -= UGCELL_EXTRAMEMORY_SET;
 
@@ -1616,7 +1616,7 @@ AllocExtraMem
     m_extraMemSize = len;
 
     return m_extraMem;
-}*/ // GHM 20100526 optimization
+}*/ // 20100526 optimization
 
 /********************************************
 GetExtraMemPtr
@@ -1635,7 +1635,7 @@ GetExtraMemPtr
     if(m_propSetFlags&UGCELL_EXTRAMEMORY_SET)
         return m_extraMem;
     return NULL;
-}*/ // GHM 20100526 optimization
+}*/ // 20100526 optimization
 
 /********************************************
 GetExtraMemSize
@@ -1941,7 +1941,7 @@ CUGCellFormat * CUGCell::GetFormatClass(){
 /********************************************
 SetParam
 *********************************************/
-int CUGCell::SetParam(long param){
+int CUGCell::SetParam(LPARAM param){
 
     m_param = param;
     m_propSetFlags |= UGCELL_PARAM_SET;
@@ -1951,7 +1951,7 @@ int CUGCell::SetParam(long param){
 /********************************************
 GetParam
 *********************************************/
-long CUGCell::GetParam(){
+LPARAM CUGCell::GetParam(){
 
     if(m_propSetFlags&UGCELL_PARAM_SET)
         return m_param;

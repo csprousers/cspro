@@ -569,7 +569,7 @@ void CMainFrame::OnUpdateStats(CCmdUI* pCmdUI)
 
 //////////////////////////////////////////////////////////////////////
 
-LONG CMainFrame::IsUniqNames (WPARAM wParam, LPARAM lParam)
+LRESULT CMainFrame::IsUniqNames(WPARAM /*wParam*/, LPARAM /*lParam*/)
 {
     return m_bViewNames ? 1 : 0;
 }
@@ -1918,10 +1918,10 @@ void CMainFrame::OnUpdateDeletecase(CCmdUI* pCmdUI)
 
 /////////////////////////////////////////////////////////////////////////////////
 //
-//      LONG CMainFrame::OnWriteCase(WPARAM wParam, LPARAM lParam)
+//      LRESULT CMainFrame::OnWriteCase(WPARAM wParam, LPARAM lParam)
 //
 /////////////////////////////////////////////////////////////////////////////////
-LONG CMainFrame::OnWriteCase(WPARAM /*wParam*/, LPARAM lParam)
+LRESULT CMainFrame::OnWriteCase(WPARAM /*wParam*/, LPARAM lParam)
 {
     const Case& data_case = *reinterpret_cast<const Case*>(lParam);
 
@@ -1958,11 +1958,11 @@ LONG CMainFrame::OnWriteCase(WPARAM /*wParam*/, LPARAM lParam)
     if( pDoc->GetAppMode() == ADD_MODE )
         GetCaseView()->BuildTree();
 
-    return 0L;
+    return 0;
 }
 
 
-LONG CMainFrame::OnKeyChanged(WPARAM wParam, LPARAM /*lParam*/)
+LRESULT CMainFrame::OnKeyChanged(WPARAM wParam, LPARAM /*lParam*/)
 {
     // sent by the engine after a partial save (which changed the case key) or from setcaselabel
     const Case& data_case = *reinterpret_cast<const Case*>(wParam);
@@ -1987,12 +1987,12 @@ LONG CMainFrame::OnKeyChanged(WPARAM wParam, LPARAM /*lParam*/)
 
 /////////////////////////////////////////////////////////////////////////////////
 //
-//      LONG CMainFrame::OnPreprocessEngineMessage(WPARAM wParam, LPARAM lParam)
-//      LONG CMainFrame::OnEngineMessage(WPARAM wParam, LPARAM lParam)
+//      LRESULT CMainFrame::OnPreprocessEngineMessage(WPARAM wParam, LPARAM lParam)
+//      LRESULT CMainFrame::OnEngineMessage(WPARAM wParam, LPARAM lParam)
 //
 /////////////////////////////////////////////////////////////////////////////////
 
-LONG CMainFrame::OnPreprocessEngineMessage(WPARAM wParam, LPARAM lParam)
+LRESULT CMainFrame::OnPreprocessEngineMessage(WPARAM wParam, LPARAM lParam)
 {
     auto message_type = (MessageType)wParam;
     auto message_number = (int)lParam;
@@ -2042,7 +2042,7 @@ LONG CMainFrame::OnPreprocessEngineMessage(WPARAM wParam, LPARAM lParam)
 }
 
 
-LONG CMainFrame::OnEngineMessage(WPARAM wParam, LPARAM/* lParam*/)
+LRESULT CMainFrame::OnEngineMessage(WPARAM wParam, LPARAM/* lParam*/)
 {
     const CMsgOptions& message_options = *reinterpret_cast<const CMsgOptions*>(wParam);
     CEntryrunDoc* pDoc = assert_cast<CEntryrunDoc*>(GetActiveDocument());
@@ -2473,9 +2473,10 @@ void CMainFrame::OnUpdateVerify(CCmdUI* pCmdUI)
 
 /////////////////////////////////////////////////////////////////////////////////
 //
-//      LONG CMainFrame::OnEngineAbort(WPARAM wParam, LPARAM lParam)//
+//      LRESULT CMainFrame::OnEngineAbort(WPARAM wParam, LPARAM lParam)
+//
 /////////////////////////////////////////////////////////////////////////////////
-LONG CMainFrame::OnEngineAbort(WPARAM /*wParam*/, LPARAM /*lParam*/)
+LRESULT CMainFrame::OnEngineAbort(WPARAM /*wParam*/, LPARAM /*lParam*/)
 {
     // AfxMessageBox(_T("Implement clean up"));
     // 20140514 tom hounded us enough to change the above, legendary message, so here is a new one:
@@ -2485,7 +2486,7 @@ LONG CMainFrame::OnEngineAbort(WPARAM /*wParam*/, LPARAM /*lParam*/)
     pDoc->SetQModified(FALSE); // suppress any warnings about saving data when exiting
 
     AfxGetMainWnd()->SendMessage(WM_CLOSE);
-    return 0L;
+    return 0;
 }
 /////////////////////////////////////////////////////////////////////////////////
 //
@@ -3066,7 +3067,7 @@ bool CMainFrame::SelectNextCaseForVerification()
 
 // SERPRO
 // RHF INIC Nov 19, 2001
-LONG CMainFrame::OnEngineRefresh(WPARAM /*wParam*/, LPARAM /*lParam*/)
+LRESULT CMainFrame::OnEngineRefresh(WPARAM /*wParam*/, LPARAM /*lParam*/)
 {
     CEntryrunView*  pView=GetRunView();
     CEntryrunDoc*   pDoc = (CEntryrunDoc*)GetActiveDocument();
@@ -3082,8 +3083,8 @@ LONG CMainFrame::OnEngineRefresh(WPARAM /*wParam*/, LPARAM /*lParam*/)
 }
 // RHF END Nov 19, 2001
 
-LONG CMainFrame::OnEngineShowCapi(WPARAM wParam, LPARAM lParam) {
-
+LRESULT CMainFrame::OnEngineShowCapi(WPARAM wParam, LPARAM lParam)
+{
     bool bRefreshForLanguageChange = lParam != 0;
 
     // 20100622 keep this function from running over and over
@@ -3532,9 +3533,9 @@ LRESULT CMainFrame::OnSelectiveRefreshCaseTree(WPARAM wParam, LPARAM /*lParam*/)
     }
 
     CMsgParam msgParam;
-    msgParam.dwArrayParam.Add( (DWORD) vpArray[0] );
-    msgParam.dwArrayParam.Add( (DWORD) pItemBaseArray.get() );
-    msgParam.dwArrayParam.Add( (DWORD) pOccsToRefreshArray.get() );
+    msgParam.dwArrayParam.Add( (DWORD_PTR) vpArray[0] );
+    msgParam.dwArrayParam.Add( (DWORD_PTR) pItemBaseArray.get() );
+    msgParam.dwArrayParam.Add( (DWORD_PTR) pOccsToRefreshArray.get() );
 
     SendMessage(UWM::CaseTree::RefreshCaseTree, (WPARAM)&msgParam, -2);
 
@@ -3624,7 +3625,7 @@ LRESULT CMainFrame::OnGoToNode(WPARAM wParam,LPARAM lParam)
                 pView->ProcessModifyMode();
             }
 
-            return 0l;
+            return 0;
         }
         // RHF END Jul 21, 2003
         pView->GoToField(pCurField,iCurOcc);
@@ -3816,7 +3817,8 @@ LRESULT CMainFrame::OnCasesTreeFocus(WPARAM wParam, LPARAM lParam)
 }
 
 
-LONG CMainFrame::OnFieldBehavior(WPARAM wParam, LPARAM lParam) {
+LRESULT CMainFrame::OnFieldBehavior(WPARAM wParam, LPARAM lParam)
+{
     CEntryrunView*  pView=GetRunView();
     CEntryrunDoc*   pDoc = (CEntryrunDoc*)GetActiveDocument();
     CRunAplEntry*   pRunApl = NULL;
@@ -3844,11 +3846,12 @@ LONG CMainFrame::OnFieldBehavior(WPARAM wParam, LPARAM lParam) {
             ASSERT(0);
     }
 
-    return 0L;
+    return 0;
 }
 
 
-LONG CMainFrame::OnFieldVisibility(WPARAM wParam, LPARAM lParam) {
+LRESULT CMainFrame::OnFieldVisibility(WPARAM wParam, LPARAM lParam)
+{
     CEntryrunView*  pView=GetRunView();
     CEntryrunDoc*   pDoc = (CEntryrunDoc*)GetActiveDocument();
     CRunAplEntry*   pRunApl = NULL;
@@ -3865,7 +3868,7 @@ LONG CMainFrame::OnFieldVisibility(WPARAM wParam, LPARAM lParam) {
         pField->IsHidden( !bVisible );
     }
 
-    return 0L;
+    return 0;
 }
 
 
@@ -4107,7 +4110,7 @@ void CMainFrame::OnUpdateSimpleSynchronization(CCmdUI* const pCmdUI)
 }
 
 
-LONG CMainFrame::OnRefreshSelected(WPARAM wParam, LPARAM /*lParam*/)
+LRESULT CMainFrame::OnRefreshSelected(WPARAM wParam, LPARAM /*lParam*/)
 {
     CWnd* pFieldWnd = (CWnd*)wParam;
 
@@ -4138,7 +4141,7 @@ LONG CMainFrame::OnRefreshSelected(WPARAM wParam, LPARAM /*lParam*/)
 // there are three goals: 1) execute the function; 2) return the focus to the form and then;
 // 3) update the position of the cursor in the case that the function called had a move statement
 
-LONG CMainFrame::OnUserbarUpdate(WPARAM wParam, LPARAM lParam) // 20100415
+LRESULT CMainFrame::OnUserbarUpdate(WPARAM wParam, LPARAM lParam) // 20100415
 {
     CEntryrunDoc* pDoc = GetDocument();
 
@@ -4283,7 +4286,7 @@ LONG CMainFrame::OnUserbarUpdate(WPARAM wParam, LPARAM lParam) // 20100415
 }
 
 
-LONG CMainFrame::OnSetMessageOverrides(WPARAM wParam, LPARAM /*lParam*/) // 20100518
+LRESULT CMainFrame::OnSetMessageOverrides(WPARAM wParam, LPARAM /*lParam*/) // 20100518
 {
     const MessageOverrides& message_overrides = *reinterpret_cast<const MessageOverrides*>(wParam);
     GetDocument()->SetMessageOverrides(message_overrides);
@@ -4291,7 +4294,7 @@ LONG CMainFrame::OnSetMessageOverrides(WPARAM wParam, LPARAM /*lParam*/) // 2010
 }
 
 
-LONG CMainFrame::OnUsingOperatorControlledMessages(WPARAM wParam, LPARAM lParam)
+LRESULT CMainFrame::OnUsingOperatorControlledMessages(WPARAM wParam, LPARAM lParam)
 {
     CEntryrunDoc* pDoc = (CEntryrunDoc*)GetActiveDocument();
     CRunAplEntry* pRunApl = ( pDoc != nullptr ) ? pDoc->GetRunApl() : nullptr;
@@ -4780,7 +4783,7 @@ public:
         return true;
     }
 
-    void OnTimer(UINT nIDEvent);
+    void OnTimer(UINT_PTR nIDEvent);
 
     void OnCancel()
     {
@@ -4798,7 +4801,7 @@ BEGIN_MESSAGE_MAP(CGPSDialog, CDialog)
 END_MESSAGE_MAP()
 
 
-void CGPSDialog::OnTimer(UINT nIDEvent) // 20110525
+void CGPSDialog::OnTimer(UINT_PTR nIDEvent) // 20110525
 {
     if( gpsTI->successfulRead || gpsTI->cancelRead )
     {
@@ -4813,7 +4816,9 @@ void CGPSDialog::OnTimer(UINT nIDEvent) // 20110525
     }
 
     else
+    {
         gpsTI->numReadIntervals--;
+    }
 }
 
 

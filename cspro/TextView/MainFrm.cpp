@@ -224,7 +224,7 @@ void CMainFrame::UpdateStatusBarScr (CLPoint ptlCurrPos) {
     TCHAR pszStr[40];
     if (pStatus)  {
         CDC* pDC = pStatus->GetDC();
-        pDC->SelectObject(pStatus->GetFont()); // GHM 20120207 the text extent isn't correct without this statement
+        pDC->SelectObject(pStatus->GetFont()); // 20120207 the text extent isn't correct without this statement
         CString csTitle;
         csTitle.LoadString (IDS_MSG01);
         wsprintf (pszStr, _T("%s: (%ld,%ld)"), (const TCHAR*) csTitle, ptlCurrPos.y, ptlCurrPos.x);
@@ -256,7 +256,7 @@ void CMainFrame::UpdateStatusBarBlock (CLPoint ptlOrigin, BOOL bActive) {
             wsprintf (pszStr, _T("%s: (none)"), (const TCHAR*) csTitle);
         }
         CDC* pDC = pStatus->GetDC();
-        pDC->SelectObject(pStatus->GetFont()); // GHM 20120207 the text extent isn't correct without this statement
+        pDC->SelectObject(pStatus->GetFont()); // 20120207 the text extent isn't correct without this statement
         pStatus->SetPaneInfo (1, indicators[1], SBPS_NORMAL, pDC->GetTextExtent (pszStr, _tcslen(pszStr)).cx+5);
         pStatus->SetPaneText (1,pszStr);
         pStatus->ReleaseDC (pDC);
@@ -275,7 +275,7 @@ void CMainFrame::UpdateStatusBarSize (const TCHAR* pszStr) {
     CStatusBar* pStatus = (CStatusBar*) GetDescendantWindow (AFX_IDW_STATUS_BAR);
     if (pStatus)  {
         CDC* pDC = pStatus->GetDC();
-        pDC->SelectObject(pStatus->GetFont()); // GHM 20120207 the text extent isn't correct without this statement
+        pDC->SelectObject(pStatus->GetFont()); // 20120207 the text extent isn't correct without this statement
         pStatus->SetPaneInfo (6, indicators[6], SBPS_NORMAL, pDC->GetTextExtent (pszStr, _tcslen(pszStr)).cx+5);
         pStatus->SetPaneText (6, pszStr);
         pStatus->ReleaseDC (pDC);
@@ -290,13 +290,13 @@ void CMainFrame::UpdateStatusBarSize (const TCHAR* pszStr) {
 /////////////////////////////////////////////////////////////////////////////
 
 
-void CMainFrame::UpdateStatusBarEncoding(const TCHAR* pszStr) // GHM 20111222
+void CMainFrame::UpdateStatusBarEncoding(const TCHAR* pszStr) // 20111222
 {
     CStatusBar* pStatus = (CStatusBar*) GetDescendantWindow (AFX_IDW_STATUS_BAR);
     if( pStatus )
     {
         CDC * pDC = pStatus->GetDC();
-        pDC->SelectObject(pStatus->GetFont()); // GHM 20120207 the text extent isn't correct without this statement
+        pDC->SelectObject(pStatus->GetFont()); // 20120207 the text extent isn't correct without this statement
         pStatus->SetPaneInfo(5,indicators[5],SBPS_NORMAL,pDC->GetTextExtent(pszStr,_tcslen(pszStr)).cx+5);
         pStatus->SetPaneText(5,pszStr);
         pStatus->ReleaseDC(pDC);
@@ -526,8 +526,8 @@ void CMainFrame::OnQuickQuit() {
 //
 /////////////////////////////////////////////////////////////////////////////
 
-LONG CMainFrame::OnIMSAFileOpen (UINT, LPARAM)  {
-
+LRESULT CMainFrame::OnIMSAFileOpen(WPARAM /*wParam*/, LPARAM /*lParam*/)
+{
 //    This function responds to the message WM_IMSA_FILEOPEN, which is sent by other
 //    IMPS 40 modules to invoke a file to be viewed.
 
@@ -542,7 +542,7 @@ LONG CMainFrame::OnIMSAFileOpen (UINT, LPARAM)  {
     if (!IMSAOpenSharedFile(csFileName))  {
         csTemp = csWndClass + _T(": internal error receiving inter-app file open message");
         AfxMessageBox(csTemp, MB_OK|MB_ICONSTOP);
-        return 0L;
+        return 0;
     }
 
     csTemp = csWndClass + _T(" -- CIMPSViewerMainFrame::OnIMPS40FileOpen x%sx\n");
@@ -584,7 +584,7 @@ LONG CMainFrame::OnIMSAFileOpen (UINT, LPARAM)  {
     m_wndToolBar.GetToolBarCtrl().HideButton(ID_QUICK_QUIT, FALSE);  // show the button
     ShowControlBar(&m_wndToolBar, TRUE, FALSE);
 
-    return 0L;
+    return 0;
 }
 
 
@@ -594,8 +594,8 @@ LONG CMainFrame::OnIMSAFileOpen (UINT, LPARAM)  {
 //
 /////////////////////////////////////////////////////////////////////////////
 
-LONG CMainFrame::OnIMSAFileClose (UINT, LPARAM)  {
-
+LRESULT CMainFrame::OnIMSAFileClose(WPARAM /*wParam*/, LPARAM /*lParam*/)
+{
 //    This function responds to the message WM_IMPS40_FILECLOSE which is sent by other
 //    IMPS 40 modules to cause us to close a file (if we've got it opened!)
 
@@ -607,7 +607,7 @@ LONG CMainFrame::OnIMSAFileClose (UINT, LPARAM)  {
     if (!IMSAOpenSharedFile(csFileName))  {
         csTemp = csWndClass + _T(": internal error receiving inter-app file open message");
         AfxMessageBox(csTemp, MB_OK|MB_ICONSTOP);
-        return 0L;
+        return 0;
     }
 
     csTemp = csWndClass + _T(" -- CIMPSViewerMainFrame::OnIMPS40FileClose x%sx\n");
@@ -618,14 +618,14 @@ LONG CMainFrame::OnIMSAFileClose (UINT, LPARAM)  {
 
     // savy/gsf 8/28/00:  if file not open in textview, don't crash!
     if (pDoubleDoc == NULL) {
-        return 0L;
+        return 0;
     }
 
     ASSERT_VALID(pDoubleDoc);
     if (!pDoubleDoc->IsReloadingOrClosing()) {
         pDoubleDoc->OnCloseDocument();
     }
-    return 0L;
+    return 0;
 }
 
 
@@ -635,8 +635,8 @@ LONG CMainFrame::OnIMSAFileClose (UINT, LPARAM)  {
 //
 /////////////////////////////////////////////////////////////////////////////
 
-LONG CMainFrame::OnIMSASetFocus (UINT, LPARAM)  {
-
+LRESULT CMainFrame::OnIMSASetFocus(WPARAM /*wParam*/, LPARAM /*lParam*/)
+{
     CString csWndClass = ((CTextViewApp*)AfxGetApp())->m_csWndClassName;
     CString csFileName, csTemp;
 
@@ -656,7 +656,7 @@ LONG CMainFrame::OnIMSASetFocus (UINT, LPARAM)  {
         ASSERT(pView != NULL);
         pView->SetFocus();
     }
-    return 0L;
+    return 0;
 }
 
 
@@ -945,7 +945,7 @@ LRESULT CMainFrame::OnDDEExecute(WPARAM wParam, LPARAM lParam)
     if (!AfxGetApp()->OnDDECommand(szCommand))
         TRACE(traceAppMsg, 0, _T("Error: failed to execute DDE command '%s'.\n"), szCommand);
 
-    return 0L;
+    return 0;
 }
 
 

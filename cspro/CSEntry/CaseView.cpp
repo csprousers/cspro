@@ -646,7 +646,7 @@ void CCaseView::BuildNodeTree(HTREEITEM hNodeItem)
 
         HTREEITEM hCurrentItem = caseTree.InsertItem(&TreeCtrlItem);
         caseTree.SetItemImage(hCurrentItem,2,2);
-        caseTree.SetItemData(hCurrentItem,(DWORD)pNewNodeInfo);
+        caseTree.SetItemData(hCurrentItem, (DWORD_PTR)pNewNodeInfo);
 
         hParent[level_number] = hCurrentItem;
     }
@@ -899,7 +899,7 @@ void CCaseView::AddCaseToTree(const CaseSummary& case_summary, bool bShowCaseLab
     NODEINFO* pNodeInfo = new NODEINFO { case_summary, 0, case_number };
 
     caseTree.SetItemImage(hItem, iImageIndex, iImageIndex);
-    caseTree.SetItemData(hItem, (DWORD)pNodeInfo);
+    caseTree.SetItemData(hItem, (DWORD_PTR)pNodeInfo);
 
     if (bMultiLevel)
         caseTree.InsertItem(_T("dummy"), hItem);

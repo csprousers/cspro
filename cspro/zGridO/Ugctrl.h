@@ -332,7 +332,7 @@ public:
 
     int FindDialog();
     int ReplaceDialog();
-    long ProcessFindDialog(UINT,long);
+    LRESULT ProcessFindDialog(WPARAM wParam, LPARAM lParam);
     int FindInAllCols(BOOL state);
     BOOL m_findDialogRunning;
     BOOL m_findDialogStarted;
@@ -465,7 +465,7 @@ public:
     int GetCellRect(int *col,long *row,RECT *rect);
     int GetRangeRect(int startCol,long startRow,int endCol,long endRow,RECT *rect);
 
-    void GetJoinStartCellFast(int *col,long *row,CUGCell * cell); // GHM 20100216
+    void GetJoinStartCellFast(int *col,long *row,CUGCell * cell); // 20100216
     int GetJoinStartCell(int *col,long *row);
     int GetJoinStartCell(int *col,long *row,CUGCell *cell);
     int GetJoinRange(int *col,long *row,int *col2,long *row2);
@@ -661,10 +661,10 @@ public:
     virtual void OnSetCell(int col,long row,CUGCell *cell);
 
     //data source notifications
-    virtual void OnDataSourceNotify(int ID,long msg,long param);
+    virtual void OnDataSourceNotify(int ID,long msg,LPARAM param);
 
     //cell type notifications
-    virtual int OnCellTypeNotify(long ID,int col,long row,long msg,long param);
+    virtual int OnCellTypeNotify(long ID,int col,long row,long msg,LPARAM param);
 
     //editing
     virtual int OnEditStart(int col, long row,CWnd **edit);

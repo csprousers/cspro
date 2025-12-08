@@ -783,7 +783,7 @@ bool CCaseTree::InsertMultiOccItem(  int            iNodeIdx,
 
         //Inserción al árbol
         hItem = m_pTree->Insert( csItemLabel, hItemParent, hInsertAfter /*TVI_LAST*/, iNonSelectedIconIndex,iSelectedIconIndex);
-        m_pTree->SetItemData( hItem, (DWORD) pItemInfo );
+        m_pTree->SetItemData( hItem, (DWORD_PTR) pItemInfo );
 
         if( InsertItemChilds(iNodeIdx, pItem, iItemIndex, /*1*/iItemOcc!=-1 ? iItemOcc : 1, hItem, csKey, pWantedField, iWantedOcc) ){
             bSearchOK = true;
@@ -847,7 +847,7 @@ bool CCaseTree::InsertMultiOccItem(  int            iNodeIdx,
         //}
 
         //AfxMessageBox(csItemLabel);
-        m_pTree->SetItemData( hItem, (DWORD) pItemInfo );
+        m_pTree->SetItemData( hItem, (DWORD_PTR) pItemInfo );
 
 
         CString csItemOccKey;
@@ -876,7 +876,7 @@ bool CCaseTree::InsertMultiOccItem(  int            iNodeIdx,
             pItemInfo->SetItem( pItem );
             pItemInfo->SetLabel( csOccTittle );
 
-            m_pTree->SetItemData( hOccTittle, (DWORD) pItemInfo );
+            m_pTree->SetItemData( hOccTittle, (DWORD_PTR) pItemInfo );
 
             if( InsertItemChilds(iNodeIdx, pItem, iItemIndex, iItemItr, hOccTittle, csItemOccKey, pWantedField, iWantedOcc) ){
                 bSearchOK = true;
@@ -974,7 +974,7 @@ bool CCaseTree::InsertLevel(CString csParentKey, int iNodeIdx, CDELevel* pLevel,
         if( ParentGroupLevel ){         /*single root*/
 
                 if(pItemInfo){
-                        m_pTree->SetItemData( ParentGroupLevel, (DWORD) pItemInfo );
+                        m_pTree->SetItemData( ParentGroupLevel, (DWORD_PTR) pItemInfo );
                 }
 
         } else { /*multiple root*/
@@ -1706,7 +1706,7 @@ bool CCaseTree::xRefresh( HTREEITEM hItem, CDEField* pWantedField, int iWantedOc
                                                 nStateMask,
                                                 lParam );
 
-                        this->m_pTree->SetItemData( hRefreshedItem, (DWORD) pItemInfo );
+                        this->m_pTree->SetItemData( hRefreshedItem, (DWORD_PTR) pItemInfo );
 
                 }
 
@@ -1773,9 +1773,9 @@ void CCaseTree::UserSelectItem(HTREEITEM hSelectedItem, CPoint ptScrollPos, bool
         m_ptLastScrollPos       = ptScrollPos;
 
 
-        CMsgParam * pMsgParam   = new CMsgParam();
+        CMsgParam* pMsgParam    = new CMsgParam();
         pMsgParam->iParam       = pItemInfo->GetOccurrence();
-        pMsgParam->dwArrayParam.Add( (DWORD) ((CDEField*)pItemInfo->GetItem()) );
+        pMsgParam->dwArrayParam.Add( (DWORD_PTR) pItemInfo->GetItem() );
         pMsgParam->bMustBeDestroyedAfterLastCatchMessage        = true;
 
 
@@ -1807,9 +1807,9 @@ void CCaseTree::UserSelectItem(HTREEITEM hSelectedItem, CPoint ptScrollPos, bool
 
 
 
-            CMsgParam * pMsgParam                                                           = new CMsgParam();
-            pMsgParam->iParam                                                                       = pItemInfo->GetIndex();
-            pMsgParam->bMustBeDestroyedAfterLastCatchMessage        = true;
+            CMsgParam* pMsgParam = new CMsgParam();
+            pMsgParam->iParam = pItemInfo->GetIndex();
+            pMsgParam->bMustBeDestroyedAfterLastCatchMessage = true;
             m_pParent->PostMessage(UWM::CaseTree::GoToNode, (WPARAM)pMsgParam, 0);
             return;
 
@@ -2577,7 +2577,7 @@ HTREEITEM CCaseTree::InsertItemOccsTitle( CDEItemBase* pItem, int iNumOccsInTheT
     pItemInfo->SetItem( pItem );
 
     HTREEITEM hItem = pTree->Insert( csItemLabel, hParent, hInsertAfter, iNonSelectedIconIdx,iSelectedIconIdx);
-    pTree->SetItemData( hItem, (DWORD) pItemInfo );
+    pTree->SetItemData( hItem, (DWORD_PTR) pItemInfo );
 
 
     return hItem;

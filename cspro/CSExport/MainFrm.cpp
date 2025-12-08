@@ -101,22 +101,6 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 }
 
 /////////////////////////////////////////////////////////////////////////////
-// CMainFrame diagnostics
-
-#ifdef _DEBUG
-void CMainFrame::AssertValid() const
-{
-    CFrameWnd::AssertValid();
-}
-
-void CMainFrame::Dump(CDumpContext& dc) const
-{
-    CFrameWnd::Dump(dc);
-}
-
-#endif //_DEBUG
-
-/////////////////////////////////////////////////////////////////////////////
 // CMainFrame message handlers
 
 LRESULT CMainFrame::OnMenuChar(UINT nChar, UINT nFlags, CMenu* pMenu)
@@ -158,13 +142,7 @@ bool CMainFrame::PostRunFileCheck(CString csFilename)
 }
 
 
-////////////////////////////////////////////////////////////////////
-//
-//                    LONG CMainFrame::OnIMSAFreqConvert (UINT, LPARAM)
-//
-////////////////////////////////////////////////////////////////////
-
-LONG CMainFrame::OnIMSAExportDone (UINT, LPARAM)
+LRESULT CMainFrame::OnIMSAExportDone(WPARAM /*wParam*/, LPARAM /*lParam*/)
 {
     CExportDoc* pDoc = (CExportDoc*)GetActiveDocument();
     CExportApp* pApp = (CExportApp*) AfxGetApp();
@@ -172,7 +150,7 @@ LONG CMainFrame::OnIMSAExportDone (UINT, LPARAM)
         if(pDoc->m_batchmode) {
             PostMessage(WM_CLOSE);
         }
-        return 0L;
+        return 0;
     }
 
     if(!pDoc){
@@ -192,7 +170,7 @@ LONG CMainFrame::OnIMSAExportDone (UINT, LPARAM)
         if(pDoc->m_batchmode) {
             PostMessage(WM_CLOSE);
         }
-        return 0L;
+        return 0;
     }
     if( !pDoc->m_csSPSSOutFile.IsEmpty() )
     {
@@ -316,7 +294,7 @@ LONG CMainFrame::OnIMSAExportDone (UINT, LPARAM)
     if(pDoc->m_batchmode) {
         PostMessage(WM_CLOSE);
     }
-    return 0L;
+    return 0;
 }
 
 void CMainFrame::OnUpdateFileRun(CCmdUI* pCmdUI)

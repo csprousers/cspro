@@ -314,7 +314,7 @@ void COXSizeControlBar::EnableDocking(DWORD dwDockStyle)
 
 // message handler. Force the parent of the control bar to update it's style
 // after floating, otherwise we'll wait till an WM_NCHITTEST.
-LONG COXSizeControlBar::OnAfterFloatMessage(UINT /* wParam */, LONG /* lParam */)
+LRESULT COXSizeControlBar::OnAfterFloatMessage(WPARAM /* wParam */, LPARAM /* lParam */)
 {
     CWnd* pFrame = GetParentFrame();
     if(pFrame != NULL && pFrame->IsKindOf(RUNTIME_CLASS(COXSizableMiniDockFrameWnd)))
@@ -384,7 +384,7 @@ LRESULT COXSizeControlBar::WindowProc(UINT nMsg, WPARAM wParam, LPARAM lParam)
         {
             if (OnCommand(wParam, lParam))          // post normal commands....
             {
-                return 1L; // command handled
+                return 1; // command handled
             }
             break;
         }
@@ -461,7 +461,7 @@ BOOL COXSizeControlBar::IsProbablyFloating()
 }
 
 
-LONG COXSizeControlBar::OnAddContextMenuItems(WPARAM /* wParam */, LPARAM lParam)
+LRESULT COXSizeControlBar::OnAddContextMenuItems(WPARAM /* wParam */, LPARAM lParam)
 {
     HMENU hMenu = (HMENU)lParam;        // handle of menu.
     CMenu Menu;

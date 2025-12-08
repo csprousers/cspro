@@ -55,12 +55,12 @@ public:
     void GoToFld(CDEField* pField);
     void DoGoToFld(CDEField* pField);
 
-    LONG OnEndgrp(WPARAM wParam, LPARAM lParam);
-    LONG OnEndLevel(WPARAM wParam, LPARAM lParam);
-    LONG OnNextLevelOcc(WPARAM wParam, LPARAM lParam);
+    LRESULT OnEndgrp(WPARAM wParam, LPARAM lParam);
+    LRESULT OnEndLevel(WPARAM wParam, LPARAM lParam);
+    LRESULT OnNextLevelOcc(WPARAM wParam, LPARAM lParam);
 
 
-    LONG OnEditChange (UINT wParam, LONG lParam);
+    LRESULT OnEditChange(WPARAM wParam, LPARAM lParam);
     void OnEditEnter(CDEBaseEdit* pEdit);
     void OnEditPrev(CDEBaseEdit* pEdit);
     void UpdateFields();
@@ -80,16 +80,16 @@ public:
     CDEBaseEdit* SearchEdit( const CDEField* pField ) const; // RHF Jan 14, 2000
 
     BOOL DoPageUpField(CDEField* pField);
-    LONG OnPageUp(WPARAM wParam, LPARAM lParam);
+    LRESULT OnPageUp(WPARAM wParam, LPARAM lParam);
     CDEField* FindFirstEdit(CDEGroup* pGroup, bool bSkipMirrorProtectedPersistent = true);
     CDEForm* FindPageUpForm(CDEField* pField);
 
-    LONG OnPageDown(WPARAM wParam, LPARAM lParam);
+    LRESULT OnPageDown(WPARAM wParam, LPARAM lParam);
     BOOL DoPageDownField(CDEField* pField);
     CDEForm* FindPageDownForm(CDEField* pField);
 
-    LONG OnSlashKey(WPARAM wParam, LPARAM lParam);
-    LONG OnInsertAfter(WPARAM wParam, LPARAM lParam);
+    LRESULT OnSlashKey(WPARAM wParam, LPARAM lParam);
+    LRESULT OnInsertAfter(WPARAM wParam, LPARAM lParam);
 
     void ChkFrmChangeNUpdate(CDEField* pNewField);
     void PutEditValInBuffers(CDEBaseEdit* pEdit);
@@ -97,11 +97,11 @@ public:
 
     CDEGrid* FindGrid(CDEGroup* pGroup) const;
 
-    LONG OnPreviousPersistent(WPARAM wParam, LPARAM lParam);
-    LONG OnCheatKey(WPARAM wParam, LPARAM lParam);
-    LONG OnPlusKey(WPARAM wParam, LPARAM lParam);
+    LRESULT OnPreviousPersistent(WPARAM wParam, LPARAM lParam);
+    LRESULT OnCheatKey(WPARAM wParam, LPARAM lParam);
+    LRESULT OnPlusKey(WPARAM wParam, LPARAM lParam);
 
-    LONG OnAdvToEnd(WPARAM wParam, LPARAM lParam);
+    LRESULT OnAdvToEnd(WPARAM wParam, LPARAM lParam);
 
 private:
     template<typename GFC>
@@ -164,11 +164,10 @@ protected:
     afx_msg void OnFieldNote();
     afx_msg void OnCaseNote();
 
-    LONG OnRefreshData(WPARAM wParam, LPARAM lParam);
-    LONG OnMoveToField(WPARAM wParam, LPARAM lParam);
+    LRESULT OnRefreshData(WPARAM wParam, LPARAM lParam);
+    LRESULT OnMoveToField(WPARAM wParam, LPARAM lParam);
 
-    LONG OnShowCapi(WPARAM wParam, LPARAM lParam); // RHF Nov 22, 2002
-
+    LRESULT OnShowCapi(WPARAM wParam, LPARAM lParam); // RHF Nov 22, 2002
 
 private:
     CArray<CDEBaseEdit*, CDEBaseEdit*> m_aEdit;

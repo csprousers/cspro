@@ -89,7 +89,7 @@ BEGIN_MESSAGE_MAP(CTVView, CBlockScrollView)
     // ruler toggle
     ON_COMMAND(UWM::TextView::ToggleRuler, OnToggleRuler)
 
-    ON_COMMAND(ID_CLOSE_WINDOW, OnFileClose) // GHM 20110802 three new shortcuts
+    ON_COMMAND(ID_CLOSE_WINDOW, OnFileClose) // 20110802 three new shortcuts
     ON_COMMAND(ID_FONT_BIGGER, OnFontBigger)
     ON_COMMAND(ID_FONT_BIGGER2, OnFontBigger)
     ON_COMMAND(ID_FONT_SMALLER, OnFontSmaller)
@@ -108,7 +108,7 @@ CTVView::CTVView()  {
     m_bRulersInitialized = FALSE;
     m_bRulerTempOff = FALSE;
     m_iTimer = NONE;
-    m_ptlLastFind = CLPoint ( (long) NONE, (long) NONE );
+    m_ptlLastFind = CLPoint(NONE, NONE);
     m_bShowLastFind = FALSE;
 }
 
@@ -116,7 +116,8 @@ CTVView::~CTVView()  {
     ASSERT(!IsProgressDlgActive());
 }
 
-void CTVView::OnInitialUpdate(void)  {
+void CTVView::OnInitialUpdate()
+{
     WINDOWPLACEMENT wndpl;
     BOOL bInitOK = TRUE;
     BOOL bBigFile;
@@ -353,7 +354,8 @@ void CTVView::OnDraw(CDC* pDC)  {
 /////////////////////////////////////////////////////////////////////////////
 // CTVView printing
 
-void CTVView::OnFilePrintPreview(void) {
+void CTVView::OnFilePrintPreview()
+{
 
     if (m_bRulersActivated) {
         m_bRulerTempOff = TRUE;
@@ -385,7 +387,7 @@ void CTVView::OnBeginPrinting(CDC* /*pDC*/, CPrintInfo* /*pInfo*/)  {
     CBufferMgr *pBuffMgr = ((CTVDoc *) GetDocument())->GetBufferMgr();
     lPrevLine = pBuffMgr->GetCurrLine();
     bFirstPage = TRUE;
-    lTopPrevPage = 0L;
+    lTopPrevPage = 0;
 //    m_folio.Create(GetDocument()->GetTitle());
 }
 
@@ -700,7 +702,7 @@ void CTVView::OnEditCopy()  {
 void CTVView::OnEditCopySS()  {
     BOOL bRetCode;
     long lSize = GetBlockedBufferSize()+1;
-    lSize = lSize * sizeof(TCHAR); // GHM 20130212
+    lSize = lSize * sizeof(TCHAR); // 20130212
 
     if (lSize > MAXCLIP95)  {
         AfxMessageBox (_T("Block is too large to copy to the clipboard"), MB_ICONINFORMATION);
@@ -797,7 +799,8 @@ void CTVView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)  {
     }
 }
 
-void CTVView::SetScrollParameters (void)  {
+void CTVView::SetScrollParameters()
+{
     CRect rcPageSize;
     CBufferMgr *pBuffMgr = ((CTVDoc *) GetDocument())->GetBufferMgr();
 
@@ -1044,7 +1047,8 @@ void CTVView::UpdateHScrollPos (BOOL bRedrawFlag)  {
     UpdateStatusBar ();
 }
 
-LONG CTVView::OnSearch (UINT, LONG)  {
+LRESULT CTVView::OnSearch(WPARAM /*wParam*/, LPARAM /*lParam*/)
+{
     // message received in response to modeless dialoak Next or Previous button
     CBufferMgr* pBuffMgr = ((CTVDoc*) GetDocument())->GetBufferMgr();
     CLPoint ptlFindPos;
@@ -1100,7 +1104,7 @@ LONG CTVView::OnSearch (UINT, LONG)  {
         UpdateHScrollPos (TRUE);
         Invalidate();
         CTVView::m_dlgFind.SendMessage(WM_COMMAND, IDCLOSE);       // added csc 2/28/97
-        return 0L;
+        return 0;
     }
 
     if (bFound)  {
@@ -1132,22 +1136,25 @@ LONG CTVView::OnSearch (UINT, LONG)  {
     }
 
     Invalidate();   // force redraw in case the user moved the progress dlg around the screen
-    return 0L;
+    return 0;
 }
 
 
-void CTVView::OnTimer(UINT nIDEvent)  {
+void CTVView::OnTimer(UINT_PTR nIDEvent)
+{
     // the timer was fired due to the user moving the mouse outside of the client area while
     // blocking is active ... call the base class version!
-    ASSERT (nIDEvent==SCROLL_TIMER);
+    ASSERT(nIDEvent==SCROLL_TIMER);
     CBlockScrollView::OnTimer(nIDEvent);
 }
 
-LONG CTVView::OnSearchClose (UINT, LONG)  {
-    return 0L;
+LRESULT CTVView::OnSearchClose(WPARAM /*wParam*/, LPARAM /*lParam*/)
+{
+    return 0;
 }
 
-void CTVView::ClearFindSelection (void)  {
+void CTVView::ClearFindSelection()
+{
     if ( ShowLastFind() )  {
         long lCurrLine = ((CTVDoc*) GetDocument())->GetBufferMgr()->GetCurrLine();
         int iCurrCol =  ((CTVDoc*) GetDocument())->GetBufferMgr()->GetCurrCol();
@@ -1157,13 +1164,13 @@ void CTVView::ClearFindSelection (void)  {
         if ( m_ptlLastFind.y >= lCurrLine && m_ptlLastFind.y <= lCurrLine+m_iScrHgt && ! ( iCurrCol >= (int)m_ptlLastFind.x + (int)m_dlgFind.GetFindLen() || (int)m_ptlLastFind.x >= iCurrCol+m_iScrWidth) )  {
             // the recently found text *is* currently displayed on the screen!        ... thanks to Glenn for the above algorithm!
             ASSERT ((int) (m_ptlLastFind.y - lCurrLine) * m_iTextHgt >= 0);
-            ASSERT ((int) (m_ptlLastFind.y - lCurrLine + 1L) * m_iTextHgt >= 0);
+            ASSERT ((int) (m_ptlLastFind.y - lCurrLine + 1) * m_iTextHgt >= 0);
             ASSERT (m_iTextWidth*((int)m_ptlLastFind.x-iCurrCol) >= -32767L);
             ASSERT (m_iTextWidth*((int)m_ptlLastFind.x-iCurrCol + (int) m_dlgFind.GetFindLen()) >= -32767L);
             InvalidateRect ( CRect (m_iTextWidth * ((int)m_ptlLastFind.x-iCurrCol),                        // left
                                     (int) (m_ptlLastFind.y - lCurrLine) * m_iTextHgt,                      // top
                                     m_iTextWidth*((int)m_ptlLastFind.x-iCurrCol + m_dlgFind.GetFindLen()),   // right
-                                    (int) (m_ptlLastFind.y - lCurrLine + 1L) * m_iTextHgt) );              // bottom
+                                    (int) (m_ptlLastFind.y - lCurrLine + 1) * m_iTextHgt) );              // bottom
         }
     }
     SetShowLastFind (FALSE);
@@ -1348,7 +1355,8 @@ void CTVView::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)  {
 */
 }
 
-void CTVView::ResizeRulers (void)  {
+void CTVView::ResizeRulers()
+{
     // this function is called when the ruler width (offset) needs to be changed, a WM_SIZE is being
     // processed, or the user has toggled the ruler status option.
     if (m_bRulersInitialized)  {
@@ -1376,7 +1384,8 @@ void CTVView::ResizeRulers (void)  {
     }
 }
 
-void CTVView::UpdateRulers (void)  {
+void CTVView::UpdateRulers()
+{
     if ( m_bRulersActivated )  {
         if ( m_rulerMgr.IsOffsetChanged (m_iScrHgt) )  {
             ResizeRulers ();
@@ -1428,7 +1437,7 @@ void CTVView::OnViewGotoline()  {
     int iPrevFileWidth = pBuffMgr->GetFileWidth();
 
     dlgGoto.SetView (this);              // let it know who it's owner is (CGotoDialog::OnSize will reposition the dialog box in a moment)
-    dlgGoto.m_LineNumber = pBuffMgr->GetCurrLine() + 1L;
+    dlgGoto.m_LineNumber = pBuffMgr->GetCurrLine() + 1;
     int iRetVal = dlgGoto.DoModal();        // remember that result here is 1-based, while BuffMgr::CurrLine is 0-based
     dlgGoto.m_LineNumber--;
     if ( iRetVal == IDOK )  {
@@ -1460,9 +1469,10 @@ void CTVView::OnViewGotoline()  {
     }
 }
 
-void CTVView::UpdateStatusBar (void)  {
+void CTVView::UpdateStatusBar()
+{
     CBufferMgr* pBuffMgr = ((CTVDoc *) GetDocument())->GetBufferMgr();
-    ((CMainFrame*) AfxGetApp()->m_pMainWnd)->UpdateStatusBarScr ( CLPoint((long) pBuffMgr->GetCurrCol()+1L, pBuffMgr->GetCurrLine()+1L) );
+    ((CMainFrame*) AfxGetApp()->m_pMainWnd)->UpdateStatusBarScr ( CLPoint((long) pBuffMgr->GetCurrCol()+1, pBuffMgr->GetCurrLine()+1L) );
 }
 
 inline void CTVView::OnUpdateEditCopy(CCmdUI* pCmdUI)  {
@@ -1489,12 +1499,13 @@ void CTVView::OnActivateView(BOOL bActivate, CView* pActivateView, CView* pDeact
     CBlockScrollView::OnActivateView (bActivate, pActivateView, pDeactiveView);
 }
 
-BOOL IsProgressDlgActive(void)  {
+BOOL IsProgressDlgActive()
+{
     return g_bIsProgressDlgActive;
 }
 
 
-// GHM 20110802 the code here is slightly modified from what used to be in OnMouseWheel
+// 20110802 the code here is slightly modified from what used to be in OnMouseWheel
 void CTVView::ChangeFontSize(bool increase)
 {
     CMainFrame* pMainFrame=DYNAMIC_DOWNCAST(CMainFrame, AfxGetMainWnd());
@@ -1526,7 +1537,7 @@ BOOL CTVView::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt) {
 
     if (GetKeyState(VK_CONTROL) < 0)  {
 
-        ChangeFontSize(zDelta > 0); // GHM 20110802
+        ChangeFontSize(zDelta > 0); // 20110802
 
         /*
         CMainFrame* pMainFrame=DYNAMIC_DOWNCAST(CMainFrame, AfxGetMainWnd());
@@ -1757,7 +1768,7 @@ BOOL CTVView::OnScrollBy(CSize sizeScroll, BOOL bDoScroll) {
 
 
 
-// GHM 20110802 three new shortcuts
+// 20110802 three new shortcuts
 void CTVView::OnFileClose()
 {
     PostMessage(WM_COMMAND,ID_FILE_CLOSE);

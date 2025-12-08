@@ -257,7 +257,7 @@ void CBlockScrollView::OnDraw(CDC* pDC)  {
         int iXPos;
         CLRect rclBlock = GetBlockedRectChar ();
         CRect rcPageSize;
-        int iBlockWidth = (int) (rclBlock.right - rclBlock.left + 1L);
+        int iBlockWidth = (int) (rclBlock.right - rclBlock.left + 1);
         CPoint ptScaledOffset;
         CLPoint ptlUnscaledOffset;
         ptScaledOffset = GetScrollPosition ();
@@ -536,7 +536,7 @@ void CBlockScrollView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)  {
     CScrollView::OnKeyDown(nChar, nRepCnt, nFlags);
 }
 
-void CBlockScrollView::OnTimer(UINT /*nIDEvent*/)  {
+void CBlockScrollView::OnTimer(UINT_PTR /*nIDEvent*/)  {
     ASSERT ( m_iTimer != NONE );
     ptlOffset = GetUnscaledScrollPosition ();  //GetScrollPosition());
     CPoint  point;
@@ -590,8 +590,8 @@ void CBlockScrollView::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar
 void CBlockScrollView::UpdateStatusBar (void)  {
 
     CLPoint ptlTmp;
-    ptlTmp.x = GetBlockedRectChar().left + 1L;
-    ptlTmp.y = GetBlockedRectChar().top + 1L;
+    ptlTmp.x = GetBlockedRectChar().left + 1;
+    ptlTmp.y = GetBlockedRectChar().top + 1;
     ((CMainFrame*) AfxGetApp()->m_pMainWnd)->UpdateStatusBarBlock (ptlTmp, IsBlockActive());
 }
 

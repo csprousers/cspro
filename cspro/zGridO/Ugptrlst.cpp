@@ -46,7 +46,7 @@ CUGPtrList::~CUGPtrList(){
 returns the 0 based index
 -1 on error
 ***************************************/
-int CUGPtrList::AddPointer(void *ptr,long param,UGID*id){
+int CUGPtrList::AddPointer(void *ptr,LPARAM param,UGID*id){
 
 
     //check to see if more elements need to be added
@@ -74,7 +74,7 @@ int CUGPtrList::AddPointer(void *ptr,long param,UGID*id){
 }
 /**************************************
 ***************************************/
-int CUGPtrList::UpdateParam(int index,long param){
+int CUGPtrList::UpdateParam(int index,LPARAM param){
 
     if(index <0 || index >= m_maxElements)
         return UG_ERROR;
@@ -195,4 +195,3 @@ int CUGPtrList::AddMoreElements(){
 
     return UG_SUCCESS;
 }
-

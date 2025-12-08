@@ -9,5 +9,5 @@ class CTextFontDialog : public CFontDialog
 public:
     using CFontDialog::CFontDialog;
 
-    int DoModal() override;
+    INT_PTR DoModal() override;
 };

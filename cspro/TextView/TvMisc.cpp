@@ -63,12 +63,12 @@ BOOL CBufferMgr::SearchForward (CString csSearch, BOOL bCaseSensitive, CLPoint& 
     }
     pszSearchText = (const TCHAR*) csSearch;
 
-    ASSERT ((long) m_iFileWidth + 1L <= 32767L);
+    ASSERT ((long) m_iFileWidth + 1 <= 32767L);
     SearchInit (pszSearchText, next);
 
     // ptlFindPos is (NONE, NONE) if there isn't a currently highlighted recently "found" text,
     // otherwise it contains the char position (row, col) of the currently highlighted "found" text
-    if  (ptlFindPos != CLPoint((long) NONE, (long) NONE))  {
+    if  (ptlFindPos != CLPoint(NONE, NONE))  {
         bLastFindIsDisplayed = TRUE;
         iFindCol = (int) ptlFindPos.x + 1;
     }
@@ -130,12 +130,12 @@ BOOL CBufferMgr::SearchForward (CString csSearch, BOOL bCaseSensitive, CLPoint& 
                     // a hit has to be to the right or below the currently highlighted hit ...
                     if (GetCurrLine() > ptlFindPos.y || ( GetCurrLine() == ptlFindPos.y && iFindCol > ptlFindPos.x))  {
                         bFound = TRUE;
-                        ptlFindPos = CLPoint((long) iFindCol, GetCurrLine() - 1L);
+                        ptlFindPos = CLPoint((long) iFindCol, GetCurrLine() - 1);
                     }
                 }
                 else  {
                     bFound = TRUE;
-                    ptlFindPos = CLPoint((long) iFindCol, GetCurrLine() - 1L);
+                    ptlFindPos = CLPoint((long) iFindCol, GetCurrLine() - 1);
                 }
             }
         iFindCol = 0;   // all searches after the starting line occur from the 0th column...
@@ -172,13 +172,13 @@ BOOL CBufferMgr::SearchBackward (CString csSearch, BOOL bCaseSensitive, CLPoint&
 
     CString csCaseAdjustedSearchLine;
 
-    ASSERT ((long) m_iFileWidth + 1L <= 32767L);
+    ASSERT((long)m_iFileWidth + 1 <= 32767L);
 
     SearchInit(pszSearchText, next);
 
     // ptlFindPos is (NONE, NONE) if there isn't a currently highlighted recently "found" text,
     // otherwise it contains the char position (row, col) of the currently highlighted "found" text
-    bLastFindIsDisplayed = (ptlFindPos != CLPoint ( (long) NONE, (long) NONE));
+    bLastFindIsDisplayed = (ptlFindPos != CLPoint(NONE, NONE));
 
     if (Status() == BEGFILE)  {
         // ensure that we're at the first displayable line ...
@@ -240,14 +240,14 @@ BOOL CBufferMgr::SearchBackward (CString csSearch, BOOL bCaseSensitive, CLPoint&
                 if (iMaxPrevFindCol < ptlFindPos.x || ! bLastFindIsDisplayed)  {
                     // yes, there was (at least) 1 other match previously on that line
                     bFound = TRUE;
-                    ptlFindPos = CLPoint((long) iMaxPrevFindCol, GetCurrLine() + 1L);
+                    ptlFindPos = CLPoint((long) iMaxPrevFindCol, GetCurrLine() + 1);
                 }
                 else  {       // BMD  14 Dec 2004
-                    ptlFindPos.x = (long) IOBUFSIZE + 1L;    // no match on "same" line, set the position to maximum line width + 1
+                    ptlFindPos.x = (long) IOBUFSIZE + 1;    // no match on "same" line, set the position to maximum line width + 1
                 }
             }
             else  {       // BMD  15 Jul 2003
-                ptlFindPos.x = (long) IOBUFSIZE + 1L;    // no match on "same" line, set the position to maximum line width + 1
+                ptlFindPos.x = (long) IOBUFSIZE + 1;    // no match on "same" line, set the position to maximum line width + 1
             }
         iFindCol = 0;   // all searches after the starting line occur from the 0th column...
         }
@@ -413,7 +413,7 @@ unsigned int CFileIO::Read (long lOffs, BYTE* buf)  {
 */
     Open();
 
-    if ( _lseek (m_iHandle, lOffs, SEEK_SET) == -1L )  {
+    if ( _lseek (m_iHandle, lOffs, SEEK_SET) == -1 )  {
     }
 
     //if(m_unicodeEncoding == Encoding::Utf8 || m_unicodeEncoding  == Encoding::Ansi){
@@ -526,7 +526,7 @@ void CBufferMgr::Init (void)  {
     m_pbuffB2->DeclareCurrBoundaryMgr ( &m_boundaryMgr );
     CountLines ();
     LoadBuffer (m_pbuffB1);
-    m_lCurrLine = 0L;
+    m_lCurrLine = 0;
     m_iCurrColumn = 0;
 }
 
@@ -622,7 +622,7 @@ void CBufferMgr::GotoLineNumber ( long lLineNumber )  {
 }
 
 CBuffer* CBufferMgr::GetBuffer (StatusType stDirection)  {
-    if ( stDirection == SWAPFORWARD && m_boundaryMgr.GetNextBoundary (m_pbuffActive->GetEnd()) == (long) NONE )  {
+    if ( stDirection == SWAPFORWARD && m_boundaryMgr.GetNextBoundary(m_pbuffActive->GetEnd()) == NONE )  {
         // can arrive here under 2 conditions:
         // - the first pass through .. we are setting up boundaries during the initial scan
         // - line number estimation is going on, and the user has tried to move past the number of lines initially scanned
@@ -805,7 +805,7 @@ void CBufferMgr::CountLines (void)  {
     time_t timeStart;
     UINT   uSeconds;
 
-    m_lNumLines = 0L;
+    m_lNumLines = 0;
     m_iFileWidth = 0;
     LoadBuffer (m_pbuffB1);
     bBigFile = (GetFileSize() > BIG_FILE);
@@ -846,7 +846,7 @@ CBuffer::CBuffer (void)  {
 }
 
 void CBuffer::Init (void)  {
-    m_lAbsBegin = m_lAbsEnd = 0L;
+    m_lAbsBegin = m_lAbsEnd = 0;
     m_stStatus = EMPTY;
     m_iCurrLine = 0;
     m_waFormFeedArray.RemoveAll();
@@ -1161,7 +1161,7 @@ long CBufferBoundaryMgr::GetNextBoundary (long lBnd)  {
             return ( (CBufferBoundaryElement*)m_elementArray[i])->GetBoundary ();
         }
     }
-    return (long) NONE;
+    return NONE;
 }
 
 long CBufferBoundaryMgr::GetPrevBoundary (long lBnd)  {
@@ -1170,11 +1170,11 @@ long CBufferBoundaryMgr::GetPrevBoundary (long lBnd)  {
             return ( (CBufferBoundaryElement*)m_elementArray[i])->GetBoundary ();
         }
     }
-    return (long) NONE;
+    return NONE;
 }
 
 CBufferBoundaryMgr::CBufferBoundaryMgr (void)  {
-    PutBoundary ( 0L, 0L );
+    PutBoundary(0, 0);
 }
 
 CBufferBoundaryMgr::~CBufferBoundaryMgr (void)  {

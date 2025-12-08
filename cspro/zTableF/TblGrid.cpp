@@ -811,7 +811,7 @@ depends on the data source - check the information
 on the data source(s) being used
 - The ID of the Data source is also returned
 ****************************************************/
-void CTblGrid::OnDataSourceNotify(int ID,long msg,long param){
+void CTblGrid::OnDataSourceNotify(int ID,long msg,LPARAM param){
 }
 /***************************************************
 OnCellTypeNotify
@@ -820,7 +820,7 @@ depends on the cell type - check the information
 on the cell type classes
 - The ID of the cell type is given
 ****************************************************/
-int CTblGrid::OnCellTypeNotify(long ID,int col,long row,long msg,long param){
+int CTblGrid::OnCellTypeNotify(long ID,int col,long row,long msg,LPARAM param){
     return 0;
 }
 /***************************************************
@@ -8238,66 +8238,66 @@ bool CTblGrid::CheckHideCaptionRow(int iRow)
 bool CTblGrid::CheckHideAllZeroRow(int iRow)
 {
     bool bDataAvailable = (m_pTable->GetTabDataArray().GetSize()>0);
-	if (!bDataAvailable) {
-		return false;
-	}
+    if (!bDataAvailable) {
+        return false;
+    }
 
-	// don't hide them in design view
-	CTabView* pView = (CTabView*)GetParent();
+    // don't hide them in design view
+    CTabView* pView = (CTabView*)GetParent();
     bool bDesignView = true;
     pView ? bDesignView = ((CTableChildWnd*)pView->GetParentFrame())->IsDesignView() : bDesignView = true;
-	if (bDesignView) {
-		return false;
-	}
+    if (bDesignView) {
+        return false;
+    }
 
-	bool bHide = false;
+    bool bHide = false;
     FMT_ID eGridComp = FMT_ID_INVALID;
     CGTblOb* pGTblOb = nullptr;
     GetComponent(0, iRow, eGridComp, &pGTblOb);
     CGTblRow* pTblRow = DYNAMIC_DOWNCAST(CGTblRow,pGTblOb);
     if(pTblRow && pTblRow->GetTabVal()){
-		CDataCellFmt* pFmt = pTblRow->GetTabVal()->GetDerFmt();
-		CDataCellFmt* pDefStubFmt=DYNAMIC_DOWNCAST(CDataCellFmt,m_pTable->GetFmtRegPtr()->GetFmt(FMT_ID_STUB));
-		bool bProcess = false;
-		if(pFmt){
-			bProcess = pFmt->GetZeroHidden();
-		}
-		else {
-			bProcess = pDefStubFmt->GetZeroHidden();
-		}
-		if(bProcess){//check if the cells are all zero
-			bHide = true; // assume we hide unless we find a non-zero cell
-			for(int iCol =1; iCol < GetNumberCols() ; iCol++){
-				GetComponent(iCol,iRow,eGridComp,&pGTblOb);
-				if(!IsDataCell(iCol,iRow) || eGridComp == FMT_ID_INVALID){
-					continue;//We are not concerned with non-data cells
-				}
+        CDataCellFmt* pFmt = pTblRow->GetTabVal()->GetDerFmt();
+        CDataCellFmt* pDefStubFmt=DYNAMIC_DOWNCAST(CDataCellFmt,m_pTable->GetFmtRegPtr()->GetFmt(FMT_ID_STUB));
+        bool bProcess = false;
+        if(pFmt){
+            bProcess = pFmt->GetZeroHidden();
+        }
+        else {
+            bProcess = pDefStubFmt->GetZeroHidden();
+        }
+        if(bProcess){//check if the cells are all zero
+            bHide = true; // assume we hide unless we find a non-zero cell
+            for(int iCol =1; iCol < GetNumberCols() ; iCol++){
+                GetComponent(iCol,iRow,eGridComp,&pGTblOb);
+                if(!IsDataCell(iCol,iRow) || eGridComp == FMT_ID_INVALID){
+                    continue;//We are not concerned with non-data cells
+                }
 
-				// ignore hidden cols
-				const int iColHeadRow=GetNumHeaderRows()-1;
-				std::unique_ptr<CFmt> pFmt = GetFmt4Cell(iCol, iColHeadRow);
-				ASSERT(pFmt.get());
-				ASSERT(pFmt->GetID() == FMT_ID_COLHEAD);
-				if (pFmt->GetHidden() == HIDDEN_YES) {
-					continue;
-				}
+                // ignore hidden cols
+                const int iColHeadRow=GetNumHeaderRows()-1;
+                std::unique_ptr<CFmt> pFmt = GetFmt4Cell(iCol, iColHeadRow);
+                ASSERT(pFmt.get());
+                ASSERT(pFmt->GetID() == FMT_ID_COLHEAD);
+                if (pFmt->GetHidden() == HIDDEN_YES) {
+                    continue;
+                }
 
-				CUGCell cellGrid;
-				CGTblCell* pGTblCell = GetGTblCell(iCol,iRow);
-				if(pGTblCell){
-					double dValue = pGTblCell->GetData();
-					if(dValue ==0  || dValue >= 1.0e50 ) {
-						continue;
-					}
-					else {
-						bHide =false;
-						break;
-					}
-				}
-			}
-		}
-	}
-	return bHide;
+                CUGCell cellGrid;
+                CGTblCell* pGTblCell = GetGTblCell(iCol,iRow);
+                if(pGTblCell){
+                    double dValue = pGTblCell->GetData();
+                    if(dValue ==0  || dValue >= 1.0e50 ) {
+                        continue;
+                    }
+                    else {
+                        bHide =false;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    return bHide;
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -8393,9 +8393,9 @@ void CTblGrid::ProcessHideStubs()
     FMT_ID eGridComp = FMT_ID_INVALID;
     CGTblOb* pGTblOb = nullptr;
     int iStartRow = GetNumHeaderRows()-1;
-	CTabSetFmt* pTabSetFmt=DYNAMIC_DOWNCAST(CTabSetFmt,m_pTable->GetFmtRegPtr()->GetFmt(FMT_ID_TABSET));
-	CIMSAString sZeroFill =pTabSetFmt->GetZeroMask();
-	CIMSAString sZRound =pTabSetFmt->GetZRoundMask();
+    CTabSetFmt* pTabSetFmt=DYNAMIC_DOWNCAST(CTabSetFmt,m_pTable->GetFmtRegPtr()->GetFmt(FMT_ID_TABSET));
+    CIMSAString sZeroFill =pTabSetFmt->GetZeroMask();
+    CIMSAString sZRound =pTabSetFmt->GetZRoundMask();
 
     for(int iRow = iStartRow; iRow < GetNumberRows(); iRow++){
         eGridComp = FMT_ID_INVALID;
@@ -8412,12 +8412,12 @@ void CTblGrid::ProcessHideStubs()
                 if(retFmt.GetHidden() == HIDDEN_YES){
                     SetRowHeight(iRow,0);
                 }
-				else if (CheckHideAllZeroRow(iRow)) {
-						SetRowHeight(iRow,0);
-				}
-			}
-		}
-	}
+                else if (CheckHideAllZeroRow(iRow)) {
+                        SetRowHeight(iRow,0);
+                }
+            }
+        }
+    }
 }
 
 void CTblGrid::BuildAllRunTimeFmts()
@@ -8509,9 +8509,9 @@ void CTblGrid::ApplyFormat2DataCells2(int iCellCol ,long lCellRow , CUGCell* cel
     CTabSetFmt* pTabSetFmt=DYNAMIC_DOWNCAST(CTabSetFmt,m_pTable->GetFmtRegPtr()->GetFmt(FMT_ID_TABSET));
     CIMSAString sZeroFill =pTabSetFmt->GetZeroMask();
 
-	// 20100215 possible optimization
-	if( lCellRow < iStartRow || lCellRow >= iMaxRows || iCellCol < 1 || iCellCol >= iNumCols )
-		return;
+    // 20100215 possible optimization
+    if( lCellRow < iStartRow || lCellRow >= iMaxRows || iCellCol < 1 || iCellCol >= iNumCols )
+        return;
 
     //for(long iRow = iStartRow; iRow < iMaxRows;iRow++){
     for(long iRow = lCellRow; iRow <= lCellRow;iRow++){
@@ -8802,12 +8802,12 @@ void CTblGrid::SetAreaLabels4AllTables()
                         iStart += pDictItem->GetLen();
                     }
                     pTabData->SetBreakKey(sSeperatedBreakKey);
-					if(IsOneRowVarTable()){
-						CTabVar* pTabVar = m_pTable->GetRowRoot()->GetChild(0);
-						if(m_pTable->GetRowRoot()->GetChild(0)->GetName().CompareNoCase(WORKVAR_TOTAL_NAME) != 0){
-							sAreaLabel.Trim();//remove indent
-						}
-					}
+                    if(IsOneRowVarTable()){
+                        CTabVar* pTabVar = m_pTable->GetRowRoot()->GetChild(0);
+                        if(m_pTable->GetRowRoot()->GetChild(0)->GetName().CompareNoCase(WORKVAR_TOTAL_NAME) != 0){
+                            sAreaLabel.Trim();//remove indent
+                        }
+                    }
                     pTabData->SetAreaLabel(sAreaLabel);
                 }
             }
@@ -8850,13 +8850,13 @@ void CTblGrid::ProcessAreaTokensinRows()
             // in viewer we don't have areaLabelLookup so use
             // area label in CTabData if there is one
             if (!pTabData->GetAreaLabel().IsEmpty()) {
-				CIMSAString sAreaLabel = pTabData->GetAreaLabel();
-				if(IsOneRowVarTable()){
-					CTabVar* pTabVar = m_pTable->GetRowRoot()->GetChild(0);
-					if(m_pTable->GetRowRoot()->GetChild(0)->GetName().CompareNoCase(WORKVAR_TOTAL_NAME) != 0){
-						sAreaLabel.Trim();//remove indent
-					}
-				}
+                CIMSAString sAreaLabel = pTabData->GetAreaLabel();
+                if(IsOneRowVarTable()){
+                    CTabVar* pTabVar = m_pTable->GetRowRoot()->GetChild(0);
+                    if(m_pTable->GetRowRoot()->GetChild(0)->GetName().CompareNoCase(WORKVAR_TOTAL_NAME) != 0){
+                        sAreaLabel.Trim();//remove indent
+                    }
+                }
                 sBreakKey = sAreaLabel;
             }
         }
@@ -8899,7 +8899,7 @@ void CTblGrid::ProcessAreaTokensinRows()
         CArray<double, double&>& arrCells = pTabData->GetCellArray();
         iIndex =0;
         int iNumCells = arrCells.GetSize();
-		bool bHideAreaGroupSection = false;
+        bool bHideAreaGroupSection = false;
         for(iRow = iStartRow; iRow < iLastDataRow; iRow++) {
             if(iIndex == iNumCells){
                 break; //We are done with the slice
@@ -8914,20 +8914,20 @@ void CTblGrid::ProcessAreaTokensinRows()
             while (sTemp.GetLength() > 0) {
                 sWord = sTemp.GetToken();
                 if (sWord.CompareNoCase(AREA_TOKEN) == 0) {
-					bHideAreaGroupSection =false;
+                    bHideAreaGroupSection =false;
                     sStubOrCaption.Replace(sWord,sBreakKey);
                 }
             }
             QuickSetText(0,iRow,sStubOrCaption);
-			CIMSAString sSuppressCaption = sStubOrCaption;
-			sSuppressCaption.Trim();
-			if(!sSuppressCaption.IsEmpty() && sSuppressCaption[0] == _T('~')){
-				bHideAreaGroupSection = true;
-				SetRowHeight(iRow,0);
-			}
-			if(bHideAreaGroupSection){//Hide the rows under the area group if the current group is to be set hidden 'cos of ~
-				SetRowHeight(iRow,0);
-			}
+            CIMSAString sSuppressCaption = sStubOrCaption;
+            sSuppressCaption.Trim();
+            if(!sSuppressCaption.IsEmpty() && sSuppressCaption[0] == _T('~')){
+                bHideAreaGroupSection = true;
+                SetRowHeight(iRow,0);
+            }
+            if(bHideAreaGroupSection){//Hide the rows under the area group if the current group is to be set hidden 'cos of ~
+                SetRowHeight(iRow,0);
+            }
             CTblOb** pOb = (CTblOb**)cellGrid.GetExtraMemPtr();
             if(pOb && (*pOb)->IsKindOf(RUNTIME_CLASS(CGTblRow)) ){
                 CTabValue* pTabVal = ((CGTblRow*)(*pOb))->GetTabVal();
@@ -9190,7 +9190,7 @@ int CTblGrid::GetStartRow4SpannerNColHeadProcessing()
 LRESULT CTblGrid::OnUpdateTable(WPARAM /*wParam*/,LPARAM/* lParam*/)
 {
     Update();
-    return 0L;
+    return 0;
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -9841,24 +9841,24 @@ void CTblGrid::SavePageAndEndNoteStateInfo()
 
   //Do PageNote if it has one
     if(iPageNoteRow != -1){
-		CGrdViewInfo gridViewInfo;
+        CGrdViewInfo gridViewInfo;
         CTblOb* pTblOb = m_GPageNote.GetTblOb();
-		if(pTblOb){
-			pTblOb->RemoveAllGrdViewInfo();
-			gridViewInfo.SetCurrSize(CSize(0,GetRowHeight(iPageNoteRow)));
-			pTblOb->AddGrdViewInfo(gridViewInfo);
-		}
+        if(pTblOb){
+            pTblOb->RemoveAllGrdViewInfo();
+            gridViewInfo.SetCurrSize(CSize(0,GetRowHeight(iPageNoteRow)));
+            pTblOb->AddGrdViewInfo(gridViewInfo);
+        }
     }
 
     //Do EndNote if it has one
     if(iEndNoteRow !=-1){
-		CGrdViewInfo gridViewInfo;
+        CGrdViewInfo gridViewInfo;
         CTblOb* pTblOb = m_GEndNote.GetTblOb();
-		if(pTblOb){
-			pTblOb->RemoveAllGrdViewInfo();
-			gridViewInfo.SetCurrSize(CSize(0,GetRowHeight(iEndNoteRow)));
-			pTblOb->AddGrdViewInfo(gridViewInfo);
-		}
+        if(pTblOb){
+            pTblOb->RemoveAllGrdViewInfo();
+            gridViewInfo.SetCurrSize(CSize(0,GetRowHeight(iEndNoteRow)));
+            pTblOb->AddGrdViewInfo(gridViewInfo);
+        }
     }
 
 }
@@ -9892,17 +9892,17 @@ void CTblGrid::ApplyPageAndEndNoteStateInfo()
   //Do PageNote if it has one
     if(iPageNoteRow != -1){
         CTblOb* pTblOb = m_GPageNote.GetTblOb();
-		if(pTblOb->GetGrdViewInfoSize() > 0){
-			SetRowHeight(iPageNoteRow,pTblOb->GetGrdViewInfo(0).GetCurrSize().cy);
-		}
+        if(pTblOb->GetGrdViewInfoSize() > 0){
+            SetRowHeight(iPageNoteRow,pTblOb->GetGrdViewInfo(0).GetCurrSize().cy);
+        }
     }
 
     //Do EndNote if it has one
     if(iEndNoteRow !=-1){
         CTblOb* pTblOb = m_GEndNote.GetTblOb();
-		if(pTblOb->GetGrdViewInfoSize() > 0){
-			SetRowHeight(iEndNoteRow,pTblOb->GetGrdViewInfo(0).GetCurrSize().cy);
-		}
+        if(pTblOb->GetGrdViewInfoSize() > 0){
+            SetRowHeight(iEndNoteRow,pTblOb->GetGrdViewInfo(0).GetCurrSize().cy);
+        }
     }
 
 }

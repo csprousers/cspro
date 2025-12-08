@@ -691,7 +691,7 @@ void CLevelGrid::OnCharDown(UINT* vcKey, BOOL /*processed*/)
 //
 /////////////////////////////////////////////////////////////////////////////
 
-int CLevelGrid::OnCellTypeNotify(long /*ID*/, int col, long row, long msg, long /*param*/)
+int CLevelGrid::OnCellTypeNotify(long /*ID*/, int col, long row, long msg, LPARAM /*param*/)
 {
     CUGCell cell;
     GetCell(LEVEL_LABEL_COL, row, &cell);

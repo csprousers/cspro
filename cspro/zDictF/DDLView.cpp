@@ -391,7 +391,7 @@ void CDDLView::Build(void)
     int iMaxRecLen = 0;     // Maximum length on any record
     int iLineDD = 0;        // Line number for the whole layout
     for( size_t level_number = 0; level_number < pDict->GetNumLevels(); ++level_number ) {
-	    const DictLevel& dict_level = pDict->GetLevel(level_number);
+        const DictLevel& dict_level = pDict->GetLevel(level_number);
         iLineDD++;
         for (int r = 0 ; r < dict_level.GetNumRecords() ; r++)  {
             // Add Record Type Item
@@ -665,7 +665,7 @@ int CDDLView::GetItemLine (int iRec, int iItem, int iIdRec /*=NONE*/) {
 //
 /////////////////////////////////////////////////////////////////////////////
 
-/*V*/ int CDDLView::OnToolHitTest(CPoint point, TOOLINFO* pTI) const
+/*V*/ INT_PTR CDDLView::OnToolHitTest(CPoint point, TOOLINFO* pTI) const
 {
     CItemPosInfo ipi;
     if (HitTest(point, ipi))  {

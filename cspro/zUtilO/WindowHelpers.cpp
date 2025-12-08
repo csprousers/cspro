@@ -220,7 +220,8 @@ void WindowHelpers::ReplaceMenuItemWithPopupMenu(CMenu* pPopupMenu, unsigned men
     // replace the menu item with the resource menu's submenu
     CMenu* resource_submenu = resource_menu->GetSubMenu(0);
 
-    pPopupMenu->ModifyMenu(menu_item_resource_id, MF_BYCOMMAND | MF_POPUP | MF_STRING, reinterpret_cast<UINT>(resource_submenu->Detach()), menu_item_text);
+    pPopupMenu->ModifyMenu(menu_item_resource_id, MF_BYCOMMAND | MF_POPUP | MF_STRING,
+                           reinterpret_cast<UINT_PTR>(resource_submenu->Detach()), menu_item_text);
 }
 
 

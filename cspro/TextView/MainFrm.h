@@ -1,4 +1,5 @@
 ﻿#pragma once
+
 //***************************************************************************
 //  File name: MainFrm.h
 //
@@ -72,7 +73,7 @@ public:
     void UpdateStatusBarScr (CLPoint);
     void UpdateStatusBarBlock (CLPoint, BOOL);
     void UpdateStatusBarSize (const TCHAR*);
-    void UpdateStatusBarEncoding (const TCHAR*); // GHM 20111222
+    void UpdateStatusBarEncoding (const TCHAR*); // 20111222
 
     int GetFontHeight(int iPointSize) const;     // added csc 4 Jan 03
 
@@ -100,9 +101,9 @@ protected:
     afx_msg void OnUpdateKeyOvr(CCmdUI* pCmdUI);
     afx_msg void OnActivate(UINT nState, CWnd* pWndOther, BOOL bMinimized);
     //}}AFX_MSG
-    LONG OnIMSAFileOpen(UINT, LONG);
-    LONG OnIMSAFileClose(UINT, LONG);
-    LONG OnIMSASetFocus(UINT, LONG);
+    LRESULT OnIMSAFileOpen(WPARAM wParam, LPARAM lParam);
+    LRESULT OnIMSAFileClose(WPARAM wParam, LPARAM lParam);
+    LRESULT OnIMSASetFocus(WPARAM wParam, LPARAM lParam);
     afx_msg LRESULT OnDDEExecute(WPARAM wParam, LPARAM lParam);
     DECLARE_MESSAGE_MAP()
 };

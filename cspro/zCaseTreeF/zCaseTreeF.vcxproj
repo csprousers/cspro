@@ -26,7 +26,6 @@
     <ClCompile Include="HItem.cpp" />
     <ClCompile Include="Icons.cpp" />
     <ClCompile Include="IItemCnf.cpp" />
-    <ClCompile Include="MsgParam.cpp" />
     <ClCompile Include="StdAfx.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>

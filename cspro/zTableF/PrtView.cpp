@@ -8250,7 +8250,7 @@ void CTabPrtView::UpdateZoomCombo()
 //         (-1 will use the top-left page)
 //
 /////////////////////////////////////////////////////////////////////////////
-LONG CTabPrtView::OnZoom(WPARAM wParam, LPARAM lParam /*=-1*/)
+LRESULT CTabPrtView::OnZoom(WPARAM wParam, LPARAM lParam)
 {
     ASSERT(m_aiViewPg.GetSize()>0);
     ASSERT(wParam>=(WPARAM)ZOOM_STATE_4H_4V && wParam<=(WPARAM)ZOOM_STATE_300_PERCENT);
@@ -8300,7 +8300,7 @@ LONG CTabPrtView::OnZoom(WPARAM wParam, LPARAM lParam /*=-1*/)
 
     if (GetZoomState()==eNewZoomState) {
         // no change being made; avoid flicker and bail out
-        return 0L;
+        return 0;
     }
 
     if (GetZoomState()<ZOOM_STATE_100_PERCENT && eNewZoomState>=ZOOM_STATE_100_PERCENT) {
@@ -8395,7 +8395,7 @@ LONG CTabPrtView::OnZoom(WPARAM wParam, LPARAM lParam /*=-1*/)
     // show current page number (should be page 1) on the navigation bar
     GetNavBar().SetPageInfo(GetCurrFirstViewPg()+1, m_pgMgr.GetNumPages());
 
-    return 0L;
+    return 0;
 }
 
 

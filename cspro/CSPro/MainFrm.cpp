@@ -1907,7 +1907,7 @@ LRESULT CMainFrame::UpdateSrcCode(WPARAM wParam, LPARAM lParam)
             CView* pFormView = pFormDoc->GetNextView(pos);
             ASSERT(pFormView);
             UNREFERENCED_PARAMETER(pFormView);
-            return -1L;
+            return -1;
 
         }
 
@@ -3350,10 +3350,10 @@ void CMainFrame::OnAbout1()
 
 /////////////////////////////////////////////////////////////////////////////////
 //
-//  LONG CMainFrame::OnIMSATabConvert(WPARAM /*wParam*/, LPARAM /*lParam*/)
+//  LRESULT CMainFrame::OnIMSATabConvert(WPARAM /*wParam*/, LPARAM /*lParam*/)
 //
 /////////////////////////////////////////////////////////////////////////////////
-LONG CMainFrame::OnIMSATabConvert(WPARAM /*wParam*/, LPARAM /*lParam*/)
+LRESULT CMainFrame::OnIMSATabConvert(WPARAM /*wParam*/, LPARAM /*lParam*/)
 {
     //    This function responds to the message WM_IMSA_TABCONVERT, which is sent by other
     //    CSPro modules to invoke a file to be converted from .tab to .tbw.
@@ -3955,13 +3955,13 @@ LRESULT CMainFrame::UpdateTabSrcCode(WPARAM wParam, LPARAM lParam)
             CView* pTabView = pTabDoc->GetNextView(pos);
             ASSERT(pTabView);
             UNREFERENCED_PARAMETER(pTabView);
-            return -1L;
+            return -1;
         }
     }
     else if(pAplDoc == nullptr){
         //SAVY 07/18/2000 no need to convey it to the user
         AfxMessageBox(_T("No Application associated with this tab file"));
-        return -1L;
+        return -1;
     }
 
     return 0;
@@ -3988,7 +3988,7 @@ LRESULT CMainFrame::CheckSyntax4TableLogic(WPARAM wParam, LPARAM lParam)
     CAplDoc* pAplDoc = ProcessFOForSrcCode(*pTabDoc);
     if (pAplDoc && !pAplDoc->m_bIsClosing) {
         if(!CheckSyntax4TableLogic(*table_element_tree_node, eXTabStatementType)) {
-            return -1L;
+            return -1;
 
         }
         if(pTabDoc->IsModified()){
@@ -3998,7 +3998,7 @@ LRESULT CMainFrame::CheckSyntax4TableLogic(WPARAM wParam, LPARAM lParam)
     else if(pAplDoc == nullptr){
         //SAVY 07/18/2000 no need to convey it to the user
         AfxMessageBox(_T("No Application associated with this tab file"));
-        return -1L;
+        return -1;
     }
     return 0;
 }
@@ -4476,10 +4476,10 @@ bool CMainFrame::PutTabSourceCode(const TableElementTreeNode& table_element_tree
 
 /////////////////////////////////////////////////////////////////////////////////
 //
-//  LONG CMainFrame::ReplaceLvlProc4Area (UINT, LPARAM)
+//  LRESULT CMainFrame::ReplaceLvlProc4Area(WPARAM wParam, LPARAM lParam)
 //
 /////////////////////////////////////////////////////////////////////////////////
-LONG CMainFrame::ReplaceLvlProc4Area (UINT /*wParam*/, LPARAM lParam)
+LRESULT CMainFrame::ReplaceLvlProc4Area(WPARAM /*wParam*/, LPARAM lParam)
 {
     TBL_PROC_INFO*  pTblProcInfo = (TBL_PROC_INFO*)lParam;
     CAplDoc* pAplDoc = ProcessFOForSrcCode(*pTblProcInfo->pTabDoc);
@@ -4525,10 +4525,10 @@ LONG CMainFrame::ReplaceLvlProc4Area (UINT /*wParam*/, LPARAM lParam)
 
 /////////////////////////////////////////////////////////////////////////////////
 //
-//  LONG CMainFrame::ShowTblSrcCode(WPARAM wParam, LPARAM lParam)
+//  LRESULT CMainFrame::ShowTblSrcCode(WPARAM wParam, LPARAM lParam)
 //
 /////////////////////////////////////////////////////////////////////////////////
-LONG CMainFrame::ShowTblSrcCode(WPARAM /*wParam*/, LPARAM lParam)
+LRESULT CMainFrame::ShowTblSrcCode(WPARAM /*wParam*/, LPARAM lParam)
 {
     CTabulateDoc* pTabDoc = (CTabulateDoc*)lParam;
     ASSERT(pTabDoc);
@@ -4549,13 +4549,13 @@ LONG CMainFrame::ShowTblSrcCode(WPARAM /*wParam*/, LPARAM lParam)
 
 /////////////////////////////////////////////////////////////////////////////////
 //
-//  LONG CMainFrame::ReconcileLinkObj(WPARAM wParam, LPARAM lParam)
+//  LRESULT CMainFrame::ReconcileLinkObj(WPARAM wParam, LPARAM lParam)
 //
 /////////////////////////////////////////////////////////////////////////////////
-LONG CMainFrame::ReconcileLinkObj(WPARAM /*wParam*/, LPARAM /*lParam*/)
+LRESULT CMainFrame::ReconcileLinkObj(WPARAM /*wParam*/, LPARAM /*lParam*/)
 {
 #ifndef _LINKING_
-    return -1 ;//SAVY&&& revisit this to fix logic problems
+    return -1; //SAVY&&& revisit this to fix logic problems
 #else
     CTabulateDoc* pTabDoc = (CTabulateDoc*)lParam;
     ASSERT(pTabDoc);
@@ -4572,13 +4572,13 @@ LONG CMainFrame::ReconcileLinkObj(WPARAM /*wParam*/, LPARAM /*lParam*/)
         UndoEmulateBCHApp(&pAplDoc->GetAppObject());
         if(result == CCompiler::Result::CantInit || result == CCompiler::Result::NoInit) {
             AfxMessageBox(_T("Cannot initialize the compiler"));
-            return -1L;
+            return -1;
         }
 
         compiler.GetLinkTables(aLinkTables);
         CString sMsg;
         if(!pTabDoc->ReconcileLinkTables(aLinkTables,sMsg))
-            return -1 ;
+            return -1;
     }
     else {
         AfxMessageBox(_T("No Application associated with this form file"));
@@ -4789,10 +4789,10 @@ bool CMainFrame::UndoEmulateBCHApp(Application* pApp)
 
 /////////////////////////////////////////////////////////////////////////////////
 //
-//  LONG CMainFrame::PutTallyProc (UINT wParam, LPARAM lParam)
+//  LRESULT CMainFrame::PutTallyProc(WPARAM wParam, LPARAM lParam)
 //
 /////////////////////////////////////////////////////////////////////////////////
-LONG CMainFrame::PutTallyProc(UINT /*wParam*/, LPARAM lParam)
+LRESULT CMainFrame::PutTallyProc(WPARAM /*wParam*/, LPARAM lParam)
 {
     //SAVY&&& revisit this stuff later
     TBL_PROC_INFO*  pTblProcInfo = (TBL_PROC_INFO*)lParam;
@@ -4803,7 +4803,7 @@ LONG CMainFrame::PutTallyProc(UINT /*wParam*/, LPARAM lParam)
 }
 
 
-LONG CMainFrame::RenameProc(UINT /*wParam*/, LPARAM lParam)
+LRESULT CMainFrame::RenameProc(WPARAM /*wParam*/, LPARAM lParam)
 {
     TBL_PROC_INFO*  pTblProcInfo = (TBL_PROC_INFO*)lParam;
     if(pTblProcInfo && pTblProcInfo->pTabDoc){
@@ -4871,10 +4871,10 @@ bool CMainFrame::GetLinkTables(CTabulateDoc* /*pTabDoc*/, CArray<CLinkTable*,CLi
 
 /////////////////////////////////////////////////////////////////////////////////
 //
-//  LONG CMainFrame::DeleteTblLogic (UINT wParam, LPARAM lParam)
+//  LRESULT CMainFrame::DeleteTblLogic(WPARAM wParam, LPARAM lParam)
 //
 /////////////////////////////////////////////////////////////////////////////////
-LONG CMainFrame::DeleteTblLogic (UINT /*wParam*/, LPARAM lParam)
+LRESULT CMainFrame::DeleteTblLogic(WPARAM /*wParam*/, LPARAM lParam)
 {
     TBL_PROC_INFO*  pTblProcInfo = (TBL_PROC_INFO*)lParam;
     CAplDoc* pAplDoc = ProcessFOForSrcCode(*pTblProcInfo->pTabDoc);

@@ -89,7 +89,7 @@ void CPrtViewNavigationBar::CenterToolBar(void)
 // Initializes navigation bar and the toolbar inside it.
 //
 ////////////////////////////////////////////////////////////////////////////////////
-LONG CPrtViewNavigationBar::OnInitDialog (UINT wParam, LONG lParam)
+LRESULT CPrtViewNavigationBar::OnInitDialog(WPARAM wParam, LPARAM lParam)
 {
     BOOL bRet = HandleInitDialog(wParam, lParam);
     if (!UpdateData(FALSE))  {

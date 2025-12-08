@@ -361,8 +361,8 @@ protected:
     //}}AFX_MSG
 
     virtual LRESULT WindowProc(UINT nMsg, WPARAM wParam, LPARAM lParam);
-    afx_msg LONG OnAddContextMenuItems(UINT wParam, LPARAM lParam);
-    afx_msg LONG OnAfterFloatMessage(UINT, LONG);
+    afx_msg LRESULT OnAddContextMenuItems(WPARAM wParam, LPARAM lParam);
+    afx_msg LRESULT OnAfterFloatMessage(WPARAM wParam, LPARAM lParam);
 
     DECLARE_MESSAGE_MAP()
 };

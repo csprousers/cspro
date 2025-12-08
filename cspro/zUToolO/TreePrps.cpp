@@ -142,7 +142,7 @@ void CTreePropertiesDlg::AddPage(CDialog* pDlg,
         item.item.mask = TVIF_PARAM | TVIF_TEXT;
         item.item.pszText = const_cast<LPTSTR>(sCaption);
         item.item.cchTextMax = _tcslen(sCaption);
-        item.item.lParam = (DWORD) pDlg; // store page pointer in tree node (see SetPage)
+        item.item.lParam = (LPARAM) pDlg; // store page pointer in tree node (see SetPage)
 
         OnModifyTreeItemBeforeInsert(pDlg, item.item);
 

@@ -149,7 +149,7 @@ protected:
     afx_msg void OnRButtonDblClk(UINT nFlags, CPoint point);
     afx_msg void OnLButtonDblClk(UINT nFlags, CPoint point);
     afx_msg void OnClick(NMHDR* pNMHDR, LRESULT* pResult);
-    afx_msg LONG OnFinishedDialog(UINT wParam, LONG lParam);
+    afx_msg LRESULT OnFinishedDialog(WPARAM wParam, LPARAM lParam);
 
     //}}AFX_MSG
 

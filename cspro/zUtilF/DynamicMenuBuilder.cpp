@@ -29,7 +29,7 @@ DynamicMenuBuilder& DynamicMenuBuilder::AddSubmenu(const wchar_t* const text, co
     for( const auto& [option_id, option_text] : options )
         submenu.AppendMenu(MF_STRING, option_id, UTF8_TODO::EnsureWide(option_text).c_str());
 
-    m_popupMenu.AppendMenu(MF_STRING | MF_POPUP, reinterpret_cast<UINT>(submenu.Detach()), text);
+    m_popupMenu.AppendMenu(MF_STRING | MF_POPUP, reinterpret_cast<UINT_PTR>(submenu.Detach()), text);
     m_lastAdditionWasASeparator = false;
 
     return *this;

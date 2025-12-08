@@ -176,7 +176,7 @@ int CSelectListCtrl::DrawSelection(int nItem, LPDRAWITEMSTRUCT lpDrawItemStruct)
     bool    bMustRelease=false;
     CFont*  pOldFont=NULL;
 
-    // GHM 20100621 to allow for the dynamic setting of fonts for (old style) value sets
+    // 20100621 to allow for the dynamic setting of fonts for (old style) value sets
     UserDefinedFonts* pUserFonts = nullptr;
     AfxGetApp()->GetMainWnd()->SendMessage(WM_IMSA_GET_USER_FONTS, (WPARAM)&pUserFonts);
 
@@ -1311,7 +1311,7 @@ void CSelectListCtrl::OnClick(NMHDR* pNMHDR, LRESULT* pResult)
     *pResult = 0;
 }
 
-LONG CSelectListCtrl::OnFinishedDialog(UINT wParam, LONG lParam)
+LRESULT CSelectListCtrl::OnFinishedDialog(WPARAM wParam, LPARAM lParam)
 {
     GetParent()->PostMessage(UWM::Capi::FinishSelectDialog, wParam, lParam );
     return 0;

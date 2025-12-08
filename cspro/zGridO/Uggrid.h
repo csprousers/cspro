@@ -78,7 +78,7 @@ protected:
 
 
     BOOL ToolTipNeedText( UINT id, NMHDR * pTTTStruct, LRESULT * pResult );
-    virtual int OnToolHitTest( CPoint point, TOOLINFO* pTI ) const;
+    INT_PTR OnToolHitTest( CPoint point, TOOLINFO* pTI ) const override;
 
 public:
 

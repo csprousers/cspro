@@ -115,8 +115,8 @@ BOOL CUGGrid::ToolTipNeedText( UINT id, NMHDR * pTTTStruct, LRESULT * pResult ){
 }
 /************************************************
 *************************************************/
-int CUGGrid::OnToolHitTest( CPoint point, TOOLINFO* pTI ) const{
-
+INT_PTR CUGGrid::OnToolHitTest( CPoint point, TOOLINFO* pTI ) const
+{
     int col;
     long row;
     static int lastCol = -2;
@@ -132,7 +132,7 @@ int CUGGrid::OnToolHitTest( CPoint point, TOOLINFO* pTI ) const{
 
         pTI->cbSize = sizeof(TOOLINFO);
         pTI->uFlags =  TTF_NOTBUTTON | TTF_ALWAYSTIP |TTF_IDISHWND ;
-        pTI->uId = (UINT)m_hWnd;
+        pTI->uId = (UINT_PTR)m_hWnd;
         pTI->hwnd = (HWND)m_hWnd;
         pTI->lpszText = LPSTR_TEXTCALLBACK;
         return 1;

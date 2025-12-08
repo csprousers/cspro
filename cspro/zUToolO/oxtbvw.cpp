@@ -75,7 +75,7 @@ COXTabViewContainer::COXTabViewContainer()
     m_bIsSplitterPressed=FALSE;
 
     //m_nLastTabBtnAreaWidth=ID_INITABBTNAREAWIDTH;
-    m_nLastTabBtnAreaWidth = 250; // GHM 20110407 upon adding the Reference tab
+    m_nLastTabBtnAreaWidth = 250; // 20110407 upon adding the Reference tab
 
     if((HFONT)m_fontTabBtnText==NULL)
         m_fontTabBtnText.CreatePointFont(80,_T("MS Sans Serif"));
@@ -399,11 +399,11 @@ void COXTabViewContainer::OnLButtonUp(UINT nFlags, CPoint point)
 }
 
 
-void COXTabViewContainer::OnTimer(UINT nIDEvent)
+void COXTabViewContainer::OnTimer(UINT_PTR nIDEvent)
 {
     // TODO: Add your message handler code here and/or call default
 
-    if((int)nIDEvent==m_nScrollPageTimer)
+    if(nIDEvent==m_nScrollPageTimer)
     {
         if(m_nPressedScrlBtn!=TAB_NONE && m_bIsScrlBtnPressed)
             ScrollPage(m_nPressedScrlBtn);

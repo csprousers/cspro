@@ -54,7 +54,7 @@ private:
 
 
 template<typename T>
-long SendEngineUIMessage(EngineUI::Type engine_ui_type, T& engine_ui_node)
+LRESULT SendEngineUIMessage(EngineUI::Type engine_ui_type, T& engine_ui_node)
 {
 #ifdef WIN_DESKTOP
     return WindowsDesktopMessage::Send(WM_IMSA_PORTABLE_ENGINEUI, engine_ui_type, &engine_ui_node);

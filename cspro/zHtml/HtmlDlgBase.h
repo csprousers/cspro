@@ -49,7 +49,7 @@ protected:
     HBRUSH OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor);
     void OnGetMinMaxInfo(MINMAXINFO* lpMMI);
     void OnSize(UINT nType, int cx, int cy);
-    void OnTimer(UINT nIDEvent);
+    void OnTimer(UINT_PTR nIDEvent);
 
     LRESULT OnProcessDisplayOptions(WPARAM wParam, LPARAM lParam);
 

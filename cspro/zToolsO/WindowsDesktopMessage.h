@@ -25,7 +25,7 @@ class WindowsDesktopMessage
 public:
     // Sends a message to the Windows main window.
     template<typename WT = WPARAM, typename LT = LPARAM>
-    static LONG Send(UINT message, WT wparam_value = 0, LT lparam_value = 0);
+    static LRESULT Send(UINT message, WT wparam_value = 0, LT lparam_value = 0);
 
     // Posts a message to the Windows main window.
     template<typename WT = WPARAM, typename LT = LPARAM>
@@ -90,9 +90,9 @@ inline CWnd* WindowsDesktopMessage::GetMainWindow()
 
 
 template<typename WT/* = WPARAM*/, typename LT/* = LPARAM*/>
-LONG WindowsDesktopMessage::Send(const UINT message, WT wparam_value/* = 0*/, LT lparam_value/* = 0*/)
+LRESULT WindowsDesktopMessage::Send(const UINT message, WT wparam_value/* = 0*/, LT lparam_value/* = 0*/)
 {
-    return Worker<LONG, WT, LT>(GetMainWindow(), message, wparam_value, lparam_value);
+    return Worker<LRESULT, WT, LT>(GetMainWindow(), message, wparam_value, lparam_value);
 }
 
 
@@ -133,9 +133,8 @@ RT WindowsDesktopMessage::Worker(CWnd* const wnd, UINT message, WT wparam_value,
             lparam = static_cast<LPARAM>(lparam_value);
         }
 
-        if constexpr(std::is_same_v<RT, LONG>)
+        if constexpr(std::is_same_v<RT, LRESULT>)
         {
-            static_assert(sizeof(LONG) == sizeof(LRESULT));
             return wnd->SendMessage(message, wparam, lparam);
         }
 

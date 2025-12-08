@@ -707,7 +707,7 @@ void CItemGrid::OnRClicked(int /*col*/, long row, int updn, RECT* /*rect*/, POIN
                                                    { ID_VS_CASE_MIXED_FIRST_WORD, L"First Letter Upper Case" },
                                                    { ID_VS_CASE_MIXED_ALL_WORDS,  L"First Letter of Each Word Upper Case" } });
 
-        popMenu.AppendMenu(MF_POPUP, (UINT)formatTextMenu->GetSafeHmenu(), L"Format Value Pair Labels");
+        popMenu.AppendMenu(MF_POPUP, (UINT_PTR)formatTextMenu->GetSafeHmenu(), L"Format Value Pair Labels");
 
         // for replacing only value labels
         popMenu.AppendMenuItems(IsClipboardFormatAvailable(_tCF_TEXT), { { ID_VS_REPLACE_VALUE_LABELS, L"Replace Value Labels (Paste from Clipboard)" } });
@@ -905,7 +905,7 @@ void CItemGrid::OnCharDown(UINT* vcKey, BOOL /*processed*/)
 //
 /////////////////////////////////////////////////////////////////////////////
 
-int CItemGrid::OnCellTypeNotify(long /*ID*/, int col, long row, long msg, long /*param*/)
+int CItemGrid::OnCellTypeNotify(long /*ID*/, int col, long row, long msg, LPARAM /*param*/)
 {
     if(msg == UGCT_BUTTONCLICK){
         if(col == ITEM_NOTE_COL) {

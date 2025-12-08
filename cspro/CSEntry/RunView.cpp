@@ -851,10 +851,10 @@ bool CEntryrunView::SetDictItem(CDEField* pField)
 
 /////////////////////////////////////////////////////////////////////////////////
 //
-//      LONG CEntryrunView::OnEditChange (UINT wParam, LONG lParam)
+//      LRESULT CEntryrunView::OnEditChange(WPARAM wParam, LPARAM lParam)
 //
 /////////////////////////////////////////////////////////////////////////////////
-LONG CEntryrunView::OnEditChange (UINT wParam, LONG lParam)
+LRESULT CEntryrunView::OnEditChange(WPARAM wParam, LPARAM lParam)
 {
     CDEBaseEdit* pEdit = (CDEBaseEdit*)lParam;
 
@@ -877,7 +877,7 @@ LONG CEntryrunView::OnEditChange (UINT wParam, LONG lParam)
         {
             if(!pEdit->GetModifiedFlag()){
                 ((CMainFrame*)AfxGetMainWnd())->OnStop();
-                return 0L;
+                return 0;
             }
             else{
                 CString csValue = pRunApl->GetVal(pEdit->GetField());
@@ -893,7 +893,7 @@ LONG CEntryrunView::OnEditChange (UINT wParam, LONG lParam)
     case VK_F2:
         {
             if (!pRunApl || !pRunApl->HasAppLoaded() )
-                return 0L;
+                return 0;
 
             const CDictItem* pItem = pEdit->GetField()->GetDictItem();
 
@@ -984,7 +984,7 @@ LONG CEntryrunView::OnEditChange (UINT wParam, LONG lParam)
     }
 
 
-    return (0L);
+    return 0;
 }
 /////////////////////////////////////////////////////////////////////////////////
 //
@@ -1595,20 +1595,20 @@ HBRUSH CEntryrunView::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
         return hbr;
     }
 }
+
 // RHF END 20/8/99
 /////////////////////////////////////////////////////////////////////////////////
 //
-//      LONG CEntryrunView::OnRefreshData(WPARAM wParam, LONG lParam)
+//      LRESULT CEntryrunView::OnRefreshData(WPARAM wParam, LPARAM lParam)
 //
 /////////////////////////////////////////////////////////////////////////////////
-LONG CEntryrunView::OnRefreshData(WPARAM wParam, LONG lParam)
+LRESULT CEntryrunView::OnRefreshData(WPARAM /*wParam*/, LPARAM /*lParam*/)
 {
-    UNREFERENCED_PARAMETER(lParam);
-    UNREFERENCED_PARAMETER(wParam);
     UpdateFields();
-    return( 0 );
+    return 0;
 }
 // RHF END 24/08/99
+
 /////////////////////////////////////////////////////////////////////////////////
 //
 //      void CEntryrunView::ScrollToField(CDEField* pField)
@@ -1738,18 +1738,19 @@ void CEntryrunView::ScrollToField(CDEField* pField)
         pGrid->UpdateWindow();
     }
 }
+
 /////////////////////////////////////////////////////////////////////////////////
 //
-//      LONG CEntryrunView::OnEndgrp(WPARAM wParam, LPARAM lParam)
+//      LRESULT CEntryrunView::OnEndgrp(WPARAM wParam, LPARAM lParam)
 //
 /////////////////////////////////////////////////////////////////////////////////
-LONG CEntryrunView::OnEndgrp(WPARAM wParam, LPARAM lParam)
+LRESULT CEntryrunView::OnEndgrp(WPARAM wParam, LPARAM lParam)
 {
     CDEField* pField = (CDEField*)lParam;
 
     // don't endgroup if the field is an ID item
     if( pField->GetDictItem()->GetRecord()->GetSonNumber() == COMMON )
-        return 1L;
+        return 1;
 
     CEntryrunDoc* const pRunDoc = GetDocument();
     CRunAplEntry* const pRunApl = pRunDoc->GetRunApl();
@@ -1834,19 +1835,19 @@ LONG CEntryrunView::OnEndgrp(WPARAM wParam, LPARAM lParam)
                     ((CMainFrame*)AfxGetMainWnd())->PostMessage(WM_COMMAND,ID_ADD);
                 }
             }
-            return 0l;
+            return 0;
 
         }
         else if(pRunDoc->GetAppMode() != ADD_MODE)  {
             pRunDoc->SetQModified(FALSE);
             ProcessModifyMode();
-            return 0l;
+            return 0;
         }
         else if(!bAutoAdd) {
             pRunDoc->SetQModified(FALSE);
             pRunDoc->SetCurField(NULL); // RHF Feb 23, 2004
             ((CMainFrame*)AfxGetMainWnd())->OnStop();
-            return 0l;
+            return 0;
         }
         else {
             // 20130318, added the three following lines of code because stops in the postproc of a group wouldn't actually stop
@@ -1854,7 +1855,7 @@ LONG CEntryrunView::OnEndgrp(WPARAM wParam, LPARAM lParam)
             pRunDoc->SetCurField(NULL);
             ((CMainFrame*)AfxGetMainWnd())->OnStop();
             // 20130318 end of addition
-            return 0l;
+            return 0;
         }
     }
     //RHF/VC END 22/11/99
@@ -1868,7 +1869,7 @@ LONG CEntryrunView::OnEndgrp(WPARAM wParam, LPARAM lParam)
         ShowCapi( (CDEField *) pItem ); // RHF Jan 20, 2000
     }
     bGoTo = true;
-    return 0L;
+    return 0;
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -1923,12 +1924,13 @@ void CEntryrunView::ScrollToCell(CRect* pRect)
 
     }
 }
+
 /////////////////////////////////////////////////////////////////////////////////
 //
-//      LONG CEntryrunView::OnMoveToField(WPARAM wParam, LPARAM lParam)
+//      LRESULT CEntryrunView::OnMoveToField(WPARAM wParam, LPARAM lParam)
 //
 /////////////////////////////////////////////////////////////////////////////////
-LONG CEntryrunView::OnMoveToField(WPARAM wParam, LPARAM /*lParam*/)
+LRESULT CEntryrunView::OnMoveToField(WPARAM wParam, LPARAM /*lParam*/)
 {
     CDEBaseEdit*    pEdit = (CDEBaseEdit*) wParam;
     CEntryrunDoc*   pRunDoc = GetDocument();
@@ -1975,7 +1977,7 @@ LONG CEntryrunView::OnMoveToField(WPARAM wParam, LPARAM /*lParam*/)
                 // ((CMainFrame*)AfxGetMainWnd())->OnAdd(); to fix stop(-1) ghost process when ids are all protected
                 ((CMainFrame*)AfxGetMainWnd())->PostMessage(WM_COMMAND,ID_ADD);
             }
-            return 0l;
+            return 0;
         }
         // RHF END Feb 23, 2004
 
@@ -2576,18 +2578,20 @@ void CEntryrunView::ProcessModifyMode()
 }
 
 
-LONG CEntryrunView::OnEndLevel(WPARAM /*wParam*/, LPARAM lParam)
+LRESULT CEntryrunView::OnEndLevel(WPARAM /*wParam*/, LPARAM lParam)
 {
     CEntryrunDoc*   pRunDoc = GetDocument();
     CRunAplEntry*   pRunApl = pRunDoc->GetRunApl();
 
     if(pRunDoc->GetRunApl()->GetCurrentLevel() == 1) //Do not do end level
-        return 1L;
+        return 1;
 
     CDEField* pField = (CDEField*)lParam;
 
-    /*   if(pField->GetDictItem()->GetRecord()->GetSonNumber() == COMMON)
-    return 1L; */
+    /*
+    if(pField->GetDictItem()->GetRecord()->GetSonNumber() == COMMON)
+        return 1;
+    */
 
     //Set the grid edit
     SetGridEdit(pField);
@@ -2625,23 +2629,23 @@ LONG CEntryrunView::OnEndLevel(WPARAM /*wParam*/, LPARAM lParam)
                     ((CMainFrame*)AfxGetMainWnd())->PostMessage(WM_COMMAND,ID_ADD);
                 }
             }
-            return 0l;
+            return 0;
 
         }
         else if(pRunDoc->GetAppMode() != ADD_MODE)  {
 
             pRunDoc->SetQModified(FALSE);
             ProcessModifyMode();
-            return 0l;
+            return 0;
 
         }
         else if(!bAutoAdd) {
             pRunDoc->SetQModified(FALSE);
             ((CMainFrame*)AfxGetMainWnd())->OnStop();
-            return 0l;
+            return 0;
         }
         else {
-            return 0l;
+            return 0;
         }
     }
     //RHF/VC END 22/11/99
@@ -2654,12 +2658,11 @@ LONG CEntryrunView::OnEndLevel(WPARAM /*wParam*/, LPARAM lParam)
         ShowCapi( (CDEField *) pItem ); // RHF Jan 20, 2000
     }
 
-    return 0L;
+    return 0;
 }
 
 
-
-LONG CEntryrunView::OnNextLevelOcc(WPARAM wParam, LPARAM lParam)
+LRESULT CEntryrunView::OnNextLevelOcc(WPARAM wParam, LPARAM lParam)
 {
     UNREFERENCED_PARAMETER(wParam);
 
@@ -2710,19 +2713,19 @@ LONG CEntryrunView::OnNextLevelOcc(WPARAM wParam, LPARAM lParam)
                 // ((CMainFrame*)AfxGetMainWnd())->OnAdd(); to fix stop(-1) ghost process when ids are all protected
                 ((CMainFrame*)AfxGetMainWnd())->PostMessage(WM_COMMAND,ID_ADD);
             }
-            return 0l;
+            return 0;
 
         }
         else if(pRunDoc->GetAppMode() != ADD_MODE)  {
 
             pRunDoc->SetQModified(FALSE);
             ProcessModifyMode();
-            return 0l;
+            return 0;
 
         }
         else  {
 
-            return 0l;
+            return 0;
         }
     }
     //RHF/VC END 22/11/99
@@ -2735,19 +2738,19 @@ LONG CEntryrunView::OnNextLevelOcc(WPARAM wParam, LPARAM lParam)
         ShowCapi( (CDEField *) pItem ); // RHF Jan 20, 2000
     }
 
-    return 0L;
+    return 0;
 }
 
 
-LONG CEntryrunView::OnPageUp(WPARAM /*wParam*/, LPARAM lParam)
+LRESULT CEntryrunView::OnPageUp(WPARAM /*wParam*/, LPARAM lParam)
 {
     CEntryrunDoc*   pRunDoc = GetDocument();
     if(pRunDoc->GetAppMode() == VERIFY_MODE && !GetCheatKey() ) {
-        return 0l;
+        return 0;
     }
 
     if(pRunDoc->GetCurFormFile()->IsPathOn())
-        return 0l ;
+        return 0;
 
     CIMSAString csCurDict = ((CDEField*)pRunDoc->GetCurField())->GetItemDict(); // RHF Jan 12, 2000
 
@@ -2766,7 +2769,7 @@ LONG CEntryrunView::OnPageUp(WPARAM /*wParam*/, LPARAM lParam)
         ShowCapi( pField ); // RHF Aug 25, 2003
     }
 
-    return 0L;
+    return 0;
 }
 
 BOOL CEntryrunView::DoPageUpField(CDEField* pField)
@@ -2970,19 +2973,19 @@ Page down implementation
 // Function name        : CEntryrunView::OnPageDown
 
 // Description      :
-// Return type          : LONG
+// Return type      : LRESULT
 // Argument         : WPARAM wParam
 // Argument         : LPARAM lParam
-LONG CEntryrunView::OnPageDown(WPARAM /*wParam*/, LPARAM lParam)
+LRESULT CEntryrunView::OnPageDown(WPARAM /*wParam*/, LPARAM lParam)
 {
     CEntryrunDoc*   pRunDoc = GetDocument();
 
     if(pRunDoc->GetAppMode() == VERIFY_MODE && !GetCheatKey() ) {
-        return 0l;
+        return 0;
     }
 
     if(pRunDoc->GetCurFormFile()->IsPathOn())
-        return 0l ;
+        return 0;
 
     CIMSAString csCurDict = ((CDEField*)pRunDoc->GetCurField())->GetItemDict(); // RHF Jan 12, 2000
 
@@ -3000,7 +3003,7 @@ LONG CEntryrunView::OnPageDown(WPARAM /*wParam*/, LPARAM lParam)
         GoToFld( pField);
     }
 
-    return 0L;
+    return 0;
 }
 
 
@@ -3177,33 +3180,33 @@ CDEForm* CEntryrunView::FindPageDownForm(CDEField* pField)
 
 
 //Works now only in ADD / MODIFY MODE
-LONG CEntryrunView::OnSlashKey(WPARAM /*wParam*/, LPARAM lParam)
+LRESULT CEntryrunView::OnSlashKey(WPARAM /*wParam*/, LPARAM lParam)
 {
     CEntryrunDoc*   pRunDoc = GetDocument();
 
     /*if(pRunDoc->GetAppMode() == VERIFY_MODE) {
-        return 0l;
+        return 0;
     }*/
     BOOL bPathOff = !pRunDoc->GetCurFormFile()->IsPathOn();
     if(!bPathOff)
-        return 0l;
+        return 0;
 
     if(pRunDoc->GetAppMode() == ADD_MODE && !pRunDoc->GetQModified() && !pRunDoc->IsPartialAdd()) //if it is a new case and Q is not modified
-        return 0l;
+        return 0;
 
     //  CIMSAString csCurDict = ((CDEField*)pRunDoc->GetCurField())->GetItemDict(); // RHF Jan 12, 2000
 
     CDEField* pField = (CDEField*)lParam;
 
     if(pField->GetDictItem()->GetRecord()->GetSonNumber() == COMMON)
-        return 1L;
+        return 1;
 
     APP_MODE appMode = pRunDoc->GetAppMode() ;
 
     //Savy &&& later on check for dynamic maxloops
     if(appMode != VERIFY_MODE && pField->GetParent()->GetMaxLoopOccs() == pField->GetParent()->GetCurOccurrence()) {
         this->OnEndgrp(0,(LPARAM)pField);
-        return 1L;
+        return 1;
     }
 
     //Set the grid edit
@@ -3212,7 +3215,7 @@ LONG CEntryrunView::OnSlashKey(WPARAM /*wParam*/, LPARAM lParam)
 
     BOOL bValidMode  = (appMode == ADD_MODE || appMode == MODIFY_MODE || appMode == VERIFY_MODE);
     if(!bValidMode) {
-        return 0l;
+        return 0;
     }
 
     BOOL bEndGroup = FALSE;
@@ -3281,7 +3284,7 @@ LONG CEntryrunView::OnSlashKey(WPARAM /*wParam*/, LPARAM lParam)
                         pEdit->SetFocus();
                         GoToFld(pEdit->GetField());
                     }
-                    return 0L;
+                    return 0;
                 }
 
                 continue;
@@ -3301,7 +3304,7 @@ LONG CEntryrunView::OnSlashKey(WPARAM /*wParam*/, LPARAM lParam)
                     if(pEdit)
                         pEdit->SetRemoveTxtFlag(TRUE);
 
-                    return 0L;
+                    return 0;
                 }
             }
         }
@@ -3309,7 +3312,7 @@ LONG CEntryrunView::OnSlashKey(WPARAM /*wParam*/, LPARAM lParam)
 
     if(bEndGroup) {
         this->OnEndgrp(0,(LPARAM)pField);
-        return 0L;
+        return 0;
     }
 
     CDEBaseEdit* pEdit = this->SearchEdit(pField);
@@ -3342,12 +3345,12 @@ LONG CEntryrunView::OnSlashKey(WPARAM /*wParam*/, LPARAM lParam)
 
             pRunDoc->SetQModified(FALSE);
             ProcessModifyMode();
-            return 0l;
+            return 0;
 
         }
         else  {
 
-            return 0l;
+            return 0;
         }
     }
     //RHF/VC END 22/11/99
@@ -3360,7 +3363,7 @@ LONG CEntryrunView::OnSlashKey(WPARAM /*wParam*/, LPARAM lParam)
         ShowCapi( (CDEField *) pItem ); // RHF Jan 20, 2000
     }
 
-    return 0L;
+    return 0;
 }
 
 
@@ -3738,28 +3741,28 @@ void CEntryrunView::OnUpdateSortgrpocc(CCmdUI* pCmdUI)
 }
 /////////////////////////////////////////////////////////////////////////////////
 //
-//      LONG CEntryrunView::OnInsertAfter(WPARAM wParam, LPARAM lParam)
+//      LRESULT CEntryrunView::OnInsertAfter(WPARAM wParam, LPARAM lParam)
 //
 /////////////////////////////////////////////////////////////////////////////////
-LONG CEntryrunView::OnInsertAfter(WPARAM /*wParam*/, LPARAM lParam)
+LRESULT CEntryrunView::OnInsertAfter(WPARAM /*wParam*/, LPARAM lParam)
 {
     CEntryrunDoc*   pRunDoc = GetDocument();
 
     BOOL bPathOff = !pRunDoc->GetCurFormFile()->IsPathOn();
     if(!bPathOff)
-        return 0l;
+        return 0;
     if(pRunDoc->GetAppMode() == ADD_MODE && !pRunDoc->GetQModified()) //if it is a new case and Q is not modified
-        return 0l;
+        return 0;
 
     CDEField* pField = (CDEField*)lParam;
 
     if(pField->GetDictItem()->GetRecord()->GetSonNumber() == COMMON)
-        return 1L;
+        return 1;
 
     //Savy &&& later on check for dynamic maxloops
     if(pField->GetParent()->GetMaxLoopOccs() == pField->GetParent()->GetCurOccurrence()) {
         //if max group occs reached we cannot add any more
-        return 0L;
+        return 0;
     }
 
     //Set the grid edit
@@ -3768,7 +3771,7 @@ LONG CEntryrunView::OnInsertAfter(WPARAM /*wParam*/, LPARAM lParam)
     APP_MODE appMode = pRunDoc->GetAppMode() ;
     BOOL bValidMode  = (appMode == ADD_MODE || appMode == MODIFY_MODE);
     if(!bValidMode) {
-        return 0l;
+        return 0;
     }
 
     BOOL bInsertAfter = FALSE;
@@ -3789,7 +3792,7 @@ LONG CEntryrunView::OnInsertAfter(WPARAM /*wParam*/, LPARAM lParam)
     }
 
     if(!bInsertAfter) {
-        return 1L;
+        return 1;
     }
 
     CDEBaseEdit* pEdit = this->SearchEdit(pField);
@@ -3801,12 +3804,8 @@ LONG CEntryrunView::OnInsertAfter(WPARAM /*wParam*/, LPARAM lParam)
     return 0;
 }
 
-/////////////////////////////////////////////////////////////////////////////////
-//
-//      void CEntryrunView::OnPreviousPersistent()
-//
-/////////////////////////////////////////////////////////////////////////////////
-LONG CEntryrunView::OnPreviousPersistent(WPARAM /*wParam*/, LPARAM /*lParam*/)
+
+LRESULT CEntryrunView::OnPreviousPersistent(WPARAM /*wParam*/, LPARAM /*lParam*/)
 {
     CEntryrunDoc* const pRunDoc = GetDocument();
     CRunAplEntry* const pRunApl = pRunDoc->GetRunApl();
@@ -3826,7 +3825,7 @@ LONG CEntryrunView::OnPreviousPersistent(WPARAM /*wParam*/, LPARAM /*lParam*/)
         ShowCapi((CDEField*)pBase); // SAVY Feb 27, 2003
     }
 
-    return 0L;
+    return 0;
 }
 
 
@@ -3881,7 +3880,7 @@ void CEntryrunView::GoToField(const CaseItemReference& case_item_reference)
 }
 
 
-LONG CEntryrunView::OnAdvToEnd(WPARAM /*wParam*/, LPARAM lParam)
+LRESULT CEntryrunView::OnAdvToEnd(WPARAM /*wParam*/, LPARAM lParam)
 {
     CEntryrunDoc*   pRunDoc = GetDocument();
     CRunAplEntry*   pRunApl = pRunDoc->GetRunApl();
@@ -3940,12 +3939,12 @@ LONG CEntryrunView::OnAdvToEnd(WPARAM /*wParam*/, LPARAM lParam)
 
             pRunDoc->SetQModified(FALSE);
             ProcessModifyMode();
-            return 0l;
+            return 0;
 
         }
         else  {
             ((CMainFrame*)AfxGetMainWnd())->OnStop();
-             return 0L;
+             return 0;
         }
     }
     //RHF/VC END 22/11/99
@@ -3958,14 +3957,14 @@ LONG CEntryrunView::OnAdvToEnd(WPARAM /*wParam*/, LPARAM lParam)
         ShowCapi( (CDEField *) pItem ); // RHF Jan 20, 2000
     }
 
-    return 0L;
+    return 0;
 }
 
-LONG CEntryrunView::OnCheatKey(WPARAM /*wParam*/, LPARAM /*lParam*/)
+LRESULT CEntryrunView::OnCheatKey(WPARAM /*wParam*/, LPARAM /*lParam*/)
 {
     CEntryrunDoc* const pRunDoc = GetDocument();
     if(GetDocument()->GetAppMode() != VERIFY_MODE){
-        return 0l;
+        return 0;
     }
     m_bCheatKey = !m_bCheatKey;
 
@@ -3995,21 +3994,21 @@ LONG CEntryrunView::OnCheatKey(WPARAM /*wParam*/, LPARAM /*lParam*/)
             sSafeString = _T("");
         }
     }
-    return 0l;
+    return 0;
 }
 
 // RHF INIC Nov 22, 2002
-LONG CEntryrunView::OnShowCapi(WPARAM wParam, LPARAM lParam) {
+LRESULT CEntryrunView::OnShowCapi(WPARAM wParam, LPARAM lParam) {
     CDEBaseEdit* pEdit = (CDEBaseEdit*)lParam;
     if(!pEdit){
-        return 0L;
+        return 0;
     }
 
     CEntryrunDoc* const pRunDoc = GetDocument();
     CRunAplEntry* const pRunApl = pRunDoc->GetRunApl();
 
     if (!pRunApl || !pRunApl->HasAppLoaded() )
-        return 0L;
+        return 0;
 
     int     iVar=pEdit->GetField()->GetSymbol();
 
@@ -4024,22 +4023,22 @@ LONG CEntryrunView::OnShowCapi(WPARAM wParam, LPARAM lParam) {
         ShowCapi( pEdit->GetField() ); // RHF Nov 02, 2001
     }
 
-    return 0L;
+    return 0;
 }
 // RHF END Nov 22, 2002
 
 /////////////////////////////////////////////////////////////////////////////////
 //
-//      LONG CEntryrunView::OnPlusKey(WPARAM wParam, LPARAM lParam)
+//      LRESULT CEntryrunView::OnPlusKey(WPARAM wParam, LPARAM lParam)
 //
 /////////////////////////////////////////////////////////////////////////////////
-LONG CEntryrunView::OnPlusKey(WPARAM wParam, LPARAM lParam)
+LRESULT CEntryrunView::OnPlusKey(WPARAM wParam, LPARAM lParam)
 {
     CEntryrunDoc* const pRunDoc = GetDocument();
 
     BOOL bPathOff = !pRunDoc->GetCurFormFile()->IsPathOn();
     if(!bPathOff)
-        return 0l;
+        return 0;
 
     CDEItemBase* pSkipToEntity = NULL;
 
@@ -4052,20 +4051,20 @@ LONG CEntryrunView::OnPlusKey(WPARAM wParam, LPARAM lParam)
     APP_MODE appMode = pRunDoc->GetAppMode() ;
     BOOL bValidMode  = (appMode == ADD_MODE || appMode == MODIFY_MODE || appMode == VERIFY_MODE);
     if(!bValidMode) {
-        return 0l;
+        return 0;
     }
 
     //Get the form and find the pluskey field
     CDEFormFile* pFormFile = pRunDoc->GetCurFormFile();
     CIMSAString sPlusTarget = pField->GetPlusTarget();
     if(sPlusTarget.IsEmpty()){
-        OnEditChange ((long)VK_RETURN,(long)pEdit);
-        return 0l;
+        OnEditChange(VK_RETURN, (LPARAM)pEdit);
+        return 0;
     }
 
     else if(sPlusTarget.CompareNoCase(_T("<END>")) ==0){
-        OnSlashKey(0,(long)pField);
-        return 0l;
+        OnSlashKey(0, (LPARAM)pField);
+        return 0;
     }
 
     else {
@@ -4094,8 +4093,8 @@ LONG CEntryrunView::OnPlusKey(WPARAM wParam, LPARAM lParam)
 
         //pFormFile->FindField(sPlusTarget,&pForm,(CDEItemBase**)&pSkipToFld);
         if( pSkipToEntity == NULL ) {
-            OnEditChange ((long)VK_RETURN,(long)pEdit);
-            return 0l;
+            OnEditChange(VK_RETURN, (LPARAM)pEdit);
+            return 0;
         }
         else {
             //Check if the form is same as the current form
@@ -4103,8 +4102,8 @@ LONG CEntryrunView::OnPlusKey(WPARAM wParam, LPARAM lParam)
             CDEForm* pCurForm =pFormFile->GetForm(iFormNum);
 
             if(pFormFile->GetForm(pSkipToEntity->GetFormNum()) != pCurForm) {
-                OnEditChange ((long)VK_RETURN,(long)pEdit);
-                return 0l;
+                OnEditChange(VK_RETURN, (LPARAM)pEdit);
+                return 0;
             }
         }
     }
@@ -4128,11 +4127,11 @@ LONG CEntryrunView::OnPlusKey(WPARAM wParam, LPARAM lParam)
         if(pRunDoc->GetAppMode() != ADD_MODE)  {
             pRunDoc->SetQModified(FALSE);
             ProcessModifyMode();
-            return 0l;
+            return 0;
 
         }
         else  {
-            return 0l;
+            return 0;
         }
     }
     //RHF/VC END 22/11/99
@@ -4145,8 +4144,9 @@ LONG CEntryrunView::OnPlusKey(WPARAM wParam, LPARAM lParam)
         ShowCapi( (CDEField *) pItem ); // RHF Jan 20, 2000
     }
 
-    return 0L;
+    return 0;
 }
+
 /////////////////////////////////////////////////////////////////////////////////
 //
 //      void CEntryrunView::BuildGrids(void)

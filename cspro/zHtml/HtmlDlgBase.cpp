@@ -247,7 +247,7 @@ void HtmlDlgBase::OnSize(const UINT nType, const int cx, const int cy)
 }
 
 
-void HtmlDlgBase::OnTimer(const UINT nIDEvent)
+void HtmlDlgBase::OnTimer(const UINT_PTR nIDEvent)
 {
     ASSERT(m_forceUpdateSizeTimerId == nIDEvent);
 

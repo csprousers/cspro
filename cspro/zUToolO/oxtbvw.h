@@ -1,4 +1,5 @@
 ﻿#pragma once
+
 // ==========================================================================
 //                         Class Specification :
 //                          COXTabViewContainer
@@ -496,7 +497,7 @@ protected:
     // flag that specifies if last pressed scroll button is still pressed
     BOOL m_bIsScrlBtnPressed;
     // timer for tab buttons scrolling operations
-    int m_nScrollPageTimer;
+    UINT_PTR m_nScrollPageTimer;
 
     // flag that specifies that splitter has been pressed
     BOOL m_bIsSplitterPressed;
@@ -1067,7 +1068,7 @@ protected:
     afx_msg void OnMouseMove(UINT nFlags, CPoint point);
     afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
     afx_msg void OnLButtonUp(UINT nFlags, CPoint point);
-    afx_msg void OnTimer(UINT nIDEvent);
+    afx_msg void OnTimer(UINT_PTR nIDEvent);
     afx_msg BOOL OnSetCursor(CWnd* pWnd, UINT nHitTest, UINT message);
     afx_msg BOOL OnEraseBkgnd(CDC* pDC);
     afx_msg void OnCancelMode();
