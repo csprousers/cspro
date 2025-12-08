@@ -374,7 +374,7 @@ Serializer& Serializer::operator>>(SharableString& value)
 }
 
 
-Serializer& serialize(Serializer& ar, size_t& value)
+Serializer& serialize(Serializer& ar, size_t& value) // X64_TODO: possibly modify values to use uint32_t
 {
     if( ar.IsSaving() )
     {

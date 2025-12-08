@@ -11,6 +11,7 @@
 //
 //---------------------------------------------------------------------------
 
+#include <stdint.h> // X64_TODO move this to minimal.h or x64_transition.h?
 #include <StandardIncludes/minimal.h>
 #include <StandardIncludes/strict_errors.h>
 #include <process.h>

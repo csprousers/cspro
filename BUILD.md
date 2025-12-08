@@ -13,16 +13,16 @@ files used on Windows, and the .a static libraries used on Android.
 
 ## Windows
 
-The CSPro solution targets a 32-bit application that uses C++17 along with the [Microsoft Foundation Class](https://learn.microsoft.com/en-us/cpp/mfc/framework-mfc) (MFC) framework and the [Win32 API](https://learn.microsoft.com/en-us/windows/win32/api), with a few tools coded in C#. This code is built using [Microsoft Visual Studio 2022](https://visualstudio.microsoft.com). To successfully build CSPro, you must ensure that your Visual Studio installation includes the following components:
+The CSPro solution targets a 32-bit or 64-bit application that uses C++17 along with the [Microsoft Foundation Class](https://learn.microsoft.com/en-us/cpp/mfc/framework-mfc) (MFC) framework and the [Win32 API](https://learn.microsoft.com/en-us/windows/win32/api), with a few tools coded in C#. This code is built using [Microsoft Visual Studio 2026](https://visualstudio.microsoft.com). To successfully build CSPro, you must ensure that your Visual Studio installation includes the following components:
 
 - Microsoft.VisualStudio.Component.VC.ATL
 - Microsoft.VisualStudio.Component.VC.ATLMFC
 - Microsoft.VisualStudio.Component.VC.Redist.14.Latest
 - Microsoft.VisualStudio.Component.VC.Tools.x86.x64
 
-To build the solution, open the solution file, [cspro/cspro.sln](https://github.com/csprousers/cspro/blob/dev/cspro/cspro.sln), and select *Build -> Build Solution*. All executables and other built files are output to the directory *cspro/debug/bin* or *cspro/release/bin*.
+To build the solution, open the solution file, [cspro/cspro.sln](https://github.com/csprousers/cspro/blob/dev/cspro/cspro.sln), and select *Build -> Build Solution*. All executables and other built files are output to the directory *cspro/build/x86/Debug/bin* or *cspro/build/x86/Release/bin* (or */x64/* if building 64-bit).
 
-A list of files that are distributed with the CSPro installer is available in [build-tools/CSPro Installer Generator/inputs.json](https://github.com/csprousers/cspro/blob/dev/build-tools/CSPro%20Installer%20Generator/inputs.json).
+A list of files that are distributed with the CSPro installer is available in [build-tools/Installer Inputs/inputs.json](https://github.com/csprousers/cspro/blob/dev/build-tools/Installer%20Inputs/inputs.json).
 
 
 ## Android
@@ -49,13 +49,13 @@ The code snapshots in this public repository differ from the code on the private
 
 - [build-tools/Build External Libraries](https://github.com/csprousers/cspro/tree/dev/build-tools/Build%20External%20Libraries): Scripts to build cURL, zlib, etc.
 
-- [build-tools/Graphic Helpers](https://github.com/csprousers/cspro/tree/dev/build-tools/Graphic%20Helpers) (C#): Creates Windows toolbars based on the specifications in [build-tools/Graphic Helpers/CSPro Sources](https://github.com/csprousers/cspro/tree/dev/build-tools/Graphic%20Helpers/CSPro%20Sources).
-
 - [build-tools/Licenses](https://github.com/csprousers/cspro/tree/dev/build-tools/Licenses) (C#). Contains the software licenses used by CSPro, as well as a tool to create the [combined license file](https://github.com/csprousers/cspro/blob/dev/build-tools/Licenses/Licenses.html).
 
 - [build-tools/Messages Processor](https://github.com/csprousers/cspro/tree/dev/build-tools/Messages%20Processor) (C++): Tools to process CSPro's [system messages](https://csprousers.org/help/CSPro/message_file_mgf.html).
 
 - [build-tools/Resource ID Numberer](https://github.com/csprousers/cspro/tree/dev/build-tools/Resource%20ID%20Numberer) (C++): A tool that ensures the uniqueness of numbers used in Windows [resource files](https://learn.microsoft.com/en-us/windows/win32/menurc/about-resource-files) (via resource.h files).
+
+- [build-tools/Toolbar Creator](https://github.com/csprousers/cspro/tree/dev/build-tools/Toolbar%20Creator) (C#): Creates Windows toolbars based on the specifications in [build-tools/Image Inputs](https://github.com/csprousers/cspro/tree/dev/build-tools/Image%20Inputs).
 
 - [cspro/CSBatch](https://github.com/csprousers/cspro/tree/dev/cspro/CSBatch) (C++): [Run Batch Program](https://csprousers.org/help/CSBatch), the executor of [batch applications](https://csprousers.org/help/CSPro/batch_edit_applications.html).
 
@@ -99,11 +99,11 @@ The code snapshots in this public repository differ from the code on the private
 
 - [cspro/PFF Editor](https://github.com/csprousers/cspro/tree/dev/cspro/PFF%20Editor) (C#), [PFF Editor](https://csprousers.org/help/CSPro/tool_list.html), a tool to view and edit [PFFs](https://csprousers.org/help/CSPro/program_information_file_pff.html)
 
-- [cspro/runpff](https://github.com/csprousers/cspro/tree/dev/cspro/runpff) (C++): [RunPFF](https://csprousers.org/help/CSPro/tool_list.html), a tool that reads a [PFF](https://csprousers.org/help/CSPro/program_information_file_pff.html) and launches the program that can handle the file.
+- [cspro/RunPff](https://github.com/csprousers/cspro/tree/dev/cspro/RunPff) (C++): [RunPFF](https://csprousers.org/help/CSPro/tool_list.html), a tool that reads a [PFF](https://csprousers.org/help/CSPro/program_information_file_pff.html) and launches the program that can handle the file.
 
 - [cspro/Save Array Viewer](https://github.com/csprousers/cspro/tree/dev/cspro/Save%20Array%20Viewer) (C#): [Save Array Viewer](https://csprousers.org/help/CSPro/tool_list.html), a tool to view and modify [saved arrays](https://csprousers.org/help/CSPro/saved_arrays_file_sva.html).
 
-- [cspro/tblview](https://github.com/csprousers/cspro/tree/dev/cspro/tblview) (C++): [Table Viewer](https://csprousers.org/help/TblView/introduction_to_table_viewer.html), a tool to view [CSPro tables](https://csprousers.org/help/CSPro/tables_file_tbw.html).
+- [cspro/TblView](https://github.com/csprousers/cspro/tree/dev/cspro/TblView) (C++): [Table Viewer](https://csprousers.org/help/TblView/introduction_to_table_viewer.html), a tool to view [CSPro tables](https://csprousers.org/help/CSPro/tables_file_tbw.html).
 
 - [cspro/TextConverter](https://github.com/csprousers/cspro/tree/dev/cspro/TextConverter) (C++): [Text Encoding Converter](https://csprousers.org/help/CSPro/tool_list.html), a tool to modify the encoding of text files, generally to convert from ANSI to UTF-8 formats.
 

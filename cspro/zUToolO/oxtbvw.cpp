@@ -39,8 +39,7 @@ COXTabViewContainer* PASCAL GetParentTabViewContainer(CWnd* pWnd,
         ASSERT(::IsWindow(pContainer->m_hWnd));
         if(::IsWindow(pContainer->m_hWnd))
         {
-            if(::GetWindowLong(pContainer->m_hWnd,GWL_USERDATA)==
-                ID_TABVIEWCONTAINER_SIGN)
+            if(::GetWindowLongPtr(pContainer->m_hWnd, GWLP_USERDATA) == ID_TABVIEWCONTAINER_SIGN)
             {
                 if(!bOnlyActive || pContainer->IsActivePage(pWnd))
                 {
@@ -169,7 +168,7 @@ BOOL COXTabViewContainer::Create(CWnd* pParentWnd, CRect rect/*=CRect(0,0,0,0)*/
     pParentWnd->ModifyStyleEx(WS_EX_CLIENTEDGE, 0, SWP_DRAWFRAME);
 
     // sign
-    ::SetWindowLong(GetSafeHwnd(),GWL_USERDATA,ID_TABVIEWCONTAINER_SIGN);
+    ::SetWindowLongPtr(GetSafeHwnd(), GWLP_USERDATA, ID_TABVIEWCONTAINER_SIGN);
 
     SetScrollStyle(0,TRUE);
 
@@ -275,8 +274,7 @@ void COXTabViewContainer::OnPaint()
                 {
                     CBrush* pBrush=NULL;
                     CBrush brush;
-                    HBRUSH hBrush=(HBRUSH)::GetClassLong(pWnd->m_hWnd,
-                        GCL_HBRBACKGROUND);
+                    HBRUSH hBrush=(HBRUSH)::GetClassLongPtr(pWnd->m_hWnd, GCLP_HBRBACKGROUND);
                     if(hBrush==NULL)
                     {
                         if(brush.CreateSolidBrush(::GetSysColor(COLOR_WINDOW)))

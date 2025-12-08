@@ -130,7 +130,7 @@ BOOL AFXAPI CheckDialogTemplate(LPCTSTR lpszResource, BOOL bInvisibleChild)
                 lpszResource);
         else
             TRACE1("ERROR: Cannot find dialog template with IDD 0x%04X.\n",
-                LOWORD((DWORD)lpszResource));
+                LOWORD(lpszResource));
         return FALSE;
         }
 
@@ -162,7 +162,7 @@ BOOL AFXAPI CheckDialogTemplate(LPCTSTR lpszResource, BOOL bInvisibleChild)
                 lpszResource);
         else
             TRACE1("ERROR: Dialog with IDD 0x%04X must be invisible.\n",
-                LOWORD((DWORD)lpszResource));
+                LOWORD(lpszResource));
         return FALSE;
         }
 
@@ -173,7 +173,7 @@ BOOL AFXAPI CheckDialogTemplate(LPCTSTR lpszResource, BOOL bInvisibleChild)
                 lpszResource);
         else
             TRACE1("ERROR: Dialog with IDD 0x%04X must have the child style.\n",
-                LOWORD((DWORD)lpszResource));
+                LOWORD(lpszResource));
         return FALSE;
         }
 
