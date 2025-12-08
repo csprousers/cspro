@@ -2,7 +2,7 @@
 
 #include <engine/StandardSystemIncludes.h>
 #include <engine/StrictCompilerErrors.h>
-// X64_TODO #include <engine/x64_transition_strict.h>
+// X64_TODO #include <StandardIncludes/strict_errors.h>
 
 #include <zDataO/ConnectionStringProperties.h>
 #include <zDataO/DataRepositoryHelpers.h>
