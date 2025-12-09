@@ -1,7 +1,5 @@
 ﻿#pragma once
 
-struct sqlite3_stmt;
-
 
 namespace CSPro
 {
@@ -12,9 +10,12 @@ namespace CSPro
         public ref class DatabaseQuery sealed
         {
         internal:
-            DatabaseQuery(sqlite3_stmt* stmt);
+            DatabaseQuery(Sqlite::Statement stmt);
 
         public:
+            ~DatabaseQuery() { this->!DatabaseQuery(); }
+            !DatabaseQuery();
+
             property int ColumnCount { int get(); }
 
             property array<System::String^>^ ColumnNames { array<System::String^>^ get(); }
@@ -24,7 +25,7 @@ namespace CSPro
             property System::Nullable<bool> AdditionalResultsAvailable { System::Nullable<bool> get(); }
 
         private:
-            sqlite3_stmt* m_stmt;
+            Sqlite::Statement* m_stmt;
             int m_numberColumns;
             bool m_getResultsExecutedAtLeastOnce;
             bool m_nextRowAlreadyStepped;

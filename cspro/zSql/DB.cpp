@@ -19,29 +19,57 @@ Sqlite::DB::DB(std::string file_path, const std::vector<std::byte>& password_has
 
 Sqlite::DB::DB(DB&& rhs) noexcept
     :   m_db(rhs.m_db),
+        m_ownDb(rhs.m_ownDb),
         m_filePath(std::move(rhs.m_filePath)),
         m_statementPtrs(std::move(rhs.m_statementPtrs)),
         m_attachedFilePathsAndSchemaNames(std::move(rhs.m_attachedFilePathsAndSchemaNames))
 {
-    m_db = nullptr;
+    rhs.m_db = nullptr;
 }
 
 
 Sqlite::DB::~DB()
 {
-    if( m_db != nullptr )
+    Close_noexcept();
+}
+
+
+Sqlite::DB& Sqlite::DB::operator=(DB&& rhs) noexcept
+{
+    Close_noexcept();
+
+    m_db = rhs.m_db;
+    m_ownDb = rhs.m_ownDb;
+    m_filePath = std::move(rhs.m_filePath);
+    m_statementPtrs = std::move(rhs.m_statementPtrs);
+    m_attachedFilePathsAndSchemaNames = std::move(rhs.m_attachedFilePathsAndSchemaNames);
+
+    rhs.m_db = nullptr;
+
+    return *this;
+}
+
+
+Sqlite::DB Sqlite::DB::CreateWrapper(sqlite3* const db, const bool assume_ownership)
+{
+    DB wrapped_db(db, assume_ownership);
+
+    if( db != nullptr )
     {
-        try
-        {
-            Close();
-        }
-        catch(...) { }
+        const char* const filename = sqlite3_db_filename(db, nullptr);
+
+        if( filename != nullptr )
+            wrapped_db.m_filePath = filename;
     }
+
+    return wrapped_db;
 }
 
 
 void Sqlite::DB::Open(std::string file_path, const int open_flags/* = DefaultOpenFlags*/)
 {
+    ASSERT(m_ownDb);
+
     if( m_db != nullptr )
         throw Exception("A database is already open: %s", m_filePath.c_str());
 
@@ -88,12 +116,7 @@ void Sqlite::DB::OpenEncrypted(const std::string& file_path, const std::vector<s
 
     catch(...)
     {
-        try
-        {
-            Close();
-        }
-        catch(...) { }
-
+        Close_noexcept();
         throw Exception(static_cast<sqlite3*>(nullptr), file_path, "Could not open an encrypted SQLite database with the supplied password");
     }
 }
@@ -115,49 +138,42 @@ BinaryBlock Sqlite::DB::GetEncryptionKey(const std::vector<std::byte>& password_
 }
 
 
-void Sqlite::DB::Close()
-{
-    if( m_db == nullptr )
-        return;
-
-    // finalize all statements
-    for( std::shared_ptr<sqlite3_stmt*>& statement_ptr : m_statementPtrs )
-    {
-        ASSERT(statement_ptr != nullptr);
-
-        if( *statement_ptr != nullptr )
-        {
-            sqlite3_finalize(*statement_ptr);
-            *statement_ptr = nullptr;
-        }
-    }
-
-    if( sqlite3_close(m_db) != SQLITE_OK )
-        throw Exception(m_db, m_filePath, "Error closing SQLite database");
-
-    m_db = nullptr;
-    m_filePath.clear();
-}
-
-
 bool Sqlite::DB::Close_noexcept() noexcept
 {
-    try
-    {
-        Close();
-        return true;
-    }
+    bool success = true;
 
-    catch(...)
+    if( m_db != nullptr )
     {
-        ASSERT(m_db != nullptr);
-        sqlite3_close(m_db);
+        // finalize all statements
+        for( std::shared_ptr<sqlite3_stmt*>& statement_ptr : m_statementPtrs )
+        {
+            ASSERT(statement_ptr != nullptr);
+
+            if( *statement_ptr != nullptr )
+            {
+                sqlite3_finalize(*statement_ptr);
+                *statement_ptr = nullptr;
+            }
+        }
+
+        // close the database
+        if( m_ownDb && sqlite3_close(m_db) != SQLITE_OK )
+            success = false;
 
         m_db = nullptr;
         m_filePath.clear();
-
-        return false;
+        m_statementPtrs.clear();
+        m_attachedFilePathsAndSchemaNames.reset();
     }
+
+    return success;
+}
+
+
+void Sqlite::DB::Close()
+{
+    if( !Close_noexcept() )
+        throw Exception(m_db, m_filePath, "Error closing SQLite database");
 }
 
 

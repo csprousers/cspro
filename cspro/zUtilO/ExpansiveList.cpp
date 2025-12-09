@@ -40,7 +40,7 @@ bool ExpansiveList<T>::GetValue(T& value)
 
         else
         {
-            value = m_dbData->stmt_iterator.GetColumn<T>(0);
+            value = m_dbData->stmt_iterator.template GetColumn<T>(0);
             return true;
         }
     }

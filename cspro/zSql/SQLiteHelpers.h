@@ -22,8 +22,8 @@ inline void safe_sqlite3_finalize(sqlite3_stmt*& pStmt)
 class ZSQL_API SQLiteHelpers
 {
 public:
-    static void SetTemporaryKeyValuePair(sqlite3* db, const char* key, const char* value);
-    static bool TemporaryKeyValuePairExists(sqlite3* db, const char* key);
+    static void SetTemporaryKeyValuePair(sqlite3* db, const char* key, const char* value) noexcept;
+    static bool TemporaryKeyValuePairExists(sqlite3* db, const char* key) noexcept;
 
     static std::vector<std::string> SplitSqlStatement(std::string_view sql_sv);
 

@@ -1,7 +1,7 @@
 ﻿#pragma once
 
-struct sqlite3;
-struct sqlite3_stmt;
+namespace Sqlite { class DB; }
+
 
 namespace CSPro
 {
@@ -17,6 +17,8 @@ namespace CSPro
             ~Database() { this->!Database(); }
             !Database();
 
+            static System::Object^ GetSqlResult(Sqlite::Statement& stmt, int column_number);
+
             void ExecuteNonQuery(System::String^ sql);
 
             int64_t ExecuteSingleQuery(System::String^ sql);
@@ -26,8 +28,7 @@ namespace CSPro
             DatabaseQuery^ CreateQuery(System::String^ sql);
 
         private:
-            sqlite3* m_db;
-            std::vector<sqlite3_stmt*>* m_stmts;
+            Sqlite::DB* m_db;
         };
     }
 }

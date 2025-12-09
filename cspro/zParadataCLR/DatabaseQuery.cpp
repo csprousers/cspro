@@ -3,12 +3,18 @@
 #include "DatabaseQuery.h"
 
 
-CSPro::ParadataViewer::DatabaseQuery::DatabaseQuery(sqlite3_stmt* const stmt)
-    :   m_stmt(stmt),
-        m_numberColumns(sqlite3_column_count(m_stmt)),
+CSPro::ParadataViewer::DatabaseQuery::DatabaseQuery(Sqlite::Statement stmt)
+    :   m_stmt(new Sqlite::Statement(std::move(stmt))),
+        m_numberColumns(m_stmt->GetColumnCount()),
         m_getResultsExecutedAtLeastOnce(false),
         m_nextRowAlreadyStepped(false)
 {
+}
+
+
+CSPro::ParadataViewer::DatabaseQuery::!DatabaseQuery()
+{
+    delete m_stmt;
 }
 
 
@@ -23,7 +29,7 @@ array<System::String^>^ CSPro::ParadataViewer::DatabaseQuery::ColumnNames::get()
     auto names = gcnew array<System::String^>(m_numberColumns);
 
     for( int column = 0; column < m_numberColumns; ++column )
-        names[column] = clr_helpers::to_SystemString(std::string_view(sqlite3_column_name(m_stmt, column)));
+        names[column] = clr_helpers::to_SystemString(m_stmt->GetColumnName(column));
 
     return names;
 }
@@ -35,10 +41,10 @@ System::Collections::Generic::List<array<System::Object^>^>^ CSPro::ParadataView
 
     auto rows = gcnew System::Collections::Generic::List<array<System::Object^>^>();
     int rows_count = 0;
-    int sql_result = SQLITE_ROW;
+    std::optional<int> sql_result;
 
     while( ( rows_count < max_number_results ) &&
-        ( m_nextRowAlreadyStepped || ( ( sql_result = sqlite3_step(m_stmt) ) == SQLITE_ROW ) ) )
+           ( m_nextRowAlreadyStepped || ( *( sql_result = m_stmt->Step() ) == Sqlite::Result::Row ) ) )
     {
         m_nextRowAlreadyStepped = false;
 
@@ -47,32 +53,17 @@ System::Collections::Generic::List<array<System::Object^>^>^ CSPro::ParadataView
         ++rows_count;
 
         for( int column = 0; column < m_numberColumns; ++column )
-        {
-            if( sqlite3_column_type(m_stmt, column) == SQLITE_NULL )
-            {
-                // nothing to do
-            }
-
-            else if( sqlite3_column_type(m_stmt, column) == SQLITE_TEXT )
-            {
-                row[column] = clr_helpers::to_SystemString(std::string_view(reinterpret_cast<const char*>(sqlite3_column_text(m_stmt, column))));
-            }
-
-            else
-            {
-                row[column] = gcnew System::Double(sqlite3_column_double(m_stmt, column));
-            }
-        }
+            row[column] = CSPro::ParadataViewer::Database::GetSqlResult(*m_stmt, column);
     }
 
-    // if SQLITE_DONE wasn't the last return value, then max_number_results was hit, but read
-    // the next row to see if all rows have been read
-    if( sql_result != SQLITE_DONE )
-        m_nextRowAlreadyStepped = ( sqlite3_step(m_stmt) == SQLITE_ROW );
+    // if Sqlite::Result::Done was not the last return value, then max_number_results was hit,
+    // but read the next row to see if all rows have been read
+    if( sql_result != Sqlite::Result::Done )
+        m_nextRowAlreadyStepped = ( m_stmt->Step() == Sqlite::Result::Row );
 
     // reset the statement if all results have been returned
     if( !m_nextRowAlreadyStepped )
-        sqlite3_reset(m_stmt);
+        m_stmt->Reset();
 
     return rows;
 }

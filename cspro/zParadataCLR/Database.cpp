@@ -3,129 +3,122 @@
 #include "DatabaseQuery.h"
 #include <zUtilO/SqlLogicFunctions.h>
 #include <zParadataO/Log.h>
-#include <zParadataO/ParadataException.h>
-
-
-namespace CSPro::ParadataViewer::Errors
-{
-    constexpr const char* CreatePreparedStatement = "Could not create a prepared statement";
-    constexpr const char* NonQuery                = "Could not execute a non-query";
-    constexpr const char* Query                   = "Could not execute a query";
-    constexpr const char* SqlSyntaxFormatter      = "SQL syntax: %s";
-}
 
 
 CSPro::ParadataViewer::Database::Database(System::String^ file_path)
-    :   m_db(nullptr),
-        m_stmts(nullptr)
+    :   m_db(nullptr)
 {
     try
     {
-        m_db = Paradata::Log::GetDatabaseForTool(clr_helpers::to_string(file_path), false);
+        sqlite3* const db = Paradata::Log::GetDatabaseForTool(clr_helpers::to_string(file_path), false);
+        SqlLogicFunctions::RegisterCallbackFunctions(db);
 
-        SqlLogicFunctions::RegisterCallbackFunctions(m_db);
+        m_db = new Sqlite::DB(Sqlite::DB::CreateWrapper(db, true));
     }
 
     catch( const CSProException& exception )
     {
-        throw gcnew System::Exception(clr_helpers::to_SystemString(exception.what()));
+        throw clr_helpers::to_SystemException(exception);
     }
-
-    m_stmts = new std::vector<sqlite3_stmt*>;
 }
 
 
 CSPro::ParadataViewer::Database::!Database()
 {
-    for( sqlite3_stmt* const stmt : *m_stmts )
-        sqlite3_finalize(stmt);
+    delete m_db;
+}
 
-    delete m_stmts;
 
-    if( m_db != nullptr )
-        sqlite3_close(m_db);
+System::Object^ CSPro::ParadataViewer::Database::GetSqlResult(Sqlite::Statement& stmt, const int column_number)
+{
+    switch( stmt.GetColumnType(column_number) )
+    {
+        case Sqlite::ColumnType::Null:
+            return nullptr;
+
+        case Sqlite::ColumnType::Text:
+            return clr_helpers::to_SystemString(stmt.GetColumn<std::string>(column_number));
+
+        default:
+            return stmt.GetColumn<double>(column_number);
+    }
 }
 
 
 void CSPro::ParadataViewer::Database::ExecuteNonQuery(System::String^ sql)
 {
-    const std::string utf8_sql = clr_helpers::to_string(sql);
+    try
+    {
+        const std::string utf8_sql = clr_helpers::to_string(sql);
+        m_db->Execute(utf8_sql);
+    }
 
-    if( sqlite3_exec(m_db, utf8_sql.c_str(), nullptr, nullptr, nullptr) != SQLITE_OK )
-        throw gcnew System::Exception(gcnew System::String(Errors::NonQuery));
+    catch( const CSProException& exception )
+    {
+        throw clr_helpers::to_SystemException(exception);
+    }
 }
 
 
 int64_t CSPro::ParadataViewer::Database::ExecuteSingleQuery(System::String^ sql)
 {
-    const std::string utf8_sql = clr_helpers::to_string(sql);
-    sqlite3_stmt* stmt;
+    try
+    {
+        const std::string utf8_sql = clr_helpers::to_string(sql);
+        Sqlite::Statement stmt = m_db->PrepareStatement(utf8_sql);
 
-    if( sqlite3_prepare_v2(m_db, utf8_sql.c_str(), utf8_sql.length(), &stmt, nullptr) != SQLITE_OK )
-        throw gcnew System::Exception(gcnew System::String(Errors::CreatePreparedStatement));
+        stmt.StepCheckResult(Sqlite::Result::Row);
 
-    if( sqlite3_step(stmt) != SQLITE_ROW )
-        throw gcnew System::Exception(gcnew System::String(Errors::Query));
+        return stmt.GetColumn<int64_t>(0);
+    }
 
-    int64_t value = sqlite3_column_int64(stmt, 0);
-
-    sqlite3_finalize(stmt);
-
-    return value;
+    catch( const CSProException& exception )
+    {
+        throw clr_helpers::to_SystemException(exception);
+    }
 }
 
 
 System::Collections::Generic::List<array<System::Object^>^>^ CSPro::ParadataViewer::Database::ExecuteQuery(System::String^ sql)
 {
-    const std::string utf8_sql = clr_helpers::to_string(sql);
-    sqlite3_stmt* stmt;
-
-    if( sqlite3_prepare_v2(m_db, utf8_sql.c_str(), utf8_sql.length(), &stmt, nullptr) != SQLITE_OK )
-        throw gcnew System::Exception(gcnew System::String(Errors::CreatePreparedStatement));
-
-    const int number_columns = sqlite3_column_count(stmt);
-
-    auto rows = gcnew System::Collections::Generic::List<array<System::Object^>^>();
-
-    while( sqlite3_step(stmt) == SQLITE_ROW )
+    try
     {
-        auto row = gcnew array<System::Object^>(number_columns);
-        rows->Add(row);
+        const std::string utf8_sql = clr_helpers::to_string(sql);
+        Sqlite::Statement stmt = m_db->PrepareStatement(utf8_sql);
 
-        for( int column = 0; column < number_columns; ++column )
+        const int number_columns = stmt.GetColumnCount();
+
+        auto rows = gcnew System::Collections::Generic::List<array<System::Object^>^>();
+
+        while( stmt.Step() == Sqlite::Result::Row )
         {
-            if( sqlite3_column_type(stmt, column) == SQLITE_NULL )
-            {
-                // nothing to do
-            }
+            auto row = gcnew array<System::Object^>(number_columns);
+            rows->Add(row);
 
-            else if( sqlite3_column_type(stmt,column) == SQLITE_TEXT )
-            {
-                row[column] = clr_helpers::to_SystemString(std::string_view(reinterpret_cast<const char*>(sqlite3_column_text(stmt, column))));
-            }
-
-            else
-            {
-                row[column] = gcnew System::Double(sqlite3_column_double(stmt, column));
-            }
+            for( int column = 0; column < number_columns; ++column )
+                row[column] = GetSqlResult(stmt, column);
         }
+
+        return rows;
     }
 
-    sqlite3_finalize(stmt);
-
-    return rows;
+    catch( const CSProException& exception )
+    {
+        throw clr_helpers::to_SystemException(exception);
+    }
 }
 
 
 CSPro::ParadataViewer::DatabaseQuery^ CSPro::ParadataViewer::Database::CreateQuery(System::String^ sql)
 {
-    const std::string utf8_sql = clr_helpers::to_string(sql);
-    sqlite3_stmt* stmt;
+    try
+    {
+        const std::string utf8_sql = clr_helpers::to_string(sql);
+        return gcnew DatabaseQuery(m_db->PrepareStatement(utf8_sql));
+    }
 
-    if( sqlite3_prepare_v2(m_db, utf8_sql.c_str(), utf8_sql.length(), &stmt, nullptr) != SQLITE_OK )
-        throw gcnew System::Exception(clr_helpers::to_FormattedSystemString(Errors::SqlSyntaxFormatter, sqlite3_errmsg(m_db)));
-
-    m_stmts->emplace_back(stmt);
-
-    return gcnew DatabaseQuery(stmt);
+    catch( const CSProException& exception )
+    {
+        throw clr_helpers::to_SystemException(exception);
+    }
 }

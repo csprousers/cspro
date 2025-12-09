@@ -1,35 +1,31 @@
 ﻿#include "StdAfx.h"
 #include "ExpansiveMap.h"
-#include <zSql/Commands.h>
+#include <zSql/DB.h>
 
 
-ExpansiveMap_SqliteDb::ExpansiveMap_SqliteDb(std::string create_index_sql, SQLiteStatement stmt_insert, SQLiteStatement stmt_find)
-    :   m_createIndexSql(std::move(create_index_sql)),
-        m_stmtInsert(std::move(stmt_insert)),
-        m_stmtFind(std::move(stmt_find))
+ExpansiveMap_Db::ExpansiveMap_Db(sqlite3* const non_owned_db,
+                                 const int number_keys, const std::vector<const char*>& key_data_types,
+                                 const char* const value_data_type)
 {
-}
-
-
-std::unique_ptr<ExpansiveMap_SqliteDb> ExpansiveMap_SqliteDb::Create(sqlite3*& db, const int number_keys, const std::vector<const char*>& key_data_types,
-                                                                     const char* const value_data_type)
-{
-    const bool must_finalize_db = ( db == nullptr );
-
-    if( must_finalize_db )
+    // use a non-owned database if provided
+    if( non_owned_db != nullptr )
     {
-        // passing "" creates a temporary database that is automatically cleaned up when the connection is closed;
-        // SQLite will create the database in memory although it may flush certain parts to temporary files on disk if needed
-        if( sqlite3_open("", &db) != SQLITE_OK )
-            throw CSProException(ExceptionMessage);
+        m_db = std::make_unique<Sqlite::DB>(Sqlite::DB::CreateWrapper(non_owned_db, false));
+    }
+
+    // otherwise passing "" creates a temporary database that is automatically cleaned up when the connection is closed;
+    // SQLite will create the database in memory although it may flush certain parts to temporary files on disk if needed
+    else
+    {
+        m_db = std::make_unique<Sqlite::DB>("", Sqlite::OpenFlags::ReadWrite | Sqlite::OpenFlags::Create);
 
         // disable synchronous writes and journaling to get the max performance of writes
-        ExpansiveMap_SqliteDb::DoExec(db, "PRAGMA synchronous = off;");
-        ExpansiveMap_SqliteDb::DoExec(db, "PRAGMA journal_mode = off;");
+        m_db->Execute("PRAGMA synchronous = off;");
+        m_db->Execute("PRAGMA journal_mode = off;");
     }
 
     std::string create_table_sql = "CREATE TABLE `ex_map` (";
-    std::string create_index_sql = "CREATE INDEX `ex_map_index` ON `ex_map` (";
+    m_createIndexSql = "CREATE INDEX `ex_map_index` ON `ex_map` (";
     std::string insert_sql = "INSERT INTO `ex_map` (";
     std::string find_sql = "SELECT `value` FROM `ex_map` WHERE ";
     int key_counter = 0;
@@ -39,7 +35,7 @@ std::unique_ptr<ExpansiveMap_SqliteDb> ExpansiveMap_SqliteDb::Create(sqlite3*& d
         if( key_counter != 0 )
         {
             create_table_sql.append(", ");
-            create_index_sql.append(", ");
+            m_createIndexSql.append(", ");
             insert_sql.append(", ");
             find_sql.append(" AND ");
         }
@@ -48,7 +44,7 @@ std::unique_ptr<ExpansiveMap_SqliteDb> ExpansiveMap_SqliteDb::Create(sqlite3*& d
         const std::string key_name = FormatText("`key%d`", key_counter);
 
         create_table_sql.append(key_name).append(" ").append(key_data_type).append(" NOT NULL");
-        create_index_sql.append(key_name);
+        m_createIndexSql.append(key_name);
         insert_sql.append(key_name);
         find_sql.append(key_name).append("= ?");
     }
@@ -58,10 +54,10 @@ std::unique_ptr<ExpansiveMap_SqliteDb> ExpansiveMap_SqliteDb::Create(sqlite3*& d
     create_table_sql.append(", `value` ")
                     .append(value_data_type)
                     .append(" NOT NULL);");
-    DoExec(db, create_table_sql);
+    m_db->Execute(create_table_sql);
 
-    create_index_sql.append(");");
-    DoExec(db, create_index_sql);
+    m_createIndexSql.append(");");
+    m_db->Execute(m_createIndexSql);
 
     insert_sql.append(", `value`) VALUES (?");
 
@@ -72,29 +68,25 @@ std::unique_ptr<ExpansiveMap_SqliteDb> ExpansiveMap_SqliteDb::Create(sqlite3*& d
 
     find_sql.append(" LIMIT 1;");
 
-    try
-    {
-        return std::unique_ptr<ExpansiveMap_SqliteDb>(new ExpansiveMap_SqliteDb(std::move(create_index_sql),
-                                                                                SQLiteStatement(db, insert_sql.c_str(), true),
-                                                                                SQLiteStatement(db, find_sql.c_str(), true)));
-    }
-
-    catch(...)
-    {
-        throw CSProException(ExceptionMessage);
-    }
+    m_stmtInsert = m_db->PrepareStatement(insert_sql);
+    m_stmtFind = m_db->PrepareStatement(find_sql);
 }
 
 
-void ExpansiveMap_SqliteDb::DoExec(sqlite3* const db, const cs::string_sz sql)
+ExpansiveMap_Db::~ExpansiveMap_Db()
 {
-    if( sqlite3_exec(db, sql.c_str(), nullptr, nullptr, nullptr) != SQLITE_OK )
-        throw CSProException(ExceptionMessage);
 }
 
 
-void ExpansiveMap_SqliteDb::DoBulkInsertions(sqlite3* const db, const double rebuild_index_max_proportion,
-                                             const size_t number_insertions, const std::function<void()>& callback_function)
+void ExpansiveMap_Db::Clear()
+{
+    m_db->Execute("DELETE FROM `ex_map`;");
+}
+
+
+void ExpansiveMap_Db::DoBulkInsertions(const double rebuild_index_max_proportion,
+                                       const size_t number_insertions,
+                                       const std::function<void()>& callback_function)
 {
     bool need_to_drop_and_rebuild_index;
 
@@ -110,14 +102,15 @@ void ExpansiveMap_SqliteDb::DoBulkInsertions(sqlite3* const db, const double reb
 
     else
     {
-        // if specified, count how many values have been inserted and determine if it makes sense to drop and rebuild the index
-        if( m_stmtCount == nullptr )
-            m_stmtCount = std::make_unique<SQLiteStatement>(db, "SELECT COUNT(*) FROM `ex_map`;", true);
+        // if specified, count how many values have been inserted and determine
+        // if it makes sense to drop and rebuild the index
+        if( !m_stmtCount.IsPrepared() )
+            m_stmtCount = m_db->PrepareStatement("SELECT COUNT(*) FROM `ex_map`;");
 
-        const SQLiteResetOnDestruction rod(*m_stmtCount);
-        m_stmtCount->StepCheckResult(SQLITE_ROW);
+        const Sqlite::Statement::Resetter stmt_resetter(m_stmtCount);
+        m_stmtCount.StepCheckResult(Sqlite::Result::Row);
 
-        const int64_t existing_values = m_stmtCount->GetColumn<int64_t>(0);
+        const int64_t existing_values = m_stmtCount.GetColumn<int64_t>(0);
 
         if( existing_values == 0 )
         {
@@ -133,14 +126,17 @@ void ExpansiveMap_SqliteDb::DoBulkInsertions(sqlite3* const db, const double reb
 
     // drop the index before doing the insertions
     if( need_to_drop_and_rebuild_index )
-        DoExec(db, "DROP INDEX `ex_map_index`;");
+        m_db->Execute("DROP INDEX `ex_map_index`;");
 
     // do the insertions
-    DoExec(db, Sqlite::Commands::BeginTransaction);
+    Sqlite::Transaction transaction = m_db->CreateTransaction();
+    transaction.Begin();
+
     callback_function();
-    DoExec(db, Sqlite::Commands::EndTransaction);
+
+    transaction.Commit();
 
     // rebuild the index
     if( need_to_drop_and_rebuild_index )
-        DoExec(db, m_createIndexSql);
+        m_db->Execute(m_createIndexSql);
 }

@@ -32,6 +32,20 @@ Sqlite::Statement::~Statement()
 }
 
 
+Sqlite::Statement Sqlite::Statement::Prepare(sqlite3* const db, const std::string_view sql_sv,
+                                             const char** end_of_parsed_statement/* = nullptr*/)
+{
+    ASSERT(db != nullptr);
+
+    auto statement_ptr = std::make_unique<sqlite3_stmt*>();
+
+    if( sqlite3_prepare_v2(db, sql_sv.data(), int32_cast(sql_sv.length()), statement_ptr.get(), end_of_parsed_statement) != SQLITE_OK )
+        throw Exception(db, SO::Empty_string, "Error creating SQLite statement: %s", std::string(sql_sv).c_str());
+
+    return Statement(std::move(statement_ptr));
+}
+
+
 void Sqlite::Statement::ThrowExceptionForCheckStatementIsPrepared()
 {
     throw Exception("The SQLite statement is not prepared.");
