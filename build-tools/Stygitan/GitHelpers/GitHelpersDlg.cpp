@@ -49,7 +49,7 @@ void GitHelpersDlg::OnCreateCommitTextForFilteredCommits()
 
         std::vector<std::string> authors;
 
-        std::string message = "Squashed filtered commits:";
+        std::string message = "Squashed commits:";
 
         for( size_t i = 0; i < commits.size(); ++i )
         {

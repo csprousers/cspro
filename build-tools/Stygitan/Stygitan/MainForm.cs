@@ -16,7 +16,7 @@ namespace Stygitan
         }
 
         private string _gitDirectory;
-        private string _comparisonBranchName;
+        private string? _comparisonBranchName;
         private List<ModifiedFile> _modifiedFiles = new List<ModifiedFile>();
 
         public MainForm()
@@ -28,8 +28,8 @@ namespace Stygitan
             _gitDirectory = ( command_line_arguments.Length > 1 ) ? Path.GetFullPath(command_line_arguments[1]) :
                                                                     Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\..\..\..\..\.git"));
 
-            _comparisonBranchName = ( command_line_arguments.Length > 2 ) ? command_line_arguments[2] :
-                                                                            "refs/remotes/origin/dev";
+            if( command_line_arguments.Length > 2 )
+                _comparisonBranchName = command_line_arguments[2];
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -63,7 +63,25 @@ namespace Stygitan
 
             if( remote_branch == null )
             {
-                remote_branch = repository.Branches[_comparisonBranchName];
+                if( _comparisonBranchName != null )
+                {
+                    remote_branch = repository.Branches[_comparisonBranchName];
+                }
+
+                else
+                {
+                    const string DevBranchName = "refs/remotes/origin/dev";
+                    const string MainBranchName = "refs/remotes/origin/main";
+
+                    _comparisonBranchName = DevBranchName;
+                    remote_branch = repository.Branches[_comparisonBranchName];
+
+                    if( remote_branch == null )
+                    {
+                        _comparisonBranchName = MainBranchName;
+                        remote_branch = repository.Branches[_comparisonBranchName];
+                    }
+                }
 
                 if( remote_branch == null )
                     throw new Exception("Could not find remote branch: " + _comparisonBranchName);
@@ -160,7 +178,8 @@ namespace Stygitan
             bool process_and_write_utf8_bom =
                 ( extension == ".h" || extension == ".cpp" ||
                   extension == ".cs" ||
-                  extension == ".csdocset" || extension == ".csdoc" || extension == ".hgi" || extension == ".index" || extension == ".toc" );
+                  extension == ".csdocset" || extension == ".csdoc" || extension == ".hgi" || extension == ".index" || extension == ".toc" ||
+                  extension == ".apc" || extension == ".mgf" );
 
             bool process_and_remove_line_feeds =
                 ( extension == ".php" );
