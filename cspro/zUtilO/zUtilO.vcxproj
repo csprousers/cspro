@@ -36,6 +36,7 @@
     <ClCompile Include="DataTypes.cpp" />
     <ClCompile Include="DynamicLayoutControlResizer.cpp" />
     <ClCompile Include="ExecutionStack.cpp" />
+    <ClCompile Include="ExpansiveList.cpp" />
     <ClCompile Include="ExpansiveMap.cpp" />
     <ClCompile Include="FileDlg.cpp" />
     <ClCompile Include="FileExtensions.cpp" />

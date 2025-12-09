@@ -1,17 +1,16 @@
 ﻿#include "StdAfx.h"
 #include "SettingsDb.h"
 #include <zToolsO/Hash.h>
-#include <zSql/Commands.h>
-#include <zSql/SQLite.h>
+#include <zSql/DB.h>
 #include <zSql/SQLiteHelpers.h>
-#include <zSql/SQLiteStatement.h>
+#include <zUtilO/CSProExecutables.h>
 
 
 // --------------------------------------------------------------------------
 // SettingsDb::ImplCache
 //
-// this class is stored as part of SettingsDb::ImplDb so that the cache is
-// available when SettingsDb::ImplDb's destructor executes
+// This class is stored as part of SettingsDb::ImplDb so that the cache is
+// available when SettingsDb::ImplDb's destructor executes.
 // --------------------------------------------------------------------------
 
 class SettingsDb::ImplCache
@@ -62,8 +61,15 @@ private:
 struct SettingsDb::ImplTable
 {
     std::string table_name_for_queries;
-    SQLiteStatement stmt_read;
-    SQLiteStatement stmt_write;
+    Sqlite::Statement stmt_read;
+    Sqlite::Statement stmt_write;
+
+    ImplTable(Sqlite::DB& db, std::string table_name, const std::string& read_sql, const std::string& write_sql)
+        :   table_name_for_queries(std::move(table_name)),
+            stmt_read(db.PrepareStatement(read_sql)),
+            stmt_write(db.PrepareStatement(write_sql))
+    {
+    }
 };
 
 
@@ -75,10 +81,10 @@ struct SettingsDb::ImplTable
 class SettingsDb::ImplDb
 {
 public:
-    ImplDb(sqlite3* db);
-    ~ImplDb();
+    ImplDb(std::string db_file_path);
+    ~ImplDb() noexcept;
 
-    ImplTable* OpenTable(std::string table_name_for_queries);
+    ImplTable* OpenTable(std::string table_name_for_queries) noexcept;
 
     template<typename ReturnType, typename BaseValueType>
     std::optional<ReturnType> Read(SettingsDb& settings_db, std::string_view key_sv, bool cache_value);
@@ -88,15 +94,16 @@ public:
 
 private:
     template<typename T>
-    void WriteToDb(ImplTable& table, std::string_view key_sv, const T& value, const std::optional<int64_t>& expiry_timestamp,
+    void WriteToDb(ImplTable& table, std::string_view key_sv, const T& value,
+                   const std::optional<int64_t>& expiry_timestamp,
                    const KeyObfuscator* key_obfuscator);
 
     void ClearOldValuesAndWriteCachedValues(ImplTable& table);
 
-    static std::string GetDbKey(const KeyObfuscator* key_obfuscator, std::string_view key_sv);
+    static std::string GetDbKey(const KeyObfuscator* key_obfuscator, std::string_view key_sv) noexcept;
 
 private:
-    sqlite3* m_db;
+    Sqlite::DB m_db;
     std::vector<std::unique_ptr<ImplTable>> m_tables;
 
     static std::unique_ptr<ImplCache> m_cache;
@@ -106,35 +113,29 @@ private:
 std::unique_ptr<SettingsDb::ImplCache> SettingsDb::ImplDb::m_cache;
 
 
-SettingsDb::ImplDb::ImplDb(sqlite3* const db)
-    :   m_db(db)
+SettingsDb::ImplDb::ImplDb(std::string db_file_path)
+    :   m_db(std::move(db_file_path), Sqlite::OpenFlags::ReadWrite | Sqlite::OpenFlags::Create)
 {
-    ASSERT(m_db != nullptr);
-
     if( m_cache == nullptr )
         m_cache = std::make_unique<ImplCache>();
 }
 
 
-SettingsDb::ImplDb::~ImplDb()
+SettingsDb::ImplDb::~ImplDb() noexcept
 {
-    if( m_db == nullptr )
-        return;
-
     for( std::unique_ptr<ImplTable>& table : m_tables )
     {
         // clear any old values and write any cached values
-        ClearOldValuesAndWriteCachedValues(*table);
-
-        // finalize all prepared statements
-        table.reset();
+        try
+        {
+            ClearOldValuesAndWriteCachedValues(*table);
+        }
+        catch(...) { ASSERT(false); }
     }
-
-    sqlite3_close(m_db);
 }
 
 
-SettingsDb::ImplTable* SettingsDb::ImplDb::OpenTable(std::string table_name_for_queries)
+SettingsDb::ImplTable* SettingsDb::ImplDb::OpenTable(std::string table_name_for_queries) noexcept
 {
     // check if the table has already been opened
     auto lookup = std::find_if(m_tables.begin(), m_tables.end(),
@@ -144,32 +145,41 @@ SettingsDb::ImplTable* SettingsDb::ImplDb::OpenTable(std::string table_name_for_
         return lookup->get();
 
     // otherwise open (and possible create) a new table
-    const std::string create_sql = FormatText("CREATE TABLE IF NOT EXISTS `%s` "
-                                              "(`key` TEXT PRIMARY KEY UNIQUE NOT NULL, "
-                                              "`value` TEXT NOT NULL, "
-                                              "`expiration` INTEGER NULL) WITHOUT ROWID;", table_name_for_queries.c_str());
-
-    if( sqlite3_exec(m_db, create_sql.c_str(), nullptr, nullptr, nullptr) != SQLITE_OK )
-        return nullptr;
-
-    const std::string read_sql = FormatText("SELECT `value`, `expiration` FROM `%s` WHERE `key` = ? LIMIT 1", table_name_for_queries.c_str());
-    const std::string write_sql = FormatText("INSERT OR REPLACE INTO `%s` (`key`, `value`, `expiration`) VALUES ( ?, ?, ? );", table_name_for_queries.c_str());
-
     try
     {
-        return m_tables.emplace_back(std::make_unique<ImplTable>(
-            ImplTable
-            {
-                std::move(table_name_for_queries),
-                SQLiteStatement(m_db, read_sql, true),
-                SQLiteStatement(m_db, write_sql, true)
-            })).get();
-    }
+        const std::string create_sql = FormatText(
+            "CREATE TABLE IF NOT EXISTS `%s` "
+            "(`key` TEXT PRIMARY KEY UNIQUE NOT NULL, "
+            "`value` TEXT NOT NULL, "
+            "`expiration` INTEGER NULL) WITHOUT ROWID;",
+            table_name_for_queries.c_str()
+        );
 
-    catch(...)
-    {
-        return nullptr;
+        m_db.Execute(create_sql);
+
+        const std::string read_sql = FormatText(
+            "SELECT `value`, `expiration` "
+            "FROM `%s` "
+            "WHERE `key` = ? "
+            "LIMIT 1",
+            table_name_for_queries.c_str()
+        );
+
+        const std::string write_sql = FormatText(
+            "INSERT OR REPLACE INTO `%s` "
+            "(`key`, `value`, `expiration`) "
+            "VALUES (?,?,?);",
+            table_name_for_queries.c_str()
+        );
+
+        return m_tables.emplace_back(std::make_unique<ImplTable>(
+            m_db,
+            std::move(table_name_for_queries),
+            read_sql,
+            write_sql
+        )).get();
     }
+    catch(...) { return ReturnProgrammingError(nullptr); }
 }
 
 
@@ -189,7 +199,8 @@ std::optional<ReturnType> SettingsDb::ImplDb::Read(SettingsDb& settings_db, cons
         const ImplCache::CacheValue<BaseValueType>& already_cached_value = lookup->second;
 
         // return the value if it is still valid
-        if( !already_cached_value.expiry_timestamp.has_value() || *already_cached_value.expiry_timestamp > GetTimestamp<int64_t>() )
+        if( !already_cached_value.expiry_timestamp.has_value() ||
+            *already_cached_value.expiry_timestamp > GetTimestamp<int64_t>() )
         {
             if constexpr(std::is_pointer_v<ReturnType>)
             {
@@ -207,11 +218,12 @@ std::optional<ReturnType> SettingsDb::ImplDb::Read(SettingsDb& settings_db, cons
     }
 
     // if here, the value has not been read, or was stale, so try to read it
-    SQLiteStatement& stmt_read = settings_db.m_implTable->stmt_read;
-    const SQLiteResetOnDestruction rod(stmt_read);
-    stmt_read.Bind(1, GetDbKey(settings_db.m_keyObfuscator.get(), key_sv));
+    Sqlite::Statement& stmt_read = settings_db.m_implTable->stmt_read;
 
-    if( stmt_read.Step() == SQLITE_ROW )
+    stmt_read.Reset()
+             .Bind(1, GetDbKey(settings_db.m_keyObfuscator.get(), key_sv));
+
+    if( stmt_read.Step() == Sqlite::Result::Row )
     {
         BaseValueType value = stmt_read.GetColumn<BaseValueType>(0);
 
@@ -224,16 +236,32 @@ std::optional<ReturnType> SettingsDb::ImplDb::Read(SettingsDb& settings_db, cons
         if constexpr(std::is_pointer_v<ReturnType>)
         {
             ASSERT(cache_value);
-            return &cache_map.try_emplace(std::move(cache_key),
-                                          ImplCache::CacheValue<BaseValueType> { std::move(value), get_expiry_timestamp(), settings_db.m_keyObfuscator, false }).first->second.value;
+            return &cache_map.try_emplace(
+                std::move(cache_key),
+                ImplCache::CacheValue<BaseValueType>
+                {
+                    std::move(value),
+                    get_expiry_timestamp(),
+                    settings_db.m_keyObfuscator,
+                    false
+                }
+            ).first->second.value;
         }
 
         else
         {
             if( cache_value )
             {
-                cache_map.try_emplace(std::move(cache_key),
-                                      ImplCache::CacheValue<BaseValueType> { value, get_expiry_timestamp(), settings_db.m_keyObfuscator, false });
+                cache_map.try_emplace(
+                    std::move(cache_key),
+                    ImplCache::CacheValue<BaseValueType>
+                    {
+                        value,
+                        get_expiry_timestamp(),
+                        settings_db.m_keyObfuscator,
+                        false
+                    }
+                );
             }
 
             return value;
@@ -275,8 +303,16 @@ void SettingsDb::ImplDb::Write(SettingsDb& settings_db, const std::string_view k
 
         else
         {
-            m_cache->GetCacheMap<T>().try_emplace(std::move(cache_key),
-                                                  ImplCache::CacheValue<T> { value, get_expiry_timestamp(), settings_db.m_keyObfuscator, true });
+            m_cache->GetCacheMap<T>().try_emplace(
+                std::move(cache_key),
+                ImplCache::CacheValue<T>
+                {
+                    value,
+                    get_expiry_timestamp(),
+                    settings_db.m_keyObfuscator,
+                    true
+                }
+            );
         }
     }
 
@@ -288,7 +324,8 @@ void SettingsDb::ImplDb::Write(SettingsDb& settings_db, const std::string_view k
 
 
 template<typename T>
-void SettingsDb::ImplDb::WriteToDb(ImplTable& table, const std::string_view key_sv, const T& value, const std::optional<int64_t>& expiry_timestamp,
+void SettingsDb::ImplDb::WriteToDb(ImplTable& table, const std::string_view key_sv, const T& value,
+                                   const std::optional<int64_t>& expiry_timestamp,
                                    const KeyObfuscator* const key_obfuscator)
 {
     table.stmt_write.Bind(1, GetDbKey(key_obfuscator, key_sv))
@@ -311,55 +348,57 @@ void SettingsDb::ImplDb::WriteToDb(ImplTable& table, const std::string_view key_
 
 void SettingsDb::ImplDb::ClearOldValuesAndWriteCachedValues(ImplTable& table)
 {
-    try
+    const int64_t current_timestamp = GetTimestamp<int64_t>();
+
+    // wrap everything in a transaction
+    Sqlite::Transaction transaction = m_db.CreateTransaction();
+    transaction.Begin();
+
+    // clear old values
+    const std::string delete_sql = FormatText(
+        "DELETE FROM `%s` "
+        "WHERE `expiration` <= ?;",
+        table.table_name_for_queries.c_str()
+    );
+
+    Sqlite::Statement stmt_delete = m_db.PrepareStatement(delete_sql);
+    stmt_delete.Bind(1, current_timestamp)
+               .Step();
+
+    // write out cached values
+    auto write_cached_values = [&](const auto& cache_map)
     {
-        const int64_t current_timestamp = GetTimestamp<int64_t>();
-
-        // wrap everything in a transaction
-        if( sqlite3_exec(m_db, Sqlite::Commands::BeginTransaction, nullptr, nullptr, nullptr) != SQLITE_OK )
-            throw std::exception();
-
-        // clear old values
-        const std::string delete_sql = FormatText("DELETE FROM `%s` WHERE `expiration` <= ?;", table.table_name_for_queries.c_str());
-        SQLiteStatement stmt_delete(m_db, delete_sql, true);
-        stmt_delete.Bind(1, current_timestamp);
-        stmt_delete.Step();
-
-        // write out cached values
-        auto write_cached_values = [&](const auto& cache_map)
+        for( const auto& [cache_key, cache_value] : cache_map )
         {
-            for( const auto& [cache_key, cache_value] : cache_map )
+            if( ( cache_value.value_was_written ) &&
+                ( std::get<0>(cache_key) == this && std::get<1>(cache_key) == &table ) &&
+                ( !cache_value.expiry_timestamp.has_value() || *cache_value.expiry_timestamp > current_timestamp ) )
             {
-                if( ( cache_value.value_was_written ) &&
-                    ( std::get<0>(cache_key) == this && std::get<1>(cache_key) == &table ) &&
-                    ( !cache_value.expiry_timestamp.has_value() || *cache_value.expiry_timestamp > current_timestamp ) )
-                {
-                    WriteToDb(table, std::get<2>(cache_key), cache_value.value, cache_value.expiry_timestamp, cache_value.key_obfuscator.get());
-                }
+                WriteToDb(
+                    table,
+                    std::get<2>(cache_key),
+                    cache_value.value,
+                    cache_value.expiry_timestamp,
+                    cache_value.key_obfuscator.get()
+                );
             }
-        };
+        }
+    };
 
-        write_cached_values(m_cache->GetCacheMap<bool>());
-        write_cached_values(m_cache->GetCacheMap<int>());
-        write_cached_values(m_cache->GetCacheMap<unsigned int>());
-        write_cached_values(m_cache->GetCacheMap<int64_t>());
-        write_cached_values(m_cache->GetCacheMap<size_t>());
-        write_cached_values(m_cache->GetCacheMap<float>());
-        write_cached_values(m_cache->GetCacheMap<double>());
-        write_cached_values(m_cache->GetCacheMap<std::string>());
+    write_cached_values(m_cache->GetCacheMap<bool>());
+    write_cached_values(m_cache->GetCacheMap<int>());
+    write_cached_values(m_cache->GetCacheMap<unsigned int>());
+    write_cached_values(m_cache->GetCacheMap<int64_t>());
+    write_cached_values(m_cache->GetCacheMap<size_t>());
+    write_cached_values(m_cache->GetCacheMap<float>());
+    write_cached_values(m_cache->GetCacheMap<double>());
+    write_cached_values(m_cache->GetCacheMap<std::string>());
 
-        if( sqlite3_exec(m_db, Sqlite::Commands::EndTransaction, nullptr, nullptr, nullptr) != SQLITE_OK )
-            throw std::exception();
-    }
-
-    catch(...)
-    {
-        ASSERT(false);
-    }
+    transaction.Commit();
 }
 
 
-std::string SettingsDb::ImplDb::GetDbKey(const KeyObfuscator* const key_obfuscator, const std::string_view key_sv)
+std::string SettingsDb::ImplDb::GetDbKey(const KeyObfuscator* const key_obfuscator, const std::string_view key_sv) noexcept
 {
     if( key_obfuscator == nullptr )
     {
@@ -379,12 +418,13 @@ std::string SettingsDb::ImplDb::GetDbKey(const KeyObfuscator* const key_obfuscat
 // SettingsDb
 // --------------------------------------------------------------------------
 
-SettingsDb::SettingsDb(std::string_view filename_only_sv, std::string settings_name/* = "settings"*/,
-                       std::optional<int64_t> expiration_seconds/* = std::nullopt*/, const std::optional<KeyObfuscator> key_obfuscator/* = std::nullopt*/)
+SettingsDb::SettingsDb(const std::string_view filename_only_sv, std::string settings_name/* = "settings"*/,
+                       std::optional<int64_t> expiration_seconds/* = std::nullopt*/,
+                       const std::optional<KeyObfuscator> key_obfuscator/* = std::nullopt*/) noexcept
     :   m_implDb(nullptr),
         m_implTable(nullptr),
         m_expirationSeconds(std::move(expiration_seconds)),
-        m_keyObfuscator(key_obfuscator.has_value() ? std::make_shared<KeyObfuscator>(*key_obfuscator) : nullptr)
+        m_keyObfuscator(key_obfuscator.has_value() ? std::make_unique<KeyObfuscator>(*key_obfuscator) : nullptr)
 {
     ASSERT(PortableFunctions::PathGetDirectory(filename_only_sv).empty());
     ASSERT(!m_expirationSeconds.has_value() || *m_expirationSeconds > 0);
@@ -406,14 +446,22 @@ SettingsDb::SettingsDb(std::string_view filename_only_sv, std::string settings_n
     else
     {
         // open a new database
-        const std::string full_file_path = Path::Combine(GetAppDataPath(), filename_only_sv);
-        sqlite3* db;
+        try
+        {
+            m_implDb = implementations.try_emplace(
+                std::move(implementations_key),
+                std::make_unique<ImplDb>(Path::Combine(GetAppDataPath(), filename_only_sv))
+            ).first->second.get();
+        }
 
-        if( sqlite3_open(full_file_path.c_str(), &db) != SQLITE_OK )
+        catch(...)
+        {
+            ASSERT(false);
             return;
-
-        m_implDb = implementations.try_emplace(std::move(implementations_key), std::make_unique<ImplDb>(db)).first->second.get();
+        }
     }
+
+    ASSERT(m_implDb != nullptr);
 
     // make sure the table name is properly escaped for queries
     m_implTable = m_implDb->OpenTable(SQLiteHelpers::EscapeText(std::move(settings_name)));
@@ -421,38 +469,49 @@ SettingsDb::SettingsDb(std::string_view filename_only_sv, std::string settings_n
 
 
 SettingsDb::SettingsDb(const CSProExecutables::Program program, std::string settings_name/* = "settings"*/,
-                       std::optional<int64_t> expiration_seconds/* = std::nullopt*/, std::optional<KeyObfuscator> key_obfuscator/* = std::nullopt*/)
-    :   SettingsDb(PortableFunctions::PathReplaceFileExtension(CSProExecutables::GetExecutableName(program), "db"),
+                       std::optional<int64_t> expiration_seconds/* = std::nullopt*/,
+                       std::optional<KeyObfuscator> key_obfuscator/* = std::nullopt*/) noexcept
+    :   SettingsDb(Path::ReplaceExtension(CSProExecutables::GetExecutableName(program), "db"),
                    std::move(settings_name), std::move(expiration_seconds), std::move(key_obfuscator))
 {
 }
 
 
 template<typename T>
-std::optional<T> SettingsDb::ReadWorker(const std::string_view key_sv, const bool cache_value)
+std::optional<T> SettingsDb::ReadWorker(const std::string_view key_sv, const bool cache_value) noexcept
 {
-    if( m_implTable == nullptr )
-        return std::nullopt;
+    if( m_implTable != nullptr )
+    {
+        try
+        {
+            using RealType = std::remove_const_t<std::remove_pointer_t<T>>;
+            return m_implDb->Read<T, RealType>(*this, key_sv, cache_value);
+        }
+        catch(...) { ASSERT(false); }
+    }
 
-    using RealType = std::remove_const_t<std::remove_pointer_t<T>>;
-
-    return m_implDb->Read<T, RealType>(*this, key_sv, cache_value);
+    return std::nullopt;
 }
 
 
 template<typename T>
-void SettingsDb::WriteWorker(const std::string_view key_sv, const T& value, const bool cache_value)
+void SettingsDb::WriteWorker(const std::string_view key_sv, const T& value, const bool cache_value) noexcept
 {
-    if( m_implTable == nullptr )
-        return;
-
-    m_implDb->Write<T>(*this, key_sv, value, cache_value);
+    if( m_implTable != nullptr )
+    {
+        try
+        {
+            m_implDb->Write<T>(*this, key_sv, value, cache_value);
+        }
+        catch(...) { ASSERT(false); }
+    }
 }
 
 
-#define INSTANTIATE(ValueType) template CLASS_DECL_ZUTILO std::optional<const ValueType*> SettingsDb::ReadWorker(std::string_view key_sv, bool cache_value); \
-                               template CLASS_DECL_ZUTILO std::optional<ValueType> SettingsDb::ReadWorker(std::string_view key_sv, bool cache_value);        \
-                               template CLASS_DECL_ZUTILO void SettingsDb::WriteWorker(std::string_view key_sv, const ValueType& value, bool cache_value);
+#define INSTANTIATE(ValueType) \
+    template CLASS_DECL_ZUTILO std::optional<const ValueType*> SettingsDb::ReadWorker(std::string_view key_sv, bool cache_value); \
+    template CLASS_DECL_ZUTILO std::optional<ValueType> SettingsDb::ReadWorker(std::string_view key_sv, bool cache_value); \
+    template CLASS_DECL_ZUTILO void SettingsDb::WriteWorker(std::string_view key_sv, const ValueType& value, bool cache_value);
 
 INSTANTIATE(bool)
 INSTANTIATE(int)

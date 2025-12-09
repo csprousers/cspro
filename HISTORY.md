@@ -9,6 +9,7 @@ Because most CSPro development occurs on a [private repository](https://github.c
 
 | Date | Branch | Pull Request Message |
 | --- | --- | --- |
+| 2025&#8209;12&#8209;09 | [sqlite-wrapper](https://github.com/CSProDevelopment/cspro/commit/f493469decee15fa7ed3bee4ccc7382c5387df0a) | refactored non-data and non-paradata uses of SQLite to use the Sqlite::DB / Statement wrappers |
 | 2025&#8209;12&#8209;08 | [x64-prep](https://github.com/CSProDevelopment/cspro/commit/8e17a6f4d798c337d922bb9780cfc267bcd32728) | set up the solution for 64-bit compilation + moved the build tools into a new solution, build-tools + modified the build paths |
 | 2025&#8209;12&#8209;01 | [quickjs-ng](https://github.com/CSProDevelopment/cspro/commit/f3e04ac26a4945a4642532208045962c4ebd55d9) | modified the JavaScript engine to use QuickJS-NG + fixed issues noticed while documenting JavaScript use in CSPro |
 | 2025&#8209;11&#8209;19 | [diff-duplicate-support](https://github.com/CSProDevelopment/cspro/commit/54bed19390f9eef15f5f793c35b562c53e683712) | improved the Compare Data tool to support comparing data sources with duplicate cases |

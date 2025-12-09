@@ -1006,7 +1006,7 @@ std::vector<const char*> ExpansiveMap_KeyBinder<std::tuple<int, int, long>>::Get
 
 template<>
 template<typename KeyT>
-void ExpansiveMap_KeyBinder<std::tuple<int, int, long>>::Bind(SQLiteStatement& stmt, KeyT&& key)
+void ExpansiveMap_KeyBinder<std::tuple<int, int, long>>::Bind(Sqlite::Statement& stmt, KeyT&& key)
 {
     stmt.Bind(1, std::get<0>(key))
         .Bind(2, std::get<1>(key))

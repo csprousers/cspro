@@ -19,29 +19,57 @@ Sqlite::DB::DB(std::string file_path, const std::vector<std::byte>& password_has
 
 Sqlite::DB::DB(DB&& rhs) noexcept
     :   m_db(rhs.m_db),
+        m_ownDb(rhs.m_ownDb),
         m_filePath(std::move(rhs.m_filePath)),
         m_statementPtrs(std::move(rhs.m_statementPtrs)),
         m_attachedFilePathsAndSchemaNames(std::move(rhs.m_attachedFilePathsAndSchemaNames))
 {
-    m_db = nullptr;
+    rhs.m_db = nullptr;
 }
 
 
 Sqlite::DB::~DB()
 {
-    if( m_db != nullptr )
+    Close_noexcept();
+}
+
+
+Sqlite::DB& Sqlite::DB::operator=(DB&& rhs) noexcept
+{
+    Close_noexcept();
+
+    m_db = rhs.m_db;
+    m_ownDb = rhs.m_ownDb;
+    m_filePath = std::move(rhs.m_filePath);
+    m_statementPtrs = std::move(rhs.m_statementPtrs);
+    m_attachedFilePathsAndSchemaNames = std::move(rhs.m_attachedFilePathsAndSchemaNames);
+
+    rhs.m_db = nullptr;
+
+    return *this;
+}
+
+
+Sqlite::DB Sqlite::DB::CreateWrapper(sqlite3* const db, const bool assume_ownership)
+{
+    DB wrapped_db(db, assume_ownership);
+
+    if( db != nullptr )
     {
-        try
-        {
-            Close();
-        }
-        catch(...) { }
+        const char* const filename = sqlite3_db_filename(db, nullptr);
+
+        if( filename != nullptr )
+            wrapped_db.m_filePath = filename;
     }
+
+    return wrapped_db;
 }
 
 
 void Sqlite::DB::Open(std::string file_path, const int open_flags/* = DefaultOpenFlags*/)
 {
+    ASSERT(m_ownDb);
+
     if( m_db != nullptr )
         throw Exception("A database is already open: %s", m_filePath.c_str());
 
@@ -60,74 +88,76 @@ void Sqlite::DB::Open(std::string file_path, const int open_flags/* = DefaultOpe
 
 void Sqlite::DB::OpenEncrypted(const std::string& file_path, const std::vector<std::byte>& password_hash, const int open_flags/* = DefaultOpenFlags*/)
 {
-    constexpr std::string_view EncryptionType_sv = "aes256:";
-    ASSERT(!password_hash.empty());
-
     const bool file_already_exists = PortableFunctions::FileIsRegular(file_path);
     Open(file_path, open_flags);
 
-    // to get the SQLite key, prefix the password hash with the encryption type
-    const size_t key_length = EncryptionType_sv.length() + password_hash.size();
-    auto key = std::make_unique_for_overwrite<char[]>(key_length);
-    memcpy(key.get(), EncryptionType_sv.data(), EncryptionType_sv.length());
-    memcpy(key.get() + EncryptionType_sv.length(), password_hash.data(), password_hash.size());
+    const BinaryBlock key = GetEncryptionKey(password_hash);
 
     try
     {
-        if( SqliteEncryption::sqlite3_key(m_db, key.get(), static_cast<int>(key_length)) != SQLITE_OK )
-            throw std::exception();
-
-        // if the file already exists, check that the password is correct with a simple query
-        if( file_already_exists )
-        {
-            Statement stmt = PrepareStatement("PRAGMA user_version;");
-
-            if( stmt.Step() == SQLITE_NOTADB )
-                throw std::exception();
-        }
-
-        // when creating a new database, prevent a 0-byte file by setting the user_version pragma
-        else
-        {
-            Execute("PRAGMA user_version = 0;");
-        }
+        KeyDatabase(&key, file_already_exists);
     }
 
     catch(...)
     {
-        try
-        {
-            Close();
-        }
-        catch(...) { }
-
+        Close_noexcept();
         throw Exception(static_cast<sqlite3*>(nullptr), file_path, "Could not open an encrypted SQLite database with the supplied password");
     }
 }
 
 
-void Sqlite::DB::Close()
+BinaryBlock Sqlite::DB::GetEncryptionKey(const std::vector<std::byte>& password_hash)
 {
-    if( m_db == nullptr )
-        return;
+    constexpr std::string_view EncryptionType_sv = "aes256:";
+    ASSERT(!password_hash.empty());
 
-    // finalize all statements
-    for( std::shared_ptr<sqlite3_stmt*>& statement_ptr : m_statementPtrs )
+    // to get the SQLite key, prefix the password hash with the encryption type
+    const size_t key_length = EncryptionType_sv.length() + password_hash.size();
+    BinaryBlock key(key_length);
+
+    memcpy(key.data(), EncryptionType_sv.data(), EncryptionType_sv.length());
+    memcpy(key.data() + EncryptionType_sv.length(), password_hash.data(), password_hash.size());
+
+    return key;
+}
+
+
+bool Sqlite::DB::Close_noexcept() noexcept
+{
+    bool success = true;
+
+    if( m_db != nullptr )
     {
-        ASSERT(statement_ptr != nullptr);
-
-        if( *statement_ptr != nullptr )
+        // finalize all statements
+        for( std::shared_ptr<sqlite3_stmt*>& statement_ptr : m_statementPtrs )
         {
-            sqlite3_finalize(*statement_ptr);
-            *statement_ptr = nullptr;
+            ASSERT(statement_ptr != nullptr);
+
+            if( *statement_ptr != nullptr )
+            {
+                sqlite3_finalize(*statement_ptr);
+                *statement_ptr = nullptr;
+            }
         }
+
+        // close the database
+        if( m_ownDb && sqlite3_close(m_db) != SQLITE_OK )
+            success = false;
+
+        m_db = nullptr;
+        m_filePath.clear();
+        m_statementPtrs.clear();
+        m_attachedFilePathsAndSchemaNames.reset();
     }
 
-    if( sqlite3_close(m_db) != SQLITE_OK )
-        throw Exception(m_db, m_filePath, "Error closing SQLite database");
+    return success;
+}
 
-    m_db = nullptr;
-    m_filePath.clear();
+
+void Sqlite::DB::Close()
+{
+    if( !Close_noexcept() )
+        throw Exception(m_db, m_filePath, "Error closing SQLite database");
 }
 
 
@@ -135,6 +165,61 @@ void Sqlite::DB::CheckDatabaseIsOpen() const
 {
     if( m_db == nullptr )
         throw Exception("No SQLite database is open.");
+}
+
+
+void Sqlite::DB::KeyDatabase(const void* const encryption_key_data, const size_t encryption_key_size,
+                             const bool db_has_already_been_keyed)
+{
+    CheckDatabaseIsOpen();
+
+    auto throw_exception = [&]()
+    {
+        const char* const message_prefix = ( encryption_key_data == nullptr ) ? "The file is not a valid SQLite database: " :
+                                                                                "The file is not a valid SQLite database or the encryption key is invalid: ";
+        throw CSProException(message_prefix + m_filePath);
+    };
+
+    if( SqliteEncryption::sqlite3_key(m_db, encryption_key_data, int32_cast(encryption_key_size)) != SQLITE_OK )
+        throw_exception();
+
+    Sqlite::Statement stmt = PrepareStatement("PRAGMA user_version;");
+
+    // make sure the database is valid
+    if( stmt.Step() == SQLITE_NOTADB )
+        throw_exception();
+
+    // when creating a new database, prevent a 0-byte file
+    if( !db_has_already_been_keyed )
+    {
+        try
+        {
+            const std::string sql = FormatText("PRAGMA user_version = %d;", stmt.GetColumn<int>(0));
+            Execute(sql);
+        }
+        catch(...) { throw_exception(); }
+    }
+}
+
+
+void Sqlite::DB::KeyDatabase(const BinaryBlock* const encryption_key, const bool db_has_already_been_keyed)
+{
+    const void* encryption_key_data;
+    size_t encryption_key_size;
+
+    if( encryption_key == nullptr )
+    {
+        encryption_key_data = nullptr;
+        encryption_key_size = 0;
+    }
+
+    else
+    {
+        encryption_key_data = encryption_key->data();
+        encryption_key_size = encryption_key->size();
+    }
+
+    KeyDatabase(encryption_key_data, encryption_key_size, db_has_already_been_keyed);
 }
 
 

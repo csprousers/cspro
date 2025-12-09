@@ -1,10 +1,10 @@
 ﻿#pragma once
 
 #include <zIndexO/zIndexO.h>
+#include <zSql/DB.h>
 #include <zDataO/IndexableTextRepository.h>
 
 class PFF;
-struct sqlite3_stmt;
 namespace FileIO { class TextFile; }
 
 
@@ -103,15 +103,15 @@ private:
     std::shared_ptr<CaseAccess> m_keyReaderCaseAccess;
     std::shared_ptr<CaseAccess> m_fullCaseAccess;
 
-    sqlite3* m_db;
-    sqlite3_stmt* m_stmtPutCase;
-    sqlite3_stmt* m_stmtDeleteCasesByFileIndex;
-    sqlite3_stmt* m_stmtMinimalDuplicateIteratorByKey;
-    sqlite3_stmt* m_stmtFullDuplicateIteratorByKey;
-    sqlite3_stmt* m_stmtReadDuplicatesIterator;
-    sqlite3_stmt* m_stmtUpdateCaseDoNotKeepByIndex;
-    sqlite3_stmt* m_stmtUpdateCaseDoNotKeepByKey;
-    sqlite3_stmt* m_stmtWriteCaseIterator;
+    Sqlite::DB m_db;
+    Sqlite::Statement m_stmtPutCase;
+    Sqlite::Statement m_stmtDeleteCasesByFileIndex;
+    Sqlite::Statement m_stmtMinimalDuplicateIteratorByKey;
+    Sqlite::Statement m_stmtFullDuplicateIteratorByKey;
+    Sqlite::Statement m_stmtReadDuplicatesIterator;
+    Sqlite::Statement m_stmtUpdateCaseDoNotKeepByIndex;
+    Sqlite::Statement m_stmtUpdateCaseDoNotKeepByKey;
+    Sqlite::Statement m_stmtWriteCaseIterator;
 
     std::vector<IndexResult> m_indexResults;
     IndexResult* m_currentlyProcessingIndexResult;

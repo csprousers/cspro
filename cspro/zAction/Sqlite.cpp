@@ -1,12 +1,9 @@
 ﻿#include "stdafx.h"
-#include <zToolsO/VectorHelpers.h>
+#include <zSql/DB.h>
 #include <zSql/Encryption.h>
-#include <zSql/SQLite.h>
-#include <zSql/SQLiteStatement.h>
 #include <zUtilO/SqlLogicFunctions.h>
 #include <zUtilO/Versioning.h>
 #include <zParadataO/Logger.h>
-#include <zDataO/EncryptedSQLiteRepository.h>
 
 
 CREATE_JSON_KEY(bindings)
@@ -24,11 +21,11 @@ CREATE_JSON_KEY(rowFormat)
 class ActionInvoker::Runtime::SqliteDbWrapper
 {
 public:
-    struct SqliteDb { sqlite3* db; bool callback_functions_registered; };
+    struct ActionDb { Sqlite::DB db; bool callback_functions_registered; };
     struct DictionaryDb { const std::string name; };
     struct ParadataDb { };
 
-    using WrapperType = std::variant<SqliteDb, DictionaryDb, ParadataDb>;
+    using WrapperType = std::variant<ActionDb, DictionaryDb, ParadataDb>;
 
     SqliteDbWrapper(Runtime& runtime, WrapperType db_wrapper);
     ~SqliteDbWrapper();
@@ -40,31 +37,28 @@ public:
 
     sqlite3* GetDb(bool for_querying);
 
-    bool WrapsDictionaryOrParadata() const { return !std::holds_alternative<SqliteDb>(m_dbWrapper); }
+    bool WrapsDictionaryOrParadata() const { return !std::holds_alternative<ActionDb>(m_dbWrapper); }
 
     static int GetSqliteDbId(Runtime& runtime, const JsonNode& json_node, Caller& caller);
     static auto GetSqliteDbWrapper(Runtime& runtime, int db_id);
     static auto GetSqliteDbWrapper(Runtime& runtime, const JsonNode& json_node, Caller& caller);
 
-    struct EncryptionKey
-    {
-        std::unique_ptr<BinaryBlock> key;
-        size_t key_size;
-    };
-
-    static EncryptionKey GetEncryptionKey(Runtime& runtime, const JsonNode& json_node, bool encryption_key_must_be_specified);
+    static std::unique_ptr<BinaryBlock> GetEncryptionKey(Runtime& runtime, const JsonNode& json_node, bool encryption_key_must_be_specified);
 
     // for Sqlite.exec
     static void exec_PrepareSql(sqlite3* db, std::string_view sql_statements_text_sv,
-                                std::vector<SQLiteStatement>& sql_statements, std::optional<size_t>& sql_statement_with_bindings_index);
+                                std::vector<Sqlite::Statement>& sql_statements, std::optional<size_t>& sql_statement_with_bindings_index);
 
-    static void exec_BindValues(Runtime& runtime, SQLiteStatement& sql_statement, const JsonNode& bindings_node,
-                                std::unique_ptr<std::vector<std::shared_ptr<const std::vector<std::byte>>>>& bound_blobs);
+    static void exec_BindValues(Runtime& runtime, Sqlite::Statement& sql_statement, const JsonNode& bindings_node);
 
     struct NullValue { };
-    using DbValue = std::variant<NullValue, int64_t, double, SharableString, std::shared_ptr<const std::vector<std::byte>>>;
+    using DbValue = std::variant<NullValue,
+                                 int64_t,
+                                 double,
+                                 SharableString,
+                                 std::shared_ptr<const std::vector<std::byte>>>;
 
-    static DbValue exec_GetValue(SQLiteStatement& sql_statement, int column_num);
+    static DbValue exec_GetValue(Sqlite::Statement& sql_statement, int column_num);
 
     static void exec_WriteValue(JsonWriter& json_writer, BytesToStringConverter& bytes_to_string_converter, const DbValue& value);
     static void exec_WriteValues(JsonWriter& json_writer, BytesToStringConverter& bytes_to_string_converter,
@@ -72,7 +66,7 @@ public:
                                  const DbValue* values, int column_count);
 
 private:
-    sqlite3* GetDb(SqliteDb& db, bool for_querying);
+    sqlite3* GetDb(ActionDb& action_db, bool for_querying);
     sqlite3* GetDb(const DictionaryDb& dictionary_db, bool for_querying);
     sqlite3* GetDb(const ParadataDb& paradata_db, bool for_querying);
 
@@ -88,7 +82,7 @@ ActionInvoker::Runtime::SqliteDbWrapper::SqliteDbWrapper(Runtime& runtime, Wrapp
     :   m_runtime(runtime),
         m_dbWrapper(std::move(db_wrapper))
 {
-    ASSERT(!std::holds_alternative<SqliteDb>(m_dbWrapper) || std::get<SqliteDb>(m_dbWrapper).db != nullptr);
+    ASSERT(!std::holds_alternative<ActionDb>(m_dbWrapper) || std::get<ActionDb>(m_dbWrapper).db.IsOpen());
 }
 
 
@@ -110,74 +104,35 @@ std::unique_ptr<ActionInvoker::Runtime::SqliteDbWrapper> ActionInvoker::Runtime:
         json_node.GetFromStringOptions(JK::openFlags, { "read", "readWrite", "readWriteCreate" }) :
         0;
 
-    const int open_flags = ( open_flags_index ) == 0 ? ( SQLITE_OPEN_READONLY ) :
-                           ( open_flags_index ) == 1 ? ( SQLITE_OPEN_READWRITE ) :
-                                                       ( SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE );
+    const int open_flags = ( open_flags_index ) == 0 ? ( Sqlite::OpenFlags::ReadOnly ) :
+                           ( open_flags_index ) == 1 ? ( Sqlite::OpenFlags::ReadWrite ) :
+                                                       ( Sqlite::OpenFlags::ReadWrite | Sqlite::OpenFlags::Create );
 
-    // by default, a created SQLite file is 0 bytes, so we will set a pragma to make sure that a proper
-    // database is created, which matters mostly when using an encryption key
-    const bool set_user_pragmas = ( open_flags_index == 2 &&
-                                    !in_memory_db &&
-                                    !PortableFunctions::FileIsRegular(path) );
+    // by default, a newly created SQLite file is 0 bytes, so we will set a pragma to make sure
+    // that a proper database is created, which matters mostly when using an encryption key
+    const bool db_has_already_been_keyed = ( in_memory_db ||
+                                             open_flags_index != 2 ||
+                                             PortableFunctions::FileIsRegular(path) );
 
-    const SqliteDbWrapper::EncryptionKey encryption_key = SqliteDbWrapper::GetEncryptionKey(runtime, json_node, false);
-    sqlite3* db;
+    const std::unique_ptr<const BinaryBlock> encryption_key = SqliteDbWrapper::GetEncryptionKey(runtime, json_node, false);
 
-    if( sqlite3_open_v2(path.c_str(), &db, open_flags, nullptr) != SQLITE_OK )
-    {
-        const char* const message_prefix = PortableFunctions::FileIsRegular(path) ? "The SQLite database could not be opened: " :
-                                                                                    "The SQLite database does not exist: ";
-        throw CSProException(message_prefix + path);
-    }
-
-    // now wrapped, the database will be closed if any exceptions are thrown below
-    auto db_wrapper = std::make_unique<SqliteDbWrapper>(runtime, SqliteDbWrapper::SqliteDb { db, false });
-
-    auto throw_exception = [&]()
-    {
-        const char* const message_prefix = ( encryption_key.key == nullptr ) ? "The file is not a valid SQLite database: " :
-                                                                               "The file is not a valid SQLite database or the encryption key is invalid: ";
-        throw CSProException(message_prefix + path);
-    };
+    Sqlite::DB db(path, open_flags);
 
     // key the database regardless of whether using an encryption key;
     // it is important for non-encrypted databases in case they are eventually rekeyed: https://www.sqlite.org/see/doc/trunk/www/readme.wiki
-    if( SqliteEncryption::sqlite3_key(db, encryption_key.key.get(), int32_cast(encryption_key.key_size)) != SQLITE_OK )
-        throw_exception();
+    // KeyDatabase will also verify that the encryption key is valid
+    db.KeyDatabase(encryption_key.get(), db_has_already_been_keyed);
 
-    // make sure the database is valid
-    sqlite3_stmt* stmt;
-    sqlite3_prepare_v2(db, "PRAGMA user_version;", -1, &stmt, nullptr);
-    const int key_check_result = sqlite3_step(stmt);
-    const int user_version = set_user_pragmas ? sqlite3_column_int(stmt, 0) : 0;
-    sqlite3_finalize(stmt);
-
-    if( key_check_result == SQLITE_NOTADB )
-        throw_exception();
-
-    // when creating a new database, prevent a 0-byte file
-    if( set_user_pragmas )
-    {
-        const std::string sql = FormatText("PRAGMA user_version = %d;", user_version);
-
-        if( sqlite3_exec(db, sql.c_str(), nullptr, nullptr, nullptr) != SQLITE_OK )
-            throw_exception();
-    }
-
-    return db_wrapper;
+    return std::make_unique<SqliteDbWrapper>(runtime, SqliteDbWrapper::ActionDb { std::move(db), false });
 }
 
 
 void ActionInvoker::Runtime::SqliteDbWrapper::Close()
 {
-    if( std::holds_alternative<SqliteDb>(m_dbWrapper) )
+    if( std::holds_alternative<ActionDb>(m_dbWrapper) )
     {
-        sqlite3*& db = std::get<SqliteDb>(m_dbWrapper).db;
-
-        if( db != nullptr && sqlite3_close(db) != SQLITE_OK )
-            throw CSProException("Error closing SQLite database: %s", sqlite3_errmsg(db));
-
-        db = nullptr;
+        Sqlite::DB& db = std::get<ActionDb>(m_dbWrapper).db;
+        db.Close();
     }
 }
 
@@ -189,17 +144,17 @@ sqlite3* ActionInvoker::Runtime::SqliteDbWrapper::GetDb(const bool for_querying)
 }
 
 
-sqlite3* ActionInvoker::Runtime::SqliteDbWrapper::GetDb(SqliteDb& db, const bool for_querying)
+sqlite3* ActionInvoker::Runtime::SqliteDbWrapper::GetDb(ActionDb& action_db, const bool for_querying)
 {
-    ASSERT(db.db != nullptr);
+    ASSERT(action_db.db.IsOpen());
 
-    if( for_querying && !db.callback_functions_registered )
+    if( for_querying && !action_db.callback_functions_registered )
     {
-        RegisterSqlCallbackFunctions(db.db);
-        db.callback_functions_registered = true;
+        RegisterSqlCallbackFunctions(action_db.db.GetDb());
+        action_db.callback_functions_registered = true;
     }
 
-    return db.db;
+    return action_db.db.GetDb();
 }
 
 
@@ -294,10 +249,10 @@ auto ActionInvoker::Runtime::SqliteDbWrapper::GetSqliteDbWrapper(Runtime& runtim
 }
 
 
-ActionInvoker::Runtime::SqliteDbWrapper::EncryptionKey ActionInvoker::Runtime::SqliteDbWrapper::GetEncryptionKey(Runtime& runtime, const JsonNode& json_node,
-                                                                                                                 const bool encryption_key_must_be_specified)
+std::unique_ptr<BinaryBlock> ActionInvoker::Runtime::SqliteDbWrapper::GetEncryptionKey(Runtime& runtime, const JsonNode& json_node,
+                                                                                       const bool encryption_key_must_be_specified)
 {
-    EncryptionKey encryption_key { nullptr, 0 };
+    std::unique_ptr<BinaryBlock> encryption_key;
 
     if( encryption_key_must_be_specified || json_node.Contains(JK::encryptionKey) )
     {
@@ -306,22 +261,16 @@ ActionInvoker::Runtime::SqliteDbWrapper::EncryptionKey ActionInvoker::Runtime::S
         if( !encryption_key_sv.empty() )
         {
             const std::shared_ptr<const std::vector<std::byte>> key_bytes = StringToBytesConverter::Convert(runtime, encryption_key_sv, json_node, JK::encryptionKeyFormat);
-
-            // prefix the key with the encryption type
-            encryption_key.key_size = EncryptedSQLiteRepository::EncryptionType_sv.size() + key_bytes->size();
-            encryption_key.key = std::make_unique<BinaryBlock>(encryption_key.key_size);
-
-            memcpy(encryption_key.key->data(), EncryptedSQLiteRepository::EncryptionType_sv.data(), EncryptedSQLiteRepository::EncryptionType_sv.size());
-            memcpy(encryption_key.key->data() + EncryptedSQLiteRepository::EncryptionType_sv.size(), key_bytes->data(), key_bytes->size());
+            return std::make_unique<BinaryBlock>(Sqlite::DB::GetEncryptionKey(*key_bytes));
         }
     }
 
-    return encryption_key;
+    return nullptr;
 }
 
 
 void ActionInvoker::Runtime::SqliteDbWrapper::exec_PrepareSql(sqlite3* const db, const std::string_view sql_statements_text_sv,
-                                                              std::vector<SQLiteStatement>& sql_statements, std::optional<size_t>& sql_statement_with_bindings_index)
+                                                              std::vector<Sqlite::Statement>& sql_statements, std::optional<size_t>& sql_statement_with_bindings_index)
 {
     const char* sql = sql_statements_text_sv.data();
     const char* const sql_end = sql + sql_statements_text_sv.length();
@@ -329,17 +278,12 @@ void ActionInvoker::Runtime::SqliteDbWrapper::exec_PrepareSql(sqlite3* const db,
     // prevent preparing blank statements, which result in SQLITE_MISUSE results
     while( std::find_if(sql, sql_end, [](const char ch) { return !std::isspace(ch); }) != sql_end )
     {
-        sqlite3_stmt* stmt;
-
-        // because multiple statements can be included in a single string, we will keep preparing them until they are all prepared
+        // because multiple statements can be included in a single string,
+        // we will keep preparing them until they are all prepared
         const char* next_sql_statement;
+        Sqlite::Statement stmt = Sqlite::Statement::Prepare(db, sql, &next_sql_statement);
 
-        if( sqlite3_prepare_v2(db, sql, -1, &stmt, &next_sql_statement) != SQLITE_OK )
-            throw CSProException("Error preparing SQL statement (%s): %s", sqlite3_errmsg(db), sql);
-
-        SQLiteStatement sql_statement(stmt, true);
-
-        if( sql_statement.GetBindingsCount() > 0 )
+        if( stmt.GetBindingsCount() > 0 )
         {
             if( sql_statement_with_bindings_index.has_value() )
                 throw CSProException("You cannot execute multiple statements that have parameters.");
@@ -347,15 +291,14 @@ void ActionInvoker::Runtime::SqliteDbWrapper::exec_PrepareSql(sqlite3* const db,
             sql_statement_with_bindings_index = sql_statements.size();
         }
 
-        sql_statements.emplace_back(std::move(sql_statement));
+        sql_statements.emplace_back(std::move(stmt));
 
         sql = next_sql_statement;
     }
 }
 
 
-void ActionInvoker::Runtime::SqliteDbWrapper::exec_BindValues(Runtime& runtime, SQLiteStatement& sql_statement, const JsonNode& bindings_node,
-                                                              std::unique_ptr<std::vector<std::shared_ptr<const std::vector<std::byte>>>>& bound_blobs)
+void ActionInvoker::Runtime::SqliteDbWrapper::exec_BindValues(Runtime& runtime, Sqlite::Statement& sql_statement, const JsonNode& bindings_node)
 {
     auto bind = [&](const int parameter_number, const JsonNode& binding_node)
     {
@@ -381,14 +324,8 @@ void ActionInvoker::Runtime::SqliteDbWrapper::exec_BindValues(Runtime& runtime, 
         else if( binding_node.IsObject() && binding_node.Contains(JK::bytes) )
         {
             const std::string_view bytes_sv = binding_node.Get<std::string_view>(JK::bytes);
-            std::shared_ptr<const std::vector<std::byte>> bytes = StringToBytesConverter::Convert(runtime, bytes_sv, binding_node, JK::bytesFormat);
-            sql_statement.Bind(parameter_number, *bytes);
-
-            // SQLiteStatement::Bind binds using SQLITE_STATIC, so we need to maintain the bytes in memory until the statement is executed
-            if( bound_blobs == nullptr )
-                bound_blobs = std::make_unique<std::vector<std::shared_ptr<const std::vector<std::byte>>>>();
-
-            bound_blobs->emplace_back(std::move(bytes));
+            const std::shared_ptr<const std::vector<std::byte>> bytes = StringToBytesConverter::Convert(runtime, bytes_sv, binding_node, JK::bytesFormat);
+            sql_statement.BindBlob(parameter_number, *bytes, true);
         }
 
         // unknown binding
@@ -425,16 +362,27 @@ void ActionInvoker::Runtime::SqliteDbWrapper::exec_BindValues(Runtime& runtime, 
 }
 
 
-ActionInvoker::Runtime::SqliteDbWrapper::DbValue ActionInvoker::Runtime::SqliteDbWrapper::exec_GetValue(SQLiteStatement& sql_statement, const int column_num)
+ActionInvoker::Runtime::SqliteDbWrapper::DbValue ActionInvoker::Runtime::SqliteDbWrapper::exec_GetValue(Sqlite::Statement& sql_statement, const int column_num)
 {
     switch( sql_statement.GetColumnType(column_num) )
     {
-        case SQLITE_NULL:    return NullValue { };
-        case SQLITE_INTEGER: return sql_statement.GetColumn<int64_t>(column_num);
-        case SQLITE_FLOAT:   return sql_statement.GetColumn<double>(column_num);
-        case SQLITE_TEXT:    return sql_statement.GetColumn<std::string>(column_num);
-        case SQLITE_BLOB:    return std::make_shared<const std::vector<std::byte>>(sql_statement.GetColumn<std::vector<std::byte>>(column_num));
-        default:             throw ProgrammingErrorException();
+        case Sqlite::ColumnType::Null:
+            return NullValue { };
+
+        case Sqlite::ColumnType::Integer:
+            return sql_statement.GetColumn<int64_t>(column_num);
+
+        case Sqlite::ColumnType::Float:
+            return sql_statement.GetColumn<double>(column_num);
+
+        case Sqlite::ColumnType::Text:
+            return sql_statement.GetColumn<std::string>(column_num);
+
+        case Sqlite::ColumnType::Blob:
+            return std::make_shared<const std::vector<std::byte>>(sql_statement.GetColumn<std::vector<std::byte>>(column_num));
+
+        default:
+            throw ProgrammingErrorException();
     }
 }
 
@@ -583,7 +531,7 @@ ActionInvoker::Result ActionInvoker::Runtime::Sqlite_close(const JsonNode& json_
 ActionInvoker::Result ActionInvoker::Runtime::Sqlite_rekey(const JsonNode& json_node, Caller& caller)
 {
     SqliteDbWrapper& db_wrapper = *SqliteDbWrapper::GetSqliteDbWrapper(*this, json_node, caller)->second;
-    const SqliteDbWrapper::EncryptionKey encryption_key = SqliteDbWrapper::GetEncryptionKey(*this, json_node, true);
+    const std::unique_ptr<const BinaryBlock> encryption_key = SqliteDbWrapper::GetEncryptionKey(*this, json_node, true);
 
     if( db_wrapper.WrapsDictionaryOrParadata() )
         throw CSProException("You cannot rekey a dictionary or paradata log.");
@@ -591,7 +539,10 @@ ActionInvoker::Result ActionInvoker::Runtime::Sqlite_rekey(const JsonNode& json_
     sqlite3* const db = db_wrapper.GetDb(false);
 
     // if the encryption key is null, the database will be decrypted
-    if( SqliteEncryption::sqlite3_rekey(db, encryption_key.key.get(), int32_cast(encryption_key.key_size)) != SQLITE_OK )
+    const std::byte* const encryption_key_data = ( encryption_key != nullptr ) ? encryption_key->data() : nullptr;
+    const int encryption_key_size = ( encryption_key != nullptr ) ? int32_cast(encryption_key->size()) : 0;
+
+    if( SqliteEncryption::sqlite3_rekey(db, encryption_key_data, encryption_key_size) != SQLITE_OK )
         throw CSProException("There was an error rekeying the database: %s", sqlite3_errmsg(db));
 
     return Result::Undefined();
@@ -604,7 +555,7 @@ ActionInvoker::Result ActionInvoker::Runtime::Sqlite_exec(const JsonNode& json_n
     sqlite3* const db = db_wrapper.GetDb(true);
 
     // prepare the statements
-    std::vector<SQLiteStatement> sql_statements;
+    std::vector<Sqlite::Statement> sql_statements;
     std::optional<size_t> sql_statement_with_bindings_index;
 
     const JsonNode sql_node = json_node.Get(JK::sql);
@@ -631,12 +582,10 @@ ActionInvoker::Result ActionInvoker::Runtime::Sqlite_exec(const JsonNode& json_n
     BytesToStringConverter bytes_to_string_converter(this, json_node, JK::bytesFormat);
 
     // handle bindings
-    std::unique_ptr<std::vector<std::shared_ptr<const std::vector<std::byte>>>> bound_blobs;
-
     if( sql_statement_with_bindings_index.has_value() && json_node.Contains(JK::bindings) )
     {
-        SQLiteStatement& sql_statement = sql_statements[*sql_statement_with_bindings_index];
-        SqliteDbWrapper::exec_BindValues(*this, sql_statement, json_node.Get(JK::bindings), bound_blobs);
+        Sqlite::Statement& sql_statement = sql_statements[*sql_statement_with_bindings_index];
+        SqliteDbWrapper::exec_BindValues(*this, sql_statement, json_node.Get(JK::bindings));
     }
 
     // execute all the queries
@@ -647,7 +596,7 @@ ActionInvoker::Result ActionInvoker::Runtime::Sqlite_exec(const JsonNode& json_n
 
     int result = SQLITE_OK;
 
-    for( SQLiteStatement& sql_statement : sql_statements )
+    for( Sqlite::Statement& sql_statement : sql_statements )
     {
         result = sql_statement.Step();
 
@@ -661,7 +610,7 @@ ActionInvoker::Result ActionInvoker::Runtime::Sqlite_exec(const JsonNode& json_n
     if( result != SQLITE_ROW )
         return Result::Undefined();
 
-    SQLiteStatement& final_sql_statement = sql_statements.back();
+    Sqlite::Statement& final_sql_statement = sql_statements.back();
     const int column_count = final_sql_statement.GetColumnCount();
     ASSERT(column_count > 0);
 

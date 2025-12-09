@@ -16,7 +16,9 @@
 
 class ZSQL_API Sqlite::Statement
 {
+public:
     friend class DB;
+    class Resetter;
 
 private:
     Statement(std::shared_ptr<sqlite3_stmt*> statement_ptr);
@@ -29,6 +31,10 @@ public:
 
     Statement& operator=(const Statement& rhs) = delete;
     Statement& operator=(Statement&& rhs) = default;
+
+    // Prepares a statement for an open database.
+    // This method should not be used when using Sqlite::DB as that class has a PrepareStatement method.
+    static Statement Prepare(sqlite3* db, std::string_view sql_sv, const char** end_of_parsed_statement = nullptr);
 
     // Returns true if the statement is prepared and still valid.
     bool IsPrepared() const;
@@ -93,9 +99,12 @@ public:
     // Steps the prepared statement.
     int Step();
 
+    // Steps the prepared statement and throws an exception if the result does not match the argument.
+    void StepCheckResult(int result);
+
     // Resets the underlying prepared statement so that it may be executed again.
     // Resetting does not clear the bindings.
-    void Reset();
+    Sqlite::Statement& Reset();
 
 
     // --------------------------------------------------------------------------
@@ -150,6 +159,24 @@ private:
 
 private:
     std::shared_ptr<sqlite3_stmt*> m_statementPtr;
+};
+
+
+
+// --------------------------------------------------------------------------
+// Statement::Resetter is a RAII object that will reset the statement on
+// destruction.
+// --------------------------------------------------------------------------
+
+class Sqlite::Statement::Resetter
+{
+public:
+    Resetter(Statement& stmt) : m_stmt(stmt) { }
+
+    ~Resetter() { m_stmt.Reset(); }
+
+private:
+    Statement& m_stmt;
 };
 
 
@@ -323,11 +350,20 @@ inline int Sqlite::Statement::Step()
 }
 
 
-inline void Sqlite::Statement::Reset()
+inline void Sqlite::Statement::StepCheckResult(const int result)
+{
+    if( Step() != result )
+        throw CSProException("SQLite: Stepping did not result in code: %d", result);
+}
+
+
+inline Sqlite::Statement& Sqlite::Statement::Reset()
 {
     CheckStatementIsPrepared();
 
     sqlite3_reset(*m_statementPtr);
+
+    return *this;
 }
 
 

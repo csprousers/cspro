@@ -24,6 +24,14 @@ public:
     DB(DB&& rhs) noexcept;
     ~DB();
 
+    DB& operator=(const DB& rhs) = delete;
+    DB& operator=(DB&& rhs) noexcept;
+
+    // Wraps in a DB object a pointer to a SQLite database.
+    // If assume_ownership is false, the database object should outlive this object
+    // and the database will not be closed on destruction.
+    static DB CreateWrapper(sqlite3* db, bool assume_ownership);
+
     // Opens a SQLite database, throwing exceptions on error.
     void Open(std::string file_path, int open_flags = DefaultOpenFlags);
 
@@ -32,11 +40,30 @@ public:
     // as a 0-byte file (without the encryption parameters written).
     void OpenEncrypted(const std::string& file_path, const std::vector<std::byte>& password_hash, int open_flags = DefaultOpenFlags);
 
+    // Returns the SQLite encryption key for the given password hash.
+    static BinaryBlock GetEncryptionKey(const std::vector<std::byte>& password_hash);
+
     // Closes the SQLite database, throwing exceptions on error.
     void Close();
 
+    // Returns true if a SQLite database is open.
+    bool IsOpen() const noexcept { return ( m_db != nullptr ); }
+
+    // Returns the SQLite database pointer.
+    sqlite3* GetDb() noexcept { return m_db; }
+
     // Returns the file path of the open database.
-    const std::string& GetFilePath() const { return m_filePath; }
+    const std::string& GetFilePath() const noexcept { return m_filePath; }
+
+    // Returns the "English language explanation of the most recent error."
+    std::string GetLastErrorMessage() const noexcept { return sqlite3_errmsg(m_db); }
+
+    // Specifies the encryption key on a newly opened database connection, throwing an exception if the
+    // key is invalid (when encryption_key_data is non-null and db_has_already_been_keyed is true).
+    // If db_has_already_been_keyed is false, the user_version pragma will be set, which
+    // will prevent a 0-byte file when creating a new database.
+    void KeyDatabase(const void* encryption_key_data, size_t encryption_key_size, bool db_has_already_been_keyed);
+    void KeyDatabase(const BinaryBlock* encryption_key, bool db_has_already_been_keyed);
 
     // Executes the SQL statement, throwing exceptions on error.
     void Execute(cs::string_sz sql);
@@ -69,6 +96,10 @@ public:
     bool TableExists(std::string_view table_name_sv);
 
 private:
+    DB(sqlite3* db, bool own_db);
+
+    bool Close_noexcept() noexcept;
+
     // Throws an exception if no database is open.
     void CheckDatabaseIsOpen() const;
 
@@ -79,6 +110,7 @@ private:
 
 private:
     sqlite3* m_db;
+    bool m_ownDb;
     std::string m_filePath;
     std::vector<std::shared_ptr<sqlite3_stmt*>> m_statementPtrs;
     std::unique_ptr<std::vector<std::tuple<std::string, std::string>>> m_attachedFilePathsAndSchemaNames;
@@ -90,8 +122,15 @@ private:
 // inline implementations
 // --------------------------------------------------------------------------
 
+inline Sqlite::DB::DB(sqlite3* const db, const bool own_db)
+    :   m_db(db),
+        m_ownDb(own_db)
+{
+}
+
+
 inline Sqlite::DB::DB()
-    :   m_db(nullptr)
+    :   DB(nullptr, true)
 {
 }
 

@@ -1,5 +1,6 @@
 ﻿#include "stdafx.h"
 #include "SQLiteHelpers.h"
+#include <zSql/Statement.h>
 
 
 namespace
@@ -10,38 +11,35 @@ namespace
 }
 
 
-void SQLiteHelpers::SetTemporaryKeyValuePair(sqlite3* const db, const char* const key, const char* const value)
+void SQLiteHelpers::SetTemporaryKeyValuePair(sqlite3* const db, const char* const key, const char* const value) noexcept
 {
     if( sqlite3_exec(db, CreateTable, nullptr, nullptr, nullptr) == SQLITE_OK )
     {
-        sqlite3_stmt* stmt = nullptr;
-
-        if( sqlite3_prepare_v2(db, InsertRow, -1, &stmt, nullptr) == SQLITE_OK )
+        try
         {
-            sqlite3_bind_text(stmt, 1, key, -1, SQLITE_TRANSIENT);
-            sqlite3_bind_text(stmt, 2, value, -1, SQLITE_TRANSIENT);
-            sqlite3_step(stmt);
-            sqlite3_finalize(stmt);
+            Sqlite::Statement stmt = Sqlite::Statement::Prepare(db, InsertRow);
+            stmt.Bind(1, key)
+                .Bind(2, value)
+                .StepCheckResult(Sqlite::Result::Done);
         }
+        catch(...) { ASSERT(false); }
     }
 }
 
 
-bool SQLiteHelpers::TemporaryKeyValuePairExists(sqlite3* const db, const char* const key)
+bool SQLiteHelpers::TemporaryKeyValuePairExists(sqlite3* const db, const char* const key) noexcept
 {
-    bool exists = false;
-    sqlite3_stmt* stmt = nullptr;
-
-    if( sqlite3_prepare_v2(db, ExistsRow, -1, &stmt, nullptr) == SQLITE_OK )
+    try
     {
-        sqlite3_bind_text(stmt, 1, key, -1, SQLITE_TRANSIENT);
+        Sqlite::Statement stmt = Sqlite::Statement::Prepare(db, ExistsRow);
+        stmt.Bind(1, key);
 
-        exists = ( sqlite3_step(stmt) == SQLITE_ROW );
-
-        sqlite3_finalize(stmt);
+        if( stmt.Step() == Sqlite::Result::Row )
+            return true;
     }
+    catch(...) { }
 
-    return exists;
+    return false;
 }
 
 
@@ -128,6 +126,21 @@ std::string SQLiteHelpers::GetTextPrefixBoundary(std::string text)
             --last_ch;
             text.push_back(static_cast<char>(1));
         }
+    }
+
+    return text;
+}
+
+
+std::string SQLiteHelpers::EscapeText(std::string text)
+{
+    constexpr char QuoteChar = '\'';
+    size_t ch_pos = 0;
+
+    while( ( ch_pos = text.find(QuoteChar, ch_pos) ) != std::string::npos )
+    {
+        text.insert(ch_pos, 1, QuoteChar);
+        ch_pos += 2;
     }
 
     return text;

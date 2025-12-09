@@ -12,7 +12,7 @@ class SqlLogicFunctions
 public:
     // registers the callback functions if they have not already been registered;
     // the function throws exceptions on error
-    CLASS_DECL_ZUTILO static void RegisterCallbackFunctions(sqlite3* db, std::function<void()> additional_function_registrar = std::function<void()>());
+    CLASS_DECL_ZUTILO static void RegisterCallbackFunctions(sqlite3* db, const std::function<void()>& additional_function_registrar = std::function<void()>());
 
 private:
     // creates the cspro_... functions

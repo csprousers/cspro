@@ -13,6 +13,7 @@
 #include <zToolsO/Utf8.h>
 #include <zToolsO/WinClipboard.h>
 #include <zToolsO/ObjectTransporter.h>
+#include <zUtilO/CSProExecutables.h>
 #include <zUtilO/FileDlg.h>
 #include <zUtilO/Interapp.h>
 #include <zUtilO/WindowsUtf8.h>

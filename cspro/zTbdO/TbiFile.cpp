@@ -97,7 +97,7 @@ bool CTbiFile::Locate(CTbiFile_LocateMode eLocateMode, CString* pcsRefKeyPrefix,
     {
         std::string utf8_key;
 
-        if( m_pTableIndex->NextLong(&utf8_key, &m_lValue) )
+        if( m_pTableIndex->NextLong(utf8_key, m_lValue) )
         {
             m_csKey = UTF8_TODO::GetWide(utf8_key);
             return true;

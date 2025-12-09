@@ -138,8 +138,8 @@ public:
     bool DoNotShowCaseListing() const;
 
     CommonStore* GetCommonStore();
-    static std::string GetSystemSetting(wstring_view setting_name_sv, wstring_view default_value_sv);
-    static bool GetSystemSetting(wstring_view setting_name_sv, bool default_value);
+    static std::string GetSystemSetting(const std::string& setting_name, std::variant<cs::string_sz, std::string> default_value);
+    static bool GetSystemSetting(const std::string& setting_name, bool default_value);
 
     CRunAplEntry* GetRunAplEntry() { return m_pRunAplEntry; }
 

@@ -15,6 +15,8 @@ public:
     static System::String^ to_FormattedSystemString(const char* formatter, Args const&... args);
 
     static std::vector<std::wstring> to_wstring_vector(array<System::String^>^ array_values);
+
+    static System::Exception^ to_SystemException(const std::exception& exception);
 };
 
 
@@ -78,4 +80,10 @@ inline std::vector<std::wstring> clr_helpers::to_wstring_vector(array<System::St
         values.emplace_back(to_wstring(array_values[i]));
 
     return values;
+}
+
+
+inline System::Exception^ clr_helpers::to_SystemException(const std::exception& exception)
+{
+    return gcnew System::Exception(to_SystemString(exception.what()));
 }

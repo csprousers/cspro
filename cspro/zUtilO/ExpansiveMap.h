@@ -2,9 +2,9 @@
 
 #include <zUtilO/zUtilO.h>
 #include <zSql/DataStorage.h>
-#include <zSql/SQLiteStatement.h>
+#include <zSql/Statement.h>
 
-class ExpansiveMap_SqliteDb;
+class ExpansiveMap_Db;
 
 
 // --------------------------------------------------------------------------
@@ -28,7 +28,6 @@ public:
     // If providing a database, it is assumed that the database is open, does not have a table named "ex_map,"
     // and that the owner of this object will close the database.
     ExpansiveMap(sqlite3* db = nullptr, size_t map_size = MapSize);
-    ~ExpansiveMap();
 
     // If enabled, when the std::map is full, its contents will be written to the SQLite database
     // in a single transaction, leaving the std::map empty. This setting can be used when the most
@@ -58,21 +57,20 @@ public:
 
 private:
     template<typename KeyT, typename ValueT>
-    void InsertInSqlite(KeyT&& key, ValueT&& value);
+    void InsertInDb(KeyT&& key, ValueT&& value);
 
     template<typename T>
     T FindWorker(const Key& key) const;
 
-    void WriteMapToSqlite();
+    void WriteMapToDb();
 
 private:
     std::map<Key, Value> m_map;
     size_t m_mapSlotsRemaining;
 
-    sqlite3* m_db;
-    bool m_ownDb;
+    sqlite3* m_nonOwnedDb;
     std::optional<double> m_optimizeForRecentInsertionsMaxProportion;
-    std::unique_ptr<ExpansiveMap_SqliteDb> m_sqliteDb;
+    std::unique_ptr<ExpansiveMap_Db> m_dbData;
 };
 
 
@@ -92,35 +90,34 @@ public:
 
     // Binds the key values, starting at position 1.
     template<typename KeyT>
-    static void Bind(SQLiteStatement& stmt, KeyT&& key);
+    static void Bind(Sqlite::Statement& stmt, KeyT&& key);
 };
 
 
 // --------------------------------------------------------------------------
-// ExpansiveMap_SqliteDb
+// ExpansiveMap_Db
 // --------------------------------------------------------------------------
 
-class CLASS_DECL_ZUTILO ExpansiveMap_SqliteDb
+class CLASS_DECL_ZUTILO ExpansiveMap_Db
 {
     template<typename Key, typename Value> friend class ExpansiveMap;
 
-    static constexpr const char* ExceptionMessage = "Error with ExpansiveMap's in-memory database.";
+public:
+    ExpansiveMap_Db(sqlite3* non_owned_db,
+                    int number_keys, const std::vector<const char*>& key_data_types,
+                    const char* value_data_type);
+    ~ExpansiveMap_Db();
+
+    void Clear();
+
+    void DoBulkInsertions(double rebuild_index_max_proportion, size_t number_insertions, const std::function<void()>& callback_function);
 
 private:
-    ExpansiveMap_SqliteDb(std::string create_index_sql, SQLiteStatement stmt_insert, SQLiteStatement stmt_find);
-
-    static std::unique_ptr<ExpansiveMap_SqliteDb> Create(sqlite3*& db, int number_keys, const std::vector<const char*>& key_data_types,
-                                                         const char* value_data_type);
-
-    static void DoExec(sqlite3* db, cs::string_sz sql);
-
-    void DoBulkInsertions(sqlite3* db, double rebuild_index_max_proportion, size_t number_insertions, const std::function<void()>& callback_function);
-
-private:
+    std::unique_ptr<Sqlite::DB> m_db;
     std::string m_createIndexSql;
-    SQLiteStatement m_stmtInsert;
-    SQLiteStatement m_stmtFind;
-    std::unique_ptr<SQLiteStatement> m_stmtCount;
+    Sqlite::Statement m_stmtInsert;
+    Sqlite::Statement m_stmtFind;
+    Sqlite::Statement m_stmtCount;
 };
 
 
@@ -132,23 +129,9 @@ private:
 template<typename Key, typename Value>
 ExpansiveMap<Key, Value>::ExpansiveMap(sqlite3* const db/* = nullptr*/, const size_t map_size/* = MapSize*/)
     :   m_mapSlotsRemaining(map_size),
-        m_db(db),
-        m_ownDb(m_db == nullptr)
+        m_nonOwnedDb(db)
 {
     ASSERT(m_mapSlotsRemaining != 0);
-}
-
-
-template<typename Key, typename Value>
-ExpansiveMap<Key, Value>::~ExpansiveMap()
-{
-    if( m_sqliteDb != nullptr )
-    {
-        m_sqliteDb.reset();
-
-        if( m_ownDb )
-            sqlite3_close(m_db);
-    }
 }
 
 
@@ -168,20 +151,23 @@ void ExpansiveMap<Key, Value>::Insert(KeyT&& key, ValueT&& value)
 
     if( m_mapSlotsRemaining == 0 )
     {
-        if( m_sqliteDb == nullptr )
+        if( m_dbData == nullptr )
         {
-            m_sqliteDb = ExpansiveMap_SqliteDb::Create(m_db, ExpansiveMap_KeyBinder<Key>::GetNumberKeys(),
-                                                             ExpansiveMap_KeyBinder<Key>::GetDataTypes(),
-                                                             Sqlite::GetDataType<Value>());
+            m_dbData = std::make_unique<ExpansiveMap_Db>(
+                m_nonOwnedDb,
+                ExpansiveMap_KeyBinder<Key>::GetNumberKeys(),
+                ExpansiveMap_KeyBinder<Key>::GetDataTypes(),
+                Sqlite::GetDataType<Value>()
+            );
         }
 
         if( !m_optimizeForRecentInsertionsMaxProportion.has_value() )
         {
-            InsertInSqlite(std::forward<KeyT>(key), std::forward<ValueT>(value));
+            InsertInDb(std::forward<KeyT>(key), std::forward<ValueT>(value));
             return;
         }
 
-        WriteMapToSqlite();
+        WriteMapToDb();
         m_mapSlotsRemaining = m_map.size();
         m_map.clear();
     }
@@ -195,18 +181,18 @@ void ExpansiveMap<Key, Value>::Insert(KeyT&& key, ValueT&& value)
 
 template<typename Key, typename Value>
 template<typename KeyT, typename ValueT>
-void ExpansiveMap<Key, Value>::InsertInSqlite(KeyT&& key, ValueT&& value)
+void ExpansiveMap<Key, Value>::InsertInDb(KeyT&& key, ValueT&& value)
 {
-    ASSERT(m_sqliteDb != nullptr);
+    ASSERT(m_dbData != nullptr);
 
-    const SQLiteResetOnDestruction rod(m_sqliteDb->m_stmtInsert);
+    const Sqlite::Statement::Resetter stmt_resetter(m_dbData->m_stmtInsert);
 
-    ExpansiveMap_KeyBinder<Key>::Bind(m_sqliteDb->m_stmtInsert, std::forward<KeyT>(key));
+    ExpansiveMap_KeyBinder<Key>::Bind(m_dbData->m_stmtInsert, std::forward<KeyT>(key));
 
-    m_sqliteDb->m_stmtInsert.Bind(1 + ExpansiveMap_KeyBinder<Key>::GetNumberKeys(), std::forward<ValueT>(value));
+    m_dbData->m_stmtInsert.Bind(1 + ExpansiveMap_KeyBinder<Key>::GetNumberKeys(), std::forward<ValueT>(value));
 
-    if( m_sqliteDb->m_stmtInsert.Step() != SQLITE_DONE )
-        throw CSProException(ExpansiveMap_SqliteDb::ExceptionMessage);
+    if( m_dbData->m_stmtInsert.Step() != Sqlite::Result::Done )
+        throw CSProException("Error adding a value to an ExpansiveMap.");
 }
 
 
@@ -244,14 +230,14 @@ T ExpansiveMap<Key, Value>::FindWorker(const Key& key) const
         }
     }
 
-    // look in SQLite
-    if( m_sqliteDb != nullptr )
+    // potentially look in the database
+    else if( m_dbData != nullptr )
     {
-        const SQLiteResetOnDestruction rod(m_sqliteDb->m_stmtFind);
+        const Sqlite::Statement::Resetter stmt_resetter(m_dbData->m_stmtFind);
 
-        ExpansiveMap_KeyBinder<Key>::Bind(m_sqliteDb->m_stmtFind, key);
+        ExpansiveMap_KeyBinder<Key>::Bind(m_dbData->m_stmtFind, key);
 
-        if( m_sqliteDb->m_stmtFind.Step() == SQLITE_ROW )
+        if( m_dbData->m_stmtFind.Step() == Sqlite::Result::Row )
         {
             if constexpr(std::is_same_v<T, bool>)
             {
@@ -260,7 +246,7 @@ T ExpansiveMap<Key, Value>::FindWorker(const Key& key) const
 
             else
             {
-                return std::make_unique<Value>(m_sqliteDb->m_stmtFind.GetColumn<Value>(0));
+                return std::make_unique<Value>(m_dbData->m_stmtFind.GetColumn<Value>(0));
             }
         }
     }
@@ -283,21 +269,21 @@ void ExpansiveMap<Key, Value>::Clear()
     m_mapSlotsRemaining += m_map.size();
     m_map.clear();
 
-    if( m_sqliteDb != nullptr )
-        ExpansiveMap_SqliteDb::DoExec(m_db, "DELETE FROM `ex_map`;");
+    if( m_dbData != nullptr )
+        m_dbData->Clear();
 }
 
 
 template<typename Key, typename Value>
-void ExpansiveMap<Key, Value>::WriteMapToSqlite()
+void ExpansiveMap<Key, Value>::WriteMapToDb()
 {
-    ASSERT(!m_map.empty() && m_sqliteDb != nullptr && m_optimizeForRecentInsertionsMaxProportion.has_value());
+    ASSERT(!m_map.empty() && m_dbData != nullptr && m_optimizeForRecentInsertionsMaxProportion.has_value());
 
-    m_sqliteDb->DoBulkInsertions(m_db, *m_optimizeForRecentInsertionsMaxProportion, m_map.size(),
+    m_dbData->DoBulkInsertions(*m_optimizeForRecentInsertionsMaxProportion, m_map.size(),
         [&]()
         {
             for( const auto& [key, value] : m_map )
-                InsertInSqlite(key, value);
+                InsertInDb(key, value);
         });
 }
 
@@ -323,7 +309,7 @@ std::vector<const char*> ExpansiveMap_KeyBinder<Key>::GetDataTypes()
 
 template<typename Key>
 template<typename KeyT>
-void ExpansiveMap_KeyBinder<Key>::Bind(SQLiteStatement& stmt, KeyT&& key)
+void ExpansiveMap_KeyBinder<Key>::Bind(Sqlite::Statement& stmt, KeyT&& key)
 {
     stmt.Bind(1, std::forward<KeyT>(key));
 }

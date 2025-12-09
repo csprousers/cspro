@@ -4,7 +4,7 @@
 #include <zSql/SQLiteHelpers.h>
 
 
-void SqlLogicFunctions::RegisterCallbackFunctions(sqlite3* const db, std::function<void()> additional_function_registrar/* = std::function<void()>()*/)
+void SqlLogicFunctions::RegisterCallbackFunctions(sqlite3* const db, const std::function<void()>& additional_function_registrar/* = std::function<void()>()*/)
 {
     // no need to register the functions if they have already been registered
     constexpr const char* RegisterSqlCallbackFunctionsKey = "RegisterSqlCallbackFunctions";
