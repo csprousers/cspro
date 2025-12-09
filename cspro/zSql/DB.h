@@ -58,6 +58,13 @@ public:
     // Returns the "English language explanation of the most recent error."
     std::string GetLastErrorMessage() const noexcept { return sqlite3_errmsg(m_db); }
 
+    // Specifies the encryption key on a newly opened database connection, throwing an exception if the
+    // key is invalid (when encryption_key_data is non-null and db_has_already_been_keyed is true).
+    // If db_has_already_been_keyed is false, the user_version pragma will be set, which
+    // will prevent a 0-byte file when creating a new database.
+    void KeyDatabase(const void* encryption_key_data, size_t encryption_key_size, bool db_has_already_been_keyed);
+    void KeyDatabase(const BinaryBlock* encryption_key, bool db_has_already_been_keyed);
+
     // Executes the SQL statement, throwing exceptions on error.
     void Execute(cs::string_sz sql);
 
