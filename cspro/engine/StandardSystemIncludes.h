@@ -119,8 +119,6 @@
 #include <vector>
 
 // Character set support
-#define csprochar TCHAR
-
 #define _tmemset    wmemset
 #define _tmemchr    wmemchr
 #define _tmemcmp    wmemcmp
@@ -150,13 +148,5 @@
 #endif
 
 
-#include <StandardIncludes/minimal.h>
-#include <zToolsO/BinaryBlock.h>
-#include <zToolsO/CSProException.h>
-#include <zToolsO/ErrorMessageDisplayer.h>
-#include <zToolsO/InterfaceString.h>
-#include <zToolsO/OperatingSystem.h>
-#include <zToolsO/PointerClasses.h>
-#include <zToolsO/StandardTemplates.h>
-#include <zToolsO/StringOperations.h>
-#include <zToolsO/SharableString.h>
+#define USING_CSTRING
+#include <StandardIncludes/cspro_shared.h>

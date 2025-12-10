@@ -25,8 +25,10 @@ CLASS_DECL_ZTOOLSO void strcpymax(csprochar *pszOut, const csprochar *pszIn, int
 CLASS_DECL_ZTOOLSO int strsizereplace(csprochar *buf, csprochar *in, csprochar *out);
 CLASS_DECL_ZTOOLSO short strreplace(csprochar *buf, csprochar *in, csprochar *out);
 
+#ifdef USING_CSTRING
 //FABN Jan 23, 2006
 CLASS_DECL_ZTOOLSO CString clearString(CString ss, bool bNum);
+#endif
 
 
 // TEXT_ENCODING_TODO the below should move to TextEncoding.h
@@ -40,8 +42,10 @@ CLASS_DECL_ZTOOLSO const char* ToString(Encoding encoding);
 // TEXT_ENCODING_TODO the above should move to TextEncoding.h
 
 
+#ifdef USING_CSTRING
 CLASS_DECL_ZTOOLSO CString DelimitCRLF(CString csText, const TCHAR* crlf_override = nullptr);
 CLASS_DECL_ZTOOLSO CString UndelimitCRLF(CString csText, const TCHAR* crlf_override = nullptr);
+#endif
 
 CLASS_DECL_ZTOOLSO bool RunProgram(std::wstring command, int* iRetCode, int iShowWindow, bool bFocus, bool bWait,
                                    const wchar_t* directory = nullptr);
@@ -163,7 +167,7 @@ constexpr const char* PluralizeWord(const T& count, const char* const word_for_o
 }
 
 template<typename T>
-TCHAR SuperscriptDigit(T count) { ASSERT(count >= 0 && count <= 9); return _T("⁰¹²³⁴⁵⁶⁷⁸⁹")[(size_t)count]; }
+wchar_t SuperscriptDigit(T count) { ASSERT(count >= 0 && count <= 9); return L"⁰¹²³⁴⁵⁶⁷⁸⁹"[static_cast<size_t>(count)]; }
 
 constexpr bool is_digit(int ch)     { return ( ch >= '0' && ch <= '9' ); }
 constexpr bool is_lower(int ch)     { return ( ch >= 'a' && ch <= 'z' ); }

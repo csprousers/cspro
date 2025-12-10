@@ -2,7 +2,7 @@
 
 #include <zUtilO/zUtilO.h>
 
-#ifndef WIN_DESKTOP
+#ifndef _AFX
 #error You should not include this file for platforms other than Windows desktop
 #endif
 

@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include <zToolsO/zToolsO.h>
+#include <zToolsO/OperatingSystem.h>
 
 
 class CLASS_DECL_ZTOOLSO Path
@@ -10,7 +11,7 @@ public:
     // Slash Character Functions
     // --------------------------------------------------------------------------
 
-    static constexpr const char NativeSlashChar     = static_cast<char>(PATH_CHAR);
+    static constexpr const char NativeSlashChar     = OnWindows() ? '\\' : '/';
     static constexpr const char NativeSlashString[] = { NativeSlashChar, '\0' };
     static constexpr std::string_view SlashChars_sv = "/\\";
 

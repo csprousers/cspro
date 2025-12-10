@@ -63,7 +63,9 @@ public:
     CLASS_DECL_ZTOOLSO InterfaceString(const OtherStringT& text);
     CLASS_DECL_ZTOOLSO InterfaceString(const OtherPlatformCharT* text);
 
+#ifdef USING_CSTRING
     InterfaceString(const CString& text);
+#endif
 
     CLASS_DECL_ZTOOLSO InterfaceString(const NullTerminatedString& text);
 
@@ -146,10 +148,12 @@ inline InterfaceString::InterfaceString(const PlatformCharT* const text) noexcep
 }
 
 
+#ifdef USING_CSTRING
 inline InterfaceString::InterfaceString(const CString& text)
     :   InterfaceString(text.GetString())
 {
 }
+#endif
 
 
 template<typename RT/* = PlatformStringT*/>

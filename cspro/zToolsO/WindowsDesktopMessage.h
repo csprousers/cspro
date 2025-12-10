@@ -80,7 +80,7 @@ private:
 
 inline CWnd* WindowsDesktopMessage::GetMainWindow()
 {
-#ifdef WIN_DESKTOP
+#ifdef _AFX
     if( AfxGetApp() != nullptr )
         return AfxGetApp()->GetMainWnd();
 #endif

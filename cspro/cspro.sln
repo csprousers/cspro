@@ -12,6 +12,8 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Standard Includes", "Standard Includes", "{7BA2E809-E588-492C-942C-34CB4AE5FD8B}"
 	ProjectSection(SolutionItems) = preProject
 		StandardIncludes\assert_cast.h = StandardIncludes\assert_cast.h
+		StandardIncludes\cspro_no_mfc.h = StandardIncludes\cspro_no_mfc.h
+		StandardIncludes\cspro_shared.h = StandardIncludes\cspro_shared.h
 		StandardIncludes\minimal.h = StandardIncludes\minimal.h
 		StandardIncludes\strict_errors.h = StandardIncludes\strict_errors.h
 		StandardIncludes\x64_transition.h = StandardIncludes\x64_transition.h

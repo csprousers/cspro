@@ -565,7 +565,7 @@ CString GetFileName(CString csFileName)
 
 
 
-#ifdef WIN_DESKTOP
+#ifdef _AFX
 
 CString ValFromHeader(const CSpecFile& specFile, const CString& csAttribute) // JSON_TODO should not be needed when done
 {
@@ -598,7 +598,7 @@ CString ValFromHeader(const CSpecFile& specFile, const CString& csAttribute) // 
     return sValue;
 }
 
-#endif // WIN_DESKTOP
+#endif // _AFX
 
 
 /////////////////////////////////////////////////////////////////////////////

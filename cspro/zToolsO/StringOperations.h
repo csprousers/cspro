@@ -11,11 +11,13 @@ class InterfaceString;
 class SharableString;
 
 
+#ifdef USING_CSTRING
 // eventually, if we move away from using CString, we can remove these calls
 inline CString WS2CS(const std::wstring& text) { return CString(text.c_str(), static_cast<int>(text.size())); }
 inline std::wstring CS2WS(const CString& text) { return std::wstring(text.GetString(), static_cast<std::wstring::size_type>(text.GetLength())); }
 CLASS_DECL_ZTOOLSO const CString& WS2CS_Reference(const std::wstring& text);
 CLASS_DECL_ZTOOLSO const std::wstring& CS2WS_Reference(const CString& text);
+#endif
 
 
 class CLASS_DECL_ZTOOLSO UTF8_TODO
@@ -37,20 +39,26 @@ public:
     static std::wstring EnsureWide(const std::string& text)         { return GetWide(text); }
     static std::wstring EnsureWide(std::string_view text_sv)        { return GetWide(text_sv); }
     static std::wstring EnsureWide(const char* const& text)         { return GetWide(text); }
+#ifdef USING_CSTRING
     static std::wstring EnsureWide(const CString& text)             { return CS2WS(text); }
+#endif
     static const std::wstring& EnsureWide(const std::wstring& text) { return text; }
     static const wchar_t* EnsureWide(const wchar_t* const text)     { return text; }
     static std::wstring EnsureWide(InterfaceString text);
 
     static std::string EnsureUtf8(const std::wstring& text)       { return GetUtf8(text); }
     static std::string EnsureUtf8(const wchar_t* const& text)     { return GetUtf8(text); }
+#ifdef USING_CSTRING
     static std::string EnsureUtf8(const CString& text)            { return GetUtf8(text); }
+#endif
     static const std::string& EnsureUtf8(const std::string& text) { return text; }
     static std::string_view EnsureUtf8(std::string_view text_sv)  { return text_sv; }
     static const char* EnsureUtf8(const char* const text)         { return text; }
 
+#ifdef USING_CSTRING
     template<typename T>
     static CString GetCString(const T& text_or_sv);
+#endif
 
     static std::string GetUtf8(wstring_view text_sv);
 
@@ -60,7 +68,9 @@ public:
     static std::vector<std::string> GetUtf8(const std::vector<std::wstring>& texts);
     static std::vector<std::wstring> GetWide(const std::vector<std::string>& texts);
     static std::vector<std::wstring> GetWide(const std::vector<SharableString>& texts);
+#ifdef USING_CSTRING
     static std::vector<CString> GetCString(const std::vector<std::string>& texts);
+#endif
 };
 
 
@@ -77,7 +87,9 @@ public:
     CLASS_DECL_ZTOOLSO static const std::string Empty_string;
     CLASS_DECL_ZTOOLSO static const std::shared_ptr<const std::string> Empty_shared_string;
     CLASS_DECL_ZTOOLSO static const std::wstring Empty_wstring;
+#ifdef USING_CSTRING
     CLASS_DECL_ZTOOLSO static const CString Empty_CString;
+#endif
 
 
     // --------------------------------------------------------------------------
@@ -602,11 +614,17 @@ constexpr bool SO::StringTypeHasPrecalculatedLength() noexcept
                  std::is_same_v<ST, cs::string_view_sz> ||
                  std::is_same_v<ST, std::wstring> ||
                  std::is_same_v<ST, std::wstring_view> ||
-                 std::is_same_v<ST, wstring_view> ||
-                 std::is_same_v<ST, CString>)
+                 std::is_same_v<ST, wstring_view>)
     {
         return true;
     }
+
+#ifdef USING_CSTRING
+    else if constexpr(std::is_same_v<ST, CString>)
+    {
+        return true;
+    }
+#endif
 
     else
     {
@@ -618,7 +636,12 @@ constexpr bool SO::StringTypeHasPrecalculatedLength() noexcept
 template<typename ST>
 const auto* SO::GetStringData(const ST& sv_or_cstr)
 {
-    if constexpr(( !std::is_same_v<ST, CString> && StringTypeHasPrecalculatedLength<ST>() ) ||
+    if constexpr(
+#ifdef USING_CSTRING
+                 ( !std::is_same_v<ST, CString> && StringTypeHasPrecalculatedLength<ST>() ) ||
+#else
+                 ( StringTypeHasPrecalculatedLength<ST>() ) ||
+#endif
                  ( std::is_same_v<ST, cs::string_sz> ) ||
                  ( std::is_same_v<ST, NullTerminatedString> ))
     {
@@ -845,7 +868,9 @@ bool SO::IsBlank(const ST& text)
 
 }
 
+#ifdef USING_CSTRING
 template<> inline bool SO::IsBlank(const CString& text) { return IsBlank<wstring_view>(text); }
+#endif
 
 
 template<typename CT>
@@ -862,7 +887,9 @@ bool SO::IsWhitespace(const ST& text)
              std::find_if_not(text.cbegin(), text.cend(), SO::IsWhitespaceChar<typename ST::value_type>) == text.cend() );
 }
 
+#ifdef USING_CSTRING
 template<> inline bool SO::IsWhitespace(const CString& text) { return SO::IsWhitespace<wstring_view>(text); }
+#endif
 
 
 inline bool SO::Equals(const wstring_view sv1, const wstring_view sv2) noexcept
@@ -953,6 +980,7 @@ bool SO::EqualsStartsWithWorker(const ST1& source, const ST2& starts_with_text)
         return EqualsStartsWithWorker<std::string_view, std::string_view, EqualsMode, NoCase>(UTF8_TODO::EnsureUtf8(source), UTF8_TODO::EnsureUtf8(starts_with_text));
     }
 
+#ifdef USING_CSTRING
     // handle CString arguments as string views
     else if constexpr(std::is_same_v<ST1, CString>)
     {
@@ -963,6 +991,7 @@ bool SO::EqualsStartsWithWorker(const ST1& source, const ST2& starts_with_text)
     {
         return EqualsStartsWithWorker<ST1, wstring_view, EqualsMode, NoCase>(source, starts_with_text);
     }
+#endif
 
     // process either strings, string_views, or null-terminated strings
     else
@@ -1251,12 +1280,14 @@ auto SO::TrimRight(const ST& text_or_sv)
 template<bool trim_left, typename ST, typename CT>
 auto SO::TrimLeftRightCharWorker(const ST& text_or_sv, const CT trim_char)
 {
+#ifdef USING_CSTRING
     if constexpr(std::is_same_v<ST, CString>)
     {
         return TrimLeftRightCharWorker<trim_left, wstring_view, CT>(text_or_sv, trim_char);
     }
 
     else
+#endif
     {
         // if this asserts, we need to add a version of trimming that properly handles trimming
         // wide characters in UTF-8 strings
