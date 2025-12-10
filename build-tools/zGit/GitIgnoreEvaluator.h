@@ -1,6 +1,7 @@
 ﻿#pragma once
 
-#include "GitBase.h"
+#include <zGit/zGit.h>
+#include <zGit/GitBase.h>
 
 namespace Git { class IgnoreEvaluator; }
 
@@ -13,7 +14,7 @@ namespace Git { class IgnoreEvaluator; }
 // rules.
 // --------------------------------------------------------------------------
 
-class Git::IgnoreEvaluator : public Git::Base
+class ZGIT_API Git::IgnoreEvaluator : public Git::Base
 {
 public:
     IgnoreEvaluator();
@@ -22,8 +23,13 @@ public:
     void AddRules(cs::string_sz rules);
     void AddRulesFromFile(const std::string& file_path);
 
+    void ClearRules();
+
     bool Include(std::string path);
     bool Ignore(std::string path) { return !Include(std::move(path)); }
+
+private:
+    void AddDefaultRules();
 
 private:
     struct Data;

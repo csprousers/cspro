@@ -18,19 +18,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\Overrides\replacement-ApiKeys.h">
-      <Filter>Overrides</Filter>
-    </ClInclude>
     <ClInclude Include="Creator.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="GitBase.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="GitIgnoreEvaluator.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="GitObjects.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="OpenSourceReleaseCreator.h">
@@ -38,6 +26,9 @@
     </ClInclude>
     <ClInclude Include="OpenSourceReleaseCreatorDlg.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Overrides\replacement-ApiKeys.h">
+      <Filter>Overrides</Filter>
     </ClInclude>
     <ClInclude Include="resource.h">
       <Filter>Header Files</Filter>
@@ -48,12 +39,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Creator.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="GitBase.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="GitIgnoreEvaluator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="OpenSourceReleaseCreator.cpp">
@@ -72,17 +57,17 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="..\Overrides\exclusions.txt">
+    <Text Include="Overrides\exclusions.txt">
       <Filter>Overrides</Filter>
     </Text>
   </ItemGroup>
   <ItemGroup>
-    <Xml Include="..\Overrides\replacement-api_keys.xml">
+    <Xml Include="Overrides\replacement-api_keys.xml">
       <Filter>Overrides</Filter>
     </Xml>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\Overrides\replacements.json">
+    <None Include="Overrides\replacements.json">
       <Filter>Overrides</Filter>
     </None>
   </ItemGroup>

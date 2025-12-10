@@ -1,7 +1,7 @@
 ﻿#pragma once
 
-#include "GitBase.h"
-#include "GitObjects.h"
+#include <zGit/GitBase.h>
+#include <zGit/GitObjects.h>
 #include <zUtilF/LoggingListBox.h>
 
 

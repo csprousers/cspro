@@ -1,5 +1,7 @@
 ﻿#pragma once
 
+#include <zGit/zGit.h>
+
 namespace Git { class Base; }
 
 
@@ -12,7 +14,7 @@ namespace Git { class Base; }
 // It also provides a method for throwing libgit2 errors as exceptions.
 // --------------------------------------------------------------------------
 
-class Git::Base
+class ZGIT_API Git::Base
 {
 protected:
     Base();

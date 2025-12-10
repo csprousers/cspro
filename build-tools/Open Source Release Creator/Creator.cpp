@@ -1,12 +1,11 @@
 ﻿#include "StdAfx.h"
 #include "Creator.h"
-#include "GitIgnoreEvaluator.h"
 #include <zToolsO/CaseInsensitiveComparer.h>
 #include <zToolsO/DirectoryLister.h>
 #include <zToolsO/File.h>
 #include <zJson/JsonSpecFile.h>
-#include <zUtilO/CSProExecutables.h>
 #include <zNetwork/CurlHttpConnection.h>
+#include <zGit/GitIgnoreEvaluator.h>
 
 
 struct Creator::Data

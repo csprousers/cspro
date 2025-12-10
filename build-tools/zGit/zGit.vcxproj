@@ -1,0 +1,53 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\..\cspro\properties\project-configurations-build-tools.props" />
+  <Import Project="..\..\cspro\properties\project-globals.props" />
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{01396FA2-BCA6-4F57-9346-EC468DB7E0A6}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <Import Project="..\..\cspro\properties\project-settings.props" />
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <PreprocessorDefinitions>ZGIT_IMPL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>$(CSProDir)\external\libgit2\lib\$(PlatformTarget)\git2.lib</AdditionalDependencies>
+    </Link>
+    <PreBuildEvent>
+      <Command>xcopy /D /Y /F /R /S /I "$(CSProDir)external\libgit2\lib\$(PlatformTarget)\*.dll" "$(TargetDir)"</Command>
+    </PreBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="GitBase.cpp" />
+    <ClCompile Include="GitIgnoreEvaluator.cpp" />
+    <ClCompile Include="StdAfx.cpp">
+      <PrecompiledHeader>Create</PrecompiledHeader>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="GitBase.h" />
+    <ClInclude Include="GitIgnoreEvaluator.h" />
+    <ClInclude Include="GitObjects.h" />
+    <ClInclude Include="StdAfx.h" />
+    <ClInclude Include="zGit.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\cspro\zToolsO\zToolsO.vcxproj">
+      <Project>{fb0e28ec-927d-41d0-996c-01c21a7a346b}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\cspro\zUtilO\zUtilO.vcxproj">
+      <Project>{9b29cb57-8263-4e12-8908-cc9641fdf0dc}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+</Project>

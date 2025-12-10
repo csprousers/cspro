@@ -120,6 +120,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stygitan", "Stygitan\Stygit
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Git Helpers", "Git Helpers\GitHelpers.vcxproj", "{EBA28A42-4201-46D2-8895-CECD881E72EF}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zGit", "zGit\zGit.vcxproj", "{01396FA2-BCA6-4F57-9346-EC468DB7E0A6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -237,6 +239,8 @@ Global
 		{7839F076-20DE-4334-B1DC-A76B2D3CB754}.Debug|x64.Build.0 = Debug|x64
 		{EBA28A42-4201-46D2-8895-CECD881E72EF}.Debug|x64.ActiveCfg = Debug|x64
 		{EBA28A42-4201-46D2-8895-CECD881E72EF}.Debug|x64.Build.0 = Debug|x64
+		{01396FA2-BCA6-4F57-9346-EC468DB7E0A6}.Debug|x64.ActiveCfg = Debug|x64
+		{01396FA2-BCA6-4F57-9346-EC468DB7E0A6}.Debug|x64.Build.0 = Debug|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,5 +1,7 @@
 ﻿#include "StdAfx.h"
 #include "GitIgnoreEvaluator.h"
+#include <zToolsO/FileIO.h>
+#include <zUtilO/Interapp.h>
 
 
 struct Git::IgnoreEvaluator::Data
@@ -16,6 +18,8 @@ Git::IgnoreEvaluator::IgnoreEvaluator()
 
     if( git_repository_init(&m_data->repo, m_data->repo_directory.c_str(), true) < 0 )
         ThrowGitException();
+
+    AddDefaultRules();
 }
 
 
@@ -38,6 +42,22 @@ void Git::IgnoreEvaluator::AddRules(const cs::string_sz rules)
 void Git::IgnoreEvaluator::AddRulesFromFile(const std::string& file_path)
 {
     AddRules(FileIO::ReadText(file_path));
+}
+
+
+void Git::IgnoreEvaluator::AddDefaultRules()
+{
+    // by default the .git directory is ignored, so restore it
+    AddRules("!.git");
+}
+
+
+void Git::IgnoreEvaluator::ClearRules()
+{
+    if( git_ignore_clear_internal_rules(m_data->repo) != 0 )
+        ThrowGitException();
+
+    AddDefaultRules();
 }
 
 
