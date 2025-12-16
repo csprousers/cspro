@@ -54,7 +54,7 @@ void ProcessorHtml::DisplayHtmlDialog(CodeDoc& code_doc)
 
     catch( const std::exception& exception )
     {
-        output_wnd->AddText(FormatText("Action Invoker Exception: %s", exception.what()));
+        output_wnd->AddText("Action Invoker Exception: %s", exception.what());
         return;
     }
 

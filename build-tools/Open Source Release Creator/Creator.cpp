@@ -88,7 +88,7 @@ void Creator::CreateRelease(const cs::string_sz commit_string)
 {
     ASSERT(!m_openSourceDirectory.empty());
 
-    m_loggingListBox->AddText(FormatText("Creating open source release from commit: %s", commit_string.c_str()));
+    m_loggingListBox->AddText("Creating open source release from commit: %s", commit_string.c_str());
 
     auto [commit, tree] = LookupCommitAndGetTree(commit_string);
 
@@ -120,7 +120,7 @@ void Creator::CreateRelease(const cs::string_sz commit_string)
 
 void Creator::ValidateRelease(const cs::string_sz commit_string)
 {
-    m_loggingListBox->AddText(FormatText("Generating the file list for validation from commit: %s", commit_string.c_str()));
+    m_loggingListBox->AddText("Generating the file list for validation from commit: %s", commit_string.c_str());
 
     auto [commit, tree] = LookupCommitAndGetTree(commit_string);
 
@@ -132,7 +132,7 @@ void Creator::ValidateRelease(const cs::string_sz commit_string)
 
 void Creator::GenerateFileList(const cs::string_sz commit_string)
 {
-    m_loggingListBox->AddText(FormatText("Generating the file list from commit: %s", commit_string.c_str()));
+    m_loggingListBox->AddText("Generating the file list from commit: %s", commit_string.c_str());
 
     auto [commit, tree] = LookupCommitAndGetTree(commit_string);
 
@@ -217,7 +217,7 @@ void Creator::PruneRepoPaths()
     const std::string exclusions_file_path = Path::Combine(m_overridesDirectory, "exclusions.txt");
 
     m_loggingListBox->AddText(SharableString());
-    m_loggingListBox->AddText(FormatText("Pruning files based on gitignore rules from: %s", exclusions_file_path.c_str()));
+    m_loggingListBox->AddText("Pruning files based on gitignore rules from: %s", exclusions_file_path.c_str());
 
     std::vector<std::string>& repo_paths = m_repoPaths;
     const size_t initial_file_count = repo_paths.size();
@@ -231,8 +231,8 @@ void Creator::PruneRepoPaths()
             repo_paths.erase(repo_paths.begin() + i);
     }
 
-    m_loggingListBox->AddText(FormatText("Pruned files from %d to %d.", static_cast<int>(initial_file_count),
-                                                                        static_cast<int>(repo_paths.size())));
+    m_loggingListBox->AddText("Pruned files from %d to %d.", static_cast<int>(initial_file_count),
+                                                             static_cast<int>(repo_paths.size()));
 }
 
 
@@ -242,7 +242,7 @@ void Creator::PrepareOutputDirectory()
     const std::string temp_directory = GetUniqueTempFilePath("CSPro-Open-Source-Old-Files");
 
     m_loggingListBox->AddText(SharableString());
-    m_loggingListBox->AddText(FormatText("Moving existing open source files to: %s", temp_directory.c_str()));
+    m_loggingListBox->AddText("Moving existing open source files to: %s", temp_directory.c_str());
 
     FileIO::CreateDirectories(temp_directory);
 
@@ -283,7 +283,7 @@ void Creator::PrepareOutputDirectory()
     to_wide(temp_directory, complete_from_path);
     info.pTo = nullptr;
 
-    m_loggingListBox->AddText(FormatText("Recycling: %s", temp_directory.c_str()));
+    m_loggingListBox->AddText("Recycling: %s", temp_directory.c_str());
 
     if( SHFileOperation(&info) != 0 )
         throw CSProException("Error recycling: %s", temp_directory.c_str());
@@ -293,8 +293,8 @@ void Creator::PrepareOutputDirectory()
 void Creator::CopyFilesToOutputDirectory()
 {
     m_loggingListBox->AddText(SharableString());
-    m_loggingListBox->AddText(FormatText("Copying %d files to: %s", static_cast<int>(m_repoPaths.size()),
-                                                                    m_openSourceDirectory.c_str()));
+    m_loggingListBox->AddText("Copying %d files to: %s", static_cast<int>(m_repoPaths.size()),
+                                                         m_openSourceDirectory.c_str());
 
     uint64_t total_content_size = 0;
 
@@ -319,12 +319,12 @@ void Creator::CopyFilesToOutputDirectory()
 
         if( percent >= next_percent_for_reporting )
         {
-            m_loggingListBox->AddText(FormatText("Copy percent: %d", static_cast<int>(percent)));
+            m_loggingListBox->AddText("Copy percent: %d", static_cast<int>(percent));
             next_percent_for_reporting += PercentReportingInterval;
         }
     }
 
-    m_loggingListBox->AddText(FormatText("Copied bytes: " Formatter_uint64_t, total_content_size));
+    m_loggingListBox->AddText("Copied bytes: " Formatter_uint64_t, total_content_size);
 }
 
 
@@ -333,7 +333,7 @@ void Creator::CopyReplacementFiles()
     const std::string replacements_file_path = Path::Combine(m_overridesDirectory, "replacements.json");
 
     m_loggingListBox->AddText(SharableString());
-    m_loggingListBox->AddText(FormatText("Copying replacement files specified in: %s", replacements_file_path.c_str()));
+    m_loggingListBox->AddText("Copying replacement files specified in: %s", replacements_file_path.c_str());
 
     const std::unique_ptr<JsonSpecFile::Reader> json_reader = JsonSpecFile::CreateReader(replacements_file_path);
 
@@ -436,7 +436,7 @@ void Creator::CreateSqliteWithoutSEE(const GitTree& tree)
     if( commit_sha.empty() )
         throw CSProException("No SQLite amalgamation has a commit message containing: " + version);
 
-    m_loggingListBox->AddText(FormatText("Downloading SQLite files from %s commit SHA: %s", AmalgamationRepository, commit_sha.c_str()));
+    m_loggingListBox->AddText("Downloading SQLite files from %s commit SHA: %s", AmalgamationRepository, commit_sha.c_str());
 
     // download the non-SEE versions
     for( int i = 0; i < 2; ++i )
@@ -462,7 +462,7 @@ void Creator::CreateSqliteWithoutSEE(const GitTree& tree)
 
         const std::string output_file_path = Path::Combine(m_openSourceDirectory, Path::ToNativeSlash(sqlite_repo_path), filename);
 
-        m_loggingListBox->AddText(FormatText("Saving '%s' (length %d) to: %s", filename, static_cast<int>(body.size()), output_file_path.c_str()));
+        m_loggingListBox->AddText("Saving '%s' (length %d) to: %s", filename, static_cast<int>(body.size()), output_file_path.c_str());
 
         FileIO::WriteText(output_file_path, body, false);
     }
@@ -540,7 +540,7 @@ void Creator::CreateHistoryLog(const GitCommit& latest_commit)
     const std::string history_file_path = Path::Combine(m_openSourceDirectory, "HISTORY.md");
 
     m_loggingListBox->AddText(SharableString());
-    m_loggingListBox->AddText(FormatText("Creating history log: %s", history_file_path.c_str()));
+    m_loggingListBox->AddText("Creating history log: %s", history_file_path.c_str());
 
     FileIO::TextFile history_file;
     history_file.OpenForTextWritingCreate(history_file_path);
@@ -653,7 +653,7 @@ void Creator::EnsureRepositoriesMatch(const bool add_space_before_log)
     if( add_space_before_log )
         m_loggingListBox->AddText(SharableString());
 
-    m_loggingListBox->AddText(FormatText("Validating open source directory: %s", m_openSourceDirectory.c_str()));
+    m_loggingListBox->AddText("Validating open source directory: %s", m_openSourceDirectory.c_str());
 
     // because gitignore rules can result in some tracked files being excluded, we check that
     // the open source directory contains the exact set of files from the input

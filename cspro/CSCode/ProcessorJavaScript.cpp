@@ -112,7 +112,7 @@ void JavaScriptRunOperation::RunWorker()
 
     catch( const JavaScript::Exception& exception )
     {
-        m_outputWnd.AddText(FormatText("UNHANDLED EXCEPTION: %s", exception.what()));
+        m_outputWnd.AddText("UNHANDLED EXCEPTION: %s", exception.what());
     }
 
     WindowsDesktopMessage::Post(UWM::CSCode::RunOperationComplete);

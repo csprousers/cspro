@@ -147,7 +147,7 @@ void OpenSourceReleaseCreatorDlg::CreateValidateWorker(const bool create)
 
     catch( const CSProException& exception )
     {
-        m_loggingListBox.AddText(FormatText("\n\nError: %s", exception.what()));
+        m_loggingListBox.AddText("\n\nError: %s", exception.what());
         ErrorMessage::PostMessageForDisplay(exception);
     }
 

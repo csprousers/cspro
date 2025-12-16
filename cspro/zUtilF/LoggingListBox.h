@@ -7,8 +7,9 @@
 // --------------------------------------------------------------------------
 // LoggingListBox
 //
-// a CListBox subclass designed to show the results of logging activity;
-// the Clear and AddText methods can be called from any thread
+// LoggingListBox is a CListBox subclass designed to show the results of
+// logging activity. The Clear and AddText methods can be called from any
+// thread.
 // --------------------------------------------------------------------------
 
 class CLASS_DECL_ZUTILF LoggingListBox : public CListBox
@@ -22,6 +23,9 @@ public:
     void Clear();
 
     void AddText(SharableString text);
+
+    template<typename... Args>
+    void AddText(const char* formatter, Args const&... args);
 
 protected:
     virtual void AddAdditionalContextMenuItems(CMenu& popup_menu);
@@ -79,3 +83,15 @@ private:
     std::mutex m_linesMutex;
     bool m_addTextMessagePending;
 };
+
+
+
+// --------------------------------------------------------------------------
+// inline implementations
+// --------------------------------------------------------------------------
+
+template<typename... Args>
+void LoggingListBox::AddText(const char* const formatter, Args const&... args)
+{
+    AddText(FormatText(formatter, args...));
+}

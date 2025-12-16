@@ -147,16 +147,16 @@ void Builder::UpdateBlog()
 
     const std::string csdocset_file_path = Path::Combine(m_directories.csprousers_input, "blog", "CSPro Users Blog.csdocset");
 
-    m_loggingListBox.AddText(FormatText("Converting the blog posts in %s...", Path::GetFilename(csdocset_file_path).c_str()));
+    m_loggingListBox.AddText("Converting the blog posts in %s...", Path::GetFilename(csdocset_file_path).c_str());
     BuildDocSet(csdocset_file_path, BuildBlog { posts_directory });
 
     const std::vector<std::string> post_file_paths = DirectoryLister().GetPaths(posts_directory);
 
     if( !post_file_paths.empty() )
     {
-        m_loggingListBox.AddText(FormatText("Successfully converted %d blog post%s, the last one being:\n    %s",
-                                            static_cast<int>(post_file_paths.size()), PluralizeWord(post_file_paths.size()),
-                                            Path::GetFilename(post_file_paths.back()).c_str()));
+        m_loggingListBox.AddText("Successfully converted %d blog post%s, the last one being:\n    %s",
+                                 static_cast<int>(post_file_paths.size()), PluralizeWord(post_file_paths.size()),
+                                 Path::GetFilename(post_file_paths.back()).c_str());
     }
 }
 
@@ -170,7 +170,7 @@ void Builder::UpdateHelps()
 
     // copy the resource files
     const std::string resource_files_json_file_path = Path::Combine(m_directories.helps, "resource-files.json");
-    m_loggingListBox.AddText(FormatText("Copying resource files specified in %s...", resource_files_json_file_path.c_str()));
+    m_loggingListBox.AddText("Copying resource files specified in %s...", resource_files_json_file_path.c_str());
 
     JsonReaderInterface json_reader_interface(m_directories.helps);
     const JsonNode json_node = Json::ParseFile(resource_files_json_file_path, &json_reader_interface);
@@ -191,7 +191,7 @@ void Builder::UpdateHelps()
     for( const std::string& csdocset_file_path : directory_lister.GetPaths(m_directories.helps) )
     {
         // build the website
-        m_loggingListBox.AddText(FormatText("Building the website for %s...", Path::GetFilenameWithoutExtension(csdocset_file_path).c_str()));
+        m_loggingListBox.AddText("Building the website for %s...", Path::GetFilenameWithoutExtension(csdocset_file_path).c_str());
         BuildDocSet(csdocset_file_path, "CSPro Users Help Website");
     }
 

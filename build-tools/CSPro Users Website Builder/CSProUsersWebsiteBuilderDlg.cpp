@@ -126,7 +126,7 @@ void CSProUsersWebsiteBuilderDlg::OnBuildTask(const UINT nID)
                 try
                 {
                     m_loggingListBox.Clear();
-                    m_loggingListBox.AddText(FormatText("Task started at %s\n", DateTime::LocalDateTimeString(DateTime::Now()).c_str()));
+                    m_loggingListBox.AddText("Task started at %s\n", DateTime::LocalDateTimeString(DateTime::Now()).c_str());
 
                     switch( nID )
                     {
@@ -159,7 +159,7 @@ void CSProUsersWebsiteBuilderDlg::OnBuildTask(const UINT nID)
 
                 catch( const CSProException& exception )
                 {
-                    m_loggingListBox.AddText(FormatText("\nTask ended in error: %s", exception.what()));
+                    m_loggingListBox.AddText("\nTask ended in error: %s", exception.what());
                     ErrorMessage::PostMessageForDisplay(exception);
                 }
 
