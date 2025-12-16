@@ -38,11 +38,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zHtml", "..\cspro\zHtml\zHt
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zUtilF", "..\cspro\zUtilF\zUtilF.vcxproj", "{40427473-971C-41EE-ADEB-23795522E112}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CSProUsersWebsiteBuilder", "CSPro Users Website Builder\CSProUsersWebsiteBuilder.vcxproj", "{E8E3C360-2D0C-403A-AD8B-26B0905EF76D}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CSPro Users Website Builder", "CSPro Users Website Builder\CSProUsersWebsiteBuilder.vcxproj", "{E8E3C360-2D0C-403A-AD8B-26B0905EF76D}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zNetwork", "..\cspro\zNetwork\zNetwork.vcxproj", "{07D7DA9D-03ED-437C-8A1F-CB2E76A3EF6A}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OpenSourceReleaseCreator", "Open Source Release Creator\OpenSourceReleaseCreator.vcxproj", "{6DC25DFA-F0E9-4E2F-88C2-EDB6FE911C67}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Open Source Release Creator", "Open Source Release Creator\OpenSourceReleaseCreator.vcxproj", "{6DC25DFA-F0E9-4E2F-88C2-EDB6FE911C67}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Update Version", "Update Version\Update Version.csproj", "{47FCCC02-4D56-4CB6-87E5-EA3D1954AB00}"
 EndProject
@@ -116,11 +116,13 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zRtf", "..\cspro\zRtf\zRtf.
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Update Example Files", "Update Example Files\Update Example Files.vcxproj", "{23B7DB2D-E00E-48BC-81A1-130FD46E6077}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stygitan", "Stygitan\Stygitan.csproj", "{7839F076-20DE-4334-B1DC-A76B2D3CB754}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stygitan_NET", "Stygitan_NET\Stygitan_NET.csproj", "{7839F076-20DE-4334-B1DC-A76B2D3CB754}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Git Helpers", "Git Helpers\GitHelpers.vcxproj", "{EBA28A42-4201-46D2-8895-CECD881E72EF}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zGit", "zGit\zGit.vcxproj", "{01396FA2-BCA6-4F57-9346-EC468DB7E0A6}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Stygitan", "Stygitan\Stygitan.vcxproj", "{619BCC6B-FB82-4273-8507-25AEC1D42339}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -241,6 +243,8 @@ Global
 		{EBA28A42-4201-46D2-8895-CECD881E72EF}.Debug|x64.Build.0 = Debug|x64
 		{01396FA2-BCA6-4F57-9346-EC468DB7E0A6}.Debug|x64.ActiveCfg = Debug|x64
 		{01396FA2-BCA6-4F57-9346-EC468DB7E0A6}.Debug|x64.Build.0 = Debug|x64
+		{619BCC6B-FB82-4273-8507-25AEC1D42339}.Debug|x64.ActiveCfg = Debug|x64
+		{619BCC6B-FB82-4273-8507-25AEC1D42339}.Debug|x64.Build.0 = Debug|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
