@@ -169,7 +169,7 @@ const std::byte* Multimedia::BmpFile::GetPixelData() const
 
 void Multimedia::BmpFile::Save(const std::string& file_path)
 {
-    FileIO::Write(file_path, cs::span<const std::byte>(m_bmpData.get(), m_bmpDataLength));
+    FileIO::Write(file_path, m_bmpData.get(), m_bmpDataLength);
 }
 
 

@@ -105,7 +105,7 @@ namespace
 
         void* data = get_data_and_size_callback(file_and_size.size);
 
-        const bool read_success = ( fread(data, 1, static_cast<size_t>(file_and_size.size), file_and_size.file) == file_and_size.size );
+        const bool read_success = ( fread(data, 1, static_cast<size_t>(file_and_size.size), file_and_size.file) == static_cast<size_t>(file_and_size.size) );
 
         fclose(file_and_size.file);
 
@@ -176,7 +176,7 @@ std::string FileIO::ReadText(InterfaceString file_path, TextEncoding text_encodi
     else
     {
         const std::unique_ptr<TextEncoding::Converter> text_converter = text_encoding.CreateConverter();
-        ASSERT(text_converter != nullptr);    
+        ASSERT(text_converter != nullptr);
 
         return text_converter->ToUtf8(std::string_view(text).substr(text_encoding.GetBomLength()));
     }
@@ -330,7 +330,7 @@ namespace
 }
 
 
-void FileIO::Write(InterfaceString file_path, const std::byte* const content, const size_t content_size)
+void FileIO::Write(InterfaceString file_path, const void* const content, const size_t content_size)
 {
     WriteWorker(std::move(file_path),
         [&](FILE* const file)

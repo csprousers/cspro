@@ -15,24 +15,17 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <Import Project="..\..\cspro\properties\project-settings.props" />
   <ItemDefinitionGroup>
-    <Link>
-      <AdditionalDependencies>$(CSProDir)\external\libgit2\lib\$(PlatformTarget)\git2.lib</AdditionalDependencies>
-    </Link>
-    <PreBuildEvent>
-      <Command>xcopy /D /Y /F /R /S /I "$(CSProDir)external\libgit2\lib\$(PlatformTarget)\*.dll" "$(TargetDir)"</Command>
-    </PreBuildEvent>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(SolutionDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="GitAccessor.h" />
-    <ClInclude Include="GitCommit.h" />
     <ClInclude Include="GitHelpers.h" />
     <ClInclude Include="GitHelpersDlg.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="StdAfx.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="GitAccessor.cpp" />
-    <ClCompile Include="GitCommit.cpp" />
     <ClCompile Include="GitHelpers.cpp" />
     <ClCompile Include="GitHelpersDlg.cpp" />
     <ClCompile Include="StdAfx.cpp">
@@ -49,6 +42,10 @@
     </ProjectReference>
     <ProjectReference Include="..\..\cspro\zUtilO\zUtilO.vcxproj">
       <Project>{9b29cb57-8263-4e12-8908-cc9641fdf0dc}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zGit\zGit.vcxproj">
+      <Project>{01396fa2-bca6-4f57-9346-ec468db7e0a6}</Project>
       <Private>false</Private>
     </ProjectReference>
   </ItemGroup>

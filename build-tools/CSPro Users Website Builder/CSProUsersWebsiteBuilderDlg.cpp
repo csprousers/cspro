@@ -9,11 +9,11 @@
 
 namespace
 {
-    static constexpr std::string_view HelpsDirectoryKey_sv            = "helps";
-    static constexpr std::string_view MobileWorkshopDirectoryKey_sv   = "mobile-workshop";
-    static constexpr std::string_view RubyDirectoryKey_sv             = "ruby";
-    static constexpr std::string_view CSProUsersInputDirectoryKey_sv  = "input-directory";
-    static constexpr std::string_view CSProUsersOutputDirectoryKey_sv = "output-directory";
+    constexpr std::string_view HelpsDirectoryKey_sv            = "helps";
+    constexpr std::string_view MobileWorkshopDirectoryKey_sv   = "mobile-workshop";
+    constexpr std::string_view RubyDirectoryKey_sv             = "ruby";
+    constexpr std::string_view CSProUsersInputDirectoryKey_sv  = "input-directory";
+    constexpr std::string_view CSProUsersOutputDirectoryKey_sv = "output-directory";
 }
 
 
