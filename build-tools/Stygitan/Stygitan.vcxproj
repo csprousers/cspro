@@ -19,12 +19,14 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="FilteredCommitsMessageCreatorView.h" />
     <ClInclude Include="MainFrame.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="StdAfx.h" />
     <ClInclude Include="Stygitan.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="FilteredCommitsMessageCreatorView.cpp" />
     <ClCompile Include="MainFrame.cpp" />
     <ClCompile Include="StdAfx.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
@@ -38,8 +40,16 @@
     <Image Include="res\Stygitan.ico" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\cspro\zToolsO\zToolsO.vcxproj">
+      <Project>{fb0e28ec-927d-41d0-996c-01c21a7a346b}</Project>
+      <Private>false</Private>
+    </ProjectReference>
     <ProjectReference Include="..\..\cspro\zUtilO\zUtilO.vcxproj">
       <Project>{9b29cb57-8263-4e12-8908-cc9641fdf0dc}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zGit\zGit.vcxproj">
+      <Project>{01396fa2-bca6-4f57-9346-ec468db7e0a6}</Project>
       <Private>false</Private>
     </ProjectReference>
   </ItemGroup>

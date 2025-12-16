@@ -1,5 +1,6 @@
 ﻿#include "StdAfx.h"
 #include "Stygitan.h"
+#include "FilteredCommitsMessageCreatorView.h"
 #include "MainFrame.h"
 #include <zUtilO/ImsaDlg.h>
 #include <zUtilF/CommonControls.h>
@@ -13,6 +14,7 @@ namespace
 
 
 BEGIN_MESSAGE_MAP(StygitanApp, CWinApp)
+    ON_COMMAND(ID_COMMITS_CREATE_MESSAGE_FROM_FILTERED_COMMITS, OnCreateMessageFromFilteredCommits)
     ON_COMMAND(ID_APP_ABOUT, OnAppAbout)
 END_MESSAGE_MAP()
 
@@ -38,6 +40,7 @@ BOOL StygitanApp::InitInstance()
     // Register the application's document templates.  Document templates
     //  serve as the connection between documents, frame windows and views.
     m_fileFreeDocManager = new FileFreeDocManager();
+    m_fileFreeDocManager->AddDocTemplate<IDR_FILTERED_COMMITS_MESSAGE_CREATOR, FilteredCommitsMessageCreatorView>();
     m_pDocManager = m_fileFreeDocManager;
 
     // To create the main window, this code creates a new frame window
@@ -58,6 +61,12 @@ BOOL StygitanApp::InitInstance()
     main_frame->UpdateWindow();
 
     return TRUE;
+}
+
+
+void StygitanApp::OnCreateMessageFromFilteredCommits()
+{
+    m_fileFreeDocManager->Open(IDR_FILTERED_COMMITS_MESSAGE_CREATOR, false);
 }
 
 

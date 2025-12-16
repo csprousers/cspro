@@ -1,7 +1,6 @@
 ﻿#include "StdAfx.h"
-#include "GitHelpersDlg.h"
+#include "FilteredCommitsMessageCreatorView.h"
 #include <zToolsO/FileIO.h>
-#include <zUtilO/DataExchange.h>
 #include <zGit/GitBranch.h>
 #include <zGit/GitRepository.h>
 #include <zGit/GitRevisionWalker.h>
@@ -17,14 +16,17 @@ namespace
 }
 
 
-BEGIN_MESSAGE_MAP(GitHelpersDlg, CDialog)
+IMPLEMENT_DYNCREATE(FilteredCommitsMessageCreatorView, CFormView)
+
+
+BEGIN_MESSAGE_MAP(FilteredCommitsMessageCreatorView, CFormView)
     ON_BN_CLICKED(IDC_CREATE_FILTERED_COMMIT_TEXT, OnCreateCommitTextForFilteredCommits)
 END_MESSAGE_MAP()
 
 
-GitHelpersDlg::GitHelpersDlg(CWnd* const pParent/* = nullptr*/)
-    :   CDialog(IDD_GIT_HELPERS, pParent),
-        m_settingsDb("Stygitan.db", "CommitFilter"),
+FilteredCommitsMessageCreatorView::FilteredCommitsMessageCreatorView()
+    :   CFormView(IDD_FILTERED_COMMITS_MESSAGE_CREATOR),
+        m_settingsDb("Stygitan.db", "FilteredCommitsMessageCreator"),
         m_filteredRepositoryDirectory(m_settingsDb.ReadOrDefault<std::string>(FilteredRepositoryDirectoryKey_sv)),
         m_filteredRepositoryCommit(m_settingsDb.ReadOrDefault<std::string>(FilteredRepositoryCommitKey_sv)),
         m_destinationDirectory(m_settingsDb.ReadOrDefault<std::string>(DestinationDirectoryKey_sv)),
@@ -33,12 +35,7 @@ GitHelpersDlg::GitHelpersDlg(CWnd* const pParent/* = nullptr*/)
 }
 
 
-GitHelpersDlg::~GitHelpersDlg()
-{
-}
-
-
-void GitHelpersDlg::DoDataExchange(CDataExchange* const pDX)
+void FilteredCommitsMessageCreatorView::DoDataExchange(CDataExchange* const pDX)
 {
     __super::DoDataExchange(pDX);
 
@@ -49,7 +46,7 @@ void GitHelpersDlg::DoDataExchange(CDataExchange* const pDX)
 }
 
 
-void GitHelpersDlg::OnCreateCommitTextForFilteredCommits()
+void FilteredCommitsMessageCreatorView::OnCreateCommitTextForFilteredCommits()
 {
     UpdateData(TRUE);
 
@@ -104,7 +101,7 @@ void GitHelpersDlg::OnCreateCommitTextForFilteredCommits()
 }
 
 
-std::vector<GitCommit> GitHelpersDlg::ReadCommitHistory() const
+std::vector<GitCommit> FilteredCommitsMessageCreatorView::ReadCommitHistory() const
 {
     GitRepository repo;
     repo.OpenBare(Path::Combine(m_filteredRepositoryDirectory, ".git"));
@@ -117,7 +114,7 @@ std::vector<GitCommit> GitHelpersDlg::ReadCommitHistory() const
 }
 
 
-std::vector<std::string> GitHelpersDlg::LookupCommitSHAs(const std::vector<GitCommit>& commits) const
+std::vector<std::string> FilteredCommitsMessageCreatorView::LookupCommitSHAs(const std::vector<GitCommit>& commits) const
 {
     GitRepository repo;
     repo.OpenBare(Path::Combine(m_destinationDirectory, ".git"));

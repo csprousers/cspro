@@ -75,6 +75,10 @@ BEGIN
     BEGIN
         MENUITEM "E&xit\tAlt+F4",               ID_APP_EXIT
     END
+    POPUP "&Commits"
+    BEGIN
+        MENUITEM "Create Message From Filtered Commits", ID_COMMITS_CREATE_MESSAGE_FROM_FILTERED_COMMITS
+    END
     POPUP "&Window"
     BEGIN
         MENUITEM "&Cascade",                    ID_WINDOW_CASCADE
@@ -112,11 +116,66 @@ END
 
 /////////////////////////////////////////////////////////////////////////////
 //
+// Dialog
+//
+
+IDD_FILTERED_COMMITS_MESSAGE_CREATOR DIALOGEX 0, 0, 461, 116
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+EXSTYLE WS_EX_APPWINDOW
+CAPTION "Filtered Commits Message Creator"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    GROUPBOX        "Create commit text for filtered commits:",IDC_STATIC,7,7,447,102
+    LTEXT           "Repository directory with filtered commits:",IDC_STATIC,19,24,136,8
+    EDITTEXT        IDC_FILTERED_REPO,174,21,209,14,ES_AUTOHSCROLL
+    LTEXT           "Starting filtered commit:",IDC_STATIC,19,45,78,8
+    EDITTEXT        IDC_FILTERED_COMMIT,174,42,209,14,ES_AUTOHSCROLL
+    LTEXT           "Destination repository directory:",IDC_STATIC,19,66,105,8
+    EDITTEXT        IDC_DESTINATION_REPO,174,63,209,14,ES_AUTOHSCROLL
+    LTEXT           "Destination branch name with commits to link:",IDC_STATIC,19,87,146,8
+    EDITTEXT        IDC_DESTINATION_BRANCH,174,84,209,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "&Run",IDC_CREATE_FILTERED_COMMIT_TEXT,397,21,50,14
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// AFX_DIALOG_LAYOUT
+//
+
+IDD_FILTERED_COMMITS_MESSAGE_CREATOR AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO
+BEGIN
+    IDD_FILTERED_COMMITS_MESSAGE_CREATOR, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 454
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 109
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
 // String Table
 //
 
 STRINGTABLE
 BEGIN
+    IDR_FILTERED_COMMITS_MESSAGE_CREATOR "Filtered Commits Message Creator"
     IDR_MAINFRAME           "Stygitan"
 END
 

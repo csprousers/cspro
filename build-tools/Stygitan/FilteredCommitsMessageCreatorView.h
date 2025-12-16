@@ -1,14 +1,14 @@
 ﻿#pragma once
 
-#include <zUtilO/SettingsDb.h>
-#include <zGit/GitCommit.h>
+class GitCommit;
 
 
-class GitHelpersDlg : public CDialog
+class FilteredCommitsMessageCreatorView : public CFormView
 {
-public:
-    GitHelpersDlg(CWnd* pParent = nullptr);
-    ~GitHelpersDlg();
+    DECLARE_DYNCREATE(FilteredCommitsMessageCreatorView)
+
+protected:
+    FilteredCommitsMessageCreatorView();
 
 protected:
     DECLARE_MESSAGE_MAP()

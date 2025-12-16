@@ -10,6 +10,8 @@ protected:
 
     BOOL InitInstance() override;
 
+    void OnCreateMessageFromFilteredCommits();
+
     void OnAppAbout();
 
 private:
