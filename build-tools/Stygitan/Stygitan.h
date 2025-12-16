@@ -1,5 +1,7 @@
 ﻿#pragma once
 
+#include <zUtilO/FileFreeDocManager.h>
+
 
 class StygitanApp : public CWinApp
 {
@@ -9,4 +11,7 @@ protected:
     BOOL InitInstance() override;
 
     void OnAppAbout();
+
+private:
+    FileFreeDocManager* m_fileFreeDocManager = nullptr;
 };

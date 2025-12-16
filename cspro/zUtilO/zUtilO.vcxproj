@@ -40,6 +40,8 @@
     <ClCompile Include="ExpansiveMap.cpp" />
     <ClCompile Include="FileDlg.cpp" />
     <ClCompile Include="FileExtensions.cpp" />
+    <ClCompile Include="FileFreeDoc.cpp" />
+    <ClCompile Include="FileFreeDocManager.cpp" />
     <ClCompile Include="fileutil.cpp" />
     <ClCompile Include="ImsaDlg.cpp" />
     <ClCompile Include="ImsaFileDlg.cpp" />
@@ -115,6 +117,8 @@
     <ClInclude Include="ExpansiveMap.h" />
     <ClInclude Include="FileDlg.h" />
     <ClInclude Include="FileExtensions.h" />
+    <ClInclude Include="FileFreeDoc.h" />
+    <ClInclude Include="FileFreeDocManager.h" />
     <ClInclude Include="FileUtil.h" />
     <ClInclude Include="FromString.h" />
     <ClInclude Include="ImsaDlg.h" />

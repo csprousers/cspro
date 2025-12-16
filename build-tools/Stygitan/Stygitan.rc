@@ -75,6 +75,12 @@ BEGIN
     BEGIN
         MENUITEM "E&xit\tAlt+F4",               ID_APP_EXIT
     END
+    POPUP "&Window"
+    BEGIN
+        MENUITEM "&Cascade",                    ID_WINDOW_CASCADE
+        MENUITEM "&Tile",                       ID_WINDOW_TILE_HORZ
+        MENUITEM "&Arrange Icons",              ID_WINDOW_ARRANGE
+    END
     POPUP "&Help"
     BEGIN
         MENUITEM "&About Stygitan",             ID_APP_ABOUT

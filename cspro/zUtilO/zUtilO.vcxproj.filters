@@ -74,6 +74,12 @@
     <ClCompile Include="FileExtensions.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="FileFreeDoc.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FileFreeDocManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="fileutil.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -283,6 +289,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="FileExtensions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FileFreeDoc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FileFreeDocManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="FileUtil.h">

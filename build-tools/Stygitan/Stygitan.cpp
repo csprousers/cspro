@@ -35,6 +35,11 @@ BOOL StygitanApp::InitInstance()
 
     LoadStdProfileSettings();  // Load standard INI file options (including MRU)
 
+    // Register the application's document templates.  Document templates
+    //  serve as the connection between documents, frame windows and views.
+    m_fileFreeDocManager = new FileFreeDocManager();
+    m_pDocManager = m_fileFreeDocManager;
+
     // To create the main window, this code creates a new frame window
     // object and then sets it as the application's main window object...
     MainFrame* const main_frame = new MainFrame();
