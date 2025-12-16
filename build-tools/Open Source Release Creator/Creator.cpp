@@ -10,8 +10,9 @@
 #include <external/libgit2/include/git2/status.h>
 
 
-Creator::Creator()
-    :   m_loggingListBox(nullptr)
+Creator::Creator(SettingsDb& settings_db)
+    :   m_settingsDb(settings_db),
+        m_loggingListBox(nullptr)
 {
     const std::string this_source_directory = PortableFunctions::PathGetDirectory(__FILE__);
 
@@ -393,79 +394,107 @@ void Creator::CreateSqliteWithoutSEE(const GitTree& tree)
 
     m_loggingListBox->AddText("Found SQLite version for this release: " + version);
 
-    // this repository hosts non-SEE SQLite amalgamations: https://github.com/rhuijben/sqlite-amalgamation/
-    constexpr const char* AmalgamationRepository = "rhuijben/sqlite-amalgamation";
+    // use a cached version when possible
+    const std::string cache_key_h = "SQLite-" + version + "-h";
+    const std::string cache_key_c = "SQLite-" + version + "-c";
+    std::string sqlite_h = m_settingsDb.ReadOrDefault(cache_key_h, SO::Empty_string);
+    std::string sqlite_c = m_settingsDb.ReadOrDefault(cache_key_c, SO::Empty_string);
+    ASSERT(sqlite_h.empty() == sqlite_c.empty());
 
-    CurlHttpConnection connection;
-
-    // find this commit with this version
-    std::string commit_sha;
-
-    for( int commit_page = 1; commit_sha.empty(); ++commit_page )
+    if( !sqlite_h.empty() && !sqlite_c.empty() )
     {
-        HeaderList headers;
-        headers.Add("User-Agent: CSPro Open Source Code Cleanup");
-        headers.Add_Accept_Json();
+        m_loggingListBox->AddText("Using a cached version of the SQLite amalgamation files.");
+    }
 
-        std::string url = FormatText("https://api.github.com/repos/%s/commits?page=%d", AmalgamationRepository, commit_page);
+    // if not created, download the non-SEE SQLite amalgamation from: https://github.com/rhuijben/sqlite-amalgamation/
+    else
+    {
+        constexpr const char* AmalgamationRepository = "rhuijben/sqlite-amalgamation";
 
-        const HttpRequest request = HttpRequestBuilder(std::move(url), std::move(headers)).build();
-        HttpResponse response = connection.Request(request);
+        CurlHttpConnection connection;
 
-        const JsonNode json_node = Json::Parse(response.body.ToString());
-        const JsonNodeArray commits_json_node_array = json_node.GetArray();
+        // find this commit with this version
+        std::string commit_sha;
 
-        if( commits_json_node_array.empty() )
-            break;
-
-        for( const JsonNode& commit_json_node : commits_json_node_array )
+        for( int commit_page = 1; commit_sha.empty(); ++commit_page )
         {
-            const std::string commit_message = commit_json_node.Get("commit")
-                                                               .Get<std::string>("message");
+            HeaderList headers;
+            headers.Add("User-Agent: CSPro Open Source Release Creator");
+            headers.Add_Accept_Json();
 
-            if( commit_message.find(version) != std::string::npos )
+            std::string url = FormatText("https://api.github.com/repos/%s/commits?page=%d", AmalgamationRepository, commit_page);
+
+            const HttpRequest request = HttpRequestBuilder(std::move(url), std::move(headers)).build();
+            HttpResponse response = connection.Request(request);
+
+            const JsonNode json_node = Json::Parse(response.body.ToString());
+            const JsonNodeArray commits_json_node_array = json_node.GetArray();
+
+            if( commits_json_node_array.empty() )
+                break;
+
+            for( const JsonNode& commit_json_node : commits_json_node_array )
             {
-                if( !commit_sha.empty() )
-                    throw CSProException("Multiple SQLite amalgamations have a commit message containing: " + version);
+                const std::string commit_message = commit_json_node.Get("commit")
+                                                                   .Get<std::string>("message");
 
-                commit_sha = commit_json_node.Get<std::string>("sha");
+                if( commit_message.find(version) != std::string::npos )
+                {
+                    if( !commit_sha.empty() )
+                        throw CSProException("Multiple SQLite amalgamations have a commit message containing: " + version);
+
+                    commit_sha = commit_json_node.Get<std::string>("sha");
+                }
             }
         }
+
+        if( commit_sha.empty() )
+            throw CSProException("No SQLite amalgamation has a commit message containing: " + version);
+
+        m_loggingListBox->AddText("Downloading SQLite files from %s commit SHA: %s", AmalgamationRepository, commit_sha.c_str());
+
+        // download the non-SEE versions
+        auto process = [&](const bool is_header, std::string& sqlite_result)
+        {
+            const std::string url = FormatText("https://raw.githubusercontent.com/%s/%s/%s",
+                                               AmalgamationRepository,
+                                               commit_sha.c_str(),
+                                               is_header ? "sqlite3.h" : "sqlite3.c");
+
+            const HttpRequest request = HttpRequestBuilder(url).build();
+            HttpResponse response = connection.Request(request);
+
+            if( response.http_status != HttpResponse::Status_200_OK )
+                throw CSProException("Error accessing: " + url);
+
+            sqlite_result = response.body.ToString();
+
+            if( is_header && sqlite_result.find(full_version_line) == std::string::npos )
+                throw CSProException("The SQLite amalgamation version header does not match: " + full_version_line);
+
+            sqlite_result.insert(0, is_header ? "#pragma once\n#include <zSql/zSql.h>\n" :
+                                                "#include <zSql/zSql.h>\n");
+        };
+
+        process(true, sqlite_h);
+        process(false, sqlite_c);
+
+        // cache these results
+        m_settingsDb.Write(cache_key_h, sqlite_h);
+        m_settingsDb.Write(cache_key_c, sqlite_c);
     }
 
-    if( commit_sha.empty() )
-        throw CSProException("No SQLite amalgamation has a commit message containing: " + version);
+    ASSERT(!sqlite_h.empty() && !sqlite_c.empty());
 
-    m_loggingListBox->AddText("Downloading SQLite files from %s commit SHA: %s", AmalgamationRepository, commit_sha.c_str());
-
-    // download the non-SEE versions
-    for( int i = 0; i < 2; ++i )
+    auto write = [&](const char* const filename, const std::string& text)
     {
-        const bool is_header = ( i == 0 );
-        const char* const filename = is_header ? "sqlite3.h" : "sqlite3.c";
-
-        const std::string url = FormatText("https://raw.githubusercontent.com/%s/%s/%s", AmalgamationRepository, commit_sha.c_str(), filename);
-
-        const HttpRequest request = HttpRequestBuilder(url).build();
-        HttpResponse response = connection.Request(request);
-
-        if( response.http_status != HttpResponse::Status_200_OK )
-            throw CSProException("Error accessing: " + url);
-
-        std::string body = response.body.ToString();
-
-        if( is_header && body.find(full_version_line) == std::string::npos )
-            throw CSProException("The SQLite amalgamation version header does not match: " + full_version_line);
-
-        body.insert(0, is_header ? "#pragma once\n#include <zSql/zSql.h>\n" :
-                                   "#include <zSql/zSql.h>\n");
-
         const std::string output_file_path = Path::Combine(m_openSourceDirectory, Path::ToNativeSlash(sqlite_repo_path), filename);
+        m_loggingListBox->AddText("Saving '%s' (length %d) to: %s", filename, static_cast<int>(text.size()), output_file_path.c_str());
+        FileIO::WriteText(output_file_path, text, false);
+    };
 
-        m_loggingListBox->AddText("Saving '%s' (length %d) to: %s", filename, static_cast<int>(body.size()), output_file_path.c_str());
-
-        FileIO::WriteText(output_file_path, body, false);
-    }
+    write("sqlite3.h", sqlite_h);
+    write("sqlite3.c", sqlite_c);
 }
 
 

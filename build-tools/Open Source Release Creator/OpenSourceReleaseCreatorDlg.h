@@ -2,7 +2,6 @@
 
 #include "Creator.h"
 #include <zUtilO/ResizableDlg.h>
-#include <zUtilO/SettingsDb.h>
 #include <zGit/GitTag.h>
 
 

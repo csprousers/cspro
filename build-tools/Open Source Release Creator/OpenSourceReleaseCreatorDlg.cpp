@@ -49,7 +49,7 @@ BOOL OpenSourceReleaseCreatorDlg::OnInitDialog()
 
     try
     {
-        m_creator = std::make_unique<Creator>();
+        m_creator = std::make_unique<Creator>(m_settingsDb);
 
         // populate the tags
         m_tags = m_creator->GetTags();

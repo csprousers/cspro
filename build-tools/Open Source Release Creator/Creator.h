@@ -1,16 +1,17 @@
 ﻿#pragma once
 
+#include <zUtilO/SettingsDb.h>
+#include <zUtilF/LoggingListBox.h>
 #include <zGit/GitCommit.h>
 #include <zGit/GitRepository.h>
 #include <zGit/GitTag.h>
 #include <zGit/GitTree.h>
-#include <zUtilF/LoggingListBox.h>
 
 
 class Creator
 {
 public:
-    Creator();
+    Creator(SettingsDb& settings_db);
 
     std::vector<GitTag> GetTags() const;
 
@@ -45,6 +46,7 @@ private:
     void EnsureRepositoriesMatch(bool add_space_before_log);
 
 private:
+    SettingsDb& m_settingsDb;
     std::string m_overridesDirectory;
     GitRepository m_repo;
     LoggingListBox* m_loggingListBox;
