@@ -2,26 +2,17 @@
 
 #include <zGit/zGit.h>
 
-namespace Git { class Base; }
-
 
 // --------------------------------------------------------------------------
-// Git::Base
+// GitInitializer
 //
 // This class initializes libgit2 in the constructor and shuts it down in the
 // destructor.
-//
-// It also provides a method for throwing libgit2 errors as exceptions.
 // --------------------------------------------------------------------------
 
-class ZGIT_API Git::Base
+class ZGIT_API GitInitializer
 {
-protected:
-    Base();
-
 public:
-    ~Base();
-
-protected:
-    [[noreturn]] static void ThrowGitException();
+    GitInitializer();
+    ~GitInitializer();
 };

@@ -1,0 +1,336 @@
+﻿#include "StdAfx.h"
+#include "GitRepository.h"
+
+
+GitRepository::GitRepository() noexcept
+    :   m_repo(nullptr)
+{
+}
+
+
+GitRepository::GitRepository(GitRepository&& rhs) noexcept
+    :   m_repoDirectory(std::move(rhs.m_repoDirectory)),
+        m_repo(rhs.m_repo)        
+{
+    rhs.m_repo = nullptr;
+}
+
+
+GitRepository::~GitRepository() noexcept
+{
+    if( m_repo != nullptr )
+        git_repository_free(m_repo);
+}
+
+
+void GitRepository::EnsureRepositoryIsOpen() const
+{
+    if( m_repo == nullptr )
+        throw CSProException("No Git repository is open.");
+}
+
+
+void GitRepository::Open(std::string repo_directory, const bool create, const bool bare)
+{
+    if( m_repo != nullptr )
+        throw CSProException("A Git repository is already open: %s", m_repoDirectory.c_str());
+
+    const int result = create ? git_repository_init(&m_repo, repo_directory.c_str(), bare) :
+                       bare   ? git_repository_open_bare(&m_repo, repo_directory.c_str()) :
+                                git_repository_open(&m_repo, repo_directory.c_str());
+
+    if( result != 0 )
+    {
+        if( !create && !PortableFunctions::FileIsDirectory(repo_directory) )
+            throw FileIO::Exception::DirectoryNotFound(repo_directory);
+
+        ThrowGitException();
+    }
+
+    m_repoDirectory = std::move(repo_directory);
+}
+
+
+void GitRepository::Close() noexcept
+{
+    if( m_repo == nullptr )
+        return;
+
+    git_repository_free(m_repo);
+
+    m_repoDirectory.clear();
+    m_repo = nullptr;
+}
+
+
+GitBranch GitRepository::LookupBranch(const cs::string_sz branch_name) const
+{
+    EnsureRepositoryIsOpen();
+
+    git_reference* branch_ref;
+
+    if( git_branch_lookup(&branch_ref, m_repo, branch_name.c_str(), GIT_BRANCH_ALL) != 0 )
+        throw CSProException("The branch was not found in the repository: %s", branch_name.c_str());
+
+    return GitBranch(*branch_ref);
+}
+
+
+GitIndex GitRepository::GetIndex() const
+{
+    EnsureRepositoryIsOpen();
+
+    git_index* index;
+
+    if( git_repository_index(&index, m_repo) != 0 )
+        ThrowGitException();
+
+    return GitIndex(*index);
+}
+
+
+unsigned int GitRepository::GetStatusByPath(const cs::string_sz path) const
+{
+    EnsureRepositoryIsOpen();
+
+    unsigned int status_flags;
+
+    if( git_status_file(&status_flags, m_repo, path.c_str()) != 0 )
+        ThrowGitException();
+
+    return status_flags;
+}
+
+
+void GitRepository::ForeachStatusInIndex(const std::function<void(std::string path, unsigned int status_flags)>& callback_function) const
+{
+    const GitIndex index = GetIndex();
+    const size_t count = index.GetEntryCount();
+    unsigned int status_flags;
+
+    for( size_t i = 0; i < count; ++i )
+    {
+        std::string path = index.GetPathByIndex(i);
+
+        if( git_status_file(&status_flags, m_repo, path.c_str()) != 0 )
+            ThrowGitException();
+
+        callback_function(std::move(path), status_flags);
+    }
+}
+
+
+void GitRepository::ForeachStatusInWorkingDirectory(const std::function<void(std::string path, unsigned int status_flags)>& callback_function) const
+{
+    EnsureRepositoryIsOpen();
+
+    git_status_options status_options = GIT_STATUS_OPTIONS_INIT;
+    status_options.show = GIT_STATUS_SHOW_WORKDIR_ONLY;
+    status_options.flags = GIT_STATUS_OPT_INCLUDE_UNTRACKED | GIT_STATUS_OPT_RECURSE_UNTRACKED_DIRS;
+
+    git_status_list* status_list;
+
+    if( git_status_list_new(&status_list, m_repo, &status_options) != 0 )
+        ThrowGitException();
+
+    const size_t count = git_status_list_entrycount(status_list);
+
+    for( size_t i = 0; i < count; ++i )
+    {
+        const git_status_entry* const status_entry = git_status_byindex(status_list, i);
+
+        if( status_entry == nullptr )
+        {
+            git_status_list_free(status_list);
+            ThrowGitException();
+        }
+
+        const char* const path = ( status_entry->head_to_index != nullptr ) ? status_entry->head_to_index->new_file.path :
+                                                                              status_entry->index_to_workdir->new_file.path;
+        callback_function(path, status_entry->status);
+    }
+
+    git_status_list_free(status_list);
+}
+
+
+template<typename GitObjectT>
+GitObject GitRepository::LookupObject(const GitObjectId& oid, const GitObjectT type) const
+{
+    EnsureRepositoryIsOpen();
+
+    git_object* object;
+
+    if( git_object_lookup(&object, m_repo, oid, type) != 0 )
+        throw CSProException("The object was not found in the repository: %s", oid.GetHexHash().c_str());
+
+    return GitObject(*object);
+}
+
+
+GitObject GitRepository::LookupObject(const GitObjectId& oid, const GitObjectType type) const
+{
+    return LookupObject(oid, static_cast<git_object_t>(type));
+}
+
+
+GitObject GitRepository::LookupObject(const GitObjectId& oid) const
+{
+    return LookupObject(oid, GIT_OBJECT_ANY);
+}
+
+
+GitCommit GitRepository::LookupCommit(const GitObjectId& oid) const
+{
+    EnsureRepositoryIsOpen();
+
+    git_commit* commit;
+
+    if( git_commit_lookup(&commit, m_repo, oid) == 0 )
+        return GitCommit(*commit);
+
+    throw CSProException("The commit was not found in the repository: %s", oid.GetHexHash().c_str());
+}
+
+
+GitCommit GitRepository::LookupCommit(const cs::string_sz hex_hash) const
+{
+    EnsureRepositoryIsOpen();
+
+    std::optional<GitObjectId> oid;
+    git_object* object;
+
+    if( git_revparse_single(&object, m_repo, hex_hash.c_str()) == 0 )
+    {
+        if( git_object_type(object) == git_object_t::GIT_OBJECT_COMMIT )
+            oid.emplace(*object);
+
+        git_object_free(object);
+    }
+
+    // if the commit was not found, an exception will be thrown by GitObjectId's constructor
+    // if the hex hash is invalid, or will be thrown by LookupCommit
+    if( !oid.has_value() )
+        oid.emplace(hex_hash);
+
+    return LookupCommit(*oid);
+}
+
+
+GitCommit GitRepository::LookupCommit(const GitTag& tag) const
+{
+    const GitObject object = LookupObject(tag);
+    const GitObjectType type = object.GetType();
+    git_commit* commit;
+
+    if( type == GitObjectType::Commit )
+    {
+        if( git_object_peel(reinterpret_cast<git_object**>(&commit), object, GIT_OBJECT_COMMIT) != 0 )
+            ThrowGitException();
+    }
+
+    else if( type == GitObjectType::Tag )
+    {
+        if( git_commit_lookup(&commit, m_repo, git_tag_target_id(reinterpret_cast<const git_tag*>(static_cast<const git_object*>(object)))) != 0 )
+            ThrowGitException();
+    }
+
+    else
+    {
+        throw ProgrammingErrorException();
+    }
+
+    return GitCommit(*commit);
+}
+
+
+bool GitRepository::IsCommitDescendantOf(const GitCommit& commit, const GitCommit& ancestor) const
+{
+    EnsureRepositoryIsOpen();
+
+    switch( git_graph_descendant_of(m_repo, commit, ancestor) )
+    {
+        case 0:  return false;
+        case 1:  return true;
+        default: ThrowGitException();
+    }
+}
+
+
+void GitRepository::ForeachTag(const std::function<bool(GitTag)>& callback_function) const
+{
+    EnsureRepositoryIsOpen();
+
+    struct CB
+    {
+        static int func(const char* const name, git_oid* const oid, void* const payload)
+        {
+            ASSERT(name != nullptr && oid != nullptr && payload != nullptr);
+            const std::function<bool(GitTag)>& callback_function = *reinterpret_cast<const std::function<bool(GitTag)>*>(payload);
+            return !callback_function(GitTag(*oid, name));
+        }
+    };
+
+    git_tag_foreach(m_repo, CB::func, const_cast<std::function<bool(GitTag)>*>(&callback_function));
+}
+
+
+std::vector<GitTag> GitRepository::GetTags() const
+{
+    std::vector<GitTag> tags;
+
+    ForeachTag([&tags](GitTag tag) { tags.emplace_back(std::move(tag)); return true; });
+
+    return tags;
+}
+
+
+void GitRepository::AddIgnoreRule(const cs::string_sz rules)
+{
+    EnsureRepositoryIsOpen();
+
+    if( git_ignore_add_rule(m_repo, rules.c_str()) != 0 )
+        ThrowGitException();
+}
+
+
+void GitRepository::AddIgnoreRulesFromFile(const std::string& file_path)
+{
+    AddIgnoreRule(FileIO::ReadText(file_path));
+}
+
+
+void GitRepository::ClearIgnoreRules()
+{
+    EnsureRepositoryIsOpen();
+
+    if( git_ignore_clear_internal_rules(m_repo) != 0 )
+        ThrowGitException();
+}
+
+
+bool GitRepository::IsPathIgnoredWorker(const cs::string_sz path) const
+{
+    EnsureRepositoryIsOpen();
+
+    int ignored;
+
+    if( git_ignore_path_is_ignored(&ignored, m_repo, path.c_str()) < 0 )
+        ThrowGitException();
+
+    return ( ignored == 1 );
+}
+
+
+bool GitRepository::IsPathIgnored(const std::string& path) const
+{
+    return ( path.find('\\') != std::string::npos ) ? IsPathIgnoredWorker(Path::ToForwardSlash(path)) :
+                                                      IsPathIgnoredWorker(path);
+}
+
+
+bool GitRepository::IsPathIgnored(std::string&& path) const
+{
+    Path::MakeToForwardSlash(path);
+    return IsPathIgnoredWorker(path.c_str());
+}

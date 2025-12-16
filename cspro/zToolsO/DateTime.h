@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include <zToolsO/zToolsO.h>
+#include <time.h>
 
 
 class CLASS_DECL_ZTOOLSO DateTime
@@ -13,7 +14,7 @@ public:
     static int LocalYear() { return TmToYear(LocalTm(Now())); }
 
     // Returns the specified date in the local timezone in the specified strftime format.
-    static std::string LocalDateTimeString(int64_t time, cs::string_sz formatter = "%Y-%m-%d %H:%M:%S");
+    static std::string LocalDateTimeString(int64_t time, cs::string_sz formatter = "%Y-%m-%d %H:%M:%S") noexcept;
 
     // Returns the specified, or current date, in the local timezone in the strftime formats:
     // - "%b %d, %Y" (e.g., Mar 13, 2024), or

@@ -1250,12 +1250,14 @@ auto SO::TrimRightWorker(const CT* const text, size_t length, const Predicate& p
 template<typename ST>
 auto SO::TrimLeft(const ST& text_or_sv)
 {
+#ifdef USING_CSTRING
     if constexpr(std::is_same_v<ST, CString>)
     {
         return TrimLeft<wstring_view>(text_or_sv);
     }
 
     else
+#endif
     {
         return SO::TrimLeftWorker(text_or_sv.data(), text_or_sv.length(), SO::IsWhitespaceChar<typename ST::value_type>);
     }
@@ -1265,12 +1267,14 @@ auto SO::TrimLeft(const ST& text_or_sv)
 template<typename ST>
 auto SO::TrimRight(const ST& text_or_sv)
 {
+#ifdef USING_CSTRING
     if constexpr(std::is_same_v<ST, CString>)
     {
         return TrimRight<wstring_view>(text_or_sv);
     }
 
     else
+#endif
     {
         return SO::TrimRightWorker(text_or_sv.data(), text_or_sv.length(), SO::IsWhitespaceChar<typename ST::value_type>);
     }
@@ -1349,12 +1353,14 @@ auto SO::TrimLeftRightStringViewWorker(const ST& text_or_sv, const SVT& trim_cha
 template<typename ST, typename... Args>
 auto SO::Trim(const ST& text_or_sv, Args const&... args)
 {
+#ifdef USING_CSTRING
     if constexpr(std::is_same_v<ST, CString>)
     {
         return Trim<wstring_view>(text_or_sv, args...);
     }
 
     else
+#endif
     {
         using string_view_type = typename std::conditional<StringIsWide<ST>(), wstring_view, std::string_view>::type;
 
@@ -1372,6 +1378,7 @@ auto SO::Trim(const ST& text_or_sv, Args const&... args)
 template<bool is_from_trim_right, typename ST, typename SVT>
 ST& SO::MakeTrimWorker(ST& text, const SVT trimmed_text_sv)
 {
+#ifdef USING_CSTRING
     if constexpr(std::is_same_v<ST, CString>)
     {
         if( static_cast<size_t>(text.GetLength()) != trimmed_text_sv.length() )
@@ -1379,6 +1386,7 @@ ST& SO::MakeTrimWorker(ST& text, const SVT trimmed_text_sv)
     }
 
     else
+#endif
     {
         if( text.length() != trimmed_text_sv.length() )
         {

@@ -1,74 +1,48 @@
 ﻿#include "StdAfx.h"
 #include "GitIgnoreEvaluator.h"
-#include <zToolsO/FileIO.h>
 #include <zUtilO/Interapp.h>
 
 
-struct Git::IgnoreEvaluator::Data
+GitIgnoreEvaluator::GitIgnoreEvaluator()
+    :   m_tempRepoDirectory(GetUniqueTempFilePath("Git-GitIgnoreEvaluator"))
 {
-    std::string repo_directory;
-    git_repository* repo;
-};
-
-
-Git::IgnoreEvaluator::IgnoreEvaluator()
-    :   m_data(std::make_unique<Data>())
-{
-    m_data->repo_directory = GetUniqueTempFilePath("Git-IgnoreEvaluator");
-
-    if( git_repository_init(&m_data->repo, m_data->repo_directory.c_str(), true) < 0 )
-        ThrowGitException();
+    Create(m_tempRepoDirectory, true);
 
     AddDefaultRules();
 }
 
 
-Git::IgnoreEvaluator::~IgnoreEvaluator()
+GitIgnoreEvaluator::~GitIgnoreEvaluator()
 {
-    git_repository_free(m_data->repo);
+    Close();
 
-    if( !PortableFunctions::DirectoryDelete(m_data->repo_directory, true) )
-        ErrorMessage::Display("Git::IgnoreEvaluator: Error deleting: " + m_data->repo_directory);
+    if( !PortableFunctions::DirectoryDelete(m_tempRepoDirectory, true) )
+        ErrorMessage::Display("GitIgnoreEvaluator: Error deleting: " + m_tempRepoDirectory);
 }
 
 
-void Git::IgnoreEvaluator::AddRules(const cs::string_sz rules)
+void GitIgnoreEvaluator::AddRules(cs::string_sz rules)
 {
-    if( git_ignore_add_rule(m_data->repo, rules.c_str()) != 0 )
-        ThrowGitException();
+    AddIgnoreRule(rules);
 }
 
 
-void Git::IgnoreEvaluator::AddRulesFromFile(const std::string& file_path)
+void GitIgnoreEvaluator::AddRulesFromFile(const std::string& file_path)
 {
-    AddRules(FileIO::ReadText(file_path));
+    AddIgnoreRulesFromFile(file_path);
 }
 
 
-void Git::IgnoreEvaluator::AddDefaultRules()
+void GitIgnoreEvaluator::AddDefaultRules()
 {
     // by default the .git directory is ignored, so restore it
     AddRules("!.git");
 }
 
 
-void Git::IgnoreEvaluator::ClearRules()
+void GitIgnoreEvaluator::ClearRules()
 {
-    if( git_ignore_clear_internal_rules(m_data->repo) != 0 )
-        ThrowGitException();
+    ClearIgnoreRules();
 
     AddDefaultRules();
-}
-
-
-bool Git::IgnoreEvaluator::Include(std::string path)
-{
-    Path::MakeToForwardSlash(path);
-
-    int ignored;
-
-    if( git_ignore_path_is_ignored(&ignored, m_data->repo, path.c_str()) < 0 )
-        ThrowGitException();
-
-    return ( ignored == 0 );
 }

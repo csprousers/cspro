@@ -71,7 +71,7 @@ tm DateTime::ToTm(int yyyymmdd, int hhmmss)
 }
 
 
-std::string DateTime::LocalDateTimeString(const int64_t time, const cs::string_sz formatter/* = "%Y-%m-%d %H:%M:%S"*/)
+std::string DateTime::LocalDateTimeString(const int64_t time, const cs::string_sz formatter/* = "%Y-%m-%d %H:%M:%S"*/) noexcept
 {
     constexpr size_t BufferSize = 30;
     std::string text(BufferSize, '\0');

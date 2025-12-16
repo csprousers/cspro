@@ -13,6 +13,7 @@
 #pragma warning(error:4239) // nonstandard extension used : 'token' : conversion from 'type' to 'type'
 #pragma warning(error:4297) // 'function' : function assumed not to throw an exception but does
 #pragma warning(error:4456) // declaration of 'identifier' hides previous local declaration
+#pragma warning(error:4457) // declaration of 'identifier' hides function parameter
 #pragma warning(error:4552) // 'operator': result of expression not used
 #pragma warning(error:4715) // 'function': not all control paths return a value
 #pragma warning(error:4717) // 'function' : recursive on all control paths, function will cause runtime stack overflow
