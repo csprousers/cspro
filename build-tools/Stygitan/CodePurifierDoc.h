@@ -19,6 +19,10 @@ protected:
 private:
     void RefreshData();
 
+    void EnumerateBranchCopies();
+    void LocateCleanCommit();
+    void LoadRecentCommits();
+
 private:
     GitRepository m_repo;
     std::optional<const GitBranch> m_currentBranch;
@@ -26,4 +30,9 @@ private:
 
     std::map<std::string, GitBranch> m_branchCopies;
     std::optional<size_t> m_initialNumberOfBranchCopies;
+
+    std::optional<GitCommit> m_cleanCommit;
+    std::optional<GitObjectId> m_cleanCommitOverride;
+
+    std::vector<GitCommit> m_recentCommits;
 };

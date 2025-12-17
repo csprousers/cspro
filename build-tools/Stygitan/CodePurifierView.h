@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include <Stygitan/CodePurifierDoc.h>
+#include <zUtilF/SortListCtrl.h>
 
 
 class CodePurifierView : public CFormView
@@ -24,10 +25,18 @@ protected:
     void OnCreateBranchCopy();
     void OnDeleteBranchCopies();
 
+    void OnCommitsCustomDraw(NMHDR* pNMHDR, LRESULT* pResult);
+    void OnCommitsRightClick(NMHDR* pNMHDR, LRESULT* pResult);
+    void OnSetCleanCommit();
+
 private:
     CodePurifierDoc& GetDoc() { return *assert_cast<CodePurifierDoc*>(GetDocument()); }
 
+    void RefreshDataAndUpdateUI(WPARAM wParam);
+
 private:
-    int64_t m_lastRefreshTime;
+    int64_t m_lastFullRefreshTime;
     CListBox m_branchCopiesListBox;
+    CSortListCtrl m_commitsListCtrl;
+    int m_cleanCommitIndex;
 };
