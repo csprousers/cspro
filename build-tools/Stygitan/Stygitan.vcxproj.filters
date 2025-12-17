@@ -15,6 +15,12 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CodePurifierDoc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CodePurifierView.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="FilteredCommitsMessageCreatorView.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -32,6 +38,12 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="CodePurifierDoc.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CodePurifierView.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="FilteredCommitsMessageCreatorView.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

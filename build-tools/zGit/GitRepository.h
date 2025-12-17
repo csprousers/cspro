@@ -35,7 +35,7 @@ public:
 
 
     // --------------------------------------------------------------------------
-    // Open + Close
+    // Open + Close + Information
     // --------------------------------------------------------------------------
 
     // Opens a repository.
@@ -49,6 +49,12 @@ public:
 
     // Closes a repository.
     void Close() noexcept;
+
+    // Returns the repository's working directory.
+    // The directory is returned using native slashes, with a trailing slash.
+    // A blank string is returned if no repository is open, or if the repository
+    // was opened in bare mode.
+    std::string GetWorkingDirectory() const noexcept;
 
 
     // --------------------------------------------------------------------------

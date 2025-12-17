@@ -5,15 +5,23 @@
 
 class StygitanApp : public CWinApp
 {
+public:
+    StygitanApp();
+
 protected:
     DECLARE_MESSAGE_MAP()
 
     BOOL InitInstance() override;
 
+    void OnOpenCodePurifier();
     void OnCreateMessageFromFilteredCommits();
 
     void OnAppAbout();
 
 private:
-    FileFreeDocManager* m_fileFreeDocManager = nullptr;
+    void OnOpenCodePurifier(std::string directory);
+
+private:
+    FileFreeDocManager* m_fileFreeDocManager;
+    CDocTemplate* m_codePurifierDocTemplate;
 };

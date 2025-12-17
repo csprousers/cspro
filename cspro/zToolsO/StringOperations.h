@@ -1319,12 +1319,14 @@ auto SO::TrimLeftRightCharWorker(const ST& text_or_sv, const CT trim_char)
 template<bool trim_left, typename ST, typename SVT>
 auto SO::TrimLeftRightStringViewWorker(const ST& text_or_sv, const SVT& trim_chars_sv)
 {
+#ifdef USING_CSTRING
     if constexpr(std::is_same_v<ST, CString>)
     {
         return TrimLeftRightStringViewWorker<trim_left, wstring_view, SVT>(text_or_sv, trim_chars_sv);
     }
 
     else
+#endif
     {
         // if this asserts, we need to add a version of trimming that properly handles trimming
         // wide characters in UTF-8 strings

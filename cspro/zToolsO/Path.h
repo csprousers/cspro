@@ -27,6 +27,10 @@ public:
     static std::string ToForwardSlash(std::string path);
     static std::string& MakeToForwardSlash(std::string& path);
 
+    // Removes a trailing slash from the path if there is one (either / or \).
+    static std::string RemoveTrailingSlash(std::string path);
+    static std::string& MakeRemoveTrailingSlash(std::string& path);
+
 
     // --------------------------------------------------------------------------
     // Informational Functions
@@ -164,6 +168,18 @@ inline std::string Path::ToForwardSlash(std::string path)
 inline std::string& Path::MakeToForwardSlash(std::string& path)
 {
     return SO::Replace(path, '\\', '/');
+}
+
+
+inline std::string Path::RemoveTrailingSlash(std::string path)
+{
+    return MakeRemoveTrailingSlash(path);
+}
+
+
+inline std::string& Path::MakeRemoveTrailingSlash(std::string& path)
+{
+    return SO::MakeTrimRight(path, SlashChars_sv);
 }
 
 

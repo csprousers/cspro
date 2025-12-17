@@ -4,6 +4,7 @@
 #include <StandardIncludes/strict_errors.h>
 
 #include <Stygitan/resource.h>
-#include <zToolsO/Tools.h>
+#include <zToolsO/Utf8.h>
+#include <zUtilO/Interapp.h>
 #include <zUtilO/SettingsDb.h>
 #include <zUtilO/WindowsWS.h>

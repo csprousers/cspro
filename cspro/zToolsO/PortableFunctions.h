@@ -209,6 +209,7 @@ namespace PortableFunctions
     T PathAppendForwardSlashToPath(T path, wstring_view append_text_sv) { return PathAppendToPath<T>(std::move(path), append_text_sv, '/'); }
 
     // Removes a trailing slash from the path if there is one. Removes either / or \.
+    // PATH_TODO instead of using PathRemoveTrailingSlash, use Path::RemoveTrailingSlash or Path::MakeRemoveTrailingSlash.
     CLASS_DECL_ZTOOLSO std::string PathRemoveTrailingSlash(std::string path);
 
     template<typename T = std::wstring>

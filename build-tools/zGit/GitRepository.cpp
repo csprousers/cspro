@@ -10,7 +10,7 @@ GitRepository::GitRepository() noexcept
 
 GitRepository::GitRepository(GitRepository&& rhs) noexcept
     :   m_repoDirectory(std::move(rhs.m_repoDirectory)),
-        m_repo(rhs.m_repo)        
+        m_repo(rhs.m_repo)
 {
     rhs.m_repo = nullptr;
 }
@@ -60,6 +60,24 @@ void GitRepository::Close() noexcept
 
     m_repoDirectory.clear();
     m_repo = nullptr;
+}
+
+
+std::string GitRepository::GetWorkingDirectory() const noexcept
+{
+    if( m_repo != nullptr )
+    {
+        const char* const directory = git_repository_workdir(m_repo);
+
+        if( directory != nullptr )
+        {
+            std::string directory_str = directory;
+            ASSERT(!directory_str.empty() && Path::IsSlashChar(directory_str.back()));
+            return Path::MakeToNativeSlash(directory_str);
+        }
+    }
+
+    return std::string();
 }
 
 

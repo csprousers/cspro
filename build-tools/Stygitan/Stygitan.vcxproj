@@ -19,6 +19,8 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="CodePurifierDoc.h" />
+    <ClInclude Include="CodePurifierView.h" />
     <ClInclude Include="FilteredCommitsMessageCreatorView.h" />
     <ClInclude Include="MainFrame.h" />
     <ClInclude Include="resource.h" />
@@ -26,6 +28,8 @@
     <ClInclude Include="Stygitan.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="CodePurifierDoc.cpp" />
+    <ClCompile Include="CodePurifierView.cpp" />
     <ClCompile Include="FilteredCommitsMessageCreatorView.cpp" />
     <ClCompile Include="MainFrame.cpp" />
     <ClCompile Include="StdAfx.cpp">

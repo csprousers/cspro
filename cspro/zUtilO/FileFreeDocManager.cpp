@@ -98,7 +98,28 @@ void FileFreeDocManager::ActivateDocument(CDocument* const pDoc)
 }
 
 
-CDocument* FileFreeDocManager::FindAndActivateOpenDocumentByPath(const wchar_t* const file_path) const
+CDocument* FileFreeDocManager::FindAndActivateOpenDocumentByPath(const CDocTemplate* const doc_template, const wchar_t* path)
+{
+    ASSERT(doc_template != nullptr && path != nullptr);
+
+    POSITION doc_pos = doc_template->GetFirstDocPosition();
+
+    while( doc_pos != nullptr )
+    {
+        CDocument* const open_doc = doc_template->GetNextDoc(doc_pos);
+
+        if( AfxComparePath(open_doc->GetPathName(), path) )
+        {
+            ActivateDocument(open_doc);
+            return open_doc;
+        }
+    }
+
+    return nullptr;
+}
+
+
+CDocument* FileFreeDocManager::FindAndActivateOpenDocumentByPath(const wchar_t* const path) const
 {
     POSITION template_pos = m_templateList.GetHeadPosition();
 
@@ -107,18 +128,10 @@ CDocument* FileFreeDocManager::FindAndActivateOpenDocumentByPath(const wchar_t* 
         const CDocTemplate* const doc_template = static_cast<const CDocTemplate*>(m_templateList.GetNext(template_pos));
         ASSERT_KINDOF(CDocTemplate, doc_template);
 
-        POSITION doc_pos = doc_template->GetFirstDocPosition();
+        CDocument* const open_doc = FindAndActivateOpenDocumentByPath(doc_template, path);
 
-        while( doc_pos != nullptr )
-        {
-            CDocument* const open_doc = doc_template->GetNextDoc(doc_pos);
-
-            if( AfxComparePath(open_doc->GetPathName(), file_path) )
-            {
-                ActivateDocument(open_doc);
-                return open_doc;
-            }
-        }
+        if( open_doc != nullptr )
+            return open_doc;
     }
 
     return nullptr;

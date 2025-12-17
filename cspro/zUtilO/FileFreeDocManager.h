@@ -15,6 +15,9 @@
 // FileFreeDocManager also supports disk-based documents, using the
 // document string's CDocTemplate::DocStringIndex::filterExt value to
 // determine what extensions match.
+//
+// FileFreeDocManager also contains some static methods related to
+// CDocManager-related functionality.
 // --------------------------------------------------------------------------
 
 class CLASS_DECL_ZUTILO FileFreeDocManager : public CDocManager
@@ -40,8 +43,16 @@ public:
 
     // Opens a file-free document using the template associated with the resource ID.
     // If always_create_new_document is false, a document of this type that is
-    // aready open will be activated.
+    // already open will be activated.
     CDocument* Open(UINT nIDResource, bool always_create_new_document);
+
+    // --------------------------------------------------------------------------
+    // Static methods
+    // --------------------------------------------------------------------------
+
+    // Searches for a document sharing the path in the template's documents.
+    // If found, the document is activated and returned. If not, null is returned.
+    static CDocument* FindAndActivateOpenDocumentByPath(const CDocTemplate* doc_template, const wchar_t* path);
 
 protected:
     CDocument* OpenDocumentFile(LPCTSTR lpszFileName, BOOL bAddToMRU) override;
@@ -52,7 +63,7 @@ private:
     static std::wstring EvaluateFilename(LPCTSTR lpszFileName);
     static void ActivateDocument(CDocument* pDoc);
 
-    CDocument* FindAndActivateOpenDocumentByPath(const wchar_t* file_path) const;
+    CDocument* FindAndActivateOpenDocumentByPath(const wchar_t* path) const;
     static CDocument* FindAndActivateOpenDocumentOfType(const CDocTemplate* doc_template);
 
     std::wstring CreateDummyFilePath(TemplateData& template_data) const;
