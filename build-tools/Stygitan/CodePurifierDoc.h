@@ -1,18 +1,14 @@
 ﻿#pragma once
 
-#include <zGit/GitBranch.h>
-#include <zGit/GitRepository.h>
-
 
 class CodePurifierDoc : public CDocument
 {
+    friend class CodePurifierView;
+
     DECLARE_DYNCREATE(CodePurifierDoc)
 
 protected:
     CodePurifierDoc();
-
-public:
-    GitRepository& GetRepository() { return m_repo; }
 
 protected:
     void SetTitle(LPCTSTR lpszTitle) override;
@@ -21,6 +17,13 @@ protected:
     BOOL OnOpenDocument(LPCTSTR lpszPathName) override;
 
 private:
+    void RefreshData();
+
+private:
     GitRepository m_repo;
-    std::optional<GitBranch> m_branch;
+    std::optional<const GitBranch> m_currentBranch;
+    std::unique_ptr<const GitBranch> m_remoteBranch;
+
+    std::map<std::string, GitBranch> m_branchCopies;
+    std::optional<size_t> m_initialNumberOfBranchCopies;
 };

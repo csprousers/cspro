@@ -39,6 +39,24 @@ const std::string& GitBranch::GetName() const noexcept
 }
 
 
+std::unique_ptr<GitBranch> GitBranch::GetUpstreamBranch() const
+{
+    git_reference* upstream_branch_ref;
+
+    switch( git_branch_upstream(&upstream_branch_ref, m_branchRef) )
+    {
+        case 0:
+            return std::make_unique<GitBranch>(*upstream_branch_ref);
+
+        case GIT_ENOTFOUND:
+            return nullptr;
+
+        default:
+            ThrowGitException();
+    }
+}
+
+
 GitObjectId GitBranch::GetTarget() const
 {
     const git_oid* const oid = git_reference_target(m_branchRef);
@@ -47,4 +65,14 @@ GitObjectId GitBranch::GetTarget() const
         throw CSProException("The latest commit for branch '%s' is unknown.", GetName().c_str());
 
     return GitObjectId(*oid);
+}
+
+
+void GitBranch::Delete()
+{
+    if( git_branch_delete(m_branchRef) != 0 )
+        ThrowGitException();
+
+    git_reference_free(m_branchRef);
+    m_branchRef = nullptr;
 }

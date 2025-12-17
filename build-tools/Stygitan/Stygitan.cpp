@@ -31,7 +31,8 @@ StygitanApp::StygitanApp()
 
 BOOL StygitanApp::InitInstance()
 {
-    InitializeCommonControls();
+    // ICC_LINK_CLASS is necessary to use the SysLink Controls
+    InitializeCommonControls(ICC_LINK_CLASS);
 
     __super::InitInstance();
 

@@ -1,9 +1,6 @@
 ﻿#include "StdAfx.h"
 #include "FilteredCommitsMessageCreatorView.h"
 #include <zToolsO/FileIO.h>
-#include <zGit/GitBranch.h>
-#include <zGit/GitRepository.h>
-#include <zGit/GitRevisionWalker.h>
 #include <numeric>
 
 

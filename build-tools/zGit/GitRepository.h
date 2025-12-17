@@ -61,8 +61,19 @@ public:
     // Branches
     // --------------------------------------------------------------------------
 
+    // Returns the branch pointed to by HEAD.
+    GitBranch GetCurrentBranch() const;
+
     // Looks up the branch, throwing an exception if not found.
     GitBranch LookupBranch(cs::string_sz branch_name) const;
+
+    // Creates a new branch, throwing an exception on error (e.g., if a branch with
+    // the name already exists). This does not change the current branch.
+    GitBranch CreateBranch(cs::string_sz branch_name, const GitCommit& commit) const;
+
+    // Executes the callback function for each of the repository's local branches.
+    // The callback function should return true to continue processing.
+    void ForeachLocalBranch(const std::function<bool(GitBranch)>& callback_function) const;
 
 
     // --------------------------------------------------------------------------

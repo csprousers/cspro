@@ -36,6 +36,9 @@
     <ClInclude Include="Stygitan.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="UWM.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CodePurifierDoc.cpp">

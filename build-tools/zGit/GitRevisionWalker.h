@@ -24,12 +24,12 @@ public:
     ~GitRevisionWalker() noexcept;
 
     // Executes the callback function for each commit.
-    // Commits are walked in topological and time order, starting at the head.
+    // Commits are walked in topological and time order, starting at the HEAD.
     // The callback function should return true to continue processing.
     void WalkFromHead(const std::function<bool(GitCommit)>& callback_function);
 
     // Executes the callback function for each commit.
-    // Commits are walked in topological and time order, starting at the head, ending with end_commit.
+    // Commits are walked in topological and time order, starting at the HEAD, ending with end_commit.
     void WalkFromHead(const GitCommit& end_commit, const std::function<void(GitCommit)>& callback_function);
 
     // Executes the callback function for each commit.

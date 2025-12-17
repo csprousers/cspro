@@ -81,6 +81,19 @@ std::string GitRepository::GetWorkingDirectory() const noexcept
 }
 
 
+GitBranch GitRepository::GetCurrentBranch() const
+{
+    EnsureRepositoryIsOpen();
+
+    git_reference* branch_ref;
+
+    if( git_repository_head(&branch_ref, m_repo) != 0 )
+        ThrowGitException();
+
+    return GitBranch(*branch_ref);
+}
+
+
 GitBranch GitRepository::LookupBranch(const cs::string_sz branch_name) const
 {
     EnsureRepositoryIsOpen();
@@ -91,6 +104,53 @@ GitBranch GitRepository::LookupBranch(const cs::string_sz branch_name) const
         throw CSProException("The branch was not found in the repository: %s", branch_name.c_str());
 
     return GitBranch(*branch_ref);
+}
+
+
+GitBranch GitRepository::CreateBranch(const cs::string_sz branch_name, const GitCommit& commit) const
+{
+    EnsureRepositoryIsOpen();
+
+    git_reference* branch_ref;
+
+    if( git_branch_create(&branch_ref, m_repo, branch_name.c_str(), commit, 0) != 0 )
+        ThrowGitException();
+
+    return GitBranch(*branch_ref);
+}
+
+
+void GitRepository::ForeachLocalBranch(const std::function<bool(GitBranch)>& callback_function) const
+{
+    EnsureRepositoryIsOpen();
+
+    git_branch_iterator* branch_iterator;
+
+    if( git_branch_iterator_new(&branch_iterator, m_repo, GIT_BRANCH_LOCAL) != 0 )
+        ThrowGitException();
+
+    try
+    {
+        git_reference* branch_ref;
+        git_branch_t branch_type;
+        int next_result;
+
+        while( ( next_result = git_branch_next(&branch_ref, &branch_type, branch_iterator) ) == 0 &&
+               callback_function(GitBranch(*branch_ref)) )
+        {
+        }
+
+        if( next_result != GIT_ITEROVER )
+            ThrowGitException();
+
+        git_branch_iterator_free(branch_iterator);
+    }
+
+    catch(...)
+    {
+        git_branch_iterator_free(branch_iterator);
+        throw;
+    }
 }
 
 

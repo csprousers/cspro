@@ -26,6 +26,7 @@
     <ClInclude Include="resource.h" />
     <ClInclude Include="StdAfx.h" />
     <ClInclude Include="Stygitan.h" />
+    <ClInclude Include="UWM.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CodePurifierDoc.cpp" />
