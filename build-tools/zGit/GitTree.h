@@ -23,6 +23,7 @@ public:
 
     // Returns the non-null git_tree object that GitTree wraps.
     operator const git_tree*() const noexcept { return m_tree; }
+    operator git_tree*() noexcept             { return m_tree; }
 
     // Returns the number of entries listed in the tree.
     size_t GetEntryCount() const noexcept;

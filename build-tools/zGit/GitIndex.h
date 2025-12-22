@@ -22,6 +22,7 @@ public:
 
     // Returns the non-null git_index object that GitIndex wraps.
     operator const git_index*() const noexcept { return m_index; }
+    operator git_index*() noexcept             { return m_index; }
 
     // Returns the number of entries currently in the index
     size_t GetEntryCount() const noexcept;

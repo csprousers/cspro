@@ -80,7 +80,7 @@ public:
 
 
     // --------------------------------------------------------------------------
-    // Indices + Statuses
+    // Indices + Statuses + Differences
     // --------------------------------------------------------------------------
 
     // Returns the repository's index file.
@@ -97,11 +97,17 @@ public:
     // Status codes are in status.h.
     void ForeachStatusInIndex(const std::function<void(std::string path, unsigned int status_flags)>& callback_function) const;
 
-    // Executes the callback function for each untracked file in the working
-    // directory, passing the path and status code. These are paths that are
-    // different "based on [an] index to working directory comparison."
+    // Executes the callback function for each file in the working directory with
+    // a different status from the index, passing the path and status code. The
+    // files could be new (untracked), modified, deleted, etc. These are paths that
+    // are different "based on [an] index to working directory comparison."
     // Status codes are in status.h.
     void ForeachStatusInWorkingDirectory(const std::function<void(std::string path, unsigned int status_flags)>& callback_function) const;
+
+    // Executes the callback function for each file in the working directory with
+    // a different status from the commit's tree, passing the path and difference code.
+    // Difference codes are in diff.h.
+    void ForeachDifferenceInWorkingDirectory(const GitCommit& commit, const std::function<void(std::string path, unsigned int diff_flags)>& callback_function) const;
 
 
     // --------------------------------------------------------------------------

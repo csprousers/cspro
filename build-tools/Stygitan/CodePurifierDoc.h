@@ -22,6 +22,7 @@ private:
     void EnumerateBranchCopies();
     void LocateCleanCommit();
     void LoadRecentCommits();
+    void LoadModifiedFiles();
 
 private:
     GitRepository m_repo;
@@ -35,4 +36,6 @@ private:
     std::optional<GitObjectId> m_cleanCommitOverride;
 
     std::vector<GitCommit> m_recentCommits;
+
+    std::vector<std::tuple<std::string, unsigned int>> m_modifiedFiles; // file path + difference flags
 };

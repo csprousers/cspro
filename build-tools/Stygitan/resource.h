@@ -19,20 +19,24 @@
 #define IDC_FILTERED_COMMIT             1011
 #define IDC_FILTERED_REPO               1012
 #define IDC_LOCAL_BRANCH                1013
-#define IDC_REMOTE_BRANCH               1014
-#define IDC_RESET_BRANCH_TO_CLEAN_COMMIT 1015
-#define IDC_WORKING_DIRECTORY           1016
+#define IDC_MODIFIED_FILES              1014
+#define IDC_REMOTE_BRANCH               1015
+#define IDC_RESET_BRANCH_TO_CLEAN_COMMIT 1016
+#define IDC_WORKING_DIRECTORY           1017
 #define ID_COMMITS_CREATE_MESSAGE_FROM_FILTERED_COMMITS 40001
 #define ID_FILE_OPEN_CODE_PURIFIER      40002
-#define ID_SET_CLEAN_COMMIT             40003
+#define ID_MODIFIED_FILE_COPY_PATH      40003
+#define ID_MODIFIED_FILE_OPEN           40004
+#define ID_MODIFIED_FILE_OPEN_CONTAINING_FOLDER 40005
+#define ID_SET_CLEAN_COMMIT             40006
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        106
-#define _APS_NEXT_COMMAND_VALUE         40004
-#define _APS_NEXT_CONTROL_VALUE         1017
+#define _APS_NEXT_COMMAND_VALUE         40007
+#define _APS_NEXT_CONTROL_VALUE         1018
 #define _APS_NEXT_SYMED_VALUE           106
 #endif
 #endif

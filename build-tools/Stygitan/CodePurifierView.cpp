@@ -1,12 +1,15 @@
 ﻿#include "StdAfx.h"
 #include "CodePurifierView.h"
+#include <zToolsO/WinClipboard.h>
+#include <external/libgit2/include/git2/diff.h>
 
 
 namespace Update
 {
-    constexpr WPARAM All          = 0xff;
-    constexpr WPARAM BranchCopies = 0x01;
-    constexpr WPARAM Commits      = 0x02;
+    constexpr WPARAM All           = 0xff;
+    constexpr WPARAM BranchCopies  = 0x01;
+    constexpr WPARAM Commits       = 0x02;
+    constexpr WPARAM ModifiedFiles = 0x04;
 }
 
 
@@ -31,6 +34,11 @@ BEGIN_MESSAGE_MAP(CodePurifierView, CFormView)
     ON_COMMAND(ID_SET_CLEAN_COMMIT, OnSetCleanCommit)
     ON_COMMAND(IDC_RESET_BRANCH_TO_CLEAN_COMMIT, OnResetBranchToCleanCommit)
     ON_COMMAND(IDC_CREATE_BRANCH_COPY_BEFORE_RESET, OnCreateCreateBranchCopyBeforeResetClick)
+    ON_NOTIFY(NM_DBLCLK, IDC_MODIFIED_FILES, OnModifiedFilesDoubleOrRightClick)
+    ON_NOTIFY(NM_RCLICK, IDC_MODIFIED_FILES, OnModifiedFilesDoubleOrRightClick)
+    ON_COMMAND(ID_MODIFIED_FILE_OPEN, OnModifiedFileOpen)
+    ON_COMMAND(ID_MODIFIED_FILE_OPEN_CONTAINING_FOLDER, OnModifiedFileOpenContainingFolder)
+    ON_COMMAND(ID_MODIFIED_FILE_COPY_PATH, OnModifiedFileCopyPath)
 END_MESSAGE_MAP()
 
 
@@ -61,6 +69,10 @@ void CodePurifierView::OnInitialUpdate()
     m_commitsListCtrl.SetHeadings(L"Date,120;Message,435");
     m_commitsListCtrl.LoadColumnInfo();
 
+    m_modifiedFilesListCtrl.SetExtendedStyle(LVS_EX_FULLROWSELECT);
+    m_modifiedFilesListCtrl.SetHeadings(L"Path,475;Status,95");
+    m_modifiedFilesListCtrl.LoadColumnInfo();
+
     PostMessage(UWM::Stygitan::UpdateUI, Update::All);
 }
 
@@ -72,6 +84,7 @@ void CodePurifierView::DoDataExchange(CDataExchange* const pDX)
     DDX_Control(pDX, IDC_BRANCH_COPIES, m_branchCopiesListBox);
     DDX_Control(pDX, IDC_COMMITS, m_commitsListCtrl);
     DDX_Check(pDX, IDC_CREATE_BRANCH_COPY_BEFORE_RESET, m_createBranchCopyBeforeReset);
+    DDX_Control(pDX, IDC_MODIFIED_FILES, m_modifiedFilesListCtrl);
 }
 
 
@@ -164,6 +177,24 @@ LRESULT CodePurifierView::OnUpdateUI(const WPARAM wParam, LPARAM /*lParam*/)
                     ++m_cleanCommitIndex;
                 }
             }
+        }
+    }
+
+    // updated the modified files
+    if( ( wParam & Update::ModifiedFiles ) == Update::ModifiedFiles )
+    {
+        m_modifiedFilesListCtrl.DeleteAllItems();
+
+        for( const auto& [file_path, diff_flags] : cp_doc.m_modifiedFiles )
+        {
+            const wchar_t* const status =
+                ( diff_flags == GIT_DELTA_ADDED )     ? L"Added" :
+                ( diff_flags == GIT_DELTA_DELETED )   ? L"Deleted" :
+                ( diff_flags == GIT_DELTA_MODIFIED )  ? L"Modified" :
+                ( diff_flags == GIT_DELTA_UNTRACKED ) ? L"Untracked" :
+                                                        ReturnProgrammingError(L"<unknown status>");
+
+            m_modifiedFilesListCtrl.AddItem(TC::ToWide(file_path).c_str(), status);
         }
     }
 
@@ -287,7 +318,7 @@ void CodePurifierView::OnCommitsRightClick(NMHDR* const pNMHDR, LRESULT* const p
 
     CMenu popup_menu;
     popup_menu.CreatePopupMenu();
-    popup_menu.AppendMenu(MF_STRING, ID_SET_CLEAN_COMMIT, L"&Set as Clean Commit");
+    popup_menu.AppendMenu(MF_STRING, ID_SET_CLEAN_COMMIT, L"Set as Clean Commit");
 
     CPoint point = pNMItemActivate->ptAction;
     m_commitsListCtrl.ClientToScreen(&point);
@@ -304,7 +335,7 @@ void CodePurifierView::OnSetCleanCommit()
 
     cp_doc.m_cleanCommitOverride = cp_doc.m_recentCommits[index].GetObjectId();
 
-    RefreshDataAndUpdateUI(Update::Commits);
+    RefreshDataAndUpdateUI(Update::Commits | Update::ModifiedFiles);
 }
 
 
@@ -322,7 +353,7 @@ void CodePurifierView::OnResetBranchToCleanCommit()
 
         cp_doc.m_repo.ResetBranchMixed(*cp_doc.m_cleanCommit);
 
-        RefreshDataAndUpdateUI(Update::Commits);
+        RefreshDataAndUpdateUI(Update::Commits | Update::ModifiedFiles);
     }
 
     catch( const CSProException& exception )
@@ -337,4 +368,102 @@ void CodePurifierView::OnCreateCreateBranchCopyBeforeResetClick()
     UpdateData(TRUE);
 
     m_settingsDb.Write(CreateBranchCopyBeforeResetKey_sv, m_createBranchCopyBeforeReset);
+}
+
+
+void CodePurifierView::OnModifiedFilesDoubleOrRightClick(NMHDR* const pNMHDR, LRESULT* const pResult)
+{
+    NMITEMACTIVATE* const pNMItemActivate = reinterpret_cast<NMITEMACTIVATE*>(pNMHDR);
+
+    *pResult = FALSE;
+
+    if( pNMItemActivate->iItem == -1 )
+        return;
+
+    if( pNMItemActivate->hdr.code == NM_DBLCLK )
+    {
+        OnModifiedFileOpen();
+    }
+
+    else
+    {
+        ASSERT(pNMItemActivate->hdr.code == NM_RCLICK);
+
+        UINT file_exists_flag = MF_ENABLED;
+        UINT directory_exists_flag = MF_ENABLED;
+
+        OnModifiedFile([&](const std::string& file_path)
+            {
+                if( !PortableFunctions::FileIsRegular(file_path) )
+                {
+                    file_exists_flag = MF_DISABLED;
+
+                    if( !PortableFunctions::FileIsDirectory(PortableFunctions::PathGetDirectory(file_path)) )
+                        directory_exists_flag = MF_DISABLED;
+                }
+            });
+
+
+        CMenu popup_menu;
+        popup_menu.CreatePopupMenu();
+        popup_menu.AppendMenu(MF_STRING, ID_MODIFIED_FILE_COPY_PATH, L"Copy Full Path");
+        popup_menu.AppendMenu(MF_SEPARATOR);
+        popup_menu.AppendMenu(MF_STRING | file_exists_flag, ID_MODIFIED_FILE_OPEN, L"Open in Associated Application");
+        popup_menu.AppendMenu(MF_STRING | directory_exists_flag, ID_MODIFIED_FILE_OPEN_CONTAINING_FOLDER, L"Open Containing Folder");
+
+        CPoint point = pNMItemActivate->ptAction;
+        m_modifiedFilesListCtrl.ClientToScreen(&point);
+        popup_menu.TrackPopupMenu(TPM_RIGHTBUTTON, point.x, point.y, this);
+    }
+}
+
+
+template<typename CF>
+void CodePurifierView::OnModifiedFile(const CF& callback_function)
+{
+    const CodePurifierDoc& cp_doc = GetDoc();
+
+    const size_t index = static_cast<size_t>(m_modifiedFilesListCtrl.GetSelectionMark());
+    ASSERT(index < cp_doc.m_modifiedFiles.size());
+
+    callback_function(Path::Combine(cp_doc.m_repo.GetWorkingDirectory(),
+                                    Path::ToNativeSlash(std::get<0>(cp_doc.m_modifiedFiles[index]))));
+}
+
+
+void CodePurifierView::OnModifiedFileOpen()
+{
+    OnModifiedFile(
+        [](std::string file_path)
+        {
+            ShellExecute(nullptr, L"open", TC::ToWide(EscapeCommandLineArgument(std::move(file_path))).c_str(), nullptr, nullptr, SW_SHOW);
+        });
+}
+
+
+void CodePurifierView::OnModifiedFileOpenContainingFolder()
+{
+    OnModifiedFile(
+        [](const std::string& file_path)
+        {
+            if( PortableFunctions::FileIsRegular(file_path) )
+            {
+                OpenContainingFolder(file_path);
+            }
+
+            else
+            {
+                OpenContainingFolder(PortableFunctions::PathGetDirectory(file_path));
+            }
+        });
+}
+
+
+void CodePurifierView::OnModifiedFileCopyPath()
+{
+    OnModifiedFile(
+        [&](const std::string& file_path)
+        {
+            WinClipboard::PutText(this, file_path);
+        });
 }

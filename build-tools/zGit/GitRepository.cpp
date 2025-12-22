@@ -243,6 +243,39 @@ void GitRepository::ForeachStatusInWorkingDirectory(const std::function<void(std
 }
 
 
+void GitRepository::ForeachDifferenceInWorkingDirectory(const GitCommit& commit, const std::function<void(std::string path, unsigned int diff_flags)>& callback_function) const
+{
+    EnsureRepositoryIsOpen();
+
+    GitTree tree = commit.GetTree();
+
+    git_diff* diff;
+    git_diff_options diff_opts = GIT_DIFF_OPTIONS_INIT;
+    diff_opts.flags |= GIT_DIFF_INCLUDE_UNTRACKED |
+                       GIT_DIFF_RECURSE_UNTRACKED_DIRS |
+                       GIT_DIFF_SKIP_BINARY_CHECK |
+                       GIT_DIFF_FORCE_BINARY;
+
+    if( git_diff_tree_to_workdir(&diff, m_repo, tree, &diff_opts) != 0 )
+        ThrowGitException();
+
+    struct CB
+    {
+        static int func(const git_diff_delta* const delta, float /*progress*/, void* const payload)
+        {
+            ASSERT(delta != nullptr && delta->new_file.path != nullptr && payload != nullptr);
+            const std::function<void(std::string, unsigned int)>& callback_function = *reinterpret_cast<const std::function<void(std::string, unsigned int)>*>(payload);
+            callback_function(delta->new_file.path, delta->status);
+            return 0;
+        }
+    };
+
+    git_diff_foreach(diff, CB::func, nullptr, nullptr, nullptr, const_cast<std::function<void(std::string, unsigned int)>*>(&callback_function));
+
+    git_diff_free(diff);
+}
+
+
 template<typename GitObjectT>
 GitObject GitRepository::LookupObject(const GitObjectId& oid, const GitObjectT type) const
 {

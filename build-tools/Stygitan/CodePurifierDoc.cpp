@@ -69,6 +69,9 @@ void CodePurifierDoc::RefreshData()
 
     // load recent commits
     LoadRecentCommits();
+
+    // load the files modified since the clean commit
+    LoadModifiedFiles();
 }
 
 
@@ -175,5 +178,33 @@ void CodePurifierDoc::LoadRecentCommits()
             m_recentCommits.emplace_back(std::move(commit));
 
             return ( additional_commits_to_load != 0 );
+        });
+}
+
+
+void CodePurifierDoc::LoadModifiedFiles()
+{
+    m_modifiedFiles.clear();
+
+    if( !m_cleanCommit.has_value() )
+        return;
+
+    m_repo.ForeachDifferenceInWorkingDirectory(*m_cleanCommit,
+        [&](std::string path, const unsigned int diff_flags)
+        {
+            m_modifiedFiles.emplace_back(std::move(path), diff_flags);
+        });
+
+    // sort case-insensitively and so that files at directory roots are listed before subdirectory files
+    std::sort(m_modifiedFiles.begin(), m_modifiedFiles.end(),
+        [&](const auto& mf1, const auto& mf2)
+        {
+            const std::string& path1 = std::get<0>(mf1);
+            const std::string& path2 = std::get<0>(mf2);
+            const size_t num_dirs1 = std::count(path1.cbegin(), path1.cend(), '/');
+            const size_t num_dirs2 = std::count(path2.cbegin(), path2.cend(), '/');
+
+            return ( num_dirs1 != num_dirs2 ) ? ( num_dirs1 < num_dirs2 ) :
+                                                ( SO::CompareNoCase(path1, path2) < 0 );
         });
 }

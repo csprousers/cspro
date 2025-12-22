@@ -32,10 +32,18 @@ protected:
     void OnResetBranchToCleanCommit();
     void OnCreateCreateBranchCopyBeforeResetClick();
 
+    void OnModifiedFilesDoubleOrRightClick(NMHDR* pNMHDR, LRESULT* pResult);
+    void OnModifiedFileOpen();
+    void OnModifiedFileOpenContainingFolder();
+    void OnModifiedFileCopyPath();
+
 private:
     CodePurifierDoc& GetDoc() { return *assert_cast<CodePurifierDoc*>(GetDocument()); }
 
     void RefreshDataAndUpdateUI(WPARAM wParam);
+
+    template<typename CF>
+    void OnModifiedFile(const CF& callback_function);
 
 private:
     SettingsDb m_settingsDb;
@@ -44,4 +52,5 @@ private:
     CSortListCtrl m_commitsListCtrl;
     int m_cleanCommitIndex;
     bool m_createBranchCopyBeforeReset;
+    CSortListCtrl m_modifiedFilesListCtrl;
 };
