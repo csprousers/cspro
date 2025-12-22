@@ -17,7 +17,7 @@ class ZGIT_API GitBranch
 public:
     // GitBranch assumes ownership of the git_reference object.
     GitBranch(git_reference& branch_ref) noexcept;
-    GitBranch(const GitBranch& rhs) = default;
+    GitBranch(const GitBranch& rhs) = delete;
     GitBranch(GitBranch&& rhs) noexcept;
     ~GitBranch() noexcept;
 

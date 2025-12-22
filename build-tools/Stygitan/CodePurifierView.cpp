@@ -2,6 +2,20 @@
 #include "CodePurifierView.h"
 
 
+namespace Update
+{
+    constexpr WPARAM All          = 0xff;
+    constexpr WPARAM BranchCopies = 0x01;
+    constexpr WPARAM Commits      = 0x02;
+}
+
+
+namespace
+{
+    constexpr std::string_view CreateBranchCopyBeforeResetKey_sv = "create-branch-copy-before-reset";
+}
+
+
 IMPLEMENT_DYNCREATE(CodePurifierView, CFormView)
 
 
@@ -15,21 +29,17 @@ BEGIN_MESSAGE_MAP(CodePurifierView, CFormView)
     ON_NOTIFY(NM_CUSTOMDRAW, IDC_COMMITS, OnCommitsCustomDraw)
     ON_NOTIFY(NM_RCLICK, IDC_COMMITS, OnCommitsRightClick)
     ON_COMMAND(ID_SET_CLEAN_COMMIT, OnSetCleanCommit)
+    ON_COMMAND(IDC_RESET_BRANCH_TO_CLEAN_COMMIT, OnResetBranchToCleanCommit)
+    ON_COMMAND(IDC_CREATE_BRANCH_COPY_BEFORE_RESET, OnCreateCreateBranchCopyBeforeResetClick)
 END_MESSAGE_MAP()
-
-
-namespace Update
-{
-    constexpr WPARAM All          = 0xff;
-    constexpr WPARAM BranchCopies = 0x01;
-    constexpr WPARAM Commits      = 0x02;
-}
 
 
 CodePurifierView::CodePurifierView()
     :   CFormView(IDD_CODE_PURIFIER),
+        m_settingsDb("Stygitan.db", "CodePurifier"),
         m_lastFullRefreshTime(0),
-        m_cleanCommitIndex(0)
+        m_cleanCommitIndex(0),
+        m_createBranchCopyBeforeReset(m_settingsDb.ReadOrDefault(CreateBranchCopyBeforeResetKey_sv, true))
 {
 }
 
@@ -61,6 +71,7 @@ void CodePurifierView::DoDataExchange(CDataExchange* const pDX)
 
     DDX_Control(pDX, IDC_BRANCH_COPIES, m_branchCopiesListBox);
     DDX_Control(pDX, IDC_COMMITS, m_commitsListCtrl);
+    DDX_Check(pDX, IDC_CREATE_BRANCH_COPY_BEFORE_RESET, m_createBranchCopyBeforeReset);
 }
 
 
@@ -294,4 +305,36 @@ void CodePurifierView::OnSetCleanCommit()
     cp_doc.m_cleanCommitOverride = cp_doc.m_recentCommits[index].GetObjectId();
 
     RefreshDataAndUpdateUI(Update::Commits);
+}
+
+
+void CodePurifierView::OnResetBranchToCleanCommit()
+{
+    try
+    {
+        const CodePurifierDoc& cp_doc = GetDoc();
+
+        if( !cp_doc.m_cleanCommit.has_value() )
+            throw CSProException("There is no clean commit.");
+
+        if( m_createBranchCopyBeforeReset )
+            OnCreateBranchCopy();
+
+        cp_doc.m_repo.ResetBranchMixed(*cp_doc.m_cleanCommit);
+
+        RefreshDataAndUpdateUI(Update::Commits);
+    }
+
+    catch( const CSProException& exception )
+    {
+        ErrorMessage::Display(exception);
+    }
+}
+
+
+void CodePurifierView::OnCreateCreateBranchCopyBeforeResetClick()
+{
+    UpdateData(TRUE);
+
+    m_settingsDb.Write(CreateBranchCopyBeforeResetKey_sv, m_createBranchCopyBeforeReset);
 }

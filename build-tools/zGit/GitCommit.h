@@ -20,7 +20,7 @@ class ZGIT_API GitCommit
 public:
     // GitCommit assumes ownership of the git_commit object.
     GitCommit(git_commit& commit) noexcept;
-    GitCommit(const GitCommit& rhs) = default;
+    GitCommit(const GitCommit& rhs) = delete;
     GitCommit(GitCommit&& rhs) noexcept;
     ~GitCommit() noexcept;
 

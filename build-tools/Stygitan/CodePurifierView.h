@@ -29,14 +29,19 @@ protected:
     void OnCommitsRightClick(NMHDR* pNMHDR, LRESULT* pResult);
     void OnSetCleanCommit();
 
+    void OnResetBranchToCleanCommit();
+    void OnCreateCreateBranchCopyBeforeResetClick();
+
 private:
     CodePurifierDoc& GetDoc() { return *assert_cast<CodePurifierDoc*>(GetDocument()); }
 
     void RefreshDataAndUpdateUI(WPARAM wParam);
 
 private:
+    SettingsDb m_settingsDb;
     int64_t m_lastFullRefreshTime;
     CListBox m_branchCopiesListBox;
     CSortListCtrl m_commitsListCtrl;
     int m_cleanCommitIndex;
+    bool m_createBranchCopyBeforeReset;
 };

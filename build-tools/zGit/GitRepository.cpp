@@ -154,6 +154,17 @@ void GitRepository::ForeachLocalBranch(const std::function<bool(GitBranch)>& cal
 }
 
 
+void GitRepository::ResetBranchMixed(const GitCommit& commit) const
+{
+    EnsureRepositoryIsOpen();
+
+    const git_object* const target = reinterpret_cast<const git_object*>(static_cast<const git_commit*>(commit));
+
+    if( git_reset(m_repo, target, GIT_RESET_MIXED, nullptr) != 0 )
+        ThrowGitException();
+}
+
+
 GitIndex GitRepository::GetIndex() const
 {
     EnsureRepositoryIsOpen();

@@ -25,7 +25,7 @@ class ZGIT_API GitRepository
 {
 public:
     GitRepository() noexcept;
-    GitRepository(const GitRepository& rhs) = default;
+    GitRepository(const GitRepository& rhs) = delete;
     GitRepository(GitRepository&& rhs) noexcept;
     ~GitRepository() noexcept;
 
@@ -74,6 +74,9 @@ public:
     // Executes the callback function for each of the repository's local branches.
     // The callback function should return true to continue processing.
     void ForeachLocalBranch(const std::function<bool(GitBranch)>& callback_function) const;
+
+    // Resets the current branch to the commit using the mode "mixed."
+    void ResetBranchMixed(const GitCommit& commit) const;
 
 
     // --------------------------------------------------------------------------

@@ -20,7 +20,7 @@ class ZGIT_API GitObject
 public:
     // GitObject assumes ownership of the git_object object.
     GitObject(git_object& object) noexcept;
-    GitObject(const GitObject& rhs) = default;
+    GitObject(const GitObject& rhs) = delete;
     GitObject(GitObject&& rhs) noexcept;
     ~GitObject() noexcept;
 
