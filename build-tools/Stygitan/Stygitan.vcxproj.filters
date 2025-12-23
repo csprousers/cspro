@@ -21,6 +21,9 @@
     <ClInclude Include="CodePurifierView.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="EditorConfig.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="FilteredCommitsMessageCreatorView.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -47,6 +50,9 @@
     <ClCompile Include="CodePurifierView.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="EditorConfig.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="FilteredCommitsMessageCreatorView.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -69,5 +75,10 @@
     <Image Include="res\Stygitan.ico">
       <Filter>Resource Files</Filter>
     </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\.editorconfig">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

@@ -1,6 +1,5 @@
 ﻿#include "StdAfx.h"
 #include "FilteredCommitsMessageCreatorView.h"
-#include <zToolsO/FileIO.h>
 #include <numeric>
 
 

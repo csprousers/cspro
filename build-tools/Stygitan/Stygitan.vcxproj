@@ -15,12 +15,19 @@
   <Import Project="..\..\cspro\properties\project-settings.props" />
   <ItemDefinitionGroup>
     <ClCompile>
-      <AdditionalIncludeDirectories>$(SolutionDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir);$(CSProDir)external;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
+    <Link>
+      <AdditionalDependencies>$(CSProDir)\external\editorconfig\lib\$(PlatformTarget)\editorconfig.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <PreBuildEvent>
+      <Command>xcopy /D /Y /F /R /S /I "$(CSProDir)external\editorconfig\lib\$(PlatformTarget)\*.dll" "$(TargetDir)"</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="CodePurifierDoc.h" />
     <ClInclude Include="CodePurifierView.h" />
+    <ClInclude Include="EditorConfig.h" />
     <ClInclude Include="FilteredCommitsMessageCreatorView.h" />
     <ClInclude Include="MainFrame.h" />
     <ClInclude Include="resource.h" />
@@ -31,6 +38,7 @@
   <ItemGroup>
     <ClCompile Include="CodePurifierDoc.cpp" />
     <ClCompile Include="CodePurifierView.cpp" />
+    <ClCompile Include="EditorConfig.cpp" />
     <ClCompile Include="FilteredCommitsMessageCreatorView.cpp" />
     <ClCompile Include="MainFrame.cpp" />
     <ClCompile Include="StdAfx.cpp">
@@ -61,6 +69,9 @@
       <Project>{01396fa2-bca6-4f57-9346-ec468db7e0a6}</Project>
       <Private>false</Private>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\.editorconfig" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

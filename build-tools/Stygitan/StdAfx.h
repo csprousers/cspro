@@ -5,6 +5,7 @@
 
 #include <Stygitan/resource.h>
 #include <Stygitan/UWM.h>
+#include <zToolsO/FileIO.h>
 #include <zToolsO/Utf8.h>
 #include <zUtilO/Interapp.h>
 #include <zUtilO/SettingsDb.h>

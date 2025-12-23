@@ -3,10 +3,11 @@
 // Used by Stygitan.rc
 //
 #define IDR_CODE_PURIFIER               101
-#define IDR_FILTERED_COMMITS_MESSAGE_CREATOR 102
-#define IDR_MAINFRAME                   103
-#define IDD_CODE_PURIFIER               104
-#define IDD_FILTERED_COMMITS_MESSAGE_CREATOR 105
+#define IDR_DEFAULT_EDITOR_CONFIG       102
+#define IDR_FILTERED_COMMITS_MESSAGE_CREATOR 103
+#define IDR_MAINFRAME                   104
+#define IDD_CODE_PURIFIER               105
+#define IDD_FILTERED_COMMITS_MESSAGE_CREATOR 106
 #define IDC_BRANCH_COPIES               1000
 #define IDC_CLEAN_COMMIT                1001
 #define IDC_COMMITS                     1002
@@ -34,9 +35,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        106
+#define _APS_NEXT_RESOURCE_VALUE        107
 #define _APS_NEXT_COMMAND_VALUE         40007
 #define _APS_NEXT_CONTROL_VALUE         1018
-#define _APS_NEXT_SYMED_VALUE           106
+#define _APS_NEXT_SYMED_VALUE           107
 #endif
 #endif
