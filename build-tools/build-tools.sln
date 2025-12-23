@@ -5,7 +5,7 @@ VisualStudioVersion = 18.0.11217.181
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{5CF05088-C7EC-4D59-9D52-342F096BD187}"
 	ProjectSection(SolutionItems) = preProject
-		.editorconfig = .editorconfig
+		..\.editorconfig = ..\.editorconfig
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zToolsO", "..\cspro\zToolsO\zToolsO.vcxproj", "{FB0E28EC-927D-41D0-996C-01C21A7A346B}"
