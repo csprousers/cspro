@@ -244,7 +244,23 @@ void EditorConfigApplierView::OnCreateListOfApplicableRules()
             report.OpenForTextWritingCreate(report_file_path);
 
             if( options.IsDefined() )
+            {
+                report.WriteLine("Rules:\n");
                 report.WriteLine(options.GetLongDescription());
+            }
+
+            // write out a summary of extensions
+            report.WriteLine("Extensions:\n");
+            std::map<std::string, size_t> extension_counts;
+
+            for( const std::string* const file_path : file_paths )
+                ++extension_counts[SO::ToLower(Path::GetExtension(*file_path, true))];
+
+            for( const auto& [extension, count] : extension_counts )
+                report.WriteFormattedLine("%-10s: %d", extension.c_str(), static_cast<int>(count));
+
+            // write out each file path
+            report.WriteLine("\nFiles:\n");
 
             for( const std::string* const file_path : file_paths )
                 report.WriteLine(*file_path);

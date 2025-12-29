@@ -1,24 +1,101 @@
-# To learn more about .editorconfig see https://aka.ms/editorconfigdocs
+# EditorConfig file for the CSPro solution and files
+root = true
 
-# All files
-[*]
-charset = utf-8
+# Code files
+[*.{c,cc,cmake,cpp,cs,css,cxx,gradle,h,hpp,html,kt,java,js,mk,nsh,nsi,php,sln}]
 indent_style = space
 indent_size = 4
+charset = utf-8-bom
+trim_trailing_whitespace = true
+insert_final_newline = true
+stygitan_trim_final_newlines = true
 
-# Xml files
-[*.xml]
+# Code files (UTF-8 override)
+[*.{css,html,java,kt,php}]
+charset = utf-8
+
+# Code files (line feed specification)
+[*.php]
+end_of_line = lf
+
+# Code files (indent size override)
+[*.css]
 indent_size = 2
 
-[*.{h,cpp,c,cc,cs,mgf}]
-trim_trailing_whitespace = true
-insert_final_newline = true
-charset = utf-8-bom
+# Code files (indent as tab override)
+[*.sln]
+indent_style = tab
 
+# Code files (resource headers override)
 [resource*.h]
 charset = latin1
+trim_trailing_whitespace = false
 
-[*.{java}]
+# XML files
+[*.{config,csproj,nuspec,proj,projitems,props,resx,ruleset,shproj,targets,vbproj,vcxproj,vcxproj.filters,vsct,vsixmanifest,xml}]
+indent_style = space
+indent_size = 2
+
+# JSON files
+[*.json]
+indent_style = space
+indent_size = 2
+end_of_line = lf
+charset = utf-8
+trim_trailing_whitespace = true
+stygitan_trim_final_newlines = true
+
+# CSPro files (JSON)
+[*.{bch,cmp,csdocset,csds,cspack,csprops,dcf,ent,exf,fqf,hgi,index,ssf,sva,toc,xl2cs,xtb}]
+indent_style = space
+indent_size = 2
+end_of_line = lf
+charset = utf-8
+trim_trailing_whitespace = true
+stygitan_trim_final_newlines = true
+
+# CSPro files (INI)
+[*.{anm,fmf,ord,pff,pffRunner,xts}]
+indent_style = space
+indent_size = 4
+end_of_line = crlf
+charset = utf-8-bom
 trim_trailing_whitespace = true
 insert_final_newline = true
-charset = utf-8
+stygitan_trim_final_newlines = true
+
+# CSPro files (YAML)
+[*.qsf]
+indent_style = space
+indent_size = 2
+end_of_line = crlf
+charset = utf-8-bom
+trim_trailing_whitespace = true
+insert_final_newline = true
+stygitan_trim_final_newlines = true
+
+# CSPro files (text)
+[*.{apc,csdoc,mgf}]
+indent_style = space
+indent_size = 4
+end_of_line = crlf
+charset = utf-8-bom
+trim_trailing_whitespace = true
+insert_final_newline = true
+stygitan_trim_final_newlines = true
+
+# Other files (Markdown)
+[*.md]
+indent_style = space
+indent_size = 4
+trim_trailing_whitespace = false
+insert_final_newline = true
+stygitan_trim_final_newlines = true
+
+# Other text-based files
+[{*.bat,*.txt,.editorconfig,.gitignore,LICENSE}]
+indent_style = space
+indent_size = 4
+trim_trailing_whitespace = true
+insert_final_newline = true
+stygitan_trim_final_newlines = true
