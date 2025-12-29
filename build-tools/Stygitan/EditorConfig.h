@@ -52,14 +52,12 @@ public:
     ~Evaluator() noexcept;
 
     // Returns the evaluated EditorConfig options for the file, throwing an exception on error.
-    // If there are no .editorconfig files for this file, the file is evaluated using
+    // If there are no .editorconfig files for this file, the file is optionally evaluated using
     // CSPro's default .editorconfig file.
-    Options Parse(cs::string_view_sz file_path_sv) { return Parse(file_path_sv, false); }
+    Options Parse(cs::string_view_sz file_path_sv, bool fallback_to_cspro_default_editorconfig = true);
 
 private:
     const std::string& GetTempDirectoryForDefaultProcessing();
-
-    Options Parse(cs::string_view_sz file_path_sv, bool using_default_editorconfig);
 
 private:
     std::string m_tempDirectoryForDefaultProcessing;

@@ -8,8 +8,9 @@
 
 namespace
 {
-    constexpr std::string_view DirectoryKey_sv    = "directory";
-    constexpr std::string_view ProcessFilesKey_sv = "process-files";
+    constexpr std::string_view DirectoryKey_sv              = "directory";
+    constexpr std::string_view ProcessFilesKey_sv           = "process-files";
+    constexpr std::string_view UseDefaultEditorConfigKey_sv = "use-default-editorconfig";
 
     constexpr int ProcessAllFiles             = 0;
     constexpr int ProcessOnlyFilesInGitIndex  = 1;
@@ -31,7 +32,8 @@ EditorConfigApplierView::EditorConfigApplierView()
     :   CFormView(IDD_EDITORCONFIG_APPLIER),
         m_settingsDb("Stygitan.db", "EditorConfigApplier"),
         m_directory(m_settingsDb.ReadOrDefault<std::string>(DirectoryKey_sv)),
-        m_processFilesOption(std::max(ProcessAllFiles, std::min(ProcessOnlyFilesGitModified, m_settingsDb.ReadOrDefault(ProcessFilesKey_sv, ProcessOnlyFilesGitModified))))
+        m_processFilesOption(std::max(ProcessAllFiles, std::min(ProcessOnlyFilesGitModified, m_settingsDb.ReadOrDefault(ProcessFilesKey_sv, ProcessOnlyFilesGitModified)))),
+        m_useDefaultEditorConfig(m_settingsDb.ReadOrDefault(UseDefaultEditorConfigKey_sv, true))
 {
 }
 
@@ -47,12 +49,14 @@ void EditorConfigApplierView::DoDataExchange(CDataExchange* const pDX)
 
     DDX_Text(pDX, IDC_DIRECTORY, m_directory, true);
     DDX_Radio(pDX, IDC_PROCESS_ALL_FILES, m_processFilesOption);
+    DDX_Check(pDX, IDC_USE_CSPRO_DEFAULT_EDITORCONFIG, m_useDefaultEditorConfig);
 
     if( pDX->m_bSaveAndValidate )
     {
         Path::MakeToNativeSlash(m_directory);
         m_settingsDb.Write(DirectoryKey_sv, m_directory);
         m_settingsDb.Write(ProcessFilesKey_sv, m_processFilesOption);
+        m_settingsDb.Write(UseDefaultEditorConfigKey_sv, m_useDefaultEditorConfig);
     }
 }
 
@@ -76,6 +80,7 @@ struct EditorConfigApplierView::Data
 {
     std::string directory;
     int process_files_option;
+    bool use_default_editorconfig;
     std::string report_base_file_path;
     std::vector<std::string> file_paths;
     std::map<std::string, EditorConfig::Options> file_options_map;
@@ -88,7 +93,8 @@ void EditorConfigApplierView::CreateDataForDirectory()
     // only create the directory data when the options have changed
     if( m_data == nullptr ||
         m_directory != m_data->directory ||
-        m_processFilesOption != m_data->process_files_option )
+        m_processFilesOption != m_data->process_files_option ||
+        m_useDefaultEditorConfig != m_data->use_default_editorconfig )
     {
         if( !PortableFunctions::FileIsDirectory(m_directory) )
             throw FileIO::Exception::DirectoryNotFound(m_directory);
@@ -130,6 +136,7 @@ void EditorConfigApplierView::CreateDataForDirectory()
             {
                 m_directory,
                 m_processFilesOption,
+                m_useDefaultEditorConfig,
                 Path::Combine(m_directory, SO::Concatenate("EditorConfigApplier-", IntToString(GetTimestamp<int64_t>()), "-")),
                 std::move(file_paths)
             });
@@ -176,7 +183,7 @@ void EditorConfigApplierView::ParseFilesUsingEditorConfig()
     EditorConfig::Evaluator evaluator;
 
     for( const std::string& file_path : m_data->file_paths )
-        m_data->file_options_map.try_emplace(file_path, evaluator.Parse(file_path));
+        m_data->file_options_map.try_emplace(file_path, evaluator.Parse(file_path, m_data->use_default_editorconfig));
 }
 
 

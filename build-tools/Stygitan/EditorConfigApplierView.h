@@ -33,6 +33,7 @@ private:
     SettingsDb m_settingsDb;
     std::string m_directory;
     int m_processFilesOption;
+    bool m_useDefaultEditorConfig;
 
     struct Data;
     std::unique_ptr<Data> m_data;

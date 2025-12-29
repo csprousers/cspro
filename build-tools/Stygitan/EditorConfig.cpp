@@ -181,7 +181,7 @@ const std::string& EditorConfig::Evaluator::GetTempDirectoryForDefaultProcessing
 }
 
 
-EditorConfig::Options EditorConfig::Evaluator::Parse(const cs::string_view_sz file_path_sv, const bool using_default_editorconfig)
+EditorConfig::Options EditorConfig::Evaluator::Parse(const cs::string_view_sz file_path_sv, const bool fallback_to_cspro_default_editorconfig/* = true*/)
 {
     editorconfig_handle handle = editorconfig_handle_init();
 
@@ -197,11 +197,11 @@ EditorConfig::Options EditorConfig::Evaluator::Parse(const cs::string_view_sz fi
 
     const int count_properties = editorconfig_handle_get_name_value_count(handle);
 
-    // when no properties are defined, use the default .editorconfig file
-    if( count_properties == 0 && !using_default_editorconfig )
+    // when no properties are defined, optionally use CSPro's default .editorconfig file
+    if( count_properties == 0 && fallback_to_cspro_default_editorconfig )
     {
         const std::string fake_file_path = Path::Combine(GetTempDirectoryForDefaultProcessing(), Path::GetFilename(file_path_sv));
-        return Parse(fake_file_path, true);
+        return Parse(fake_file_path, false);
     }
 
     Options options;
