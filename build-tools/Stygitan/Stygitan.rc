@@ -74,6 +74,9 @@ BEGIN
     POPUP "&File"
     BEGIN
         MENUITEM "Open Code Purifier",          ID_FILE_OPEN_CODE_PURIFIER
+        MENUITEM "Open EditorConfig Applier",   ID_FILE_OPEN_EDITORCONFIG_APPLIER
+        MENUITEM SEPARATOR
+        MENUITEM "&Close\tCtrl+W",              ID_FILE_CLOSE
         MENUITEM SEPARATOR
         MENUITEM "E&xit\tAlt+F4",               ID_APP_EXIT
     END
@@ -165,6 +168,25 @@ BEGIN
     CONTROL         "",IDC_MODIFIED_FILES,"SysListView32",LVS_REPORT | LVS_SINGLESEL | LVS_ALIGNLEFT | WS_BORDER | WS_TABSTOP,233,197,385,166
 END
 
+IDD_EDITORCONFIG_APPLIER DIALOGEX 0, 0, 487, 93
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+CAPTION "EditorConfig Applier"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    GROUPBOX        "Actions",IDC_STATIC,335,7,144,79
+    PUSHBUTTON      "Create List of Applicable Rules",IDC_CREATE_LIST_OF_APPLICABLE_RULES,343,21,128,14
+    PUSHBUTTON      "Create List of Git-Ignored Files",IDC_CREATE_LIST_OF_GIT_IGNORED_FILES,343,40,128,14
+    GROUPBOX        "Options",IDC_STATIC,7,7,323,79
+    LTEXT           "Directory root:",IDC_STATIC,19,24,48,8
+    EDITTEXT        IDC_DIRECTORY,78,21,209,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "...",IDC_DIRECTORY_SELECT,296,21,25,14
+    CONTROL         "Process all files",IDC_PROCESS_ALL_FILES,"Button",BS_AUTORADIOBUTTON | WS_GROUP,19,42,64,10
+    CONTROL         "Process only files in the Git index (if applicable)",IDC_PROCESS_ONLY_FILES_IN_GIT_INDEX,
+                    "Button",BS_AUTORADIOBUTTON,19,56,165,10
+    CONTROL         "Process only files modified since the last Git remote commit (if applicable)",IDC_PROCESS_ONLY_MODIFIED_FILES_GIT,
+                    "Button",BS_AUTORADIOBUTTON,19,70,247,10
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -177,6 +199,11 @@ BEGIN
 END
 
 IDD_CODE_PURIFIER AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_EDITORCONFIG_APPLIER AFX_DIALOG_LAYOUT
 BEGIN
     0
 END
@@ -205,6 +232,14 @@ BEGIN
         TOPMARGIN, 7
         BOTTOMMARGIN, 370
     END
+
+    IDD_EDITORCONFIG_APPLIER, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 480
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 86
+    END
 END
 #endif    // APSTUDIO_INVOKED
 
@@ -225,6 +260,7 @@ IDR_DEFAULT_EDITOR_CONFIG RCDATA                  "..\\..\\.editorconfig"
 STRINGTABLE
 BEGIN
     IDR_CODE_PURIFIER       "Code Purifier"
+    IDR_EDITORCONFIG_APPLIER "EditorConfig Applier"
     IDR_FILTERED_COMMITS_MESSAGE_CREATOR "Filtered Commits Message Creator"
     IDR_MAINFRAME           "Stygitan"
 END

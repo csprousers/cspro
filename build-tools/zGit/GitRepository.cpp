@@ -243,7 +243,7 @@ void GitRepository::ForeachStatusInWorkingDirectory(const std::function<void(std
 }
 
 
-void GitRepository::ForeachDifferenceInWorkingDirectory(const GitCommit& commit, const std::function<void(std::string path, unsigned int diff_flags)>& callback_function) const
+void GitRepository::ForeachDifferenceInWorkingDirectory(const GitCommit& commit, const std::function<void(std::string path, unsigned int diff_flag)>& callback_function) const
 {
     EnsureRepositoryIsOpen();
 

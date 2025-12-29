@@ -14,6 +14,8 @@ protected:
     BOOL InitInstance() override;
 
     void OnOpenCodePurifier();
+    void OnOpenEditorConfigApplier();
+
     void OnCreateMessageFromFilteredCommits();
 
     void OnAppAbout();

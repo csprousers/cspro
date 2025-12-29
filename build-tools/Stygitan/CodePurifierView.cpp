@@ -1,7 +1,6 @@
 ﻿#include "StdAfx.h"
 #include "CodePurifierView.h"
 #include <zToolsO/WinClipboard.h>
-#include <external/libgit2/include/git2/diff.h>
 
 
 namespace Update
@@ -185,14 +184,14 @@ LRESULT CodePurifierView::OnUpdateUI(const WPARAM wParam, LPARAM /*lParam*/)
     {
         m_modifiedFilesListCtrl.DeleteAllItems();
 
-        for( const auto& [file_path, diff_flags] : cp_doc.m_modifiedFiles )
+        for( const auto& [file_path, diff_flag] : cp_doc.m_modifiedFiles )
         {
             const wchar_t* const status =
-                ( diff_flags == GIT_DELTA_ADDED )     ? L"Added" :
-                ( diff_flags == GIT_DELTA_DELETED )   ? L"Deleted" :
-                ( diff_flags == GIT_DELTA_MODIFIED )  ? L"Modified" :
-                ( diff_flags == GIT_DELTA_UNTRACKED ) ? L"Untracked" :
-                                                        ReturnProgrammingError(L"<unknown status>");
+                ( diff_flag == GIT_DELTA_ADDED )     ? L"Added" :
+                ( diff_flag == GIT_DELTA_DELETED )   ? L"Deleted" :
+                ( diff_flag == GIT_DELTA_MODIFIED )  ? L"Modified" :
+                ( diff_flag == GIT_DELTA_UNTRACKED ) ? L"Untracked" :
+                                                       ReturnProgrammingError(L"<unknown status>");
 
             m_modifiedFilesListCtrl.AddItem(TC::ToWide(file_path).c_str(), status);
         }

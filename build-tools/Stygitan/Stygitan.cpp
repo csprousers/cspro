@@ -1,9 +1,9 @@
 ﻿#include "StdAfx.h"
 #include "Stygitan.h"
 #include "CodePurifierView.h"
+#include "EditorConfigApplierView.h"
 #include "FilteredCommitsMessageCreatorView.h"
 #include "MainFrame.h"
-#include <zUtilO/FileUtil.h>
 #include <zUtilO/ImsaDlg.h>
 #include <zUtilF/CommonControls.h>
 
@@ -17,6 +17,7 @@ namespace
 
 BEGIN_MESSAGE_MAP(StygitanApp, CWinApp)
     ON_COMMAND(ID_FILE_OPEN_CODE_PURIFIER, OnOpenCodePurifier)
+    ON_COMMAND(ID_FILE_OPEN_EDITORCONFIG_APPLIER, OnOpenEditorConfigApplier)
     ON_COMMAND(ID_COMMITS_CREATE_MESSAGE_FROM_FILTERED_COMMITS, OnCreateMessageFromFilteredCommits)
     ON_COMMAND(ID_APP_ABOUT, OnAppAbout)
 END_MESSAGE_MAP()
@@ -52,6 +53,7 @@ BOOL StygitanApp::InitInstance()
     //  serve as the connection between documents, frame windows and views.
     m_fileFreeDocManager = new FileFreeDocManager();
     m_codePurifierDocTemplate = m_fileFreeDocManager->AddDocTemplate<IDR_CODE_PURIFIER, CodePurifierDoc, CMDIChildWnd, CodePurifierView>();
+    m_fileFreeDocManager->AddDocTemplate<IDR_EDITORCONFIG_APPLIER, EditorConfigApplierView>();
     m_fileFreeDocManager->AddDocTemplate<IDR_FILTERED_COMMITS_MESSAGE_CREATOR, FilteredCommitsMessageCreatorView>();
     m_pDocManager = m_fileFreeDocManager;
 
@@ -106,6 +108,12 @@ void StygitanApp::OnOpenCodePurifier(std::string directory)
     // only open the directory if it is not already open
     if( FileFreeDocManager::FindAndActivateOpenDocumentByPath(m_codePurifierDocTemplate, wide_directory.c_str()) == nullptr )
         m_codePurifierDocTemplate->OpenDocumentFile(wide_directory.c_str());
+}
+
+
+void StygitanApp::OnOpenEditorConfigApplier()
+{
+    m_fileFreeDocManager->Open(IDR_EDITORCONFIG_APPLIER, false);
 }
 
 

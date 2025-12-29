@@ -5,6 +5,7 @@ namespace EditorConfig
 {
     class Evaluator;
     struct Options;
+    struct OptionStrings;
 
     enum class Indent { Space, Tab };
 
@@ -12,6 +13,14 @@ namespace EditorConfig
 
     enum class Charset { Latin1, Utf8, Utf8Bom, Utf16BE, Utf16LE };
 }
+
+
+struct EditorConfig::OptionStrings
+{
+    static const char* Indent[2];
+    static const char* EndOfLine[3];
+    static const char* Charset[5];
+};
 
 
 struct EditorConfig::Options
@@ -25,9 +34,15 @@ struct EditorConfig::Options
     std::optional<bool> insert_final_newline;
 
     // Stygitan options
-    std::optional<bool> trim_final_newlines;
+    std::optional<bool> stygitan_trim_final_newlines;
 
-    bool IsDefined() const;
+    // methods
+    bool operator<(const Options& rhs) const noexcept;
+
+    bool IsDefined() const noexcept;
+
+    std::string GetShortDescription() const noexcept;
+    std::string GetLongDescription() const noexcept;
 };
 
 

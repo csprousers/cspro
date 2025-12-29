@@ -107,7 +107,7 @@ public:
     // Executes the callback function for each file in the working directory with
     // a different status from the commit's tree, passing the path and difference code.
     // Difference codes are in diff.h.
-    void ForeachDifferenceInWorkingDirectory(const GitCommit& commit, const std::function<void(std::string path, unsigned int diff_flags)>& callback_function) const;
+    void ForeachDifferenceInWorkingDirectory(const GitCommit& commit, const std::function<void(std::string path, unsigned int diff_flag)>& callback_function) const;
 
 
     // --------------------------------------------------------------------------

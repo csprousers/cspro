@@ -37,5 +37,5 @@ private:
 
     std::vector<GitCommit> m_recentCommits;
 
-    std::vector<std::tuple<std::string, unsigned int>> m_modifiedFiles; // file path + difference flags
+    std::vector<std::tuple<std::string, unsigned int>> m_modifiedFiles; // file path + difference flag
 };

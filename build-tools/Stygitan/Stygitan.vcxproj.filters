@@ -24,7 +24,13 @@
     <ClInclude Include="EditorConfig.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="EditorConfigApplierView.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="FilteredCommitsMessageCreatorView.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Helpers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="MainFrame.h">
@@ -53,7 +59,13 @@
     <ClCompile Include="EditorConfig.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="EditorConfigApplierView.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="FilteredCommitsMessageCreatorView.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Helpers.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MainFrame.cpp">

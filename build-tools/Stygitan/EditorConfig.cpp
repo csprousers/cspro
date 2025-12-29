@@ -4,10 +4,60 @@
 
 
 // --------------------------------------------------------------------------
+// EditorConfig::OptionStrings
+// --------------------------------------------------------------------------
+
+const char* EditorConfig::OptionStrings::Indent[2] = { "space", "tab" };
+
+const char* EditorConfig::OptionStrings::EndOfLine[3] = { "lf", "cr", "crlf" };
+
+const char* EditorConfig::OptionStrings::Charset[5] = { "latin1", "utf-8", "utf-8-bom", "utf-16be", "utf-16le" };
+
+
+
+// --------------------------------------------------------------------------
 // EditorConfig::Options
 // --------------------------------------------------------------------------
 
-bool EditorConfig::Options::IsDefined() const
+bool EditorConfig::Options::operator<(const Options& rhs) const noexcept
+{
+    std::optional<bool> lt;
+
+    // assume optional values without a value are less than
+    auto optional_lt = [&](const auto& lhs_value, const auto& rhs_value)
+    {
+        if( lhs_value.has_value() && rhs_value.has_value() )
+        {
+            if( *lhs_value != *rhs_value )
+                lt = ( *lhs_value < *rhs_value );
+        }
+
+        else if( lhs_value.has_value() )
+        {
+            lt = false;
+        }
+
+        else if( rhs_value.has_value() )
+        {
+            lt = true;
+        }
+
+        return !lt.has_value();
+    };
+
+    optional_lt(indent_style, rhs.indent_style) &&
+    optional_lt(indent_size, rhs.indent_size) &&
+    optional_lt(end_of_line, rhs.end_of_line) &&
+    optional_lt(charset, rhs.charset) &&
+    optional_lt(trim_trailing_whitespace, rhs.trim_trailing_whitespace) &&
+    optional_lt(insert_final_newline, rhs.insert_final_newline) &&
+    optional_lt(stygitan_trim_final_newlines, rhs.stygitan_trim_final_newlines);
+
+    return lt.value_or(false);
+}
+
+
+bool EditorConfig::Options::IsDefined() const noexcept
 {
     return ( indent_style.has_value() ||
              indent_size.has_value() ||
@@ -15,7 +65,79 @@ bool EditorConfig::Options::IsDefined() const
              charset.has_value() ||
              trim_trailing_whitespace.has_value() ||
              insert_final_newline.has_value() ||
-             trim_final_newlines.has_value() );
+             stygitan_trim_final_newlines.has_value() );
+}
+
+
+std::string EditorConfig::Options::GetShortDescription() const noexcept
+{
+    ASSERT(IsDefined());
+
+    std::string description;
+
+    auto add_separator = [&]() -> std::string&
+    {
+        if( !description.empty() )
+            description.push_back('-');
+
+        return description;
+    };
+
+    if( indent_style.has_value() )
+        description.append("indent_style(").append(OptionStrings::Indent[static_cast<size_t>(*indent_style)]).push_back(')');
+
+    if( indent_size.has_value() )
+        add_separator().append("indent_size(").append(IntToString(*indent_size)).push_back(')');
+
+    if( end_of_line.has_value() )
+        add_separator().append("end_of_line(").append(OptionStrings::EndOfLine[static_cast<size_t>(*end_of_line)]).push_back(')');
+
+    if( charset.has_value() )
+        add_separator().append("charset(").append(OptionStrings::Charset[static_cast<size_t>(*charset)]).push_back(')');
+
+    if( trim_trailing_whitespace )
+        add_separator().append("trim_trailing_whitespace");
+
+    if( insert_final_newline  )
+        add_separator().append("insert_final_newline");
+
+    if( stygitan_trim_final_newlines )
+        add_separator().append("stygitan_trim_final_newlines");
+
+    return description;
+}
+
+
+std::string EditorConfig::Options::GetLongDescription() const noexcept
+{
+    constexpr const char* BoolDescriptions[2] = { "false\n", "true\n" };
+
+    ASSERT(IsDefined());
+
+    std::string description;
+
+    if( indent_style.has_value() )
+        description.append("indent_style: ").append(OptionStrings::Indent[static_cast<size_t>(*indent_style)]).push_back('\n');
+
+    if( indent_size.has_value() )
+        description.append("indent_size: ").append(IntToString(*indent_size)).push_back('\n');
+
+    if( end_of_line.has_value() )
+        description.append("end_of_line: ").append(OptionStrings::EndOfLine[static_cast<size_t>(*end_of_line)]).push_back('\n');
+
+    if( charset.has_value() )
+        description.append("charset: ").append(OptionStrings::Charset[static_cast<size_t>(*charset)]).push_back('\n');
+
+    if( trim_trailing_whitespace.has_value() )
+        description.append("trim_trailing_whitespace: ").append(BoolDescriptions[*trim_trailing_whitespace]);
+
+    if( insert_final_newline  )
+        description.append("insert_final_newline: ").append(BoolDescriptions[*insert_final_newline]);
+
+    if( stygitan_trim_final_newlines )
+        description.append("stygitan_trim_final_newlines: ").append(BoolDescriptions[*stygitan_trim_final_newlines]);
+
+    return description;
 }
 
 
@@ -99,12 +221,20 @@ EditorConfig::Options EditorConfig::Evaluator::Parse(const cs::string_view_sz fi
                                                        throw CSProException(InvalidValueFormatter, name, value);
         };
 
+        auto evaluate_enum = [&](const char* const options[], const int num_options) -> int
+        {
+            for( int i = 0; i < num_options; ++i )
+            {
+                if( _stricmp(value, options[i]) == 0 )
+                    return i;
+            }
+
+            throw CSProException(InvalidValueFormatter, name, value);
+        };
+
         if( strcmp(name, "indent_style") == 0 )
         {
-            options.indent_style =
-                ( _stricmp(value, "space") == 0 ) ? Indent::Space :
-                ( _stricmp(value, "tab") == 0 )   ? Indent::Tab :
-                                                    throw CSProException(InvalidValueFormatter, name, value);
+            options.indent_style = static_cast<Indent>(evaluate_enum(OptionStrings::Indent, _countof(OptionStrings::Indent)));
         }
 
         else if( strcmp(name, "indent_size") == 0 )
@@ -119,22 +249,12 @@ EditorConfig::Options EditorConfig::Evaluator::Parse(const cs::string_view_sz fi
 
         else if( strcmp(name, "end_of_line") == 0 )
         {
-            options.end_of_line =
-                ( _stricmp(value, "lf") == 0 )   ? EndOfLine::LF :
-                ( _stricmp(value, "cr") == 0 )   ? EndOfLine::CR :
-                ( _stricmp(value, "crlf") == 0 ) ? EndOfLine::CRLF :
-                                                   throw CSProException(InvalidValueFormatter, name, value);
+            options.end_of_line = static_cast<EndOfLine>(evaluate_enum(OptionStrings::EndOfLine, _countof(OptionStrings::EndOfLine)));
         }
 
         else if( strcmp(name, "charset") == 0 )
         {
-            options.charset =
-                ( _stricmp(value, "latin1") == 0 )    ? Charset::Latin1 :
-                ( _stricmp(value, "utf-8") == 0 )     ? Charset::Utf8 :
-                ( _stricmp(value, "utf-8-bom") == 0 ) ? Charset::Utf8Bom :
-                ( _stricmp(value, "utf-16be") == 0 )  ? Charset::Utf16BE :
-                ( _stricmp(value, "utf-16le") == 0 )  ? Charset::Utf16LE :
-                                                        throw CSProException(InvalidValueFormatter, name, value);
+            options.charset = static_cast<Charset>(evaluate_enum(OptionStrings::Charset, _countof(OptionStrings::Charset)));
         }
 
         else if( strcmp(name, "trim_trailing_whitespace") == 0 )
@@ -154,7 +274,7 @@ EditorConfig::Options EditorConfig::Evaluator::Parse(const cs::string_view_sz fi
 
         else if( strcmp(name, "stygitan_trim_final_newlines") == 0 )
         {
-            options.trim_final_newlines = evaluate_bool();
+            options.stygitan_trim_final_newlines = evaluate_bool();
         }
 
         else

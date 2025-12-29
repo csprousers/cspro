@@ -28,7 +28,9 @@
     <ClInclude Include="CodePurifierDoc.h" />
     <ClInclude Include="CodePurifierView.h" />
     <ClInclude Include="EditorConfig.h" />
+    <ClInclude Include="EditorConfigApplierView.h" />
     <ClInclude Include="FilteredCommitsMessageCreatorView.h" />
+    <ClInclude Include="Helpers.h" />
     <ClInclude Include="MainFrame.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="StdAfx.h" />
@@ -39,7 +41,9 @@
     <ClCompile Include="CodePurifierDoc.cpp" />
     <ClCompile Include="CodePurifierView.cpp" />
     <ClCompile Include="EditorConfig.cpp" />
+    <ClCompile Include="EditorConfigApplierView.cpp" />
     <ClCompile Include="FilteredCommitsMessageCreatorView.cpp" />
+    <ClCompile Include="Helpers.cpp" />
     <ClCompile Include="MainFrame.cpp" />
     <ClCompile Include="StdAfx.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
