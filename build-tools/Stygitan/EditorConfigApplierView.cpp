@@ -1,6 +1,6 @@
 ﻿#include "StdAfx.h"
 #include "EditorConfigApplierView.h"
-#include "EditorConfig.h"
+#include "EditorConfigApplier.h"
 #include <zToolsO/DirectoryLister.h>
 #include <zToolsO/File.h>
 #include <zGit/GitIndex.h>
@@ -25,6 +25,7 @@ BEGIN_MESSAGE_MAP(EditorConfigApplierView, CFormView)
     ON_COMMAND(IDC_DIRECTORY_SELECT, OnDirectorySelect)
     ON_COMMAND(IDC_CREATE_LIST_OF_APPLICABLE_RULES, OnCreateListOfApplicableRules)
     ON_COMMAND(IDC_CREATE_LIST_OF_GIT_IGNORED_FILES, OnCreateListOfGitIgnoredFiles)
+    ON_COMMAND(IDC_APPLY_EDITORCONFIG_RULES, OnApplyRules)
 END_MESSAGE_MAP()
 
 
@@ -50,6 +51,7 @@ void EditorConfigApplierView::DoDataExchange(CDataExchange* const pDX)
     DDX_Text(pDX, IDC_DIRECTORY, m_directory, true);
     DDX_Radio(pDX, IDC_PROCESS_ALL_FILES, m_processFilesOption);
     DDX_Check(pDX, IDC_USE_CSPRO_DEFAULT_EDITORCONFIG, m_useDefaultEditorConfig);
+    DDX_Control(pDX, IDC_LOG, m_loggingListBox);
 
     if( pDX->m_bSaveAndValidate )
     {
@@ -85,6 +87,7 @@ struct EditorConfigApplierView::Data
     std::vector<std::string> file_paths;
     std::map<std::string, EditorConfig::Options> file_options_map;
     std::optional<std::vector<std::string>> git_ignored_file_paths;
+    EditorConfig::Applier editorconfig_applier;
 };
 
 
@@ -96,6 +99,8 @@ void EditorConfigApplierView::CreateDataForDirectory()
         m_processFilesOption != m_data->process_files_option ||
         m_useDefaultEditorConfig != m_data->use_default_editorconfig )
     {
+        m_loggingListBox.AddText("Processing directory: %s", m_directory.c_str());
+
         if( !PortableFunctions::FileIsDirectory(m_directory) )
             throw FileIO::Exception::DirectoryNotFound(m_directory);
 
@@ -131,6 +136,8 @@ void EditorConfigApplierView::CreateDataForDirectory()
             ASSERT(m_processFilesOption == ProcessOnlyFilesGitModified);
             GetPathsModifiedSinceLastGitRemoteCommit(*repo, file_paths);
         }
+
+        m_loggingListBox.AddText("Found %d files not ignored by any Git filtering.", static_cast<int>(file_paths.size()));
 
         m_data.reset(new Data
             {
@@ -181,9 +188,23 @@ void EditorConfigApplierView::ParseFilesUsingEditorConfig()
         return;
 
     EditorConfig::Evaluator evaluator;
+    size_t defined_rules = 0;
 
     for( const std::string& file_path : m_data->file_paths )
-        m_data->file_options_map.try_emplace(file_path, evaluator.Parse(file_path, m_data->use_default_editorconfig));
+    {
+        EditorConfig::Options options = evaluator.Parse(file_path, m_data->use_default_editorconfig);
+
+        if( options.IsDefined() )
+            ++defined_rules;
+
+        m_data->file_options_map.try_emplace(file_path, std::move(options));
+    }
+
+    const size_t no_rules = m_data->file_paths.size() - defined_rules;
+
+    m_loggingListBox.AddText("Parsing the EditorConfig files found %d file%s that will be processed and %d file%s with no applicable rules.",
+                             static_cast<int>(defined_rules), PluralizeWord(defined_rules),
+                             static_cast<int>(no_rules), PluralizeWord(no_rules));
 }
 
 
@@ -292,6 +313,67 @@ void EditorConfigApplierView::OnCreateListOfGitIgnoredFiles()
 
     catch( const CSProException& exception )
     {
+        ErrorMessage::Display(exception);
+    }
+}
+
+
+void EditorConfigApplierView::OnApplyRules()
+{
+    const std::string* last_file_path_processed = nullptr;
+
+    try
+    {
+        UpdateData(TRUE);
+        CreateDataForDirectory();
+        ParseFilesUsingEditorConfig();
+
+        m_loggingListBox.AddText("\nApplying rules to files in: %s", m_data->directory.c_str());
+
+        size_t skipped = 0;
+        size_t no_change = 0;
+        size_t changed = 0;
+
+        for( const auto& [file_path, options] : m_data->file_options_map )
+        {
+            last_file_path_processed = &file_path;
+
+            if( !options.IsDefined() )
+            {
+                ++skipped;
+            }
+
+            else
+            {
+                const BinaryBlock* const processed_file = m_data->editorconfig_applier.Process(file_path, options);
+
+                if( processed_file == nullptr )
+                {
+                    ++no_change;
+                }
+
+                else
+                {
+                    m_loggingListBox.AddText("Modifying file: %s", file_path.c_str());
+                    FileIO::Write(file_path, *processed_file);
+                    ++changed;
+                }
+            }
+        }
+
+        m_loggingListBox.AddText("\nSummary:\n  %-25s%d\n  %-25s%d\n  %-25s%d\n  %-25s%d",
+                                 "Total files:", static_cast<int>(m_data->file_options_map.size()),
+                                 "No applicable rules:", static_cast<int>(skipped),
+                                 "Files without changes:", static_cast<int>(no_change),
+                                 "Files with changes:", static_cast<int>(changed));
+    }
+
+    catch( const CSProException& exception )
+    {
+        m_loggingListBox.AddText("\nError processing: %s\n\n%s",
+                                 ( last_file_path_processed != nullptr ) ? last_file_path_processed->c_str() : "",
+                                 exception.what());
+
         ErrorMessage::Display(exception);
     }
 }

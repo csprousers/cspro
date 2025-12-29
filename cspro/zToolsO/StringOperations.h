@@ -426,10 +426,10 @@ public:
     static constexpr int DefaultSpacesPerTab = 4;
     static constexpr const char* SingleTabAsSpaces = "    ";
 
-    // converts tabs to spaces, using DefaultSpacesPerTab as the number of spaces per tab
-    CLASS_DECL_ZTOOLSO static int ConvertTabsToSpaces(std::string& text, int position_in_line = 0);
+    // Converts tabs to spaces, using DefaultSpacesPerTab as the default number of spaces per tab.
+    CLASS_DECL_ZTOOLSO static int ConvertTabsToSpaces(std::string& text, int position_in_line = 0, int spaces_per_tab = DefaultSpacesPerTab);
 
-    // converts tabs to spaces and right-trims each line
+    // Converts tabs to spaces and right-trims each line.
     CLASS_DECL_ZTOOLSO static void ConvertTabsToSpacesAndTrimRightEachLine(std::string& text);
 
 
@@ -561,7 +561,7 @@ private:
     CLASS_DECL_ZTOOLSO static void CopyToFixedBufferWorker(CT* destination, size_t destination_size, const CT* source, size_t source_length);
 
     template<bool trim_right_each_line>
-    static int ConvertTabsToSpacesWorker(std::string& text, int position_in_line);
+    static int ConvertTabsToSpacesWorker(std::string& text, int position_in_line, int spaces_per_tab);
 
     template<typename RT, typename SeparatorT, typename SVT>
     static std::vector<RT> SplitStringWorker(SVT text_sv, const SeparatorT& separators, bool trim_all, bool include_empty_entities);

@@ -1,5 +1,7 @@
 ﻿#pragma once
 
+#include <zUtilF/LoggingListBox.h>
+
 
 class EditorConfigApplierView : public CFormView
 {
@@ -20,6 +22,7 @@ protected:
 
     void OnCreateListOfApplicableRules();
     void OnCreateListOfGitIgnoredFiles();
+    void OnApplyRules();
 
 private:
     void CreateDataForDirectory();
@@ -34,6 +37,7 @@ private:
     std::string m_directory;
     int m_processFilesOption;
     bool m_useDefaultEditorConfig;
+    LoggingListBox m_loggingListBox;
 
     struct Data;
     std::unique_ptr<Data> m_data;

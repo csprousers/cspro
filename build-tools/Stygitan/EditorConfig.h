@@ -3,6 +3,7 @@
 
 namespace EditorConfig
 {
+    class Applier;
     class Evaluator;
     struct Options;
     struct OptionStrings;

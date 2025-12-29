@@ -24,6 +24,9 @@
     <ClInclude Include="EditorConfig.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="EditorConfigApplier.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="EditorConfigApplierView.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -57,6 +60,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="EditorConfig.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="EditorConfigApplier.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="EditorConfigApplierView.cpp">
