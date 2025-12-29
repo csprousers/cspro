@@ -11,4 +11,9 @@ protected:
 
     int OnCreate(LPCREATESTRUCT lpCreateStruct);
     void OnActivateApp(BOOL bActive, DWORD dwThreadID);
+    void OnClose();
+
+    LRESULT OnOpenContainingFolder(WPARAM wParam, LPARAM lParam);
+
+    LRESULT OnDisplayErrorMessage(WPARAM wParam, LPARAM lParam);
 };

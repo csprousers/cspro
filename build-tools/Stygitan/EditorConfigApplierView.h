@@ -18,6 +18,10 @@ protected:
 
     void DoDataExchange(CDataExchange* pDX) override;
 
+    LRESULT OnThreadComplete(WPARAM wParam, LPARAM lParam);
+
+    void OnCancel();
+
     void OnDirectorySelect();
 
     void OnCreateListOfApplicableRules();
@@ -25,6 +29,10 @@ protected:
     void OnApplyRules();
 
 private:
+    void RunInThread(std::function<void(bool& cancel_flag)> thread_function);
+
+    void SetUpButtonsForThread(bool starting_thread);
+
     void CreateDataForDirectory();
 
     void GetPathsInGitIndex(GitRepository& repo, std::vector<std::string>& file_paths) const;

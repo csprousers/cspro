@@ -22,6 +22,8 @@ IMPLEMENT_DYNCREATE(EditorConfigApplierView, CFormView)
 
 
 BEGIN_MESSAGE_MAP(EditorConfigApplierView, CFormView)
+    ON_MESSAGE(UWM::Stygitan::ThreadComplete, OnThreadComplete)
+    ON_COMMAND(IDCANCEL, OnCancel)
     ON_COMMAND(IDC_DIRECTORY_SELECT, OnDirectorySelect)
     ON_COMMAND(IDC_CREATE_LIST_OF_APPLICABLE_RULES, OnCreateListOfApplicableRules)
     ON_COMMAND(IDC_CREATE_LIST_OF_GIT_IGNORED_FILES, OnCreateListOfGitIgnoredFiles)
@@ -60,6 +62,43 @@ void EditorConfigApplierView::DoDataExchange(CDataExchange* const pDX)
         m_settingsDb.Write(ProcessFilesKey_sv, m_processFilesOption);
         m_settingsDb.Write(UseDefaultEditorConfigKey_sv, m_useDefaultEditorConfig);
     }
+}
+
+
+void EditorConfigApplierView::RunInThread(std::function<void(bool& cancel_flag)> thread_function)
+{
+    SetUpButtonsForThread(true);
+    GetParentFrame()->SendMessage(UWM::Stygitan::ThreadStart, reinterpret_cast<WPARAM>(&thread_function));
+}
+
+
+LRESULT EditorConfigApplierView::OnThreadComplete(WPARAM /*wParam*/, LPARAM /*lParam*/)
+{
+    SetUpButtonsForThread(false);
+    return 1;
+}
+
+
+void EditorConfigApplierView::SetUpButtonsForThread(const bool starting_thread)
+{
+    // disable the action buttons when the thread is running
+    const BOOL action_enablement = starting_thread ? FALSE : TRUE;
+
+    for( const int resource_id : { IDC_CREATE_LIST_OF_APPLICABLE_RULES,
+                                   IDC_CREATE_LIST_OF_GIT_IGNORED_FILES,
+                                   IDC_APPLY_EDITORCONFIG_RULES } )
+    {
+        GetDlgItem(resource_id)->EnableWindow(action_enablement);
+    }
+
+    // show the cancel button when the thread is running
+    GetDlgItem(IDCANCEL)->ShowWindow(starting_thread ? SW_SHOW : SW_HIDE);
+}
+
+
+void EditorConfigApplierView::OnCancel()
+{
+    GetParentFrame()->SendMessage(UWM::Stygitan::ThreadPromptCancel);
 }
 
 
@@ -202,7 +241,7 @@ void EditorConfigApplierView::ParseFilesUsingEditorConfig()
 
     const size_t no_rules = m_data->file_paths.size() - defined_rules;
 
-    m_loggingListBox.AddText("Parsing the EditorConfig files found %d file%s that will be processed and %d file%s with no applicable rules.",
+    m_loggingListBox.AddText("Parsing the EditorConfig files resulted in %d file%s that will be processed and %d file%s with no applicable rules.",
                              static_cast<int>(defined_rules), PluralizeWord(defined_rules),
                              static_cast<int>(no_rules), PluralizeWord(no_rules));
 }
@@ -210,186 +249,236 @@ void EditorConfigApplierView::ParseFilesUsingEditorConfig()
 
 void EditorConfigApplierView::OnCreateListOfApplicableRules()
 {
-    try
-    {
-        UpdateData(TRUE);
-        CreateDataForDirectory();
-        ParseFilesUsingEditorConfig();
+    m_loggingListBox.AddText("Creating the list of applicable rules...\n");
 
-        // sort the files into buckets based on their options
-        std::map<EditorConfig::Options, std::vector<const std::string*>> options_file_map;
+    UpdateData(TRUE);
 
-        for( const auto& [file_path, options] : m_data->file_options_map )
-            options_file_map[options].emplace_back(&file_path);
-
-        std::string report_file_path;
-
-        // write out the details for each bucket
-        for( auto& [options, file_paths] : options_file_map )
+    RunInThread(
+        [&](bool& cancel_flag)
         {
-            std::sort(file_paths.begin(), file_paths.end(),
-                [&](const std::string* const fp1, const std::string* const fp2)
-                {
-                    return Helpers::CompareFilePathsByDirectory(*fp1, *fp2);
-                });
-
-            report_file_path = SO::Concatenate(
-                m_data->report_base_file_path,
-                options.IsDefined() ? Path::CreateValidFilename(options.GetShortDescription()) : "ignored",
-                ".txt"
-            );
-
-            FileIO::TextFile report;
-            report.SetTextEncoding(TextEncoding::Type::Utf8);
-            report.OpenForTextWritingCreate(report_file_path);
-
-            if( options.IsDefined() )
+            try
             {
-                report.WriteLine("Rules:\n");
-                report.WriteLine(options.GetLongDescription());
+                CreateDataForDirectory();
+
+                if( cancel_flag )
+                    throw UserCanceledException();
+
+                ParseFilesUsingEditorConfig();
+
+                // sort the files into buckets based on their options
+                std::map<EditorConfig::Options, std::vector<const std::string*>> options_file_map;
+
+                for( const auto& [file_path, options] : m_data->file_options_map )
+                    options_file_map[options].emplace_back(&file_path);
+
+                std::string report_file_path;
+
+                // write out the details for each bucket
+                for( auto& [options, file_paths] : options_file_map )
+                {
+                    if( cancel_flag )
+                        throw UserCanceledException();
+
+                    std::sort(file_paths.begin(), file_paths.end(),
+                        [&](const std::string* const fp1, const std::string* const fp2)
+                        {
+                            return Helpers::CompareFilePathsByDirectory(*fp1, *fp2);
+                        });
+
+                    report_file_path = SO::Concatenate(
+                        m_data->report_base_file_path,
+                        options.IsDefined() ? Path::CreateValidFilename(options.GetShortDescription()) : "ignored",
+                        ".txt"
+                    );
+
+                    FileIO::TextFile report;
+                    report.SetTextEncoding(TextEncoding::Type::Utf8);
+                    report.OpenForTextWritingCreate(report_file_path);
+
+                    if( options.IsDefined() )
+                    {
+                        report.WriteLine("Rules:\n");
+                        report.WriteLine(options.GetLongDescription());
+                    }
+
+                    // write out a summary of extensions
+                    report.WriteLine("Extensions:\n");
+                    std::map<std::string, size_t> extension_counts;
+
+                    for( const std::string* const file_path : file_paths )
+                        ++extension_counts[SO::ToLower(Path::GetExtension(*file_path, true))];
+
+                    for( const auto& [extension, count] : extension_counts )
+                        report.WriteFormattedLine("%-10s: %d", extension.c_str(), static_cast<int>(count));
+
+                    // write out each file path
+                    report.WriteLine("\nFiles:\n");
+
+                    for( const std::string* const file_path : file_paths )
+                        report.WriteLine(*file_path);
+                }
+
+                if( !report_file_path.empty() )
+                    WindowsDesktopMessage::PostObject(UWM::Stygitan::OpenContainingFolder, report_file_path);
             }
 
-            // write out a summary of extensions
-            report.WriteLine("Extensions:\n");
-            std::map<std::string, size_t> extension_counts;
-
-            for( const std::string* const file_path : file_paths )
-                ++extension_counts[SO::ToLower(Path::GetExtension(*file_path, true))];
-
-            for( const auto& [extension, count] : extension_counts )
-                report.WriteFormattedLine("%-10s: %d", extension.c_str(), static_cast<int>(count));
-
-            // write out each file path
-            report.WriteLine("\nFiles:\n");
-
-            for( const std::string* const file_path : file_paths )
-                report.WriteLine(*file_path);
-        }
-
-        if( !report_file_path.empty() )
-            OpenContainingFolder(report_file_path);
-    }
-
-    catch( const CSProException& exception )
-    {
-        ErrorMessage::Display(exception);
-    }
+            catch( const CSProException& exception )
+            {
+                m_loggingListBox.AddText("\nError: %s", exception.what());
+                ErrorMessage::PostMessageForDisplay(exception);
+            }
+        });
 }
 
 
 void EditorConfigApplierView::OnCreateListOfGitIgnoredFiles()
 {
-    try
-    {
-        UpdateData(TRUE);
+    m_loggingListBox.AddText("Creating the list of files ignored by Git rules...\n");
 
-        if( m_processFilesOption == ProcessAllFiles )
-            throw CSProException("No files are ignored when not using Git.");
+    UpdateData(TRUE);
 
-        CreateDataForDirectory();
-
-        // calculate files ignored based on only looking at Git files
-        if( !m_data->git_ignored_file_paths.has_value() )
+    RunInThread(
+        [&](bool& cancel_flag)
         {
-            DirectoryLister directory_lister(true);
-            m_data->git_ignored_file_paths = directory_lister.GetPaths(m_directory);
+            try
+            {
+                if( m_processFilesOption == ProcessAllFiles )
+                    throw CSProException("No files are ignored when not using Git.");
 
-            // sort the applicable file paths to enable for quick searching
-            std::sort(m_data->file_paths.begin(), m_data->file_paths.end(),
-                      [&](const std::string& fp1, const std::string& fp2) { return ( SO::CompareNoCase(fp1, fp2) < 0 ); });
+                CreateDataForDirectory();
 
-            // remove duplicate paths
-            const auto& remove_end = std::remove_if(m_data->git_ignored_file_paths->begin(), m_data->git_ignored_file_paths->end(),
-                [&](const std::string& file_path)
+                if( cancel_flag )
+                    throw UserCanceledException();
+
+                // calculate files ignored based on only looking at Git files
+                if( !m_data->git_ignored_file_paths.has_value() )
                 {
-                    return std::binary_search(m_data->file_paths.begin(), m_data->file_paths.end(), file_path,
-                                                [&](const std::string& fp1, const std::string& fp2) { return ( SO::CompareNoCase(fp1, fp2) < 0 ); });
-                });
+                    DirectoryLister directory_lister(true);
+                    m_data->git_ignored_file_paths = directory_lister.GetPaths(m_directory);
 
-            m_data->git_ignored_file_paths->erase(remove_end, m_data->git_ignored_file_paths->end());
+                    if( cancel_flag )
+                        throw UserCanceledException();
 
-            std::sort(m_data->git_ignored_file_paths->begin(), m_data->git_ignored_file_paths->end(),
-                [&](const std::string& fp1, const std::string& fp2)
-                {
-                    return Helpers::CompareFilePathsByDirectory(fp1, fp2);
-                });
-        }
+                    // sort the applicable file paths to enable for quick searching
+                    std::sort(m_data->file_paths.begin(), m_data->file_paths.end(),
+                              [&](const std::string& fp1, const std::string& fp2) { return ( SO::CompareNoCase(fp1, fp2) < 0 ); });
 
-        // write out the details about Git-ignored files
-        const std::string report_file_path = m_data->report_base_file_path + "files-git-ignored.txt";
+                    if( cancel_flag )
+                        throw UserCanceledException();
 
-        FileIO::WriteText(
-            report_file_path,
-            SO::CreateSingleString(*m_data->git_ignored_file_paths, SO::Newline_lf_sv).append(SO::Newline_lf_sv),
-            false
-        );
+                    // remove duplicate paths
+                    const auto& remove_end = std::remove_if(m_data->git_ignored_file_paths->begin(), m_data->git_ignored_file_paths->end(),
+                        [&](const std::string& file_path)
+                        {
+                            return std::binary_search(m_data->file_paths.begin(), m_data->file_paths.end(), file_path,
+                                                        [&](const std::string& fp1, const std::string& fp2) { return ( SO::CompareNoCase(fp1, fp2) < 0 ); });
+                        });
 
-        OpenContainingFolder(report_file_path);
-    }
+                    if( cancel_flag )
+                        throw UserCanceledException();
 
-    catch( const CSProException& exception )
-    {
-        ErrorMessage::Display(exception);
-    }
+                    m_data->git_ignored_file_paths->erase(remove_end, m_data->git_ignored_file_paths->end());
+
+                    std::sort(m_data->git_ignored_file_paths->begin(), m_data->git_ignored_file_paths->end(),
+                        [&](const std::string& fp1, const std::string& fp2)
+                        {
+                            return Helpers::CompareFilePathsByDirectory(fp1, fp2);
+                        });
+                }
+
+                // write out the details about Git-ignored files
+                const std::string report_file_path = m_data->report_base_file_path + "files-git-ignored.txt";
+
+                FileIO::WriteText(
+                    report_file_path,
+                    SO::CreateSingleString(*m_data->git_ignored_file_paths, SO::Newline_lf_sv).append(SO::Newline_lf_sv),
+                    false
+                );
+
+                WindowsDesktopMessage::PostObject(UWM::Stygitan::OpenContainingFolder, report_file_path);
+            }
+
+            catch( const CSProException& exception )
+            {
+                if( m_data != nullptr )
+                    m_data->git_ignored_file_paths.reset();
+
+                m_loggingListBox.AddText("\nError: %s", exception.what());
+                ErrorMessage::PostMessageForDisplay(exception);
+            }
+    });
 }
 
 
 void EditorConfigApplierView::OnApplyRules()
 {
-    const std::string* last_file_path_processed = nullptr;
+    UpdateData(TRUE);
 
-    try
-    {
-        UpdateData(TRUE);
-        CreateDataForDirectory();
-        ParseFilesUsingEditorConfig();
+    m_loggingListBox.AddText("Applying rules to files in: %s\n", m_directory.c_str());
 
-        m_loggingListBox.AddText("\nApplying rules to files in: %s", m_data->directory.c_str());
-
-        size_t skipped = 0;
-        size_t no_change = 0;
-        size_t changed = 0;
-
-        for( const auto& [file_path, options] : m_data->file_options_map )
+    RunInThread(
+        [&](bool& cancel_flag)
         {
-            last_file_path_processed = &file_path;
+            const std::string* last_file_path_processed = nullptr;
 
-            if( !options.IsDefined() )
+            try
             {
-                ++skipped;
-            }
+                CreateDataForDirectory();
 
-            else
-            {
-                const BinaryBlock* const processed_file = m_data->editorconfig_applier.Process(file_path, options);
+                if( cancel_flag )
+                    throw UserCanceledException();
 
-                if( processed_file == nullptr )
+                ParseFilesUsingEditorConfig();
+
+                size_t skipped = 0;
+                size_t no_change = 0;
+                size_t changed = 0;
+
+                for( const auto& [file_path, options] : m_data->file_options_map )
                 {
-                    ++no_change;
+                    if( cancel_flag )
+                        throw UserCanceledException();
+
+                    last_file_path_processed = &file_path;
+
+                    if( !options.IsDefined() )
+                    {
+                        ++skipped;
+                    }
+
+                    else
+                    {
+                        const BinaryBlock* const processed_file = m_data->editorconfig_applier.Process(file_path, options);
+
+                        if( processed_file == nullptr )
+                        {
+                            ++no_change;
+                        }
+
+                        else
+                        {
+                            m_loggingListBox.AddText("Modifying file: %s", file_path.c_str());
+                            FileIO::Write(file_path, *processed_file);
+                            ++changed;
+                        }
+                    }
                 }
 
-                else
-                {
-                    m_loggingListBox.AddText("Modifying file: %s", file_path.c_str());
-                    FileIO::Write(file_path, *processed_file);
-                    ++changed;
-                }
+                m_loggingListBox.AddText("\nSummary:\n  %-25s%d\n  %-25s%d\n  %-25s%d\n  %-25s%d",
+                                         "Total files:", static_cast<int>(m_data->file_options_map.size()),
+                                         "No applicable rules:", static_cast<int>(skipped),
+                                         "Files without changes:", static_cast<int>(no_change),
+                                         "Files with changes:", static_cast<int>(changed));
             }
-        }
 
-        m_loggingListBox.AddText("\nSummary:\n  %-25s%d\n  %-25s%d\n  %-25s%d\n  %-25s%d",
-                                 "Total files:", static_cast<int>(m_data->file_options_map.size()),
-                                 "No applicable rules:", static_cast<int>(skipped),
-                                 "Files without changes:", static_cast<int>(no_change),
-                                 "Files with changes:", static_cast<int>(changed));
-    }
+            catch( const CSProException& exception )
+            {
+                std::string error = FormatText("Error processing: %s\n\n%s",
+                                               ( last_file_path_processed != nullptr ) ? last_file_path_processed->c_str() : "",
+                                               exception.what());
 
-    catch( const CSProException& exception )
-    {
-        m_loggingListBox.AddText("\nError processing: %s\n\n%s",
-                                 ( last_file_path_processed != nullptr ) ? last_file_path_processed->c_str() : "",
-                                 exception.what());
-
-        ErrorMessage::Display(exception);
-    }
+                m_loggingListBox.AddText("\n" + error);
+                ErrorMessage::PostMessageForDisplay(std::move(error));
+            }
+    });
 }

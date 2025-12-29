@@ -4,6 +4,7 @@
 #include "EditorConfigApplierView.h"
 #include "FilteredCommitsMessageCreatorView.h"
 #include "MainFrame.h"
+#include "ThreadRunnerFrame.h"
 #include <zUtilO/ImsaDlg.h>
 #include <zUtilF/CommonControls.h>
 
@@ -53,7 +54,7 @@ BOOL StygitanApp::InitInstance()
     //  serve as the connection between documents, frame windows and views.
     m_fileFreeDocManager = new FileFreeDocManager();
     m_codePurifierDocTemplate = m_fileFreeDocManager->AddDocTemplate<IDR_CODE_PURIFIER, CodePurifierDoc, CMDIChildWnd, CodePurifierView>();
-    m_fileFreeDocManager->AddDocTemplate<IDR_EDITORCONFIG_APPLIER, EditorConfigApplierView>();
+    m_fileFreeDocManager->AddDocTemplate<IDR_EDITORCONFIG_APPLIER, FileFreeDoc, ThreadRunnerFrame, EditorConfigApplierView>();
     m_fileFreeDocManager->AddDocTemplate<IDR_FILTERED_COMMITS_MESSAGE_CREATOR, FilteredCommitsMessageCreatorView>();
     m_pDocManager = m_fileFreeDocManager;
 

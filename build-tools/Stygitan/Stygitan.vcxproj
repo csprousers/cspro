@@ -36,6 +36,7 @@
     <ClInclude Include="resource.h" />
     <ClInclude Include="StdAfx.h" />
     <ClInclude Include="Stygitan.h" />
+    <ClInclude Include="ThreadRunnerFrame.h" />
     <ClInclude Include="UWM.h" />
   </ItemGroup>
   <ItemGroup>
@@ -51,6 +52,7 @@
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Stygitan.cpp" />
+    <ClCompile Include="ThreadRunnerFrame.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Stygitan.rc" />
