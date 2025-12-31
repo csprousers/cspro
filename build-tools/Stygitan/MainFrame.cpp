@@ -2,7 +2,6 @@
 #include "MainFrame.h"
 #include "CodePurifierView.h"
 #include <zToolsO/UWM.h>
-#include <zUtilF/DocViewIterators.h>
 
 
 BEGIN_MESSAGE_MAP(MainFrame, CMDIFrameWnd)

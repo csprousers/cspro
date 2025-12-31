@@ -107,8 +107,14 @@ void StygitanApp::OnOpenCodePurifier(std::string directory)
     const std::wstring wide_directory = TC::ToWide(directory);
 
     // only open the directory if it is not already open
-    if( FileFreeDocManager::FindAndActivateOpenDocumentByPath(m_codePurifierDocTemplate, wide_directory.c_str()) == nullptr )
-        m_codePurifierDocTemplate->OpenDocumentFile(wide_directory.c_str());
+    if( FileFreeDocManager::FindAndActivateOpenDocumentByPath(m_codePurifierDocTemplate, wide_directory.c_str()) != nullptr )
+        return;
+
+    CDocument* const doc = m_codePurifierDocTemplate->OpenDocumentFile(wide_directory.c_str());
+
+    // open the Code Purifier window maximized
+    if( doc != nullptr )
+        WithParentFrame(*doc, [](CFrameWnd& frame_wnd) { assert_cast<CMDIChildWnd&>(frame_wnd).MDIMaximize(); });
 }
 
 
