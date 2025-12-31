@@ -28,12 +28,14 @@
     <ClInclude Include="CodePurifierData.h" />
     <ClInclude Include="CodePurifierDoc.h" />
     <ClInclude Include="CodePurifierView.h" />
+    <ClInclude Include="DiffTool.h" />
     <ClInclude Include="EditorConfig.h" />
     <ClInclude Include="EditorConfigApplier.h" />
     <ClInclude Include="EditorConfigApplierView.h" />
     <ClInclude Include="FilteredCommitsMessageCreatorView.h" />
     <ClInclude Include="Helpers.h" />
     <ClInclude Include="MainFrame.h" />
+    <ClInclude Include="PropertiesDlg.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="StdAfx.h" />
     <ClInclude Include="Stygitan.h" />
@@ -43,12 +45,14 @@
   <ItemGroup>
     <ClCompile Include="CodePurifierDoc.cpp" />
     <ClCompile Include="CodePurifierView.cpp" />
+    <ClCompile Include="DiffTool.cpp" />
     <ClCompile Include="EditorConfig.cpp" />
     <ClCompile Include="EditorConfigApplier.cpp" />
     <ClCompile Include="EditorConfigApplierView.cpp" />
     <ClCompile Include="FilteredCommitsMessageCreatorView.cpp" />
     <ClCompile Include="Helpers.cpp" />
     <ClCompile Include="MainFrame.cpp" />
+    <ClCompile Include="PropertiesDlg.cpp" />
     <ClCompile Include="StdAfx.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>

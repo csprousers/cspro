@@ -78,6 +78,8 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "&Close\tCtrl+W",              ID_FILE_CLOSE
         MENUITEM SEPARATOR
+        MENUITEM "Properties",                  ID_PROPERTIES
+        MENUITEM SEPARATOR
         MENUITEM "E&xit\tAlt+F4",               ID_APP_EXIT
     END
     POPUP "&Commits"
@@ -192,6 +194,23 @@ BEGIN
     PUSHBUTTON      "Cancel",IDCANCEL,344,65,128,14,NOT WS_VISIBLE
 END
 
+IDD_PROPERTIES DIALOGEX 0, 0, 309, 104
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+CAPTION "Properties"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,94,83,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,166,83,50,14
+    GROUPBOX        "External Diff Tool",IDC_STATIC,7,7,295,68
+    LTEXT           "Command:",IDC_STATIC,14,23,35,8
+    EDITTEXT        IDC_DIFF_TOOL_COMMAND,57,20,203,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "...",IDC_DIFF_TOOL_SELECT,268,20,25,14
+    LTEXT           "Arguments:",IDC_STATIC,14,41,38,8
+    EDITTEXT        IDC_DIFF_TOOL_ARGUMENTS,57,38,203,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "Test",IDC_DIFF_TOOL_TEST,268,38,25,14
+    LTEXT           "Example: ""~~OLD~~"" ""~~NEW~~""",IDC_STATIC,59,58,116,8
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -258,6 +277,21 @@ BEGIN
     50, 0, 0, 0
 END
 
+IDD_PROPERTIES AFX_DIALOG_LAYOUT
+BEGIN
+    0,
+    50, 100, 0, 0,
+    50, 100, 0, 0,
+    0, 0, 100, 0,
+    0, 0, 0, 0,
+    0, 0, 100, 0,
+    100, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 100, 0,
+    100, 0, 0, 0,
+    0, 0, 0, 0
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -289,6 +323,14 @@ BEGIN
         RIGHTMARGIN, 480
         TOPMARGIN, 7
         BOTTOMMARGIN, 241
+    END
+
+    IDD_PROPERTIES, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 302
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 97
     END
 END
 #endif    // APSTUDIO_INVOKED

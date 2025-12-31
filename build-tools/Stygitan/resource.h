@@ -10,6 +10,7 @@
 #define IDD_CODE_PURIFIER               106
 #define IDD_EDITORCONFIG_APPLIER        107
 #define IDD_FILTERED_COMMITS_MESSAGE_CREATOR 108
+#define IDD_PROPERTIES                  109
 #define IDC_APPLY_EDITORCONFIG_RULES    1000
 #define IDC_BRANCH_COPIES               1001
 #define IDC_CLEAN_COMMIT                1002
@@ -22,35 +23,40 @@
 #define IDC_DELETE_BRANCH_COPIES        1011
 #define IDC_DESTINATION_BRANCH          1012
 #define IDC_DESTINATION_REPO            1013
-#define IDC_DIRECTORY                   1014
-#define IDC_DIRECTORY_SELECT            1015
-#define IDC_FILTERED_COMMIT             1016
-#define IDC_FILTERED_REPO               1017
-#define IDC_LOCAL_BRANCH                1018
-#define IDC_LOG                         1019
-#define IDC_MODIFIED_FILES              1020
-#define IDC_PROCESS_ALL_FILES           1021
-#define IDC_PROCESS_ONLY_FILES_IN_GIT_INDEX 1022
-#define IDC_PROCESS_ONLY_MODIFIED_FILES_GIT 1023
-#define IDC_REMOTE_BRANCH               1024
-#define IDC_RESET_BRANCH_TO_CLEAN_COMMIT 1025
-#define IDC_USE_CSPRO_DEFAULT_EDITORCONFIG 1026
-#define IDC_WORKING_DIRECTORY           1027
+#define IDC_DIFF_TOOL_ARGUMENTS         1014
+#define IDC_DIFF_TOOL_COMMAND           1015
+#define IDC_DIFF_TOOL_SELECT            1016
+#define IDC_DIFF_TOOL_TEST              1017
+#define IDC_DIRECTORY                   1018
+#define IDC_DIRECTORY_SELECT            1019
+#define IDC_FILTERED_COMMIT             1020
+#define IDC_FILTERED_REPO               1021
+#define IDC_LOCAL_BRANCH                1022
+#define IDC_LOG                         1023
+#define IDC_MODIFIED_FILES              1024
+#define IDC_PROCESS_ALL_FILES           1025
+#define IDC_PROCESS_ONLY_FILES_IN_GIT_INDEX 1026
+#define IDC_PROCESS_ONLY_MODIFIED_FILES_GIT 1027
+#define IDC_REMOTE_BRANCH               1028
+#define IDC_RESET_BRANCH_TO_CLEAN_COMMIT 1029
+#define IDC_USE_CSPRO_DEFAULT_EDITORCONFIG 1030
+#define IDC_WORKING_DIRECTORY           1031
 #define ID_COMMITS_CREATE_MESSAGE_FROM_FILTERED_COMMITS 40001
 #define ID_FILE_OPEN_CODE_PURIFIER      40002
 #define ID_FILE_OPEN_EDITORCONFIG_APPLIER 40003
 #define ID_MODIFIED_FILE_COPY_PATH      40004
-#define ID_MODIFIED_FILE_OPEN           40005
-#define ID_MODIFIED_FILE_OPEN_CONTAINING_FOLDER 40006
-#define ID_SET_CLEAN_COMMIT             40007
+#define ID_MODIFIED_FILE_OPEN           40006
+#define ID_MODIFIED_FILE_OPEN_CONTAINING_FOLDER 40007
+#define ID_PROPERTIES                   40008
+#define ID_SET_CLEAN_COMMIT             40009
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        109
-#define _APS_NEXT_COMMAND_VALUE         40008
-#define _APS_NEXT_CONTROL_VALUE         1028
-#define _APS_NEXT_SYMED_VALUE           109
+#define _APS_NEXT_RESOURCE_VALUE        110
+#define _APS_NEXT_COMMAND_VALUE         40010
+#define _APS_NEXT_CONTROL_VALUE         1032
+#define _APS_NEXT_SYMED_VALUE           110
 #endif
 #endif

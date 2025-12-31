@@ -24,6 +24,9 @@
     <ClInclude Include="CodePurifierView.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="DiffTool.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="EditorConfig.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -40,6 +43,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="MainFrame.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PropertiesDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="resource.h">
@@ -65,6 +71,9 @@
     <ClCompile Include="CodePurifierView.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="DiffTool.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="EditorConfig.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -81,6 +90,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MainFrame.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PropertiesDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="StdAfx.cpp">

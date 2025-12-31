@@ -1,12 +1,14 @@
 ﻿#include "StdAfx.h"
 #include "MainFrame.h"
 #include "CodePurifierView.h"
+#include "PropertiesDlg.h"
 #include <zToolsO/UWM.h>
 
 
 BEGIN_MESSAGE_MAP(MainFrame, CMDIFrameWnd)
     ON_WM_CREATE()
     ON_WM_CLOSE()
+    ON_COMMAND(ID_PROPERTIES, OnProperties)
     ON_MESSAGE(UWM::Stygitan::OpenContainingFolder, OnOpenContainingFolder)
     ON_MESSAGE(UWM::ToolsO::DisplayErrorMessage, OnDisplayErrorMessage)
     ON_MESSAGE(UWM::UtilF::RunOnUIThread, OnRunOnUIThread)
@@ -14,6 +16,7 @@ END_MESSAGE_MAP()
 
 
 MainFrame::MainFrame()
+    :   m_globalSettingsDb("Stygitan.db", "GlobalSettings")
 {
 }
 
@@ -51,6 +54,13 @@ void MainFrame::OnClose()
 
     if( !thread_is_active )
         __super::OnClose();
+}
+
+
+void MainFrame::OnProperties()
+{
+    PropertiesDlg properties_dlg(m_globalSettingsDb, this);
+    properties_dlg.DoModal();
 }
 
 
