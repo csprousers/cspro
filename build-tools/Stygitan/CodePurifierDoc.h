@@ -17,6 +17,10 @@ public:
     void StartGitProcessing(CWnd* wnd_for_updates);
     void StopGitProcessing();
 
+    // On activation, any pending Git-related changes will be processed and posted as updates.
+    // On deactivation, posting updates will be suspended.
+    void ToggleGitProcessingUpdates(bool activate);
+
     // Returns the repository's working directory.
     const std::string& GetRepositoryWorkingDirectory() const noexcept { return m_repoWorkingDirectory; }
 
@@ -58,6 +62,16 @@ protected:
 
 private:
     enum class RefreshStartAction { UpdateBranches, LocateCleanCommit, LoadRecentCommits, IdentifyModifiedFiles };
+
+    void StartRefreshDataThread(RefreshStartAction action,
+                                std::function<void(const CP::RefreshDataChanges& changes)> post_refresh_action = { });
+    void StopRefreshDataThread();
+
+    void StartDirectoryChangeWatcher();
+    void StopDirectoryChangeWatcher();
+    void ProcessDirectoryChange(const FILE_NOTIFY_INFORMATION* fni);
+
+    // RefreshData should not be called directly but instead should be called via StartRefreshDataThread.
     CP::RefreshDataChanges RefreshData(RefreshStartAction action);
 
     bool RefreshBranchDetails();
@@ -71,6 +85,14 @@ private:
     std::string m_repoWorkingDirectory;
 
     CWnd* m_wndForGitUpdates;
+
+    std::optional<std::thread> m_refreshDataThread;
+    bool m_refreshDataCancelFlag;
+
+    HANDLE m_directoryChangeHandle;
+    std::optional<std::thread> m_directoryChangeThread;
+    bool m_directoryChangesMadeInGitDirectory;
+    std::set<std::wstring> m_directoryChangesMadeInWorkingDirectory;
 
     std::shared_ptr<const CP::BranchDetails> m_branchDetails;
     std::shared_ptr<std::map<std::string, GitBranch>> m_branchCopies;

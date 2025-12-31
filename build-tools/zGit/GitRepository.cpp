@@ -243,7 +243,7 @@ void GitRepository::ForeachStatusInWorkingDirectory(const std::function<void(std
 }
 
 
-void GitRepository::ForeachDifferenceInWorkingDirectory(const GitCommit& commit, const std::function<void(std::string path, unsigned int diff_flag)>& callback_function) const
+void GitRepository::ForeachDifferenceInWorkingDirectory(const GitCommit& commit, const std::function<bool(std::string path, unsigned int diff_flag)>& callback_function) const
 {
     EnsureRepositoryIsOpen();
 
@@ -264,13 +264,12 @@ void GitRepository::ForeachDifferenceInWorkingDirectory(const GitCommit& commit,
         static int func(const git_diff_delta* const delta, float /*progress*/, void* const payload)
         {
             ASSERT(delta != nullptr && delta->new_file.path != nullptr && payload != nullptr);
-            const std::function<void(std::string, unsigned int)>& callback_function = *reinterpret_cast<const std::function<void(std::string, unsigned int)>*>(payload);
-            callback_function(delta->new_file.path, delta->status);
-            return 0;
+            const std::function<bool(std::string, unsigned int)>& callback_function = *reinterpret_cast<const std::function<bool(std::string, unsigned int)>*>(payload);
+            return !callback_function(delta->new_file.path, delta->status);
         }
     };
 
-    git_diff_foreach(diff, CB::func, nullptr, nullptr, nullptr, const_cast<std::function<void(std::string, unsigned int)>*>(&callback_function));
+    git_diff_foreach(diff, CB::func, nullptr, nullptr, nullptr, const_cast<std::function<bool(std::string, unsigned int)>*>(&callback_function));
 
     git_diff_free(diff);
 }

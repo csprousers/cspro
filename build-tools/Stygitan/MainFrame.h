@@ -15,4 +15,5 @@ protected:
     LRESULT OnOpenContainingFolder(WPARAM wParam, LPARAM lParam);
 
     LRESULT OnDisplayErrorMessage(WPARAM wParam, LPARAM lParam);
+    LRESULT OnRunOnUIThread(WPARAM wParam, LPARAM lParam);
 };

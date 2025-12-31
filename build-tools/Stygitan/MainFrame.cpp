@@ -9,6 +9,7 @@ BEGIN_MESSAGE_MAP(MainFrame, CMDIFrameWnd)
     ON_WM_CLOSE()
     ON_MESSAGE(UWM::Stygitan::OpenContainingFolder, OnOpenContainingFolder)
     ON_MESSAGE(UWM::ToolsO::DisplayErrorMessage, OnDisplayErrorMessage)
+    ON_MESSAGE(UWM::UtilF::RunOnUIThread, OnRunOnUIThread)
 END_MESSAGE_MAP()
 
 
@@ -64,5 +65,13 @@ LRESULT MainFrame::OnOpenContainingFolder(const WPARAM wParam, LPARAM /*lParam*/
 LRESULT MainFrame::OnDisplayErrorMessage(WPARAM /*wParam*/, LPARAM /*lParam*/)
 {
     ErrorMessage::DisplayPostedMessages();
+    return 1;
+}
+
+
+LRESULT MainFrame::OnRunOnUIThread(const WPARAM wParam, LPARAM /*lParam*/)
+{
+    UIThreadRunner* const ui_thread_runner = reinterpret_cast<UIThreadRunner*>(wParam);
+    ui_thread_runner->Execute();
     return 1;
 }

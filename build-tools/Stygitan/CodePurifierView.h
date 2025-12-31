@@ -16,6 +16,7 @@ protected:
 
     void OnInitialUpdate() override;
     void DoDataExchange(CDataExchange* pDX) override;
+    void OnActivateView(BOOL bActivate, CView* pActivateView, CView* pDeactiveView) override;
     void OnDestroy();
 
     LRESULT OnUpdateUI(WPARAM wParam, LPARAM lParam);

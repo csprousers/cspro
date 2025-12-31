@@ -215,6 +215,8 @@ void EditorConfigApplierView::GetPathsModifiedSinceLastGitRemoteCommit(GitReposi
         {
             if( diff_flag != GIT_DELTA_DELETED )
                 file_paths.emplace_back(Path::Combine(m_directory, Path::ToNativeSlash(std::move(path))));
+
+            return true;
         });
 }
 

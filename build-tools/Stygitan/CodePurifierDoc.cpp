@@ -8,7 +8,10 @@ IMPLEMENT_DYNCREATE(CodePurifierDoc, CDocument)
 
 
 CodePurifierDoc::CodePurifierDoc()
-    :   m_wndForGitUpdates(nullptr)
+    :   m_wndForGitUpdates(nullptr),
+        m_refreshDataCancelFlag(false),
+        m_directoryChangeHandle(nullptr),
+        m_directoryChangesMadeInGitDirectory(false)
 {
 }
 
@@ -64,13 +67,169 @@ void CodePurifierDoc::StartGitProcessing(CWnd* const wnd_for_updates)
     ASSERT(wnd_for_updates != nullptr);
     m_wndForGitUpdates = wnd_for_updates;
 
-    RefreshData(RefreshStartAction::UpdateBranches);
+    // watch the directory for changes so as to know when to refresh the data
+    StartDirectoryChangeWatcher();
+
+    // refresh all the data
+    StartRefreshDataThread(RefreshStartAction::UpdateBranches);
 }
 
 
 void CodePurifierDoc::StopGitProcessing()
 {
+    StopRefreshDataThread();
+    StopDirectoryChangeWatcher();
     m_wndForGitUpdates = nullptr;
+}
+
+
+void CodePurifierDoc::ToggleGitProcessingUpdates(const bool activate)
+{
+    // GIT_TODO
+}
+
+
+void CodePurifierDoc::StartRefreshDataThread(const RefreshStartAction action,
+                                             std::function<void(const CP::RefreshDataChanges& changes)> post_refresh_action/* = { }*/)
+{
+    if( m_refreshDataThread.has_value() )
+    {
+        StopDirectoryChangeWatcher();
+        ASSERT(!m_refreshDataThread.has_value());
+    }
+
+    m_refreshDataCancelFlag = false;
+
+    m_refreshDataThread.emplace(
+        [this, action, post_refresh_action_ = std::move(post_refresh_action)]()
+        {
+            try
+            {
+                const CP::RefreshDataChanges changes = RefreshData(action);
+
+                if( post_refresh_action_ )
+                    post_refresh_action_(changes);
+            }
+
+            catch( const CSProException& exception )
+            {
+                // display the error and close the Code Purifier on the UI thread
+                RunOnUIThread([&]()
+                {
+                    ErrorMessage::Display(exception);
+                    WithParentFrame(*this, [](CFrameWnd& frame_wnd) { frame_wnd.PostMessage(WM_CLOSE); });
+                });
+            }
+        });
+}
+
+
+void CodePurifierDoc::StopRefreshDataThread()
+{
+    if( !m_refreshDataThread.has_value() )
+        return;
+
+    if( m_refreshDataThread->joinable() )
+    {
+        m_refreshDataCancelFlag = true;
+        m_refreshDataThread->join();
+    }
+
+    m_refreshDataThread.reset();
+}
+
+
+void CodePurifierDoc::StartDirectoryChangeWatcher()
+{
+    if( m_directoryChangeThread.has_value() )
+        return;
+
+    ASSERT(m_directoryChangeHandle == nullptr);
+
+    // FILE_FLAG_BACKUP_SEMANTICS is required for ReadDirectoryChangesW
+    m_directoryChangeHandle = CreateFile(TC::ToWide(m_repoWorkingDirectory).c_str(),
+                                         FILE_LIST_DIRECTORY,
+                                         FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+                                         nullptr,
+                                         OPEN_EXISTING,
+                                         FILE_FLAG_BACKUP_SEMANTICS,
+                                         nullptr);
+
+    if( m_directoryChangeHandle == INVALID_HANDLE_VALUE )
+        throw CSProException("Unable to watch the directory.");
+
+    m_directoryChangeThread.emplace(
+        [this]()
+        {
+            auto buffer = std::make_unique<BinaryBlock>(sizeof(DWORD) * 1024);
+            DWORD bytes_returned;
+
+            while( ReadDirectoryChangesW(m_directoryChangeHandle,
+                                         buffer->data(), static_cast<DWORD>(buffer->size()),
+                                         TRUE, // watch subdirectories
+                                         FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_DIR_NAME | FILE_NOTIFY_CHANGE_LAST_WRITE,
+                                         &bytes_returned,
+                                         nullptr, nullptr) )
+            {
+                if( bytes_returned == 0 )
+                {
+                    // the buffer was not big enough so resize it
+                    buffer = std::make_unique<BinaryBlock>(buffer->size() * 2);
+                }
+
+                else
+                {
+                    ProcessDirectoryChange(reinterpret_cast<const FILE_NOTIFY_INFORMATION*>(buffer->data()));
+                }
+            }
+        });
+}
+
+
+void CodePurifierDoc::StopDirectoryChangeWatcher()
+{
+    if( !m_directoryChangeThread.has_value() )
+    {
+        ASSERT(m_directoryChangeHandle == nullptr);
+        return;
+    }
+
+    if( m_directoryChangeThread->joinable() )
+    {
+        CancelIoEx(m_directoryChangeHandle, nullptr);
+        m_directoryChangeThread->join();
+    }
+
+    m_directoryChangeThread.reset();
+
+    VERIFY(CloseHandle(m_directoryChangeHandle));
+    m_directoryChangeHandle = nullptr;
+}
+
+
+void CodePurifierDoc::ProcessDirectoryChange(const FILE_NOTIFY_INFORMATION* fni)
+{
+    ASSERT(fni != nullptr);
+
+    while( true )
+    {
+        const std::wstring_view filename_sv(fni->FileName, fni->FileNameLength / sizeof(wchar_t));
+
+        if( filename_sv._Starts_with(L".git") )
+        {
+            m_directoryChangesMadeInGitDirectory = true;
+        }
+
+        else
+        {
+            m_directoryChangesMadeInWorkingDirectory.emplace(filename_sv);
+        }
+
+        if( fni->NextEntryOffset == 0 )
+            break;
+
+        fni = reinterpret_cast<const FILE_NOTIFY_INFORMATION*>(reinterpret_cast<const char*>(fni) + fni->NextEntryOffset);
+    }
 }
 
 
@@ -86,11 +245,17 @@ CP::RefreshDataChanges CodePurifierDoc::RefreshData(RefreshStartAction action)
         {
             changes.branch_details = true;
 
+            if( m_refreshDataCancelFlag )
+                return changes;
+
             // ...enumerate the temporary copies of this branch
             EnumerateBranchCopies();
 
             action = RefreshStartAction::LocateCleanCommit;
             identify_modified_files = true;
+
+            if( m_refreshDataCancelFlag )
+                return changes;
         }
     }
 
@@ -105,12 +270,18 @@ CP::RefreshDataChanges CodePurifierDoc::RefreshData(RefreshStartAction action)
         }
     }
 
+    if( m_refreshDataCancelFlag )
+        return changes;
+
     // ...potentially load recent commits
     if( action == RefreshStartAction::LoadRecentCommits )
     {
         if( LoadRecentCommits() )
             changes.recent_commits = true;
     }
+
+    if( m_refreshDataCancelFlag )
+        return changes;
 
     // ...potentially load the files modified since the clean commit
     if( identify_modified_files || action == RefreshStartAction::IdentifyModifiedFiles )
@@ -161,8 +332,11 @@ void CodePurifierDoc::EnumerateBranchCopies()
             if( std::regex_match(name, local_branch_regex) )
                 branch_copies->try_emplace(std::move(name), std::move(branch));
 
-            return true;
+            return !m_refreshDataCancelFlag;
         });
+
+    if( m_refreshDataCancelFlag )
+        return;
 
     if( m_branchCopies != nullptr &&
         *branch_copies == *m_branchCopies  )
@@ -224,9 +398,13 @@ bool CodePurifierDoc::LocateCleanCommit()
         walker.Walk(branch_commit,
             [&](GitCommit commit)
             {
-                return ( clean_commit.emplace(std::move(commit)).GetParentCount() < 2 );
+                return ( !m_refreshDataCancelFlag &&
+                         clean_commit.emplace(std::move(commit)).GetParentCount() < 2 );
             });
     }
+
+    if( m_refreshDataCancelFlag )
+        return false;
 
     if( ( clean_commit.has_value() == ( m_cleanCommit != nullptr ) ) &&
         ( !clean_commit.has_value() || *clean_commit == *m_cleanCommit ) )
@@ -268,8 +446,12 @@ bool CodePurifierDoc::LoadRecentCommits()
 
             recent_commits->emplace_back(std::move(commit));
 
-            return ( additional_commits_to_load != 0 );
+            return ( !m_refreshDataCancelFlag &&
+                     additional_commits_to_load != 0 );
         });
+
+    if( m_refreshDataCancelFlag )
+        return false;
 
     if( m_recentCommits != nullptr &&
         *recent_commits == *m_recentCommits  )
@@ -298,7 +480,11 @@ bool CodePurifierDoc::IdentifyModifiedFiles()
             [&](std::string path, const unsigned int diff_flag)
             {
                 modified_files->emplace_back(std::move(path), diff_flag);
+                return !m_refreshDataCancelFlag;
             });
+
+        if( m_refreshDataCancelFlag )
+            return false;
 
         // sort case-insensitively and so that files at directory roots are listed before subdirectory files
         std::sort(modified_files->begin(), modified_files->end(),
@@ -307,6 +493,9 @@ bool CodePurifierDoc::IdentifyModifiedFiles()
                 return Helpers::CompareFilePathsByDirectory(mf1.git_path, mf2.git_path);
             });
     }
+
+    if( m_refreshDataCancelFlag )
+        return false;
 
     if( m_modifiedFiles != nullptr &&
         *modified_files == *m_modifiedFiles  )
@@ -325,6 +514,8 @@ bool CodePurifierDoc::IdentifyModifiedFiles()
 
 void CodePurifierDoc::CreateBranchCopy()
 {
+    StopRefreshDataThread();
+
     if( m_branchCopies == nullptr )
         throw CSProException("You cannot create a copy when there is no current branch.");
 
@@ -353,6 +544,8 @@ void CodePurifierDoc::CreateBranchCopy()
 
 void CodePurifierDoc::DeleteBranchCopies()
 {
+    StopRefreshDataThread();
+
     if( m_branchCopies == nullptr || m_branchCopies->empty() )
         return;
 
@@ -387,23 +580,29 @@ void CodePurifierDoc::DeleteBranchCopies()
 
 void CodePurifierDoc::SetCleanCommitOverride(const GitCommit& commit)
 {
+    StopRefreshDataThread();
+
     m_cleanCommitOverride = commit.GetObjectId();
 
-    const CP::RefreshDataChanges changes = RefreshData(RefreshStartAction::LocateCleanCommit);
-
-    // when the clean commit changed but the commits did not, still update them because
-    // CodePurifierView's colorization of recent commits depends on the clean commit
-    if( m_wndForGitUpdates != nullptr &&
-        changes.clean_commit &&
-        !changes.recent_commits )
-    {
-        m_wndForGitUpdates->PostMessage(UWM::Stygitan::UpdateUI, CP::Update::RecentCommits);
-    }
+    StartRefreshDataThread(RefreshStartAction::LocateCleanCommit,
+        [&](const CP::RefreshDataChanges& changes)
+        {
+            // when the clean commit changed but the commits did not, still update them because
+            // CodePurifierView's colorization of recent commits depends on the clean commit
+            if( m_wndForGitUpdates != nullptr &&
+                changes.clean_commit &&
+                !changes.recent_commits )
+            {
+                m_wndForGitUpdates->PostMessage(UWM::Stygitan::UpdateUI, CP::Update::RecentCommits);
+            }
+        });
 }
 
 
 void CodePurifierDoc::ResetBranchToCleanCommit(const bool create_branch_copy_before_reset)
 {
+    StopRefreshDataThread();
+
     if( m_cleanCommit == nullptr )
         throw CSProException("There is no clean commit.");
 
@@ -412,5 +611,5 @@ void CodePurifierDoc::ResetBranchToCleanCommit(const bool create_branch_copy_bef
 
     m_repo.ResetBranchMixed(*m_cleanCommit);
 
-    RefreshData(RefreshStartAction::LoadRecentCommits);
+    StartRefreshDataThread(RefreshStartAction::LoadRecentCommits);
 }

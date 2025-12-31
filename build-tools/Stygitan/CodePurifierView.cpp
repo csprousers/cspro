@@ -13,6 +13,7 @@ IMPLEMENT_DYNCREATE(CodePurifierView, CFormView)
 
 
 BEGIN_MESSAGE_MAP(CodePurifierView, CFormView)
+    ON_WM_MDIACTIVATE()
     ON_WM_DESTROY()
     ON_MESSAGE(UWM::Stygitan::UpdateUI, OnUpdateUI)
     ON_NOTIFY(NM_CLICK, IDC_WORKING_DIRECTORY, OnWorkingDirectoryClick)
@@ -62,6 +63,10 @@ void CodePurifierView::OnInitialUpdate()
     m_modifiedFilesListCtrl.SetHeadings(L"Path,475;Status,95");
     m_modifiedFilesListCtrl.LoadColumnInfo();
 
+    // because it may take a while to generate the list of modified files,
+    // add an indication that this list is pending
+    m_modifiedFilesListCtrl.AddItem(L"Identifying modified files...", L"");
+
     // start Git processing, with updates posted here using the message UWM::Stygitan::UpdateUI
     cp_doc.StartGitProcessing(this);
 }
@@ -75,6 +80,15 @@ void CodePurifierView::DoDataExchange(CDataExchange* const pDX)
     DDX_Control(pDX, IDC_COMMITS, m_commitsListCtrl);
     DDX_Check(pDX, IDC_CREATE_BRANCH_COPY_BEFORE_RESET, m_createBranchCopyBeforeReset);
     DDX_Control(pDX, IDC_MODIFIED_FILES, m_modifiedFilesListCtrl);
+}
+
+
+void CodePurifierView::OnActivateView(const BOOL bActivate, CView* const pActivateView, CView* const pDeactiveView)
+{
+    __super::OnActivateView(bActivate, pActivateView, pDeactiveView);
+
+    CodePurifierDoc& cp_doc = GetDoc();
+    cp_doc.ToggleGitProcessingUpdates(bActivate);
 }
 
 

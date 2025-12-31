@@ -14,7 +14,9 @@
 #include <zUtilO/WindowsUtf8.h>
 #include <zUtilO/WindowsWS.h>
 #include <zUtilF/DocViewIterators.h>
+#include <zUtilF/UIThreadRunner.h>
 #include <zGit/GitBranch.h>
 #include <zGit/GitRepository.h>
 #include <zGit/GitRevisionWalker.h>
 #include <external/libgit2/include/git2/diff.h>
+#include <thread>
