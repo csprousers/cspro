@@ -3,15 +3,6 @@
 #include <zToolsO/WinClipboard.h>
 
 
-namespace Update
-{
-    constexpr WPARAM All           = 0xff;
-    constexpr WPARAM BranchCopies  = 0x01;
-    constexpr WPARAM Commits       = 0x02;
-    constexpr WPARAM ModifiedFiles = 0x04;
-}
-
-
 namespace
 {
     constexpr std::string_view CreateBranchCopyBeforeResetKey_sv = "create-branch-copy-before-reset";
@@ -22,7 +13,7 @@ IMPLEMENT_DYNCREATE(CodePurifierView, CFormView)
 
 
 BEGIN_MESSAGE_MAP(CodePurifierView, CFormView)
-    ON_MESSAGE(UWM::Stygitan::AppActivated, OnAppActivated)
+    ON_WM_DESTROY()
     ON_MESSAGE(UWM::Stygitan::UpdateUI, OnUpdateUI)
     ON_NOTIFY(NM_CLICK, IDC_WORKING_DIRECTORY, OnWorkingDirectoryClick)
     ON_NOTIFY(NM_RETURN, IDC_WORKING_DIRECTORY, OnWorkingDirectoryClick)
@@ -32,7 +23,7 @@ BEGIN_MESSAGE_MAP(CodePurifierView, CFormView)
     ON_NOTIFY(NM_RCLICK, IDC_COMMITS, OnCommitsRightClick)
     ON_COMMAND(ID_SET_CLEAN_COMMIT, OnSetCleanCommit)
     ON_COMMAND(IDC_RESET_BRANCH_TO_CLEAN_COMMIT, OnResetBranchToCleanCommit)
-    ON_COMMAND(IDC_CREATE_BRANCH_COPY_BEFORE_RESET, OnCreateCreateBranchCopyBeforeResetClick)
+    ON_COMMAND(IDC_CREATE_BRANCH_COPY_BEFORE_RESET, OnCreateBranchCopyBeforeResetClick)
     ON_NOTIFY(NM_DBLCLK, IDC_MODIFIED_FILES, OnModifiedFilesDoubleOrRightClick)
     ON_NOTIFY(NM_RCLICK, IDC_MODIFIED_FILES, OnModifiedFilesDoubleOrRightClick)
     ON_COMMAND(ID_MODIFIED_FILE_OPEN, OnModifiedFileOpen)
@@ -44,9 +35,8 @@ END_MESSAGE_MAP()
 CodePurifierView::CodePurifierView()
     :   CFormView(IDD_CODE_PURIFIER),
         m_settingsDb("Stygitan.db", "CodePurifier"),
-        m_lastFullRefreshTime(0),
-        m_cleanCommitIndex(0),
-        m_createBranchCopyBeforeReset(m_settingsDb.ReadOrDefault(CreateBranchCopyBeforeResetKey_sv, true))
+        m_createBranchCopyBeforeReset(m_settingsDb.ReadOrDefault(CreateBranchCopyBeforeResetKey_sv, true)),
+        m_cleanCommitIndex(0)
 {
 }
 
@@ -55,12 +45,12 @@ void CodePurifierView::OnInitialUpdate()
 {
     __super::OnInitialUpdate();
 
-    const CodePurifierDoc& cp_doc = GetDoc();
+    CodePurifierDoc& cp_doc = GetDoc();
 
     // add the working directory as a link
     WindowsUtf8::SetText(m_hWnd, IDC_WORKING_DIRECTORY, SO::Concatenate(
         "<a>",
-        Path::RemoveTrailingSlash(cp_doc.m_repo.GetWorkingDirectory()),
+        Path::RemoveTrailingSlash(cp_doc.GetRepositoryWorkingDirectory()),
         "</a>"
     ));
 
@@ -72,7 +62,8 @@ void CodePurifierView::OnInitialUpdate()
     m_modifiedFilesListCtrl.SetHeadings(L"Path,475;Status,95");
     m_modifiedFilesListCtrl.LoadColumnInfo();
 
-    PostMessage(UWM::Stygitan::UpdateUI, Update::All);
+    // start Git processing, with updates posted here using the message UWM::Stygitan::UpdateUI
+    cp_doc.StartGitProcessing(this);
 }
 
 
@@ -87,124 +78,156 @@ void CodePurifierView::DoDataExchange(CDataExchange* const pDX)
 }
 
 
-void CodePurifierView::RefreshDataAndUpdateUI(const WPARAM wParam)
+void CodePurifierView::OnDestroy()
 {
-    try
-    {
-        CodePurifierDoc& cp_doc = GetDoc();
-        cp_doc.RefreshData();
-
-        PostMessage(UWM::Stygitan::UpdateUI, wParam);
-    }
-
-    catch( const CSProException& exception )
-    {
-        ErrorMessage::Display(exception);
-        GetParentFrame()->PostMessage(WM_CLOSE);
-    }
-}
-
-
-LRESULT CodePurifierView::OnAppActivated(WPARAM /*wParam*/, LPARAM /*lParam*/)
-{
-    constexpr int64_t RefreshSecondsInterval = 5;
-
-    // when coming back to this view after some time in another application, refresh the data,
-    // closing the view on error;
-    // the interval check also prevents refreshing the data immediately after OnInitialUpdate
-    if( ( GetTimestamp<int64_t>() - m_lastFullRefreshTime ) >= RefreshSecondsInterval )
-    {
-        RefreshDataAndUpdateUI(Update::All);
-    }
-
-    return 1;
+    CodePurifierDoc& cp_doc = GetDoc();
+    cp_doc.StopGitProcessing();
 }
 
 
 LRESULT CodePurifierView::OnUpdateUI(const WPARAM wParam, LPARAM /*lParam*/)
 {
-    const CodePurifierDoc& cp_doc = GetDoc();
-
-    // update most of the repository information
-    if( ( wParam & Update::All ) == Update::All )
+    switch( wParam )
     {
-        WindowsUtf8::SetText(m_hWnd, IDC_LOCAL_BRANCH, cp_doc.m_currentBranch->GetName());
+        case CP::Update::BranchDetails:
+            UpdateBranchDetails();
+            break;
 
-        WindowsUtf8::SetText(m_hWnd, IDC_REMOTE_BRANCH,
-            ( cp_doc.m_remoteBranch != nullptr ) ? cp_doc.m_remoteBranch->GetName() : "<no remote branch>"
-        );
+        case CP::Update::BranchCopies:
+            UpdateBranchCopies();
+            break;
 
-        m_lastFullRefreshTime = GetTimestamp<int64_t>();
-    }
+        case CP::Update::CleanCommit:
+            UpdateCleanCommit();
+            break;
 
-    // update the branch copies
-    if( ( wParam & Update::BranchCopies ) == Update::BranchCopies )
-    {
-        m_branchCopiesListBox.ResetContent();
+        case CP::Update::RecentCommits:
+            UpdateRecentCommits();
+            break;
 
-        for( const auto& [name, branch] : cp_doc.m_branchCopies )
-            m_branchCopiesListBox.AddString(TC::ToWide(name).c_str());
-    }
+        case CP::Update::ModifiedFiles:
+            UpdateModifiedFiles();
+            break;
 
-    // update the clean commit and the commits
-    if( ( wParam & Update::Commits ) == Update::Commits )
-    {
-        WindowsUtf8::SetText(m_hWnd, IDC_CLEAN_COMMIT, !cp_doc.m_cleanCommit.has_value()
-            ? "<no clean commit>"
-            : FormatText("%s\n(%s)", cp_doc.m_cleanCommit->GetMessage().c_str(),
-                                     cp_doc.m_cleanCommit->GetAuthor().GetWhen().GetLocalDateTimeString().c_str())
-        );
-
-        m_commitsListCtrl.DeleteAllItems();
-        m_cleanCommitIndex = 0;
-        bool reached_clean_commit = false;
-
-        for( const GitCommit& commit : cp_doc.m_recentCommits )
-        {
-            m_commitsListCtrl.AddItem(TC::ToWide(commit.GetAuthor().GetWhen().GetLocalDateTimeString()).c_str(),
-                                      TC::ToWide(commit.GetMessage()).c_str());
-
-            if( !reached_clean_commit )
-            {
-                if( commit == cp_doc.m_cleanCommit )
-                {
-                    reached_clean_commit = true;
-                }
-
-                else
-                {
-                    ++m_cleanCommitIndex;
-                }
-            }
-        }
-    }
-
-    // updated the modified files
-    if( ( wParam & Update::ModifiedFiles ) == Update::ModifiedFiles )
-    {
-        m_modifiedFilesListCtrl.DeleteAllItems();
-
-        for( const auto& [file_path, diff_flag] : cp_doc.m_modifiedFiles )
-        {
-            const wchar_t* const status =
-                ( diff_flag == GIT_DELTA_ADDED )     ? L"Added" :
-                ( diff_flag == GIT_DELTA_DELETED )   ? L"Deleted" :
-                ( diff_flag == GIT_DELTA_MODIFIED )  ? L"Modified" :
-                ( diff_flag == GIT_DELTA_UNTRACKED ) ? L"Untracked" :
-                                                       ReturnProgrammingError(L"<unknown status>");
-
-            m_modifiedFilesListCtrl.AddItem(TC::ToWide(file_path).c_str(), status);
-        }
+        default:
+            return ReturnProgrammingError(0);
     }
 
     return 1;
 }
 
 
+void CodePurifierView::UpdateBranchDetails()
+{
+    const CodePurifierDoc& cp_doc = GetDoc();
+    const std::shared_ptr<const CP::BranchDetails> branch_details = cp_doc.GetBranchDetails();
+
+    WindowsUtf8::SetText(m_hWnd, IDC_LOCAL_BRANCH,
+        ( branch_details != nullptr ) ? branch_details->current_branch.GetName(): "<no branch>"
+    );
+
+    WindowsUtf8::SetText(m_hWnd, IDC_REMOTE_BRANCH,
+        ( branch_details != nullptr && branch_details->remote_branch != nullptr ) ? branch_details->remote_branch->GetName() : "<no remote branch>"
+    );
+}
+
+
+void CodePurifierView::UpdateBranchCopies()
+{
+    const CodePurifierDoc& cp_doc = GetDoc();
+    const std::shared_ptr<const std::map<std::string, GitBranch>> branch_copies = cp_doc.GetBranchCopies();
+
+    m_branchCopiesListBox.ResetContent();
+
+    if( branch_copies == nullptr )
+        return;
+
+    for( const auto& [name, branch] : *branch_copies )
+        m_branchCopiesListBox.AddString(TC::ToWide(name).c_str());
+}
+
+
+void CodePurifierView::UpdateCleanCommit()
+{
+    const CodePurifierDoc& cp_doc = GetDoc();
+    const std::shared_ptr<const GitCommit> clean_commit = cp_doc.GetCleanCommit();
+
+    if( clean_commit != nullptr )
+    {
+        const std::string commit_text = FormatText("%s\n(%s)",
+            clean_commit->GetMessage().c_str(),
+            clean_commit->GetAuthor().GetWhen().GetLocalDateTimeString().c_str()
+        );
+
+        WindowsUtf8::SetText(m_hWnd, IDC_CLEAN_COMMIT, commit_text);
+    }
+
+    else
+    {
+        GetDlgItem(IDC_CLEAN_COMMIT)->SetWindowText(L"<no clean commit>");
+    }
+}
+
+
+void CodePurifierView::UpdateRecentCommits()
+{
+    const CodePurifierDoc& cp_doc = GetDoc();
+
+    m_recentCommits = cp_doc.GetRecentCommits();
+    m_cleanCommitIndex = 0;
+
+    m_commitsListCtrl.DeleteAllItems();
+
+    if( m_recentCommits == nullptr )
+        return;
+
+    const std::shared_ptr<const GitCommit> clean_commit = cp_doc.GetCleanCommit();
+    bool reached_clean_commit = false;
+
+    for( const GitCommit& commit : *m_recentCommits )
+    {
+        m_commitsListCtrl.AddItem(TC::ToWide(commit.GetAuthor().GetWhen().GetLocalDateTimeString()).c_str(),
+                                  TC::ToWide(commit.GetMessage()).c_str());
+
+        if( !reached_clean_commit )
+        {
+            if( clean_commit != nullptr && commit == *clean_commit )
+            {
+                reached_clean_commit = true;
+            }
+
+            else
+            {
+                ++m_cleanCommitIndex;
+            }
+        }
+    }
+}
+
+
+void CodePurifierView::UpdateModifiedFiles()
+{
+    const CodePurifierDoc& cp_doc = GetDoc();
+
+    m_modifiedFiles = cp_doc.GetModifiedFiles();
+
+    m_modifiedFilesListCtrl.DeleteAllItems();
+
+    if( m_modifiedFiles == nullptr )
+        return;
+
+    for( const CP::ModifiedFile& modified_file : *m_modifiedFiles )
+    {
+        m_modifiedFilesListCtrl.AddItem(TC::ToWide(modified_file.git_path).c_str(),
+                                        modified_file.GetStatus());
+    }
+}
+
+
 void CodePurifierView::OnWorkingDirectoryClick(NMHDR* const /*pNMHDR*/, LRESULT* const pResult)
 {
-    GitRepository& repo = GetDoc().m_repo;
-    OpenContainingFolder(repo.GetWorkingDirectory());
+    const CodePurifierDoc& cp_doc = GetDoc();
+    OpenContainingFolder(cp_doc.GetRepositoryWorkingDirectory());
     *pResult = 0;
 }
 
@@ -214,24 +237,7 @@ void CodePurifierView::OnCreateBranchCopy()
     try
     {
         CodePurifierDoc& cp_doc = GetDoc();
-        GitRepository& repo = cp_doc.m_repo;
-
-        const GitCommit commit = repo.LookupCommit(cp_doc.m_currentBranch->GetTarget());
-
-        // the branch name will be: [commit time]-CP-[branch name]
-        const std::string branch_name = SO::Concatenate(
-            commit.GetAuthor().GetWhen().GetLocalDateTimeString("%m%d%H%M"),
-            "-CP-",
-            cp_doc.m_currentBranch->GetName()
-        );
-
-        // make sure no such branch already exists
-        if( cp_doc.m_branchCopies.find(branch_name) != cp_doc.m_branchCopies.cend() )
-            return;
-
-        cp_doc.m_branchCopies.try_emplace(branch_name, repo.CreateBranch(branch_name, commit));
-
-        PostMessage(UWM::Stygitan::UpdateUI, Update::BranchCopies);
+        cp_doc.CreateBranchCopy();
     }
 
     catch( const CSProException& exception )
@@ -246,40 +252,13 @@ void CodePurifierView::OnDeleteBranchCopies()
     try
     {
         CodePurifierDoc& cp_doc = GetDoc();
-
-        if( cp_doc.m_branchCopies.empty() )
-            return;
-
-        if( *cp_doc.m_initialNumberOfBranchCopies != 0 )
-        {
-            const std::string query = FormatText(
-                "There %s %d copied branch%s created prior to loading the Code Purifier.\n\n"
-                "Do you want to continue deleting the branch copies?",
-                PluralizeWord(*cp_doc.m_initialNumberOfBranchCopies, "was", "were"),
-                static_cast<int>(*cp_doc.m_initialNumberOfBranchCopies),
-                PluralizeWord(*cp_doc.m_initialNumberOfBranchCopies)
-            );
-
-            if( AfxMessageBox(query, MB_YESNO | MB_DEFBUTTON1) == IDNO )
-                return;
-        }
-
-        cp_doc.m_initialNumberOfBranchCopies = 0;
-
-        while( !cp_doc.m_branchCopies.empty() )
-        {
-            auto name_and_branch = cp_doc.m_branchCopies.begin();
-            name_and_branch->second.Delete();
-            cp_doc.m_branchCopies.erase(name_and_branch);
-        }
+        cp_doc.DeleteBranchCopies();
     }
 
     catch( const CSProException& exception )
     {
         ErrorMessage::Display(exception);
     }
-
-    PostMessage(UWM::Stygitan::UpdateUI, Update::BranchCopies);
 }
 
 
@@ -327,32 +306,13 @@ void CodePurifierView::OnCommitsRightClick(NMHDR* const pNMHDR, LRESULT* const p
 
 void CodePurifierView::OnSetCleanCommit()
 {
-    CodePurifierDoc& cp_doc = GetDoc();
-
-    const size_t index = static_cast<size_t>(m_commitsListCtrl.GetSelectionMark());
-    ASSERT(index < cp_doc.m_recentCommits.size());
-
-    cp_doc.m_cleanCommitOverride = cp_doc.m_recentCommits[index].GetObjectId();
-
-    RefreshDataAndUpdateUI(Update::Commits | Update::ModifiedFiles);
-}
-
-
-void CodePurifierView::OnResetBranchToCleanCommit()
-{
     try
     {
-        const CodePurifierDoc& cp_doc = GetDoc();
+        const size_t index = static_cast<size_t>(m_commitsListCtrl.GetSelectionMark());
+        ASSERT(m_recentCommits != nullptr && index < m_recentCommits->size());
 
-        if( !cp_doc.m_cleanCommit.has_value() )
-            throw CSProException("There is no clean commit.");
-
-        if( m_createBranchCopyBeforeReset )
-            OnCreateBranchCopy();
-
-        cp_doc.m_repo.ResetBranchMixed(*cp_doc.m_cleanCommit);
-
-        RefreshDataAndUpdateUI(Update::Commits | Update::ModifiedFiles);
+        CodePurifierDoc& cp_doc = GetDoc();
+        cp_doc.SetCleanCommitOverride(m_recentCommits->at(index));
     }
 
     catch( const CSProException& exception )
@@ -362,7 +322,22 @@ void CodePurifierView::OnResetBranchToCleanCommit()
 }
 
 
-void CodePurifierView::OnCreateCreateBranchCopyBeforeResetClick()
+void CodePurifierView::OnResetBranchToCleanCommit()
+{
+    try
+    {
+        CodePurifierDoc& cp_doc = GetDoc();
+        cp_doc.ResetBranchToCleanCommit(m_createBranchCopyBeforeReset);
+    }
+
+    catch( const CSProException& exception )
+    {
+        ErrorMessage::Display(exception);
+    }
+}
+
+
+void CodePurifierView::OnCreateBranchCopyBeforeResetClick()
 {
     UpdateData(TRUE);
 
@@ -423,10 +398,10 @@ void CodePurifierView::OnModifiedFile(const CF& callback_function)
     const CodePurifierDoc& cp_doc = GetDoc();
 
     const size_t index = static_cast<size_t>(m_modifiedFilesListCtrl.GetSelectionMark());
-    ASSERT(index < cp_doc.m_modifiedFiles.size());
+    ASSERT(m_modifiedFiles != nullptr && index < m_modifiedFiles->size());
 
-    callback_function(Path::Combine(cp_doc.m_repo.GetWorkingDirectory(),
-                                    Path::ToNativeSlash(std::get<0>(cp_doc.m_modifiedFiles[index]))));
+    callback_function(Path::Combine(cp_doc.GetRepositoryWorkingDirectory(),
+                                    Path::ToNativeSlash(m_modifiedFiles->at(index).git_path)));
 }
 
 

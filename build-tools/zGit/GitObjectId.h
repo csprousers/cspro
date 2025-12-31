@@ -22,6 +22,10 @@ public:
     // Converts the hex hash string to an object, throwing an exception on error.
     GitObjectId(cs::string_sz hex_hash);
 
+    // Compares the object IDs.
+    bool operator==(const GitObjectId& rhs) const noexcept;
+    bool operator!=(const GitObjectId& rhs) const noexcept { return !operator==(rhs); }
+
     // Returns the non-null git_oid object that GitObjectId wraps.
     operator const git_oid*() const noexcept { return reinterpret_cast<const git_oid*>(m_oid); }
 

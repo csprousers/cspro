@@ -15,6 +15,9 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CodePurifierData.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="CodePurifierDoc.h">
       <Filter>Header Files</Filter>
     </ClInclude>

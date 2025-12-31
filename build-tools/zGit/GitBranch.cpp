@@ -23,6 +23,17 @@ GitBranch::~GitBranch() noexcept
 }
 
 
+bool GitBranch::operator==(const GitBranch& rhs) const noexcept
+{
+    const git_oid* oid;
+    const git_oid* rhs_oid;
+
+    return ( ( ( oid = git_reference_target(m_branchRef) ) != nullptr ) &&
+             ( ( rhs_oid = git_reference_target(rhs.m_branchRef) ) != nullptr ) &&
+             ( memcmp(oid, rhs_oid, sizeof(git_oid)) == 0 ) );
+}
+
+
 const std::string& GitBranch::GetName() const noexcept
 {
     if( m_name.empty() )

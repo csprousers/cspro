@@ -8,13 +8,20 @@ IMPLEMENT_DYNCREATE(CodePurifierDoc, CDocument)
 
 
 CodePurifierDoc::CodePurifierDoc()
+    :   m_wndForGitUpdates(nullptr)
 {
+}
+
+
+CodePurifierDoc::~CodePurifierDoc()
+{
+    StopGitProcessing();
 }
 
 
 void CodePurifierDoc::SetTitle(LPCTSTR /*lpszTitle*/)
 {
-    const std::string directory = PortableFunctions::PathRemoveTrailingSlash(m_repo.GetWorkingDirectory());
+    const std::string directory = PortableFunctions::PathRemoveTrailingSlash(m_repoWorkingDirectory);
     const std::wstring title = L"Code Purifier: " + TC::ToWide(directory);
     __super::SetTitle(title.c_str());
 }
@@ -31,7 +38,7 @@ BOOL CodePurifierDoc::OnOpenDocument(LPCTSTR lpszPathName)
     try
     {
         m_repo.Open(TC::ToUtf8(lpszPathName));
-        RefreshData();
+        m_repoWorkingDirectory = m_repo.GetWorkingDirectory();
     }
 
     catch( const CSProException& exception )
@@ -44,43 +51,107 @@ BOOL CodePurifierDoc::OnOpenDocument(LPCTSTR lpszPathName)
 }
 
 
-void CodePurifierDoc::RefreshData()
+void CodePurifierDoc::OnCloseDocument()
 {
-    const std::optional<std::string> previously_loaded_branch_name = m_currentBranch.has_value()
-        ? std::make_optional(m_currentBranch->GetName())
-        : std::nullopt;
+    StopGitProcessing();
 
-    m_currentBranch.emplace(m_repo.GetCurrentBranch());
+    __super::OnCloseDocument();
+}
 
-    // only load (or refresh) some data when the branch has changed
-    if( !previously_loaded_branch_name.has_value() ||
-        *previously_loaded_branch_name != m_currentBranch->GetName() )
+
+void CodePurifierDoc::StartGitProcessing(CWnd* const wnd_for_updates)
+{
+    ASSERT(wnd_for_updates != nullptr);
+    m_wndForGitUpdates = wnd_for_updates;
+
+    RefreshData(RefreshStartAction::UpdateBranches);
+}
+
+
+void CodePurifierDoc::StopGitProcessing()
+{
+    m_wndForGitUpdates = nullptr;
+}
+
+
+CP::RefreshDataChanges CodePurifierDoc::RefreshData(RefreshStartAction action)
+{
+    CP::RefreshDataChanges changes { false };
+    bool identify_modified_files = false;
+
+    if( action == RefreshStartAction::UpdateBranches )
     {
-        m_remoteBranch = m_currentBranch->GetUpstreamBranch();
+        // when there are changes to the local or remote branches, we must also...
+        if( RefreshBranchDetails() )
+        {
+            changes.branch_details = true;
 
-        m_initialNumberOfBranchCopies.reset();
+            // ...enumerate the temporary copies of this branch
+            EnumerateBranchCopies();
+
+            action = RefreshStartAction::LocateCleanCommit;
+            identify_modified_files = true;
+        }
     }
 
-    // enumerate the temporary copies of this branch
-    EnumerateBranchCopies();
+    // ...potentially find the "clean commit"
+    if( action == RefreshStartAction::LocateCleanCommit )
+    {
+        if( LocateCleanCommit() )
+        {
+            changes.clean_commit = true;
+            action = RefreshStartAction::LoadRecentCommits;
+            identify_modified_files = true;
+        }
+    }
 
-    // find the "clean commit"
-    LocateCleanCommit();
+    // ...potentially load recent commits
+    if( action == RefreshStartAction::LoadRecentCommits )
+    {
+        if( LoadRecentCommits() )
+            changes.recent_commits = true;
+    }
 
-    // load recent commits
-    LoadRecentCommits();
+    // ...potentially load the files modified since the clean commit
+    if( identify_modified_files || action == RefreshStartAction::IdentifyModifiedFiles )
+    {
+        changes.modified_files = IdentifyModifiedFiles();
+    }
 
-    // load the files modified since the clean commit
-    LoadModifiedFiles();
+    return changes;
+}
+
+
+bool CodePurifierDoc::RefreshBranchDetails()
+{
+    GitBranch current_branch = m_repo.GetCurrentBranch();
+    std::unique_ptr<GitBranch> remote_branch = current_branch.GetUpstreamBranch();
+
+    if( ( m_branchDetails != nullptr ) &&
+        ( current_branch == m_branchDetails->current_branch ) &&
+        ( ( remote_branch == nullptr ) == ( m_branchDetails->remote_branch == nullptr ) ) &&
+        ( remote_branch == nullptr || *remote_branch == *m_branchDetails->remote_branch ) )
+    {
+        return false; // no changes
+    }
+
+    m_branchDetails.reset(new CP::BranchDetails { std::move(current_branch), std::move(remote_branch) });
+
+    if( m_wndForGitUpdates != nullptr )
+        m_wndForGitUpdates->PostMessage(UWM::Stygitan::UpdateUI, CP::Update::BranchDetails);
+
+    return true;
 }
 
 
 void CodePurifierDoc::EnumerateBranchCopies()
 {
-    // (see CodePurifierView::OnCreateBranchCopy for branch naming rules)
-    const std::regex local_branch_regex(FormatText(R"(^\d{8}-CP-%s$)", Encoders::ToRegex(m_currentBranch->GetName()).c_str()));
+    ASSERT(m_branchDetails != nullptr);
 
-    m_branchCopies.clear();
+    // see CreateBranchCopy for branch naming rules
+    const std::regex local_branch_regex(FormatText(R"(^\d{4}-\d{4}-CP-%s$)", Encoders::ToRegex(m_branchDetails->current_branch.GetName()).c_str()));
+
+    auto branch_copies = std::make_unique<std::map<std::string, GitBranch>>();
 
     m_repo.ForeachLocalBranch(
         [&](GitBranch branch)
@@ -88,117 +159,258 @@ void CodePurifierDoc::EnumerateBranchCopies()
             std::string name = branch.GetName();
 
             if( std::regex_match(name, local_branch_regex) )
-                m_branchCopies.try_emplace(std::move(name), std::move(branch));
+                branch_copies->try_emplace(std::move(name), std::move(branch));
 
             return true;
         });
 
-    if( !m_initialNumberOfBranchCopies.has_value() )
-        m_initialNumberOfBranchCopies = m_branchCopies.size();
+    if( m_branchCopies != nullptr &&
+        *branch_copies == *m_branchCopies  )
+    {
+        return; // no changes
+    }
+
+    m_branchCopies = std::move(branch_copies);
+
+    if( m_wndForGitUpdates != nullptr )
+        m_wndForGitUpdates->PostMessage(UWM::Stygitan::UpdateUI, CP::Update::BranchCopies);
 }
 
 
-void CodePurifierDoc::LocateCleanCommit()
+bool CodePurifierDoc::LocateCleanCommit()
 {
+    ASSERT(m_branchDetails != nullptr);
+
     // the "clean commit" will be calculated in the following order:
     // - a user-selected commit
     // - the remote branch's target
     // - the "oldest" commit with two parents (likely a merged pull request)
     // - the "oldest" commit
 
-    m_cleanCommit.reset();
-
-    const GitCommit branch_commit = m_repo.LookupCommit(m_currentBranch->GetTarget());
+    const GitCommit branch_commit = m_repo.LookupCommit(m_branchDetails->current_branch.GetTarget());
+    std::optional<GitCommit> clean_commit;
+    bool found_valid_clean_commit = false;
 
     try
     {
         // a user-selected commit
         if( m_cleanCommitOverride.has_value() )
         {
-            m_cleanCommit = m_repo.LookupCommit(*m_cleanCommitOverride);
+            clean_commit = m_repo.LookupCommit(*m_cleanCommitOverride);
         }
 
         // the remote branch's target
-        else if( m_remoteBranch != nullptr )
+        else if( m_branchDetails->remote_branch != nullptr )
         {
-            m_cleanCommit = m_repo.LookupCommit(m_remoteBranch->GetTarget());
+            clean_commit = m_repo.LookupCommit(m_branchDetails->remote_branch->GetTarget());
         }
 
-        if( m_cleanCommit.has_value() && ( *m_cleanCommit == branch_commit ||
-                                           m_repo.IsCommitDescendantOf(branch_commit, *m_cleanCommit) ) )
+        if( clean_commit.has_value() && ( *clean_commit == branch_commit ||
+                                           m_repo.IsCommitDescendantOf(branch_commit, *clean_commit) ) )
         {
-            return;
+            found_valid_clean_commit = true;
         }
     }
+    catch(...) { }
 
-    catch(...)
+    if( !found_valid_clean_commit )
     {
-        m_cleanCommit.reset();
+        // if here, there is no remote branch or the overridden commit is not a valid ancestor,
+        // so find the "oldest" commit with two parents (likely a merged pull request);
+        // the walk will continue even if a commit without two parents exists, which will
+        // result in the clean commit being the initial commit
+        GitRevisionWalker walker(m_repo);
+
+        walker.Walk(branch_commit,
+            [&](GitCommit commit)
+            {
+                return ( clean_commit.emplace(std::move(commit)).GetParentCount() < 2 );
+            });
     }
 
-    ASSERT(!m_cleanCommit.has_value());
+    if( ( clean_commit.has_value() == ( m_cleanCommit != nullptr ) ) &&
+        ( !clean_commit.has_value() || *clean_commit == *m_cleanCommit ) )
+    {
+        return false; // no changes
+    }
 
-    // if here, there is no remote branch or the overridden commit is not a valid ancestor,
-    // so find the "oldest" commit with two parents (likely a merged pull request);
-    // the walk will continue even if a commit without two parents exists, which will
-    // result in the clean commit being the initial commit
-    GitRevisionWalker walker(m_repo);
+    m_cleanCommit = clean_commit.has_value() ? std::make_unique<GitCommit>(std::move(*clean_commit)) :
+                                               nullptr;
 
-    walker.Walk(branch_commit,
-        [&](GitCommit commit)
-        {
-            return ( m_cleanCommit.emplace(std::move(commit)).GetParentCount() < 2 );
-        });
+    if( m_wndForGitUpdates != nullptr )
+        m_wndForGitUpdates->PostMessage(UWM::Stygitan::UpdateUI, CP::Update::CleanCommit);
+
+    return true;
 }
 
 
-void CodePurifierDoc::LoadRecentCommits()
+bool CodePurifierDoc::LoadRecentCommits()
 {
     constexpr size_t NumberAdditionalCommitsToLoad = 4;
     std::optional<size_t> additional_commits_to_load;
 
-    m_recentCommits.clear();
+    auto recent_commits = std::make_unique<std::vector<GitCommit>>();
 
     GitRevisionWalker walker(m_repo);
 
     walker.WalkFromHead(
         [&](GitCommit commit)
         {
-            if( m_cleanCommit == commit )
-            {
-                ASSERT(!additional_commits_to_load.has_value());
-                additional_commits_to_load = NumberAdditionalCommitsToLoad;
-            }
-
-            else if( additional_commits_to_load.has_value() )
+            if( additional_commits_to_load.has_value() )
             {
                 --(*additional_commits_to_load);
             }
 
-            m_recentCommits.emplace_back(std::move(commit));
+            else if( m_cleanCommit != nullptr && commit == *m_cleanCommit )
+            {
+                additional_commits_to_load = NumberAdditionalCommitsToLoad;
+            }
+
+            recent_commits->emplace_back(std::move(commit));
 
             return ( additional_commits_to_load != 0 );
         });
+
+    if( m_recentCommits != nullptr &&
+        *recent_commits == *m_recentCommits  )
+    {
+        return false; // no changes
+    }
+
+    m_recentCommits = std::move(recent_commits);
+
+    if( m_wndForGitUpdates != nullptr )
+        m_wndForGitUpdates->PostMessage(UWM::Stygitan::UpdateUI, CP::Update::RecentCommits);
+
+    return true;
 }
 
 
-void CodePurifierDoc::LoadModifiedFiles()
+bool CodePurifierDoc::IdentifyModifiedFiles()
 {
-    m_modifiedFiles.clear();
+    ASSERT(m_branchDetails != nullptr);
 
-    if( !m_cleanCommit.has_value() )
+    auto modified_files = std::make_unique<std::vector<CP::ModifiedFile>>();
+
+    if( m_cleanCommit != nullptr )
+    {
+        m_repo.ForeachDifferenceInWorkingDirectory(*m_cleanCommit,
+            [&](std::string path, const unsigned int diff_flag)
+            {
+                modified_files->emplace_back(std::move(path), diff_flag);
+            });
+
+        // sort case-insensitively and so that files at directory roots are listed before subdirectory files
+        std::sort(modified_files->begin(), modified_files->end(),
+            [&](const CP::ModifiedFile& mf1, const CP::ModifiedFile& mf2)
+            {
+                return Helpers::CompareFilePathsByDirectory(mf1.git_path, mf2.git_path);
+            });
+    }
+
+    if( m_modifiedFiles != nullptr &&
+        *modified_files == *m_modifiedFiles  )
+    {
+        return false; // no changes
+    }
+
+    m_modifiedFiles  = std::move(modified_files);
+
+    if( m_wndForGitUpdates != nullptr )
+        m_wndForGitUpdates->PostMessage(UWM::Stygitan::UpdateUI, CP::Update::ModifiedFiles);
+
+    return true;
+}
+
+
+void CodePurifierDoc::CreateBranchCopy()
+{
+    if( m_branchCopies == nullptr )
+        throw CSProException("You cannot create a copy when there is no current branch.");
+
+    ASSERT(m_branchDetails != nullptr);
+
+    const GitCommit commit = m_repo.LookupCommit(m_branchDetails->current_branch.GetTarget());
+
+    // the branch name will be: [commit date]-[commit time]-CP-[branch name]
+    std::string branch_name = SO::Concatenate(
+        commit.GetAuthor().GetWhen().GetLocalDateTimeString("%m%d-%H%M"),
+        "-CP-",
+        m_branchDetails->current_branch.GetName()
+    );
+
+    // make sure no such branch already exists
+    if( m_branchCopies->find(branch_name) != m_branchCopies->cend() )
         return;
 
-    m_repo.ForeachDifferenceInWorkingDirectory(*m_cleanCommit,
-        [&](std::string path, const unsigned int diff_flag)
-        {
-            m_modifiedFiles.emplace_back(std::move(path), diff_flag);
-        });
+    m_branchCopies->try_emplace(branch_name, m_repo.CreateBranch(branch_name, commit));
+    m_createdBranchCopyNames.emplace(std::move(branch_name));
 
-    // sort case-insensitively and so that files at directory roots are listed before subdirectory files
-    std::sort(m_modifiedFiles.begin(), m_modifiedFiles.end(),
-        [&](const auto& mf1, const auto& mf2)
-        {
-            return Helpers::CompareFilePathsByDirectory(std::get<0>(mf1), std::get<0>(mf2));
-        });
+    if( m_wndForGitUpdates != nullptr )
+        m_wndForGitUpdates->PostMessage(UWM::Stygitan::UpdateUI, CP::Update::BranchCopies);
+}
+
+
+void CodePurifierDoc::DeleteBranchCopies()
+{
+    if( m_branchCopies == nullptr || m_branchCopies->empty() )
+        return;
+
+    const size_t branches_previously_created = m_branchCopies->size() - m_createdBranchCopyNames.size();
+
+    if( branches_previously_created > 0 )
+    {
+        const std::string query = FormatText(
+            "There %s %d copied branch%s created prior to loading the Code Purifier.\n\n"
+            "Do you want to continue deleting the branch copies?",
+            PluralizeWord(branches_previously_created, "was", "were"),
+            static_cast<int>(branches_previously_created),
+            PluralizeWord(branches_previously_created)
+        );
+
+        if( AfxMessageBox(query, MB_YESNO | MB_DEFBUTTON1) == IDNO )
+            return;
+    }
+
+    while( !m_branchCopies->empty() )
+    {
+        auto name_and_branch = m_branchCopies->begin();
+        name_and_branch->second.Delete();
+        m_createdBranchCopyNames.erase(name_and_branch->first);
+        m_branchCopies->erase(name_and_branch);
+    }
+
+    if( m_wndForGitUpdates != nullptr )
+        m_wndForGitUpdates->PostMessage(UWM::Stygitan::UpdateUI, CP::Update::BranchCopies);
+}
+
+
+void CodePurifierDoc::SetCleanCommitOverride(const GitCommit& commit)
+{
+    m_cleanCommitOverride = commit.GetObjectId();
+
+    const CP::RefreshDataChanges changes = RefreshData(RefreshStartAction::LocateCleanCommit);
+
+    // when the clean commit changed but the commits did not, still update them because
+    // CodePurifierView's colorization of recent commits depends on the clean commit
+    if( m_wndForGitUpdates != nullptr &&
+        changes.clean_commit &&
+        !changes.recent_commits )
+    {
+        m_wndForGitUpdates->PostMessage(UWM::Stygitan::UpdateUI, CP::Update::RecentCommits);
+    }
+}
+
+
+void CodePurifierDoc::ResetBranchToCleanCommit(const bool create_branch_copy_before_reset)
+{
+    if( m_cleanCommit == nullptr )
+        throw CSProException("There is no clean commit.");
+
+    if( create_branch_copy_before_reset )
+        CreateBranchCopy();
+
+    m_repo.ResetBranchMixed(*m_cleanCommit);
+
+    RefreshData(RefreshStartAction::LoadRecentCommits);
 }

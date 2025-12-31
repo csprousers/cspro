@@ -25,6 +25,7 @@
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="CodePurifierData.h" />
     <ClInclude Include="CodePurifierDoc.h" />
     <ClInclude Include="CodePurifierView.h" />
     <ClInclude Include="EditorConfig.h" />

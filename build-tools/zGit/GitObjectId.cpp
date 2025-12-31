@@ -22,6 +22,12 @@ GitObjectId::GitObjectId(const cs::string_sz hex_hash)
 }
 
 
+bool GitObjectId::operator==(const GitObjectId& rhs) const noexcept
+{
+    return ( memcmp(m_oid, rhs.m_oid, GitOidMaxSize) == 0 );
+}
+
+
 std::string GitObjectId::GetHexHash(const git_oid& oid) noexcept
 {
     char buffer[GIT_OID_MAX_HEXSIZE + 1];

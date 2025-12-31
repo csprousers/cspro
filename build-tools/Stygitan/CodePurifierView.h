@@ -16,9 +16,15 @@ protected:
 
     void OnInitialUpdate() override;
     void DoDataExchange(CDataExchange* pDX) override;
+    void OnDestroy();
 
-    LRESULT OnAppActivated(WPARAM wParam, LPARAM lParam);
     LRESULT OnUpdateUI(WPARAM wParam, LPARAM lParam);
+
+    void UpdateBranchDetails();
+    void UpdateBranchCopies();
+    void UpdateCleanCommit();
+    void UpdateRecentCommits();
+    void UpdateModifiedFiles();
 
     void OnWorkingDirectoryClick(NMHDR* pNMHDR, LRESULT* pResult);
 
@@ -30,7 +36,7 @@ protected:
     void OnSetCleanCommit();
 
     void OnResetBranchToCleanCommit();
-    void OnCreateCreateBranchCopyBeforeResetClick();
+    void OnCreateBranchCopyBeforeResetClick();
 
     void OnModifiedFilesDoubleOrRightClick(NMHDR* pNMHDR, LRESULT* pResult);
     void OnModifiedFileOpen();
@@ -40,17 +46,19 @@ protected:
 private:
     CodePurifierDoc& GetDoc() { return *assert_cast<CodePurifierDoc*>(GetDocument()); }
 
-    void RefreshDataAndUpdateUI(WPARAM wParam);
-
     template<typename CF>
     void OnModifiedFile(const CF& callback_function);
 
 private:
     SettingsDb m_settingsDb;
-    int64_t m_lastFullRefreshTime;
+
     CListBox m_branchCopiesListBox;
     CSortListCtrl m_commitsListCtrl;
-    int m_cleanCommitIndex;
     bool m_createBranchCopyBeforeReset;
     CSortListCtrl m_modifiedFilesListCtrl;
+
+    std::shared_ptr<const std::vector<GitCommit>> m_recentCommits;
+    int m_cleanCommitIndex;
+
+    std::shared_ptr<const std::vector<CP::ModifiedFile>> m_modifiedFiles;
 };

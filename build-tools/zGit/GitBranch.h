@@ -21,6 +21,10 @@ public:
     GitBranch(GitBranch&& rhs) noexcept;
     ~GitBranch() noexcept;
 
+    // Compares the branch's target IDs.
+    bool operator==(const GitBranch& rhs) const noexcept;
+    bool operator!=(const GitBranch& rhs) const noexcept { return !operator==(rhs); }
+
     // Returns the non-null git_reference object that GitBranch wraps.
     operator const git_reference*() const noexcept { return m_branchRef; }
 
