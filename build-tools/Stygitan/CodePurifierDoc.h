@@ -64,11 +64,15 @@ protected:
     void OnCloseDocument() override;
 
 private:
-    enum class RefreshStartAction { UpdateBranches, LocateCleanCommit, LoadRecentCommits, IdentifyModifiedFiles };
+    enum class RefreshStartAction { All, AllGitRelated,
+                                    UpdateBranches, LocateCleanCommit, LoadRecentCommits,
+                                    IdentifyModifiedFiles };
 
     void StartRefreshDataThread(RefreshStartAction action,
                                 std::function<void(const CP::RefreshDataChanges& changes)> post_refresh_action = { });
-    void StopRefreshDataThread();
+
+    enum class ThreadStopType { Cancel, Wait };
+    void StopRefreshDataThread(ThreadStopType thread_stop_type);
 
     void StartDirectoryChangeWatcher();
     void StopDirectoryChangeWatcher();
@@ -95,7 +99,7 @@ private:
     HANDLE m_directoryChangeHandle;
     std::optional<std::thread> m_directoryChangeThread;
     bool m_directoryChangesMadeInGitDirectory;
-    std::set<std::wstring> m_directoryChangesMadeInWorkingDirectory;
+    bool m_directoryChangesMadeInWorkingDirectory; // since the last call to IdentifyModifiedFiles
 
     std::shared_ptr<const CP::BranchDetails> m_branchDetails;
     std::shared_ptr<std::map<std::string, GitBranch>> m_branchCopies;

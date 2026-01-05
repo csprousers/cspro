@@ -12,7 +12,8 @@ CodePurifierDoc::CodePurifierDoc()
     :   m_wndForGitUpdates(nullptr),
         m_refreshDataCancelFlag(false),
         m_directoryChangeHandle(nullptr),
-        m_directoryChangesMadeInGitDirectory(false)
+        m_directoryChangesMadeInGitDirectory(false),
+        m_directoryChangesMadeInWorkingDirectory(false)
 {
 }
 
@@ -72,13 +73,13 @@ void CodePurifierDoc::StartGitProcessing(CWnd* const wnd_for_updates)
     StartDirectoryChangeWatcher();
 
     // refresh all the data
-    StartRefreshDataThread(RefreshStartAction::UpdateBranches);
+    StartRefreshDataThread(RefreshStartAction::All);
 }
 
 
 void CodePurifierDoc::StopGitProcessing()
 {
-    StopRefreshDataThread();
+    StopRefreshDataThread(ThreadStopType::Cancel);
     StopDirectoryChangeWatcher();
     m_wndForGitUpdates = nullptr;
 }
@@ -86,7 +87,22 @@ void CodePurifierDoc::StopGitProcessing()
 
 void CodePurifierDoc::ToggleGitProcessingUpdates(const bool activate)
 {
-    // GIT_TODO
+    // on activation, refresh data as informed by the directory watcher
+    if( activate )
+    {
+        if( m_directoryChangesMadeInGitDirectory )
+        {
+            m_directoryChangesMadeInGitDirectory = false;
+
+            StartRefreshDataThread(m_directoryChangesMadeInWorkingDirectory ? RefreshStartAction::All :
+                                                                              RefreshStartAction::AllGitRelated);
+        }
+
+        else if( m_directoryChangesMadeInWorkingDirectory )
+        {
+            StartRefreshDataThread(RefreshStartAction::IdentifyModifiedFiles);
+        }
+    }
 }
 
 
@@ -95,11 +111,11 @@ void CodePurifierDoc::StartRefreshDataThread(const RefreshStartAction action,
 {
     if( m_refreshDataThread.has_value() )
     {
-        StopDirectoryChangeWatcher();
+        StopRefreshDataThread(ThreadStopType::Cancel);
         ASSERT(!m_refreshDataThread.has_value());
     }
 
-    m_refreshDataCancelFlag = false;
+    ASSERT(!m_refreshDataCancelFlag);
 
     m_refreshDataThread.emplace(
         [this, action, post_refresh_action_ = std::move(post_refresh_action)]()
@@ -125,15 +141,19 @@ void CodePurifierDoc::StartRefreshDataThread(const RefreshStartAction action,
 }
 
 
-void CodePurifierDoc::StopRefreshDataThread()
+void CodePurifierDoc::StopRefreshDataThread(const ThreadStopType thread_stop_type)
 {
     if( !m_refreshDataThread.has_value() )
         return;
 
     if( m_refreshDataThread->joinable() )
     {
-        m_refreshDataCancelFlag = true;
+        if( thread_stop_type == ThreadStopType::Cancel )
+            m_refreshDataCancelFlag = true;
+
         m_refreshDataThread->join();
+
+        m_refreshDataCancelFlag = false;
     }
 
     m_refreshDataThread.reset();
@@ -223,7 +243,7 @@ void CodePurifierDoc::ProcessDirectoryChange(const FILE_NOTIFY_INFORMATION* fni)
 
         else
         {
-            m_directoryChangesMadeInWorkingDirectory.emplace(filename_sv);
+            m_directoryChangesMadeInWorkingDirectory = true;
         }
 
         if( fni->NextEntryOffset == 0 )
@@ -239,7 +259,11 @@ CP::RefreshDataChanges CodePurifierDoc::RefreshData(RefreshStartAction action)
     CP::RefreshDataChanges changes { false };
     bool identify_modified_files = false;
 
-    if( action == RefreshStartAction::UpdateBranches )
+    const bool process_all_git_related_actions = ( action == RefreshStartAction::All ||
+                                                   action == RefreshStartAction::AllGitRelated );
+
+    if( process_all_git_related_actions ||
+        action == RefreshStartAction::UpdateBranches )
     {
         // when there are changes to the local or remote branches, we must also...
         if( RefreshBranchDetails() )
@@ -261,7 +285,8 @@ CP::RefreshDataChanges CodePurifierDoc::RefreshData(RefreshStartAction action)
     }
 
     // ...potentially find the "clean commit"
-    if( action == RefreshStartAction::LocateCleanCommit )
+    if( process_all_git_related_actions ||
+        action == RefreshStartAction::LocateCleanCommit )
     {
         if( LocateCleanCommit() )
         {
@@ -275,7 +300,8 @@ CP::RefreshDataChanges CodePurifierDoc::RefreshData(RefreshStartAction action)
         return changes;
 
     // ...potentially load recent commits
-    if( action == RefreshStartAction::LoadRecentCommits )
+    if( process_all_git_related_actions ||
+        action == RefreshStartAction::LoadRecentCommits )
     {
         if( LoadRecentCommits() )
             changes.recent_commits = true;
@@ -285,7 +311,9 @@ CP::RefreshDataChanges CodePurifierDoc::RefreshData(RefreshStartAction action)
         return changes;
 
     // ...potentially load the files modified since the clean commit
-    if( identify_modified_files || action == RefreshStartAction::IdentifyModifiedFiles )
+    if( identify_modified_files ||
+        action == RefreshStartAction::All ||
+        action == RefreshStartAction::IdentifyModifiedFiles )
     {
         changes.modified_files = IdentifyModifiedFiles();
     }
@@ -425,7 +453,7 @@ bool CodePurifierDoc::LocateCleanCommit()
 
 bool CodePurifierDoc::LoadRecentCommits()
 {
-    constexpr size_t NumberAdditionalCommitsToLoad = 4;
+    constexpr size_t NumberAdditionalCommitsToLoad = 9;
     std::optional<size_t> additional_commits_to_load;
 
     auto recent_commits = std::make_unique<std::vector<GitCommit>>();
@@ -473,6 +501,8 @@ bool CodePurifierDoc::IdentifyModifiedFiles()
 {
     ASSERT(m_branchDetails != nullptr);
 
+    m_directoryChangesMadeInWorkingDirectory = false;
+
     auto modified_files = std::make_unique<std::vector<CP::ModifiedFile>>();
 
     if( m_cleanCommit != nullptr )
@@ -515,7 +545,7 @@ bool CodePurifierDoc::IdentifyModifiedFiles()
 
 void CodePurifierDoc::CreateBranchCopy()
 {
-    StopRefreshDataThread();
+    StopRefreshDataThread(ThreadStopType::Wait);
 
     if( m_branchCopies == nullptr )
         throw CSProException("You cannot create a copy when there is no current branch.");
@@ -545,7 +575,7 @@ void CodePurifierDoc::CreateBranchCopy()
 
 void CodePurifierDoc::DeleteBranchCopies()
 {
-    StopRefreshDataThread();
+    StopRefreshDataThread(ThreadStopType::Wait);
 
     if( m_branchCopies == nullptr || m_branchCopies->empty() )
         return;
@@ -581,7 +611,7 @@ void CodePurifierDoc::DeleteBranchCopies()
 
 void CodePurifierDoc::SetCleanCommitOverride(const GitCommit& commit)
 {
-    StopRefreshDataThread();
+    StopRefreshDataThread(ThreadStopType::Wait);
 
     m_cleanCommitOverride = commit.GetObjectId();
 
@@ -602,7 +632,7 @@ void CodePurifierDoc::SetCleanCommitOverride(const GitCommit& commit)
 
 void CodePurifierDoc::ResetBranchToCleanCommit(const bool create_branch_copy_before_reset)
 {
-    StopRefreshDataThread();
+    StopRefreshDataThread(ThreadStopType::Wait);
 
     if( m_cleanCommit == nullptr )
         throw CSProException("There is no clean commit.");
@@ -618,7 +648,7 @@ void CodePurifierDoc::ResetBranchToCleanCommit(const bool create_branch_copy_bef
 
 void CodePurifierDoc::SaveFileFromCleanCommit(const std::string& git_path, const std::string& file_path_for_save)
 {
-    StopRefreshDataThread();
+    StopRefreshDataThread(ThreadStopType::Wait);
 
     if( m_cleanCommit == nullptr )
         throw ProgrammingErrorException();

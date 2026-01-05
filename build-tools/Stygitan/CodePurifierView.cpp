@@ -292,10 +292,18 @@ void CodePurifierView::OnCommitsCustomDraw(NMHDR* const pNMHDR, LRESULT* const p
     if( pLVCD->nmcd.dwDrawStage == CDDS_ITEMPREPAINT )
     {
         // color commits newer than the clean commit with a light green background
+        // and commits older than the next commit with light gray text
         const int item_index = static_cast<int>(pLVCD->nmcd.dwItemSpec);
 
         if( item_index < m_cleanCommitIndex )
+        {
             pLVCD->clrTextBk = RGB(200, 255, 200);
+        }
+
+        else if( item_index > m_cleanCommitIndex )
+        {
+            pLVCD->clrText= RGB(150, 150, 150);
+        }
     }
 
     *pResult = CDRF_DODEFAULT;
@@ -472,7 +480,7 @@ void CodePurifierView::OnModifiedFileDiff()
         std::string old_file_path;
         const std::string* new_file_path = &file_path;
 
-        // when a file is deleted or modified, we must get the version of the from the commit's tree
+        // when a file is deleted or modified, we must get the version of the file from the commit's tree
         if( modified_file->diff_flag == GIT_DELTA_DELETED ||
             modified_file->diff_flag == GIT_DELTA_MODIFIED )
         {

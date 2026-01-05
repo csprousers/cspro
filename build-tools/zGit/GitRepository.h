@@ -107,6 +107,9 @@ public:
     // Executes the callback function for each file in the working directory with
     // a different status from the commit's tree, passing the path and difference code.
     // The callback function should return true to continue processing.
+    // For speed, the routine compares the tree to the index and then the index to the
+    // working directory, git_diff_tree_to_index + git_diff_index_to_workdir, rather than
+    // calling git_diff_tree_to_workdir_with_index.
     // Difference codes are in diff.h.
     void ForeachDifferenceInWorkingDirectory(const GitCommit& commit, const std::function<bool(std::string path, unsigned int diff_flag)>& callback_function) const;
 

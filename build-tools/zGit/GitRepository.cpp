@@ -249,29 +249,48 @@ void GitRepository::ForeachDifferenceInWorkingDirectory(const GitCommit& commit,
 
     GitTree tree = commit.GetTree();
 
-    git_diff* diff;
     git_diff_options diff_opts = GIT_DIFF_OPTIONS_INIT;
     diff_opts.flags |= GIT_DIFF_INCLUDE_UNTRACKED |
                        GIT_DIFF_RECURSE_UNTRACKED_DIRS |
                        GIT_DIFF_SKIP_BINARY_CHECK |
                        GIT_DIFF_FORCE_BINARY;
 
-    if( git_diff_tree_to_workdir(&diff, m_repo, tree, &diff_opts) != 0 )
+    git_diff* diff_tree_to_index;
+
+    if( git_diff_tree_to_index(&diff_tree_to_index, m_repo, tree, nullptr, &diff_opts) != 0 )
         ThrowGitException();
 
-    struct CB
+    git_diff* diff_index_to_workdir;
+
+    if( git_diff_index_to_workdir(&diff_index_to_workdir, m_repo, nullptr, &diff_opts) != 0 )
     {
-        static int func(const git_diff_delta* const delta, float /*progress*/, void* const payload)
+        git_diff_free(diff_tree_to_index);
+        ThrowGitException();
+    }
+
+    const bool merge_successful = ( git_diff_merge(diff_tree_to_index, diff_index_to_workdir) == 0 );
+
+    if( merge_successful )
+    {
+        struct CB
         {
-            ASSERT(delta != nullptr && delta->new_file.path != nullptr && payload != nullptr);
-            const std::function<bool(std::string, unsigned int)>& callback_function = *reinterpret_cast<const std::function<bool(std::string, unsigned int)>*>(payload);
-            return !callback_function(delta->new_file.path, delta->status);
-        }
-    };
+            static int func(const git_diff_delta* const delta, float /*progress*/, void* const payload)
+            {
+                ASSERT(delta != nullptr && delta->new_file.path != nullptr && payload != nullptr);
+                const std::function<bool(std::string, unsigned int)>& callback_function = *reinterpret_cast<const std::function<bool(std::string, unsigned int)>*>(payload);
+                return !callback_function(delta->new_file.path, delta->status);
+            }
+        };
 
-    git_diff_foreach(diff, CB::func, nullptr, nullptr, nullptr, const_cast<std::function<bool(std::string, unsigned int)>*>(&callback_function));
+        git_diff_foreach(diff_tree_to_index, CB::func, nullptr, nullptr, nullptr,
+                         const_cast<std::function<bool(std::string, unsigned int)>*>(&callback_function));
+    }
 
-    git_diff_free(diff);
+    git_diff_free(diff_index_to_workdir);
+    git_diff_free(diff_tree_to_index);
+
+    if( !merge_successful )
+        ThrowGitException();
 }
 
 
