@@ -9,9 +9,9 @@
 #include <zToolsO/CommonObjectTransporter.h>
 #include <zToolsO/UWM.h>
 #include <zUtilO/TemporaryFile.h>
+#include <zUtilO/UIThreadRunner.h>
 #include <zUtilF/ManageCredentialsDlg.h>
 #include <zUtilF/resource_shared.h>
-#include <zUtilF/UIThreadRunner.h>
 #include <zUtilF/WindowsMenuManager.h>
 
 
@@ -38,7 +38,7 @@ BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWndEx)
     ON_MESSAGE(UWM::DataManager::RunStartupActions, OnRunStartupActions)
     ON_MESSAGE(UWM::ToolsO::DisplayErrorMessage, OnDisplayErrorMessage)
     ON_MESSAGE(UWM::ToolsO::GetObjectTransporter, OnGetObjectTransporter)
-    ON_MESSAGE(UWM::UtilF::RunOnUIThread, OnRunOnUIThread)
+    ON_MESSAGE(UWM::UtilO::RunOnUIThread, OnRunOnUIThread)
     ON_MESSAGE(UWM::UtilF::GetApplicationShutdownRunner, OnGetApplicationShutdownRunner)
 
     // interapp communication

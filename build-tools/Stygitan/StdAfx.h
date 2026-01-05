@@ -12,10 +12,10 @@
 #include <zUtilO/Interapp.h>
 #include <zUtilO/SettingsDb.h>
 #include <zUtilO/TemporaryFile.h>
+#include <zUtilO/UIThreadRunner.h>
 #include <zUtilO/WindowsUtf8.h>
 #include <zUtilO/WindowsWS.h>
 #include <zUtilF/DocViewIterators.h>
-#include <zUtilF/UIThreadRunner.h>
 #include <zGit/GitBranch.h>
 #include <zGit/GitRepository.h>
 #include <zGit/GitRevisionWalker.h>

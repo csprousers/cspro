@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include <zUtilF/UWM.h>
+#include <zUtilO/UWM.h>
 #include <zToolsO/WindowsDesktopMessage.h>
 
 
@@ -13,9 +13,9 @@ class UIThreadRunner
 public:
     virtual ~UIThreadRunner() { }
 
-    bool RunOnUIThread()
+    bool RunOnUIThread() const
     {
-        return ( WindowsDesktopMessage::Send(UWM::UtilF::RunOnUIThread, this) == 1 );
+        return ( WindowsDesktopMessage::Send(UWM::UtilO::RunOnUIThread, this) == 1 );
     }
 
     virtual void Execute() = 0;

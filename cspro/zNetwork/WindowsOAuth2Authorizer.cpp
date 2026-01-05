@@ -1,11 +1,10 @@
 ﻿#include "stdafx.h"
 #include "WindowsOAuth2Authorizer.h"
 #include "WindowsOAuth2AuthorizerWaitDlg.h"
-#include "HttpConnection.h"
 #include <zToolsO/Hash.h>
 #include <zToolsO/UniqueId.h>
 #include <zUtilO/MimeType.h>
-#include <zUtilF/UIThreadRunner.h>
+#include <zUtilO/UIThreadRunner.h>
 #include <zHtml/HtmlTemplates.h>
 
 

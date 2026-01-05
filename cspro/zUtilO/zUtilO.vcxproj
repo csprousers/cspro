@@ -156,6 +156,7 @@
     <ClInclude Include="TextSourceString.h" />
     <ClInclude Include="TransactionManager.h" />
     <ClInclude Include="TreeCtrlHelpers.h" />
+    <ClInclude Include="UIThreadRunner.h" />
     <ClInclude Include="UndoStack.h" />
     <ClInclude Include="UWM.h" />
     <ClInclude Include="UWMRanges.h" />

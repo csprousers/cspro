@@ -109,7 +109,6 @@
     <ClInclude Include="TextInputDlg.h" />
     <ClInclude Include="TextReportDlg.h" />
     <ClInclude Include="ThreadedProgressDlg.h" />
-    <ClInclude Include="UIThreadRunner.h" />
     <ClInclude Include="UWM.h" />
     <ClInclude Include="WindowsDocsDlg.h" />
     <ClInclude Include="WindowsMenuManager.h" />

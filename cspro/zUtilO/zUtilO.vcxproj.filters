@@ -408,6 +408,9 @@
     <ClInclude Include="TreeCtrlHelpers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="UIThreadRunner.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="UndoStack.h">
       <Filter>Header Files</Filter>
     </ClInclude>

@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 #include <zMapping/WindowsMapDlg.h>
-#include <zUtilF/UIThreadRunner.h>
+#include <zUtilO/UIThreadRunner.h>
 
 
 class WindowsMapUIThreadRunner : public UIThreadRunner

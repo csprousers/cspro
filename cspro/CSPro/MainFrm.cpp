@@ -7,8 +7,7 @@
 #include <zToolsO/NewlineSubstitutor.h>
 #include <zToolsO/UWM.h>
 #include <zUtilO/TreeCtrlHelpers.h>
-#include <zUtilO/UWM.h>
-#include <zUtilF/UIThreadRunner.h>
+#include <zUtilO/UIThreadRunner.h>
 #include <zLogicO/ReservedWords.h>
 #include <zLogicO/SourceBuffer.h>
 #include <zInterfaceF/UWM.h>
@@ -87,7 +86,7 @@ BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWnd)
     ON_MESSAGE(UWM::Designer::TokenizeLogic_V0, OnTokenizeLogic_V0)
     ON_MESSAGE(UWM::Designer::CreateCapiLogicCompiler, OnCreateCapiLogicCompiler)
 
-    ON_MESSAGE(UWM::UtilF::RunOnUIThread, OnRunOnUIThread)
+    ON_MESSAGE(UWM::UtilO::RunOnUIThread, OnRunOnUIThread)
     ON_MESSAGE(UWM::UtilF::GetApplicationShutdownRunner, OnGetApplicationShutdownRunner)
 
     ON_MESSAGE(UWM::Form::ShowSourceCode, ShowSrcCode)

@@ -11,7 +11,7 @@ BEGIN_MESSAGE_MAP(MainFrame, CMDIFrameWnd)
     ON_COMMAND(ID_PROPERTIES, OnProperties)
     ON_MESSAGE(UWM::Stygitan::OpenContainingFolder, OnOpenContainingFolder)
     ON_MESSAGE(UWM::ToolsO::DisplayErrorMessage, OnDisplayErrorMessage)
-    ON_MESSAGE(UWM::UtilF::RunOnUIThread, OnRunOnUIThread)
+    ON_MESSAGE(UWM::UtilO::RunOnUIThread, OnRunOnUIThread)
 END_MESSAGE_MAP()
 
 
