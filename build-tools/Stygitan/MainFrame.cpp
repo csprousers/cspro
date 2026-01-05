@@ -9,7 +9,6 @@ BEGIN_MESSAGE_MAP(MainFrame, CMDIFrameWnd)
     ON_WM_CREATE()
     ON_WM_CLOSE()
     ON_COMMAND(ID_PROPERTIES, OnProperties)
-    ON_MESSAGE(UWM::Stygitan::OpenContainingFolder, OnOpenContainingFolder)
     ON_MESSAGE(UWM::ToolsO::DisplayErrorMessage, OnDisplayErrorMessage)
     ON_MESSAGE(UWM::UtilO::RunOnUIThread, OnRunOnUIThread)
 END_MESSAGE_MAP()
@@ -64,14 +63,6 @@ void MainFrame::OnProperties()
 }
 
 
-LRESULT MainFrame::OnOpenContainingFolder(const WPARAM wParam, LPARAM /*lParam*/)
-{
-    // OpenContainingFolder does not appear to work when called from a thread, so it is processed here
-    OpenContainingFolder(WindowsDesktopMessage::GetPostedObject<SharableString>(wParam).GetString());
-    return 1;
-}
-
-
 LRESULT MainFrame::OnDisplayErrorMessage(WPARAM /*wParam*/, LPARAM /*lParam*/)
 {
     ErrorMessage::DisplayPostedMessages();
@@ -79,9 +70,9 @@ LRESULT MainFrame::OnDisplayErrorMessage(WPARAM /*wParam*/, LPARAM /*lParam*/)
 }
 
 
-LRESULT MainFrame::OnRunOnUIThread(const WPARAM wParam, LPARAM /*lParam*/)
+LRESULT MainFrame::OnRunOnUIThread(const WPARAM wParam, const LPARAM lParam)
 {
     UIThreadRunner* const ui_thread_runner = reinterpret_cast<UIThreadRunner*>(wParam);
-    ui_thread_runner->Execute();
+    ui_thread_runner->Execute(lParam);
     return 1;
 }

@@ -77,6 +77,7 @@
     <ClCompile Include="TextSourceEditable.cpp" />
     <ClCompile Include="TextSourceExternal.cpp" />
     <ClCompile Include="TransactionManager.cpp" />
+    <ClCompile Include="UIThreadRunner.cpp" />
     <ClCompile Include="Versioning.cpp" />
     <ClCompile Include="Viewers.cpp" />
     <ClCompile Include="VirtualDirectoryLister.cpp" />

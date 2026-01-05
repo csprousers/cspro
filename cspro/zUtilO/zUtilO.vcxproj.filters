@@ -179,6 +179,9 @@
     <ClCompile Include="TransactionManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="UIThreadRunner.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="Versioning.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

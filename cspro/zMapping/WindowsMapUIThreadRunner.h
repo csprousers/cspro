@@ -12,7 +12,7 @@ public:
     {
     }
 
-    void Execute() override
+    void Execute(LPARAM /*lParam*/) override
     {
         m_dlg = std::make_unique<WindowsMapDlg>(m_mapUI);
         m_dlg->DoModal();

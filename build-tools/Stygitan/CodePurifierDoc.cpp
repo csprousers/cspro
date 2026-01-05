@@ -87,7 +87,7 @@ void CodePurifierDoc::StopGitProcessing()
 
 void CodePurifierDoc::ToggleGitProcessingUpdates(const bool activate)
 {
-    // on activation, refresh data as informed by the directory watcher
+    // on activation, refresh data (as informed by the directory watcher)
     if( activate )
     {
         if( m_directoryChangesMadeInGitDirectory )
@@ -131,11 +131,12 @@ void CodePurifierDoc::StartRefreshDataThread(const RefreshStartAction action,
             catch( const CSProException& exception )
             {
                 // display the error and close the Code Purifier on the UI thread
-                RunOnUIThread([&]()
-                {
-                    ErrorMessage::Display(exception);
-                    WithParentFrame(*this, [](CFrameWnd& frame_wnd) { frame_wnd.PostMessage(WM_CLOSE); });
-                });
+                RunOnUIThreadAsync(
+                    [this, message = std::string(exception.what())]()
+                    {
+                        ErrorMessage::Display(message);
+                        WithParentFrame(*this, [](CFrameWnd& frame_wnd) { frame_wnd.PostMessage(WM_CLOSE); });
+                    });
             }
         });
 }

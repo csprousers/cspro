@@ -136,10 +136,10 @@ LRESULT CMainFrame::OnEngineUI(const WPARAM wParam, const LPARAM lParam)
 }
 
 
-LRESULT CMainFrame::OnRunOnUIThread(const WPARAM wParam, LPARAM /*lParam*/)
+LRESULT CMainFrame::OnRunOnUIThread(const WPARAM wParam, const LPARAM lParam)
 {
     UIThreadRunner* const ui_thread_runner = reinterpret_cast<UIThreadRunner*>(wParam);
-    ui_thread_runner->Execute();
+    ui_thread_runner->Execute(lParam);
     return 1;
 }
 

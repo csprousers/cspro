@@ -321,7 +321,13 @@ void EditorConfigApplierView::OnCreateListOfApplicableRules()
                 }
 
                 if( !report_file_path.empty() )
-                    WindowsDesktopMessage::PostObject(UWM::Stygitan::OpenContainingFolder, report_file_path);
+                {
+                    RunOnUIThreadAsync(
+                        [report_file_path_ = std::move(report_file_path)]
+                        {
+                            OpenContainingFolder(report_file_path_);
+                        });
+                }
             }
 
             catch( const CSProException& exception )
@@ -389,7 +395,7 @@ void EditorConfigApplierView::OnCreateListOfGitIgnoredFiles()
                 }
 
                 // write out the details about Git-ignored files
-                const std::string report_file_path = m_data->report_base_file_path + "files-git-ignored.txt";
+                std::string report_file_path = m_data->report_base_file_path + "files-git-ignored.txt";
 
                 FileIO::WriteText(
                     report_file_path,
@@ -397,7 +403,11 @@ void EditorConfigApplierView::OnCreateListOfGitIgnoredFiles()
                     false
                 );
 
-                WindowsDesktopMessage::PostObject(UWM::Stygitan::OpenContainingFolder, report_file_path);
+                RunOnUIThreadAsync(
+                    [report_file_path_ = std::move(report_file_path)]
+                    {
+                        OpenContainingFolder(report_file_path_);
+                    });
             }
 
             catch( const CSProException& exception )

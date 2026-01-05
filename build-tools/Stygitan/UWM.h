@@ -11,7 +11,6 @@ namespace UWM::Stygitan
     const unsigned ThreadIsActive       = UWM::Ranges::ExeStart + 2;
     const unsigned ThreadPromptCancel   = UWM::Ranges::ExeStart + 3;
     const unsigned ThreadComplete       = UWM::Ranges::ExeStart + 4;
-    const unsigned OpenContainingFolder = UWM::Ranges::ExeStart + 5;
 
-    CHECK_MESSAGE_NUMBERING(OpenContainingFolder, UWM::Ranges::ExeLast)
+    CHECK_MESSAGE_NUMBERING(ThreadComplete, UWM::Ranges::ExeLast)
 }
