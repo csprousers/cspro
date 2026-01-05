@@ -148,14 +148,22 @@ BEGIN
     PUSHBUTTON      "&Run",IDC_CREATE_FILTERED_COMMIT_TEXT,397,21,50,14
 END
 
-IDD_CODE_PURIFIER DIALOGEX 0, 0, 633, 377
+IDD_CODE_PURIFIER DIALOGEX 0, 0, 621, 377
 STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
 CAPTION "Code Purifier"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    PUSHBUTTON      "Reset Branch to Clean Commit",IDC_RESET_BRANCH_TO_CLEAN_COMMIT,497,131,121,14
+    GROUPBOX        "Actions",IDC_STATIC,7,211,208,159
+    PUSHBUTTON      "Apply EditorConfig Rules to Modified Files",IDC_APPLY_EDITORCONFIG_RULES,29,273,164,14
+    CONTROL         "Use CSPro's EditorConfig when no others are present",IDC_USE_CSPRO_DEFAULT_EDITORCONFIG,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,18,292,187,10
+    PUSHBUTTON      "Reset Branch to Clean Commit",IDC_RESET_BRANCH_TO_CLEAN_COMMIT,50,318,121,14
     CONTROL         "Create branch copy before reset",IDC_CREATE_BRANCH_COPY_BEFORE_RESET,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,497,153,121,10
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,51,338,121,10
+    GROUPBOX        "Commits",IDC_STATIC,225,7,390,148
+    CONTROL         "",IDC_COMMITS,"SysListView32",LVS_REPORT | LVS_SINGLESEL | LVS_ALIGNLEFT | WS_BORDER | WS_TABSTOP,233,19,375,128
+    GROUPBOX        "Modified Files",IDC_STATIC,225,162,390,208
+    CONTROL         "",IDC_MODIFIED_FILES,"SysListView32",LVS_REPORT | LVS_SINGLESEL | LVS_ALIGNLEFT | WS_BORDER | WS_TABSTOP,233,179,375,184
     GROUPBOX        "Repository",IDC_STATIC,7,7,208,94
     LTEXT           "Working directory:",IDC_STATIC,14,21,60,8
     CONTROL         "<a>...</a>",IDC_WORKING_DIRECTORY,"SysLink",WS_TABSTOP,80,21,123,8
@@ -165,14 +173,10 @@ BEGIN
     LTEXT           "...",IDC_REMOTE_BRANCH,80,49,123,8
     LTEXT           "Clean commit:",IDC_STATIC,14,63,46,8
     LTEXT           "...",IDC_CLEAN_COMMIT,80,63,123,33
-    GROUPBOX        "Branch Copies",IDC_STATIC,7,125,208,96
-    LISTBOX         IDC_BRANCH_COPIES,14,139,194,57,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
-    PUSHBUTTON      "Create Copy",IDC_CREATE_BRANCH_COPY,38,201,62,14
-    PUSHBUTTON      "Delete Copies",IDC_DELETE_BRANCH_COPIES,113,201,62,14
-    GROUPBOX        "Commits",IDC_STATIC,225,7,401,168
-    CONTROL         "",IDC_COMMITS,"SysListView32",LVS_REPORT | LVS_SINGLESEL | LVS_ALIGNLEFT | WS_BORDER | WS_TABSTOP,233,19,385,104
-    GROUPBOX        "Modified Files",IDC_STATIC,225,183,401,187
-    CONTROL         "",IDC_MODIFIED_FILES,"SysListView32",LVS_REPORT | LVS_SINGLESEL | LVS_ALIGNLEFT | WS_BORDER | WS_TABSTOP,233,197,385,166
+    GROUPBOX        "Branch Copies",IDC_STATIC,7,106,208,100
+    LISTBOX         IDC_BRANCH_COPIES,14,120,194,57,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "Create Copy",IDC_CREATE_BRANCH_COPY,38,182,62,14
+    PUSHBUTTON      "Delete Copies",IDC_DELETE_BRANCH_COPIES,113,182,62,14
 END
 
 IDD_EDITORCONFIG_APPLIER DIALOGEX 0, 0, 487, 248
@@ -240,27 +244,31 @@ END
 IDD_CODE_PURIFIER AFX_DIALOG_LAYOUT
 BEGIN
     0,
-    0, 50, 0, 0,
-    0, 50, 0, 0,
-    100, 50, 0, 0,
-    100, 50, 0, 0,
-    0, 0, 0, 0,
-    0, 0, 0, 0,
-    0, 0, 0, 0,
-    0, 0, 0, 0,
-    0, 0, 0, 0,
-    0, 0, 0, 0,
-    0, 0, 0, 0,
-    0, 0, 0, 0,
-    0, 0, 0, 0,
-    0, 0, 0, 0,
-    0, 0, 0, 0,
-    0, 0, 0, 0,
-    0, 0, 0, 0,
+    0, 100, 0, 0,
+    0, 100, 0, 0,
+    0, 100, 0, 0,
+    0, 100, 0, 0,
+    0, 100, 0, 0,
+    0, 100, 0, 0,
+    0, 100, 0, 0,
+    0, 100, 0, 0,
     0, 0, 100, 50,
     0, 0, 100, 50,
     0, 50, 100, 50,
-    0, 50, 100, 50
+    0, 50, 100, 50,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 100,
+    0, 0, 0, 100,
+    0, 100, 0, 0,
+    0, 100, 0, 0
 END
 
 IDD_EDITORCONFIG_APPLIER AFX_DIALOG_LAYOUT
@@ -317,7 +325,7 @@ BEGIN
     IDD_CODE_PURIFIER, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 626
+        RIGHTMARGIN, 614
         TOPMARGIN, 7
         BOTTOMMARGIN, 370
     END

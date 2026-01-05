@@ -17,9 +17,11 @@ public:
     void StartGitProcessing(CWnd* wnd_for_updates);
     void StopGitProcessing();
 
-    // On activation, any pending Git-related changes will be processed and posted as updates.
-    // On deactivation, posting updates will be suspended.
-    void ToggleGitProcessingUpdates(bool activate);
+    // Any pending Git-related changes (and working directory changes) will be processed and posted as updates.
+    void RefreshGit();
+
+    // Any pending changes in the working directory will be processed and posted as updates.
+    void RefreshWorkingDirectory();
 
     // Returns the repository's working directory.
     const std::string& GetRepositoryWorkingDirectory() const noexcept { return m_repoWorkingDirectory; }

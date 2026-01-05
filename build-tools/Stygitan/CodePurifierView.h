@@ -36,6 +36,9 @@ protected:
     void OnCommitsRightClick(NMHDR* pNMHDR, LRESULT* pResult);
     void OnSetCleanCommit();
 
+    void OnApplyEditorConfigRules();
+    void OnUseDefaultEditorConfigClick();
+
     void OnResetBranchToCleanCommit();
     void OnCreateBranchCopyBeforeResetClick();
 
@@ -48,14 +51,17 @@ protected:
 private:
     CodePurifierDoc& GetDoc() { return *assert_cast<CodePurifierDoc*>(GetDocument()); }
 
+    std::string GetFilePathOnDisk(const CP::ModifiedFile& modified_file);
+
     std::tuple<std::string, const CP::ModifiedFile*> GetSelectedModifiedFile();
 
 private:
     SettingsDb m_settingsDb;
 
     CListBox m_branchCopiesListBox;
-    CSortListCtrl m_commitsListCtrl;
+    bool m_useDefaultEditorConfig;
     bool m_createBranchCopyBeforeReset;
+    CSortListCtrl m_commitsListCtrl;
     CSortListCtrl m_modifiedFilesListCtrl;
 
     std::shared_ptr<const std::vector<GitCommit>> m_recentCommits;

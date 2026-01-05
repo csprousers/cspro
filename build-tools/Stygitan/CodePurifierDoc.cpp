@@ -85,24 +85,28 @@ void CodePurifierDoc::StopGitProcessing()
 }
 
 
-void CodePurifierDoc::ToggleGitProcessingUpdates(const bool activate)
+void CodePurifierDoc::RefreshGit()
 {
-    // on activation, refresh data (as informed by the directory watcher)
-    if( activate )
+    // refresh data (as informed by the directory watcher)
+    if( m_directoryChangesMadeInGitDirectory )
     {
-        if( m_directoryChangesMadeInGitDirectory )
-        {
-            m_directoryChangesMadeInGitDirectory = false;
+        m_directoryChangesMadeInGitDirectory = false;
 
-            StartRefreshDataThread(m_directoryChangesMadeInWorkingDirectory ? RefreshStartAction::All :
-                                                                              RefreshStartAction::AllGitRelated);
-        }
-
-        else if( m_directoryChangesMadeInWorkingDirectory )
-        {
-            StartRefreshDataThread(RefreshStartAction::IdentifyModifiedFiles);
-        }
+        StartRefreshDataThread(m_directoryChangesMadeInWorkingDirectory ? RefreshStartAction::All :
+                                                                          RefreshStartAction::AllGitRelated);
     }
+
+    else
+    {
+        RefreshWorkingDirectory();
+    }
+}
+
+
+void CodePurifierDoc::RefreshWorkingDirectory()
+{
+    if( m_directoryChangesMadeInWorkingDirectory )
+        StartRefreshDataThread(RefreshStartAction::IdentifyModifiedFiles);
 }
 
 
