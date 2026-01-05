@@ -39,7 +39,7 @@ public:
     void Rename(std::string new_file_path);
     bool Rename_noexcept(std::string new_file_path);
 
-    // Adds a file to a registry of files to be deleting upon program close.
+    // Adds a file to a registry of files to be deleted upon program close.
     static void RegisterFileForDeletion(std::string file_path);
 
 private:

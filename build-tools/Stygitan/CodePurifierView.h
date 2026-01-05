@@ -43,12 +43,12 @@ protected:
     void OnModifiedFileOpen();
     void OnModifiedFileOpenContainingFolder();
     void OnModifiedFileCopyPath();
+    void OnModifiedFileDiff();
 
 private:
     CodePurifierDoc& GetDoc() { return *assert_cast<CodePurifierDoc*>(GetDocument()); }
 
-    template<typename CF>
-    void OnModifiedFile(const CF& callback_function);
+    std::tuple<std::string, const CP::ModifiedFile*> GetSelectedModifiedFile();
 
 private:
     SettingsDb m_settingsDb;
@@ -62,4 +62,6 @@ private:
     int m_cleanCommitIndex;
 
     std::shared_ptr<const std::vector<CP::ModifiedFile>> m_modifiedFiles;
+
+    std::set<std::string> m_comparisonFilePathsForFileDiffs;
 };

@@ -1,5 +1,7 @@
 ﻿#include "StdAfx.h"
 #include "CodePurifierView.h"
+#include "DiffTool.h"
+#include <zToolsO/Hash.h>
 #include <zToolsO/WinClipboard.h>
 
 
@@ -30,6 +32,7 @@ BEGIN_MESSAGE_MAP(CodePurifierView, CFormView)
     ON_COMMAND(ID_MODIFIED_FILE_OPEN, OnModifiedFileOpen)
     ON_COMMAND(ID_MODIFIED_FILE_OPEN_CONTAINING_FOLDER, OnModifiedFileOpenContainingFolder)
     ON_COMMAND(ID_MODIFIED_FILE_COPY_PATH, OnModifiedFileCopyPath)
+    ON_COMMAND(ID_MODIFIED_FILE_DIFF, OnModifiedFileDiff)
 END_MESSAGE_MAP()
 
 
@@ -380,17 +383,15 @@ void CodePurifierView::OnModifiedFilesDoubleOrRightClick(NMHDR* const pNMHDR, LR
         UINT file_exists_flag = MF_ENABLED;
         UINT directory_exists_flag = MF_ENABLED;
 
-        OnModifiedFile([&](const std::string& file_path)
-            {
-                if( !PortableFunctions::FileIsRegular(file_path) )
-                {
-                    file_exists_flag = MF_DISABLED;
+        const auto [file_path, modified_file] = GetSelectedModifiedFile();
 
-                    if( !PortableFunctions::FileIsDirectory(PortableFunctions::PathGetDirectory(file_path)) )
-                        directory_exists_flag = MF_DISABLED;
-                }
-            });
+        if( !PortableFunctions::FileIsRegular(file_path) )
+        {
+            file_exists_flag = MF_DISABLED;
 
+            if( !PortableFunctions::FileIsDirectory(PortableFunctions::PathGetDirectory(file_path)) )
+                directory_exists_flag = MF_DISABLED;
+        }
 
         CMenu popup_menu;
         popup_menu.CreatePopupMenu();
@@ -398,6 +399,8 @@ void CodePurifierView::OnModifiedFilesDoubleOrRightClick(NMHDR* const pNMHDR, LR
         popup_menu.AppendMenu(MF_SEPARATOR);
         popup_menu.AppendMenu(MF_STRING | file_exists_flag, ID_MODIFIED_FILE_OPEN, L"Open in Associated Application");
         popup_menu.AppendMenu(MF_STRING | directory_exists_flag, ID_MODIFIED_FILE_OPEN_CONTAINING_FOLDER, L"Open Containing Folder");
+        popup_menu.AppendMenu(MF_SEPARATOR);
+        popup_menu.AppendMenu(MF_STRING, ID_MODIFIED_FILE_DIFF, L"External Diff\tCtrl+D");
 
         CPoint point = pNMItemActivate->ptAction;
         m_modifiedFilesListCtrl.ClientToScreen(&point);
@@ -406,52 +409,106 @@ void CodePurifierView::OnModifiedFilesDoubleOrRightClick(NMHDR* const pNMHDR, LR
 }
 
 
-template<typename CF>
-void CodePurifierView::OnModifiedFile(const CF& callback_function)
+std::tuple<std::string, const CP::ModifiedFile*> CodePurifierView::GetSelectedModifiedFile()
 {
     const CodePurifierDoc& cp_doc = GetDoc();
 
     const size_t index = static_cast<size_t>(m_modifiedFilesListCtrl.GetSelectionMark());
     ASSERT(m_modifiedFiles != nullptr && index < m_modifiedFiles->size());
 
-    callback_function(Path::Combine(cp_doc.GetRepositoryWorkingDirectory(),
-                                    Path::ToNativeSlash(m_modifiedFiles->at(index).git_path)));
+    const CP::ModifiedFile* const modified_file = &m_modifiedFiles->at(index);
+
+    return std::make_tuple(Path::Combine(cp_doc.GetRepositoryWorkingDirectory(), Path::ToNativeSlash(modified_file->git_path)),
+                           modified_file);
 }
 
 
 void CodePurifierView::OnModifiedFileOpen()
 {
-    OnModifiedFile(
-        [](std::string file_path)
-        {
-            ShellExecute(nullptr, L"open", TC::ToWide(EscapeCommandLineArgument(std::move(file_path))).c_str(), nullptr, nullptr, SW_SHOW);
-        });
+    auto [file_path, modified_file] = GetSelectedModifiedFile();
+
+    ShellExecute(nullptr, L"open", TC::ToWide(EscapeCommandLineArgument(std::move(file_path))).c_str(), nullptr, nullptr, SW_SHOW);
 }
 
 
 void CodePurifierView::OnModifiedFileOpenContainingFolder()
 {
-    OnModifiedFile(
-        [](const std::string& file_path)
-        {
-            if( PortableFunctions::FileIsRegular(file_path) )
-            {
-                OpenContainingFolder(file_path);
-            }
+    const auto [file_path, modified_file] = GetSelectedModifiedFile();
 
-            else
-            {
-                OpenContainingFolder(PortableFunctions::PathGetDirectory(file_path));
-            }
-        });
+    if( PortableFunctions::FileIsRegular(file_path) )
+    {
+        OpenContainingFolder(file_path);
+    }
+
+    else
+    {
+        OpenContainingFolder(PortableFunctions::PathGetDirectory(file_path));
+    }
 }
 
 
 void CodePurifierView::OnModifiedFileCopyPath()
 {
-    OnModifiedFile(
-        [&](const std::string& file_path)
+    const auto [file_path, modified_file] = GetSelectedModifiedFile();
+
+    WinClipboard::PutText(this, file_path);
+}
+
+
+void CodePurifierView::OnModifiedFileDiff()
+{
+    // because this can be called via Ctrl + D, ensure that something is selected
+    if( GetFocus() != &m_modifiedFilesListCtrl ||
+        m_modifiedFilesListCtrl.GetSelectionMark() < 0 )
+    {
+        return;
+    }
+
+    const auto [file_path, modified_file] = GetSelectedModifiedFile();
+
+    try
+    {
+        // the default settings work for GIT_DELTA_ADDED or GIT_DELTA_UNTRACKED
+        std::string old_file_path;
+        const std::string* new_file_path = &file_path;
+
+        // when a file is deleted or modified, we must get the version of the from the commit's tree
+        if( modified_file->diff_flag == GIT_DELTA_DELETED ||
+            modified_file->diff_flag == GIT_DELTA_MODIFIED )
         {
-            WinClipboard::PutText(this, file_path);
-        });
+            CodePurifierDoc& cp_doc = GetDoc();
+            const std::shared_ptr<const GitCommit> clean_commit = cp_doc.GetCleanCommit();
+
+            // if not previously done so (in this session), save the file in the temporary directory;
+            // the filename will contain the short Git hash, as well as a short hash of the file path
+            // (in case multiple files with the same filename from different directories are accessed)
+            const std::string temp_filename_wihout_extension = SO::Concatenate(
+                Path::GetFilenameWithoutExtension(file_path),
+                "-", ( clean_commit != nullptr ) ? clean_commit->GetObjectId().GetHexHash().substr(0, 7) : ReturnProgrammingError(""),
+                "-", Hash::Hash(file_path, 2)
+            );
+
+            old_file_path = PortableFunctions::CreateFilePath(
+                GetTempDirectory(),
+                temp_filename_wihout_extension,
+                Path::GetExtension(file_path)
+            );
+
+            if( m_comparisonFilePathsForFileDiffs.find(old_file_path) == m_comparisonFilePathsForFileDiffs.cend() )
+            {
+                cp_doc.SaveFileFromCleanCommit(modified_file->git_path, old_file_path);
+                TemporaryFile::RegisterFileForDeletion(old_file_path);
+            }
+
+            if( modified_file->diff_flag == GIT_DELTA_DELETED )
+                new_file_path = &SO::Empty_string;
+        }
+
+        DiffTool::Launch(old_file_path, *new_file_path);
+    }
+
+    catch( const CSProException& exception )
+    {
+        ErrorMessage::Display(exception);
+    }
 }

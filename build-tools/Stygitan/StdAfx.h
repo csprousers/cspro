@@ -11,6 +11,7 @@
 #include <zUtilO/FileUtil.h>
 #include <zUtilO/Interapp.h>
 #include <zUtilO/SettingsDb.h>
+#include <zUtilO/TemporaryFile.h>
 #include <zUtilO/WindowsUtf8.h>
 #include <zUtilO/WindowsWS.h>
 #include <zUtilF/DocViewIterators.h>

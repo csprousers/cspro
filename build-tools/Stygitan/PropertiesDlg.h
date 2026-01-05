@@ -1,7 +1,6 @@
 ﻿#pragma once
 
 #include <zUtilO/ResizableDlg.h>
-#include <zUtilO/TemporaryFile.h>
 
 
 class PropertiesDlg : public ResizableDlg

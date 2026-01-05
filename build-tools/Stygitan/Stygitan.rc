@@ -120,6 +120,11 @@ BEGIN
     "W",            ID_FILE_CLOSE,          VIRTKEY, CONTROL, NOINVERT
 END
 
+IDR_CODE_PURIFIER ACCELERATORS
+BEGIN
+    "D",            ID_MODIFIED_FILE_DIFF,  VIRTKEY, CONTROL, NOINVERT
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //

@@ -1,6 +1,7 @@
 ﻿#include "StdAfx.h"
 #include "CodePurifierDoc.h"
 #include <zToolsO/Encoders.h>
+#include <zGit/GitTree.h>
 #include <regex>
 
 
@@ -612,4 +613,25 @@ void CodePurifierDoc::ResetBranchToCleanCommit(const bool create_branch_copy_bef
     m_repo.ResetBranchMixed(*m_cleanCommit);
 
     StartRefreshDataThread(RefreshStartAction::LoadRecentCommits);
+}
+
+
+void CodePurifierDoc::SaveFileFromCleanCommit(const std::string& git_path, const std::string& file_path_for_save)
+{
+    StopRefreshDataThread();
+
+    if( m_cleanCommit == nullptr )
+        throw ProgrammingErrorException();
+
+    const GitTree tree = m_cleanCommit->GetTree();
+    const GitTreeEntry tree_entry = tree.GetEntryByPath(git_path);
+
+    const GitObject object = tree_entry.GetObject();
+    ASSERT(object.GetType() == GitObjectType::Blob);
+
+    object.DoAsBlob(
+        [&](const void* const data, const size_t size)
+        {
+            FileIO::Write(file_path_for_save, data, size);
+        });
 }
