@@ -8,8 +8,9 @@
 
 namespace
 {
-    constexpr std::string_view UseDefaultEditorConfigKey_sv      = "use-default-editorconfig";
-    constexpr std::string_view CreateBranchCopyBeforeResetKey_sv = "create-branch-copy-before-reset";
+    constexpr std::string_view UseDefaultEditorConfigKey_sv            = "use-default-editorconfig";
+    constexpr std::string_view CreateBranchCopyBeforeResetKey_sv       = "create-branch-copy-before-reset";
+    constexpr std::string_view ApplyEditorConfigRulesBeforeResetKey_sv = "apply-editorconfig-rules-before-reset";
 }
 
 
@@ -33,6 +34,7 @@ BEGIN_MESSAGE_MAP(CodePurifierView, CFormView)
     ON_COMMAND(IDC_USE_CSPRO_DEFAULT_EDITORCONFIG, OnUseDefaultEditorConfigClick)
     ON_COMMAND(IDC_RESET_BRANCH_TO_CLEAN_COMMIT, OnResetBranchToCleanCommit)
     ON_COMMAND(IDC_CREATE_BRANCH_COPY_BEFORE_RESET, OnCreateBranchCopyBeforeResetClick)
+    ON_COMMAND(IDC_APPLY_EDITORCONFIG_RULES_BEFORE_RESET, OnApplyEditorConfigRulesBeforeResetClick)
     ON_NOTIFY(NM_DBLCLK, IDC_MODIFIED_FILES, OnModifiedFilesDoubleOrRightClick)
     ON_NOTIFY(NM_RCLICK, IDC_MODIFIED_FILES, OnModifiedFilesDoubleOrRightClick)
     ON_COMMAND(ID_MODIFIED_FILE_OPEN, OnModifiedFileOpen)
@@ -47,6 +49,7 @@ CodePurifierView::CodePurifierView()
         m_settingsDb("Stygitan.db", "CodePurifier"),
         m_useDefaultEditorConfig(m_settingsDb.ReadOrDefault(UseDefaultEditorConfigKey_sv, true)),
         m_createBranchCopyBeforeReset(m_settingsDb.ReadOrDefault(CreateBranchCopyBeforeResetKey_sv, true)),
+        m_applyEditorConfigRulesBeforeReset(m_settingsDb.ReadOrDefault(ApplyEditorConfigRulesBeforeResetKey_sv, true)),
         m_cleanCommitIndex(0)
 {
 }
@@ -64,6 +67,8 @@ void CodePurifierView::OnInitialUpdate()
         Path::RemoveTrailingSlash(cp_doc.GetRepositoryWorkingDirectory()),
         "</a>"
     ));
+
+    GetDlgItem(IDC_APPLY_EDITORCONFIG_RULES_BEFORE_RESET)->EnableWindow(m_createBranchCopyBeforeReset);
 
     m_commitsListCtrl.SetExtendedStyle(LVS_EX_FULLROWSELECT);
     m_commitsListCtrl.SetHeadings(L"Date,120;Message,435");
@@ -87,9 +92,10 @@ void CodePurifierView::DoDataExchange(CDataExchange* const pDX)
     __super::DoDataExchange(pDX);
 
     DDX_Control(pDX, IDC_BRANCH_COPIES, m_branchCopiesListBox);
-    DDX_Control(pDX, IDC_COMMITS, m_commitsListCtrl);
     DDX_Check(pDX, IDC_USE_CSPRO_DEFAULT_EDITORCONFIG, m_useDefaultEditorConfig);
     DDX_Check(pDX, IDC_CREATE_BRANCH_COPY_BEFORE_RESET, m_createBranchCopyBeforeReset);
+    DDX_Check(pDX, IDC_APPLY_EDITORCONFIG_RULES_BEFORE_RESET, m_applyEditorConfigRulesBeforeReset);
+    DDX_Control(pDX, IDC_COMMITS, m_commitsListCtrl);
     DDX_Control(pDX, IDC_MODIFIED_FILES, m_modifiedFilesListCtrl);
 }
 
@@ -362,7 +368,7 @@ void CodePurifierView::CreateTemporaryCommit(const bool staged_only)
 {
     try
     {
-        if( m_modifiedFiles == nullptr || m_modifiedFiles->empty() )
+        if( !HasModifiedFiles() )
             return;
 
         const CWaitCursor wait_cursor;
@@ -378,40 +384,48 @@ void CodePurifierView::CreateTemporaryCommit(const bool staged_only)
 }
 
 
+void CodePurifierView::ApplyEditorConfigRules(size_t& changed) const
+{
+    ASSERT(HasModifiedFiles() && changed == 0);
+
+    // modified from EditorConfigApplierView::OnApplyRules
+    EditorConfig::Evaluator evaluator;
+    EditorConfig::Applier editorconfig_applier;
+
+    for( const CP::ModifiedFile& modified_file : *m_modifiedFiles )
+    {
+        if( modified_file.diff_flag == GIT_DELTA_DELETED )
+            continue;
+
+        const std::string file_path = GetFilePathOnDisk(modified_file);
+        const EditorConfig::Options options = evaluator.Parse(file_path, m_useDefaultEditorConfig);
+
+        if( options.IsDefined() )
+        {
+            const BinaryBlock* const processed_file = editorconfig_applier.Process(file_path, options);
+
+            if( processed_file != nullptr )
+            {
+                FileIO::Write(file_path, *processed_file);
+                ++changed;
+            }
+        }
+    }
+}
+
+
 void CodePurifierView::OnApplyEditorConfigRules()
 {
     size_t changed = 0;
 
     try
     {
-        if( m_modifiedFiles == nullptr || m_modifiedFiles->empty() )
+        if( !HasModifiedFiles() )
             throw CSProException("There are no modified files.");
 
         const CWaitCursor wait_cursor;
 
-        // modified from EditorConfigApplierView::OnApplyRules
-        EditorConfig::Evaluator evaluator;
-        EditorConfig::Applier editorconfig_applier;
-
-        for( const CP::ModifiedFile& modified_file : *m_modifiedFiles )
-        {
-            if( modified_file.diff_flag == GIT_DELTA_DELETED )
-                continue;
-
-            const std::string file_path = GetFilePathOnDisk(modified_file);
-            const EditorConfig::Options options = evaluator.Parse(file_path, m_useDefaultEditorConfig);
-
-            if( options.IsDefined() )
-            {
-                const BinaryBlock* const processed_file = editorconfig_applier.Process(file_path, options);
-
-                if( processed_file != nullptr )
-                {
-                    FileIO::Write(file_path, *processed_file);
-                    ++changed;
-                }
-            }
-        }
+        ApplyEditorConfigRules(changed);
 
         AfxMessageBox(FormatText("%d file%s modified.", static_cast<int>(changed), PluralizeWord(changed)));
     }
@@ -442,7 +456,26 @@ void CodePurifierView::OnResetBranchToCleanCommit()
     try
     {
         CodePurifierDoc& cp_doc = GetDoc();
-        cp_doc.ResetBranchToCleanCommit(m_createBranchCopyBeforeReset);
+
+        if( cp_doc.GetCleanCommit() == nullptr )
+            throw CSProException("There is no clean commit.");
+
+        if( m_createBranchCopyBeforeReset )
+        {
+            if( m_applyEditorConfigRulesBeforeReset && HasModifiedFiles() )
+            {
+                // apply the rules and then commit the files if there were any changes
+                size_t changed = 0;
+                ApplyEditorConfigRules(changed);
+
+                if( changed != 0 )
+                    cp_doc.CreateTemporaryCommit(false);
+            }
+
+            cp_doc.CreateBranchCopy();
+        }
+
+        cp_doc.ResetBranchToCleanCommit();
     }
 
     catch( const CSProException& exception )
@@ -457,6 +490,16 @@ void CodePurifierView::OnCreateBranchCopyBeforeResetClick()
     UpdateData(TRUE);
 
     m_settingsDb.Write(CreateBranchCopyBeforeResetKey_sv, m_createBranchCopyBeforeReset);
+
+    GetDlgItem(IDC_APPLY_EDITORCONFIG_RULES_BEFORE_RESET)->EnableWindow(m_createBranchCopyBeforeReset);
+}
+
+
+void CodePurifierView::OnApplyEditorConfigRulesBeforeResetClick()
+{
+    UpdateData(TRUE);
+
+    m_settingsDb.Write(ApplyEditorConfigRulesBeforeResetKey_sv, m_applyEditorConfigRulesBeforeReset);
 }
 
 
@@ -507,7 +550,7 @@ void CodePurifierView::OnModifiedFilesDoubleOrRightClick(NMHDR* const pNMHDR, LR
 }
 
 
-std::string CodePurifierView::GetFilePathOnDisk(const CP::ModifiedFile& modified_file)
+std::string CodePurifierView::GetFilePathOnDisk(const CP::ModifiedFile& modified_file) const
 {
     const CodePurifierDoc& cp_doc = GetDoc();
 
@@ -516,7 +559,7 @@ std::string CodePurifierView::GetFilePathOnDisk(const CP::ModifiedFile& modified
 }
 
 
-std::tuple<std::string, const CP::ModifiedFile*> CodePurifierView::GetSelectedModifiedFile()
+std::tuple<std::string, const CP::ModifiedFile*> CodePurifierView::GetSelectedModifiedFile() const
 {
     const size_t index = static_cast<size_t>(m_modifiedFilesListCtrl.GetSelectionMark());
     ASSERT(m_modifiedFiles != nullptr && index < m_modifiedFiles->size());

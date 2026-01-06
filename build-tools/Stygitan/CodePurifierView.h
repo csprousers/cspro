@@ -44,6 +44,7 @@ protected:
 
     void OnResetBranchToCleanCommit();
     void OnCreateBranchCopyBeforeResetClick();
+    void OnApplyEditorConfigRulesBeforeResetClick();
 
     void OnModifiedFilesDoubleOrRightClick(NMHDR* pNMHDR, LRESULT* pResult);
     void OnModifiedFileOpen();
@@ -52,13 +53,18 @@ protected:
     void OnModifiedFileDiff();
 
 private:
-    CodePurifierDoc& GetDoc() { return *assert_cast<CodePurifierDoc*>(GetDocument()); }
+    const CodePurifierDoc& GetDoc() const { return *assert_cast<const CodePurifierDoc*>(GetDocument()); }
+    CodePurifierDoc& GetDoc()             { return *assert_cast<CodePurifierDoc*>(GetDocument()); }
+
+    bool HasModifiedFiles() const { return ( m_modifiedFiles != nullptr && !m_modifiedFiles->empty() ); }
 
     void CreateTemporaryCommit(bool staged_only);
 
-    std::string GetFilePathOnDisk(const CP::ModifiedFile& modified_file);
+    void ApplyEditorConfigRules(size_t& changed) const;
 
-    std::tuple<std::string, const CP::ModifiedFile*> GetSelectedModifiedFile();
+    std::string GetFilePathOnDisk(const CP::ModifiedFile& modified_file) const;
+
+    std::tuple<std::string, const CP::ModifiedFile*> GetSelectedModifiedFile() const;
 
 private:
     SettingsDb m_settingsDb;
@@ -66,6 +72,7 @@ private:
     CListBox m_branchCopiesListBox;
     bool m_useDefaultEditorConfig;
     bool m_createBranchCopyBeforeReset;
+    bool m_applyEditorConfigRulesBeforeReset;
     CSortListCtrl m_commitsListCtrl;
     CSortListCtrl m_modifiedFilesListCtrl;
 

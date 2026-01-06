@@ -162,6 +162,8 @@ BEGIN
     PUSHBUTTON      "Reset Branch to Clean Commit",IDC_RESET_BRANCH_TO_CLEAN_COMMIT,50,318,121,14
     CONTROL         "Create branch copy before reset",IDC_CREATE_BRANCH_COPY_BEFORE_RESET,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,51,338,121,10
+    CONTROL         "Apply EditorConfig rules as temporary commit before reset",IDC_APPLY_EDITORCONFIG_RULES_BEFORE_RESET,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,10,352,203,10
     GROUPBOX        "Commits",IDC_STATIC,225,7,390,148
     CONTROL         "",IDC_COMMITS,"SysListView32",LVS_REPORT | LVS_SINGLESEL | LVS_ALIGNLEFT | WS_BORDER | WS_TABSTOP,233,19,375,128
     GROUPBOX        "Modified Files",IDC_STATIC,225,162,390,208

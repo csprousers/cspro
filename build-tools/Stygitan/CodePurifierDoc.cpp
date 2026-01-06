@@ -645,15 +645,12 @@ void CodePurifierDoc::SetCleanCommitOverride(const GitCommit& commit)
 }
 
 
-void CodePurifierDoc::ResetBranchToCleanCommit(const bool create_branch_copy_before_reset)
+void CodePurifierDoc::ResetBranchToCleanCommit()
 {
     StopRefreshDataThread(ThreadStopType::Wait);
 
     if( m_cleanCommit == nullptr )
-        throw CSProException("There is no clean commit.");
-
-    if( create_branch_copy_before_reset )
-        CreateBranchCopy();
+        throw ProgrammingErrorException();
 
     m_repo.ResetBranchMixed(*m_cleanCommit);
 

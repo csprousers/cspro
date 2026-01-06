@@ -51,9 +51,8 @@ public:
     // Sets the clean commit override.
     void SetCleanCommitOverride(const GitCommit& commit);
 
-    // Resets the current commit to the clean commit, optionally creating a
-    // branch copy prior to the operation.
-    void ResetBranchToCleanCommit(bool create_branch_copy_before_reset);
+    // Resets the current commit to the clean commit.
+    void ResetBranchToCleanCommit();
 
     // Loads the version of a file from the clean commit's tree and saves it the disk.
     void SaveFileFromCleanCommit(const std::string& git_path, const std::string& file_path_for_save);
