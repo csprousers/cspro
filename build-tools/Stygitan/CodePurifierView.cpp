@@ -28,6 +28,7 @@ BEGIN_MESSAGE_MAP(CodePurifierView, CFormView)
     ON_NOTIFY(NM_RCLICK, IDC_COMMITS, OnCommitsRightClick)
     ON_COMMAND(ID_SET_CLEAN_COMMIT, OnSetCleanCommit)
     ON_COMMAND(IDC_CREATE_TEMPORARY_COMMIT_STAGED, OnCreateTemporaryCommitStaged)
+    ON_COMMAND(IDC_CREATE_TEMPORARY_COMMIT_ALL, OnCreateTemporaryCommitAll)
     ON_COMMAND(IDC_APPLY_EDITORCONFIG_RULES, OnApplyEditorConfigRules)
     ON_COMMAND(IDC_USE_CSPRO_DEFAULT_EDITORCONFIG, OnUseDefaultEditorConfigClick)
     ON_COMMAND(IDC_RESET_BRANCH_TO_CLEAN_COMMIT, OnResetBranchToCleanCommit)
@@ -359,16 +360,15 @@ void CodePurifierView::OnSetCleanCommit()
 
 void CodePurifierView::CreateTemporaryCommit(const bool staged_only)
 {
-    if( m_modifiedFiles == nullptr || m_modifiedFiles->empty() )
-        return;
-
     try
     {
-        CodePurifierDoc& cp_doc = GetDoc();
-        cp_doc.CreateTemporaryCommitFromStagedFiles();
-
-        if( staged_only ) // GIT_TODO
+        if( m_modifiedFiles == nullptr || m_modifiedFiles->empty() )
             return;
+
+        const CWaitCursor wait_cursor;
+
+        CodePurifierDoc& cp_doc = GetDoc();
+        cp_doc.CreateTemporaryCommit(staged_only);
     }
 
     catch( const CSProException& exception )

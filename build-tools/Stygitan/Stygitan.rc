@@ -155,6 +155,7 @@ FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
     GROUPBOX        "Actions",IDC_STATIC,7,211,208,159
     PUSHBUTTON      "Create Temporary Commit (staged only)",IDC_CREATE_TEMPORARY_COMMIT_STAGED,29,224,164,14
+    PUSHBUTTON      "Create Temporary Commit (including unstaged)",IDC_CREATE_TEMPORARY_COMMIT_ALL,29,244,164,14
     PUSHBUTTON      "Apply EditorConfig Rules to Modified Files",IDC_APPLY_EDITORCONFIG_RULES,29,273,164,14
     CONTROL         "Use CSPro's EditorConfig when no others are present",IDC_USE_CSPRO_DEFAULT_EDITORCONFIG,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,18,292,187,10

@@ -122,7 +122,7 @@ public:
     void ForeachDifferenceInWorkingDirectory(const GitCommit& commit, const std::function<bool(std::string path, unsigned int diff_flag)>& callback_function) const;
 
     // Returns the number of deltas between two trees.
-    size_t GetDifferenceDeltasCount(GitTree& tree1, GitTree& tree2) const;
+    size_t GetDifferenceDeltasCount(GitTree& old_tree, GitTree& new_tree) const;
 
 
     // --------------------------------------------------------------------------

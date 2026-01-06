@@ -23,6 +23,18 @@ GitBranch::~GitBranch() noexcept
 }
 
 
+GitBranch& GitBranch::operator=(GitBranch&& rhs) noexcept
+{
+    // swapping the branch references ensures that this object's
+    // branch reference will be deleted in rhs' destructor
+    std::swap(m_branchRef, rhs.m_branchRef);
+
+    m_name = std::move(rhs.m_name);
+
+    return *this;
+}
+
+
 bool GitBranch::operator==(const GitBranch& rhs) const noexcept
 {
     const git_oid* oid;

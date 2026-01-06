@@ -59,7 +59,10 @@ public:
     void SaveFileFromCleanCommit(const std::string& git_path, const std::string& file_path_for_save);
 
     // Creates a temporary commit from files that are currently staged.
-    void CreateTemporaryCommitFromStagedFiles();
+    // If staged_only is false, after creating the first temporary commit,
+    // all new and modified files in the working directory will be staged.
+    // and then another temporary commit will be created.
+    void CreateTemporaryCommit(const bool staged_only);
 
 protected:
     void SetTitle(LPCTSTR lpszTitle) override;
@@ -74,7 +77,7 @@ private:
                                     IdentifyModifiedFiles };
 
     void StartRefreshDataThread(RefreshStartAction action,
-                                std::function<void(const CP::RefreshDataChanges& changes)> post_refresh_action = { });
+                                std::function<std::optional<RefreshStartAction>(const CP::RefreshDataChanges& changes)> post_refresh_action = { });
 
     enum class ThreadStopType { Cancel, Wait };
     void StopRefreshDataThread(ThreadStopType thread_stop_type);
@@ -106,7 +109,7 @@ private:
     bool m_directoryChangesMadeInGitDirectory;
     bool m_directoryChangesMadeInWorkingDirectory; // since the last call to IdentifyModifiedFiles
 
-    std::shared_ptr<const CP::BranchDetails> m_branchDetails;
+    std::shared_ptr<CP::BranchDetails> m_branchDetails;
     std::shared_ptr<std::map<std::string, GitBranch>> m_branchCopies;
     std::set<std::string> m_createdBranchCopyNames;
 

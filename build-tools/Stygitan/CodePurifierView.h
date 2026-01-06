@@ -37,6 +37,7 @@ protected:
     void OnSetCleanCommit();
 
     void OnCreateTemporaryCommitStaged() { CreateTemporaryCommit(true); }
+    void OnCreateTemporaryCommitAll()    { CreateTemporaryCommit(false); }
 
     void OnApplyEditorConfigRules();
     void OnUseDefaultEditorConfigClick();

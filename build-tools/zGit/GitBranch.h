@@ -21,6 +21,8 @@ public:
     GitBranch(GitBranch&& rhs) noexcept;
     ~GitBranch() noexcept;
 
+    GitBranch& operator=(GitBranch&& rhs) noexcept;
+
     // Compares the branch's target IDs.
     bool operator==(const GitBranch& rhs) const noexcept;
     bool operator!=(const GitBranch& rhs) const noexcept { return !operator==(rhs); }

@@ -112,7 +112,7 @@ void CodePurifierDoc::RefreshWorkingDirectory()
 
 
 void CodePurifierDoc::StartRefreshDataThread(const RefreshStartAction action,
-                                             std::function<void(const CP::RefreshDataChanges& changes)> post_refresh_action/* = { }*/)
+                                             std::function<std::optional<RefreshStartAction>(const CP::RefreshDataChanges& changes)> post_refresh_action/* = { }*/)
 {
     if( m_refreshDataThread.has_value() )
     {
@@ -127,10 +127,17 @@ void CodePurifierDoc::StartRefreshDataThread(const RefreshStartAction action,
         {
             try
             {
-                const CP::RefreshDataChanges changes = RefreshData(action);
+                std::optional<RefreshStartAction> next_action = action;
 
-                if( post_refresh_action_ )
-                    post_refresh_action_(changes);
+                do
+                {
+                    const CP::RefreshDataChanges changes = RefreshData(*next_action);
+                    next_action.reset();
+
+                    if( post_refresh_action_ )
+                        next_action = post_refresh_action_(changes);
+
+                } while( next_action.has_value() );
             }
 
             catch( const CSProException& exception )
@@ -632,6 +639,8 @@ void CodePurifierDoc::SetCleanCommitOverride(const GitCommit& commit)
             {
                 m_wndForGitUpdates->PostMessage(UWM::Stygitan::UpdateUI, CP::Update::RecentCommits);
             }
+
+            return std::nullopt;
         });
 }
 
@@ -673,32 +682,65 @@ void CodePurifierDoc::SaveFileFromCleanCommit(const std::string& git_path, const
 }
 
 
-void CodePurifierDoc::CreateTemporaryCommitFromStagedFiles()
+void CodePurifierDoc::CreateTemporaryCommit(const bool staged_only)
 {
     ASSERT(m_branchDetails != nullptr);
 
     StopRefreshDataThread(ThreadStopType::Wait);
 
-    // check whether there are actually differences between the current commit and the index
-    const GitCommit current_commit = m_repo.LookupCommit(m_branchDetails->current_branch);
-    GitTree commit_tree = current_commit.GetTree();
-
     GitIndex index = m_repo.GetUpdatedIndex();
-    GitTree index_tree = m_repo.WriteTree(index);
 
-    const size_t diff_count = m_repo.GetDifferenceDeltasCount(commit_tree, index_tree);
+    auto commit_staged = [&](const char* const source)
+    {
+        // check whether there are actually differences between the index and the current commit
+        GitTree index_tree = m_repo.WriteTree(index);
 
-    if( diff_count == 0 )
-        return;
+        const GitCommit current_commit = m_repo.LookupCommit(m_branchDetails->current_branch);
+        GitTree commit_tree = current_commit.GetTree();
 
-    // create the commit
-    const GitSignature author_and_committer = GitSignature::Create("Code Purifier", "CP@Stygitan");
+        const size_t diff_count = m_repo.GetDifferenceDeltasCount(index_tree, commit_tree);
 
-    const std::string message = FormatText("CP [%s] temporary commit - %d file%s changed",
-                                           m_branchDetails->current_branch.GetName().c_str(),
-                                           static_cast<int>(diff_count), PluralizeWord(diff_count));
+        if( diff_count == 0 )
+            return;
 
-    m_repo.CreateCommit(author_and_committer, message, index_tree, current_commit);
+        // create the commit
+        const GitSignature author_and_committer = GitSignature::Create("Code Purifier", "CP@Stygitan");
 
-    StartRefreshDataThread(RefreshStartAction::LoadRecentCommits);
+        const std::string message = FormatText(
+            "CP [%s] temporary commit - %d %s file%s",
+            m_branchDetails->current_branch.GetName().c_str(),
+            static_cast<int>(diff_count),
+            source,
+            PluralizeWord(diff_count)
+        );
+
+        m_repo.CreateCommit(author_and_committer, message, index_tree, current_commit);
+
+        // update the branch (since the reference target has changed)
+        m_branchDetails->current_branch = m_repo.GetCurrentBranch();
+    };
+
+    commit_staged("staged");
+
+    if( !staged_only )
+    {
+        index.StageAllFilesInWorkingDirectory();
+        commit_staged("working directory");
+    }
+
+    StartRefreshDataThread(RefreshStartAction::LoadRecentCommits,
+        [&, identify_modified_files = true](const CP::RefreshDataChanges& changes) mutable -> std::optional<RefreshStartAction>
+        {
+            // loading the commits does not necessarily mean that the modified files are updated,
+            // but the status of files may change (e.g., Untracked -> Added), so refresh the files
+            if( identify_modified_files &&
+                m_wndForGitUpdates != nullptr &&
+                !changes.modified_files )
+            {
+                identify_modified_files = false;
+                return RefreshStartAction::IdentifyModifiedFiles;
+            }
+
+            return std::nullopt;
+        });
 }

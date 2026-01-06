@@ -330,14 +330,14 @@ void GitRepository::ForeachDifferenceInWorkingDirectory(const GitCommit& commit,
 }
 
 
-size_t GitRepository::GetDifferenceDeltasCount(GitTree& tree1, GitTree& tree2) const
+size_t GitRepository::GetDifferenceDeltasCount(GitTree& old_tree, GitTree& new_tree) const
 {
     EnsureRepositoryIsOpen();
 
     git_diff_options diff_opts = GetDiffOptions();
     git_diff* diff;
 
-    if( git_diff_tree_to_tree(&diff, m_repo, tree1, tree2, &diff_opts) )
+    if( git_diff_tree_to_tree(&diff, m_repo, old_tree, new_tree, &diff_opts) )
         ThrowGitException();
 
     const size_t count = git_diff_num_deltas(diff);

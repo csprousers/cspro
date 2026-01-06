@@ -31,6 +31,10 @@ public:
     // An exception is thrown if the entry cannot be found.
     std::string GetPathByIndex(size_t index) const;
 
+    // Adds all non-ignored files (modified and new) in the working directory.
+    // The index is updated and then written to the disk.
+    void StageAllFilesInWorkingDirectory();
+
 private:
     git_index* m_index;
 };

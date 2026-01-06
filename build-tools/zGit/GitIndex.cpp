@@ -37,3 +37,15 @@ std::string GitIndex::GetPathByIndex(const size_t index) const
 
     return index_entry->path;
 }
+
+
+void GitIndex::StageAllFilesInWorkingDirectory()
+{
+    const git_strarray pathspec = { nullptr, 0 };
+
+    if( git_index_add_all(m_index, &pathspec, GIT_INDEX_ADD_DEFAULT, nullptr, nullptr) != 0 ||
+        git_index_write(m_index) != 0 )
+    {
+        ThrowGitException();
+    }
+}
