@@ -178,6 +178,34 @@ GitIndex GitRepository::GetIndex() const
 }
 
 
+GitIndex GitRepository::GetUpdatedIndex() const
+{
+    GitIndex index = GetIndex();
+
+    if( git_index_read(index, false) != 0 )
+        ThrowGitException();
+
+    return index;
+}
+
+
+GitTree GitRepository::WriteTree(GitIndex& index) const
+{
+    EnsureRepositoryIsOpen();
+
+    git_oid tree_oid;
+    git_tree* tree;
+
+    if( git_index_write_tree(&tree_oid, index) != 0 ||
+        git_tree_lookup(&tree, m_repo, &tree_oid) != 0 )
+    {
+        ThrowGitException();
+    }
+
+    return GitTree(*tree);
+}
+
+
 unsigned int GitRepository::GetStatusByPath(const cs::string_sz path) const
 {
     EnsureRepositoryIsOpen();
@@ -243,18 +271,26 @@ void GitRepository::ForeachStatusInWorkingDirectory(const std::function<void(std
 }
 
 
+auto GitRepository::GetDiffOptions()
+{
+    git_diff_options diff_opts = GIT_DIFF_OPTIONS_INIT;
+
+    diff_opts.flags |= GIT_DIFF_INCLUDE_UNTRACKED |
+                       GIT_DIFF_RECURSE_UNTRACKED_DIRS |
+                       GIT_DIFF_SKIP_BINARY_CHECK |
+                       GIT_DIFF_FORCE_BINARY;
+
+    return diff_opts;
+}
+
+
 void GitRepository::ForeachDifferenceInWorkingDirectory(const GitCommit& commit, const std::function<bool(std::string path, unsigned int diff_flag)>& callback_function) const
 {
     EnsureRepositoryIsOpen();
 
     GitTree tree = commit.GetTree();
 
-    git_diff_options diff_opts = GIT_DIFF_OPTIONS_INIT;
-    diff_opts.flags |= GIT_DIFF_INCLUDE_UNTRACKED |
-                       GIT_DIFF_RECURSE_UNTRACKED_DIRS |
-                       GIT_DIFF_SKIP_BINARY_CHECK |
-                       GIT_DIFF_FORCE_BINARY;
-
+    git_diff_options diff_opts = GetDiffOptions();
     git_diff* diff_tree_to_index;
 
     if( git_diff_tree_to_index(&diff_tree_to_index, m_repo, tree, nullptr, &diff_opts) != 0 )
@@ -291,6 +327,24 @@ void GitRepository::ForeachDifferenceInWorkingDirectory(const GitCommit& commit,
 
     if( !merge_successful )
         ThrowGitException();
+}
+
+
+size_t GitRepository::GetDifferenceDeltasCount(GitTree& tree1, GitTree& tree2) const
+{
+    EnsureRepositoryIsOpen();
+
+    git_diff_options diff_opts = GetDiffOptions();
+    git_diff* diff;
+
+    if( git_diff_tree_to_tree(&diff, m_repo, tree1, tree2, &diff_opts) )
+        ThrowGitException();
+
+    const size_t count = git_diff_num_deltas(diff);
+
+    git_diff_free(diff);
+
+    return count;
 }
 
 
@@ -357,6 +411,12 @@ GitCommit GitRepository::LookupCommit(const cs::string_sz hex_hash) const
 }
 
 
+GitCommit GitRepository::LookupCommit(const GitBranch& branch) const
+{
+    return LookupCommit(branch.GetTarget());
+}
+
+
 GitCommit GitRepository::LookupCommit(const GitTag& tag) const
 {
     const GitObject object = LookupObject(tag);
@@ -394,6 +454,48 @@ bool GitRepository::IsCommitDescendantOf(const GitCommit& commit, const GitCommi
         case 1:  return true;
         default: ThrowGitException();
     }
+}
+
+
+GitObjectId GitRepository::CreateCommit(const GitSignature& author, const GitSignature& committer,
+                                        const cs::string_sz message, const GitTree& tree,
+                                        const GitCommit& parent_commit1, const GitCommit* const parent_commit2/* = nullptr*/)
+{
+    EnsureRepositoryIsOpen();
+
+    const git_commit* parent_commits[2] =
+    {
+        static_cast<const git_commit*>(parent_commit1),
+        ( parent_commit2 != nullptr ) ? static_cast<const git_commit*>(parent_commit1) : nullptr
+    };
+
+    git_oid commit_oid;
+
+    const int result = git_commit_create(
+        &commit_oid,
+        m_repo,
+        "HEAD",
+        author,
+        committer,
+        nullptr, // UTF-8
+        message.c_str(),
+        tree,
+        ( parent_commit2 != nullptr ) ? 2 : 1,
+        parent_commits
+    );
+
+    if( result != 0 )
+        ThrowGitException();
+
+    return GitObjectId(commit_oid);
+}
+
+
+GitObjectId GitRepository::CreateCommit(const GitSignature& author_and_committer,
+                                        const cs::string_sz message, const GitTree& tree,
+                                        const GitCommit& parent_commit1, const GitCommit* const parent_commit2/* = nullptr*/)
+{
+    return CreateCommit(author_and_committer, author_and_committer, message, tree, parent_commit1, parent_commit2);
 }
 
 

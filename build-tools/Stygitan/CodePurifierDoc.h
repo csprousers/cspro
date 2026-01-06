@@ -58,6 +58,9 @@ public:
     // Loads the version of a file from the clean commit's tree and saves it the disk.
     void SaveFileFromCleanCommit(const std::string& git_path, const std::string& file_path_for_save);
 
+    // Creates a temporary commit from files that are currently staged.
+    void CreateTemporaryCommitFromStagedFiles();
+
 protected:
     void SetTitle(LPCTSTR lpszTitle) override;
     void SetPathName(LPCTSTR lpszPathName, BOOL bAddToMRU = TRUE) override;

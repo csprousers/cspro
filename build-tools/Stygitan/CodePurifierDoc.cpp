@@ -1,6 +1,7 @@
 ﻿#include "StdAfx.h"
 #include "CodePurifierDoc.h"
 #include <zToolsO/Encoders.h>
+#include <zGit/GitIndex.h>
 #include <zGit/GitTree.h>
 #include <regex>
 
@@ -395,7 +396,7 @@ bool CodePurifierDoc::LocateCleanCommit()
     // - the "oldest" commit with two parents (likely a merged pull request)
     // - the "oldest" commit
 
-    const GitCommit branch_commit = m_repo.LookupCommit(m_branchDetails->current_branch.GetTarget());
+    const GitCommit branch_commit = m_repo.LookupCommit(m_branchDetails->current_branch);
     std::optional<GitCommit> clean_commit;
     bool found_valid_clean_commit = false;
 
@@ -557,7 +558,7 @@ void CodePurifierDoc::CreateBranchCopy()
 
     ASSERT(m_branchDetails != nullptr);
 
-    const GitCommit commit = m_repo.LookupCommit(m_branchDetails->current_branch.GetTarget());
+    const GitCommit commit = m_repo.LookupCommit(m_branchDetails->current_branch);
 
     // the branch name will be: [commit date]-[commit time]-CP-[branch name]
     std::string branch_name = SO::Concatenate(
@@ -669,4 +670,35 @@ void CodePurifierDoc::SaveFileFromCleanCommit(const std::string& git_path, const
         {
             FileIO::Write(file_path_for_save, data, size);
         });
+}
+
+
+void CodePurifierDoc::CreateTemporaryCommitFromStagedFiles()
+{
+    ASSERT(m_branchDetails != nullptr);
+
+    StopRefreshDataThread(ThreadStopType::Wait);
+
+    // check whether there are actually differences between the current commit and the index
+    const GitCommit current_commit = m_repo.LookupCommit(m_branchDetails->current_branch);
+    GitTree commit_tree = current_commit.GetTree();
+
+    GitIndex index = m_repo.GetUpdatedIndex();
+    GitTree index_tree = m_repo.WriteTree(index);
+
+    const size_t diff_count = m_repo.GetDifferenceDeltasCount(commit_tree, index_tree);
+
+    if( diff_count == 0 )
+        return;
+
+    // create the commit
+    const GitSignature author_and_committer = GitSignature::Create("Code Purifier", "CP@Stygitan");
+
+    const std::string message = FormatText("CP [%s] temporary commit - %d file%s changed",
+                                           m_branchDetails->current_branch.GetName().c_str(),
+                                           static_cast<int>(diff_count), PluralizeWord(diff_count));
+
+    m_repo.CreateCommit(author_and_committer, message, index_tree, current_commit);
+
+    StartRefreshDataThread(RefreshStartAction::LoadRecentCommits);
 }

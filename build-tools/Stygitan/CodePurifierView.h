@@ -36,6 +36,8 @@ protected:
     void OnCommitsRightClick(NMHDR* pNMHDR, LRESULT* pResult);
     void OnSetCleanCommit();
 
+    void OnCreateTemporaryCommitStaged() { CreateTemporaryCommit(true); }
+
     void OnApplyEditorConfigRules();
     void OnUseDefaultEditorConfigClick();
 
@@ -50,6 +52,8 @@ protected:
 
 private:
     CodePurifierDoc& GetDoc() { return *assert_cast<CodePurifierDoc*>(GetDocument()); }
+
+    void CreateTemporaryCommit(bool staged_only);
 
     std::string GetFilePathOnDisk(const CP::ModifiedFile& modified_file);
 

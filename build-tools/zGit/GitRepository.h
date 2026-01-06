@@ -10,6 +10,8 @@ class GitCommit;
 class GitIndex;
 enum class GitObjectType;
 class GitTag;
+class GitTree;
+class GitSignature;
 
 
 // --------------------------------------------------------------------------
@@ -83,8 +85,14 @@ public:
     // Indices + Statuses + Differences
     // --------------------------------------------------------------------------
 
-    // Returns the repository's index file.
+    // Returns the repository's index file. The index may be a cached version.
     GitIndex GetIndex() const;
+
+    // Returns the repository's index file, refreshing it rather than using a cached version.
+    GitIndex GetUpdatedIndex() const;
+
+    // Writes the index as a tree, throwing an exception on error.
+    GitTree WriteTree(GitIndex& index) const;
 
     // Returns the status of a file by path.
     // An exception is thrown if the entry cannot be found.
@@ -113,6 +121,9 @@ public:
     // Difference codes are in diff.h.
     void ForeachDifferenceInWorkingDirectory(const GitCommit& commit, const std::function<bool(std::string path, unsigned int diff_flag)>& callback_function) const;
 
+    // Returns the number of deltas between two trees.
+    size_t GetDifferenceDeltasCount(GitTree& tree1, GitTree& tree2) const;
+
 
     // --------------------------------------------------------------------------
     // Objects
@@ -133,12 +144,24 @@ public:
     GitCommit LookupCommit(const GitObjectId& oid) const;
     GitCommit LookupCommit(cs::string_sz hex_hash) const;
 
+    // Returns the commit associated with the branch's target, throwing an exception on error.
+    GitCommit LookupCommit(const GitBranch& branch) const;
+
     // Returns the commit associated with the tag, throwing an exception on error.
     GitCommit LookupCommit(const GitTag& tag) const;
 
     // Returns true if the commit "is the descendant of another commit."
     bool IsCommitDescendantOf(const GitCommit& commit, const GitCommit& ancestor) const;
 
+    // Creates a commit, updating the HEAD of the current branch, making it point to
+    // this commit. An exception is thrown on error.
+    GitObjectId CreateCommit(const GitSignature& author, const GitSignature& committer,
+                             cs::string_sz message, const GitTree& tree,
+                             const GitCommit& parent_commit1, const GitCommit* parent_commit2 = nullptr);
+
+    GitObjectId CreateCommit(const GitSignature& author_and_committer,
+                             cs::string_sz message, const GitTree& tree,
+                             const GitCommit& parent_commit1, const GitCommit* parent_commit2 = nullptr);
 
     // --------------------------------------------------------------------------
     // Tags
@@ -172,6 +195,8 @@ private:
     void EnsureRepositoryIsOpen() const;
 
     void Open(std::string repo_directory, bool create, bool bare);
+
+    static auto GetDiffOptions();
 
     template<typename GitObjectT>
     GitObject LookupObject(const GitObjectId& oid, GitObjectT type) const;
