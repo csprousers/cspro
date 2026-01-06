@@ -7,7 +7,7 @@
 #ifdef WIN_DESKTOP
 #include "CurlFtpConnection.h"
 #include "LoginDlg.h"
-#include <zUtilF/UIThreadRunner.h>
+#include <zUtilO/UIThreadRunner.h>
 #else
 #include "FtpConnection.h"
 #include "UsernamePassword.h"

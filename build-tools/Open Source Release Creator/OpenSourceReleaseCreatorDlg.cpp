@@ -49,22 +49,13 @@ BOOL OpenSourceReleaseCreatorDlg::OnInitDialog()
 
     try
     {
-        m_creator = std::make_unique<Creator>();
+        m_creator = std::make_unique<Creator>(m_settingsDb);
 
         // populate the tags
         m_tags = m_creator->GetTags();
 
-        for( const Git::Tag& tag : m_tags )
-        {
-            constexpr std::string_view TagPrefix_sv = "refs/tags/";
-
-            std::string_view tag_name_sv = tag.name;
-
-            if( SO::StartsWith(tag_name_sv, TagPrefix_sv) )
-                tag_name_sv.remove_prefix(TagPrefix_sv.length());
-
-            m_tagsComboBox.AddString(TC::ToWide(tag_name_sv).c_str());
-        }
+        for( const GitTag& tag : m_tags )
+            m_tagsComboBox.AddString(TC::ToWide(tag.GetDisplayName()).c_str());
 
         m_tagsComboBox.AddString(L"Custom");
         m_tagsComboBox.SetCurSel(m_tagsComboBox.GetCount() - 1);
@@ -98,7 +89,7 @@ void OpenSourceReleaseCreatorDlg::OnTagChange()
 
     if( tag_index < m_tags.size() )
     {
-        m_commit = m_tags[tag_index].id;
+        m_commit = m_tags[tag_index].GetHexHash();
         UpdateData(FALSE);
         GetDlgItem(IDC_COMMIT)->EnableWindow(FALSE);
     }
@@ -151,12 +142,12 @@ void OpenSourceReleaseCreatorDlg::CreateValidateWorker(const bool create)
         m_creator->Initialize(m_loggingListBox, m_outputDirectory);
 
         create ? m_creator->CreateRelease(m_commit) :
-                 m_creator->ValidateRelease();
+                 m_creator->ValidateRelease(m_commit);
     }
 
     catch( const CSProException& exception )
     {
-        m_loggingListBox.AddText(FormatText("\n\nError: %s", exception.what()));
+        m_loggingListBox.AddText("\n\nError: %s", exception.what());
         ErrorMessage::PostMessageForDisplay(exception);
     }
 

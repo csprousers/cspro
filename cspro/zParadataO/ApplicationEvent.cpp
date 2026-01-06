@@ -168,7 +168,7 @@ bool ApplicationEvent::PreSave(Log& log) const
             diagnostics_info_id,
             device_info_id,
             m_startEventData->device_boot_time,
-            GetUtcOffset(),
+            DateTime::GetUtcOffsetNow(),
             GetLocaleLanguage().c_str(),
             CreateUuid().c_str()
         );

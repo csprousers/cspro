@@ -1,0 +1,90 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\..\cspro\properties\project-configurations-build-tools.props" />
+  <Import Project="..\..\cspro\properties\project-globals.props" />
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{619BCC6B-FB82-4273-8507-25AEC1D42339}</ProjectGuid>
+    <Keyword>MFCProj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseOfMfc>Dynamic</UseOfMfc>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <Import Project="..\..\cspro\properties\project-settings.props" />
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(SolutionDir);$(CSProDir)external;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>$(CSProDir)\external\editorconfig\lib\$(PlatformTarget)\editorconfig.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <PreBuildEvent>
+      <Command>xcopy /D /Y /F /R /S /I "$(CSProDir)external\editorconfig\lib\$(PlatformTarget)\*.dll" "$(TargetDir)"</Command>
+    </PreBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="CodePurifierData.h" />
+    <ClInclude Include="CodePurifierDoc.h" />
+    <ClInclude Include="CodePurifierView.h" />
+    <ClInclude Include="DiffTool.h" />
+    <ClInclude Include="EditorConfig.h" />
+    <ClInclude Include="EditorConfigApplier.h" />
+    <ClInclude Include="EditorConfigApplierView.h" />
+    <ClInclude Include="FilteredCommitsMessageCreatorView.h" />
+    <ClInclude Include="Helpers.h" />
+    <ClInclude Include="MainFrame.h" />
+    <ClInclude Include="PropertiesDlg.h" />
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="StdAfx.h" />
+    <ClInclude Include="Stygitan.h" />
+    <ClInclude Include="ThreadRunnerFrame.h" />
+    <ClInclude Include="UWM.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="CodePurifierDoc.cpp" />
+    <ClCompile Include="CodePurifierView.cpp" />
+    <ClCompile Include="DiffTool.cpp" />
+    <ClCompile Include="EditorConfig.cpp" />
+    <ClCompile Include="EditorConfigApplier.cpp" />
+    <ClCompile Include="EditorConfigApplierView.cpp" />
+    <ClCompile Include="FilteredCommitsMessageCreatorView.cpp" />
+    <ClCompile Include="Helpers.cpp" />
+    <ClCompile Include="MainFrame.cpp" />
+    <ClCompile Include="PropertiesDlg.cpp" />
+    <ClCompile Include="StdAfx.cpp">
+      <PrecompiledHeader>Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Stygitan.cpp" />
+    <ClCompile Include="ThreadRunnerFrame.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Stygitan.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="res\Stygitan.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\cspro\zToolsO\zToolsO.vcxproj">
+      <Project>{fb0e28ec-927d-41d0-996c-01c21a7a346b}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\cspro\zUtilF\zUtilF.vcxproj">
+      <Project>{40427473-971c-41ee-adeb-23795522e112}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\cspro\zUtilO\zUtilO.vcxproj">
+      <Project>{9b29cb57-8263-4e12-8908-cc9641fdf0dc}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zGit\zGit.vcxproj">
+      <Project>{01396fa2-bca6-4f57-9346-ec468db7e0a6}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\.editorconfig" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+</Project>

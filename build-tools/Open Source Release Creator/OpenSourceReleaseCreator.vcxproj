@@ -4,6 +4,7 @@
   <Import Project="..\..\cspro\properties\project-globals.props" />
   <PropertyGroup Label="Globals">
     <ProjectGuid>{6DC25DFA-F0E9-4E2F-88C2-EDB6FE911C67}</ProjectGuid>
+    <ProjectName>Open Source Release Creator</ProjectName>
     <Keyword>MFCProj</Keyword>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -14,30 +15,22 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <Import Project="..\..\cspro\properties\project-settings.props" />
   <ItemDefinitionGroup>
-    <Link>
-      <AdditionalDependencies>$(CSProDir)\external\libgit2\lib\$(PlatformTarget)\git2.lib</AdditionalDependencies>
-    </Link>
-    <PreBuildEvent>
-      <Command>xcopy /D /Y /F /R /S /I "$(CSProDir)external\libgit2\lib\$(PlatformTarget)\*.dll" "$(TargetDir)"</Command>
-    </PreBuildEvent>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(SolutionDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\Overrides\replacement-ApiKeys.h">
-      <ExcludedFromBuild>true</ExcludedFromBuild>
-    </ClInclude>
     <ClInclude Include="Creator.h" />
-    <ClInclude Include="GitBase.h" />
-    <ClInclude Include="GitIgnoreEvaluator.h" />
-    <ClInclude Include="GitObjects.h" />
     <ClInclude Include="OpenSourceReleaseCreator.h" />
     <ClInclude Include="OpenSourceReleaseCreatorDlg.h" />
+    <ClInclude Include="Overrides\replacement-ApiKeys.h">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="resource.h" />
     <ClInclude Include="StdAfx.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Creator.cpp" />
-    <ClCompile Include="GitBase.cpp" />
-    <ClCompile Include="GitIgnoreEvaluator.cpp" />
     <ClCompile Include="OpenSourceReleaseCreator.cpp" />
     <ClCompile Include="OpenSourceReleaseCreatorDlg.cpp" />
     <ClCompile Include="StdAfx.cpp">
@@ -48,17 +41,17 @@
     <ResourceCompile Include="OpenSourceReleaseCreator.rc" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="..\Overrides\exclusions.txt">
+    <Text Include="Overrides\exclusions.txt">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </Text>
   </ItemGroup>
   <ItemGroup>
-    <Xml Include="..\Overrides\replacement-api_keys.xml">
+    <Xml Include="Overrides\replacement-api_keys.xml">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </Xml>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\Overrides\replacements.json">
+    <None Include="Overrides\replacements.json">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </None>
   </ItemGroup>
@@ -81,6 +74,10 @@
     </ProjectReference>
     <ProjectReference Include="..\..\cspro\zUtilO\zUtilO.vcxproj">
       <Project>{9b29cb57-8263-4e12-8908-cc9641fdf0dc}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zGit\zGit.vcxproj">
+      <Project>{01396fa2-bca6-4f57-9346-ec468db7e0a6}</Project>
       <Private>false</Private>
     </ProjectReference>
   </ItemGroup>

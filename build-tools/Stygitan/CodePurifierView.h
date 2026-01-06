@@ -1,0 +1,83 @@
+﻿#pragma once
+
+#include <Stygitan/CodePurifierDoc.h>
+#include <zUtilF/SortListCtrl.h>
+
+
+class CodePurifierView : public CFormView
+{
+    DECLARE_DYNCREATE(CodePurifierView)
+
+protected:
+    CodePurifierView();
+
+protected:
+    DECLARE_MESSAGE_MAP()
+
+    void OnInitialUpdate() override;
+    void DoDataExchange(CDataExchange* pDX) override;
+    void OnActivateView(BOOL bActivate, CView* pActivateView, CView* pDeactiveView) override;
+    void OnDestroy();
+
+    LRESULT OnUpdateUI(WPARAM wParam, LPARAM lParam);
+
+    void UpdateBranchDetails();
+    void UpdateBranchCopies();
+    void UpdateCleanCommit();
+    void UpdateRecentCommits();
+    void UpdateModifiedFiles();
+
+    void OnWorkingDirectoryClick(NMHDR* pNMHDR, LRESULT* pResult);
+
+    void OnCreateBranchCopy();
+    void OnDeleteBranchCopies();
+
+    void OnCommitsCustomDraw(NMHDR* pNMHDR, LRESULT* pResult);
+    void OnCommitsRightClick(NMHDR* pNMHDR, LRESULT* pResult);
+    void OnSetCleanCommit();
+
+    void OnCreateTemporaryCommitStaged() { CreateTemporaryCommit(true); }
+    void OnCreateTemporaryCommitAll()    { CreateTemporaryCommit(false); }
+
+    void OnApplyEditorConfigRules();
+    void OnUseDefaultEditorConfigClick();
+
+    void OnResetBranchToCleanCommit();
+    void OnCreateBranchCopyBeforeResetClick();
+    void OnApplyEditorConfigRulesBeforeResetClick();
+
+    void OnModifiedFilesDoubleOrRightClick(NMHDR* pNMHDR, LRESULT* pResult);
+    void OnModifiedFileOpen();
+    void OnModifiedFileOpenContainingFolder();
+    void OnModifiedFileCopyPath();
+    void OnModifiedFileDiff();
+
+private:
+    const CodePurifierDoc& GetDoc() const { return *assert_cast<const CodePurifierDoc*>(GetDocument()); }
+    CodePurifierDoc& GetDoc()             { return *assert_cast<CodePurifierDoc*>(GetDocument()); }
+
+    bool HasModifiedFiles() const { return ( m_modifiedFiles != nullptr && !m_modifiedFiles->empty() ); }
+
+    void CreateTemporaryCommit(bool staged_only);
+
+    void ApplyEditorConfigRules(size_t& changed) const;
+
+    const CP::ModifiedFile& GetSelectedModifiedFile() const;
+
+private:
+    SettingsDb m_settingsDb;
+
+    CListBox m_branchCopiesListBox;
+    bool m_useDefaultEditorConfig;
+    bool m_createBranchCopyBeforeReset;
+    bool m_applyEditorConfigRulesBeforeReset;
+    CSortListCtrl m_commitsListCtrl;
+    CSortListCtrl m_modifiedFilesListCtrl;
+
+    std::shared_ptr<const std::vector<GitCommit>> m_recentCommits;
+    int m_cleanCommitIndex;
+
+    std::shared_ptr<const std::vector<CP::ModifiedFile>> m_modifiedFiles;
+
+    std::set<std::string> m_comparisonFilePathsForFileDiffs;
+};

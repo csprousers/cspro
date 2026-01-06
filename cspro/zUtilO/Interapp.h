@@ -173,7 +173,7 @@ enum APP_MODE { NO_MODE = -1, ADD_MODE = 0, MODIFY_MODE = 1, VERIFY_MODE };
 //  - the toolbar shows an ID_QUICK_QUIT button
 //
 /////////////////////////////////////////////////////////////////////////////
-#ifdef WIN_DESKTOP
+#ifdef _AFX
 
 class CLASS_DECL_ZUTILO CIMSACommandLineInfo : public CCommandLineInfo
 {
@@ -209,7 +209,7 @@ CLASS_DECL_ZUTILO HWND GetThreadMainWindow(DWORD threadId);
 CLASS_DECL_ZUTILO void CloseFileInTextViewer(InterfaceString file_path, bool delete_file);
 CLASS_DECL_ZUTILO void ViewFileInTextViewer(InterfaceString file_path);
 
-#endif
+#endif // _AFX
 
 // Creates any directories needed to write the file, and closes the file if it is open in Text Viewer.
 // This function throws FileIO::Exception exceptions.
@@ -223,10 +223,12 @@ CLASS_DECL_ZUTILO std::string GetUniqueTempFilePath(std::string_view base_filena
 
 CLASS_DECL_ZUTILO const std::string& GetAppDataPath();
 
+#ifdef USING_CSTRING
 CLASS_DECL_ZUTILO CString GetFilePath(CString csFileName);
 CLASS_DECL_ZUTILO CString GetFileName(CString csFileName);
+#endif
 
-#ifdef WIN_DESKTOP
+#ifdef _AFX
 CLASS_DECL_ZUTILO CString ValFromHeader(const CSpecFile& specFile, const CString& csAttribute);
 #endif
 
@@ -260,6 +262,6 @@ CLASS_DECL_ZUTILO double GetCSProVersionNumeric(std::string_view version_text_sv
 CLASS_DECL_ZUTILO bool IsValidCSProVersion(std::string_view version_text_sv, double min_version = 2.0);
 
 
-#ifdef WIN_DESKTOP
+#ifdef _AFX
 #include <zUtilO/WindowsInterapp.h>
 #endif

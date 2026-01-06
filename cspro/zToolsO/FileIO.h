@@ -53,7 +53,7 @@ namespace FileIO
     // is appended to the string when the maximum number of bytes is read.
     // This function throws FileIO::Exception exceptions.
     CLASS_DECL_ZTOOLSO std::string ReadText(InterfaceString file_path, int64_t max_bytes_to_read,
-	                                        const char* message = nullptr);
+                                            const char* message = nullptr);
 
     // Opens an input stream for wide character text input based on the contents of a UTF-8 file.
     // The BOM will be skipped if it exists.
@@ -85,7 +85,7 @@ namespace FileIO
     // Writes the data to a file.
     // Any directories that do not exist will be created.
     // This function throws FileIO::Exception exceptions.
-    CLASS_DECL_ZTOOLSO void Write(InterfaceString file_path, const std::byte* content, size_t content_size);
+    CLASS_DECL_ZTOOLSO void Write(InterfaceString file_path, const void* content, size_t content_size);
 
     // Writes the data to a file.
     // Any directories that do not exist will be created.

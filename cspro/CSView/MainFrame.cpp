@@ -3,7 +3,7 @@
 #include "ViewDoc.h"
 #include <zToolsO/CommonObjectTransporter.h>
 #include <zToolsO/UWM.h>
-#include <zUtilF/UIThreadRunner.h>
+#include <zUtilO/UIThreadRunner.h>
 #include <zUtilF/UWM.h>
 #include <zSyncO/SyncRunnerActionInvoker.h>
 #include <zEngineF/EngineUI.h>
@@ -17,7 +17,7 @@ BEGIN_MESSAGE_MAP(CMainFrame, CFrameWnd)
     ON_MESSAGE(UWM::ToolsO::DisplayErrorMessage, OnDisplayErrorMessage)
     ON_MESSAGE(UWM::ToolsO::GetObjectTransporter, OnGetObjectTransporter)
     ON_MESSAGE(WM_IMSA_PORTABLE_ENGINEUI, OnEngineUI)
-    ON_MESSAGE(UWM::UtilF::RunOnUIThread, OnRunOnUIThread)
+    ON_MESSAGE(UWM::UtilO::RunOnUIThread, OnRunOnUIThread)
     ON_MESSAGE(UWM::UtilF::GetApplicationShutdownRunner, OnGetApplicationShutdownRunner)
 END_MESSAGE_MAP()
 
@@ -136,10 +136,10 @@ LRESULT CMainFrame::OnEngineUI(const WPARAM wParam, const LPARAM lParam)
 }
 
 
-LRESULT CMainFrame::OnRunOnUIThread(const WPARAM wParam, LPARAM /*lParam*/)
+LRESULT CMainFrame::OnRunOnUIThread(const WPARAM wParam, const LPARAM lParam)
 {
     UIThreadRunner* const ui_thread_runner = reinterpret_cast<UIThreadRunner*>(wParam);
-    ui_thread_runner->Execute();
+    ui_thread_runner->Execute(lParam);
     return 1;
 }
 

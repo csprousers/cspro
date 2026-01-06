@@ -5,10 +5,9 @@
 #include "LanguageSettingsPersister.h"
 #include "LocalhostSettingsDlg.h"
 #include <zToolsO/UWM.h>
-#include <zUtilO/UWM.h>
+#include <zUtilO/UIThreadRunner.h>
 #include <zUtilF/DocViewIterators.h>
 #include <zUtilF/resource_shared.h>
-#include <zUtilF/UIThreadRunner.h>
 #include <zUtilF/WindowsMenuManager.h>
 #include <zLogicO/ReservedWords.h>
 #include <zDesignerF/DesignerObjectTransporter.h>
@@ -75,7 +74,7 @@ BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWndEx)
     ON_MESSAGE(UWM::ToolsO::DisplayErrorMessage, OnDisplayErrorMessage)
     ON_MESSAGE(UWM::ToolsO::GetObjectTransporter, OnGetObjectTransporter)
     ON_MESSAGE(WM_IMSA_PORTABLE_ENGINEUI, OnEngineUI)
-    ON_MESSAGE(UWM::UtilF::RunOnUIThread, OnRunOnUIThread)
+    ON_MESSAGE(UWM::UtilO::RunOnUIThread, OnRunOnUIThread)
     ON_MESSAGE(UWM::UtilF::GetApplicationShutdownRunner, OnGetApplicationShutdownRunner)
 
 END_MESSAGE_MAP()
@@ -1063,10 +1062,10 @@ LRESULT CMainFrame::OnEngineUI(const WPARAM wParam, const LPARAM lParam)
 }
 
 
-LRESULT CMainFrame::OnRunOnUIThread(const WPARAM wParam, LPARAM /*lParam*/)
+LRESULT CMainFrame::OnRunOnUIThread(const WPARAM wParam, const LPARAM lParam)
 {
     UIThreadRunner* const ui_thread_runner = reinterpret_cast<UIThreadRunner*>(wParam);
-    ui_thread_runner->Execute();
+    ui_thread_runner->Execute(lParam);
     return 1;
 }
 

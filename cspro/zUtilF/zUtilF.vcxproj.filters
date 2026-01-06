@@ -265,9 +265,6 @@
     <ClInclude Include="ThreadedProgressDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="UIThreadRunner.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="UWM.h">
       <Filter>Header Files</Filter>
     </ClInclude>

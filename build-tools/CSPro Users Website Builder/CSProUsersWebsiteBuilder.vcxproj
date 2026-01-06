@@ -4,6 +4,7 @@
   <Import Project="..\..\cspro\properties\project-globals.props" />
   <PropertyGroup Label="Globals">
     <ProjectGuid>{E8E3C360-2D0C-403A-AD8B-26B0905EF76D}</ProjectGuid>
+    <ProjectName>CSPro Users Website Builder</ProjectName>
     <Keyword>MFCProj</Keyword>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />

@@ -1,5 +1,7 @@
 ﻿#pragma once
 
+#ifdef USING_CSTRING
+
 //***************************************************************************
 //  File name: IMSAStr.h
 //
@@ -603,3 +605,5 @@ template<typename T = double>
 CLASS_DECL_ZUTILO T StringToNumber(std::string_view text_sv);
 
 CLASS_DECL_ZUTILO size_t CountNewlines(cs::string_sz text);
+
+#endif // USING_CSTRING

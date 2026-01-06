@@ -2,7 +2,7 @@
 #include "WindowsTraceHandler.h"
 #include <zToolsO/Screen.h>
 #include <zToolsO/WinSettings.h>
-#include <zUtilF/UIThreadRunner.h>
+#include <zUtilO/UIThreadRunner.h>
 
 
 // --------------------------------------------------------------------------
@@ -20,7 +20,7 @@ WindowsTraceHandler::~WindowsTraceHandler()
     if( m_traceWnd != nullptr )
     {
         // destroy the window on the UI thread
-        const bool success = RunOnUIThread([&]()
+        const bool success = RunOnUIThreadSync([&]()
         {
             m_traceWnd->DestroyWindow();
         });
@@ -48,7 +48,7 @@ bool WindowsTraceHandler::TurnOnWindowTrace()
     if( m_traceWnd == nullptr )
     {
         // create the window on the UI thread
-        RunOnUIThread([&]()
+        RunOnUIThreadSync([&]()
         {
             m_traceWnd = new TraceWnd(*this);
 

@@ -1,7 +1,7 @@
 ﻿#include "stdafx.h"
 #include "HtmlViewDlg.h"
 #include "ModalDialogSimulator.h"
-#include <zUtilF/UIThreadRunner.h>
+#include <zUtilO/UIThreadRunner.h>
 
 
 BEGIN_MESSAGE_MAP(HtmlViewDlg, CDialog)
@@ -124,7 +124,7 @@ BOOL HtmlViewDlg::OnInitDialog()
     CRect dialog_rect;
     GetWindowRect(dialog_rect);
     m_initialWindowSize = dialog_rect.Size();
-    
+
     GetClientRect(dialog_rect);
 
     m_closeButton = GetDlgItem(IDOK);
@@ -163,9 +163,9 @@ BOOL HtmlViewDlg::OnInitDialog()
     {
         new_size = Screen::GetMaxDisplaySize();
     }
-        
+
     ASSERT(new_size.cx <= Screen::GetMaxDisplayWidth() && new_size.cy <= Screen::GetMaxDisplayHeight());
-    
+
     SetWindowPos(nullptr, ( Screen::GetFullWidth() - new_size.cx ) / 2, ( Screen::GetFullHeight() - new_size.cy ) / 2,
         new_size.cx, new_size.cy, SWP_NOZORDER | SWP_NOACTIVATE);
 

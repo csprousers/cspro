@@ -26,11 +26,13 @@ public:
     {
     }
 
+#ifdef USING_CSTRING
     NullTerminatedString(const CString& text)
         :   m_text(text.GetString()),
             m_length(text.GetLength())
     {
     }
+#endif
 
     NullTerminatedString(const wchar_t* const text) noexcept
         :   m_text(text),
@@ -100,10 +102,12 @@ public:
         return std::wstring(c_str(), length());
     }
 
+#ifdef USING_CSTRING
     operator CStringW() const
     {
         return CStringW(c_str(), int32_cast(length()));
     }
+#endif
 
 private:
     const wchar_t* const m_text;

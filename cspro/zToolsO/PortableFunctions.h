@@ -140,7 +140,9 @@ namespace PortableFunctions
     // PATH_TODO instead of using PathRemoveFileExtension, use Path::RemoveExtension.
     inline std::string PathRemoveFileExtension(std::string_view path_sv) { return Path::RemoveExtension(path_sv); }
     inline std::wstring PathRemoveFileExtension(wstring_view path_sv) { return UTF8_TODO::GetWide(PathRemoveFileExtension(UTF8_TODO::GetUtf8(path_sv))); }
+#ifdef USING_CSTRING
     inline CString PathRemoveFileExtensionCS(wstring_view path_sv) { return UTF8_TODO::GetCString(PathRemoveFileExtension(UTF8_TODO::GetUtf8(path_sv))); }
+#endif
 
     // Strips the extension from the path and then appends the new extension.
     // The extension can be provided with or without a dot.
@@ -178,7 +180,9 @@ namespace PortableFunctions
     inline std::string PathToNativeSlash(std::string path) { return Path::ToNativeSlash(path); }
     inline std::string PathToNativeSlash(const char* path) { return Path::ToNativeSlash(std::string(path)); } // UTF8_TODO remove when the wide versions are gone
     CLASS_DECL_ZTOOLSO std::wstring PathToNativeSlash(std::wstring path);
+#ifdef USING_CSTRING
     CLASS_DECL_ZTOOLSO CString PathToNativeSlash(CString path);
+#endif
 
     // Converts all backward slashes to forward slashes: \ -> /.
     // PATH_TODO instead of using MakePathToForwardSlash / PathToForwardSlash, use Path::MakeToForwardSlash / Path::ToForwardSlash.
@@ -186,7 +190,9 @@ namespace PortableFunctions
     inline std::string PathToForwardSlash(std::string path)       { return Path::ToForwardSlash(std::move(path)); }
 
     inline std::wstring PathToForwardSlash(std::wstring path) { return SO::Replace(path, '\\', '/'); } // UTF8_TODO remove when the wide versions are gone
+#ifdef USING_CSTRING
     inline CString PathToForwardSlash(CString path)           { path.Replace('\\', '/'); return path; }
+#endif
 
     // Converts all forward slashes to backslashes: / -> \.
     inline std::string PathToBackwardSlash(std::string path) { return SO::Replace(path, '/', '\\'); }
@@ -203,6 +209,7 @@ namespace PortableFunctions
     T PathAppendForwardSlashToPath(T path, wstring_view append_text_sv) { return PathAppendToPath<T>(std::move(path), append_text_sv, '/'); }
 
     // Removes a trailing slash from the path if there is one. Removes either / or \.
+    // PATH_TODO instead of using PathRemoveTrailingSlash, use Path::RemoveTrailingSlash or Path::MakeRemoveTrailingSlash.
     CLASS_DECL_ZTOOLSO std::string PathRemoveTrailingSlash(std::string path);
 
     template<typename T = std::wstring>

@@ -9,6 +9,7 @@ Because most CSPro development occurs on a [private repository](https://github.c
 
 | Date | Branch | Pull Request Message |
 | --- | --- | --- |
+| 2026&#8209;01&#8209;06 | [git-dll+stygitan](https://github.com/CSProDevelopment/cspro/commit/6991a49f2e1af8135191041ee93347d7cb216195) | rewrote Stygitan in C++ + centralized Git-related functionality in a DLL, zGit + fixed UTC offset bugs |
 | 2025&#8209;12&#8209;09 | [sqlite-wrapper](https://github.com/CSProDevelopment/cspro/commit/f493469decee15fa7ed3bee4ccc7382c5387df0a) | refactored non-data and non-paradata uses of SQLite to use the Sqlite::DB / Statement wrappers |
 | 2025&#8209;12&#8209;08 | [x64-prep](https://github.com/CSProDevelopment/cspro/commit/8e17a6f4d798c337d922bb9780cfc267bcd32728) | set up the solution for 64-bit compilation + moved the build tools into a new solution, build-tools + modified the build paths |
 | 2025&#8209;12&#8209;01 | [quickjs-ng](https://github.com/CSProDevelopment/cspro/commit/f3e04ac26a4945a4642532208045962c4ebd55d9) | modified the JavaScript engine to use QuickJS-NG + fixed issues noticed while documenting JavaScript use in CSPro |

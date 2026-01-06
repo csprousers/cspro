@@ -1,7 +1,7 @@
 ﻿#include "StdAfx.h"
 #include "BatchExecutionDlg.h"
 #include <zToolsO/UWM.h>
-#include <zUtilF/UIThreadRunner.h>
+#include <zUtilO/UIThreadRunner.h>
 #include <zListingO/Lister.h>
 #include <engine/EngineObjectTransporter.h>
 
@@ -12,7 +12,7 @@ BEGIN_MESSAGE_MAP(BatchExecutionDlg, BatchMeterDlg)
     ON_MESSAGE(WM_IMSA_GET_PROCESS_SUMMARY_REPORTER, OnGetProcessSummaryReporter)
     ON_MESSAGE(WM_IMSA_ENGINEABORT, OnEngineAbort)
     ON_MESSAGE(WM_IMSA_PORTABLE_ENGINEUI, OnEngineUI)
-    ON_MESSAGE(UWM::UtilF::RunOnUIThread, OnRunOnUIThread)
+    ON_MESSAGE(UWM::UtilO::RunOnUIThread, OnRunOnUIThread)
     ON_MESSAGE(UWM::UtilF::GetApplicationShutdownRunner, OnGetApplicationShutdownRunner)
 END_MESSAGE_MAP()
 
@@ -52,7 +52,7 @@ LRESULT BatchExecutionDlg::OnGetObjectTransporter(WPARAM /*wParam*/, LPARAM /*lP
         ASSERT(engine_area != nullptr);
 
         m_objectTransporter = std::make_unique<EngineObjectTransporter>(engine_area);
-    }   
+    }
 
     return reinterpret_cast<LRESULT>(m_objectTransporter.get());
 }
@@ -67,7 +67,7 @@ LRESULT BatchExecutionDlg::WindowProc(UINT message, WPARAM wParam, LPARAM lParam
         if( uwm_callback_lookup != m_uwmCallbacks.cend() )
             return uwm_callback_lookup->second->ProcessMessage(wParam, lParam);
     }
-    
+
     return BatchMeterDlg::WindowProc(message, wParam, lParam);
 }
 
@@ -140,10 +140,10 @@ LRESULT BatchExecutionDlg::OnEngineUI(WPARAM wParam, LPARAM lParam)
 }
 
 
-LRESULT BatchExecutionDlg::OnRunOnUIThread(WPARAM wParam, LPARAM /*lParam*/)
+LRESULT BatchExecutionDlg::OnRunOnUIThread(const WPARAM wParam, const LPARAM lParam)
 {
-    UIThreadRunner* ui_thread_runner = reinterpret_cast<UIThreadRunner*>(wParam);
-    ui_thread_runner->Execute();
+    UIThreadRunner* const ui_thread_runner = reinterpret_cast<UIThreadRunner*>(wParam);
+    ui_thread_runner->Execute(lParam);
     return 1;
 }
 

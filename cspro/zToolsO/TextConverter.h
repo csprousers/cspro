@@ -87,7 +87,7 @@ static int TextConverter::MultiByteToWideBuffer(const char* const non_null_multi
     ASSERT(non_null_multi_byte_string != nullptr && non_null_wide_buffer != nullptr);
     ASSERT(multi_byte_length != SIZE_MAX && wide_buffer_length != SIZE_MAX);
 
-    return MultiByteToWideChar(code_page, 0, non_null_multi_byte_string, multi_byte_length, non_null_wide_buffer, wide_buffer_length);
+    return MultiByteToWideChar(code_page, 0, non_null_multi_byte_string, int32_cast(multi_byte_length), non_null_wide_buffer, int32_cast(wide_buffer_length));
 }
 
 

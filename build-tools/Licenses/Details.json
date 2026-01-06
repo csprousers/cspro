@@ -76,6 +76,12 @@
     "licenseFilename": "LICENSE.txt"
   },
   {
+    "projectName": "EditorConfig",
+    "projectUrl": "https://github.com/editorconfig/editorconfig-core-c",
+    "licenseFilename": "LICENSE",
+    "licenseUrl": "https://raw.githubusercontent.com/editorconfig/editorconfig-core-c/refs/heads/master/LICENSE"
+  },
+  {
     "projectName": "geometry.hpp",
     "projectUrl": "https://github.com/mapbox/geometry.hpp",
     "licenseFilename": "LICENSE",

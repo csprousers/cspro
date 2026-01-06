@@ -51,7 +51,7 @@ void WindowsRuntimeView::OnInitialUpdate()
                 m_runtimeHost->OnNavigationCompleted();
         });
 
-       m_htmlViewCtrl.AddWebEventObserver(
+    m_htmlViewCtrl.AddWebEventObserver(
         [&](const std::wstring_view message_sv)
         {
             m_runtimeHost->OnWebMessageReceived(TC::ToUtf8(message_sv));
@@ -61,6 +61,7 @@ void WindowsRuntimeView::OnInitialUpdate()
 
 LRESULT WindowsRuntimeView::OnRunUiThreadAction(const WPARAM wParam, LPARAM /*lParam*/)
 {
+    // RT_TODO perhaps use the new RunOnUIThreadAsync functionality
     m_runtimeHost->RunUiThreadAction(static_cast<int>(wParam));
     return 0;
 }

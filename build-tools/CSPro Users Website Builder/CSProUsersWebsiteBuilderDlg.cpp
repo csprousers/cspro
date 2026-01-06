@@ -9,11 +9,11 @@
 
 namespace
 {
-    static constexpr std::string_view HelpsDirectoryKey_sv            = "helps";
-    static constexpr std::string_view MobileWorkshopDirectoryKey_sv   = "mobile-workshop";
-    static constexpr std::string_view RubyDirectoryKey_sv             = "ruby";
-    static constexpr std::string_view CSProUsersInputDirectoryKey_sv  = "input-directory";
-    static constexpr std::string_view CSProUsersOutputDirectoryKey_sv = "output-directory";
+    constexpr std::string_view HelpsDirectoryKey_sv            = "helps";
+    constexpr std::string_view MobileWorkshopDirectoryKey_sv   = "mobile-workshop";
+    constexpr std::string_view RubyDirectoryKey_sv             = "ruby";
+    constexpr std::string_view CSProUsersInputDirectoryKey_sv  = "input-directory";
+    constexpr std::string_view CSProUsersOutputDirectoryKey_sv = "output-directory";
 }
 
 
@@ -126,7 +126,7 @@ void CSProUsersWebsiteBuilderDlg::OnBuildTask(const UINT nID)
                 try
                 {
                     m_loggingListBox.Clear();
-                    m_loggingListBox.AddText(FormatText("Task started at %s\n", DateTime::LocalDateTimeString(DateTime::Now()).c_str()));
+                    m_loggingListBox.AddText("Task started at %s\n", DateTime::LocalDateTimeString(DateTime::Now()).c_str());
 
                     switch( nID )
                     {
@@ -159,7 +159,7 @@ void CSProUsersWebsiteBuilderDlg::OnBuildTask(const UINT nID)
 
                 catch( const CSProException& exception )
                 {
-                    m_loggingListBox.AddText(FormatText("\nTask ended in error: %s", exception.what()));
+                    m_loggingListBox.AddText("\nTask ended in error: %s", exception.what());
                     ErrorMessage::PostMessageForDisplay(exception);
                 }
 

@@ -81,7 +81,7 @@ void ForeachDoc(const CF& callback_function)
 
     while( template_pos != nullptr )
     {
-        CDocTemplate* doc_template = AfxGetApp()->GetNextDocTemplate(template_pos);
+        CDocTemplate* const doc_template = AfxGetApp()->GetNextDocTemplate(template_pos);
         POSITION doc_pos = doc_template->GetFirstDocPosition();
 
         while( doc_pos != nullptr )

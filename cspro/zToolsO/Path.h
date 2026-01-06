@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include <zToolsO/zToolsO.h>
+#include <zToolsO/OperatingSystem.h>
 
 
 class CLASS_DECL_ZTOOLSO Path
@@ -10,7 +11,7 @@ public:
     // Slash Character Functions
     // --------------------------------------------------------------------------
 
-    static constexpr const char NativeSlashChar     = static_cast<char>(PATH_CHAR);
+    static constexpr const char NativeSlashChar     = OnWindows() ? '\\' : '/';
     static constexpr const char NativeSlashString[] = { NativeSlashChar, '\0' };
     static constexpr std::string_view SlashChars_sv = "/\\";
 
@@ -25,6 +26,10 @@ public:
     // Converts all slash characters to forward slashes.
     static std::string ToForwardSlash(std::string path);
     static std::string& MakeToForwardSlash(std::string& path);
+
+    // Removes a trailing slash from the path if there is one (either / or \).
+    static std::string RemoveTrailingSlash(std::string path);
+    static std::string& MakeRemoveTrailingSlash(std::string& path);
 
 
     // --------------------------------------------------------------------------
@@ -163,6 +168,18 @@ inline std::string Path::ToForwardSlash(std::string path)
 inline std::string& Path::MakeToForwardSlash(std::string& path)
 {
     return SO::Replace(path, '\\', '/');
+}
+
+
+inline std::string Path::RemoveTrailingSlash(std::string path)
+{
+    return MakeRemoveTrailingSlash(path);
+}
+
+
+inline std::string& Path::MakeRemoveTrailingSlash(std::string& path)
+{
+    return SO::MakeTrimRight(path, SlashChars_sv);
 }
 
 

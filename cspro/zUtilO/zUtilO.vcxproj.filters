@@ -74,6 +74,12 @@
     <ClCompile Include="FileExtensions.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="FileFreeDoc.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FileFreeDocManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="fileutil.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -171,6 +177,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="TransactionManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="UIThreadRunner.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Versioning.cpp">
@@ -285,6 +294,12 @@
     <ClInclude Include="FileExtensions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="FileFreeDoc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FileFreeDocManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="FileUtil.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -394,6 +409,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="TreeCtrlHelpers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="UIThreadRunner.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="UndoStack.h">

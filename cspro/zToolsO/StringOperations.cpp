@@ -995,8 +995,10 @@ std::string_view SO::RemoveTextFollowingCharacter(const std::string_view text_sv
 
 
 template<bool trim_right_each_line>
-int SO::ConvertTabsToSpacesWorker(std::string& text, int position_in_line)
+int SO::ConvertTabsToSpacesWorker(std::string& text, int position_in_line, const int spaces_per_tab)
 {
+    ASSERT(spaces_per_tab >= 1);
+
     // when trim_right_each_line is true, position_in_line should not be considered accurate,
     // which is fine because SO::ConvertTabsToSpacesAndTrimRightEachLine does not return that value
     for( size_t i = 0; i < text.length(); )
@@ -1031,7 +1033,7 @@ int SO::ConvertTabsToSpacesWorker(std::string& text, int position_in_line)
                 text[i] = ' ';
 
                 // insert new spaces
-                const int spaces_to_insert = SO::DefaultSpacesPerTab - ( position_in_line % SO::DefaultSpacesPerTab ) - 1;
+                const int spaces_to_insert = spaces_per_tab - ( position_in_line % spaces_per_tab ) - 1;
 
                 if( spaces_to_insert != 0 )
                 {
@@ -1040,7 +1042,7 @@ int SO::ConvertTabsToSpacesWorker(std::string& text, int position_in_line)
                     i += spaces_to_insert;
                 }
 
-                ASSERT(( position_in_line + 1 ) % SO::DefaultSpacesPerTab == 0);
+                ASSERT(( position_in_line + 1 ) % spaces_per_tab == 0);
             }
 
             ++position_in_line;
@@ -1058,15 +1060,15 @@ int SO::ConvertTabsToSpacesWorker(std::string& text, int position_in_line)
 }
 
 
-int SO::ConvertTabsToSpaces(std::string& text, const int position_in_line/* = 0*/)
+int SO::ConvertTabsToSpaces(std::string& text, const int position_in_line/* = 0*/, const int spaces_per_tab/* = DefaultSpacesPerTab*/)
 {
-    return ConvertTabsToSpacesWorker<false>(text, position_in_line);
+    return ConvertTabsToSpacesWorker<false>(text, position_in_line, spaces_per_tab);
 }
 
 
 void SO::ConvertTabsToSpacesAndTrimRightEachLine(std::string& text)
 {
-    ConvertTabsToSpacesWorker<true>(text, 0);
+    ConvertTabsToSpacesWorker<true>(text, 0, DefaultSpacesPerTab);
 }
 
 

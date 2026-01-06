@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 #include <zMapping/WindowsMapDlg.h>
-#include <zUtilF/UIThreadRunner.h>
+#include <zUtilO/UIThreadRunner.h>
 
 
 class WindowsMapUIThreadRunner : public UIThreadRunner
@@ -12,7 +12,7 @@ public:
     {
     }
 
-    void Execute() override
+    void Execute(LPARAM /*lParam*/) override
     {
         m_dlg = std::make_unique<WindowsMapDlg>(m_mapUI);
         m_dlg->DoModal();

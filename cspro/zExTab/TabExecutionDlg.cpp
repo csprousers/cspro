@@ -1,7 +1,7 @@
 ﻿#include "StdAfx.h"
 #include "TabExecutionDlg.h"
 #include <zToolsO/UWM.h>
-#include <zUtilF/UIThreadRunner.h>
+#include <zUtilO/UIThreadRunner.h>
 #include <zListingO/Lister.h>
 #include <engine/EngineObjectTransporter.h>
 #include <zBatchO/Runaplb.h>
@@ -13,7 +13,7 @@ BEGIN_MESSAGE_MAP(TabExecutionDlg, BatchMeterDlg)
     ON_MESSAGE(WM_IMSA_GET_PROCESS_SUMMARY_REPORTER, OnGetProcessSummaryReporter)
     ON_MESSAGE(WM_IMSA_ENGINEABORT, OnEngineAbort)
     ON_MESSAGE(WM_IMSA_PORTABLE_ENGINEUI, OnEngineUI)
-    ON_MESSAGE(UWM::UtilF::RunOnUIThread, OnRunOnUIThread)
+    ON_MESSAGE(UWM::UtilO::RunOnUIThread, OnRunOnUIThread)
     ON_MESSAGE(UWM::UtilF::GetApplicationShutdownRunner, OnGetApplicationShutdownRunner)
 END_MESSAGE_MAP()
 
@@ -113,10 +113,10 @@ LRESULT TabExecutionDlg::OnEngineUI(WPARAM wParam, LPARAM lParam)
 }
 
 
-LRESULT TabExecutionDlg::OnRunOnUIThread(WPARAM wParam, LPARAM /*lParam*/)
+LRESULT TabExecutionDlg::OnRunOnUIThread(const WPARAM wParam, const LPARAM lParam)
 {
-    UIThreadRunner* ui_thread_runner = reinterpret_cast<UIThreadRunner*>(wParam);
-    ui_thread_runner->Execute();
+    UIThreadRunner* const ui_thread_runner = reinterpret_cast<UIThreadRunner*>(wParam);
+    ui_thread_runner->Execute(lParam);
     return 1;
 }
 

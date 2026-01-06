@@ -64,7 +64,7 @@ std::string FormatText(const char* const formatter, Args const&... args)
         std::sprintf(formatted_text.data(), formatter, args...);
 #pragma warning(pop)
 
-#if defined(_DEBUG) && defined(WIN_DESKTOP)
+#if defined(_DEBUG) && defined(WIN_DESKTOP) && defined(USING_CSTRING)
         CStringA cstring_formatted_text;
         cstring_formatted_text.Format(formatter, args...);
         ASSERT81(formatted_text == std::string(cstring_formatted_text.GetString()));

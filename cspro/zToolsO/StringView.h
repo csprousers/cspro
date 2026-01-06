@@ -17,20 +17,24 @@ public:
     {
     }
 
+#ifdef USING_CSTRING
     wstring_view(const CString& text)
         :   std::wstring_view(text.GetString(), text.GetLength())
     {
     }
+#endif
 
     operator std::wstring() const
     {
         return std::wstring(data(), length());
     }
 
+#ifdef USING_CSTRING
     operator CStringW() const
     {
         return CStringW(data(), int32_cast(length()));
     }
+#endif
 
     size_t hash_code() const
     {

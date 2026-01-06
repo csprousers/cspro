@@ -162,12 +162,12 @@ const char* TextEncoding::ToString() const
 class AnsiConverter : public TextEncoding::Converter
 {
 public:
-    std::string ToUtf8(std::string_view text_sv) override
+    std::string ToUtf8(const std::string_view text_sv) override
     {
         return TextConverter::AnsiToUtf8(text_sv);
     }
 
-    std::string FromUtf8(std::string_view text_sv) override
+    std::string FromUtf8(const std::string_view text_sv) override
     {
         return TextConverter::Utf8ToAnsi(text_sv);
     }
@@ -175,13 +175,43 @@ public:
 
 
 
+#ifdef WIN32
+
+// --------------------------------------------------------------------------
+// Utf16LEConverter
+// --------------------------------------------------------------------------
+
+class Utf16LEConverter : public TextEncoding::Converter
+{
+public:
+    std::string ToUtf8(const std::string_view text_sv) override
+    {
+        ASSERT(text_sv.size() % sizeof(wchar_t) == 0);
+
+        return TC::ToUtf8(reinterpret_cast<const wchar_t*>(text_sv.data()),
+                          static_cast<int>(text_sv.size() / sizeof(wchar_t)));
+    }
+
+    std::string FromUtf8(const std::string_view text_sv) override
+    {
+        const std::wstring wide_text = TC::ToWide(text_sv);
+
+        return std::string(reinterpret_cast<const char*>(wide_text.data()),
+                           static_cast<int>(wide_text.length() * sizeof(wchar_t)));
+    }
+};
+
+#endif // WIN32
+
+
+
 // --------------------------------------------------------------------------
 // TextEncoding::CreateConverter
 // --------------------------------------------------------------------------
 
-std::unique_ptr<TextEncoding::Converter> TextEncoding::CreateConverter() const
+std::unique_ptr<TextEncoding::Converter> TextEncoding::CreateConverter(const Type type)
 {
-    switch( m_type )
+    switch( type )
     {
         case Type::Ansi:
             return std::make_unique<AnsiConverter>();
@@ -190,10 +220,14 @@ std::unique_ptr<TextEncoding::Converter> TextEncoding::CreateConverter() const
         case Type::Utf8Bom:
             return nullptr;
 
-        case Type::Utf16LE: // TEXT_ENCODING_TODO implement UTF-16 converters
+        case Type::Utf16LE: // TEXT_ENCODING_TODO implement a UTF-16LE converter in the portable environment?
+#ifdef WIN32
+            return std::make_unique<Utf16LEConverter>();
+#else
             throw CSProException("CSPro cannot read files encoded as UTF-16LE.");
+#endif
 
-        case Type::Utf16BE:
+        case Type::Utf16BE: // TEXT_ENCODING_TODO implement a UTF-16BE converter ?
             throw CSProException("CSPro cannot read files encoded as UTF-16BE.");
 
         default:

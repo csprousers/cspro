@@ -2,7 +2,7 @@
 
 #include "Creator.h"
 #include <zUtilO/ResizableDlg.h>
-#include <zUtilO/SettingsDb.h>
+#include <zGit/GitTag.h>
 
 
 class OpenSourceReleaseCreatorDlg : public ResizableDlg
@@ -41,7 +41,7 @@ private:
     SettingsDb m_settingsDb;
 
     std::unique_ptr<Creator> m_creator;
-    std::vector<Git::Tag> m_tags;
+    std::vector<GitTag> m_tags;
 
     CComboBox m_tagsComboBox;
     std::string m_commit;

@@ -31,7 +31,7 @@ namespace ErrorMessage
 }
 
 
-#ifdef WIN_DESKTOP
+#ifdef _AFX
 
 // --------------------------------------------------------------------------
 // AfxMessageBox overrides
@@ -54,4 +54,4 @@ inline void ErrorMessage::Display(const NullTerminatedString error_message)
     AfxMessageBox(error_message.c_str(), MB_ICONEXCLAMATION);
 }
 
-#endif // WIN_DESKTOP
+#endif // _AFX

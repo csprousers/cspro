@@ -24,52 +24,54 @@ public:
 
     TextEncoding(Type type = DefaultEncoding);
 
-    // processes the beginning of the text / buffer to determine the BOM
+    // Processes the beginning of the text / buffer to determine the BOM.
     TextEncoding(std::string_view text_sv, Type default_encoding_if_no_bom = DefaultEncodingIfNoBom);
     TextEncoding(const void* buffer, size_t buffer_length, Type default_encoding_if_no_bom = DefaultEncodingIfNoBom);
 
-    // reads characters from the file, which must be at position 0, to determine the BOM;
-    // if a BOM is found, the file is positioned following the BOM;
-    // if no BOM is found, the file is positioned back to position 0
+    // Reads characters from the file, which must be at position 0, to determine the BOM.
+    // If a BOM is found, the file is positioned following the BOM.
+    // If no BOM is found, the file is positioned back to position 0.
     TextEncoding(FILE* file, Type default_encoding_if_no_bom = DefaultEncodingIfNoBom);
 
-    // opens the file, reads for a BOM, and returns one if found;
-    // if no BOM is present, or the file could not be opened, then default_encoding_if_no_bom is returned
+    // Opens the file, reads for a BOM, and returns one if found.
+    // If no BOM is present, or the file could not be opened, then default_encoding_if_no_bom is returned.
     CLASS_DECL_ZTOOLSO static TextEncoding ReadFileBom(const std::string& file_path, Type default_encoding_if_no_bom = DefaultEncodingIfNoBom);
 
-    // updates the encoding based on a call to one of the constructors, with the value of
-    // default_encoding_if_no_bom coming from the current value of m_type
+    // Updates the encoding based on a call to one of the constructors, with the value of
+    // default_encoding_if_no_bom coming from the current value of m_type.
     template<typename... Args>
     void UpdateEncoding(Args const&... args);
 
-    // returns the encoding type
+    // Returns the encoding type.
     Type GetType() const { return m_type; }
 
-    // returns whether the encoding type uses a BOM
+    // Returns whether the encoding type uses a BOM.
     static constexpr bool UsesBom(Type type);
     bool UsesBom() const { return UsesBom(m_type); }
 
-    // returns the BOM for the encoding type
+    // Returns the BOM for the encoding type.
     static constexpr std::string_view GetBom(Type type);
     std::string_view GetBom() const { return GetBom(m_type); }
 
-    // returns the BOM length for the encoding type
+    // Returns the BOM length for the encoding type.
     static constexpr size_t GetBomLength(Type type);
     size_t GetBomLength() const { return GetBomLength(m_type); }
 
-    // returns whether or not the encoding type is UTF-8 (with or without a BOM)
+    // Returns whether or not the encoding type is UTF-8 (with or without a BOM).
     static constexpr bool IsUtf8(Type type);
     bool IsUtf8() const { return IsUtf8(m_type); }
 
-    // returns whether or not the encoding type is ANSI or UTF-8 (with or without a BOM)
+    // Returns whether or not the encoding type is ANSI or UTF-8 (with or without a BOM).
     static constexpr bool IsAnsiOrUtf8(Type type);
     bool IsAnsiOrUtf8() const { return IsAnsiOrUtf8(m_type); }
 
-    // returns a string describing the encoding
+    // Returns a string describing the encoding.
     CLASS_DECL_ZTOOLSO const char* ToString() const;
 
-    // creates a converter to convert text to/from UTF-8; the converter is null if not needed
-    CLASS_DECL_ZTOOLSO std::unique_ptr<Converter> CreateConverter() const;
+    // Creates a converter to convert text to/from UTF-8.
+    // The converter is null if not needed.
+    CLASS_DECL_ZTOOLSO static std::unique_ptr<Converter> CreateConverter(Type type);
+    std::unique_ptr<Converter> CreateConverter() const { return CreateConverter(m_type); }
 
 private:
     CLASS_DECL_ZTOOLSO static Type GetType(std::string_view text_sv, Type default_encoding_if_no_bom);

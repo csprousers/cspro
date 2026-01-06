@@ -22,9 +22,9 @@
 #include <zToolsO/UWM.h>
 #include <zUtilO/ArrUtil.h>
 #include <zUtilO/ImsaDlg.h>
+#include <zUtilO/UIThreadRunner.h>
 #include <zUtilF/ManageCredentialsDlg.h>
 #include <zUtilF/MsgDial.h>
-#include <zUtilF/UIThreadRunner.h>
 #include <zHtml/UWM.h>
 #include <zCaseO/Case.h>
 #include <zDataO/CaseIterator.h>
@@ -231,7 +231,7 @@ BEGIN_MESSAGE_MAP(CMainFrame, CFrameWnd)
     ON_MESSAGE(WM_IMSA_WINDOW_TITLE_QUERY, OnWindowTitleQuery)
 
     ON_MESSAGE(WM_IMSA_PORTABLE_ENGINEUI, OnEngineUI)
-    ON_MESSAGE(UWM::UtilF::RunOnUIThread, OnRunOnUIThread)
+    ON_MESSAGE(UWM::UtilO::RunOnUIThread, OnRunOnUIThread)
     ON_MESSAGE(UWM::UtilF::GetApplicationShutdownRunner, OnGetApplicationShutdownRunner)
     ON_MESSAGE(UWM::Html::ActionInvokerEngineProgramControlExecuted, OnActionInvokerEngineProgramControlExecuted)
 
@@ -4939,10 +4939,10 @@ LRESULT CMainFrame::OnEngineUI(WPARAM wParam, LPARAM lParam)
 }
 
 
-LRESULT CMainFrame::OnRunOnUIThread(WPARAM wParam, LPARAM /*lParam*/)
+LRESULT CMainFrame::OnRunOnUIThread(const WPARAM wParam, const LPARAM lParam)
 {
-    UIThreadRunner* ui_thread_runner = reinterpret_cast<UIThreadRunner*>(wParam);
-    ui_thread_runner->Execute();
+    UIThreadRunner* const ui_thread_runner = reinterpret_cast<UIThreadRunner*>(wParam);
+    ui_thread_runner->Execute(lParam);
     return 1;
 }
 

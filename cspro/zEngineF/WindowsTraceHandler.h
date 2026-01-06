@@ -66,7 +66,8 @@ public:
 
     bool CreateTraceControl();
 
-    void AddText(SharableString text) { m_traceLoggingListBox.AddText(std::move(text)); }
+    template<typename... Args>
+    void AddText(Args&&... args) { m_traceLoggingListBox.AddText(std::forward<Args>(args)...); }
 
 protected:
     DECLARE_MESSAGE_MAP()

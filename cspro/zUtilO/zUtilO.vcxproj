@@ -40,6 +40,8 @@
     <ClCompile Include="ExpansiveMap.cpp" />
     <ClCompile Include="FileDlg.cpp" />
     <ClCompile Include="FileExtensions.cpp" />
+    <ClCompile Include="FileFreeDoc.cpp" />
+    <ClCompile Include="FileFreeDocManager.cpp" />
     <ClCompile Include="fileutil.cpp" />
     <ClCompile Include="ImsaDlg.cpp" />
     <ClCompile Include="ImsaFileDlg.cpp" />
@@ -75,6 +77,7 @@
     <ClCompile Include="TextSourceEditable.cpp" />
     <ClCompile Include="TextSourceExternal.cpp" />
     <ClCompile Include="TransactionManager.cpp" />
+    <ClCompile Include="UIThreadRunner.cpp" />
     <ClCompile Include="Versioning.cpp" />
     <ClCompile Include="Viewers.cpp" />
     <ClCompile Include="VirtualDirectoryLister.cpp" />
@@ -115,6 +118,8 @@
     <ClInclude Include="ExpansiveMap.h" />
     <ClInclude Include="FileDlg.h" />
     <ClInclude Include="FileExtensions.h" />
+    <ClInclude Include="FileFreeDoc.h" />
+    <ClInclude Include="FileFreeDocManager.h" />
     <ClInclude Include="FileUtil.h" />
     <ClInclude Include="FromString.h" />
     <ClInclude Include="ImsaDlg.h" />
@@ -152,6 +157,7 @@
     <ClInclude Include="TextSourceString.h" />
     <ClInclude Include="TransactionManager.h" />
     <ClInclude Include="TreeCtrlHelpers.h" />
+    <ClInclude Include="UIThreadRunner.h" />
     <ClInclude Include="UndoStack.h" />
     <ClInclude Include="UWM.h" />
     <ClInclude Include="UWMRanges.h" />
