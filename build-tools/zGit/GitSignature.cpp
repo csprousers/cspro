@@ -23,7 +23,7 @@ GitSignature GitSignature::Create(std::string name, std::string email)
 {
     git_time when;
     when.time = GetTimestamp<int64_t>();
-    when.offset = GetUtcOffset();
+    when.offset = DateTime::GetUtcOffsetNow();
     when.sign = ( when.offset >= 0 ) ? '+' : '-';
 
     return GitSignature(std::move(name), std::move(email), when);

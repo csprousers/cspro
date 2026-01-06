@@ -27,7 +27,7 @@ public:
 
     // Returns the time value broken up into its components.
     // If adjusting for the local timezone, the time will be converted to the local timezone (as opposed to UTC).
-    struct Components { int year; int month; int day; int hour; int minute; int second; };
+    struct Components { int year; int month; int day; int hour = 0; int minute = 0; int second = 0; };
 
     static Components TimeToComponents(const tm& tm);
     static Components TimeToComponents(int64_t time, bool adjust_to_local_time = false);
@@ -50,6 +50,12 @@ public:
     static int64_t CreateTime(tm tm, bool adjust_to_local_time = false);
     static int64_t CreateTime(const Components& components, bool adjust_to_local_time = false) { return CreateTime(ToTm(components), adjust_to_local_time); }
     static int64_t CreateTime(int yyyymmdd, int hhmmss, bool adjust_to_local_time = false)     { return CreateTime(ToTm(yyyymmdd, hhmmss), adjust_to_local_time); }
+
+    // Returns the number of minutes the system clock is off from UTC using the current time.
+    static int GetUtcOffsetNow();
+
+    // Returns the number of minutes the system clock is off from UTC using a specific local time.
+    static int GetUtcOffset(const Components& components);
 
 private:
     static constexpr int TmToYear(const tm& tm)  { return tm.tm_year + 1900; }
@@ -80,9 +86,6 @@ CLASS_DECL_ZTOOLSO std::string GetElapsedTimeText(int64_t start_timestamp, int64
 
 // Returns a string indicating how long ago the timestamp is from the current time.
 CLASS_DECL_ZTOOLSO std::string GetTimeAgo(double timestamp);
-
-// Gets the number of minutes off UTC of the system clock.
-CLASS_DECL_ZTOOLSO long GetUtcOffset();
 
 // Converts a date using a formatting string, returning std::nullopt on error.
 // If many formatters are provided, the value may exceed the capacity of uint64_t.

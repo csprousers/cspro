@@ -12,9 +12,7 @@ GitTime::GitTime(const git_time& time) noexcept
 
 int64_t GitTime::GetTimestamp() const noexcept
 {
-    const git_time& time = *static_cast<const git_time*>(*this);
-
-    return time.time + ( time.offset * 60 );
+    return static_cast<const git_time*>(*this)->time;
 }
 
 
@@ -24,7 +22,7 @@ std::string GitTime::GetRfc2822String() const noexcept
     const int64_t timestamp = GetTimestamp();
     tm tm;
 
-    if( gmtime_s(&tm, &timestamp) != 0 )
+    if( localtime_s(&tm, &timestamp) != 0 )
     {
         ASSERT(false);
         return std::string();
@@ -38,8 +36,8 @@ std::string GitTime::GetRfc2822String() const noexcept
 
     // append the time zone offset
     const int offset_abs = std::abs(time.offset);
-    const char* offset_sign = ( time.offset >= 0 ) ? "+" : "-";
-    time_string.append(FormatText(" %c%02d%02d", offset_sign[0], offset_abs / 60, offset_abs % 60));
+    const char offset_sign = ( time.offset >= 0 ) ? '+' : '-';
+    time_string.append(FormatText(" %c%02d%02d", offset_sign, offset_abs / 60, offset_abs % 60));
 
     return time_string;
 }
@@ -47,7 +45,7 @@ std::string GitTime::GetRfc2822String() const noexcept
 
 std::string GitTime::GetLocalDateTimeString(const cs::string_sz formatter/* = "%Y-%m-%d %H:%M:%S"*/) const noexcept
 {
-    return DateTime::LocalDateTimeString(static_cast<const git_time*>(*this)->time, formatter);
+    return DateTime::LocalDateTimeString(GetTimestamp(), formatter);
 }
 
 

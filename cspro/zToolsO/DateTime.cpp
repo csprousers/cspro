@@ -180,6 +180,50 @@ int64_t DateTime::CreateTime(tm tm, const bool adjust_to_local_time/* = false*/)
 }
 
 
+int DateTime::GetUtcOffsetNow()
+{
+#ifdef WIN32
+    DYNAMIC_TIME_ZONE_INFORMATION dtzi;
+    const DWORD result = GetDynamicTimeZoneInformation(&dtzi);
+
+    if( result == TIME_ZONE_ID_INVALID )
+        return ReturnProgrammingError(0);
+
+    if( result == TIME_ZONE_ID_DAYLIGHT )
+        dtzi.Bias += dtzi.DaylightBias;
+
+    return -1 * dtzi.Bias;
+#else
+    time_t tm = time(nullptr);
+    struct tm local_time;
+    localtime_r(&tm, &local_time);
+    return local_time.tm_gmtoff / 60; // tm_gmtoff is in seconds
+#endif
+}
+
+
+int DateTime::GetUtcOffset(const Components& components)
+{
+    // get the time locally...
+    const tm local_time = ToTm(components);
+    const int64_t local_timestamp = CreateTime(local_time, true);
+
+    // ...convert it back to UTC...
+    tm utc_time;
+
+#if defined(_WIN32)
+    gmtime_s(&utc_time, &local_timestamp);
+#else
+    gmtime_r(&local_timestamp, &utc_time);
+#endif
+
+    const int64_t utc_timestamp = CreateTime(utc_time, true);
+
+    // ...and then return the difference in minutes
+    return static_cast<int>(( local_timestamp - utc_timestamp ) / 60);
+}
+
+
 template<typename T/* = double*/>
 T GetTimestamp()
 {
@@ -309,21 +353,6 @@ std::string GetTimeAgo(const double timestamp)
     format_time_ago(100000, "year");
 
     return time_ago;
-}
-
-
-long GetUtcOffset()
-{
-#ifdef WIN32
-    TIME_ZONE_INFORMATION timeZoneInformation;
-    GetTimeZoneInformation(&timeZoneInformation);
-    return -1 * ( timeZoneInformation.Bias + timeZoneInformation.DaylightBias );
-#else
-    time_t tm = time(nullptr);
-    struct tm lt = {0};
-    localtime_r(&tm,&lt);
-    return lt.tm_gmtoff / 60; // tm_gmtoff is in seconds
-#endif
 }
 
 

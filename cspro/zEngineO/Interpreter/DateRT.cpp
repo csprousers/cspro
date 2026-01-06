@@ -75,15 +75,13 @@ double LogicInterpreter::ex_timestamp(const int program_index)
         if( special_value_read )
             return DEFAULT;
 
-        double timestamp = static_cast<double>(_mkgmtime(&time_struct));
         const int utc_offset_expression = arguments_list_node.elements[arguments_list_node.number_elements - 1];
+        double utc_offset_in_seconds;
 
         // local time
         if( utc_offset_expression == -1 )
         {
-            // assume that the offset does not change during a single run of the program
-            static double ufc_offset_seconds = static_cast<double>(GetUtcOffset()) * DateHelper::SecondsInMinute<double>();
-            timestamp -= ufc_offset_seconds;
+            utc_offset_in_seconds = DateTime::GetUtcOffset(DateTime::TimeToComponents(time_struct)) * DateHelper::SecondsInMinute<double>();
         }
 
         // UTC time with a potential offset
@@ -94,10 +92,10 @@ double LogicInterpreter::ex_timestamp(const int program_index)
             if( IsSpecial(utc_offset_hours) )
                 return DEFAULT;
 
-            timestamp -= utc_offset_hours * DateHelper::SecondsInHour<double>();
+            utc_offset_in_seconds = utc_offset_hours * DateHelper::SecondsInHour<double>();
         }
 
-        return timestamp;
+        return static_cast<double>(_mkgmtime(&time_struct)) - utc_offset_in_seconds;
     }
 }
 
