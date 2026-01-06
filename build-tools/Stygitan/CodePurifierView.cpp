@@ -71,16 +71,16 @@ void CodePurifierView::OnInitialUpdate()
     GetDlgItem(IDC_APPLY_EDITORCONFIG_RULES_BEFORE_RESET)->EnableWindow(m_createBranchCopyBeforeReset);
 
     m_commitsListCtrl.SetExtendedStyle(LVS_EX_FULLROWSELECT);
-    m_commitsListCtrl.SetHeadings(L"Date,120;Message,435");
+    m_commitsListCtrl.SetHeadings(L"Date,120;Message,550;Author,220");
     m_commitsListCtrl.LoadColumnInfo();
 
     m_modifiedFilesListCtrl.SetExtendedStyle(LVS_EX_FULLROWSELECT);
-    m_modifiedFilesListCtrl.SetHeadings(L"Path,475;Status,95");
+    m_modifiedFilesListCtrl.SetHeadings(L"Path,500;Status,95;Modified,120");
     m_modifiedFilesListCtrl.LoadColumnInfo();
 
     // because it may take a while to generate the list of modified files,
     // add an indication that this list is pending
-    m_modifiedFilesListCtrl.AddItem(L"Identifying modified files...", L"");
+    m_modifiedFilesListCtrl.AddItem(L"Identifying modified files...", L"", L"");
 
     // start Git processing, with updates posted here using the message UWM::Stygitan::UpdateUI
     cp_doc.StartGitProcessing(this);
@@ -221,7 +221,8 @@ void CodePurifierView::UpdateRecentCommits()
     for( const GitCommit& commit : *m_recentCommits )
     {
         m_commitsListCtrl.AddItem(TC::ToWide(commit.GetAuthor().GetWhen().GetLocalDateTimeString()).c_str(),
-                                  TC::ToWide(commit.GetMessage()).c_str());
+                                  TC::ToWide(commit.GetMessage()).c_str(),
+                                  TC::ToWide(commit.GetAuthor().GetDisplayString()).c_str());
 
         if( !reached_clean_commit )
         {
@@ -252,8 +253,11 @@ void CodePurifierView::UpdateModifiedFiles()
 
     for( const CP::ModifiedFile& modified_file : *m_modifiedFiles )
     {
-        m_modifiedFilesListCtrl.AddItem(TC::ToWide(modified_file.git_path).c_str(),
-                                        modified_file.GetStatus());
+        m_modifiedFilesListCtrl.AddItem(
+            TC::ToWide(modified_file.git_path).c_str(),
+            modified_file.GetStatus(),
+            ( modified_file.file_modified_time != -1 ) ? TC::ToWide(DateTime::LocalDateTimeString(modified_file.file_modified_time)).c_str() : L""
+        );
     }
 }
 
@@ -397,16 +401,15 @@ void CodePurifierView::ApplyEditorConfigRules(size_t& changed) const
         if( modified_file.diff_flag == GIT_DELTA_DELETED )
             continue;
 
-        const std::string file_path = GetFilePathOnDisk(modified_file);
-        const EditorConfig::Options options = evaluator.Parse(file_path, m_useDefaultEditorConfig);
+        const EditorConfig::Options options = evaluator.Parse(modified_file.file_path, m_useDefaultEditorConfig);
 
         if( options.IsDefined() )
         {
-            const BinaryBlock* const processed_file = editorconfig_applier.Process(file_path, options);
+            const BinaryBlock* const processed_file = editorconfig_applier.Process(modified_file.file_path, options);
 
             if( processed_file != nullptr )
             {
-                FileIO::Write(file_path, *processed_file);
+                FileIO::Write(modified_file.file_path, *processed_file);
                 ++changed;
             }
         }
@@ -524,13 +527,13 @@ void CodePurifierView::OnModifiedFilesDoubleOrRightClick(NMHDR* const pNMHDR, LR
         UINT file_exists_flag = MF_ENABLED;
         UINT directory_exists_flag = MF_ENABLED;
 
-        const auto [file_path, modified_file] = GetSelectedModifiedFile();
+        const CP::ModifiedFile& modified_file = GetSelectedModifiedFile();
 
-        if( !PortableFunctions::FileIsRegular(file_path) )
+        if( modified_file.diff_flag == GIT_DELTA_DELETED )
         {
             file_exists_flag = MF_DISABLED;
 
-            if( !PortableFunctions::FileIsDirectory(PortableFunctions::PathGetDirectory(file_path)) )
+            if( !PortableFunctions::FileIsDirectory(PortableFunctions::PathGetDirectory(modified_file.file_path)) )
                 directory_exists_flag = MF_DISABLED;
         }
 
@@ -550,56 +553,43 @@ void CodePurifierView::OnModifiedFilesDoubleOrRightClick(NMHDR* const pNMHDR, LR
 }
 
 
-std::string CodePurifierView::GetFilePathOnDisk(const CP::ModifiedFile& modified_file) const
-{
-    const CodePurifierDoc& cp_doc = GetDoc();
-
-    return Path::Combine(cp_doc.GetRepositoryWorkingDirectory(),
-                         Path::ToNativeSlash(modified_file.git_path));
-}
-
-
-std::tuple<std::string, const CP::ModifiedFile*> CodePurifierView::GetSelectedModifiedFile() const
+const CP::ModifiedFile& CodePurifierView::GetSelectedModifiedFile() const
 {
     const size_t index = static_cast<size_t>(m_modifiedFilesListCtrl.GetSelectionMark());
     ASSERT(m_modifiedFiles != nullptr && index < m_modifiedFiles->size());
-
-    const CP::ModifiedFile* const modified_file = &m_modifiedFiles->at(index);
-
-    return std::make_tuple(GetFilePathOnDisk(*modified_file),
-                           modified_file);
+    return m_modifiedFiles->at(index);
 }
 
 
 void CodePurifierView::OnModifiedFileOpen()
 {
-    auto [file_path, modified_file] = GetSelectedModifiedFile();
+    const CP::ModifiedFile& modified_file = GetSelectedModifiedFile();
 
-    ShellExecute(nullptr, L"open", TC::ToWide(EscapeCommandLineArgument(std::move(file_path))).c_str(), nullptr, nullptr, SW_SHOW);
+    ShellExecute(nullptr, L"open", TC::ToWide(EscapeCommandLineArgument(modified_file.file_path)).c_str(), nullptr, nullptr, SW_SHOW);
 }
 
 
 void CodePurifierView::OnModifiedFileOpenContainingFolder()
 {
-    const auto [file_path, modified_file] = GetSelectedModifiedFile();
+    const CP::ModifiedFile& modified_file = GetSelectedModifiedFile();
 
-    if( PortableFunctions::FileIsRegular(file_path) )
+    if( modified_file.diff_flag != GIT_DELTA_DELETED )
     {
-        OpenContainingFolder(file_path);
+        OpenContainingFolder(modified_file.file_path);
     }
 
     else
     {
-        OpenContainingFolder(PortableFunctions::PathGetDirectory(file_path));
+        OpenContainingFolder(PortableFunctions::PathGetDirectory(modified_file.file_path));
     }
 }
 
 
 void CodePurifierView::OnModifiedFileCopyPath()
 {
-    const auto [file_path, modified_file] = GetSelectedModifiedFile();
+    const CP::ModifiedFile& modified_file = GetSelectedModifiedFile();
 
-    WinClipboard::PutText(this, file_path);
+    WinClipboard::PutText(this, modified_file.file_path);
 }
 
 
@@ -612,17 +602,17 @@ void CodePurifierView::OnModifiedFileDiff()
         return;
     }
 
-    const auto [file_path, modified_file] = GetSelectedModifiedFile();
+    const CP::ModifiedFile& modified_file = GetSelectedModifiedFile();
 
     try
     {
         // the default settings work for GIT_DELTA_ADDED or GIT_DELTA_UNTRACKED
         std::string old_file_path;
-        const std::string* new_file_path = &file_path;
+        const std::string* new_file_path = &modified_file.file_path;
 
         // when a file is deleted or modified, we must get the version of the file from the commit's tree
-        if( modified_file->diff_flag == GIT_DELTA_DELETED ||
-            modified_file->diff_flag == GIT_DELTA_MODIFIED )
+        if( modified_file.diff_flag == GIT_DELTA_DELETED ||
+            modified_file.diff_flag == GIT_DELTA_MODIFIED )
         {
             CodePurifierDoc& cp_doc = GetDoc();
             const std::shared_ptr<const GitCommit> clean_commit = cp_doc.GetCleanCommit();
@@ -631,24 +621,24 @@ void CodePurifierView::OnModifiedFileDiff()
             // the filename will contain the short Git hash, as well as a short hash of the file path
             // (in case multiple files with the same filename from different directories are accessed)
             const std::string temp_filename_wihout_extension = SO::Concatenate(
-                Path::GetFilenameWithoutExtension(file_path),
+                Path::GetFilenameWithoutExtension(modified_file.file_path),
                 "-", ( clean_commit != nullptr ) ? clean_commit->GetObjectId().GetHexHash().substr(0, 7) : ReturnProgrammingError(""),
-                "-", Hash::Hash(file_path, 2)
+                "-", Hash::Hash(modified_file.file_path, 2)
             );
 
             old_file_path = PortableFunctions::CreateFilePath(
                 GetTempDirectory(),
                 temp_filename_wihout_extension,
-                Path::GetExtension(file_path)
+                Path::GetExtension(modified_file.file_path)
             );
 
             if( m_comparisonFilePathsForFileDiffs.find(old_file_path) == m_comparisonFilePathsForFileDiffs.cend() )
             {
-                cp_doc.SaveFileFromCleanCommit(modified_file->git_path, old_file_path);
+                cp_doc.SaveFileFromCleanCommit(modified_file.git_path, old_file_path);
                 TemporaryFile::RegisterFileForDeletion(old_file_path);
             }
 
-            if( modified_file->diff_flag == GIT_DELTA_DELETED )
+            if( modified_file.diff_flag == GIT_DELTA_DELETED )
                 new_file_path = &SO::Empty_string;
         }
 

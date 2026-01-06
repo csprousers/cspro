@@ -62,9 +62,7 @@ private:
 
     void ApplyEditorConfigRules(size_t& changed) const;
 
-    std::string GetFilePathOnDisk(const CP::ModifiedFile& modified_file) const;
-
-    std::tuple<std::string, const CP::ModifiedFile*> GetSelectedModifiedFile() const;
+    const CP::ModifiedFile& GetSelectedModifiedFile() const;
 
 private:
     SettingsDb m_settingsDb;

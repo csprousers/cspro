@@ -523,7 +523,8 @@ bool CodePurifierDoc::IdentifyModifiedFiles()
         m_repo.ForeachDifferenceInWorkingDirectory(*m_cleanCommit,
             [&](std::string path, const unsigned int diff_flag)
             {
-                modified_files->emplace_back(std::move(path), diff_flag);
+                std::string file_path = Path::Combine(m_repoWorkingDirectory, Path::ToNativeSlash(path));
+                modified_files->emplace_back(std::move(path), diff_flag, std::move(file_path));
                 return !m_refreshDataCancelFlag;
             });
 
