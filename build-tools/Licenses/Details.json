@@ -261,9 +261,9 @@
   },
   {
     "projectName": "RapidFuzz",
-    "projectUrl": "https://github.com/maxbachmann/rapidfuzz-cpp",
+    "projectUrl": "https://github.com/rapidfuzz/rapidfuzz-cpp",
     "licenseFilename": "LICENSE",
-    "licenseUrl": "https://raw.githubusercontent.com/maxbachmann/rapidfuzz-cpp/main/LICENSE"
+    "licenseUrl": "https://raw.githubusercontent.com/rapidfuzz/rapidfuzz-cpp/refs/heads/main/LICENSE"
   },
   {
     "projectName": "ReadStat",

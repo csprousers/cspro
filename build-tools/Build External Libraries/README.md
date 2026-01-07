@@ -58,6 +58,16 @@
 5. The library is built as part of the CSPro solution.
 
 
+### RapidFuzz
+
+1. Find the latest version here: https://github.com/rapidfuzz/rapidfuzz-cpp/releases/latest/
+2. Edit the batch script, *rapidfuzz.bat*, setting **rz_version**.
+3. Run the batch script. 
+4. This copies files into the CSPro solution, including some that are not necessary. 
+5. Remove anything that is not already committed.
+6. The library is built as part of the CSPro solution.
+
+
 ### SQLite
 
 1. Run the *Update SQLite* build tool.

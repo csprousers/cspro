@@ -8,8 +8,6 @@
 #include <rapidfuzz/details/common.hpp>
 #include <rapidfuzz/distance/Indel.hpp>
 
-#include <type_traits>
-
 namespace rapidfuzz {
 namespace fuzz {
 
@@ -43,11 +41,59 @@ namespace fuzz {
  *
  * @return returns the ratio between s1 and s2 or 0 when ratio < score_cutoff
  */
+template <typename Sentence1, typename Sentence2>
+double ratio(const Sentence1& s1, const Sentence2& s2, double score_cutoff = 0);
+
 template <typename InputIt1, typename InputIt2>
 double ratio(InputIt1 first1, InputIt1 last1, InputIt2 first2, InputIt2 last2, double score_cutoff = 0);
 
-template <typename Sentence1, typename Sentence2>
-double ratio(const Sentence1& s1, const Sentence2& s2, double score_cutoff = 0);
+#ifdef RAPIDFUZZ_SIMD
+namespace experimental {
+template <int MaxLen>
+struct MultiRatio {
+public:
+    MultiRatio(size_t count) : input_count(count), scorer(count)
+    {}
+
+    size_t result_count() const
+    {
+        return scorer.result_count();
+    }
+
+    template <typename Sentence1>
+    void insert(const Sentence1& s1_)
+    {
+        insert(detail::to_begin(s1_), detail::to_end(s1_));
+    }
+
+    template <typename InputIt1>
+    void insert(InputIt1 first1, InputIt1 last1)
+    {
+        scorer.insert(first1, last1);
+    }
+
+    template <typename InputIt2>
+    void similarity(double* scores, size_t score_count, InputIt2 first2, InputIt2 last2,
+                    double score_cutoff = 0.0) const
+    {
+        similarity(scores, score_count, detail::make_range(first2, last2), score_cutoff);
+    }
+
+    template <typename Sentence2>
+    void similarity(double* scores, size_t score_count, const Sentence2& s2, double score_cutoff = 0) const
+    {
+        scorer.normalized_similarity(scores, score_count, s2, score_cutoff / 100.0);
+
+        for (size_t i = 0; i < input_count; ++i)
+            scores[i] *= 100.0;
+    }
+
+private:
+    size_t input_count;
+    rapidfuzz::experimental::MultiIndel<MaxLen> scorer;
+};
+} /* namespace experimental */
+#endif
 
 // TODO documentation
 template <typename CharT1>
@@ -61,16 +107,17 @@ struct CachedRatio {
     {}
 
     template <typename InputIt2>
-    double similarity(InputIt2 first2, InputIt2 last2, double score_cutoff = 0.0) const;
+    double similarity(InputIt2 first2, InputIt2 last2, double score_cutoff = 0.0,
+                      double score_hint = 0.0) const;
 
     template <typename Sentence2>
-    double similarity(const Sentence2& s2, double score_cutoff = 0) const;
+    double similarity(const Sentence2& s2, double score_cutoff = 0.0, double score_hint = 0.0) const;
 
-private:
+    // private:
     CachedIndel<CharT1> cached_indel;
 };
 
-#if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+#ifdef RAPIDFUZZ_DEDUCTION_GUIDES
 template <typename Sentence1>
 CachedRatio(const Sentence1& s1) -> CachedRatio<char_type<Sentence1>>;
 
@@ -111,12 +158,12 @@ ScoreAlignment<double> partial_ratio_alignment(const Sentence1& s1, const Senten
  *
  * @return returns the ratio between s1 and s2 or 0 when ratio < score_cutoff
  */
+template <typename Sentence1, typename Sentence2>
+double partial_ratio(const Sentence1& s1, const Sentence2& s2, double score_cutoff = 0);
+
 template <typename InputIt1, typename InputIt2>
 double partial_ratio(InputIt1 first1, InputIt1 last1, InputIt2 first2, InputIt2 last2,
                      double score_cutoff = 0);
-
-template <typename Sentence1, typename Sentence2>
-double partial_ratio(const Sentence1& s1, const Sentence2& s2, double score_cutoff = 0);
 
 // todo add real implementation
 template <typename CharT1>
@@ -128,24 +175,26 @@ struct CachedPartialRatio {
     CachedPartialRatio(InputIt1 first1, InputIt1 last1);
 
     template <typename Sentence1>
-    CachedPartialRatio(const Sentence1& s1_) : CachedPartialRatio(detail::to_begin(s1_), detail::to_end(s1_))
+    explicit CachedPartialRatio(const Sentence1& s1_)
+        : CachedPartialRatio(detail::to_begin(s1_), detail::to_end(s1_))
     {}
 
     template <typename InputIt2>
-    double similarity(InputIt2 first2, InputIt2 last2, double score_cutoff = 0.0) const;
+    double similarity(InputIt2 first2, InputIt2 last2, double score_cutoff = 0.0,
+                      double score_hint = 0.0) const;
 
     template <typename Sentence2>
-    double similarity(const Sentence2& s2, double score_cutoff = 0.0) const;
+    double similarity(const Sentence2& s2, double score_cutoff = 0.0, double score_hint = 0.0) const;
 
 private:
-    std::basic_string<CharT1> s1;
+    std::vector<CharT1> s1;
     rapidfuzz::detail::CharSet<CharT1> s1_char_set;
     CachedRatio<CharT1> cached_ratio;
 };
 
-#if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+#ifdef RAPIDFUZZ_DEDUCTION_GUIDES
 template <typename Sentence1>
-CachedPartialRatio(const Sentence1& s1) -> CachedPartialRatio<char_type<Sentence1>>;
+explicit CachedPartialRatio(const Sentence1& s1) -> CachedPartialRatio<char_type<Sentence1>>;
 
 template <typename InputIt1>
 CachedPartialRatio(InputIt1 first1, InputIt1 last1) -> CachedPartialRatio<iter_value_t<InputIt1>>;
@@ -177,12 +226,56 @@ CachedPartialRatio(InputIt1 first1, InputIt1 last1) -> CachedPartialRatio<iter_v
  *
  * @return returns the ratio between s1 and s2 or 0 when ratio < score_cutoff
  */
+template <typename Sentence1, typename Sentence2>
+double token_sort_ratio(const Sentence1& s1, const Sentence2& s2, double score_cutoff = 0);
+
 template <typename InputIt1, typename InputIt2>
 double token_sort_ratio(InputIt1 first1, InputIt1 last1, InputIt2 first2, InputIt2 last2,
                         double score_cutoff = 0);
 
-template <typename Sentence1, typename Sentence2>
-double token_sort_ratio(const Sentence1& s1, const Sentence2& s2, double score_cutoff = 0);
+#ifdef RAPIDFUZZ_SIMD
+namespace experimental {
+template <int MaxLen>
+struct MultiTokenSortRatio {
+public:
+    MultiTokenSortRatio(size_t count) : scorer(count)
+    {}
+
+    size_t result_count() const
+    {
+        return scorer.result_count();
+    }
+
+    template <typename Sentence1>
+    void insert(const Sentence1& s1_)
+    {
+        insert(detail::to_begin(s1_), detail::to_end(s1_));
+    }
+
+    template <typename InputIt1>
+    void insert(InputIt1 first1, InputIt1 last1)
+    {
+        scorer.insert(detail::sorted_split(first1, last1).join());
+    }
+
+    template <typename InputIt2>
+    void similarity(double* scores, size_t score_count, InputIt2 first2, InputIt2 last2,
+                    double score_cutoff = 0.0) const
+    {
+        scorer.similarity(scores, score_count, detail::sorted_split(first2, last2).join(), score_cutoff);
+    }
+
+    template <typename Sentence2>
+    void similarity(double* scores, size_t score_count, const Sentence2& s2, double score_cutoff = 0) const
+    {
+        similarity(scores, score_count, detail::to_begin(s2), detail::to_end(s2), score_cutoff);
+    }
+
+private:
+    MultiRatio<MaxLen> scorer;
+};
+} /* namespace experimental */
+#endif
 
 // todo CachedRatio speed for equal strings vs original implementation
 // TODO documentation
@@ -194,23 +287,25 @@ struct CachedTokenSortRatio {
     {}
 
     template <typename Sentence1>
-    CachedTokenSortRatio(const Sentence1& s1) : CachedTokenSortRatio(detail::to_begin(s1), detail::to_end(s1))
+    explicit CachedTokenSortRatio(const Sentence1& s1)
+        : CachedTokenSortRatio(detail::to_begin(s1), detail::to_end(s1))
     {}
 
     template <typename InputIt2>
-    double similarity(InputIt2 first2, InputIt2 last2, double score_cutoff = 0) const;
+    double similarity(InputIt2 first2, InputIt2 last2, double score_cutoff = 0.0,
+                      double score_hint = 0.0) const;
 
     template <typename Sentence2>
-    double similarity(const Sentence2& s2, double score_cutoff = 0) const;
+    double similarity(const Sentence2& s2, double score_cutoff = 0.0, double score_hint = 0.0) const;
 
 private:
-    std::basic_string<CharT1> s1_sorted;
+    std::vector<CharT1> s1_sorted;
     CachedRatio<CharT1> cached_ratio;
 };
 
-#if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+#ifdef RAPIDFUZZ_DEDUCTION_GUIDES
 template <typename Sentence1>
-CachedTokenSortRatio(const Sentence1& s1) -> CachedTokenSortRatio<char_type<Sentence1>>;
+explicit CachedTokenSortRatio(const Sentence1& s1) -> CachedTokenSortRatio<char_type<Sentence1>>;
 
 template <typename InputIt1>
 CachedTokenSortRatio(InputIt1 first1, InputIt1 last1) -> CachedTokenSortRatio<iter_value_t<InputIt1>>;
@@ -236,12 +331,12 @@ CachedTokenSortRatio(InputIt1 first1, InputIt1 last1) -> CachedTokenSortRatio<it
  *
  * @return returns the ratio between s1 and s2 or 0 when ratio < score_cutoff
  */
+template <typename Sentence1, typename Sentence2>
+double partial_token_sort_ratio(const Sentence1& s1, const Sentence2& s2, double score_cutoff = 0);
+
 template <typename InputIt1, typename InputIt2>
 double partial_token_sort_ratio(InputIt1 first1, InputIt1 last1, InputIt2 first2, InputIt2 last2,
                                 double score_cutoff = 0);
-
-template <typename Sentence1, typename Sentence2>
-double partial_token_sort_ratio(const Sentence1& s1, const Sentence2& s2, double score_cutoff = 0);
 
 // TODO documentation
 template <typename CharT1>
@@ -252,28 +347,30 @@ struct CachedPartialTokenSortRatio {
     {}
 
     template <typename Sentence1>
-    CachedPartialTokenSortRatio(const Sentence1& s1)
+    explicit CachedPartialTokenSortRatio(const Sentence1& s1)
         : CachedPartialTokenSortRatio(detail::to_begin(s1), detail::to_end(s1))
     {}
 
     template <typename InputIt2>
-    double similarity(InputIt2 first2, InputIt2 last2, double score_cutoff = 0) const;
+    double similarity(InputIt2 first2, InputIt2 last2, double score_cutoff = 0.0,
+                      double score_hint = 0.0) const;
 
     template <typename Sentence2>
-    double similarity(const Sentence2& s2, double score_cutoff = 0) const;
+    double similarity(const Sentence2& s2, double score_cutoff = 0.0, double score_hint = 0.0) const;
 
 private:
-    std::basic_string<CharT1> s1_sorted;
+    std::vector<CharT1> s1_sorted;
     CachedPartialRatio<CharT1> cached_partial_ratio;
 };
 
-#if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+#ifdef RAPIDFUZZ_DEDUCTION_GUIDES
 template <typename Sentence1>
-CachedPartialTokenSortRatio(const Sentence1& s1) -> CachedPartialTokenSortRatio<char_type<Sentence1>>;
+explicit CachedPartialTokenSortRatio(const Sentence1& s1)
+    -> CachedPartialTokenSortRatio<char_type<Sentence1>>;
 
 template <typename InputIt1>
-CachedPartialTokenSortRatio(InputIt1 first1, InputIt1 last1)
-    -> CachedPartialTokenSortRatio<iter_value_t<InputIt1>>;
+CachedPartialTokenSortRatio(InputIt1 first1,
+                            InputIt1 last1) -> CachedPartialTokenSortRatio<iter_value_t<InputIt1>>;
 #endif
 
 /**
@@ -304,12 +401,12 @@ CachedPartialTokenSortRatio(InputIt1 first1, InputIt1 last1)
  *
  * @return returns the ratio between s1 and s2 or 0 when ratio < score_cutoff
  */
+template <typename Sentence1, typename Sentence2>
+double token_set_ratio(const Sentence1& s1, const Sentence2& s2, double score_cutoff = 0);
+
 template <typename InputIt1, typename InputIt2>
 double token_set_ratio(InputIt1 first1, InputIt1 last1, InputIt2 first2, InputIt2 last2,
                        double score_cutoff = 0);
-
-template <typename Sentence1, typename Sentence2>
-double token_set_ratio(const Sentence1& s1, const Sentence2& s2, double score_cutoff = 0);
 
 // TODO documentation
 template <typename CharT1>
@@ -320,24 +417,25 @@ struct CachedTokenSetRatio {
     {}
 
     template <typename Sentence1>
-    CachedTokenSetRatio(const Sentence1& s1_)
+    explicit CachedTokenSetRatio(const Sentence1& s1_)
         : CachedTokenSetRatio(detail::to_begin(s1_), detail::to_end(s1_))
     {}
 
     template <typename InputIt2>
-    double similarity(InputIt2 first2, InputIt2 last2, double score_cutoff = 0) const;
+    double similarity(InputIt2 first2, InputIt2 last2, double score_cutoff = 0.0,
+                      double score_hint = 0.0) const;
 
     template <typename Sentence2>
-    double similarity(const Sentence2& s2, double score_cutoff = 0) const;
+    double similarity(const Sentence2& s2, double score_cutoff = 0.0, double score_hint = 0.0) const;
 
 private:
-    std::basic_string<CharT1> s1;
-    SplittedSentenceView<typename std::basic_string<CharT1>::iterator> tokens_s1;
+    std::vector<CharT1> s1;
+    detail::SplittedSentenceView<typename std::vector<CharT1>::iterator> tokens_s1;
 };
 
-#if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+#ifdef RAPIDFUZZ_DEDUCTION_GUIDES
 template <typename Sentence1>
-CachedTokenSetRatio(const Sentence1& s1) -> CachedTokenSetRatio<char_type<Sentence1>>;
+explicit CachedTokenSetRatio(const Sentence1& s1) -> CachedTokenSetRatio<char_type<Sentence1>>;
 
 template <typename InputIt1>
 CachedTokenSetRatio(InputIt1 first1, InputIt1 last1) -> CachedTokenSetRatio<iter_value_t<InputIt1>>;
@@ -362,12 +460,12 @@ CachedTokenSetRatio(InputIt1 first1, InputIt1 last1) -> CachedTokenSetRatio<iter
  *
  * @return returns the ratio between s1 and s2 or 0 when ratio < score_cutoff
  */
+template <typename Sentence1, typename Sentence2>
+double partial_token_set_ratio(const Sentence1& s1, const Sentence2& s2, double score_cutoff = 0);
+
 template <typename InputIt1, typename InputIt2>
 double partial_token_set_ratio(InputIt1 first1, InputIt1 last1, InputIt2 first2, InputIt2 last2,
                                double score_cutoff = 0);
-
-template <typename Sentence1, typename Sentence2>
-double partial_token_set_ratio(const Sentence1& s1, const Sentence2& s2, double score_cutoff = 0);
 
 // TODO documentation
 template <typename CharT1>
@@ -378,28 +476,29 @@ struct CachedPartialTokenSetRatio {
     {}
 
     template <typename Sentence1>
-    CachedPartialTokenSetRatio(const Sentence1& s1_)
+    explicit CachedPartialTokenSetRatio(const Sentence1& s1_)
         : CachedPartialTokenSetRatio(detail::to_begin(s1_), detail::to_end(s1_))
     {}
 
     template <typename InputIt2>
-    double similarity(InputIt2 first2, InputIt2 last2, double score_cutoff = 0) const;
+    double similarity(InputIt2 first2, InputIt2 last2, double score_cutoff = 0.0,
+                      double score_hint = 0.0) const;
 
     template <typename Sentence2>
-    double similarity(const Sentence2& s2, double score_cutoff = 0) const;
+    double similarity(const Sentence2& s2, double score_cutoff = 0.0, double score_hint = 0.0) const;
 
 private:
-    std::basic_string<CharT1> s1;
-    SplittedSentenceView<typename std::basic_string<CharT1>::iterator> tokens_s1;
+    std::vector<CharT1> s1;
+    detail::SplittedSentenceView<typename std::vector<CharT1>::iterator> tokens_s1;
 };
 
-#if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+#ifdef RAPIDFUZZ_DEDUCTION_GUIDES
 template <typename Sentence1>
-CachedPartialTokenSetRatio(const Sentence1& s1) -> CachedPartialTokenSetRatio<char_type<Sentence1>>;
+explicit CachedPartialTokenSetRatio(const Sentence1& s1) -> CachedPartialTokenSetRatio<char_type<Sentence1>>;
 
 template <typename InputIt1>
-CachedPartialTokenSetRatio(InputIt1 first1, InputIt1 last1)
-    -> CachedPartialTokenSetRatio<iter_value_t<InputIt1>>;
+CachedPartialTokenSetRatio(InputIt1 first1,
+                           InputIt1 last1) -> CachedPartialTokenSetRatio<iter_value_t<InputIt1>>;
 #endif
 
 /**
@@ -421,11 +520,11 @@ CachedPartialTokenSetRatio(InputIt1 first1, InputIt1 last1)
  *
  * @return returns the ratio between s1 and s2 or 0 when ratio < score_cutoff
  */
-template <typename InputIt1, typename InputIt2>
-double token_ratio(InputIt1 first1, InputIt1 last1, InputIt2 first2, InputIt2 last2, double score_cutoff = 0);
-
 template <typename Sentence1, typename Sentence2>
 double token_ratio(const Sentence1& s1, const Sentence2& s2, double score_cutoff = 0);
+
+template <typename InputIt1, typename InputIt2>
+double token_ratio(InputIt1 first1, InputIt1 last1, InputIt2 first2, InputIt2 last2, double score_cutoff = 0);
 
 // todo add real implementation
 template <typename CharT1>
@@ -439,25 +538,27 @@ struct CachedTokenRatio {
     {}
 
     template <typename Sentence1>
-    CachedTokenRatio(const Sentence1& s1_) : CachedTokenRatio(detail::to_begin(s1_), detail::to_end(s1_))
+    explicit CachedTokenRatio(const Sentence1& s1_)
+        : CachedTokenRatio(detail::to_begin(s1_), detail::to_end(s1_))
     {}
 
     template <typename InputIt2>
-    double similarity(InputIt2 first2, InputIt2 last2, double score_cutoff = 0) const;
+    double similarity(InputIt2 first2, InputIt2 last2, double score_cutoff = 0.0,
+                      double score_hint = 0.0) const;
 
     template <typename Sentence2>
-    double similarity(const Sentence2& s2, double score_cutoff = 0) const;
+    double similarity(const Sentence2& s2, double score_cutoff = 0.0, double score_hint = 0.0) const;
 
 private:
-    std::basic_string<CharT1> s1;
-    SplittedSentenceView<typename std::basic_string<CharT1>::iterator> s1_tokens;
-    std::basic_string<CharT1> s1_sorted;
+    std::vector<CharT1> s1;
+    detail::SplittedSentenceView<typename std::vector<CharT1>::iterator> s1_tokens;
+    std::vector<CharT1> s1_sorted;
     CachedRatio<CharT1> cached_ratio_s1_sorted;
 };
 
-#if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+#ifdef RAPIDFUZZ_DEDUCTION_GUIDES
 template <typename Sentence1>
-CachedTokenRatio(const Sentence1& s1) -> CachedTokenRatio<char_type<Sentence1>>;
+explicit CachedTokenRatio(const Sentence1& s1) -> CachedTokenRatio<char_type<Sentence1>>;
 
 template <typename InputIt1>
 CachedTokenRatio(InputIt1 first1, InputIt1 last1) -> CachedTokenRatio<iter_value_t<InputIt1>>;
@@ -483,12 +584,12 @@ CachedTokenRatio(InputIt1 first1, InputIt1 last1) -> CachedTokenRatio<iter_value
  *
  * @return returns the ratio between s1 and s2 or 0 when ratio < score_cutoff
  */
+template <typename Sentence1, typename Sentence2>
+double partial_token_ratio(const Sentence1& s1, const Sentence2& s2, double score_cutoff = 0);
+
 template <typename InputIt1, typename InputIt2>
 double partial_token_ratio(InputIt1 first1, InputIt1 last1, InputIt2 first2, InputIt2 last2,
                            double score_cutoff = 0);
-
-template <typename Sentence1, typename Sentence2>
-double partial_token_ratio(const Sentence1& s1, const Sentence2& s2, double score_cutoff = 0);
 
 // todo add real implementation
 template <typename CharT1>
@@ -501,25 +602,26 @@ struct CachedPartialTokenRatio {
     {}
 
     template <typename Sentence1>
-    CachedPartialTokenRatio(const Sentence1& s1_)
+    explicit CachedPartialTokenRatio(const Sentence1& s1_)
         : CachedPartialTokenRatio(detail::to_begin(s1_), detail::to_end(s1_))
     {}
 
     template <typename InputIt2>
-    double similarity(InputIt2 first2, InputIt2 last2, double score_cutoff = 0) const;
+    double similarity(InputIt2 first2, InputIt2 last2, double score_cutoff = 0.0,
+                      double score_hint = 0.0) const;
 
     template <typename Sentence2>
-    double similarity(const Sentence2& s2, double score_cutoff = 0) const;
+    double similarity(const Sentence2& s2, double score_cutoff = 0.0, double score_hint = 0.0) const;
 
 private:
-    std::basic_string<CharT1> s1;
-    SplittedSentenceView<typename std::basic_string<CharT1>::iterator> tokens_s1;
-    std::basic_string<CharT1> s1_sorted;
+    std::vector<CharT1> s1;
+    detail::SplittedSentenceView<typename std::vector<CharT1>::iterator> tokens_s1;
+    std::vector<CharT1> s1_sorted;
 };
 
-#if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+#ifdef RAPIDFUZZ_DEDUCTION_GUIDES
 template <typename Sentence1>
-CachedPartialTokenRatio(const Sentence1& s1) -> CachedPartialTokenRatio<char_type<Sentence1>>;
+explicit CachedPartialTokenRatio(const Sentence1& s1) -> CachedPartialTokenRatio<char_type<Sentence1>>;
 
 template <typename InputIt1>
 CachedPartialTokenRatio(InputIt1 first1, InputIt1 last1) -> CachedPartialTokenRatio<iter_value_t<InputIt1>>;
@@ -546,41 +648,42 @@ CachedPartialTokenRatio(InputIt1 first1, InputIt1 last1) -> CachedPartialTokenRa
  *
  * @return returns the ratio between s1 and s2 or 0 when ratio < score_cutoff
  */
-template <typename InputIt1, typename InputIt2>
-double WRatio(InputIt1 first1, InputIt1 last1, InputIt2 first2, InputIt2 last2, double score_cutoff = 0);
-
 template <typename Sentence1, typename Sentence2>
 double WRatio(const Sentence1& s1, const Sentence2& s2, double score_cutoff = 0);
+
+template <typename InputIt1, typename InputIt2>
+double WRatio(InputIt1 first1, InputIt1 last1, InputIt2 first2, InputIt2 last2, double score_cutoff = 0);
 
 // todo add real implementation
 template <typename CharT1>
 struct CachedWRatio {
     template <typename InputIt1>
-    CachedWRatio(InputIt1 first1, InputIt1 last1);
+    explicit CachedWRatio(InputIt1 first1, InputIt1 last1);
 
     template <typename Sentence1>
     CachedWRatio(const Sentence1& s1_) : CachedWRatio(detail::to_begin(s1_), detail::to_end(s1_))
     {}
 
     template <typename InputIt2>
-    double similarity(InputIt2 first2, InputIt2 last2, double score_cutoff = 0) const;
+    double similarity(InputIt2 first2, InputIt2 last2, double score_cutoff = 0.0,
+                      double score_hint = 0.0) const;
 
     template <typename Sentence2>
-    double similarity(const Sentence2& s2, double score_cutoff = 0) const;
+    double similarity(const Sentence2& s2, double score_cutoff = 0.0, double score_hint = 0.0) const;
 
 private:
     // todo somehow implement this using other ratios with creating PatternMatchVector
     // multiple times
-    std::basic_string<CharT1> s1;
+    std::vector<CharT1> s1;
     CachedPartialRatio<CharT1> cached_partial_ratio;
-    SplittedSentenceView<typename std::basic_string<CharT1>::iterator> tokens_s1;
-    std::basic_string<CharT1> s1_sorted;
+    detail::SplittedSentenceView<typename std::vector<CharT1>::iterator> tokens_s1;
+    std::vector<CharT1> s1_sorted;
     rapidfuzz::detail::BlockPatternMatchVector blockmap_s1_sorted;
 };
 
-#if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+#ifdef RAPIDFUZZ_DEDUCTION_GUIDES
 template <typename Sentence1>
-CachedWRatio(const Sentence1& s1) -> CachedWRatio<char_type<Sentence1>>;
+explicit CachedWRatio(const Sentence1& s1) -> CachedWRatio<char_type<Sentence1>>;
 
 template <typename InputIt1>
 CachedWRatio(InputIt1 first1, InputIt1 last1) -> CachedWRatio<iter_value_t<InputIt1>>;
@@ -607,11 +710,68 @@ CachedWRatio(InputIt1 first1, InputIt1 last1) -> CachedWRatio<iter_value_t<Input
  *
  * @return returns the ratio between s1 and s2 or 0 when ratio < score_cutoff
  */
+template <typename Sentence1, typename Sentence2>
+double QRatio(const Sentence1& s1, const Sentence2& s2, double score_cutoff = 0);
+
 template <typename InputIt1, typename InputIt2>
 double QRatio(InputIt1 first1, InputIt1 last1, InputIt2 first2, InputIt2 last2, double score_cutoff = 0);
 
-template <typename Sentence1, typename Sentence2>
-double QRatio(const Sentence1& s1, const Sentence2& s2, double score_cutoff = 0);
+#ifdef RAPIDFUZZ_SIMD
+namespace experimental {
+template <int MaxLen>
+struct MultiQRatio {
+public:
+    MultiQRatio(size_t count) : scorer(count)
+    {}
+
+    size_t result_count() const
+    {
+        return scorer.result_count();
+    }
+
+    template <typename Sentence1>
+    void insert(const Sentence1& s1_)
+    {
+        insert(detail::to_begin(s1_), detail::to_end(s1_));
+    }
+
+    template <typename InputIt1>
+    void insert(InputIt1 first1, InputIt1 last1)
+    {
+        scorer.insert(first1, last1);
+        str_lens.push_back(static_cast<size_t>(std::distance(first1, last1)));
+    }
+
+    template <typename InputIt2>
+    void similarity(double* scores, size_t score_count, InputIt2 first2, InputIt2 last2,
+                    double score_cutoff = 0.0) const
+    {
+        similarity(scores, score_count, detail::make_range(first2, last2), score_cutoff);
+    }
+
+    template <typename Sentence2>
+    void similarity(double* scores, size_t score_count, const Sentence2& s2, double score_cutoff = 0) const
+    {
+        auto s2_ = detail::make_range(s2);
+        if (s2_.empty()) {
+            for (size_t i = 0; i < str_lens.size(); ++i)
+                scores[i] = 0;
+
+            return;
+        }
+
+        scorer.similarity(scores, score_count, s2, score_cutoff);
+
+        for (size_t i = 0; i < str_lens.size(); ++i)
+            if (str_lens[i] == 0) scores[i] = 0;
+    }
+
+private:
+    std::vector<size_t> str_lens;
+    MultiRatio<MaxLen> scorer;
+};
+} /* namespace experimental */
+#endif
 
 template <typename CharT1>
 struct CachedQRatio {
@@ -620,23 +780,24 @@ struct CachedQRatio {
     {}
 
     template <typename Sentence1>
-    CachedQRatio(const Sentence1& s1_) : CachedQRatio(detail::to_begin(s1_), detail::to_end(s1_))
+    explicit CachedQRatio(const Sentence1& s1_) : CachedQRatio(detail::to_begin(s1_), detail::to_end(s1_))
     {}
 
     template <typename InputIt2>
-    double similarity(InputIt2 first2, InputIt2 last2, double score_cutoff = 0) const;
+    double similarity(InputIt2 first2, InputIt2 last2, double score_cutoff = 0.0,
+                      double score_hint = 0.0) const;
 
     template <typename Sentence2>
-    double similarity(const Sentence2& s2, double score_cutoff = 0) const;
+    double similarity(const Sentence2& s2, double score_cutoff = 0.0, double score_hint = 0.0) const;
 
 private:
-    std::basic_string<CharT1> s1;
+    std::vector<CharT1> s1;
     CachedRatio<CharT1> cached_ratio;
 };
 
-#if ((defined(_MSVC_LANG) && _MSVC_LANG >= 201703L) || __cplusplus >= 201703L)
+#ifdef RAPIDFUZZ_DEDUCTION_GUIDES
 template <typename Sentence1>
-CachedQRatio(const Sentence1& s1) -> CachedQRatio<char_type<Sentence1>>;
+explicit CachedQRatio(const Sentence1& s1) -> CachedQRatio<char_type<Sentence1>>;
 
 template <typename InputIt1>
 CachedQRatio(InputIt1 first1, InputIt1 last1) -> CachedQRatio<iter_value_t<InputIt1>>;
@@ -647,4 +808,4 @@ CachedQRatio(InputIt1 first1, InputIt1 last1) -> CachedQRatio<iter_value_t<Input
 } // namespace fuzz
 } // namespace rapidfuzz
 
-#include <rapidfuzz/fuzz.impl>
+#include <rapidfuzz/fuzz_impl.hpp>

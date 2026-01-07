@@ -3,8 +3,7 @@
 
 #include <algorithm>
 #include <array>
-#include <cctype>
-#include <cwctype>
+#include <iterator>
 
 namespace rapidfuzz {
 namespace detail {
@@ -35,68 +34,50 @@ DecomposedSet<InputIt1, InputIt2, InputIt1> set_decomposition(SplittedSentenceVi
     return {difference_ab, difference_ba, intersection};
 }
 
-template <typename Sentence, typename CharT, typename>
-std::basic_string<CharT> to_string(Sentence&& str)
+template <class InputIt1, class InputIt2>
+std::pair<InputIt1, InputIt2> rf_mismatch(InputIt1 first1, InputIt1 last1, InputIt2 first2, InputIt2 last2)
 {
-    return std::basic_string<CharT>(std::forward<Sentence>(str));
-}
+    while (first1 != last1 && first2 != last2 && *first1 == *first2)
+        ++first1, ++first2;
 
-template <typename Sentence, typename CharT, typename>
-std::basic_string<CharT> to_string(const Sentence& str)
-{
-    return std::basic_string<CharT>(str.data(), str.size());
+    return std::make_pair(first1, first2);
 }
 
 /**
  * Removes common prefix of two string views
  */
 template <typename InputIt1, typename InputIt2>
-size_t remove_common_prefix(InputIt1& first1, InputIt1 last1, InputIt2& first2, InputIt2 last2)
+size_t remove_common_prefix(Range<InputIt1>& s1, Range<InputIt2>& s2)
 {
-    auto prefix = std::distance(first1, std::mismatch(first1, last1, first2, last2).first);
-    first1 += prefix;
-    first2 += prefix;
-    return static_cast<size_t>(prefix);
+    auto first1 = std::begin(s1);
+    size_t prefix = static_cast<size_t>(
+        std::distance(first1, rf_mismatch(first1, std::end(s1), std::begin(s2), std::end(s2)).first));
+    s1.remove_prefix(prefix);
+    s2.remove_prefix(prefix);
+    return prefix;
 }
 
 /**
  * Removes common suffix of two string views
  */
 template <typename InputIt1, typename InputIt2>
-size_t remove_common_suffix(InputIt1 first1, InputIt1& last1, InputIt2 first2, InputIt2& last2)
+size_t remove_common_suffix(Range<InputIt1>& s1, Range<InputIt2>& s2)
 {
-    auto rfirst1 = std::make_reverse_iterator(last1);
-    auto rlast1 = std::make_reverse_iterator(first1);
-    auto rfirst2 = std::make_reverse_iterator(last2);
-    auto rlast2 = std::make_reverse_iterator(first2);
-
-    auto suffix = std::distance(rfirst1, std::mismatch(rfirst1, rlast1, rfirst2, rlast2).first);
-    last1 -= suffix;
-    last2 -= suffix;
-    return static_cast<size_t>(suffix);
+    auto rfirst1 = s1.rbegin();
+    size_t suffix = static_cast<size_t>(
+        std::distance(rfirst1, rf_mismatch(rfirst1, s1.rend(), s2.rbegin(), s2.rend()).first));
+    s1.remove_suffix(suffix);
+    s2.remove_suffix(suffix);
+    return suffix;
 }
 
 /**
  * Removes common affix of two string views
  */
 template <typename InputIt1, typename InputIt2>
-StringAffix remove_common_affix(InputIt1& first1, InputIt1& last1, InputIt2& first2, InputIt2& last2)
-{
-    return StringAffix{remove_common_prefix(first1, last1, first2, last2),
-                       remove_common_suffix(first1, last1, first2, last2)};
-}
-
-template <typename InputIt1, typename InputIt2>
 StringAffix remove_common_affix(Range<InputIt1>& s1, Range<InputIt2>& s2)
 {
-    InputIt1 first1 = s1.begin();
-    InputIt1 last1 = s1.end();
-    InputIt2 first2 = s2.begin();
-    InputIt2 last2 = s2.end();
-    StringAffix affix = remove_common_affix(first1, last1, first2, last2);
-    s1 = make_range(first1, last1);
-    s2 = make_range(first2, last2);
-    return affix;
+    return StringAffix{remove_common_prefix(s1, s2), remove_common_suffix(s1, s2)};
 }
 
 template <typename, typename = void>
