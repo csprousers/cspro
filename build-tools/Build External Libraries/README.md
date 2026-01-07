@@ -19,6 +19,13 @@
 5. The built libraries, only used by build tools, are not committed to the repository.
 
 
+### libxlsxwriter
+
+1. Run the batch script, *libxlsxwriter.bat*.
+2. This copies files into the CSPro solution, including some that are not necessary. Remove anything that is not already committed.
+3. The library is built as part of the CSPro solution.
+
+
 ### SQLite
 
 1. Run the *Update SQLite* build tool.
@@ -39,11 +46,3 @@
 // --------------------------------------------------------------------------
 
     These scripts must be run in a Visual Studio command prompt matching x86/x64.
-
-
-// --------------------------------------------------------------------------
-// libxlsxwriter
-// --------------------------------------------------------------------------
-
-    This script is no longer used because it is built as part of the CSPro
-    solution but is kept around for reference.
