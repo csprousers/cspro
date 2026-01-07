@@ -122,6 +122,16 @@
 3. The library is built as part of the CSPro solution.
 
 
+### yaml-cpp
+
+1. Find the latest version here: https://github.com/jbeder/yaml-cpp/releases/latest/
+2. Edit the batch script, *yaml-cpp.bat*, setting **yaml_cpp_version**.
+3. Run the batch script. 
+4. This copies files into the CSPro solution, including some that are not necessary. 
+5. Remove anything that is not already committed.
+6. The library is built as part of the CSPro solution.
+
+
 ### zlib
 
 1. Run the batch script, *zlib.bat*, from a Visual Studio command prompt.
