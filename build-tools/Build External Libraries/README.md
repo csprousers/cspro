@@ -1,6 +1,18 @@
 # Build External Libraries
 
 
+### curl
+
+1. Build **zlib** prior to building curl.
+2. Find the latest version here: https://github.com/curl/curl/releases/latest/
+3. Edit the batch script, *curl.bat*, setting **curl_version**.
+4. Run the batch script from a Visual Studio command prompt.
+5. This copies files into the CSPro solution, including some that are not necessary.
+6. Remove anything that is not already committed.
+7. This builds both x86 and x64 versions of curl.
+8. The built libraries are committed to the repository.
+
+
 ### Easylogging++
 
 *(This library is archived and no longer updated.)*
@@ -107,11 +119,3 @@
 1. Run the batch script, *zlib.bat*, from a Visual Studio command prompt.
 2. This builds both x86 and x64 versions of zlib.
 3. The built libraries are committed to the repository.
-
-
-
-// --------------------------------------------------------------------------
-// curl
-// --------------------------------------------------------------------------
-
-    These scripts must be run in a Visual Studio command prompt matching x86/x64.
