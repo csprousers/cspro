@@ -8,15 +8,12 @@
 3. The library is built as part of the CSPro solution.
 
 
+### zlib
 
-Run these batch scripts from a Visual Studio command prompt.
+1. Run the batch script, *zlib.bat*, from a Visual Studio command prompt.
+2. This builds both x86 and x64 versions of zlib.
+3. The built libraries are committed to the repository.
 
-
-// --------------------------------------------------------------------------
-// zlib
-// --------------------------------------------------------------------------
-
-    zlib must be run before curl and libxlsxwriter.
 
 
 // --------------------------------------------------------------------------

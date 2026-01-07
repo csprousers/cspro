@@ -1,3 +1,11 @@
+cd /d %~dp0
+
+rem ... create a working directory
+rmdir /s /q temp\zlib
+mkdir temp\zlib
+cd temp\zlib
+
+
 rem ... get the latest version
 curl -L -o zlib.tar.gz https://github.com/madler/zlib/archive/master.tar.gz
 tar -xvzf zlib.tar.gz
@@ -22,14 +30,20 @@ xcopy zlib-build-x64\Release\*.* zlib-x64\lib /i /k /y
 
 
 rem ... copy files to be used by CSPro
-copy /y zlib-x86\lib\zlib.dll ..\..\cspro\external\zlib\lib\x86
-copy /y zlib-x86\lib\zlib.lib ..\..\cspro\external\zlib\lib\x86
+mkdir ..\..\..\..\cspro\external\zlib\lib\x86
+copy /y zlib-build-x86\Release\zlib.dll ..\..\..\..\cspro\external\zlib\lib\x86\
+copy /y zlib-build-x86\Release\zlib.lib ..\..\..\..\cspro\external\zlib\lib\x86\
 
-copy /y zlib-x64\lib\zlib.dll ..\..\cspro\external\zlib\lib\x64
-copy /y zlib-x64\lib\zlib.lib ..\..\cspro\external\zlib\lib\x64
+mkdir ..\..\..\..\cspro\external\zlib\lib\x64
+copy /y zlib-build-x64\Release\zlib.dll ..\..\..\..\cspro\external\zlib\lib\x64\
+copy /y zlib-build-x64\Release\zlib.lib ..\..\..\..\cspro\external\zlib\lib\x64\
 
 
 rem ... copy a set of files that will be built on Android
-xcopy zlib-master\*.c ..\..\cspro\external\zlib /i /k /y
-xcopy zlib-master\*.h ..\..\cspro\external\zlib /i /k /y
-xcopy zlib-build-x86\*.h ..\..\cspro\external\zlib /i /k /y
+xcopy zlib-master\*.c ..\..\..\..\cspro\external\zlib /i /k /y
+xcopy zlib-master\*.h ..\..\..\..\cspro\external\zlib /i /k /y
+xcopy zlib-build-x86\*.h ..\..\..\..\cspro\external\zlib /i /k /y
+
+
+rem ... update the license
+copy /y zlib-master\LICENSE ..\..\..\Licenses\Licenses\zlib.txt
