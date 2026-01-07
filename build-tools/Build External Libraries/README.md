@@ -10,6 +10,16 @@
 5. The built libraries, only used by build tools, are not committed to the repository.
 
 
+### JSMin
+
+1. Run the batch script, *jsmin.bat*.
+2. This copies files into the CSPro solution.
+3. There are CSPro additions that will have to restored in:
+    * jsmin.cpp
+4. The JSMin license is at the top of *jsmin.cpp*, so check if it should be updated.
+5. The library is built as part of the CSPro solution.
+
+
 ### libgit2
 
 1. Find the latest version here: https://github.com/libgit2/libgit2/releases/latest/
@@ -22,8 +32,9 @@
 ### libxlsxwriter
 
 1. Run the batch script, *libxlsxwriter.bat*.
-2. This copies files into the CSPro solution, including some that are not necessary. Remove anything that is not already committed.
-3. The library is built as part of the CSPro solution.
+2. This copies files into the CSPro solution, including some that are not necessary.
+3. Remove anything that is not already committed.
+4. The library is built as part of the CSPro solution.
 
 
 ### libexif
