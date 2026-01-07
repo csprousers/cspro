@@ -26,6 +26,17 @@
 3. The library is built as part of the CSPro solution.
 
 
+### libexif
+
+1. Find the latest version here: https://github.com/libexif/libexif/releases/latest/
+2. Edit the batch script, *libexif.bat*, setting **lx_version**.
+3. Run the batch script. 
+4. This copies files into the CSPro solution, including some that are not necessary. 
+5. Remove anything that is not already committed.
+6. There are modifications made to many files that will have to be restored so that the library builds in the CSPro environment. These modification relate to header inclusion and bindtextdomain.
+7. The library is built as part of the CSPro solution.
+
+
 ### md4c
 
 1. Find the latest tag here: https://github.com/mity/md4c/tags
