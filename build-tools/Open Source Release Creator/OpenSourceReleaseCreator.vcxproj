@@ -76,7 +76,7 @@
       <Project>{9b29cb57-8263-4e12-8908-cc9641fdf0dc}</Project>
       <Private>false</Private>
     </ProjectReference>
-    <ProjectReference Include="..\zGit\zGit.vcxproj">
+    <ProjectReference Include="..\..\cspro\zGit\zGit.vcxproj">
       <Project>{01396fa2-bca6-4f57-9346-ec468db7e0a6}</Project>
       <Private>false</Private>
     </ProjectReference>

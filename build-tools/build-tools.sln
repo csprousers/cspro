@@ -116,7 +116,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zRtf", "..\cspro\zRtf\zRtf.
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Update Example Files", "Update Example Files\Update Example Files.vcxproj", "{23B7DB2D-E00E-48BC-81A1-130FD46E6077}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zGit", "zGit\zGit.vcxproj", "{01396FA2-BCA6-4F57-9346-EC468DB7E0A6}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zGit", "..\cspro\zGit\zGit.vcxproj", "{01396FA2-BCA6-4F57-9346-EC468DB7E0A6}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Stygitan", "Stygitan\Stygitan.vcxproj", "{619BCC6B-FB82-4273-8507-25AEC1D42339}"
 EndProject
