@@ -29,11 +29,19 @@
 
 ### EditorConfig
 
-1. Find the latest version number and commit here: https://github.com/editorconfig/editorconfig-core-c/releases/latest/
+1. Find the latest version and commit here: https://github.com/editorconfig/editorconfig-core-c/releases/latest/
 2. Edit the batch script, *editorconfig.bat*, setting **ec_version** and **ec_commit**.
 3. Run the batch script from a Visual Studio command prompt.
 4. This builds only a x64 version of EditorConfig.
 5. The built libraries, only used by build tools, are not committed to the repository.
+
+
+### github-markdown-css
+
+1. Find the latest version here: https://github.com/sindresorhus/github-markdown-css/releases/latest/
+2. Edit the batch script, *github-markdown-css.bat*, setting **gmc_version**.
+3. Run the batch script. 
+4. This copies files into the CSPro's *html* directory.
 
 
 ### JSMin
