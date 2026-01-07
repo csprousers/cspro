@@ -10,6 +10,15 @@
 5. The built libraries, only used by build tools, are not committed to the repository.
 
 
+### libgit2
+
+1. Find the latest version here: https://github.com/libgit2/libgit2/releases/latest/
+2. Edit the batch script, *libgit2.bat*, setting **lg_version**.
+3. Run the batch script from a Visual Studio command prompt.
+4. This builds only a x64 version of libgit2.
+5. The built libraries, only used by build tools, are not committed to the repository.
+
+
 ### SQLite
 
 1. Run the *Update SQLite* build tool.
@@ -26,7 +35,7 @@
 
 
 // --------------------------------------------------------------------------
-// curl + libgit2
+// curl
 // --------------------------------------------------------------------------
 
     These scripts must be run in a Visual Studio command prompt matching x86/x64.
