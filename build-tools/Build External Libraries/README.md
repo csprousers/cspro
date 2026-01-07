@@ -49,6 +49,15 @@
 7. The library is built as part of the CSPro solution.
 
 
+### pugixml
+
+1. Find the latest version here: https://github.com/zeux/pugixml/releases/latest/
+2. Edit the batch script, *pugixml.bat*, setting **px_version**.
+3. Run the batch script. 
+4. This copies files into the CSPro solution.
+5. The library is built as part of the CSPro solution.
+
+
 ### SQLite
 
 1. Run the *Update SQLite* build tool.
