@@ -7,6 +7,7 @@
 #include <zNetwork/CurlHttpConnection.h>
 #include <zGit/GitIgnoreEvaluator.h>
 #include <zGit/GitRevisionWalker.h>
+#include <Update SQLite/SQLiteSourceUpdater.h>
 #include <external/libgit2/include/git2/status.h>
 
 
@@ -471,13 +472,15 @@ void Creator::CreateSqliteWithoutSEE(const GitTree& tree)
 
             if( is_header && sqlite_result.find(full_version_line) == std::string::npos )
                 throw CSProException("The SQLite amalgamation version header does not match: " + full_version_line);
-
-            sqlite_result.insert(0, is_header ? "#pragma once\n#include <zSql/zSql.h>\n" :
-                                                "#include <zSql/zSql.h>\n");
         };
 
         process(true, sqlite_h);
         process(false, sqlite_c);
+
+        // OS_TODO before f2e462839685617f68a01518af2db690edc24645 is V1, after until ? is V2, then V3
+        const SQLiteSourceUpdater::DllVersion sqlite_version = SQLiteSourceUpdater::DllVersion::V1;
+
+        SQLiteSourceUpdater::Update(sqlite_h, sqlite_c, SQLiteSourceUpdater::SQLiteVersion::Public, sqlite_version);
 
         // cache these results
         m_settingsDb.Write(cache_key_h, sqlite_h);
