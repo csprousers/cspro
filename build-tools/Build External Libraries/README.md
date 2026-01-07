@@ -1,6 +1,20 @@
 # Build External Libraries
 
 
+### Easylogging++
+
+*(This library is archived and no longer updated.)*
+
+1. Find the latest version here: https://github.com/abumq/easyloggingpp/releases/latest/
+2. Edit the batch script, *easylogging.bat*, setting **el_version**.
+3. Run the batch script. 
+4. This copies files into the CSPro solution. 
+3. There are CSPro additions that have to restored in:
+    * easylogging++.cc
+    * easylogging++.h
+5. The library is built as part of the CSPro solution.
+
+
 ### EditorConfig
 
 1. Find the latest version number and commit here: https://github.com/editorconfig/editorconfig-core-c/releases/latest/
@@ -12,9 +26,11 @@
 
 ### JSMin
 
+*(This library has not been updated in years.)*
+
 1. Run the batch script, *jsmin.bat*.
 2. This copies files into the CSPro solution.
-3. There are CSPro additions that will have to restored in:
+3. There are CSPro additions that have to restored in:
     * jsmin.cpp
 4. The JSMin license is at the top of *jsmin.cpp*, so check if it should be updated.
 5. The library is built as part of the CSPro solution.
@@ -44,7 +60,7 @@
 3. Run the batch script. 
 4. This copies files into the CSPro solution, including some that are not necessary. 
 5. Remove anything that is not already committed.
-6. There are modifications made to many files that will have to be restored so that the library builds in the CSPro environment. These modification relate to header inclusion and bindtextdomain.
+6. There are modifications made to many files that have to be restored so that the library builds in the CSPro environment. These modification relate to header inclusion and bindtextdomain.
 7. The library is built as part of the CSPro solution.
 
 
@@ -55,7 +71,7 @@
 3. Run the batch script.
 4. This copies files into the CSPro solution, including some that are not necessary. 
 5. Remove anything that is not already committed.
-6. There are CSPro additions that will have to restored in:
+6. There are CSPro additions that have to restored in:
     * entity.h
 7. The library is built as part of the CSPro solution.
 
