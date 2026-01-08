@@ -3,6 +3,8 @@
 
 ### CHMLib
 
+*(This library has not been updated in years.)*
+
 1. Run the batch script, *chmlib.bat*.
 2. This copies files into the CSPro solution, including some that are not necessary.
 3. Remove anything that is not already committed.
@@ -134,6 +136,15 @@
 4. This copies files into the CSPro solution, including some that are not necessary. 
 5. Remove anything that is not already committed.
 6. The library is built as part of the CSPro solution.
+
+
+### RxCpp
+
+1. Find the latest version here: https://github.com/ReactiveX/RxCpp/releases/latest/
+2. Edit the batch script, *rxcpp.bat*, setting **rx_version**.
+3. Run the batch script. 
+4. This copies files into the CSPro solution.
+5. The library is built as part of the CSPro solution.
 
 
 ### scrypt
