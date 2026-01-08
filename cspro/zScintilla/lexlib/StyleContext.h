@@ -1,4 +1,4 @@
-﻿// note additions marked with "CSPro"
+// note additions marked with "CSPro"
 
 // Scintilla source code edit control
 /** @file StyleContext.h

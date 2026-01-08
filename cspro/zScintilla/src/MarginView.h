@@ -19,27 +19,27 @@ typedef void (*DrawWrapMarkerFn)(Surface *surface, PRectangle rcPlace, bool isEn
 */
 class MarginView {
 public:
-	std::unique_ptr<Surface> pixmapSelMargin;
-	std::unique_ptr<Surface> pixmapSelPattern;
-	std::unique_ptr<Surface> pixmapSelPatternOffset1;
-	// Highlight current folding block
-	HighlightDelimiter highlightDelimiter;
+    std::unique_ptr<Surface> pixmapSelMargin;
+    std::unique_ptr<Surface> pixmapSelPattern;
+    std::unique_ptr<Surface> pixmapSelPatternOffset1;
+    // Highlight current folding block
+    HighlightDelimiter highlightDelimiter;
 
-	int wrapMarkerPaddingRight; // right-most pixel padding of wrap markers
-	/** Some platforms, notably PLAT_CURSES, do not support Scintilla's native
-	 * DrawWrapMarker function for drawing wrap markers. Allow those platforms to
-	 * override it instead of creating a new method in the Surface class that
-	 * existing platforms must implement as empty. */
-	DrawWrapMarkerFn customDrawWrapMarker;
+    int wrapMarkerPaddingRight; // right-most pixel padding of wrap markers
+    /** Some platforms, notably PLAT_CURSES, do not support Scintilla's native
+     * DrawWrapMarker function for drawing wrap markers. Allow those platforms to
+     * override it instead of creating a new method in the Surface class that
+     * existing platforms must implement as empty. */
+    DrawWrapMarkerFn customDrawWrapMarker;
 
-	MarginView() noexcept;
+    MarginView() noexcept;
 
-	void DropGraphics() noexcept;
-	void RefreshPixMaps(Surface *surfaceWindow, const ViewStyle &vsDraw);
-	void PaintOneMargin(Surface *surface, PRectangle rc, PRectangle rcOneMargin, const MarginStyle &marginStyle,
-		const EditModel &model, const ViewStyle &vs) const;
-	void PaintMargin(Surface *surface, Sci::Line topLine, PRectangle rc, PRectangle rcMargin,
-		const EditModel &model, const ViewStyle &vs);
+    void DropGraphics() noexcept;
+    void RefreshPixMaps(Surface *surfaceWindow, const ViewStyle &vsDraw);
+    void PaintOneMargin(Surface *surface, PRectangle rc, PRectangle rcOneMargin, const MarginStyle &marginStyle,
+        const EditModel &model, const ViewStyle &vs) const;
+    void PaintMargin(Surface *surface, Sci::Line topLine, PRectangle rc, PRectangle rcMargin,
+        const EditModel &model, const ViewStyle &vs);
 };
 
 }

@@ -1,4 +1,4 @@
-﻿// Scintilla source code edit control
+// Scintilla source code edit control
 /** @file InList.h
  ** Check if a string is in a list.
  **/

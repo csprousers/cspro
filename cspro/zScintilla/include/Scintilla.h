@@ -1293,63 +1293,63 @@ typedef sptr_t (*SciFnDirectStatus)(sptr_t ptr, unsigned int iMessage, uptr_t wP
  * So older code that treats Scintilla as a RichEdit will work. */
 
 struct Sci_CharacterRange {
-	Sci_PositionCR cpMin;
-	Sci_PositionCR cpMax;
+    Sci_PositionCR cpMin;
+    Sci_PositionCR cpMax;
 };
 
 struct Sci_CharacterRangeFull {
-	Sci_Position cpMin;
-	Sci_Position cpMax;
+    Sci_Position cpMin;
+    Sci_Position cpMax;
 };
 
 struct Sci_TextRange {
-	struct Sci_CharacterRange chrg;
-	char *lpstrText;
+    struct Sci_CharacterRange chrg;
+    char *lpstrText;
 };
 
 struct Sci_TextRangeFull {
-	struct Sci_CharacterRangeFull chrg;
-	char *lpstrText;
+    struct Sci_CharacterRangeFull chrg;
+    char *lpstrText;
 };
 
 struct Sci_TextToFind {
-	struct Sci_CharacterRange chrg;
-	const char *lpstrText;
-	struct Sci_CharacterRange chrgText;
+    struct Sci_CharacterRange chrg;
+    const char *lpstrText;
+    struct Sci_CharacterRange chrgText;
 };
 
 struct Sci_TextToFindFull {
-	struct Sci_CharacterRangeFull chrg;
-	const char *lpstrText;
-	struct Sci_CharacterRangeFull chrgText;
+    struct Sci_CharacterRangeFull chrg;
+    const char *lpstrText;
+    struct Sci_CharacterRangeFull chrgText;
 };
 
 typedef void *Sci_SurfaceID;
 
 struct Sci_Rectangle {
-	int left;
-	int top;
-	int right;
-	int bottom;
+    int left;
+    int top;
+    int right;
+    int bottom;
 };
 
 /* This structure is used in printing and requires some of the graphics types
  * from Platform.h.  Not needed by most client code. */
 
 struct Sci_RangeToFormat {
-	Sci_SurfaceID hdc;
-	Sci_SurfaceID hdcTarget;
-	struct Sci_Rectangle rc;
-	struct Sci_Rectangle rcPage;
-	struct Sci_CharacterRange chrg;
+    Sci_SurfaceID hdc;
+    Sci_SurfaceID hdcTarget;
+    struct Sci_Rectangle rc;
+    struct Sci_Rectangle rcPage;
+    struct Sci_CharacterRange chrg;
 };
 
 struct Sci_RangeToFormatFull {
-	Sci_SurfaceID hdc;
-	Sci_SurfaceID hdcTarget;
-	struct Sci_Rectangle rc;
-	struct Sci_Rectangle rcPage;
-	struct Sci_CharacterRangeFull chrg;
+    Sci_SurfaceID hdc;
+    Sci_SurfaceID hdcTarget;
+    struct Sci_Rectangle rc;
+    struct Sci_Rectangle rcPage;
+    struct Sci_CharacterRangeFull chrg;
 };
 
 #ifndef __cplusplus
@@ -1360,52 +1360,52 @@ typedef struct SCNotification SCNotification;
 #endif
 
 struct Sci_NotifyHeader {
-	/* Compatible with Windows NMHDR.
-	 * hwndFrom is really an environment specific window handle or pointer
-	 * but most clients of Scintilla.h do not have this type visible. */
-	void *hwndFrom;
-	uptr_t idFrom;
-	unsigned int code;
+    /* Compatible with Windows NMHDR.
+     * hwndFrom is really an environment specific window handle or pointer
+     * but most clients of Scintilla.h do not have this type visible. */
+    void *hwndFrom;
+    uptr_t idFrom;
+    unsigned int code;
 };
 
 struct SCNotification {
-	Sci_NotifyHeader nmhdr;
-	Sci_Position position;
-	/* SCN_STYLENEEDED, SCN_DOUBLECLICK, SCN_MODIFIED, SCN_MARGINCLICK, */
-	/* SCN_NEEDSHOWN, SCN_DWELLSTART, SCN_DWELLEND, SCN_CALLTIPCLICK, */
-	/* SCN_HOTSPOTCLICK, SCN_HOTSPOTDOUBLECLICK, SCN_HOTSPOTRELEASECLICK, */
-	/* SCN_INDICATORCLICK, SCN_INDICATORRELEASE, */
-	/* SCN_USERLISTSELECTION, SCN_AUTOCSELECTION */
+    Sci_NotifyHeader nmhdr;
+    Sci_Position position;
+    /* SCN_STYLENEEDED, SCN_DOUBLECLICK, SCN_MODIFIED, SCN_MARGINCLICK, */
+    /* SCN_NEEDSHOWN, SCN_DWELLSTART, SCN_DWELLEND, SCN_CALLTIPCLICK, */
+    /* SCN_HOTSPOTCLICK, SCN_HOTSPOTDOUBLECLICK, SCN_HOTSPOTRELEASECLICK, */
+    /* SCN_INDICATORCLICK, SCN_INDICATORRELEASE, */
+    /* SCN_USERLISTSELECTION, SCN_AUTOCSELECTION */
 
-	int ch;
-	/* SCN_CHARADDED, SCN_KEY, SCN_AUTOCCOMPLETED, SCN_AUTOCSELECTION, */
-	/* SCN_USERLISTSELECTION */
-	int modifiers;
-	/* SCN_KEY, SCN_DOUBLECLICK, SCN_HOTSPOTCLICK, SCN_HOTSPOTDOUBLECLICK, */
-	/* SCN_HOTSPOTRELEASECLICK, SCN_INDICATORCLICK, SCN_INDICATORRELEASE, */
+    int ch;
+    /* SCN_CHARADDED, SCN_KEY, SCN_AUTOCCOMPLETED, SCN_AUTOCSELECTION, */
+    /* SCN_USERLISTSELECTION */
+    int modifiers;
+    /* SCN_KEY, SCN_DOUBLECLICK, SCN_HOTSPOTCLICK, SCN_HOTSPOTDOUBLECLICK, */
+    /* SCN_HOTSPOTRELEASECLICK, SCN_INDICATORCLICK, SCN_INDICATORRELEASE, */
 
-	int modificationType;	/* SCN_MODIFIED */
-	const char *text;
-	/* SCN_MODIFIED, SCN_USERLISTSELECTION, SCN_AUTOCSELECTION, SCN_URIDROPPED */
+    int modificationType;   /* SCN_MODIFIED */
+    const char *text;
+    /* SCN_MODIFIED, SCN_USERLISTSELECTION, SCN_AUTOCSELECTION, SCN_URIDROPPED */
 
-	Sci_Position length;		/* SCN_MODIFIED */
-	Sci_Position linesAdded;	/* SCN_MODIFIED */
-	int message;	/* SCN_MACRORECORD */
-	uptr_t wParam;	/* SCN_MACRORECORD */
-	sptr_t lParam;	/* SCN_MACRORECORD */
-	Sci_Position line;		/* SCN_MODIFIED */
-	int foldLevelNow;	/* SCN_MODIFIED */
-	int foldLevelPrev;	/* SCN_MODIFIED */
-	int margin;		/* SCN_MARGINCLICK */
-	int listType;	/* SCN_USERLISTSELECTION */
-	int x;			/* SCN_DWELLSTART, SCN_DWELLEND */
-	int y;		/* SCN_DWELLSTART, SCN_DWELLEND */
-	int token;		/* SCN_MODIFIED with SC_MOD_CONTAINER */
-	Sci_Position annotationLinesAdded;	/* SCN_MODIFIED with SC_MOD_CHANGEANNOTATION */
-	int updated;	/* SCN_UPDATEUI */
-	int listCompletionMethod;
-	/* SCN_AUTOCSELECTION, SCN_AUTOCCOMPLETED, SCN_USERLISTSELECTION, */
-	int characterSource;	/* SCN_CHARADDED */
+    Sci_Position length;        /* SCN_MODIFIED */
+    Sci_Position linesAdded;    /* SCN_MODIFIED */
+    int message;    /* SCN_MACRORECORD */
+    uptr_t wParam;  /* SCN_MACRORECORD */
+    sptr_t lParam;  /* SCN_MACRORECORD */
+    Sci_Position line;      /* SCN_MODIFIED */
+    int foldLevelNow;   /* SCN_MODIFIED */
+    int foldLevelPrev;  /* SCN_MODIFIED */
+    int margin;     /* SCN_MARGINCLICK */
+    int listType;   /* SCN_USERLISTSELECTION */
+    int x;          /* SCN_DWELLSTART, SCN_DWELLEND */
+    int y;      /* SCN_DWELLSTART, SCN_DWELLEND */
+    int token;      /* SCN_MODIFIED with SC_MOD_CONTAINER */
+    Sci_Position annotationLinesAdded;  /* SCN_MODIFIED with SC_MOD_CHANGEANNOTATION */
+    int updated;    /* SCN_UPDATEUI */
+    int listCompletionMethod;
+    /* SCN_AUTOCSELECTION, SCN_AUTOCCOMPLETED, SCN_USERLISTSELECTION, */
+    int characterSource;    /* SCN_CHARADDED */
 };
 
 #ifdef INCLUDE_DEPRECATED_FEATURES

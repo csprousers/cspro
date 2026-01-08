@@ -13,13 +13,13 @@
 namespace Scintilla::Internal {
 
 enum CharacterCategory {
-	ccLu, ccLl, ccLt, ccLm, ccLo,
-	ccMn, ccMc, ccMe,
-	ccNd, ccNl, ccNo,
-	ccPc, ccPd, ccPs, ccPe, ccPi, ccPf, ccPo,
-	ccSm, ccSc, ccSk, ccSo,
-	ccZs, ccZl, ccZp,
-	ccCc, ccCf, ccCs, ccCo, ccCn
+    ccLu, ccLl, ccLt, ccLm, ccLo,
+    ccMn, ccMc, ccMe,
+    ccNd, ccNl, ccNo,
+    ccPc, ccPd, ccPs, ccPe, ccPi, ccPf, ccPo,
+    ccSm, ccSc, ccSk, ccSo,
+    ccZs, ccZl, ccZp,
+    ccCc, ccCf, ccCs, ccCo, ccCn
 };
 
 CharacterCategory CategoriseCharacter(int character);
@@ -32,19 +32,19 @@ bool IsXidContinue(int character);
 
 class CharacterCategoryMap {
 private:
-	std::vector<unsigned char> dense;
+    std::vector<unsigned char> dense;
 public:
-	CharacterCategoryMap();
-	CharacterCategory CategoryFor(int character) const {
-		if (static_cast<size_t>(character) < dense.size()) {
-			return static_cast<CharacterCategory>(dense[character]);
-		} else {
-			// binary search through ranges
-			return CategoriseCharacter(character);
-		}
-	}
-	int Size() const noexcept;
-	void Optimize(int countCharacters);
+    CharacterCategoryMap();
+    CharacterCategory CategoryFor(int character) const {
+        if (static_cast<size_t>(character) < dense.size()) {
+            return static_cast<CharacterCategory>(dense[character]);
+        } else {
+            // binary search through ranges
+            return CategoriseCharacter(character);
+        }
+    }
+    int Size() const noexcept;
+    void Optimize(int countCharacters);
 };
 
 }

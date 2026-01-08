@@ -16,26 +16,26 @@ namespace Scintilla::Internal {
 // warnings which are avoided by the catch.
 template <class T>
 inline void ReleaseUnknown(T *&ppUnknown) noexcept {
-	if (ppUnknown) {
-		try {
-			ppUnknown->Release();
-		} catch (...) {
-			// Never occurs
-		}
-		ppUnknown = nullptr;
-	}
+    if (ppUnknown) {
+        try {
+            ppUnknown->Release();
+        } catch (...) {
+            // Never occurs
+        }
+        ppUnknown = nullptr;
+    }
 }
 
 struct UnknownReleaser {
-	// Called by unique_ptr to destroy/free the resource
-	template <class T>
-	void operator()(T *pUnknown) noexcept {
-		try {
-			pUnknown->Release();
-		} catch (...) {
-			// IUnknown::Release must not throw, ignore if it does.
-		}
-	}
+    // Called by unique_ptr to destroy/free the resource
+    template <class T>
+    void operator()(T *pUnknown) noexcept {
+        try {
+            pUnknown->Release();
+        } catch (...) {
+            // IUnknown::Release must not throw, ignore if it does.
+        }
+    }
 };
 
 
@@ -43,14 +43,14 @@ struct UnknownReleaser {
 /// This avoids undefined and conditionally defined behaviour.
 template<typename T>
 inline T DLLFunction(HMODULE hModule, LPCSTR lpProcName) noexcept {
-	if (!hModule) {
-		return nullptr;
-	}
-	FARPROC function = ::GetProcAddress(hModule, lpProcName);
-	static_assert(sizeof(T) == sizeof(function));
-	T fp {};
-	memcpy(&fp, &function, sizeof(T));
-	return fp;
+    if (!hModule) {
+        return nullptr;
+    }
+    FARPROC function = ::GetProcAddress(hModule, lpProcName);
+    static_assert(sizeof(T) == sizeof(function));
+    T fp {};
+    memcpy(&fp, &function, sizeof(T));
+    return fp;
 }
 
 }

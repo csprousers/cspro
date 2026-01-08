@@ -1,4 +1,4 @@
-﻿// look for CSPRO_SCINTILLA_MOD comments
+// look for CSPRO_SCINTILLA_MOD comments
 
 // Scintilla source code edit control
 /** @file LexHTML.cxx

@@ -14,7 +14,7 @@
 namespace Scintilla::Internal {
 
 constexpr bool IsNullOrEmpty(const char *text) noexcept {
-	return text == nullptr || *text == '\0';
+    return text == nullptr || *text == '\0';
 }
 
 using UniqueString = std::unique_ptr<const char[]>;
@@ -27,11 +27,11 @@ UniqueString UniqueStringCopy(const char *text);
 
 class UniqueStringSet {
 private:
-	std::vector<UniqueString> strings;
+    std::vector<UniqueString> strings;
 public:
-	UniqueStringSet();
-	void Clear() noexcept;
-	const char *Save(const char *text);
+    UniqueStringSet();
+    void Clear() noexcept;
+    const char *Save(const char *text);
 };
 
 }

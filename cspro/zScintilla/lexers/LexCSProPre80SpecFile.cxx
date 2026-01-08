@@ -4,7 +4,7 @@ using namespace Scintilla;
 using namespace Lexilla;
 
 
-class LexerCSProPre80SpecFile : public DefaultLexer 
+class LexerCSProPre80SpecFile : public DefaultLexer
 {
 public:
     static constexpr const char* LexerName = "csprospecfile";
@@ -64,7 +64,7 @@ void LexerCSProPre80SpecFile::Lex(Sci_PositionU startPos, Sci_Position length, i
         {
             at_line_start = false;
 
-            sc.SetState(( sc.ch == '[' ) ? SCE_CSPRO_PRE80_SPEC_FILE_HEADER : 
+            sc.SetState(( sc.ch == '[' ) ? SCE_CSPRO_PRE80_SPEC_FILE_HEADER :
                                            SCE_CSPRO_PRE80_SPEC_FILE_ATTRIBUTE);
         }
 

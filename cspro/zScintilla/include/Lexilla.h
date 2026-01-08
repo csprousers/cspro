@@ -1,4 +1,4 @@
-﻿// Lexilla lexer library
+// Lexilla lexer library
 /** @file Lexilla.h
  ** Lexilla definitions for dynamic and static linking.
  ** For C++, more features and type safety are available with the LexillaAccess module.

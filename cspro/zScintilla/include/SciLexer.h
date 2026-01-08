@@ -1,4 +1,4 @@
-﻿/* Scintilla source code edit control */
+/* Scintilla source code edit control */
 /** @file SciLexer.h
  ** Interface to the lexer functions in Lexilla.
  ** File called SciLexer.h ro retain compatibility with client code.

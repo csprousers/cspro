@@ -1,4 +1,4 @@
-﻿#include "CSPro.h"
+#include "CSPro.h"
 
 #include "SciLexer.h"
 #include "Sci_Position.h"

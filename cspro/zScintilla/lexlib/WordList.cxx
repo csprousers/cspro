@@ -1,4 +1,4 @@
-﻿// Scintilla source code edit control
+// Scintilla source code edit control
 /** @file WordList.cxx
  ** Hold a list of words.
  **/

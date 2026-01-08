@@ -56,77 +56,77 @@ using namespace Scintilla;
 using namespace Scintilla::Internal;
 
 Caret::Caret() noexcept :
-	active(false), on(false), period(500) {}
+    active(false), on(false), period(500) {}
 
 EditModel::EditModel() : braces{} {
-	inOverstrike = false;
-	xOffset = 0;
-	trackLineWidth = false;
-	posDrag = SelectionPosition(Sci::invalidPosition);
-	braces[0] = Sci::invalidPosition;
-	braces[1] = Sci::invalidPosition;
-	bracesMatchStyle = StyleBraceBad;
-	highlightGuideColumn = 0;
-	hasFocus = false;
-	primarySelection = true;
-	imeInteraction = IMEInteraction::Windowed;
-	bidirectional = Bidirectional::Disabled;
-	foldFlags = FoldFlag::None;
-	foldDisplayTextStyle = FoldDisplayTextStyle::Hidden;
-	hotspot = Range(Sci::invalidPosition);
-	hotspotSingleLine = true;
-	hoverIndicatorPos = Sci::invalidPosition;
-	wrapWidth = LineLayout::wrapWidthInfinite;
-	pdoc = new Document(DocumentOption::Default);
-	pdoc->AddRef();
-	pcs = ContractionStateCreate(pdoc->IsLarge());
+    inOverstrike = false;
+    xOffset = 0;
+    trackLineWidth = false;
+    posDrag = SelectionPosition(Sci::invalidPosition);
+    braces[0] = Sci::invalidPosition;
+    braces[1] = Sci::invalidPosition;
+    bracesMatchStyle = StyleBraceBad;
+    highlightGuideColumn = 0;
+    hasFocus = false;
+    primarySelection = true;
+    imeInteraction = IMEInteraction::Windowed;
+    bidirectional = Bidirectional::Disabled;
+    foldFlags = FoldFlag::None;
+    foldDisplayTextStyle = FoldDisplayTextStyle::Hidden;
+    hotspot = Range(Sci::invalidPosition);
+    hotspotSingleLine = true;
+    hoverIndicatorPos = Sci::invalidPosition;
+    wrapWidth = LineLayout::wrapWidthInfinite;
+    pdoc = new Document(DocumentOption::Default);
+    pdoc->AddRef();
+    pcs = ContractionStateCreate(pdoc->IsLarge());
 }
 
 EditModel::~EditModel() {
-	try {
-		// This never throws but isn't marked noexcept for compatibility
-		pdoc->Release();
-	} catch (...) {
-		// Ignore any exception
-	}
-	pdoc = nullptr;
+    try {
+        // This never throws but isn't marked noexcept for compatibility
+        pdoc->Release();
+    } catch (...) {
+        // Ignore any exception
+    }
+    pdoc = nullptr;
 }
 
 bool EditModel::BidirectionalEnabled() const noexcept {
-	return (bidirectional != Bidirectional::Disabled) &&
-		(CpUtf8 == pdoc->dbcsCodePage);
+    return (bidirectional != Bidirectional::Disabled) &&
+        (CpUtf8 == pdoc->dbcsCodePage);
 }
 
 bool EditModel::BidirectionalR2L() const noexcept {
-	return bidirectional == Bidirectional::R2L;
+    return bidirectional == Bidirectional::R2L;
 }
 
 SurfaceMode EditModel::CurrentSurfaceMode() const noexcept {
-	return SurfaceMode(pdoc->dbcsCodePage, BidirectionalR2L());
+    return SurfaceMode(pdoc->dbcsCodePage, BidirectionalR2L());
 }
 
 void EditModel::SetDefaultFoldDisplayText(const char *text) {
-	defaultFoldDisplayText = IsNullOrEmpty(text) ? UniqueString() : UniqueStringCopy(text);
+    defaultFoldDisplayText = IsNullOrEmpty(text) ? UniqueString() : UniqueStringCopy(text);
 }
 
 const char *EditModel::GetDefaultFoldDisplayText() const noexcept {
-	return defaultFoldDisplayText.get();
+    return defaultFoldDisplayText.get();
 }
 
 const char *EditModel::GetFoldDisplayText(Sci::Line lineDoc) const noexcept {
-	if (foldDisplayTextStyle == FoldDisplayTextStyle::Hidden || pcs->GetExpanded(lineDoc)) {
-		return nullptr;
-	}
+    if (foldDisplayTextStyle == FoldDisplayTextStyle::Hidden || pcs->GetExpanded(lineDoc)) {
+        return nullptr;
+    }
 
-	const char *text = pcs->GetFoldDisplayText(lineDoc);
-	return text ? text : defaultFoldDisplayText.get();
+    const char *text = pcs->GetFoldDisplayText(lineDoc);
+    return text ? text : defaultFoldDisplayText.get();
 }
 
 InSelection EditModel::LineEndInSelection(Sci::Line lineDoc) const {
-	const Sci::Position posAfterLineEnd = pdoc->LineStart(lineDoc + 1);
-	return sel.InSelectionForEOL(posAfterLineEnd);
+    const Sci::Position posAfterLineEnd = pdoc->LineStart(lineDoc + 1);
+    return sel.InSelectionForEOL(posAfterLineEnd);
 }
 
 int EditModel::GetMark(Sci::Line line) const {
-	return pdoc->GetMark(line, FlagSet(changeHistoryOption, ChangeHistoryOption::Markers));
+    return pdoc->GetMark(line, FlagSet(changeHistoryOption, ChangeHistoryOption::Markers));
 }

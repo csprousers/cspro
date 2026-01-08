@@ -1,4 +1,4 @@
-﻿// Scintilla source code edit control
+// Scintilla source code edit control
 /** @file CatalogueModules.h
  ** Lexer infrastructure.
  ** Contains a list of LexerModules which can be searched to find a module appropriate for a
