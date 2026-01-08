@@ -126,6 +126,17 @@
 6. The library is built as part of the CSPro solution.
 
 
+### scrypt
+
+1. Find the latest tag here: https://github.com/Tarsnap/scrypt/tags
+2. Edit the batch script, *scrypt.bat*, setting **sc_tag**.
+3. Run the batch script.
+4. This copies files into the CSPro solution.
+5. There are CSPro additions that have to restored in:
+    * sha256.c (regarding "static restrict" and unneeded header files)
+6. The library is built as part of the CSPro solution.
+
+
 ### SQLite
 
 1. Run the *Update SQLite* build tool.
