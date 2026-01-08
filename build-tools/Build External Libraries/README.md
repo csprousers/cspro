@@ -69,6 +69,16 @@
 5. The library is built as part of the CSPro solution.
 
 
+### leaflet-ajax
+
+*(This library has not been updated in years.)*
+
+1. Find the latest tag here: https://github.com/calvinmetcalf/leaflet-ajax/tags
+2. Edit the batch script, *leaflet-ajax.bat*, setting **leaflet_ajax_tag**.
+3. Run the batch script. 
+4. This copies files into the CSPro's *html* directory.
+
+
 ### libgit2
 
 1. Find the latest version here: https://github.com/libgit2/libgit2/releases/latest/
