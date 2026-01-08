@@ -1,6 +1,3 @@
-﻿#pragma warning(disable:4100) // CSPRO_LIBRDATA_MODIFICATIONS
-#pragma warning(disable:4244)
-#pragma warning(disable:4996)
 
 #include <stdlib.h>
 #include <string.h>
@@ -263,7 +260,7 @@ rdata_error_t rdata_begin_file(rdata_writer_t *writer, void *user_ctx) {
             goto cleanup;
     }
 
-    rdata_v2_header_t v2_header;
+    rdata_header_t v2_header;
     memcpy(v2_header.header, "X\n", sizeof("X\n")-1);
     v2_header.format_version = 2;
     v2_header.reader_version = 131840;

@@ -30,12 +30,14 @@
     </ClCompile>
     <ClCompile Include="..\external\librdata\rdata_io_unistd.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\librdata\rdata_parser.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="..\external\librdata\rdata_write.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level1</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\ReadStat\readstat_error.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
