@@ -180,6 +180,15 @@
 6. The library is built as part of the CSPro solution.
 
 
+### sprintf-js
+
+1. Find the latest tag here: https://github.com/alexei/sprintf.js/tags
+2. Edit the batch script, *sprintf-js.bat*, setting **spjs_tag**.
+3. Run the batch script. 
+4. This copies files into the CSPro's *html* directory.
+5. Run the batch script *Update Android HTML Assets*.
+
+
 ### SQLite
 
 1. Run the *Update SQLite* build tool.
