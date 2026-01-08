@@ -109,7 +109,7 @@
 5. Remove anything that is not already committed.
 6. There are CSPro modifications made to many files that have to be restored.
 7. The library is built as part of the CSPro solution.
-8. This library should be updated at the same time as Scintilla.
+8. This library should be updated at the same time as Scintilla and ScintillaCtrl / ScintillaView.
 
 
 ### libgit2
@@ -233,7 +233,17 @@
 6. There are CSPro modifications that have to be restored in:
     * win32\ScintillaWin.cxx
 7. The library is built as part of the CSPro solution.
-8. This library should be updated at the same time as Lexilla.
+8. This library should be updated at the same time as Lexilla and ScintillaCtrl / ScintillaView.
+
+
+### ScintillaCtrl / ScintillaView
+
+1. Run the batch script, *scintilla-ctrl-view.bat*.
+2. This copies files into the CSPro solution.
+3. There are CSPro modifications that have to be restored.
+4. The license is at the top of *ScintillaCtrl.h*, so check if it should be updated.
+5. The library is built as part of the CSPro solution.
+6. This library should be updated at the same time as Lexilla and Scintilla.
 
 
 ### scrypt
