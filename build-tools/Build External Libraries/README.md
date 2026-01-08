@@ -100,6 +100,18 @@
 5. Run the batch script *Update Android HTML Assets*.
 
 
+### Lexilla
+
+1. Find the latest tag here: https://github.com/ScintillaOrg/lexilla/tags
+2. Edit the batch script, *lexilla.bat*, setting **lexilla_tag**.
+3. Run the batch script.
+4. This copies files into the CSPro solution, including some that are not necessary.
+5. Remove anything that is not already committed.
+6. There are CSPro modifications made to many files that have to be restored.
+7. The library is built as part of the CSPro solution.
+8. This library should be updated at the same time as Scintilla.
+
+
 ### libgit2
 
 1. Find the latest version here: https://github.com/libgit2/libgit2/releases/latest/
@@ -136,7 +148,7 @@
 3. Run the batch script.
 4. This copies files into the CSPro solution, including some that are not necessary.
 5. Remove anything that is not already committed.
-6. There are modifications made to many files that have to be restored so that the library builds in the CSPro environment. These modification relate to header inclusion and bindtextdomain.
+6. There are CSPro modifications made to many files that have to be restored so that the library builds in the CSPro environment. These modification relate to header inclusion and bindtextdomain.
 7. The library is built as part of the CSPro solution.
 
 

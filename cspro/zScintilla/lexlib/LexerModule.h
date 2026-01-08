@@ -31,50 +31,50 @@ typedef Scintilla::ILexer5 *(*LexerFactoryFunction)();
  */
 class LexerModule {
 protected:
-	int language;
-	LexerFunction fnLexer;
-	LexerFunction fnFolder;
-	LexerFactoryFunction fnFactory;
-	const char * const * wordListDescriptions;
-	const LexicalClass *lexClasses;
-	size_t nClasses;
+    int language;
+    LexerFunction fnLexer;
+    LexerFunction fnFolder;
+    LexerFactoryFunction fnFactory;
+    const char * const * wordListDescriptions;
+    const LexicalClass *lexClasses;
+    size_t nClasses;
 
 public:
-	const char *languageName;
-	LexerModule(
-		int language_,
-		LexerFunction fnLexer_,
-		const char *languageName_=nullptr,
-		LexerFunction fnFolder_= nullptr,
-		const char * const wordListDescriptions_[]=nullptr,
-		const LexicalClass *lexClasses_=nullptr,
-		size_t nClasses_=0) noexcept;
-	LexerModule(
-		int language_,
-		LexerFactoryFunction fnFactory_,
-		const char *languageName_,
-		const char * const wordListDescriptions_[]=nullptr) noexcept;
-	int GetLanguage() const noexcept;
+    const char *languageName;
+    LexerModule(
+        int language_,
+        LexerFunction fnLexer_,
+        const char *languageName_=nullptr,
+        LexerFunction fnFolder_= nullptr,
+        const char * const wordListDescriptions_[]=nullptr,
+        const LexicalClass *lexClasses_=nullptr,
+        size_t nClasses_=0) noexcept;
+    LexerModule(
+        int language_,
+        LexerFactoryFunction fnFactory_,
+        const char *languageName_,
+        const char * const wordListDescriptions_[]=nullptr) noexcept;
+    int GetLanguage() const noexcept;
 
-	// -1 is returned if no WordList information is available
-	int GetNumWordLists() const noexcept;
-	const char *GetWordListDescription(int index) const noexcept;
-	const LexicalClass *LexClasses() const noexcept;
-	size_t NamedStyles() const noexcept;
+    // -1 is returned if no WordList information is available
+    int GetNumWordLists() const noexcept;
+    const char *GetWordListDescription(int index) const noexcept;
+    const LexicalClass *LexClasses() const noexcept;
+    size_t NamedStyles() const noexcept;
 
-	Scintilla::ILexer5 *Create() const;
+    Scintilla::ILexer5 *Create() const;
 
-	void Lex(Sci_PositionU startPos, Sci_Position lengthDoc, int initStyle,
+    void Lex(Sci_PositionU startPos, Sci_Position lengthDoc, int initStyle,
                   WordList *keywordlists[], Accessor &styler) const;
-	void Fold(Sci_PositionU startPos, Sci_Position lengthDoc, int initStyle,
+    void Fold(Sci_PositionU startPos, Sci_Position lengthDoc, int initStyle,
                   WordList *keywordlists[], Accessor &styler) const;
 
-	friend class CatalogueModules;
-	friend class LexerCSProReportGeneric; // CSPro
+    friend class CatalogueModules;
+    friend class LexerCSProReportGeneric; // CSPro
 };
 
 constexpr int Maximum(int a, int b) noexcept {
-	return (a > b) ? a : b;
+    return (a > b) ? a : b;
 }
 
 // Shut up annoying Visual C++ warnings:

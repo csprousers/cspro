@@ -87,6 +87,9 @@
     <ClCompile Include="..\lexlib\DefaultLexer.cxx">
       <Filter>lexlib</Filter>
     </ClCompile>
+    <ClCompile Include="..\lexlib\InList.cxx">
+      <Filter>lexlib</Filter>
+    </ClCompile>
     <ClCompile Include="..\lexlib\LexAccessor.cxx">
       <Filter>lexlib</Filter>
     </ClCompile>
@@ -94,9 +97,6 @@
       <Filter>lexlib</Filter>
     </ClCompile>
     <ClCompile Include="..\lexlib\LexerModule.cxx">
-      <Filter>lexlib</Filter>
-    </ClCompile>
-    <ClCompile Include="..\lexlib\LexerNoExceptions.cxx">
       <Filter>lexlib</Filter>
     </ClCompile>
     <ClCompile Include="..\lexlib\LexerSimple.cxx">
