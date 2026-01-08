@@ -1,5 +1,3 @@
-﻿#pragma warning(disable:4244) // CSPRO_LIBRDATA_MODIFICATIONS
-
 // CKHashTable - A simple hash table
 // Copyright 2010-2020 Evan Miller (see LICENSE)
 

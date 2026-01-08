@@ -181,6 +181,27 @@
 6. The library is built as part of the CSPro solution.
 
 
+### ReadStat
+
+1. Find the latest version here: https://github.com/WizardMac/ReadStat/releases/latest/
+2. Edit the batch script, *readstat.bat*, setting **rs_version**.
+3. Run the batch script.
+4. This copies files into the CSPro solution.
+5. There are CSPro additions that have to be restored in:
+    * ..\librdata+ReadStat\readstat_bits.c
+    * readstat.h
+    * readstat_iconv.h
+    * readstat_writer.c
+    * readstat_writer.h
+    * spss\readstat_sav_write.c
+    * spss\readstat_spss.c
+    * spss\readstat_spss.h
+    * stata\readstat_dta.c
+    * stata\readstat_dta_write.c
+6. The library is built as part of the CSPro solution.
+7. This library should be updated at the same time as librdata.
+
+
 ### RxCpp
 
 1. Find the latest version here: https://github.com/ReactiveX/RxCpp/releases/latest/

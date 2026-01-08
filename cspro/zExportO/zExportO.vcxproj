@@ -21,6 +21,7 @@
   <ItemGroup>
     <ClCompile Include="..\external\librdata+ReadStat\CKHashTable.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\librdata+ReadStat\readstat_bits.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
@@ -44,6 +45,7 @@
     </ClCompile>
     <ClCompile Include="..\external\ReadStat\readstat_io_unistd.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\ReadStat\readstat_malloc.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
@@ -56,33 +58,41 @@
     </ClCompile>
     <ClCompile Include="..\external\ReadStat\readstat_value.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level1</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\ReadStat\readstat_variable.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="..\external\ReadStat\readstat_writer.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level1</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\ReadStat\sas\ieee.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\ReadStat\spss\readstat_sav_compress.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\ReadStat\spss\readstat_sav_write.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\ReadStat\spss\readstat_spss.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\ReadStat\spss\readstat_spss_parse.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="..\external\ReadStat\stata\readstat_dta.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\ReadStat\stata\readstat_dta_write.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <ClCompile Include="CSProExportWriter.cpp" />
     <ClCompile Include="DelimitedTextExportWriter.cpp" />
