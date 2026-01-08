@@ -66,7 +66,7 @@ public:
     std::unique_ptr<char[]> chars;
     std::unique_ptr<unsigned char[]> styles;
     std::unique_ptr<XYPOSITION[]> positions;
-    char bracePreviousStyles[2];
+    unsigned char bracePreviousStyles[2];
 
     std::unique_ptr<BidiData> bidiData;
 
@@ -76,16 +76,9 @@ public:
     XYPOSITION wrapIndent; // In pixels
 
     LineLayout(Sci::Line lineNumber_, int maxLineLength_);
-    // Deleted so LineLayout objects can not be copied.
-    LineLayout(const LineLayout &) = delete;
-    LineLayout(LineLayout &&) = delete;
-    void operator=(const LineLayout &) = delete;
-    void operator=(LineLayout &&) = delete;
-    virtual ~LineLayout();
     void Resize(int maxLineLength_);
     void ReSet(Sci::Line lineNumber_, Sci::Position maxLineLength_);
     void EnsureBidiData();
-    void Free() noexcept;
     void ClearPositions();
     void Invalidate(ValidLevel validity_) noexcept;
     Sci::Line LineNumber() const noexcept;
@@ -156,7 +149,7 @@ public:
 private:
     Scintilla::LineCache level;
     std::vector<std::shared_ptr<LineLayout>>cache;
-    bool allInvalidated;
+    LineLayout::ValidLevel maxValidity;
     int styleClock;
     size_t EntryForLine(Sci::Line line) const noexcept;
     void AllocateForLevel(Sci::Line linesOnScreen, Sci::Line linesInDoc);

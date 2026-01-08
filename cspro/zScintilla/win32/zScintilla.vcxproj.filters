@@ -195,6 +195,9 @@
     <ClCompile Include="..\src\Style.cxx">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\UndoHistory.cxx">
+      <Filter>src</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\UniConversion.cxx">
       <Filter>src</Filter>
     </ClCompile>
@@ -210,6 +213,9 @@
     <ClCompile Include="HanjaDic.cxx">
       <Filter>win32</Filter>
     </ClCompile>
+    <ClCompile Include="ListBox.cxx">
+      <Filter>win32</Filter>
+    </ClCompile>
     <ClCompile Include="PlatWin.cxx">
       <Filter>win32</Filter>
     </ClCompile>
@@ -217,6 +223,12 @@
       <Filter>win32</Filter>
     </ClCompile>
     <ClCompile Include="ScintillaWin.cxx">
+      <Filter>win32</Filter>
+    </ClCompile>
+    <ClCompile Include="SurfaceD2D.cxx">
+      <Filter>win32</Filter>
+    </ClCompile>
+    <ClCompile Include="SurfaceGDI.cxx">
       <Filter>win32</Filter>
     </ClCompile>
   </ItemGroup>

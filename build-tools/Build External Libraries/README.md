@@ -8,7 +8,7 @@
 1. Run the batch script, *chmlib.bat*.
 2. This copies files into the CSPro solution, including some that are not necessary.
 3. Remove anything that is not already committed.
-4. There are CSPro additions that have to be restored in:
+4. There are CSPro modifications that have to be restored in:
     * chm_lib.c
     * chm_lib.h
 5. The library is built as part of the CSPro solution.
@@ -34,7 +34,7 @@
 2. Edit the batch script, *easylogging.bat*, setting **el_version**.
 3. Run the batch script.
 4. This copies files into the CSPro solution.
-3. There are CSPro additions that have to be restored in:
+3. There are CSPro modifications that have to be restored in:
     * easylogging++.cc
     * easylogging++.h
 5. The library is built as part of the CSPro solution.
@@ -73,7 +73,7 @@
 
 1. Run the batch script, *jsmin.bat*.
 2. This copies files into the CSPro solution.
-3. There are CSPro additions that have to be restored in:
+3. There are CSPro modifications that have to be restored in:
     * jsmin.cpp
 4. The JSMin license is at the top of *jsmin.cpp*, so check if it should be updated.
 5. The library is built as part of the CSPro solution.
@@ -125,7 +125,7 @@
 
 1. Run the batch script, *librdata.bat*.
 2. This copies files into the CSPro solution.
-3. There are CSPro additions that have to be restored in:
+3. There are CSPro modifications that have to be restored in:
     * rdata.h
     * rdata_io_unistd.c
     * rdata_write.c
@@ -159,7 +159,7 @@
 3. Run the batch script.
 4. This copies files into the CSPro solution, including some that are not necessary.
 5. Remove anything that is not already committed.
-6. There are CSPro additions that have to be restored in:
+6. There are CSPro modifications that have to be restored in:
     * entity.h
 7. The library is built as part of the CSPro solution.
 
@@ -199,7 +199,7 @@
 2. Edit the batch script, *readstat.bat*, setting **rs_version**.
 3. Run the batch script.
 4. This copies files into the CSPro solution.
-5. There are CSPro additions that have to be restored in:
+5. There are CSPro modifications that have to be restored in:
     * ..\librdata+ReadStat\readstat_bits.c
     * readstat.h
     * readstat_iconv.h
@@ -223,13 +223,26 @@
 5. The library is built as part of the CSPro solution.
 
 
+### Scintilla
+
+1. Find the latest version number here: https://www.scintilla.org/ScintillaDownload.html
+2. Edit the batch script, *scintilla.bat*, setting **scintilla_version**.
+3. Run the batch script.
+4. This copies files into the CSPro solution, including some that are not necessary.
+5. Remove anything that is not already committed.
+6. There are CSPro modifications that have to be restored in:
+    * win32\ScintillaWin.cxx
+7. The library is built as part of the CSPro solution.
+8. This library should be updated at the same time as Lexilla.
+
+
 ### scrypt
 
 1. Find the latest tag here: https://github.com/Tarsnap/scrypt/tags
 2. Edit the batch script, *scrypt.bat*, setting **sc_tag**.
 3. Run the batch script.
 4. This copies files into the CSPro solution.
-5. There are CSPro additions that have to be restored in:
+5. There are CSPro modifications that have to be restored in:
     * sha256.c (regarding "static restrict" and unneeded header files)
 6. The library is built as part of the CSPro solution.
 
@@ -254,7 +267,7 @@
 
 1. Run the batch script, *stb.bat*.
 2. This copies files into the CSPro solution.
-3. There are CSPro additions that have to be restored in:
+3. There are CSPro modifications that have to be restored in:
     * stb_image.h
 4. The library is built as part of the CSPro solution.
 
@@ -265,7 +278,7 @@
 2. Edit the batch script, *stduuid.bat*, setting **stduuid_version**.
 3. Run the batch script.
 4. This copies files into the CSPro solution.
-5. There are CSPro additions that have to be restored in:
+5. There are CSPro modifications that have to be restored in:
     * uuid.h
 6. The library is built as part of the CSPro solution.
 

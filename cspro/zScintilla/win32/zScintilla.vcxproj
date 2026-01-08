@@ -82,14 +82,18 @@
     <ClCompile Include="..\src\ScintillaBase.cxx" />
     <ClCompile Include="..\src\Selection.cxx" />
     <ClCompile Include="..\src\Style.cxx" />
+    <ClCompile Include="..\src\UndoHistory.cxx" />
     <ClCompile Include="..\src\UniConversion.cxx" />
     <ClCompile Include="..\src\UniqueString.cxx" />
     <ClCompile Include="..\src\ViewStyle.cxx" />
     <ClCompile Include="..\src\XPM.cxx" />
     <ClCompile Include="HanjaDic.cxx" />
+    <ClCompile Include="ListBox.cxx" />
     <ClCompile Include="PlatWin.cxx" />
     <ClCompile Include="ScintillaDLL.cxx" />
     <ClCompile Include="ScintillaWin.cxx" />
+    <ClCompile Include="SurfaceD2D.cxx" />
+    <ClCompile Include="SurfaceGDI.cxx" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="ScintRes.rc" />
