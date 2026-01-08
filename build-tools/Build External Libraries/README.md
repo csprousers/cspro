@@ -196,6 +196,15 @@
 3. The library is built as part of the CSPro solution.
 
 
+### stb
+
+1. Run the batch script, *stb.bat*.
+2. This copies files into the CSPro solution.
+3. There are CSPro additions that have to restored in:
+    * stb_image.h
+4. The library is built as part of the CSPro solution.
+
+
 ### stduuid
 
 1. Find the latest version here: https://github.com/mariusbancila/stduuid/releases/latest/

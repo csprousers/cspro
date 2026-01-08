@@ -327,7 +327,7 @@
     "licenseFilename": "sqlite3.h"
   },
   {
-    "projectName": "stb_image",
+    "projectName": "stb",
     "projectUrl": "https://github.com/nothings/stb",
     "licenseFilename": "LICENSE",
     "licenseUrl": "https://raw.githubusercontent.com/nothings/stb/master/LICENSE"
