@@ -116,6 +116,16 @@
 5. The library is built as part of the CSPro solution.
 
 
+### QR-Code-generator
+
+1. Find the latest version here: https://github.com/nayuki/QR-Code-generator/releases
+2. Edit the batch script, *qrcodegen.bat*, setting **qrcg_version**.
+3. Run the batch script. 
+4. This copies files into the CSPro solution.
+5. The license is at the bottom of *README.md* and is not automatically updated, so check if it should be updated.
+6. The library is built as part of the CSPro solution.
+
+
 ### RapidFuzz
 
 1. Find the latest version here: https://github.com/rapidfuzz/rapidfuzz-cpp/releases/latest/
