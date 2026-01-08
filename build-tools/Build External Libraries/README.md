@@ -1,6 +1,17 @@
 # Build External Libraries
 
 
+### CHMLib
+
+1. Run the batch script, *chmlib.bat*.
+2. This copies files into the CSPro solution, including some that are not necessary.
+3. Remove anything that is not already committed.
+4. There are CSPro additions that have to restored in:
+    * chm_lib.c
+    * chm_lib.h
+5. The library is built as part of the CSPro solution.
+
+
 ### curl
 
 1. Build **zlib** prior to building curl.
