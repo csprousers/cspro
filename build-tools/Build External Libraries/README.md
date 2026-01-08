@@ -55,6 +55,7 @@
 2. Edit the batch script, *github-markdown-css.bat*, setting **gmc_version**.
 3. Run the batch script. 
 4. This copies files into the CSPro's *html* directory.
+5. Run the batch script *Update Android HTML Assets*.
 
 
 ### JSMin
@@ -69,6 +70,16 @@
 5. The library is built as part of the CSPro solution.
 
 
+### Leaflet
+
+1. Find the latest version here: https://github.com/Leaflet/Leaflet/releases/latest/
+2. Edit the batch script, *leaflet.bat*, setting **leaflet_version**.
+3. Run the batch script. 
+4. This copies files into the CSPro's *html* directory, including some that are not necessary.
+5. Remove anything that is not already committed.
+6. Run the batch script *Update Android HTML Assets*.
+
+
 ### leaflet-ajax
 
 *(This library has not been updated in years.)*
@@ -77,6 +88,7 @@
 2. Edit the batch script, *leaflet-ajax.bat*, setting **leaflet_ajax_tag**.
 3. Run the batch script. 
 4. This copies files into the CSPro's *html* directory.
+5. Run the batch script *Update Android HTML Assets*.
 
 
 ### libgit2
