@@ -32,8 +32,8 @@
 
 1. Find the latest version here: https://github.com/abumq/easyloggingpp/releases/latest/
 2. Edit the batch script, *easylogging.bat*, setting **el_version**.
-3. Run the batch script. 
-4. This copies files into the CSPro solution. 
+3. Run the batch script.
+4. This copies files into the CSPro solution.
 3. There are CSPro additions that have to restored in:
     * easylogging++.cc
     * easylogging++.h
@@ -49,11 +49,20 @@
 5. The built libraries, only used by build tools, are not committed to the repository.
 
 
+### geometry.hpp
+
+1. Find the latest version here: https://github.com/mapbox/geometry.hpp/releases/latest/
+2. Edit the batch script, *geometry-hpp.bat*, setting **geohpp_version**.
+3. Run the batch script.
+4. This copies files into the CSPro solution.
+5. The library is built as part of the CSPro solution.
+
+
 ### github-markdown-css
 
 1. Find the latest version here: https://github.com/sindresorhus/github-markdown-css/releases/latest/
 2. Edit the batch script, *github-markdown-css.bat*, setting **gmc_version**.
-3. Run the batch script. 
+3. Run the batch script.
 4. This copies files into the CSPro's *html* directory.
 5. Run the batch script *Update Android HTML Assets*.
 
@@ -74,7 +83,7 @@
 
 1. Find the latest version here: https://github.com/Leaflet/Leaflet/releases/latest/
 2. Edit the batch script, *leaflet.bat*, setting **leaflet_version**.
-3. Run the batch script. 
+3. Run the batch script.
 4. This copies files into the CSPro's *html* directory, including some that are not necessary.
 5. Remove anything that is not already committed.
 6. Run the batch script *Update Android HTML Assets*.
@@ -86,7 +95,7 @@
 
 1. Find the latest tag here: https://github.com/calvinmetcalf/leaflet-ajax/tags
 2. Edit the batch script, *leaflet-ajax.bat*, setting **leaflet_ajax_tag**.
-3. Run the batch script. 
+3. Run the batch script.
 4. This copies files into the CSPro's *html* directory.
 5. Run the batch script *Update Android HTML Assets*.
 
@@ -112,8 +121,8 @@
 
 1. Find the latest version here: https://github.com/libexif/libexif/releases/latest/
 2. Edit the batch script, *libexif.bat*, setting **lx_version**.
-3. Run the batch script. 
-4. This copies files into the CSPro solution, including some that are not necessary. 
+3. Run the batch script.
+4. This copies files into the CSPro solution, including some that are not necessary.
 5. Remove anything that is not already committed.
 6. There are modifications made to many files that have to be restored so that the library builds in the CSPro environment. These modification relate to header inclusion and bindtextdomain.
 7. The library is built as part of the CSPro solution.
@@ -124,7 +133,7 @@
 1. Find the latest tag here: https://github.com/mity/md4c/tags
 2. Edit the batch script, *md4c.bat*, setting **md_tag**.
 3. Run the batch script.
-4. This copies files into the CSPro solution, including some that are not necessary. 
+4. This copies files into the CSPro solution, including some that are not necessary.
 5. Remove anything that is not already committed.
 6. There are CSPro additions that have to restored in:
     * entity.h
@@ -135,7 +144,7 @@
 
 1. Find the latest version here: https://github.com/zeux/pugixml/releases/latest/
 2. Edit the batch script, *pugixml.bat*, setting **px_version**.
-3. Run the batch script. 
+3. Run the batch script.
 4. This copies files into the CSPro solution.
 5. The library is built as part of the CSPro solution.
 
@@ -144,7 +153,7 @@
 
 1. Find the latest version here: https://github.com/nayuki/QR-Code-generator/releases
 2. Edit the batch script, *qrcodegen.bat*, setting **qrcg_version**.
-3. Run the batch script. 
+3. Run the batch script.
 4. This copies files into the CSPro solution.
 5. The license is at the bottom of *README.md* and is not automatically updated, so check if it should be updated.
 6. The library is built as part of the CSPro solution.
@@ -154,8 +163,8 @@
 
 1. Find the latest version here: https://github.com/rapidfuzz/rapidfuzz-cpp/releases/latest/
 2. Edit the batch script, *rapidfuzz.bat*, setting **rz_version**.
-3. Run the batch script. 
-4. This copies files into the CSPro solution, including some that are not necessary. 
+3. Run the batch script.
+4. This copies files into the CSPro solution, including some that are not necessary.
 5. Remove anything that is not already committed.
 6. The library is built as part of the CSPro solution.
 
@@ -164,7 +173,7 @@
 
 1. Find the latest version here: https://github.com/ReactiveX/RxCpp/releases/latest/
 2. Edit the batch script, *rxcpp.bat*, setting **rx_version**.
-3. Run the batch script. 
+3. Run the batch script.
 4. This copies files into the CSPro solution.
 5. The library is built as part of the CSPro solution.
 
@@ -184,7 +193,7 @@
 
 1. Find the latest tag here: https://github.com/alexei/sprintf.js/tags
 2. Edit the batch script, *sprintf-js.bat*, setting **spjs_tag**.
-3. Run the batch script. 
+3. Run the batch script.
 4. This copies files into the CSPro's *html* directory.
 5. Run the batch script *Update Android HTML Assets*.
 
@@ -209,7 +218,7 @@
 
 1. Find the latest version here: https://github.com/mariusbancila/stduuid/releases/latest/
 2. Edit the batch script, *stduuid.bat*, setting **stduuid_version**.
-3. Run the batch script. 
+3. Run the batch script.
 4. This copies files into the CSPro solution.
 5. There are CSPro additions that have to restored in:
     * uuid.h
@@ -220,8 +229,8 @@
 
 1. Find the latest version here: https://github.com/jbeder/yaml-cpp/releases/latest/
 2. Edit the batch script, *yaml-cpp.bat*, setting **yaml_cpp_version**.
-3. Run the batch script. 
-4. This copies files into the CSPro solution, including some that are not necessary. 
+3. Run the batch script.
+4. This copies files into the CSPro solution, including some that are not necessary.
 5. Remove anything that is not already committed.
 6. The library is built as part of the CSPro solution.
 
