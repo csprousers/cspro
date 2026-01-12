@@ -35,10 +35,10 @@
     "licenseUrl": "https://raw.githubusercontent.com/jedwing/CHMLib/master/COPYING"
   },
   {
-    "projectName": "codemirror",
-    "projectUrl": "https://github.com/codemirror/CodeMirror",
+    "projectName": "CodeMirror",
+    "projectUrl": "https://github.com/codemirror/codemirror5",
     "licenseFilename": "LICENSE",
-    "licenseUrl": "https://github.com/codemirror/CodeMirror/blob/master/LICENSE"
+    "licenseUrl": "https://raw.githubusercontent.com/codemirror/codemirror5/refs/heads/master/LICENSE"
   },
   {
     "projectName": "cpp-base64",

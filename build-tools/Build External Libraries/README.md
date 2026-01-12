@@ -46,6 +46,16 @@
 5. The library is built as part of the CSPro solution.
 
 
+### CodeMirror
+
+*(This is a legacy version of the library, replaced by CodeMirror 6.)*
+
+1. Find the latest version here: https://github.com/codemirror/codemirror5/releases/latest/
+2. Edit the shell script, *codemirror.sh*, setting **CODE_MIRROR_VERSION**.
+3. Run the shell script (e.g., from the Git terminal).
+4. This copies files into the CSPro's *html* directory.
+
+
 ### curl
 
 1. Build **zlib** prior to building curl.

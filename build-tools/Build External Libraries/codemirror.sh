@@ -1,7 +1,17 @@
 #!/bin/bash
 set -e
 
-CODE_MIRROR_VERSION=5.62.3
+# create a working directory
+rm -rf temp/codemirror
+mkdir -p temp/codemirror
+cd temp/codemirror
+
+
+# find the latest version number here: https://github.com/codemirror/codemirror5/releases/latest/
+CODE_MIRROR_VERSION=5.65.18
+
+
+# get the latest version
 TEMP_CSS=./codemirror_tmp.css
 curl -f -s https://cdnjs.cloudflare.com/ajax/libs/codemirror/$CODE_MIRROR_VERSION/codemirror.min.css > "$TEMP_CSS"
 
@@ -12,5 +22,11 @@ curl -f -s https://cdnjs.cloudflare.com/ajax/libs/codemirror/$CODE_MIRROR_VERSIO
 curl -f -s https://cdnjs.cloudflare.com/ajax/libs/codemirror/$CODE_MIRROR_VERSION/mode/css/css.min.js >> "$TEMP_JS"
 curl -f -s https://cdnjs.cloudflare.com/ajax/libs/codemirror/$CODE_MIRROR_VERSION/mode/htmlmixed/htmlmixed.min.js >> "$TEMP_JS"
 
-mv "$TEMP_CSS" ./codemirror.min.css
-mv "$TEMP_JS" ./codemirror.min.js
+
+# copy files to be used by CSPro
+cp -f "$TEMP_CSS" ../../../../cspro/html/external/codemirror/codemirror.min.css
+cp -f "$TEMP_JS" ../../../../cspro/html/external/codemirror/codemirror.min.js
+
+
+# update the license
+curl -f -s -o ../../../Licenses/Licenses/codemirror.txt https://raw.githubusercontent.com/codemirror/codemirror5/refs/tags/$CODE_MIRROR_VERSION/LICENSE
