@@ -2,6 +2,7 @@ project(zToolsO)
 
 include(../WASM/Definitions.cmake)
 
+set(BZIP2_DIRECTORY ${EXTERNAL_DIRECTORY}/bzip2)
 set(MD4C_DIRECTORY ${EXTERNAL_DIRECTORY}/md4c)
 set(SCRYPT_DIRECTORY ${EXTERNAL_DIRECTORY}/scrypt)
 
@@ -12,7 +13,6 @@ include_directories(${PROJECT_NAME} PUBLIC
 add_library(${PROJECT_NAME}
     base64.cpp
     BinaryGen.cpp
-    bzlib.c
     DateTime.cpp
     DebugLogging.cpp
     DelimitedTextCreator.cpp
@@ -51,6 +51,8 @@ add_library(${PROJECT_NAME}
     VarFuncs.cpp
 
     rijndael/rijndael-alg-fst.c
+
+    ${BZIP2_DIRECTORY}/bzlib.c
 
     ${MD4C_DIRECTORY}/entity.c
 

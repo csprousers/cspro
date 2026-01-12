@@ -1,8 +1,8 @@
-﻿#pragma once
+#pragma once
 
 #include <zToolsO/Serializer.h>
-#include <zToolsO/bzlib.h>
 #include <zToolsO/PortableFunctions.h>
+#include <external/bzip2/bzlib.h>
 
 
 class PenSerializer : public SerializerImpl
