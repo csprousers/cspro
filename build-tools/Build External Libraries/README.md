@@ -67,6 +67,17 @@
 5. Run the batch script *Update Android HTML Assets*.
 
 
+### gumbo-parser
+
+*(This library is archived and no longer updated.)*
+
+1. Find the latest version here: https://github.com/google/gumbo-parser/releases/latest/
+2. Edit the batch script, *gumbo-parser.bat*, setting **gp_version**.
+3. Run the batch script.
+4. This copies files into the CSPro solution.
+5. The library is built as part of the CSPro solution.
+
+
 ### JSMin
 
 *(This library has not been updated in years.)*

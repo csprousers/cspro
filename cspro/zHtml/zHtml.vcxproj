@@ -16,7 +16,7 @@
   <ItemDefinitionGroup>
     <ClCompile>
       <PreprocessorDefinitions>ZHTML_EXPORTS;_AFXEXT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(CSProDir)external;$(CSProDir)external/gumbo/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(CSProDir)external;$(CSProDir)external/gumbo;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <PostBuildEvent>
       <Command>xcopy /D /Y /F /R /S /I "$(CSProDir)html" "$(TargetDir)html"</Command>
