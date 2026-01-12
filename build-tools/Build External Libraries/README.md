@@ -60,7 +60,7 @@
 
 1. Build **zlib** prior to building curl.
 2. Find the latest version here: https://github.com/curl/curl/releases/latest/
-3. Edit the batch script, *curl.bat*, setting **curl_version**.
+3. Edit the batch script, *libcurl.bat*, setting **curl_version**.
 4. Run the batch script from a Visual Studio command prompt.
 5. This copies files into the CSPro solution, including some that are not necessary.
 6. Remove anything that is not already committed.
