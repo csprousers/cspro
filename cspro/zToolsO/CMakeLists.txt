@@ -52,7 +52,13 @@ add_library(${PROJECT_NAME}
 
     rijndael/rijndael-alg-fst.c
 
+    ${BZIP2_DIRECTORY}/blocksort.c
     ${BZIP2_DIRECTORY}/bzlib.c
+    ${BZIP2_DIRECTORY}/compress.c
+    ${BZIP2_DIRECTORY}/crctable.c
+    ${BZIP2_DIRECTORY}/decompress.c
+    ${BZIP2_DIRECTORY}/huffman.c
+    ${BZIP2_DIRECTORY}/randtable.c
 
     ${MD4C_DIRECTORY}/entity.c
 

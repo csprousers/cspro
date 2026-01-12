@@ -53,7 +53,13 @@ LOCAL_SRC_FILES         += $(ZTOOLSO_SRC_PATH)/Utf8FileStream.cpp
 LOCAL_SRC_FILES         += $(ZTOOLSO_SRC_PATH)/uuid.cpp
 LOCAL_SRC_FILES         += $(ZTOOLSO_SRC_PATH)/VarFuncs.cpp
 
+LOCAL_SRC_FILES         += $(BZIP2_SRC_PATH)/blocksort.c
 LOCAL_SRC_FILES         += $(BZIP2_SRC_PATH)/bzlib.c
+LOCAL_SRC_FILES         += $(BZIP2_SRC_PATH)/compress.c
+LOCAL_SRC_FILES         += $(BZIP2_SRC_PATH)/crctable.c
+LOCAL_SRC_FILES         += $(BZIP2_SRC_PATH)/decompress.c
+LOCAL_SRC_FILES         += $(BZIP2_SRC_PATH)/huffman.c
+LOCAL_SRC_FILES         += $(BZIP2_SRC_PATH)/randtable.c
 
 LOCAL_SRC_FILES         += $(MD4C_SRC_PATH)/entity.c
 
