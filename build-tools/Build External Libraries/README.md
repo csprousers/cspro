@@ -110,6 +110,15 @@
 5. The library is built as part of the CSPro solution.
 
 
+### Handlebars.js.txt
+
+1. Find the latest version here: https://github.com/handlebars-lang/handlebars.js/releases/latest/
+2. Edit the batch script, *handlebars.bat*, setting **hb_version**.
+3. Run the batch script.
+4. This copies files into the CSPro's *html* directory.
+5. Run the batch script *Update Android HTML Assets*.
+
+
 ### JSMin
 
 *(This library has not been updated in years.)*
