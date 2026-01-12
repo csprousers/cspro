@@ -1,6 +1,18 @@
 # Build External Libraries
 
 
+### bzip2
+
+1. Find the latest version here: https://www.sourceware.org/bzip2/downloads.html
+2. Edit the batch script, *bzip2.bat*, setting **bzip2_version**.
+3. Run the batch script.
+4. This copies files into the CSPro solution, including some that are not necessary.
+5. Remove anything that is not already committed.
+6. There are CSPro modifications that have to be restored in:
+    * bzlib_private.h
+7. The library is built as part of the CSPro solution.
+
+
 ### CHMLib
 
 *(This library has not been updated in years.)*

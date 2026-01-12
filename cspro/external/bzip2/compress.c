@@ -1,5 +1,4 @@
 
-
 /*-------------------------------------------------------------*/
 /*--- Compression machinery (not incl block sorting)        ---*/
 /*---                                            compress.c ---*/
@@ -9,8 +8,8 @@
    This file is part of bzip2/libbzip2, a program and library for
    lossless, block-sorting data compression.
 
-   bzip2/libbzip2 version 1.0.6 of 6 September 2010
-   Copyright (C) 1996-2010 Julian Seward <jseward@bzip.org>
+   bzip2/libbzip2 version 1.0.8 of 13 July 2019
+   Copyright (C) 1996-2019 Julian Seward <jseward@acm.org>
 
    Please read the WARNING, DISCLAIMER and PATENTS sections in the
    README file.
@@ -259,10 +258,10 @@ void sendMTFValues ( EState* s )
 
    UInt16* mtfv = s->mtfv;
 
-   /*if (s->verbosity >= 3)
+   if (s->verbosity >= 3)
       VPrintf3( "      %d in block, %d after MTF & 1-2 coding, "
                 "%d+2 syms in use\n",
-                s->nblock, s->nMTF, s->nInUse );*/
+                s->nblock, s->nMTF, s->nInUse );
 
    alphaSize = s->nInUse+2;
    for (t = 0; t < BZ_N_GROUPS; t++)
@@ -300,11 +299,11 @@ void sendMTFValues ( EState* s )
             ge--;
          }
 
-         /*if (s->verbosity >= 3)
+         if (s->verbosity >= 3)
             VPrintf5( "      initial group %d, [%d .. %d], "
                       "has %d syms (%4.1f%%)\n",
                       nPart, gs, ge, aFreq,
-                      (100.0 * (float)aFreq) / (float)(s->nMTF) );*/
+                      (100.0 * (float)aFreq) / (float)(s->nMTF) );
 
          for (v = 0; v < alphaSize; v++)
             if (v >= gs && v <= ge)
@@ -434,13 +433,13 @@ void sendMTFValues ( EState* s )
 
          gs = ge+1;
       }
-      /*if (s->verbosity >= 3) {
+      if (s->verbosity >= 3) {
          VPrintf2 ( "      pass %d: size is %d, grp uses are ",
                    iter+1, totc/8 );
          for (t = 0; t < nGroups; t++)
             VPrintf1 ( "%d ", fave[t] );
          VPrintf0 ( "\n" );
-      }*/
+      }
 
       /*--
         Recompute the tables based on the accumulated frequencies.
@@ -455,7 +454,7 @@ void sendMTFValues ( EState* s )
 
    AssertH( nGroups < 8, 3002 );
    AssertH( nSelectors < 32768 &&
-            nSelectors <= (2 + (900000 / BZ_G_SIZE)),
+            nSelectors <= BZ_MAX_SELECTORS,
             3003 );
 
 
@@ -511,8 +510,8 @@ void sendMTFValues ( EState* s )
                if (s->inUse[i * 16 + j]) bsW(s,1,1); else bsW(s,1,0);
             }
 
-      /*if (s->verbosity >= 3)
-         VPrintf1( "      bytes: mapping %d, ", s->numZ-nBytes );*/
+      if (s->verbosity >= 3)
+         VPrintf1( "      bytes: mapping %d, ", s->numZ-nBytes );
    }
 
    /*--- Now the selectors. ---*/
@@ -523,8 +522,8 @@ void sendMTFValues ( EState* s )
       for (j = 0; j < s->selectorMtf[i]; j++) bsW(s,1,1);
       bsW(s,1,0);
    }
-   /*if (s->verbosity >= 3)
-      VPrintf1( "selectors %d, ", s->numZ-nBytes );*/
+   if (s->verbosity >= 3)
+      VPrintf1( "selectors %d, ", s->numZ-nBytes );
 
    /*--- Now the coding tables. ---*/
    nBytes = s->numZ;
@@ -539,8 +538,8 @@ void sendMTFValues ( EState* s )
       }
    }
 
-   /*if (s->verbosity >= 3)
-      VPrintf1 ( "code lengths %d, ", s->numZ-nBytes );*/
+   if (s->verbosity >= 3)
+      VPrintf1 ( "code lengths %d, ", s->numZ-nBytes );
 
    /*--- And finally, the block data proper ---*/
    nBytes = s->numZ;
@@ -594,8 +593,8 @@ void sendMTFValues ( EState* s )
    }
    AssertH( selCtr == nSelectors, 3007 );
 
-   /*if (s->verbosity >= 3)
-      VPrintf1( "codes %d\n", s->numZ-nBytes );*/
+   if (s->verbosity >= 3)
+      VPrintf1( "codes %d\n", s->numZ-nBytes );
 }
 
 
@@ -609,10 +608,10 @@ void BZ2_compressBlock ( EState* s, Bool is_last_block )
       s->combinedCRC ^= s->blockCRC;
       if (s->blockNo > 1) s->numZ = 0;
 
-      /*if (s->verbosity >= 2)
+      if (s->verbosity >= 2)
          VPrintf4( "    block %d: crc = 0x%08x, "
                    "combined CRC = 0x%08x, size = %d\n",
-                   s->blockNo, s->blockCRC, s->combinedCRC, s->nblock );*/
+                   s->blockNo, s->blockCRC, s->combinedCRC, s->nblock );
 
       BZ2_blockSort ( s );
    }
@@ -661,8 +660,8 @@ void BZ2_compressBlock ( EState* s, Bool is_last_block )
       bsPutUChar ( s, 0x45 ); bsPutUChar ( s, 0x38 );
       bsPutUChar ( s, 0x50 ); bsPutUChar ( s, 0x90 );
       bsPutUInt32 ( s, s->combinedCRC );
-      /*if (s->verbosity >= 2)
-         VPrintf1( "    final combined CRC = 0x%08x\n   ", s->combinedCRC );*/
+      if (s->verbosity >= 2)
+         VPrintf1( "    final combined CRC = 0x%08x\n   ", s->combinedCRC );
       bsFinishWrite ( s );
    }
 }

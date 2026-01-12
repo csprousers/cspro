@@ -1,4 +1,3 @@
-﻿#pragma once
 
 /*-------------------------------------------------------------*/
 /*--- Public header file for the library.                   ---*/
@@ -9,8 +8,8 @@
    This file is part of bzip2/libbzip2, a program and library for
    lossless, block-sorting data compression.
 
-   bzip2/libbzip2 version 1.0.6 of 6 September 2010
-   Copyright (C) 1996-2010 Julian Seward <jseward@bzip.org>
+   bzip2/libbzip2 version 1.0.8 of 13 July 2019
+   Copyright (C) 1996-2019 Julian Seward <jseward@acm.org>
 
    Please read the WARNING, DISCLAIMER and PATENTS sections in the
    README file.
@@ -18,6 +17,10 @@
    This program is released under the terms of the license contained
    in the file LICENSE.
    ------------------------------------------------------------------ */
+
+
+#ifndef _BZLIB_H
+#define _BZLIB_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -270,6 +273,8 @@ BZ_EXTERN const char * BZ_API(BZ2_bzerror) (
 
 #ifdef __cplusplus
 }
+#endif
+
 #endif
 
 /*-------------------------------------------------------------*/

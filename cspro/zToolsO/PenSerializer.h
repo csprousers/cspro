@@ -131,7 +131,7 @@ void PenSerializer::Write(const void* const buffer, const int length)
     if( length <= 0 )
         return;
 
-    BZ2_bzWrite(&m_bzError, m_bzFile, (void*)buffer, length);
+    BZ2_bzWrite(&m_bzError, m_bzFile, const_cast<void*>(buffer), length);
 
     if( m_bzError != BZ_OK )
         throw SerializationException("Error writing to the serialization archive.");

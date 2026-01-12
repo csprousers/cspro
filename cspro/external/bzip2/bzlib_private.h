@@ -1,3 +1,4 @@
+#define BZ_DISABLE_STDERR_REPORTING // CSPro addition
 
 /*-------------------------------------------------------------*/
 /*--- Private header file for the library.                  ---*/
@@ -8,8 +9,8 @@
    This file is part of bzip2/libbzip2, a program and library for
    lossless, block-sorting data compression.
 
-   bzip2/libbzip2 version 1.0.6 of 6 September 2010
-   Copyright (C) 1996-2010 Julian Seward <jseward@bzip.org>
+   bzip2/libbzip2 version 1.0.8 of 13 July 2019
+   Copyright (C) 1996-2019 Julian Seward <jseward@acm.org>
 
    Please read the WARNING, DISCLAIMER and PATENTS sections in the
    README file.
@@ -36,6 +37,7 @@
 
 /*-- General stuff. --*/
 
+#define BZ_VERSION  "1.0.8, 13-Jul-2019"
 
 typedef char            Char;
 typedef unsigned char   Bool;
@@ -52,7 +54,7 @@ typedef unsigned short  UInt16;
 #define __inline__  /* */
 #endif
 
-#ifndef BZ_NO_STDIO
+#if !defined(BZ_NO_STDIO) && !defined(BZ_DISABLE_STDERR_REPORTING)
 
 extern void BZ2_bz__AssertH__fail ( int errcode );
 #define AssertH(cond,errcode) \
@@ -69,7 +71,7 @@ extern void BZ2_bz__AssertH__fail ( int errcode );
 #define AssertD(cond,msg) /* */
 #endif
 
-/*#define VPrintf0(zf) \
+#define VPrintf0(zf) \
    fprintf(stderr,zf)
 #define VPrintf1(zf,za1) \
    fprintf(stderr,zf,za1)
@@ -80,11 +82,16 @@ extern void BZ2_bz__AssertH__fail ( int errcode );
 #define VPrintf4(zf,za1,za2,za3,za4) \
    fprintf(stderr,zf,za1,za2,za3,za4)
 #define VPrintf5(zf,za1,za2,za3,za4,za5) \
-   fprintf(stderr,zf,za1,za2,za3,za4,za5)*/
+   fprintf(stderr,zf,za1,za2,za3,za4,za5)
 
 #else
 
+#ifdef BZ_DISABLE_STDERR_REPORTING
+#include <assert.h>
+#define bz_internal_error(errcode) do { errcode; assert(0); } while (0)
+#else
 extern void bz_internal_error ( int errcode );
+#endif
 #define AssertH(cond,errcode) \
    { if (!(cond)) bz_internal_error ( errcode ); }
 #define AssertD(cond,msg)                do { } while (0)
