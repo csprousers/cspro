@@ -130,6 +130,15 @@
 5. Run the batch script *Update Android HTML Assets*.
 
 
+### JsBarcode
+
+1. Find the latest version here: https://github.com/lindell/JsBarcode/releases/latest/
+2. Edit the batch script, *js-barcode.bat*, setting **jsb_version**.
+3. Run the batch script.
+4. This copies files into the CSPro's *html* directory.
+5. Run the batch script *Update Android HTML Assets*.
+
+
 ### JSMin
 
 *(This library has not been updated in years.)*
