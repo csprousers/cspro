@@ -119,6 +119,17 @@
 5. Run the batch script *Update Android HTML Assets*.
 
 
+### jQuery + jQuery UI
+
+1. Find the latest versions here:
+    * https://github.com/jquery/jquery/releases/latest/
+    * https://github.com/jquery/jquery-ui/releases/latest/
+2. Edit the batch script, *jquery.bat*, setting **jq_version** and **jq_ui_version**.
+3. Run the batch script.
+4. This copies files into the CSPro's *html* directory.
+5. Run the batch script *Update Android HTML Assets*.
+
+
 ### JSMin
 
 *(This library has not been updated in years.)*
