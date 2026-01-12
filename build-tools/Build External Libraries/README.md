@@ -384,6 +384,14 @@
 6. The library is built as part of the CSPro solution.
 
 
+### summernote-rtl-plugin
+
+*(This library has not been updated in years.)*
+
+1. Run the batch script, *summernote.bat*.
+2. This copies files into the CSPro's *html* directory.
+
+
 ### yaml-cpp
 
 1. Find the latest version here: https://github.com/jbeder/yaml-cpp/releases/latest/
