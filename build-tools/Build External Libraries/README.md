@@ -1,6 +1,17 @@
 # Build External Libraries
 
 
+### Bootstrap + Bootstrap Icons
+
+1. Find the latest versions here:
+    * https://github.com/twbs/bootstrap/releases/latest/
+    * https://github.com/twbs/icons/releases/latest/
+2. Edit the batch script, *bootstrap.bat*, setting **bs_version** and **bs_icons_version**.
+3. Run the batch script.
+4. This copies files into the CSPro's *html* directory.
+5. Run the batch script *Update Android HTML Assets*.
+
+
 ### bzip2
 
 1. Find the latest version here: https://www.sourceware.org/bzip2/downloads.html
