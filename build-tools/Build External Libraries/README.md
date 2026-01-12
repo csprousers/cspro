@@ -24,6 +24,15 @@
 7. The library is built as part of the CSPro solution.
 
 
+### Chart.js
+
+1. Find the latest version here: https://github.com/chartjs/Chart.js/releases/latest/
+2. Edit the batch script, *chart-js.bat*, setting **cj_version**.
+3. Run the batch script.
+4. This copies files into the CSPro's *html* directory.
+5. Run the batch script *Update Android HTML Assets*.
+
+
 ### CHMLib
 
 *(This library has not been updated in years.)*
