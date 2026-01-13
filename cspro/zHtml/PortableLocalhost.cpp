@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "PortableLocalhost.h"
 #include "PortableLocalFileServer.h"
 
@@ -136,7 +136,7 @@ std::string PortableLocalhost::CreateUniqueFileUrl(const std::string& file_path)
 
 #if defined(_CONSOLE)
 
-void VirtualFileMappingResponse::SetContent(const void* const /*content_data*/, const size_t /*content_size*/, const cs::string_sz /*content_type*/)
+void VirtualFileMappingResponse::SetContent(const void* const /*content_data*/, const size_t /*content_size*/, const std::string& /*content_type*/)
 {
     ASSERT(false);
 }

@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "LocalFileServer.h"
 #include "LocalhostSettings.h"
 #include "LocalhostUrl.h"
@@ -220,17 +220,8 @@ void LocalFileServer::AddCSProMapping()
 // VirtualFileMappingHandler::ServeContent
 // --------------------------------------------------------------------------
 
-void VirtualFileMappingResponse::SetContent(const void* const content_data, const size_t content_size, const cs::string_sz content_type)
+void VirtualFileMappingResponse::SetContent(const void* const content_data, const size_t content_size, const std::string& content_type)
 {
     httplib::Response* const response = static_cast<httplib::Response*>(m_responseObject);
-
-    if( !content_type.empty() )
-    {
-        response->set_content(static_cast<const char*>(content_data), content_size, content_type.c_str());
-    }
-
-    else
-    {
-        response->set_content(static_cast<const char*>(content_data), content_size);
-    }
+    response->set_content(static_cast<const char*>(content_data), content_size, content_type);
 }

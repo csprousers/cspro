@@ -1,3 +1,9 @@
+// CSPRO CHANGES: some changes have been made, marked with HTTPLIB_CSPRO
+#ifndef X64_BUILD
+// use an older library for 32-bit builds
+#include <external/cpp-httplib/httplib-x86.h>
+#else
+
 //
 //  httplib.h
 //
@@ -5208,6 +5214,7 @@ find_content_type(const std::string &path,
                   const std::map<std::string, std::string> &user_data,
                   const std::string &default_content_type) {
   auto ext = file_extension(path);
+  SO::MakeLower(ext); // HTTPLIB_CSPRO made the extension lowercase
 
   auto it = user_data.find(ext);
   if (it != user_data.end()) { return it->second; }
@@ -5219,11 +5226,12 @@ find_content_type(const std::string &path,
 
   case "css"_t: return "text/css";
   case "csv"_t: return "text/csv";
+  case "cshtml"_t: // HTTPLIB_CSPRO added cshtml extension
   case "htm"_t:
   case "html"_t: return "text/html";
   case "js"_t:
   case "mjs"_t: return "text/javascript";
-  case "txt"_t: return "text/plain";
+  case "txt"_t: return "text/plain;charset=UTF-8"; // HTTPLIB_CSPRO added charset
   case "vtt"_t: return "text/vtt";
 
   case "apng"_t: return "image/apng";
@@ -8012,7 +8020,13 @@ inline void Response::set_content(const char *s, size_t n,
 
   auto rng = headers.equal_range("Content-Type");
   headers.erase(rng.first, rng.second);
-  set_header("Content-Type", content_type);
+
+  // HTTPLIB_CSPRO added...
+  // ... because "for unknown data...do not use Content-Type header at all"  https://stackoverflow.com/questions/1176022/unknown-file-type-mime
+  if (!content_type.empty() ) {
+    assert(content_type != "application/octet-stream");
+    set_header("Content-Type", content_type);
+  }
 }
 
 inline void Response::set_content(const std::string &s,
@@ -13952,3 +13966,5 @@ inline SSL_CTX *Client::ssl_context() const {
 } // namespace httplib
 
 #endif // CPPHTTPLIB_HTTPLIB_H
+
+#endif // X64_BUILD (HTTPLIB_CSPRO)

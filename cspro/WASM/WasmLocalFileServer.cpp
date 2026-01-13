@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "WasmLocalFileServer.h"
 #include <zToolsO/Encoders.h>
 #include <zHtml/LocalhostUrl.h>
@@ -137,7 +137,7 @@ void WasmLocalFileServer::ClearRetrievedVirtualFiles()
 // VirtualFileMappingHandler::ServeContent
 // --------------------------------------------------------------------------
 
-void VirtualFileMappingResponse::SetContent(const void* const content_data, const size_t content_size, const cs::string_sz content_type)
+void VirtualFileMappingResponse::SetContent(const void* const content_data, const size_t content_size, const std::string& content_type)
 {
     ASSERT(content_data != nullptr);
     const std::byte* const bytes = reinterpret_cast<const std::byte*>(content_data);
@@ -147,11 +147,11 @@ void VirtualFileMappingResponse::SetContent(const void* const content_data, cons
 }
 
 
-void VirtualFileMappingResponse::SetContent(std::shared_ptr<const std::vector<std::byte>> content, const cs::string_sz content_type)
+void VirtualFileMappingResponse::SetContent(std::shared_ptr<const std::vector<std::byte>> content, const std::string& content_type)
 {
     WasmLocalFileServer::VirtualFile& virtual_file = *static_cast<WasmLocalFileServer::VirtualFile*>(m_responseObject);
     ASSERT(!virtual_file.retrieved);
 
     virtual_file.content = std::move(content);
-    virtual_file.content_type = content_type.c_str();
+    virtual_file.content_type = content_type;
 }
