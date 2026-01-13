@@ -56,6 +56,19 @@
 4. This copies files into the CSPro's *html* directory.
 
 
+### cpp-httplib
+
+*(The 32-bit version of this library is no longer updated.)*
+
+1. Find the latest version here: https://github.com/yhirose/cpp-httplib/releases/latest/
+2. Edit the batch script, *cpp-httplib.bat*, setting **httplib_version**.
+3. Run the batch script.
+4. This copies files into the CSPro solution.
+5. There are CSPro modifications that have to be restored in:
+    * httplib.h
+6. The library is built as part of the CSPro solution.
+
+
 ### curl
 
 1. Build **zlib** prior to building curl.
