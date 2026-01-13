@@ -13,6 +13,9 @@ LOCAL_SRC_FILES         += $(ZZIP_SRC_PATH)/ZipFile.cpp
 LOCAL_SRC_FILES         += $(ZZIP_SRC_PATH)/ZLib.cpp
 
 LOCAL_SRC_FILES         += $(MINIZ_SRC_PATH)/miniz.c
+LOCAL_SRC_FILES         += $(MINIZ_SRC_PATH)/miniz_tdef.c
+LOCAL_SRC_FILES         += $(MINIZ_SRC_PATH)/miniz_tinfl.c
+LOCAL_SRC_FILES         += $(MINIZ_SRC_PATH)/miniz_zip.c
 
 include $(LOCAL_PATH)/LOCAL_CFLAGS.mk
 LOCAL_CFLAGS            += -DUNICODE=1

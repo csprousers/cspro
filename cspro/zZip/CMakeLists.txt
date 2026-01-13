@@ -10,4 +10,7 @@ add_library(${PROJECT_NAME}
     ZLib.cpp
 
     ${MINIZ_DIRECTORY}/miniz.c
+    ${MINIZ_DIRECTORY}/miniz_tdef.c
+    ${MINIZ_DIRECTORY}/miniz_tinfl.c
+    ${MINIZ_DIRECTORY}/miniz_zip.c
 )

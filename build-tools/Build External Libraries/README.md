@@ -276,6 +276,15 @@
 7. The library is built as part of the CSPro solution.
 
 
+### miniz
+
+1. Find the latest version here: https://github.com/richgel999/miniz/releases/latest/
+2. Edit the batch script, *miniz.bat*, setting **miniz_version**.
+3. Run the batch script.
+4. This copies files into the CSPro solution.
+5. The library is built as part of the CSPro solution.
+
+
 ### mustache.js
 
 1. Find the latest version here: https://github.com/janl/mustache.js/releases/latest/

@@ -20,6 +20,15 @@
     <ClCompile Include="..\external\miniz\miniz.c">
       <Filter>Source Files\miniz</Filter>
     </ClCompile>
+    <ClCompile Include="..\external\miniz\miniz_tdef.c">
+      <Filter>Source Files\miniz</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\miniz\miniz_tinfl.c">
+      <Filter>Source Files\miniz</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\miniz\miniz_zip.c">
+      <Filter>Source Files\miniz</Filter>
+    </ClCompile>
     <ClCompile Include="stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
