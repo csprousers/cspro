@@ -384,12 +384,15 @@
 6. The library is built as part of the CSPro solution.
 
 
-### summernote-rtl-plugin
+### Summernote + summernote-rtl-plugin
 
-*(This library has not been updated in years.)*
+*(Summernote is still maintained, but the summernote-rtl-plugin library has not been updated in years.)*
 
-1. Run the batch script, *summernote.bat*.
-2. This copies files into the CSPro's *html* directory.
+1. Find the latest version here: https://github.com/summernote/summernote/releases/latest/
+2. Edit the batch script, *summernote.bat*, setting **sn_version**.
+3. Run the batch script.
+4. This copies files into the CSPro's *html* directory, including some that are not necessary.
+5. Remove anything that is not already committed.
 
 
 ### yaml-cpp
