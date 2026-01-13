@@ -1,7 +1,7 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "GeoJson.h"
 #include <external/jsoncons/json.hpp>
-#include <external/jsoncons/json_traits_macros.hpp>
+#include <external/jsoncons/json_cursor.hpp>
 
 #pragma warning(push)
 #pragma warning(disable: 4068 4239)
@@ -13,17 +13,17 @@
 
 using namespace GeoJson;
 
-// Extensions to json parser to handle the mapbox geometry.hpp types
+// Extensions to JSON parser to handle the mapbox geometry.hpp types
 // See jsoncons docs for details on how to add custom specializations to the parser/writer
 // https://github.com/danielaparker/jsoncons/blob/b9e95d6a0bcb2dc8a821d33f98a530f10cfe1bc0/doc/ref/json_type_traits/custom-specializations.md
 
-namespace jsoncons {
-
+namespace jsoncons
+{
     template<class Json>
     static Json point_vector_to_json_array(const std::vector<Geometry::Point>& points,
-        typename Json::allocator_type allocator)
+        const typename Json::allocator_type& allocator)
     {
-        json coords(json_array_arg, semantic_tag::none, allocator);
+        Json coords(json_array_arg, semantic_tag::none, allocator);
         coords.reserve(points.size());
         for (const auto& p : points) {
             coords.emplace_back(std::vector<Geometry::Point::coordinate_type>{ p.x, p.y });
@@ -44,7 +44,8 @@ namespace jsoncons {
     }
 
     template<class Json>
-    Geometry::Point MakePoint(const Json& coordinates) {
+    Geometry::Point MakePoint(const Json& coordinates)
+    {
         return Geometry::Point(
             coordinates[0].template as<Geometry::Point::coordinate_type>(),
             coordinates[1].template as<Geometry::Point::coordinate_type>());
@@ -53,8 +54,6 @@ namespace jsoncons {
     template<class Json>
     struct json_type_traits<Json, Geometry::Point>
     {
-        using allocator_type = typename Json::allocator_type;
-
         static bool is(const Json& j) noexcept
         {
             return j.is_object() && j.contains("type") && j["type"] == "Point";
@@ -66,7 +65,7 @@ namespace jsoncons {
         }
 
         static Json to_json(const Geometry::Point& p,
-            allocator_type allocator = allocator_type())
+            const typename Json::allocator_type& allocator)
         {
             Json j(json_object_arg, semantic_tag::none, allocator);
             j.try_emplace("type", "Point");
@@ -84,8 +83,6 @@ namespace jsoncons {
     template<class Json>
     struct json_type_traits<Json, Geometry::MultiPoint>
     {
-        using allocator_type = typename Json::allocator_type;
-
         static bool is(const Json& j) noexcept
         {
             return j.is_object() && j.contains("type") && j["type"] == "MultiPoint";
@@ -98,7 +95,7 @@ namespace jsoncons {
         }
 
         static Json to_json(const Geometry::MultiPoint& mp,
-            allocator_type allocator = allocator_type())
+            const typename Json::allocator_type& allocator)
         {
             Json j(json_object_arg, semantic_tag::none, allocator);
             j.try_emplace("type", "MultiPoint");
@@ -109,7 +106,8 @@ namespace jsoncons {
 
     template <>
     struct is_json_type_traits_declared<Geometry::MultiPoint> : public std::true_type
-    {};
+    {
+    };
 
     template<class Json>
     Geometry::LineString MakeLineString(const Json& coordinates)
@@ -120,8 +118,6 @@ namespace jsoncons {
     template<class Json>
     struct json_type_traits<Json, Geometry::LineString>
     {
-        using allocator_type = typename Json::allocator_type;
-
         static bool is(const Json& j) noexcept
         {
             return j.is_object() && j.contains("type") && j["type"] == "LineString";
@@ -134,7 +130,7 @@ namespace jsoncons {
         }
 
         static Json to_json(const Geometry::LineString& ls,
-            allocator_type allocator = allocator_type())
+            const typename Json::allocator_type& allocator)
         {
             Json j(json_object_arg, semantic_tag::none, allocator);
             j.try_emplace("type", "LineString");
@@ -145,7 +141,8 @@ namespace jsoncons {
 
     template <>
     struct is_json_type_traits_declared<Geometry::LineString> : public std::true_type
-    {};
+    {
+    };
 
     template<class Json>
     Geometry::Polygon MakePolygon(const Json& coordinates)
@@ -167,8 +164,6 @@ namespace jsoncons {
     template<class Json>
     struct json_type_traits<Json, Geometry::Polygon>
     {
-        using allocator_type = typename Json::allocator_type;
-
         static bool is(const Json& j) noexcept
         {
             return j.is_object() && j.contains("type") && j["type"] == "Polygon";
@@ -181,11 +176,11 @@ namespace jsoncons {
         }
 
         static Json to_json(const Geometry::Polygon& polygon,
-            allocator_type allocator = allocator_type())
+            const typename Json::allocator_type& allocator)
         {
             Json j(json_object_arg, semantic_tag::none, allocator);
             j.try_emplace("type", "Polygon");
-            json rings(json_array_arg, semantic_tag::none, allocator);
+            Json rings(json_array_arg, semantic_tag::none, allocator);
             rings.reserve(polygon.size());
             for (const auto& poly_ring : polygon) {
                 rings.emplace_back(point_vector_to_json_array<Json>(poly_ring, allocator));
@@ -197,7 +192,8 @@ namespace jsoncons {
 
     template <>
     struct is_json_type_traits_declared<::Geometry::Polygon> : public std::true_type
-    {};
+    {
+    };
 
     template<class Json>
     Geometry::MultiLineString MakeMultiLineString(const Json& coordinates)
@@ -219,8 +215,6 @@ namespace jsoncons {
     template<class Json>
     struct json_type_traits<Json, Geometry::MultiLineString>
     {
-        using allocator_type = typename Json::allocator_type;
-
         static bool is(const Json& j) noexcept
         {
             return j.is_object() && j.contains("type") && j["type"] == "MultiLineString";
@@ -233,11 +227,11 @@ namespace jsoncons {
         }
 
         static Json to_json(const Geometry::MultiLineString& multi_line,
-            allocator_type allocator = allocator_type())
+            const typename Json::allocator_type& allocator)
         {
             Json j(json_object_arg, semantic_tag::none, allocator);
             j.try_emplace("type", "MultiLineString");
-            json json_line_strings(json_array_arg, semantic_tag::none, allocator);
+            Json json_line_strings(json_array_arg, semantic_tag::none, allocator);
             json_line_strings.reserve(multi_line.size());
             for (const auto& line : multi_line) {
                 json_line_strings.emplace_back(point_vector_to_json_array<Json>(line, allocator));
@@ -249,7 +243,8 @@ namespace jsoncons {
 
     template <>
     struct is_json_type_traits_declared<Geometry::MultiLineString> : public std::true_type
-    {};
+    {
+    };
 
     template<class Json>
     Geometry::MultiPolygon MakeMultiPolygon(const Json& coordinates)
@@ -276,8 +271,6 @@ namespace jsoncons {
     template<class Json>
     struct json_type_traits<Json, Geometry::MultiPolygon>
     {
-        using allocator_type = typename Json::allocator_type;
-
         static bool is(const Json& j) noexcept
         {
             return j.is_object() && j.contains("type") && j["type"] == "MultiPolygon";
@@ -290,14 +283,14 @@ namespace jsoncons {
         }
 
         static Json to_json(const Geometry::MultiPolygon& multi_polygon,
-                            allocator_type allocator = allocator_type())
+            const typename Json::allocator_type& allocator)
         {
             Json j(json_object_arg, semantic_tag::none, allocator);
             j.try_emplace("type", "MultiPolygon");
-            json json_polygons(json_array_arg, semantic_tag::none, allocator);
+            Json json_polygons(json_array_arg, semantic_tag::none, allocator);
             json_polygons.reserve(multi_polygon.size());
             for (const auto& polygon : multi_polygon) {
-                json json_polygon(json_array_arg, semantic_tag::none, allocator);
+                Json json_polygon(json_array_arg, semantic_tag::none, allocator);
                 json_polygon.reserve(polygon.size());
                 for (const auto& poly_ring : polygon) {
                     json_polygon.emplace_back(point_vector_to_json_array<Json>(poly_ring, allocator));
@@ -311,13 +304,12 @@ namespace jsoncons {
 
     template <>
     struct is_json_type_traits_declared<Geometry::MultiPolygon> : public std::true_type
-    {};
+    {
+    };
 
     template<class Json>
     struct json_type_traits<Json, ::Geometry::Geometry>
     {
-        using allocator_type = typename Json::allocator_type;
-
         static bool is(const Json& j) noexcept
         {
             return j.is_object() && j.contains("type");
@@ -353,24 +345,24 @@ namespace jsoncons {
         }
 
         static Json to_json(const Geometry::Geometry& geometry,
-            allocator_type allocator = allocator_type())
+            const typename Json::allocator_type& allocator)
         {
-            return geometry.match([&allocator](mapbox::geometry::empty) { return json::null(); },
-                                    [&allocator](const Geometry::Point& g) { return json_type_traits<Json, Geometry::Point>::to_json(g, allocator); },
-                                    [&allocator](const Geometry::MultiPoint& g) { return json_type_traits<Json, Geometry::MultiPoint>::to_json(g, allocator); },
-                                    [&allocator](const Geometry::LineString& g) { return json_type_traits<Json, Geometry::LineString>::to_json(g, allocator); },
-                                    [&allocator](const Geometry::MultiLineString& g) { return json_type_traits<Json, Geometry::MultiLineString>::to_json(g, allocator); },
-                                    [&allocator](const Geometry::Polygon& g) { return json_type_traits<Json, Geometry::Polygon>::to_json(g, allocator); },
-                                    [&allocator](const Geometry::MultiPolygon& g) { return json_type_traits<Json, Geometry::MultiPolygon>::to_json(g, allocator); },
-                                    [&allocator](const Geometry::GeometryCollection& g) { return json_type_traits<Json, Geometry::GeometryCollection>::to_json(g, allocator); });
+            return geometry.match(
+                [&allocator](mapbox::geometry::empty) { return Json::null(); },
+                [&allocator](const Geometry::Point& g) { return json_type_traits<Json, Geometry::Point>::to_json(g, allocator); },
+                [&allocator](const Geometry::MultiPoint& g) { return json_type_traits<Json, Geometry::MultiPoint>::to_json(g, allocator); },
+                [&allocator](const Geometry::LineString& g) { return json_type_traits<Json, Geometry::LineString>::to_json(g, allocator); },
+                [&allocator](const Geometry::MultiLineString& g) { return json_type_traits<Json, Geometry::MultiLineString>::to_json(g, allocator); },
+                [&allocator](const Geometry::Polygon& g) { return json_type_traits<Json, Geometry::Polygon>::to_json(g, allocator); },
+                [&allocator](const Geometry::MultiPolygon& g) { return json_type_traits<Json, Geometry::MultiPolygon>::to_json(g, allocator); },
+                [&allocator](const Geometry::GeometryCollection& g) { return json_type_traits<Json, Geometry::GeometryCollection>::to_json(g, allocator); }
+            );
         }
     };
 
     template<class Json>
     struct json_type_traits<Json, Geometry::GeometryCollection>
     {
-        using allocator_type = typename Json::allocator_type;
-
         static bool is(const Json& j) noexcept
         {
             return j.is_object() && j.contains("type") && j["type"] == "GeometryCollection";
@@ -388,11 +380,11 @@ namespace jsoncons {
         }
 
         static Json to_json(const Geometry::GeometryCollection& geometry_collection,
-            allocator_type allocator = allocator_type())
+            const typename Json::allocator_type& allocator)
         {
             Json j(json_object_arg, semantic_tag::none, allocator);
             j.try_emplace("type", "GeometryCollection");
-            json json_geometries(json_array_arg, semantic_tag::none, allocator);
+            Json json_geometries(json_array_arg, semantic_tag::none, allocator);
             json_geometries.reserve(geometry_collection.size());
             for (const auto& geometry : geometry_collection) {
                 auto jg = json_type_traits<Json, Geometry::Geometry>::to_json(geometry, allocator);
@@ -405,13 +397,12 @@ namespace jsoncons {
 
     template <>
     struct is_json_type_traits_declared<Geometry::GeometryCollection> : public std::true_type
-    {};
+    {
+    };
 
     template<class Json>
     struct json_type_traits<Json, Geometry::Value>
     {
-        using allocator_type = typename Json::allocator_type;
-
         static bool is(const Json& j) noexcept
         {
             return true;
@@ -440,19 +431,18 @@ namespace jsoncons {
         }
 
         static Json to_json(const Geometry::Value& value,
-            allocator_type allocator = allocator_type())
+            const typename Json::allocator_type& allocator)
         {
             return value.match(
-                [&allocator](mapbox::feature::null_value_t) { return json::null(); },
-                [&allocator](const auto& v) { return Json(v); });
+                [&allocator](mapbox::feature::null_value_t) { return Json::null(); },
+                [&allocator](const auto& v) { return Json(v); }
+            );
         }
     };
 
     template<class Json>
     struct json_type_traits<Json, Geometry::Feature>
     {
-        using allocator_type = typename Json::allocator_type;
-
         static bool is(const Json& j) noexcept
         {
             return j.is_object() && j.contains("type") && j["type"] == "Feature";
@@ -485,19 +475,20 @@ namespace jsoncons {
         }
 
         static Json to_json(const Geometry::Feature& feature,
-            allocator_type allocator = allocator_type())
+            const typename Json::allocator_type& allocator)
         {
             Json j(json_object_arg, semantic_tag::none, allocator);
             j.try_emplace("type", "Feature");
             j.try_emplace("geometry", feature.geometry);
             Json json_id = feature.id.match(
-                [](mapbox::feature::null_value_t) { return json::null(); },
-                [](const auto& v) { return Json(v); });
+                [](mapbox::feature::null_value_t) { return Json::null(); },
+                [](const auto& v) { return Json(v); }
+            );
             if (!json_id.is_null())
                 j.try_emplace("id", json_id);
             Json json_properties(json_object_arg, semantic_tag::none, allocator);
             for (const auto& [name, value] : feature.properties) {
-                json_properties.try_emplace(name, json_type_traits<Json, Geometry::Value>::to_json(value));
+                json_properties.try_emplace(name, json_type_traits<Json, Geometry::Value>::to_json(value, allocator));
             }
             j.try_emplace("properties", json_properties);
             return j;
@@ -507,8 +498,6 @@ namespace jsoncons {
     template<class Json>
     struct json_type_traits<Json, Geometry::FeatureCollection>
     {
-        using allocator_type = typename Json::allocator_type;
-
         static bool is(const Json& j) noexcept
         {
             return j.is_object() && j.contains("type") && j["type"] == "FeatureCollection";
@@ -526,7 +515,7 @@ namespace jsoncons {
         }
 
         static Json to_json(const Geometry::FeatureCollection& feature_collection,
-            allocator_type allocator = allocator_type())
+            const typename Json::allocator_type& allocator)
         {
             Json j(json_object_arg, semantic_tag::none, allocator);
             j.try_emplace("type", "FeatureCollection");
@@ -542,10 +531,11 @@ namespace jsoncons {
 
     template <>
     struct is_json_type_traits_declared<Geometry::FeatureCollection> : public std::true_type
-    {};
+    {
+    };
 
 
-    void SkipArray(json_cursor& cursor)
+    void SkipArray(json_stream_cursor& cursor)
     {
         // if this is triggered, look at the change to SkipObject made on 2023-08-21 and see if a similar thing needs to happen for this function
         ASSERT(false);
@@ -571,7 +561,7 @@ namespace jsoncons {
     }
 
 
-    void SkipObject(json_cursor& cursor)
+    void SkipObject(json_stream_cursor& cursor)
     {
         ASSERT(!cursor.done() && cursor.current().event_type() == staj_event_type::begin_object);
 
@@ -596,14 +586,16 @@ namespace jsoncons {
     }
 }
 
+
 void GeoJson::toGeoJson(std::ostream& os, const GeoJsonObject& object)
 {
     jsoncons::encode_json(object, os);
 }
 
+
 GeoJsonObject GeoJson::fromGeoJson(std::istream& is)
 {
-    jsoncons::json_cursor cursor(is);
+    jsoncons::json_stream_cursor cursor(is);
 
     // Should start with a begin object
     if (cursor.done())
@@ -628,12 +620,14 @@ GeoJsonObject GeoJson::fromGeoJson(std::istream& is)
             case jsoncons::staj_event_type::begin_array:
             {
                 if (key == "features") {
-                    auto feature_array = jsoncons::staj_array<Geometry::Feature>(cursor);
-                    std::copy(std::begin(feature_array), std::end(feature_array), std::back_inserter(features));
+                    for (const auto& f : jsoncons::staj_array_iterator<Geometry::Feature>(cursor)) {
+                        features.emplace_back(f);
+                    }
                 }
                 else if (key == "geometries") {
-                    auto geometry_array = jsoncons::staj_array<Geometry::Geometry>(cursor);
-                    std::copy(std::begin(geometry_array), std::end(geometry_array), std::back_inserter(geometries));
+                    for (const auto& g : jsoncons::staj_array_iterator<Geometry::Geometry>(cursor)) {
+                        geometries.emplace_back(g);
+                    }
                 }
                 else if (key == "coordinates") {
                     cursor.read_to(decoder);
@@ -651,8 +645,7 @@ GeoJsonObject GeoJson::fromGeoJson(std::istream& is)
             case jsoncons::staj_event_type::begin_object:
             {
                 if (key == "properties") {
-                    auto json_properties = jsoncons::staj_object<std::string, jsoncons::json>(cursor);
-                    for (const auto& kv : json_properties)
+                    for (const auto& kv : jsoncons::staj_object_iterator<std::string, jsoncons::json>(cursor))
                         feature.properties[kv.first] = kv.second.template as<Geometry::Value>();
                 }
                 else if (key == "geometry") {
@@ -667,11 +660,12 @@ GeoJsonObject GeoJson::fromGeoJson(std::istream& is)
             case jsoncons::staj_event_type::string_value:
             {
                 if (key == "type") {
-                    type = event.get<jsoncons::string_view>();
+                    type = event.get<std::string>();
                 }
                 else if (key == "id") {
                     feature.id = event.get<std::string>();
                 }
+                break;
             }
 
             case jsoncons::staj_event_type::null_value:
@@ -709,7 +703,7 @@ GeoJsonObject GeoJson::fromGeoJson(std::istream& is)
             }
             case jsoncons::staj_event_type::key:
             {
-                key = event.get<jsoncons::string_view>();
+                key = event.get<std::string>();
                 break;
             }
             default:

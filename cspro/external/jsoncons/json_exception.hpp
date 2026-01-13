@@ -1,3 +1,5 @@
+// note CSPro additions marked with "CSPro"
+
 // Copyright 2013-2025 Daniel Parker
 // Distributed under the Boost license, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -26,6 +28,7 @@ namespace jsoncons {
     public:
         virtual ~json_exception() = default;
         virtual const char* what() const noexcept = 0;
+        virtual int CSPro_get_line_number() const noexcept { return -1; } // CSPro
     };
 
     // json_runtime_error
@@ -222,6 +225,11 @@ namespace jsoncons {
         std::size_t line() const noexcept
         {
             return line_;
+        }
+
+        int CSPro_get_line_number() const noexcept override // CSPro
+        {
+            return int32_cast(line());
         }
 
         std::size_t column() const noexcept

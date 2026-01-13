@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "JsonFormattingOptions.h"
 
 
@@ -64,6 +64,7 @@ namespace
 
         if( formatting_type == JsonFormattingType::Tight )
         {
+            json_options.root_line_splits(jsoncons::line_split_kind::same_line);
             json_options.object_object_line_splits(jsoncons::line_split_kind::same_line);
             json_options.array_object_line_splits(jsoncons::line_split_kind::same_line);
             json_options.object_array_line_splits(jsoncons::line_split_kind::same_line);

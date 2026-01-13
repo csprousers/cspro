@@ -1,3 +1,5 @@
+// note CSPro additions marked with "CSPro"
+
 // Copyright 2013-2025 Daniel Parker
 // Distributed under the Boost license, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -66,7 +68,7 @@
 #endif
 
 // Uncomment the following line to suppress deprecated names (recommended for new code)
-//#define JSONCONS_NO_DEPRECATED
+#define JSONCONS_NO_DEPRECATED // CSPro
 
 // The definitions below follow the definitions in compiler_support_p.h, https://github.com/01org/tinycbor
 // MIT license

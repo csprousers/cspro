@@ -1,3 +1,5 @@
+// note CSPro additions marked with "CSPro"
+//
 // Copyright 2013-2025 Daniel Parker
 // Distributed under the Boost license, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -4728,6 +4730,21 @@ namespace jsoncons {
                     return cast<json_const_reference_storage>().value().array_range();
                 case json_storage_kind::json_ref:
                     return cast<json_reference_storage>().value().array_range();
+                default:
+                    JSONCONS_THROW(json_runtime_error<std::domain_error>("Not an array"));
+            }
+        }
+
+        const array& array_value() const // CSPro: when upgrading to 0.173.2, this function was removed, so this is the old implementation
+        {
+            switch (storage_kind())
+            {
+                case json_storage_kind::array:
+                    return cast<array_storage>().value();
+                case json_storage_kind::json_const_ref:
+                    return cast<json_const_reference_storage>().value().array_value();
+                case json_storage_kind::json_ref:
+                    return cast<json_reference_storage>().value().array_value();
                 default:
                     JSONCONS_THROW(json_runtime_error<std::domain_error>("Not an array"));
             }

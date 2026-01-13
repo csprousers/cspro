@@ -1,3 +1,5 @@
+// note CSPro additions marked with "CSPro"
+
 // Copyright 2013-2025 Daniel Parker
 // Distributed under the Boost license, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -97,6 +99,12 @@ namespace jsoncons {
                 push_back(ch);
             }
         }
+
+        std::size_t length() const // CSPro
+        {
+            return buffer_length();
+        }
+
     private:
 
         std::size_t buffer_length() const
@@ -245,6 +253,11 @@ namespace jsoncons {
         void push_back(value_type ch)
         {
             buf_ptr->push_back(ch);
+        }
+
+        std::size_t length() const // CSPro
+        {
+            return buf_ptr->length();
         }
     };
 

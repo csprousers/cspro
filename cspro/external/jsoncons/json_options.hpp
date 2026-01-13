@@ -1,4 +1,6 @@
-// Copyright 2013-2025 Daniel Parker
+// note CSPro additions marked with "CSPro"
+
+ // Copyright 2013-2025 Daniel Parker
 // Distributed under the Boost license, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
@@ -507,7 +509,9 @@ public:
     using basic_json_encode_options<CharT>::byte_string_format;
     using basic_json_encode_options<CharT>::bignum_format;
 
+#if !defined(JSONCONS_NO_DEPRECATED) // CSPro: this is an error in v1.5.0 that has been fixed in the development branch
     using basic_json_encode_options<CharT>::line_splits;
+#endif
     using basic_json_encode_options<CharT>::root_line_splits;
     using basic_json_encode_options<CharT>::object_object_line_splits;
     using basic_json_encode_options<CharT>::array_object_line_splits;
