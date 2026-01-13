@@ -1,4 +1,4 @@
-﻿// Copyright 2013-2023 Daniel Parker
+// Copyright 2013-2025 Daniel Parker
 // Distributed under the Boost license, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
@@ -7,22 +7,17 @@
 #ifndef JSONCONS_PRETTY_PRINT_HPP
 #define JSONCONS_PRETTY_PRINT_HPP
 
-#include <string>
-#include <exception>
 #include <cstring>
 #include <ostream>
-#include <memory>
 #include <typeinfo>
-#include <cstring>
-#include <jsoncons/json_exception.hpp>
-#include <jsoncons/json_options.hpp>
+
 #include <jsoncons/json_encoder.hpp>
-#include <jsoncons/json_type_traits.hpp>
 #include <jsoncons/json_error.hpp>
+#include <jsoncons/json_options.hpp>
 
 namespace jsoncons {
 
-template<class Json>
+template <typename Json>
 class json_printable
 {
 public:
@@ -58,32 +53,32 @@ private:
     json_printable();
 };
 
-template<class Json>
+template <typename Json>
 json_printable<Json> print(const Json& j)
 {
     return json_printable<Json>(j, indenting::no_indent);
 }
 
-template<class Json>
+template <typename Json>
 json_printable<Json> print(const Json& j,
                            const basic_json_encode_options<typename Json::char_type>& options)
 {
     return json_printable<Json>(j, options, indenting::no_indent);
 }
 
-template<class Json>
+template <typename Json>
 json_printable<Json> pretty_print(const Json& j)
 {
     return json_printable<Json>(j, indenting::indent);
 }
 
-template<class Json>
+template <typename Json>
 json_printable<Json> pretty_print(const Json& j,
                                   const basic_json_encode_options<typename Json::char_type>& options)
 {
     return json_printable<Json>(j, options, indenting::indent);
 }
 
-}
+} // namespace jsoncons
 
-#endif
+#endif // JSONCONS_PRETTY_PRINT_HPP

@@ -1,110 +1,60 @@
-﻿// Copyright 2013-2023 Daniel Parker
+// Copyright 2013-2025 Daniel Parker
 // Distributed under the Boost license, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
 // See https://github.com/danielaparker/jsoncons for latest version
 
-#ifndef JSONCONS_TAG_TYPE_HPP
-#define JSONCONS_TAG_TYPE_HPP
+#ifndef JSONCONS_SEMANTIC_TYPE_HPP
+#define JSONCONS_SEMANTIC_TYPE_HPP
 
+#include <cstdint>
 #include <ostream>
+
 #include <jsoncons/config/jsoncons_config.hpp>
 
 namespace jsoncons {
 
-struct null_type
+enum class semantic_tag : uint8_t
 {
-    explicit null_type() = default; 
+    none = 0,               // 00000000
+    noesc = 1,              // 00000001
+    bigint = 2,             // 00000010
+    bigdec = 3,             // 00000011
+    datetime = 4,           // 00000111
+    epoch_second = 5,       // 00001000
+    epoch_milli = 6,        // 00001001
+    epoch_nano = 7,         // 00001010
+    base16 = 8,             // 00000100
+    base64 = 9,             // 00000101
+    bigfloat = 10,          // 00001010
+    float128 = 11,          // 00001011
+    base64url = 12,         // 00001100
+    undefined = 13,
+    uri = 14,
+    multi_dim_row_major = 15,
+    multi_dim_column_major = 16,
+    clamped = 17,
+    ext = 18,
+    id = 19,
+    regex = 20,
+    code = 21
 };
 
-struct temp_allocator_arg_t
+inline bool is_number_tag(semantic_tag tag) noexcept
 {
-    explicit temp_allocator_arg_t() = default; 
-};
+    constexpr uint8_t mask1{ uint8_t(semantic_tag::bigint) & uint8_t(semantic_tag::bigdec)
+        & uint8_t(semantic_tag::bigfloat) & uint8_t(semantic_tag::float128) };
+    constexpr uint8_t mask2{ uint8_t(~uint8_t(semantic_tag::bigint) & ~uint8_t(semantic_tag::bigdec)
+        & ~uint8_t(semantic_tag::bigfloat) & ~uint8_t(semantic_tag::float128)) };
 
-constexpr temp_allocator_arg_t temp_allocator_arg{};
+    return (uint8_t(tag) & mask1) == mask1 && (uint8_t(~(uint8_t)tag) & mask2) == mask2;
+}
 
-#if !defined(JSONCONS_NO_DEPRECATED)
-
-struct result_allocator_arg_t
-{
-    explicit result_allocator_arg_t() = default; 
-};
-
-constexpr result_allocator_arg_t result_allocator_arg{};
-#endif
-
-struct half_arg_t
-{
-    explicit half_arg_t() = default; 
-};
-
-constexpr half_arg_t half_arg{};
-
-struct json_array_arg_t
-{
-    explicit json_array_arg_t() = default; 
-};
-
-constexpr json_array_arg_t json_array_arg{};
-
-struct json_object_arg_t
-{
-    explicit json_object_arg_t() = default; 
-};
-
-constexpr json_object_arg_t json_object_arg{};
-
-struct byte_string_arg_t
-{
-    explicit byte_string_arg_t() = default; 
-};
-
-constexpr byte_string_arg_t byte_string_arg{};
-
-struct json_const_pointer_arg_t
-{
-    explicit json_const_pointer_arg_t() = default; 
-};
-
-constexpr json_const_pointer_arg_t json_const_pointer_arg{};
- 
-enum class semantic_tag : uint8_t 
-{
-    none = 0,
-    undefined = 0x01,
-    datetime = 0x02,
-    epoch_second = 0x03,
-    epoch_milli = 0x04,
-    epoch_nano = 0x05,
-    bigint = 0x06,
-    bigdec = 0x07,
-    bigfloat = 0x08,
-    float128 = 0x09,
-    base16 = 0x1a,
-    base64 = 0x1b,
-    base64url = 0x1c,
-    uri = 0x0d,
-    clamped = 0x0e,
-    multi_dim_row_major = 0x0f,
-    multi_dim_column_major = 0x10,
-    ext = 0x11,
-    id = 0x12,
-    regex = 0x13,
-    code = 0x14
-#if !defined(JSONCONS_NO_DEPRECATED)
-    , big_integer = bigint
-    , big_decimal = bigdec
-    , big_float = bigfloat
-    , date_time = datetime
-    , timestamp = epoch_second
-#endif
-};
-
-template <class CharT>
+template <typename CharT>
 std::basic_ostream<CharT>& operator<<(std::basic_ostream<CharT>& os, semantic_tag tag)
 {
     static constexpr const CharT* na_name = JSONCONS_CSTRING_CONSTANT(CharT, "n/a");
+    static constexpr const CharT* noesc_name = JSONCONS_CSTRING_CONSTANT(CharT, "unescaped");
     static constexpr const CharT* undefined_name = JSONCONS_CSTRING_CONSTANT(CharT, "undefined");
     static constexpr const CharT* datetime_name = JSONCONS_CSTRING_CONSTANT(CharT, "datetime");
     static constexpr const CharT* epoch_second_name = JSONCONS_CSTRING_CONSTANT(CharT, "epoch-second");
@@ -131,6 +81,11 @@ std::basic_ostream<CharT>& operator<<(std::basic_ostream<CharT>& os, semantic_ta
         case semantic_tag::none:
         {
             os << na_name;
+            break;
+        }
+        case semantic_tag::noesc:
+        {
+            os << noesc_name;
             break;
         }
         case semantic_tag::undefined:
@@ -237,12 +192,6 @@ std::basic_ostream<CharT>& operator<<(std::basic_ostream<CharT>& os, semantic_ta
     return os;
 }
 
-#if !defined(JSONCONS_NO_DEPRECATED)
-    JSONCONS_DEPRECATED_MSG("Instead, use semantic_tag") typedef semantic_tag semantic_tag_type;
-    JSONCONS_DEPRECATED_MSG("Instead, use byte_string_arg_t") typedef byte_string_arg_t bstr_arg_t;
-    constexpr byte_string_arg_t bstr_arg{};
-#endif
+} // namespace jsoncons
 
-}
-
-#endif
+#endif // JSONCONS_SEMANTIC_TYPE_HPP

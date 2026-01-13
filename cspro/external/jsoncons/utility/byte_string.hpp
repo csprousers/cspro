@@ -1,4 +1,4 @@
-﻿// Copyright 2013-2023 Daniel Parker
+// Copyright 2013-2025 Daniel Parker
 // Distributed under the Boost license, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
@@ -7,31 +7,40 @@
 #ifndef JSONCONS_BYTE_STRING_HPP
 #define JSONCONS_BYTE_STRING_HPP
 
-#include <sstream>
-#include <vector>
-#include <ostream>
 #include <cmath>
+#include <cstdint>
 #include <cstring> // std::memcmp
-#include <memory> // std::allocator
-#include <iterator>
-#include <exception>
-#include <iomanip> // std::setw
 #include <initializer_list>
+#include <iomanip> // std::setw
+#include <iterator>
+#include <memory> // std::allocator
+#include <ostream>
+#include <sstream>
+#include <type_traits>
 #include <utility> // std::move
+#include <vector>
+
+#include <jsoncons/config/compiler_support.hpp>
 #include <jsoncons/config/jsoncons_config.hpp>
-#include <jsoncons/json_exception.hpp>
 #include <jsoncons/conv_error.hpp>
-#include <jsoncons/extension_traits.hpp>
+#include <jsoncons/utility/more_type_traits.hpp>
 
 namespace jsoncons {
+
+    template <typename InputIt>
+    struct to_bytes_result
+    {
+        InputIt it;
+        conv_errc ec;
+    };
 
     // Algorithms
 
 namespace detail {
 
-    template <class InputIt, class Container>
+    template <typename InputIt,typename Container>
     typename std::enable_if<std::is_same<typename std::iterator_traits<InputIt>::value_type,uint8_t>::value,size_t>::type
-    encode_base64_generic(InputIt first, InputIt last, const char alphabet[65], Container& result)
+    bytes_to_base64_generic(InputIt first, InputIt last, const char alphabet[65], Container& result)
     {
         std::size_t count = 0;
         unsigned char a3[3];
@@ -50,7 +59,7 @@ namespace detail {
                 a4[2] = ((a3[1] & 0x0f) << 2) + ((a3[2] & 0xc0) >> 6);
                 a4[3] = a3[2] & 0x3f;
 
-                for (i = 0; i < 4; i++) 
+                for (i = 0; i < 4; i++)
                 {
                     result.push_back(alphabet[a4[i]]);
                     ++count;
@@ -61,7 +70,7 @@ namespace detail {
 
         if (i > 0)
         {
-            for (j = i; j < 3; ++j) 
+            for (j = i; j < 3; ++j)
             {
                 a3[j] = 0;
             }
@@ -70,7 +79,7 @@ namespace detail {
             a4[1] = ((a3[0] & 0x03) << 4) + ((a3[1] & 0xf0) >> 4);
             a4[2] = ((a3[1] & 0x0f) << 2) + ((a3[2] & 0xc0) >> 6);
 
-            for (j = 0; j < i + 1; ++j) 
+            for (j = 0; j < i + 1; ++j)
             {
                 result.push_back(alphabet[a4[j]]);
                 ++count;
@@ -78,7 +87,7 @@ namespace detail {
 
             if (fill != 0)
             {
-                while (i++ < 3) 
+                while (i++ < 3)
                 {
                     result.push_back(fill);
                     ++count;
@@ -89,9 +98,9 @@ namespace detail {
         return count;
     }
 
-    template <class InputIt, class F, class Container>
-    typename std::enable_if<extension_traits::is_back_insertable_byte_container<Container>::value,decode_result<InputIt>>::type 
-    decode_base64_generic(InputIt first, InputIt last, 
+    template <typename InputIt,typename F,typename Container>
+    typename std::enable_if<ext_traits::is_back_insertable_byte_container<Container>::value,to_bytes_result<InputIt>>::type
+    base64_to_bytes_generic(InputIt first, InputIt last,
                           const uint8_t reverse_alphabet[256],
                           F f,
                           Container& result)
@@ -104,13 +113,13 @@ namespace detail {
         {
             if (!f(*first))
             {
-                return decode_result<InputIt>{first, conv_errc::conversion_failed};
+                return to_bytes_result<InputIt>{first, conv_errc::conversion_failed};
             }
 
-            a4[i++] = static_cast<uint8_t>(*first++); 
+            a4[i++] = static_cast<uint8_t>(*first++);
             if (i == 4)
             {
-                for (i = 0; i < 4; ++i) 
+                for (i = 0; i < 4; ++i)
                 {
                     a4[i] = reverse_alphabet[a4[i]];
                 }
@@ -119,7 +128,7 @@ namespace detail {
                 a3[1] = ((a4[1] & 0xf) << 4) + ((a4[2] & 0x3c) >> 2);
                 a3[2] = ((a4[2] & 0x3) << 6) +   a4[3];
 
-                for (i = 0; i < 3; i++) 
+                for (i = 0; i < 3; i++)
                 {
                     result.push_back(a3[i]);
                 }
@@ -129,7 +138,7 @@ namespace detail {
 
         if (i > 0)
         {
-            for (j = 0; j < i; ++j) 
+            for (j = 0; j < i; ++j)
             {
                 a4[j] = reverse_alphabet[a4[j]];
             }
@@ -137,19 +146,19 @@ namespace detail {
             a3[0] = (a4[0] << 2) + ((a4[1] & 0x30) >> 4);
             a3[1] = ((a4[1] & 0xf) << 4) + ((a4[2] & 0x3c) >> 2);
 
-            for (j = 0; j < i - 1; ++j) 
+            for (j = 0; j < i - 1; ++j)
             {
                 result.push_back(a3[j]);
             }
         }
-        return decode_result<InputIt>{last, conv_errc::success};
+        return to_bytes_result<InputIt>{last, conv_errc::success};
     }
 
 } // namespace detail
 
-    template <class InputIt, class Container>
+    template <typename InputIt,typename Container>
     typename std::enable_if<std::is_same<typename std::iterator_traits<InputIt>::value_type,uint8_t>::value,size_t>::type
-    encode_base16(InputIt first, InputIt last, Container& result)
+    bytes_to_base16(InputIt first, InputIt last, Container& result)
     {
         static constexpr char characters[] = "0123456789ABCDEF";
 
@@ -162,51 +171,51 @@ namespace detail {
         return (last-first)*2;
     }
 
-    template <class InputIt, class Container>
+    template <typename InputIt,typename Container>
     typename std::enable_if<std::is_same<typename std::iterator_traits<InputIt>::value_type,uint8_t>::value,size_t>::type
-    encode_base64url(InputIt first, InputIt last, Container& result)
+    bytes_to_base64url(InputIt first, InputIt last, Container& result)
     {
         static constexpr char alphabet[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
                                                       "abcdefghijklmnopqrstuvwxyz"
                                                       "0123456789-_"
                                                       "\0";
-        return detail::encode_base64_generic(first, last, alphabet, result);
+        return detail::bytes_to_base64_generic(first, last, alphabet, result);
     }
 
-    template <class InputIt, class Container>
+    template <typename InputIt,typename Container>
     typename std::enable_if<std::is_same<typename std::iterator_traits<InputIt>::value_type,uint8_t>::value,size_t>::type
-    encode_base64(InputIt first, InputIt last, Container& result)
+    bytes_to_base64(InputIt first, InputIt last, Container& result)
     {
         static constexpr char alphabet[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
                                                    "abcdefghijklmnopqrstuvwxyz"
                                                    "0123456789+/"
                                                    "=";
-        return detail::encode_base64_generic(first, last, alphabet, result);
+        return detail::bytes_to_base64_generic(first, last, alphabet, result);
     }
 
-    template <class Char>
-    bool is_base64(Char c) 
+    template <typename Char>
+    bool is_base64(Char c)
     {
         return (c >= 0 && c < 128) && (isalnum((int)c) || c == '+' || c == '/');
     }
 
-    template <class Char>
-    bool is_base64url(Char c) 
+    template <typename Char>
+    bool is_base64url(Char c)
     {
         return (c >= 0 && c < 128) && (isalnum((int)c) || c == '-' || c == '_');
     }
 
-    inline 
-    static bool is_base64url(int c) 
+    inline
+    static bool is_base64url(int c)
     {
         return isalnum(c) || c == '-' || c == '_';
     }
 
     // decode
 
-    template <class InputIt, class Container>
-    typename std::enable_if<extension_traits::is_back_insertable_byte_container<Container>::value,decode_result<InputIt>>::type 
-    decode_base64url(InputIt first, InputIt last, Container& result)
+    template <typename InputIt,typename Container>
+    typename std::enable_if<ext_traits::is_back_insertable_byte_container<Container>::value,to_bytes_result<InputIt>>::type
+    base64url_to_bytes(InputIt first, InputIt last, Container& result)
     {
         static constexpr uint8_t reverse_alphabet[256] = {
             0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
@@ -226,15 +235,15 @@ namespace detail {
             0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
             0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff
         };
-        auto retval = jsoncons::detail::decode_base64_generic(first, last, reverse_alphabet, 
-                                                              is_base64url<typename std::iterator_traits<InputIt>::value_type>, 
+        auto retval = jsoncons::detail::base64_to_bytes_generic(first, last, reverse_alphabet,
+                                                              is_base64url<typename std::iterator_traits<InputIt>::value_type>,
                                                               result);
-        return retval.ec == conv_errc::success ? retval : decode_result<InputIt>{retval.it, conv_errc::not_base64url};
+        return retval.ec == conv_errc::success ? retval : to_bytes_result<InputIt>{retval.it, conv_errc::not_base64url};
     }
 
-    template <class InputIt, class Container>
-    typename std::enable_if<extension_traits::is_back_insertable_byte_container<Container>::value,decode_result<InputIt>>::type 
-    decode_base64(InputIt first, InputIt last, Container& result)
+    template <typename InputIt,typename Container>
+    typename std::enable_if<ext_traits::is_back_insertable_byte_container<Container>::value,to_bytes_result<InputIt>>::type
+    base64_to_bytes(InputIt first, InputIt last, Container& result)
     {
         static constexpr uint8_t reverse_alphabet[256] = {
             0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
@@ -254,20 +263,20 @@ namespace detail {
             0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
             0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff
         };
-        auto retval = jsoncons::detail::decode_base64_generic(first, last, reverse_alphabet, 
-                                                             is_base64<typename std::iterator_traits<InputIt>::value_type>, 
+        auto retval = jsoncons::detail::base64_to_bytes_generic(first, last, reverse_alphabet,
+                                                             is_base64<typename std::iterator_traits<InputIt>::value_type>,
                                                              result);
-        return retval.ec == conv_errc::success ? retval : decode_result<InputIt>{retval.it, conv_errc::not_base64};
+        return retval.ec == conv_errc::success ? retval : to_bytes_result<InputIt>{retval.it, conv_errc::not_base64};
     }
 
-    template <class InputIt,class Container>
-    typename std::enable_if<extension_traits::is_back_insertable_byte_container<Container>::value,decode_result<InputIt>>::type 
-    decode_base16(InputIt first, InputIt last, Container& result)
+    template <typename InputIt,typename Container>
+    typename std::enable_if<ext_traits::is_back_insertable_byte_container<Container>::value,to_bytes_result<InputIt>>::type
+    base16_to_bytes(InputIt first, InputIt last, Container& result)
     {
         std::size_t len = std::distance(first,last);
-        if (len & 1) 
+        if (len & 1)
         {
-            return decode_result<InputIt>{first, conv_errc::not_base16};
+            return to_bytes_result<InputIt>{first, conv_errc::not_base16};
         }
 
         InputIt it = first;
@@ -275,43 +284,43 @@ namespace detail {
         {
             uint8_t val;
             auto a = *it++;
-            if (a >= '0' && a <= '9') 
+            if (a >= '0' && a <= '9')
             {
                 val = static_cast<uint8_t>(a - '0') << 4;
-            } 
-            else if ((a | 0x20) >= 'a' && (a | 0x20) <= 'f') 
+            }
+            else if ((a | 0x20) >= 'a' && (a | 0x20) <= 'f')
             {
                 val = (static_cast<uint8_t>((a | 0x20) - 'a') + 10) << 4;
-            } 
-            else 
+            }
+            else
             {
-                return decode_result<InputIt>{first, conv_errc::not_base16};
+                return to_bytes_result<InputIt>{first, conv_errc::not_base16};
             }
 
             auto b = *it++;
-            if (b >= '0' && b <= '9') 
+            if (b >= '0' && b <= '9')
             {
                 val |= (b - '0');
-            } 
-            else if ((b | 0x20) >= 'a' && (b | 0x20) <= 'f') 
+            }
+            else if ((b | 0x20) >= 'a' && (b | 0x20) <= 'f')
             {
                 val |= ((b | 0x20) - 'a' + 10);
-            } 
-            else 
+            }
+            else
             {
-                return decode_result<InputIt>{first, conv_errc::not_base16};
+                return to_bytes_result<InputIt>{first, conv_errc::not_base16};
             }
 
             result.push_back(val);
         }
-        return decode_result<InputIt>{last, conv_errc::success};
+        return to_bytes_result<InputIt>{last, conv_errc::success};
     }
 
     struct byte_traits
     {
         using char_type = uint8_t;
 
-        static constexpr int eof() 
+        static constexpr int eof()
         {
             return std::char_traits<char>::eof();
         }
@@ -324,14 +333,14 @@ namespace detail {
 
     // basic_byte_string
 
-    template <class Allocator>
+    template <typename Allocator>
     class basic_byte_string;
 
     // byte_string_view
     class byte_string_view
     {
-        const uint8_t* data_;
-        std::size_t size_; 
+        const uint8_t* data_{nullptr};
+        std::size_t size_{0};
     public:
         using traits_type = byte_traits;
 
@@ -346,7 +355,6 @@ namespace detail {
         using const_pointer = const uint8_t*;
 
         constexpr byte_string_view() noexcept
-            : data_(nullptr), size_(0)
         {
         }
 
@@ -354,21 +362,20 @@ namespace detail {
             : data_(data), size_(length)
         {
         }
-    
-        template <class Container>
+
+        template <typename Container>
         constexpr explicit byte_string_view(const Container& cont,
-                          typename std::enable_if<extension_traits::is_byte_sequence<Container>::value,int>::type = 0) 
+                          typename std::enable_if<ext_traits::is_byte_sequence<Container>::value,int>::type = 0)
             : data_(reinterpret_cast<const uint8_t*>(cont.data())), size_(cont.size())
         {
         }
-    
-        template <class Allocator>
+
+        template <typename Allocator>
         constexpr byte_string_view(const basic_byte_string<Allocator>& bytes);
 
-        constexpr byte_string_view(const byte_string_view&) noexcept = default;
+        constexpr byte_string_view(const byte_string_view&) = default;
 
         JSONCONS_CPP14_CONSTEXPR byte_string_view(byte_string_view&& other) noexcept
-            : data_(nullptr), size_(0)
         {
             const_pointer temp_data = data_;
             data_ = other.data_;
@@ -392,19 +399,12 @@ namespace detail {
         {
             return data_;
         }
-    #if !defined(JSONCONS_NO_DEPRECATED)
-        JSONCONS_DEPRECATED_MSG("Instead, use size()") 
-        std::size_t length() const
-        {
-            return size_;
-        }
-    #endif
         constexpr size_t size() const noexcept
         {
             return size_;
         }
 
-        // iterator support 
+        // iterator support
         constexpr const_iterator begin() const noexcept
         {
             return data_;
@@ -422,12 +422,12 @@ namespace detail {
             return data_ + size_;
         }
 
-        constexpr uint8_t operator[](size_type pos) const 
-        { 
-            return data_[pos]; 
+        constexpr uint8_t operator[](size_type pos) const
+        {
+            return data_[pos];
         }
 
-        JSONCONS_CPP14_CONSTEXPR byte_string_view substr(size_type pos) const 
+        JSONCONS_CPP14_CONSTEXPR byte_string_view substr(size_type pos) const
         {
             if (pos > size_)
             {
@@ -437,7 +437,7 @@ namespace detail {
             return byte_string_view(data_ + pos, n);
         }
 
-        byte_string_view substr(size_type pos, size_type n) const 
+        byte_string_view substr(size_type pos, size_type n) const
         {
             if (pos > size_)
             {
@@ -450,20 +450,20 @@ namespace detail {
             return byte_string_view(data_ + pos, n);
         }
 
-        int compare(const byte_string_view& s) const noexcept 
+        int compare(const byte_string_view& s) const noexcept
         {
             const int rc = traits_type::compare(data_, s.data(), (std::min)(size_, s.size()));
             return rc != 0 ? rc : (size_ == s.size() ? 0 : size_ < s.size() ? -1 : 1);
         }
 
-        template <class Allocator>
-        int compare(const basic_byte_string<Allocator>& s) const noexcept 
+        template <typename Allocator>
+        int compare(const basic_byte_string<Allocator>& s) const noexcept
         {
             const int rc = traits_type::compare(data_, s.data(), (std::min)(size_, s.size()));
             return rc != 0 ? rc : (size_ == s.size() ? 0 : size_ < s.size() ? -1 : 1);
         }
 
-        template <class CharT>
+        template <typename CharT>
         friend std::basic_ostream<CharT>& operator<<(std::basic_ostream<CharT>& os, const byte_string_view& bstr)
         {
             std::basic_ostringstream<CharT> ss;
@@ -477,7 +477,7 @@ namespace detail {
                 {
                     first = false;
                 }
-                else 
+                else
                 {
                     ss << ',';
                 }
@@ -489,7 +489,7 @@ namespace detail {
     };
 
     // basic_byte_string
-    template <class Allocator = std::allocator<uint8_t>>
+    template <typename Allocator = std::allocator<uint8_t>>
     class basic_byte_string
     {
         using byte_allocator_type = typename std::allocator_traits<Allocator>:: template rebind_alloc<uint8_t>;
@@ -589,12 +589,12 @@ namespace detail {
             data_.clear();
         }
 
-        uint8_t operator[](size_type pos) const 
-        { 
-            return data_[pos]; 
+        uint8_t operator[](size_type pos) const
+        {
+            return data_[pos];
         }
 
-        // iterator support 
+        // iterator support
         iterator begin() noexcept
         {
             return data_.begin();
@@ -628,27 +628,19 @@ namespace detail {
             return data_.size();
         }
 
-    #if !defined(JSONCONS_NO_DEPRECATED)
-        JSONCONS_DEPRECATED_MSG("Instead, use size()") 
-        std::size_t length() const
-        {
-            return data_.size();
-        }
-    #endif
-
-        int compare(const byte_string_view& s) const noexcept 
+        int compare(const byte_string_view& s) const noexcept
         {
             const int rc = traits_type::compare(data(), s.data(), (std::min)(size(), s.size()));
             return rc != 0 ? rc : (size() == s.size() ? 0 : size() < s.size() ? -1 : 1);
         }
 
-        int compare(const basic_byte_string& s) const noexcept 
+        int compare(const basic_byte_string& s) const noexcept
         {
             const int rc = traits_type::compare(data(), s.data(), (std::min)(size(), s.size()));
             return rc != 0 ? rc : (size() == s.size() ? 0 : size() < s.size() ? -1 : 1);
         }
 
-        template <class CharT>
+        template <typename CharT>
         friend std::basic_ostream<CharT>& operator<<(std::basic_ostream<CharT>& os, const basic_byte_string& o)
         {
             os << byte_string_view(o);
@@ -656,8 +648,8 @@ namespace detail {
         }
     };
 
-    template <class Allocator>
-    constexpr byte_string_view::byte_string_view(const basic_byte_string<Allocator>& bytes) 
+    template <typename Allocator>
+    constexpr byte_string_view::byte_string_view(const basic_byte_string<Allocator>& bytes)
         : data_(bytes.data()), size_(bytes.size())
     {
     }
@@ -668,17 +660,17 @@ namespace detail {
     {
         return lhs.compare(rhs) == 0;
     }
-    template<class Allocator>
+    template <typename Allocator>
     bool operator==(const byte_string_view& lhs, const basic_byte_string<Allocator>& rhs) noexcept
     {
         return lhs.compare(rhs) == 0;
     }
-    template<class Allocator>
+    template <typename Allocator>
     bool operator==(const basic_byte_string<Allocator>& lhs, const byte_string_view& rhs) noexcept
     {
         return rhs.compare(lhs) == 0;
     }
-    template<class Allocator>
+    template <typename Allocator>
     bool operator==(const basic_byte_string<Allocator>& lhs, const basic_byte_string<Allocator>& rhs) noexcept
     {
         return rhs.compare(lhs) == 0;
@@ -691,17 +683,17 @@ namespace detail {
     {
         return lhs.compare(rhs) != 0;
     }
-    template<class Allocator>
+    template <typename Allocator>
     bool operator!=(const byte_string_view& lhs, const basic_byte_string<Allocator>& rhs) noexcept
     {
         return lhs.compare(rhs) != 0;
     }
-    template<class Allocator>
+    template <typename Allocator>
     bool operator!=(const basic_byte_string<Allocator>& lhs, const byte_string_view& rhs) noexcept
     {
         return rhs.compare(lhs) != 0;
     }
-    template<class Allocator>
+    template <typename Allocator>
     bool operator!=(const basic_byte_string<Allocator>& lhs, const basic_byte_string<Allocator>& rhs) noexcept
     {
         return rhs.compare(lhs) != 0;
@@ -714,17 +706,17 @@ namespace detail {
     {
         return lhs.compare(rhs) <= 0;
     }
-    template<class Allocator>
+    template <typename Allocator>
     bool operator<=(const byte_string_view& lhs, const basic_byte_string<Allocator>& rhs) noexcept
     {
         return lhs.compare(rhs) <= 0;
     }
-    template<class Allocator>
+    template <typename Allocator>
     bool operator<=(const basic_byte_string<Allocator>& lhs, const byte_string_view& rhs) noexcept
     {
         return rhs.compare(lhs) >= 0;
     }
-    template<class Allocator>
+    template <typename Allocator>
     bool operator<=(const basic_byte_string<Allocator>& lhs, const basic_byte_string<Allocator>& rhs) noexcept
     {
         return rhs.compare(lhs) >= 0;
@@ -737,17 +729,17 @@ namespace detail {
     {
         return lhs.compare(rhs) < 0;
     }
-    template<class Allocator>
+    template <typename Allocator>
     bool operator<(const byte_string_view& lhs, const basic_byte_string<Allocator>& rhs) noexcept
     {
         return lhs.compare(rhs) < 0;
     }
-    template<class Allocator>
+    template <typename Allocator>
     bool operator<(const basic_byte_string<Allocator>& lhs, const byte_string_view& rhs) noexcept
     {
         return rhs.compare(lhs) > 0;
     }
-    template<class Allocator>
+    template <typename Allocator>
     bool operator<(const basic_byte_string<Allocator>& lhs, const basic_byte_string<Allocator>& rhs) noexcept
     {
         return rhs.compare(lhs) > 0;
@@ -760,17 +752,17 @@ namespace detail {
     {
         return lhs.compare(rhs) >= 0;
     }
-    template<class Allocator>
+    template <typename Allocator>
     bool operator>=(const byte_string_view& lhs, const basic_byte_string<Allocator>& rhs) noexcept
     {
         return lhs.compare(rhs) >= 0;
     }
-    template<class Allocator>
+    template <typename Allocator>
     bool operator>=(const basic_byte_string<Allocator>& lhs, const byte_string_view& rhs) noexcept
     {
         return rhs.compare(lhs) <= 0;
     }
-    template<class Allocator>
+    template <typename Allocator>
     bool operator>=(const basic_byte_string<Allocator>& lhs, const basic_byte_string<Allocator>& rhs) noexcept
     {
         return rhs.compare(lhs) <= 0;
@@ -783,17 +775,17 @@ namespace detail {
     {
         return lhs.compare(rhs) > 0;
     }
-    template<class Allocator>
+    template <typename Allocator>
     bool operator>(const byte_string_view& lhs, const basic_byte_string<Allocator>& rhs) noexcept
     {
         return lhs.compare(rhs) > 0;
     }
-    template<class Allocator>
+    template <typename Allocator>
     bool operator>(const basic_byte_string<Allocator>& lhs, const byte_string_view& rhs) noexcept
     {
         return rhs.compare(lhs) < 0;
     }
-    template<class Allocator>
+    template <typename Allocator>
     bool operator>(const basic_byte_string<Allocator>& lhs, const basic_byte_string<Allocator>& rhs) noexcept
     {
         return rhs.compare(lhs) < 0;
@@ -801,7 +793,7 @@ namespace detail {
 
     using byte_string = basic_byte_string<std::allocator<uint8_t>>;
 
-    namespace extension_traits {
+    namespace ext_traits {
 
         template <typename T>
         struct is_basic_byte_string
@@ -813,8 +805,8 @@ namespace detail {
         : std::true_type
         {};
 
-    } // namespace extension_traits
+    } // namespace ext_traits
 
 } // namespace jsoncons
 
-#endif
+#endif // JSONCONS_BYTE_STRING_HPP

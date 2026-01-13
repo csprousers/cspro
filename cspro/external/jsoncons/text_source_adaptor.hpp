@@ -1,4 +1,4 @@
-﻿// Copyright 2013-2023 Daniel Parker
+// Copyright 2013-2025 Daniel Parker
 // Distributed under the Boost license, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
@@ -8,23 +8,18 @@
 #define JSONCONS_TEXT_SOURCE_ADAPTOR_HPP
 
 #include <cstddef>
-#include <string>
-#include <vector>
-#include <stdexcept>
 #include <system_error>
-#include <memory> // std::allocator_traits
-#include <vector> // std::vector
-#include <jsoncons/unicode_traits.hpp>
+
 #include <jsoncons/json_error.hpp> // json_errc
 #include <jsoncons/source.hpp>
-#include <jsoncons/json_exception.hpp>
+#include <jsoncons/utility/unicode_traits.hpp>
 
 namespace jsoncons {
 
     // unicode_source_adaptor
 
-    template<class Source,class Allocator>
-    class unicode_source_adaptor 
+    template <typename Source,typename Allocator>
+    class unicode_source_adaptor
     {
     public:
         using value_type = typename Source::value_type;
@@ -35,7 +30,7 @@ namespace jsoncons {
 
 
     public:
-        template <class Sourceable>
+        template <typename Sourceable>
         unicode_source_adaptor(Sourceable&& source)
             : source_(std::forward<Sourceable>(source)),
               bof_(true)
@@ -44,12 +39,12 @@ namespace jsoncons {
 
         bool is_error() const
         {
-            return source_.is_error();  
+            return source_.is_error();
         }
 
         bool eof() const
         {
-            return source_.eof();  
+            return source_.eof();
         }
 
         span<const value_type> read_buffer(std::error_code& ec)
@@ -75,17 +70,16 @@ namespace jsoncons {
                 data = r.ptr;
                 bof_ = false;
             }
-            return span<const value_type>(data, length);            
+            return span<const value_type>(data, length);
         }
     };
 
     // json_source_adaptor
 
-    template<class Source,class Allocator>
-    class json_source_adaptor 
+    template <typename Source,typename Allocator>
+    class json_source_adaptor
     {
     public:
-        using value_type = typename Source::value_type;
         using value_type = typename Source::value_type;
         using source_type = Source;
     private:
@@ -94,7 +88,7 @@ namespace jsoncons {
 
     public:
 
-        template <class Sourceable>
+        template <typename Sourceable>
         json_source_adaptor(Sourceable&& source)
             : source_(std::forward<Sourceable>(source)),
               bof_(true)
@@ -103,12 +97,12 @@ namespace jsoncons {
 
         bool is_error() const
         {
-            return source_.is_error();  
+            return source_.is_error();
         }
 
         bool eof() const
         {
-            return source_.eof();  
+            return source_.eof();
         }
 
         span<const value_type> read_buffer(std::error_code& ec)
@@ -119,7 +113,7 @@ namespace jsoncons {
             }
 
             auto s = source_.read_buffer();
-            const value_type* data = s.data(); 
+            const value_type* data = s.data();
             std::size_t length = s.size();
 
             if (bof_ && length > 0)
@@ -134,11 +128,10 @@ namespace jsoncons {
                 data = r.ptr;
                 bof_ = false;
             }
-            return span<const value_type>(data, length);            
+            return span<const value_type>(data, length);
         }
     };
 
 } // namespace jsoncons
 
-#endif
-
+#endif // JSONCONS_TEXT_SOURCE_ADAPTOR_HPP

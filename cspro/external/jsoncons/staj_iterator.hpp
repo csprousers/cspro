@@ -1,4 +1,4 @@
-﻿// Copyright 2013-2023 Daniel Parker
+// Copyright 2013-2025 Daniel Parker
 // Distributed under the Boost license, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
@@ -7,102 +7,93 @@
 #ifndef JSONCONS_STAJ_ITERATOR_HPP
 #define JSONCONS_STAJ_ITERATOR_HPP
 
-#include <new> // placement new
-#include <memory>
-#include <string>
-#include <stdexcept>
-#include <system_error>
+#include <exception>
 #include <ios>
 #include <iterator> // std::input_iterator_tag
-#include <jsoncons/json_exception.hpp>
-#include <jsoncons/staj_cursor.hpp>
+#include <memory>
+#include <new> // placement new
+#include <string>
+#include <system_error>
+#include <type_traits>
+#include <utility>
+
+#include <jsoncons/config/compiler_support.hpp>
 #include <jsoncons/basic_json.hpp>
-#include <jsoncons/decode_traits.hpp>
+#include <jsoncons/reflect/decode_traits.hpp>
+#include <jsoncons/json_exception.hpp>
+#include <jsoncons/staj_event.hpp>
+#include <jsoncons/staj_cursor.hpp>
 
 namespace jsoncons {
 
-    template <class T, class Json>
-    class staj_array_view;
+    // staj_array_iterator
 
-    template<class T, class Json>
+    template <typename T,typename CharT=char>
     class staj_array_iterator
     {
-        using char_type = typename Json::char_type;
-
-        staj_array_view<T, Json>* view_;
-        std::exception_ptr eptr_;
-
-    public:
+        using char_type = CharT;
         using value_type = T;
         using difference_type = std::ptrdiff_t;
         using pointer = T*;
         using reference = T&;
         using iterator_category = std::input_iterator_tag;
 
-        staj_array_iterator() noexcept
-            : view_(nullptr)
-        {
-        }
+    private:
+        basic_staj_cursor<char_type>* cursor_ptr_{nullptr};
+        jsoncons::optional<T> value_;
+        bool done_{true};
+    public:
 
-        staj_array_iterator(staj_array_view<T, Json>& view)
-            : view_(std::addressof(view))
+        staj_array_iterator() noexcept = default;
+
+        staj_array_iterator(basic_staj_cursor<char_type>& cursor)
+            : cursor_ptr_(std::addressof(cursor)), done_(false)
         {
-            if (view_->cursor_->current().event_type() == staj_event_type::begin_array)
+            if (cursor_ptr_->done())
+            {
+                done_ = true;
+            }
+            else if (cursor_ptr_->current().event_type() == staj_event_type::begin_array)
             {
                 next();
             }
             else
             {
-                view_->cursor_ = nullptr;
+                done_ = true;
             }
         }
 
-        staj_array_iterator(staj_array_view<T, Json>& view,
-                            std::error_code& ec)
-            : view_(std::addressof(view))
+        staj_array_iterator(basic_staj_cursor<char_type>& cursor, std::error_code& ec)
+            : cursor_ptr_(std::addressof(cursor)), done_(false)
         {
-            if (view_->cursor_->current().event_type() == staj_event_type::begin_array)
+            if (cursor_ptr_->done())
+            {
+                done_ = true;
+            }
+            else if (cursor_ptr_->current().event_type() == staj_event_type::begin_array)
             {
                 next(ec);
-                if (ec) {view_ = nullptr;}
             }
             else
             {
-                view_ = nullptr;
+                done_ = true;
             }
         }
 
-        ~staj_array_iterator() noexcept
-        {
-        }
+        staj_array_iterator(const staj_array_iterator& iter) = default;
 
-        bool has_value() const
-        {
-            return !eptr_;
-        }
+        ~staj_array_iterator() noexcept = default;
+
+        staj_array_iterator& operator=(const staj_array_iterator& iter) = default;
 
         const T& operator*() const
         {
-            if (eptr_)
-            {
-                 std::rethrow_exception(eptr_);
-            }
-            else
-            {
-                return *view_->value_;
-            }
+            return *value_;
         }
 
         const T* operator->() const
         {
-            if (eptr_)
-            {
-                 std::rethrow_exception(eptr_);
-            }
-            else
-            {
-                return view_->value_.operator->();
-            }
+            return value_.operator->();
         }
 
         staj_array_iterator& operator++()
@@ -114,7 +105,7 @@ namespace jsoncons {
         staj_array_iterator& increment(std::error_code& ec)
         {
             next(ec);
-            if (ec) {view_ = nullptr;}
+            if (JSONCONS_UNLIKELY(ec)) {done_ = true;}
             return *this;
         }
 
@@ -127,9 +118,7 @@ namespace jsoncons {
 
         friend bool operator==(const staj_array_iterator& a, const staj_array_iterator& b)
         {
-            return (!a.view_ && !b.view_)
-                || (!a.view_ && b.done())
-                || (!b.view_ && a.done());
+            return (a.done() && b.done());
         }
 
         friend bool operator!=(const staj_array_iterator& a, const staj_array_iterator& b)
@@ -141,55 +130,74 @@ namespace jsoncons {
 
         bool done() const
         {
-            return view_->cursor_->done() || view_->cursor_->current().event_type() == staj_event_type::end_array;
+            return done_;
         }
 
         void next()
         {
+            if (JSONCONS_UNLIKELY(done_))
+            {
+                return;
+            }
             std::error_code ec;
             next(ec);
-            if (ec)
+            if (JSONCONS_UNLIKELY(ec))
             {
-                JSONCONS_THROW(ser_error(ec, view_->cursor_->context().line(), view_->cursor_->context().column()));
+                JSONCONS_THROW(ser_error(ec, cursor_ptr_->context().line(), cursor_ptr_->context().column()));
             }
         }
 
         void next(std::error_code& ec)
         {
-            if (!done())
+            ec.clear();
+            if (JSONCONS_UNLIKELY(done_))
             {
-                view_->cursor_->next(ec);
-                if (ec)
-                {
-                    return;
-                }
-                if (!done())
-                {
-                    eptr_ = std::exception_ptr();
-                    JSONCONS_TRY
-                    {
-                        view_->value_ = decode_traits<T,char_type>::decode(*view_->cursor_, view_->decoder_, ec);
-                    }
-                    JSONCONS_CATCH(const conv_error&)
-                    {
-                        eptr_ = std::current_exception();
-                    }
-                }
+                return;
             }
+            if (cursor_ptr_->done())
+            {
+                done_ = true;
+                return;
+            }
+            cursor_ptr_->next(ec);
+            if (JSONCONS_UNLIKELY(ec))
+            {
+                done_ = true;
+                return;
+            }
+            if (JSONCONS_UNLIKELY(cursor_ptr_->current().event_type() == staj_event_type::end_array))
+            {
+                done_ = true;
+                return;
+            }
+            auto result = reflect::decode_traits<T>::try_decode(make_alloc_set(), *cursor_ptr_);
+            if (JSONCONS_UNLIKELY(!result))
+            {
+                ec = result.error().code();
+                return;
+            }
+            value_ = std::move(*result);
         }
     };
 
-    template <class Key,class Json,class T=Json>
-    class staj_object_view;
+    template <typename T,typename CharT>
+    staj_array_iterator<T,CharT> begin(staj_array_iterator<T,CharT> iter)
+    {
+        return iter;
+    }
 
-    template <class Key, class T, class Json>
+    template <typename T,typename CharT>
+    staj_array_iterator<T,CharT> end(staj_array_iterator<T,CharT>) noexcept
+    {
+        return staj_array_iterator<T,CharT>();
+    }
+
+    // staj_object_iterator
+
+    template <typename Key,typename T,typename CharT=char>
     class staj_object_iterator
     {
-        using char_type = typename Json::char_type;
-
-        staj_object_view<Key, T, Json>* view_;
-        std::exception_ptr eptr_;
-    public:
+        using char_type = CharT;
         using key_type = std::basic_string<char_type>;
         using value_type = std::pair<key_type,T>;
         using difference_type = std::ptrdiff_t;
@@ -197,72 +205,63 @@ namespace jsoncons {
         using reference = value_type&;
         using iterator_category = std::input_iterator_tag;
 
+    private:
+        basic_staj_cursor<char_type>* cursor_ptr_{nullptr};
+        jsoncons::optional<value_type> key_value_;
+        bool done_{true};
     public:
 
-        staj_object_iterator() noexcept
-            : view_(nullptr)
-        {
-        }
+        staj_object_iterator() noexcept = default;
 
-        staj_object_iterator(staj_object_view<Key, T, Json>& view)
-            : view_(std::addressof(view))
+        staj_object_iterator(basic_staj_cursor<char_type>& cursor)
+            : cursor_ptr_(std::addressof(cursor)), done_(false)
         {
-            if (view_->cursor_->current().event_type() == staj_event_type::begin_object)
+            if (cursor_ptr_->done())
+            {
+                done_ = true;
+            }
+            else if (cursor_ptr_->current().event_type() == staj_event_type::begin_object)
             {
                 next();
             }
             else
             {
-                view_ = nullptr;
+                done_ = true;
             }
         }
 
-        staj_object_iterator(staj_object_view<Key, T, Json>& view, 
-                             std::error_code& ec)
-            : view_(std::addressof(view))
+        staj_object_iterator(basic_staj_cursor<char_type>& cursor, std::error_code& ec)
+                : cursor_ptr_(std::addressof(cursor)), done_(false)
         {
-            if (view_->cursor_->current().event_type() == staj_event_type::begin_object)
+            if (cursor_ptr_->done())
+            {
+                done_ = true;
+            }
+            else if (cursor_ptr_->current().event_type() == staj_event_type::begin_object)
             {
                 next(ec);
-                if (ec) {view_ = nullptr;}
+                if (JSONCONS_UNLIKELY(ec)) {done_ = true;}
             }
             else
             {
-                view_ = nullptr;
+                done_ = true;
             }
         }
 
-        ~staj_object_iterator() noexcept
-        {
-        }
+        staj_object_iterator(const staj_object_iterator& iter) = default;
 
-        bool has_value() const
-        {
-            return !eptr_;
-        }
+        ~staj_object_iterator() noexcept = default;
+
+        staj_object_iterator& operator=(const staj_object_iterator& iter) = default;
 
         const value_type& operator*() const
         {
-            if (eptr_)
-            {
-                 std::rethrow_exception(eptr_);
-            }
-            else
-            {
-                return *view_->key_value_;
-            }
+            return *key_value_;
         }
 
         const value_type* operator->() const
         {
-            if (eptr_)
-            {
-                 std::rethrow_exception(eptr_);
-            }
-            else
-            {
-                return view_->key_value_.operator->();
-            }
+            return key_value_.operator->();
         }
 
         staj_object_iterator& operator++()
@@ -274,10 +273,7 @@ namespace jsoncons {
         staj_object_iterator& increment(std::error_code& ec)
         {
             next(ec);
-            if (ec)
-            {
-                view_ = nullptr;
-            }
+            if (JSONCONS_UNLIKELY(ec)){done_ = true;}
             return *this;
         }
 
@@ -290,9 +286,7 @@ namespace jsoncons {
 
         friend bool operator==(const staj_object_iterator& a, const staj_object_iterator& b)
         {
-            return (!a.view_ && !b.view_)
-                   || (!a.view_ && b.done())
-                   || (!b.view_ && a.done());
+            return (a.done() && b.done());
         }
 
         friend bool operator!=(const staj_object_iterator& a, const staj_object_iterator& b)
@@ -304,142 +298,77 @@ namespace jsoncons {
 
         bool done() const
         {
-            return view_->cursor_->done() || view_->cursor_->current().event_type() == staj_event_type::end_object;
+            return done_;
         }
 
         void next()
         {
+            if (JSONCONS_UNLIKELY(done_))
+            {
+                return;
+            }
             std::error_code ec;
             next(ec);
-            if (ec)
+            if (JSONCONS_UNLIKELY(ec))
             {
-                JSONCONS_THROW(ser_error(ec, view_->cursor_->context().line(), view_->cursor_->context().column()));
+                JSONCONS_THROW(ser_error(ec, cursor_ptr_->context().line(), cursor_ptr_->context().column()));
             }
         }
 
         void next(std::error_code& ec)
         {
-            view_->cursor_->next(ec);
-            if (ec)
+            if (JSONCONS_UNLIKELY(done_))
             {
                 return;
             }
-            if (!done())
+            if (cursor_ptr_->done())
             {
-                JSONCONS_ASSERT(view_->cursor_->current().event_type() == staj_event_type::key);
-                auto key = view_->cursor_->current(). template get<key_type>();
-                view_->cursor_->next(ec);
-                if (ec)
-                {
-                    return;
-                }
-                if (!done())
-                {
-                    eptr_ = std::exception_ptr();
-                    JSONCONS_TRY
-                    {
-                        view_->key_value_ = value_type(std::move(key),decode_traits<T,char_type>::decode(*view_->cursor_, view_->decoder_, ec));
-                    }
-                    JSONCONS_CATCH(const conv_error&)
-                    {
-                        eptr_ = std::current_exception();
-                    }
-                }
+                done_ = true;
+                return;
             }
+
+            cursor_ptr_->next(ec);
+            if (JSONCONS_UNLIKELY(ec))
+            {
+                done_ = true;
+                return;
+            }
+            if (JSONCONS_UNLIKELY(cursor_ptr_->current().event_type() == staj_event_type::end_object))
+            {
+                done_ = true;
+                return;
+            }
+            JSONCONS_ASSERT(cursor_ptr_->current().event_type() == staj_event_type::key);
+            auto key = cursor_ptr_->current(). template get<key_type>();
+            cursor_ptr_->next(ec);
+            if (JSONCONS_UNLIKELY(ec))
+            {
+                done_ = true;
+                return;
+            }
+            auto result = reflect::decode_traits<T>::try_decode(make_alloc_set(), *cursor_ptr_);
+            if (JSONCONS_UNLIKELY(!result))
+            {
+                ec = result.error().code();
+                done_ = true;
+                return;
+            }
+            key_value_ = value_type(std::move(key), std::move(*result));
         }
     };
 
-    // staj_array_view
-
-    template <class T, class Json>
-    class staj_array_view
+    template <typename Key, typename T, typename CharT>
+    staj_object_iterator<Key, T, CharT> begin(staj_object_iterator<Key, T, CharT> iter)
     {
-        friend class staj_array_iterator<T, Json>;
-    public:
-        using char_type = typename Json::char_type;
-        using iterator = staj_array_iterator<T, Json>;
-    private:
-        basic_staj_cursor<char_type>* cursor_;
-        json_decoder<Json> decoder_;
-        jsoncons::optional<T> value_;
-    public:
-        staj_array_view(basic_staj_cursor<char_type>& cursor) 
-            : cursor_(std::addressof(cursor))
-        {
-        }
-
-        iterator begin()
-        {
-            return staj_array_iterator<T, Json>(*this);
-        }
-
-        iterator end()
-        {
-            return staj_array_iterator<T, Json>();
-        }
-    };
-
-    // staj_object_view
-
-    template <class Key, class T, class Json>
-    class staj_object_view
-    {
-        friend class staj_object_iterator<Key,T,Json>;
-    public:
-        using char_type = typename Json::char_type;
-        using iterator = staj_object_iterator<Key,T,Json>;
-        using key_type = std::basic_string<char_type>;
-        using value_type = std::pair<key_type,T>;
-    private:
-        basic_staj_cursor<char_type>* cursor_;
-        json_decoder<Json> decoder_;
-        jsoncons::optional<value_type> key_value_;
-    public:
-        staj_object_view(basic_staj_cursor<char_type>& cursor) 
-            : cursor_(std::addressof(cursor))
-        {
-        }
-
-        iterator begin()
-        {
-            return staj_object_iterator<Key,T,Json>(*this);
-        }
-
-        iterator end()
-        {
-            return staj_object_iterator<Key,T,Json>();
-        }
-    };
-
-    template <class T, class CharT, class Json=typename std::conditional<extension_traits::is_basic_json<T>::value,T,basic_json<CharT>>::type>
-    staj_array_view<T, Json> staj_array(basic_staj_cursor<CharT>& cursor)
-    {
-        return staj_array_view<T, Json>(cursor);
+        return iter;
     }
 
-    template <class Key, class T, class CharT, class Json=typename std::conditional<extension_traits::is_basic_json<T>::value,T,basic_json<CharT>>::type>
-    staj_object_view<Key, T, Json> staj_object(basic_staj_cursor<CharT>& cursor)
+    template <typename Key, typename T, typename CharT>
+    staj_object_iterator<Key, T, CharT> end(staj_object_iterator<Key, T, CharT>) noexcept
     {
-        return staj_object_view<Key, T, Json>(cursor);
+        return staj_object_iterator<Key, T, CharT>();
     }
-
-#if !defined(JSONCONS_NO_DEPRECATED)
-    template <class T, class CharT, class Json=typename std::conditional<extension_traits::is_basic_json<T>::value,T,basic_json<CharT>>::type>
-    JSONCONS_DEPRECATED_MSG("Instead, use staj_array()")
-    staj_array_view<T, Json> make_array_iterator(basic_staj_cursor<CharT>& cursor)
-    {
-        return staj_array_view<T, Json>(cursor);
-    }
-
-    template <class T, class CharT, class Json=typename std::conditional<extension_traits::is_basic_json<T>::value,T,basic_json<CharT>>::type>
-    JSONCONS_DEPRECATED_MSG("Instead, use staj_object()")
-    staj_object_view<std::basic_string<CharT>, T, Json> make_object_iterator(basic_staj_cursor<CharT>& cursor)
-    {
-        return staj_object_view<std::basic_string<CharT>, T, Json>(cursor);
-    }
-#endif
 
 } // namespace jsoncons
 
-#endif
-
+#endif // JSONCONS_STAJ_ITERATOR_HPP

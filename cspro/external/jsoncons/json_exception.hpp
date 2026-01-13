@@ -1,20 +1,21 @@
-﻿// note CSPro additions marked with "CSPro"
-
-// Copyright 2013-2023 Daniel Parker
+// Copyright 2013-2025 Daniel Parker
 // Distributed under the Boost license, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
 // See https://github.com/danielaparker/jsoncons for latest version
 
-#ifndef JSON_EXCEPTION_HPP
-#define JSON_EXCEPTION_HPP
+#ifndef JSONCONS_JSON_EXCEPTION_HPP
+#define JSONCONS_JSON_EXCEPTION_HPP
 
+#include <cstddef>
+#include <exception>
+#include <stdexcept>
 #include <string> // std::string
-#include <sstream> // std::ostringstream
 #include <system_error> // std::error_code
-#include <jsoncons/unicode_traits.hpp> // unicode_traits::convert
-#include <jsoncons/config/jsoncons_config.hpp>
-#include <jsoncons/extension_traits.hpp>
+
+#include <jsoncons/config/compiler_support.hpp>
+#include <jsoncons/utility/more_type_traits.hpp>
+#include <jsoncons/utility/unicode_traits.hpp> // unicode_traits::convert
 
 namespace jsoncons {
 
@@ -23,22 +24,21 @@ namespace jsoncons {
     class json_exception
     {
     public:
-        virtual ~json_exception() noexcept = default;
+        virtual ~json_exception() = default;
         virtual const char* what() const noexcept = 0;
-        virtual int CSPro_get_line_number() const { return -1; } // CSPro
     };
 
     // json_runtime_error
 
-    template <class Base, class Enable = void>
+    template <typename Base,typename Enable = void>
     class json_runtime_error
     {
     };
 
-    template <class Base>
+    template <typename Base>
     class json_runtime_error<Base,
                              typename std::enable_if<std::is_convertible<Base*,std::exception*>::value &&
-                                                     extension_traits::is_constructible_from_string<Base>::value>::type> 
+                                                     ext_traits::is_constructible_from_string<Base>::value>::type>
         : public Base, public virtual json_exception
     {
     public:
@@ -55,12 +55,17 @@ namespace jsoncons {
         }
     };
 
+    class bad_cast : public std::runtime_error
+    {
+        using std::runtime_error::runtime_error;
+    };
+
     class key_not_found : public std::out_of_range, public virtual json_exception
     {
         std::string name_;
         mutable std::string what_;
     public:
-        template <class CharT>
+        template <typename CharT>
         explicit key_not_found(const CharT* key, std::size_t length) noexcept
             : std::out_of_range("Key not found")
         {
@@ -107,7 +112,7 @@ namespace jsoncons {
         std::string name_;
         mutable std::string what_;
     public:
-        template <class CharT>
+        template <typename CharT>
         explicit not_an_object(const CharT* key, std::size_t length) noexcept
             : std::runtime_error("Attempting to access a member of a value that is not an object")
         {
@@ -148,102 +153,106 @@ namespace jsoncons {
         }
     };
 
-    class ser_error : public std::system_error, public virtual json_exception
+    class ser_error : public std::exception, public virtual json_exception
     {
-        std::size_t line_number_;
-        std::size_t column_number_;
-        mutable std::string what_;
+        std::string err_;
+        std::error_code ec_;
+        std::size_t line_{0};
+        std::size_t column_{0};
     public:
         ser_error(std::error_code ec)
-            : std::system_error(ec), line_number_(0), column_number_(0)
+            : ec_(ec)
         {
+            err_ = to_what_arg(ec);
         }
         ser_error(std::error_code ec, const std::string& what_arg)
-            : std::system_error(ec, what_arg), line_number_(0), column_number_(0)
+            : ec_(ec)
         {
+            err_ = to_what_arg(ec, what_arg.c_str());
+        }
+        ser_error(std::error_code ec, const char* what_arg)
+            : ec_(ec)
+        {
+            err_ = to_what_arg(ec, what_arg);
         }
         ser_error(std::error_code ec, std::size_t position)
-            : std::system_error(ec), line_number_(0), column_number_(position)
+            : ec_(ec), column_(position)
         {
+            err_ = to_what_arg(ec, "", 0, position);
+        }
+        ser_error(std::error_code ec, const std::string& what_arg, std::size_t position)
+            : ec_(ec), column_(position)
+        {
+            err_ = to_what_arg(ec, what_arg.c_str(), 0, position);
+        }
+        ser_error(std::error_code ec, const char* what_arg, std::size_t position)
+            : ec_(ec), column_(position)
+        {
+            err_ = to_what_arg(ec, what_arg, 0, position);
         }
         ser_error(std::error_code ec, std::size_t line, std::size_t column)
-            : std::system_error(ec), line_number_(line), column_number_(column)
+            : ec_(ec), line_(line), column_(column)
         {
+            err_ = to_what_arg(ec, "", line, column);
+        }
+        ser_error(std::error_code ec, const std::string& what_arg, std::size_t line, std::size_t column)
+            : ec_(ec), line_(line), column_(column)
+        {
+            err_ = to_what_arg(ec, what_arg.c_str(), line, column);
+        }
+        ser_error(std::error_code ec, const char* what_arg, std::size_t line, std::size_t column)
+            : ec_(ec), line_(line), column_(column)
+        {
+            err_ = to_what_arg(ec, what_arg, line, column);
         }
         ser_error(const ser_error& other) = default;
 
-        ser_error(ser_error&& other) = default;
+        ser_error& operator=(const ser_error& other) = default;
 
-        const char* what() const noexcept override
+        const char* what() const noexcept final
         {
-            if (what_.empty())
-            {
-                JSONCONS_TRY
-                {
-                    what_.append(std::system_error::what());
-                    if (line_number_ != 0 && column_number_ != 0)
-                    {
-                        what_.append(" at line ");
-                        what_.append(std::to_string(line_number_));
-                        what_.append(" and column ");
-                        what_.append(std::to_string(column_number_));
-                    }
-                    else if (column_number_ != 0)
-                    {
-                        what_.append(" at position ");
-                        what_.append(std::to_string(column_number_));
-                    }
-                    return what_.c_str();
-                }
-                JSONCONS_CATCH(...)
-                {
-                    return std::system_error::what();
-                }
-            }
-            else
-            {
-                return what_.c_str();
-            }
+            return err_.c_str();
+        }
+
+        std::error_code code() const
+        {
+            return ec_;
         }
 
         std::size_t line() const noexcept
         {
-            return line_number_;
-        }
-
-        int CSPro_get_line_number() const override // CSPro
-        { 
-            return int32_cast(line()); 
+            return line_;
         }
 
         std::size_t column() const noexcept
         {
-            return column_number_;
+            return column_;
         }
-
-    #if !defined(JSONCONS_NO_DEPRECATED)
-        JSONCONS_DEPRECATED_MSG("Instead, use line()")
-        std::size_t line_number() const noexcept
+    private:
+        static std::string to_what_arg(std::error_code ec, const char* s="", std::size_t line=0, std::size_t column=0)
         {
-            return line();
+            std::string what_arg(s);
+            if (!what_arg.empty())
+            {
+                what_arg.append(": ");
+            }
+            what_arg.append(ec.message());
+            if (line != 0 && column != 0)
+            {
+                what_arg.append(" at line ");
+                what_arg.append(std::to_string(line));
+                what_arg.append(" and column ");
+                what_arg.append(std::to_string(column));
+            }
+            else if (column != 0)
+            {
+                what_arg.append(" at position ");
+                what_arg.append(std::to_string(column));
+            }
+            return what_arg;
         }
-
-        JSONCONS_DEPRECATED_MSG("Instead, use column()")
-        std::size_t column_number() const noexcept
-        {
-            return column();
-        }
-    #endif
     };
-
-#if !defined(JSONCONS_NO_DEPRECATED)
-JSONCONS_DEPRECATED_MSG("Instead, use ser_error") typedef ser_error serialization_error;
-JSONCONS_DEPRECATED_MSG("Instead, use ser_error") typedef ser_error json_parse_exception;
-JSONCONS_DEPRECATED_MSG("Instead, use ser_error") typedef ser_error parse_exception;
-JSONCONS_DEPRECATED_MSG("Instead, use ser_error") typedef ser_error parse_error;
-typedef ser_error codec_error;
-#endif
 
 } // namespace jsoncons
 
-#endif
+#endif // JSONCONS_JSON_EXCEPTION_HPP

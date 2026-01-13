@@ -1,6 +1,4 @@
-// note CSPro additions marked with "CSPro"
-
-// Copyright 2013-2023 Daniel Parker
+// Copyright 2013-2025 Daniel Parker
 // Distributed under the Boost license, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
@@ -9,22 +7,21 @@
 #ifndef JSONCONS_SINK_HPP
 #define JSONCONS_SINK_HPP
 
-#include <stdexcept>
-#include <string>
-#include <vector>
-#include <ostream>
 #include <cmath>
-#include <exception>
-#include <memory> // std::addressof
+#include <cstdint>
 #include <cstring> // std::memcpy
-#include <jsoncons/config/jsoncons_config.hpp>
-#include <jsoncons/extension_traits.hpp>
+#include <memory> // std::addressof
+#include <ostream>
+#include <vector>
 
-namespace jsoncons { 
+#include <jsoncons/config/jsoncons_config.hpp>
+#include <jsoncons/utility/more_type_traits.hpp>
+
+namespace jsoncons {
 
     // stream_sink
 
-    template <class CharT>
+    template <typename CharT>
     class stream_sink
     {
     public:
@@ -40,11 +37,10 @@ namespace jsoncons {
         const CharT* end_buffer_;
         CharT* p_;
 
+    public:
+
         // Noncopyable
         stream_sink(const stream_sink&) = delete;
-        stream_sink& operator=(const stream_sink&) = delete;
-
-    public:
         stream_sink(stream_sink&&) = default;
 
         stream_sink(std::basic_ostream<CharT>& os)
@@ -62,6 +58,7 @@ namespace jsoncons {
         }
 
         // Movable
+        stream_sink& operator=(const stream_sink&) = delete;
         stream_sink& operator=(stream_sink&&) = default;
 
         void flush()
@@ -100,12 +97,6 @@ namespace jsoncons {
                 push_back(ch);
             }
         }
-
-        std::size_t length() const // CSPro
-        { 
-            return buffer_length(); 
-        } 
-
     private:
 
         std::size_t buffer_length() const
@@ -130,26 +121,26 @@ namespace jsoncons {
         const uint8_t* end_buffer_;
         uint8_t* p_;
 
+    public:
+
         // Noncopyable
         binary_stream_sink(const binary_stream_sink&) = delete;
-        binary_stream_sink& operator=(const binary_stream_sink&) = delete;
 
-    public:
         binary_stream_sink(binary_stream_sink&&) = default;
 
         binary_stream_sink(std::basic_ostream<char>& os)
-            : stream_ptr_(std::addressof(os)), 
-              buffer_(default_buffer_length), 
-              begin_buffer_(buffer_.data()), 
-              end_buffer_(begin_buffer_+buffer_.size()), 
+            : stream_ptr_(std::addressof(os)),
+              buffer_(default_buffer_length),
+              begin_buffer_(buffer_.data()),
+              end_buffer_(begin_buffer_+buffer_.size()),
               p_(begin_buffer_)
         {
         }
         binary_stream_sink(std::basic_ostream<char>& os, std::size_t buflen)
-            : stream_ptr_(std::addressof(os)), 
-              buffer_(buflen), 
-              begin_buffer_(buffer_.data()), 
-              end_buffer_(begin_buffer_+buffer_.size()), 
+            : stream_ptr_(std::addressof(os)),
+              buffer_(buflen),
+              begin_buffer_(buffer_.data()),
+              end_buffer_(begin_buffer_+buffer_.size()),
               p_(begin_buffer_)
         {
         }
@@ -159,6 +150,7 @@ namespace jsoncons {
             stream_ptr_->flush();
         }
 
+        binary_stream_sink& operator=(const binary_stream_sink&) = delete;
         binary_stream_sink& operator=(binary_stream_sink&&) = default;
 
         void flush()
@@ -206,21 +198,20 @@ namespace jsoncons {
 
     // string_sink
 
-    template <class StringT>
-    class string_sink 
+    template <typename StringT>
+    class string_sink
     {
     public:
         using value_type = typename StringT::value_type;
         using container_type = StringT;
     private:
-        container_type* buf_ptr;
+        container_type* buf_ptr{nullptr};
+    public:
 
         // Noncopyable
         string_sink(const string_sink&) = delete;
-        string_sink& operator=(const string_sink&) = delete;
-    public:
+
         string_sink(string_sink&& other) noexcept
-            : buf_ptr(nullptr)
         {
             std::swap(buf_ptr,other.buf_ptr);
         }
@@ -229,6 +220,10 @@ namespace jsoncons {
             : buf_ptr(std::addressof(buf))
         {
         }
+
+        ~string_sink() = default;
+
+        string_sink& operator=(const string_sink&) = delete;
 
         string_sink& operator=(string_sink&& other) noexcept
         {
@@ -251,33 +246,28 @@ namespace jsoncons {
         {
             buf_ptr->push_back(ch);
         }
-
-        std::size_t length() const // CSPro
-        { 
-            return buf_ptr->length(); 
-        } 
     };
 
     // bytes_sink
 
-    template <class Container, class = void>
+    template <typename Container,typename = void>
     class bytes_sink
     {
     };
 
-    template <class Container>
-    class bytes_sink<Container,typename std::enable_if<extension_traits::is_back_insertable_byte_container<Container>::value>::type> 
+    template <typename Container>
+    class bytes_sink<Container,typename std::enable_if<ext_traits::is_back_insertable_byte_container<Container>::value>::type>
     {
     public:
         using container_type = Container;
         using value_type = typename Container::value_type;
     private:
         container_type* buf_ptr;
+    public:
 
         // Noncopyable
         bytes_sink(const bytes_sink&) = delete;
-        bytes_sink& operator=(const bytes_sink&) = delete;
-    public:
+
         bytes_sink(bytes_sink&&) = default;
 
         bytes_sink(container_type& buf)
@@ -285,6 +275,9 @@ namespace jsoncons {
         {
         }
 
+        ~bytes_sink() = default;
+
+        bytes_sink& operator=(const bytes_sink&) = delete;
         bytes_sink& operator=(bytes_sink&&) = default;
 
         void flush()
@@ -299,4 +292,4 @@ namespace jsoncons {
 
 } // namespace jsoncons
 
-#endif
+#endif // JSONCONS_SINK_HPP

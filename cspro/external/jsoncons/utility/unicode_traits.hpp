@@ -1,31 +1,34 @@
-﻿// Copyright 2013-2023 Daniel Parker
+// Copyright 2013-2025 Daniel Parker
 // Distributed under the Boost license, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
 // See https://github.com/danielaparker/unicode_traits for latest version
 
 /*
- * Includes code derived from Unicode, Inc decomposition code in ConvertUTF.h and ConvertUTF.c 
- * http://www.unicode.org/  
- *  
+ * Includes code derived from Unicode, Inc decomposition code in ConvertUTF.h and ConvertUTF.c
+ * http://www.unicode.org/
+ *
  * "Unicode, Inc. hereby grants the right to freely use the information
  * supplied in this file in the creation of products supporting the
  * Unicode Standard."
 */
 
-#ifndef JSONCONS_UNICODE_TRAITS_HPP
-#define JSONCONS_UNICODE_TRAITS_HPP
+#ifndef JSONCONS_UTILITY_UNICODE_TRAITS_HPP
+#define JSONCONS_UTILITY_UNICODE_TRAITS_HPP
 
+#include <cstddef>
+#include <cstdint>
 #include <cstring>
-#include <string>
 #include <iterator>
-#include <type_traits>
+#include <string>
 #include <system_error>
-#include <limits>
-#include <jsoncons/config/compiler_support.hpp>
-#include <jsoncons/extension_traits.hpp>
+#include <type_traits>
 
-namespace jsoncons { namespace unicode_traits {
+#include <jsoncons/config/compiler_support.hpp>
+#include <jsoncons/utility/more_type_traits.hpp>
+
+namespace jsoncons {
+namespace unicode_traits {
 
     enum class encoding_kind {undetected,utf8,utf16le,utf16be,utf32le,utf32be};
 
@@ -49,22 +52,22 @@ namespace jsoncons { namespace unicode_traits {
         }
     }
 
-    template <class Byte>
+    template <typename Byte>
     struct detect_encoding_result
     {
         const Byte* ptr;
         encoding_kind encoding;
     };
 
-    template <class CharT>
-    typename std::enable_if<extension_traits::is_char8<CharT>::value,detect_encoding_result<CharT>>::type
+    template <typename CharT>
+    typename std::enable_if<ext_traits::is_char8<CharT>::value,detect_encoding_result<CharT>>::type
     detect_encoding_from_bom(const CharT* data, std::size_t length)
     {
-        const uint8_t bom_utf8[] = {0xef,0xbb,0xbf}; 
-        const uint8_t bom_utf16le[] = {0xff,0xfe}; 
-        const uint8_t bom_utf16be[] = {0xfe,0xff}; 
-        const uint8_t bom_utf32le[] = {0xff,0xfe,0x00,0x00}; 
-        const uint8_t bom_utf32be[] = {0x00,0x00,0xfe,0xff}; 
+        const uint8_t bom_utf8[] = {0xef,0xbb,0xbf};
+        const uint8_t bom_utf16le[] = {0xff,0xfe};
+        const uint8_t bom_utf16be[] = {0xfe,0xff};
+        const uint8_t bom_utf32le[] = {0xff,0xfe,0x00,0x00};
+        const uint8_t bom_utf32be[] = {0x00,0x00,0xfe,0xff};
 
         if (length >= 4 && !memcmp(data,bom_utf32le,4))
         {
@@ -92,15 +95,15 @@ namespace jsoncons { namespace unicode_traits {
         }
     }
 
-    template <class CharT>
-    typename std::enable_if<extension_traits::is_char16<CharT>::value || extension_traits::is_char32<CharT>::value,detect_encoding_result<CharT>>::type
+    template <typename CharT>
+    typename std::enable_if<ext_traits::is_char16<CharT>::value || ext_traits::is_char32<CharT>::value,detect_encoding_result<CharT>>::type
     detect_encoding_from_bom(const CharT* data, std::size_t)
     {
         return detect_encoding_result<CharT>{data,encoding_kind::undetected};
     }
 
-    template <class CharT>
-    typename std::enable_if<extension_traits::is_char8<CharT>::value,detect_encoding_result<CharT>>::type
+    template <typename CharT>
+    typename std::enable_if<ext_traits::is_char8<CharT>::value,detect_encoding_result<CharT>>::type
     detect_json_encoding(const CharT* data, std::size_t length)
     {
         detect_encoding_result<CharT> r = detect_encoding_from_bom(data,length);
@@ -134,8 +137,8 @@ namespace jsoncons { namespace unicode_traits {
         }
     }
 
-    template <class CharT>
-    typename std::enable_if<extension_traits::is_char16<CharT>::value || extension_traits::is_char32<CharT>::value,detect_encoding_result<CharT>>::type
+    template <typename CharT>
+    typename std::enable_if<ext_traits::is_char16<CharT>::value || ext_traits::is_char32<CharT>::value,detect_encoding_result<CharT>>::type
     detect_json_encoding(const CharT* data, std::size_t)
     {
         return detect_encoding_result<CharT>{data,encoding_kind::undetected};
@@ -146,7 +149,7 @@ namespace jsoncons { namespace unicode_traits {
      * This table contains as many values as there might be trailing bytes
      * in a UTF-8 sequence. Source: ConvertUTF.c
      */
-    const uint32_t offsets_from_utf8[6] = { 0x00000000UL, 0x00003080UL, 0x000E2080UL, 
+    const uint32_t offsets_from_utf8[6] = { 0x00000000UL, 0x00003080UL, 0x000E2080UL,
                   0x03C82080UL, 0xFA082080UL, 0x82082080UL };
 
     /*
@@ -176,7 +179,7 @@ namespace jsoncons { namespace unicode_traits {
         2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2, 3,3,3,3,3,3,3,3,4,4,4,4,5,5,5,5
     };
 
-    // Some fundamental constants.  Source: ConvertUTF.h 
+    // Some fundamental constants.  Source: ConvertUTF.h
     const uint32_t replacement_char = 0x0000FFFD;
     const uint32_t max_bmp = 0x0000FFFF;
     const uint32_t max_utf16 = 0x0010FFFF;
@@ -216,7 +219,7 @@ namespace jsoncons { namespace unicode_traits {
         return (ch >= sur_high_start && ch <= sur_low_end);
     }
 
-    enum class conv_flags 
+    enum class conv_flags
     {
         strict = 0,
         lenient
@@ -224,11 +227,11 @@ namespace jsoncons { namespace unicode_traits {
 
     // conv_errc
 
-    enum class conv_errc 
+    enum class conv_errc
     {
         success = 0,
         over_long_utf8_sequence = 1, // over long utf8 sequence
-        expected_continuation_byte,  // expected continuation byte    
+        expected_continuation_byte,  // expected continuation byte
         unpaired_high_surrogate,     // unpaired high surrogate UTF-16
         illegal_surrogate_value,     // UTF-16 surrogate values are illegal in UTF-32
         source_exhausted,            // partial character in source, but hit end
@@ -267,35 +270,36 @@ namespace jsoncons { namespace unicode_traits {
     };
 
     inline
-    const std::error_category& unicode_traits_error_category()
+    const std::error_category& unicode_traits_error_category() noexcept
     {
       static Unicode_traits_error_category_impl_ instance;
       return instance;
     }
 
-    inline 
-    std::error_code make_error_code(conv_errc result)
+    inline
+    std::error_code make_error_code(conv_errc result) noexcept
     {
         return std::error_code(static_cast<int>(result),unicode_traits_error_category());
     }
 
 } // unicode_traits
-} // jsoncons
+} // namespace jsoncons
 
 namespace std {
     template<>
     struct is_error_code_enum<jsoncons::unicode_traits::conv_errc> : public true_type
     {
     };
-}
+} // namespace std
 
-namespace jsoncons { namespace unicode_traits {
+namespace jsoncons {
+namespace unicode_traits {
 
     // utf8
 
-    template <class CharT>
-    typename std::enable_if<extension_traits::is_char8<CharT>::value, conv_errc>::type
-    is_legal_utf8(const CharT* first, std::size_t length) 
+    template <typename CharT>
+    typename std::enable_if<ext_traits::is_char8<CharT>::value, conv_errc>::type
+    is_legal_utf8(const CharT* first, std::size_t length)
     {
         uint8_t a;
         const CharT* srcptr = first+length;
@@ -314,7 +318,7 @@ namespace jsoncons { namespace unicode_traits {
             if (((a = (*--srcptr))& 0xC0) != 0x80)
                 return conv_errc::expected_continuation_byte;
 
-            switch (static_cast<uint8_t>(*first)) 
+            switch (static_cast<uint8_t>(*first))
             {
                 // no fall-through in this inner switch
                 case 0xE0: if (a < 0xA0) return conv_errc::source_illegal; break;
@@ -330,18 +334,18 @@ namespace jsoncons { namespace unicode_traits {
                 return conv_errc::source_illegal;
             break;
         }
-        if (static_cast<uint8_t>(*first) > 0xF4) 
+        if (static_cast<uint8_t>(*first) > 0xF4)
             return conv_errc::source_illegal;
 
         return conv_errc();
     }
 
-    template <class...> using void_t = void;
+    template <typename...> using void_t = void;
 
-    template <class, class, class = void>
+    template <typename,typename,typename = void>
     struct is_output_iterator : std::false_type {};
 
-    template <class I, class E>
+    template <typename I,typename E>
     struct is_output_iterator<I, E, void_t<
         typename std::iterator_traits<I>::iterator_category,
         decltype(*std::declval<I>() = std::declval<E>())>> : std::true_type {};
@@ -349,21 +353,21 @@ namespace jsoncons { namespace unicode_traits {
     // is_same_size fixes issue with vs2013
 
     // primary template
-    template<class T1, class T2, class Enable = void>
-    struct is_same_size : std::false_type 
+    template <typename T1,typename T2,typename Enable = void>
+    struct is_same_size : std::false_type
     {
     };
-     
+
     // specialization for non void types
-    template<class T1, class T2>
-    struct is_same_size<T1, T2, typename std::enable_if<!std::is_void<T1>::value && !std::is_void<T2>::value>::type>
+    template <typename T1,typename T2>
+    struct is_same_size<T1, T2,typename std::enable_if<!std::is_void<T1>::value && !std::is_void<T2>::value>::type>
     {
         static constexpr bool value = (sizeof(T1) == sizeof(T2));
-    }; 
+    };
 
     // convert
 
-    template <class CharT>
+    template <typename CharT>
     struct convert_result
     {
         const CharT* ptr;
@@ -372,11 +376,11 @@ namespace jsoncons { namespace unicode_traits {
 
     // to_codepoint
 
-    template <class CharT,class CodepointT>
-    typename std::enable_if<extension_traits::is_char8<CharT>::value && extension_traits::is_char32<CodepointT>::value,
-                            convert_result<CharT>>::type 
-    to_codepoint(const CharT* first, const CharT* last, 
-                 CodepointT& ch, 
+    template <typename CharT,typename CodepointT>
+    typename std::enable_if<ext_traits::is_char8<CharT>::value && ext_traits::is_char32<CodepointT>::value,
+                            convert_result<CharT>>::type
+    to_codepoint(const CharT* first, const CharT* last,
+                 CodepointT& ch,
                  conv_flags flags = conv_flags::strict) noexcept
     {
         ch = 0;
@@ -387,40 +391,40 @@ namespace jsoncons { namespace unicode_traits {
         conv_errc  result = conv_errc();
 
         unsigned short extra_bytes_to_read = trailing_bytes_for_utf8[static_cast<uint8_t>(*first)];
-        if (extra_bytes_to_read >= last - first) 
+        if (extra_bytes_to_read >= last - first)
         {
-            result = conv_errc::source_exhausted; 
+            result = conv_errc::source_exhausted;
             return convert_result<CharT>{first, result};
         }
-        // Do this check whether lenient or strict 
-        if ((result=is_legal_utf8(first, extra_bytes_to_read+1)) != conv_errc()) 
+        // Do this check whether lenient or strict
+        if ((result=is_legal_utf8(first, extra_bytes_to_read+1)) != conv_errc())
         {
             return convert_result<CharT>{first, result};
         }
         // The cases all fall through. See "Note A" below.
-        switch (extra_bytes_to_read) 
+        switch (extra_bytes_to_read)
         {
-            case 5: 
-                ch += static_cast<uint8_t>(*first++); 
+            case 5:
+                ch += static_cast<uint8_t>(*first++);
                 ch <<= 6;
                 JSONCONS_FALLTHROUGH;
-            case 4: 
-                ch += static_cast<uint8_t>(*first++); 
+            case 4:
+                ch += static_cast<uint8_t>(*first++);
                 ch <<= 6;
                 JSONCONS_FALLTHROUGH;
-            case 3: 
-                ch += static_cast<uint8_t>(*first++); 
+            case 3:
+                ch += static_cast<uint8_t>(*first++);
                 ch <<= 6;
                 JSONCONS_FALLTHROUGH;
-            case 2: 
-                ch += static_cast<uint8_t>(*first++); 
+            case 2:
+                ch += static_cast<uint8_t>(*first++);
                 ch <<= 6;
                 JSONCONS_FALLTHROUGH;
-            case 1: 
-                ch += static_cast<uint8_t>(*first++); 
+            case 1:
+                ch += static_cast<uint8_t>(*first++);
                 ch <<= 6;
                 JSONCONS_FALLTHROUGH;
-            case 0: 
+            case 0:
                 ch += static_cast<uint8_t>(*first++);
                 break;
         }
@@ -431,22 +435,22 @@ namespace jsoncons { namespace unicode_traits {
              * UTF-16 surrogate values are illegal in UTF-32, and anything
              * over Plane 17 (> 0x10FFFF) is illegal.
              */
-            if (is_surrogate(ch) ) 
+            if (is_surrogate(ch) )
             {
-                if (flags == conv_flags::strict) 
+                if (flags == conv_flags::strict)
                 {
                     first -= (extra_bytes_to_read+1); // return to the illegal value itself
                     result = conv_errc::source_illegal;
                     return convert_result<CharT>{first, result};
-                } 
+                }
                 else
                 {
                     ch = replacement_char;
                 }
             }
-        } 
+        }
         else // i.e., ch > max_legal_utf32
-        { 
+        {
             result = conv_errc::source_illegal;
             ch = replacement_char;
         }
@@ -454,11 +458,11 @@ namespace jsoncons { namespace unicode_traits {
         return convert_result<CharT>{first,result} ;
     }
 
-    template <class CharT,class CodepointT>
-    typename std::enable_if<extension_traits::is_char16<CharT>::value && extension_traits::is_char32<CodepointT>::value,
-                            convert_result<CharT>>::type 
-    to_codepoint(const CharT* first, const CharT* last, 
-                 CodepointT& ch, 
+    template <typename CharT,typename CodepointT>
+    typename std::enable_if<ext_traits::is_char16<CharT>::value && ext_traits::is_char32<CodepointT>::value,
+                            convert_result<CharT>>::type
+    to_codepoint(const CharT* first, const CharT* last,
+                 CodepointT& ch,
                  conv_flags flags = conv_flags::strict) noexcept
     {
         ch = 0;
@@ -469,28 +473,28 @@ namespace jsoncons { namespace unicode_traits {
         conv_errc  result = conv_errc();
 
         ch = *first++;
-        // If we have a surrogate pair, convert to UTF32 first. 
-        if (is_high_surrogate(ch)) 
+        // If we have a surrogate pair, convert to UTF32 first.
+        if (is_high_surrogate(ch))
         {
-            // If the 16 bits following the high surrogate are in the first buffer... 
-            if (first < last) 
+            // If the 16 bits following the high surrogate are in the first buffer...
+            if (first < last)
             {
                 uint32_t ch2 = *first;
-                // If ptr's a low surrogate, convert to UTF32. 
-                if (ch2 >= sur_low_start && ch2 <= sur_low_end ) 
+                // If ptr's a low surrogate, convert to UTF32.
+                if (ch2 >= sur_low_start && ch2 <= sur_low_end )
                 {
                     ch = ((ch - sur_high_start) << half_shift)
                         + (ch2 - sur_low_start) + half_base;
                     ++first;
-                } 
-                else if (flags == conv_flags::strict) // ptr's an unpaired high surrogate 
-                { 
+                }
+                else if (flags == conv_flags::strict) // ptr's an unpaired high surrogate
+                {
                     --first; /* return to the illegal value itself */
                     result = conv_errc::source_illegal;
                     return convert_result<CharT>{first, result};
                 }
-            } 
-            else 
+            }
+            else
             { /* We don't have the 16 bits following the high surrogate. */
                 --first; /* return to the high surrogate */
                 result = conv_errc::source_exhausted;
@@ -498,22 +502,22 @@ namespace jsoncons { namespace unicode_traits {
             }
         } else if (flags == conv_flags::strict) {
             /* UTF-16 surrogate values are illegal in UTF-32 */
-            if (is_low_surrogate(ch) ) 
+            if (is_low_surrogate(ch) )
             {
                 --first; /* return to the illegal value itself */
                 result = conv_errc::source_illegal;
                 return convert_result<CharT>{first, result};
             }
         }
-        
+
         return convert_result<CharT>{first,result} ;
     }
 
-    template <class CharT,class CodepointT>
-    typename std::enable_if<extension_traits::is_char32<CharT>::value && extension_traits::is_char32<CodepointT>::value,
-                            convert_result<CharT>>::type 
-    to_codepoint(const CharT* first, const CharT* last, 
-                 CodepointT& ch, 
+    template <typename CharT,typename CodepointT>
+    typename std::enable_if<ext_traits::is_char32<CharT>::value && ext_traits::is_char32<CodepointT>::value,
+                            convert_result<CharT>>::type
+    to_codepoint(const CharT* first, const CharT* last,
+                 CodepointT& ch,
                  conv_flags flags = conv_flags::strict) noexcept
     {
         ch = 0;
@@ -524,10 +528,10 @@ namespace jsoncons { namespace unicode_traits {
         conv_errc  result = conv_errc();
 
         ch = *first++;
-        if (flags == conv_flags::strict ) 
+        if (flags == conv_flags::strict )
         {
             /* UTF-16 surrogate values are illegal in UTF-32 */
-            if (is_surrogate(ch)) 
+            if (is_surrogate(ch))
             {
                 --first; /* return to the illegal value itself */
                 result = conv_errc::illegal_surrogate_value;
@@ -545,18 +549,18 @@ namespace jsoncons { namespace unicode_traits {
 
     // convert
 
-    template <class CharT,class Container>
-    typename std::enable_if<extension_traits::is_char8<CharT>::value
-                            && extension_traits::is_back_insertable<Container>::value
-                            && extension_traits::is_char8<typename Container::value_type>::value,
-                            convert_result<CharT>>::type 
-    convert(const CharT* data, std::size_t length, Container& target, conv_flags flags=conv_flags::strict) 
+    template <typename CharT,typename Container>
+    typename std::enable_if<ext_traits::is_char8<CharT>::value
+                            && ext_traits::is_back_insertable<Container>::value
+                            && ext_traits::is_char8<typename Container::value_type>::value,
+                            convert_result<CharT>>::type
+    convert(const CharT* data, std::size_t length, Container& target, conv_flags flags=conv_flags::strict)
     {
         (void)flags;
 
         conv_errc  result = conv_errc();
         const CharT* last = data + length;
-        while (data != last) 
+        while (data != last)
         {
             std::size_t len = trailing_bytes_for_utf8[static_cast<uint8_t>(*data)] + 1;
             if (len > (std::size_t)(last - data))
@@ -581,24 +585,24 @@ namespace jsoncons { namespace unicode_traits {
         return convert_result<CharT>{data,result} ;
     }
 
-    template <class CharT,class Container>
-    typename std::enable_if<extension_traits::is_char8<CharT>::value
-                            && extension_traits::is_back_insertable<Container>::value
-                            && extension_traits::is_char16<typename Container::value_type>::value,
-                            convert_result<CharT>>::type 
-    convert(const CharT* data, std::size_t length, 
-            Container& target, 
-            conv_flags flags = conv_flags::strict) 
+    template <typename CharT,typename Container>
+    typename std::enable_if<ext_traits::is_char8<CharT>::value
+                            && ext_traits::is_back_insertable<Container>::value
+                            && ext_traits::is_char16<typename Container::value_type>::value,
+                            convert_result<CharT>>::type
+    convert(const CharT* data, std::size_t length,
+            Container& target,
+            conv_flags flags = conv_flags::strict)
     {
         conv_errc  result = conv_errc();
 
         const CharT* last = data + length;
-        while (data != last) 
+        while (data != last)
         {
             unsigned short extra_bytes_to_read = trailing_bytes_for_utf8[static_cast<uint8_t>(*data)];
-            if (extra_bytes_to_read >= last - data) 
+            if (extra_bytes_to_read >= last - data)
             {
-                result = conv_errc::source_exhausted; 
+                result = conv_errc::source_exhausted;
                 break;
             }
             /* Do this check whether lenient or strict */
@@ -628,7 +632,7 @@ namespace jsoncons { namespace unicode_traits {
 
             if (ch <= max_bmp) { /* Target is a character <= 0xFFFF */
                 /* UTF-16 surrogate values are illegal in UTF-32 */
-                if (is_surrogate(ch) ) 
+                if (is_surrogate(ch) )
                 {
                     if (flags == conv_flags::strict) {
                         data -= (extra_bytes_to_read+1); /* return to the illegal value itself */
@@ -658,58 +662,58 @@ namespace jsoncons { namespace unicode_traits {
         return convert_result<CharT>{data,result} ;
     }
 
-    template <class CharT,class Container>
-    typename std::enable_if<extension_traits::is_char8<CharT>::value                            
-                            && extension_traits::is_back_insertable<Container>::value
-                            && extension_traits::is_char32<typename Container::value_type>::value,
-                            convert_result<CharT>>::type 
-    convert(const CharT* data, std::size_t length, 
-            Container& target, 
-            conv_flags flags = conv_flags::strict) 
+    template <typename CharT,typename Container>
+    typename std::enable_if<ext_traits::is_char8<CharT>::value
+                            && ext_traits::is_back_insertable<Container>::value
+                            && ext_traits::is_char32<typename Container::value_type>::value,
+                            convert_result<CharT>>::type
+    convert(const CharT* data, std::size_t length,
+            Container& target,
+            conv_flags flags = conv_flags::strict)
     {
         conv_errc  result = conv_errc();
 
         const CharT* last = data + length;
-        while (data < last) 
+        while (data < last)
         {
             uint32_t ch = 0;
             unsigned short extra_bytes_to_read = trailing_bytes_for_utf8[static_cast<uint8_t>(*data)];
-            if (extra_bytes_to_read >= last - data) 
+            if (extra_bytes_to_read >= last - data)
             {
-                result = conv_errc::source_exhausted; 
+                result = conv_errc::source_exhausted;
                 break;
             }
             /* Do this check whether lenient or strict */
-            if ((result=is_legal_utf8(data, extra_bytes_to_read+1)) != conv_errc()) 
+            if ((result=is_legal_utf8(data, extra_bytes_to_read+1)) != conv_errc())
             {
                 break;
             }
             /*
              * The cases all fall through. See "Note A" below.
              */
-            switch (extra_bytes_to_read) 
+            switch (extra_bytes_to_read)
             {
-                case 5: 
-                    ch += static_cast<uint8_t>(*data++); 
+                case 5:
+                    ch += static_cast<uint8_t>(*data++);
                     ch <<= 6;
                     JSONCONS_FALLTHROUGH;
-                case 4: 
-                    ch += static_cast<uint8_t>(*data++); 
+                case 4:
+                    ch += static_cast<uint8_t>(*data++);
                     ch <<= 6;
                     JSONCONS_FALLTHROUGH;
-                case 3: 
-                    ch += static_cast<uint8_t>(*data++); 
+                case 3:
+                    ch += static_cast<uint8_t>(*data++);
                     ch <<= 6;
                     JSONCONS_FALLTHROUGH;
-                case 2: 
-                    ch += static_cast<uint8_t>(*data++); 
+                case 2:
+                    ch += static_cast<uint8_t>(*data++);
                     ch <<= 6;
                     JSONCONS_FALLTHROUGH;
-                case 1: 
-                    ch += static_cast<uint8_t>(*data++); 
+                case 1:
+                    ch += static_cast<uint8_t>(*data++);
                     ch <<= 6;
                     JSONCONS_FALLTHROUGH;
-                case 0: 
+                case 0:
                     ch += static_cast<uint8_t>(*data++);
                     break;
             }
@@ -720,7 +724,7 @@ namespace jsoncons { namespace unicode_traits {
                  * UTF-16 surrogate values are illegal in UTF-32, and anything
                  * over Plane 17 (> 0x10FFFF) is illegal.
                  */
-                if (is_surrogate(ch) ) 
+                if (is_surrogate(ch) )
                 {
                     if (flags == conv_flags::strict) {
                         data -= (extra_bytes_to_read+1); /* return to the illegal value itself */
@@ -742,13 +746,13 @@ namespace jsoncons { namespace unicode_traits {
 
     // utf16
 
-    template <class CharT,class Container>
-    typename std::enable_if<extension_traits::is_char16<CharT>::value                            
-                            && extension_traits::is_back_insertable<Container>::value
-                            && extension_traits::is_char8<typename Container::value_type>::value,
-                            convert_result<CharT>>::type 
-    convert(const CharT* data, std::size_t length, 
-                     Container& target, 
+    template <typename CharT,typename Container>
+    typename std::enable_if<ext_traits::is_char16<CharT>::value
+                            && ext_traits::is_back_insertable<Container>::value
+                            && ext_traits::is_char8<typename Container::value_type>::value,
+                            convert_result<CharT>>::type
+    convert(const CharT* data, std::size_t length,
+                     Container& target,
                      conv_flags flags = conv_flags::strict) {
         conv_errc  result = conv_errc();
 
@@ -756,10 +760,10 @@ namespace jsoncons { namespace unicode_traits {
         while (data < last) {
             unsigned short bytes_to_write = 0;
             const uint32_t byteMask = 0xBF;
-            const uint32_t byteMark = 0x80; 
+            const uint32_t byteMark = 0x80;
             uint32_t ch = *data++;
             /* If we have a surrogate pair, convert to uint32_t data. */
-            if (is_high_surrogate(ch)) 
+            if (is_high_surrogate(ch))
             {
                 /* If the 16 bits following the high surrogate are in the data buffer... */
                 if (data < last) {
@@ -781,7 +785,7 @@ namespace jsoncons { namespace unicode_traits {
                 }
             } else if (flags == conv_flags::strict) {
                 /* UTF-16 surrogate values are illegal in UTF-32 */
-                if (is_low_surrogate(ch)) 
+                if (is_low_surrogate(ch))
                 {
                     --data; /* return to the illegal value itself */
                     result = conv_errc::source_illegal;
@@ -789,19 +793,19 @@ namespace jsoncons { namespace unicode_traits {
                 }
             }
             /* Figure out how many bytes the result will require */
-            if (ch < (uint32_t)0x80) {      
+            if (ch < (uint32_t)0x80) {
                 bytes_to_write = 1;
-            } else if (ch < (uint32_t)0x800) {     
+            } else if (ch < (uint32_t)0x800) {
                 bytes_to_write = 2;
-            } else if (ch < (uint32_t)0x10000) {   
+            } else if (ch < (uint32_t)0x10000) {
                 bytes_to_write = 3;
-            } else if (ch < (uint32_t)0x110000) {  
+            } else if (ch < (uint32_t)0x110000) {
                 bytes_to_write = 4;
-            } else {                            
+            } else {
                 bytes_to_write = 3;
                 ch = replacement_char;
             }
-            
+
             uint8_t byte1 = 0;
             uint8_t byte2 = 0;
             uint8_t byte3 = 0;
@@ -817,24 +821,24 @@ namespace jsoncons { namespace unicode_traits {
                 case 1: byte1 = (uint8_t)(ch | first_byte_mark[bytes_to_write]);
                     break;
             }
-            switch (bytes_to_write) 
+            switch (bytes_to_write)
             {
-            case 4: 
+            case 4:
                 target.push_back(byte1);
                 target.push_back(byte2);
                 target.push_back(byte3);
                 target.push_back(byte4);
                 break;
-            case 3: 
+            case 3:
                 target.push_back(byte1);
                 target.push_back(byte2);
                 target.push_back(byte3);
                 break;
-            case 2: 
+            case 2:
                 target.push_back(byte1);
                 target.push_back(byte2);
                 break;
-            case 1: 
+            case 1:
                 target.push_back(byte1);
                 break;
             }
@@ -842,23 +846,23 @@ namespace jsoncons { namespace unicode_traits {
         return convert_result<CharT>{data,result} ;
     }
 
-    template <class CharT,class Container>
-    typename std::enable_if<extension_traits::is_char16<CharT>::value                            
-                            && extension_traits::is_back_insertable<Container>::value
-                            && extension_traits::is_char16<typename Container::value_type>::value,
-                            convert_result<CharT>>::type 
-    convert(const CharT* data, std::size_t length, 
-            Container& target, 
-            conv_flags flags = conv_flags::strict) 
+    template <typename CharT,typename Container>
+    typename std::enable_if<ext_traits::is_char16<CharT>::value
+                            && ext_traits::is_back_insertable<Container>::value
+                            && ext_traits::is_char16<typename Container::value_type>::value,
+                            convert_result<CharT>>::type
+    convert(const CharT* data, std::size_t length,
+            Container& target,
+            conv_flags flags = conv_flags::strict)
     {
         conv_errc  result = conv_errc();
 
         const CharT* last = data + length;
-        while (data != last) 
+        while (data != last)
         {
             uint32_t ch = *data++;
             /* If we have a surrogate pair, convert to uint32_t data. */
-            if (is_high_surrogate(ch)) 
+            if (is_high_surrogate(ch))
             {
                 /* If the 16 bits following the high surrogate are in the data buffer... */
                 if (data < last) {
@@ -878,7 +882,7 @@ namespace jsoncons { namespace unicode_traits {
                     result = conv_errc::source_exhausted;
                     break;
                 }
-            } else if (is_low_surrogate(ch)) 
+            } else if (is_low_surrogate(ch))
             {
                 // illegal leading low surrogate
                 if (flags == conv_flags::strict) {
@@ -899,29 +903,29 @@ namespace jsoncons { namespace unicode_traits {
         return convert_result<CharT>{data,result} ;
     }
 
-    template <class CharT,class Container>
-    typename std::enable_if<extension_traits::is_char16<CharT>::value                            
-                            && extension_traits::is_back_insertable<Container>::value
-                            && extension_traits::is_char32<typename Container::value_type>::value,
-                            convert_result<CharT>>::type 
-    convert(const CharT* data, std::size_t length, 
-            Container& target, 
-            conv_flags flags = conv_flags::strict) 
+    template <typename CharT,typename Container>
+    typename std::enable_if<ext_traits::is_char16<CharT>::value
+                            && ext_traits::is_back_insertable<Container>::value
+                            && ext_traits::is_char32<typename Container::value_type>::value,
+                            convert_result<CharT>>::type
+    convert(const CharT* data, std::size_t length,
+            Container& target,
+            conv_flags flags = conv_flags::strict)
     {
         conv_errc  result = conv_errc();
 
         const CharT* last = data + length;
-        while (data != last) 
+        while (data != last)
         {
             uint32_t ch = *data++;
             /* If we have a surrogate pair, convert to UTF32 data. */
-            if (is_high_surrogate(ch)) 
+            if (is_high_surrogate(ch))
             {
                 /* If the 16 bits following the high surrogate are in the data buffer... */
                 if (data < last) {
                     uint32_t ch2 = *data;
                     /* If ptr's a low surrogate, convert to UTF32. */
-                    if (ch2 >= sur_low_start && ch2 <= sur_low_end ) 
+                    if (ch2 >= sur_low_start && ch2 <= sur_low_end )
                     {
                         ch = ((ch - sur_high_start) << half_shift)
                             + (ch2 - sur_low_start) + half_base;
@@ -938,7 +942,7 @@ namespace jsoncons { namespace unicode_traits {
                 }
             } else if (flags == conv_flags::strict) {
                 /* UTF-16 surrogate values are illegal in UTF-32 */
-                if (is_low_surrogate(ch) ) 
+                if (is_low_surrogate(ch) )
                 {
                     --data; /* return to the illegal value itself */
                     result = conv_errc::source_illegal;
@@ -952,27 +956,27 @@ namespace jsoncons { namespace unicode_traits {
 
     // utf32
 
-    template <class CharT,class Container>
-    typename std::enable_if<extension_traits::is_char32<CharT>::value                            
-                            && extension_traits::is_back_insertable<Container>::value
-                            && extension_traits::is_char8<typename Container::value_type>::value,
-                            convert_result<CharT>>::type 
-    convert(const CharT* data, std::size_t length, 
-            Container& target, 
-            conv_flags flags = conv_flags::strict) 
+    template <typename CharT,typename Container>
+    typename std::enable_if<ext_traits::is_char32<CharT>::value
+                            && ext_traits::is_back_insertable<Container>::value
+                            && ext_traits::is_char8<typename Container::value_type>::value,
+                            convert_result<CharT>>::type
+    convert(const CharT* data, std::size_t length,
+            Container& target,
+            conv_flags flags = conv_flags::strict)
     {
         conv_errc  result = conv_errc();
         const CharT* last = data + length;
-        while (data < last) 
+        while (data < last)
         {
             unsigned short bytes_to_write = 0;
             const uint32_t byteMask = 0xBF;
-            const uint32_t byteMark = 0x80; 
+            const uint32_t byteMark = 0x80;
             uint32_t ch = *data++;
-            if (flags == conv_flags::strict ) 
+            if (flags == conv_flags::strict )
             {
                 /* UTF-16 surrogate values are illegal in UTF-32 */
-                if (is_surrogate(ch)) 
+                if (is_surrogate(ch))
                 {
                     --data; /* return to the illegal value itself */
                     result = conv_errc::illegal_surrogate_value;
@@ -987,7 +991,7 @@ namespace jsoncons { namespace unicode_traits {
             } else if (ch < (uint32_t)0x800) {     bytes_to_write = 2;
             } else if (ch < (uint32_t)0x10000) {   bytes_to_write = 3;
             } else if (ch <= max_legal_utf32) {  bytes_to_write = 4;
-            } else {                            
+            } else {
                 bytes_to_write = 3;
                 ch = replacement_char;
                 result = conv_errc::source_illegal;
@@ -1013,24 +1017,24 @@ namespace jsoncons { namespace unicode_traits {
                 break;
             }
 
-            switch (bytes_to_write) 
+            switch (bytes_to_write)
             {
-            case 4: 
+            case 4:
                 target.push_back(byte1);
                 target.push_back(byte2);
                 target.push_back(byte3);
                 target.push_back(byte4);
                 break;
-            case 3: 
+            case 3:
                 target.push_back(byte1);
                 target.push_back(byte2);
                 target.push_back(byte3);
                 break;
-            case 2: 
+            case 2:
                 target.push_back(byte1);
                 target.push_back(byte2);
                 break;
-            case 1: 
+            case 1:
                 target.push_back(byte1);
                 break;
             }
@@ -1038,24 +1042,24 @@ namespace jsoncons { namespace unicode_traits {
         return convert_result<CharT>{data,result} ;
     }
 
-    template <class CharT,class Container>
-    typename std::enable_if<extension_traits::is_char32<CharT>::value                            
-                            && extension_traits::is_back_insertable<Container>::value
-                            && extension_traits::is_char16<typename Container::value_type>::value,
-                            convert_result<CharT>>::type 
-    convert(const CharT* data, std::size_t length, 
-            Container& target, 
-            conv_flags flags = conv_flags::strict) 
+    template <typename CharT,typename Container>
+    typename std::enable_if<ext_traits::is_char32<CharT>::value
+                            && ext_traits::is_back_insertable<Container>::value
+                            && ext_traits::is_char16<typename Container::value_type>::value,
+                            convert_result<CharT>>::type
+    convert(const CharT* data, std::size_t length,
+            Container& target,
+            conv_flags flags = conv_flags::strict)
     {
         conv_errc  result = conv_errc();
 
         const CharT* last = data + length;
-        while (data != last) 
+        while (data != last)
         {
             uint32_t ch = *data++;
             if (ch <= max_bmp) { /* Target is a character <= 0xFFFF */
                 /* UTF-16 surrogate values are illegal in UTF-32; 0xffff or 0xfffe are both reserved values */
-                if (is_surrogate(ch) ) 
+                if (is_surrogate(ch) )
                 {
                     if (flags == conv_flags::strict) {
                         --data; /* return to the illegal value itself */
@@ -1083,25 +1087,25 @@ namespace jsoncons { namespace unicode_traits {
         return convert_result<CharT>{data,result} ;
     }
 
-    template <class CharT,class Container>
-    typename std::enable_if<extension_traits::is_char32<CharT>::value                            
-                            && extension_traits::is_back_insertable<Container>::value
-                            && extension_traits::is_char32<typename Container::value_type>::value,
-                            convert_result<CharT>>::type 
-    convert(const CharT* data, std::size_t length, 
-            Container& target, 
-            conv_flags flags = conv_flags::strict) 
+    template <typename CharT,typename Container>
+    typename std::enable_if<ext_traits::is_char32<CharT>::value
+                            && ext_traits::is_back_insertable<Container>::value
+                            && ext_traits::is_char32<typename Container::value_type>::value,
+                            convert_result<CharT>>::type
+    convert(const CharT* data, std::size_t length,
+            Container& target,
+            conv_flags flags = conv_flags::strict)
     {
         conv_errc  result = conv_errc();
 
         const CharT* last = data + length;
-        while (data != last) 
+        while (data != last)
         {
             uint32_t ch = *data++;
-            if (flags == conv_flags::strict ) 
+            if (flags == conv_flags::strict )
             {
                 /* UTF-16 surrogate values are illegal in UTF-32 */
-                if (is_surrogate(ch)) 
+                if (is_surrogate(ch))
                 {
                     --data; /* return to the illegal value itself */
                     result = conv_errc::illegal_surrogate_value;
@@ -1123,14 +1127,14 @@ namespace jsoncons { namespace unicode_traits {
 
     // validate
 
-    template <class CharT>
-    typename std::enable_if<extension_traits::is_char8<CharT>::value,
-                            convert_result<CharT>>::type 
+    template <typename CharT>
+    typename std::enable_if<ext_traits::is_char8<CharT>::value,
+                            convert_result<CharT>>::type
     validate(const CharT* data, std::size_t length) noexcept
     {
         conv_errc  result = conv_errc();
         const CharT* last = data + length;
-        while (data != last) 
+        while (data != last)
         {
             std::size_t len = static_cast<std::size_t>(trailing_bytes_for_utf8[static_cast<uint8_t>(*data)]) + 1;
             if (len > (std::size_t)(last - data))
@@ -1148,19 +1152,19 @@ namespace jsoncons { namespace unicode_traits {
 
     // utf16
 
-    template <class CharT>
-    typename std::enable_if<extension_traits::is_char16<CharT>::value,
-                            convert_result<CharT>>::type 
+    template <typename CharT>
+    typename std::enable_if<ext_traits::is_char16<CharT>::value,
+                            convert_result<CharT>>::type
     validate(const CharT* data, std::size_t length)  noexcept
     {
         conv_errc  result = conv_errc();
 
         const CharT* last = data + length;
-        while (data != last) 
+        while (data != last)
         {
             uint32_t ch = *data++;
             /* If we have a surrogate pair, validate to uint32_t data. */
-            if (is_high_surrogate(ch)) 
+            if (is_high_surrogate(ch))
             {
                 /* If the 16 bits following the high surrogate are in the data buffer... */
                 if (data < last) {
@@ -1173,15 +1177,15 @@ namespace jsoncons { namespace unicode_traits {
                         result = conv_errc::unpaired_high_surrogate;
                         break;
                     }
-                } 
-                else // We don't have the 16 bits following the high surrogate.  
-                { 
+                }
+                else // We don't have the 16 bits following the high surrogate.
+                {
                     --data; /* return to the high surrogate */
                     result = conv_errc::source_exhausted;
                     break;
                 }
-            } 
-            else if (is_low_surrogate(ch)) 
+            }
+            else if (is_low_surrogate(ch))
             {
                 /* UTF-16 surrogate values are illegal in UTF-32 */
                 --data; /* return to the illegal value itself */
@@ -1194,19 +1198,19 @@ namespace jsoncons { namespace unicode_traits {
 
     // utf32
 
-    template <class CharT>
-    typename std::enable_if<extension_traits::is_char32<CharT>::value,
-                            convert_result<CharT>>::type 
+    template <typename CharT>
+    typename std::enable_if<ext_traits::is_char32<CharT>::value,
+                            convert_result<CharT>>::type
     validate(const CharT* data, std::size_t length) noexcept
     {
         conv_errc  result = conv_errc();
 
         const CharT* last = data + length;
-        while (data != last) 
+        while (data != last)
         {
             uint32_t ch = *data++;
             /* UTF-16 surrogate values are illegal in UTF-32 */
-            if (is_surrogate(ch)) 
+            if (is_surrogate(ch))
             {
                 --data; /* return to the illegal value itself */
                 result = conv_errc::illegal_surrogate_value;
@@ -1222,16 +1226,16 @@ namespace jsoncons { namespace unicode_traits {
 
     enum class encoding {u8,u16le,u16be,u32le,u32be,undetected};
 
-    template <class Iterator>
+    template <typename Iterator>
     struct determine_encoding_result
     {
         Iterator it;
         encoding ec;
     };
 
-    template <class Iterator>
+    template <typename Iterator>
     typename std::enable_if<std::is_integral<typename std::iterator_traits<Iterator>::value_type>::value && sizeof(typename std::iterator_traits<Iterator>::value_type) == sizeof(uint8_t),
-                            determine_encoding_result<Iterator>>::type 
+                            determine_encoding_result<Iterator>>::type
     detect_encoding(Iterator first, Iterator last) noexcept
     {
         Iterator it1 = first;
@@ -1255,23 +1259,23 @@ namespace jsoncons { namespace unicode_traits {
             Iterator it4 = ++first;
 
             uint32_t bom = static_cast<uint8_t>(*it1) | (static_cast<uint8_t>(*it2) << 8) | (static_cast<uint8_t>(*it3) << 16) | (static_cast<uint8_t>(*it4) << 24);
-            if (bom == 0xFFFE0000)                  
-            { 
+            if (bom == 0xFFFE0000)
+            {
                 return determine_encoding_result<Iterator>{it4++,encoding::u32be};
             }
-            else if (bom == 0x0000FEFF) 
+            else if (bom == 0x0000FEFF)
             {
                 return determine_encoding_result<Iterator>{first,encoding::u32le};
             }
-            else if ((bom & 0xFFFF) == 0xFFFE)     
+            else if ((bom & 0xFFFF) == 0xFFFE)
             {
                 return determine_encoding_result<Iterator>{it3,encoding::u16be};
             }
-            else if ((bom & 0xFFFF) == 0xFEFF)      
+            else if ((bom & 0xFFFF) == 0xFEFF)
             {
                 return determine_encoding_result<Iterator>{it3,encoding::u16le};
             }
-            else if ((bom & 0xFFFFFF) == 0xBFBBEF)  
+            else if ((bom & 0xFFFFFF) == 0xBFBBEF)
             {
                 return determine_encoding_result<Iterator>{it4,encoding::u8};
             }
@@ -1279,15 +1283,15 @@ namespace jsoncons { namespace unicode_traits {
             {
                 uint32_t pattern = (static_cast<uint8_t>(*it1) ? 1 : 0) | (static_cast<uint8_t>(*it2) ? 2 : 0) | (static_cast<uint8_t>(*it3) ? 4 : 0) | (static_cast<uint8_t>(*it4) ? 8 : 0);
                 switch (pattern) {
-                case 0x08: 
+                case 0x08:
                     return determine_encoding_result<Iterator>{it1,encoding::u32be};
-                case 0x0A: 
+                case 0x0A:
                     return determine_encoding_result<Iterator>{it1,encoding::u16be};
-                case 0x01: 
+                case 0x01:
                     return determine_encoding_result<Iterator>{it1,encoding::u32le};
-                case 0x05: 
+                case 0x05:
                     return determine_encoding_result<Iterator>{it1,encoding::u16le};
-                case 0x0F: 
+                case 0x0F:
                     return determine_encoding_result<Iterator>{it1,encoding::u8};
                 default:
                     return determine_encoding_result<Iterator>{it1,encoding::undetected};
@@ -1298,9 +1302,9 @@ namespace jsoncons { namespace unicode_traits {
 
     // count_codepoints
 
-    template <class CharT>
-    typename std::enable_if<extension_traits::is_char8<CharT>::value || extension_traits::is_char16<CharT>::value || extension_traits::is_char32<CharT>::value, std::size_t>::type 
-    count_codepoints(const CharT* data, std::size_t length, 
+    template <typename CharT>
+    typename std::enable_if<ext_traits::is_char8<CharT>::value || ext_traits::is_char16<CharT>::value || ext_traits::is_char32<CharT>::value, std::size_t>::type
+    count_codepoints(const CharT* data, std::size_t length,
                      conv_flags flags = conv_flags::strict) noexcept
     {
         conv_errc ec = conv_errc();
@@ -1309,7 +1313,7 @@ namespace jsoncons { namespace unicode_traits {
         const CharT* ptr = data;
         const CharT* last = data + length;
 
-        for (; ptr < last; ++count) 
+        for (; ptr < last; ++count)
         {
             uint32_t cp = 0;
             auto r = to_codepoint(ptr, last, cp, flags);
@@ -1324,7 +1328,6 @@ namespace jsoncons { namespace unicode_traits {
     }
 
 } // unicode_traits
-} // jsoncons
+} // namespace jsoncons
 
-#endif
-
+#endif //JSONCONS_UTILITY_UNICODE_TRAITS_HPP

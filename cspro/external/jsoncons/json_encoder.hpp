@@ -1,9 +1,4 @@
-// note CSPro additions marked with "CSPro"
-// when updating, uses of options_., open_object_brace_str_., close_object_brace_str_., open_array_bracket_str_., and close_array_bracket_str_.
-// need to be changed to add () between the _ and .; e.g., options_.max_nesting_depth() options_().max_nesting_depth()
-// also look at "to support spacing out entities after a call to CreateJsonModifiableOptions"
-
-// Copyright 2013-2023 Daniel Parker
+// Copyright 2013-2025 Daniel Parker
 // Distributed under the Boost license, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
@@ -13,23 +8,31 @@
 #define JSONCONS_JSON_ENCODER_HPP
 
 #include <array> // std::array
-#include <string>
-#include <vector>
+#include <cstddef>
+#include <cstdint>
 #include <cmath> // std::isfinite, std::isnan
 #include <limits> // std::numeric_limits
 #include <memory>
+#include <string>
 #include <utility> // std::move
-#include <jsoncons/config/jsoncons_config.hpp>
-#include <jsoncons/json_exception.hpp>
-#include <jsoncons/byte_string.hpp>
-#include <jsoncons/bigint.hpp>
-#include <jsoncons/json_options.hpp>
-#include <jsoncons/json_error.hpp>
-#include <jsoncons/json_visitor.hpp>
-#include <jsoncons/sink.hpp>
-#include <jsoncons/detail/write_number.hpp>
+#include <vector>
 
-namespace jsoncons { 
+#include <jsoncons/config/compiler_support.hpp>
+#include <jsoncons/config/jsoncons_config.hpp>
+#include <jsoncons/utility/write_number.hpp>
+#include <jsoncons/json_error.hpp>
+#include <jsoncons/json_exception.hpp>
+#include <jsoncons/json_options.hpp>
+#include <jsoncons/json_type.hpp>
+#include <jsoncons/json_visitor.hpp>
+#include <jsoncons/semantic_tag.hpp>
+#include <jsoncons/ser_util.hpp>
+#include <jsoncons/sink.hpp>
+#include <jsoncons/utility/bigint.hpp>
+#include <jsoncons/utility/byte_string.hpp>
+#include <jsoncons/utility/unicode_traits.hpp>
+
+namespace jsoncons {
 namespace detail {
 
     inline
@@ -44,7 +47,7 @@ namespace detail {
         return cp >= 0x80;
     }
 
-    template <class CharT, class Sink>
+    template <typename CharT,typename Sink>
     std::size_t escape_string(const CharT* s, std::size_t length,
                          bool escape_all_non_ascii, bool escape_solidus,
                          Sink& sink)
@@ -119,26 +122,26 @@ namespace detail {
 
                                 sink.push_back('\\');
                                 sink.push_back('u');
-                                sink.push_back(jsoncons::detail::to_hex_character(first >> 12 & 0x000F));
-                                sink.push_back(jsoncons::detail::to_hex_character(first >> 8 & 0x000F));
-                                sink.push_back(jsoncons::detail::to_hex_character(first >> 4 & 0x000F));
-                                sink.push_back(jsoncons::detail::to_hex_character(first & 0x000F));
+                                sink.push_back(jsoncons::to_hex_character(first >> 12 & 0x000F));
+                                sink.push_back(jsoncons::to_hex_character(first >> 8 & 0x000F));
+                                sink.push_back(jsoncons::to_hex_character(first >> 4 & 0x000F));
+                                sink.push_back(jsoncons::to_hex_character(first & 0x000F));
                                 sink.push_back('\\');
                                 sink.push_back('u');
-                                sink.push_back(jsoncons::detail::to_hex_character(second >> 12 & 0x000F));
-                                sink.push_back(jsoncons::detail::to_hex_character(second >> 8 & 0x000F));
-                                sink.push_back(jsoncons::detail::to_hex_character(second >> 4 & 0x000F));
-                                sink.push_back(jsoncons::detail::to_hex_character(second & 0x000F));
+                                sink.push_back(jsoncons::to_hex_character(second >> 12 & 0x000F));
+                                sink.push_back(jsoncons::to_hex_character(second >> 8 & 0x000F));
+                                sink.push_back(jsoncons::to_hex_character(second >> 4 & 0x000F));
+                                sink.push_back(jsoncons::to_hex_character(second & 0x000F));
                                 count += 12;
                             }
                             else
                             {
                                 sink.push_back('\\');
                                 sink.push_back('u');
-                                sink.push_back(jsoncons::detail::to_hex_character(cp >> 12 & 0x000F));
-                                sink.push_back(jsoncons::detail::to_hex_character(cp >> 8 & 0x000F));
-                                sink.push_back(jsoncons::detail::to_hex_character(cp >> 4 & 0x000F));
-                                sink.push_back(jsoncons::detail::to_hex_character(cp & 0x000F));
+                                sink.push_back(jsoncons::to_hex_character(cp >> 12 & 0x000F));
+                                sink.push_back(jsoncons::to_hex_character(cp >> 8 & 0x000F));
+                                sink.push_back(jsoncons::to_hex_character(cp >> 4 & 0x000F));
+                                sink.push_back(jsoncons::to_hex_character(cp & 0x000F));
                                 count += 6;
                             }
                         }
@@ -193,21 +196,7 @@ namespace detail {
 
 } // namespace detail
 
-
-    // CSPro: a way to modify the options
-    template<class CharT>
-    struct ModifiableOptions
-    {
-        const basic_json_encode_options<CharT> options_;
-        bool add_space_after_comma_before_next_entity = false;
-        std::basic_string<CharT> open_object_brace_str_;
-        std::basic_string<CharT> close_object_brace_str_;
-        std::basic_string<CharT> open_array_bracket_str_;
-        std::basic_string<CharT> close_array_bracket_str_;
-    };
-
-
-    template<class CharT,class Sink=jsoncons::stream_sink<CharT>,class Allocator=std::allocator<char>>
+    template <typename CharT,typename Sink=jsoncons::stream_sink<CharT>,typename Allocator=std::allocator<char>>
     class basic_json_encoder final : public basic_json_visitor<CharT>
     {
         static const jsoncons::basic_string_view<CharT> null_constant()
@@ -225,6 +214,23 @@ namespace detail {
             static const jsoncons::basic_string_view<CharT> k = JSONCONS_STRING_VIEW_CONSTANT(CharT, "false");
             return k;
         }
+
+        static const std::array<CharT,1> colon;
+        static const std::array<CharT,2> colon_space;
+        static const std::array<CharT,2> space_colon;
+        static const std::array<CharT,3> space_colon_space;
+        static const std::array<CharT,1> comma;
+        static const std::array<CharT,2> comma_space;
+        static const std::array<CharT,2> space_comma;
+        static const std::array<CharT,3> space_comma_space;
+        static const std::array<CharT,1> left_brace;
+        static const std::array<CharT,1> right_brace;
+        static const std::array<CharT,2> left_brace_space;
+        static const std::array<CharT,2> space_right_brace;
+        static const std::array<CharT,1> left_bracket;
+        static const std::array<CharT,1> right_bracket;
+        static const std::array<CharT,2> left_bracket_space;
+        static const std::array<CharT,2> space_right_bracket;
     public:
         using allocator_type = Allocator;
         using char_type = CharT;
@@ -238,21 +244,24 @@ namespace detail {
         class encoding_context
         {
             container_type type_;
-            std::size_t count_;
-            line_split_kind line_splits_;
+            line_split_kind split_kind_;
             bool indent_before_;
             bool new_line_after_;
-            std::size_t begin_pos_;
-            std::size_t data_pos_;
+            std::size_t begin_pos_{0};
+            std::size_t data_pos_{0};
+            std::size_t count_{0};
         public:
             encoding_context(container_type type, line_split_kind split_lines, bool indent_once,
                              std::size_t begin_pos, std::size_t data_pos) noexcept
-               : type_(type), count_(0), line_splits_(split_lines), indent_before_(indent_once), new_line_after_(false),
+               : type_(type), split_kind_(split_lines), indent_before_(indent_once), new_line_after_(false),
                  begin_pos_(begin_pos), data_pos_(data_pos)
             {
             }
 
             encoding_context(const encoding_context&) = default;
+
+            ~encoding_context() = default;
+
             encoding_context& operator=(const encoding_context&) = default;
 
             void set_position(std::size_t pos)
@@ -285,7 +294,7 @@ namespace detail {
                 return new_line_after_;
             }
 
-            void new_line_after(bool value) 
+            void new_line_after(bool value)
             {
                 new_line_after_ = value;
             }
@@ -300,19 +309,14 @@ namespace detail {
                 return type_ == container_type::array;
             }
 
-            bool is_same_line() const
+            line_split_kind split_kind() const
             {
-                return line_splits_ == line_split_kind::same_line;
-            }
-
-            bool is_new_line() const
-            {
-                return line_splits_ == line_split_kind::new_line;
+                return split_kind_;
             }
 
             bool is_multi_line() const
             {
-                return line_splits_ == line_split_kind::multi_line;
+                return split_kind_ == line_split_kind::multi_line;
             }
 
             bool is_indent_once() const
@@ -320,128 +324,94 @@ namespace detail {
                 return count_ == 0 ? indent_before_ : false;
             }
 
-            void line_splits(line_split_kind value) // CSPro
-            {
-                line_splits_ = value;
-            }
-
         };
         using encoding_context_allocator_type = typename std::allocator_traits<allocator_type>:: template rebind_alloc<encoding_context>;
 
         Sink sink_;
-        // basic_json_encode_options<CharT> options_; // CSPro removed 
-        size_t sink_length_after_newline = 0; // CSPro added
-        jsoncons::detail::write_double fp_;
+        basic_json_encode_options<CharT> options_;
+        char_type indent_char_{' '};
+        jsoncons::write_double fp_;
 
         std::vector<encoding_context,encoding_context_allocator_type> stack_;
-        int indent_amount_;
-        std::size_t column_;
-        std::basic_string<CharT> colon_str_;
-        std::basic_string<CharT> comma_str_;
-        /* CSPro removed 
-        std::basic_string<CharT> open_object_brace_str_;
-        std::basic_string<CharT> close_object_brace_str_;
-        std::basic_string<CharT> open_array_bracket_str_;
-        std::basic_string<CharT> close_array_bracket_str_;
-        */
-        int nesting_depth_;
-
-        // CSPro: a way to modify the options
+        int indent_amount_{0};
+        std::size_t column_{0};
+        jsoncons::basic_string_view<CharT> colon_str_;
+        jsoncons::basic_string_view<CharT> comma_str_;
+        jsoncons::basic_string_view<CharT> open_brace_str_;
+        jsoncons::basic_string_view<CharT> close_brace_str_;
+        jsoncons::basic_string_view<CharT> open_bracket_str_;
+        jsoncons::basic_string_view<CharT> close_bracket_str_;
+        int nesting_depth_{0};
     public:
-        ModifiableOptions<CharT> base_current_options_; 
-        const ModifiableOptions<CharT>* current_options_; 
-        const basic_json_encode_options<CharT>& options_() const         { return current_options_->options_; };
-        bool add_space_after_comma_before_next_entity() const            { return current_options_->add_space_after_comma_before_next_entity; }
-        const std::basic_string<CharT>& open_object_brace_str_() const   { return current_options_->open_object_brace_str_; }
-        const std::basic_string<CharT>& close_object_brace_str_() const  { return current_options_->close_object_brace_str_; }
-        const std::basic_string<CharT>& open_array_bracket_str_() const  { return current_options_->open_array_bracket_str_; }
-        const std::basic_string<CharT>& close_array_bracket_str_() const { return current_options_->close_array_bracket_str_; }
-
-        void ModifyOptions(const ModifiableOptions<CharT>* modifiable_options) 
-        { 
-            current_options_ = ( modifiable_options != nullptr ) ? modifiable_options : 
-                                                                   &base_current_options_; 
-        }
-
-        void ModifyOptionsTopmostObjectLineSplits(line_split_kind line_splits)
-        {
-            ASSERT(!stack_.empty() && stack_.back().is_object());
-            stack_.back().line_splits(line_splits);
-        }    
-
-    private:
 
         // Noncopyable and nonmoveable
         basic_json_encoder(const basic_json_encoder&) = delete;
-        basic_json_encoder& operator=(const basic_json_encoder&) = delete;
-    public:
-        basic_json_encoder(Sink&& sink, 
+        basic_json_encoder(basic_json_encoder&&) = delete;
+
+        basic_json_encoder(Sink&& sink,
                            const Allocator& alloc = Allocator())
             : basic_json_encoder(std::forward<Sink>(sink), basic_json_encode_options<CharT>(), alloc)
         {
         }
 
-        basic_json_encoder(Sink&& sink, 
-                           const basic_json_encode_options<CharT>& options, 
+        basic_json_encoder(Sink&& sink,
+                           const basic_json_encode_options<CharT>& options,
                            const Allocator& alloc = Allocator())
-           : sink_(std::forward<Sink>(sink)), 
-             base_current_options_{ options }, // CSPro
-             current_options_(&base_current_options_), // CSPro
+           : sink_(std::forward<Sink>(sink)),
+             options_(options),
+             indent_char_(options.indent_char()),
              fp_(options.float_format(), options.precision()),
-             stack_(alloc),
-             indent_amount_(0), 
-             column_(0),
-             nesting_depth_(0)
+             stack_(alloc)
         {
             switch (options.spaces_around_colon())
             {
                 case spaces_option::space_after:
-                    colon_str_ = std::basic_string<CharT>({':',' '});
+                    colon_str_ = jsoncons::basic_string_view<CharT>(colon_space.data(), colon_space.size());
                     break;
                 case spaces_option::space_before:
-                    colon_str_ = std::basic_string<CharT>({' ',':'});
+                    colon_str_ = jsoncons::basic_string_view<CharT>(space_colon.data(), space_colon.size());
                     break;
                 case spaces_option::space_before_and_after:
-                    colon_str_ = std::basic_string<CharT>({' ',':',' '});
+                    colon_str_ = jsoncons::basic_string_view<CharT>(space_colon_space.data(), space_colon_space.size());
                     break;
                 default:
-                    colon_str_.push_back(':');
+                    colon_str_ = jsoncons::basic_string_view<CharT>(colon.data(), colon.size());
                     break;
             }
             switch (options.spaces_around_comma())
             {
                 case spaces_option::space_after:
-                    comma_str_ = std::basic_string<CharT>({',',' '});
+                    comma_str_ = jsoncons::basic_string_view<CharT>(comma_space.data(), colon_space.size());
                     break;
                 case spaces_option::space_before:
-                    comma_str_ = std::basic_string<CharT>({' ',','});
+                    comma_str_ = jsoncons::basic_string_view<CharT>(space_comma.data(), space_comma.size());
                     break;
                 case spaces_option::space_before_and_after:
-                    comma_str_ = std::basic_string<CharT>({' ',',',' '});
+                    comma_str_ = jsoncons::basic_string_view<CharT>(space_comma_space.data(), space_comma_space.size());
                     break;
                 default:
-                    comma_str_.push_back(',');
+                    comma_str_ = jsoncons::basic_string_view<CharT>(comma.data(), comma.size());
                     break;
             }
-            if (options.pad_inside_object_braces()) // CSPro values set in base_current_options_
+            if (options.pad_inside_object_braces())
             {
-                base_current_options_.open_object_brace_str_ = std::basic_string<CharT>({'{', ' '});
-                base_current_options_.close_object_brace_str_ = std::basic_string<CharT>({' ', '}'});
+                open_brace_str_ = jsoncons::basic_string_view<CharT>(left_brace_space.data(), left_brace_space.size());
+                close_brace_str_ = jsoncons::basic_string_view<CharT>(space_right_brace.data(), space_right_brace.size());
             }
             else
             {
-                base_current_options_.open_object_brace_str_.push_back('{');
-                base_current_options_.close_object_brace_str_.push_back('}');
+                open_brace_str_ = jsoncons::basic_string_view<CharT>(left_brace.data(), left_brace.size());
+                close_brace_str_ = jsoncons::basic_string_view<CharT>(right_brace.data(), right_brace.size());
             }
             if (options.pad_inside_array_brackets())
             {
-                base_current_options_.open_array_bracket_str_ = std::basic_string<CharT>({'[', ' '});
-                base_current_options_.close_array_bracket_str_ = std::basic_string<CharT>({' ', ']'});
+                open_bracket_str_ = jsoncons::basic_string_view<CharT>(left_bracket_space.data(), left_bracket_space.size());
+                close_bracket_str_ = jsoncons::basic_string_view<CharT>(space_right_bracket.data(), space_right_bracket.size());
             }
             else
             {
-                base_current_options_.open_array_bracket_str_.push_back('[');
-                base_current_options_.close_array_bracket_str_.push_back(']');
+                open_bracket_str_ = jsoncons::basic_string_view<CharT>(left_bracket.data(), left_bracket.size());
+                close_bracket_str_ = jsoncons::basic_string_view<CharT>(right_bracket.data(), right_bracket.size());
             }
         }
 
@@ -455,6 +425,9 @@ namespace detail {
             {
             }
         }
+
+        basic_json_encoder& operator=(const basic_json_encoder&) = delete;
+        basic_json_encoder& operator=(basic_json_encoder&&) = delete;
 
         void reset()
         {
@@ -472,25 +445,19 @@ namespace detail {
 
     private:
         // Implementing methods
-        void visit_flush() override
+        void visit_flush() final
         {
             sink_.flush();
         }
 
-        bool visit_begin_object(semantic_tag, const ser_context&, std::error_code& ec) override
+        JSONCONS_VISITOR_RETURN_TYPE visit_begin_object(semantic_tag, const ser_context&, std::error_code& ec) final
         {
-            if (JSONCONS_UNLIKELY(++nesting_depth_ > options_().max_nesting_depth()))
+            if (JSONCONS_UNLIKELY(++nesting_depth_ > options_.max_nesting_depth()))
             {
                 ec = json_errc::max_nesting_depth_exceeded;
-                return false;
-            } 
-
-#ifdef CSPro_old_code_as_reference
+                JSONCONS_VISITOR_RETURN;
+            }
             if (!stack_.empty() && stack_.back().is_array() && stack_.back().count() > 0)
-#else
-            const bool add_comma = (!stack_.empty() && stack_.back().is_array() && stack_.back().count() > 0);
-            if (add_comma)
-#endif
             {
                 sink_.append(comma_str_.data(),comma_str_.length());
                 column_ += comma_str_.length();
@@ -500,11 +467,13 @@ namespace detail {
             {
                 if (stack_.back().is_object())
                 {
-                    switch (options_().object_object_line_splits())
+                    line_split_kind split_kind = static_cast<uint8_t>(options_.object_object_line_splits()) >= static_cast<uint8_t>(stack_.back().split_kind()) ?
+                        options_.object_object_line_splits() : stack_.back().split_kind();
+                    switch (split_kind)
                     {
                         case line_split_kind::same_line:
                         case line_split_kind::new_line:
-                            if (column_ >= options_().line_length_limit())
+                            if (column_ >= options_.line_length_limit())
                             {
                                 break_line();
                             }
@@ -512,17 +481,24 @@ namespace detail {
                         default: // multi_line
                             break;
                     }
-                    stack_.emplace_back(container_type::object,options_().object_object_line_splits(), false,
-                                        column_, column_+open_object_brace_str_().length());
+                    stack_.emplace_back(container_type::object,split_kind, false,
+                                        column_, column_+open_brace_str_.length());
                 }
                 else // array
                 {
-                    switch (options_().array_object_line_splits())
+                    line_split_kind split_kind = static_cast<uint8_t>(options_.array_object_line_splits()) >= static_cast<uint8_t>(stack_.back().split_kind()) ?
+                        options_.array_object_line_splits() : stack_.back().split_kind();
+                    switch (split_kind)
                     {
                         case line_split_kind::same_line:
-                            if (column_ >= options_().line_length_limit())
+                            if (column_ >= options_.line_length_limit())
                             {
                                 //stack_.back().new_line_after(true);
+                                new_line();
+                            }
+                            else
+                            {
+                                stack_.back().new_line_after(true);
                                 new_line();
                             }
                             break;
@@ -535,27 +511,23 @@ namespace detail {
                             new_line();
                             break;
                     }
-                    stack_.emplace_back(container_type::object,options_().array_object_line_splits(), false,
-                                        column_, column_+open_object_brace_str_().length());
+                    stack_.emplace_back(container_type::object,split_kind, false,
+                                        column_, column_+open_brace_str_.length());
                 }
             }
-            else 
+            else
             {
-                stack_.emplace_back(container_type::object, line_split_kind::multi_line, false,
-                                    column_, column_+open_object_brace_str_().length());
+                stack_.emplace_back(container_type::object, options_.root_line_splits(), false,
+                                    column_, column_+open_brace_str_.length());
             }
             indent();
 
-            // CSPro to support spacing out entities after a call to CreateJsonModifiableOptions
-            if (add_comma && add_space_after_comma_before_next_entity() && sink_length_after_newline != sink_.length())
-                sink_.push_back(' ');
-            
-            sink_.append(open_object_brace_str_().data(), open_object_brace_str_().length());
-            column_ += open_object_brace_str_().length();
-            return true;
+            sink_.append(open_brace_str_.data(), open_brace_str_.length());
+            column_ += open_brace_str_.length();
+            JSONCONS_VISITOR_RETURN;
         }
 
-        bool visit_end_object(const ser_context&, std::error_code&) override
+        JSONCONS_VISITOR_RETURN_TYPE visit_end_object(const ser_context&, std::error_code&) final
         {
             JSONCONS_ASSERT(!stack_.empty());
             --nesting_depth_;
@@ -566,26 +538,21 @@ namespace detail {
                 new_line();
             }
             stack_.pop_back();
-            sink_.append(close_object_brace_str_().data(), close_object_brace_str_().length());
-            column_ += close_object_brace_str_().length();
+            sink_.append(close_brace_str_.data(), close_brace_str_.length());
+            column_ += close_brace_str_.length();
 
             end_value();
-            return true;
+            JSONCONS_VISITOR_RETURN;
         }
 
-        bool visit_begin_array(semantic_tag, const ser_context&, std::error_code& ec) override
+        JSONCONS_VISITOR_RETURN_TYPE visit_begin_array(semantic_tag, const ser_context&, std::error_code& ec) final
         {
-            if (JSONCONS_UNLIKELY(++nesting_depth_ > options_().max_nesting_depth()))
+            if (JSONCONS_UNLIKELY(++nesting_depth_ > options_.max_nesting_depth()))
             {
                 ec = json_errc::max_nesting_depth_exceeded;
-                return false;
-            } 
-#ifdef CSPro_old_code_as_reference
+                JSONCONS_VISITOR_RETURN;
+            }
             if (!stack_.empty() && stack_.back().is_array() && stack_.back().count() > 0)
-#else
-            const bool add_comma = (!stack_.empty() && stack_.back().is_array() && stack_.back().count() > 0);
-            if (add_comma)
-#endif
             {
                 sink_.append(comma_str_.data(),comma_str_.length());
                 column_ += comma_str_.length();
@@ -594,27 +561,32 @@ namespace detail {
             {
                 if (stack_.back().is_object())
                 {
-                    switch (options_().object_array_line_splits())
+                    line_split_kind split_kind = static_cast<uint8_t>(options_.object_array_line_splits()) >= static_cast<uint8_t>(stack_.back().split_kind()) ?
+                        options_.object_array_line_splits() :
+                        stack_.back().split_kind();
+                    switch (split_kind)
                     {
                         case line_split_kind::same_line:
-                            stack_.emplace_back(container_type::array,options_().object_array_line_splits(),false,
-                                                column_, column_ + open_array_bracket_str_().length());
+                            stack_.emplace_back(container_type::array,split_kind,false,
+                                                column_, column_ + open_bracket_str_.length());
                             break;
                         case line_split_kind::new_line:
                         {
-                            stack_.emplace_back(container_type::array,options_().object_array_line_splits(),true,
-                                                column_, column_+open_array_bracket_str_().length());
+                            stack_.emplace_back(container_type::array,split_kind,true,
+                                                column_, column_+open_bracket_str_.length());
                             break;
                         }
                         default: // multi_line
-                            stack_.emplace_back(container_type::array,options_().object_array_line_splits(),true,
-                                                column_, column_+open_array_bracket_str_().length());
+                            stack_.emplace_back(container_type::array,split_kind,true,
+                                                column_, column_+open_bracket_str_.length());
                             break;
                     }
                 }
                 else // array
                 {
-                    switch (options_().array_array_line_splits())
+                    line_split_kind split_kind = static_cast<uint8_t>(options_.array_array_line_splits()) >= static_cast<uint8_t>(stack_.back().split_kind()) ?
+                        options_.array_array_line_splits() : stack_.back().split_kind();
+                    switch (split_kind)
                     {
                         case line_split_kind::same_line:
                             if (stack_.back().is_multi_line())
@@ -622,43 +594,36 @@ namespace detail {
                                 stack_.back().new_line_after(true);
                                 new_line();
                             }
-                            stack_.emplace_back(container_type::array,options_().array_array_line_splits(), false,
-                                                column_, column_+open_array_bracket_str_().length());
+                            stack_.emplace_back(container_type::array,split_kind, false,
+                                                column_, column_+open_bracket_str_.length());
                             break;
                         case line_split_kind::new_line:
                             stack_.back().new_line_after(true);
                             new_line();
-                            stack_.emplace_back(container_type::array,options_().array_array_line_splits(), false,
-                                                column_, column_+open_array_bracket_str_().length());
+                            stack_.emplace_back(container_type::array,split_kind, true,
+                                                column_, column_+open_bracket_str_.length());
                             break;
                         default: // multi_line
                             stack_.back().new_line_after(true);
                             new_line();
-                            stack_.emplace_back(container_type::array,options_().array_array_line_splits(), false,
-                                                column_, column_+open_array_bracket_str_().length());
-                            //new_line();
+                            stack_.emplace_back(container_type::array,split_kind, false,
+                                                column_, column_+open_bracket_str_.length());
                             break;
                     }
                 }
             }
-            else 
+            else
             {
-                stack_.emplace_back(container_type::array, line_split_kind::multi_line, false,
-                                    column_, column_+open_array_bracket_str_().length());
+                stack_.emplace_back(container_type::array, options_.root_line_splits(), false,
+                                    column_, column_+open_bracket_str_.length());
             }
-
             indent();
-
-            // CSPro to support spacing out entities after a call to CreateJsonModifiableOptions
-            if (add_comma && add_space_after_comma_before_next_entity() && sink_length_after_newline != sink_.length())
-                sink_.push_back(' ');
-
-            sink_.append(open_array_bracket_str_().data(), open_array_bracket_str_().length());
-            column_ += open_array_bracket_str_().length();
-            return true;
+            sink_.append(open_bracket_str_.data(), open_bracket_str_.length());
+            column_ += open_bracket_str_.length();
+            JSONCONS_VISITOR_RETURN;
         }
 
-        bool visit_end_array(const ser_context&, std::error_code&) override
+        JSONCONS_VISITOR_RETURN_TYPE visit_end_array(const ser_context&, std::error_code&) final
         {
             JSONCONS_ASSERT(!stack_.empty());
             --nesting_depth_;
@@ -669,23 +634,16 @@ namespace detail {
                 new_line();
             }
             stack_.pop_back();
-            sink_.append(close_array_bracket_str_().data(), close_array_bracket_str_().length());
-            column_ += close_array_bracket_str_().length();
+            sink_.append(close_bracket_str_.data(), close_bracket_str_.length());
+            column_ += close_bracket_str_.length();
             end_value();
-            return true;
+            JSONCONS_VISITOR_RETURN;
         }
 
-        bool visit_key(const string_view_type& name, const ser_context&, std::error_code&) override
+        JSONCONS_VISITOR_RETURN_TYPE visit_key(const string_view_type& name, const ser_context&, std::error_code&) final
         {
             JSONCONS_ASSERT(!stack_.empty());
-            
-#ifdef CSPro_old_code_as_reference
             if (stack_.back().count() > 0)
-#else
-            // CSPro to support spacing out entities after a call to CreateJsonModifiableOptions
-            const bool stack_has_entries = ( stack_.back().count() > 0 );
-            if (stack_has_entries)
-#endif
             {
                 sink_.append(comma_str_.data(),comma_str_.length());
                 column_ += comma_str_.length();
@@ -696,48 +654,33 @@ namespace detail {
                 stack_.back().new_line_after(true);
                 new_line();
             }
-#ifdef CSPro_old_code_as_reference
-            else if (stack_.back().count() > 0 && column_ >= options_().line_length_limit())
+            else if (stack_.back().count() > 0 && column_ >= options_.line_length_limit())
             {
                 //stack_.back().new_line_after(true);
                 new_line(stack_.back().data_pos());
             }
-#else
-            else if (stack_has_entries)
-            {
-                if (column_ >= options_().line_length_limit()) 
-                {
-                    new_line(stack_.back().data_pos());
-                }
-                
-                else if (add_space_after_comma_before_next_entity()) 
-                {
-                    sink_.push_back(' ');
-                }
-            }
-#endif
 
             if (stack_.back().count() == 0)
             {
                 stack_.back().set_position(column_);
             }
             sink_.push_back('\"');
-            std::size_t length = jsoncons::detail::escape_string(name.data(), name.length(),options_().escape_all_non_ascii(),options_().escape_solidus(),sink_);
+            std::size_t length = jsoncons::detail::escape_string(name.data(), name.length(),options_.escape_all_non_ascii(),options_.escape_solidus(),sink_);
             sink_.push_back('\"');
             sink_.append(colon_str_.data(),colon_str_.length());
             column_ += (length+2+colon_str_.length());
-            return true;
+            JSONCONS_VISITOR_RETURN;
         }
 
-        bool visit_null(semantic_tag, const ser_context&, std::error_code&) override
+        JSONCONS_VISITOR_RETURN_TYPE visit_null(semantic_tag, const ser_context&, std::error_code&) final
         {
-            if (!stack_.empty()) 
+            if (!stack_.empty())
             {
                 if (stack_.back().is_array())
                 {
                     begin_scalar_value();
                 }
-                if (!stack_.back().is_multi_line() && column_ >= options_().line_length_limit())
+                if (!stack_.back().is_multi_line() && column_ >= options_.line_length_limit())
                 {
                     break_line();
                 }
@@ -747,64 +690,75 @@ namespace detail {
             column_ += null_constant().size();
 
             end_value();
-            return true;
+            JSONCONS_VISITOR_RETURN;
         }
 
-        bool visit_string(const string_view_type& sv, semantic_tag tag, const ser_context&, std::error_code&) override
+        JSONCONS_VISITOR_RETURN_TYPE visit_string(const string_view_type& sv, semantic_tag tag, const ser_context& context, std::error_code& ec) final
         {
-            if (!stack_.empty()) 
+            if (!stack_.empty())
             {
                 if (stack_.back().is_array())
                 {
                     begin_scalar_value();
                 }
-                if (!stack_.back().is_multi_line() && column_ >= options_().line_length_limit())
+                if (!stack_.back().is_multi_line() && column_ >= options_.line_length_limit())
                 {
                     break_line();
                 }
             }
 
-            switch (tag)
-            {
-                case semantic_tag::bigint:
-                    write_bigint_value(sv);
-                    break;
-                case semantic_tag::bigdec:
-                {
-                	// output lossless number
-                	if (options_().bigint_format() == bigint_chars_format::number)
-                	{
-	                	write_bigint_value(sv);
-				break;
-			}
-			JSONCONS_FALLTHROUGH;
-		}
-                default:
-                {
-                    sink_.push_back('\"');
-                    std::size_t length = jsoncons::detail::escape_string(sv.data(), sv.length(),options_().escape_all_non_ascii(),options_().escape_solidus(),sink_);
-                    sink_.push_back('\"');
-                    column_ += (length+2);
-                    break;
-                }
-            }
+            write_string(sv, tag, context, ec);
 
             end_value();
-            return true;
+            JSONCONS_VISITOR_RETURN;
         }
 
-        bool visit_byte_string(const byte_string_view& b, 
+        void write_string(const string_view_type& sv, semantic_tag tag, const ser_context&, std::error_code&)
+        {
+            if (JSONCONS_LIKELY(tag == semantic_tag::noesc && !options_.escape_all_non_ascii() && !options_.escape_solidus()))
+            {
+                //std::cout << "noesc\n";
+                sink_.push_back('\"');
+                const CharT* begin = sv.data();
+                const CharT* end = begin + sv.length();
+                for (const CharT* it = begin; it != end; ++it)
+                {
+                    sink_.push_back(*it);
+                }
+                sink_.push_back('\"');
+                column_ += (sv.length()+2);
+            }
+            else if (tag == semantic_tag::bigint)
+            {
+                write_bignum_value(sv);
+            }
+            else if (tag == semantic_tag::bigdec && options_.bignum_format() == bignum_format_kind::raw)
+            {
+                write_bignum_value(sv);
+            }
+            else
+            {
+                //if (tag != semantic_tag::bigdec)
+                //    std::cout << "esc\n";
+                sink_.push_back('\"');
+                std::size_t length = jsoncons::detail::escape_string(sv.data(), sv.length(),options_.escape_all_non_ascii(),options_.escape_solidus(),sink_);
+                sink_.push_back('\"');
+                column_ += (length+2);
+            }
+        }
+
+        JSONCONS_VISITOR_RETURN_TYPE visit_byte_string(const byte_string_view& b,
                                   semantic_tag tag,
                                   const ser_context&,
-                                  std::error_code&) override
+                                  std::error_code&) final
         {
-            if (!stack_.empty()) 
+            if (!stack_.empty())
             {
                 if (stack_.back().is_array())
                 {
                     begin_scalar_value();
                 }
-                if (!stack_.back().is_multi_line() && column_ >= options_().line_length_limit())
+                if (!stack_.back().is_multi_line() && column_ >= options_.line_length_limit())
                 {
                     break_line();
                 }
@@ -827,15 +781,15 @@ namespace detail {
                     break;
             }
 
-            byte_string_chars_format format = jsoncons::detail::resolve_byte_string_chars_format(options_().byte_string_format(), 
-                                                                                                 encoding_hint, 
+            byte_string_chars_format format = jsoncons::detail::resolve_byte_string_chars_format(options_.byte_string_format(),
+                                                                                                 encoding_hint,
                                                                                                  byte_string_chars_format::base64url);
             switch (format)
             {
                 case byte_string_chars_format::base16:
                 {
                     sink_.push_back('\"');
-                    std::size_t length = encode_base16(b.begin(),b.end(),sink_);
+                    std::size_t length = bytes_to_base16(b.begin(),b.end(),sink_);
                     sink_.push_back('\"');
                     column_ += (length + 2);
                     break;
@@ -843,7 +797,7 @@ namespace detail {
                 case byte_string_chars_format::base64:
                 {
                     sink_.push_back('\"');
-                    std::size_t length = encode_base64(b.begin(), b.end(), sink_);
+                    std::size_t length = bytes_to_base64(b.begin(), b.end(), sink_);
                     sink_.push_back('\"');
                     column_ += (length + 2);
                     break;
@@ -851,7 +805,7 @@ namespace detail {
                 case byte_string_chars_format::base64url:
                 {
                     sink_.push_back('\"');
-                    std::size_t length = encode_base64url(b.begin(),b.end(),sink_);
+                    std::size_t length = bytes_to_base64url(b.begin(),b.end(),sink_);
                     sink_.push_back('\"');
                     column_ += (length + 2);
                     break;
@@ -863,21 +817,21 @@ namespace detail {
             }
 
             end_value();
-            return true;
+            JSONCONS_VISITOR_RETURN;
         }
 
-        bool visit_double(double value, 
+        JSONCONS_VISITOR_RETURN_TYPE visit_double(double value,
                              semantic_tag,
                              const ser_context& context,
-                             std::error_code& ec) override
+                             std::error_code& ec) final
         {
-            if (!stack_.empty()) 
+            if (!stack_.empty())
             {
                 if (stack_.back().is_array())
                 {
                     begin_scalar_value();
                 }
-                if (!stack_.back().is_multi_line() && column_ >= options_().line_length_limit())
+                if (!stack_.back().is_multi_line() && column_ >= options_.line_length_limit())
                 {
                     break_line();
                 }
@@ -887,14 +841,14 @@ namespace detail {
             {
                 if ((std::isnan)(value))
                 {
-                    if (options_().enable_nan_to_num())
+                    if (options_.enable_nan_to_num())
                     {
-                        sink_.append(options_().nan_to_num().data(), options_().nan_to_num().length());
-                        column_ += options_().nan_to_num().length();
+                        sink_.append(options_.nan_to_num().data(), options_.nan_to_num().length());
+                        column_ += options_.nan_to_num().length();
                     }
-                    else if (options_().enable_nan_to_str())
+                    else if (options_.enable_nan_to_str())
                     {
-                        visit_string(options_().nan_to_str(), semantic_tag::none, context, ec);
+                        write_string(options_.nan_to_str(), semantic_tag::none, context, ec);
                     }
                     else
                     {
@@ -904,14 +858,14 @@ namespace detail {
                 }
                 else if (value == std::numeric_limits<double>::infinity())
                 {
-                    if (options_().enable_inf_to_num())
+                    if (options_.enable_inf_to_num())
                     {
-                        sink_.append(options_().inf_to_num().data(), options_().inf_to_num().length());
-                        column_ += options_().inf_to_num().length();
+                        sink_.append(options_.inf_to_num().data(), options_.inf_to_num().length());
+                        column_ += options_.inf_to_num().length();
                     }
-                    else if (options_().enable_inf_to_str())
+                    else if (options_.enable_inf_to_str())
                     {
-                        visit_string(options_().inf_to_str(), semantic_tag::none, context, ec);
+                        write_string(options_.inf_to_str(), semantic_tag::none, context, ec);
                     }
                     else
                     {
@@ -921,14 +875,14 @@ namespace detail {
                 }
                 else
                 {
-                    if (options_().enable_neginf_to_num())
+                    if (options_.enable_neginf_to_num())
                     {
-                        sink_.append(options_().neginf_to_num().data(), options_().neginf_to_num().length());
-                        column_ += options_().neginf_to_num().length();
+                        sink_.append(options_.neginf_to_num().data(), options_.neginf_to_num().length());
+                        column_ += options_.neginf_to_num().length();
                     }
-                    else if (options_().enable_neginf_to_str())
+                    else if (options_.enable_neginf_to_str())
                     {
-                        visit_string(options_().neginf_to_str(), semantic_tag::none, context, ec);
+                        write_string(options_.neginf_to_str(), semantic_tag::none, context, ec);
                     }
                     else
                     {
@@ -944,62 +898,62 @@ namespace detail {
             }
 
             end_value();
-            return true;
+            JSONCONS_VISITOR_RETURN;
         }
 
-        bool visit_int64(int64_t value, 
+        JSONCONS_VISITOR_RETURN_TYPE visit_int64(int64_t value,
                             semantic_tag,
                             const ser_context&,
-                            std::error_code&) override
+                            std::error_code&) final
         {
-            if (!stack_.empty()) 
+            if (!stack_.empty())
             {
                 if (stack_.back().is_array())
                 {
                     begin_scalar_value();
                 }
-                if (!stack_.back().is_multi_line() && column_ >= options_().line_length_limit())
+                if (!stack_.back().is_multi_line() && column_ >= options_.line_length_limit())
                 {
                     break_line();
                 }
             }
-            std::size_t length = jsoncons::detail::from_integer(value, sink_);
+            std::size_t length = jsoncons::from_integer(value, sink_);
             column_ += length;
             end_value();
-            return true;
+            JSONCONS_VISITOR_RETURN;
         }
 
-        bool visit_uint64(uint64_t value, 
-                             semantic_tag, 
+        JSONCONS_VISITOR_RETURN_TYPE visit_uint64(uint64_t value,
+                             semantic_tag,
                              const ser_context&,
-                             std::error_code&) override
+                             std::error_code&) final
         {
-            if (!stack_.empty()) 
+            if (!stack_.empty())
             {
                 if (stack_.back().is_array())
                 {
                     begin_scalar_value();
                 }
-                if (!stack_.back().is_multi_line() && column_ >= options_().line_length_limit())
+                if (!stack_.back().is_multi_line() && column_ >= options_.line_length_limit())
                 {
                     break_line();
                 }
             }
-            std::size_t length = jsoncons::detail::from_integer(value, sink_);
+            std::size_t length = jsoncons::from_integer(value, sink_);
             column_ += length;
             end_value();
-            return true;
+            JSONCONS_VISITOR_RETURN;
         }
 
-        bool visit_bool(bool value, semantic_tag, const ser_context&, std::error_code&) override
+        JSONCONS_VISITOR_RETURN_TYPE visit_bool(bool value, semantic_tag, const ser_context&, std::error_code&) final
         {
-            if (!stack_.empty()) 
+            if (!stack_.empty())
             {
                 if (stack_.back().is_array())
                 {
                     begin_scalar_value();
                 }
-                if (!stack_.back().is_multi_line() && column_ >= options_().line_length_limit())
+                if (!stack_.back().is_multi_line() && column_ >= options_.line_length_limit())
                 {
                     break_line();
                 }
@@ -1017,7 +971,7 @@ namespace detail {
             }
 
             end_value();
-            return true;
+            JSONCONS_VISITOR_RETURN;
         }
 
         void begin_scalar_value()
@@ -1028,10 +982,6 @@ namespace detail {
                 {
                     sink_.append(comma_str_.data(),comma_str_.length());
                     column_ += comma_str_.length();
-
-                    // CSPro to support spacing out entities after a call to CreateJsonModifiableOptions
-                    if (add_space_after_comma_before_next_entity()) 
-                        sink_.push_back(' ');
                 }
                 if (stack_.back().is_multi_line() || stack_.back().is_indent_once())
                 {
@@ -1041,19 +991,19 @@ namespace detail {
             }
         }
 
-        void write_bigint_value(const string_view_type& sv)
+        void write_bignum_value(const string_view_type& sv)
         {
-            switch (options_().bigint_format())
+            switch (options_.bignum_format())
             {
-                case bigint_chars_format::number:
+                case bignum_format_kind::raw:
                 {
                     sink_.append(sv.data(),sv.size());
                     column_ += sv.size();
                     break;
                 }
-                case bigint_chars_format::base64:
+                case bignum_format_kind::base64:
                 {
-                    bigint n = bigint::from_string(sv.data(), sv.length());
+                    bigint n(sv.data(), sv.length());
                     bool is_neg = n < 0;
                     if (is_neg)
                     {
@@ -1069,14 +1019,14 @@ namespace detail {
                         sink_.push_back('~');
                         ++column_;
                     }
-                    std::size_t length = encode_base64(v.begin(), v.end(), sink_);
+                    std::size_t length = bytes_to_base64(v.begin(), v.end(), sink_);
                     sink_.push_back('\"');
                     column_ += (length+2);
                     break;
                 }
-                case bigint_chars_format::base64url:
+                case bignum_format_kind::base64url:
                 {
-                    bigint n = bigint::from_string(sv.data(), sv.length());
+                    bigint n(sv.data(), sv.length());
                     bool is_neg = n < 0;
                     if (is_neg)
                     {
@@ -1092,7 +1042,7 @@ namespace detail {
                         sink_.push_back('~');
                         ++column_;
                     }
-                    std::size_t length = encode_base64url(v.begin(), v.end(), sink_);
+                    std::size_t length = bytes_to_base64url(v.begin(), v.end(), sink_);
                     sink_.push_back('\"');
                     column_ += (length+2);
                     break;
@@ -1118,34 +1068,32 @@ namespace detail {
 
         void indent()
         {
-            indent_amount_ += static_cast<int>(options_().indent_size());
+            indent_amount_ += static_cast<uint8_t>(options_.indent_size());
         }
 
         void unindent()
         {
-            indent_amount_ -= static_cast<int>(options_().indent_size());
+            indent_amount_ -= static_cast<uint8_t>(options_.indent_size());
         }
 
         void new_line()
         {
-            sink_.append(options_().new_line_chars().data(),options_().new_line_chars().length());
+            sink_.append(options_.new_line_chars().data(),options_.new_line_chars().length());
             for (int i = 0; i < indent_amount_; ++i)
             {
-                sink_.push_back(' ');
+                sink_.push_back(indent_char_);
             }
             column_ = indent_amount_;
-            sink_length_after_newline = sink_.length();
         }
 
         void new_line(std::size_t len)
         {
-            sink_.append(options_().new_line_chars().data(),options_().new_line_chars().length());
+            sink_.append(options_.new_line_chars().data(),options_.new_line_chars().length());
             for (std::size_t i = 0; i < len; ++i)
             {
                 sink_.push_back(' ');
             }
             column_ = len;
-            sink_length_after_newline = sink_.length();
         }
 
         void break_line()
@@ -1155,22 +1103,58 @@ namespace detail {
         }
     };
 
-    template<class CharT,class Sink=jsoncons::stream_sink<CharT>,class Allocator=std::allocator<char>>
+    template <typename CharT, typename Sink, typename Allocator>
+    const std::array<CharT,1> basic_json_encoder<CharT, Sink, Allocator>::colon = {':'};
+    template <typename CharT,typename Sink,typename Allocator>
+    const std::array<CharT,2> basic_json_encoder<CharT,Sink,Allocator>::colon_space = {':', ' '};
+    template <typename CharT,typename Sink,typename Allocator>
+    const std::array<CharT,2> basic_json_encoder<CharT,Sink,Allocator>::space_colon = {' ', ':'};
+    template <typename CharT,typename Sink,typename Allocator>
+    const std::array<CharT,3> basic_json_encoder<CharT,Sink,Allocator>::space_colon_space = {' ', ':', ' '};
+
+    template <typename CharT, typename Sink, typename Allocator>
+    const std::array<CharT,1> basic_json_encoder<CharT, Sink, Allocator>::comma = {','};
+    template <typename CharT,typename Sink,typename Allocator>
+    const std::array<CharT,2> basic_json_encoder<CharT,Sink,Allocator>::comma_space = {',', ' '};
+    template <typename CharT,typename Sink,typename Allocator>
+    const std::array<CharT,2> basic_json_encoder<CharT,Sink,Allocator>::space_comma = {' ', ','};
+    template <typename CharT,typename Sink,typename Allocator>
+    const std::array<CharT,3> basic_json_encoder<CharT,Sink,Allocator>::space_comma_space = {' ', ',', ' '};
+
+    template <typename CharT, typename Sink, typename Allocator>
+    const std::array<CharT,1> basic_json_encoder<CharT, Sink, Allocator>::left_brace = {'{'};
+    template <typename CharT,typename Sink,typename Allocator>
+    const std::array<CharT,1> basic_json_encoder<CharT,Sink,Allocator>::right_brace = {'}'};
+    template <typename CharT,typename Sink,typename Allocator>
+    const std::array<CharT,2> basic_json_encoder<CharT,Sink,Allocator>::left_brace_space = {'{', ' '};
+    template <typename CharT,typename Sink,typename Allocator>
+    const std::array<CharT,2> basic_json_encoder<CharT,Sink,Allocator>::space_right_brace = {' ', '}'};
+
+    template <typename CharT, typename Sink, typename Allocator>
+    const std::array<CharT,1> basic_json_encoder<CharT, Sink, Allocator>::left_bracket = {'['};
+    template <typename CharT,typename Sink,typename Allocator>
+    const std::array<CharT,1> basic_json_encoder<CharT,Sink,Allocator>::right_bracket = {']'};
+    template <typename CharT,typename Sink,typename Allocator>
+    const std::array<CharT,2> basic_json_encoder<CharT,Sink,Allocator>::left_bracket_space = {'[', ' '};
+    template <typename CharT,typename Sink,typename Allocator>
+    const std::array<CharT,2> basic_json_encoder<CharT,Sink,Allocator>::space_right_bracket = {' ', ']'};
+
+    template <typename CharT,typename Sink=jsoncons::stream_sink<CharT>,typename Allocator=std::allocator<char>>
     class basic_compact_json_encoder final : public basic_json_visitor<CharT>
     {
         static const std::array<CharT, 4>& null_constant()
         {
-            static constexpr std::array<CharT,4> k{'n','u','l','l'};
+            static constexpr std::array<CharT,4> k{{'n','u','l','l'}};
             return k;
         }
         static const std::array<CharT, 4>& true_constant()
         {
-            static constexpr std::array<CharT,4> k{'t','r','u','e'};
+            static constexpr std::array<CharT,4> k{{'t','r','u','e'}};
             return k;
         }
         static const std::array<CharT, 5>& false_constant()
         {
-            static constexpr std::array<CharT,5> k{'f','a','l','s','e'};
+            static constexpr std::array<CharT,5> k{{'f','a','l','s','e'}};
             return k;
         }
     public:
@@ -1186,10 +1170,10 @@ namespace detail {
         class encoding_context
         {
             container_type type_;
-            std::size_t count_;
+            std::size_t count_{0};
         public:
             encoding_context(container_type type) noexcept
-               : type_(type), count_(0)
+               : type_(type)
             {
             }
 
@@ -1211,41 +1195,32 @@ namespace detail {
         using encoding_context_allocator_type = typename std::allocator_traits<allocator_type>:: template rebind_alloc<encoding_context>;
 
         Sink sink_;
-
-        // CSPro: a way to modify the options (not implemented for the compact encoder)
-        basic_json_encode_options<CharT> compact_options_;
-    public:
-        const basic_json_encode_options<CharT>& options_() const { return compact_options_; };
-        void ModifyOptions(const ModifiableOptions<CharT>* /*modifiable_options*/) { }
-        void ModifyOptionsTopmostObjectLineSplits(line_split_kind /*line_splits*/) { }
-    
-        jsoncons::detail::write_double fp_;
+        basic_json_encode_options<CharT> options_;
+        jsoncons::write_double fp_;
         std::vector<encoding_context,encoding_context_allocator_type> stack_;
         int nesting_depth_;
-
-        // Noncopyable
-        basic_compact_json_encoder(const basic_compact_json_encoder&) = delete;
-        basic_compact_json_encoder& operator=(const basic_compact_json_encoder&) = delete;
     public:
-        basic_compact_json_encoder(Sink&& sink, 
+
+        // Noncopyable and nonmoveable
+        basic_compact_json_encoder(const basic_compact_json_encoder&) = delete;
+        basic_compact_json_encoder(basic_compact_json_encoder&&) = delete;
+
+        basic_compact_json_encoder(Sink&& sink,
             const Allocator& alloc = Allocator())
             : basic_compact_json_encoder(std::forward<Sink>(sink), basic_json_encode_options<CharT>(), alloc)
         {
         }
 
-        basic_compact_json_encoder(Sink&& sink, 
-            const basic_json_encode_options<CharT>& options, 
+        basic_compact_json_encoder(Sink&& sink,
+            const basic_json_encode_options<CharT>& options,
             const Allocator& alloc = Allocator())
            : sink_(std::forward<Sink>(sink)),
-             compact_options_(options),
+             options_(options),
              fp_(options.float_format(), options.precision()),
              stack_(alloc),
-             nesting_depth_(0)          
+             nesting_depth_(0)
         {
         }
-
-        basic_compact_json_encoder(basic_compact_json_encoder&&) = default;
-        basic_compact_json_encoder& operator=(basic_compact_json_encoder&&) = default;
 
         ~basic_compact_json_encoder() noexcept
         {
@@ -1257,6 +1232,9 @@ namespace detail {
             {
             }
         }
+
+        basic_compact_json_encoder& operator=(const basic_compact_json_encoder&) = delete;
+        basic_compact_json_encoder& operator=(basic_compact_json_encoder&&) = delete;
 
         void reset()
         {
@@ -1272,18 +1250,18 @@ namespace detail {
 
     private:
         // Implementing methods
-        void visit_flush() override
+        void visit_flush() final
         {
             sink_.flush();
         }
 
-        bool visit_begin_object(semantic_tag, const ser_context&, std::error_code& ec) override
+        JSONCONS_VISITOR_RETURN_TYPE visit_begin_object(semantic_tag, const ser_context&, std::error_code& ec) final
         {
-            if (JSONCONS_UNLIKELY(++nesting_depth_ > options_().max_nesting_depth()))
+            if (JSONCONS_UNLIKELY(++nesting_depth_ > options_.max_nesting_depth()))
             {
                 ec = json_errc::max_nesting_depth_exceeded;
-                return false;
-            } 
+                JSONCONS_VISITOR_RETURN;
+            }
             if (!stack_.empty() && stack_.back().is_array() && stack_.back().count() > 0)
             {
                 sink_.push_back(',');
@@ -1291,10 +1269,10 @@ namespace detail {
 
             stack_.emplace_back(container_type::object);
             sink_.push_back('{');
-            return true;
+            JSONCONS_VISITOR_RETURN;
         }
 
-        bool visit_end_object(const ser_context&, std::error_code&) override
+        JSONCONS_VISITOR_RETURN_TYPE visit_end_object(const ser_context&, std::error_code&) final
         {
             JSONCONS_ASSERT(!stack_.empty());
             --nesting_depth_;
@@ -1306,27 +1284,27 @@ namespace detail {
             {
                 stack_.back().increment_count();
             }
-            return true;
+            JSONCONS_VISITOR_RETURN;
         }
 
 
-        bool visit_begin_array(semantic_tag, const ser_context&, std::error_code& ec) override
+        JSONCONS_VISITOR_RETURN_TYPE visit_begin_array(semantic_tag, const ser_context&, std::error_code& ec) final
         {
-            if (JSONCONS_UNLIKELY(++nesting_depth_ > options_().max_nesting_depth()))
+            if (JSONCONS_UNLIKELY(++nesting_depth_ > options_.max_nesting_depth()))
             {
                 ec = json_errc::max_nesting_depth_exceeded;
-                return false;
-            } 
+                JSONCONS_VISITOR_RETURN;
+            }
             if (!stack_.empty() && stack_.back().is_array() && stack_.back().count() > 0)
             {
                 sink_.push_back(',');
             }
             stack_.emplace_back(container_type::array);
             sink_.push_back('[');
-            return true;
+            JSONCONS_VISITOR_RETURN;
         }
 
-        bool visit_end_array(const ser_context&, std::error_code&) override
+        JSONCONS_VISITOR_RETURN_TYPE visit_end_array(const ser_context&, std::error_code&) final
         {
             JSONCONS_ASSERT(!stack_.empty());
             --nesting_depth_;
@@ -1337,10 +1315,10 @@ namespace detail {
             {
                 stack_.back().increment_count();
             }
-            return true;
+            JSONCONS_VISITOR_RETURN;
         }
 
-        bool visit_key(const string_view_type& name, const ser_context&, std::error_code&) override
+        JSONCONS_VISITOR_RETURN_TYPE visit_key(const string_view_type& name, const ser_context&, std::error_code&) final
         {
             if (!stack_.empty() && stack_.back().count() > 0)
             {
@@ -1348,13 +1326,13 @@ namespace detail {
             }
 
             sink_.push_back('\"');
-            jsoncons::detail::escape_string(name.data(), name.length(),options_().escape_all_non_ascii(),options_().escape_solidus(),sink_);
+            jsoncons::detail::escape_string(name.data(), name.length(),options_.escape_all_non_ascii(),options_.escape_solidus(),sink_);
             sink_.push_back('\"');
             sink_.push_back(':');
-            return true;
+            JSONCONS_VISITOR_RETURN;
         }
 
-        bool visit_null(semantic_tag, const ser_context&, std::error_code&) override
+        JSONCONS_VISITOR_RETURN_TYPE visit_null(semantic_tag, const ser_context&, std::error_code&) final
         {
             if (!stack_.empty() && stack_.back().is_array() && stack_.back().count() > 0)
             {
@@ -1367,21 +1345,21 @@ namespace detail {
             {
                 stack_.back().increment_count();
             }
-            return true;
+            JSONCONS_VISITOR_RETURN;
         }
 
-        void write_bigint_value(const string_view_type& sv)
+        void write_bignum_value(const string_view_type& sv)
         {
-            switch (options_().bigint_format())
+            switch (options_.bignum_format())
             {
-                case bigint_chars_format::number:
+                case bignum_format_kind::raw:
                 {
                     sink_.append(sv.data(),sv.size());
                     break;
                 }
-                case bigint_chars_format::base64:
+                case bignum_format_kind::base64:
                 {
-                    bigint n = bigint::from_string(sv.data(), sv.length());
+                    bigint n(sv.data(), sv.length());
                     bool is_neg = n < 0;
                     if (is_neg)
                     {
@@ -1396,13 +1374,13 @@ namespace detail {
                     {
                         sink_.push_back('~');
                     }
-                    encode_base64(v.begin(), v.end(), sink_);
+                    bytes_to_base64(v.begin(), v.end(), sink_);
                     sink_.push_back('\"');
                     break;
                 }
-                case bigint_chars_format::base64url:
+                case bignum_format_kind::base64url:
                 {
-                    bigint n = bigint::from_string(sv.data(), sv.length());
+                    bigint n(sv.data(), sv.length());
                     bool is_neg = n < 0;
                     if (is_neg)
                     {
@@ -1417,7 +1395,7 @@ namespace detail {
                     {
                         sink_.push_back('~');
                     }
-                    encode_base64url(v.begin(), v.end(), sink_);
+                    bytes_to_base64url(v.begin(), v.end(), sink_);
                     sink_.push_back('\"');
                     break;
                 }
@@ -1431,48 +1409,58 @@ namespace detail {
             }
         }
 
-        bool visit_string(const string_view_type& sv, semantic_tag tag, const ser_context&, std::error_code&) override
+        JSONCONS_VISITOR_RETURN_TYPE visit_string(const string_view_type& sv, semantic_tag tag, const ser_context& context, std::error_code& ec) final
         {
             if (!stack_.empty() && stack_.back().is_array() && stack_.back().count() > 0)
             {
                 sink_.push_back(',');
             }
 
-            switch (tag)
-            {
-                case semantic_tag::bigint:
-                    write_bigint_value(sv);
-                    break;
-                case semantic_tag::bigdec:
-                {
-                	// output lossless number
-                	if (options_().bigint_format() == bigint_chars_format::number)
-                	{
-	                	write_bigint_value(sv);
-                		break;
-			}
-			JSONCONS_FALLTHROUGH;
-		}
-                default:
-                {
-                    sink_.push_back('\"');
-                    jsoncons::detail::escape_string(sv.data(), sv.length(),options_().escape_all_non_ascii(),options_().escape_solidus(),sink_);
-                    sink_.push_back('\"');
-                    break;
-                }
-            }
+            write_string(sv, tag, context, ec);
 
             if (!stack_.empty())
             {
                 stack_.back().increment_count();
             }
-            return true;
+            JSONCONS_VISITOR_RETURN;
         }
 
-        bool visit_byte_string(const byte_string_view& b, 
-                                  semantic_tag tag,
-                                  const ser_context&,
-                                  std::error_code&) override
+        void write_string(const string_view_type& sv, semantic_tag tag, const ser_context&, std::error_code&)
+        {
+            if (JSONCONS_LIKELY(tag == semantic_tag::noesc && !options_.escape_all_non_ascii() && !options_.escape_solidus()))
+            {
+                //std::cout << "noesc\n";
+                sink_.push_back('\"');
+                const CharT* begin = sv.data();
+                const CharT* end = begin + sv.length();
+                for (const CharT* it = begin; it != end; ++it)
+                {
+                    sink_.push_back(*it);
+                }
+                sink_.push_back('\"');
+            }
+            else if (tag == semantic_tag::bigint)
+            {
+                write_bignum_value(sv);
+            }
+            else if (tag == semantic_tag::bigdec && options_.bignum_format() == bignum_format_kind::raw)
+            {
+                write_bignum_value(sv);
+            }
+            else
+            {
+                //if (tag != semantic_tag::bigdec)
+                //    std::cout << "esc\n";
+                sink_.push_back('\"');
+                jsoncons::detail::escape_string(sv.data(), sv.length(),options_.escape_all_non_ascii(),options_.escape_solidus(),sink_);
+                sink_.push_back('\"');
+            }
+        }
+
+        JSONCONS_VISITOR_RETURN_TYPE visit_byte_string(const byte_string_view& b,
+            semantic_tag tag,
+            const ser_context&,
+            std::error_code&) final
         {
             if (!stack_.empty() && stack_.back().is_array() && stack_.back().count() > 0)
             {
@@ -1496,29 +1484,29 @@ namespace detail {
                     break;
             }
 
-            byte_string_chars_format format = jsoncons::detail::resolve_byte_string_chars_format(options_().byte_string_format(), 
-                                                                                       encoding_hint, 
+            byte_string_chars_format format = jsoncons::detail::resolve_byte_string_chars_format(options_.byte_string_format(),
+                                                                                       encoding_hint,
                                                                                        byte_string_chars_format::base64url);
             switch (format)
             {
                 case byte_string_chars_format::base16:
                 {
                     sink_.push_back('\"');
-                    encode_base16(b.begin(),b.end(),sink_);
+                    bytes_to_base16(b.begin(),b.end(),sink_);
                     sink_.push_back('\"');
                     break;
                 }
                 case byte_string_chars_format::base64:
                 {
                     sink_.push_back('\"');
-                    encode_base64(b.begin(), b.end(), sink_);
+                    bytes_to_base64(b.begin(), b.end(), sink_);
                     sink_.push_back('\"');
                     break;
                 }
                 case byte_string_chars_format::base64url:
                 {
                     sink_.push_back('\"');
-                    encode_base64url(b.begin(),b.end(),sink_);
+                    bytes_to_base64url(b.begin(),b.end(),sink_);
                     sink_.push_back('\"');
                     break;
                 }
@@ -1532,13 +1520,13 @@ namespace detail {
             {
                 stack_.back().increment_count();
             }
-            return true;
+            JSONCONS_VISITOR_RETURN;
         }
 
-        bool visit_double(double value, 
+        JSONCONS_VISITOR_RETURN_TYPE visit_double(double value,
                              semantic_tag,
                              const ser_context& context,
-                             std::error_code& ec) override
+                             std::error_code& ec) final
         {
             if (!stack_.empty() && stack_.back().is_array() && stack_.back().count() > 0)
             {
@@ -1549,13 +1537,13 @@ namespace detail {
             {
                 if ((std::isnan)(value))
                 {
-                    if (options_().enable_nan_to_num())
+                    if (options_.enable_nan_to_num())
                     {
-                        sink_.append(options_().nan_to_num().data(), options_().nan_to_num().length());
+                        sink_.append(options_.nan_to_num().data(), options_.nan_to_num().length());
                     }
-                    else if (options_().enable_nan_to_str())
+                    else if (options_.enable_nan_to_str())
                     {
-                        visit_string(options_().nan_to_str(), semantic_tag::none, context, ec);
+                        write_string(options_.nan_to_str(), semantic_tag::none, context, ec);
                     }
                     else
                     {
@@ -1564,28 +1552,28 @@ namespace detail {
                 }
                 else if (value == std::numeric_limits<double>::infinity())
                 {
-                    if (options_().enable_inf_to_num())
+                    if (options_.enable_inf_to_num())
                     {
-                        sink_.append(options_().inf_to_num().data(), options_().inf_to_num().length());
+                        sink_.append(options_.inf_to_num().data(), options_.inf_to_num().length());
                     }
-                    else if (options_().enable_inf_to_str())
+                    else if (options_.enable_inf_to_str())
                     {
-                        visit_string(options_().inf_to_str(), semantic_tag::none, context, ec);
+                        write_string(options_.inf_to_str(), semantic_tag::none, context, ec);
                     }
                     else
                     {
                         sink_.append(null_constant().data(), null_constant().size());
                     }
                 }
-                else 
+                else
                 {
-                    if (options_().enable_neginf_to_num())
+                    if (options_.enable_neginf_to_num())
                     {
-                        sink_.append(options_().neginf_to_num().data(), options_().neginf_to_num().length());
+                        sink_.append(options_.neginf_to_num().data(), options_.neginf_to_num().length());
                     }
-                    else if (options_().enable_neginf_to_str())
+                    else if (options_.enable_neginf_to_str())
                     {
-                        visit_string(options_().neginf_to_str(), semantic_tag::none, context, ec);
+                        write_string(options_.neginf_to_str(), semantic_tag::none, context, ec);
                     }
                     else
                     {
@@ -1602,44 +1590,44 @@ namespace detail {
             {
                 stack_.back().increment_count();
             }
-            return true;
+            JSONCONS_VISITOR_RETURN;
         }
 
-        bool visit_int64(int64_t value, 
+        JSONCONS_VISITOR_RETURN_TYPE visit_int64(int64_t value,
                             semantic_tag,
                             const ser_context&,
-                            std::error_code&) override
+                            std::error_code&) final
         {
             if (!stack_.empty() && stack_.back().is_array() && stack_.back().count() > 0)
             {
                 sink_.push_back(',');
             }
-            jsoncons::detail::from_integer(value, sink_);
+            jsoncons::from_integer(value, sink_);
             if (!stack_.empty())
             {
                 stack_.back().increment_count();
             }
-            return true;
+            JSONCONS_VISITOR_RETURN;
         }
 
-        bool visit_uint64(uint64_t value, 
-                             semantic_tag, 
+        JSONCONS_VISITOR_RETURN_TYPE visit_uint64(uint64_t value,
+                             semantic_tag,
                              const ser_context&,
-                             std::error_code&) override
+                             std::error_code&) final
         {
             if (!stack_.empty() && stack_.back().is_array() && stack_.back().count() > 0)
             {
                 sink_.push_back(',');
             }
-            jsoncons::detail::from_integer(value, sink_);
+            jsoncons::from_integer(value, sink_);
             if (!stack_.empty())
             {
                 stack_.back().increment_count();
             }
-            return true;
+            JSONCONS_VISITOR_RETURN;
         }
 
-        bool visit_bool(bool value, semantic_tag, const ser_context&, std::error_code&) override
+        JSONCONS_VISITOR_RETURN_TYPE visit_bool(bool value, semantic_tag, const ser_context&, std::error_code&) final
         {
             if (!stack_.empty() && stack_.back().is_array() && stack_.back().count() > 0)
             {
@@ -1659,7 +1647,7 @@ namespace detail {
             {
                 stack_.back().increment_count();
             }
-            return true;
+            JSONCONS_VISITOR_RETURN;
         }
     };
 
@@ -1673,39 +1661,6 @@ namespace detail {
     using compact_json_string_encoder = basic_compact_json_encoder<char,jsoncons::string_sink<std::string>>;
     using compact_wjson_string_encoder = basic_compact_json_encoder<wchar_t,jsoncons::string_sink<std::wstring>>;
 
-    #if !defined(JSONCONS_NO_DEPRECATED)
-    template<class CharT,class Sink=jsoncons::stream_sink<CharT>>
-    using basic_json_serializer = basic_json_encoder<CharT,Sink>; 
-
-    template<class CharT,class Sink=jsoncons::stream_sink<CharT>>
-    using basic_json_compressed_serializer = basic_compact_json_encoder<CharT,Sink>; 
-
-    template<class CharT,class Sink=jsoncons::stream_sink<CharT>>
-    using basic_json_compressed_encoder = basic_compact_json_encoder<CharT,Sink>; 
-
-    JSONCONS_DEPRECATED_MSG("Instead, use compact_json_stream_encoder") typedef basic_compact_json_encoder<char,jsoncons::stream_sink<char>> json_compressed_stream_encoder;
-    JSONCONS_DEPRECATED_MSG("Instead, use compact_wjson_stream_encoder")typedef basic_compact_json_encoder<wchar_t,jsoncons::stream_sink<wchar_t>> wjson_compressed_stream_encoder;
-    JSONCONS_DEPRECATED_MSG("Instead, use compact_json_string_encoder") typedef basic_compact_json_encoder<char,jsoncons::string_sink<char>> json_compressed_string_encoder;
-    JSONCONS_DEPRECATED_MSG("Instead, use compact_wjson_string_encoder")typedef basic_compact_json_encoder<wchar_t,jsoncons::string_sink<wchar_t>> wjson_compressed_string_encoder;
-
-    JSONCONS_DEPRECATED_MSG("Instead, use json_stream_encoder") typedef json_stream_encoder json_encoder;
-    JSONCONS_DEPRECATED_MSG("Instead, use wjson_stream_encoder") typedef wjson_stream_encoder wjson_encoder;
-    JSONCONS_DEPRECATED_MSG("Instead, use compact_json_stream_encoder") typedef compact_json_stream_encoder compact_json_encoder;
-    JSONCONS_DEPRECATED_MSG("Instead, use compact_wjson_stream_encoder") typedef compact_wjson_stream_encoder wcompact_json_encoder;
-
-    JSONCONS_DEPRECATED_MSG("Instead, use json_stream_encoder") typedef basic_json_encoder<char,jsoncons::stream_sink<char>> json_serializer;
-    JSONCONS_DEPRECATED_MSG("Instead, use wjson_stream_encoder") typedef basic_json_encoder<wchar_t,jsoncons::stream_sink<wchar_t>> wjson_serializer;
-
-    JSONCONS_DEPRECATED_MSG("Instead, use compact_json_stream_encoder")  typedef basic_compact_json_encoder<char,jsoncons::stream_sink<char>> json_compressed_serializer;
-    JSONCONS_DEPRECATED_MSG("Instead, use compact_wjson_stream_encoder") typedef basic_compact_json_encoder<wchar_t,jsoncons::stream_sink<wchar_t>> wjson_compressed_serializer;
-
-    JSONCONS_DEPRECATED_MSG("Instead, use json_string_encoder")  typedef basic_json_encoder<char,jsoncons::string_sink<std::string>> json_string_serializer;
-    JSONCONS_DEPRECATED_MSG("Instead, use wjson_string_encoder") typedef basic_json_encoder<wchar_t,jsoncons::string_sink<std::wstring>> wjson_string_serializer;
-
-    JSONCONS_DEPRECATED_MSG("Instead, use compact_json_string_encoder")  typedef basic_compact_json_encoder<char,jsoncons::string_sink<std::string>> json_compressed_string_serializer;
-    JSONCONS_DEPRECATED_MSG("Instead, use wcompact_json_string_encoder") typedef basic_compact_json_encoder<wchar_t,jsoncons::string_sink<std::wstring>> wjson_compressed_string_serializer;
-    #endif
-
 } // namespace jsoncons
 
-#endif
+#endif // JSONCONS_JSON_ENCODER_HPP

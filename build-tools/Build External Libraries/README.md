@@ -161,6 +161,23 @@
 5. The library is built as part of the CSPro solution.
 
 
+### jsoncons
+
+1. Find the latest version here: https://github.com/danielaparker/jsoncons/releases/latest/
+2. Edit the batch script, *jsoncons.bat*, setting **jsoncons_version**.
+3. Run the batch script.
+4. This copies files into the CSPro solution, including some that are not necessary.
+5. Remove anything that is not already committed.
+6. There are CSPro modifications that have to be restored in:
+    * basic_json.hpp
+    * json_encoder.hpp
+    * json_exception.hpp
+    * json_options.hpp
+    * sink.hpp
+    * config/compiler_support.hpp
+7. The library is built as part of the CSPro solution.
+
+
 ### Leaflet
 
 1. Find the latest version here: https://github.com/Leaflet/Leaflet/releases/latest/
