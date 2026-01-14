@@ -21,7 +21,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Platform)'=='Win32'" Label="/J means char is treated as unsigned char (X64_TODO remove)">
     <ClCompile>
-      <AdditionalOptions> /J</AdditionalOptions>
+      <AdditionalOptions>/J %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
