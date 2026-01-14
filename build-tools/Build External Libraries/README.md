@@ -313,6 +313,17 @@
 6. The library is built as part of the CSPro solution.
 
 
+### QuickJS-NG
+
+1. Find the latest version here: https://github.com/quickjs-ng/quickjs/releases/latest/
+2. Edit the batch script, *quickjs.bat*, setting **quickjs_version**.
+3. Run the batch script.
+4. This copies files into the CSPro solution, including some that are not necessary.
+5. Remove anything that is not already committed.
+6. There are CSPro modifications made to many files that have to be restored.
+7. The library is built as part of the CSPro solution.
+
+
 ### RapidFuzz
 
 1. Find the latest version here: https://github.com/rapidfuzz/rapidfuzz-cpp/releases/latest/

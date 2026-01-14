@@ -1,3 +1,5 @@
+// CSPRO CHANGES: changes have been made, marked with QUICKJS_CSPRO
+
 /*
  * C utilities
  *
@@ -32,7 +34,7 @@
 #include <sys/time.h>
 #endif
 #if defined(_WIN32)
-// #include <windows.h> // CSPro
+// #include <windows.h> // QUICKJS_CSPRO removed
 #include <process.h> // _beginthread
 #endif
 #if defined(__APPLE__)

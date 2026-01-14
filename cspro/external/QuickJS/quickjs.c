@@ -1,4 +1,6 @@
-﻿/*
+// CSPRO CHANGES: changes have been made, marked with QUICKJS_CSPRO
+
+/*
  * QuickJS Javascript Engine
  *
  * Copyright (c) 2017-2025 Fabrice Bellard
@@ -8031,7 +8033,8 @@ static int num_keys_cmp(const void *p1, const void *p2, void *opaque)
         return 1;
 }
 
-void js_free_prop_enum(JSContext *ctx, JSPropertyEnum *tab, uint32_t len) // CSPro static removed
+/* QUICKJS_CSPRO static removed
+static */ void js_free_prop_enum(JSContext *ctx, JSPropertyEnum *tab, uint32_t len)
 {
     uint32_t i;
     if (tab) {
@@ -47163,19 +47166,19 @@ static JSValue js_json_check(JSContext *ctx, JSONStringifyContext *jsc,
     JSValueConst args[2];
 
     if (JS_IsObject(val) || JS_IsBigInt(val)) {
-		JSValue f = JS_GetProperty(ctx, val, JS_ATOM_toJSON);
-		if (JS_IsException(f))
-			goto exception;
-		if (JS_IsFunction(ctx, f)) {
-			v = JS_CallFree(ctx, f, val, 1, &key);
-			JS_FreeValue(ctx, val);
-			val = v;
-			if (JS_IsException(val))
-				goto exception;
-		} else {
-			JS_FreeValue(ctx, f);
-		}
-	}
+        JSValue f = JS_GetProperty(ctx, val, JS_ATOM_toJSON);
+        if (JS_IsException(f))
+            goto exception;
+        if (JS_IsFunction(ctx, f)) {
+            v = JS_CallFree(ctx, f, val, 1, &key);
+            JS_FreeValue(ctx, val);
+            val = v;
+            if (JS_IsException(val))
+                goto exception;
+        } else {
+            JS_FreeValue(ctx, f);
+        }
+    }
 
     if (!JS_IsUndefined(jsc->replacer_func)) {
         args[0] = key;
@@ -56900,15 +56903,15 @@ static JSValue js_atomics_op(JSContext *ctx,
                 rep_val = v64;
             }
         } else {
-			uint32_t v32;
-			if (JS_ToUint32(ctx, &v32, argv[2]))
-				return JS_EXCEPTION;
-			v = v32;
-			if (op == ATOMICS_OP_COMPARE_EXCHANGE) {
-				if (JS_ToUint32(ctx, &v32, argv[3]))
-					return JS_EXCEPTION;
-				rep_val = v32;
-			}
+            uint32_t v32;
+            if (JS_ToUint32(ctx, &v32, argv[2]))
+                return JS_EXCEPTION;
+            v = v32;
+            if (op == ATOMICS_OP_COMPARE_EXCHANGE) {
+                if (JS_ToUint32(ctx, &v32, argv[3]))
+                    return JS_EXCEPTION;
+                rep_val = v32;
+            }
         }
         if (abuf->detached)
             return JS_ThrowTypeErrorDetachedArrayBuffer(ctx);
@@ -58256,7 +58259,7 @@ uintptr_t js_std_cmd(int cmd, ...) {
 
 
 // --------------------------------------------------------------------------
-// CSPro additions
+// QUICKJS_CSPRO: CSPro additions
 // --------------------------------------------------------------------------
 
 int csjs_get_export_entry_count(JSModuleDef* m)
