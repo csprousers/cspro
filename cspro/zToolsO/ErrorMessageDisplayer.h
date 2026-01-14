@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zToolsO/zToolsO.h>
 #include <zToolsO/NullTerminatedString.h>
@@ -18,7 +18,7 @@ namespace ErrorMessage
     void Display(NullTerminatedString error_message);
 
     // displays the exceptions's message
-    inline void Display(const CSProException& exception) { Display(exception.what()); }
+    inline void Display(const std::exception& exception) { Display(exception.what()); }
 
     // adds the message for eventual displaying;
     // if send_post_messages is true, the UWM::ToolsO::DisplayErrorMessage message is posted

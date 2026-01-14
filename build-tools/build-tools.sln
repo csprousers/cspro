@@ -44,7 +44,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zNetwork", "..\cspro\zNetwo
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Open Source Release Creator", "Open Source Release Creator\OpenSourceReleaseCreator.vcxproj", "{6DC25DFA-F0E9-4E2F-88C2-EDB6FE911C67}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Update Version", "Update Version\Update Version.csproj", "{47FCCC02-4D56-4CB6-87E5-EA3D1954AB00}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Update Version", "Update Version\UpdateVersion.vcxproj", "{5C6C7E00-5B3D-4FA5-9214-471C2BC33325}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Update SQLite", "Update SQLite\UpdateSQLite.vcxproj", "{CFE6BF43-3A5A-4A96-92C0-2D34517BAE63}"
 EndProject
@@ -198,10 +198,10 @@ Global
 		{6DC25DFA-F0E9-4E2F-88C2-EDB6FE911C67}.Debug|x64.Build.0 = Debug|x64
 		{6DC25DFA-F0E9-4E2F-88C2-EDB6FE911C67}.Release|x64.ActiveCfg = Release|x64
 		{6DC25DFA-F0E9-4E2F-88C2-EDB6FE911C67}.Release|x64.Build.0 = Release|x64
-		{47FCCC02-4D56-4CB6-87E5-EA3D1954AB00}.Debug|x64.ActiveCfg = Debug|x64
-		{47FCCC02-4D56-4CB6-87E5-EA3D1954AB00}.Debug|x64.Build.0 = Debug|x64
-		{47FCCC02-4D56-4CB6-87E5-EA3D1954AB00}.Release|x64.ActiveCfg = Release|x64
-		{47FCCC02-4D56-4CB6-87E5-EA3D1954AB00}.Release|x64.Build.0 = Release|x64
+		{5C6C7E00-5B3D-4FA5-9214-471C2BC33325}.Debug|x64.ActiveCfg = Debug|x64
+		{5C6C7E00-5B3D-4FA5-9214-471C2BC33325}.Debug|x64.Build.0 = Debug|x64
+		{5C6C7E00-5B3D-4FA5-9214-471C2BC33325}.Release|x64.ActiveCfg = Release|x64
+		{5C6C7E00-5B3D-4FA5-9214-471C2BC33325}.Release|x64.Build.0 = Release|x64
 		{CFE6BF43-3A5A-4A96-92C0-2D34517BAE63}.Debug|x64.ActiveCfg = Debug|x64
 		{CFE6BF43-3A5A-4A96-92C0-2D34517BAE63}.Debug|x64.Build.0 = Debug|x64
 		{CFE6BF43-3A5A-4A96-92C0-2D34517BAE63}.Release|x64.ActiveCfg = Release|x64

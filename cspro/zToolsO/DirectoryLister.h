@@ -29,6 +29,7 @@ public:
     DirectoryLister& SetIncludeFiles(bool include_files = true);
     DirectoryLister& SetIncludeDirectories(bool include_directories = true);
     DirectoryLister& SetIncludeHiddenSystemPaths(bool include_hidden_system_paths = true);
+    DirectoryLister& SetNameFilter(std::regex name_filter) noexcept;
     DirectoryLister& SetNameFilter(std::string_view file_spec_sv);
     DirectoryLister& SetNameFilter(wstring_view file_spec_sv) { return SetNameFilter(UTF8_TODO::GetUtf8(file_spec_sv)); }
 

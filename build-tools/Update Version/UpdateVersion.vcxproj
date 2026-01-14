@@ -1,0 +1,49 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\..\cspro\properties\project-configurations-build-tools.props" />
+  <Import Project="..\..\cspro\properties\project-globals.props" />
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{5C6C7E00-5B3D-4FA5-9214-471C2BC33325}</ProjectGuid>
+    <ProjectName>Update Version</ProjectName>
+    <Keyword>MFCProj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseOfMfc>Dynamic</UseOfMfc>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <Import Project="..\..\cspro\properties\project-settings.props" />
+  <ItemGroup>
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="StdAfx.h" />
+    <ClInclude Include="UpdateVersion.h" />
+    <ClInclude Include="UpdateVersionDlg.h" />
+    <ClInclude Include="VersionedFile.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="StdAfx.cpp">
+      <PrecompiledHeader>Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="UpdateVersion.cpp" />
+    <ClCompile Include="UpdateVersionDlg.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="UpdateVersion.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\cspro\zToolsO\zToolsO.vcxproj">
+      <Project>{fb0e28ec-927d-41d0-996c-01c21a7a346b}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\cspro\zUtilF\zUtilF.vcxproj">
+      <Project>{40427473-971c-41ee-adeb-23795522e112}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\cspro\zUtilO\zUtilO.vcxproj">
+      <Project>{9b29cb57-8263-4e12-8908-cc9641fdf0dc}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+</Project>

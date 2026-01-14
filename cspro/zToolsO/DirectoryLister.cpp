@@ -105,6 +105,13 @@ std::string CreateRegularExpressionFromFileSpec(const std::string_view file_spec
 }
 
 
+DirectoryLister& DirectoryLister::SetNameFilter(std::regex name_filter) noexcept
+{
+    m_nameFilter = std::move(name_filter);
+    return *this;
+}
+
+
 DirectoryLister& DirectoryLister::SetNameFilter(const std::string_view file_spec_sv)
 {
     try
