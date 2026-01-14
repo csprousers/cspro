@@ -1,11 +1,11 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "Versioning.h"
 #include "CSProExecutables.h"
 
 
 namespace
 {
-    constexpr int CSProReleaseDate = 20240319;
+    constexpr int CSProReleaseDate = 20260205;
     constexpr std::string_view BetaDesignation_sv = "beta";
 
     // to override the version that appears in the UI (but not serialized files), replace 'x' with the version override
