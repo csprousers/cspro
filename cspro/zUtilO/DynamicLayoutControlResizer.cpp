@@ -1,17 +1,25 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "DynamicLayoutControlResizer.h"
 
 
-DynamicLayoutControlResizer::DynamicLayoutControlResizer(CWnd& parent_wnd)
+DynamicLayoutControlResizer::DynamicLayoutControlResizer(CWnd& parent_wnd, const CSize* const initial_client_size/* = nullptr*/)
     :   m_parentWnd(parent_wnd)
 {
-    // calculate the initial size of the parent window
-    ASSERT(parent_wnd.GetSafeHwnd() != nullptr);
+    ASSERT(m_parentWnd.GetSafeHwnd() != nullptr);
 
-    CRect parent_wnd_rect;
-    parent_wnd.GetClientRect(parent_wnd_rect);
+    // use the provided initial size of the parent window...
+    if( initial_client_size != nullptr )
+    {
+        m_initialClientSize = *initial_client_size;
+    }
 
-    m_initialClientSize = parent_wnd_rect.Size();
+    // ...or calculate it
+    else
+    {
+        CRect parent_wnd_rect;
+        m_parentWnd.GetClientRect(parent_wnd_rect);
+        m_initialClientSize = parent_wnd_rect.Size();
+    }
 }
 
 
@@ -153,6 +161,14 @@ void DynamicLayoutControlResizer::OnSize(const int cx, const int cy)
                            SWP_NOSIZE | SWP_NOACTIVATE | SWP_NOZORDER);
         }
     }
+}
+
+
+void DynamicLayoutControlResizer::OnSize(CWnd& wnd)
+{
+    CRect rect;
+    wnd.GetClientRect(&rect);
+    OnSize(rect.Width(), rect.Height());
 }
 
 

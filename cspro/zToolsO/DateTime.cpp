@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "DateTime.h"
 #include <chrono>
 
@@ -16,6 +16,8 @@ namespace portable
     inline time_t get_time(const int64_t* const time) { ASSERT(time != nullptr); return static_cast<time_t>(*time); }
     inline tm* gmtime(const int64_t* const time)      { const time_t t = get_time(time); return ::gmtime(&t); }
     inline tm* localtime(const int64_t* const time)   { const time_t t = get_time(time); return ::localtime(&t); }
+#else
+    static_assert(false);
 #endif
 }
 

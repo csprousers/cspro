@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "WindowHelpers.h"
 #include <zUtilO/BCMenu.h>
 
@@ -154,6 +154,25 @@ void WindowHelpers::EnableWindow(CDialog& dlg, const BOOL bEnable)
         pChild->EnableWindow(bEnable);
         pChild = pChild->GetNextWindow();
     }
+}
+
+
+CFrameWnd* WindowHelpers::GetDocumentFrame(CDocument* const pDoc)
+{
+    if( pDoc != nullptr )
+    {
+        POSITION pos = pDoc->GetFirstViewPosition();
+
+        if( pos != nullptr )
+        {
+            CView* const pView = pDoc->GetNextView(pos);
+
+            if( pView != nullptr )
+                return pView->GetParentFrame();
+        }
+    }
+
+    return nullptr;
 }
 
 

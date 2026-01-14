@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zUtilO/zUtilO.h>
 
@@ -70,6 +70,7 @@ public:
     // Sets the initial dictionary.
     FileDlg& SetInitialDirectory(std::wstring directory);
     FileDlg& SetInitialDirectory(std::string_view directory_sv) { return SetInitialDirectory(TC::ToWide(directory_sv)); }
+    FileDlg& SetInitialDirectory(CDocument* pDoc);
 
     // If pMDIFrameWnd is not null and a document is open, its directory will be used as the initial directory.
     FileDlg& UseInitialDirectoryOfActiveDocument(CMDIFrameWnd* pMDIFrameWnd);

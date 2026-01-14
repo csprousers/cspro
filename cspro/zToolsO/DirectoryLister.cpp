@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "DirectoryLister.h"
 
 #ifdef WIN32
@@ -132,24 +132,69 @@ bool DirectoryLister::MatchesNameFilter(const std::string& path) const
 }
 
 
+#ifdef WIN32
+
+void DirectoryLister::ForeachPath(const std::string& directory_path, const std::function<bool(const std::string&)>& callback_function)
+{
+    ForeachPathAddPathsWorker(callback_function, directory_path);
+}
+
+
+void DirectoryLister::AddPaths(std::vector<std::wstring>& paths, InterfaceString directory_path)
+{
+    ForeachPathAddPathsWorker(paths, std::move(directory_path));
+}
+
+#endif
+
+
 void DirectoryLister::AddPaths(std::vector<std::string>& paths, const std::string& directory_path)
 {
+#ifdef WIN32
+    ForeachPathAddPathsWorker(paths, directory_path);
+#else
     std::vector<std::wstring> wide_paths;
     AddPaths(wide_paths, directory_path);
 
     for( const std::wstring& wide_path : wide_paths )
         paths.emplace_back(UTF8_TODO::GetUtf8(wide_path));
+#endif
 }
 
 
 #ifdef WIN32
 
-void DirectoryLister::AddPaths(std::vector<std::wstring>& paths, const InterfaceString directory_path)
+template<typename T, typename PT>
+bool ForeachPathAddPathsWorker_AddToPathOrExecuteCallbackFunction(T& paths_or_callback_function, PT&& path)
+{
+    if constexpr(std::is_same_v<T, std::vector<std::wstring>>)
+    {
+        paths_or_callback_function.emplace_back(std::forward<PT>(path));
+        return true;
+    }
+
+    else if constexpr(std::is_same_v<T, std::vector<std::string>>)
+    {
+        paths_or_callback_function.emplace_back(UTF8_TODO::GetUtf8(path));
+        return true;
+    }
+
+    else
+    {
+        return paths_or_callback_function(UTF8_TODO::GetUtf8(path));
+    }
+}
+
+
+template<typename T>
+void DirectoryLister::ForeachPathAddPathsWorker(T& paths_or_callback_function, const InterfaceString directory_path)
 {
     ASSERT(m_includeFiles || m_includeDirectories);
 
     auto process_entries = [&](auto&& directory_iterator)
     {
+        bool keep_processing = true;
+
         for( const std::filesystem::directory_entry& directory_entry : directory_iterator )
         {
             const bool is_regular_file = directory_entry.is_regular_file();
@@ -179,10 +224,15 @@ void DirectoryLister::AddPaths(std::vector<std::wstring>& paths, const Interface
                 return true;
             };
 
+            auto process_path = [&](std::wstring path)
+            {
+                keep_processing = ForeachPathAddPathsWorker_AddToPathOrExecuteCallbackFunction(paths_or_callback_function, std::move(path));
+            };
+
             if( is_regular_file )
             {
                 if( m_includeFiles && passes_filters() )
-                    paths.emplace_back(directory_entry.path().native());
+                    process_path(directory_entry.path().native());
             }
 
             else if( directory_entry.is_directory() && m_includeDirectories && passes_filters() )
@@ -190,14 +240,17 @@ void DirectoryLister::AddPaths(std::vector<std::wstring>& paths, const Interface
                 // add directories with a trailing slash (since that is what the predecessor function ReadChildFiles did)
                 if( m_includeTrailingSlashOnDirectories )
                 {
-                    paths.emplace_back(PortableFunctions::PathEnsureTrailingSlash<std::wstring>(directory_entry.path()));
+                    process_path(PortableFunctions::PathEnsureTrailingSlash<std::wstring>(directory_entry.path()));
                 }
 
                 else
                 {
-                    paths.emplace_back(directory_entry.path());
+                    process_path(directory_entry.path());
                 }
             }
+
+            if( !keep_processing )
+                break;
         }
     };
 

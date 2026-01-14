@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zToolsO/zToolsO.h>
 #include <regex>
@@ -35,13 +35,17 @@ public:
     bool UsingNameFilter() const { return m_nameFilter.has_value(); }
     bool MatchesNameFilter(const std::string& path) const;
 
-    std::vector<std::wstring> GetPaths(NullTerminatedString directory);
-    std::vector<std::string> GetPaths(cs::string_sz directory) { return UTF8_TODO::GetUtf8(GetPaths(UTF8_TODO::GetWide(directory))); }
+    // Iterates through the paths, executing the callback function for each path.
+    // The callback function should return true to keep processing.
+    void ForeachPath(const std::string& directory_path, const std::function<bool(const std::string&)>& callback_function);
+
+    std::vector<std::wstring> GetPaths(NullTerminatedString directory_path);
+    std::vector<std::string> GetPaths(const std::string& directory_path);
 
     void AddPaths(std::vector<std::string>& paths, const std::string& directory_path);
     void AddPaths(std::vector<std::wstring>& paths, InterfaceString directory_path);
 
-    // adds the file paths that exist on the disk that match the provided file path, which can include wildcards
+    // Adds the file paths that exist on the disk that match the provided file path, which can include wildcards.
     static void AddFilenamesWithPossibleWildcard(std::vector<std::wstring>& filenames, NullTerminatedString filename,
                                                  bool include_non_existant_file_when_filename_does_not_use_wildcards);
 
@@ -54,6 +58,10 @@ public:
 protected:
     bool FilterFiles() const       { return m_nameFilter.has_value(); }
     bool FilterDirectories() const { return ( m_filterDirectories && m_nameFilter.has_value() ); }
+
+private:
+    template<typename T>
+    void ForeachPathAddPathsWorker(T& paths_or_callback_function, InterfaceString directory_path);
 
 protected:
     bool m_recursive;
@@ -113,9 +121,17 @@ inline DirectoryLister& DirectoryLister::SetIncludeHiddenSystemPaths(const bool 
 }
 
 
-inline std::vector<std::wstring> DirectoryLister::GetPaths(const NullTerminatedString directory)
+inline std::vector<std::wstring> DirectoryLister::GetPaths(const NullTerminatedString directory_path)
 {
     std::vector<std::wstring> paths;
-    AddPaths(paths, directory);
+    AddPaths(paths, directory_path);
+    return paths;
+}
+
+
+inline std::vector<std::string> DirectoryLister::GetPaths(const std::string& directory_path)
+{
+    std::vector<std::string> paths;
+    AddPaths(paths, directory_path);
     return paths;
 }

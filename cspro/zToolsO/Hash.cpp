@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "Hash.h"
 #include "Encoders.h"
 
@@ -57,18 +57,20 @@ std::string Hash::Hash(const std::string_view text_sv, const size_t hash_length/
 }
 
 
-std::string Hash::BytesToHexString(const std::byte* bytes, const size_t bytes_length)
+std::string Hash::BytesToHexString(const void* const bytes, const size_t bytes_length)
 {
+    const unsigned char* bytes_itr = static_cast<const unsigned char*>(bytes);
+    const unsigned char* const bytes_end = bytes_itr + bytes_length;
+
     std::string hex_string;
     hex_string.resize(bytes_length * 2);
+    char* hex_string_itr = hex_string.data();
 
-    char* ch = hex_string.data();
-
-    for( const std::byte* bytes_end = bytes + bytes_length; bytes != bytes_end; ++bytes )
+    while( bytes_itr != bytes_end )
     {
-        const unsigned char this_byte = static_cast<unsigned char>(*bytes);
-        *(ch++) = Encoders::HexChars[this_byte >> 4];
-        *(ch++) = Encoders::HexChars[this_byte & 0x0F];
+        const unsigned char this_byte = static_cast<unsigned char>(*(bytes_itr++));
+        *(hex_string_itr++) = Encoders::HexChars[this_byte >> 4];
+        *(hex_string_itr++) = Encoders::HexChars[this_byte & 0x0F];
     }
 
     return hex_string;

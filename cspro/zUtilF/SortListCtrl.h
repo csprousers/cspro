@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 /*----------------------------------------------------------------------
 Copyright (C)2001 MJSoft. All Rights Reserved.
@@ -38,8 +38,8 @@ public:
     void SaveColumnInfo();
     BOOL SetItemText( int nItem, int nSubItem, LPCTSTR lpszText );
     void Sort( int iColumn, BOOL bAscending );
-    BOOL SetItemData(int nItem, DWORD dwData);
-    DWORD GetItemData(int nItem) const;
+    BOOL SetItemData(int nItem, DWORD_PTR dwData);
+    DWORD_PTR GetItemData(int nItem) const;
 
 // Overrides
     // ClassWizard generated virtual function overrides

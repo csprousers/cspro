@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "ExifReader.h"
 #include <zToolsO/DateTime.h>
 #include <zToolsO/EnumHelpers.h>
@@ -41,7 +41,7 @@ private:
 
 
 ExifReader::Impl::Impl(const std::byte* const data, const size_t size)
-    :   m_exif(exif_data_new_from_data(reinterpret_cast<const unsigned char*>(data), size))
+    :   m_exif(exif_data_new_from_data(reinterpret_cast<const unsigned char*>(data), uint32_cast(size)))
 {
     if( m_exif == nullptr )
         throw CSProException("Error reading EXIF data.");
@@ -68,7 +68,7 @@ std::string ExifReader::Impl::GetStringForDisplay(ExifEntry& entry) noexcept
         m_valueBuffer.resize(buffer_size);
     }
 
-    std::string value = exif_entry_get_value(&entry, m_valueBuffer.data(), buffer_size);
+    std::string value = exif_entry_get_value(&entry, m_valueBuffer.data(), uint32_cast(buffer_size));
 
     // remove spaces that some devices use to pad the value
     return SO::MakeTrimRight(value);

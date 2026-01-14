@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "FileDlg.h"
 
 
@@ -94,6 +94,15 @@ FileDlg& FileDlg::SetInitialDirectory(std::wstring directory)
 }
 
 
+FileDlg& FileDlg::SetInitialDirectory(CDocument* const pDoc)
+{
+    if( pDoc != nullptr )
+        SetInitialDirectory(PortableFunctions::PathGetDirectory(pDoc->GetPathName()));
+
+    return *this;
+}
+
+
 FileDlg& FileDlg::UseInitialDirectoryOfActiveDocument(CMDIFrameWnd* const pMDIFrameWnd)
 {
     ASSERT(m_ofn.lpstrInitialDir == nullptr);
@@ -103,12 +112,7 @@ FileDlg& FileDlg::UseInitialDirectoryOfActiveDocument(CMDIFrameWnd* const pMDIFr
         CMDIChildWnd* const pActiveWnd = pMDIFrameWnd->MDIGetActive();
 
         if( pActiveWnd != nullptr )
-        {
-            const CDocument* const pDoc = pActiveWnd->GetActiveDocument();
-
-            if( pDoc != nullptr )
-                SetInitialDirectory(PortableFunctions::PathGetDirectory(pDoc->GetPathName()));
-        }
+            return SetInitialDirectory(pActiveWnd->GetActiveDocument());
     }
 
     return *this;
@@ -117,6 +121,8 @@ FileDlg& FileDlg::UseInitialDirectoryOfActiveDocument(CMDIFrameWnd* const pMDIFr
 
 FileDlg& FileDlg::SetMultiSelectBuffer(const size_t max_files/* = 250*/)
 {
+    ASSERT(m_bOpenFileDialog);
+
     m_ofn.Flags |= OFN_ALLOWMULTISELECT;
 
     const size_t buffer_size = max_files * ( _MAX_PATH + 1 ) + 1;

@@ -14,10 +14,10 @@
 #define IDS_SCINTILLA_DEFAULT_PRINT_FOOTER 10010
 #define IDS_SCINTILLA_DEFAULT_PRINT_HEADER 10011
 #define IDC_FIND_COMBO                  10500
-#define IDC_REPLACE_COMBO               10501
-#define IDC_GOTO_LINE                   10502
-#define IDC_LINE_HEADER                 10503
-#define IDC_REGULAR_EXPRESSION          10504
+#define IDC_GOTO_LINE                   10501
+#define IDC_LINE_HEADER                 10502
+#define IDC_REGULAR_EXPRESSION          10503
+#define IDC_REPLACE_COMBO               10504
 #define IDC_REPLACE_IN_SELECTION        10505
 #define ID_EDIT_COMMENT_LINE            45001
 
