@@ -83,6 +83,9 @@
           "build": "nonDesktop"
         },
         {
+          "sourceName": "runtime/"
+        },
+        {
           "sourceName": "utilities/",
           "build": "nonDesktop"
         },
