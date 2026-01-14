@@ -143,30 +143,24 @@ BEGIN
     CTEXT           "Left",IDC_STATIC,57,7,26,8
 END
 
-IDD_ABOUTBOX DIALOGEX 0, 0, 250, 210
+IDD_ABOUTBOX DIALOGEX 0, 0, 211, 146
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
 FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,103,190,43,14
-    LTEXT           "Version: ",IDC_VERSION,39,14,123,8,SS_CENTERIMAGE
-    LTEXT           "International Programs",IDC_STATIC,22,115,187,8
-    LTEXT           "U.S. Census Bureau",IDC_STATIC,22,124,119,8
-    LTEXT           "Washington, DC 20233-8860",IDC_STATIC,22,133,119,8
-    LTEXT           "Phone:\t+1 301-763-1451",IDC_STATIC,22,148,133,8
+    DEFPUSHBUTTON   "OK",IDOK,84,128,43,14
+    ICON            "",IDI_APPICON,9,11,21,20,NOT WS_VISIBLE
     LTEXT           "<Module>",IDC_MODULE,39,4,162,8
+    LTEXT           "Version: ",IDC_VERSION,39,14,123,8,SS_CENTERIMAGE
     LTEXT           "18 Sep 07",IDC_VERSION_DATE,39,24,162,8
-    ICON            "",IDI_APPICON,9,11,20,20,NOT WS_VISIBLE
-    LTEXT           "Visit:",IDC_STATIC,22,175,23,8
-    LTEXT           "U.S. Census Bureau, ICF, Serpro S.A.",IDC_STATIC,20,53,180,8
-    GROUPBOX        "",IDC_STATIC,10,34,230,57
-    GROUPBOX        "",IDC_STATIC,10,93,230,96
-    LTEXT           "For customer and technical support, please contact:",IDC_STATIC,15,101,178,8
-    LTEXT           "Developed by:",IDC_STATIC,15,42,47,8
-    LTEXT           "www.census.gov/data/software/cspro.html",IDC_STATIC_WWW,49,175,184,8,SS_NOTIFY
-    LTEXT           "Email:",IDC_STATIC,22,159,23,8
-    LTEXT           "CSPro@lists.census.gov",IDC_STATIC_EMAIL,49,159,130,8,SS_NOTIFY
-    LTEXT           "With support from:",IDC_STATIC,15,67,77,8
-    LTEXT           "U.S. Agency for International Development",IDC_STATIC,20,79,142,8
+    GROUPBOX        "",IDC_STATIC,10,36,190,84
+    LTEXT           "For customer and technical support, please contact:",IDC_STATIC,15,44,178,8
+    LTEXT           "U.S. Census Bureau",IDC_STATIC,22,58,65,8
+    LTEXT           "International Programs",IDC_STATIC,22,67,74,8
+    LTEXT           "Washington, DC 20233-8860",IDC_STATIC,22,76,94,8
+    LTEXT           "Email:",IDC_STATIC,22,91,23,8
+    LTEXT           "CSPro@lists.census.gov",IDC_STATIC_EMAIL,49,91,78,8,SS_NOTIFY
+    LTEXT           "Visit:",IDC_STATIC,22,106,23,8
+    LTEXT           "www.census.gov/data/software/cspro.html",IDC_STATIC_WWW,49,106,141,8,SS_NOTIFY
 END
 
 
@@ -189,7 +183,8 @@ BEGIN
 
     IDD_ABOUTBOX, DIALOG
     BEGIN
-        BOTTOMMARGIN, 206
+        RIGHTMARGIN, 210
+        BOTTOMMARGIN, 142
     END
 END
 #endif    // APSTUDIO_INVOKED

@@ -1,9 +1,9 @@
-﻿#pragma once
+#pragma once
 
 #include "afxdialogex.h"
 #include <zUtilO/ImsaDlg.h>
 
-class CTroubleshootingDialog : public CDialog // GHM 20120522
+class CTroubleshootingDialog : public CDialog // 20120522
 {
 public:
     CHtmlStatic m_staticWWW;
@@ -23,7 +23,7 @@ protected:
 };
 
 
-class CTransparentStaticImage : public CStatic // GHM 20120523
+class CTransparentStaticImage : public CStatic // 20120523
 {
 private:
     WORD m_resourceID;
@@ -38,14 +38,12 @@ protected:
 };
 
 
-class CAboutDialog : public CDialogEx // GHM 20120523
+class CAboutDialog : public CDialogEx // 20120523
 {
     DECLARE_DYNAMIC(CAboutDialog)
 
 public:
     CAboutDialog(CWnd* pParent = NULL);
-
-    enum { IDD = IDD_NEW_ABOUT };
 
 protected:
     DECLARE_MESSAGE_MAP()
