@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "EditorConfigApplier.h"
 
 
@@ -27,8 +27,8 @@ std::unique_ptr<BinaryBlock> EditorConfig::Applier::Process(const BinaryBlock& f
     // first convert the binary data to UTF-8 text for processing
     std::string text(file_data.data<char>(), file_data.size());
 
-    const TextEncoding::Type default_encoding_if_no_bom = 
-        ( options.charset == EditorConfig::Charset::Latin1 ) ? TextEncoding::Type::Ansi : 
+    const TextEncoding::Type default_encoding_if_no_bom =
+        ( options.charset == EditorConfig::Charset::Latin1 ) ? TextEncoding::Type::Ansi :
                                                                TextEncoding::Type::Utf8;
     const TextEncoding text_encoding(text, default_encoding_if_no_bom);
 
@@ -44,8 +44,18 @@ std::unique_ptr<BinaryBlock> EditorConfig::Applier::Process(const BinaryBlock& f
         SO::ConvertTabsToSpaces(text, 0, *options.indent_size);
 
     // end_of_line
+    EndOfLine end_of_line;
+
     if( options.end_of_line.has_value() )
+    {
+        end_of_line = *options.end_of_line;
         ProcessEndOfLine(text, *options.end_of_line);
+    }
+
+    else
+    {
+        end_of_line = CalculateFileEndOfLine(text);
+    }
 
     // trim_trailing_whitespace
     if( options.trim_trailing_whitespace == true )
@@ -57,7 +67,7 @@ std::unique_ptr<BinaryBlock> EditorConfig::Applier::Process(const BinaryBlock& f
 
     // insert_final_newline
     if( options.insert_final_newline == true )
-        ProcessInsertFinalNewline(text, options.end_of_line);
+        ProcessInsertFinalNewline(text, end_of_line);
 
     // charset
     std::string_view bom_sv;
@@ -134,6 +144,19 @@ void EditorConfig::Applier::ProcessEndOfLine(std::string& text, const EndOfLine 
 }
 
 
+constexpr EditorConfig::EndOfLine EditorConfig::Applier::CalculateFileEndOfLine(const std::string_view text_sv)
+{
+    // when no end of line value is defined, use as its value the text's
+    // first newline, defaulting to \n if there is no newline
+    const size_t r_pos = text_sv.find('\r');
+    const size_t n_pos = text_sv.find('\n');
+
+    return ( ( r_pos + 1 ) == n_pos ) ? EndOfLine::CRLF :
+           ( r_pos < n_pos )          ? EndOfLine::CR :
+                                        EndOfLine::LF;
+}
+
+
 void EditorConfig::Applier::ProcessTrimTrailingWhitespacePerLine(std::string& text)
 {
     // modified from SO::ConvertTabsToSpacesWorker
@@ -157,26 +180,14 @@ void EditorConfig::Applier::ProcessTrimTrailingWhitespacePerLine(std::string& te
 }
 
 
-void EditorConfig::Applier::ProcessInsertFinalNewline(std::string& text, std::optional<EndOfLine> end_of_line)
+void EditorConfig::Applier::ProcessInsertFinalNewline(std::string& text, const EndOfLine end_of_line)
 {
     if( text.empty() || is_crlf(text.back()) )
         return;
 
-    // if no end of line value is defined, use as its value the text's
-    // first newline, defaulting to \n if there is no newline
-    if( !end_of_line.has_value() )
-    {
-        const size_t r_pos = text.find('\r');
-        const size_t n_pos = text.find('\n');
-
-        end_of_line = ( ( r_pos + 1 ) == n_pos ) ? EndOfLine::CRLF :
-                      ( r_pos < n_pos )          ? EndOfLine::CR :
-                                                   EndOfLine::LF;
-    }
-
-    text.append(( *end_of_line == EndOfLine::LF ) ? SO::Newline_lf_sv :
-                ( *end_of_line == EndOfLine::CR ) ? std::string_view("\r") :
-                                                    SO::Newline_crlf_sv);
+    text.append(( end_of_line == EndOfLine::LF ) ? SO::Newline_lf_sv :
+                ( end_of_line == EndOfLine::CR ) ? std::string_view("\r") :
+                                                   SO::Newline_crlf_sv);
 }
 
 

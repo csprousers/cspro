@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <Stygitan/EditorConfig.h>
 #include <zToolsO/TextEncoding.h>
@@ -14,9 +14,11 @@ private:
 
     static void ProcessEndOfLine(std::string& text, EndOfLine end_of_line);
 
+    static constexpr EndOfLine CalculateFileEndOfLine(std::string_view text_sv);
+
     static void ProcessTrimTrailingWhitespacePerLine(std::string& text);
 
-    static void ProcessInsertFinalNewline(std::string& text, std::optional<EndOfLine> end_of_line);
+    static void ProcessInsertFinalNewline(std::string& text, EndOfLine end_of_line);
 
     static std::tuple<std::string_view, std::unique_ptr<TextEncoding::Converter>> // BOM + text converter
         ProcessCharset(const TextEncoding& text_encoding, const std::optional<Charset>& charset);
