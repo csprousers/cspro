@@ -4,11 +4,9 @@
 #pragma once
 
 #include <algorithm>
-#include <cassert>
+#include <rapidfuzz/details/config.hpp>
 #include <stddef.h>
 #include <stdexcept>
-#include <stdint.h>
-#include <type_traits>
 #include <vector>
 
 namespace rapidfuzz {
@@ -19,9 +17,9 @@ struct StringAffix {
 };
 
 struct LevenshteinWeightTable {
-    int64_t insert_cost;
-    int64_t delete_cost;
-    int64_t replace_cost;
+    size_t insert_cost;
+    size_t delete_cost;
+    size_t replace_cost;
 };
 
 /**
@@ -339,13 +337,10 @@ private:
 
 inline bool operator==(const Editops& lhs, const Editops& rhs)
 {
-    if (lhs.get_src_len() != rhs.get_src_len() || lhs.get_dest_len() != rhs.get_dest_len()) {
-        return false;
-    }
+    if (lhs.get_src_len() != rhs.get_src_len() || lhs.get_dest_len() != rhs.get_dest_len()) return false;
 
-    if (lhs.size() != rhs.size()) {
-        return false;
-    }
+    if (lhs.size() != rhs.size()) return false;
+
     return std::equal(lhs.begin(), lhs.end(), rhs.begin());
 }
 

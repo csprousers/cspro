@@ -1,5 +1,3 @@
-﻿#pragma warning(disable:4244) // CSPRO_READSTAT_MODIFICATIONS
-
 #include "readstat.h"
 
 int readstat_get_row_count(readstat_metadata_t *metadata) {

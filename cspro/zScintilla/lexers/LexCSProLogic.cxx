@@ -5,7 +5,7 @@ using namespace Scintilla;
 using namespace Lexilla;
 
 
-namespace 
+namespace
 {
     enum class FoldState { Word, NotWord, String, Comment, BlockComment };
 
@@ -29,7 +29,7 @@ namespace
 
 
     //Options that can be set for the lexer externally
-    struct OptionsCSPro 
+    struct OptionsCSPro
     {
         bool fold = false;
         bool foldBlocks = false;
@@ -37,9 +37,9 @@ namespace
     };
 
     //Initialise the lexer options
-    struct OptionSetCSPro : public OptionSet<OptionsCSPro> 
+    struct OptionSetCSPro : public OptionSet<OptionsCSPro>
     {
-        OptionSetCSPro() 
+        OptionSetCSPro()
         {
             DefineProperty("fold", &OptionsCSPro::fold);
             DefineProperty("fold.blocks", &OptionsCSPro::foldBlocks);
@@ -72,31 +72,31 @@ public:
     {
     }
 
-    virtual ~LexerCSProLogic() 
-    { 
+    virtual ~LexerCSProLogic()
+    {
     }
 
-    void SCI_METHOD Release() override 
+    void SCI_METHOD Release() override
     {
         delete this;
     }
 
-    int SCI_METHOD Version() const override 
+    int SCI_METHOD Version() const override
     {
         return lvRelease4;
     }
 
-    const char * SCI_METHOD PropertyNames() override 
+    const char * SCI_METHOD PropertyNames() override
     {
         return osCSPro.PropertyNames();
     }
 
-    int SCI_METHOD PropertyType(const char *name) override 
+    int SCI_METHOD PropertyType(const char *name) override
     {
         return osCSPro.PropertyType(name);
     }
 
-    const char * SCI_METHOD DescribeProperty(const char *name) override 
+    const char * SCI_METHOD DescribeProperty(const char *name) override
     {
         return osCSPro.DescribeProperty(name);
     }
@@ -110,12 +110,12 @@ public:
         return -1;
     }
 
-    const char * SCI_METHOD DescribeWordListSets() override 
+    const char * SCI_METHOD DescribeWordListSets() override
     {
         return osCSPro.DescribeWordListSets();
     }
 
-    int SCI_METHOD PrimaryStyleFromStyle(int style) override 
+    int SCI_METHOD PrimaryStyleFromStyle(int style) override
     {
         return style;
     }

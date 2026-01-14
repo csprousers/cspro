@@ -1,4 +1,4 @@
-﻿// Copyright 2013-2023 Daniel Parker
+// Copyright 2013-2025 Daniel Parker
 // Distributed under the Boost license, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
@@ -7,23 +7,20 @@
 #ifndef JSONCONS_TYPED_ARRAY_VIEW_HPP
 #define JSONCONS_TYPED_ARRAY_VIEW_HPP
 
-#include <memory> // std::allocator
-#include <string>
-#include <stdexcept>
-#include <system_error>
-#include <ios>
-#include <type_traits> // std::enable_if
 #include <array> // std::array
+#include <cstddef>
+#include <cstdint>
 #include <functional> // std::function
-#include <jsoncons/json_exception.hpp>
-#include <jsoncons/json_visitor.hpp>
-#include <jsoncons/bigint.hpp>
+#include <ios>
+#include <system_error>
+
+#include <jsoncons/utility/write_number.hpp>
 #include <jsoncons/json_parser.hpp>
-#include <jsoncons/ser_context.hpp>
+#include <jsoncons/json_visitor.hpp>
+#include <jsoncons/ser_util.hpp>
 #include <jsoncons/sink.hpp>
-#include <jsoncons/detail/write_number.hpp>
-#include <jsoncons/json_type_traits.hpp>
-#include <jsoncons/value_converter.hpp>
+#include <jsoncons/utility/bigint.hpp>
+#include <jsoncons/utility/conversion.hpp>
 
 namespace jsoncons {
 
@@ -53,13 +50,13 @@ namespace jsoncons {
     constexpr float128_array_arg_t float128_array_arg = float128_array_arg_t();
 
     enum class typed_array_type{uint8_value=1,uint16_value,uint32_value,uint64_value,
-                                int8_value,int16_value,int32_value,int64_value, 
+                                int8_value,int16_value,int32_value,int64_value,
                                 half_value, float_value,double_value};
 
     class typed_array_view
     {
         typed_array_type type_;
-        union 
+        union
         {
             const uint8_t* uint8_data_;
             const uint16_t* uint16_data_;
@@ -72,11 +69,11 @@ namespace jsoncons {
             const float* float_data_;
             const double* double_data_;
         } data_;
-        std::size_t size_;
+        std::size_t size_{0};
     public:
 
         typed_array_view()
-            : type_(), data_(), size_(0)
+            : type_(), data_()
         {
         }
 
@@ -246,5 +243,4 @@ namespace jsoncons {
 
 } // namespace jsoncons
 
-#endif
-
+#endif // JSONCONS_TYPED_ARRAY_VIEW_HPP

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zHtml/zHtml.h>
 #include <regex>
@@ -74,7 +74,7 @@ public:
     virtual const std::smatch& GetRequestMatches() = 0;
 
     // Response handlers
-    virtual void SetResponseContent(const void* content_data, size_t content_size, cs::string_sz content_type) = 0;
+    virtual void SetResponseContent(const void* content_data, size_t content_size, const std::string& content_type) = 0;
 
     virtual void SetResponseRedirect(const std::string& url) = 0;
 };

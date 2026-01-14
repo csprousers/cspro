@@ -6,6 +6,7 @@ include $(CLEAR_VARS)
 LOCAL_MODULE            := zToolsO
 SOLUTION_SRC_PATH       := $(JNI_PATH)/../../../../..
 ZTOOLSO_SRC_PATH        := $(SOLUTION_SRC_PATH)/zToolsO
+BZIP2_SRC_PATH          := $(SOLUTION_SRC_PATH)/external/bzip2
 MD4C_SRC_PATH           := $(SOLUTION_SRC_PATH)/external/md4c
 RIJNDAEL_SRC_PATH       := $(SOLUTION_SRC_PATH)/zToolsO/rijndael
 SCRYPT_SRC_PATH         := $(SOLUTION_SRC_PATH)/external/scrypt
@@ -15,7 +16,6 @@ LOCAL_C_INCLUDES        += $(SOLUTION_SRC_PATH)/external
 
 LOCAL_SRC_FILES         += $(ZTOOLSO_SRC_PATH)/base64.cpp
 LOCAL_SRC_FILES         += $(ZTOOLSO_SRC_PATH)/BinaryGen.cpp
-LOCAL_SRC_FILES         += $(ZTOOLSO_SRC_PATH)/bzlib.c
 LOCAL_SRC_FILES         += $(ZTOOLSO_SRC_PATH)/DateTime.cpp
 LOCAL_SRC_FILES         += $(ZTOOLSO_SRC_PATH)/DebugLogging.cpp
 LOCAL_SRC_FILES         += $(ZTOOLSO_SRC_PATH)/DelimitedTextCreator.cpp
@@ -52,6 +52,14 @@ LOCAL_SRC_FILES         += $(ZTOOLSO_SRC_PATH)/Utf8Convert.cpp
 LOCAL_SRC_FILES         += $(ZTOOLSO_SRC_PATH)/Utf8FileStream.cpp
 LOCAL_SRC_FILES         += $(ZTOOLSO_SRC_PATH)/uuid.cpp
 LOCAL_SRC_FILES         += $(ZTOOLSO_SRC_PATH)/VarFuncs.cpp
+
+LOCAL_SRC_FILES         += $(BZIP2_SRC_PATH)/blocksort.c
+LOCAL_SRC_FILES         += $(BZIP2_SRC_PATH)/bzlib.c
+LOCAL_SRC_FILES         += $(BZIP2_SRC_PATH)/compress.c
+LOCAL_SRC_FILES         += $(BZIP2_SRC_PATH)/crctable.c
+LOCAL_SRC_FILES         += $(BZIP2_SRC_PATH)/decompress.c
+LOCAL_SRC_FILES         += $(BZIP2_SRC_PATH)/huffman.c
+LOCAL_SRC_FILES         += $(BZIP2_SRC_PATH)/randtable.c
 
 LOCAL_SRC_FILES         += $(MD4C_SRC_PATH)/entity.c
 

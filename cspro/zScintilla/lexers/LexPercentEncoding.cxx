@@ -4,7 +4,7 @@ using namespace Scintilla;
 using namespace Lexilla;
 
 
-class LexerPercentEncoding : public DefaultLexer 
+class LexerPercentEncoding : public DefaultLexer
 {
 public:
     static constexpr const char* LexerName = "percentencoding";
@@ -49,7 +49,7 @@ void LexerPercentEncoding::Lex(Sci_PositionU startPos, Sci_Position length, int 
     StyleContext sc(startPos, length, initStyle, styler);
 
     enum class Section
-    { 
+    {
         Default,
         Percent,
         Hex1,

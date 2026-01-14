@@ -1,17 +1,21 @@
+cd /d %~dp0
+
+rem ... create a working directory
+rmdir /s /q temp\libxlsxwriter
+mkdir temp\libxlsxwriter
+cd temp\libxlsxwriter
+
+
 rem ... get the latest version
-curl -L -o libxlsxwriter.tar.gz https://github.com/jmcnamara/libxlsxwriter/archive/master.tar.gz
+curl -L -o libxlsxwriter.tar.gz https://github.com/jmcnamara/libxlsxwriter/archive/main.tar.gz
 tar -xvzf libxlsxwriter.tar.gz
 
 
-rem ... build the projects
-rem cmake -G "Visual Studio 16 2019" -A Win32 -S libxlsxwriter-master -B libxlsxwriter-build-x86 -DZLIB_INCLUDE_DIR:STRING="../zlib-x86/include" -DZLIB_ROOT:STRING="../zlib-x86/lib"
-rem cmake --build libxlsxwriter-build-x86 --config Release
-
-rem cmake -G "Visual Studio 16 2019" -A x64 -S libxlsxwriter-master -B libxlsxwriter-build-x64 -DZLIB_INCLUDE_DIR:STRING="../zlib-x64/include" -DZLIB_ROOT:STRING="../zlib-x64/lib"
-rem cmake --build libxlsxwriter-build-x64 --config Release
-
-
 rem ... copy files to be used by CSPro
-rem xcopy libxlsxwriter-master\include ..\..\cspro\external\libxlsxwriter\include /i /k /e /y
-rem copy /y libxlsxwriter-build-x86\Release\xlsxwriter.lib ..\..\cspro\external\libxlsxwriter\lib\x86
-rem copy /y libxlsxwriter-build-x64\Release\xlsxwriter.lib ..\..\cspro\external\libxlsxwriter\lib\x64
+xcopy libxlsxwriter-main\include ..\..\..\..\cspro\external\libxlsxwriter\include /i /k /e /y
+xcopy libxlsxwriter-main\src ..\..\..\..\cspro\external\libxlsxwriter\src /i /k /e /y
+xcopy libxlsxwriter-main\third_party ..\..\..\..\cspro\external\libxlsxwriter\third_party /i /k /e /y
+
+
+rem ... update the license
+copy /y libxlsxwriter-main\License.txt ..\..\..\Licenses\Licenses\libxlsxwriter.txt

@@ -19,7 +19,7 @@
   },
   {
     "projectName": "bzip2",
-    "projectUrl": "https://sourceforge.net/projects/bzip2",
+    "projectUrl": "https://www.sourceware.org/bzip2",
     "licenseFilename": "LICENSE"
   },
   {
@@ -35,10 +35,10 @@
     "licenseUrl": "https://raw.githubusercontent.com/jedwing/CHMLib/master/COPYING"
   },
   {
-    "projectName": "codemirror",
-    "projectUrl": "https://github.com/codemirror/CodeMirror",
+    "projectName": "CodeMirror",
+    "projectUrl": "https://github.com/codemirror/codemirror5",
     "licenseFilename": "LICENSE",
-    "licenseUrl": "https://github.com/codemirror/CodeMirror/blob/master/LICENSE"
+    "licenseUrl": "https://raw.githubusercontent.com/codemirror/codemirror5/refs/heads/master/LICENSE"
   },
   {
     "projectName": "cpp-base64",
@@ -261,9 +261,9 @@
   },
   {
     "projectName": "RapidFuzz",
-    "projectUrl": "https://github.com/maxbachmann/rapidfuzz-cpp",
+    "projectUrl": "https://github.com/rapidfuzz/rapidfuzz-cpp",
     "licenseFilename": "LICENSE",
-    "licenseUrl": "https://raw.githubusercontent.com/maxbachmann/rapidfuzz-cpp/main/LICENSE"
+    "licenseUrl": "https://raw.githubusercontent.com/rapidfuzz/rapidfuzz-cpp/refs/heads/main/LICENSE"
   },
   {
     "projectName": "ReadStat",
@@ -327,7 +327,7 @@
     "licenseFilename": "sqlite3.h"
   },
   {
-    "projectName": "stb_image",
+    "projectName": "stb",
     "projectUrl": "https://github.com/nothings/stb",
     "licenseFilename": "LICENSE",
     "licenseUrl": "https://raw.githubusercontent.com/nothings/stb/master/LICENSE"

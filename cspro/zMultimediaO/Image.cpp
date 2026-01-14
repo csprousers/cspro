@@ -31,7 +31,7 @@ unsigned char* zlib_compress(unsigned char* data, int data_len, int* out_len, in
 #pragma warning(pop)
 
 #define STB_IMAGE_RESIZE_IMPLEMENTATION
-#include <external/stb/stb_image_resize.h>
+#include <external/stb/stb_image_resize2.h>
 
 
 unsigned char* zlib_compress(unsigned char* const data, const int data_len, int* const out_len, const int quality)
@@ -153,7 +153,7 @@ std::unique_ptr<Multimedia::Image> Multimedia::Image::FromBuffer(const cs::span<
     ImageDetails details;
     LoadedImageType loaded_image_type;
 
-    stbi_uc* const image_data = stbi_load_from_memory(reinterpret_cast<const stbi_uc*>(content.data()), content.size(),
+    stbi_uc* const image_data = stbi_load_from_memory(reinterpret_cast<const stbi_uc*>(content.data()), int32_cast(content.size()),
                                                       &details.width, &details.height, &details.channels, 0, &loaded_image_type);
 
     if( image_data == nullptr )
@@ -170,7 +170,7 @@ std::optional<Multimedia::ImageDetails> Multimedia::Image::GetDetailsFromBuffer(
     ImageDetails details;
     LoadedImageType loaded_image_type;
 
-    if( stbi_info_from_memory(reinterpret_cast<const stbi_uc*>(content.data()), content.size(),
+    if( stbi_info_from_memory(reinterpret_cast<const stbi_uc*>(content.data()), int32_cast(content.size()),
                               &details.width, &details.height, &details.channels, &loaded_image_type) == 1 )
     {
         details.image_type = ToImageType(loaded_image_type);
@@ -287,8 +287,11 @@ std::unique_ptr<Multimedia::Image> Multimedia::Image::GetResizedImage(const int 
 {
     auto resized_image = std::make_unique<VectorImage>(ImageDetails { new_width, new_height, m_details.channels, m_details.image_type });
 
-    if( stbir_resize_uint8(reinterpret_cast<const unsigned char*>(GetData()), m_details.width, m_details.height, m_details.channels * m_details.width,
-                           reinterpret_cast<unsigned char*>(resized_image->GetDataBuffer()), new_width, new_height, m_details.channels * new_width, m_details.channels) != 1 )
+    unsigned char* const output_pixels = reinterpret_cast<unsigned char*>(resized_image->GetDataBuffer());
+
+    if( stbir_resize_uint8_linear(reinterpret_cast<const unsigned char*>(GetData()), m_details.width, m_details.height, m_details.channels * m_details.width,
+                                  output_pixels, new_width, new_height, m_details.channels * new_width,
+                                  static_cast<stbir_pixel_layout>(m_details.channels)) != output_pixels )
     {
         throw ImageException("Could not resize the image file");
     }

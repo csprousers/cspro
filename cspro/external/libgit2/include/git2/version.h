@@ -21,7 +21,7 @@ GIT_BEGIN_DECL
  * The version string for libgit2.  This string follows semantic
  * versioning (v2) guidelines.
  */
-#define LIBGIT2_VERSION           "1.9.1"
+#define LIBGIT2_VERSION           "1.9.2"
 
 /** The major version number for this version of libgit2. */
 #define LIBGIT2_VERSION_MAJOR      1
@@ -30,7 +30,7 @@ GIT_BEGIN_DECL
 #define LIBGIT2_VERSION_MINOR      9
 
 /** The revision ("teeny") version number for this version of libgit2. */
-#define LIBGIT2_VERSION_REVISION   1
+#define LIBGIT2_VERSION_REVISION   2
 
 /** The Windows DLL patch number for this version of libgit2. */
 #define LIBGIT2_VERSION_PATCH      0
@@ -69,7 +69,7 @@ GIT_BEGIN_DECL
  *  #endif
  */
 #define LIBGIT2_VERSION_CHECK(major, minor, revision) \
-	(LIBGIT2_VERSION_NUMBER >= ((major)*1000000)+((minor)*10000)+((revision)*100))
+    (LIBGIT2_VERSION_NUMBER >= ((major)*1000000)+((minor)*10000)+((revision)*100))
 
 /** @} */
 GIT_END_DECL

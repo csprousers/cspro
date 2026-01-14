@@ -28,91 +28,91 @@ using namespace Lexilla;
 static const char styleSubable[] = { 0 };
 
 LexerBase::LexerBase(const LexicalClass *lexClasses_, size_t nClasses_) :
-	lexClasses(lexClasses_), nClasses(nClasses_) {
-	for (int wl = 0; wl < numWordLists; wl++)
-		keyWordLists[wl] = new WordList;
-	keyWordLists[numWordLists] = nullptr;
+    lexClasses(lexClasses_), nClasses(nClasses_) {
+    for (int wl = 0; wl < numWordLists; wl++)
+        keyWordLists[wl] = new WordList;
+    keyWordLists[numWordLists] = nullptr;
 }
 
 LexerBase::~LexerBase() {
-	for (int wl = 0; wl < numWordLists; wl++) {
-		delete keyWordLists[wl];
-		keyWordLists[wl] = nullptr;
-	}
-	keyWordLists[numWordLists] = nullptr;
+    for (int wl = 0; wl < numWordLists; wl++) {
+        delete keyWordLists[wl];
+        keyWordLists[wl] = nullptr;
+    }
+    keyWordLists[numWordLists] = nullptr;
 }
 
 void SCI_METHOD LexerBase::Release() {
-	delete this;
+    delete this;
 }
 
 int SCI_METHOD LexerBase::Version() const {
-	return Scintilla::lvRelease5;
+    return Scintilla::lvRelease5;
 }
 
 const char * SCI_METHOD LexerBase::PropertyNames() {
-	return "";
+    return "";
 }
 
 int SCI_METHOD LexerBase::PropertyType(const char *) {
-	return SC_TYPE_BOOLEAN;
+    return SC_TYPE_BOOLEAN;
 }
 
 const char * SCI_METHOD LexerBase::DescribeProperty(const char *) {
-	return "";
+    return "";
 }
 
 Sci_Position SCI_METHOD LexerBase::PropertySet(const char *key, const char *val) {
-	if (props.Set(key, val)) {
-		return 0;
-	} else {
-		return -1;
-	}
+    if (props.Set(key, val)) {
+        return 0;
+    } else {
+        return -1;
+    }
 }
 
 const char *SCI_METHOD LexerBase::PropertyGet(const char *key) {
-	return props.Get(key);
+    return props.Get(key);
 }
 
 const char * SCI_METHOD LexerBase::DescribeWordListSets() {
-	return "";
+    return "";
 }
 
 Sci_Position SCI_METHOD LexerBase::WordListSet(int n, const char *wl) {
-	if (n < numWordLists) {
-		if (keyWordLists[n]->Set(wl)) {
-			return 0;
-		}
-	}
-	return -1;
+    if (n < numWordLists) {
+        if (keyWordLists[n]->Set(wl)) {
+            return 0;
+        }
+    }
+    return -1;
 }
 
 void * SCI_METHOD LexerBase::PrivateCall(int, void *) {
-	return nullptr;
+    return nullptr;
 }
 
 int SCI_METHOD LexerBase::LineEndTypesSupported() {
-	return SC_LINE_END_TYPE_DEFAULT;
+    return SC_LINE_END_TYPE_DEFAULT;
 }
 
 int SCI_METHOD LexerBase::AllocateSubStyles(int, int) {
-	return -1;
+    return -1;
 }
 
 int SCI_METHOD LexerBase::SubStylesStart(int) {
-	return -1;
+    return -1;
 }
 
 int SCI_METHOD LexerBase::SubStylesLength(int) {
-	return 0;
+    return 0;
 }
 
 int SCI_METHOD LexerBase::StyleFromSubStyle(int subStyle) {
-	return subStyle;
+    return subStyle;
 }
 
 int SCI_METHOD LexerBase::PrimaryStyleFromStyle(int style) {
-	return style;
+    return style;
 }
 
 void SCI_METHOD LexerBase::FreeSubStyles() {
@@ -122,35 +122,35 @@ void SCI_METHOD LexerBase::SetIdentifiers(int, const char *) {
 }
 
 int SCI_METHOD LexerBase::DistanceToSecondaryStyles() {
-	return 0;
+    return 0;
 }
 
 const char * SCI_METHOD LexerBase::GetSubStyleBases() {
-	return styleSubable;
+    return styleSubable;
 }
 
 int SCI_METHOD LexerBase::NamedStyles() {
-	return static_cast<int>(nClasses);
+    return static_cast<int>(nClasses);
 }
 
 const char * SCI_METHOD LexerBase::NameOfStyle(int style) {
-	return (style < NamedStyles()) ? lexClasses[style].name : "";
+    return (style < NamedStyles()) ? lexClasses[style].name : "";
 }
 
 const char * SCI_METHOD LexerBase::TagsOfStyle(int style) {
-	return (style < NamedStyles()) ? lexClasses[style].tags : "";
+    return (style < NamedStyles()) ? lexClasses[style].tags : "";
 }
 
 const char * SCI_METHOD LexerBase::DescriptionOfStyle(int style) {
-	return (style < NamedStyles()) ? lexClasses[style].description : "";
+    return (style < NamedStyles()) ? lexClasses[style].description : "";
 }
 
 // ILexer5 methods
 
 const char *SCI_METHOD LexerBase::GetName() {
-	return "";
+    return "";
 }
 
 int SCI_METHOD LexerBase::GetIdentifier() {
-	return SCLEX_AUTOMATIC;
+    return SCLEX_AUTOMATIC;
 }

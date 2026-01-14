@@ -94,7 +94,7 @@ void LexerCSProMessage::Lex(Sci_PositionU startPos, Sci_Position length, int ini
         sc.ChangeState(SCE_CSPRO_COMMENT);
     }
 
-    enum class ExtendedState 
+    enum class ExtendedState
     {
         InvalidLine,
         MultilineCommentLine,
@@ -103,7 +103,7 @@ void LexerCSProMessage::Lex(Sci_PositionU startPos, Sci_Position length, int ini
         ExpectingLeftParenthesis,
         ExpectingTranslation,
         ProcessingTranslation,
-        ExpectingRightParenthesis,        
+        ExpectingRightParenthesis,
         ExpectingMessageText,
         ProcessingMessageText,
         ExpectingEndOfLine,
@@ -121,7 +121,7 @@ void LexerCSProMessage::Lex(Sci_PositionU startPos, Sci_Position length, int ini
         {
             styler.SetLineState(sc.currentLine, GetMultilineCommentState(multiline_comment_state.get()));
 
-            sc.SetState(( multiline_comment_state == nullptr ) ? SCE_CSPRO_DEFAULT : 
+            sc.SetState(( multiline_comment_state == nullptr ) ? SCE_CSPRO_DEFAULT :
                                                                  SCE_CSPRO_COMMENT);
             extended_state.reset();
 
@@ -143,7 +143,7 @@ void LexerCSProMessage::Lex(Sci_PositionU startPos, Sci_Position length, int ini
                     if( must_end_new_style_comment )
                         sc.Forward();
 
-                    multiline_comment_state->pop_back();                    
+                    multiline_comment_state->pop_back();
 
                     if( multiline_comment_state->empty() )
                     {
@@ -199,7 +199,7 @@ void LexerCSProMessage::Lex(Sci_PositionU startPos, Sci_Position length, int ini
             {
                 extended_state = ExtendedState::MultilineCommentLine;
             }
-            
+
             else if( IsADigit(sc.ch) )
             {
                 sc.SetState(SCE_CSPRO_NUMBER);
@@ -242,7 +242,7 @@ void LexerCSProMessage::Lex(Sci_PositionU startPos, Sci_Position length, int ini
             {
                 // verbatim string literal escapes are double quoted: ""
                 // string literals are escaped with a backslash: \[char]
-                if( string_is_verbatim ? sc.Match('"', '"') : 
+                if( string_is_verbatim ? sc.Match('"', '"') :
                                          sc.Match('\\') )
                 {
                     sc.SetState(SCE_CSPRO_STRING_ESCAPE);
@@ -382,7 +382,7 @@ void LexerCSProMessage::Lex(Sci_PositionU startPos, Sci_Position length, int ini
 
                 else
                 {
-                    extended_state = isspacechar(sc.ch) ?  ExtendedState::ExpectingMessageText : 
+                    extended_state = isspacechar(sc.ch) ?  ExtendedState::ExpectingMessageText :
                                                            ExtendedState::InvalidLine;
                 }
             }

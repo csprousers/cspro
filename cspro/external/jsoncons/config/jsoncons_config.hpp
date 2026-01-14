@@ -1,4 +1,4 @@
-﻿// Copyright 2013-2023 Daniel Parker
+// Copyright 2013-2025 Daniel Parker
 // Distributed under the Boost license, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
@@ -7,10 +7,73 @@
 #ifndef JSONCONS_CONFIG_JSONCONS_CONFIG_HPP
 #define JSONCONS_CONFIG_JSONCONS_CONFIG_HPP
 
-#include <type_traits>
-#include <limits>
+#include <cfloat>
+#include <cmath>
+#include <cstddef>
+#include <cstdint>
+#include <memory>
+#include <stdexcept>
+#include <string>
+
 #include <jsoncons/config/compiler_support.hpp>
-#include <jsoncons/config/binary_config.hpp>
+
+namespace jsoncons {
+
+    class assertion_error : public std::runtime_error
+    {
+    public:
+        assertion_error(const std::string& s) noexcept
+            : std::runtime_error(s)
+        {
+        }
+        const char* what() const noexcept override
+        {
+            return std::runtime_error::what();
+        }
+    };
+
+} // namespace jsoncons
+
+#define JSONCONS_STR2(x)  #x
+#define JSONCONS_STR(x)  JSONCONS_STR2(x)
+
+#ifdef _DEBUG
+#define JSONCONS_ASSERT(x) if (!(x)) { \
+    JSONCONS_THROW(jsoncons::assertion_error("assertion '" #x "' failed at " __FILE__ ":" \
+            JSONCONS_STR(__LINE__))); }
+#else
+#define JSONCONS_ASSERT(x) if (!(x)) { \
+    JSONCONS_THROW(jsoncons::assertion_error("assertion '" #x "' failed at  <> :" \
+            JSONCONS_STR( 0 ))); }
+#endif // _DEBUG
+
+#include <jsoncons/detail/utility.hpp>
+namespace jsoncons {
+using jsoncons::detail::in_place_t;
+JSONCONS_INLINE_CONSTEXPR in_place_t in_place{};
+} // namespace jsoncons
+
+#if !defined(JSONCONS_HAS_STD_EXPECTED)
+  #include <jsoncons/detail/expected.hpp>
+  namespace jsoncons {
+  using jsoncons::detail::expected;
+  using jsoncons::detail::unexpect_t;
+  using jsoncons::detail::unexpect;
+  } // namespace jsoncons
+#else
+  #include <expected>
+  namespace jsoncons {
+  template <typename R,typename E>
+  using expected = std::expected<R,E>;
+  using unexpect_t = std::unexpect_t;
+  JSONCONS_INLINE_CONSTEXPR unexpect_t unexpect{};
+  } // namespace jsoncons
+#endif
+
+#include <jsoncons/detail/make_obj_using_allocator.hpp>
+namespace jsoncons {
+using jsoncons::detail::make_obj_using_allocator;
+} // namespace jsoncons
 
 #if !defined(JSONCONS_HAS_STD_STRING_VIEW)
 #include <jsoncons/detail/string_view.hpp>
@@ -18,8 +81,8 @@ namespace jsoncons {
 using jsoncons::detail::basic_string_view;
 using string_view = jsoncons::detail::string_view;
 using wstring_view = jsoncons::detail::wstring_view;
-}
-#else 
+} // namespace jsoncons
+#else
 #include <string_view>
 namespace jsoncons {
 using std::basic_string_view;
@@ -33,7 +96,7 @@ using std::wstring_view;
 namespace jsoncons {
 using jsoncons::detail::span;
 }
-#else 
+#else
 #include <span>
 namespace jsoncons {
 using std::span;
@@ -50,7 +113,7 @@ using std::span;
     namespace jsoncons {
     using boost::optional;
     }
-#else 
+#else
     #include <jsoncons/detail/optional.hpp>
     namespace jsoncons {
     using jsoncons::detail::optional;
@@ -64,7 +127,7 @@ using jsoncons::detail::endian;
 }
 #else
 #include <bit>
-namespace jsoncons 
+namespace jsoncons
 {
     using std::endian;
 }
@@ -79,47 +142,47 @@ namespace jsoncons
 
 namespace jsoncons {
 
-    template<class T> 
-    struct unique_if 
+    template <typename T>
+    struct unique_if
     {
         using value_is_not_array = std::unique_ptr<T>;
     };
 
-    template<class T> 
-    struct unique_if<T[]> 
+    template <typename T>
+    struct unique_if<T[]>
     {
         typedef std::unique_ptr<T[]> value_is_array_of_unknown_bound;
     };
 
-    template<class T, std::size_t N> 
+    template <typename T, std::size_t N>
     struct unique_if<T[N]> {
         using value_is_array_of_known_bound = void;
     };
 
-    template<class T, class... Args>
+    template <typename T,typename... Args>
     typename unique_if<T>::value_is_not_array
-    make_unique(Args&&... args) 
+    make_unique(Args&&... args)
     {
         return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
     }
 
-    template<class T>
+    template <typename T>
     typename unique_if<T>::value_is_array_of_unknown_bound
-    make_unique(std::size_t n) 
+    make_unique(std::size_t n)
     {
         using U = typename std::remove_extent<T>::type;
         return std::unique_ptr<T>(new U[n]());
     }
 
-    template<class T, class... Args>
+    template <typename T,typename... Args>
     typename unique_if<T>::value_is_array_of_known_bound
     make_unique(Args&&...) = delete;
-} // jsoncons
+} // namespace jsoncons
 
 #else
 
 #include <memory>
-namespace jsoncons 
+namespace jsoncons
 {
     using std::make_unique;
 }
@@ -127,124 +190,8 @@ namespace jsoncons
 #endif // !defined(JSONCONS_HAS_STD_MAKE_UNIQUE)
 
 namespace jsoncons {
-namespace binary {
 
-    // native_to_big
-
-    template<typename T, class OutputIt, class Endian=endian>
-    typename std::enable_if<Endian::native == Endian::big,void>::type
-    native_to_big(T val, OutputIt d_first)
-    {
-        uint8_t buf[sizeof(T)];
-        std::memcpy(buf, &val, sizeof(T));
-        for (auto item : buf)
-        {
-            *d_first++ = item;
-        }
-    }
-
-    template<typename T, class OutputIt, class Endian=endian>
-    typename std::enable_if<Endian::native == Endian::little,void>::type
-    native_to_big(T val, OutputIt d_first)
-    {
-        T val2 = byte_swap(val);
-        uint8_t buf[sizeof(T)];
-        std::memcpy(buf, &val2, sizeof(T));
-        for (auto item : buf)
-        {
-            *d_first++ = item;
-        }
-    }
-
-    // native_to_little
-
-    template<typename T, class OutputIt, class Endian = endian>
-    typename std::enable_if<Endian::native == Endian::little,void>::type
-    native_to_little(T val, OutputIt d_first)
-    {
-        uint8_t buf[sizeof(T)];
-        std::memcpy(buf, &val, sizeof(T));
-        for (auto item : buf)
-        {
-            *d_first++ = item;
-        }
-    }
-
-    template<typename T, class OutputIt, class Endian=endian>
-    typename std::enable_if<Endian::native == Endian::big, void>::type
-    native_to_little(T val, OutputIt d_first)
-    {
-        T val2 = byte_swap(val);
-        uint8_t buf[sizeof(T)];
-        std::memcpy(buf, &val2, sizeof(T));
-        for (auto item : buf)
-        {
-            *d_first++ = item;
-        }
-    }
-
-    // big_to_native
-
-    template<class T,class Endian=endian>
-    typename std::enable_if<Endian::native == Endian::big,T>::type
-    big_to_native(const uint8_t* first, std::size_t count)
-    {
-        if (sizeof(T) > count)
-        {
-            return T{};
-        }
-        T val;
-        std::memcpy(&val,first,sizeof(T));
-        return val;
-    }
-
-    template<class T,class Endian=endian>
-    typename std::enable_if<Endian::native == Endian::little,T>::type
-    big_to_native(const uint8_t* first, std::size_t count)
-    {
-        if (sizeof(T) > count)
-        {
-            return T{};
-        }
-        T val;
-        std::memcpy(&val,first,sizeof(T));
-        return byte_swap(val);
-    }
-
-    // little_to_native
-
-    template<class T,class Endian=endian>
-    typename std::enable_if<Endian::native == Endian::little,T>::type
-    little_to_native(const uint8_t* first, std::size_t count)
-    {
-        if (sizeof(T) > count)
-        {
-            return T{};
-        }
-        T val;
-        std::memcpy(&val,first,sizeof(T));
-        return val;
-    }
-
-    template<class T,class Endian=endian>
-    typename std::enable_if<Endian::native == Endian::big,T>::type
-    little_to_native(const uint8_t* first, std::size_t count)
-    {
-        if (sizeof(T) > count)
-        {
-            return T{};
-        }
-        T val;
-        std::memcpy(&val,first,sizeof(T));
-        return byte_swap(val);
-    }
-
-} // binary
-} // jsoncons
-
-namespace jsoncons {
-
-    template<typename CharT>
+    template <typename CharT>
     constexpr const CharT* cstring_constant_of_type(const char* c, const wchar_t* w);
 
     template<> inline
@@ -258,7 +205,7 @@ namespace jsoncons {
         return w;
     }
 
-    template<typename CharT>
+    template <typename CharT>
     std::basic_string<CharT> string_constant_of_type(const char* c, const wchar_t* w);
 
     template<> inline
@@ -272,7 +219,7 @@ namespace jsoncons {
         return std::wstring(w);
     }
 
-    template<typename CharT>
+    template <typename CharT>
     jsoncons::basic_string_view<CharT> string_view_constant_of_type(const char* c, const wchar_t* w);
 
     template<> inline
@@ -286,28 +233,43 @@ namespace jsoncons {
         return jsoncons::wstring_view(w);
     }
 
-} // jsoncons
+    // From boost 1_71
+    template <typename T,typename U>
+    T launder_cast(U* u)
+    {
+    #if defined(__cpp_lib_launder) && __cpp_lib_launder >= 201606
+        return std::launder(reinterpret_cast<T>(u));
+    #elif defined(__GNUC__) &&  (__GNUC__ * 100 + __GNUC_MINOR__) > 800
+        return __builtin_launder(reinterpret_cast<T>(u));
+    #else
+        return reinterpret_cast<T>(u);
+    #endif
+    }
 
-#define JSONCONS_EXPAND(X) X    
-#define JSONCONS_QUOTE(Prefix, A) JSONCONS_EXPAND(Prefix ## #A)
-#define JSONCONS_WIDEN(A) JSONCONS_EXPAND(L ## A)
+} // namespace jsoncons
 
-#define JSONCONS_CSTRING_CONSTANT(CharT, Str) cstring_constant_of_type<CharT>(Str, JSONCONS_WIDEN(Str))
-#define JSONCONS_STRING_CONSTANT(CharT, Str) string_constant_of_type<CharT>(Str, JSONCONS_WIDEN(Str))
-#define JSONCONS_STRING_VIEW_CONSTANT(CharT, Str) string_view_constant_of_type<CharT>(Str, JSONCONS_WIDEN(Str))
+// Preprocessor macros
 
-#if defined(__clang__) 
-#define JSONCONS_HAS_STD_REGEX 1
-#define JSONCONS_HAS_STATEFUL_ALLOCATOR 1
-#elif (defined(__GNUC__) && (__GNUC__ == 4)) && (defined(__GNUC__) && __GNUC_MINOR__ < 9)
-// GCC 4.8 has broken regex support: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=53631
-// gcc 4.8 basic_string doesn't satisfy C++11 allocator requirements
-// and gcc doesn't support allocators with no default constructor
+#define JSONCONS_PP_EXPAND(X) X
+#define JSONCONS_PP_STRINGIFY(a) #a
+#define JSONCONS_PP_QUOTE(Prefix, A) JSONCONS_PP_EXPAND(Prefix ## #A)
+#define JSONCONS_PP_WIDEN(A) JSONCONS_PP_EXPAND(L ## A)
+
+#define JSONCONS_CSTRING_CONSTANT(CharT, Str) cstring_constant_of_type<CharT>(Str, JSONCONS_PP_WIDEN(Str))
+#define JSONCONS_STRING_CONSTANT(CharT, Str) string_constant_of_type<CharT>(Str, JSONCONS_PP_WIDEN(Str))
+#define JSONCONS_STRING_VIEW_CONSTANT(CharT, Str) string_view_constant_of_type<CharT>(Str, JSONCONS_PP_WIDEN(Str))
+
+
+#if defined(JSONCONS_VISITOR_VOID_RETURN)
+#define JSONCONS_VISITOR_RETURN_TYPE void
 #else
-#define JSONCONS_HAS_STD_REGEX 1
-#define JSONCONS_HAS_STATEFUL_ALLOCATOR 1
+#define JSONCONS_VISITOR_RETURN_TYPE bool
+#endif
+
+#if defined(JSONCONS_VISITOR_VOID_RETURN)
+#define JSONCONS_VISITOR_RETURN return
+#else
+#define JSONCONS_VISITOR_RETURN return true
 #endif
 
 #endif // JSONCONS_CONFIG_JSONCONS_CONFIG_HPP
-
-

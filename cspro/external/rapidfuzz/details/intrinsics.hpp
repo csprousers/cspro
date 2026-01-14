@@ -7,6 +7,7 @@
 #include <cassert>
 #include <cstddef>
 #include <limits>
+#include <rapidfuzz/details/config.hpp>
 #include <stdint.h>
 #include <type_traits>
 
@@ -17,6 +18,22 @@
 namespace rapidfuzz {
 namespace detail {
 
+template <typename T>
+T bit_mask_lsb(size_t n)
+{
+    T mask = static_cast<T>(-1);
+    if (n < sizeof(T) * 8) {
+        mask += static_cast<T>(static_cast<T>(1) << n);
+    }
+    return mask;
+}
+
+template <typename T>
+bool bittest(T a, int bit)
+{
+    return (a >> bit) & 1;
+}
+
 /*
  * shift right without undefined behavior for shifts > bit width
  */
@@ -26,7 +43,16 @@ constexpr uint64_t shr64(uint64_t a, U shift)
     return (shift < 64) ? a >> shift : 0;
 }
 
-constexpr uint64_t addc64(uint64_t a, uint64_t b, uint64_t carryin, uint64_t* carryout)
+/*
+ * shift left without undefined behavior for shifts > bit width
+ */
+template <typename U>
+constexpr uint64_t shl64(uint64_t a, U shift)
+{
+    return (shift < 64) ? a << shift : 0;
+}
+
+RAPIDFUZZ_CONSTEXPR_CXX14 uint64_t addc64(uint64_t a, uint64_t b, uint64_t carryin, uint64_t* carryout)
 {
     /* todo should use _addcarry_u64 when available */
     a += carryin;
@@ -37,30 +63,30 @@ constexpr uint64_t addc64(uint64_t a, uint64_t b, uint64_t carryin, uint64_t* ca
 }
 
 template <typename T, typename U>
-constexpr T ceil_div(T a, U divisor)
+RAPIDFUZZ_CONSTEXPR_CXX14 T ceil_div(T a, U divisor)
 {
     T _div = static_cast<T>(divisor);
     return a / _div + static_cast<T>(a % _div != 0);
 }
 
-static inline int popcount(uint64_t x)
+static inline size_t popcount(uint64_t x)
 {
-    return static_cast<int>(std::bitset<64>(x).count());
+    return std::bitset<64>(x).count();
 }
 
-static inline int popcount(uint32_t x)
+static inline size_t popcount(uint32_t x)
 {
-    return static_cast<int>(std::bitset<32>(x).count());
+    return std::bitset<32>(x).count();
 }
 
-static inline int popcount(uint16_t x)
+static inline size_t popcount(uint16_t x)
 {
-    return static_cast<int>(std::bitset<16>(x).count());
+    return std::bitset<16>(x).count();
 }
 
-static inline int popcount(uint8_t x)
+static inline size_t popcount(uint8_t x)
 {
-    static constexpr int bit_count[256] = {
+    static constexpr uint8_t bit_count[256] = {
         0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4, 1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
         1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5, 2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
         1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5, 2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
@@ -73,7 +99,7 @@ static inline int popcount(uint8_t x)
 }
 
 template <typename T>
-constexpr T rotl(T x, unsigned int n)
+RAPIDFUZZ_CONSTEXPR_CXX14 T rotl(T x, unsigned int n)
 {
     unsigned int num_bits = std::numeric_limits<T>::digits;
     assert(n < num_bits);
@@ -127,7 +153,7 @@ constexpr T blsmsk(T a)
 }
 
 #if defined(_MSC_VER) && !defined(__clang__)
-static inline int countr_zero(uint32_t x)
+static inline unsigned int countr_zero(uint32_t x)
 {
     unsigned long trailing_zero = 0;
     _BitScanForward(&trailing_zero, x);
@@ -135,14 +161,14 @@ static inline int countr_zero(uint32_t x)
 }
 
 #    if defined(_M_ARM) || defined(_M_X64)
-static inline int countr_zero(uint64_t x)
+static inline unsigned int countr_zero(uint64_t x)
 {
     unsigned long trailing_zero = 0;
     _BitScanForward64(&trailing_zero, x);
     return trailing_zero;
 }
 #    else
-static inline int countr_zero(uint64_t x)
+static inline unsigned int countr_zero(uint64_t x)
 {
     uint32_t msh = (uint32_t)(x >> 32);
     uint32_t lsh = (uint32_t)(x & 0xFFFFFFFF);
@@ -152,16 +178,26 @@ static inline int countr_zero(uint64_t x)
 #    endif
 
 #else /*  gcc / clang */
-static inline int countr_zero(uint32_t x)
+static inline unsigned int countr_zero(uint32_t x)
 {
-    return __builtin_ctz(x);
+    return static_cast<unsigned int>(__builtin_ctz(x));
 }
 
-static inline int countr_zero(uint64_t x)
+static inline unsigned int countr_zero(uint64_t x)
 {
-    return __builtin_ctzll(x);
+    return static_cast<unsigned int>(__builtin_ctzll(x));
 }
 #endif
+
+static inline unsigned int countr_zero(uint16_t x)
+{
+    return countr_zero(static_cast<uint32_t>(x));
+}
+
+static inline unsigned int countr_zero(uint8_t x)
+{
+    return countr_zero(static_cast<uint32_t>(x));
+}
 
 template <typename T, T N, T Pos = 0, bool IsEmpty = (N == 0)>
 struct UnrollImpl;
@@ -183,8 +219,8 @@ struct UnrollImpl<T, N, Pos, true> {
     {}
 };
 
-template <typename T, int N, class F>
-constexpr void unroll(F&& f)
+template <typename T, T N, class F>
+RAPIDFUZZ_CONSTEXPR_CXX14 void unroll(F&& f)
 {
     UnrollImpl<T, N>::call(f);
 }

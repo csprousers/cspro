@@ -1,6 +1,4 @@
-﻿// note CSPro additions marked with "CSPro"
-
-/// Copyright 2013-2023 Daniel Parker
+/// Copyright 2013-2025 Daniel Parker
 // Distributed under the Boost license, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
@@ -9,82 +7,39 @@
 #ifndef JSONCONS_CONV_ERROR_HPP
 #define JSONCONS_CONV_ERROR_HPP
 
+#include <cstddef>
+#include <string>
 #include <system_error>
+#include <type_traits>
+
+#include <jsoncons/config/compiler_support.hpp>
 #include <jsoncons/config/jsoncons_config.hpp>
+#include <jsoncons/json_exception.hpp>
 
 namespace jsoncons {
 
     class conv_error : public std::system_error, public virtual json_exception
     {
-        std::size_t line_number_;
-        std::size_t column_number_;
-        mutable std::string what_;
     public:
         conv_error(std::error_code ec)
-            : std::system_error(ec), line_number_(0), column_number_(0)
+            : std::system_error(ec)
         {
         }
         conv_error(std::error_code ec, const std::string& what_arg)
-            : std::system_error(ec, what_arg), line_number_(0), column_number_(0)
+            : std::system_error(ec, what_arg)
         {
         }
-        conv_error(std::error_code ec, std::size_t position)
-            : std::system_error(ec), line_number_(0), column_number_(position)
-        {
-        }
-        conv_error(std::error_code ec, std::size_t line, std::size_t column)
-            : std::system_error(ec), line_number_(line), column_number_(column)
+        conv_error(std::error_code ec, const char* what_arg)
+            : std::system_error(ec, what_arg)
         {
         }
         conv_error(const conv_error& other) = default;
 
         conv_error(conv_error&& other) = default;
 
-        const char* what() const noexcept override
+        const char* what() const noexcept final
         {
-            if (what_.empty())
-            {
-                JSONCONS_TRY
-                {
-                    what_.append(std::system_error::what());
-                    if (line_number_ != 0 && column_number_ != 0)
-                    {
-                        what_.append(" at line ");
-                        what_.append(std::to_string(line_number_));
-                        what_.append(" and column ");
-                        what_.append(std::to_string(column_number_));
-                    }
-                    else if (column_number_ != 0)
-                    {
-                        what_.append(" at position ");
-                        what_.append(std::to_string(column_number_));
-                    }
-                    return what_.c_str();
-                }
-                JSONCONS_CATCH(...)
-                {
-                    return std::system_error::what();
-                }
-            }
-            else
-            {
-                return what_.c_str();
-            }
-        }
-
-        std::size_t line() const noexcept
-        {
-            return line_number_;
-        }
-
-        int CSPro_get_line_number() const override // CSPro
-        { 
-            return int32_cast(line()); 
-        }
-
-        std::size_t column() const noexcept
-        {
-            return column_number_;
+            return std::system_error::what();
         }
     };
 
@@ -114,19 +69,10 @@ namespace jsoncons {
         not_bitset,
         not_base64,
         not_base64url,
-        not_base16
+        not_base16,
+        not_epoch,
+        missing_required_member
     };
-
-    template <class InputIt>
-    struct decode_result 
-    {
-        InputIt it;
-        conv_errc ec;
-    };
-
-#if !defined(JSONCONS_NO_DEPRECATED)
-JSONCONS_DEPRECATED_MSG("Instead, use conv_error") typedef conv_error convert_error;
-#endif
 
 } // namespace jsoncons
 
@@ -135,7 +81,8 @@ namespace std {
     struct is_error_code_enum<jsoncons::conv_errc> : public true_type
     {
     };
-}
+
+} // namespace std
 
 namespace jsoncons {
 
@@ -200,26 +147,31 @@ namespace detail {
                     return "Input is not a base64url encoded string";
                 case conv_errc::not_base16:
                     return "Input is not a base16 encoded string";
+                case conv_errc::not_epoch:
+                    return "Cannot convert to epoch";
+                case conv_errc::missing_required_member:
+                    return "Missing required JSON object member";
                 default:
                     return "Unknown conversion error";
             }
         }
     };
-} // detail
+
+} // namespace detail
 
 extern inline
-const std::error_category& conv_error_category()
+const std::error_category& conv_error_category() noexcept
 {
   static detail::conv_error_category_impl instance;
   return instance;
 }
 
-inline 
-std::error_code make_error_code(conv_errc result)
+inline
+std::error_code make_error_code(conv_errc result) noexcept
 {
     return std::error_code(static_cast<int>(result),conv_error_category());
 }
 
-}
+} // namespace jsoncons
 
-#endif
+#endif // JSONCONS_CONV_ERROR_HPP

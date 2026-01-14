@@ -2,7 +2,7 @@
  * libxlsxwriter
  *
  * SPDX-License-Identifier: BSD-2-Clause
- * Copyright 2014-2024, John McNamara, jmcnamara@cpan.org.
+ * Copyright 2014-2026, John McNamara, jmcnamara@cpan.org.
  */
 
 /**
@@ -2285,6 +2285,8 @@ typedef struct lxw_worksheet {
     char *ignore_calculated_column;
     char *ignore_two_digit_text_year;
 
+    uint8_t use_1904_epoch;
+
     uint16_t excel_version;
 
     lxw_object_properties **header_footer_objs[LXW_HEADER_FOOTER_OBJS_MAX];
@@ -2318,6 +2320,7 @@ typedef struct lxw_worksheet_init_data {
     const char *tmpdir;
     lxw_format *default_url_format;
     uint16_t max_url_length;
+    uint8_t use_1904_epoch;
 
 } lxw_worksheet_init_data;
 

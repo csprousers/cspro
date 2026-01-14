@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zJson/JsonStreamWriter.h>
 #include <zToolsO/FileIO.h>
@@ -38,6 +38,9 @@ public:
 
         // destroy the writer so that the stream is finalized before the file is closed
         JsonConsWriter<WriterType>::m_writer.reset();
+
+        // end files with a final newline
+        m_fileStream->put('\n');
 
         m_fileStream->close();
     }

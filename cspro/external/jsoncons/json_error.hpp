@@ -1,4 +1,4 @@
-﻿/// Copyright 2013-2023 Daniel Parker
+/// Copyright 2013-2025 Daniel Parker
 // Distributed under the Boost license, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
@@ -7,7 +7,10 @@
 #ifndef JSONCONS_JSON_ERROR_HPP
 #define JSONCONS_JSON_ERROR_HPP
 
+#include <string>
 #include <system_error>
+#include <type_traits>
+
 #include <jsoncons/config/jsoncons_config.hpp>
 
 namespace jsoncons {
@@ -44,18 +47,19 @@ namespace jsoncons {
         illegal_codepoint,
         illegal_surrogate_value,
         unpaired_high_surrogate,
-        illegal_unicode_character
+        illegal_unicode_character,
+        unexpected_character
     };
 
     class json_error_category_impl
        : public std::error_category
     {
     public:
-        const char* name() const noexcept override
+        const char* name() const noexcept final
         {
             return "jsoncons/json";
         }
-        std::string message(int ev) const override
+        std::string message(int ev) const final
         {
             switch (static_cast<json_errc>(ev))
             {
@@ -119,38 +123,33 @@ namespace jsoncons {
                     return "Expected low surrogate following the high surrogate";
                 case json_errc::illegal_unicode_character:
                     return "Illegal unicode character";
+                case json_errc::unexpected_character:
+                    return "Unexpected character";
                 default:
                     return "Unknown JSON parser error";
                 }
         }
     };
 
-    inline
-    const std::error_category& json_error_category()
+    inline const std::error_category& json_error_category() noexcept
     {
       static json_error_category_impl instance;
       return instance;
     }
 
-    inline 
-    std::error_code make_error_code(json_errc result)
+    inline std::error_code make_error_code(json_errc result) noexcept
     {
         return std::error_code(static_cast<int>(result),json_error_category());
     }
 
-#if !defined(JSONCONS_NO_DEPRECATED)
-JSONCONS_DEPRECATED_MSG("Instead, use json_errc") typedef json_errc json_parser_errc;
-
-JSONCONS_DEPRECATED_MSG("Instead, use json_errc") typedef json_errc json_parse_errc;
-#endif
-
-} // jsoncons
+} // namespace jsoncons
 
 namespace std {
     template<>
     struct is_error_code_enum<jsoncons::json_errc> : public true_type
     {
     };
-}
 
-#endif
+} // namespace std
+
+#endif // JSONCONS_JSON_ERROR_HPP

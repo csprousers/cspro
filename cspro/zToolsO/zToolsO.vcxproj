@@ -25,6 +25,31 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\external\bzip2\blocksort.c">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\external\bzip2\bzlib.c">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level2</WarningLevel>
+    </ClCompile>
+    <ClCompile Include="..\external\bzip2\compress.c">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level2</WarningLevel>
+    </ClCompile>
+    <ClCompile Include="..\external\bzip2\crctable.c">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\external\bzip2\decompress.c">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+    </ClCompile>
+    <ClCompile Include="..\external\bzip2\huffman.c">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+    </ClCompile>
+    <ClCompile Include="..\external\bzip2\randtable.c">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="..\external\md4c\entity.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
     </ClCompile>
@@ -37,9 +62,6 @@
     <ClCompile Include="acum.cpp" />
     <ClCompile Include="base64.cpp" />
     <ClCompile Include="BinaryGen.cpp" />
-    <ClCompile Include="bzlib.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-    </ClCompile>
     <ClCompile Include="DateTime.cpp" />
     <ClCompile Include="DebugLogging.cpp" />
     <ClCompile Include="DelimitedTextCreator.cpp" />
@@ -92,6 +114,7 @@
     <ClCompile Include="zToolsO.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\external\bzip2\bzlib.h" />
     <ClInclude Include="..\external\scrypt\insecure_memzero.h" />
     <ClInclude Include="..\external\scrypt\sha256.h" />
     <ClInclude Include="..\external\scrypt\sysendian.h" />
@@ -102,7 +125,6 @@
     <ClInclude Include="BinaryBlock.h" />
     <ClInclude Include="BinaryGen.h" />
     <ClInclude Include="BinarySerializer.h" />
-    <ClInclude Include="bzlib.h" />
     <ClInclude Include="CallbackFunctionProcessor.h" />
     <ClInclude Include="CancelFlag.h" />
     <ClInclude Include="CaseInsensitiveComparer.h" />

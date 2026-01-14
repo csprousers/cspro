@@ -31,34 +31,34 @@ typedef struct _ScintillaObject ScintillaObject;
 typedef struct _ScintillaClass  ScintillaObjectClass;
 
 struct _ScintillaObject {
-	GtkContainer cont;
-	void *pscin;
+    GtkContainer cont;
+    void *pscin;
 };
 
 struct _ScintillaClass {
-	GtkContainerClass parent_class;
+    GtkContainerClass parent_class;
 
-	void (* command) (ScintillaObject *sci, int cmd, GtkWidget *window);
-	void (* notify) (ScintillaObject *sci, int id, SCNotification *scn);
+    void (* command) (ScintillaObject *sci, int cmd, GtkWidget *window);
+    void (* notify) (ScintillaObject *sci, int id, SCNotification *scn);
 };
 
-GType		scintilla_object_get_type		(void);
-GtkWidget*	scintilla_object_new			(void);
-gintptr		scintilla_object_send_message	(ScintillaObject *sci, unsigned int iMessage, guintptr wParam, gintptr lParam);
+GType       scintilla_object_get_type       (void);
+GtkWidget*  scintilla_object_new            (void);
+gintptr     scintilla_object_send_message   (ScintillaObject *sci, unsigned int iMessage, guintptr wParam, gintptr lParam);
 
 
-GType		scnotification_get_type			(void);
+GType       scnotification_get_type         (void);
 #define SCINTILLA_TYPE_NOTIFICATION        (scnotification_get_type())
 
 #ifndef G_IR_SCANNING
 /* The legacy names confuse the g-ir-scanner program */
 typedef struct _ScintillaClass  ScintillaClass;
 
-GType		scintilla_get_type	(void);
-GtkWidget*	scintilla_new		(void);
-void		scintilla_set_id	(ScintillaObject *sci, uptr_t id);
-sptr_t		scintilla_send_message	(ScintillaObject *sci,unsigned int iMessage, uptr_t wParam, sptr_t lParam);
-void		scintilla_release_resources(void);
+GType       scintilla_get_type  (void);
+GtkWidget*  scintilla_new       (void);
+void        scintilla_set_id    (ScintillaObject *sci, uptr_t id);
+sptr_t      scintilla_send_message  (ScintillaObject *sci,unsigned int iMessage, uptr_t wParam, sptr_t lParam);
+void        scintilla_release_resources(void);
 #endif
 
 #define SCINTILLA_NOTIFY "sci-notify"

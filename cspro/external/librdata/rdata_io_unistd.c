@@ -1,4 +1,3 @@
-﻿#pragma warning(disable:4013) // CSPRO_LIBRDATA_MODIFICATIONS
 
 #include <fcntl.h>
 #include <stdlib.h>

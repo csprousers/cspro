@@ -1,11 +1,11 @@
-﻿#pragma once
+#pragma once
 
 #include <zHtml/zHtml.h>
 
 
 // --------------------------------------------------------------------------
 // VirtualFileMapping
-// 
+//
 // an object that controls the lifecycle of a single virtual file mapping
 // --------------------------------------------------------------------------
 
@@ -44,7 +44,7 @@ private:
 
 // --------------------------------------------------------------------------
 // VirtualFileMappingResponse
-// 
+//
 // an object that the virtual file mappers can use to return data without
 // needing to know details about the local file server
 // --------------------------------------------------------------------------
@@ -54,13 +54,13 @@ class VirtualFileMappingResponse
 public:
     VirtualFileMappingResponse(void* response_object);
 
-    ZHTML_API void SetContent(const void* content_data, size_t content_size, cs::string_sz content_type);
+    ZHTML_API void SetContent(const void* content_data, size_t content_size, const std::string& content_type);
 
-    void SetContent(std::string_view content_sv, cs::string_sz content_type);
+    void SetContent(std::string_view content_sv, const std::string& content_type);
 
-    void SetContent(const std::vector<std::byte>& content, cs::string_sz content_type);
+    void SetContent(const std::vector<std::byte>& content, const std::string& content_type);
 
-    void SetContent(std::shared_ptr<const std::vector<std::byte>> content, cs::string_sz content_type);
+    void SetContent(std::shared_ptr<const std::vector<std::byte>> content, const std::string& content_type);
 
 private:
     void* const m_responseObject;
@@ -70,7 +70,7 @@ private:
 
 // --------------------------------------------------------------------------
 // VirtualFileMappingHandler
-// 
+//
 // a class whose subclasses can serve content for the life of the object;
 // see KeyBasedVirtualFileMappingHandler for another version of this handler
 // --------------------------------------------------------------------------
@@ -92,7 +92,7 @@ public:
     // subclasses should call VirtualFileMappingResponse::SetContent
     // with the appropriate content and content type, and return true;
     // returning false will lead to a 404 error
-    virtual bool ServeContent(VirtualFileMappingResponse& response) = 0;    
+    virtual bool ServeContent(VirtualFileMappingResponse& response) = 0;
 
 private:
     std::unique_ptr<VirtualFileMapping> m_virtualFileMapping;
@@ -102,7 +102,7 @@ private:
 
 // --------------------------------------------------------------------------
 // FourZeroFourVirtualFileMappingHandler
-// 
+//
 // a subclass of VirtualFileMappingHandler that can be used when no content
 // is available, as it results in a 404 error
 // --------------------------------------------------------------------------
@@ -120,7 +120,7 @@ public:
 
 // --------------------------------------------------------------------------
 // CallbackVirtualFileMappingHandler
-// 
+//
 // a subclass of VirtualFileMappingHandler that serves data using a callback
 // function
 // --------------------------------------------------------------------------
@@ -147,7 +147,7 @@ private:
 
 // --------------------------------------------------------------------------
 // DataVirtualFileMappingHandler
-// 
+//
 // a subclass of VirtualFileMappingHandler that serves data stored in an
 // an object that has data and size methods
 // --------------------------------------------------------------------------
@@ -188,7 +188,7 @@ private:
 
 // --------------------------------------------------------------------------
 // TextVirtualFileMappingHandler
-// 
+//
 // a subclass of VirtualFileMappingHandler that serves text in UTF-8 format,
 // only converting the text as necessary
 //
@@ -211,7 +211,7 @@ private:
 
 // --------------------------------------------------------------------------
 // FileVirtualFileMappingHandler
-// 
+//
 // a subclass of VirtualFileMappingHandler that serves a file on demand,
 // potentially caching the contents
 //
@@ -236,7 +236,7 @@ private:
 
 // --------------------------------------------------------------------------
 // KeyBasedVirtualFileMappingHandler
-// 
+//
 // a class whose subclasses can serve content for the life of the object;
 // see VirtualFileMappingHandler for another version of this handler
 // --------------------------------------------------------------------------
@@ -273,20 +273,20 @@ inline VirtualFileMappingResponse::VirtualFileMappingResponse(void* const respon
 }
 
 
-inline void VirtualFileMappingResponse::SetContent(const std::string_view content_sv, const cs::string_sz content_type)
+inline void VirtualFileMappingResponse::SetContent(const std::string_view content_sv, const std::string& content_type)
 {
     SetContent(content_sv.data(), content_sv.size(), content_type);
 }
 
 
-inline void VirtualFileMappingResponse::SetContent(const std::vector<std::byte>& content, const cs::string_sz content_type)
+inline void VirtualFileMappingResponse::SetContent(const std::vector<std::byte>& content, const std::string& content_type)
 {
     SetContent(content.data(), content.size(), content_type);
 }
 
 
 #ifndef WASM
-inline void VirtualFileMappingResponse::SetContent(const std::shared_ptr<const std::vector<std::byte>> content, const cs::string_sz content_type)
+inline void VirtualFileMappingResponse::SetContent(const std::shared_ptr<const std::vector<std::byte>> content, const std::string& content_type)
 {
     ASSERT(content != nullptr);
     SetContent(content->data(), content->size(), content_type);

@@ -1,4 +1,4 @@
-﻿#include "CSPro.h"
+#include "CSPro.h"
 
 #include <cassert>
 #include <forward_list>
@@ -32,7 +32,7 @@
 
 namespace
 {
-    class CSProLexInterface : public Scintilla::Internal::LexInterface 
+    class CSProLexInterface : public Scintilla::Internal::LexInterface
     {
     public:
         CSProLexInterface(Scintilla::Internal::Document* doc, int lexer_language, const std::vector<std::string>& keywords)

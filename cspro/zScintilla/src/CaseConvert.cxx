@@ -23,7 +23,7 @@
 using namespace Scintilla::Internal;
 
 namespace {
-	// Use an unnamed namespace to protect the declarations from name conflicts
+    // Use an unnamed namespace to protect the declarations from name conflicts
 
 // Unicode code points are ordered by groups and follow patterns.
 // Most characters (pitch==1) are in ranges for a particular alphabet and their
@@ -84,6 +84,7 @@ constexpr int symmetricCaseConversionRanges[] = {
 66979,66940,15,1,
 66995,66956,7,1,
 68800,68736,51,1,
+68976,68944,22,1,
 71872,71840,32,1,
 93792,93760,32,1,
 125218,125184,34,1,
@@ -114,6 +115,7 @@ constexpr int symmetricCaseConversions[] = {
 405,502,
 409,408,
 410,573,
+411,42972,
 414,544,
 417,416,
 419,418,
@@ -149,6 +151,7 @@ constexpr int symmetricCaseConversions[] = {
 608,403,
 609,42924,
 611,404,
+612,42955,
 613,42893,
 614,42922,
 616,407,
@@ -195,6 +198,7 @@ constexpr int symmetricCaseConversions[] = {
 4349,7357,
 4350,7358,
 4351,7359,
+7306,7305,
 7545,42877,
 7549,11363,
 7566,42950,
@@ -246,9 +250,11 @@ constexpr int symmetricCaseConversions[] = {
 42900,42948,
 42952,42951,
 42954,42953,
+42957,42956,
 42961,42960,
 42967,42966,
 42969,42968,
+42971,42970,
 42998,42997,
 43859,42931,
 67003,66964,
@@ -581,190 +587,190 @@ constexpr std::string_view complexCaseConversions =
 constexpr size_t maxConversionLength = 6;
 
 class CaseConverter final : public ICaseConverter {
-	struct ConversionString {
-		char conversion[maxConversionLength+1]{};
-	};
-	// Conversions are initially store in a vector of structs but then decomposed into
-	// parallel arrays as that is about 10% faster to search.
-	struct CharacterConversion {
-		int character = 0;
-		ConversionString conversion;
-		// Empty case: NUL -> "".
-		CharacterConversion() noexcept = default;
-		CharacterConversion(int character_, std::string_view conversion_) noexcept : character(character_) {
-			assert(conversion_.length() <= maxConversionLength);
-			try {
-				// This can never fail as std::string_view::copy should only throw
-				// std::out_of_range if pos > size() and pos == 0 here
-				conversion_.copy(conversion.conversion, conversion_.length());
-			} catch (...) {
-				// Ignore any exception
-			}
-		}
-		bool operator<(const CharacterConversion &other) const noexcept {
-			return character < other.character;
-		}
-	};
-	typedef std::vector<CharacterConversion> CharacterToConversion;
-	CharacterToConversion characterToConversion;
-	// The parallel arrays
-	std::vector<int> characters;
-	std::vector<ConversionString> conversions;
+    struct ConversionString {
+        char conversion[maxConversionLength+1]{};
+    };
+    // Conversions are initially store in a vector of structs but then decomposed into
+    // parallel arrays as that is about 10% faster to search.
+    struct CharacterConversion {
+        int character = 0;
+        ConversionString conversion;
+        // Empty case: NUL -> "".
+        CharacterConversion() noexcept = default;
+        CharacterConversion(int character_, std::string_view conversion_) noexcept : character(character_) {
+            assert(conversion_.length() <= maxConversionLength);
+            try {
+                // This can never fail as std::string_view::copy should only throw
+                // std::out_of_range if pos > size() and pos == 0 here
+                conversion_.copy(conversion.conversion, conversion_.length());
+            } catch (...) {
+                // Ignore any exception
+            }
+        }
+        bool operator<(const CharacterConversion &other) const noexcept {
+            return character < other.character;
+        }
+    };
+    using CharacterToConversion = std::vector<CharacterConversion>;
+    CharacterToConversion characterToConversion;
+    // The parallel arrays
+    std::vector<int> characters;
+    std::vector<ConversionString> conversions;
 
 public:
-	CaseConverter() noexcept = default;
-	bool Initialised() const noexcept {
-		return !characters.empty();
-	}
-	void Add(int character, std::string_view conversion_) {
-		characterToConversion.emplace_back(character, conversion_);
-	}
-	const char *Find(int character) {
-		const std::vector<int>::iterator it = std::lower_bound(characters.begin(), characters.end(), character);
-		if (it == characters.end())
-			return nullptr;
-		else if (*it == character)
-			return conversions[it - characters.begin()].conversion;
-		else
-			return nullptr;
-	}
-	size_t CaseConvertString(char *converted, size_t sizeConverted, const char *mixed, size_t lenMixed) override {
-		size_t lenConverted = 0;
-		size_t mixedPos = 0;
-		unsigned char bytes[UTF8MaxBytes + 1]{};
-		while (mixedPos < lenMixed) {
-			const unsigned char leadByte = mixed[mixedPos];
-			const char *caseConverted = nullptr;
-			size_t lenMixedChar = 1;
-			if (UTF8IsAscii(leadByte)) {
-				caseConverted = Find(leadByte);
-			} else {
-				bytes[0] = leadByte;
-				const int widthCharBytes = UTF8BytesOfLead[leadByte];
-				for (int b=1; b<widthCharBytes; b++) {
-					bytes[b] = (mixedPos+b < lenMixed) ? mixed[mixedPos+b] : 0;
-				}
-				const int classified = UTF8Classify(bytes, widthCharBytes);
-				if (!(classified & UTF8MaskInvalid)) {
-					// valid UTF-8
-					lenMixedChar = classified & UTF8MaskWidth;
-					const int character = UnicodeFromUTF8(bytes);
-					caseConverted = Find(character);
-				}
-			}
-			if (caseConverted) {
-				// Character has a conversion so copy that conversion in
-				while (*caseConverted) {
-					converted[lenConverted++] = *caseConverted++;
-					if (lenConverted >= sizeConverted)
-						return 0;
-				}
-			} else {
-				// Character has no conversion so copy the input to output
-				for (size_t i=0; i<lenMixedChar; i++) {
-					converted[lenConverted++] = mixed[mixedPos+i];
-					if (lenConverted >= sizeConverted)
-						return 0;
-				}
-			}
-			mixedPos += lenMixedChar;
-		}
-		return lenConverted;
-	}
-	void FinishedAdding() {
-		std::sort(characterToConversion.begin(), characterToConversion.end());
-		characters.reserve(characterToConversion.size());
-		conversions.reserve(characterToConversion.size());
-		for (const CharacterConversion &chConv : characterToConversion) {
-			characters.push_back(chConv.character);
-			conversions.push_back(chConv.conversion);
-		}
-		// Empty the original calculated data completely
-		CharacterToConversion().swap(characterToConversion);
-	}
-	void AddSymmetric(CaseConversion conversion, int lower, int upper);
-	void SetupConversions(CaseConversion conversion);
+    CaseConverter() noexcept = default;
+    [[nodiscard]] bool Initialised() const noexcept {
+        return !characters.empty();
+    }
+    void Add(int character, std::string_view conversion_) {
+        characterToConversion.emplace_back(character, conversion_);
+    }
+    const char *Find(int character) {
+        const std::vector<int>::iterator it = std::lower_bound(characters.begin(), characters.end(), character);
+        if (it == characters.end())
+            return nullptr;
+        else if (*it == character)
+            return conversions[it - characters.begin()].conversion;
+        else
+            return nullptr;
+    }
+    size_t CaseConvertString(char *converted, size_t sizeConverted, const char *mixed, size_t lenMixed) override {
+        size_t lenConverted = 0;
+        size_t mixedPos = 0;
+        unsigned char bytes[UTF8MaxBytes + 1]{};
+        while (mixedPos < lenMixed) {
+            const unsigned char leadByte = mixed[mixedPos];
+            const char *caseConverted = nullptr;
+            size_t lenMixedChar = 1;
+            if (UTF8IsAscii(leadByte)) {
+                caseConverted = Find(leadByte);
+            } else {
+                bytes[0] = leadByte;
+                const int widthCharBytes = UTF8BytesOfLead[leadByte];
+                for (int b=1; b<widthCharBytes; b++) {
+                    bytes[b] = (mixedPos+b < lenMixed) ? mixed[mixedPos+b] : 0;
+                }
+                const int classified = UTF8Classify(bytes, widthCharBytes);
+                if (!(classified & UTF8MaskInvalid)) {
+                    // valid UTF-8
+                    lenMixedChar = classified & UTF8MaskWidth;
+                    const int character = UnicodeFromUTF8(bytes);
+                    caseConverted = Find(character);
+                }
+            }
+            if (caseConverted) {
+                // Character has a conversion so copy that conversion in
+                while (*caseConverted) {
+                    converted[lenConverted++] = *caseConverted++;
+                    if (lenConverted >= sizeConverted)
+                        return 0;
+                }
+            } else {
+                // Character has no conversion so copy the input to output
+                for (size_t i=0; i<lenMixedChar; i++) {
+                    converted[lenConverted++] = mixed[mixedPos+i];
+                    if (lenConverted >= sizeConverted)
+                        return 0;
+                }
+            }
+            mixedPos += lenMixedChar;
+        }
+        return lenConverted;
+    }
+    void FinishedAdding() {
+        std::sort(characterToConversion.begin(), characterToConversion.end());
+        characters.reserve(characterToConversion.size());
+        conversions.reserve(characterToConversion.size());
+        for (const CharacterConversion &chConv : characterToConversion) {
+            characters.push_back(chConv.character);
+            conversions.push_back(chConv.conversion);
+        }
+        // Empty the original calculated data completely
+        CharacterToConversion().swap(characterToConversion);
+    }
+    void AddSymmetric(CaseConversion conversion, int lower, int upper);
+    void SetupConversions(CaseConversion conversion);
 };
 
 CaseConverter caseConvList[3];
 
 void CaseConverter::AddSymmetric(CaseConversion conversion, int lower, int upper) {
-	const int character = (conversion == CaseConversion::upper) ? lower : upper;
-	const int source = (conversion == CaseConversion::upper) ? upper : lower;
-	char converted[maxConversionLength+1]{};
-	UTF8FromUTF32Character(source, converted);
-	Add(character, converted);
+    const int character = (conversion == CaseConversion::upper) ? lower : upper;
+    const int source = (conversion == CaseConversion::upper) ? upper : lower;
+    char converted[maxConversionLength+1]{};
+    UTF8FromUTF32Character(source, converted);
+    Add(character, converted);
 }
 
 // Return the next '|' separated field and remove from view.
 std::string_view NextField(std::string_view &view) {
-	const size_t separatorPosition = view.find_first_of('|');
-	const std::string_view field = view.substr(0, separatorPosition);
-	if (separatorPosition == std::string_view::npos) {
-		// Reached the end so empty the view
-		view.remove_prefix(view.length());
-	} else {
-		// Remove the '|' from the view as well as the field
-		view.remove_prefix(separatorPosition + 1);
-	}
-	return field;
+    const size_t separatorPosition = view.find_first_of('|');
+    const std::string_view field = view.substr(0, separatorPosition);
+    if (separatorPosition == std::string_view::npos) {
+        // Reached the end so empty the view
+        view.remove_prefix(view.length());
+    } else {
+        // Remove the '|' from the view as well as the field
+        view.remove_prefix(separatorPosition + 1);
+    }
+    return field;
 }
 
 void CaseConverter::SetupConversions(CaseConversion conversion) {
-	// First initialize for the symmetric ranges
-	for (size_t i=0; i<std::size(symmetricCaseConversionRanges);) {
-		const int lower = symmetricCaseConversionRanges[i++];
-		const int upper = symmetricCaseConversionRanges[i++];
-		const int length = symmetricCaseConversionRanges[i++];
-		const int pitch = symmetricCaseConversionRanges[i++];
-		for (int j=0; j<length*pitch; j+=pitch) {
-			AddSymmetric(conversion, lower+j, upper+j);
-		}
-	}
-	// Add the symmetric singletons
-	for (size_t i=0; i<std::size(symmetricCaseConversions);) {
-		const int lower = symmetricCaseConversions[i++];
-		const int upper = symmetricCaseConversions[i++];
-		AddSymmetric(conversion, lower, upper);
-	}
-	// Add the complex cases
-	std::string_view sComplex = complexCaseConversions;
-	while (!sComplex.empty()) {
-		const std::string_view originUTF8 = NextField(sComplex);
-		const std::string_view foldedUTF8 = NextField(sComplex);
-		const std::string_view upperUTF8 = NextField(sComplex);
-		const std::string_view lowerUTF8 = NextField(sComplex);
+    // First initialize for the symmetric ranges
+    for (size_t i=0; i<std::size(symmetricCaseConversionRanges);) {
+        const int lower = symmetricCaseConversionRanges[i++];
+        const int upper = symmetricCaseConversionRanges[i++];
+        const int length = symmetricCaseConversionRanges[i++];
+        const int pitch = symmetricCaseConversionRanges[i++];
+        for (int j=0; j<length*pitch; j+=pitch) {
+            AddSymmetric(conversion, lower+j, upper+j);
+        }
+    }
+    // Add the symmetric singletons
+    for (size_t i=0; i<std::size(symmetricCaseConversions);) {
+        const int lower = symmetricCaseConversions[i++];
+        const int upper = symmetricCaseConversions[i++];
+        AddSymmetric(conversion, lower, upper);
+    }
+    // Add the complex cases
+    std::string_view sComplex = complexCaseConversions;
+    while (!sComplex.empty()) {
+        const std::string_view originUTF8 = NextField(sComplex);
+        const std::string_view foldedUTF8 = NextField(sComplex);
+        const std::string_view upperUTF8 = NextField(sComplex);
+        const std::string_view lowerUTF8 = NextField(sComplex);
 
-		std::string_view converted;
-		switch (conversion) {
-		case CaseConversion::fold:
-			converted = foldedUTF8;
-			break;
-		case CaseConversion::upper:
-			converted = upperUTF8;
-			break;
-		case CaseConversion::lower:
-		default:
-			converted = lowerUTF8;
-			break;
-		}
-		if (!converted.empty()) {
-			const int character = UnicodeFromUTF8(reinterpret_cast<const unsigned char *>(originUTF8.data()));
-			Add(character, converted);
-		}
-	}
+        std::string_view converted;
+        switch (conversion) {
+        case CaseConversion::fold:
+            converted = foldedUTF8;
+            break;
+        case CaseConversion::upper:
+            converted = upperUTF8;
+            break;
+        case CaseConversion::lower:
+        default:
+            converted = lowerUTF8;
+            break;
+        }
+        if (!converted.empty()) {
+            const int character = UnicodeFromUTF8(originUTF8);
+            Add(character, converted);
+        }
+    }
 
-	FinishedAdding();
+    FinishedAdding();
 }
 
 CaseConverter *ConverterForConversion(CaseConversion conversion) {
-	const unsigned index = static_cast<unsigned>(conversion);
-	assert(index < std::size(caseConvList));
-	CaseConverter *pCaseConv = &caseConvList[index];
-	if (!pCaseConv->Initialised()) {
-		pCaseConv->SetupConversions(conversion);
-	}
-	return pCaseConv;
+    const unsigned index = static_cast<unsigned>(conversion);
+    assert(index < std::size(caseConvList));
+    CaseConverter *pCaseConv = &caseConvList[index];
+    if (!pCaseConv->Initialised()) {
+        pCaseConv->SetupConversions(conversion);
+    }
+    return pCaseConv;
 }
 
 }
@@ -772,25 +778,25 @@ CaseConverter *ConverterForConversion(CaseConversion conversion) {
 namespace Scintilla::Internal {
 
 ICaseConverter *ConverterFor(CaseConversion conversion) {
-	return ConverterForConversion(conversion);
+    return ConverterForConversion(conversion);
 }
 
 const char *CaseConvert(int character, CaseConversion conversion) {
-	CaseConverter *pCaseConv = ConverterForConversion(conversion);
-	return pCaseConv->Find(character);
+    CaseConverter *pCaseConv = ConverterForConversion(conversion);
+    return pCaseConv->Find(character);
 }
 
 size_t CaseConvertString(char *converted, size_t sizeConverted, const char *mixed, size_t lenMixed, CaseConversion conversion) {
-	CaseConverter *pCaseConv = ConverterForConversion(conversion);
-	return pCaseConv->CaseConvertString(converted, sizeConverted, mixed, lenMixed);
+    CaseConverter *pCaseConv = ConverterForConversion(conversion);
+    return pCaseConv->CaseConvertString(converted, sizeConverted, mixed, lenMixed);
 }
 
 std::string CaseConvertString(const std::string &s, CaseConversion conversion) {
-	std::string retMapped(s.length() * maxExpansionCaseConversion, 0);
-	const size_t lenMapped = CaseConvertString(&retMapped[0], retMapped.length(), s.c_str(), s.length(),
-		conversion);
-	retMapped.resize(lenMapped);
-	return retMapped;
+    std::string retMapped(s.length() * maxExpansionCaseConversion, 0);
+    const size_t lenMapped = CaseConvertString(retMapped.data(), retMapped.length(), s.c_str(), s.length(),
+        conversion);
+    retMapped.resize(lenMapped);
+    return retMapped;
 }
 
 }

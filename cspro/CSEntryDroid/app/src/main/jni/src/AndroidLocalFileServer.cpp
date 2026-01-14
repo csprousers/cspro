@@ -1,4 +1,4 @@
-﻿#include <engine/StandardSystemIncludes.h>
+#include <engine/StandardSystemIncludes.h>
 #include "AndroidLocalFileServer.h"
 #include <zHtml/LocalhostUrl.h>
 
@@ -45,7 +45,7 @@ AndroidLocalFileServer::Response AndroidLocalFileServer::GetVirtualFile(JNIEnv& 
 // VirtualFileMappingHandler::ServeContent
 // --------------------------------------------------------------------------
 
-void VirtualFileMappingResponse::SetContent(const void* const content_data, const size_t content_size, const cs::string_sz content_type)
+void VirtualFileMappingResponse::SetContent(const void* const content_data, const size_t content_size, const std::string& content_type)
 {
     ASSERT(content_data != nullptr);
 
@@ -54,5 +54,5 @@ void VirtualFileMappingResponse::SetContent(const void* const content_data, cons
     response_object.response.content = response_object.jni_env.NewByteArray(content_size);
     response_object.jni_env.SetByteArrayRegion(response_object.response.content, 0, content_size, static_cast<const jbyte*>(content_data));
 
-    response_object.response.content_type = content_type.c_str();
+    response_object.response.content_type = content_type;
 }

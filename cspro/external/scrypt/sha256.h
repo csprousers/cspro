@@ -1,5 +1,5 @@
-﻿#ifndef _SHA256_H_
-#define _SHA256_H_
+﻿#ifndef SHA256_H_
+#define SHA256_H_
 
 #include <stddef.h>
 #include <stdint.h>
@@ -41,7 +41,7 @@ void SHA256_Update(SHA256_CTX *, const void *, size_t);
 /**
  * SHA256_Final(digest, ctx):
  * Output the SHA256 hash of the data input to the context ${ctx} into the
- * buffer ${digest}.
+ * buffer ${digest}, and clear the context state.
  */
 void SHA256_Final(uint8_t[32], SHA256_CTX *);
 
@@ -73,7 +73,7 @@ void HMAC_SHA256_Update(HMAC_SHA256_CTX *, const void *, size_t);
 /**
  * HMAC_SHA256_Final(digest, ctx):
  * Output the HMAC-SHA256 of the data input to the context ${ctx} into the
- * buffer ${digest}.
+ * buffer ${digest}, and clear the context state.
  */
 void HMAC_SHA256_Final(uint8_t[32], HMAC_SHA256_CTX *);
 
@@ -92,4 +92,4 @@ void HMAC_SHA256_Buf(const void *, size_t, const void *, size_t, uint8_t[32]);
 void PBKDF2_SHA256(const uint8_t *, size_t, const uint8_t *, size_t,
     uint64_t, uint8_t *, size_t);
 
-#endif /* !_SHA256_H_ */
+#endif /* !SHA256_H_ */

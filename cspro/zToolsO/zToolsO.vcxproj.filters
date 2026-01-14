@@ -24,8 +24,35 @@
     <Filter Include="Source Files\md4c">
       <UniqueIdentifier>{14b4c701-ff11-44a2-9b9f-24e207246c1a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\bzip2">
+      <UniqueIdentifier>{eb8a8ef6-f3b8-45c5-9a32-1831d2c2c735}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\bzip2">
+      <UniqueIdentifier>{bb8c6771-04be-4fde-814b-9111545d344d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\external\bzip2\blocksort.c">
+      <Filter>Source Files\bzip2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\bzip2\bzlib.c">
+      <Filter>Source Files\bzip2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\bzip2\compress.c">
+      <Filter>Source Files\bzip2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\bzip2\crctable.c">
+      <Filter>Source Files\bzip2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\bzip2\decompress.c">
+      <Filter>Source Files\bzip2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\bzip2\huffman.c">
+      <Filter>Source Files\bzip2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\bzip2\randtable.c">
+      <Filter>Source Files\bzip2</Filter>
+    </ClCompile>
     <ClCompile Include="..\external\md4c\entity.c">
       <Filter>Source Files\md4c</Filter>
     </ClCompile>
@@ -42,9 +69,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="BinaryGen.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="bzlib.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="DateTime.cpp">
@@ -181,6 +205,9 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\external\bzip2\bzlib.h">
+      <Filter>Header Files\bzip2</Filter>
+    </ClInclude>
     <ClInclude Include="..\external\scrypt\insecure_memzero.h">
       <Filter>Header Files\scrypt</Filter>
     </ClInclude>
@@ -209,9 +236,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="BinarySerializer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="bzlib.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="CallbackFunctionProcessor.h">

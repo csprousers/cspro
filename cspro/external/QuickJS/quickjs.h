@@ -1,4 +1,6 @@
-﻿// CSPro: to get the console application building in the 64-bit environment
+// CSPRO CHANGES: changes have been made, marked with QUICKJS_CSPRO
+
+// QUICKJS_CSPRO: to get the console application building in the 64-bit environment
 #ifdef _CONSOLE
 #define JS_NAN_BOXING 1
 #endif
@@ -551,7 +553,7 @@ JS_EXTERN void JS_FreeAtomRT(JSRuntime *rt, JSAtom v);
 JS_EXTERN JSValue JS_AtomToValue(JSContext *ctx, JSAtom atom);
 JS_EXTERN JSValue JS_AtomToString(JSContext *ctx, JSAtom atom);
 JS_EXTERN const char *JS_AtomToCStringLen(JSContext *ctx, size_t *plen, JSAtom atom);
-static inline const char *JS_AtomToCString(JSContext *ctx, JSAtom atom) 
+static inline const char *JS_AtomToCString(JSContext *ctx, JSAtom atom)
 {
     return JS_AtomToCStringLen(ctx, NULL, atom);
 }
@@ -564,7 +566,7 @@ typedef struct JSPropertyEnum {
     JSAtom atom;
 } JSPropertyEnum;
 
-void js_free_prop_enum(JSContext *ctx, JSPropertyEnum *tab, uint32_t len); // CSPro
+void js_free_prop_enum(JSContext *ctx, JSPropertyEnum *tab, uint32_t len); // QUICKJS_CSPRO added
 
 typedef struct JSPropertyDescriptor {
     int flags;
@@ -1289,7 +1291,7 @@ JS_EXTERN uintptr_t js_std_cmd(int cmd, ...);
 
 
 // --------------------------------------------------------------------------
-// CSPro additions
+// QUICKJS_CSPRO: CSPro additions
 // --------------------------------------------------------------------------
 
 int csjs_get_export_entry_count(JSModuleDef* m);

@@ -1,4 +1,6 @@
-﻿// Copyright 2013-2023 Daniel Parker
+// note CSPro additions marked with "CSPro"
+
+ // Copyright 2013-2025 Daniel Parker
 // Distributed under the Boost license, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
@@ -7,39 +9,34 @@
 #ifndef JSONCONS_JSON_OPTIONS_HPP
 #define JSONCONS_JSON_OPTIONS_HPP
 
-#include <string>
-#include <limits> // std::numeric_limits
+#include <cstdint>
 #include <cwchar>
 #include <functional>
-#include <jsoncons/json_exception.hpp>
+#include <string>
+#include <system_error>
+
+#include <jsoncons/config/compiler_support.hpp>
 #include <jsoncons/json_error.hpp>
-#include <jsoncons/extension_traits.hpp>
-#include <jsoncons/ser_context.hpp>
+#include <jsoncons/ser_util.hpp>
 
 namespace jsoncons {
 
 enum class float_chars_format : uint8_t {general,fixed,scientific,hex};
 
-#if !defined(JSONCONS_NO_DEPRECATED)
-JSONCONS_DEPRECATED_MSG("Instead, use float_chars_format") typedef float_chars_format chars_format;
-#endif
-
 enum class indenting : uint8_t {no_indent = 0, indent = 1};
 
-// legacy
-using indenting = indenting;
+enum class line_split_kind  : uint8_t {multi_line=0, new_line=1, same_line=2};
 
-enum class line_split_kind  : uint8_t {same_line,new_line,multi_line};
-
-enum class bigint_chars_format : uint8_t {number, base10, base64, base64url
+enum class bignum_format_kind : uint8_t {raw,
 #if !defined(JSONCONS_NO_DEPRECATED)
-,integer = number
+    number=raw, // deprecated, use raw instead
 #endif
-};
+    base10,
+    base64,
+    base64url};
 
 #if !defined(JSONCONS_NO_DEPRECATED)
-JSONCONS_DEPRECATED_MSG("Instead, use bigint_chars_format") typedef bigint_chars_format bignum_chars_format;
-JSONCONS_DEPRECATED_MSG("Instead, use bigint_chars_format") typedef bigint_chars_format big_integer_chars_format;
+JSONCONS_DEPRECATED_MSG("Instead, use bignum_format_kind") typedef bignum_format_kind bigint_chars_format;
 #endif
 
 enum class byte_string_chars_format : uint8_t {none=0,base16,base64,base64url};
@@ -49,11 +46,13 @@ enum class spaces_option : uint8_t {no_spaces=0,space_after,space_before,space_b
 
 struct default_json_parsing
 {
-    bool operator()(json_errc ec, const ser_context&) noexcept 
+    bool operator()(json_errc ec, const ser_context&) noexcept
     {
         return ec == json_errc::illegal_comment;
     }
 };
+
+#if !defined(JSONCONS_NO_DEPRECATED)
 
 struct strict_json_parsing
 {
@@ -65,21 +64,18 @@ struct strict_json_parsing
 
 struct allow_trailing_commas
 {
-    bool operator()(const std::error_code& ec, const ser_context&) noexcept 
+    bool operator()(const std::error_code& ec, const ser_context&) noexcept
     {
         return ec == json_errc::illegal_comment || ec == jsoncons::json_errc::extra_comma;
     }
 };
 
-#if !defined(JSONCONS_NO_DEPRECATED)
-JSONCONS_DEPRECATED_MSG("Instead, use default_json_parsing") typedef default_json_parsing default_parse_error_handler;
-JSONCONS_DEPRECATED_MSG("Instead, use strict_json_parsing") typedef strict_json_parsing strict_parse_error_handler;
 #endif
 
-template <class CharT>
+template <typename CharT>
 class basic_json_options;
 
-template <class CharT>
+template <typename CharT>
 class basic_json_options_common
 {
     friend class basic_json_options<CharT>;
@@ -87,14 +83,6 @@ public:
     using char_type = CharT;
     using string_type = std::basic_string<CharT>;
 private:
-#if !defined(JSONCONS_NO_DEPRECATED)
-    bool can_read_nan_replacement_;
-    bool can_read_pos_inf_replacement_;
-    bool can_read_neg_inf_replacement_;
-    string_type nan_replacement_;
-    string_type pos_inf_replacement_;
-    string_type neg_inf_replacement_;
-#endif
 
     bool enable_nan_to_num_:1;
     bool enable_inf_to_num_:1;
@@ -117,11 +105,6 @@ private:
 protected:
     basic_json_options_common()
        :
-#if !defined(JSONCONS_NO_DEPRECATED)
-          can_read_nan_replacement_(false),
-          can_read_pos_inf_replacement_(false),
-          can_read_neg_inf_replacement_(false),
-#endif
         enable_nan_to_num_(false),
         enable_inf_to_num_(false),
         enable_neginf_to_num_(false),
@@ -134,12 +117,12 @@ protected:
         max_nesting_depth_(1024)
     {}
 
-    virtual ~basic_json_options_common() noexcept = default;
+    virtual ~basic_json_options_common() = default;
 
     basic_json_options_common(const basic_json_options_common&) = default;
     basic_json_options_common& operator=(const basic_json_options_common&) = default;
     basic_json_options_common(basic_json_options_common&&) = default;
-    basic_json_options_common& operator=(basic_json_options_common&&) = default;
+    //basic_json_options_common& operator=(basic_json_options_common&&) = default;
 
 public:
 
@@ -194,12 +177,6 @@ public:
         {
             return nan_to_num_;
         }
-#if !defined(JSONCONS_NO_DEPRECATED)
-        else if (!can_read_nan_replacement_) // not string
-        {
-            return nan_replacement_;
-        }
-#endif
         else
         {
             return nan_to_num_; // empty string
@@ -212,12 +189,6 @@ public:
         {
             return inf_to_num_;
         }
-#if !defined(JSONCONS_NO_DEPRECATED)
-        else if (!can_read_pos_inf_replacement_) // not string
-        {
-            return pos_inf_replacement_;
-        }
-#endif
         else
         {
             return inf_to_num_; // empty string
@@ -237,12 +208,6 @@ public:
             s.append(inf_to_num_);
             return s;
         }
-#if !defined(JSONCONS_NO_DEPRECATED)
-        else if (!can_read_neg_inf_replacement_) // not string
-        {
-            return neg_inf_replacement_;
-        }
-#endif
         else
         {
             return neginf_to_num_; // empty string
@@ -251,38 +216,12 @@ public:
 
     string_type nan_to_str() const
     {
-        if (enable_nan_to_str_)
-        {
-            return nan_to_str_;
-        }
-#if !defined(JSONCONS_NO_DEPRECATED)
-        else if (can_read_nan_replacement_ && nan_replacement_.size() >= 2) // string
-        {
-            return nan_replacement_.substr(1, nan_replacement_.size() - 2); // Remove quotes
-        }
-#endif
-        else
-        {
-            return nan_to_str_; // empty string
-        }
+        return nan_to_str_;
     }
 
     string_type inf_to_str() const
     {
-        if (enable_inf_to_str_)
-        {
-            return inf_to_str_;
-        }
-#if !defined(JSONCONS_NO_DEPRECATED)
-        else if (can_read_pos_inf_replacement_ && pos_inf_replacement_.size() >= 2) // string
-        {
-            return pos_inf_replacement_.substr(1, pos_inf_replacement_.size() - 2); // Strip quotes
-        }
-#endif
-        else
-        {
-            return inf_to_str_; // empty string
-        }
+        return inf_to_str_;
     }
 
     string_type neginf_to_str() const
@@ -298,60 +237,19 @@ public:
             s.append(inf_to_str_);
             return s;
         }
-#if !defined(JSONCONS_NO_DEPRECATED)
-        else if (can_read_neg_inf_replacement_ && neg_inf_replacement_.size() >= 2) // string
-        {
-            return neg_inf_replacement_.substr(1, neg_inf_replacement_.size() - 2); // Strip quotes
-        }
-#endif
         else
         {
             return neginf_to_str_; // empty string
         }
     }
 
-    int max_nesting_depth() const 
+    int max_nesting_depth() const
     {
         return max_nesting_depth_;
     }
-
-#if !defined(JSONCONS_NO_DEPRECATED)
-    JSONCONS_DEPRECATED_MSG("Instead, use enable_nan_to_num() or enable_nan_to_str()")
-    bool can_read_nan_replacement() const { return can_read_nan_replacement_; }
-
-    JSONCONS_DEPRECATED_MSG("Instead, use enable_inf_to_num() or enable_inf_to_str()")
-    bool can_read_pos_inf_replacement() const { return can_read_pos_inf_replacement_; }
-
-    JSONCONS_DEPRECATED_MSG("Instead, use enable_neginf_to_num() or enable_neginf_to_str()")
-    bool can_read_neg_inf_replacement() const { return can_read_neg_inf_replacement_; }
-
-    bool can_write_nan_replacement() const { return !nan_replacement_.empty(); }
-
-    bool can_write_pos_inf_replacement() const { return !pos_inf_replacement_.empty(); }
-
-    bool can_write_neg_inf_replacement() const { return !neg_inf_replacement_.empty(); }
-
-    JSONCONS_DEPRECATED_MSG("Instead, use nan_to_num() or nan_to_str()")
-    const string_type& nan_replacement() const
-    {
-        return nan_replacement_;
-    }
-
-    JSONCONS_DEPRECATED_MSG("Instead, use inf_to_num() or inf_to_str()")
-    const string_type& pos_inf_replacement() const
-    {
-        return pos_inf_replacement_;
-    }
-
-    JSONCONS_DEPRECATED_MSG("Instead, use neginf_to_num() or neginf_to_str()")
-    const string_type& neg_inf_replacement() const
-    {
-        return neg_inf_replacement_;
-    }
-#endif
 };
 
-template <class CharT>
+template <typename CharT>
 class basic_json_decode_options : public virtual basic_json_options_common<CharT>
 {
     friend class basic_json_options<CharT>;
@@ -360,43 +258,60 @@ public:
     using typename super_type::char_type;
     using typename super_type::string_type;
 private:
-    bool lossless_number_;
+    bool lossless_number_{false};
+    bool lossless_bignum_{true};
+    bool allow_comments_{true};
+    bool allow_trailing_comma_{false};
     std::function<bool(json_errc,const ser_context&)> err_handler_;
 public:
     basic_json_decode_options()
-        : lossless_number_(false), err_handler_(default_json_parsing())
+        : err_handler_(default_json_parsing())
     {
     }
 
     basic_json_decode_options(const basic_json_decode_options&) = default;
 
-    basic_json_decode_options(basic_json_decode_options&& other)
-        : super_type(std::move(other)), lossless_number_(other.lossless_number_), err_handler_(std::move(other.err_handler_))
+    basic_json_decode_options(basic_json_decode_options&& other) noexcept
+        : super_type(std::move(other)),
+          lossless_number_(other.lossless_number_),
+          lossless_bignum_(other.lossless_bignum_),
+          allow_comments_(other.allow_comments_),
+          allow_trailing_comma_(other.allow_trailing_comma_),
+          err_handler_(std::move(other.err_handler_))
     {
     }
-
+protected:
     basic_json_decode_options& operator=(const basic_json_decode_options&) = default;
-
-    bool lossless_number() const 
+    basic_json_decode_options& operator=(basic_json_decode_options&&) = default;
+public:
+    bool lossless_number() const
     {
         return lossless_number_;
     }
-
-    const std::function<bool(json_errc,const ser_context&)>& err_handler() const 
+    bool lossless_bignum() const
     {
-        return err_handler_;
+        return lossless_bignum_;
+    }
+
+    bool allow_comments() const
+    {
+        return allow_comments_;
+    }
+
+    bool allow_trailing_comma() const
+    {
+        return allow_trailing_comma_;
     }
 
 #if !defined(JSONCONS_NO_DEPRECATED)
-    JSONCONS_DEPRECATED_MSG("Instead, use lossless_number()")
-    bool dec_to_str() const 
+    const std::function<bool(json_errc,const ser_context&)>& err_handler() const
     {
-        return lossless_number_;
+        return err_handler_;
     }
 #endif
 };
 
-template <class CharT>
+template <typename CharT>
 class basic_json_encode_options : public virtual basic_json_options_common<CharT>
 {
     friend class basic_json_options<CharT>;
@@ -414,17 +329,19 @@ private:
     bool pad_inside_array_brackets_:1;
     float_chars_format float_format_;
     byte_string_chars_format byte_string_format_;
-    bigint_chars_format bigint_format_;
+    bignum_format_kind bignum_format_;
+    line_split_kind root_line_splits_;
     line_split_kind object_object_line_splits_;
     line_split_kind object_array_line_splits_;
     line_split_kind array_array_line_splits_;
     line_split_kind array_object_line_splits_;
     spaces_option spaces_around_colon_;
     spaces_option spaces_around_comma_;
-    int8_t precision_;
-    uint8_t indent_size_;
-    std::size_t line_length_limit_;
+    int8_t precision_{0};
+    uint8_t indent_size_{indent_size_default};
+    std::size_t line_length_limit_{line_length_limit_default};
     string_type new_line_chars_;
+    char_type indent_char_;
 public:
     basic_json_encode_options()
         : escape_all_non_ascii_(false),
@@ -433,23 +350,22 @@ public:
           pad_inside_array_brackets_(false),
           float_format_(float_chars_format::general),
           byte_string_format_(byte_string_chars_format::none),
-          bigint_format_(bigint_chars_format::base10),
+          bignum_format_(bignum_format_kind::raw),
+          root_line_splits_(line_split_kind::multi_line),
           object_object_line_splits_(line_split_kind::multi_line),
-          object_array_line_splits_(line_split_kind::same_line),
-          array_array_line_splits_(line_split_kind::new_line),
+          object_array_line_splits_(line_split_kind::multi_line),
+          array_array_line_splits_(line_split_kind::multi_line),
           array_object_line_splits_(line_split_kind::multi_line),
           spaces_around_colon_(spaces_option::space_after),
           spaces_around_comma_(spaces_option::space_after),
-          precision_(0),
-          indent_size_(indent_size_default),
-          line_length_limit_(line_length_limit_default)
+          indent_char_(' ')
     {
         new_line_chars_.push_back('\n');
     }
 
     basic_json_encode_options(const basic_json_encode_options&) = default;
 
-    basic_json_encode_options(basic_json_encode_options&& other)
+    basic_json_encode_options(basic_json_encode_options&& other) noexcept
         : super_type(std::move(other)),
           escape_all_non_ascii_(other.escape_all_non_ascii_),
           escape_solidus_(other.escape_solidus_),
@@ -457,7 +373,8 @@ public:
           pad_inside_array_brackets_(other.pad_inside_array_brackets_),
           float_format_(other.float_format_),
           byte_string_format_(other.byte_string_format_),
-          bigint_format_(other.bigint_format_),
+          bignum_format_(other.bignum_format_),
+          root_line_splits_(other.root_line_splits_),
           object_object_line_splits_(other.object_object_line_splits_),
           object_array_line_splits_(other.object_array_line_splits_),
           array_array_line_splits_(other.array_array_line_splits_),
@@ -467,15 +384,30 @@ public:
           precision_(other.precision_),
           indent_size_(other.indent_size_),
           line_length_limit_(other.line_length_limit_),
-          new_line_chars_(std::move(other.new_line_chars_))
+          new_line_chars_(std::move(other.new_line_chars_)),
+          indent_char_(other.indent_char_)
     {
     }
 
+    ~basic_json_encode_options() = default;
+protected:
     basic_json_encode_options& operator=(const basic_json_encode_options&) = default;
-
+    basic_json_encode_options& operator=(basic_json_encode_options&&) = default;
+public:
     byte_string_chars_format byte_string_format() const  {return byte_string_format_;}
 
-    bigint_chars_format bigint_format() const  {return bigint_format_;}
+#if !defined(JSONCONS_NO_DEPRECATED)
+    JSONCONS_DEPRECATED_MSG("Instead, use bignum_format")
+    bignum_format_kind bigint_format() const  {return bignum_format_;}
+#endif
+
+    bignum_format_kind bignum_format() const  {return bignum_format_;}
+
+#if !defined(JSONCONS_NO_DEPRECATED)
+    line_split_kind line_splits() const  {return root_line_splits_;}
+#endif
+
+    line_split_kind root_line_splits() const  {return root_line_splits_;}
 
     line_split_kind object_object_line_splits() const  {return object_object_line_splits_;}
 
@@ -485,87 +417,70 @@ public:
 
     line_split_kind array_array_line_splits() const  {return array_array_line_splits_;}
 
-    uint8_t indent_size() const 
+    uint8_t indent_size() const
     {
         return indent_size_;
     }
 
-    spaces_option spaces_around_colon() const 
+    spaces_option spaces_around_colon() const
     {
         return spaces_around_colon_;
     }
 
-    spaces_option spaces_around_comma() const 
+    spaces_option spaces_around_comma() const
     {
         return spaces_around_comma_;
     }
 
-    bool pad_inside_object_braces() const 
+    char_type indent_char() const
+    {
+        return indent_char_;
+    }
+
+    bool pad_inside_object_braces() const
     {
         return pad_inside_object_braces_;
     }
 
-    bool pad_inside_array_brackets() const 
+    bool pad_inside_array_brackets() const
     {
         return pad_inside_array_brackets_;
     }
 
-    string_type new_line_chars() const 
+    string_type new_line_chars() const
     {
         return new_line_chars_;
     }
 
-    std::size_t line_length_limit() const 
+    std::size_t line_length_limit() const
     {
         return line_length_limit_;
     }
 
-    float_chars_format float_format() const 
+    float_chars_format float_format() const
     {
         return float_format_;
     }
 
-    int8_t precision() const 
+    int8_t precision() const
     {
         return precision_;
     }
 
-    bool escape_all_non_ascii() const 
+    bool escape_all_non_ascii() const
     {
         return escape_all_non_ascii_;
     }
 
-    bool escape_solidus() const 
+    bool escape_solidus() const
     {
         return escape_solidus_;
     }
 
-#if !defined(JSONCONS_NO_DEPRECATED)
-    JSONCONS_DEPRECATED_MSG("Instead, use bigint_format()")
-    bigint_chars_format bignum_format() const {return bigint_format_;}
-
-    JSONCONS_DEPRECATED_MSG("Instead, use indent_size()")
-    uint8_t indent() const 
-    {
-        return indent_size();
-    }
-
-    JSONCONS_DEPRECATED_MSG("Instead, use object_object_line_splits()")
-    line_split_kind object_object_split_lines() const {return object_object_line_splits_;}
-
-    JSONCONS_DEPRECATED_MSG("Instead, use array_object_line_splits()")
-    line_split_kind array_object_split_lines() const {return array_object_line_splits_;}
-
-    JSONCONS_DEPRECATED_MSG("Instead, use object_array_line_splits()")
-    line_split_kind object_array_split_lines() const {return object_array_line_splits_;}
-
-    JSONCONS_DEPRECATED_MSG("Instead, use array_array_line_splits()")
-    line_split_kind array_array_split_lines() const {return array_array_line_splits_;}
-#endif
 };
 
-template <class CharT>
-class basic_json_options final: public basic_json_decode_options<CharT>, 
+template <typename CharT>
+class basic_json_options final: public basic_json_decode_options<CharT>,
                                 public basic_json_encode_options<CharT>
 {
 public:
@@ -585,10 +500,19 @@ public:
     using basic_json_decode_options<CharT>::neginf_to_num;
 
     using basic_json_decode_options<CharT>::lossless_number;
+    using basic_json_decode_options<CharT>::lossless_bignum;
+    using basic_json_decode_options<CharT>::allow_comments;
+    using basic_json_decode_options<CharT>::allow_trailing_comma;
+#if !defined(JSONCONS_NO_DEPRECATED)
     using basic_json_decode_options<CharT>::err_handler;
-
+#endif
     using basic_json_encode_options<CharT>::byte_string_format;
-    using basic_json_encode_options<CharT>::bigint_format;
+    using basic_json_encode_options<CharT>::bignum_format;
+
+#if !defined(JSONCONS_NO_DEPRECATED) // CSPro: this is an error in v1.5.0 that has been fixed in the development branch
+    using basic_json_encode_options<CharT>::line_splits;
+#endif
+    using basic_json_encode_options<CharT>::root_line_splits;
     using basic_json_encode_options<CharT>::object_object_line_splits;
     using basic_json_encode_options<CharT>::array_object_line_splits;
     using basic_json_encode_options<CharT>::object_array_line_splits;
@@ -665,57 +589,21 @@ public:
         return *this;
     }
 
-    JSONCONS_DEPRECATED_MSG("Instead, use inf_to_num(const string_type&) or inf_to_str(const string_type&)")
-        basic_json_options& replace_inf(bool replace)
-    {
-        this->can_read_pos_inf_replacement_ = replace;
-        this->can_read_neg_inf_replacement_ = replace;
-        return *this;
-    }
-
-    JSONCONS_DEPRECATED_MSG("Instead, use inf_to_num(const string_type&) or inf_to_str(const string_type&)")
-        basic_json_options& replace_pos_inf(bool replace)
-    {
-        this->can_read_pos_inf_replacement_ = replace;
-        return *this;
-    }
-
-    JSONCONS_DEPRECATED_MSG("Instead, use neginf_to_num(const string_type&) or neginf_to_str(const string_type&)")
-        basic_json_options& replace_neg_inf(bool replace)
-    {
-        this->can_read_neg_inf_replacement_ = replace;
-        return *this;
-    }
-
-    JSONCONS_DEPRECATED_MSG("Instead, use nan_to_num(const string_type&) or nan_to_str(const string_type&)")
-        basic_json_options& nan_replacement(const string_type& value)
-    {
-        this->nan_replacement_ = value;
-
-        this->can_read_nan_replacement_ = is_string(value);
-
-        return *this;
-    }
-
-    JSONCONS_DEPRECATED_MSG("Instead, use inf_to_num(const string_type&) or inf_to_str(const string_type&)")
-        basic_json_options& pos_inf_replacement(const string_type& value)
-    {
-        this->pos_inf_replacement_ = value;
-        this->can_read_pos_inf_replacement_ = is_string(value);
-        return *this;
-    }
-
-    JSONCONS_DEPRECATED_MSG("Instead, use neginf_to_num(const string_type&) or neginf_to_str(const string_type&)")
-        basic_json_options& neg_inf_replacement(const string_type& value)
-    {
-        this->neg_inf_replacement_ = value;
-        this->can_read_neg_inf_replacement_ = is_string(value);
-        return *this;
-    }
-
     basic_json_options&  byte_string_format(byte_string_chars_format value) {this->byte_string_format_ = value; return *this;}
 
-    basic_json_options&  bigint_format(bigint_chars_format value) {this->bigint_format_ = value; return *this;}
+
+#if !defined(JSONCONS_NO_DEPRECATED)
+    JSONCONS_DEPRECATED_MSG("Instead, use bignum_format")
+    basic_json_options& bigint_format(bignum_format_kind value) {this->bignum_format_ = value; return *this;}
+#endif
+
+    basic_json_options& bignum_format(bignum_format_kind value) {this->bignum_format_ = value; return *this;}
+
+#if !defined(JSONCONS_NO_DEPRECATED)
+    basic_json_options& line_splits(line_split_kind value) {this->root_line_splits_ = value; return *this;}
+#endif
+
+    basic_json_options& root_line_splits(line_split_kind value) {this->root_line_splits_ = value; return *this;}
 
     basic_json_options& object_object_line_splits(line_split_kind value) {this->object_object_line_splits_ = value; return *this;}
 
@@ -743,6 +631,12 @@ public:
         return *this;
     }
 
+    basic_json_options& indent_char(char_type value)
+    {
+        this->indent_char_ = value;
+        return *this;
+    }
+
     basic_json_options& pad_inside_object_braces(bool value)
     {
         this->pad_inside_object_braces_ = value;
@@ -761,18 +655,37 @@ public:
         return *this;
     }
 
-    basic_json_options& lossless_number(bool value) 
+    basic_json_options& lossless_number(bool value)
     {
         this->lossless_number_ = value;
         return *this;
     }
 
-    basic_json_options& err_handler(const std::function<bool(json_errc,const ser_context&)>& value) 
+    basic_json_options& lossless_bignum(bool value)
+    {
+        this->lossless_bignum_ = value;
+        return *this;
+    }
+
+    basic_json_options& allow_comments(bool value)
+    {
+        this->allow_comments_ = value;
+        return *this;
+    }
+
+    basic_json_options& allow_trailing_comma(bool value)
+    {
+        this->allow_trailing_comma_ = value;
+        return *this;
+    }
+
+#if !defined(JSONCONS_NO_DEPRECATED)
+    basic_json_options& err_handler(const std::function<bool(json_errc,const ser_context&)>& value)
     {
         this->err_handler_ = value;
         return *this;
     }
-
+#endif
     basic_json_options& line_length_limit(std::size_t value)
     {
         this->line_length_limit_ = value;
@@ -809,45 +722,6 @@ public:
         return *this;
     }
 
-#if !defined(JSONCONS_NO_DEPRECATED)
-    JSONCONS_DEPRECATED_MSG("Instead, use bigint_format(bigint_chars_format)")
-    basic_json_options&  big_integer_format(bigint_chars_format value) {this->bigint_format_ = value; return *this;}
-
-    JSONCONS_DEPRECATED_MSG("Instead, use bigint_format(bigint_chars_format)")
-    basic_json_options&  bignum_format(bigint_chars_format value) {this->bigint_format_ = value; return *this;}
-
-    JSONCONS_DEPRECATED_MSG("Instead, use float_format(float_chars_format)")
-    basic_json_options& floating_point_format(float_chars_format value)
-    {
-        this->float_format_ = value;
-        return *this;
-    }
-
-    JSONCONS_DEPRECATED_MSG("Instead, use lossless_number(bool)")
-    basic_json_options& dec_to_str(bool value) 
-    {
-        this->lossless_number_ = value;
-        return *this;
-    }
-
-    JSONCONS_DEPRECATED_MSG("Instead, use indent_size(uint8_t_t)")
-    basic_json_options& indent(uint8_t value)
-    {
-        return indent_size(value);
-    }
-
-    JSONCONS_DEPRECATED_MSG("Instead, use object_object_line_splits(line_split_kind)")
-    basic_json_options& object_object_split_lines(line_split_kind value) {this->object_object_line_splits_ = value; return *this;}
-
-    JSONCONS_DEPRECATED_MSG("Instead, use array_object_line_splits(line_split_kind)")
-    basic_json_options& array_object_split_lines(line_split_kind value) {this->array_object_line_splits_ = value; return *this;}
-
-    JSONCONS_DEPRECATED_MSG("Instead, use object_array_line_splits(line_split_kind)")
-    basic_json_options& object_array_split_lines(line_split_kind value) {this->object_array_line_splits_ = value; return *this;}
-
-    JSONCONS_DEPRECATED_MSG("Instead, use array_array_line_splits(line_split_kind)")
-    basic_json_options& array_array_split_lines(line_split_kind value) {this->array_array_line_splits_ = value; return *this;}
-#endif
 private:
     enum class input_state {initial,begin_quote,character,end_quote,escape,error};
     bool is_string(const string_type& s) const
@@ -895,14 +769,6 @@ private:
 using json_options = basic_json_options<char>;
 using wjson_options = basic_json_options<wchar_t>;
 
-#if !defined(JSONCONS_NO_DEPRECATED)
-JSONCONS_DEPRECATED_MSG("json_options") typedef json_options output_format;
-JSONCONS_DEPRECATED_MSG("wjson_options") typedef wjson_options woutput_format;
-JSONCONS_DEPRECATED_MSG("json_options") typedef json_options serialization_options;
-JSONCONS_DEPRECATED_MSG("wjson_options") typedef wjson_options wserialization_options;
-JSONCONS_DEPRECATED_MSG("json_options") typedef json_options json_serializing_options;
-JSONCONS_DEPRECATED_MSG("wjson_options") typedef wjson_options wjson_serializing_options;
-#endif
+} // namespace jsoncons
 
-}
-#endif
+#endif // JSONCONS_JSON_OPTIONS_HPP

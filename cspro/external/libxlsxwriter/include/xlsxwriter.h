@@ -2,7 +2,7 @@
  * libxlsxwriter
  *
  * SPDX-License-Identifier: BSD-2-Clause
- * Copyright 2014-2024, John McNamara, jmcnamara@cpan.org.
+ * Copyright 2014-2026, John McNamara, jmcnamara@cpan.org.
  */
 
 /**
@@ -19,8 +19,8 @@
 #include "xlsxwriter/format.h"
 #include "xlsxwriter/utility.h"
 
-#define LXW_VERSION "1.1.8"
-#define LXW_VERSION_ID 118
-#define LXW_SOVERSION "7"
+#define LXW_VERSION "1.2.4"
+#define LXW_VERSION_ID 124
+#define LXW_SOVERSION "11"
 
 #endif /* __LXW_XLSXWRITER_H__ */

@@ -21,7 +21,15 @@
   <ItemGroup>
     <ClCompile Include="..\external\miniz\miniz.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level3</WarningLevel>
+    </ClCompile>
+    <ClCompile Include="..\external\miniz\miniz_tdef.c">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\external\miniz\miniz_tinfl.c">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\external\miniz\miniz_zip.c">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>

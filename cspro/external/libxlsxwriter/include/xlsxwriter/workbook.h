@@ -2,7 +2,7 @@
  * libxlsxwriter
  *
  * SPDX-License-Identifier: BSD-2-Clause
- * Copyright 2014-2024, John McNamara, jmcnamara@cpan.org.
+ * Copyright 2014-2026, John McNamara, jmcnamara@cpan.org.
  */
 
 /**
@@ -324,6 +324,8 @@ typedef struct lxw_workbook {
     uint16_t drawing_count;
     uint16_t comment_count;
     uint32_t num_embedded_images;
+    uint16_t window_width;
+    uint16_t window_height;
 
     uint16_t font_count;
     uint16_t border_count;
@@ -349,6 +351,8 @@ typedef struct lxw_workbook {
     char *vba_project;
     char *vba_project_signature;
     char *vba_codename;
+
+    uint8_t use_1904_epoch;
 
     lxw_format *default_url_format;
 
@@ -1068,6 +1072,47 @@ lxw_error workbook_set_vba_name(lxw_workbook *workbook, const char *name);
  * @image html read_only.png
  */
 void workbook_read_only_recommended(lxw_workbook *workbook);
+
+/**
+ * @brief Set the workbook to use the 1904 epoch.
+ *
+ * @param workbook Pointer to a lxw_workbook instance.
+ *
+ * The `%workbook_use_1904_epoch()` function can be used to set the workbook to
+ * use the 1904 epoch instead of the default 1900 epoch.
+ *
+ * Excel supports two date epochs. The first based on 1900-01-01 is the default
+ * for all Windows versions of Excel and for recent versions of Excel for macOS.
+ * Older versions of Excel for macOS used a 1904-01-01 epoch. The 1904 epoch can
+ * be set for compatibility with older versions of Excel or to work around the
+ * Excel limitation of not being able to handle negative times.
+ *
+ * This function should be called before `worksheet_add_worksheet()`.
+ *
+ * @code
+ *     workbook_use_1904_epoch(workbook);
+ * @endcode
+ *
+ */
+void workbook_use_1904_epoch(lxw_workbook *workbook);
+
+/**
+ * @brief Set the size of a workbook window.
+ *
+ * @param workbook Pointer to a lxw_workbook instance.
+ * @param width    Width of the window in pixels.
+ * @param height   Height of the window in pixels.
+ *
+ * Set the size of a workbook window. This is generally only useful on macOS
+ * since Microsoft Windows uses the window size from the last time an Excel file
+ * was opened/saved. The default size is 1073 x 644 pixels.
+ *
+ * The resulting pixel sizes may not exactly match the target screen and
+ * resolution since it is based on the original Excel for Windows sizes. Some
+ * trial and error may be required to get an exact size.
+ */
+void workbook_set_size(lxw_workbook *workbook,
+                       uint16_t width, uint16_t height);
 
 void lxw_workbook_free(lxw_workbook *workbook);
 void lxw_workbook_assemble_xml_file(lxw_workbook *workbook);

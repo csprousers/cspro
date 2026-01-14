@@ -1,4 +1,4 @@
-﻿// Copyright 2013-2023 Daniel Parker
+// Copyright 2013-2025 Daniel Parker
 // Distributed under the Boost license, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
@@ -11,17 +11,17 @@
 #  include <sys/byteorder.h>
 #endif
 
-namespace jsoncons { 
+namespace jsoncons {
 namespace detail {
 
     enum class endian
     {
-    #if defined(_MSC_VER) 
+    #if defined(_MSC_VER)
     // MSVC, which implies Windows, which implies little-endian
          little = 0,
          big    = 1,
          native = little
-    #elif defined(__ORDER_LITTLE_ENDIAN__) && defined(__ORDER_BIG_ENDIAN__) && defined(__BYTE_ORDER__) 
+    #elif defined(__ORDER_LITTLE_ENDIAN__) && defined(__ORDER_BIG_ENDIAN__) && defined(__BYTE_ORDER__)
          little = __ORDER_LITTLE_ENDIAN__,
          big    = __ORDER_BIG_ENDIAN__,
          native = __BYTE_ORDER__
@@ -41,4 +41,4 @@ namespace detail {
 } // namespace detail
 } // namespace jsoncons
 
-#endif
+#endif // JSONCONS_DETAIL_ENDIAN_HPP

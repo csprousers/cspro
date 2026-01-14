@@ -1,4 +1,4 @@
-﻿// Copyright 2013-2023 Daniel Parker
+// Copyright 2013-2025 Daniel Parker
 // Distributed under the Boost license, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
@@ -7,33 +7,32 @@
 #ifndef JSONCONS_JSON_ARRAY_HPP
 #define JSONCONS_JSON_ARRAY_HPP
 
-#include <string>
-#include <vector>
-#include <exception>
-#include <cstring>
 #include <algorithm> // std::sort, std::stable_sort, std::lower_bound, std::unique
-#include <utility>
+#include <cassert> // assert
+#include <cstring>
 #include <initializer_list>
 #include <iterator> // std::iterator_traits
 #include <memory> // std::allocator
-#include <utility> // std::move
-#include <cassert> // assert
 #include <type_traits> // std::enable_if
-#include <jsoncons/json_exception.hpp>
+#include <utility>
+#include <utility> // std::move
+#include <vector>
+
 #include <jsoncons/allocator_holder.hpp>
+#include <jsoncons/json_type.hpp>
 
 namespace jsoncons {
 
     // json_array
 
-    template <class Json,template<typename,typename> class SequenceContainer = std::vector>
+    template <typename Json,template <typename,typename> class SequenceContainer = std::vector>
     class json_array : public allocator_holder<typename Json::allocator_type>
     {
     public:
         using allocator_type = typename Json::allocator_type;
         using value_type = Json;
     private:
-        using value_allocator_type = typename std::allocator_traits<allocator_type>:: template rebind_alloc<value_type>;                   
+        using value_allocator_type = typename std::allocator_traits<allocator_type>:: template rebind_alloc<value_type>;
         using value_container_type = SequenceContainer<value_type,value_allocator_type>;
         value_container_type elements_;
     public:
@@ -49,29 +48,29 @@ namespace jsoncons {
         }
 
         explicit json_array(const allocator_type& alloc)
-            : allocator_holder<allocator_type>(alloc), 
+            : allocator_holder<allocator_type>(alloc),
               elements_(value_allocator_type(alloc))
         {
         }
 
-        explicit json_array(std::size_t n, 
+        explicit json_array(std::size_t n,
                             const allocator_type& alloc = allocator_type())
-            : allocator_holder<allocator_type>(alloc), 
+            : allocator_holder<allocator_type>(alloc),
               elements_(n,Json(),value_allocator_type(alloc))
         {
         }
 
-        explicit json_array(std::size_t n, 
-                            const Json& value, 
+        explicit json_array(std::size_t n,
+                            const Json& value,
                             const allocator_type& alloc = allocator_type())
-            : allocator_holder<allocator_type>(alloc), 
+            : allocator_holder<allocator_type>(alloc),
               elements_(n,value,value_allocator_type(alloc))
         {
         }
 
-        template <class InputIterator>
+        template <typename InputIterator>
         json_array(InputIterator begin, InputIterator end, const allocator_type& alloc = allocator_type())
-            : allocator_holder<allocator_type>(alloc), 
+            : allocator_holder<allocator_type>(alloc),
               elements_(begin,end,value_allocator_type(alloc))
         {
         }
@@ -82,25 +81,25 @@ namespace jsoncons {
         {
         }
         json_array(const json_array& other, const allocator_type& alloc)
-            : allocator_holder<allocator_type>(alloc), 
+            : allocator_holder<allocator_type>(alloc),
               elements_(other.elements_,value_allocator_type(alloc))
         {
         }
 
         json_array(json_array&& other) noexcept
-            : allocator_holder<allocator_type>(other.get_allocator()), 
+            : allocator_holder<allocator_type>(other.get_allocator()),
               elements_(std::move(other.elements_))
         {
         }
         json_array(json_array&& other, const allocator_type& alloc)
-            : allocator_holder<allocator_type>(alloc), 
+            : allocator_holder<allocator_type>(alloc),
               elements_(std::move(other.elements_),value_allocator_type(alloc))
         {
         }
 
-        json_array(const std::initializer_list<Json>& init, 
+        json_array(const std::initializer_list<Json>& init,
                    const allocator_type& alloc = allocator_type())
-            : allocator_holder<allocator_type>(alloc), 
+            : allocator_holder<allocator_type>(alloc),
               elements_(init,value_allocator_type(alloc))
         {
         }
@@ -140,7 +139,7 @@ namespace jsoncons {
 
         void clear() {elements_.clear();}
 
-        void shrink_to_fit() 
+        void shrink_to_fit()
         {
             for (std::size_t i = 0; i < elements_.size(); ++i)
             {
@@ -155,35 +154,14 @@ namespace jsoncons {
 
         void resize(std::size_t n, const Json& val) {elements_.resize(n,val);}
 
-    #if !defined(JSONCONS_NO_DEPRECATED)
-        JSONCONS_DEPRECATED_MSG("Instead, use erase(const_iterator, const_iterator)")
-        void remove_range(std::size_t from_index, std::size_t to_index) 
+        iterator erase(const_iterator pos)
         {
-            JSONCONS_ASSERT(from_index <= to_index);
-            JSONCONS_ASSERT(to_index <= elements_.size());
-            elements_.erase(elements_.cbegin()+from_index,elements_.cbegin()+to_index);
-        }
-    #endif
-
-        iterator erase(const_iterator pos) 
-        {
-    #if defined(JSONCONS_NO_VECTOR_ERASE_TAKES_CONST_ITERATOR)
-            iterator it = elements_.begin() + (pos - elements_.begin());
-            return elements_.erase(it);
-    #else
             return elements_.erase(pos);
-    #endif
         }
 
-        iterator erase(const_iterator first, const_iterator last) 
+        iterator erase(const_iterator first, const_iterator last)
         {
-    #if defined(JSONCONS_NO_VECTOR_ERASE_TAKES_CONST_ITERATOR)
-            iterator it1 = elements_.begin() + (first - elements_.begin());
-            iterator it2 = elements_.begin() + (last - elements_.begin());
-            return elements_.erase(it1,it2);
-    #else
             return elements_.erase(first,last);
-    #endif
         }
 
         Json& operator[](std::size_t i) {return elements_[i];}
@@ -192,68 +170,47 @@ namespace jsoncons {
 
         // push_back
 
-        template <class T, class A=allocator_type>
-        typename std::enable_if<extension_traits::is_stateless<A>::value,void>::type 
+        template <typename T,typename A=allocator_type>
+        typename std::enable_if<std::allocator_traits<A>::is_always_equal::value,void>::type
         push_back(T&& value)
         {
             elements_.emplace_back(std::forward<T>(value));
         }
 
-        template <class T, class A=allocator_type>
-        typename std::enable_if<!extension_traits::is_stateless<A>::value,void>::type 
+        template <typename T,typename A=allocator_type>
+        typename std::enable_if<!std::allocator_traits<A>::is_always_equal::value,void>::type
         push_back(T&& value)
         {
             elements_.emplace_back(std::forward<T>(value));
         }
 
-        template <class T, class A=allocator_type>
-        typename std::enable_if<extension_traits::is_stateless<A>::value,iterator>::type 
+        template <typename T,typename A=allocator_type>
+        typename std::enable_if<std::allocator_traits<A>::is_always_equal::value,iterator>::type
         insert(const_iterator pos, T&& value)
         {
-    #if defined(JSONCONS_NO_VECTOR_ERASE_TAKES_CONST_ITERATOR)
-            iterator it = elements_.begin() + (pos - elements_.begin());
-            return elements_.emplace(it, std::forward<T>(value));
-    #else
             return elements_.emplace(pos, std::forward<T>(value));
-    #endif
         }
-        template <class T, class A=allocator_type>
-        typename std::enable_if<!extension_traits::is_stateless<A>::value,iterator>::type 
+        template <typename T,typename A=allocator_type>
+        typename std::enable_if<!std::allocator_traits<A>::is_always_equal::value,iterator>::type
         insert(const_iterator pos, T&& value)
         {
-    #if defined(JSONCONS_NO_VECTOR_ERASE_TAKES_CONST_ITERATOR)
-            iterator it = elements_.begin() + (pos - elements_.begin());
-            return elements_.emplace(it, std::forward<T>(value));
-    #else
             return elements_.emplace(pos, std::forward<T>(value));
-    #endif
         }
 
-        template <class InputIt>
+        template <typename InputIt>
         iterator insert(const_iterator pos, InputIt first, InputIt last)
         {
-    #if defined(JSONCONS_NO_VECTOR_ERASE_TAKES_CONST_ITERATOR)
-            iterator it = elements_.begin() + (pos - elements_.begin());
-            elements_.insert(it, first, last);
-            return first == last ? it : it + 1;
-    #else
             return elements_.insert(pos, first, last);
-    #endif
         }
 
-        template <class A=allocator_type, class... Args>
-        typename std::enable_if<extension_traits::is_stateless<A>::value,iterator>::type 
+        template <typename A=allocator_type,typename... Args>
+        typename std::enable_if<std::allocator_traits<A>::is_always_equal::value,iterator>::type
         emplace(const_iterator pos, Args&&... args)
         {
-    #if defined(JSONCONS_NO_VECTOR_ERASE_TAKES_CONST_ITERATOR)
-            iterator it = elements_.begin() + (pos - elements_.begin());
-            return elements_.emplace(it, std::forward<Args>(args)...);
-    #else
             return elements_.emplace(pos, std::forward<Args>(args)...);
-    #endif
         }
 
-        template <class... Args>
+        template <typename... Args>
         Json& emplace_back(Args&&... args)
         {
             elements_.emplace_back(std::forward<Args>(args)...);
@@ -277,9 +234,13 @@ namespace jsoncons {
         {
             return elements_ < rhs.elements_;
         }
-    private:
 
-        json_array& operator=(const json_array&) = delete;
+        json_array& operator=(const json_array& other)
+        {
+            elements_ = other.elements_;
+            return *this;
+        }
+    private:
 
         void flatten_and_destroy() noexcept
         {
@@ -289,28 +250,30 @@ namespace jsoncons {
                 elements_.pop_back();
                 switch (current.storage_kind())
                 {
-                    case json_storage_kind::array_value:
+                    case json_storage_kind::array:
                     {
                         for (auto&& item : current.array_range())
                         {
-                            if (item.size() > 0) // non-empty object or array
+                            if ((item.storage_kind() == json_storage_kind::array || item.storage_kind() == json_storage_kind::object)
+                                && !item.empty()) // non-empty object or array
                             {
                                 elements_.push_back(std::move(item));
                             }
                         }
-                        current.clear();                           
+                        current.clear();
                         break;
                     }
-                    case json_storage_kind::object_value:
+                    case json_storage_kind::object:
                     {
                         for (auto&& kv : current.object_range())
                         {
-                            if (kv.value().size() > 0) // non-empty object or array
+                            if ((kv.value().storage_kind() == json_storage_kind::array || kv.value().storage_kind() == json_storage_kind::object)
+                                && !kv.value().empty()) // non-empty object or array
                             {
                                 elements_.push_back(std::move(kv.value()));
                             }
                         }
-                        current.clear();                           
+                        current.clear();
                         break;
                     }
                     default:
@@ -322,4 +285,4 @@ namespace jsoncons {
 
 } // namespace jsoncons
 
-#endif
+#endif // JSONCONS_JSON_ARRAY_HPP

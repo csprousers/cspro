@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "SimpleServer.h"
 #include "LocalhostUrl.h"
 #include <external/cpp-httplib/httplib.h>
@@ -31,7 +31,7 @@ public:
     const std::string& GetRequestTarget() override  { return m_request.target; }
     const std::smatch& GetRequestMatches() override { return m_request.matches; }
 
-    void SetResponseContent(const void* content_data, size_t content_size, cs::string_sz content_type) override;
+    void SetResponseContent(const void* content_data, size_t content_size, const std::string& content_type) override;
     void SetResponseRedirect(const std::string& url) override;
 
 private:
@@ -87,17 +87,9 @@ HttplibSimpleServerHandler::HttplibSimpleServerHandler(const httplib::Request& r
 }
 
 
-void HttplibSimpleServerHandler::SetResponseContent(const void* const content_data, const size_t content_size, const cs::string_sz content_type)
+void HttplibSimpleServerHandler::SetResponseContent(const void* const content_data, const size_t content_size, const std::string& content_type)
 {
-    if( !content_type.empty() )
-    {
-        m_response.set_content(static_cast<const char*>(content_data), content_size, content_type.c_str());
-    }
-
-    else
-    {
-        m_response.set_content(static_cast<const char*>(content_data), content_size);
-    }
+    m_response.set_content(static_cast<const char*>(content_data), content_size, content_type);
 }
 
 

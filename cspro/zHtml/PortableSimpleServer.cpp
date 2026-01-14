@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "SimpleServer.h"
 #include "PortableLocalhost.h"
 
@@ -30,7 +30,7 @@ public:
     const std::string& GetRequestTarget() override  { return m_target; }
     const std::smatch& GetRequestMatches() override { return m_matches; }
 
-    void SetResponseContent(const void* content_data, size_t content_size, cs::string_sz content_type) override;
+    void SetResponseContent(const void* content_data, size_t content_size, const std::string& content_type) override;
     void SetResponseRedirect(const std::string& url) override;
 
 private:
@@ -98,7 +98,7 @@ PortableSimpleServerHandler::PortableSimpleServerHandler(VirtualFileMappingRespo
 }
 
 
-void PortableSimpleServerHandler::SetResponseContent(const void* const content_data, const size_t content_size, const cs::string_sz content_type)
+void PortableSimpleServerHandler::SetResponseContent(const void* const content_data, const size_t content_size, const std::string& content_type)
 {
     m_response.SetContent(content_data, content_size, content_type);
 }

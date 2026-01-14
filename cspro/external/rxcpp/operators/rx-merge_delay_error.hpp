@@ -111,7 +111,7 @@ struct merge_delay_error
                         // on_completed on the output must wait until all the
                         // subscriptions have received on_completed
                         int pendingCompletions;
-                        composite_exception exception;;
+                        composite_exception exception;
                         coordinator_type coordinator;
                         output_type out;
                 };
@@ -167,10 +167,10 @@ struct merge_delay_error
                                                 state->out.on_next(std::move(ct));
                                         },
                                 // on_error
-                                        [state](std::exception_ptr e) {
+                                        [state](rxu::error_ptr e) {
                                                 if(--state->pendingCompletions == 0) {
                                                     state->out.on_error(
-                                                        std::make_exception_ptr(std::move(state->exception.add(e))));
+                                                        rxu::make_error_ptr(std::move(state->exception.add(e))));
                                                 } else {
                                                         state->exception.add(e);
                                                 }
@@ -180,7 +180,7 @@ struct merge_delay_error
                                                 if (--state->pendingCompletions == 0) {
                                                         if(!state->exception.empty()) {
                                                             state->out.on_error(
-                                                                std::make_exception_ptr(std::move(state->exception)));
+                                                                rxu::make_error_ptr(std::move(state->exception)));
                                                         } else {
                                                                 state->out.on_completed();
                                                         }
@@ -192,10 +192,10 @@ struct merge_delay_error
                                 selectedSource.subscribe(std::move(selectedSinkInner));
                         },
                 // on_error
-                        [state](std::exception_ptr e) {
+                        [state](rxu::error_ptr e) {
                             if(--state->pendingCompletions == 0) {
                                 state->out.on_error(
-                                    std::make_exception_ptr(std::move(state->exception.add(e))));
+                                    rxu::make_error_ptr(std::move(state->exception.add(e))));
                             } else {
                                 state->exception.add(e);
                             }
@@ -205,7 +205,7 @@ struct merge_delay_error
                             if (--state->pendingCompletions == 0) {
                                 if(!state->exception.empty()) {
                                     state->out.on_error(
-                                        std::make_exception_ptr(std::move(state->exception)));
+                                        rxu::make_error_ptr(std::move(state->exception)));
                                 } else {
                                     state->out.on_completed();
                                 }

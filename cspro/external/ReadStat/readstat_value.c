@@ -1,4 +1,3 @@
-﻿#pragma warning(disable:4244) // CSPRO_READSTAT_MODIFICATIONS
 
 #include "readstat.h"
 

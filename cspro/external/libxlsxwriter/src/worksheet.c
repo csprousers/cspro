@@ -4,7 +4,7 @@
  * Used in conjunction with the libxlsxwriter library.
  *
  * SPDX-License-Identifier: BSD-2-Clause
- * Copyright 2014-2024, John McNamara, jmcnamara@cpan.org.
+ * Copyright 2014-2026, John McNamara, jmcnamara@cpan.org.
  *
  */
 
@@ -294,6 +294,7 @@ lxw_worksheet_new(lxw_worksheet_init_data *init_data)
         worksheet->first_sheet = init_data->first_sheet;
         worksheet->default_url_format = init_data->default_url_format;
         worksheet->max_url_length = init_data->max_url_length;
+        worksheet->use_1904_epoch = init_data->use_1904_epoch;
     }
 
     return worksheet;
@@ -1717,9 +1718,11 @@ _expand_table_formula(const char *formula)
 
     ptr = formula;
 
-    while (*ptr++) {
+    while (*ptr) {
         if (*ptr == '@')
             ref_count++;
+
+        ptr++;
     }
 
     if (ref_count == 0) {
@@ -3004,13 +3007,15 @@ _worksheet_position_object_pixels(lxw_worksheet *self,
         height = height + y1;
 
     /* Subtract the underlying cell widths to find the end cell. */
-    while (width >= _worksheet_size_col(self, col_end, anchor)) {
+    while (width >= _worksheet_size_col(self, col_end, anchor)
+           && col_end < LXW_COL_MAX) {
         width -= _worksheet_size_col(self, col_end, anchor);
         col_end++;
     }
 
     /* Subtract the underlying cell heights to find the end cell. */
-    while (height >= _worksheet_size_row(self, row_end, anchor)) {
+    while (height >= _worksheet_size_row(self, row_end, anchor)
+           && row_end < LXW_ROW_MAX) {
         height -= _worksheet_size_row(self, row_end, anchor);
         row_end++;
     }
@@ -8125,7 +8130,7 @@ _store_array_formula(lxw_worksheet *self,
 
     /* Copy and trip leading "{=" from formula. */
     if (formula[0] == '{')
-        if (formula[1] == '=')
+        if (strlen(formula) >= 2 && formula[1] == '=')
             formula_copy = lxw_strdup(formula + 2);
         else
             formula_copy = lxw_strdup(formula + 1);
@@ -8133,8 +8138,17 @@ _store_array_formula(lxw_worksheet *self,
         formula_copy = lxw_strdup_formula(formula);
 
     /* Strip trailing "}" from formula. */
-    if (formula_copy[strlen(formula_copy) - 1] == '}')
+    if (strlen(formula_copy) > 0
+        && formula_copy[strlen(formula_copy) - 1] == '}') {
         formula_copy[strlen(formula_copy) - 1] = '\0';
+    }
+
+    /* Check for empty formula that started as {=}. */
+    if (lxw_str_is_empty(formula_copy)) {
+        free(formula_copy);
+        free(range);
+        return LXW_ERROR_PARAMETER_IS_EMPTY;
+    }
 
     /* Create a new array formula cell object. */
     cell = _new_array_formula_cell(first_row, first_col,
@@ -8320,7 +8334,12 @@ worksheet_write_datetime(lxw_worksheet *self,
     if (err)
         return err;
 
-    excel_date = lxw_datetime_to_excel_date_epoch(datetime, LXW_EPOCH_1900);
+    err = lxw_datetime_validate(datetime);
+    if (err)
+        return err;
+
+    excel_date =
+        lxw_datetime_to_excel_date_with_epoch(datetime, self->use_1904_epoch);
 
     cell = _new_number_cell(row_num, col_num, excel_date, format);
 
@@ -8346,7 +8365,8 @@ worksheet_write_unixtime(lxw_worksheet *self,
     if (err)
         return err;
 
-    excel_date = lxw_unixtime_to_excel_date_epoch(unixtime, LXW_EPOCH_1900);
+    excel_date =
+        lxw_unixtime_to_excel_date_with_epoch(unixtime, self->use_1904_epoch);
 
     cell = _new_number_cell(row_num, col_num, excel_date, format);
 
@@ -9626,12 +9646,16 @@ worksheet_set_selection(lxw_worksheet *self,
 
     /* Check that row and col are valid without storing. */
     err = _check_dimensions(self, first_row, first_col, LXW_TRUE, LXW_TRUE);
-    if (err)
+    if (err) {
+        free(selection);
         return err;
+    }
 
     err = _check_dimensions(self, last_row, last_col, LXW_TRUE, LXW_TRUE);
-    if (err)
+    if (err) {
+        free(selection);
         return err;
+    }
 
     /* Set the cell range selection. Do this before swapping max/min to  */
     /* allow the selection direction to be reversed. */
@@ -9771,6 +9795,12 @@ worksheet_set_page_view(lxw_worksheet *self)
 void
 worksheet_set_paper(lxw_worksheet *self, uint8_t paper_size)
 {
+    if (paper_size > 118) {
+        LXW_WARN_FORMAT1("worksheet_set_paper(): invalid paper size: %d. "
+                         "Valid range is 0-118", paper_size);
+        return;
+    }
+
     self->paper_size = paper_size;
     self->page_setup_changed = LXW_TRUE;
 }
@@ -10677,8 +10707,10 @@ worksheet_embed_image_opt(lxw_worksheet *self,
 
     /* Check and store the cell dimensions. */
     err = _check_dimensions(self, row_num, col_num, LXW_FALSE, LXW_FALSE);
-    if (err)
+    if (err) {
+        fclose(image_stream);
         return err;
+    }
 
     /* Create a new object to hold the image properties. */
     object_props = calloc(1, sizeof(lxw_object_properties));
@@ -11346,16 +11378,16 @@ worksheet_data_validation_range(lxw_worksheet *self, lxw_row_t first_row,
         || validation->validate == LXW_VALIDATION_TYPE_TIME) {
         if (is_between) {
             copy->value_number =
-                lxw_datetime_to_excel_date_epoch
-                (&validation->minimum_datetime, LXW_EPOCH_1900);
+                lxw_datetime_to_excel_date_with_epoch
+                (&validation->minimum_datetime, self->use_1904_epoch);
             copy->maximum_number =
-                lxw_datetime_to_excel_date_epoch
-                (&validation->maximum_datetime, LXW_EPOCH_1900);
+                lxw_datetime_to_excel_date_with_epoch
+                (&validation->maximum_datetime, self->use_1904_epoch);
         }
         else {
             copy->value_number =
-                lxw_datetime_to_excel_date_epoch(&validation->value_datetime,
-                                                 LXW_EPOCH_1900);
+                lxw_datetime_to_excel_date_with_epoch
+                (&validation->value_datetime, self->use_1904_epoch);
         }
     }
 

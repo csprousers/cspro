@@ -71,10 +71,6 @@
           "sourceName": "external/summernote/summernote-lite.min.js.map"
         },
         {
-          "sourceName": "external/summernote-rtl-plugin/",
-          "build": "nonDesktop"
-        },
-        {
           "sourceName": "html-editor/",
           "build": "nonDesktop"
         },

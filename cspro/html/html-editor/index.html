@@ -5,15 +5,17 @@
 
     <script src="/external/jquery/jquery.min.js"></script>
 
+    <link rel="stylesheet" href="/external/bootstrap/bootstrap.min.css" />
+    <script src="/external/bootstrap/bootstrap.bundle.min.js"></script>
+
     <link rel="stylesheet" href="/external/codemirror/codemirror.min.css">
     <script src="/external/codemirror/codemirror.min.js"></script>
 
-    <link rel="stylesheet" href="/external/summernote/summernote-lite.min.css">
-    <script src="/external/summernote/summernote-lite.min.js"></script>
+    <link rel="stylesheet" href="/external/summernote/summernote-bs5.min.css">
+    <script src="/external/summernote/summernote-bs5.min.js"></script>
 
     <script src="/external/summernote/summernote-ext-customizable-styles.js"></script>
-    <script src="/external/summernote-rtl-plugin/summernote-ext-rtl.js"></script>
-
+    <script src="/external/summernote/summernote-ext-rtl.js"></script>
 
     <link rel="stylesheet" href="/html-editor/summernote-ext-capi-fill.css">
     <script src="/html-editor/summernote-ext-capi-fill.js"></script>
@@ -36,7 +38,7 @@
                 },
                 onPaste: function(e) {
                     // paste content from the CSPro Scintilla editors as text
-					var clipboardData = ( e.originalEvent || e).clipboardData || window.clipboardData;
+                    var clipboardData = ( e.originalEvent || e).clipboardData || window.clipboardData;
                     if (clipboardData.getData('text/html').indexOf("\x3c!--cspro--\x3e") >= 0) {
                         e.preventDefault();
                         document.execCommand('insertText', false, clipboardData.getData('text/plain'));

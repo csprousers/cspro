@@ -46,7 +46,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Open Source Release Creator
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Update Version", "Update Version\Update Version.csproj", "{47FCCC02-4D56-4CB6-87E5-EA3D1954AB00}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Update SQLite Encryption Extension (SEE)", "Update SQLite Encryption Extension (SEE)\Update SQLite Encryption Extension (SEE).csproj", "{641D2930-922C-4FC7-A4E0-50F9160AE70E}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Update SQLite", "Update SQLite\UpdateSQLite.vcxproj", "{CFE6BF43-3A5A-4A96-92C0-2D34517BAE63}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Toolbar Creator", "Toolbar Creator\Toolbar Creator.csproj", "{26E6C556-F2ED-4DC2-B41B-19777E615EF4}"
 EndProject
@@ -116,7 +116,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zRtf", "..\cspro\zRtf\zRtf.
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Update Example Files", "Update Example Files\Update Example Files.vcxproj", "{23B7DB2D-E00E-48BC-81A1-130FD46E6077}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zGit", "zGit\zGit.vcxproj", "{01396FA2-BCA6-4F57-9346-EC468DB7E0A6}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zGit", "..\cspro\zGit\zGit.vcxproj", "{01396FA2-BCA6-4F57-9346-EC468DB7E0A6}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Stygitan", "Stygitan\Stygitan.vcxproj", "{619BCC6B-FB82-4273-8507-25AEC1D42339}"
 EndProject
@@ -202,10 +202,10 @@ Global
 		{47FCCC02-4D56-4CB6-87E5-EA3D1954AB00}.Debug|x64.Build.0 = Debug|x64
 		{47FCCC02-4D56-4CB6-87E5-EA3D1954AB00}.Release|x64.ActiveCfg = Release|x64
 		{47FCCC02-4D56-4CB6-87E5-EA3D1954AB00}.Release|x64.Build.0 = Release|x64
-		{641D2930-922C-4FC7-A4E0-50F9160AE70E}.Debug|x64.ActiveCfg = Debug|x64
-		{641D2930-922C-4FC7-A4E0-50F9160AE70E}.Debug|x64.Build.0 = Debug|x64
-		{641D2930-922C-4FC7-A4E0-50F9160AE70E}.Release|x64.ActiveCfg = Release|x64
-		{641D2930-922C-4FC7-A4E0-50F9160AE70E}.Release|x64.Build.0 = Release|x64
+		{CFE6BF43-3A5A-4A96-92C0-2D34517BAE63}.Debug|x64.ActiveCfg = Debug|x64
+		{CFE6BF43-3A5A-4A96-92C0-2D34517BAE63}.Debug|x64.Build.0 = Debug|x64
+		{CFE6BF43-3A5A-4A96-92C0-2D34517BAE63}.Release|x64.ActiveCfg = Release|x64
+		{CFE6BF43-3A5A-4A96-92C0-2D34517BAE63}.Release|x64.Build.0 = Release|x64
 		{26E6C556-F2ED-4DC2-B41B-19777E615EF4}.Debug|x64.ActiveCfg = Debug|x64
 		{26E6C556-F2ED-4DC2-B41B-19777E615EF4}.Debug|x64.Build.0 = Debug|x64
 		{26E6C556-F2ED-4DC2-B41B-19777E615EF4}.Release|x64.ActiveCfg = Release|x64

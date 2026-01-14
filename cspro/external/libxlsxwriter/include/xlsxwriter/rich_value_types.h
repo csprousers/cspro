@@ -1,7 +1,7 @@
 /*
  * libxlsxwriter
  *
- * Copyright 2014-2024, John McNamara, jmcnamara@cpan.org. See LICENSE.txt.
+ * Copyright 2014-2026, John McNamara, jmcnamara@cpan.org. See LICENSE.txt.
  *
  * rich_value_types - A libxlsxwriter library for creating Excel XLSX rich_value_types files.
  *

@@ -1,6 +1,3 @@
-﻿#pragma warning(disable:4100) // CSPRO_READSTAT_MODIFICATIONS
-#pragma warning(disable:4018) // CSPRO_READSTAT_MODIFICATIONS
-
 #include <stdlib.h>
 #include <math.h>
 #include <stdint.h>
