@@ -1,13 +1,12 @@
-﻿#pragma once
+#pragma once
 
 #include <zMapping/zMapping.h>
 #include <zMapping/Geometry.h>
-#include <ostream>
-#include <istream>
+#include <iosfwd>
 
 
-namespace GeoJson {
-
+namespace GeoJson
+{
     // A GeoJson object can be any of these entities at the top-level
     // So we represent them with a std::variant.
     // Note that these entities can be recursive e.g. GeometryCollection

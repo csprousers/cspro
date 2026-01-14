@@ -1,11 +1,8 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include <zMapping/GeoJson.h>
 
 #pragma warning(push)
 #pragma warning(disable: 4068 4239)
-#include <mapbox/geometry.hpp>
-#include <mapbox/variant.hpp>
-#include <mapbox/variant_cast.hpp>
 #include <mapbox/feature.hpp>
 #pragma warning(pop)
 

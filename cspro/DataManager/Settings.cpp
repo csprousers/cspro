@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "Settings.h"
 #include "CaseHtmlContentCreatorSettings.h"
 #include "CaseJsonContentCreatorSettings.h"
@@ -63,8 +63,8 @@ Settings::~Settings()
     try
     {
         Save();
-
-    } catch(...) { ASSERT(false); }
+    }
+    catch(...) { ASSERT(false); }
 }
 
 
