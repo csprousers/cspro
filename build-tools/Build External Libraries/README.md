@@ -1,6 +1,9 @@
 # Build External Libraries
 
 
+## Libraries With Build Scripts
+
+
 ### Bootstrap + Bootstrap Icons
 
 1. Find the latest versions here:
@@ -460,3 +463,17 @@
 1. Run the batch script, *zlib.bat*, from a Visual Studio command prompt.
 2. This builds both x86 and x64 versions of zlib.
 3. The built libraries are committed to the repository.
+
+
+
+## Libraries Without Build Scripts
+
+
+### cpp-base64
+
+There is a more recent version of this library, but it differs significantly (e.g., throwing exceptions). Additionally, the CSPro version supports encoding and decoding std::vector\<std\:\:byte\>. These changes could be applied to the newer version of the library at some point.
+
+
+### rtf2html
+
+There is a more recent version of this library, but many changes were made to the CSPro version, and RTF is no longer used except when upgrading old question text files, so updating the library is not particularly important.
