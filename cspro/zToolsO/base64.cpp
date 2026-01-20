@@ -1,4 +1,4 @@
-﻿// the license below applies to the original source code, which has been
+// the license below applies to the original source code, which has been
 // modified to support the template approach
 #include "StdAfx.h"
 #include "base64.h"
@@ -50,7 +50,7 @@ namespace
     constexpr size_t ExpectedBytesToDecode(const size_t length) { return length * 3 / 4; }
 }
 
-std::string Base64::base64_encode(unsigned char const* bytes_to_encode, unsigned int in_len) {
+std::string Base64::base64_encode(const unsigned char* bytes_to_encode, size_t in_len) {
   std::string ret;
   ret.reserve(ExpectedBytesToEncode(in_len));
   int i = 0;

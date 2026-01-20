@@ -1,18 +1,26 @@
-﻿#pragma once
+#pragma once
 
 
 class TreeCtrlHelpers
 {
 public:
-    // expands all nodes
+    // Expands all nodes.
     static void ExpandAllNodes(CTreeCtrl& tree_ctrl);
     static void ExpandAllNodes(CTreeCtrl& tree_ctrl, HTREEITEM node);
 
-    // the find callback should return true when the item is found
+    // Executes for callback function for every node in the tree.
+    template<typename CF>
+    static void ForeachNode(CTreeCtrl& tree_ctrl, const CF& callback_function);
+
+    // Executes for callback function for the specified node, its children, and conditionally its siblings.
+    template<typename CF>
+    static void ForeachNode(CTreeCtrl& tree_ctrl, HTREEITEM hItem, bool include_siblings, const CF& callback_function);
+
+    // The find callback should return true when the item is found.
     template<typename CF>
     static bool FindInTree(const CTreeCtrl& tree_ctrl, HTREEITEM hItem, bool include_children, const CF& find_callback);
 
-    // iterates over the tree, executing the callback function for visible nodes
+    // Iterates over the tree, executing the callback function for visible nodes.
     template<typename CF>
     static void IterateOverVisibleNodes(const CTreeCtrl& tree_ctrl, HTREEITEM hItem, const CF& callback,
                                         bool assume_starting_item_is_visible = true);
@@ -48,6 +56,32 @@ inline void TreeCtrlHelpers::ExpandAllNodes(CTreeCtrl& tree_ctrl, const HTREEITE
     {
         tree_ctrl.Expand(next_node, TVE_EXPAND);
         next_node = tree_ctrl.GetNextItem(next_node, TVGN_NEXT);
+    }
+}
+
+
+template<typename CF>
+void TreeCtrlHelpers::ForeachNode(CTreeCtrl& tree_ctrl, const CF& callback_function)
+{
+    ForeachNode(tree_ctrl, tree_ctrl.GetRootItem(), true, callback_function);
+}
+
+
+template<typename CF>
+void TreeCtrlHelpers::ForeachNode(CTreeCtrl& tree_ctrl, HTREEITEM hItem, const bool include_siblings, const CF& callback_function)
+{
+    while( hItem != nullptr )
+    {
+        callback_function(hItem);
+
+        // process children
+        ForeachNode(tree_ctrl, tree_ctrl.GetChildItem(hItem), true, callback_function);
+
+        if( !include_siblings )
+            return;
+
+        // continue on to the next sibling
+        hItem = tree_ctrl.GetNextSiblingItem(hItem);
     }
 }
 

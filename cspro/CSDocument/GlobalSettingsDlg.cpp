@@ -1,9 +1,9 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "GlobalSettingsDlg.h"
 #include <zUtilO/FileUtil.h>
 
 
-BEGIN_MESSAGE_MAP(GlobalSettingsDlg, CDialog)
+BEGIN_MESSAGE_MAP(GlobalSettingsDlg, ResizableDlg)
     ON_BN_CLICKED(IDC_HHC_BROWSE, OnBrowseHtmlHelpCompiler)
     ON_BN_CLICKED(IDC_WKHTMLTOPDF_BROWSE, OnBrowseWkhtmltopdf)
     ON_BN_CLICKED(IDC_CSPRO_CODE_BROWSE, OnBrowseCSProCode)
@@ -11,13 +11,15 @@ END_MESSAGE_MAP()
 
 
 GlobalSettingsDlg::GlobalSettingsDlg(GlobalSettings global_settings, CWnd* const pParent/* = nullptr*/)
-    :   CDialog(IDD_GLOBAL_SETTINGS, pParent),
+    :   ResizableDlg(IDD_GLOBAL_SETTINGS, pParent),
         m_globalSettings(std::move(global_settings)),
         m_automaticallyAssociateDocumentsWithDocSets(m_globalSettings.automatically_associate_documents_with_doc_sets)
 #ifdef HELP_TODO_RESTORE_FOR_CSPRO81
         ,m_buildDocumentsOnOpen(m_globalSettings.build_documents_on_open)
 #endif
 {
+    SerializeDialogSize("GlobalSettingsDlg");
+
 #ifdef HELP_TODO_RESTORE_FOR_CSPRO81
     if( m_globalSettings.automatic_compilation_seconds != 0 )
         m_automaticCompilationSeconds = IntToString(m_globalSettings.automatic_compilation_seconds);

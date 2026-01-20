@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zToolsO/TextFormatter.h>
 #include <stdexcept>
@@ -13,6 +13,11 @@ class CSProException : public std::runtime_error
 public:
     typedef std::runtime_error std_runtime_error;
     using std_runtime_error::std_runtime_error;
+
+    explicit CSProException(const std::exception& exception)
+        :   std::runtime_error(exception.what())
+    {
+    }
 
     explicit CSProException(const char* message)
         :   std::runtime_error(message)

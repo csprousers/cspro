@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "StringOperations.h"
 #include "Utf8Convert.h"
 #include <locale>
@@ -466,10 +466,10 @@ void SO::ForeachWideChar(const std::string_view text_sv, const std::function<voi
 // Case functions
 // --------------------------------------------------------------------------
 
-template<bool ToUpper>
+template<bool to_upper>
 wchar_t SO::WideCharToCaseWithLocale(const wchar_t ch)
 {
-    if constexpr(ToUpper)
+    if constexpr(to_upper)
     {
         return std::toupper(ch, m_localeForCaseConversions);
     }
@@ -481,7 +481,7 @@ wchar_t SO::WideCharToCaseWithLocale(const wchar_t ch)
 }
 
 
-template<bool ToUpper>
+template<bool to_upper>
 size_t SO::FindFirstNonMatchingWideCase(const std::string_view text_sv)
 {
     // find the first character that does not match the specified case
@@ -492,7 +492,7 @@ size_t SO::FindFirstNonMatchingWideCase(const std::string_view text_sv)
     {
         const size_t ch_utf8_length = TC::Utf8BytesFromFirstByte(*text_itr);
         const wchar_t wide_ch = TC::GetWideCharFromUtf8Sequence(text_itr, ch_utf8_length);
-        const wchar_t adjusted_case_ch = SO::WideCharToCase<ToUpper>(wide_ch);
+        const wchar_t adjusted_case_ch = SO::WideCharToCase<to_upper>(wide_ch);
 
         if( wide_ch != adjusted_case_ch )
             break;
@@ -507,7 +507,7 @@ template CLASS_DECL_ZTOOLSO size_t SO::FindFirstNonMatchingWideCase<true>(std::s
 template CLASS_DECL_ZTOOLSO size_t SO::FindFirstNonMatchingWideCase<false>(std::string_view text_sv);
 
 
-template<bool ToUpper>
+template<bool to_upper>
 void SO::MakeWideCaseWorker(const std::string& in_text, std::string*& out_text)
 {
 #ifdef _DEBUG
@@ -518,7 +518,7 @@ void SO::MakeWideCaseWorker(const std::string& in_text, std::string*& out_text)
     {
         const std::locale old_locale = std::locale::global(std::locale(""));
 
-        if constexpr(ToUpper)
+        if constexpr(to_upper)
         {
             cstring_check.MakeUpper();
         }
@@ -534,7 +534,7 @@ void SO::MakeWideCaseWorker(const std::string& in_text, std::string*& out_text)
 
     ASSERT(out_text == nullptr || out_text == &in_text);
 
-    const size_t non_matching_wide_case_pos = SO::FindFirstNonMatchingWideCase<ToUpper>(in_text);
+    const size_t non_matching_wide_case_pos = SO::FindFirstNonMatchingWideCase<to_upper>(in_text);
 
     // quit if the text is already in the correct case
     if( non_matching_wide_case_pos == in_text.length() )
@@ -555,7 +555,7 @@ void SO::MakeWideCaseWorker(const std::string& in_text, std::string*& out_text)
     {
         const size_t current_char_length = TC::Utf8BytesFromFirstByte(*out_text_itr);
         const wchar_t wide_ch = TC::GetWideCharFromUtf8Sequence(out_text_itr, current_char_length);
-        const wchar_t adjusted_case_ch = SO::WideCharToCase<ToUpper>(wide_ch);
+        const wchar_t adjusted_case_ch = SO::WideCharToCase<to_upper>(wide_ch);
 
         if( wide_ch == adjusted_case_ch )
         {

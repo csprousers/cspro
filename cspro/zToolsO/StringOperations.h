@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zToolsO/zToolsO.h>
 #include <zToolsO/CallbackFunctionProcessor.h>
@@ -164,7 +164,7 @@ public:
     // --------------------------------------------------------------------------
 
     // transforms the wide character to uppercase/lowercase
-    template<bool ToUpper>
+    template<bool to_upper>
     static wchar_t WideCharToCase(wchar_t ch);
 
     static wchar_t WideCharToUpper(wchar_t ch) { return WideCharToCase<true>(ch); }
@@ -546,15 +546,15 @@ private:
     template<bool is_from_trim_right, typename ST, typename SVT>
     static ST& MakeTrimWorker(ST& text, SVT trimmed_text_sv);
 
-    template<bool ToUpper>
+    template<bool to_upper>
     CLASS_DECL_ZTOOLSO static wchar_t WideCharToCaseWithLocale(wchar_t ch);
 
-    template<bool ToUpper>
+    template<bool to_upper>
     CLASS_DECL_ZTOOLSO static size_t FindFirstNonMatchingWideCase(std::string_view text_sv);
 
     // out_text should be null (in which case a new string is created with the modified case (if necessary)
     // or should be set to in_text, in which case the modified case string replaces the input text
-    template<bool ToUpper>
+    template<bool to_upper>
     CLASS_DECL_ZTOOLSO static void MakeWideCaseWorker(const std::string& in_text, std::string*& out_text);
 
     template<typename CT>
@@ -747,12 +747,12 @@ std::string& SO::WideMakeExactLength(std::string& text, const size_t wide_length
 // Case functions
 // --------------------------------------------------------------------------
 
-template<bool ToUpper>
+template<bool to_upper>
 wchar_t SO::WideCharToCase(const wchar_t ch)
 {
     if( CharacterIsSameInWideAndUtf8(ch) )
     {
-        if constexpr(ToUpper)
+        if constexpr(to_upper)
         {
             ASSERT81(std::towupper(ch) == std::toupper(ch));
             return static_cast<wchar_t>(std::toupper(ch));
@@ -767,7 +767,7 @@ wchar_t SO::WideCharToCase(const wchar_t ch)
 
     else
     {
-        return WideCharToCaseWithLocale<ToUpper>(ch);
+        return WideCharToCaseWithLocale<to_upper>(ch);
     }
 }
 
@@ -1131,12 +1131,14 @@ inline std::tuple<size_t, size_t> SO::FindCharacters(const std::string_view text
 template<typename ST>
 bool SO::ContainsNewlineCharacter(const ST& text)
 {
+#ifdef USING_CSTRING
     if constexpr(std::is_same_v<ST, CString>)
     {
         return ( text.Find('\n') >= 0 );
     }
 
     else
+#endif
     {
         return ( text.find('\n') != ST::npos );
     }

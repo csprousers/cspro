@@ -1,7 +1,9 @@
-﻿#pragma once
+#pragma once
+
+#include <zUtilO/ResizableDlg.h>
 
 
-class GlobalSettingsDlg : public CDialog
+class GlobalSettingsDlg : public ResizableDlg
 {
 public:
     GlobalSettingsDlg(GlobalSettings global_settings, CWnd* pParent = NULL);

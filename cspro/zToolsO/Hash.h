@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zToolsO/zToolsO.h>
 
@@ -24,7 +24,7 @@ namespace Hash
     CLASS_DECL_ZTOOLSO std::string Hash(std::string_view text_sv, size_t hash_length = DefaultHashLength);
 
     // Returns a string with the hex representation of the bytes.
-    CLASS_DECL_ZTOOLSO std::string BytesToHexString(const std::byte* bytes, size_t bytes_length);
+    CLASS_DECL_ZTOOLSO std::string BytesToHexString(const void* bytes, size_t bytes_length);
 
     // Converts a hex string to bytes. The bytes buffer must be allocated to be at least half of hex_string's length.
     CLASS_DECL_ZTOOLSO void HexStringToBytesBuffer(std::string_view hex_string_sv, std::byte* bytes, bool throw_exceptions);

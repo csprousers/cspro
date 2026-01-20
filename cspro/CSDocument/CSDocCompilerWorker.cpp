@@ -32,6 +32,7 @@ namespace
     constexpr std::string_view LogicSyntaxTag_sv            = "logicsyntax";
     constexpr std::string_view LogicColorTag_sv             = "logiccolor";
     constexpr std::string_view LogicArgumentTag_sv          = "arg";
+    constexpr std::string_view LogicDeclareTag_sv           = "logicdeclare";
     constexpr std::string_view LogicTableTag_sv             = "logictable";
     constexpr std::string_view ActionTag_sv                 = "action";
     constexpr std::string_view MessageTag_sv                = "message";
@@ -97,6 +98,7 @@ const CSDocCompilerWorker::SD& CSDocCompilerWorker::GetStaticData()
             { LogicSyntaxTag_sv,   TagDefinition { true,   &LogicObjectStartHandler, &LogicSyntaxEndHandler, 0, 1 } },
             { LogicColorTag_sv,    TagDefinition { true,   &LogicObjectStartHandler, &LogicColorEndHandler, 0, 1 } },
             { LogicArgumentTag_sv, TagDefinition { true,   "<span class=\"code_colorization_argument\">", "</span>" } },
+            { LogicDeclareTag_sv,  TagDefinition { false,  &LogicDeclareStartHandler, { }, 2, 2 } },
             { LogicTableTag_sv,    TagDefinition { false,  &LogicTableStartHandler, { }, 1, 1 } },
             { ActionTag_sv,        TagDefinition { true,   { }, &ActionEndHandler } },
             { MessageTag_sv,       TagDefinition { true,   { }, &MessageEndHandler } },

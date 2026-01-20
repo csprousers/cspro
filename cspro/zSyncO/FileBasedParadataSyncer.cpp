@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "FileBasedParadataSyncer.h"
 #include "ISyncService.h"
 #include <zToolsO/FileIO.h>
@@ -42,7 +42,7 @@ std::string FileBasedParadataSyncer::StartParadataSync(const std::string& log_uu
 
 void FileBasedParadataSyncer::PutParadata(const std::string& paradata_log_file_path)
 {
-    const std::string compressed_log_filename = FormatText("%s%s-" Formatter_int64_t ".zip", ParadataLogPrefix, m_clientLogUuid.c_str(), GetTimestamp<int64_t>());
+    const std::string compressed_log_filename = FormatText("%s%s-" Formatter_int64_t ".zip", ParadataLogPrefix, m_clientLogUuid.c_str(), GetTimestamp());
     const std::string compressed_log_file_path = Path::Combine(m_paradataDirectory, compressed_log_filename);
 
     try

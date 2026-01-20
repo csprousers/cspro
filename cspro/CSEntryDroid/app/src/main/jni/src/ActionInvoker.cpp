@@ -1,4 +1,4 @@
-﻿#include <engine/StandardSystemIncludes.h>
+#include <engine/StandardSystemIncludes.h>
 #include "gov_census_cspro_engine_EngineInterface_jni.h"
 #include "AndroidApplicationInterface.h"
 #include "JNIHelpers.h"
@@ -338,7 +338,7 @@ void ActionInvokerActivityCaller::SetRefreshToken(const std::string& refresh_tok
     {
         const int64_t* const timestamp_ptr = reinterpret_cast<const int64_t*>(calling_package_and_timestamp.data() + calling_package_length);
 
-        if( ( *timestamp_ptr + RefreshTokenExpirationSeconds ) >= GetTimestamp<int64_t>() )
+        if( ( *timestamp_ptr + RefreshTokenExpirationSeconds ) >= GetTimestamp() )
         {
             const std::string calling_package(reinterpret_cast<const char*>(calling_package_and_timestamp.data()), calling_package_length);
 
@@ -360,7 +360,7 @@ std::optional<std::string> ActionInvokerActivityCaller::CreateRefreshToken() con
     Encryptor encryptor(Encryptor::Type::RijndaelBase64, refresh_token);
 
     std::vector<std::byte> calling_package_and_timestamp = SO::CreateByteVector(m_callingPackage);
-    const int64_t timestamp = GetTimestamp<int64_t>();
+    const int64_t timestamp = GetTimestamp();
     const std::byte* const timestamp_ptr = reinterpret_cast<const std::byte*>(&timestamp);
     calling_package_and_timestamp.insert(calling_package_and_timestamp.end(), timestamp_ptr, timestamp_ptr + sizeof(timestamp));
 

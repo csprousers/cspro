@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "Statement.h"
 
 
@@ -85,7 +85,7 @@ int Sqlite::Statement::GetParameterNumber(const cs::string_sz parameter_name) co
 
 std::string Sqlite::Statement::EscapeForLike(std::string value, const char escape/* = '!'*/)
 {
-    char escape_sv_mocked[] = { escape, '%' };
+    char escape_sv_mocked[] = { escape, escape };
 
     auto escape_chars = [&]()
     {
@@ -93,6 +93,9 @@ std::string Sqlite::Statement::EscapeForLike(std::string value, const char escap
                            std::string_view(escape_sv_mocked, 2) );
     };
 
+    escape_chars(); // ! -> !!
+
+    escape_sv_mocked[1] = '%';
     escape_chars(); // % -> !%
 
     escape_sv_mocked[1] = '_';

@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "WindowsOAuth2Authorizer.h"
 #include "WindowsOAuth2AuthorizerWaitDlg.h"
 #include <zToolsO/Hash.h>
@@ -65,7 +65,7 @@ std::string WindowsOAuth2Authorizer::GenerateState()
     for( int i = 0; i < 2; ++i )
         state_bytes[rand() % StateLength] ^= unique_id;
 
-    return Hash::BytesToHexString(reinterpret_cast<const std::byte*>(state_bytes), StateLength);
+    return Hash::BytesToHexString(state_bytes, StateLength);
 }
 
 

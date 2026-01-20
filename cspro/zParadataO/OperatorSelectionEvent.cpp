@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "OperatorSelectionEvent.h"
 
 using namespace Paradata;
@@ -38,7 +38,7 @@ void OperatorSelectionEvent::SetPostSelectionValues(std::optional<int> selection
     m_selectionText = std::move(selection_text);
 
     if( set_display_duration )
-        m_displayDuration = ::GetTimestamp() - this->GetTimestamp();
+        m_displayDuration = ::GetTimestamp<double>() - this->GetTimestamp();
 }
 
 

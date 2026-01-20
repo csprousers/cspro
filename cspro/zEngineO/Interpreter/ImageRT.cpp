@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "IncludesRT.h"
 #include "Document.h"
 #include "HashMap.h"
@@ -422,7 +422,7 @@ double LogicInterpreter::ex_Image_captureSignature_takePhoto(const int program_i
         BinaryDataMetadata binary_data_metadata;
         binary_data_metadata.SetProperty("label", capture_signature ? "Image (Signature)" : "Photo");
         binary_data_metadata.SetProperty("source", capture_signature ? "Image.captureSignature" : "Image.takePhoto");
-        binary_data_metadata.SetProperty("timestamp", GetTimestamp());
+        binary_data_metadata.SetProperty("timestamp", GetTimestamp<double>());
 
         logic_image->LoadFromDataUrl(image_capture_dlg.GetImageDataUrl(), std::move(binary_data_metadata));
     }
@@ -467,7 +467,7 @@ double LogicInterpreter::ex_Image_captureSignature_native(const int program_inde
         BinaryDataMetadata& binary_data_metadata = logic_image->GetMetadata();
         binary_data_metadata.SetProperty("label", "Image (Signature)");
         binary_data_metadata.SetProperty("source", "Image.captureSignature");
-        binary_data_metadata.SetProperty("timestamp", GetTimestamp());
+        binary_data_metadata.SetProperty("timestamp", GetTimestamp<double>());
 
         PortableFunctions::FileDelete(capture_image_node.output_file_path);
     }
@@ -508,7 +508,7 @@ double LogicInterpreter::ex_Image_takePhoto_native(const int program_index)
         BinaryDataMetadata& binary_data_metadata = logic_image->GetMetadata();
         binary_data_metadata.SetProperty("label", "Photo");
         binary_data_metadata.SetProperty("source", "Image.takePhoto");
-        binary_data_metadata.SetProperty("timestamp", GetTimestamp());
+        binary_data_metadata.SetProperty("timestamp", GetTimestamp<double>());
 
         PortableFunctions::FileDelete(capture_image_node.output_file_path);
     }

@@ -1,4 +1,4 @@
-﻿/*----------------------------------------------------------------------
+/*----------------------------------------------------------------------
 Copyright (C)2001 MJSoft. All Rights Reserved.
           This source may be used freely as long as it is not sold for
                     profit and this copyright information is not altered or removed.
@@ -36,7 +36,7 @@ public:
     ItemData() : arrpsz( NULL ), dwData( NULL ) {}
 
     LPTSTR* arrpsz;
-    DWORD dwData;
+    DWORD_PTR dwData;
 
 private:
     // ban copying.
@@ -390,7 +390,7 @@ BOOL CSortListCtrl::SetItemText( int nItem, int nSubItem, LPCTSTR lpszText )
 }
 
 
-BOOL CSortListCtrl::SetItemData( int nItem, DWORD dwData )
+BOOL CSortListCtrl::SetItemData( int nItem, DWORD_PTR dwData )
 {
     if( nItem >= GetItemCount() )
         return FALSE;
@@ -403,7 +403,7 @@ BOOL CSortListCtrl::SetItemData( int nItem, DWORD dwData )
 }
 
 
-DWORD CSortListCtrl::GetItemData( int nItem ) const
+DWORD_PTR CSortListCtrl::GetItemData( int nItem ) const
 {
     ASSERT( nItem < GetItemCount() );
 

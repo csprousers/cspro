@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zDataO/EncryptedSQLiteRepository.h>
 #include <zToolsO/Hash.h>
@@ -45,7 +45,7 @@ inline std::string EncryptedSQLiteRepositoryCredential::Create(const CDataDict* 
 
     json_writer->BeginObject()
                 .Write(JK::version, CurrentVersion)
-                .Write(JK::timestamp, GetTimestamp())
+                .Write(JK::timestamp, GetTimestamp<double>())
                 .Write(JK::password, Hash::BytesToHexString(password_hash, EncryptedSQLiteRepository::PasswordHashSize))
                 .WritePath(JK::path, file_path);
 

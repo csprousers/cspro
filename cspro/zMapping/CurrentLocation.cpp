@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "CurrentLocation.h"
 #include <zUtilO/CredentialStore.h>
 #include <zNetwork/CurlHttpConnection.h>
@@ -9,14 +9,14 @@ const std::optional<std::tuple<double, double>>& CurrentLocation::GetCurrentLoca
     static std::optional<std::tuple<double, double>> current_location;
 
     // only query the location once per session and only once every hour
-    constexpr double RefreshSeconds = 3600;
+    constexpr int64_t RefreshSeconds = 3600;
 
     if( !current_location.has_value() )
     {
         constexpr std::string_view AttributeName_sv = "CSPro_location";
         CredentialStore credential_store;
         const std::string location_cache = credential_store.Retrieve(AttributeName_sv);
-        double cached_timestamp = 0;
+        int64_t cached_timestamp = 0;
 
         // first check the cached location (to avoid using the API too often)
         if( !location_cache.empty() )
@@ -25,7 +25,7 @@ const std::optional<std::tuple<double, double>>& CurrentLocation::GetCurrentLoca
 
             if( cache_json.Contains(JK::timestamp) )
             {
-                cached_timestamp = cache_json.Get<double>(JK::timestamp);
+                cached_timestamp = cache_json.Get<int64_t>(JK::timestamp);
 
                 current_location.emplace(cache_json.Get<double>(JK::latitude),
                                          cache_json.Get<double>(JK::longitude));

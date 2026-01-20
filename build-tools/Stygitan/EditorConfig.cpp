@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "EditorConfig.h"
 #include <external/editorconfig/editorconfig.h>
 
@@ -159,7 +159,7 @@ const std::string& EditorConfig::Evaluator::GetTempDirectoryForDefaultProcessing
         return m_tempDirectoryForDefaultProcessing;
 
     // create a new temporary directory and save the default .editorconfig file in it
-    m_tempDirectoryForDefaultProcessing = Path::Combine(GetTempDirectory(), "EditorConfigEvaluator-" + IntToString(GetTimestamp<int64_t>()));
+    m_tempDirectoryForDefaultProcessing = Path::Combine(GetTempDirectory(), "EditorConfigEvaluator-" + IntToString(GetTimestamp()));
 
     HRSRC resource;
     HGLOBAL loaded_resource;

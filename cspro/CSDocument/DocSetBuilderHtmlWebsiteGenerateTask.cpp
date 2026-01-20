@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "DocSetBuilder.h"
 #include "CSDocCompilerWorker.h"
 #include "DocSetBuilderCache.h"
@@ -153,13 +153,13 @@ void DocSetBuilderHtmlWebsiteGenerateTask::ValidateInputsPostDocSetCompilation()
 
 void DocSetBuilderHtmlWebsiteGenerateTask::OnRun()
 {
-    const int64_t start_timestamp = GetTimestamp<int64_t>();
+    const int64_t start_timestamp = GetTimestamp();
 
     GetInterface().SetTitle(FormatText("Building Document Set to an HTML Website: %s", GetDocSetSpec().GetFilePath().c_str()));
 
     RunBuild();
 
-    GetInterface().LogText("\nBuild completed in %s.", GetElapsedTimeText(start_timestamp, GetTimestamp<int64_t>()).c_str());
+    GetInterface().LogText("\nBuild completed in %s.", GetElapsedTimeText(start_timestamp, GetTimestamp()).c_str());
 
     ASSERT(!m_defaultDocumentBuiltFilePath.empty());
     std::string html_website_output_name = PortableFunctions::PathGetFilename(m_csdocCompilerSettingsForBuilding->GetDocSetBuildOutputDirectory());

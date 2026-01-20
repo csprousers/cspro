@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "DocSetBuilder.h"
 #include "CSDocCompiler.h"
 
@@ -169,7 +169,7 @@ void DocSetBuilderBaseGenerateTask::RunBuild()
 
     if( !csdoc_file_paths_in_compilation_order.empty() )
     {
-        const int64_t start_timestamp = GetTimestamp<int64_t>();
+        const int64_t start_timestamp = GetTimestamp();
 
         GetInterface().LogText("\nCompiling %d CSPro Documents...", static_cast<int>(csdoc_file_paths_in_compilation_order.size()));
 
@@ -180,7 +180,7 @@ void DocSetBuilderBaseGenerateTask::RunBuild()
             return;
 
         GetInterface().LogText("\nCompiled %d CSPro Documents in %s.", static_cast<int>(csdoc_file_paths_in_compilation_order.size()),
-                                                                       GetElapsedTimeText(start_timestamp, GetTimestamp<int64_t>()).c_str());
+                                                                       GetElapsedTimeText(start_timestamp, GetTimestamp()).c_str());
     }
 
     if( IsCanceled() )

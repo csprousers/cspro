@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zHtml/zHtml.h>
 #include <queue>
@@ -23,6 +23,7 @@ public:
     HtmlViewCtrl(HtmlViewCtrl&&) = delete;
     ~HtmlViewCtrl();
 
+    void SetBrowseInPrivate(bool enabled);
     void SetAllowExternalDrop(bool enabled);
     void SetContextMenuEnabled(bool enabled);
     void SetZoomControlEnabled(bool enabled);
@@ -108,6 +109,7 @@ private:
 
     std::function<bool(UINT message, UINT key, INT lParam)> m_acceleratorKeyHandler;
 
+    bool m_browseInPrivate;
     bool m_allowExternalDrop;
     bool m_contextMenuEnabled;
     bool m_zoomControlEnabled;

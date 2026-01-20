@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zUtilO/zUtilO.h>
 
@@ -23,6 +23,10 @@ public:
 
     // Wraps the supplied path around a TemporaryFile object, so the file will be deleted on destruction.
     static TemporaryFile FromPath(std::string file_path);
+
+    // Wraps the supplied path around a TemporaryFile object, so the file will be deleted on destruction.
+    // This method is similar to FromPath but will not assert if the file already exists.
+    static TemporaryFile FromExistingPath(std::string file_path);
 
     TemporaryFile(const TemporaryFile&) = delete;
     TemporaryFile(TemporaryFile&& rhs) noexcept;

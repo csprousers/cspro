@@ -311,13 +311,43 @@ class EntryActivity: AppCompatActivity(), IEngineMessageCompletedListener, OnNav
                     m_appStarted = (msg.result == 1L)
                     if (m_appStarted) processStartApplication() else startApplicationFailed(msg.errorMessage)
                 }
-                EntryMessageRequestType.END_APPLICATION -> finish()
-                EntryMessageRequestType.GOTO_FIELD, EntryMessageRequestType.GOTO_NOTE_FIELD, EntryMessageRequestType.DELETE_OCC, EntryMessageRequestType.INSERT_OCC, EntryMessageRequestType.INSERT_OCC_AFTER -> {
+
+                EntryMessageRequestType.END_APPLICATION -> {
+                    finish()
+                }
+
+                EntryMessageRequestType.GOTO_FIELD,
+                EntryMessageRequestType.GOTO_NOTE_FIELD,
+                EntryMessageRequestType.DELETE_OCC,
+                EntryMessageRequestType.INSERT_OCC,
+                EntryMessageRequestType.INSERT_OCC_AFTER -> {
                     closeCaseTreeDrawer()
                     processCurrentField()
                 }
-                EntryMessageRequestType.ADVANCE_TO_END, EntryMessageRequestType.END_GROUP, EntryMessageRequestType.END_LEVEL, EntryMessageRequestType.END_LEVEL_OCC, EntryMessageRequestType.NEXT_FIELD, EntryMessageRequestType.PREVIOUS_FIELD, EntryMessageRequestType.PREVIOUS_PERSISTENT_FIELD, EntryMessageRequestType.CHANGE_LANGUAGE, EntryMessageRequestType.REVIEW_NOTES, EntryMessageRequestType.VIEW_CURRENT_CASE, EntryMessageRequestType.USER_TRIGGERED_STOP -> processCurrentField()
-                EntryMessageRequestType.SHOW_REFUSALS -> if (msg.result == 0L) Toast.makeText(this, getString(R.string.refusals_none_to_show), Toast.LENGTH_LONG).show() else processCurrentField()
+
+                EntryMessageRequestType.ADVANCE_TO_END,
+                EntryMessageRequestType.END_GROUP,
+                EntryMessageRequestType.END_LEVEL,
+                EntryMessageRequestType.END_LEVEL_OCC,
+                EntryMessageRequestType.NEXT_FIELD,
+                EntryMessageRequestType.PREVIOUS_FIELD,
+                EntryMessageRequestType.PREVIOUS_PERSISTENT_FIELD,
+                EntryMessageRequestType.REFRESH_FIELD_AFTER_PROCESSING_REQUESTS,
+                EntryMessageRequestType.CHANGE_LANGUAGE,
+                EntryMessageRequestType.REVIEW_NOTES,
+                EntryMessageRequestType.VIEW_CURRENT_CASE,
+                EntryMessageRequestType.USER_TRIGGERED_STOP -> {
+                    processCurrentField()
+                }
+
+                EntryMessageRequestType.SHOW_REFUSALS -> {
+                    if (msg.result == 0L) {
+                        Toast.makeText(this, getString(R.string.refusals_none_to_show), Toast.LENGTH_LONG).show()
+                    } else {
+                        processCurrentField()
+                    }
+                }
+
                 else -> {
                 }
             }
@@ -737,25 +767,40 @@ class EntryActivity: AppCompatActivity(), IEngineMessageCompletedListener, OnNav
         GoToField(fieldSymbol, index1, index2, index3)
     }
 
-    private inner class QuestionTextActionInvokerListener(webView: WebView): ActionInvokerListener(webView) {
+    private inner class QuestionTextActionInvokerListener(webView: WebView) :
+        ActionInvokerListener(webView) {
+        private var engineProgramControlExecuted: Boolean = false
+
         override fun onEngineProgramControlExecuted(): Boolean {
-            runOnUiThread {
-                // update the field if there were any requests
-                processCurrentField(true)
-            }
+            engineProgramControlExecuted = true
             return true
         }
-    }
 
-    private inner class QuestionTextActionInvokerMessage(private val actionInvoker: ActionInvoker,
-                                                         private val message: String,
-                                                         private val oldCSProObjectRunAsyncHandler: ActionInvoker.OldCSProObjectRunAsyncHandler?): EngineMessage(this, this) {
-        override fun run() {
-            actionInvoker.runAsyncWorker(message, oldCSProObjectRunAsyncHandler)
+        fun processPostExecutionActions() {
+            // update the field if there were any requests
+            if (engineProgramControlExecuted) {
+                runOnUiThread {
+                    initiateFieldMovement(EntryMessageRequestType.REFRESH_FIELD_AFTER_PROCESSING_REQUESTS)
+                }
+            }
         }
     }
 
-    inner class QuestionTextActionInvoker(webView: WebView): ActionInvoker(webView, null, QuestionTextActionInvokerListener(webView)) {
+    private inner class QuestionTextActionInvokerMessage(
+        private val actionInvoker: ActionInvoker,
+        private val listener: QuestionTextActionInvokerListener,
+        private val message: String,
+        private val oldCSProObjectRunAsyncHandler: ActionInvoker.OldCSProObjectRunAsyncHandler?
+    ) : EngineMessage(this, this) {
+        override fun run() {
+            actionInvoker.runAsyncWorker(message, oldCSProObjectRunAsyncHandler)
+            listener.processPostExecutionActions()
+        }
+    }
+
+    inner class QuestionTextActionInvoker(webView: WebView) :
+        ActionInvoker(webView, null, QuestionTextActionInvokerListener(webView)) {
+        private var questionTextActionInvokerListener: QuestionTextActionInvokerListener = listener as QuestionTextActionInvokerListener
         override fun runSync(message: String): String {
             // the current field values have to be updated on the UI thread
             val mutex = Semaphore(0)
@@ -766,19 +811,40 @@ class EntryActivity: AppCompatActivity(), IEngineMessageCompletedListener, OnNav
 
             try {
                 mutex.acquire()
-            } catch (e: Exception) {
+            }
+            catch (e: Exception) {
             }
 
-            return EngineInterface.getInstance().actionInvokerProcessMessage(getWebControllerKey(), listener, message, false, false)
+            var result = EngineInterface.getInstance().actionInvokerProcessMessage(
+                getWebControllerKey(),
+                listener,
+                message,
+                false, // sync
+                false
+            )
+
+            questionTextActionInvokerListener.processPostExecutionActions()
+
+            return result
         }
 
-        override fun runAsync(message: String, oldCSProObjectRunAsyncHandler: OldCSProObjectRunAsyncHandler?) {
+        override fun runAsync(
+            message: String,
+            oldCSProObjectRunAsyncHandler: OldCSProObjectRunAsyncHandler?
+        ) {
             runOnUiThread {
                 // update the current field values
                 applyCurrentFieldValues()
 
                 // use the Messenger to process the message
-                Messenger.getInstance().sendMessage(QuestionTextActionInvokerMessage(this, message, oldCSProObjectRunAsyncHandler))
+                Messenger.getInstance().sendMessage(
+                    QuestionTextActionInvokerMessage(
+                        this,
+                        questionTextActionInvokerListener,
+                        message,
+                        oldCSProObjectRunAsyncHandler
+                    )
+                )
             }
         }
     }

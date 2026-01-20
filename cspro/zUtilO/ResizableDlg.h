@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zUtilO/zUtilO.h>
 
@@ -81,6 +81,6 @@ protected:
     virtual std::vector<std::tuple<CWnd*, SizingDirection>> GetDynamicLayoutControls() = 0;
 
 private:
-    bool m_dialogInitialized = false;
+    std::optional<CSize> m_initialClientSize;
     DynamicLayoutControlResizer* m_dynamicLayoutControlResizer = nullptr;
 };

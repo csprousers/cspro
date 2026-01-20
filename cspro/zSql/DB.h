@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zSql/zSql.h>
 #include <zSql/Definitions.h>
@@ -88,6 +88,10 @@ public:
 
     // Detaches a SQLite database, throwing exceptions on error.
     void Detach(const std::string& schema_name);
+
+    // Returns the "number of rows modified, inserted or deleted by the most
+    // recently completed INSERT, UPDATE or DELETE statement."
+    int64_t GetNumberChanges() const noexcept;
 
     // Returns the row ID of the last inserted row, or 0 if no row has been inserted or if the database is not open.
     int64_t GetLastInsertedRowId() const noexcept;

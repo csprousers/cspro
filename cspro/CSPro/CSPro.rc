@@ -342,24 +342,24 @@ BEGIN
     CONTROL         "Working Storage Dictionary",IDC_WORKING,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,112,471,10
 END
 
-IDD_TROUBLESHOOTING DIALOGEX 0, 0, 324, 163
+IDD_TROUBLESHOOTING DIALOGEX 0, 0, 325, 158
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "CSPro Technical Support"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,133,142,50,14
+    DEFPUSHBUTTON   "OK",IDOK,133,137,50,14
     LTEXT           "For customer and technical assistance, please contact:",IDC_STATIC,7,7,176,11
     LTEXT           "cspro@lists.census.gov",IDC_TROUBLESHOOTING_EMAIL,185,7,86,8,SS_NOTIFY
     LTEXT           "If submitting a question or if you have a problem with your application, use the\ntool to create a single file of your application that can be easily emailed to the support team.",IDC_STATIC,7,22,303,19
     LTEXT           "You can also visit the CSPro Users forum, a place to ask questions of and exchange ideas with other users of CSPro from all around the world:",IDC_STATIC,7,44,293,18
     LTEXT           "https://csprousers.org/forum/",IDC_TROUBLESHOOTING_CSPROUSERS,176,52,98,8,SS_NOTIFY
-    LTEXT           "International Programs\nUnited States Census Bureau\nWashington, DC 20233\n+1 301-763-1451",IDC_STATIC,48,83,184,34
-    LTEXT           "https://www.census.gov/data/software/cspro.html",IDC_TROUBLESHOOTING_WEBSITE,48,120,210,8,SS_NOTIFY
-    GROUPBOX        "The Census and Survey Processing System (CSPro) is distributed by:",IDC_STATIC,33,70,239,66
+    LTEXT           "U.S. Census Bureau\nInternational Programs\nWashington, DC 20233",IDC_STATIC,48,83,184,28
+    LTEXT           "https://www.census.gov/data/software/cspro.html",IDC_TROUBLESHOOTING_WEBSITE,48,117,210,8,SS_NOTIFY
+    GROUPBOX        "The Census and Survey Processing System (CSPro) is distributed by:",IDC_STATIC,33,70,239,63
     LTEXT           "Pack Application",IDC_TROUBLESHOOTING_PACK,261,22,52,8,SS_NOTIFY
 END
 
-IDD_NEW_ABOUT DIALOGEX 0, 0, 387, 166
+IDD_ABOUT DIALOGEX 0, 0, 387, 166
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_SYSMENU
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
@@ -634,8 +634,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 8,0,1,0
- PRODUCTVERSION 8,0,1,0
+ FILEVERSION 8,1,0,0
+ PRODUCTVERSION 8,1,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -652,11 +652,11 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "U.S. Census Bureau"
             VALUE "FileDescription", "CSPro Designer"
-            VALUE "FileVersion", "8.0.1.0"
+            VALUE "FileVersion", "8.1.0.0"
             VALUE "InternalName", "CSPro"
             VALUE "OriginalFilename", "CSPro.EXE"
-            VALUE "ProductName", "CSPro 8.0"
-            VALUE "ProductVersion", "8.0.1.0"
+            VALUE "ProductName", "CSPro 8.1"
+            VALUE "ProductVersion", "8.1.0.0"
         END
     END
     BLOCK "VarFileInfo"
@@ -717,12 +717,12 @@ BEGIN
     IDD_TROUBLESHOOTING, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 317
+        RIGHTMARGIN, 318
         TOPMARGIN, 7
-        BOTTOMMARGIN, 156
+        BOTTOMMARGIN, 151
     END
 
-    IDD_NEW_ABOUT, DIALOG
+    IDD_ABOUT, DIALOG
     BEGIN
     END
 
@@ -894,6 +894,11 @@ BEGIN
 END
 
 IDD_PROPERTIES_JAVASCRIPT AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_TROUBLESHOOTING AFX_DIALOG_LAYOUT
 BEGIN
     0
 END

@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "NoteEvent.h"
 
 using namespace Paradata;
@@ -34,7 +34,7 @@ void NoteEvent::SetPostEditValues(SharableString modified_note_text)
     m_modifiedNoteText = std::move(modified_note_text);
 
     if( m_source != Source::PutNote )
-        m_editDuration = ::GetTimestamp() - this->GetTimestamp();
+        m_editDuration = ::GetTimestamp<double>() - this->GetTimestamp();
 }
 
 

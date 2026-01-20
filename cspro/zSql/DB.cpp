@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "DB.h"
 #include "Encryption.h"
 
@@ -333,6 +333,13 @@ void Sqlite::DB::Detach(const std::string& schema_name)
     }
 
     throw Exception(static_cast<sqlite3*>(nullptr), m_filePath, "No database is attached as '%s'", schema_name.c_str());
+}
+
+
+int64_t Sqlite::DB::GetNumberChanges() const noexcept
+{
+    return ( m_db != nullptr ) ? sqlite3_changes64(m_db) :
+                                 0;
 }
 
 

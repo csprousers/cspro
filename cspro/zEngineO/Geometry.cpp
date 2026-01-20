@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "Geometry.h"
 #include "Document.h"
 #include <zToolsO/MemoryStream.h>
@@ -11,8 +11,6 @@
 #pragma warning(push)
 #pragma warning(disable: 4068 4239)
 #include <mapbox/feature.hpp>
-#include <mapbox/geometry.hpp>
-#include <mapbox/variant.hpp>
 #pragma warning(pop)
 
 #define _USE_MATH_DEFINES

@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "MessageEvent.h"
 
 using namespace Paradata;
@@ -42,7 +42,7 @@ MessageEvent::MessageEvent(const Source source, const MessageType message_type, 
 
 void MessageEvent::SetPostDisplayReturnValue(const int return_value)
 {
-    m_displayDuration = ::GetTimestamp() - Event::GetTimestamp();
+    m_displayDuration = ::GetTimestamp<double>() - this->GetTimestamp();
     m_returnValue = return_value;
 }
 

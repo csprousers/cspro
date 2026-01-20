@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "Audio.h"
 #include "Document.h"
 #include <zUtilO/Interapp.h>
@@ -483,7 +483,7 @@ void LogicAudio::Concat(AudioStorage audio_storage, const char* const label, con
     if( source != nullptr )
         binary_data_metadata.SetProperty("source", source);
 
-    binary_data_metadata.SetProperty("timestamp", GetTimestamp());
+    binary_data_metadata.SetProperty("timestamp", GetTimestamp<double>());
 }
 
 

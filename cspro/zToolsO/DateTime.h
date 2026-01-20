@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zToolsO/zToolsO.h>
 #include <time.h>
@@ -57,12 +57,12 @@ public:
     // Returns the number of minutes the system clock is off from UTC using a specific local time.
     static int GetUtcOffset(const Components& components);
 
-private:
     static constexpr int TmToYear(const tm& tm)  { return tm.tm_year + 1900; }
     static constexpr int YearToTm(int year)      { return year - 1900; }
     static constexpr int TmToMonth(const tm& tm) { return tm.tm_mon + 1; }
     static constexpr int MonthToTm(int month)    { return month - 1; }
 
+private:
     static const tm& UtcTm(int64_t time);
     static const tm& LocalTm(int64_t time);
 
@@ -71,8 +71,8 @@ private:
 };
 
 
-// Gets a timestamp to the millisecond level. Defined to return either double or int64_t.
-template<typename T = double>
+// Returns a timestamp up to the millisecond level. Defined to return either int64_t or double.
+template<typename T = int64_t>
 CLASS_DECL_ZTOOLSO T GetTimestamp();
 
 // Formats a timestamp to a string using std::strftime formatting.

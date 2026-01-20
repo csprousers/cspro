@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "TraceHandler.h"
 #include <zToolsO/File.h>
 
@@ -64,7 +64,7 @@ void TraceHandler::OutputStartStopMessage(const bool start)
 
     Output(FormatText("Trace %s at %s",
                       start ? "started" : "stopped",
-                      FormatTimestamp(GetTimestamp()).c_str()),
+                      FormatTimestamp(GetTimestamp<double>()).c_str()),
            OutputType::SystemText);
 }
 

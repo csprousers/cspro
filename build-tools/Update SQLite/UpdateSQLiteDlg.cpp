@@ -31,7 +31,7 @@ UpdateSQLiteDlg::UpdateSQLiteDlg(CWnd* const pParent/* = nullptr*/)
 
 
 
-void UpdateSQLiteDlg::DoDataExchange(CDataExchange* pDX)
+void UpdateSQLiteDlg::DoDataExchange(CDataExchange* const pDX)
 {
     __super::DoDataExchange(pDX);
 

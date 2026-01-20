@@ -201,7 +201,7 @@ void LocalFileServer::AddCSProMapping()
 {
     AddMapping(CSProMapping, MimeType::Type::Json,
         [ module_file_path = CSProExecutables::GetModuleFilePath(),
-          start_time = GetTimestamp() ]()
+          start_time = GetTimestamp<double>() ]()
         {
             const std::unique_ptr<JsonStringWriter> json_writer = Json::CreateStringWriter();
 

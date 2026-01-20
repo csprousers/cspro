@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "ApplicationsTester.h"
 #include "CaseTestHelpers.h"
 #include <zToolsO/DirectoryLister.h>
@@ -32,7 +32,7 @@ private:
 
 
 SyncUnitTest::FileBasedSyncServiceTest::FileBasedSyncServiceTest()
-    :   m_directory(Path::Combine(GetTempDirectory(), "FileBasedSyncServiceTest-" + IntToString(GetTimestamp<int64_t>())))
+    :   m_directory(Path::Combine(GetTempDirectory(), "FileBasedSyncServiceTest-" + IntToString(GetTimestamp())))
 {
     PortableFunctions::PathMakeDirectory(m_directory);
 }
@@ -46,7 +46,7 @@ SyncUnitTest::FileBasedSyncServiceTest::~FileBasedSyncServiceTest()
 
 SyncClient SyncUnitTest::FileBasedSyncServiceTest::CreateSyncClient()
 {
-    const DeviceId device_id = "FileBasedSyncServiceTest-" + IntToString(GetTimestamp<int64_t>());
+    const DeviceId device_id = "FileBasedSyncServiceTest-" + IntToString(GetTimestamp());
 
     SyncClient sync_client(device_id, std::make_unique<SyncServiceFactory>(std::make_unique<SyncLoginAccessor>()));
     sync_client.SetSyncListener(std::make_unique<SyncLogSyncListener>());

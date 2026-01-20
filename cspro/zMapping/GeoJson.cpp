@@ -6,8 +6,6 @@
 #pragma warning(push)
 #pragma warning(disable: 4068 4239)
 #include <mapbox/feature.hpp>
-#include <mapbox/geometry.hpp>
-#include <mapbox/variant.hpp>
 #pragma warning(pop)
 
 

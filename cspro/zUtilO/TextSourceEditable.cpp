@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "TextSourceEditable.h"
 #include "ApplicationLoadException.h"
 #include <zDesignerF/UWM.h>
@@ -109,7 +109,7 @@ void TextSourceEditable::SetText(SharableString text)
 void TextSourceEditable::SetModified()
 {
     m_modified = true;
-    m_modifiedIteration = GetTimestamp<int64_t>();
+    m_modifiedIteration = GetTimestamp();
 }
 
 

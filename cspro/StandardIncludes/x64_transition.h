@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <assert.h>
 
@@ -44,12 +44,14 @@ unsigned int uint32_cast(const T value)
 template<typename T>
 auto string_len_cast(const size_t value)
 {
+#ifdef USING_CSTRING
     if constexpr(std::is_same_v<T, CString>)
     {
         return int32_cast(value);
     }
 
     else
+#endif
     {
         return value;
     }

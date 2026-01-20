@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "HtmlMapUI.h"
 #include "GeoJson.h"
 #include "MBTilesReader.h"
@@ -15,7 +15,6 @@
 #pragma warning(push)
 #pragma warning(disable: 4068 4239)
 #include <mapbox/feature.hpp>
-#include <mapbox/geometry.hpp>
 #pragma warning(pop)
 
 

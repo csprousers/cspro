@@ -9,6 +9,7 @@ Because most CSPro development occurs on a [private repository](https://github.c
 
 | Date | Branch | Pull Request Message |
 | --- | --- | --- |
+| 2026&#8209;01&#8209;20 | [prep-8.1-beta](https://github.com/CSProDevelopment/cspro/commit/4dd6882624bf57a278c7e620d93abe526ec44d7d) | prepared the code for a 8.1 beta + small work + fixed some bugs |
 | 2026&#8209;01&#8209;14 | [external-library-upgrade](https://github.com/CSProDevelopment/cspro/commit/f4f7296bd8963989b5ef4cbae25b1d4f5346e8ef) | upgraded the external libraries for CSPro 8.1 |
 | 2026&#8209;01&#8209;06 | [git-dll+stygitan](https://github.com/CSProDevelopment/cspro/commit/6991a49f2e1af8135191041ee93347d7cb216195) | rewrote Stygitan in C++ + centralized Git-related functionality in a DLL, zGit + fixed UTC offset bugs |
 | 2025&#8209;12&#8209;09 | [sqlite-wrapper](https://github.com/CSProDevelopment/cspro/commit/f493469decee15fa7ed3bee4ccc7382c5387df0a) | refactored non-data and non-paradata uses of SQLite to use the Sqlite::DB / Statement wrappers |

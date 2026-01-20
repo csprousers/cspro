@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zUtilO/zUtilO.h>
 
@@ -19,6 +19,9 @@ namespace WindowHelpers
 
     // Calls EnableWindow on all controls on the dialog.
     CLASS_DECL_ZUTILO void EnableWindow(CDialog& dlg, BOOL bEnable);
+
+    // Returns the frame window for a document, returning null if one does not exist.
+    CLASS_DECL_ZUTILO CFrameWnd* GetDocumentFrame(CDocument* pDoc);
 
     // Sets a dialog's system icon.
     CLASS_DECL_ZUTILO void SetDialogSystemIcon(CDialog& dlg, HICON hIcon);

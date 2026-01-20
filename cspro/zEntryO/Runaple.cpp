@@ -1,4 +1,4 @@
-﻿// RunAplE.cpp: implementation of the CRunAplEntry class.
+// RunAplE.cpp: implementation of the CRunAplEntry class.
 //
 //////////////////////////////////////////////////////////////////////
 #include "StdAfx.h"
@@ -1516,10 +1516,10 @@ void CRunAplEntry::RunPeriodicEvents()
 {
     auto should_execute_next_periodic_action = [](std::optional<double>& timestamp, int minutes) -> bool
     {
-        if( ( minutes == 0 ) || ( timestamp.has_value() && ( GetTimestamp() < *timestamp) ) )
+        if( ( minutes == 0 ) || ( timestamp.has_value() && ( GetTimestamp<double>() < *timestamp) ) )
             return false;
 
-        timestamp =  GetTimestamp() + 60 * minutes;
+        timestamp =  GetTimestamp<double>() + 60 * minutes;
         return true;
     };
 

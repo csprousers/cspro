@@ -1,7 +1,6 @@
 CloseDocument.svg
 CloseAll.svg
 SaveAs.svg
-SaveAll.svg
 Cancel.svg
 SelectAll.svg
 Copy.svg

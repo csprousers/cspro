@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "JsonLister.h"
 #include <zJson/Json.h>
 #include <zCaseO/CaseItemJsonWriter.h>
@@ -145,7 +145,7 @@ Listing::JsonLister::JsonLister(std::shared_ptr<ProcessSummary> process_summary,
         m_mustEndListingArray(false),
         m_mustEndMessageSummariesArray(false),
         m_caseAccess(std::move(case_access)),
-        m_startTimestamp(GetTimestamp())
+        m_startTimestamp(GetTimestamp<double>())
 {
     // start the (file) object
     m_jsonWriter->BeginObject();
@@ -357,7 +357,7 @@ void Listing::JsonLister::WriteFooter()
     // write the start/end times and duration
     {
         const SerializableTimestamp start_timestamp { m_startTimestamp };
-        const SerializableTimestamp end_timestamp { GetTimestamp() };
+        const SerializableTimestamp end_timestamp { GetTimestamp<double>() };
         const SerializableDuration duration { end_timestamp.timestamp - start_timestamp.timestamp };
 
         m_jsonWriter->BeginObject(JK::runtime)

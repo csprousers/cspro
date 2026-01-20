@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "SyncMessage.h"
 
 
@@ -11,13 +11,13 @@ SyncMessage::SyncMessage(const int64_t timestamp, SharableString name, std::vari
 
 
 SyncMessage::SyncMessage(SharableString name, SharableString value)
-    :   SyncMessage(::GetTimestamp<int64_t>(), std::move(name), std::move(value))
+    :   SyncMessage(::GetTimestamp(), std::move(name), std::move(value))
 {
 }
 
 
 SyncMessage::SyncMessage(SharableString name, JsonNode value)
-    :   SyncMessage(::GetTimestamp<int64_t>(), std::move(name), std::move(value))
+    :   SyncMessage(::GetTimestamp(), std::move(name), std::move(value))
 {
 }
 

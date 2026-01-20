@@ -262,7 +262,7 @@
 
 
 // --------------------------------------------------------------------------
-// Markdown, which shares the CSPro styles
+// Markdown
 // --------------------------------------------------------------------------
 #define SCE_MARKDOWN_DEFAULT 0
 #define SCE_MARKDOWN_LINE_BEGIN 1

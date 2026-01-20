@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "TextEditFrame.h"
 
 
@@ -69,7 +69,7 @@ void TextEditFrame::CheckIfFileIsUpdated()
             text_edit_doc->ReloadFromDisk();
     }
 
-    m_lastCheckIfFileIsUpdatedTime = GetTimestamp<int64_t>();
+    m_lastCheckIfFileIsUpdatedTime = GetTimestamp();
 }
 
 

@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "ApplicationsTester.h"
 #include "CaseTestHelpers.h"
 #include "FailableHttpConnection.h"
@@ -1024,7 +1024,7 @@ namespace SyncUnitTest
                 SyncClient::SyncResult result = sync_client.ConnectCSWeb(credentials.sync_connection_string, std::make_unique<LoginCredentials>(credentials.username_password));
                 Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
 
-                const int64_t timestamp = GetTimestamp<int64_t>();
+                const int64_t timestamp = GetTimestamp();
                 const SyncMessage sync_message(timestamp, "CSPro-TestSync-Key-" + IntToString(timestamp), "CSPro-TestSync-Value");
                 const std::optional<JsonNode> sync_message_response = sync_client.SendSyncMessage(sync_message);
                 Assert::IsTrue(sync_message_response.has_value());

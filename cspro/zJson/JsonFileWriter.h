@@ -16,7 +16,8 @@ private:
     JsonFileWriterImpl(const std::string& file_path, std::unique_ptr<std::ofstream> file_stream, const JsonFormattingOptions formatting_options)
         :   JsonStreamWriterImpl<std::ostream, WriterType>(*file_stream, formatting_options),
             m_filePath(file_path),
-            m_fileStream(std::move(file_stream))
+            m_fileStream(std::move(file_stream)),
+            m_endFileWithNewline(formatting_options != JsonFormattingOptions::Compact)
     {
     }
 
@@ -39,8 +40,9 @@ public:
         // destroy the writer so that the stream is finalized before the file is closed
         JsonConsWriter<WriterType>::m_writer.reset();
 
-        // end files with a final newline
-        m_fileStream->put('\n');
+        // when not writing in compact mode, end files with a final newline
+        if( m_endFileWithNewline )
+            m_fileStream->put('\n');
 
         m_fileStream->close();
     }
@@ -53,6 +55,7 @@ public:
 private:
     std::string m_filePath;
     std::unique_ptr<std::ofstream> m_fileStream;
+    bool m_endFileWithNewline;
 };
 
 

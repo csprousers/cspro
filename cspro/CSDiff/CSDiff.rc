@@ -147,8 +147,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 8,0,1,0
- PRODUCTVERSION 8,0,1,0
+ FILEVERSION 8,1,0,0
+ PRODUCTVERSION 8,1,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -165,11 +165,11 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "U.S. Census Bureau"
             VALUE "FileDescription", "Compare Data"
-            VALUE "FileVersion", "8.0.1.0"
+            VALUE "FileVersion", "8.1.0.0"
             VALUE "InternalName", "CSDiff"
             VALUE "OriginalFilename", "CSDiff.EXE"
-            VALUE "ProductName", "CSPro 8.0"
-            VALUE "ProductVersion", "8.0.1.0"
+            VALUE "ProductName", "CSPro 8.1"
+            VALUE "ProductVersion", "8.1.0.0"
         END
     END
     BLOCK "VarFileInfo"
@@ -219,25 +219,25 @@ STYLE DS_SETFONT | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_THICKFR
 CAPTION "Run Compare Data"
 FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
-    EDITTEXT        IDC_INPUTFILE,64,8,284,12,ES_AUTOHSCROLL
-    PUSHBUTTON      "...",IDC_INPBROW,357,8,16,11
-    EDITTEXT        IDC_REFERENCEFILE,64,25,284,12,ES_AUTOHSCROLL
-    PUSHBUTTON      "...",IDC_REFBROW,357,25,16,11
-    EDITTEXT        IDC_LISTFILE,64,42,284,12,ES_AUTOHSCROLL
-    PUSHBUTTON      "...",IDC_LISTBROW,357,43,16,11
-    CONTROL         "Compare Input to Reference (only)",IDC_ONEWAY,"Button",BS_AUTORADIOBUTTON | WS_GROUP,25,78,129,10
-    CONTROL         "Compare Input to Reference and Reference to Input",IDC_BOTHWAY,
-                    "Button",BS_AUTORADIOBUTTON,25,91,185,10
-    CONTROL         "Compare in indexed order",IDC_INDEXED,"Button",BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,25,125,99,10
-    CONTROL         "Compare in sequential order",IDC_SEQUENTIAL,"Button",BS_AUTORADIOBUTTON,25,138,106,10
     DEFPUSHBUTTON   "OK",IDOK,90,165,50,14
     PUSHBUTTON      "Cancel",IDCANCEL,165,165,50,14
     PUSHBUTTON      "&Help",ID_HELP,240,165,50,14
-    LTEXT           "Input File:",IDC_STATIC,7,9,38,8
-    LTEXT           "Reference File:",IDC_STATIC,7,27,52,8
-    LTEXT           "Listing File:",IDC_STATIC,7,45,38,8
-    GROUPBOX        "Comparison Order",IDC_STATIC,7,113,366,43
+    LTEXT           "Input Data:",IDC_STATIC,7,9,38,8
+    EDITTEXT        IDC_INPUTFILE,67,8,284,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "...",IDC_INPBROW,357,8,16,11
+    LTEXT           "Reference Data:",IDC_STATIC,7,27,54,8
+    EDITTEXT        IDC_REFERENCEFILE,67,25,284,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "...",IDC_REFBROW,357,25,16,11
+    LTEXT           "Listing File:",IDC_STATIC,7,45,36,8
+    EDITTEXT        IDC_LISTFILE,67,42,284,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "...",IDC_LISTBROW,357,43,16,11
     GROUPBOX        "Comparison Method",IDC_STATIC,7,66,366,42
+    CONTROL         "Compare Input to Reference (only)",IDC_ONEWAY,"Button",BS_AUTORADIOBUTTON | WS_GROUP,22,78,129,10
+    CONTROL         "Compare Input to Reference and Reference to Input",IDC_BOTHWAY,
+                    "Button",BS_AUTORADIOBUTTON,22,91,185,10
+    GROUPBOX        "Comparison Order",IDC_STATIC,7,113,366,43
+    CONTROL         "Indexed order (by case key)",IDC_INDEXED,"Button",BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,22,126,107,10
+    CONTROL         "Sequential order",IDC_SEQUENTIAL,"Button",BS_AUTORADIOBUTTON,22,139,69,10
 END
 
 
@@ -249,24 +249,24 @@ END
 IDD_FILEBROW AFX_DIALOG_LAYOUT
 BEGIN
     0,
-    0, 0, 100, 0,
-    100, 0, 0, 0,
-    0, 0, 100, 0,
-    100, 0, 0, 0,
-    0, 0, 100, 0,
-    100, 0, 0, 0,
-    0, 0, 0, 0,
-    0, 0, 0, 0,
-    0, 0, 0, 0,
-    0, 0, 0, 0,
     50, 0, 0, 0,
     50, 0, 0, 0,
     50, 0, 0, 0,
     0, 0, 0, 0,
+    0, 0, 100, 0,
+    100, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 100, 0,
+    100, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 100, 0,
+    100, 0, 0, 0,
+    0, 0, 100, 0,
     0, 0, 0, 0,
     0, 0, 0, 0,
     0, 0, 100, 0,
-    0, 0, 100, 0
+    0, 0, 0, 0,
+    0, 0, 0, 0
 END
 
 

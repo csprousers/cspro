@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zUtilO/zUtilO.h>
 #include <array>
@@ -16,10 +16,10 @@ enum class MovingDirection { X, Y, XY };
 class CLASS_DECL_ZUTILO DynamicLayoutControlResizer
 {
 public:
-    DynamicLayoutControlResizer(CWnd& parent_wnd);
+    DynamicLayoutControlResizer(CWnd& parent_wnd, const CSize* initial_client_size = nullptr);
 
     template<typename CT>
-    DynamicLayoutControlResizer(CWnd& parent_wnd, const CT& control_objects);
+    DynamicLayoutControlResizer(CWnd& parent_wnd, const CT& control_objects, const CSize* initial_client_size = nullptr);
 
     // Add a control to be sized or moved.
     DynamicLayoutControlResizer& Add(std::variant<HWND, CWnd*, int> control, SizingDirection sizing_direction);
@@ -28,6 +28,7 @@ public:
     // A user of this class should call the DynamicLayoutControlResizer constructor once during an OnSize call,
     // call Add as desired, and then call this method after calling the parent class' OnSize method.
     void OnSize(int cx, int cy);
+    void OnSize(CWnd& wnd);
 
     // This method calls SetWindowPos on the window. If the window has been registered as a control
     // for dynamic sizing/moving, its calculations will be adjusted based on the new window size.
@@ -76,8 +77,8 @@ private:
 // --------------------------------------------------------------------------
 
 template<typename CT>
-DynamicLayoutControlResizer::DynamicLayoutControlResizer(CWnd& parent_wnd, const CT& control_objects)
-    :   DynamicLayoutControlResizer(parent_wnd)
+DynamicLayoutControlResizer::DynamicLayoutControlResizer(CWnd& parent_wnd, const CT& control_objects, const CSize* const initial_client_size/* = nullptr*/)
+    :   DynamicLayoutControlResizer(parent_wnd, initial_client_size)
 {
     for( const auto& control_object : control_objects )
         m_controls.emplace_back(ProcessControlObject(control_object));

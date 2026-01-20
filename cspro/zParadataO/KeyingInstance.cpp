@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "KeyingInstance.h"
 
 using namespace Paradata;
@@ -55,7 +55,7 @@ void KeyingInstance::Pause()
     if( !m_pauseTimestamp.has_value() )
     {
         ++m_pauseCount;
-        m_pauseTimestamp = ::GetTimestamp();
+        m_pauseTimestamp = ::GetTimestamp<double>();
     }
 }
 
@@ -64,7 +64,7 @@ void KeyingInstance::UnPause()
 {
     if( m_pauseTimestamp.has_value() )
     {
-        m_pauseDuration += ( ::GetTimestamp() - *m_pauseTimestamp );
+        m_pauseDuration += ( ::GetTimestamp<double>() - *m_pauseTimestamp );
         m_pauseTimestamp.reset();
     }
 }

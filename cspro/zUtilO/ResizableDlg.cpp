@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "ResizableDlg.h"
 #include "DynamicLayoutControlResizer.h"
 #include "SettingsDb.h"
@@ -123,15 +123,18 @@ DynamicLayoutResizableDlg::~DynamicLayoutResizableDlg()
 
 BOOL DynamicLayoutResizableDlg::OnInitDialog()
 {
-    m_dialogInitialized = true;
+    CRect rect;
+    GetClientRect(rect);
+    m_initialClientSize = rect.Size();
+
     return __super::OnInitDialog();
 }
 
 
 void DynamicLayoutResizableDlg::OnSize(const UINT nType, const int cx, const int cy)
 {
-    if( m_dynamicLayoutControlResizer == nullptr && m_dialogInitialized )
-        m_dynamicLayoutControlResizer = new DynamicLayoutControlResizer(*this, GetDynamicLayoutControls());
+    if( m_dynamicLayoutControlResizer == nullptr && m_initialClientSize.has_value() )
+        m_dynamicLayoutControlResizer = new DynamicLayoutControlResizer(*this, GetDynamicLayoutControls(), &*m_initialClientSize);
 
     __super::OnSize(nType, cx, cy);
 

@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "EncryptedSQLiteRepositoryPasswordManager.h"
 #include "EncryptedSQLiteRepositoryCredential.h"
 #include "resource.h"
@@ -75,7 +75,8 @@ bool EncryptedSQLiteRepositoryPasswordManager::GetPasswordHashFromCredentialMana
         {
             const EncryptedSQLiteRepositoryCredential credential(credential_string);
 
-            if( m_dictionary == nullptr || ( GetTimestamp() < ( credential.GetStorageTimestamp() + 60.0 * m_dictionary->GetCachedPasswordMinutes() ) ) )
+            if( ( m_dictionary == nullptr ) ||
+                ( GetTimestamp<double>() < ( credential.GetStorageTimestamp() + 60.0 * m_dictionary->GetCachedPasswordMinutes() ) ) )
             {
                 if( m_fileOpenByPasswordHashCallback(credential.GetPasswordHash()) )
                     return true;

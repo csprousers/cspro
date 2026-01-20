@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "DataExchange.h"
 #include "SyncConnectionString.h"
 #include "WindowsUtf8.h"
@@ -67,6 +67,28 @@ void DDX_Text(CDataExchange* const pDX, const int nIDC, std::string& text, const
     else
     {
         WindowsUtf8::SetText(hWndCtrl, text);
+    }
+}
+
+
+void DDX_TextOnlyLF(CDataExchange* const pDX, const int nIDC, std::string& text, const bool trim_string_on_save/* = false*/)
+{
+    if( pDX->m_bSaveAndValidate )
+    {
+        DDX_Text(pDX, nIDC, text, trim_string_on_save);
+        SO::MakeNewlineLF(text);
+    }
+
+    else if( text.find('\n') != std::string::npos )
+    {
+        std::string text_copy = text;
+        SO::MakeNewlineCRLF(text_copy);
+        DDX_Text(pDX, nIDC, text_copy, trim_string_on_save);
+    }
+
+    else
+    {
+        DDX_Text(pDX, nIDC, text, trim_string_on_save);
     }
 }
 

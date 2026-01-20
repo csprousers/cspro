@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "HtmlViewCtrl.h"
 #include "CSProHostObject.h"
 #include "UriResolver.h"
@@ -23,14 +23,15 @@ struct HtmlViewCtrl::Impl
 {
     ~Impl();
 
-    wil::com_ptr<ICoreWebView2> view;
     wil::com_ptr<ICoreWebView2Controller> controller;
+    wil::com_ptr<ICoreWebView2> view;
 };
 
 
 HtmlViewCtrl::HtmlViewCtrl(bool initialize_webview_in_pre_subclass_window/* = true*/)
     :   m_impl(std::make_unique<HtmlViewCtrl::Impl>()),
         m_initializeWebviewInPreSubclassWindow(initialize_webview_in_pre_subclass_window),
+        m_browseInPrivate(false),
         m_allowExternalDrop(false),
         m_contextMenuEnabled(true),
         m_zoomControlEnabled(false),
@@ -54,6 +55,13 @@ HtmlViewCtrl::Impl::~Impl()
         controller.reset();
         view.reset();
     }
+}
+
+
+void HtmlViewCtrl::SetBrowseInPrivate(const bool enabled)
+{
+    ASSERT(m_impl->controller == nullptr);
+    m_browseInPrivate = enabled;
 }
 
 
@@ -166,15 +174,40 @@ void HtmlViewCtrl::InitializeWebView()
         Microsoft::WRL::Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>(
         [this](HRESULT, ICoreWebView2Environment* env) -> HRESULT
         {
-            env->CreateCoreWebView2Controller(m_hWnd, Microsoft::WRL::Callback<ICoreWebView2CreateCoreWebView2ControllerCompletedHandler>(
-                [this](HRESULT result, ICoreWebView2Controller* controller) -> HRESULT
+            auto controller_completed_handler =
+                [this](const HRESULT result, ICoreWebView2Controller* const controller) -> HRESULT
                 {
                     RETURN_IF_FAILED(result);
                     OnWebViewCreated(controller);
                     return S_OK;
-                }).Get());
+                };
 
-            return S_OK;
+            // if requesting private mode, we need to use ICoreWebView2Environment10 to create controller options
+            if( m_browseInPrivate )
+            {
+                wil::com_ptr<ICoreWebView2Environment10> env10;
+
+                if( env->QueryInterface(IID_PPV_ARGS(&env10)) == S_OK )
+                {
+                    wil::com_ptr<ICoreWebView2ControllerOptions> options;
+
+                    if( env10->CreateCoreWebView2ControllerOptions(&options) == S_OK )
+                    {
+                        options->put_IsInPrivateModeEnabled(TRUE);
+
+                        return env10->CreateCoreWebView2ControllerWithOptions(m_hWnd, options.get(),
+                            Microsoft::WRL::Callback<ICoreWebView2CreateCoreWebView2ControllerCompletedHandler>(
+                            std::move(controller_completed_handler)).Get());
+                    }
+                }
+
+                ASSERT(false);
+            }
+
+            // otherwise use the old interface
+            return env->CreateCoreWebView2Controller(m_hWnd,
+                Microsoft::WRL::Callback<ICoreWebView2CreateCoreWebView2ControllerCompletedHandler>(
+                std::move(controller_completed_handler)).Get());
         }).Get());
 
     if( SUCCEEDED(hr) )

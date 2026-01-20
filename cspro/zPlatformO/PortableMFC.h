@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #ifdef _MFC_VER
 
@@ -17,6 +17,7 @@
 using CObject = CCSProObject;
 
 // CString
+#define USING_CSTRING
 #include <zPlatformO/stdstring.h>
 using CString = CStdString;
 using CStringA = CStdStringA;
