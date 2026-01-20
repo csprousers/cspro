@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "ExternalApplicationEvent.h"
 
 using namespace Paradata;
@@ -33,7 +33,7 @@ void ExternalApplicationEvent::SetPostExecutionValues(const bool success, const 
     m_success = success;
 
     if( m_success && wait )
-        m_waitDuration = ::GetTimestamp() - this->GetTimestamp();
+        m_waitDuration = ::GetTimestamp<double>() - this->GetTimestamp();
 }
 
 

@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "SyncEvents.h"
 #include <zJson/Json.h>
 
@@ -31,7 +31,7 @@ SyncEvent::SyncEvent(std::shared_ptr<const SyncServiceInstance> sync_service_ins
 
 void SyncEvent::SetResultDuration()
 {
-    m_duration = ::GetTimestamp() - this->GetTimestamp();
+    m_duration = ::GetTimestamp<double>() - this->GetTimestamp();
 }
 
 

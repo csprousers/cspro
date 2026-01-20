@@ -1,4 +1,4 @@
-﻿#include "Stdafx.h"
+#include "Stdafx.h"
 #include "Helper.h"
 #include <zToolsO/Tools.h>
 #include <zAppO/PFF.h>
@@ -36,5 +36,5 @@ System::String^ CSPro::ParadataViewer::Helper::FormatTimestamp(System::String^ f
 
 System::String^ CSPro::ParadataViewer::Helper::FormatTimestamp(System::String^ formatter)
 {
-    return FormatTimestamp(formatter, GetTimestamp());
+    return FormatTimestamp(formatter, GetTimestamp<double>());
 }

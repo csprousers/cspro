@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "GpsEvent.h"
 
 using namespace Paradata;
@@ -146,7 +146,7 @@ GpsReadRequestEvent::GpsReadRequestEvent(const Action action, const int max_read
 
 void GpsReadRequestEvent::SetPostExecutionValues(const double return_value, std::unique_ptr<GpsReadingInstance> gps_reading_instance/* = nullptr*/)
 {
-    m_readDuration = ::GetTimestamp() - this->GetTimestamp();
+    m_readDuration = ::GetTimestamp<double>() - this->GetTimestamp();
 
     GpsEvent::SetPostExecutionValues(return_value, std::move(gps_reading_instance));
 }

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zParadataO/zParadataO.h>
 #include <zParadataO/TableDefinitions.h>
@@ -59,7 +59,7 @@ public:                                        \
 // --------------------------------------------------------------------------
 
 inline Paradata::Event::Event()
-    :   m_timestamp(::GetTimestamp()),
+    :   m_timestamp(::GetTimestamp<double>()),
         m_instanceGeneratingObject(nullptr),
         m_procType(ProcType::None)
 {

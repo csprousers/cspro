@@ -1,4 +1,4 @@
-﻿//***************************************************************************
+//***************************************************************************
 //  File name: Interapp.cpp
 //
 //  Description:
@@ -447,7 +447,7 @@ std::string GetUniqueTempFilePath(const std::string_view base_filename_sv, const
                                                      extension);
 
         if( !PortableFunctions::FileExists(test_file_path) ||
-            ( overwrite_hour_old_files && ( GetTimestamp() - PortableFunctions::FileModifiedTime(test_file_path) ) > DateHelper::SecondsInHour<double>() ) )
+            ( overwrite_hour_old_files && ( GetTimestamp() - PortableFunctions::FileModifiedTime(test_file_path) ) > DateHelper::SecondsInHour<int64_t>() ) )
         {
             return test_file_path;
         }

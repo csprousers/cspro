@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "DocSetBuilder.h"
 #include "CSDocCompilerSettings.h"
 #include "CSDocCompilerWorker.h"
@@ -212,7 +212,7 @@ void DocSetBuilderChmGenerateTask::ValidateInputsPostDocSetCompilation()
 
 void DocSetBuilderChmGenerateTask::OnRun()
 {
-    const int64_t start_timestamp = GetTimestamp<int64_t>();
+    const int64_t start_timestamp = GetTimestamp();
 
     GetInterface().SetTitle(FormatText("Building Document Set to a %s file: %s", ChmDisplayText, GetDocSetSpec().GetFilePath().c_str()));
 
@@ -221,7 +221,7 @@ void DocSetBuilderChmGenerateTask::OnRun()
 
     RunBuild();
 
-    GetInterface().LogText("\nBuild completed in %s.", GetElapsedTimeText(start_timestamp, GetTimestamp<int64_t>()).c_str());
+    GetInterface().LogText("\nBuild completed in %s.", GetElapsedTimeText(start_timestamp, GetTimestamp()).c_str());
 
     GetInterface().OnCreatedOutput(PortableFunctions::PathGetFilename(m_chmOutputFilePath), m_chmOutputFilePath);
 }

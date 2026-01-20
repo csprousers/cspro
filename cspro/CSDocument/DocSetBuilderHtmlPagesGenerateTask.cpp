@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "DocSetBuilder.h"
 
 
@@ -13,13 +13,13 @@ DocSetBuilderHtmlPagesGenerateTask::DocSetBuilderHtmlPagesGenerateTask(cs::non_n
 
 void DocSetBuilderHtmlPagesGenerateTask::OnRun()
 {
-    const int64_t start_timestamp = GetTimestamp<int64_t>();
+    const int64_t start_timestamp = GetTimestamp();
 
     GetInterface().SetTitle(FormatText("Building Document Set to HTML Pages: %s", GetDocSetSpec().GetFilePath().c_str()));
 
     RunBuild();
 
-    GetInterface().LogText("\nBuild completed in %s.", GetElapsedTimeText(start_timestamp, GetTimestamp<int64_t>()).c_str());
+    GetInterface().LogText("\nBuild completed in %s.", GetElapsedTimeText(start_timestamp, GetTimestamp()).c_str());
 
     const std::string html_pages_directory = m_csdocCompilerSettingsForBuilding->GetDocSetBuildOutputDirectory();
     GetInterface().OnCreatedOutput(PortableFunctions::PathGetFilename(html_pages_directory), html_pages_directory);

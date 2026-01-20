@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "SettingsDb.h"
 #include <zToolsO/Hash.h>
 #include <zSql/DB.h>
@@ -200,7 +200,7 @@ std::optional<ReturnType> SettingsDb::ImplDb::Read(SettingsDb& settings_db, cons
 
         // return the value if it is still valid
         if( !already_cached_value.expiry_timestamp.has_value() ||
-            *already_cached_value.expiry_timestamp > GetTimestamp<int64_t>() )
+            *already_cached_value.expiry_timestamp > GetTimestamp() )
         {
             if constexpr(std::is_pointer_v<ReturnType>)
             {
@@ -281,7 +281,7 @@ void SettingsDb::ImplDb::Write(SettingsDb& settings_db, const std::string_view k
     auto get_expiry_timestamp = [&]() -> std::optional<int64_t>
     {
         if( settings_db.m_expirationSeconds.has_value() )
-            return GetTimestamp<int64_t>() + *settings_db.m_expirationSeconds;
+            return GetTimestamp() + *settings_db.m_expirationSeconds;
 
         return std::nullopt;
     };
@@ -348,7 +348,7 @@ void SettingsDb::ImplDb::WriteToDb(ImplTable& table, const std::string_view key_
 
 void SettingsDb::ImplDb::ClearOldValuesAndWriteCachedValues(ImplTable& table)
 {
-    const int64_t current_timestamp = GetTimestamp<int64_t>();
+    const int64_t current_timestamp = GetTimestamp();
 
     // wrap everything in a transaction
     Sqlite::Transaction transaction = m_db.CreateTransaction();

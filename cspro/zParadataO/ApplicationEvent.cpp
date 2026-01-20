@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "ApplicationEvent.h"
 #include <zToolsO/Serializer.h>
 #include <zToolsO/WinRegistry.h>
@@ -254,5 +254,5 @@ double ApplicationEvent::GetDeviceBootTime()
 #else
         PlatformInterface::GetInstance()->GetApplicationInterface()->GetUpTime();
 #endif
-    return ::GetTimestamp() - up_time;
+    return ::GetTimestamp<double>() - up_time;
 }

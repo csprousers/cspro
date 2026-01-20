@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "DocSetCompiler.h"
 
 
@@ -542,7 +542,7 @@ void DocSetCompiler::CompileSpecIfNecessary(DocSetSpec& doc_set_spec, const Spec
 
     CompileSpec(doc_set_spec, *text, spec_compilation_type);
 
-    doc_set_spec.m_lastCompilationDetails.emplace(m_errorIssuer.index(), static_cast<int>(spec_compilation_type), GetTimestamp<int64_t>());
+    doc_set_spec.m_lastCompilationDetails.emplace(m_errorIssuer.index(), static_cast<int>(spec_compilation_type), GetTimestamp());
 }
 
 

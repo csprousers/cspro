@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "IncludesRT.h"
 #include "Nodes/Date.h"
 
@@ -13,7 +13,7 @@ double LogicInterpreter::ex_timestamp(const int program_index)
 
     if( m_engineData->PredatesCompiledLogicVersion(Serializer::Iteration_8_0_000_1) || timestamp_node.type == Nodes::Timestamp::Type::Current )
     {
-        return GetTimestamp();
+        return GetTimestamp<double>();
     }
 
     else if( timestamp_node.type == Nodes::Timestamp::Type::RFC3339 )
@@ -109,7 +109,7 @@ double LogicInterpreter::ex_timestring(const int program_index)
 
     if( timestamp_expression == -1 )
     {
-        timestamp = GetTimestamp();
+        timestamp = GetTimestamp<double>();
     }
 
     else

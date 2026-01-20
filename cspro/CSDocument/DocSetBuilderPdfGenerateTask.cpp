@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "DocSetBuilder.h"
 #include "CSDocCompilerSettings.h"
 #include "PdfCreator.h"
@@ -177,7 +177,7 @@ void DocSetBuilderPdfGenerateTask::ValidateInputsPostDocSetCompilation()
 
 void DocSetBuilderPdfGenerateTask::OnRun()
 {
-    const int64_t start_timestamp = GetTimestamp<int64_t>();
+    const int64_t start_timestamp = GetTimestamp();
 
     GetInterface().SetTitle(FormatText("Building Document Set to a PDF: %s", GetDocSetSpec().GetFilePath().c_str()));
 
@@ -200,7 +200,7 @@ void DocSetBuilderPdfGenerateTask::OnRun()
         throw;
     }
 
-    GetInterface().LogText("\nBuild completed in %s.", GetElapsedTimeText(start_timestamp, GetTimestamp<int64_t>()).c_str());
+    GetInterface().LogText("\nBuild completed in %s.", GetElapsedTimeText(start_timestamp, GetTimestamp()).c_str());
 
     GetInterface().OnCreatedOutput(PortableFunctions::PathGetFilename(m_pdfOutputFilePath), m_pdfOutputFilePath);
 }

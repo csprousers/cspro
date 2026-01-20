@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "ApplicationsTester.h"
 #include "CaseTestHelpers.h"
 #include <zToolsO/DirectoryLister.h>
@@ -10,8 +10,8 @@
 ApplicationsTester::ApplicationsTester(const ApplicationPackage::DeploymentType deployment_type, std::string server_url)
     :   m_deploymentType(deployment_type),
         m_serverUrl(std::move(server_url)),
-        m_rootDirectory(Path::Combine(GetTempDirectory(), "ApplicationsTester-" + IntToString(GetTimestamp<int64_t>()))),
-        m_packageInputsDirectory(Path::Combine(GetTempDirectory(), "ApplicationsTesterPackage-" + IntToString(GetTimestamp<int64_t>())))
+        m_rootDirectory(Path::Combine(GetTempDirectory(), "ApplicationsTester-" + IntToString(GetTimestamp()))),
+        m_packageInputsDirectory(Path::Combine(GetTempDirectory(), "ApplicationsTesterPackage-" + IntToString(GetTimestamp())))
 {
     FileIO::CreateDirectories(m_rootDirectory);
     FileIO::CreateDirectories(m_packageInputsDirectory);
@@ -56,7 +56,7 @@ void ApplicationsTester::RunTest(SyncClient& sync_client, const std::optional<si
 
     // test 3: try to install a package not yet uploaded (AAA)
     const size_t number_inputs_initially_added = m_inputFilePathsForPackage.size() / 2;
-    const FakePackage package_aaa = CreateFakePackage("CSPro-TestSync-ApplicationsTester-AAA-" + IntToString(GetTimestamp<int64_t>()), true, number_inputs_initially_added, 1, nullptr);
+    const FakePackage package_aaa = CreateFakePackage("CSPro-TestSync-ApplicationsTester-AAA-" + IntToString(GetTimestamp()), true, number_inputs_initially_added, 1, nullptr);
     const std::string package_aaa_install_directory = Path::Combine(m_rootDirectory, package_aaa.application_package.GetName());
     const std::string package_aaa_fake_pen_file_path = Path::Combine(package_aaa_install_directory, "fake-application.pen");
 
@@ -71,7 +71,7 @@ void ApplicationsTester::RunTest(SyncClient& sync_client, const std::optional<si
 
 
     // test 5: upload another package (BBB)
-    const FakePackage package_bbb = CreateFakePackage("CSPro-TestSync-ApplicationsTester-BBB-" + IntToString(GetTimestamp<int64_t>()), false, number_inputs_initially_added, 0, nullptr);
+    const FakePackage package_bbb = CreateFakePackage("CSPro-TestSync-ApplicationsTester-BBB-" + IntToString(GetTimestamp()), false, number_inputs_initially_added, 0, nullptr);
     const std::string package_bbb_install_directory = Path::Combine(m_rootDirectory, package_bbb.application_package.GetName());
 
     result = sync_client.UploadApplicationPackage(package_bbb.package_zip_temporary_file.GetPath(), package_bbb.application_package.GetName(),
@@ -243,7 +243,7 @@ ApplicationsTester::FakePackage ApplicationsTester::CreateFakePackage(const std:
     // prepare the build, creating fake timestamps to ensure that updates will work
     static int64_t timestamp_counter = 0;
     application_package.PrepareBuild();
-    application_package.SetBuildTime(GetTimestamp<int64_t>() + timestamp_counter++);
+    application_package.SetBuildTime(GetTimestamp() + timestamp_counter++);
 
     // add package.json
     std::string built_application_package_json = application_package.GetJson(m_packageInputsDirectory, true);

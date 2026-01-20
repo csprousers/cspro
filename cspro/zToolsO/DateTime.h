@@ -71,8 +71,8 @@ private:
 };
 
 
-// Gets a timestamp to the millisecond level. Defined to return either double or int64_t.
-template<typename T = double>
+// Returns a timestamp up to the millisecond level. Defined to return either int64_t or double.
+template<typename T = int64_t>
 CLASS_DECL_ZTOOLSO T GetTimestamp();
 
 // Formats a timestamp to a string using std::strftime formatting.

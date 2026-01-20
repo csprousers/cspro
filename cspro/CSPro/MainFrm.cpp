@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "MainFrm.h"
 #include "CapiMacrosDlg.h"
 #include "PropertiesDlg.h"
@@ -5627,7 +5627,7 @@ LRESULT CMainFrame::OnUpdateApplicationExternalities(WPARAM /*wParam*/, LPARAM /
         }
     }
 
-    last_check_timestamp = GetTimestamp<int64_t>();
+    last_check_timestamp = GetTimestamp();
 
     return 0;
 }

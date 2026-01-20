@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "IncludesRT.h"
 #include "Document.h"
 #include "Geometry.h"
@@ -192,7 +192,7 @@ double LogicInterpreter::ex_Geometry_tracePolygon_walkPolygon(const int program_
         BinaryDataMetadata binary_data_metadata;
         binary_data_metadata.SetProperty("label", trace_polgyon ? "Polygon (Traced)" : "Polygon (Walked)");
         binary_data_metadata.SetProperty("source", trace_polgyon ? "Geometry.tracePolygon" : "Geometry.walkPolygon");
-        binary_data_metadata.SetProperty("timestamp", GetTimestamp());
+        binary_data_metadata.SetProperty("timestamp", GetTimestamp<double>());
 
         logic_geometry->SetGeometry(std::move(*captured_polygon), std::move(binary_data_metadata));
 

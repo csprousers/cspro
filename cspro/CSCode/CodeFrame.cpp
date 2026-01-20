@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "CodeFrame.h"
 #include "HtmlDialogCodeView.h"
 #include "LanguageSettingsPersister.h"
@@ -198,7 +198,7 @@ void CodeFrame::CheckIfFileIsUpdated()
             code_doc.ReloadFromDisk();
     }
 
-    m_lastCheckIfFileIsUpdatedTime = GetTimestamp<int64_t>();
+    m_lastCheckIfFileIsUpdatedTime = GetTimestamp();
 }
 
 

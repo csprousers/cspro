@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "IncludesRT.h"
 #include "Image.h"
 #include "Nodes/Barcode.h"
@@ -91,7 +91,7 @@ double LogicInterpreter::ex_Barcode_createQRCode(const int program_index)
             BinaryDataMetadata& binary_data_metadata = logic_image->GetMetadata();
             binary_data_metadata.SetProperty("label", text.Release());
             binary_data_metadata.SetProperty("source", "Image.createQRCode");
-            binary_data_metadata.SetProperty("timestamp", GetTimestamp());
+            binary_data_metadata.SetProperty("timestamp", GetTimestamp<double>());
         }
 
         // ... or save it to disk

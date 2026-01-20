@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "CommandLineBuilder.h"
 #include "CommandLineParser.h"
 #include "ConsoleWrapper.h"
@@ -26,7 +26,7 @@ void CommandLineBuilder::Build(const CommandLineParser& command_line_parser)
 
     try
     {
-        const int64_t start_timestamp = GetTimestamp<int64_t>();
+        const int64_t start_timestamp = GetTimestamp();
         const std::vector<std::string>& input_file_paths = command_line_parser.GetInputFilePaths();
 
         for( const std::string& input_file_path : input_file_paths )
@@ -58,7 +58,7 @@ void CommandLineBuilder::Build(const CommandLineParser& command_line_parser)
 
         m_console->WriteLine("\nCommand line build of %d input%s completed in %s.",
                              static_cast<int>(input_file_paths.size()), PluralizeWord(input_file_paths.size()),
-                             GetElapsedTimeText(start_timestamp, GetTimestamp<int64_t>()).c_str());
+                             GetElapsedTimeText(start_timestamp, GetTimestamp()).c_str());
 
         if( !m_finalOutputs.empty() )
         {

@@ -226,26 +226,27 @@ int DateTime::GetUtcOffset(const Components& components)
 }
 
 
-template<typename T/* = double*/>
+template<typename T/* = int64_t*/>
 T GetTimestamp()
 {
     using namespace std::chrono;
 
-    if constexpr(std::is_same_v<T, double>)
-    {
-        const milliseconds ms = duration_cast<milliseconds>(system_clock::now().time_since_epoch());
-        return static_cast<T>(ms.count()) / 1000;
-    }
-
-    else
+    if constexpr(std::is_same_v<T, int64_t>)
     {
         const seconds s = duration_cast<seconds>(system_clock::now().time_since_epoch());
         return static_cast<T>(s.count());
     }
+
+    else
+    {
+        static_assert(std::is_same_v<T, double>);
+        const milliseconds ms = duration_cast<milliseconds>(system_clock::now().time_since_epoch());
+        return static_cast<T>(ms.count()) / 1000;
+    }
 }
 
-template CLASS_DECL_ZTOOLSO double GetTimestamp();
 template CLASS_DECL_ZTOOLSO int64_t GetTimestamp();
+template CLASS_DECL_ZTOOLSO double GetTimestamp();
 
 
 std::string FormatTimestamp(const double timestamp, const std::string& formatter/* = "%c"*/)
@@ -314,7 +315,7 @@ std::string GetElapsedTimeText(const int64_t start_timestamp, const int64_t end_
 
 std::string GetTimeAgo(const double timestamp)
 {
-    const double seconds_elapsed = std::max(GetTimestamp() - timestamp, 0.0);
+    const double seconds_elapsed = std::max(GetTimestamp<double>() - timestamp, 0.0);
     double current_threshold = 1;
     std::string time_ago;
 

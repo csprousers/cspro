@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "SqlLogicFunctions.h"
 #include <zSql/SQLite.h>
 #include <zSql/SQLiteHelpers.h>
@@ -54,7 +54,7 @@ void SqlLogicFunctions::cspro_timestring(sqlite3_context* const context, const i
 
     // followed by the timestamp
     const double timestamp = ( iArgC == 2 ) ? sqlite3_value_double(ppArgV[1]) :
-                                              GetTimestamp();
+                                              GetTimestamp<double>();
 
     const std::string timestring = FormatTimestamp(timestamp, formatter);
 

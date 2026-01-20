@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "FieldEntryEvent.h"
 #include <zFormO/FormFile.h>
 
@@ -57,7 +57,7 @@ FieldEntryEvent::FieldEntryEvent(std::shared_ptr<FieldMovementInstance> arrival_
 
 void FieldEntryEvent::SetPostEntryValues()
 {
-    m_displayDuration = ::GetTimestamp() - this->GetTimestamp();
+    m_displayDuration = ::GetTimestamp<double>() - this->GetTimestamp();
 }
 
 

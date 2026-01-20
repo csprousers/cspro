@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "FilteredCommitsMessageCreatorView.h"
 #include <numeric>
 
@@ -86,7 +86,7 @@ void FilteredCommitsMessageCreatorView::OnCreateCommitTextForFilteredCommits()
             message.append("\nCo-authored-by: ").append(author);
 
         // save the message
-        const std::string message_filename = FormatText("Filtered-Commits-Comment-%s.txt", IntToString(GetTimestamp<int64_t>()).c_str());
+        const std::string message_filename = FormatText("Filtered-Commits-Comment-%s.txt", IntToString(GetTimestamp()).c_str());
         FileIO::WriteText(Path::Combine(m_destinationDirectory, message_filename), message, false);
     }
 

@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "Numberer.h"
 #include <zToolsO/DirectoryLister.h>
 #include <zJson/JsonSpecFile.h>
@@ -85,7 +85,7 @@ void Numberer::Run()
         if( m_onlyProcessRecentChanges )
         {
             // consider "recent" to mean anything within the last eight hours
-            const int64_t earliest_timestamp = GetTimestamp<int64_t>() - DateHelper::SecondsInHour(8);
+            const int64_t earliest_timestamp = GetTimestamp() - DateHelper::SecondsInHour(8);
 
             if( ( PortableFunctions::FileModifiedTime(resource_file_paths.header) < earliest_timestamp ) &&
                 ( resource_file_paths.shared_header.empty() || PortableFunctions::FileModifiedTime(resource_file_paths.shared_header) < earliest_timestamp ) )

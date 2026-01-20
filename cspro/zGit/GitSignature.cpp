@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "GitSignature.h"
 
 
@@ -22,7 +22,7 @@ GitSignature::GitSignature(const git_signature& signature)
 GitSignature GitSignature::Create(std::string name, std::string email)
 {
     git_time when;
-    when.time = GetTimestamp<int64_t>();
+    when.time = GetTimestamp();
     when.offset = DateTime::GetUtcOffsetNow();
     when.sign = ( when.offset >= 0 ) ? '+' : '-';
 

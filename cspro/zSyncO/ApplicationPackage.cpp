@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "ApplicationPackage.h"
 #include <zJson/JsonSpecFile.h>
 
@@ -42,7 +42,7 @@ ApplicationPackage::ApplicationPackage(std::string name, std::string description
 
 void ApplicationPackage::PrepareBuild()
 {
-    SetBuildTime(GetTimestamp<int64_t>());
+    SetBuildTime(GetTimestamp());
 
     for( File& file : m_files )
     {

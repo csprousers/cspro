@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "EditorConfigApplierView.h"
 #include "EditorConfigApplier.h"
 #include <zToolsO/DirectoryLister.h>
@@ -183,7 +183,7 @@ void EditorConfigApplierView::CreateDataForDirectory()
                 m_directory,
                 m_processFilesOption,
                 m_useDefaultEditorConfig,
-                Path::Combine(m_directory, SO::Concatenate("EditorConfigApplier-", IntToString(GetTimestamp<int64_t>()), "-")),
+                Path::Combine(m_directory, SO::Concatenate("EditorConfigApplier-", IntToString(GetTimestamp()), "-")),
                 std::move(file_paths)
             });
     }

@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "Document.h"
 #include "Audio.h"
 #include "Geometry.h"
@@ -73,7 +73,7 @@ LogicDocument& LogicDocument::operator=(std::string document_text)
     BinaryDataMetadata& binary_data_metadata = m_binarySymbolData.GetMetadata();
     binary_data_metadata.SetProperty("label", std::move(document_text));
     binary_data_metadata.SetProperty("source", "Document=string");
-    binary_data_metadata.SetProperty("timestamp", GetTimestamp());
+    binary_data_metadata.SetProperty("timestamp", GetTimestamp<double>());
 
     return *this;
 }
