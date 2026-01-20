@@ -56,7 +56,7 @@ class ActionInvokerActivity: AppCompatActivity(), IEngineMessageCompletedListene
         const val ACCESS_TOKEN = "ACCESS_TOKEN"
         const val ACTION = "ACTION"
         const val REFRESH_TOKEN = "REFRESH_TOKEN"
-        const val RESULT = "ABORT_ON_EXCEPTION"
+        const val RESULT = "RESULT"
         const val TITLE = "TITLE"
     }
 }

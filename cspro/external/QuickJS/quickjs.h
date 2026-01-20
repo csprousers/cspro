@@ -1,10 +1,5 @@
 // CSPRO CHANGES: changes have been made, marked with QUICKJS_CSPRO
 
-// QUICKJS_CSPRO: to get the console application building in the 64-bit environment
-#ifdef _CONSOLE
-#define JS_NAN_BOXING 1
-#endif
-
 /*
  * QuickJS Javascript Engine
  *

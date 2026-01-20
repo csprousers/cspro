@@ -16,7 +16,6 @@ import android.app.Activity;
 
 public abstract class EngineMessage implements Runnable
 {
-    private long                            m_lparam            = -1;
     private long                            m_wparam            = -1;
     private Object                          m_object            = null;
     private IEngineMessageCompletedListener m_completedListener = null;
@@ -25,8 +24,8 @@ public abstract class EngineMessage implements Runnable
 
     protected EngineMessage()
     {
-
     }
+
     protected EngineMessage(IEngineMessageCompletedListener listener)
     {
         m_completedListener = listener;
@@ -47,16 +46,6 @@ public abstract class EngineMessage implements Runnable
     public Activity getActivity()
     {
         return m_activity;
-    }
-
-    public long getLParam()
-    {
-        return m_lparam;
-    }
-
-    public void setLParam(long lparam)
-    {
-        m_lparam = lparam;
     }
 
     public long getWParam()
