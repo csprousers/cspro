@@ -15,7 +15,7 @@
   <Import Project="..\properties\project-settings.props" />
   <ItemDefinitionGroup>
     <ClCompile>
-      <PreprocessorDefinitions>ZMULTIMEDIAO_EXPORTS;_AFXEXT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ZMULTIMEDIAO_EXPORTS;WEBP_USE_THREAD;_AFXEXT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(CSProDir)external;$(CSProDir)external\gpac\include;$(CSProDir)external\libwebp;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
