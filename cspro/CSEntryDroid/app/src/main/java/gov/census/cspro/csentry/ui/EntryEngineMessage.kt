@@ -37,32 +37,85 @@ class EntryEngineMessage internal constructor(activity: Activity?,
 
     override fun run() {
         when (entryMessageRequestType) {
-            EntryMessageRequestType.START_APPLICATION -> setResult(if (startEntryApplication()) 1 else 0.toLong())
+            EntryMessageRequestType.START_APPLICATION -> {
+                setResult(if (startEntryApplication()) 1 else 0.toLong())
+            }
+
             EntryMessageRequestType.END_APPLICATION -> {
                 EngineInterface.getInstance().stopApplication(this.activity)
                 val keepOpenOnFinish = this.activity.intent.getBooleanExtra(EntryActivity.KEEP_APP_OPEN_ON_FINISH_PARAM, false)
                 if (!keepOpenOnFinish) EngineInterface.getInstance().endApplication()
             }
-            EntryMessageRequestType.ADVANCE_TO_END -> EngineInterface.getInstance().AdvanceToEnd()
-            EntryMessageRequestType.END_LEVEL -> EngineInterface.getInstance().EndLevel()
-            EntryMessageRequestType.END_LEVEL_OCC -> EngineInterface.getInstance().EndLevelOcc()
-            EntryMessageRequestType.END_GROUP -> EngineInterface.getInstance().EndGroup()
-            EntryMessageRequestType.NEXT_FIELD -> EngineInterface.getInstance().NextField()
-            EntryMessageRequestType.PREVIOUS_FIELD -> EngineInterface.getInstance().PreviousField()
-            EntryMessageRequestType.PREVIOUS_PERSISTENT_FIELD -> EngineInterface.getInstance().PreviousPersistentField()
+
+            EntryMessageRequestType.ADVANCE_TO_END -> {
+                EngineInterface.getInstance().AdvanceToEnd()
+            }
+
+            EntryMessageRequestType.END_LEVEL -> {
+                EngineInterface.getInstance().EndLevel()
+            }
+
+            EntryMessageRequestType.END_LEVEL_OCC -> {
+                EngineInterface.getInstance().EndLevelOcc()
+            }
+
+            EntryMessageRequestType.END_GROUP -> {
+                EngineInterface.getInstance().EndGroup()
+            }
+
+            EntryMessageRequestType.NEXT_FIELD -> {
+                EngineInterface.getInstance().NextField()
+            }
+
+            EntryMessageRequestType.PREVIOUS_FIELD -> {
+                EngineInterface.getInstance().PreviousField()
+            }
+
+            EntryMessageRequestType.PREVIOUS_PERSISTENT_FIELD -> {
+                EngineInterface.getInstance().PreviousPersistentField()
+            }
+
             EntryMessageRequestType.GOTO_FIELD -> {
                 val index = getObject() as IntArray
                 EngineInterface.getInstance().goToField(wParam.toInt(), index[0], index[1], index[2])
             }
-            EntryMessageRequestType.GOTO_NOTE_FIELD -> EngineInterface.getInstance().goToNoteField(wParam)
-            EntryMessageRequestType.REVIEW_NOTES  -> EngineInterface.getInstance().reviewNotes()
-            EntryMessageRequestType.USER_TRIGGERED_STOP -> EngineInterface.getInstance().runUserTriggedStop()
-            EntryMessageRequestType.INSERT_OCC -> EngineInterface.getInstance().insertOcc()
-            EntryMessageRequestType.DELETE_OCC -> EngineInterface.getInstance().deleteOcc()
-            EntryMessageRequestType.INSERT_OCC_AFTER -> EngineInterface.getInstance().insertOccAfter()
-            EntryMessageRequestType.CHANGE_LANGUAGE -> EngineInterface.getInstance().changeLanguage()
-            EntryMessageRequestType.SHOW_REFUSALS -> setResult(if (EngineInterface.getInstance().showRefusals()) 1 else 0.toLong())
-            EntryMessageRequestType.VIEW_CURRENT_CASE -> EngineInterface.getInstance().viewCurrentCase()
+
+            EntryMessageRequestType.GOTO_NOTE_FIELD -> {
+                EngineInterface.getInstance().goToNoteField(wParam)
+            }
+
+            EntryMessageRequestType.REVIEW_NOTES  -> {
+                EngineInterface.getInstance().reviewNotes()
+            }
+
+            EntryMessageRequestType.USER_TRIGGERED_STOP -> {
+                EngineInterface.getInstance().runUserTriggedStop()
+            }
+
+            EntryMessageRequestType.INSERT_OCC -> {
+                EngineInterface.getInstance().insertOcc()
+            }
+
+            EntryMessageRequestType.DELETE_OCC -> {
+                EngineInterface.getInstance().deleteOcc()
+            }
+
+            EntryMessageRequestType.INSERT_OCC_AFTER -> {
+                EngineInterface.getInstance().insertOccAfter()
+            }
+
+            EntryMessageRequestType.CHANGE_LANGUAGE -> {
+                EngineInterface.getInstance().changeLanguage()
+            }
+
+            EntryMessageRequestType.SHOW_REFUSALS -> {
+                setResult(if (EngineInterface.getInstance().showRefusals()) 1 else 0.toLong())
+            }
+
+            EntryMessageRequestType.VIEW_CURRENT_CASE -> {
+                EngineInterface.getInstance().viewCurrentCase()
+            }
+
             else -> {
             }
         }

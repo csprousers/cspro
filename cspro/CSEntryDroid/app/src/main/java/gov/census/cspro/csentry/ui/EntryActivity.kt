@@ -311,13 +311,42 @@ class EntryActivity: AppCompatActivity(), IEngineMessageCompletedListener, OnNav
                     m_appStarted = (msg.result == 1L)
                     if (m_appStarted) processStartApplication() else startApplicationFailed(msg.errorMessage)
                 }
-                EntryMessageRequestType.END_APPLICATION -> finish()
-                EntryMessageRequestType.GOTO_FIELD, EntryMessageRequestType.GOTO_NOTE_FIELD, EntryMessageRequestType.DELETE_OCC, EntryMessageRequestType.INSERT_OCC, EntryMessageRequestType.INSERT_OCC_AFTER -> {
+
+                EntryMessageRequestType.END_APPLICATION -> {
+                    finish()
+                }
+
+                EntryMessageRequestType.GOTO_FIELD,
+                EntryMessageRequestType.GOTO_NOTE_FIELD,
+                EntryMessageRequestType.DELETE_OCC,
+                EntryMessageRequestType.INSERT_OCC,
+                EntryMessageRequestType.INSERT_OCC_AFTER -> {
                     closeCaseTreeDrawer()
                     processCurrentField()
                 }
-                EntryMessageRequestType.ADVANCE_TO_END, EntryMessageRequestType.END_GROUP, EntryMessageRequestType.END_LEVEL, EntryMessageRequestType.END_LEVEL_OCC, EntryMessageRequestType.NEXT_FIELD, EntryMessageRequestType.PREVIOUS_FIELD, EntryMessageRequestType.PREVIOUS_PERSISTENT_FIELD, EntryMessageRequestType.CHANGE_LANGUAGE, EntryMessageRequestType.REVIEW_NOTES, EntryMessageRequestType.VIEW_CURRENT_CASE, EntryMessageRequestType.USER_TRIGGERED_STOP -> processCurrentField()
-                EntryMessageRequestType.SHOW_REFUSALS -> if (msg.result == 0L) Toast.makeText(this, getString(R.string.refusals_none_to_show), Toast.LENGTH_LONG).show() else processCurrentField()
+
+                EntryMessageRequestType.ADVANCE_TO_END,
+                EntryMessageRequestType.END_GROUP,
+                EntryMessageRequestType.END_LEVEL,
+                EntryMessageRequestType.END_LEVEL_OCC,
+                EntryMessageRequestType.NEXT_FIELD,
+                EntryMessageRequestType.PREVIOUS_FIELD,
+                EntryMessageRequestType.PREVIOUS_PERSISTENT_FIELD,
+                EntryMessageRequestType.CHANGE_LANGUAGE,
+                EntryMessageRequestType.REVIEW_NOTES,
+                EntryMessageRequestType.VIEW_CURRENT_CASE,
+                EntryMessageRequestType.USER_TRIGGERED_STOP -> {
+                    processCurrentField()
+                }
+
+                EntryMessageRequestType.SHOW_REFUSALS -> {
+                    if (msg.result == 0L) {
+                        Toast.makeText(this, getString(R.string.refusals_none_to_show), Toast.LENGTH_LONG).show()
+                    } else {
+                        processCurrentField()
+                    }
+                }
+
                 else -> {
                 }
             }
