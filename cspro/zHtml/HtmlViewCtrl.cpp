@@ -23,8 +23,8 @@ struct HtmlViewCtrl::Impl
 {
     ~Impl();
 
-    wil::com_ptr<ICoreWebView2> view;
     wil::com_ptr<ICoreWebView2Controller> controller;
+    wil::com_ptr<ICoreWebView2> view;
 };
 
 

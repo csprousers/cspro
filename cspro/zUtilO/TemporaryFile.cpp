@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "TemporaryFile.h"
 #include <zToolsO/PortableFunctions.h>
 
@@ -25,6 +25,12 @@ TemporaryFile::TemporaryFile(const std::string& directory_path)
 TemporaryFile TemporaryFile::FromPath(std::string file_path)
 {
     ASSERT(!PortableFunctions::FileExists(file_path) && PortableFunctions::FileIsDirectory(PortableFunctions::PathGetDirectory(file_path)));
+    return TemporaryFile(std::move(file_path), true);
+}
+
+
+TemporaryFile TemporaryFile::FromExistingPath(std::string file_path)
+{
     return TemporaryFile(std::move(file_path), true);
 }
 

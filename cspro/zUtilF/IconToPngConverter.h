@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <gdiplus.h>
 
@@ -100,7 +100,7 @@ std::unique_ptr<std::vector<std::byte>> IconToPngConverter::CreatePngFromBitmap(
 
     // reset the stream and write it to the vector
     IStream_Reset(memory_stream);
-    IStream_Read(memory_stream, png_data->data(), png_data->size());
+    IStream_Read(memory_stream, png_data->data(), uint32_cast(png_data->size()));
 
     memory_stream->Release();
 

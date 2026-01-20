@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "PortableFunctions.h"
 #include "DirectoryLister.h"
 #include "File.h"
@@ -644,13 +644,21 @@ namespace
 }
 
 
-std::string PortableFunctions::FileMd5(InterfaceString file_path)
+std::string PortableFunctions::FileMd5(const InterfaceString& file_path, const bool throw_exception_on_read_error/* = false*/)
 {
-    FILE* const file = !file_path.empty() ? PortableFunctions::FileOpen(std::move(file_path), "rb") :
+    auto return_error = [&]()
+    {
+        if( throw_exception_on_read_error )
+            throw CSProException("A MD5 could not be created for: %s", file_path.c_str_utf8());
+
+        return std::string();
+    };
+
+    FILE* const file = !file_path.empty() ? PortableFunctions::FileOpen(file_path, "rb") :
                                             nullptr;
 
     if( file == nullptr )
-        return std::string();
+        return return_error();
 
     constexpr size_t BufferSize = 64 * 1024;
     auto buffer = std::make_unique_for_overwrite<char[]>(BufferSize);
@@ -675,7 +683,54 @@ std::string PortableFunctions::FileMd5(InterfaceString file_path)
 
     fclose(file);
 
+    if( md5_string.empty() )
+        return return_error();
+
     return md5_string;
+}
+
+
+std::string PortableFunctions::StreamMd5(std::istream& input_stream)
+{
+    if( input_stream )
+    {
+        class Md5Error { };
+
+        try
+        {
+            constexpr size_t BufferSize = 64 * 1024;
+            auto buffer = std::make_unique_for_overwrite<char[]>(BufferSize);
+
+            return GenerateMd5(
+                [&](MD5_CTX& ctx) -> bool
+                {
+                    input_stream.read(buffer.get(), BufferSize);
+
+                    const std::streamsize bytes_read = input_stream.gcount();
+
+                    if( bytes_read > 0 )
+                    {
+                        MD5_Update(&ctx, buffer.get(), uint32_cast(bytes_read));
+                        return true;
+                    }
+
+                    else if( input_stream.eof() )
+                    {
+                        return false;
+                    }
+
+                    else
+                    {
+                        throw Md5Error();
+                    }
+
+                });
+        }
+
+        catch( const Md5Error& ) { }
+    }
+
+    throw CSProException("A MD5 could not be created for the input stream.");
 }
 
 

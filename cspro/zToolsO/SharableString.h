@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zToolsO/zToolsO.h>
 #include <zToolsO/StringOperations.h>
@@ -121,7 +121,7 @@ private:
     bool HasModifiedOrModifiableString() const noexcept;
     CLASS_DECL_ZTOOLSO std::string& GetModifiedOrModifiableString();
 
-    template<bool ToUpper>
+    template<bool to_upper>
     CLASS_DECL_ZTOOLSO SharableString& MakeCaseWorker();
 
 private:

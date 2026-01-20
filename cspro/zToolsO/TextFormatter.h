@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 
 // Returns a formatted string as a std::string.
@@ -89,6 +89,7 @@ RT FormatText(const wchar_t* const formatter, Args const&... args)
         ValidateFormatTextArgumentTypes<wchar_t>(args...);
 #endif
 
+#ifdef USING_CSTRING
         if constexpr(std::is_same_v<RT, CString>)
         {
             CString formatted_text;
@@ -97,6 +98,7 @@ RT FormatText(const wchar_t* const formatter, Args const&... args)
         }
 
         else
+#endif
         {
 #ifdef WIN_DESKTOP
 #pragma warning(push)
@@ -105,8 +107,9 @@ RT FormatText(const wchar_t* const formatter, Args const&... args)
            _swprintf(formatted_text.data(), formatter, args...);
 #pragma warning(pop)
 
+#ifdef USING_CSTRING
             ASSERT81(wcscmp(formatted_text.c_str(), FormatText<CString>(formatter, args...).GetString()) == 0);
-
+#endif
             return formatted_text;
 #else
             const CString formatted_text = FormatText<CString>(formatter, args...);

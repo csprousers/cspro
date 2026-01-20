@@ -204,41 +204,42 @@ void IMSASpawnApp(const std::wstring& exe_path, CString csWindow, CString csFile
 
 BOOL IMSASendMessage(const CString& csWindow, const UINT uMsg, const wstring_view param_sv)
 {
-    CWnd* pTargetWnd = AfxGetMainWnd()->FindWindow(csWindow, NULL);
-    if (pTargetWnd)  {
-        // App is alive, send it a message to open the file ...
-        // see MSJ "Windows Q&A" from 8/94 (on MSDN) for info about the following
-        HANDLE hFileMap;
-        SECURITY_ATTRIBUTES sa;
-        LPTSTR szInitDataBuf;
+    CWnd* const pTargetWnd = AfxGetMainWnd()->FindWindow(csWindow, NULL);
 
-        sa.nLength = sizeof(sa);
-        sa.lpSecurityDescriptor = NULL;
-        sa.bInheritHandle = FALSE;
+    if( pTargetWnd == nullptr )
+        return FALSE;
 
-        // Create the file-mapping object backed by the system's
-        // paging file. The size should match the amount of data
-        // we want to transfer to the child process.
-        hFileMap = CreateFileMapping(INVALID_HANDLE_VALUE, &sa, PAGE_READWRITE, 0, (param_sv.length()+1)*sizeof(TCHAR), IMSA_SHARED_MEMFILE);
-        ASSERT(hFileMap != NULL);
+    // App is alive, send it a message to open the file ...
+    // see MSJ "Windows Q&A" from 8/94 (on MSDN) for info about the following
+    HANDLE hFileMap;
+    SECURITY_ATTRIBUTES sa;
+    LPTSTR szInitDataBuf;
 
-        // Map a view of the file-mapping object so that we can
-        // initialize the data we wish to transfer.
-        szInitDataBuf = (LPTSTR) MapViewOfFile(hFileMap, FILE_MAP_WRITE, 0, 0, 0);
-        ASSERT(szInitDataBuf != NULL);
+    sa.nLength = sizeof(sa);
+    sa.lpSecurityDescriptor = NULL;
+    sa.bInheritHandle = FALSE;
 
-        // Copy the data we wish to transfer.
-        memcpy(szInitDataBuf, param_sv.data(), param_sv.length() * sizeof(TCHAR));
-        UnmapViewOfFile(szInitDataBuf);
+    // Create the file-mapping object backed by the system's
+    // paging file. The size should match the amount of data
+    // we want to transfer to the child process.
+    hFileMap = CreateFileMapping(INVALID_HANDLE_VALUE, &sa, PAGE_READWRITE, 0, (param_sv.length()+1)*sizeof(TCHAR), IMSA_SHARED_MEMFILE);
+    ASSERT(hFileMap != NULL);
 
-        // Unmap the view of the file-mapping object so that
-        // we free the address space region.
-        pTargetWnd->SendMessage(uMsg);
-        CloseHandle(hFileMap);
+    // Map a view of the file-mapping object so that we can
+    // initialize the data we wish to transfer.
+    szInitDataBuf = (LPTSTR) MapViewOfFile(hFileMap, FILE_MAP_WRITE, 0, 0, 0);
+    ASSERT(szInitDataBuf != NULL);
 
-        return TRUE;
-    }
-    return FALSE;
+    // Copy the data we wish to transfer.
+    memcpy(szInitDataBuf, param_sv.data(), param_sv.length() * sizeof(TCHAR));
+    UnmapViewOfFile(szInitDataBuf);
+
+    // Unmap the view of the file-mapping object so that
+    // we free the address space region.
+    pTargetWnd->SendMessage(uMsg);
+    CloseHandle(hFileMap);
+
+    return TRUE;
 }
 
 BOOL IMSASendMessage(const CString& csWindow, UINT uMsg, UINT uParam /*=0*/)  {

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zToolsO/zToolsO.h>
 #include <zToolsO/Path.h>
@@ -102,7 +102,12 @@ namespace PortableFunctions
     CLASS_DECL_ZTOOLSO std::string GetCommandLine();
 
     // Returns MD5 Message-Digest (RFC 1321) of a file.
-    CLASS_DECL_ZTOOLSO std::string FileMd5(InterfaceString file_path);
+    // If throw_exception_on_read_error is false, an empty string is returned on error.
+    CLASS_DECL_ZTOOLSO std::string FileMd5(const InterfaceString& file_path, bool throw_exception_on_read_error = false);
+
+    // Returns MD5 Message-Digest (RFC 1321) of a stream, throwing an exception on error.
+    // The stream position is not reset after the calculation.
+    CLASS_DECL_ZTOOLSO std::string StreamMd5(std::istream& input_stream);
 
     // Returns MD5 Message-Digest (RFC 1321) of a block of memory.
     CLASS_DECL_ZTOOLSO std::string BinaryMd5(const std::byte* contents, size_t size);

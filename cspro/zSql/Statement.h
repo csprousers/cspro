@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zSql/zSql.h>
 #include <zSql/Definitions.h>
@@ -65,6 +65,8 @@ public:
     Statement& Bind(PT&& parameter_number_or_name, const std::string& value);
 
     // Escapes the characters % and _ in the string using the escape char.
+    // The escape character is also escaped.
+    // For example, the input string "a%b_c!" would become: "a!%b!_c!!"
     static std::string EscapeForLike(std::string value, char escape = '!');
 
     // Escapes the appropriate characters and binds the escaped string to a parameter for the expression:

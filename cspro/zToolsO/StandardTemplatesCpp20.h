@@ -1,11 +1,11 @@
-﻿#pragma once
+#pragma once
 
 
 // --------------------------------------------------------------------------
 // C++20 functionality to be removed once we move on from C++17
 // --------------------------------------------------------------------------
 
-#if __cplusplus < 202002L
+#if ( !defined(_MSVC_LANG) && __cplusplus < 202002L ) || ( _MSVC_LANG < 202002L )
 
 namespace std
 {
