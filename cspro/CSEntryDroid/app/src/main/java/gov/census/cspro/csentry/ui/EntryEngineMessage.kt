@@ -20,6 +20,7 @@ class EntryEngineMessage internal constructor(activity: Activity?,
         NEXT_FIELD,
         PREVIOUS_FIELD,
         PREVIOUS_PERSISTENT_FIELD,
+        REFRESH_FIELD_AFTER_PROCESSING_REQUESTS,
         USER_TRIGGERED_STOP,
         GOTO_FIELD,
         GOTO_NOTE_FIELD,
@@ -73,6 +74,10 @@ class EntryEngineMessage internal constructor(activity: Activity?,
 
             EntryMessageRequestType.PREVIOUS_PERSISTENT_FIELD -> {
                 EngineInterface.getInstance().PreviousPersistentField()
+            }
+
+            EntryMessageRequestType.REFRESH_FIELD_AFTER_PROCESSING_REQUESTS -> {
+                EngineInterface.getInstance().getCurrentPage(true)
             }
 
             EntryMessageRequestType.GOTO_FIELD -> {

@@ -1,7 +1,6 @@
-﻿// MainFrm.cpp : implementation of the CMainFrame class
+// MainFrm.cpp : implementation of the CMainFrame class
 #include "StdAfx.h"
 #include "MainFrm.h"
-#include "CSEntry.h"
 #include "CaseView.h"
 #include "CustMsg.h"
 #include "DEBaseEdit.h"
@@ -21,7 +20,6 @@
 #include "StatDlg.h"
 #include <zToolsO/UWM.h>
 #include <zUtilO/ArrUtil.h>
-#include <zUtilO/ImsaDlg.h>
 #include <zUtilO/UIThreadRunner.h>
 #include <zUtilF/ManageCredentialsDlg.h>
 #include <zUtilF/MsgDial.h>
@@ -32,7 +30,6 @@
 #include <zCapiO/QSFView.h>
 #include <zCapiO/SelectDlg.h>
 #include <zCaseTreeF/MsgParam.h>
-#include <zCaseTreeF/CEUtils.h>
 #include <engine/EngineObjectTransporter.h>
 #include <engine/FieldBehavior.h>
 #include <engine/GpsThreadInfo.h>
@@ -42,10 +39,12 @@
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
-    #undef THIS_FILE
-    static char THIS_FILE[]= __FILE__;
+#undef THIS_FILE
+static char THIS_FILE[]= __FILE__;
 #endif
 
+
+constexpr bool EntryEngineRunsOnUiThread = true;
 
 
 static bool bShowIntDlg = true;
@@ -4955,6 +4954,8 @@ LRESULT CMainFrame::OnGetApplicationShutdownRunner(WPARAM /*wParam*/, LPARAM /*l
 
 LRESULT CMainFrame::OnActionInvokerEngineProgramControlExecuted(WPARAM wParam, LPARAM /*lParam*/)
 {
+    static_assert(EntryEngineRunsOnUiThread);
+
     // code modified from OnUserbarUpdate
     CEntryrunDoc* pDoc = GetDocument();
     CRunAplEntry* pRunApl = pDoc->GetRunApl();
