@@ -1,5 +1,5 @@
-﻿#include "StdAfx.h"
-#include "Creator.h"
+#include "StdAfx.h"
+#include "Syncer.h"
 #include <zToolsO/CaseInsensitiveComparer.h>
 #include <zToolsO/DirectoryLister.h>
 #include <zToolsO/File.h>
@@ -11,7 +11,7 @@
 #include <external/libgit2/include/git2/status.h>
 
 
-Creator::Creator(SettingsDb& settings_db)
+Syncer::Syncer(SettingsDb& settings_db)
     :   m_settingsDb(settings_db),
         m_loggingListBox(nullptr)
 {
@@ -24,7 +24,7 @@ Creator::Creator(SettingsDb& settings_db)
 }
 
 
-std::vector<GitTag> Creator::GetTags() const
+std::vector<GitTag> Syncer::GetTags() const
 {
     std::vector<GitTag> tags = m_repo.GetTags();
 
@@ -36,7 +36,7 @@ std::vector<GitTag> Creator::GetTags() const
 }
 
 
-void Creator::Initialize(LoggingListBox& logging_list_box, const std::string& open_source_directory)
+void Syncer::Initialize(LoggingListBox& logging_list_box, const std::string& open_source_directory)
 {
     m_loggingListBox = &logging_list_box;
 
@@ -51,7 +51,7 @@ void Creator::Initialize(LoggingListBox& logging_list_box, const std::string& op
 }
 
 
-std::tuple<GitCommit, GitTree> Creator::LookupCommitAndGetTree(const cs::string_sz commit_string)
+std::tuple<GitCommit, GitTree> Syncer::LookupCommitAndGetTree(const cs::string_sz commit_string)
 {
     GitCommit commit = m_repo.LookupCommit(commit_string);
 
@@ -86,7 +86,7 @@ std::tuple<GitCommit, GitTree> Creator::LookupCommitAndGetTree(const cs::string_
 }
 
 
-void Creator::CreateRelease(const cs::string_sz commit_string)
+void Syncer::CreateRelease(const cs::string_sz commit_string)
 {
     ASSERT(!m_openSourceDirectory.empty());
 
@@ -120,7 +120,7 @@ void Creator::CreateRelease(const cs::string_sz commit_string)
 }
 
 
-void Creator::ValidateRelease(const cs::string_sz commit_string)
+void Syncer::ValidateRelease(const cs::string_sz commit_string)
 {
     m_loggingListBox->AddText("Generating the file list for validation from commit: %s", commit_string.c_str());
 
@@ -132,7 +132,7 @@ void Creator::ValidateRelease(const cs::string_sz commit_string)
 }
 
 
-void Creator::GenerateFileList(const cs::string_sz commit_string)
+void Syncer::GenerateFileList(const cs::string_sz commit_string)
 {
     m_loggingListBox->AddText("Generating the file list from commit: %s", commit_string.c_str());
 
@@ -179,7 +179,7 @@ void Creator::GenerateFileList(const cs::string_sz commit_string)
 }
 
 
-void Creator::PopulateRepoPaths(const GitTree& tree, const std::string& base_path)
+void Syncer::PopulateRepoPaths(const GitTree& tree, const std::string& base_path)
 {
     const size_t count = tree.GetEntryCount();
 
@@ -214,7 +214,7 @@ void Creator::PopulateRepoPaths(const GitTree& tree, const std::string& base_pat
 }
 
 
-void Creator::PruneRepoPaths()
+void Syncer::PruneRepoPaths()
 {
     const std::string exclusions_file_path = Path::Combine(m_overridesDirectory, "exclusions.txt");
 
@@ -238,7 +238,7 @@ void Creator::PruneRepoPaths()
 }
 
 
-void Creator::PrepareOutputDirectory()
+void Syncer::PrepareOutputDirectory()
 {
     // move all non-Git files to a temporary directory, which will then be recycled
     const std::string temp_directory = GetUniqueTempFilePath("CSPro-Open-Source-Old-Files");
@@ -292,7 +292,7 @@ void Creator::PrepareOutputDirectory()
 }
 
 
-void Creator::CopyFilesToOutputDirectory()
+void Syncer::CopyFilesToOutputDirectory()
 {
     m_loggingListBox->AddText(SharableString());
     m_loggingListBox->AddText("Copying %d files to: %s", static_cast<int>(m_repoPaths.size()),
@@ -330,7 +330,7 @@ void Creator::CopyFilesToOutputDirectory()
 }
 
 
-void Creator::CopyReplacementFiles()
+void Syncer::CopyReplacementFiles()
 {
     const std::string replacements_file_path = Path::Combine(m_overridesDirectory, "replacements.json");
 
@@ -352,7 +352,7 @@ void Creator::CopyReplacementFiles()
 }
 
 
-void Creator::CreateSqliteWithoutSEE(const GitTree& tree)
+void Syncer::CreateSqliteWithoutSEE(const GitTree& tree)
 {
     m_loggingListBox->AddText(SharableString());
     m_loggingListBox->AddText("Creating the non-SEE version of SQLite...");
@@ -420,7 +420,7 @@ void Creator::CreateSqliteWithoutSEE(const GitTree& tree)
         for( int commit_page = 1; commit_sha.empty(); ++commit_page )
         {
             HeaderList headers;
-            headers.Add("User-Agent: CSPro Open Source Release Creator");
+            headers.Add("User-Agent: CSPro Open Source Syncer");
             headers.Add_Accept_Json();
 
             std::string url = FormatText("https://api.github.com/repos/%s/commits?page=%d", AmalgamationRepository, commit_page);
@@ -501,7 +501,7 @@ void Creator::CreateSqliteWithoutSEE(const GitTree& tree)
 }
 
 
-struct Creator::TagCommits
+struct Syncer::TagCommits
 {
     std::string tag_name;
     GitCommit commit;
@@ -518,7 +518,7 @@ struct Creator::TagCommits
 };
 
 
-std::vector<Creator::TagCommits> Creator::GetReleaseTags(const std::string_view earliest_tag_sv)
+std::vector<Syncer::TagCommits> Syncer::GetReleaseTags(const std::string_view earliest_tag_sv)
 {
     std::vector<TagCommits> tag_commits;
     std::regex tag_regex = std::regex(R"(^refs/tags/v(\d+\.\d+\.\d+).*$)");
@@ -564,7 +564,7 @@ std::vector<Creator::TagCommits> Creator::GetReleaseTags(const std::string_view 
 }
 
 
-void Creator::CreateHistoryLog(const GitCommit& latest_commit)
+void Syncer::CreateHistoryLog(const GitCommit& latest_commit)
 {
     constexpr std::string_view EarliestTag_sv = "7.6.0";
     constexpr const char* EarliestCommitSHA = "1da299ffcad0143ae4218b6a1057ef8e1ed8935d"; // the first commit after the v7.5.0 tag
@@ -680,7 +680,7 @@ void Creator::CreateHistoryLog(const GitCommit& latest_commit)
 }
 
 
-void Creator::EnsureRepositoriesMatch(const bool add_space_before_log)
+void Syncer::EnsureRepositoriesMatch(const bool add_space_before_log)
 {
     if( add_space_before_log )
         m_loggingListBox->AddText(SharableString());

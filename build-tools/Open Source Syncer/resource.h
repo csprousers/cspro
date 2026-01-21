@@ -1,8 +1,8 @@
 //{{NO_DEPENDENCIES}}
 // Microsoft Visual C++ generated include file.
-// Used by OpenSourceReleaseCreator.rc
+// Used by OpenSourceSyncer.rc
 //
-#define IDD_CREATOR                     101
+#define IDD_SYNCER                      101
 #define IDC_COMMIT                      1000
 #define IDC_CREATE                      1001
 #define IDC_GENERATE_FILE_LIST          1002

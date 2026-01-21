@@ -1,15 +1,15 @@
-﻿#pragma once
+#pragma once
 
-#include "Creator.h"
+#include "Syncer.h"
 #include <zUtilO/ResizableDlg.h>
 #include <zGit/GitTag.h>
 
 
-class OpenSourceReleaseCreatorDlg : public ResizableDlg
+class OpenSourceSyncerDlg : public ResizableDlg
 {
 public:
-    OpenSourceReleaseCreatorDlg(CWnd* pParent = nullptr);
-    ~OpenSourceReleaseCreatorDlg();
+    OpenSourceSyncerDlg(CWnd* pParent = nullptr);
+    ~OpenSourceSyncerDlg();
 
 protected:
     DECLARE_MESSAGE_MAP()
@@ -40,7 +40,7 @@ private:
     static constexpr std::string_view OutputDirectoryKey_sv = "output-directory";
     SettingsDb m_settingsDb;
 
-    std::unique_ptr<Creator> m_creator;
+    std::unique_ptr<Syncer> m_syncer;
     std::vector<GitTag> m_tags;
 
     CComboBox m_tagsComboBox;

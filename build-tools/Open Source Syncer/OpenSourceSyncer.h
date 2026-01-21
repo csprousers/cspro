@@ -1,7 +1,7 @@
-﻿#pragma once
+#pragma once
 
 
-class OpenSourceReleaseCreatorApp : public CWinApp
+class OpenSourceSyncerApp : public CWinApp
 {
 protected:
     BOOL InitInstance() override;

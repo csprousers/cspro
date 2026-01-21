@@ -40,8 +40,8 @@ cspro/external/zlib/lib/x64
 
 /build-tools/CSPro Users Website Builder
 
-/build-tools/Open Source Release Creator
-/build-tools/Create Open Source Release.bat
+/build-tools/Open Source Syncer
+/build-tools/Sync Open Source Repository.bat
 
 /Project File Manager
 /Run Project File Manager.bat

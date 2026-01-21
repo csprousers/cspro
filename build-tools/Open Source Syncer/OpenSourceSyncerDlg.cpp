@@ -1,12 +1,12 @@
-﻿#include "StdAfx.h"
-#include "OpenSourceReleaseCreatorDlg.h"
+#include "StdAfx.h"
+#include "OpenSourceSyncerDlg.h"
 #include <zToolsO/UWM.h>
 #include <zUtilO/DataExchange.h>
 #include <zUtilO/UWMRanges.h>
 #include <zUtilO/WindowHelpers.h>
 
 
-BEGIN_MESSAGE_MAP(OpenSourceReleaseCreatorDlg, ResizableDlg)
+BEGIN_MESSAGE_MAP(OpenSourceSyncerDlg, ResizableDlg)
     ON_CBN_SELCHANGE(IDC_TAGS, OnTagChange)
     ON_COMMAND(IDC_CREATE, OnCreate)
     ON_COMMAND(IDC_VALIDATE, OnValidate)
@@ -16,21 +16,21 @@ BEGIN_MESSAGE_MAP(OpenSourceReleaseCreatorDlg, ResizableDlg)
 END_MESSAGE_MAP()
 
 
-OpenSourceReleaseCreatorDlg::OpenSourceReleaseCreatorDlg(CWnd* const pParent/* = nullptr*/)
-    :   ResizableDlg(IDD_CREATOR, pParent),
-        m_settingsDb("OpenSourceReleaseCreator.db"),
+OpenSourceSyncerDlg::OpenSourceSyncerDlg(CWnd* const pParent/* = nullptr*/)
+    :   ResizableDlg(IDD_SYNCER, pParent),
+        m_settingsDb("OpenSourceSyncer.db"),
         m_outputDirectory(m_settingsDb.ReadOrDefault<std::string>(OutputDirectoryKey_sv))
 {
-    SerializeDialogSize("OpenSourceReleaseCreatorDlg");
+    SerializeDialogSize("OpenSourceSyncerDlg");
 }
 
 
-OpenSourceReleaseCreatorDlg::~OpenSourceReleaseCreatorDlg()
+OpenSourceSyncerDlg::~OpenSourceSyncerDlg()
 {
 }
 
 
-void OpenSourceReleaseCreatorDlg::DoDataExchange(CDataExchange* pDX)
+void OpenSourceSyncerDlg::DoDataExchange(CDataExchange* const pDX)
 {
     __super::DoDataExchange(pDX);
 
@@ -41,7 +41,7 @@ void OpenSourceReleaseCreatorDlg::DoDataExchange(CDataExchange* pDX)
 }
 
 
-BOOL OpenSourceReleaseCreatorDlg::OnInitDialog()
+BOOL OpenSourceSyncerDlg::OnInitDialog()
 {
     __super::OnInitDialog();
 
@@ -49,10 +49,10 @@ BOOL OpenSourceReleaseCreatorDlg::OnInitDialog()
 
     try
     {
-        m_creator = std::make_unique<Creator>(m_settingsDb);
+        m_syncer = std::make_unique<Syncer>(m_settingsDb);
 
         // populate the tags
-        m_tags = m_creator->GetTags();
+        m_tags = m_syncer->GetTags();
 
         for( const GitTag& tag : m_tags )
             m_tagsComboBox.AddString(TC::ToWide(tag.GetDisplayName()).c_str());
@@ -71,7 +71,7 @@ BOOL OpenSourceReleaseCreatorDlg::OnInitDialog()
 }
 
 
-void OpenSourceReleaseCreatorDlg::OnCancel()
+void OpenSourceSyncerDlg::OnCancel()
 {
     if( !GetDlgItem(IDC_CREATE)->IsWindowEnabled() )
     {
@@ -83,7 +83,7 @@ void OpenSourceReleaseCreatorDlg::OnCancel()
 }
 
 
-void OpenSourceReleaseCreatorDlg::OnTagChange()
+void OpenSourceSyncerDlg::OnTagChange()
 {
     const size_t tag_index = static_cast<size_t>(m_tagsComboBox.GetCurSel());
 
@@ -101,14 +101,14 @@ void OpenSourceReleaseCreatorDlg::OnTagChange()
 }
 
 
-void OpenSourceReleaseCreatorDlg::EnableButtons(const bool enable)
+void OpenSourceSyncerDlg::EnableButtons(const bool enable)
 {
     for( const int resource_id : { IDC_CREATE, IDC_VALIDATE, IDC_GENERATE_FILE_LIST })
         GetDlgItem(resource_id)->EnableWindow(enable);
 }
 
 
-void OpenSourceReleaseCreatorDlg::OnCreateValidate(const bool create)
+void OpenSourceSyncerDlg::OnCreateValidate(const bool create)
 {
     UpdateData(TRUE);
 
@@ -135,14 +135,14 @@ void OpenSourceReleaseCreatorDlg::OnCreateValidate(const bool create)
 }
 
 
-void OpenSourceReleaseCreatorDlg::CreateValidateWorker(const bool create)
+void OpenSourceSyncerDlg::CreateValidateWorker(const bool create)
 {
     try
     {
-        m_creator->Initialize(m_loggingListBox, m_outputDirectory);
+        m_syncer->Initialize(m_loggingListBox, m_outputDirectory);
 
-        create ? m_creator->CreateRelease(m_commit) :
-                 m_creator->ValidateRelease(m_commit);
+        create ? m_syncer->CreateRelease(m_commit) :
+                 m_syncer->ValidateRelease(m_commit);
     }
 
     catch( const CSProException& exception )
@@ -155,7 +155,7 @@ void OpenSourceReleaseCreatorDlg::CreateValidateWorker(const bool create)
 }
 
 
-LRESULT OpenSourceReleaseCreatorDlg::OnCreateValidateComplete(WPARAM /*wParam*/, LPARAM /*lParam*/)
+LRESULT OpenSourceSyncerDlg::OnCreateValidateComplete(WPARAM /*wParam*/, LPARAM /*lParam*/)
 {
     ASSERT(m_workerThread != nullptr);
 
@@ -170,14 +170,14 @@ LRESULT OpenSourceReleaseCreatorDlg::OnCreateValidateComplete(WPARAM /*wParam*/,
 }
 
 
-void OpenSourceReleaseCreatorDlg::OnGenerateFileList()
+void OpenSourceSyncerDlg::OnGenerateFileList()
 {
     UpdateData(TRUE);
 
     try
     {
-        m_creator->Initialize(m_loggingListBox, m_outputDirectory);
-        m_creator->GenerateFileList(m_commit);
+        m_syncer->Initialize(m_loggingListBox, m_outputDirectory);
+        m_syncer->GenerateFileList(m_commit);
     }
 
     catch( const CSProException& exception )
@@ -187,7 +187,7 @@ void OpenSourceReleaseCreatorDlg::OnGenerateFileList()
 }
 
 
-LRESULT OpenSourceReleaseCreatorDlg::OnDisplayErrorMessage(WPARAM /*wParam*/, LPARAM /*lParam*/)
+LRESULT OpenSourceSyncerDlg::OnDisplayErrorMessage(WPARAM /*wParam*/, LPARAM /*lParam*/)
 {
     ErrorMessage::DisplayPostedMessages();
     return 0;

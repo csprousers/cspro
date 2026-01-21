@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zUtilO/SettingsDb.h>
 #include <zUtilF/LoggingListBox.h>
@@ -8,10 +8,10 @@
 #include <zGit/GitTree.h>
 
 
-class Creator
+class Syncer
 {
 public:
-    Creator(SettingsDb& settings_db);
+    Syncer(SettingsDb& settings_db);
 
     std::vector<GitTag> GetTags() const;
 

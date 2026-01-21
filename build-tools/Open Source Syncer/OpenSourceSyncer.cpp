@@ -1,17 +1,17 @@
-﻿#include "StdAfx.h"
-#include "OpenSourceReleaseCreator.h"
-#include "OpenSourceReleaseCreatorDlg.h"
+#include "StdAfx.h"
+#include "OpenSourceSyncer.h"
+#include "OpenSourceSyncerDlg.h"
 #include <zUtilF/CommonControls.h>
 
 
 namespace
 {
-    // The one and only OpenSourceReleaseCreatorApp object
-    OpenSourceReleaseCreatorApp theApp;
+    // The one and only OpenSourceSyncerApp object
+    OpenSourceSyncerApp theApp;
 }
 
 
-BOOL OpenSourceReleaseCreatorApp::InitInstance()
+BOOL OpenSourceSyncerApp::InitInstance()
 {
     InitializeCommonControls();
 
@@ -21,7 +21,7 @@ BOOL OpenSourceReleaseCreatorApp::InitInstance()
 
     EnableTaskbarInteraction(FALSE);
 
-    OpenSourceReleaseCreatorDlg dlg;
+    OpenSourceSyncerDlg dlg;
     m_pMainWnd = &dlg;
     dlg.DoModal();
 
