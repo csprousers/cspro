@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "CodePurifierDoc.h"
 #include <zToolsO/Encoders.h>
 #include <zGit/GitIndex.h>
@@ -520,7 +520,7 @@ bool CodePurifierDoc::IdentifyModifiedFiles()
 
     if( m_cleanCommit != nullptr )
     {
-        m_repo.ForeachDifferenceInWorkingDirectory(*m_cleanCommit,
+        m_repo.GetDifferenceInWorkingDirectory(*m_cleanCommit).ForeachDifference(
             [&](std::string path, const unsigned int diff_flag)
             {
                 std::string file_path = Path::Combine(m_repoWorkingDirectory, Path::ToNativeSlash(path));
@@ -696,7 +696,7 @@ void CodePurifierDoc::CreateTemporaryCommit(const bool staged_only)
         const GitCommit current_commit = m_repo.LookupCommit(m_branchDetails->current_branch);
         GitTree commit_tree = current_commit.GetTree();
 
-        const size_t diff_count = m_repo.GetDifferenceDeltasCount(index_tree, commit_tree);
+        const size_t diff_count = m_repo.GetDifference(index_tree, commit_tree).GetNumberDeltas();
 
         if( diff_count == 0 )
             return;

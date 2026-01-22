@@ -28,6 +28,7 @@
   <ItemGroup>
     <ClCompile Include="GitBranch.cpp" />
     <ClCompile Include="GitCommit.cpp" />
+    <ClCompile Include="GitDiff.cpp" />
     <ClCompile Include="GitIgnoreEvaluator.cpp" />
     <ClCompile Include="GitIndex.cpp" />
     <ClCompile Include="GitInitializer.cpp" />
@@ -47,6 +48,7 @@
   <ItemGroup>
     <ClInclude Include="GitBranch.h" />
     <ClInclude Include="GitCommit.h" />
+    <ClInclude Include="GitDiff.h" />
     <ClInclude Include="GitException.h" />
     <ClInclude Include="GitIgnoreEvaluator.h" />
     <ClInclude Include="GitIndex.h" />

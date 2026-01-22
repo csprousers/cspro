@@ -13,6 +13,7 @@
 #include <zGit/GitTag.h>
 #include <zGit/GitTree.h>
 #include <zToolsO/FileIO.h>
+#include <zToolsO/RaiiHelpers.h>
 #include <zToolsO/Tools.h>
 
 #define GIT_DEPRECATE_HARD

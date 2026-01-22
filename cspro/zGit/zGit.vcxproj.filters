@@ -17,6 +17,9 @@
     <ClCompile Include="GitCommit.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="GitDiff.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="GitIgnoreEvaluator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -62,6 +65,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="GitCommit.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GitDiff.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="GitException.h">

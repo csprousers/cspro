@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zGit/zGit.h>
 #include <zGit/GitInitializer.h>
@@ -7,6 +7,7 @@
 struct git_repository;
 class GitBranch;
 class GitCommit;
+class GitDiff;
 class GitIndex;
 enum class GitObjectType;
 class GitTag;
@@ -112,17 +113,18 @@ public:
     // Status codes are in status.h.
     void ForeachStatusInWorkingDirectory(const std::function<void(std::string path, unsigned int status_flags)>& callback_function) const;
 
-    // Executes the callback function for each file in the working directory with
-    // a different status from the commit's tree, passing the path and difference code.
-    // The callback function should return true to continue processing.
-    // For speed, the routine compares the tree to the index and then the index to the
-    // working directory, git_diff_tree_to_index + git_diff_index_to_workdir, rather than
-    // calling git_diff_tree_to_workdir_with_index.
-    // Difference codes are in diff.h.
-    void ForeachDifferenceInWorkingDirectory(const GitCommit& commit, const std::function<bool(std::string path, unsigned int diff_flag)>& callback_function) const;
+    // Returns an object than can be used to determine differences between two trees.
+    // The diff_flags value is a combination of git_diff_option_t options (defined in diff.h).
+    // If not specified, details about the differences within files themselves are not loaded.
+    GitDiff GetDifference(GitTree& old_tree, GitTree& new_tree, uint32_t diff_flags) const;
+    GitDiff GetDifference(GitTree& old_tree, GitTree& new_tree) const;
 
-    // Returns the number of deltas between two trees.
-    size_t GetDifferenceDeltasCount(GitTree& old_tree, GitTree& new_tree) const;
+    // Returns an object than can be used to determine differences in the working directory
+    // that have a different status from the specified commit's tree. For speed, the routine
+    // compares the tree to the index and then the index to the working directory,
+    // git_diff_tree_to_index + git_diff_index_to_workdir, rather than calling
+    // git_diff_tree_to_workdir_with_index.
+    GitDiff GetDifferenceInWorkingDirectory(const GitCommit& commit) const;
 
 
     // --------------------------------------------------------------------------
@@ -195,8 +197,6 @@ private:
     void EnsureRepositoryIsOpen() const;
 
     void Open(std::string repo_directory, bool create, bool bare);
-
-    static auto GetDiffOptions();
 
     template<typename GitObjectT>
     GitObject LookupObject(const GitObjectId& oid, GitObjectT type) const;
