@@ -11,11 +11,11 @@
 class Syncer
 {
 public:
-    Syncer(SettingsDb& settings_db);
+    Syncer(SettingsDb& settings_db, LoggingListBox& logging_list_box);
+
+    void SetOpenSourceDirectory(const std::string& open_source_directory);
 
     std::vector<GitTag> GetTags() const;
-
-    void Initialize(LoggingListBox& logging_list_box, const std::string& open_source_directory);
 
     void CreateRelease(cs::string_sz commit_string);
 
@@ -47,9 +47,10 @@ private:
 
 private:
     SettingsDb& m_settingsDb;
+    LoggingListBox& m_loggingListBox;
     std::string m_overridesDirectory;
-    GitRepository m_repo;
-    LoggingListBox* m_loggingListBox;
+    GitRepository m_privateRepo;
+    GitRepository m_openSourceRepo;
     std::string m_openSourceDirectory;
     std::vector<std::string> m_repoPaths;
     std::map<std::string, GitObject> m_repoBlobObjects; // path -> object

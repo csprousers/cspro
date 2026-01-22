@@ -7,7 +7,7 @@
 #define IDC_CREATE                      1001
 #define IDC_GENERATE_FILE_LIST          1002
 #define IDC_LOG                         1003
-#define IDC_OUTPUT_DIRECTORY            1004
+#define IDC_OPEN_SOURCE_DIRECTORY       1004
 #define IDC_TAGS                        1005
 #define IDC_VALIDATE                    1006
 

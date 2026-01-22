@@ -27,6 +27,8 @@ protected:
     void OnGenerateFileList();
 
 private:
+    bool InitializeOperation() noexcept;
+
     void EnableButtons(bool enable);
 
     void OnCreateValidate(bool create);
@@ -37,17 +39,14 @@ private:
     LRESULT OnDisplayErrorMessage(WPARAM wParam, LPARAM lParam);
 
 private:
-    static constexpr std::string_view OutputDirectoryKey_sv = "output-directory";
     SettingsDb m_settingsDb;
+
+    std::string m_openSourceDirectory;
+    LoggingListBox m_loggingListBox;
+    CComboBox m_tagsComboBox;
+    std::string m_commit;
 
     std::unique_ptr<Syncer> m_syncer;
     std::vector<GitTag> m_tags;
-
-    CComboBox m_tagsComboBox;
-    std::string m_commit;
-    std::string m_outputDirectory;
-
-    LoggingListBox m_loggingListBox;
-
     std::unique_ptr<std::thread> m_workerThread;
 };

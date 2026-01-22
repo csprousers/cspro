@@ -11,22 +11,41 @@
 #include <external/libgit2/include/git2/status.h>
 
 
-Syncer::Syncer(SettingsDb& settings_db)
+Syncer::Syncer(SettingsDb& settings_db, LoggingListBox& logging_list_box)
     :   m_settingsDb(settings_db),
-        m_loggingListBox(nullptr)
+        m_loggingListBox(logging_list_box)
 {
     const std::string this_source_directory = PortableFunctions::PathGetDirectory(__FILE__);
 
     m_overridesDirectory = Path::Combine(this_source_directory, "Overrides");
 
     std::string git_directory = MakeFullPath(this_source_directory, "..\\..\\.git");
-    m_repo.OpenBare(std::move(git_directory));
+    m_privateRepo.OpenBare(std::move(git_directory));
+}
+
+
+void Syncer::SetOpenSourceDirectory(const std::string& open_source_directory)
+{
+    if( m_openSourceDirectory == open_source_directory )
+        return;
+
+    m_openSourceRepo.Close();
+
+    m_loggingListBox.AddText("Opening open source repository: " + open_source_directory);
+
+    m_openSourceRepo.Open(open_source_directory);
+    m_openSourceDirectory = open_source_directory;
+
+    ASSERT(Path::RemoveTrailingSlash(m_openSourceRepo.GetWorkingDirectory()) == Path::RemoveTrailingSlash(open_source_directory));
+
+    m_repoPaths.clear();
+    m_repoBlobObjects.clear();
 }
 
 
 std::vector<GitTag> Syncer::GetTags() const
 {
-    std::vector<GitTag> tags = m_repo.GetTags();
+    std::vector<GitTag> tags = m_privateRepo.GetTags();
 
     // sort by name
     std::sort(tags.begin(), tags.end(),
@@ -36,28 +55,13 @@ std::vector<GitTag> Syncer::GetTags() const
 }
 
 
-void Syncer::Initialize(LoggingListBox& logging_list_box, const std::string& open_source_directory)
-{
-    m_loggingListBox = &logging_list_box;
-
-    if( m_openSourceDirectory != open_source_directory )
-    {
-        m_openSourceDirectory = open_source_directory;
-        m_repoPaths.clear();
-        m_repoBlobObjects.clear();
-    }
-
-    m_loggingListBox->Clear();
-}
-
-
 std::tuple<GitCommit, GitTree> Syncer::LookupCommitAndGetTree(const cs::string_sz commit_string)
 {
-    GitCommit commit = m_repo.LookupCommit(commit_string);
+    GitCommit commit = m_privateRepo.LookupCommit(commit_string);
 
     const GitSignature& author = commit.GetAuthor();
-    m_loggingListBox->AddText(std::string("    Author: ").append(author.GetName()));
-    m_loggingListBox->AddText(std::string("    Date: ").append(author.GetWhen().GetLocalDateTimeString()));
+    m_loggingListBox.AddText(std::string("    Author: ").append(author.GetName()));
+    m_loggingListBox.AddText(std::string("    Date: ").append(author.GetWhen().GetLocalDateTimeString()));
 
     // properly space multiline messages
     std::string message_text = "    Message: ";
@@ -75,7 +79,7 @@ std::tuple<GitCommit, GitTree> Syncer::LookupCommitAndGetTree(const cs::string_s
             message_text.append(line_sv);
         });
 
-    m_loggingListBox->AddText(std::move(message_text));
+    m_loggingListBox.AddText(std::move(message_text));
 
     // get the list of the files that are part of this release
     GitTree tree = commit.GetTree();
@@ -90,7 +94,7 @@ void Syncer::CreateRelease(const cs::string_sz commit_string)
 {
     ASSERT(!m_openSourceDirectory.empty());
 
-    m_loggingListBox->AddText("Creating open source release from commit: %s", commit_string.c_str());
+    m_loggingListBox.AddText("Creating open source release from commit: %s", commit_string.c_str());
 
     auto [commit, tree] = LookupCommitAndGetTree(commit_string);
 
@@ -115,14 +119,14 @@ void Syncer::CreateRelease(const cs::string_sz commit_string)
     // ensure that the files in the repositories are identical
     EnsureRepositoriesMatch(true);
 
-    m_loggingListBox->AddText(SharableString());
-    m_loggingListBox->AddText("Successfully created the open source release.");
+    m_loggingListBox.AddText(SharableString());
+    m_loggingListBox.AddText("Successfully created the open source release.");
 }
 
 
 void Syncer::ValidateRelease(const cs::string_sz commit_string)
 {
-    m_loggingListBox->AddText("Generating the file list for validation from commit: %s", commit_string.c_str());
+    m_loggingListBox.AddText("Generating the file list for validation from commit: %s", commit_string.c_str());
 
     auto [commit, tree] = LookupCommitAndGetTree(commit_string);
 
@@ -134,7 +138,7 @@ void Syncer::ValidateRelease(const cs::string_sz commit_string)
 
 void Syncer::GenerateFileList(const cs::string_sz commit_string)
 {
-    m_loggingListBox->AddText("Generating the file list from commit: %s", commit_string.c_str());
+    m_loggingListBox.AddText("Generating the file list from commit: %s", commit_string.c_str());
 
     auto [commit, tree] = LookupCommitAndGetTree(commit_string);
 
@@ -218,8 +222,8 @@ void Syncer::PruneRepoPaths()
 {
     const std::string exclusions_file_path = Path::Combine(m_overridesDirectory, "exclusions.txt");
 
-    m_loggingListBox->AddText(SharableString());
-    m_loggingListBox->AddText("Pruning files based on gitignore rules from: %s", exclusions_file_path.c_str());
+    m_loggingListBox.AddText(SharableString());
+    m_loggingListBox.AddText("Pruning files based on gitignore rules from: %s", exclusions_file_path.c_str());
 
     std::vector<std::string>& repo_paths = m_repoPaths;
     const size_t initial_file_count = repo_paths.size();
@@ -233,8 +237,8 @@ void Syncer::PruneRepoPaths()
             repo_paths.erase(repo_paths.begin() + i);
     }
 
-    m_loggingListBox->AddText("Pruned files from %d to %d.", static_cast<int>(initial_file_count),
-                                                             static_cast<int>(repo_paths.size()));
+    m_loggingListBox.AddText("Pruned files from %d to %d.", static_cast<int>(initial_file_count),
+                                                            static_cast<int>(repo_paths.size()));
 }
 
 
@@ -243,8 +247,8 @@ void Syncer::PrepareOutputDirectory()
     // move all non-Git files to a temporary directory, which will then be recycled
     const std::string temp_directory = GetUniqueTempFilePath("CSPro-Open-Source-Old-Files");
 
-    m_loggingListBox->AddText(SharableString());
-    m_loggingListBox->AddText("Moving existing open source files to: %s", temp_directory.c_str());
+    m_loggingListBox.AddText(SharableString());
+    m_loggingListBox.AddText("Moving existing open source files to: %s", temp_directory.c_str());
 
     FileIO::CreateDirectories(temp_directory);
 
@@ -285,7 +289,7 @@ void Syncer::PrepareOutputDirectory()
     to_wide(temp_directory, complete_from_path);
     info.pTo = nullptr;
 
-    m_loggingListBox->AddText("Recycling: %s", temp_directory.c_str());
+    m_loggingListBox.AddText("Recycling: %s", temp_directory.c_str());
 
     if( SHFileOperation(&info) != 0 )
         throw CSProException("Error recycling: %s", temp_directory.c_str());
@@ -294,9 +298,9 @@ void Syncer::PrepareOutputDirectory()
 
 void Syncer::CopyFilesToOutputDirectory()
 {
-    m_loggingListBox->AddText(SharableString());
-    m_loggingListBox->AddText("Copying %d files to: %s", static_cast<int>(m_repoPaths.size()),
-                                                         m_openSourceDirectory.c_str());
+    m_loggingListBox.AddText(SharableString());
+    m_loggingListBox.AddText("Copying %d files to: %s", static_cast<int>(m_repoPaths.size()),
+                                                        m_openSourceDirectory.c_str());
 
     uint64_t total_content_size = 0;
 
@@ -321,12 +325,12 @@ void Syncer::CopyFilesToOutputDirectory()
 
         if( percent >= next_percent_for_reporting )
         {
-            m_loggingListBox->AddText("Copy percent: %d", static_cast<int>(percent));
+            m_loggingListBox.AddText("Copy percent: %d", static_cast<int>(percent));
             next_percent_for_reporting += PercentReportingInterval;
         }
     }
 
-    m_loggingListBox->AddText("Copied bytes: " Formatter_uint64_t, total_content_size);
+    m_loggingListBox.AddText("Copied bytes: " Formatter_uint64_t, total_content_size);
 }
 
 
@@ -334,8 +338,8 @@ void Syncer::CopyReplacementFiles()
 {
     const std::string replacements_file_path = Path::Combine(m_overridesDirectory, "replacements.json");
 
-    m_loggingListBox->AddText(SharableString());
-    m_loggingListBox->AddText("Copying replacement files specified in: %s", replacements_file_path.c_str());
+    m_loggingListBox.AddText(SharableString());
+    m_loggingListBox.AddText("Copying replacement files specified in: %s", replacements_file_path.c_str());
 
     const std::unique_ptr<JsonSpecFile::Reader> json_reader = JsonSpecFile::CreateReader(replacements_file_path);
 
@@ -345,7 +349,7 @@ void Syncer::CopyReplacementFiles()
         const std::string replacement_file_path = replacement_json_node.GetAbsolutePath("replacementPath");
         const std::string output_file_path = Path::Combine(m_openSourceDirectory, repo_path);
 
-        m_loggingListBox->AddText("Replacing: " + repo_path);
+        m_loggingListBox.AddText("Replacing: " + repo_path);
 
         PortableFunctions::FileCopyWithExceptions(replacement_file_path, output_file_path, FileOverwriteFlag::Fail);
     }
@@ -354,8 +358,8 @@ void Syncer::CopyReplacementFiles()
 
 void Syncer::CreateSqliteWithoutSEE(const GitTree& tree)
 {
-    m_loggingListBox->AddText(SharableString());
-    m_loggingListBox->AddText("Creating the non-SEE version of SQLite...");
+    m_loggingListBox.AddText(SharableString());
+    m_loggingListBox.AddText("Creating the non-SEE version of SQLite...");
 
     const std::string sqlite_repo_path = "cspro/external/SQLite/";
 
@@ -393,7 +397,7 @@ void Syncer::CreateSqliteWithoutSEE(const GitTree& tree)
     if( version.empty() )
         throw CSProException("Could not find the version in sqlite3.h.");
 
-    m_loggingListBox->AddText("Found SQLite version for this release: " + version);
+    m_loggingListBox.AddText("Found SQLite version for this release: " + version);
 
     // use a cached version when possible
     const std::string cache_key_h = "SQLite-" + version + "-h";
@@ -404,7 +408,7 @@ void Syncer::CreateSqliteWithoutSEE(const GitTree& tree)
 
     if( !sqlite_h.empty() && !sqlite_c.empty() )
     {
-        m_loggingListBox->AddText("Using a cached version of the SQLite amalgamation files.");
+        m_loggingListBox.AddText("Using a cached version of the SQLite amalgamation files.");
     }
 
     // if not created, download the non-SEE SQLite amalgamation from: https://github.com/rhuijben/sqlite-amalgamation/
@@ -452,7 +456,7 @@ void Syncer::CreateSqliteWithoutSEE(const GitTree& tree)
         if( commit_sha.empty() )
             throw CSProException("No SQLite amalgamation has a commit message containing: " + version);
 
-        m_loggingListBox->AddText("Downloading SQLite files from %s commit SHA: %s", AmalgamationRepository, commit_sha.c_str());
+        m_loggingListBox.AddText("Downloading SQLite files from %s commit SHA: %s", AmalgamationRepository, commit_sha.c_str());
 
         // download the non-SEE versions
         auto process = [&](const bool is_header, std::string& sqlite_result)
@@ -492,7 +496,7 @@ void Syncer::CreateSqliteWithoutSEE(const GitTree& tree)
     auto write = [&](const char* const filename, const std::string& text)
     {
         const std::string output_file_path = Path::Combine(m_openSourceDirectory, Path::ToNativeSlash(sqlite_repo_path), filename);
-        m_loggingListBox->AddText("Saving '%s' (length %d) to: %s", filename, static_cast<int>(text.size()), output_file_path.c_str());
+        m_loggingListBox.AddText("Saving '%s' (length %d) to: %s", filename, static_cast<int>(text.size()), output_file_path.c_str());
         FileIO::WriteText(output_file_path, text, false);
     };
 
@@ -524,7 +528,7 @@ std::vector<Syncer::TagCommits> Syncer::GetReleaseTags(const std::string_view ea
     std::regex tag_regex = std::regex(R"(^refs/tags/v(\d+\.\d+\.\d+).*$)");
     std::smatch matches;
 
-    m_repo.ForeachTag(
+    m_privateRepo.ForeachTag(
         [&](const GitTag tag)
         {
             constexpr bool keep_processing = true;
@@ -537,7 +541,7 @@ std::vector<Syncer::TagCommits> Syncer::GetReleaseTags(const std::string_view ea
             if( tag_name < earliest_tag_sv )
                 return keep_processing;
 
-            GitCommit commit = m_repo.LookupCommit(tag);
+            GitCommit commit = m_privateRepo.LookupCommit(tag);
 
             // associate the tag with the latest commit in case of multiple tags for the same version (e.g., v7.6.1-Apr20 and v7.6.1-Apr26)
             auto lookup = std::find_if(tag_commits.begin(), tag_commits.end(),
@@ -573,8 +577,8 @@ void Syncer::CreateHistoryLog(const GitCommit& latest_commit)
 
     const std::string history_file_path = Path::Combine(m_openSourceDirectory, "HISTORY.md");
 
-    m_loggingListBox->AddText(SharableString());
-    m_loggingListBox->AddText("Creating history log: %s", history_file_path.c_str());
+    m_loggingListBox.AddText(SharableString());
+    m_loggingListBox.AddText("Creating history log: %s", history_file_path.c_str());
 
     FileIO::TextFile history_file;
     history_file.OpenForTextWritingCreate(history_file_path);
@@ -585,12 +589,12 @@ void Syncer::CreateHistoryLog(const GitCommit& latest_commit)
     if( tag_commits.empty() )
         throw ProgrammingErrorException();
 
-    const GitCommit oldest_commit_to_process = m_repo.LookupCommit(EarliestCommitSHA);
+    const GitCommit oldest_commit_to_process = m_privateRepo.LookupCommit(EarliestCommitSHA);
 
     const std::regex commit_message_regex(R"(^Merge pull request.+CSProDevelopment\/(\S+).*)");
     std::smatch matches;
 
-    GitRevisionWalker walker(m_repo);
+    GitRevisionWalker walker(m_privateRepo);
 
     walker.Walk(latest_commit, oldest_commit_to_process,
         [&](const GitCommit commit)
@@ -608,7 +612,7 @@ void Syncer::CreateHistoryLog(const GitCommit& latest_commit)
 
             for( TagCommits& tc : tag_commits )
             {
-                if( tc.commit == commit || m_repo.IsCommitDescendantOf(tc.commit, commit) )
+                if( tc.commit == commit || m_privateRepo.IsCommitDescendantOf(tc.commit, commit) )
                 {
                     pull_requests = &tc.pull_requests;
                     break;
@@ -685,9 +689,9 @@ void Syncer::CreateHistoryLog(const GitCommit& latest_commit)
 void Syncer::EnsureRepositoriesMatch(const bool add_space_before_log)
 {
     if( add_space_before_log )
-        m_loggingListBox->AddText(SharableString());
+        m_loggingListBox.AddText(SharableString());
 
-    m_loggingListBox->AddText("Validating open source directory: %s", m_openSourceDirectory.c_str());
+    m_loggingListBox.AddText("Validating open source directory: %s", m_openSourceDirectory.c_str());
 
     // because gitignore rules can result in some tracked files being excluded, we check that
     // the open source directory contains the exact set of files from the input
@@ -745,17 +749,17 @@ void Syncer::EnsureRepositoriesMatch(const bool add_space_before_log)
             SO::AppendWithSeparator(missing_repo_paths_text, "    " + repo_path, '\n');
     }
 
-    m_loggingListBox->AddText(SharableString());
+    m_loggingListBox.AddText(SharableString());
 
     if( missing_repo_paths_text.empty() )
     {
-        m_loggingListBox->AddText("No files are missing.");
+        m_loggingListBox.AddText("No files are missing.");
     }
 
     else
     {
-        m_loggingListBox->AddText("The following files are missing:");
-        m_loggingListBox->AddText(missing_repo_paths_text);
+        m_loggingListBox.AddText("The following files are missing:");
+        m_loggingListBox.AddText(missing_repo_paths_text);
     }
 
     std::string unexpected_repo_paths_text;
@@ -763,17 +767,17 @@ void Syncer::EnsureRepositoriesMatch(const bool add_space_before_log)
     for( const std::string& repo_path : unexpected_repo_paths )
         SO::AppendWithSeparator(unexpected_repo_paths_text, "    " + repo_path, '\n');
 
-    m_loggingListBox->AddText(SharableString());
+    m_loggingListBox.AddText(SharableString());
 
     if( unexpected_repo_paths_text.empty() )
     {
-        m_loggingListBox->AddText("No unexpected files are present.");
+        m_loggingListBox.AddText("No unexpected files are present.");
     }
 
     else
     {
-        m_loggingListBox->AddText("The following unexpected files are present:");
-        m_loggingListBox->AddText(unexpected_repo_paths_text);
+        m_loggingListBox.AddText("The following unexpected files are present:");
+        m_loggingListBox.AddText(unexpected_repo_paths_text);
     }
 
     if( !missing_repo_paths_text.empty() || !unexpected_repo_paths_text.empty() )
