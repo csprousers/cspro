@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zGit/zGit.h>
 #include <zGit/GitTime.h>
@@ -34,7 +34,8 @@ public:
 
     const std::string& GetEmail() const noexcept { return m_email; }
 
-    const GitTime& GetWhen() const noexcept { return m_wrapper.when; }
+    const GitTime& GetWhen() const noexcept    { return m_wrapper.when; }
+    void SetWhen(const GitTime& when) noexcept { m_wrapper.when = when; }
 
     // Returns a string such as "John Doe <john.doe@csprousers.org>".
     std::string GetDisplayString() const noexcept;

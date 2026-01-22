@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "GitCommit.h"
 #include <zToolsO/TextEncoding.h>
 
@@ -6,6 +6,16 @@
 GitCommit::GitCommit(git_commit& commit) noexcept
     :   m_commit(&commit)
 {
+}
+
+
+GitCommit::GitCommit(const GitCommit& rhs)
+    :   m_message(rhs.m_message),
+        m_committer(rhs.m_committer),
+        m_author(rhs.m_author)
+{
+    if( git_commit_dup(&m_commit, rhs.m_commit) != 0 )
+        ThrowGitException();
 }
 
 
@@ -81,6 +91,15 @@ const std::string& GitCommit::GetMessage() const noexcept
 }
 
 
+const GitSignature& GitCommit::GetCommitter() const noexcept
+{
+    if( !m_committer.has_value() )
+        const_cast<GitCommit*>(this)->m_committer.emplace(*git_commit_committer(m_commit));
+
+    return *m_committer;
+}
+
+
 const GitSignature& GitCommit::GetAuthor() const noexcept
 {
     if( !m_author.has_value() )
@@ -93,6 +112,17 @@ const GitSignature& GitCommit::GetAuthor() const noexcept
 unsigned int GitCommit::GetParentCount() const noexcept
 {
     return git_commit_parentcount(m_commit);
+}
+
+
+GitCommit GitCommit::GetParent(const unsigned int parent_commit_index) const
+{
+    git_commit* commit;
+
+    if( git_commit_parent(&commit, m_commit, parent_commit_index) != 0 )
+        ThrowGitException();
+
+    return GitCommit(*commit);
 }
 
 

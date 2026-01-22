@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zGit/zGit.h>
 #include <zGit/GitTreeEntry.h>
@@ -17,7 +17,7 @@ class ZGIT_API GitTree
 public:
     // GitTree assumes ownership of the git_tree object.
     GitTree(git_tree& tree) noexcept;
-    GitTree(const GitTree& rhs) = delete;
+    GitTree(const GitTree& rhs);
     GitTree(GitTree&& rhs) noexcept;
     ~GitTree() noexcept;
 

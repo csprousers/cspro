@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <StandardIncludes/cspro_no_mfc.h>
 #include <StandardIncludes/strict_errors.h>
@@ -14,4 +14,6 @@
 #include <zGit/GitTree.h>
 #include <zToolsO/FileIO.h>
 #include <zToolsO/Tools.h>
+
+#define GIT_DEPRECATE_HARD
 #include <external/libgit2/include/git2.h>

@@ -1,10 +1,17 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "GitTree.h"
 
 
 GitTree::GitTree(git_tree& tree) noexcept
     :   m_tree(&tree)
 {
+}
+
+
+GitTree::GitTree(const GitTree& rhs)
+{
+    if( git_tree_dup(&m_tree, rhs.m_tree) != 0 )
+        ThrowGitException();
 }
 
 
