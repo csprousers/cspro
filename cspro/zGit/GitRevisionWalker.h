@@ -36,18 +36,25 @@ public:
 
     // Executes the callback function for each commit.
     // Commits are walked in topological and time order, starting at the specified commit.
-    // If end_commit is provided, "end" means the "oldest" commit.
+    // If end_commit is provided, "end" means the "oldest" commit, and it will not be passed to the callback function.
     // When applicable, the callback function should return true to continue processing.
     // The callback function can throw exceptions.
     void Walk(const GitObjectId& start_oid, const std::function<bool(GitCommit)>& callback_function);
     void Walk(const GitCommit& start_commit, const std::function<bool(GitCommit)>& callback_function);
     void Walk(const GitCommit& start_commit, const GitCommit& end_commit, const std::function<void(GitCommit)>& callback_function);
+    void ReverseWalk(const GitCommit& start_commit, const GitCommit& end_commit, const std::function<void(GitCommit)>& callback_function);
 
     // Returns the commits walked using the corresponding WalkFromHead methods.
     std::vector<GitCommit> GetCommitsFromHead();
     std::vector<GitCommit> GetCommitsFromHead(const GitCommit& end_commit);
 
 private:
+    void Walk(const GitObjectId& start_oid, unsigned int sort_mode_extras,
+              const std::function<bool(GitCommit)>& callback_function);
+
+    void Walk(const GitCommit& start_commit, const GitCommit& end_commit, unsigned int sort_mode_extras,
+              const std::function<void(GitCommit)>& callback_function);
+
     GitRepository& m_repo;
     git_revwalk* m_walker;
 };

@@ -567,7 +567,9 @@ std::vector<Syncer::TagCommits> Syncer::GetReleaseTags(const std::string_view ea
 void Syncer::CreateHistoryLog(const GitCommit& latest_commit)
 {
     constexpr std::string_view EarliestTag_sv = "7.6.0";
-    constexpr const char* EarliestCommitSHA = "1da299ffcad0143ae4218b6a1057ef8e1ed8935d"; // the first commit after the v7.5.0 tag
+
+    // the first commit in dev after the v7.5.0 tag
+    constexpr const char* EarliestCommitSHA = "95d126ccaab8872d1d914f64d16824a5f2f19ccd";
 
     const std::string history_file_path = Path::Combine(m_openSourceDirectory, "HISTORY.md");
 
