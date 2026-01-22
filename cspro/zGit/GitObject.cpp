@@ -76,15 +76,12 @@ void GitObject::DoAsBlob(const std::function<void(const void* data, size_t size)
     if( git_object_peel(reinterpret_cast<git_object**>(&blob), m_object, GIT_OBJECT_BLOB) != 0 )
         throw GitException();
 
+    const RAII::RunOnDestruction free_blob([&]() { git_blob_free(blob); });
+
     const void* const data = git_blob_rawcontent(blob);
 
     if( data == nullptr )
-    {
-        git_blob_free(blob);
         throw GitException();
-    }
 
     callback_function(data, static_cast<size_t>(git_blob_rawsize(blob)));
-
-    git_blob_free(blob);
 }

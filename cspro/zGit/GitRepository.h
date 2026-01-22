@@ -75,7 +75,7 @@ public:
     GitBranch CreateBranch(cs::string_sz branch_name, const GitCommit& commit) const;
 
     // Executes the callback function for each of the repository's local branches.
-    // The callback function should return true to continue processing.
+    // The callback function, which can throw exceptions, should return true to continue processing.
     void ForeachLocalBranch(const std::function<bool(GitBranch)>& callback_function) const;
 
     // Resets the current branch to the commit using the mode "mixed."
@@ -103,6 +103,7 @@ public:
     // Executes the callback function for each file in the index, passing the
     // path and status code. These are paths that Git is tracking: "the index
     // (or 'cache', or 'staging area') is the contents of the next commit."
+    // The callback function can throw exceptions.
     // Status codes are in status.h.
     void ForeachStatusInIndex(const std::function<void(std::string path, unsigned int status_flags)>& callback_function) const;
 
@@ -110,6 +111,7 @@ public:
     // a different status from the index, passing the path and status code. The
     // files could be new (untracked), modified, deleted, etc. These are paths that
     // are different "based on [an] index to working directory comparison."
+    // // The callback function can throw exceptions.
     // Status codes are in status.h.
     void ForeachStatusInWorkingDirectory(const std::function<void(std::string path, unsigned int status_flags)>& callback_function) const;
 
@@ -170,7 +172,7 @@ public:
     // --------------------------------------------------------------------------
 
     // Executes the callback function for each of the repository's tags.
-    // The callback function should return true to continue processing.
+    // The callback function, which can throw exceptions, should return true to continue processing.
     void ForeachTag(const std::function<bool(GitTag)>& callback_function) const;
 
     // Returns all of the repository's tags.

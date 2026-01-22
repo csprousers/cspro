@@ -130,28 +130,19 @@ void GitRepository::ForeachLocalBranch(const std::function<bool(GitBranch)>& cal
     if( git_branch_iterator_new(&branch_iterator, m_repo, GIT_BRANCH_LOCAL) != 0 )
         throw GitException();
 
-    try
+    const RAII::RunOnDestruction free_iterator([&]() { git_branch_iterator_free(branch_iterator); });
+
+    git_reference* branch_ref;
+    git_branch_t branch_type;
+    int next_result;
+
+    while( ( next_result = git_branch_next(&branch_ref, &branch_type, branch_iterator) ) == 0 &&
+            callback_function(GitBranch(*branch_ref)) )
     {
-        git_reference* branch_ref;
-        git_branch_t branch_type;
-        int next_result;
-
-        while( ( next_result = git_branch_next(&branch_ref, &branch_type, branch_iterator) ) == 0 &&
-               callback_function(GitBranch(*branch_ref)) )
-        {
-        }
-
-        if( next_result != GIT_ITEROVER )
-            throw GitException();
-
-        git_branch_iterator_free(branch_iterator);
     }
 
-    catch(...)
-    {
-        git_branch_iterator_free(branch_iterator);
-        throw;
-    }
+    if( next_result != GIT_ITEROVER )
+        throw GitException();
 }
 
 
@@ -251,6 +242,8 @@ void GitRepository::ForeachStatusInWorkingDirectory(const std::function<void(std
     if( git_status_list_new(&status_list, m_repo, &status_options) != 0 )
         throw GitException();
 
+    const RAII::RunOnDestruction free_list([&]() { git_status_list_free(status_list); });
+
     const size_t count = git_status_list_entrycount(status_list);
 
     for( size_t i = 0; i < count; ++i )
@@ -258,17 +251,12 @@ void GitRepository::ForeachStatusInWorkingDirectory(const std::function<void(std
         const git_status_entry* const status_entry = git_status_byindex(status_list, i);
 
         if( status_entry == nullptr )
-        {
-            git_status_list_free(status_list);
             throw GitException();
-        }
 
         const char* const path = ( status_entry->head_to_index != nullptr ) ? status_entry->head_to_index->new_file.path :
                                                                               status_entry->index_to_workdir->new_file.path;
         callback_function(path, status_entry->status);
     }
-
-    git_status_list_free(status_list);
 }
 
 
@@ -483,17 +471,40 @@ void GitRepository::ForeachTag(const std::function<bool(GitTag)>& callback_funct
 {
     EnsureRepositoryIsOpen();
 
+    struct Payload
+    {
+        const std::function<bool(GitTag)>& callback_function;
+        std::exception_ptr caught_exception;
+    };
+
+    Payload this_payload { callback_function };
+
     struct CB
     {
-        static int func(const char* const name, git_oid* const oid, void* const payload)
+        static int tag_cb(const char* const name, git_oid* const oid, void* const payload)
         {
             ASSERT(name != nullptr && oid != nullptr && payload != nullptr);
-            const std::function<bool(GitTag)>& callback_function = *reinterpret_cast<const std::function<bool(GitTag)>*>(payload);
-            return !callback_function(GitTag(*oid, name));
+
+            Payload& this_payload = *reinterpret_cast<Payload*>(payload);
+            ASSERT(!this_payload.caught_exception);
+
+            try
+            {
+                return this_payload.callback_function(GitTag(*oid, name)) ? 0 : 1;
+            }
+
+            catch(...)
+            {
+                this_payload.caught_exception = std::current_exception();
+                return 1;
+            }
         }
     };
 
-    git_tag_foreach(m_repo, CB::func, const_cast<std::function<bool(GitTag)>*>(&callback_function));
+    git_tag_foreach(m_repo, CB::tag_cb, &this_payload);
+
+    if( this_payload.caught_exception )
+        std::rethrow_exception(this_payload.caught_exception);
 }
 
 

@@ -21,14 +21,14 @@ void GitRevisionWalker::WalkFromHead(const std::function<bool(GitCommit)>& callb
     git_revwalk_sorting(m_walker, GIT_SORT_TOPOLOGICAL | GIT_SORT_TIME);
     git_revwalk_push_head(m_walker);
 
+    const RAII::RunOnDestruction reset_walker([&]() { git_revwalk_reset(m_walker); });
+
     git_oid oid;
 
     while( git_revwalk_next(&oid, m_walker) == 0 &&
            callback_function(m_repo.LookupCommit(oid)) )
     {
     }
-
-    git_revwalk_reset(m_walker);
 }
 
 
@@ -49,14 +49,14 @@ void GitRevisionWalker::Walk(const GitObjectId& start_oid, const std::function<b
     git_revwalk_sorting(m_walker, GIT_SORT_TOPOLOGICAL | GIT_SORT_TIME);
     git_revwalk_push(m_walker, start_oid);
 
+    const RAII::RunOnDestruction reset_walker([&]() { git_revwalk_reset(m_walker); });
+
     git_oid oid;
 
     while( git_revwalk_next(&oid, m_walker) == 0 &&
            callback_function(m_repo.LookupCommit(oid)) )
     {
     }
-
-    git_revwalk_reset(m_walker);
 }
 
 

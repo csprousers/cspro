@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zGit/zGit.h>
 #include <zGit/GitCommit.h>
@@ -26,16 +26,19 @@ public:
     // Executes the callback function for each commit.
     // Commits are walked in topological and time order, starting at the HEAD.
     // The callback function should return true to continue processing.
+    // The callback function can throw exceptions.
     void WalkFromHead(const std::function<bool(GitCommit)>& callback_function);
 
     // Executes the callback function for each commit.
     // Commits are walked in topological and time order, starting at the HEAD, ending with end_commit.
+    // The callback function can throw exceptions.
     void WalkFromHead(const GitCommit& end_commit, const std::function<void(GitCommit)>& callback_function);
 
     // Executes the callback function for each commit.
     // Commits are walked in topological and time order, starting at the specified commit.
     // If end_commit is provided, "end" means the "oldest" commit.
     // When applicable, the callback function should return true to continue processing.
+    // The callback function can throw exceptions.
     void Walk(const GitObjectId& start_oid, const std::function<bool(GitCommit)>& callback_function);
     void Walk(const GitCommit& start_commit, const std::function<bool(GitCommit)>& callback_function);
     void Walk(const GitCommit& start_commit, const GitCommit& end_commit, const std::function<void(GitCommit)>& callback_function);

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zGit/zGit.h>
 
@@ -40,6 +40,7 @@ public:
 
     // Casts the object to a blob and executes the callback function,
     // passing a pointer to the contents, throwing an exception on error.
+    // The callback function can throw exceptions.
     void DoAsBlob(const std::function<void(const void* data, size_t size)>& callback_function) const;
 
 private:
