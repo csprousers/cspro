@@ -68,11 +68,11 @@ public:
     GitBranch GetCurrentBranch() const;
 
     // Looks up the branch, throwing an exception if not found.
-    GitBranch LookupBranch(cs::string_sz branch_name) const;
+    GitBranch LookupBranch(std::string branch_name) const;
 
     // Creates a new branch, throwing an exception on error (e.g., if a branch with
     // the name already exists). This does not change the current branch.
-    GitBranch CreateBranch(cs::string_sz branch_name, const GitCommit& commit) const;
+    GitBranch CreateBranch(std::string branch_name, const GitCommit& commit) const;
 
     // Executes the callback function for each of the repository's local branches.
     // The callback function, which can throw exceptions, should return true to continue processing.

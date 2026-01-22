@@ -95,7 +95,7 @@ GitBranch GitRepository::GetCurrentBranch() const
 }
 
 
-GitBranch GitRepository::LookupBranch(const cs::string_sz branch_name) const
+GitBranch GitRepository::LookupBranch(std::string branch_name) const
 {
     EnsureRepositoryIsOpen();
 
@@ -104,11 +104,11 @@ GitBranch GitRepository::LookupBranch(const cs::string_sz branch_name) const
     if( git_branch_lookup(&branch_ref, m_repo, branch_name.c_str(), GIT_BRANCH_ALL) != 0 )
         throw GitException("The branch was not found in the repository: %s", branch_name.c_str());
 
-    return GitBranch(*branch_ref);
+    return GitBranch(*branch_ref, std::move(branch_name));
 }
 
 
-GitBranch GitRepository::CreateBranch(const cs::string_sz branch_name, const GitCommit& commit) const
+GitBranch GitRepository::CreateBranch(std::string branch_name, const GitCommit& commit) const
 {
     EnsureRepositoryIsOpen();
 
@@ -117,7 +117,7 @@ GitBranch GitRepository::CreateBranch(const cs::string_sz branch_name, const Git
     if( git_branch_create(&branch_ref, m_repo, branch_name.c_str(), commit, 0) != 0 )
         throw GitException();
 
-    return GitBranch(*branch_ref);
+    return GitBranch(*branch_ref, std::move(branch_name));
 }
 
 

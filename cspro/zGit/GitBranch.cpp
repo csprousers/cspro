@@ -2,8 +2,16 @@
 #include "GitBranch.h"
 
 
+GitBranch::GitBranch(git_reference& branch_ref, std::string name) noexcept
+    :   m_branchRef(&branch_ref),
+        m_name(std::move(name))
+{
+    ASSERT(!m_name.empty());
+}
+
+
 GitBranch::GitBranch(git_reference& branch_ref) noexcept
-    :   m_branchRef(&branch_ref)
+    :   GitBranch(branch_ref, GetBranchName(branch_ref))
 {
 }
 
@@ -46,19 +54,26 @@ bool GitBranch::operator==(const GitBranch& rhs) const noexcept
 }
 
 
-const std::string& GitBranch::GetName() const noexcept
+std::string GitBranch::GetBranchName(git_reference& branch_ref)
 {
-    if( m_name.empty() )
+    const char* name;
+
+    if( git_branch_name(&name, &branch_ref) != 0 )
+        throw GitException();
+
+    return name;
+}
+
+
+void GitBranch::Refresh(GitRepository& repo)
+{
+    git_reference_free(m_branchRef);
+
+    if( git_branch_lookup(&m_branchRef, repo, m_name.c_str(), GIT_BRANCH_ALL) != 0 )
     {
-        const char* name;
-
-        if( git_branch_name(&name, m_branchRef) == 0 )
-            const_cast<GitBranch*>(this)->m_name = name;
-
-        ASSERT(!m_name.empty());
+        m_branchRef = nullptr;
+        throw GitException();
     }
-
-    return m_name;
 }
 
 

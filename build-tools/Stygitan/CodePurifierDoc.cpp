@@ -655,6 +655,9 @@ void CodePurifierDoc::ResetBranchToCleanCommit()
 
     m_repo.ResetBranchMixed(*m_cleanCommit);
 
+    // update the branch (since the reference target has changed)
+    m_branchDetails->current_branch.Refresh(m_repo);
+
     StartRefreshDataThread(RefreshStartAction::LoadRecentCommits);
 }
 
@@ -715,7 +718,7 @@ void CodePurifierDoc::CreateTemporaryCommit(const bool staged_only)
         m_repo.CreateCommit(author_and_committer, message, index_tree, current_commit);
 
         // update the branch (since the reference target has changed)
-        m_branchDetails->current_branch = m_repo.GetCurrentBranch();
+        m_branchDetails->current_branch.Refresh(m_repo);
     };
 
     commit_staged("staged");
