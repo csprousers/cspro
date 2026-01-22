@@ -11,7 +11,7 @@ GitTree::GitTree(git_tree& tree) noexcept
 GitTree::GitTree(const GitTree& rhs)
 {
     if( git_tree_dup(&m_tree, rhs.m_tree) != 0 )
-        ThrowGitException();
+        throw GitException();
 }
 
 
@@ -40,7 +40,7 @@ GitTreeEntry GitTree::GetEntryByIndex(const size_t index) const
     const git_tree_entry* const tree_entry = git_tree_entry_byindex(m_tree, index);
 
     if( tree_entry == nullptr )
-        ThrowGitException();
+        throw GitException();
 
     return GitTreeEntry(*m_tree, *tree_entry);
 }
@@ -58,9 +58,9 @@ GitTreeEntry GitTree::GetEntryByPath(const cs::string_sz path) const
             return GitTreeEntry(*m_tree, *tree_entry);
 
         case GIT_ENOTFOUND:
-            throw CSProException("The path was not found in the repository: %s", path.c_str());
+            throw GitException("The path was not found in the repository: %s", path.c_str());
 
         default:
-            ThrowGitException();
+            throw GitException();
     }
 }

@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "GitObject.h"
 
 
@@ -35,7 +35,7 @@ GitTree GitObject::GetTree() const
     git_tree* tree;
 
     if( git_object_peel(reinterpret_cast<git_object**>(&tree), m_object, GIT_OBJECT_TREE) != 0 )
-        ThrowGitException();
+        throw GitException();
 
     return GitTree(*tree);
 }
@@ -74,14 +74,14 @@ void GitObject::DoAsBlob(const std::function<void(const void* data, size_t size)
     git_blob* blob;
 
     if( git_object_peel(reinterpret_cast<git_object**>(&blob), m_object, GIT_OBJECT_BLOB) != 0 )
-        ThrowGitException();
+        throw GitException();
 
     const void* const data = git_blob_rawcontent(blob);
 
     if( data == nullptr )
     {
         git_blob_free(blob);
-        ThrowGitException();
+        throw GitException();
     }
 
     callback_function(data, static_cast<size_t>(git_blob_rawsize(blob)));

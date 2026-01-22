@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "GitTreeEntry.h"
 
 
@@ -28,7 +28,7 @@ GitObject GitTreeEntry::GetObject() const
     git_object* object;
 
     if( git_tree_entry_to_object(&object, git_tree_owner(m_tree), m_treeEntry) != 0 )
-        ThrowGitException();
+        throw GitException();
 
     return GitObject(*object);
 }

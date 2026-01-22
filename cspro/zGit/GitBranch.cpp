@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "GitBranch.h"
 
 
@@ -75,7 +75,7 @@ std::unique_ptr<GitBranch> GitBranch::GetUpstreamBranch() const
             return nullptr;
 
         default:
-            ThrowGitException();
+            throw GitException();
     }
 }
 
@@ -85,7 +85,7 @@ GitObjectId GitBranch::GetTarget() const
     const git_oid* const oid = git_reference_target(m_branchRef);
 
     if( oid == nullptr )
-        throw CSProException("The latest commit for branch '%s' is unknown.", GetName().c_str());
+        throw GitException("The latest commit for branch '%s' is unknown.", GetName().c_str());
 
     return GitObjectId(*oid);
 }
@@ -94,7 +94,7 @@ GitObjectId GitBranch::GetTarget() const
 void GitBranch::Delete()
 {
     if( git_branch_delete(m_branchRef) != 0 )
-        ThrowGitException();
+        throw GitException();
 
     git_reference_free(m_branchRef);
     m_branchRef = nullptr;

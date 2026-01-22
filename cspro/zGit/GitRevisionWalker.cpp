@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "GitRevisionWalker.h"
 
 
@@ -6,7 +6,7 @@ GitRevisionWalker::GitRevisionWalker(GitRepository& repo)
     :   m_repo(repo)
 {
     if( git_revwalk_new(&m_walker, m_repo) != 0 )
-        ThrowGitException();
+        throw GitException();
 }
 
 

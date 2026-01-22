@@ -15,7 +15,7 @@ GitCommit::GitCommit(const GitCommit& rhs)
         m_author(rhs.m_author)
 {
     if( git_commit_dup(&m_commit, rhs.m_commit) != 0 )
-        ThrowGitException();
+        throw GitException();
 }
 
 
@@ -120,7 +120,7 @@ GitCommit GitCommit::GetParent(const unsigned int parent_commit_index) const
     git_commit* commit;
 
     if( git_commit_parent(&commit, m_commit, parent_commit_index) != 0 )
-        ThrowGitException();
+        throw GitException();
 
     return GitCommit(*commit);
 }
@@ -131,7 +131,7 @@ GitTree GitCommit::GetTree() const
     git_tree* tree;
 
     if( git_commit_tree(&tree, m_commit) != 0 )
-        ThrowGitException();
+        throw GitException();
 
     return GitTree(*tree);
 }
