@@ -5,10 +5,12 @@
 #include <zToolsO/File.h>
 #include <zJson/JsonSpecFile.h>
 #include <zNetwork/CurlHttpConnection.h>
+#include <zGit/GitBranch.h>
+#include <zGit/GitDiff.h>
 #include <zGit/GitIgnoreEvaluator.h>
+#include <zGit/GitIndex.h>
 #include <zGit/GitRevisionWalker.h>
 #include <Update SQLite/SQLiteSourceUpdater.h>
-#include <external/libgit2/include/git2/status.h>
 
 
 Syncer::Syncer(SettingsDb& settings_db, LoggingListBox& logging_list_box)
@@ -782,4 +784,260 @@ void Syncer::EnsureRepositoriesMatch(const bool add_space_before_log)
 
     if( !missing_repo_paths_text.empty() || !unexpected_repo_paths_text.empty() )
         throw CSProException("There are missing or unexpected files present in the open source directory.");
+}
+
+
+void Syncer::StartMirror()
+{
+    // make sure that there are no pending open source changes
+    if( m_openSourceRepo.HasChanges() )
+        throw CSProException("You cannot run the sync if there are changes in the open source directory.");
+
+    // OS_TODO need to first sync main, and then dev
+    constexpr const char* branch_name = "dev";
+
+    const GitBranch os_merge_branch = m_openSourceRepo.LookupBranch(branch_name);
+    GitCommit os_last_merged_commit = m_openSourceRepo.LookupCommit(os_merge_branch.GetTarget());
+
+    // OS_TODO calculate cs_old_merge_commit + cs_new_merge_commit
+}
+
+
+GitCommit Syncer::CreateMirroredCommit(const GitCommit& cs_commit, const GitTree& os_written_tree,
+                                       const GitCommit& os_parent_commit1, const GitCommit* const os_parent_commit2)
+{
+    const GitObjectId os_commit_oid = m_openSourceRepo.CreateCommit(
+        cs_commit.GetAuthor(),
+        cs_commit.GetCommitter(),
+        cs_commit.GetMessage(),
+        os_written_tree,
+        os_parent_commit1,
+        os_parent_commit2
+    );
+
+    m_loggingListBox.AddText("\nMirrored commit %s: %s\n\n",
+                             os_commit_oid.GetHexHash().c_str(),
+                             cs_commit.GetMessage().c_str());
+
+    return m_openSourceRepo.LookupCommit(os_commit_oid);
+}
+
+
+GitCommit Syncer::MirrorFeatureBranch(const GitBranch& os_merge_branch, const GitCommit& os_start_commit,
+                                      const GitCommit& cs_old_merge_commit, const GitCommit& cs_new_merge_commit)
+{
+    if( cs_old_merge_commit.GetParentCount() != 2 || cs_new_merge_commit.GetParentCount() != 2 )
+    {
+        throw CSProException("Update this tool to support mirroring between non-merge commits: %s -> %s",
+                             cs_old_merge_commit.GetObjectId().GetHexHash().c_str(),
+                             cs_new_merge_commit.GetObjectId().GetHexHash().c_str());
+    }
+
+    // create and checkout a temporary open source branch for this work
+    const std::string os_temp_branch_name = SO::Concatenate(
+        IntToString(GetTimestamp()),
+        "-",
+        os_start_commit.GetObjectId().GetHexHash()
+    );
+
+    GitBranch os_temp_branch = m_openSourceRepo.CreateBranch(os_temp_branch_name, os_start_commit);
+
+    m_openSourceRepo.CheckoutBranch(os_temp_branch);
+
+    // mirror the feature branch
+    const GitCommit os_feature_branch_final_commit = MirrorFeatureBranch(
+        cs_old_merge_commit,
+        cs_new_merge_commit,
+        os_start_commit
+    );
+
+    // switch back to the destination branch
+    m_openSourceRepo.CheckoutBranch(os_merge_branch);
+
+    // mirror the merge commit
+    GitIndex os_index = m_openSourceRepo.GetIndex();
+    GitTree cs_old_merge_tree = cs_old_merge_commit.GetTree();
+    GitTree cs_new_merge_tree = cs_new_merge_commit.GetTree();
+
+    MirrorCommit(os_index, cs_old_merge_tree, cs_new_merge_tree);
+
+    GitTree os_new_tree = m_openSourceRepo.WriteTree(os_index);
+
+    // make sure that the feature branch matches the merge commit
+    GitTree os_feature_branch_tree = os_feature_branch_final_commit.GetTree();
+
+    const GitDiff merge_diff = m_openSourceRepo.GetDifference(os_feature_branch_tree, os_new_tree);
+
+    if( merge_diff.GetNumberDeltas() != 0 )
+    {
+        throw CSProException("Differences exist between the feature branch and merge commit: %zu",
+                             merge_diff.GetNumberDeltas());
+    }
+
+    GitCommit os_new_merge_commit = CreateMirroredCommit(
+        cs_new_merge_commit,
+        os_new_tree,
+        os_start_commit,
+        &os_feature_branch_final_commit
+    );
+
+    // delete the temporary feature branch
+    os_temp_branch.Refresh(m_openSourceRepo);
+    os_temp_branch.Delete();
+
+    return os_new_merge_commit;
+}
+
+
+GitCommit Syncer::MirrorFeatureBranch(const GitCommit& cs_old_merge_commit, const GitCommit& cs_new_merge_commit,
+                                      const GitCommit& os_start_commit)
+{
+    std::optional<GitCommit> cs_parent_commit = cs_old_merge_commit;
+    std::optional<GitTree> cs_parent_tree = cs_old_merge_commit.GetTree();
+
+    std::optional<GitCommit> os_parent_commit = os_start_commit;
+
+    // walk the two merge commits in reverse order
+    GitRevisionWalker walker(m_privateRepo);
+
+    walker.ReverseWalk(cs_new_merge_commit, cs_old_merge_commit,
+        [&](GitCommit cs_commit)
+        {
+            // don't process the merge commit during this walk
+            if( cs_commit == cs_new_merge_commit )
+                return;
+
+            m_loggingListBox.AddText("Mirroring %s: %s\n",
+                                     cs_commit.GetObjectId().GetHexHash().c_str(),
+                                     cs_commit.GetMessage().c_str());
+
+            if( cs_commit.GetParentCount() != 1 )
+            {
+                throw CSProException("Update this tool to handle multiple parents on feature branches for commit: " +
+                                     cs_commit.GetObjectId().GetHexHash());
+            }
+
+            if( *cs_parent_commit != cs_commit.GetParent(0) )
+                throw ProgrammingErrorException();
+
+            GitTree cs_commit_tree = cs_commit.GetTree();
+            GitIndex os_index = m_openSourceRepo.GetIndex();
+
+            MirrorCommit(os_index, *cs_parent_tree, cs_commit_tree);
+
+            // commit these changes
+            GitTree os_new_tree = m_openSourceRepo.WriteTree(os_index);
+
+            os_parent_commit = CreateMirroredCommit(
+                cs_commit,
+                os_new_tree,
+                *os_parent_commit,
+                nullptr
+            );
+
+            cs_parent_commit.emplace(std::move(cs_commit));
+            cs_parent_tree.emplace(std::move(cs_commit_tree));
+        });
+
+    return std::move(*os_parent_commit);
+}
+
+
+void Syncer::MirrorCommit(GitIndex& os_index, GitTree& cs_parent_tree, GitTree& cs_tree)
+{
+    // because of line ending differences between the private and open source repositories,
+    // instead of using git_apply, we process differences and manually merge text files
+
+    // get the differences between this commit and its parent
+    GitDiff cs_diff = m_privateRepo.GetDifference(cs_parent_tree, cs_tree, GIT_DIFF_NORMAL);
+    cs_diff.FindSimilar();
+
+    cs_diff.ForeachDifference(
+        [&](const void* const delta)
+        {
+            const git_diff_delta* diff_delta = static_cast<const git_diff_delta*>(delta);
+            MirrorFile(os_index, *diff_delta);
+            return true;
+        });
+}
+
+
+void Syncer::MirrorFile(GitIndex& os_index, const git_diff_delta& diff_delta)
+{
+    const bool is_binary = ( ( diff_delta.flags & GIT_DIFF_FLAG_BINARY ) != 0 );
+    const char* const file_type = is_binary ? "binary file" : "text file";
+
+    // OS_TODO check if the path is in the exclusions list
+    const std::string path = diff_delta.new_file.path;
+
+    switch( diff_delta.status )
+    {
+        case GIT_DELTA_ADDED:
+            m_loggingListBox.AddText("Adding %s: %s", file_type, path.c_str());
+            is_binary ? MirrorFileAddBinary(os_index, path) :
+                        MirrorFileAddText(os_index, path);
+            break;
+
+        case GIT_DELTA_DELETED:
+            m_loggingListBox.AddText("Deleting %s: %s", file_type, path.c_str());
+            MirrorFileDelete(os_index, path);
+            break;
+
+        case GIT_DELTA_MODIFIED:
+            m_loggingListBox.AddText("Modifying %s: %s", file_type, path.c_str());
+            is_binary ? MirrorFileModifyBinary(os_index, path) :
+                        MirrorFileModifyText(os_index, path);
+            break;
+
+        case GIT_DELTA_RENAMED:
+            m_loggingListBox.AddText("Renaming %s: %s -> %s", file_type, path.c_str(), diff_delta.old_file.path);
+            is_binary ? MirrorFileRenameBinary(os_index, path) :
+                        MirrorFileRenameText(os_index, path);
+            break;
+
+        default:
+            throw CSProException("Unknown diff status: '%s' -> %d", path.c_str(), static_cast<int>(diff_delta.status));
+    }
+}
+
+
+void Syncer::MirrorFileAddBinary(GitIndex& os_index, const std::string& path)
+{
+    m_loggingListBox.AddText("OS_TODO: MirrorFileAddBinary, %s", path.c_str());
+}
+
+
+void Syncer::MirrorFileAddText(GitIndex& os_index, const std::string& path)
+{
+    m_loggingListBox.AddText("OS_TODO: MirrorFileAddText, %s", path.c_str());
+}
+
+
+void Syncer::MirrorFileDelete(GitIndex& os_index, const std::string& path)
+{
+    m_loggingListBox.AddText("OS_TODO: MirrorFileDelete, %s", path.c_str());
+}
+
+
+void Syncer::MirrorFileModifyBinary(GitIndex& os_index, const std::string& path)
+{
+    m_loggingListBox.AddText("OS_TODO: MirrorFileModifyBinary, %s", path.c_str());
+}
+
+
+void Syncer::MirrorFileModifyText(GitIndex& os_index, const std::string& path)
+{
+    m_loggingListBox.AddText("OS_TODO: MirrorFileModifyText, %s", path.c_str());
+}
+
+
+void Syncer::MirrorFileRenameBinary(GitIndex& os_index, const std::string& path)
+{
+    m_loggingListBox.AddText("OS_TODO: MirrorFileRenameBinary, %s", path.c_str());
+}
+
+
+void Syncer::MirrorFileRenameText(GitIndex& os_index, const std::string& path)
+{
+    m_loggingListBox.AddText("OS_TODO: MirrorFileRenameText, %s", path.c_str());
 }

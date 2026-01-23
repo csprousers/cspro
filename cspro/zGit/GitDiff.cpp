@@ -22,6 +22,13 @@ GitDiff::~GitDiff() noexcept
 }
 
 
+void GitDiff::FindSimilar()
+{
+    if( git_diff_find_similar(m_diff, nullptr) != 0 )
+        throw GitException();
+}
+
+
 size_t GitDiff::GetNumberDeltas() const noexcept
 {
     return git_diff_num_deltas(m_diff);

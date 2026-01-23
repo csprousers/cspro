@@ -146,6 +146,26 @@ void GitRepository::ForeachLocalBranch(const std::function<bool(GitBranch)>& cal
 }
 
 
+void GitRepository::CheckoutBranch(const GitBranch& branch) const
+{
+    EnsureRepositoryIsOpen();
+
+    git_checkout_options checkout_options = GIT_CHECKOUT_OPTIONS_INIT;
+    ASSERT(( checkout_options.checkout_strategy & GIT_CHECKOUT_SAFE ) == GIT_CHECKOUT_SAFE);
+
+    const GitCommit commit = LookupCommit(branch);
+    const git_object* const commit_object = reinterpret_cast<const git_object*>(static_cast<const git_commit*>(commit));
+
+    if( git_checkout_tree(m_repo, commit_object, &checkout_options) != 0 )
+        throw GitException();
+
+    const std::string head_reference = "refs/heads/" + branch.GetName();
+
+    if( git_repository_set_head(m_repo, head_reference.c_str()) != 0 )
+        throw GitException();
+}
+
+
 void GitRepository::ResetBranchMixed(const GitCommit& commit) const
 {
     EnsureRepositoryIsOpen();
@@ -208,6 +228,27 @@ unsigned int GitRepository::GetStatusByPath(const cs::string_sz path) const
         throw GitException();
 
     return status_flags;
+}
+
+
+bool GitRepository::HasChanges() const
+{
+    EnsureRepositoryIsOpen();
+
+    git_status_options status_options = GIT_STATUS_OPTIONS_INIT;
+    status_options.show = GIT_STATUS_SHOW_INDEX_AND_WORKDIR;
+    status_options.flags = GIT_STATUS_OPT_INCLUDE_UNTRACKED | GIT_STATUS_OPT_RECURSE_UNTRACKED_DIRS;
+
+    git_status_list* status_list;
+
+    if( git_status_list_new(&status_list, m_repo, &status_options) != 0 )
+        throw GitException();
+
+    const bool has_changes = ( git_status_list_entrycount(status_list) != 0 );
+
+    git_status_list_free(status_list);
+
+    return has_changes;
 }
 
 
@@ -434,7 +475,7 @@ GitObjectId GitRepository::CreateCommit(const GitSignature& author, const GitSig
     const git_commit* parent_commits[2] =
     {
         static_cast<const git_commit*>(parent_commit1),
-        ( parent_commit2 != nullptr ) ? static_cast<const git_commit*>(parent_commit1) : nullptr
+        ( parent_commit2 != nullptr ) ? static_cast<const git_commit*>(*parent_commit2) : nullptr
     };
 
     git_oid commit_oid;

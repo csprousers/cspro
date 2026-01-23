@@ -78,6 +78,12 @@ public:
     // The callback function, which can throw exceptions, should return true to continue processing.
     void ForeachLocalBranch(const std::function<bool(GitBranch)>& callback_function) const;
 
+    // Sets the HEAD to the specified branch in safe mode:
+    // "Allow safe updates that cannot overwrite uncommitted data. If the uncommitted
+    // changes don't conflict with the checked out files, the checkout will still proceed,
+    // leaving the changes intact."
+    void CheckoutBranch(const GitBranch& branch) const;
+
     // Resets the current branch to the commit using the mode "mixed."
     void ResetBranchMixed(const GitCommit& commit) const;
 
@@ -99,6 +105,9 @@ public:
     // An exception is thrown if the entry cannot be found.
     // Status codes are in status.h.
     unsigned int GetStatusByPath(cs::string_sz path) const;
+
+    // Returns true if there are changes in the index or working directory.
+    bool HasChanges() const;
 
     // Executes the callback function for each file in the index, passing the
     // path and status code. These are paths that Git is tracking: "the index

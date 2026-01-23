@@ -24,6 +24,10 @@ public:
     operator const git_diff*() const noexcept { return m_diff; }
     operator git_diff*() noexcept             { return m_diff; }
 
+    // Replaces delete / add entries with rename entries when the
+    // differences are above the default rename threadhold (50%).
+    void FindSimilar();
+
     // Returns the number of deltas between two trees.
     size_t GetNumberDeltas() const noexcept;
 
