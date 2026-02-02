@@ -26,6 +26,7 @@
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="GitBlob.cpp" />
     <ClCompile Include="GitBranch.cpp" />
     <ClCompile Include="GitCommit.cpp" />
     <ClCompile Include="GitDiff.cpp" />
@@ -46,6 +47,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="GitBlob.h" />
     <ClInclude Include="GitBranch.h" />
     <ClInclude Include="GitCommit.h" />
     <ClInclude Include="GitDiff.h" />

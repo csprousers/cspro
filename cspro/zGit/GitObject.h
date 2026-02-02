@@ -3,6 +3,7 @@
 #include <zGit/zGit.h>
 
 struct git_object;
+class GitBlob;
 class GitTree;
 
 
@@ -33,15 +34,9 @@ public:
     // Casts the object to a GitTree, throwing an exception on error.
     GitTree GetTree() const;
 
-    // Casts the object to a blob and returns its contents as a BinaryBlock
-    // or std::string, throwing an exception on error.
-    template<typename RT = BinaryBlock>
-    RT GetBlob() const;
-
-    // Casts the object to a blob and executes the callback function,
-    // passing a pointer to the contents, throwing an exception on error.
-    // The callback function can throw exceptions.
-    void DoAsBlob(const std::function<void(const void* data, size_t size)>& callback_function) const;
+    // Casts the object to a blob and returns its contents as a GitBlob,
+    // throwing an exception on error.
+    GitBlob GetBlob() const;
 
 private:
     git_object* m_object;

@@ -11,6 +11,9 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="GitBlob.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="GitBranch.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -61,6 +64,9 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="GitBlob.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="GitBranch.h">
       <Filter>Header Files</Filter>
     </ClInclude>

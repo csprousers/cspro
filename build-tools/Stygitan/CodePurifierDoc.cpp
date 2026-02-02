@@ -1,6 +1,7 @@
 #include "StdAfx.h"
 #include "CodePurifierDoc.h"
 #include <zToolsO/Encoders.h>
+#include <zGit/GitBlob.h>
 #include <zGit/GitIndex.h>
 #include <zGit/GitTree.h>
 #include <regex>
@@ -675,11 +676,8 @@ void CodePurifierDoc::SaveFileFromCleanCommit(const std::string& git_path, const
     const GitObject object = tree_entry.GetObject();
     ASSERT(object.GetType() == GitObjectType::Blob);
 
-    object.DoAsBlob(
-        [&](const void* const data, const size_t size)
-        {
-            FileIO::Write(file_path_for_save, data, size);
-        });
+    const GitBlob blob = object.GetBlob();
+    blob.WriteToDisk(file_path_for_save);
 }
 
 

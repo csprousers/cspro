@@ -383,6 +383,19 @@ GitObject GitRepository::LookupObject(const GitObjectId& oid) const
 }
 
 
+GitBlob GitRepository::LookupBlob(const GitObjectId& oid) const
+{
+    EnsureRepositoryIsOpen();
+
+    git_blob* blob;
+
+    if( git_blob_lookup(&blob, m_repo, oid) != 0 )
+        throw GitException("The blob was not found in the repository: %s", oid.GetHexHash().c_str());
+
+    return GitBlob(*blob);
+}
+
+
 GitCommit GitRepository::LookupCommit(const GitObjectId& oid) const
 {
     EnsureRepositoryIsOpen();

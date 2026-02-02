@@ -5,6 +5,7 @@
 #include <zToolsO/File.h>
 #include <zJson/JsonSpecFile.h>
 #include <zNetwork/CurlHttpConnection.h>
+#include <zGit/GitBlob.h>
 #include <zGit/GitBranch.h>
 #include <zGit/GitDiff.h>
 #include <zGit/GitIgnoreEvaluator.h>
@@ -314,15 +315,12 @@ void Syncer::CopyFilesToOutputDirectory()
     for( const std::string& repo_path : m_repoPaths )
     {
         const GitObject& object = m_repoBlobObjects.find(repo_path)->second;
+        const GitBlob blob = object.GetBlob();
 
-        object.DoAsBlob(
-            [&](const void* const data, const size_t size)
-            {
-                const std::string output_file_path = Path::Combine(m_openSourceDirectory, repo_path);
-                FileIO::Write(output_file_path, data, size);
-                total_content_size += size;
-            });
+        const std::string output_file_path = Path::Combine(m_openSourceDirectory, repo_path);
+        blob.WriteToDisk(output_file_path);
 
+        total_content_size += blob.size();
         percent += percent_multiplier;
 
         if( percent >= next_percent_for_reporting )
@@ -366,34 +364,29 @@ void Syncer::CreateSqliteWithoutSEE(const GitTree& tree)
     const std::string sqlite_repo_path = "cspro/external/SQLite/";
 
     const GitTreeEntry tree_entry = tree.GetEntryByPath(Path::Combine(sqlite_repo_path, "sqlite3.h"));
-    const GitObject header = tree_entry.GetObject();
+    const GitBlob header = tree_entry.GetObject().GetBlob();
 
     // find the version of SQLite that this release uses
+    constexpr std::string_view VersionPrefix_sv = "#define SQLITE_VERSION";
     std::string version;
     std::string full_version_line;
 
-    header.DoAsBlob(
-        [&](const void* const data, const size_t size)
+    SO::ForeachLine(header.as<std::string_view>(), false,
+        [&](std::string_view line_sv)
         {
-            constexpr std::string_view VersionPrefix_sv = "#define SQLITE_VERSION";
+            if( SO::StartsWith(line_sv, VersionPrefix_sv) )
+            {
+                full_version_line = line_sv;
 
-            SO::ForeachLine(std::string_view(static_cast<const char*>(data), size), false,
-                [&](std::string_view line_sv)
-                {
-                    if( SO::StartsWith(line_sv, VersionPrefix_sv) )
-                    {
-                        full_version_line = line_sv;
+                line_sv.remove_prefix(VersionPrefix_sv.length());
+                SO::MakeTrim(line_sv);
+                SO::MakeTrim(line_sv, '\"');
+                version = line_sv;
 
-                        line_sv.remove_prefix(VersionPrefix_sv.length());
-                        SO::MakeTrim(line_sv);
-                        SO::MakeTrim(line_sv, '\"');
-                        version = line_sv;
+                return false;
+            }
 
-                        return false;
-                    }
-
-                    return true;
-                });
+            return true;
         });
 
     if( version.empty() )

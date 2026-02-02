@@ -3,6 +3,7 @@
 #include <StandardIncludes/cspro_no_mfc.h>
 #include <StandardIncludes/strict_errors.h>
 
+#include <zGit/GitBlob.h>
 #include <zGit/GitBranch.h>
 #include <zGit/GitCommit.h>
 #include <zGit/GitException.h>

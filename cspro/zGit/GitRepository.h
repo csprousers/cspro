@@ -5,6 +5,7 @@
 #include <zGit/GitObjectId.h>
 
 struct git_repository;
+class GitBlob;
 class GitBranch;
 class GitCommit;
 class GitDiff;
@@ -139,13 +140,16 @@ public:
 
 
     // --------------------------------------------------------------------------
-    // Objects
+    // Objects + Blobs
     // --------------------------------------------------------------------------
 
     // Looks up the object, potentially only of a certain type, throwing an
     // exception if not found.
     GitObject LookupObject(const GitObjectId& oid, GitObjectType type) const;
     GitObject LookupObject(const GitObjectId& oid) const;
+
+    // Looks up a blob by object ID, throwing an exception if not found.
+    GitBlob LookupBlob(const GitObjectId& oid) const;
 
 
     // --------------------------------------------------------------------------
