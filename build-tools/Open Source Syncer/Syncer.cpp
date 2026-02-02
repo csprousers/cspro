@@ -8,7 +8,6 @@
 #include <zGit/GitBlob.h>
 #include <zGit/GitBranch.h>
 #include <zGit/GitDiff.h>
-#include <zGit/GitIgnoreEvaluator.h>
 #include <zGit/GitIndex.h>
 #include <zGit/GitMerge.h>
 #include <zGit/GitRevisionWalker.h>
@@ -222,22 +221,31 @@ void Syncer::PopulateRepoPaths(const GitTree& tree, const std::string& base_path
 }
 
 
+bool Syncer::IsFileExcluded(const std::string& cs_file_path)
+{
+    if( !m_exclusionEvaluator.has_value() )
+    {
+        const std::string exclusions_file_path = Path::Combine(m_overridesDirectory, "exclusions.txt");
+
+        m_exclusionEvaluator.emplace();
+        m_exclusionEvaluator->AddRulesFromFile(exclusions_file_path);
+    }
+
+    return m_exclusionEvaluator->Ignore(cs_file_path);
+}
+
+
 void Syncer::PruneRepoPaths()
 {
-    const std::string exclusions_file_path = Path::Combine(m_overridesDirectory, "exclusions.txt");
-
     m_loggingListBox.AddText(SharableString());
-    m_loggingListBox.AddText("Pruning files based on gitignore rules from: %s", exclusions_file_path.c_str());
+    m_loggingListBox.AddText("Pruning files based on gitignore rules");
 
     std::vector<std::string>& repo_paths = m_repoPaths;
     const size_t initial_file_count = repo_paths.size();
 
-    GitIgnoreEvaluator gitignore_evaluator;
-    gitignore_evaluator.AddRulesFromFile(exclusions_file_path);
-
     for( size_t i = repo_paths.size() - 1; i < repo_paths.size(); --i )
     {
-        if( gitignore_evaluator.Ignore(repo_paths[i]) )
+        if( IsFileExcluded(repo_paths[i]) )
             repo_paths.erase(repo_paths.begin() + i);
     }
 
@@ -961,9 +969,16 @@ void Syncer::MirrorFile(GitIndex& os_index, const git_diff_delta& diff_delta)
     const bool is_binary = ( ( diff_delta.flags & GIT_DIFF_FLAG_BINARY ) != 0 );
     const char* const file_type = is_binary ? "binary file" : "text file";
 
-    // OS_TODO check if the path is in the exclusions list
+    // do not mirror files if they are in the exclusions list
     const std::string path = diff_delta.new_file.path;
 
+    if( IsFileExcluded(path) )
+    {
+        m_loggingListBox.AddText("Skipping excluded %s: %s", file_type, path.c_str());
+        return;
+    }
+
+    // otherwise mirror the file
     switch( diff_delta.status )
     {
         case GIT_DELTA_ADDED:
@@ -1034,11 +1049,11 @@ void Syncer::MirrorFileModifyBinary(GitIndex& os_index, const git_diff_file& new
 
 void Syncer::MirrorFileModifyText(GitIndex& os_index, const git_diff_file& old_file, const git_diff_file& new_file)
 {
-    // for a three-way merge, we will load the changed data from the private repo...
+    // for a three-way merge, we will load the changed data from the private repository...
     std::string cs_text_before = m_privateRepo.LookupBlob(old_file.id).as<std::string>();
     std::string cs_text_after = m_privateRepo.LookupBlob(new_file.id).as<std::string>();
 
-    // ...and then apply it onto the open source repo
+    // ...and then apply it onto the open source repository
     const GitObjectId os_text_now_oid = os_index.GetObjectIdByPath(old_file.path);
     const std::string os_text_now = m_openSourceRepo.LookupBlob(os_text_now_oid).as<std::string>();
 
@@ -1047,7 +1062,7 @@ void Syncer::MirrorFileModifyText(GitIndex& os_index, const git_diff_file& old_f
     SO::MakeNewlineLF(cs_text_after);
 
     if( os_text_now.find('\r') != std::string::npos )
-        throw CSProException("There should not be '\\r' characters in the open source repo.");
+        throw CSProException("There should not be '\\r' characters in the open source repository.");
 
     // merge the files
     const GitMerge::Result merge_result = GitMerge::Merge(

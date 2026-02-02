@@ -3,6 +3,7 @@
 #include <zUtilO/SettingsDb.h>
 #include <zUtilF/LoggingListBox.h>
 #include <zGit/GitCommit.h>
+#include <zGit/GitIgnoreEvaluator.h>
 #include <zGit/GitRepository.h>
 #include <zGit/GitTag.h>
 #include <zGit/GitTree.h>
@@ -24,9 +25,16 @@ public:
     void GenerateFileList(cs::string_sz commit_string);
 
 private:
+    // cs = private CSPro repository
+    // os = public open source repository
+
     std::tuple<GitCommit, GitTree> LookupCommitAndGetTree(cs::string_sz commit_string);
 
     void PopulateRepoPaths(const GitTree& tree, const std::string& base_path);
+
+    // Returns true if the file should not be included in the open source repository due
+    // to its listing in the exclusions.txt file.
+    bool IsFileExcluded(const std::string& cs_file_path);
 
     void PruneRepoPaths();
 
@@ -45,8 +53,6 @@ private:
 
     void EnsureRepositoriesMatch(bool add_space_before_log);
 
-    // cs = private CSPro repository
-    // os = public open source repository
     void StartMirror();
 
     // Creates a commit in the open source repository, using the author / signature / message from the source commit.
@@ -77,8 +83,12 @@ private:
 private:
     SettingsDb& m_settingsDb;
     LoggingListBox& m_loggingListBox;
+
     std::string m_overridesDirectory;
+    std::optional<GitIgnoreEvaluator> m_exclusionEvaluator;
+
     GitRepository m_privateRepo;
+
     GitRepository m_openSourceRepo;
     std::string m_openSourceDirectory;
     std::vector<std::string> m_repoPaths;
