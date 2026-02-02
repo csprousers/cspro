@@ -10,6 +10,7 @@
 #include <zGit/GitDiff.h>
 #include <zGit/GitIgnoreEvaluator.h>
 #include <zGit/GitIndex.h>
+#include <zGit/GitMerge.h>
 #include <zGit/GitRevisionWalker.h>
 #include <Update SQLite/SQLiteSourceUpdater.h>
 
@@ -838,7 +839,7 @@ GitCommit Syncer::MirrorFeatureBranch(const GitBranch& os_merge_branch, const Gi
     m_openSourceRepo.CheckoutBranch(os_temp_branch);
 
     // mirror the feature branch
-    const GitCommit os_feature_branch_final_commit = MirrorFeatureBranch(
+    const GitCommit os_feature_branch_final_commit = MirrorFeatureBranchCommits(
         cs_old_merge_commit,
         cs_new_merge_commit,
         os_start_commit
@@ -882,8 +883,8 @@ GitCommit Syncer::MirrorFeatureBranch(const GitBranch& os_merge_branch, const Gi
 }
 
 
-GitCommit Syncer::MirrorFeatureBranch(const GitCommit& cs_old_merge_commit, const GitCommit& cs_new_merge_commit,
-                                      const GitCommit& os_start_commit)
+GitCommit Syncer::MirrorFeatureBranchCommits(const GitCommit& cs_old_merge_commit, const GitCommit& cs_new_merge_commit,
+                                             const GitCommit& os_start_commit)
 {
     std::optional<GitCommit> cs_parent_commit = cs_old_merge_commit;
     std::optional<GitTree> cs_parent_tree = cs_old_merge_commit.GetTree();
@@ -967,8 +968,8 @@ void Syncer::MirrorFile(GitIndex& os_index, const git_diff_delta& diff_delta)
     {
         case GIT_DELTA_ADDED:
             m_loggingListBox.AddText("Adding %s: %s", file_type, path.c_str());
-            is_binary ? MirrorFileAddBinary(os_index, path) :
-                        MirrorFileAddText(os_index, path);
+            is_binary ? MirrorFileAddBinary(os_index, diff_delta.new_file) :
+                        MirrorFileAddText(os_index, diff_delta.new_file);
             break;
 
         case GIT_DELTA_DELETED:
@@ -978,14 +979,14 @@ void Syncer::MirrorFile(GitIndex& os_index, const git_diff_delta& diff_delta)
 
         case GIT_DELTA_MODIFIED:
             m_loggingListBox.AddText("Modifying %s: %s", file_type, path.c_str());
-            is_binary ? MirrorFileModifyBinary(os_index, path) :
-                        MirrorFileModifyText(os_index, path);
+            is_binary ? MirrorFileModifyBinary(os_index, diff_delta.new_file) :
+                        MirrorFileModifyText(os_index, diff_delta.old_file, diff_delta.new_file);
             break;
 
         case GIT_DELTA_RENAMED:
             m_loggingListBox.AddText("Renaming %s: %s -> %s", file_type, path.c_str(), diff_delta.old_file.path);
-            is_binary ? MirrorFileRenameBinary(os_index, path) :
-                        MirrorFileRenameText(os_index, path);
+            is_binary ? MirrorFileRenameBinary(os_index, diff_delta.old_file, diff_delta.new_file) :
+                        MirrorFileRenameText(os_index, diff_delta.old_file, diff_delta.new_file);
             break;
 
         default:
@@ -994,43 +995,83 @@ void Syncer::MirrorFile(GitIndex& os_index, const git_diff_delta& diff_delta)
 }
 
 
-void Syncer::MirrorFileAddBinary(GitIndex& os_index, const std::string& path)
+void Syncer::MirrorFileAddEntry(GitIndex& os_index, const git_diff_file& new_file, const void* const data, const size_t size)
 {
-    m_loggingListBox.AddText("OS_TODO: MirrorFileAddBinary, %s", path.c_str());
+    const GitObjectId os_blob_oid = m_openSourceRepo.CreateBlob(data, size);
+    os_index.AddEntry(os_blob_oid, new_file.path, new_file.mode);
 }
 
 
-void Syncer::MirrorFileAddText(GitIndex& os_index, const std::string& path)
+void Syncer::MirrorFileAddBinary(GitIndex& os_index, const git_diff_file& new_file)
 {
-    m_loggingListBox.AddText("OS_TODO: MirrorFileAddText, %s", path.c_str());
+    const GitBlob cs_blob = m_privateRepo.LookupBlob(new_file.id);
+    MirrorFileAddEntry(os_index, new_file, cs_blob.data(), cs_blob.size());
 }
 
 
-void Syncer::MirrorFileDelete(GitIndex& os_index, const std::string& path)
+void Syncer::MirrorFileAddText(GitIndex& os_index, const git_diff_file& new_file)
 {
-    m_loggingListBox.AddText("OS_TODO: MirrorFileDelete, %s", path.c_str());
+    const GitBlob cs_blob = m_privateRepo.LookupBlob(new_file.id);
+
+    // normalize the line endings
+    const std::string os_blob_text = SO::ToNewlineLF(cs_blob.as<std::string>());
+
+    MirrorFileAddEntry(os_index, new_file, os_blob_text.data(), os_blob_text.size());
 }
 
 
-void Syncer::MirrorFileModifyBinary(GitIndex& os_index, const std::string& path)
+void Syncer::MirrorFileDelete(GitIndex& os_index, const cs::string_sz path)
 {
-    m_loggingListBox.AddText("OS_TODO: MirrorFileModifyBinary, %s", path.c_str());
+    os_index.RemoveEntryByPath(path);
 }
 
 
-void Syncer::MirrorFileModifyText(GitIndex& os_index, const std::string& path)
+void Syncer::MirrorFileModifyBinary(GitIndex& os_index, const git_diff_file& new_file)
 {
-    m_loggingListBox.AddText("OS_TODO: MirrorFileModifyText, %s", path.c_str());
+    MirrorFileAddBinary(os_index, new_file);
 }
 
 
-void Syncer::MirrorFileRenameBinary(GitIndex& os_index, const std::string& path)
+void Syncer::MirrorFileModifyText(GitIndex& os_index, const git_diff_file& old_file, const git_diff_file& new_file)
 {
-    m_loggingListBox.AddText("OS_TODO: MirrorFileRenameBinary, %s", path.c_str());
+    // for a three-way merge, we will load the changed data from the private repo...
+    std::string cs_text_before = m_privateRepo.LookupBlob(old_file.id).as<std::string>();
+    std::string cs_text_after = m_privateRepo.LookupBlob(new_file.id).as<std::string>();
+
+    // ...and then apply it onto the open source repo
+    const GitObjectId os_text_now_oid = os_index.GetObjectIdByPath(old_file.path);
+    const std::string os_text_now = m_openSourceRepo.LookupBlob(os_text_now_oid).as<std::string>();
+
+    // normalize the line endings
+    SO::MakeNewlineLF(cs_text_before);
+    SO::MakeNewlineLF(cs_text_after);
+
+    if( os_text_now.find('\r') != std::string::npos )
+        throw CSProException("There should not be '\\r' characters in the open source repo.");
+
+    // merge the files
+    const GitMerge::Result merge_result = GitMerge::Merge(
+        cs_text_before,
+        cs_text_after,
+        os_text_now
+    );
+
+    if( !merge_result.automergeable )
+        throw CSProException("The file is not automergeable: %s", new_file.path);
+
+    MirrorFileAddEntry(os_index, new_file, merge_result.text.data(), merge_result.text.size());
 }
 
 
-void Syncer::MirrorFileRenameText(GitIndex& os_index, const std::string& path)
+void Syncer::MirrorFileRenameBinary(GitIndex& os_index, const git_diff_file& old_file, const git_diff_file& new_file)
 {
-    m_loggingListBox.AddText("OS_TODO: MirrorFileRenameText, %s", path.c_str());
+    MirrorFileDelete(os_index, old_file.path);
+    MirrorFileAddBinary(os_index, new_file);
+}
+
+
+void Syncer::MirrorFileRenameText(GitIndex& os_index, const git_diff_file& old_file, const git_diff_file& new_file)
+{
+    MirrorFileDelete(os_index, old_file.path);
+    MirrorFileAddText(os_index, new_file);
 }

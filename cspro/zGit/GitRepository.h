@@ -85,6 +85,13 @@ public:
     // leaving the changes intact."
     void CheckoutBranch(const GitBranch& branch) const;
 
+    // "Updates files in the index and the working tree to match the content of
+    // the commit pointed at by HEAD."
+    // GIT_CHECKOUT_SAFE applies the safe updates described above for CheckoutBranch.
+    // GIT_CHECKOUT_FORCE allows "all updates to force [the] working directory to look
+    // like the index, potentially losing data in the process."
+    void CheckoutHead(unsigned int checkout_strategy) const;
+
     // Resets the current branch to the commit using the mode "mixed."
     void ResetBranchMixed(const GitCommit& commit) const;
 
@@ -150,6 +157,12 @@ public:
 
     // Looks up a blob by object ID, throwing an exception if not found.
     GitBlob LookupBlob(const GitObjectId& oid) const;
+
+    // Creates a blob from the content, returning its object ID.
+    // If the content has already been added, it will not be added again.
+    // An exception is thrown on error.
+    GitObjectId CreateBlob(const void* data, size_t size) const;
+    GitObjectId CreateBlob(std::string_view data_sv) const;
 
 
     // --------------------------------------------------------------------------

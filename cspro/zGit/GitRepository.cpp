@@ -166,6 +166,18 @@ void GitRepository::CheckoutBranch(const GitBranch& branch) const
 }
 
 
+void GitRepository::CheckoutHead(const unsigned int checkout_strategy) const
+{
+    EnsureRepositoryIsOpen();
+
+    git_checkout_options checkout_options = GIT_CHECKOUT_OPTIONS_INIT;
+    checkout_options.checkout_strategy = checkout_strategy;
+
+    if( git_checkout_head(m_repo, &checkout_options) != 0 )
+        throw GitException();
+}
+
+
 void GitRepository::ResetBranchMixed(const GitCommit& commit) const
 {
     EnsureRepositoryIsOpen();
@@ -393,6 +405,25 @@ GitBlob GitRepository::LookupBlob(const GitObjectId& oid) const
         throw GitException("The blob was not found in the repository: %s", oid.GetHexHash().c_str());
 
     return GitBlob(*blob);
+}
+
+
+GitObjectId GitRepository::CreateBlob(const void* const data, const size_t size) const
+{
+    EnsureRepositoryIsOpen();
+
+    git_oid blob_oid;
+
+    if( git_blob_create_from_buffer(&blob_oid, m_repo, data, size) != 0 )
+        throw GitException();
+
+    return GitObjectId(blob_oid);
+}
+
+
+GitObjectId GitRepository::CreateBlob(const std::string_view data_sv) const
+{
+    return CreateBlob(data_sv.data(), data_sv.size());
 }
 
 

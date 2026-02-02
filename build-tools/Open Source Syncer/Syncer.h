@@ -58,19 +58,21 @@ private:
                                   const GitCommit& cs_old_merge_commit, const GitCommit& cs_new_merge_commit);
 
     // Mirrors the feature branch's commits and returns the final commit.
-    GitCommit MirrorFeatureBranch(const GitCommit& cs_old_merge_commit, const GitCommit& cs_new_merge_commit,
-                                  const GitCommit& cs_last_merged_commit);
+    GitCommit MirrorFeatureBranchCommits(const GitCommit& cs_old_merge_commit, const GitCommit& cs_new_merge_commit,
+                                         const GitCommit& cs_last_merged_commit);
 
+    // Mirrors a single commit.
     void MirrorCommit(GitIndex& os_index, GitTree& cs_parent_tree, GitTree& cs_tree);
 
     void MirrorFile(GitIndex& os_index, const git_diff_delta& diff_delta);
-    void MirrorFileAddBinary(GitIndex& os_index, const std::string& path);
-    void MirrorFileAddText(GitIndex& os_index, const std::string& path);
-    void MirrorFileDelete(GitIndex& os_index, const std::string& path);
-    void MirrorFileModifyBinary(GitIndex& os_index, const std::string& path);
-    void MirrorFileModifyText(GitIndex& os_index, const std::string& path);
-    void MirrorFileRenameBinary(GitIndex& os_index, const std::string& path);
-    void MirrorFileRenameText(GitIndex& os_index, const std::string& path);
+    void MirrorFileAddEntry(GitIndex& os_index, const git_diff_file& new_file, const void* data, size_t size);
+    void MirrorFileAddBinary(GitIndex& os_index, const git_diff_file& new_file);
+    void MirrorFileAddText(GitIndex& os_index, const git_diff_file& new_file);
+    void MirrorFileDelete(GitIndex& os_index, cs::string_sz path);
+    void MirrorFileModifyBinary(GitIndex& os_index, const git_diff_file& new_file);
+    void MirrorFileModifyText(GitIndex& os_index, const git_diff_file& old_file, const git_diff_file& new_file);
+    void MirrorFileRenameBinary(GitIndex& os_index, const git_diff_file& old_file, const git_diff_file& new_file);
+    void MirrorFileRenameText(GitIndex& os_index, const git_diff_file& old_file, const git_diff_file& new_file);
 
 private:
     SettingsDb& m_settingsDb;

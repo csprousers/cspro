@@ -39,6 +39,37 @@ std::string GitIndex::GetPathByIndex(const size_t index) const
 }
 
 
+GitObjectId GitIndex::GetObjectIdByPath(const cs::string_sz path) const
+{
+    const git_index_entry* const index_entry = git_index_get_bypath(m_index, path.c_str(), GIT_INDEX_STAGE_NORMAL);
+
+    if( index_entry == nullptr )
+        throw GitException("The path was not found in the index: %s", path.c_str());
+
+    return GitObjectId(index_entry->id);
+}
+
+
+void GitIndex::AddEntry(const GitObjectId& oid, const cs::string_sz path, const uint32_t mode)
+{
+    git_index_entry index_entry { };
+
+    memcpy(&index_entry.id, static_cast<const git_oid*>(oid), sizeof(git_oid));
+    index_entry.path = path.c_str();
+    index_entry.mode = mode;
+
+    if( git_index_add(m_index, &index_entry) != 0 )
+        throw GitException();
+}
+
+
+void GitIndex::RemoveEntryByPath(const cs::string_sz path)
+{
+    if( git_index_remove_bypath(m_index, path.c_str()) != 0 )
+        throw GitException();
+}
+
+
 void GitIndex::StageAllFilesInWorkingDirectory()
 {
     const git_strarray pathspec = { nullptr, 0 };

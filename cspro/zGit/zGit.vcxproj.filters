@@ -32,6 +32,9 @@
     <ClCompile Include="GitInitializer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="GitMerge.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="GitObject.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -86,6 +89,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="GitInitializer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GitMerge.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="GitObject.h">
