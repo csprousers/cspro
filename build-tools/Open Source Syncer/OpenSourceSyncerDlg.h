@@ -21,6 +21,8 @@ protected:
 
     void OnSync();
 
+    void OnCompare();
+
     LRESULT OnOperationComplete(WPARAM wParam, LPARAM lParam);
 
     LRESULT OnDisplayErrorMessage(WPARAM wParam, LPARAM lParam);
@@ -29,6 +31,9 @@ private:
     // The operation callback will be run in a worker thread.
     void RunOperation(const std::function<void()>& validate_inputs_callback,
                       std::function<void()> operation_callback) noexcept;
+
+    struct SyncData;
+    void ValidateSyncData(SyncData& sync_data, bool using_oldest_merge_commit);
 
 private:
     SettingsDb m_settingsDb;

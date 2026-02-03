@@ -35,6 +35,9 @@ public:
     // An exception is thrown if the entry cannot be found.
     GitObjectId GetObjectIdByPath(cs::string_sz path) const;
 
+    // Returns a map of all paths linked to the object ID of the path's blob.
+    std::map<std::string, GitObjectId> GetPathObjectIdMap() const;
+
     // Adds an entry using content previously added as a blob.
     void AddEntry(const GitObjectId& oid, cs::string_sz path, uint32_t mode);
 

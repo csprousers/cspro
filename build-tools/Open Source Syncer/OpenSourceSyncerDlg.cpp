@@ -14,6 +14,7 @@ namespace UWM::OpenSourceSyncer
 
 BEGIN_MESSAGE_MAP(OpenSourceSyncerDlg, ResizableDlg)
     ON_COMMAND(IDC_SYNC, OnSync)
+    ON_COMMAND(IDC_COMPARE, OnCompare)
     ON_MESSAGE(UWM::OpenSourceSyncer::OperationComplete, OnOperationComplete)
     ON_MESSAGE(UWM::ToolsO::DisplayErrorMessage, OnDisplayErrorMessage)
 END_MESSAGE_MAP()
@@ -141,44 +142,80 @@ void OpenSourceSyncerDlg::RunOperation(const std::function<void()>& validate_inp
 }
 
 
+struct OpenSourceSyncerDlg::SyncData
+{
+    Syncer* syncer = nullptr;
+    std::optional<GitBranch> os_merge_branch;
+    std::optional<GitCommit> cs_oldest_merge_commit;
+    std::optional<GitCommit> cs_newest_merge_commit;
+};
+
+
+void OpenSourceSyncerDlg::ValidateSyncData(SyncData& sync_data, const bool using_oldest_merge_commit)
+{
+    sync_data.syncer = m_syncer.get();
+    ASSERT(sync_data.syncer != nullptr);
+
+    if( m_branchName.empty() )
+        throw CSProException("Specify the open source branch target.");
+
+    sync_data.os_merge_branch = sync_data.syncer->GetOpenSourceRepo().LookupBranch(m_branchName);
+
+    if( using_oldest_merge_commit )
+    {
+        if( m_commitOld.empty() )
+            throw CSProException("Specify the feature branch oldest merge commit.");
+
+        sync_data.cs_oldest_merge_commit = sync_data.syncer->GetPrivateRepo().LookupCommit(m_commitOld);
+    }
+
+    if( m_commitNew.empty() )
+        throw CSProException("Specify the feature branch newest merge commit.");
+
+    sync_data.cs_newest_merge_commit = sync_data.syncer->GetPrivateRepo().LookupCommit(m_commitNew);
+}
+
+
 void OpenSourceSyncerDlg::OnSync()
 {
-    struct Data
-    {
-        Syncer* syncer = nullptr;
-        std::optional<GitBranch> os_merge_branch;
-        std::optional<GitCommit> cs_oldest_merge_commit;
-        std::optional<GitCommit> cs_newest_merge_commit;
-    };
-
-    auto data = std::make_shared<Data>();
+    auto sync_data = std::make_shared<SyncData>();
 
     RunOperation(
         // validation
-        [&, data]()
+        [&, sync_data]()
         {
-            data->syncer = m_syncer.get();
-            ASSERT(data->syncer != nullptr);
-
-            if( m_branchName.empty() )
-                throw CSProException("Specify the open source branch target.");
-
-            data->os_merge_branch = data->syncer->GetOpenSourceRepo().LookupBranch(m_branchName);
-
-            if( m_commitOld.empty() || m_commitNew.empty() )
-                throw CSProException("Specify the feature branch old and new merge commits.");
-
-            data->cs_oldest_merge_commit = data->syncer->GetPrivateRepo().LookupCommit(m_commitOld);
-            data->cs_newest_merge_commit = data->syncer->GetPrivateRepo().LookupCommit(m_commitNew);
+            ValidateSyncData(*sync_data, true);
         },
-
         // operation
-        [data]()
+        [sync_data]()
         {
-            data->syncer->MirrorFeatureBranches(
-                *data->os_merge_branch,
-                *data->cs_oldest_merge_commit,
-                *data->cs_newest_merge_commit
+            sync_data->syncer->MirrorFeatureBranches(
+                *sync_data->os_merge_branch,
+                *sync_data->cs_oldest_merge_commit,
+                *sync_data->cs_newest_merge_commit
+            );
+        }
+    );
+}
+
+
+void OpenSourceSyncerDlg::OnCompare()
+{
+    auto sync_data = std::make_shared<SyncData>();
+
+    RunOperation(
+        // validation
+        [&, sync_data]()
+        {
+            ValidateSyncData(*sync_data, false);
+        },
+        // operation
+        [sync_data]()
+        {
+            sync_data->syncer->CompareRepositories(
+                *sync_data->cs_newest_merge_commit,
+                sync_data->syncer->GetOpenSourceRepo().LookupCommit(*sync_data->os_merge_branch),
+                true
             );
         }
     );

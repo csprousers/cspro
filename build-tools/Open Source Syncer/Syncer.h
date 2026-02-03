@@ -16,6 +16,10 @@ public:
     GitRepository& GetPrivateRepo()    { return m_privateRepo; }
     GitRepository& GetOpenSourceRepo() { return m_openSourceRepo; }
 
+    // Compares the files of the private and open sources repositories at the given commit.
+    // Any differences are logged, false is returned if there are unexpected errors.
+    bool CompareRepositories(const GitCommit& cs_commit, const GitCommit& os_commit, bool verbose);
+
     // Mirrors the feature branches.
     void MirrorFeatureBranches(const GitBranch& os_merge_branch,
                                const GitCommit& cs_oldest_merge_commit, const GitCommit& cs_newest_merge_commit);
@@ -23,8 +27,6 @@ public:
 private:
     // cs = private CSPro repository
     // os = public open source repository
-
-    void PopulateRepoPaths(const GitTree& tree, const std::string& base_path);
 
     // Returns true if the file should not be included in the open source repository
     // because it was defined in the exclusions.txt file.
@@ -47,8 +49,6 @@ private:
 
     // Returns the HISTORY.md file showing pull requests up to the commit.
     std::string CreateHistoryLog(const GitCommit& os_latest_commit);
-
-    void EnsureRepositoriesMatch(bool add_space_before_log);
 
     // Creates a commit in the open source repository, using the author / signature / message from the source commit.
     GitCommit CreateMirroredCommit(const GitCommit& cs_commit, const GitTree& os_written_tree,
@@ -90,7 +90,5 @@ private:
     std::vector<TagCommits> m_releaseTags;
 
     GitRepository m_privateRepo;
-
     GitRepository m_openSourceRepo;
-    std::string m_openSourceDirectory;
 };

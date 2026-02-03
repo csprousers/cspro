@@ -4,6 +4,7 @@
 #include <zGit/GitTreeEntry.h>
 
 struct git_tree;
+class GitIndex;
 
 
 // --------------------------------------------------------------------------
@@ -37,6 +38,9 @@ public:
     // Returns a tree entry by path.
     // An exception is thrown if the entry cannot be found.
     GitTreeEntry GetEntryByPath(cs::string_sz path) const;
+
+    // Returns an in-memory index with the contents of the tree.
+    GitIndex GetIndex() const;
 
 private:
     git_tree* m_tree;

@@ -50,6 +50,33 @@ GitObjectId GitIndex::GetObjectIdByPath(const cs::string_sz path) const
 }
 
 
+std::map<std::string, GitObjectId> GitIndex::GetPathObjectIdMap() const
+{
+    git_index_iterator* index_iterator;
+
+    if( git_index_iterator_new(&index_iterator, m_index) != 0 )
+        throw GitException();
+
+    const RAII::RunOnDestruction free_iterator([&]() { git_index_iterator_free(index_iterator); });
+
+    std::map<std::string, GitObjectId> path_object_id_map;
+    const git_index_entry* index_entry;
+    int next_result;
+
+    while( ( next_result = git_index_iterator_next(&index_entry, index_iterator) ) == 0 )
+    {
+        path_object_id_map.try_emplace(index_entry->path, index_entry->id);
+    }
+
+    if( next_result != GIT_ITEROVER )
+        throw GitException();
+
+    ASSERT(path_object_id_map.size() == GetEntryCount());
+
+    return path_object_id_map;
+}
+
+
 void GitIndex::AddEntry(const GitObjectId& oid, const cs::string_sz path, const uint32_t mode)
 {
     git_index_entry index_entry { };

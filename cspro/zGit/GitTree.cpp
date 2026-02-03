@@ -73,3 +73,19 @@ GitTreeEntry GitTree::GetEntryByPath(const cs::string_sz path) const
             throw GitException();
     }
 }
+
+
+GitIndex GitTree::GetIndex() const
+{
+    git_index* index_ptr;
+
+    if( git_index_new(&index_ptr) != 0 )
+        throw GitException();
+
+    GitIndex index(*index_ptr);
+
+    if( git_index_read_tree(index, m_tree) != 0 )
+        throw GitException();
+
+    return index;
+}

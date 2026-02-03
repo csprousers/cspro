@@ -1,6 +1,5 @@
 #include "StdAfx.h"
 #include "Syncer.h"
-#include <zToolsO/DirectoryLister.h>
 #include <zJson/JsonSpecFile.h>
 #include <zNetwork/CurlHttpConnection.h>
 #include <zGit/GitBlob.h>
@@ -10,6 +9,7 @@
 #include <zGit/GitRevisionWalker.h>
 #include <zGit/GitTag.h>
 #include <Update SQLite/SQLiteSourceUpdater.h>
+#include <regex>
 
 
 Syncer::Syncer(SettingsDb& settings_db, LoggingListBox& logging_list_box)
@@ -32,7 +32,7 @@ Syncer::~Syncer()
 
 void Syncer::SetOpenSourceDirectory(const std::string& open_source_directory)
 {
-    if( m_openSourceDirectory == open_source_directory )
+    if( Path::RemoveTrailingSlash(m_openSourceRepo.GetWorkingDirectory()) == Path::RemoveTrailingSlash(open_source_directory) )
         return;
 
     m_openSourceRepo.Close();
@@ -40,47 +40,7 @@ void Syncer::SetOpenSourceDirectory(const std::string& open_source_directory)
     m_loggingListBox.AddText("Opening open source repository: " + open_source_directory);
 
     m_openSourceRepo.Open(open_source_directory);
-    m_openSourceDirectory = open_source_directory;
-
-    ASSERT(Path::RemoveTrailingSlash(m_openSourceRepo.GetWorkingDirectory()) == Path::RemoveTrailingSlash(open_source_directory));
 }
-
-
-#ifdef OS_TODO
-void Syncer::PopulateRepoPaths(const GitTree& tree, const std::string& base_path)
-{
-    const size_t count = tree.GetEntryCount();
-
-    for( size_t i = 0; i < count; ++i )
-    {
-        const GitTreeEntry tree_entry = tree.GetEntryByIndex(i);
-
-        std::string repo_path = Path::Combine(base_path, tree_entry.GetName());
-        ASSERT(repo_path == Path::ToNativeSlash(repo_path));
-
-        const GitObjectType entry_type = tree_entry.GetType();
-        GitObject object = tree_entry.GetObject();
-
-        // entries will be another tree...
-        if( entry_type == GitObjectType::Tree )
-        {
-            PopulateRepoPaths(object.GetTree(), repo_path);
-        }
-
-        // ... or a file
-        else if( entry_type == GitObjectType::Blob )
-        {
-            m_repoPaths.emplace_back(repo_path);
-            m_repoBlobObjects.try_emplace(std::move(repo_path), std::move(object));
-        }
-
-        else
-        {
-            ASSERT(false);
-        }
-    }
-}
-#endif // OS_TODO
 
 
 bool Syncer::IsFileExcluded(const std::string& cs_file_path)
@@ -476,102 +436,117 @@ std::string Syncer::CreateHistoryLog(const GitCommit& os_latest_commit)
 }
 
 
-void Syncer::EnsureRepositoriesMatch(const bool add_space_before_log)
+bool Syncer::CompareRepositories(const GitCommit& cs_commit, const GitCommit& os_commit, const bool verbose)
 {
-    if( add_space_before_log )
-        m_loggingListBox.AddText(SharableString());
+    m_loggingListBox.AddText("Comparing: private (%s) <-> open source (%s)",
+                             cs_commit.GetObjectId().GetHexHash().c_str(),
+                             os_commit.GetObjectId().GetHexHash().c_str());
 
-    m_loggingListBox.AddText("Validating open source directory: %s", m_openSourceDirectory.c_str());
+    const GitIndex cs_index = cs_commit.GetTree().GetIndex();
+    const GitIndex os_index = os_commit.GetTree().GetIndex();
 
-    // because gitignore rules can result in some tracked files being excluded, we check that
-    // the open source directory contains the exact set of files from the input
-    GitRepository open_source_repo;
-    open_source_repo.Open(m_openSourceDirectory);
-
-    std::map<std::string, bool, cs::case_insensitive_less> expected_repo_paths; // path -> found in the open source directory
-    std::set<std::string, cs::case_insensitive_less> unexpected_repo_paths;
-
-    for( const std::string& repo_path : m_repoPaths )
-        expected_repo_paths.try_emplace(repo_path, false);
-
-    for( const char* repo_path : { R"(HISTORY.md)",
-                                   R"(cspro\CSEntryDroid\app\src\main\res\values\api_keys.xml)",
-                                   R"(cspro\external\SQLite\sqlite3.c)",
-                                   R"(cspro\external\SQLite\sqlite3.h)",
-                                   R"(cspro\zToolsO\ApiKeys.h)" } )
+    if( verbose )
     {
-        expected_repo_paths.try_emplace(repo_path, false);
+        m_loggingListBox.AddText("Files: private (%zu) <-> open source (%zu):",
+                                 cs_index.GetEntryCount(), os_index.GetEntryCount());
     }
 
-    const std::function<void(std::string path, unsigned int status_flags)> process_repo_path =
-        [&](std::string path, const unsigned int status_flags)
+    std::vector<std::string> fatal_errors;
+
+    const std::map<std::string, GitObjectId> cs_files = cs_index.GetPathObjectIdMap();
+    std::map<std::string, GitObjectId> os_files = os_index.GetPathObjectIdMap();
+
+    // iterate over the files in the private repository
+    for( const auto& [cs_path, cs_file_oid] : cs_files )
+    {
+        const auto& os_lookup = os_files.find(cs_path);
+
+        // if the private file is not in the open source repository, make sure that it is excluded
+        if( os_lookup == os_files.cend() )
         {
-            // ignore files that are deleted in the working directory
-            if( ( status_flags & GIT_STATUS_WT_DELETED ) != 0 )
-                return;
-
-            Path::MakeToNativeSlash(path);
-
-            auto lookup = expected_repo_paths.find(path);
-
-            if( lookup != expected_repo_paths.cend() )
+            if( !IsFileExcluded(cs_path) )
             {
-                lookup->second = true;
+                fatal_errors.emplace_back(u8"⚠ Missing file: " + cs_path);
             }
 
-            else
+            else if( verbose )
             {
-                unexpected_repo_paths.emplace(std::move(path));
+                m_loggingListBox.AddText("Missing file (expected exclusion): " + cs_path);
             }
-        };
 
-    // process tracked files
-    open_source_repo.ForeachStatusInIndex(process_repo_path);
+            continue;
+        }
 
-    // process modified and untracked files
-    open_source_repo.ForeachStatusInWorkingDirectory(process_repo_path);
+        // compare the contents of the files
+        if( cs_file_oid == os_lookup->second )
+        {
+            if( verbose )
+                m_loggingListBox.AddText("Same file (by OID): " + cs_path);
+        }
 
-    std::string missing_repo_paths_text;
+        // when not identical, see if this is a replacement file
+        else if( HasFileReplacement(cs_path) )
+        {
+            if( verbose )
+                m_loggingListBox.AddText("Different file (expected replacement): " + cs_path);
+        }
 
-    for( const auto& [repo_path, found] : expected_repo_paths )
-    {
-        if( !found )
-            SO::AppendWithSeparator(missing_repo_paths_text, "    " + repo_path, '\n');
+        // otherwise compare as text with normalized line endings
+        else
+        {
+            const std::string cs_text = SO::ToNewlineLF(m_privateRepo.LookupBlob(cs_file_oid).as<std::string>());
+            const std::string os_text = m_openSourceRepo.LookupBlob(os_lookup->second).as<std::string>();
+
+            if( cs_text != os_text )
+            {
+                fatal_errors.emplace_back(u8"⚠ Different file: " + cs_path);
+            }
+
+            else if( verbose )
+            {
+                m_loggingListBox.AddText("Same file (by normalized text comparison): " + cs_path);
+            }
+        }
+
+        os_files.erase(os_lookup);
     }
 
-    m_loggingListBox.AddText(SharableString());
-
-    if( missing_repo_paths_text.empty() )
+    // report on any unexpected files in the open source repository,
+    // first removing any files only in the open source directory
+    for( const char* const os_path : { "HISTORY.md" } )
     {
-        m_loggingListBox.AddText("No files are missing.");
+        const auto& os_lookup = os_files.find(os_path);
+
+        if( os_lookup != os_files.cend() )
+        {
+            if( verbose )
+                m_loggingListBox.AddText("Missing file (expected addition): " + os_lookup->first);
+
+            os_files.erase(os_lookup);
+        }
+
+        else
+        {
+            fatal_errors.emplace_back(u8"⚠ Missing file (open source repository): ").append(os_path);
+        }
     }
 
-    else
+    for( const auto& [os_path, os_file_oid] : os_files )
+        fatal_errors.emplace_back(u8"⚠ Unexpected file: " + os_path);
+
+    if( fatal_errors.empty() )
     {
-        m_loggingListBox.AddText("The following files are missing:");
-        m_loggingListBox.AddText(missing_repo_paths_text);
+        m_loggingListBox.AddText("\nThere are no unexpected differences between the repositories.");
+        return true;
     }
 
-    std::string unexpected_repo_paths_text;
+    // report on the fatal errors
+    m_loggingListBox.AddText(u8"\n⚠ There are %zu fatal errors!\n", fatal_errors.size());
 
-    for( const std::string& repo_path : unexpected_repo_paths )
-        SO::AppendWithSeparator(unexpected_repo_paths_text, "    " + repo_path, '\n');
+    for( const std::string& fatal_error : fatal_errors )
+        m_loggingListBox.AddText(fatal_error);
 
-    m_loggingListBox.AddText(SharableString());
-
-    if( unexpected_repo_paths_text.empty() )
-    {
-        m_loggingListBox.AddText("No unexpected files are present.");
-    }
-
-    else
-    {
-        m_loggingListBox.AddText("The following unexpected files are present:");
-        m_loggingListBox.AddText(unexpected_repo_paths_text);
-    }
-
-    if( !missing_repo_paths_text.empty() || !unexpected_repo_paths_text.empty() )
-        throw CSProException("There are missing or unexpected files present in the open source directory.");
+    return false;
 }
 
 
@@ -697,6 +672,10 @@ GitCommit Syncer::MirrorFeatureBranch(const GitBranch& os_merge_branch, const Gi
     // delete the temporary feature branch
     os_temp_branch.Refresh(m_openSourceRepo);
     os_temp_branch.Delete();
+
+    // make sure that the repositories match
+    if( !CompareRepositories(cs_new_merge_commit, os_new_merge_commit, false) )
+        throw CSProException("The repositories do not following the creation of the merge commit.");
 
     return os_new_merge_commit;
 }
