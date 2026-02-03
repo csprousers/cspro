@@ -1,8 +1,5 @@
 #pragma once
 
-#include <zUtilO/SettingsDb.h>
-#include <zUtilF/LoggingListBox.h>
-#include <zGit/GitCommit.h>
 #include <zGit/GitIgnoreEvaluator.h>
 #include <zGit/GitRepository.h>
 #include <zGit/GitTree.h>
@@ -12,6 +9,7 @@ class Syncer
 {
 public:
     Syncer(SettingsDb& settings_db, LoggingListBox& logging_list_box);
+    ~Syncer();
 
     void SetOpenSourceDirectory(const std::string& open_source_directory);
 
@@ -44,10 +42,11 @@ private:
     // Returns the appropriate version of SQLite without the SQLite Encryption Extension (SEE).
     std::string CreateSqliteWithoutSEE(const git_diff_file& new_file);
 
-    struct TagCommits;
-    std::vector<TagCommits> GetReleaseTags(std::string_view earliest_tag_sv);
+    // Populates information about releases, used by CreateHistoryLog.
+    void PopulateReleaseTags(std::string_view earliest_tag_sv);
 
-    void CreateHistoryLog(const GitCommit& latest_commit);
+    // Returns the HISTORY.md file showing pull requests up to the commit.
+    std::string CreateHistoryLog(const GitCommit& os_latest_commit);
 
     void EnsureRepositoriesMatch(bool add_space_before_log);
 
@@ -81,9 +80,14 @@ private:
     LoggingListBox& m_loggingListBox;
 
     std::string m_overridesDirectory;
+
     std::optional<GitIgnoreEvaluator> m_exclusionEvaluator;
+
     struct FileReplacement { bool is_file_path; std::string file_path_or_routine; };
     std::map<std::string, FileReplacement> m_fileReplacements;
+
+    struct TagCommits;
+    std::vector<TagCommits> m_releaseTags;
 
     GitRepository m_privateRepo;
 

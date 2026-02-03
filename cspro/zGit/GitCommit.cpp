@@ -54,8 +54,8 @@ GitCommit& GitCommit::operator=(const GitCommit& rhs)
 
 GitCommit& GitCommit::operator=(GitCommit&& rhs) noexcept
 {
-    m_commit = rhs.m_commit;
-    rhs.m_commit = nullptr;
+    // swapping the commit ensures that this object's commit will be deleted in rhs' destructor
+    std::swap(m_commit, rhs.m_commit);
 
     m_message = std::move(rhs.m_message);
     m_committer = std::move(rhs.m_committer);

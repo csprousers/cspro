@@ -1,5 +1,6 @@
 #include "StdAfx.h"
 #include "OpenSourceSyncerDlg.h"
+#include "Syncer.h"
 #include <zToolsO/UWM.h>
 #include <zUtilO/DataExchange.h>
 #include <zUtilO/WindowHelpers.h>

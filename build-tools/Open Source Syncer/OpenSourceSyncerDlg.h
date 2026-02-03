@@ -1,7 +1,8 @@
 #pragma once
 
-#include "Syncer.h"
 #include <zUtilO/ResizableDlg.h>
+
+class Syncer;
 
 
 class OpenSourceSyncerDlg : public ResizableDlg

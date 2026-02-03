@@ -1,7 +1,6 @@
 #include "StdAfx.h"
 #include "Syncer.h"
 #include <zToolsO/DirectoryLister.h>
-#include <zToolsO/File.h>
 #include <zJson/JsonSpecFile.h>
 #include <zNetwork/CurlHttpConnection.h>
 #include <zGit/GitBlob.h>
@@ -23,6 +22,11 @@ Syncer::Syncer(SettingsDb& settings_db, LoggingListBox& logging_list_box)
 
     std::string git_directory = MakeFullPath(this_source_directory, "..\\..\\.git");
     m_privateRepo.OpenBare(std::move(git_directory));
+}
+
+
+Syncer::~Syncer()
+{
 }
 
 
@@ -305,9 +309,10 @@ struct Syncer::TagCommits
 };
 
 
-std::vector<Syncer::TagCommits> Syncer::GetReleaseTags(const std::string_view earliest_tag_sv)
+void Syncer::PopulateReleaseTags(const std::string_view earliest_tag_sv)
 {
-    std::vector<TagCommits> tag_commits;
+    ASSERT(m_releaseTags.empty());
+
     std::regex tag_regex = std::regex(R"(^refs/tags/v(\d+\.\d+\.\d+).*$)");
     std::smatch matches;
 
@@ -327,12 +332,12 @@ std::vector<Syncer::TagCommits> Syncer::GetReleaseTags(const std::string_view ea
             GitCommit commit = m_privateRepo.LookupCommit(tag);
 
             // associate the tag with the latest commit in case of multiple tags for the same version (e.g., v7.6.1-Apr20 and v7.6.1-Apr26)
-            auto lookup = std::find_if(tag_commits.begin(), tag_commits.end(),
+            auto lookup = std::find_if(m_releaseTags.begin(), m_releaseTags.end(),
                                        [&](const TagCommits& tc) { return ( tag_name == tc.tag_name ); });
 
-            if( lookup == tag_commits.end() )
+            if( lookup == m_releaseTags.end() )
             {
-                tag_commits.emplace_back(TagCommits { std::move(tag_name), std::move(commit) });
+                m_releaseTags.emplace_back(TagCommits { std::move(tag_name), std::move(commit) });
             }
 
             else if( lookup->commit.GetAuthor().GetWhen().GetTimestamp() < commit.GetAuthor().GetWhen().GetTimestamp() )
@@ -344,33 +349,28 @@ std::vector<Syncer::TagCommits> Syncer::GetReleaseTags(const std::string_view ea
         });
 
     // sort by name
-    std::sort(tag_commits.begin(), tag_commits.end(),
+    std::sort(m_releaseTags.begin(), m_releaseTags.end(),
               [&](const TagCommits& tc1, const TagCommits& tc2) { return ( tc1.tag_name < tc2.tag_name ); });
 
-    return tag_commits;
+    if( m_releaseTags.empty() )
+        throw ProgrammingErrorException();
 }
 
 
-void Syncer::CreateHistoryLog(const GitCommit& latest_commit)
+std::string Syncer::CreateHistoryLog(const GitCommit& os_latest_commit)
 {
     constexpr std::string_view EarliestTag_sv = "7.6.0";
 
     // the first commit in dev after the v7.5.0 tag
     constexpr const char* EarliestCommitSHA = "95d126ccaab8872d1d914f64d16824a5f2f19ccd";
 
-    const std::string history_file_path = Path::Combine(m_openSourceDirectory, "HISTORY.md");
+    m_loggingListBox.AddText("Creating history log up to the commit on: " +
+                             os_latest_commit.GetCommitter().GetWhen().GetLocalDateTimeString());
 
-    m_loggingListBox.AddText(SharableString());
-    m_loggingListBox.AddText("Creating history log: %s", history_file_path.c_str());
+    if( m_releaseTags.empty() )
+        PopulateReleaseTags(EarliestTag_sv);
 
-    FileIO::TextFile history_file;
-    history_file.OpenForTextWritingCreate(history_file_path);
-
-    std::vector<TagCommits> tag_commits = GetReleaseTags(EarliestTag_sv);
     std::vector<TagCommits::PullRequest> newer_than_tags_pull_requests;
-
-    if( tag_commits.empty() )
-        throw ProgrammingErrorException();
 
     const GitCommit oldest_commit_to_process = m_privateRepo.LookupCommit(EarliestCommitSHA);
 
@@ -379,7 +379,7 @@ void Syncer::CreateHistoryLog(const GitCommit& latest_commit)
 
     GitRevisionWalker walker(m_privateRepo);
 
-    walker.Walk(latest_commit, oldest_commit_to_process,
+    walker.Walk(os_latest_commit, oldest_commit_to_process,
         [&](const GitCommit commit)
         {
             // only process commits with at least two parents (which should be the pull requests)
@@ -393,7 +393,7 @@ void Syncer::CreateHistoryLog(const GitCommit& latest_commit)
             // determine the first tag that contains this commit
             std::vector<TagCommits::PullRequest>* pull_requests = &newer_than_tags_pull_requests;
 
-            for( TagCommits& tc : tag_commits )
+            for( TagCommits& tc : m_releaseTags )
             {
                 if( tc.commit == commit || m_privateRepo.IsCommitDescendantOf(tc.commit, commit) )
                 {
@@ -416,20 +416,23 @@ void Syncer::CreateHistoryLog(const GitCommit& latest_commit)
                 });
         });
 
-    history_file.WriteLine("## Overview\n");
-    history_file.WriteLine("Because most CSPro development occurs on a [private repository](https://github.com/CSProDevelopment/cspro), "
-                           "the history of this public repository does not reveal much about CSPro development. Because of this, "
-                           "this document lists information about each pull request merged into the private repository.");
+    std::string history =
+        "## Overview\n\n"
+        "Because most CSPro development occurs on a [private repository](https://github.com/CSProDevelopment/cspro), "
+        "the history of this public repository does not reveal much about CSPro development. Because of this, "
+        "this document lists information about each pull request merged into the private repository.\n"
+        ;
 
     auto write_pull_requests = [&](const std::vector<TagCommits::PullRequest>& pull_requests)
     {
-        history_file.WriteLine("\n**Merged pull requests**:\n");
-
-        history_file.WriteLine("| Date | Branch | Pull Request Message |");
-        history_file.WriteLine("| --- | --- | --- |");
+        history.append(
+            "\n**Merged pull requests**:\n\n"
+            "| Date | Branch | Pull Request Message |\n"
+            "| --- | --- | --- |\n"
+        );
 
         constexpr const char* NonBreakingHyphen = "&#8209;";
-        const std::string date_formatter = FormatText("%%Y%s%%m%s%%d", NonBreakingHyphen, NonBreakingHyphen);
+        static const std::string date_formatter = FormatText("%%Y%s%%m%s%%d", NonBreakingHyphen, NonBreakingHyphen);
 
         for( const TagCommits::PullRequest& pull_request : pull_requests )
         {
@@ -438,34 +441,38 @@ void Syncer::CreateHistoryLog(const GitCommit& latest_commit)
                 return SO::Replace(text, "|", "&#124;");
             };
 
-            history_file.WriteFormattedLine("| %s | [%s](https://github.com/CSProDevelopment/cspro/commit/%s) | %s |",
-                                            DateTime::LocalDateTimeString(pull_request.commit_time, date_formatter).c_str(),
-                                            escape_for_table(pull_request.branch_name).c_str(),
-                                            pull_request.sha.c_str(),
-                                            escape_for_table(pull_request.message).c_str());
+            history.append(FormatText(
+                "| %s | [%s](https://github.com/CSProDevelopment/cspro/commit/%s) | %s |\n",
+                DateTime::LocalDateTimeString(pull_request.commit_time, date_formatter).c_str(),
+                escape_for_table(pull_request.branch_name).c_str(),
+                pull_request.sha.c_str(),
+                escape_for_table(pull_request.message).c_str()
+            ));
         }
     };
 
     if( !newer_than_tags_pull_requests.empty() )
     {
-        history_file.WriteLine("\n\n## CSPro (Latest Release)");
+        history.append("\n\n## CSPro (current development)\n");
 
         write_pull_requests(newer_than_tags_pull_requests);
     }
 
-    for( auto tag_commits_itr = tag_commits.crbegin(); tag_commits_itr != tag_commits.crend(); ++tag_commits_itr )
+    for( auto tag_commits_itr = m_releaseTags.crbegin(); tag_commits_itr != m_releaseTags.crend(); ++tag_commits_itr )
     {
-        history_file.WriteFormattedLine("\n\n## CSPro %s", tag_commits_itr->tag_name.c_str());
+        history.append(FormatText("\n\n## CSPro %s\n",tag_commits_itr->tag_name.c_str()));
 
         std::string url = FormatText("https://csprousers.org/downloads/cspro/cspro%s.exe", tag_commits_itr->tag_name.c_str());
-        history_file.WriteFormattedLine("\n**Installer**: [%s](%s)", url.c_str(), url.c_str()); // X64_TODO add link to 64-bit installer
+        history.append(FormatText("\n**Installer**: [%s](%s)\n", url.c_str(), url.c_str())); // X64_TODO add link to 64-bit installer
 
         url = FormatText("https://csprousers.org/downloads/cspro/cspro%s-release-notes.txt", tag_commits_itr->tag_name.c_str());
-        history_file.WriteFormattedLine("\n**Release notes**: [%s](%s)", url.c_str(), url.c_str());
+        history.append(FormatText("\n**Release notes**: [%s](%s)\n", url.c_str(), url.c_str()));
 
         if( !tag_commits_itr->pull_requests.empty() )
             write_pull_requests(tag_commits_itr->pull_requests);
     }
+
+    return history;
 }
 
 
@@ -672,6 +679,14 @@ GitCommit Syncer::MirrorFeatureBranch(const GitBranch& os_merge_branch, const Gi
                              merge_diff.GetNumberDeltas());
     }
 
+    // update HISTORY.md
+    const std::string history = CreateHistoryLog(cs_new_merge_commit);
+    const GitObjectId os_history_blob_oid = m_openSourceRepo.CreateBlob(history.data(), history.size());
+    os_index.AddEntry(os_history_blob_oid, "HISTORY.md", GIT_FILEMODE_BLOB);
+
+    // commit this merge commit with the updated history
+    os_new_tree = m_openSourceRepo.WriteTree(os_index);
+
     GitCommit os_new_merge_commit = CreateMirroredCommit(
         cs_new_merge_commit,
         os_new_tree,
@@ -691,7 +706,7 @@ GitCommit Syncer::MirrorFeatureBranchCommits(const GitCommit& cs_old_merge_commi
                                              const GitCommit& os_start_commit)
 {
     GitCommit cs_parent_commit = cs_old_merge_commit;
-    std::optional<GitTree> cs_parent_tree = cs_old_merge_commit.GetTree();
+    GitTree cs_parent_tree = cs_old_merge_commit.GetTree();
 
     GitCommit os_parent_commit = os_start_commit;
 
@@ -721,7 +736,7 @@ GitCommit Syncer::MirrorFeatureBranchCommits(const GitCommit& cs_old_merge_commi
             GitTree cs_commit_tree = cs_commit.GetTree();
             GitIndex os_index = m_openSourceRepo.GetIndex();
 
-            MirrorCommit(os_index, *cs_parent_tree, cs_commit_tree);
+            MirrorCommit(os_index, cs_parent_tree, cs_commit_tree);
 
             // commit these changes
             GitTree os_new_tree = m_openSourceRepo.WriteTree(os_index);
@@ -734,7 +749,7 @@ GitCommit Syncer::MirrorFeatureBranchCommits(const GitCommit& cs_old_merge_commi
             );
 
             cs_parent_commit = std::move(cs_commit);
-            cs_parent_tree.emplace(std::move(cs_commit_tree));
+            cs_parent_tree = std::move(cs_commit_tree);
         });
 
     return os_parent_commit;

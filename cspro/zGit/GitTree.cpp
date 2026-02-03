@@ -18,7 +18,7 @@ GitTree::GitTree(const GitTree& rhs)
 GitTree::GitTree(GitTree&& rhs) noexcept
     :   m_tree(rhs.m_tree)
 {
-    rhs.m_tree = false;
+    rhs.m_tree = nullptr;
 }
 
 
@@ -26,6 +26,15 @@ GitTree::~GitTree() noexcept
 {
     if( m_tree != nullptr )
         git_tree_free(m_tree);
+}
+
+
+GitTree& GitTree::operator=(GitTree&& rhs) noexcept
+{
+    // swapping the tree ensures that this object's tree will be deleted in rhs' destructor
+    std::swap(m_tree, rhs.m_tree);
+
+    return *this;
 }
 
 
