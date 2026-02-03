@@ -22,6 +22,7 @@ GitCommit::GitCommit(const GitCommit& rhs)
 GitCommit::GitCommit(GitCommit&& rhs) noexcept
     :   m_commit(rhs.m_commit),
         m_message(std::move(rhs.m_message)),
+        m_committer(std::move(rhs.m_committer)),
         m_author(std::move(rhs.m_author))
 {
     rhs.m_commit = nullptr;
@@ -35,13 +36,30 @@ GitCommit::~GitCommit() noexcept
 }
 
 
+GitCommit& GitCommit::operator=(const GitCommit& rhs)
+{
+    if( m_commit != nullptr )
+        git_commit_free(m_commit);
+
+    if( git_commit_dup(&m_commit, rhs.m_commit) != 0 )
+        throw GitException();
+
+    m_message = rhs.m_message;
+    m_committer = rhs.m_committer;
+    m_author = rhs.m_author;
+
+    return *this;
+}
+
+
 GitCommit& GitCommit::operator=(GitCommit&& rhs) noexcept
 {
     m_commit = rhs.m_commit;
-    m_message = std::move(rhs.m_message);
-    m_author = std::move(rhs.m_author);
-
     rhs.m_commit = nullptr;
+
+    m_message = std::move(rhs.m_message);
+    m_committer = std::move(rhs.m_committer);
+    m_author = std::move(rhs.m_author);
 
     return *this;
 }

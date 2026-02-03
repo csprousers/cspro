@@ -5,7 +5,6 @@
 #include <zGit/GitCommit.h>
 #include <zGit/GitIgnoreEvaluator.h>
 #include <zGit/GitRepository.h>
-#include <zGit/GitTag.h>
 #include <zGit/GitTree.h>
 
 
@@ -15,6 +14,13 @@ public:
     Syncer(SettingsDb& settings_db, LoggingListBox& logging_list_box);
 
     void SetOpenSourceDirectory(const std::string& open_source_directory);
+
+    GitRepository& GetPrivateRepo()    { return m_privateRepo; }
+    GitRepository& GetOpenSourceRepo() { return m_openSourceRepo; }
+
+    // Mirrors the feature branches.
+    void MirrorFeatureBranches(const GitBranch& os_merge_branch,
+                               const GitCommit& cs_oldest_merge_commit, const GitCommit& cs_newest_merge_commit);
 
 private:
     // cs = private CSPro repository
@@ -31,11 +37,9 @@ private:
     template<typename T = bool>
     T HasFileReplacement(const std::string& cs_file_path);
 
-    // Returns a non-null object containing the replacement data when the file in the open
+    // Returns a non-empty string containing the replacement data when the file in the open
     // source repository has a replacement file defined in the replacements.json file.
-    std::unique_ptr<BinaryBlock> GetFileReplacement(const git_diff_file& new_file);
-
-    void CopyReplacementFiles();
+    std::string GetFileReplacement(const git_diff_file& new_file);
 
     // Returns the appropriate version of SQLite without the SQLite Encryption Extension (SEE).
     std::string CreateSqliteWithoutSEE(const git_diff_file& new_file);
@@ -46,8 +50,6 @@ private:
     void CreateHistoryLog(const GitCommit& latest_commit);
 
     void EnsureRepositoriesMatch(bool add_space_before_log);
-
-    void StartMirror();
 
     // Creates a commit in the open source repository, using the author / signature / message from the source commit.
     GitCommit CreateMirroredCommit(const GitCommit& cs_commit, const GitTree& os_written_tree,

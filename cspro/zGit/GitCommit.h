@@ -24,6 +24,7 @@ public:
     GitCommit(GitCommit&& rhs) noexcept;
     ~GitCommit() noexcept;
 
+    GitCommit& operator=(const GitCommit& rhs);
     GitCommit& operator=(GitCommit&& rhs) noexcept;
 
     // The comparison compares the commits' object IDs, not the contents of the commits.

@@ -1,16 +1,15 @@
 #include "StdAfx.h"
 #include "Syncer.h"
-#include <zToolsO/CaseInsensitiveComparer.h>
 #include <zToolsO/DirectoryLister.h>
 #include <zToolsO/File.h>
 #include <zJson/JsonSpecFile.h>
 #include <zNetwork/CurlHttpConnection.h>
 #include <zGit/GitBlob.h>
-#include <zGit/GitBranch.h>
 #include <zGit/GitDiff.h>
 #include <zGit/GitIndex.h>
 #include <zGit/GitMerge.h>
 #include <zGit/GitRevisionWalker.h>
+#include <zGit/GitTag.h>
 #include <Update SQLite/SQLiteSourceUpdater.h>
 
 
@@ -137,24 +136,23 @@ T Syncer::HasFileReplacement(const std::string& cs_file_path)
 }
 
 
-std::unique_ptr<BinaryBlock> Syncer::GetFileReplacement(const git_diff_file& new_file)
+std::string Syncer::GetFileReplacement(const git_diff_file& new_file)
 {
     const auto& lookup = HasFileReplacement<std::map<std::string, FileReplacement>::iterator>(new_file.path);
 
     if( lookup == m_fileReplacements.cend() )
     {
-        return nullptr;
+        return std::string();
     }
 
     else if( lookup->second.is_file_path )
     {
-        return std::make_unique<BinaryBlock>(FileIO::ReadBinary(lookup->second.file_path_or_routine));
+        return SO::ToNewlineLF(FileIO::ReadText(lookup->second.file_path_or_routine));
     }
 
     else if( lookup->second.file_path_or_routine == "SqliteWithoutSEE" )
     {
-        const std::string public_sqlite = CreateSqliteWithoutSEE(new_file);
-        return std::make_unique<BinaryBlock>(public_sqlite.data(), public_sqlite.size());
+        return CreateSqliteWithoutSEE(new_file);
     }
 
     else
@@ -570,19 +568,36 @@ void Syncer::EnsureRepositoriesMatch(const bool add_space_before_log)
 }
 
 
-void Syncer::StartMirror()
+void Syncer::MirrorFeatureBranches(const GitBranch& os_merge_branch,
+                                   const GitCommit& cs_oldest_merge_commit, const GitCommit& cs_newest_merge_commit)
 {
     // make sure that there are no pending open source changes
     if( m_openSourceRepo.HasChanges() )
         throw CSProException("You cannot run the sync if there are changes in the open source directory.");
 
-    // OS_TODO need to first sync main, and then dev
-    constexpr const char* branch_name = "dev";
-
-    const GitBranch os_merge_branch = m_openSourceRepo.LookupBranch(branch_name);
     GitCommit os_last_merged_commit = m_openSourceRepo.LookupCommit(os_merge_branch.GetTarget());
 
-    // OS_TODO calculate cs_old_merge_commit + cs_new_merge_commit
+    GitCommit cs_old_merge_commit = cs_oldest_merge_commit;
+
+    while( true )
+    {
+        GitCommit cs_new_merge_commit = cs_newest_merge_commit;  // OS_TODO calculate next merge commit
+
+        os_last_merged_commit = MirrorFeatureBranch(
+            os_merge_branch,
+            os_last_merged_commit,
+            cs_old_merge_commit,
+            cs_new_merge_commit
+        );
+
+        if( cs_new_merge_commit == cs_newest_merge_commit )
+            break;
+
+        cs_old_merge_commit = cs_new_merge_commit;
+    }
+
+    // when complete, checkout the HEAD so that the working directory matches the index
+    m_openSourceRepo.CheckoutHead(GIT_CHECKOUT_FORCE);
 }
 
 
@@ -675,10 +690,10 @@ GitCommit Syncer::MirrorFeatureBranch(const GitBranch& os_merge_branch, const Gi
 GitCommit Syncer::MirrorFeatureBranchCommits(const GitCommit& cs_old_merge_commit, const GitCommit& cs_new_merge_commit,
                                              const GitCommit& os_start_commit)
 {
-    std::optional<GitCommit> cs_parent_commit = cs_old_merge_commit;
+    GitCommit cs_parent_commit = cs_old_merge_commit;
     std::optional<GitTree> cs_parent_tree = cs_old_merge_commit.GetTree();
 
-    std::optional<GitCommit> os_parent_commit = os_start_commit;
+    GitCommit os_parent_commit = os_start_commit;
 
     // walk the two merge commits in reverse order
     GitRevisionWalker walker(m_privateRepo);
@@ -700,7 +715,7 @@ GitCommit Syncer::MirrorFeatureBranchCommits(const GitCommit& cs_old_merge_commi
                                      cs_commit.GetObjectId().GetHexHash());
             }
 
-            if( *cs_parent_commit != cs_commit.GetParent(0) )
+            if( cs_parent_commit != cs_commit.GetParent(0) )
                 throw ProgrammingErrorException();
 
             GitTree cs_commit_tree = cs_commit.GetTree();
@@ -714,15 +729,15 @@ GitCommit Syncer::MirrorFeatureBranchCommits(const GitCommit& cs_old_merge_commi
             os_parent_commit = CreateMirroredCommit(
                 cs_commit,
                 os_new_tree,
-                *os_parent_commit,
+                os_parent_commit,
                 nullptr
             );
 
-            cs_parent_commit.emplace(std::move(cs_commit));
+            cs_parent_commit = std::move(cs_commit);
             cs_parent_tree.emplace(std::move(cs_commit_tree));
         });
 
-    return std::move(*os_parent_commit);
+    return os_parent_commit;
 }
 
 
@@ -760,16 +775,16 @@ void Syncer::MirrorFile(GitIndex& os_index, const git_diff_delta& diff_delta)
     }
 
     // if the file has a replacement, use it instead
-    const std::unique_ptr<const BinaryBlock> replacement_data = GetFileReplacement(diff_delta.new_file);
+    const std::string replacement_text = GetFileReplacement(diff_delta.new_file);
 
-    if( replacement_data != nullptr )
+    if( !replacement_text.empty() )
     {
         m_loggingListBox.AddText("Using override for %s: %s", file_type, path.c_str());
 
         if( is_binary || diff_delta.status != GIT_DELTA_MODIFIED )
             throw CSProException("Replacement files should be text with the status 'modified': " + path);
 
-        MirrorFileAddEntry(os_index, diff_delta.new_file, replacement_data->data(), replacement_data->size());
+        MirrorFileAddEntry(os_index, diff_delta.new_file, replacement_text.data(), replacement_text.size());
 
         return;
     }

@@ -12,6 +12,7 @@ namespace UWM::OpenSourceSyncer
 
 
 BEGIN_MESSAGE_MAP(OpenSourceSyncerDlg, ResizableDlg)
+    ON_COMMAND(IDC_SYNC, OnSync)
     ON_MESSAGE(UWM::OpenSourceSyncer::OperationComplete, OnOperationComplete)
     ON_MESSAGE(UWM::ToolsO::DisplayErrorMessage, OnDisplayErrorMessage)
 END_MESSAGE_MAP()
@@ -20,13 +21,15 @@ END_MESSAGE_MAP()
 namespace
 {
     constexpr std::string_view OpenSourceDirectoryKey_sv = "open-source-directory";
+    constexpr std::string_view BranchNameKey_sv          = "branch-name";
 }
 
 
 OpenSourceSyncerDlg::OpenSourceSyncerDlg(CWnd* const pParent/* = nullptr*/)
     :   ResizableDlg(IDD_SYNCER, pParent),
         m_settingsDb("OpenSourceSyncer.db"),
-        m_openSourceDirectory(m_settingsDb.ReadOrDefault<std::string>(OpenSourceDirectoryKey_sv))
+        m_openSourceDirectory(m_settingsDb.ReadOrDefault<std::string>(OpenSourceDirectoryKey_sv)),
+        m_branchName(m_settingsDb.ReadOrDefault<std::string>(BranchNameKey_sv))
 {
     SerializeDialogSize("OpenSourceSyncerDlg");
 }
@@ -42,6 +45,9 @@ void OpenSourceSyncerDlg::DoDataExchange(CDataExchange* const pDX)
     __super::DoDataExchange(pDX);
 
     DDX_Text(pDX, IDC_OPEN_SOURCE_DIRECTORY, m_openSourceDirectory, true);
+    DDX_Text(pDX, IDC_BRANCH_NAME, m_branchName, true);
+    DDX_Text(pDX, IDC_COMMIT_OLD, m_commitOld, true);
+    DDX_Text(pDX, IDC_COMMIT_NEW, m_commitNew, true);
     DDX_Control(pDX, IDC_LOG, m_loggingListBox);
 }
 
@@ -79,11 +85,21 @@ void OpenSourceSyncerDlg::OnCancel()
 }
 
 
-bool OpenSourceSyncerDlg::InitializeOperation() noexcept
+void OpenSourceSyncerDlg::RunOperation(const std::function<void()>& validate_inputs_callback,
+                                       std::function<void()> operation_callback) noexcept
 {
+    ASSERT(operation_callback);
+
+    if( m_workerThread != nullptr )
+    {
+        ErrorMessage::Display(L"An operation is currently in progress.");
+        return;
+    }
+
     UpdateData(TRUE);
 
     m_settingsDb.Write<std::string>(OpenSourceDirectoryKey_sv, m_openSourceDirectory);
+    m_settingsDb.Write<std::string>(BranchNameKey_sv, m_branchName);
 
     m_loggingListBox.Clear();
 
@@ -94,15 +110,77 @@ bool OpenSourceSyncerDlg::InitializeOperation() noexcept
 
         m_syncer->SetOpenSourceDirectory(m_openSourceDirectory);
 
-        return true;
+        if( validate_inputs_callback )
+            validate_inputs_callback();
     }
 
     catch( const CSProException& exception )
     {
         m_loggingListBox.AddText("\n\nError: %s", exception.what());
         ErrorMessage::Display(exception);
-        return false;
+        return;
     }
+
+    m_workerThread = std::make_unique<std::thread>(
+        [this, operation_callback_ = std::move(operation_callback)]()
+        {
+            try
+            {
+                operation_callback_();
+            }
+
+            catch( const CSProException& exception )
+            {
+                m_loggingListBox.AddText("\n\nError: %s", exception.what());
+                ErrorMessage::PostMessageForDisplay(exception);
+            }
+
+            PostMessage(UWM::OpenSourceSyncer::OperationComplete);
+        });
+}
+
+
+void OpenSourceSyncerDlg::OnSync()
+{
+    struct Data
+    {
+        Syncer* syncer = nullptr;
+        std::optional<GitBranch> os_merge_branch;
+        std::optional<GitCommit> cs_oldest_merge_commit;
+        std::optional<GitCommit> cs_newest_merge_commit;
+    };
+
+    auto data = std::make_shared<Data>();
+
+    RunOperation(
+        // validation
+        [&, data]()
+        {
+            data->syncer = m_syncer.get();
+            ASSERT(data->syncer != nullptr);
+
+            if( m_branchName.empty() )
+                throw CSProException("Specify the open source branch target.");
+
+            data->os_merge_branch = data->syncer->GetOpenSourceRepo().LookupBranch(m_branchName);
+
+            if( m_commitOld.empty() || m_commitNew.empty() )
+                throw CSProException("Specify the feature branch old and new merge commits.");
+
+            data->cs_oldest_merge_commit = data->syncer->GetPrivateRepo().LookupCommit(m_commitOld);
+            data->cs_newest_merge_commit = data->syncer->GetPrivateRepo().LookupCommit(m_commitNew);
+        },
+
+        // operation
+        [data]()
+        {
+            data->syncer->MirrorFeatureBranches(
+                *data->os_merge_branch,
+                *data->cs_oldest_merge_commit,
+                *data->cs_newest_merge_commit
+            );
+        }
+    );
 }
 
 
