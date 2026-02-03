@@ -53,7 +53,8 @@ private:
 
     void CopyReplacementFiles();
 
-    void CreateSqliteWithoutSEE(const GitTree& tree);
+    // Returns the appropriate version of SQLite without the SQLite Encryption Extension (SEE).
+    std::string CreateSqliteWithoutSEE(const git_diff_file& new_file);
 
     struct TagCommits;
     std::vector<TagCommits> GetReleaseTags(std::string_view earliest_tag_sv);

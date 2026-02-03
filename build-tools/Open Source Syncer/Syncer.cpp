@@ -114,7 +114,7 @@ void Syncer::CreateRelease(const cs::string_sz commit_string)
     CopyReplacementFiles();
 
     // create a version of SQLite without the SQLite Encryption Extension (SEE)
-    CreateSqliteWithoutSEE(tree);
+    // OS_TODO CreateSqliteWithoutSEE(tree);
 
     // create a log showing the history of pull requests
     CreateHistoryLog(commit);
@@ -400,6 +400,12 @@ std::unique_ptr<BinaryBlock> Syncer::GetFileReplacement(const git_diff_file& new
         return std::make_unique<BinaryBlock>(FileIO::ReadBinary(lookup->second.file_path_or_routine));
     }
 
+    else if( lookup->second.file_path_or_routine == "SqliteWithoutSEE" )
+    {
+        const std::string public_sqlite = CreateSqliteWithoutSEE(new_file);
+        return std::make_unique<BinaryBlock>(public_sqlite.data(), public_sqlite.size());
+    }
+
     else
     {
         throw ProgrammingErrorException();
@@ -429,22 +435,22 @@ void Syncer::CopyReplacementFiles()
 }
 
 
-void Syncer::CreateSqliteWithoutSEE(const GitTree& tree)
+std::string Syncer::CreateSqliteWithoutSEE(const git_diff_file& new_file)
 {
-    m_loggingListBox.AddText(SharableString());
-    m_loggingListBox.AddText("Creating the non-SEE version of SQLite...");
+    const std::string filename = Path::GetFilename(new_file.path);
+    const bool is_header = ( filename == "sqlite3.h" );
+    ASSERT(is_header || filename == "sqlite3.c");
 
-    const std::string sqlite_repo_path = "cspro/external/SQLite/";
+    m_loggingListBox.AddText("Creating the non-SEE version of SQLite for: " + filename);
 
-    const GitTreeEntry tree_entry = tree.GetEntryByPath(Path::Combine(sqlite_repo_path, "sqlite3.h"));
-    const GitBlob header = tree_entry.GetObject().GetBlob();
+    // find the version of SQLite currently in use
+    const GitBlob cs_header_blob = m_privateRepo.LookupBlob(new_file.id);
 
-    // find the version of SQLite that this release uses
     constexpr std::string_view VersionPrefix_sv = "#define SQLITE_VERSION";
     std::string version;
     std::string full_version_line;
 
-    SO::ForeachLine(header.as<std::string_view>(), false,
+    SO::ForeachLine(cs_header_blob.as<std::string_view>(), false,
         [&](std::string_view line_sv)
         {
             if( SO::StartsWith(line_sv, VersionPrefix_sv) )
@@ -463,18 +469,15 @@ void Syncer::CreateSqliteWithoutSEE(const GitTree& tree)
         });
 
     if( version.empty() )
-        throw CSProException("Could not find the version in sqlite3.h.");
+        throw CSProException("Could not find the version in: " + filename);
 
-    m_loggingListBox.AddText("Found SQLite version for this release: " + version);
+    m_loggingListBox.AddText("Found SQLite version: " + version);
 
     // use a cached version when possible
-    const std::string cache_key_h = "SQLite-" + version + "-h";
-    const std::string cache_key_c = "SQLite-" + version + "-c";
-    std::string sqlite_h = m_settingsDb.ReadOrDefault(cache_key_h, SO::Empty_string);
-    std::string sqlite_c = m_settingsDb.ReadOrDefault(cache_key_c, SO::Empty_string);
-    ASSERT(sqlite_h.empty() == sqlite_c.empty());
+    const std::string cache_key = FormatText("SQLite-%s-%s", version.c_str(), filename.c_str());
+    std::string public_sqlite = m_settingsDb.ReadOrDefault(cache_key, SO::Empty_string);
 
-    if( !sqlite_h.empty() && !sqlite_c.empty() )
+    if( !public_sqlite.empty() )
     {
         m_loggingListBox.AddText("Using a cached version of the SQLite amalgamation files.");
     }
@@ -526,50 +529,35 @@ void Syncer::CreateSqliteWithoutSEE(const GitTree& tree)
 
         m_loggingListBox.AddText("Downloading SQLite files from %s commit SHA: %s", AmalgamationRepository, commit_sha.c_str());
 
-        // download the non-SEE versions
-        auto process = [&](const bool is_header, std::string& sqlite_result)
-        {
-            const std::string url = FormatText("https://raw.githubusercontent.com/%s/%s/%s",
-                                               AmalgamationRepository,
-                                               commit_sha.c_str(),
-                                               is_header ? "sqlite3.h" : "sqlite3.c");
+        // download the non-SEE version
+        const std::string url = FormatText("https://raw.githubusercontent.com/%s/%s/%s",
+                                           AmalgamationRepository,
+                                           commit_sha.c_str(),
+                                           filename.c_str());
 
-            const HttpRequest request = HttpRequestBuilder(url).build();
-            HttpResponse response = connection.Request(request);
+        const HttpRequest request = HttpRequestBuilder(url).build();
+        HttpResponse response = connection.Request(request);
 
-            if( response.http_status != HttpResponse::Status_200_OK )
-                throw CSProException("Error accessing: " + url);
+        if( response.http_status != HttpResponse::Status_200_OK )
+            throw CSProException("Error accessing: " + url);
 
-            sqlite_result = response.body.ToString();
+        public_sqlite = response.body.ToString();
 
-            if( is_header && sqlite_result.find(full_version_line) == std::string::npos )
-                throw CSProException("The SQLite amalgamation version header does not match: " + full_version_line);
-        };
+        if( public_sqlite.find(full_version_line) == std::string::npos )
+            throw CSProException("The SQLite amalgamation version header does not match: " + full_version_line);
 
-        process(true, sqlite_h);
-        process(false, sqlite_c);
+        // OS_TODO change to V3 after merging 2025-03-28
+        const SQLiteSourceUpdater::DllVersion sqlite_version = SQLiteSourceUpdater::DllVersion::V2;
 
-        // OS_TODO before f2e462839685617f68a01518af2db690edc24645 is V1, after until ? is V2, then V3
-        const SQLiteSourceUpdater::DllVersion sqlite_version = SQLiteSourceUpdater::DllVersion::V1;
+        SQLiteSourceUpdater::Update(public_sqlite, is_header, SQLiteSourceUpdater::SQLiteVersion::Public, sqlite_version);
 
-        SQLiteSourceUpdater::Update(sqlite_h, sqlite_c, SQLiteSourceUpdater::SQLiteVersion::Public, sqlite_version);
-
-        // cache these results
-        m_settingsDb.Write(cache_key_h, sqlite_h);
-        m_settingsDb.Write(cache_key_c, sqlite_c);
+        // cache this result
+        m_settingsDb.Write(cache_key, public_sqlite);
     }
 
-    ASSERT(!sqlite_h.empty() && !sqlite_c.empty());
+    ASSERT(!public_sqlite.empty());
 
-    auto write = [&](const char* const filename, const std::string& text)
-    {
-        const std::string output_file_path = Path::Combine(m_openSourceDirectory, Path::ToNativeSlash(sqlite_repo_path), filename);
-        m_loggingListBox.AddText("Saving '%s' (length %d) to: %s", filename, static_cast<int>(text.size()), output_file_path.c_str());
-        FileIO::WriteText(output_file_path, text, false);
-    };
-
-    write("sqlite3.h", sqlite_h);
-    write("sqlite3.c", sqlite_c);
+    return public_sqlite;
 }
 
 

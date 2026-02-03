@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 
 namespace SQLiteSourceUpdater
@@ -7,17 +7,16 @@ namespace SQLiteSourceUpdater
 
     enum class DllVersion { V1, V2, V3 };
 
-    void Update(std::string& sqlite_h, std::string& sqlite_c,
+    void Update(std::string& sqlite_code, bool is_header,
                 SQLiteVersion sqlite_version, DllVersion dll_version = DllVersion::V3);
 }
 
 
 
-inline void SQLiteSourceUpdater::Update(std::string& sqlite_h, std::string& sqlite_c,
+inline void SQLiteSourceUpdater::Update(std::string& sqlite_code, const bool is_header,
                                         const SQLiteVersion sqlite_version, const DllVersion dll_version/* = DllVersion::V3*/)
 {
-    ASSERT(sqlite_h.find('\r') == std::string::npos);
-    ASSERT(sqlite_c.find('\r') == std::string::npos);
+    ASSERT(sqlite_code.find('\r') == std::string::npos);
 
     std::string h_prefix = "#pragma once\n";
     std::string c_prefix;
@@ -55,6 +54,5 @@ inline void SQLiteSourceUpdater::Update(std::string& sqlite_h, std::string& sqli
             h_prefix.push_back('\n');
     }
 
-    sqlite_h.insert(0, h_prefix);
-    sqlite_c.insert(0, c_prefix);
+    sqlite_code.insert(0, is_header ? h_prefix : c_prefix);
 }

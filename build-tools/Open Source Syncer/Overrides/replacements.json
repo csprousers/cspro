@@ -6,5 +6,13 @@
   {
     "repoPath": "cspro/zToolsO/ApiKeys.h",
     "replacementPath": "replacement-ApiKeys.h"
+  },
+  {
+    "repoPath": "cspro/external/SQLite/sqlite3.c",
+    "replacementRoutine": "SqliteWithoutSEE"
+  },
+  {
+    "repoPath": "cspro/external/SQLite/sqlite3.h",
+    "replacementRoutine": "SqliteWithoutSEE"
   }
 ]
