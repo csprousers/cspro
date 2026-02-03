@@ -40,152 +40,10 @@ void Syncer::SetOpenSourceDirectory(const std::string& open_source_directory)
     m_openSourceDirectory = open_source_directory;
 
     ASSERT(Path::RemoveTrailingSlash(m_openSourceRepo.GetWorkingDirectory()) == Path::RemoveTrailingSlash(open_source_directory));
-
-    m_repoPaths.clear();
-    m_repoBlobObjects.clear();
 }
 
 
-std::vector<GitTag> Syncer::GetTags() const
-{
-    std::vector<GitTag> tags = m_privateRepo.GetTags();
-
-    // sort by name
-    std::sort(tags.begin(), tags.end(),
-              [&](const GitTag& tag1, const GitTag& tag2) { return ( tag1.GetName() < tag2.GetName() ); });
-
-    return tags;
-}
-
-
-std::tuple<GitCommit, GitTree> Syncer::LookupCommitAndGetTree(const cs::string_sz commit_string)
-{
-    GitCommit commit = m_privateRepo.LookupCommit(commit_string);
-
-    const GitSignature& author = commit.GetAuthor();
-    m_loggingListBox.AddText(std::string("    Author: ").append(author.GetName()));
-    m_loggingListBox.AddText(std::string("    Date: ").append(author.GetWhen().GetLocalDateTimeString()));
-
-    // properly space multiline messages
-    std::string message_text = "    Message: ";
-    const size_t message_indentation_length = message_text.length();
-
-    SO::ForeachLine(commit.GetMessage(), false,
-        [&](const std::string_view line_sv)
-        {
-            if( message_indentation_length != message_text.length() )
-            {
-                message_text.push_back('\n');
-                message_text.append(message_indentation_length, ' ');
-            }
-
-            message_text.append(line_sv);
-        });
-
-    m_loggingListBox.AddText(std::move(message_text));
-
-    // get the list of the files that are part of this release
-    GitTree tree = commit.GetTree();
-
-    PopulateRepoPaths(tree, "");
-
-    return { std::move(commit), std::move(tree) };
-}
-
-
-void Syncer::CreateRelease(const cs::string_sz commit_string)
-{
-    ASSERT(!m_openSourceDirectory.empty());
-
-    m_loggingListBox.AddText("Creating open source release from commit: %s", commit_string.c_str());
-
-    auto [commit, tree] = LookupCommitAndGetTree(commit_string);
-
-    // remove files that should not be part of the open source release
-    PruneRepoPaths();
-
-    // remove all existing non-Git files from the output directory...
-    PrepareOutputDirectory();
-
-    // ...and then copy the current release files
-    CopyFilesToOutputDirectory();
-
-    // copy dummy files for some sensitive files
-    CopyReplacementFiles();
-
-    // create a version of SQLite without the SQLite Encryption Extension (SEE)
-    // OS_TODO CreateSqliteWithoutSEE(tree);
-
-    // create a log showing the history of pull requests
-    CreateHistoryLog(commit);
-
-    // ensure that the files in the repositories are identical
-    EnsureRepositoriesMatch(true);
-
-    m_loggingListBox.AddText(SharableString());
-    m_loggingListBox.AddText("Successfully created the open source release.");
-}
-
-
-void Syncer::ValidateRelease(const cs::string_sz commit_string)
-{
-    m_loggingListBox.AddText("Generating the file list for validation from commit: %s", commit_string.c_str());
-
-    auto [commit, tree] = LookupCommitAndGetTree(commit_string);
-
-    PruneRepoPaths();
-
-    EnsureRepositoriesMatch(false);
-}
-
-
-void Syncer::GenerateFileList(const cs::string_sz commit_string)
-{
-    m_loggingListBox.AddText("Generating the file list from commit: %s", commit_string.c_str());
-
-    auto [commit, tree] = LookupCommitAndGetTree(commit_string);
-
-    const std::vector<std::string> all_repo_paths = m_repoPaths;
-
-    PruneRepoPaths();
-
-    const std::vector<std::string>& included_repo_paths = m_repoPaths;
-    const std::string* included_repo_paths_itr = included_repo_paths.data();
-
-    std::vector<std::string> excluded_repo_paths;
-
-    for( const std::string& repo_path: all_repo_paths )
-    {
-        if( repo_path == *included_repo_paths_itr )
-        {
-            ++included_repo_paths_itr;
-        }
-
-        else
-        {
-            excluded_repo_paths.emplace_back(repo_path);
-        }
-    }
-
-    ASSERT(all_repo_paths.size() == ( included_repo_paths.size() + excluded_repo_paths.size() ));
-
-    auto write_repo_paths = [&](const char* const type, const std::vector<std::string>& repo_paths)
-    {
-        FileIO::TextFile text_file;
-        text_file.OpenForTextWritingCreate(Path::Combine(m_overridesDirectory, FormatText("file-listing-%s.txt", type)));
-
-        for( const std::string& repo_path : repo_paths )
-            text_file.WriteLine(repo_path);
-    };
-
-    write_repo_paths("source", all_repo_paths);
-    write_repo_paths("included", included_repo_paths);
-    write_repo_paths("excluded", excluded_repo_paths);
-
-    OpenContainingFolder(m_overridesDirectory);
-}
-
-
+#ifdef OS_TODO
 void Syncer::PopulateRepoPaths(const GitTree& tree, const std::string& base_path)
 {
     const size_t count = tree.GetEntryCount();
@@ -219,6 +77,7 @@ void Syncer::PopulateRepoPaths(const GitTree& tree, const std::string& base_path
         }
     }
 }
+#endif // OS_TODO
 
 
 bool Syncer::IsFileExcluded(const std::string& cs_file_path)
@@ -234,114 +93,6 @@ bool Syncer::IsFileExcluded(const std::string& cs_file_path)
     }
 
     return m_exclusionEvaluator->Ignore(cs_file_path);
-}
-
-
-void Syncer::PruneRepoPaths()
-{
-    m_loggingListBox.AddText(SharableString());
-    m_loggingListBox.AddText("Pruning files based on gitignore rules");
-
-    std::vector<std::string>& repo_paths = m_repoPaths;
-    const size_t initial_file_count = repo_paths.size();
-
-    for( size_t i = repo_paths.size() - 1; i < repo_paths.size(); --i )
-    {
-        if( IsFileExcluded(repo_paths[i]) )
-            repo_paths.erase(repo_paths.begin() + i);
-    }
-
-    m_loggingListBox.AddText("Pruned files from %d to %d.", static_cast<int>(initial_file_count),
-                                                            static_cast<int>(repo_paths.size()));
-}
-
-
-void Syncer::PrepareOutputDirectory()
-{
-    // move all non-Git files to a temporary directory, which will then be recycled
-    const std::string temp_directory = GetUniqueTempFilePath("CSPro-Open-Source-Old-Files");
-
-    m_loggingListBox.AddText(SharableString());
-    m_loggingListBox.AddText("Moving existing open source files to: %s", temp_directory.c_str());
-
-    FileIO::CreateDirectories(temp_directory);
-
-    SHFILEOPSTRUCT info = { nullptr };
-    wchar_t complete_from_path[MAX_PATH];
-    wchar_t complete_to_path[MAX_PATH];
-    info.wFunc = FO_MOVE;
-    info.fFlags = FOF_NOCONFIRMATION;
-    info.pFrom = complete_from_path;
-    info.pTo = complete_to_path;
-
-    auto to_wide = [&](const std::string& path, wchar_t* const complete_path)
-    {
-        const int path_length = GetFullPathName(TC::ToWide(path).c_str(), MAX_PATH, complete_path, nullptr);
-
-        if( path_length == 0 || path_length >= MAX_PATH )
-            throw CSProException("GetFullPathName error: %s", path.c_str());
-    };
-
-    DirectoryLister directory_lister(false, true, true, false);
-
-    for( const std::string& path : directory_lister.GetPaths(m_openSourceDirectory) )
-    {
-        if( Path::GetFilename(path) == ".git" )
-            continue;
-
-        const std::string temp_path = Path::Combine(temp_directory, Path::GetFilename(path));
-
-        to_wide(path, complete_from_path);
-        to_wide(temp_path, complete_to_path);
-
-        if( SHFileOperation(&info) != 0 )
-            throw CSProException("Error moving '%s' to '%s'.", path.c_str(), temp_path.c_str());
-    }
-
-    info.wFunc = FO_DELETE;
-    info.fFlags |= FOF_ALLOWUNDO;
-    to_wide(temp_directory, complete_from_path);
-    info.pTo = nullptr;
-
-    m_loggingListBox.AddText("Recycling: %s", temp_directory.c_str());
-
-    if( SHFileOperation(&info) != 0 )
-        throw CSProException("Error recycling: %s", temp_directory.c_str());
-}
-
-
-void Syncer::CopyFilesToOutputDirectory()
-{
-    m_loggingListBox.AddText(SharableString());
-    m_loggingListBox.AddText("Copying %d files to: %s", static_cast<int>(m_repoPaths.size()),
-                                                        m_openSourceDirectory.c_str());
-
-    uint64_t total_content_size = 0;
-
-    constexpr double PercentReportingInterval = 5;
-    const double percent_multiplier = CreatePercentMultiplier(m_repoPaths.size());
-    double percent = 0;
-    double next_percent_for_reporting = PercentReportingInterval;
-
-    for( const std::string& repo_path : m_repoPaths )
-    {
-        const GitObject& object = m_repoBlobObjects.find(repo_path)->second;
-        const GitBlob blob = object.GetBlob();
-
-        const std::string output_file_path = Path::Combine(m_openSourceDirectory, repo_path);
-        blob.WriteToDisk(output_file_path);
-
-        total_content_size += blob.size();
-        percent += percent_multiplier;
-
-        if( percent >= next_percent_for_reporting )
-        {
-            m_loggingListBox.AddText("Copy percent: %d", static_cast<int>(percent));
-            next_percent_for_reporting += PercentReportingInterval;
-        }
-    }
-
-    m_loggingListBox.AddText("Copied bytes: " Formatter_uint64_t, total_content_size);
 }
 
 
@@ -409,28 +160,6 @@ std::unique_ptr<BinaryBlock> Syncer::GetFileReplacement(const git_diff_file& new
     else
     {
         throw ProgrammingErrorException();
-    }
-}
-
-
-void Syncer::CopyReplacementFiles()
-{
-    const std::string replacements_file_path = Path::Combine(m_overridesDirectory, "replacements.json");
-
-    m_loggingListBox.AddText(SharableString());
-    m_loggingListBox.AddText("Copying replacement files specified in: %s", replacements_file_path.c_str());
-
-    const std::unique_ptr<JsonSpecFile::Reader> json_reader = JsonSpecFile::CreateReader(replacements_file_path);
-
-    for( const JsonNode& replacement_json_node : json_reader->GetArray() )
-    {
-        const std::string repo_path = Path::ToNativeSlash(replacement_json_node.Get<std::string>("repoPath"));
-        const std::string replacement_file_path = replacement_json_node.GetAbsolutePath("replacementPath");
-        const std::string output_file_path = Path::Combine(m_openSourceDirectory, repo_path);
-
-        m_loggingListBox.AddText("Replacing: " + repo_path);
-
-        PortableFunctions::FileCopyWithExceptions(replacement_file_path, output_file_path, FileOverwriteFlag::Fail);
     }
 }
 

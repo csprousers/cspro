@@ -65,19 +65,9 @@ EXSTYLE WS_EX_APPWINDOW
 CAPTION "CSPro Open Source Repository Syncer"
 FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
-    GROUPBOX        "Select the commit to use for the release:",IDC_STATIC,7,7,256,62
-    LTEXT           "Tags:",IDC_STATIC,19,25,19,8
-    COMBOBOX        IDC_TAGS,55,23,197,30,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "Commit:",IDC_STATIC,20,48,27,8
-    EDITTEXT        IDC_COMMIT,55,45,197,14,ES_AUTOHSCROLL
-    GROUPBOX        "Specify the directory for the open source output:",IDC_STATIC,7,78,256,45
-    EDITTEXT        IDC_OPEN_SOURCE_DIRECTORY,19,96,233,14,ES_AUTOHSCROLL
-    GROUPBOX        "Create the open source release:",IDC_STATIC,7,131,256,40
-    DEFPUSHBUTTON   "Create",IDC_CREATE,44,147,76,14
-    DEFPUSHBUTTON   "Validate",IDC_VALIDATE,143,147,76,14
-    GROUPBOX        "Miscellaneous actions:",IDC_STATIC,7,179,256,40
-    DEFPUSHBUTTON   "Generate File List",IDC_GENERATE_FILE_LIST,95,195,76,14
-    GROUPBOX        "Creation log:",IDC_STATIC,277,7,392,266
+    GROUPBOX        "Specify the CSPro open source directory:",IDC_STATIC,7,7,256,39
+    EDITTEXT        IDC_OPEN_SOURCE_DIRECTORY,19,22,233,14,ES_AUTOHSCROLL
+    GROUPBOX        "Sync log:",IDC_STATIC,277,7,392,266
     LISTBOX         IDC_LOG,289,23,372,241,LBS_OWNERDRAWFIXED | LBS_NOINTEGRALHEIGHT | LBS_EXTENDEDSEL | LBS_NODATA | WS_VSCROLL | WS_HSCROLL | WS_TABSTOP
 END
 
@@ -109,16 +99,6 @@ END
 IDD_SYNCER AFX_DIALOG_LAYOUT
 BEGIN
     0,
-    0, 0, 0, 0,
-    0, 0, 0, 0,
-    0, 0, 0, 0,
-    0, 0, 0, 0,
-    0, 0, 0, 0,
-    0, 0, 0, 0,
-    0, 0, 0, 0,
-    0, 0, 0, 0,
-    0, 0, 0, 0,
-    0, 0, 0, 0,
     0, 0, 0, 0,
     0, 0, 0, 0,
     0, 0, 100, 100,

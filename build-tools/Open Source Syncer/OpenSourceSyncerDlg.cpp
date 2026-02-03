@@ -2,16 +2,17 @@
 #include "OpenSourceSyncerDlg.h"
 #include <zToolsO/UWM.h>
 #include <zUtilO/DataExchange.h>
-#include <zUtilO/UWMRanges.h>
 #include <zUtilO/WindowHelpers.h>
 
 
+namespace UWM::OpenSourceSyncer
+{
+    constexpr unsigned OperationComplete = UWM::Ranges::ExeStart;
+}
+
+
 BEGIN_MESSAGE_MAP(OpenSourceSyncerDlg, ResizableDlg)
-    ON_CBN_SELCHANGE(IDC_TAGS, OnTagChange)
-    ON_COMMAND(IDC_CREATE, OnCreate)
-    ON_COMMAND(IDC_VALIDATE, OnValidate)
-    ON_COMMAND(IDC_GENERATE_FILE_LIST, OnGenerateFileList)
-    ON_MESSAGE(UWM::Ranges::ExeStart, OnCreateValidateComplete)
+    ON_MESSAGE(UWM::OpenSourceSyncer::OperationComplete, OnOperationComplete)
     ON_MESSAGE(UWM::ToolsO::DisplayErrorMessage, OnDisplayErrorMessage)
 END_MESSAGE_MAP()
 
@@ -41,8 +42,6 @@ void OpenSourceSyncerDlg::DoDataExchange(CDataExchange* const pDX)
     __super::DoDataExchange(pDX);
 
     DDX_Text(pDX, IDC_OPEN_SOURCE_DIRECTORY, m_openSourceDirectory, true);
-    DDX_Control(pDX, IDC_TAGS, m_tagsComboBox);
-    DDX_Text(pDX, IDC_COMMIT, m_commit, true);
     DDX_Control(pDX, IDC_LOG, m_loggingListBox);
 }
 
@@ -56,15 +55,6 @@ BOOL OpenSourceSyncerDlg::OnInitDialog()
     try
     {
         m_syncer = std::make_unique<Syncer>(m_settingsDb, m_loggingListBox);
-
-        // populate the tags
-        m_tags = m_syncer->GetTags();
-
-        for( const GitTag& tag : m_tags )
-            m_tagsComboBox.AddString(TC::ToWide(tag.GetDisplayName()).c_str());
-
-        m_tagsComboBox.AddString(L"Custom");
-        m_tagsComboBox.SetCurSel(m_tagsComboBox.GetCount() - 1);
     }
 
     catch( const CSProException& exception )
@@ -79,9 +69,9 @@ BOOL OpenSourceSyncerDlg::OnInitDialog()
 
 void OpenSourceSyncerDlg::OnCancel()
 {
-    if( !GetDlgItem(IDC_CREATE)->IsWindowEnabled() )
+    if( m_workerThread != nullptr )
     {
-        ErrorMessage::Display(L"You cannot exit while the creation is in progress.");
+        ErrorMessage::Display(L"You cannot exit while an operation is in progress.");
         return;
     }
 
@@ -116,73 +106,7 @@ bool OpenSourceSyncerDlg::InitializeOperation() noexcept
 }
 
 
-void OpenSourceSyncerDlg::EnableButtons(const bool enable)
-{
-    for( const int resource_id : { IDC_CREATE, IDC_VALIDATE, IDC_GENERATE_FILE_LIST })
-        GetDlgItem(resource_id)->EnableWindow(enable);
-}
-
-
-void OpenSourceSyncerDlg::OnTagChange()
-{
-    const size_t tag_index = static_cast<size_t>(m_tagsComboBox.GetCurSel());
-
-    if( tag_index < m_tags.size() )
-    {
-        m_commit = m_tags[tag_index].GetHexHash();
-        UpdateData(FALSE);
-        GetDlgItem(IDC_COMMIT)->EnableWindow(FALSE);
-    }
-
-    else
-    {
-        GetDlgItem(IDC_COMMIT)->EnableWindow(TRUE);
-    }
-}
-
-
-void OpenSourceSyncerDlg::OnCreateValidate(const bool create)
-{
-    if( !InitializeOperation() )
-        return;
-
-    try
-    {
-        if( SO::IsBlank(m_commit) )
-            throw CSProException("Specify a commit.");
-
-        // disable the buttons while the thread is running
-        EnableButtons(false);
-
-        m_workerThread = std::make_unique<std::thread>([&, create]() { CreateValidateWorker(create); });
-    }
-
-    catch( const CSProException& exception )
-    {
-        ErrorMessage::Display(exception);
-    }
-}
-
-
-void OpenSourceSyncerDlg::CreateValidateWorker(const bool create)
-{
-    try
-    {
-        create ? m_syncer->CreateRelease(m_commit) :
-                 m_syncer->ValidateRelease(m_commit);
-    }
-
-    catch( const CSProException& exception )
-    {
-        m_loggingListBox.AddText("\n\nError: %s", exception.what());
-        ErrorMessage::PostMessageForDisplay(exception);
-    }
-
-    PostMessage(UWM::Ranges::ExeStart);
-}
-
-
-LRESULT OpenSourceSyncerDlg::OnCreateValidateComplete(WPARAM /*wParam*/, LPARAM /*lParam*/)
+LRESULT OpenSourceSyncerDlg::OnOperationComplete(WPARAM /*wParam*/, LPARAM /*lParam*/)
 {
     ASSERT(m_workerThread != nullptr);
 
@@ -191,26 +115,7 @@ LRESULT OpenSourceSyncerDlg::OnCreateValidateComplete(WPARAM /*wParam*/, LPARAM 
 
     m_workerThread.reset();
 
-    EnableButtons(true);
-
     return 1;
-}
-
-
-void OpenSourceSyncerDlg::OnGenerateFileList()
-{
-    if( !InitializeOperation() )
-        return;
-
-    try
-    {
-        m_syncer->GenerateFileList(m_commit);
-    }
-
-    catch( const CSProException& exception )
-    {
-        ErrorMessage::Display(exception);
-    }
 }
 
 

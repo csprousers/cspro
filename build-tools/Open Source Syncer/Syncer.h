@@ -16,31 +16,15 @@ public:
 
     void SetOpenSourceDirectory(const std::string& open_source_directory);
 
-    std::vector<GitTag> GetTags() const;
-
-    void CreateRelease(cs::string_sz commit_string);
-
-    void ValidateRelease(cs::string_sz commit_string);
-
-    void GenerateFileList(cs::string_sz commit_string);
-
 private:
     // cs = private CSPro repository
     // os = public open source repository
-
-    std::tuple<GitCommit, GitTree> LookupCommitAndGetTree(cs::string_sz commit_string);
 
     void PopulateRepoPaths(const GitTree& tree, const std::string& base_path);
 
     // Returns true if the file should not be included in the open source repository
     // because it was defined in the exclusions.txt file.
     bool IsFileExcluded(const std::string& cs_file_path);
-
-    void PruneRepoPaths();
-
-    void PrepareOutputDirectory();
-
-    void CopyFilesToOutputDirectory();
 
     // Returns true when the file in the open source repository
     // has a replacement file defined in the replacements.json file.
@@ -103,6 +87,4 @@ private:
 
     GitRepository m_openSourceRepo;
     std::string m_openSourceDirectory;
-    std::vector<std::string> m_repoPaths;
-    std::map<std::string, GitObject> m_repoBlobObjects; // path -> object
 };
