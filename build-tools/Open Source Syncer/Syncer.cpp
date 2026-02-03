@@ -227,6 +227,8 @@ bool Syncer::IsFileExcluded(const std::string& cs_file_path)
     {
         const std::string exclusions_file_path = Path::Combine(m_overridesDirectory, "exclusions.txt");
 
+        m_loggingListBox.AddText("Reading excluded files based on gitignore rules from: " + exclusions_file_path);
+
         m_exclusionEvaluator.emplace();
         m_exclusionEvaluator->AddRulesFromFile(exclusions_file_path);
     }
@@ -340,6 +342,68 @@ void Syncer::CopyFilesToOutputDirectory()
     }
 
     m_loggingListBox.AddText("Copied bytes: " Formatter_uint64_t, total_content_size);
+}
+
+
+template<typename T/* = bool*/>
+T Syncer::HasFileReplacement(const std::string& cs_file_path)
+{
+    if( m_fileReplacements.empty() )
+    {
+        const std::string replacements_file_path = Path::Combine(m_overridesDirectory, "replacements.json");
+
+        m_loggingListBox.AddText("Reading replacement files specified in: " + replacements_file_path);
+
+        const std::unique_ptr<JsonSpecFile::Reader> json_reader = JsonSpecFile::CreateReader(replacements_file_path);
+
+        for( const JsonNode& replacement_json_node : json_reader->GetArray() )
+        {
+            const bool is_file_path = replacement_json_node.Contains("replacementPath");
+
+            m_fileReplacements.emplace(
+                replacement_json_node.Get<std::string>("repoPath"),
+                FileReplacement
+                {
+                    is_file_path,
+                    is_file_path ? replacement_json_node.GetAbsolutePath("replacementPath") :
+                                   replacement_json_node.Get<std::string>("replacementRoutine")
+                }
+            );
+        }
+    }
+
+    auto lookup = m_fileReplacements.find(cs_file_path);
+
+    if constexpr(std::is_same_v<T, bool>)
+    {
+        return ( lookup != m_fileReplacements.cend() );
+    }
+
+    else
+    {
+        return lookup;
+    }
+}
+
+
+std::unique_ptr<BinaryBlock> Syncer::GetFileReplacement(const git_diff_file& new_file)
+{
+    const auto& lookup = HasFileReplacement<std::map<std::string, FileReplacement>::iterator>(new_file.path);
+
+    if( lookup == m_fileReplacements.cend() )
+    {
+        return nullptr;
+    }
+
+    else if( lookup->second.is_file_path )
+    {
+        return std::make_unique<BinaryBlock>(FileIO::ReadBinary(lookup->second.file_path_or_routine));
+    }
+
+    else
+    {
+        throw ProgrammingErrorException();
+    }
 }
 
 
@@ -975,6 +1039,21 @@ void Syncer::MirrorFile(GitIndex& os_index, const git_diff_delta& diff_delta)
     if( IsFileExcluded(path) )
     {
         m_loggingListBox.AddText("Skipping excluded %s: %s", file_type, path.c_str());
+        return;
+    }
+
+    // if the file has a replacement, use it instead
+    const std::unique_ptr<const BinaryBlock> replacement_data = GetFileReplacement(diff_delta.new_file);
+
+    if( replacement_data != nullptr )
+    {
+        m_loggingListBox.AddText("Using override for %s: %s", file_type, path.c_str());
+
+        if( is_binary || diff_delta.status != GIT_DELTA_MODIFIED )
+            throw CSProException("Replacement files should be text with the status 'modified': " + path);
+
+        MirrorFileAddEntry(os_index, diff_delta.new_file, replacement_data->data(), replacement_data->size());
+
         return;
     }
 

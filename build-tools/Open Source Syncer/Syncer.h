@@ -32,8 +32,8 @@ private:
 
     void PopulateRepoPaths(const GitTree& tree, const std::string& base_path);
 
-    // Returns true if the file should not be included in the open source repository due
-    // to its listing in the exclusions.txt file.
+    // Returns true if the file should not be included in the open source repository
+    // because it was defined in the exclusions.txt file.
     bool IsFileExcluded(const std::string& cs_file_path);
 
     void PruneRepoPaths();
@@ -41,6 +41,15 @@ private:
     void PrepareOutputDirectory();
 
     void CopyFilesToOutputDirectory();
+
+    // Returns true when the file in the open source repository
+    // has a replacement file defined in the replacements.json file.
+    template<typename T = bool>
+    T HasFileReplacement(const std::string& cs_file_path);
+
+    // Returns a non-null object containing the replacement data when the file in the open
+    // source repository has a replacement file defined in the replacements.json file.
+    std::unique_ptr<BinaryBlock> GetFileReplacement(const git_diff_file& new_file);
 
     void CopyReplacementFiles();
 
@@ -86,6 +95,8 @@ private:
 
     std::string m_overridesDirectory;
     std::optional<GitIgnoreEvaluator> m_exclusionEvaluator;
+    struct FileReplacement { bool is_file_path; std::string file_path_or_routine; };
+    std::map<std::string, FileReplacement> m_fileReplacements;
 
     GitRepository m_privateRepo;
 
