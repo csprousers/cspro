@@ -30,7 +30,7 @@ public:
 
     // Creates a commit in the open source libraries repository with the
     // built libraries at the given commit in the open source repository.
-    void CreateLibraryCommit(GitRepository& library_repo, const GitCommit& cs_commit);
+    void CommitBuildLibraries(GitRepository& library_repo, const GitCommit& cs_commit);
 
 private:
     // cs = private CSPro repository

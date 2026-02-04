@@ -26,7 +26,7 @@ namespace
 
     constexpr std::string_view LibrariesCommitMessageIdentifier_sv = "libraries hash: ";
     constexpr std::string_view LibrariesSettingsKeyPrefix_sv       = "Libraries-";
-    constexpr size_t LibrariesHashHexLength                        = 32 / 2;
+    constexpr size_t LibrariesHashHexLength                        = 32;
 }
 
 
@@ -1055,7 +1055,7 @@ std::string Syncer::CalculateBuiltLibrariesCacheKey(const bool local_version)
         }
     }
 
-    return Hash::Hash(cache_key_inputs, LibrariesHashHexLength);
+    return Hash::Hash(cache_key_inputs, LibrariesHashHexLength / 2);
 }
 
 
@@ -1090,8 +1090,8 @@ void Syncer::RefreshLibraryTags(GitRepository& library_repo)
 
                 m_loggingListBox.AddText("Library ID updated: " + library_id);
 
-                const std::string cache_key = SO::Concatenate(LibrariesSettingsKeyPrefix_sv, library_id);
-                m_settingsDb.Write(cache_key, tag.GetDisplayName());
+                const std::string actual_settings_key = SO::Concatenate(LibrariesSettingsKeyPrefix_sv, library_id);
+                m_settingsDb.Write(actual_settings_key, tag.GetDisplayName());
             }
 
             return true;
@@ -1099,7 +1099,7 @@ void Syncer::RefreshLibraryTags(GitRepository& library_repo)
 }
 
 
-void Syncer::CreateLibraryCommit(GitRepository& library_repo, const GitCommit& cs_commit)
+void Syncer::CommitBuildLibraries(GitRepository& library_repo, const GitCommit& cs_commit)
 {
     m_loggingListBox.AddText("Creating a commit with the built libraries as of:\n    %s\n    %s",
                              cs_commit.GetCommitter().GetWhen().GetLocalDateTimeString().c_str(),
@@ -1179,7 +1179,7 @@ void Syncer::CreateLibraryCommit(GitRepository& library_repo, const GitCommit& c
         GitSignature::CreateDefault(library_repo).GetEmail()
     );
 
-    // use the date of the source commit 
+    // use the date of the source commit
     author_and_committer.SetWhen(cs_commit.GetCommitter().GetWhen());
 
     // the message will contain the source commit's date and OID, and then the library ID
@@ -1189,14 +1189,26 @@ void Syncer::CreateLibraryCommit(GitRepository& library_repo, const GitCommit& c
         "\n\n", LibrariesCommitMessageIdentifier_sv, library_id
     );
 
-    // create the commit
+    // make sure that there are actually differences
+    const GitCommit parent_commit = library_repo.LookupCommit(branch);
+    GitTree parent_tree = parent_commit.GetTree();
+
     GitTree tree = library_repo.WriteTree(index);
 
+    const GitDiff merge_diff = m_openSourceRepo.GetDifference(parent_tree, tree);
+
+    if( merge_diff.GetNumberDeltas() == 0 )
+    {
+        throw CSProException("There are no library changes compared to the previous commit: " +
+                             parent_commit.GetObjectId().GetHexHash());
+    }
+
+    // create the commit
     const GitObjectId commit_oid = library_repo.CreateCommit(
         author_and_committer,
         message,
         tree,
-        library_repo.LookupCommit(branch)
+        parent_commit
     );
 
     // tag the commit, with the message referencing the source commit's OID
@@ -1211,6 +1223,6 @@ void Syncer::CreateLibraryCommit(GitRepository& library_repo, const GitCommit& c
     library_repo.CheckoutHead(GIT_CHECKOUT_FORCE);
 
     // cache this tag
-    const std::string cache_key = SO::Concatenate(LibrariesSettingsKeyPrefix_sv, library_id);
-    m_settingsDb.Write(cache_key, tag_name);
+    const std::string actual_settings_key = SO::Concatenate(LibrariesSettingsKeyPrefix_sv, library_id);
+    m_settingsDb.Write(actual_settings_key, tag_name);
 }

@@ -289,7 +289,7 @@ void OpenSourceSyncerDlg::OnCommitLibrary()
         // operation
         [library_data]()
         {
-            library_data->syncer->CreateLibraryCommit(library_data->repo, *library_data->cs_commit);
+            library_data->syncer->CommitBuildLibraries(library_data->repo, *library_data->cs_commit);
         }
     );
 }
