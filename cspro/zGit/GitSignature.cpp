@@ -2,24 +2,24 @@
 #include "GitSignature.h"
 
 
-GitSignature::GitSignature(std::string name, std::string email, const git_time& when)
+GitSignature::GitSignature(SharableString name, SharableString email, const git_time& when) noexcept
     :   m_name(std::move(name)),
         m_email(std::move(email)),
-        m_wrapper{ m_name.c_str(), m_email.c_str(), when }
+        m_wrapper{ m_name->c_str(), m_email->c_str(), when }
 {
     static_assert(sizeof(m_wrapper) == sizeof(git_signature));
-    ASSERT(m_name.find_first_of("<>") == std::string::npos);
-    ASSERT(m_email.find_first_of("<>") == std::string::npos);
+    ASSERT(m_name->find_first_of("<>") == std::string::npos);
+    ASSERT(m_email->find_first_of("<>") == std::string::npos);
 }
 
 
-GitSignature::GitSignature(const git_signature& signature)
+GitSignature::GitSignature(const git_signature& signature) noexcept
     :   GitSignature(signature.name, signature.email, signature.when)
 {
 }
 
 
-GitSignature GitSignature::Create(std::string name, std::string email)
+GitSignature GitSignature::Create(SharableString name, SharableString email) noexcept
 {
     git_time when;
     when.time = GetTimestamp();
@@ -58,5 +58,5 @@ bool GitSignature::operator==(const GitSignature& rhs) const noexcept
 
 std::string GitSignature::GetDisplayString() const noexcept
 {
-    return SO::Concatenate(m_name, " <", m_email, ">");
+    return SO::Concatenate(*m_name, " <", *m_email, ">");
 }
