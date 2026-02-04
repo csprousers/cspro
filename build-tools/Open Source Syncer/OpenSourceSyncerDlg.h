@@ -23,6 +23,8 @@ protected:
 
     void OnCompare();
 
+    void OnRefreshLibraryTags();
+
     LRESULT OnOperationComplete(WPARAM wParam, LPARAM lParam);
 
     LRESULT OnDisplayErrorMessage(WPARAM wParam, LPARAM lParam);
@@ -35,10 +37,14 @@ private:
     struct SyncData;
     void ValidateSyncData(SyncData& sync_data, bool using_oldest_merge_commit);
 
+    struct LibraryData;
+    void ValidateLibraryData(LibraryData& library_data, bool open_bare);
+
 private:
     SettingsDb m_settingsDb;
 
-    std::string m_openSourceDirectory;
+    std::string m_openSourceCodeDirectory;
+    std::string m_openSourceLibrariesDirectory;
     std::string m_branchName;
     std::string m_commitOld;
     std::string m_commitNew;

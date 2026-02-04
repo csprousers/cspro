@@ -24,6 +24,10 @@ public:
     void MirrorFeatureBranches(const GitBranch& os_merge_branch,
                                const GitCommit& cs_oldest_merge_commit, const GitCommit& cs_newest_merge_commit);
 
+    // Reads tags from the repository of built libraries, storing them in the
+    // settings database for future use.
+    void RefreshLibraryTags(GitRepository& library_repo);
+
 private:
     // cs = private CSPro repository
     // os = public open source repository

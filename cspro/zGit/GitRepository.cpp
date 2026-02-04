@@ -603,6 +603,30 @@ std::vector<GitTag> GitRepository::GetTags() const
 }
 
 
+bool GitRepository::IsTag(const std::string_view tag_name_sv) const
+{
+    ASSERT(!SO::StartsWith(tag_name_sv, GitTag::RefsTagPrefix_sv));
+
+    EnsureRepositoryIsOpen();
+
+    const std::string full_tag_name = SO::Concatenate(GitTag::RefsTagPrefix_sv, tag_name_sv);
+    git_reference* tag_ref;
+
+    switch( git_reference_lookup(&tag_ref, m_repo, full_tag_name.c_str()) )
+    {
+        case 0:
+            git_reference_free(tag_ref);
+            return true;
+
+        case GIT_ENOTFOUND:
+            return false;
+
+        default:
+            throw GitException();
+    }
+}
+
+
 void GitRepository::AddIgnoreRule(const cs::string_sz rules)
 {
     EnsureRepositoryIsOpen();

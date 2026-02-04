@@ -15,6 +15,7 @@ namespace UWM::OpenSourceSyncer
 BEGIN_MESSAGE_MAP(OpenSourceSyncerDlg, ResizableDlg)
     ON_COMMAND(IDC_SYNC, OnSync)
     ON_COMMAND(IDC_COMPARE, OnCompare)
+    ON_COMMAND(IDC_REFRESH_LIBRARY_TAGS, OnRefreshLibraryTags)
     ON_MESSAGE(UWM::OpenSourceSyncer::OperationComplete, OnOperationComplete)
     ON_MESSAGE(UWM::ToolsO::DisplayErrorMessage, OnDisplayErrorMessage)
 END_MESSAGE_MAP()
@@ -22,15 +23,17 @@ END_MESSAGE_MAP()
 
 namespace
 {
-    constexpr std::string_view OpenSourceDirectoryKey_sv = "open-source-directory";
-    constexpr std::string_view BranchNameKey_sv          = "branch-name";
+    constexpr std::string_view OpenSourceCodeDirectoryKey_sv      = "open-source-code-directory";
+    constexpr std::string_view OpenSourceLibrariesDirectoryKey_sv = "open-source-libraries-directory";
+    constexpr std::string_view BranchNameKey_sv                   = "branch-name";
 }
 
 
 OpenSourceSyncerDlg::OpenSourceSyncerDlg(CWnd* const pParent/* = nullptr*/)
     :   ResizableDlg(IDD_SYNCER, pParent),
         m_settingsDb("OpenSourceSyncer.db"),
-        m_openSourceDirectory(m_settingsDb.ReadOrDefault<std::string>(OpenSourceDirectoryKey_sv)),
+        m_openSourceCodeDirectory(m_settingsDb.ReadOrDefault<std::string>(OpenSourceCodeDirectoryKey_sv)),
+        m_openSourceLibrariesDirectory(m_settingsDb.ReadOrDefault<std::string>(OpenSourceLibrariesDirectoryKey_sv)),
         m_branchName(m_settingsDb.ReadOrDefault<std::string>(BranchNameKey_sv))
 {
     SerializeDialogSize("OpenSourceSyncerDlg");
@@ -46,7 +49,8 @@ void OpenSourceSyncerDlg::DoDataExchange(CDataExchange* const pDX)
 {
     __super::DoDataExchange(pDX);
 
-    DDX_Text(pDX, IDC_OPEN_SOURCE_DIRECTORY, m_openSourceDirectory, true);
+    DDX_Text(pDX, IDC_OPEN_SOURCE_CODE_DIRECTORY, m_openSourceCodeDirectory, true);
+    DDX_Text(pDX, IDC_OPEN_SOURCE_LIBRARIES_DIRECTORY, m_openSourceLibrariesDirectory, true);
     DDX_Text(pDX, IDC_BRANCH_NAME, m_branchName, true);
     DDX_Text(pDX, IDC_COMMIT_OLD, m_commitOld, true);
     DDX_Text(pDX, IDC_COMMIT_NEW, m_commitNew, true);
@@ -100,17 +104,18 @@ void OpenSourceSyncerDlg::RunOperation(const std::function<void()>& validate_inp
 
     UpdateData(TRUE);
 
-    m_settingsDb.Write<std::string>(OpenSourceDirectoryKey_sv, m_openSourceDirectory);
+    m_settingsDb.Write<std::string>(OpenSourceCodeDirectoryKey_sv, m_openSourceCodeDirectory);
+    m_settingsDb.Write<std::string>(OpenSourceLibrariesDirectoryKey_sv, m_openSourceLibrariesDirectory);
     m_settingsDb.Write<std::string>(BranchNameKey_sv, m_branchName);
 
     m_loggingListBox.Clear();
 
     try
     {
-        if( m_openSourceDirectory.empty() )
-            throw CSProException("Specify the open source directory.");
+        if( m_openSourceCodeDirectory.empty() )
+            throw CSProException("Specify the open source code directory.");
 
-        m_syncer->SetOpenSourceDirectory(m_openSourceDirectory);
+        m_syncer->SetOpenSourceDirectory(m_openSourceCodeDirectory);
 
         if( validate_inputs_callback )
             validate_inputs_callback();
@@ -217,6 +222,44 @@ void OpenSourceSyncerDlg::OnCompare()
                 sync_data->syncer->GetOpenSourceRepo().LookupCommit(*sync_data->os_merge_branch),
                 true
             );
+        }
+    );
+}
+
+
+struct OpenSourceSyncerDlg::LibraryData
+{
+    Syncer* syncer = nullptr;
+    GitRepository repo;
+};
+
+
+void OpenSourceSyncerDlg::ValidateLibraryData(LibraryData& library_data, const bool open_bare)
+{
+    library_data.syncer = m_syncer.get();
+    ASSERT(library_data.syncer != nullptr);
+
+    if( m_openSourceLibrariesDirectory.empty() )
+        throw CSProException("Specify the open source libraries directory.");
+
+    library_data.repo.Open(Path::Combine(m_openSourceLibrariesDirectory, ".git"), open_bare);
+}
+
+
+void OpenSourceSyncerDlg::OnRefreshLibraryTags()
+{
+    auto library_data = std::make_shared<LibraryData>();
+
+    RunOperation(
+        // validation
+        [&, library_data]()
+        {
+            ValidateLibraryData(*library_data, true);
+        },
+        // operation
+        [library_data]()
+        {
+            library_data->syncer->RefreshLibraryTags(library_data->repo);
         }
     );
 }

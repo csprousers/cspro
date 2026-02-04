@@ -14,6 +14,22 @@
 #include <regex>
 
 
+CREATE_JSON_KEY(replacementPath)
+CREATE_JSON_KEY(replacementRoutine)
+CREATE_JSON_KEY(repoPath)
+
+
+namespace
+{
+    constexpr const char* ExclusionsFilename   = "exclusions.txt";
+    constexpr const char* ReplacementsFilename = "replacements.json";
+
+    constexpr std::string_view LibrariesCommitMessageIdentifier_sv = "Libraries ID:";
+    constexpr std::string_view LibrariesSettingsKeyPrefix_sv       = "Libraries-";
+    constexpr size_t LibrariesHashLength                           = 32;
+}
+
+
 Syncer::Syncer(SettingsDb& settings_db, LoggingListBox& logging_list_box)
     :   m_settingsDb(settings_db),
         m_loggingListBox(logging_list_box)
@@ -50,7 +66,7 @@ bool Syncer::IsFileExcluded(const std::string& cs_file_path)
 {
     if( !m_exclusionEvaluator.has_value() )
     {
-        const std::string exclusions_file_path = Path::Combine(m_overridesDirectory, "exclusions.txt");
+        const std::string exclusions_file_path = Path::Combine(m_overridesDirectory, ExclusionsFilename);
 
         m_loggingListBox.AddText("Reading excluded files based on gitignore rules from: " + exclusions_file_path);
 
@@ -67,7 +83,7 @@ T Syncer::HasFileReplacement(const std::string& cs_file_path)
 {
     if( m_fileReplacements.empty() )
     {
-        const std::string replacements_file_path = Path::Combine(m_overridesDirectory, "replacements.json");
+        const std::string replacements_file_path = Path::Combine(m_overridesDirectory, ReplacementsFilename);
 
         m_loggingListBox.AddText("Reading replacement files specified in: " + replacements_file_path);
 
@@ -75,15 +91,15 @@ T Syncer::HasFileReplacement(const std::string& cs_file_path)
 
         for( const JsonNode& replacement_json_node : json_reader->GetArray() )
         {
-            const bool is_file_path = replacement_json_node.Contains("replacementPath");
+            const bool is_file_path = replacement_json_node.Contains(JK::replacementPath);
 
             m_fileReplacements.emplace(
-                replacement_json_node.Get<std::string>("repoPath"),
+                replacement_json_node.Get<std::string>(JK::repoPath),
                 FileReplacement
                 {
                     is_file_path,
-                    is_file_path ? replacement_json_node.GetAbsolutePath("replacementPath") :
-                                   replacement_json_node.Get<std::string>("replacementRoutine")
+                    is_file_path ? replacement_json_node.GetAbsolutePath(JK::replacementPath) :
+                                   replacement_json_node.Get<std::string>(JK::replacementRoutine)
                 }
             );
         }
@@ -1039,5 +1055,45 @@ std::string Syncer::CalculateBuiltLibrariesCacheKey(const bool local_version)
         }
     }
 
-    return Hash::Hash(cache_key_inputs);
+    return Hash::Hash(cache_key_inputs, LibrariesHashLength);
+}
+
+
+void Syncer::RefreshLibraryTags(GitRepository& library_repo)
+{
+    m_loggingListBox.AddText("Reading tags from the built libraries repository.");
+
+    library_repo.ForeachTag(
+        [&](const GitTag tag)
+        {
+            m_loggingListBox.AddText("Library tag: " + tag.GetDisplayName());
+
+            // look up the commit message and see if it contains the library ID
+            const GitCommit commit = library_repo.LookupCommit(tag);
+            const std::string& commit_message = commit.GetMessage();
+
+            const size_t id_pos = commit_message.find(LibrariesCommitMessageIdentifier_sv);
+
+            if( id_pos == std::string::npos )
+            {
+                m_loggingListBox.AddText(u8"⚠ Library ID not found!");
+            }
+
+            else
+            {
+                const std::string library_id(SO::Trim(
+                    std::string_view(commit_message).substr(id_pos + LibrariesCommitMessageIdentifier_sv.length())
+                ));
+
+                if( library_id.length() != LibrariesHashLength )
+                    throw CSProException("The library ID was not valid: %s", library_id.c_str());
+
+                m_loggingListBox.AddText("Library ID updated: " + library_id);
+
+                const std::string cache_key = SO::Concatenate(LibrariesSettingsKeyPrefix_sv, library_id);
+                m_settingsDb.Write(cache_key, tag.GetDisplayName());
+            }
+
+            return true;
+        });
 }

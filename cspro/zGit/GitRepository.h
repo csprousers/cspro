@@ -204,6 +204,9 @@ public:
     // Returns all of the repository's tags.
     std::vector<GitTag> GetTags() const;
 
+    // Returns true if the tag exists.
+    bool IsTag(std::string_view tag_name_sv) const;
+
 
     // --------------------------------------------------------------------------
     // Ignore Rules
