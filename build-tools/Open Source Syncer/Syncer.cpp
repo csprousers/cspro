@@ -1,5 +1,7 @@
 #include "StdAfx.h"
 #include "Syncer.h"
+#include <zToolsO/DirectoryLister.h>
+#include <zToolsO/Hash.h>
 #include <zJson/JsonSpecFile.h>
 #include <zNetwork/CurlHttpConnection.h>
 #include <zGit/GitBlob.h>
@@ -18,10 +20,11 @@ Syncer::Syncer(SettingsDb& settings_db, LoggingListBox& logging_list_box)
 {
     const std::string this_source_directory = PortableFunctions::PathGetDirectory(__FILE__);
 
+    m_privateRepoDirectory = MakeFullPath(this_source_directory, "..\\..\\");
+
     m_overridesDirectory = Path::Combine(this_source_directory, "Overrides");
 
-    std::string git_directory = MakeFullPath(this_source_directory, "..\\..\\.git");
-    m_privateRepo.OpenBare(std::move(git_directory));
+    m_privateRepo.OpenBare(Path::Combine(m_privateRepoDirectory, ".git"));
 }
 
 
@@ -894,4 +897,147 @@ void Syncer::MirrorFileRenameText(GitIndex& os_index, const git_diff_file& old_f
 {
     MirrorFileDelete(os_index, old_file.path);
     MirrorFileAddText(os_index, new_file);
+}
+
+
+struct Syncer::BuiltLibrary
+{
+    std::string file_path;
+    std::string repo_path;
+    std::optional<GitObjectId> cs_blob_oid;
+    std::string md5;
+    std::shared_ptr<BinaryBlock> file_data;
+};
+
+
+void Syncer::PopulateBuiltLibraries(const GitCommit& cs_commit)
+{
+    constexpr std::tuple<std::string_view, std::string_view> LibraryDirectoryAndWildcard_sv[] =
+    {
+        { "build-tools/Installer Inputs/Webview2",        "MicrosoftEdgeWebview2Setup.exe" },
+        { "cspro/external",                               "*.dll;*.lib" },
+        { "cspro/CSEntryDroid/app/libs",                  "*.jar" },
+        { "cspro/CSEntryDroid/app/src/main/jni/external", "*.a" }
+    };
+
+    // when possible, we will reuse previously examined data
+    const std::vector<BuiltLibrary> previously_built_libraries = std::move(m_builtLibraries);
+    ASSERT(m_builtLibraries.empty());
+
+    // to determine the prebuilt libraries needed at this point,
+    // we will look at the directories where external libraries are located,
+    // and then use the version in the repository (when available), or the version on the disk (when not)
+    const GitIndex cs_index = cs_commit.GetTree().GetIndex();
+
+    DirectoryLister directory_lister(true);
+    ASSERT(m_privateRepoDirectory.back() == Path::NativeSlashChar);
+
+    for( const auto& [directory_sv, wildcard_sv] : LibraryDirectoryAndWildcard_sv )
+    {
+        const std::string full_directory = Path::Combine(m_privateRepoDirectory, directory_sv);
+        directory_lister.SetNameFilter(wildcard_sv);
+
+        for( std::string& file_path : directory_lister.GetPaths(full_directory) )
+        {
+            std::string repo_path = Path::ToForwardSlash(file_path.substr(m_privateRepoDirectory.length()));
+            std::optional<GitObjectId> cs_blob_oid;
+
+            try
+            {
+                // an exception is thrown if this library in not in repository
+                cs_blob_oid = cs_index.GetObjectIdByPath(repo_path);
+            }
+            catch(...) { }
+
+            // see if we can reuse information about this library
+            const auto& lookup = std::find_if(
+                previously_built_libraries.cbegin(), previously_built_libraries.cend(),
+                [&](const BuiltLibrary& built_library)
+                {
+                    return ( repo_path == built_library.repo_path &&
+                             cs_blob_oid == built_library.cs_blob_oid );
+                }
+            );
+
+            if( lookup != previously_built_libraries.cend() )
+            {
+                ASSERT(file_path == lookup->file_path);
+                m_builtLibraries.emplace_back(*lookup);
+            }
+
+            else
+            {
+                m_builtLibraries.emplace_back(
+                    BuiltLibrary
+                    {
+                        std::move(file_path),
+                        std::move(repo_path),
+                        std::move(cs_blob_oid)
+                    }
+                );
+            }
+        }
+    }
+}
+
+
+std::string Syncer::CalculateBuiltLibrariesCacheKey(const bool local_version)
+{
+    ASSERT(!m_builtLibraries.empty());
+
+    std::string cache_key_inputs;
+
+    for( BuiltLibrary& built_library : m_builtLibraries )
+    {
+        cache_key_inputs.append(built_library.repo_path);
+
+        // for files in the repository, the cache key will be the OID hex hash
+        // for the local version and the MD5 for the actual version
+        if( built_library.cs_blob_oid.has_value() )
+        {
+            if( local_version )
+            {
+                cache_key_inputs.append(built_library.cs_blob_oid->GetHexHash());
+            }
+
+            else
+            {
+                if( built_library.md5.empty() )
+                {
+                    ASSERT(built_library.file_data == nullptr);
+                    const GitBlob cs_blob = m_privateRepo.LookupBlob(*built_library.cs_blob_oid);
+                    built_library.file_data = std::make_unique<BinaryBlock>(cs_blob.data(), cs_blob.size());
+                    built_library.md5 = PortableFunctions::BinaryMd5(*built_library.file_data);
+                }
+
+                cache_key_inputs.append(built_library.md5);
+            }
+        }
+
+        // for files on disk, the cache key will be the file size and modified time
+        // for the local version and the MD5 for the actual version
+        else
+        {
+            if( local_version )
+            {
+                const std::tuple<int64_t, int64_t> file_size_and_modified_time = PortableFunctions::FileSizeAndModifiedTime(built_library.file_path);
+                cache_key_inputs.append(IntToString(std::get<0>(file_size_and_modified_time)));
+                cache_key_inputs.append(IntToString(std::get<1>(file_size_and_modified_time)));
+            }
+
+            else
+            {
+                if( built_library.md5.empty() )
+                {
+                    ASSERT(built_library.file_data == nullptr);
+                    built_library.file_data = std::make_shared<BinaryBlock>(FileIO::ReadBinary(built_library.file_path));
+                    built_library.md5 = PortableFunctions::BinaryMd5(*built_library.file_data);
+                }
+
+                cache_key_inputs.append(built_library.md5);
+            }
+        }
+    }
+
+    return Hash::Hash(cache_key_inputs);
 }

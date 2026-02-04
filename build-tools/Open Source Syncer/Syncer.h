@@ -65,6 +65,7 @@ private:
     // Mirrors a single commit.
     void MirrorCommit(GitIndex& os_index, GitTree& cs_parent_tree, GitTree& cs_tree);
 
+    // Methods to mirror files.
     void MirrorFile(GitIndex& os_index, const git_diff_delta& diff_delta);
     void MirrorFileAddEntry(GitIndex& os_index, const git_diff_file& new_file, const void* data, size_t size);
     void MirrorFileAddBinary(GitIndex& os_index, const git_diff_file& new_file);
@@ -75,10 +76,19 @@ private:
     void MirrorFileRenameBinary(GitIndex& os_index, const git_diff_file& old_file, const git_diff_file& new_file);
     void MirrorFileRenameText(GitIndex& os_index, const git_diff_file& old_file, const git_diff_file& new_file);
 
+    // Populates information about the built libraries used by CSPro that are not
+    // committed to the open source repository.
+    void PopulateBuiltLibraries(const GitCommit& cs_commit);
+
+    // Returns a cache key for the built libraries. The local version is only valid locally,
+    // as it uses file times, and is only a shortcut to access the actual version used.
+    std::string CalculateBuiltLibrariesCacheKey(bool local_version);
+
 private:
     SettingsDb& m_settingsDb;
     LoggingListBox& m_loggingListBox;
 
+    std::string m_privateRepoDirectory;
     std::string m_overridesDirectory;
 
     std::optional<GitIgnoreEvaluator> m_exclusionEvaluator;
@@ -91,4 +101,7 @@ private:
 
     GitRepository m_privateRepo;
     GitRepository m_openSourceRepo;
+
+    struct BuiltLibrary;
+    std::vector<BuiltLibrary> m_builtLibraries;
 };
