@@ -20,10 +20,10 @@ protected:
     void OnCancel() override;
 
     void OnSync();
-
     void OnCompare();
 
     void OnRefreshLibraryTags();
+    void OnCommitLibrary();
 
     LRESULT OnOperationComplete(WPARAM wParam, LPARAM lParam);
 
@@ -38,7 +38,7 @@ private:
     void ValidateSyncData(SyncData& sync_data, bool using_oldest_merge_commit);
 
     struct LibraryData;
-    void ValidateLibraryData(LibraryData& library_data, bool open_bare);
+    void ValidateLibraryData(LibraryData& library_data, bool creating_commit);
 
 private:
     SettingsDb m_settingsDb;

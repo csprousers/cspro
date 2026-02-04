@@ -68,7 +68,8 @@ BEGIN
     PUSHBUTTON      "Sync Feature Branches",IDC_SYNC,526,22,112,14
     PUSHBUTTON      "Compare Against Open Source",IDC_COMPARE,526,62,112,14
     GROUPBOX        "Built Libraries",IDC_STATIC,657,7,125,76
-    PUSHBUTTON      "Refresh Built Libraries Tags",IDC_REFRESH_LIBRARY_TAGS,664,22,112,14
+    PUSHBUTTON      "Refresh Built Library Tags",IDC_REFRESH_LIBRARY_TAGS,664,22,112,14
+    PUSHBUTTON      "Commit Built Library",IDC_COMMIT_LIBRARY,664,62,112,14
     GROUPBOX        "Sync log:",IDC_STATIC,7,90,775,183
     LISTBOX         IDC_LOG,15,103,759,162,LBS_OWNERDRAWFIXED | LBS_NOINTEGRALHEIGHT | LBS_EXTENDEDSEL | LBS_NODATA | WS_VSCROLL | WS_HSCROLL | WS_TABSTOP
     GROUPBOX        "CSPro Open Source Directories",IDC_STATIC,7,7,212,76
@@ -113,6 +114,7 @@ END
 IDD_SYNCER AFX_DIALOG_LAYOUT
 BEGIN
     0,
+    0, 0, 0, 0,
     0, 0, 0, 0,
     0, 0, 0, 0,
     0, 0, 0, 0,

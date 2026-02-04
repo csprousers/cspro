@@ -421,6 +421,12 @@ GitObjectId GitRepository::CreateBlob(const void* const data, const size_t size)
 }
 
 
+GitObjectId GitRepository::CreateBlob(const BinaryBlock& data) const
+{
+    return CreateBlob(data.data(), data.size());
+}
+
+
 GitObjectId GitRepository::CreateBlob(const std::string_view data_sv) const
 {
     return CreateBlob(data_sv.data(), data_sv.size());
@@ -624,6 +630,31 @@ bool GitRepository::IsTag(const std::string_view tag_name_sv) const
         default:
             throw GitException();
     }
+}
+
+
+GitObjectId GitRepository::CreateTag(const GitSignature& tagger, const GitCommit& commit,
+                                     const cs::string_sz tag_name,
+                                     const std::optional<cs::string_sz> message/* = std::nullopt*/)
+{
+    EnsureRepositoryIsOpen();
+
+    git_oid tag_oid;
+
+    const int result = git_tag_create(
+        &tag_oid,
+        m_repo,
+        tag_name.c_str(),
+        reinterpret_cast<const git_object*>(static_cast<const git_commit*>(commit)),
+        tagger,
+        message.has_value() ? message->c_str() : tag_name.c_str(),
+        0 // do not force
+    );
+
+    if( result != 0 )
+        throw GitException();
+
+    return GitObjectId(tag_oid);
 }
 
 

@@ -60,6 +60,9 @@ public:
     // was opened in bare mode.
     std::string GetWorkingDirectory() const noexcept;
 
+    // Throws an exception if a repository is not open.
+    void EnsureRepositoryIsOpen() const;
+
 
     // --------------------------------------------------------------------------
     // Branches
@@ -162,6 +165,7 @@ public:
     // If the content has already been added, it will not be added again.
     // An exception is thrown on error.
     GitObjectId CreateBlob(const void* data, size_t size) const;
+    GitObjectId CreateBlob(const BinaryBlock& data) const;
     GitObjectId CreateBlob(std::string_view data_sv) const;
 
 
@@ -207,6 +211,13 @@ public:
     // Returns true if the tag exists.
     bool IsTag(std::string_view tag_name_sv) const;
 
+    // Creates an annotated tag.
+    // If no message is provided, the tag name is used for the message.
+    // An exception is thrown if the tag already exists.
+    GitObjectId CreateTag(const GitSignature& tagger, const GitCommit& commit,
+                          cs::string_sz tag_name,
+                          std::optional<cs::string_sz> message = std::nullopt);
+
 
     // --------------------------------------------------------------------------
     // Ignore Rules
@@ -225,8 +236,6 @@ public:
 
 
 private:
-    void EnsureRepositoryIsOpen() const;
-
     void Open(std::string repo_directory, bool create, bool bare);
 
     template<typename GitObjectT>

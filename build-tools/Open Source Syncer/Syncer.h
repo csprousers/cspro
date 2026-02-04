@@ -28,6 +28,10 @@ public:
     // settings database for future use.
     void RefreshLibraryTags(GitRepository& library_repo);
 
+    // Creates a commit in the open source libraries repository with the
+    // built libraries at the given commit in the open source repository.
+    void CreateLibraryCommit(GitRepository& library_repo, const GitCommit& cs_commit);
+
 private:
     // cs = private CSPro repository
     // os = public open source repository

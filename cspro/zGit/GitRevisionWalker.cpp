@@ -5,6 +5,8 @@
 GitRevisionWalker::GitRevisionWalker(GitRepository& repo)
     :   m_repo(repo)
 {
+    repo.EnsureRepositoryIsOpen();
+
     if( git_revwalk_new(&m_walker, m_repo) != 0 )
         throw GitException();
 }

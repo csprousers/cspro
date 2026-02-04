@@ -24,9 +24,9 @@ namespace
     constexpr const char* ExclusionsFilename   = "exclusions.txt";
     constexpr const char* ReplacementsFilename = "replacements.json";
 
-    constexpr std::string_view LibrariesCommitMessageIdentifier_sv = "Libraries ID:";
+    constexpr std::string_view LibrariesCommitMessageIdentifier_sv = "libraries hash: ";
     constexpr std::string_view LibrariesSettingsKeyPrefix_sv       = "Libraries-";
-    constexpr size_t LibrariesHashLength                           = 32;
+    constexpr size_t LibrariesHashHexLength                        = 32 / 2;
 }
 
 
@@ -675,7 +675,7 @@ GitCommit Syncer::MirrorFeatureBranch(const GitBranch& os_merge_branch, const Gi
 
     // update HISTORY.md
     const std::string history = CreateHistoryLog(cs_new_merge_commit);
-    const GitObjectId os_history_blob_oid = m_openSourceRepo.CreateBlob(history.data(), history.size());
+    const GitObjectId os_history_blob_oid = m_openSourceRepo.CreateBlob(history);
     os_index.AddEntry(os_history_blob_oid, "HISTORY.md", GIT_FILEMODE_BLOB);
 
     // commit this merge commit with the updated history
@@ -1055,7 +1055,7 @@ std::string Syncer::CalculateBuiltLibrariesCacheKey(const bool local_version)
         }
     }
 
-    return Hash::Hash(cache_key_inputs, LibrariesHashLength);
+    return Hash::Hash(cache_key_inputs, LibrariesHashHexLength);
 }
 
 
@@ -1085,7 +1085,7 @@ void Syncer::RefreshLibraryTags(GitRepository& library_repo)
                     std::string_view(commit_message).substr(id_pos + LibrariesCommitMessageIdentifier_sv.length())
                 ));
 
-                if( library_id.length() != LibrariesHashLength )
+                if( library_id.length() != LibrariesHashHexLength )
                     throw CSProException("The library ID was not valid: %s", library_id.c_str());
 
                 m_loggingListBox.AddText("Library ID updated: " + library_id);
@@ -1096,4 +1096,121 @@ void Syncer::RefreshLibraryTags(GitRepository& library_repo)
 
             return true;
         });
+}
+
+
+void Syncer::CreateLibraryCommit(GitRepository& library_repo, const GitCommit& cs_commit)
+{
+    m_loggingListBox.AddText("Creating a commit with the built libraries as of:\n    %s\n    %s",
+                             cs_commit.GetCommitter().GetWhen().GetLocalDateTimeString().c_str(),
+                             cs_commit.GetMessage().c_str());
+
+    PopulateBuiltLibraries(cs_commit);
+
+    const std::string library_id = CalculateBuiltLibrariesCacheKey(false);
+
+    const int64_t commit_timestamp = cs_commit.GetCommitter().GetWhen().GetTimestamp();
+    const DateTime::Components date_time_components = DateTime::TimeToComponents(commit_timestamp);
+    const std::string commit_yyyy_mm_dd = FormatText("%04d-%02d-%02d",
+        date_time_components.year, date_time_components.month, date_time_components.day
+    );
+
+    // the tag name will be the commit date and the first seven characters of the source commit's OID
+    const std::string cs_commit_oid_hash = cs_commit.GetObjectId().GetHexHash();
+    const std::string tag_name = FormatText("v%s-%.7s", commit_yyyy_mm_dd.c_str(), cs_commit_oid_hash.c_str());
+
+    if( library_repo.IsTag(tag_name) )
+        throw CSProException("A library commit for these libraries already exists, tagged with: " + tag_name);
+
+    if( library_repo.HasChanges() )
+        throw CSProException("You cannot create a library commit if there are changes in the open source libraries directory.");
+
+    // all commits will be to main
+    GitBranch branch = library_repo.LookupBranch("main");
+    library_repo.CheckoutBranch(branch);
+
+    GitIndex index = library_repo.GetIndex();
+    const std::map<std::string, GitObjectId> current_files = index.GetPathObjectIdMap();
+
+    // remove any libraries no longer used
+    for( const auto& [repo_path, oid] : current_files )
+    {
+        // ignore any files at the root (e.g., README.md)
+        if( PortableFunctions::PathGetDirectory(repo_path).empty() )
+            continue;
+
+        const auto& lookup = std::find_if(
+            m_builtLibraries.cbegin(), m_builtLibraries.cend(),
+            [&](const BuiltLibrary& built_library) { return ( repo_path == built_library.repo_path ); }
+        );
+
+        if( lookup == m_builtLibraries.cend() )
+        {
+            m_loggingListBox.AddText("Removing library: " + repo_path);
+            index.RemoveEntryByPath(repo_path);
+        }
+    }
+
+    // add the current set of external libraries
+    for( const BuiltLibrary& built_library : m_builtLibraries )
+    {
+        // only add the entry if it has not been previously added, or has changed
+        const auto& lookup = current_files.find(built_library.repo_path);
+
+        if( lookup != current_files.cend() &&
+            lookup->second == built_library.cs_blob_oid )
+        {
+            m_loggingListBox.AddText("Library is unchanged: " + built_library.repo_path);
+        }
+
+        else
+        {
+            m_loggingListBox.AddText("Adding library: " + built_library.repo_path);
+
+            ASSERT(built_library.file_data != nullptr);
+            const GitObjectId blob_oid = library_repo.CreateBlob(*built_library.file_data);
+            index.AddEntry(blob_oid, built_library.repo_path, GIT_FILEMODE_BLOB);
+        }
+    }
+
+    // for the signature, use the committer's email but the name "CSPro Bot"
+    GitSignature author_and_committer = GitSignature::Create(
+        "CSPro Bot",
+        GitSignature::CreateDefault(library_repo).GetEmail()
+    );
+
+    // use the date of the source commit 
+    author_and_committer.SetWhen(cs_commit.GetCommitter().GetWhen());
+
+    // the message will contain the source commit's date and OID, and then the library ID
+    const std::string message = SO::Concatenate(
+        "libraries as of ", commit_yyyy_mm_dd,
+        "\n\nsource commit: https://github.com/CSProDevelopment/cspro/commit/", cs_commit_oid_hash,
+        "\n\n", LibrariesCommitMessageIdentifier_sv, library_id
+    );
+
+    // create the commit
+    GitTree tree = library_repo.WriteTree(index);
+
+    const GitObjectId commit_oid = library_repo.CreateCommit(
+        author_and_committer,
+        message,
+        tree,
+        library_repo.LookupCommit(branch)
+    );
+
+    // tag the commit, with the message referencing the source commit's OID
+    library_repo.CreateTag(
+        author_and_committer,
+        library_repo.LookupCommit(commit_oid),
+        tag_name,
+        "Created from: " + cs_commit_oid_hash
+    );
+
+    // when complete, checkout the HEAD so that the working directory matches the index
+    library_repo.CheckoutHead(GIT_CHECKOUT_FORCE);
+
+    // cache this tag
+    const std::string cache_key = SO::Concatenate(LibrariesSettingsKeyPrefix_sv, library_id);
+    m_settingsDb.Write(cache_key, tag_name);
 }

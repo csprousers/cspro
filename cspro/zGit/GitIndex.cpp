@@ -79,6 +79,8 @@ std::map<std::string, GitObjectId> GitIndex::GetPathObjectIdMap() const
 
 void GitIndex::AddEntry(const GitObjectId& oid, const cs::string_sz path, const uint32_t mode)
 {
+    ASSERT(strchr(path.c_str(), '\\') == nullptr);
+
     git_index_entry index_entry { };
 
     memcpy(&index_entry.id, static_cast<const git_oid*>(oid), sizeof(git_oid));

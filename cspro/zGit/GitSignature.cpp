@@ -30,6 +30,23 @@ GitSignature GitSignature::Create(std::string name, std::string email)
 }
 
 
+GitSignature GitSignature::CreateDefault(GitRepository& repo)
+{
+    repo.EnsureRepositoryIsOpen();
+
+    git_signature* sig;
+
+    if( git_signature_default(&sig, repo) != 0 )
+        throw GitException();
+
+    GitSignature signature(sig->name, sig->email, sig->when);
+
+    git_signature_free(sig);
+
+    return signature;
+}
+
+
 bool GitSignature::operator==(const GitSignature& rhs) const noexcept
 {
     // 'when' is compared first as that is the most likely to be different

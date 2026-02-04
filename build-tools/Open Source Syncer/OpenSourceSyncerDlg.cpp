@@ -16,6 +16,7 @@ BEGIN_MESSAGE_MAP(OpenSourceSyncerDlg, ResizableDlg)
     ON_COMMAND(IDC_SYNC, OnSync)
     ON_COMMAND(IDC_COMPARE, OnCompare)
     ON_COMMAND(IDC_REFRESH_LIBRARY_TAGS, OnRefreshLibraryTags)
+    ON_COMMAND(IDC_COMMIT_LIBRARY, OnCommitLibrary)
     ON_MESSAGE(UWM::OpenSourceSyncer::OperationComplete, OnOperationComplete)
     ON_MESSAGE(UWM::ToolsO::DisplayErrorMessage, OnDisplayErrorMessage)
 END_MESSAGE_MAP()
@@ -231,10 +232,11 @@ struct OpenSourceSyncerDlg::LibraryData
 {
     Syncer* syncer = nullptr;
     GitRepository repo;
+    std::optional<GitCommit> cs_commit;
 };
 
 
-void OpenSourceSyncerDlg::ValidateLibraryData(LibraryData& library_data, const bool open_bare)
+void OpenSourceSyncerDlg::ValidateLibraryData(LibraryData& library_data, const bool creating_commit)
 {
     library_data.syncer = m_syncer.get();
     ASSERT(library_data.syncer != nullptr);
@@ -242,11 +244,39 @@ void OpenSourceSyncerDlg::ValidateLibraryData(LibraryData& library_data, const b
     if( m_openSourceLibrariesDirectory.empty() )
         throw CSProException("Specify the open source libraries directory.");
 
-    library_data.repo.Open(Path::Combine(m_openSourceLibrariesDirectory, ".git"), open_bare);
+    if( creating_commit )
+    {
+        if( m_commitNew.empty() )
+            throw CSProException("Specify the commit (as the feature branch newest merge commit).");
+
+        library_data.cs_commit = library_data.syncer->GetPrivateRepo().LookupCommit(m_commitNew);
+    }
+
+    const bool bare = !creating_commit;
+    library_data.repo.Open(Path::Combine(m_openSourceLibrariesDirectory, ".git"), bare);
 }
 
 
 void OpenSourceSyncerDlg::OnRefreshLibraryTags()
+{
+    auto library_data = std::make_shared<LibraryData>();
+
+    RunOperation(
+        // validation
+        [&, library_data]()
+        {
+            ValidateLibraryData(*library_data, false);
+        },
+        // operation
+        [library_data]()
+        {
+            library_data->syncer->RefreshLibraryTags(library_data->repo);
+        }
+    );
+}
+
+
+void OpenSourceSyncerDlg::OnCommitLibrary()
 {
     auto library_data = std::make_shared<LibraryData>();
 
@@ -259,7 +289,7 @@ void OpenSourceSyncerDlg::OnRefreshLibraryTags()
         // operation
         [library_data]()
         {
-            library_data->syncer->RefreshLibraryTags(library_data->repo);
+            library_data->syncer->CreateLibraryCommit(library_data->repo, *library_data->cs_commit);
         }
     );
 }

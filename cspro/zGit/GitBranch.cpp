@@ -67,6 +67,8 @@ std::string GitBranch::GetBranchName(git_reference& branch_ref)
 
 void GitBranch::Refresh(GitRepository& repo)
 {
+    repo.EnsureRepositoryIsOpen();
+
     git_reference_free(m_branchRef);
 
     if( git_branch_lookup(&m_branchRef, repo, m_name.c_str(), GIT_BRANCH_ALL) != 0 )

@@ -24,6 +24,10 @@ public:
     // Creates a new signature.
     static GitSignature Create(std::string name, std::string email);
 
+    // Creates a new default signature (looking at local, global, and system signatures).
+    // An exception is thrown if no default signature is defined.
+    static GitSignature CreateDefault(GitRepository& repo);
+
     bool operator==(const GitSignature& rhs) const noexcept;
     bool operator!=(const GitSignature& rhs) const noexcept { return !operator==(rhs); }
 
