@@ -260,10 +260,7 @@ std::string Syncer::CreateSqliteWithoutSEE(const git_diff_file& new_file)
         if( public_sqlite.find(full_version_line) == std::string::npos )
             throw CSProException("The SQLite amalgamation version header does not match: " + full_version_line);
 
-        // OS_TODO change to V3 after merging 2025-03-28
-        const SQLiteSourceUpdater::DllVersion sqlite_version = SQLiteSourceUpdater::DllVersion::V2;
-
-        SQLiteSourceUpdater::Update(public_sqlite, is_header, SQLiteSourceUpdater::SQLiteVersion::Public, sqlite_version);
+        SQLiteSourceUpdater::Update(public_sqlite, is_header, SQLiteSourceUpdater::Version::Public);
 
         // cache this result
         m_settingsDb.Write(cache_key, public_sqlite);

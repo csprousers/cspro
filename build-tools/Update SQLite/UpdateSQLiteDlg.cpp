@@ -74,8 +74,8 @@ void UpdateSQLiteDlg::OnOK()
         std::string sqlite_c = FileIO::ReadText(Path::Combine(m_seeDirectory, "sqlite3-" + m_seeEncryptionVariant));
 
         // prepare them for CSPro
-        SQLiteSourceUpdater::Update(sqlite_h, true, SQLiteSourceUpdater::SQLiteVersion::SEE);
-        SQLiteSourceUpdater::Update(sqlite_c, false, SQLiteSourceUpdater::SQLiteVersion::SEE);
+        SQLiteSourceUpdater::Update(sqlite_h, true, SQLiteSourceUpdater::Version::SEE);
+        SQLiteSourceUpdater::Update(sqlite_c, false, SQLiteSourceUpdater::Version::SEE);
 
         // write them to the external sources directory
         const std::string sqlite_directory = MakeFullPath(PortableFunctions::PathGetDirectory(__FILE__),
