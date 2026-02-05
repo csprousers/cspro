@@ -36,6 +36,7 @@
     <ClCompile Include="GitMerge.cpp" />
     <ClCompile Include="GitObject.cpp" />
     <ClCompile Include="GitObjectId.cpp" />
+    <ClCompile Include="GitReference.cpp" />
     <ClCompile Include="GitRepository.cpp" />
     <ClCompile Include="GitRevisionWalker.cpp" />
     <ClCompile Include="GitSignature.cpp" />
@@ -59,6 +60,7 @@
     <ClInclude Include="GitMerge.h" />
     <ClInclude Include="GitObject.h" />
     <ClInclude Include="GitObjectId.h" />
+    <ClInclude Include="GitReference.h" />
     <ClInclude Include="GitRepository.h" />
     <ClInclude Include="GitRevisionWalker.h" />
     <ClInclude Include="GitSignature.h" />

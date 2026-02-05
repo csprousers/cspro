@@ -10,6 +10,7 @@
 #include <zGit/GitIndex.h>
 #include <zGit/GitObject.h>
 #include <zGit/GitObjectId.h>
+#include <zGit/GitReference.h>
 #include <zGit/GitRepository.h>
 #include <zGit/GitTag.h>
 #include <zGit/GitTree.h>

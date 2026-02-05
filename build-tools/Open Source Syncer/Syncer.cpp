@@ -717,7 +717,6 @@ GitCommit Syncer::MirrorFeatureBranch(const GitBranch& os_merge_branch, const Gi
     );
 
     // delete the temporary feature branch
-    os_temp_branch.Refresh(m_openSourceRepo);
     os_temp_branch.Delete();
 
     // make sure that the repositories match

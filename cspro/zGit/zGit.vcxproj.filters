@@ -41,6 +41,9 @@
     <ClCompile Include="GitObjectId.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="GitReference.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="GitRepository.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -98,6 +101,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="GitObjectId.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GitReference.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="GitRepository.h">

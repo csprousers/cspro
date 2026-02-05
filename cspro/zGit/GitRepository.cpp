@@ -82,7 +82,7 @@ std::string GitRepository::GetWorkingDirectory() const noexcept
 }
 
 
-GitBranch GitRepository::GetCurrentBranch() const
+GitBranch GitRepository::GetCurrentBranch()
 {
     EnsureRepositoryIsOpen();
 
@@ -91,11 +91,11 @@ GitBranch GitRepository::GetCurrentBranch() const
     if( git_repository_head(&branch_ref, m_repo) != 0 )
         throw GitException();
 
-    return GitBranch(*branch_ref);
+    return GitBranch(*this, GitReference(*branch_ref));
 }
 
 
-GitBranch GitRepository::LookupBranch(std::string branch_name) const
+GitBranch GitRepository::LookupBranch(std::string branch_name)
 {
     EnsureRepositoryIsOpen();
 
@@ -104,11 +104,11 @@ GitBranch GitRepository::LookupBranch(std::string branch_name) const
     if( git_branch_lookup(&branch_ref, m_repo, branch_name.c_str(), GIT_BRANCH_ALL) != 0 )
         throw GitException("The branch was not found in the repository: %s", branch_name.c_str());
 
-    return GitBranch(*branch_ref, std::move(branch_name));
+    return GitBranch(*this, std::move(branch_name));
 }
 
 
-GitBranch GitRepository::CreateBranch(std::string branch_name, const GitCommit& commit) const
+GitBranch GitRepository::CreateBranch(std::string branch_name, const GitCommit& commit)
 {
     EnsureRepositoryIsOpen();
 
@@ -117,11 +117,13 @@ GitBranch GitRepository::CreateBranch(std::string branch_name, const GitCommit& 
     if( git_branch_create(&branch_ref, m_repo, branch_name.c_str(), commit, 0) != 0 )
         throw GitException();
 
-    return GitBranch(*branch_ref, std::move(branch_name));
+    git_reference_free(branch_ref);
+
+    return GitBranch(*this, std::move(branch_name));
 }
 
 
-void GitRepository::ForeachLocalBranch(const std::function<bool(GitBranch)>& callback_function) const
+void GitRepository::ForeachLocalBranch(const std::function<bool(GitBranch)>& callback_function)
 {
     EnsureRepositoryIsOpen();
 
@@ -137,7 +139,7 @@ void GitRepository::ForeachLocalBranch(const std::function<bool(GitBranch)>& cal
     int next_result;
 
     while( ( next_result = git_branch_next(&branch_ref, &branch_type, branch_iterator) ) == 0 &&
-            callback_function(GitBranch(*branch_ref)) )
+            callback_function(GitBranch(*this, GitReference(*branch_ref))) )
     {
     }
 
@@ -146,12 +148,12 @@ void GitRepository::ForeachLocalBranch(const std::function<bool(GitBranch)>& cal
 }
 
 
-void GitRepository::CheckoutBranch(const GitBranch& branch) const
+void GitRepository::CheckoutBranch(const GitBranch& branch, const unsigned int checkout_strategy) const
 {
     EnsureRepositoryIsOpen();
 
     git_checkout_options checkout_options = GIT_CHECKOUT_OPTIONS_INIT;
-    ASSERT(( checkout_options.checkout_strategy & GIT_CHECKOUT_SAFE ) == GIT_CHECKOUT_SAFE);
+    checkout_options.checkout_strategy = checkout_strategy;
 
     const GitCommit commit = LookupCommit(branch);
     const git_object* const commit_object = reinterpret_cast<const git_object*>(static_cast<const git_commit*>(commit));
@@ -159,10 +161,13 @@ void GitRepository::CheckoutBranch(const GitBranch& branch) const
     if( git_checkout_tree(m_repo, commit_object, &checkout_options) != 0 )
         throw GitException();
 
-    const std::string head_reference = "refs/heads/" + branch.GetName();
+    SetHead(branch);
+}
 
-    if( git_repository_set_head(m_repo, head_reference.c_str()) != 0 )
-        throw GitException();
+
+void GitRepository::CheckoutBranch(const GitBranch& branch) const
+{
+    CheckoutBranch(branch, GIT_CHECKOUT_SAFE);
 }
 
 
@@ -178,13 +183,28 @@ void GitRepository::CheckoutHead(const unsigned int checkout_strategy) const
 }
 
 
-void GitRepository::ResetBranchMixed(const GitCommit& commit) const
+void GitRepository::SetHead(const GitBranch& branch) const
 {
+    EnsureRepositoryIsOpen();
+
+    const std::string head_reference = "refs/heads/" + branch.GetName();
+
+    if( git_repository_set_head(m_repo, head_reference.c_str()) != 0 )
+        throw GitException();
+}
+
+
+void GitRepository::ResetHead(const ResetType type, const GitCommit& commit) const
+{
+    static_assert(static_cast<git_reset_t>(ResetType::Soft) == GIT_RESET_SOFT &&
+                  static_cast<git_reset_t>(ResetType::Mixed) == GIT_RESET_MIXED &&
+                  static_cast<git_reset_t>(ResetType::Hard) == GIT_RESET_HARD);
+
     EnsureRepositoryIsOpen();
 
     const git_object* const target = reinterpret_cast<const git_object*>(static_cast<const git_commit*>(commit));
 
-    if( git_reset(m_repo, target, GIT_RESET_MIXED, nullptr) != 0 )
+    if( git_reset(m_repo, target, static_cast<git_reset_t>(type), nullptr) != 0 )
         throw GitException();
 }
 

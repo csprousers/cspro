@@ -69,34 +69,42 @@ public:
     // --------------------------------------------------------------------------
 
     // Returns the branch pointed to by HEAD.
-    GitBranch GetCurrentBranch() const;
+    GitBranch GetCurrentBranch();
 
     // Looks up the branch, throwing an exception if not found.
-    GitBranch LookupBranch(std::string branch_name) const;
+    GitBranch LookupBranch(std::string branch_name);
 
     // Creates a new branch, throwing an exception on error (e.g., if a branch with
     // the name already exists). This does not change the current branch.
-    GitBranch CreateBranch(std::string branch_name, const GitCommit& commit) const;
+    GitBranch CreateBranch(std::string branch_name, const GitCommit& commit);
 
     // Executes the callback function for each of the repository's local branches.
     // The callback function, which can throw exceptions, should return true to continue processing.
-    void ForeachLocalBranch(const std::function<bool(GitBranch)>& callback_function) const;
+    void ForeachLocalBranch(const std::function<bool(GitBranch)>& callback_function);
 
-    // Sets the HEAD to the specified branch in safe mode:
-    // "Allow safe updates that cannot overwrite uncommitted data. If the uncommitted
-    // changes don't conflict with the checked out files, the checkout will still proceed,
-    // leaving the changes intact."
+    // Sets the HEAD to the specified branch's target, also updating the index and working tree.
+    // The checkout defaults to safe mode. The modes:
+    //   GIT_CHECKOUT_SAFE:
+    //     "Allow safe updates that cannot overwrite uncommitted data. If the uncommitted
+    //      changes don't conflict with the checked out files, the checkout will still
+    //      proceed, leaving the changes intact."
+    //   GIT_CHECKOUT_FORCE:
+    //     "Allow all updates to force working directory to look like the index,
+    //      potentially losing data in the process."
+    void CheckoutBranch(const GitBranch& branch, unsigned int checkout_strategy) const;
     void CheckoutBranch(const GitBranch& branch) const;
 
     // "Updates files in the index and the working tree to match the content of
     // the commit pointed at by HEAD."
-    // GIT_CHECKOUT_SAFE applies the safe updates described above for CheckoutBranch.
-    // GIT_CHECKOUT_FORCE allows "all updates to force [the] working directory to look
-    // like the index, potentially losing data in the process."
     void CheckoutHead(unsigned int checkout_strategy) const;
 
-    // Resets the current branch to the commit using the mode "mixed."
-    void ResetBranchMixed(const GitCommit& commit) const;
+    // Sets the HEAD to the specified branch's target. The index and working tree are
+    // not changed. To also update the index and working tree, use CheckoutBranch.
+    void SetHead(const GitBranch& branch) const;
+
+    // Sets the HEAD to the specified commit using one of the reset strategies.
+    enum class ResetType { Soft = 1, Mixed = 2, Hard = 3 };
+    void ResetHead(ResetType type, const GitCommit& commit) const;
 
 
     // --------------------------------------------------------------------------
