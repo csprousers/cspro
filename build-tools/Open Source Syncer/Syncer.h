@@ -62,12 +62,17 @@ private:
     // used at this point.
     void UpdateBuildDetails(GitIndex& os_index, const std::string& libraries_tag);
 
+    // Walks the parents from one merge commit to another, returning the oldest and newest merge commits,
+    // and all merge commits in between. The commits are returned in order from oldest to newest.
+    static std::vector<GitCommit> GetOrderedMergedCommits(const GitCommit& oldest_merge_commit,
+                                                          const GitCommit& newest_merge_commit);
+
     // Creates a commit in the open source repository, using the author / signature / message from the source commit.
     GitCommit CreateMirroredCommit(const GitCommit& cs_commit, const GitTree& os_written_tree,
                                    const GitCommit& os_parent_commit1, const GitCommit* os_parent_commit2);
 
     // Mirrors the feature branch, returning the merge commit.
-    GitCommit MirrorFeatureBranch(const GitBranch& os_merge_branch, const GitCommit& os_start_commit,
+    GitCommit MirrorFeatureBranch(const GitBranch& os_merge_branch,
                                   const GitCommit& cs_old_merge_commit, const GitCommit& cs_new_merge_commit);
 
     // Mirrors the feature branch's commits and returns the final commit.

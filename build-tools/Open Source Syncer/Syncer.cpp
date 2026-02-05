@@ -351,7 +351,16 @@ std::string Syncer::CreateHistoryLog(const GitCommit& os_latest_commit)
                              os_latest_commit.GetCommitter().GetWhen().GetLocalDateTimeString());
 
     if( m_releaseTags.empty() )
+    {
         PopulateReleaseTags(EarliestTag_sv);
+    }
+
+    else
+    {
+        // OS_TODO optimize the history log creation when processing multiple feature branches
+        std::for_each(m_releaseTags.begin(), m_releaseTags.end(),
+                      [](TagCommits& tc) { tc.pull_requests.clear(); });
+    }
 
     std::vector<TagCommits::PullRequest> newer_than_tags_pull_requests;
 
@@ -591,6 +600,31 @@ bool Syncer::CompareRepositories(const GitCommit& cs_commit, const GitCommit& os
 }
 
 
+std::vector<GitCommit> Syncer::GetOrderedMergedCommits(const GitCommit& oldest_merge_commit,
+                                                       const GitCommit& newest_merge_commit)
+{
+    std::vector<GitCommit> merge_commits { newest_merge_commit };
+
+    while( true )
+    {
+        const GitCommit& current_merge_commit = merge_commits.front();
+
+        if( current_merge_commit == oldest_merge_commit )
+            break;
+
+        if( current_merge_commit.GetParentCount() != 2 )
+        {
+            throw CSProException("Update this tool to support merge commits with more than two parents for commit: " +
+                                 current_merge_commit.GetObjectId().GetHexHash());
+        }
+
+        merge_commits.insert(merge_commits.begin(), current_merge_commit.GetParent(0));
+    };
+
+    return merge_commits;
+}
+
+
 void Syncer::MirrorFeatureBranches(const GitBranch& os_merge_branch,
                                    const GitCommit& cs_oldest_merge_commit, const GitCommit& cs_newest_merge_commit)
 {
@@ -598,26 +632,27 @@ void Syncer::MirrorFeatureBranches(const GitBranch& os_merge_branch,
     if( m_openSourceRepo.HasChanges() )
         throw CSProException("You cannot run the sync if there are changes in the open source directory.");
 
-    GitCommit os_last_merged_commit = m_openSourceRepo.LookupCommit(os_merge_branch.GetTarget());
+    // multiple feature branches may be mirrored
+    if( cs_newest_merge_commit == cs_oldest_merge_commit )
+        throw CSProException("The oldest and newest merge commits are identical.");
 
-    GitCommit cs_old_merge_commit = cs_oldest_merge_commit;
+    const std::vector<GitCommit> cs_merge_commits = GetOrderedMergedCommits(cs_oldest_merge_commit, cs_newest_merge_commit);
+    ASSERT(cs_merge_commits.front() == cs_oldest_merge_commit && cs_merge_commits.back() == cs_newest_merge_commit);
 
-    while( true )
+    auto cs_merge_commit_old_itr = cs_merge_commits.cbegin();
+    auto cs_merge_commit_new_itr = cs_merge_commit_old_itr + 1;
+
+    do
     {
-        GitCommit cs_new_merge_commit = cs_newest_merge_commit;  // OS_TODO calculate next merge commit
-
-        os_last_merged_commit = MirrorFeatureBranch(
+        MirrorFeatureBranch(
             os_merge_branch,
-            os_last_merged_commit,
-            cs_old_merge_commit,
-            cs_new_merge_commit
+            *cs_merge_commit_old_itr,
+            *cs_merge_commit_new_itr
         );
 
-        if( cs_new_merge_commit == cs_newest_merge_commit )
-            break;
+        cs_merge_commit_old_itr = cs_merge_commit_new_itr++;
 
-        cs_old_merge_commit = cs_new_merge_commit;
-    }
+    } while( cs_merge_commit_new_itr != cs_merge_commits.cend() );
 
     // when complete, checkout the HEAD so that the working directory matches the index
     m_openSourceRepo.CheckoutHead(GIT_CHECKOUT_FORCE);
@@ -644,7 +679,7 @@ GitCommit Syncer::CreateMirroredCommit(const GitCommit& cs_commit, const GitTree
 }
 
 
-GitCommit Syncer::MirrorFeatureBranch(const GitBranch& os_merge_branch, const GitCommit& os_start_commit,
+GitCommit Syncer::MirrorFeatureBranch(const GitBranch& os_merge_branch,
                                       const GitCommit& cs_old_merge_commit, const GitCommit& cs_new_merge_commit)
 {
     if( cs_old_merge_commit.GetParentCount() != 2 || cs_new_merge_commit.GetParentCount() != 2 )
@@ -658,6 +693,8 @@ GitCommit Syncer::MirrorFeatureBranch(const GitBranch& os_merge_branch, const Gi
     const std::string libraries_tag = GetTagForBuiltLibraries(cs_new_merge_commit);
 
     // create and checkout a temporary open source branch for this work
+    const GitCommit os_start_commit = m_openSourceRepo.LookupCommit(os_merge_branch);
+
     const std::string os_temp_branch_name = SO::Concatenate(
         IntToString(GetTimestamp()),
         "-",
@@ -665,7 +702,6 @@ GitCommit Syncer::MirrorFeatureBranch(const GitBranch& os_merge_branch, const Gi
     );
 
     GitBranch os_temp_branch = m_openSourceRepo.CreateBranch(os_temp_branch_name, os_start_commit);
-
     m_openSourceRepo.CheckoutBranch(os_temp_branch);
 
     // mirror the feature branch
@@ -676,7 +712,8 @@ GitCommit Syncer::MirrorFeatureBranch(const GitBranch& os_merge_branch, const Gi
     );
 
     // switch back to the destination branch
-    m_openSourceRepo.CheckoutBranch(os_merge_branch);
+    m_openSourceRepo.SetHead(os_merge_branch);
+    m_openSourceRepo.ResetHead(GitRepository::ResetType::Hard, os_start_commit);
 
     // mirror the merge commit
     GitIndex os_index = m_openSourceRepo.GetIndex();
@@ -1247,7 +1284,7 @@ void Syncer::CommitBuildLibraries(GitRepository& library_repo, const GitCommit& 
     );
 
     // when complete, checkout the HEAD so that the working directory matches the index
-    library_repo.CheckoutHead(GIT_CHECKOUT_FORCE);
+    library_repo.CheckoutHead(GIT_CHECKOUT_FORCE | GIT_CHECKOUT_REMOVE_UNTRACKED);
 
     // cache this tag
     const std::string actual_settings_key = SO::Concatenate(LibrariesSettingsKeyPrefix_sv, library_id);
