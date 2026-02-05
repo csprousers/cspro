@@ -58,6 +58,10 @@ private:
     // Returns the HISTORY.md file showing pull requests up to the commit.
     std::string CreateHistoryLog(const GitCommit& os_latest_commit);
 
+    // Updates the BUILD.md file with information about the built libraries to be
+    // used at this point.
+    void UpdateBuildDetails(GitIndex& os_index, const std::string& libraries_tag);
+
     // Creates a commit in the open source repository, using the author / signature / message from the source commit.
     GitCommit CreateMirroredCommit(const GitCommit& cs_commit, const GitTree& os_written_tree,
                                    const GitCommit& os_parent_commit1, const GitCommit* os_parent_commit2);
@@ -91,6 +95,10 @@ private:
     // Returns a cache key for the built libraries. The local version is only valid locally,
     // as it uses file times, and is only a shortcut to access the actual version used.
     std::string CalculateBuiltLibrariesCacheKey(bool local_version);
+
+    // Returns the tag in the open source libraries repository that contains
+    // the built libraries at the given commit. An exception is thrown when it does not exist.
+    std::string GetTagForBuiltLibraries(const GitCommit& cs_commit);
 
 private:
     SettingsDb& m_settingsDb;

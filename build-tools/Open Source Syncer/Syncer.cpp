@@ -24,8 +24,12 @@ namespace
     constexpr const char* ExclusionsFilename   = "exclusions.txt";
     constexpr const char* ReplacementsFilename = "replacements.json";
 
+    constexpr const char* BuildFilename   = "BUILD.md";
+    constexpr const char* HistoryFilename = "HISTORY.md";
+
     constexpr std::string_view LibrariesCommitMessageIdentifier_sv = "libraries hash: ";
     constexpr std::string_view LibrariesSettingsKeyPrefix_sv       = "Libraries-";
+    constexpr std::string_view LibrariesTagInBuildFile_sv          = "%LIBRARY_TAG%";
     constexpr size_t LibrariesHashHexLength                        = 32;
 }
 
@@ -455,6 +459,18 @@ std::string Syncer::CreateHistoryLog(const GitCommit& os_latest_commit)
 }
 
 
+void Syncer::UpdateBuildDetails(GitIndex& os_index, const std::string& libraries_tag)
+{
+    const GitObjectId os_old_build_blob_oid = os_index.GetObjectIdByPath(BuildFilename);
+    std::string build_details = m_openSourceRepo.LookupBlob(os_old_build_blob_oid).as<std::string>();
+
+    SO::Replace(build_details, LibrariesTagInBuildFile_sv, libraries_tag);
+
+    const GitObjectId os_new_build_blob_oid = m_openSourceRepo.CreateBlob(build_details);
+    os_index.AddEntry(os_new_build_blob_oid, BuildFilename, GIT_FILEMODE_BLOB);
+}
+
+
 bool Syncer::CompareRepositories(const GitCommit& cs_commit, const GitCommit& os_commit, const bool verbose)
 {
     m_loggingListBox.AddText("Comparing: private (%s) <-> open source (%s)",
@@ -510,6 +526,12 @@ bool Syncer::CompareRepositories(const GitCommit& cs_commit, const GitCommit& os
                 m_loggingListBox.AddText("Different file (expected replacement): " + cs_path);
         }
 
+        else if( cs_path == BuildFilename )
+        {
+            if( verbose )
+                m_loggingListBox.AddText("Different file (expected updated): " + cs_path);
+        }
+
         // otherwise compare as text with normalized line endings
         else
         {
@@ -532,7 +554,7 @@ bool Syncer::CompareRepositories(const GitCommit& cs_commit, const GitCommit& os
 
     // report on any unexpected files in the open source repository,
     // first removing any files only in the open source directory
-    for( const char* const os_path : { "HISTORY.md" } )
+    for( const char* const os_path : { HistoryFilename } )
     {
         const auto& os_lookup = os_files.find(os_path);
 
@@ -632,6 +654,9 @@ GitCommit Syncer::MirrorFeatureBranch(const GitBranch& os_merge_branch, const Gi
                              cs_new_merge_commit.GetObjectId().GetHexHash().c_str());
     }
 
+    // make sure that the libraries for this feature branch have been created
+    const std::string libraries_tag = GetTagForBuiltLibraries(cs_new_merge_commit);
+
     // create and checkout a temporary open source branch for this work
     const std::string os_temp_branch_name = SO::Concatenate(
         IntToString(GetTimestamp()),
@@ -676,9 +701,12 @@ GitCommit Syncer::MirrorFeatureBranch(const GitBranch& os_merge_branch, const Gi
     // update HISTORY.md
     const std::string history = CreateHistoryLog(cs_new_merge_commit);
     const GitObjectId os_history_blob_oid = m_openSourceRepo.CreateBlob(history);
-    os_index.AddEntry(os_history_blob_oid, "HISTORY.md", GIT_FILEMODE_BLOB);
+    os_index.AddEntry(os_history_blob_oid, HistoryFilename, GIT_FILEMODE_BLOB);
 
-    // commit this merge commit with the updated history
+    // update BUILD.md with information about the external libraries used
+    UpdateBuildDetails(os_index, libraries_tag);
+
+    // commit this merge commit with the updated history and build details
     os_new_tree = m_openSourceRepo.WriteTree(os_index);
 
     GitCommit os_new_merge_commit = CreateMirroredCommit(
@@ -694,7 +722,7 @@ GitCommit Syncer::MirrorFeatureBranch(const GitBranch& os_merge_branch, const Gi
 
     // make sure that the repositories match
     if( !CompareRepositories(cs_new_merge_commit, os_new_merge_commit, false) )
-        throw CSProException("The repositories do not following the creation of the merge commit.");
+        throw CSProException("The repositories do not match following the creation of the merge commit.");
 
     return os_new_merge_commit;
 }
@@ -1225,4 +1253,36 @@ void Syncer::CommitBuildLibraries(GitRepository& library_repo, const GitCommit& 
     // cache this tag
     const std::string actual_settings_key = SO::Concatenate(LibrariesSettingsKeyPrefix_sv, library_id);
     m_settingsDb.Write(actual_settings_key, tag_name);
+}
+
+
+std::string Syncer::GetTagForBuiltLibraries(const GitCommit& cs_commit)
+{
+    PopulateBuiltLibraries(cs_commit);
+
+    // first see if the tag has been cached using the local cache key
+    const std::string local_cache_key = CalculateBuiltLibrariesCacheKey(true);
+    const std::string local_settings_key = SO::Concatenate(LibrariesSettingsKeyPrefix_sv, local_cache_key);
+    std::string tag_name = m_settingsDb.ReadOrDefault(local_settings_key, SO::Empty_string);
+
+    if( tag_name.empty() )
+    {
+        // if not, check if tag has been cached using the actual cache key
+        const std::string library_id = CalculateBuiltLibrariesCacheKey(false);
+        const std::string actual_settings_key = SO::Concatenate(LibrariesSettingsKeyPrefix_sv, library_id);
+
+        tag_name = m_settingsDb.ReadOrDefault(actual_settings_key, SO::Empty_string);
+
+        if( tag_name.empty() )
+        {
+            throw CSProException("Refresh the built library tags and try again.\n"
+                                 "On failure, commit a built library for:\n\n" +
+                                 cs_commit.GetObjectId().GetHexHash());
+        }
+
+        // cache this tag using the local cache key for future use
+        m_settingsDb.Write(local_settings_key, tag_name);
+    }
+
+    return tag_name;
 }
