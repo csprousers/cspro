@@ -20,9 +20,7 @@
 # some build tool batch scripts
 
 /build-tools/Create Installer.bat
-/build-tools/Create Open Source Release.bat
 /build-tools/Run Update Example Files.bat
-/build-tools/Run Update SQLite Encryption Extension (SEE).bat
 /build-tools/Run Update SQLite.bat
 /build-tools/Run Update Version.bat
 /build-tools/Sync Open Source Repository.bat
@@ -30,13 +28,9 @@
 
 # files specific to the U.S. Census Bureau's installer
 
-/build-tools/CSPro Installer Generator/NSIS/
 /build-tools/Installer Inputs/NSIS/
-/build-tools/CSPro Installer Generator/Webview2/
 /build-tools/Installer Inputs/Webview2/
-/build-tools/CSPro Installer Generator/SetupIcon.ico
 /build-tools/Installer Inputs/SetupIcon.ico
-/build-tools/CSPro Installer Generator/terms of service.txt
 /build-tools/Installer Inputs/terms of service.txt
 
 

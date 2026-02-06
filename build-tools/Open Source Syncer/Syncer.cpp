@@ -728,6 +728,13 @@ GitCommit Syncer::MirrorFeatureBranch(const GitBranch& os_merge_branch,
 
     if( merge_diff.GetNumberDeltas() != 0 )
     {
+        merge_diff.ForeachDifference(
+            [&](const std::string path, unsigned int /*diff_flag*/)
+            {
+                m_loggingListBox.AddText(u8"⚠ Differences exist in: " + path);
+                return true;
+            });
+
         throw CSProException("Differences exist between the feature branch and merge commit: %zu",
                              merge_diff.GetNumberDeltas());
     }
@@ -884,7 +891,7 @@ void Syncer::MirrorFile(GitIndex& os_index, const git_diff_delta& diff_delta)
             break;
 
         case GIT_DELTA_RENAMED:
-            m_loggingListBox.AddText("Renaming %s: %s -> %s", file_type, path.c_str(), diff_delta.old_file.path);
+            m_loggingListBox.AddText("Renaming %s: %s -> %s", file_type, diff_delta.old_file.path, path.c_str());
             is_binary ? MirrorFileRenameBinary(os_index, diff_delta.old_file, diff_delta.new_file) :
                         MirrorFileRenameText(os_index, diff_delta.old_file, diff_delta.new_file);
             break;
