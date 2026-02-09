@@ -861,6 +861,8 @@ void Syncer::MirrorFile(GitIndex& os_index, const git_diff_delta& diff_delta)
 
     if( !replacement_text.empty() )
     {
+        ErrorMessage::PostMessageForDisplay("Verify that the override is valid: " + path);
+
         m_loggingListBox.AddText("Using override for %s: %s", file_type, path.c_str());
 
         if( is_binary || diff_delta.status != GIT_DELTA_MODIFIED )
