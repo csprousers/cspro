@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
   xmlns:tools="http://schemas.android.com/tools"
   android:installLocation="auto"
-  android:versionCode="20240319"
+  android:versionCode="20250619"
   android:versionName="8.0.1">
 
   <supports-screens
@@ -17,6 +17,7 @@
   <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
   <uses-permission android:name="android.permission.RECORD_AUDIO" />
   <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
   <uses-permission
     android:name="android.permission.ACCESS_COARSE_LOCATION"
     android:required="false" />
@@ -318,6 +319,7 @@
 
     <service
       android:name="gov.census.cspro.media.recording.background.RecorderService"
+      android:foregroundServiceType="microphone"
       android:exported="false"
       android:stopWithTask="true" />
 

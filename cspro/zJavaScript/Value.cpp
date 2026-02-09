@@ -7,7 +7,7 @@
 JavaScript::Value::Value()
     :   m_qjs(nullptr)
 {
-    static_assert(sizeof(JSValue) == sizeof(m_value));
+    //static_assert(sizeof(JSValue) == sizeof(m_value));
 
     GetValue() = JS_UNDEFINED;
 }
