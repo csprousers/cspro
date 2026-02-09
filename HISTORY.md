@@ -82,6 +82,7 @@ Most CSPro development occurs on a [private repository](https://github.com/CSPro
 
 | Date | Branch | Pull Request Message |
 | --- | --- | --- |
+| 2026&#8209;02&#8209;09 | [release/8.0.1-android-only-fixes](https://github.com/CSProDevelopment/cspro/commit/f6dd768b6bbca5017272b68d6694b6dbe2879325) | incorporated Android-only fixes to CSPro 8.0.1 |
 | 2025&#8209;02&#8209;13 | [open-source-8.0](https://github.com/CSProDevelopment/cspro/commit/b7f425eaeb56bbf3e82f4060d766f968556ce81a) | prepared CSPro 8.0 for an open source release |
 
 
