@@ -36,11 +36,11 @@ Although the Android user interface is coded in Java and Kotlin, the C++ shared 
 
 ## Limitations
 
-The code snapshots in this public repository differ from the code on the private repository that is used to create the released version of CSPro:
+The code in the [public repository](https://github.com/csprousers/cspro) differs from the code in the [private repository](https://github.com/CSProDevelopment/cspro) that is used to create the released version of CSPro:
 
-- The released version of CSPro uses the [SQLite Encryption Extension](https://sqlite.org/com/see.html) (SEE) to support working with encrypted SQLite databases. Because SEE requires a license, it cannot be released in this public repository. The SQLite compilation units included here are from the public SQLite release: [sqlite3.c](https://github.com/csprousers/cspro/blob/dev/cspro/external/SQLite/sqlite3.c) and [sqlite3.h](https://github.com/csprousers/cspro/blob/dev/cspro/external/SQLite/sqlite3.h). Any access to encrypted SQLite databases using code built from this public repository will result in an exception.
+- The released version of CSPro uses the [SQLite Encryption Extension](https://sqlite.org/com/see.html) (SEE) to support encrypting SQLite databases. Because SEE requires a paid license, it cannot be released in the public repository. The SQLite compilation units included in the public repository are from the public SQLite release: [sqlite3.c](https://github.com/csprousers/cspro/blob/dev/cspro/external/SQLite/sqlite3.c) and [sqlite3.h](https://github.com/csprousers/cspro/blob/dev/cspro/external/SQLite/sqlite3.h). Any access to encrypted SQLite databases using code built from the public repository will result in an exception.
 
-- The API keys used to access or use CSWeb, Dropbox, and Google Maps have been removed (from [ApiKeys.h](https://github.com/csprousers/cspro/blob/dev/cspro/zToolsO/ApiKeys.h) and [api_keys.xml](https://github.com/csprousers/cspro/blob/dev/cspro/CSEntryDroid/app/src/main/res/values/api_keys.xml)). Those choosing to build CSPro from this public snapshot will have to provide their own API keys if they want to use these services.
+- The API keys used to access or use CSWeb, Dropbox, and Google Maps have been removed in the public repository (from [ApiKeys.h](https://github.com/csprousers/cspro/blob/dev/cspro/zToolsO/ApiKeys.h) and [api_keys.xml](https://github.com/csprousers/cspro/blob/dev/cspro/CSEntryDroid/app/src/main/res/values/api_keys.xml)). Those choosing to build CSPro from the public repository will have to provide their own API keys if they want to use these services.
 
 
 ## Project Overview

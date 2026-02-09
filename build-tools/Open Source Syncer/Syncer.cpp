@@ -407,9 +407,10 @@ std::string Syncer::CreateHistoryLog(const GitCommit& os_latest_commit)
 
     std::string history =
         "## Overview\n\n"
-        "Because most CSPro development occurs on a [private repository](https://github.com/CSProDevelopment/cspro), "
-        "the history of this public repository does not reveal much about CSPro development. Because of this, "
-        "this document lists information about each pull request merged into the private repository.\n"
+        "Most CSPro development occurs on a [private repository](https://github.com/CSProDevelopment/cspro), "
+        "though the commits are mirrored to this [public repository](https://github.com/csprousers/cspro). "
+        "This document lists information about each pull request merged into the private repository, starting "
+        "with pull requests for CSPro 7.6.\n"
         ;
 
     auto write_pull_requests = [&](const std::vector<TagCommits::PullRequest>& pull_requests)

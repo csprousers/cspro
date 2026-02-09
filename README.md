@@ -29,9 +29,9 @@ The use of CSPro is also governed by a [Terms of Service](https://github.com/csp
 
 ## Private Development, Public Repository
 
-Most CSPro development occurs on a [private repository](https://github.com/CSProDevelopment/cspro). The commits in this public repository are snapshots of the development that occurs on the private repository. A list of pull requests that have been merged into the private repository's code is available at [HISTORY.md](https://github.com/csprousers/cspro/blob/dev/HISTORY.md).
+Most CSPro development occurs on a [private repository](https://github.com/CSProDevelopment/cspro). The commits in this public repository are mirrored from the development that occurs on the private repository. A list of pull requests that have been merged into the private repository's code is available at [HISTORY.md](https://github.com/csprousers/cspro/blob/dev/HISTORY.md).
 
-If you submit a pull request that is accepted by the development team, the pull request will be processed in this public repository and/or the private repository. Regardless, the changes will be incorporated as part of the next code snapshot.
+If you submit a pull request that is accepted by the development team, the pull request will be processed in this public repository and/or the private repository. Regardless of order, the changes will be incorporated into the codebase.
 
 
 ## Limitations
