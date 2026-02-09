@@ -987,6 +987,80 @@ void Syncer::MirrorFileRenameText(GitIndex& os_index, const git_diff_file& old_f
 }
 
 
+void Syncer::ManualMirrorSingleCommit(const GitBranch& os_branch, const GitCommit& cs_commit)
+{
+    if( cs_commit.GetParentCount() > 1 )
+    {
+        throw CSProException("Update this tool to support mirroring a single commit with multiple parents: " +
+                             cs_commit.GetObjectId().GetHexHash());
+    }
+
+    const GitCommit os_parent_commit = m_openSourceRepo.LookupCommit(os_branch);
+
+    m_openSourceRepo.CheckoutBranch(os_branch);
+    GitIndex os_index = m_openSourceRepo.GetIndex();
+
+    GitTree cs_parent_tree = cs_commit.GetParent(0).GetTree();
+    GitTree cs_commit_tree = cs_commit.GetTree();
+
+    MirrorCommit(os_index, cs_parent_tree, cs_commit_tree);
+
+    GitTree os_new_tree = m_openSourceRepo.WriteTree(os_index);
+
+    CreateMirroredCommit(
+        cs_commit,
+        os_new_tree,
+        os_parent_commit,
+        nullptr
+    );
+
+    // when complete, checkout the HEAD so that the working directory matches the index
+    m_openSourceRepo.CheckoutHead(GIT_CHECKOUT_FORCE);
+}
+
+
+void Syncer::ManualMirrorMergeCommit(const GitBranch& os_branch, const GitCommit& cs_merge_commit,
+                                     const GitCommit& os_parent_commit1, const GitCommit& os_parent_commit2)
+{
+    // make sure that the libraries used at this merge commit have been created
+    const std::string libraries_tag = GetTagForBuiltLibraries(cs_merge_commit);
+
+    // mirror the merge commit
+    m_openSourceRepo.CheckoutBranch(os_branch);
+    GitIndex os_index = m_openSourceRepo.GetIndex();
+
+    GitTree cs_parent_tree = cs_merge_commit.GetParent(0).GetTree();
+    GitTree cs_commit_tree = cs_merge_commit.GetTree();
+
+    MirrorCommit(os_index, cs_parent_tree, cs_commit_tree);
+
+    // update HISTORY.md
+    const std::string history = CreateHistoryLog(cs_merge_commit);
+    const GitObjectId os_history_blob_oid = m_openSourceRepo.CreateBlob(history);
+    os_index.AddEntry(os_history_blob_oid, HistoryFilename, GIT_FILEMODE_BLOB);
+
+    // update BUILD.md with information about the external libraries used
+    UpdateBuildDetails(os_index, libraries_tag);
+
+    // commit this merge commit with the updated history and build details
+    GitTree os_new_tree = m_openSourceRepo.WriteTree(os_index);
+
+    GitCommit os_new_merge_commit = CreateMirroredCommit(
+        cs_merge_commit,
+        os_new_tree,
+        os_parent_commit1,
+        &os_parent_commit2
+    );
+
+    // make sure that the repositories match
+    if( !CompareRepositories(cs_merge_commit, os_new_merge_commit, false) )
+        throw CSProException("The repositories do not match following the creation of the merge commit.");
+
+    // when complete, checkout the HEAD so that the working directory matches the index
+    m_openSourceRepo.CheckoutHead(GIT_CHECKOUT_FORCE);
+}
+
+
 struct Syncer::BuiltLibrary
 {
     std::string file_path;

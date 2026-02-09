@@ -24,6 +24,13 @@ public:
     void MirrorFeatureBranches(const GitBranch& os_merge_branch,
                                const GitCommit& cs_oldest_merge_commit, const GitCommit& cs_newest_merge_commit);
 
+    // Mirrors the single commit in the specified branch.
+    void ManualMirrorSingleCommit(const GitBranch& os_branch, const GitCommit& cs_commit);
+
+    // Mirrors the merge commit in the specified branch, using the two provided commits as the commit's parents.
+    void ManualMirrorMergeCommit(const GitBranch& os_branch, const GitCommit& cs_merge_commit,
+                                 const GitCommit& os_parent_commit1, const GitCommit& os_parent_commit2);
+
     // Reads tags from the repository of built libraries, storing them in the
     // settings database for future use.
     void RefreshLibraryTags(GitRepository& library_repo);

@@ -15,6 +15,8 @@ namespace UWM::OpenSourceSyncer
 BEGIN_MESSAGE_MAP(OpenSourceSyncerDlg, ResizableDlg)
     ON_COMMAND(IDC_SYNC, OnSync)
     ON_COMMAND(IDC_COMPARE, OnCompare)
+    ON_COMMAND(IDC_MIRROR_SINGLE_COMMIT, OnManualMirrorSingleCommit)
+    ON_COMMAND(IDC_MIRROR_MERGE_COMMIT, OnManualMirrorMergeCommit)
     ON_COMMAND(IDC_REFRESH_LIBRARY_TAGS, OnRefreshLibraryTags)
     ON_COMMAND(IDC_COMMIT_LIBRARY, OnCommitLibrary)
     ON_MESSAGE(UWM::OpenSourceSyncer::OperationComplete, OnOperationComplete)
@@ -52,9 +54,18 @@ void OpenSourceSyncerDlg::DoDataExchange(CDataExchange* const pDX)
 
     DDX_Text(pDX, IDC_OPEN_SOURCE_CODE_DIRECTORY, m_openSourceCodeDirectory, true);
     DDX_Text(pDX, IDC_OPEN_SOURCE_LIBRARIES_DIRECTORY, m_openSourceLibrariesDirectory, true);
+
     DDX_Text(pDX, IDC_BRANCH_NAME, m_branchName, true);
     DDX_Text(pDX, IDC_COMMIT_OLD, m_commitOld, true);
     DDX_Text(pDX, IDC_COMMIT_NEW, m_commitNew, true);
+
+    DDX_Text(pDX, IDC_MANUAL_BRANCH_NAME, m_manualBranchName, true);
+    DDX_Text(pDX, IDC_MANUAL_SINGLE_COMMIT, m_manualSingleCommit, true);
+
+    DDX_Text(pDX, IDC_MANUAL_MERGE_COMMIT, m_manualMergeCommit, true);
+    DDX_Text(pDX, IDC_MANUAL_PARENT_COMMIT1, m_manualParentCommit1, true);
+    DDX_Text(pDX, IDC_MANUAL_PARENT_COMMIT2, m_manualParentCommit2, true);
+
     DDX_Control(pDX, IDC_LOG, m_loggingListBox);
 }
 
@@ -223,6 +234,106 @@ void OpenSourceSyncerDlg::OnCompare()
                 sync_data->syncer->GetOpenSourceRepo().LookupCommit(*sync_data->os_merge_branch),
                 true
             );
+        }
+    );
+}
+
+
+void OpenSourceSyncerDlg::OnManualMirrorSingleCommit()
+{
+    struct Data
+    {
+        Syncer* syncer = nullptr;
+        std::optional<GitBranch> os_branch;
+        std::optional<GitCommit> cs_commit;
+    };
+
+    auto data = std::make_shared<Data>();
+
+    RunOperation(
+        // validation
+        [&, data]()
+        {
+            data->syncer = m_syncer.get();
+            ASSERT(data->syncer != nullptr);
+
+            if( m_manualBranchName.empty() )
+                throw CSProException("Specify the manual mirroring branch name.");
+
+            try
+            {
+                data->os_branch = data->syncer->GetOpenSourceRepo().LookupBranch(m_manualBranchName);
+            }
+
+            catch(...)
+            {
+                // try creating the branch if it does not exist
+                const GitBranch current_branch = data->syncer->GetOpenSourceRepo().GetCurrentBranch();
+
+                data->os_branch = data->syncer->GetOpenSourceRepo().CreateBranch(
+                    m_manualBranchName,
+                    data->syncer->GetOpenSourceRepo().LookupCommit(current_branch)
+                );
+            }
+
+            if( m_manualSingleCommit.empty() )
+                throw CSProException("Specify the manual mirroring commit.");
+
+            data->cs_commit = data->syncer->GetPrivateRepo().LookupCommit(m_manualSingleCommit);
+        },
+        // operation
+        [data]()
+        {
+            data->syncer->ManualMirrorSingleCommit(*data->os_branch, *data->cs_commit);
+        }
+    );
+}
+
+
+void OpenSourceSyncerDlg::OnManualMirrorMergeCommit()
+{
+    struct Data
+    {
+        Syncer* syncer = nullptr;
+        std::optional<GitBranch> os_merge_branch;
+        std::optional<GitCommit> cs_merge_commit;
+        std::optional<GitCommit> os_parent_commit1;
+        std::optional<GitCommit> os_parent_commit2;
+    };
+
+    auto data = std::make_shared<Data>();
+
+    RunOperation(
+        // validation
+        [&, data]()
+        {
+            data->syncer = m_syncer.get();
+            ASSERT(data->syncer != nullptr);
+
+            if( m_branchName.empty() )
+                throw CSProException("Specify the open source branch target (in the feature branch section).");
+
+            data->os_merge_branch = data->syncer->GetOpenSourceRepo().LookupBranch(m_branchName);
+
+            if( m_manualMergeCommit.empty() )
+                throw CSProException("Specify the manual merge commit.");
+
+            data->cs_merge_commit = data->syncer->GetPrivateRepo().LookupCommit(m_manualMergeCommit);
+
+            if( m_manualParentCommit1.empty() ||
+                m_manualParentCommit2.empty() )
+            {
+                throw CSProException("Specify the two parent commits.");
+            }
+
+            data->os_parent_commit1 = data->syncer->GetOpenSourceRepo().LookupCommit(m_manualParentCommit1);
+            data->os_parent_commit2 = data->syncer->GetOpenSourceRepo().LookupCommit(m_manualParentCommit2);
+        },
+        // operation
+        [data]()
+        {
+            data->syncer->ManualMirrorMergeCommit(*data->os_merge_branch, *data->cs_merge_commit,
+                                                  *data->os_parent_commit1, *data->os_parent_commit2);
         }
     );
 }

@@ -22,6 +22,9 @@ protected:
     void OnSync();
     void OnCompare();
 
+    void OnManualMirrorSingleCommit();
+    void OnManualMirrorMergeCommit();
+
     void OnRefreshLibraryTags();
     void OnCommitLibrary();
 
@@ -45,9 +48,18 @@ private:
 
     std::string m_openSourceCodeDirectory;
     std::string m_openSourceLibrariesDirectory;
+
     std::string m_branchName;
     std::string m_commitOld;
     std::string m_commitNew;
+
+    std::string m_manualBranchName;
+    std::string m_manualSingleCommit;
+
+    std::string m_manualMergeCommit;
+    std::string m_manualParentCommit1;
+    std::string m_manualParentCommit2;
+
     LoggingListBox m_loggingListBox;
 
     std::unique_ptr<Syncer> m_syncer;
