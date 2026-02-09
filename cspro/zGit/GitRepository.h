@@ -1,12 +1,14 @@
-﻿#pragma once
+#pragma once
 
 #include <zGit/zGit.h>
 #include <zGit/GitInitializer.h>
 #include <zGit/GitObjectId.h>
 
 struct git_repository;
+class GitBlob;
 class GitBranch;
 class GitCommit;
+class GitDiff;
 class GitIndex;
 enum class GitObjectType;
 class GitTag;
@@ -58,27 +60,51 @@ public:
     // was opened in bare mode.
     std::string GetWorkingDirectory() const noexcept;
 
+    // Throws an exception if a repository is not open.
+    void EnsureRepositoryIsOpen() const;
+
 
     // --------------------------------------------------------------------------
     // Branches
     // --------------------------------------------------------------------------
 
     // Returns the branch pointed to by HEAD.
-    GitBranch GetCurrentBranch() const;
+    GitBranch GetCurrentBranch();
 
     // Looks up the branch, throwing an exception if not found.
-    GitBranch LookupBranch(cs::string_sz branch_name) const;
+    GitBranch LookupBranch(std::string branch_name);
 
     // Creates a new branch, throwing an exception on error (e.g., if a branch with
     // the name already exists). This does not change the current branch.
-    GitBranch CreateBranch(cs::string_sz branch_name, const GitCommit& commit) const;
+    GitBranch CreateBranch(std::string branch_name, const GitCommit& commit);
 
     // Executes the callback function for each of the repository's local branches.
-    // The callback function should return true to continue processing.
-    void ForeachLocalBranch(const std::function<bool(GitBranch)>& callback_function) const;
+    // The callback function, which can throw exceptions, should return true to continue processing.
+    void ForeachLocalBranch(const std::function<bool(GitBranch)>& callback_function);
 
-    // Resets the current branch to the commit using the mode "mixed."
-    void ResetBranchMixed(const GitCommit& commit) const;
+    // Sets the HEAD to the specified branch's target, also updating the index and working tree.
+    // The checkout defaults to safe mode. The modes:
+    //   GIT_CHECKOUT_SAFE:
+    //     "Allow safe updates that cannot overwrite uncommitted data. If the uncommitted
+    //      changes don't conflict with the checked out files, the checkout will still
+    //      proceed, leaving the changes intact."
+    //   GIT_CHECKOUT_FORCE:
+    //     "Allow all updates to force working directory to look like the index,
+    //      potentially losing data in the process."
+    void CheckoutBranch(const GitBranch& branch, unsigned int checkout_strategy) const;
+    void CheckoutBranch(const GitBranch& branch) const;
+
+    // "Updates files in the index and the working tree to match the content of
+    // the commit pointed at by HEAD."
+    void CheckoutHead(unsigned int checkout_strategy) const;
+
+    // Sets the HEAD to the specified branch's target. The index and working tree are
+    // not changed. To also update the index and working tree, use CheckoutBranch.
+    void SetHead(const GitBranch& branch) const;
+
+    // Sets the HEAD to the specified commit using one of the reset strategies.
+    enum class ResetType { Soft = 1, Mixed = 2, Hard = 3 };
+    void ResetHead(ResetType type, const GitCommit& commit) const;
 
 
     // --------------------------------------------------------------------------
@@ -99,9 +125,13 @@ public:
     // Status codes are in status.h.
     unsigned int GetStatusByPath(cs::string_sz path) const;
 
+    // Returns true if there are changes in the index or working directory.
+    bool HasChanges() const;
+
     // Executes the callback function for each file in the index, passing the
     // path and status code. These are paths that Git is tracking: "the index
     // (or 'cache', or 'staging area') is the contents of the next commit."
+    // The callback function can throw exceptions.
     // Status codes are in status.h.
     void ForeachStatusInIndex(const std::function<void(std::string path, unsigned int status_flags)>& callback_function) const;
 
@@ -109,30 +139,42 @@ public:
     // a different status from the index, passing the path and status code. The
     // files could be new (untracked), modified, deleted, etc. These are paths that
     // are different "based on [an] index to working directory comparison."
+    // // The callback function can throw exceptions.
     // Status codes are in status.h.
     void ForeachStatusInWorkingDirectory(const std::function<void(std::string path, unsigned int status_flags)>& callback_function) const;
 
-    // Executes the callback function for each file in the working directory with
-    // a different status from the commit's tree, passing the path and difference code.
-    // The callback function should return true to continue processing.
-    // For speed, the routine compares the tree to the index and then the index to the
-    // working directory, git_diff_tree_to_index + git_diff_index_to_workdir, rather than
-    // calling git_diff_tree_to_workdir_with_index.
-    // Difference codes are in diff.h.
-    void ForeachDifferenceInWorkingDirectory(const GitCommit& commit, const std::function<bool(std::string path, unsigned int diff_flag)>& callback_function) const;
+    // Returns an object than can be used to determine differences between two trees.
+    // The diff_flags value is a combination of git_diff_option_t options (defined in diff.h).
+    // If not specified, details about the differences within files themselves are not loaded.
+    GitDiff GetDifference(GitTree& old_tree, GitTree& new_tree, uint32_t diff_flags) const;
+    GitDiff GetDifference(GitTree& old_tree, GitTree& new_tree) const;
 
-    // Returns the number of deltas between two trees.
-    size_t GetDifferenceDeltasCount(GitTree& old_tree, GitTree& new_tree) const;
+    // Returns an object than can be used to determine differences in the working directory
+    // that have a different status from the specified commit's tree. For speed, the routine
+    // compares the tree to the index and then the index to the working directory,
+    // git_diff_tree_to_index + git_diff_index_to_workdir, rather than calling
+    // git_diff_tree_to_workdir_with_index.
+    GitDiff GetDifferenceInWorkingDirectory(const GitCommit& commit) const;
 
 
     // --------------------------------------------------------------------------
-    // Objects
+    // Objects + Blobs
     // --------------------------------------------------------------------------
 
     // Looks up the object, potentially only of a certain type, throwing an
     // exception if not found.
     GitObject LookupObject(const GitObjectId& oid, GitObjectType type) const;
     GitObject LookupObject(const GitObjectId& oid) const;
+
+    // Looks up a blob by object ID, throwing an exception if not found.
+    GitBlob LookupBlob(const GitObjectId& oid) const;
+
+    // Creates a blob from the content, returning its object ID.
+    // If the content has already been added, it will not be added again.
+    // An exception is thrown on error.
+    GitObjectId CreateBlob(const void* data, size_t size) const;
+    GitObjectId CreateBlob(const BinaryBlock& data) const;
+    GitObjectId CreateBlob(std::string_view data_sv) const;
 
 
     // --------------------------------------------------------------------------
@@ -168,11 +210,21 @@ public:
     // --------------------------------------------------------------------------
 
     // Executes the callback function for each of the repository's tags.
-    // The callback function should return true to continue processing.
+    // The callback function, which can throw exceptions, should return true to continue processing.
     void ForeachTag(const std::function<bool(GitTag)>& callback_function) const;
 
     // Returns all of the repository's tags.
     std::vector<GitTag> GetTags() const;
+
+    // Returns true if the tag exists.
+    bool IsTag(std::string_view tag_name_sv) const;
+
+    // Creates an annotated tag.
+    // If no message is provided, the tag name is used for the message.
+    // An exception is thrown if the tag already exists.
+    GitObjectId CreateTag(const GitSignature& tagger, const GitCommit& commit,
+                          cs::string_sz tag_name,
+                          std::optional<cs::string_sz> message = std::nullopt);
 
 
     // --------------------------------------------------------------------------
@@ -192,11 +244,7 @@ public:
 
 
 private:
-    void EnsureRepositoryIsOpen() const;
-
     void Open(std::string repo_directory, bool create, bool bare);
-
-    static auto GetDiffOptions();
 
     template<typename GitObjectT>
     GitObject LookupObject(const GitObjectId& oid, GitObjectT type) const;

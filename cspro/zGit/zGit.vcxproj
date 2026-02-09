@@ -26,13 +26,17 @@
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="GitBlob.cpp" />
     <ClCompile Include="GitBranch.cpp" />
     <ClCompile Include="GitCommit.cpp" />
+    <ClCompile Include="GitDiff.cpp" />
     <ClCompile Include="GitIgnoreEvaluator.cpp" />
     <ClCompile Include="GitIndex.cpp" />
     <ClCompile Include="GitInitializer.cpp" />
+    <ClCompile Include="GitMerge.cpp" />
     <ClCompile Include="GitObject.cpp" />
     <ClCompile Include="GitObjectId.cpp" />
+    <ClCompile Include="GitReference.cpp" />
     <ClCompile Include="GitRepository.cpp" />
     <ClCompile Include="GitRevisionWalker.cpp" />
     <ClCompile Include="GitSignature.cpp" />
@@ -45,14 +49,18 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="GitBlob.h" />
     <ClInclude Include="GitBranch.h" />
     <ClInclude Include="GitCommit.h" />
+    <ClInclude Include="GitDiff.h" />
     <ClInclude Include="GitException.h" />
     <ClInclude Include="GitIgnoreEvaluator.h" />
     <ClInclude Include="GitIndex.h" />
     <ClInclude Include="GitInitializer.h" />
+    <ClInclude Include="GitMerge.h" />
     <ClInclude Include="GitObject.h" />
     <ClInclude Include="GitObjectId.h" />
+    <ClInclude Include="GitReference.h" />
     <ClInclude Include="GitRepository.h" />
     <ClInclude Include="GitRevisionWalker.h" />
     <ClInclude Include="GitSignature.h" />

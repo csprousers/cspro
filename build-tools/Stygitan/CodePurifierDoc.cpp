@@ -1,6 +1,7 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "CodePurifierDoc.h"
 #include <zToolsO/Encoders.h>
+#include <zGit/GitBlob.h>
 #include <zGit/GitIndex.h>
 #include <zGit/GitTree.h>
 #include <regex>
@@ -520,7 +521,7 @@ bool CodePurifierDoc::IdentifyModifiedFiles()
 
     if( m_cleanCommit != nullptr )
     {
-        m_repo.ForeachDifferenceInWorkingDirectory(*m_cleanCommit,
+        m_repo.GetDifferenceInWorkingDirectory(*m_cleanCommit).ForeachDifference(
             [&](std::string path, const unsigned int diff_flag)
             {
                 std::string file_path = Path::Combine(m_repoWorkingDirectory, Path::ToNativeSlash(path));
@@ -653,7 +654,7 @@ void CodePurifierDoc::ResetBranchToCleanCommit()
     if( m_cleanCommit == nullptr )
         throw ProgrammingErrorException();
 
-    m_repo.ResetBranchMixed(*m_cleanCommit);
+    m_repo.ResetHead(GitRepository::ResetType::Mixed, *m_cleanCommit);
 
     StartRefreshDataThread(RefreshStartAction::LoadRecentCommits);
 }
@@ -672,11 +673,8 @@ void CodePurifierDoc::SaveFileFromCleanCommit(const std::string& git_path, const
     const GitObject object = tree_entry.GetObject();
     ASSERT(object.GetType() == GitObjectType::Blob);
 
-    object.DoAsBlob(
-        [&](const void* const data, const size_t size)
-        {
-            FileIO::Write(file_path_for_save, data, size);
-        });
+    const GitBlob blob = object.GetBlob();
+    blob.WriteToDisk(file_path_for_save);
 }
 
 
@@ -696,7 +694,7 @@ void CodePurifierDoc::CreateTemporaryCommit(const bool staged_only)
         const GitCommit current_commit = m_repo.LookupCommit(m_branchDetails->current_branch);
         GitTree commit_tree = current_commit.GetTree();
 
-        const size_t diff_count = m_repo.GetDifferenceDeltasCount(index_tree, commit_tree);
+        const size_t diff_count = m_repo.GetDifference(index_tree, commit_tree).GetNumberDeltas();
 
         if( diff_count == 0 )
             return;
@@ -713,9 +711,6 @@ void CodePurifierDoc::CreateTemporaryCommit(const bool staged_only)
         );
 
         m_repo.CreateCommit(author_and_committer, message, index_tree, current_commit);
-
-        // update the branch (since the reference target has changed)
-        m_branchDetails->current_branch = m_repo.GetCurrentBranch();
     };
 
     commit_staged("staged");

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zGit/zGit.h>
 #include <zGit/GitObjectId.h>
@@ -14,6 +14,8 @@ class GitRepository;
 class ZGIT_API GitTag : public GitObjectId
 {
 public:
+    static constexpr std::string_view RefsTagPrefix_sv = "refs/tags/";
+
     GitTag(const git_oid& oid, std::string name) noexcept;
 
     // Returns tag's name.

@@ -11,10 +11,16 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="GitBlob.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="GitBranch.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="GitCommit.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GitDiff.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="GitIgnoreEvaluator.cpp">
@@ -26,10 +32,16 @@
     <ClCompile Include="GitInitializer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="GitMerge.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="GitObject.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="GitObjectId.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GitReference.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="GitRepository.cpp">
@@ -58,10 +70,16 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="GitBlob.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="GitBranch.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="GitCommit.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GitDiff.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="GitException.h">
@@ -76,10 +94,16 @@
     <ClInclude Include="GitInitializer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="GitMerge.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="GitObject.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="GitObjectId.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GitReference.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="GitRepository.h">

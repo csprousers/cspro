@@ -1,0 +1,51 @@
+# this file, defined in gitignore syntax, lists files that
+# should not be copied to the CSPro open source repository
+
+
+# sensitive Android files
+
+/cspro/CSEntryDroid/.csentrydroidkeystore
+/cspro/CSEntryDroid/CSEntry Release Process.docx
+/cspro/CSEntryDroid/debug.keystore
+
+
+# built libraries
+
+/cspro/external/*/bin/
+/cspro/external/*/lib/
+/cspro/CSEntryDroid/app/libs/
+/cspro/CSEntryDroid/app/src/main/jni/external/
+
+
+# some build tool batch scripts
+
+/build-tools/Create Installer.bat
+/build-tools/Run Update Example Files.bat
+/build-tools/Run Update SQLite.bat
+/build-tools/Run Update Version.bat
+/build-tools/Sync Open Source Repository.bat
+
+
+# files specific to the U.S. Census Bureau's installer
+
+/build-tools/Installer Inputs/NSIS/
+/build-tools/Installer Inputs/Webview2/
+/build-tools/Installer Inputs/SetupIcon.ico
+/build-tools/Installer Inputs/terms of service.txt
+
+
+# deprecated tools
+
+/tools/*
+!/tools/CSPro Production Runner/
+!/tools/Operator Statistics Viewer/
+
+
+# console application
+
+/cspro/CSEntryConsole/
+
+
+# miscellaneous files
+
+/GITWorkflow.md

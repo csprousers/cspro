@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <engine/StandardSystemIncludes.h>
 #include <StandardIncludes/strict_errors.h>
@@ -17,6 +17,7 @@
 #include <zUtilO/WindowsWS.h>
 #include <zUtilF/DocViewIterators.h>
 #include <zGit/GitBranch.h>
+#include <zGit/GitDiff.h>
 #include <zGit/GitRepository.h>
 #include <zGit/GitRevisionWalker.h>
 #include <external/libgit2/include/git2/diff.h>

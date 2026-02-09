@@ -42,7 +42,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CSPro Users Website Builder
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zNetwork", "..\cspro\zNetwork\zNetwork.vcxproj", "{07D7DA9D-03ED-437C-8A1F-CB2E76A3EF6A}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Open Source Release Creator", "Open Source Release Creator\OpenSourceReleaseCreator.vcxproj", "{6DC25DFA-F0E9-4E2F-88C2-EDB6FE911C67}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Open Source Syncer", "Open Source Syncer\OpenSourceSyncer.vcxproj", "{6DC25DFA-F0E9-4E2F-88C2-EDB6FE911C67}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Update Version", "Update Version\UpdateVersion.vcxproj", "{5C6C7E00-5B3D-4FA5-9214-471C2BC33325}"
 EndProject

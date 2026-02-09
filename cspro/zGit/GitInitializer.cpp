@@ -1,11 +1,11 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "GitInitializer.h"
 
 
 GitInitializer::GitInitializer()
 {
     if( git_libgit2_init() < 0 )
-        throw CSProException("Could not initialize libgit2.");
+        throw GitException("Could not initialize libgit2.");
 }
 
 

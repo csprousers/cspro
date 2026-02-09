@@ -210,7 +210,7 @@ void EditorConfigApplierView::GetPathsModifiedSinceLastGitRemoteCommit(GitReposi
 
     const GitCommit remote_commit = repo.LookupCommit(remote_branch->GetTarget());
 
-    repo.ForeachDifferenceInWorkingDirectory(remote_commit,
+    repo.GetDifferenceInWorkingDirectory(remote_commit).ForeachDifference(
         [&](std::string path, const unsigned int diff_flag)
         {
             if( diff_flag != GIT_DELTA_DELETED )

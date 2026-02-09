@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "GitObjectId.h"
 
 
@@ -18,7 +18,7 @@ GitObjectId::GitObjectId(const git_object& object) noexcept
 GitObjectId::GitObjectId(const cs::string_sz hex_hash)
 {
     if( git_oid_fromstr(reinterpret_cast<git_oid*>(m_oid), hex_hash.c_str()) < 0 )
-        throw CSProException("A Git object ID could not be created from '%s'.", hex_hash.c_str());
+        throw GitException("A Git object ID could not be created from '%s'.", hex_hash.c_str());
 }
 
 

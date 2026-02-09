@@ -1,60 +1,33 @@
-﻿#pragma once
+#pragma once
 
 
 namespace SQLiteSourceUpdater
 {
-    enum class SQLiteVersion { Public, SEE };
+    enum class Version { Public, SEE };
 
-    enum class DllVersion { V1, V2, V3 };
-
-    void Update(std::string& sqlite_h, std::string& sqlite_c,
-                SQLiteVersion sqlite_version, DllVersion dll_version = DllVersion::V3);
+    void Update(std::string& sqlite_code, bool is_header, Version version);
 }
 
 
-
-inline void SQLiteSourceUpdater::Update(std::string& sqlite_h, std::string& sqlite_c,
-                                        const SQLiteVersion sqlite_version, const DllVersion dll_version/* = DllVersion::V3*/)
+inline void SQLiteSourceUpdater::Update(std::string& sqlite_code, const bool is_header, const Version version)
 {
-    ASSERT(sqlite_h.find('\r') == std::string::npos);
-    ASSERT(sqlite_c.find('\r') == std::string::npos);
+    ASSERT(sqlite_code.find('\r') == std::string::npos);
 
-    std::string h_prefix = "#pragma once\n";
-    std::string c_prefix;
+    std::string prefix;
 
-    if( dll_version == DllVersion::V1 )
+    if( is_header )
     {
-        h_prefix.append("#include <SQLite/sqlite_dll.h>\n");
+        prefix = "#pragma once\n\n"
+                 "#include <zSql/zSql.h>\n\n";
 
-        c_prefix = "#ifndef ANDROID\n"
-                   "#include <SQLite/sqlite_dll.h>\n"
-                   "#endif\n";
+        if( version == Version::SEE )
+            prefix.append("#define SQLITE_HAS_CODEC\n\n");
     }
 
     else
     {
-        if( dll_version == DllVersion::V3 )
-            h_prefix.push_back('\n');
-
-        h_prefix.append("#include <zSql/zSql.h>\n");
-
-        if( dll_version == DllVersion::V3 )
-            h_prefix.push_back('\n');
-
-        c_prefix = "#include <zSql/zSql.h>\n";
-
-        if( dll_version == DllVersion::V3 )
-            c_prefix.push_back('\n');
+        prefix = "#include <zSql/zSql.h>\n\n";
     }
 
-    if( sqlite_version == SQLiteVersion::SEE )
-    {
-        h_prefix.append("#define SQLITE_HAS_CODEC\n");
-
-        if( dll_version == DllVersion::V3 )
-            h_prefix.push_back('\n');
-    }
-
-    sqlite_h.insert(0, h_prefix);
-    sqlite_c.insert(0, c_prefix);
+    sqlite_code.insert(0, prefix);
 }

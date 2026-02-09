@@ -18,13 +18,10 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Creator.h">
+    <ClInclude Include="OpenSourceSyncer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="OpenSourceReleaseCreator.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="OpenSourceReleaseCreatorDlg.h">
+    <ClInclude Include="OpenSourceSyncerDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Overrides\replacement-ApiKeys.h">
@@ -36,23 +33,26 @@
     <ClInclude Include="StdAfx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Syncer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Creator.cpp">
+    <ClCompile Include="OpenSourceSyncer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="OpenSourceReleaseCreator.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="OpenSourceReleaseCreatorDlg.cpp">
+    <ClCompile Include="OpenSourceSyncerDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="StdAfx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Syncer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="OpenSourceReleaseCreator.rc">
+    <ResourceCompile Include="OpenSourceSyncer.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
   </ItemGroup>

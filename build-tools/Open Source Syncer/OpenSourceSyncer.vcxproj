@@ -4,7 +4,7 @@
   <Import Project="..\..\cspro\properties\project-globals.props" />
   <PropertyGroup Label="Globals">
     <ProjectGuid>{6DC25DFA-F0E9-4E2F-88C2-EDB6FE911C67}</ProjectGuid>
-    <ProjectName>Open Source Release Creator</ProjectName>
+    <ProjectName>Open Source Syncer</ProjectName>
     <Keyword>MFCProj</Keyword>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -20,25 +20,25 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="Creator.h" />
-    <ClInclude Include="OpenSourceReleaseCreator.h" />
-    <ClInclude Include="OpenSourceReleaseCreatorDlg.h" />
+    <ClInclude Include="OpenSourceSyncer.h" />
+    <ClInclude Include="OpenSourceSyncerDlg.h" />
     <ClInclude Include="Overrides\replacement-ApiKeys.h">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="resource.h" />
     <ClInclude Include="StdAfx.h" />
+    <ClInclude Include="Syncer.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Creator.cpp" />
-    <ClCompile Include="OpenSourceReleaseCreator.cpp" />
-    <ClCompile Include="OpenSourceReleaseCreatorDlg.cpp" />
+    <ClCompile Include="OpenSourceSyncer.cpp" />
+    <ClCompile Include="OpenSourceSyncerDlg.cpp" />
     <ClCompile Include="StdAfx.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Syncer.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="OpenSourceReleaseCreator.rc" />
+    <ResourceCompile Include="OpenSourceSyncer.rc" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="Overrides\exclusions.txt">

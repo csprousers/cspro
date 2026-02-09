@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zGit/zGit.h>
 #include <zGit/GitSignature.h>
@@ -20,10 +20,11 @@ class ZGIT_API GitCommit
 public:
     // GitCommit assumes ownership of the git_commit object.
     GitCommit(git_commit& commit) noexcept;
-    GitCommit(const GitCommit& rhs) = delete;
+    GitCommit(const GitCommit& rhs);
     GitCommit(GitCommit&& rhs) noexcept;
     ~GitCommit() noexcept;
 
+    GitCommit& operator=(const GitCommit& rhs);
     GitCommit& operator=(GitCommit&& rhs) noexcept;
 
     // The comparison compares the commits' object IDs, not the contents of the commits.
@@ -50,11 +51,17 @@ public:
     // If a UTF-8 BOM preceeds the message, it is also stripped.
     const std::string& GetMessage() const noexcept;
 
+    // Returns details about the commit's committer.
+    const GitSignature& GetCommitter() const noexcept;
+
     // Returns details about the commit's author.
     const GitSignature& GetAuthor() const noexcept;
 
     // Return the number of parents for this commit.
     unsigned int GetParentCount() const noexcept;
+
+    // Return the parent commit "from 0 to `parentcount`" for this commit.
+    GitCommit GetParent(unsigned int parent_commit_index) const;
 
     // Returns the tree for this commit.
     GitTree GetTree() const;
@@ -62,5 +69,6 @@ public:
 private:
     git_commit* m_commit;
     std::string m_message;
+    std::optional<GitSignature> m_committer;
     std::optional<GitSignature> m_author;
 };

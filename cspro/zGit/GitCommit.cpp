@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "GitCommit.h"
 #include <zToolsO/TextEncoding.h>
 
@@ -9,9 +9,20 @@ GitCommit::GitCommit(git_commit& commit) noexcept
 }
 
 
+GitCommit::GitCommit(const GitCommit& rhs)
+    :   m_message(rhs.m_message),
+        m_committer(rhs.m_committer),
+        m_author(rhs.m_author)
+{
+    if( git_commit_dup(&m_commit, rhs.m_commit) != 0 )
+        throw GitException();
+}
+
+
 GitCommit::GitCommit(GitCommit&& rhs) noexcept
     :   m_commit(rhs.m_commit),
         m_message(std::move(rhs.m_message)),
+        m_committer(std::move(rhs.m_committer)),
         m_author(std::move(rhs.m_author))
 {
     rhs.m_commit = nullptr;
@@ -25,13 +36,30 @@ GitCommit::~GitCommit() noexcept
 }
 
 
+GitCommit& GitCommit::operator=(const GitCommit& rhs)
+{
+    if( m_commit != nullptr )
+        git_commit_free(m_commit);
+
+    if( git_commit_dup(&m_commit, rhs.m_commit) != 0 )
+        throw GitException();
+
+    m_message = rhs.m_message;
+    m_committer = rhs.m_committer;
+    m_author = rhs.m_author;
+
+    return *this;
+}
+
+
 GitCommit& GitCommit::operator=(GitCommit&& rhs) noexcept
 {
-    m_commit = rhs.m_commit;
-    m_message = std::move(rhs.m_message);
-    m_author = std::move(rhs.m_author);
+    // swapping the commit ensures that this object's commit will be deleted in rhs' destructor
+    std::swap(m_commit, rhs.m_commit);
 
-    rhs.m_commit = nullptr;
+    m_message = std::move(rhs.m_message);
+    m_committer = std::move(rhs.m_committer);
+    m_author = std::move(rhs.m_author);
 
     return *this;
 }
@@ -81,6 +109,15 @@ const std::string& GitCommit::GetMessage() const noexcept
 }
 
 
+const GitSignature& GitCommit::GetCommitter() const noexcept
+{
+    if( !m_committer.has_value() )
+        const_cast<GitCommit*>(this)->m_committer.emplace(*git_commit_committer(m_commit));
+
+    return *m_committer;
+}
+
+
 const GitSignature& GitCommit::GetAuthor() const noexcept
 {
     if( !m_author.has_value() )
@@ -96,12 +133,23 @@ unsigned int GitCommit::GetParentCount() const noexcept
 }
 
 
+GitCommit GitCommit::GetParent(const unsigned int parent_commit_index) const
+{
+    git_commit* commit;
+
+    if( git_commit_parent(&commit, m_commit, parent_commit_index) != 0 )
+        throw GitException();
+
+    return GitCommit(*commit);
+}
+
+
 GitTree GitCommit::GetTree() const
 {
     git_tree* tree;
 
     if( git_commit_tree(&tree, m_commit) != 0 )
-        ThrowGitException();
+        throw GitException();
 
     return GitTree(*tree);
 }
