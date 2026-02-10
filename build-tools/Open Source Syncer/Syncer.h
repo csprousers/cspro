@@ -60,10 +60,10 @@ private:
     std::string CreateSqliteWithoutSEE(const git_diff_file& new_file);
 
     // Populates information about releases, used by CreateHistoryLog.
-    void PopulateReleaseTags(std::string_view earliest_tag_sv);
+    void PopulateReleaseTags();
 
     // Returns the HISTORY.md file showing pull requests up to the commit.
-    std::string CreateHistoryLog(const GitCommit& os_latest_commit);
+    std::string CreateHistoryLog(const GitCommit& cs_latest_commit);
 
     // Updates the BUILD.md file with information about the built libraries to be
     // used at this point.
@@ -126,6 +126,10 @@ private:
 
     struct TagCommits;
     std::vector<TagCommits> m_releaseTags;
+
+    struct PullRequest;
+    struct GroupedPullRequests;
+    std::unique_ptr<GroupedPullRequests> m_lastHistoryLogCreationGroupedPullRequests;
 
     GitRepository m_privateRepo;
     GitRepository m_openSourceRepo;

@@ -24,7 +24,6 @@ Some long-running development projects are identifiable by a TODO noted in comme
 | FTP_TODO | Adding FTP functionality using the Action Invoker.
 | HELP_TODO<br>HELP_TODO_RESTORE_FOR_CSPRO81 | Related to CSDocument.
 | LOGIC_TODO | Refactoring the logic compiler.
-| OS_TODO | Related to the Open Source Syncer.
 | PARADATA_TODO | Related to paradata.
 | REPO_TEMP<br>REPO_TODO | Refactoring the engine to use the Case objects.
 | RESOURCE_TODO | Refactoring messages to use the UWM naming scheme.

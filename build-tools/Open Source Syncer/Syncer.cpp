@@ -31,6 +31,10 @@ namespace
     constexpr std::string_view LibrariesSettingsKeyPrefix_sv       = "Libraries-";
     constexpr std::string_view LibrariesTagInBuildFile_sv          = "%LIBRARY_TAG%";
     constexpr size_t LibrariesHashHexLength                        = 32;
+
+    // the commit is the first commit after the v7.5.0 tag
+    constexpr std::string_view HistoryLogEarliestTag_sv = "7.6.0";
+    constexpr const char* HistoryLogEarliestCommitSHA   = "95d126ccaab8872d1d914f64d16824a5f2f19ccd";
 }
 
 
@@ -276,22 +280,13 @@ struct Syncer::TagCommits
 {
     std::string tag_name;
     GitCommit commit;
-
-    struct PullRequest
-    {
-        std::string sha;
-        int64_t commit_time;
-        std::string branch_name;
-        std::string message;
-    };
-
-    std::vector<PullRequest> pull_requests;
 };
 
 
-void Syncer::PopulateReleaseTags(const std::string_view earliest_tag_sv)
+void Syncer::PopulateReleaseTags()
 {
-    ASSERT(m_releaseTags.empty());
+    if( !m_releaseTags.empty() )
+        return;
 
     std::regex tag_regex = std::regex(R"(^refs/tags/v(\d+\.\d+\.\d+).*$)");
     std::smatch matches;
@@ -306,7 +301,7 @@ void Syncer::PopulateReleaseTags(const std::string_view earliest_tag_sv)
 
             std::string tag_name = matches.str(1);
 
-            if( tag_name < earliest_tag_sv )
+            if( tag_name < HistoryLogEarliestTag_sv )
                 return keep_processing;
 
             GitCommit commit = m_privateRepo.LookupCommit(tag);
@@ -337,38 +332,54 @@ void Syncer::PopulateReleaseTags(const std::string_view earliest_tag_sv)
 }
 
 
-std::string Syncer::CreateHistoryLog(const GitCommit& os_latest_commit)
+struct Syncer::PullRequest
 {
-    constexpr std::string_view EarliestTag_sv = "7.6.0";
+    std::string sha;
+    int64_t commit_time;
+    std::string branch_name;
+    std::string message;
+};
 
-    // the first commit in dev after the v7.5.0 tag
-    constexpr const char* EarliestCommitSHA = "95d126ccaab8872d1d914f64d16824a5f2f19ccd";
 
+struct Syncer::GroupedPullRequests
+{
+    GitCommit cs_grouped_up_to_commit;
+    std::map<std::string, std::vector<PullRequest>> pull_requests; // tag name -> PullRequest
+    std::vector<PullRequest> newer_than_tags_pull_requests;
+};
+
+
+std::string Syncer::CreateHistoryLog(const GitCommit& cs_latest_commit)
+{
     m_loggingListBox.AddText("Creating history log up to the commit on: " +
-                             os_latest_commit.GetCommitter().GetWhen().GetLocalDateTimeString());
+                             cs_latest_commit.GetCommitter().GetWhen().GetLocalDateTimeString());
 
-    if( m_releaseTags.empty() )
+    PopulateReleaseTags();
+
+    std::unique_ptr<GroupedPullRequests> grouped_pull_requests;
+
+    GitCommit oldest_commit_to_process = m_privateRepo.LookupCommit(HistoryLogEarliestCommitSHA);
+
+    // if the history has already been created for an earlier commit, we only need to walk up to that commit
+    if( m_lastHistoryLogCreationGroupedPullRequests != nullptr &&
+        m_privateRepo.IsCommitDescendantOf(cs_latest_commit, m_lastHistoryLogCreationGroupedPullRequests->cs_grouped_up_to_commit) )
     {
-        PopulateReleaseTags(EarliestTag_sv);
+        oldest_commit_to_process = m_lastHistoryLogCreationGroupedPullRequests->cs_grouped_up_to_commit;
+        grouped_pull_requests = std::move(m_lastHistoryLogCreationGroupedPullRequests);
+        grouped_pull_requests->cs_grouped_up_to_commit = cs_latest_commit;
     }
 
     else
     {
-        // OS_TODO optimize the history log creation when processing multiple feature branches
-        std::for_each(m_releaseTags.begin(), m_releaseTags.end(),
-                      [](TagCommits& tc) { tc.pull_requests.clear(); });
+        grouped_pull_requests.reset(new GroupedPullRequests { cs_latest_commit });
     }
-
-    std::vector<TagCommits::PullRequest> newer_than_tags_pull_requests;
-
-    const GitCommit oldest_commit_to_process = m_privateRepo.LookupCommit(EarliestCommitSHA);
 
     const std::regex commit_message_regex(R"(^Merge pull request.+CSProDevelopment\/(\S+).*)");
     std::smatch matches;
 
     GitRevisionWalker walker(m_privateRepo);
 
-    walker.Walk(os_latest_commit, oldest_commit_to_process,
+    walker.ReverseWalk(cs_latest_commit, oldest_commit_to_process,
         [&](const GitCommit commit)
         {
             // only process commits with at least two parents (which should be the pull requests)
@@ -380,13 +391,13 @@ std::string Syncer::CreateHistoryLog(const GitCommit& os_latest_commit)
             }
 
             // determine the first tag that contains this commit
-            std::vector<TagCommits::PullRequest>* pull_requests = &newer_than_tags_pull_requests;
+            std::vector<PullRequest>* pull_requests = &grouped_pull_requests->newer_than_tags_pull_requests;
 
             for( TagCommits& tc : m_releaseTags )
             {
                 if( tc.commit == commit || m_privateRepo.IsCommitDescendantOf(tc.commit, commit) )
                 {
-                    pull_requests = &tc.pull_requests;
+                    pull_requests = &grouped_pull_requests->pull_requests[tc.tag_name];
                     break;
                 }
             }
@@ -396,7 +407,7 @@ std::string Syncer::CreateHistoryLog(const GitCommit& os_latest_commit)
             SO::MakeTrim(pull_request_message);
 
             pull_requests->emplace_back(
-                TagCommits::PullRequest
+                PullRequest
                 {
                     commit.GetObjectId().GetHexHash(),
                     commit.GetAuthor().GetWhen().GetTimestamp(),
@@ -413,7 +424,7 @@ std::string Syncer::CreateHistoryLog(const GitCommit& os_latest_commit)
         "with pull requests for CSPro 7.6.\n"
         ;
 
-    auto write_pull_requests = [&](const std::vector<TagCommits::PullRequest>& pull_requests)
+    auto write_pull_requests = [&](const std::vector<PullRequest>& pull_requests)
     {
         history.append(
             "\n**Merged pull requests**:\n\n"
@@ -424,7 +435,7 @@ std::string Syncer::CreateHistoryLog(const GitCommit& os_latest_commit)
         constexpr const char* NonBreakingHyphen = "&#8209;";
         static const std::string date_formatter = FormatText("%%Y%s%%m%s%%d", NonBreakingHyphen, NonBreakingHyphen);
 
-        for( const TagCommits::PullRequest& pull_request : pull_requests )
+        for( auto pull_request_itr = pull_requests.crbegin(); pull_request_itr != pull_requests.crend(); ++pull_request_itr )
         {
             auto escape_for_table = [&](std::string text)
             {
@@ -433,24 +444,24 @@ std::string Syncer::CreateHistoryLog(const GitCommit& os_latest_commit)
 
             history.append(FormatText(
                 "| %s | [%s](https://github.com/CSProDevelopment/cspro/commit/%s) | %s |\n",
-                DateTime::LocalDateTimeString(pull_request.commit_time, date_formatter).c_str(),
-                escape_for_table(pull_request.branch_name).c_str(),
-                pull_request.sha.c_str(),
-                escape_for_table(pull_request.message).c_str()
+                DateTime::LocalDateTimeString(pull_request_itr->commit_time, date_formatter).c_str(),
+                escape_for_table(pull_request_itr->branch_name).c_str(),
+                pull_request_itr->sha.c_str(),
+                escape_for_table(pull_request_itr->message).c_str()
             ));
         }
     };
 
-    if( !newer_than_tags_pull_requests.empty() )
+    if( !grouped_pull_requests->newer_than_tags_pull_requests.empty() )
     {
         history.append("\n\n## CSPro (current development)\n");
 
-        write_pull_requests(newer_than_tags_pull_requests);
+        write_pull_requests(grouped_pull_requests->newer_than_tags_pull_requests);
     }
 
     for( auto tag_commits_itr = m_releaseTags.crbegin(); tag_commits_itr != m_releaseTags.crend(); ++tag_commits_itr )
     {
-        history.append(FormatText("\n\n## CSPro %s\n",tag_commits_itr->tag_name.c_str()));
+        history.append(FormatText("\n\n## CSPro %s\n", tag_commits_itr->tag_name.c_str()));
 
         std::string url = FormatText("https://csprousers.org/downloads/cspro/cspro%s.exe", tag_commits_itr->tag_name.c_str());
         history.append(FormatText("\n**Installer**: [%s](%s)\n", url.c_str(), url.c_str())); // X64_TODO add link to 64-bit installer
@@ -458,9 +469,13 @@ std::string Syncer::CreateHistoryLog(const GitCommit& os_latest_commit)
         url = FormatText("https://csprousers.org/downloads/cspro/cspro%s-release-notes.txt", tag_commits_itr->tag_name.c_str());
         history.append(FormatText("\n**Release notes**: [%s](%s)\n", url.c_str(), url.c_str()));
 
-        if( !tag_commits_itr->pull_requests.empty() )
-            write_pull_requests(tag_commits_itr->pull_requests);
+        const std::vector<PullRequest>& pull_requests = grouped_pull_requests->pull_requests[tag_commits_itr->tag_name];
+
+        if( !pull_requests.empty() )
+            write_pull_requests(pull_requests);
     }
+
+    m_lastHistoryLogCreationGroupedPullRequests = std::move(grouped_pull_requests);
 
     return history;
 }
