@@ -18,6 +18,9 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="MainFrame.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="OpenSourceSyncer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -36,8 +39,14 @@
     <ClInclude Include="Syncer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="UWM.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="MainFrame.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="OpenSourceSyncer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -70,5 +79,10 @@
     <None Include="Overrides\replacements.json">
       <Filter>Overrides</Filter>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="res\OpenSourceSyncer.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>

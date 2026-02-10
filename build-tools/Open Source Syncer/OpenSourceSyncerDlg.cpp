@@ -1,15 +1,7 @@
 #include "StdAfx.h"
 #include "OpenSourceSyncerDlg.h"
 #include "Syncer.h"
-#include <zToolsO/UWM.h>
-#include <zUtilO/DataExchange.h>
 #include <zUtilO/WindowHelpers.h>
-
-
-namespace UWM::OpenSourceSyncer
-{
-    constexpr unsigned OperationComplete = UWM::Ranges::ExeStart;
-}
 
 
 BEGIN_MESSAGE_MAP(OpenSourceSyncerDlg, ResizableDlg)
@@ -20,7 +12,6 @@ BEGIN_MESSAGE_MAP(OpenSourceSyncerDlg, ResizableDlg)
     ON_COMMAND(IDC_REFRESH_LIBRARY_TAGS, OnRefreshLibraryTags)
     ON_COMMAND(IDC_COMMIT_LIBRARY, OnCommitLibrary)
     ON_MESSAGE(UWM::OpenSourceSyncer::OperationComplete, OnOperationComplete)
-    ON_MESSAGE(UWM::ToolsO::DisplayErrorMessage, OnDisplayErrorMessage)
 END_MESSAGE_MAP()
 
 

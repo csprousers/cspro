@@ -20,6 +20,7 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="MainFrame.h" />
     <ClInclude Include="OpenSourceSyncer.h" />
     <ClInclude Include="OpenSourceSyncerDlg.h" />
     <ClInclude Include="Overrides\replacement-ApiKeys.h">
@@ -28,8 +29,10 @@
     <ClInclude Include="resource.h" />
     <ClInclude Include="StdAfx.h" />
     <ClInclude Include="Syncer.h" />
+    <ClInclude Include="UWM.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="MainFrame.cpp" />
     <ClCompile Include="OpenSourceSyncer.cpp" />
     <ClCompile Include="OpenSourceSyncerDlg.cpp" />
     <ClCompile Include="StdAfx.cpp">
@@ -80,6 +83,9 @@
       <Project>{01396fa2-bca6-4f57-9346-ec468db7e0a6}</Project>
       <Private>false</Private>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="res\OpenSourceSyncer.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>
