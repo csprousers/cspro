@@ -20,6 +20,7 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Controller.h" />
     <ClInclude Include="MainFrame.h" />
     <ClInclude Include="OpenSourceSyncer.h" />
     <ClInclude Include="OpenSourceSyncerDlg.h" />
@@ -27,14 +28,17 @@
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="resource.h" />
+    <ClInclude Include="SettingsDlg.h" />
     <ClInclude Include="StdAfx.h" />
     <ClInclude Include="Syncer.h" />
     <ClInclude Include="UWM.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Controller.cpp" />
     <ClCompile Include="MainFrame.cpp" />
     <ClCompile Include="OpenSourceSyncer.cpp" />
     <ClCompile Include="OpenSourceSyncerDlg.cpp" />
+    <ClCompile Include="SettingsDlg.cpp" />
     <ClCompile Include="StdAfx.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>

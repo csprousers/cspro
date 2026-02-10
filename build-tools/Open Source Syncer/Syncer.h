@@ -1,20 +1,14 @@
 #pragma once
 
 #include <zGit/GitIgnoreEvaluator.h>
-#include <zGit/GitRepository.h>
 #include <zGit/GitTree.h>
 
 
 class Syncer
 {
 public:
-    Syncer(SettingsDb& settings_db, LoggingListBox& logging_list_box);
+    Syncer(LoggingListBox& logging_list_box);
     ~Syncer();
-
-    void SetOpenSourceDirectory(const std::string& open_source_directory);
-
-    GitRepository& GetPrivateRepo()    { return m_privateRepo; }
-    GitRepository& GetOpenSourceRepo() { return m_openSourceRepo; }
 
     // Compares the files of the private and open sources repositories at the given commit.
     // Any differences are logged, false is returned if there are unexpected errors.
@@ -33,11 +27,11 @@ public:
 
     // Reads tags from the repository of built libraries, storing them in the
     // settings database for future use.
-    void RefreshLibraryTags(GitRepository& library_repo);
+    void RefreshLibraryTags();
 
     // Creates a commit in the open source libraries repository with the
     // built libraries at the given commit in the open source repository.
-    void CommitBuildLibraries(GitRepository& library_repo, const GitCommit& cs_commit);
+    void CommitBuildLibraries(const GitCommit& cs_commit);
 
 private:
     // cs = private CSPro repository
@@ -113,11 +107,8 @@ private:
     std::string GetTagForBuiltLibraries(const GitCommit& cs_commit);
 
 private:
-    SettingsDb& m_settingsDb;
+    Controller& m_controller;
     LoggingListBox& m_loggingListBox;
-
-    std::string m_privateRepoDirectory;
-    std::string m_overridesDirectory;
 
     std::optional<GitIgnoreEvaluator> m_exclusionEvaluator;
 
@@ -130,9 +121,6 @@ private:
     struct PullRequest;
     struct GroupedPullRequests;
     std::unique_ptr<GroupedPullRequests> m_lastHistoryLogCreationGroupedPullRequests;
-
-    GitRepository m_privateRepo;
-    GitRepository m_openSourceRepo;
 
     struct BuiltLibrary;
     std::vector<BuiltLibrary> m_builtLibraries;

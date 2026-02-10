@@ -44,10 +44,7 @@ private:
     void ValidateLibraryData(LibraryData& library_data, bool creating_commit);
 
 private:
-    SettingsDb m_settingsDb;
-
-    std::string m_openSourceCodeDirectory;
-    std::string m_openSourceLibrariesDirectory;
+    Controller& m_controller;
 
     std::string m_branchName;
     std::string m_commitOld;

@@ -2,6 +2,7 @@
 #include "OpenSourceSyncer.h"
 #include "MainFrame.h"
 #include "OpenSourceSyncerDlg.h"
+#include "SettingsDlg.h"
 #include <zUtilO/ImsaDlg.h>
 #include <zUtilF/CommonControls.h>
 
@@ -15,6 +16,7 @@ namespace
 
 BEGIN_MESSAGE_MAP(OpenSourceSyncerApp, CWinApp)
     ON_COMMAND(ID_OPEN_SYNCER, OnOpenSyncer)
+    ON_COMMAND(ID_SETTINGS, OnSettings)
     ON_COMMAND(ID_APP_ABOUT, OnAppAbout)
 END_MESSAGE_MAP()
 
@@ -42,6 +44,18 @@ BOOL OpenSourceSyncerApp::InitInstance()
     SetRegistryKey(L"U.S. Census Bureau");
 
     LoadStdProfileSettings();  // Load standard INI file options (including MRU)
+
+    // initialize the controller
+    try
+    {
+        m_controller.emplace();
+    }
+
+    catch( const CSProException& exception )
+    {
+        ErrorMessage::Display(exception);
+        return FALSE;
+    }
 
     // Register the application's document templates.  Document templates
     //  serve as the connection between documents, frame windows and views.
@@ -72,6 +86,13 @@ BOOL OpenSourceSyncerApp::InitInstance()
 void OpenSourceSyncerApp::OnOpenSyncer()
 {
     OpenSourceSyncerDlg dlg;
+    dlg.DoModal();
+}
+
+
+void OpenSourceSyncerApp::OnSettings()
+{
+    SettingsDlg dlg;
     dlg.DoModal();
 }
 

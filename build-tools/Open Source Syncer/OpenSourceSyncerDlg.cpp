@@ -1,7 +1,6 @@
 #include "StdAfx.h"
 #include "OpenSourceSyncerDlg.h"
 #include "Syncer.h"
-#include <zUtilO/WindowHelpers.h>
 
 
 BEGIN_MESSAGE_MAP(OpenSourceSyncerDlg, ResizableDlg)
@@ -17,18 +16,14 @@ END_MESSAGE_MAP()
 
 namespace
 {
-    constexpr std::string_view OpenSourceCodeDirectoryKey_sv      = "open-source-code-directory";
-    constexpr std::string_view OpenSourceLibrariesDirectoryKey_sv = "open-source-libraries-directory";
-    constexpr std::string_view BranchNameKey_sv                   = "branch-name";
+    constexpr std::string_view BranchNameKey_sv = "branch-name";
 }
 
 
 OpenSourceSyncerDlg::OpenSourceSyncerDlg(CWnd* const pParent/* = nullptr*/)
     :   ResizableDlg(IDD_SYNCER, pParent),
-        m_settingsDb("OpenSourceSyncer.db"),
-        m_openSourceCodeDirectory(m_settingsDb.ReadOrDefault<std::string>(OpenSourceCodeDirectoryKey_sv)),
-        m_openSourceLibrariesDirectory(m_settingsDb.ReadOrDefault<std::string>(OpenSourceLibrariesDirectoryKey_sv)),
-        m_branchName(m_settingsDb.ReadOrDefault<std::string>(BranchNameKey_sv))
+        m_controller(Controller::GetInstance()),
+        m_branchName(m_controller.GetSettingsDb().ReadOrDefault<std::string>(BranchNameKey_sv))
 {
     SerializeDialogSize("OpenSourceSyncerDlg");
 }
@@ -42,9 +37,6 @@ OpenSourceSyncerDlg::~OpenSourceSyncerDlg()
 void OpenSourceSyncerDlg::DoDataExchange(CDataExchange* const pDX)
 {
     __super::DoDataExchange(pDX);
-
-    DDX_Text(pDX, IDC_OPEN_SOURCE_CODE_DIRECTORY, m_openSourceCodeDirectory, true);
-    DDX_Text(pDX, IDC_OPEN_SOURCE_LIBRARIES_DIRECTORY, m_openSourceLibrariesDirectory, true);
 
     DDX_Text(pDX, IDC_BRANCH_NAME, m_branchName, true);
     DDX_Text(pDX, IDC_COMMIT_OLD, m_commitOld, true);
@@ -69,7 +61,7 @@ BOOL OpenSourceSyncerDlg::OnInitDialog()
 
     try
     {
-        m_syncer = std::make_unique<Syncer>(m_settingsDb, m_loggingListBox);
+        m_syncer = std::make_unique<Syncer>(m_loggingListBox);
     }
 
     catch( const CSProException& exception )
@@ -107,18 +99,14 @@ void OpenSourceSyncerDlg::RunOperation(const std::function<void()>& validate_inp
 
     UpdateData(TRUE);
 
-    m_settingsDb.Write<std::string>(OpenSourceCodeDirectoryKey_sv, m_openSourceCodeDirectory);
-    m_settingsDb.Write<std::string>(OpenSourceLibrariesDirectoryKey_sv, m_openSourceLibrariesDirectory);
-    m_settingsDb.Write<std::string>(BranchNameKey_sv, m_branchName);
+    m_controller.GetSettingsDb().Write<std::string>(BranchNameKey_sv, m_branchName);
 
     m_loggingListBox.Clear();
 
     try
     {
-        if( m_openSourceCodeDirectory.empty() )
-            throw CSProException("Specify the open source code directory.");
-
-        m_syncer->SetOpenSourceDirectory(m_openSourceCodeDirectory);
+        // makes sure that the open source repository is open
+        m_controller.GetOpenSourceRepo();
 
         if( validate_inputs_callback )
             validate_inputs_callback();
@@ -167,20 +155,20 @@ void OpenSourceSyncerDlg::ValidateSyncData(SyncData& sync_data, const bool using
     if( m_branchName.empty() )
         throw CSProException("Specify the open source branch target.");
 
-    sync_data.os_merge_branch = sync_data.syncer->GetOpenSourceRepo().LookupBranch(m_branchName);
+    sync_data.os_merge_branch = m_controller.GetOpenSourceRepo().LookupBranch(m_branchName);
 
     if( using_oldest_merge_commit )
     {
         if( m_commitOld.empty() )
             throw CSProException("Specify the feature branch oldest merge commit.");
 
-        sync_data.cs_oldest_merge_commit = sync_data.syncer->GetPrivateRepo().LookupCommit(m_commitOld);
+        sync_data.cs_oldest_merge_commit = m_controller.GetPrivateRepo().LookupCommit(m_commitOld);
     }
 
     if( m_commitNew.empty() )
         throw CSProException("Specify the feature branch newest merge commit.");
 
-    sync_data.cs_newest_merge_commit = sync_data.syncer->GetPrivateRepo().LookupCommit(m_commitNew);
+    sync_data.cs_newest_merge_commit = m_controller.GetPrivateRepo().LookupCommit(m_commitNew);
 }
 
 
@@ -218,11 +206,11 @@ void OpenSourceSyncerDlg::OnCompare()
             ValidateSyncData(*sync_data, false);
         },
         // operation
-        [sync_data]()
+        [sync_data, controller = &m_controller]()
         {
             sync_data->syncer->CompareRepositories(
                 *sync_data->cs_newest_merge_commit,
-                sync_data->syncer->GetOpenSourceRepo().LookupCommit(*sync_data->os_merge_branch),
+                controller->GetOpenSourceRepo().LookupCommit(*sync_data->os_merge_branch),
                 true
             );
         }
@@ -253,24 +241,24 @@ void OpenSourceSyncerDlg::OnManualMirrorSingleCommit()
 
             try
             {
-                data->os_branch = data->syncer->GetOpenSourceRepo().LookupBranch(m_manualBranchName);
+                data->os_branch = m_controller.GetOpenSourceRepo().LookupBranch(m_manualBranchName);
             }
 
             catch(...)
             {
                 // try creating the branch if it does not exist
-                const GitBranch current_branch = data->syncer->GetOpenSourceRepo().GetCurrentBranch();
+                const GitBranch current_branch = m_controller.GetOpenSourceRepo().GetCurrentBranch();
 
-                data->os_branch = data->syncer->GetOpenSourceRepo().CreateBranch(
+                data->os_branch = m_controller.GetOpenSourceRepo().CreateBranch(
                     m_manualBranchName,
-                    data->syncer->GetOpenSourceRepo().LookupCommit(current_branch)
+                    m_controller.GetOpenSourceRepo().LookupCommit(current_branch)
                 );
             }
 
             if( m_manualSingleCommit.empty() )
                 throw CSProException("Specify the manual mirroring commit.");
 
-            data->cs_commit = data->syncer->GetPrivateRepo().LookupCommit(m_manualSingleCommit);
+            data->cs_commit = m_controller.GetPrivateRepo().LookupCommit(m_manualSingleCommit);
         },
         // operation
         [data]()
@@ -304,12 +292,12 @@ void OpenSourceSyncerDlg::OnManualMirrorMergeCommit()
             if( m_branchName.empty() )
                 throw CSProException("Specify the open source branch target (in the feature branch section).");
 
-            data->os_merge_branch = data->syncer->GetOpenSourceRepo().LookupBranch(m_branchName);
+            data->os_merge_branch = m_controller.GetOpenSourceRepo().LookupBranch(m_branchName);
 
             if( m_manualMergeCommit.empty() )
                 throw CSProException("Specify the manual merge commit.");
 
-            data->cs_merge_commit = data->syncer->GetPrivateRepo().LookupCommit(m_manualMergeCommit);
+            data->cs_merge_commit = m_controller.GetPrivateRepo().LookupCommit(m_manualMergeCommit);
 
             if( m_manualParentCommit1.empty() ||
                 m_manualParentCommit2.empty() )
@@ -317,8 +305,8 @@ void OpenSourceSyncerDlg::OnManualMirrorMergeCommit()
                 throw CSProException("Specify the two parent commits.");
             }
 
-            data->os_parent_commit1 = data->syncer->GetOpenSourceRepo().LookupCommit(m_manualParentCommit1);
-            data->os_parent_commit2 = data->syncer->GetOpenSourceRepo().LookupCommit(m_manualParentCommit2);
+            data->os_parent_commit1 = m_controller.GetOpenSourceRepo().LookupCommit(m_manualParentCommit1);
+            data->os_parent_commit2 = m_controller.GetOpenSourceRepo().LookupCommit(m_manualParentCommit2);
         },
         // operation
         [data]()
@@ -333,7 +321,6 @@ void OpenSourceSyncerDlg::OnManualMirrorMergeCommit()
 struct OpenSourceSyncerDlg::LibraryData
 {
     Syncer* syncer = nullptr;
-    GitRepository repo;
     std::optional<GitCommit> cs_commit;
 };
 
@@ -343,19 +330,16 @@ void OpenSourceSyncerDlg::ValidateLibraryData(LibraryData& library_data, const b
     library_data.syncer = m_syncer.get();
     ASSERT(library_data.syncer != nullptr);
 
-    if( m_openSourceLibrariesDirectory.empty() )
-        throw CSProException("Specify the open source libraries directory.");
+    // makes sure that the open source libraries repository is open
+    m_controller.GetOpenSourceLibrariesRepo();
 
     if( creating_commit )
     {
         if( m_commitNew.empty() )
             throw CSProException("Specify the commit (as the feature branch newest merge commit).");
 
-        library_data.cs_commit = library_data.syncer->GetPrivateRepo().LookupCommit(m_commitNew);
+        library_data.cs_commit = m_controller.GetPrivateRepo().LookupCommit(m_commitNew);
     }
-
-    const bool bare = !creating_commit;
-    library_data.repo.Open(Path::Combine(m_openSourceLibrariesDirectory, ".git"), bare);
 }
 
 
@@ -372,7 +356,7 @@ void OpenSourceSyncerDlg::OnRefreshLibraryTags()
         // operation
         [library_data]()
         {
-            library_data->syncer->RefreshLibraryTags(library_data->repo);
+            library_data->syncer->RefreshLibraryTags();
         }
     );
 }
@@ -391,7 +375,7 @@ void OpenSourceSyncerDlg::OnCommitLibrary()
         // operation
         [library_data]()
         {
-            library_data->syncer->CommitBuildLibraries(library_data->repo, *library_data->cs_commit);
+            library_data->syncer->CommitBuildLibraries(*library_data->cs_commit);
         }
     );
 }
