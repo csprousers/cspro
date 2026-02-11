@@ -123,6 +123,8 @@ std::string Syncer::GetFileReplacement(const git_diff_file& new_file)
 
 std::string Syncer::CreateSqliteWithoutSEE(const git_diff_file& new_file)
 {
+    GitRepository& private_repo = m_controller.GetPrivateRepo();
+
     const std::string filename = Path::GetFilename(new_file.path);
     const bool is_header = ( filename == "sqlite3.h" );
     ASSERT(is_header || filename == "sqlite3.c");
@@ -130,7 +132,7 @@ std::string Syncer::CreateSqliteWithoutSEE(const git_diff_file& new_file)
     m_controller.LogText("Creating the non-SEE version of SQLite for: " + filename);
 
     // find the version of SQLite currently in use
-    const GitBlob cs_header_blob = m_controller.GetPrivateRepo().LookupBlob(new_file.id);
+    const GitBlob cs_header_blob = private_repo.LookupBlob(new_file.id);
 
     constexpr std::string_view VersionPrefix_sv = "#define SQLITE_VERSION";
     std::string version;
@@ -256,10 +258,12 @@ void Syncer::PopulateReleaseTags()
     if( !m_releaseTags.empty() )
         return;
 
+    GitRepository& private_repo = m_controller.GetPrivateRepo();
+
     std::regex tag_regex = std::regex(R"(^refs/tags/v(\d+\.\d+\.\d+).*$)");
     std::smatch matches;
 
-    m_controller.GetPrivateRepo().ForeachTag(
+    private_repo.ForeachTag(
         [&](const GitTag tag)
         {
             constexpr bool keep_processing = true;
@@ -272,7 +276,7 @@ void Syncer::PopulateReleaseTags()
             if( tag_name < HistoryLogEarliestTag_sv )
                 return keep_processing;
 
-            GitCommit commit = m_controller.GetPrivateRepo().LookupCommit(tag);
+            GitCommit commit = private_repo.LookupCommit(tag);
 
             // associate the tag with the latest commit in case of multiple tags for the same version (e.g., v7.6.1-Apr20 and v7.6.1-Apr26)
             auto lookup = std::find_if(m_releaseTags.begin(), m_releaseTags.end(),
@@ -319,6 +323,8 @@ struct Syncer::GroupedPullRequests
 
 std::string Syncer::CreateHistoryLog(const GitCommit& cs_latest_commit)
 {
+    GitRepository& private_repo = m_controller.GetPrivateRepo();
+
     m_controller.LogText("Creating history log up to the commit on: " +
                          cs_latest_commit.GetCommitter().GetWhen().GetLocalDateTimeString());
 
@@ -326,11 +332,11 @@ std::string Syncer::CreateHistoryLog(const GitCommit& cs_latest_commit)
 
     std::unique_ptr<GroupedPullRequests> grouped_pull_requests;
 
-    GitCommit oldest_commit_to_process = m_controller.GetPrivateRepo().LookupCommit(HistoryLogEarliestCommitSHA);
+    GitCommit oldest_commit_to_process = private_repo.LookupCommit(HistoryLogEarliestCommitSHA);
 
     // if the history has already been created for an earlier commit, we only need to walk up to that commit
     if( m_lastHistoryLogCreationGroupedPullRequests != nullptr &&
-        m_controller.GetPrivateRepo().IsCommitDescendantOf(cs_latest_commit, m_lastHistoryLogCreationGroupedPullRequests->cs_grouped_up_to_commit) )
+        private_repo.IsCommitDescendantOf(cs_latest_commit, m_lastHistoryLogCreationGroupedPullRequests->cs_grouped_up_to_commit) )
     {
         oldest_commit_to_process = m_lastHistoryLogCreationGroupedPullRequests->cs_grouped_up_to_commit;
         grouped_pull_requests = std::move(m_lastHistoryLogCreationGroupedPullRequests);
@@ -345,7 +351,7 @@ std::string Syncer::CreateHistoryLog(const GitCommit& cs_latest_commit)
     const std::regex commit_message_regex(R"(^Merge pull request.+CSProDevelopment\/(\S+).*)");
     std::smatch matches;
 
-    GitRevisionWalker walker(m_controller.GetPrivateRepo());
+    GitRevisionWalker walker(private_repo);
 
     walker.ReverseWalk(cs_latest_commit, oldest_commit_to_process,
         [&](const GitCommit commit)
@@ -363,7 +369,7 @@ std::string Syncer::CreateHistoryLog(const GitCommit& cs_latest_commit)
 
             for( TagCommits& tc : m_releaseTags )
             {
-                if( tc.commit == commit || m_controller.GetPrivateRepo().IsCommitDescendantOf(tc.commit, commit) )
+                if( tc.commit == commit || private_repo.IsCommitDescendantOf(tc.commit, commit) )
                 {
                     pull_requests = &grouped_pull_requests->pull_requests[tc.tag_name];
                     break;
@@ -451,18 +457,23 @@ std::string Syncer::CreateHistoryLog(const GitCommit& cs_latest_commit)
 
 void Syncer::UpdateBuildDetails(GitIndex& os_index, const std::string& libraries_tag)
 {
+    GitRepository& open_source_repo = m_controller.GetOpenSourceRepo();
+
     const GitObjectId os_old_build_blob_oid = os_index.GetObjectIdByPath(BuildFilename);
-    std::string build_details = m_controller.GetOpenSourceRepo().LookupBlob(os_old_build_blob_oid).as<std::string>();
+    std::string build_details = open_source_repo.LookupBlob(os_old_build_blob_oid).as<std::string>();
 
     SO::Replace(build_details, LibrariesTagInBuildFile_sv, libraries_tag);
 
-    const GitObjectId os_new_build_blob_oid = m_controller.GetOpenSourceRepo().CreateBlob(build_details);
+    const GitObjectId os_new_build_blob_oid = open_source_repo.CreateBlob(build_details);
     os_index.AddEntry(os_new_build_blob_oid, BuildFilename, GIT_FILEMODE_BLOB);
 }
 
 
 bool Syncer::CompareRepositories(const GitCommit& cs_commit, const GitCommit& os_commit, const bool verbose)
 {
+    GitRepository& private_repo = m_controller.GetPrivateRepo();
+    GitRepository& open_source_repo = m_controller.GetOpenSourceRepo();
+
     m_controller.LogText("Comparing: private (%s) <-> open source (%s)",
                          cs_commit.GetObjectId().GetHexHash().c_str(),
                          os_commit.GetObjectId().GetHexHash().c_str());
@@ -525,8 +536,8 @@ bool Syncer::CompareRepositories(const GitCommit& cs_commit, const GitCommit& os
         // otherwise compare as text with normalized line endings
         else
         {
-            const std::string cs_text = SO::ToNewlineLF(m_controller.GetPrivateRepo().LookupBlob(cs_file_oid).as<std::string>());
-            const std::string os_text = m_controller.GetOpenSourceRepo().LookupBlob(os_lookup->second).as<std::string>();
+            const std::string cs_text = SO::ToNewlineLF(private_repo.LookupBlob(cs_file_oid).as<std::string>());
+            const std::string os_text = open_source_repo.LookupBlob(os_lookup->second).as<std::string>();
 
             if( cs_text != os_text )
             {
@@ -633,8 +644,10 @@ std::vector<GitCommit> Syncer::GetOrderedCommits(const GitCommit& oldest_commit,
 void Syncer::MirrorFeatureBranches(const GitBranch& os_merge_branch,
                                    const GitCommit& cs_oldest_merge_commit, const GitCommit& cs_newest_merge_commit)
 {
+    GitRepository& open_source_repo = m_controller.GetOpenSourceRepo();
+
     // make sure that there are no pending open source changes
-    if( m_controller.GetOpenSourceRepo().HasChanges() )
+    if( open_source_repo.HasChanges() )
         throw CSProException("You cannot run the sync if there are changes in the open source directory.");
 
     // multiple feature branches may be mirrored
@@ -660,14 +673,16 @@ void Syncer::MirrorFeatureBranches(const GitBranch& os_merge_branch,
     } while( cs_merge_commit_new_itr != cs_merge_commits.cend() );
 
     // when complete, checkout the HEAD so that the working directory matches the index
-    m_controller.GetOpenSourceRepo().CheckoutHead(GIT_CHECKOUT_FORCE);
+    open_source_repo.CheckoutHead(GIT_CHECKOUT_FORCE);
 }
 
 
 GitCommit Syncer::CreateMirroredCommit(const GitCommit& cs_commit, const GitTree& os_written_tree,
                                        const GitCommit& os_parent_commit1, const GitCommit* const os_parent_commit2)
 {
-    const GitObjectId os_commit_oid = m_controller.GetOpenSourceRepo().CreateCommit(
+    GitRepository& open_source_repo = m_controller.GetOpenSourceRepo();
+
+    const GitObjectId os_commit_oid = open_source_repo.CreateCommit(
         cs_commit.GetAuthor(),
         cs_commit.GetCommitter(),
         cs_commit.GetMessage(),
@@ -680,13 +695,15 @@ GitCommit Syncer::CreateMirroredCommit(const GitCommit& cs_commit, const GitTree
                          os_commit_oid.GetHexHash().c_str(),
                          cs_commit.GetMessage().c_str());
 
-    return m_controller.GetOpenSourceRepo().LookupCommit(os_commit_oid);
+    return open_source_repo.LookupCommit(os_commit_oid);
 }
 
 
 GitCommit Syncer::MirrorFeatureBranch(const GitBranch& os_merge_branch,
                                       const GitCommit& cs_old_merge_commit, const GitCommit& cs_new_merge_commit)
 {
+    GitRepository& open_source_repo = m_controller.GetOpenSourceRepo();
+
     if( cs_old_merge_commit.GetParentCount() != 2 || cs_new_merge_commit.GetParentCount() != 2 )
     {
         throw CSProException("Update this tool to support mirroring between non-merge commits: %s -> %s",
@@ -699,7 +716,7 @@ GitCommit Syncer::MirrorFeatureBranch(const GitBranch& os_merge_branch,
     const std::string libraries_tag = library_manager.GetTagForBuiltLibraries(cs_new_merge_commit);
 
     // create and checkout a temporary open source branch for this work
-    const GitCommit os_start_commit = m_controller.GetOpenSourceRepo().LookupCommit(os_merge_branch);
+    const GitCommit os_start_commit = open_source_repo.LookupCommit(os_merge_branch);
 
     const std::string os_temp_branch_name = SO::Concatenate(
         IntToString(GetTimestamp()),
@@ -707,8 +724,8 @@ GitCommit Syncer::MirrorFeatureBranch(const GitBranch& os_merge_branch,
         os_start_commit.GetObjectId().GetHexHash()
     );
 
-    GitBranch os_temp_branch = m_controller.GetOpenSourceRepo().CreateBranch(os_temp_branch_name, os_start_commit);
-    m_controller.GetOpenSourceRepo().CheckoutBranch(os_temp_branch);
+    GitBranch os_temp_branch = open_source_repo.CreateBranch(os_temp_branch_name, os_start_commit);
+    open_source_repo.CheckoutBranch(os_temp_branch);
 
     // mirror the feature branch
     const GitCommit os_feature_branch_final_commit = MirrorFeatureBranchCommits(
@@ -718,22 +735,22 @@ GitCommit Syncer::MirrorFeatureBranch(const GitBranch& os_merge_branch,
     );
 
     // switch back to the destination branch
-    m_controller.GetOpenSourceRepo().SetHead(os_merge_branch);
-    m_controller.GetOpenSourceRepo().ResetHead(GitRepository::ResetType::Hard, os_start_commit);
+    open_source_repo.SetHead(os_merge_branch);
+    open_source_repo.ResetHead(GitRepository::ResetType::Hard, os_start_commit);
 
     // mirror the merge commit
-    GitIndex os_index = m_controller.GetOpenSourceRepo().GetIndex();
+    GitIndex os_index = open_source_repo.GetIndex();
     GitTree cs_old_merge_tree = cs_old_merge_commit.GetTree();
     GitTree cs_new_merge_tree = cs_new_merge_commit.GetTree();
 
     MirrorCommit(os_index, cs_old_merge_tree, cs_new_merge_tree);
 
-    GitTree os_new_tree = m_controller.GetOpenSourceRepo().WriteTree(os_index);
+    GitTree os_new_tree = open_source_repo.WriteTree(os_index);
 
     // make sure that the feature branch matches the merge commit
     GitTree os_feature_branch_tree = os_feature_branch_final_commit.GetTree();
 
-    const GitDiff merge_diff = m_controller.GetOpenSourceRepo().GetDifference(os_feature_branch_tree, os_new_tree);
+    const GitDiff merge_diff = open_source_repo.GetDifference(os_feature_branch_tree, os_new_tree);
 
     if( merge_diff.GetNumberDeltas() != 0 )
     {
@@ -750,14 +767,14 @@ GitCommit Syncer::MirrorFeatureBranch(const GitBranch& os_merge_branch,
 
     // update HISTORY.md
     const std::string history = CreateHistoryLog(cs_new_merge_commit);
-    const GitObjectId os_history_blob_oid = m_controller.GetOpenSourceRepo().CreateBlob(history);
+    const GitObjectId os_history_blob_oid = open_source_repo.CreateBlob(history);
     os_index.AddEntry(os_history_blob_oid, HistoryFilename, GIT_FILEMODE_BLOB);
 
     // update BUILD.md with information about the external libraries used
     UpdateBuildDetails(os_index, libraries_tag);
 
     // commit this merge commit with the updated history and build details
-    os_new_tree = m_controller.GetOpenSourceRepo().WriteTree(os_index);
+    os_new_tree = open_source_repo.WriteTree(os_index);
 
     GitCommit os_new_merge_commit = CreateMirroredCommit(
         cs_new_merge_commit,
@@ -780,13 +797,16 @@ GitCommit Syncer::MirrorFeatureBranch(const GitBranch& os_merge_branch,
 GitCommit Syncer::MirrorFeatureBranchCommits(const GitCommit& cs_old_merge_commit, const GitCommit& cs_new_merge_commit,
                                              const GitCommit& os_start_commit)
 {
+    GitRepository& private_repo = m_controller.GetPrivateRepo();
+    GitRepository& open_source_repo = m_controller.GetOpenSourceRepo();
+
     GitCommit cs_parent_commit = cs_old_merge_commit;
     GitTree cs_parent_tree = cs_old_merge_commit.GetTree();
 
     GitCommit os_parent_commit = os_start_commit;
 
     // walk the two merge commits in reverse order
-    GitRevisionWalker walker(m_controller.GetPrivateRepo());
+    GitRevisionWalker walker(private_repo);
 
     walker.ReverseWalk(cs_new_merge_commit, cs_old_merge_commit,
         [&](GitCommit cs_commit)
@@ -809,12 +829,12 @@ GitCommit Syncer::MirrorFeatureBranchCommits(const GitCommit& cs_old_merge_commi
                 throw ProgrammingErrorException();
 
             GitTree cs_commit_tree = cs_commit.GetTree();
-            GitIndex os_index = m_controller.GetOpenSourceRepo().GetIndex();
+            GitIndex os_index = open_source_repo.GetIndex();
 
             MirrorCommit(os_index, cs_parent_tree, cs_commit_tree);
 
             // commit these changes
-            GitTree os_new_tree = m_controller.GetOpenSourceRepo().WriteTree(os_index);
+            GitTree os_new_tree = open_source_repo.WriteTree(os_index);
 
             os_parent_commit = CreateMirroredCommit(
                 cs_commit,
@@ -835,9 +855,10 @@ void Syncer::MirrorCommit(GitIndex& os_index, GitTree& cs_parent_tree, GitTree& 
 {
     // because of line ending differences between the private and open source repositories,
     // instead of using git_apply, we process differences and manually merge text files
+    GitRepository& private_repo = m_controller.GetPrivateRepo();
 
     // get the differences between this commit and its parent
-    GitDiff cs_diff = m_controller.GetPrivateRepo().GetDifference(cs_parent_tree, cs_tree, GIT_DIFF_NORMAL);
+    GitDiff cs_diff = private_repo.GetDifference(cs_parent_tree, cs_tree, GIT_DIFF_NORMAL);
     cs_diff.FindSimilar();
 
     cs_diff.ForeachDifference(
@@ -915,21 +936,24 @@ void Syncer::MirrorFile(GitIndex& os_index, const git_diff_delta& diff_delta)
 
 void Syncer::MirrorFileAddEntry(GitIndex& os_index, const git_diff_file& new_file, const void* const data, const size_t size)
 {
-    const GitObjectId os_blob_oid = m_controller.GetOpenSourceRepo().CreateBlob(data, size);
+    GitRepository& open_source_repo = m_controller.GetOpenSourceRepo();
+    const GitObjectId os_blob_oid = open_source_repo.CreateBlob(data, size);
     os_index.AddEntry(os_blob_oid, new_file.path, new_file.mode);
 }
 
 
 void Syncer::MirrorFileAddBinary(GitIndex& os_index, const git_diff_file& new_file)
 {
-    const GitBlob cs_blob = m_controller.GetPrivateRepo().LookupBlob(new_file.id);
+    GitRepository& private_repo = m_controller.GetPrivateRepo();
+    const GitBlob cs_blob = private_repo.LookupBlob(new_file.id);
     MirrorFileAddEntry(os_index, new_file, cs_blob.data(), cs_blob.size());
 }
 
 
 void Syncer::MirrorFileAddText(GitIndex& os_index, const git_diff_file& new_file)
 {
-    const GitBlob cs_blob = m_controller.GetPrivateRepo().LookupBlob(new_file.id);
+    GitRepository& private_repo = m_controller.GetPrivateRepo();
+    const GitBlob cs_blob = private_repo.LookupBlob(new_file.id);
 
     // normalize the line endings
     const std::string os_blob_text = SO::ToNewlineLF(cs_blob.as<std::string>());
@@ -952,13 +976,16 @@ void Syncer::MirrorFileModifyBinary(GitIndex& os_index, const git_diff_file& new
 
 void Syncer::MirrorFileModifyText(GitIndex& os_index, const git_diff_file& old_file, const git_diff_file& new_file)
 {
+    GitRepository& private_repo = m_controller.GetPrivateRepo();
+    GitRepository& open_source_repo = m_controller.GetOpenSourceRepo();
+
     // for a three-way merge, we will load the changed data from the private repository...
-    std::string cs_text_before = m_controller.GetPrivateRepo().LookupBlob(old_file.id).as<std::string>();
-    std::string cs_text_after = m_controller.GetPrivateRepo().LookupBlob(new_file.id).as<std::string>();
+    std::string cs_text_before = private_repo.LookupBlob(old_file.id).as<std::string>();
+    std::string cs_text_after = private_repo.LookupBlob(new_file.id).as<std::string>();
 
     // ...and then apply it onto the open source repository
     const GitObjectId os_text_now_oid = os_index.GetObjectIdByPath(old_file.path);
-    const std::string os_text_now = m_controller.GetOpenSourceRepo().LookupBlob(os_text_now_oid).as<std::string>();
+    const std::string os_text_now = open_source_repo.LookupBlob(os_text_now_oid).as<std::string>();
 
     // normalize the line endings
     SO::MakeNewlineLF(cs_text_before);
@@ -1034,7 +1061,7 @@ void Syncer::MirrorCommits(const GitBranch& os_branch,
 
         MirrorCommit(os_index, cs_parent_tree, cs_commit_tree);
 
-        GitTree os_new_tree = m_controller.GetOpenSourceRepo().WriteTree(os_index);
+        GitTree os_new_tree = open_source_repo.WriteTree(os_index);
 
         os_parent_commit = CreateMirroredCommit(
             *cs_commits_itr,

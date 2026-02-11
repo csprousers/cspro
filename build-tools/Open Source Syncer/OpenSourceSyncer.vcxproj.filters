@@ -24,6 +24,9 @@
     <ClInclude Include="ControllerThreadRunningFrame.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="FeatureBranchSyncerView.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="LibraryManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -40,9 +43,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="OpenSourceSyncer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="OpenSourceSyncerDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Overrides\replacement-ApiKeys.h">
@@ -74,6 +74,9 @@
     <ClCompile Include="ControllerThreadRunningFrame.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="FeatureBranchSyncerView.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="LibraryManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -90,9 +93,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="OpenSourceSyncer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="OpenSourceSyncerDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="SettingsDlg.cpp">

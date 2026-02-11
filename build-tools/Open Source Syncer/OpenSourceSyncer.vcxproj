@@ -22,13 +22,13 @@
   <ItemGroup>
     <ClInclude Include="Controller.h" />
     <ClInclude Include="ControllerThreadRunningFrame.h" />
+    <ClInclude Include="FeatureBranchSyncerView.h" />
     <ClInclude Include="LibraryManager.h" />
     <ClInclude Include="LogFrameAndView.h" />
     <ClInclude Include="MainFrame.h" />
     <ClInclude Include="ManageLibrariesView.h" />
     <ClInclude Include="ManualMirrorerView.h" />
     <ClInclude Include="OpenSourceSyncer.h" />
-    <ClInclude Include="OpenSourceSyncerDlg.h" />
     <ClInclude Include="Overrides\replacement-ApiKeys.h">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClInclude>
@@ -42,13 +42,13 @@
   <ItemGroup>
     <ClCompile Include="Controller.cpp" />
     <ClCompile Include="ControllerThreadRunningFrame.cpp" />
+    <ClCompile Include="FeatureBranchSyncerView.cpp" />
     <ClCompile Include="LibraryManager.cpp" />
     <ClCompile Include="LogFrameAndView.cpp" />
     <ClCompile Include="MainFrame.cpp" />
     <ClCompile Include="ManageLibrariesView.cpp" />
     <ClCompile Include="ManualMirrorerView.cpp" />
     <ClCompile Include="OpenSourceSyncer.cpp" />
-    <ClCompile Include="OpenSourceSyncerDlg.cpp" />
     <ClCompile Include="SettingsDlg.cpp" />
     <ClCompile Include="StdAfx.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>

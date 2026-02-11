@@ -17,7 +17,7 @@ protected:
 
     BOOL InitInstance() override;
 
-    void OnOpenSyncer();
+    void OnSyncFeatureBranches();
 
     void OnManuallyMirrorCommits();
 

@@ -1,11 +1,11 @@
 #include "StdAfx.h"
 #include "OpenSourceSyncer.h"
 #include "ControllerThreadRunningFrame.h"
+#include "FeatureBranchSyncerView.h"
 #include "LogFrameAndView.h"
 #include "MainFrame.h"
 #include "ManageLibrariesView.h"
 #include "ManualMirrorerView.h"
-#include "OpenSourceSyncerDlg.h"
 #include "SettingsDlg.h"
 #include <zUtilO/ImsaDlg.h>
 #include <zUtilF/CommonControls.h>
@@ -19,7 +19,7 @@ namespace
 
 
 BEGIN_MESSAGE_MAP(OpenSourceSyncerApp, CWinApp)
-    ON_COMMAND(ID_OPEN_SYNCER, OnOpenSyncer)
+    ON_COMMAND(ID_SYNC_FEATURE_BRANCHES, OnSyncFeatureBranches)
     ON_COMMAND(ID_MANUALLY_MIRROR_COMMITS, OnManuallyMirrorCommits)
     ON_COMMAND(ID_MANAGE_LIBRARIES, OnManageLibraries)
     ON_COMMAND(ID_SETTINGS, OnSettings)
@@ -68,6 +68,7 @@ BOOL OpenSourceSyncerApp::InitInstance()
     //  serve as the connection between documents, frame windows and views.
     m_fileFreeDocManager = new FileFreeDocManager();
     m_fileFreeDocManager->AddDocTemplate<IDR_LOG, FileFreeDoc, LogFrame, LogView>();
+    m_fileFreeDocManager->AddDocTemplate<IDR_FEATURE_BRANCH_SYNCER, FileFreeDoc, ControllerThreadRunningFrame, FeatureBranchSyncerView>();
     m_fileFreeDocManager->AddDocTemplate<IDR_MANUAL_MIRRORER, FileFreeDoc, ControllerThreadRunningFrame, ManualMirrorerView>();
     m_fileFreeDocManager->AddDocTemplate<IDR_MANAGE_LIBRARIES, FileFreeDoc, ControllerThreadRunningFrame, ManageLibrariesView>();
     m_pDocManager = m_fileFreeDocManager;
@@ -87,6 +88,9 @@ BOOL OpenSourceSyncerApp::InitInstance()
     main_frame->ShowWindow(m_nCmdShow);
     main_frame->UpdateWindow();
 
+    // open the Feature Branch Syncer on startup
+    OnSyncFeatureBranches();
+
     return TRUE;
 }
 
@@ -97,10 +101,9 @@ void OpenSourceSyncerApp::OpenLog()
 }
 
 
-void OpenSourceSyncerApp::OnOpenSyncer()
+void OpenSourceSyncerApp::OnSyncFeatureBranches()
 {
-    OpenSourceSyncerDlg dlg;
-    dlg.DoModal();
+    m_fileFreeDocManager->Open(IDR_FEATURE_BRANCH_SYNCER, false);
 }
 
 

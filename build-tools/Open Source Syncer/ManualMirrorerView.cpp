@@ -50,7 +50,7 @@ void ManualMirrorerView::OnMirrorCommit()
         [this, branch_name = m_branchName, oldest_commit_sha = m_oldestCommit, newest_commit_sha = m_newestCommit]
         (Controller& controller)
         {
-            ManualMirrorerView::OnMirrorCommit(controller, *branch_name, *oldest_commit_sha, *newest_commit_sha);
+            OnMirrorCommit(controller, *branch_name, *oldest_commit_sha, *newest_commit_sha);
         });
 }
 
@@ -62,7 +62,7 @@ void ManualMirrorerView::OnMirrorCommit(Controller& controller, const std::strin
     GitRepository& open_source_repo = controller.GetOpenSourceRepo();
     Syncer& syncer = controller.GetSyncer();
 
-    // validate the branch name
+    // validate the branch
     if( branch_name.empty() )
         throw CSProException("Specify the branch name.");
 
@@ -109,6 +109,7 @@ void ManualMirrorerView::OnMirrorCommit(Controller& controller, const std::strin
 
     ASSERT(cs_oldest_commit.has_value());
 
+    // mirror the merge commits
     syncer.MirrorCommits(
         *os_branch,
         *cs_oldest_commit,
@@ -126,8 +127,8 @@ void ManualMirrorerView::OnMirrorMergeCommit()
          parent_commit_sha1 = m_parentCommit1, parent_commit_sha2 = m_parentCommit2]
         (Controller& controller)
         {
-            ManualMirrorerView::OnMirrorMergeCommit(controller, *target_branch_name, *merge_commit_sha,
-                                                    *parent_commit_sha1, *parent_commit_sha2);
+            OnMirrorMergeCommit(controller, *target_branch_name, *merge_commit_sha,
+                                *parent_commit_sha1, *parent_commit_sha2);
         });
 }
 
@@ -140,9 +141,9 @@ void ManualMirrorerView::OnMirrorMergeCommit(Controller& controller,
     GitRepository& open_source_repo = controller.GetOpenSourceRepo();
     Syncer& syncer = controller.GetSyncer();
 
-    // validate the branch name
+    // validate the branch
     if( target_branch_name.empty() )
-        throw CSProException("Specify the target branch name.");
+        throw CSProException("Specify the open source branch target.");
 
     const GitBranch os_branch = open_source_repo.LookupBranch(target_branch_name);
 
@@ -158,6 +159,7 @@ void ManualMirrorerView::OnMirrorMergeCommit(Controller& controller,
         throw CSProException("Specify the two parent commits.");
     }
 
+    // mirror the merge commit
     syncer.MirrorMergeCommit(
         os_branch,
         cs_merge_commit,
