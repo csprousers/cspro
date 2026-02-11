@@ -89,8 +89,8 @@ BEGIN
     POPUP "&Window"
     BEGIN
         MENUITEM "&Cascade",                    ID_WINDOW_CASCADE
-        MENUITEM "&Tile",                       ID_WINDOW_TILE_HORZ
-        MENUITEM "&Arrange Icons",              ID_WINDOW_ARRANGE
+        MENUITEM "&Tile Top to Bottom",         ID_WINDOW_TILE_HORZ
+        MENUITEM "Tile &Side by Side",          ID_WINDOW_TILE_VERT
     END
     POPUP "&Help"
     BEGIN
