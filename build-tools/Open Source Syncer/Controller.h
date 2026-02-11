@@ -4,11 +4,14 @@
 #include <zUtilO/SettingsDb.h>
 #include <zUtilF/LoggingListBox.h>
 
+class LibraryManager;
+
 
 class Controller
 {
 public:
     Controller();
+    ~Controller();
 
     static Controller& GetInstance();
 
@@ -50,6 +53,10 @@ public:
     // Opens the open source libraries repository if not open, throwing exceptions on error.
     GitRepository& GetOpenSourceLibrariesRepo();
 
+    // Returns an instance of the LibraryManager, for managing prebuilt
+    // external libraries and other binary file dependencies.
+    LibraryManager& GetLibraryManager();
+
     // Returns true if an operation is running in a worker thread.
     // When providing a CFrameWnd argument, the method returns true if the worker thread belongs to the frame.
     bool IsOperationRunning(const CFrameWnd* frame_wnd = nullptr) const noexcept;
@@ -75,6 +82,8 @@ private:
 
     std::string m_openSourceLibrariesDirectory;
     std::optional<GitRepository> m_openSourceLibrariesRepo;
+
+    std::unique_ptr<LibraryManager> m_libraryManager;
 
     struct WorkerThreadData
     {

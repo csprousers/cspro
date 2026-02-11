@@ -67,9 +67,6 @@ FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     PUSHBUTTON      "Sync Feature Branches",IDC_SYNC,526,22,112,14
     PUSHBUTTON      "Compare Against Open Source",IDC_COMPARE,526,62,112,14
-    GROUPBOX        "Built Libraries",IDC_STATIC,657,7,125,76
-    PUSHBUTTON      "Refresh Built Library Tags",IDC_REFRESH_LIBRARY_TAGS,664,22,112,14
-    PUSHBUTTON      "Commit Built Library",IDC_COMMIT_LIBRARY,664,62,112,14
     GROUPBOX        "Manual Mirroring: Single Commit ",IDC_STATIC,7,91,259,96
     LTEXT           "Open source branch:",IDC_STATIC,17,109,68,8
     EDITTEXT        IDC_MANUAL_BRANCH_NAME,94,106,164,14,ES_AUTOHSCROLL
@@ -109,6 +106,24 @@ BEGIN
     EDITTEXT        IDC_OPEN_SOURCE_LIBRARIES_DIRECTORY,68,42,158,14,ES_AUTOHSCROLL
 END
 
+IDD_MANAGE_LIBRARIES DIALOGEX 0, 0, 401, 276
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_CHILD | WS_CAPTION | WS_SYSMENU
+CAPTION "Manage Libraries"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LTEXT           "Manage CSPro's prebuilt external libraries and binary file dependencies:",IDC_STATIC,7,7,230,8
+    GROUPBOX        "Library IDs",IDC_STATIC,7,24,388,151
+    LTEXT           "Built libraries are identified by an ID based on a hash of the repository paths of included files as well as each file's MD5. The built libraries are associated with a local hash code (that does not necessarily use the MD5), and also by the actual hash.",IDC_STATIC,14,35,373,23
+    CONTROL         "",IDC_LIBRARY_IDS,"SysListView32",LVS_REPORT | LVS_ALIGNLEFT | WS_BORDER | WS_TABSTOP,14,66,373,82
+    PUSHBUTTON      "Refresh Library IDs",IDC_REFRESH_LIBRARY_IDS,139,154,122,14
+    GROUPBOX        "Built Libraries",IDC_STATIC,7,182,387,87
+    LTEXT           "To create a built library, specify a commit SHA, or leave it blank to use the HEAD.",IDC_STATIC,14,195,260,8
+    LTEXT           "Commit:",IDC_STATIC,14,213,27,8
+    EDITTEXT        IDC_COMMIT,51,210,164,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "Create and Commit Built Library",IDC_CREATE_BUILT_LIBRARY,232,210,122,14
+    PUSHBUTTON      "Preview Built Library",IDC_PREVIEW_BUILT_LIBRARY,232,229,122,14
+    PUSHBUTTON      "View List of Input Files",IDC_VIEW_BUILT_LIBRARY_INPUTS,232,248,122,14
+END
 
 IDD_LOG DIALOGEX 0, 0, 99, 22
 STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
@@ -143,6 +158,14 @@ BEGIN
         BOTTOMMARGIN, 89
     END
 
+    IDD_MANAGE_LIBRARIES, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 394
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 269
+    END
+
     IDD_LOG, DIALOG
     BEGIN
     END
@@ -158,9 +181,6 @@ END
 IDD_SYNCER AFX_DIALOG_LAYOUT
 BEGIN
     0,
-    0, 0, 0, 0,
-    0, 0, 0, 0,
-    0, 0, 0, 0,
     0, 0, 0, 0,
     0, 0, 0, 0,
     0, 0, 0, 0,
@@ -200,6 +220,11 @@ BEGIN
     0, 0, 100, 0
 END
 
+IDD_MANAGE_LIBRARIES AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
 IDD_LOG AFX_DIALOG_LAYOUT
 BEGIN
     0,
@@ -217,6 +242,8 @@ BEGIN
     POPUP "&File"
     BEGIN
         MENUITEM "Open Syncer",                 ID_OPEN_SYNCER
+        MENUITEM SEPARATOR
+        MENUITEM "Manage Libraries",            ID_MANAGE_LIBRARIES
         MENUITEM SEPARATOR
         MENUITEM "&Close\tCtrl+W",              ID_FILE_CLOSE
         MENUITEM SEPARATOR
@@ -256,6 +283,7 @@ STRINGTABLE
 BEGIN
     IDR_LOG                 "Operation Log"
     IDR_MAINFRAME           "Open Source Syncer"
+    IDR_MANAGE_LIBRARIES    "Manage Libraries"
 END
 
 STRINGTABLE

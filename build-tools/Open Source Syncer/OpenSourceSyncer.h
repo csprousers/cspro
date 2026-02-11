@@ -19,6 +19,8 @@ protected:
 
     void OnOpenSyncer();
 
+    void OnManageLibraries();
+
     void OnSettings();
     void OnUpdateSettings(CCmdUI* pCmdUI);
 

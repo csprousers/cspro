@@ -8,8 +8,6 @@ BEGIN_MESSAGE_MAP(OpenSourceSyncerDlg, ResizableDlg)
     ON_COMMAND(IDC_COMPARE, OnCompare)
     ON_COMMAND(IDC_MIRROR_SINGLE_COMMIT, OnManualMirrorSingleCommit)
     ON_COMMAND(IDC_MIRROR_MERGE_COMMIT, OnManualMirrorMergeCommit)
-    ON_COMMAND(IDC_REFRESH_LIBRARY_TAGS, OnRefreshLibraryTags)
-    ON_COMMAND(IDC_COMMIT_LIBRARY, OnCommitLibrary)
     ON_MESSAGE(UWM::OpenSourceSyncer::OperationComplete, OnOperationComplete)
 END_MESSAGE_MAP()
 
@@ -313,69 +311,6 @@ void OpenSourceSyncerDlg::OnManualMirrorMergeCommit()
         {
             data->syncer->ManualMirrorMergeCommit(*data->os_merge_branch, *data->cs_merge_commit,
                                                   *data->os_parent_commit1, *data->os_parent_commit2);
-        }
-    );
-}
-
-
-struct OpenSourceSyncerDlg::LibraryData
-{
-    Syncer* syncer = nullptr;
-    std::optional<GitCommit> cs_commit;
-};
-
-
-void OpenSourceSyncerDlg::ValidateLibraryData(LibraryData& library_data, const bool creating_commit)
-{
-    library_data.syncer = m_syncer.get();
-    ASSERT(library_data.syncer != nullptr);
-
-    // makes sure that the open source libraries repository is open
-    m_controller.GetOpenSourceLibrariesRepo();
-
-    if( creating_commit )
-    {
-        if( m_commitNew.empty() )
-            throw CSProException("Specify the commit (as the feature branch newest merge commit).");
-
-        library_data.cs_commit = m_controller.GetPrivateRepo().LookupCommit(m_commitNew);
-    }
-}
-
-
-void OpenSourceSyncerDlg::OnRefreshLibraryTags()
-{
-    auto library_data = std::make_shared<LibraryData>();
-
-    RunOperation(
-        // validation
-        [&, library_data]()
-        {
-            ValidateLibraryData(*library_data, false);
-        },
-        // operation
-        [library_data]()
-        {
-            library_data->syncer->RefreshLibraryTags();
-        }
-    );
-}
-
-
-void OpenSourceSyncerDlg::OnCommitLibrary()
-{
-    auto library_data = std::make_shared<LibraryData>();
-
-    RunOperation(
-        // validation
-        [&, library_data]()
-        {
-            ValidateLibraryData(*library_data, true);
-        },
-        // operation
-        [library_data]()
-        {
-            library_data->syncer->CommitBuildLibraries(*library_data->cs_commit);
         }
     );
 }

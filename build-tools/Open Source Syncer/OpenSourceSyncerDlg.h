@@ -25,7 +25,6 @@ protected:
     void OnManualMirrorSingleCommit();
     void OnManualMirrorMergeCommit();
 
-    void OnRefreshLibraryTags();
     void OnCommitLibrary();
 
     LRESULT OnOperationComplete(WPARAM wParam, LPARAM lParam);
@@ -39,9 +38,6 @@ private:
 
     struct SyncData;
     void ValidateSyncData(SyncData& sync_data, bool using_oldest_merge_commit);
-
-    struct LibraryData;
-    void ValidateLibraryData(LibraryData& library_data, bool creating_commit);
 
 private:
     Controller& m_controller;

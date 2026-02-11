@@ -1,6 +1,7 @@
 #include "StdAfx.h"
 #include "Controller.h"
 #include "ControllerThreadRunningFrame.h"
+#include "LibraryManager.h"
 #include "OpenSourceSyncer.h"
 
 
@@ -25,6 +26,11 @@ Controller::Controller()
     m_privateRepoDirectory = MakeFullPath(this_source_directory, "..\\..\\");
 
     m_overridesDirectory = Path::Combine(this_source_directory, "Overrides");
+}
+
+
+Controller::~Controller()
+{
 }
 
 
@@ -121,6 +127,15 @@ GitRepository& Controller::GetOpenSourceLibrariesRepo()
     }
 
     return *m_openSourceLibrariesRepo;
+}
+
+
+LibraryManager& Controller::GetLibraryManager()
+{
+    if( m_libraryManager == nullptr )
+        m_libraryManager = std::make_unique<LibraryManager>(*this);
+
+    return *m_libraryManager;
 }
 
 
