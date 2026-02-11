@@ -19,6 +19,8 @@ protected:
 
     void OnOpenSyncer();
 
+    void OnManuallyMirrorCommits();
+
     void OnManageLibraries();
 
     void OnSettings();

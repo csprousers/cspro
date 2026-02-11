@@ -27,9 +27,8 @@ namespace
 }
 
 
-Syncer::Syncer(LoggingListBox& logging_list_box)
-    :   m_controller(Controller::GetInstance()),
-        m_loggingListBox(logging_list_box)
+Syncer::Syncer(Controller& controller) noexcept
+    :   m_controller(controller)
 {
 }
 
@@ -45,7 +44,7 @@ bool Syncer::IsFileExcluded(const std::string& cs_file_path)
     {
         const std::string exclusions_file_path = m_controller.GetExclusionsFilePath();
 
-        m_loggingListBox.AddText("Reading excluded files based on gitignore rules from: " + exclusions_file_path);
+        m_controller.LogText("Reading excluded files based on gitignore rules from: " + exclusions_file_path);
 
         m_exclusionEvaluator.emplace();
         m_exclusionEvaluator->AddRulesFromFile(exclusions_file_path);
@@ -62,7 +61,7 @@ T Syncer::HasFileReplacement(const std::string& cs_file_path)
     {
         const std::string replacements_file_path = m_controller.GetReplacementsFilePath();
 
-        m_loggingListBox.AddText("Reading replacement files specified in: " + replacements_file_path);
+        m_controller.LogText("Reading replacement files specified in: " + replacements_file_path);
 
         const std::unique_ptr<JsonSpecFile::Reader> json_reader = JsonSpecFile::CreateReader(replacements_file_path);
 
@@ -128,7 +127,7 @@ std::string Syncer::CreateSqliteWithoutSEE(const git_diff_file& new_file)
     const bool is_header = ( filename == "sqlite3.h" );
     ASSERT(is_header || filename == "sqlite3.c");
 
-    m_loggingListBox.AddText("Creating the non-SEE version of SQLite for: " + filename);
+    m_controller.LogText("Creating the non-SEE version of SQLite for: " + filename);
 
     // find the version of SQLite currently in use
     const GitBlob cs_header_blob = m_controller.GetPrivateRepo().LookupBlob(new_file.id);
@@ -158,7 +157,7 @@ std::string Syncer::CreateSqliteWithoutSEE(const git_diff_file& new_file)
     if( version.empty() )
         throw CSProException("Could not find the version in: " + filename);
 
-    m_loggingListBox.AddText("Found SQLite version: " + version);
+    m_controller.LogText("Found SQLite version: " + version);
 
     // use a cached version when possible
     const std::string cache_key = FormatText("SQLite-%s-%s", version.c_str(), filename.c_str());
@@ -166,7 +165,7 @@ std::string Syncer::CreateSqliteWithoutSEE(const git_diff_file& new_file)
 
     if( !public_sqlite.empty() )
     {
-        m_loggingListBox.AddText("Using a cached version of the SQLite amalgamation files.");
+        m_controller.LogText("Using a cached version of the SQLite amalgamation files.");
     }
 
     // if not created, download the non-SEE SQLite amalgamation from: https://github.com/rhuijben/sqlite-amalgamation/
@@ -214,7 +213,7 @@ std::string Syncer::CreateSqliteWithoutSEE(const git_diff_file& new_file)
         if( commit_sha.empty() )
             throw CSProException("No SQLite amalgamation has a commit message containing: " + version);
 
-        m_loggingListBox.AddText("Downloading SQLite files from %s commit SHA: %s", AmalgamationRepository, commit_sha.c_str());
+        m_controller.LogText("Downloading SQLite files from %s commit SHA: %s", AmalgamationRepository, commit_sha.c_str());
 
         // download the non-SEE version
         const std::string url = FormatText("https://raw.githubusercontent.com/%s/%s/%s",
@@ -320,8 +319,8 @@ struct Syncer::GroupedPullRequests
 
 std::string Syncer::CreateHistoryLog(const GitCommit& cs_latest_commit)
 {
-    m_loggingListBox.AddText("Creating history log up to the commit on: " +
-                             cs_latest_commit.GetCommitter().GetWhen().GetLocalDateTimeString());
+    m_controller.LogText("Creating history log up to the commit on: " +
+                         cs_latest_commit.GetCommitter().GetWhen().GetLocalDateTimeString());
 
     PopulateReleaseTags();
 
@@ -464,17 +463,17 @@ void Syncer::UpdateBuildDetails(GitIndex& os_index, const std::string& libraries
 
 bool Syncer::CompareRepositories(const GitCommit& cs_commit, const GitCommit& os_commit, const bool verbose)
 {
-    m_loggingListBox.AddText("Comparing: private (%s) <-> open source (%s)",
-                             cs_commit.GetObjectId().GetHexHash().c_str(),
-                             os_commit.GetObjectId().GetHexHash().c_str());
+    m_controller.LogText("Comparing: private (%s) <-> open source (%s)",
+                         cs_commit.GetObjectId().GetHexHash().c_str(),
+                         os_commit.GetObjectId().GetHexHash().c_str());
 
     const GitIndex cs_index = cs_commit.GetTree().GetIndex();
     const GitIndex os_index = os_commit.GetTree().GetIndex();
 
     if( verbose )
     {
-        m_loggingListBox.AddText("Files: private (%zu) <-> open source (%zu):",
-                                 cs_index.GetEntryCount(), os_index.GetEntryCount());
+        m_controller.LogText("Files: private (%zu) <-> open source (%zu):",
+                             cs_index.GetEntryCount(), os_index.GetEntryCount());
     }
 
     std::vector<std::string> fatal_errors;
@@ -497,7 +496,7 @@ bool Syncer::CompareRepositories(const GitCommit& cs_commit, const GitCommit& os
 
             else if( verbose )
             {
-                m_loggingListBox.AddText("Missing file (expected exclusion): " + cs_path);
+                m_controller.LogText("Missing file (expected exclusion): " + cs_path);
             }
 
             continue;
@@ -507,20 +506,20 @@ bool Syncer::CompareRepositories(const GitCommit& cs_commit, const GitCommit& os
         if( cs_file_oid == os_lookup->second )
         {
             if( verbose )
-                m_loggingListBox.AddText("Same file (by OID): " + cs_path);
+                m_controller.LogText("Same file (by OID): " + cs_path);
         }
 
         // when not identical, see if this is a replacement file
         else if( HasFileReplacement(cs_path) )
         {
             if( verbose )
-                m_loggingListBox.AddText("Different file (expected replacement): " + cs_path);
+                m_controller.LogText("Different file (expected replacement): " + cs_path);
         }
 
         else if( cs_path == BuildFilename )
         {
             if( verbose )
-                m_loggingListBox.AddText("Different file (expected updated): " + cs_path);
+                m_controller.LogText("Different file (expected updated): " + cs_path);
         }
 
         // otherwise compare as text with normalized line endings
@@ -536,7 +535,7 @@ bool Syncer::CompareRepositories(const GitCommit& cs_commit, const GitCommit& os
 
             else if( verbose )
             {
-                m_loggingListBox.AddText("Same file (by normalized text comparison): " + cs_path);
+                m_controller.LogText("Same file (by normalized text comparison): " + cs_path);
             }
         }
 
@@ -552,7 +551,7 @@ bool Syncer::CompareRepositories(const GitCommit& cs_commit, const GitCommit& os
         if( os_lookup != os_files.cend() )
         {
             if( verbose )
-                m_loggingListBox.AddText("Missing file (expected addition): " + os_lookup->first);
+                m_controller.LogText("Missing file (expected addition): " + os_lookup->first);
 
             os_files.erase(os_lookup);
         }
@@ -568,22 +567,22 @@ bool Syncer::CompareRepositories(const GitCommit& cs_commit, const GitCommit& os
 
     if( fatal_errors.empty() )
     {
-        m_loggingListBox.AddText("\nThere are no unexpected differences between the repositories.");
+        m_controller.LogText("\nThere are no unexpected differences between the repositories.");
         return true;
     }
 
     // report on the fatal errors
-    m_loggingListBox.AddText(u8"\n⚠ There are %zu fatal errors!\n", fatal_errors.size());
+    m_controller.LogText(u8"\n⚠ There are %zu fatal errors!\n", fatal_errors.size());
 
     for( const std::string& fatal_error : fatal_errors )
-        m_loggingListBox.AddText(fatal_error);
+        m_controller.LogText(fatal_error);
 
     return false;
 }
 
 
-std::vector<GitCommit> Syncer::GetOrderedMergedCommits(const GitCommit& oldest_merge_commit,
-                                                       const GitCommit& newest_merge_commit)
+std::vector<GitCommit> Syncer::GetOrderedMergeCommits(const GitCommit& oldest_merge_commit,
+                                                      const GitCommit& newest_merge_commit)
 {
     std::vector<GitCommit> merge_commits { newest_merge_commit };
 
@@ -607,6 +606,30 @@ std::vector<GitCommit> Syncer::GetOrderedMergedCommits(const GitCommit& oldest_m
 }
 
 
+std::vector<GitCommit> Syncer::GetOrderedCommits(const GitCommit& oldest_commit, const GitCommit& newest_commit)
+{
+    std::vector<GitCommit> commits { newest_commit };
+
+    while( true )
+    {
+        const GitCommit& current_commit = commits.front();
+
+        if( current_commit == oldest_commit )
+            break;
+
+        if( current_commit.GetParentCount() != 1 )
+        {
+            throw CSProException("Update this tool to support mirroring commits with more than one parent for commit: " +
+                                 current_commit.GetObjectId().GetHexHash());
+        }
+
+        commits.insert(commits.begin(), current_commit.GetParent(0));
+    };
+
+    return commits;
+}
+
+
 void Syncer::MirrorFeatureBranches(const GitBranch& os_merge_branch,
                                    const GitCommit& cs_oldest_merge_commit, const GitCommit& cs_newest_merge_commit)
 {
@@ -618,7 +641,7 @@ void Syncer::MirrorFeatureBranches(const GitBranch& os_merge_branch,
     if( cs_newest_merge_commit == cs_oldest_merge_commit )
         throw CSProException("The oldest and newest merge commits are identical.");
 
-    const std::vector<GitCommit> cs_merge_commits = GetOrderedMergedCommits(cs_oldest_merge_commit, cs_newest_merge_commit);
+    const std::vector<GitCommit> cs_merge_commits = GetOrderedMergeCommits(cs_oldest_merge_commit, cs_newest_merge_commit);
     ASSERT(cs_merge_commits.front() == cs_oldest_merge_commit && cs_merge_commits.back() == cs_newest_merge_commit);
 
     auto cs_merge_commit_old_itr = cs_merge_commits.cbegin();
@@ -653,9 +676,9 @@ GitCommit Syncer::CreateMirroredCommit(const GitCommit& cs_commit, const GitTree
         os_parent_commit2
     );
 
-    m_loggingListBox.AddText("\nMirrored commit %s: %s\n\n",
-                             os_commit_oid.GetHexHash().c_str(),
-                             cs_commit.GetMessage().c_str());
+    m_controller.LogText("\nMirrored commit %s: %s\n\n",
+                         os_commit_oid.GetHexHash().c_str(),
+                         cs_commit.GetMessage().c_str());
 
     return m_controller.GetOpenSourceRepo().LookupCommit(os_commit_oid);
 }
@@ -672,7 +695,8 @@ GitCommit Syncer::MirrorFeatureBranch(const GitBranch& os_merge_branch,
     }
 
     // make sure that the libraries for this feature branch have been created
-    const std::string libraries_tag = m_controller.GetLibraryManager().GetTagForBuiltLibraries(cs_new_merge_commit);
+    LibraryManager& library_manager = m_controller.GetLibraryManager();
+    const std::string libraries_tag = library_manager.GetTagForBuiltLibraries(cs_new_merge_commit);
 
     // create and checkout a temporary open source branch for this work
     const GitCommit os_start_commit = m_controller.GetOpenSourceRepo().LookupCommit(os_merge_branch);
@@ -716,7 +740,7 @@ GitCommit Syncer::MirrorFeatureBranch(const GitBranch& os_merge_branch,
         merge_diff.ForeachDifference(
             [&](const std::string path, unsigned int /*diff_flag*/)
             {
-                m_loggingListBox.AddText(u8"⚠ Differences exist in: " + path);
+                m_controller.LogText(u8"⚠ Differences exist in: " + path);
                 return true;
             });
 
@@ -771,9 +795,9 @@ GitCommit Syncer::MirrorFeatureBranchCommits(const GitCommit& cs_old_merge_commi
             if( cs_commit == cs_new_merge_commit )
                 return;
 
-            m_loggingListBox.AddText("Mirroring %s: %s\n",
-                                     cs_commit.GetObjectId().GetHexHash().c_str(),
-                                     cs_commit.GetMessage().c_str());
+            m_controller.LogText("Mirroring %s: %s\n",
+                                 cs_commit.GetObjectId().GetHexHash().c_str(),
+                                 cs_commit.GetMessage().c_str());
 
             if( cs_commit.GetParentCount() != 1 )
             {
@@ -836,7 +860,7 @@ void Syncer::MirrorFile(GitIndex& os_index, const git_diff_delta& diff_delta)
 
     if( IsFileExcluded(path) )
     {
-        m_loggingListBox.AddText("Skipping excluded %s: %s", file_type, path.c_str());
+        m_controller.LogText("Skipping excluded %s: %s", file_type, path.c_str());
         return;
     }
 
@@ -847,7 +871,7 @@ void Syncer::MirrorFile(GitIndex& os_index, const git_diff_delta& diff_delta)
     {
         ErrorMessage::PostMessageForDisplay("Verify that the override is valid: " + path);
 
-        m_loggingListBox.AddText("Using override for %s: %s", file_type, path.c_str());
+        m_controller.LogText("Using override for %s: %s", file_type, path.c_str());
 
         if( is_binary || diff_delta.status != GIT_DELTA_MODIFIED )
             throw CSProException("Replacement files should be text with the status 'modified': " + path);
@@ -861,24 +885,24 @@ void Syncer::MirrorFile(GitIndex& os_index, const git_diff_delta& diff_delta)
     switch( diff_delta.status )
     {
         case GIT_DELTA_ADDED:
-            m_loggingListBox.AddText("Adding %s: %s", file_type, path.c_str());
+            m_controller.LogText("Adding %s: %s", file_type, path.c_str());
             is_binary ? MirrorFileAddBinary(os_index, diff_delta.new_file) :
                         MirrorFileAddText(os_index, diff_delta.new_file);
             break;
 
         case GIT_DELTA_DELETED:
-            m_loggingListBox.AddText("Deleting %s: %s", file_type, path.c_str());
+            m_controller.LogText("Deleting %s: %s", file_type, path.c_str());
             MirrorFileDelete(os_index, path);
             break;
 
         case GIT_DELTA_MODIFIED:
-            m_loggingListBox.AddText("Modifying %s: %s", file_type, path.c_str());
+            m_controller.LogText("Modifying %s: %s", file_type, path.c_str());
             is_binary ? MirrorFileModifyBinary(os_index, diff_delta.new_file) :
                         MirrorFileModifyText(os_index, diff_delta.old_file, diff_delta.new_file);
             break;
 
         case GIT_DELTA_RENAMED:
-            m_loggingListBox.AddText("Renaming %s: %s -> %s", file_type, diff_delta.old_file.path, path.c_str());
+            m_controller.LogText("Renaming %s: %s -> %s", file_type, diff_delta.old_file.path, path.c_str());
             is_binary ? MirrorFileRenameBinary(os_index, diff_delta.old_file, diff_delta.new_file) :
                         MirrorFileRenameText(os_index, diff_delta.old_file, diff_delta.new_file);
             break;
@@ -971,47 +995,77 @@ void Syncer::MirrorFileRenameText(GitIndex& os_index, const git_diff_file& old_f
 }
 
 
-void Syncer::ManualMirrorSingleCommit(const GitBranch& os_branch, const GitCommit& cs_commit)
+void Syncer::MirrorCommits(const GitBranch& os_branch,
+                           const GitCommit& cs_oldest_commit, const GitCommit* const cs_newest_commit)
 {
-    if( cs_commit.GetParentCount() > 1 )
+    GitRepository& private_repo = m_controller.GetPrivateRepo();
+    GitRepository& open_source_repo = m_controller.GetOpenSourceRepo();
+
+    if( cs_newest_commit != nullptr &&
+        !private_repo.IsCommitDescendantOf(*cs_newest_commit, cs_oldest_commit) )
     {
-        throw CSProException("Update this tool to support mirroring a single commit with multiple parents: " +
-                             cs_commit.GetObjectId().GetHexHash());
+        throw CSProException("The newest commit is not a descendant of the oldest commit: (old) %s -> (new) %s",
+                             cs_oldest_commit.GetObjectId().GetHexHash().c_str(),
+                             cs_newest_commit->GetObjectId().GetHexHash().c_str());
     }
 
-    const GitCommit os_parent_commit = m_controller.GetOpenSourceRepo().LookupCommit(os_branch);
+    const std::vector<GitCommit> cs_commits =
+        ( cs_newest_commit != nullptr ) ? GetOrderedCommits(cs_oldest_commit, *cs_newest_commit) :
+                                          std::vector<GitCommit>({ cs_oldest_commit });
 
-    m_controller.GetOpenSourceRepo().CheckoutBranch(os_branch);
-    GitIndex os_index = m_controller.GetOpenSourceRepo().GetIndex();
+    GitCommit os_parent_commit = open_source_repo.LookupCommit(os_branch);
 
-    GitTree cs_parent_tree = cs_commit.GetParent(0).GetTree();
-    GitTree cs_commit_tree = cs_commit.GetTree();
+    open_source_repo.CheckoutBranch(os_branch);
+    GitIndex os_index = open_source_repo.GetIndex();
 
-    MirrorCommit(os_index, cs_parent_tree, cs_commit_tree);
+    auto cs_commits_itr = cs_commits.cbegin();
 
-    GitTree os_new_tree = m_controller.GetOpenSourceRepo().WriteTree(os_index);
+    if( cs_commits_itr->GetParentCount() > 1 )
+    {
+        throw CSProException("Update this tool to support mirroring a commit with multiple parents: " +
+                             cs_commits_itr->GetObjectId().GetHexHash());
+    }
 
-    CreateMirroredCommit(
-        cs_commit,
-        os_new_tree,
-        os_parent_commit,
-        nullptr
-    );
+    GitTree cs_parent_tree = cs_commits_itr->GetParent(0).GetTree();
+
+    while( true )
+    {
+        GitTree cs_commit_tree = cs_commits_itr->GetTree();
+
+        MirrorCommit(os_index, cs_parent_tree, cs_commit_tree);
+
+        GitTree os_new_tree = m_controller.GetOpenSourceRepo().WriteTree(os_index);
+
+        os_parent_commit = CreateMirroredCommit(
+            *cs_commits_itr,
+            os_new_tree,
+            os_parent_commit,
+            nullptr
+        );
+
+        if( ++cs_commits_itr == cs_commits.cend() )
+            break;
+
+        cs_parent_tree = std::move(cs_commit_tree);
+    }
 
     // when complete, checkout the HEAD so that the working directory matches the index
-    m_controller.GetOpenSourceRepo().CheckoutHead(GIT_CHECKOUT_FORCE);
+    open_source_repo.CheckoutHead(GIT_CHECKOUT_FORCE);
 }
 
 
-void Syncer::ManualMirrorMergeCommit(const GitBranch& os_branch, const GitCommit& cs_merge_commit,
-                                     const GitCommit& os_parent_commit1, const GitCommit& os_parent_commit2)
+void Syncer::MirrorMergeCommit(const GitBranch& os_branch, const GitCommit& cs_merge_commit,
+                               const GitCommit& os_parent_commit1, const GitCommit& os_parent_commit2)
 {
+    GitRepository& open_source_repo = m_controller.GetOpenSourceRepo();
+
     // make sure that the libraries used at this merge commit have been created
-    const std::string libraries_tag = m_controller.GetLibraryManager().GetTagForBuiltLibraries(cs_merge_commit);
+    LibraryManager& library_manager = m_controller.GetLibraryManager();
+    const std::string libraries_tag = library_manager.GetTagForBuiltLibraries(cs_merge_commit);
 
     // mirror the merge commit
-    m_controller.GetOpenSourceRepo().CheckoutBranch(os_branch);
-    GitIndex os_index = m_controller.GetOpenSourceRepo().GetIndex();
+    open_source_repo.CheckoutBranch(os_branch);
+    GitIndex os_index = open_source_repo.GetIndex();
 
     GitTree cs_parent_tree = cs_merge_commit.GetParent(0).GetTree();
     GitTree cs_commit_tree = cs_merge_commit.GetTree();
@@ -1020,14 +1074,14 @@ void Syncer::ManualMirrorMergeCommit(const GitBranch& os_branch, const GitCommit
 
     // update HISTORY.md
     const std::string history = CreateHistoryLog(cs_merge_commit);
-    const GitObjectId os_history_blob_oid = m_controller.GetOpenSourceRepo().CreateBlob(history);
+    const GitObjectId os_history_blob_oid = open_source_repo.CreateBlob(history);
     os_index.AddEntry(os_history_blob_oid, HistoryFilename, GIT_FILEMODE_BLOB);
 
     // update BUILD.md with information about the external libraries used
     UpdateBuildDetails(os_index, libraries_tag);
 
     // commit this merge commit with the updated history and build details
-    GitTree os_new_tree = m_controller.GetOpenSourceRepo().WriteTree(os_index);
+    GitTree os_new_tree = open_source_repo.WriteTree(os_index);
 
     GitCommit os_new_merge_commit = CreateMirroredCommit(
         cs_merge_commit,
@@ -1041,5 +1095,5 @@ void Syncer::ManualMirrorMergeCommit(const GitBranch& os_branch, const GitCommit
         throw CSProException("The repositories do not match following the creation of the merge commit.");
 
     // when complete, checkout the HEAD so that the working directory matches the index
-    m_controller.GetOpenSourceRepo().CheckoutHead(GIT_CHECKOUT_FORCE);
+    open_source_repo.CheckoutHead(GIT_CHECKOUT_FORCE);
 }

@@ -5,6 +5,7 @@
 #include <zUtilF/LoggingListBox.h>
 
 class LibraryManager;
+class Syncer;
 
 
 class Controller
@@ -53,6 +54,9 @@ public:
     // Opens the open source libraries repository if not open, throwing exceptions on error.
     GitRepository& GetOpenSourceLibrariesRepo();
 
+    // Returns of instance of the Syncer, for synchronizing the private and open source repositories.
+    Syncer& GetSyncer();
+
     // Returns an instance of the LibraryManager, for managing prebuilt
     // external libraries and other binary file dependencies.
     LibraryManager& GetLibraryManager();
@@ -82,6 +86,8 @@ private:
 
     std::string m_openSourceLibrariesDirectory;
     std::optional<GitRepository> m_openSourceLibrariesRepo;
+
+    std::unique_ptr<Syncer> m_syncer;
 
     std::unique_ptr<LibraryManager> m_libraryManager;
 

@@ -26,6 +26,7 @@
     <ClInclude Include="LogFrameAndView.h" />
     <ClInclude Include="MainFrame.h" />
     <ClInclude Include="ManageLibrariesView.h" />
+    <ClInclude Include="ManualMirrorerView.h" />
     <ClInclude Include="OpenSourceSyncer.h" />
     <ClInclude Include="OpenSourceSyncerDlg.h" />
     <ClInclude Include="Overrides\replacement-ApiKeys.h">
@@ -45,6 +46,7 @@
     <ClCompile Include="LogFrameAndView.cpp" />
     <ClCompile Include="MainFrame.cpp" />
     <ClCompile Include="ManageLibrariesView.cpp" />
+    <ClCompile Include="ManualMirrorerView.cpp" />
     <ClCompile Include="OpenSourceSyncer.cpp" />
     <ClCompile Include="OpenSourceSyncerDlg.cpp" />
     <ClCompile Include="SettingsDlg.cpp" />

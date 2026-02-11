@@ -22,11 +22,6 @@ protected:
     void OnSync();
     void OnCompare();
 
-    void OnManualMirrorSingleCommit();
-    void OnManualMirrorMergeCommit();
-
-    void OnCommitLibrary();
-
     LRESULT OnOperationComplete(WPARAM wParam, LPARAM lParam);
 
     LRESULT OnDisplayErrorMessage(WPARAM wParam, LPARAM lParam);
@@ -45,13 +40,6 @@ private:
     std::string m_branchName;
     std::string m_commitOld;
     std::string m_commitNew;
-
-    std::string m_manualBranchName;
-    std::string m_manualSingleCommit;
-
-    std::string m_manualMergeCommit;
-    std::string m_manualParentCommit1;
-    std::string m_manualParentCommit2;
 
     LoggingListBox m_loggingListBox;
 

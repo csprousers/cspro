@@ -19,6 +19,7 @@ CLASS_DECL_ZUTILO void DDX_Check(CDataExchange* pDX, int nIDC, bool& value);
 
 CLASS_DECL_ZUTILO void DDX_Text(CDataExchange* pDX, int nIDC, std::wstring& text, bool trim_string_on_save = false);
 CLASS_DECL_ZUTILO void DDX_Text(CDataExchange* pDX, int nIDC, std::string& text, bool trim_string_on_save = false);
+CLASS_DECL_ZUTILO void DDX_Text(CDataExchange* pDX, int nIDC, SharableString& text, bool trim_string_on_save = false);
 
 // When saving, newlines are converted to '\n' and when loading, newlines are converted to "\r\n".
 CLASS_DECL_ZUTILO void DDX_TextOnlyLF(CDataExchange* pDX, int nIDC, std::string& text, bool trim_string_on_save = false);

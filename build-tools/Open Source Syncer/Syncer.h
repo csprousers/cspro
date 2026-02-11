@@ -6,7 +6,7 @@
 class Syncer
 {
 public:
-    Syncer(LoggingListBox& logging_list_box);
+    Syncer(Controller& controller) noexcept;
     ~Syncer();
 
     // Compares the files of the private and open sources repositories at the given commit.
@@ -17,12 +17,14 @@ public:
     void MirrorFeatureBranches(const GitBranch& os_merge_branch,
                                const GitCommit& cs_oldest_merge_commit, const GitCommit& cs_newest_merge_commit);
 
-    // Mirrors the single commit in the specified branch.
-    void ManualMirrorSingleCommit(const GitBranch& os_branch, const GitCommit& cs_commit);
+    // Mirrors a single commit, or a range of commits, in the specified branch.
+    // When mirroring a range of commits, cs_newest_commit must be a descendant of cs_oldest_commit.
+    void MirrorCommits(const GitBranch& os_branch,
+                       const GitCommit& cs_oldest_commit, const GitCommit* cs_newest_commit);
 
     // Mirrors the merge commit in the specified branch, using the two provided commits as the commit's parents.
-    void ManualMirrorMergeCommit(const GitBranch& os_branch, const GitCommit& cs_merge_commit,
-                                 const GitCommit& os_parent_commit1, const GitCommit& os_parent_commit2);
+    void MirrorMergeCommit(const GitBranch& os_branch, const GitCommit& cs_merge_commit,
+                           const GitCommit& os_parent_commit1, const GitCommit& os_parent_commit2);
 
 private:
     // cs = private CSPro repository
@@ -56,8 +58,12 @@ private:
 
     // Walks the parents from one merge commit to another, returning the oldest and newest merge commits,
     // and all merge commits in between. The commits are returned in order from oldest to newest.
-    static std::vector<GitCommit> GetOrderedMergedCommits(const GitCommit& oldest_merge_commit,
-                                                          const GitCommit& newest_merge_commit);
+    static std::vector<GitCommit> GetOrderedMergeCommits(const GitCommit& oldest_merge_commit,
+                                                         const GitCommit& newest_merge_commit);
+
+    // Walks the parents from one commit to another for commits that are not merge commits, returning the
+    // oldest and newest commits, and all commits in between. The commits are returned in order from oldest to newest.
+    static std::vector<GitCommit> GetOrderedCommits(const GitCommit& oldest_commit, const GitCommit& newest_commit);
 
     // Creates a commit in the open source repository, using the author / signature / message from the source commit.
     GitCommit CreateMirroredCommit(const GitCommit& cs_commit, const GitTree& os_written_tree,
@@ -87,7 +93,6 @@ private:
 
 private:
     Controller& m_controller;
-    LoggingListBox& m_loggingListBox;
 
     std::optional<GitIgnoreEvaluator> m_exclusionEvaluator;
 

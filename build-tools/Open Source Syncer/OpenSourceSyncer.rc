@@ -67,20 +67,6 @@ FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     PUSHBUTTON      "Sync Feature Branches",IDC_SYNC,526,22,112,14
     PUSHBUTTON      "Compare Against Open Source",IDC_COMPARE,526,62,112,14
-    GROUPBOX        "Manual Mirroring: Single Commit ",IDC_STATIC,7,91,259,96
-    LTEXT           "Open source branch:",IDC_STATIC,17,109,68,8
-    EDITTEXT        IDC_MANUAL_BRANCH_NAME,94,106,164,14,ES_AUTOHSCROLL
-    LTEXT           "Commit (private):",IDC_STATIC,17,129,57,8
-    EDITTEXT        IDC_MANUAL_SINGLE_COMMIT,94,126,164,14,ES_AUTOHSCROLL
-    PUSHBUTTON      "Mirror Single Commit",IDC_MIRROR_SINGLE_COMMIT,146,145,112,14
-    GROUPBOX        "Manual Mirroring: Merge Commit ",IDC_STATIC,277,91,302,96
-    LTEXT           "Merge commit (private):",IDC_STATIC,291,109,78,8
-    EDITTEXT        IDC_MANUAL_MERGE_COMMIT,406,106,164,14,ES_AUTOHSCROLL
-    LTEXT           "Parent commit 1 (open source):",IDC_STATIC,291,129,102,8
-    EDITTEXT        IDC_MANUAL_PARENT_COMMIT1,406,126,164,14,ES_AUTOHSCROLL
-    LTEXT           "Parent commit 2 (open source):",IDC_STATIC,291,148,102,8
-    EDITTEXT        IDC_MANUAL_PARENT_COMMIT2,406,145,164,14,ES_AUTOHSCROLL
-    PUSHBUTTON      "Mirror Merge Commit",IDC_MIRROR_MERGE_COMMIT,458,165,112,14
     GROUPBOX        "Sync log:",IDC_STATIC,7,195,775,112
     LISTBOX         IDC_LOG,15,210,759,86,LBS_OWNERDRAWFIXED | LBS_NOINTEGRALHEIGHT | LBS_EXTENDEDSEL | LBS_NODATA | WS_VSCROLL | WS_HSCROLL | WS_TABSTOP
     GROUPBOX        "Feature Branches",IDC_STATIC,229,7,417,76
@@ -133,6 +119,33 @@ BEGIN
     LISTBOX         IDC_LOG,0,0,99,22,LBS_OWNERDRAWFIXED | LBS_NOINTEGRALHEIGHT | LBS_EXTENDEDSEL | LBS_NODATA | WS_VSCROLL | WS_HSCROLL | WS_TABSTOP
 END
 
+IDD_MANUAL_MIRRORER DIALOGEX 0, 0, 297, 291
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_CHILD | WS_CAPTION | WS_SYSMENU
+CAPTION "Manual Mirrorer"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    GROUPBOX        "Mirror Commit(s)",IDC_STATIC,7,7,284,131
+    LTEXT           "One or more commits can be mirrored from the private repository to the open source repository. Specify a branch name, which will be created if it does not exist, and specify one commit, or a range of commits, to mirror.",IDC_STATIC,15,20,266,29
+    LTEXT           "Branch (open source):",IDC_STATIC,15,55,72,8
+    EDITTEXT        IDC_BRANCH_NAME,121,52,164,14,ES_AUTOHSCROLL
+    LTEXT           "Oldest commit (private):",IDC_STATIC,15,76,78,8
+    EDITTEXT        IDC_COMMIT_OLDEST,121,73,164,14,ES_AUTOHSCROLL
+    LTEXT           "Newest commit (private):",IDC_STATIC,15,97,82,8
+    EDITTEXT        IDC_COMMIT_NEWEST,121,94,164,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "Mirror Commit(s)",IDC_MIRROR_COMMIT,173,115,112,14
+    GROUPBOX        "Mirror a Merge Commit ",IDC_STATIC,7,143,283,141
+    LTEXT           "A merge commit can be mirrored by specifying the target and parents in the open source repository.",IDC_STATIC,15,156,266,22
+    LTEXT           "Target branch (open source):",IDC_STATIC,15,185,96,8
+    EDITTEXT        IDC_TARGET_BRANCH_NAME,121,182,164,14,ES_AUTOHSCROLL
+    LTEXT           "Merge commit (private):",IDC_STATIC,15,205,78,8
+    EDITTEXT        IDC_MERGE_COMMIT,121,202,164,14,ES_AUTOHSCROLL
+    LTEXT           "Parent commit 1 (open source):",IDC_STATIC,15,225,102,8
+    EDITTEXT        IDC_PARENT_COMMIT1,121,222,164,14,ES_AUTOHSCROLL
+    LTEXT           "Parent commit 2 (open source):",IDC_STATIC,15,245,102,8
+    EDITTEXT        IDC_PARENT_COMMIT2,121,242,164,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "Mirror Merge Commit",IDC_MIRROR_MERGE_COMMIT,173,262,112,14
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -169,6 +182,14 @@ BEGIN
     IDD_LOG, DIALOG
     BEGIN
     END
+
+    IDD_MANUAL_MIRRORER, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 290
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 284
+    END
 END
 #endif    // APSTUDIO_INVOKED
 
@@ -181,20 +202,6 @@ END
 IDD_SYNCER AFX_DIALOG_LAYOUT
 BEGIN
     0,
-    0, 0, 0, 0,
-    0, 0, 0, 0,
-    0, 0, 0, 0,
-    0, 0, 0, 0,
-    0, 0, 0, 0,
-    0, 0, 0, 0,
-    0, 0, 0, 0,
-    0, 0, 0, 0,
-    0, 0, 0, 0,
-    0, 0, 0, 0,
-    0, 0, 0, 0,
-    0, 0, 0, 0,
-    0, 0, 0, 0,
-    0, 0, 0, 0,
     0, 0, 0, 0,
     0, 0, 0, 0,
     0, 0, 100, 100,
@@ -231,6 +238,11 @@ BEGIN
     0, 0, 100, 100
 END
 
+IDD_MANUAL_MIRRORER AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -242,6 +254,7 @@ BEGIN
     POPUP "&File"
     BEGIN
         MENUITEM "Open Syncer",                 ID_OPEN_SYNCER
+        MENUITEM "Manually Mirror Commits",     ID_MANUALLY_MIRROR_COMMITS
         MENUITEM SEPARATOR
         MENUITEM "Manage Libraries",            ID_MANAGE_LIBRARIES
         MENUITEM SEPARATOR
@@ -284,6 +297,7 @@ BEGIN
     IDR_LOG                 "Operation Log"
     IDR_MAINFRAME           "Open Source Syncer"
     IDR_MANAGE_LIBRARIES    "Manage Libraries"
+    IDR_MANUAL_MIRRORER     "Manual Mirrorer"
 END
 
 STRINGTABLE

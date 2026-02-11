@@ -3,6 +3,7 @@
 #include "ControllerThreadRunningFrame.h"
 #include "LibraryManager.h"
 #include "OpenSourceSyncer.h"
+#include "Syncer.h"
 
 
 namespace
@@ -127,6 +128,15 @@ GitRepository& Controller::GetOpenSourceLibrariesRepo()
     }
 
     return *m_openSourceLibrariesRepo;
+}
+
+
+Syncer& Controller::GetSyncer()
+{
+    if( m_syncer == nullptr )
+        m_syncer = std::make_unique<Syncer>(*this);
+
+    return *m_syncer;
 }
 
 

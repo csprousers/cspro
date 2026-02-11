@@ -4,6 +4,7 @@
 #include "LogFrameAndView.h"
 #include "MainFrame.h"
 #include "ManageLibrariesView.h"
+#include "ManualMirrorerView.h"
 #include "OpenSourceSyncerDlg.h"
 #include "SettingsDlg.h"
 #include <zUtilO/ImsaDlg.h>
@@ -19,6 +20,7 @@ namespace
 
 BEGIN_MESSAGE_MAP(OpenSourceSyncerApp, CWinApp)
     ON_COMMAND(ID_OPEN_SYNCER, OnOpenSyncer)
+    ON_COMMAND(ID_MANUALLY_MIRROR_COMMITS, OnManuallyMirrorCommits)
     ON_COMMAND(ID_MANAGE_LIBRARIES, OnManageLibraries)
     ON_COMMAND(ID_SETTINGS, OnSettings)
     ON_UPDATE_COMMAND_UI(ID_SETTINGS, OnUpdateSettings)
@@ -66,6 +68,7 @@ BOOL OpenSourceSyncerApp::InitInstance()
     //  serve as the connection between documents, frame windows and views.
     m_fileFreeDocManager = new FileFreeDocManager();
     m_fileFreeDocManager->AddDocTemplate<IDR_LOG, FileFreeDoc, LogFrame, LogView>();
+    m_fileFreeDocManager->AddDocTemplate<IDR_MANUAL_MIRRORER, FileFreeDoc, ControllerThreadRunningFrame, ManualMirrorerView>();
     m_fileFreeDocManager->AddDocTemplate<IDR_MANAGE_LIBRARIES, FileFreeDoc, ControllerThreadRunningFrame, ManageLibrariesView>();
     m_pDocManager = m_fileFreeDocManager;
 
@@ -98,6 +101,12 @@ void OpenSourceSyncerApp::OnOpenSyncer()
 {
     OpenSourceSyncerDlg dlg;
     dlg.DoModal();
+}
+
+
+void OpenSourceSyncerApp::OnManuallyMirrorCommits()
+{
+    m_fileFreeDocManager->Open(IDR_MANUAL_MIRRORER, true);
 }
 
 
