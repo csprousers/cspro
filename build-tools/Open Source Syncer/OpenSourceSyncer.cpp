@@ -1,5 +1,7 @@
 #include "StdAfx.h"
 #include "OpenSourceSyncer.h"
+#include "ControllerThreadRunningFrame.h"
+#include "LogFrameAndView.h"
 #include "MainFrame.h"
 #include "OpenSourceSyncerDlg.h"
 #include "SettingsDlg.h"
@@ -17,6 +19,7 @@ namespace
 BEGIN_MESSAGE_MAP(OpenSourceSyncerApp, CWinApp)
     ON_COMMAND(ID_OPEN_SYNCER, OnOpenSyncer)
     ON_COMMAND(ID_SETTINGS, OnSettings)
+    ON_UPDATE_COMMAND_UI(ID_SETTINGS, OnUpdateSettings)
     ON_COMMAND(ID_APP_ABOUT, OnAppAbout)
 END_MESSAGE_MAP()
 
@@ -60,8 +63,7 @@ BOOL OpenSourceSyncerApp::InitInstance()
     // Register the application's document templates.  Document templates
     //  serve as the connection between documents, frame windows and views.
     m_fileFreeDocManager = new FileFreeDocManager();
-    //m_fileFreeDocManager->AddDocTemplate<IDR_EDITORCONFIG_APPLIER, FileFreeDoc, ThreadRunnerFrame, EditorConfigApplierView>();
-    //m_fileFreeDocManager->AddDocTemplate<IDR_FILTERED_COMMITS_MESSAGE_CREATOR, FilteredCommitsMessageCreatorView>();
+    m_fileFreeDocManager->AddDocTemplate<IDR_LOG, FileFreeDoc, LogFrame, LogView>();
     m_pDocManager = m_fileFreeDocManager;
 
     // create main MDI Frame window
@@ -83,6 +85,12 @@ BOOL OpenSourceSyncerApp::InitInstance()
 }
 
 
+void OpenSourceSyncerApp::OpenLog()
+{
+    m_fileFreeDocManager->Open(IDR_LOG, false);
+}
+
+
 void OpenSourceSyncerApp::OnOpenSyncer()
 {
     OpenSourceSyncerDlg dlg;
@@ -94,6 +102,12 @@ void OpenSourceSyncerApp::OnSettings()
 {
     SettingsDlg dlg;
     dlg.DoModal();
+}
+
+
+void OpenSourceSyncerApp::OnUpdateSettings(CCmdUI* const pCmdUI)
+{
+    pCmdUI->Enable(!m_controller->IsOperationRunning());
 }
 
 

@@ -2,9 +2,11 @@
 // Microsoft Visual C++ generated include file.
 // Used by OpenSourceSyncer.rc
 //
-#define IDR_MAINFRAME                   101
-#define IDD_SETTINGS                    102
-#define IDD_SYNCER                      103
+#define IDR_LOG                         101
+#define IDR_MAINFRAME                   102
+#define IDD_LOG                         104
+#define IDD_SETTINGS                    106
+#define IDD_SYNCER                      107
 #define IDC_BRANCH_NAME                 1000
 #define IDC_COMMIT_LIBRARY              1001
 #define IDC_COMMIT_NEW                  1002
@@ -29,9 +31,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        104
-#define _APS_NEXT_COMMAND_VALUE         40003
-#define _APS_NEXT_CONTROL_VALUE         1017
-#define _APS_NEXT_SYMED_VALUE           104
+#define _APS_NEXT_RESOURCE_VALUE        108
+#define _APS_NEXT_COMMAND_VALUE         40004
+#define _APS_NEXT_CONTROL_VALUE         1022
+#define _APS_NEXT_SYMED_VALUE           108
 #endif
 #endif

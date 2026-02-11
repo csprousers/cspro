@@ -110,6 +110,15 @@ BEGIN
 END
 
 
+IDD_LOG DIALOGEX 0, 0, 99, 22
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+CAPTION "Operation Log"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LISTBOX         IDC_LOG,0,0,99,22,LBS_OWNERDRAWFIXED | LBS_NOINTEGRALHEIGHT | LBS_EXTENDEDSEL | LBS_NODATA | WS_VSCROLL | WS_HSCROLL | WS_TABSTOP
+END
+
+
 /////////////////////////////////////////////////////////////////////////////
 //
 // DESIGNINFO
@@ -132,6 +141,10 @@ BEGIN
         RIGHTMARGIN, 234
         TOPMARGIN, 7
         BOTTOMMARGIN, 89
+    END
+
+    IDD_LOG, DIALOG
+    BEGIN
     END
 END
 #endif    // APSTUDIO_INVOKED
@@ -187,6 +200,12 @@ BEGIN
     0, 0, 100, 0
 END
 
+IDD_LOG AFX_DIALOG_LAYOUT
+BEGIN
+    0,
+    0, 0, 100, 100
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -235,6 +254,7 @@ IDR_MAINFRAME           ICON                    "res\\OpenSourceSyncer.ico"
 
 STRINGTABLE
 BEGIN
+    IDR_LOG                 "Operation Log"
     IDR_MAINFRAME           "Open Source Syncer"
 END
 

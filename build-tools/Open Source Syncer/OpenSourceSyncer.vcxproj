@@ -21,6 +21,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Controller.h" />
+    <ClInclude Include="ControllerThreadRunningFrame.h" />
+    <ClInclude Include="LogFrameAndView.h" />
     <ClInclude Include="MainFrame.h" />
     <ClInclude Include="OpenSourceSyncer.h" />
     <ClInclude Include="OpenSourceSyncerDlg.h" />
@@ -35,6 +37,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Controller.cpp" />
+    <ClCompile Include="ControllerThreadRunningFrame.cpp" />
+    <ClCompile Include="LogFrameAndView.cpp" />
     <ClCompile Include="MainFrame.cpp" />
     <ClCompile Include="OpenSourceSyncer.cpp" />
     <ClCompile Include="OpenSourceSyncerDlg.cpp" />

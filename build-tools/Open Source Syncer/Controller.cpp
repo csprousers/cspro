@@ -1,5 +1,6 @@
 #include "StdAfx.h"
 #include "Controller.h"
+#include "ControllerThreadRunningFrame.h"
 #include "OpenSourceSyncer.h"
 
 
@@ -49,10 +50,12 @@ GitRepository& Controller::GetPrivateRepo()
 {
     if( !m_privateRepo.has_value() )
     {
+        LogText("Opening private repository: " + m_privateRepoDirectory);
+
         GitRepository repo;
         repo.OpenBare(Path::Combine(m_privateRepoDirectory, ".git"));
 
-        m_openSourceRepo.emplace(std::move(repo));
+        m_privateRepo.emplace(std::move(repo));
     }
 
     return *m_privateRepo;
@@ -118,4 +121,72 @@ GitRepository& Controller::GetOpenSourceLibrariesRepo()
     }
 
     return *m_openSourceLibrariesRepo;
+}
+
+
+bool Controller::IsOperationRunning(const CFrameWnd* const frame_wnd/* = nullptr*/) const noexcept
+{
+    return ( ( m_workerThread.has_value() ) &&
+             ( frame_wnd == nullptr || frame_wnd == m_workerThread->frame_wnd ) );
+}
+
+
+void Controller::RunOperation(CFrameWnd* const frame_wnd, std::function<void(Controller& controller)> operation_callback) noexcept
+{
+    ASSERT(frame_wnd != nullptr && frame_wnd->IsKindOf(RUNTIME_CLASS(ControllerThreadRunningFrame)));
+
+    if( IsOperationRunning() )
+    {
+        ErrorMessage::PostMessageForDisplay("An operation is currently in progress.");
+        return;
+    }
+
+    CWnd* const main_wnd = AfxGetMainWnd();
+
+    if( main_wnd->SendMessage(UWM::OpenSourceSyncer::OperationInitialize) != 1 )
+        return;
+
+    if( m_loggingListBox != nullptr )
+        m_loggingListBox->Clear();
+
+    m_workerThread = WorkerThreadData
+    {
+        frame_wnd,
+        std::thread([this, main_wnd, operation_callback_ = std::move(operation_callback)]()
+        {
+            const double start_time = GetTimestamp<double>();
+            const char* success_text = "successfully";
+
+            WindowsDesktopMessage::PostObject(main_wnd, UWM::OpenSourceSyncer::UpdateStatusBar, "Running operation...");
+
+            try
+            {
+                operation_callback_(*this);
+            }
+
+            catch( const CSProException& exception )
+            {
+                success_text = "in failure";
+                LogText("\n\nError: %s", exception.what());
+                ErrorMessage::PostMessageForDisplay(exception);
+            }
+
+            WindowsDesktopMessage::PostObject(main_wnd, UWM::OpenSourceSyncer::UpdateStatusBar,
+                FormatText("Operation completed %s in %0.1f seconds.", success_text, GetTimestamp<double>() - start_time)
+            );
+
+            main_wnd->PostMessage(UWM::OpenSourceSyncer::OperationComplete);
+        })
+    };
+}
+
+
+void Controller::MarkOperationComplete()
+{
+    ASSERT(m_workerThread.has_value() && m_workerThread->frame_wnd != nullptr);
+
+    if( m_workerThread->worker_thread.joinable() )
+        m_workerThread->worker_thread.join();
+
+    m_workerThread.reset();
 }

@@ -15,6 +15,13 @@ public:
     // Returns the global settings database.
     SettingsDb& GetSettingsDb() { return m_settingsDb; }
 
+    // Logs text to the active LoggingListBox.
+    template<typename... Args>
+    void LogText(Args const&... args);
+
+    // Sets the active LoggingListBox.
+    void SetLoggingListBox(LoggingListBox* logging_list_box) { m_loggingListBox = logging_list_box; }
+
     // Returns the full file path of the exclusions.txt file.
     std::string GetExclusionsFilePath() const;
 
@@ -43,9 +50,16 @@ public:
     // Opens the open source libraries repository if not open, throwing exceptions on error.
     GitRepository& GetOpenSourceLibrariesRepo();
 
-    // Logs text to the active LoggingListBox.
-    template<typename... Args>
-    void LogText(Args const&... args);
+    // Returns true if an operation is running in a worker thread.
+    // When providing a CFrameWnd argument, the method returns true if the worker thread belongs to the frame.
+    bool IsOperationRunning(const CFrameWnd* frame_wnd = nullptr) const noexcept;
+
+    // Runs an operation in a worker thread.
+    // Only one operation can be run at any time.
+    void RunOperation(CFrameWnd* frame_wnd, std::function<void(Controller& controller)> operation_callback) noexcept;
+
+    // Marks the operation in progress as complete.
+    void MarkOperationComplete();
 
 private:
     SettingsDb m_settingsDb;
@@ -61,6 +75,14 @@ private:
 
     std::string m_openSourceLibrariesDirectory;
     std::optional<GitRepository> m_openSourceLibrariesRepo;
+
+    struct WorkerThreadData
+    {
+        CFrameWnd* frame_wnd;
+        std::thread worker_thread;
+    };
+
+    std::optional<WorkerThreadData> m_workerThread;
 };
 
 

@@ -10,6 +10,8 @@ public:
 
     Controller& GetController() { return *m_controller; }
 
+    void OpenLog();
+
 protected:
     DECLARE_MESSAGE_MAP()
 
@@ -18,6 +20,7 @@ protected:
     void OnOpenSyncer();
 
     void OnSettings();
+    void OnUpdateSettings(CCmdUI* pCmdUI);
 
     void OnAppAbout();
 
