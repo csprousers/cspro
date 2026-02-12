@@ -21,6 +21,8 @@ protected:
 
     void OnManuallyMirrorCommits();
 
+    void OnCompareRepositories();
+
     void OnManageLibraries();
 
     void OnSettings();
