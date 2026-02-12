@@ -39,18 +39,6 @@ private:
     // because it was defined in the exclusions.txt file.
     bool IsFileExcluded(const std::string& cs_file_path);
 
-    // Returns true when the file in the open source repository
-    // has a replacement file defined in the replacements.json file.
-    template<typename T = bool>
-    T HasFileReplacement(const std::string& cs_file_path);
-
-    // Returns a non-empty string containing the replacement data when the file in the open
-    // source repository has a replacement file defined in the replacements.json file.
-    std::string GetFileReplacement(const git_diff_file& new_file);
-
-    // Returns the appropriate version of SQLite without the SQLite Encryption Extension (SEE).
-    std::string CreateSqliteWithoutSEE(const git_diff_file& new_file);
-
     // Populates information about releases, used by CreateHistoryLog.
     void PopulateReleaseTags();
 
@@ -100,9 +88,6 @@ private:
     Controller& m_controller;
 
     std::optional<GitIgnoreEvaluator> m_exclusionEvaluator;
-
-    struct FileReplacement { bool is_file_path; std::string file_path_or_routine; };
-    std::map<std::string, FileReplacement> m_fileReplacements;
 
     struct TagCommits;
     std::vector<TagCommits> m_releaseTags;

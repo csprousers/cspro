@@ -1,6 +1,7 @@
 #include "StdAfx.h"
 #include "Controller.h"
 #include "ControllerThreadRunningFrame.h"
+#include "FileReplacer.h"
 #include "LibraryManager.h"
 #include "OpenSourceSyncer.h"
 #include "Syncer.h"
@@ -8,8 +9,7 @@
 
 namespace
 {
-    constexpr const char* ExclusionsFilename   = "exclusions.txt";
-    constexpr const char* ReplacementsFilename = "replacements.json";
+    constexpr const char* ExclusionsFilename = "exclusions.txt";
 
     constexpr std::string_view OpenSourceCodeDirectoryKey_sv      = "open-source-code-directory";
     constexpr std::string_view OpenSourceLibrariesDirectoryKey_sv = "open-source-libraries-directory";
@@ -44,12 +44,6 @@ Controller& Controller::GetInstance()
 std::string Controller::GetExclusionsFilePath() const
 {
     return Path::Combine(m_overridesDirectory, ExclusionsFilename);
-}
-
-
-std::string Controller::GetReplacementsFilePath() const
-{
-    return Path::Combine(m_overridesDirectory, ReplacementsFilename);
 }
 
 
@@ -137,6 +131,15 @@ Syncer& Controller::GetSyncer()
         m_syncer = std::make_unique<Syncer>(*this);
 
     return *m_syncer;
+}
+
+
+FileReplacer& Controller::GetFileReplacer()
+{
+    if( m_fileReplacer == nullptr )
+        m_fileReplacer = std::make_unique<FileReplacer>(*this, m_overridesDirectory);
+
+    return *m_fileReplacer;
 }
 
 

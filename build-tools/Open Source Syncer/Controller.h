@@ -4,6 +4,7 @@
 #include <zUtilO/SettingsDb.h>
 #include <zUtilF/LoggingListBox.h>
 
+class FileReplacer;
 class LibraryManager;
 class Syncer;
 
@@ -29,9 +30,6 @@ public:
     // Returns the full file path of the exclusions.txt file.
     std::string GetExclusionsFilePath() const;
 
-    // Returns the full file path of the replacements.json file.
-    std::string GetReplacementsFilePath() const;
-
     // Gets the directory of the private repository.
     const std::string& GetPrivateRepoDirectory() const { return m_privateRepoDirectory; }
 
@@ -56,6 +54,9 @@ public:
 
     // Returns of instance of the Syncer, for synchronizing the private and open source repositories.
     Syncer& GetSyncer();
+
+    // Returns an instance of the FileReplacer, used to replace sensitive files.
+    FileReplacer& GetFileReplacer();
 
     // Returns an instance of the LibraryManager, for managing prebuilt
     // external libraries and other binary file dependencies.
@@ -88,7 +89,7 @@ private:
     std::optional<GitRepository> m_openSourceLibrariesRepo;
 
     std::unique_ptr<Syncer> m_syncer;
-
+    std::unique_ptr<FileReplacer> m_fileReplacer;
     std::unique_ptr<LibraryManager> m_libraryManager;
 
     struct WorkerThreadData
