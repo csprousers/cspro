@@ -592,6 +592,64 @@ bool Syncer::CompareRepositories(const GitCommit& cs_commit, const GitCommit& os
 }
 
 
+std::tuple<GitCommit, GitCommit> Syncer::FindUnsyncedMergeCommits(const GitBranch& os_merge_branch)
+{
+    GitRepository& private_repo = m_controller.GetPrivateRepo();
+    GitRepository& open_source_repo = m_controller.GetOpenSourceRepo();
+
+    const GitBranch cs_branch = private_repo.LookupBranch(os_merge_branch.GetName());
+    const GitCommit cs_current_commit = private_repo.LookupCommit(cs_branch.GetTarget());
+
+    const GitCommit os_last_merge_commit = open_source_repo.LookupCommit(os_merge_branch);
+
+    // find the newest merge commit in the private repository
+    std::optional<GitCommit> cs_newest_merge_commit;
+
+    GitRevisionWalker walker(private_repo);
+
+    walker.Walk(cs_current_commit,
+        [&](GitCommit cs_commit)
+        {
+            if( cs_commit.GetParentCount() == 2 )
+            {
+                cs_newest_merge_commit = std::move(cs_commit);
+                return false;
+            }
+
+            return true;
+        });
+
+    if( !cs_newest_merge_commit.has_value() )
+        throw ProgrammingErrorException();
+
+    if( cs_newest_merge_commit->Equals(os_last_merge_commit) )
+        throw CSProException("There are no unsynced merge commits.");
+
+    // find the merge commit in the private repository that matches the last synced merge commit
+    std::optional<GitCommit> cs_oldest_merge_commit;
+
+    walker.Walk(*cs_newest_merge_commit,
+        [&](GitCommit cs_commit)
+        {
+            if( cs_commit.Equals(os_last_merge_commit) )
+            {
+                cs_oldest_merge_commit = std::move(cs_commit);
+                return false;
+            }
+
+            return true;
+        });
+
+    if( !cs_oldest_merge_commit.has_value() )
+    {
+        throw CSProException("Could not find a merge commit in the private repository matching: " +
+                             os_last_merge_commit.GetMessage());
+    }
+
+    return std::make_tuple(std::move(*cs_oldest_merge_commit), std::move(*cs_newest_merge_commit));
+}
+
+
 std::vector<GitCommit> Syncer::GetOrderedMergeCommits(const GitCommit& oldest_merge_commit,
                                                       const GitCommit& newest_merge_commit)
 {

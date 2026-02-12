@@ -6,12 +6,20 @@
 class Syncer
 {
 public:
+    // cs = private CSPro repository
+    // os = public open source repository
+
     Syncer(Controller& controller) noexcept;
     ~Syncer();
 
     // Compares the files of the private and open sources repositories at the given commit.
     // Any differences are logged, false is returned if there are unexpected errors.
     bool CompareRepositories(const GitCommit& cs_commit, const GitCommit& os_commit, bool verbose);
+
+    // Finds the oldest merge commit in the private repository that matches the open source repository's
+    // current commit, using the same branch name, and then finds the most recent merge commit to sync,
+    // returning an exception if there are no unsyncable merge commits.
+    std::tuple<GitCommit, GitCommit> FindUnsyncedMergeCommits(const GitBranch& os_merge_branch);
 
     // Mirrors the feature branches.
     void MirrorFeatureBranches(const GitBranch& os_merge_branch,
@@ -27,9 +35,6 @@ public:
                            const GitCommit& os_parent_commit1, const GitCommit& os_parent_commit2);
 
 private:
-    // cs = private CSPro repository
-    // os = public open source repository
-
     // Returns true if the file should not be included in the open source repository
     // because it was defined in the exclusions.txt file.
     bool IsFileExcluded(const std::string& cs_file_path);

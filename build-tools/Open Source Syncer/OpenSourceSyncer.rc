@@ -59,12 +59,14 @@ END
 // Dialog
 //
 
-IDD_FEATURE_BRANCH_SYNCER DIALOGEX 0, 0, 305, 137
+IDD_FEATURE_BRANCH_SYNCER DIALOGEX 0, 0, 305, 140
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_CHILD | WS_CAPTION | WS_SYSMENU
 CAPTION "Feature Branch Syncer"
 FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
-    GROUPBOX        "Mirror Feature Branches",IDC_STATIC,7,7,291,123
+    PUSHBUTTON      "Find Unsynced Merge Commits",IDC_FIND_UNSYNCED_MERGE_COMMITS,30,112,112,14
+    PUSHBUTTON      "Sync Feature Branches",IDC_SYNC_FEATURE_BRANCHES,163,112,112,14
+    GROUPBOX        "Mirror Feature Branches",IDC_STATIC,7,7,291,126
     LTEXT           "One or more feature branches can be mirrored from the private repository to the open source repository.",IDC_STATIC,15,20,266,20
     LTEXT           "Target branch (open source):",IDC_STATIC,15,51,96,8
     EDITTEXT        IDC_TARGET_BRANCH_NAME,126,48,164,14,ES_AUTOHSCROLL
@@ -72,7 +74,6 @@ BEGIN
     EDITTEXT        IDC_COMMIT_OLDEST,126,68,164,14,ES_AUTOHSCROLL
     LTEXT           "Newest merge commit (private):",IDC_STATIC,15,91,104,8
     EDITTEXT        IDC_COMMIT_NEWEST,126,88,164,14,ES_AUTOHSCROLL
-    PUSHBUTTON      "Sync Feature Branches",IDC_SYNC_FEATURE_BRANCHES,178,108,112,14
 END
 
 IDD_SETTINGS DIALOGEX 0, 0, 241, 96
@@ -157,7 +158,7 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 298
         TOPMARGIN, 7
-        BOTTOMMARGIN, 130
+        BOTTOMMARGIN, 133
     END
 
     IDD_SETTINGS, DIALOG
