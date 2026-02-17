@@ -13,6 +13,7 @@ namespace
 
     constexpr std::string_view OpenSourceCodeDirectoryKey_sv      = "open-source-code-directory";
     constexpr std::string_view OpenSourceLibrariesDirectoryKey_sv = "open-source-libraries-directory";
+    constexpr std::string_view GitHubPATKey_sv                    = "github-pat";
 }
 
 
@@ -20,7 +21,8 @@ Controller::Controller()
     :   m_settingsDb("OpenSourceSyncer.db"),
         m_loggingListBox(nullptr),
         m_openSourceCodeDirectory(m_settingsDb.ReadOrDefault<std::string>(OpenSourceCodeDirectoryKey_sv)),
-        m_openSourceLibrariesDirectory(m_settingsDb.ReadOrDefault<std::string>(OpenSourceLibrariesDirectoryKey_sv))
+        m_openSourceLibrariesDirectory(m_settingsDb.ReadOrDefault<std::string>(OpenSourceLibrariesDirectoryKey_sv)),
+        m_githubPAT(m_settingsDb.ReadOrDefault<std::string>(GitHubPATKey_sv))
 {
     const std::string this_source_directory = PortableFunctions::PathGetDirectory(__FILE__);
 
@@ -122,6 +124,13 @@ GitRepository& Controller::GetOpenSourceLibrariesRepo()
     }
 
     return *m_openSourceLibrariesRepo;
+}
+
+
+void Controller::SetGitHubPAT(std::string pat)
+{
+    m_githubPAT = std::move(pat);
+    m_settingsDb.Write(GitHubPATKey_sv, m_githubPAT);
 }
 
 

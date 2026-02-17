@@ -52,6 +52,11 @@ public:
     // Opens the open source libraries repository if not open, throwing exceptions on error.
     GitRepository& GetOpenSourceLibrariesRepo();
 
+    // Gets or sets the GitHub personal access token (PAT) used when performing
+    // operations that require authentication (e.g., creating releases).
+    const std::string& GetGitHubPAT() const { return m_githubPAT; }
+    void SetGitHubPAT(std::string pat);
+
     // Returns of instance of the Syncer, for synchronizing the private and open source repositories.
     Syncer& GetSyncer();
 
@@ -87,6 +92,8 @@ private:
 
     std::string m_openSourceLibrariesDirectory;
     std::optional<GitRepository> m_openSourceLibrariesRepo;
+
+    std::string m_githubPAT;
 
     std::unique_ptr<Syncer> m_syncer;
     std::unique_ptr<FileReplacer> m_fileReplacer;

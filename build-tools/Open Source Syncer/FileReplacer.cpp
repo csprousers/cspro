@@ -1,7 +1,7 @@
 #include "StdAfx.h"
 #include "FileReplacer.h"
+#include "GitHubConnection.h"
 #include <zJson/JsonSpecFile.h>
-#include <zNetwork/CurlHttpConnection.h>
 #include <Update SQLite/SQLiteSourceUpdater.h>
 
 
@@ -157,23 +157,20 @@ std::string FileReplacer::CreateSqliteWithoutSEE(const git_diff_file& new_file)
     {
         constexpr const char* AmalgamationRepository = "rhuijben/sqlite-amalgamation";
 
-        CurlHttpConnection connection;
+        GitHubConnection gh_connection;
 
         // find this commit with this version
         std::string commit_sha;
 
         for( int commit_page = 1; commit_sha.empty(); ++commit_page )
         {
-            HeaderList headers;
-            headers.Add("User-Agent: CSPro Open Source Syncer");
-            headers.Add_Accept_Json();
+            const std::string url = FormatText(
+                "https://api.github.com/repos/%s/commits?page=%d",
+                AmalgamationRepository,
+                commit_page
+            );
 
-            std::string url = FormatText("https://api.github.com/repos/%s/commits?page=%d", AmalgamationRepository, commit_page);
-
-            const HttpRequest request = HttpRequestBuilder(std::move(url), std::move(headers)).build();
-            HttpResponse response = connection.Request(request);
-
-            const JsonNode json_node = Json::Parse(response.body.ToString());
+            const JsonNode json_node = gh_connection.Request<JsonNode>(url);
             const JsonNodeArray commits_json_node_array = json_node.GetArray();
 
             if( commits_json_node_array.empty() )
@@ -200,18 +197,14 @@ std::string FileReplacer::CreateSqliteWithoutSEE(const git_diff_file& new_file)
         m_controller.LogText("Downloading SQLite files from %s commit SHA: %s", AmalgamationRepository, commit_sha.c_str());
 
         // download the non-SEE version
-        const std::string url = FormatText("https://raw.githubusercontent.com/%s/%s/%s",
-                                           AmalgamationRepository,
-                                           commit_sha.c_str(),
-                                           filename.c_str());
+        const std::string url = FormatText(
+            "https://raw.githubusercontent.com/%s/%s/%s",
+            AmalgamationRepository,
+            commit_sha.c_str(),
+            filename.c_str()
+        );
 
-        const HttpRequest request = HttpRequestBuilder(url).build();
-        HttpResponse response = connection.Request(request);
-
-        if( response.http_status != HttpResponse::Status_200_OK )
-            throw CSProException("Error accessing: " + url);
-
-        public_sqlite = response.body.ToString();
+        public_sqlite = gh_connection.Request<std::string>(url);
 
         if( public_sqlite.find(full_version_line) == std::string::npos )
             throw CSProException("The SQLite amalgamation version header does not match: " + full_version_line);

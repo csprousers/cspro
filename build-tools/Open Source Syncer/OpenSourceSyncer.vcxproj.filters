@@ -30,6 +30,9 @@
     <ClInclude Include="FileReplacer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="GitHubConnection.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="LibraryManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -84,6 +87,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="FileReplacer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GitHubConnection.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="LibraryManager.cpp">
