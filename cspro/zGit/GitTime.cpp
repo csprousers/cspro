@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "GitTime.h"
 #include <chrono>
 
@@ -51,11 +51,23 @@ std::string GitTime::GetLocalDateTimeString(const cs::string_sz formatter/* = "%
 
 bool operator==(const git_time& gt1, const git_time& gt2)
 {
-    return ( memcmp(&gt1, &gt2, sizeof(git_time)) == 0 );
+    return ( gt1.time == gt2.time );
+}
+
+
+bool operator<(const git_time& gt1, const git_time& gt2)
+{
+    return ( gt1.time < gt2.time );
 }
 
 
 bool operator==(const GitTime& gt1, const GitTime& gt2)
 {
     return operator==(*static_cast<const git_time*>(gt1), *static_cast<const git_time*>(gt2));
+}
+
+
+bool operator<(const GitTime& gt1, const GitTime& gt2)
+{
+    return operator<(*static_cast<const git_time*>(gt1), *static_cast<const git_time*>(gt2));
 }

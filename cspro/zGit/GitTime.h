@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zGit/zGit.h>
 
@@ -36,7 +36,13 @@ private:
 
 // --------------------------------------------------------------------------
 // GitTime / git_time comparisons
+//
+// The comparisons compare the UNIX timestamps, ignoring the offset and sign
+// values.
 // --------------------------------------------------------------------------
 
 ZGIT_API bool operator==(const git_time& gt1, const git_time& gt2);
+ZGIT_API bool operator<(const git_time& gt1, const git_time& gt2);
+
 ZGIT_API bool operator==(const GitTime& gt1, const GitTime& gt2);
+ZGIT_API bool operator<(const GitTime& gt1, const GitTime& gt2);
