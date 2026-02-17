@@ -34,12 +34,14 @@
     <ClInclude Include="Overrides\replacement-ApiKeys.h">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClInclude>
+    <ClInclude Include="ReleaseTag.h" />
     <ClInclude Include="RepoFilePath.h" />
     <ClInclude Include="RepositoryComparerView.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="SettingsDlg.h" />
     <ClInclude Include="StdAfx.h" />
     <ClInclude Include="Syncer.h" />
+    <ClInclude Include="TagSyncerView.h" />
     <ClInclude Include="UWM.h" />
   </ItemGroup>
   <ItemGroup>
@@ -54,12 +56,14 @@
     <ClCompile Include="ManageLibrariesView.cpp" />
     <ClCompile Include="ManualMirrorerView.cpp" />
     <ClCompile Include="OpenSourceSyncer.cpp" />
+    <ClCompile Include="ReleaseTag.cpp" />
     <ClCompile Include="RepositoryComparerView.cpp" />
     <ClCompile Include="SettingsDlg.cpp" />
     <ClCompile Include="StdAfx.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Syncer.cpp" />
+    <ClCompile Include="TagSyncerView.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="OpenSourceSyncer.rc" />
@@ -80,8 +84,16 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\cspro\zHtml\zHtml.vcxproj">
+      <Project>{5f74a167-59d5-48a7-a54c-1964bd5543c2}</Project>
+      <Private>false</Private>
+    </ProjectReference>
     <ProjectReference Include="..\..\cspro\zJson\zJson.vcxproj">
       <Project>{44a4fe38-ca5a-487c-a227-4be1ebd4874d}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\cspro\zMarkdown\zMarkdown.vcxproj">
+      <Project>{4c225ee5-cea1-4516-bfa4-4bb49940af51}</Project>
       <Private>false</Private>
     </ProjectReference>
     <ProjectReference Include="..\..\cspro\zNetwork\zNetwork.vcxproj">

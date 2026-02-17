@@ -134,6 +134,15 @@ void Controller::SetGitHubPAT(std::string pat)
 }
 
 
+GitSignature Controller::GetCSProBotSignature(GitRepository& repo)
+{
+    return GitSignature::Create(
+        "CSPro Bot",
+        GitSignature::CreateDefault(repo).GetEmail()
+    );
+}
+
+
 Syncer& Controller::GetSyncer()
 {
     if( m_syncer == nullptr )
@@ -168,7 +177,8 @@ bool Controller::IsOperationRunning(const CFrameWnd* const frame_wnd/* = nullptr
 }
 
 
-void Controller::RunOperation(CFrameWnd* const frame_wnd, std::function<void(Controller& controller)> operation_callback) noexcept
+void Controller::RunOperation(CFrameWnd* const frame_wnd, const bool show_log,
+                              std::function<void(Controller& controller)> operation_callback) noexcept
 {
     ASSERT(frame_wnd != nullptr && frame_wnd->IsKindOf(RUNTIME_CLASS(ControllerThreadRunningFrame)));
 
@@ -180,7 +190,7 @@ void Controller::RunOperation(CFrameWnd* const frame_wnd, std::function<void(Con
 
     CWnd* const main_wnd = AfxGetMainWnd();
 
-    if( main_wnd->SendMessage(UWM::OpenSourceSyncer::OperationInitialize) != 1 )
+    if( main_wnd->SendMessage(UWM::OpenSourceSyncer::OperationInitialize, show_log) != 1 )
         return;
 
     if( m_loggingListBox != nullptr )
@@ -215,6 +225,12 @@ void Controller::RunOperation(CFrameWnd* const frame_wnd, std::function<void(Con
             main_wnd->PostMessage(UWM::OpenSourceSyncer::OperationComplete);
         })
     };
+}
+
+
+void Controller::RunOperation(CFrameWnd* const frame_wnd, std::function<void(Controller& controller)> operation_callback) noexcept
+{
+    RunOperation(frame_wnd, true, std::move(operation_callback));
 }
 
 

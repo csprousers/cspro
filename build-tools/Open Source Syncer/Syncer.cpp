@@ -2,9 +2,8 @@
 #include "Syncer.h"
 #include "FileReplacer.h"
 #include "LibraryManager.h"
+#include "ReleaseTag.h"
 #include <zGit/GitMerge.h>
-#include <zGit/GitRevisionWalker.h>
-#include <regex>
 
 
 namespace
@@ -15,8 +14,8 @@ namespace
     constexpr std::string_view LibrariesTagInBuildFile_sv = "%LIBRARY_TAG%";
 
     // the commit is the first commit after the v7.5.0 tag
-    constexpr std::string_view HistoryLogEarliestTag_sv = "7.6.0";
-    constexpr const char* HistoryLogEarliestCommitSHA   = "95d126ccaab8872d1d914f64d16824a5f2f19ccd";
+    constexpr std::string_view HistoryLogEarliestVersion_sv = "7.6.0";
+    constexpr const char* HistoryLogEarliestCommitSHA       = "95d126ccaab8872d1d914f64d16824a5f2f19ccd";
 }
 
 
@@ -47,64 +46,6 @@ bool Syncer::IsFileExcluded(const std::string& cs_file_path)
 }
 
 
-struct Syncer::TagCommits
-{
-    std::string tag_name;
-    GitCommit commit;
-};
-
-
-void Syncer::PopulateReleaseTags()
-{
-    if( !m_releaseTags.empty() )
-        return;
-
-    GitRepository& private_repo = m_controller.GetPrivateRepo();
-
-    std::regex tag_regex = std::regex(R"(^refs/tags/v(\d+\.\d+\.\d+).*$)");
-    std::smatch matches;
-
-    private_repo.ForeachTag(
-        [&](const GitTag tag)
-        {
-            constexpr bool keep_processing = true;
-
-            if( !std::regex_search(tag.GetName(), matches, tag_regex) )
-                return keep_processing;
-
-            std::string tag_name = matches.str(1);
-
-            if( tag_name < HistoryLogEarliestTag_sv )
-                return keep_processing;
-
-            GitCommit commit = private_repo.LookupCommit(tag);
-
-            // associate the tag with the latest commit in case of multiple tags for the same version (e.g., v7.6.1-Apr20 and v7.6.1-Apr26)
-            auto lookup = std::find_if(m_releaseTags.begin(), m_releaseTags.end(),
-                                       [&](const TagCommits& tc) { return ( tag_name == tc.tag_name ); });
-
-            if( lookup == m_releaseTags.end() )
-            {
-                m_releaseTags.emplace_back(TagCommits { std::move(tag_name), std::move(commit) });
-            }
-
-            else if( lookup->commit.GetAuthor().GetWhen().GetTimestamp() < commit.GetAuthor().GetWhen().GetTimestamp() )
-            {
-                lookup->commit = std::move(commit);
-            }
-
-            return keep_processing;
-        });
-
-    // sort by name
-    std::sort(m_releaseTags.begin(), m_releaseTags.end(),
-              [&](const TagCommits& tc1, const TagCommits& tc2) { return ( tc1.tag_name < tc2.tag_name ); });
-
-    if( m_releaseTags.empty() )
-        throw ProgrammingErrorException();
-}
-
-
 struct Syncer::PullRequest
 {
     std::string sha;
@@ -122,6 +63,12 @@ struct Syncer::GroupedPullRequests
 };
 
 
+const char* Syncer::GetHistoryFilename() noexcept
+{
+    return HistoryFilename;
+}
+
+
 std::string Syncer::CreateHistoryLog(const GitCommit& cs_latest_commit)
 {
     GitRepository& private_repo = m_controller.GetPrivateRepo();
@@ -129,7 +76,11 @@ std::string Syncer::CreateHistoryLog(const GitCommit& cs_latest_commit)
     m_controller.LogText("Creating history log up to the commit on: " +
                          cs_latest_commit.GetCommitter().GetWhen().GetLocalDateTimeString());
 
-    PopulateReleaseTags();
+    if( m_releaseTags.empty() )
+    {
+        m_releaseTags = ReleaseTag::Populate(private_repo, HistoryLogEarliestVersion_sv, true);
+        ASSERT(!m_releaseTags.empty());
+    }
 
     std::unique_ptr<GroupedPullRequests> grouped_pull_requests;
 
@@ -168,11 +119,12 @@ std::string Syncer::CreateHistoryLog(const GitCommit& cs_latest_commit)
             // determine the first tag that contains this commit
             std::vector<PullRequest>* pull_requests = &grouped_pull_requests->newer_than_tags_pull_requests;
 
-            for( TagCommits& tc : m_releaseTags )
+            for( const ReleaseTag& release_tag : m_releaseTags )
             {
-                if( tc.commit == commit || private_repo.IsCommitDescendantOf(tc.commit, commit) )
+                if( release_tag.commit == commit ||
+                    private_repo.IsCommitDescendantOf(release_tag.commit, commit) )
                 {
-                    pull_requests = &grouped_pull_requests->pull_requests[tc.tag_name];
+                    pull_requests = &grouped_pull_requests->pull_requests[release_tag.version];
                     break;
                 }
             }
@@ -236,15 +188,15 @@ std::string Syncer::CreateHistoryLog(const GitCommit& cs_latest_commit)
 
     for( auto tag_commits_itr = m_releaseTags.crbegin(); tag_commits_itr != m_releaseTags.crend(); ++tag_commits_itr )
     {
-        history.append(FormatText("\n\n## CSPro %s\n", tag_commits_itr->tag_name.c_str()));
+        history.append(FormatText("\n\n## CSPro %s\n", tag_commits_itr->version.c_str()));
 
-        std::string url = FormatText("https://csprousers.org/downloads/cspro/cspro%s.exe", tag_commits_itr->tag_name.c_str());
+        std::string url = FormatText("https://csprousers.org/downloads/cspro/cspro%s.exe", tag_commits_itr->version.c_str());
         history.append(FormatText("\n**Installer**: [%s](%s)\n", url.c_str(), url.c_str())); // X64_TODO add link to 64-bit installer
 
-        url = FormatText("https://csprousers.org/downloads/cspro/cspro%s-release-notes.txt", tag_commits_itr->tag_name.c_str());
+        url = FormatText("https://csprousers.org/downloads/cspro/cspro%s-release-notes.txt", tag_commits_itr->version.c_str());
         history.append(FormatText("\n**Release notes**: [%s](%s)\n", url.c_str(), url.c_str()));
 
-        const std::vector<PullRequest>& pull_requests = grouped_pull_requests->pull_requests[tag_commits_itr->tag_name];
+        const std::vector<PullRequest>& pull_requests = grouped_pull_requests->pull_requests[tag_commits_itr->version];
 
         if( !pull_requests.empty() )
             write_pull_requests(pull_requests);

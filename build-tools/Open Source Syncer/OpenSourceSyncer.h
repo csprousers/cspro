@@ -21,9 +21,11 @@ protected:
 
     void OnManuallyMirrorCommits();
 
-    void OnCompareRepositories();
+    void OnSyncTags();
 
     void OnManageLibraries();
+
+    void OnCompareRepositories();
 
     void OnSettings();
     void OnUpdateSettings(CCmdUI* pCmdUI);

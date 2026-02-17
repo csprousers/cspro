@@ -353,13 +353,8 @@ void LibraryManager::CreateAndCommitBuild(const GitCommit& cs_commit)
         }
     }
 
-    // for the signature, use the committer's email but the name "CSPro Bot"
-    GitSignature author_and_committer = GitSignature::Create(
-        "CSPro Bot",
-        GitSignature::CreateDefault(library_repo).GetEmail()
-    );
-
-    // use the date of the source commit
+    // for the signature, use "CSPro Bot" with the date of the source commit
+    GitSignature author_and_committer = Controller::GetCSProBotSignature(library_repo);
     author_and_committer.SetWhen(cs_commit.GetCommitter().GetWhen());
 
     // the message will contain the source commit's date and OID, and then the library ID

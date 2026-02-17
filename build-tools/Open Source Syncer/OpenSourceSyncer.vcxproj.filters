@@ -54,6 +54,9 @@
     <ClInclude Include="Overrides\replacement-ApiKeys.h">
       <Filter>Overrides</Filter>
     </ClInclude>
+    <ClInclude Include="ReleaseTag.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="RepoFilePath.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -70,6 +73,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Syncer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TagSyncerView.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="UWM.h">
@@ -110,6 +116,9 @@
     <ClCompile Include="OpenSourceSyncer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ReleaseTag.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="RepositoryComparerView.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -120,6 +129,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Syncer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TagSyncerView.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

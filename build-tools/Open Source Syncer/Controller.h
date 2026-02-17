@@ -57,6 +57,9 @@ public:
     const std::string& GetGitHubPAT() const { return m_githubPAT; }
     void SetGitHubPAT(std::string pat);
 
+    // Creates a signature using the committer's email but the name "CSPro Bot".
+    static GitSignature GetCSProBotSignature(GitRepository& repo);
+
     // Returns of instance of the Syncer, for synchronizing the private and open source repositories.
     Syncer& GetSyncer();
 
@@ -73,6 +76,7 @@ public:
 
     // Runs an operation in a worker thread.
     // Only one operation can be run at any time.
+    void RunOperation(CFrameWnd* frame_wnd, bool show_log, std::function<void(Controller& controller)> operation_callback) noexcept;
     void RunOperation(CFrameWnd* frame_wnd, std::function<void(Controller& controller)> operation_callback) noexcept;
 
     // Marks the operation in progress as complete.

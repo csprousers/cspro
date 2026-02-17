@@ -161,6 +161,19 @@ BEGIN
     EDITTEXT        IDC_COMMIT_OPEN_SOURCE,96,64,164,14,ES_AUTOHSCROLL
 END
 
+IDD_TAG_SYNCER DIALOGEX 0, 0, 539, 282
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_CHILD | WS_CAPTION | WS_SYSMENU
+CAPTION "Tag Syncer"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    GROUPBOX        "Tag Syncer",IDC_STATIC,7,7,525,268
+    LTEXT           "For important tags, or tags that will be the basis for releases, you can mirror tags from the private repository to the open source repository.",IDC_STATIC,15,20,450,8
+    CONTROL         "",IDC_TAGS,"SysListView32",LVS_REPORT | LVS_ALIGNLEFT | WS_BORDER | WS_TABSTOP,15,36,509,209
+    PUSHBUTTON      "Create Open Source Tag",IDC_CREATE_OPEN_SOURCE_TAG,43,253,129,14
+    PUSHBUTTON      "View History Log in Open Source",IDC_VIEW_OPEN_SOURCE_HISTORY_LOG,205,253,129,14
+    PUSHBUTTON      "Create History Log From Private",IDC_CREATE_PRIVATE_HISTORY_LOG,367,253,129,14
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -213,6 +226,14 @@ BEGIN
         TOPMARGIN, 7
         BOTTOMMARGIN, 107
     END
+
+    IDD_TAG_SYNCER, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 532
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 275
+    END
 END
 #endif    // APSTUDIO_INVOKED
 
@@ -263,6 +284,11 @@ BEGIN
     0
 END
 
+IDD_TAG_SYNCER AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -273,18 +299,27 @@ IDR_MAINFRAME MENU
 BEGIN
     POPUP "&File"
     BEGIN
-        MENUITEM "Sync Feature Branches",       ID_SYNC_FEATURE_BRANCHES
-        MENUITEM "Manually Mirror Commits",     ID_MANUALLY_MIRROR_COMMITS
-        MENUITEM SEPARATOR
-        MENUITEM "Compare Repositories",        ID_COMPARE_REPOSITORIES
-        MENUITEM SEPARATOR
-        MENUITEM "Manage Libraries",            ID_MANAGE_LIBRARIES
-        MENUITEM SEPARATOR
         MENUITEM "&Close\tCtrl+W",              ID_FILE_CLOSE
         MENUITEM SEPARATOR
         MENUITEM "Settings",                    ID_SETTINGS
         MENUITEM SEPARATOR
         MENUITEM "E&xit\tAlt+F4",               ID_APP_EXIT
+    END
+    POPUP "&Commits"
+    BEGIN
+        MENUITEM "Sync &Feature Branches",      ID_SYNC_FEATURE_BRANCHES
+        MENUITEM SEPARATOR
+        MENUITEM "&Manually Mirror Commits",    ID_MANUALLY_MIRROR_COMMITS
+    END
+    POPUP "&Releases"
+    BEGIN
+        MENUITEM "Sync &Tags",                  ID_SYNC_TAGS
+    END
+    POPUP "&Other"
+    BEGIN
+        MENUITEM "Manage &Libraries",           ID_MANAGE_LIBRARIES
+        MENUITEM SEPARATOR
+        MENUITEM "&Compare Repositories",       ID_COMPARE_REPOSITORIES
     END
     POPUP "&Window"
     BEGIN
@@ -322,6 +357,7 @@ BEGIN
     IDR_MANAGE_LIBRARIES    "Manage Libraries"
     IDR_MANUAL_MIRRORER     "Manual Mirrorer"
     IDR_REPO_COMPARER       "Repository Comparer"
+    IDR_TAG_SYNCER          "Tag Syncer"
 END
 
 STRINGTABLE

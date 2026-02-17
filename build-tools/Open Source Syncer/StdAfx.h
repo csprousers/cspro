@@ -17,8 +17,10 @@
 #include <zGit/GitCommit.h>
 #include <zGit/GitDiff.h>
 #include <zGit/GitIndex.h>
+#include <zGit/GitRevisionWalker.h>
 #include <zGit/GitTag.h>
 #include <zGit/GitTree.h>
+#include <regex>
 
 #define GIT_DEPRECATE_HARD
 #include <external/libgit2/include/git2.h>

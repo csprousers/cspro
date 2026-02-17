@@ -2,6 +2,8 @@
 
 #include <zGit/GitIgnoreEvaluator.h>
 
+struct ReleaseTag;
+
 
 class Syncer
 {
@@ -11,6 +13,12 @@ public:
 
     Syncer(Controller& controller) noexcept;
     ~Syncer();
+
+    // Returns the filename of the HISTORY.md file.
+    static const char* GetHistoryFilename() noexcept;
+
+    // Creates the contents of the HISTORY.md file showing pull requests up to the commit.
+    std::string CreateHistoryLog(const GitCommit& cs_latest_commit);
 
     // Compares the files of the private and open sources repositories at the given commit.
     // Any differences are logged, false is returned if there are unexpected errors.
@@ -38,12 +46,6 @@ private:
     // Returns true if the file should not be included in the open source repository
     // because it was defined in the exclusions.txt file.
     bool IsFileExcluded(const std::string& cs_file_path);
-
-    // Populates information about releases, used by CreateHistoryLog.
-    void PopulateReleaseTags();
-
-    // Returns the HISTORY.md file showing pull requests up to the commit.
-    std::string CreateHistoryLog(const GitCommit& cs_latest_commit);
 
     // Updates the BUILD.md file with information about the built libraries to be
     // used at this point.
@@ -89,8 +91,7 @@ private:
 
     std::optional<GitIgnoreEvaluator> m_exclusionEvaluator;
 
-    struct TagCommits;
-    std::vector<TagCommits> m_releaseTags;
+    std::vector<ReleaseTag> m_releaseTags;
 
     struct PullRequest;
     struct GroupedPullRequests;

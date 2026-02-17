@@ -63,25 +63,30 @@ LRESULT MainFrame::OnUpdateStatusBar(const WPARAM wParam, LPARAM /*lParam*/)
 }
 
 
-LRESULT MainFrame::OnOperationInitialize(WPARAM /*wParam*/, LPARAM /*lParam*/)
+LRESULT MainFrame::OnOperationInitialize(const WPARAM wParam, LPARAM /*lParam*/)
 {
+    const bool show_log = ( wParam != 0 );
+
     m_wndStatusBar.SetPaneText(0, L"Running operation...");
 
-    // make sure that a log is showing, and when not, open one and tile the
-    // windows vertically so that the log is visible alongside the active view
-    bool log_showing = false;
-
-    ForeachViewOfType<LogView>(
-        [&](const LogView& /*log_view*/)
-        {
-            log_showing = true;
-            return false;
-        });
-
-    if( !log_showing )
+    if( show_log )
     {
-        assert_cast<OpenSourceSyncerApp*>(AfxGetApp())->OpenLog();
-        SendMessage(WM_COMMAND, ID_WINDOW_TILE_VERT);
+        // make sure that a log is showing, and when not, open one and tile the
+        // windows vertically so that the log is visible alongside the active view
+        bool log_showing = false;
+
+        ForeachViewOfType<LogView>(
+            [&](const LogView& /*log_view*/)
+            {
+                log_showing = true;
+                return false;
+            });
+
+        if( !log_showing )
+        {
+            assert_cast<OpenSourceSyncerApp*>(AfxGetApp())->OpenLog();
+            SendMessage(WM_COMMAND, ID_WINDOW_TILE_VERT);
+        }
     }
 
     return 1;
