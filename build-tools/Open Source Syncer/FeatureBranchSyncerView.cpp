@@ -3,12 +3,6 @@
 #include "Syncer.h"
 
 
-namespace
-{
-    constexpr std::string_view TargetBranchNameKey_sv = "feature-branch-syncer-branch-name";
-}
-
-
 IMPLEMENT_DYNCREATE(FeatureBranchSyncerView, CFormView)
 
 
@@ -22,7 +16,7 @@ END_MESSAGE_MAP()
 FeatureBranchSyncerView::FeatureBranchSyncerView()
     :   CFormView(IDD_FEATURE_BRANCH_SYNCER),
         m_controller(Controller::GetInstance()),
-        m_targetBranchName(m_controller.GetSettingsDb().ReadOrDefault<std::string>(TargetBranchNameKey_sv))
+        m_targetBranchName(m_controller.GetSettingsDb().ReadOrDefault<std::string>(SettingsKeys::FeatureBranchSyncerTarget_sv))
 {
 }
 
@@ -44,7 +38,7 @@ void FeatureBranchSyncerView::DoDataExchange(CDataExchange* const pDX)
     DDX_Text(pDX, IDC_COMMIT_NEWEST, m_newestCommit, true);
 
     if( pDX->m_bSaveAndValidate )
-        m_controller.GetSettingsDb().Write(TargetBranchNameKey_sv, *m_targetBranchName);
+        m_controller.GetSettingsDb().Write(SettingsKeys::FeatureBranchSyncerTarget_sv, *m_targetBranchName);
 }
 
 

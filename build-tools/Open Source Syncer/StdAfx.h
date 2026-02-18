@@ -5,6 +5,7 @@
 
 #include "Controller.h"
 #include "resource.h"
+#include "SettingsKeys.h"
 #include "UWM.h"
 #include <zToolsO/FileIO.h>
 #include <zToolsO/Utf8.h>

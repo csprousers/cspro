@@ -39,6 +39,7 @@
     <ClInclude Include="RepositoryComparerView.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="SettingsDlg.h" />
+    <ClInclude Include="SettingsKeys.h" />
     <ClInclude Include="StdAfx.h" />
     <ClInclude Include="Syncer.h" />
     <ClInclude Include="TagSyncerView.h" />

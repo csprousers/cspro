@@ -11,7 +11,6 @@ CREATE_JSON_KEY(tag)
 
 namespace
 {
-    constexpr std::string_view LibrariesSettingsKey_sv             = "libraries";
     constexpr std::string_view LibrariesCommitMessageIdentifier_sv = "libraries hash: ";
     constexpr size_t LibrariesHashHexLength                        = 32;
 
@@ -45,7 +44,7 @@ std::unique_ptr<std::vector<LibraryManager::Build>> LibraryManager::LoadCachedBu
 {
     auto builds = std::make_unique<std::vector<Build>>();
 
-    const std::string json = m_controller.GetSettingsDb().ReadOrDefault(LibrariesSettingsKey_sv, SO::Empty_string);
+    const std::string json = m_controller.GetSettingsDb().ReadOrDefault(SettingsKeys::Libraries_sv, SO::Empty_string);
 
     if( !json.empty() )
     {
@@ -85,7 +84,7 @@ void LibraryManager::CacheBuilds(const std::vector<Build>& builds) const
 
     json_writer->EndArray();
 
-    m_controller.GetSettingsDb().Write(LibrariesSettingsKey_sv, json_writer->GetString());
+    m_controller.GetSettingsDb().Write(SettingsKeys::Libraries_sv, json_writer->GetString());
 }
 
 

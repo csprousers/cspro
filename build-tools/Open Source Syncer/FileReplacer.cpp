@@ -144,7 +144,7 @@ std::string FileReplacer::CreateSqliteWithoutSEE(const git_diff_file& new_file)
     m_controller.LogText("Found SQLite version: " + version);
 
     // use a cached version when possible
-    const std::string cache_key = FormatText("SQLite-%s-%s", version.c_str(), filename.c_str());
+    const std::string cache_key = FormatText("%s%s-%s", SettingsKeys::SqlitePrefix, version.c_str(), filename.c_str());
     std::string public_sqlite = m_controller.GetSettingsDb().ReadOrDefault(cache_key, SO::Empty_string);
 
     if( !public_sqlite.empty() )

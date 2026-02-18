@@ -10,19 +10,15 @@
 namespace
 {
     constexpr const char* ExclusionsFilename = "exclusions.txt";
-
-    constexpr std::string_view OpenSourceCodeDirectoryKey_sv      = "open-source-code-directory";
-    constexpr std::string_view OpenSourceLibrariesDirectoryKey_sv = "open-source-libraries-directory";
-    constexpr std::string_view GitHubPATKey_sv                    = "github-pat";
 }
 
 
 Controller::Controller()
     :   m_settingsDb("OpenSourceSyncer.db"),
         m_loggingListBox(nullptr),
-        m_openSourceCodeDirectory(m_settingsDb.ReadOrDefault<std::string>(OpenSourceCodeDirectoryKey_sv)),
-        m_openSourceLibrariesDirectory(m_settingsDb.ReadOrDefault<std::string>(OpenSourceLibrariesDirectoryKey_sv)),
-        m_githubPAT(m_settingsDb.ReadOrDefault<std::string>(GitHubPATKey_sv))
+        m_openSourceCodeDirectory(m_settingsDb.ReadOrDefault<std::string>(SettingsKeys::OpenSourceCodeDirectory_sv)),
+        m_openSourceLibrariesDirectory(m_settingsDb.ReadOrDefault<std::string>(SettingsKeys::OpenSourceLibrariesDirectory_sv)),
+        m_githubPAT(m_settingsDb.ReadOrDefault<std::string>(SettingsKeys::GitHubPAT_sv))
 {
     const std::string this_source_directory = PortableFunctions::PathGetDirectory(__FILE__);
 
@@ -71,7 +67,7 @@ void Controller::SetOpenSourceCodeDirectory(std::string directory)
         return;
 
     m_openSourceCodeDirectory = std::move(directory);
-    m_settingsDb.Write(OpenSourceCodeDirectoryKey_sv, m_openSourceCodeDirectory);
+    m_settingsDb.Write(SettingsKeys::OpenSourceCodeDirectory_sv, m_openSourceCodeDirectory);
 
     m_openSourceRepo.reset();
 }
@@ -102,7 +98,7 @@ void Controller::SetOpenSourceLibrariesDirectory(std::string directory)
         return;
 
     m_openSourceLibrariesDirectory = std::move(directory);
-    m_settingsDb.Write(OpenSourceLibrariesDirectoryKey_sv, m_openSourceLibrariesDirectory);
+    m_settingsDb.Write(SettingsKeys::OpenSourceLibrariesDirectory_sv, m_openSourceLibrariesDirectory);
 
     m_openSourceLibrariesRepo.reset();
 }
@@ -130,7 +126,7 @@ GitRepository& Controller::GetOpenSourceLibrariesRepo()
 void Controller::SetGitHubPAT(std::string pat)
 {
     m_githubPAT = std::move(pat);
-    m_settingsDb.Write(GitHubPATKey_sv, m_githubPAT);
+    m_settingsDb.Write(SettingsKeys::GitHubPAT_sv, m_githubPAT);
 }
 
 
