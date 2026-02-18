@@ -5,6 +5,7 @@
 #include "LogFrameAndView.h"
 #include "MainFrame.h"
 #include "ManageLibrariesView.h"
+#include "ManageReleasesView.h"
 #include "ManualMirrorerView.h"
 #include "RepositoryComparerView.h"
 #include "SettingsDlg.h"
@@ -23,6 +24,7 @@ namespace
 BEGIN_MESSAGE_MAP(OpenSourceSyncerApp, CWinApp)
     ON_COMMAND(ID_SYNC_FEATURE_BRANCHES, OnSyncFeatureBranches)
     ON_COMMAND(ID_MANUALLY_MIRROR_COMMITS, OnManuallyMirrorCommits)
+    ON_COMMAND(ID_MANAGE_RELEASES, OnManageReleases)
     ON_COMMAND(ID_SYNC_TAGS, OnSyncTags)
     ON_COMMAND(ID_MANAGE_LIBRARIES, OnManageLibraries)
     ON_COMMAND(ID_COMPARE_REPOSITORIES, OnCompareRepositories)
@@ -74,6 +76,7 @@ BOOL OpenSourceSyncerApp::InitInstance()
     m_fileFreeDocManager->AddDocTemplate<IDR_LOG, FileFreeDoc, LogFrame, LogView>();
     m_fileFreeDocManager->AddDocTemplate<IDR_FEATURE_BRANCH_SYNCER, FileFreeDoc, ControllerThreadRunningFrame, FeatureBranchSyncerView>();
     m_fileFreeDocManager->AddDocTemplate<IDR_MANUAL_MIRRORER, FileFreeDoc, ControllerThreadRunningFrame, ManualMirrorerView>();
+    m_fileFreeDocManager->AddDocTemplate<IDR_MANAGE_RELEASES, FileFreeDoc, ControllerThreadRunningFrame, ManageReleasesView>();
     m_fileFreeDocManager->AddDocTemplate<IDR_TAG_SYNCER, FileFreeDoc, ControllerThreadRunningFrame, TagSyncerView>();
     m_fileFreeDocManager->AddDocTemplate<IDR_MANAGE_LIBRARIES, FileFreeDoc, ControllerThreadRunningFrame, ManageLibrariesView>();
     m_fileFreeDocManager->AddDocTemplate<IDR_REPO_COMPARER, FileFreeDoc, ControllerThreadRunningFrame, RepositoryComparerView>();
@@ -116,6 +119,12 @@ void OpenSourceSyncerApp::OnSyncFeatureBranches()
 void OpenSourceSyncerApp::OnManuallyMirrorCommits()
 {
     m_fileFreeDocManager->Open(IDR_MANUAL_MIRRORER, true);
+}
+
+
+void OpenSourceSyncerApp::OnManageReleases()
+{
+    m_fileFreeDocManager->Open(IDR_MANAGE_RELEASES, false);
 }
 
 

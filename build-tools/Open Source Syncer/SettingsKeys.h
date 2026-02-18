@@ -10,6 +10,9 @@ namespace SettingsKeys
 
     constexpr std::string_view FeatureBranchSyncerTarget_sv    = "feature-branch-syncer-branch-name";
 
+    constexpr std::string_view GitHubReleases_sv               = "github-releases";
+    constexpr std::string_view GitHubTags_sv                   = "github-tags";
+
     constexpr std::string_view Libraries_sv                    = "libraries";
 
     constexpr const char* SqlitePrefix                         = "sqlite-";

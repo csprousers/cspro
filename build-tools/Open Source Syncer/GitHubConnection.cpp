@@ -20,6 +20,18 @@ GitHubConnection::~GitHubConnection()
 }
 
 
+std::string GitHubConnection::CreateApiUrl(const char* const owner, const char* const repo, const char* const path)
+{
+    return FormatText("https://api.github.com/repos/%s/%s/%s", owner, repo, path);
+}
+
+
+std::string GitHubConnection::CreateApiUrl(const char* const path)
+{
+    return CreateApiUrl("csprousers", "cspro", path);
+}
+
+
 template<typename T>
 T GitHubConnection::Request(const std::string& url, const bool requires_authentication/* = false*/)
 {

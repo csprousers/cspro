@@ -21,6 +21,8 @@ protected:
 
     void OnManuallyMirrorCommits();
 
+    void OnManageReleases();
+
     void OnSyncTags();
 
     void OnManageLibraries();

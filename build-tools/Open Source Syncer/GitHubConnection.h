@@ -9,6 +9,10 @@ public:
     GitHubConnection();
     ~GitHubConnection();
 
+    // Returns a URL to access the GitHub API, optionally defaulting to csprousers/cspro.
+    static std::string CreateApiUrl(const char* owner, const char* repo, const char* path);
+    static std::string CreateApiUrl(const char* path);
+
     // Returns a response from the given URL, potentially requring authentication.
     // If T is JsonNode, the response body is parsed as JSON and returned as a JsonNode.
     // Other options for T: HttpResponse and std::string.
