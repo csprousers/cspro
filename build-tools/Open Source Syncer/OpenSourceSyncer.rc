@@ -187,6 +187,37 @@ BEGIN
     PUSHBUTTON      "Create Release From Tag",IDC_CREATE_RELEASE,405,243,122,14
 END
 
+IDD_CREATE_RELEASE DIALOGEX 0, 0, 643, 303
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+CAPTION "Create Release"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "Create Release",IDOK,284,282,75,14
+    GROUPBOX        "Release Basis",IDC_STATIC,7,7,263,72
+    LTEXT           "Tag name:",IDC_STATIC,17,22,35,8
+    EDITTEXT        IDC_TAG_NAME,80,19,181,14,ES_AUTOHSCROLL | ES_READONLY
+    LTEXT           "Libraries tag:",IDC_STATIC,17,42,43,8
+    EDITTEXT        IDC_LIBRARIES_TAG,80,39,181,14,ES_AUTOHSCROLL | ES_READONLY
+    LTEXT           "CSPro version:",IDC_STATIC,17,62,48,8
+    EDITTEXT        IDC_RELEASE_VERSION,80,59,54,14,ES_AUTOHSCROLL | ES_READONLY
+    GROUPBOX        "Release Files",IDC_STATIC,283,7,353,72
+    LTEXT           "Readme:",IDC_STATIC,297,22,30,8
+    EDITTEXT        IDC_README,362,19,204,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "View",IDC_VIEW_README,578,19,50,14
+    LTEXT           "Installer (32-bit):",IDC_STATIC,297,42,56,8
+    EDITTEXT        IDC_INSTALLER_32,362,39,204,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "Select",IDC_SELECT_INSTALLER_32,578,39,50,14
+    GROUPBOX        "Release Description",IDC_STATIC,7,88,629,185
+    LTEXT           "Release title:",IDC_STATIC,17,104,43,8
+    EDITTEXT        IDC_RELEASE_TITLE,80,101,181,14,ES_AUTOHSCROLL
+    LTEXT           "Release type:",IDC_STATIC,17,124,46,8
+    CONTROL         "Full release",IDC_FULL_RELEASE,"Button",BS_AUTORADIOBUTTON | WS_GROUP,80,123,52,10
+    CONTROL         "Prerelease",IDC_PRERELEASE,"Button",BS_AUTORADIOBUTTON,143,123,50,10
+    LTEXT           "Release notes:",IDC_STATIC,17,142,49,8
+    EDITTEXT        IDC_RELEASE_NOTES,80,142,547,103,ES_AUTOHSCROLL
+    PUSHBUTTON      "Preview",IDC_PREVIEW_RELEASE_NOTES,578,251,50,14
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -255,6 +286,14 @@ BEGIN
         TOPMARGIN, 7
         BOTTOMMARGIN, 266
     END
+
+    IDD_CREATE_RELEASE, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 636
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 296
+    END
 END
 #endif    // APSTUDIO_INVOKED
 
@@ -313,6 +352,35 @@ END
 IDD_MANAGE_RELEASES AFX_DIALOG_LAYOUT
 BEGIN
     0
+END
+
+IDD_CREATE_RELEASE AFX_DIALOG_LAYOUT
+BEGIN
+    0,
+    50, 100, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 100, 0,
+    0, 0, 0, 0,
+    0, 0, 100, 0,
+    100, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 100, 0,
+    100, 0, 0, 0,
+    0, 0, 100, 100,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    100, 100, 0, 0
 END
 
 

@@ -222,7 +222,8 @@ BOOL IMSASendMessage(const CString& csWindow, const UINT uMsg, const wstring_vie
     // Create the file-mapping object backed by the system's
     // paging file. The size should match the amount of data
     // we want to transfer to the child process.
-    hFileMap = CreateFileMapping(INVALID_HANDLE_VALUE, &sa, PAGE_READWRITE, 0, (param_sv.length()+1)*sizeof(TCHAR), IMSA_SHARED_MEMFILE);
+    hFileMap = CreateFileMapping(INVALID_HANDLE_VALUE, &sa, PAGE_READWRITE, 0,
+                                 uint32_cast(( param_sv.length() + 1 ) * sizeof(TCHAR)), IMSA_SHARED_MEMFILE);
     ASSERT(hFileMap != NULL);
 
     // Map a view of the file-mapping object so that we can
@@ -696,7 +697,7 @@ const std::string& Html::GetDirectory()
             // the html directory is copied to the executables folder in a post build event,
             // but in case other DLLs are being worked on that depend on the contents of that folder,
             // use the direct folder while in debug mode
-            return MakeFullPath(CSProExecutables::GetApplicationDirectory(), "..\\..\\..\\..\\html");
+            return MakeFullPath(PortableFunctions::PathGetDirectory(__FILE__), "..\\html");
 #else
             return Path::Combine(CSProExecutables::GetApplicationOrAssetsDirectory(), "html");
 #endif

@@ -109,6 +109,15 @@ void TagSyncerView::OnRefreshTags()
 }
 
 
+std::string TagSyncerView::ExtractCommitSHAFromTagMessage(const std::string_view tag_message_sv)
+{
+    if( SO::StartsWith(tag_message_sv, MessagePrefix_sv) )
+        return std::string(SO::Trim(tag_message_sv.substr(MessagePrefix_sv.size())));
+
+    return std::string();
+}
+
+
 void TagSyncerView::RefreshTags(Controller& controller)
 {
     GitRepository& private_repo = controller.GetPrivateRepo();
@@ -127,14 +136,16 @@ void TagSyncerView::RefreshTags(Controller& controller)
 
             // if there is no existing entry matching the name, see if there is a
             // linkage using a SHA specified in the tag message
-            if( lookup == tags->end() &&
-                SO::StartsWith(release_tag.tag_message, MessagePrefix_sv) )
+            if( lookup == tags->end() )
             {
-                const std::string cs_commit_sha(SO::Trim(release_tag.tag_message).substr(MessagePrefix_sv.size()));
+                const std::string cs_commit_sha = ExtractCommitSHAFromTagMessage(release_tag.tag_message);
 
-                lookup = std::find_if(tags->begin(), tags->end(),
-                    [&](const Tag& tag) { return ( cs_commit_sha == tag.cs_commit_sha ); }
-                );
+                if( !cs_commit_sha.empty() )
+                {
+                    lookup = std::find_if(tags->begin(), tags->end(),
+                        [&](const Tag& tag) { return ( cs_commit_sha == tag.cs_commit_sha ); }
+                    );
+                }
             }
 
             // if not, add the tag

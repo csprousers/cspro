@@ -216,6 +216,9 @@ public:
     // Returns all of the repository's tags.
     std::vector<GitTag> GetTags() const;
 
+    // Looks up the tag, throwing an exception if not found.
+    GitTag LookupTag(std::string_view tag_name_sv) const;
+
     // Returns true if the tag exists.
     bool IsTag(std::string_view tag_name_sv) const;
 
@@ -248,6 +251,9 @@ private:
 
     template<typename GitObjectT>
     GitObject LookupObject(const GitObjectId& oid, GitObjectT type) const;
+
+    template<typename T>
+    T LookupTagWorker(std::string_view tag_name_sv) const;
 
     bool IsPathIgnoredWorker(cs::string_sz path) const;
 

@@ -10,6 +10,9 @@ class TagSyncerView : public CFormView
 protected:
     TagSyncerView();
 
+public:
+    static std::string ExtractCommitSHAFromTagMessage(std::string_view tag_message_sv);
+
 protected:
     DECLARE_MESSAGE_MAP()
 

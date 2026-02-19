@@ -10,6 +10,7 @@
 #include <zToolsO/FileIO.h>
 #include <zToolsO/Utf8.h>
 #include <zUtilO/Interapp.h>
+#include <zUtilO/Viewers.h>
 #include <zUtilO/WindowHelpers.h>
 #include <zUtilO/WindowsUtf8.h>
 #include <zUtilO/WindowsWS.h>

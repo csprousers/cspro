@@ -45,6 +45,12 @@ std::string Controller::GetExclusionsFilePath() const
 }
 
 
+std::string Controller::GetTemplatesFilePath(const char* const filename)
+{
+    return Path::Combine(PortableFunctions::PathGetDirectory(__FILE__), "Templates", filename);
+}
+
+
 GitRepository& Controller::GetPrivateRepo()
 {
     if( !m_privateRepo.has_value() )

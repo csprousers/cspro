@@ -1,7 +1,7 @@
 #include "StdAfx.h"
 #include "ManageReleasesView.h"
+#include "CreateReleaseDlg.h"
 #include "GitHubConnection.h"
-#include <zUtilO/Viewers.h>
 
 
 CREATE_JSON_KEY(assets)
@@ -113,7 +113,7 @@ const std::string& ManageReleasesView::GitHubRelease::GetReleaseName() const
 
 std::wstring ManageReleasesView::GitHubRelease::GetStatus() const
 {
-    std::wstring status = prerelease ? L"Pre-Release" :
+    std::wstring status = prerelease ? L"Prerelease" :
                                        L"Release";
 
     if( draft )
@@ -276,12 +276,25 @@ void ManageReleasesView::OnViewRelease()
 
 void ManageReleasesView::OnCreateRelease()
 {
+    std::unique_ptr<ReleaseCreator> release_creator;
+
     DoWithReleaseOption(
-        [](const ReleaseOption& release_option)
+        [&](const ReleaseOption& release_option)
         {
             if( release_option.release.has_value() )
                 throw CSProException("A release has already been created: " + release_option.release->GetReleaseName());
 
-            // OS_TODO
+            if( m_controller.IsOperationRunning() )
+                throw CSProException("Wait until the operation currently running finishes.");
+
+            release_creator = std::make_unique<ReleaseCreator>(m_controller, release_option.name);
         });
+
+    if( release_creator == nullptr )
+        return;
+
+    CreateReleaseDlg dlg(std::move(release_creator), this);
+
+    if( dlg.DoModal() == IDOK )
+        OnRefreshReleases();
 }

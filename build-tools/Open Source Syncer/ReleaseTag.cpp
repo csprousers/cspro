@@ -7,7 +7,7 @@ std::vector<ReleaseTag> ReleaseTag::Populate(GitRepository& repo, const std::str
 {
     std::vector<ReleaseTag> release_tags;
 
-    std::regex tag_regex = std::regex(R"(^refs/tags/v(\d+\.\d+\.\d+).*$)");
+    std::regex tag_regex(R"(^refs/tags/v(\d+\.\d+\.\d+).*$)");
     std::smatch matches;
 
     repo.ForeachTag(

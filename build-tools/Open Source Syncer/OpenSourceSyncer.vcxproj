@@ -22,6 +22,7 @@
   <ItemGroup>
     <ClInclude Include="Controller.h" />
     <ClInclude Include="ControllerThreadRunningFrame.h" />
+    <ClInclude Include="CreateReleaseDlg.h" />
     <ClInclude Include="FeatureBranchSyncerView.h" />
     <ClInclude Include="FileReplacer.h" />
     <ClInclude Include="GitHubConnection.h" />
@@ -36,6 +37,7 @@
     <ClInclude Include="Overrides\replacement-ApiKeys.h">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClInclude>
+    <ClInclude Include="ReleaseCreator.h" />
     <ClInclude Include="ReleaseTag.h" />
     <ClInclude Include="RepoFilePath.h" />
     <ClInclude Include="RepositoryComparerView.h" />
@@ -50,6 +52,7 @@
   <ItemGroup>
     <ClCompile Include="Controller.cpp" />
     <ClCompile Include="ControllerThreadRunningFrame.cpp" />
+    <ClCompile Include="CreateReleaseDlg.cpp" />
     <ClCompile Include="FeatureBranchSyncerView.cpp" />
     <ClCompile Include="FileReplacer.cpp" />
     <ClCompile Include="GitHubConnection.cpp" />
@@ -61,6 +64,7 @@
     <ClCompile Include="ManualMirrorerView.cpp" />
     <ClCompile Include="MarkdownViewer.cpp" />
     <ClCompile Include="OpenSourceSyncer.cpp" />
+    <ClCompile Include="ReleaseCreator.cpp" />
     <ClCompile Include="ReleaseTag.cpp" />
     <ClCompile Include="RepositoryComparerView.cpp" />
     <ClCompile Include="SettingsDlg.cpp" />
@@ -87,8 +91,13 @@
     <None Include="Overrides\replacements.json">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </None>
+    <None Include="Templates\GitHubRelease.md" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\cspro\zEditO\zEditO.vcxproj">
+      <Project>{adef6fc1-00ee-4f3a-84dd-43ee2f108bb0}</Project>
+      <Private>false</Private>
+    </ProjectReference>
     <ProjectReference Include="..\..\cspro\zHtml\zHtml.vcxproj">
       <Project>{5f74a167-59d5-48a7-a54c-1964bd5543c2}</Project>
       <Private>false</Private>

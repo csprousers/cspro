@@ -16,12 +16,18 @@
     <Filter Include="Overrides">
       <UniqueIdentifier>{518f3612-4069-4006-a277-c3b0fff8f384}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Templates">
+      <UniqueIdentifier>{01e033a4-d32d-4968-b002-c5d88f2cf2a5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Controller.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ControllerThreadRunningFrame.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CreateReleaseDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="FeatureBranchSyncerView.h">
@@ -59,6 +65,9 @@
     </ClInclude>
     <ClInclude Include="Overrides\replacement-ApiKeys.h">
       <Filter>Overrides</Filter>
+    </ClInclude>
+    <ClInclude Include="ReleaseCreator.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ReleaseTag.h">
       <Filter>Header Files</Filter>
@@ -98,6 +107,9 @@
     <ClCompile Include="ControllerThreadRunningFrame.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="CreateReleaseDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="FeatureBranchSyncerView.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -129,6 +141,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="OpenSourceSyncer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ReleaseCreator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ReleaseTag.cpp">
@@ -168,6 +183,9 @@
   <ItemGroup>
     <None Include="Overrides\replacements.json">
       <Filter>Overrides</Filter>
+    </None>
+    <None Include="Templates\GitHubRelease.md">
+      <Filter>Templates</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

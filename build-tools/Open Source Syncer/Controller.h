@@ -30,6 +30,9 @@ public:
     // Returns the full file path of the exclusions.txt file.
     std::string GetExclusionsFilePath() const;
 
+    // Returns the full file path of a file in the Templates directory.
+    static std::string GetTemplatesFilePath(const char* filename);
+
     // Gets the directory of the private repository.
     const std::string& GetPrivateRepoDirectory() const { return m_privateRepoDirectory; }
 
