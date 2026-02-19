@@ -26,6 +26,7 @@
     <ClInclude Include="FeatureBranchSyncerView.h" />
     <ClInclude Include="FileReplacer.h" />
     <ClInclude Include="GitHubConnection.h" />
+    <ClInclude Include="GitHubJsonKeys.h" />
     <ClInclude Include="LibraryManager.h" />
     <ClInclude Include="LogFrameAndView.h" />
     <ClInclude Include="MainFrame.h" />

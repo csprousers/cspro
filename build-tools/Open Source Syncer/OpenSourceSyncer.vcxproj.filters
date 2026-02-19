@@ -39,6 +39,9 @@
     <ClInclude Include="GitHubConnection.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="GitHubJsonKeys.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="LibraryManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>

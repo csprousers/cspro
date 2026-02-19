@@ -155,7 +155,8 @@ std::string FileReplacer::CreateSqliteWithoutSEE(const git_diff_file& new_file)
     // if not created, download the non-SEE SQLite amalgamation from: https://github.com/rhuijben/sqlite-amalgamation/
     else
     {
-        constexpr const char* AmalgamationRepository = "rhuijben/sqlite-amalgamation";
+        constexpr const char* AmalgamationOwner      = "rhuijben";
+        constexpr const char* AmalgamationRepository = "sqlite-amalgamation";
 
         GitHubConnection gh_connection;
 
@@ -164,10 +165,10 @@ std::string FileReplacer::CreateSqliteWithoutSEE(const git_diff_file& new_file)
 
         for( int commit_page = 1; commit_sha.empty(); ++commit_page )
         {
-            const std::string url = FormatText(
-                "https://api.github.com/repos/%s/commits?page=%d",
+            const std::string url = GitHubConnection::CreateApiUrl(
+                AmalgamationOwner,
                 AmalgamationRepository,
-                commit_page
+                "commits?page=" + IntToString(commit_page)
             );
 
             const JsonNode json_node = gh_connection.Request<JsonNode>(url);
@@ -194,11 +195,13 @@ std::string FileReplacer::CreateSqliteWithoutSEE(const git_diff_file& new_file)
         if( commit_sha.empty() )
             throw CSProException("No SQLite amalgamation has a commit message containing: " + version);
 
-        m_controller.LogText("Downloading SQLite files from %s commit SHA: %s", AmalgamationRepository, commit_sha.c_str());
+        m_controller.LogText("Downloading SQLite files from %s/%s commit SHA: %s",
+                             AmalgamationOwner, AmalgamationRepository, commit_sha.c_str());
 
         // download the non-SEE version
         const std::string url = FormatText(
-            "https://raw.githubusercontent.com/%s/%s/%s",
+            "https://raw.githubusercontent.com/%s/%s/%s/%s",
+            AmalgamationOwner,
             AmalgamationRepository,
             commit_sha.c_str(),
             filename.c_str()

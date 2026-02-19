@@ -111,7 +111,7 @@ void CreateReleaseDlg::LoadAndSetAsset(const char* const type, std::string filen
     std::shared_ptr<const BinaryBlock> data;
 
     if( SO::IsWhitespace(path) )
-        throw CSProException("Specify the path of the %s", type);
+        throw CSProException("Specify the path of the %s.", type);
 
     if( is_repo_path )
     {
@@ -196,6 +196,20 @@ void CreateReleaseDlg::OnOK()
     try
     {
         UpdateAndValidateInputs(true);
+
+        try
+        {
+            m_releaseCreator->CreateRelease();
+        }
+
+        catch( const CSProException& exception )
+        {
+            throw CSProException(
+                "There was an error creating the release.\n"
+                "Delete it on GitHub and try again:\n\n%s",
+                exception.what()
+            );
+        }
 
         __super::OnOK();
     }

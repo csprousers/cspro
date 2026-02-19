@@ -4,15 +4,6 @@
 #include "GitHubConnection.h"
 
 
-CREATE_JSON_KEY(assets)
-CREATE_JSON_KEY(commit)
-CREATE_JSON_KEY(draft)
-CREATE_JSON_KEY(html_url)
-CREATE_JSON_KEY(prerelease)
-CREATE_JSON_KEY(sha)
-CREATE_JSON_KEY(tag_name)
-
-
 IMPLEMENT_DYNCREATE(ManageReleasesView, CFormView)
 
 
@@ -215,14 +206,14 @@ void ManageReleasesView::OnRefreshReleases()
         GitHubConnection gh_connection;
 
         m_tagsJsonText = gh_connection.RequestWithPagination<std::string>(
-            gh_connection.CreateApiUrl("tags"),
+            GitHubConnection::CreateApiUrl("tags"),
             true
         );
 
         m_controller.GetSettingsDb().Write(SettingsKeys::GitHubTags_sv, m_tagsJsonText);
 
         m_releasesJsonText = gh_connection.RequestWithPagination<std::string>(
-            gh_connection.CreateApiUrl("releases"),
+            GitHubConnection::CreateApiUrl("releases"),
             true
         );
 

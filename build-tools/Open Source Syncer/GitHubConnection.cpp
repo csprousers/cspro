@@ -1,6 +1,6 @@
 #include "StdAfx.h"
 #include "GitHubConnection.h"
-#include <zNetwork/CurlHttpConnection.h>
+#include <zToolsO/MemoryStream.h>
 
 
 namespace
@@ -20,25 +20,25 @@ GitHubConnection::~GitHubConnection()
 }
 
 
-std::string GitHubConnection::CreateApiUrl(const char* const owner, const char* const repo, const char* const path)
+std::string GitHubConnection::CreateApiUrl(const cs::string_sz owner, const cs::string_sz repo, const cs::string_sz path)
 {
-    return FormatText("https://api.github.com/repos/%s/%s/%s", owner, repo, path);
+    return FormatText("https://api.github.com/repos/%s/%s/%s", owner.c_str(), repo.c_str(), path.c_str());
 }
 
 
-std::string GitHubConnection::CreateApiUrl(const char* const path)
+std::string GitHubConnection::CreateUploadUrl(const cs::string_sz owner, const cs::string_sz repo, const cs::string_sz path)
 {
-    return CreateApiUrl("csprousers", "cspro", path);
+    return FormatText("https://uploads.github.com/repos/%s/%s/%s", owner.c_str(), repo.c_str(), path.c_str());
 }
 
 
-template<typename T>
-T GitHubConnection::Request(const std::string& url, const bool requires_authentication/* = false*/)
+template<typename AcceptT>
+HeaderList GitHubConnection::CreateHeaders(const bool requires_authentication)
 {
     HeaderList headers;
     headers.Add(std::string(HeaderUserAgent_sv));
 
-    if constexpr(std::is_same_v<T, JsonNode>)
+    if constexpr(std::is_same_v<AcceptT, JsonNode>)
     {
         headers.Add("Accept: application/vnd.github+json");
     }
@@ -52,14 +52,21 @@ T GitHubConnection::Request(const std::string& url, const bool requires_authenti
             if( m_githubPAT.empty() )
             {
                 throw CSProException("This request requires GitHub authentication. "
-                                     "Specify a GitHub PAT using the Settings dialog.\n\n" + url);
+                                     "Specify a GitHub PAT using the Settings dialog.");
             }
         }
 
         headers.Add("Authorization: Bearer " + m_githubPAT);
     }
 
-    const HttpRequest request = HttpRequestBuilder(url, std::move(headers)).build();
+    return headers;
+}
+
+
+template<typename T>
+T GitHubConnection::Request(const std::string& url, const bool requires_authentication/* = false*/)
+{
+    const HttpRequest request = HttpRequestBuilder(url, CreateHeaders<T>(requires_authentication)).build();
     HttpResponse response = m_connection->Request(request);
 
     if( response.http_status != HttpResponse::Status_200_OK )
@@ -171,4 +178,43 @@ std::optional<std::string> GitHubConnection::GetPaginatedNextLink(const std::str
     }
 
     return std::nullopt;
+}
+
+
+HttpResponse GitHubConnection::RequestWithAuthentication(const HttpRequestMethod method, const std::string& url,
+                                                         const std::unique_ptr<MemoryStream> memory_stream,
+                                                         const bool body_is_json)
+{
+    ASSERT(memory_stream != nullptr);
+
+    HeaderList headers = CreateHeaders<JsonNode>(true);
+
+    body_is_json ? headers.Add_ContentType_Json() :
+                   headers.Add_ContentType_OctetStream();
+
+    HttpRequestBuilder request_builder(url, std::move(headers));
+
+    request_builder.request(method, *memory_stream, memory_stream->size());
+
+    const HttpRequest request = request_builder.build();
+
+    return m_connection->Request(request);
+}
+
+
+HttpResponse GitHubConnection::PostJsonWithAuthentication(const std::string& url, const std::string& json_text)
+{
+    return RequestWithAuthentication(HttpRequestMethod::HTTP_POST, url, std::make_unique<MemoryStream>(json_text), true);
+}
+
+
+HttpResponse GitHubConnection::PatchJsonWithAuthentication(const std::string& url, const std::string& json_text)
+{
+    return RequestWithAuthentication(HttpRequestMethod::HTTP_PATCH, url, std::make_unique<MemoryStream>(json_text), true);
+}
+
+
+HttpResponse GitHubConnection::PostBinaryWithAuthentication(const std::string& url, const BinaryBlock& binary_data)
+{
+    return RequestWithAuthentication(HttpRequestMethod::HTTP_POST, url, std::make_unique<MemoryStream>(binary_data), false);
 }

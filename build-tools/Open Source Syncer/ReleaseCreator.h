@@ -1,5 +1,7 @@
 #pragma once
 
+#include "GitHubConnection.h"
+
 
 class ReleaseCreator
 {
@@ -34,6 +36,10 @@ public:
     // Replaces the fills in the release notes with the values for this release.
     std::string GetFormattedReleaseNotes() const;
 
+    // Creates the release, first as a draft, and then when all assets
+    // have been successfully uploaded, the draft is published.
+    void CreateRelease();
+
 private:
     // Returns the expected release type based on the tag name.
     enum class ReleaseType { Alpha, Beta, ReleaseCandidate, Release };
@@ -41,8 +47,13 @@ private:
 
     void ParseVersion();
 
+    int64_t CreateDraftRelease();
+    void UploadReleaseAsset(int64_t release_id, const std::string& filename, const BinaryBlock& data);
+    void PublishRelease(int64_t release_id);
+
 private:
     Controller& m_controller;
+    GitHubConnection m_ghConnection;
 
     SharableString m_tagName;
     SharableString m_librariesTag;
