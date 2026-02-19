@@ -44,11 +44,14 @@ BOOL ResizableDlgBase<DialogT>::OnInitDialog()
         const int* height;
 
         if( ( ( width = std::get<0>(*m_serializationSettings).Read<int*>(std::get<1>(*m_serializationSettings)) ) != nullptr ) &&
-            ( ( height = std::get<0>(*m_serializationSettings).Read<int*>(std::get<2>(*m_serializationSettings)) ) != nullptr ) &&
-            ( *width >= m_minimumSize.cx && *width <= static_cast<int>(MaxProportionScreenAllowed * GetSystemMetrics(SM_CXSCREEN)) ) &&
-            ( *height >= m_minimumSize.cy && *height <= static_cast<int>(MaxProportionScreenAllowed * GetSystemMetrics(SM_CYSCREEN)) ) )
+            ( ( height = std::get<0>(*m_serializationSettings).Read<int*>(std::get<2>(*m_serializationSettings)) ) != nullptr ) )
         {
-            SetWindowPos(nullptr, 0, 0, *width, *height, SWP_NOMOVE | SWP_NOACTIVATE | SWP_NOZORDER);
+            const int safe_width = std::min(*width, static_cast<int>(MaxProportionScreenAllowed * GetSystemMetrics(SM_CXSCREEN)));
+            const int safe_height = std::min(*height, static_cast<int>(MaxProportionScreenAllowed * GetSystemMetrics(SM_CYSCREEN)));
+
+            // only resize if the width or height is different from the default sizes
+            if( safe_width > m_minimumSize.cx || safe_height > m_minimumSize.cy )
+                PostMessage(UWM::UtilO::ResizableDlgRestoreSize, *width, *height);
         }
     }
 
@@ -83,6 +86,39 @@ void ResizableDlgBase<DialogT>::OnDestroy()
 }
 
 
+template<typename DialogT>
+LRESULT ResizableDlgBase<DialogT>::OnRestoreSize(const WPARAM wParam, const LPARAM lParam)
+{
+    // a sizing-only call to SetWindowPos was initially done in OnInitDialog,
+    // with the controls properly resized, but then when the dialog was resized, at
+    // least while using DynamicLayoutResizableDlg, the controls did not size properly;
+    // this only happened when the dialog was resized in OnInitDialog, but posting a message
+    // to resize the dialog here seems to work, even though it leads to a flicker as the
+    // dialog is resized
+    const int new_width = static_cast<int>(wParam);
+    const int new_height = static_cast<int>(lParam);
+
+    // the sizing-only only call has been changed to a sizing and moving call so as to center
+    // the dialog based on where it initially was displayed (which was not an issue when this
+    // was done in OnInitDialog)
+    CRect rect;
+    GetWindowRect(&rect);
+    const int diff_x = new_width - rect.Width();
+    const int diff_y = new_height - rect.Height();
+
+    SetWindowPos(
+        nullptr,
+        std::max<int>(0, rect.left - ( diff_x / 2 )),
+        std::max<int>(0, rect.top - ( diff_y / 2 )),
+        new_width,
+        new_height,
+        SWP_NOACTIVATE | SWP_NOZORDER
+    );
+
+    return 1;
+}
+
+
 
 // --------------------------------------------------------------------------
 // ResizableDlg
@@ -91,6 +127,7 @@ void ResizableDlgBase<DialogT>::OnDestroy()
 BEGIN_MESSAGE_MAP(ResizableDlg, CDialog)
     ON_WM_GETMINMAXINFO()
     ON_WM_DESTROY()
+    ON_MESSAGE(UWM::UtilO::ResizableDlgRestoreSize, OnRestoreSize)
 END_MESSAGE_MAP()
 
 
@@ -102,6 +139,7 @@ END_MESSAGE_MAP()
 BEGIN_MESSAGE_MAP(ResizableDlgEx, CDialogEx)
     ON_WM_GETMINMAXINFO()
     ON_WM_DESTROY()
+    ON_MESSAGE(UWM::UtilO::ResizableDlgRestoreSize, OnRestoreSize)
 END_MESSAGE_MAP()
 
 
