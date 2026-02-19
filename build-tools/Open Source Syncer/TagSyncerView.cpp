@@ -1,9 +1,8 @@
 #include "StdAfx.h"
 #include "TagSyncerView.h"
+#include "MarkdownViewer.h"
 #include "ReleaseTag.h"
 #include "Syncer.h"
-#include <zHtml/HtmlViewDlg.h>
-#include <zMarkdown/Markdown.h>
 
 
 namespace
@@ -76,8 +75,9 @@ LRESULT TagSyncerView::OnUpdateUI(const WPARAM wParam, const LPARAM lParam)
 
     else if( wParam == UpdateAction::DisplayHtml )
     {
-        const std::string* const html = reinterpret_cast<const std::string*>(lParam);
-        OnDisplayHtml(html);
+        const SharableString* const html = reinterpret_cast<const SharableString*>(lParam);
+        ASSERT(html != nullptr);
+        MarkdownViewer::ShowHtmlInDialog(*html);
     }
 
     else
@@ -310,24 +310,12 @@ void TagSyncerView::OnCreatePrivateHistoryLog()
 
 void TagSyncerView::DisplayHistoryMarkdown(const std::string& history_md)
 {
-    // convert the markdown to HTML for viewing
-    CssProvider css_provider(Html::CSS::Markdown, true);
-
-    const std::unique_ptr<const std::string>& history_html = m_historyHtml.emplace_back(
-        std::make_unique<std::string>(
-            Markdown::ToHtmlDocument(Syncer::GetHistoryFilename(), history_md, &css_provider)
+    // convert the Markdown to HTML for viewing
+    const std::unique_ptr<const SharableString>& history_html = m_historyHtml.emplace_back(
+        std::make_unique<SharableString>(
+            MarkdownViewer::MarkdownToHtmlDocument(Syncer::GetHistoryFilename(), history_md)
         )
     );
 
     PostMessage(UWM::OpenSourceSyncer::UpdateUI, UpdateAction::DisplayHtml, reinterpret_cast<LPARAM>(history_html.get()));
-}
-
-
-void TagSyncerView::OnDisplayHtml(const std::string* const html)
-{
-    ASSERT(html != nullptr);
-
-    HtmlViewDlg dlg;
-    dlg.SetInitialHtml(*html);
-    dlg.DoModal();
 }

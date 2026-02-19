@@ -31,6 +31,7 @@
     <ClInclude Include="ManageLibrariesView.h" />
     <ClInclude Include="ManageReleasesView.h" />
     <ClInclude Include="ManualMirrorerView.h" />
+    <ClInclude Include="MarkdownViewer.h" />
     <ClInclude Include="OpenSourceSyncer.h" />
     <ClInclude Include="Overrides\replacement-ApiKeys.h">
       <ExcludedFromBuild>true</ExcludedFromBuild>
@@ -58,6 +59,7 @@
     <ClCompile Include="ManageLibrariesView.cpp" />
     <ClCompile Include="ManageReleasesView.cpp" />
     <ClCompile Include="ManualMirrorerView.cpp" />
+    <ClCompile Include="MarkdownViewer.cpp" />
     <ClCompile Include="OpenSourceSyncer.cpp" />
     <ClCompile Include="ReleaseTag.cpp" />
     <ClCompile Include="RepositoryComparerView.cpp" />

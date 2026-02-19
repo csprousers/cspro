@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "HtmlViewDlg.h"
 #include "ModalDialogSimulator.h"
 #include <zUtilO/UIThreadRunner.h>
@@ -60,12 +60,12 @@ void HtmlViewDlg::SetViewerOptions(const ViewerOptions& viewer_options)
 }
 
 
-void HtmlViewDlg::SetInitialHtml(std::string html)
+void HtmlViewDlg::SetInitialHtml(SharableString html)
 {
     m_initialContents.emplace(true, std::move(html));
 }
 
-void HtmlViewDlg::SetInitialUrl(std::string url)
+void HtmlViewDlg::SetInitialUrl(SharableString url)
 {
     m_initialContents.emplace(false, std::move(url));
 }
@@ -111,12 +111,12 @@ BOOL HtmlViewDlg::OnInitDialog()
     {
         if( std::get<0>(*m_initialContents) )
         {
-            m_htmlViewCtrl.SetHtml(std::get<1>(*m_initialContents));
+            m_htmlViewCtrl.SetHtml(std::get<1>(*m_initialContents).GetString());
         }
 
         else
         {
-            m_htmlViewCtrl.NavigateTo(std::get<1>(*m_initialContents));
+            m_htmlViewCtrl.NavigateTo(std::get<1>(*m_initialContents).GetString());
         }
     }
 

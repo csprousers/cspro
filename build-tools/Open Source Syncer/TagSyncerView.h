@@ -35,8 +35,6 @@ private:
 
     void DisplayHistoryMarkdown(const std::string& history_md);
 
-    void OnDisplayHtml(const std::string* html);
-
 private:
     Controller& m_controller;
 
@@ -44,5 +42,5 @@ private:
 
     std::shared_ptr<const std::vector<Tag>> m_tags;
 
-    std::vector<std::unique_ptr<const std::string>> m_historyHtml;
+    std::vector<std::unique_ptr<const SharableString>> m_historyHtml;
 };
