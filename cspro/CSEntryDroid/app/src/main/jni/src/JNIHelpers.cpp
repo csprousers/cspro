@@ -336,6 +336,7 @@ jfieldID JNIReferences::fieldPffStartModeParameterModifyCasePosition;
 jclass JNIReferences::classActionInvokerListener;
 jmethodID JNIReferences::methodActionInvokerListener_onGetDisplayOptions;
 jmethodID JNIReferences::methodActionInvokerListener_onSetDisplayOptions;
+jmethodID JNIReferences::methodActionInvokerListener_onSetWebViewOptions;
 jmethodID JNIReferences::methodActionInvokerListener_onClose;
 jmethodID JNIReferences::methodActionInvokerListener_onEngineProgramControlExecuted;
 jmethodID JNIReferences::methodActionInvokerListener_onPostWebMessage;
@@ -919,6 +920,7 @@ jint JNI_OnLoad(JavaVM * aVm, void * aReserved)
         ( JNIReferences::classActionInvokerListener = reinterpret_cast<jclass>(pEnv->NewGlobalRef(JNIReferences::classActionInvokerListener)) ) &&
         ( JNIReferences::methodActionInvokerListener_onGetDisplayOptions = pEnv->GetMethodID(JNIReferences::classActionInvokerListener, "onGetDisplayOptions", "(I)Ljava/lang/String;") ) &&
         ( JNIReferences::methodActionInvokerListener_onSetDisplayOptions = pEnv->GetMethodID(JNIReferences::classActionInvokerListener, "onSetDisplayOptions", "(Ljava/lang/String;I)Ljava/lang/Boolean;") ) &&
+        ( JNIReferences::methodActionInvokerListener_onSetWebViewOptions = pEnv->GetMethodID(JNIReferences::classActionInvokerListener, "onSetWebViewOptions", "(Ljava/lang/String;)V") ) &&
         ( JNIReferences::methodActionInvokerListener_onClose = pEnv->GetMethodID(JNIReferences::classActionInvokerListener, "onClose", "(Ljava/lang/String;I)Ljava/lang/Boolean;") ) &&
         ( JNIReferences::methodActionInvokerListener_onEngineProgramControlExecuted = pEnv->GetMethodID(JNIReferences::classActionInvokerListener, "onEngineProgramControlExecuted", "()Z") ) &&
         ( JNIReferences::methodActionInvokerListener_onPostWebMessage = pEnv->GetMethodID(JNIReferences::classActionInvokerListener, "onPostWebMessage", "(Ljava/lang/String;Ljava/lang/String;)V") ) &&

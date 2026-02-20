@@ -79,6 +79,7 @@ namespace ActionInvoker
         UI_getMaxDisplayDimensions          = 30339,
         UI_postWebMessage                   = 31457,
         UI_setDisplayOptions                = 62732,
+        UI_setWebViewOptions                = 11210,
         UI_showDialog                       = 49835,
         UI_view                             = 50017,
 

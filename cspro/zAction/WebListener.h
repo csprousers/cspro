@@ -22,6 +22,8 @@ public:
     void SetOnGetInputDataCallback(std::function<SharableString()> on_get_input_data_callback);
 
     // Listener overrides
+    void OnSetWebViewOptions(const std::vector<WebViewPermission>* permissions) override;
+
     SharableString OnGetInputData(Caller& caller, bool match_caller) override;
 
     std::optional<int> OnGetAssociatedWebViewCallerId() override;
@@ -84,7 +86,15 @@ inline std::optional<int> ActionInvoker::WebListener::OnGetAssociatedWebViewCall
 
 #ifdef WIN_DESKTOP
 
-// the Android version is defined in CSEntryDroid/.../ActionInvoker.cpp
+// the Android versions are defined in CSEntryDroid/.../ActionInvoker.cpp
+
+
+inline void ActionInvoker::WebListener::OnSetWebViewOptions(const std::vector<WebViewPermission>* const permissions)
+{
+    if( permissions != nullptr )
+        GetHtmlViewCtrl().SetPermissions(*permissions);
+}
+
 
 inline void ActionInvoker::WebListener::OnPostWebMessage(const std::string& message, const std::optional<std::string>& /*target_origin*/)
 {

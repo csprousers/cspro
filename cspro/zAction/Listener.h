@@ -6,6 +6,9 @@
 namespace ActionInvoker { class Exception; class Listener; class ListenerHolder; }
 
 
+enum class WebViewPermission { Camera, Geolocation, Microphone, WebStorage };
+
+
 // --------------------------------------------------------------------------
 // Listener
 //
@@ -20,6 +23,8 @@ public:
 
     virtual SharableString OnGetDisplayOptions(Caller& caller);
     virtual std::optional<bool> OnSetDisplayOptions(const JsonNode& json_node, Caller& caller);
+
+    virtual void OnSetWebViewOptions(const std::vector<WebViewPermission>* permissions);
 
     virtual SharableString OnGetInputData(Caller& caller, bool match_caller);
 
@@ -82,6 +87,11 @@ inline std::optional<bool> ActionInvoker::Listener::OnSetDisplayOptions(const Js
 inline SharableString ActionInvoker::Listener::OnGetDisplayOptions(Caller& /*caller*/)
 {
     return SharableString();
+}
+
+
+inline void ActionInvoker::Listener::OnSetWebViewOptions(const std::vector<WebViewPermission>* /*permissions*/)
+{
 }
 
 

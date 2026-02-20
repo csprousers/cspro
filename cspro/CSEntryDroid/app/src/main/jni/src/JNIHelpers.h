@@ -158,6 +158,7 @@ namespace JNIReferences
     extern jclass classActionInvokerListener;
     extern jmethodID methodActionInvokerListener_onGetDisplayOptions;
     extern jmethodID methodActionInvokerListener_onSetDisplayOptions;
+    extern jmethodID methodActionInvokerListener_onSetWebViewOptions;
     extern jmethodID methodActionInvokerListener_onClose;
     extern jmethodID methodActionInvokerListener_onEngineProgramControlExecuted;
     extern jmethodID methodActionInvokerListener_onPostWebMessage;

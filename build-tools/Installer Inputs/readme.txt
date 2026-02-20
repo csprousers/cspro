@@ -113,7 +113,7 @@
           * Network: fetch, fetchBody, fetchBytes, fetchJson, fetchText
           * Sync: connect, disconnect, sendMessage, syncParadata
           * System: createShortcut
-          * UI: close
+          * UI: close, setWebViewOptions
 
     -  Bug fixes and enhancements.
 

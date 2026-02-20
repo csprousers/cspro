@@ -34,6 +34,23 @@ void ActionInvoker::Runtime::IterateOverListeners(CF callback_function)
 }
 
 
+template<typename CF>
+void ActionInvoker::Runtime::IterateOverListeners(const Caller& caller, CF callback_function)
+{
+    IterateOverListeners(
+        [caller_id = caller.GetCallerId(), cf = std::move(callback_function)](Listener& listener)
+        {
+            if( caller_id == listener.OnGetAssociatedWebViewCallerId() )
+            {
+                cf(listener);
+                return false;
+            }
+
+            return true;
+        });
+}
+
+
 template<typename... Args>
 const char* const GetUniqueKeyFromChoices(const JsonNode& json_node, const char* const key1, Args const&... key2_and_more)
 {

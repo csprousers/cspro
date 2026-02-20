@@ -51,6 +51,54 @@ ActionInvoker::Result ActionInvoker::Runtime::UI_setDisplayOptions(const JsonNod
 }
 
 
+ActionInvoker::Result ActionInvoker::Runtime::UI_setWebViewOptions(const JsonNode& json_node, Caller& caller)
+{
+    std::unique_ptr<std::vector<WebViewPermission>> permissions;
+
+    const JsonNode permissions_json_node = json_node.GetOrEmpty(JK::permissions);
+
+    if( !permissions_json_node.IsEmpty() )
+    {
+        permissions = std::make_unique<std::vector<WebViewPermission>>();
+
+        auto add_permission = [&](const JsonNode& permission_json_node)
+        {
+            const std::string_view permission_sv = permission_json_node.Get<std::string_view>();
+
+            permissions->emplace_back(
+                ( permission_sv == "camera" )      ? WebViewPermission::Camera :
+                ( permission_sv == "geolocation" ) ? WebViewPermission::Geolocation :
+                ( permission_sv == "microphone" )  ? WebViewPermission::Microphone :
+                ( permission_sv == "web_storage" ) ? WebViewPermission::WebStorage:
+                throw CSProException(SO::Concatenate("Unknown permission: ", permission_sv))
+            );
+        };
+
+        if( permissions_json_node.IsString() )
+        {
+            add_permission(permissions_json_node);
+        }
+
+        else
+        {
+            for( const JsonNode& permission_json_node : permissions_json_node.GetArray() )
+                add_permission(permission_json_node);
+        }
+    }
+
+    if( permissions != nullptr )
+    {
+        IterateOverListeners(caller,
+            [&](Listener& listener)
+            {
+                listener.OnSetWebViewOptions(permissions.get());
+            });
+    }
+
+    return Result::Undefined();
+}
+
+
 ActionInvoker::Result ActionInvoker::Runtime::UI_getInputData(const JsonNode& /*json_node*/, Caller& caller)
 {
     SharableString input_data;
