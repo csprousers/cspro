@@ -20,22 +20,60 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Controller.h" />
+    <ClInclude Include="ControllerThreadRunningFrame.h" />
+    <ClInclude Include="CreateReleaseDlg.h" />
+    <ClInclude Include="FeatureBranchSyncerView.h" />
+    <ClInclude Include="FileReplacer.h" />
+    <ClInclude Include="GitHubConnection.h" />
+    <ClInclude Include="GitHubJsonKeys.h" />
+    <ClInclude Include="LibraryManager.h" />
+    <ClInclude Include="LogFrameAndView.h" />
+    <ClInclude Include="MainFrame.h" />
+    <ClInclude Include="ManageLibrariesView.h" />
+    <ClInclude Include="ManageReleasesView.h" />
+    <ClInclude Include="ManualMirrorerView.h" />
+    <ClInclude Include="MarkdownViewer.h" />
     <ClInclude Include="OpenSourceSyncer.h" />
-    <ClInclude Include="OpenSourceSyncerDlg.h" />
     <ClInclude Include="Overrides\replacement-ApiKeys.h">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClInclude>
+    <ClInclude Include="ReleaseCreator.h" />
+    <ClInclude Include="ReleaseTag.h" />
+    <ClInclude Include="RepoFilePath.h" />
+    <ClInclude Include="RepositoryComparerView.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="SettingsDlg.h" />
+    <ClInclude Include="SettingsKeys.h" />
     <ClInclude Include="StdAfx.h" />
     <ClInclude Include="Syncer.h" />
+    <ClInclude Include="TagSyncerView.h" />
+    <ClInclude Include="UWM.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Controller.cpp" />
+    <ClCompile Include="ControllerThreadRunningFrame.cpp" />
+    <ClCompile Include="CreateReleaseDlg.cpp" />
+    <ClCompile Include="FeatureBranchSyncerView.cpp" />
+    <ClCompile Include="FileReplacer.cpp" />
+    <ClCompile Include="GitHubConnection.cpp" />
+    <ClCompile Include="LibraryManager.cpp" />
+    <ClCompile Include="LogFrameAndView.cpp" />
+    <ClCompile Include="MainFrame.cpp" />
+    <ClCompile Include="ManageLibrariesView.cpp" />
+    <ClCompile Include="ManageReleasesView.cpp" />
+    <ClCompile Include="ManualMirrorerView.cpp" />
+    <ClCompile Include="MarkdownViewer.cpp" />
     <ClCompile Include="OpenSourceSyncer.cpp" />
-    <ClCompile Include="OpenSourceSyncerDlg.cpp" />
+    <ClCompile Include="ReleaseCreator.cpp" />
+    <ClCompile Include="ReleaseTag.cpp" />
+    <ClCompile Include="RepositoryComparerView.cpp" />
+    <ClCompile Include="SettingsDlg.cpp" />
     <ClCompile Include="StdAfx.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Syncer.cpp" />
+    <ClCompile Include="TagSyncerView.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="OpenSourceSyncer.rc" />
@@ -54,10 +92,23 @@
     <None Include="Overrides\replacements.json">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </None>
+    <None Include="Templates\GitHubRelease.md" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\cspro\zEditO\zEditO.vcxproj">
+      <Project>{adef6fc1-00ee-4f3a-84dd-43ee2f108bb0}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\cspro\zHtml\zHtml.vcxproj">
+      <Project>{5f74a167-59d5-48a7-a54c-1964bd5543c2}</Project>
+      <Private>false</Private>
+    </ProjectReference>
     <ProjectReference Include="..\..\cspro\zJson\zJson.vcxproj">
       <Project>{44a4fe38-ca5a-487c-a227-4be1ebd4874d}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\cspro\zMarkdown\zMarkdown.vcxproj">
+      <Project>{4c225ee5-cea1-4516-bfa4-4bb49940af51}</Project>
       <Private>false</Private>
     </ProjectReference>
     <ProjectReference Include="..\..\cspro\zNetwork\zNetwork.vcxproj">
@@ -80,6 +131,9 @@
       <Project>{01396fa2-bca6-4f57-9346-ec468db7e0a6}</Project>
       <Private>false</Private>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="res\OpenSourceSyncer.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

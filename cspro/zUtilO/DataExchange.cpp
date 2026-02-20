@@ -71,6 +71,29 @@ void DDX_Text(CDataExchange* const pDX, const int nIDC, std::string& text, const
 }
 
 
+void DDX_Text(CDataExchange* const pDX, const int nIDC, SharableString& text, const bool trim_string_on_save/* = false*/)
+{
+    HWND hWndCtrl = pDX->PrepareEditCtrl(nIDC);
+
+    if( pDX->m_bSaveAndValidate )
+    {
+        std::string modifiable_text;
+        WindowsUtf8::GetText(hWndCtrl, modifiable_text);
+
+        if( trim_string_on_save )
+            SO::MakeTrim(modifiable_text);
+
+        if( *text != modifiable_text )
+            text = std::move(modifiable_text);
+    }
+
+    else
+    {
+        WindowsUtf8::SetText(hWndCtrl, *text);
+    }
+}
+
+
 void DDX_TextOnlyLF(CDataExchange* const pDX, const int nIDC, std::string& text, const bool trim_string_on_save/* = false*/)
 {
     if( pDX->m_bSaveAndValidate )

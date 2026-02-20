@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zGit/zGit.h>
 
@@ -25,6 +25,7 @@ public:
     // Compares the object IDs.
     bool operator==(const GitObjectId& rhs) const noexcept;
     bool operator!=(const GitObjectId& rhs) const noexcept { return !operator==(rhs); }
+    bool operator<(const GitObjectId& rhs) const noexcept;
 
     // Returns the non-null git_oid object that GitObjectId wraps.
     operator const git_oid*() const noexcept { return reinterpret_cast<const git_oid*>(m_oid); }

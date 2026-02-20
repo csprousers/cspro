@@ -629,27 +629,69 @@ std::vector<GitTag> GitRepository::GetTags() const
 }
 
 
-bool GitRepository::IsTag(const std::string_view tag_name_sv) const
+template<typename T>
+T GitRepository::LookupTagWorker(const std::string_view tag_name_sv) const
 {
+    static_assert(std::is_same_v<T, GitTag> || std::is_same_v<T, bool>);
     ASSERT(!SO::StartsWith(tag_name_sv, GitTag::RefsTagPrefix_sv));
 
     EnsureRepositoryIsOpen();
 
-    const std::string full_tag_name = SO::Concatenate(GitTag::RefsTagPrefix_sv, tag_name_sv);
+    std::string full_tag_name = SO::Concatenate(GitTag::RefsTagPrefix_sv, tag_name_sv);
     git_reference* tag_ref;
 
     switch( git_reference_lookup(&tag_ref, m_repo, full_tag_name.c_str()) )
     {
         case 0:
-            git_reference_free(tag_ref);
-            return true;
+        {
+            const RAII::RunOnDestruction free_reference([&]() { git_reference_free(tag_ref); });
+
+            if constexpr(std::is_same_v<T, GitTag>)
+            {
+                const git_oid* const oid = git_reference_target(tag_ref);
+
+                if( oid == nullptr )
+                    throw ProgrammingErrorException();
+
+                return GitTag(*oid, std::move(full_tag_name));
+            }
+
+            else
+            {
+                return true;
+            }
+        }
 
         case GIT_ENOTFOUND:
-            return false;
+        {
+            if constexpr(std::is_same_v<T, GitTag>)
+            {
+                throw GitException("The tag was not found in the repository: " + full_tag_name);
+            }
+
+            else
+            {
+                return false;
+            }
+        }
 
         default:
+        {
             throw GitException();
+        }
     }
+}
+
+
+GitTag GitRepository::LookupTag(const std::string_view tag_name_sv) const
+{
+    return LookupTagWorker<GitTag>(tag_name_sv);
+}
+
+
+bool GitRepository::IsTag(const std::string_view tag_name_sv) const
+{
+    return LookupTagWorker<bool>(tag_name_sv);
 }
 
 

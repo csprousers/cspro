@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "MemoryStream.h"
 
 
@@ -12,6 +12,11 @@ public:
             m_dataEnd(m_dataStart + size)
     {
         setg(m_dataStart, m_dataStart, m_dataEnd);
+    }
+
+    [[nodiscard]] size_t size() const
+    {
+        return ( m_dataEnd - m_dataStart );
     }
 
 protected:
@@ -44,8 +49,8 @@ private:
     }
 
 private:
-    char* m_dataStart;
-    char* m_dataEnd;
+    char* const m_dataStart;
+    char* const m_dataEnd;
 };
 
 
@@ -57,7 +62,7 @@ MemoryStream::MemoryStream(std::unique_ptr<Buffer> stream_buffer)
 }
 
 
-MemoryStream::MemoryStream(const std::byte* const data, const size_t size)
+MemoryStream::MemoryStream(const size_t size, const std::byte* const data)
         :   MemoryStream(std::make_unique<Buffer>(data, size))
 {
 }
@@ -65,4 +70,10 @@ MemoryStream::MemoryStream(const std::byte* const data, const size_t size)
 
 MemoryStream::~MemoryStream()
 {
+}
+
+
+size_t MemoryStream::size() const
+{
+    return m_streamBuffer->size();
 }

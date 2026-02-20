@@ -3,12 +3,17 @@
 Most CSPro development occurs on a [private repository](https://github.com/CSProDevelopment/cspro), though the commits are mirrored to this [public repository](https://github.com/csprousers/cspro). This document lists information about each pull request merged into the private repository, starting with pull requests for CSPro 7.6.
 
 
-## CSPro (current development)
+## CSPro 8.1.0
+
+**Installer**: [https://csprousers.org/downloads/cspro/cspro8.1.0.exe](https://csprousers.org/downloads/cspro/cspro8.1.0.exe)
+
+**Release notes**: [https://csprousers.org/downloads/cspro/cspro8.1.0-release-notes.txt](https://csprousers.org/downloads/cspro/cspro8.1.0-release-notes.txt)
 
 **Merged pull requests**:
 
 | Date | Branch | Pull Request Message |
 | --- | --- | --- |
+| 2026&#8209;02&#8209;20 | [open-source-syncer-releases](https://github.com/CSProDevelopment/cspro/commit/7ba9385a41192936824f32339cdf6a4e93f52535) | added to the Open Source Syncer features to create GitHub releases, sync tags, manually mirror commits, and more |
 | 2026&#8209;02&#8209;09 | [open-source-syncer-commits](https://github.com/CSProDevelopment/cspro/commit/466da89fcba13587482ca8760a98572208d94410) | reworked Open Source Release Creator to Open Source Syncer, mirroring commits rather than creating snapshots |
 | 2026&#8209;01&#8209;20 | [prep-8.1-beta](https://github.com/CSProDevelopment/cspro/commit/4dd6882624bf57a278c7e620d93abe526ec44d7d) | prepared the code for a 8.1 beta + small work + fixed some bugs |
 | 2026&#8209;01&#8209;14 | [external-library-upgrade](https://github.com/CSProDevelopment/cspro/commit/f4f7296bd8963989b5ef4cbae25b1d4f5346e8ef) | upgraded the external libraries for CSPro 8.1 |

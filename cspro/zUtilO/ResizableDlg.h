@@ -36,6 +36,8 @@ protected:
     void OnGetMinMaxInfo(MINMAXINFO FAR* lpMMI);
     void OnDestroy();
 
+    LRESULT OnRestoreSize(WPARAM wParam, LPARAM lParam);
+
 private:
     CSize m_minimumSize;
     std::shared_ptr<std::tuple<SettingsDb, std::string, std::string>> m_serializationSettings;

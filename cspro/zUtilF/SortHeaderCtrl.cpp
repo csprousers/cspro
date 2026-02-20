@@ -1,4 +1,4 @@
-﻿/*----------------------------------------------------------------------
+/*----------------------------------------------------------------------
 Copyright (C)2001 MJSoft. All Rights Reserved.
           This source may be used freely as long as it is not sold for
                     profit and this copyright information is not altered or removed.
@@ -170,6 +170,7 @@ void CSortHeaderCtrl::Serialize( CArchive& ar )
         const int iItemCount = GetItemCount();
         if( iItemCount != -1 )
         {
+            TRACE("CSortHeaderCtrl: serializing %d columns for resource ID: %d\n", iItemCount, GetParent()->GetDlgCtrlID());
             ar << iItemCount;
 
             HD_ITEM hdItem = { 0 };
@@ -178,6 +179,7 @@ void CSortHeaderCtrl::Serialize( CArchive& ar )
             for( int i = 0; i < iItemCount; i++ )
             {
                 VERIFY( GetItem( i, &hdItem ) );
+                TRACE("CSortHeaderCtrl: column %d width: %d\n", i + 1, hdItem.cxy);
                 ar << hdItem.cxy;
             }
         }

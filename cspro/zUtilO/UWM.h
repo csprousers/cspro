@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zUtilO/UWMRanges.h>
 
@@ -10,5 +10,8 @@ namespace UWM::UtilO
     constexpr unsigned GetCodeText              = UWM::Ranges::UtilOStart + 2;
     constexpr unsigned GetSharedDictionaryConst = UWM::Ranges::UtilOStart + 3;
 
-    CHECK_MESSAGE_NUMBERING(GetSharedDictionaryConst, UWM::Ranges::UtilOLast)
+    // unlike the above messages, the following message is only used within the project
+    constexpr unsigned ResizableDlgRestoreSize  = UWM::Ranges::UtilOStart + 4;
+
+    CHECK_MESSAGE_NUMBERING(ResizableDlgRestoreSize, UWM::Ranges::UtilOLast)
 }

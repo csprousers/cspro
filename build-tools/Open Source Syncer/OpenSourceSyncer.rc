@@ -59,31 +59,163 @@ END
 // Dialog
 //
 
-IDD_SYNCER DIALOGEX 0, 0, 789, 280
-STYLE DS_SETFONT | DS_FIXEDSYS | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
-EXSTYLE WS_EX_APPWINDOW
-CAPTION "CSPro Open Source Repository Syncer"
+IDD_FEATURE_BRANCH_SYNCER DIALOGEX 0, 0, 305, 140
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_CHILD | WS_CAPTION | WS_SYSMENU
+CAPTION "Feature Branch Syncer"
 FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
-    PUSHBUTTON      "Sync Feature Branches",IDC_SYNC,526,22,112,14
-    PUSHBUTTON      "Compare Against Open Source",IDC_COMPARE,526,62,112,14
-    GROUPBOX        "Built Libraries",IDC_STATIC,657,7,125,76
-    PUSHBUTTON      "Refresh Built Library Tags",IDC_REFRESH_LIBRARY_TAGS,664,22,112,14
-    PUSHBUTTON      "Commit Built Library",IDC_COMMIT_LIBRARY,664,62,112,14
-    GROUPBOX        "Sync log:",IDC_STATIC,7,90,775,183
-    LISTBOX         IDC_LOG,15,103,759,162,LBS_OWNERDRAWFIXED | LBS_NOINTEGRALHEIGHT | LBS_EXTENDEDSEL | LBS_NODATA | WS_VSCROLL | WS_HSCROLL | WS_TABSTOP
-    GROUPBOX        "CSPro Open Source Directories",IDC_STATIC,7,7,212,76
+    PUSHBUTTON      "Find Unsynced Merge Commits",IDC_FIND_UNSYNCED_MERGE_COMMITS,30,112,112,14
+    PUSHBUTTON      "Sync Feature Branches",IDC_SYNC_FEATURE_BRANCHES,163,112,112,14
+    GROUPBOX        "Mirror Feature Branches",IDC_STATIC,7,7,291,126
+    LTEXT           "One or more feature branches can be mirrored from the private repository to the open source repository.",IDC_STATIC,15,20,266,20
+    LTEXT           "Target branch (open source):",IDC_STATIC,15,51,96,8
+    EDITTEXT        IDC_TARGET_BRANCH_NAME,126,48,164,14,ES_AUTOHSCROLL
+    LTEXT           "Oldest merge commit (private):",IDC_STATIC,15,71,100,8
+    EDITTEXT        IDC_COMMIT_OLDEST,126,68,164,14,ES_AUTOHSCROLL
+    LTEXT           "Newest merge commit (private):",IDC_STATIC,15,91,104,8
+    EDITTEXT        IDC_COMMIT_NEWEST,126,88,164,14,ES_AUTOHSCROLL
+END
+
+IDD_SETTINGS DIALOGEX 0, 0, 311, 137
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+CAPTION "Settings"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,94,116,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,166,116,50,14
+    GROUPBOX        "CSPro Open Source Directories",IDC_STATIC,7,7,297,58
     LTEXT           "Code:",IDC_STATIC,17,24,20,8
-    EDITTEXT        IDC_OPEN_SOURCE_CODE_DIRECTORY,67,22,144,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_OPEN_SOURCE_CODE_DIRECTORY,74,22,224,14,ES_AUTOHSCROLL
     LTEXT           "Built libraries:",IDC_STATIC,17,45,44,8
-    EDITTEXT        IDC_OPEN_SOURCE_LIBRARIES_DIRECTORY,67,42,144,14,ES_AUTOHSCROLL
-    GROUPBOX        "Feature Branches",IDC_STATIC,229,7,417,76
-    LTEXT           "Open source branch:",IDC_STATIC,239,25,68,8
-    EDITTEXT        IDC_BRANCH_NAME,351,22,164,14,ES_AUTOHSCROLL
-    LTEXT           "Oldest merge commit (private):",IDC_STATIC,239,45,100,8
-    EDITTEXT        IDC_COMMIT_OLD,351,42,164,14,ES_AUTOHSCROLL
-    LTEXT           "Newest merge commit (private):",IDC_STATIC,239,64,104,8
-    EDITTEXT        IDC_COMMIT_NEW,351,61,164,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_OPEN_SOURCE_LIBRARIES_DIRECTORY,74,42,224,14,ES_AUTOHSCROLL
+    GROUPBOX        "GitHub Authorization",IDC_STATIC,7,70,297,37
+    LTEXT           "Personal Access Token (PAT):",IDC_STATIC,17,86,96,8
+    EDITTEXT        IDC_GITHUB_PAT,121,83,177,14,ES_AUTOHSCROLL
+END
+
+IDD_MANAGE_LIBRARIES DIALOGEX 0, 0, 401, 276
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_CHILD | WS_CAPTION | WS_SYSMENU
+CAPTION "Manage Libraries"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LTEXT           "Manage CSPro's prebuilt external libraries and binary file dependencies:",IDC_STATIC,7,7,230,8
+    GROUPBOX        "Library IDs",IDC_STATIC,7,24,388,151
+    LTEXT           "Built libraries are identified by an ID based on a hash of the repository paths of included files as well as each file's MD5. The built libraries are associated with a local hash code (that does not necessarily use the MD5), and also by the actual hash.",IDC_STATIC,14,35,373,23
+    CONTROL         "",IDC_LIBRARY_IDS,"SysListView32",LVS_REPORT | LVS_ALIGNLEFT | WS_BORDER | WS_TABSTOP,14,66,373,82
+    PUSHBUTTON      "Refresh Library IDs",IDC_REFRESH_LIBRARY_IDS,139,154,122,14
+    GROUPBOX        "Built Libraries",IDC_STATIC,7,182,387,87
+    LTEXT           "To create a built library, specify a commit SHA, or leave it blank to use the HEAD.",IDC_STATIC,14,195,260,8
+    LTEXT           "Commit:",IDC_STATIC,14,213,27,8
+    EDITTEXT        IDC_COMMIT,51,210,164,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "Create and Commit Built Library",IDC_CREATE_BUILT_LIBRARY,232,210,122,14
+    PUSHBUTTON      "Preview Built Library",IDC_PREVIEW_BUILT_LIBRARY,232,229,122,14
+    PUSHBUTTON      "View List of Input Files",IDC_VIEW_BUILT_LIBRARY_INPUTS,232,248,122,14
+END
+
+IDD_LOG DIALOGEX 0, 0, 99, 22
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+CAPTION "Operation Log"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LISTBOX         IDC_LOG,0,0,99,22,LBS_OWNERDRAWFIXED | LBS_NOINTEGRALHEIGHT | LBS_EXTENDEDSEL | LBS_NODATA | WS_VSCROLL | WS_HSCROLL | WS_TABSTOP
+END
+
+IDD_MANUAL_MIRRORER DIALOGEX 0, 0, 297, 291
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_CHILD | WS_CAPTION | WS_SYSMENU
+CAPTION "Manual Mirrorer"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    GROUPBOX        "Mirror Commits",IDC_STATIC,7,7,284,131
+    LTEXT           "One or more commits can be mirrored from the private repository to the open source repository. Specify a branch name, which will be created if it does not exist, and specify one commit, or a range of commits, to mirror.",IDC_STATIC,15,20,266,29
+    LTEXT           "Branch (open source):",IDC_STATIC,15,55,72,8
+    EDITTEXT        IDC_BRANCH_NAME,121,52,164,14,ES_AUTOHSCROLL
+    LTEXT           "Oldest commit (private):",IDC_STATIC,15,76,78,8
+    EDITTEXT        IDC_COMMIT_OLDEST,121,73,164,14,ES_AUTOHSCROLL
+    LTEXT           "Newest commit (private):",IDC_STATIC,15,97,82,8
+    EDITTEXT        IDC_COMMIT_NEWEST,121,94,164,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "Mirror Commits",IDC_MIRROR_COMMIT,173,115,112,14
+    GROUPBOX        "Mirror a Merge Commit ",IDC_STATIC,7,144,283,140
+    LTEXT           "A merge commit can be mirrored by specifying the target and parents in the open source repository.",IDC_STATIC,15,158,266,22
+    LTEXT           "Target branch (open source):",IDC_STATIC,15,187,96,8
+    EDITTEXT        IDC_TARGET_BRANCH_NAME,121,184,164,14,ES_AUTOHSCROLL
+    LTEXT           "Merge commit (private):",IDC_STATIC,15,207,78,8
+    EDITTEXT        IDC_MERGE_COMMIT,121,204,164,14,ES_AUTOHSCROLL
+    LTEXT           "Parent commit 1 (open source):",IDC_STATIC,15,227,102,8
+    EDITTEXT        IDC_PARENT_COMMIT1,121,224,164,14,ES_AUTOHSCROLL
+    LTEXT           "Parent commit 2 (open source):",IDC_STATIC,15,247,102,8
+    EDITTEXT        IDC_PARENT_COMMIT2,121,244,164,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "Mirror Merge Commit",IDC_MIRROR_MERGE_COMMIT,173,264,112,14
+END
+
+IDD_REPO_COMPARER DIALOGEX 0, 0, 275, 114
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_CHILD | WS_CAPTION | WS_SYSMENU
+CAPTION "Repository Comparer"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    PUSHBUTTON      "Compare Repositories",IDC_COMPARE,148,84,112,14
+    GROUPBOX        "Compare Repositories",IDC_STATIC,7,7,261,100
+    LTEXT           "Compare the private and open source repositories at specified commits. Leave the commit SHA blank to use the HEAD.",IDC_STATIC,15,20,244,20
+    LTEXT           "Commit (private):",IDC_STATIC,15,47,57,8
+    EDITTEXT        IDC_COMMIT_PRIVATE,96,44,164,14,ES_AUTOHSCROLL
+    LTEXT           "Commit (open source):",IDC_STATIC,15,67,74,8
+    EDITTEXT        IDC_COMMIT_OPEN_SOURCE,96,64,164,14,ES_AUTOHSCROLL
+END
+
+IDD_TAG_SYNCER DIALOGEX 0, 0, 539, 282
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_CHILD | WS_CAPTION | WS_SYSMENU
+CAPTION "Tag Syncer"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    GROUPBOX        "Tag Syncer",IDC_STATIC,7,7,525,268
+    LTEXT           "For important tags, or tags that will be the basis for releases, you can mirror tags from the private repository to the open source repository.",IDC_STATIC,15,20,450,8
+    CONTROL         "",IDC_TAGS,"SysListView32",LVS_REPORT | LVS_ALIGNLEFT | WS_BORDER | WS_TABSTOP,15,36,509,209
+    PUSHBUTTON      "Create Open Source Tag",IDC_CREATE_OPEN_SOURCE_TAG,43,253,129,14
+    PUSHBUTTON      "View History Log in Open Source",IDC_VIEW_OPEN_SOURCE_HISTORY_LOG,205,253,129,14
+    PUSHBUTTON      "Create History Log From Private",IDC_CREATE_PRIVATE_HISTORY_LOG,367,253,129,14
+END
+
+IDD_MANAGE_RELEASES DIALOGEX 0, 0, 641, 273
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_CHILD | WS_CAPTION | WS_SYSMENU
+CAPTION "Manage Releases"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    GROUPBOX        "Manage Releases",IDC_STATIC,7,7,627,259
+    LTEXT           "The table shows data from GitHub: tags and any releases associated with the tag. You can create a new release, or view a release on GitHub.",IDC_STATIC,14,22,456,8
+    CONTROL         "",IDC_RELEASES,"SysListView32",LVS_REPORT | LVS_ALIGNLEFT | WS_BORDER | WS_TABSTOP,14,38,611,194
+    PUSHBUTTON      "Refresh Tags and Releases",IDC_REFRESH_RELEASES,113,243,122,14
+    PUSHBUTTON      "View Release on GitHub",IDC_VIEW_RELEASE,259,243,122,14
+    PUSHBUTTON      "Create Release From Tag",IDC_CREATE_RELEASE,405,243,122,14
+END
+
+IDD_CREATE_RELEASE DIALOGEX 0, 0, 643, 303
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+CAPTION "Create Release"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "Create Release",IDOK,284,282,75,14
+    GROUPBOX        "Release Basis",IDC_STATIC,7,7,263,72
+    LTEXT           "Tag name:",IDC_STATIC,17,22,35,8
+    EDITTEXT        IDC_TAG_NAME,80,19,181,14,ES_AUTOHSCROLL | ES_READONLY
+    LTEXT           "Libraries tag:",IDC_STATIC,17,42,43,8
+    EDITTEXT        IDC_LIBRARIES_TAG,80,39,181,14,ES_AUTOHSCROLL | ES_READONLY
+    LTEXT           "CSPro version:",IDC_STATIC,17,62,48,8
+    EDITTEXT        IDC_RELEASE_VERSION,80,59,54,14,ES_AUTOHSCROLL | ES_READONLY
+    GROUPBOX        "Release Files",IDC_STATIC,283,7,353,72
+    LTEXT           "Readme:",IDC_STATIC,297,22,30,8
+    EDITTEXT        IDC_README,362,19,204,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "View",IDC_VIEW_README,578,19,50,14
+    LTEXT           "Installer (32-bit):",IDC_STATIC,297,42,56,8
+    EDITTEXT        IDC_INSTALLER_32,362,39,204,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "Select",IDC_SELECT_INSTALLER_32,578,39,50,14
+    GROUPBOX        "Release Description",IDC_STATIC,7,88,629,185
+    LTEXT           "Release title:",IDC_STATIC,17,104,43,8
+    EDITTEXT        IDC_RELEASE_TITLE,80,101,181,14,ES_AUTOHSCROLL
+    LTEXT           "Release type:",IDC_STATIC,17,124,46,8
+    CONTROL         "Full release",IDC_FULL_RELEASE,"Button",BS_AUTORADIOBUTTON | WS_GROUP,80,123,52,10
+    CONTROL         "Prerelease",IDC_PRERELEASE,"Button",BS_AUTORADIOBUTTON,143,123,50,10
+    LTEXT           "Release notes:",IDC_STATIC,17,142,49,8
+    EDITTEXT        IDC_RELEASE_NOTES,80,142,547,103,ES_AUTOHSCROLL
+    PUSHBUTTON      "Preview",IDC_PREVIEW_RELEASE_NOTES,578,251,50,14
 END
 
 
@@ -95,12 +227,72 @@ END
 #ifdef APSTUDIO_INVOKED
 GUIDELINES DESIGNINFO
 BEGIN
-    IDD_SYNCER, DIALOG
+    IDD_FEATURE_BRANCH_SYNCER, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 782
+        RIGHTMARGIN, 298
         TOPMARGIN, 7
-        BOTTOMMARGIN, 273
+        BOTTOMMARGIN, 133
+    END
+
+    IDD_SETTINGS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 304
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 130
+    END
+
+    IDD_MANAGE_LIBRARIES, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 394
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 269
+    END
+
+    IDD_LOG, DIALOG
+    BEGIN
+    END
+
+    IDD_MANUAL_MIRRORER, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 290
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 284
+    END
+
+    IDD_REPO_COMPARER, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 268
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 107
+    END
+
+    IDD_TAG_SYNCER, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 532
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 275
+    END
+
+    IDD_MANAGE_RELEASES, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 634
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 266
+    END
+
+    IDD_CREATE_RELEASE, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 636
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 296
     END
 END
 #endif    // APSTUDIO_INVOKED
@@ -111,16 +303,76 @@ END
 // AFX_DIALOG_LAYOUT
 //
 
-IDD_SYNCER AFX_DIALOG_LAYOUT
+IDD_FEATURE_BRANCH_SYNCER AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_SETTINGS AFX_DIALOG_LAYOUT
 BEGIN
     0,
+    50, 0, 0, 0,
+    50, 0, 0, 0,
+    0, 0, 100, 0,
+    0, 0, 0, 0,
+    0, 0, 100, 0,
+    0, 0, 0, 0,
+    0, 0, 100, 0,
+    0, 0, 100, 0,
+    0, 0, 0, 0,
+    0, 0, 100, 0
+END
+
+IDD_MANAGE_LIBRARIES AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_LOG AFX_DIALOG_LAYOUT
+BEGIN
+    0,
+    0, 0, 100, 100
+END
+
+IDD_MANUAL_MIRRORER AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_REPO_COMPARER AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_TAG_SYNCER AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_MANAGE_RELEASES AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_CREATE_RELEASE AFX_DIALOG_LAYOUT
+BEGIN
+    0,
+    50, 100, 0, 0,
     0, 0, 0, 0,
     0, 0, 0, 0,
     0, 0, 0, 0,
     0, 0, 0, 0,
     0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 100, 0,
+    0, 0, 0, 0,
+    0, 0, 100, 0,
+    100, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 100, 0,
+    100, 0, 0, 0,
     0, 0, 100, 100,
-    0, 0, 100, 100,
     0, 0, 0, 0,
     0, 0, 0, 0,
     0, 0, 0, 0,
@@ -128,11 +380,161 @@ BEGIN
     0, 0, 0, 0,
     0, 0, 0, 0,
     0, 0, 0, 0,
-    0, 0, 0, 0,
-    0, 0, 0, 0,
-    0, 0, 0, 0,
-    0, 0, 0, 0,
-    0, 0, 0, 0
+    100, 100, 0, 0
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDR_MAINFRAME MENU
+BEGIN
+    POPUP "&File"
+    BEGIN
+        MENUITEM "&Close\tCtrl+W",              ID_FILE_CLOSE
+        MENUITEM SEPARATOR
+        MENUITEM "Settings",                    ID_SETTINGS
+        MENUITEM SEPARATOR
+        MENUITEM "E&xit\tAlt+F4",               ID_APP_EXIT
+    END
+    POPUP "&Commits"
+    BEGIN
+        MENUITEM "Sync &Feature Branches",      ID_SYNC_FEATURE_BRANCHES
+        MENUITEM SEPARATOR
+        MENUITEM "&Manually Mirror Commits",    ID_MANUALLY_MIRROR_COMMITS
+    END
+    POPUP "&Releases"
+    BEGIN
+        MENUITEM "Manage &Releases",            ID_MANAGE_RELEASES
+        MENUITEM SEPARATOR
+        MENUITEM "Sync &Tags",                  ID_SYNC_TAGS
+    END
+    POPUP "&Other"
+    BEGIN
+        MENUITEM "Manage &Libraries",           ID_MANAGE_LIBRARIES
+        MENUITEM SEPARATOR
+        MENUITEM "&Compare Repositories",       ID_COMPARE_REPOSITORIES
+    END
+    POPUP "&Window"
+    BEGIN
+        MENUITEM "&Cascade",                    ID_WINDOW_CASCADE
+        MENUITEM "&Tile Top to Bottom",         ID_WINDOW_TILE_HORZ
+        MENUITEM "Tile &Side by Side",          ID_WINDOW_TILE_VERT
+    END
+    POPUP "&Help"
+    BEGIN
+        MENUITEM "&About Open Source Syncer",   ID_APP_ABOUT
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDR_MAINFRAME           ICON                    "res\\OpenSourceSyncer.ico"
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE
+BEGIN
+    IDR_FEATURE_BRANCH_SYNCER "Feature Branch Syncer"
+    IDR_LOG                 "Operation Log"
+    IDR_MAINFRAME           "Open Source Syncer"
+    IDR_MANAGE_LIBRARIES    "Manage Libraries"
+    IDR_MANAGE_RELEASES     "Manage Releases"
+    IDR_MANUAL_MIRRORER     "Manual Mirrorer"
+    IDR_REPO_COMPARER       "Repository Comparer"
+    IDR_TAG_SYNCER          "Tag Syncer"
+END
+
+STRINGTABLE
+BEGIN
+    AFX_IDS_APP_TITLE       "Open Source Syncer"
+    AFX_IDS_IDLEMESSAGE     "Ready"
+END
+
+STRINGTABLE
+BEGIN
+    ID_FILE_NEW             "Create a new document\nNew"
+    ID_FILE_CLOSE           "Close the active document\nClose"
+END
+
+STRINGTABLE
+BEGIN
+    ID_EDIT_CLEAR           "Erase the selection\nErase"
+    ID_EDIT_CLEAR_ALL       "Erase everything\nErase All"
+    ID_EDIT_COPY            "Copy the selection and put it on the Clipboard\nCopy"
+    ID_EDIT_CUT             "Cut the selection and put it on the Clipboard\nCut"
+    ID_EDIT_FIND            "Find the specified text\nFind"
+    ID_EDIT_PASTE           "Insert Clipboard contents\nPaste"
+    ID_EDIT_REPEAT          "Repeat the last action\nRepeat"
+    ID_EDIT_REPLACE         "Replace specific text with different text\nReplace"
+    ID_EDIT_SELECT_ALL      "Select the entire document\nSelect All"
+    ID_EDIT_UNDO            "Undo the last action\nUndo"
+    ID_EDIT_REDO            "Redo the previously undone action\nRedo"
+END
+
+STRINGTABLE
+BEGIN
+    ID_WINDOW_ARRANGE       "Arrange icons at the bottom of the window\nArrange Icons"
+    ID_WINDOW_CASCADE       "Arrange windows so they overlap\nCascade Windows"
+    ID_WINDOW_TILE_HORZ     "Arrange windows as non-overlapping tiles\nTile Windows"
+    ID_WINDOW_TILE_VERT     "Arrange windows as non-overlapping tiles\nTile Windows"
+    ID_WINDOW_SPLIT         "Split the active window into panes\nSplit"
+END
+
+STRINGTABLE
+BEGIN
+    ID_APP_EXIT             "Quit the application; prompts to save documents\nExit"
+END
+
+STRINGTABLE
+BEGIN
+    ID_NEXT_PANE            "Switch to the next window pane\nNext Pane"
+    ID_PREV_PANE            "Switch back to the previous window pane\nPrevious Pane"
+END
+
+STRINGTABLE
+BEGIN
+    ID_INDICATOR_EXT        "EXT"
+    ID_INDICATOR_CAPS       "CAP"
+    ID_INDICATOR_NUM        "NUM"
+    ID_INDICATOR_SCRL       "SCRL"
+    ID_INDICATOR_OVR        "OVR"
+    ID_INDICATOR_REC        "REC"
+END
+
+STRINGTABLE
+BEGIN
+    ID_VIEW_TOOLBAR         "Show or hide the toolbar\nToggle ToolBar"
+END
+
+STRINGTABLE
+BEGIN
+    AFX_IDS_SCSIZE          "Change the window size"
+    AFX_IDS_SCMOVE          "Change the window position"
+    AFX_IDS_SCMINIMIZE      "Reduce the window to an icon"
+    AFX_IDS_SCMAXIMIZE      "Enlarge the window to full size"
+    AFX_IDS_SCNEXTWINDOW    "Switch to the next document window"
+    AFX_IDS_SCPREVWINDOW    "Switch to the previous document window"
+    AFX_IDS_SCCLOSE         "Close the active window and prompts to save the documents"
+END
+
+STRINGTABLE
+BEGIN
+    AFX_IDS_SCRESTORE       "Restore the window to normal size"
+    AFX_IDS_SCTASKLIST      "Activate Task List"
+    AFX_IDS_MDICHILD        "Activate this window"
 END
 
 #endif    // English (United States) resources

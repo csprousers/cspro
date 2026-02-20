@@ -16,3 +16,24 @@ std::string GitTag::GetDisplayName() const noexcept
 
     return m_name;
 }
+
+
+std::string GitTag::GetMessage(GitRepository& repo) const
+{
+    repo.EnsureRepositoryIsOpen();
+
+    std::string message;
+    git_tag* tag;
+
+    if( git_tag_lookup(&tag, repo, *this) == 0 )
+    {
+        const char* const message_ptr = git_tag_message(tag);
+
+        if( message_ptr != nullptr )
+            message = message_ptr;
+
+        git_tag_free(tag);
+    }
+
+    return message;
+}

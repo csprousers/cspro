@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zNetwork/zNetwork.h>
 #include <zNetwork/HeaderList.h>
@@ -8,7 +8,16 @@
 class SyncListener;
 
 
-enum class HttpRequestMethod { HTTP_GET, HTTP_POST, HTTP_PUT, HTTP_DELETE };
+enum class HttpRequestMethod
+{
+    HTTP_GET,
+    HTTP_POST,
+    HTTP_PUT,
+    HTTP_DELETE,
+#ifdef WIN32
+    HTTP_PATCH,
+#endif
+};
 
 constexpr const char* HttpRequestMethodToString(HttpRequestMethod method);
 
@@ -33,9 +42,15 @@ public:
 
     HttpRequestBuilder& del();
 
-    HttpRequestBuilder& post(std::istream& is, int64_t size_bytes = -1);
+    HttpRequestBuilder& request(HttpRequestMethod method, std::istream& is, int64_t size_bytes = -1);
 
-    HttpRequestBuilder& put(std::istream& is, int64_t size_bytes = -1);
+    HttpRequestBuilder& post(std::istream& is, int64_t size_bytes = -1)  { return request(HttpRequestMethod::HTTP_POST, is, size_bytes); }
+
+    HttpRequestBuilder& put(std::istream& is, int64_t size_bytes = -1)   { return request(HttpRequestMethod::HTTP_PUT, is, size_bytes); }
+
+#ifdef WIN32
+    HttpRequestBuilder& patch(std::istream& is, int64_t size_bytes = -1) { return request(HttpRequestMethod::HTTP_PATCH, is, size_bytes); }
+#endif
 
     HttpRequest build() { return std::move(m_request); }
 
@@ -50,6 +65,7 @@ struct HttpResponse
     HttpResponse(int status, HeaderList headers_);
 
     static constexpr int Status_200_OK                  = 200;
+    static constexpr int Status_201_Created             = 201;
     static constexpr int Status_206_PartialContent      = 206;
     static constexpr int Status_304_NotModified         = 304;
     static constexpr int Status_400_BadRequest          = 400;
@@ -95,6 +111,9 @@ constexpr const char* HttpRequestMethodToString(const HttpRequestMethod method)
         case HttpRequestMethod::HTTP_POST:   return "POST";
         case HttpRequestMethod::HTTP_PUT:    return "PUT";
         case HttpRequestMethod::HTTP_DELETE: return "DELETE";
+#ifdef WIN32
+        case HttpRequestMethod::HTTP_PATCH:  return "PATCH";
+#endif
         case HttpRequestMethod::HTTP_GET:
         default:                             return "GET";
     }
@@ -127,18 +146,10 @@ inline HttpRequestBuilder& HttpRequestBuilder::del()
 }
 
 
-inline HttpRequestBuilder& HttpRequestBuilder::post(std::istream& is, const int64_t size_bytes/* = -1*/)
+inline HttpRequestBuilder& HttpRequestBuilder::request(const HttpRequestMethod method,
+                                                       std::istream& is, const int64_t size_bytes/* = -1*/)
 {
-    m_request.method = HttpRequestMethod::HTTP_POST;
-    m_request.upload_data = &is;
-    m_request.upload_data_size_bytes = size_bytes;
-    return *this;
-}
-
-
-inline HttpRequestBuilder& HttpRequestBuilder::put(std::istream& is, const int64_t size_bytes/* = -1*/)
-{
-    m_request.method = HttpRequestMethod::HTTP_PUT;
+    m_request.method = method;
     m_request.upload_data = &is;
     m_request.upload_data_size_bytes = size_bytes;
     return *this;
