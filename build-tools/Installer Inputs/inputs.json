@@ -68,9 +68,6 @@
           "build": "nonDesktop"
         },
         {
-          "sourceName": "external/summernote/summernote-lite.min.js.map"
-        },
-        {
           "sourceName": "html-editor/",
           "build": "nonDesktop"
         },
