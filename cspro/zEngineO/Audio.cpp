@@ -2,8 +2,19 @@
 #include "Audio.h"
 #include "Document.h"
 #include <zUtilO/Interapp.h>
-#include <zMultimediaO/Mp4Reader.h>
-#include <zMultimediaO/Mp4Writer.h>
+#include <zMultimediaO/Mp4File.h>
+
+
+// --------------------------------------------------------------------------
+// LogicAudio::Data
+// --------------------------------------------------------------------------
+
+struct LogicAudio::Data
+{
+    AudioStorage audio_storage;
+    Mp4Metadata mp4_metadata;
+};
+
 
 
 // --------------------------------------------------------------------------
@@ -46,20 +57,25 @@ private:
 // LogicAudio
 // --------------------------------------------------------------------------
 
-LogicAudio::LogicAudio(std::string audio_name)
-    :   BinarySymbol(std::move(audio_name), SymbolType::Audio)
+LogicAudio::LogicAudio(std::string audio_name, const EngineData& engine_data)
+    :   BinarySymbol(std::move(audio_name), SymbolType::Audio),
+        m_engineData(engine_data)
 {
 }
 
 
-LogicAudio::LogicAudio(const EngineItem& engine_item, ItemIndex item_index, cs::non_null_shared_or_raw_ptr<BinaryDataAccessor> binary_data_accessor)
-    :   BinarySymbol(engine_item, std::move(item_index), std::move(binary_data_accessor))
+LogicAudio::LogicAudio(const EngineItem& engine_item, ItemIndex item_index,
+                       cs::non_null_shared_or_raw_ptr<BinaryDataAccessor> binary_data_accessor,
+                       const EngineData& engine_data)
+    :   BinarySymbol(engine_item, std::move(item_index), std::move(binary_data_accessor)),
+        m_engineData(engine_data)
 {
 }
 
 
 LogicAudio::LogicAudio(const LogicAudio& logic_audio)
-    :   BinarySymbol(logic_audio)
+    :   BinarySymbol(logic_audio),
+        m_engineData(logic_audio.m_engineData)
 {
     // the copy constructor is only used for symbols cloned in an initial state, so we do not need to copy the data from the other symbol
 }
@@ -111,7 +127,7 @@ LogicAudio& LogicAudio::operator=(const LogicDocument& logic_document)
         // make sure this is compatible audio
         document_audio_data = CreateData(std::move(audio_storage));
 
-        if( document_audio_data->is_mp4a_format != true )
+        if( document_audio_data->mp4_metadata.is_mp4a_format != true )
             throw CSProException("The Document '%s' has data that cannot be converted to Audio.", logic_document.GetName().c_str());
     }
 
@@ -144,19 +160,14 @@ std::unique_ptr<LogicAudio::Data> LogicAudio::CreateData(AudioStorage audio_stor
 
     try
     {
-        Mp4Reader reader(GetPath(data->audio_storage));
-
-        // catch all errors reading the properties
-        try { data->sampling_rate = reader.GetAudioTimeScale(); } catch( const Mp4ReaderError& ) { }
-
-        try { data->duration = reader.GetDuration(); } catch( const Mp4ReaderError& ) { }
-
-        try { data->is_mp4a_format = ( strcmp(reader.GetAudioFormat(), "mp4a") == 0 ); } catch( const Mp4ReaderError& ) { }
+        Mp4File mp4_file;
+        mp4_file.Open(GetPath(data->audio_storage), Mp4File::OpenType::ReadOnlyExisting);
+        data->mp4_metadata = mp4_file.GetMetadata();
     }
 
     catch(...)
     {
-        // probably not mp4 which is okay as long as we don't append to it
+        // probably not MP4 which is okay as long as we don't append to it
     }
 
     return data;
@@ -203,7 +214,7 @@ bool LogicAudio::HasValidContent() const
     const Data* const parsed_data = GetParsedData();
 
     return ( parsed_data != nullptr &&
-             parsed_data->is_mp4a_format == true );
+             parsed_data->mp4_metadata.is_mp4a_format == true );
 }
 
 
@@ -237,7 +248,7 @@ void LogicAudio::Load(std::string file_path)
 }
 
 
-void LogicAudio::Save(const std::string& file_path, std::string application_name)
+void LogicAudio::Save(const std::string& file_path)
 {
     if( m_currentRecording != nullptr )
         StopCurrentRecording();
@@ -263,19 +274,34 @@ void LogicAudio::Save(const std::string& file_path, std::string application_name
     // on a successful write, set the tags, ignoring errors doing so
     try
     {
-        Mp4Writer writer(file_path, false);
+        Mp4File mp4_file;
+        mp4_file.Open(file_path, Mp4File::OpenType::ReadWriteExisting);
 
-        std::string artwork_image_path = Path::Combine(Html::GetDirectory(Html::Subdirectory::Images),
-                                                       "cspro-logo-medium.png");
-        ASSERT(PortableFunctions::FileIsRegular(artwork_image_path));
+        mp4_file.SetTextTag(Mp4File::TextTag::AlbumArtist, "CSPro");
 
-        writer.SetTags(Mp4Metadata { Path::GetFilenameWithoutExtension(file_path),
-                                     "CSPro",
-                                     std::move(application_name),
-                                     std::move(artwork_image_path),
-                                   });
+        if( m_engineData.application != nullptr )
+            mp4_file.SetTextTag(Mp4File::TextTag::AlbumName, m_engineData.application->GetLabel());
+
+        mp4_file.SetTextTag(Mp4File::TextTag::TitleName, Path::GetFilenameWithoutExtension(file_path));
+
+        mp4_file.SetTextTag(Mp4File::TextTag::EncodingTool, "CSPro");
+
+        const std::string artwork_image_path = Path::Combine(Html::GetDirectory(Html::Subdirectory::Images),
+                                                             "cspro-logo-medium.png");
+
+        if( PortableFunctions::FileIsRegular(artwork_image_path) )
+        {
+            mp4_file.SetBinaryTag(Mp4File::BinaryTag::CoverArt, artwork_image_path);
+        }
+
+        else
+        {
+            ASSERT(false);
+        }
+
+        mp4_file.SaveAndClose();
     }
-    catch(...) { }
+    catch(...) { ASSERT(false); }
 }
 
 
@@ -284,16 +310,16 @@ void LogicAudio::Record(const std::optional<double> seconds)
     if( m_currentRecording != nullptr )
         StopCurrentRecording();
 
-    std::optional<int> sampling_rate;
+    std::optional<unsigned int> sampling_rate;
 
     if( m_binarySymbolData.IsDefined() )
     {
         const Data& parsed_data = GetParsedDataWithExceptions();
 
-        if( parsed_data.is_mp4a_format != true )
+        if( parsed_data.mp4_metadata.is_mp4a_format != true )
             throw CSProException("The format and bitrate of this audio file are not compatible with CSPro audio recording");
 
-        sampling_rate = parsed_data.sampling_rate;
+        sampling_rate = parsed_data.mp4_metadata.sampling_rate;
     }
 
 #ifdef WIN_DESKTOP
@@ -337,26 +363,28 @@ double LogicAudio::StopCurrentRecording()
 
     Concat(std::move(recorded_data->audio_storage), "Audio Recording (Background)", "Audio.record");
 
-    ASSERT(recorded_data->duration.has_value());
-    return recorded_data->duration.value_or(DEFAULT);
+    if( recorded_data->mp4_metadata.duration.has_value() )
+        return *recorded_data->mp4_metadata.duration;
+
+    return ReturnProgrammingError(DEFAULT);
 }
 
 
-double LogicAudio::RecordInteractive(const std::string& message/* = std::string()*/)
+double LogicAudio::RecordInteractive(const SharableString& message/* = SharableString()*/)
 {
     if( m_currentRecording != nullptr )
         StopCurrentRecording();
 
-    std::optional<int> sampling_rate;
+    std::optional<unsigned int> sampling_rate;
 
     if( m_binarySymbolData.IsDefined() )
     {
         const Data& parsed_data = GetParsedDataWithExceptions();
 
-        if( parsed_data.is_mp4a_format != true )
+        if( parsed_data.mp4_metadata.is_mp4a_format != true )
             throw CSProException("The format and bitrate of this audio file are not compatible with CSPro audio recording");
 
-        sampling_rate = parsed_data.sampling_rate;
+        sampling_rate = parsed_data.mp4_metadata.sampling_rate;
     }
 
     std::unique_ptr<TemporaryFile> temporary_file;
@@ -364,7 +392,7 @@ double LogicAudio::RecordInteractive(const std::string& message/* = std::string(
 #ifdef WIN_DESKTOP
     UNREFERENCED_PARAMETER(message);
 #else
-    temporary_file = PlatformInterface::GetInstance()->GetApplicationInterface()->AudioRecordInteractive(message, sampling_rate);
+    temporary_file = PlatformInterface::GetInstance()->GetApplicationInterface()->AudioRecordInteractive(*message, sampling_rate);
 #endif
 
     if( temporary_file == nullptr )
@@ -377,12 +405,14 @@ double LogicAudio::RecordInteractive(const std::string& message/* = std::string(
 
     Concat(std::move(recorded_data->audio_storage), "Audio Recording (Interactive)", "Audio.recordInteractive");
 
-    ASSERT(recorded_data->duration.has_value());
-    return recorded_data->duration.value_or(DEFAULT);
+    if( recorded_data->mp4_metadata.duration.has_value() )
+        return *recorded_data->mp4_metadata.duration;
+
+    return ReturnProgrammingError(DEFAULT);
 }
 
 
-void LogicAudio::Play(const std::string& message/* = std::string()*/)
+void LogicAudio::Play(const SharableString& message/* = SharableString()*/)
 {
     if( m_currentRecording != nullptr )
         StopCurrentRecording();
@@ -396,7 +426,7 @@ void LogicAudio::Play(const std::string& message/* = std::string()*/)
     UNREFERENCED_PARAMETER(message);
     parsed_data;
 #else
-    if( !PlatformInterface::GetInstance()->GetApplicationInterface()->AudioPlay(GetPath(parsed_data.audio_storage), message) )
+    if( !PlatformInterface::GetInstance()->GetApplicationInterface()->AudioPlay(GetPath(parsed_data.audio_storage), *message) )
 #endif
     {
         throw CSProException("Failed to play audio");
@@ -441,16 +471,25 @@ void LogicAudio::Concat(AudioStorage audio_storage, const char* const label, con
         const std::string& lhs_path = GetPath(lhs_parsed_data.audio_storage);
         const std::string& rhs_path = GetPath(audio_storage);
 
+        auto concat = [&](const std::string& file_path, const bool concatenting_in_place)
+        {
+            Mp4File mp4_file;
+            mp4_file.Open(file_path, concatenting_in_place ? Mp4File::OpenType::ReadWriteExisting :
+                                                             Mp4File::OpenType::CreateNew);
+
+            if( !concatenting_in_place )
+                mp4_file.AppendAudio(lhs_path);
+
+            mp4_file.AppendAudio(rhs_path);
+
+            mp4_file.SaveAndClose();
+        };
+
         // we can append in place when the destination is a temporary file that is not used by other objects
         if( std::holds_alternative<std::shared_ptr<TemporaryFile>>(lhs_parsed_data.audio_storage) &&
             std::get<std::shared_ptr<TemporaryFile>>(lhs_parsed_data.audio_storage).use_count() == 1 )
         {
-            // Mp4Writer closes the file on destruction
-            {
-                Mp4Writer writer(lhs_path, false);
-                writer.AppendAudioTracks(rhs_path);
-            }
-
+            concat(lhs_path, true);
             m_data = CreateData(lhs_parsed_data.audio_storage);
         }
 
@@ -458,21 +497,14 @@ void LogicAudio::Concat(AudioStorage audio_storage, const char* const label, con
         else
         {
             auto concatenated_file = std::make_unique<TemporaryFile>();
-
-            // Mp4Writer closes the file on destruction
-            {
-                Mp4Writer writer(concatenated_file->GetPath(), true);
-                writer.AppendAudioTracks(lhs_path);
-                writer.AppendAudioTracks(rhs_path);
-            }
-
+            concat(concatenated_file->GetPath(), false);
             m_data = CreateData(std::move(concatenated_file));
         }
     }
 
     m_binarySymbolData.SetBinaryData(CreateBinaryDataContentFromAudioCallback(),
                                      std::string(), // no filename
-                                     m_data->is_mp4a_format.value_or(false) ? MimeType::Type::AudioM4A : std::string());
+                                     m_data->mp4_metadata.is_mp4a_format.value_or(false) ? MimeType::Type::AudioM4A : std::string());
 
     // update the metadata
     BinaryDataMetadata& binary_data_metadata = m_binarySymbolData.GetMetadata();
@@ -494,8 +526,8 @@ double LogicAudio::GetLength() const
 
     const Data* const parsed_data = GetParsedData();
 
-    if( parsed_data != nullptr && parsed_data->duration.has_value() )
-        return *parsed_data->duration;
+    if( parsed_data != nullptr && parsed_data->mp4_metadata.duration.has_value() )
+        return *parsed_data->mp4_metadata.duration;
 
     return DEFAULT;
 }
@@ -515,7 +547,7 @@ void LogicAudio::SetValueFromJson(const JsonNode& json_node)
 
             m_data = CreateData(std::move(audio_storage));
 
-            if( m_data->is_mp4a_format != true )
+            if( m_data->mp4_metadata.is_mp4a_format != true )
                 throw CSProException("The data cannot be converted to Audio.");
 
             return true;

@@ -1,4 +1,4 @@
-﻿#include <engine/StandardSystemIncludes.h>
+#include <engine/StandardSystemIncludes.h>
 #include "AndroidApplicationInterface.h"
 #include "AndroidBluetoothAdapter.h"
 #include "AndroidFtpConnection.h"
@@ -1258,43 +1258,52 @@ bool AndroidApplicationInterface::AudioPlay(const std::string& file_path, const 
 {
     auto env = GetJNIEnvForCurrentThread();
 
-    auto jfilename = JNIReferences::make_local_ref(env, JavaString::ToJava(*env, file_path));
-    auto jmessage = JNIReferences::make_local_ref(env, JavaString::ToJava(*env, message_text));
+    auto jFilePath = JNIReferences::make_local_ref(env, JavaString::ToJava(*env, file_path));
+    auto jMessageText = JNIReferences::make_local_ref(env, JavaString::ToJava(*env, message_text));
 
-    return (bool) env->CallStaticBooleanMethod(JNIReferences::classApplicationInterface,JNIReferences::methodApplicationInterfaceAudioPlay, jfilename.get(), jmessage.get());
+    return env->CallStaticBooleanMethod(JNIReferences::classApplicationInterface,
+                                        JNIReferences::methodApplicationInterfaceAudioPlay,
+                                        jFilePath.get(), jMessageText.get());
 }
 
 
-bool AndroidApplicationInterface::AudioStartRecording(const std::string& file_path, std::optional<double> seconds, std::optional<int> sampling_rate)
+bool AndroidApplicationInterface::AudioStartRecording(const std::string& file_path, const std::optional<double> seconds, const std::optional<unsigned int> sampling_rate)
 {
     auto env = GetJNIEnvForCurrentThread();
 
-    auto jfilename = JNIReferences::make_local_ref(env, JavaString::ToJava(*env, file_path));
+    auto jFilePath = JNIReferences::make_local_ref(env, JavaString::ToJava(*env, file_path));
 
-    return (bool) env->CallStaticBooleanMethod(JNIReferences::classApplicationInterface,
-            JNIReferences::methodApplicationInterfaceAudioStartRecording, jfilename.get(),
-            seconds.value_or(-1), sampling_rate.value_or(-1));
+    return env->CallStaticBooleanMethod(JNIReferences::classApplicationInterface,
+                                        JNIReferences::methodApplicationInterfaceAudioStartRecording,
+                                        jFilePath.get(),
+                                        seconds.value_or(-1),
+                                        sampling_rate.has_value() ? static_cast<int>(*sampling_rate) : -1);
 }
 
 
 bool AndroidApplicationInterface::AudioStopRecording()
 {
     auto env = GetJNIEnvForCurrentThread();
-    return (bool) env->CallStaticBooleanMethod(JNIReferences::classApplicationInterface,JNIReferences::methodApplicationInterfaceAudioStopRecording);
+
+    return env->CallStaticBooleanMethod(JNIReferences::classApplicationInterface,
+                                        JNIReferences::methodApplicationInterfaceAudioStopRecording);
 }
 
 
-std::unique_ptr<TemporaryFile> AndroidApplicationInterface::AudioRecordInteractive(const std::string& message_text, std::optional<int> sampling_rate)
+std::unique_ptr<TemporaryFile> AndroidApplicationInterface::AudioRecordInteractive(const std::string& message_text, const std::optional<unsigned int> sampling_rate)
 {
     auto env = GetJNIEnvForCurrentThread();
 
     auto temporary_file = std::make_unique<TemporaryFile>();
 
-    auto jfilename = JNIReferences::make_local_ref(env, JavaString::ToJava(*env, temporary_file->GetPath()));
-    auto jmessage = JNIReferences::make_local_ref(env, JavaString::ToJava(*env, message_text));
+    auto jFilePath = JNIReferences::make_local_ref(env, JavaString::ToJava(*env, temporary_file->GetPath()));
+    auto jMessageText = JNIReferences::make_local_ref(env, JavaString::ToJava(*env, message_text));
 
-    if( env->CallStaticBooleanMethod(JNIReferences::classApplicationInterface,JNIReferences::methodApplicationInterfaceAudioRecordInteractive,
-                                     jfilename.get(), jmessage.get(), sampling_rate.value_or(-1)) )
+    if( env->CallStaticBooleanMethod(JNIReferences::classApplicationInterface,
+                                     JNIReferences::methodApplicationInterfaceAudioRecordInteractive,
+                                     jFilePath.get(),
+                                     jMessageText.get(),
+                                     sampling_rate.has_value() ? static_cast<int>(*sampling_rate) : -1) )
     {
         return temporary_file;
     }

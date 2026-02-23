@@ -154,7 +154,7 @@ std::unique_ptr<Symbol> CEngineArea::CreateSymbol(std::string symbol_name, const
                 return std::make_unique<LogicArray>(std::move(symbol_name));
 
             case SymbolType::Audio:
-                return std::make_unique<LogicAudio>(std::move(symbol_name));
+                return std::make_unique<LogicAudio>(std::move(symbol_name), *m_engineData);
 
             case SymbolType::Document:
                 return std::make_unique<LogicDocument>(std::move(symbol_name));

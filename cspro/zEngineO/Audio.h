@@ -13,8 +13,8 @@ private:
     LogicAudio(const LogicAudio& logic_audio);
 
 public:
-    LogicAudio(std::string audio_name);
-    LogicAudio(const EngineItem& engine_item, ItemIndex item_index, cs::non_null_shared_or_raw_ptr<BinaryDataAccessor> binary_data_accessor);
+    LogicAudio(std::string audio_name, const EngineData& engine_data);
+    LogicAudio(const EngineItem& engine_item, ItemIndex item_index, cs::non_null_shared_or_raw_ptr<BinaryDataAccessor> binary_data_accessor, const EngineData& engine_data);
     LogicAudio(LogicAudio&& logic_audio) = delete;
     ~LogicAudio();
 
@@ -22,13 +22,13 @@ public:
     LogicAudio& operator=(const LogicDocument& logic_document);
 
     void Load(std::string file_path);
-    void Save(const std::string& file_path, std::string application_name);
+    void Save(const std::string& file_path);
 
     void Record(std::optional<double> seconds);
     double Stop();
-    double RecordInteractive(const std::string& message = std::string());
+    double RecordInteractive(const SharableString& message = SharableString());
 
-    void Play(const std::string& message = std::string());
+    void Play(const SharableString& message = SharableString());
 
     void Concat(const LogicAudio& logic_audio);
     void Concat(std::string file_path);
@@ -47,14 +47,7 @@ public:
 
 private:
     using AudioStorage = std::variant<std::string, std::shared_ptr<TemporaryFile>>;
-
-    struct Data
-    {
-        AudioStorage audio_storage;
-        std::optional<int> sampling_rate;
-        std::optional<double> duration;
-        std::optional<bool> is_mp4a_format;
-    };
+    struct Data;
 
 private:
     static const std::string& GetPath(const AudioStorage& audio_storage);
@@ -75,6 +68,7 @@ private:
     void Concat(AudioStorage audio_storage, const char* label, const char* source);
 
 private:
+    const EngineData& m_engineData;
     std::unique_ptr<Data> m_data;
 
     class InProgressRecording;

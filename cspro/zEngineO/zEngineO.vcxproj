@@ -16,7 +16,7 @@
   <ItemDefinitionGroup>
     <ClCompile>
       <PreprocessorDefinitions>ZENGINEO_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir);$(CSProDir)external;$(CSProDir)external/mp4v2;$(CSProDir)external/geometry.hpp/include;$(CSProDir)external/variant/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(CSProDir)external;$(CSProDir)external/geometry.hpp/include;$(CSProDir)external/variant/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>

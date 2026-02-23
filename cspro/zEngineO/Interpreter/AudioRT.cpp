@@ -143,7 +143,7 @@ double LogicInterpreter::ex_Audio_load(const int program_index)
 double LogicInterpreter::ex_Audio_play(const int program_index)
 {
     const auto& symbol_va_with_subscript_node = GetOrConvertPre80SymbolVariableArgumentsWithSubscriptNode(program_index);
-    const SharableString message = EvaluateOptionalOrConstruct<SharableString>(symbol_va_with_subscript_node.arguments[0]);
+    const SharableString message = EvaluateNullableSharableString(symbol_va_with_subscript_node.arguments[0]);
     LogicAudio* const logic_audio = GetFromSymbolOrEngineItem<LogicAudio*>(symbol_va_with_subscript_node.symbol_index, symbol_va_with_subscript_node.subscript_compilation);
 
     if( logic_audio == nullptr )
@@ -151,7 +151,7 @@ double LogicInterpreter::ex_Audio_play(const int program_index)
 
     try
     {
-        logic_audio->Play(*message);
+        logic_audio->Play(message);
         return 1;
     }
 
@@ -174,10 +174,7 @@ double LogicInterpreter::ex_Audio_save(const int program_index)
 
     try
     {
-        std::string application_name = ( m_engineData->application != nullptr ) ? m_engineData->application->GetLabel() :
-                                                                                  "CSPro";
-        logic_audio->Save(file_path, std::move(application_name));
-
+        logic_audio->Save(file_path);
         return 1;
     }
 
@@ -237,7 +234,7 @@ double LogicInterpreter::ex_Audio_record(const int program_index)
 double LogicInterpreter::ex_Audio_recordInteractive(const int program_index)
 {
     const auto& symbol_va_with_subscript_node = GetOrConvertPre80SymbolVariableArgumentsWithSubscriptNode(program_index);
-    const SharableString message = EvaluateOptionalOrConstruct<SharableString>(symbol_va_with_subscript_node.arguments[0]);
+    const SharableString message = EvaluateNullableSharableString(symbol_va_with_subscript_node.arguments[0]);
     LogicAudio* const logic_audio = GetFromSymbolOrEngineItem<LogicAudio*>(symbol_va_with_subscript_node.symbol_index, symbol_va_with_subscript_node.subscript_compilation);
 
     if( logic_audio == nullptr )
@@ -245,7 +242,7 @@ double LogicInterpreter::ex_Audio_recordInteractive(const int program_index)
 
     try
     {
-        return logic_audio->RecordInteractive(*message);
+        return logic_audio->RecordInteractive(message);
     }
 
     catch( const CSProException& exception )

@@ -7,7 +7,7 @@ LogicAudio* LogicCompiler::CompileLogicAudioDeclaration()
 {
     std::string audio_name = CompileNewSymbolName();
 
-    auto logic_audio = std::make_shared<LogicAudio>(std::move(audio_name));
+    auto logic_audio = std::make_shared<LogicAudio>(std::move(audio_name), *m_engineData);
 
     m_engineData->AddSymbol(logic_audio);
 

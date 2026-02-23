@@ -125,6 +125,17 @@
 5. Run the batch script *Update Android HTML Assets*.
 
 
+### GPAC
+
+1. Find the latest version number here: https://github.com/gpac/gpac/releases/latest/
+2. Edit the batch script, *gpac.bat*, setting **gpac_version**.
+3. Run the batch script.
+4. This copies files into the CSPro solution, including some that are not necessary.
+5. Remove anything that is not already committed.
+6. There are CSPro modifications made to many files that have to be restored.
+7. The library is built as part of the CSPro solution.
+
+
 ### gumbo-parser
 
 *(This library is archived and no longer updated.)*

@@ -7,7 +7,6 @@ ifeq ($(APP_OPTIM),debug)
 endif
 
 include $(LOCAL_PATH)/Engine.mk
-include $(LOCAL_PATH)/mp4v2.mk
 include $(LOCAL_PATH)/zAction.mk
 include $(LOCAL_PATH)/zAppO.mk
 include $(LOCAL_PATH)/zBridgeO.mk
@@ -91,6 +90,6 @@ LOCAL_C_INCLUDES        += $(JNI_PATH)/../../../../../external
 LOCAL_C_INCLUDES        += $(JNI_PATH)/../../../../../external/rxcpp
 LOCAL_C_INCLUDES        += $(JNI_PATH)/../../../../../external/geometry.hpp/include
 LOCAL_C_INCLUDES        += $(JNI_PATH)/../../../../../external/variant/include
-LOCAL_STATIC_LIBRARIES  := Engine zEngineF zEngineO zAction zLogicO zFormatterO zSyncF zSyncO zNetwork zFormO zReportO zFreqO zParadataO zListingO zExcelO zBridgeO zDiffO zReformatO zIndexO zConcatO zSortO zPackO zDataO zExportO zCaseO zDictO zZip zMapping zMarkdown zMessageO zAppO zMultimediaO zHtml zUtilF zUtilO zViewO zJavaScript zXml zJson zSql zToolsO zPlatformO mp4v2 zlib
+LOCAL_STATIC_LIBRARIES  := Engine zEngineF zEngineO zAction zLogicO zFormatterO zSyncF zSyncO zNetwork zFormO zReportO zFreqO zParadataO zListingO zExcelO zBridgeO zDiffO zReformatO zIndexO zConcatO zSortO zPackO zDataO zExportO zCaseO zDictO zZip zMapping zMarkdown zMessageO zAppO zMultimediaO zHtml zUtilF zUtilO zViewO zJavaScript zXml zJson zSql zToolsO zPlatformO zlib
 
 include $(BUILD_SHARED_LIBRARY)

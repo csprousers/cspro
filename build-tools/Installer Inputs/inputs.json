@@ -68,9 +68,6 @@
           "build": "nonDesktop"
         },
         {
-          "sourceName": "external/summernote/summernote-lite.min.js.map"
-        },
-        {
           "sourceName": "html-editor/",
           "build": "nonDesktop"
         },
@@ -152,7 +149,6 @@
     "DataViewer.exe",
     "Excel2CSPro.exe",
     "libcurl.dll",
-    "libmp4v2.dll",
     "OAuth2Authorizer.exe",
     "ParadataConcat.exe",
     "ParadataViewer.exe",

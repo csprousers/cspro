@@ -208,7 +208,7 @@ int DateTime::GetUtcOffset(const Components& components)
 {
     // get the time locally...
     const tm local_time = ToTm(components);
-    const int64_t local_timestamp = CreateTime(local_time, true);
+    const time_t local_timestamp = static_cast<time_t>(CreateTime(local_time, true));
 
     // ...convert it back to UTC...
     tm utc_time;
