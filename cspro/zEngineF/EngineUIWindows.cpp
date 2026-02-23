@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "EngineUI.h"
 #include "PromptFuncDlg.h"
 #include "RuntimeNoteDlg.h"
@@ -22,7 +22,7 @@ EngineUIProcessor::EngineUIProcessor(const PFF* const pff, const bool engine_run
 
 LRESULT EngineUIProcessor::CaptureImage(EngineUI::CaptureImageNode& /*capture_image_node*/)
 {
-    return 0; // COMPONENTS_TODO_RESTORE_FOR_CSPRO81 return ReturnProgrammingError(0);
+    return 0; // COMPONENTS_TODO_RESTORE_FOR_CSPRO8X return ReturnProgrammingError(0);
 }
 
 

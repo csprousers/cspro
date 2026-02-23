@@ -3,6 +3,7 @@
 #include "Audio.h"
 #include "Geometry.h"
 #include "Image.h"
+#include "Video.h"
 #include <zUtilO/TemporaryFile.h>
 #include <zMultimediaO/Image.h>
 
@@ -62,6 +63,13 @@ LogicDocument& LogicDocument::operator=(const LogicGeometry& logic_geometry)
 LogicDocument& LogicDocument::operator=(const LogicImage& logic_image)
 {
     m_binarySymbolData = logic_image.GetBinarySymbolData();
+    return *this;
+}
+
+
+LogicDocument& LogicDocument::operator=(const LogicVideo& logic_video)
+{
+    m_binarySymbolData = logic_video.GetBinarySymbolData();
     return *this;
 }
 

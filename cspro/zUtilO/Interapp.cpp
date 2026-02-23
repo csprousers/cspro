@@ -717,6 +717,7 @@ std::string Html::GetDirectory(const Subdirectory html_subdirectory)
         ( html_subdirectory == Subdirectory::HtmlEditor )        ? "html-editor" :
         ( html_subdirectory == Subdirectory::Images )            ? "images" :
         ( html_subdirectory == Subdirectory::Mapping )           ? "mapping" :
+        ( html_subdirectory == Subdirectory::Media )             ? "media" :
         ( html_subdirectory == Subdirectory::Mustache )          ? PortableFunctions::PathToNativeSlash("external\\mustache").c_str() :
         ( html_subdirectory == Subdirectory::QuestionnaireView ) ? "questionnaire-view" :
         ( html_subdirectory == Subdirectory::Runtime )           ? "runtime" :

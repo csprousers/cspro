@@ -30,6 +30,12 @@
     <Filter Include="gpac\utils">
       <UniqueIdentifier>{61b2ab91-3783-46f9-8f22-1d12ca77cfdd}</UniqueIdentifier>
     </Filter>
+    <Filter Include="libwebm">
+      <UniqueIdentifier>{7ecfa593-23c0-481d-8fc8-417a72c98de2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libwebm\mkvparser">
+      <UniqueIdentifier>{af3a2fe1-e6e4-49a2-93da-c910ae164b71}</UniqueIdentifier>
+    </Filter>
     <Filter Include="libwebp">
       <UniqueIdentifier>{630bf746-fb63-44dd-918f-2d138e18ddc7}</UniqueIdentifier>
     </Filter>
@@ -88,6 +94,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="stdafx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="WebMFile.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="zMultimediaO.h">
@@ -310,6 +319,12 @@
     </ClCompile>
     <ClCompile Include="..\external\libexif\pentax\mnote-pentax-tag.c">
       <Filter>libexif</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\libwebm\mkvparser\mkvparser.cc">
+      <Filter>libwebm\mkvparser</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\libwebm\mkvparser\mkvreader.cc">
+      <Filter>libwebm\mkvparser</Filter>
     </ClCompile>
     <ClCompile Include="..\external\libwebp\sharpyuv\sharpyuv.c">
       <Filter>libwebp\sharpyuv</Filter>
@@ -699,6 +714,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="stdafx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="WebMFile.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="zMultimediaO.cpp">

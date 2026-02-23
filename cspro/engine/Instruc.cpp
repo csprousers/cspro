@@ -113,6 +113,8 @@ bool ValidInstructionStartToken(const TokenCode token_code)
         TOKGEOMETRY,
         TOKDECLARE,
         TOKKWSTRINGWRITER,
+        TOKKWVIDEO,
+        TOKVIDEO,
     };
 
     return ( ValidInstructionStartTokens.find(token_code) != ValidInstructionStartTokens.cend() );
@@ -316,6 +318,10 @@ int CEngineCompFunc::instruc(bool create_new_local_symbol_stack/* = true*/, bool
 
                 case TOKKWVALUESET:
                     last_added_node_address = CompileDynamicValueSetDeclarations();
+                    break;
+
+                case TOKKWVIDEO:
+                    last_added_node_address = CompileLogicVideoDeclarations();
                     break;
 
                 case TOKRECODE:
@@ -526,6 +532,12 @@ int CEngineCompFunc::instruc(bool create_new_local_symbol_stack/* = true*/, bool
                 case TOKVALUESET:
                 {
                     CompileDynamicValueSetComputeInstruction();
+                    break;
+                }
+
+                case TOKVIDEO:
+                {
+                    compilation_address = CompileLogicVideoComputeInstruction();
                     break;
                 }
 

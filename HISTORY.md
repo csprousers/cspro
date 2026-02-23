@@ -13,6 +13,7 @@ Most CSPro development occurs on a [private repository](https://github.com/CSPro
 
 | Date | Branch | Pull Request Message |
 | --- | --- | --- |
+| 2026&#8209;02&#8209;23 | [video-object](https://github.com/CSProDevelopment/cspro/commit/793ff6672c13471d70d96d700bf928a29f30bb30) | added the Video object and dictionary item (disabled for now) |
 | 2026&#8209;02&#8209;23 | [webp-images](https://github.com/CSProDevelopment/cspro/commit/f7255bd54622e7d460c121541b15bcadc050b9bf) | added support for WebP images (as part of Image objects and as value set images) |
 | 2026&#8209;02&#8209;23 | [mp4v2-to-gpac](https://github.com/CSProDevelopment/cspro/commit/d8ce947ec0626de6f5d1a5fb75f8bdb9e3640515) | replaced audio processing handled by MP4v2 with GPAC |
 | 2026&#8209;02&#8209;20 | [webview-permissions](https://github.com/CSProDevelopment/cspro/commit/5e95ad74face6b2b2a52462209da5d869dab4269) | added the UI.setWebViewOptions action |

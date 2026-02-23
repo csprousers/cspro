@@ -13,7 +13,8 @@ bool BinarySymbol::IsBinaryToken(const TokenCode token_code)
     return ( token_code == TokenCode::TOKAUDIO ||
              token_code == TokenCode::TOKDOCUMENT ||
              token_code == TokenCode::TOKGEOMETRY ||
-             token_code == TokenCode::TOKIMAGE );
+             token_code == TokenCode::TOKIMAGE ||
+             token_code == TokenCode::TOKVIDEO );
 }
 
 

@@ -387,7 +387,7 @@ double LogicInterpreter::ex_Image_captureSignature_takePhoto(const int program_i
     const bool capture_signature = ( symbol_va_with_subscript_node.function_code == FunctionCode::IMAGEFN_CAPTURESIGNATURE_CODE );
     ASSERT(capture_signature || symbol_va_with_subscript_node.function_code == FunctionCode::IMAGEFN_TAKEPHOTO_CODE);
 
-#ifdef COMPONENTS_TODO_RESTORE_FOR_CSPRO81
+#ifdef COMPONENTS_TODO_RESTORE_FOR_CSPRO8X
     if constexpr(OnAndroid())
     {
         if( m_engineData->application != nullptr &&

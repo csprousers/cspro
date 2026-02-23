@@ -21,7 +21,8 @@ namespace
         SymbolType::HashMap,        SymbolType::Image,          SymbolType::List,
         SymbolType::Map,            SymbolType::NamedFrequency, SymbolType::Pff,
         SymbolType::Record,         SymbolType::StringWriter,   SymbolType::SystemApp,
-        SymbolType::ValueSet,       SymbolType::WorkString,     SymbolType::WorkVariable
+        SymbolType::ValueSet,       SymbolType::Video,          SymbolType::WorkString,
+        SymbolType::WorkVariable
     };
 
     constexpr SymbolType SymbolTypesDisallowedAsOptionalParameters[]
@@ -38,7 +39,7 @@ namespace
         SymbolType::HashMap,        SymbolType::Image,          SymbolType::List,
         SymbolType::Map,            SymbolType::NamedFrequency, SymbolType::Pff,
         SymbolType::Report,         SymbolType::StringWriter,   SymbolType::SystemApp,
-        SymbolType::UserFunction,   SymbolType::ValueSet
+        SymbolType::UserFunction,   SymbolType::ValueSet,       SymbolType::Video
     };
 }
 
@@ -432,6 +433,11 @@ void LogicCompiler::CompileUserFunctionParameters(UserFunction& user_function, c
             symbol = CompileDynamicValueSetDeclaration();
         }
 
+        else if( Tkn == TOKKWVIDEO )
+        {
+            symbol = CompileLogicVideoDeclaration();
+        }
+
         // compile named frequency parameters
         else if( Tkn == TOKKWFREQ )
         {
@@ -739,24 +745,26 @@ int LogicCompiler::CompileUserFunctionCall(const bool allow_function_name_withou
                 // ensure that items are coming as their wrapped type
                 ASSERT(Tkn != TOKITEM);
 
-                Symbol* const argument_symbol = ( Tkn == TOKARRAY ||
-                                                  Tkn == TOKAUDIO ||
-                                                  Tkn == TOKCROSSTAB ||
-                                                  Tkn == TOKDICT ||
-                                                  Tkn == TOKDOCUMENT ||
-                                                  Tkn == TOKFILE ||
-                                                  Tkn == TOKFREQ ||
-                                                  Tkn == TOKGEOMETRY ||
-                                                  Tkn == TOKHASHMAP ||
-                                                  Tkn == TOKIMAGE ||
-                                                  Tkn == TOKLIST ||
-                                                  Tkn == TOKMAP ||
-                                                  Tkn == TOKPFF ||
-                                                  Tkn == TOKREPORT ||
-                                                  Tkn == TOKSTRINGWRITER ||
-                                                  Tkn == TOKSYSTEMAPP ||
-                                                  Tkn == TOKUSERFUNCTION ||
-                                                  Tkn == TOKVALUESET ) ? &NPT_Ref(Tokstindex) : nullptr;
+                Symbol* const argument_symbol = (
+                    Tkn == TOKARRAY ||
+                    Tkn == TOKAUDIO ||
+                    Tkn == TOKCROSSTAB ||
+                    Tkn == TOKDICT ||
+                    Tkn == TOKDOCUMENT ||
+                    Tkn == TOKFILE ||
+                    Tkn == TOKFREQ ||
+                    Tkn == TOKGEOMETRY ||
+                    Tkn == TOKHASHMAP ||
+                    Tkn == TOKIMAGE ||
+                    Tkn == TOKLIST ||
+                    Tkn == TOKMAP ||
+                    Tkn == TOKPFF ||
+                    Tkn == TOKREPORT ||
+                    Tkn == TOKSTRINGWRITER ||
+                    Tkn == TOKSYSTEMAPP ||
+                    Tkn == TOKUSERFUNCTION ||
+                    Tkn == TOKVALUESET ||
+                    Tkn == TOKVIDEO ) ? &NPT_Ref(Tokstindex) : nullptr;
 
                 argument_subscript_compilation = CurrentToken.symbol_subscript_compilation;
 

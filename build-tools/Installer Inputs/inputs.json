@@ -76,6 +76,10 @@
           "build": "nonDesktop"
         },
         {
+          "sourceName": "media/",
+          "build": "nonDesktop"
+        },
+        {
           "sourceName": "templates/",
           "build": "nonDesktop"
         },

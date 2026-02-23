@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "IncludesCC.h"
 #include "Audio.h"
 
@@ -105,7 +105,7 @@ int LogicCompiler::CompileLogicAudioFunctions()
     // audio_name.stop()
     if( function_code == FunctionCode::AUDIOFN_CLEAR_CODE ||
         function_code == FunctionCode::AUDIOFN_LENGTH_CODE ||
-        function_code == FunctionCode::AUDIOFN_STOP_CODE)
+        function_code == FunctionCode::AUDIOFN_STOP_CODE )
     {
         // no arguments
     }
@@ -130,7 +130,7 @@ int LogicCompiler::CompileLogicAudioFunctions()
     // audio_name.load(filename)
     // audio_name.save(filename)
     else if( function_code == FunctionCode::AUDIOFN_LOAD_CODE ||
-             function_code == FunctionCode::AUDIOFN_SAVE_CODE)
+             function_code == FunctionCode::AUDIOFN_SAVE_CODE )
     {
         symbol_va_with_subscript_node.arguments[0] = CompileStringExpression();
     }
@@ -138,7 +138,7 @@ int LogicCompiler::CompileLogicAudioFunctions()
     // audio_name.play([message])
     // audio_name.recordInteractive([message])
     else if( function_code == FunctionCode::AUDIOFN_PLAY_CODE ||
-             function_code == FunctionCode::AUDIOFN_RECORD_INTERACTIVE_CODE)
+             function_code == FunctionCode::AUDIOFN_RECORDINTERACTIVE_CODE )
     {
         if( Tkn != TOKRPAREN )
             symbol_va_with_subscript_node.arguments[0] = CompileStringExpression();

@@ -14,13 +14,13 @@ GlobalSettingsDlg::GlobalSettingsDlg(GlobalSettings global_settings, CWnd* const
     :   ResizableDlg(IDD_GLOBAL_SETTINGS, pParent),
         m_globalSettings(std::move(global_settings)),
         m_automaticallyAssociateDocumentsWithDocSets(m_globalSettings.automatically_associate_documents_with_doc_sets)
-#ifdef HELP_TODO_RESTORE_FOR_CSPRO81
+#ifdef HELP_TODO_RESTORE_FOR_CSPRO8X
         ,m_buildDocumentsOnOpen(m_globalSettings.build_documents_on_open)
 #endif
 {
     SerializeDialogSize("GlobalSettingsDlg");
 
-#ifdef HELP_TODO_RESTORE_FOR_CSPRO81
+#ifdef HELP_TODO_RESTORE_FOR_CSPRO8X
     if( m_globalSettings.automatic_compilation_seconds != 0 )
         m_automaticCompilationSeconds = IntToString(m_globalSettings.automatic_compilation_seconds);
 #endif
@@ -32,7 +32,7 @@ void GlobalSettingsDlg::DoDataExchange(CDataExchange* pDX)
     __super::DoDataExchange(pDX);
 
     DDX_Check(pDX, IDC_AUTOMATICALLY_ASSOCIATE_DOCUMENTS_WITH_DOCSETS, m_automaticallyAssociateDocumentsWithDocSets);
-#ifdef HELP_TODO_RESTORE_FOR_CSPRO81
+#ifdef HELP_TODO_RESTORE_FOR_CSPRO8X
     DDX_Check(pDX, IDC_BUILD_DOCUMENTS_ON_OPEN, m_buildDocumentsOnOpen);
     DDX_Text(pDX, IDC_AUTOMATIC_COMPILATION_SECONDS, m_automaticCompilationSeconds, true);
 #endif
@@ -49,7 +49,7 @@ void GlobalSettingsDlg::OnOK()
     try
     {
         m_globalSettings.automatically_associate_documents_with_doc_sets = ( m_automaticallyAssociateDocumentsWithDocSets != 0 );
-#ifdef HELP_TODO_RESTORE_FOR_CSPRO81
+#ifdef HELP_TODO_RESTORE_FOR_CSPRO8X
         m_globalSettings.build_documents_on_open = ( m_buildDocumentsOnOpen != 0 );
 
         // validate the seconds

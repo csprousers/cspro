@@ -92,6 +92,7 @@ const char* UserFunctionArgumentChecker::GetExpectedArgumentText(const Symbol& s
         case SymbolType::SystemApp:      return "a SystemApp";
         case SymbolType::UserFunction:   return "a function pointer";
         case SymbolType::ValueSet:       return "a value set";
+        case SymbolType::Video:          return "a Video object";
         case SymbolType::WorkString:     return "a string expression";
         case SymbolType::WorkVariable:   return "a numeric expression";
         default:                         return ReturnProgrammingError(ToString(symbol.GetType()));

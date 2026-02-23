@@ -1,8 +1,8 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "PropertiesDlgAdvancedFeaturesPage.h"
 
 
-// COMPONENTS_TODO_RESTORE_FOR_CSPRO81: in the resource editor, modify IDC_USE_COMPONENTS_INSTEAD_OF_NATIVE_VERSIONS to Visible = True
+// COMPONENTS_TODO_RESTORE_FOR_CSPRO8X: in the resource editor, modify IDC_USE_COMPONENTS_INSTEAD_OF_NATIVE_VERSIONS to Visible = True
 
 
 PropertiesDlgAdvancedFeaturesPage::PropertiesDlgAdvancedFeaturesPage(ApplicationProperties& application_properties, CWnd* pParent/* = nullptr*/)

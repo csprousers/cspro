@@ -70,6 +70,7 @@ int LogicCompiler::CompileSymbolWithModifiers()
         TOKKWLIST,
         TOKKWSYSTEMAPP,
         TOKKWVALUESET,
+        TOKKWVIDEO,
     };
 
     if( Tkn == TOKDECLARE && !IsGlobalCompilation() )
@@ -198,6 +199,7 @@ int LogicCompiler::CompileSymbolRouter()
         { TOKKWSTRINGWRITER,    &LogicCompiler::CompileStringWriterDeclarations },
         { TOKKWSYSTEMAPP,       &LogicCompiler::CompileSystemAppDeclarations },
         { TOKKWVALUESET,        &LogicCompiler::CompileDynamicValueSetDeclarations },
+        { TOKKWVIDEO,           &LogicCompiler::CompileLogicVideoDeclarations },
     };
 
     const auto& compilation_function_lookup = SymbolCompilationFunctionMap.find(Tkn);

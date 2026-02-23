@@ -218,7 +218,8 @@ namespace
             const Nodes::Path::FilterType filter_type = static_cast<Nodes::Path::FilterType>(filter_type_or_expression);
             ASSERT(filter_type == Nodes::Path::FilterType::Audio ||
                    filter_type == Nodes::Path::FilterType::Geometry ||
-                   filter_type == Nodes::Path::FilterType::Image);
+                   filter_type == Nodes::Path::FilterType::Image ||
+                   filter_type == Nodes::Path::FilterType::Video);
 
             return SpecialDirectoryLister::EvaluateFilter(filter_type);
         }

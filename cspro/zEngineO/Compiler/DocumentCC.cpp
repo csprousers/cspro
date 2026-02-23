@@ -69,8 +69,8 @@ int LogicCompiler::CompileLogicDocumentComputeInstruction(const LogicDocument* l
     symbol_compute_with_subscript_node.lhs_symbol_index = lhs_symbol->GetSymbolIndex();
     symbol_compute_with_subscript_node.lhs_subscript_compilation = lhs_subscript_compilation;
 
-    // a Document can be assigned another Document or an Audio/Geometry/Image object
-    if( Tkn == TOKDOCUMENT || Tkn == TOKAUDIO || Tkn == TOKGEOMETRY || Tkn == TOKIMAGE )
+    // a Document can be assigned another Document or an Audio / Geometry / Image / Video object
+    if( Tkn == TOKDOCUMENT || Tkn == TOKAUDIO || Tkn == TOKGEOMETRY || Tkn == TOKIMAGE || Tkn == TOKVIDEO )
     {
         symbol_compute_with_subscript_node.rhs_symbol_index = Tokstindex;
         symbol_compute_with_subscript_node.rhs_subscript_compilation = CurrentToken.symbol_subscript_compilation;

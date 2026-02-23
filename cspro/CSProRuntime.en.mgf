@@ -386,6 +386,13 @@ Language=EN
 /* --- Text Templates */
 48111  Error generating the text template %s: %s
 
+/* --- Video */
+48152  There is not a video stored in '%s' so you cannot %s
+48153  The content in '%s' is not a valid WebM video so you cannot %s
+48154  Error loading video file '%s': %s.
+48155  Error saving video file '%s': %s.
+48156  Error assigning '%s' to Video '%s': %s
+
 /* --- User-Defined Function Messages */
 
 /* --- Dynamic Logic Evaluation */

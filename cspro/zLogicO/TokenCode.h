@@ -227,4 +227,6 @@ enum TokenCode : int
     TOKDECLARE          = 484, // 20250127
     TOKKWSTRINGWRITER   = 485, // 20250417
     TOKSTRINGWRITER     = 486, // 20250417
+    TOKKWVIDEO          = 487, // 20250909
+    TOKVIDEO            = 488, // 20250909
 };

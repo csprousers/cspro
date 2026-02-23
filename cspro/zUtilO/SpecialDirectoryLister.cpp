@@ -59,9 +59,11 @@ namespace
 
 std::string SpecialDirectoryLister::EvaluateFilter(const Nodes::Path::FilterType filter_type)
 {
-    const ContentType content_type = ( filter_type == Nodes::Path::FilterType::Audio )    ?   ContentType::Audio :
-                                     ( filter_type == Nodes::Path::FilterType::Geometry ) ?   ContentType::Geometry :
-                                   /*( filter_type == Nodes::Path::FilterType::Image )    ?*/ ContentType::Image;
+    const ContentType content_type =
+        ( filter_type == Nodes::Path::FilterType::Audio )    ? ContentType::Audio :
+        ( filter_type == Nodes::Path::FilterType::Geometry ) ? ContentType::Geometry :
+        ( filter_type == Nodes::Path::FilterType::Image )    ? ContentType::Image :
+     /* ( filter_type == Nodes::Path::FilterType::Video ) */   ContentType::Video;
 
     std::string filter;
 
@@ -107,6 +109,7 @@ std::string SpecialDirectoryLister::EvaluateFilter(const std::string_view filter
                 filter_type = ( type_sv == Nodes::Path::Text::Audio )    ? std::make_optional(Nodes::Path::FilterType::Audio) :
                               ( type_sv == Nodes::Path::Text::Geometry ) ? std::make_optional(Nodes::Path::FilterType::Geometry) :
                               ( type_sv == Nodes::Path::Text::Image )    ? std::make_optional(Nodes::Path::FilterType::Image) :
+                              ( type_sv == Nodes::Path::Text::Video )    ? std::make_optional(Nodes::Path::FilterType::Video) :
                                                                            std::nullopt;
             }
 

@@ -111,7 +111,7 @@ LogicAudio& LogicAudio::operator=(const LogicAudio& logic_audio)
 LogicAudio& LogicAudio::operator=(const LogicDocument& logic_document)
 {
     const BinarySymbolData& document_binary_symbol_data = logic_document.GetBinarySymbolData();
-    std::unique_ptr<LogicAudio::Data> document_audio_data;
+    std::unique_ptr<Data> document_audio_data;
 
     if( document_binary_symbol_data.IsDefined() )
     {
@@ -132,6 +132,10 @@ LogicAudio& LogicAudio::operator=(const LogicDocument& logic_document)
     }
 
     m_binarySymbolData = document_binary_symbol_data;
+
+    if( document_audio_data != nullptr )
+        m_binarySymbolData.GetMetadata().SetMimeType(MimeType::Type::AudioM4A);
+
     m_data = std::move(document_audio_data);
     m_currentRecording.reset();
 
@@ -156,7 +160,7 @@ const std::string& LogicAudio::GetPath(const AudioStorage& audio_storage)
 
 std::unique_ptr<LogicAudio::Data> LogicAudio::CreateData(AudioStorage audio_storage) noexcept
 {
-    auto data = std::make_unique<Data>(Data { std::move(audio_storage) });
+    std::unique_ptr<Data> data(new Data { std::move(audio_storage) });
 
     try
     {
@@ -358,7 +362,7 @@ double LogicAudio::StopCurrentRecording()
         throw CSProException("Failed to stop audio recorder");
 #endif
 
-    std::unique_ptr<LogicAudio::Data> recorded_data = CreateData(m_currentRecording->ReleaseTemporaryFile());
+    std::unique_ptr<Data> recorded_data = CreateData(m_currentRecording->ReleaseTemporaryFile());
     m_currentRecording.reset();
 
     Concat(std::move(recorded_data->audio_storage), "Audio Recording (Background)", "Audio.record");
@@ -401,7 +405,7 @@ double LogicAudio::RecordInteractive(const SharableString& message/* = SharableS
     if( PortableFunctions::FileSize(temporary_file->GetPath()) <= 0 )
         return DEFAULT;
 
-    std::unique_ptr<LogicAudio::Data> recorded_data = CreateData(std::move(temporary_file));
+    std::unique_ptr<Data> recorded_data = CreateData(std::move(temporary_file));
 
     Concat(std::move(recorded_data->audio_storage), "Audio Recording (Interactive)", "Audio.recordInteractive");
 
@@ -535,7 +539,7 @@ double LogicAudio::GetLength() const
 
 void LogicAudio::SetValueFromJson(const JsonNode& json_node)
 {
-    struct LogicAudioContentValidator : public BinarySymbolDataContentValidator
+    class LogicAudioContentValidator : public BinarySymbolDataContentValidator
     {
     public:
         std::unique_ptr<Data> ReleaseData() { return std::move(m_data); }
@@ -564,6 +568,6 @@ void LogicAudio::SetValueFromJson(const JsonNode& json_node)
     if( m_binarySymbolData.IsDefined() )
         m_binarySymbolData.GetMetadata().SetMimeType(MimeType::Type::AudioM4A);
 
-    m_data = std::move(logic_audio_content_validator.ReleaseData());
+    m_data = logic_audio_content_validator.ReleaseData();
     m_currentRecording.reset();
 }

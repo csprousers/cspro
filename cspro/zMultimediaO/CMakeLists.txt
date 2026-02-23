@@ -4,12 +4,14 @@ include(../WASM/Definitions.cmake)
 
 set(GPAC_SRC_PATH ${EXTERNAL_DIRECTORY}/gpac/src)
 set(LIBEXIF_SRC_PATH ${EXTERNAL_DIRECTORY}/libexif)
+set(LIBWEBM_SRC_PATH ${EXTERNAL_DIRECTORY}/libwebm)
 set(LIBWEBP_SRC_PATH ${EXTERNAL_DIRECTORY}/libwebp)
 set(QRCODEGEN_SRC_PATH ${EXTERNAL_DIRECTORY}/qrcodegen)
 
 include_directories(${PROJECT_NAME} PUBLIC
     ${EXTERNAL_DIRECTORY}
     ${EXTERNAL_DIRECTORY}/gpac/include
+    ${EXTERNAL_DIRECTORY}/libwebm
     ${EXTERNAL_DIRECTORY}/libwebp
 )
 
@@ -20,6 +22,7 @@ add_library(${PROJECT_NAME}
     Image.cpp
     Mp4File.cpp
     QRCode.cpp
+    WebMFile.cpp
 
     ${GPAC_SRC_PATH}/isomedia/avc_ext.c
     ${GPAC_SRC_PATH}/isomedia/box_code_3gpp.c
@@ -94,6 +97,9 @@ add_library(${PROJECT_NAME}
     ${LIBEXIF_SRC_PATH}/pentax/exif-mnote-data-pentax.c
     ${LIBEXIF_SRC_PATH}/pentax/mnote-pentax-entry.c
     ${LIBEXIF_SRC_PATH}/pentax/mnote-pentax-tag.c
+
+    ${LIBWEBM_SRC_PATH}/mkvparser/mkvparser.cc
+    ${LIBWEBM_SRC_PATH}/mkvparser/mkvreader.cc
 
     ${LIBWEBP_SRC_PATH}/sharpyuv/sharpyuv.c
     ${LIBWEBP_SRC_PATH}/sharpyuv/sharpyuv_cpu.c

@@ -50,6 +50,7 @@ enum class SymbolType : int
     Report                     =  50,
     Item                       =  51,
     StringWriter               =  52,
+    Video                      =  53,
     Unknown
 };
 

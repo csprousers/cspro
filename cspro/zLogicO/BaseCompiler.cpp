@@ -368,6 +368,7 @@ TokenCode BaseCompiler::GetTokenCodeFromSymbolType(const SymbolType symbol_type)
         { SymbolType::UserFunction,    TokenCode::TOKUSERFUNCTION },
         { SymbolType::Variable,        TokenCode::TOKVAR },
         { SymbolType::ValueSet,        TokenCode::TOKVALUESET },
+        { SymbolType::Video,           TokenCode::TOKVIDEO },
         { SymbolType::WorkString,      TokenCode::TOKWORKSTRING },
         { SymbolType::WorkVariable,    TokenCode::TOKVAR },
     };

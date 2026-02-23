@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "FunctionTable.h"
 #include "ActionInvoker.h"
 #include "Symbol.h"
@@ -529,7 +529,7 @@ namespace
         },
         {
             "filename",
-            "filename(dictionary_name | file_name | pff_name | audio_name)",
+            "filename(dictionary_name | file_name | object_name)",
             "filename_function.html",
             FunctionCode::FNFILENAME_CODE,
             SymbolType::None,
@@ -2110,7 +2110,7 @@ namespace
                 SymbolType::Array,          SymbolType::Audio,          SymbolType::Document,       SymbolType::Dictionary,     SymbolType::Pre80Dictionary,
                 SymbolType::File,           SymbolType::Geometry,       SymbolType::HashMap,        SymbolType::Image,          SymbolType::List,
                 SymbolType::NamedFrequency, SymbolType::Record,         SymbolType::Report,         SymbolType::StringWriter,   SymbolType::SystemApp,
-                SymbolType::ValueSet,       SymbolType::WorkString,     SymbolType::WorkVariable
+                SymbolType::ValueSet,       SymbolType::Video,          SymbolType::WorkString,     SymbolType::WorkVariable
             },
             DataType::String,
             FunctionCompilationType::Symbol,
@@ -2125,7 +2125,7 @@ namespace
             {
                 SymbolType::Array,          SymbolType::Audio,          SymbolType::Document,       SymbolType::Geometry,       SymbolType::HashMap,
                 SymbolType::Image,          SymbolType::List,           SymbolType::Report,         SymbolType::StringWriter,   SymbolType::SystemApp,
-                SymbolType::ValueSet,       SymbolType::WorkString,     SymbolType::WorkVariable
+                SymbolType::ValueSet,       SymbolType::Video,          SymbolType::WorkString,     SymbolType::WorkVariable
             },
             DataType::Numeric,
             FunctionCompilationType::Symbol,
@@ -2189,7 +2189,7 @@ namespace
         },
         {
             "concat",
-            "audio_name.concat(audio|filename)",
+            "audio_name.concat(audio_name | filename)",
             "Audio_concat_function.html",
             FunctionCode::AUDIOFN_CONCAT_CODE,
             SymbolType::Audio,
@@ -2241,7 +2241,7 @@ namespace
             "recordInteractive",
             "audio_name.recordInteractive([message])",
             "Audio_recordInteractive_function.html",
-            FunctionCode::AUDIOFN_RECORD_INTERACTIVE_CODE,
+            FunctionCode::AUDIOFN_RECORDINTERACTIVE_CODE,
             SymbolType::Audio,
             DataType::Numeric,
             FunctionCompilationType::Audio,
@@ -3627,6 +3627,71 @@ namespace
             DataType::Numeric,
             FunctionCompilationType::ValueSet,
             2,
+        },
+
+
+        // --------------------------------------------------------------------------
+        // Video functions
+        // --------------------------------------------------------------------------
+        {
+            "clear",
+            "video_name.clear()",
+            "Video_clear_function.html",
+            FunctionCode::VIDEOFN_CLEAR_CODE,
+            SymbolType::Video,
+            DataType::Numeric,
+            FunctionCompilationType::Video,
+            0,
+        },
+        {
+            "height",
+            "video_name.height()",
+            "Video_height_function.html",
+            FunctionCode::VIDEOFN_HEIGHT_CODE,
+            SymbolType::Video,
+            DataType::Numeric,
+            FunctionCompilationType::Video,
+            0,
+        },
+        {
+            "length",
+            "video_name.length()",
+            "Video_length_function.html",
+            FunctionCode::VIDEOFN_LENGTH_CODE,
+            SymbolType::Video,
+            DataType::Numeric,
+            FunctionCompilationType::Video,
+            0,
+        },
+        {
+            "load",
+            "video_name.load(filename)",
+            "Video_load_function.html",
+            FunctionCode::VIDEOFN_LOAD_CODE,
+            SymbolType::Video,
+            DataType::Numeric,
+            FunctionCompilationType::Video,
+            1,
+        },
+        {
+            "save",
+            "video_name.save(filename)",
+            "Video_save_function.html",
+            FunctionCode::VIDEOFN_SAVE_CODE,
+            SymbolType::Video,
+            DataType::Numeric,
+            FunctionCompilationType::Video,
+            1,
+        },
+        {
+            "width",
+            "video_name.width()",
+            "Video_width_function.html",
+            FunctionCode::VIDEOFN_WIDTH_CODE,
+            SymbolType::Video,
+            DataType::Numeric,
+            FunctionCompilationType::Video,
+            0,
         },
     };
 }

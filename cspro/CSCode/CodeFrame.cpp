@@ -329,7 +329,7 @@ void CodeFrame::PopulateRunMenu(CMenu& popup_menu)
 
 
     // add HTML dialog options
-    /* TODO_RESTORE_FOR_CSPRO81 if( doc_language_settings.GetLanguageType() == LanguageType::CSProHtmlDialog )
+    /* TODO_RESTORE_FOR_CSPRO8X if( doc_language_settings.GetLanguageType() == LanguageType::CSProHtmlDialog )
     {
         dynamic_menu_builder.AddSeparator();
         dynamic_menu_builder.AddOption(dynamic_menu_builder.GetIdAndMenuText(ID_RUN_HTML_DIALOG_TEMPLATES));

@@ -27,7 +27,7 @@ private:
 private:
     GlobalSettings m_globalSettings;
     int m_automaticallyAssociateDocumentsWithDocSets;
-#ifdef HELP_TODO_RESTORE_FOR_CSPRO81
+#ifdef HELP_TODO_RESTORE_FOR_CSPRO8X
     int m_buildDocumentsOnOpen;
     std::string m_automaticCompilationSeconds;
 #endif

@@ -698,6 +698,7 @@ bool VARX::InRange(const CNDIndexes* pTheIndex) const
         case CaptureType::Photo:
         case CaptureType::Signature:
         case CaptureType::Audio:
+        case CaptureType::Video:
             return true; // BINARY_TYPES_TO_ENGINE_TODO temporarily confirming entry of these capture types
     }
 

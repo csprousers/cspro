@@ -78,6 +78,7 @@
     <ClCompile Include="Compiler\UserInterfaceCC.cpp" />
     <ClCompile Include="Compiler\ValueSetCC.cpp" />
     <ClCompile Include="Compiler\VariableCC.cpp" />
+    <ClCompile Include="Compiler\VideoCC.cpp" />
     <ClCompile Include="Document.cpp" />
     <ClCompile Include="EngineCase.cpp" />
     <ClCompile Include="EngineData.cpp" />
@@ -123,6 +124,7 @@
     <ClCompile Include="Interpreter\SystemRT.cpp" />
     <ClCompile Include="Interpreter\TextTemplateRT.cpp" />
     <ClCompile Include="Interpreter\UserInterfaceRT.cpp" />
+    <ClCompile Include="Interpreter\VideoRT.cpp" />
     <ClCompile Include="JavaScriptProcessor.cpp" />
     <ClCompile Include="List.cpp" />
     <ClCompile Include="LogicByteCode.cpp" />
@@ -152,6 +154,7 @@
     <ClCompile Include="UserFunctionArgumentEvaluator.cpp" />
     <ClCompile Include="UserFunctionLocalSymbolsManager.cpp" />
     <ClCompile Include="ValueSet.cpp" />
+    <ClCompile Include="Video.cpp" />
     <ClCompile Include="WorkString.cpp" />
     <ClCompile Include="WorkVariable.cpp" />
   </ItemGroup>
@@ -260,6 +263,7 @@
     <ClInclude Include="UserFunctionArgumentEvaluator.h" />
     <ClInclude Include="UserFunctionLocalSymbolsManager.h" />
     <ClInclude Include="ValueSet.h" />
+    <ClInclude Include="Video.h" />
     <ClInclude Include="WorkString.h" />
     <ClInclude Include="WorkVariable.h" />
     <ClInclude Include="zEngineO.h" />

@@ -4,6 +4,7 @@
 #include "Document.h"
 #include "Geometry.h"
 #include "Image.h"
+#include "Video.h"
 
 
 double LogicInterpreter::ex_Document_compute(const int program_index)
@@ -58,6 +59,11 @@ double LogicInterpreter::ex_Document_compute(const int program_index)
             else if( rhs_symbol->IsA(SymbolType::Image) )
             {
                 *lhs_logic_document = assert_cast<const LogicImage&>(*rhs_symbol);
+            }
+
+            else if( rhs_symbol->IsA(SymbolType::Video) )
+            {
+                *lhs_logic_document = assert_cast<const LogicVideo&>(*rhs_symbol);
             }
 
             else

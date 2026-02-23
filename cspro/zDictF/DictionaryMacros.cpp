@@ -1,6 +1,7 @@
 ﻿#include "StdAfx.h"
 #include "DictionaryMacros.h"
 #include "ItemGrid.h"
+#include <zToolsO/FileIO.h>
 #include <zUtilO/NameShortener.h>
 #include <zUtilO/MimeType.h>
 #include <zUtilO/PathHelpers.h>
@@ -1660,37 +1661,51 @@ void DictionaryMacrosDlg::AddRandomBinaryValue(const CaseItem& case_item, CaseIt
     ASSERT(IsBinary(case_item.GetDataType()));
     const BinaryCaseItem& binary_case_item = assert_cast<const BinaryCaseItem&>(case_item);
     const CDictItem& dict_item = case_item.GetDictItem();
+    const ContentType content_type = dict_item.GetContentType();
 
-    if( dict_item.GetContentType() == ContentType::Audio )
+    auto create_from_html_media = [&](const char* const filename)
     {
-        // no routine exists for the Audio type
-        return;
+        try
+        {
+            const std::string file_path = Path::Combine(Html::GetDirectory(Html::Subdirectory::Media), filename);
+
+            BinaryDataMetadata binary_data_metadata;
+            binary_data_metadata.SetFilename(filename);
+            binary_case_item.SetValue(index, BinaryData(FileIO::Read(file_path), std::move(binary_data_metadata)));
+        }
+        catch(...) { ASSERT(false); }
+    };
+
+    // for the Audio type, use a sound recording of "CSPro" taken from Google Translate
+    if( content_type == ContentType::Audio )
+    {
+        create_from_html_media("cspro-pronunciation.m4a");
     }
 
     // for the Document type, create a text file with a simple message
-    else if( dict_item.GetContentType() == ContentType::Document )
+    else if( content_type == ContentType::Document )
     {
         const std::string message = FormatText("Document for %s created using Dictionary Macros.", dict_item.GetName().c_str());
 
         BinaryDataMetadata binary_data_metadata;
-        binary_data_metadata.SetFilename("Dictionary Macros Document.txt");
+        binary_data_metadata.SetFilename("dictionary-macros-document.txt");
 
         binary_case_item.SetValue(index, BinaryData(SO::CreateByteVector(message), std::move(binary_data_metadata)));
     }
 
     // for the Geometry type, use a GeoJSON file with the Census Bureau's coordinates
-    else if( dict_item.GetContentType() == ContentType::Geometry )
+    else if( content_type == ContentType::Geometry )
     {
         constexpr std::string_view CensusBureauGeoJson_sv = R"!({"type":"Feature","geometry":{"type":"Point","coordinates":[-76.931098,38.84839]},"properties":{"name":"United States Census Bureau"}})!";
 
         BinaryDataMetadata binary_data_metadata;
-        binary_data_metadata.SetFilename("U.S. Census Bureau.geojson");
+        binary_data_metadata.SetFilename("us-census-bureau.geojson");
 
         binary_case_item.SetValue(index, BinaryData(SO::CreateByteVector(CensusBureauGeoJson_sv), std::move(binary_data_metadata)));
     }
 
     // for the Image type, create a PNG of the CSPro logo
-    else if( dict_item.GetContentType() == ContentType::Image )
+    else if( content_type == ContentType::Image )
     {
         std::shared_ptr<const std::vector<std::byte>> content = SystemIcon::GetPngForCSProLogo();
 
@@ -1698,8 +1713,14 @@ void DictionaryMacrosDlg::AddRandomBinaryValue(const CaseItem& case_item, CaseIt
             return;
 
         BinaryDataMetadata binary_data_metadata;
-        binary_data_metadata.SetFilename("CSPro Logo.png");
+        binary_data_metadata.SetFilename("cspro-logo.png");
         binary_case_item.SetValue(index, BinaryData(std::move(content), std::move(binary_data_metadata)));
+    }
+
+    // for the Video type, use a video showing the transition of the CSPro logo from the 2.0 version to the modern one
+    else if( content_type == ContentType::Video )
+    {
+        create_from_html_media("cspro-logo-transition.webm");
     }
 
     else

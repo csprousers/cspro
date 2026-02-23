@@ -133,6 +133,7 @@ struct ZENGINEO_API EngineData
 #define GetSymbolLogicMap(i)            assert_cast<LogicMap&>(NPT_Ref(i))
 #define GetSymbolLogicNamedFrequency(i) assert_cast<NamedFrequency&>(NPT_Ref(i))
 #define GetSymbolLogicPff(i)            assert_cast<LogicPff&>(NPT_Ref(i))
+#define GetSymbolLogicVideo(i)          assert_cast<LogicVideo&>(NPT_Ref(i))
 #define GetSymbolReport(i)              assert_cast<Report&>(NPT_Ref(i))
 #define GetSymbolStringWriter(i)        assert_cast<StringWriter&>(NPT_Ref(i))
 #define GetSymbolSystemApp(i)           assert_cast<SystemApp&>(NPT_Ref(i))

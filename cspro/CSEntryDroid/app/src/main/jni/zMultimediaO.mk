@@ -8,6 +8,7 @@ SOLUTION_SRC_PATH       := $(JNI_PATH)/../../../../..
 ZMULTIMEDIAO_SRC_PATH   := $(SOLUTION_SRC_PATH)/zMultimediaO
 GPAC_SRC_PATH           := $(SOLUTION_SRC_PATH)/external/gpac/src
 LIBEXIF_SRC_PATH        := $(SOLUTION_SRC_PATH)/external/libexif
+LIBWEBM_SRC_PATH        := $(SOLUTION_SRC_PATH)/external/libwebm
 LIBWEBP_SRC_PATH        := $(SOLUTION_SRC_PATH)/external/libwebp
 QRCODEGEN_SRC_PATH      := $(SOLUTION_SRC_PATH)/external/qrcodegen
 
@@ -20,6 +21,7 @@ LOCAL_SRC_FILES         += $(ZMULTIMEDIAO_SRC_PATH)/Icon.cpp
 LOCAL_SRC_FILES         += $(ZMULTIMEDIAO_SRC_PATH)/Image.cpp
 LOCAL_SRC_FILES         += $(ZMULTIMEDIAO_SRC_PATH)/Mp4File.cpp
 LOCAL_SRC_FILES         += $(ZMULTIMEDIAO_SRC_PATH)/QRCode.cpp
+LOCAL_SRC_FILES         += $(ZMULTIMEDIAO_SRC_PATH)/WebMFile.cpp
 
 LOCAL_SRC_FILES         += $(GPAC_SRC_PATH)/isomedia/avc_ext.c
 LOCAL_SRC_FILES         += $(GPAC_SRC_PATH)/isomedia/box_code_3gpp.c
@@ -94,6 +96,9 @@ LOCAL_SRC_FILES         += $(LIBEXIF_SRC_PATH)/olympus/mnote-olympus-tag.c
 LOCAL_SRC_FILES         += $(LIBEXIF_SRC_PATH)/pentax/exif-mnote-data-pentax.c
 LOCAL_SRC_FILES         += $(LIBEXIF_SRC_PATH)/pentax/mnote-pentax-entry.c
 LOCAL_SRC_FILES         += $(LIBEXIF_SRC_PATH)/pentax/mnote-pentax-tag.c
+
+LOCAL_SRC_FILES         += $(LIBWEBM_SRC_PATH)/mkvparser/mkvparser.cc
+LOCAL_SRC_FILES         += $(LIBWEBM_SRC_PATH)/mkvparser/mkvreader.cc
 
 LOCAL_SRC_FILES         += $(LIBWEBP_SRC_PATH)/sharpyuv/sharpyuv.c
 LOCAL_SRC_FILES         += $(LIBWEBP_SRC_PATH)/sharpyuv/sharpyuv_cpu.c
@@ -224,6 +229,7 @@ LOCAL_CFLAGS            += -DWEBP_USE_THREAD
 LOCAL_C_INCLUDES        += $(SOLUTION_SRC_PATH)
 LOCAL_C_INCLUDES        += $(SOLUTION_SRC_PATH)/external
 LOCAL_C_INCLUDES        += $(SOLUTION_SRC_PATH)/external/gpac/include
+LOCAL_C_INCLUDES        += $(SOLUTION_SRC_PATH)/external/libwebm
 LOCAL_C_INCLUDES        += $(SOLUTION_SRC_PATH)/external/libwebp
 LOCAL_STATIC_LIBRARIES  := zToolsO zUtilO zlib
 

@@ -11,6 +11,7 @@ Some long-running development projects are identifiable by a TODO noted in comme
 | BINARY_BLOCK_TODO | Places where a BinaryBlock can be used to represent binary data.
 | CODE_TODO | Related to CSCode.
 | COMPILER_DLL_TODO | Moving engine code to zEngineO.
+| COMPONENTS_TODO_RESTORE_FOR_CSPRO8X | Web components code disabled for CSPro 8.0 and 8.1.
 | CONNECTION_TODO | Related to connection strings.
 | CONTENT_TYPE_REFACTOR<br>CONTENT_TYPE_TODO | Related to dictionary item content types.
 | CR_TODO | Refactoring code to use the Case objects.
@@ -22,7 +23,7 @@ Some long-running development projects are identifiable by a TODO noted in comme
 | FLOW_TODO | Refactoring related to flow.
 | FORM_TODO | Refactoring the form file.
 | FTP_TODO | Adding FTP functionality using the Action Invoker.
-| HELP_TODO<br>HELP_TODO_RESTORE_FOR_CSPRO81 | Related to CSDocument.
+| HELP_TODO<br>HELP_TODO_RESTORE_FOR_CSPRO8X | Related to CSDocument.
 | LOGIC_TODO | Refactoring the logic compiler.
 | PARADATA_TODO | Related to paradata.
 | REPO_TEMP<br>REPO_TODO | Refactoring the engine to use the Case objects.
@@ -30,7 +31,8 @@ Some long-running development projects are identifiable by a TODO noted in comme
 | RT_TODO | Related to CSProRT.
 | TEXT_ENCODING_TODO | Refactoring code to use UTF-8 without BOMs.
 | TODO_DISABLED_FOR_CSPRO77 | Incomplete code disabled for CSPro 7.7.
-| TODO_RESTORE_FOR_CSPRO81 | Incomplete code disabled for CSPro 8.0.
+| TODO_RESTORE_FOR_CSPRO8X | Incomplete code disabled for CSPro 8.0 and CSPro 8.1.
 | UTF8_TODO | Refactoring the codebase to use UTF-8 instead of wide-character strings.
+| VIDEO_TODO_RESTORE_FOR_CSPRO8X | Video object code disabled for CSPro 8.1.
 | VQ_TODO | Related to the Questionnaire View.
 | WASM_TODO<br>WASM_TO_RETURN_TO_TODO | Related to a WASM version of CSPro.

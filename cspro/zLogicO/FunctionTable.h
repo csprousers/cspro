@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zLogicO/zLogicO.h>
 #include <zUtilO/DataTypes.h>
@@ -457,7 +457,7 @@ enum FunctionCode : int
     AUDIOFN_SAVE_CODE                       = 356, // 20200714
     AUDIOFN_STOP_CODE                       = 357, // 20200714
     AUDIOFN_RECORD_CODE                     = 358, // 20200714
-    AUDIOFN_RECORD_INTERACTIVE_CODE         = 359, // 20200714
+    AUDIOFN_RECORDINTERACTIVE_CODE          = 359, // 20200714
     AUDIOFN_COMPUTE_CODE                    = 360, // 20200714
     FNENCODE_CODE                           = 361, // 20200716
     LISTFN_SORT_CODE                        = 362, // 20190716
@@ -577,6 +577,13 @@ enum FunctionCode : int
     STRINGWRITERFN_TOSTRING_CODE            = 468, // 20250417
     IMAGEFN_GETEXIF_CODE                    = 469, // 20250507
     STRINGWRITERFN_CLEAR_CODE               = 470, // 20250604
+    VIDEOFN_COMPUTE_CODE                    = 471, // 20250909
+    VIDEOFN_CLEAR_CODE                      = 472, // 20250910
+    VIDEOFN_LOAD_CODE                       = 473, // 20250910
+    VIDEOFN_SAVE_CODE                       = 474, // 20250910
+    VIDEOFN_LENGTH_CODE                     = 475, // 20250911
+    VIDEOFN_WIDTH_CODE                      = 476, // 20250915
+    VIDEOFN_HEIGHT_CODE                     = 477, // 20250915
 };
 
 
@@ -701,6 +708,7 @@ namespace Logic
         JS                      =  278,
         StringWriter            =  279,
         TextTemplate            =  280,
+        Video                   =  281,
     };
 
 

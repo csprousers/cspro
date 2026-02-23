@@ -69,7 +69,8 @@ inline bool BinarySymbol::IsBinarySymbol(const Symbol& symbol)
     return symbol.IsOneOf(SymbolType::Audio,
                           SymbolType::Document,
                           SymbolType::Geometry,
-                          SymbolType::Image);
+                          SymbolType::Image,
+                          SymbolType::Video);
 }
 
 
