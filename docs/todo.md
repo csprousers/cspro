@@ -33,5 +33,6 @@ Some long-running development projects are identifiable by a TODO noted in comme
 | TODO_DISABLED_FOR_CSPRO77 | Incomplete code disabled for CSPro 7.7.
 | TODO_RESTORE_FOR_CSPRO8X | Incomplete code disabled for CSPro 8.0 and CSPro 8.1.
 | UTF8_TODO | Refactoring the codebase to use UTF-8 instead of wide-character strings.
+| VIDEO_TODO_RESTORE_FOR_CSPRO8X | Video object code disabled for CSPro 8.1.
 | VQ_TODO | Related to the Questionnaire View.
 | WASM_TODO<br>WASM_TO_RETURN_TO_TODO | Related to a WASM version of CSPro.

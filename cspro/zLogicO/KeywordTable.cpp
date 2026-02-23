@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "KeywordTable.h"
 #include <zToolsO/Special.h>
 
@@ -152,7 +152,7 @@ namespace
         { "persistent",         "persistent_modifier.html",             TokenCode::TOKPERSISTENT },
         { "declare",            "declare_modifier.html",                TokenCode::TOKDECLARE },
         { "StringWriter",       "StringWriter_statement.html",          TokenCode::TOKKWSTRINGWRITER },
-        { "Video",              "Video_statement.html",                 TokenCode::TOKKWVIDEO },
+        // VIDEO_TODO_RESTORE_FOR_CSPRO8X { "Video",              "Video_statement.html",                 TokenCode::TOKKWVIDEO },
     };
 }
 

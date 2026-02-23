@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "DataTypes.h"
 
 
@@ -78,7 +78,7 @@ const std::vector<ContentType>& GetContentTypesSupportedByDictionary()
         ContentType::Document,
         ContentType::Geometry,
         ContentType::Image,
-        ContentType::Video,
+        // VIDEO_TODO_RESTORE_FOR_CSPRO8X ContentType::Video,
     };
 
     return ContentTypes;
