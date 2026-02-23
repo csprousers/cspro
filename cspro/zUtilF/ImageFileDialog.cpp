@@ -5,7 +5,7 @@
 
 ImageFileDialog::ImageFileDialog(const LPCTSTR lpszFileName/* = nullptr*/, CWnd* const pParentWnd/* = nullptr*/)
     :   CFileDialog(TRUE, nullptr, lpszFileName, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,
-                    L"Images|*.jpg;*.jpeg;*.png;*.bmp;*.gif;*.tiff|All Files (*.*)|*.*||",
+                    L"Images|*.jpg;*.jpeg;*.png;*.webp;*.bmp;*.gif;*.tiff|All Files (*.*)|*.*||",
                     pParentWnd),
     m_canIncludeAsResource(( WindowsDesktopMessage::Send(UWM::UtilF::CanAddResources) != 0 ))
 {

@@ -62,6 +62,7 @@ public:
         static constexpr const char* ImageBitmap = "image/bmp";
         static constexpr const char* ImageJpeg   = "image/jpeg";
         static constexpr const char* ImagePng    = "image/png";
+        static constexpr const char* ImageWebP   = "image/webp";
     };
 
     struct ServerType

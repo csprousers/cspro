@@ -41,12 +41,6 @@
     <ClCompile Include="ImageFileDialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ImageManager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ImageSelectorDlg.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="ImageViewDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -167,12 +161,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ImageFileDialog.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ImageManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ImageSelectorDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ImageViewDlg.h">

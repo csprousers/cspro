@@ -1,7 +1,7 @@
 ﻿#include "StdAfx.h"
 #include "FilenamePropertyBase.h"
 #include <zUtilO/WindowHelpers.h>
-#include <zUtilF/ImageSelectorDlg.h>
+#include <zMultimediaO/ImageSelectorDlg.h>
 
 namespace PropertyGrid { class ImageFilePathProperty; }
 

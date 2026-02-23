@@ -1,14 +1,20 @@
 ﻿#pragma once
 
-#include <zUtilF/zUtilF.h>
-#include <zUtilF/resource.h>
-#include <zUtilF/ImageManager.h>
+#include <zMultimediaO/zMultimediaO.h>
+#include <zMultimediaO/ImageManager.h>
+#include <zMultimediaO/resource.h>
 
 
-// a modeless dialog that displays an image and allows the user to modify or remove the image;
-// the dialog closes automatically when it becomes inactive
+// --------------------------------------------------------------------------
+// ImageSelectorDlg
+//
+// A modeless dialog that displays an image and allows the user to
+// modify or remove the image.
+//
+// The dialog closes automatically when it becomes inactive.
+// --------------------------------------------------------------------------
 
-class CLASS_DECL_ZUTILF ImageSelectorDlg : public CDialog
+class ZMULTIMEDIAO_API ImageSelectorDlg : public CDialog
 {
     DECLARE_DYNAMIC(ImageSelectorDlg)
 

@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+﻿#include "stdafx.h"
 #include "ImageSelectorDlg.h"
 #include <zToolsO/Screen.h>
 #include <zUtilF/ImageFileDialog.h>

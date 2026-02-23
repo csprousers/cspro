@@ -278,6 +278,16 @@
 7. The library is built as part of the CSPro solution.
 
 
+### libwebp
+
+1. Find the latest tag here: https://github.com/webmproject/libwebp/tags
+2. Edit the batch script, *libwebp.bat*, setting **libwebp_tag**.
+3. Run the batch script.
+4. This copies files into the CSPro solution, including some that are not necessary.
+5. Remove anything that is not already committed.
+6. The library is built as part of the CSPro solution.
+
+
 ### md4c
 
 1. Find the latest tag here: https://github.com/mity/md4c/tags

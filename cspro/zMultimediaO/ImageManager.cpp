@@ -1,5 +1,7 @@
-﻿#include "StdAfx.h"
+﻿#include "stdafx.h"
 #include "ImageManager.h"
+#include "Image.h"
+#include <zToolsO/WinMemoryStream.h>
 
 
 namespace
@@ -36,11 +38,25 @@ std::shared_ptr<const CImage> ImageManager::GetImage(const std::string& file_pat
         file_path,
         PortableFunctions::FileSize(file_path),
         file_time,
-        std::make_shared<CImage>()
+        std::make_unique<CImage>()
     };
 
-    if( new_image_data.file_size == -1 || new_image_data.image->Load(TC::ToWide(file_path).c_str()) != S_OK )
+    if( new_image_data.file_size == -1 )
         return nullptr;
+
+    // WebP
+    if( MimeType::GetSupportedImageTypeFromFileExtension(Path::GetExtension(file_path)) == ImageType::WebP )
+    {
+        if( !ConvertWebPToBitmap(*new_image_data.image, file_path) )
+            return nullptr;
+    }
+
+    // BMP, GIF, JPEG, PNG, and TIFF
+    else
+    {
+        if( new_image_data.image->Load(TC::ToWide(file_path).c_str()) != S_OK )
+            return nullptr;
+    }
 
     // make sure not too many images are cached
     current_cache_file_size_bytes += new_image_data.file_size;
@@ -53,6 +69,32 @@ std::shared_ptr<const CImage> ImageManager::GetImage(const std::string& file_pat
 
     // cache the image data and return the image
     return cached_image_data.emplace_back(std::move(new_image_data)).image;
+}
+
+
+bool ImageManager::ConvertWebPToBitmap(CImage& image, const std::string& file_path)
+{
+    try
+    {
+        const std::unique_ptr<Multimedia::Image> webp_image = Multimedia::Image::FromFile(file_path);
+        ASSERT(webp_image != nullptr);
+
+        const std::unique_ptr<std::vector<std::byte>> bitmap_image = webp_image->ToBuffer(ImageType::Bitmap);
+
+        if( bitmap_image != nullptr )
+        {
+            const std::unique_ptr<WinMemoryStream> memory_stream = WinMemoryStream::Create(bitmap_image->data(), bitmap_image->size());
+
+            if( memory_stream != nullptr && 
+                image.Load(memory_stream->GetStream()) == S_OK )
+            {
+                return true;
+            }
+        }
+    }
+    catch(...) { }
+
+    return false;
 }
 
 

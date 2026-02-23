@@ -116,7 +116,8 @@ enum class ImageType : int
 {
     Jpeg   = 0,
     Png    = 1,
-    Bitmap = 2
+    Bitmap = 2,
+    WebP   = 3,
 };
 
 

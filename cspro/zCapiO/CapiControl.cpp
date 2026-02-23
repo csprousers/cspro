@@ -1,7 +1,7 @@
 ﻿#include "StdAfx.h"
 #include "CapiControl.h"
 #include <zUtilO/Interapp.h>
-#include <zUtilF/ImageManager.h>
+#include <zMultimediaO/ImageManager.h>
 #include <zEngineO/ResponseProcessor.h>
 #include <CSEntry/UWM.h>
 

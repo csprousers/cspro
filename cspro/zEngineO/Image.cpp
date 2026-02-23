@@ -294,13 +294,15 @@ void LogicImage::LoadFromDataUrl(const std::string_view data_url_sv, BinaryDataM
 }
 
 
-void LogicImage::Save(std::string file_path, const std::optional<int> jpeg_quality/* = std::nullopt*/)
+void LogicImage::Save(std::string file_path, const std::optional<int> lossy_quality)
 {
     ASSERT(HasContent());
-    ASSERT(!jpeg_quality.has_value() || ( *jpeg_quality >= 0 && *jpeg_quality <= 100 ));
+    ASSERT(( !lossy_quality.has_value() ) ||
+           ( *lossy_quality >= 0 && *lossy_quality <= 100 ) ||
+           ( lossy_quality == std::numeric_limits<int>::max() ));
 
     // if the contents of the image are already in the format requested, we can save the content directly
-    if( IsImageSet() && !jpeg_quality.has_value() &&
+    if( IsImageSet() && !lossy_quality.has_value() &&
         m_runtimeData->image->GetDetails().image_type == MimeType::GetSupportedImageTypeFromFileExtension(PortableFunctions::PathGetFileExtension(file_path)) )
     {
         FileIO::Write(file_path, m_binarySymbolData.GetContent());
@@ -309,7 +311,7 @@ void LogicImage::Save(std::string file_path, const std::optional<int> jpeg_quali
     // otherwise we must save the file using stb_image
     else
     {
-        GetParsedImage().ToFile(file_path, jpeg_quality);
+        GetParsedImage().ToFile(file_path, lossy_quality.value_or(Multimedia::DefaultLossyQuality));
     }
 
     m_binarySymbolData.SetPath(std::move(file_path));

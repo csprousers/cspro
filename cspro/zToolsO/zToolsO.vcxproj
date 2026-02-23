@@ -109,6 +109,7 @@
     <ClCompile Include="Varfuncs.cpp" />
     <ClCompile Include="WinClipboard.cpp" />
     <ClCompile Include="WindowsDesktopMessage.cpp" />
+    <ClCompile Include="WinMemoryStream.cpp" />
     <ClCompile Include="WinRegistry.cpp" />
     <ClCompile Include="WinSettings.cpp" />
     <ClCompile Include="zToolsO.cpp" />
@@ -202,6 +203,7 @@
     <ClInclude Include="VectorIterators.h" />
     <ClInclude Include="WinClipboard.h" />
     <ClInclude Include="WindowsDesktopMessage.h" />
+    <ClInclude Include="WinMemoryStream.h" />
     <ClInclude Include="WinRegistry.h" />
     <ClInclude Include="WinSettings.h" />
     <ClInclude Include="zToolsO.h" />
