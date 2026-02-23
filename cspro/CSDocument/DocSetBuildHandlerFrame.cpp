@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "DocSetBuildHandlerFrame.h"
 #include "DocSetBuilder.h"
 #include "GenerateDlg.h"
@@ -30,7 +30,7 @@ void DocSetBuildHandlerFrame::PopulateBuildMenu(CMenu& popup_menu)
     dynamic_menu_builder.AddSeparator();
     dynamic_menu_builder.AddOption(ID_COMPILE_DOCSET_COMPLETE, L"Compile Entire Document Set\tCtrl+Shift+K");
 
-#ifdef HELP_TODO_RESTORE_FOR_CSPRO81
+#ifdef HELP_TODO_RESTORE_FOR_CSPRO8X
     dynamic_menu_builder.AddSeparator();
     dynamic_menu_builder.AddOption(ID_EXPORT_DOCSET, L"E&xport Document Set...");
 #endif
