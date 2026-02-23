@@ -1,10 +1,15 @@
-﻿#pragma once
+#pragma once
 
 #ifndef GPAC_CSPRO
 
 #error Make sure that GPAC_CSPRO is defined in configuration.h
 
 #else
+
+// some of the os_... files use Win32 functionality but the
+// function calls aren't properly defined for ...W, not ...A,
+// so disable Unicode for the GPAC compilation
+#undef UNICODE
 
 #define GPAC_MP4BOX_MINI
 

@@ -1,4 +1,4 @@
-﻿#include <engine/StandardSystemIncludes.h>
+#include <engine/StandardSystemIncludes.h>
 #include "AndroidApplicationInterface.h"
 #include "AndroidBluetoothAdapter.h"
 #include "AndroidFtpConnection.h"
@@ -1258,10 +1258,12 @@ bool AndroidApplicationInterface::AudioPlay(const std::string& file_path, const 
 {
     auto env = GetJNIEnvForCurrentThread();
 
-    auto jfilename = JNIReferences::make_local_ref(env, JavaString::ToJava(*env, file_path));
-    auto jmessage = JNIReferences::make_local_ref(env, JavaString::ToJava(*env, message_text));
+    auto jFilePath = JNIReferences::make_local_ref(env, JavaString::ToJava(*env, file_path));
+    auto jMessageText = JNIReferences::make_local_ref(env, JavaString::ToJava(*env, message_text));
 
-    return (bool) env->CallStaticBooleanMethod(JNIReferences::classApplicationInterface,JNIReferences::methodApplicationInterfaceAudioPlay, jfilename.get(), jmessage.get());
+    return env->CallStaticBooleanMethod(JNIReferences::classApplicationInterface,
+                                        JNIReferences::methodApplicationInterfaceAudioPlay,
+                                        jFilePath.get(), jMessageText.get());
 }
 
 
@@ -1269,7 +1271,7 @@ bool AndroidApplicationInterface::AudioStartRecording(const std::string& file_pa
 {
     auto env = GetJNIEnvForCurrentThread();
 
-    auto jfilename = JNIReferences::make_local_ref(env, JavaString::ToJava(*env, file_path));
+    auto jFilePath = JNIReferences::make_local_ref(env, JavaString::ToJava(*env, file_path));
 
     return env->CallStaticBooleanMethod(JNIReferences::classApplicationInterface,
                                         JNIReferences::methodApplicationInterfaceAudioStartRecording,
@@ -1282,7 +1284,9 @@ bool AndroidApplicationInterface::AudioStartRecording(const std::string& file_pa
 bool AndroidApplicationInterface::AudioStopRecording()
 {
     auto env = GetJNIEnvForCurrentThread();
-    return (bool) env->CallStaticBooleanMethod(JNIReferences::classApplicationInterface,JNIReferences::methodApplicationInterfaceAudioStopRecording);
+
+    return env->CallStaticBooleanMethod(JNIReferences::classApplicationInterface,
+                                        JNIReferences::methodApplicationInterfaceAudioStopRecording);
 }
 
 
@@ -1292,8 +1296,8 @@ std::unique_ptr<TemporaryFile> AndroidApplicationInterface::AudioRecordInteracti
 
     auto temporary_file = std::make_unique<TemporaryFile>();
 
-    auto jfilename = JNIReferences::make_local_ref(env, JavaString::ToJava(*env, temporary_file->GetPath()));
-    auto jmessage = JNIReferences::make_local_ref(env, JavaString::ToJava(*env, message_text));
+    auto jFilePath = JNIReferences::make_local_ref(env, JavaString::ToJava(*env, temporary_file->GetPath()));
+    auto jMessageText = JNIReferences::make_local_ref(env, JavaString::ToJava(*env, message_text));
 
     if( env->CallStaticBooleanMethod(JNIReferences::classApplicationInterface,
                                      JNIReferences::methodApplicationInterfaceAudioRecordInteractive,

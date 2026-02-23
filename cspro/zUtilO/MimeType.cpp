@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "MimeType.h"
 #include <zToolsO/CaseInsensitiveComparer.h>
 
@@ -67,7 +67,7 @@ namespace
             CREATE_MAPPING(MimeType::Type::Text,        "txt",      { }),
 
             // audio
-            CREATE_MAPPING("audio/mp3",                 "mp3",      { }),
+            CREATE_MAPPING("audio/mpeg",                "mp3",      { }),
             CREATE_MAPPING(MimeType::Type::AudioM4A,    "m4a",      AudioType::M4A),
             CREATE_MAPPING("audio/wav",                 "wav",      { }),
 
