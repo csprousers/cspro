@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "Mp4File.h"
 #include <zUtilO/Interapp.h>
 #include <zUtilO/TemporaryFile.h>
@@ -239,7 +239,7 @@ void Mp4File::SetTextTag(const TextTag tag_type, const std::string_view text_sv)
         m_data->iso_file,
         tag,
         reinterpret_cast<const u8*>(text_sv.data()),
-        text_sv.length(),
+        uint32_cast(text_sv.length()),
         0,
         0
     ));
@@ -260,7 +260,7 @@ void Mp4File::SetBinaryTag(const BinaryTag tag_type, const std::string& binary_d
         m_data->iso_file,
         tag,
         binary_data.data<u8>(),
-        binary_data.size(),
+        uint32_cast(binary_data.size()),
         0,
         0
     ));

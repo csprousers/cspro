@@ -37,219 +37,291 @@
   <ItemGroup>
     <ClCompile Include="..\external\gpac\src\isomedia\avc_ext.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\gpac\src\isomedia\box_code_3gpp.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\gpac\src\isomedia\box_code_apple.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\gpac\src\isomedia\box_code_base.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\gpac\src\isomedia\box_code_drm.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\gpac\src\isomedia\box_code_meta.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\gpac\src\isomedia\box_funcs.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\gpac\src\isomedia\data_map.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\gpac\src\isomedia\drm_sample.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\gpac\src\isomedia\iff.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\gpac\src\isomedia\isom_intern.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\gpac\src\isomedia\isom_read.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\gpac\src\isomedia\isom_store.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\gpac\src\isomedia\isom_write.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\gpac\src\isomedia\media.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\gpac\src\isomedia\media_odf.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\gpac\src\isomedia\meta.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\gpac\src\isomedia\movie_fragments.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\gpac\src\isomedia\sample_descs.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\gpac\src\isomedia\stbl_read.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\gpac\src\isomedia\stbl_write.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\gpac\src\isomedia\track.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\gpac\src\isomedia\tx3g.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\gpac\src\media_tools\av_parsers.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\gpac\src\media_tools\isom_tools.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\gpac\src\odf\descriptors.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\gpac\src\odf\desc_private.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\gpac\src\odf\odf_code.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\gpac\src\odf\odf_codec.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\gpac\src\odf\odf_command.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\gpac\src\odf\slc.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\gpac\src\utils\alloc.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\gpac\src\utils\base_encoding.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\gpac\src\utils\bitstream.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\gpac\src\utils\configfile.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\gpac\src\utils\constants.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\gpac\src\utils\error.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\gpac\src\utils\list.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\gpac\src\utils\module.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\gpac\src\utils\os_config_init.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\gpac\src\utils\os_divers.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\gpac\src\utils\os_file.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\gpac\src\utils\os_module.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\gpac\src\utils\sha1.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\gpac\src\utils\url.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\gpac\src\utils\utf.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\gpac\src\utils\xml_parser.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\libexif\canon\exif-mnote-data-canon.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\libexif\canon\mnote-canon-entry.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\libexif\canon\mnote-canon-tag.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\libexif\exif-byte-order.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\libexif\exif-content.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\libexif\exif-data.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\libexif\exif-entry.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\libexif\exif-format.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\libexif\exif-gps-ifd.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\libexif\exif-ifd.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\libexif\exif-loader.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\libexif\exif-log.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\libexif\exif-mem.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\libexif\exif-mnote-data.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\libexif\exif-tag.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\libexif\exif-utils.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\libexif\fuji\exif-mnote-data-fuji.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\libexif\fuji\mnote-fuji-entry.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\libexif\fuji\mnote-fuji-tag.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\libexif\olympus\exif-mnote-data-olympus.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\libexif\olympus\mnote-olympus-entry.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\libexif\olympus\mnote-olympus-tag.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\libexif\pentax\exif-mnote-data-pentax.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\libexif\pentax\mnote-pentax-entry.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\libexif\pentax\mnote-pentax-tag.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\qrcodegen\qrcodegen.cpp">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
