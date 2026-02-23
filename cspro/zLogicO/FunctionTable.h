@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zLogicO/zLogicO.h>
 #include <zUtilO/DataTypes.h>
@@ -457,7 +457,7 @@ enum FunctionCode : int
     AUDIOFN_SAVE_CODE                       = 356, // 20200714
     AUDIOFN_STOP_CODE                       = 357, // 20200714
     AUDIOFN_RECORD_CODE                     = 358, // 20200714
-    AUDIOFN_RECORD_INTERACTIVE_CODE         = 359, // 20200714
+    AUDIOFN_RECORDINTERACTIVE_CODE          = 359, // 20200714
     AUDIOFN_COMPUTE_CODE                    = 360, // 20200714
     FNENCODE_CODE                           = 361, // 20200716
     LISTFN_SORT_CODE                        = 362, // 20190716

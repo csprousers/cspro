@@ -95,7 +95,7 @@
        Drop Files dialogs, providing a central place to manage an
        application's files and each file's properties.
 
-    -  New StringWriter logic object that supports building strings
+    -  The new StringWriter logic object supports building strings
        incrementally.
 
     -  Language additions:

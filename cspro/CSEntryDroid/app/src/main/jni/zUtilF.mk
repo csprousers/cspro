@@ -4,7 +4,8 @@ JNI_PATH := $(call my-dir)
 include $(CLEAR_VARS)
 
 LOCAL_MODULE            := zUtilF
-ZUTILF_SRC_PATH         := ../../../../../zUtilF
+SOLUTION_SRC_PATH       := $(JNI_PATH)/../../../../..
+ZUTILF_SRC_PATH         := $(SOLUTION_SRC_PATH)/zUtilF
 
 LOCAL_SRC_FILES         += $(ZUTILF_SRC_PATH)/ChoiceDlg.cpp
 LOCAL_SRC_FILES         += $(ZUTILF_SRC_PATH)/HtmlDialogFunctionRunner.cpp

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zEngineO/zEngineO.h>
 #include <zEngineO/BinarySymbol.h>
@@ -32,7 +32,7 @@ public:
 
     // Returns the width and height of a WebM file, in pixels.
     // If the values are not defined in the header, an exception is thrown.
-    const std::tuple<long long, long long>& GetWidthHeight() const;
+    const std::tuple<int64_t, int64_t>& GetWidthHeight() const;
 
     // Symbol overrides
     std::unique_ptr<Symbol> CloneInInitialState() const override;

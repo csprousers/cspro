@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "Document.h"
 #include "Video.h"
 #include <zMultimediaO/WebMFile.h>
@@ -13,7 +13,7 @@ struct LogicVideo::Data
     VideoStorage video_storage;
     std::optional<bool> is_webm;
     std::optional<double> length;
-    std::optional<std::tuple<long long, long long>> width_height;
+    std::optional<std::tuple<int64_t, int64_t>> width_height;
 };
 
 
@@ -300,7 +300,7 @@ double LogicVideo::GetLength() const noexcept
 }
 
 
-const std::tuple<long long, long long>& LogicVideo::GetWidthHeight() const
+const std::tuple<int64_t, int64_t>& LogicVideo::GetWidthHeight() const
 {
     ASSERT(HasValidContent());
 

@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "IncludesRT.h"
 #include "Document.h"
 #include "Video.h"
@@ -110,7 +110,7 @@ double LogicInterpreter::ex_Video_clear(const int program_index)
 double LogicInterpreter::ex_Video_length(const int program_index)
 {
     const auto& symbol_va_with_subscript_node = GetNode<Nodes::SymbolVariableArgumentsWithSubscript>(program_index);
-    LogicVideo* const logic_video = GetFromSymbolOrEngineItem<LogicVideo*>(symbol_va_with_subscript_node.symbol_index, symbol_va_with_subscript_node.subscript_compilation);
+    const LogicVideo* const logic_video = GetFromSymbolOrEngineItem<LogicVideo*>(symbol_va_with_subscript_node.symbol_index, symbol_va_with_subscript_node.subscript_compilation);
 
     if( logic_video == nullptr )
         return DEFAULT;
@@ -170,14 +170,14 @@ double LogicInterpreter::ex_Video_save(const int program_index)
 double LogicInterpreter::ex_Video_width_height(const int program_index)
 {
     const auto& symbol_va_with_subscript_node = GetNode<Nodes::SymbolVariableArgumentsWithSubscript>(program_index);
-    LogicVideo* const logic_video = GetFromSymbolOrEngineItem<LogicVideo*>(symbol_va_with_subscript_node.symbol_index, symbol_va_with_subscript_node.subscript_compilation);
+    const LogicVideo* const logic_video = GetFromSymbolOrEngineItem<LogicVideo*>(symbol_va_with_subscript_node.symbol_index, symbol_va_with_subscript_node.subscript_compilation);
 
     if( logic_video == nullptr || !VideoRT::EnsureVideoExistsAndIsValid(*this, *logic_video, nullptr) )
         return DEFAULT;
 
     try
     {
-        const std::tuple<long long, long long>& width_height = logic_video->GetWidthHeight();
+        const std::tuple<int64_t, int64_t>& width_height = logic_video->GetWidthHeight();
         const bool requesting_width = ( symbol_va_with_subscript_node.function_code == FunctionCode::VIDEOFN_WIDTH_CODE );
         return static_cast<double>(requesting_width ? std::get<0>(width_height) :
                                                       std::get<1>(width_height));

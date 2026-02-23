@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "FunctionTable.h"
 #include "ActionInvoker.h"
 #include "Symbol.h"
@@ -2189,7 +2189,7 @@ namespace
         },
         {
             "concat",
-            "audio_name.concat(audio|filename)",
+            "audio_name.concat(audio_name | filename)",
             "Audio_concat_function.html",
             FunctionCode::AUDIOFN_CONCAT_CODE,
             SymbolType::Audio,
@@ -2241,7 +2241,7 @@ namespace
             "recordInteractive",
             "audio_name.recordInteractive([message])",
             "Audio_recordInteractive_function.html",
-            FunctionCode::AUDIOFN_RECORD_INTERACTIVE_CODE,
+            FunctionCode::AUDIOFN_RECORDINTERACTIVE_CODE,
             SymbolType::Audio,
             DataType::Numeric,
             FunctionCompilationType::Audio,
