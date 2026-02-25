@@ -131,7 +131,7 @@ bool ApplicationEvent::PreSave(Log& log) const
             Versioning::Number,
             Versioning::NumberDetailedText,
             Versioning::GetReleaseDate(),
-            Versioning::IsBeta ? 1 : 0,
+            Versioning::IsPrerelease ? 1 : 0,
             Serializer::GetCurrentVersion()
         );
 

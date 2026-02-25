@@ -1,6 +1,5 @@
-﻿#include "StandardSystemIncludes.h"
+#include "StandardSystemIncludes.h"
 #include "Interpreter.h"
-#include "Engine.h"
 #include "ParameterManager.h"
 #include <zToolsO/Serializer.h>
 
@@ -45,8 +44,8 @@ double CIntDriver::exdiagnostics(int iExpr)
             if( show_all_parameters )
             {
                 SO::AppendWithSeparator(diagnostics_text,
-                                        SO::ConcatenateWS(ParameterManager::GetDisplayName(parameter), _T(": "), value),
-                                        _T(", "));
+                                        SO::ConcatenateWS(ParameterManager::GetDisplayName(parameter), L": ", value),
+                                        L", ");
             }
 
             else
@@ -65,7 +64,7 @@ double CIntDriver::exdiagnostics(int iExpr)
             assign_parameter(ParameterManager::Parameter::Diagnostics_ReleaseDate, UTF8_TODO::GetCString(IntToString(Versioning::GetReleaseDate())));
 
         if( show_all_parameters || *parameter == ParameterManager::Parameter::Diagnostics_Beta )
-            assign_parameter(ParameterManager::Parameter::Diagnostics_Beta, Versioning::IsBeta ? _T("1") : _T("0"));
+            assign_parameter(ParameterManager::Parameter::Diagnostics_Beta, Versioning::IsPrerelease ? L"1" : L"0");
 
         if( show_all_parameters || *parameter == ParameterManager::Parameter::Diagnostics_Serializer )
             assign_parameter(ParameterManager::Parameter::Diagnostics_Serializer, UTF8_TODO::GetCString(IntToString(Serializer::GetCurrentVersion())));

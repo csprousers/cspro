@@ -56,50 +56,46 @@ ReleaseCreator::ReleaseCreator(Controller& controller, SharableString tag_name)
 }
 
 
-namespace ReleaseTypeStrings
+ReleaseType ReleaseCreator::ParseReleaseType(const std::string& tag_name)
 {
-    constexpr const char* WithDashes[] = { "-alpha", "-beta", "-rc", };
-}
-
-
-ReleaseCreator::ReleaseType ReleaseCreator::ParseReleaseType(const std::string& tag_name)
-{
-    auto matches = [&](const size_t index)
+    for( ReleaseType release_type = ReleaseType::Alpha;
+         release_type != ReleaseType::Release;
+         release_type = static_cast<ReleaseType>(static_cast<int>(release_type) + 1) )
     {
-        return ( tag_name.find(ReleaseTypeStrings::WithDashes[index]) != std::string::npos );
-    };
+        const char* const identifier = Versioning::GetReleaseIdentifier(release_type, true);
 
-    return matches(0) ? ReleaseType::Alpha :
-           matches(1) ? ReleaseType::Beta :
-           matches(2) ? ReleaseType::ReleaseCandidate :
-                        ReleaseType::Release;
+        if( tag_name.find(identifier) != std::string::npos )
+            return release_type;
+    }
+
+    return ReleaseType::Release;
 }
 
 
 std::string ReleaseCreator::GetReleaseFilenameIdentifier()
 {
     const ReleaseType release_type = ParseReleaseType(*m_tagName);
+    std::string release_filename_id = Versioning::GetReleaseIdentifier(release_type, true);
 
-    if( release_type == ReleaseType::Release )
-        return std::string();
-
-    ASSERT(static_cast<size_t>(release_type) >= 0 &&
-           static_cast<size_t>(release_type) < _countof(ReleaseTypeStrings::WithDashes));
-
-    std::string release_filename_id = ReleaseTypeStrings::WithDashes[static_cast<size_t>(release_type)];
+    if( release_filename_id.empty() )
+    {
+        ASSERT(release_type == ReleaseType::Release);
+    }
 
     // add the release date to differentiate between multiple prereleases
-    const std::string version_cpp = GetFileInOpenSourceRepository("cspro/zUtilO/Versioning.cpp")->as<std::string>();
+    else
+    {
+        const std::string version_cpp = GetFileInOpenSourceRepository("cspro/zUtilO/Versioning.cpp")->as<std::string>();
 
-    // CSPRO_RELEASE_DATE was used prior to CSPro 8.1
-    std::regex version_regex(R"((?:CSProReleaseDate.*=.*|CSPRO_RELEASE_DATE.*)(\d{8}))");
-    std::smatch matches;
+        std::regex version_regex(R"((?:CSProReleaseDate.*=.*)(\d{8}))");
+        std::smatch matches;
 
-    if( !std::regex_search(version_cpp, matches, version_regex) )
-        throw CSProException("Could not parse the version date.");
+        if( !std::regex_search(version_cpp, matches, version_regex) )
+            throw CSProException("Could not parse the version date.");
 
-    release_filename_id.push_back('-');
-    release_filename_id.append(matches.str(1));
+        release_filename_id.push_back('-');
+        release_filename_id.append(matches.str(1));
+    }
 
     return release_filename_id;
 }
@@ -111,8 +107,7 @@ void ReleaseCreator::ParseVersion()
 
     const std::string version_h = GetFileInOpenSourceRepository("cspro/zUtilO/Versioning.h")->as<std::string>();
 
-    // CSPRO_VERSION_NUMBER_DETAILED_TEXT was used prior to CSPro 8.1
-    std::regex version_regex(R"((?:NumberDetailedText|CSPRO_VERSION_NUMBER_DETAILED_TEXT).+\"((\d+)\.(\d+)\.(\d+))\")");
+    std::regex version_regex(R"((?:NumberDetailedText).+\"((\d+)\.(\d+)\.(\d+))\")");
     std::smatch matches;
 
     if( !std::regex_search(version_h, matches, version_regex) )
