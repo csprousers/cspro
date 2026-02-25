@@ -1,4 +1,4 @@
-﻿//***************************************************************************
+//***************************************************************************
 //  File name: MainFrm.cpp
 //
 //  Description:
@@ -227,8 +227,8 @@ void CMainFrame::UpdateStatusBarScr (CLPoint ptlCurrPos) {
         pDC->SelectObject(pStatus->GetFont()); // 20120207 the text extent isn't correct without this statement
         CString csTitle;
         csTitle.LoadString (IDS_MSG01);
-        wsprintf (pszStr, _T("%s: (%ld,%ld)"), (const TCHAR*) csTitle, ptlCurrPos.y, ptlCurrPos.x);
-        pStatus->SetPaneInfo (7, indicators[7], SBPS_NORMAL, pDC->GetTextExtent (pszStr, _tcslen(pszStr)).cx+5);
+        wsprintf (pszStr, _T("%s: (%ld,%ld)"), csTitle.GetString(), ptlCurrPos.y, ptlCurrPos.x);
+        pStatus->SetPaneInfo (7, indicators[7], SBPS_NORMAL, pDC->GetTextExtent (pszStr, int32_cast(_tcslen(pszStr))).cx+5);
         pStatus->ReleaseDC (pDC);
         pStatus->SetPaneText (7, pszStr);
         pStatus->UpdateWindow ();
@@ -250,14 +250,14 @@ void CMainFrame::UpdateStatusBarBlock (CLPoint ptlOrigin, BOOL bActive) {
         CString csTitle;
         csTitle.LoadString (IDS_MSG02);
         if ( bActive )  {
-            wsprintf (pszStr, _T("%s: (%ld,%ld)"), (const TCHAR*) csTitle, ptlOrigin.y, ptlOrigin.x);
+            wsprintf (pszStr, _T("%s: (%ld,%ld)"), csTitle.GetString(), ptlOrigin.y, ptlOrigin.x);
         }
         else  {
-            wsprintf (pszStr, _T("%s: (none)"), (const TCHAR*) csTitle);
+            wsprintf (pszStr, _T("%s: (none)"), csTitle.GetString());
         }
         CDC* pDC = pStatus->GetDC();
         pDC->SelectObject(pStatus->GetFont()); // 20120207 the text extent isn't correct without this statement
-        pStatus->SetPaneInfo (1, indicators[1], SBPS_NORMAL, pDC->GetTextExtent (pszStr, _tcslen(pszStr)).cx+5);
+        pStatus->SetPaneInfo (1, indicators[1], SBPS_NORMAL, pDC->GetTextExtent (pszStr, int32_cast(_tcslen(pszStr))).cx+5);
         pStatus->SetPaneText (1,pszStr);
         pStatus->ReleaseDC (pDC);
     }
@@ -276,7 +276,7 @@ void CMainFrame::UpdateStatusBarSize (const TCHAR* pszStr) {
     if (pStatus)  {
         CDC* pDC = pStatus->GetDC();
         pDC->SelectObject(pStatus->GetFont()); // 20120207 the text extent isn't correct without this statement
-        pStatus->SetPaneInfo (6, indicators[6], SBPS_NORMAL, pDC->GetTextExtent (pszStr, _tcslen(pszStr)).cx+5);
+        pStatus->SetPaneInfo (6, indicators[6], SBPS_NORMAL, pDC->GetTextExtent (pszStr, int32_cast(_tcslen(pszStr))).cx+5);
         pStatus->SetPaneText (6, pszStr);
         pStatus->ReleaseDC (pDC);
     }
@@ -297,7 +297,7 @@ void CMainFrame::UpdateStatusBarEncoding(const TCHAR* pszStr) // 20111222
     {
         CDC * pDC = pStatus->GetDC();
         pDC->SelectObject(pStatus->GetFont()); // 20120207 the text extent isn't correct without this statement
-        pStatus->SetPaneInfo(5,indicators[5],SBPS_NORMAL,pDC->GetTextExtent(pszStr,_tcslen(pszStr)).cx+5);
+        pStatus->SetPaneInfo(5,indicators[5],SBPS_NORMAL,pDC->GetTextExtent(pszStr,int32_cast(_tcslen(pszStr))).cx+5);
         pStatus->SetPaneText(5,pszStr);
         pStatus->ReleaseDC(pDC);
     }
@@ -403,10 +403,10 @@ BOOL CMainFrame::LoadFrame(UINT nIDResource, DWORD dwDefaultStyle, CWnd* pParent
         csText = AfxGetApp()->GetProfileString(INI_SECTION_WINDOWSIZE, INI_KEY_RECT);
         if (!csText.IsEmpty()) {
             // can't use sscanf in a DLL
-            rect.left = _ttoi((const TCHAR*) csText);
-            rect.top = _ttoi((const TCHAR*) csText + 5);
-            rect.right = _ttoi((const TCHAR*) csText + 10);
-            rect.bottom = _ttoi((const TCHAR*) csText + 15);
+            rect.left = _ttoi(csText.GetString());
+            rect.top = _ttoi(csText.GetString() + 5);
+            rect.right = _ttoi(csText.GetString() + 10);
+            rect.bottom = _ttoi(csText.GetString() + 15);
         }
         else {
             rect = rectDefault;
@@ -546,7 +546,7 @@ LRESULT CMainFrame::OnIMSAFileOpen(WPARAM /*wParam*/, LPARAM /*lParam*/)
     }
 
     csTemp = csWndClass + _T(" -- CIMPSViewerMainFrame::OnIMPS40FileOpen x%sx\n");
-    TRACE(csTemp, (const TCHAR*) csFileName);
+    TRACE(csTemp, csFileName.GetString());
 
     CFileStatus status;
     // GSF 25/08/00 file name comes in quoted, because of long file names
@@ -564,7 +564,8 @@ LRESULT CMainFrame::OnIMSAFileOpen(WPARAM /*wParam*/, LPARAM /*lParam*/)
         CTVDoc* pDoubleDoc = pApp->FindFile(csFileName);
         if (pDoubleDoc && !pDoubleDoc->IsReloadingOrClosing())  {
             ASSERT_VALID(pDoubleDoc);
-            TRACE(_T("CIMPSViewerMainFrame::OnIMPS40FileOpen - Closing duplicate document %p, %s %s\n"), pDoubleDoc, (const TCHAR*) pDoubleDoc->GetTitle(), (const TCHAR*) pDoubleDoc->GetPathName());
+            TRACE(_T("CIMPSViewerMainFrame::OnIMPS40FileOpen - Closing duplicate document %p, %s %s\n"),
+                  pDoubleDoc, pDoubleDoc->GetTitle().GetString(), pDoubleDoc->GetPathName().GetString());
             pDoubleDoc->OnCloseDocument();
         }
 
@@ -611,7 +612,7 @@ LRESULT CMainFrame::OnIMSAFileClose(WPARAM /*wParam*/, LPARAM /*lParam*/)
     }
 
     csTemp = csWndClass + _T(" -- CIMPSViewerMainFrame::OnIMPS40FileClose x%sx\n");
-    TRACE(csTemp, (const TCHAR*) csFileName);
+    TRACE(csTemp, csFileName.GetString());
 
     // close the document
     CTVDoc* pDoubleDoc = ((CTextViewApp*) AfxGetApp())->FindFile(csFileName);
@@ -641,7 +642,7 @@ LRESULT CMainFrame::OnIMSASetFocus(WPARAM /*wParam*/, LPARAM /*lParam*/)
     CString csFileName, csTemp;
 
     csTemp = csWndClass + _T("WM_IMPS40_SETFOCUS message received\n");
-    TRACE(csTemp, (const TCHAR*) csFileName);
+    TRACE(csTemp, csFileName.GetString());
 
     SetForegroundWindow();  // win32
     WINDOWPLACEMENT wndpl;

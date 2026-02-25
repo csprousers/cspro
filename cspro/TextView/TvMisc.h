@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 //***************************************************************************
 //  File name: TvMisc.h
@@ -124,19 +124,16 @@ class CFileIO  {
         ~CFileIO (void);
         BOOL FileExist (const CString&);
         BOOL SetFileName (const CString&);
-        inline CString GetFileName (void)   { return m_csFileName;  }
-        BOOL Open (CString);
-        inline BOOL Open (void)  { return Open (m_csFileName);  }
+        const CString& GetFileName() const { return m_csFileName; }
+        BOOL Open (const CString& csFileName);
+        BOOL Open (void) { return Open (m_csFileName);  }
         BOOL Close (void);
         unsigned int Read (long, BYTE*);
 
-//        long GetFileSize (void)  { return _filelength (m_iHandle);  }
         long GetFileSize(void) const { return m_lFileSize; }   // changed to work while underlying file is closed ... csc 5/3/2004
-//        BOOL AtEOF (void)  {  return ( _eof (m_iHandle) );  }
         BOOL AtEOF(void) const { return m_bEOF; }   // changed to work while underlying file is closed ... csc 5/3/2004
         BOOL RequiresReload(void) const;   // csc 5/3/2004
         BOOL RequiresClose(void) const;   // csc 5/3/2004
-        void Reload(void); // csc 5/3/2004
 
         int ConvertBufferToWideChar(BYTE* source, LPTSTR dest, int srcLen);
         int  GetNumBytesToSkipBOM(); //Skip Byte order Mark

@@ -1,4 +1,4 @@
-﻿//***************************************************************************
+//***************************************************************************
 //  File name: TvBlock.cpp
 //
 //  Description:
@@ -203,7 +203,6 @@ CBlockScrollView::CBlockScrollView()
     m_ptlOrigin = CLPoint (0L, 0L);
     m_ptlDestination = CLPoint (0L, 0L);
     m_bCaptured = FALSE;
-    m_iTimer = NONE;                            // inactive
 }
 
 CBlockScrollView::~CBlockScrollView()
@@ -385,7 +384,7 @@ void CBlockScrollView::OnLButtonDown(UINT nFlags, CPoint point)  {
     SetCapture ();
     UpdateStatusBar ();
     m_bCaptured = TRUE;
-    ASSERT ( m_iTimer == NONE );
+    ASSERT(!m_nTimer.has_value());
     CScrollView::OnLButtonDown(nFlags, point);
 }
 
@@ -395,9 +394,9 @@ void CBlockScrollView::OnLButtonUp(UINT nFlags, CPoint point)  {
         ReleaseCapture ();
         m_bCaptured = FALSE;
     }
-    if ( m_iTimer != NONE )  {
-        VERIFY ( KillTimer ( m_iTimer ) );
-        m_iTimer = NONE;
+    if ( m_nTimer.has_value() )  {
+        VERIFY( KillTimer(*m_nTimer) );
+        m_nTimer.reset();
     }
 
     if ( GetBlockedRectChar().Height() == 0L && GetBlockedRectChar().Width() == 0L )  {
@@ -422,12 +421,12 @@ void CBlockScrollView::OnMouseMove(UINT nFlags, CPoint point)  {
 
         GetClientRect (&rcClient);
         rcClient.InflateRect (-::GetSystemMetrics(SM_CXBORDER), -::GetSystemMetrics(SM_CYBORDER));  // account for Win 3.1 bug; see KB Q43596
-        if ( m_iTimer != NONE )  {
+        if ( m_nTimer.has_value() ) {
             // outside scrolling is already enabled ...
             if ( rcClient.PtInRect ( point ) )  {
                 // back within bounds, nuke the timer
-                VERIFY ( KillTimer ( m_iTimer ) );
-                m_iTimer = NONE;  // signal that it's disabled
+                VERIFY(KillTimer(*m_nTimer) );
+                m_nTimer.reset();  // signal that it's disabled
             }
         }
         else  {   // no timer currently active; this condition prevents recursion
@@ -435,8 +434,8 @@ void CBlockScrollView::OnMouseMove(UINT nFlags, CPoint point)  {
             if (!rcClient.PtInRect(point))  {
                 UINT uScrollSpeed = GetProfileInt(_T("Windows"), _T("KeyboardSpeed"), 40);
                 ptlOffset = GetUnscaledScrollPosition ();  //GetScrollPosition());
-                    ASSERT (m_iTimer==NONE);
-                    m_iTimer = SetTimer (SCROLL_TIMER, uScrollSpeed*3, NULL);
+                    ASSERT(!m_nTimer.has_value());
+                    m_nTimer = SetTimer(SCROLL_TIMER, uScrollSpeed*3, NULL);
             }
         }
     }
@@ -537,7 +536,7 @@ void CBlockScrollView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)  {
 }
 
 void CBlockScrollView::OnTimer(UINT_PTR /*nIDEvent*/)  {
-    ASSERT ( m_iTimer != NONE );
+    ASSERT(m_nTimer.has_value());
     ptlOffset = GetUnscaledScrollPosition ();  //GetScrollPosition());
     CPoint  point;
     CRect   rcClient;
@@ -629,7 +628,7 @@ void CBlockScrollView::OnLButtonDblClk(UINT nFlags, CPoint point)
         // buffers aren't lined up correctly, so we can't render ourselves right now
         return;
     }
-    ASSERT (m_iTimer == NONE);
+    ASSERT(!m_nTimer.has_value());
 
     // clear any existing block
     if (IsBlockActive())  {

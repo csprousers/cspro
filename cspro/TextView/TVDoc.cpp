@@ -1,4 +1,4 @@
-﻿//***************************************************************************
+//***************************************************************************
 //  File name: TVDoc.cpp
 //
 //  Description:
@@ -224,7 +224,7 @@ void CTVDoc::UpdateStatusBar()  {
 
     ((CMainFrame*) AfxGetApp()->m_pMainWnd)->UpdateStatusBarSize ( (const TCHAR*) csStr);
 
-    switch( m_buffMgr.GetFileEncoding() ) // GHM 20111222
+    switch( m_buffMgr.GetFileEncoding() ) // 20111222
     {
     case Encoding::Utf8:
         caTmp = _T("UTF-8");
@@ -260,7 +260,7 @@ void CTVDoc::ReloadFile()
         m_bIsReloadingOrClosing = true;
         csFile = GetPathName();
 
-        // GHM 20101212 TextView crashed if passed a directory name; this fixes that
+        // 20101212 TextView crashed if passed a directory name; this fixes that
         if( csFile.IsEmpty() )
             return;
 

@@ -1,4 +1,4 @@
-﻿//***************************************************************************
+//***************************************************************************
 //  File name: TvMisc.cpp
 //
 //  Description:
@@ -26,7 +26,7 @@ extern CCriticalErrorMgr errorMgr;
 //  functions used for searching for text ...
 
 void SearchInit (const TCHAR* p, int next[])  {
-    int i, j, M = _tcslen(p);
+    int i, j, M = int32_cast(_tcslen(p));
     next[0] = NONE;
     for ( i = 0 , j = NONE ; i < M ; i++, j++, next[i] = j)  {
         while ( (j>=0) && (p[i] != p[j]))  {
@@ -268,8 +268,8 @@ int CBuffer::Search (const TCHAR* pszSearchText, const TCHAR* pszSearchLine, int
 //    char* a = m_caIOBuffer;
     int i, j, M, N;
     pszSearchLine += iFindCol;
-    M = _tcslen (pszSearchText);
-    N = (int) _tcslen (pszSearchLine);
+    M = int32_cast(_tcslen(pszSearchText));
+    N = int32_cast(_tcslen(pszSearchLine));
     for ( i = j = 0 ; j < M && i < N ; i++, j++ )  {
         while ( (j>=0) && (pszSearchLine[i]!=pszSearchText[j]) )  {
             j = next[j];
@@ -323,8 +323,8 @@ BOOL CFileIO::SetFileName (const CString& cs)  {
     return bRetCode;
 }
 
-BOOL CFileIO::Open ( CString csFileName )  {
-    if ( (m_iHandle = _topen ( (const TCHAR*) csFileName,  _O_BINARY | _O_RDONLY)) == -1)  {
+BOOL CFileIO::Open(const CString& csFileName) {
+    if (_wsopen_s(&m_iHandle, csFileName.GetString(), _O_BINARY | _O_RDONLY, _SH_DENYNO, _S_IREAD | _S_IWRITE) != 0) {
         CString csErrMsg;
         csErrMsg.LoadString (IDS_ERR06);
         csErrMsg += csFileName;
@@ -332,7 +332,7 @@ BOOL CFileIO::Open ( CString csFileName )  {
         return FALSE;
     }
     if (_filelengthi64(m_iHandle) > 2147483647i64) {    // BMD 02 Aug 2002
-        AfxMessageBox(_T("Can't view files > 2GB"));
+        AfxMessageBox(L"Can't view files > 2GB");
         return FALSE;
     }
 
@@ -340,8 +340,8 @@ BOOL CFileIO::Open ( CString csFileName )  {
 
     // store last modification date/time; csc 5/3/2004
     CFileStatus status;
-    if (!CFile::GetStatus((const TCHAR*)csFileName, status)) {
-        AfxMessageBox(_T("Internal error getting file status"));
+    if (!CFile::GetStatus(csFileName, status)) {
+        AfxMessageBox(L"Internal error getting file status");
         return FALSE;
     }
     m_timeCreate = status.m_mtime;
@@ -485,7 +485,7 @@ BOOL CFileIO::RequiresClose(void) const
 
     // see if the file has recently been deleted ...
     CFileStatus status;
-    return (!CFile::GetStatus((const TCHAR*)m_csFileName, status));
+    return (!CFile::GetStatus(m_csFileName, status));
 }
 
 BOOL CFileIO::RequiresReload(void) const
@@ -497,9 +497,9 @@ BOOL CFileIO::RequiresReload(void) const
 
     // see if the file has recently been modified ...
     CFileStatus status;
-    if (!CFile::GetStatus((const TCHAR*)m_csFileName, status)) {
+    if (!CFile::GetStatus(m_csFileName, status)) {
         // file does not exist ... signal error
-        AfxMessageBox(_T("Internal error checking reload status"));
+        AfxMessageBox(L"Internal error checking reload status");
         ASSERT(FALSE);
         return TRUE;     // file has been deleted ...
     }
@@ -553,9 +553,9 @@ TCHAR* CBufferMgr::GetNextLine (void)  {
     }
 
     if ( IsEstimatingNumLines () )  {
-       if ( (int) _tcslen ((LPTSTR)pszRetVal) > m_iFileWidth )  {
+       if ( int32_cast(_tcslen(pszRetVal)) > m_iFileWidth )  {
             ASSERT(FALSE);
-            m_iFileWidth = (int) _tcslen ((LPTSTR)pszRetVal);
+            m_iFileWidth = int32_cast(_tcslen(pszRetVal));
         }
         if ( Status() == ENDFILE )  {
             EndEstimateNumLines ();
@@ -1015,7 +1015,7 @@ void CBuffer::LoadBuffer (void)  {
         // csc 5/3/2004 ... detect file deletion or modification
         if (m_currFileIO->RequiresClose()) {
             CString cs;
-            cs.Format(_T("File %s has been deleted, or is no longer available. File will be closed."), m_currFileIO->GetFileName().GetString());
+            cs.Format(L"File %s has been deleted, or is no longer available. File will be closed.", m_currFileIO->GetFileName().GetString());
 //            AfxMessageBox(cs, MB_ICONEXCLAMATION);
 //            m_stStatus=CLOSEFILE;
             m_iaOffs[m_iCurrLine]=CLOSEFILE_SIGNAL;
@@ -1023,7 +1023,7 @@ void CBuffer::LoadBuffer (void)  {
         }
         if (m_currFileIO->RequiresReload()) {
             CString cs;
-            cs.Format(_T("File %s has been changed by another application and will be reloaded."), m_currFileIO->GetFileName().GetString());
+            cs.Format(L"File %s has been changed by another application and will be reloaded.", m_currFileIO->GetFileName().GetString());
 //            AfxMessageBox(cs, MB_ICONEXCLAMATION);
 //            m_stStatus=RELOADFILE;
             m_iaOffs[m_iCurrLine]=RELOADFILE_SIGNAL;
@@ -1165,7 +1165,7 @@ long CBufferBoundaryMgr::GetNextBoundary (long lBnd)  {
 }
 
 long CBufferBoundaryMgr::GetPrevBoundary (long lBnd)  {
-    for ( int i = m_elementArray.GetSize()-1 ; i >= 0 ; i-- )  {
+    for ( INT_PTR i = m_elementArray.GetSize()-1 ; i >= 0 ; i-- )  {
         if ( ( (CBufferBoundaryElement*)m_elementArray[i])->GetBoundary () < lBnd )  {
             return ( (CBufferBoundaryElement*)m_elementArray[i])->GetBoundary ();
         }
@@ -1192,7 +1192,7 @@ inline long CBufferBoundaryMgr::GetMaxLineNumber (void)  {
 }
 
 const CBufferBoundaryElement* CBufferBoundaryMgr::GetBoundaryForLineNumber ( long lLineNumber )  {
-    for ( int i = m_elementArray.GetSize()-1 ; i >= 0 ; i-- )  {
+    for ( INT_PTR i = m_elementArray.GetSize()-1 ; i >= 0 ; i-- )  {
         if ( ( (CBufferBoundaryElement*)m_elementArray[i])->GetBeginningLineNumber() <= lLineNumber)  {
             return (CBufferBoundaryElement*)m_elementArray[i];
         }
@@ -1262,7 +1262,7 @@ void itoc (TCHAR ch[], int value, int len, int fill)  {
     for (i = len - 1; i >= 0; i--) {
         if (val == 0)  {
             if (i == len - 1)  {
-                ch[i] = _T('0');
+                ch[i] = '0';
             }
             else  {
                 ch[i] = (TCHAR) fill;
@@ -1303,7 +1303,7 @@ void ltoc (TCHAR ch[], long value, int len, int fill)  {
     for (i = len - 1; i >= 0; i--) {
         if (val == 0) {
             if (i == len - 1)  {
-                ch[i] = _T('0');
+                ch[i] = '0';
             }
             else  {
                 ch[i] = (TCHAR) fill;

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 //***************************************************************************
 //  File name: TVView.h
 //
@@ -34,7 +34,7 @@ private:
                         m_bRulersInitialized, // TRUE if the rulers have been dynamically allocated and intitialzed
                         m_bRulerTempOff,      // TRUE if ruler temporarily off for printing
                         m_bContinuePrinting;  // TRUE if more pages to print
-    int                 m_iTimer;             // timer ID for modal background processing via CWaitDialog
+    std::optional<UINT_PTR> m_nTimer;         // timer ID for modal background processing via CWaitDialog
     BOOL                m_bErrorState;        // set by CCriticalError::
 
     /*--- things for the "Find" dialog box  ---*/

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 //***************************************************************************
 //  File name: FindDlg.h
 //
@@ -44,11 +44,11 @@ private:
 public:
     CView* m_pCurrView;
 
-    size_t  GetFindLen (void)      { return _tcslen (m_csSearchText);   }
-    void UpdateHistoryList (void);  // recent combo box choices
-    void SetDirection (UINT uD)    { m_uDirection = uD;  }
-    UINT GetDirection (void)       { return m_uDirection; }
-    const CString& GetCurrFindSel(void) const { return m_csSearchText; }   // csc 4 jan 04
+    int GetFindLen() const { return m_csSearchText.GetLength(); }
+    void UpdateHistoryList();  // recent combo box choices
+    void SetDirection(UINT uD) { m_uDirection = uD;  }
+    UINT GetDirection() const  { return m_uDirection; }
+    const CString& GetCurrFindSel() const { return m_csSearchText; }   // csc 4 jan 04
 
 
 protected:
