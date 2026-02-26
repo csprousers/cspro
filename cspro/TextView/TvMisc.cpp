@@ -12,7 +12,7 @@
 //***************************************************************************
 
 #include "StdAfx.h"
-#include <zUtilO/FileUtil.h>
+#include <io.h>
 
 
 //////////////////////////////////////////////////////////////////////////////
@@ -345,10 +345,18 @@ BOOL CFileIO::Open(const CString& csFileName) {
         return FALSE;
     }
     m_timeCreate = status.m_mtime;
-    m_unicodeEncoding= GetEncodingFromBOM(m_iHandle);
-    bool isValidEncoding = (m_unicodeEncoding == Encoding::Utf8) || (m_unicodeEncoding == Encoding::Ansi) || (m_unicodeEncoding == Encoding::Utf16LE);
-    if (!isValidEncoding){
-        AfxMessageBox(csFileName + L"\n\nCSPro does not support the specified text encoding.");
+
+    m_textEncoding = GetEncodingFromBOM<TextEncoding>(m_iHandle);
+
+    if( !m_textEncoding.IsAnsiOrUtf8() &&
+        m_textEncoding.GetType() != TextEncoding::Type::Utf16LE )
+    {
+        AfxMessageBox(FormatText(
+            L"%s\n\nCSPro does not support the specified text encoding: %s.",
+            csFileName.GetString(),
+            TC::ToWide(m_textEncoding.ToString()).c_str()
+        ));
+
         return FALSE;
     }
 
@@ -369,26 +377,7 @@ BOOL CFileIO::Close (void)  {
     }
 }
 
-int  CFileIO::GetNumBytesToSkipBOM()
-{
-    int numBytetoSkip = 0;
-    switch(m_unicodeEncoding)
-    {
-    case Encoding::Ansi:
-        break;
-    case Encoding::Utf16BE:
-        numBytetoSkip=2;
-        break;
-    case Encoding::Utf16LE:
-        numBytetoSkip=2;
-        break;
-    case Encoding::Utf8:
-        numBytetoSkip=3;
-        break;
-    }
-    return numBytetoSkip;
 
-}
 unsigned int CFileIO::Read (long lOffs, BYTE* buf)  {
     unsigned int bytes;
     // unsigned int numChars;
@@ -430,7 +419,7 @@ unsigned int CFileIO::Read (long lOffs, BYTE* buf)  {
     bytes = _read (m_iHandle, buf, IOBUFSIZE);
 
     if (bytes == IOBUFSIZE) {                    // BMD (04 Nov 2002) read but don't process
-        //ASSERT(FALSE); //Unicode savy -- what about TCHAR = 2 bytes?? ..WE are just treating this as byte buffer . should be fine ??
+        //ASSERT(false); //Unicode savy -- what about TCHAR = 2 bytes?? ..WE are just treating this as byte buffer . should be fine ??
         bytes--;
     }
 
@@ -440,42 +429,32 @@ unsigned int CFileIO::Read (long lOffs, BYTE* buf)  {
     return bytes;
 }
 
- int CFileIO::ConvertBufferToWideChar(BYTE* source, LPTSTR dest, int srcLen)
+void CFileIO::ConvertBufferToWideChar(const BYTE* const source, TCHAR* const dest, const int srcLen)
 {
-    CMainFrame* pFrame = (CMainFrame*)AfxGetMainWnd();
-    bool bLineDraw = false;
-    if(pFrame){
-        bLineDraw = pFrame->m_bLineDraw;
-    }
-    int numWChars = -1;
-    switch(m_unicodeEncoding){
-    case Encoding::Utf8:
-        numWChars =  MultiByteToWideChar( CP_UTF8 , 0 , (LPCSTR)source , srcLen, NULL , 0 );
-        MultiByteToWideChar( CP_UTF8 , 0 , (LPCSTR)source , srcLen, dest , numWChars );
-        dest[numWChars] =0;
-        break;
-    case Encoding::Utf16BE:
-        ASSERT(FALSE); //Windows supports only little endian
-        break;
-    case Encoding::Utf16LE:
-        ASSERT(FALSE); //No need to convert just read the bytes as TCHARS
-        break;
-    case Encoding::Ansi:
-        if(bLineDraw){
-            numWChars =  MultiByteToWideChar( CP_OEMCP , 0 , (LPCSTR)source , srcLen, NULL , 0 );
-            MultiByteToWideChar( CP_OEMCP, 0 , (LPCSTR)source , srcLen, dest , numWChars );
-        }
-        else{
-            numWChars =  MultiByteToWideChar( CP_ACP , 0 , (LPCSTR)source , srcLen, NULL , 0 );
-            MultiByteToWideChar( CP_ACP, 0 , (LPCSTR)source , srcLen, dest , numWChars );
-        }
-        dest[numWChars] =0;
-        break;
+    UINT code_page;
+
+    if( m_textEncoding.IsUtf8() )
+    {
+        code_page = CP_UTF8;
     }
 
-    return numWChars;
+    else if( m_textEncoding.IsAnsi() )
+    {
+        const CMainFrame* const pFrame = assert_cast<CMainFrame*>(AfxGetMainWnd());
+        code_page = ( pFrame != nullptr && pFrame->m_bLineDraw ) ? CP_OEMCP : CP_ACP;
+    }
 
+    else
+    {
+        ASSERT(false);
+        return;
+    }
+
+    const int num_wide_chars = MultiByteToWideChar(code_page, 0, reinterpret_cast<const char*>(source), srcLen, nullptr, 0);
+    MultiByteToWideChar(code_page, 0, reinterpret_cast<const char*>(source), srcLen, dest, num_wide_chars);
+    dest[num_wide_chars] = '\0';
 }
+
 BOOL CFileIO::RequiresClose(void) const
 {
     // break out if there is no file name (happens during initial file load)
@@ -500,7 +479,7 @@ BOOL CFileIO::RequiresReload(void) const
     if (!CFile::GetStatus(m_csFileName, status)) {
         // file does not exist ... signal error
         AfxMessageBox(L"Internal error checking reload status");
-        ASSERT(FALSE);
+        ASSERT(false);
         return TRUE;     // file has been deleted ...
     }
     ASSERT(m_timeCreate<=status.m_mtime);
@@ -554,7 +533,7 @@ TCHAR* CBufferMgr::GetNextLine (void)  {
 
     if ( IsEstimatingNumLines () )  {
        if ( int32_cast(_tcslen(pszRetVal)) > m_iFileWidth )  {
-            ASSERT(FALSE);
+            ASSERT(false);
             m_iFileWidth = int32_cast(_tcslen(pszRetVal));
         }
         if ( Status() == ENDFILE )  {
@@ -866,7 +845,7 @@ void CBuffer::SetLines (unsigned int uBuffBytes)  {
     BOOL bAtEndOfBuffer = FALSE;
     BOOL bHitEOFMarker = FALSE;
 
-    if ( (m_lAbsBegin == 0L) || (m_lAbsBegin == m_currFileIO->GetNumBytesToSkipBOM()) )  {
+    if ( (m_lAbsBegin == 0L) || (m_lAbsBegin == m_currFileIO->GetTextEncoding().GetBomLength()) )  {
         // we are at BOF ...
         m_iaOffs [i++] = BOF_SIGNAL;
         if ( m_iCurrLine == 0 )  {
@@ -876,7 +855,7 @@ void CBuffer::SetLines (unsigned int uBuffBytes)  {
     }
     m_iaOffs [i++] = 0;
     while ( i < MAXLINESPBUFF && ! bAtEndOfBuffer )  {
-        if(m_currFileIO->GetEncoding() != Encoding::Utf16LE){
+        if(m_currFileIO->GetTextEncoding().GetType() != TextEncoding::Type::Utf16LE){
             while ( m_caIOBuffer[iCount] != CR )  {
                 if ( m_caIOBuffer[iCount] == FF )  {
                     // case of FF not preceeded by CR
@@ -1032,7 +1011,7 @@ void CBuffer::LoadBuffer (void)  {
 
         if(m_lAbsBegin ==0){
             //Savy for skipping the BOM
-            m_lAbsBegin += m_currFileIO->GetNumBytesToSkipBOM();
+            m_lAbsBegin += int32_cast(m_currFileIO->GetTextEncoding().GetBomLength());
         }
         uBuffBytes = m_currFileIO->Read (m_lAbsBegin, m_caIOBuffer);
         m_waFormFeedArray.RemoveAll();
@@ -1062,7 +1041,7 @@ TCHAR* CBuffer::GetPrevLine (void)  {
     }
     m_stStatus = ACTIVE;
 
-    if(m_currFileIO->GetEncoding() == Encoding::Utf16LE){
+    if(m_currFileIO->GetTextEncoding().GetType() == TextEncoding::Type::Utf16LE){
         return (LPTSTR)m_caIOBuffer + (m_iaOffs[m_iCurrLine--]/2);
     }
     else{
@@ -1083,7 +1062,7 @@ TCHAR* CBuffer::GetNextLine (void)  {
 
     m_stStatus = ACTIVE;
 
-    if(m_currFileIO->GetEncoding() == Encoding::Utf16LE){
+    if(m_currFileIO->GetTextEncoding().GetType() == TextEncoding::Type::Utf16LE){
         return (LPTSTR)m_caIOBuffer + (m_iaOffs[m_iCurrLine++]/2);
     }
     else{

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 //***************************************************************************
 //  File name: MainFrm.h
@@ -72,7 +72,7 @@ public:
 
     void UpdateStatusBarScr (CLPoint);
     void UpdateStatusBarBlock (CLPoint, BOOL);
-    void UpdateStatusBarSize (const TCHAR*);
+    void UpdateStatusBarSize(const CString& csStr);
     void UpdateStatusBarEncoding (const TCHAR*); // 20111222
 
     int GetFontHeight(int iPointSize) const;     // added csc 4 Jan 03

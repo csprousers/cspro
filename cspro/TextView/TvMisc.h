@@ -1,5 +1,8 @@
 #pragma once
 
+#include <zToolsO/TextEncoding.h>
+
+
 //***************************************************************************
 //  File name: TvMisc.h
 //
@@ -12,7 +15,6 @@
 //
 //***************************************************************************
 
-#include <io.h>
 
 #define IOBUFSIZE                   1024*100*sizeof(TCHAR)
 #define MAXLINESPBUFF               20000             // minimum value for MAXLINESPBUFF is maximal screen height + 1
@@ -135,18 +137,17 @@ class CFileIO  {
         BOOL RequiresReload(void) const;   // csc 5/3/2004
         BOOL RequiresClose(void) const;   // csc 5/3/2004
 
-        int ConvertBufferToWideChar(BYTE* source, LPTSTR dest, int srcLen);
-        int  GetNumBytesToSkipBOM(); //Skip Byte order Mark
-        Encoding GetEncoding(){ return m_unicodeEncoding;}
+        void ConvertBufferToWideChar(const BYTE* source, TCHAR* dest, int srcLen);
+
+        TextEncoding GetTextEncoding() const { return m_textEncoding; }
 
     private:
-
-        Encoding m_unicodeEncoding;
         int  m_iHandle;
         CString m_csFileName;
         BOOL m_bEOF;        // csc 5/3/2004
         long m_lFileSize;   // csc 5/3/2004
         CTime m_timeCreate; // last file modified date/time stamp ...csc 5/3/2004
+        TextEncoding m_textEncoding;
 };
 
 class CBufferBoundaryElement : public CObject  {
@@ -241,9 +242,8 @@ class CBufferMgr  {
         int  GetCurrCol (void)           { return m_iCurrColumn; }
         BOOL IsInitialized (void)        { return m_bInitialized;  }
         BOOL IsFormFeed (void)           { return m_pbuffActive->IsFormFeed(); }
-        CFileIO* GetFileIO (void)        { return &m_fileIO; }
+        CFileIO& GetFileIO (void)        { return m_fileIO; }
         long GetFileSize (void)          { return m_fileIO.GetFileSize ();  }
-        Encoding GetFileEncoding (void)  { return m_fileIO.GetEncoding();  }
         BOOL IsEstimatingNumLines (void) { return m_bEstimatingNumLines;  }
         void EstimateNumLines (void);
         void EndEstimateNumLines (void)  { m_bEstimatingNumLines = FALSE;  m_lNumLines = GetCurrLine();  }

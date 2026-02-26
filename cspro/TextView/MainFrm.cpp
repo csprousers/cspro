@@ -270,15 +270,15 @@ void CMainFrame::UpdateStatusBarBlock (CLPoint ptlOrigin, BOOL bActive) {
 //
 /////////////////////////////////////////////////////////////////////////////
 
-void CMainFrame::UpdateStatusBarSize (const TCHAR* pszStr) {
-
+void CMainFrame::UpdateStatusBarSize(const CString& csStr)
+{
     CStatusBar* pStatus = (CStatusBar*) GetDescendantWindow (AFX_IDW_STATUS_BAR);
     if (pStatus)  {
         CDC* pDC = pStatus->GetDC();
         pDC->SelectObject(pStatus->GetFont()); // 20120207 the text extent isn't correct without this statement
-        pStatus->SetPaneInfo (6, indicators[6], SBPS_NORMAL, pDC->GetTextExtent (pszStr, int32_cast(_tcslen(pszStr))).cx+5);
-        pStatus->SetPaneText (6, pszStr);
-        pStatus->ReleaseDC (pDC);
+        pStatus->SetPaneInfo(6, indicators[6], SBPS_NORMAL, pDC->GetTextExtent(csStr).cx+5);
+        pStatus->SetPaneText(6, csStr);
+        pStatus->ReleaseDC(pDC);
     }
 }
 
@@ -772,8 +772,7 @@ void CMainFrame::OnUpdateOptionsLinedraw(CCmdUI* pCmdUI)
         if(pView){
             CTVDoc* pDoc = DYNAMIC_DOWNCAST(CTVDoc,pView->GetDocument());
             if(pDoc){
-                Encoding currEncoding = pDoc->GetBufferMgr()->GetFileIO()->GetEncoding();
-                if(currEncoding != Encoding::Ansi){
+                if(!pDoc->GetBufferMgr()->GetFileIO().GetTextEncoding().IsAnsi()){
                     pCmdUI->Enable(FALSE);
                     return;
                 }
