@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "CSDocCompilerWorker.h"
 #include <zToolsO/SharedPointerHelpers.h>
 #include <zToolsO/VariantVisitOverload.h>
@@ -122,7 +122,9 @@ namespace
 
 void HelpsHtmlProcessor::CreateLink(ScintillaColorizer::ExtendedEntity& extended_entity, const char* const help_topic_filename) const
 {
-    ASSERT(help_topic_filename != nullptr);
+    if( help_topic_filename == nullptr )
+        return;
+    // VIDEO_TODO_RESTORE_FOR_CSPRO8X remove the above and restore: ASSERT(help_topic_filename != nullptr);
 
     const std::string url = m_settings->CreateUrlForLogicTopic(help_topic_filename);
 
