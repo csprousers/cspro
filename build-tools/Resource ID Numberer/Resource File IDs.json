@@ -336,6 +336,14 @@
         "IDC_NOTES_FORMAT_EXCEL"
       ]
     ],
+    "TextView": [
+      [
+        "ID_ENCODING_ANSI",
+        "ID_ENCODING_UTF8",
+        "ID_ENCODING_UTF8_BOM",
+        "ID_ENCODING_UTF16_LE_BOM"
+      ]
+    ],
     "zEditO": [
       [
         "IDC_FIND_COMBO",

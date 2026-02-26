@@ -710,7 +710,7 @@ std::string PortableFunctions::StreamMd5(std::istream& input_stream)
 
                     if( bytes_read > 0 )
                     {
-                        MD5_Update(&ctx, buffer.get(), uint32_cast(bytes_read));
+                        MD5_Update(&ctx, buffer.get(), static_cast<unsigned long>(bytes_read));
                         return true;
                     }
 
