@@ -357,6 +357,14 @@ BEGIN
     BEGIN
         MENUITEM "&Ruler\tCtrl+R",              ID_VIEW_RULER
     END
+    POPUP "E&ncoding"
+    BEGIN
+        MENUITEM "ANSI",                        ID_ENCODING_ANSI
+        MENUITEM "UTF-8",                       ID_ENCODING_UTF8
+        MENUITEM SEPARATOR
+        MENUITEM "UTF-8 (BOM)",                 ID_ENCODING_UTF8_BOM
+        MENUITEM "UTF-16 LE (BOM)",             ID_ENCODING_UTF16_LE_BOM
+    END
     POPUP "&Options"
     BEGIN
         MENUITEM "Change &Font Size...",        ID_FORMAT_FONT
@@ -625,6 +633,10 @@ BEGIN
     ID_OPTIONS_LINEDRAW     "Use DOS Line Draw Font instead of ANSI characters\nDOS Line Draw Font"
     ID_EDIT_FIND_NEXT       "Find next occurrence of search text"
     ID_EDIT_FIND_PREV       "Find previous occurrence of search text"
+    ID_ENCODING_ANSI        "Render file using the ANSI code page"
+    ID_ENCODING_UTF8        "Render file as UTF-8 text"
+    ID_ENCODING_UTF8_BOM    "File is rendered as UTF-8 due to a BOM"
+    ID_ENCODING_UTF16_LE_BOM "File is rendered as UTF-16 LE due to a BOM"
     ID_WINDOW_NEXT          "Switch to the next window\nNext Window"
     ID_WINDOW_PREV          "Switch back to the previous window\nPrevious Window"
 END

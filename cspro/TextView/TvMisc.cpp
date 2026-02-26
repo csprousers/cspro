@@ -294,6 +294,7 @@ CFileIO::CFileIO (void)  {
     m_iHandle = -1;        /* signal that it isn't open yet  */
     m_bEOF=FALSE;
     m_lFileSize=0L;
+    m_textEncodingOverridden = false;
 }
 
 CFileIO::~CFileIO (void)  {
@@ -346,7 +347,8 @@ BOOL CFileIO::Open(const CString& csFileName) {
     }
     m_timeCreate = status.m_mtime;
 
-    m_textEncoding = GetEncodingFromBOM<TextEncoding>(m_iHandle);
+    if( !m_textEncodingOverridden )
+        m_textEncoding = GetEncodingFromBOM<TextEncoding>(m_iHandle);
 
     if( !m_textEncoding.IsAnsiOrUtf8() &&
         m_textEncoding.GetType() != TextEncoding::Type::Utf16LE )
@@ -485,6 +487,15 @@ BOOL CFileIO::RequiresReload(void) const
     ASSERT(m_timeCreate<=status.m_mtime);
     return (m_timeCreate!=status.m_mtime);
 }
+
+
+void CFileIO::OverrideTextEncoding(const TextEncoding text_encoding)
+{
+    m_textEncoding = text_encoding;
+    m_textEncodingOverridden = true;
+}
+
+
 
 CBufferMgr::CBufferMgr (void)  {
     m_bInitialized = FALSE;

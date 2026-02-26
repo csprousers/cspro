@@ -17,17 +17,13 @@
 #include <zUtilO/BCMenu.h>
 #include <TextView/TvMisc.h>
 
-// .ini file stuff
-#define INI_SECTION_WINDOWSIZE      _T("Window size")
-#define INI_KEY_RECT                  _T("Rect")
-#define INI_KEY_ICON                  _T("Icon")
-#define INI_KEY_MAX                   _T("Max")
-#define INI_KEY_TOOL                  _T("Tool")
-#define INI_KEY_STATUS                _T("Status")
+class CTVDoc;
 
-class CMainFrame : public CMDIFrameWnd {
 
+class CMainFrame : public CMDIFrameWnd
+{
     DECLARE_DYNAMIC(CMainFrame)
+
 public:
     CMainFrame();
     HMENU TextViewMenu();
@@ -81,11 +77,15 @@ public:
 
 // Generated message map functions
 protected:
+    DECLARE_MESSAGE_MAP()
+
     //{{AFX_MSG(CMainFrame)
     afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
     afx_msg void OnViewRuler();
     afx_msg void OnUpdateOpenInDataManager(CCmdUI* pCmdUI);
     afx_msg void OnOpenInDataManager();
+    afx_msg void OnUpdateEncoding(CCmdUI* pCmdUI);
+    afx_msg void OnEncoding(UINT nID);
     afx_msg void OnUpdateOptionsCommas(CCmdUI* pCmdUI);
     afx_msg void OnOptionsCommas();
     afx_msg void OnDestroy();
@@ -105,7 +105,9 @@ protected:
     LRESULT OnIMSAFileClose(WPARAM wParam, LPARAM lParam);
     LRESULT OnIMSASetFocus(WPARAM wParam, LPARAM lParam);
     afx_msg LRESULT OnDDEExecute(WPARAM wParam, LPARAM lParam);
-    DECLARE_MESSAGE_MAP()
+
+private:
+    CTVDoc* GetActiveDoc();
 };
 
 /////////////////////////////////////////////////////////////////////////////

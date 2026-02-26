@@ -140,6 +140,7 @@ class CFileIO  {
         void ConvertBufferToWideChar(const BYTE* source, TCHAR* dest, int srcLen);
 
         TextEncoding GetTextEncoding() const { return m_textEncoding; }
+        void OverrideTextEncoding(TextEncoding text_encoding);
 
     private:
         int  m_iHandle;
@@ -148,6 +149,7 @@ class CFileIO  {
         long m_lFileSize;   // csc 5/3/2004
         CTime m_timeCreate; // last file modified date/time stamp ...csc 5/3/2004
         TextEncoding m_textEncoding;
+        bool m_textEncodingOverridden;
 };
 
 class CBufferBoundaryElement : public CObject  {

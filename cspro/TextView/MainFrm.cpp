@@ -18,14 +18,16 @@
 
 // for OnDDEExecute below
 #include <Dde.h>
-//#include <afxisapi.h> -SAVY VS2010 upgrade
 
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#undef THIS_FILE
-static char THIS_FILE[] = __FILE__;
-#endif
+// .ini file stuff
+#define INI_SECTION_WINDOWSIZE L"Window size"
+#define INI_KEY_RECT           L"Rect"
+#define INI_KEY_ICON           L"Icon"
+#define INI_KEY_MAX            L"Max"
+#define INI_KEY_TOOL           L"Tool"
+#define INI_KEY_STATUS         L"Status"
+
 
 const CRect NEAR CMainFrame::rectDefault(10, 10, 500, 400);  // static
 
@@ -40,6 +42,8 @@ BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWnd)
     ON_COMMAND(ID_VIEW_RULER, OnViewRuler)
     ON_UPDATE_COMMAND_UI(ID_FILE_OPEN_IN_DATA_MANAGER, OnUpdateOpenInDataManager)
     ON_COMMAND(ID_FILE_OPEN_IN_DATA_MANAGER, OnOpenInDataManager)
+    ON_UPDATE_COMMAND_UI_RANGE(ID_ENCODING_ANSI, ID_ENCODING_UTF16_LE_BOM, OnUpdateEncoding)
+    ON_COMMAND_RANGE(ID_ENCODING_ANSI, ID_ENCODING_UTF16_LE_BOM, OnEncoding)
     ON_UPDATE_COMMAND_UI(ID_OPTIONS_COMMAS, OnUpdateOptionsCommas)
     ON_COMMAND(ID_OPTIONS_COMMAS, OnOptionsCommas)
     ON_WM_DESTROY()
@@ -949,6 +953,15 @@ LRESULT CMainFrame::OnDDEExecute(WPARAM wParam, LPARAM lParam)
 }
 
 
+CTVDoc* CMainFrame::GetActiveDoc()
+{
+    CMDIChildWnd* const pChild = MDIGetActive();
+
+    return ( pChild != nullptr ) ? assert_cast<CTVDoc*>(pChild->GetActiveDocument()) :
+                                   nullptr;
+}
+
+
 void CMainFrame::OnUpdateOpenInDataManager(CCmdUI* const pCmdUI)
 {
     pCmdUI->Enable(MDIGetActive() != nullptr);
@@ -957,17 +970,88 @@ void CMainFrame::OnUpdateOpenInDataManager(CCmdUI* const pCmdUI)
 
 void CMainFrame::OnOpenInDataManager()
 {
-    CMDIChildWnd* const pChild = MDIGetActive();
+    const CTVDoc* const pDoc = GetActiveDoc();
 
-    if( pChild == nullptr )
-        return;
-
-    const CTVDoc* const pDoc = assert_cast<const CTVDoc*>(pChild->GetActiveDocument());
-    OpenInDataManager(pDoc->GetPathName());
+    if( pDoc != nullptr )
+        OpenInDataManager(pDoc->GetPathName());
 }
 
 
 void CMainFrame::OpenInDataManager(const wchar_t* const file_path)
 {
     CSProExecutables::RunProgramOpeningFile(CSProExecutables::Program::DataManager, file_path);
+}
+
+
+void CMainFrame::OnUpdateEncoding(CCmdUI* const pCmdUI)
+{
+    CTVDoc* const pDoc = GetActiveDoc();
+    bool enable = false;
+    bool check = false;
+
+    if( pDoc != nullptr )
+    {
+        // only ANSI and UTF-8 (without BOM) can be toggled
+        const TextEncoding::Type text_encoding_type = pDoc->GetBufferMgr()->GetFileIO().GetTextEncoding().GetType();
+
+        switch( pCmdUI->m_nID )
+        {
+            case ID_ENCODING_ANSI:
+                check = ( text_encoding_type == TextEncoding::Type::Ansi );
+                enable = ( check || text_encoding_type == TextEncoding::Type::Utf8 );
+                break;
+
+            case ID_ENCODING_UTF8:
+                check = ( text_encoding_type == TextEncoding::Type::Utf8 );
+                enable = ( check || text_encoding_type == TextEncoding::Type::Ansi );
+                break;
+
+            case ID_ENCODING_UTF8_BOM:
+                check = ( text_encoding_type == TextEncoding::Type::Utf8Bom );
+                enable = check;
+                break;
+
+            case ID_ENCODING_UTF16_LE_BOM:
+                check = ( text_encoding_type == TextEncoding::Type::Utf16LE );
+                enable = check;
+                break;
+
+            default:
+                ASSERT(false);
+                break;
+        }
+    }
+
+    pCmdUI->Enable(enable);
+    pCmdUI->SetCheck(check);
+}
+
+
+void CMainFrame::OnEncoding(const UINT nID)
+{
+    CTVDoc* const pDoc = GetActiveDoc();
+
+    if( ( pDoc == nullptr ) ||
+        ( nID != ID_ENCODING_ANSI && nID != ID_ENCODING_UTF8 ) )
+    {
+        return;
+    }
+
+    const TextEncoding::Type new_text_encoding_type =
+        ( nID == ID_ENCODING_ANSI ) ? TextEncoding::Type::Ansi :
+                                      TextEncoding::Type::Utf8;
+
+    CFileIO& file_io = pDoc->GetBufferMgr()->GetFileIO();
+
+    if( file_io.GetTextEncoding().GetType() == new_text_encoding_type )
+        return;
+
+    // override the encoding
+    file_io.OverrideTextEncoding(new_text_encoding_type);
+
+    // update the status bar (which shows the encoding)
+    pDoc->UpdateStatusBar();
+
+    // invalidating the view will result in the text being redrawn using the new encoding
+    pDoc->UpdateAllViews(nullptr);
 }
