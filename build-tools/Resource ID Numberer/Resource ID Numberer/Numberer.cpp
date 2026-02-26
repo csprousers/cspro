@@ -17,30 +17,43 @@ void Numberer::ReadDefinitionsFile(const std::string& definitions_file_path)
 {
     const std::unique_ptr<JsonSpecFile::Reader> json_reader = JsonSpecFile::CreateReader(definitions_file_path);
 
-    m_codeRoot = json_reader->GetAbsolutePath("codeRoot");
+    const JsonNode code_root_json_node = json_reader->Get("codeRoot");
 
-    for( const JsonNode& exclusion_node : json_reader->GetArrayOrEmpty("resourceExclusions") )
-        m_resourceExclusions.emplace_back(MakeFullPath(m_codeRoot, exclusion_node.Get<std::string>()));
+    if( code_root_json_node.IsArray() )
+    {
+        ASSERT(m_codeRoots.empty());
+
+        for( const JsonNode& json_node : code_root_json_node.GetArray() )
+            m_codeRoots.emplace_back(json_node.GetAbsolutePath());
+    }
+
+    else
+    {
+        m_codeRoots = { json_reader->GetAbsolutePath("codeRoot") };
+    }
+
+    for( const JsonNode& exclusion_json_node : json_reader->GetArrayOrEmpty("resourceExclusions") )
+        m_resourceExclusions.emplace_back(exclusion_json_node.GetAbsolutePath());
 
     json_reader->Get("projects").ForeachNode(
-        [&](const std::string_view project_name_sv, const JsonNode& ranges_node)
+        [&](const std::string_view project_name_sv, const JsonNode& ranges_json_node)
         {
             m_projectResourceIdRanges.try_emplace(SO::ToLower(project_name_sv),
                 ResourceIdRange
                 {
-                    ranges_node.Get<int>("resource"),
-                    ranges_node.Get<int>("command"),
-                    ranges_node.Get<int>("control")
+                    ranges_json_node.Get<int>("resource"),
+                    ranges_json_node.Get<int>("command"),
+                    ranges_json_node.Get<int>("control")
                 });
         });
 
     json_reader->GetOrEmpty("orderedRanges").ForeachNode(
-        [&](const std::string_view project_name_sv, const JsonNode& ranges_node)
+        [&](const std::string_view project_name_sv, const JsonNode& ranges_json_node)
         {
             std::vector<std::vector<std::string>> project_ranges;
 
-            for( const JsonNode& range_node : ranges_node.GetArray() )
-                project_ranges.emplace_back(range_node.Get<std::vector<std::string>>());
+            for( const JsonNode& range_json_node : ranges_json_node.GetArray() )
+                project_ranges.emplace_back(range_json_node.Get<std::vector<std::string>>());
 
             m_projectOrderedRanges.try_emplace(SO::ToLower(project_name_sv), std::move(project_ranges));
         });
@@ -49,12 +62,19 @@ void Numberer::ReadDefinitionsFile(const std::string& definitions_file_path)
 
 void Numberer::Run()
 {
+    for( const std::string& code_root : m_codeRoots )
+        Run(code_root);
+}
+
+
+void Numberer::Run(const std::string& code_root)
+{
     const std::vector<std::string> listed_resource_file_paths = DirectoryLister().SetRecursive()
                                                                                  .SetNameFilter("*.rc")
-                                                                                 .GetPaths(m_codeRoot);
+                                                                                 .GetPaths(code_root);
 
     if( listed_resource_file_paths.empty() )
-        throw CSProException("No resource files exist in: " + m_codeRoot);
+        throw CSProException("No resource files exist in: " + code_root);
 
     for( const std::string& resource_file_path : listed_resource_file_paths )
     {
