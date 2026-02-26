@@ -1,7 +1,6 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "Tools.h"
-#include "Special.h"
-#include "TextConverter.h"
+#include "TextEncoding.h"
 
 #ifdef WIN32
 #include "WinRegistry.h"
@@ -15,87 +14,61 @@
 #endif
 
 
-Encoding GetEncodingFromBOM(int iFileHandle)
+template<>
+TextEncoding GetEncodingFromBOM(const int iFileHandle)
 {
-    Encoding retEncoding = Encoding::Invalid;
+    // files without a BOM will be treated as UTF-8
+    TextEncoding text_encoding = TextEncoding::Type::Utf8;
 
-    BYTE byte1;
-    int bytesRead;
-    _lseek (iFileHandle, 0, SEEK_SET); //Go to the begining of the file
-    bytesRead = _read (iFileHandle, &byte1, 1);
+    // go to the begining of the file
+    _lseek(iFileHandle, 0, SEEK_SET);
 
+    // all BOMs handled by CSPro are three characters or fewer
+    char bom_data[3];
+    const int bytes_read = _read(iFileHandle, bom_data, sizeof(bom_data));
 
-    // No encoding specified
-    if (bytesRead == 0)
-        return Encoding::Ansi;
-
-    if ((int)byte1 == EOF)                           // empty file (encoding == 0)
+    if( bytes_read != 0 )
     {
-        retEncoding = Encoding::Ansi;
+        text_encoding = TextEncoding(bom_data, bytes_read, TextEncoding::Type::Utf8);
+
+        // go back to the beginning of the file
+        _lseek(iFileHandle, 0, SEEK_SET);
     }
 
-    if (byte1 == 0xFF)                             // UTF16LE?
-    {
-        BYTE byte2;
-        bytesRead = _read (iFileHandle, &byte2, 1);
-        if (bytesRead == 0){
-            _lseek (iFileHandle, 0, SEEK_SET);
-            return Encoding::Invalid;
-        }
-        if (byte2 == 0xFE)
-        {
-            retEncoding = Encoding::Utf16LE;
-        }
-        else
-        {
-           retEncoding = Encoding::Ansi;
-        }
-    }
-
-    if (byte1 == 0xFE)                             // UTF16BE?
-    {
-        BYTE byte2;
-        bytesRead = _read (iFileHandle, &byte2, 1);
-        if (bytesRead == 0){
-            _lseek (iFileHandle, 0, SEEK_SET);
-            return Encoding::Invalid;
-        }
-        if (byte2 == 0xFF)
-        {
-            retEncoding = Encoding::Utf16BE;
-        }
-    }
-
-    if (byte1 == 0xEF)                             // UTF8?
-    {
-        BYTE byte2;
-        bytesRead=  _read (iFileHandle, &byte2, 1);
-        if (bytesRead == 0){
-            _lseek (iFileHandle, 0, SEEK_SET);
-            return Encoding::Invalid;
-        }
-        if (byte2 == 0xBB)
-        {
-            BYTE byte3;
-            bytesRead=  _read (iFileHandle, &byte3, 1);
-            if (bytesRead == 0){
-                _lseek (iFileHandle, 0, SEEK_SET);
-                return Encoding::Invalid;
-            }
-            if (byte3 == 0xBF)
-            {
-                retEncoding = Encoding::Utf8;
-            }
-        }
-    }
-
-    if(retEncoding == Encoding::Invalid){ //No BOM so just set it to ANSI??
-        retEncoding  = Encoding::Ansi;
-    }
-    _lseek (iFileHandle, 0, SEEK_SET);
-
-    return retEncoding;
+    return text_encoding;
 }
+
+template CLASS_DECL_ZTOOLSO TextEncoding GetEncodingFromBOM(int iFileHandle);
+
+
+template<>
+Encoding GetEncodingFromBOM(const int iFileHandle)
+{
+    const TextEncoding text_encoding = GetEncodingFromBOM<TextEncoding>(iFileHandle);
+
+    switch( text_encoding.GetType() )
+    {
+        case TextEncoding::Type::Ansi:
+        case TextEncoding::Type::Utf8:
+            return Encoding::Ansi;
+
+        case TextEncoding::Type::Utf8Bom:
+            return Encoding::Utf8;
+
+        case TextEncoding::Type::Utf16LE:
+            return Encoding::Utf16LE;
+
+        case TextEncoding::Type::Utf16BE:
+            return Encoding::Utf16BE;
+
+        default:
+            return ReturnProgrammingError(Encoding::Invalid);
+    }
+}
+
+template CLASS_DECL_ZTOOLSO Encoding GetEncodingFromBOM(int iFileHandle);
+
+
 
 Encoding GetEncodingFromBOM(FILE* const file)
 {

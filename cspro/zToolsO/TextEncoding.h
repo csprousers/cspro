@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zToolsO/zToolsO.h>
 
@@ -56,6 +56,9 @@ public:
     // Returns the BOM length for the encoding type.
     static constexpr size_t GetBomLength(Type type);
     size_t GetBomLength() const { return GetBomLength(m_type); }
+
+    // Returns whether or not the encoding type is ANSI.
+    bool IsAnsi() const { return ( m_type == Type::Ansi ); }
 
     // Returns whether or not the encoding type is UTF-8 (with or without a BOM).
     static constexpr bool IsUtf8(Type type);
@@ -139,8 +142,8 @@ void TextEncoding::UpdateEncoding(Args const&... args)
 {
     static_assert(DefaultEncodingIfNoBom == Type::Utf8);
 
-    const Type default_encoding_if_no_bom = ( m_type == Type::Ansi ) ? Type::Ansi :
-                                                                       Type::Utf8;
+    const Type default_encoding_if_no_bom = IsAnsi() ? Type::Ansi :
+                                                       Type::Utf8;
 
     m_type = GetType(args..., default_encoding_if_no_bom);
 }

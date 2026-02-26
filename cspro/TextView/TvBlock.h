@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <TextView/TvMisc.h>
 
@@ -69,7 +69,7 @@ private:
     CLPoint   m_ptlOrigin;                   // absolute, pixel coordinates for the block origin
     CLPoint   m_ptlDestination;              // absolute, pixel coordinates for the block destination
     CLRect    m_rclOldBlock;                 // absolute, pixel coordinates for the view
-    int       m_iTimer;                      // timer number, used for scrolling while outside of the view
+    std::optional<UINT_PTR> m_nTimer;        // timer number, used for scrolling while outside of the view
 
 protected:
     int       m_iTextHgt;                    // text height (pixels)

@@ -1,4 +1,4 @@
-﻿//***************************************************************************
+//***************************************************************************
 //  File name: IVRuler.cpp
 //
 //  Description:
@@ -232,7 +232,6 @@ CHRulerView::CHRulerView()
     m_bBlockActive = NO;
     m_rclOldBlock = CLRect (0L,0L,0L,0L);
     m_bCaptured = FALSE;
-    m_iTimer = NONE;                            // Inactive
 }
 
 /******************************************************************************
@@ -472,7 +471,6 @@ CVRulerView::CVRulerView()
     m_bBlockActive = NO;
     m_rclOldBlock = CLRect (0L,0L,0L,0L);
     m_bCaptured = FALSE;
-    m_iTimer = NONE;                            // Inactive
 }
 
 /******************************************************************************
@@ -1124,7 +1122,7 @@ void CHRulerView::OnLButtonDown(UINT nFlags, CPoint point)
     }
     SetCapture ();
     m_bCaptured = TRUE;
-    ASSERT ( m_iTimer == NONE );
+    ASSERT(!m_nTimer.has_value());
     ASSERT_KINDOF(CMDIChildWnd, ((CMDIFrameWnd*) AfxGetMainWnd())->MDIGetActive());
     CBlockScrollView* pView = (CBlockScrollView*) ((CMDIFrameWnd*) AfxGetMainWnd())->MDIGetActive()->GetActiveView();
     ASSERT_VALID(pView);
@@ -1153,12 +1151,12 @@ void CHRulerView::OnMouseMove(UINT nFlags, CPoint point)
         // Scroll
         GetClientRect (&rcClient);
         rcClient.InflateRect (-::GetSystemMetrics(SM_CXBORDER), -::GetSystemMetrics(SM_CYBORDER));  // account for Win 3.1 bug; see KB Q43596
-        if ( m_iTimer != NONE )  {
+        if ( m_nTimer.has_value() )  {
             // outside scrolling is already enabled ...
             if ( rcClient.PtInRect ( point ) )  {
                 // back within bounds, nuke the timer
-                VERIFY ( KillTimer ( m_iTimer ) );
-                m_iTimer = NONE;  // signal that it's disabled
+                VERIFY( KillTimer(*m_nTimer) );
+                m_nTimer.reset();  // signal that it's disabled
             }
         }
         else  {   // no timer currently active; this condition prevents recursion
@@ -1167,8 +1165,8 @@ void CHRulerView::OnMouseMove(UINT nFlags, CPoint point)
                 UINT uScrollSpeed = GetProfileInt(_T("Windows"), _T("KeyboardSpeed"), 40);
                 CBufferMgr* pBuffMgr = ((CTVDoc *) GetDocument())->GetBufferMgr();
                 ptlOffset = CLPoint ( (long) pBuffMgr->GetCurrCol() * m_iTextWidth, pBuffMgr->GetCurrLine() * m_iTextHgt);
-                ASSERT (m_iTimer==NONE);
-                m_iTimer = SetTimer (SCROLL_TIMER, uScrollSpeed*3, NULL);
+                ASSERT(!m_nTimer.has_value());
+                m_nTimer = SetTimer(SCROLL_TIMER, uScrollSpeed*3, NULL);
             }
         }
     }
@@ -1193,9 +1191,9 @@ void CHRulerView::OnLButtonUp(UINT nFlags, CPoint point)
         ASSERT_VALID(pView);
         pView->OnSelLine(point, HRNEXT);
     }
-    if ( m_iTimer != NONE )  {
-        VERIFY ( KillTimer ( m_iTimer ) );
-        m_iTimer = NONE;
+    if ( m_nTimer.has_value() )  {
+        VERIFY( KillTimer(*m_nTimer) );
+        m_nTimer.reset();
     }
     CRulerView::OnLButtonUp(nFlags, point);
 }
@@ -1217,7 +1215,7 @@ void CVRulerView::OnLButtonDown(UINT nFlags, CPoint point)
     }
     SetCapture ();
     m_bCaptured = TRUE;
-    ASSERT ( m_iTimer == NONE );
+    ASSERT(!m_nTimer.has_value());
     ASSERT_KINDOF(CMDIChildWnd, ((CMDIFrameWnd*) AfxGetMainWnd())->MDIGetActive());
     CBlockScrollView* pView = (CBlockScrollView*) ((CMDIFrameWnd*) AfxGetMainWnd())->MDIGetActive()->GetActiveView();
     ASSERT_VALID(pView);
@@ -1246,12 +1244,12 @@ void CVRulerView::OnMouseMove(UINT nFlags, CPoint point)
         // Scroll
         GetClientRect (&rcClient);
         rcClient.InflateRect (-::GetSystemMetrics(SM_CXBORDER), -::GetSystemMetrics(SM_CYBORDER));  // account for Win 3.1 bug; see KB Q43596
-        if ( m_iTimer != NONE )  {
+        if ( m_nTimer.has_value() )  {
             // outside scrolling is already enabled ...
             if ( rcClient.PtInRect ( point ) )  {
                 // back within bounds, nuke the timer
-                VERIFY ( KillTimer ( m_iTimer ) );
-                m_iTimer = NONE;  // signal that it's disabled
+                VERIFY( KillTimer(*m_nTimer) );
+                m_nTimer.reset();  // signal that it's disabled
             }
         }
         else  {   // no timer currently active; this condition prevents recursion
@@ -1260,8 +1258,8 @@ void CVRulerView::OnMouseMove(UINT nFlags, CPoint point)
                 UINT uScrollSpeed = GetProfileInt(_T("Windows"), _T("KeyboardSpeed"), 40);
                 CBufferMgr* pBuffMgr = ((CTVDoc *) GetDocument())->GetBufferMgr();
                 ptlOffset = CLPoint ( (long) pBuffMgr->GetCurrCol() * m_iTextWidth, pBuffMgr->GetCurrLine() * m_iTextHgt);
-                ASSERT (m_iTimer==NONE);
-                m_iTimer = SetTimer (SCROLL_TIMER, uScrollSpeed*3, NULL);
+                ASSERT(!m_nTimer.has_value());
+                m_nTimer = SetTimer(SCROLL_TIMER, uScrollSpeed*3, NULL);
             }
         }
     }
@@ -1286,16 +1284,16 @@ void CVRulerView::OnLButtonUp(UINT nFlags, CPoint point)
         ASSERT_VALID(pView);
         pView->OnSelLine(point, VRNEXT);
     }
-    if ( m_iTimer != NONE )  {
-        VERIFY ( KillTimer ( m_iTimer ) );
-        m_iTimer = NONE;
+    if ( m_nTimer.has_value() )  {
+        VERIFY( KillTimer(*m_nTimer) );
+        m_nTimer.reset();
     }
     CRulerView::OnLButtonUp(nFlags, point);
 }
 
 void CVRulerView::OnTimer(UINT_PTR /*nIDEvent*/)
 {
-    ASSERT ( m_iTimer != NONE );
+    ASSERT(m_nTimer.has_value());
     ASSERT_KINDOF(CMDIChildWnd, ((CMDIFrameWnd*) AfxGetMainWnd())->MDIGetActive());
     CBlockScrollView* pView = (CBlockScrollView*) ((CMDIFrameWnd*) AfxGetMainWnd())->MDIGetActive()->GetActiveView();
     ASSERT_VALID(pView);
@@ -1323,7 +1321,7 @@ void CVRulerView::OnTimer(UINT_PTR /*nIDEvent*/)
 
 void CHRulerView::OnTimer(UINT_PTR /*nIDEvent*/)
 {
-    ASSERT ( m_iTimer != NONE );
+    ASSERT(m_nTimer.has_value());
     ASSERT_KINDOF(CMDIChildWnd, ((CMDIFrameWnd*) AfxGetMainWnd())->MDIGetActive());
     CBlockScrollView* pView = (CBlockScrollView*) ((CMDIFrameWnd*) AfxGetMainWnd())->MDIGetActive()->GetActiveView();
     ASSERT_VALID(pView);

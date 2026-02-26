@@ -38,27 +38,31 @@
 #define ID_EDIT_COPY_SS                 40002
 #define ID_EDIT_FIND_NEXT               40003
 #define ID_EDIT_FIND_PREV               40004
-#define ID_FILE_OPEN_IN_DATA_MANAGER    40005
-#define ID_FONT_BIGGER                  40006
-#define ID_FONT_BIGGER2                 40007
-#define ID_FONT_SMALLER                 40008
-#define ID_FONT_SMALLER2                40009
-#define ID_NEXT                         40010
-#define ID_OPTIONS_COMMAS               40011
-#define ID_OPTIONS_LINEDRAW             40012
-#define ID_PREV                         40013
-#define ID_QUICK_QUIT                   40014
-#define ID_VIEW_GOTOLINE                40015
-#define ID_VIEW_RULER                   40016
-#define ID_WINDOW_NEXT                  40017
-#define ID_WINDOW_PREV                  40018
+#define ID_ENCODING_ANSI                40005
+#define ID_ENCODING_UTF8                40006
+#define ID_ENCODING_UTF8_BOM            40007
+#define ID_ENCODING_UTF16_LE_BOM        40008
+#define ID_FILE_OPEN_IN_DATA_MANAGER    40009
+#define ID_FONT_BIGGER                  40010
+#define ID_FONT_BIGGER2                 40011
+#define ID_FONT_SMALLER                 40012
+#define ID_FONT_SMALLER2                40013
+#define ID_NEXT                         40014
+#define ID_OPTIONS_COMMAS               40015
+#define ID_OPTIONS_LINEDRAW             40016
+#define ID_PREV                         40017
+#define ID_QUICK_QUIT                   40018
+#define ID_VIEW_GOTOLINE                40019
+#define ID_VIEW_RULER                   40020
+#define ID_WINDOW_NEXT                  40021
+#define ID_WINDOW_PREV                  40022
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        124
-#define _APS_NEXT_COMMAND_VALUE         40019
+#define _APS_NEXT_COMMAND_VALUE         40023
 #define _APS_NEXT_CONTROL_VALUE         1009
 #define _APS_NEXT_SYMED_VALUE           124
 #endif

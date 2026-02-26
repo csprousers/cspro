@@ -1,4 +1,4 @@
-﻿//***************************************************************************
+//***************************************************************************
 //  File name: MainFrm.cpp
 //
 //  Description:
@@ -18,14 +18,16 @@
 
 // for OnDDEExecute below
 #include <Dde.h>
-//#include <afxisapi.h> -SAVY VS2010 upgrade
 
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#undef THIS_FILE
-static char THIS_FILE[] = __FILE__;
-#endif
+// .ini file stuff
+#define INI_SECTION_WINDOWSIZE L"Window size"
+#define INI_KEY_RECT           L"Rect"
+#define INI_KEY_ICON           L"Icon"
+#define INI_KEY_MAX            L"Max"
+#define INI_KEY_TOOL           L"Tool"
+#define INI_KEY_STATUS         L"Status"
+
 
 const CRect NEAR CMainFrame::rectDefault(10, 10, 500, 400);  // static
 
@@ -40,6 +42,8 @@ BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWnd)
     ON_COMMAND(ID_VIEW_RULER, OnViewRuler)
     ON_UPDATE_COMMAND_UI(ID_FILE_OPEN_IN_DATA_MANAGER, OnUpdateOpenInDataManager)
     ON_COMMAND(ID_FILE_OPEN_IN_DATA_MANAGER, OnOpenInDataManager)
+    ON_UPDATE_COMMAND_UI_RANGE(ID_ENCODING_ANSI, ID_ENCODING_UTF16_LE_BOM, OnUpdateEncoding)
+    ON_COMMAND_RANGE(ID_ENCODING_ANSI, ID_ENCODING_UTF16_LE_BOM, OnEncoding)
     ON_UPDATE_COMMAND_UI(ID_OPTIONS_COMMAS, OnUpdateOptionsCommas)
     ON_COMMAND(ID_OPTIONS_COMMAS, OnOptionsCommas)
     ON_WM_DESTROY()
@@ -227,8 +231,8 @@ void CMainFrame::UpdateStatusBarScr (CLPoint ptlCurrPos) {
         pDC->SelectObject(pStatus->GetFont()); // 20120207 the text extent isn't correct without this statement
         CString csTitle;
         csTitle.LoadString (IDS_MSG01);
-        wsprintf (pszStr, _T("%s: (%ld,%ld)"), (const TCHAR*) csTitle, ptlCurrPos.y, ptlCurrPos.x);
-        pStatus->SetPaneInfo (7, indicators[7], SBPS_NORMAL, pDC->GetTextExtent (pszStr, _tcslen(pszStr)).cx+5);
+        wsprintf (pszStr, _T("%s: (%ld,%ld)"), csTitle.GetString(), ptlCurrPos.y, ptlCurrPos.x);
+        pStatus->SetPaneInfo (7, indicators[7], SBPS_NORMAL, pDC->GetTextExtent (pszStr, int32_cast(_tcslen(pszStr))).cx+5);
         pStatus->ReleaseDC (pDC);
         pStatus->SetPaneText (7, pszStr);
         pStatus->UpdateWindow ();
@@ -250,14 +254,14 @@ void CMainFrame::UpdateStatusBarBlock (CLPoint ptlOrigin, BOOL bActive) {
         CString csTitle;
         csTitle.LoadString (IDS_MSG02);
         if ( bActive )  {
-            wsprintf (pszStr, _T("%s: (%ld,%ld)"), (const TCHAR*) csTitle, ptlOrigin.y, ptlOrigin.x);
+            wsprintf (pszStr, _T("%s: (%ld,%ld)"), csTitle.GetString(), ptlOrigin.y, ptlOrigin.x);
         }
         else  {
-            wsprintf (pszStr, _T("%s: (none)"), (const TCHAR*) csTitle);
+            wsprintf (pszStr, _T("%s: (none)"), csTitle.GetString());
         }
         CDC* pDC = pStatus->GetDC();
         pDC->SelectObject(pStatus->GetFont()); // 20120207 the text extent isn't correct without this statement
-        pStatus->SetPaneInfo (1, indicators[1], SBPS_NORMAL, pDC->GetTextExtent (pszStr, _tcslen(pszStr)).cx+5);
+        pStatus->SetPaneInfo (1, indicators[1], SBPS_NORMAL, pDC->GetTextExtent (pszStr, int32_cast(_tcslen(pszStr))).cx+5);
         pStatus->SetPaneText (1,pszStr);
         pStatus->ReleaseDC (pDC);
     }
@@ -270,15 +274,15 @@ void CMainFrame::UpdateStatusBarBlock (CLPoint ptlOrigin, BOOL bActive) {
 //
 /////////////////////////////////////////////////////////////////////////////
 
-void CMainFrame::UpdateStatusBarSize (const TCHAR* pszStr) {
-
+void CMainFrame::UpdateStatusBarSize(const CString& csStr)
+{
     CStatusBar* pStatus = (CStatusBar*) GetDescendantWindow (AFX_IDW_STATUS_BAR);
     if (pStatus)  {
         CDC* pDC = pStatus->GetDC();
         pDC->SelectObject(pStatus->GetFont()); // 20120207 the text extent isn't correct without this statement
-        pStatus->SetPaneInfo (6, indicators[6], SBPS_NORMAL, pDC->GetTextExtent (pszStr, _tcslen(pszStr)).cx+5);
-        pStatus->SetPaneText (6, pszStr);
-        pStatus->ReleaseDC (pDC);
+        pStatus->SetPaneInfo(6, indicators[6], SBPS_NORMAL, pDC->GetTextExtent(csStr).cx+5);
+        pStatus->SetPaneText(6, csStr);
+        pStatus->ReleaseDC(pDC);
     }
 }
 
@@ -297,7 +301,7 @@ void CMainFrame::UpdateStatusBarEncoding(const TCHAR* pszStr) // 20111222
     {
         CDC * pDC = pStatus->GetDC();
         pDC->SelectObject(pStatus->GetFont()); // 20120207 the text extent isn't correct without this statement
-        pStatus->SetPaneInfo(5,indicators[5],SBPS_NORMAL,pDC->GetTextExtent(pszStr,_tcslen(pszStr)).cx+5);
+        pStatus->SetPaneInfo(5,indicators[5],SBPS_NORMAL,pDC->GetTextExtent(pszStr,int32_cast(_tcslen(pszStr))).cx+5);
         pStatus->SetPaneText(5,pszStr);
         pStatus->ReleaseDC(pDC);
     }
@@ -403,10 +407,10 @@ BOOL CMainFrame::LoadFrame(UINT nIDResource, DWORD dwDefaultStyle, CWnd* pParent
         csText = AfxGetApp()->GetProfileString(INI_SECTION_WINDOWSIZE, INI_KEY_RECT);
         if (!csText.IsEmpty()) {
             // can't use sscanf in a DLL
-            rect.left = _ttoi((const TCHAR*) csText);
-            rect.top = _ttoi((const TCHAR*) csText + 5);
-            rect.right = _ttoi((const TCHAR*) csText + 10);
-            rect.bottom = _ttoi((const TCHAR*) csText + 15);
+            rect.left = _ttoi(csText.GetString());
+            rect.top = _ttoi(csText.GetString() + 5);
+            rect.right = _ttoi(csText.GetString() + 10);
+            rect.bottom = _ttoi(csText.GetString() + 15);
         }
         else {
             rect = rectDefault;
@@ -546,7 +550,7 @@ LRESULT CMainFrame::OnIMSAFileOpen(WPARAM /*wParam*/, LPARAM /*lParam*/)
     }
 
     csTemp = csWndClass + _T(" -- CIMPSViewerMainFrame::OnIMPS40FileOpen x%sx\n");
-    TRACE(csTemp, (const TCHAR*) csFileName);
+    TRACE(csTemp, csFileName.GetString());
 
     CFileStatus status;
     // GSF 25/08/00 file name comes in quoted, because of long file names
@@ -564,7 +568,8 @@ LRESULT CMainFrame::OnIMSAFileOpen(WPARAM /*wParam*/, LPARAM /*lParam*/)
         CTVDoc* pDoubleDoc = pApp->FindFile(csFileName);
         if (pDoubleDoc && !pDoubleDoc->IsReloadingOrClosing())  {
             ASSERT_VALID(pDoubleDoc);
-            TRACE(_T("CIMPSViewerMainFrame::OnIMPS40FileOpen - Closing duplicate document %p, %s %s\n"), pDoubleDoc, (const TCHAR*) pDoubleDoc->GetTitle(), (const TCHAR*) pDoubleDoc->GetPathName());
+            TRACE(_T("CIMPSViewerMainFrame::OnIMPS40FileOpen - Closing duplicate document %p, %s %s\n"),
+                  pDoubleDoc, pDoubleDoc->GetTitle().GetString(), pDoubleDoc->GetPathName().GetString());
             pDoubleDoc->OnCloseDocument();
         }
 
@@ -611,7 +616,7 @@ LRESULT CMainFrame::OnIMSAFileClose(WPARAM /*wParam*/, LPARAM /*lParam*/)
     }
 
     csTemp = csWndClass + _T(" -- CIMPSViewerMainFrame::OnIMPS40FileClose x%sx\n");
-    TRACE(csTemp, (const TCHAR*) csFileName);
+    TRACE(csTemp, csFileName.GetString());
 
     // close the document
     CTVDoc* pDoubleDoc = ((CTextViewApp*) AfxGetApp())->FindFile(csFileName);
@@ -641,7 +646,7 @@ LRESULT CMainFrame::OnIMSASetFocus(WPARAM /*wParam*/, LPARAM /*lParam*/)
     CString csFileName, csTemp;
 
     csTemp = csWndClass + _T("WM_IMPS40_SETFOCUS message received\n");
-    TRACE(csTemp, (const TCHAR*) csFileName);
+    TRACE(csTemp, csFileName.GetString());
 
     SetForegroundWindow();  // win32
     WINDOWPLACEMENT wndpl;
@@ -771,8 +776,7 @@ void CMainFrame::OnUpdateOptionsLinedraw(CCmdUI* pCmdUI)
         if(pView){
             CTVDoc* pDoc = DYNAMIC_DOWNCAST(CTVDoc,pView->GetDocument());
             if(pDoc){
-                Encoding currEncoding = pDoc->GetBufferMgr()->GetFileIO()->GetEncoding();
-                if(currEncoding != Encoding::Ansi){
+                if(!pDoc->GetBufferMgr()->GetFileIO().GetTextEncoding().IsAnsi()){
                     pCmdUI->Enable(FALSE);
                     return;
                 }
@@ -949,6 +953,15 @@ LRESULT CMainFrame::OnDDEExecute(WPARAM wParam, LPARAM lParam)
 }
 
 
+CTVDoc* CMainFrame::GetActiveDoc()
+{
+    CMDIChildWnd* const pChild = MDIGetActive();
+
+    return ( pChild != nullptr ) ? assert_cast<CTVDoc*>(pChild->GetActiveDocument()) :
+                                   nullptr;
+}
+
+
 void CMainFrame::OnUpdateOpenInDataManager(CCmdUI* const pCmdUI)
 {
     pCmdUI->Enable(MDIGetActive() != nullptr);
@@ -957,17 +970,88 @@ void CMainFrame::OnUpdateOpenInDataManager(CCmdUI* const pCmdUI)
 
 void CMainFrame::OnOpenInDataManager()
 {
-    CMDIChildWnd* const pChild = MDIGetActive();
+    const CTVDoc* const pDoc = GetActiveDoc();
 
-    if( pChild == nullptr )
-        return;
-
-    const CTVDoc* const pDoc = assert_cast<const CTVDoc*>(pChild->GetActiveDocument());
-    OpenInDataManager(pDoc->GetPathName());
+    if( pDoc != nullptr )
+        OpenInDataManager(pDoc->GetPathName());
 }
 
 
 void CMainFrame::OpenInDataManager(const wchar_t* const file_path)
 {
     CSProExecutables::RunProgramOpeningFile(CSProExecutables::Program::DataManager, file_path);
+}
+
+
+void CMainFrame::OnUpdateEncoding(CCmdUI* const pCmdUI)
+{
+    CTVDoc* const pDoc = GetActiveDoc();
+    bool enable = false;
+    bool check = false;
+
+    if( pDoc != nullptr )
+    {
+        // only ANSI and UTF-8 (without BOM) can be toggled
+        const TextEncoding::Type text_encoding_type = pDoc->GetBufferMgr()->GetFileIO().GetTextEncoding().GetType();
+
+        switch( pCmdUI->m_nID )
+        {
+            case ID_ENCODING_ANSI:
+                check = ( text_encoding_type == TextEncoding::Type::Ansi );
+                enable = ( check || text_encoding_type == TextEncoding::Type::Utf8 );
+                break;
+
+            case ID_ENCODING_UTF8:
+                check = ( text_encoding_type == TextEncoding::Type::Utf8 );
+                enable = ( check || text_encoding_type == TextEncoding::Type::Ansi );
+                break;
+
+            case ID_ENCODING_UTF8_BOM:
+                check = ( text_encoding_type == TextEncoding::Type::Utf8Bom );
+                enable = check;
+                break;
+
+            case ID_ENCODING_UTF16_LE_BOM:
+                check = ( text_encoding_type == TextEncoding::Type::Utf16LE );
+                enable = check;
+                break;
+
+            default:
+                ASSERT(false);
+                break;
+        }
+    }
+
+    pCmdUI->Enable(enable);
+    pCmdUI->SetCheck(check);
+}
+
+
+void CMainFrame::OnEncoding(const UINT nID)
+{
+    CTVDoc* const pDoc = GetActiveDoc();
+
+    if( ( pDoc == nullptr ) ||
+        ( nID != ID_ENCODING_ANSI && nID != ID_ENCODING_UTF8 ) )
+    {
+        return;
+    }
+
+    const TextEncoding::Type new_text_encoding_type =
+        ( nID == ID_ENCODING_ANSI ) ? TextEncoding::Type::Ansi :
+                                      TextEncoding::Type::Utf8;
+
+    CFileIO& file_io = pDoc->GetBufferMgr()->GetFileIO();
+
+    if( file_io.GetTextEncoding().GetType() == new_text_encoding_type )
+        return;
+
+    // override the encoding
+    file_io.OverrideTextEncoding(new_text_encoding_type);
+
+    // update the status bar (which shows the encoding)
+    pDoc->UpdateStatusBar();
+
+    // invalidating the view will result in the text being redrawn using the new encoding
+    pDoc->UpdateAllViews(nullptr);
 }

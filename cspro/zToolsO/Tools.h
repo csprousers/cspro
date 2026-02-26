@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zToolsO/zToolsO.h>
 #include <zToolsO/DateTime.h>
@@ -34,7 +34,11 @@ CLASS_DECL_ZTOOLSO CString clearString(CString ss, bool bNum);
 // TEXT_ENCODING_TODO the below should move to TextEncoding.h
 enum class Encoding : int { Invalid, Ansi, Utf16LE, Utf16BE, Utf8 };
 
-CLASS_DECL_ZTOOLSO Encoding GetEncodingFromBOM(int iFileHandle);
+// EncodingT can also be TextEncoding;
+// files without a BOM will default to Ansi for Encoding and UTF-8 for TextEncoding
+template<typename EncodingT = Encoding>
+CLASS_DECL_ZTOOLSO EncodingT GetEncodingFromBOM(int iFileHandle);
+
 CLASS_DECL_ZTOOLSO Encoding GetEncodingFromBOM(FILE* file);
 CLASS_DECL_ZTOOLSO bool GetFileBOM(InterfaceString file_path, Encoding& encoding);
 

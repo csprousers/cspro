@@ -1,4 +1,4 @@
-﻿//
+//
 //  History:    Date       Author     Comment
 //              -----------------------------
 //              1995        csc       created
@@ -107,7 +107,6 @@ CTVView::CTVView()  {
     m_bRulersActivated = FALSE;
     m_bRulersInitialized = FALSE;
     m_bRulerTempOff = FALSE;
-    m_iTimer = NONE;
     m_ptlLastFind = CLPoint(NONE, NONE);
     m_bShowLastFind = FALSE;
 }
@@ -231,7 +230,7 @@ void CTVView::OnDraw(CDC* pDC)  {
 
     if (ShowLastFind())  {
         // make sure that the "found" highlighted text can be seen on the current screen...
-        if ((int) m_ptlLastFind.x < pBuffMgr->GetCurrCol() || (int) m_ptlLastFind.x + (int) m_dlgFind.GetFindLen() > pBuffMgr->GetCurrCol() + m_iScrWidth)  {
+        if ((int) m_ptlLastFind.x < pBuffMgr->GetCurrCol() || (int) m_ptlLastFind.x + m_dlgFind.GetFindLen() > pBuffMgr->GetCurrCol() + m_iScrWidth)  {
             // at least some of the "found" highlighted text is not in the current view!  Scroll so that it is ...
             int iWidth = m_dlgFind.GetFindLen() * m_iTextWidth;  //(int) (m_ptlLastFind.x + m_dlgFind.GetFindLen()) * m_iTextWidth;
             int iScrollRange = GetScrollLimit(SB_HORZ);        // bmd  28 apr 97
@@ -253,7 +252,7 @@ void CTVView::OnDraw(CDC* pDC)  {
                         ASSERT (FALSE);           //  butterfly bug fix is needed
                         SendMessage(WM_HSCROLL, SB_LINELEFT);
                     }
-                    while ((int) m_ptlLastFind.x+(int) m_dlgFind.GetFindLen() > pBuffMgr->GetCurrCol()+m_iScrWidth)  {
+                    while ((int) m_ptlLastFind.x + m_dlgFind.GetFindLen() > pBuffMgr->GetCurrCol()+m_iScrWidth)  {
                         ASSERT (FALSE);           //  butterfly bug fix is needed
                         SendMessage(WM_HSCROLL, SB_LINERIGHT);
                     }
@@ -336,7 +335,7 @@ void CTVView::OnDraw(CDC* pDC)  {
 //            ASSERT ( m_dlgFind.GetFindLen () > 0 );  not needed csc 4 jan 03
             ASSERT ( m_ptlLastFind.x <= 32767L );
             ASSERT ( m_ptlLastFind.x >= 0L );
-            pDC->TextOut ( ptOffset.x + m_iTextWidth*((int)m_ptlLastFind.x-pBuffMgr->GetCurrCol()), (iDelta-1)*m_iTextHgt+ptOffset.y, csLine.Mid( (int) m_ptlLastFind.x), (int) m_dlgFind.GetFindLen() );
+            pDC->TextOut ( ptOffset.x + m_iTextWidth*((int)m_ptlLastFind.x-pBuffMgr->GetCurrCol()), (iDelta-1)*m_iTextHgt+ptOffset.y, csLine.Mid( (int) m_ptlLastFind.x), m_dlgFind.GetFindLen() );
             for ( i = 0 ; i < iDelta ; i++ )  {
                 ASSERT ( pBuffMgr->Status () != BEGFILE );
                 pBuffMgr->GetPrevLine();
@@ -1161,12 +1160,12 @@ void CTVView::ClearFindSelection()
 //        CLPoint m_ptlLastFind = GetLastFind ();
         ASSERT ( m_ptlLastFind.x >= 0L );
         ASSERT ( m_ptlLastFind.x <= 32767L );
-        if ( m_ptlLastFind.y >= lCurrLine && m_ptlLastFind.y <= lCurrLine+m_iScrHgt && ! ( iCurrCol >= (int)m_ptlLastFind.x + (int)m_dlgFind.GetFindLen() || (int)m_ptlLastFind.x >= iCurrCol+m_iScrWidth) )  {
+        if ( m_ptlLastFind.y >= lCurrLine && m_ptlLastFind.y <= lCurrLine+m_iScrHgt && ! ( iCurrCol >= (int)m_ptlLastFind.x + m_dlgFind.GetFindLen() || (int)m_ptlLastFind.x >= iCurrCol+m_iScrWidth) )  {
             // the recently found text *is* currently displayed on the screen!        ... thanks to Glenn for the above algorithm!
             ASSERT ((int) (m_ptlLastFind.y - lCurrLine) * m_iTextHgt >= 0);
             ASSERT ((int) (m_ptlLastFind.y - lCurrLine + 1) * m_iTextHgt >= 0);
             ASSERT (m_iTextWidth*((int)m_ptlLastFind.x-iCurrCol) >= -32767L);
-            ASSERT (m_iTextWidth*((int)m_ptlLastFind.x-iCurrCol + (int) m_dlgFind.GetFindLen()) >= -32767L);
+            ASSERT (m_iTextWidth*((int)m_ptlLastFind.x-iCurrCol + m_dlgFind.GetFindLen()) >= -32767L);
             InvalidateRect ( CRect (m_iTextWidth * ((int)m_ptlLastFind.x-iCurrCol),                        // left
                                     (int) (m_ptlLastFind.y - lCurrLine) * m_iTextHgt,                      // top
                                     m_iTextWidth*((int)m_ptlLastFind.x-iCurrCol + m_dlgFind.GetFindLen()),   // right
@@ -1438,7 +1437,7 @@ void CTVView::OnViewGotoline()  {
 
     dlgGoto.SetView (this);              // let it know who it's owner is (CGotoDialog::OnSize will reposition the dialog box in a moment)
     dlgGoto.m_LineNumber = pBuffMgr->GetCurrLine() + 1;
-    int iRetVal = dlgGoto.DoModal();        // remember that result here is 1-based, while BuffMgr::CurrLine is 0-based
+    INT_PTR iRetVal = dlgGoto.DoModal();        // remember that result here is 1-based, while BuffMgr::CurrLine is 0-based
     dlgGoto.m_LineNumber--;
     if ( iRetVal == IDOK )  {
         if ( dlgGoto.m_LineNumber > pBuffMgr->GetLineCount() )  {
@@ -1533,7 +1532,7 @@ void CTVView::ChangeFontSize(bool increase)
     ((CTextViewApp*) AfxGetApp())->UpdateAllAppViews(HINT_CHANGEFONT);
 }
 
-BOOL CTVView::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt) {
+BOOL CTVView::OnMouseWheel(UINT /*nFlags*/, short zDelta, CPoint /*pt*/) {
 
     if (GetKeyState(VK_CONTROL) < 0)  {
 
@@ -1587,7 +1586,7 @@ BOOL CTVView::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt) {
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-void CTVView::OnRButtonUp(UINT nFlags, CPoint point)
+void CTVView::OnRButtonUp(UINT /*nFlags*/, CPoint point)
 {
     BCMenu popMenu;   // BMD 29 Sep 2003
     popMenu.CreatePopupMenu();
@@ -1622,7 +1621,7 @@ void CTVView::OnRButtonUp(UINT nFlags, CPoint point)
 //      4 Jan 2003     CSC       created
 //
 ///////////////////////////////////////////////////////////////////////////////
-void CTVView::OnUpdate(CView* pSender, LPARAM lHint, CObject* pHint)
+void CTVView::OnUpdate(CView* /*pSender*/, LPARAM lHint, CObject* /*pHint*/)
 {
     if (lHint==HINT_CHANGEFONT)  {
         CClientDC dc (this);

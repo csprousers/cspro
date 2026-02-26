@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 //***************************************************************************
 //  File name: IVRuler.h
@@ -163,10 +163,10 @@ public:
 
 // Attributes
 private:
-    CLRect      m_rclOldBlock;
-    BOOL        m_bBlockActive;
-    BOOL        m_bCaptured;
-    int         m_iTimer;           // timer number, used for scrolling while outside of the view
+    CLRect m_rclOldBlock;
+    BOOL m_bBlockActive;
+    BOOL m_bCaptured;
+    std::optional<UINT_PTR> m_nTimer; // timer number, used for scrolling while outside of the view
 
 // Operations
 public:
@@ -245,10 +245,10 @@ public:
     CVRulerView();
 
 private:
-    CLRect      m_rclOldBlock;
-    BOOL        m_bBlockActive;
-    BOOL        m_bCaptured;
-    int         m_iTimer;           // timer number, used for scrolling while outside of the view
+    CLRect m_rclOldBlock;
+    BOOL m_bBlockActive;
+    BOOL m_bCaptured;
+    std::optional<UINT_PTR> m_nTimer; // timer number, used for scrolling while outside of the view
 
 // Operations
 public:

@@ -1,4 +1,4 @@
-﻿//***************************************************************************
+//***************************************************************************
 //  File name: TVDoc.cpp
 //
 //  Description:
@@ -63,13 +63,13 @@ BOOL CTVDoc::OnOpenDocument(const TCHAR* lpszPathName) {
         pDoubleDoc->OnCloseDocument();
     }
 
-    if (!m_buffMgr.GetFileIO()->SetFileName(lpszPathName)) {
+    if (!m_buffMgr.GetFileIO().SetFileName(lpszPathName)) {
         return FALSE;
     }
 
-    if ( m_buffMgr.GetFileIO()->Open() )  {
+    if ( m_buffMgr.GetFileIO().Open() )  {
         ((CTextViewApp*) AfxGetApp())->AddToRecentFileList(lpszPathName);
-        SetTitle (m_buffMgr.GetFileIO()->GetFileName());
+        SetTitle (m_buffMgr.GetFileIO().GetFileName());
         SetPathName(GetTitle());
         UpdateStatusBar();
         AfxGetApp()->WriteProfileString(_T("Settings"),_T("Last File"),lpszPathName);
@@ -222,21 +222,9 @@ void CTVDoc::UpdateStatusBar()  {
     csStr = caTmp + csStr;
     csStr = csSizeMsg + csStr;
 
-    ((CMainFrame*) AfxGetApp()->m_pMainWnd)->UpdateStatusBarSize ( (const TCHAR*) csStr);
+    ((CMainFrame*) AfxGetApp()->m_pMainWnd)->UpdateStatusBarSize(csStr);
 
-    switch( m_buffMgr.GetFileEncoding() ) // GHM 20111222
-    {
-    case Encoding::Utf8:
-        caTmp = _T("UTF-8");
-        break;
-    case Encoding::Utf16LE:
-        caTmp = _T("UTF-16LE");
-        break;
-    default:
-        caTmp = _T("ANSI");
-    }
-
-    csStr.Format(_T("Encoding: %s"),caTmp);
+    csStr.Format(_T("Encoding: %s"), TC::ToWide(m_buffMgr.GetFileIO().GetTextEncoding().ToString()).c_str());
 
     ((CMainFrame*) AfxGetApp()->m_pMainWnd)->UpdateStatusBarEncoding((const TCHAR*)csStr);
 }
@@ -260,7 +248,7 @@ void CTVDoc::ReloadFile()
         m_bIsReloadingOrClosing = true;
         csFile = GetPathName();
 
-        // GHM 20101212 TextView crashed if passed a directory name; this fixes that
+        // 20101212 TextView crashed if passed a directory name; this fixes that
         if( csFile.IsEmpty() )
             return;
 

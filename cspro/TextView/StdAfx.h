@@ -1,10 +1,8 @@
-﻿#pragma once
-
-#pragma warning(disable:4100)
-#pragma warning(disable:4800)
+#pragma once
 
 #include <engine/StandardSystemIncludes.h>
-// X64_TODO #include <StandardIncludes/strict_errors.h>
+#include <StandardIncludes/strict_errors.h>
+
 
 #define HINT_CHANGEFONT        1      // hints OnUpate() to recalc after font changes (in CMainFrame::OnOptionsFont)
 
@@ -18,6 +16,7 @@ const int TAB_SPACES = 4; // 20120514
 
 
 #include <zToolsO/Tools.h>
+#include <zToolsO/Utf8.h>
 #include <zUtilO/ImsaFileDlg.h>
 #include <zUtilO/ImsaStr.h>
 #include <zUtilO/Interapp.h>
