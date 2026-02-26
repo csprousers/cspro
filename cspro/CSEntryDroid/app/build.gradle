@@ -31,6 +31,13 @@ android {
         }
     }
 
+    packagingOptions {
+        jniLibs {
+            // This ensures libraries are stored uncompressed and aligned
+            useLegacyPackaging = false
+        }
+    }
+
     defaultConfig {
         applicationId "gov.census.cspro.csentry"
         minSdkVersion 24
@@ -38,7 +45,7 @@ android {
         multiDexEnabled true
         externalNativeBuild {
             ndkBuild {
-                arguments "APP_STL:=c++_static","-j8"
+                arguments "APP_STL:=c++_static","-j8", "APP_LDFLAGS+=-Wl,-z,max-page-size=16384"
                 cppFlags "-frtti", "-fexceptions", "-I${file("../..").absolutePath}", "-std=c++17", "-Werror=return-type"
             }
         }
@@ -47,13 +54,19 @@ android {
     buildTypes {
         release {
             minifyEnabled false
-            //shrinkResources true
             debuggable false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+
+            packagingOptions {
+                jniLibs {
+                    // Explicitly do NOT keep debug symbols in release
+                }
+            }
 
             externalNativeBuild {
                 ndkBuild {
                     abiFilters = ['armeabi-v7a', 'arm64-v8a']
+                    arguments "NDK_DEBUG=0"
                 }
             }
             ndk.debugSymbolLevel = 'full'
@@ -61,7 +74,10 @@ android {
 
         debug {
             packagingOptions {
-                //doNotStrip "**/*/*.so"
+                jniLibs {
+                    // Only keep debug symbols for the debug build
+                    //keepDebugSymbols.add("**/lib*.so")
+                }
             }
             externalNativeBuild {
                 ndkBuild {
@@ -73,41 +89,6 @@ android {
             jniDebuggable true
         }
 
-        asan {
-            // build type for running with AddressSanitizer https://developer.android.com/ndk/guides/asan
-            // When you run the ASAN build the compiler instruments all memory allocations and
-            // will crash with SIGABRT on buffer overruns and other memory errors. If you are
-            // running in the debugger, the program should stop in the debugger with the stack trace.
-            // If not running in the debugger you will see a stack trace in logcat however it will not
-            // be "symbolized" i.e. it won't contain the method names and line numbers. You can get
-            // the symbols by running logcat through the ndk symbolizer script:
-            // %LOCALAPPDATA%\Android\Sdk\platform-tools\adb logcat | %LOCALAPPDATA%\Android\Sdk\ndk\20.0.5594570\ndk-stack.cmd -sym C:\code\cspro\CSEntryDroid\app\build\intermediates\ndkBuild\debug\obj\local\x86
-            // With the current version of the NDK for the symbolizer to work you need to fix the Python script at %LOCALAPPDATA%\Android\Sdk\ndk\20.0.5594570\prebuilt\windows-x86_64\bin\ndk-stack.py
-            // and change the line "path = os.path.join(llvm_bin, 'llvm-symbolizer')" to "path = os.path.join(llvm_bin, 'llvm-symbolizer.exe')". See https://android-review.googlesource.com/c/platform/ndk/+/977970
-            initWith debug
-            externalNativeBuild {
-                ndkBuild {
-                    arguments "APP_STL:=c++_shared", "APP_LDFLAGS+=-fsanitize=address"
-                    cppFlags "-fsanitize=address", "-fno-omit-frame-pointer"
-                    cFlags "-fsanitize=address", "-fno-omit-frame-pointer"
-                }
-            }
-            sourceSets {
-                // ASAN requires libraries and wrap scripts, tasks below will put them in app/stuff_for_asan
-                main {
-                    jniLibs {
-                        srcDir {
-                            "stuff_for_asan/libs"
-                        }
-                    }
-                    resources {
-                        srcDir {
-                            "stuff_for_asan/res"
-                        }
-                    }
-                }
-            }
-        }
     }
 
     externalNativeBuild {
@@ -136,8 +117,6 @@ android {
 dependencies {
     implementation 'androidx.appcompat:appcompat:1.7.1'
     implementation 'com.google.android.material:material:1.12.0'
-    implementation 'com.dropbox.core:dropbox-core-sdk:7.0.0'
-    implementation 'com.dropbox.core:dropbox-android-sdk:7.0.0'
     implementation files('libs/ftp4j-1.7.2.jar')
     implementation 'androidx.recyclerview:recyclerview:1.4.0'
     implementation 'androidx.fragment:fragment-ktx:1.8.8'
@@ -157,7 +136,8 @@ dependencies {
     implementation 'com.google.maps.android:android-maps-utils:0.5'
 
     // for Dropbox
-    implementation 'com.dropbox.core:dropbox-core-sdk:4.0.1'
+    implementation 'com.dropbox.core:dropbox-core-sdk:7.0.0'
+    implementation 'com.dropbox.core:dropbox-android-sdk:7.0.0'
 
     // for Google Drive
     implementation 'net.openid:appauth:0.11.1'
@@ -177,97 +157,6 @@ dependencies {
     implementation 'com.karumi:dexter:6.2.1'
     implementation 'io.github.gautamchibde:audiovisualizer:2.2.5'
 
-    implementation "androidx.activity:activity-ktx:1.10.1"
-    implementation "androidx.fragment:fragment-ktx:1.8.8"
     implementation 'androidx.webkit:webkit:1.14.0'
     implementation 'androidx.documentfile:documentfile:1.1.0'
-}
-
-// Add tasks for ASAN wrap scripts and libraries
-tasks.whenTaskAdded { task ->
-    if (task.name == 'externalNativeBuildAsan') {
-        task.dependsOn createWrapScript
-    }
-}
-
-task deleteAsan(type: Delete) {
-    doLast {
-        def stuff_for_asan = new File("app/stuff_for_asan")
-        println("delete ${stuff_for_asan.absolutePath}")
-        stuff_for_asan.deleteDir()
-    }
-}
-
-clean.dependsOn(deleteAsan)
-
-// Generate wrap script for launching app with ASAN enabled
-// Based on https://android.googlesource.com/platform/ndk/+/refs/heads/master/wrap.sh/asan.sh
-// and https://developer.android.com/ndk/guides/wrap-script
-static def writeAsanWrapScript(wrapFile) {
-
-    wrapFile.withWriter { writer ->
-        writer.write('HERE="$(cd "$(dirname "$0")" && pwd)"\n')
-        writer.write('export ASAN_OPTIONS=log_to_syslog=false,allow_user_segv_handler=1\n')
-        writer.write('ASAN_LIB=$(ls $HERE/libclang_rt.asan-*-android.so)\n')
-        writer.write('if [ -f "$HERE/libc++_shared.so" ]; then\n')
-        writer.write('export LD_PRELOAD="$ASAN_LIB $HERE/libc++_shared.so"\n')
-        writer.write('else\n')
-        writer.write('export LD_PRELOAD="$ASAN_LIB"\n')
-        writer.write('fi\n')
-        writer.write('cmd=$1\n')
-        writer.write('shift\n')
-        writer.write('os_version=$(getprop ro.build.version.sdk)\n')
-        writer.write('if [ "$os_version" -eq "27" ]; then\n')
-        writer.write('cmd="$cmd -Xrunjdwp:transport=dt_android_adb,suspend=n,server=y -Xcompiler-option --debuggable $@"\n')
-        writer.write('elif [ "$os_version" -ge "28" ]; then\n')
-        writer.write('cmd="$cmd -XjdwpProvider:adbconnection -XjdwpOptions:suspend=n,server=y -Xcompiler-option --debuggable $@"\n')
-        writer.write('else\n')
-        writer.write('cmd="$cmd -XjdwpProvider:adbconnection $@"\n')
-        writer.write('fi\n')
-        writer.write('exec $cmd\n')
-    }
-}
-
-// List of ABIs that we will support for ASAN used by tasks below.
-// Can add additional ABIs to this list as needed
-def supportedABIs = ['armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64']
-
-// Copy ASAN lib for each supported ABI from NDK to app/stuff_for_asan/libs where they will be included
-// by ASAN build type sourceSets defined above
-task copyAsanLibs() {
-    doLast {
-        println("copyAsanLibs exec")
-        def libDir = file("$android.ndkDirectory").absolutePath + "/toolchains/llvm/prebuilt/"
-        for (String abi : supportedABIs) {
-            def dir = new File("app/stuff_for_asan/libs/" + abi)
-            dir.mkdirs()
-            if (abi == 'armeabi-v7a' || abi == 'armeabi')
-                abi = "arm"
-            if (abi == "arm64-v8a")
-                abi = "aarch64"
-            if (abi == "x86")
-                abi = "i686"
-            FileTree tree = fileTree(dir: libDir).include("**/libclang_rt.asan-${abi}-android.so")
-            tree.each { File file ->
-                println("Copy ${file} --> ${dir.absolutePath}")
-                copy {
-                    from file
-                    into dir.absolutePath
-                }
-            }
-        }
-    }
-}
-
-// Create the wrap script for each supported ABI
-task createWrapScript(dependsOn: copyAsanLibs) {
-    doLast {
-        for (String abi : supportedABIs) {
-            def dir = new File("app/stuff_for_asan/res/lib/" + abi)
-            dir.mkdirs()
-            def wrapFile = new File(dir, "wrap.sh")
-            writeAsanWrapScript(wrapFile)
-            println "Write wrap script " + wrapFile.path
-        }
-    }
 }
