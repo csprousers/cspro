@@ -6,4 +6,4 @@ set msbuild="C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Curre
 
 :start
 %msbuild% build-tools.sln /p:Configuration=Debug /p:Platform=x64 /target:"Project File Manager"
-"build\x64\Debug\bin\Project File Manager.exe"
+"build\x64\Debug\bin\Project File Manager.exe" "." "..\cspro"
