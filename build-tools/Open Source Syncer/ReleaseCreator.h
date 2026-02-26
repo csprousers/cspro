@@ -42,7 +42,6 @@ public:
 
 private:
     // Returns the expected release type based on the tag name.
-    enum class ReleaseType { Alpha, Beta, ReleaseCandidate, Release };
     static ReleaseType ParseReleaseType(const std::string& tag_name);
 
     void ParseVersion();

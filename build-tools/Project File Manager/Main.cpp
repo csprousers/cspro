@@ -1,7 +1,8 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include <zToolsO/DirectoryLister.h>
 #include <zToolsO/FileIO.h>
 #include <zUtilO/CSProExecutables.h>
+#include <iostream>
 
 
 struct ProjectPath
@@ -16,6 +17,7 @@ struct ProjectPath
 
 std::vector<std::string> runtime_errors;
 
+void ProcessProjects(const std::string& solution_directory);
 std::vector<ProjectPath> LoadProjectPaths(const std::string& solution_directory);
 std::string RemoveSourceControlStrings(const std::string& project_text);
 std::string StandardizeProjectPaths(const std::string& project_directory, const std::string& project_text);
@@ -26,28 +28,13 @@ int wmain(const int argc, const wchar_t* const argv[])
 {
     try
     {
-        const std::string solution_directory = ( argc == 2 ) ? MakeFullPath(GetWorkingDirectory(), TC::ToUtf8(argv[1])) :
-                                                               MakeFullPath(PortableFunctions::PathGetDirectory(__FILE__), "..\\..\\cspro");
+        if( argc < 2 )
+            throw CSProException("Specify the solution directory.");
 
-        if( !PortableFunctions::FileIsDirectory(solution_directory) )
-            throw CSProException("The solution directory does not exist: " + solution_directory);
-
-        const std::vector<ProjectPath> project_paths = LoadProjectPaths(solution_directory);
-
-        for( const ProjectPath& project_path : project_paths )
+        for( int i = 1; i < argc; ++i )
         {
-            const std::string project_directory = PortableFunctions::PathGetDirectory(project_path.vcxproj_file_path);
-
-            std::string modified_vcxproj_text = RemoveSourceControlStrings(project_path.vcxproj_text);
-            modified_vcxproj_text = StandardizeProjectPaths(project_directory, modified_vcxproj_text);
-
-            if( modified_vcxproj_text != project_path.vcxproj_text )
-                FileIO::WriteText(project_path.vcxproj_file_path, modified_vcxproj_text, true);
-
-            const std::string modified_vcxproj_filter_text = StandardizeProjectPaths(project_directory, project_path.vcxproj_filter_text);
-
-            if( modified_vcxproj_filter_text != project_path.vcxproj_filter_text )
-                FileIO::WriteText(project_path.vcxproj_filter_file_path, modified_vcxproj_filter_text, true);
+            const std::string solution_directory = MakeFullPath(GetWorkingDirectory(), TC::ToUtf8(argv[i]));
+            ProcessProjects(solution_directory);
         }
     }
 
@@ -60,6 +47,35 @@ int wmain(const int argc, const wchar_t* const argv[])
     {
         const std::string message = SO::CreateSingleString(runtime_errors, SO::Newline_crlf_sv);
         MessageBoxW(nullptr, TC::ToWide(message).c_str(), L"Project File Manager", MB_OK | MB_ICONEXCLAMATION);
+    }
+}
+
+
+void ProcessProjects(const std::string& solution_directory)
+{
+    std::wcout << L"Processing solution directory " << TC::ToWide(solution_directory).c_str() << std::endl;
+
+    if( !PortableFunctions::FileIsDirectory(solution_directory) )
+        throw CSProException("The solution directory does not exist: " + solution_directory);
+
+    const std::vector<ProjectPath> project_paths = LoadProjectPaths(solution_directory);
+
+    for( const ProjectPath& project_path : project_paths )
+    {
+        const std::string project_directory = PortableFunctions::PathGetDirectory(project_path.vcxproj_file_path);
+
+        std::wcout << L"Processing project directory " << TC::ToWide(project_directory).c_str() << std::endl;
+
+        std::string modified_vcxproj_text = RemoveSourceControlStrings(project_path.vcxproj_text);
+        modified_vcxproj_text = StandardizeProjectPaths(project_directory, modified_vcxproj_text);
+
+        if( modified_vcxproj_text != project_path.vcxproj_text )
+            FileIO::WriteText(project_path.vcxproj_file_path, modified_vcxproj_text, true);
+
+        const std::string modified_vcxproj_filter_text = StandardizeProjectPaths(project_directory, project_path.vcxproj_filter_text);
+
+        if( modified_vcxproj_filter_text != project_path.vcxproj_filter_text )
+            FileIO::WriteText(project_path.vcxproj_filter_file_path, modified_vcxproj_filter_text, true);
     }
 }
 

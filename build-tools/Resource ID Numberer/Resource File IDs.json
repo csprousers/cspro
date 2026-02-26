@@ -1,12 +1,15 @@
-﻿{
+{
   "notes": [
     "Some projects share resource IDs in a resource_shared.h file.",
     "Some resource IDs need to be ordered so that ON_COMMAND_RANGE works properly",
     "Information about message IDs is in: zUtilO/UWM.h (messages start with WM_APP [32768])"
   ],
-  "codeRoot": "../../cspro",
+  "codeRoot": [
+    "../../build-tools",
+    "../../cspro"
+  ],
   "resourceExclusions": [
-    "zScintilla/win32/ScintRes.rc"
+    "../../cspro/zScintilla/win32/ScintRes.rc"
   ],
   "projects": {
     "default": {
@@ -331,6 +334,14 @@
         "IDC_NOTES_FORMAT_CSPRO",
         "IDC_NOTES_FORMAT_CSV",
         "IDC_NOTES_FORMAT_EXCEL"
+      ]
+    ],
+    "TextView": [
+      [
+        "ID_ENCODING_ANSI",
+        "ID_ENCODING_UTF8",
+        "ID_ENCODING_UTF8_BOM",
+        "ID_ENCODING_UTF16_LE_BOM"
       ]
     ],
     "zEditO": [

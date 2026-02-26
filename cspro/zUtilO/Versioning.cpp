@@ -5,8 +5,7 @@
 
 namespace
 {
-    constexpr int CSProReleaseDate = 20260205;
-    constexpr std::string_view BetaDesignation_sv = "beta";
+    constexpr int CSProReleaseDate = 20260227;
 
     // to override the version that appears in the UI (but not serialized files), replace 'x' with the version override
     constexpr std::string_view NumberDetailedTextOverride_sv = "x.x.x";
@@ -53,8 +52,12 @@ std::string Versioning::GetVersionString(std::string version, const bool include
     if( include_cspro )
         version.insert(0, "CSPro ");
 
-    if constexpr(IsBeta)
-        version.append(" (beta)");
+    if constexpr(IsPrerelease)
+    {
+        version.append(" (")
+               .append(GetReleaseIdentifier(false))
+               .push_back(')');
+    }
 
     return version;
 }
@@ -74,4 +77,26 @@ std::string Versioning::GetVersionDetailedString(const bool include_cspro/* = fa
     version_text.append(IsX64() ? " (64-bit)" : " (32-bit)");
 
     return version_text;
+}
+
+
+const char* Versioning::GetReleaseIdentifier(const ::ReleaseType release_type, const bool with_hyphen_prefix)
+{
+    if( release_type == ReleaseType::Release )
+        return "";
+
+    constexpr const char* IdentifiersWithHyphens[] = { "-alpha", "-beta", "-rc", };
+
+    ASSERT(static_cast<size_t>(release_type) >= 0 &&
+           static_cast<size_t>(release_type) < _countof(IdentifiersWithHyphens));
+
+    const char* const identifier = IdentifiersWithHyphens[static_cast<size_t>(release_type)];
+
+    return with_hyphen_prefix ? identifier : ( identifier + 1 );
+}
+
+
+const char* Versioning::GetReleaseIdentifier(const bool with_hyphen_prefix)
+{
+    return GetReleaseIdentifier(ReleaseType, with_hyphen_prefix);
 }

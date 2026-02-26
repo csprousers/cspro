@@ -28,12 +28,12 @@
 #define IDI_ENT_FILE_OPERATIONAL_CONTROL 124
 #define IDI_ENT_FILE_ALL_TYPES          125
 #define IDR_MEASURTYPE                  126
-#define IDD_APLFILEASSOCIATIONSDLG      127
-#define IDD_CAPI_MACROS                 128
-#define IDD_COMMON_STORE                129
-#define IDD_DIALOGBAR                   130
-#define IDD_FONTPREFDLG                 131
-#define IDD_ABOUT                       132
+#define IDD_ABOUT                       127
+#define IDD_APLFILEASSOCIATIONSDLG      128
+#define IDD_CAPI_MACROS                 129
+#define IDD_COMMON_STORE                130
+#define IDD_DIALOGBAR                   131
+#define IDD_FONTPREFDLG                 132
 #define IDD_NEW_FILE                    133
 #define IDD_ONKEY_CHAR_MAP              134
 #define IDD_PROPERTIES                  135
@@ -165,7 +165,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        159
+#define _APS_NEXT_RESOURCE_VALUE        158
 #define _APS_NEXT_COMMAND_VALUE         40007
 #define _APS_NEXT_CONTROL_VALUE         1095
 #define _APS_NEXT_SYMED_VALUE           158

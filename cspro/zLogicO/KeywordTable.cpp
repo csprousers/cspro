@@ -190,6 +190,10 @@ std::optional<double> KeywordTable::GetKeywordConstant(const TokenCode token_cod
 
 const char* KeywordTable::GetKeywordName(const TokenCode token_code)
 {
+    // VIDEO_TODO_RESTORE_FOR_CSPRO8X remove once Video is restored in the Keywords table
+    if( token_code == TokenCode::TOKKWVIDEO )
+        return "Video";
+
     return GetKeywords().GetName(
         [token_code](const KeywordDetails& keyword_details)
         {

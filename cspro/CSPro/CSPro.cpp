@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "CSPro.h"
 #include "AboutMenuDialogs.h"
 #include "CommonStoreDlg.h"
@@ -403,7 +403,7 @@ BOOL CCSProApp::InitInstance()
     bool bOpenStartDlg = true;
 
 #ifndef _DEBUG
-    if constexpr(Versioning::IsBeta)
+    if constexpr(Versioning::IsPrerelease)
     {
         // display an introduction message if this is the first time they've opened this beta build
         constexpr const wchar_t* BetaKeyName = L"Beta Release Date";
@@ -411,10 +411,10 @@ BOOL CCSProApp::InitInstance()
 
         if( beta_release_data != Versioning::GetReleaseDate() )
         {
-            AfxMessageBox(FormatText("Thank you for testing a beta version of %s. "
+            AfxMessageBox(FormatText("Thank you for testing a prerelease version of %s (%s). "
                                      "This software has not been thoroughly tested and generally should not be used for production data collection. "
                                      "A list of new features will be displayed when you close this dialog.",
-                                     Versioning::CSProVersionText));
+                                     Versioning::CSProVersionText, Versioning::GetReleaseIdentifier(false)));
 
             AfxGetApp()->WriteProfileInt(L"Settings" ,BetaKeyName, Versioning::GetReleaseDate());
             AfxGetApp()->HtmlHelp(HID_BASE_COMMAND + ID_HELP_WHAT_IS_NEW);
@@ -3262,7 +3262,7 @@ void CCSProApp::OnPreferencesFonts()
 
 void CCSProApp::OnToolsVersionShifter()
 {
-    if constexpr(Versioning::IsBeta)
+    if constexpr(Versioning::IsPrerelease)
     {
         VersionShifterDlg dlg;
 
@@ -3278,8 +3278,8 @@ void CCSProApp::OnToolsVersionShifter()
 
 void CCSProApp::OnToolsVersionShifter(CCmdUI* pCmdUI)
 {
-    // hide the version shifter unless they are running the beta
-    if( !Versioning::IsBeta && pCmdUI->m_pMenu != nullptr )
+    // hide the version shifter unless they are running a prerelease version
+    if( !Versioning::IsPrerelease && pCmdUI->m_pMenu != nullptr )
         pCmdUI->m_pMenu->DeleteMenu(pCmdUI->m_nID, MF_BYCOMMAND);
 }
 

@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "ReservedWords.h"
 #include "ChildSymbolNames.h"
 #include "KeywordTable.h"
@@ -23,7 +23,7 @@ namespace
         { "confirm",                    "set_behavior_canenter_statement.html" },
         { "noconfirm",                  "set_behavior_canenter_statement.html" },
         { "specialvalues",              "set_behavior_specialvalues_statement.html" },
-        { QuestionTextStringWriterName, "templated_question_text.html" },
+        { QuestionTextStringWriterName, "QSF_object.html" },
 
         // words that are used in the CSPro DB tables
         { "cases",          nullptr },

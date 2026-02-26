@@ -34,8 +34,8 @@
 #define IDC_FULL_RELEASE                1012
 #define IDC_GITHUB_PAT                  1013
 #define IDC_INSTALLER_32                1014
-#define IDC_LIBRARY_IDS                 1015
-#define IDC_LIBRARIES_TAG               1016
+#define IDC_LIBRARIES_TAG               1015
+#define IDC_LIBRARY_IDS                 1016
 #define IDC_LOG                         1017
 #define IDC_MERGE_COMMIT                1018
 #define IDC_MIRROR_COMMIT               1019

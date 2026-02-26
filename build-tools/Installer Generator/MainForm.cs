@@ -350,7 +350,7 @@ namespace CSPro_Installer_Generator
 
                 AddToLog(LogType.Log, $"Reading the version information from {header_filename}...");
 
-                var constexpr_regex = new Regex(@"^.*constexpr.*\s(\S+)\s=\s+(\S+);\s*$");
+                var constexpr_regex = new Regex(@"^.*constexpr.*\s(\S+)\s*=\s*(\S+);\s*$");
                 var quote_chars = new char[] { '\"' };
 
                 foreach( string full_line in File.ReadAllLines(header_filename) )
@@ -362,7 +362,7 @@ namespace CSPro_Installer_Generator
                 }
             }
 
-            _beta = ( defines["IsBeta"] == "true" );
+            _beta = ( defines["ReleaseType"] != "ReleaseType::Release" );
             labelBeta.Text = _beta ? "Beta" : "Release";
 
             string version = defines["NumberDetailedTextOverride_sv"];

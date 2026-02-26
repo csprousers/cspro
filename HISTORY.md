@@ -13,6 +13,7 @@ Most CSPro development occurs on a [private repository](https://github.com/CSPro
 
 | Date | Branch | Pull Request Message |
 | --- | --- | --- |
+| 2026&#8209;02&#8209;26 | [prerelease/v8.1.0-alpha-20260227](https://github.com/CSProDevelopment/cspro/commit/d1ecff0c47d961bdeb79508c9c6c7ad8a2a08b26) | preparations for a CSPro 8.1.0 release (alpha-2026-02-27) |
 | 2026&#8209;02&#8209;26 | [text-viewer-utf8-default-encoding](https://github.com/CSProDevelopment/cspro/commit/3590e9826d504afc6d327012ed09f9c334dd58e0) | modified Text Viewer so that the default encoding for files without a BOM is UTF-8, not ANSI |
 | 2026&#8209;02&#8209;23 | [video-object](https://github.com/CSProDevelopment/cspro/commit/793ff6672c13471d70d96d700bf928a29f30bb30) | added the Video object and dictionary item (disabled for now) |
 | 2026&#8209;02&#8209;23 | [webp-images](https://github.com/CSProDevelopment/cspro/commit/f7255bd54622e7d460c121541b15bcadc050b9bf) | added support for WebP images (as part of Image objects and as value set images) |
