@@ -47,9 +47,8 @@ private:
     // because it was defined in the exclusions.txt file.
     bool IsFileExcluded(const std::string& cs_file_path);
 
-    // Updates the BUILD.md file with information about the built libraries to be
-    // used at this point.
-    void UpdateBuildDetails(GitIndex& os_index, const std::string& libraries_tag);
+    // Creates the BUILD.md file with information about the built libraries to be used at this point.
+    void UpdateBuildDetails(GitIndex& os_index, GitTree& cs_tree, const std::string& libraries_tag);
 
     // Walks the parents from one merge commit to another, returning the oldest and newest merge commits,
     // and all merge commits in between. The commits are returned in order from oldest to newest.
