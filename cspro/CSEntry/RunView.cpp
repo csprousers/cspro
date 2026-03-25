@@ -1,4 +1,4 @@
-﻿// RunView.cpp : implementation of the CEntryrunView class
+// RunView.cpp : implementation of the CEntryrunView class
 #include "StdAfx.h"
 #include "RunView.h"
 #include "CaseView.h"
@@ -1256,8 +1256,7 @@ void CEntryrunView::OnEditEnter(CDEBaseEdit* pEdit)
     if( pDictItem->GetContentType() == ContentType::Numeric && pDictItem->GetDecimal() ) // 20120312
         sData.Replace(',','.');
 
-    if( pEdit->GetField()->AllowMultiLine() ) // 20120816
-        sData = WS2CS(SO::ToNewlineLF(CS2WS(sData)));
+    pEdit->GetField()->ApplyPropertiesToValue(sData);
 
     pEdit->GetField()->SetData(sData);
 
@@ -1357,11 +1356,9 @@ void CEntryrunView::OnEditPrev(CDEBaseEdit* pEdit)
     if( pDictItem->GetContentType() == ContentType::Numeric && pDictItem->GetDecimal() ) // 20120312
         sData.Replace(',','.');
 
-    if( pEdit->GetField()->AllowMultiLine() )
-        sData = WS2CS(SO::ToNewlineLF(CS2WS(sData)));
+    pEdit->GetField()->ApplyPropertiesToValue(sData);
 
     int iPrevOcc = pEdit->GetField()->GetParent()->GetCurOccurrence();
-
 
     CEntryrunDoc* pDoc = GetDocument();
     CRunAplEntry* pApl = pDoc->GetRunApl();
@@ -3433,8 +3430,7 @@ void CEntryrunView::PutEditValInBuffers(CDEBaseEdit* pEdit)
 
     if(sString.CompareNoCase(sData) != 0 )
     {
-        if( pField->AllowMultiLine() ) // 20120816
-            sString = WS2CS(SO::ToNewlineLF(CS2WS(sString)));
+        pEdit->GetField()->ApplyPropertiesToValue(sString);
 
         pField->SetData(sString);
         sString = pField->GetData(); //this gets the processed SetData text which could have replaced  \r\n with \n
@@ -3480,9 +3476,7 @@ BOOL CEntryrunView::ChkPProcReq(CDEBaseEdit* pEdit)
             // CSEntry thought that there was marked data (the empty decimal point) in the field
         }
         else if(sString.CompareNoCase(sData) != 0 ) {
-
-            if( pField->AllowMultiLine() ) // 20120816
-                sString = WS2CS(SO::ToNewlineLF(CS2WS(sString)));
+            pEdit->GetField()->ApplyPropertiesToValue(sString);
 
             pField->SetData(sString);
             bRet = TRUE;
@@ -3897,9 +3891,7 @@ LRESULT CEntryrunView::OnAdvToEnd(WPARAM /*wParam*/, LPARAM lParam)
     CIMSAString sData;
     pEdit->GetWindowText(sData);
 
-    if( pField->AllowMultiLine() ) {
-        sData = WS2CS(SO::ToNewlineLF(CS2WS(sData)));
-    }
+    pEdit->GetField()->ApplyPropertiesToValue(sData);
 
     pField->SetData(sData);
 
