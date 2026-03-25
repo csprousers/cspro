@@ -353,7 +353,7 @@ BEGIN
     LTEXT           "If submitting a question or if you have a problem with your application, use the\ntool to create a single file of your application that can be easily emailed to the support team.",IDC_STATIC,7,22,303,19
     LTEXT           "You can also visit the CSPro Users forum, a place to ask questions of and exchange ideas with other users of CSPro from all around the world:",IDC_STATIC,7,44,293,18
     LTEXT           "https://csprousers.org/forum/",IDC_TROUBLESHOOTING_CSPROUSERS,176,52,98,8,SS_NOTIFY
-    LTEXT           "U.S. Census Bureau\nInternational Programs\nWashington, DC 20233",IDC_STATIC,48,83,184,28
+    LTEXT           "U.S. Census Bureau\nInternational Programs Center\nWashington, DC 20233",IDC_STATIC,48,83,184,28
     LTEXT           "https://www.census.gov/data/software/cspro.html",IDC_TROUBLESHOOTING_WEBSITE,48,117,210,8,SS_NOTIFY
     GROUPBOX        "The Census and Survey Processing System (CSPro) is distributed by:",IDC_STATIC,33,70,239,63
     LTEXT           "Pack Application",IDC_TROUBLESHOOTING_PACK,261,22,52,8,SS_NOTIFY
