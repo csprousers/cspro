@@ -758,7 +758,7 @@ Language=EN
 
 /* --- Mapping */
 94200  The argument to '%s' must be a user-defined function
-94201  Map.zoomTo expects either two arguments (latitude, longitude), 3 arguments (latitude, longitude, zoom), 4 arguments (minLatitude, minLongitude, maxLatitude, maxLongitude) or 5 arguments (minLatitude, minLongitude, maxLatitude, maxLongitude, padding)
+94201  Map.zoomTo expects 2-3 arguments (latitude, longitude[, zoom]), 4-5 arguments (minLatitude, minLongitude, maxLatitude, maxLongitude[, padding]), or 1-2 arguments (geometry[, padding])
 94202  The argument to '%s' must be a Geometry object
 
 /* --- Frequency */

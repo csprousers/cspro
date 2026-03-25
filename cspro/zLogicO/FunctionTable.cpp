@@ -3214,7 +3214,7 @@ namespace
         },
         {
             "zoomTo",
-            "map_name.zoomTo(latitude | minLat, longitude | minLon[, maxLat, maxLon])",
+            "map_name.zoomTo(latitude | minLat, longitude | minLong[, maxLat, maxLong])",
             "Map_zoomTo_function.html",
             FunctionCode::MAPFN_ZOOM_TO_CODE,
             SymbolType::Map,
