@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 //***************************************************************************
 //  File name: FormView.h
@@ -240,7 +240,7 @@ public:
     CFormGrid* GetGridWhereTrackerSelected();
     void RefreshGridOccLabelStubs();
 
-    void DrawField(CDEField* pField ,CDC* pDC);
+    void DrawField(const CDEField* pField, CDC* pDC);
 
     void UpdateDims();
     void ComputeDims (CDEGroup* pGroup );

@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "FormView.h"
 #include "FieldColorsDlg.h"
 #include "FieldFontDlg.h"
@@ -6150,70 +6150,64 @@ void CFormScrollView::DeleteGridField()
 
 /////////////////////////////////////////////////////////////////////////////////
 //
-//  void CFormScrollView::DrawField(CDEField* pField)
+//  void CFormScrollView::DrawField
 //
 /////////////////////////////////////////////////////////////////////////////////
 
-void CFormScrollView::DrawField(CDEField* pField ,CDC* pDC)
+void CFormScrollView::DrawField(const CDEField* pField, CDC* pDC)
 {
-    ASSERT(nullptr!= pField);
+    ASSERT(pField != nullptr);
 
-    if(!pField->GetDictItem())
+    const CDictItem* pDictItem = pField->GetDictItem();
+    if( pDictItem == nullptr )
         return;
+
  //   CDC* pDC = GetDC();
     int iSaveDC = pDC->SaveDC();
 
     pDC->SelectObject(pField->GetFont().GetCFont());
-    CSize szChar = pDC->GetTextExtent(_T("0"),1);
+    CSize szChar = pDC->GetTextExtent(L"0", 1);
 
     CRect rcFld = pField->GetDims();
 
-    const CDictItem* pDictItem = pField->GetDictItem();
-    ASSERT(pDictItem);
-
     // 20100608 if the user is using a control draw the border in a different color, and thicker
-    CaptureType evaluated_capture_type = pField->GetEvaluatedCaptureInfo().IsSpecified() ?
-        pField->GetEvaluatedCaptureInfo().GetCaptureType() : CaptureInfo::GetBaseCaptureType(*pDictItem);
+    const CaptureType evaluated_capture_type = pField->GetEvaluatedCaptureInfo().IsSpecified()
+        ? pField->GetEvaluatedCaptureInfo().GetCaptureType()
+        : CaptureInfo::GetBaseCaptureType(*pDictItem);
 
-    bool bUsingControl = ( evaluated_capture_type != CaptureType::TextBox );
+    const bool using_control = ( evaluated_capture_type != CaptureType::TextBox );
 
     HPEN hBlueBorderPen = nullptr; // 20110509 not deleting the pen was creating problems when moving blocks on and off the screen
 
-    if( bUsingControl )
+    if( using_control )
     {
-        // 20130417 use a dark aqua for the number pad
-        COLORREF color = ( evaluated_capture_type == CaptureType::NumberPad ) ? RGB(95, 150, 160) :
-                                                                                RGB(0, 0, 128);
-        hBlueBorderPen = CreatePen(PS_SOLID, 2, color);
+        constexpr COLORREF DefaultBorderColor = RGB(0, 0, 128);
+        constexpr COLORREF NumberPadBorderColor = RGB(95, 150, 160); // 20130417 use a dark aqua for the number pad
+        constexpr int BorderWidth = 2;
 
-        pDC->SelectObject(hBlueBorderPen); // blue border, two pixels wide
+        hBlueBorderPen = CreatePen(PS_SOLID, BorderWidth,
+            ( evaluated_capture_type == CaptureType::NumberPad ) ? NumberPadBorderColor :
+                                                                   DefaultBorderColor
+        );
+
+        pDC->SelectObject(hBlueBorderPen);
         rcFld.left++;
         rcFld.top++;
     }
 
-    pDC->MoveTo(rcFld.left,rcFld.top+1 );
-    pDC->LineTo(rcFld.right-1, rcFld.top+1);
-    pDC->LineTo(rcFld.right-1, rcFld.bottom);
+    pDC->MoveTo(rcFld.left, rcFld.top + 1);
+    pDC->LineTo(rcFld.right - 1, rcFld.top + 1);
+    pDC->LineTo(rcFld.right - 1, rcFld.bottom);
     pDC->LineTo(rcFld.left, rcFld.bottom);
+    pDC->LineTo(rcFld.left, using_control ? rcFld.top : ( rcFld.top + 1 ));
 
-    if( bUsingControl )
-        pDC->LineTo(rcFld.left,rcFld.top);
+   CRect rect(rcFld.left + 1, rcFld.top + 2, rcFld.right - 1, rcFld.bottom);
 
-    else
-        pDC->LineTo(rcFld.left,rcFld.top+1);
-
-    //pDC->Rectangle(&rcFld);
-    //pDC->FrameRect (rcFld, (CBrush*) pDC->SelectStockObject(BLACK_BRUSH));
-  //  CBrush* pOldBrush = pDC->SelectObject(&brush);
-   CRect rect(rcFld.left+1,rcFld.top+2 ,rcFld.right-1,rcFld.bottom);
-
-   if( bUsingControl ) // 20100608 the fill rectangle should be slightly smaller due to the larger border
+   if( using_control ) // 20100608 the fill rectangle should be slightly smaller due to the larger border
    {
        rect.right--;
        rect.bottom--;
-       DeleteObject(hBlueBorderPen);
    }
-
 
 
  //   pDC->Rectangle(&rect);
@@ -6250,10 +6244,7 @@ void CFormScrollView::DrawField(CDEField* pField ,CDC* pDC)
     bool bTickMarks = (pDictItem->GetContentType() == ContentType::Alpha && !bNewTextBox) || pDictItem->GetContentType()==ContentType::Numeric; // here check if the field is alpha and it is new textbox
 
     if (bTickMarks) {
-        int iLength = pDictItem->GetLen();
-        if(!pDictItem->GetDecChar()  && pDictItem->GetDecimal() != 0) {
-            iLength++; //If Decimal character does not go in data file the length does not include the decimal character
-        }
+        const int iLength = pDictItem->GetCompleteLen();
         int iLeft = rcFld.left+1; //account for the left border
         int iBottom = rcFld.bottom-1; //account for the bottom border
         int iHeight = rcFld.Height() -2 ;//account for the border
@@ -6265,30 +6256,28 @@ void CFormScrollView::DrawField(CDEField* pField ,CDC* pDC)
         // 20100708 moved to after the decimal point is drawn
 
         pDC->SetBkColor(RGB(255,255,255));
+
         if(pDictItem->GetDecimal() != 0) {
-
-            if( pField->IsProtected() || pField->IsMirror() ) // 20130525 added this condition because the decimal part of a protected field was getting drawn with a white background
+            // 20130525 added this condition because the decimal part of a protected field was getting drawn with a white background
+            if( pField->IsProtected() || pField->IsMirror() )  {
                 pDC->SetBkColor(GetCurForm()->GetBackgroundColor().ToCOLORREF());
+            }
 
-            for(int iIndex =0 ; iIndex <iLength ; iIndex++) {
-                //int iX = rect.left + sizeChar.cx * (iIndex) +(2*iIndex + 1)+iIndex*SEP_SIZE;
-                int iX = iLeft + szChar.cx * (iIndex) +(2*iIndex + 1)+iIndex*GRIDSEP_SIZE - 1;
-                int iY = iBottom - szChar.cy+1;
-                if(iIndex == (iLength  - (int)pDictItem->GetDecimal() -1))
-                {
-                    pDC->TextOut(iX,iY,GetDecimalCharacter());
+            const int iIndex = iLength - (int)pDictItem->GetDecimal() - 1;
 
-                    if( bUsingControl ) // 20100708 the decimal point was eliminating some of the border
-                    {
-                        pDC->MoveTo(iX - 1,iY); // top border
-                        pDC->LineTo(iX + szChar.cx,iY);
+            //int iX = rect.left + sizeChar.cx * (iIndex) +(2*iIndex + 1)+iIndex*SEP_SIZE;
+            int iX = iLeft + szChar.cx * (iIndex) +(2*iIndex + 1)+iIndex*GRIDSEP_SIZE - 1;
+            int iY = iBottom - szChar.cy+1;
 
-                        pDC->MoveTo(iX - 1,iBottom + 1); // bottom border
-                        pDC->LineTo(iX + szChar.cx,iBottom + 1);
-                    }
+            pDC->TextOut(iX, iY, GetDecimalCharacter());
 
-                    break;
-                }
+            if( using_control ) // 20100708 the decimal point was eliminating some of the border
+            {
+                pDC->MoveTo(iX - 1,iY); // top border
+                pDC->LineTo(iX + szChar.cx,iY);
+
+                pDC->MoveTo(iX - 1,iBottom + 1); // bottom border
+                pDC->LineTo(iX + szChar.cx,iBottom + 1);
             }
         }
 
@@ -6296,8 +6285,11 @@ void CFormScrollView::DrawField(CDEField* pField ,CDC* pDC)
             pDC->MoveTo(iLeft + szChar.cx * (iIndex+1) +(iIndex+1)*2 +iIndex*GRIDSEP_SIZE,iBottom);
             pDC->LineTo(iLeft + szChar.cx * (iIndex+1)+(iIndex+1)*2+iIndex*GRIDSEP_SIZE ,iBottom-iHeight/4);
         }
-
     }
+
+    if( using_control )
+        DeleteObject(hBlueBorderPen);
+
     pDC->RestoreDC(iSaveDC);
 }
 
@@ -8825,8 +8817,14 @@ void CFormScrollView::OnEditMultipleFieldProperties(std::vector<CDEField*>& fiel
 
 TCHAR CFormScrollView::GetDecimalCharacter()
 {
-    Application* application = nullptr;
-    AfxGetMainWnd()->SendMessage(UWM::Designer::GetApplication, (WPARAM)&application, (LPARAM)GetDocument());
-    bool use_comma = ( application == nullptr ) ? false : application->GetDecimalMarkIsComma();
-    return use_comma ? ',' : '.';
+    CFormDoc* const pDoc = GetDocument();
+    Application* application;
+
+    if( WindowsDesktopMessage::Send(UWM::Designer::GetApplication, &application, pDoc) == 1 &&
+        application->GetDecimalMarkIsComma() )
+    {
+        return ',';
+    }
+
+    return '.';
 }
