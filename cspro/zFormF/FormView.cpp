@@ -6271,13 +6271,18 @@ void CFormScrollView::DrawField(const CDEField* pField, CDC* pDC)
 
             pDC->TextOut(iX, iY, GetDecimalCharacter());
 
-            if( using_control ) // 20100708 the decimal point was eliminating some of the border
+            // 20100708 the decimal point was eliminating some of the border
+            if( using_control ) 
             {
-                pDC->MoveTo(iX - 1,iY); // top border
-                pDC->LineTo(iX + szChar.cx,iY);
+                // top border
+                const LONG top_border_y = rcFld.top + 1;
+                pDC->MoveTo(iX - 1, top_border_y); 
+                pDC->LineTo(iX + szChar.cx, top_border_y);
 
-                pDC->MoveTo(iX - 1,iBottom + 1); // bottom border
-                pDC->LineTo(iX + szChar.cx,iBottom + 1);
+                // bottom border
+                const LONG bottom_border_y = iBottom + 1;
+                pDC->MoveTo(iX - 1, bottom_border_y); 
+                pDC->LineTo(iX + szChar.cx, bottom_border_y);
             }
         }
 
