@@ -1,4 +1,4 @@
-﻿//------------------------------------------------------------------------
+//------------------------------------------------------------------------
 //
 //  INTDRIVER.cpp         CSPRO Interprete driver
 //
@@ -844,6 +844,7 @@ CIntDriver::pDoubleFunction CIntDriver::m_pExFuncs[] =
 /* 475 */   &CIntDriver::ex_Video_length,
 /* 476 */   &CIntDriver::ex_Video_width_height, // Video.width
 /* 477 */   &CIntDriver::ex_Video_width_height, // Video.height
+/* 478 */   &CIntDriver::ex_ValueSet_removeDuplicates,
 
 
             // placeholders to allow new logic functions to be added to an existing serialization

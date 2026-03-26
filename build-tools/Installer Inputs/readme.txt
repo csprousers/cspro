@@ -106,6 +106,7 @@
           * Report functions: writeEncoded, writeEncodedLine, writeLine
           * StringWriter functions: clear, toString, write, writeEncoded,
               writeEncodedLine, writeLine
+          * ValueSet functions: removeDuplicates
 
     -  Action Invoker additions:
           * throwException

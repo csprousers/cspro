@@ -3609,6 +3609,16 @@ namespace
             0,
         },
         {
+            "removeDuplicates",
+            "valueset_name.removeDuplicates([by code | label])",
+            "ValueSet_removeDuplicates_function.html",
+            FunctionCode::VALUESETFN_REMOVEDUPLICATES_CODE,
+            SymbolType::ValueSet,
+            DataType::Numeric,
+            FunctionCompilationType::ValueSet,
+            1,
+        },
+        {
             "show",
             "valueset_name.show([title])",
             "ValueSet_show_function.html",

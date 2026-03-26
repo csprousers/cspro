@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zEngineO/zEngineO.h>
 #include <zEngineO/List.h>
@@ -118,6 +118,9 @@ public:
     size_t RemoveValue(double value);
     size_t RemoveValue(wstring_view value_sv);
 
+    enum class RemoveDuplicatesType : int { ByCodeLabel = 0, ByCode = 1, ByLabel = 2 };
+    size_t RemoveDuplicates(RemoveDuplicatesType remove_type);
+
     virtual void ForeachValue(const std::function<void(const ForeachValueInfo&, double, const std::optional<double>&)>& numeric_callback_function) const override;
     virtual void ForeachValue(const std::function<void(const ForeachValueInfo&, const CString&)>& string_callback_function) const override;
 
@@ -146,8 +149,11 @@ protected:
     void CreateValueProcessor() const override;
 
 private:
-    template<typename T>
-    const T& GetEntry(size_t index) const { return assert_cast<const T&>(*m_entries[index]); }
+    template<typename EntryT>
+    const EntryT& GetEntry(size_t index) const { return assert_cast<const EntryT&>(*m_entries[index]); }
+
+    template<typename EntryT>
+    size_t RemoveDuplicatesWorker(RemoveDuplicatesType remove_type);
 
     std::tuple<std::unique_ptr<DictValueSet>, bool> CreateDictValueSet(size_t complete_length, size_t length, size_t decimals) const;
 
