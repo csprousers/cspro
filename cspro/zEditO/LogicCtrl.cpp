@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "LogicCtrl.h"
 #include "CSProScintillaFindReplaceDlg.h"
 #include "GoToDlg.h"
@@ -750,9 +750,15 @@ void CLogicCtrl::OnReplaceAll(_In_z_ LPCTSTR lpszFind, _In_z_ LPCTSTR lpszReplac
 
     //Set the selection to the begining of the document to ensure all text is replaced in the document
     CScintillaCtrl& rCtrl = *this;
-    int iSelectionStart = rCtrl.GetSelectionStart();
-    int iSelectionEnd = rCtrl.GetSelectionEnd();
-    if (!bReplaceInSelection) {
+    std::optional<int> iModifiedStartCaret;
+    int iSelectionStart;
+    int iSelectionEnd;
+    if (bReplaceInSelection) {
+        iSelectionStart = rCtrl.GetSelectionStart();
+        iSelectionEnd = rCtrl.GetSelectionEnd();
+    }
+    else {
+        iModifiedStartCaret = rCtrl.GetSelectionStart();
         rCtrl.SetSel(0, 0);
         iSelectionStart = 0;
         iSelectionEnd = 0;
@@ -765,13 +771,17 @@ void CLogicCtrl::OnReplaceAll(_In_z_ LPCTSTR lpszFind, _In_z_ LPCTSTR lpszReplac
     while (FindTextSimple(g_scintillaEditState.strFind, g_scintillaEditState.bNext, bCase, bWord, bRegularExpression, bReplaceInSelection))
     {
         bFoundSomething = TRUE;
-        if (bRegularExpression)
-        {
+
+        if( iModifiedStartCaret.has_value() && rCtrl.GetSelectionStart() < *iModifiedStartCaret )
+            *iModifiedStartCaret += iAdjustReplaceTextLength;
+
+        if (bRegularExpression) {
             rCtrl.TargetFromSelection();
             rCtrl.ReplaceTargetRE(g_scintillaEditState.strReplace.GetLength(), g_scintillaEditState.strReplace);
         }
-        else
+        else {
             rCtrl.ReplaceSel(g_scintillaEditState.strReplace);
+        }
 
         if (bReplaceInSelection && rCtrl.GetSelectionEnd() != iSelectionEnd) {
             iSelectionEnd += iAdjustReplaceTextLength; //adjust the selection end by the additional number of characters replaced
@@ -786,11 +796,21 @@ void CLogicCtrl::OnReplaceAll(_In_z_ LPCTSTR lpszFind, _In_z_ LPCTSTR lpszReplac
     EndUndoAction();
 
     if( bFoundSomething )
+    {
         SetModified();
+
+        // the default behavior sets the caret at the last replaced position,
+        // but this does not match other text editors (Notepad++, Visual Studio, etc.),
+        // so set the caret at the point where the replacement was initiated
+        if( iModifiedStartCaret.has_value() )
+            GotoPos(std::max(0, *iModifiedStartCaret));
+    }
 
     //Inform the user if we could not find anything
     else
+    {
         TextNotFound(g_scintillaEditState.strFind, g_scintillaEditState.bNext, bCase, bWord, bRegularExpression, TRUE);
+    }
 
     ASSERT_VALID(this);
 }
