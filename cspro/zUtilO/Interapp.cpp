@@ -473,8 +473,7 @@ const std::string& GetAppDataPath()
 
             if( SUCCEEDED(SHGetFolderPath(nullptr, CSIDL_APPDATA | CSIDL_FLAG_CREATE, nullptr, 0, path)) )
             {
-                std::string full_path = Path::Combine(TC::ToUtf8(path),
-                                                      OnWindowsDesktop() ? "CSPro" : "CSEntryConsole");
+                std::string full_path = Path::Combine(TC::ToUtf8(path), APPLICATION_DATA_PATH);
 
                 PortableFunctions::PathMakeDirectory(full_path);
 
