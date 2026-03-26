@@ -1,4 +1,3 @@
-
 ## CSPro
 
 This repository contains the code for the [Census and Survey Processing System](https://www.census.gov/data/software/cspro.html) (CSPro) and [CSEntry Android](https://play.google.com/store/apps/details?id=gov.census.cspro.csentry).
@@ -7,7 +6,7 @@ The CSPro suite of programs that runs on Windows is coded in C++17 using the [Mi
 
 CSEntry, the Android application, is coded in Java and Kotlin and built using [Android Studio](https://developer.android.com/studio).
 
-The shared runtime is coded in C++, with the [NDK](https://developer.android.com/ndk) toolset building this for Android.
+The shared runtime is coded in C++17, with the [NDK](https://developer.android.com/ndk) toolset building this for Android.
 
 Details about building CSPro, as well as information about the codebase and programming principles, are available in [BUILD.md](https://github.com/csprousers/cspro/blob/dev/BUILD.md).
 
@@ -18,6 +17,7 @@ Released versions of the software are available at the following sites:
 - [Census Bureau](https://www.census.gov/data/software/cspro.html) (CSPro and CSWeb)
 - [CSPro Users](https://csprousers.org/downloads/) (CSPro and CSWeb)
 - [Google Play](https://play.google.com/store/apps/details?id=gov.census.cspro.csentry) (CSEntry)
+- [GitHub](https://github.com/csprousers/cspro/releases) (CSPro)
 
 
 ## Open-Source Software Licenses
@@ -29,18 +29,18 @@ The use of CSPro is also governed by a [Terms of Service](https://github.com/csp
 
 ## Private Development, Public Repository
 
-Most CSPro development occurs on a [private repository](https://github.com/CSProDevelopment/cspro). The commits in this public repository are mirrored from the development that occurs on the private repository. A list of pull requests that have been merged into the private repository's code is available at [HISTORY.md](https://github.com/csprousers/cspro/blob/dev/HISTORY.md).
+Most CSPro development occurs in a [private repository](https://github.com/CSProDevelopment/cspro). The commits in the public repository are mirrored from the development that occurs in the private repository. A list of pull requests that have been merged into the private repository's code is available in [HISTORY.md](https://github.com/csprousers/cspro/blob/dev/HISTORY.md).
 
-If you submit a pull request that is accepted by the development team, the pull request will be processed in this public repository and/or the private repository. Regardless of order, the changes will be incorporated into the codebase.
+If you submit a pull request that is accepted by the development team, the pull request may be initially merged into the private repository, but the changes will ultimately be incorporated in both the public and private repositories.
 
 
 ## Limitations
 
-The code snapshots in this public repository differ from the code on the private repository that is used to create the released version of CSPro:
+The code in the public repository differs from the code in the private repository that is used to create the released version of CSPro:
 
-- The released version of CSPro uses the [SQLite Encryption Extension](https://sqlite.org/com/see.html) (SEE) to support working with encrypted SQLite databases. Because SEE requires a license, it cannot be released in this public repository. The SQLite compilation units included here are from the public SQLite release: [sqlite3.c](https://github.com/csprousers/cspro/blob/dev/cspro/external/SQLite/sqlite3.c) and [sqlite3.h](https://github.com/csprousers/cspro/blob/dev/cspro/external/SQLite/sqlite3.h). Any access to encrypted SQLite databases using code built from this public repository will result in an exception.
+- The released version of CSPro uses the [SQLite Encryption Extension](https://sqlite.org/com/see.html) (SEE) to encrypt SQLite databases (e.g., Encrypted CSPro DB data sources). Because SEE requires a license, it cannot be released in the public repository. The SQLite compilation units included here are from the public SQLite release: [sqlite3.c](https://github.com/csprousers/cspro/blob/dev/cspro/external/SQLite/sqlite3.c) and [sqlite3.h](https://github.com/csprousers/cspro/blob/dev/cspro/external/SQLite/sqlite3.h). Any access to encrypted SQLite databases using code built from the public repository will result in an exception.
 
-- The API keys used to access or use CSWeb, Dropbox, and Google Maps have been removed (from [ApiKeys.h](https://github.com/csprousers/cspro/blob/dev/cspro/zToolsO/ApiKeys.h) and [api_keys.xml](https://github.com/csprousers/cspro/blob/dev/cspro/CSEntryDroid/app/src/main/res/values/api_keys.xml)). Those choosing to build CSPro from this public snapshot will have to provide their own API keys if they want to use these services.
+- The API keys for CSWeb, Dropbox, and Google Maps have been removed from [ApiKeys.h](https://github.com/csprousers/cspro/blob/dev/cspro/zToolsO/ApiKeys.h) and [api_keys.xml](https://github.com/csprousers/cspro/blob/dev/cspro/CSEntryDroid/app/src/main/res/values/api_keys.xml). Those choosing to build CSPro from the public repository will have to provide their own API keys if they want to use these services.
 
 
 ## Contributing
