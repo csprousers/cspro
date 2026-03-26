@@ -1,13 +1,17 @@
 #include "stdafx.h"
 #include "HtmlViewCtrl.h"
-#include "CSProHostObject.h"
 #include "UriResolver.h"
 #include <zToolsO/DirectoryLister.h>
 #include <zToolsO/VectorHelpers.h>
 #include <zUtilO/Viewers.h>
+#include <zJson/ValidJsonAsserter.h>
 #include <WebView2.h>
 #include <wrl.h>
 #include <wil/com.h>
+
+#ifdef ENABLE_ACTION_INVOKER
+#  include "CSProHostObject.h"
+#endif
 
 
 IMPLEMENT_DYNCREATE(HtmlViewCtrl, CWnd)
@@ -16,7 +20,9 @@ BEGIN_MESSAGE_MAP(HtmlViewCtrl, CWnd)
     ON_WM_CREATE()
     ON_WM_SIZE()
     ON_WM_DESTROY()
+#ifdef ENABLE_ACTION_INVOKER
     ON_MESSAGE(UWM::Html::ActionInvokerProcessAsyncMessage, OnActionInvokerProcessAsyncMessage)
+#endif
 END_MESSAGE_MAP()
 
 
@@ -388,12 +394,16 @@ void HtmlViewCtrl::OnWebViewCreated(ICoreWebView2Controller* const controller)
             return S_OK;
         }).Get(), nullptr);
 
+#ifdef ENABLE_ACTION_INVOKER
     if( m_csproHostObject != nullptr )
         AddCSProHostObject();
+#endif
 
     ProcessPendingEvents();
 }
 
+
+#ifdef ENABLE_ACTION_INVOKER
 
 void HtmlViewCtrl::AddCSProHostObject()
 {
@@ -423,6 +433,8 @@ void HtmlViewCtrl::AddCSProHostObject()
 
     ErrorMessage::Display("There was an error adding the CSPro host object and some functionality will not work as expected.");
 }
+
+#endif // ENABLE_ACTION_INVOKER
 
 
 void HtmlViewCtrl::ProcessPendingEvents()
@@ -889,6 +901,8 @@ std::string HtmlViewCtrl::GetSource()
 }
 
 
+#ifdef ENABLE_ACTION_INVOKER
+
 ActionInvoker::WebController& HtmlViewCtrl::RegisterCSProHostObject()
 {
     ASSERT(m_csproHostObject == nullptr);
@@ -939,6 +953,8 @@ LRESULT HtmlViewCtrl::OnActionInvokerProcessAsyncMessage(WPARAM wParam, LPARAM /
 
     return 0;
 }
+
+#endif // ENABLE_ACTION_INVOKER
 
 
 void HtmlViewCtrl::ShowPrintUI()
