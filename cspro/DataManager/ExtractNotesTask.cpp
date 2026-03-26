@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "ExtractNotesTask.h"
 #include "TaskRunner.h"
 #include <zDictO/DictionaryCreator.h>
@@ -322,13 +322,13 @@ void ExtractNotesTask::CopyNotesToCase(Case& data_case, const std::vector<const 
             ASSERT(one_based_occurrences.size() == 3);
 
             if( one_based_occurrences[0] > 0 )
-                CaseItemHelpers::SetValue(*m_noteLinks->record_occurrence_case_item, notes_index, one_based_occurrences[0]);
+                CaseItemHelpers::SetValue(*m_noteLinks->record_occurrence_case_item, notes_index, static_cast<double>(one_based_occurrences[0]));
 
             if( one_based_occurrences[1] > 0 )
-                CaseItemHelpers::SetValue(*m_noteLinks->item_occurrence_case_item, notes_index, one_based_occurrences[1]);
+                CaseItemHelpers::SetValue(*m_noteLinks->item_occurrence_case_item, notes_index, static_cast<double>(one_based_occurrences[1]));
 
             if( one_based_occurrences[2] > 0 )
-                CaseItemHelpers::SetValue(*m_noteLinks->subitem_occurrence_case_item, notes_index, one_based_occurrences[2]);
+                CaseItemHelpers::SetValue(*m_noteLinks->subitem_occurrence_case_item, notes_index, static_cast<double>(one_based_occurrences[2]));
         }
 
         CaseItemHelpers::SetValue(*m_noteLinks->note_case_item, notes_index, note->GetContentSharableString());
