@@ -523,9 +523,11 @@ fun clipboardGetText(): String? {
 }
 
 fun clipboardPutText(text: String) {
-    val activity = Messenger.getInstance().currentMessage.activity
-    val clipboardManager = activity.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
-    clipboardManager.setPrimaryClip(android.content.ClipData.newPlainText("", text))
+    Messenger.getInstance().runNullEngineFunction { activity ->
+        val clipboardManager = activity.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+        clipboardManager.setPrimaryClip(android.content.ClipData.newPlainText("", text))
+        Messenger.getInstance().engineFunctionComplete(null)
+    }
 }
 
 fun createPinShortcut(shortcutId: String, targetFilePath: String, iconFilePath: String?, label: String, longLabel: String?) {
