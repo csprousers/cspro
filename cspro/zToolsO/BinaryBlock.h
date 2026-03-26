@@ -1,12 +1,5 @@
 #pragma once
 
-#if ( !defined(_MSVC_LANG) && __cplusplus < 202002L ) || ( _MSVC_LANG < 202002L )
-// for std::make_unique_for_overwrite
-#include <zToolsO/StandardTemplates.h>
-#else
-static_assert(false);
-#endif
-
 
 // --------------------------------------------------------------------------
 // BinaryBlock

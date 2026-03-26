@@ -1,8 +1,19 @@
-﻿#pragma once
+#pragma once
 
 #include <zUtilO/zUtilO.h>
 #include <zJson/Json.h>
 
+
+// --------------------------------------------------------------------------
+// CredentialStore
+//
+// The base implementation does not add a prefix to the attributes.
+//
+// The subclass DefinedPrefixCredentialStore can be used when there is a
+// fixed prefix.
+//
+// Alternatively, a subclass can override PrefixAttribute.
+// --------------------------------------------------------------------------
 
 class CLASS_DECL_ZUTILO CredentialStore
 {
@@ -25,8 +36,25 @@ public:
     std::optional<T> RetrieveOptionalFromJson(std::string_view attribute_sv) noexcept;
 
 protected:
-    // by default, no prefix is added to the attribute
     virtual std::string PrefixAttribute(std::string_view attribute_sv);
+};
+
+
+
+// --------------------------------------------------------------------------
+// DefinedPrefixCredentialStore
+// --------------------------------------------------------------------------
+
+class CLASS_DECL_ZUTILO DefinedPrefixCredentialStore : public CredentialStore
+{
+public:
+    DefinedPrefixCredentialStore(std::string prefix);
+
+protected:
+    std::string PrefixAttribute(std::string_view attribute_sv) override;
+
+private:
+    std::string m_prefix;
 };
 
 

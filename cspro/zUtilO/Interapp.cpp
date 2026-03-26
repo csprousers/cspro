@@ -185,7 +185,6 @@ void IMSASpawnApp(const std::wstring& exe_path, CString csWindow, CString csFile
 }
 
 
-
 /////////////////////////////////////////////////////////////////////////////
 //
 //                           IMSA40SendMessage
@@ -242,6 +241,7 @@ BOOL IMSASendMessage(const CString& csWindow, const UINT uMsg, const wstring_vie
 
     return TRUE;
 }
+
 
 BOOL IMSASendMessage(const CString& csWindow, UINT uMsg, UINT uParam /*=0*/)  {
     CWnd* pTargetWnd = AfxGetMainWnd()->FindWindow(csWindow, NULL);

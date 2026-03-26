@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 
 // --------------------------------------------------------------------------
@@ -7,9 +7,7 @@
 
 #include <zToolsO/ConstReferenceOptional.h>
 #include <zToolsO/PointerType.h>
-#include <zToolsO/StandardTemplatesCpp20.h>
 #include <zToolsO/VectorIterators.h>
-#include <optional>
 
 
 
