@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "Form.h"
 
 
@@ -220,13 +220,10 @@ inline void UpdateRowCol(const CRect & rect,int & rowMax,int & colMax,int & colM
         colMin = rect.left;
 }
 
-bool CDEForm::UpdateDims(int windowWidth, int* newSpacingDiff) // 20100421 for centering data on forms
+bool CDEForm::UpdateDims(int windowWidth, int& newSpacingDiff) // 20100421 for centering data on forms
 {
     int colMax(0), rowMax(0);
     int colMin(2147483647);
-
-    if( newSpacingDiff )
-        *newSpacingDiff = 0;
 
     CRect rect;
 
@@ -253,11 +250,11 @@ bool CDEForm::UpdateDims(int windowWidth, int* newSpacingDiff) // 20100421 for c
 
     // now adjust things to center the form
     int widthOfForm = colMax - colMin;
-    int spacingDiff = ( windowWidth / 2 ) - ( colMin + widthOfForm / 2 );
+    newSpacingDiff = ( windowWidth / 2 ) - ( colMin + widthOfForm / 2 );
 
     if( widthOfForm < 0 || // nothing on the form
         widthOfForm > windowWidth || // no way to resize a form that is too big for the screen
-        !spacingDiff ) // nothing to do ... the form is already centered
+        newSpacingDiff == 0 ) // nothing to do ... the form is already centered
     {
         SetDims(0, 0, colMax + FormDefaults::FormPadding, rowMax + FormDefaults::FormPadding);
         return false;
@@ -271,15 +268,15 @@ bool CDEForm::UpdateDims(int windowWidth, int* newSpacingDiff) // 20100421 for c
     {
         pItem = GetItem(i);
         rect = pItem->GetDims();
-        rect.left += spacingDiff;
-        rect.right += spacingDiff;
+        rect.left += newSpacingDiff;
+        rect.right += newSpacingDiff;
         pItem->SetDims(rect);
 
         if( pItem->GetItemType() == CDEFormBase::Field )
         {
             rect = ((CDEField*) pItem)->GetTextDims();
-            rect.left += spacingDiff;
-            rect.right += spacingDiff;
+            rect.left += newSpacingDiff;
+            rect.right += newSpacingDiff;
             ((CDEField*) pItem)->SetTextDims(rect);
         }
 
@@ -290,14 +287,11 @@ bool CDEForm::UpdateDims(int windowWidth, int* newSpacingDiff) // 20100421 for c
     for( CDEBox& box : m_boxSet.GetBoxes() )
     {
         CRect& box_rect = box.GetDims();
-        box_rect.left += spacingDiff;
-        box_rect.right += spacingDiff;
+        box_rect.left += newSpacingDiff;
+        box_rect.right += newSpacingDiff;
     }
 
-    SetDims(0, 0, colMax + FormDefaults::FormPadding + spacingDiff, rowMax + FormDefaults::FormPadding);
-
-    if( newSpacingDiff )
-        *newSpacingDiff = spacingDiff;
+    SetDims(0, 0, colMax + FormDefaults::FormPadding + newSpacingDiff, rowMax + FormDefaults::FormPadding);
 
     return gridsOnForm; // true means to redraw the grids at the current new location
 }

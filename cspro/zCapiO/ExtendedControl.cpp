@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "ExtendedControl.h"
 #include "CapiControl.h"
 #include <zUtilO/CustomFont.h>
@@ -312,10 +312,17 @@ void CExtendedControl::DoSizing(CRect& rect)
     int newX, newY;
 
     // 20110502, using the setcapturepos function a user can force the window to show up at a certain part of the screen
-    const POINT& origin_point = m_pVarT->GetCapturePos();
+    POINT origin_point = m_pVarT->GetCapturePos();
+    const bool capture_pos_specified = ( ( origin_point.x >= 0 ) &&
+                                         ( origin_point.y >= 0 ) );
 
-    if( ( origin_point.x >= 0 ) && ( ( origin_point.x + spacing ) < frameWindowRect.Width() ) &&
-        ( origin_point.y >= 0 ) && ( ( origin_point.y + spacing ) < frameWindowRect.Height() ) )
+    // adjust the capture position in case the forms are being centered
+    if( capture_pos_specified )
+        WindowsDesktopMessage::Send(UWM::Capi::AdjustCapturePos, &origin_point);
+
+    if( ( capture_pos_specified ) &&
+        ( ( origin_point.x + spacing ) < frameWindowRect.Width() ) &&
+        ( ( origin_point.y + spacing ) < frameWindowRect.Height() ) )
     {
         newX = frameWindowRect.left + origin_point.x;
         newY = frameWindowRect.top + origin_point.y;
@@ -391,28 +398,28 @@ void CExtendedControl::DoSizing(CRect& rect)
     else if( SpaceOnRight > responsesWidth && responsesHeight < frameWindowRect.Height() ) // right
     {
         newX = fieldRect.right + spacing;
-        newY =std::max( ( fieldRect.top + fieldRect.Height() / 2 ) - ( rect.Height() / 2 ),
-                    ( frameWindowRect.top + spacing ) );
+        newY = std::max(( fieldRect.top + fieldRect.Height() / 2 ) - ( rect.Height() / 2 ),
+                        ( frameWindowRect.top + spacing ) );
     }
 
     else if( SpaceOnLeft > responsesWidth && responsesHeight < frameWindowRect.Height() ) // left
     {
         newX = fieldRect.left - spacing - rect.Width();
-        newY =std::max( ( fieldRect.top + fieldRect.Height() / 2 ) - ( rect.Height() / 2 ),
-                    ( frameWindowRect.top + spacing ) );
+        newY = std::max(( fieldRect.top + fieldRect.Height() / 2 ) - ( rect.Height() / 2 ),
+                        ( frameWindowRect.top + spacing ) );
     }
 
     else if( SpaceOnTop > responsesHeight && responsesWidth < frameWindowRect.Width() ) // top
     {
-        newX =std::max( ( fieldRect.left + fieldRect.Width() / 2 ) - ( rect.Width() / 2 ),
-                    ( frameWindowRect.left + spacing ) );
+        newX = std::max(( fieldRect.left + fieldRect.Width() / 2 ) - ( rect.Width() / 2 ),
+                        ( frameWindowRect.left + spacing ) );
         newY = fieldRect.top - spacing - rect.Height();
     }
 
     else if( SpaceOnBottom > responsesHeight && responsesWidth < frameWindowRect.Width() )
     {
-        newX =std::max( ( fieldRect.left + fieldRect.Width() / 2 ) - ( rect.Width() / 2 ),
-                    ( frameWindowRect.left + spacing ) );
+        newX = std::max(( fieldRect.left + fieldRect.Width() / 2 ) - ( rect.Width() / 2 ),
+                        ( frameWindowRect.left + spacing ) );
         newY = fieldRect.bottom + spacing;
     }
 
@@ -461,10 +468,14 @@ void CExtendedControl::DoSizing(CRect& rect)
             rect.bottom += scrollHeight;
 
             if( SpaceOnTop > responsesHeight )
+            {
                 newY = fieldRect.top - spacing - rect.Height();
+            }
 
             else
+            {
                 newY = fieldRect.bottom + spacing;
+            }
 
             rect.left = newX = frameWindowRect.left + spacing;
             rect.right = frameWindowRect.right - spacing;
@@ -493,6 +504,7 @@ void CExtendedControl::DoSizing(CRect& rect)
                     rect.left = newX = fieldRect.right + spacing;
                     rect.right = frameWindowRect.right - spacing;
                 }
+
                 else
                 {
                     rect.left = newX = frameWindowRect.left + spacing;
@@ -515,6 +527,7 @@ void CExtendedControl::DoSizing(CRect& rect)
                     rect.top = newY = frameWindowRect.top + spacing;
                     rect.bottom = fieldRect.top - spacing;
                 }
+
                 else
                 {
                     rect.top = newY = fieldRect.bottom + spacing;
