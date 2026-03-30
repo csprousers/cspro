@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 //***************************************************************************
 //  File name: ItemGrid.h
@@ -40,8 +40,8 @@ public:
     int GetRow(int iVSet, int iValue);
     bool HasVSets() const        { return !m_aValue.IsEmpty(); }
 
-    void Size(CRect rect);
-    void Resize(CRect rect) override;
+    void Size(const CRect& rect) override;
+    void Resize(const CRect& rect) override;
     void Update(CDataDict* pDict, int level, int rec, int item, int vset);
     void Update();
 

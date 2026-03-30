@@ -1,4 +1,4 @@
-﻿//***************************************************************************
+//***************************************************************************
 //  File name: DictGrid.cpp
 //
 //  Description:
@@ -111,7 +111,7 @@ void CDictGrid::OnSetup()
 //
 /////////////////////////////////////////////////////////////////////////////
 
-void CDictGrid::Size(CRect rect)
+void CDictGrid::Size(const CRect& rect)
 {
     CIMSAString csWidths = AfxGetApp()->GetProfileString(_T("Data Dictionary"), _T("DictGridWidths"), _T("-1"));
     if (csWidths == _T("-1")) {
@@ -158,7 +158,7 @@ void CDictGrid::Size(CRect rect)
 //
 /////////////////////////////////////////////////////////////////////////////
 
-void CDictGrid::Resize(CRect rect)
+void CDictGrid::Resize(const CRect& rect)
 {
     MoveWindow(&rect);
     if (m_aEditControl.GetSize() > 0) {

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 //***************************************************************************
 //  File name: DDGrid.h
 //
@@ -46,7 +46,8 @@ public:
     virtual void EditQuit() = 0;
 
     // Other
-    virtual void Resize(CRect rect) = 0;
+    virtual void Size(const CRect& rect) = 0;
+    virtual void Resize(const CRect& rect) = 0;
 
 protected:
     DECLARE_MESSAGE_MAP()

@@ -1,4 +1,4 @@
-﻿//***************************************************************************
+//***************************************************************************
 //  File name: RecGrid.cpp
 //
 //  Description:
@@ -191,7 +191,7 @@ void CRecordGrid::OnSetup()
 //
 /////////////////////////////////////////////////////////////////////////////
 
-void CRecordGrid::Size(CRect rect)
+void CRecordGrid::Size(const CRect& rect)
 {
     CIMSAString csWidths = AfxGetApp()->GetProfileString(_T("Data Dictionary"), _T("RecGridWidths"), _T("-1"));
     if (csWidths == _T("-1")) {
@@ -264,7 +264,7 @@ void CRecordGrid::Size(CRect rect)
 //
 /////////////////////////////////////////////////////////////////////////////
 
-void CRecordGrid::Resize(CRect rect)
+void CRecordGrid::Resize(const CRect& rect)
 {
     MoveWindow(&rect, FALSE);
     if (m_aEditControl.GetSize() > 0) {

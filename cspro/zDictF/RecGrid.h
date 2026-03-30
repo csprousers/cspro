@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 //***************************************************************************
 //  File name: RecGrid.h
@@ -35,8 +35,8 @@ public:
     int GetItem(long row)   const { return m_aItem[row].item; }
     int GetRow(int iItem);
 
-    void Size(CRect rect);
-    void Resize(CRect rect) override;
+    void Size(const CRect& rect) override;
+    void Resize(const CRect& rect) override;
     void Update(CDataDict* pDict, int level, int rec);
     void Update();
 

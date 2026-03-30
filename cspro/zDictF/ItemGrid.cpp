@@ -1,4 +1,4 @@
-﻿//***************************************************************************
+//***************************************************************************
 //  File name: ItemGrid.cpp
 //
 //  Description:
@@ -120,7 +120,7 @@ void CItemGrid::OnSetup()
 //
 /////////////////////////////////////////////////////////////////////////////
 
-void CItemGrid::Size(CRect rect)
+void CItemGrid::Size(const CRect& rect)
 {
     CIMSAString csWidths = AfxGetApp()->GetProfileString(L"Data Dictionary", L"ItemGridWidths", L"-1");
     std::vector<std::wstring> aWidths = SO::SplitString(csWidths, ',');
@@ -199,7 +199,7 @@ void CItemGrid::Size(CRect rect)
 //
 /////////////////////////////////////////////////////////////////////////////
 
-void CItemGrid::Resize(CRect rect)
+void CItemGrid::Resize(const CRect& rect)
 {
     MoveWindow(&rect, FALSE);
     if (m_aEditControl.GetSize() > 0) {

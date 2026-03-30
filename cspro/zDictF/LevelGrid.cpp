@@ -1,4 +1,4 @@
-﻿//***************************************************************************
+//***************************************************************************
 //  File name: LevelGrid.cpp
 //
 //  Description:
@@ -111,7 +111,7 @@ void CLevelGrid::OnSetup()
 //
 /////////////////////////////////////////////////////////////////////////////
 
-void CLevelGrid::Size(CRect rect)
+void CLevelGrid::Size(const CRect& rect)
 {
     CIMSAString csWidths = AfxGetApp()->GetProfileString(_T("Data Dictionary"), _T("LevelGridWidths"), _T("-1"));
     if (csWidths == _T("-1")) {
@@ -169,7 +169,7 @@ void CLevelGrid::Size(CRect rect)
 //
 /////////////////////////////////////////////////////////////////////////////
 
-void CLevelGrid::Resize(CRect rect)
+void CLevelGrid::Resize(const CRect& rect)
 {
     MoveWindow(&rect);
     if (m_aEditControl.GetSize() > 0) {

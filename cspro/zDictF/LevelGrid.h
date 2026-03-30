@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 //***************************************************************************
 //  File name: LevelGrid.h
@@ -24,8 +24,8 @@ public:
     int GetLevel() const    { return m_iLevel; }
     int GetFirstRow() const { return m_iFirstRow; }
 
-    void Size(CRect rect);
-    void Resize(CRect rect) override;
+    void Size(const CRect& rect) override;
+    void Resize(const CRect& rect) override;
     void Update(CDataDict* pDict, int level);
     void Update();
 

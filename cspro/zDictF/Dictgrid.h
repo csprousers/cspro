@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 //***************************************************************************
 //  File name: DataGrid.h
@@ -23,8 +23,8 @@ class CDictGrid : public CDDGrid
 public:
     CDictGrid();
 
-    void Size(CRect rect);
-    void Resize(CRect rect) override;
+    void Size(const CRect& rect) override;
+    void Resize(const CRect& rect) override;
     void Update(CDataDict* pDict);
     void Update();
 

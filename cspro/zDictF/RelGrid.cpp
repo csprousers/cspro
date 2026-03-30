@@ -1,4 +1,4 @@
-﻿// RelGrid.cpp: implementation of the CRelGrid class.
+// RelGrid.cpp: implementation of the CRelGrid class.
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -959,6 +959,15 @@ void CRelGrid::EditContinue()
     SetFocus();
 }
 
+
+void CRelGrid::Size(const CRect& /*rect*/)
+{
+}
+
+
+void CRelGrid::Resize(const CRect& /*rect*/)
+{
+}
 
 
 /////////////////////////////////////////////////////////////////////////////
