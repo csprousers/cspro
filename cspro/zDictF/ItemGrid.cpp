@@ -133,11 +133,7 @@ void CItemGrid::Size(const CRect& rect, const bool reset_widths/* = false*/)
         SetColWidth(ITEM_NOTE_COL, (int) (NOTE_WIDTH * (GetDesignerFontZoomLevel() / 100.0)));
         int iUsed = (int) (NOTE_WIDTH * (GetDesignerFontZoomLevel() / 100.0));
 
-        for (int col = ITEM_SPECIAL_COL; col > ITEM_SETLABEL_COL ; col--) {
-            if (col == ITEM_LABEL_COL) {
-                continue;
-            }
-
+        for (int col = ITEM_SPECIAL_COL; col > ITEM_LABEL_COL ; col--) {
             if (col == ITEM_FROM_COL || col == ITEM_TO_COL) {
                 GetCell(ITEM_SETNAME_COL, HEADER_ROW, &cell);
                 pCellType = GetCellType(HEADER_ROW, ITEM_SETNAME_COL);
@@ -151,17 +147,19 @@ void CItemGrid::Size(const CRect& rect, const bool reset_widths/* = false*/)
             SetColWidth(col, size.cx + BORDER_WIDTH);
             iUsed += size.cx + BORDER_WIDTH;
         }
-        GetCell(ITEM_SETLABEL_COL, HEADER_ROW, &cell);
-        pCellType = GetCellType(HEADER_ROW, ITEM_SETLABEL_COL);
-        pCellType->GetBestSize(GetDC(), &size, &cell);
-        if (2 * size.cx > rect.Width() - m_GI->m_vScrollWidth - iUsed - 1) {
-            SetColWidth(ITEM_SETLABEL_COL, size.cx + BORDER_WIDTH);
-            SetColWidth(ITEM_LABEL_COL,    size.cx + BORDER_WIDTH);
-        }
-        else {
-            SetColWidth(ITEM_SETLABEL_COL, (rect.Width() - m_GI->m_vScrollWidth - iUsed)/2);
-            SetColWidth(ITEM_LABEL_COL,    (rect.Width() - m_GI->m_vScrollWidth - iUsed)/2);
-        }
+
+        int remaining_width = rect.Width() - m_GI->m_vScrollWidth - iUsed - 1;
+        std::tuple<int, int> label_name_widths = CalculateLabelNameColumnWidths(ITEM_SETLABEL_COL, ITEM_SETNAME_COL, remaining_width);
+
+        // the label/name calculation accounts for only one label, so use the full width of
+        // the screen and allocate 3/5 of the label width to the value label
+        constexpr double ValueLabelProportion = 0.6;
+        const int full_label_width = std::get<0>(label_name_widths) + std::max(remaining_width, 0);
+        const int value_label_width = static_cast<int>(full_label_width * ValueLabelProportion);
+
+        SetColWidth(ITEM_LABEL_COL, value_label_width);
+        SetColWidth(ITEM_SETNAME_COL, std::get<1>(label_name_widths));
+        SetColWidth(ITEM_SETLABEL_COL, full_label_width - value_label_width);
 
         csWidths.Format(L"%d,%d,%d,%d,%d,%d,%d", GetColWidth(ITEM_NOTE_COL),
                                                  GetColWidth(ITEM_SETLABEL_COL),

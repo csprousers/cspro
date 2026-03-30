@@ -121,22 +121,19 @@ void CLevelGrid::Size(const CRect& rect, const bool reset_widths/* = false*/)
 
         int iUsed = static_cast<int>(NOTE_WIDTH * (GetDesignerFontZoomLevel() / 100.0));
         SetColWidth(LEVEL_NOTE_COL, iUsed);
-        for (int col = LEVEL_MAX_COL ; col > LEVEL_LABEL_COL ; col--) {
+        for (int col = LEVEL_MAX_COL ; col > LEVEL_NAME_COL ; col--) {
             GetCell(col, HEADER_ROW, &cell);
             pCellType = GetCellType(HEADER_ROW, col);
             pCellType->GetBestSize(GetDC(), &size, &cell);
             SetColWidth(col, size.cx + BORDER_WIDTH);
             iUsed += size.cx + BORDER_WIDTH;
         }
-        GetCell(LEVEL_LABEL_COL, HEADER_ROW, &cell);
-        pCellType = GetCellType(HEADER_ROW, LEVEL_LABEL_COL);
-        pCellType->GetBestSize(GetDC(), &size, &cell);
-        if (size.cx > rect.Width() - m_GI->m_vScrollWidth - iUsed - 1) {
-            SetColWidth(LEVEL_LABEL_COL, size.cx);
-        }
-        else {
-            SetColWidth(LEVEL_LABEL_COL, rect.Width() - m_GI->m_vScrollWidth - iUsed - 1);
-        }
+
+        int remaining_width = rect.Width() - m_GI->m_vScrollWidth - iUsed - 1;
+        const std::tuple<int, int> label_name_widths = CalculateLabelNameColumnWidths(LEVEL_LABEL_COL, LEVEL_NAME_COL, remaining_width);
+        SetColWidth(LEVEL_NAME_COL, std::get<1>(label_name_widths));
+        SetColWidth(LEVEL_LABEL_COL, std::get<0>(label_name_widths));
+
         csWidths.Format(_T("%d,%d,%d,%d,%d,%d"), GetColWidth(LEVEL_NOTE_COL),
                                                  GetColWidth(LEVEL_LABEL_COL),
                                                  GetColWidth(LEVEL_NAME_COL),

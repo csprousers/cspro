@@ -64,6 +64,9 @@ protected:
     //mouse and key strokes
     void OnTH_RClicked(int col, long row, int updn, RECT* rect, POINT* point, BOOL processed = 0) override;
 
+protected:
+    std::tuple<int, int> CalculateLabelNameColumnWidths(int label_column, int name_column, int& remaining_width);
+
 public:
     int m_iEditRow;
     int m_iEditCol;
