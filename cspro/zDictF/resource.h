@@ -138,24 +138,25 @@
 #define ID_PASTE_VS_LINK                43042
 #define ID_REMOVE_VS_LINK               43043
 #define ID_REMOVE_VS_ALL_LINKS          43044
-#define ID_VIEW_ALIASES                 43045
-#define ID_VIEW_DICTIONARY              43046
-#define ID_VIEW_LAYOUT                  43047
-#define ID_VIEW_PROPERTIES              43048
-#define ID_VS_CASE_FORMAT               43049
-#define ID_VS_CASE_UPPER                43050
-#define ID_VS_CASE_LOWER                43051
-#define ID_VS_CASE_MIXED_FIRST_WORD     43052
-#define ID_VS_CASE_MIXED_ALL_WORDS      43053
-#define ID_VS_MAKE_FIRST_VS             43054
-#define ID_VS_REPLACE_VALUE_LABELS      43055
+#define ID_RESET_COLUMN_WIDTHS          43045
+#define ID_VIEW_ALIASES                 43046
+#define ID_VIEW_DICTIONARY              43047
+#define ID_VIEW_LAYOUT                  43048
+#define ID_VIEW_PROPERTIES              43049
+#define ID_VS_CASE_FORMAT               43050
+#define ID_VS_CASE_UPPER                43051
+#define ID_VS_CASE_LOWER                43052
+#define ID_VS_CASE_MIXED_FIRST_WORD     43053
+#define ID_VS_CASE_MIXED_ALL_WORDS      43054
+#define ID_VS_MAKE_FIRST_VS             43055
+#define ID_VS_REPLACE_VALUE_LABELS      43056
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        6024
-#define _APS_NEXT_COMMAND_VALUE         43056
+#define _APS_NEXT_COMMAND_VALUE         43057
 #define _APS_NEXT_CONTROL_VALUE         6569
 #define _APS_NEXT_SYMED_VALUE           6024
 #endif

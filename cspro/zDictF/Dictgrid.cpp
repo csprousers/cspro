@@ -111,9 +111,9 @@ void CDictGrid::OnSetup()
 //
 /////////////////////////////////////////////////////////////////////////////
 
-void CDictGrid::Size(const CRect& rect)
+void CDictGrid::Size(const CRect& rect, const bool reset_widths/* = false*/)
 {
-    CIMSAString csWidths = AfxGetApp()->GetProfileString(_T("Data Dictionary"), _T("DictGridWidths"), _T("-1"));
+    CIMSAString csWidths = reset_widths ? _T("-1") : AfxGetApp()->GetProfileString(_T("Data Dictionary"), _T("DictGridWidths"), _T("-1"));
     if (csWidths == _T("-1")) {
         CUGCell cell;
         CUGCellType* pCellType;
@@ -314,18 +314,6 @@ void CDictGrid::OnLClicked(int col, long row, int updn, RECT* /*rect*/, POINT* /
             }
         }
     }
-}
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
-//                        CDictGrid::OnTH_RClicked
-//
-/////////////////////////////////////////////////////////////////////////////
-
-void CDictGrid::OnTH_RClicked(int col, long row, int updn, RECT* rect, POINT* point, BOOL processed/* = 0*/)
-{
-    OnRClicked(col, row, updn, rect, point, processed);
 }
 
 

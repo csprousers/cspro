@@ -1,4 +1,4 @@
-﻿//***************************************************************************
+//***************************************************************************
 //  File name: DDGrid.cpp
 //
 //  Description:
@@ -464,4 +464,24 @@ void CDDGrid::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar*) {
             m_aEditControl[i]->PostMessage(WM_SIZE);
         }
     }
+}
+
+
+void CDDGrid::OnTH_RClicked(int /*col*/, long /*row*/, const int updn, RECT* /*rect*/, POINT* const point, BOOL /*processed = 0*/)
+{
+    ASSERT(point != nullptr);
+
+    if( updn )
+        return;
+
+    BCMenu popup_menu;
+    popup_menu.CreatePopupMenu();
+
+    popup_menu.AppendMenu(MF_STRING, ID_RESET_COLUMN_WIDTHS, L"Reset Column Widths");
+
+    // route commands through CDDGView
+    CDDGView* const pView = assert_cast<CDDGView*>(GetParent());
+
+    ClientToScreen(point);
+    popup_menu.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, point->x, point->y, pView);
 }

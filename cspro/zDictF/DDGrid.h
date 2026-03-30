@@ -46,7 +46,7 @@ public:
     virtual void EditQuit() = 0;
 
     // Other
-    virtual void Size(const CRect& rect) = 0;
+    virtual void Size(const CRect& rect, bool reset_widths = false) = 0;
     virtual void Resize(const CRect& rect) = 0;
 
 protected:
@@ -60,6 +60,9 @@ protected:
     int OnCanSizeCol(int col) override;
     void OnColSizing(int col, int* width) override;
     void OnRowChange(long oldrow, long newrow) override;
+
+    //mouse and key strokes
+    void OnTH_RClicked(int col, long row, int updn, RECT* rect, POINT* point, BOOL processed = 0) override;
 
 public:
     int m_iEditRow;

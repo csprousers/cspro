@@ -1,4 +1,4 @@
-﻿//***************************************************************************
+//***************************************************************************
 //  File name: DDGView.cpp
 //
 //  Description:
@@ -59,6 +59,7 @@ BEGIN_MESSAGE_MAP(CDDGView, CView)
     ON_COMMAND(ID_SHIFT_F10, OnShiftF10)
     ON_COMMAND(ID_PASTE_VS_LINK, OnEditPasteValueSetLink)
     ON_UPDATE_COMMAND_UI(ID_PASTE_VS_LINK, OnUpdateEditPasteValueSetLink)
+    ON_COMMAND(ID_RESET_COLUMN_WIDTHS, OnResetColumnsWidths)
 END_MESSAGE_MAP()
 
 
@@ -3156,4 +3157,17 @@ int CDDGView::WrapText(const CString& text, CStringArray& acsLine, int iColLeft 
     csLine = CIMSAString(SPACE, iColLeft) + csThis;
     acsLine.Add(csLine);
     return acsLine.GetSize();
+}
+
+
+void CDDGView::OnResetColumnsWidths()
+{
+    CDDGrid& current_grid = GetCurrentGrid();
+
+    CRect rect;
+    GetClientRect(&rect);
+    current_grid.Size(rect, true);
+
+    // redrawing the window will redraw the column headings
+    current_grid.RedrawWindow();
 }

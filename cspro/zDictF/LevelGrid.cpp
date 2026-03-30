@@ -111,9 +111,9 @@ void CLevelGrid::OnSetup()
 //
 /////////////////////////////////////////////////////////////////////////////
 
-void CLevelGrid::Size(const CRect& rect)
+void CLevelGrid::Size(const CRect& rect, const bool reset_widths/* = false*/)
 {
-    CIMSAString csWidths = AfxGetApp()->GetProfileString(_T("Data Dictionary"), _T("LevelGridWidths"), _T("-1"));
+    CIMSAString csWidths = reset_widths ? _T("-1") : AfxGetApp()->GetProfileString(_T("Data Dictionary"), _T("LevelGridWidths"), _T("-1"));
     if (csWidths == _T("-1")) {
         CUGCell cell;
         CUGCellType* pCellType;
@@ -421,18 +421,6 @@ void CLevelGrid::OnLClicked(int col, long row, int updn, RECT* /*rect*/, POINT* 
             }
         }
     }
-}
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
-//                        CLevelGrid::OnTH_RClicked
-//
-/////////////////////////////////////////////////////////////////////////////
-
-void CLevelGrid::OnTH_RClicked(int col, long row, int updn, RECT* rect, POINT* point, BOOL processed/* = 0*/)
-{
-    OnRClicked(col, row, updn, rect, point, processed);
 }
 
 

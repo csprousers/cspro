@@ -120,9 +120,9 @@ void CItemGrid::OnSetup()
 //
 /////////////////////////////////////////////////////////////////////////////
 
-void CItemGrid::Size(const CRect& rect)
+void CItemGrid::Size(const CRect& rect, const bool reset_widths/* = false*/)
 {
-    CIMSAString csWidths = AfxGetApp()->GetProfileString(L"Data Dictionary", L"ItemGridWidths", L"-1");
+    CIMSAString csWidths = reset_widths ? L"-1" : AfxGetApp()->GetProfileString(L"Data Dictionary", L"ItemGridWidths", L"-1");
     std::vector<std::wstring> aWidths = SO::SplitString(csWidths, ',');
 
     if (aWidths.size() < ITEM_NUM_COLS) {
@@ -570,18 +570,6 @@ void CItemGrid::OnLClicked(int col, long row, int updn, RECT* /*rect*/, POINT* /
             }
         }
     }
-}
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
-//                        CItemGrid::OnTH_RClicked
-//
-/////////////////////////////////////////////////////////////////////////////
-
-void CItemGrid::OnTH_RClicked(int col, long row, int updn, RECT* rect, POINT* point, BOOL processed/* = 0*/)
-{
-    OnRClicked(col, row, updn, rect, point, processed);
 }
 
 
