@@ -1,12 +1,21 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "IncludesCC.h"
 #include "Nodes/GeneralizedFunction.h"
 
 
-int LogicCompiler::CompileExpression(DataType data_type)
+int LogicCompiler::CompileExpression(const DataType data_type)
 {
     if( data_type == DataType::Numeric )
     {
+        // this hack is to ensure that functions that return strings are not evaluated as numeric expressions;
+        // providing a string should have resulted in an error in crelalpha, but is_lone_function_call would
+        // stay true in uses like:
+        //     ValueSet vs; vs.remove("asdf");
+        // this prevented the 693 message from being issued;
+        // TODO: all uses of m_loneAlphaFunctionCallTester are hacks and need to be revisited
+        auto& [call_tester, is_lone_function_call] = get_COMPILER_DLL_TODO_m_loneAlphaFunctionCallTester();
+        const RAII::SetValueAndRestoreOnDestruction<bool> is_lone_function_caller_setter(is_lone_function_call, false);
+
         return exprlog();
     }
 
