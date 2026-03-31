@@ -1,4 +1,4 @@
-﻿//***************************************************************************
+//***************************************************************************
 //  File name: RecGrid.cpp
 //
 //  Description:
@@ -191,9 +191,9 @@ void CRecordGrid::OnSetup()
 //
 /////////////////////////////////////////////////////////////////////////////
 
-void CRecordGrid::Size(CRect rect)
+void CRecordGrid::Size(const CRect& rect, const bool reset_widths/* = false*/)
 {
-    CIMSAString csWidths = AfxGetApp()->GetProfileString(_T("Data Dictionary"), _T("RecGridWidths"), _T("-1"));
+    CIMSAString csWidths = reset_widths ? _T("-1") : AfxGetApp()->GetProfileString(_T("Data Dictionary"), _T("RecGridWidths"), _T("-1"));
     if (csWidths == _T("-1")) {
         CUGCell cell;
         CUGCellType* pCellType;
@@ -201,22 +201,19 @@ void CRecordGrid::Size(CRect rect)
 
         int iUsed = static_cast<int>(NOTE_WIDTH * (GetDesignerFontZoomLevel() / 100.0));
         SetColWidth(REC_NOTE_COL, iUsed);
-        for (int col = REC_ZEROFILL_COL ; col > REC_LABEL_COL ; col--) {
+        for (int col = REC_ZEROFILL_COL ; col > REC_NAME_COL ; col--) {
             GetCell(col, HEADER_ROW, &cell);
             pCellType = GetCellType(HEADER_ROW, col);
             pCellType->GetBestSize(GetDC(), &size, &cell);
             SetColWidth(col, size.cx + BORDER_WIDTH);
             iUsed += size.cx + BORDER_WIDTH;
         }
-        GetCell(REC_LABEL_COL, HEADER_ROW, &cell);
-        pCellType = GetCellType(HEADER_ROW, REC_LABEL_COL);
-        pCellType->GetBestSize(GetDC(), &size, &cell);
-        if (size.cx > rect.Width() - m_GI->m_vScrollWidth - iUsed - 1) {
-            SetColWidth(REC_LABEL_COL, size.cx);
-        }
-        else {
-            SetColWidth(REC_LABEL_COL, rect.Width() - m_GI->m_vScrollWidth - iUsed - 1);
-        }
+
+        int remaining_width = rect.Width() - m_GI->m_vScrollWidth - iUsed - 1;
+        const std::tuple<int, int> label_name_widths = CalculateLabelNameColumnWidths(REC_LABEL_COL, REC_NAME_COL, remaining_width);
+        SetColWidth(REC_NAME_COL, std::get<1>(label_name_widths));
+        SetColWidth(REC_LABEL_COL, std::get<0>(label_name_widths));
+
         csWidths.Format(_T("%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d"), GetColWidth(REC_NOTE_COL),
                                                                 GetColWidth(REC_LABEL_COL),
                                                                 GetColWidth(REC_NAME_COL),
@@ -264,7 +261,7 @@ void CRecordGrid::Size(CRect rect)
 //
 /////////////////////////////////////////////////////////////////////////////
 
-void CRecordGrid::Resize(CRect rect)
+void CRecordGrid::Resize(const CRect& rect)
 {
     MoveWindow(&rect, FALSE);
     if (m_aEditControl.GetSize() > 0) {
@@ -970,18 +967,6 @@ void CRecordGrid::OnLClicked(int col, long row, int updn, RECT* /*rect*/, POINT*
             }
         }
     }
-}
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
-//                        CRecordGrid::OnTH_RClicked
-//
-/////////////////////////////////////////////////////////////////////////////
-
-void CRecordGrid::OnTH_RClicked(int col, long row, int updn, RECT* rect, POINT* point, BOOL processed/* = 0*/)
-{
-    OnRClicked(col, row, updn, rect, point, processed);
 }
 
 

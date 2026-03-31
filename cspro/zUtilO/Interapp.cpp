@@ -185,7 +185,6 @@ void IMSASpawnApp(const std::wstring& exe_path, CString csWindow, CString csFile
 }
 
 
-
 /////////////////////////////////////////////////////////////////////////////
 //
 //                           IMSA40SendMessage
@@ -242,6 +241,7 @@ BOOL IMSASendMessage(const CString& csWindow, const UINT uMsg, const wstring_vie
 
     return TRUE;
 }
+
 
 BOOL IMSASendMessage(const CString& csWindow, UINT uMsg, UINT uParam /*=0*/)  {
     CWnd* pTargetWnd = AfxGetMainWnd()->FindWindow(csWindow, NULL);
@@ -473,8 +473,7 @@ const std::string& GetAppDataPath()
 
             if( SUCCEEDED(SHGetFolderPath(nullptr, CSIDL_APPDATA | CSIDL_FLAG_CREATE, nullptr, 0, path)) )
             {
-                std::string full_path = Path::Combine(TC::ToUtf8(path),
-                                                      OnWindowsDesktop() ? "CSPro" : "CSEntryConsole");
+                std::string full_path = Path::Combine(TC::ToUtf8(path), APPLICATION_DATA_PATH);
 
                 PortableFunctions::PathMakeDirectory(full_path);
 

@@ -3214,7 +3214,7 @@ namespace
         },
         {
             "zoomTo",
-            "map_name.zoomTo(latitude | minLat, longitude | minLon[, maxLat, maxLon])",
+            "map_name.zoomTo(latitude | minLat, longitude | minLong[, maxLat, maxLong])",
             "Map_zoomTo_function.html",
             FunctionCode::MAPFN_ZOOM_TO_CODE,
             SymbolType::Map,
@@ -3607,6 +3607,16 @@ namespace
             DataType::Numeric,
             FunctionCompilationType::Various,
             0,
+        },
+        {
+            "removeDuplicates",
+            "valueset_name.removeDuplicates([by code | label])",
+            "ValueSet_removeDuplicates_function.html",
+            FunctionCode::VALUESETFN_REMOVEDUPLICATES_CODE,
+            SymbolType::ValueSet,
+            DataType::Numeric,
+            FunctionCompilationType::ValueSet,
+            1,
         },
         {
             "show",

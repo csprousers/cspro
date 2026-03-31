@@ -141,6 +141,7 @@
     <ClInclude Include="UseHtmlDialogs.h" />
     <ClInclude Include="UWM.h" />
     <ClInclude Include="VirtualFileMapping.h" />
+    <ClInclude Include="WebViewPermission.h" />
     <ClInclude Include="WebViewSyncOperationMarker.h" />
     <ClInclude Include="zHtml.h" />
   </ItemGroup>

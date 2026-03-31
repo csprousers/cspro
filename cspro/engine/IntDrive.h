@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 //---------------------------------------------------------------------------
 //  File name: IntDrv.h
@@ -655,6 +655,7 @@ public:
     double exvaluesetclear(int iExpr);
     double exvaluesetlength(int iExpr);
     double exvaluesetremove(int iExpr);
+    double ex_ValueSet_removeDuplicates(int program_index);
     double exvaluesetshow(int iExpr);
     double exvaluesetshow_pre77(int iExpr);
     double exvaluesetsort(int iExpr);

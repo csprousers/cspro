@@ -189,6 +189,7 @@ BEGIN_MESSAGE_MAP(CMainFrame, CFrameWnd)
     ON_MESSAGE(WM_IMSA_SETCAPITEXT, OnSetCapiText)
     ON_MESSAGE(UWM::Capi::GetWindowHeight, OnGetWindowHeight)
     ON_MESSAGE(UWM::Capi::SetWindowHeight, OnSetWindowHeight)
+    ON_MESSAGE(UWM::Capi::AdjustCapturePos, OnAdjustCapturePos)
 
     ON_MESSAGE(WM_IMSA_CSENTRY_REFRESH_DATA, OnEngineRefresh) // RHF Nov 19, 2001
     ON_MESSAGE(UWM::CSEntry::ShowCapi, OnEngineShowCapi) // RHF Nov 22, 2002
@@ -4611,6 +4612,20 @@ LRESULT CMainFrame::OnSetWindowHeight(WPARAM wParam, LPARAM /*lParam*/)
     ASSERT(wParam <= FormDefaults::QuestionTextHeightMax);
     m_wndCapiSplitter.SetRowInfo(0, wParam, 0);
     m_wndCapiSplitter.RecalcLayout();
+    return 1;
+}
+
+
+LRESULT CMainFrame::OnAdjustCapturePos(const WPARAM wParam, LPARAM /*lParam*/)
+{
+    POINT& origin_point = *reinterpret_cast<POINT*>(wParam);
+    ASSERT(origin_point.x >= 0 && origin_point.y >= 0);
+
+    CEntryrunView* const pView = GetRunView();
+    ASSERT(pView != nullptr);
+
+    origin_point.x += pView->GetCenteredFormsWidthAdjustment();
+
     return 1;
 }
 

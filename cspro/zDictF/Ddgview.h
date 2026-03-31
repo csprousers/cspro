@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 //***************************************************************************
 //  File name: DDGView.h
@@ -106,6 +106,8 @@ protected:
     afx_msg void OnUpdateEditOccurrenceLabels(CCmdUI* pCmdUI);
     afx_msg void OnEditPasteValueSetLink();
     afx_msg void OnUpdateEditPasteValueSetLink(CCmdUI* pCmdUI);
+
+    afx_msg void OnResetColumnsWidths();
 
 public:
     CDictGrid   m_gridDict;

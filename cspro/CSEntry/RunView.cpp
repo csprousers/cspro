@@ -1,4 +1,4 @@
-﻿// RunView.cpp : implementation of the CEntryrunView class
+// RunView.cpp : implementation of the CEntryrunView class
 #include "StdAfx.h"
 #include "RunView.h"
 #include "CaseView.h"
@@ -69,13 +69,12 @@ END_MESSAGE_MAP()
 //
 /////////////////////////////////////////////////////////////////////////////////
 CEntryrunView::CEntryrunView()
+    :   m_iVerify(0),
+        m_iCurrentFormFileNum(0), // RHF Jan 12, 2000
+        m_bCheatKey(FALSE),
+        m_pOldField(nullptr),
+        m_centeredFormsWidthAdjustment(0)
 {
-    m_iVerify = 0;
-    m_iCurrentFormFileNum = 0; // RHF Jan 12, 2000
-    m_bCheatKey = FALSE;
-
-    m_pOldField = NULL;
-
     SetupFieldColors(nullptr);
 }
 
@@ -175,7 +174,8 @@ void CEntryrunView::OnSize(UINT nType,int cx,int cy) // 20100423 for centering f
     if( ( pDoc = GetDocument() ) != NULL && ( pPIF = pDoc->GetPifFile() ) != NULL && ( pApp = pPIF->GetApplication() ) != NULL &&
         pApp->GetCenterForms() && ( pFormfile = pDoc->GetCurFormFile() ) != NULL && ( pForm = pFormfile->GetForm(pDoc->GetCurFormNum()) ) != NULL )
     {
-        if( pDoc->GetAppMode() == NO_MODE ) // this code only matters is a form is on the screen
+        // this code only matters if a form is on the screen
+        if( pDoc->GetAppMode() == NO_MODE )
             return;
 
         CDEField * pField = (CDEField *)pDoc->GetCurField();
@@ -183,11 +183,10 @@ void CEntryrunView::OnSize(UINT nType,int cx,int cy) // 20100423 for centering f
         CString fieldText;
         CPoint caret;
         CPoint scrollPos;
-        int newSpacing;
 
-        pForm->UpdateDims(cx,&newSpacing);
+        pForm->UpdateDims(cx, m_centeredFormsWidthAdjustment);
 
-        if( !newSpacing )
+        if( m_centeredFormsWidthAdjustment == 0 )
             return; // no adjustment needed
 
         scrollPos = GetScrollPosition();
@@ -200,9 +199,9 @@ void CEntryrunView::OnSize(UINT nType,int cx,int cy) // 20100423 for centering f
             caret = pEdit->GetCaretPos();       // get where the cursor is in the field
 
             RECT rect;
-            pEdit->GetWindowRect(&rect);    // this block of code is needed to move the edit box when it is in a roster
-            rect.left += newSpacing;        // as it was getting drawn in the new spot but the old edit box lingered
-            rect.right += newSpacing;
+            pEdit->GetWindowRect(&rect);                 // this block of code is needed to move the edit box when it is in a roster
+            rect.left += m_centeredFormsWidthAdjustment; // as it was getting drawn in the new spot but the old edit box lingered
+            rect.right += m_centeredFormsWidthAdjustment;
             ScreenToClient(&rect);
             pEdit->MoveWindow(&rect);
         }
@@ -477,7 +476,8 @@ BOOL CEntryrunView::ResetForm()
         RECT rect;
         GetWindowRect(&rect);
 
-        if( pForm->UpdateDims(rect.right - rect.left) ) // UpdateDims returning true means grids need to be moved
+        // UpdateDims returning true means grids need to be moved
+        if( pForm->UpdateDims(rect.right - rect.left, m_centeredFormsWidthAdjustment) )
         {
             for( int i = 0; i < pForm->GetNumItems(); i++ )
             {
@@ -1256,8 +1256,7 @@ void CEntryrunView::OnEditEnter(CDEBaseEdit* pEdit)
     if( pDictItem->GetContentType() == ContentType::Numeric && pDictItem->GetDecimal() ) // 20120312
         sData.Replace(',','.');
 
-    if( pEdit->GetField()->AllowMultiLine() ) // 20120816
-        sData = WS2CS(SO::ToNewlineLF(CS2WS(sData)));
+    pEdit->GetField()->ApplyPropertiesToValue(sData);
 
     pEdit->GetField()->SetData(sData);
 
@@ -1357,11 +1356,9 @@ void CEntryrunView::OnEditPrev(CDEBaseEdit* pEdit)
     if( pDictItem->GetContentType() == ContentType::Numeric && pDictItem->GetDecimal() ) // 20120312
         sData.Replace(',','.');
 
-    if( pEdit->GetField()->AllowMultiLine() )
-        sData = WS2CS(SO::ToNewlineLF(CS2WS(sData)));
+    pEdit->GetField()->ApplyPropertiesToValue(sData);
 
     int iPrevOcc = pEdit->GetField()->GetParent()->GetCurOccurrence();
-
 
     CEntryrunDoc* pDoc = GetDocument();
     CRunAplEntry* pApl = pDoc->GetRunApl();
@@ -3433,8 +3430,7 @@ void CEntryrunView::PutEditValInBuffers(CDEBaseEdit* pEdit)
 
     if(sString.CompareNoCase(sData) != 0 )
     {
-        if( pField->AllowMultiLine() ) // 20120816
-            sString = WS2CS(SO::ToNewlineLF(CS2WS(sString)));
+        pEdit->GetField()->ApplyPropertiesToValue(sString);
 
         pField->SetData(sString);
         sString = pField->GetData(); //this gets the processed SetData text which could have replaced  \r\n with \n
@@ -3480,9 +3476,7 @@ BOOL CEntryrunView::ChkPProcReq(CDEBaseEdit* pEdit)
             // CSEntry thought that there was marked data (the empty decimal point) in the field
         }
         else if(sString.CompareNoCase(sData) != 0 ) {
-
-            if( pField->AllowMultiLine() ) // 20120816
-                sString = WS2CS(SO::ToNewlineLF(CS2WS(sString)));
+            pEdit->GetField()->ApplyPropertiesToValue(sString);
 
             pField->SetData(sString);
             bRet = TRUE;
@@ -3897,9 +3891,7 @@ LRESULT CEntryrunView::OnAdvToEnd(WPARAM /*wParam*/, LPARAM lParam)
     CIMSAString sData;
     pEdit->GetWindowText(sData);
 
-    if( pField->AllowMultiLine() ) {
-        sData = WS2CS(SO::ToNewlineLF(CS2WS(sData)));
-    }
+    pEdit->GetField()->ApplyPropertiesToValue(sData);
 
     pField->SetData(sData);
 

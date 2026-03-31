@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "Field.h"
 #include "DragOptions.h"
 
@@ -355,7 +355,7 @@ void CDEField::SetItemInfo(CString cs)
 //      bool CDEField::Compare(CDEField* pField)
 //
 /////////////////////////////////////////////////////////////////////////////////
-bool CDEField::Compare(CDEField* pField)
+bool CDEField::Compare(const CDEField* pField) const
 {
     bool bRet = false;
     if(GetName().CompareNoCase(pField->GetName()) !=0 )
@@ -397,6 +397,35 @@ void CDEField::SetupCaptureInfo(const CDictItem& dict_item, const DragOptions& d
     }
 
     ASSERT(m_captureInfo.IsSpecified() || dict_item.GetCaptureInfo().IsSpecified());
+}
+
+
+void CDEField::ApplyPropertiesToValue(CString& value) const
+{
+    // this function was added for CSPro 8.1 as a temporary centralized function to ensure
+    // that the upper case field property was applied to fields;
+    // the 2012-era code to ensure that multiline fields only have \n characters was also added to this function;
+    // in the long run, it would be nice to have post-field entry hooks that can apply these properties
+    std::optional<std::string> utf8_value;
+
+    if( IsUpperCase() )
+    {
+        ASSERT(!utf8_value.has_value());
+        utf8_value = UTF8_TODO::GetUtf8(value);
+
+        SO::MakeUpper(*utf8_value);
+    }
+
+    if( AllowMultiLine() ) // 20120816
+    {
+        if( !utf8_value.has_value() )
+            utf8_value = UTF8_TODO::GetUtf8(value);
+
+        SO::MakeNewlineLF(*utf8_value);
+    }
+
+    if( utf8_value.has_value() )
+        value = UTF8_TODO::GetCString(*utf8_value);
 }
 
 

@@ -1,4 +1,4 @@
-﻿#include "StandardSystemIncludes.h"
+#include "StandardSystemIncludes.h"
 #include "Interpreter.h"
 #include "Engine.h"
 #include "VariableWorker.h"
@@ -693,7 +693,26 @@ double CIntDriver::exvaluesetremove(int iExpr)
     DynamicValueSet& dynamic_value_set = assert_cast<DynamicValueSet&>(value_set);
 
     return dynamic_value_set.IsNumeric() ? dynamic_value_set.RemoveValue(evalexpr(symbol_va_node.arguments[0])) :
-                                           dynamic_value_set.RemoveValue(EvalAlphaExprCS(symbol_va_node.arguments[0]));
+                                           dynamic_value_set.RemoveValue(EvalAlphaExpr(symbol_va_node.arguments[0]));
+}
+
+
+double CIntDriver::ex_ValueSet_removeDuplicates(const int program_index)
+{
+    const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
+    ValueSet& value_set = GetSymbolValueSet(symbol_va_node.symbol_index);
+
+    if( !value_set.IsDynamic() )
+    {
+        issaerror(MessageType::Error, 47170, "removeDuplicates", value_set.GetName().c_str());
+        return DEFAULT;
+    }
+
+    DynamicValueSet& dynamic_value_set = assert_cast<DynamicValueSet&>(value_set);
+
+    return dynamic_value_set.RemoveDuplicates(
+        static_cast<DynamicValueSet::RemoveDuplicatesType>(symbol_va_node.arguments[0])
+    );
 }
 
 

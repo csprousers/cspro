@@ -1,4 +1,4 @@
-﻿//***************************************************************************
+//***************************************************************************
 //  File name: DictGrid.cpp
 //
 //  Description:
@@ -111,30 +111,18 @@ void CDictGrid::OnSetup()
 //
 /////////////////////////////////////////////////////////////////////////////
 
-void CDictGrid::Size(CRect rect)
+void CDictGrid::Size(const CRect& rect, const bool reset_widths/* = false*/)
 {
-    CIMSAString csWidths = AfxGetApp()->GetProfileString(_T("Data Dictionary"), _T("DictGridWidths"), _T("-1"));
+    CIMSAString csWidths = reset_widths ? _T("-1") : AfxGetApp()->GetProfileString(_T("Data Dictionary"), _T("DictGridWidths"), _T("-1"));
     if (csWidths == _T("-1")) {
-        CUGCell cell;
-        CUGCellType* pCellType;
-        CSize size;
-
         int iUsed = static_cast<int>(NOTE_WIDTH * (GetDesignerFontZoomLevel() / 100.0));
         SetColWidth(DICT_NOTE_COL, iUsed);
-        GetCell(DICT_NAME_COL, HEADER_ROW, &cell);
-        pCellType = GetCellType(HEADER_ROW, DICT_NAME_COL);
-        pCellType->GetBestSize(GetDC(), &size, &cell);
-        SetColWidth(DICT_NAME_COL, size.cx + BORDER_WIDTH);
-        iUsed += size.cx + BORDER_WIDTH;
-        GetCell(DICT_LABEL_COL, HEADER_ROW, &cell);
-        pCellType = GetCellType(HEADER_ROW, DICT_LABEL_COL);
-        pCellType->GetBestSize(GetDC(), &size, &cell);
-        if (size.cx > rect.Width() - m_GI->m_vScrollWidth - iUsed - 1) {
-            SetColWidth(DICT_LABEL_COL, size.cx);
-        }
-        else {
-            SetColWidth(DICT_LABEL_COL, rect.Width() - m_GI->m_vScrollWidth - iUsed - 1);
-        }
+
+        int remaining_width = rect.Width() - m_GI->m_vScrollWidth - iUsed - 1;
+        const std::tuple<int, int> label_name_widths = CalculateLabelNameColumnWidths(DICT_LABEL_COL, DICT_NAME_COL, remaining_width);
+        SetColWidth(DICT_NAME_COL, std::get<1>(label_name_widths));
+        SetColWidth(DICT_LABEL_COL, std::get<0>(label_name_widths));
+
         csWidths.Format(_T("%d,%d,%d"), GetColWidth(DICT_NOTE_COL),
                                         GetColWidth(DICT_LABEL_COL),
                                         GetColWidth(DICT_NAME_COL));
@@ -158,7 +146,7 @@ void CDictGrid::Size(CRect rect)
 //
 /////////////////////////////////////////////////////////////////////////////
 
-void CDictGrid::Resize(CRect rect)
+void CDictGrid::Resize(const CRect& rect)
 {
     MoveWindow(&rect);
     if (m_aEditControl.GetSize() > 0) {
@@ -314,18 +302,6 @@ void CDictGrid::OnLClicked(int col, long row, int updn, RECT* /*rect*/, POINT* /
             }
         }
     }
-}
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
-//                        CDictGrid::OnTH_RClicked
-//
-/////////////////////////////////////////////////////////////////////////////
-
-void CDictGrid::OnTH_RClicked(int col, long row, int updn, RECT* rect, POINT* point, BOOL processed/* = 0*/)
-{
-    OnRClicked(col, row, updn, rect, point, processed);
 }
 
 

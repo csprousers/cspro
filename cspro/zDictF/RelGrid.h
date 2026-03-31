@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 // RelGrid.h: interface for the CRelGrid class.
 //
@@ -28,7 +28,8 @@ public:
     void EditQuit() override;
     void EditContinue() override;
 
-    void Resize(CRect /*rect*/) override { }
+    void Size(const CRect& rect, bool reset_widths = false) override;
+    void Resize(const CRect& rect) override;
 
     afx_msg void OnEditAdd();
     afx_msg void OnEditInsert();
@@ -51,6 +52,7 @@ protected:
     void OnRClicked(int col, long row, int updn, RECT* rect, POINT* point, int processed) override;
     void OnLClicked(int col, long row, int updn, RECT* rect, POINT* point, int processed) override;
     void OnDClicked(int col, long row, RECT* rect, POINT* point, BOOL processed) override;
+    void OnTH_RClicked(int col, long row, int updn, RECT* rect, POINT* point, BOOL processed = 0) override;
     void OnKeyDown(UINT* vcKey, BOOL processed) override;
 
 public:

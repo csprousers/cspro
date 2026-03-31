@@ -155,7 +155,7 @@ BEGIN
     GROUPBOX        "",IDC_STATIC,10,36,190,84
     LTEXT           "For customer and technical support, please contact:",IDC_STATIC,15,44,178,8
     LTEXT           "U.S. Census Bureau",IDC_STATIC,22,58,65,8
-    LTEXT           "International Programs",IDC_STATIC,22,67,74,8
+    LTEXT           "International Programs Center",IDC_STATIC,22,67,98,8
     LTEXT           "Washington, DC 20233-8860",IDC_STATIC,22,76,94,8
     LTEXT           "Email:",IDC_STATIC,22,91,23,8
     LTEXT           "CSPro@lists.census.gov",IDC_STATIC_EMAIL,49,91,78,8,SS_NOTIFY

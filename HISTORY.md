@@ -3,16 +3,13 @@
 Most CSPro development occurs on a [private repository](https://github.com/CSProDevelopment/cspro), though the commits are mirrored to this [public repository](https://github.com/csprousers/cspro). This document lists information about each pull request merged into the private repository, starting with pull requests for CSPro 7.6.
 
 
-## CSPro 8.1.0
-
-**Installer**: [https://csprousers.org/downloads/cspro/cspro8.1.0.exe](https://csprousers.org/downloads/cspro/cspro8.1.0.exe)
-
-**Release notes**: [https://csprousers.org/downloads/cspro/cspro8.1.0-release-notes.txt](https://csprousers.org/downloads/cspro/cspro8.1.0-release-notes.txt)
+## CSPro (current development)
 
 **Merged pull requests**:
 
 | Date | Branch | Pull Request Message |
 | --- | --- | --- |
+| 2026&#8209;03&#8209;31 | [tdy/2026-03-ls](https://github.com/CSProDevelopment/cspro/commit/97456740a304227ba4a1d0aeda6de9b6eab200cb) | fixed some bugs and worked on some small tasks related to discoveries while on a TDY |
 | 2026&#8209;02&#8209;26 | [prerelease/v8.1.0-alpha-20260227](https://github.com/CSProDevelopment/cspro/commit/d1ecff0c47d961bdeb79508c9c6c7ad8a2a08b26) | preparations for a CSPro 8.1.0 release (alpha-2026-02-27) |
 | 2026&#8209;02&#8209;26 | [text-viewer-utf8-default-encoding](https://github.com/CSProDevelopment/cspro/commit/3590e9826d504afc6d327012ed09f9c334dd58e0) | modified Text Viewer so that the default encoding for files without a BOM is UTF-8, not ANSI |
 | 2026&#8209;02&#8209;23 | [video-object](https://github.com/CSProDevelopment/cspro/commit/793ff6672c13471d70d96d700bf928a29f30bb30) | added the Video object and dictionary item (disabled for now) |

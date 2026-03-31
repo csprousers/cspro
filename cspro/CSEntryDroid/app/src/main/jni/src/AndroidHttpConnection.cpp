@@ -1,4 +1,4 @@
-﻿#include <engine/StandardSystemIncludes.h>
+#include <engine/StandardSystemIncludes.h>
 #include "AndroidHttpConnection.h"
 #include "JNIHelpers.h"
 #include <zToolsO/Tools.h>
@@ -149,9 +149,9 @@ HttpResponse AndroidHttpConnection::Request(const HttpRequest& request)
 
                             const std::string exceptionMessage = exceptionToString(env, exception.get());
                             if (isRetryableError(env, exception.get()))
-                                throw SyncRetryableNetworkError(100119, exceptionMessage);
+                                throw SyncRetryableNetworkError(100101, exceptionMessage);
                             else
-                                throw SyncError(100119, exceptionMessage);
+                                throw SyncError(100101, exceptionMessage);
                         }
                         if (bytes_read == -1)
                             break;
@@ -183,10 +183,10 @@ HttpResponse AndroidHttpConnection::Request(const HttpRequest& request)
 
         const std::string exceptionMessage = exceptionToString(env, exception.get());
         if (isRetryableError(env, exception.get())) {
-            throw SyncRetryableNetworkError(100119, exceptionMessage);
+            throw SyncRetryableNetworkError(100101, exceptionMessage);
         }
         else {
-            throw SyncError(100119, exceptionMessage);
+            throw SyncError(100101, exceptionMessage);
         }
     }
 

@@ -263,6 +263,9 @@
     <ClInclude Include="VirtualFileMapping.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="WebViewPermission.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="WebViewSyncOperationMarker.h">
       <Filter>Header Files</Filter>
     </ClInclude>

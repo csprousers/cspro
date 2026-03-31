@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "IncludesRT.h"
 #include "Geometry.h"
 #include "Map.h"
@@ -6,6 +6,11 @@
 #include <zMessageO/Messages.h>
 #include <zMapping/DefaultBaseMapEvaluator.h>
 #include <zMapping/IMapUI.h>
+
+#pragma warning(push)
+#pragma warning(disable: 4068 4239)
+#include <mapbox/geometry.hpp>
+#pragma warning(pop)
 
 
 double LogicInterpreter::ex_Map_show(const int program_index)
@@ -433,22 +438,53 @@ double LogicInterpreter::ex_Map_zoomTo(const int program_index)
     if( map_ui == nullptr )
         return 0;
 
-    if( symbol_va_node.arguments[3] < 0 )
+    // geometry / [padding]
+    if( symbol_va_node.arguments[0] == -1 )
     {
-        // latitude / longitude / [zoom]
-        return map_ui->ZoomTo(Evaluate(symbol_va_node.arguments[0]),
-                              Evaluate(symbol_va_node.arguments[1]),
-                              EvaluateOptional(symbol_va_node.arguments[2], -1));
+        ASSERT(m_engineData->MeetsCompiledLogicVersion(Serializer::Iteration_8_1_000_1));
+
+        const LogicGeometry* const logic_geometry = GetFromSymbolOrEngineItem<LogicGeometry*>(
+            symbol_va_node.arguments[1],
+            symbol_va_node.arguments[2]
+        );
+
+        if( logic_geometry == nullptr ||
+            !EnsureGeometryExistsAndHasValidContent(*logic_geometry, "use it as the bounds for a map") )
+        {
+            return 0;
+        }
+
+        const Geometry::BoundingBox& bounding_box = logic_geometry->GetBoundingBox();
+
+        return map_ui->ZoomTo(
+            bounding_box.min.y,
+            bounding_box.min.x,
+            bounding_box.max.y,
+            bounding_box.max.x,
+            EvaluateOptional(symbol_va_node.arguments[3], 0) / 100
+        );
     }
 
+    // latitude / longitude / [zoom]
+    else if( symbol_va_node.arguments[3] == -1 )
+    {
+        return map_ui->ZoomTo(
+            Evaluate(symbol_va_node.arguments[0]),
+            Evaluate(symbol_va_node.arguments[1]),
+            EvaluateOptional(symbol_va_node.arguments[2], -1)
+        );
+    }
+
+    // min latitude / min longitude / max latitude / max longitude / [padding]
     else
     {
-        // min latitude, min longitude, max latitude, max longitude, [padding]
-        return map_ui->ZoomTo(Evaluate(symbol_va_node.arguments[0]),
-                              Evaluate(symbol_va_node.arguments[1]),
-                              Evaluate(symbol_va_node.arguments[2]),
-                              Evaluate(symbol_va_node.arguments[3]),
-                              EvaluateOptional(symbol_va_node.arguments[4], 0) / 100);
+        return map_ui->ZoomTo(
+            Evaluate(symbol_va_node.arguments[0]),
+            Evaluate(symbol_va_node.arguments[1]),
+            Evaluate(symbol_va_node.arguments[2]),
+            Evaluate(symbol_va_node.arguments[3]),
+            EvaluateOptional(symbol_va_node.arguments[4], 0) / 100
+        );
     }
 }
 

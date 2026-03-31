@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "CFlAdmin.h"                                   // victor Jul 25, 01
 #include "FlowCore.h"                                   // victor Jan 08, 01
 #include <engine/Tables.h>
@@ -948,7 +948,7 @@ int CEngineDriver::AddGroupTForMultVar( int iSymMultVar, GROUPT::Source eGroupSo
     int     iGroupType = GROUPT::MultItem;
 
     CString csNewName;
-    csNewName.Format( _T("__%s"), NPT(iSymMultVar)->GetName().c_str() );
+    csNewName.Format( _T("__%s"), UTF8_TODO::GetWide(NPT(iSymMultVar)->GetName()).c_str() );
 
     auto pGroupT = std::make_shared<GROUPT>(UTF8_TODO::GetUtf8(csNewName), this);
     int iSymGroup = m_engineData->AddSymbol(pGroupT);

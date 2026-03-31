@@ -1,4 +1,4 @@
-﻿#include <engine/StandardSystemIncludes.h>
+#include <engine/StandardSystemIncludes.h>
 #include "AndroidFtpConnection.h"
 #include "JNIHelpers.h"
 #include <zToolsO/FileIO.h>
@@ -95,7 +95,7 @@ void AndroidFtpConnection::DoDisconnect()
         }
 
         logException(m_env, ANDROID_LOG_DEBUG, "AndroidFtpClient", exception);
-        throw SyncError(100119, exceptionToString(m_env, exception));
+        throw SyncError(100101, exceptionToString(m_env, exception));
     }
 }
 
@@ -127,7 +127,7 @@ void AndroidFtpConnection::Download(const std::string& remote_file_path, const s
         }
 
         logException(m_env, ANDROID_LOG_DEBUG, "AndroidFtpClient", exception);
-        throw SyncError(100119, exceptionToString(m_env, exception));
+        throw SyncError(100101, exceptionToString(m_env, exception));
     }
 }
 
@@ -146,7 +146,7 @@ void AndroidFtpConnection::Download(const std::string& remote_file_path, std::os
 
     catch( const std::exception& exception )
     {
-        throw SyncError(100119, exception);
+        throw SyncError(100101, exception);
     }
 }
 
@@ -178,7 +178,7 @@ void AndroidFtpConnection::Upload(const std::string& local_file_path, const std:
         }
 
         logException(m_env, ANDROID_LOG_DEBUG, "AndroidFtpClient", exception);
-        throw SyncError(100119, exceptionToString(m_env, exception));
+        throw SyncError(100101, exceptionToString(m_env, exception));
     }
 }
 
@@ -214,7 +214,7 @@ void AndroidFtpConnection::Upload(std::istream& input_stream, const int64_t inpu
         }
 
         logException(m_env, ANDROID_LOG_DEBUG, "AndroidFtpClient", exception);
-        throw SyncError(100119, exceptionToString(m_env, exception));
+        throw SyncError(100101, exceptionToString(m_env, exception));
     }
 }
 
@@ -262,7 +262,7 @@ int64_t AndroidFtpConnection::FileModifiedTime(const std::string& remote_path)
         }
 
         logException(m_env, ANDROID_LOG_DEBUG, "AndroidFtpClient", exception);
-        throw SyncError(100119, exceptionToString(m_env, exception));
+        throw SyncError(100101, exceptionToString(m_env, exception));
     }
 
     return lastModified;
@@ -312,7 +312,7 @@ std::vector<FileInfo> AndroidFtpConnection::GetDirectoryListing(const std::strin
         }
 
         logException(m_env, ANDROID_LOG_DEBUG, "AndroidFtpClient", exception);
-        throw SyncError(100119, exceptionToString(m_env, exception));
+        throw SyncError(100101, exceptionToString(m_env, exception));
     }
 
     return directory_listing;

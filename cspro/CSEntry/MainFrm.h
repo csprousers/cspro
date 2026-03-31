@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 /////////////////////////////////////////////////////////////////////////////
 //
 // MainFrm.h : interface of the CMainFrame class
@@ -126,6 +126,7 @@ protected:  // control bar embedded members
     LRESULT OnSetCapiText(WPARAM wParam, LPARAM lParam);
     LRESULT OnGetWindowHeight(WPARAM wParam, LPARAM lParam);
     LRESULT OnSetWindowHeight(WPARAM wParam, LPARAM lParam);
+    LRESULT OnAdjustCapturePos(WPARAM wParam, LPARAM lParam);
 
     LRESULT OnUserbarUpdate(WPARAM wParam, LPARAM lParam);
     LRESULT OnSetMessageOverrides(WPARAM wParam, LPARAM lParam); // 20100518

@@ -1,12 +1,10 @@
-﻿#pragma once
+#pragma once
 
 #include <zAction/ActionInvoker.h>
 #include <zToolsO/ObjectTransporter.h>
+#include <zHtml/WebViewPermission.h>
 
 namespace ActionInvoker { class Exception; class Listener; class ListenerHolder; }
-
-
-enum class WebViewPermission { Camera, Geolocation, Microphone, WebStorage };
 
 
 // --------------------------------------------------------------------------

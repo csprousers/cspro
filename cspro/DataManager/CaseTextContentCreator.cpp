@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "CaseTextContentCreator.h"
 #include "CaseTextContentCreatorSettings.h"
 #include "ViewOptionsHelper.h"
@@ -485,12 +485,12 @@ std::tuple<std::string, std::string> CaseTextContentCreator::Formatter::CreateCa
                     .EndObject();
 
         // add information about each parsed entity
-        bool first_parsed_entity = true;
-
         for( const std::vector<const ParsedEntity*>& these_parsed_entities : *details_pane_data )
         {
             json_writer->BeginObject()
                         .BeginArray(JK::metadata);
+
+            bool first_parsed_entity = true;
 
             for( const ParsedEntity* const parsed_entity : these_parsed_entities )
             {

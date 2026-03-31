@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 // RunView.h : interface of the CEntryrunView class
 //
@@ -32,6 +32,8 @@ public:
 
     void ShowLabels(const CDEField* pField);// RHF Jan 14, 2000
     void ShowLabels(const CDEBaseEdit* pEdit);// RHF Jan 14, 2000
+
+    int GetCenteredFormsWidthAdjustment() const { return m_centeredFormsWidthAdjustment; }
 
     void SetCurrentFormFileNum( CDEField* pField ); // RHF Jan 12, 2000
     int  GetCurrentFormFileNum( void ) { return m_iCurrentFormFileNum; } // RHF Jan 12, 2000
@@ -182,4 +184,6 @@ private:
     int                 m_iCurrentFormFileNum; // RHF Jan 12, 2000
     BOOL                m_bCheatKey;
     CDEField*           m_pOldField;
+
+    int m_centeredFormsWidthAdjustment;
 };

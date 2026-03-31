@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "ValueSet.h"
 #include "ResponseProcessor.h"
 #include <engine/VarT.h>
@@ -253,6 +253,12 @@ struct NumericDynamicValueSetEntry : public DynamicValueSetEntry
             to_value(std::move(to_value_))
     {
     }
+
+    bool CodeIsEqual(const NumericDynamicValueSetEntry& rhs) const
+    {
+        return ( from_value == rhs.from_value &&
+                 to_value == rhs.to_value );
+    }
 };
 
 
@@ -266,6 +272,11 @@ struct StringDynamicValueSetEntry : public DynamicValueSetEntry
             value(std::move(value_))
     {
         SO::MakeTrimRight(value);
+    }
+
+    bool CodeIsEqual(const StringDynamicValueSetEntry& rhs) const
+    {
+        return ( value == rhs.value );
     }
 };
 
@@ -420,6 +431,59 @@ size_t DynamicValueSet::RemoveValue(wstring_view value_sv)
     }
 
     return number_values_removed;
+}
+
+
+size_t DynamicValueSet::RemoveDuplicates(const RemoveDuplicatesType remove_type)
+{
+    if( m_entries.size() < 2 )
+        return 0;
+
+    return m_numeric ? RemoveDuplicatesWorker<NumericDynamicValueSetEntry>(remove_type) :
+                       RemoveDuplicatesWorker<StringDynamicValueSetEntry>(remove_type);
+}
+
+
+template<typename EntryT>
+size_t DynamicValueSet::RemoveDuplicatesWorker(const RemoveDuplicatesType remove_type)
+{
+    ASSERT(m_entries.size() >= 2);
+
+    size_t duplicates_removed = 0;
+
+    for( auto itr = m_entries.end() - 1; itr > m_entries.begin(); --itr )
+    {
+        const auto& lookup = std::find_if(m_entries.begin(), itr,
+            [&](const auto& comparison)
+            {
+                const EntryT& entry1 = assert_cast<const EntryT&>(*(*itr));
+                const EntryT& entry2 = assert_cast<const EntryT&>(*comparison);
+
+                switch( remove_type )
+                {
+                    case RemoveDuplicatesType::ByCodeLabel:
+                        return ( entry1.CodeIsEqual(entry2) &&
+                                 entry1.label == entry2.label );
+
+                    case RemoveDuplicatesType::ByCode:
+                        return entry1.CodeIsEqual(entry2);
+
+                    case RemoveDuplicatesType::ByLabel:
+                        return ( entry1.label == entry2.label );
+
+                    default:
+                        return ReturnProgrammingError(false);
+                }
+            });
+
+        if( lookup < itr )
+        {
+            itr = m_entries.erase(itr);
+            ++duplicates_removed;
+        }
+    }
+
+    return duplicates_removed;
 }
 
 

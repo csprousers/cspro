@@ -1,7 +1,10 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "CredentialStore.h"
-#include <zPlatformO/PlatformInterface.h>
 
+
+// --------------------------------------------------------------------------
+// CredentialStore
+// --------------------------------------------------------------------------
 
 std::string CredentialStore::PrefixAttribute(const std::string_view attribute_sv)
 {
@@ -22,7 +25,7 @@ void CredentialStore::Store(const std::string_view attribute_sv, const std::stri
     CREDENTIAL cred = { 0 };
     cred.Type = CRED_TYPE_GENERIC;
     cred.TargetName = wide_prefixed_attribute.data();
-    cred.CredentialBlobSize = secret_value.size() * sizeof(wchar_t);
+    cred.CredentialBlobSize = uint32_cast(secret_value.size() * sizeof(wchar_t));
     cred.CredentialBlob = reinterpret_cast<LPBYTE>(wide_secret_value.data());
     cred.Persist = CRED_PERSIST_LOCAL_MACHINE;
     cred.UserName = nullptr;
@@ -50,6 +53,9 @@ std::string CredentialStore::Retrieve(const std::string_view attribute_sv)
 
 #else
 
+#include <zPlatformO/PlatformInterface.h>
+
+
 void CredentialStore::Store(const std::string_view attribute_sv, const std::string& secret_value)
 {
     const std::string prefixed_attribute = PrefixAttribute(attribute_sv);
@@ -65,3 +71,20 @@ std::string CredentialStore::Retrieve(const std::string_view attribute_sv)
 }
 
 #endif
+
+
+
+// --------------------------------------------------------------------------
+// DefinedPrefixCredentialStore
+// --------------------------------------------------------------------------
+
+DefinedPrefixCredentialStore::DefinedPrefixCredentialStore(std::string prefix)
+    :   m_prefix(std::move(prefix))
+{
+}
+
+
+std::string DefinedPrefixCredentialStore::PrefixAttribute(const std::string_view attribute_sv)
+{
+    return SO::Concatenate(m_prefix, attribute_sv);
+}

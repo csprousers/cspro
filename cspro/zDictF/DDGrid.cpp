@@ -1,4 +1,4 @@
-﻿//***************************************************************************
+//***************************************************************************
 //  File name: DDGrid.cpp
 //
 //  Description:
@@ -464,4 +464,99 @@ void CDDGrid::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar*) {
             m_aEditControl[i]->PostMessage(WM_SIZE);
         }
     }
+}
+
+
+void CDDGrid::OnTH_RClicked(int /*col*/, long /*row*/, const int updn, RECT* /*rect*/, POINT* const point, BOOL /*processed = 0*/)
+{
+    ASSERT(point != nullptr);
+
+    if( updn )
+        return;
+
+    BCMenu popup_menu;
+    popup_menu.CreatePopupMenu();
+
+    popup_menu.AppendMenu(MF_STRING, ID_RESET_COLUMN_WIDTHS, L"Reset Column Widths");
+
+    // route commands through CDDGView
+    CDDGView* const pView = assert_cast<CDDGView*>(GetParent());
+
+    ClientToScreen(point);
+    popup_menu.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, point->x, point->y, pView);
+}
+
+
+std::tuple<int, int> CDDGrid::CalculateLabelNameColumnWidths(const int label_column, const int name_column, int& remaining_width)
+{
+    constexpr int MaxLabelWidthPixels = 600;
+    constexpr size_t MaxNameLengthChars = 32;
+
+    ASSERT(label_column == ( name_column - 1 ));
+
+    CDC* const pDC = GetDC();
+
+    CUGCell cell;
+    CUGCellType* cell_type;
+
+    auto get_suggested_width = [&](const int column_index)
+    {
+        GetCell(column_index, HEADER_ROW, &cell);
+        cell_type = GetCellType(HEADER_ROW, label_column);
+
+        CSize size;
+        cell_type->GetBestSize(pDC, &size, &cell);
+
+        return size.cx;
+    };
+
+    // calculate the suggested width based on the column headers
+    int label_width = get_suggested_width(label_column);
+    int name_width = get_suggested_width(name_column) + BORDER_WIDTH;
+
+    remaining_width -= label_width;
+    remaining_width -= name_width;
+
+    // if there is width remaining, space out the name column so that it supports
+    // a name of decent length, allocating the rest of the width to the label
+    if( remaining_width > 0 )
+    {
+        // based on the calculation order, cell/cell_type is the name column
+        ASSERT(cell.IsPropertySet(UGCELL_TEXT_SET));
+        std::wstring header_text = cell.GetText();
+
+        if( header_text.length() < MaxNameLengthChars )
+        {
+            // calculate the original name size
+            const CSize header_text_size = pDC->GetOutputTextExtent(header_text.data(), header_text.length());
+
+            // resize the header and recalculate the size
+            header_text.resize(MaxNameLengthChars, 'A');
+
+            const CSize name_size = pDC->GetOutputTextExtent(header_text.data(), header_text.length());
+            const int name_extra_width = name_size.cx - header_text_size.cx;
+
+            if( name_extra_width > 0 && name_extra_width < remaining_width )
+            {
+                name_width += name_extra_width;
+                remaining_width -= name_extra_width;
+            }
+        }
+
+        // allocate any remaining width to the label
+        if( remaining_width > 0 )
+        {
+            const int label_extra_width = std::min(MaxLabelWidthPixels - label_width, remaining_width);
+
+            if( label_extra_width > 0 )
+            {
+                label_width += label_extra_width;
+                remaining_width -= label_extra_width;
+            }
+        }
+
+        ASSERT(remaining_width >= 0);
+    }
+
+    return { label_width, name_width };
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <zHtml/zHtml.h>
+#include <zHtml/WebViewPermission.h>
 #include <queue>
 
 class CSProHostObject;
@@ -11,7 +12,6 @@ struct ICoreWebView2NavigationStartingEventArgs;
 struct ICoreWebView2PermissionRequestedEventArgs;
 struct ICoreWebView2WebMessageReceivedEventArgs;
 class UriResolver;
-enum class WebViewPermission;
 namespace ActionInvoker { class WebController; }
 
 
@@ -121,8 +121,10 @@ private:
     std::unique_ptr<std::vector<WebViewPermission>> m_permissions;
     bool m_initialized;
 
+#ifdef ENABLE_ACTION_INVOKER
     std::unique_ptr<CSProHostObject> m_csproHostObject;
     std::queue<int> m_csproHostObjectAsyncMessageIds;
+#endif
 
     // pending events to execute once the view is created
     struct PendingEvent_NavigateToUri  { std::string uri; };

@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "CoreEntryPageField.h"
 #include "CoreEntryEngineInterface.h"
 #include "Runaple.h"
@@ -240,6 +240,8 @@ void CoreEntryPageField::SetAlphaValue(const CString& value)
     ASSERT(!SO::ContainsNewlineCharacter(value) || IsMultiline());
 
     CString buffer_value = m_valueProcessor->GetOutput(value);
+
+    m_pField->ApplyPropertiesToValue(buffer_value);
 
     m_pRunAplEntry->PutVal(m_pField, buffer_value, m_coreEntryEngineInterface->GetCaseModifiedFlagIfNotModified());
 

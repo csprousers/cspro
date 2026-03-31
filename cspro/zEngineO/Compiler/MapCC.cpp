@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "IncludesCC.h"
 #include "Map.h"
 
@@ -219,19 +219,37 @@ int LogicCompiler::CompileLogicMapFunctions()
 
     // map_name.zoomTo(lat, lon[, zoom])
     // map_name.zoomTo(minLat, minLong, maxLat, maxLong[, padding])
+    // map_name.zoomTo(geometry[, padding])
     else if( function_code == FunctionCode::MAPFN_ZOOM_TO_CODE )
     {
         size_t arg_num = 0;
+        size_t max_args_allowed = 5;
 
         do
         {
             if( arg_num > 0 )
                 NextToken();
 
-            symbol_va_node.arguments[arg_num] = exprlog();
+            if( arg_num == 0 && Tkn == TOKGEOMETRY )
+            {
+                ASSERT(symbol_va_node.arguments[0] == -1);
+                symbol_va_node.arguments[1] = Tokstindex;
+                symbol_va_node.arguments[2] = CurrentToken.symbol_subscript_compilation;
+
+                max_args_allowed = 4; // 2 actual arguments in logic (geometry, padding)
+                arg_num += 2;
+
+                NextToken();
+            }
+
+            else
+            {
+                symbol_va_node.arguments[arg_num] = exprlog();
+            }
+
             ++arg_num;
 
-        } while( Tkn == TOKCOMMA && arg_num < 5 );
+        } while( Tkn == TOKCOMMA && arg_num < max_args_allowed );
 
         if( arg_num < 2 || Tkn != TOKRPAREN )
             IssueError(MGF::Map_zoomTo_invalid_arguments_94201);

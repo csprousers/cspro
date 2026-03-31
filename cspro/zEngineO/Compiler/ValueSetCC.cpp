@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "IncludesCC.h"
 #include "ValueSet.h"
 #include <engine/VarT.h>
@@ -117,18 +117,20 @@ int LogicCompiler::CompileValueSetFunctions()
     //           valueset_name.clear()
     //           valueset_name.length()
     //           valueset_name.remove(code)
+    //           valueset_name.removeDuplicates([by code | label])
     //           valueset_name.show([heading])
     //           valueset_name.sort([ascending | descending] [by code | label])
-    FunctionCode function_code = CurrentToken.function_details->code;
+    const FunctionCode function_code = CurrentToken.function_details->code;
     const ValueSet& value_set = assert_cast<const ValueSet&>(*CurrentToken.symbol);
-    int number_arguments = CurrentToken.function_details->number_arguments;
+    const int number_arguments = CurrentToken.function_details->number_arguments;
 
     Nodes::SymbolVariableArguments& symbol_va_node = CreateSymbolVariableArgumentsNode(function_code, value_set, number_arguments, -1);
 
     // some of the functions only apply to dynamic value sets
     if( !value_set.IsDynamic() && ( function_code == FunctionCode::VALUESETFN_ADD_CODE    ||
                                     function_code == FunctionCode::VALUESETFN_CLEAR_CODE  ||
-                                    function_code == FunctionCode::VALUESETFN_REMOVE_CODE ) )
+                                    function_code == FunctionCode::VALUESETFN_REMOVE_CODE ||
+                                    function_code == FunctionCode::VALUESETFN_REMOVEDUPLICATES_CODE ) )
     {
         IssueError(MGF::ValueSet_invalid_operation_for_dict_value_set_47170,
                    CurrentToken.function_details->name,
@@ -285,6 +287,26 @@ int LogicCompiler::CompileValueSetFunctions()
         // add the code
         NextToken();
         symbol_va_node.arguments[0] = CompileExpression(value_set.GetDataType());
+    }
+
+
+    // removeDuplicates
+    else if( function_code == FunctionCode::VALUESETFN_REMOVEDUPLICATES_CODE )
+    {
+        NextToken();
+
+        DynamicValueSet::RemoveDuplicatesType remove_type = DynamicValueSet::RemoveDuplicatesType::ByCodeLabel;
+
+        if( Tkn == TOKBY )
+        {
+            remove_type = ( NextKeywordOrError({ "code", "label" }) == 1 )
+                ? DynamicValueSet::RemoveDuplicatesType::ByCode
+                : DynamicValueSet::RemoveDuplicatesType::ByLabel;
+
+            NextToken();
+        }
+
+        symbol_va_node.arguments[0] = static_cast<int>(remove_type);
     }
 
 

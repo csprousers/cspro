@@ -1,4 +1,4 @@
-﻿//***************************************************************************
+//***************************************************************************
 //  File name: LevelGrid.cpp
 //
 //  Description:
@@ -111,9 +111,9 @@ void CLevelGrid::OnSetup()
 //
 /////////////////////////////////////////////////////////////////////////////
 
-void CLevelGrid::Size(CRect rect)
+void CLevelGrid::Size(const CRect& rect, const bool reset_widths/* = false*/)
 {
-    CIMSAString csWidths = AfxGetApp()->GetProfileString(_T("Data Dictionary"), _T("LevelGridWidths"), _T("-1"));
+    CIMSAString csWidths = reset_widths ? _T("-1") : AfxGetApp()->GetProfileString(_T("Data Dictionary"), _T("LevelGridWidths"), _T("-1"));
     if (csWidths == _T("-1")) {
         CUGCell cell;
         CUGCellType* pCellType;
@@ -121,22 +121,19 @@ void CLevelGrid::Size(CRect rect)
 
         int iUsed = static_cast<int>(NOTE_WIDTH * (GetDesignerFontZoomLevel() / 100.0));
         SetColWidth(LEVEL_NOTE_COL, iUsed);
-        for (int col = LEVEL_MAX_COL ; col > LEVEL_LABEL_COL ; col--) {
+        for (int col = LEVEL_MAX_COL ; col > LEVEL_NAME_COL ; col--) {
             GetCell(col, HEADER_ROW, &cell);
             pCellType = GetCellType(HEADER_ROW, col);
             pCellType->GetBestSize(GetDC(), &size, &cell);
             SetColWidth(col, size.cx + BORDER_WIDTH);
             iUsed += size.cx + BORDER_WIDTH;
         }
-        GetCell(LEVEL_LABEL_COL, HEADER_ROW, &cell);
-        pCellType = GetCellType(HEADER_ROW, LEVEL_LABEL_COL);
-        pCellType->GetBestSize(GetDC(), &size, &cell);
-        if (size.cx > rect.Width() - m_GI->m_vScrollWidth - iUsed - 1) {
-            SetColWidth(LEVEL_LABEL_COL, size.cx);
-        }
-        else {
-            SetColWidth(LEVEL_LABEL_COL, rect.Width() - m_GI->m_vScrollWidth - iUsed - 1);
-        }
+
+        int remaining_width = rect.Width() - m_GI->m_vScrollWidth - iUsed - 1;
+        const std::tuple<int, int> label_name_widths = CalculateLabelNameColumnWidths(LEVEL_LABEL_COL, LEVEL_NAME_COL, remaining_width);
+        SetColWidth(LEVEL_NAME_COL, std::get<1>(label_name_widths));
+        SetColWidth(LEVEL_LABEL_COL, std::get<0>(label_name_widths));
+
         csWidths.Format(_T("%d,%d,%d,%d,%d,%d"), GetColWidth(LEVEL_NOTE_COL),
                                                  GetColWidth(LEVEL_LABEL_COL),
                                                  GetColWidth(LEVEL_NAME_COL),
@@ -169,7 +166,7 @@ void CLevelGrid::Size(CRect rect)
 //
 /////////////////////////////////////////////////////////////////////////////
 
-void CLevelGrid::Resize(CRect rect)
+void CLevelGrid::Resize(const CRect& rect)
 {
     MoveWindow(&rect);
     if (m_aEditControl.GetSize() > 0) {
@@ -421,18 +418,6 @@ void CLevelGrid::OnLClicked(int col, long row, int updn, RECT* /*rect*/, POINT* 
             }
         }
     }
-}
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
-//                        CLevelGrid::OnTH_RClicked
-//
-/////////////////////////////////////////////////////////////////////////////
-
-void CLevelGrid::OnTH_RClicked(int col, long row, int updn, RECT* rect, POINT* point, BOOL processed/* = 0*/)
-{
-    OnRClicked(col, row, updn, rect, point, processed);
 }
 
 

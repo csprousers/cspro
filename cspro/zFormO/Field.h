@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zFormO/zFormO.h>
 #include <zFormO/ItemBase.h>
@@ -27,7 +27,7 @@ const CString CUSTOM_TEXT =         _T("Custom");
 
 class CLASS_DECL_ZFORMO CDEField : public CDEItemBase
 {
-    DECLARE_DYNAMIC (CDEField)
+    DECLARE_DYNAMIC(CDEField)
 
 public:
     // construction/destruction
@@ -153,10 +153,13 @@ public:
     int GetRuntimeOccurrence() const  { return m_runtimeOccurrence; }
     void SetRuntimeOccurrence(int occ) { m_runtimeOccurrence = occ; }
 
-    bool Compare(CDEField* pField);
+    bool Compare(const CDEField* pField) const;
 
     const PortableFont& GetFont() const { return m_font; }
     void SetFont(PortableFont font)     { m_font = std::move(font); }
+
+    // Applies field properties (e.g., upper case) to the raw value.
+    void ApplyPropertiesToValue(CString& value) const;
 
 
     // serialization

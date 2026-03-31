@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 //***************************************************************************
 //  File name: LevelGrid.h
@@ -24,8 +24,8 @@ public:
     int GetLevel() const    { return m_iLevel; }
     int GetFirstRow() const { return m_iFirstRow; }
 
-    void Size(CRect rect);
-    void Resize(CRect rect) override;
+    void Size(const CRect& rect, bool reset_widths = false) override;
+    void Resize(const CRect& rect) override;
     void Update(CDataDict* pDict, int level);
     void Update();
 
@@ -56,7 +56,6 @@ protected:
     //mouse and key strokes
     void OnLClicked(int col, long row, int updn, RECT* rect, POINT* point, int processed) override;
     void OnRClicked(int col, long row, int updn, RECT* rect, POINT* point, int processed) override;
-    void OnTH_RClicked(int col, long row, int updn, RECT* rect, POINT* point, BOOL processed = 0) override;
     void OnCB_RClicked(int updn, RECT* rect, POINT* point, BOOL processed = 0) override;
     void OnDClicked(int col, long row, RECT* rect, POINT* point, BOOL processed) override;
     void OnKeyDown(UINT* vcKey, BOOL processed) override;

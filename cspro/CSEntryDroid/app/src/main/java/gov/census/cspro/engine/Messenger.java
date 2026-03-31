@@ -338,15 +338,18 @@ public class Messenger implements Runnable, Application.ActivityLifecycleCallbac
             m_engineFunctionRunningOnUIThread = true;
             m_handler.post(new EngineRunnable(function));
             while (m_engineFunctionRunningOnUIThread) {
-                try
-                {
+                try {
                     m_runEngineFunctionOnUiThreadLock.wait();
                 }
-                catch(InterruptedException ignored)
-                {
+                catch(InterruptedException ignored) {
                 }
             }
         }
+    }
+
+    public void runNullEngineFunction(@NonNull EngineFunction function)
+    {
+        runEngineFunction(function);
     }
 
     public long runLongEngineFunction(@NonNull EngineFunction function)

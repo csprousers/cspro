@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zFormO/zFormO.h>
 #include <zFormO/FormBase.h>
@@ -13,10 +13,10 @@
 //
 // because a form will always have an inherent level associated w/it (by
 // virtue of which Level it belongs to upon creation), store it here
-// 
+//
 // if a form's multiple, shld i store the name of the record that causes it to
 // repeat? or derive that by lkg thru the array of items to figure out
-// 
+//
 // --------------------------------------------------------------------------
 
 
@@ -35,9 +35,9 @@ public:
     unsigned GetQuestionTextHeight() const      { return m_questionTextHeight; }
     void SetQuestionTextHeight(unsigned height) { m_questionTextHeight = std::min(height, FormDefaults::QuestionTextHeightMax); }
 
-	int GetCapturePosX() const		   { return m_capturePos.x; }
-	int GetCapturePosY() const		   { return m_capturePos.y; }
-	const POINT& GetCapturePos() const { return m_capturePos; }
+    int GetCapturePosX() const         { return m_capturePos.x; }
+    int GetCapturePosY() const         { return m_capturePos.y; }
+    const POINT& GetCapturePos() const { return m_capturePos; }
     void SetCapturePos(int x, int y)   { m_capturePos = POINT { x, y }; }
 
     int GetHeight() const { return GetDims().bottom; }
@@ -56,24 +56,24 @@ public:
 
     void SetRecordRepeatName(const CString& sName) { m_bMultRecName = sName; }
     void UpdateDims();
-    bool UpdateDims(int windowWidth, int* newSpacingDiff = NULL); // 20100421
+    bool UpdateDims(int windowWidth, int& newSpacingDiff); // 20100421
     void RenumberItems (int iNewFormLoc);
 
     // methods for m_aItems
 
     int  GetNumItems()  const { return (int)m_aItem.size(); }
 
-	//FABN, Aug 2006
-	//retrieve the number of child items of a given type.
-	int	GetNumItems( eItemType type ) const {
-		int n = 0;
+    //FABN, Aug 2006
+    //retrieve the number of child items of a given type.
+    int GetNumItems( eItemType type ) const {
+        int n = 0;
         for( const CDEItemBase* pItem : m_aItem ) {
-			if( pItem->GetItemType() == type ){
-				n++;
-			}
-		}
-		return n;
-	}
+            if( pItem->GetItemType() == type ){
+                n++;
+            }
+        }
+        return n;
+    }
 
     int GetItemIndex(const CDEItemBase* pItem) const;
     CDEItemBase* GetItem(int i) const;
@@ -110,13 +110,13 @@ public:
     bool Build(CSpecFile& frmFile, const CString& sDictName, bool bSilent = false);
     void Save(CSpecFile& frmFile) const override;
 
-	void serialize(Serializer& ar);
+    void serialize(Serializer& ar);
 
 
 private:
     PortableColor m_backgroundColor;
     unsigned m_questionTextHeight;
-	POINT m_capturePos;
+    POINT m_capturePos;
 
     int m_iLevel;       // the associated level of the form
     CDEGroup* m_pGroup; // the *form* group associated w/this form (can only have one;

@@ -1,4 +1,4 @@
-﻿// RelGrid.cpp: implementation of the CRelGrid class.
+// RelGrid.cpp: implementation of the CRelGrid class.
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -960,6 +960,15 @@ void CRelGrid::EditContinue()
 }
 
 
+void CRelGrid::Size(const CRect& /*rect*/, bool /*reset_widths = false*/)
+{
+}
+
+
+void CRelGrid::Resize(const CRect& /*rect*/)
+{
+}
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -1095,11 +1104,13 @@ void CRelGrid::OnEditDelete()
     RedrawWindow();
 }
 
-/////////////////////////////////////////////////////////////////////////////
-//
-//                        CRelGrid::OnDClicked
-//
-/////////////////////////////////////////////////////////////////////////////
+
+void CRelGrid::OnTH_RClicked(int /*col*/, long /*row*/, int /*updn*/, RECT* /*rect*/, POINT* /*point*/, BOOL /*processed = 0*/)
+{
+    // because Size does not have a real implementation, do not show the context menu sizing option
+    // that CDDGrid's implementation of OnTH_RClicked shows
+}
+
 
 void CRelGrid::OnDClicked(int col, long row, RECT* /*rect*/, POINT* /*point*/, BOOL /*processed*/)
 {

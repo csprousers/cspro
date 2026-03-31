@@ -1,6 +1,7 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "CurlWrapper.h"
 #include "HeaderList.h"
+#include <sstream>
 
 
 constexpr bool EnableVerboseLogging = false;

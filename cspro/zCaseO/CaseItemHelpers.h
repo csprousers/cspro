@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zCaseO/NumericCaseItem.h>
 #include <zCaseO/StringCaseItem.h>
@@ -32,7 +32,7 @@ void CaseItemHelpers::SetValue(const CaseItem& destination_case_item, CaseItemIn
     }
 
     else if constexpr(std::is_same_v<std::remove_cvref_t<T>, std::string> ||
-                        std::is_same_v<std::remove_cvref_t<T>, SharableString>)
+                      std::is_same_v<std::remove_cvref_t<T>, SharableString>)
     {
         ASSERT(IsString(destination_case_item.GetDataType()));
         assert_cast<const StringCaseItem&>(destination_case_item).SetValue(destination_index, std::forward<T>(value));
