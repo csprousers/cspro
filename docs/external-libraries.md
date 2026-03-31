@@ -1,4 +1,8 @@
-# Build External Libraries
+# CSPro's External Libraries
+
+This document lists information about the external libraries used by CSPro. Batch scripts to update many of these libraries are located here:
+
+- *build-tools/Build External Libraries*
 
 
 ## Libraries With Build Scripts
