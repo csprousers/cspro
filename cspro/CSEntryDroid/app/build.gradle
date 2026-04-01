@@ -45,6 +45,14 @@ android {
         multiDexEnabled true
         externalNativeBuild {
             ndkBuild {
+                // use ccache when available
+                try {
+                    if ("ccache --version".execute().waitFor() == 0) {
+                        arguments "NDK_CCACHE=ccache"
+                    }
+                } catch (Exception ignored) {
+                }
+		
                 arguments "APP_STL:=c++_static","-j8", "APP_LDFLAGS+=-Wl,-z,max-page-size=16384"
                 cppFlags "-frtti", "-fexceptions", "-I${file("../..").absolutePath}", "-std=c++17", "-Werror=return-type"
             }
