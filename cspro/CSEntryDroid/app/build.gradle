@@ -8,11 +8,12 @@ plugins {
 
 android {
     namespace 'gov.census.cspro.csentry'
+
     compileSdk 36
-
     buildToolsVersion = '36.0.0'
+    ndkVersion '28.2.13676358'
 
-    lintOptions {
+    lint {
         checkReleaseBuilds true
         // Or, if you prefer, you can continue to check for errors in release builds,
         // but continue the build even when errors are found:
@@ -25,13 +26,7 @@ android {
         viewBinding true
     }
 
-    kapt {
-        arguments {
-            arg("android.databinding.enableV2", "true")
-        }
-    }
-
-    packagingOptions {
+    packaging {
         jniLibs {
             // This ensures libraries are stored uncompressed and aligned
             useLegacyPackaging = false
@@ -43,6 +38,7 @@ android {
         minSdkVersion 24
         targetSdk 36
         multiDexEnabled true
+
         externalNativeBuild {
             ndkBuild {
                 // use ccache when available
@@ -52,9 +48,16 @@ android {
                     }
                 } catch (Exception ignored) {
                 }
-		
-                arguments "APP_STL:=c++_static","-j8", "APP_LDFLAGS+=-Wl,-z,max-page-size=16384"
-                cppFlags "-frtti", "-fexceptions", "-I${file("../..").absolutePath}", "-std=c++17", "-Werror=return-type"
+
+                arguments "APP_STL:=c++_static",
+                          "-j" + Runtime.runtime.availableProcessors(),
+                          "APP_LDFLAGS+=-Wl,-z,max-page-size=16384"
+
+                cppFlags "-frtti",
+                         "-fexceptions",
+                         "-I${file("../..").absolutePath}",
+                         "-std=c++17",
+                         "-Werror=return-type"
             }
         }
     }
@@ -62,29 +65,24 @@ android {
     buildTypes {
         release {
             minifyEnabled false
-            debuggable false
+            ndk.debugSymbolLevel = 'full'
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
 
             externalNativeBuild {
                 ndkBuild {
-                    abiFilters = ['armeabi-v7a', 'arm64-v8a']
-                    arguments "NDK_DEBUG=0"
+                    abiFilters 'armeabi-v7a', 'arm64-v8a'
                 }
             }
-            ndk.debugSymbolLevel = 'full'
         }
 
         debug {
             externalNativeBuild {
                 ndkBuild {
-                    abiFilters = ['armeabi-v7a', 'arm64-v8a', 'x86']
+                    abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86'
                     cppFlags "-DDEBUG=1", "-D_DEBUG=1"
                 }
             }
-            debuggable true
-            jniDebuggable true
         }
-
     }
 
     externalNativeBuild {
@@ -103,11 +101,10 @@ android {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
+
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_1_8.toString()
     }
-
-    ndkVersion '28.2.13676358'
 }
 
 androidComponents {
