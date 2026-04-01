@@ -1,11 +1,5 @@
 LOCAL_PATH  := $(call my-dir)
 
-#Savy for Crystax NDK debug build in Android Studio -*FOR USE ONLY WITH DEBUG*
-ifeq ($(APP_OPTIM),debug)
-    cmd-strip :=
-    LOCAL_CPPFLAGS += -gdwarf-2 #Only needed if you use GCC, not Clang
-endif
-
 include $(LOCAL_PATH)/Engine.mk
 include $(LOCAL_PATH)/zAction.mk
 include $(LOCAL_PATH)/zAppO.mk
