@@ -1,5 +1,12 @@
 # CSPro Build Documentation
 
+This document is a brief summary to help users get up and running buding CSPro or the CSEntry Android application. The document also describes limitations that result in code built from this [public repository](https://github.com/csprousers/cspro) differing from the [releases](https://csprousers.org/downloads) built from the [private repository](https://github.com/CSProDevelopment/cspro).
+
+In addition to this document, [docs/build-environment-setup.md](https://github.com/csprousers/cspro/tree/dev/docs/build-environment-setup.md) describes the environment used by developers to build CSPro and CSEntry.
+
+
+## External Libraries
+
 The files committed to this repository do not include prebuilt external libraries, and other binary files,
 upon which the CSPro build process depends. To successfully build CSPro, or the CSEntry Android application,
 you can build these libraries yourself, using scripts in [build-tools/Build External Libraries](https://github.com/csprousers/cspro/tree/dev/build-tools/Build%20External%20Libraries),

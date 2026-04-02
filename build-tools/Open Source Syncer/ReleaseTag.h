@@ -6,6 +6,7 @@ struct ReleaseTag
     std::string tag_name;    // the display name
     std::string tag_message; // the annotated message
     std::string version;     // the release version
+    bool prerelease;         // true if the tag ends in -alpha, -beta, or -rc
     GitCommit commit;        // the commit
 
     // Populates a list of tags that are named as a "release tag":

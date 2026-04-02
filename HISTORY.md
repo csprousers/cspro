@@ -9,6 +9,7 @@ Most CSPro development occurs on a [private repository](https://github.com/CSPro
 
 | Date | Branch | Pull Request Message |
 | --- | --- | --- |
+| 2026&#8209;04&#8209;02 | [release-documentation](https://github.com/CSProDevelopment/cspro/commit/4ee447de0323d6b25b520288c5aa28f6c7384a86) | improved the Android build process + added documentation about creating releasees |
 | 2026&#8209;03&#8209;31 | [tdy/2026-03-ls](https://github.com/CSProDevelopment/cspro/commit/97456740a304227ba4a1d0aeda6de9b6eab200cb) | fixed some bugs and worked on some small tasks related to discoveries while on a TDY |
 | 2026&#8209;02&#8209;26 | [prerelease/v8.1.0-alpha-20260227](https://github.com/CSProDevelopment/cspro/commit/d1ecff0c47d961bdeb79508c9c6c7ad8a2a08b26) | preparations for a CSPro 8.1.0 release (alpha-2026-02-27) |
 | 2026&#8209;02&#8209;26 | [text-viewer-utf8-default-encoding](https://github.com/CSProDevelopment/cspro/commit/3590e9826d504afc6d327012ed09f9c334dd58e0) | modified Text Viewer so that the default encoding for files without a BOM is UTF-8, not ANSI |
@@ -82,9 +83,9 @@ Most CSPro development occurs on a [private repository](https://github.com/CSPro
 
 ## CSPro 8.0.1
 
-**Installer**: [https://csprousers.org/downloads/cspro/cspro8.0.1.exe](https://csprousers.org/downloads/cspro/cspro8.0.1.exe)
+**Installer**: [https://csprousers.org/releases/8.0/cspro-8.0.1-windows-x86.exe](https://csprousers.org/releases/8.0/cspro-8.0.1-windows-x86.exe)
 
-**Release notes**: [https://csprousers.org/downloads/cspro/cspro8.0.1-release-notes.txt](https://csprousers.org/downloads/cspro/cspro8.0.1-release-notes.txt)
+**Release notes**: [https://csprousers.org/releases/8.0/cspro-8.0.1-release-notes.txt](https://csprousers.org/releases/8.0/cspro-8.0.1-release-notes.txt)
 
 **Merged pull requests**:
 
@@ -96,9 +97,9 @@ Most CSPro development occurs on a [private repository](https://github.com/CSPro
 
 ## CSPro 8.0.0
 
-**Installer**: [https://csprousers.org/downloads/cspro/cspro8.0.0.exe](https://csprousers.org/downloads/cspro/cspro8.0.0.exe)
+**Installer**: [https://csprousers.org/releases/8.0/cspro-8.0.0-windows-x86.exe](https://csprousers.org/releases/8.0/cspro-8.0.0-windows-x86.exe)
 
-**Release notes**: [https://csprousers.org/downloads/cspro/cspro8.0.0-release-notes.txt](https://csprousers.org/downloads/cspro/cspro8.0.0-release-notes.txt)
+**Release notes**: [https://csprousers.org/releases/8.0/cspro-8.0.0-release-notes.txt](https://csprousers.org/releases/8.0/cspro-8.0.0-release-notes.txt)
 
 **Merged pull requests**:
 
@@ -205,9 +206,9 @@ Most CSPro development occurs on a [private repository](https://github.com/CSPro
 
 ## CSPro 7.7.3
 
-**Installer**: [https://csprousers.org/downloads/cspro/cspro7.7.3.exe](https://csprousers.org/downloads/cspro/cspro7.7.3.exe)
+**Installer**: [https://csprousers.org/releases/7.7/cspro-7.7.3-windows-x86.exe](https://csprousers.org/releases/7.7/cspro-7.7.3-windows-x86.exe)
 
-**Release notes**: [https://csprousers.org/downloads/cspro/cspro7.7.3-release-notes.txt](https://csprousers.org/downloads/cspro/cspro7.7.3-release-notes.txt)
+**Release notes**: [https://csprousers.org/releases/7.7/cspro-7.7.3-release-notes.txt](https://csprousers.org/releases/7.7/cspro-7.7.3-release-notes.txt)
 
 **Merged pull requests**:
 
@@ -218,9 +219,9 @@ Most CSPro development occurs on a [private repository](https://github.com/CSPro
 
 ## CSPro 7.7.2
 
-**Installer**: [https://csprousers.org/downloads/cspro/cspro7.7.2.exe](https://csprousers.org/downloads/cspro/cspro7.7.2.exe)
+**Installer**: [https://csprousers.org/releases/7.7/cspro-7.7.2-windows-x86.exe](https://csprousers.org/releases/7.7/cspro-7.7.2-windows-x86.exe)
 
-**Release notes**: [https://csprousers.org/downloads/cspro/cspro7.7.2-release-notes.txt](https://csprousers.org/downloads/cspro/cspro7.7.2-release-notes.txt)
+**Release notes**: [https://csprousers.org/releases/7.7/cspro-7.7.2-release-notes.txt](https://csprousers.org/releases/7.7/cspro-7.7.2-release-notes.txt)
 
 **Merged pull requests**:
 
@@ -231,9 +232,9 @@ Most CSPro development occurs on a [private repository](https://github.com/CSPro
 
 ## CSPro 7.7.1
 
-**Installer**: [https://csprousers.org/downloads/cspro/cspro7.7.1.exe](https://csprousers.org/downloads/cspro/cspro7.7.1.exe)
+**Installer**: [https://csprousers.org/releases/7.7/cspro-7.7.1-windows-x86.exe](https://csprousers.org/releases/7.7/cspro-7.7.1-windows-x86.exe)
 
-**Release notes**: [https://csprousers.org/downloads/cspro/cspro7.7.1-release-notes.txt](https://csprousers.org/downloads/cspro/cspro7.7.1-release-notes.txt)
+**Release notes**: [https://csprousers.org/releases/7.7/cspro-7.7.1-release-notes.txt](https://csprousers.org/releases/7.7/cspro-7.7.1-release-notes.txt)
 
 **Merged pull requests**:
 
@@ -248,9 +249,9 @@ Most CSPro development occurs on a [private repository](https://github.com/CSPro
 
 ## CSPro 7.7.0
 
-**Installer**: [https://csprousers.org/downloads/cspro/cspro7.7.0.exe](https://csprousers.org/downloads/cspro/cspro7.7.0.exe)
+**Installer**: [https://csprousers.org/releases/7.7/cspro-7.7.0-windows-x86.exe](https://csprousers.org/releases/7.7/cspro-7.7.0-windows-x86.exe)
 
-**Release notes**: [https://csprousers.org/downloads/cspro/cspro7.7.0-release-notes.txt](https://csprousers.org/downloads/cspro/cspro7.7.0-release-notes.txt)
+**Release notes**: [https://csprousers.org/releases/7.7/cspro-7.7.0-release-notes.txt](https://csprousers.org/releases/7.7/cspro-7.7.0-release-notes.txt)
 
 **Merged pull requests**:
 
@@ -378,9 +379,9 @@ Most CSPro development occurs on a [private repository](https://github.com/CSPro
 
 ## CSPro 7.6.2
 
-**Installer**: [https://csprousers.org/downloads/cspro/cspro7.6.2.exe](https://csprousers.org/downloads/cspro/cspro7.6.2.exe)
+**Installer**: [https://csprousers.org/releases/7.6/cspro-7.6.2-windows-x86.exe](https://csprousers.org/releases/7.6/cspro-7.6.2-windows-x86.exe)
 
-**Release notes**: [https://csprousers.org/downloads/cspro/cspro7.6.2-release-notes.txt](https://csprousers.org/downloads/cspro/cspro7.6.2-release-notes.txt)
+**Release notes**: [https://csprousers.org/releases/7.6/cspro-7.6.2-release-notes.txt](https://csprousers.org/releases/7.6/cspro-7.6.2-release-notes.txt)
 
 **Merged pull requests**:
 
@@ -406,9 +407,9 @@ Most CSPro development occurs on a [private repository](https://github.com/CSPro
 
 ## CSPro 7.6.1
 
-**Installer**: [https://csprousers.org/downloads/cspro/cspro7.6.1.exe](https://csprousers.org/downloads/cspro/cspro7.6.1.exe)
+**Installer**: [https://csprousers.org/releases/7.6/cspro-7.6.1-windows-x86.exe](https://csprousers.org/releases/7.6/cspro-7.6.1-windows-x86.exe)
 
-**Release notes**: [https://csprousers.org/downloads/cspro/cspro7.6.1-release-notes.txt](https://csprousers.org/downloads/cspro/cspro7.6.1-release-notes.txt)
+**Release notes**: [https://csprousers.org/releases/7.6/cspro-7.6.1-release-notes.txt](https://csprousers.org/releases/7.6/cspro-7.6.1-release-notes.txt)
 
 **Merged pull requests**:
 
@@ -426,9 +427,9 @@ Most CSPro development occurs on a [private repository](https://github.com/CSPro
 
 ## CSPro 7.6.0
 
-**Installer**: [https://csprousers.org/downloads/cspro/cspro7.6.0.exe](https://csprousers.org/downloads/cspro/cspro7.6.0.exe)
+**Installer**: [https://csprousers.org/releases/7.6/cspro-7.6.0-windows-x86.exe](https://csprousers.org/releases/7.6/cspro-7.6.0-windows-x86.exe)
 
-**Release notes**: [https://csprousers.org/downloads/cspro/cspro7.6.0-release-notes.txt](https://csprousers.org/downloads/cspro/cspro7.6.0-release-notes.txt)
+**Release notes**: [https://csprousers.org/releases/7.6/cspro-7.6.0-release-notes.txt](https://csprousers.org/releases/7.6/cspro-7.6.0-release-notes.txt)
 
 **Merged pull requests**:
 

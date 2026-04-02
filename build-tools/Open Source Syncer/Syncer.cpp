@@ -59,7 +59,7 @@ struct Syncer::GroupedPullRequests
 {
     GitCommit cs_grouped_up_to_commit;
     std::map<std::string, std::vector<PullRequest>> pull_requests; // tag name -> PullRequest
-    std::vector<PullRequest> newer_than_tags_pull_requests;
+    std::vector<PullRequest> newer_than_release_tags_pull_requests;
 };
 
 
@@ -116,15 +116,17 @@ std::string Syncer::CreateHistoryLog(const GitCommit& cs_latest_commit)
                 return;
             }
 
-            // determine the first tag that contains this commit
-            std::vector<PullRequest>* pull_requests = &grouped_pull_requests->newer_than_tags_pull_requests;
+            // determine the first release tag that contains this commit
+            std::vector<PullRequest>* pull_requests = &grouped_pull_requests->newer_than_release_tags_pull_requests;
 
             for( const ReleaseTag& release_tag : m_releaseTags )
             {
                 if( release_tag.commit == commit ||
                     private_repo.IsCommitDescendantOf(release_tag.commit, commit) )
                 {
-                    pull_requests = &grouped_pull_requests->pull_requests[release_tag.version];
+                    if( !release_tag.prerelease )
+                        pull_requests = &grouped_pull_requests->pull_requests[release_tag.version];
+
                     break;
                 }
             }
@@ -179,24 +181,39 @@ std::string Syncer::CreateHistoryLog(const GitCommit& cs_latest_commit)
         }
     };
 
-    if( !grouped_pull_requests->newer_than_tags_pull_requests.empty() )
+    if( !grouped_pull_requests->newer_than_release_tags_pull_requests.empty() )
     {
         history.append("\n\n## CSPro (current development)\n");
 
-        write_pull_requests(grouped_pull_requests->newer_than_tags_pull_requests);
+        write_pull_requests(grouped_pull_requests->newer_than_release_tags_pull_requests);
     }
 
     for( auto tag_commits_itr = m_releaseTags.crbegin(); tag_commits_itr != m_releaseTags.crend(); ++tag_commits_itr )
     {
+        const std::vector<PullRequest>& pull_requests = grouped_pull_requests->pull_requests[tag_commits_itr->version];
+
+        // do not list prerelease data as the installer and release notes may not exist,
+        // and the pull requests should have been listed above as current development
+        if( tag_commits_itr->prerelease )
+        {
+            ASSERT(pull_requests.empty());
+            continue;
+        }
+
         history.append(FormatText("\n\n## CSPro %s\n", tag_commits_itr->version.c_str()));
 
-        std::string url = FormatText("https://csprousers.org/downloads/cspro/cspro%s.exe", tag_commits_itr->version.c_str());
+        // releases are stored on the CSPro Users website in a major/minor release subdirectory
+        const std::string releases_base_url = SO::Concatenate(
+            "https://csprousers.org/releases/",
+            tag_commits_itr->version.substr(0, tag_commits_itr->version.find_last_of('.')),
+            "/"
+        );
+
+        std::string url = releases_base_url + FormatText("cspro-%s-windows-x86.exe", tag_commits_itr->version.c_str());
         history.append(FormatText("\n**Installer**: [%s](%s)\n", url.c_str(), url.c_str())); // X64_TODO add link to 64-bit installer
 
-        url = FormatText("https://csprousers.org/downloads/cspro/cspro%s-release-notes.txt", tag_commits_itr->version.c_str());
+        url = releases_base_url + FormatText("cspro-%s-release-notes.txt", tag_commits_itr->version.c_str());
         history.append(FormatText("\n**Release notes**: [%s](%s)\n", url.c_str(), url.c_str()));
-
-        const std::vector<PullRequest>& pull_requests = grouped_pull_requests->pull_requests[tag_commits_itr->version];
 
         if( !pull_requests.empty() )
             write_pull_requests(pull_requests);
