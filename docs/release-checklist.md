@@ -42,6 +42,7 @@ This document lists the steps necessary to create a CSPro release.
     - build-tools/Run Project File Manager.bat
     - build-tools/Run Resource ID Numberer.bat
     - cspro/html/Update Android HTML Assets.bat
+    - cspro/zAction/action-definitions-updater.bat
 
 5. The following are sample commit message for some of the changes above:
     - updated the versioning information for a CSPro 8.1.0 release (alpha: 2026-02-27)
