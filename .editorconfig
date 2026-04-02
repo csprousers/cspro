@@ -43,7 +43,7 @@ insert_final_newline = true
 stygitan_trim_final_newlines = true
 
 # CSPro files (JSON)
-[*.{bch,cmp,csdocset,csds,cspack,csprops,dcf,ent,exf,fqf,hgi,index,ssf,sva,toc,xl2cs,xtb}]
+[*.{bch,cmp,csdocset,csds,cspack,csprops,dcf,ent,exf,fqf,index,ssf,sva,toc,xl2cs,xtb}]
 indent_style = space
 indent_size = 2
 end_of_line = lf
@@ -73,7 +73,7 @@ insert_final_newline = true
 stygitan_trim_final_newlines = true
 
 # CSPro files (text)
-[*.{apc,csdoc,mgf}]
+[*.{apc,csdoc,hgi,mgf}]
 indent_style = space
 indent_size = 4
 end_of_line = crlf
