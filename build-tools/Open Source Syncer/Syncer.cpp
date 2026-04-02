@@ -202,10 +202,17 @@ std::string Syncer::CreateHistoryLog(const GitCommit& cs_latest_commit)
 
         history.append(FormatText("\n\n## CSPro %s\n", tag_commits_itr->version.c_str()));
 
-        std::string url = FormatText("https://csprousers.org/downloads/cspro/cspro%s.exe", tag_commits_itr->version.c_str());
+        // releases are stored on the CSPro Users website in a major/minor release subdirectory
+        const std::string releases_base_url = SO::Concatenate(
+            "https://csprousers.org/releases/",
+            tag_commits_itr->version.substr(0, tag_commits_itr->version.find_last_of('.')),
+            "/"
+        );
+
+        std::string url = releases_base_url + FormatText("cspro-%s-windows-x86.exe", tag_commits_itr->version.c_str());
         history.append(FormatText("\n**Installer**: [%s](%s)\n", url.c_str(), url.c_str())); // X64_TODO add link to 64-bit installer
 
-        url = FormatText("https://csprousers.org/downloads/cspro/cspro%s-release-notes.txt", tag_commits_itr->version.c_str());
+        url = releases_base_url + FormatText("cspro-%s-release-notes.txt", tag_commits_itr->version.c_str());
         history.append(FormatText("\n**Release notes**: [%s](%s)\n", url.c_str(), url.c_str()));
 
         if( !pull_requests.empty() )
