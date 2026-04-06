@@ -254,7 +254,7 @@ std::string DocSetBuilderBaseGenerateTask::GetCSDocOutputFilePath(const std::str
 void DocSetBuilderBaseGenerateTask::OnCSDocCompilationResult(const std::string& /*csdoc_file_path*/, const std::string& output_file_path, const std::string& html)
 {
     GetInterface().LogText("Saving CSPro Document: " + output_file_path);
-    m_csdocCompilerSettingsForBuilding->WriteTextToFile(output_file_path, html, true);
+    m_csdocCompilerSettingsForBuilding->WriteTextToFile(output_file_path, html);
 }
 
 
