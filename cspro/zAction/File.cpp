@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include <zToolsO/File.h>
 #include <zUtilO/PortableFileSystem.h>
 
@@ -148,6 +148,7 @@ FileIO::TextFile FileHelper::OpenTextFileForWriting(const JsonNode& json_node, A
 
     // default to writing text as UTF-8 without a BOM and writing newlines as \n...
     static_assert(TextEncoding::DefaultEncoding != TextEncoding::Type::Utf8);
+    static_assert(FileIO::TextFile::DefaultWriteNewlineAsCRLF == true);
 
     FileIO::TextFile text_file;
     text_file.SetTextEncoding(TextEncoding::Type::Utf8);

@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "TextRepositoryNotesFile.h"
 #include "TextRepository.h"
 #include <zToolsO/File.h>
@@ -226,6 +226,7 @@ void TextRepositoryNotesFile::Save(const bool force_write_to_disk/* = false*/)
 
     try
     {
+        static_assert(FileIO::TextFile::DefaultWriteNewlineAsCRLF == true);
         FileIO::TextFile csnot_file;
         csnot_file.SetProperties(m_repository.GetConnectionString());
 

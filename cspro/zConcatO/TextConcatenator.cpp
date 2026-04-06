@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "TextConcatenator.h"
 #include "ConcatenatorHelpers.h"
 #include "ConcatenatorReporter.h"
@@ -59,6 +59,7 @@ void TextConcatenator::Run(ConcatenatorReporter& concatenator_reporter,
 
 
     // properties for the output file are determined in the connection string
+    static_assert(FileIO::TextFile::DefaultWriteNewlineAsCRLF == true);
     FileIO::TextFile output_file;
     output_file.SetProperties(output_connection_string);
 

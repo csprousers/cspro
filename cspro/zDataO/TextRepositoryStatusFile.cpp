@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "TextRepositoryStatusFile.h"
 #include "CaseIterator.h"
 #include "TextRepository.h"
@@ -336,6 +336,7 @@ void TextRepositoryStatusFile::Save(const bool force_write_to_disk/* = false*/)
 
     try
     {
+        static_assert(FileIO::TextFile::DefaultWriteNewlineAsCRLF == true);
         IniFileWriter sts_file;
         sts_file.SetProperties(m_repository.GetConnectionString());
 
