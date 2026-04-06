@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "MainFrame.h"
 #include "CSDocFrame.h"
 #include "DocSetSpecDoc.h"
@@ -57,6 +57,7 @@ BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWndEx)
     // other handlers
     ON_MESSAGE(UWM::Designer::FindOpenTextSourceEditable, OnFindOpenTextSourceEditable)
     ON_MESSAGE(UWM::CSDocument::GetOpenTextSourceEditables, OnGetOpenTextSourceEditables)
+    ON_MESSAGE(UWM::Designer::TEXT_ENCODING_TODO_UseNewSettings, OnTEXT_ENCODING_TODO_UseNewSettings)
 
     // interapp communication
     ON_MESSAGE(WM_IMSA_FILEOPEN, OnIMSAFileOpen)
@@ -708,6 +709,11 @@ LRESULT CMainFrame::OnGetOpenTextSourceEditables(const WPARAM wParam, LPARAM /*l
     return 1;
 }
 
+
+LRESULT CMainFrame::OnTEXT_ENCODING_TODO_UseNewSettings(WPARAM /*wParam*/, LPARAM /*lParam*/)
+{
+    return 1;
+}
 
 LRESULT CMainFrame::OnIMSAFileOpen(WPARAM /*wParam*/, LPARAM /*lParam*/)
 {

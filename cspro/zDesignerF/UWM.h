@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zUtilO/UWMRanges.h>
 #include <zDesignerF/FrameType.h>
@@ -28,9 +28,10 @@ namespace UWM::Designer
     const unsigned SetCodeFileSuccessfullyCompiled = UWM::Ranges::DesignerStart + 18;
     const unsigned TokenizeLogic_V0                = UWM::Ranges::DesignerStart + 19;
     const unsigned CreateCapiLogicCompiler         = UWM::Ranges::DesignerStart + 20;
+    const unsigned TEXT_ENCODING_TODO_UseNewSettings = UWM::Ranges::DesignerStart + 21;
 
     // unlike the above messages, the following messages are only used within the project
-    const unsigned TabViewContainerTabChange       = UWM::Ranges::DesignerStart + 21;
+    const unsigned TabViewContainerTabChange       = UWM::Ranges::DesignerStart + 22;
 
     CHECK_MESSAGE_NUMBERING(TabViewContainerTabChange, UWM::Ranges::DesignerLast)
 }

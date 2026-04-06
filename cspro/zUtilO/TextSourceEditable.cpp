@@ -125,6 +125,16 @@ void TextSourceEditable::Save()
     if( modifiable_text.empty() || modifiable_text.back() != '\n' )
         modifiable_text.push_back('\n');
 
+    // TEXT_ENCODING_TODO for CSPro 8.2, use the new settings (LF, not CRLF)
+    if( WindowsDesktopMessage::Send(UWM::Designer::TEXT_ENCODING_TODO_UseNewSettings) == 1 )
+    {
+    }
+
+    else
+    {
+        SO::MakeNewlineCRLF(modifiable_text);
+    }
+
     FileIO::WriteText(m_filePath, modifiable_text, true);
 
     m_modified = false;
