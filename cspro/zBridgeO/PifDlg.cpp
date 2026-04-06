@@ -1,7 +1,7 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "PifDlg.h"
+#include <zToolsO/FileIO.h>
 #include <zToolsO/Tools.h>
-#include <zUtilO/FileUtil.h>
 #include <zInterfaceF/DictionaryReconcileDlg.h>
 
 
@@ -80,24 +80,28 @@ void CPifDlg::OnOK()
 }
 
 
-bool CPifDlg::IsValidFilePath(const std::wstring& path, bool must_be_writeable)
+bool CPifDlg::IsValidFilePath(std::set<std::string>& nonexistent_directories, const std::wstring& path,
+                              const bool must_be_writeable)
 {
     if( PortableFunctions::FileExists(path) )
     {
-        // If the file exists, check that it is writeable (unless read only access)
-        DWORD attr = GetFileAttributes(path.c_str());
+        // if the file exists, potentially check that it is writeable
+        if( must_be_writeable )
+        {
+            const DWORD attr = GetFileAttributes(path.c_str());
 
-        if( must_be_writeable && ( attr & FILE_ATTRIBUTE_READONLY ) != 0 )
-            return false;
+            if( ( attr & FILE_ATTRIBUTE_READONLY ) != 0 )
+                return false;
+        }
     }
 
     else
     {
-        // Check that directory exists and is writeable (if required)
+        // check that the directory exists
         std::wstring directory = PortableFunctions::PathGetDirectory(path);
 
         if( !PortableFunctions::FileIsDirectory(directory) )
-            return false;
+            nonexistent_directories.insert(UTF8_TODO::GetUtf8(std::move(directory)));
     }
 
     // Check that name doesn't contain invalid characters
@@ -107,157 +111,171 @@ bool CPifDlg::IsValidFilePath(const std::wstring& path, bool must_be_writeable)
 
 bool CPifDlg::Validate()
 {
-    std::vector<CString> processed_filenames;
-
-    for( long lRowIndex = 0; lRowIndex < m_pifgrid.GetNumberRows(); lRowIndex++ )
+    while( true )
     {
-        CUGCell cellGrid;
-        m_pifgrid.GetCell(-1, lRowIndex, &cellGrid);
+        std::vector<CString> processed_filenames;
+        std::set<std::string> nonexistent_directories;
 
-        PIFINFO** ppPifInfo = (PIFINFO**)cellGrid.GetExtraMemPtr();
-
-        if( ppPifInfo != nullptr )
+        for( long lRowIndex = 0; lRowIndex < m_pifgrid.GetNumberRows(); lRowIndex++ )
         {
-            PIFINFO* pifInfo = *ppPifInfo;
-            std::vector<CString> filenames_to_add;
+            CUGCell cellGrid;
+            m_pifgrid.GetCell(-1, lRowIndex, &cellGrid);
 
-            // data files
-            if( !pifInfo->dictionary_file_path.empty() )
+            PIFINFO** ppPifInfo = (PIFINFO**)cellGrid.GetExtraMemPtr();
+
+            if( ppPifInfo != nullptr )
             {
-                if( pifInfo->connection_strings.size() == 0 && pifInfo->sUName.CompareNoCase(OUTPFILE) != 0 )
-                {
-                    AfxMessageBox(L"You must specify a data source for " + pifInfo->sDisplay);
-                    return false;
-                }
+                PIFINFO* pifInfo = *ppPifInfo;
+                std::vector<CString> filenames_to_add;
 
-                if( pifInfo->connection_strings.size() > 1 && ( pifInfo->uOptions & PIF_MULTIPLE_FILES ) == 0 )
+                // data files
+                if( !pifInfo->dictionary_file_path.empty() )
                 {
-                    // see comments in PifInfoPopulator::GetPifInfo for why the output data doesn't have this flag set
-                    if( pifInfo->sUName.CompareNoCase(OUTPFILE) != 0 )
+                    if( pifInfo->connection_strings.size() == 0 && pifInfo->sUName.CompareNoCase(OUTPFILE) != 0 )
                     {
-                        AfxMessageBox(L"You cannot specify multiple data sources for " + pifInfo->sDisplay);
+                        AfxMessageBox(L"You must specify a data source for " + pifInfo->sDisplay);
                         return false;
                     }
-                }
 
-                for( const ConnectionString& connection_string : pifInfo->connection_strings )
-                {
-                    if( connection_string.HasFilePath() )
+                    if( pifInfo->connection_strings.size() > 1 && ( pifInfo->uOptions & PIF_MULTIPLE_FILES ) == 0 )
                     {
-                        if( Path::HasWildcardCharacters(connection_string.GetFilePath()) )
+                        // see comments in PifInfoPopulator::GetPifInfo for why the output data doesn't have this flag set
+                        if( pifInfo->sUName.CompareNoCase(OUTPFILE) != 0 )
                         {
-                            if( ( pifInfo->uOptions & PIF_MULTIPLE_FILES ) == 0 )
-                            {
-                                AfxMessageBox(L"File names may not contain wildcards (* or ?).");
-                                return false;
-                            }
-
-                            std::string directory = PortableFunctions::PathGetDirectory(connection_string.GetFilePath());
-
-                            if( !PortableFunctions::FileIsDirectory(directory) )
-                            {
-                                AfxMessageBox(FormatText("Directory %s not found", directory.c_str()));
-                                return false;
-                            }
+                            AfxMessageBox(L"You cannot specify multiple data sources for " + pifInfo->sDisplay);
+                            return false;
                         }
+                    }
 
-                        else
+                    for( const ConnectionString& connection_string : pifInfo->connection_strings )
+                    {
+                        if( connection_string.HasFilePath() )
                         {
-                            if( ( pifInfo->uOptions & PIF_FILE_MUST_EXIST ) != 0 && !PortableFunctions::FileIsRegular(connection_string.GetFilePath()) )
+                            if( Path::HasWildcardCharacters(connection_string.GetFilePath()) )
                             {
-                                AfxMessageBox(FormatText("File %s not found", connection_string.GetFilePath().c_str()));
-                                return false;
+                                if( ( pifInfo->uOptions & PIF_MULTIPLE_FILES ) == 0 )
+                                {
+                                    AfxMessageBox(L"File names may not contain wildcards (* or ?).");
+                                    return false;
+                                }
+
+                                std::string directory = PortableFunctions::PathGetDirectory(connection_string.GetFilePath());
+
+                                if( !PortableFunctions::FileIsDirectory(directory) )
+                                    nonexistent_directories.insert(std::move(directory));
                             }
 
-                            if( !IsValidFilePath(UTF8_TODO::GetWide(connection_string.GetFilePath()), !( pifInfo->uOptions & PIF_READ_ONLY )) )
+                            else
                             {
-                                AfxMessageBox(FormatText("%s is not a valid file name. Check that the directory exists "
-                                                         "and that the name does not contain invalid characters.",
-                                                         connection_string.GetFilePath().c_str()));
-                                return false;
-                            }
+                                if( ( pifInfo->uOptions & PIF_FILE_MUST_EXIST ) != 0 &&
+                                    !PortableFunctions::FileIsRegular(connection_string.GetFilePath()) )
+                                {
+                                    AfxMessageBox(FormatText("File %s not found", connection_string.GetFilePath().c_str()));
+                                    return false;
+                                }
 
-                            if( pifInfo->sUName.CompareNoCase(OUTPFILE) != 0 &&
-                                !DictionaryReconcileDlg::DictionaryChangesIfAnyAreOk(connection_string, pifInfo->dictionary_file_path) )
-                            {
-                                return false;
-                            }
+                                if( !IsValidFilePath(nonexistent_directories,
+                                                     UTF8_TODO::GetWide(connection_string.GetFilePath()),
+                                                     !( pifInfo->uOptions & PIF_READ_ONLY )) )
+                                {
+                                    AfxMessageBox(FormatText("%s is not a valid file name. "
+                                                             "Check that the name does not contain invalid characters.",
+                                                             connection_string.GetFilePath().c_str()));
+                                    return false;
+                                }
 
-                            filenames_to_add.emplace_back(UTF8_TODO::GetCString(connection_string.GetFilePath()));
+                                if( pifInfo->sUName.CompareNoCase(OUTPFILE) != 0 &&
+                                    !DictionaryReconcileDlg::DictionaryChangesIfAnyAreOk(connection_string, pifInfo->dictionary_file_path) )
+                                {
+                                    return false;
+                                }
+
+                                filenames_to_add.emplace_back(UTF8_TODO::GetCString(connection_string.GetFilePath()));
+                            }
                         }
                     }
                 }
-            }
 
-            // non-data files
-            else
-            {
-                std::vector<CString> filenames_to_process;
-
-                if( ( pifInfo->uOptions & PIF_MULTIPLE_FILES ) != 0 && !m_pifgrid.m_arrMultFiles.IsEmpty() )
-                {
-                    ASSERT(pifInfo->sDisplay == INPUTTBD);
-
-                    for( int i = 0; i < m_pifgrid.m_arrMultFiles.GetSize(); i++ )
-                        filenames_to_process.emplace_back(m_pifgrid.m_arrMultFiles[i]);
-                }
-
+                // non-data files
                 else
                 {
-                    filenames_to_process.emplace_back(pifInfo->sFileName);
+                    std::vector<CString> filenames_to_process;
+
+                    if( ( pifInfo->uOptions & PIF_MULTIPLE_FILES ) != 0 && !m_pifgrid.m_arrMultFiles.IsEmpty() )
+                    {
+                        ASSERT(pifInfo->sDisplay == INPUTTBD);
+
+                        for( int i = 0; i < m_pifgrid.m_arrMultFiles.GetSize(); i++ )
+                            filenames_to_process.emplace_back(m_pifgrid.m_arrMultFiles[i]);
+                    }
+
+                    else
+                    {
+                        filenames_to_process.emplace_back(pifInfo->sFileName);
+                    }
+
+                    for( const CString& filename : filenames_to_process )
+                    {
+                        filenames_to_add.emplace_back(filename);
+
+                        if( filename.IsEmpty() && ( pifInfo->uOptions & PIF_ALLOW_BLANK ) == 0 )
+                        {
+                            AfxMessageBox(FormatText(L"File Associations incomplete.\nFile name missing for %s.", pifInfo->sDisplay.GetString()));
+                            return false;
+                        }
+
+                        if( filename.FindOneOf(L"*?") >= 0 && ( pifInfo->uOptions & PIF_ALLOW_WILDCARDS ) == 0 )
+                        {
+                            AfxMessageBox(L"File names may not contain wildcards (* or ?).");
+                            return false;
+                        }
+
+                        // Check valid path except if name is empty or is multiple files (containing ")
+                        if( !filename.IsEmpty() && filename.Find('"') < 0 &&
+                            !IsValidFilePath(nonexistent_directories,
+                                             CS2WS(filename),
+                                             !( pifInfo->uOptions & PIF_READ_ONLY )) )
+                        {
+                            AfxMessageBox(FormatText(L"%s is not a valid file name. "
+                                                     L"Check that the name does not contain invalid characters.",
+                                                     filename.GetString()));
+                            return false;
+                        }
+
+                        if( !filename.IsEmpty() && ( pifInfo->uOptions & PIF_FILE_MUST_EXIST ) != 0 && !PortableFunctions::FileExists(filename) )
+                        {
+                            AfxMessageBox(FormatText(L"File %s not found", filename.GetString()));
+                            return false;
+                        }
+                    }
                 }
 
-                for( const auto& filename : filenames_to_process )
+                // check for duplicate files
+                for( const CString& filename : filenames_to_add )
                 {
-                    filenames_to_add.emplace_back(filename);
-
-                    if( filename.IsEmpty() && ( pifInfo->uOptions & PIF_ALLOW_BLANK ) == 0 )
+                    if( !filename.IsEmpty() &&
+                        std::find_if(processed_filenames.cbegin(), processed_filenames.cend(),
+                        [&](const CString& added_filename)
+                        { return ( filename.CompareNoCase(added_filename) == 0 ); }) != processed_filenames.cend() )
                     {
-                        AfxMessageBox(FormatText(L"File Associations incomplete.\nFile name missing for %s.", pifInfo->sDisplay.GetString()));
+                        AfxMessageBox(FormatText(L"You cannot use the file name %s more than once.", filename.GetString()));
                         return false;
                     }
 
-                    if( filename.FindOneOf(L"*?") >= 0 && ( pifInfo->uOptions & PIF_ALLOW_WILDCARDS ) == 0 )
-                    {
-                        AfxMessageBox(L"File names may not contain wildcards (* or ?).");
-                        return false;
-                    }
-
-                    // Check valid path except if name is empty or is multiple files (containing ")
-                    if( !filename.IsEmpty() && filename.Find('"') < 0 &&
-                        !IsValidFilePath(CS2WS(filename), !( pifInfo->uOptions & PIF_READ_ONLY )) )
-                    {
-                        AfxMessageBox(FormatText(L"%s is not a valid file name. Check that the directory exists "
-                                                 L"and that the name does not contain invalid characters.", filename.GetString()));
-                        return false;
-                    }
-
-                    if( !filename.IsEmpty() && ( pifInfo->uOptions & PIF_FILE_MUST_EXIST ) != 0 && !PortableFunctions::FileExists(filename) )
-                    {
-                        AfxMessageBox(FormatText(L"File %s not found", filename.GetString()));
-                        return false;
-                    }
+                    processed_filenames.emplace_back(filename);
                 }
-            }
-
-            // check for duplicate files
-            for( const CString& filename : filenames_to_add )
-            {
-                if( !filename.IsEmpty() &&
-                    std::find_if(processed_filenames.cbegin(), processed_filenames.cend(),
-                    [&](const CString& added_filename)
-                    { return ( filename.CompareNoCase(added_filename) == 0 ); }) != processed_filenames.cend() )
-                {
-                    AfxMessageBox(FormatText(L"You cannot use the file name %s more than once.", filename.GetString()));
-                    return false;
-                }
-
-                processed_filenames.emplace_back(filename);
             }
         }
-    }
 
-    return true;
+        // if there are any nonexistent directories, check if the user wants to create them
+        if( !nonexistent_directories.empty() &&
+            !QueryAndCreateNonexistentDirectories(nonexistent_directories) )
+        {
+            return false;
+        }
+
+        return true;
+    }
 }
 
 
@@ -407,4 +425,34 @@ BOOL CPifDlg::PreTranslateMessage(MSG* pMsg) // 20110805
     }
 
     return CDialog::PreTranslateMessage(pMsg);
+}
+
+
+bool CPifDlg::QueryAndCreateNonexistentDirectories(const std::set<std::string>& nonexistent_directories)
+{
+    ASSERT(!nonexistent_directories.empty());
+
+    const std::string prompt = FormatText(
+        "The following %s not exist:\n\n%s\n\nWould you like to create %s?",
+        PluralizeWord(nonexistent_directories.size(), "directory does", "directories do"),
+        SO::CreateSingleString(nonexistent_directories, SO::Newline_lf_sv).c_str(),
+        PluralizeWord(nonexistent_directories.size(), "it", "them")
+    );
+
+    if( AfxMessageBox(prompt, MB_YESNOCANCEL) != IDYES )
+        return false;
+
+    try
+    {
+        for( const std::string& nonexistent_directory : nonexistent_directories )
+            FileIO::CreateDirectories(nonexistent_directory);
+    }
+
+    catch( const CSProException& exception)
+    {
+        ErrorMessage::Display(exception);
+        return false;
+    }
+
+    return true;
 }
