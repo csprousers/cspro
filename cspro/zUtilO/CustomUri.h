@@ -10,7 +10,7 @@ class CLASS_DECL_ZUTILO CustomUri
 public:
     constexpr static std::string_view CSProScheme_sv = "cspro://";
 
-    enum class UriType { Text, Data, Sync };
+    enum class UriType { Text, Data, Sync, Cache };
 
     // Returns true if the URI starts with http:// or https://.
     static bool UsesHttpScheme(std::string_view uri_sv);
@@ -64,6 +64,16 @@ public:
 
     // Returns the sync connection string text that includes the resource and properties that are part of a sync URI.
     static std::string ConvertSyncUriToSyncConnectionStringText(std::string_view uri_sv);
+
+
+    // --------------------------------------------------------------------------
+    // Cache URIs
+    // --------------------------------------------------------------------------
+
+    // Creates a URI that references cacheable content that looks like:
+    //     - cspro://cache/f66a857c
+    // The final part of the path is derived from a call to UniqueId::CreateInt.
+    static std::string CreateCacheUri();
 
 
 private:

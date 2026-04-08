@@ -1,13 +1,8 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include <zToolsO/Hash.h>
+#include <zUtilO/CustomUri.h>
 #include <zHtml/PortableLocalhost.h>
 #include <zDataO/ConnectionStringProperties.h>
-
-
-namespace
-{
-    constexpr std::string_view CachePrefix_sv = "cscache:";
-}
 
 
 CREATE_JSON_VALUE(Base64)
@@ -42,9 +37,10 @@ BinaryEncodingResolvedInput StringToBytesConverter::ResolveBinaryEncodingInput(c
 
     if( binary_encoding_input == BinaryEncodingInput::Autodetect )
     {
-        binary_encoding_input = Encoders::IsDataUrl(bytes_sv)            ? BinaryEncodingInput::DataUrl :
-                                SO::StartsWith(bytes_sv, CachePrefix_sv) ? BinaryEncodingInput::Cache:
-                                                                           BinaryEncodingInput::Base64;
+        binary_encoding_input =
+            Encoders::IsDataUrl(bytes_sv)                                   ? BinaryEncodingInput::DataUrl :
+            CustomUri::UsesCSProScheme(bytes_sv, CustomUri::UriType::Cache) ? BinaryEncodingInput::Cache :
+                                                                              BinaryEncodingInput::Base64;
     }
 
     return static_cast<BinaryEncodingResolvedInput>(binary_encoding_input);
@@ -104,7 +100,7 @@ std::shared_ptr<const std::vector<std::byte>> StringToBytesConverter::Convert(Ac
 
 std::shared_ptr<const std::vector<std::byte>> StringToBytesConverter::ConvertCache(ActionInvoker::Runtime& runtime, const std::string_view bytes_sv)
 {
-    if( !SO::StartsWith(bytes_sv, CachePrefix_sv) )
+    if( !CustomUri::UsesCSProScheme(bytes_sv, CustomUri::UriType::Cache) )
         throw CSProException("The cache key is not specified correctly.");
 
     auto [actual_cache_key_sv, query_string_sv] = SO::GetTextOnEitherSideOfCharacter(bytes_sv, '?');
@@ -172,7 +168,7 @@ std::string BytesToStringConverter::ConvertCache(std::shared_ptr<const std::vect
 {
     ASSERT(m_binaryEncodingOutput == BinaryEncodingOutput::Cache && bytes != nullptr);
 
-    std::string cache_key = SO::Concatenate(CachePrefix_sv, IntToString(UniqueId::CreateInt()));
+    std::string cache_key = CustomUri::CreateCacheUri();
 
     m_runtime->m_cachedBinaryContent.try_emplace(cache_key, std::move(bytes));
 

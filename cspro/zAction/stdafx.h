@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <engine/StandardSystemIncludes.h>
 #include <StandardIncludes/strict_errors.h>
@@ -10,7 +10,6 @@
 #include <zToolsO/Encoders.h>
 #include <zToolsO/FileIO.h>
 #include <zToolsO/ObjectTransporter.h>
-#include <zToolsO/UniqueId.h>
 #include <zToolsO/Utf8.h>
 #include <zUtilO/ArrUtil.h>
 #include <zUtilO/MimeType.h>
