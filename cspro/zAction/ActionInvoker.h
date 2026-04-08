@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zAction/zAction.h>
 #include <zAction/Caller.h>
@@ -28,6 +28,12 @@ namespace ActionInvoker
     class ListenerHolder;
     class Runtime;
 
+    struct CachedBinaryContent
+    {
+        std::shared_ptr<const std::vector<std::byte>> bytes;
+        std::string mime_type;
+    };
+
     // the suffix that some executors use for asynchronous action names
     constexpr std::string_view AsyncActionSuffix_sv = "Async";
 }
@@ -39,8 +45,8 @@ class ZACTION_API ActionInvoker::Runtime
     friend StringToBytesConverter;
 
     // --------------------------------------------------------------------------
-    // the general implementation of the runtime;
-    // the entry points are all virtual to minimize dependencies on zAction
+    // This is the general implementation of the runtime.
+    // The entry points are all virtual to minimize dependencies on zAction.
     // --------------------------------------------------------------------------
 public:
     Runtime();
@@ -49,33 +55,37 @@ public:
     Runtime(const Runtime&) = delete;
     Runtime& operator=(const Runtime&) = delete;
 
-    // disables checking access tokens from external callers
+    // Disables checking access tokens from external callers.
     void DisableAccessTokenCheckForExternalCallers();
 
-    // registers an access token
+    // Registers an access token.
     void RegisterAccessToken(std::string access_token);
 
-    // checks if an access token is valid, throwing an exception if not
+    // Checks if an access token is valid, throwing an exception if not.
     virtual void CheckAccessToken(const std::string* access_token, Caller& caller);
 
-    // registers a listener, which will exist for the lifetime of the the returned object
+    // Registers a listener, which will exist for the lifetime of the the returned object.
     virtual ListenerHolder RegisterListener(std::shared_ptr<Listener> listener);
 
-    // the Process... methods all can throw CSProException exceptions
+    // The Process... methods all can throw CSProException exceptions:
     virtual Result ProcessExecute(const std::string& json_arguments, Caller& caller);
     virtual Result ProcessAction(Action action, const SharableString& json_arguments, Caller& caller);
 
-    // throws a CSProException with the error
+    // Returns cached binary content, and the optional MIME type, for a cspro://cache/... URI,
+    // throwing an exception if not present.
+    virtual CachedBinaryContent GetCachedBinaryContent(std::string_view cache_uri_sv);
+
+    // Throws a CSProException with the error.
     template<typename... Args>
     [[noreturn]] void IssueError(int message_number, Args const&... args);
 
 private:
-    // iterates over the listeners (in reverse-added order); return true to continue processing
+    // Iterates over the listeners (in reverse-added order); return true to continue processing.
     template<typename CF>
     void IterateOverListeners(CF callback_function);
 
-    // iterates over the listeners (as above) but only executes the callback when the listener's caller ID
-    // matches the supplied caller's ID
+    // Iterates over the listeners (as above) but only executes the callback when the listener's caller ID
+    // matches the supplied caller's ID.
     template<typename CF>
     void IterateOverListeners(const Caller& caller, CF callback_function);
 
@@ -85,20 +95,20 @@ private:
 
     Result RunFunction(Action action, const JsonNode& json_node, Caller& caller);
 
-    // creates a unique resource ID and associates it with the caller so that it can be
-    // accessed in future calls without requiring the explicit specification of a resource ID
+    // Creates a unique resource ID and associates it with the caller so that it can be
+    // accessed in future calls without requiring the explicit specification of a resource ID.
     enum class Resource { SqliteDb, FetchBody, SyncService };
     int CreateResourceId(Resource resource, Caller& caller);
 
-    // returns the resource ID, calculated implicitly (if only one resource for the type exists for the caller),
-    // or explicitly (if specified as part of the arguments)
+    // Returns the resource ID, calculated implicitly (if only one resource for the type exists for the caller),
+    // or explicitly (if specified as part of the arguments).
     int GetResourceId(Resource resource, const JsonNode& json_node, Caller& caller, const char* id_key,
                       const char* not_specified_formatter, const char* multiple_implicit_formatter) const;
 
-    // removes any references to the the resource ID
+    // Removes any references to the the resource ID.
     void DestroyResourceId(int resource_id);
 
-    // convenience methods related to the ObjectTransporter
+    // Convenience methods related to the ObjectTransporter:
     InterpreterAccessor& GetInterpreterAccessor();
 
 private:
@@ -170,7 +180,7 @@ private:
 
 
 private:
-    std::map<std::string, std::shared_ptr<const std::vector<std::byte>>> m_cachedBinaryContent;
+    std::map<std::string, CachedBinaryContent> m_cachedBinaryContent;
 
     std::vector<std::unique_ptr<VirtualFileMappingHandler>> m_localHostVirtualFileMappingHandlers;
     std::vector<std::shared_ptr<KeyBasedVirtualFileMappingHandler>> m_localHostKeyBasedVirtualFileMappingHandlers;
