@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include <zToolsO/base64.h>
 #include <zToolsO/Utf8.h>
 
@@ -95,21 +95,21 @@ void UriHandlerApp::ProcessUri(const std::string_view uri_sv)
 
     const std::optional<CustomUri::UriType> uri_type = CustomUri::GetUriType(uri_sv);
 
-    if( !uri_type.has_value() )
+    if( uri_type.has_value() )
     {
-        throw CSProException("The CSPro URI Handler does not know how to handle the URI: " + std::string(uri_sv));
+        switch( *uri_type )
+        {
+            case CustomUri::UriType::Text:
+                HandleTextUri(uri_sv);
+                return;
+
+            case CustomUri::UriType::Data:
+                HandleDataUri(std::string(uri_sv));
+                return;
+        }
     }
 
-    else if( *uri_type == CustomUri::UriType::Text )
-    {
-        HandleTextUri(uri_sv);
-    }
-
-    else
-    {
-        ASSERT(*uri_type == CustomUri::UriType::Data);
-        HandleDataUri(std::string(uri_sv));
-    }
+    throw CSProException("The CSPro URI Handler does not know how to handle the URI: " + std::string(uri_sv));
 }
 
 
