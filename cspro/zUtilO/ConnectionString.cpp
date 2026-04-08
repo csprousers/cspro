@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "ConnectionString.h"
 #include "CustomUri.h"
 #include <zDataO/ConnectionStringProperties.h>
@@ -127,8 +127,7 @@ DataRepositoryType ConnectionString::GetDefaultDataRepositoryTypeFromText(std::s
 ConnectionString::ConnectionString(const std::string_view connection_string_text_sv)
     :   ConnectionString(ResourceType::None, DataRepositoryType::Null)
 {
-    if( CustomUri::UsesCSProScheme(connection_string_text_sv) &&
-        CustomUri::GetUriType(connection_string_text_sv) == CustomUri::UriType::Data )
+    if( CustomUri::UsesCSProScheme(connection_string_text_sv, CustomUri::UriType::Data) )
     {
         InitializeFromString(CustomUri::ConvertDataUriToConnectionStringText(connection_string_text_sv));
     }

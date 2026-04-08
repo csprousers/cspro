@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "SyncConnectionString.h"
 #include "CustomUri.h"
 #include <zNetwork/ParsedUri.h>
@@ -34,8 +34,7 @@ const char* ToString(const SyncServiceType sync_service_type)
 SyncConnectionString::SyncConnectionString(const std::string_view sync_connection_string_text_sv)
     :   SyncConnectionString()
 {
-    if( CustomUri::UsesCSProScheme(sync_connection_string_text_sv) &&
-        CustomUri::GetUriType(sync_connection_string_text_sv) == CustomUri::UriType::Sync )
+    if( CustomUri::UsesCSProScheme(sync_connection_string_text_sv,CustomUri::UriType::Sync) )
     {
         InitializeFromString(CustomUri::ConvertSyncUriToSyncConnectionStringText(sync_connection_string_text_sv));
     }

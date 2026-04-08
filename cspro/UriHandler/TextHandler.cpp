@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "UriHandler.h"
 #include <zToolsO/FileIO.h>
 
@@ -11,7 +11,7 @@ namespace Pre81
 
 void UriHandlerApp::HandleTextUri(const std::string_view uri_sv)
 {
-    ASSERT(CustomUri::GetUriType(uri_sv) == CustomUri::UriType::Text);
+    ASSERT(CustomUri::UsesCSProScheme(uri_sv, CustomUri::UriType::Text));
 
     const std::string file_path = CustomUri::ConvertTextUriToFilePath(uri_sv);
 

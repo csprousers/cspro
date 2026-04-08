@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zUtilO/zUtilO.h>
 
@@ -10,17 +10,21 @@ class CLASS_DECL_ZUTILO CustomUri
 public:
     constexpr static std::string_view CSProScheme_sv = "cspro://";
 
+    enum class UriType { Text, Data, Sync };
+
     // Returns true if the URI starts with http:// or https://.
     static bool UsesHttpScheme(std::string_view uri_sv);
 
     // Returns true if the URI starts with cspro://.
     static bool UsesCSProScheme(std::string_view uri_sv);
 
+    // Returns true if the URI starts with cspro:// and is of the specified type.
+    static bool UsesCSProScheme(std::string_view uri_sv, UriType uri_type);
+
     // Returns true if the URI starts with http:// or https:// or cspro://.
     static bool UsesHttpOrCSProScheme(std::string_view uri_sv);
 
     // Returns the type of the URI using the CSPro scheme (if applicable).
-    enum class UriType { Text, Data, Sync };
     static std::optional<UriType> GetUriType(std::string_view uri_sv);
 
 
@@ -83,4 +87,11 @@ private:
 inline bool CustomUri::UsesCSProScheme(const std::string_view uri_sv)
 {
     return SO::StartsWith(uri_sv, CSProScheme_sv);
+}
+
+
+inline bool CustomUri::UsesCSProScheme(const std::string_view uri_sv, const UriType uri_type)
+{
+    return ( UsesCSProScheme(uri_sv) &&
+             uri_type == GetUriType(uri_sv) );
 }
