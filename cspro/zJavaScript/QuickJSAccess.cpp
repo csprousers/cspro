@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "QuickJSAccess.h"
 #include "ValueInternal.h"
 #include <zUtilO/UWM.h>
@@ -37,8 +37,11 @@ JavaScript::Exception JavaScript::QuickJSAccess::CreateException()
 
                 // the stack text should look something like: at <eval> (test.js:2)
                 //                                            at test.js:2
+                // or with column numbers:                    at test.js:95:3
 
-                for( const char* const regex_text : { R"(^\s*at.*\((.+):(\d+)\)$)",
+                for( const char* const regex_text : { R"(^\s*at.*\((.+):(\d+):(\d+)\)$)",
+                                                      R"(^\s*at\s+(.+):(\d+):(\d+)$)",
+                                                      R"(^\s*at.*\((.+):(\d+)\)$)",
                                                       R"(^\s*at\s+(.+):(\d+)$)" } )
                 {
                     const std::regex regex(regex_text);
