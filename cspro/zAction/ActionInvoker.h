@@ -240,6 +240,7 @@ private:
     Result Network_fetch(const JsonNode& json_node, Caller& caller);
     Result Network_fetchBody(const JsonNode& json_node, Caller& caller);
     Result Network_fetchBytes(const JsonNode& json_node, Caller& caller);
+    Result Network_fetchFile(const JsonNode& json_node, Caller& caller);
     Result Network_fetchJson(const JsonNode& json_node, Caller& caller);
     Result Network_fetchText(const JsonNode& json_node, Caller& caller);
     Result Path_createDirectory(const JsonNode& json_node, Caller& caller);

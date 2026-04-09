@@ -111,7 +111,8 @@
     -  Action Invoker additions:
           * throwException
           * Logic: setSymbolValue
-          * Network: fetch, fetchBody, fetchBytes, fetchJson, fetchText
+          * Network: fetch, fetchBody, fetchBytes, fetchFile, fetchJson,
+              fetchText
           * Sync: connect, disconnect, sendMessage, syncParadata
           * System: createShortcut
           * UI: close, setWebViewOptions

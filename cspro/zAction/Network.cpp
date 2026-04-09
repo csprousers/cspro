@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include <zToolsO/MemoryStream.h>
 #include <zNetwork/HttpConnection.h>
 
@@ -448,6 +448,32 @@ ActionInvoker::Result ActionInvoker::Runtime::Network_fetchBytes(const JsonNode&
             else
             {
                 body_result.emplace(Result::String(std::move(converted_bytes)));
+            }
+        });
+}
+
+
+ActionInvoker::Result ActionInvoker::Runtime::Network_fetchFile(const JsonNode& json_node, Caller& caller)
+{
+    std::string path = caller.EvaluateAbsolutePath(json_node.Get<std::string>(JK::path));
+    FileIO::CreateDirectoriesForFile(path);
+
+    FetchWrapper fetch_wrapper(*this);
+
+    return fetch_wrapper.RunSingleActionFetch(json_node,
+        [&](JsonStringWriter* const json_writer, std::optional<Result>& body_result, std::string body)
+        {
+            FileIO::Write(path, body.data(), body.size());
+
+            // the returned "body" will be the file path
+            if( json_writer != nullptr )
+            {
+                json_writer->Write(path);
+            }
+
+            else
+            {
+                body_result.emplace(Result::String(std::move(path)));
             }
         });
 }
