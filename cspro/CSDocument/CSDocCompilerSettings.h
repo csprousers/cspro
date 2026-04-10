@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <CSDocument/TitleManager.h>
 
@@ -221,7 +221,7 @@ public:
     const CSDocCompilerSettingsForBuilding& GetProjectSettings(const std::string& project) const;
 
     // WriteTextToFile and CopyFileToDirectory ensure that every file written/copied is unique
-    void WriteTextToFile(const std::string& file_path, std::string_view text_content_sv, bool write_utf8_bom) const;
+    void WriteTextToFile(const std::string& file_path, std::string_view text_content_sv) const;
     void CopyFileToDirectory(const std::string& source_file_path, const std::string& destination_file_path) const;
 
     std::string GetTitle(const std::string& csdoc_file_path) override;

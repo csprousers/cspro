@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "CSDocCompilerSettings.h"
 #include "DocSetBuilderCache.h"
 
@@ -245,10 +245,10 @@ std::string CSDocCompilerSettingsForBuilding::EvaluateDirectoryRelativeToOutputD
 }
 
 
-void CSDocCompilerSettingsForBuilding::WriteTextToFile(const std::string& file_path, const std::string_view text_content_sv, const bool write_utf8_bom) const
+void CSDocCompilerSettingsForBuilding::WriteTextToFile(const std::string& file_path, const std::string_view text_content_sv) const
 {
     if( m_docSetBuilderCache->LogWrittenFile(file_path, text_content_sv) )
-        FileIO::WriteText(file_path, text_content_sv, write_utf8_bom);
+        FileIO::WriteText(file_path, text_content_sv, false);
 }
 
 

@@ -502,6 +502,14 @@
           "string"
         ],
         "required": false
+      },
+      {
+        "name": "newline",
+        "description": "The control characters used to write line endings. (Default value is \"LF\".)",
+        "types": [
+          "string"
+        ],
+        "required": false
       }
     ]
   },
@@ -529,6 +537,14 @@
       {
         "name": "encoding",
         "description": "The encoding to use while writing the text. (Default value is \"UTF-8\".)",
+        "types": [
+          "string"
+        ],
+        "required": false
+      },
+      {
+        "name": "newline",
+        "description": "The control characters used to write line endings. (Default value is \"LF\".)",
         "types": [
           "string"
         ],

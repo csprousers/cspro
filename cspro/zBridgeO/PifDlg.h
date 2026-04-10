@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zBridgeO/NPff.h>
 #include <zBridgeO/PifGrid.h>
@@ -87,18 +87,21 @@ protected:
 
     // Generated message map functions
     //{{AFX_MSG(CPifDlg)
-    virtual BOOL OnInitDialog();
-    virtual void OnOK();
+    BOOL OnInitDialog() override;
+    void OnOK() override;
     //}}AFX_MSG
 
 public:
-    virtual BOOL PreTranslateMessage(MSG* pMsg); // GHM 20110805
+    BOOL PreTranslateMessage(MSG* pMsg) override; // 20110805
+
+    bool Validate();
+    bool IsValidFilePath(std::set<std::string>& nonexistent_directories, const std::wstring& path, bool must_be_writeable);
+    void SaveAssociations();
+
+    bool QueryAndCreateNonexistentDirectories(const std::set<std::string>& nonexistent_directories);
 
 private:
     CArray<PIFINFO*, PIFINFO*> m_arrPifInfo;
-    bool Validate();
-    bool IsValidFilePath(const std::wstring& path, bool must_be_writeable);
-    void SaveAssociations();
 };
 
 //{{AFX_INSERT_LOCATION}}

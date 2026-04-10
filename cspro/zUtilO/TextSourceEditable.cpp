@@ -125,7 +125,21 @@ void TextSourceEditable::Save()
     if( modifiable_text.empty() || modifiable_text.back() != '\n' )
         modifiable_text.push_back('\n');
 
-    FileIO::WriteText(m_filePath, modifiable_text, true);
+    // TEXT_ENCODING_TODO for CSPro 8.2, use the new settings (LF, not CRLF) and no UTF-8 BOM for all files
+    bool write_utf8_bom;
+
+    if( WindowsDesktopMessage::Send(UWM::Designer::TEXT_ENCODING_TODO_UseNewSettings) == 1 )
+    {
+        write_utf8_bom = false;
+    }
+
+    else
+    {
+        SO::MakeNewlineCRLF(modifiable_text);
+        write_utf8_bom = true;
+    }
+
+    FileIO::WriteText(m_filePath, modifiable_text, write_utf8_bom);
 
     m_modified = false;
     m_modifiedIteration = PortableFunctions::FileModifiedTime(m_filePath);

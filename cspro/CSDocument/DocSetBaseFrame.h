@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <CSDocument/DocSetCompiler.h>
 #include <CSDocument/DocSetBuildHandlerFrame.h>
@@ -39,7 +39,7 @@ protected:
     virtual const std::map<std::string, unsigned>& GetLastCompiledContextIds() = 0;
 
 private:
-    static void SetLogicCtrlTextWithFormattedText(CLogicCtrl& logic_ctrl, std::string formatted_text);
+    void SetLogicCtrlTextWithFormattedText(CLogicCtrl& logic_ctrl, std::string formatted_text) const;
 
 private:
     std::string m_docSetPreviewUrl;

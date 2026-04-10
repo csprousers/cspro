@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "CSDocCompilerWorker.h"
 #include "HtmlTags.h"
 #include <zUtilO/PortableColor.h>
@@ -606,7 +606,13 @@ std::string CSDocCompilerWorker::PreprocessTextForDefinitionsAndIncludes(const s
                 else if( tag_name == IncludeTag_sv )
                 {
                     const std::string include_path = m_settings.EvaluatePath(tag_value);
-                    preprocessed_text = PreprocessTextForDefinitionsAndIncludes(FileIO::ReadText(include_path));
+                    std::string include_text = FileIO::ReadText(include_path);
+
+                    // trim trailing whitespace so that include files can end in a newline
+                    // without causing problems with tags where whitespace is not allowed
+                    SO::MakeTrimRight(include_text);
+
+                    preprocessed_text = PreprocessTextForDefinitionsAndIncludes(include_text);
                 }
             }
 

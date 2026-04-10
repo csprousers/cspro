@@ -571,7 +571,7 @@ void CodePurifierDoc::CreateBranchCopy()
 
     // the branch name will be: [commit date]-[commit time]-CP-[branch name]
     std::string branch_name = SO::Concatenate(
-        commit.GetAuthor().GetWhen().GetLocalDateTimeString("%m%d-%H%M"),
+        commit.GetCommitter().GetWhen().GetLocalDateTimeString("%m%d-%H%M"),
         "-CP-",
         m_branchDetails->current_branch.GetName()
     );

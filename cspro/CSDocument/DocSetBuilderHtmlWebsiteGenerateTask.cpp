@@ -204,7 +204,7 @@ void DocSetBuilderHtmlWebsiteGenerateTask::Create_htaccess(const std::string& di
 
     const std::string htaccess_path = Path::Combine(directory, ".htaccess");
 
-    GetSettings().WriteTextToFile(htaccess_path, htaccess_text, false);
+    GetSettings().WriteTextToFile(htaccess_path, htaccess_text);
 }
 
 
@@ -229,7 +229,7 @@ R"!(<?xml version="1.0" encoding="UTF-8"?>
 
     const std::string web_config_path = Path::Combine(directory, "web.config");
 
-    GetSettings().WriteTextToFile(web_config_path, web_config_text, false);
+    GetSettings().WriteTextToFile(web_config_path, web_config_text);
 }
 
 

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <CSDocument/BuildWnd.h>
 #include <CSDocument/DocSetCompiler.h>
@@ -68,6 +68,7 @@ protected:
     // other handlers
     LRESULT OnFindOpenTextSourceEditable(WPARAM wParam, LPARAM lParam);
     LRESULT OnGetOpenTextSourceEditables(WPARAM wParam, LPARAM lParam);
+    LRESULT OnTEXT_ENCODING_TODO_UseNewSettings(WPARAM wParam, LPARAM lParam);
 
     // interapp communication
     LRESULT OnIMSAFileOpen(WPARAM wParam, LPARAM lParam);

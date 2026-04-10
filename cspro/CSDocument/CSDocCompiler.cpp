@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "CSDocCompiler.h"
 #include "CSDocCompilerWorker.h"
 #include "PdfCreator.h"
@@ -84,7 +84,7 @@ void CSDocCompilerBuildToFileGenerateTask::OnRun()
     if( building_to_html )
         GetInterface().LogText("\nSaving CSPro Document: " + m_outputFilePath);
 
-    FileIO::WriteText(html_file_path, html, true);
+    FileIO::WriteText(html_file_path, html, false);
 
     if( !building_to_html )
         m_pdfCreator->CreatePdf(m_csdocCompilerSettingsForBuilding->GetBuildSettings(), m_outputFilePath, html_file_path);

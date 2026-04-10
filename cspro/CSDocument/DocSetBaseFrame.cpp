@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "DocSetBaseFrame.h"
 #include "CSDocCompilerSettings.h"
 #include "TitleManager.h"
@@ -317,13 +317,23 @@ void DocSetBaseFrame::OnUpdateFormatComponent(CCmdUI* const pCmdUI)
 }
 
 
-void DocSetBaseFrame::SetLogicCtrlTextWithFormattedText(CLogicCtrl& logic_ctrl, std::string formatted_text)
+void DocSetBaseFrame::SetLogicCtrlTextWithFormattedText(CLogicCtrl& logic_ctrl, std::string formatted_text) const
 {
     ASSERT(!formatted_text.empty());
 
     // make sure that the text ends in a newline
     if( formatted_text.back() != '\n' )
         formatted_text.push_back('\n');
+
+    // DocSetIndex_JsonWriterWorker's formatting action overrides currently add spaces after
+    // some array markers, so clear them here to make sure that all files end up right-trimmed;
+    // HELP_TODO: fix DocSetIndex_JsonWriterWorker's formatting actions to remove spaces at the end of lines
+    if( GetDocSetComponentType() == DocSetComponent::Type::Index )
+    {
+        ASSERT(formatted_text.find("[ \n") != std::string::npos);
+        SO::Replace(formatted_text, "[ \n", "[\n");
+        ASSERT(formatted_text.find(" \n") == std::string::npos);
+    }
 
     logic_ctrl.SetText(formatted_text);
 }
