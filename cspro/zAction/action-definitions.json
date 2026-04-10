@@ -1371,6 +1371,89 @@
   },
   {
     "namespace": "Network",
+    "name": "fetchFile",
+    "description": "Submits a HTTP request to a server and writes the response to the disk.",
+    "parameters": [
+      {
+        "name": "url",
+        "description": "The URL to fetch.",
+        "types": [
+          "string"
+        ],
+        "required": true
+      },
+      {
+        "name": "path",
+        "description": "The path of the file to create from the fetched content.",
+        "types": [
+          "string"
+        ],
+        "required": true
+      },
+      {
+        "name": "method",
+        "description": "The HTTP request method. (Default value is is \"GET\".)",
+        "types": [
+          "string"
+        ],
+        "required": false
+      },
+      {
+        "name": "headers",
+        "description": "Request headers to send to the server.",
+        "types": [
+          "array",
+          "object"
+        ],
+        "required": false
+      },
+      {
+        "name": "body",
+        "description": "The body to include with the request.",
+        "types": [
+          "object",
+          "string"
+        ],
+        "required": false
+      },
+      {
+        "name": "bodyFormat",
+        "description": "The format of the body. (Default value is \"autodetect\".)",
+        "types": [
+          "string"
+        ],
+        "required": false
+      },
+      {
+        "name": "detailed",
+        "description": "If true, the response status and headers are returned along with the body. (Default value is false.)",
+        "types": [
+          "boolean"
+        ],
+        "required": false
+      },
+      {
+        "name": "responseHeadersFormat",
+        "description": "Indicates how response headers are returned. Options include \"object\" or \"array\". (Default value is \"object\".)",
+        "types": [
+          "string"
+        ],
+        "required": false
+      }
+    ],
+    "returns": [
+      {
+        "name": "",
+        "description": "The \"body\" as the fully evaluated path of the written file, or the response details along with the \"body\".",
+        "types": [
+          "string",
+          "object"
+        ]
+      }
+    ]
+  },
+  {
+    "namespace": "Network",
     "name": "fetchJson",
     "description": "Submits a HTTP request to a server and returns the response, with or without details, in JSON format.",
     "parameters": [

@@ -1,13 +1,8 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include <zToolsO/Hash.h>
+#include <zUtilO/CustomUri.h>
 #include <zHtml/PortableLocalhost.h>
 #include <zDataO/ConnectionStringProperties.h>
-
-
-namespace
-{
-    constexpr std::string_view CachePrefix_sv = "cscache:";
-}
 
 
 CREATE_JSON_VALUE(Base64)
@@ -42,9 +37,10 @@ BinaryEncodingResolvedInput StringToBytesConverter::ResolveBinaryEncodingInput(c
 
     if( binary_encoding_input == BinaryEncodingInput::Autodetect )
     {
-        binary_encoding_input = Encoders::IsDataUrl(bytes_sv)            ? BinaryEncodingInput::DataUrl :
-                                SO::StartsWith(bytes_sv, CachePrefix_sv) ? BinaryEncodingInput::Cache:
-                                                                           BinaryEncodingInput::Base64;
+        binary_encoding_input =
+            Encoders::IsDataUrl(bytes_sv)                                   ? BinaryEncodingInput::DataUrl :
+            CustomUri::UsesCSProScheme(bytes_sv, CustomUri::UriType::Cache) ? BinaryEncodingInput::Cache :
+                                                                              BinaryEncodingInput::Base64;
     }
 
     return static_cast<BinaryEncodingResolvedInput>(binary_encoding_input);
@@ -69,7 +65,12 @@ std::shared_ptr<const std::vector<std::byte>> StringToBytesConverter::Convert(Ac
     // cache
     else if( binary_encoding_resolved_input == BinaryEncodingResolvedInput::Cache )
     {
-        return ConvertCache(runtime, bytes_sv);
+        ActionInvoker::CachedBinaryContent content = runtime.GetCachedBinaryContent(bytes_sv);
+
+        if( out_binary_encoding_resolved_input_and_data_url_mediatype != nullptr )
+            std::get<std::string>(*out_binary_encoding_resolved_input_and_data_url_mediatype) = std::move(content.mime_type);
+
+        return std::move(content.bytes);
     }
 
     // data URL
@@ -102,29 +103,6 @@ std::shared_ptr<const std::vector<std::byte>> StringToBytesConverter::Convert(Ac
 }
 
 
-std::shared_ptr<const std::vector<std::byte>> StringToBytesConverter::ConvertCache(ActionInvoker::Runtime& runtime, const std::string_view bytes_sv)
-{
-    if( !SO::StartsWith(bytes_sv, CachePrefix_sv) )
-        throw CSProException("The cache key is not specified correctly.");
-
-    auto [actual_cache_key_sv, query_string_sv] = SO::GetTextOnEitherSideOfCharacter(bytes_sv, '?');
-    const bool keep_data_in_cache = SO::Equals(query_string_sv, "clear=false");
-
-    const std::string actual_cache_key(actual_cache_key_sv);
-    auto lookup = runtime.m_cachedBinaryContent.find(actual_cache_key);
-
-    if( lookup == runtime.m_cachedBinaryContent.cend() )
-        throw CSProException("No cached binary data is associated with the key '%s'.", actual_cache_key.c_str());
-
-    std::shared_ptr<const std::vector<std::byte>> content = lookup->second;
-
-    if( !keep_data_in_cache )
-        runtime.m_cachedBinaryContent.erase(lookup);
-
-    return content;
-}
-
-
 
 // --------------------------------------------------------------------------
 // BytesToStringConverter
@@ -144,7 +122,7 @@ BytesToStringConverter::BytesToStringConverter(ActionInvoker::Runtime* const run
 }
 
 
-std::string BytesToStringConverter::ConvertImmediately(const std::vector<std::byte>& bytes, const std::string& mime_type)
+std::string BytesToStringConverter::ConvertImmediately(const std::vector<std::byte>& bytes, const std::string_view mime_type_sv)
 {
     // Base64
     if( m_binaryEncodingOutput == BinaryEncodingOutput::Base64 )
@@ -155,7 +133,7 @@ std::string BytesToStringConverter::ConvertImmediately(const std::vector<std::by
     // data URL
     else if( m_binaryEncodingOutput == BinaryEncodingOutput::DataUrl )
     {
-        return Encoders::ToDataUrl(bytes, mime_type);
+        return Encoders::ToDataUrl(bytes, mime_type_sv);
     }
 
     // hex
@@ -168,13 +146,17 @@ std::string BytesToStringConverter::ConvertImmediately(const std::vector<std::by
 }
 
 
-std::string BytesToStringConverter::ConvertCache(std::shared_ptr<const std::vector<std::byte>> bytes)
+std::string BytesToStringConverter::ConvertCache(std::shared_ptr<const std::vector<std::byte>> bytes,
+                                                 std::string mime_type)
 {
     ASSERT(m_binaryEncodingOutput == BinaryEncodingOutput::Cache && bytes != nullptr);
 
-    std::string cache_key = SO::Concatenate(CachePrefix_sv, IntToString(UniqueId::CreateInt()));
+    std::string cache_key = CustomUri::CreateCacheUri();
 
-    m_runtime->m_cachedBinaryContent.try_emplace(cache_key, std::move(bytes));
+    m_runtime->m_cachedBinaryContent.try_emplace(
+        cache_key,
+        ActionInvoker::CachedBinaryContent { std::move(bytes), std::move(mime_type) }
+    );
 
     return cache_key;
 }
@@ -195,4 +177,32 @@ std::string BytesToStringConverter::ConvertLocalhost(std::shared_ptr<const std::
     m_runtime->m_localHostVirtualFileMappingHandlers.emplace_back(std::move(virtual_file_mapping_handler));
 
     return std::move(url);
+}
+
+
+
+// --------------------------------------------------------------------------
+// Runtime
+// --------------------------------------------------------------------------
+
+ActionInvoker::CachedBinaryContent ActionInvoker::Runtime::GetCachedBinaryContent(const std::string_view cache_uri_sv)
+{
+    if( !CustomUri::UsesCSProScheme(cache_uri_sv, CustomUri::UriType::Cache) )
+        throw CSProException("The cache key is not specified correctly.");
+
+    auto [actual_cache_uri_sv, query_string_sv] = SO::GetTextOnEitherSideOfCharacter(cache_uri_sv, '?');
+    const bool keep_data_in_cache = SO::Equals(query_string_sv, "clear=false");
+
+    const std::string actual_cache_uri(actual_cache_uri_sv);
+    auto lookup = m_cachedBinaryContent.find(actual_cache_uri);
+
+    if( lookup == m_cachedBinaryContent.cend() )
+        throw CSProException("No cached binary data is associated with the key '%s'.", actual_cache_uri.c_str());
+
+    CachedBinaryContent content = lookup->second;
+
+    if( !keep_data_in_cache )
+        m_cachedBinaryContent.erase(lookup);
+
+    return content;
 }

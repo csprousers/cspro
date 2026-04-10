@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zUtilO/BinaryDataAccessor.h>
 
@@ -37,34 +37,42 @@ public:
     template<typename T> void SetBinaryData(T&& content_or_callback, std::string path_or_filename);
     template<typename T> void SetBinaryData(T&& content_or_callback, std::string path_or_filename, std::string mime_type);
 
-    // when setting the content without specifying any metadata, the current metadata (which must exist) is maintained
+    // When setting the content without specifying any metadata,
+    // the current metadata (which must exist) is maintained.
     template<typename T> void SetBinaryData(T&& content_or_callback);
 
-    // the path is non-blank only if the binary data was loaded from / saved to the disk in the
-    // current application's session, meaning that a persistent symbol's path will be initially blank
+    // The path is non-blank only if the binary data was loaded from / saved to
+    // the disk in the current application's session, meaning that a persistent
+    // symbol's path will be initially blank
     const std::string& GetPath() const { return m_path; }
     void ClearPath()                   { m_path.clear(); }
     void SetPath(std::string path);
 
-    // returns the filename (without directory information) from the binary data metadata; it can be blank
+    // Returns the filename (without directory information) from the
+    // binary data metadata. The filename can can be blank.
     std::string GetFilenameOnly() const;
 
-    // returns the filename, or if it is blank, creates a fake filename with an extension based on the MIME type (if applicable);
-    // if a symbol is passed, the symbol's name will be used as the base filename
+    // returns Rhe filename, or if it is blank, creates a fake filename
+    // with an extension based on the MIME type (if applicable).
+    // If a symbol is passed, the symbol's name will be used as the base filename.
     std::string CreateFilenameBasedOnMimeType() const                     { return CreateFilenameBasedOnMimeType(nullptr); }
     std::string CreateFilenameBasedOnMimeType(const Symbol& symbol) const { return CreateFilenameBasedOnMimeType(&symbol); }
 
-    // writes the content and metadata to JSON format
+    // Writes the content and metadata to JSON format.
     void WriteSymbolValueToJson(const BinarySymbol& binary_symbol, JsonWriter& json_writer,
                                 const std::function<void()>* content_writer_override = nullptr) const;
 
-    // updates the content and metadata from JSON format
+    // Updates the content and metadata from JSON format.
     void SetSymbolValueFromJson(BinarySymbol& binary_symbol, const JsonNode& json_node, BinarySymbolDataContentValidator* content_validator = nullptr,
                                 const std::function<BinaryData::ContentCallbackType(const JsonNode&)>* non_url_content_reader = nullptr);
 
-    // updates the content and metadata from a data URL, using binary_data_metadata as the base metadata
+    // Updates the content and metadata from a data URL, using binary_data_metadata as the base metadata.
     void SetSymbolValueFromDataUrl(BinarySymbol& binary_symbol, std::string_view data_url_sv, BinaryDataMetadata binary_data_metadata = BinaryDataMetadata(),
                                    BinarySymbolDataContentValidator* content_validator = nullptr);
+
+    // Updates the content from a value in the Action Invoker cache, using binary_data_metadata as the metadata.
+    void SetSymbolValueFromActionInvokerCache(BinarySymbol& binary_symbol, std::string_view cache_uri_sv, BinaryDataMetadata binary_data_metadata,
+                                              BinarySymbolDataContentValidator* content_validator);
 
 private:
     std::string CreateFilenameBasedOnMimeType(const Symbol* symbol) const;

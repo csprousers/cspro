@@ -82,12 +82,15 @@
        function or in CSView. Markdown can also be edited in CSCode and
        included as part of CSPro Documents.
 
-    -  Applications can access the QuickJS JavaScript Engine from CSPro
+    -  Applications can access the QuickJS-NG JavaScript Engine from CSPro
        logic. Using the JS namespace, it is possible to evaluate JavaScript,
        invoke functions, and convert CSPro symbols to JavaScript numbers,
        strings, arrays, and objects. It is also possible to create function
        wrappers in CSPro logic that appear as user-defined functions but
        call into JavaScript when invoked.
+
+    -  HTTP requests can be made and responses processed using actions in
+       the Action Invoker's Network namespace.
 
     -  Leaflet can be used as the mapping engine on Android.
 
@@ -111,7 +114,8 @@
     -  Action Invoker additions:
           * throwException
           * Logic: setSymbolValue
-          * Network: fetch, fetchBody, fetchBytes, fetchJson, fetchText
+          * Network: fetch, fetchBody, fetchBytes, fetchFile, fetchJson,
+              fetchText
           * Sync: connect, disconnect, sendMessage, syncParadata
           * System: createShortcut
           * UI: close, setWebViewOptions

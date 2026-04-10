@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 
 
 const std::map<ActionInvoker::Action, ActionInvoker::Runtime::ActionFunctionPointer> ActionInvoker::Runtime::m_functions =
@@ -40,6 +40,7 @@ const std::map<ActionInvoker::Action, ActionInvoker::Runtime::ActionFunctionPoin
     { Action::Network_fetch,                       &Runtime::Network_fetch                       },
     { Action::Network_fetchBody,                   &Runtime::Network_fetchBody                   },
     { Action::Network_fetchBytes,                  &Runtime::Network_fetchBytes                  },
+    { Action::Network_fetchFile,                   &Runtime::Network_fetchFile                   },
     { Action::Network_fetchJson,                   &Runtime::Network_fetchJson                   },
     { Action::Network_fetchText,                   &Runtime::Network_fetchText                   },
     { Action::Path_createDirectory,                &Runtime::Path_createDirectory                },

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zLogicO/zLogicO.h>
 #include <zLogicO/FunctionTable.h>
@@ -49,6 +49,7 @@ namespace ActionInvoker
         Network_fetch                       =  4086,
         Network_fetchBody                   = 53854,
         Network_fetchBytes                  =  1669,
+        Network_fetchFile                   = 55689,
         Network_fetchJson                   = 35194,
         Network_fetchText                   = 45509,
         Path_createDirectory                =  9881,

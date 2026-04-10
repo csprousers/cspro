@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "CurlHttpConnection.h"
 #include "CurlWrapper.h"
 
@@ -283,6 +283,9 @@ void CurlHttpConnection::SetupEasyHandle(CurlOperationState& state) const
     curl_easy_setopt(state.m_easy_handle, CURLOPT_ACCEPT_ENCODING, ""); // Accept all encodings include gzip/deflate, CURL will automatically decompress
     curl_easy_setopt(state.m_easy_handle, CURLOPT_HEADERFUNCTION, headerCallback);
     curl_easy_setopt(state.m_easy_handle, CURLOPT_HEADERDATA, &state);
+
+    // don't fail if Schannel cannot do the certificate revocation check (which may be blocked by a firewall)
+    curl_easy_setopt(state.m_easy_handle, CURLOPT_SSL_OPTIONS, CURLSSLOPT_REVOKE_BEST_EFFORT);
 
     // Connection timeout after 10 seconds
     curl_easy_setopt(state.m_easy_handle, CURLOPT_CONNECTTIMEOUT, 10);

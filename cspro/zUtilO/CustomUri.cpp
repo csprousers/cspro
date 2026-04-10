@@ -1,5 +1,7 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "CustomUri.h"
+#include <zToolsO/Hash.h>
+#include <zToolsO/UniqueId.h>
 #include <zDataO/ConnectionStringProperties.h>
 #include <zDataO/DataRepositoryHelpers.h>
 
@@ -9,9 +11,10 @@ namespace
     constexpr static std::string_view HttpScheme_sv  = "http://";
     constexpr static std::string_view HttpsScheme_sv = "https://";
 
-    constexpr static std::string_view CSProSchemeTextPrefix_sv = "cspro://text/";
-    constexpr static std::string_view CSProSchemeDataPrefix_sv = "cspro://data/";
-    constexpr static std::string_view CSProSchemeSyncPrefix_sv = "cspro://sync/";
+    constexpr static std::string_view CSProSchemeTextPrefix_sv  = "cspro://text/";
+    constexpr static std::string_view CSProSchemeDataPrefix_sv  = "cspro://data/";
+    constexpr static std::string_view CSProSchemeSyncPrefix_sv  = "cspro://sync/";
+    constexpr static std::string_view CSProSchemeCachePrefix_sv = "cspro://cache/";
 }
 
 
@@ -72,10 +75,11 @@ bool CustomUri::UsesHttpOrCSProScheme(const std::string_view uri_sv)
 
 std::optional<CustomUri::UriType> CustomUri::GetUriType(const std::string_view uri_sv)
 {
-    return SO::StartsWith(uri_sv, CSProSchemeTextPrefix_sv) ? std::make_optional(UriType::Text) :
-           SO::StartsWith(uri_sv, CSProSchemeDataPrefix_sv) ? std::make_optional(UriType::Data) :
-           SO::StartsWith(uri_sv, CSProSchemeSyncPrefix_sv) ? std::make_optional(UriType::Sync) :
-                                                              std::nullopt;
+    return SO::StartsWith(uri_sv, CSProSchemeTextPrefix_sv)  ? std::make_optional(UriType::Text) :
+           SO::StartsWith(uri_sv, CSProSchemeDataPrefix_sv)  ? std::make_optional(UriType::Data) :
+           SO::StartsWith(uri_sv, CSProSchemeSyncPrefix_sv)  ? std::make_optional(UriType::Sync) :
+           SO::StartsWith(uri_sv, CSProSchemeCachePrefix_sv) ? std::make_optional(UriType::Cache) :
+                                                               std::nullopt;
 }
 
 
@@ -226,4 +230,21 @@ std::string CustomUri::ConvertDataUriToConnectionStringText(const std::string_vi
 std::string CustomUri::ConvertSyncUriToSyncConnectionStringText(const std::string_view uri_sv)
 {
     return ConvertUriToPropertyString(CSProSchemeSyncPrefix_sv, uri_sv);
+}
+
+
+std::string CustomUri::CreateCacheUri()
+{
+    // create a cache ID that is not easily guessable by hashing it
+    // https://stackoverflow.com/questions/664014/what-integer-hash-function-are-good-that-accepts-an-integer-hash-key
+    int cache_id = UniqueId::CreateInt();
+
+    cache_id = ( ( cache_id >> 16 ) ^ cache_id) * 0x45d9f3b;
+    cache_id = ( ( cache_id >> 16 ) ^ cache_id) * 0x45d9f3b;
+    cache_id = ( ( cache_id >> 16 ) ^ cache_id);
+
+    return SO::Concatenate(
+        CSProSchemeCachePrefix_sv,
+        Hash::BytesToHexString(&cache_id, sizeof(cache_id))
+    );
 }

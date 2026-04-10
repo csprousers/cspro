@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "UriHandler.h"
 #include <zUtilO/ConnectionString.h>
 #include <zUtilO/CSProExecutables.h>
@@ -15,7 +15,7 @@ namespace Pre81
 
 void UriHandlerApp::HandleDataUri(std::string uri)
 {
-    ASSERT(CustomUri::GetUriType(uri) == CustomUri::UriType::Data);
+    ASSERT(CustomUri::UsesCSProScheme(uri, CustomUri::UriType::Data));
 
     // if Data Manager is already open, open the data source in that process
     CWnd* const data_manager_instance = CWnd::FindWindow(IMSA_WNDCLASS_DATAMANAGER, nullptr);

@@ -9,6 +9,7 @@ Most CSPro development occurs on a [private repository](https://github.com/CSPro
 
 | Date | Branch | Pull Request Message |
 | --- | --- | --- |
+| 2026&#8209;04&#8209;10 | [documenting-fetch](https://github.com/CSProDevelopment/cspro/commit/72070453c780da3473ca0a2cb20fc50727d1eb12) | added Network.fetchFile + minor changes made while documenting the fetch... actions |
 | 2026&#8209;04&#8209;10 | [documenting-text-attributes](https://github.com/CSProDevelopment/cspro/commit/48b1ad9e9b1b5d9ec78af2dd38f2f085a8bf4413) | minor changes made while documenting changes to text attributes |
 | 2026&#8209;04&#8209;02 | [release-documentation](https://github.com/CSProDevelopment/cspro/commit/4ee447de0323d6b25b520288c5aa28f6c7384a86) | improved the Android build process + added documentation about creating releasees |
 | 2026&#8209;03&#8209;31 | [tdy/2026-03-ls](https://github.com/CSProDevelopment/cspro/commit/97456740a304227ba4a1d0aeda6de9b6eab200cb) | fixed some bugs and worked on some small tasks related to discoveries while on a TDY |

@@ -1,8 +1,9 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "ActionInvoker.h"
 #include "ExceptionThrowingJsonReaderInterface.h"
 #include "NameProcessors.h"
 #include <zPlatformO/PlatformInterface.h>
+#include <zToolsO/UniqueId.h>
 #include <zUtilO/ExecutionStack.h>
 #include <zMessageO/MessageEvaluator.h>
 #include <zMessageO/Messages.h>

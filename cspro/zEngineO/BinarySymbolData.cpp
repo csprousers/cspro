@@ -1,6 +1,9 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "BinarySymbolData.h"
 #include "BinarySymbol.h"
+#include <zToolsO/ObjectTransporter.h>
+#include <zUtilO/CustomUri.h>
+#include <zAction/ActionInvoker.h>
 
 
 BinarySymbolData& BinarySymbolData::operator=(const BinarySymbolData& binary_symbol_data)
@@ -175,10 +178,21 @@ void BinarySymbolData::SetSymbolValueFromJson(BinarySymbol& binary_symbol, const
     // parse the content...
     const JsonNode content_node = json_node.Get(JK::content);
 
-    // ...as a data URL
+    // ...as cached content or as a data URL
     if( content_node.Contains(JK::url) )
     {
-        SetSymbolValueFromDataUrl(binary_symbol, content_node.Get<std::string_view>(JK::url), std::move(binary_data_metadata), content_validator);
+        const std::string_view url_sv = content_node.Get<std::string_view>(JK::url);
+
+        if( CustomUri::UsesCSProScheme(url_sv, CustomUri::UriType::Cache) )
+        {
+            SetSymbolValueFromActionInvokerCache(binary_symbol, url_sv, std::move(binary_data_metadata),content_validator);
+        }
+
+        else
+        {
+            SetSymbolValueFromDataUrl(binary_symbol, url_sv, std::move(binary_data_metadata), content_validator);
+        }
+
         return;
     }
 
@@ -238,6 +252,38 @@ void BinarySymbolData::SetSymbolValueFromDataUrl(BinarySymbol& binary_symbol, co
         binary_data_metadata.SetMimeType(std::move(mediatype));
 
     SetBinaryData(std::move(content), std::move(binary_data_metadata));
+
+    ClearPath();
+}
+
+
+void BinarySymbolData::SetSymbolValueFromActionInvokerCache(BinarySymbol& binary_symbol, const std::string_view cache_uri_sv,
+                                                            BinaryDataMetadata binary_data_metadata,
+                                                            BinarySymbolDataContentValidator* const content_validator)
+{
+    ASSERT(CustomUri::UsesCSProScheme(cache_uri_sv, CustomUri::UriType::Cache));
+
+    const std::shared_ptr<ActionInvoker::Runtime> action_invoker_runtime = ObjectTransporter::GetActionInvokerRuntime();
+    ASSERT(action_invoker_runtime != nullptr);
+
+    ActionInvoker::CachedBinaryContent content = action_invoker_runtime->GetCachedBinaryContent(cache_uri_sv);
+    ASSERT(content.bytes != nullptr);
+
+    if( content_validator != nullptr && !content_validator->ValidateContent(content.bytes) )
+        throw CSProException("The binary content for '%s' is not valid.", binary_symbol.GetName().c_str());
+
+    // use the MIME type when available
+    if( !content.mime_type.empty() )
+        binary_data_metadata.SetMimeType(std::move(content.mime_type));
+
+    // because of potential lifetime issues with the shared pointer's destructor,
+    // which may call code in zAction once it is unloaded, we create a copy of the content;
+    // look at BinaryContentCacher::CacheableContent for more on this issue;
+    // BINARY_BLOCK_TODO rework cached data to use BinaryBlock objects, which,
+    // if properly implemented, should avoid this issue
+    content.bytes = std::make_shared<std::vector<std::byte>>(*content.bytes);
+
+    SetBinaryData(std::move(content.bytes), std::move(binary_data_metadata));
 
     ClearPath();
 }
