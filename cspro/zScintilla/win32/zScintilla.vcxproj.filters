@@ -45,6 +45,9 @@
     <ClCompile Include="..\lexers\LexCSProPre80SpecFile.cxx">
       <Filter>lexers</Filter>
     </ClCompile>
+    <ClCompile Include="..\lexers\LexCSProPropertyString.cxx">
+      <Filter>lexers</Filter>
+    </ClCompile>
     <ClCompile Include="..\lexers\LexCSProReportGeneric.cxx">
       <Filter>lexers</Filter>
     </ClCompile>
@@ -240,6 +243,9 @@
       <Filter>CSPro-h</Filter>
     </ClInclude>
     <ClInclude Include="..\lexers\LexCSPro.h">
+      <Filter>CSPro-h</Filter>
+    </ClInclude>
+    <ClInclude Include="..\lexers\LexerPercentEncoding.h">
       <Filter>CSPro-h</Filter>
     </ClInclude>
   </ItemGroup>

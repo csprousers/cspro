@@ -1098,18 +1098,19 @@ std::string CSDocCompilerWorker::ColorStartHandler(const cs::span<const std::str
         throw CSProException("You must specify the language to color.");
 
     m_lexerLanguage =
-        SO::EqualsNoCase(*language_name, "C++" )        ? SCLEX_CPP :
-        SO::EqualsNoCase(*language_name, "cspro_v0" )   ? SCLEX_CSPRO_LOGIC_V0 :
-        SO::EqualsNoCase(*language_name, "csdoc" )      ? SCLEX_CSPRO_DOCUMENT :
-        SO::EqualsNoCase(*language_name, "HTML" )       ? SCLEX_HTML :
-        SO::EqualsNoCase(*language_name, "JavaScript" ) ? SCLEX_JAVASCRIPT :
-        SO::EqualsNoCase(*language_name, "JSON" )       ? SCLEX_JSON :
-        SO::EqualsNoCase(*language_name, "Kotlin" )     ? SCLEX_JAVASCRIPT : // TODO: replace with a Kotlin lexer when available
-        SO::EqualsNoCase(*language_name, "Markdown" )   ? SCLEX_MARKDOWN :
-        SO::EqualsNoCase(*language_name, "message" )    ? SCLEX_CSPRO_MESSAGE_V8_0 :
-        SO::EqualsNoCase(*language_name, "SQL" )        ? SCLEX_SQL :
-        SO::EqualsNoCase(*language_name, "text" )       ? SCLEX_NULL :
-        SO::EqualsNoCase(*language_name, "YAML" )       ? SCLEX_YAML :
+        SO::EqualsNoCase(*language_name, "C++" )             ? SCLEX_CPP :
+        SO::EqualsNoCase(*language_name, "cspro_v0" )        ? SCLEX_CSPRO_LOGIC_V0 :
+        SO::EqualsNoCase(*language_name, "csdoc" )           ? SCLEX_CSPRO_DOCUMENT :
+        SO::EqualsNoCase(*language_name, "HTML" )            ? SCLEX_HTML :
+        SO::EqualsNoCase(*language_name, "JavaScript" )      ? SCLEX_JAVASCRIPT :
+        SO::EqualsNoCase(*language_name, "JSON" )            ? SCLEX_JSON :
+        SO::EqualsNoCase(*language_name, "Kotlin" )          ? SCLEX_JAVASCRIPT : // TODO: replace with a Kotlin lexer when available
+        SO::EqualsNoCase(*language_name, "Markdown" )        ? SCLEX_MARKDOWN :
+        SO::EqualsNoCase(*language_name, "message" )         ? SCLEX_CSPRO_MESSAGE_V8_0 :
+        SO::EqualsNoCase(*language_name, "property_string" ) ? SCLEX_CSPRO_PROPERTY_STRING :
+        SO::EqualsNoCase(*language_name, "SQL" )             ? SCLEX_SQL :
+        SO::EqualsNoCase(*language_name, "text" )            ? SCLEX_NULL :
+        SO::EqualsNoCase(*language_name, "YAML" )            ? SCLEX_YAML :
         throw CSProException("Coloring the language '%s' is not supported.", language_name->c_str());
 
     return std::string();
