@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "DataSourceFrame.h"
 #include "DataManager.h"
 #include "DataSourceSettings.h"
@@ -390,19 +390,39 @@ LRESULT DataSourceFrame::OnProcessConnectionStringParameters(const WPARAM wParam
         const std::string* uuid_or_key_property = connection_string->GetProperty(CSProperty::uuid);
         std::shared_ptr<const Case> data_case;
 
-        if( uuid_or_key_property != nullptr )
-        {
-            data_case = LoadCaseByUuid(*uuid_or_key_property);
-        }
-
-        else
+        auto load_case_by_key = [&]()
         {
             uuid_or_key_property = connection_string->GetProperty(CSProperty::key);
 
             if( uuid_or_key_property == nullptr )
-                return 0;
+                return false;
 
             data_case = LoadCaseByKey(*uuid_or_key_property);
+
+            return true;
+        };
+
+        // prioritize loading by UUID...
+        if( uuid_or_key_property != nullptr )
+        {
+            try
+            {
+                data_case = LoadCaseByUuid(*uuid_or_key_property);
+            }
+
+            catch(...)
+            {
+                // when the case cannot be loaded by UUID, try by key,
+                // throwing the initial exception if no key was specified
+                if( !load_case_by_key() )
+                    throw;
+            }
+        }
+
+        // ...but load by key if that is all that is specified
+        else if( !load_case_by_key() )
+        {
+            return 0;
         }
 
         SelectAndShowCase(std::move(data_case));
