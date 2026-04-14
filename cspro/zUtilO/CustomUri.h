@@ -33,7 +33,7 @@ public:
     // --------------------------------------------------------------------------
 
     // Creates a URI that references a text file that looks like:
-    //     - cspro://text/C:/Project/Report.txt
+    //     - cspro:///text/C:/Project/Report.txt
     // The URI Handler will open such URIs in Text Viewer.
     static std::string CreateTextUri(std::string file_path);
 
@@ -46,8 +46,8 @@ public:
     // --------------------------------------------------------------------------
 
     // Creates a URI that references a data source that looks like:
-    //     - cspro://data/C:/Project/Survey2024.csdb
-    //     - cspro://data/http://localhost/csweb/api?dictionaryPath=C%3A%2FProject%2FSurvey2024.dcf
+    //     - cspro:///data/C:/Project/Survey2024.csdb
+    //     - cspro:///data/http://localhost/csweb/api?dictionaryPath=C%3A%2FProject%2FSurvey2024.dcf
     // The URI Handler will open such URIs in Data Manager.
     static std::string CreateDataUri(const ConnectionString& connection_string, const std::string* dictionary_file_path);
 
@@ -71,7 +71,7 @@ public:
     // --------------------------------------------------------------------------
 
     // Creates a URI that references cacheable content that looks like:
-    //     - cspro://cache/f66a857c
+    //     - cspro:///cache/f66a857c
     // The final part of the path is derived from a call to UniqueId::CreateInt.
     static std::string CreateCacheUri();
 
