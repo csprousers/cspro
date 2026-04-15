@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "Builder.h"
 #include <zToolsO/DirectoryLister.h>
 #include <zToolsO/FileIO.h>
@@ -7,8 +7,8 @@
 #include <zZip/ZipFile.h>
 
 
-Builder::Builder(Directories directories, LoggingListBox& logging_list_box)
-    :   m_directories(std::move(directories)),
+Builder::Builder(Inputs inputs, LoggingListBox& logging_list_box)
+    :   m_inputs(std::move(inputs)),
         m_loggingListBox(logging_list_box)
 {
 }
@@ -69,7 +69,7 @@ void Builder::CopyDirectoryRecursive(const std::string& input_directory, const s
 
 void Builder::BuildDocSet(const std::string& csdocset_file_path, const std::variant<const char*, BuildBlog> build_name_or_build_blog)
 {
-    const std::string csdocument_exe = Path::Combine(m_directories.cspro_root, R"(cspro\build\x64\Debug\bin\CSDocument.exe)");
+    const std::string csdocument_exe = Path::Combine(m_inputs.cspro_root, R"(cspro\build\x64\Debug\bin\CSDocument.exe)");
 
     if( !PortableFunctions::FileIsRegular(csdocument_exe) )
         throw CSProException("CSDocument must exist at: " + csdocument_exe);
@@ -105,8 +105,8 @@ void Builder::BuildSite()
 {
     m_loggingListBox.AddText("Building the site for production using Jekyll...");
 
-    const std::string ruby_exe = Path::Combine(m_directories.ruby, "bin", "ruby.exe");
-    const std::string jekyll_sh = Path::Combine(m_directories.ruby, "bin", "jekyll");
+    const std::string ruby_exe = Path::Combine(m_inputs.ruby, "bin", "ruby.exe");
+    const std::string jekyll_sh = Path::Combine(m_inputs.ruby, "bin", "jekyll");
 
     if( !PortableFunctions::FileIsRegular(ruby_exe) ||
         !PortableFunctions::FileIsRegular(jekyll_sh) )
@@ -114,19 +114,19 @@ void Builder::BuildSite()
         throw CSProException("Ruby and Jekyll must exist at:\n%s\n%s", ruby_exe.c_str(), jekyll_sh.c_str());
     }
 
-    const std::string site_output_directory = Path::Combine(m_directories.csprousers_input, "_site");
+    const std::string site_output_directory = Path::Combine(m_inputs.csprousers_input, "_site");
     RecycleDirectory(site_output_directory);
 
     const std::string command = EscapeCommandLineArgument(ruby_exe)
                                 .append(" ").append(EscapeCommandLineArgument(jekyll_sh))
                                 .append(" build --config")
-                                .append(" ").append(EscapeCommandLineArgument(Path::Combine(m_directories.csprousers_input, "_config.yml")))
-                                .append(",").append(EscapeCommandLineArgument(Path::Combine(m_directories.csprousers_input, "_config_shared.yml")))
-                                .append(",").append(EscapeCommandLineArgument(Path::Combine(m_directories.csprousers_input, "_config_production.yml")));
+                                .append(" ").append(EscapeCommandLineArgument(Path::Combine(m_inputs.csprousers_input, "_config.yml")))
+                                .append(",").append(EscapeCommandLineArgument(Path::Combine(m_inputs.csprousers_input, "_config_shared.yml")))
+                                .append(",").append(EscapeCommandLineArgument(Path::Combine(m_inputs.csprousers_input, "_config_production.yml")));
 
     int return_code;
 
-    if( !RunProgram(TC::ToWide(command), &return_code, SW_SHOWNA, true, true, TC::ToWide(m_directories.csprousers_input).c_str()) ||
+    if( !RunProgram(TC::ToWide(command), &return_code, SW_SHOWNA, true, true, TC::ToWide(m_inputs.csprousers_input).c_str()) ||
         !PortableFunctions::FileIsDirectory(site_output_directory) )
     {
         throw CSProException("Error running Jekyll: " + command);
@@ -134,7 +134,7 @@ void Builder::BuildSite()
 
     ASSERT(return_code == 0);
 
-    CopyDirectoryRecursive(site_output_directory, m_directories.csprousers_output, FileOverwriteFlag::Always);
+    CopyDirectoryRecursive(site_output_directory, m_inputs.csprousers_output, FileOverwriteFlag::Always);
 }
 
 
@@ -142,10 +142,10 @@ void Builder::UpdateBlog()
 {
     m_loggingListBox.AddText("Building the blog...");
 
-    const std::string posts_directory = Path::Combine(m_directories.csprousers_input, "_posts");
+    const std::string posts_directory = Path::Combine(m_inputs.csprousers_input, "_posts");
     RecycleDirectory(posts_directory);
 
-    const std::string csdocset_file_path = Path::Combine(m_directories.csprousers_input, "blog", "CSPro Users Blog.csdocset");
+    const std::string csdocset_file_path = Path::Combine(m_inputs.csprousers_input, "blog", "CSPro Users Blog.csdocset");
 
     m_loggingListBox.AddText("Converting the blog posts in %s...", Path::GetFilename(csdocset_file_path).c_str());
     BuildDocSet(csdocset_file_path, BuildBlog { posts_directory });
@@ -165,14 +165,14 @@ void Builder::UpdateHelps()
 {
     m_loggingListBox.AddText("Building the helps...");
 
-    const std::string helps_output_directory = Path::Combine(m_directories.csprousers_output, "help");
+    const std::string helps_output_directory = Path::Combine(m_inputs.csprousers_output, "help");
     RecycleDirectory(helps_output_directory);
 
     // copy the resource files
-    const std::string resource_files_json_file_path = Path::Combine(m_directories.helps, "resource-files.json");
+    const std::string resource_files_json_file_path = Path::Combine(m_inputs.helps, "resource-files.json");
     m_loggingListBox.AddText("Copying resource files specified in %s...", resource_files_json_file_path.c_str());
 
-    JsonReaderInterface json_reader_interface(m_directories.helps);
+    JsonReaderInterface json_reader_interface(m_inputs.helps);
     const JsonNode json_node = Json::ParseFile(resource_files_json_file_path, &json_reader_interface);
 
     for( const JsonNode& file_json_node : json_node.GetArray() )
@@ -182,13 +182,13 @@ void Builder::UpdateHelps()
                  Path::Combine(helps_output_directory, "resources", Path::GetFilename(resource_file_path)));
     }
 
-    const std::string csdocument_outputs_directory = Path::Combine(m_directories.helps, "Outputs");
+    const std::string csdocument_outputs_directory = Path::Combine(m_inputs.helps, "Outputs");
     RecycleDirectory(csdocument_outputs_directory);
 
     DirectoryLister directory_lister(true);
     directory_lister.SetNameFilter("*.csdocset");
 
-    for( const std::string& csdocset_file_path : directory_lister.GetPaths(m_directories.helps) )
+    for( const std::string& csdocset_file_path : directory_lister.GetPaths(m_inputs.helps) )
     {
         // build the website
         m_loggingListBox.AddText("Building the website for %s...", Path::GetFilenameWithoutExtension(csdocset_file_path).c_str());
@@ -204,12 +204,12 @@ void Builder::UpdateMobileWorkshop()
 {
     m_loggingListBox.AddText("Building the mobile workshop materials...");
 
-    const std::string mobile_workshop_output_directory = Path::Combine(m_directories.csprousers_output, "mobile-workshop");
+    const std::string mobile_workshop_output_directory = Path::Combine(m_inputs.csprousers_output, "mobile-workshop");
     RecycleDirectory(mobile_workshop_output_directory);
 
-    const std::string csdocset_file_path = Path::Combine(m_directories.mobile_workshop, "CSProMobileWorkshop", "CSProMobileWorkshop.csdocset");
+    const std::string csdocset_file_path = Path::Combine(m_inputs.mobile_workshop, "CSProMobileWorkshop", "CSProMobileWorkshop.csdocset");
 
-    const std::string csdocument_outputs_directory = Path::Combine(m_directories.mobile_workshop, "Outputs");
+    const std::string csdocument_outputs_directory = Path::Combine(m_inputs.mobile_workshop, "Outputs");
     RecycleDirectory(csdocument_outputs_directory);
 
     // build the website
@@ -229,8 +229,8 @@ void Builder::UpdateMobileWorkshop()
     std::vector<std::string> zip_input_file_paths;
 
     DirectoryLister directory_lister(true);
-    directory_lister.AddPaths(zip_input_file_paths, Path::Combine(m_directories.mobile_workshop, "FilesForExercises"));
-    directory_lister.AddPaths(zip_input_file_paths, Path::Combine(m_directories.mobile_workshop, "Questionnaire"));
+    directory_lister.AddPaths(zip_input_file_paths, Path::Combine(m_inputs.mobile_workshop, "FilesForExercises"));
+    directory_lister.AddPaths(zip_input_file_paths, Path::Combine(m_inputs.mobile_workshop, "Questionnaire"));
 
     std::string zip_output_file_path = Path::Combine(mobile_workshop_output_directory, "materials", "cspro-mobile-workshop-materials.zip");
     FileIO::CreateDirectoriesForFile(zip_output_file_path);
@@ -245,12 +245,12 @@ void Builder::UpdateGooglePlayPrivacyPolicy()
 {
     m_loggingListBox.AddText("Creating the Google Play privacy policy...");
 
-    const std::string gcl_exe = Path::Combine(m_directories.cspro_root, R"(build-tools\build\x64\Debug\bin\Generate Combined License.exe)");
+    const std::string gcl_exe = Path::Combine(m_inputs.cspro_root, R"(build-tools\build\x64\Debug\bin\Generate Combined License.exe)");
 
     if( !PortableFunctions::FileIsRegular(gcl_exe) )
         throw CSProException("The Generate Combined License program must exist at: " + gcl_exe);
 
-    const std::string privacy_path_directory = Path::Combine(m_directories.csprousers_input, "privacy");
+    const std::string privacy_path_directory = Path::Combine(m_inputs.csprousers_input, "privacy");
     const std::string privacy_path_template_file_path = Path::Combine(privacy_path_directory, "privacy-policy-template.html");
     const std::string privacy_path_output_file_path = Path::Combine(privacy_path_directory, "privacy-policy.html");
 

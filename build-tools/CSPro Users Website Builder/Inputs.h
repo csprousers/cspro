@@ -1,7 +1,7 @@
-﻿#pragma once
+#pragma once
 
 
-struct Directories
+struct Inputs
 {
     std::string cspro_root;
     std::string helps;

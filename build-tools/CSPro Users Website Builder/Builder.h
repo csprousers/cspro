@@ -1,12 +1,12 @@
-﻿#pragma once
+#pragma once
 
-#include "Directories.h"
+#include "Inputs.h"
 
 
 class Builder
 {
 public:
-    Builder(Directories directories, LoggingListBox& logging_list_box);
+    Builder(Inputs inputs, LoggingListBox& logging_list_box);
 
     void BuildSite();
 
@@ -29,6 +29,6 @@ private:
     void BuildDocSet(const std::string& csdocset_file_path, std::variant<const char*, BuildBlog> build_name_or_build_blog);
 
 private:
-    Directories m_directories;
+    Inputs m_inputs;
     LoggingListBox& m_loggingListBox;
 };

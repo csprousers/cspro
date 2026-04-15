@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "CSProUsersWebsiteBuilderDlg.h"
 #include "Builder.h"
 #include <zToolsO/UWM.h>
@@ -31,12 +31,12 @@ END_MESSAGE_MAP()
 CSProUsersWebsiteBuilderDlg::CSProUsersWebsiteBuilderDlg(CWnd* const pParent/* = nullptr*/)
     :   ResizableDlg(IDD_BUILDER, pParent),
         m_settingsDb("CSProUsersWebsiteBuilder.db"),
-        m_directories{ MakeFullPath(PortableFunctions::PathGetDirectory(__FILE__), "..\\.."),
-                       m_settingsDb.ReadOrDefault<std::string>(HelpsDirectoryKey_sv),
-                       m_settingsDb.ReadOrDefault<std::string>(MobileWorkshopDirectoryKey_sv),
-                       m_settingsDb.ReadOrDefault<std::string>(RubyDirectoryKey_sv),
-                       m_settingsDb.ReadOrDefault<std::string>(CSProUsersInputDirectoryKey_sv),
-                       m_settingsDb.ReadOrDefault<std::string>(CSProUsersOutputDirectoryKey_sv) }
+        m_inputs{ MakeFullPath(PortableFunctions::PathGetDirectory(__FILE__), "..\\.."),
+                  m_settingsDb.ReadOrDefault<std::string>(HelpsDirectoryKey_sv),
+                  m_settingsDb.ReadOrDefault<std::string>(MobileWorkshopDirectoryKey_sv),
+                  m_settingsDb.ReadOrDefault<std::string>(RubyDirectoryKey_sv),
+                  m_settingsDb.ReadOrDefault<std::string>(CSProUsersInputDirectoryKey_sv),
+                  m_settingsDb.ReadOrDefault<std::string>(CSProUsersOutputDirectoryKey_sv) }
 {
     SerializeDialogSize("CSProUsersWebsiteBuilderDlg");
 }
@@ -52,12 +52,12 @@ void CSProUsersWebsiteBuilderDlg::DoDataExchange(CDataExchange* const pDX)
 {
     __super::DoDataExchange(pDX);
 
-    DDX_Text(pDX, IDC_DIRECTORY_CSPRO, m_directories.cspro_root);
-    DDX_Text(pDX, IDC_DIRECTORY_HELPS, m_directories.helps);
-    DDX_Text(pDX, IDC_DIRECTORY_MOBILE_WORKSHOP, m_directories.mobile_workshop);
-    DDX_Text(pDX, IDC_DIRECTORY_RUBY, m_directories.ruby);
-    DDX_Text(pDX, IDC_DIRECTORY_CSPRO_USERS_INPUTS, m_directories.csprousers_input);
-    DDX_Text(pDX, IDC_DIRECTORY_CSPRO_USERS_OUTPUTS, m_directories.csprousers_output);
+    DDX_Text(pDX, IDC_DIRECTORY_CSPRO, m_inputs.cspro_root);
+    DDX_Text(pDX, IDC_DIRECTORY_HELPS, m_inputs.helps);
+    DDX_Text(pDX, IDC_DIRECTORY_MOBILE_WORKSHOP, m_inputs.mobile_workshop);
+    DDX_Text(pDX, IDC_DIRECTORY_RUBY, m_inputs.ruby);
+    DDX_Text(pDX, IDC_DIRECTORY_CSPRO_USERS_INPUTS, m_inputs.csprousers_input);
+    DDX_Text(pDX, IDC_DIRECTORY_CSPRO_USERS_OUTPUTS, m_inputs.csprousers_output);
     DDX_Control(pDX, IDC_LOG, m_loggingListBox);
 }
 
@@ -94,32 +94,32 @@ void CSProUsersWebsiteBuilderDlg::OnBuildTask(const UINT nID)
             throw CSProException("You must wait until the current build task has completed.");
 
         // validate the directories, and if successful, save them for future runs of this program
-        if( !PortableFunctions::FileIsDirectory(m_directories.cspro_root) )
+        if( !PortableFunctions::FileIsDirectory(m_inputs.cspro_root) )
             throw CSProException("Specify a valid CSPro directory.");
 
-        if( nID == IDC_UPDATE_HELPS && !PortableFunctions::FileIsDirectory(m_directories.helps) )
+        if( nID == IDC_UPDATE_HELPS && !PortableFunctions::FileIsDirectory(m_inputs.helps) )
             throw CSProException("Specify a valid helps directory.");
 
-        if( nID == IDC_UPDATE_MOBILE_WORKSHOP && !PortableFunctions::FileIsDirectory(m_directories.mobile_workshop) )
+        if( nID == IDC_UPDATE_MOBILE_WORKSHOP && !PortableFunctions::FileIsDirectory(m_inputs.mobile_workshop) )
             throw CSProException("Specify a valid mobile workshop directory.");
 
-        if( nID == IDC_BUILD_SITE && !PortableFunctions::FileIsDirectory(m_directories.ruby) )
+        if( nID == IDC_BUILD_SITE && !PortableFunctions::FileIsDirectory(m_inputs.ruby) )
             throw CSProException("Specify a valid Ruby directory.");
 
-        if( !PortableFunctions::FileIsDirectory(m_directories.csprousers_input) )
+        if( !PortableFunctions::FileIsDirectory(m_inputs.csprousers_input) )
             throw CSProException("Specify a valid CSPro Users (sources) directory.");
 
-        if( !PortableFunctions::FileIsDirectory(m_directories.csprousers_output) )
+        if( !PortableFunctions::FileIsDirectory(m_inputs.csprousers_output) )
             throw CSProException("Specify a valid CSPro Users (built website) directory.");
 
-        m_settingsDb.Write<std::string>(HelpsDirectoryKey_sv, m_directories.helps);
-        m_settingsDb.Write<std::string>(MobileWorkshopDirectoryKey_sv, m_directories.mobile_workshop);
-        m_settingsDb.Write<std::string>(RubyDirectoryKey_sv, m_directories.ruby);
-        m_settingsDb.Write<std::string>(CSProUsersInputDirectoryKey_sv, m_directories.csprousers_input);
-        m_settingsDb.Write<std::string>(CSProUsersOutputDirectoryKey_sv, m_directories.csprousers_output);
+        m_settingsDb.Write<std::string>(HelpsDirectoryKey_sv, m_inputs.helps);
+        m_settingsDb.Write<std::string>(MobileWorkshopDirectoryKey_sv, m_inputs.mobile_workshop);
+        m_settingsDb.Write<std::string>(RubyDirectoryKey_sv, m_inputs.ruby);
+        m_settingsDb.Write<std::string>(CSProUsersInputDirectoryKey_sv, m_inputs.csprousers_input);
+        m_settingsDb.Write<std::string>(CSProUsersOutputDirectoryKey_sv, m_inputs.csprousers_output);
 
         m_buildThread = std::make_unique<std::thread>(
-            [ builder = std::make_unique<Builder>(m_directories, m_loggingListBox),
+            [ builder = std::make_unique<Builder>(m_inputs, m_loggingListBox),
               nID,
               this ]()
             {

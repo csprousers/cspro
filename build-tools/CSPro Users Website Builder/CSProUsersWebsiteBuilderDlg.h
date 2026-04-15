@@ -1,6 +1,6 @@
-﻿#pragma once
+#pragma once
 
-#include "Directories.h"
+#include "Inputs.h"
 #include <zUtilO/ResizableDlg.h>
 #include <zUtilO/SettingsDb.h>
 
@@ -26,7 +26,7 @@ protected:
 
 private:
     SettingsDb m_settingsDb;
-    Directories m_directories;
+    Inputs m_inputs;
     LoggingListBox m_loggingListBox;
 
     std::unique_ptr<std::thread> m_buildThread;

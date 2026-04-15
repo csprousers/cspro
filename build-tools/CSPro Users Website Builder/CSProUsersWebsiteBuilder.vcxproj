@@ -18,7 +18,7 @@
     <ClInclude Include="Builder.h" />
     <ClInclude Include="CSProUsersWebsiteBuilder.h" />
     <ClInclude Include="CSProUsersWebsiteBuilderDlg.h" />
-    <ClInclude Include="Directories.h" />
+    <ClInclude Include="Inputs.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="StdAfx.h" />
   </ItemGroup>
