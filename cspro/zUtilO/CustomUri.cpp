@@ -27,7 +27,7 @@ struct CustomUri::UriBuilder
     void AddToQuery(AT&& attribute, VT&& value)
     {
         if( !query_started.has_value() )
-            query_started = uri.find('?');
+            query_started = ( uri.find('?') != std::string::npos );
 
         if( *query_started )
         {
