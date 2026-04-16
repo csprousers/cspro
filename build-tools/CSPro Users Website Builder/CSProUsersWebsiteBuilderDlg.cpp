@@ -9,34 +9,37 @@
 
 namespace
 {
-    constexpr std::string_view HelpsDirectoryKey_sv            = "helps";
-    constexpr std::string_view MobileWorkshopDirectoryKey_sv   = "mobile-workshop";
-    constexpr std::string_view RubyDirectoryKey_sv             = "ruby";
-    constexpr std::string_view CSProUsersInputDirectoryKey_sv  = "input-directory";
-    constexpr std::string_view CSProUsersOutputDirectoryKey_sv = "output-directory";
+    constexpr std::string_view HelpsDirectoryKey_sv               = "helps";
+    constexpr std::string_view MobileWorkshopDirectoryKey_sv      = "mobile-workshop";
+    constexpr std::string_view RubyDirectoryKey_sv                = "ruby";
+    constexpr std::string_view CSProUsersInputDirectoryKey_sv     = "input-directory";
+    constexpr std::string_view CSProUsersOutputDirectoryKey_sv    = "output-directory";
+    constexpr std::string_view CSProUsersOutputClearExclusions_sv = "output-clear-exclusions";
 }
 
 
-BEGIN_MESSAGE_MAP(CSProUsersWebsiteBuilderDlg, ResizableDlg)
+BEGIN_MESSAGE_MAP(CSProUsersWebsiteBuilderDlg, ResizableDlgEx)
     ON_COMMAND_RANGE(IDC_BUILD_SITE, IDC_BUILD_SITE, OnBuildTask)
     ON_COMMAND_RANGE(IDC_UPDATE_BLOG, IDC_UPDATE_BLOG, OnBuildTask)
     ON_COMMAND_RANGE(IDC_UPDATE_HELPS, IDC_UPDATE_HELPS, OnBuildTask)
     ON_COMMAND_RANGE(IDC_UPDATE_MOBILE_WORKSHOP, IDC_UPDATE_MOBILE_WORKSHOP, OnBuildTask)
     ON_COMMAND_RANGE(IDC_UPDATE_GOOGLE_PLAY_PRIVACY_POLICY, IDC_UPDATE_GOOGLE_PLAY_PRIVACY_POLICY, OnBuildTask)
+    ON_COMMAND(IDC_CLEAR_OUTPUTS, OnClearOutputs)
     ON_MESSAGE(UWM::Ranges::ExeStart, OnBuildTaskComplete)
     ON_MESSAGE(UWM::ToolsO::DisplayErrorMessage, OnDisplayErrorMessage)
 END_MESSAGE_MAP()
 
 
 CSProUsersWebsiteBuilderDlg::CSProUsersWebsiteBuilderDlg(CWnd* const pParent/* = nullptr*/)
-    :   ResizableDlg(IDD_BUILDER, pParent),
+    :   ResizableDlgEx(IDD_BUILDER, pParent),
         m_settingsDb("CSProUsersWebsiteBuilder.db"),
         m_inputs{ MakeFullPath(PortableFunctions::PathGetDirectory(__FILE__), "..\\.."),
                   m_settingsDb.ReadOrDefault<std::string>(HelpsDirectoryKey_sv),
                   m_settingsDb.ReadOrDefault<std::string>(MobileWorkshopDirectoryKey_sv),
                   m_settingsDb.ReadOrDefault<std::string>(RubyDirectoryKey_sv),
                   m_settingsDb.ReadOrDefault<std::string>(CSProUsersInputDirectoryKey_sv),
-                  m_settingsDb.ReadOrDefault<std::string>(CSProUsersOutputDirectoryKey_sv) }
+                  m_settingsDb.ReadOrDefault<std::string>(CSProUsersOutputDirectoryKey_sv),
+                  m_settingsDb.ReadOrDefault<std::string>(CSProUsersOutputClearExclusions_sv) }
 {
     SerializeDialogSize("CSProUsersWebsiteBuilderDlg");
 }
@@ -58,6 +61,8 @@ void CSProUsersWebsiteBuilderDlg::DoDataExchange(CDataExchange* const pDX)
     DDX_Text(pDX, IDC_DIRECTORY_RUBY, m_inputs.ruby);
     DDX_Text(pDX, IDC_DIRECTORY_CSPRO_USERS_INPUTS, m_inputs.csprousers_input);
     DDX_Text(pDX, IDC_DIRECTORY_CSPRO_USERS_OUTPUTS, m_inputs.csprousers_output);
+    DDX_Control(pDX, IDC_CLEAR_EXCLUSIONS, m_clearOutputsExclusionsLogicCtrl);
+    DDX_Control(pDX, IDC_CLEAR_OUTPUTS, m_clearOutputsButton);
     DDX_Control(pDX, IDC_LOG, m_loggingListBox);
 }
 
@@ -67,6 +72,14 @@ BOOL CSProUsersWebsiteBuilderDlg::OnInitDialog()
     __super::OnInitDialog();
 
     WindowHelpers::RemoveDialogSystemIcon(*this);
+
+    m_clearOutputsExclusionsLogicCtrl.ReplaceCEdit(this, false, false, SCLEX_NULL);
+    m_clearOutputsExclusionsLogicCtrl.SetText(m_inputs.csprousers_output_clear_exclusions);
+
+    // set up the clear output button's menu
+    m_clearOutputsMenu.LoadMenu(IDR_CLEAR_OUTPUTS);
+    CMenu* const clear_outputs_menu = m_clearOutputsMenu.GetSubMenu(0);
+    m_clearOutputsButton.m_hMenu = clear_outputs_menu->GetSafeHmenu();
 
     return TRUE;
 }
@@ -87,6 +100,7 @@ void CSProUsersWebsiteBuilderDlg::OnCancel()
 void CSProUsersWebsiteBuilderDlg::OnBuildTask(const UINT nID)
 {
     UpdateData(TRUE);
+    m_inputs.csprousers_output_clear_exclusions = m_clearOutputsExclusionsLogicCtrl.GetText();
 
     try
     {
@@ -117,6 +131,7 @@ void CSProUsersWebsiteBuilderDlg::OnBuildTask(const UINT nID)
         m_settingsDb.Write<std::string>(RubyDirectoryKey_sv, m_inputs.ruby);
         m_settingsDb.Write<std::string>(CSProUsersInputDirectoryKey_sv, m_inputs.csprousers_input);
         m_settingsDb.Write<std::string>(CSProUsersOutputDirectoryKey_sv, m_inputs.csprousers_output);
+        m_settingsDb.Write<std::string>(CSProUsersOutputClearExclusions_sv, m_inputs.csprousers_output_clear_exclusions);
 
         m_buildThread = std::make_unique<std::thread>(
             [ builder = std::make_unique<Builder>(m_inputs, m_loggingListBox),
@@ -150,6 +165,13 @@ void CSProUsersWebsiteBuilderDlg::OnBuildTask(const UINT nID)
                             builder->UpdateGooglePlayPrivacyPolicy();
                             break;
 
+                        case IDC_CLEAR_ALL:
+                        case IDC_CLEAR_SITE:
+                        case IDC_CLEAR_HELPS:
+                        case IDC_CLEAR_MOBILE_WORKSHOP:
+                            builder->ClearOutputs(nID);
+                            break;
+
                         default:
                             throw ProgrammingErrorException();
                     }
@@ -171,6 +193,13 @@ void CSProUsersWebsiteBuilderDlg::OnBuildTask(const UINT nID)
     {
         ErrorMessage::Display(exception);
     }
+}
+
+
+void CSProUsersWebsiteBuilderDlg::OnClearOutputs()
+{
+    OnBuildTask(( m_clearOutputsButton.m_nMenuResult == 0 ) ? IDC_CLEAR_ALL :
+                                                              m_clearOutputsButton.m_nMenuResult);
 }
 
 

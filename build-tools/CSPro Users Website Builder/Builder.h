@@ -18,6 +18,8 @@ public:
 
     void UpdateGooglePlayPrivacyPolicy();
 
+    void ClearOutputs(UINT nID);
+
 private:
     void RecycleDirectory(const std::string& directory);
     void CopyFile(const std::string& input_file_path, const std::string& output_file_path,

@@ -34,6 +34,10 @@
     <ResourceCompile Include="CSProUsersWebsiteBuilder.rc" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\cspro\zEditO\zEditO.vcxproj">
+      <Project>{adef6fc1-00ee-4f3a-84dd-43ee2f108bb0}</Project>
+      <Private>false</Private>
+    </ProjectReference>
     <ProjectReference Include="..\..\cspro\zJson\zJson.vcxproj">
       <Project>{44a4fe38-ca5a-487c-a227-4be1ebd4874d}</Project>
       <Private>false</Private>

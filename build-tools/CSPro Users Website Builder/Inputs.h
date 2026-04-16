@@ -9,4 +9,5 @@ struct Inputs
     std::string ruby;
     std::string csprousers_input;
     std::string csprousers_output;
+    std::string csprousers_output_clear_exclusions;
 };

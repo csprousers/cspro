@@ -272,3 +272,9 @@ void Builder::UpdateGooglePlayPrivacyPolicy()
     // copy the license to its destination
     PortableFunctions::FileCopyWithExceptions(privacy_path_output_temporary_file.GetPath(), privacy_path_output_file_path, FileOverwriteFlag::Always);
 }
+
+
+void Builder::ClearOutputs(const UINT nID)
+{
+    // TODO
+}
