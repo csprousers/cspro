@@ -2,6 +2,8 @@
 
 #include "Inputs.h"
 
+class GitIgnoreEvaluator;
+
 
 class Builder
 {
@@ -23,12 +25,13 @@ public:
 private:
     void RecycleDirectory(const std::string& directory);
     void CopyFile(const std::string& input_file_path, const std::string& output_file_path,
-                  FileOverwriteFlag file_overwrite_flag = FileOverwriteFlag::Fail, bool add_message_to_log = true);
-    void CopyDirectoryRecursive(const std::string& input_directory, const std::string& output_directory,
-                                FileOverwriteFlag file_overwrite_flag = FileOverwriteFlag::Fail);
+                  bool add_message_to_log = true);
+    void CopyDirectoryRecursive(const std::string& input_directory, const std::string& output_directory);
 
     struct BuildBlog { const std::string& posts_directory; };
     void BuildDocSet(const std::string& csdocset_file_path, std::variant<const char*, BuildBlog> build_name_or_build_blog);
+
+    size_t ClearOutputs(GitIgnoreEvaluator& exclusion_evaluator, const std::string& directory_path, bool recursive);
 
 private:
     Inputs m_inputs;

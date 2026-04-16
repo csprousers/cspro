@@ -5,6 +5,14 @@
 #include <zJson/Json.h>
 #include <zUtilO/TemporaryFile.h>
 #include <zZip/ZipFile.h>
+#include <zGit/GitIgnoreEvaluator.h>
+
+
+namespace
+{
+    std::string_view HelpDirectory_sv           = "help";
+    std::string_view MobileWorkshopDirectory_sv = "mobile-workshop";
+}
 
 
 Builder::Builder(Inputs inputs, LoggingListBox& logging_list_box)
@@ -38,18 +46,17 @@ void Builder::RecycleDirectory(const std::string& directory)
 
 
 void Builder::CopyFile(const std::string& input_file_path, const std::string& output_file_path,
-                       const FileOverwriteFlag file_overwrite_flag/* = FileOverwriteFlag::Fail*/, const bool add_message_to_log/* = true*/)
+                       const bool add_message_to_log/* = true*/)
 {
     if( add_message_to_log )
         m_loggingListBox.AddText("Copying file:\n    " + input_file_path + "\n    " + output_file_path);
 
     FileIO::CreateDirectoriesForFile(output_file_path);
-    PortableFunctions::FileCopyWithExceptions(input_file_path, output_file_path, file_overwrite_flag);
+    PortableFunctions::FileCopyWithExceptions(input_file_path, output_file_path, FileOverwriteFlag::Always);
 }
 
 
-void Builder::CopyDirectoryRecursive(const std::string& input_directory, const std::string& output_directory,
-                                     const FileOverwriteFlag file_overwrite_flag/* = FileOverwriteFlag::Fail*/)
+void Builder::CopyDirectoryRecursive(const std::string& input_directory, const std::string& output_directory)
 {
     m_loggingListBox.AddText("Copying directory:\n    " + input_directory + "\n    " + output_directory);
 
@@ -61,7 +68,6 @@ void Builder::CopyDirectoryRecursive(const std::string& input_directory, const s
 
         CopyFile(input_file_path,
                  Path::Combine(output_directory, input_file_path.substr(input_directory.length())),
-                 file_overwrite_flag,
                  false);
     }
 }
@@ -134,7 +140,7 @@ void Builder::BuildSite()
 
     ASSERT(return_code == 0);
 
-    CopyDirectoryRecursive(site_output_directory, m_inputs.csprousers_output, FileOverwriteFlag::Always);
+    CopyDirectoryRecursive(site_output_directory, m_inputs.csprousers_output);
 }
 
 
@@ -165,8 +171,7 @@ void Builder::UpdateHelps()
 {
     m_loggingListBox.AddText("Building the helps...");
 
-    const std::string helps_output_directory = Path::Combine(m_inputs.csprousers_output, "help");
-    RecycleDirectory(helps_output_directory);
+    const std::string helps_output_directory = Path::Combine(m_inputs.csprousers_output, HelpDirectory_sv);
 
     // copy the resource files
     const std::string resource_files_json_file_path = Path::Combine(m_inputs.helps, "resource-files.json");
@@ -204,8 +209,7 @@ void Builder::UpdateMobileWorkshop()
 {
     m_loggingListBox.AddText("Building the mobile workshop materials...");
 
-    const std::string mobile_workshop_output_directory = Path::Combine(m_inputs.csprousers_output, "mobile-workshop");
-    RecycleDirectory(mobile_workshop_output_directory);
+    const std::string mobile_workshop_output_directory = Path::Combine(m_inputs.csprousers_output, MobileWorkshopDirectory_sv);
 
     const std::string csdocset_file_path = Path::Combine(m_inputs.mobile_workshop, "CSProMobileWorkshop", "CSProMobileWorkshop.csdocset");
 
@@ -276,5 +280,83 @@ void Builder::UpdateGooglePlayPrivacyPolicy()
 
 void Builder::ClearOutputs(const UINT nID)
 {
-    // TODO
+    GitIgnoreEvaluator exclusion_evaluator;
+    exclusion_evaluator.AddRules(m_inputs.csprousers_output_clear_exclusions);
+
+    size_t files_deleted = 0;
+
+    if( nID == IDC_CLEAR_SITE || nID == IDC_CLEAR_ALL )
+    {
+        // process files at the site root
+        ClearOutputs(exclusion_evaluator, m_inputs.csprousers_output, false);
+
+        // process each directory other than the helps and mobile workshop directories
+        DirectoryLister directory_lister(false, false, true);
+
+        for( std::string& directory_path : directory_lister.GetPaths(m_inputs.csprousers_output) )
+        {
+            Path::MakeRemoveTrailingSlash(directory_path);
+            const std::string directory_name = Path::GetFilename(directory_path);
+
+            if( directory_name != HelpDirectory_sv &&
+                directory_name != MobileWorkshopDirectory_sv )
+            {
+                files_deleted += ClearOutputs(exclusion_evaluator, directory_path, true);
+            }
+        }
+    }
+
+    if( nID == IDC_CLEAR_HELPS || nID == IDC_CLEAR_ALL )
+    {
+        files_deleted += ClearOutputs(
+            exclusion_evaluator,
+            Path::Combine(m_inputs.csprousers_output, HelpDirectory_sv),
+            true
+        );
+    }
+
+    if( nID == IDC_CLEAR_MOBILE_WORKSHOP || nID == IDC_CLEAR_ALL )
+    {
+        files_deleted += ClearOutputs(
+            exclusion_evaluator,
+            Path::Combine(m_inputs.csprousers_output, MobileWorkshopDirectory_sv),
+            true
+        );
+    }
+
+    m_loggingListBox.AddText("Files deleted: %zu", files_deleted);
+}
+
+
+size_t Builder::ClearOutputs(GitIgnoreEvaluator& exclusion_evaluator, const std::string& directory_path, const bool recursive)
+{
+    m_loggingListBox.AddText(
+        "Clearing outputs (recursive = %s) in: %s)",
+        recursive ? "true" : "false",
+        directory_path.c_str()
+    );
+
+    DirectoryLister directory_lister(recursive);
+    size_t files_deleted = 0;
+
+    size_t output_path_prefix_to_clear = m_inputs.csprousers_output.length();
+
+    if( !Path::IsSlashChar(m_inputs.csprousers_output.back()) )
+        ++output_path_prefix_to_clear;
+
+    for( const std::string& file_path : directory_lister.GetPaths(directory_path) )
+    {
+        // exclusions paths are based off the output directory
+        ASSERT(SO::StartsWith(file_path, m_inputs.csprousers_output));
+        std::string repository_style_path = file_path.substr(output_path_prefix_to_clear);
+        Path::MakeToForwardSlash(repository_style_path);
+
+        if( exclusion_evaluator.Include(repository_style_path) )
+        {
+            PortableFunctions::FileDeleteWithExceptions(file_path);
+            ++files_deleted;
+        }
+    }
+
+    return files_deleted;
 }
