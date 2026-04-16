@@ -218,8 +218,20 @@ void CSProUsersWebsiteBuilderDlg::OnBuildTask(const UINT nID)
 
 void CSProUsersWebsiteBuilderDlg::OnClearOutputs()
 {
-    OnBuildTask(( m_clearOutputsButton.m_nMenuResult == 0 ) ? IDC_CLEAR_ALL :
-                                                              m_clearOutputsButton.m_nMenuResult);
+    UINT nID = m_clearOutputsButton.m_nMenuResult;
+
+    if( nID == 0 )
+    {
+        if( AfxMessageBox(L"Are you sure that you want to clear all outputs?",
+                          MB_ICONQUESTION | MB_YESNO) != IDYES )
+        {
+            return;
+        }
+
+        nID = IDC_CLEAR_ALL;
+    }
+
+    OnBuildTask(nID);
 }
 
 
