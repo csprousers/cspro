@@ -1,7 +1,7 @@
-﻿#pragma once
+#pragma once
 
 
-struct Directories
+struct Inputs
 {
     std::string cspro_root;
     std::string helps;
@@ -9,4 +9,6 @@ struct Directories
     std::string ruby;
     std::string csprousers_input;
     std::string csprousers_output;
+    std::string csprousers_output_clear_exclusions;
+    std::string csprousers_files_repository;
 };

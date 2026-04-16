@@ -24,7 +24,7 @@
     <ClInclude Include="CSProUsersWebsiteBuilderDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Directories.h">
+    <ClInclude Include="Inputs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="resource.h">

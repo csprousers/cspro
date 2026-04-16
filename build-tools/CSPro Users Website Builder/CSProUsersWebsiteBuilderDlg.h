@@ -1,11 +1,13 @@
-﻿#pragma once
+#pragma once
 
-#include "Directories.h"
+#include "Inputs.h"
 #include <zUtilO/ResizableDlg.h>
 #include <zUtilO/SettingsDb.h>
+#include <zEditO/LogicCtrl.h>
+#include <afxmenubutton.h>
 
 
-class CSProUsersWebsiteBuilderDlg : public ResizableDlg
+class CSProUsersWebsiteBuilderDlg : public ResizableDlgEx
 {
 public:
     CSProUsersWebsiteBuilderDlg(CWnd* pParent = nullptr);
@@ -21,12 +23,21 @@ protected:
 
     void OnBuildTask(UINT nID);
 
+    void OnClearOutputs();
+
     LRESULT OnBuildTaskComplete(WPARAM wParam, LPARAM lParam);
     LRESULT OnDisplayErrorMessage(WPARAM wParam, LPARAM lParam);
 
 private:
     SettingsDb m_settingsDb;
-    Directories m_directories;
+    Inputs m_inputs;
+
+    CLogicCtrl m_clearOutputsExclusionsLogicCtrl;
+    CMenu m_clearOutputsMenu;
+    CMFCMenuButton m_clearOutputsButton;
+
+    std::string m_lastCommitProcessed;
+
     LoggingListBox m_loggingListBox;
 
     std::unique_ptr<std::thread> m_buildThread;
