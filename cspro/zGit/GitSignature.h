@@ -4,6 +4,7 @@
 #include <zGit/GitTime.h>
 
 struct git_signature;
+class GitRepository;
 
 
 // --------------------------------------------------------------------------

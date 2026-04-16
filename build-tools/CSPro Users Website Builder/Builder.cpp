@@ -1,11 +1,18 @@
 #include "StdAfx.h"
 #include "Builder.h"
 #include <zToolsO/DirectoryLister.h>
+#include <zToolsO/File.h>
 #include <zToolsO/FileIO.h>
 #include <zJson/Json.h>
+#include <zUtilO/Interapp.h>
 #include <zUtilO/TemporaryFile.h>
 #include <zZip/ZipFile.h>
-#include <zGit/GitIgnoreEvaluator.h>
+#include <zGit/GitBlob.h>
+#include <zGit/GitBranch.h>
+#include <zGit/GitCommit.h>
+#include <zGit/GitDiff.h>
+#include <zGit/GitTree.h>
+#include <external/libgit2/include/git2/diff.h>
 
 
 namespace
@@ -359,4 +366,157 @@ size_t Builder::ClearOutputs(GitIgnoreEvaluator& exclusion_evaluator, const std:
     }
 
     return files_deleted;
+}
+
+
+void Builder::CreateWebsiteUpdaters(const std::string& last_processed_commit_sha)
+{
+    // make sure that the built website is part of the repository
+    if( !SO::StartsWith(m_inputs.csprousers_output, m_inputs.csprousers_files_repository) )
+        throw CSProException("The built website directory cannot be outside the repository: " + m_inputs.csprousers_output);
+
+    std::string website_repository_path =
+        PortableFunctions::PathEnsureTrailingForwardSlash(
+            Path::ToForwardSlash(
+                m_inputs.csprousers_output.substr(m_inputs.csprousers_files_repository.length())
+            )
+        );
+    SO::MakeTrimLeft(website_repository_path, '/');
+
+    const std::string git_directory = Path::Combine(m_inputs.csprousers_files_repository, ".git");
+    m_loggingListBox.AddText("Opening repository: " + git_directory);
+
+    GitRepository repo;
+    repo.OpenBare(git_directory);
+
+    // process the differences between the current and last processed commits
+    const GitCommit last_processed_commit = repo.LookupCommit(last_processed_commit_sha);
+    GitTree last_processed_tree = last_processed_commit.GetTree();
+
+    const GitCommit current_commit = repo.LookupCommit(repo.GetCurrentBranch());
+    GitTree current_tree = current_commit.GetTree();
+
+    std::vector<std::tuple<std::string, GitObjectId>> added_modified_files;
+    std::vector<std::string> removed_files;
+
+    const GitDiff diff = repo.GetDifference(last_processed_tree, current_tree);
+
+    diff.ForeachDifference(
+        [&](const void* const delta)
+        {
+            const git_diff_delta* const diff_delta = static_cast<const git_diff_delta*>(delta);
+            std::string path = diff_delta->new_file.path;
+
+            if( !SO::StartsWithNoCase(path, website_repository_path) )
+            {
+                m_loggingListBox.AddText("Ignoring: " + path);
+                return true;
+            }
+
+            std::string website_file_path = path.substr(website_repository_path.length());
+            ASSERT(!Path::IsSlashChar(website_file_path.front()));
+
+            if( diff_delta->status == GIT_DELTA_ADDED ||
+                diff_delta->status == GIT_DELTA_MODIFIED )
+            {
+                m_loggingListBox.AddText("%s: %s",
+                    ( diff_delta->status == GIT_DELTA_ADDED ) ? "Adding" : "Modifying",
+                    website_file_path.c_str()
+                );
+
+                added_modified_files.emplace_back(std::move(website_file_path), diff_delta->new_file.id);
+            }
+
+            else if( diff_delta->status == GIT_DELTA_DELETED )
+            {
+                m_loggingListBox.AddText("Deleting: " + website_file_path);
+                removed_files.emplace_back(std::move(website_file_path));
+            }
+
+            else
+            {
+                throw CSProException("Unknown diff status: '%s' -> %d", path.c_str(), static_cast<int>(diff_delta->status));
+            }
+
+            return true;
+        });
+
+    if( added_modified_files.empty() && removed_files.empty() )
+    {
+        m_loggingListBox.AddText("No changes since the last processed commit.");
+        return;
+    }
+
+    // create a directory to store the updaters
+    const std::string updaters_directory = Path::Combine(
+        m_inputs.csprousers_output,
+        IntToString(GetTimestamp()) + "-updater"
+    );
+
+    FileIO::CreateDirectories(updaters_directory);
+
+    // create a script to remove files
+    if( !removed_files.empty() )
+    {
+        const std::string& script_file_path = Path::Combine(updaters_directory, "remove-files.sh");
+
+        m_loggingListBox.AddText("Creating a removal script for %zu file%s: %s: ",
+            removed_files.size(), PluralizeWord(removed_files.size()),
+            script_file_path.c_str()
+        );
+
+        CreateWebsiteRemoveScript(script_file_path, removed_files);
+    }
+
+    // create a ZIP file with added and modified files
+    if( !added_modified_files.empty() )
+    {
+        const std::string& zip_file_path = Path::Combine(updaters_directory, "files.zip");
+
+        m_loggingListBox.AddText("Creating a ZIP file for %zu file%s: %s: ",
+            added_modified_files.size(), PluralizeWord(added_modified_files.size()),
+            zip_file_path.c_str()
+        );
+
+        CreateWebsiteFilesZip(zip_file_path, repo, added_modified_files);
+    }
+
+    // show the updaters
+    OpenContainingFolder(updaters_directory);
+}
+
+
+void Builder::CreateWebsiteRemoveScript(const std::string& script_file_path, const std::vector<std::string>& removed_files)
+{
+    FileIO::TextFile text_file;
+
+    static_assert(TextEncoding::DefaultEncoding != TextEncoding::Type::Utf8);
+    text_file.SetTextEncoding(TextEncoding::Type::Utf8);
+
+    static_assert(FileIO::TextFile::DefaultWriteNewlineAsCRLF);
+    text_file.SetWriteNewlineAsCRLF(false);
+
+    text_file.OpenForTextWritingCreate(script_file_path);
+
+    text_file.WriteLine("#!/bin/sh");
+
+    for( const std::string& removed_file : removed_files )
+        text_file.WriteFormattedLine("rm '%s'", removed_file.c_str());
+
+    text_file.Close();
+}
+
+
+void Builder::CreateWebsiteFilesZip(const std::string& zip_file_path, GitRepository& repo,
+                                    const std::vector<std::tuple<std::string, GitObjectId>>& added_modified_files)
+{
+    ZipCreator zip_creator(zip_file_path);
+
+    for( const auto& [file_path, oid] : added_modified_files )
+    {
+        const GitBlob blob = repo.LookupBlob(oid);
+        zip_creator.AddContent(file_path, blob.data(), blob.size());
+    }
+
+    zip_creator.Close();
 }

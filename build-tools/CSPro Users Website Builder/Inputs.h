@@ -10,4 +10,5 @@ struct Inputs
     std::string csprousers_input;
     std::string csprousers_output;
     std::string csprousers_output_clear_exclusions;
+    std::string csprousers_files_repository;
 };

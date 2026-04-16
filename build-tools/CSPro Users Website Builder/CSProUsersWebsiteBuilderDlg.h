@@ -36,6 +36,8 @@ private:
     CMenu m_clearOutputsMenu;
     CMFCMenuButton m_clearOutputsButton;
 
+    std::string m_lastCommitProcessed;
+
     LoggingListBox m_loggingListBox;
 
     std::unique_ptr<std::thread> m_buildThread;

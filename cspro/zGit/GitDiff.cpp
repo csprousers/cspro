@@ -81,7 +81,7 @@ void GitDiff::ForeachDifference(const std::function<bool(std::string path, unsig
     ForeachDifference(
         [&](const void* const delta)
         {
-            const git_diff_delta* diff_delta = static_cast<const git_diff_delta*>(delta);
+            const git_diff_delta* const diff_delta = static_cast<const git_diff_delta*>(delta);
             return callback_function(diff_delta->new_file.path, diff_delta->status);
         });
 }
