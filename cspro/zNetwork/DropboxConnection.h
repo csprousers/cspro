@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zNetwork/zNetwork.h>
 #include <zNetwork/FileBasedConnection.h>
@@ -91,7 +91,7 @@ private:
                            std::istream& input_stream, int64_t input_size_bytes);
 
     // Routines to hit various endpoints and other functionality.
-    std::string Connect(std::string* base_path_override);
+    std::string Connect(const std::string* base_path_override);
 
     // Makes a path valid for Dropbox, evaluating it from the base path, and returns it as a JSON string.
     std::string GetDropboxPathJsonString(std::string_view path_sv, bool specify_root_folder_as_empty_string) const;

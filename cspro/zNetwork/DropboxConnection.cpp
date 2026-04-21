@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "DropboxConnection.h"
 #include "HttpConnection.h"
 #include "LoginAccessor.h"
@@ -234,7 +234,7 @@ std::string DropboxConnection::GetAccountEmail()
 }
 
 
-std::string DropboxConnection::Connect(std::string* const base_path_override)
+std::string DropboxConnection::Connect(const std::string* const base_path_override)
 {
     ASSERT(base_path_override == nullptr || *base_path_override == PortableFunctions::PathToForwardSlash(*base_path_override));
 
@@ -298,7 +298,9 @@ std::string DropboxConnection::Connect(std::string* const base_path_override)
 
         else
         {
-            m_basePath = PortableFunctions::PathEnsureTrailingForwardSlash(PortableFunctions::PathAppendForwardSlashToPath("/", std::move(*base_path_override)));
+            m_basePath = PortableFunctions::PathEnsureTrailingForwardSlash(
+                Path::CombineForwardSlash("/", *base_path_override)
+            );
         }
 
         return account_email;
@@ -722,7 +724,12 @@ std::string DropboxConnection::DropboxConnection::GetLocalDropboxDirectory(const
         PWSTR user_profile_path;
 
         if( SUCCEEDED(SHGetKnownFolderPath(FOLDERID_Profile, 0, nullptr, &user_profile_path)) )
+        {
             local_dropbox_directory = Path::Combine(TC::ToUtf8(user_profile_path), "Dropbox");
+
+            if( !PortableFunctions::FileIsDirectory(local_dropbox_directory) )
+                local_dropbox_directory.clear();
+        }
 
         CoTaskMemFree(user_profile_path);
     }
@@ -766,7 +773,7 @@ std::string DropboxConnection::GetLocalDropboxDirectoryFromInfoFilePath(const st
                 test("business");
         }
     }
-    catch(...) { ASSERT(false); }
+    catch(...) { ASSERT(!PortableFunctions::FileIsRegular(local_dropbox_info_file_path)); }
 
     return local_dropbox_directory;
 }
