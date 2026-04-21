@@ -9,6 +9,7 @@ buildscript {
         mavenCentral()
         google()
     }
+
     dependencies {
         classpath "com.android.tools.build:gradle:$agp_version"
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
@@ -20,4 +21,7 @@ allprojects {
         mavenCentral()
         google()
     }
+
+    // Use the same build folder as the Visual Studio builds
+    layout.buildDirectory.set(file("${rootProject.projectDir}/../build/Android/${project.name}"))
 }
