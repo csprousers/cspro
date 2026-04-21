@@ -19,18 +19,17 @@ std::string CredentialStore::PrefixAttribute(const std::string_view attribute_sv
 
 void CredentialStore::Store(const std::string_view attribute_sv, const std::string& secret_value)
 {
-    std::wstring wide_prefixed_attribute = TC::ToWide(PrefixAttribute(attribute_sv));
-    std::wstring wide_secret_value = TC::ToWide(secret_value);
+    const std::wstring wide_prefixed_attribute = TC::ToWide(PrefixAttribute(attribute_sv));
 
-    CREDENTIAL cred = { 0 };
+    CREDENTIAL cred { 0 };
     cred.Type = CRED_TYPE_GENERIC;
-    cred.TargetName = wide_prefixed_attribute.data();
-    cred.CredentialBlobSize = uint32_cast(secret_value.size() * sizeof(wchar_t));
-    cred.CredentialBlob = reinterpret_cast<LPBYTE>(wide_secret_value.data());
+    cred.TargetName = const_cast<wchar_t*>(wide_prefixed_attribute.data());
+    cred.CredentialBlobSize = uint32_cast(secret_value.length());
+    cred.CredentialBlob = reinterpret_cast<LPBYTE>(const_cast<char*>(secret_value.data()));
     cred.Persist = CRED_PERSIST_LOCAL_MACHINE;
     cred.UserName = nullptr;
 
-    CredWrite(&cred, 0);
+    VERIFY(CredWrite(&cred, 0));
 }
 
 
@@ -42,13 +41,32 @@ std::string CredentialStore::Retrieve(const std::string_view attribute_sv)
 
     if( CredRead(wide_prefixed_attribute.c_str(), CRED_TYPE_GENERIC, 0, &credential) )
     {
-        std::string secret_value = TC::ToUtf8(reinterpret_cast<const wchar_t*>(credential->CredentialBlob), credential->CredentialBlobSize / sizeof(wchar_t));
+        std::string secret_value = ParseCredentialBlob(*credential);
         CredFree(credential);
         return secret_value;
     }
 
     return std::string();
 }
+
+
+template<typename CredentialT>
+std::string CredentialStore::ParseCredentialBlob(const CredentialT& credential)
+{
+    // convert credentials stored prior to CSPro 8.1, which were stored as wide characters
+    if( credential.CredentialBlobSize > 1 &&
+        credential.CredentialBlob[1] == '\0' )
+    {
+        return TC::ToUtf8(reinterpret_cast<const wchar_t*>(credential.CredentialBlob),
+                          credential.CredentialBlobSize / sizeof(wchar_t));
+    }
+
+    // CSPro 8.1+ credentials are stored in UTF-8
+    return std::string(reinterpret_cast<const char*>(credential.CredentialBlob),
+                       credential.CredentialBlobSize);
+}
+
+template CLASS_DECL_ZUTILO std::string CredentialStore::ParseCredentialBlob(const CREDENTIAL& credential);
 
 
 #else
