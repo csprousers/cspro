@@ -63,7 +63,6 @@
     <string name="engine_gps_time_remaining">Temps restant</string>
     <string name="engine_showlist_select">Sélectionner</string>
     <string name="searchview_prompt">Recherche</string>
-    <string name="about_creators">&lt;Html&gt; L’application  CSEntry est conçue par le &lt;a   href="http://www.census.gov"&gt; U.S. Census Bureau &lt;/a&gt;. Le financement pour le développement de ce programme provient de l’Agence Américaine pour le Développement International (USAID). &lt;/ Html&gt;</string>
     <string name="about_disclaimer">&lt;Html&gt; CSEntry est le moteur d’exécution sous Android pour les applications créées à l’aide de CSPro. (&lt;a href="https://www.census.gov/data/software/cspro.html"&gt; CSPro &lt;/a&gt; ). Tous les éléments des applications créées par un utilisateur sont la propriété du créateur. Les développeurs de CSEntry ne sont en aucun cas responsables des programmes d’enquêtes utilisant cette application android, ou de toutes conséquences souhaitées ou non résultant de l’usage de cette application Android. &lt;/ Html&gt;</string>
     <string name="about_csentry_globe_icon_desc">Visiter le Site Web de CSPro</string>
     <string name="about_version">Version: %1$s (Français)</string>
