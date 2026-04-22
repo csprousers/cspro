@@ -166,6 +166,23 @@ UserFunction* LogicCompiler::CompileUserFunction(const bool compiling_function_p
                                       parameters_type.value_or(UserFunctionParametersType::All));
 
 
+        // if defining a special function, check that the function matches the syntax expected
+        if( special_function != nullptr )
+        {
+            const bool return_value_is_invalid = ( special_function->returns != user_function->GetReturnType() );
+
+            if( return_value_is_invalid ||
+                !special_function->ValidateParameters(user_function->GetParameterSymbolTypes()) )
+            {
+                IssueError(
+                    MGF::SpecialFunction_invalid_syntax_9113,
+                    return_value_is_invalid ? "return value is" : "parameters are",
+                    special_function->name
+                );
+            }
+        }
+
+
         // if compiling a function pointer, we are done now that the function declaration
         // has been read, but some symbols may need to be modified because we do not know
         // exactly what will be assigned to them

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 
 namespace MGF
@@ -154,6 +154,7 @@ namespace MGF
     constexpr int Query_paradata_concat_invalid_output_argument_8275        =   8275;
 
     constexpr int SpecialFunction_invalid_case_9112                         =   9112;
+    constexpr int SpecialFunction_invalid_syntax_9113                       =   9113;
 
     constexpr int CS_action_missing_9201                                    =   9201;
     constexpr int CS_action_invalid_9202                                    =   9202;

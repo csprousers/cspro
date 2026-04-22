@@ -1,7 +1,7 @@
 #pragma once
 
 #include <zLogicO/zLogicO.h>
-#include <zToolsO/EnumHelpers.h>
+#include <zLogicO/SymbolType.h>
 
 
 namespace SpecialFunction
@@ -25,18 +25,16 @@ namespace SpecialFunction
         const char* name;
         const char* const help_filename;
         Code code;
+        SymbolType returns;
+
+        // Validates the parameters, returning true when valid.
+        ZLOGICO_API bool ValidateParameters(const std::vector<SymbolType>& parameter_symbol_types) const noexcept;
     };
 
     // Returns the definitions of all special functions.
-    const std::vector<Definition>& GetDefinitions();
+    ZLOGICO_API const std::vector<Definition>& GetDefinitions() noexcept;
 
     // Returns the definition for the function, matched in a case-insensitive manner,
     // returning null if the function name does not match any special function.
-    ZLOGICO_API const Definition* Lookup(std::string_view function_name_sv);
+    ZLOGICO_API const Definition* Lookup(std::string_view function_name_sv) noexcept;
 }
-
-
-template<> constexpr SpecialFunction::Code FirstInEnum<SpecialFunction::Code>() { return SpecialFunction::Code::GlobalOnFocus;         }
-template<> constexpr SpecialFunction::Code LastInEnum<SpecialFunction::Code>()  { return SpecialFunction::Code::OnActionInvokerResult; }
-
-ZLOGICO_API const char* ToString(SpecialFunction::Code special_function);
