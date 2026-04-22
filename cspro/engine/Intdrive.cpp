@@ -1206,7 +1206,7 @@ const std::vector<UserFunction*>& CIntDriver::GetSpecialFunctions()
 {
     if( m_specialFunctions.empty() )
     {
-        auto validate_special_function = [&](const SpecialFunction special_function) -> UserFunction*
+        auto validate_special_function = [&](const SpecialFunction::Code special_function) -> UserFunction*
         {
             const char* const special_function_name = ToString(special_function);
             UserFunction* user_function = nullptr;
@@ -1231,8 +1231,8 @@ const std::vector<UserFunction*>& CIntDriver::GetSpecialFunctions()
             constexpr SymbolType string_type = SymbolType::WorkString;
 
             // all functions return numbers (except for OnSyncMessage and OnActionInvokerResult)
-            const bool function_is_OnSyncMessage = ( special_function == SpecialFunction::OnSyncMessage );
-            const bool function_is_OnActionInvokerResult = ( special_function == SpecialFunction::OnActionInvokerResult );
+            const bool function_is_OnSyncMessage = ( special_function == SpecialFunction::Code::OnSyncMessage );
+            const bool function_is_OnActionInvokerResult = ( special_function == SpecialFunction::Code::OnActionInvokerResult );
             const SymbolType expected_return_type = ( function_is_OnSyncMessage || function_is_OnActionInvokerResult ) ? string_type : numeric_type;
 
             if( user_function->GetReturnType() != expected_return_type )
@@ -1280,19 +1280,19 @@ const std::vector<UserFunction*>& CIntDriver::GetSpecialFunctions()
             }
 
             // OnSystemMessage has at least one parameter (up to two numeric parameters and up to one string parameter)
-            else if( special_function == SpecialFunction::OnSystemMessage )
+            else if( special_function == SpecialFunction::Code::OnSystemMessage )
             {
                 valid = ( !parameter_symbol_indices.empty() && check_parameters(0, 2, 0, 1) );
             }
 
             // OnRefused doesn't have any parameters
-            else if( special_function == SpecialFunction::OnRefused )
+            else if( special_function == SpecialFunction::Code::OnRefused )
             {
                 valid = check_parameters(0, 0, 0, 0);
             }
 
             // OnViewQuestionnaire has one optional string parameter
-            else if( special_function == SpecialFunction::OnViewQuestionnaire )
+            else if( special_function == SpecialFunction::Code::OnViewQuestionnaire )
             {
                 valid = check_parameters(0, 0, 0, 1);
             }
@@ -1309,8 +1309,8 @@ const std::vector<UserFunction*>& CIntDriver::GetSpecialFunctions()
 
 
         // check which of the special functions exists
-        for( SpecialFunction special_function = FirstInEnum<SpecialFunction>();
-             special_function <= LastInEnum<SpecialFunction>();
+        for( SpecialFunction::Code special_function = FirstInEnum<SpecialFunction::Code>();
+             special_function <= LastInEnum<SpecialFunction::Code>();
              IncrementEnum(special_function) )
         {
             m_specialFunctions.emplace_back(validate_special_function(special_function));
@@ -1321,17 +1321,17 @@ const std::vector<UserFunction*>& CIntDriver::GetSpecialFunctions()
 }
 
 
-bool CIntDriver::HasSpecialFunction(const SpecialFunction special_function)
+bool CIntDriver::HasSpecialFunction(const SpecialFunction::Code special_function)
 {
     return ( GetSpecialFunctions()[static_cast<size_t>(special_function)] != nullptr );
 }
 
 
-double CIntDriver::ExecSpecialFunction(const int iSymVar, const SpecialFunction special_function,
+double CIntDriver::ExecSpecialFunction(const int iSymVar, const SpecialFunction::Code special_function,
                                        std::vector<std::variant<double, SharableString>> arguments)
 {
-    const DataType return_type = ( special_function == SpecialFunction::OnSyncMessage ||
-                                   special_function == SpecialFunction::OnActionInvokerResult ) ? DataType::String : DataType::Numeric;
+    const DataType return_type = ( special_function == SpecialFunction::Code::OnSyncMessage ||
+                                   special_function == SpecialFunction::Code::OnActionInvokerResult ) ? DataType::String : DataType::Numeric;
 
     UserFunction* const user_function = GetSpecialFunctions()[static_cast<size_t>(special_function)];
 
@@ -1351,7 +1351,7 @@ double CIntDriver::ExecSpecialFunction(const int iSymVar, const SpecialFunction 
     // now only allow this in OnSystemMessage because that is an obscure feature (and if
     // m_iExSymbol is 0, we will activate the special function checking that keeps things
     // like movement statements from executing)
-    if( iSymVar <= 0 && special_function != SpecialFunction::OnSystemMessage )
+    if( iSymVar <= 0 && special_function != SpecialFunction::Code::OnSystemMessage )
         return AssignInvalidValue(return_type);
 
     const RAII::SetValueAndRestoreOnDestruction proc_type_modifier(m_procType, ProcType::OnFocus);
@@ -1363,7 +1363,7 @@ double CIntDriver::ExecSpecialFunction(const int iSymVar, const SpecialFunction 
 
     SetRequestIssued( false ); // reset RequestIssued// RHF Dec 03, 2003
 
-    m_bExecSpecFunc = ( special_function == SpecialFunction::GlobalOnFocus || m_iExSymbol <= 0 );
+    m_bExecSpecFunc = ( special_function == SpecialFunction::Code::GlobalOnFocus || m_iExSymbol <= 0 );
 
     NumericStringValuesOnlyUserFunctionArgumentEvaluator<false> argument_evaluator(std::move(arguments));
     const double return_value = CallUserFunction(*user_function, argument_evaluator);
@@ -1378,7 +1378,7 @@ double CIntDriver::ExecSpecialFunction(const int iSymVar, const SpecialFunction 
 
 bool CIntDriver::ExecuteOnSystemMessage(const MessageType message_type, const int message_number, const std::string& message_text)
 {
-    const UserFunction* const user_function = GetSpecialFunctions()[static_cast<size_t>(SpecialFunction::OnSystemMessage)];
+    const UserFunction* const user_function = GetSpecialFunctions()[static_cast<size_t>(SpecialFunction::Code::OnSystemMessage)];
     ASSERT(user_function != nullptr);
 
     // OnSystemMessage can have one to three arguments (up to two numerics and one string);
@@ -1418,7 +1418,7 @@ bool CIntDriver::ExecuteOnSystemMessage(const MessageType message_type, const in
 
     if( ++infinite_loop_prevention <= RecursionCountMax )
     {
-        issue_message = ( ExecSpecialFunction(m_iExSymbol, SpecialFunction::OnSystemMessage, arguments) != 0 );
+        issue_message = ( ExecSpecialFunction(m_iExSymbol, SpecialFunction::Code::OnSystemMessage, arguments) != 0 );
         --infinite_loop_prevention;
     }
 
@@ -1434,8 +1434,8 @@ void CIntDriver::RunGlobalOnFocus(const int symbol_index)
     ASSERT(NPT_Ref(symbol_index).IsA(SymbolType::Variable));
 
     // run On_Focus
-    if( HasSpecialFunction(SpecialFunction::GlobalOnFocus) )
-        ExecSpecialFunction(symbol_index, SpecialFunction::GlobalOnFocus, { double(symbol_index) });
+    if( HasSpecialFunction(SpecialFunction::Code::GlobalOnFocus) )
+        ExecSpecialFunction(symbol_index, SpecialFunction::Code::GlobalOnFocus, { double(symbol_index) });
 
     // when the field specifies a particular keyboard to use, update the keyboard input
     m_keyboardLoader->Activate(VPT(symbol_index)->GetKeyboardLayoutId());

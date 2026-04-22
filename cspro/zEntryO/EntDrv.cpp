@@ -1,4 +1,4 @@
-﻿//---------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 //  File name: EntDrv.cpp
 //
 //  Description:
@@ -966,10 +966,10 @@ void CEntryDriver::ViewCurrentCase()
 
     // if the user has specified an OnViewQuestionnaire function, it should be executed
     // with the return value indicating whether to show the default case view
-    if( m_pIntDriver->HasSpecialFunction(SpecialFunction::OnViewQuestionnaire) )
+    if( m_pIntDriver->HasSpecialFunction(SpecialFunction::Code::OnViewQuestionnaire) )
     {
         const double return_value = m_pIntDriver->ExecSpecialFunction(pVarT->GetSymbolIndex(),
-                                                                      SpecialFunction::OnViewQuestionnaire,
+                                                                      SpecialFunction::Code::OnViewQuestionnaire,
                                                                       { pDicT->GetName() });
 
         // return if the user wants to suppress showing the current case

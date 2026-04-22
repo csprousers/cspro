@@ -927,13 +927,13 @@ bool CRunAplEntry::PartialSaveCase(APP_MODE defaultMode, bool bClearSkipped)
 }
 
 
-bool CRunAplEntry::HasSpecialFunction(const SpecialFunction special_function)
+bool CRunAplEntry::HasSpecialFunction(const SpecialFunction::Code special_function)
 {
     return m_pEntryIFaz->HasSpecialFunction(special_function);
 }
 
 
-double CRunAplEntry::ExecSpecialFunction(const SpecialFunction special_function, double const argument/* = 0*/)
+double CRunAplEntry::ExecSpecialFunction(const SpecialFunction::Code special_function, double const argument/* = 0*/)
 {
     const int symbol_index = m_pCurEngineField ? m_pCurEngineField->GetSymbol() : -1;
 
@@ -1015,8 +1015,8 @@ bool CRunAplEntry::ChangeLanguage()
 
     m_pEntryIFaz->SetCurrentLanguage(languages[choice_dlg.GetSelectedChoiceIndex()].GetName());
 
-    if( HasSpecialFunction(SpecialFunction::OnChangeLanguage) )
-        ExecSpecialFunction(SpecialFunction::OnChangeLanguage, 0);
+    if( HasSpecialFunction(SpecialFunction::Code::OnChangeLanguage) )
+        ExecSpecialFunction(SpecialFunction::Code::OnChangeLanguage, 0);
 
     return true;
 }
@@ -1330,7 +1330,7 @@ bool CRunAplEntry::ProcessModify(double dPositionInRepository, bool* pbMoved, Pa
         pEntryDriver->SetPartialMode(eAppMode);
 
         // query the user if they want to move to the last position, though having an OnStop function disables this functionality
-        if( data_case.GetPartialSaveCaseItemReference() != nullptr && !HasSpecialFunction(SpecialFunction::OnStop) )
+        if( data_case.GetPartialSaveCaseItemReference() != nullptr && !HasSpecialFunction(SpecialFunction::Code::OnStop) )
         {
             const SharableString partial_save_last_position_query = MGF::GetMessageText(MGF::PartialSaveGotoLastPosition);
 

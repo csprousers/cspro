@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 //////////////////////////////////////////////////////////////////////
 // RunAplE.h: interface for CRunAplEntry class.
@@ -447,8 +447,8 @@ public:
     // --- for CsDriver only                    <end>   // victor Feb 20, 02
 
 
-    bool HasSpecialFunction(SpecialFunction special_function);
-    double ExecSpecialFunction(SpecialFunction special_function, double argument = 0);
+    bool HasSpecialFunction(SpecialFunction::Code special_function);
+    double ExecSpecialFunction(SpecialFunction::Code special_function, double argument = 0);
 
     void SetProgressForPreEntrySkip(); // 20130415
 

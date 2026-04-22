@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zEngineO/zEngineO.h>
 #include <zEngineO/EngineData.h>
@@ -18,7 +18,6 @@ class EngineParadataDriver;
 enum FunctionCode : int;
 class PortableColor;
 class JsonReaderInterface;
-enum class SpecialFunction : int;
 class UserFunctionArgumentEvaluator;
 class VirtualFileMappingHandler;
 namespace ActionInvoker { class Caller; class Runtime; }
@@ -26,6 +25,7 @@ namespace JavaScript { class Value; }
 namespace Nodes { struct ItemSubscript; struct List; struct SymbolComputeWithSubscript;
                   struct SymbolVariableArgumentsWithSubscript; struct SymbolValue; }
 namespace Paradata { class Event; }
+namespace SpecialFunction { enum class Code : int; }
 
 
 class ZENGINEO_API LogicInterpreter
@@ -731,8 +731,8 @@ private:
     virtual bool AssignValueToSymbol_INTERPRETER_DLL_TODO(const Nodes::SymbolValue& symbol_value_node, double value) = 0;
     virtual bool AssignValueToSymbol_INTERPRETER_DLL_TODO(const Nodes::SymbolValue& symbol_value_node, SharableString value) = 0;
     virtual double RunSoonToBeRemoveFeature(std::string_view feature_sv, int program_index, void* tag) = 0;
-    virtual bool HasSpecialFunction(SpecialFunction special_function) = 0; // INTERPRETER_DLL_TODO remove as virtual
-    virtual double ExecSpecialFunction(int symbol_index, SpecialFunction special_function, std::vector<std::variant<double, SharableString>> arguments) = 0; // INTERPRETER_DLL_TODO remove as virtual
+    virtual bool HasSpecialFunction(SpecialFunction::Code special_function) = 0; // INTERPRETER_DLL_TODO remove as virtual
+    virtual double ExecSpecialFunction(int symbol_index, SpecialFunction::Code special_function, std::vector<std::variant<double, SharableString>> arguments) = 0; // INTERPRETER_DLL_TODO remove as virtual
     virtual int Get_m_iExSymbol_INTERPRETER_DLL_TODO() = 0;
     virtual Symbol* GetFromSymbolOrEngineItemWorker_INTERPRETER_DLL_TODO(const SymbolReference<Symbol*>& symbol_reference, bool use_exceptions) = 0;
     virtual std::shared_ptr<Symbol> GetFromSymbolOrEngineItemWorker_INTERPRETER_DLL_TODO(const SymbolReference<std::shared_ptr<Symbol>>& symbol_reference, bool use_exceptions) = 0;

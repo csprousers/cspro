@@ -1,46 +1,42 @@
-﻿#pragma once
+#pragma once
 
+#include <zLogicO/zLogicO.h>
 #include <zToolsO/EnumHelpers.h>
 
 
-enum class SpecialFunction : int
+namespace SpecialFunction
 {
-    GlobalOnFocus,
-    OnStop,
-    OnKey,
-    OnChar,
-    OnChangeLanguage,
-    OnSyncMessage,
-    OnRefused,
-    OnSystemMessage,
-    OnViewQuestionnaire,
-    OnActionInvokerResult,
-};
+    enum class Code : int
+    {
+        GlobalOnFocus,
+        OnStop,
+        OnKey,
+        OnChar,
+        OnChangeLanguage,
+        OnSyncMessage,
+        OnRefused,
+        OnSystemMessage,
+        OnViewQuestionnaire,
+        OnActionInvokerResult,
+    };
 
-template<> constexpr SpecialFunction FirstInEnum<SpecialFunction>() { return SpecialFunction::GlobalOnFocus;         }
-template<> constexpr SpecialFunction LastInEnum<SpecialFunction>()  { return SpecialFunction::OnActionInvokerResult; }
+    struct Definition
+    {
+        const char* name;
+        const char* const help_filename;
+        Code code;
+    };
 
+    // Returns the definitions of all special functions.
+    const std::vector<Definition>& GetDefinitions();
 
-constexpr const char* SpecialFunctionNames[] =
-{
-    "On_Focus",
-    "OnStop",
-    "OnKey",
-    "OnChar",
-    "OnChangeLanguage",
-    "OnSyncMessage",
-    "OnRefused",
-    "OnSystemMessage",
-    "OnViewQuestionnaire",
-    "OnActionInvokerResult",
-};
-
-static_assert(_countof(SpecialFunctionNames) == ( 1 + static_cast<size_t>(LastInEnum<SpecialFunction>()) ));
-
-
-constexpr const char* ToString(SpecialFunction special_function)
-{
-    const size_t index = static_cast<size_t>(special_function);
-    ASSERT(index >= 0 && index < _countof(SpecialFunctionNames));
-    return SpecialFunctionNames[index];
+    // Returns the definition for the function, matched in a case-insensitive manner,
+    // returning null if the function name does not match any special function.
+    ZLOGICO_API const Definition* Lookup(std::string_view function_name_sv);
 }
+
+
+template<> constexpr SpecialFunction::Code FirstInEnum<SpecialFunction::Code>() { return SpecialFunction::Code::GlobalOnFocus;         }
+template<> constexpr SpecialFunction::Code LastInEnum<SpecialFunction::Code>()  { return SpecialFunction::Code::OnActionInvokerResult; }
+
+ZLOGICO_API const char* ToString(SpecialFunction::Code special_function);

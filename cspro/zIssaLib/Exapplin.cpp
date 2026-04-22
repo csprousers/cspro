@@ -1,4 +1,4 @@
-﻿//-----------------------------------------------------------------------//
+//-----------------------------------------------------------------------//
 //                                                                       //
 //  exapplinit: common initialization tasks for entry & batch processors //
 //                                                                       //
@@ -176,7 +176,7 @@ bool CEngineDriver::exapplinit()
                 m_pApplication->GetApplicationLoader()->ProcessUserMessagesPostCompile(*m_userMessageManager);
             }
 
-            if( m_pIntDriver->HasSpecialFunction(SpecialFunction::OnSystemMessage) )
+            if( m_pIntDriver->HasSpecialFunction(SpecialFunction::Code::OnSystemMessage) )
                 UpdateMessageIssuers(true);
         }
 

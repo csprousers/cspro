@@ -1,4 +1,4 @@
-﻿// CEdit.cpp : implementation file
+// CEdit.cpp : implementation file
 //
 
 #include "StdAfx.h"
@@ -876,14 +876,14 @@ void CDEEdit::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
 
     CRunAplEntry* pRunApl = GetRunAplEntry();
 
-    if( pRunApl && pRunApl->HasSpecialFunction(SpecialFunction::OnChar) ) // 20120207
+    if( pRunApl && pRunApl->HasSpecialFunction(SpecialFunction::Code::OnChar) ) // 20120207
     {
         // don't run this if there is a move pending (this could happen with, for example, chinese, because the user will have entered
         // several characters and then they'll be fed rapid fire to OnChar without the previous move having executed)
         if( pRunApl->HasSomeRequest() )
             return;
 
-        double dNewCharCtl = pRunApl->ExecSpecialFunction(SpecialFunction::OnChar, nChar);
+        double dNewCharCtl = pRunApl->ExecSpecialFunction(SpecialFunction::Code::OnChar, nChar);
 
         if( pRunApl->HasSomeRequest() )
         {

@@ -1,4 +1,4 @@
-﻿// DEBaseEdit.cpp : implementation file
+// DEBaseEdit.cpp : implementation file
 //
 
 #include "StdAfx.h"
@@ -100,7 +100,7 @@ UINT CDEBaseEdit::RemapChar( CRunAplEntry* pRunApl, UINT nChar, int* iCtrlFlags)
 {
     *iCtrlFlags = -1;
 
-    if( pRunApl != NULL && pRunApl->HasSpecialFunction(SpecialFunction::OnKey) ) {
+    if( pRunApl != NULL && pRunApl->HasSpecialFunction(SpecialFunction::Code::OnKey) ) {
         /*m_bShift  = ( GetKeyState(VK_SHIFT) < 0 );
         m_bControl= ( GetKeyState(VK_CONTROL) < 0 );
         m_bAlt    = ( GetKeyState(VK_MENU) < 0 );*/
@@ -126,7 +126,7 @@ UINT CDEBaseEdit::RemapChar( CRunAplEntry* pRunApl, UINT nChar, int* iCtrlFlags)
         if( bPressedHelpKey )
             m_bTrapNextHelp = true;
 
-        double dNewCharCtl = pRunApl->ExecSpecialFunction(SpecialFunction::OnKey, iCharCtrl);
+        double dNewCharCtl = pRunApl->ExecSpecialFunction(SpecialFunction::Code::OnKey, iCharCtrl);
 
         if( bPressedHelpKey && dNewCharCtl == 112 ) // the user isn't overriding help
             m_bTrapNextHelp = false;
@@ -367,7 +367,7 @@ BOOL CDEBaseEdit::PreTranslateMessage(MSG* pMsg)
 
         pRunApl->StopIfNecessary(); // 20121023 a stop executed in OnKey was being (temporarily) ignored
 
-        if (pRunApl->HasSpecialFunction(SpecialFunction::OnKey)) {  // BMD 21 Jan 2004
+        if (pRunApl->HasSpecialFunction(SpecialFunction::Code::OnKey)) {  // BMD 21 Jan 2004
             m_iRemappedKeyChar = nChar;
             m_iRemappedKeyDown = nChar;
         }

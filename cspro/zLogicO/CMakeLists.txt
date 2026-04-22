@@ -12,6 +12,7 @@ add_library(${PROJECT_NAME}
     Preprocessor.cpp
     ReservedWords.cpp
     SourceBuffer.cpp
+    SpecialFunction.cpp
     Symbol.cpp
     SymbolTable.cpp
     SymbolType.cpp

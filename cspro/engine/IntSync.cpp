@@ -1,4 +1,4 @@
-﻿#include "StandardSystemIncludes.h"
+#include "StandardSystemIncludes.h"
 #include "Interpreter.h"
 #include <zToolsO/Encoders.h>
 #include <zLogicO/SpecialFunction.h>
@@ -90,11 +90,11 @@ namespace
 
         std::optional<SharableString> OnSyncMessage(const SyncMessage& sync_message) override
         {
-            if( !m_interpreter.HasSpecialFunction(SpecialFunction::OnSyncMessage) )
+            if( !m_interpreter.HasSpecialFunction(SpecialFunction::Code::OnSyncMessage) )
                 return std::nullopt;
 
             const double message_response = m_interpreter.ExecSpecialFunction(m_fieldSymbolIndex,
-                                                                              SpecialFunction::OnSyncMessage,
+                                                                              SpecialFunction::Code::OnSyncMessage,
                                                                               { sync_message.GetName(), sync_message.GetValueForOnSyncMessage() });
 
             return m_interpreter.GetWorkingSharableString(static_cast<size_t>(message_response));

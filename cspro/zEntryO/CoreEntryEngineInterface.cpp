@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include <zPlatformO/PlatformInterface.h>
 #include "CoreEntryEngineInterface.h"
 #include "CoreEntryPage.h"
@@ -723,9 +723,9 @@ void CoreEntryEngineInterface::OnStop()
 void CoreEntryEngineInterface::RunUserTriggedStop()
 {
     // if the application has an OnStop function, run it
-    if( m_pRunAplEntry->HasSpecialFunction(SpecialFunction::OnStop) )
+    if( m_pRunAplEntry->HasSpecialFunction(SpecialFunction::Code::OnStop) )
     {
-        m_pRunAplEntry->ExecSpecialFunction(SpecialFunction::OnStop, 0);
+        m_pRunAplEntry->ExecSpecialFunction(SpecialFunction::Code::OnStop, 0);
 
         bool bCancelStop = m_pRunAplEntry->HasSomeRequest() && !m_pRunAplEntry->IsEndingModifyMode();
 
@@ -857,8 +857,8 @@ void CoreEntryEngineInterface::ChangeLanguage()
     // change the language
     m_pRunAplEntry->SetCurrentLanguage(languages[iLanguageChoice - 1].GetName());
 
-    if( m_pRunAplEntry->HasSpecialFunction(SpecialFunction::OnChangeLanguage) )
-        m_pRunAplEntry->ExecSpecialFunction(SpecialFunction::OnChangeLanguage, 0);
+    if( m_pRunAplEntry->HasSpecialFunction(SpecialFunction::Code::OnChangeLanguage) )
+        m_pRunAplEntry->ExecSpecialFunction(SpecialFunction::Code::OnChangeLanguage, 0);
 
     ProcessPossibleRequests();
 }

@@ -968,8 +968,8 @@ void CMainFrame::OnStop(bool* close_csentry_after_stopping)
     if (appMode == ADD_MODE || appMode == MODIFY_MODE || appMode == VERIFY_MODE) {
    // RHF END  Dec 11, 2003 BUCEN_DEC2003 Changes
         bool    bStopFromApp=(pDoc->GetCurField()==NULL);// RHF Feb 23, 2004
-        bool    bHasStopFunction=pRunApl->HasSpecialFunction(SpecialFunction::OnStop);
-        bool    bCancelStop = !bStopFromApp && bHasStopFunction && (pRunApl->ExecSpecialFunction(SpecialFunction::OnStop) == 0); // RHF Feb 23, 2004 Add  !bStopFromApp
+        bool    bHasStopFunction=pRunApl->HasSpecialFunction(SpecialFunction::Code::OnStop);
+        bool    bCancelStop = !bStopFromApp && bHasStopFunction && (pRunApl->ExecSpecialFunction(SpecialFunction::Code::OnStop) == 0); // RHF Feb 23, 2004 Add  !bStopFromApp
 
         if( !bStopFromApp && bHasStopFunction && pRunApl->HasSomeRequest() // RHF Feb 23, 2004 Add  !bStopFromApp
                                               && !pRunApl->IsEndingModifyMode() ) { // 20110222 added !IsEndingModifyMode
@@ -3937,8 +3937,8 @@ void CMainFrame::OnLanguage()
             pRunApl->SetCurrentLanguage(languages[iLanguage].GetName());
 
             // 20130306 adding the OnChangeLanguage function (in logic)
-            if( pRunApl->HasSpecialFunction(SpecialFunction::OnChangeLanguage) )
-                pRunApl->ExecSpecialFunction(SpecialFunction::OnChangeLanguage);
+            if( pRunApl->HasSpecialFunction(SpecialFunction::Code::OnChangeLanguage) )
+                pRunApl->ExecSpecialFunction(SpecialFunction::Code::OnChangeLanguage, 0);
 
             language_changed = true;
         }

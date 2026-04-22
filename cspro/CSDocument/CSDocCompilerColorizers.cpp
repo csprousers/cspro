@@ -7,6 +7,7 @@
 #include <zLogicO/ContextSensitiveHelp.h>
 #include <zLogicO/FunctionTable.h>
 #include <zLogicO/ReservedWords.h>
+#include <zLogicO/SpecialFunction.h>
 #include <zLogicO/Symbol.h>
 #include <zEditO/ScintillaColorizer.h>
 
@@ -206,7 +207,7 @@ std::optional<std::tuple<SymbolType, char>> HelpsHtmlProcessor::GetSymbolTypeAnd
     if( symbol_type_lookup != symbol_declaration_text_map.cend() )
         return std::make_tuple(symbol_type_lookup->second, static_cast<char>(SCE_CSPRO_KEYWORD));
 
-    if( Logic::ReservedWords::GetSpecialFunctions().IsEntry(symbol_type_name, nullptr) )
+    if( SpecialFunction::Lookup(symbol_type_name) != nullptr )
         return std::make_tuple(SymbolType::UserFunction, static_cast<char>(SCE_CSPRO_IDENTIFIER));
 
     if( symbol_type_name == CaseSymbolDomainText )

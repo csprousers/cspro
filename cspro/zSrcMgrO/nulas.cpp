@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "Wcompile.h"
 #include <engine/StandardSystemIncludes.h>
 #include <engine/Interpreter.h>
@@ -38,8 +38,8 @@ void CIntDriver::ModifySymbolValue_double_INTERPRETER_DLL_TODO(const Nodes::Symb
 bool CIntDriver::AssignValueToSymbol_INTERPRETER_DLL_TODO(const Nodes::SymbolValue& symbol_value_node, double value) { return ReturnProgrammingError(false); }
 bool CIntDriver::AssignValueToSymbol_INTERPRETER_DLL_TODO(const Nodes::SymbolValue& symbol_value_node, SharableString value) { return ReturnProgrammingError(false); }
 double CIntDriver::RunSoonToBeRemoveFeature(std::string_view feature_sv, int program_index, void* tag) { return ReturnProgrammingError(0.0); }
-bool CIntDriver::HasSpecialFunction(SpecialFunction special_function) { return ReturnProgrammingError(false); }
-double CIntDriver::ExecSpecialFunction(int symbol_index, SpecialFunction special_function, std::vector<std::variant<double, SharableString>> arguments) { return ReturnProgrammingError(DEFAULT); }
+bool CIntDriver::HasSpecialFunction(SpecialFunction::Code special_function) { return ReturnProgrammingError(false); }
+double CIntDriver::ExecSpecialFunction(int symbol_index, SpecialFunction::Code special_function, std::vector<std::variant<double, SharableString>> arguments) { return ReturnProgrammingError(DEFAULT); }
 Symbol* CIntDriver::GetFromSymbolOrEngineItemWorker_INTERPRETER_DLL_TODO(const SymbolReference<Symbol*>& symbol_reference, bool use_exceptions) { return ReturnProgrammingError(nullptr); }
 std::shared_ptr<Symbol> CIntDriver::GetFromSymbolOrEngineItemWorker_INTERPRETER_DLL_TODO(const SymbolReference<std::shared_ptr<Symbol>>& symbol_reference, bool use_exceptions)  { return ReturnProgrammingError(nullptr); }
 EvaluatedEngineItemSubscript CIntDriver::EvaluateEngineItemSubscript(const EngineItem& engine_item, const Nodes::ItemSubscript& item_subscript_node) { return ReturnProgrammingError(EvaluatedEngineItemSubscript()); }
