@@ -10,13 +10,13 @@
 #include <zNetwork/LoginAccessor.h>
 #include <zSyncO/ApplicationPackageManager.h>
 #include <zSyncO/BluetoothObexServer.h>
+#include <zSyncO/DialogBasedSyncListener.h>
 #include <zSyncO/IBluetoothAdapter.h>
 #include <zSyncO/SyncClient.h>
+#include <zSyncO/SyncLoginAccessor.h>
 #include <zSyncO/SyncMessage.h>
 #include <zSyncO/SyncObexHandler.h>
 #include <zSyncO/SyncServiceFactory.h>
-#include <zSyncF/DialogBasedSyncListener.h>
-#include <zSyncF/SyncLoginAccessor.h>
 #include <zParadataO/Logger.h>
 
 

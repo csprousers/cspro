@@ -1,10 +1,10 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "DeploymentPackageDownloader.h"
 #include <zPlatformO/PlatformInterface.h>
 #include <zMessageO/SystemMessageIssuer.h>
+#include <zSyncO/DialogBasedSyncListener.h>
+#include <zSyncO/SyncLoginAccessor.h>
 #include <zSyncO/SyncServiceFactory.h>
-#include <zSyncF/DialogBasedSyncListener.h>
-#include <zSyncF/SyncLoginAccessor.h>
 
 
 DeploymentPackageDownloader::DeploymentPackageDownloader(ApplicationPackageManager application_package_manager)

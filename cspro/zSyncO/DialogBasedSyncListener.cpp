@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "DialogBasedSyncListener.h"
 #include <zMessageO/SystemMessageIssuer.h>
 #include <zUtilF/ThreadedProgressDlg.h>
@@ -78,9 +78,6 @@ bool DialogBasedSyncListener::IsCanceled() const
 
 
 #else
-
-#include <zPlatformO/PlatformInterface.h>
-
 
 void DialogBasedSyncListener::OnStart(const std::string& message_text)
 {

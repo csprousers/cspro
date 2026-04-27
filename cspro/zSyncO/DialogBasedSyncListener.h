@@ -1,13 +1,13 @@
-﻿#pragma once
+#pragma once
 
-#include <zSyncF/zSyncF.h>
+#include <zSyncO/zSyncO.h>
 #include <zNetwork/SyncListener.h>
 
 class SystemMessageIssuer;
 class ThreadedProgressDlg;
 
 
-class ZSYNCF_API DialogBasedSyncListener : public SyncListener
+class SYNC_API DialogBasedSyncListener : public SyncListener
 {
 public:
     // if system_message_issuer is null, error messages will be displayed using ErrorMessage::Display

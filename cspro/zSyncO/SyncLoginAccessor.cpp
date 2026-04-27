@@ -1,12 +1,11 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "SyncLoginAccessor.h"
 
 #ifdef WIN_DESKTOP
 #include "ChooseBluetoothDeviceDialog.h"
 #else
-#include <zPlatformO/PlatformInterface.h>
-#include <zSyncO/IBluetoothAdapter.h>
-#include <zSyncO/ObexConstants.h>
+#include "IBluetoothAdapter.h"
+#include "ObexConstants.h"
 #endif
 
 

@@ -1,12 +1,12 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "SyncParamsDlg.h"
 #include <zUtilO/DynamicLayoutControlResizer.h>
 #include <zUtilO/WindowHelpers.h>
 #include <zNetwork/SyncCredentialStore.h>
+#include <zSyncO/DialogBasedSyncListener.h>
 #include <zSyncO/SyncClient.h>
+#include <zSyncO/SyncLoginAccessor.h>
 #include <zSyncO/SyncServiceFactory.h>
-#include <zSyncF/DialogBasedSyncListener.h>
-#include <zSyncF/SyncLoginAccessor.h>
 
 
 namespace

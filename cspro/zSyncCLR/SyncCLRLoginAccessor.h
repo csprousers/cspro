@@ -1,6 +1,6 @@
-﻿#pragma once
+#pragma once
 
-#include <zSyncF/SyncLoginAccessor.h>
+#include <zSyncO/SyncLoginAccessor.h>
 #include <vcclr.h>
 
 

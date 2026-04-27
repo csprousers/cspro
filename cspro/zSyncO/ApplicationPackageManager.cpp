@@ -1,10 +1,7 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "ApplicationPackageManager.h"
 #include "JsonConverter.h"
 #include <zToolsO/FileIO.h>
-#include <zToolsO/md5.h>
-#include <zUtilO/Interapp.h>
-#include <zUtilO/TemporaryFile.h>
 
 
 ApplicationPackageManager::ApplicationPackageManager(std::string root_directory)

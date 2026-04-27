@@ -21,6 +21,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="ApplicationPackage.h" />
+    <ClInclude Include="ApplicationPackageManager.h" />
     <ClInclude Include="AppSyncParamRunner.h" />
     <ClInclude Include="BarcodeCredentials.h" />
     <ClInclude Include="BluetoothChunk.h" />
@@ -29,7 +30,9 @@
     <ClInclude Include="BluetoothObexServer.h" />
     <ClInclude Include="BluetoothSyncService.h" />
     <ClInclude Include="CaseObservable.h" />
+    <ClInclude Include="ChooseBluetoothDeviceDialog.h" />
     <ClInclude Include="CSWebSyncService.h" />
+    <ClInclude Include="DialogBasedSyncListener.h" />
     <ClInclude Include="DropboxLocalSyncService.h" />
     <ClInclude Include="DropboxSyncService.h" />
     <ClInclude Include="ExponentialBackoff.h" />
@@ -51,18 +54,22 @@
     <ClInclude Include="ObexPacket.h" />
     <ClInclude Include="ObexPacketSerializer.h" />
     <ClInclude Include="ObexServer.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="SyncClient.h" />
     <ClInclude Include="SyncDictionaryInfo.h" />
     <ClInclude Include="SyncExceptionRethrower.h" />
     <ClInclude Include="SyncGetResponse.h" />
     <ClInclude Include="SyncLogCaseConstructionReporter.h" />
+    <ClInclude Include="SyncLoginAccessor.h" />
     <ClInclude Include="SyncMessage.h" />
     <ClInclude Include="SyncObexHandler.h" />
     <ClInclude Include="SyncPutResponse.h" />
     <ClInclude Include="SyncRunner.h" />
     <ClInclude Include="SyncRunnerActionInvoker.h" />
     <ClInclude Include="SyncServiceFactory.h" />
+    <ClInclude Include="SyncServiceSelectorDlg.h" />
+    <ClInclude Include="UWM.h" />
     <ClInclude Include="WinBluetoothAdapter.h" />
     <ClInclude Include="WinBluetoothNameSetter.h" />
     <ClInclude Include="WinBluetoothScanner.h" />
@@ -78,7 +85,9 @@
     <ClCompile Include="BluetoothObexConnection.cpp" />
     <ClCompile Include="BluetoothObexServer.cpp" />
     <ClCompile Include="BluetoothSyncService.cpp" />
+    <ClCompile Include="ChooseBluetoothDeviceDialog.cpp" />
     <ClCompile Include="CSWebSyncService.cpp" />
+    <ClCompile Include="DialogBasedSyncListener.cpp" />
     <ClCompile Include="DropboxLocalSyncService.cpp" />
     <ClCompile Include="DropboxSyncService.cpp" />
     <ClCompile Include="FileBasedParadataSyncer.cpp" />
@@ -98,15 +107,21 @@
     </ClCompile>
     <ClCompile Include="SyncClient.cpp" />
     <ClCompile Include="SyncDictionaryInfo.cpp" />
+    <ClCompile Include="SyncLoginAccessor.cpp" />
     <ClCompile Include="SyncMessage.cpp" />
     <ClCompile Include="SyncObexHandler.cpp" />
     <ClCompile Include="SyncRunner.cpp" />
     <ClCompile Include="SyncRunnerActionInvoker.cpp" />
     <ClCompile Include="SyncServiceFactory.cpp" />
+    <ClCompile Include="SyncServiceSelectorDlg.cpp" />
     <ClCompile Include="WinBluetoothAdapter.cpp" />
     <ClCompile Include="WinBluetoothNameSetter.cpp" />
     <ClCompile Include="WinBluetoothScanner.cpp" />
     <ClCompile Include="WinObexBluetoothTransport.cpp" />
+    <ClCompile Include="zSyncO.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="zSyncO.rc" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\zAppO\zAppO.vcxproj">
@@ -140,6 +155,9 @@
     <ProjectReference Include="..\zToolsO\zToolsO.vcxproj">
       <Project>{fb0e28ec-927d-41d0-996c-01c21a7a346b}</Project>
       <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zUtilF\zUtilF.vcxproj">
+      <Project>{40427473-971c-41ee-adeb-23795522e112}</Project>
     </ProjectReference>
     <ProjectReference Include="..\zUtilO\zUtilO.vcxproj">
       <Project>{9b29cb57-8263-4e12-8908-cc9641fdf0dc}</Project>

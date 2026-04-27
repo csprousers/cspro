@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <engine/StandardSystemIncludes.h>
 #include <StandardIncludes/strict_errors.h>
@@ -16,7 +16,7 @@
 #include <zNetwork/SyncException.h>
 #include <zNetwork/SyncLogSyncListener.h>
 #include <zCaseO/Case.h>
-#include <zSyncF/SyncLoginAccessor.h>
+#include <zSyncO/SyncLoginAccessor.h>
 
 // Headers for CppUnitTest
 #include <CppUnitTest.h>

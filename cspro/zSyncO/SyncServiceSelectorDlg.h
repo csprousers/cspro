@@ -1,13 +1,13 @@
-﻿#pragma once
+#pragma once
 
-#include <zSyncF/zSyncF.h>
+#include <zSyncO/zSyncO.h>
 #include <zUtilO/SyncConnectionString.h>
 #include <zUtilF/DialogValidators.h>
 
 
 // A child dialog, for embedding in other dialogs, that allows for selecting a sync service.
 
-class ZSYNCF_API SyncServiceSelectorDlg : public CDialog
+class SYNC_API SyncServiceSelectorDlg : public CDialog
 {
 public:
     SyncServiceSelectorDlg(cs::cref_optional<SyncConnectionString> sync_connection_string, CWnd* pParent = nullptr);

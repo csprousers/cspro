@@ -35,7 +35,6 @@ add_subdirectory(../zPlatformO zPlatformO)
 # add_subdirectory(../zReportO zReportO)
 # add_subdirectory(../zSortO zSortO)
 add_subdirectory(../zSql zSql)
-# add_subdirectory(../zSyncF zSyncF)
 # add_subdirectory(../zSyncO zSyncO)
 add_subdirectory(../zToolsO zToolsO)
 # add_subdirectory(../zUtilF zUtilF)
@@ -112,7 +111,6 @@ target_link_libraries(${PROJECT_NAME}
     # zReportO
     # zSortO
     zSql
-    # zSyncF
     # zSyncO
     zToolsO
     # zUtilF

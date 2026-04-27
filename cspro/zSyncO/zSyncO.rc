@@ -149,10 +149,10 @@ BEGIN
         BLOCK "040904b0"
         BEGIN
             VALUE "CompanyName", "U.S. Census Bureau"
-            VALUE "FileDescription", "zSyncF DLL"
+            VALUE "FileDescription", "zSyncO DLL"
             VALUE "FileVersion", "8.1.0.0"
-            VALUE "InternalName", "zSyncF"
-            VALUE "OriginalFilename", "zSyncF.DLL"
+            VALUE "InternalName", "zSyncO"
+            VALUE "OriginalFilename", "zSyncO.DLL"
             VALUE "ProductName", "CSPro 8.1"
             VALUE "ProductVersion", "8.1.0.0"
         END

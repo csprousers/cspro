@@ -1,9 +1,8 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "ChooseBluetoothDeviceDialog.h"
 #include <zUtilO/CustomFont.h>
 #include <zUtilO/Interapp.h>
 #include <zNetwork/SyncException.h>
-#include <zSyncO/WinBluetoothScanner.h>
 
 
 IMPLEMENT_DYNAMIC(ChooseBluetoothDeviceDialog, CDialog)
@@ -18,7 +17,7 @@ END_MESSAGE_MAP()
 ChooseBluetoothDeviceDialog::ChooseBluetoothDeviceDialog(WinBluetoothAdapter* const pAdapter, CWnd* const pParent/* = nullptr*/)
     :   CDialog(IDD_CHOOSE_BLUETOOTH_DEVICE, pParent),
         m_pAdapter(pAdapter),
-        m_pFont(nullptr)    
+        m_pFont(nullptr)
 {
     ASSERT(m_pAdapter != nullptr);
 }
