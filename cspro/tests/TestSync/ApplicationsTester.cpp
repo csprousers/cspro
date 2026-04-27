@@ -191,7 +191,7 @@ void ApplicationsTester::RunTest(const std::function<SyncClient::SyncResult(Sync
 {
     ASSERT(sync_connect_callback);
 
-    SyncClient sync_client(MakeUniqueDeviceId("TestApplications-"), std::make_unique<SyncServiceFactory>(std::make_unique<SyncLoginAccessor>()));
+    SyncClient sync_client(MakeUniqueDeviceId("TestApplications-"), std::make_unique<SyncServiceFactory>());
     sync_client.SetSyncListener(std::make_unique<SyncLogSyncListener>());
 
     const SyncClient::SyncResult result = sync_connect_callback(sync_client);

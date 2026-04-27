@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "SyncServiceFactory.h"
 #include "BluetoothObexConnection.h"
 #include "BluetoothSyncService.h"
@@ -7,15 +7,17 @@
 #include "DropboxSyncService.h"
 #include "FtpSyncService.h"
 #include "LocalFileSyncService.h"
+#include "SyncLoginAccessor.h"
 #include <zNetwork/DropboxConnection.h>
 #include <zNetwork/FtpConnection.h>
 #include <zNetwork/HttpConnection.h>
 
 
-SyncServiceFactory::SyncServiceFactory(std::shared_ptr<LoginAccessor> login_accessor)
+SyncServiceFactory::SyncServiceFactory(std::shared_ptr<LoginAccessor> login_accessor/* = nullptr*/)
     :   m_loginAccessor(std::move(login_accessor))
 {
-    ASSERT(m_loginAccessor != nullptr);
+    if( m_loginAccessor == nullptr )
+        m_loginAccessor = std::make_unique<SyncLoginAccessor>();
 }
 
 

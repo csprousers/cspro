@@ -9,6 +9,7 @@
 #include <zNetwork/SyncCredentialStore.h>
 #include <zSyncO/CSWebSyncService.h>
 #include <zSyncO/NetworkDataChunk.h>
+#include <zSyncO/SyncLoginAccessor.h>
 #include <zSyncO/SyncMessage.h>
 #include <zSyncO/SyncServiceFactory.h>
 #include <fstream>
@@ -30,7 +31,7 @@ namespace SyncUnitTest
         void ResetServer()
         {
             DeviceId clientDeviceId = "mydevice";
-            SyncClient client(clientDeviceId, std::make_unique<SyncServiceFactory>(std::make_unique<SyncLoginAccessor>()));
+            SyncClient client(clientDeviceId, std::make_unique<SyncServiceFactory>());
             client.SetSyncListener(std::make_unique<SyncLogSyncListener>());
 
             SyncClient::SyncResult result = client.ConnectCSWeb(credentials.sync_connection_string, std::make_unique<LoginCredentials>(credentials.username_password));
@@ -66,7 +67,7 @@ namespace SyncUnitTest
         TEST_METHOD(TestConnectDisconnect)
         {
             DeviceId clientDeviceId = "mydevice";
-            SyncClient client(clientDeviceId, std::make_unique<SyncServiceFactory>(std::make_unique<SyncLoginAccessor>()));
+            SyncClient client(clientDeviceId, std::make_unique<SyncServiceFactory>());
             client.SetSyncListener(std::make_unique<SyncLogSyncListener>());
 
             SyncClient::SyncResult result = client.ConnectCSWeb(credentials.sync_connection_string, std::make_unique<LoginCredentials>(credentials.username_password));
@@ -86,7 +87,7 @@ namespace SyncUnitTest
             TestRepoBuilder repoBuilder(client1DeviceId, dictionary.get());
             ISyncableDataRepository* pRepo = repoBuilder.GetRepo();
 
-            SyncClient client1(client1DeviceId, std::make_unique<SyncServiceFactory>(std::make_unique<SyncLoginAccessor>()));
+            SyncClient client1(client1DeviceId, std::make_unique<SyncServiceFactory>());
             client1.SetSyncListener(std::make_unique<SyncLogSyncListener>());
 
             SyncClient::SyncResult result = client1.ConnectCSWeb(credentials.sync_connection_string, std::make_unique<LoginCredentials>(credentials.username_password));
@@ -125,7 +126,7 @@ namespace SyncUnitTest
             repoBuilder.ResetRepo(client2DeviceId, dictionary.get());
             pRepo = repoBuilder.GetRepo();
 
-            SyncClient client2(client2DeviceId, std::make_unique<SyncServiceFactory>(std::make_unique<SyncLoginAccessor>()));
+            SyncClient client2(client2DeviceId, std::make_unique<SyncServiceFactory>());
             client2.SetSyncListener(std::make_unique<SyncLogSyncListener>());
 
             result = client2.ConnectCSWeb(credentials.sync_connection_string, std::make_unique<LoginCredentials>(credentials.username_password));
@@ -154,7 +155,7 @@ namespace SyncUnitTest
             TestRepoBuilder repoBuilder(client1DeviceId, dictionary.get());
             ISyncableDataRepository* pRepo = repoBuilder.GetRepo();
 
-            SyncClient client1(client1DeviceId, std::make_unique<SyncServiceFactory>(std::make_unique<SyncLoginAccessor>()));
+            SyncClient client1(client1DeviceId, std::make_unique<SyncServiceFactory>());
             client1.SetSyncListener(std::make_unique<SyncLogSyncListener>());
 
             // Test cases
@@ -182,7 +183,7 @@ namespace SyncUnitTest
             repoBuilder.ResetRepo(client2DeviceId, dictionary.get());
             pRepo = repoBuilder.GetRepo();
 
-            SyncClient client2(client2DeviceId, std::make_unique<SyncServiceFactory>(std::make_unique<SyncLoginAccessor>()));
+            SyncClient client2(client2DeviceId, std::make_unique<SyncServiceFactory>());
             client2.SetSyncListener(std::make_unique<SyncLogSyncListener>());
 
             result = client2.ConnectCSWeb(credentials.sync_connection_string, std::make_unique<LoginCredentials>(credentials.username_password));
@@ -216,7 +217,7 @@ namespace SyncUnitTest
             TestRepoBuilder repoBuilder(client1DeviceId, dictionary.get());
             ISyncableDataRepository* pRepo = repoBuilder.GetRepo();
 
-            SyncClient client1(client1DeviceId, std::make_unique<SyncServiceFactory>(std::make_unique<SyncLoginAccessor>()));
+            SyncClient client1(client1DeviceId, std::make_unique<SyncServiceFactory>());
             client1.SetSyncListener(std::make_unique<SyncLogSyncListener>());
 
             // Test cases
@@ -245,7 +246,7 @@ namespace SyncUnitTest
             repoBuilder.ResetRepo(client2DeviceId, dictionary.get());
             pRepo = repoBuilder.GetRepo();
 
-            SyncClient client2(client2DeviceId, std::make_unique<SyncServiceFactory>(std::make_unique<SyncLoginAccessor>()));
+            SyncClient client2(client2DeviceId, std::make_unique<SyncServiceFactory>());
             client2.SetSyncListener(std::make_unique<SyncLogSyncListener>());
 
             result = client2.ConnectCSWeb(credentials.sync_connection_string, std::make_unique<LoginCredentials>(credentials.username_password));
@@ -286,7 +287,7 @@ namespace SyncUnitTest
             TestRepoBuilder repoBuilder(client1DeviceId, dictionary.get());
             ISyncableDataRepository* pRepo = repoBuilder.GetRepo();
 
-            SyncClient client(client1DeviceId, std::make_unique<SyncServiceFactory>(std::make_unique<SyncLoginAccessor>()));
+            SyncClient client(client1DeviceId, std::make_unique<SyncServiceFactory>());
             client.SetSyncListener(std::make_unique<SyncLogSyncListener>());
 
             SyncClient::SyncResult result = client.ConnectCSWeb(credentials.sync_connection_string, std::make_unique<LoginCredentials>(credentials.username_password));
@@ -309,7 +310,7 @@ namespace SyncUnitTest
             repoBuilder.ResetRepo(client2DeviceId, dictionary.get());
             pRepo = repoBuilder.GetRepo();
 
-            SyncClient client2(client2DeviceId, std::make_unique<SyncServiceFactory>(std::make_unique<SyncLoginAccessor>()));
+            SyncClient client2(client2DeviceId, std::make_unique<SyncServiceFactory>());
             client2.SetSyncListener(std::make_unique<SyncLogSyncListener>());
 
             result = client2.ConnectCSWeb(credentials.sync_connection_string, std::make_unique<LoginCredentials>(credentials.username_password));
@@ -333,7 +334,7 @@ namespace SyncUnitTest
             TestRepoBuilder client1RepoBuilder(client1DeviceId, dictionary.get());
             ISyncableDataRepository* pClient1Repo = client1RepoBuilder.GetRepo();
 
-            SyncClient client(client1DeviceId, std::make_unique<SyncServiceFactory>(std::make_unique<SyncLoginAccessor>()));
+            SyncClient client(client1DeviceId, std::make_unique<SyncServiceFactory>());
             client.SetSyncListener(std::make_unique<SyncLogSyncListener>());
 
             SyncClient::SyncResult result = client.ConnectCSWeb(credentials.sync_connection_string, std::make_unique<LoginCredentials>(credentials.username_password));
@@ -369,7 +370,7 @@ namespace SyncUnitTest
             DeviceId client2DeviceId = MakeUniqueDeviceId("it2-");
             TestRepoBuilder client2RepoBuilder(client2DeviceId, dictionary.get());
             ISyncableDataRepository* pClient2Repo = client2RepoBuilder.GetRepo();
-            SyncClient client2(client2DeviceId, std::make_unique<SyncServiceFactory>(std::make_unique<SyncLoginAccessor>()));
+            SyncClient client2(client2DeviceId, std::make_unique<SyncServiceFactory>());
             client2.SetSyncListener(std::make_unique<SyncLogSyncListener>());
 
             // Copy all cases to client2 (simulating P2P sync)
@@ -419,7 +420,7 @@ namespace SyncUnitTest
             TestRepoBuilder client1RepoBuilder(client1DeviceId, dictionary.get());
             ISyncableDataRepository* pClient1Repo = client1RepoBuilder.GetRepo();
 
-            SyncClient client(client1DeviceId, std::make_unique<SyncServiceFactory>(std::make_unique<SyncLoginAccessor>()));
+            SyncClient client(client1DeviceId, std::make_unique<SyncServiceFactory>());
             client.SetSyncListener(std::make_unique<SyncLogSyncListener>());
 
             SyncClient::SyncResult result = client.ConnectCSWeb(credentials.sync_connection_string, std::make_unique<LoginCredentials>(credentials.username_password));
@@ -449,7 +450,7 @@ namespace SyncUnitTest
             DeviceId client2DeviceId = "123456789";
             TestRepoBuilder client2RepoBuilder(client2DeviceId, dictionary.get());
             ISyncableDataRepository* pClient2Repo = client2RepoBuilder.GetRepo();
-            SyncClient client2(client2DeviceId, std::make_unique<SyncServiceFactory>(std::make_unique<SyncLoginAccessor>()));
+            SyncClient client2(client2DeviceId, std::make_unique<SyncServiceFactory>());
             client2.SetSyncListener(std::make_unique<SyncLogSyncListener>());
 
             // Copy all cases to client2 (simulating P2P sync)
@@ -480,7 +481,7 @@ namespace SyncUnitTest
             DeviceId client3DeviceId = "987654321";
             TestRepoBuilder client3RepoBuilder(client3DeviceId, dictionary.get());
             ISyncableDataRepository* pClient3Repo = client3RepoBuilder.GetRepo();
-            SyncClient client3(client2DeviceId, std::make_unique<SyncServiceFactory>(std::make_unique<SyncLoginAccessor>()));
+            SyncClient client3(client2DeviceId, std::make_unique<SyncServiceFactory>());
             client3.SetSyncListener(std::make_unique<SyncLogSyncListener>());
 
             result = client3.ConnectCSWeb(credentials.sync_connection_string, std::make_unique<LoginCredentials>(credentials.username_password));
@@ -500,7 +501,7 @@ namespace SyncUnitTest
             TestRepoBuilder client1RepoBuilder(client1DeviceId, dictionary.get());
             ISyncableDataRepository* pClient1Repo = client1RepoBuilder.GetRepo();
 
-            SyncClient client(client1DeviceId, std::make_unique<SyncServiceFactory>(std::make_unique<SyncLoginAccessor>()));
+            SyncClient client(client1DeviceId, std::make_unique<SyncServiceFactory>());
             client.SetSyncListener(std::make_unique<SyncLogSyncListener>());
 
             SyncClient::SyncResult result = client.ConnectCSWeb(credentials.sync_connection_string, std::make_unique<LoginCredentials>(credentials.username_password));
@@ -531,7 +532,7 @@ namespace SyncUnitTest
             std::string newCase3Guid = CreateUuid();
             client2RepoBuilder.addRepoCase(newCase3Guid, 3, "NEWCASE3DATA");
 
-            SyncClient client2(client2DeviceId, std::make_unique<SyncServiceFactory>(std::make_unique<SyncLoginAccessor>()));
+            SyncClient client2(client2DeviceId, std::make_unique<SyncServiceFactory>());
             client2.SetSyncListener(std::make_unique<SyncLogSyncListener>());
 
             result = client2.ConnectCSWeb(credentials.sync_connection_string, std::make_unique<LoginCredentials>(credentials.username_password));
@@ -572,7 +573,7 @@ namespace SyncUnitTest
         TEST_METHOD(TestPutGetFile)
         {
             DeviceId clientDeviceId = "mydevice";
-            SyncClient client(clientDeviceId, std::make_unique<SyncServiceFactory>(std::make_unique<SyncLoginAccessor>()));
+            SyncClient client(clientDeviceId, std::make_unique<SyncServiceFactory>());
             client.SetSyncListener(std::make_unique<SyncLogSyncListener>());
 
             SyncClient::SyncResult result = client.ConnectCSWeb(credentials.sync_connection_string, std::make_unique<LoginCredentials>(credentials.username_password));
@@ -614,7 +615,7 @@ namespace SyncUnitTest
         TEST_METHOD(TestGetWildcard)
         {
             DeviceId clientDeviceId = "mydevice";
-            SyncClient client(clientDeviceId, std::make_unique<SyncServiceFactory>(std::make_unique<SyncLoginAccessor>()));
+            SyncClient client(clientDeviceId, std::make_unique<SyncServiceFactory>());
             client.SetSyncListener(std::make_unique<SyncLogSyncListener>());
 
             SyncClient::SyncResult result = client.ConnectCSWeb(credentials.sync_connection_string, std::make_unique<LoginCredentials>(credentials.username_password));
@@ -652,7 +653,7 @@ namespace SyncUnitTest
             TestRepoBuilder repoBuilder(client1DeviceId, dictionary.get());
             ISyncableDataRepository* pRepo = repoBuilder.GetRepo();
 
-            SyncClient client1(client1DeviceId, std::make_unique<SyncServiceFactory>(std::make_unique<SyncLoginAccessor>()));
+            SyncClient client1(client1DeviceId, std::make_unique<SyncServiceFactory>());
             client1.SetSyncListener(std::make_unique<SyncLogSyncListener>());
 
             SyncClient::SyncResult result = client1.ConnectCSWeb(credentials.sync_connection_string, std::make_unique<LoginCredentials>(credentials.username_password));
@@ -680,7 +681,7 @@ namespace SyncUnitTest
             repoBuilder.ResetRepo(client2DeviceId, dictionary.get());
             pRepo = repoBuilder.GetRepo();
 
-            SyncClient client2(client2DeviceId, std::make_unique<SyncServiceFactory>(std::make_unique<SyncLoginAccessor>()));
+            SyncClient client2(client2DeviceId, std::make_unique<SyncServiceFactory>());
             client2.SetSyncListener(std::make_unique<SyncLogSyncListener>());
 
             result = client2.ConnectCSWeb(credentials.sync_connection_string, std::make_unique<LoginCredentials>(credentials.username_password));
@@ -705,7 +706,7 @@ namespace SyncUnitTest
             TestRepoBuilder repoBuilder(client1DeviceId, dictionary.get());
             ISyncableDataRepository* pRepo = repoBuilder.GetRepo();
 
-            SyncClient client1(client1DeviceId, std::make_unique<SyncServiceFactory>(std::make_unique<SyncLoginAccessor>()));
+            SyncClient client1(client1DeviceId, std::make_unique<SyncServiceFactory>());
             client1.SetSyncListener(std::make_unique<SyncLogSyncListener>());
 
             SyncClient::SyncResult result = client1.ConnectCSWeb(credentials.sync_connection_string, std::make_unique<LoginCredentials>(credentials.username_password));
@@ -732,7 +733,7 @@ namespace SyncUnitTest
             repoBuilder.ResetRepo(client2DeviceId, dictionary.get());
             pRepo = repoBuilder.GetRepo();
 
-            SyncClient client2(client2DeviceId, std::make_unique<SyncServiceFactory>(std::make_unique<SyncLoginAccessor>()));
+            SyncClient client2(client2DeviceId, std::make_unique<SyncServiceFactory>());
             client2.SetSyncListener(std::make_unique<SyncLogSyncListener>());
 
             result = client2.ConnectCSWeb(credentials.sync_connection_string, std::make_unique<LoginCredentials>(credentials.username_password));
@@ -991,7 +992,7 @@ namespace SyncUnitTest
             }
             repo1Builder.setInitialRepoCases(casesToUpload, client1DeviceId);
 
-            SyncClient client1(client1DeviceId, std::make_unique<SyncServiceFactory>(std::make_unique<SyncLoginAccessor>()));
+            SyncClient client1(client1DeviceId, std::make_unique<SyncServiceFactory>());
             client1.SetSyncListener(std::make_unique<SyncLogSyncListener>());
 
             SyncClient::SyncResult result = client1.ConnectCSWeb(credentials.sync_connection_string, std::make_unique<LoginCredentials>(credentials.username_password));
@@ -1018,7 +1019,7 @@ namespace SyncUnitTest
             try
             {
                 DeviceId device_id = MakeUniqueDeviceId("TestSyncMessages-");
-                SyncClient sync_client(std::move(device_id), std::make_unique<SyncServiceFactory>(std::make_unique<SyncLoginAccessor>()));
+                SyncClient sync_client(std::move(device_id), std::make_unique<SyncServiceFactory>());
                 sync_client.SetSyncListener(std::make_unique<SyncLogSyncListener>());
 
                 SyncClient::SyncResult result = sync_client.ConnectCSWeb(credentials.sync_connection_string, std::make_unique<LoginCredentials>(credentials.username_password));

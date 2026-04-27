@@ -16,7 +16,6 @@
 #include <zNetwork/SyncException.h>
 #include <zNetwork/SyncLogSyncListener.h>
 #include <zCaseO/Case.h>
-#include <zSyncO/SyncLoginAccessor.h>
 
 // Headers for CppUnitTest
 #include <CppUnitTest.h>

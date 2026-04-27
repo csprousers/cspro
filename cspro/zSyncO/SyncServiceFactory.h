@@ -1,15 +1,16 @@
-﻿#pragma once
+#pragma once
 
 #include <zSyncO/zSyncO.h>
 #include <zSyncO/ISyncServiceFactory.h>
 
 
-// Factory class for creating sync services.
+// Factory class for creating synchronization services.
 
 class SYNC_API SyncServiceFactory : public ISyncServiceFactory
 {
 public:
-    SyncServiceFactory(std::shared_ptr<LoginAccessor> login_accessor);
+    // If login_accessor is null, it will be set to an instance of SyncLoginAccessor.
+    SyncServiceFactory(std::shared_ptr<LoginAccessor> login_accessor = nullptr);
 
     std::unique_ptr<ISyncService> CreateCSWebSyncService(SyncConnectionString sync_connection_string,
                                                          std::unique_ptr<LoginCredentials> login_credentials = nullptr) override;

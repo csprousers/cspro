@@ -48,7 +48,7 @@ SyncClient SyncUnitTest::FileBasedSyncServiceTest::CreateSyncClient()
 {
     const DeviceId device_id = "FileBasedSyncServiceTest-" + IntToString(GetTimestamp());
 
-    SyncClient sync_client(device_id, std::make_unique<SyncServiceFactory>(std::make_unique<SyncLoginAccessor>()));
+    SyncClient sync_client(device_id, std::make_unique<SyncServiceFactory>());
     sync_client.SetSyncListener(std::make_unique<SyncLogSyncListener>());
 
     const SyncConnectionString sync_connection_string = SyncConnectionString::CreateLocalFilesSyncConnectionString(m_directory);
