@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zUtilO/zUtilO.h>
 
@@ -12,7 +12,8 @@ class PropertyRetriever;
 // along with some number of attribute/value pairs with the values encoded
 // using percent-encoding.
 //
-// The most common subclass of this is the ConnectionString.
+// The most common subclasses of this are ConnectionString and
+// SyncConnectionString.
 // --------------------------------------------------------------------------
 
 class CLASS_DECL_ZUTILO PropertyString

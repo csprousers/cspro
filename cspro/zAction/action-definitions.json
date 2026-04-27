@@ -2217,7 +2217,8 @@
         "name": "connection",
         "description": "The connection string specifying the synchronization service.",
         "types": [
-          "string"
+          "string",
+          "object"
         ],
         "required": true
       }
@@ -2252,6 +2253,14 @@
     "name": "sendMessage",
     "description": "Sends a message to a synchronization service, returning the service's response.",
     "parameters": [
+      {
+        "name": "syncId",
+        "description": "The synchronization service ID.",
+        "types": [
+          "number"
+        ],
+        "required": false
+      },
       {
         "name": "name",
         "description": "A name to identify the message.",
@@ -2293,6 +2302,14 @@
     "description": "Synchronizes the events in a paradata log with a synchronization service.",
     "parameters": [
       {
+        "name": "syncId",
+        "description": "The synchronization service ID.",
+        "types": [
+          "number"
+        ],
+        "required": false
+      },
+      {
         "name": "direction",
         "description": "The synchronization direction. (Default value is \"both\".).",
         "types": [
@@ -2302,7 +2319,7 @@
       },
       {
         "name": "path",
-        "description": "The path of a paradata log, or logs, to synchronize. If not defined, the currently-open paradata log is synchronized.",
+        "description": "The path of a paradata log, or logs, to synchronize. If not defined, the currently open paradata log is synchronized.",
         "types": [
           "string",
           "array"

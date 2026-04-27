@@ -43,7 +43,7 @@ const std::vector<SpecialFunction::Definition>& SpecialFunction::GetDefinitions(
         },
         {
             "OnSyncMessage",
-            "syncmessage_function.html",
+            "sync_message.html",
             Code::OnSyncMessage,
             SymbolType::WorkString,
         },
