@@ -1,6 +1,7 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "CSDocCompilerSettings.h"
 #include "SearchFilePathsByFilename.h"
+#include <zToolsO/Serializer.h>
 
 
 CSDocCompilerSettings::CSDocCompilerSettings(cs::non_null_shared_or_raw_ptr<DocSetSpec> doc_set_spec)
@@ -56,6 +57,9 @@ std::string CSDocCompilerSettings::GetSpecialDefinition(const std::string& domai
     {
         if( key == "version" )
             return Versioning::NumberText;
+
+        if( key == "serializer" )
+            return IntToString(Serializer::GetCurrentVersion());
     }
 
     else if( domain == "System" )
