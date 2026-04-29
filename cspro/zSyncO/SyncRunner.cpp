@@ -21,6 +21,8 @@ SyncRunner::SyncRunner(std::shared_ptr<SyncListener> sync_listener)
     :   m_syncListener(std::move(sync_listener))
 {
     ASSERT(m_syncListener != nullptr);
+
+    SyncLog::EnableLogging();
 }
 
 
