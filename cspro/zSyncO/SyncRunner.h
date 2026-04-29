@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zSyncO/zSyncO.h>
 
@@ -101,6 +101,7 @@ private:
     std::shared_ptr<ConnectResponse> Connect(ServerType& server, const char* server_description, const SyncConnectionString& sync_connection_string, const CF& callback_function);
 
     Connection Connect(const char* sync_service_description, const SyncConnectionString& sync_connection_string, std::unique_ptr<ISyncService> sync_service);
+    Connection ConnectBluetooth(SyncServiceFactory& factory, const SyncConnectionString& sync_connection_string);
     Connection ConnectCSWeb(SyncServiceFactory& factory, const SyncConnectionString& sync_connection_string);
     Connection ConnectDropbox(SyncServiceFactory& factory, const SyncConnectionString& sync_connection_string);
     Connection ConnectFtp(SyncServiceFactory& factory, const SyncConnectionString& sync_connection_string);

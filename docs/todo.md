@@ -29,6 +29,7 @@ Some long-running development projects are identifiable by a TODO noted in comme
 | REPO_TEMP<br>REPO_TODO | Refactoring the engine to use the Case objects.
 | RESOURCE_TODO | Refactoring messages to use the UWM naming scheme.
 | RT_TODO | Related to CSProRT.
+| SYNC_TODO | Related to synchronization routines.
 | TEXT_ENCODING_TODO | Refactoring code to use UTF-8 without BOMs.
 | TODO_DISABLED_FOR_CSPRO77 | Incomplete code disabled for CSPro 7.7.
 | TODO_RESTORE_FOR_CSPRO8X | Incomplete code disabled for CSPro 8.0 and CSPro 8.1.

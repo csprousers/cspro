@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "SyncClient.h"
 #include "ApplicationPackageManager.h"
 #include "BluetoothSyncService.h"
@@ -83,6 +83,8 @@ SyncClient::SyncResult SyncClient::Connect(const SyncConnectionString& sync_conn
 
 SyncClient::SyncResult SyncClient::ConnectWorker(const SyncConnectionString& sync_connection_string)
 {
+    // SYNC_TODO take the code here, harmonize it with SyncRunner's (if necessary),
+    // and use SyncRunner::Connect instead
     if( !sync_connection_string.IsDefined() )
         return SyncResult::SYNC_ERROR;
 

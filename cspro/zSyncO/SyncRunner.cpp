@@ -1,5 +1,6 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "SyncRunner.h"
+#include "BluetoothDeviceInfo.h"
 #include "ISyncService.h"
 #include "SyncDictionaryInfo.h"
 #include "SyncMessage.h"
@@ -91,10 +92,11 @@ SyncRunner::Connection SyncRunner::Connect(const SyncConnectionString& sync_conn
         sync_connection_string.Validate();
         ASSERT(sync_connection_string.IsDefined());
 
-        SyncServiceFactory factory(std::make_unique<LoginAccessorWithoutBluetoothSupport>());
+        SyncServiceFactory factory;
 
         switch( sync_connection_string.GetType() )
         {
+            case SyncServiceType::Bluetooth:  return ConnectBluetooth(factory, sync_connection_string);
             case SyncServiceType::CSWeb:      return ConnectCSWeb(factory, sync_connection_string);
             case SyncServiceType::Dropbox:    return ConnectDropbox(factory, sync_connection_string);
             case SyncServiceType::Ftp:        return ConnectFtp(factory, sync_connection_string);
@@ -127,6 +129,34 @@ SyncRunner::Connection SyncRunner::Connect(const char* const sync_service_descri
         });
 
     return std::make_tuple(std::move(sync_service), std::move(connect_response));
+}
+
+
+SyncRunner::Connection SyncRunner::ConnectBluetooth(SyncServiceFactory& factory, const SyncConnectionString& sync_connection_string)
+{
+    ASSERT(sync_connection_string.GetType() == SyncServiceType::Bluetooth);
+
+    // when using a sync connection string, the service device name is specified as the path
+    const std::string service_device_name = sync_connection_string.GetEvaluatedBluetoothServerDeviceName();
+    std::string sync_service_description;
+    std::unique_ptr<ISyncService> sync_service;
+
+    if( service_device_name.empty() )
+    {
+        sync_service_description = "Bluetooth (user will select device)";
+        sync_service = factory.CreateBluetoothSyncService();
+    }
+
+    else
+    {
+        sync_service_description = FormatText("Bluetooth (device named '%s')", service_device_name.c_str());
+        sync_service = factory.CreateBluetoothSyncService(BluetoothDeviceInfo { service_device_name, std::string() });
+    }
+
+    if( sync_service == nullptr )
+        throw SyncConnectionError("Bluetooth synchronization is not supported on this platform.");
+
+    return Connect(sync_service_description.c_str(), sync_connection_string, std::move(sync_service));
 }
 
 
