@@ -12,6 +12,7 @@ LOCAL_SRC_FILES         += $(ZLOGICO_SRC_PATH)/KeywordTable.cpp
 LOCAL_SRC_FILES         += $(ZLOGICO_SRC_PATH)/Preprocessor.cpp
 LOCAL_SRC_FILES         += $(ZLOGICO_SRC_PATH)/ReservedWords.cpp
 LOCAL_SRC_FILES         += $(ZLOGICO_SRC_PATH)/SourceBuffer.cpp
+LOCAL_SRC_FILES         += $(ZLOGICO_SRC_PATH)/SpecialFunction.cpp
 LOCAL_SRC_FILES         += $(ZLOGICO_SRC_PATH)/Symbol.cpp
 LOCAL_SRC_FILES         += $(ZLOGICO_SRC_PATH)/SymbolTable.cpp
 LOCAL_SRC_FILES         += $(ZLOGICO_SRC_PATH)/SymbolType.cpp

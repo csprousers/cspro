@@ -32,6 +32,7 @@
     <ClCompile Include="..\lexers\LexCSProLogic.cxx" />
     <ClCompile Include="..\lexers\LexCSProMessage.cxx" />
     <ClCompile Include="..\lexers\LexCSProPre80SpecFile.cxx" />
+    <ClCompile Include="..\lexers\LexCSProPropertyString.cxx" />
     <ClCompile Include="..\lexers\LexCSProReportGeneric.cxx" />
     <ClCompile Include="..\lexers\LexCSProReportHtml.cxx" />
     <ClCompile Include="..\lexers\LexHTML.cxx" />
@@ -101,6 +102,7 @@
   <ItemGroup>
     <ClInclude Include="..\lexers\CSProStyleContext.h" />
     <ClInclude Include="..\lexers\LexCSPro.h" />
+    <ClInclude Include="..\lexers\LexerPercentEncoding.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 //---------------------------------------------------------------------------
 //  File name: Entifaz.h
@@ -26,7 +26,7 @@
 #include <zIssaLib/CsDriver.h>
 #include <zEntryO/CapiHandler.h>
 
-enum class SpecialFunction : int;
+namespace SpecialFunction { enum class Code : int; }
 
 
 class CEntryIFaz
@@ -142,8 +142,8 @@ public:
 public:
     int     C_GetMaxNumLevel();
 
-    bool    HasSpecialFunction(SpecialFunction special_function);
-    double  ExecSpecialFunction(int symbol_index, SpecialFunction special_function, double argument);
+    bool    HasSpecialFunction(SpecialFunction::Code special_function);
+    double  ExecSpecialFunction(int symbol_index, SpecialFunction::Code special_function, double argument);
     void    RunGlobalOnFocus(int symbol_index);
 
     C3DObject* CallCsDriverBrain();               // victor Dec 10, 01

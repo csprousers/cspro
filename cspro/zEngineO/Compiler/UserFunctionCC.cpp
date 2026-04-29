@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "IncludesCC.h"
 #include "AllSymbols.h"
 #include "JavaScriptProcessor.h"
@@ -102,23 +102,21 @@ UserFunction* LogicCompiler::CompileUserFunction(const bool compiling_function_p
 
 
         // read the function name
-        std::string function_name = CompileNewSymbolName(compiling_function_pointer ? std::nullopt :
-                                                                                      std::make_optional(TOKUSERFUNCTION));
+        const std::string function_name = CompileNewSymbolName(
+            compiling_function_pointer ? std::nullopt :
+                                         std::make_optional(TOKUSERFUNCTION)
+        );
 
-        // when creating a special function, check the case against the expected case
-        if( GetLogicSettings().CaseSensitiveSymbols() )
+        // if creating a special function, check the case against the expected case
+        const SpecialFunction::Definition* const special_function = SpecialFunction::Lookup(function_name);
+
+        if( special_function != nullptr &&
+            GetLogicSettings().CaseSensitiveSymbols() &&
+            function_name != special_function->name )
         {
-            for( const char* const special_function_name : SpecialFunctionNames )
-            {
-                if( SO::EqualsNoCase(function_name, special_function_name) )
-                {
-                    if( function_name != special_function_name )
-                        IssueError(MGF::SpecialFunction_invalid_case_9112, special_function_name);
-
-                    break;
-                }
-            }
+            IssueError(MGF::SpecialFunction_invalid_case_9112, special_function->name);
         }
+
 
         // if the function name is not new, the function must have been previously declared
         const bool function_was_previously_declared = ( Tkn == TOKUSERFUNCTION );
@@ -144,14 +142,14 @@ UserFunction* LogicCompiler::CompileUserFunction(const bool compiling_function_p
                 ASSERT(dynamic_cast<const Symbol::CompareDeclarationAttributesException*>(&exception) != nullptr);
 
                 IssueError(MGF::UserFunction_declaration_definition_mismatch_50006,
-                           user_function->GetName().c_str(), exception.what());
+                           function_name.c_str(), exception.what());
             }
         }
 
         // otherwise we will create the symbol
         else
         {
-            user_function = std::make_unique<UserFunction>(std::move(function_name), *m_engineData);
+            user_function = std::make_unique<UserFunction>(function_name, *m_engineData);
 
             user_function->SetSqlCallbackFunction(sql_callback_function);
             user_function->SetReturnType(return_type);
@@ -166,6 +164,23 @@ UserFunction* LogicCompiler::CompileUserFunction(const bool compiling_function_p
 
         CompileUserFunctionParameters(*user_function, function_was_previously_declared,
                                       parameters_type.value_or(UserFunctionParametersType::All));
+
+
+        // if defining a special function, check that the function matches the syntax expected
+        if( special_function != nullptr )
+        {
+            const bool return_value_is_invalid = ( special_function->returns != user_function->GetReturnType() );
+
+            if( return_value_is_invalid ||
+                !special_function->ValidateParameters(user_function->GetParameterSymbolTypes()) )
+            {
+                IssueError(
+                    MGF::SpecialFunction_invalid_syntax_9113,
+                    return_value_is_invalid ? "return value is" : "parameters are",
+                    special_function->name
+                );
+            }
+        }
 
 
         // if compiling a function pointer, we are done now that the function declaration

@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "Lexers.h"
 #include <zUtilO/MimeType.h>
 
@@ -65,6 +65,7 @@ const char* Lexers::GetLexerName(const int lexer_language)
            ( lexer_language == SCLEX_CSPRO_REPORT_V8_0 ||
              lexer_language == SCLEX_CSPRO_REPORT_V0 )          ? "CSPro Text Template" :
            ( lexer_language == SCLEX_CSPRO_PRE80_SPEC_FILE )    ? "INI File" :
+           ( lexer_language == SCLEX_CSPRO_PROPERTY_STRING )    ? "CSPro Property String" :
            ( lexer_language == SCLEX_PERCENT_ENCODING )         ? "Percent Encoding" :
            ( lexer_language == SCLEX_NULL )                     ? "Text" :
                                                                   ReturnProgrammingError("Unknown");

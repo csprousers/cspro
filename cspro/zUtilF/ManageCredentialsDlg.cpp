@@ -1,6 +1,7 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "ManageCredentialsDlg.h"
 #include <zToolsO/VariantVisitOverload.h>
+#include <zUtilO/CredentialStore.h>
 #include <zUtilO/TreeCtrlHelpers.h>
 #include <zMessageO/Messages.h>
 #include <zDataO/CSWebRepositoryCacheCredential.h>
@@ -87,7 +88,7 @@ const wchar_t* ManageCredentialsDlg::ToString(const CredentialType credential_ty
 struct ManageCredentialsDlg::Credential
 {
     std::wstring target_name;
-    std::wstring credential;
+    std::string credential;
 
     CredentialType type;
     std::wstring display_name;
@@ -111,7 +112,7 @@ void ManageCredentialsDlg::GetCredentials()
                 std::unique_ptr<Credential> credential(new Credential
                 {
                     win_credential->TargetName,
-                    std::wstring(reinterpret_cast<const wchar_t*>(win_credential->CredentialBlob), win_credential->CredentialBlobSize / sizeof(wchar_t)),
+                    CredentialStore::ParseCredentialBlob(*win_credential)
                 });
 
                 if( SO::StartsWith(credential->target_name, CredentialPrefixSync_sv) )
@@ -215,7 +216,7 @@ void ManageCredentialsDlg::SetUpCredentialSync(Credential& credential)
 
     try
     {
-        const JsonNode json_node = Json::Parse(TC::ToUtf8(credential.credential));
+        const JsonNode json_node = Json::Parse(credential.credential);
 
         if( url_sv == L"DropboxV2" )
         {
@@ -279,7 +280,7 @@ void ManageCredentialsDlg::SetUpCredentialSync_OAuth2Token(Credential& credentia
 
 void ManageCredentialsDlg::SetUpCredentialData(Credential& credential)
 {
-    const EncryptedSQLiteRepositoryCredential data_credential(TC::ToUtf8(credential.credential));
+    const EncryptedSQLiteRepositoryCredential data_credential(credential.credential);
 
     credential.type = CredentialType::Data;
 
@@ -303,7 +304,7 @@ void ManageCredentialsDlg::SetUpCredentialCSWebCache(Credential& credential)
 
     try
     {
-        const JsonNode json_node = Json::Parse(TC::ToUtf8(credential.credential));
+        const JsonNode json_node = Json::Parse(credential.credential);
         const std::vector<CSWebRepositoryCacheCredential> csweb_cache_credentials = json_node.GetArray().GetVector<CSWebRepositoryCacheCredential>();
 
         // list details about each credential
@@ -329,7 +330,7 @@ void ManageCredentialsDlg::SetUpCredentialLocation(Credential& credential)
     credential.type = CredentialType::Location;
     credential.display_name = L"Approximate Location";
 
-    const JsonNode json_node = Json::Parse(TC::ToUtf8(credential.credential));
+    const JsonNode json_node = Json::Parse(credential.credential);
 
     credential.details = FormatText("Cache date: %s\n\nLatitude: %0.6f\nLongitude: %0.6f",
                                     DateTime::LocalDateTimeString(json_node.Get<int64_t>(JK::timestamp)).c_str(),

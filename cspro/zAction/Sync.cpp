@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include <zParadataO/Logger.h>
 #include <zParadataO/Syncer.h>
 #include <zSyncO/SyncRunnerActionInvoker.h>
@@ -134,9 +134,6 @@ ActionInvoker::Result ActionInvoker::Runtime::Sync_syncParadata(const JsonNode& 
     {
         const auto [file_paths, return_results_as_an_array] = EvaluateFilePaths(json_node.Get(JK::path), caller, false, false);
 
-        if( file_paths.size() > 1 && sync_direction != SyncDirection::Put )
-            throw CSProException("When syncing more than one paradata log, you can only use the direction 'put'.");
-
         for( const std::string& file_path : file_paths )
         {
             if( paradata_log_is_currently_open && SO::EqualsNoCase(file_path, Paradata::Logger::GetFilePath()) )
@@ -146,8 +143,8 @@ ActionInvoker::Result ActionInvoker::Runtime::Sync_syncParadata(const JsonNode& 
 
             else
             {
-                if( sync_direction != SyncDirection::Get && !PortableFunctions::FileIsRegular(file_path) )
-                    throw CSProException("When syncing to a paradata log that does not already exist, you can only use the direction 'get': " + file_path);
+                if( sync_direction == SyncDirection::Put && !PortableFunctions::FileIsRegular(file_path) )
+                  throw CSProException("When syncing a paradata log that does not already exist, you cannot use the direction 'put': " + file_path);
 
                 Paradata::Syncer paradata_syncer(file_path);
                 sync_paradata(&paradata_syncer);
@@ -160,7 +157,7 @@ ActionInvoker::Result ActionInvoker::Runtime::Sync_syncParadata(const JsonNode& 
 
     else
     {
-        if( !Paradata::Logger::IsOpen() )
+        if( !paradata_log_is_currently_open )
             throw CSProException("No paradata log is open.");
 
         sync_paradata(Paradata::Logger::GetSyncer().get());

@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "LexerProperties.h"
 #include <zToolsO/VectorHelpers.h>
 #include <zLogicO/ReservedWords.h>
@@ -181,21 +181,37 @@ std::vector<std::tuple<int, LexerStyle>> LexerProperties::GetExternalLanguageSty
         return GetMarkdownStylesWorker();
     }
 
-    else if( lexer_language == SCLEX_PERCENT_ENCODING )
+    else if( const bool is_ps = ( lexer_language == SCLEX_CSPRO_PROPERTY_STRING );
+             is_ps || lexer_language == SCLEX_PERCENT_ENCODING )
     {
         constexpr COLORREF PercentColor     = RGB(20, 155, 55);
         constexpr COLORREF HexColor         = PercentColor;
         constexpr COLORREF BadHexColor      = RGB(255, 90, 20);
         constexpr COLORREF BadNotUnreserved = RGB(199, 170, 60);
+        constexpr COLORREF PS_Attribute     = RGB(10, 90, 45);
+        constexpr COLORREF PS_Value         = RGB(15, 120, 45);
+        constexpr COLORREF PS_Control       = RGB(10, 65, 25);
 
-        return
+        std::vector<std::tuple<int, LexerStyle>> styles =
         {
-            { SCE_PERCENT_ENCODING_DEFAULT,            { LexerColor::Default } },
+            { SCE_PERCENT_ENCODING_DEFAULT,            { is_ps ? PS_Value : LexerColor::Default } },
             { SCE_PERCENT_ENCODING_PERCENT,            { PercentColor } },
             { SCE_PERCENT_ENCODING_HEX,                { HexColor } },
             { SCE_PERCENT_ENCODING_BAD_HEX,            { BadHexColor } },
             { SCE_PERCENT_ENCODING_BAD_NOT_UNRESERVED, { BadNotUnreserved } },
         };
+
+        // for property strings, add a few more styles
+        if( is_ps )
+        {
+            styles.emplace_back(SCE_CSPRO_PROPERTY_STRING_RESOURCE, LexerStyle { LexerColor::Default });
+            styles.emplace_back(SCE_CSPRO_PROPERTY_STRING_ATTRIBUTE, LexerStyle { PS_Attribute, LexerStyle::NoOverride, true, false });
+            styles.emplace_back(SCE_CSPRO_PROPERTY_STRING_PIPE, LexerStyle { PS_Control });
+            styles.emplace_back(SCE_CSPRO_PROPERTY_STRING_EQUALS, LexerStyle { PS_Control });
+            styles.emplace_back(SCE_CSPRO_PROPERTY_STRING_AMPERSAND, LexerStyle { PS_Control });
+        }
+
+        return styles;
     }
 
     else if( lexer_language == SCLEX_SQL )
@@ -376,10 +392,15 @@ void LexerProperties::GetKeywordsAndLogicTooltipsWorker(Properties& properties, 
 
     else
     {
-        ASSERT(lexer_language == SCLEX_CSPRO_MESSAGE_V0      || lexer_language == SCLEX_CSPRO_MESSAGE_V8_0 ||
-               lexer_language == SCLEX_CSPRO_PRE80_SPEC_FILE || lexer_language == SCLEX_HTML               ||
-               lexer_language == SCLEX_JSON                  || lexer_language == SCLEX_MARKDOWN           ||
-               lexer_language == SCLEX_PERCENT_ENCODING      || lexer_language == SCLEX_YAML               ||
+        ASSERT(lexer_language == SCLEX_CSPRO_MESSAGE_V0 ||
+               lexer_language == SCLEX_CSPRO_MESSAGE_V8_0 ||
+               lexer_language == SCLEX_CSPRO_PRE80_SPEC_FILE ||
+               lexer_language == SCLEX_CSPRO_PROPERTY_STRING ||
+               lexer_language == SCLEX_HTML ||
+               lexer_language == SCLEX_JSON ||
+               lexer_language == SCLEX_MARKDOWN ||
+               lexer_language == SCLEX_PERCENT_ENCODING ||
+               lexer_language == SCLEX_YAML ||
                lexer_language == SCLEX_NULL);
     }
 }

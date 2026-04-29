@@ -453,7 +453,8 @@ Language=EN
 
 /* --- Special Functions */
 9111   The has operator must be used with a repeating item
-9112   To work properly, the special function must be written with this case: '%s'
+9112   The special function must be written with this case: '%s'
+9113   The special function's %s not valid; check the syntax for: '%s'
 
 9220   Repeated WHERE/TITLE argument
 9222   Item list expected

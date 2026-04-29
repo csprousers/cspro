@@ -1,46 +1,40 @@
-﻿#pragma once
+#pragma once
 
-#include <zToolsO/EnumHelpers.h>
+#include <zLogicO/zLogicO.h>
+#include <zLogicO/SymbolType.h>
 
 
-enum class SpecialFunction : int
+namespace SpecialFunction
 {
-    GlobalOnFocus,
-    OnStop,
-    OnKey,
-    OnChar,
-    OnChangeLanguage,
-    OnSyncMessage,
-    OnRefused,
-    OnSystemMessage,
-    OnViewQuestionnaire,
-    OnActionInvokerResult,
-};
+    enum class Code : int
+    {
+        GlobalOnFocus,
+        OnStop,
+        OnKey,
+        OnChar,
+        OnChangeLanguage,
+        OnSyncMessage,
+        OnRefused,
+        OnSystemMessage,
+        OnViewQuestionnaire,
+        OnActionInvokerResult,
+    };
 
-template<> constexpr SpecialFunction FirstInEnum<SpecialFunction>() { return SpecialFunction::GlobalOnFocus;         }
-template<> constexpr SpecialFunction LastInEnum<SpecialFunction>()  { return SpecialFunction::OnActionInvokerResult; }
+    struct Definition
+    {
+        const char* name;
+        const char* const help_filename;
+        Code code;
+        SymbolType returns;
 
+        // Validates the parameters, returning true when valid.
+        ZLOGICO_API bool ValidateParameters(const std::vector<SymbolType>& parameter_symbol_types) const noexcept;
+    };
 
-constexpr const char* SpecialFunctionNames[] =
-{
-    "On_Focus",
-    "OnStop",
-    "OnKey",
-    "OnChar",
-    "OnChangeLanguage",
-    "OnSyncMessage",
-    "OnRefused",
-    "OnSystemMessage",
-    "OnViewQuestionnaire",
-    "OnActionInvokerResult",
-};
+    // Returns the definitions of all special functions.
+    ZLOGICO_API const std::vector<Definition>& GetDefinitions() noexcept;
 
-static_assert(_countof(SpecialFunctionNames) == ( 1 + static_cast<size_t>(LastInEnum<SpecialFunction>()) ));
-
-
-constexpr const char* ToString(SpecialFunction special_function)
-{
-    const size_t index = static_cast<size_t>(special_function);
-    ASSERT(index >= 0 && index < _countof(SpecialFunctionNames));
-    return SpecialFunctionNames[index];
+    // Returns the definition for the function, matched in a case-insensitive manner,
+    // returning null if the function name does not match any special function.
+    ZLOGICO_API const Definition* Lookup(std::string_view function_name_sv) noexcept;
 }

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zEditO/zEditO.h>
 #include <zScintilla/include/SciLexer.h>
@@ -73,6 +73,7 @@ public:
         switch( lexer_language )
         {
             case SCLEX_CSPRO_PRE80_SPEC_FILE:
+            case SCLEX_CSPRO_PROPERTY_STRING:
             case SCLEX_CPP:
             case SCLEX_HTML:
             case SCLEX_JAVASCRIPT:

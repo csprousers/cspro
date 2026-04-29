@@ -71,7 +71,7 @@ public:
     virtual Result ProcessExecute(const std::string& json_arguments, Caller& caller);
     virtual Result ProcessAction(Action action, const SharableString& json_arguments, Caller& caller);
 
-    // Returns cached binary content, and the optional MIME type, for a cspro://cache/... URI,
+    // Returns cached binary content, and the optional MIME type, for a cspro:///cache/... URI,
     // throwing an exception if not present.
     virtual CachedBinaryContent GetCachedBinaryContent(std::string_view cache_uri_sv);
 

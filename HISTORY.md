@@ -9,6 +9,7 @@ Most CSPro development occurs on a [private repository](https://github.com/CSPro
 
 | Date | Branch | Pull Request Message |
 | --- | --- | --- |
+| 2026&#8209;04&#8209;29 | [documenting-sync-services](https://github.com/CSProDevelopment/cspro/commit/0ccfd40635ca4985ba8d4744ac423fc1fbddd1b5) | changes made while documenting sync services and Sync actions |
 | 2026&#8209;04&#8209;16 | [website-syncer](https://github.com/CSProDevelopment/cspro/commit/c206149d4a861e3411abd3bd584a59f9159c6a5a) | updated the CSPro Users Website Builder to support clearing outputs and creating files for updating the website |
 | 2026&#8209;04&#8209;10 | [documenting-fetch](https://github.com/CSProDevelopment/cspro/commit/72070453c780da3473ca0a2cb20fc50727d1eb12) | added Network.fetchFile + minor changes made while documenting the fetch... actions |
 | 2026&#8209;04&#8209;10 | [documenting-text-attributes](https://github.com/CSProDevelopment/cspro/commit/48b1ad9e9b1b5d9ec78af2dd38f2f085a8bf4413) | minor changes made while documenting changes to text attributes |

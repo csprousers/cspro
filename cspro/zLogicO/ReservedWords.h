@@ -1,9 +1,8 @@
-﻿#pragma once
+#pragma once
 
 #include <zLogicO/zLogicO.h>
 #include <zLogicO/FunctionTable.h>
 #include <zLogicO/ReservedWordsTable.h>
-#include <zLogicO/Symbol.h>
 
 namespace Logic { struct AdditionalReservedWordDetails; class ReservedWords; }
 
@@ -28,10 +27,6 @@ public:
     static const std::vector<std::string>& GetAllReservedWords();
 
     static const ReservedWordsTable<AdditionalReservedWordDetails>& GetAdditionalReservedWords();
-
-    // special function names are not technically reserved but are defined in this
-    // namespace so that the defined case can be returned by the below function
-    static const ReservedWordsTable<AdditionalReservedWordDetails>& GetSpecialFunctions();
 
     // returns nullptr if the text is not a reserved word
     static const char* GetDefinedCase(std::string_view text_sv, const FunctionDomain& function_domain);

@@ -11,10 +11,10 @@ namespace
     constexpr static std::string_view HttpScheme_sv  = "http://";
     constexpr static std::string_view HttpsScheme_sv = "https://";
 
-    constexpr static std::string_view CSProSchemeTextPrefix_sv  = "cspro://text/";
-    constexpr static std::string_view CSProSchemeDataPrefix_sv  = "cspro://data/";
-    constexpr static std::string_view CSProSchemeSyncPrefix_sv  = "cspro://sync/";
-    constexpr static std::string_view CSProSchemeCachePrefix_sv = "cspro://cache/";
+    constexpr static std::string_view CSProTextPrefix_sv  = "cspro:///text/";
+    constexpr static std::string_view CSProDataPrefix_sv  = "cspro:///data/";
+    constexpr static std::string_view CSProSyncPrefix_sv  = "cspro:///sync/";
+    constexpr static std::string_view CSProCachePrefix_sv = "cspro:///cache/";
 }
 
 
@@ -27,7 +27,7 @@ struct CustomUri::UriBuilder
     void AddToQuery(AT&& attribute, VT&& value)
     {
         if( !query_started.has_value() )
-            query_started = uri.find('?');
+            query_started = ( uri.find('?') != std::string::npos );
 
         if( *query_started )
         {
@@ -75,11 +75,11 @@ bool CustomUri::UsesHttpOrCSProScheme(const std::string_view uri_sv)
 
 std::optional<CustomUri::UriType> CustomUri::GetUriType(const std::string_view uri_sv)
 {
-    return SO::StartsWith(uri_sv, CSProSchemeTextPrefix_sv)  ? std::make_optional(UriType::Text) :
-           SO::StartsWith(uri_sv, CSProSchemeDataPrefix_sv)  ? std::make_optional(UriType::Data) :
-           SO::StartsWith(uri_sv, CSProSchemeSyncPrefix_sv)  ? std::make_optional(UriType::Sync) :
-           SO::StartsWith(uri_sv, CSProSchemeCachePrefix_sv) ? std::make_optional(UriType::Cache) :
-                                                               std::nullopt;
+    return SO::StartsWith(uri_sv, CSProTextPrefix_sv)  ? std::make_optional(UriType::Text) :
+           SO::StartsWith(uri_sv, CSProDataPrefix_sv)  ? std::make_optional(UriType::Data) :
+           SO::StartsWith(uri_sv, CSProSyncPrefix_sv)  ? std::make_optional(UriType::Sync) :
+           SO::StartsWith(uri_sv, CSProCachePrefix_sv) ? std::make_optional(UriType::Cache) :
+                                                         std::nullopt;
 }
 
 
@@ -142,15 +142,15 @@ std::string CustomUri::ConvertUriToPropertyString(const std::string_view cspro_s
 
 std::string CustomUri::CreateTextUri(std::string file_path)
 {
-    return SO::Concatenate(CSProSchemeTextPrefix_sv, EncodeFilePath(std::move(file_path)));
+    return SO::Concatenate(CSProTextPrefix_sv, EncodeFilePath(std::move(file_path)));
 }
 
 
 std::string CustomUri::ConvertTextUriToFilePath(const std::string_view uri_sv)
 {
-    ASSERT(SO::StartsWith(uri_sv, CSProSchemeTextPrefix_sv));
+    ASSERT(SO::StartsWith(uri_sv, CSProTextPrefix_sv));
 
-    std::string file_path = EvaluatePathAndQueryString(uri_sv.substr(CSProSchemeTextPrefix_sv.length()), nullptr);
+    std::string file_path = EvaluatePathAndQueryString(uri_sv.substr(CSProTextPrefix_sv.length()), nullptr);
 
     return PortableFunctions::MakePathToNativeSlash(file_path);
 }
@@ -158,7 +158,7 @@ std::string CustomUri::ConvertTextUriToFilePath(const std::string_view uri_sv)
 
 CustomUri::UriBuilder CustomUri::CreateUriForConnectionString(const ConnectionString& connection_string)
 {
-    UriBuilder uri_builder { std::string(CSProSchemeDataPrefix_sv), false };
+    UriBuilder uri_builder { std::string(CSProDataPrefix_sv), false };
 
     if( connection_string.HasFilePath() )
     {
@@ -223,13 +223,13 @@ std::string CustomUri::AddCaseToDataUri(std::string data_uri, const std::string&
 
 std::string CustomUri::ConvertDataUriToConnectionStringText(const std::string_view uri_sv)
 {
-    return ConvertUriToPropertyString(CSProSchemeDataPrefix_sv, uri_sv);
+    return ConvertUriToPropertyString(CSProDataPrefix_sv, uri_sv);
 }
 
 
 std::string CustomUri::ConvertSyncUriToSyncConnectionStringText(const std::string_view uri_sv)
 {
-    return ConvertUriToPropertyString(CSProSchemeSyncPrefix_sv, uri_sv);
+    return ConvertUriToPropertyString(CSProSyncPrefix_sv, uri_sv);
 }
 
 
@@ -244,7 +244,7 @@ std::string CustomUri::CreateCacheUri()
     cache_id = ( ( cache_id >> 16 ) ^ cache_id);
 
     return SO::Concatenate(
-        CSProSchemeCachePrefix_sv,
+        CSProCachePrefix_sv,
         Hash::BytesToHexString(&cache_id, sizeof(cache_id))
     );
 }

@@ -64,6 +64,7 @@
     <ClCompile Include="Preprocessor.cpp" />
     <ClCompile Include="ReservedWords.cpp" />
     <ClCompile Include="SourceBuffer.cpp" />
+    <ClCompile Include="SpecialFunction.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>

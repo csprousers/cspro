@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "UserFunction.h"
 
 
@@ -36,6 +36,17 @@ void UserFunction::SetParameters(std::vector<int> parameter_symbol_indices, std:
 Symbol& UserFunction::GetParameterSymbol(const size_t parameter_number)
 {
     return m_engineData.symbol_table.GetAt(m_parameterSymbols[parameter_number]);
+}
+
+
+std::vector<SymbolType> UserFunction::GetParameterSymbolTypes() const
+{
+    std::vector<SymbolType> symbol_types;
+
+    for( const int symbol_index : m_parameterSymbols )
+        symbol_types.emplace_back(m_engineData.symbol_table.GetAt(symbol_index).GetType());
+
+    return symbol_types;
 }
 
 

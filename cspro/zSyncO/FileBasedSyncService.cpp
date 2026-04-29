@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "FileBasedSyncService.h"
 #include "CaseObservable.h"
 #include "FileBasedParadataSyncer.h"
@@ -823,25 +823,23 @@ std::optional<JsonNode> FileBasedSyncService::SendSyncMessage(const DeviceId& de
 {
     // the message filename will appear as: [device_id]$[timestamp]$[counter].json
     // the counter will ensure that messages sent at the same time result in unique names
-    if( m_syncMessageCounter == nullptr )
+    if( m_syncMessageCounter == nullptr ||
+        std::get<0>(*m_syncMessageCounter) != sync_message.GetTimestamp() )
     {
         m_syncMessageCounter = std::make_unique<std::tuple<int64_t, size_t>>(sync_message.GetTimestamp(), 1);
     }
 
-    else if( std::get<0>(*m_syncMessageCounter) == sync_message.GetTimestamp() )
+    else
     {
         ++std::get<1>(*m_syncMessageCounter);
     }
 
-    else
-    {
-        std::get<0>(*m_syncMessageCounter) = sync_message.GetTimestamp();
-        std::get<1>(*m_syncMessageCounter) = 1;
-    }
-
-    const std::string sync_message_file_path = FormatText("/CSPro/messages/%s$%s$%02d.json", device_id.c_str(),
-                                                                                             IntToString(sync_message.GetTimestamp()).c_str(),
-                                                                                             static_cast<int>(std::get<1>(*m_syncMessageCounter)));
+    const std::string sync_message_file_path = FormatText(
+        "/CSPro/messages/%s$" Formatter_int64_t "$%02d.json",
+        device_id.c_str(),
+        sync_message.GetTimestamp(),
+        static_cast<int>(std::get<1>(*m_syncMessageCounter))
+    );
 
     FileWriteText(sync_message_file_path, Json::ToJson(sync_message));
 

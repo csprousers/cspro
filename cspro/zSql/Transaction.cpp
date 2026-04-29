@@ -1,5 +1,6 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "Transaction.h"
+#include <zToolsO/UniqueId.h>
 
 
 Sqlite::Transaction::Transaction(sqlite3* const db) noexcept
@@ -68,13 +69,29 @@ void Sqlite::Transaction::Begin(const size_t commit_periodically_counter)
 }
 
 
-void Sqlite::Transaction::Savepoint(std::string name)
+void Sqlite::Transaction::Savepoint(std::unique_ptr<std::string> name)
 {
+    ASSERT(name != nullptr);
     ASSERT(!IsTransactionOrSavepointInUse());
 
-    ExecuteSql("SAVEPOINT " + name, "Could not start a SQLite savepoint.");
+    ExecuteSql("SAVEPOINT " + *name, "Could not start a SQLite savepoint.");
 
-    m_savepointName = std::make_unique<std::string>(std::move(name));
+    m_savepointName = std::move(name);
+}
+
+
+void Sqlite::Transaction::Savepoint(std::string name)
+{
+    ASSERT(!SO::StartsWithNoCase(name, SavepointUniqueNamePrefix));
+    Savepoint(std::make_unique<std::string>(std::move(name)));
+}
+
+
+void Sqlite::Transaction::Savepoint()
+{
+    Savepoint(std::make_unique<std::string>(
+        FormatText("%s%d", SavepointUniqueNamePrefix, UniqueId::CreateInt())
+    ));
 }
 
 
@@ -91,6 +108,7 @@ void Sqlite::Transaction::Rollback()
     else if( m_savepointName != nullptr )
     {
         ExecuteSql("ROLLBACK TO " + *m_savepointName, exception_message);
+        ExecuteSql("RELEASE " + *m_savepointName, "Could not release a SQLite savepoint following rollback.");
         m_savepointName.reset();
     }
 

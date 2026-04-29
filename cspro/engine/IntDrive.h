@@ -964,8 +964,8 @@ private:
     bool m_bExecSpecFunc;
 
 public:
-    bool HasSpecialFunction(SpecialFunction special_function) override;
-    double ExecSpecialFunction(int symbol_index, SpecialFunction special_function, std::vector<std::variant<double, SharableString>> arguments) override;
+    bool HasSpecialFunction(SpecialFunction::Code special_function) override;
+    double ExecSpecialFunction(int symbol_index, SpecialFunction::Code special_function, std::vector<std::variant<double, SharableString>> arguments) override;
 
     bool ExecuteOnSystemMessage(MessageType message_type, int message_number, const std::string& message_text);
 

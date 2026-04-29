@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "CSWebSyncService.h"
 #include "CaseObservable.h"
 #include "ExponentialBackoff.h"
@@ -609,9 +609,17 @@ std::optional<JsonNode> CSWebSyncService::SendSyncMessage(const DeviceId& device
     auto additional_headers = std::make_unique<HeaderList>();
     additional_headers->Add(SyncCustomHeaders::DEVICE_ID_HEADER, device_id);
 
-    return m_cswebConnection->ExecuteRestPostJson<JsonNode>("messages/", 100154,
-                                                            Json::ToJson(sync_message), false,
-                                                            std::move(additional_headers));
+    std::optional<JsonNode> response_json_node = m_cswebConnection->ExecuteRestPostJson<JsonNode>(
+        "messages/", 100154,
+        Json::ToJson(sync_message), false,
+        std::move(additional_headers)
+    );
+
+    // if receiving the default response (null), return it as std::nullopt, will be treated as undefined
+    if( response_json_node.has_value() && response_json_node->IsNull() )
+        response_json_node.reset();
+
+    return response_json_node;
 }
 
 

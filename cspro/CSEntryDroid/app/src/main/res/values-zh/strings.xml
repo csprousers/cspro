@@ -71,7 +71,6 @@
   <string name="engine_gps_time_remaining">剩余时间</string>
   <string name="engine_showlist_select">选择</string>
   <string name="searchview_prompt">查找</string>
-  <string name="about_creators">&lt;html&gt;CSEntry由&lt;a href=&quot;http://www.census.gov&quot;&gt;美国人口普查局&lt;/a&gt;开发，资助方为美国国际开发署（USAID）。&lt;/html&gt;</string>
   <string name="about_disclaimer">&lt;html&gt;作为安卓系统运行平台，CSEntry可以运行使用普查和调查处理系统(&lt;a href=&quot;https://www.census.gov/data/software/cspro.html&quot;&gt;CSPro&lt;/a&gt;)所创建的应用程序。用户所创建的应用程序的所有权归创建者所有。CSEntry开发方对使用本平台运行的问卷调查及其可预期或不可预期后果不承担任何责任。&lt;/html&gt;</string>
   <string name="about_csentry_globe_icon_desc">前往CSPro网站</string>
   <string name="about_version">版本：%1$s (中文)</string>

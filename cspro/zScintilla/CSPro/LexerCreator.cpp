@@ -19,6 +19,7 @@ extern Lexilla::LexerModule lmCSProReportHtml_V8_0;
 extern Lexilla::LexerModule lmCSProReportMarkdown_V0;
 extern Lexilla::LexerModule lmCSProReportMarkdown_V8_0;
 extern Lexilla::LexerModule lmCSProPre80SpecFile;
+extern Lexilla::LexerModule lmCSProPropertyString;
 extern Lexilla::LexerModule lmCSProDocument;
 extern Lexilla::LexerModule lmCPP;
 extern Lexilla::LexerModule lmHTML;
@@ -30,7 +31,7 @@ extern Lexilla::LexerModule lmSQL;
 extern Lexilla::LexerModule lmYAML;
 
 
-Scintilla::ILexer5* CSProScintilla::CreateLexer(int lexer_language)
+Scintilla::ILexer5* CSProScintilla::CreateLexer(const int lexer_language)
 {
     const Lexilla::LexerModule& lexer_module =
         ( lexer_language == SCLEX_NULL )                       ? lmNull :
@@ -45,6 +46,7 @@ Scintilla::ILexer5* CSProScintilla::CreateLexer(int lexer_language)
         ( lexer_language == SCLEX_CSPRO_REPORT_MARKDOWN_V0 )   ? lmCSProReportMarkdown_V0 :
         ( lexer_language == SCLEX_CSPRO_REPORT_MARKDOWN_V8_0 ) ? lmCSProReportMarkdown_V8_0 :
         ( lexer_language == SCLEX_CSPRO_PRE80_SPEC_FILE )      ? lmCSProPre80SpecFile :
+        ( lexer_language == SCLEX_CSPRO_PROPERTY_STRING )      ? lmCSProPropertyString :
         ( lexer_language == SCLEX_CSPRO_DOCUMENT )             ? lmCSProDocument :
         ( lexer_language == SCLEX_CPP )                        ? lmCPP :
         ( lexer_language == SCLEX_HTML )                       ? lmHTML :

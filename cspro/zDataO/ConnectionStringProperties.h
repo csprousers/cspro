@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zJson/JsonKeys.h>
 
@@ -11,18 +11,18 @@ namespace CSProperty // connection string property
     constexpr const char* cacheLocally          = "cacheLocally";           // CSWebRepository
     constexpr const char* decimalMark           = JK::decimalMark;          // export writers: CSV, semicolon, tab
     constexpr const char* dictionaryName        = "dictionaryName";         // CSWebRepository
-    constexpr const char* dictionaryPath        = "dictionaryPath";         // export writers: CSPro; Data Manager (via cspro:// URIs)
+    constexpr const char* dictionaryPath        = "dictionaryPath";         // export writers: CSPro; Data Manager (via cspro:///data/ URIs)
     constexpr const char* encoding              = JK::encoding;             // TextRepository; export writers: CSV, semicolon, tab; SAS (syntax)
     constexpr const char* factorRanges          = "factorRanges";           // export writers: R
     constexpr const char* header                = "header";                 // export writers: CSV, semicolon, tab; Excel
     constexpr const char* jsonFormat            = JK::jsonFormat;           // JsonRepository
-    constexpr const char* key                   = JK::key;                  // Data Manager (via cspro:// URIs)
+    constexpr const char* key                   = JK::key;                  // Data Manager (via cspro:///data/ URIs)
     constexpr const char* mappedSpecialValues   = "mappedSpecialValues";    // export writers: all but CSPro
     constexpr const char* newline               = "newline";                // TextRepository; export writers: CSV, semicolon, tab; SAS (syntax)
     constexpr const char* password              = JK::password;             // CSWebRepository, EncryptedSQLiteRepository
     constexpr const char* record                = JK::record;               // export writers: all
     constexpr const char* username              = JK::username;             // CSWebRepository
-    constexpr const char* uuid                  = JK::uuid;                 // Data Manager (via cspro:// URIs)
+    constexpr const char* uuid                  = JK::uuid;                 // Data Manager (via cspro:///data/ URIs)
     constexpr const char* syntaxPath            = "syntaxPath";             // export writers: SAS
     constexpr const char* verbose               = "verbose";                // JsonRepository
     constexpr const char* writeBlankValues      = JK::writeBlankValues;     // JsonRepository

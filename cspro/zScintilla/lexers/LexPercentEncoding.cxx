@@ -1,32 +1,20 @@
 #include "LexCSPro.h"
+#include "LexerPercentEncoding.h"
 
 using namespace Scintilla;
 using namespace Lexilla;
 
 
-class LexerPercentEncoding : public DefaultLexer
+namespace
 {
-public:
-    static constexpr const char* LexerName = "percentencoding";
-
-    LexerPercentEncoding();
-    static ILexer5* CreateLexer();
-
-    const char* SCI_METHOD PropertyGet(const char* key) override;
-    int SCI_METHOD LineEndTypesSupported() override;
-    void SCI_METHOD Lex(Sci_PositionU startPos, Sci_Position length, int initStyle, IDocument* pAccess) override;
-};
-
-
-LexerPercentEncoding::LexerPercentEncoding()
-    :   DefaultLexer(LexerName, SCLEX_PERCENT_ENCODING)
-{
+    constexpr const char* LexerName = "percentencoding";
+    constexpr int LexerLanguage     = SCLEX_PERCENT_ENCODING;
 }
 
 
 ILexer5* LexerPercentEncoding::CreateLexer()
 {
-    return new LexerPercentEncoding();
+    return new LexerPercentEncoding(LexerName, LexerLanguage);
 }
 
 
@@ -48,6 +36,14 @@ void LexerPercentEncoding::Lex(Sci_PositionU startPos, Sci_Position length, int 
     Accessor styler(pAccess, nullptr);
     StyleContext sc(startPos, length, initStyle, styler);
 
+    LexPE(sc, false);
+
+    sc.Complete();
+}
+
+
+void LexerPercentEncoding::LexPE(StyleContext& sc, const bool is_property_string)
+{
     enum class Section
     {
         Default,
@@ -61,6 +57,25 @@ void LexerPercentEncoding::Lex(Sci_PositionU startPos, Sci_Position length, int 
 
     for( ; sc.More(); sc.Forward() )
     {
+        // when lexing a property string...
+        if( is_property_string )
+        {
+            // ...return on a newline
+            if( sc.atLineStart )
+            {
+                sc.SetState(SCE_CSPRO_PROPERTY_STRING_RESOURCE);
+                return;
+            }
+
+            // ... or when using an ampersand to indicate another attribute
+            else if( sc.ch == '&' )
+            {
+                sc.SetState(SCE_CSPRO_PROPERTY_STRING_AMPERSAND);
+                return;
+            }
+        }
+
+
         // start with the default coloring:
         // - on a newline
         // - after processing the second hex character
@@ -107,9 +122,7 @@ void LexerPercentEncoding::Lex(Sci_PositionU startPos, Sci_Position length, int 
             }
         }
     }
-
-    sc.Complete();
 }
 
 
-LexerModule lmPercentEncoding(SCLEX_PERCENT_ENCODING, LexerPercentEncoding::CreateLexer, LexerPercentEncoding::LexerName);
+LexerModule lmPercentEncoding(LexerLanguage, LexerPercentEncoding::CreateLexer, LexerName);

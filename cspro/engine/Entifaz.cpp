@@ -1,4 +1,4 @@
-﻿#include "StandardSystemIncludes.h"
+#include "StandardSystemIncludes.h"
 #include "Entifaz.h"
 #include "3dException.h"
 #include "Engine.h"
@@ -586,13 +586,13 @@ DEFLD* CEntryIFaz::C_GoToField( int iAction ) {
 }
 
 
-bool CEntryIFaz::HasSpecialFunction(const SpecialFunction special_function)
+bool CEntryIFaz::HasSpecialFunction(const SpecialFunction::Code special_function)
 {
     return m_pIntDriver->HasSpecialFunction(special_function);
 }
 
 
-double CEntryIFaz::ExecSpecialFunction(const int symbol_index, const SpecialFunction special_function, const double argument)
+double CEntryIFaz::ExecSpecialFunction(const int symbol_index, const SpecialFunction::Code special_function, const double argument)
 {
     return m_pIntDriver->ExecSpecialFunction(symbol_index, special_function, { argument });
 }

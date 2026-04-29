@@ -1,4 +1,4 @@
-﻿//---------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 //  File name: CsDriver.cpp
 //
 //  Description:
@@ -5669,12 +5669,12 @@ bool CsDriver::AcceptFieldValue( CFlowAtom* pAtom ) {    // victor May 21, 01
         if( bAccepted )
         {
             // verify if a refused value should be accepted
-            if( pVarT->IsNumeric() && m_pIntDriver->HasSpecialFunction(SpecialFunction::OnRefused) &&
+            if( pVarT->IsNumeric() && m_pIntDriver->HasSpecialFunction(SpecialFunction::Code::OnRefused) &&
                 m_pIntDriver->GetVarFloatValue(pVarX, theIndex) == REFUSED )
             {
                 ASSERT(!m_pIntDriver->GetRequestIssued());
 
-                double on_refused_result = m_pIntDriver->ExecSpecialFunction(pVarT->GetSymbolIndex(), SpecialFunction::OnRefused, { });
+                double on_refused_result = m_pIntDriver->ExecSpecialFunction(pVarT->GetSymbolIndex(), SpecialFunction::Code::OnRefused, { });
 
                 if( m_pIntDriver->GetRequestIssued() )
                 {

@@ -35,6 +35,13 @@ public:
     template<typename T>
     std::optional<T> RetrieveOptionalFromJson(std::string_view attribute_sv) noexcept;
 
+#ifdef WIN32
+    // Prior to CSPro 8.1, the credential blob was stored as wide chracters instead of UTF-8.
+    // This function checks if the second byte is '\0', and if so, converts it from wide to UTF-8.
+    template<typename CredentialT>
+    static std::string ParseCredentialBlob(const CredentialT& credential);
+#endif
+
 protected:
     virtual std::string PrefixAttribute(std::string_view attribute_sv);
 };

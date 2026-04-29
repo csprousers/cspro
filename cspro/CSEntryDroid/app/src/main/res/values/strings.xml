@@ -81,7 +81,7 @@
   <string name="gps_labels_no_accuracy">Latitude\nLongitude</string>
   <string name="engine_showlist_select">Select</string>
   <string name="searchview_prompt">Search</string>
-  <string name="about_creators">&lt;html&gt;The CSEntry application is designed by the &lt;a href=&quot;http://www.census.gov&quot;&gt;U.S. Census Bureau&lt;/a&gt;. Funding for the development of this program came from the U.S. Agency for International Development (USAID).&lt;/html&gt;</string>
+  <string name="about_creators">&lt;html&gt;The development of the CSEntry application is managed by the U.S. Census Bureau\'s &lt;a href=&quot;https://www.census.gov/programs-surveys/international-programs.html&quot;&gt;International Programs Center&lt;/a&gt;.&lt;/html&gt;</string>
   <string name="about_disclaimer">&lt;html&gt;CSEntry is the Android runtime engine for applications created using the Census and Survey Processing System (&lt;a href=&quot;https://www.census.gov/data/software/cspro.html&quot;&gt;CSPro&lt;/a&gt;). Any content in user-created applications is the property of the creating user. The CSEntry application developers are not liable for any surveys implemented using this Android application, or for any consequences, intended or unintended, of this Android application.&lt;/html&gt;</string>
   <string name="about_csentry_globe_icon_desc">Visit CSPro Website</string>
   <string name="about_version">Version: %1$s (English)</string>

@@ -1,7 +1,8 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "ContextSensitiveHelp.h"
 #include "KeywordTable.h"
 #include "ReservedWords.h"
+#include "SpecialFunction.h"
 
 using namespace Logic;
 
@@ -49,17 +50,33 @@ namespace
 const char* const ContextSensitiveHelp::GetTopicFilename(const std::string_view text_sv, const FunctionDetails** function_details/* = nullptr*/)
 {
     const KeywordDetails* keyword_details;
+
+    if( KeywordTable::IsKeyword(text_sv, &keyword_details) )
+        return keyword_details->help_filename;
+
     const FunctionNamespaceDetails* function_namespace_details;
+
+    if( FunctionTable::IsFunctionNamespace(text_sv, SymbolType::None, &function_namespace_details) )
+        return function_namespace_details->help_filename;
+
     const FunctionDetails* local_function_details;
-    const FunctionDetails** function_details_to_use = ( function_details != nullptr ) ? function_details : &local_function_details;
+    const FunctionDetails** function_details_to_use = ( function_details != nullptr ) ? function_details :
+                                                                                        &local_function_details;
+
+    if( FunctionTable::IsFunction(text_sv, SymbolType::None, function_details_to_use) )
+        return (*function_details_to_use)->help_filename;
+
     const AdditionalReservedWordDetails* additional_reserved_word_details;
 
-    return KeywordTable::IsKeyword(text_sv, &keyword_details)                                              ? keyword_details->help_filename :
-           FunctionTable::IsFunctionNamespace(text_sv, SymbolType::None, &function_namespace_details)      ? function_namespace_details->help_filename :
-           FunctionTable::IsFunction(text_sv, SymbolType::None, function_details_to_use)                   ? (*function_details_to_use)->help_filename :
-           ReservedWords::GetAdditionalReservedWords().IsEntry(text_sv, &additional_reserved_word_details) ? additional_reserved_word_details->help_filename :
-           ReservedWords::GetSpecialFunctions().IsEntry(text_sv, &additional_reserved_word_details)        ? additional_reserved_word_details->help_filename :
-                                                                                                             nullptr;
+    if( ReservedWords::GetAdditionalReservedWords().IsEntry(text_sv, &additional_reserved_word_details) )
+        return additional_reserved_word_details->help_filename;
+
+    const SpecialFunction::Definition* const special_function = SpecialFunction::Lookup(text_sv);
+
+    if( special_function != nullptr )
+        return special_function->help_filename;
+
+    return nullptr;
 }
 
 
@@ -91,7 +108,7 @@ const char* const ContextSensitiveHelp::GetTopicFilename(const cs::span<const st
     if( FunctionTable::IsFunctionNamespace(text_sv, symbol_type_or_function_namespace, &function_namespace_details) )
         return function_namespace_details->help_filename;
 
-    return nullptr;        
+    return nullptr;
 }
 
 

@@ -34,20 +34,6 @@ namespace
         { "sync_history",   nullptr },
         { "vector_clock",   nullptr },
     };
-
-
-    const AdditionalReservedWordDetails SpecialFunctions[] =
-    {
-        { ToString(SpecialFunction::OnChangeLanguage),      "OnChangeLanguage_global_function.html" },
-        { ToString(SpecialFunction::OnChar),                "OnChar_global_function.html" },
-        { ToString(SpecialFunction::OnKey),                 "OnKey_global_function.html" },
-        { ToString(SpecialFunction::OnStop),                "OnStop_global_function.html" },
-        { ToString(SpecialFunction::OnSyncMessage),         "syncmessage_function.html" },
-        { ToString(SpecialFunction::OnRefused),             "refused_value.html" },
-        { ToString(SpecialFunction::OnSystemMessage),       "OnSystemMessage_global_function.html" },
-        { ToString(SpecialFunction::OnViewQuestionnaire),   "OnViewQuestionnaire_global_function.html" },
-        { ToString(SpecialFunction::OnActionInvokerResult), "CS_OnActionInvokerResult.html" },
-    };
 }
 
 
@@ -125,17 +111,14 @@ const std::vector<std::string>& ReservedWords::GetAllReservedWords()
 
 const ReservedWordsTable<AdditionalReservedWordDetails>& ReservedWords::GetAdditionalReservedWords()
 {
-    static const ReservedWordsTable<AdditionalReservedWordDetails> additional_reserved_words(cs::span<const AdditionalReservedWordDetails>(
-                                                                                             AdditionalReservedWords, AdditionalReservedWords + _countof(AdditionalReservedWords)));
+    static const ReservedWordsTable<AdditionalReservedWordDetails> additional_reserved_words(
+        cs::span<const AdditionalReservedWordDetails>(
+            AdditionalReservedWords,
+            AdditionalReservedWords + _countof(AdditionalReservedWords)
+        )
+    );
+
     return additional_reserved_words;
-}
-
-
-const ReservedWordsTable<AdditionalReservedWordDetails>& ReservedWords::GetSpecialFunctions()
-{
-    static const ReservedWordsTable<AdditionalReservedWordDetails> special_functions_table(cs::span<const AdditionalReservedWordDetails>(
-                                                                                           SpecialFunctions, SpecialFunctions + _countof(SpecialFunctions)));
-    return special_functions_table;
 }
 
 
@@ -153,22 +136,32 @@ const char* ReservedWords::GetDefinedCaseWorker(const std::string_view text_sv, 
                  std::is_same_v<T, FunctionNamespace>)
     {
         const KeywordDetails* keyword_details;
+
+        if( KeywordTable::IsKeyword(text_sv, &keyword_details) )
+            return keyword_details->name;
+
         const FunctionNamespaceDetails* function_namespace_details;
+
+        if( FunctionTable::IsFunctionNamespace(text_sv, function_domain, &function_namespace_details) )
+            return function_namespace_details->name;
+
         const AdditionalReservedWordDetails* additional_reserved_word_details;
-        const char* child_symbol_name;
 
-        return KeywordTable::IsKeyword(text_sv, &keyword_details)                                        ? keyword_details->name :
-               FunctionTable::IsFunctionNamespace(text_sv, function_domain, &function_namespace_details) ? function_namespace_details->name :
-               GetAdditionalReservedWords().IsEntry(text_sv, &additional_reserved_word_details)          ? additional_reserved_word_details->name :
-               GetSpecialFunctions().IsEntry(text_sv, &additional_reserved_word_details)                 ? additional_reserved_word_details->name :
-               ( ( child_symbol_name = LookupChildSymbolName(text_sv, function_domain) ) != nullptr )    ? child_symbol_name :
-                                                                                                           nullptr;
+        if( GetAdditionalReservedWords().IsEntry(text_sv, &additional_reserved_word_details) )
+            return additional_reserved_word_details->name;
+
+        const SpecialFunction::Definition* const special_function = SpecialFunction::Lookup(text_sv);
+
+        if( special_function != nullptr )
+            return special_function->name;
+
+        const char* const child_symbol_name = LookupChildSymbolName(text_sv, function_domain);
+
+        if( child_symbol_name != nullptr )
+            return child_symbol_name;
     }
 
-    else
-    {
-        return nullptr;
-    }
+    return nullptr;
 }
 
 

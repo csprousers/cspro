@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "IncludesRT.h"
 #include "Nodes/GeneralizedFunction.h"
 #include <zToolsO/ObjectTransporter.h>
@@ -52,13 +52,13 @@ void LogicInterpreter::SetActionInvokerRuntime(std::shared_ptr<ActionInvoker::Ru
 double LogicInterpreter::ex_ActionInvoker(const int program_index)
 {
     // OnActionInvokerResult routines
-    const bool has_OnActionInvokerResult = HasSpecialFunction(SpecialFunction::OnActionInvokerResult);
+    const bool has_OnActionInvokerResult = HasSpecialFunction(SpecialFunction::Code::OnActionInvokerResult);
     std::optional<double> result_override_OnActionInvokerResult;
 
     auto OnActionInvokerResult_process = [&](SharableString action_name, SharableString result, const char* const result_type)
     {
         const double result_override = ExecSpecialFunction(Get_m_iExSymbol_INTERPRETER_DLL_TODO(),
-                                                           SpecialFunction::OnActionInvokerResult,
+                                                           SpecialFunction::Code::OnActionInvokerResult,
                                                            { std::move(action_name), std::move(result), result_type });
         SharableString result_override_text = GetWorkingSharableString(static_cast<size_t>(result_override));
 

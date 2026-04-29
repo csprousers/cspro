@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zEngineO/zEngineO.h>
 #include <zEngineO/UserFunctionLocalSymbolsManager.h>
@@ -39,6 +39,8 @@ public:
 
     Symbol& GetParameterSymbol(size_t parameter_number);
     const Symbol& GetParameterSymbol(size_t parameter_number) const { return const_cast<UserFunction*>(this)->GetParameterSymbol(parameter_number); }
+
+    std::vector<SymbolType> GetParameterSymbolTypes() const;
 
     int GetParameterDefaultValue(size_t parameter_number) const { return m_parameterDefaultValues[parameter_number - GetNumberRequiredParameters()]; }
     size_t GetNumberRequiredParameters() const                  { return m_parameterSymbols.size() - m_parameterDefaultValues.size(); };
