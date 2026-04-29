@@ -1,10 +1,10 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "SyncHelpers.h"
 #include "SyncTask.h"
 #include <zUtilF/SortListCtrl.h>
 #include <zDataO/DataRepositoryHelpers.h>
+#include <zSyncO/DialogBasedSyncListener.h>
 #include <zSyncO/SyncDictionaryInfo.h>
-#include <zSyncF/DialogBasedSyncListener.h>
 
 
 void SyncHelpers::SetUpDataListCtrl(CSortListCtrl& data_list_ctrl)

@@ -1,6 +1,6 @@
 //{{NO_DEPENDENCIES}}
 // Microsoft Visual C++ generated include file.
-// Used by zSyncF.rc
+// Used by zSyncO.rc
 //
 #define IDD_CHOOSE_BLUETOOTH_DEVICE     16001
 #define IDD_SYNC_SERVICE_SELECTOR       16002

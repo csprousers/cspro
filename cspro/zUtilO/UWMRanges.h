@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 
 namespace UWM::Ranges
@@ -59,7 +59,7 @@ namespace UWM::Ranges
     constexpr unsigned RuntimeStart    = OrderLast + 1;
     constexpr unsigned RuntimeLast     = RuntimeStart + 10;
 
-    // zSyncF
+    // zSyncO
     constexpr unsigned SyncStart       = RuntimeLast + 1;
     constexpr unsigned SyncLast        = SyncStart + 5;
 

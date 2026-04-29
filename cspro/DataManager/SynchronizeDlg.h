@@ -1,8 +1,8 @@
-﻿#pragma once
+#pragma once
 
 #include <DataManager/SyncTask.h>
 #include <zUtilO/ResizableDlg.h>
-#include <zSyncF/SyncServiceSelectorDlg.h>
+#include <zSyncO/SyncServiceSelectorDlg.h>
 
 
 class SynchronizeDlg : public DynamicLayoutResizableDlg

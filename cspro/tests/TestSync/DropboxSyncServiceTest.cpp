@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "ApplicationsTester.h"
 #include <zNetwork/FileBasedConnection.h>
 #include <zSyncO/SyncServiceFactory.h>
@@ -14,7 +14,7 @@ namespace SyncUnitTest
     public:
         TEST_METHOD(TestConnectDisconnect)
         {
-            SyncClient sync_client(clientDeviceId, std::make_unique<SyncServiceFactory>(std::make_unique<SyncLoginAccessor>()));
+            SyncClient sync_client(clientDeviceId, std::make_unique<SyncServiceFactory>());
             sync_client.SetSyncListener(std::make_unique<SyncLogSyncListener>());
 
             SyncClient::SyncResult result = sync_client.ConnectDropbox();
@@ -27,7 +27,7 @@ namespace SyncUnitTest
 
         TEST_METHOD(TestPutGetFile)
         {
-            SyncClient sync_client(clientDeviceId, std::make_unique<SyncServiceFactory>(std::make_unique<SyncLoginAccessor>()));
+            SyncClient sync_client(clientDeviceId, std::make_unique<SyncServiceFactory>());
             sync_client.SetSyncListener(std::make_unique<SyncLogSyncListener>());
 
             SyncClient::SyncResult result = sync_client.ConnectDropbox();

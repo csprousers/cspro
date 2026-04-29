@@ -22,6 +22,7 @@ add_library(${PROJECT_NAME}
     BluetoothObexConnection.cpp
     BluetoothObexServer.cpp
     CSWebSyncService.cpp
+    DialogBasedSyncListener.cpp
     DropboxLocalSyncService.cpp
     DropboxSyncService.cpp
     FileBasedParadataSyncer.cpp
@@ -38,6 +39,7 @@ add_library(${PROJECT_NAME}
     ObexServer.cpp
     SyncClient.cpp
     SyncDictionaryInfo.cpp
+    SyncLoginAccessor.cpp
     SyncMessage.cpp
     SyncObexHandler.cpp
     SyncRunner.cpp

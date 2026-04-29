@@ -1,10 +1,10 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "OpenCSWebDataDlg.h"
 #include "SyncHelpers.h"
 #include <zToolsO/WinSettings.h>
 #include <zNetwork/CSWebConnection.h>
 #include <zNetwork/HttpConnection.h>
-#include <zSyncF/SyncLoginAccessor.h>
+#include <zSyncO/SyncLoginAccessor.h>
 
 
 BEGIN_MESSAGE_MAP(OpenCSWebDataDlg, ResizableDlg)

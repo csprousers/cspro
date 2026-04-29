@@ -87,7 +87,7 @@
       "command": 47501,
       "control": 15500
     },
-    "zSyncF": {
+    "zSyncO": {
       "resource": 16001,
       "command": 48001,
       "control": 16500
@@ -505,7 +505,7 @@
         "IDC_OPERATOR_NOT"
       ]
     ],
-    "zSyncF": [
+    "zSyncO": [
       [
         "IDC_SERVICE_CSWEB",
         "IDC_SERVICE_DROPBOX",

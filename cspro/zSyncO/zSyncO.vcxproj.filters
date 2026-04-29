@@ -9,9 +9,16 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ApplicationPackage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ApplicationPackageManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="AppSyncParamRunner.h">
@@ -38,7 +45,13 @@
     <ClInclude Include="CaseObservable.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ChooseBluetoothDeviceDialog.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="CSWebSyncService.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DialogBasedSyncListener.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DropboxLocalSyncService.h">
@@ -104,6 +117,9 @@
     <ClInclude Include="ObexServer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="stdafx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -122,6 +138,9 @@
     <ClInclude Include="SyncLogCaseConstructionReporter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="SyncLoginAccessor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="SyncMessage.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -138,6 +157,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="SyncServiceFactory.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SyncServiceSelectorDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="UWM.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="WinBluetoothAdapter.h">
@@ -181,7 +206,13 @@
     <ClCompile Include="BluetoothSyncService.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ChooseBluetoothDeviceDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="CSWebSyncService.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DialogBasedSyncListener.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="DropboxLocalSyncService.cpp">
@@ -235,6 +266,9 @@
     <ClCompile Include="SyncDictionaryInfo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="SyncLoginAccessor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="SyncMessage.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -250,6 +284,9 @@
     <ClCompile Include="SyncServiceFactory.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="SyncServiceSelectorDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="WinBluetoothAdapter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -262,5 +299,13 @@
     <ClCompile Include="WinObexBluetoothTransport.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="zSyncO.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="zSyncO.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
   </ItemGroup>
 </Project>

@@ -1,10 +1,10 @@
-﻿#pragma once
+#pragma once
 
 #include <DataManager/SyncTask.h>
 #include <zUtilO/ResizableDlg.h>
 #include <zUtilF/SortListCtrl.h>
 #include <zSyncO/SyncDictionaryInfo.h>
-#include <zSyncF/SyncServiceSelectorDlg.h>
+#include <zSyncO/SyncServiceSelectorDlg.h>
 
 
 class DownloadDataSourceDlg : public DynamicLayoutResizableDlg

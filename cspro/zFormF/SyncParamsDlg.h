@@ -1,8 +1,8 @@
-﻿#pragma once
+#pragma once
 
 #include <zUtilO/ResizableDlg.h>
 #include <zUtilF/DialogValidators.h>
-#include <zSyncF/SyncServiceSelectorDlg.h>
+#include <zSyncO/SyncServiceSelectorDlg.h>
 
 
 class SyncParamsDlg : public DynamicLayoutResizableDlg
