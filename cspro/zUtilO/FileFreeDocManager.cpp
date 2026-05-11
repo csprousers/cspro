@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "FileFreeDocManager.h"
 #include "WindowsWS.h"
 #include <zToolsO/CaseInsensitiveComparer.h>
@@ -298,4 +298,26 @@ CDocument* FileFreeDocManager::Open(const UINT nIDResource, const bool always_cr
     const std::wstring file_path = CreateDummyFilePath(template_data);
 
     return template_data.doc_template->OpenDocumentFile(file_path.c_str(), FALSE, TRUE);
+}
+
+
+CDocument* FileFreeDocManager::Open(const UINT nIDResource, const bool always_create_new_document, const wchar_t* const file_path)
+{
+    if( !always_create_new_document )
+    {
+        CDocument* const open_doc = FindAndActivateOpenDocumentByPath(file_path);
+
+        if( open_doc != nullptr )
+            return open_doc;
+    }
+
+    const auto& lookup = m_docTemplates.find(nIDResource);
+
+    if( lookup == m_docTemplates.cend() )
+        return ReturnProgrammingError(nullptr);
+
+    TemplateData& template_data = lookup->second;
+
+    return template_data.doc_template->OpenDocumentFile(file_path, FALSE, TRUE);
+
 }

@@ -376,23 +376,37 @@ void PathRelativePathTo(LPTSTR pszPath, LPCTSTR pszFrom, DWORD dwAttrFrom, LPCTS
 #endif
 
 
-bool RecycleFile(const InterfaceString file_path)
+template<bool ThrowExceptionOnError/* = false*/>
+std::conditional_t<ThrowExceptionOnError, void, bool> RecycleFile(const InterfaceString file_path)
 {
 #ifdef WIN_DESKTOP
     SHFILEOPSTRUCT info = { nullptr };
     auto complete_file_path = std::make_unique_for_overwrite<wchar_t[]>(MAX_PATH);
+    bool success = false;
 
     if( GetFullPathName(file_path.c_str(), MAX_PATH, complete_file_path.get(), nullptr) != 0 )
     {
         info.wFunc = FO_DELETE;
         info.pFrom = complete_file_path.get();
         info.fFlags = FOF_ALLOWUNDO | FOF_NOCONFIRMATION | FOF_FILESONLY;
-        return ( SHFileOperation(&info) == 0 );
+        success = ( SHFileOperation(&info) == 0 );
     }
 #endif
 
-    return false;
+    if constexpr(ThrowExceptionOnError)
+    {
+        if( !success )
+            throw CSProException("The file could not be recycled: %s", file_path.c_str_utf8());
+    }
+
+    else
+    {
+        return success;
+    }
 }
+
+template CLASS_DECL_ZTOOLSO void RecycleFile<true>(InterfaceString file_path);
+template CLASS_DECL_ZTOOLSO bool RecycleFile<false>(InterfaceString file_path);
 
 
 std::wstring GetWorkingFolder(const wstring_view base_filename_sv)

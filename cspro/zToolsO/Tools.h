@@ -56,7 +56,8 @@ CLASS_DECL_ZTOOLSO bool RunProgram(std::wstring command, int* iRetCode, int iSho
 
 //////////////////////////////////////////////////////////////////////////
 
-CLASS_DECL_ZTOOLSO bool RecycleFile(InterfaceString file_path);
+template<bool ThrowExceptionOnError = false>
+CLASS_DECL_ZTOOLSO std::conditional_t<ThrowExceptionOnError, void, bool> RecycleFile(InterfaceString file_path);
 
 CLASS_DECL_ZTOOLSO std::wstring GetWorkingFolder(wstring_view base_filename_sv);
 CLASS_DECL_ZTOOLSO std::string GetWorkingDirectory(std::string_view base_filename_sv);
