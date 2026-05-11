@@ -19,6 +19,7 @@ class ZSQL_API Sqlite::Statement
 public:
     friend class DB;
     class Resetter;
+    class Runner;
 
 private:
     Statement(std::shared_ptr<sqlite3_stmt*> statement_ptr);
@@ -173,9 +174,44 @@ private:
 class Sqlite::Statement::Resetter
 {
 public:
-    Resetter(Statement& stmt) : m_stmt(stmt) { }
+    Resetter(Statement& stmt)
+        :   m_stmt(stmt)
+    {
+        ASSERT(m_stmt.IsPrepared());
+    }
 
-    ~Resetter() { m_stmt.Reset(); }
+    ~Resetter()
+    {
+        m_stmt.Reset();
+    }
+
+private:
+    Statement& m_stmt;
+};
+
+
+
+// --------------------------------------------------------------------------
+// Statement::Runner is a RAII object that will prepare the
+// statement on construction (if necessary), and reset the statement on
+// destruction.
+// --------------------------------------------------------------------------
+
+class Sqlite::Statement::Runner
+{
+public:
+    template<typename DbT, typename SqlT>
+    Runner(DbT& db, Statement& stmt, SqlT&& sql)
+        :   m_stmt(stmt)
+    {
+        if( !m_stmt.IsPrepared() )
+            m_stmt = db.PrepareStatement(std::forward<SqlT>(sql));
+    }
+
+    ~Runner()
+    {
+        m_stmt.Reset();
+    }
 
 private:
     Statement& m_stmt;

@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "ExpansiveMap.h"
 #include <zSql/DB.h>
 
@@ -104,10 +104,10 @@ void ExpansiveMap_Db::DoBulkInsertions(const double rebuild_index_max_proportion
     {
         // if specified, count how many values have been inserted and determine
         // if it makes sense to drop and rebuild the index
-        if( !m_stmtCount.IsPrepared() )
-            m_stmtCount = m_db->PrepareStatement("SELECT COUNT(*) FROM `ex_map`;");
+        const Sqlite::Statement::Runner stmt_runner(*m_db, m_stmtCount,
+            "SELECT COUNT(*) FROM `ex_map`;"
+        );
 
-        const Sqlite::Statement::Resetter stmt_resetter(m_stmtCount);
         m_stmtCount.StepCheckResult(Sqlite::Result::Row);
 
         const int64_t existing_values = m_stmtCount.GetColumn<int64_t>(0);

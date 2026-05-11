@@ -220,9 +220,9 @@ std::optional<ReturnType> SettingsDb::ImplDb::Read(SettingsDb& settings_db, cons
     // if here, the value has not been read, or was stale, so try to read it
     Sqlite::Statement& stmt_read = settings_db.m_implTable->stmt_read;
 
-    stmt_read.Bind(1, GetDbKey(settings_db.m_keyObfuscator.get(), key_sv));
-
     const Sqlite::Statement::Resetter stmt_resetter(stmt_read);
+
+    stmt_read.Bind(1, GetDbKey(settings_db.m_keyObfuscator.get(), key_sv));
 
     if( stmt_read.Step() == Sqlite::Result::Row )
     {
