@@ -35,8 +35,12 @@ Clipboard = {
 };
 
 Data = {
+  close: (args)=>{return CSProActionInvoker.$Impl.run(this,9323,args);},
+  closeAsync: (args)=>{return CSProActionInvoker.$Impl.runAsync(this,9323,args);},
   getCase: (args)=>{return CSProActionInvoker.$Impl.run(this,36632,args);},
-  getCaseAsync: (args)=>{return CSProActionInvoker.$Impl.runAsync(this,36632,args);}
+  getCaseAsync: (args)=>{return CSProActionInvoker.$Impl.runAsync(this,36632,args);},
+  open: (args)=>{return CSProActionInvoker.$Impl.run(this,56346,args);},
+  openAsync: (args)=>{return CSProActionInvoker.$Impl.runAsync(this,56346,args);}
 };
 
 Dictionary = {

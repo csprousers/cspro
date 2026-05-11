@@ -1,5 +1,4 @@
 #include "stdafx.h"
-#include <zParadataO/Logger.h>
 #include <zParadataO/Syncer.h>
 #include <zSyncO/SyncRunnerActionInvoker.h>
 

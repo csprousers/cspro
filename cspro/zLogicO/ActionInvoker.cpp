@@ -112,6 +112,16 @@ namespace
         // CS.Data functions
         // --------------------------------------------------------------------------
         {
+            "close",
+            "CS.Data.close([dataId := number | string])",
+            "CS_Data_close.html",
+            FunctionCode::CSFN_ACTIONINVOKER_CODE,
+            FunctionNamespace::CS_Data,
+            DataType::String,
+            FunctionCompilationType::CS,
+            static_cast<int>(ActionInvoker::Action::Data_close),
+        },
+        {
             "getCase",
             "CS.Data.getCase([name := string, key := string, uuid := string, serializationOptions := object])",
             "CS_Data_getCase.html",
@@ -120,6 +130,16 @@ namespace
             DataType::String,
             FunctionCompilationType::CS,
             static_cast<int>(ActionInvoker::Action::Data_getCase),
+        },
+        {
+            "open",
+            "CS.Data.open([connection := string | object, name := string, openFlags := string, dictionary := string])",
+            "CS_Data_open.html",
+            FunctionCode::CSFN_ACTIONINVOKER_CODE,
+            FunctionNamespace::CS_Data,
+            DataType::String,
+            FunctionCompilationType::CS,
+            static_cast<int>(ActionInvoker::Action::Data_open),
         },
 
 
@@ -803,7 +823,9 @@ namespace
         { ActionInvoker::Action::Application_getQuestionText,         "{\"namespace\":\"Application\",\"name\":\"getQuestionText\",\"description\":\"Returns the question text associated with an application or loaded from the disk.\",\"parameters\":[{\"name\":\"name\",\"description\":\"The name of a form file or dictionary associated with an application, or the name of an application.\",\"types\":[\"string\"],\"required\":false},{\"name\":\"path\",\"description\":\"The path of the question text to read.\",\"types\":[\"string\"],\"required\":false}],\"returns\":[{\"name\":\"\",\"description\":\"The question text.\",\"types\":[\"object\"]}]}" },
         { ActionInvoker::Action::Clipboard_getText,                   "{\"namespace\":\"Clipboard\",\"name\":\"getText\",\"description\":\"Gets the text on the clipboard (if available).\",\"returns\":[{\"name\":\"\",\"description\":\"The text on the clipboard.\",\"types\":[\"string\"]}]}" },
         { ActionInvoker::Action::Clipboard_putText,                   "{\"namespace\":\"Clipboard\",\"name\":\"putText\",\"description\":\"Puts text onto the clipboard.\",\"parameters\":[{\"name\":\"text\",\"description\":\"The text to put onto the clipboard.\",\"types\":[\"string\",\"number\"],\"required\":true}]}" },
+        { ActionInvoker::Action::Data_close,                          "{\"namespace\":\"Data\",\"name\":\"close\",\"description\":\"Closes a previously open data source.\",\"parameters\":[{\"name\":\"dataId\",\"description\":\"The data source ID or the name of a dictionary.\",\"types\":[\"number\",\"string\"],\"required\":false}]}" },
         { ActionInvoker::Action::Data_getCase,                        "{\"namespace\":\"Data\",\"name\":\"getCase\",\"description\":\"Returns a specific case, or the current case, associated with a dictionary.\",\"parameters\":[{\"name\":\"name\",\"description\":\"The name of a dictionary or form file associated with an application, or the name of an application.\",\"types\":[\"string\"],\"required\":false},{\"name\":\"key\",\"description\":\"The key (case IDs) of a specific case to lookup.\",\"types\":[\"string\"],\"required\":false},{\"name\":\"uuid\",\"description\":\"The UUID of a specific case to lookup. If both \\\"uuid\\\" and \\\"key\\\" are provided, the \\\"uuid\\\" value is prioritized.\",\"types\":[\"string\"],\"required\":false},{\"name\":\"serializationOptions\",\"description\":\"Options for how the case should be serialized.\",\"types\":[\"object\"],\"required\":false}],\"returns\":[{\"name\":\"\",\"description\":\"The current case.\",\"types\":[\"object\"]}]}" },
+        { ActionInvoker::Action::Data_open,                           "{\"namespace\":\"Data\",\"name\":\"open\",\"description\":\"Opens a data source and returns an ID that can be used for future operations.\",\"parameters\":[{\"name\":\"connection\",\"description\":\"The connection string specifying the data source. Either \\\"connection\\\" or \\\"name\\\" must be specified.\",\"types\":[\"string\",\"object\"],\"required\":false},{\"name\":\"name\",\"description\":\"The name of a dictionary. Either \\\"connection\\\" or \\\"name\\\" must be specified.\",\"types\":[\"string\"],\"required\":false},{\"name\":\"openFlags\",\"description\":\"Flags to control how the data source is opened (when using a \\\"connection\\\"). (Default value is \\\"read\\\".)\",\"types\":[\"string\"],\"required\":false},{\"name\":\"dictionary\",\"description\":\"The dictionary that will be used to describe the data source (when using a \\\"connection\\\"). It can be a dictionary name, path, or the JSON contents of a dictionary.\",\"types\":[\"string\"],\"required\":false}],\"returns\":[{\"name\":\"\",\"description\":\"An ID that identifies this data source.\",\"types\":[\"number\"]}]}" },
         { ActionInvoker::Action::Dictionary_getDictionary,            "{\"namespace\":\"Dictionary\",\"name\":\"getDictionary\",\"description\":\"Returns a dictionary associated with an application or loaded from the disk.\",\"parameters\":[{\"name\":\"name\",\"description\":\"The name of a dictionary or form file associated with an application, or the name of an application.\",\"types\":[\"string\"],\"required\":false},{\"name\":\"path\",\"description\":\"The path of the dictionary to read.\",\"types\":[\"string\"],\"required\":false}],\"returns\":[{\"name\":\"\",\"description\":\"The dictionary.\",\"types\":[\"object\"]}]}" },
         { ActionInvoker::Action::File_copy,                           "{\"namespace\":\"File\",\"name\":\"copy\",\"description\":\"Copies one or more files.\",\"parameters\":[{\"name\":\"source\",\"description\":\"The path or sharable URI of a file, or files, to copy. Multiple files can be specified using wildcard characters, or by providing multiple paths as an array.\",\"types\":[\"string\",\"array\"],\"required\":true},{\"name\":\"destination\",\"description\":\"The destination path, or destination directory, of the file(s) to be copied.)\",\"types\":[\"string\"],\"required\":true},{\"name\":\"overwrite\",\"description\":\"The overwrite action to occur if the destination file already exists. Options include \\\"always\\\", \\\"never\\\", \\\"fail\\\", or \\\"different\\\". (Default value is \\\"different\\\".)\",\"types\":[\"string\",\"boolean\"],\"required\":false}],\"returns\":[{\"name\":\"\",\"description\":\"The fully evaluated destination path (or array of paths) of the copied file (or files).\",\"types\":[\"string\",\"array\"]}]}" },
         { ActionInvoker::Action::File_readBytes,                      "{\"namespace\":\"File\",\"name\":\"readBytes\",\"description\":\"Reads a file as binary, returning the entire file's content as bytes.\",\"parameters\":[{\"name\":\"path\",\"description\":\"The path of the file to read.\",\"types\":[\"string\"],\"required\":true},{\"name\":\"bytesFormat\",\"description\":\"The format in which the bytes are returned. (Default value is \\\"dataUrl\\\".)\",\"types\":[\"string\"],\"required\":false}],\"returns\":[{\"name\":\"\",\"description\":\"The file's bytes or a localhost URL to access the bytes.\",\"types\":[\"string\"]}]}" },

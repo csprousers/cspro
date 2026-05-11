@@ -1,11 +1,13 @@
-﻿#pragma once
+#pragma once
 
 #include <zLogicO/Symbol.h>
 #include <zAppO/FieldStatus.h>
 
 class Case;
+class DataRepository;
 class LogicInterpreter;
 class MessageFile;
+namespace Paradata { class ParadataDriver; }
 class PFF;
 struct sqlite3;
 class UserFunction;
@@ -19,8 +21,11 @@ struct InterpreterExecuteResult
 };
 
 
-// the InterpreterAccessor class can be used to access the interpreter from projects
-// that may not depend on the engine, which is why the entry points are all virtual
+// --------------------------------------------------------------------------
+// InterpreterAccessor can be used to access the interpreter from projects
+// that may not depend on the engine, which is why the entry points are all
+// virtual.
+// --------------------------------------------------------------------------
 
 class InterpreterAccessor
 {
@@ -32,6 +37,9 @@ public:
     virtual const PFF& GetPff() = 0;
 
     virtual const MessageFile& GetUserMessageFile() = 0;
+
+    // Throws an exception if the dictionary does not exist.
+    virtual DataRepository& GetDataRepository(std::string_view dictionary_name_sv, bool check_level_is_valid_for_data_access) = 0;
 
     // Throws exceptions from the data repository, otherwise returns a non-null pointer.
     virtual std::unique_ptr<Case> GetCase(std::string_view dictionary_name_sv, const std::optional<std::string>& case_uuid, const std::optional<std::string>& case_key) = 0;
@@ -61,4 +69,7 @@ public:
 
     // Throws an exception on error.
     virtual void RegisterSqlCallbackFunctions(sqlite3* db) = 0;
+
+    // Returns null if paradata is not in use.
+    virtual Paradata::ParadataDriver* GetParadataDriver() = 0;
 };

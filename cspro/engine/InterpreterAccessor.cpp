@@ -1,7 +1,8 @@
-﻿#include "StandardSystemIncludes.h"
+#include "StandardSystemIncludes.h"
 #include "Interpreter.h"
 #include "InterpreterAccessor.h"
 #include "EngineExecutor.h"
+#include "ParadataDriver.h"
 #include <zEngineO/BinarySymbol.h>
 #include <zEngineO/UserFunction.h>
 #include <zMessageO/MessageManager.h>
@@ -25,6 +26,8 @@ public:
 
     const MessageFile& GetUserMessageFile() override;
 
+    DataRepository& GetDataRepository(std::string_view dictionary_name_sv, bool check_level_is_valid_for_data_access) override;
+
     std::unique_ptr<Case> GetCase(std::string_view dictionary_name_sv, const std::optional<std::string>& case_uuid, const std::optional<std::string>& case_key) override;
     std::unique_ptr<Case> GetCurrentCase(std::string_view dictionary_name_sv) override;
 
@@ -43,6 +46,8 @@ public:
     sqlite3& GetSqliteDbForDictionary(std::string_view dictionary_name_sv) override;
 
     void RegisterSqlCallbackFunctions(sqlite3* db) override;
+
+    Paradata::ParadataDriver* GetParadataDriver() override;
 
 private:
     Symbol& GetEvaluatedSymbolFromSymbolName(const std::string& symbol_name_and_potential_subscript);
@@ -79,6 +84,14 @@ const PFF& EngineInterpreterAccessor::GetPff()
 const MessageFile& EngineInterpreterAccessor::GetUserMessageFile()
 {
     return m_pEngineDriver->GetUserMessageManager().GetMessageFile();
+}
+
+
+DataRepository& EngineInterpreterAccessor::GetDataRepository(const std::string_view dictionary_name_sv,
+                                                             const bool check_level_is_valid_for_data_access)
+{
+    DICT& dictionary = GetDictionary(dictionary_name_sv, check_level_is_valid_for_data_access);
+    return dictionary.GetDicX()->GetDataRepository();
 }
 
 
@@ -202,6 +215,12 @@ sqlite3& EngineInterpreterAccessor::GetSqliteDbForDictionary(const std::string_v
 void EngineInterpreterAccessor::RegisterSqlCallbackFunctions(sqlite3* const db)
 {
     m_interpreter.RegisterSqlCallbackFunctions(db);
+}
+
+
+Paradata::ParadataDriver* EngineInterpreterAccessor::GetParadataDriver()
+{
+    return m_interpreter.m_paradataDriver.get();
 }
 
 

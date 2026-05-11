@@ -1,9 +1,8 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include <zSql/DB.h>
 #include <zSql/Encryption.h>
 #include <zUtilO/SqlLogicFunctions.h>
 #include <zUtilO/Versioning.h>
-#include <zParadataO/Logger.h>
 
 
 CREATE_JSON_KEY(bindings)

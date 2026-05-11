@@ -226,6 +226,22 @@
   },
   {
     "namespace": "Data",
+    "name": "close",
+    "description": "Closes a previously open data source.",
+    "parameters": [
+      {
+        "name": "dataId",
+        "description": "The data source ID or the name of a dictionary.",
+        "types": [
+          "number",
+          "string"
+        ],
+        "required": false
+      }
+    ]
+  },
+  {
+    "namespace": "Data",
     "name": "getCase",
     "description": "Returns a specific case, or the current case, associated with a dictionary.",
     "parameters": [
@@ -268,6 +284,55 @@
         "description": "The current case.",
         "types": [
           "object"
+        ]
+      }
+    ]
+  },
+  {
+    "namespace": "Data",
+    "name": "open",
+    "description": "Opens a data source and returns an ID that can be used for future operations.",
+    "parameters": [
+      {
+        "name": "connection",
+        "description": "The connection string specifying the data source. Either \"connection\" or \"name\" must be specified.",
+        "types": [
+          "string",
+          "object"
+        ],
+        "required": false
+      },
+      {
+        "name": "name",
+        "description": "The name of a dictionary. Either \"connection\" or \"name\" must be specified.",
+        "types": [
+          "string"
+        ],
+        "required": false
+      },
+      {
+        "name": "openFlags",
+        "description": "Flags to control how the data source is opened (when using a \"connection\"). (Default value is \"read\".)",
+        "types": [
+          "string"
+        ],
+        "required": false
+      },
+      {
+        "name": "dictionary",
+        "description": "The dictionary that will be used to describe the data source (when using a \"connection\"). It can be a dictionary name, path, or the JSON contents of a dictionary.",
+        "types": [
+          "string"
+        ],
+        "required": false
+      }
+    ],
+    "returns": [
+      {
+        "name": "",
+        "description": "An ID that identifies this data source.",
+        "types": [
+          "number"
         ]
       }
     ]

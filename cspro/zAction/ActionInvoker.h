@@ -97,7 +97,7 @@ private:
 
     // Creates a unique resource ID and associates it with the caller so that it can be
     // accessed in future calls without requiring the explicit specification of a resource ID.
-    enum class Resource { SqliteDb, FetchBody, SyncService };
+    enum class Resource { Data, FetchBody, SqliteDb, SyncService};
     int CreateResourceId(Resource resource, Caller& caller);
 
     // Returns the resource ID, calculated implicitly (if only one resource for the type exists for the caller),
@@ -185,6 +185,9 @@ private:
     std::vector<std::unique_ptr<VirtualFileMappingHandler>> m_localHostVirtualFileMappingHandlers;
     std::vector<std::shared_ptr<KeyBasedVirtualFileMappingHandler>> m_localHostKeyBasedVirtualFileMappingHandlers;
 
+    class DataWrapper;
+    std::map<int, std::shared_ptr<DataWrapper>> m_dataWrappers;
+
     class FetchWrapper;
     std::map<int, std::shared_ptr<FetchWrapper>> m_fetchWrappers;
 
@@ -213,7 +216,9 @@ private:
     Result Application_getQuestionText(const JsonNode& json_node, Caller& caller);
     Result Clipboard_getText(const JsonNode& json_node, Caller& caller);
     Result Clipboard_putText(const JsonNode& json_node, Caller& caller);
+    Result Data_close(const JsonNode& json_node, Caller& caller);
     Result Data_getCase(const JsonNode& json_node, Caller& caller);
+    Result Data_open(const JsonNode& json_node, Caller& caller);
     Result Dictionary_getDictionary(const JsonNode& json_node, Caller& caller);
     Result File_copy(const JsonNode& json_node, Caller& caller);
     Result File_readBytes(const JsonNode& json_node, Caller& caller);
