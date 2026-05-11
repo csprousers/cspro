@@ -243,7 +243,7 @@
   {
     "namespace": "Data",
     "name": "getCase",
-    "description": "Returns a specific case, or the current case, associated with a dictionary.",
+    "description": "This action is deprecated. Use Data.getCurrentCase or Data.readCase instead.",
     "parameters": [
       {
         "name": "name",
@@ -265,6 +265,39 @@
         "name": "uuid",
         "description": "The UUID of a specific case to lookup. If both \"uuid\" and \"key\" are provided, the \"uuid\" value is prioritized.",
         "types": [
+          "string"
+        ],
+        "required": false
+      },
+      {
+        "name": "serializationOptions",
+        "description": "Options for how the case should be serialized.",
+        "types": [
+          "object"
+        ],
+        "required": false
+      }
+    ],
+    "returns": [
+      {
+        "name": "",
+        "description": "The current case.",
+        "types": [
+          "object"
+        ]
+      }
+    ]
+  },
+  {
+    "namespace": "Data",
+    "name": "getCurrentCase",
+    "description": "Returns the current case associated with a dictionary.",
+    "parameters": [
+      {
+        "name": "dataId",
+        "description": "The data source ID or the name of a dictionary.",
+        "types": [
+          "number",
           "string"
         ],
         "required": false
@@ -333,6 +366,55 @@
         "description": "An ID that identifies this data source.",
         "types": [
           "number"
+        ]
+      }
+    ]
+  },
+  {
+    "namespace": "Data",
+    "name": "readCase",
+    "description": "Returns a case read from a data source.",
+    "parameters": [
+      {
+        "name": "dataId",
+        "description": "The data source ID or the name of a dictionary.",
+        "types": [
+          "number",
+          "string"
+        ],
+        "required": false
+      },
+      {
+        "name": "key",
+        "description": "The key (case IDs) of a specific case to lookup.",
+        "types": [
+          "string"
+        ],
+        "required": false
+      },
+      {
+        "name": "uuid",
+        "description": "The UUID of a specific case to lookup. If both \"uuid\" and \"key\" are provided, the \"uuid\" value is prioritized.",
+        "types": [
+          "string"
+        ],
+        "required": false
+      },
+      {
+        "name": "serializationOptions",
+        "description": "Options for how the case should be serialized.",
+        "types": [
+          "object"
+        ],
+        "required": false
+      }
+    ],
+    "returns": [
+      {
+        "name": "",
+        "description": "The case.",
+        "types": [
+          "object"
         ]
       }
     ]

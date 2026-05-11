@@ -218,7 +218,9 @@ private:
     Result Clipboard_putText(const JsonNode& json_node, Caller& caller);
     Result Data_close(const JsonNode& json_node, Caller& caller);
     Result Data_getCase(const JsonNode& json_node, Caller& caller);
+    Result Data_getCurrentCase(const JsonNode& json_node, Caller& caller);
     Result Data_open(const JsonNode& json_node, Caller& caller);
+    Result Data_readCase(const JsonNode& json_node, Caller& caller);
     Result Dictionary_getDictionary(const JsonNode& json_node, Caller& caller);
     Result File_copy(const JsonNode& json_node, Caller& caller);
     Result File_readBytes(const JsonNode& json_node, Caller& caller);

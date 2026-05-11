@@ -113,7 +113,7 @@
 
     -  Action Invoker additions:
           * throwException
-          * Data: close, open
+          * Data: close, getCurrentCase, open, readCase
           * Logic: setSymbolValue
           * Network: fetch, fetchBody, fetchBytes, fetchFile, fetchJson,
               fetchText

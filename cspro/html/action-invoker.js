@@ -39,8 +39,12 @@ Data = {
   closeAsync: (args)=>{return CSProActionInvoker.$Impl.runAsync(this,9323,args);},
   getCase: (args)=>{return CSProActionInvoker.$Impl.run(this,36632,args);},
   getCaseAsync: (args)=>{return CSProActionInvoker.$Impl.runAsync(this,36632,args);},
+  getCurrentCase: (args)=>{return CSProActionInvoker.$Impl.run(this,12123,args);},
+  getCurrentCaseAsync: (args)=>{return CSProActionInvoker.$Impl.runAsync(this,12123,args);},
   open: (args)=>{return CSProActionInvoker.$Impl.run(this,56346,args);},
-  openAsync: (args)=>{return CSProActionInvoker.$Impl.runAsync(this,56346,args);}
+  openAsync: (args)=>{return CSProActionInvoker.$Impl.runAsync(this,56346,args);},
+  readCase: (args)=>{return CSProActionInvoker.$Impl.run(this,36320,args);},
+  readCaseAsync: (args)=>{return CSProActionInvoker.$Impl.runAsync(this,36320,args);}
 };
 
 Dictionary = {

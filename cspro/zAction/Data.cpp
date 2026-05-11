@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#include <zUtilO/Versioning.h>
 #include <zDictO/DDClass.h>
 #include <zCaseO/Case.h>
 #include <zCaseO/CaseBinaryDataVirtualFileMappingHandler.h>
@@ -377,8 +378,9 @@ ActionInvoker::Result ActionInvoker::Runtime::Data_close(const JsonNode& json_no
 }
 
 
-ActionInvoker::Result ActionInvoker::Runtime::GetQuestionnaireContentWithCaseData(QuestionnaireContentCreator& questionnaire_content_creator, std::unique_ptr<Case> data_case,
-                                                                                  const JsonNode& json_node, const bool write_all_content, const bool case_content_is_from_current_case)
+ActionInvoker::Result ActionInvoker::Runtime::GetQuestionnaireContentWithCaseData(
+    QuestionnaireContentCreator& questionnaire_content_creator, std::unique_ptr<Case> data_case, const JsonNode& json_node,
+    const bool write_all_content, const bool case_content_is_from_current_case)
 {
     ASSERT(data_case != nullptr);
 
@@ -410,34 +412,95 @@ ActionInvoker::Result ActionInvoker::Runtime::GetQuestionnaireContentWithCaseDat
 }
 
 
-ActionInvoker::Result ActionInvoker::Runtime::Data_getCase(const JsonNode& json_node, Caller& /*caller*/)
+ActionInvoker::Result ActionInvoker::Runtime::Data_getCase(const JsonNode& json_node, Caller& caller)
 {
+    static_assert(Versioning::Number <= 8.1, "Start adding runtime warnings when using Data.getCase as opposed to Data.getCurrentCase or Data.readCase");
+
     std::shared_ptr<const CDataDict> dictionary = std::get<2>(GetApplicationComponents<std::shared_ptr<const CDataDict>>(json_node.GetOptional<std::string_view>(JK::name)));
     ASSERT(dictionary != nullptr);
 
-    std::unique_ptr<Case> data_case;
+    const std::unique_ptr<JsonStringWriter> json_writer = Json::CreateStringWriter();
+
+    json_writer->BeginObject()
+                .Write(JK::dataId, dictionary->GetName())
+                .WriteIfHasValue(JK::serializationOptions, json_node.GetOptional<JsonNode>(JK::serializationOptions));
+
     bool case_content_is_from_current_case;
 
     // get content for a specific case...
-    if( json_node.Contains(JK::key) || json_node.Contains(JK::uuid) )
+    if( bool using_key = json_node.Contains(JK::key); using_key || json_node.Contains(JK::uuid) )
     {
-        data_case = GetInterpreterAccessor().GetCase(dictionary->GetName(),
-                                                     json_node.GetOptional<std::string>(JK::uuid),
-                                                     json_node.GetOptional<std::string>(JK::key));
+        const char* const key = using_key ? JK::key : JK::uuid;
+        json_writer->Write(key, json_node.Get<std::string>(key));
         case_content_is_from_current_case = false;
     }
 
     // ...or the current case
     else
     {
-        data_case = GetInterpreterAccessor().GetCurrentCase(dictionary->GetName());
         case_content_is_from_current_case = true;
     }
 
-    ASSERT(data_case != nullptr);
+    json_writer->EndObject();
+
+    const JsonNode& reformatted_json_node = Json::Parse(json_writer->GetString());
+
+    return case_content_is_from_current_case ? Data_getCurrentCase(reformatted_json_node, caller) :
+                                               Data_readCase(reformatted_json_node, caller);
+}
+
+
+ActionInvoker::Result ActionInvoker::Runtime::Data_getCurrentCase(const JsonNode& json_node, Caller& caller)
+{
+    const std::shared_ptr<DataWrapper> data_wrapper = DataWrapper::GetDataWrapper(*this, json_node, caller);
+    std::shared_ptr<const CDataDict> dictionary = data_wrapper->GetDictionary();
+
+    if( data_wrapper->IsActionInvokerOwned() )
+    {
+        throw CSProException("There is no current case for '%s' because it is not associated with an engine dictionary.",
+                             dictionary->GetName().c_str());
+    }
+
+    std::unique_ptr<Case> data_case = GetInterpreterAccessor().GetCurrentCase(dictionary->GetName());
 
     QuestionnaireContentCreator questionnaire_content_creator;
     questionnaire_content_creator.SetDictionary(std::move(dictionary));
 
-    return GetQuestionnaireContentWithCaseData(questionnaire_content_creator, std::move(data_case), json_node, false, case_content_is_from_current_case);
+    return GetQuestionnaireContentWithCaseData(
+        questionnaire_content_creator,
+        std::move(data_case),
+        json_node,
+        false, // write only case content
+        true // the case content is from the current case
+    );
+}
+
+
+ActionInvoker::Result ActionInvoker::Runtime::Data_readCase(const JsonNode& json_node, Caller& caller)
+{
+    const std::shared_ptr<DataWrapper> data_wrapper = DataWrapper::GetDataWrapper(*this, json_node, caller);
+    DataRepository& data_repository = data_wrapper->GetDataRepository();
+
+    std::unique_ptr<Case> data_case = data_repository.GetCaseAccess().CreateCase(true);
+
+    if( json_node.Contains(JK::uuid) )
+    {
+        data_repository.ReadCaseByUuid(*data_case, json_node.Get<std::string>(JK::uuid));
+    }
+
+    else
+    {
+        data_repository.ReadCase(*data_case, json_node.Get<std::string>(JK::key));
+    }
+
+    QuestionnaireContentCreator questionnaire_content_creator;
+    questionnaire_content_creator.SetDictionary(data_wrapper->GetDictionary());
+
+    return GetQuestionnaireContentWithCaseData(
+        questionnaire_content_creator,
+        std::move(data_case),
+        json_node,
+        false, // write only case content
+        false // the case content is not from the current case
+    );
 }
