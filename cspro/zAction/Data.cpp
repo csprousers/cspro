@@ -504,3 +504,36 @@ ActionInvoker::Result ActionInvoker::Runtime::Data_readCase(const JsonNode& json
         false // the case content is not from the current case
     );
 }
+
+
+ActionInvoker::Result ActionInvoker::Runtime::Data_contains(const JsonNode& json_node, Caller& caller)
+{
+    const std::shared_ptr<DataWrapper> data_wrapper = DataWrapper::GetDataWrapper(*this, json_node, caller);
+    DataRepository& data_repository = data_wrapper->GetDataRepository();
+    bool contains_case;
+
+    if( json_node.Contains(JK::uuid) )
+    {
+        try
+        {
+            std::string key;
+            std::string uuid = json_node.Get<std::string>(JK::uuid);
+            double position_in_repository;
+
+            data_repository.PopulateCaseIdentifiers(key, uuid, position_in_repository);
+            contains_case = true;
+        }
+
+        catch( const DataRepositoryException::CaseNotFound& )
+        {
+            contains_case = false;
+        }
+    }
+
+    else
+    {
+        contains_case = data_repository.ContainsCase(json_node.Get<std::string>(JK::key));
+    }
+
+    return Result::Bool(contains_case);
+}

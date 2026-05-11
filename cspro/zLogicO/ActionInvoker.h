@@ -23,6 +23,7 @@ namespace ActionInvoker
         Clipboard_getText                   = 47271,
         Clipboard_putText                   = 33682,
         Data_close                          =  9323,
+        Data_contains                       = 48168,
         Data_getCase                        = 36632,
         Data_getCurrentCase                 = 12123,
         Data_open                           = 56346,

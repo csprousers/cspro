@@ -217,6 +217,7 @@ private:
     Result Clipboard_getText(const JsonNode& json_node, Caller& caller);
     Result Clipboard_putText(const JsonNode& json_node, Caller& caller);
     Result Data_close(const JsonNode& json_node, Caller& caller);
+    Result Data_contains(const JsonNode& json_node, Caller& caller);
     Result Data_getCase(const JsonNode& json_node, Caller& caller);
     Result Data_getCurrentCase(const JsonNode& json_node, Caller& caller);
     Result Data_open(const JsonNode& json_node, Caller& caller);

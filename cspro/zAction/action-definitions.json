@@ -242,6 +242,47 @@
   },
   {
     "namespace": "Data",
+    "name": "contains",
+    "description": "Returns whether a data source contains a specific case.",
+    "parameters": [
+      {
+        "name": "dataId",
+        "description": "The data source ID or the name of a dictionary.",
+        "types": [
+          "number",
+          "string"
+        ],
+        "required": false
+      },
+      {
+        "name": "key",
+        "description": "The key (case IDs) of a case.",
+        "types": [
+          "string"
+        ],
+        "required": false
+      },
+      {
+        "name": "uuid",
+        "description": "The UUID of a case. If both \"uuid\" and \"key\" are provided, the \"uuid\" value is prioritized.",
+        "types": [
+          "string"
+        ],
+        "required": false
+      }
+    ],
+    "returns": [
+      {
+        "name": "",
+        "description": "True if the case exists.",
+        "types": [
+          "boolean"
+        ]
+      }
+    ]
+  },
+  {
+    "namespace": "Data",
     "name": "getCase",
     "description": "This action is deprecated. Use Data.getCurrentCase or Data.readCase instead.",
     "parameters": [
@@ -255,7 +296,7 @@
       },
       {
         "name": "key",
-        "description": "The key (case IDs) of a specific case to lookup.",
+        "description": "The key (case IDs) of a case.",
         "types": [
           "string"
         ],
@@ -263,7 +304,7 @@
       },
       {
         "name": "uuid",
-        "description": "The UUID of a specific case to lookup. If both \"uuid\" and \"key\" are provided, the \"uuid\" value is prioritized.",
+        "description": "The UUID of a case. If both \"uuid\" and \"key\" are provided, the \"uuid\" value is prioritized.",
         "types": [
           "string"
         ],
@@ -386,7 +427,7 @@
       },
       {
         "name": "key",
-        "description": "The key (case IDs) of a specific case to lookup.",
+        "description": "The key (case IDs) of a case.",
         "types": [
           "string"
         ],
@@ -394,7 +435,7 @@
       },
       {
         "name": "uuid",
-        "description": "The UUID of a specific case to lookup. If both \"uuid\" and \"key\" are provided, the \"uuid\" value is prioritized.",
+        "description": "The UUID of a case. If both \"uuid\" and \"key\" are provided, the \"uuid\" value is prioritized.",
         "types": [
           "string"
         ],

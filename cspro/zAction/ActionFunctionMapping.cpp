@@ -14,6 +14,7 @@ const std::map<ActionInvoker::Action, ActionInvoker::Runtime::ActionFunctionPoin
     { Action::Clipboard_getText,                   &Runtime::Clipboard_getText                   },
     { Action::Clipboard_putText,                   &Runtime::Clipboard_putText                   },
     { Action::Data_close,                          &Runtime::Data_close                          },
+    { Action::Data_contains,                       &Runtime::Data_contains                       },
     { Action::Data_getCase,                        &Runtime::Data_getCase                        },
     { Action::Data_getCurrentCase,                 &Runtime::Data_getCurrentCase                 },
     { Action::Data_open,                           &Runtime::Data_open                           },
