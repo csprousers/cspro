@@ -39,6 +39,9 @@ public:
     virtual const MessageFile& GetUserMessageFile() = 0;
 
     // Throws an exception if the dictionary does not exist.
+    virtual std::shared_ptr<const CDataDict> GetDictionary(std::string_view dictionary_name_sv) = 0;
+
+    // Throws an exception if the dictionary does not exist.
     virtual DataRepository& GetDataRepository(std::string_view dictionary_name_sv, bool check_level_is_valid_for_data_access) = 0;
 
     // Throws exceptions from the data repository, otherwise returns a non-null pointer.

@@ -26,6 +26,8 @@ public:
 
     const MessageFile& GetUserMessageFile() override;
 
+    std::shared_ptr<const CDataDict> GetDictionary(std::string_view dictionary_name_sv) override;
+
     DataRepository& GetDataRepository(std::string_view dictionary_name_sv, bool check_level_is_valid_for_data_access) override;
 
     std::unique_ptr<Case> GetCase(std::string_view dictionary_name_sv, const std::optional<std::string>& case_uuid, const std::optional<std::string>& case_key) override;
@@ -84,6 +86,13 @@ const PFF& EngineInterpreterAccessor::GetPff()
 const MessageFile& EngineInterpreterAccessor::GetUserMessageFile()
 {
     return m_pEngineDriver->GetUserMessageManager().GetMessageFile();
+}
+
+
+std::shared_ptr<const CDataDict> EngineInterpreterAccessor::GetDictionary(const std::string_view dictionary_name_sv)
+{
+    DICT& dictionary = GetDictionary(dictionary_name_sv, false);
+    return dictionary.GetSharedDictionary();
 }
 
 

@@ -16,27 +16,43 @@ CREATE_JSON_KEY(openFlags)
 
 
 // --------------------------------------------------------------------------
-// DataWrapper
+// DataWrapper declaration
 // --------------------------------------------------------------------------
 
 class ActionInvoker::Runtime::DataWrapper
 {
 public:
-    // The data repository is wrapped, or the name of a dictionary is provided and then evaluated each time.
-    using WrapperType = std::variant<std::shared_ptr<DataRepository>, std::string>;
-    DataWrapper(WrapperType wrapper, std::unique_ptr<const CDataDict> dictionary);
+    // DataWrapper wraps a data repository owned by the Action Invoker (ActionInvokerOwned),
+    // or the name of a dictionary is provided and then evaluated each time (InterpreterOwned).
+    class ActionInvokerOwned;
+    class InterpreterOwned;
 
-    // Returns the data repository associated with the evaluated 'dataId' value.
-    static DataRepository& GetDataRepository(Runtime& runtime, const JsonNode& json_node, Caller& caller);
+    virtual ~DataWrapper() { }
 
-    // Opens the data repository (when owned by the wrapper), or checks that the dictionary name is valid.
+    // Returns true if the Action Invoker owns the data repository.
+    virtual bool IsActionInvokerOwned() const = 0;
+
+    // Returns the data repository.
+    virtual DataRepository& GetDataRepository() = 0;
+
+    // Returns the non-null dictionary.
+    virtual std::shared_ptr<const CDataDict> GetDictionary() = 0;
+
+    // Closes the data repository (when owned by the Action Invoker).
+    virtual void Close() = 0;
+
+    // Returns the data wrapper associated with the evaluated 'dataId' value.
+    // If 'dataId' is a dictionary name, a new DataWrapper object is created.
+    static std::shared_ptr<DataWrapper> GetDataWrapper(Runtime& runtime, const JsonNode& json_node, Caller& caller);
+
+    // Opens the data repository (when owned by the Action Invoker), or checks that the dictionary name is valid.
     static int Open(Runtime& runtime, const JsonNode& json_node, Caller& caller);
 
-    // Closes the data repository (when owned by the wrapper) and destroys the resource ID.
+    // Closes the data repository (when owned by the Action Invoker) and destroys the resource ID.
     static void Close(Runtime& runtime, const JsonNode& json_node, Caller& caller);
 
 private:
-    using EvaluateType = std::variant<std::reference_wrapper<DataRepository>,
+    using EvaluateType = std::variant<std::unique_ptr<DataWrapper>,
                                       std::map<int, std::shared_ptr<DataWrapper>>::iterator>;
 
     // Evaluates the 'dataId' value.
@@ -44,23 +60,99 @@ private:
     // If a resource ID number, it is evaluated and a lookup into m_dataWrappers is returned.
     static EvaluateType EvaluateDataId(Runtime& runtime, const JsonNode& json_node, Caller& caller);
 
-    static DataRepository& GetDataRepository(Runtime& runtime, std::shared_ptr<DataRepository>& data_repository);
-    static DataRepository& GetDataRepository(Runtime& runtime, const std::string& dictionary_name);
-
-    static std::unique_ptr<DataWrapper> OpenDataRepository(Runtime& runtime, const JsonNode& json_node);
-
-private:
-    WrapperType m_wrapper;
-    std::unique_ptr<const CDataDict> m_dictionary;
+    static std::unique_ptr<ActionInvokerOwned> OpenDataRepository(Runtime& runtime, const JsonNode& json_node);
 };
 
 
-ActionInvoker::Runtime::DataWrapper::DataWrapper(WrapperType wrapper, std::unique_ptr<const CDataDict> dictionary)
-    :   m_wrapper(std::move(wrapper)),
-        m_dictionary(std::move(dictionary))
-{
-}
 
+// --------------------------------------------------------------------------
+// DataWrapper::ActionInvokerOwned
+// --------------------------------------------------------------------------
+
+class ActionInvoker::Runtime::DataWrapper::ActionInvokerOwned : public ActionInvoker::Runtime::DataWrapper
+{
+public:
+    ActionInvokerOwned(std::shared_ptr<DataRepository> data_repository, std::shared_ptr<const CDataDict> dictionary)
+        :   m_dataRepository(std::move(data_repository)),
+            m_dictionary(std::move(dictionary))
+    {
+        ASSERT(m_dataRepository != nullptr && m_dictionary != nullptr);
+    }
+
+    bool IsActionInvokerOwned() const override
+    {
+        return true;
+    }
+
+    DataRepository& GetDataRepository() override
+    {
+        return *m_dataRepository;
+    }
+
+    std::shared_ptr<const CDataDict> GetDictionary() override
+    {
+        return m_dictionary;
+    }
+
+    void Close() override
+    {
+        m_dataRepository->Close();
+    }
+
+private:
+    std::shared_ptr<DataRepository> m_dataRepository;
+    std::shared_ptr<const CDataDict> m_dictionary;
+};
+
+
+
+// --------------------------------------------------------------------------
+// DataWrapper::InterpreterOwned
+// --------------------------------------------------------------------------
+
+class ActionInvoker::Runtime::DataWrapper::InterpreterOwned : public ActionInvoker::Runtime::DataWrapper
+{
+public:
+    InterpreterOwned(Runtime& runtime, std::string dictionary_name)
+        :   m_runtime(runtime),
+            m_dictionaryName(std::move(dictionary_name))
+    {
+    }
+
+
+    bool IsActionInvokerOwned() const override
+    {
+        return false;
+    }
+
+    DataRepository& GetDataRepository() override
+    {
+        return m_runtime.GetInterpreterAccessor().GetDataRepository(m_dictionaryName, true);
+    }
+
+    std::shared_ptr<const CDataDict> GetDictionary() override
+    {
+        if( m_dictionary == nullptr )
+            m_dictionary = m_runtime.GetInterpreterAccessor().GetDictionary(m_dictionaryName);
+
+        return m_dictionary;
+    }
+
+    void Close() override
+    {
+    }
+
+private:
+    Runtime& m_runtime;
+    std::string m_dictionaryName;
+    std::shared_ptr<const CDataDict> m_dictionary;
+};
+
+
+
+// --------------------------------------------------------------------------
+// DataWrapper
+// --------------------------------------------------------------------------
 
 ActionInvoker::Runtime::DataWrapper::EvaluateType ActionInvoker::Runtime::DataWrapper::EvaluateDataId(
     Runtime& runtime, const JsonNode& json_node, Caller& caller)
@@ -71,7 +163,7 @@ ActionInvoker::Runtime::DataWrapper::EvaluateType ActionInvoker::Runtime::DataWr
         const JsonNode data_id_json_node = json_node.Get(JK::dataId);
 
         if( data_id_json_node.IsString() )
-            return GetDataRepository(runtime, data_id_json_node.Get<std::string>());
+            return std::make_unique<InterpreterOwned>(runtime, data_id_json_node.Get<std::string>());
     }
 
     // otherwise evaluate the resource ID
@@ -90,34 +182,20 @@ ActionInvoker::Runtime::DataWrapper::EvaluateType ActionInvoker::Runtime::DataWr
 }
 
 
-DataRepository& ActionInvoker::Runtime::DataWrapper::GetDataRepository(Runtime& /*runtime*/, std::shared_ptr<DataRepository>& data_repository)
+
+std::shared_ptr<ActionInvoker::Runtime::DataWrapper> ActionInvoker::Runtime::DataWrapper::GetDataWrapper(
+    Runtime& runtime, const JsonNode& json_node, Caller& caller)
 {
-    ASSERT(data_repository != nullptr);
-    return *data_repository;
-}
+    EvaluateType evaluate_value = EvaluateDataId(runtime, json_node, caller);
 
-
-DataRepository& ActionInvoker::Runtime::DataWrapper::GetDataRepository(Runtime& runtime, const std::string& dictionary_name)
-{
-    return runtime.GetInterpreterAccessor().GetDataRepository(dictionary_name, true);
-}
-
-
-DataRepository& ActionInvoker::Runtime::DataWrapper::GetDataRepository(Runtime& runtime, const JsonNode& json_node, Caller& caller)
-{
-    const EvaluateType evaluate_value = EvaluateDataId(runtime, json_node, caller);
-
-    if( evaluate_value.index() == 0 )
+    if( std::holds_alternative<std::unique_ptr<DataWrapper>>(evaluate_value) )
     {
-        return std::get<0>(evaluate_value);
+        return std::move(std::get<std::unique_ptr<DataWrapper>>(evaluate_value));
     }
 
     else
     {
-        return std::visit(
-            [&runtime](auto& value) -> DataRepository& { return GetDataRepository(runtime, value); },
-            std::get<1>(evaluate_value)->second->m_wrapper
-        );
+        return std::get<std::map<int, std::shared_ptr<DataWrapper>>::iterator>(evaluate_value)->second;
     }
 }
 
@@ -139,7 +217,7 @@ int ActionInvoker::Runtime::DataWrapper::Open(Runtime& runtime, const JsonNode& 
         // ensure that the dictionary name is valid
         runtime.GetInterpreterAccessor().GetDataRepository(dictionary_name, false);
 
-        data_wrapper = std::make_unique<DataWrapper>(std::move(dictionary_name), nullptr);
+        data_wrapper = std::make_unique<InterpreterOwned>(runtime, std::move(dictionary_name));
     }
 
     ASSERT(data_wrapper != nullptr);
@@ -152,7 +230,7 @@ int ActionInvoker::Runtime::DataWrapper::Open(Runtime& runtime, const JsonNode& 
 }
 
 
-std::unique_ptr<ActionInvoker::Runtime::DataWrapper>
+std::unique_ptr<ActionInvoker::Runtime::DataWrapper::ActionInvokerOwned>
     ActionInvoker::Runtime::DataWrapper::OpenDataRepository(Runtime& runtime, const JsonNode& json_node)
 {
     const ConnectionString connection_string = json_node.Get<ConnectionString>(JK::connection);
@@ -173,8 +251,7 @@ std::unique_ptr<ActionInvoker::Runtime::DataWrapper>
                                     DataRepositoryOpenFlag::OpenMustExist;
 
     const std::optional<JsonNode> dictionary_json_node = json_node.GetOptional<JsonNode>(JK::dictionary);
-    std::unique_ptr<const CDataDict> dictionary;
-    std::shared_ptr<CaseAccess> case_access;
+    std::shared_ptr<const CDataDict> dictionary;
 
     // if no dictionary is specified, the data source must have an embedded dictionary
     // or the dictionary file path must be specified in the connection string's dictionaryPath override.
@@ -199,16 +276,10 @@ std::unique_ptr<ActionInvoker::Runtime::DataWrapper>
     // or as a file path to a dictionary
     else
     {
-        // create a copy of an existing dictionary
+        // use a dictionary owned by the interpreter
         if( CIMSAString::IsName(dictionary_json_node->Get<std::string_view>()) )
         {
-            const DataRepository& interpreter_data_repository = runtime.GetInterpreterAccessor().GetDataRepository(
-                dictionary_json_node->Get<std::string_view>(), false
-            );
-
-            case_access = CaseAccess::CreateAndInitializeFullCaseAccess(
-                interpreter_data_repository.GetCaseAccess().GetDataDict()
-            );
+            dictionary = runtime.GetInterpreterAccessor().GetDictionary(dictionary_json_node->Get<std::string_view>());
         }
 
         // or read it from the disk
@@ -218,10 +289,9 @@ std::unique_ptr<ActionInvoker::Runtime::DataWrapper>
         }
     }
 
-    ASSERT(( dictionary != nullptr ) != ( case_access != nullptr ));
+    ASSERT(dictionary != nullptr);
 
-    if( dictionary != nullptr )
-        case_access = CaseAccess::CreateAndInitializeFullCaseAccess(*dictionary);
+    const std::shared_ptr<CaseAccess> case_access = CaseAccess::CreateAndInitializeFullCaseAccess(*dictionary);
 
     ASSERT(case_access != nullptr);
 
@@ -252,29 +322,38 @@ std::unique_ptr<ActionInvoker::Runtime::DataWrapper>
 
     data_repository->Open(connection_string, open_flag);
 
-    return std::make_unique<DataWrapper>(std::move(data_repository), std::move(dictionary));
+    return std::make_unique<ActionInvokerOwned>(std::move(data_repository), std::move(dictionary));
 }
 
 
 void ActionInvoker::Runtime::DataWrapper::Close(Runtime& runtime, const JsonNode& json_node, Caller& caller)
 {
-    const EvaluateType evaluate_value = EvaluateDataId(runtime, json_node, caller);
+    EvaluateType evaluate_value = EvaluateDataId(runtime, json_node, caller);
+    std::shared_ptr<DataWrapper> data_wrapper;
 
     // when calling close on a repository specified by name (to be retrieved from the interpreter),
-    // we don't have to do anything as the interpreter controls when the repository should be closed
-    if( evaluate_value.index() == 0 )
-        return;
+    // we don't have to do anything as the interpreter controls when the repository should be closed;
+    // Close, called at the end of the method, will do nothing
+    if( std::holds_alternative<std::unique_ptr<DataWrapper>>(evaluate_value) )
+    {
+        data_wrapper = std::move(std::get<std::unique_ptr<DataWrapper>>(evaluate_value));
+        ASSERT(!data_wrapper->IsActionInvokerOwned());
+    }
 
-    const auto wrapper_lookup = std::get<1>(evaluate_value);
-    const WrapperType wrapper = std::exchange(wrapper_lookup->second->m_wrapper, std::shared_ptr<DataRepository>(nullptr));
+    // for wrappers with resource IDs, destroy the wrapper before closing the data repository
+    // in case an exception is thrown while closing
+    else
+    {
+        auto& wrapper_lookup = std::get<std::map<int, std::shared_ptr<DataWrapper>>::iterator>(evaluate_value);
+        data_wrapper = wrapper_lookup->second;
 
-    // destroy the wrapper before closing the data repository in case an exception is thrown while closing
-    runtime.DestroyResourceId(wrapper_lookup->first);
-    runtime.m_dataWrappers.erase(wrapper_lookup);
+        runtime.DestroyResourceId(wrapper_lookup->first);
+        runtime.m_dataWrappers.erase(wrapper_lookup);
+    }
 
-    // we only need to close data sources opened using the Action Invoker
-    if( std::holds_alternative<std::shared_ptr<DataRepository>>(wrapper) )
-        std::get<std::shared_ptr<DataRepository>>(wrapper)->Close();
+    ASSERT(data_wrapper != nullptr);
+
+    data_wrapper->Close();
 }
 
 
