@@ -3,6 +3,7 @@
 #include "WindowsOAuth2AuthorizerWaitDlg.h"
 #include <zToolsO/Hash.h>
 #include <zToolsO/UniqueId.h>
+#include <zUtilO/Interapp.h>
 #include <zUtilO/MimeType.h>
 #include <zUtilO/UIThreadRunner.h>
 #include <zHtml/HtmlTemplates.h>
@@ -74,7 +75,7 @@ OAuth2Token WindowsOAuth2Authorizer::ShowAuthorizationDialog()
     if( AfxGetApp() != nullptr )
     {
         // open the authorization URL in an external web browser
-        ShellExecute(nullptr, L"open", TC::ToWide(EscapeCommandLineArgument(m_authorizationUrl)).c_str(), nullptr, nullptr, SW_SHOWNORMAL);
+        OpenFileInAssociatedApplication(m_authorizationUrl);
 
         // display a dialog to indicate that we are waiting for a response that occurs in the web browser;
         // try to display the dialog on the UI thread, falling back to this thread if the program does not respond to the UWM::UtilF::RunOnUIThread message

@@ -640,5 +640,5 @@ void CodeFrame::OnOpenInAssociatedApplication()
         }
     }
 
-    ShellExecute(nullptr, L"open", TC::ToWide(EscapeCommandLineArgument(code_doc.GetFilePath())).c_str(), nullptr, nullptr, SW_SHOW);
+    OpenFileInAssociatedApplication<false>(code_doc.GetFilePath());
 }

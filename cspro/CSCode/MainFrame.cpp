@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "MainFrame.h"
 #include "CodeDocVirtualFileMappingHandler.h"
 #include "HtmlDialogTemplatesDlg.h"
@@ -621,7 +621,7 @@ void CMainFrame::OnLocalhostMapping(const UINT nID)
     else
     {
         ASSERT(nID == ID_LOCALHOST_OPEN_IN_WEB_BROWSER);
-        ShellExecute(nullptr, L"open", TC::ToWide(url).c_str(), nullptr, nullptr, SW_SHOW);
+        OpenFileInAssociatedApplication<false>(url);
     }
 }
 
