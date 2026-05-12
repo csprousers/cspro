@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "TextRepository.h"
 #include "NullRepositoryIterators.h"
 #include "TextRepositoryIndexCreator.h"
@@ -919,6 +919,13 @@ void TextRepository::ReadCase(Case& data_case, const int64_t file_position, cons
     }
 
     SetUpOtherCaseAttributes(data_case, static_cast<double>(file_position));
+}
+
+
+void TextRepository::ReadCaseByUuid(Case& /*data_case*/, const std::string& /*uuid*/)
+{
+    // text files don't have UUIDs
+    throw DataRepositoryException::CaseNotFound();
 }
 
 

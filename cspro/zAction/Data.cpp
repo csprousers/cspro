@@ -62,6 +62,12 @@ public:
     // Closes the data repository (when owned by the Action Invoker) and destroys the resource ID.
     static void Close(Runtime& runtime, const JsonNode& json_node, Caller& caller);
 
+    // Returns one of JK::uuid, JK::position, JK::key, or optionally nullptr (if default_to_key is false).
+    static const char* GetSpecifiedCaseIdentifier(const JsonNode& json_node, bool default_to_key);
+
+    // Returns the position in the repository based on a UUID lookup.
+    static double GetPositionFromUuid(DataRepository& data_repository, const JsonNode& json_node);
+
     // Creates a QuestionnaireContentCreator (if passed a dictionary) and runs the callback function.
     // Before creating any content, call QuestionnaireContentCreator::SetCase.
     template<typename CF>
@@ -381,6 +387,31 @@ void ActionInvoker::Runtime::DataWrapper::Close(Runtime& runtime, const JsonNode
 }
 
 
+const char* ActionInvoker::Runtime::DataWrapper::GetSpecifiedCaseIdentifier(const JsonNode& json_node, const bool default_to_key)
+{
+    return ( json_node.Contains(JK::uuid) )                  ? JK::uuid :
+           ( json_node.Contains(JK::position) )              ? JK::position :
+           ( default_to_key || json_node.Contains(JK::key) ) ? JK::key :
+                                                               nullptr;
+}
+
+
+double ActionInvoker::Runtime::DataWrapper::GetPositionFromUuid(DataRepository& data_repository, const JsonNode& json_node)
+{
+    std::string uuid = json_node.Get<std::string>(JK::uuid);
+
+    if( uuid.empty() )
+        throw DataRepositoryException::CaseNotFound();
+
+    std::string key;
+    double position_in_repository;
+
+    data_repository.PopulateCaseIdentifiers(key, uuid, position_in_repository);
+
+    return position_in_repository;
+}
+
+
 template<typename CF>
 void ActionInvoker::Runtime::DataWrapper::WriteCaseWrapper(
     Runtime& runtime, const JsonNode& json_node,
@@ -495,32 +526,32 @@ ActionInvoker::Result ActionInvoker::Runtime::Data_close(const JsonNode& json_no
 
 
 std::unique_ptr<Case> ActionInvoker::Runtime::ReadCase(const JsonNode& json_node, DataRepository& data_repository,
-                                                       const bool return_null_case_if_no_key_present)
+                                                       const bool return_null_if_no_case_identifier_present)
 {
-    const char* const key = json_node.Contains(JK::uuid)     ? JK::uuid :
-                            json_node.Contains(JK::position) ? JK::position :
-                            json_node.Contains(JK::key)      ? JK::key :
-                                                               nullptr;
+    const char* const identifier = DataWrapper::GetSpecifiedCaseIdentifier(json_node, !return_null_if_no_case_identifier_present);
 
-    if( return_null_case_if_no_key_present && key == nullptr )
+    if( identifier == nullptr )
+    {
+        ASSERT(return_null_if_no_case_identifier_present);
         return nullptr;
+    }
 
     std::unique_ptr<Case> data_case = data_repository.GetCaseAccess().CreateCase(true);
 
-    if( key == JK::uuid )
+    if( identifier == JK::key )
+    {
+        data_repository.ReadCase(*data_case, json_node.Get<std::string>(JK::key));
+    }
+
+    else if( identifier == JK::uuid )
     {
         data_repository.ReadCaseByUuid(*data_case, json_node.Get<std::string>(JK::uuid));
     }
 
-    else if( key == JK::position )
-    {
-        data_repository.ReadCase(*data_case, json_node.Get<double>(JK::position));
-    }
-
     else
     {
-        ASSERT(key == JK::key);
-        data_repository.ReadCase(*data_case, json_node.Get<std::string>(JK::key));
+        ASSERT(identifier == JK::position);
+        data_repository.ReadCase(*data_case, json_node.Get<double>(JK::position));
     }
 
     return data_case;
@@ -651,11 +682,7 @@ ActionInvoker::Result ActionInvoker::Runtime::Data_contains(const JsonNode& json
     {
         try
         {
-            std::string key;
-            std::string uuid = json_node.Get<std::string>(JK::uuid);
-            double position_in_repository;
-
-            data_repository.PopulateCaseIdentifiers(key, uuid, position_in_repository);
+            DataWrapper::GetPositionFromUuid(data_repository, json_node);
             contains_case = true;
         }
 
@@ -776,5 +803,5 @@ ActionInvoker::Result ActionInvoker::Runtime::QueryDataRepository(const JsonNode
 
     json_writer->EndArray();
 
-    return ActionInvoker::Result::JsonText(*json_writer);
+    return Result::JsonText(*json_writer);
 }

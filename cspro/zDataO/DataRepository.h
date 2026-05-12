@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zDataO/zDataO.h>
 #include <zDataO/DataRepositoryDefines.h>
@@ -114,8 +114,7 @@ public:
 
     // Reads the case at the given UUID. If no case with the given UUID is in the repository,
     // DataRepositoryException::CaseNotFound will be thrown.
-    // The default implementation uses PopulateCaseIdentifiers to determine the position and then calls the position-based ReadCase.
-    virtual void ReadCaseByUuid(Case& data_case, const std::string& uuid);
+    virtual void ReadCaseByUuid(Case& data_case, const std::string& uuid) = 0;
 
     // Writes the case using rules based on the access parameters previously specified when creating
     // the repository.

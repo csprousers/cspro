@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "ExportWriterRepository.h"
 #include "NullRepositoryIterators.h"
 #include <zExportO/CSProExportWriter.h>
@@ -190,17 +190,28 @@ std::optional<CaseKey> ExportWriterRepository::FindCaseKey(CaseIterationMethod /
 }
 
 
-void ExportWriterRepository::ReadCase(Case& data_case, const std::string& /*key*/)
+void ExportWriterRepository::ReadCase(Case& data_case)
 {
     LogInvalidAccess("load cases", &data_case);
     throw DataRepositoryException::CaseNotFound();
 }
 
 
+void ExportWriterRepository::ReadCase(Case& data_case, const std::string& /*key*/)
+{
+    ReadCase(data_case);
+}
+
+
 void ExportWriterRepository::ReadCase(Case& data_case, double /*position_in_repository*/)
 {
-    LogInvalidAccess("load cases", &data_case);
-    throw DataRepositoryException::CaseNotFound();
+    ReadCase(data_case);
+}
+
+
+void ExportWriterRepository::ReadCaseByUuid(Case& data_case, const std::string& /*uuid*/)
+{
+    ReadCase(data_case);
 }
 
 
