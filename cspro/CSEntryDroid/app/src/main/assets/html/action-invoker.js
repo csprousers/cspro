@@ -41,6 +41,8 @@ Data = {
   containsAsync: (args)=>{return CSProActionInvoker.$Impl.runAsync(this,48168,args);},
   countCases: (args)=>{return CSProActionInvoker.$Impl.run(this,22395,args);},
   countCasesAsync: (args)=>{return CSProActionInvoker.$Impl.runAsync(this,22395,args);},
+  deleteCase: (args)=>{return CSProActionInvoker.$Impl.run(this,50680,args);},
+  deleteCaseAsync: (args)=>{return CSProActionInvoker.$Impl.runAsync(this,50680,args);},
   getCase: (args)=>{return CSProActionInvoker.$Impl.run(this,36632,args);},
   getCaseAsync: (args)=>{return CSProActionInvoker.$Impl.runAsync(this,36632,args);},
   getCurrentCase: (args)=>{return CSProActionInvoker.$Impl.run(this,12123,args);},
@@ -54,7 +56,9 @@ Data = {
   queryKeys: (args)=>{return CSProActionInvoker.$Impl.run(this,30585,args);},
   queryKeysAsync: (args)=>{return CSProActionInvoker.$Impl.runAsync(this,30585,args);},
   readCase: (args)=>{return CSProActionInvoker.$Impl.run(this,36320,args);},
-  readCaseAsync: (args)=>{return CSProActionInvoker.$Impl.runAsync(this,36320,args);}
+  readCaseAsync: (args)=>{return CSProActionInvoker.$Impl.runAsync(this,36320,args);},
+  writeCase: (args)=>{return CSProActionInvoker.$Impl.run(this,30855,args);},
+  writeCaseAsync: (args)=>{return CSProActionInvoker.$Impl.runAsync(this,30855,args);}
 };
 
 Dictionary = {

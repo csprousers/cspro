@@ -332,6 +332,46 @@
   },
   {
     "namespace": "Data",
+    "name": "deleteCase",
+    "description": "Deletes a case from a data source.",
+    "parameters": [
+      {
+        "name": "dataId",
+        "description": "The data source ID or the name of a dictionary.",
+        "types": [
+          "number",
+          "string"
+        ],
+        "required": false
+      },
+      {
+        "name": "key",
+        "description": "The key (case IDs) of a case.",
+        "types": [
+          "string"
+        ],
+        "required": false
+      },
+      {
+        "name": "uuid",
+        "description": "The UUID of a case. If both \"uuid\" and \"key\" are provided, the \"uuid\" value is prioritized.",
+        "types": [
+          "string"
+        ],
+        "required": false
+      },
+      {
+        "name": "position",
+        "description": "The \"position\" of the case in the data source.",
+        "types": [
+          "number"
+        ],
+        "required": false
+      }
+    ]
+  },
+  {
+    "namespace": "Data",
     "name": "getCase",
     "description": "This action is deprecated. Use Data.getCurrentCase or Data.readCase instead.",
     "parameters": [
@@ -734,6 +774,30 @@
         "types": [
           "object"
         ]
+      }
+    ]
+  },
+  {
+    "namespace": "Data",
+    "name": "writeCase",
+    "description": "Writes a case to a data source.",
+    "parameters": [
+      {
+        "name": "dataId",
+        "description": "The data source ID or the name of a dictionary.",
+        "types": [
+          "number",
+          "string"
+        ],
+        "required": false
+      },
+      {
+        "name": "case",
+        "description": "The case content.",
+        "types": [
+          "object"
+        ],
+        "required": true
       }
     ]
   },

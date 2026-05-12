@@ -2,8 +2,9 @@
 #include <zUtilO/Versioning.h>
 #include <zDictO/DDClass.h>
 #include <zCaseO/Case.h>
-#include <zDataO/CacheableCaseWrapperRepository.h>
 #include <zCaseO/CaseBinaryDataVirtualFileMappingHandler.h>
+#include <zCaseO/CaseJsonSerializer.h>
+#include <zDataO/CacheableCaseWrapperRepository.h>
 #include <zDataO/CaseIterator.h>
 #include <zDataO/ConnectionStringProperties.h>
 #include <zDataO/DataRepository.h>
@@ -42,6 +43,9 @@ public:
 
     // Returns true if the Action Invoker owns the data repository.
     virtual bool IsActionInvokerOwned() const = 0;
+
+    // Returns true if the interpreter owns the data repository.
+    bool IsInterpreterOwned() const { return !IsActionInvokerOwned(); }
 
     // Returns the data repository.
     virtual DataRepository& GetDataRepository() = 0;
@@ -367,7 +371,7 @@ void ActionInvoker::Runtime::DataWrapper::Close(Runtime& runtime, const JsonNode
     if( std::holds_alternative<std::unique_ptr<DataWrapper>>(evaluate_value) )
     {
         data_wrapper = std::move(std::get<std::unique_ptr<DataWrapper>>(evaluate_value));
-        ASSERT(!data_wrapper->IsActionInvokerOwned());
+        ASSERT(data_wrapper->IsInterpreterOwned());
     }
 
     // for wrappers with resource IDs, destroy the wrapper before closing the data repository
@@ -804,4 +808,56 @@ ActionInvoker::Result ActionInvoker::Runtime::QueryDataRepository(const JsonNode
     json_writer->EndArray();
 
     return Result::JsonText(*json_writer);
+}
+
+
+ActionInvoker::Result ActionInvoker::Runtime::Data_deleteCase(const JsonNode& json_node, Caller& caller)
+{
+    const std::shared_ptr<DataWrapper> data_wrapper = DataWrapper::GetDataWrapper(*this, json_node, caller);
+    DataRepository& data_repository = data_wrapper->GetDataRepository();
+
+    const char* const identifier = DataWrapper::GetSpecifiedCaseIdentifier(json_node, true);
+
+    if( data_wrapper->IsInterpreterOwned() )
+    {
+        // DATA_TODO: need to properly handle engine dictionaries
+    }
+
+    if( identifier == JK::key )
+    {
+        data_repository.DeleteCase(json_node.Get<std::string>(JK::key));
+    }
+
+    else
+    {
+        const double position_in_repository =
+            ( identifier == JK::uuid ) ? DataWrapper::GetPositionFromUuid(data_repository, json_node) :
+                                         json_node.Get<double>(JK::position);
+
+        data_repository.DeleteCase(position_in_repository);
+    }
+
+    return Result::Undefined();
+}
+
+
+ActionInvoker::Result ActionInvoker::Runtime::Data_writeCase(const JsonNode& json_node, Caller& caller)
+{
+    const std::shared_ptr<DataWrapper> data_wrapper = DataWrapper::GetDataWrapper(*this, json_node, caller);
+    DataRepository& data_repository = data_wrapper->GetDataRepository();
+
+    std::shared_ptr<const CaseAccess> case_access = data_repository.GetSharedCaseAccess();
+    const std::shared_ptr<Case> data_case = case_access->CreateCase(true);
+
+    CaseJsonParserHelper case_json_parser_helper(std::move(case_access));
+    case_json_parser_helper.ParseJson(*data_case, json_node.Get(JK::case_));
+
+    if( data_wrapper->IsInterpreterOwned() )
+    {
+        // DATA_TODO: need to properly handle engine dictionaries
+    }
+
+    data_repository.WriteCase(*data_case);
+
+    return Result::Undefined();
 }
