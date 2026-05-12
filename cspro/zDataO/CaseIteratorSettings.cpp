@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "CaseIteratorSettings.h"
 #include "CSWebRepositoryJsonKeys.h"
 
@@ -79,22 +79,25 @@ CaseIteratorSettings CaseIteratorSettings::CreateFromJson(const JsonNode& json_n
                                                                                              ToString(CaseIterationStartType::GreaterThan),
                                                                                              JV::startswith });
 
+        const bool using_key = filter_json_node.Contains(JK::type)
+            ? ( filter_json_node.GetFromStringOptions(JK::type, { JK::key, JK::position }) == 0 )
+            : true;
+
         // startswith
         if( operator_index > static_cast<size_t>(CaseIterationStartType::GreaterThan) )
         {
-            ASSERT(filter_json_node.GetOrConstruct<std::string>(JK::type) == JK::key);
+            ASSERT(using_key);
             settings.m_parameters = CaseIteratorParameters::CreateForKeyPrefix(filter_json_node.Get<std::string>(JK::value));
         }
 
         // operators
         else
         {
-            auto first_key_or_position = ( filter_json_node.GetFromStringOptions(JK::type, { JK::key, JK::position }) == 0 ) ?
-                std::variant<std::string, double>(filter_json_node.Get<std::string>(JK::value)) :
-                std::variant<std::string, double>(filter_json_node.Get<double>(JK::value));
-
-            settings.m_parameters = CaseIteratorParameters::CreateForKey(static_cast<CaseIterationStartType>(operator_index),
-                                                                         std::move(first_key_or_position));
+            settings.m_parameters = CaseIteratorParameters::CreateForKey(
+                static_cast<CaseIterationStartType>(operator_index),
+                using_key ? std::variant<std::string, double>(filter_json_node.Get<std::string>(JK::value)) :
+                            std::variant<std::string, double>(filter_json_node.Get<double>(JK::value))
+            );
         }
     }
 

@@ -25,6 +25,7 @@ class VirtualFileMappingHandler;
 
 namespace ActionInvoker
 {
+    enum class DataQueryContentType;
     class Listener;
     class ListenerHolder;
     class Runtime;
@@ -146,6 +147,8 @@ private:
                                                std::unique_ptr<Case> data_case, const JsonNode& json_node,
                                                bool write_all_content, bool case_content_is_from_current_case);
 
+    Result QueryDataRepository(const JsonNode& json_node, Caller& caller, std::optional<DataQueryContentType> query_type);
+
     // File
     static FileOverwriteFlag EvaluateFileOverwriteFlag(const JsonNode& json_node);
 
@@ -223,9 +226,13 @@ private:
     Result Clipboard_putText(const JsonNode& json_node, Caller& caller);
     Result Data_close(const JsonNode& json_node, Caller& caller);
     Result Data_contains(const JsonNode& json_node, Caller& caller);
+    Result Data_countCases(const JsonNode& json_node, Caller& caller);
     Result Data_getCase(const JsonNode& json_node, Caller& caller);
     Result Data_getCurrentCase(const JsonNode& json_node, Caller& caller);
     Result Data_open(const JsonNode& json_node, Caller& caller);
+    Result Data_query(const JsonNode& json_node, Caller& caller);
+    Result Data_queryCases(const JsonNode& json_node, Caller& caller);
+    Result Data_queryKeys(const JsonNode& json_node, Caller& caller);
     Result Data_readCase(const JsonNode& json_node, Caller& caller);
     Result Dictionary_getDictionary(const JsonNode& json_node, Caller& caller);
     Result File_copy(const JsonNode& json_node, Caller& caller);

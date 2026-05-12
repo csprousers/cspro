@@ -291,6 +291,47 @@
   },
   {
     "namespace": "Data",
+    "name": "countCases",
+    "description": "Counts the number of cases in a data source.",
+    "parameters": [
+      {
+        "name": "dataId",
+        "description": "The data source ID or the name of a dictionary.",
+        "types": [
+          "number",
+          "string"
+        ],
+        "required": false
+      },
+      {
+        "name": "status",
+        "description": "Options for the status of the cases to query. (Default value is \"notDeletedOnly\".)",
+        "types": [
+          "object"
+        ],
+        "required": false
+      },
+      {
+        "name": "filter",
+        "description": "Options for how the queried data should be filtered.",
+        "types": [
+          "object"
+        ],
+        "required": false
+      }
+    ],
+    "returns": [
+      {
+        "name": "",
+        "description": "The number of cases.",
+        "types": [
+          "number"
+        ]
+      }
+    ]
+  },
+  {
+    "namespace": "Data",
     "name": "getCase",
     "description": "This action is deprecated. Use Data.getCurrentCase or Data.readCase instead.",
     "parameters": [
@@ -415,6 +456,226 @@
         "description": "An ID that identifies this data source.",
         "types": [
           "number"
+        ]
+      }
+    ]
+  },
+  {
+    "namespace": "Data",
+    "name": "query",
+    "description": "Queries content from a data source.",
+    "parameters": [
+      {
+        "name": "dataId",
+        "description": "The data source ID or the name of a dictionary.",
+        "types": [
+          "number",
+          "string"
+        ],
+        "required": false
+      },
+      {
+        "name": "content",
+        "description": "The content to query.",
+        "types": [
+          "string"
+        ],
+        "required": true
+      },
+      {
+        "name": "status",
+        "description": "Options for the status of the cases to query. (Default value is \"notDeletedOnly\".)",
+        "types": [
+          "object"
+        ],
+        "required": false
+      },
+      {
+        "name": "sort",
+        "description": "Options for how the queried data should be sorted.",
+        "types": [
+          "object"
+        ],
+        "required": false
+      },
+      {
+        "name": "filter",
+        "description": "Options for how the queried data should be filtered.",
+        "types": [
+          "object"
+        ],
+        "required": false
+      },
+      {
+        "name": "offset",
+        "description": "The number of cases to skip before starting to return results from the query. (Default value is 0.)",
+        "types": [
+          "number"
+        ],
+        "required": false
+      },
+      {
+        "name": "limit",
+        "description": "The maximum number of cases to return from the query.",
+        "types": [
+          "number"
+        ],
+        "required": false
+      },
+      {
+        "name": "serializationOptions",
+        "description": "Options for how cases should be serialized.",
+        "types": [
+          "object"
+        ],
+        "required": false
+      }
+    ],
+    "returns": [
+      {
+        "name": "",
+        "description": "A count or an array containing the query results.",
+        "types": [
+          "number",
+          "array"
+        ]
+      }
+    ]
+  },
+  {
+    "namespace": "Data",
+    "name": "queryCases",
+    "description": "Queries cases from a data source.",
+    "parameters": [
+      {
+        "name": "dataId",
+        "description": "The data source ID or the name of a dictionary.",
+        "types": [
+          "number",
+          "string"
+        ],
+        "required": false
+      },
+      {
+        "name": "status",
+        "description": "Options for the status of the cases to query. (Default value is \"notDeletedOnly\".)",
+        "types": [
+          "object"
+        ],
+        "required": false
+      },
+      {
+        "name": "sort",
+        "description": "Options for how the queried data should be sorted.",
+        "types": [
+          "object"
+        ],
+        "required": false
+      },
+      {
+        "name": "filter",
+        "description": "Options for how the queried data should be filtered.",
+        "types": [
+          "object"
+        ],
+        "required": false
+      },
+      {
+        "name": "offset",
+        "description": "The number of cases to skip before starting to return results from the query. (Default value is 0.)",
+        "types": [
+          "number"
+        ],
+        "required": false
+      },
+      {
+        "name": "limit",
+        "description": "The maximum number of cases to return from the query.",
+        "types": [
+          "number"
+        ],
+        "required": false
+      },
+      {
+        "name": "serializationOptions",
+        "description": "Options for how cases should be serialized.",
+        "types": [
+          "object"
+        ],
+        "required": false
+      }
+    ],
+    "returns": [
+      {
+        "name": "",
+        "description": "An array containing the cases.",
+        "types": [
+          "array"
+        ]
+      }
+    ]
+  },
+  {
+    "namespace": "Data",
+    "name": "queryKeys",
+    "description": "Queries case keys from a data source.",
+    "parameters": [
+      {
+        "name": "dataId",
+        "description": "The data source ID or the name of a dictionary.",
+        "types": [
+          "number",
+          "string"
+        ],
+        "required": false
+      },
+      {
+        "name": "status",
+        "description": "Options for the status of the cases to query. (Default value is \"notDeletedOnly\".)",
+        "types": [
+          "object"
+        ],
+        "required": false
+      },
+      {
+        "name": "sort",
+        "description": "Options for how the queried data should be sorted.",
+        "types": [
+          "object"
+        ],
+        "required": false
+      },
+      {
+        "name": "filter",
+        "description": "Options for how the queried data should be filtered.",
+        "types": [
+          "object"
+        ],
+        "required": false
+      },
+      {
+        "name": "offset",
+        "description": "The number of case keys to skip before starting to return results from the query. (Default value is 0.)",
+        "types": [
+          "number"
+        ],
+        "required": false
+      },
+      {
+        "name": "limit",
+        "description": "The maximum number of case keys to return from the query.",
+        "types": [
+          "number"
+        ],
+        "required": false
+      }
+    ],
+    "returns": [
+      {
+        "name": "",
+        "description": "An array containing the case keys.",
+        "types": [
+          "array"
         ]
       }
     ]

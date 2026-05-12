@@ -2,8 +2,9 @@
 #include <zUtilO/Versioning.h>
 #include <zDictO/DDClass.h>
 #include <zCaseO/Case.h>
-#include <zCaseO/CaseBinaryDataVirtualFileMappingHandler.h>
 #include <zDataO/CacheableCaseWrapperRepository.h>
+#include <zCaseO/CaseBinaryDataVirtualFileMappingHandler.h>
+#include <zDataO/CaseIterator.h>
 #include <zDataO/ConnectionStringProperties.h>
 #include <zDataO/DataRepository.h>
 #include <zDataO/DictionarySource.h>
@@ -12,8 +13,17 @@
 #include <zParadataO/ParadataDriver.h>
 
 
+enum class ActionInvoker::DataQueryContentType { Count, Keys, Summaries, Cases };
+
+
 CREATE_JSON_KEY(dataId)
 CREATE_JSON_KEY(openFlags)
+
+CREATE_ENUM_JSON_SERIALIZER(ActionInvoker::DataQueryContentType,
+    { ActionInvoker::DataQueryContentType::Count,       "count" },
+    { ActionInvoker::DataQueryContentType::Keys,        "keys" },
+    { ActionInvoker::DataQueryContentType::Summaries,   "summaries" },
+    { ActionInvoker::DataQueryContentType::Cases,       "cases" })
 
 
 // --------------------------------------------------------------------------
@@ -58,6 +68,12 @@ public:
     static void WriteCaseWrapper(Runtime& runtime, const JsonNode& json_node,
                                  std::variant<std::shared_ptr<const CDataDict>, std::unique_ptr<QuestionnaireContentCreator>> dictionary_or_questionnaire_content_creator,
                                  const CF& callback_function);
+
+    // Routines to serialize case objects to a JSON writer where an array has already been started.
+    static void FillArray_CaseKeys(JsonWriter& json_writer, CaseIterator& iterator);
+    static void FillArray_CaseSummaries(JsonWriter& json_writer, CaseIterator& iterator);
+    static void FillArray_Cases(Runtime& runtime, const JsonNode& json_node, DataWrapper& data_wrapper,
+                                JsonWriter& json_writer, CaseIterator& iterator);
 
 private:
     using EvaluateType = std::variant<std::unique_ptr<DataWrapper>,
@@ -403,6 +419,61 @@ void ActionInvoker::Runtime::DataWrapper::WriteCaseWrapper(
 }
 
 
+void ActionInvoker::Runtime::DataWrapper::FillArray_CaseKeys(JsonWriter& json_writer, CaseIterator& iterator)
+{
+    CaseKey case_key;
+
+    while( iterator.NextCaseKey(case_key) )
+        json_writer.Write(case_key.GetKey());
+}
+
+
+void ActionInvoker::Runtime::DataWrapper::FillArray_CaseSummaries(JsonWriter& json_writer, CaseIterator& iterator)
+{
+    CaseSummary case_summary;
+
+    while( iterator.NextCaseKey(case_summary) )
+    {
+        json_writer.BeginObject()
+                   .Write(JK::key, case_summary.GetKey())
+                   .Write(JK::position, case_summary.GetPositionInRepository())
+                   .Write(JK::label, case_summary.GetCaseLabel())
+                   .Write(JK::deleted, case_summary.GetDeleted())
+                   .Write(JK::verified, case_summary.GetVerified())
+                   .Write(JK::caseNote, case_summary.GetCaseNote());
+
+        if( case_summary.IsPartial() )
+        {
+            json_writer.BeginObject(JK::partialSave)
+                       .Write(JK::mode, case_summary.GetPartialSaveMode())
+                       .EndObject();
+        }
+
+        else
+        {
+            json_writer.WriteNull(JK::partialSave);
+        }
+
+        json_writer.EndObject();
+    }
+}
+
+
+void ActionInvoker::Runtime::DataWrapper::FillArray_Cases(Runtime& runtime, const JsonNode& json_node, DataWrapper& data_wrapper,
+                                                          JsonWriter& json_writer, CaseIterator& iterator)
+{
+    WriteCaseWrapper(runtime, json_node, data_wrapper.GetDictionary(),
+        [&](QuestionnaireContentCreator& questionnaire_content_creator)
+        {
+            const std::shared_ptr<Case> data_case = data_wrapper.GetDataRepository().GetCaseAccess().CreateCase(true);
+            questionnaire_content_creator.SetCase(data_case);
+
+            while( iterator.NextCase(*data_case) )
+                questionnaire_content_creator.WriteCaseContent(json_writer);
+        });
+}
+
+
 
 // --------------------------------------------------------------------------
 // Data actions
@@ -600,4 +671,110 @@ ActionInvoker::Result ActionInvoker::Runtime::Data_contains(const JsonNode& json
     }
 
     return Result::Bool(contains_case);
+}
+
+
+ActionInvoker::Result ActionInvoker::Runtime::Data_countCases(const JsonNode& json_node, Caller& caller)
+{
+    return QueryDataRepository(json_node, caller, DataQueryContentType::Count);
+}
+
+
+ActionInvoker::Result ActionInvoker::Runtime::Data_query(const JsonNode& json_node, Caller& caller)
+{
+    return QueryDataRepository(json_node, caller, std::nullopt);
+}
+
+
+ActionInvoker::Result ActionInvoker::Runtime::Data_queryCases(const JsonNode& json_node, Caller& caller)
+{
+    return QueryDataRepository(json_node, caller, DataQueryContentType::Cases);
+}
+
+
+ActionInvoker::Result ActionInvoker::Runtime::Data_queryKeys(const JsonNode& json_node, Caller& caller)
+{
+    return QueryDataRepository(json_node, caller, DataQueryContentType::Keys);
+}
+
+
+ActionInvoker::Result ActionInvoker::Runtime::QueryDataRepository(const JsonNode& json_node, Caller& caller,
+                                                                  std::optional<DataQueryContentType> content_type)
+{
+    const std::shared_ptr<DataWrapper> data_wrapper = DataWrapper::GetDataWrapper(*this, json_node, caller);
+    DataRepository& data_repository = data_wrapper->GetDataRepository();
+
+    // parse "content"
+    const std::optional<DataQueryContentType> specified_content_type = json_node.GetOptional<DataQueryContentType>(JK::content);
+
+    if( content_type.has_value() )
+    {
+        // if here via an action like Data.queryKeys, make sure that a different content type is not specified
+        if( specified_content_type.has_value() && *content_type != *specified_content_type )
+        {
+            throw CSProException("The action does not support querying content of the type '%s'",
+                                 Json::ToJson(*specified_content_type).c_str());
+        }
+    }
+
+    else if( specified_content_type.has_value() )
+    {
+        content_type = *specified_content_type;
+    }
+
+    else
+    {
+        throw CSProException("You must specify the type of content to query.");
+    }
+
+    // parse any filters
+    const CaseIteratorSettings iterator_settings = json_node.Get<CaseIteratorSettings>();
+
+    // if requesting a count, we can now run the query
+    if( *content_type == DataQueryContentType::Count )
+    {
+        return Result::Number(
+            data_repository.GetNumberCases(iterator_settings.GetStatus(), iterator_settings.GetParameters())
+        );
+    }
+
+    // otherwise we will use an iterator to process the query
+    const CaseIterationContent iteration_content =
+        ( *content_type == DataQueryContentType::Keys )      ? CaseIterationContent::CaseKey :
+        ( *content_type == DataQueryContentType::Summaries ) ? CaseIterationContent::CaseSummary:
+                                                               CaseIterationContent::Case;
+
+    // create the iterator, parsing "offset" and "limit"
+    const std::unique_ptr<CaseIterator> iterator = data_repository.CreateIterator(
+        iteration_content,
+        iterator_settings,
+        json_node.Contains(JK::offset) ? json_node.Get<size_t>(JK::offset) : 0,
+        json_node.Contains(JK::limit) ? json_node.Get<size_t>(JK::limit) : std::numeric_limits<size_t>::max()
+    );
+
+    // return an array with the contents of the query
+    const std::unique_ptr<JsonStringWriter> json_writer = Json::CreateStringWriter();
+    json_writer->SetVerbose();
+
+    json_writer->BeginArray();
+
+    switch( iteration_content )
+    {
+        case CaseIterationContent::CaseKey:
+            DataWrapper::FillArray_CaseKeys(*json_writer, *iterator);
+            break;
+
+        case CaseIterationContent::CaseSummary:
+            DataWrapper::FillArray_CaseSummaries(*json_writer, *iterator);
+            break;
+
+        default:
+            ASSERT(iteration_content == CaseIterationContent::Case);
+            DataWrapper::FillArray_Cases(*this, json_node, *data_wrapper, *json_writer, *iterator);
+            break;
+    }
+
+    json_writer->EndArray();
+
+    return ActionInvoker::Result::JsonText(*json_writer);
 }

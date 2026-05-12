@@ -39,7 +39,8 @@ bool QuestionnaireContentCreator::DictionaryMatches(const CDataDict* const compa
     if( m_bypassDictionaryMatchesCheck )
         return true;
 
-    ASSERT(m_dictionary != nullptr && !m_dictionary->GetFilePath().empty());
+    ASSERT(m_dictionary != nullptr);
+    ASSERT(m_dictionary.get() == compare_dictionary || !m_dictionary->GetFilePath().empty());
 
     if( compare_dictionary != nullptr )
     {
