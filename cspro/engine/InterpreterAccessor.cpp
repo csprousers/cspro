@@ -30,7 +30,6 @@ public:
 
     DataRepository& GetDataRepository(std::string_view dictionary_name_sv, bool check_level_is_valid_for_data_access) override;
 
-    std::unique_ptr<Case> GetCase(std::string_view dictionary_name_sv, const std::optional<std::string>& case_uuid, const std::optional<std::string>& case_key) override;
     std::unique_ptr<Case> GetCurrentCase(std::string_view dictionary_name_sv) override;
 
     std::unique_ptr<FieldStatusRetriever> CreateFieldStatusRetriever() override;
@@ -101,34 +100,6 @@ DataRepository& EngineInterpreterAccessor::GetDataRepository(const std::string_v
 {
     DICT& dictionary = GetDictionary(dictionary_name_sv, check_level_is_valid_for_data_access);
     return dictionary.GetDicX()->GetDataRepository();
-}
-
-
-std::unique_ptr<Case> EngineInterpreterAccessor::GetCase(const std::string_view dictionary_name_sv,
-                                                         const std::optional<std::string>& case_uuid,
-                                                         const std::optional<std::string>& case_key)
-{
-    ASSERT(case_uuid.has_value() || case_key.has_value());
-
-    DICT& dictionary = GetDictionary(dictionary_name_sv, false);
-
-    std::unique_ptr<Case> data_case = dictionary.GetCaseAccess()->CreateCase(true);
-
-    DataRepository& data_repository = dictionary.GetDicX()->GetDataRepository();
-
-    // load the case by UUID...
-    if( case_uuid.has_value() )
-    {
-        data_repository.ReadCaseByUuid(*data_case, *case_uuid);
-    }
-
-    // ...or by key
-    else
-    {
-        data_repository.ReadCase(*data_case, *case_key);
-    }
-
-    return data_case;
 }
 
 

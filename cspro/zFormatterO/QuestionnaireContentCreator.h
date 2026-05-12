@@ -41,6 +41,9 @@ public:
     // Returns the case content in JSON format.
     std::string GetCaseContent();
 
+    // Writes the case content to the given JSON writer.
+    void WriteCaseContent(JsonWriter& json_writer);
+
     // Returns the virtual file mapping handler that serves case binary data.
     std::shared_ptr<CaseBinaryDataVirtualFileMappingHandler> GetCaseBinaryDataVirtualFileMappingHandler() { return m_caseBinaryDataVirtualFileMappingHandler; }
 

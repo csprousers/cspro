@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "QuestionnaireContentCreator.h"
 #include "TempFormFileSerializer.h"
 #include <zHtml/AccessUrlSerializer.h>
@@ -123,20 +123,28 @@ std::string QuestionnaireContentCreator::GetContent()
 
 std::string QuestionnaireContentCreator::GetCaseContent()
 {
+    const std::unique_ptr<JsonStringWriter> json_writer = Json::CreateStringWriter();
+    json_writer->SetVerbose();
+
+    WriteCaseContent(*json_writer);
+
+    return json_writer->ReleaseString();
+}
+
+
+void QuestionnaireContentCreator::WriteCaseContent(JsonWriter& json_writer)
+{
     if( m_dictionary == nullptr || m_case == nullptr )
         throw CSProException("A dictionary and case must be specified to generate content.");
 
     ASSERT(DictionaryMatches(&m_case->GetCaseMetadata().GetDictionary()));
 
     // create the JSON content
-    const std::unique_ptr<JsonStringWriter> json_writer = Json::CreateStringWriter();
-    json_writer->SetVerbose();
+    ASSERT(json_writer.Verbose());
 
-    auto case_json_writer_serializer_holder = json_writer->GetSerializerHelper().Register(GetCaseJsonWriterSerializerHelper());
+    auto case_json_writer_serializer_holder = json_writer.GetSerializerHelper().Register(GetCaseJsonWriterSerializerHelper());
 
-    m_case->WriteJson(*json_writer);
-
-    return json_writer->ReleaseString();
+    m_case->WriteJson(json_writer);
 }
 
 

@@ -44,9 +44,6 @@ public:
     // Throws an exception if the dictionary does not exist.
     virtual DataRepository& GetDataRepository(std::string_view dictionary_name_sv, bool check_level_is_valid_for_data_access) = 0;
 
-    // Throws exceptions from the data repository, otherwise returns a non-null pointer.
-    virtual std::unique_ptr<Case> GetCase(std::string_view dictionary_name_sv, const std::optional<std::string>& case_uuid, const std::optional<std::string>& case_key) = 0;
-
     // Throws an exception if no current case exists, otherwise returns a non-null pointer.
     virtual std::unique_ptr<Case> GetCurrentCase(std::string_view dictionary_name_sv) = 0;
 

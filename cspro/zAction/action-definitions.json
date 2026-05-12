@@ -144,6 +144,14 @@
         "required": false
       },
       {
+        "name": "position",
+        "description": "The \"position\" of the case in the data source.",
+        "types": [
+          "number"
+        ],
+        "required": false
+      },
+      {
         "name": "serializationOptions",
         "description": "Options for how the case should be serialized (if applicable).",
         "types": [
@@ -438,6 +446,14 @@
         "description": "The UUID of a case. If both \"uuid\" and \"key\" are provided, the \"uuid\" value is prioritized.",
         "types": [
           "string"
+        ],
+        "required": false
+      },
+      {
+        "name": "position",
+        "description": "The \"position\" of the case in the data source.",
+        "types": [
+          "number"
         ],
         "required": false
       },

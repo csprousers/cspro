@@ -52,6 +52,13 @@ public:
     // Closes the data repository (when owned by the Action Invoker) and destroys the resource ID.
     static void Close(Runtime& runtime, const JsonNode& json_node, Caller& caller);
 
+    // Creates a QuestionnaireContentCreator (if passed a dictionary) and runs the callback function.
+    // Before creating any content, call QuestionnaireContentCreator::SetCase.
+    template<typename CF>
+    static void WriteCaseWrapper(Runtime& runtime, const JsonNode& json_node,
+                                 std::variant<std::shared_ptr<const CDataDict>, std::unique_ptr<QuestionnaireContentCreator>> dictionary_or_questionnaire_content_creator,
+                                 const CF& callback_function);
+
 private:
     using EvaluateType = std::variant<std::unique_ptr<DataWrapper>,
                                       std::map<int, std::shared_ptr<DataWrapper>>::iterator>;
@@ -128,7 +135,7 @@ public:
 
     DataRepository& GetDataRepository() override
     {
-        return m_runtime.GetInterpreterAccessor().GetDataRepository(m_dictionaryName, true);
+        return m_runtime.GetInterpreterAccessor().GetDataRepository(m_dictionaryName, false);
     }
 
     std::shared_ptr<const CDataDict> GetDictionary() override
@@ -358,6 +365,42 @@ void ActionInvoker::Runtime::DataWrapper::Close(Runtime& runtime, const JsonNode
 }
 
 
+template<typename CF>
+void ActionInvoker::Runtime::DataWrapper::WriteCaseWrapper(
+    Runtime& runtime, const JsonNode& json_node,
+    std::variant<std::shared_ptr<const CDataDict>, std::unique_ptr<QuestionnaireContentCreator>> dictionary_or_questionnaire_content_creator,
+    const CF& callback_function)
+{
+    std::unique_ptr<QuestionnaireContentCreator> questionnaire_content_creator;
+
+    if( std::holds_alternative<std::unique_ptr<QuestionnaireContentCreator>>(dictionary_or_questionnaire_content_creator) )
+    {
+        questionnaire_content_creator = std::move(std::get<std::unique_ptr<QuestionnaireContentCreator>>(dictionary_or_questionnaire_content_creator));
+        ASSERT(questionnaire_content_creator != nullptr);
+    }
+
+    else
+    {
+        questionnaire_content_creator = std::make_unique<QuestionnaireContentCreator>();
+
+        ASSERT(std::get<std::shared_ptr<const CDataDict>>(dictionary_or_questionnaire_content_creator) != nullptr);
+        questionnaire_content_creator->SetDictionary(std::move(std::get<std::shared_ptr<const CDataDict>>(dictionary_or_questionnaire_content_creator)));
+    }
+
+    if( json_node.Contains(JK::serializationOptions) )
+        questionnaire_content_creator->SetSerializationOptions(json_node.Get(JK::serializationOptions));
+
+    callback_function(*questionnaire_content_creator);
+
+    // QuestionnaireContentCreator may write out the binary data in a case using a virtual file mapping handler;
+    // if so add it to the Action Invoker's handlers
+    std::shared_ptr<CaseBinaryDataVirtualFileMappingHandler> case_binary_data_virtual_file_mapping_handler = questionnaire_content_creator->GetCaseBinaryDataVirtualFileMappingHandler();
+
+    if( case_binary_data_virtual_file_mapping_handler != nullptr )
+        runtime.m_localHostKeyBasedVirtualFileMappingHandlers.emplace_back(std::move(case_binary_data_virtual_file_mapping_handler));
+}
+
+
 
 // --------------------------------------------------------------------------
 // Data actions
@@ -378,35 +421,66 @@ ActionInvoker::Result ActionInvoker::Runtime::Data_close(const JsonNode& json_no
 }
 
 
+std::unique_ptr<Case> ActionInvoker::Runtime::ReadCase(const JsonNode& json_node, DataRepository& data_repository,
+                                                       const bool return_null_case_if_no_key_present)
+{
+    const char* const key = json_node.Contains(JK::uuid)     ? JK::uuid :
+                            json_node.Contains(JK::position) ? JK::position :
+                            json_node.Contains(JK::key)      ? JK::key :
+                                                               nullptr;
+
+    if( return_null_case_if_no_key_present && key == nullptr )
+        return nullptr;
+
+    std::unique_ptr<Case> data_case = data_repository.GetCaseAccess().CreateCase(true);
+
+    if( key == JK::uuid )
+    {
+        data_repository.ReadCaseByUuid(*data_case, json_node.Get<std::string>(JK::uuid));
+    }
+
+    else if( key == JK::position )
+    {
+        data_repository.ReadCase(*data_case, json_node.Get<double>(JK::position));
+    }
+
+    else
+    {
+        ASSERT(key == JK::key);
+        data_repository.ReadCase(*data_case, json_node.Get<std::string>(JK::key));
+    }
+
+    return data_case;
+}
+
+
 ActionInvoker::Result ActionInvoker::Runtime::GetQuestionnaireContentWithCaseData(
-    QuestionnaireContentCreator& questionnaire_content_creator, std::unique_ptr<Case> data_case, const JsonNode& json_node,
+    std::variant<std::shared_ptr<const CDataDict>, std::unique_ptr<QuestionnaireContentCreator>> dictionary_or_questionnaire_content_creator,
+    std::unique_ptr<Case> data_case, const JsonNode& json_node,
     const bool write_all_content, const bool case_content_is_from_current_case)
 {
     ASSERT(data_case != nullptr);
 
-    questionnaire_content_creator.SetCase(std::move(data_case));
+    std::string content;
 
-    if( json_node.Contains(JK::serializationOptions) )
-        questionnaire_content_creator.SetSerializationOptions(json_node.Get(JK::serializationOptions));
-
-    if( case_content_is_from_current_case )
-    {
-        try
+    DataWrapper::WriteCaseWrapper(*this, json_node, std::move(dictionary_or_questionnaire_content_creator),
+        [&](QuestionnaireContentCreator& questionnaire_content_creator)
         {
-            questionnaire_content_creator.SetFieldStatusRetriever(GetInterpreterAccessor().CreateFieldStatusRetriever());
-        }
-        catch(...) { }
-    }
+            questionnaire_content_creator.SetCase(std::move(data_case));
 
-    std::string content = write_all_content ? questionnaire_content_creator.GetContent() :
-                                              questionnaire_content_creator.GetCaseContent();
+            if( case_content_is_from_current_case )
+            {
+                try
+                {
+                    questionnaire_content_creator.SetFieldStatusRetriever(GetInterpreterAccessor().CreateFieldStatusRetriever());
+                }
+                catch(...) { }
+            }
 
-    // QuestionnaireContentCreator may write out the binary data in a case using a virtual file mapping handler;
-    // if so add it to the Action Invoker's handlers
-    std::shared_ptr<CaseBinaryDataVirtualFileMappingHandler> case_binary_data_virtual_file_mapping_handler = questionnaire_content_creator.GetCaseBinaryDataVirtualFileMappingHandler();
 
-    if( case_binary_data_virtual_file_mapping_handler != nullptr )
-        m_localHostKeyBasedVirtualFileMappingHandlers.emplace_back(std::move(case_binary_data_virtual_file_mapping_handler));
+            content = write_all_content ? questionnaire_content_creator.GetContent() :
+                                          questionnaire_content_creator.GetCaseContent();
+        });
 
     return Result::JsonText(std::move(content));
 }
@@ -463,11 +537,8 @@ ActionInvoker::Result ActionInvoker::Runtime::Data_getCurrentCase(const JsonNode
 
     std::unique_ptr<Case> data_case = GetInterpreterAccessor().GetCurrentCase(dictionary->GetName());
 
-    QuestionnaireContentCreator questionnaire_content_creator;
-    questionnaire_content_creator.SetDictionary(std::move(dictionary));
-
     return GetQuestionnaireContentWithCaseData(
-        questionnaire_content_creator,
+        std::move(dictionary),
         std::move(data_case),
         json_node,
         false, // write only case content
@@ -481,28 +552,19 @@ ActionInvoker::Result ActionInvoker::Runtime::Data_readCase(const JsonNode& json
     const std::shared_ptr<DataWrapper> data_wrapper = DataWrapper::GetDataWrapper(*this, json_node, caller);
     DataRepository& data_repository = data_wrapper->GetDataRepository();
 
-    std::unique_ptr<Case> data_case = data_repository.GetCaseAccess().CreateCase(true);
+    std::unique_ptr<Case> data_case = ReadCase(json_node, data_repository, false);
+    ASSERT(data_case != nullptr);
 
-    if( json_node.Contains(JK::uuid) )
-    {
-        data_repository.ReadCaseByUuid(*data_case, json_node.Get<std::string>(JK::uuid));
-    }
+    std::string case_content;
 
-    else
-    {
-        data_repository.ReadCase(*data_case, json_node.Get<std::string>(JK::key));
-    }
+    DataWrapper::WriteCaseWrapper(*this, json_node, data_wrapper->GetDictionary(),
+        [&](QuestionnaireContentCreator& questionnaire_content_creator)
+        {
+            questionnaire_content_creator.SetCase(std::move(data_case));
+            case_content = questionnaire_content_creator.GetCaseContent();
+        });
 
-    QuestionnaireContentCreator questionnaire_content_creator;
-    questionnaire_content_creator.SetDictionary(data_wrapper->GetDictionary());
-
-    return GetQuestionnaireContentWithCaseData(
-        questionnaire_content_creator,
-        std::move(data_case),
-        json_node,
-        false, // write only case content
-        false // the case content is not from the current case
-    );
+    return Result::JsonText(std::move(case_content));
 }
 
 

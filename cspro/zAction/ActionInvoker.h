@@ -12,6 +12,7 @@ class Case;
 class CDataDict;
 class CDEFormFile;
 class CommonStore;
+class DataRepository;
 class InterpreterAccessor;
 class JsonReaderInterface;
 class KeyBasedVirtualFileMappingHandler;
@@ -138,8 +139,12 @@ private:
 
 
     // Data
-    Result GetQuestionnaireContentWithCaseData(QuestionnaireContentCreator& questionnaire_content_creator, std::unique_ptr<Case> data_case,
-                                               const JsonNode& json_node, bool write_all_content, bool case_content_is_from_current_case);
+    static std::unique_ptr<Case> ReadCase(const JsonNode& json_node, DataRepository& data_repository,
+                                          bool return_null_case_if_no_key_present);
+
+    Result GetQuestionnaireContentWithCaseData(std::variant<std::shared_ptr<const CDataDict>, std::unique_ptr<QuestionnaireContentCreator>> dictionary_or_questionnaire_content_creator,
+                                               std::unique_ptr<Case> data_case, const JsonNode& json_node,
+                                               bool write_all_content, bool case_content_is_from_current_case);
 
     // File
     static FileOverwriteFlag EvaluateFileOverwriteFlag(const JsonNode& json_node);
