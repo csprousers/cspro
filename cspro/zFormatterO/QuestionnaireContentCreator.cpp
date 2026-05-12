@@ -13,8 +13,9 @@ CREATE_JSON_KEY(writeFieldStatuses)
 
 
 QuestionnaireContentCreator::QuestionnaireContentCreator()
-    :   m_binaryDataUseLocalhostUrl(JsonProperties::DefaultBinaryDataFormat == JsonProperties::BinaryDataFormat::LocalhostUrl),
-        m_bypassDictionaryMatchesCheck(false)
+    :   m_bypassDictionaryMatchesCheck(false),
+        m_writeCasePositions(false),
+        m_binaryDataUseLocalhostUrl(JsonProperties::DefaultBinaryDataFormat == JsonProperties::BinaryDataFormat::LocalhostUrl)
 {
 }
 
@@ -198,6 +199,8 @@ std::shared_ptr<CaseJsonWriterSerializerHelper> QuestionnaireContentCreator::Get
     if( m_caseJsonWriterSerializerHelper == nullptr )
     {
         m_caseJsonWriterSerializerHelper = std::make_unique<CaseJsonWriterSerializerHelper>();
+
+        m_caseJsonWriterSerializerHelper->SetWriteCasePositions(m_writeCasePositions);
 
         if( m_writeLabels.has_value() )
             m_caseJsonWriterSerializerHelper->SetWriteLabels(*m_writeLabels);

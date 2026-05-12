@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zFormatterO/zFormatterO.h>
 #include <zAppO/FieldStatus.h>
@@ -28,6 +28,9 @@ public:
     // Disables the check that ensures that the dictionary matches the dictionary used by other components.
     // This should only be called if the caller has ensured that the dictionaries are identical.
     void SetBypassDictionaryMatchesCheck() { m_bypassDictionaryMatchesCheck = true; }
+
+    // When set, the case positions in the repository are written.
+    void SetWriteCasePositions() { m_writeCasePositions = true; }
 
     // Sets the serialization options (throws exceptions on errors).
     void SetSerializationOptions(const JsonNode& serialization_options_node);
@@ -62,10 +65,11 @@ private:
 
     bool m_bypassDictionaryMatchesCheck;
 
+    bool m_writeCasePositions;
     std::optional<bool> m_writeLabels;
     std::optional<bool> m_writeFieldStatuses;
-    bool m_binaryDataUseLocalhostUrl;
     std::shared_ptr<FieldStatusRetriever> m_fieldStatusRetriever;
+    bool m_binaryDataUseLocalhostUrl;
 
     std::shared_ptr<CaseJsonWriterSerializerHelper> m_caseJsonWriterSerializerHelper;
     std::shared_ptr<CaseBinaryDataVirtualFileMappingHandler> m_caseBinaryDataVirtualFileMappingHandler;

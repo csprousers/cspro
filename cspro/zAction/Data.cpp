@@ -387,6 +387,8 @@ void ActionInvoker::Runtime::DataWrapper::WriteCaseWrapper(
         questionnaire_content_creator->SetDictionary(std::move(std::get<std::shared_ptr<const CDataDict>>(dictionary_or_questionnaire_content_creator)));
     }
 
+    questionnaire_content_creator->SetWriteCasePositions();
+
     if( json_node.Contains(JK::serializationOptions) )
         questionnaire_content_creator->SetSerializationOptions(json_node.Get(JK::serializationOptions));
 

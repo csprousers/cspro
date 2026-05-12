@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "CaseJsonSerializer.h"
 #include "BinaryCaseItem.h"
 #include "CaseItemJsonWriter.h"
@@ -43,6 +43,7 @@ namespace
 
     private:
         bool m_verbose;
+        bool m_writeCasePositions;
         bool m_writeBlankValues;
         const CaseItemPrinter* m_caseItemPrinterForLabels;
         const CaseJsonWriterSerializerHelper::BinaryDataWriter* m_binaryDataWriter;
@@ -78,6 +79,7 @@ void CaseRecord::WriteJson(JsonWriter& json_writer) const
 
 CaseJsonWriter::CaseJsonWriter()
     :   m_verbose(false),
+        m_writeCasePositions(false),
         m_writeBlankValues(false),
         m_caseItemPrinterForLabels(nullptr),
         m_binaryDataWriter(nullptr),
@@ -99,6 +101,8 @@ CaseJsonWriter::CaseJsonWriter(JsonWriter& json_writer)
     {
         if( case_json_writer_serializer_helper->GetVerbose() )
             m_verbose = true;
+
+        m_writeCasePositions = case_json_writer_serializer_helper->GetWriteCasePositions();
 
         m_writeBlankValues = case_json_writer_serializer_helper->GetWriteBlankValues();
 
@@ -374,6 +378,10 @@ void CaseJsonWriter::WriteCase(JsonWriter& json_writer, const Case& data_case) c
 
     json_writer.Write(JK::key, data_case.GetKey())
                .Write(JK::uuid, data_case.GetUuid());
+
+    // case positions are written when using the Action Invoker
+    if( m_writeCasePositions )
+        json_writer.Write(JK::position, data_case.GetPositionInRepository());
 
     if( m_verbose || !data_case.GetCaseLabel().empty() )
         json_writer.Write(JK::label, data_case.GetCaseLabel());
