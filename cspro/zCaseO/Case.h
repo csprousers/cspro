@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zCaseO/zCaseO.h>
 #include <zCaseO/CaseAccess.h>
@@ -147,6 +147,7 @@ public:
     void WriteJson(JsonWriter& json_writer) const;
 
     // Parses the JSON, replacing the current case with the contents of the JSON node.
+    // Some parsing issues are suppressed, but exceptions can be thrown.
     void ParseJson(const JsonNode& json_node);
 
 private:

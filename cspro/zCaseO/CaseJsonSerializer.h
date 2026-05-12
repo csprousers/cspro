@@ -97,6 +97,7 @@ public:
     virtual std::unique_ptr<BinaryContentReader> CreateBinaryContentReader(std::optional<uint64_t> size);
 
     void ParseJson(Case& data_case, const JsonNode& json_node);
+    void ParseJson_noexcept(Case& data_case, const JsonNode& json_node) noexcept;
 
     static void ParseNumericCaseItem(const NumericCaseItem& numeric_case_item, CaseItemIndex& index, const JsonNode& case_item_node);
     static void ParseStringCaseItem(const StringCaseItem& string_case_item, CaseItemIndex& index, const JsonNode& case_item_node);

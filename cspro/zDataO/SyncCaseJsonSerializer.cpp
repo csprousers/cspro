@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "SyncCaseJsonSerializer.h"
 #include "SyncWithDataBinaryContentReader.h"
 #include <zCaseO/CaseConstructionHelpers.h>
@@ -108,7 +108,7 @@ void SyncCaseV3JsonSerializer::WriteCase(JsonWriter& json_writer, const Case& da
 
 void SyncCaseV3JsonSerializer::ParseCase(Case& data_case, const JsonNode& json_node)
 {
-    m_caseJsonParserHelper->ParseJson(data_case, json_node);
+    m_caseJsonParserHelper->ParseJson_noexcept(data_case, json_node);
 
     data_case.SetPositionInRepository(json_node.GetOrDefault<double>(JK::position, -1));
 }

@@ -494,15 +494,20 @@ std::unique_ptr<BinaryContentReader> CaseJsonParserHelper::CreateBinaryContentRe
 
 void CaseJsonParserHelper::ParseJson(Case& data_case, const JsonNode& json_node)
 {
+    CaseJsonParser case_json_parser(*this, data_case);
+    case_json_parser.ParseCase(json_node);
+}
+
+
+void CaseJsonParserHelper::ParseJson_noexcept(Case& data_case, const JsonNode& json_node) noexcept
+{
     try
     {
-        CaseJsonParser case_json_parser(*this, data_case);
-        case_json_parser.ParseCase(json_node);
+        ParseJson(data_case, json_node);
     }
 
     catch( const CSProException& )
     {
-        // exceptions should not be thrown by the parser
         ASSERT(false);
         data_case.Reset();
     }
