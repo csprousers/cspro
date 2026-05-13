@@ -759,7 +759,7 @@ ActionInvoker::Result ActionInvoker::Runtime::QueryDataRepository(const JsonNode
     }
 
     // parse any filters
-    const CaseIteratorSettings iterator_settings = json_node.Get<CaseIteratorSettings>();
+    const CaseIteratorSettings iterator_settings = CaseIteratorSettings::CreateFromJson(json_node, CaseIterationCaseStatus::NotDeletedOnly);
 
     // if requesting a count, we can now run the query
     if( *content_type == DataQueryContentType::Count )

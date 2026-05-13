@@ -48,14 +48,15 @@ void CaseIteratorSettings::ToggleMethod()
 }
 
 
-CaseIteratorSettings CaseIteratorSettings::CreateFromJson(const JsonNode& json_node)
+CaseIteratorSettings CaseIteratorSettings::CreateFromJson(const JsonNode& json_node, std::optional<CaseIterationCaseStatus> default_status/* = std::nullopt*/)
 {
     const JsonNode sort_json_node = json_node.GetOrEmpty(JK::sort);
     const JsonNode filter_json_node = json_node.GetOrEmpty(JK::filter);
 
     CaseIteratorSettings settings;
 
-    settings.m_status = json_node.Get<CaseIterationCaseStatus>(JK::status);
+    settings.m_status = default_status.has_value() ? json_node.GetOrDefault<CaseIterationCaseStatus>(JK::status, *default_status) :
+                                                     json_node.Get<CaseIterationCaseStatus>(JK::status);
 
     if( !sort_json_node.IsEmpty() )
     {
