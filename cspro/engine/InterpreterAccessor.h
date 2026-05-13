@@ -3,6 +3,7 @@
 #include <zLogicO/Symbol.h>
 #include <zAppO/FieldStatus.h>
 
+class CancelFlag;
 class Case;
 class DataRepository;
 class EngineDictionaryModifier;

@@ -1,5 +1,6 @@
 #include "StandardSystemIncludes.h"
 #include "Interpreter.h"
+#include "EngineDictionaryModifier.h"
 #include <zToolsO/Encoders.h>
 #include <zLogicO/SpecialFunction.h>
 #include <zEngineO/EngineDictionary.h>
@@ -298,16 +299,27 @@ double CIntDriver::ex_syncdata(const int program_index)
     Symbol& symbol = NPT_Ref(va_node.arguments[1]);
     ISyncableDataRepository* syncable_data_repository;
 
+    // because the cases may change during the sync, this object will ensure
+    // that any cases currently loaded are properly updated post-sync
+    std::unique_ptr<EngineDictionaryModifier> engine_dictionary_modifier;
+
     if( symbol.IsA(SymbolType::Dictionary) )
     {
-        syncable_data_repository = assert_cast<EngineDictionary&>(symbol).GetEngineDataRepository().GetDataRepository().GetSyncableDataRepository();
+        EngineDictionary& engine_dictionary = assert_cast<EngineDictionary&>(symbol);
+        syncable_data_repository = engine_dictionary.GetEngineDataRepository().GetDataRepository().GetSyncableDataRepository();
+
+        if( *direction != SyncDirection::Put )
+            engine_dictionary_modifier = EngineDictionaryModifier::Create(*this, engine_dictionary);
     }
 
     else
     {
-        syncable_data_repository = assert_cast<DICT&>(symbol).GetDicX()->GetDataRepository().GetSyncableDataRepository();
-    }
+        DICT& dict = assert_cast<DICT&>(symbol);
+        syncable_data_repository = dict.GetDicX()->GetDataRepository().GetSyncableDataRepository();
 
+        if( *direction != SyncDirection::Put )
+            engine_dictionary_modifier = EngineDictionaryModifier::Create(*this, dict);
+    }
 
     if( syncable_data_repository == nullptr )
     {
@@ -316,8 +328,35 @@ double CIntDriver::ex_syncdata(const int program_index)
     }
 
     const std::string universe = EvaluateOptionalOrConstruct<std::string>(va_node.arguments[2]);
+    bool success = false;
 
-    return ( GetSyncClient().SyncData(*direction, *syncable_data_repository, universe) == SyncClient::SyncResult::SYNC_OK );
+    try
+    {
+        std::exception_ptr sync_exception;
+
+        if( engine_dictionary_modifier != nullptr )
+            engine_dictionary_modifier->PrepareForModifications();
+
+        try
+        {
+            if( GetSyncClient().SyncData(*direction, *syncable_data_repository, universe) == SyncClient::SyncResult::SYNC_OK )
+                success = true;
+        }
+        catch(...) { ASSERT(false); sync_exception = std::current_exception(); }
+
+        if( engine_dictionary_modifier != nullptr )
+            engine_dictionary_modifier->FinishedWithModifications();
+
+        if( sync_exception )
+            std::rethrow_exception(sync_exception);
+    }
+
+    catch( const CSProException& exception )
+    {
+        issaerror(MessageType::Error, 100114, exception.what());
+    }
+
+    return success;
 }
 
 
