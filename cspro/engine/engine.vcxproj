@@ -44,6 +44,7 @@
     <ClCompile Include="DicX.cpp" />
     <ClCompile Include="Do_xtab.cpp" />
     <ClCompile Include="engdrv.cpp" />
+    <ClCompile Include="EngineDictionaryModifier.cpp" />
     <ClCompile Include="Entifaz.cpp" />
     <ClCompile Include="Exappl.cpp" />
     <ClCompile Include="exapplva.cpp" />
@@ -136,6 +137,7 @@
     <ClInclude Include="Engarea.h" />
     <ClInclude Include="Engdrv.h" />
     <ClInclude Include="Engine.h" />
+    <ClInclude Include="EngineDictionaryModifier.h" />
     <ClInclude Include="EngineExecutor.h" />
     <ClInclude Include="EngineObjectTransporter.h" />
     <ClInclude Include="EngineQuestionnaireViewer.h" />

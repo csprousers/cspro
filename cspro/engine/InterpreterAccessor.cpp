@@ -1,9 +1,11 @@
 #include "StandardSystemIncludes.h"
 #include "Interpreter.h"
 #include "InterpreterAccessor.h"
+#include "EngineDictionaryModifier.h"
 #include "EngineExecutor.h"
 #include "ParadataDriver.h"
 #include <zEngineO/BinarySymbol.h>
+#include <zEngineO/EngineDictionary.h>
 #include <zEngineO/UserFunction.h>
 #include <zMessageO/MessageManager.h>
 #include <zCaseO/Case.h>
@@ -31,6 +33,8 @@ public:
     DataRepository& GetDataRepository(std::string_view dictionary_name_sv, bool check_level_is_valid_for_data_access) override;
 
     std::unique_ptr<Case> GetCurrentCase(std::string_view dictionary_name_sv) override;
+
+    std::unique_ptr<EngineDictionaryModifier> CreateEngineDictionaryModifier(std::string_view dictionary_name_sv) override;
 
     std::unique_ptr<FieldStatusRetriever> CreateFieldStatusRetriever() override;
 
@@ -112,6 +116,24 @@ std::unique_ptr<Case> EngineInterpreterAccessor::GetCurrentCase(const std::strin
     m_pEngineDriver->PrepareCaseFromEngineForQuestionnaireViewer(&dictionary, *data_case);
 
     return data_case;
+}
+
+
+std::unique_ptr<EngineDictionaryModifier> EngineInterpreterAccessor::CreateEngineDictionaryModifier(const std::string_view dictionary_name_sv)
+{
+    try
+    {
+        Symbol& symbol = m_interpreter.GetSymbolFromSymbolName(dictionary_name_sv);
+
+        if( symbol.IsA(SymbolType::Pre80Dictionary) )
+            return EngineDictionaryModifier::Create(m_interpreter, assert_cast<DICT&>(symbol));
+
+        if( symbol.IsA(SymbolType::Dictionary) )
+            return EngineDictionaryModifier::Create(m_interpreter, assert_cast<EngineDictionary&>(symbol));
+    }
+    catch(...) { }
+
+    throw CSProException("No dictionary named '%s' exists.", std::string(dictionary_name_sv).c_str());
 }
 
 

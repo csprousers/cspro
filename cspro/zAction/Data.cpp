@@ -12,6 +12,7 @@
 #include <zDataO/ParadataWrapperRepository.h>
 #include <zFormatterO/QuestionnaireContentCreator.h>
 #include <zParadataO/ParadataDriver.h>
+#include <engine/EngineDictionaryModifier.h>
 
 
 enum class ActionInvoker::DataQueryContentType { Count, Keys, Summaries, Cases };
@@ -818,9 +819,13 @@ ActionInvoker::Result ActionInvoker::Runtime::Data_deleteCase(const JsonNode& js
 
     const char* const identifier = DataWrapper::GetSpecifiedCaseIdentifier(json_node, true);
 
+    // make sure that data sources connected to dictionaries owned by the interpreter and properly updated
+    std::unique_ptr<EngineDictionaryModifier> engine_dictionary_modifier;
+
     if( data_wrapper->IsInterpreterOwned() )
     {
-        // DATA_TODO: need to properly handle engine dictionaries
+        engine_dictionary_modifier = GetInterpreterAccessor().CreateEngineDictionaryModifier(data_wrapper->GetDictionary()->GetName());
+        engine_dictionary_modifier->PrepareForModifications();
     }
 
     if( identifier == JK::key )
@@ -837,6 +842,9 @@ ActionInvoker::Result ActionInvoker::Runtime::Data_deleteCase(const JsonNode& js
         data_repository.DeleteCase(position_in_repository);
     }
 
+    if( engine_dictionary_modifier != nullptr )
+        engine_dictionary_modifier->FinishedWithModifications();
+
     return Result::Undefined();
 }
 
@@ -852,12 +860,19 @@ ActionInvoker::Result ActionInvoker::Runtime::Data_writeCase(const JsonNode& jso
     CaseJsonParserHelper case_json_parser_helper(std::move(case_access));
     case_json_parser_helper.ParseJson(*data_case, json_node.Get(JK::case_));
 
+    // make sure that data sources connected to dictionaries owned by the interpreter and properly updated
+    std::unique_ptr<EngineDictionaryModifier> engine_dictionary_modifier;
+
     if( data_wrapper->IsInterpreterOwned() )
     {
-        // DATA_TODO: need to properly handle engine dictionaries
+        engine_dictionary_modifier = GetInterpreterAccessor().CreateEngineDictionaryModifier(data_wrapper->GetDictionary()->GetName());
+        engine_dictionary_modifier->PrepareForModifications();
     }
 
     data_repository.WriteCase(*data_case);
+
+    if( engine_dictionary_modifier != nullptr )
+        engine_dictionary_modifier->FinishedWithModifications();
 
     return Result::Undefined();
 }

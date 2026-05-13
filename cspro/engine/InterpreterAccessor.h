@@ -5,6 +5,7 @@
 
 class Case;
 class DataRepository;
+class EngineDictionaryModifier;
 class LogicInterpreter;
 class MessageFile;
 namespace Paradata { class ParadataDriver; }
@@ -46,6 +47,9 @@ public:
 
     // Throws an exception if no current case exists, otherwise returns a non-null pointer.
     virtual std::unique_ptr<Case> GetCurrentCase(std::string_view dictionary_name_sv) = 0;
+
+    // Throws an exception if the dictionary does not exist.
+    virtual std::unique_ptr<EngineDictionaryModifier> CreateEngineDictionaryModifier(std::string_view dictionary_name_sv) = 0;
 
     // Returns null when one cannot be created (e.g., for a non-entry application).
     virtual std::unique_ptr<FieldStatusRetriever> CreateFieldStatusRetriever() = 0;

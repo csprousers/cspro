@@ -33,6 +33,7 @@ add_library(${PROJECT_NAME}
     # ex2
     CIterator.cpp
     engdrv.cpp
+    EngineDictionaryModifier.cpp
     Exappl.cpp
     Exapplva.cpp
     Exopfile.cpp
