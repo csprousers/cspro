@@ -103,6 +103,9 @@ private:
     // DataRepositoryException::CaseNotFound will be thrown.
     std::string GetKeyFromPosition(int64_t file_position);
 
+    // Handles deleting a case when a case to be written was marked as deleted.
+    void DeleteCaseViaWriteCase(const Case& data_case, const WriteCaseParameter* write_case_parameter);
+
     // Deletes the case from the text file by putting a tilde at the beginning of each record line.
     void DeleteCaseInPlace(int64_t file_position, size_t bytes_for_case);
 
