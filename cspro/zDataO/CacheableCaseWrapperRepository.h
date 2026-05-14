@@ -32,15 +32,17 @@ private:
     void ClearCachedCases(bool reuse_cases);
     void ClearCachedCase(const Case& data_case);
     std::shared_ptr<Case> CacheCase(Case& data_case, bool cache_using_key);
+    std::shared_ptr<Case> CacheCase(Case& data_case);
 
     template<typename MapT, typename LookupT>
     void DeleteCaseWorker(MapT& cases_map, const LookupT& lookup_value);
 
 private:
-    const bool m_positionsInRepositoryChangeOnModification;
+    bool m_repositorySupportsDuplicates;
+    bool m_positionsInRepositoryChangeOnModification;
 
     std::vector<std::shared_ptr<Case>> m_unusedCasesPool;
-    std::map<std::string, std::shared_ptr<Case>> m_casesByKey;
+    std::map<std::string, std::shared_ptr<Case>> m_notDeletedCasesByKey;
     std::map<double, std::shared_ptr<Case>> m_casesByPosition;
 
     std::map<size_t, const std::vector<std::shared_ptr<Case>>> m_cachedIterations;
