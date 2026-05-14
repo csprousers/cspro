@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "Case.h"
 #include "BinaryCaseItem.h"
 #include "CaseConstructionHelpers.h"
@@ -254,7 +254,8 @@ std::vector<CaseLevel*> Case::GetAllCaseLevels()
 }
 
 
-void Case::AddRequiredRecords(bool report_additions_using_case_construction_reporter)
+void Case::AddRequiredRecords(bool report_additions_using_case_construction_reporter,
+                              std::vector<std::string>* const added_record_names/* = nullptr*/)
 {
     if( report_additions_using_case_construction_reporter && m_caseConstructionReporter == nullptr )
         report_additions_using_case_construction_reporter = false;
@@ -266,12 +267,20 @@ void Case::AddRequiredRecords(bool report_additions_using_case_construction_repo
             {
                 CaseRecord& case_record = case_level.GetCaseRecord(record_number);
 
-                if( case_record.GetNumberOccurrences() == 0 && case_record.GetCaseRecordMetadata().GetDictRecord().GetRequired() )
+                if( case_record.GetNumberOccurrences() == 0 )
                 {
-                    if( report_additions_using_case_construction_reporter )
-                        m_caseConstructionReporter->BlankRecordAdded(GetKey(), case_record.GetCaseRecordMetadata().GetDictRecord().GetName());
+                    const CDictRecord& dict_record = case_record.GetCaseRecordMetadata().GetDictRecord();
 
-                    case_record.SetNumberOccurrences(1);
+                    if( dict_record.GetRequired() )
+                    {
+                        if( report_additions_using_case_construction_reporter )
+                            m_caseConstructionReporter->BlankRecordAdded(GetKey(), dict_record.GetName());
+
+                        if( added_record_names != nullptr )
+                            added_record_names->emplace_back(dict_record.GetName());
+
+                        case_record.SetNumberOccurrences(1);
+                    }
                 }
 
                 for( size_t level_index = 0; level_index < case_level.GetNumberChildCaseLevels(); ++level_index )

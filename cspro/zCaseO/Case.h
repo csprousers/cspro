@@ -93,7 +93,9 @@ public:
     std::vector<CaseLevel*> GetAllCaseLevels();
 
     // Adds a record occurrence to any record that is required but has no occurrences.
-    void AddRequiredRecords(bool report_additions_using_case_construction_reporter);
+    // Optionally, a list of added records is populated.
+    void AddRequiredRecords(bool report_additions_using_case_construction_reporter,
+                            std::vector<std::string>* added_record_names = nullptr);
 
     // case UUID
     const std::string& GetUuid() const { return m_uuid; }

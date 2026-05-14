@@ -860,6 +860,13 @@ ActionInvoker::Result ActionInvoker::Runtime::Data_writeCase(const JsonNode& jso
     CaseJsonParserHelper case_json_parser_helper(std::move(case_access));
     case_json_parser_helper.ParseJson(*data_case, json_node.Get(JK::case_));
 
+     // make sure the case is valid
+    std::vector<std::string> added_record_names;
+    data_case->AddRequiredRecords(false, &added_record_names);
+
+    if( !added_record_names.empty() )
+        throw CSProException("The case is missing required records: " + SO::CreateSingleString(added_record_names));
+
     // make sure that data sources connected to dictionaries owned by the interpreter and properly updated
     std::unique_ptr<EngineDictionaryModifier> engine_dictionary_modifier;
 
