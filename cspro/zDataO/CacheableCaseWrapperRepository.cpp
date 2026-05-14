@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "CacheableCaseWrapperRepository.h"
 #include "CacheableCaseWrapperRepositoryCaseIterators.h"
 #include <zToolsO/Hash.h>
@@ -162,7 +162,7 @@ void CacheableCaseWrapperRepository::ReadCaseByUuid(Case& data_case, const std::
 }
 
 
-void CacheableCaseWrapperRepository::WriteCase(Case& data_case, WriteCaseParameter* const write_case_parameter/* = nullptr*/)
+void CacheableCaseWrapperRepository::WriteCase(Case& data_case, const WriteCaseParameter* const write_case_parameter/* = nullptr*/)
 {
     // this should only be triggered by writecase calls, which means that we can cache by key as well
     ASSERT(write_case_parameter == nullptr && !data_case.GetDeleted());

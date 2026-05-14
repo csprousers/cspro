@@ -215,7 +215,7 @@ void ExportWriterRepository::ReadCaseByUuid(Case& data_case, const std::string& 
 }
 
 
-void ExportWriterRepository::WriteCase(Case& data_case, WriteCaseParameter* const write_case_parameter/* = nullptr*/)
+void ExportWriterRepository::WriteCase(Case& data_case, const WriteCaseParameter* const write_case_parameter/* = nullptr*/)
 {
     ASSERT(write_case_parameter == nullptr);
 

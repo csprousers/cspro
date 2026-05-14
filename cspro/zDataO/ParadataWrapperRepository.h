@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zDataO/zDataO.h>
 #include <zDataO/WrapperRepository.h>
@@ -23,7 +23,7 @@ public:
     void ReadCase(Case& data_case, const std::string& key) override;
     void ReadCase(Case& data_case, double position_in_repository) override;
     void ReadCaseByUuid(Case& data_case, const std::string& uuid) override;
-    void WriteCase(Case& data_case, WriteCaseParameter* write_case_parameter = nullptr) override;
+    void WriteCase(Case& data_case, const WriteCaseParameter* write_case_parameter = nullptr) override;
     void DeleteCase(double position_in_repository, bool deleted = true) override;
     void DeleteCase(const std::string& key) override;
     std::unique_ptr<CaseIterator> CreateIterator(CaseIterationContent iteration_content,

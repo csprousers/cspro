@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "CSWebRepository.h"
 #include "CaseIterator.h"
 #include "CSWebBinaryContentReader.h"
@@ -760,7 +760,7 @@ void CSWebRepository::ReadCaseByUuid(Case& data_case, const std::string& uuid)
 }
 
 
-void CSWebRepository::WriteCase(Case& data_case, WriteCaseParameter* /*write_case_parameter = nullptr*/)
+void CSWebRepository::WriteCase(Case& data_case, const WriteCaseParameter* /*write_case_parameter = nullptr*/)
 {
     ASSERT(m_syncCaseSerializer != nullptr);
 

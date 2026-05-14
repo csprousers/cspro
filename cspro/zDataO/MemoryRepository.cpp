@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "MemoryRepository.h"
 #include "MemoryRepositoryIterators.h"
 #include <numeric>
@@ -188,7 +188,7 @@ void MemoryRepository::ReadCaseByUuid(Case& data_case, const std::string& uuid)
 }
 
 
-void MemoryRepository::WriteCase(Case& data_case, WriteCaseParameter* const write_case_parameter/* = nullptr*/)
+void MemoryRepository::WriteCase(Case& data_case, const WriteCaseParameter* const write_case_parameter/* = nullptr*/)
 {
     size_t case_insertion_index = m_cases.size();
 

@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "SQLiteRepository.h"
 #include "SQLiteBlobQuestionnaireSerializer.h"
 #include "SQLiteDictionarySchemaGenerator.h"
@@ -775,7 +775,7 @@ bool SQLiteRepository::ReadCaseFromUuid(std::unique_ptr<Case>& data_case, const 
 }
 
 
-void SQLiteRepository::WriteCase(Case& data_case, WriteCaseParameter* write_case_parameter/* = nullptr*/)
+void SQLiteRepository::WriteCase(Case& data_case, const WriteCaseParameter* const write_case_parameter/* = nullptr*/)
 {
     bool new_case = false;
 

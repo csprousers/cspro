@@ -119,7 +119,7 @@ void DataRepository::ReadCasetainer(Case& casetainer, const double position_in_r
 }
 
 
-void DataRepository::WriteCasetainer(Case& casetainer, WriteCaseParameter* const write_case_parameter/* = nullptr*/)
+void DataRepository::WriteCasetainer(Case& casetainer, const WriteCaseParameter* const write_case_parameter/* = nullptr*/)
 {
     casetainer.ApplyPre74_Case(casetainer.GetPre74_Case());
     WriteCase(casetainer, write_case_parameter);

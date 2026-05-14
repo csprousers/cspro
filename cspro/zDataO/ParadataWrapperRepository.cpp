@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "ParadataWrapperRepository.h"
 #include "ParadataWrapperRepositoryIterators.h"
 #include <zParadataO/Logger.h>
@@ -102,7 +102,7 @@ void ParadataWrapperRepository::ReadCaseByUuid(Case& data_case, const std::strin
 }
 
 
-void ParadataWrapperRepository::WriteCase(Case& data_case, WriteCaseParameter* const write_case_parameter/* = nullptr*/)
+void ParadataWrapperRepository::WriteCase(Case& data_case, const WriteCaseParameter* const write_case_parameter/* = nullptr*/)
 {
     WrapperRepository::WriteCase(data_case, write_case_parameter);
 

@@ -34,7 +34,7 @@ public:
     std::optional<CaseKey> FindCaseKey(CaseIterationMethod iteration_method, CaseIterationOrder iteration_order,
                                        const CaseIteratorParameters* start_parameters = nullptr) override;
     void ReadCaseByUuid(Case& data_case, const std::string& uuid) override;
-    void WriteCase(Case& data_case, WriteCaseParameter* write_case_parameter = nullptr) override;
+    void WriteCase(Case& data_case, const WriteCaseParameter* write_case_parameter = nullptr) override;
     size_t GetNumberCases(CaseIterationCaseStatus case_status, const CaseIteratorParameters* start_parameters = nullptr) override;
     std::unique_ptr<CaseIterator> CreateIterator(CaseIterationContent iteration_content,
                                                  const CaseIteratorSettings& iterator_settings,

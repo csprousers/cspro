@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "JsonRepository.h"
 #include "JsonRepositoryBinaryDataIO.h"
 #include "JsonRepositoryIndexCreator.h"
@@ -970,7 +970,7 @@ void JsonRepository::ShiftIndexPositions(const int64_t first_file_position_to_sh
 }
 
 
-void JsonRepository::WriteCase(Case& data_case, WriteCaseParameter* const write_case_parameter/* = nullptr*/)
+void JsonRepository::WriteCase(Case& data_case, const WriteCaseParameter* const write_case_parameter/* = nullptr*/)
 {
     if( IsReadOnly() )
         throw DataRepositoryException::WriteAccessRequired();

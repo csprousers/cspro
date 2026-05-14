@@ -118,7 +118,7 @@ public:
 
     // Writes the case using rules based on the access parameters previously specified when creating
     // the repository.
-    virtual void WriteCase(Case& data_case, WriteCaseParameter* write_case_parameter = nullptr) = 0;
+    virtual void WriteCase(Case& data_case, const WriteCaseParameter* write_case_parameter = nullptr) = 0;
 
     // Modifies the case's deleted status. If the case does not exist,
     // DataRepositoryException::CaseNotFound will be thrown.
@@ -170,6 +170,6 @@ protected:
 public:
     void ReadCasetainer(Case& casetainer, const std::string& key);
     void ReadCasetainer(Case& casetainer, double position_in_repository);
-    void WriteCasetainer(Case& casetainer, WriteCaseParameter* write_case_parameter = nullptr);
+    void WriteCasetainer(Case& casetainer, const WriteCaseParameter* write_case_parameter = nullptr);
     static bool NextCasetainer(CaseIterator& case_iterator, Case& data_case);
 };

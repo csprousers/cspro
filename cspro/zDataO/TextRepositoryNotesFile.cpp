@@ -470,7 +470,7 @@ void TextRepositoryNotesFile::LoadOldFormat(std::string file_path)
 }
 
 
-void TextRepositoryNotesFile::WriteCase(Case& data_case, WriteCaseParameter* const write_case_parameter)
+void TextRepositoryNotesFile::WriteCase(Case& data_case, const WriteCaseParameter* const write_case_parameter)
 {
     const std::string& key = data_case.GetKey();
     const std::vector<Note>& new_notes = data_case.GetNotes();

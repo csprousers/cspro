@@ -940,7 +940,7 @@ void TextRepository::SetUpBatchCase(Case& data_case)
 }
 
 
-void TextRepository::WriteCase(Case& data_case, WriteCaseParameter* const write_case_parameter/* = nullptr*/)
+void TextRepository::WriteCase(Case& data_case, const WriteCaseParameter* const write_case_parameter/* = nullptr*/)
 {
     if( IsReadOnly() )
         throw DataRepositoryException::WriteAccessRequired();
