@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zAction/Listener.h>
 
@@ -28,6 +28,8 @@ public:
 
     std::optional<int> OnGetAssociatedWebViewCallerId() override;
     void OnPostWebMessage(const std::string& message, const std::optional<std::string>& target_origin) override;
+
+    void OnLogDebugMessage(const std::string& message) override;
 
 protected:
 #ifdef WIN_DESKTOP
@@ -99,6 +101,16 @@ inline void ActionInvoker::WebListener::OnSetWebViewOptions(const std::vector<We
 inline void ActionInvoker::WebListener::OnPostWebMessage(const std::string& message, const std::optional<std::string>& /*target_origin*/)
 {
     GetHtmlViewCtrl().PostWebMessageAsString(message);
+}
+
+
+inline void ActionInvoker::WebListener::OnLogDebugMessage(const std::string& message)
+{
+    GetHtmlViewCtrl().ExecuteScript(SO::Concatenate(
+        "console.log(\"",
+        Encoders::ToEscapedString(message),
+        "\");"
+    ));
 }
 
 #endif

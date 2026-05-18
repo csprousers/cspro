@@ -189,10 +189,11 @@ void ActionInvoker::WebListener::OnSetWebViewOptions(const std::vector<WebViewPe
 }
 
 
-void ActionInvoker::WebListener::OnPostWebMessage(const std::string& message, const std::optional<std::string>& target_origin)
+template<typename CF>
+void RunWithJNIEnvListener(const int caller_id, const CF& callback_function)
 {
     auto aai = assert_cast<AndroidApplicationInterface*>(PlatformInterface::GetInstance()->GetApplicationInterface());
-    const std::shared_ptr<ActionInvokerData> action_invoker_data = aai->ActionInvokerGetWebController(m_callerId, false);
+    const std::shared_ptr<ActionInvokerData> action_invoker_data = aai->ActionInvokerGetWebController(caller_id, false);
 
     if( action_invoker_data == nullptr || action_invoker_data->current_listener == nullptr )
     {
@@ -204,13 +205,43 @@ void ActionInvoker::WebListener::OnPostWebMessage(const std::string& message, co
     jobject jListener;
     std::tie(pEnv, jListener) = action_invoker_data->current_listener->GetJNIEnvAndListener();
 
-    JNIReferences::scoped_local_ref<jstring> jMessage(pEnv, JavaString::ToJava(*pEnv, message));
-    JNIReferences::scoped_local_ref<jstring> jTargetOrigin(pEnv, JavaString::ToJava(*pEnv, target_origin));
-
-    pEnv->CallVoidMethod(jListener, JNIReferences::methodActionInvokerListener_onPostWebMessage,
-                         jMessage.get(), jTargetOrigin.get());
+    callback_function(pEnv, jListener);
 
     ThrowJavaExceptionAsCSProException(pEnv);
+}
+
+
+void ActionInvoker::WebListener::OnPostWebMessage(const std::string& message, const std::optional<std::string>& target_origin)
+{
+    RunWithJNIEnvListener(m_callerId,
+        [&](JNIEnv* const pEnv, jobject jListener)
+        {
+            JNIReferences::scoped_local_ref<jstring> jMessage(pEnv, JavaString::ToJava(*pEnv, message));
+            JNIReferences::scoped_local_ref<jstring> jTargetOrigin(pEnv, JavaString::ToJava(*pEnv, target_origin));
+
+            pEnv->CallVoidMethod(
+                jListener,
+                JNIReferences::methodActionInvokerListener_onPostWebMessage,
+                jMessage.get(),
+                jTargetOrigin.get()
+            );
+        });
+}
+
+
+void ActionInvoker::WebListener::OnLogDebugMessage(const std::string& message)
+{
+    RunWithJNIEnvListener(m_callerId,
+            [&](JNIEnv* const pEnv, jobject jListener)
+        {
+            JNIReferences::scoped_local_ref<jstring> jMessage(pEnv, JavaString::ToJava(*pEnv, message));
+
+            pEnv->CallVoidMethod(
+                jListener,
+                JNIReferences::methodActionInvokerListener_onConsoleLog,
+                jMessage.get()
+            );
+        });
 }
 
 

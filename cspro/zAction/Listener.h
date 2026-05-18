@@ -26,14 +26,17 @@ public:
 
     virtual SharableString OnGetInputData(Caller& caller, bool match_caller);
 
-    using CloseResult = std::variant<std::monostate,                                   // close without a result
-                                     const JsonNode,                                   // close with a result
-                                     std::unique_ptr<const ActionInvoker::Exception>>; // close with a non-null exception;
-                                                                                       // if the caller handles the exception, it should set this value to null
+    using CloseResult = std::variant<
+        std::monostate,                                 // close without a result
+        const JsonNode,                                 // close with a result
+        std::unique_ptr<const ActionInvoker::Exception> // close with a non-null exception;
+    >;                                                  // if the caller handles the exception, it should set this value to null
     virtual std::optional<bool> OnClose(CloseResult& close_result, Caller& caller);
 
     virtual std::optional<int> OnGetAssociatedWebViewCallerId();
     virtual void OnPostWebMessage(const std::string& message, const std::optional<std::string>& target_origin);
+
+    virtual void OnLogDebugMessage(const std::string& message);
 
     virtual bool OnEngineProgramControlExecuted();
 };
@@ -112,6 +115,12 @@ inline std::optional<int> ActionInvoker::Listener::OnGetAssociatedWebViewCallerI
 
 
 inline void ActionInvoker::Listener::OnPostWebMessage(const std::string& /*message*/, const std::optional<std::string>& /*target_origin*/)
+{
+    ASSERT(false);
+}
+
+
+inline void ActionInvoker::Listener::OnLogDebugMessage(const std::string& /*message*/)
 {
     ASSERT(false);
 }

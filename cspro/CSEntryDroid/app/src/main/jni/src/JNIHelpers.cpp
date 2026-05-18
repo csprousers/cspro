@@ -1,4 +1,4 @@
-﻿#include <engine/StandardSystemIncludes.h>
+#include <engine/StandardSystemIncludes.h>
 #include "JNIHelpers.h"
 #include <android/log.h>
 
@@ -340,6 +340,7 @@ jmethodID JNIReferences::methodActionInvokerListener_onSetWebViewOptions;
 jmethodID JNIReferences::methodActionInvokerListener_onClose;
 jmethodID JNIReferences::methodActionInvokerListener_onEngineProgramControlExecuted;
 jmethodID JNIReferences::methodActionInvokerListener_onPostWebMessage;
+jmethodID JNIReferences::methodActionInvokerListener_onConsoleLog;
 
 jclass JNIReferences::classActionInvokerActivityResult;
 jmethodID JNIReferences::methodActionInvokerActivityResultConstructor;
@@ -924,6 +925,7 @@ jint JNI_OnLoad(JavaVM * aVm, void * aReserved)
         ( JNIReferences::methodActionInvokerListener_onClose = pEnv->GetMethodID(JNIReferences::classActionInvokerListener, "onClose", "(Ljava/lang/String;I)Ljava/lang/Boolean;") ) &&
         ( JNIReferences::methodActionInvokerListener_onEngineProgramControlExecuted = pEnv->GetMethodID(JNIReferences::classActionInvokerListener, "onEngineProgramControlExecuted", "()Z") ) &&
         ( JNIReferences::methodActionInvokerListener_onPostWebMessage = pEnv->GetMethodID(JNIReferences::classActionInvokerListener, "onPostWebMessage", "(Ljava/lang/String;Ljava/lang/String;)V") ) &&
+        ( JNIReferences::methodActionInvokerListener_onConsoleLog = pEnv->GetMethodID(JNIReferences::classActionInvokerListener, "onConsoleLog", "(Ljava/lang/String;)V") ) &&
 
         ( JNIReferences::classActionInvokerActivityResult = pEnv->FindClass("gov/census/cspro/ActionInvokerActivityResult") ) &&
         ( JNIReferences::classActionInvokerActivityResult = reinterpret_cast<jclass>(pEnv->NewGlobalRef(JNIReferences::classActionInvokerActivityResult)) ) &&
