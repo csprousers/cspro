@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zJavaScript/Executor.h>
 #include <zAction/ActionInvoker.h>
@@ -11,6 +11,7 @@ struct JavaScript::Executor::ActionInvokerJS
     std::vector<std::unique_ptr<std::string>> cached_text_used_for_QuickJS_pointers;
     std::vector<ActionInvoker::Action> actions;
     JSClassID CS_class_id;
+    std::shared_ptr<CaseConstructionReporter> case_construction_reporter;
 
     struct ClassDetails
     {

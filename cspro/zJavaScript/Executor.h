@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zJavaScript/zJavaScript.h>
 #include <zJavaScript/Definitions.h>
@@ -6,6 +6,7 @@
 #include <zJavaScript/Value.h>
 
 class CancelFlag;
+class CaseConstructionReporter;
 namespace Logic { struct FunctionDetails; enum class FunctionNamespace : int; }
 namespace JavaScript { class Executor; }
 
@@ -74,7 +75,9 @@ public:
     std::shared_ptr<Printer> SetPrinter(std::shared_ptr<Printer> printer);
 
     // Adds the CS object to the global object with the defined functions. The "CS" name can be overridden.
-    void UseActionInvoker(const std::vector<const Logic::FunctionDetails*>& functions, const std::map<Logic::FunctionNamespace, const char*>& namespace_names,
+    void UseActionInvoker(const std::vector<const Logic::FunctionDetails*>& functions,
+                          const std::map<Logic::FunctionNamespace, const char*>& namespace_names,
+                          std::shared_ptr<CaseConstructionReporter> case_construction_reporter,
                           const char* object_name_override = nullptr);
 
     // Creates a JavaScript::Value (a wrapper around JSValue) from the specified value.

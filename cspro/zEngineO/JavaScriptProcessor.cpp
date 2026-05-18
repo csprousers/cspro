@@ -2,6 +2,7 @@
 #include "JavaScriptProcessor.h"
 #include "AllSymbols.h"
 #include "EngineAccessor.h"
+#include "EngineCaseConstructionReporter.h"
 #include "UserFunctionArgumentChecker.h"
 #include "UserFunctionArgumentEvaluator.h"
 #include "Interpreter/LogicInterpreter.h"
@@ -499,8 +500,15 @@ void EngineJavaScriptProcessor::EnsureExecutorEvaluationState(const ExecutorEval
 
             if( javascript_properties.GetUseActionInvoker() )
             {
-                m_executor->UseActionInvoker(ActionInvoker::GetFunctions(), ActionInvoker::GetNamespaceNames(),
-                                             javascript_properties.GetActionInvokerObjectNameOverride());
+                m_executor->UseActionInvoker(
+                    ActionInvoker::GetFunctions(),
+                    ActionInvoker::GetNamespaceNames(),
+                    std::make_unique<EngineCaseConstructionReporter>(
+                        m_engineData.engine_accessor->ea_GetSharedSystemMessageIssuer(),
+                        nullptr
+                    ),
+                    javascript_properties.GetActionInvokerObjectNameOverride()
+               );
             }
         }
     }
