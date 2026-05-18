@@ -1,5 +1,34 @@
 #include "stdafx.h"
 #include "CallerWrappingCaseConstructionReporter.h"
+#include <zCaseO/StringBasedCaseConstructionReporter.h>
+
+
+// --------------------------------------------------------------------------
+// LogDebuggingCaseConstructionReporter
+//
+// If a Caller doesn't override CreateCaseConstructionReporter, an instance
+// of LogDebuggingCaseConstructionReporter will be created that will log
+// messages using Listener::OnLogDebugMessage.
+// --------------------------------------------------------------------------
+
+class ActionInvoker::LogDebuggingCaseConstructionReporter : public StringBasedCaseConstructionReporter
+{
+public:
+    LogDebuggingCaseConstructionReporter(CallerWrappingCaseConstructionReporter& caller_wrapping_case_construction_reporter)
+        :   m_callerWrappingCaseConstructionReporter(caller_wrapping_case_construction_reporter)
+    {
+    }
+
+protected:
+    void WriteString(const std::string& /*key*/, const std::string message) override
+    {
+        m_callerWrappingCaseConstructionReporter.LogDebugMessage(message);
+    }
+
+private:
+    CallerWrappingCaseConstructionReporter m_callerWrappingCaseConstructionReporter;
+};
+
 
 
 // --------------------------------------------------------------------------
@@ -28,6 +57,10 @@ CaseConstructionReporter* ActionInvoker::CallerWrappingCaseConstructionReporter:
     if( lookup == m_caseConstructionReporters.cend() )
     {
         std::shared_ptr<CaseConstructionReporter> case_construction_reporter = caller.CreateCaseConstructionReporter();
+
+        // if the caller doesn't create one, default to a reporter that will use Listener::OnLogDebugMessage
+        if( case_construction_reporter == nullptr )
+            case_construction_reporter = std::make_unique<LogDebuggingCaseConstructionReporter>(*this);
 
         lookup = m_caseConstructionReporters.try_emplace(
             caller_id,
@@ -116,4 +149,16 @@ void ActionInvoker::CallerWrappingCaseConstructionReporter::OnIssueMessage(
 
     if( case_construction_reporter != nullptr )
         case_construction_reporter->OnIssueMessage(message_type, message_number, parg);
+}
+
+
+void ActionInvoker::CallerWrappingCaseConstructionReporter::LogDebugMessage(const std::string& message) const
+{
+    ASSERT(*m_currentCaller != nullptr);
+
+    m_runtime.IterateOverListeners(*(*m_currentCaller),
+        [&](Listener& listener)
+        {
+            listener.OnLogDebugMessage(message);
+        });
 }

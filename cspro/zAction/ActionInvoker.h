@@ -81,7 +81,6 @@ public:
     template<typename... Args>
     [[noreturn]] void IssueError(int message_number, Args const&... args);
 
-private:
     // Iterates over the listeners (in reverse-added order); return true to continue processing.
     template<typename CF>
     void IterateOverListeners(CF callback_function);
@@ -91,6 +90,7 @@ private:
     template<typename CF>
     void IterateOverListeners(const Caller& caller, CF callback_function);
 
+private:
     JsonNode ParseJson(std::string_view json_arguments_sv, Caller& caller, const Action* action);
 
     Action GetActionFromJson(const JsonNode& json_node);

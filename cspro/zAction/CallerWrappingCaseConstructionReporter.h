@@ -8,6 +8,8 @@ namespace ActionInvoker { class CallerWrappingCaseConstructionReporter; }
 
 class ActionInvoker::CallerWrappingCaseConstructionReporter : public CaseConstructionReporter
 {
+    friend class LogDebuggingCaseConstructionReporter;
+
 public:
     CallerWrappingCaseConstructionReporter(Runtime& runtime, std::shared_ptr<Caller*> current_caller);
 
@@ -25,6 +27,9 @@ protected:
 
 private:
     CaseConstructionReporter* GetCurrentCaseConstructionReporter();
+
+    // used by LogDebuggingCaseConstructionReporter
+    void LogDebugMessage(const std::string& message) const;
 
 private:
     Runtime& m_runtime;
