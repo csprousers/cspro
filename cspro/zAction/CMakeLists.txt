@@ -7,6 +7,7 @@ add_library(${PROJECT_NAME}
     ActionInvoker.cpp
     Application.cpp
     Caller.cpp
+    CallerWrappingCaseConstructionReporter.cpp
     Clipboard.cpp
     Data.cpp
     Dictionary.cpp

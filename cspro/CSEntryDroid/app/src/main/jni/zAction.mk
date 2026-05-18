@@ -10,6 +10,7 @@ LOCAL_SRC_FILES         += $(ZACTION_SRC_PATH)/ActionFunctionMapping.cpp
 LOCAL_SRC_FILES         += $(ZACTION_SRC_PATH)/ActionInvoker.cpp
 LOCAL_SRC_FILES         += $(ZACTION_SRC_PATH)/Application.cpp
 LOCAL_SRC_FILES         += $(ZACTION_SRC_PATH)/Caller.cpp
+LOCAL_SRC_FILES         += $(ZACTION_SRC_PATH)/CallerWrappingCaseConstructionReporter.cpp
 LOCAL_SRC_FILES         += $(ZACTION_SRC_PATH)/Clipboard.cpp
 LOCAL_SRC_FILES         += $(ZACTION_SRC_PATH)/Data.cpp
 LOCAL_SRC_FILES         += $(ZACTION_SRC_PATH)/Dictionary.cpp

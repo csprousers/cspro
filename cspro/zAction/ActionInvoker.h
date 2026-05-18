@@ -120,6 +120,8 @@ private:
 
     std::shared_ptr<std::vector<Listener*>> m_listeners;
 
+    std::shared_ptr<Caller*> m_currentCaller;
+
     std::map<int, std::vector<std::tuple<Resource, int>>> m_resourceIdCallerMap; // caller ID -> resource type and ID
 
     std::tuple<size_t, std::shared_ptr<InterpreterAccessor>> m_interpreterAccessor;

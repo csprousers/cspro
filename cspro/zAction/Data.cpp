@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#include "CallerWrappingCaseConstructionReporter.h"
 #include <zUtilO/Versioning.h>
 #include <zDictO/DDClass.h>
 #include <zCaseO/Case.h>
@@ -328,7 +329,10 @@ std::unique_ptr<ActionInvoker::Runtime::DataWrapper::ActionInvokerOwned>
 
     const std::shared_ptr<CaseAccess> case_access = CaseAccess::CreateAndInitializeFullCaseAccess(*dictionary);
 
-    ASSERT(case_access != nullptr);
+    // case construction messages will be forwarded to the current caller
+    case_access->SetCaseConstructionReporter(
+        std::make_unique<CallerWrappingCaseConstructionReporter>(runtime, runtime.m_currentCaller)
+    );
 
     std::shared_ptr<DataRepository> data_repository = DataRepository::Create(
         case_access,
