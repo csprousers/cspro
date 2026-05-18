@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include <engine/Engarea.h>
 #include <engine/Engdrv.h>
 #include <zEngineO/EngineAccessor.h>
@@ -25,10 +25,12 @@ std::shared_ptr<EngineAccessor> CEngineArea::CreateEngineAccessor(CEngineArea* c
                 m_vartSetter(symbol, std::move(value));
         }
 
-        SystemMessageIssuer& ea_GetSystemMessageIssuer() override
+        std::shared_ptr<SystemMessageIssuer> ea_GetSharedSystemMessageIssuer() override
         {
-            ASSERT(m_pEngineArea->m_pEngineDriver != nullptr);
-            return m_pEngineArea->m_pEngineDriver->GetSystemMessageIssuer();
+            ASSERT(m_pEngineArea->m_pEngineDriver != nullptr &&
+                   m_pEngineArea->m_pEngineDriver->GetSharedSystemMessageIssuer() != nullptr);
+
+            return m_pEngineArea->m_pEngineDriver->GetSharedSystemMessageIssuer();
         }
 
         std::set<int>& ea_GetPersistentSymbolsNeedingResetSet() override
