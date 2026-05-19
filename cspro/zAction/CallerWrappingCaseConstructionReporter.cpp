@@ -45,7 +45,7 @@ ActionInvoker::CallerWrappingCaseConstructionReporter::CallerWrappingCaseConstru
 
 CaseConstructionReporter* ActionInvoker::CallerWrappingCaseConstructionReporter::GetCurrentCaseConstructionReporter()
 {
-    // the Action Invoker should outlive any uses of this object, but check just in case 
+    // the Action Invoker should outlive any uses of this object, but check just in case
     if( *m_currentCaller == nullptr )
         return ReturnProgrammingError(nullptr);
 

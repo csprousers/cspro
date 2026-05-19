@@ -103,6 +103,8 @@ private:
 
     void ReadCase(Case& data_case, const char* status, const char* filter_type, std::string_view filter_value_sv);
 
+    void WriteCaseWorker(Case& data_case);
+
     std::unique_ptr<SyncBinaryDataUploadManager> CreateSyncBinaryDataUploadManager();
 
 private:

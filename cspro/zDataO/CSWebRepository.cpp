@@ -760,19 +760,59 @@ void CSWebRepository::ReadCaseByUuid(Case& data_case, const std::string& uuid)
 }
 
 
-void CSWebRepository::WriteCase(Case& data_case, const WriteCaseParameter* /*write_case_parameter = nullptr*/)
+void CSWebRepository::WriteCase(Case& data_case, const WriteCaseParameter* const write_case_parameter/* = nullptr*/)
 {
-    ASSERT(m_syncCaseSerializer != nullptr);
-
     if( IsReadOnly() )
         throw DataRepositoryException::WriteAccessRequired();
+
+    // if this case should replace an existing case, we need to make sure that we reuse its UUID
+    std::optional<CSWebCaseResponse> identifier_response;
+
+    if( write_case_parameter != nullptr )
+    {
+        if( write_case_parameter->IsModifyParameter() )
+        {
+             identifier_response = ExecuteSingleCaseQuery(
+                CSWebCaseQuery::identifiers, JV::all, JK::position,
+                IntToString(static_cast<int64_t>(write_case_parameter->GetPositionInRepository()))
+            );
+        }
+    }
+
+    else if( m_accessType == DataRepositoryAccess::ReadWrite )
+    {
+        try
+        {
+            identifier_response = ExecuteSingleCaseQuery(
+                CSWebCaseQuery::identifiers, JV::notDeletedOnly, JK::key,
+                Encoders::ToJsonString(data_case.GetKey())
+            );
+        }
+
+        catch( const DataRepositoryException::CaseNotFound& )
+        {
+            // the case not existing is fine as this means that this is a brand new case
+        }
+    }
+
+    data_case.SetUuid(identifier_response.has_value() ? identifier_response->GetUuid() : CreateUuid());
+
+    WriteCaseWorker(data_case);
+}
+
+
+void CSWebRepository::WriteCaseWorker(Case& data_case)
+{
+    ASSERT(!IsReadOnly());
+    ASSERT(m_syncCaseSerializer != nullptr);
+    ASSERT(!data_case.GetUuid().empty());
+
+    // update the vector clock
+    data_case.GetVectorClock().increment(m_deviceId);
 
     // update the cache because the server will now have a new revision number
     if( m_cache != nullptr )
         m_cache->MarkCacheDirty();
-
-    data_case.GetOrCreateUuid();
-    data_case.GetVectorClock().increment(m_deviceId);
 
     if( !m_syncBinaryDataUploadManager.has_value() )
         m_syncBinaryDataUploadManager = CreateSyncBinaryDataUploadManager();
@@ -795,6 +835,9 @@ void CSWebRepository::WriteCase(Case& data_case, const WriteCaseParameter* /*wri
         RethrowException(exception); // CSWEB_TODO revisit when this is a CSWeb communication error?
     }
 
+    // reset the position in the repository as we do not know the value CSWeb will use for this
+    data_case.SetPositionInRepository(-1);
+
     // cache any binary data
     if( m_cache != nullptr && *m_syncBinaryDataUploadManager != nullptr )
         m_cache->CacheBinaryData(*(*m_syncBinaryDataUploadManager));
@@ -806,9 +849,11 @@ void CSWebRepository::DeleteCase(const double position_in_repository, const bool
     if( IsReadOnly() )
         throw DataRepositoryException::WriteAccessRequired();
 
+    /* unneeded as this is done in WriteCaseWorker
     // update the cache because the server will now have a new revision number
     if( m_cache != nullptr )
         m_cache->MarkCacheDirty();
+    */
 
     // CSWEB_TODO: for deleting cases, revisit if we should hit the delete endpoint, sending the device ID in the header so CSWeb can update the vector clock
     try
@@ -823,7 +868,7 @@ void CSWebRepository::DeleteCase(const double position_in_repository, const bool
         if( m_temporaryCase->GetDeleted() != deleted )
         {
             m_temporaryCase->SetDeleted(deleted);
-            WriteCase(*m_temporaryCase);
+            WriteCaseWorker(*m_temporaryCase);
         }
     }
 
