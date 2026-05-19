@@ -85,10 +85,13 @@ private:
     // had no override flags. A blank string is returned if the connection string has no filename.
     static std::string GetDefaultBinaryDataDirectory(const ConnectionString& connection_string);
 
+    // Returns the UUID of a case at the specified position.
+    std::string GetUuidByPosition(double position_in_repository);
+
     // Writes the case in EntryInput/ReadWrite modes.
     // If anchor_file_position is -1, the case will be written at the end of the file.
     // If anchor_file_position is not -1 and bytes_for_case_to_replace is {}, the case will be inserted above the anchor position.
-    void WriteCaseForEntryInputReadWrite(Case& data_case, int64_t anchor_file_position, std::optional<size_t> bytes_for_case_to_replace, bool use_new_uuid);
+    void WriteCaseForEntryInputReadWrite(Case& data_case, int64_t anchor_file_position, std::optional<size_t> bytes_for_case_to_replace);
 
     // Writes the case in batch output mode.
     void WriteCaseForBatchOutput(Case& data_case);
