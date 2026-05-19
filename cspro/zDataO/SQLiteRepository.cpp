@@ -169,7 +169,7 @@ void SQLiteRepository::Open(const DataRepositoryOpenFlag open_flag)
     // In batch mode all operations are wrapped in a few big transactions
     // to get decent performance for writes.
     if (!IsReadOnly() && m_accessType != DataRepositoryAccess::EntryInput && m_accessType != DataRepositoryAccess::ReadWrite) {
-        StartTransaction();
+        SQLiteRepository::StartTransaction();
     }
 
     m_transactionClientRevision = -1;
@@ -206,7 +206,7 @@ void SQLiteRepository::Close()
             throw SQLiteErrorWithMessage(m_db);
     }
 
-    EndTransaction();
+    SQLiteRepository::EndTransaction();
 
     if( sqlite3_close(m_db) != SQLITE_OK )
         throw SQLiteErrorWithMessage(m_db);
@@ -240,7 +240,7 @@ bool SQLiteRepository::CreateDatabaseFile()
     if (PortableFunctions::FileExists(file_path) && !PortableFunctions::FileDelete(file_path))
         return false;
 
-    sqlite3* pDB = NULL;
+    sqlite3* pDB = nullptr;
 
     if (OpenSQLiteDatabase(m_connectionString, &pDB, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE) != SQLITE_OK)
         return false;
@@ -436,7 +436,7 @@ void SQLiteRepository::CreatePreparedStatements()
         "partial_save_record_occurrence=@psr, partial_save_item_occurrence=@psi, partial_save_subitem_occurrence=@pss"
         " WHERE id=@id";
 
-    if (sqlite3_prepare_v2(m_db, sql.str().c_str(), -1, &m_stmtUpdateCase, NULL) != SQLITE_OK) {
+    if (sqlite3_prepare_v2(m_db, sql.str().c_str(), -1, &m_stmtUpdateCase, nullptr) != SQLITE_OK) {
         throw SQLiteErrorWithMessage(m_db);
     }
 
@@ -448,15 +448,15 @@ void SQLiteRepository::CreatePreparedStatements()
         "verified, partial_save_mode, partial_save_field_name, partial_save_level_key, partial_save_record_occurrence, partial_save_item_occurrence, partial_save_subitem_occurrence)"
         " VALUES(@id , @key , @dky, '', @rev , @del, COALESCE(@ord, (SELECT MAX(file_order) + 1 FROM cases), 1) , @ver , @psm , @psf , @psl , @psr , @psi , @pss)";
 
-    if (sqlite3_prepare_v2(m_db, sql.str().c_str(), -1, &m_stmtInsertCase, NULL) != SQLITE_OK) {
+    if (sqlite3_prepare_v2(m_db, sql.str().c_str(), -1, &m_stmtInsertCase, nullptr) != SQLITE_OK) {
         throw SQLiteErrorWithMessage(m_db);
     }
 
-    if (sqlite3_prepare_v2(m_db, "SELECT file_order FROM cases WHERE id=?", -1, &m_stmtGetFileOrderFromUuid, NULL) != SQLITE_OK) {
+    if (sqlite3_prepare_v2(m_db, "SELECT file_order FROM cases WHERE id=?", -1, &m_stmtGetFileOrderFromUuid, nullptr) != SQLITE_OK) {
         throw SQLiteErrorWithMessage(m_db);
     }
 
-    if (sqlite3_prepare_v2(m_db, "SELECT id, file_order FROM cases WHERE deleted = 0 AND key=? LIMIT 1", -1, &m_stmtCaseIdentifiersFromKey, NULL) != SQLITE_OK) {
+    if (sqlite3_prepare_v2(m_db, "SELECT id, file_order FROM cases WHERE deleted = 0 AND key=? LIMIT 1", -1, &m_stmtCaseIdentifiersFromKey, nullptr) != SQLITE_OK) {
         throw SQLiteErrorWithMessage(m_db);
     }
 }
@@ -572,7 +572,7 @@ std::unique_ptr<CDataDict> SQLiteRepository::GetEmbeddedDictionary(const Connect
 
 void SQLiteRepository::OpenDatabaseFile()
 {
-    sqlite3* pDB = NULL;
+    sqlite3* pDB = nullptr;
 
     int flags = IsReadOnly() ? SQLITE_OPEN_READONLY : SQLITE_OPEN_READWRITE;
 
@@ -779,11 +779,10 @@ void SQLiteRepository::WriteCase(Case& data_case, const WriteCaseParameter* cons
 {
     bool new_case = false;
 
-    switch (m_accessType) {
-    case DataRepositoryAccess::BatchOutput:
-    case DataRepositoryAccess::BatchOutputAppend:
+    if( m_accessType == DataRepositoryAccess::BatchOutput ||
+        m_accessType == DataRepositoryAccess::BatchOutputAppend )
     {
-        ASSERT(write_case_parameter == NULL);
+        ASSERT(write_case_parameter == nullptr);
 
         // Preserve the uuid if there is one so that batch apps will keep
         // the same uuid in input and output files.
@@ -797,32 +796,37 @@ void SQLiteRepository::WriteCase(Case& data_case, const WriteCaseParameter* cons
         // since we write into new output file
         // TODO: what about duplicates in batch append????
         new_case = true;
-        break;
     }
 
-    case DataRepositoryAccess::EntryInput:
+    else if( m_accessType == DataRepositoryAccess::EntryInput )
     {
         // If there is no uuid (i.e. it is a new case) then create one
         data_case.GetOrCreateUuid();
 
-        if (write_case_parameter == nullptr) {
+        if( write_case_parameter == nullptr )
+        {
             // New case - add to end of repo
             data_case.SetPositionInRepository(0);
             new_case = true;
-        } else if (write_case_parameter->IsInsertParameter()) {
+        }
+
+        else if( write_case_parameter->IsInsertParameter() )
+        {
             double insert_before_position_in_repository = write_case_parameter->GetPositionInRepository();
             data_case.SetPositionInRepository(GetInsertPosition(insert_before_position_in_repository));
             new_case = true;
-        } else {
+        }
+
+        else
+        {
             ASSERT(write_case_parameter->IsModifyParameter());
             new_case = false;
         }
-        break;
     }
 
-    case DataRepositoryAccess::ReadWrite:
+    else if( m_accessType == DataRepositoryAccess::ReadWrite )
     {
-        ASSERT(write_case_parameter == NULL);
+        ASSERT(write_case_parameter == nullptr);
 
         // From writecase we update the case based on the case id (key)
         // and not the uuid. This way logic like:
@@ -834,51 +838,65 @@ void SQLiteRepository::WriteCase(Case& data_case, const WriteCaseParameter* cons
         getUuidPosFromKey.Bind(1, data_case.GetKey());
 
         int queryResult = getUuidPosFromKey.Step();
-        if (queryResult == SQLITE_ROW) {
+
+        if( queryResult == SQLITE_ROW )
+        {
             // There is already a case with this case id,
             // use the same uuid to overwrite it
             data_case.SetUuid(getUuidPosFromKey.GetColumn<std::string>(0));
             data_case.SetPositionInRepository(getUuidPosFromKey.GetColumn<double>(1));
             new_case = false;
-        } else if (queryResult == SQLITE_DONE) {
+        }
+
+        else if( queryResult == SQLITE_DONE )
+        {
             // No existing case with this case id so
             // create a new uuid to generate a new case
             data_case.SetUuid(CreateUuid());
             data_case.SetPositionInRepository(0);
             new_case = true;
-        } else
-            throw SQLiteErrorWithMessage(m_db);
+        }
 
-        break;
+        else
+        {
+            throw SQLiteErrorWithMessage(m_db);
+        }
     }
 
-    case DataRepositoryAccess::BatchInput:
-    case DataRepositoryAccess::ReadOnly:
+    else
+    {
+        ASSERT(m_accessType == DataRepositoryAccess::BatchInput ||
+               m_accessType == DataRepositoryAccess::ReadOnly);
+
         throw DataRepositoryException::WriteAccessRequired();
     }
 
     int64_t revision;
 
-    if (m_transactionStartCount > 0) {
-
+    if( m_transactionStartCount > 0 )
+    {
         // Only start a new revision if we haven't added
         // one since we opened the file.
-        if (m_transactionClientRevision == -1) {
+        if( m_transactionClientRevision == -1 )
             m_transactionClientRevision = AddFileRevision();
-        }
+
         revision = m_transactionClientRevision;
+    }
 
-    } else {
-
+    else
+    {
         // Start a new revision for each write (in batch we use a single revision)
         revision = AddFileRevision();
     }
 
-    StartTransaction();
+    SQLiteRepository::StartTransaction();
 
-    if (new_case) {
+    if( new_case )
+    {
         int insertResult = InsertCase(data_case, revision);
-        if (insertResult == SQLITE_CONSTRAINT && m_accessType == DataRepositoryAccess::BatchOutputAppend) {
+
+        if( insertResult == SQLITE_CONSTRAINT && m_accessType == DataRepositoryAccess::BatchOutputAppend )
+        {
             // Duplicate uuid in batch append mode, create a new uuid to allow duplicate
             data_case.SetUuid(CreateUuid());
             insertResult = InsertCase(data_case, revision);
@@ -886,36 +904,41 @@ void SQLiteRepository::WriteCase(Case& data_case, const WriteCaseParameter* cons
             if( data_case.GetCaseConstructionReporter() != nullptr )
                 data_case.GetCaseConstructionReporter()->DuplicateUuid(data_case);
         }
-        if (insertResult != SQLITE_DONE) {
+
+        if( insertResult != SQLITE_DONE )
             throw SQLiteErrorWithMessage(m_db);
-        }
 
         // Update the file pos in the case to make caching work
-        if (m_accessType == DataRepositoryAccess::ReadWrite)
+        if( m_accessType == DataRepositoryAccess::ReadWrite )
             UpdateFilePosition(data_case);
 
         data_case.GetVectorClock().increment(m_deviceId);
         InsertVectorClock(data_case);
         WriteNotes(data_case);
-    } else {
-        if (UpdateCase(data_case, revision) != SQLITE_DONE) {
+    }
+
+    else
+    {
+        if( UpdateCase(data_case, revision) != SQLITE_DONE )
             throw SQLiteErrorWithMessage(m_db);
-        }
+
         IncrementVectorClock(data_case.GetUuid());
-        if (write_case_parameter == nullptr || !write_case_parameter->IsModifyParameter() || write_case_parameter->AreNotesModified()) {
+
+        if( write_case_parameter == nullptr || !write_case_parameter->IsModifyParameter() || write_case_parameter->AreNotesModified() )
+        {
             ClearNotes(data_case);
             WriteNotes(data_case);
         }
     }
 
-    EndTransaction();
+    SQLiteRepository::EndTransaction();
     CommitTransactionIfTooBig();
 }
 
 
 void SQLiteRepository::CommitTransactionIfTooBig()
 {
-    const int MaxNumberSqlInsertsInOneTransaction = 2500;
+    constexpr int MaxNumberSqlInsertsInOneTransaction = 2500;
     if (++m_iInsertInTransactionCounter == MaxNumberSqlInsertsInOneTransaction) {
         sqlite3_exec(m_db, "COMMIT", nullptr, nullptr, nullptr);
         sqlite3_exec(m_db, "BEGIN", nullptr, nullptr, nullptr);
@@ -992,7 +1015,7 @@ void SQLiteRepository::IncrementVectorClock(double position_in_repository)
 
 void SQLiteRepository::DeleteCase(double position_in_repository, bool deleted/* = true*/)
 {
-    StartTransaction();
+    SQLiteRepository::StartTransaction();
 
     int64_t revision;
 
@@ -1023,7 +1046,7 @@ void SQLiteRepository::DeleteCase(double position_in_repository, bool deleted/* 
 
     IncrementVectorClock(position_in_repository);
 
-    EndTransaction();
+    SQLiteRepository::EndTransaction();
     CommitTransactionIfTooBig();
 }
 
