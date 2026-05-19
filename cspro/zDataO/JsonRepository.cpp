@@ -786,9 +786,15 @@ inline void JsonRepository::SetFilePosition(const int64_t file_position)
     {
         PortableFunctions::fseeki64(m_file, file_position, SEEK_SET);
         m_filePosition = file_position;
-
-        ASSERT(m_filePosition == PortableFunctions::ftelli64(m_file));
     }
+
+    else
+    {
+        // switching from reading <-> writing requires calling a file repositioning function
+        fseek(m_file, 0, SEEK_CUR);
+    }
+
+    ASSERT(m_filePosition == PortableFunctions::ftelli64(m_file));
 }
 
 
