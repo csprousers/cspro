@@ -1,6 +1,7 @@
-﻿#pragma once
+#pragma once
 
 #include <zUtilF/SplitterWndWithDifferingViews.h>
+#include <zDesignerF/FileModificationChecker.h>
 
 class CLogicCtrl;
 class CodeDoc;
@@ -87,7 +88,8 @@ private:
     SplitterWndWithDifferingViews m_splitterWnd;
 
     WPARAM m_codeFrameActivatePostMessageCounter;
-    int64_t m_lastCheckIfFileIsUpdatedTime;
+
+    FileModificationChecker m_fileModificationChecker;
 
     std::unique_ptr<TextTemplatePreviewer> m_textTemplatePreviewer;
 };

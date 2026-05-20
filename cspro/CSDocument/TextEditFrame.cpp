@@ -9,8 +9,7 @@ END_MESSAGE_MAP()
 
 
 TextEditFrame::TextEditFrame()
-    :   m_codeFrameActivatePostMessageCounter(0),
-        m_lastCheckIfFileIsUpdatedTime(0)
+    :   m_codeFrameActivatePostMessageCounter(0)
 {
 }
 
@@ -49,27 +48,11 @@ void TextEditFrame::CheckIfFileIsUpdated()
 {
     TextEditDoc* const text_edit_doc = assert_nullable_cast<TextEditDoc*>(GetActiveDocument());
 
-    if( text_edit_doc == nullptr )
-        return;
-
-    const TextSource* const text_source = text_edit_doc->GetTextSource();
-
-    if( text_source == nullptr )
-        return;
-
-    const int64_t file_on_disk_modified_time = PortableFunctions::FileModifiedTime(text_source->GetFilePath());
-    const bool file_on_disk_is_newer = ( text_source->GetModifiedIteration() < file_on_disk_modified_time );
-
-    if( file_on_disk_is_newer && file_on_disk_modified_time > m_lastCheckIfFileIsUpdatedTime )
+    if( text_edit_doc != nullptr &&
+        m_fileModificationChecker.ShouldReloadFile(text_edit_doc->GetTextSource()) )
     {
-        const std::string message = FormatText("The file has been modified by another program.\nDo you want to reload '%s'?",
-                                               PortableFunctions::PathGetFilename(text_source->GetFilePath()).c_str());
-
-        if( AfxMessageBox(message, MB_YESNO) == IDYES )
-            text_edit_doc->ReloadFromDisk();
+        text_edit_doc->ReloadFromDisk();
     }
-
-    m_lastCheckIfFileIsUpdatedTime = GetTimestamp();
 }
 
 

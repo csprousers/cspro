@@ -1,6 +1,5 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "CodeDoc.h"
-#include <zUtilO/TextSourceEditable.h>
 
 
 IMPLEMENT_DYNCREATE(CodeDoc, CDocument)
@@ -17,11 +16,6 @@ END_MESSAGE_MAP()
 
 
 CodeDoc::CodeDoc()
-{
-}
-
-
-CodeDoc::~CodeDoc()
 {
 }
 
@@ -245,23 +239,6 @@ std::string CodeDoc::GetActualOrTempDirectory() const
         return PortableFunctions::PathGetDirectory(path);
 
     return GetTempDirectory();
-}
-
-
-std::tuple<bool, int64_t> CodeDoc::GetFileModificationTimeParameters() const
-{
-    if( m_textSource != nullptr )
-    {
-        const int64_t file_on_disk_modified_time = PortableFunctions::FileModifiedTime(m_textSource->GetFilePath());
-        const bool file_on_disk_is_newer = ( m_textSource->GetModifiedIteration() < PortableFunctions::FileModifiedTime(m_textSource->GetFilePath()) );
-
-        return { file_on_disk_is_newer, file_on_disk_modified_time };
-    }
-
-    else
-    {
-        return { false, 0 };
-    }
 }
 
 

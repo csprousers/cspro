@@ -8,6 +8,7 @@ TextSourceEditable::TextSourceEditable(std::string file_path, std::optional<std:
                                        const bool use_default_text_even_if_file_exists/* = false*/)
     :   TextSource(std::move(file_path)),
         m_modified(false),
+        m_loadedFileModifiedTime(0),
         m_modifiedIteration(0),
         m_sourceModifier(nullptr),
         m_sourceModifierLastGetTextModifiedIteration(0)
@@ -69,9 +70,16 @@ const std::string& TextSourceEditable::ReloadFromDisk()
     }
 
     m_modified = false;
-    m_modifiedIteration = PortableFunctions::FileModifiedTime(m_filePath);
+    m_loadedFileModifiedTime = PortableFunctions::FileModifiedTime(m_filePath);
+    m_modifiedIteration = m_loadedFileModifiedTime;
 
     return *m_text;
+}
+
+
+bool TextSourceEditable::FileOnDiskHasChanged() const
+{
+    return ( m_loadedFileModifiedTime != PortableFunctions::FileModifiedTime(m_filePath) );
 }
 
 
@@ -142,7 +150,8 @@ void TextSourceEditable::Save()
     FileIO::WriteText(m_filePath, modifiable_text, write_utf8_bom);
 
     m_modified = false;
-    m_modifiedIteration = PortableFunctions::FileModifiedTime(m_filePath);
+    m_loadedFileModifiedTime = PortableFunctions::FileModifiedTime(m_filePath);
+    m_modifiedIteration = m_loadedFileModifiedTime;
 
     if( m_sourceModifier != nullptr )
         m_sourceModifier->OnTextSourceSave();
@@ -152,6 +161,7 @@ void TextSourceEditable::Save()
 void TextSourceEditable::SetNewFilePath(std::string new_file_path)
 {
     m_filePath = std::move(new_file_path);
+    m_loadedFileModifiedTime = PortableFunctions::FileModifiedTime(m_filePath);
     SetModified();
 }
 

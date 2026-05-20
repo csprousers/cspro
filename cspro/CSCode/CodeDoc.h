@@ -1,13 +1,13 @@
-﻿#pragma once
+#pragma once
 
 #include <CSCode/LanguageSettings.h>
 #include <CSCode/ProcessorHtml.h>
 #include <CSCode/ProcessorJavaScript.h>
 #include <CSCode/RunOperation.h>
+#include <zUtilO/TextSourceEditable.h>
 
 class CodeFrame;
 class CodeView;
-class TextSourceEditable;
 
 
 class CodeDoc : public CDocument
@@ -18,7 +18,7 @@ protected:
     CodeDoc(); // create from serialization only
 
 public:
-    ~CodeDoc();
+    TextSourceEditable* GetTextSource() { return m_textSource.get(); }
 
     CodeView& GetPrimaryCodeView();
     CodeView* GetSecondaryCodeView();
@@ -38,8 +38,6 @@ public:
     // if the document is not saved, a temporary file path, or directory, is returned
     std::string GetActualOrTempFilePath(const char* extension) const;
     std::string GetActualOrTempDirectory() const;
-
-    std::tuple<bool, int64_t> GetFileModificationTimeParameters() const;
 
     void ReloadFromDisk();
 

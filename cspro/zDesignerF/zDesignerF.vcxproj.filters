@@ -51,6 +51,9 @@
     <ClCompile Include="DictionaryPropertiesPageDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="FileModificationChecker.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="FormFileBasedDoc.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -174,6 +177,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DictionaryPropertiesPageDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FileModificationChecker.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="FormFileBasedDoc.h">
