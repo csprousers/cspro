@@ -51,6 +51,7 @@ SQLiteRepository::SQLiteRepository(const DataRepositoryType type, std::shared_pt
         m_stmtModifyDeleteStatus(nullptr),
         m_stmtInsertRevision(nullptr),
         m_stmtInsertLocalRevision(nullptr),
+        m_stmtQueryUuidByPosition(nullptr),
         m_stmtUpdateClock(nullptr),
         m_stmtIncrementClock(nullptr),
         m_stmtNewClock(nullptr),
@@ -475,6 +476,7 @@ void SQLiteRepository::ClearPreparedStatements()
     safe_sqlite3_finalize(m_stmtModifyDeleteStatus);
     safe_sqlite3_finalize(m_stmtInsertRevision);
     safe_sqlite3_finalize(m_stmtInsertLocalRevision);
+    safe_sqlite3_finalize(m_stmtQueryUuidByPosition);
     safe_sqlite3_finalize(m_stmtUpdateClock);
     safe_sqlite3_finalize(m_stmtIncrementClock);
     safe_sqlite3_finalize(m_stmtNewClock);
@@ -502,18 +504,22 @@ void SQLiteRepository::ClearPreparedStatements()
 }
 
 
-double SQLiteRepository::GetInsertPosition(double insert_before_position_in_repository)
+double SQLiteRepository::CreateInsertPosition(const double insert_before_position_in_repository)
 {
-    SQLiteStatement getPrevFileOrder(m_db, m_stmtGetPrevFileOrder, "SELECT file_order FROM cases WHERE file_order < ? ORDER BY file_order DESC LIMIT 1");
+    SQLiteStatement getPrevFileOrder(m_db, m_stmtGetPrevFileOrder,
+        "SELECT `file_order` FROM `cases` WHERE `file_order` < ? ORDER BY `file_order` DESC LIMIT 1;"
+    );
+
     getPrevFileOrder.Bind(1, insert_before_position_in_repository);
 
     double prevPos;
-    if (getPrevFileOrder.Step() == SQLITE_ROW)
+    if (getPrevFileOrder.Step() == SQLITE_ROW) {
         prevPos = getPrevFileOrder.GetColumn<double>(0);
-    else
+    } else {
         prevPos = 0; // before must be the first case in repo
+    }
 
-    return (insert_before_position_in_repository + prevPos)/2;
+    return ( insert_before_position_in_repository + prevPos ) / 2;
 }
 
 
@@ -777,89 +783,81 @@ bool SQLiteRepository::ReadCaseFromUuid(std::unique_ptr<Case>& data_case, const 
 
 void SQLiteRepository::WriteCase(Case& data_case, const WriteCaseParameter* const write_case_parameter/* = nullptr*/)
 {
-    bool new_case = false;
+    bool new_case;
+    std::optional<double> position_in_repository;
+    std::string uuid;
 
     if( m_accessType == DataRepositoryAccess::BatchOutput ||
         m_accessType == DataRepositoryAccess::BatchOutputAppend )
     {
         ASSERT(write_case_parameter == nullptr);
 
-        // Preserve the uuid if there is one so that batch apps will keep
-        // the same uuid in input and output files.
-
-        // If there is no uuid (i.e. this comes from a text repo) then create one
-        data_case.GetOrCreateUuid();
-
-        data_case.SetPositionInRepository(0);
-
         // Batch is always treated as a new case
         // since we write into new output file
         // TODO: what about duplicates in batch append????
         new_case = true;
+
+        // Preserve the UUID if there is one so that batch apps will keep
+        // the same UUID in input and output files.
+        uuid = data_case.GetUuid();
+    }
+
+    // this will be from CSEntry or from Data.writeCase
+    else if( write_case_parameter != nullptr )
+    {
+        if( write_case_parameter->IsModifyParameter() )
+        {
+            new_case = false;
+
+            position_in_repository = write_case_parameter->GetPositionInRepository();
+
+            // reuse the UUID for this case
+            uuid = GetUuidByPosition(*position_in_repository);
+        }
+
+        else
+        {
+            ASSERT(write_case_parameter->IsInsertParameter());
+            new_case = true;
+
+            const double insert_before_position_in_repository = write_case_parameter->GetPositionInRepository();
+            position_in_repository = CreateInsertPosition(insert_before_position_in_repository);
+        }
     }
 
     else if( m_accessType == DataRepositoryAccess::EntryInput )
     {
-        // If there is no uuid (i.e. it is a new case) then create one
-        data_case.GetOrCreateUuid();
-
-        if( write_case_parameter == nullptr )
-        {
-            // New case - add to end of repo
-            data_case.SetPositionInRepository(0);
-            new_case = true;
-        }
-
-        else if( write_case_parameter->IsInsertParameter() )
-        {
-            double insert_before_position_in_repository = write_case_parameter->GetPositionInRepository();
-            data_case.SetPositionInRepository(GetInsertPosition(insert_before_position_in_repository));
-            new_case = true;
-        }
-
-        else
-        {
-            ASSERT(write_case_parameter->IsModifyParameter());
-            new_case = false;
-        }
+        // CSEntry modifications and insertions are handled above ( write_case_parameter != nullptr )
+        new_case = true;
     }
 
     else if( m_accessType == DataRepositoryAccess::ReadWrite )
     {
-        ASSERT(write_case_parameter == nullptr);
-
         // From writecase we update the case based on the case id (key)
-        // and not the uuid. This way logic like:
+        // and not the UUID. This way logic like:
         //      ID = 1; writecase(DICT); ID = 2; writecase(DICT)
         // will generate two distinct cases even though it ends
         // up being two consecutive calls to WriteCase() with
-        // the same uuid.
+        // the same UUID.
         SQLiteStatement getUuidPosFromKey(m_stmtCaseIdentifiersFromKey);
         getUuidPosFromKey.Bind(1, data_case.GetKey());
 
-        int queryResult = getUuidPosFromKey.Step();
-
-        if( queryResult == SQLITE_ROW )
+        switch( getUuidPosFromKey.Step() )
         {
-            // There is already a case with this case id,
-            // use the same uuid to overwrite it
-            data_case.SetUuid(getUuidPosFromKey.GetColumn<std::string>(0));
-            data_case.SetPositionInRepository(getUuidPosFromKey.GetColumn<double>(1));
-            new_case = false;
-        }
+            // There is already a case with this case id, use the same UUID to overwrite it
+            case SQLITE_ROW:
+                new_case = false;
+                uuid = getUuidPosFromKey.GetColumn<std::string>(0);
+                position_in_repository = getUuidPosFromKey.GetColumn<double>(1);
+                break;
 
-        else if( queryResult == SQLITE_DONE )
-        {
-            // No existing case with this case id so
-            // create a new uuid to generate a new case
-            data_case.SetUuid(CreateUuid());
-            data_case.SetPositionInRepository(0);
-            new_case = true;
-        }
+            // No existing case with this case id so generate a new case
+            case SQLITE_DONE:
+                new_case = true;
+                break;
 
-        else
-        {
-            throw SQLiteErrorWithMessage(m_db);
+            default:
+                throw SQLiteErrorWithMessage(m_db);
         }
     }
 
@@ -870,6 +868,12 @@ void SQLiteRepository::WriteCase(Case& data_case, const WriteCaseParameter* cons
 
         throw DataRepositoryException::WriteAccessRequired();
     }
+
+    ASSERT(new_case || position_in_repository != 0);
+    data_case.SetPositionInRepository(position_in_repository.value_or(0));
+
+    ASSERT(new_case || !uuid.empty());
+    data_case.SetUuid(!uuid.empty() ? std::move(uuid) : CreateUuid());
 
     int64_t revision;
 
@@ -897,7 +901,7 @@ void SQLiteRepository::WriteCase(Case& data_case, const WriteCaseParameter* cons
 
         if( insertResult == SQLITE_CONSTRAINT && m_accessType == DataRepositoryAccess::BatchOutputAppend )
         {
-            // Duplicate uuid in batch append mode, create a new uuid to allow duplicate
+            // Duplicate UUID in batch append mode, create a new UUID to allow duplicate
             data_case.SetUuid(CreateUuid());
             insertResult = InsertCase(data_case, revision);
 
@@ -924,7 +928,9 @@ void SQLiteRepository::WriteCase(Case& data_case, const WriteCaseParameter* cons
 
         IncrementVectorClock(data_case.GetUuid());
 
-        if( write_case_parameter == nullptr || !write_case_parameter->IsModifyParameter() || write_case_parameter->AreNotesModified() )
+        if( write_case_parameter == nullptr ||
+            !write_case_parameter->IsModifyParameter() ||
+            write_case_parameter->AreNotesModified() )
         {
             ClearNotes(data_case);
             WriteNotes(data_case);
@@ -988,6 +994,21 @@ void SQLiteRepository::WriteNotes(const Case& data_case)
 }
 
 
+std::string SQLiteRepository::GetUuidByPosition(const double position_in_repository)
+{
+    SQLiteStatement stmt(m_db, m_stmtQueryUuidByPosition,
+        "SELECT `id` FROM `cases` WHERE `file_order` = ?;"
+    );
+
+    stmt.Bind(1, position_in_repository);
+
+    if( stmt.Step() != SQLITE_ROW )
+        throw DataRepositoryException::CaseNotFound();
+
+    return stmt.GetColumn<std::string>(0);
+}
+
+
 void SQLiteRepository::IncrementVectorClock(const std::string& uuid)
 {
     SQLiteStatement updateClockStatement(m_db, m_stmtIncrementClock,
@@ -1000,16 +1021,6 @@ void SQLiteRepository::IncrementVectorClock(const std::string& uuid)
 
     if (updateClockStatement.Step() != SQLITE_DONE)
         throw SQLiteErrorWithMessage(m_db);
-}
-
-
-void SQLiteRepository::IncrementVectorClock(double position_in_repository)
-{
-    std::string key;
-    std::string uuid;
-    PopulateCaseIdentifiers(key, uuid, position_in_repository);
-
-    IncrementVectorClock(uuid);
 }
 
 
@@ -1044,7 +1055,8 @@ void SQLiteRepository::DeleteCase(double position_in_repository, bool deleted/* 
     if (sqlite3_changes(m_db) == 0)
         throw DataRepositoryException::CaseNotFound();
 
-    IncrementVectorClock(position_in_repository);
+    const std::string uuid = GetUuidByPosition(position_in_repository);
+    IncrementVectorClock(uuid);
 
     SQLiteRepository::EndTransaction();
     CommitTransactionIfTooBig();
