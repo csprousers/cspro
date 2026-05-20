@@ -161,9 +161,10 @@ private:
 
     std::shared_ptr<TextRepositoryIndexCreator> m_indexCreator;
 
-    // CSEntry-specific objects
+    // other objects
     std::unique_ptr<TextRepositoryNotesFile> m_notesFile;
     std::unique_ptr<TextRepositoryStatusFile> m_statusFile;
+    bool m_deleteCaseShouldDeleteNotesAndStatuses;
 
     // transaction objects
     bool m_useTransactionManager;

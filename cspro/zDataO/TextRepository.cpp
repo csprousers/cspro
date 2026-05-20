@@ -61,6 +61,7 @@ TextRepository::TextRepository(std::shared_ptr<const CaseAccess> case_access, co
         m_wideBufferPosition(nullptr),
         m_wideBufferEnd(nullptr),
         m_ignoreNextCharacterIfNewline(false),
+        m_deleteCaseShouldDeleteNotesAndStatuses(true),
         m_useTransactionManager(false),
         m_numberTransactions(0)
 {
@@ -1040,6 +1041,9 @@ void TextRepository::WriteCase(Case& data_case, const WriteCaseParameter* const 
             // otherwise delete the case and add it to the end
             else
             {
+                ASSERT(m_deleteCaseShouldDeleteNotesAndStatuses);
+                const RAII::SetValueAndRestoreOnDestruction delete_case_modifier(m_deleteCaseShouldDeleteNotesAndStatuses, false);
+
                 IndexableTextRepository::DeleteCase(this_key);
                 write_method = WriteMethod::EndOfFile;
             }
@@ -1258,11 +1262,14 @@ void TextRepository::DeleteCase(const int64_t file_position, const size_t bytes_
         fflush(m_file);
 
     // update the notes and statuses
-    if( m_notesFile != nullptr )
-        m_notesFile->DeleteCase(*key_lookup);
+    if( m_deleteCaseShouldDeleteNotesAndStatuses )
+    {
+        if( m_notesFile != nullptr )
+            m_notesFile->DeleteCase(*key_lookup);
 
-    if( m_statusFile != nullptr )
-        m_statusFile->DeleteCase(*key_lookup);
+        if( m_statusFile != nullptr )
+            m_statusFile->DeleteCase(*key_lookup);
+    }
 }
 
 

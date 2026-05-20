@@ -33,7 +33,7 @@ public:
     void SetUpCase(Case& data_case) const;
     void SetUpCaseNote(CaseSummary& case_summary) const;
 
-    void WriteCase(Case& data_case, const WriteCaseParameter* write_case_parameter);
+    void WriteCase(const Case& data_case, const WriteCaseParameter* write_case_parameter);
 
     void DeleteCase(const std::string& key);
 
