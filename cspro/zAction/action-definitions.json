@@ -798,6 +798,23 @@
           "object"
         ],
         "required": true
+      },
+      {
+        "name": "replace",
+        "description": "Details about where to write the case in the data source if overwriting an existing case.",
+        "types": [
+          "object"
+        ],
+        "required": false
+      }
+    ],
+    "returns": [
+      {
+        "name": "",
+        "description": "The \"position\" of the written case in the data source (if known).",
+        "types": [
+          "number"
+        ]
       }
     ]
   },

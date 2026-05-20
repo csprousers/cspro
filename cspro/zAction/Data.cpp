@@ -9,8 +9,10 @@
 #include <zDataO/CaseIterator.h>
 #include <zDataO/ConnectionStringProperties.h>
 #include <zDataO/DataRepository.h>
+#include <zDataO/DataRepositoryHelpers.h>
 #include <zDataO/DictionarySource.h>
 #include <zDataO/ParadataWrapperRepository.h>
+#include <zDataO/WriteCaseParameter.h>
 #include <zFormatterO/QuestionnaireContentCreator.h>
 #include <zParadataO/ParadataDriver.h>
 #include <engine/EngineDictionaryModifier.h>
@@ -21,6 +23,7 @@ enum class ActionInvoker::DataQueryContentType { Count, Keys, Summaries, Cases }
 
 CREATE_JSON_KEY(dataId)
 CREATE_JSON_KEY(openFlags)
+CREATE_JSON_KEY(replace)
 
 CREATE_ENUM_JSON_SERIALIZER(ActionInvoker::DataQueryContentType,
     { ActionInvoker::DataQueryContentType::Count,       "count" },
@@ -73,6 +76,15 @@ public:
 
     // Returns the position in the repository based on a UUID lookup.
     static double GetPositionFromUuid(DataRepository& data_repository, const JsonNode& json_node);
+
+    // If "replace" is specified, creates a WriteCaseParameter object.
+    // Exceptions are thrown:
+    //   - If the specified replacement case does not exist.
+    //   - If, for data repositories that do not support duplicates, replacing the case would 
+    //     result in a duplicate case. CSEntry, the other user of WriteCaseParameter, does this
+    //     instead of relying on the data repository to do it, so we implement that check here.
+    static std::unique_ptr<WriteCaseParameter> ProcessWriteCaseReplace(DataRepository& data_repository, const Case& data_case,
+                                                                       const JsonNode& json_node);
 
     // Creates a QuestionnaireContentCreator (if passed a dictionary) and runs the callback function.
     // Before creating any content, call QuestionnaireContentCreator::SetCase.
@@ -418,6 +430,54 @@ double ActionInvoker::Runtime::DataWrapper::GetPositionFromUuid(DataRepository& 
     data_repository.PopulateCaseIdentifiers(key, uuid, position_in_repository);
 
     return position_in_repository;
+}
+
+
+std::unique_ptr<WriteCaseParameter> ActionInvoker::Runtime::DataWrapper::ProcessWriteCaseReplace(
+    DataRepository& data_repository, const Case& data_case, const JsonNode& json_node)
+{
+    if( !json_node.Contains(JK::replace) )
+        return nullptr;
+
+    const JsonNode replace_json_node = json_node.Get(JK::replace);
+    const char* const identifier = DataWrapper::GetSpecifiedCaseIdentifier(replace_json_node, true);
+
+    std::string key = ( identifier == JK::key ) ? replace_json_node.Get<std::string>(JK::key) : std::string();
+    std::string uuid = ( identifier == JK::uuid ) ? replace_json_node.Get<std::string>(JK::uuid) : std::string();
+    double position_in_repository = ( identifier == JK::position ) ? replace_json_node.Get<double>(JK::position) : -1;
+
+    try
+    {
+        data_repository.PopulateCaseIdentifiers(key, uuid, position_in_repository);
+    }
+
+    catch( const DataRepositoryException::CaseNotFound& )
+    {
+        throw CSProException("No case exists to replace that is identified by '%s': %s",
+                             identifier,
+                             replace_json_node.Get<std::string>(identifier).c_str());
+    }
+
+    // if the data repository does not support duplicate cases, make sure that this case will not result in duplicates 
+    if( key != data_case.GetKey() &&
+        !DataRepositoryHelpers::TypeSupportsDuplicates(data_repository.GetRepositoryType()) &&
+        data_repository.ContainsCase(data_case.GetKey()) )
+    {
+        throw CSProException("The case '%s' cannot be replaced by '%s' because it would result in two cases "
+                             "with the same key in a data source that cannot contain duplicate cases.",
+                             key.c_str(),
+                             data_case.GetKey().c_str());
+    }
+
+    WriteCaseParameter write_case_parameter = WriteCaseParameter::CreateModifyParameter(
+        CaseKey(std::move(key), position_in_repository)
+    );
+
+    // because we don't know the contents of the original case, set the notes as modified
+    // to ensure that the data repository updates the notes
+    write_case_parameter.SetNotesModified();
+
+    return std::make_unique<WriteCaseParameter>(std::move(write_case_parameter));
 }
 
 
@@ -871,6 +931,11 @@ ActionInvoker::Result ActionInvoker::Runtime::Data_writeCase(const JsonNode& jso
     if( !added_record_names.empty() )
         throw CSProException("The case is missing required records: " + SO::CreateSingleString(added_record_names));
 
+    // if this is going to replace an existing case, create a modification parameter
+    const std::unique_ptr<const WriteCaseParameter> write_case_parameter = DataWrapper::ProcessWriteCaseReplace(
+        data_repository, *data_case, json_node
+    );
+
     // make sure that data sources connected to dictionaries owned by the interpreter and properly updated
     std::unique_ptr<EngineDictionaryModifier> engine_dictionary_modifier;
 
@@ -880,10 +945,11 @@ ActionInvoker::Result ActionInvoker::Runtime::Data_writeCase(const JsonNode& jso
         engine_dictionary_modifier->PrepareForModifications();
     }
 
-    data_repository.WriteCase(*data_case);
+    data_repository.WriteCase(*data_case, write_case_parameter.get());
 
     if( engine_dictionary_modifier != nullptr )
         engine_dictionary_modifier->FinishedWithModifications();
 
-    return Result::Undefined();
+    return ( data_case->GetPositionInRepository() != -1 ) ? Result::Number(data_case->GetPositionInRepository()) :
+                                                            Result::Undefined();
 }
