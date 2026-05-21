@@ -272,9 +272,17 @@
       },
       {
         "name": "uuid",
-        "description": "The UUID of a case. If both \"uuid\" and \"key\" are provided, the \"uuid\" value is prioritized.",
+        "description": "The UUID of a case.",
         "types": [
           "string"
+        ],
+        "required": false
+      },
+      {
+        "name": "position",
+        "description": "The \"position\" of the case in the data source.",
+        "types": [
+          "number"
         ],
         "required": false
       }

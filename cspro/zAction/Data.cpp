@@ -72,6 +72,8 @@ public:
     static void Close(Runtime& runtime, const JsonNode& json_node, Caller& caller);
 
     // Returns one of JK::uuid, JK::position, JK::key, or optionally nullptr (if default_to_key is false).
+    // If both a UUID and a key are specified, the UUID is prioritized.
+    // The position is also prioritized above the key.
     static const char* GetSpecifiedCaseIdentifier(const JsonNode& json_node, bool default_to_key);
 
     // Returns the position in the repository based on a UUID lookup.
@@ -745,13 +747,32 @@ ActionInvoker::Result ActionInvoker::Runtime::Data_contains(const JsonNode& json
 {
     const std::shared_ptr<DataWrapper> data_wrapper = DataWrapper::GetDataWrapper(*this, json_node, caller);
     DataRepository& data_repository = data_wrapper->GetDataRepository();
+
+    const char* const identifier = DataWrapper::GetSpecifiedCaseIdentifier(json_node, true);
     bool contains_case;
 
-    if( json_node.Contains(JK::uuid) )
+    if( identifier == JK::key )
+    {
+        contains_case = data_repository.ContainsCase(json_node.Get<std::string>(JK::key));
+    }
+
+    else
     {
         try
         {
-            DataWrapper::GetPositionFromUuid(data_repository, json_node);
+            if( json_node.Contains(JK::uuid) )
+            {
+                DataWrapper::GetPositionFromUuid(data_repository, json_node);
+            }
+
+            else
+            {
+                std::string key;
+                std::string uuid;
+                double position_in_repository = json_node.Get<double>(JK::position);
+                data_repository.PopulateCaseIdentifiers(key, uuid, position_in_repository);
+            }
+
             contains_case = true;
         }
 
@@ -759,11 +780,6 @@ ActionInvoker::Result ActionInvoker::Runtime::Data_contains(const JsonNode& json
         {
             contains_case = false;
         }
-    }
-
-    else
-    {
-        contains_case = data_repository.ContainsCase(json_node.Get<std::string>(JK::key));
     }
 
     return Result::Bool(contains_case);
