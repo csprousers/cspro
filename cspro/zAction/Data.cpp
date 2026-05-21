@@ -82,7 +82,7 @@ public:
     // If "replace" is specified, creates a WriteCaseParameter object.
     // Exceptions are thrown:
     //   - If the specified replacement case does not exist.
-    //   - If, for data repositories that do not support duplicates, replacing the case would 
+    //   - If, for data repositories that do not support duplicates, replacing the case would
     //     result in a duplicate case. CSEntry, the other user of WriteCaseParameter, does this
     //     instead of relying on the data repository to do it, so we implement that check here.
     static std::unique_ptr<WriteCaseParameter> ProcessWriteCaseReplace(DataRepository& data_repository, const Case& data_case,
@@ -91,9 +91,9 @@ public:
     // Creates a QuestionnaireContentCreator (if passed a dictionary) and runs the callback function.
     // Before creating any content, call QuestionnaireContentCreator::SetCase.
     template<typename CF>
-    static void WriteCaseWrapper(Runtime& runtime, const JsonNode& json_node,
-                                 std::variant<std::shared_ptr<const CDataDict>, std::unique_ptr<QuestionnaireContentCreator>> dictionary_or_questionnaire_content_creator,
-                                 const CF& callback_function);
+    static void CreateCaseContentWrapper(Runtime& runtime, const JsonNode& json_node,
+                                         std::variant<std::shared_ptr<const CDataDict>, std::unique_ptr<QuestionnaireContentCreator>> dictionary_or_questionnaire_content_creator,
+                                         const CF& callback_function);
 
     // Routines to serialize case objects to a JSON writer where an array has already been started.
     static void FillArray_CaseKeys(JsonWriter& json_writer, CaseIterator& iterator);
@@ -460,7 +460,7 @@ std::unique_ptr<WriteCaseParameter> ActionInvoker::Runtime::DataWrapper::Process
                              replace_json_node.Get<std::string>(identifier).c_str());
     }
 
-    // if the data repository does not support duplicate cases, make sure that this case will not result in duplicates 
+    // if the data repository does not support duplicate cases, make sure that this case will not result in duplicates
     if( key != data_case.GetKey() &&
         !DataRepositoryHelpers::TypeSupportsDuplicates(data_repository.GetRepositoryType()) &&
         data_repository.ContainsCase(data_case.GetKey()) )
@@ -484,7 +484,7 @@ std::unique_ptr<WriteCaseParameter> ActionInvoker::Runtime::DataWrapper::Process
 
 
 template<typename CF>
-void ActionInvoker::Runtime::DataWrapper::WriteCaseWrapper(
+void ActionInvoker::Runtime::DataWrapper::CreateCaseContentWrapper(
     Runtime& runtime, const JsonNode& json_node,
     std::variant<std::shared_ptr<const CDataDict>, std::unique_ptr<QuestionnaireContentCreator>> dictionary_or_questionnaire_content_creator,
     const CF& callback_function)
@@ -564,7 +564,7 @@ void ActionInvoker::Runtime::DataWrapper::FillArray_CaseSummaries(JsonWriter& js
 void ActionInvoker::Runtime::DataWrapper::FillArray_Cases(Runtime& runtime, const JsonNode& json_node, DataWrapper& data_wrapper,
                                                           JsonWriter& json_writer, CaseIterator& iterator)
 {
-    WriteCaseWrapper(runtime, json_node, data_wrapper.GetDictionary(),
+    CreateCaseContentWrapper(runtime, json_node, data_wrapper.GetDictionary(),
         [&](QuestionnaireContentCreator& questionnaire_content_creator)
         {
             const std::shared_ptr<Case> data_case = data_wrapper.GetDataRepository().GetCaseAccess().CreateCase(true);
@@ -638,7 +638,7 @@ ActionInvoker::Result ActionInvoker::Runtime::GetQuestionnaireContentWithCaseDat
 
     std::string content;
 
-    DataWrapper::WriteCaseWrapper(*this, json_node, std::move(dictionary_or_questionnaire_content_creator),
+    DataWrapper::CreateCaseContentWrapper(*this, json_node, std::move(dictionary_or_questionnaire_content_creator),
         [&](QuestionnaireContentCreator& questionnaire_content_creator)
         {
             questionnaire_content_creator.SetCase(std::move(data_case));
@@ -732,7 +732,7 @@ ActionInvoker::Result ActionInvoker::Runtime::Data_readCase(const JsonNode& json
 
     std::string case_content;
 
-    DataWrapper::WriteCaseWrapper(*this, json_node, data_wrapper->GetDictionary(),
+    DataWrapper::CreateCaseContentWrapper(*this, json_node, data_wrapper->GetDictionary(),
         [&](QuestionnaireContentCreator& questionnaire_content_creator)
         {
             questionnaire_content_creator.SetCase(std::move(data_case));
