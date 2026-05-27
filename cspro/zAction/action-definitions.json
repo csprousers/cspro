@@ -137,7 +137,7 @@
       },
       {
         "name": "uuid",
-        "description": "The UUID of a specific case to attach to the questionnaire content. If both \"uuid\" and \"key\" are provided, the \"uuid\" value is prioritized.",
+        "description": "The UUID of a specific case to attach to the questionnaire content.",
         "types": [
           "string"
         ],
@@ -235,7 +235,7 @@
   {
     "namespace": "Data",
     "name": "close",
-    "description": "Closes a previously open data source.",
+    "description": "Closes a previously opened data source.",
     "parameters": [
       {
         "name": "dataId",
@@ -300,7 +300,7 @@
   {
     "namespace": "Data",
     "name": "countCases",
-    "description": "Counts the number of cases in a data source.",
+    "description": "Returns the number of cases in a data source.",
     "parameters": [
       {
         "name": "dataId",
@@ -315,7 +315,7 @@
         "name": "status",
         "description": "Options for the status of the cases to query. (Default value is \"notDeletedOnly\".)",
         "types": [
-          "object"
+          "string"
         ],
         "required": false
       },
@@ -362,7 +362,7 @@
       },
       {
         "name": "uuid",
-        "description": "The UUID of a case. If both \"uuid\" and \"key\" are provided, the \"uuid\" value is prioritized.",
+        "description": "The UUID of a case.",
         "types": [
           "string"
         ],
@@ -401,7 +401,7 @@
       },
       {
         "name": "uuid",
-        "description": "The UUID of a case. If both \"uuid\" and \"key\" are provided, the \"uuid\" value is prioritized.",
+        "description": "The UUID of a case.",
         "types": [
           "string"
         ],
@@ -429,7 +429,7 @@
   {
     "namespace": "Data",
     "name": "getCurrentCase",
-    "description": "Returns the current case associated with a dictionary.",
+    "description": "Returns the current case associated with an application's dictionary.",
     "parameters": [
       {
         "name": "dataId",
@@ -482,16 +482,17 @@
         "required": false
       },
       {
-        "name": "openFlags",
-        "description": "Flags to control how the data source is opened (when using a \"connection\"). (Default value is \"read\".)",
+        "name": "dictionary",
+        "description": "The dictionary that describes the data source's cases (when using a \"connection\"). It can be a dictionary name, path, or the JSON contents of a dictionary.",
         "types": [
-          "string"
+          "string",
+          "object"
         ],
         "required": false
       },
       {
-        "name": "dictionary",
-        "description": "The dictionary that will be used to describe the data source (when using a \"connection\"). It can be a dictionary name, path, or the JSON contents of a dictionary.",
+        "name": "openFlags",
+        "description": "Flags to control how the data source is opened (when using a \"connection\"). (Default value is \"read\".)",
         "types": [
           "string"
         ],
@@ -534,7 +535,7 @@
         "name": "status",
         "description": "Options for the status of the cases to query. (Default value is \"notDeletedOnly\".)",
         "types": [
-          "object"
+          "string"
         ],
         "required": false
       },
@@ -555,16 +556,16 @@
         "required": false
       },
       {
-        "name": "offset",
-        "description": "The number of cases to skip before starting to return results from the query. (Default value is 0.)",
+        "name": "limit",
+        "description": "The maximum number of results to return from the query.",
         "types": [
           "number"
         ],
         "required": false
       },
       {
-        "name": "limit",
-        "description": "The maximum number of cases to return from the query.",
+        "name": "offset",
+        "description": "The number of results to skip before starting to return results from the query. (Default value is 0.)",
         "types": [
           "number"
         ],
@@ -608,7 +609,7 @@
         "name": "status",
         "description": "Options for the status of the cases to query. (Default value is \"notDeletedOnly\".)",
         "types": [
-          "object"
+          "string"
         ],
         "required": false
       },
@@ -629,16 +630,16 @@
         "required": false
       },
       {
-        "name": "offset",
-        "description": "The number of cases to skip before starting to return results from the query. (Default value is 0.)",
+        "name": "limit",
+        "description": "The maximum number of cases to return from the query.",
         "types": [
           "number"
         ],
         "required": false
       },
       {
-        "name": "limit",
-        "description": "The maximum number of cases to return from the query.",
+        "name": "offset",
+        "description": "The number of cases to skip before starting to return results from the query. (Default value is 0.)",
         "types": [
           "number"
         ],
@@ -681,7 +682,7 @@
         "name": "status",
         "description": "Options for the status of the cases to query. (Default value is \"notDeletedOnly\".)",
         "types": [
-          "object"
+          "string"
         ],
         "required": false
       },
@@ -702,16 +703,16 @@
         "required": false
       },
       {
-        "name": "offset",
-        "description": "The number of case keys to skip before starting to return results from the query. (Default value is 0.)",
+        "name": "limit",
+        "description": "The maximum number of case keys to return from the query.",
         "types": [
           "number"
         ],
         "required": false
       },
       {
-        "name": "limit",
-        "description": "The maximum number of case keys to return from the query.",
+        "name": "offset",
+        "description": "The number of case keys to skip before starting to return results from the query. (Default value is 0.)",
         "types": [
           "number"
         ],
@@ -752,7 +753,7 @@
       },
       {
         "name": "uuid",
-        "description": "The UUID of a case. If both \"uuid\" and \"key\" are provided, the \"uuid\" value is prioritized.",
+        "description": "The UUID of a case.",
         "types": [
           "string"
         ],

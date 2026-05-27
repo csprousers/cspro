@@ -293,7 +293,7 @@ ActionInvoker::Result ActionInvoker::Runtime::Application_getQuestionnaireConten
         questionnaire_content_creator->SetCapiQuestionManager(application->GetCapiQuestionManager());
 
     // return content with a case, either directly specified...
-    std::unique_ptr<Case> data_case = ActionInvoker::Runtime::ReadCase(
+    std::unique_ptr<const Case> data_case = ActionInvoker::Runtime::ReadCase(
         json_node,
         GetInterpreterAccessor().GetDataRepository(dictionary->GetName(), false),
         true // return_null_case_if_no_key_present

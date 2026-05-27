@@ -631,7 +631,7 @@ std::unique_ptr<Case> ActionInvoker::Runtime::ReadCase(const JsonNode& json_node
 
 ActionInvoker::Result ActionInvoker::Runtime::GetQuestionnaireContentWithCaseData(
     std::variant<std::shared_ptr<const CDataDict>, std::unique_ptr<QuestionnaireContentCreator>> dictionary_or_questionnaire_content_creator,
-    std::unique_ptr<Case> data_case, const JsonNode& json_node,
+    std::unique_ptr<const Case> data_case, const JsonNode& json_node,
     const bool write_all_content, const bool case_content_is_from_current_case)
 {
     ASSERT(data_case != nullptr);
@@ -710,7 +710,7 @@ ActionInvoker::Result ActionInvoker::Runtime::Data_getCurrentCase(const JsonNode
                              dictionary->GetName().c_str());
     }
 
-    std::unique_ptr<Case> data_case = GetInterpreterAccessor().GetCurrentCase(dictionary->GetName());
+    std::unique_ptr<const Case> data_case = GetInterpreterAccessor().GetCurrentCase(dictionary->GetName());
 
     return GetQuestionnaireContentWithCaseData(
         std::move(dictionary),

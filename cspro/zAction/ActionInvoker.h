@@ -146,7 +146,7 @@ private:
                                           bool return_null_if_no_case_identifier_present);
 
     Result GetQuestionnaireContentWithCaseData(std::variant<std::shared_ptr<const CDataDict>, std::unique_ptr<QuestionnaireContentCreator>> dictionary_or_questionnaire_content_creator,
-                                               std::unique_ptr<Case> data_case, const JsonNode& json_node,
+                                               std::unique_ptr<const Case> data_case, const JsonNode& json_node,
                                                bool write_all_content, bool case_content_is_from_current_case);
 
     Result QueryDataRepository(const JsonNode& json_node, Caller& caller, std::optional<DataQueryContentType> query_type);
