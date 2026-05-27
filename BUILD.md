@@ -11,9 +11,9 @@ The files committed to this repository do not include prebuilt external librarie
 upon which the CSPro build process depends. To successfully build CSPro, or the CSEntry Android application,
 you can build these libraries yourself, using scripts in [build-tools/Build External Libraries](https://github.com/csprousers/cspro/tree/dev/build-tools/Build%20External%20Libraries),
 or you can use prebuilt libraries that are hosted in the [cspro-libraries](https://github.com/csprousers/cspro-libraries) repository.
-The prebuilt libraries used at this point in CSPro development are marked with the tag: **v2026-02-23-d8ce947**.
+The prebuilt libraries used at this point in CSPro development are marked with the tag: **v2026-05-27-2501552**.
 
-To use these libraries, download [v2026-02-23-d8ce947.zip](https://github.com/csprousers/cspro-libraries/archive/refs/tags/v2026-02-23-d8ce947.zip)
+To use these libraries, download [v2026-05-27-2501552.zip](https://github.com/csprousers/cspro-libraries/archive/refs/tags/v2026-05-27-2501552.zip)
 and decompress it into this repository's directory. This includes files such as the built .dll and .lib
 files used on Windows, and the .a static libraries used on Android.
 

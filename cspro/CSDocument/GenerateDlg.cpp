@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "GenerateDlg.h"
 
 
@@ -83,15 +83,8 @@ void GenerateDlg::OnOutputsClick(NMHDR* const pNMHDR, LRESULT* const pResult)
 
     const std::string& path = std::get<1>(m_finalOutputs[pNMLink->item.iLink]);
 
-    if( control_pressed )
-    {
-        OpenContainingFolder(path);
-    }
-
-    else
-    {
-        ShellExecute(nullptr, L"open", TC::ToWide(EscapeCommandLineArgument(path)).c_str(), nullptr, nullptr, SW_SHOW);
-    }
+    control_pressed ? OpenContainingFolder(path) :
+                      OpenFileInAssociatedApplication<false>(path);
 
     *pResult = 0;
 }

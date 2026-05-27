@@ -29,6 +29,7 @@
     <ClCompile Include="CompilerOutputTabViewPage.cpp" />
     <ClCompile Include="DictionaryBasedDoc.cpp" />
     <ClCompile Include="DictionaryPropertiesPageDlg.cpp" />
+    <ClCompile Include="FileModificationChecker.cpp" />
     <ClCompile Include="FormFileBasedDoc.cpp" />
     <ClCompile Include="FormFilePropertiesPageDlg.cpp" />
     <ClCompile Include="LogicDialogBar.cpp" />
@@ -74,6 +75,7 @@
     <ClInclude Include="DesignerObjectTransporter.h" />
     <ClInclude Include="DictionaryBasedDoc.h" />
     <ClInclude Include="DictionaryPropertiesPageDlg.h" />
+    <ClInclude Include="FileModificationChecker.h" />
     <ClInclude Include="FormFileBasedDoc.h" />
     <ClInclude Include="FormFilePropertiesPageDlg.h" />
     <ClInclude Include="FrameType.h" />

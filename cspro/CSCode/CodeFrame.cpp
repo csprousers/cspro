@@ -66,8 +66,7 @@ END_MESSAGE_MAP()
 
 
 CodeFrame::CodeFrame()
-    :   m_codeFrameActivatePostMessageCounter(0),
-        m_lastCheckIfFileIsUpdatedTime(0)
+    :   m_codeFrameActivatePostMessageCounter(0)
 {
 }
 
@@ -185,20 +184,8 @@ void CodeFrame::CheckIfFileIsUpdated()
 {
     CodeDoc& code_doc = GetCodeDoc();
 
-    bool file_on_disk_is_newer;
-    int64_t file_on_disk_modified_time;
-    std::tie(file_on_disk_is_newer, file_on_disk_modified_time) = code_doc.GetFileModificationTimeParameters();
-
-    if( file_on_disk_is_newer && file_on_disk_modified_time > m_lastCheckIfFileIsUpdatedTime )
-    {
-        const int response = AfxMessageBox(FormatText("The file has been modified by another program.\nDo you want to reload '%s'?",
-                                                      PortableFunctions::PathGetFilename(code_doc.GetFilePath()).c_str()), MB_YESNO);
-
-        if( response == IDYES )
-            code_doc.ReloadFromDisk();
-    }
-
-    m_lastCheckIfFileIsUpdatedTime = GetTimestamp();
+    if( m_fileModificationChecker.ShouldReloadFile(code_doc.GetTextSource()) )
+        code_doc.ReloadFromDisk();
 }
 
 
@@ -640,5 +627,5 @@ void CodeFrame::OnOpenInAssociatedApplication()
         }
     }
 
-    ShellExecute(nullptr, L"open", TC::ToWide(EscapeCommandLineArgument(code_doc.GetFilePath())).c_str(), nullptr, nullptr, SW_SHOW);
+    OpenFileInAssociatedApplication<false>(code_doc.GetFilePath());
 }

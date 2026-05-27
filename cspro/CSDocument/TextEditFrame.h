@@ -1,4 +1,6 @@
-﻿#pragma once
+#pragma once
+
+#include <zDesignerF/FileModificationChecker.h>
 
 
 class TextEditFrame : public CMDIChildWndEx
@@ -30,5 +32,5 @@ private:
 
 private:
     WPARAM m_codeFrameActivatePostMessageCounter;
-    int64_t m_lastCheckIfFileIsUpdatedTime;
+    FileModificationChecker m_fileModificationChecker;
 };

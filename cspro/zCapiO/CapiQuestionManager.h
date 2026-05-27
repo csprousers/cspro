@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zCapiO/zCapiO.h>
 #include <zCapiO/CapiQuestion.h>
@@ -77,7 +77,6 @@ private:
 #endif
 
     class Pre76FileConverter;
-    bool IsPre76File(std::istream& is) const;
     void LoadPre76File(const std::string& file_path);
 
 private:

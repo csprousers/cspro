@@ -376,7 +376,7 @@ std::optional<uint64_t> FormatDate(std::string_view format_sv, const int year, c
 
             if( date.has_value() )
             {
-                *date = *date * ( ( value_width == 2 ) ? 100 : 1000 ) + value;
+                *date = *date * ( ( value_width == 2 ) ? 100 : 10000 ) + value;
             }
 
             else

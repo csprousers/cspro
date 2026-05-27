@@ -495,7 +495,13 @@ class CaseViewInputProcessor {
         //value
         var v = _ip.getValue(item.dictionary, item.name, occ);
         if (v && v.code != null) {
-            res.value.value = v.code;
+            // format DEFAULT values to match how they are shown in CSEntry
+            if (v.code === 'DEFAULT' && i.contentType == "numeric") {
+                res.value.value = "*".repeat(i.length);
+            }
+            else {
+                res.value.value = v.code;
+            }
         }
 
         //alignment

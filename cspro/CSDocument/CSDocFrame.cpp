@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "CSDocFrame.h"
 #include "CSDocCompiler.h"
 #include "CSDocExportDlg.h"
@@ -273,7 +273,7 @@ void CSDocFrame::OnViewSyntax()
     }
 
     // if the user presses the Ctrl key, or there is a failure to use the HTML output window, display the syntax in an external browser
-    ShellExecute(nullptr, L"open", TC::ToWide(EscapeCommandLineArgument(syntax_file_path)).c_str(), nullptr, nullptr, SW_SHOW);
+    OpenFileInAssociatedApplication<false>(syntax_file_path);
 }
 
 

@@ -1,4 +1,4 @@
-﻿CSPro 8.1.0 (alpha)                                         27 February 2026
+﻿CSPro 8.1.0 (beta)                                               27 May 2026
 
 ============================================================================
 
@@ -75,12 +75,23 @@
           * https://github.com/csprousers/cspro
           * https://github.com/csprousers/csweb
 
-    -  The Data Viewer tool has been renamed Data Manager.
+    -  The CSWeb data source facilitates directly accessing or updating
+       CSWeb data without requiring synchronization.
+
+    -  The Data Viewer tool has been renamed Data Manager and has several
+       new features, including:
+
+         * Viewing CSWeb data directly on the server without downloading it.
+
+         * Viewing case data as JSON, text, or using the questionnaire view.
+
+         * Exporting individual cases or groups of cases.
+
+         * Deleting and undeleting cases.
 
     -  Markdown can be used while specifying question text, in templated
        reports, and can be viewed (as generated HTML) using the view
-       function or in CSView. Markdown can also be edited in CSCode and
-       included as part of CSPro Documents.
+       function or in CSView. CSCode supports editing Markdown.
 
     -  Applications can access the QuickJS-NG JavaScript Engine from CSPro
        logic. Using the JS namespace, it is possible to evaluate JavaScript,

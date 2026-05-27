@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zUtilO/zUtilO.h>
 #include <zUtilO/FileFreeDoc.h>
@@ -45,6 +45,11 @@ public:
     // If always_create_new_document is false, a document of this type that is
     // already open will be activated.
     CDocument* Open(UINT nIDResource, bool always_create_new_document);
+
+    // Opens a file-free document using the template associated with the resource ID.
+    // This method is similar to the one above, but instead of creating a dummy file path,
+    // the specified file path is passed to this template.
+    CDocument* Open(UINT nIDResource, bool always_create_new_document, const wchar_t* file_path);
 
     // --------------------------------------------------------------------------
     // Static methods

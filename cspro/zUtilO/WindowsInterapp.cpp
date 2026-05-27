@@ -1,5 +1,27 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "WindowsInterapp.h"
+
+
+template<bool ThrowExceptionOnError/* = true*/>
+std::conditional_t<ThrowExceptionOnError, void, bool> OpenFileInAssociatedApplication(const InterfaceString& file_path)
+{
+    const HINSTANCE result = ShellExecute(nullptr, L"open", EscapeCommandLineArgument(file_path.GetString()).c_str(), nullptr, nullptr, SW_SHOW);
+    const bool success = ( reinterpret_cast<INT_PTR>(result) >= 32 );
+
+    if constexpr(ThrowExceptionOnError)
+    {
+         if( !success )
+             throw CSProException("Error opening: %s", file_path.c_str_utf8());
+    }
+
+    else
+    {
+        return success;
+    }
+}
+
+template CLASS_DECL_ZUTILO void OpenFileInAssociatedApplication<true>(const InterfaceString& file_path);
+template CLASS_DECL_ZUTILO bool OpenFileInAssociatedApplication<false>(const InterfaceString& file_path);
 
 
 void OpenContainingFolder(const NullTerminatedString path)

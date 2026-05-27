@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "CaseHtmlContentCreator.h"
 #include "CaseHtmlContentCreatorSettings.h"
 #include "ViewOptionsHelper.h"
@@ -246,7 +246,7 @@ void CaseHtmlContentCreator::ProcessWebViewMessage(const JsonNode& json_node)
         // make the file read-only
         SetFileAttributes(TC::ToWide(temporary_file_path).c_str(), FILE_ATTRIBUTE_READONLY);
 
-        ShellExecute(nullptr, L"open", TC::ToWide(EscapeCommandLineArgument(temporary_file_path)).c_str(), nullptr, nullptr, SW_SHOW);
+        OpenFileInAssociatedApplication(temporary_file_path);
 
         TemporaryFile::RegisterFileForDeletion(std::move(temporary_file_path));
     }

@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "CapiQuestionManager.h"
 #include "CapiLogicParameters.h"
 #include "CapiName.h"
@@ -290,17 +290,6 @@ std::vector<std::shared_ptr<CDEFormFile>> CapiQuestionManager::GetRuntimeFormFil
 }
 
 
-bool CapiQuestionManager::IsPre76File(std::istream& is) const
-{
-    const std::streampos pos = is.tellg();
-    std::string line;
-    while( is && line.empty() )
-        std::getline(is, line);
-    is.seekg(pos);
-    return ( line == "[CAPI QUESTIONS]" );
-}
-
-
 void CapiQuestionManager::Load(const std::string& file_path)
 {
     m_languages.clear();
@@ -319,11 +308,10 @@ void CapiQuestionManager::Load(const std::string& file_path)
 
     try
     {
-        const std::unique_ptr<std::ifstream> is = FileIO::OpenTextInputFileStream(file_path);
+        const std::string input = FileIO::ReadText(file_path);
 
-        if( IsPre76File(*is) )
+        if( SO::StartsWith(input, "[CAPI QUESTIONS]") )
         {
-            is->close();
 #ifdef WIN_DESKTOP
             LoadPre76File(file_path);
 #else
@@ -335,8 +323,7 @@ void CapiQuestionManager::Load(const std::string& file_path)
         {
             try
             {
-                ReadFromYaml(*this, *is);
-                is->close();
+                ReadFromYaml(*this, input);
             }
 
             catch( const std::exception& exception )

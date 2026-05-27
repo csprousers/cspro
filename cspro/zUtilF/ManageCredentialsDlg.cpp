@@ -372,7 +372,8 @@ void ManageCredentialsDlg::SetDetailsText()
         {
             [&](std::monostate)
             {
-                m_detailsText.SetWindowText(TC::ToWide(MGF::GetMessageText(94331, "There are no saved credentials.").GetString()).c_str());
+                const SharableString message = MGF::GetMessageText(94331, "There are no saved credentials.");
+                m_detailsText.SetWindowText(TC::ToWide(SO::ToNewlineCRLF(*message)).c_str());
             },
             [&](const CredentialType credential_type)
             {
@@ -380,7 +381,7 @@ void ManageCredentialsDlg::SetDetailsText()
             },
             [&](const Credential* const credential)
             {
-                m_detailsText.SetWindowText(TC::ToWide(credential->details).c_str());
+                m_detailsText.SetWindowText(TC::ToWide(SO::ToNewlineCRLF(credential->details)).c_str());
             }
 
         }, GetCurrentSelection());

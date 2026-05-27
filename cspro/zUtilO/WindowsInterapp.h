@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zUtilO/zUtilO.h>
 
@@ -6,6 +6,9 @@
 #error You should not include this file for platforms other than Windows desktop
 #endif
 
+
+template<bool ThrowExceptionOnError = true>
+CLASS_DECL_ZUTILO std::conditional_t<ThrowExceptionOnError, void, bool> OpenFileInAssociatedApplication(const InterfaceString& file_path);
 
 CLASS_DECL_ZUTILO void OpenContainingFolder(NullTerminatedString path);
 CLASS_DECL_ZUTILO void OpenContainingFolder(std::string_view path_sv);
