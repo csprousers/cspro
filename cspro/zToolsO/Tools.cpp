@@ -379,10 +379,11 @@ void PathRelativePathTo(LPTSTR pszPath, LPCTSTR pszFrom, DWORD dwAttrFrom, LPCTS
 template<bool ThrowExceptionOnError/* = false*/>
 std::conditional_t<ThrowExceptionOnError, void, bool> RecycleFile(const InterfaceString file_path)
 {
+    bool success = false;
+
 #ifdef WIN_DESKTOP
     SHFILEOPSTRUCT info = { nullptr };
     auto complete_file_path = std::make_unique_for_overwrite<wchar_t[]>(MAX_PATH);
-    bool success = false;
 
     if( GetFullPathName(file_path.c_str(), MAX_PATH, complete_file_path.get(), nullptr) != 0 )
     {
