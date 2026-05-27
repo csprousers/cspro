@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "IncludesCC.h"
 #include "EngineDictionary.h"
 #include "Nodes/Dictionaries.h"
@@ -15,7 +15,7 @@ int LogicCompiler::CompileSyncFunctions()
 
 
     // shared routines
-    auto read_dictionary_symbol = [&](bool must_be_external) -> int
+    auto read_dictionary_symbol = [&](const bool for_sync_data) -> int
     {
         NextToken();
 
@@ -24,9 +24,15 @@ int LogicCompiler::CompileSyncFunctions()
 
         Symbol& symbol = NPT_Ref(Tokstindex);
 
-        int dictionary_use_flags = ( must_be_external ? VerifyDictionaryFlag::External : 0 ) |
-                                   VerifyDictionaryFlag::NeedsIndex |
-                                   VerifyDictionaryFlag::Writeable;
+        // only external dictionaries, or the input dictionary of an entry application, can be synced
+        if( for_sync_data &&
+            symbol.GetSubType() != SymbolSubType::External &&
+            ( symbol.GetSubType() != SymbolSubType::Input || GetEngineAppType() != EngineAppType::Entry ) )
+        {
+            IssueError(MGF::dictionary_external_expected_525);
+        }
+
+        constexpr int dictionary_use_flags = VerifyDictionaryFlag::NeedsIndex | VerifyDictionaryFlag::Writeable;
 
         if( symbol.IsA(SymbolType::Dictionary) )
         {

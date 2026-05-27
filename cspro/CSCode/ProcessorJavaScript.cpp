@@ -1,5 +1,6 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "ProcessorJavaScript.h"
+#include "OutputWndCaseConstructionReporter.h"
 #include <zToolsO/CancelFlag.h>
 #include <zLogicO/ActionInvoker.h>
 
@@ -128,7 +129,13 @@ ProcessorJavaScript::ProcessorJavaScript(CodeDoc& code_doc)
     :   m_codeDoc(code_doc),
         m_executor(PortableFunctions::PathGetDirectory(code_doc.GetFilePath()))
 {
-    m_executor.UseActionInvoker(ActionInvoker::GetFunctions(), ActionInvoker::GetNamespaceNames());
+    OutputWnd* const output_wnd = assert_cast<CMainFrame*>(AfxGetMainWnd())->GetOutputWnd();
+
+    m_executor.UseActionInvoker(
+        ActionInvoker::GetFunctions(),
+        ActionInvoker::GetNamespaceNames(),
+        ( output_wnd != nullptr ) ? std::make_unique<OutputWndCaseConstructionReporter>(*output_wnd) : nullptr
+    );
 }
 
 

@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "DataRepository.h"
 #include "CaseIterator.h"
 #include "CSWebRepository.h"
@@ -74,16 +74,6 @@ std::unique_ptr<DataRepository> DataRepository::CreateAndOpen(std::shared_ptr<co
 }
 
 
-void DataRepository::ReadCaseByUuid(Case& data_case, const std::string& uuid)
-{
-    std::string key;
-    std::string modifiable_uuid = uuid;
-    double position_in_repository;
-    PopulateCaseIdentifiers(key, modifiable_uuid, position_in_repository);
-    ReadCase(data_case, position_in_repository);
-}
-
-
 void DataRepository::DeleteCase(const std::string& key)
 {
     std::string modifiable_key = key;
@@ -129,7 +119,7 @@ void DataRepository::ReadCasetainer(Case& casetainer, const double position_in_r
 }
 
 
-void DataRepository::WriteCasetainer(Case& casetainer, WriteCaseParameter* const write_case_parameter/* = nullptr*/)
+void DataRepository::WriteCasetainer(Case& casetainer, const WriteCaseParameter* const write_case_parameter/* = nullptr*/)
 {
     casetainer.ApplyPre74_Case(casetainer.GetPre74_Case());
     WriteCase(casetainer, write_case_parameter);

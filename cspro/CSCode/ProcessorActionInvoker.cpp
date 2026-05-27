@@ -1,5 +1,6 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "ProcessorActionInvoker.h"
+#include "OutputWndCaseConstructionReporter.h"
 #include <zToolsO/UniqueId.h>
 #include <zAction/ActionInvoker.h>
 #include <zAction/JsonExecutor.h>
@@ -12,11 +13,7 @@
 class ActionInvokerJsonCaller : public ActionInvoker::Caller
 {
 public:
-    ActionInvokerJsonCaller(CodeDoc& code_doc)
-        :   m_callerId(UniqueId::CreateInt()),
-            m_rootDirectory(PortableFunctions::PathGetDirectory(code_doc.GetFilePath()))
-    {
-    }
+    ActionInvokerJsonCaller(CodeDoc& code_doc, OutputWnd& output_wnd);
 
     int GetCallerId() const override { return m_callerId; }
 
@@ -24,11 +21,28 @@ public:
 
     std::string GetRootDirectory() override { return m_rootDirectory; }
 
+    std::shared_ptr<CaseConstructionReporter> CreateCaseConstructionReporter() override;
+
 private:
+    OutputWnd& m_outputWnd;
     int m_callerId;
     CancelFlag m_cancelFlag;
     const std::string m_rootDirectory;
 };
+
+
+ActionInvokerJsonCaller::ActionInvokerJsonCaller(CodeDoc& code_doc, OutputWnd& output_wnd)
+    :   m_outputWnd(output_wnd),
+        m_callerId(UniqueId::CreateInt()),
+        m_rootDirectory(PortableFunctions::PathGetDirectory(code_doc.GetFilePath()))
+{
+}
+
+
+std::shared_ptr<CaseConstructionReporter> ActionInvokerJsonCaller::CreateCaseConstructionReporter()
+{
+    return std::make_unique<OutputWndCaseConstructionReporter>(m_outputWnd);
+}
 
 
 
@@ -194,7 +208,7 @@ private:
 
 
 ActionInvokerJsonRunOperation::ActionInvokerJsonRunOperation(CodeDoc& code_doc, std::unique_ptr<CSCodeJsonExecutor> cscode_json_executor, OutputWnd& output_wnd)
-    :   m_actionInvokerCaller(code_doc),
+    :   m_actionInvokerCaller(code_doc, output_wnd),
         m_cscodeJsonExecutor(std::move(cscode_json_executor)),
         m_outputWnd(output_wnd)
 {

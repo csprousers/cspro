@@ -26,6 +26,7 @@ LOCAL_SRC_FILES         += $(DEP_SRC_PATH)/intenter.cpp
 
 LOCAL_SRC_FILES         += $(EX2_SRC_PATH)/CIterator.cpp
 LOCAL_SRC_FILES         += $(EX2_SRC_PATH)/engdrv.cpp
+LOCAL_SRC_FILES         += $(EX2_SRC_PATH)/EngineDictionaryModifier.cpp
 LOCAL_SRC_FILES         += $(EX2_SRC_PATH)/Exappl.cpp
 LOCAL_SRC_FILES         += $(EX2_SRC_PATH)/Exapplva.cpp
 LOCAL_SRC_FILES         += $(EX2_SRC_PATH)/Exopfile.cpp

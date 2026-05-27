@@ -15,5 +15,6 @@
 #include <zUtilO/MimeType.h>
 #include <zJson/Json.h>
 #include <zAppO/Application.h>
+#include <zParadataO/Logger.h>
 #include <zEngineO/Messages/EngineMessages.h>
 #include <engine/InterpreterAccessor.h>

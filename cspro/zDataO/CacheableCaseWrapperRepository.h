@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zDataO/zDataO.h>
 #include <zDataO/WrapperRepository.h>
@@ -20,7 +20,7 @@ public:
     void ReadCase(Case& data_case, const std::string& key) override;
     void ReadCase(Case& data_case, double position_in_repository) override;
     void ReadCaseByUuid(Case& data_case, const std::string& uuid) override;
-    void WriteCase(Case& data_case, WriteCaseParameter* write_case_parameter = nullptr) override;
+    void WriteCase(Case& data_case, const WriteCaseParameter* write_case_parameter = nullptr) override;
     void DeleteCase(double position_in_repository, bool deleted = true) override;
     void DeleteCase(const std::string& key) override;
     std::unique_ptr<CaseIterator> CreateIterator(CaseIterationContent iteration_content,
@@ -32,15 +32,17 @@ private:
     void ClearCachedCases(bool reuse_cases);
     void ClearCachedCase(const Case& data_case);
     std::shared_ptr<Case> CacheCase(Case& data_case, bool cache_using_key);
+    std::shared_ptr<Case> CacheCase(Case& data_case);
 
     template<typename MapT, typename LookupT>
     void DeleteCaseWorker(MapT& cases_map, const LookupT& lookup_value);
 
 private:
-    const bool m_positionsInRepositoryChangeOnModification;
+    bool m_repositorySupportsDuplicates;
+    bool m_positionsInRepositoryChangeOnModification;
 
     std::vector<std::shared_ptr<Case>> m_unusedCasesPool;
-    std::map<std::string, std::shared_ptr<Case>> m_casesByKey;
+    std::map<std::string, std::shared_ptr<Case>> m_notDeletedCasesByKey;
     std::map<double, std::shared_ptr<Case>> m_casesByPosition;
 
     std::map<size_t, const std::vector<std::shared_ptr<Case>>> m_cachedIterations;

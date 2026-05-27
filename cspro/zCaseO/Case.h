@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zCaseO/zCaseO.h>
 #include <zCaseO/CaseAccess.h>
@@ -93,7 +93,9 @@ public:
     std::vector<CaseLevel*> GetAllCaseLevels();
 
     // Adds a record occurrence to any record that is required but has no occurrences.
-    void AddRequiredRecords(bool report_additions_using_case_construction_reporter);
+    // Optionally, a list of added records is populated.
+    void AddRequiredRecords(bool report_additions_using_case_construction_reporter,
+                            std::vector<std::string>* added_record_names = nullptr);
 
     // case UUID
     const std::string& GetUuid() const { return m_uuid; }
@@ -147,6 +149,7 @@ public:
     void WriteJson(JsonWriter& json_writer) const;
 
     // Parses the JSON, replacing the current case with the contents of the JSON node.
+    // Some parsing issues are suppressed, but exceptions can be thrown.
     void ParseJson(const JsonNode& json_node);
 
 private:

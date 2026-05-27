@@ -13,7 +13,8 @@
 ActionInvoker::Runtime::Runtime()
     :   m_exceptionThrowingJsonReaderInterface(std::make_unique<ExceptionThrowingJsonReaderInterface>()),
         m_registeredAccessTokensForExternalCallers(std::make_unique<std::set<std::string>>()),
-        m_listeners(std::make_unique<std::vector<Listener*>>())
+        m_listeners(std::make_unique<std::vector<Listener*>>()),
+        m_currentCaller(std::make_unique<Caller*>(nullptr))
 {
 }
 
@@ -151,7 +152,8 @@ ActionInvoker::Result ActionInvoker::Runtime::ProcessAction(const Action action,
 {
     if( json_arguments.IsSet() )
     {
-        return RunFunction(action, ParseJson(json_arguments.GetString(), caller, &action), caller);
+        const JsonNode json_node = ParseJson(json_arguments.GetString(), caller, &action);
+        return RunFunction(action, json_node, caller);
     }
 
     else
@@ -198,6 +200,7 @@ ActionInvoker::Result ActionInvoker::Runtime::RunFunction(const Action action, c
     try
     {
         ASSERT(!caller.GetCancelFlag());
+        const RAII::SetValueAndRestoreOnDestruction current_caller_modifier(*m_currentCaller, &caller);
 
         return (this->*lookup->second)(json_node, caller);
     }

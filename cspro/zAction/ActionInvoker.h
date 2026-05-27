@@ -12,6 +12,7 @@ class Case;
 class CDataDict;
 class CDEFormFile;
 class CommonStore;
+class DataRepository;
 class InterpreterAccessor;
 class JsonReaderInterface;
 class KeyBasedVirtualFileMappingHandler;
@@ -24,6 +25,7 @@ class VirtualFileMappingHandler;
 
 namespace ActionInvoker
 {
+    enum class DataQueryContentType;
     class Listener;
     class ListenerHolder;
     class Runtime;
@@ -79,7 +81,6 @@ public:
     template<typename... Args>
     [[noreturn]] void IssueError(int message_number, Args const&... args);
 
-private:
     // Iterates over the listeners (in reverse-added order); return true to continue processing.
     template<typename CF>
     void IterateOverListeners(CF callback_function);
@@ -89,6 +90,7 @@ private:
     template<typename CF>
     void IterateOverListeners(const Caller& caller, CF callback_function);
 
+private:
     JsonNode ParseJson(std::string_view json_arguments_sv, Caller& caller, const Action* action);
 
     Action GetActionFromJson(const JsonNode& json_node);
@@ -97,7 +99,7 @@ private:
 
     // Creates a unique resource ID and associates it with the caller so that it can be
     // accessed in future calls without requiring the explicit specification of a resource ID.
-    enum class Resource { SqliteDb, FetchBody, SyncService };
+    enum class Resource { Data, FetchBody, SqliteDb, SyncService};
     int CreateResourceId(Resource resource, Caller& caller);
 
     // Returns the resource ID, calculated implicitly (if only one resource for the type exists for the caller),
@@ -117,6 +119,8 @@ private:
     std::unique_ptr<std::set<std::string>> m_registeredAccessTokensForExternalCallers; // null if access tokens are not required
 
     std::shared_ptr<std::vector<Listener*>> m_listeners;
+
+    std::shared_ptr<Caller*> m_currentCaller;
 
     std::map<int, std::vector<std::tuple<Resource, int>>> m_resourceIdCallerMap; // caller ID -> resource type and ID
 
@@ -138,8 +142,14 @@ private:
 
 
     // Data
-    Result GetQuestionnaireContentWithCaseData(QuestionnaireContentCreator& questionnaire_content_creator, std::unique_ptr<Case> data_case,
-                                               const JsonNode& json_node, bool write_all_content, bool case_content_is_from_current_case);
+    static std::unique_ptr<Case> ReadCase(const JsonNode& json_node, DataRepository& data_repository,
+                                          bool return_null_if_no_case_identifier_present);
+
+    Result GetQuestionnaireContentWithCaseData(std::variant<std::shared_ptr<const CDataDict>, std::unique_ptr<QuestionnaireContentCreator>> dictionary_or_questionnaire_content_creator,
+                                               std::unique_ptr<const Case> data_case, const JsonNode& json_node,
+                                               bool write_all_content, bool case_content_is_from_current_case);
+
+    Result QueryDataRepository(const JsonNode& json_node, Caller& caller, std::optional<DataQueryContentType> query_type);
 
     // File
     static FileOverwriteFlag EvaluateFileOverwriteFlag(const JsonNode& json_node);
@@ -185,6 +195,9 @@ private:
     std::vector<std::unique_ptr<VirtualFileMappingHandler>> m_localHostVirtualFileMappingHandlers;
     std::vector<std::shared_ptr<KeyBasedVirtualFileMappingHandler>> m_localHostKeyBasedVirtualFileMappingHandlers;
 
+    class DataWrapper;
+    std::map<int, std::shared_ptr<DataWrapper>> m_dataWrappers;
+
     class FetchWrapper;
     std::map<int, std::shared_ptr<FetchWrapper>> m_fetchWrappers;
 
@@ -213,7 +226,18 @@ private:
     Result Application_getQuestionText(const JsonNode& json_node, Caller& caller);
     Result Clipboard_getText(const JsonNode& json_node, Caller& caller);
     Result Clipboard_putText(const JsonNode& json_node, Caller& caller);
+    Result Data_close(const JsonNode& json_node, Caller& caller);
+    Result Data_contains(const JsonNode& json_node, Caller& caller);
+    Result Data_countCases(const JsonNode& json_node, Caller& caller);
+    Result Data_deleteCase(const JsonNode& json_node, Caller& caller);
     Result Data_getCase(const JsonNode& json_node, Caller& caller);
+    Result Data_getCurrentCase(const JsonNode& json_node, Caller& caller);
+    Result Data_open(const JsonNode& json_node, Caller& caller);
+    Result Data_query(const JsonNode& json_node, Caller& caller);
+    Result Data_queryCases(const JsonNode& json_node, Caller& caller);
+    Result Data_queryKeys(const JsonNode& json_node, Caller& caller);
+    Result Data_readCase(const JsonNode& json_node, Caller& caller);
+    Result Data_writeCase(const JsonNode& json_node, Caller& caller);
     Result Dictionary_getDictionary(const JsonNode& json_node, Caller& caller);
     Result File_copy(const JsonNode& json_node, Caller& caller);
     Result File_readBytes(const JsonNode& json_node, Caller& caller);

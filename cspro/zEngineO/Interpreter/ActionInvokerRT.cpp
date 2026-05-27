@@ -1,5 +1,7 @@
 #include "stdafx.h"
 #include "IncludesRT.h"
+#include "EngineAccessor.h"
+#include "EngineCaseConstructionReporter.h"
 #include "Nodes/GeneralizedFunction.h"
 #include <zToolsO/ObjectTransporter.h>
 #include <zToolsO/UniqueId.h>
@@ -17,20 +19,40 @@
 class ActionInvokerEngineCaller : public ActionInvoker::Caller
 {
 public:
-    ActionInvokerEngineCaller(const PFF& pff, CancelFlag& stop_flag)
-        :   m_callerId(UniqueId::CreateInt()),
+    ActionInvokerEngineCaller(EngineData& engine_data, CancelFlag& stop_flag)
+        :   m_engineData(engine_data),
+            m_callerId(UniqueId::CreateInt()),
             m_cancelFlag(stop_flag),
-            m_rootDirectory(PortableFunctions::PathGetDirectory(UTF8_TODO::GetUtf8(pff.GetAppFName())))
+            m_rootDirectory(PortableFunctions::PathGetDirectory(UTF8_TODO::GetUtf8(m_engineData.pff->GetAppFName())))
     {
+        ASSERT(m_engineData.engine_accessor != nullptr);
     }
 
-    int GetCallerId() const override { return m_callerId; }
+    int GetCallerId() const override
+    {
+        return m_callerId;
+    }
 
-    CancelFlag& GetCancelFlag() override { return m_cancelFlag; }
+    CancelFlag& GetCancelFlag() override
+    {
+        return m_cancelFlag;
+    }
 
-    std::string GetRootDirectory() override { return m_rootDirectory; }
+    std::string GetRootDirectory() override
+    {
+        return m_rootDirectory;
+    }
+
+    std::shared_ptr<CaseConstructionReporter> CreateCaseConstructionReporter() override
+    {
+        return std::make_unique<EngineCaseConstructionReporter>(
+            m_engineData.engine_accessor->ea_GetSharedSystemMessageIssuer(),
+            nullptr
+        );
+    }
 
 private:
+    EngineData& m_engineData;
     int m_callerId;
     CancelFlag& m_cancelFlag;
     const std::string m_rootDirectory;
@@ -92,7 +114,7 @@ double LogicInterpreter::ex_ActionInvoker(const int program_index)
             }
 
             ASSERT(m_engineData->pff != nullptr);
-            m_actionInvokerCaller = std::make_unique<ActionInvokerEngineCaller>(*m_engineData->pff, m_bStopProc);
+            m_actionInvokerCaller = std::make_unique<ActionInvokerEngineCaller>(*m_engineData, m_bStopProc);
         }
 
         ASSERT(m_actionInvokerRuntime != nullptr && m_actionInvokerCaller != nullptr);

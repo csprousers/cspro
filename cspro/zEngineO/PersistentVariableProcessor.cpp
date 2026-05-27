@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "PersistentVariableProcessor.h"
 #include "EngineAccessor.h"
 #include "List.h"
@@ -63,7 +63,7 @@ void PersistentVariableProcessor::OnStart()
 
     if( m_commonStore == nullptr )
     {
-        m_engineData.engine_accessor->ea_GetSystemMessageIssuer().Issue(MessageType::Error, 94107);
+        m_engineData.engine_accessor->ea_GetSharedSystemMessageIssuer()->Issue(MessageType::Error, 94107);
     }
 
     else
@@ -93,10 +93,12 @@ void PersistentVariableProcessor::OnStart()
 
                 catch( const CSProException& exception )
                 {
-                    m_engineData.engine_accessor->ea_GetSystemMessageIssuer().Issue(MessageType::Error, 94108,
-                                                                                    symbol.GetName().c_str(),
-                                                                                    exception.what(),
-                                                                                    value->c_str());
+                    m_engineData.engine_accessor->ea_GetSharedSystemMessageIssuer()->Issue(
+                        MessageType::Error, 94108,
+                        symbol.GetName().c_str(),
+                        exception.what(),
+                        value->c_str()
+                    );
                 }
             }
         }

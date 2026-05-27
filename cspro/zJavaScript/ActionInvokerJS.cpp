@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "ActionInvokerJS.h"
 #include "ValueInternal.h"
 #include <zToolsO/ObjectTransporter.h>
@@ -12,6 +12,7 @@
 
 void JavaScript::Executor::UseActionInvoker(const std::vector<const Logic::FunctionDetails*>& functions,
                                             const std::map<Logic::FunctionNamespace, const char*>& namespace_names,
+                                            std::shared_ptr<CaseConstructionReporter> case_construction_reporter,
                                             const char* const object_name_override/* = nullptr*/)
 {
     // return if it has already been set up
@@ -19,6 +20,9 @@ void JavaScript::Executor::UseActionInvoker(const std::vector<const Logic::Funct
         return;
 
     m_actionInvokerJS = std::make_unique<ActionInvokerJS>();
+
+    // the Data actions may use a CaseConstructionReporter
+    m_actionInvokerJS->case_construction_reporter = std::move(case_construction_reporter);
 
     struct ActionInvokerSetUpError { };
 
@@ -133,10 +137,7 @@ void JavaScript::Executor::UseActionInvoker(const std::vector<const Logic::Funct
 class JavaScript::Executor::ActionInvokerJSCaller : public ActionInvoker::Caller
 {
 public:
-    ActionInvokerJSCaller(Executor& executor)
-        :   m_executor(executor)
-    {
-    }
+    ActionInvokerJSCaller(Executor& executor);
 
     int GetCallerId() const override { return m_executor.m_actionInvokerCallerId; }
 
@@ -144,10 +145,19 @@ public:
 
     std::string GetRootDirectory() override { return m_executor.m_rootDirectory; }
 
+    std::shared_ptr<CaseConstructionReporter> CreateCaseConstructionReporter() override;
+
 private:
     Executor& m_executor;
     std::unique_ptr<CancelFlag> m_cancelFlag;
 };
+
+
+JavaScript::Executor::ActionInvokerJSCaller::ActionInvokerJSCaller(Executor& executor)
+    :   m_executor(executor)
+{
+    ASSERT(m_executor.m_actionInvokerJS->case_construction_reporter != nullptr);
+}
 
 
 CancelFlag& JavaScript::Executor::ActionInvokerJSCaller::GetCancelFlag()
@@ -164,6 +174,12 @@ CancelFlag& JavaScript::Executor::ActionInvokerJSCaller::GetCancelFlag()
     }
 
     return *cancel_flag;
+}
+
+
+std::shared_ptr<CaseConstructionReporter> JavaScript::Executor::ActionInvokerJSCaller::CreateCaseConstructionReporter()
+{
+    return m_executor.m_actionInvokerJS->case_construction_reporter;
 }
 
 

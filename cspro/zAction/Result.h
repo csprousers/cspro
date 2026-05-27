@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zToolsO/Encoders.h>
 #include <zToolsO/NumberToString.h>
@@ -100,6 +100,7 @@ inline ActionInvoker::Result ActionInvoker::Result::Number(const T result)
 {
     static_assert(std::is_same_v<T, int> ||
                   std::is_same_v<T, int64_t> ||
+                  std::is_same_v<T, size_t> ||
                   std::is_same_v<T, double>);
 
     return Result(Type::Number, static_cast<double>(result));

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 // an implementation of the .sts status file for storing information about verified cases and partial save statuses;
 // data is written to disk whenever modified
@@ -30,7 +30,7 @@ public:
     void SetUpCase(Case& data_case) const;
     void SetUpCaseSummary(CaseSummary& case_summary) const;
 
-    void WriteCase(Case& data_case, WriteCaseParameter* write_case_parameter);
+    void WriteCase(Case& data_case, const WriteCaseParameter* write_case_parameter);
 
     void DeleteCase(const std::string& key);
 
@@ -139,7 +139,7 @@ inline const TextRepositoryStatusFile::Status& TextRepositoryStatusFile::LookupS
             return status_search->second;
     }
 
-    return m_defaultStatus;        
+    return m_defaultStatus;
 }
 
 

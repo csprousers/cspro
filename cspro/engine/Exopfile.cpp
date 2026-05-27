@@ -1,4 +1,4 @@
-﻿//---------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 //
 // EXOPFILE.cpp   : opening and closing of external files
 //
@@ -194,7 +194,7 @@ void CEngineDriver::OpenRepository(EngineDataRepository& engine_data_repository,
 
     std::shared_ptr<DataRepository> data_repository = DataRepository::Create(engine_dictionary.GetSharedCaseAccess(), connection_string, access_type);
 
-    // wrap the repository if using the paradata
+    // wrap the repository if using paradata
     if( Paradata::Logger::IsOpen() )
     {
         data_repository = std::make_shared<ParadataWrapperRepository>(std::move(data_repository),
@@ -277,7 +277,7 @@ void CEngineDriver::OpenRepository(DICX* pDicX, const ConnectionString& connecti
 
     std::shared_ptr<DataRepository> data_repository = DataRepository::Create(pDicT->GetSharedCaseAccess(), connection_string, access_type);
 
-    // wrap the repository if using the paradata
+    // wrap the repository if using paradata
     if( Paradata::Logger::IsOpen() )
     {
         data_repository = std::make_unique<ParadataWrapperRepository>(std::move(data_repository),

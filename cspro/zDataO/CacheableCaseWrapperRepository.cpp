@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "CacheableCaseWrapperRepository.h"
 #include "CacheableCaseWrapperRepositoryCaseIterators.h"
 #include <zToolsO/Hash.h>
@@ -10,6 +10,7 @@
 
 CacheableCaseWrapperRepository::CacheableCaseWrapperRepository(std::shared_ptr<DataRepository> repository)
     :   WrapperRepository(std::move(repository)),
+        m_repositorySupportsDuplicates(DataRepositoryHelpers::TypeSupportsDuplicates(m_repository->GetRepositoryType())),
         m_positionsInRepositoryChangeOnModification(!DataRepositoryHelpers::IsTypeSQLiteOrDerived(m_repository->GetRepositoryType()))
 {
 }
@@ -21,7 +22,8 @@ std::shared_ptr<DataRepository> CacheableCaseWrapperRepository::CreateCacheableC
 
     // the CacheableCaseWrapperRepository can only be used in certain circumstances
     if( repository->GetRepositoryAccess() == DataRepositoryAccess::ReadOnly ||
-        repository->GetRepositoryAccess() == DataRepositoryAccess::ReadWrite )
+        repository->GetRepositoryAccess() == DataRepositoryAccess::ReadWrite ||
+        repository->GetRepositoryAccess() == DataRepositoryAccess::EntryInput )
     {
         return std::shared_ptr<DataRepository>(new CacheableCaseWrapperRepository(std::move(repository)));
     }
@@ -46,8 +48,8 @@ void CacheableCaseWrapperRepository::ClearCachedCases(const bool reuse_cases)
     // save any cases to reuse at a future point
     if( reuse_cases )
     {
-        for( const auto& [position, data_case] : m_casesByPosition )
-            m_unusedCasesPool.emplace_back(data_case);
+        for( auto& [position, data_case] : m_casesByPosition )
+            m_unusedCasesPool.emplace_back(std::move(data_case));
     }
 
     else
@@ -55,7 +57,7 @@ void CacheableCaseWrapperRepository::ClearCachedCases(const bool reuse_cases)
         m_unusedCasesPool.clear();
     }
 
-    m_casesByKey.clear();
+    m_notDeletedCasesByKey.clear();
     m_casesByPosition.clear();
 }
 
@@ -66,14 +68,16 @@ void CacheableCaseWrapperRepository::ClearCachedCase(const Case& data_case)
 
     ClearCachedIterations();
 
-    m_casesByKey.erase(data_case.GetKey());
+    m_notDeletedCasesByKey.erase(data_case.GetKey());
 
     const auto& case_lookup = m_casesByPosition.find(data_case.GetPositionInRepository());
 
-    // save the case for reuse at a future point
-    if( case_lookup != m_casesByPosition.cend() && case_lookup->second.use_count() == 1 )
+    if( case_lookup != m_casesByPosition.cend() )
     {
-        m_unusedCasesPool.emplace_back(case_lookup->second);
+        // save the case for reuse at a future point
+        if( case_lookup->second.use_count() == 1 )
+            m_unusedCasesPool.emplace_back(std::move(case_lookup->second));
+
         m_casesByPosition.erase(case_lookup);
     }
 }
@@ -99,11 +103,21 @@ std::shared_ptr<Case> CacheableCaseWrapperRepository::CacheCase(Case& data_case,
     // not everything is cached by key because a case retrieved by the position in repository or UUID
     // may not be accessible by the key (e.g., the second [duplicate] case in the repository with a given key)
     if( cache_using_key )
-        m_casesByKey.emplace(cached_data_case->GetKey(), cached_data_case);
+        m_notDeletedCasesByKey.emplace(cached_data_case->GetKey(), cached_data_case);
 
     m_casesByPosition.emplace(cached_data_case->GetPositionInRepository(), cached_data_case);
 
     return cached_data_case;
+}
+
+
+inline std::shared_ptr<Case> CacheableCaseWrapperRepository::CacheCase(Case& data_case)
+{
+    // only cache the case using the key when this is a non-deleted case with a unique key
+    // (as would be returned by ReadCase passing a key)
+    const bool cache_using_key = ( !m_repositorySupportsDuplicates && !data_case.GetDeleted() );
+
+    return CacheCase(data_case, cache_using_key);
 }
 
 
@@ -123,9 +137,9 @@ void CacheableCaseWrapperRepository::ModifyCaseAccess(std::shared_ptr<const Case
 
 void CacheableCaseWrapperRepository::ReadCase(Case& data_case, const std::string& key)
 {
-    const auto& case_lookup = m_casesByKey.find(key);
+    const auto& case_lookup = m_notDeletedCasesByKey.find(key);
 
-    if( case_lookup != m_casesByKey.cend() )
+    if( case_lookup != m_notDeletedCasesByKey.cend() )
     {
         data_case = *case_lookup->second;
     }
@@ -150,7 +164,7 @@ void CacheableCaseWrapperRepository::ReadCase(Case& data_case, const double posi
     else
     {
         WrapperRepository::ReadCase(data_case, position_in_repository);
-        CacheCase(data_case, false);
+        CacheCase(data_case);
     }
 }
 
@@ -158,37 +172,25 @@ void CacheableCaseWrapperRepository::ReadCase(Case& data_case, const double posi
 void CacheableCaseWrapperRepository::ReadCaseByUuid(Case& data_case, const std::string& uuid)
 {
     WrapperRepository::ReadCaseByUuid(data_case, uuid);
-    CacheCase(data_case, false);
+    CacheCase(data_case);
 }
 
 
-void CacheableCaseWrapperRepository::WriteCase(Case& data_case, WriteCaseParameter* const write_case_parameter/* = nullptr*/)
+void CacheableCaseWrapperRepository::WriteCase(Case& data_case, const WriteCaseParameter* const write_case_parameter/* = nullptr*/)
 {
-    // this should only be triggered by writecase calls, which means that we can cache by key as well
-    ASSERT(write_case_parameter == nullptr && !data_case.GetDeleted());
-
-    ClearCachedIterations();
-
-    if( m_positionsInRepositoryChangeOnModification )
-    {
-        ClearCachedCases(true);
-    }
-
-    else
-    {
-        ClearCachedCase(data_case);
-    }
+    // ideally, when m_positionsInRepositoryChangeOnModification is false, we could
+    // determine whether only one case, not all, must be cleared (as in DeleteCaseWorker),
+    // but without knowing what case this replace, we will just clear all cases to be safe
+    ClearCachedCases(true);
 
     WrapperRepository::WriteCase(data_case, write_case_parameter);
-    CacheCase(data_case, true);
+    CacheCase(data_case);
 }
 
 
 template<typename MapT, typename LookupT>
 void CacheableCaseWrapperRepository::DeleteCaseWorker(MapT& cases_map, const LookupT& lookup_value)
 {
-    ClearCachedIterations();
-
     if( m_positionsInRepositoryChangeOnModification )
     {
         ClearCachedCases(true);
@@ -197,6 +199,8 @@ void CacheableCaseWrapperRepository::DeleteCaseWorker(MapT& cases_map, const Loo
     // lookup the case so that we can delete it from both the key and position maps
     else
     {
+        ClearCachedIterations();
+
         const auto& case_lookup = cases_map.find(lookup_value);
 
         if( case_lookup != cases_map.cend() )
@@ -215,7 +219,7 @@ void CacheableCaseWrapperRepository::DeleteCase(const double position_in_reposit
 
 void CacheableCaseWrapperRepository::DeleteCase(const std::string& key)
 {
-    DeleteCaseWorker(m_casesByKey, key);
+    DeleteCaseWorker(m_notDeletedCasesByKey, key);
 
     WrapperRepository::DeleteCase(key);
 }
@@ -308,7 +312,7 @@ bool CCWR_FirstPassCaseIterator::NextCase(Case& data_case)
 
     if( case_read )
     {
-        m_cachedCases.emplace_back(m_cacheableCaseWrapperRepository.CacheCase(data_case, false));
+        m_cachedCases.emplace_back(m_cacheableCaseWrapperRepository.CacheCase(data_case));
     }
 
     // when all cases have been read, the iteration order can be saved for future use

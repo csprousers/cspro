@@ -1,10 +1,11 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "SyncObexHandler.h"
 #include "ApplicationPackageManager.h"
 #include "BluetoothChunk.h"
 #include "JsonConverter.h"
 #include "SyncMessage.h"
 #include <zToolsO/base64.h>
+#include <zToolsO/ObjectTransporter.h>
 #include <zToolsO/SpanHelpers.h>
 #include <zUtilO/Interapp.h>
 #include <zNetwork/SyncCustomHeaders.h>
@@ -16,6 +17,8 @@
 #include <zDataO/SyncHistoryEntry.h>
 #include <zParadataO/Logger.h>
 #include <zParadataO/Syncer.h>
+#include <engine/EngineDictionaryModifier.h>
+#include <engine/InterpreterAccessor.h>
 
 
 namespace
@@ -612,11 +615,35 @@ namespace
                 return OBEX_BAD_REQUEST;
             }
 
+            // because the cases may change during the sync, this object will ensure
+            // that any cases currently loaded are properly updated post-sync
+            std::unique_ptr<EngineDictionaryModifier> engine_dictionary_modifier;
+
+            try
+            {
+                engine_dictionary_modifier = ObjectTransporter::GetInterpreterAccessor()->CreateEngineDictionaryModifier(
+                    m_pRepo->GetCaseAccess().GetDataDict().GetName()
+                );
+
+                engine_dictionary_modifier->PrepareForModifications();
+            }
+            catch(...) { ASSERT(false); }
+
+            // sync the cases
             DataRepositoryTransaction transaction(*m_pRepo);
 
             //TODO: Make cases observable
             const int thisSyncRev = m_pRepo->SyncCasesFromRemote(cases, std::string());
             m_pRepo->EndSync();
+
+            if( engine_dictionary_modifier != nullptr )
+            {
+                try
+                {
+                    engine_dictionary_modifier->FinishedWithModifications();
+                }
+                catch(...) { ASSERT(false); }
+            }
 
             const ISyncableDataRepository::SyncStats stats = m_pRepo->GetLastSyncStats();
 

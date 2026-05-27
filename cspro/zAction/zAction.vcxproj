@@ -23,6 +23,7 @@
     <ClCompile Include="ActionInvoker.cpp" />
     <ClCompile Include="Application.cpp" />
     <ClCompile Include="Caller.cpp" />
+    <ClCompile Include="CallerWrappingCaseConstructionReporter.cpp" />
     <ClCompile Include="Clipboard.cpp" />
     <ClCompile Include="Data.cpp" />
     <ClCompile Include="Dictionary.cpp" />
@@ -51,6 +52,7 @@
     <ClInclude Include="AccessToken.h" />
     <ClInclude Include="ActionInvoker.h" />
     <ClInclude Include="Caller.h" />
+    <ClInclude Include="CallerWrappingCaseConstructionReporter.h" />
     <ClInclude Include="Encoding.h" />
     <ClInclude Include="Exception.h" />
     <ClInclude Include="ExceptionThrowingJsonReaderInterface.h" />

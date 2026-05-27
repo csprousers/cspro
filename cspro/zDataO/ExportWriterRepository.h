@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zDataO/DataRepository.h>
 
@@ -22,7 +22,8 @@ public:
                                        const CaseIteratorParameters* start_parameters = nullptr) override;
     void ReadCase(Case& data_case, const std::string& key) override;
     void ReadCase(Case& data_case, double position_in_repository) override;
-    void WriteCase(Case& data_case, WriteCaseParameter* write_case_parameter = nullptr) override;
+    void ReadCaseByUuid(Case& data_case, const std::string& uuid) override;
+    void WriteCase(Case& data_case, const WriteCaseParameter* write_case_parameter = nullptr) override;
     void DeleteCase(double position_in_repository, bool deleted = true) override;
     size_t GetNumberCases() override;
     size_t GetNumberCases(CaseIterationCaseStatus case_status, const CaseIteratorParameters* start_parameters = nullptr) override;
@@ -37,6 +38,8 @@ private:
     void Open(DataRepositoryOpenFlag open_flag) override;
 
     void LogInvalidAccess(const char* access_message, const Case* data_case = nullptr) const;
+
+    [[noreturn]] void ReadCase(Case& data_case);
 
 private:
     std::unique_ptr<ExportWriter> m_exportWriter;

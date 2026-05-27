@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include <zAppO/PFF.h>
 #include <zFormO/FormFile.h>
 #include <zCapiO/CapiQuestionManager.h>
@@ -283,44 +283,46 @@ ActionInvoker::Result ActionInvoker::Runtime::Application_getQuestionnaireConten
     std::tie(application, form_file, dictionary) = GetApplicationComponents<std::shared_ptr<const CDataDict>>(json_node.GetOptional<std::string_view>(JK::name));
     ASSERT(dictionary != nullptr);
 
-    QuestionnaireContentCreator questionnaire_content_creator;
+    auto questionnaire_content_creator = std::make_unique<QuestionnaireContentCreator>();
 
     // add as many associated application components as exist
-    questionnaire_content_creator.SetDictionary(dictionary);
-    questionnaire_content_creator.SetFormFile(std::move(form_file));
+    questionnaire_content_creator->SetDictionary(dictionary);
+    questionnaire_content_creator->SetFormFile(std::move(form_file));
 
     if( application != nullptr && application->GetUseQuestionText() )
-        questionnaire_content_creator.SetCapiQuestionManager(application->GetCapiQuestionManager());
-
-    std::unique_ptr<Case> data_case;
-    bool case_content_is_from_current_case;
+        questionnaire_content_creator->SetCapiQuestionManager(application->GetCapiQuestionManager());
 
     // return content with a case, either directly specified...
-    if( json_node.Contains(JK::key) || json_node.Contains(JK::uuid) )
-    {
-        data_case = GetInterpreterAccessor().GetCase(dictionary->GetName(),
-                                                     json_node.GetOptional<std::string>(JK::uuid),
-                                                     json_node.GetOptional<std::string>(JK::key));
-        case_content_is_from_current_case = false;
-    }
+    std::unique_ptr<const Case> data_case = ActionInvoker::Runtime::ReadCase(
+        json_node,
+        GetInterpreterAccessor().GetDataRepository(dictionary->GetName(), false),
+        true // return_null_case_if_no_key_present
+    );
+
+    const bool case_content_is_from_current_case = ( data_case == nullptr );
 
     // ...or the current case
-    else
+    if( case_content_is_from_current_case )
     {
         try
         {
             data_case = GetInterpreterAccessor().GetCurrentCase(dictionary->GetName());
-            case_content_is_from_current_case = true;
         }
 
         catch(...)
         {
             // if no case is available, return content without a case
-            return Result::JsonText(questionnaire_content_creator.GetContent());
+            return Result::JsonText(questionnaire_content_creator->GetContent());
         }
     }
 
     ASSERT(data_case != nullptr);
 
-    return GetQuestionnaireContentWithCaseData(questionnaire_content_creator, std::move(data_case), json_node, true, case_content_is_from_current_case);
+    return GetQuestionnaireContentWithCaseData(
+        std::move(questionnaire_content_creator),
+        std::move(data_case),
+        json_node,
+        true,
+        case_content_is_from_current_case
+    );
 }

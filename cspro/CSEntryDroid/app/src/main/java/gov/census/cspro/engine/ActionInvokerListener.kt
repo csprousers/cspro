@@ -5,6 +5,7 @@ import android.os.Build
 import android.webkit.WebMessage
 import android.webkit.WebView
 import androidx.annotation.RequiresApi
+import org.json.JSONObject
 
 open class ActionInvokerListener(private val webView: WebView) {
 
@@ -55,6 +56,15 @@ open class ActionInvokerListener(private val webView: WebView) {
         val targetOriginUri = Uri.parse(targetOrigin ?: "*")
         webView.post {
             webView.postWebMessage(webMessage, targetOriginUri)
+        }
+    }
+
+    fun onConsoleLog(message: String) {
+        webView.post {
+            webView.evaluateJavascript(
+                "console.log(${JSONObject.quote(message)});",
+                null
+            )
         }
     }
 }

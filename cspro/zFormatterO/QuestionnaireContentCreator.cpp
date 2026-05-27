@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "QuestionnaireContentCreator.h"
 #include "TempFormFileSerializer.h"
 #include <zHtml/AccessUrlSerializer.h>
@@ -13,8 +13,9 @@ CREATE_JSON_KEY(writeFieldStatuses)
 
 
 QuestionnaireContentCreator::QuestionnaireContentCreator()
-    :   m_binaryDataUseLocalhostUrl(JsonProperties::DefaultBinaryDataFormat == JsonProperties::BinaryDataFormat::LocalhostUrl),
-        m_bypassDictionaryMatchesCheck(false)
+    :   m_bypassDictionaryMatchesCheck(false),
+        m_writeCasePositions(false),
+        m_binaryDataUseLocalhostUrl(JsonProperties::DefaultBinaryDataFormat == JsonProperties::BinaryDataFormat::LocalhostUrl)
 {
 }
 
@@ -38,7 +39,8 @@ bool QuestionnaireContentCreator::DictionaryMatches(const CDataDict* const compa
     if( m_bypassDictionaryMatchesCheck )
         return true;
 
-    ASSERT(m_dictionary != nullptr && !m_dictionary->GetFilePath().empty());
+    ASSERT(m_dictionary != nullptr);
+    ASSERT(m_dictionary.get() == compare_dictionary || !m_dictionary->GetFilePath().empty());
 
     if( compare_dictionary != nullptr )
     {
@@ -123,20 +125,28 @@ std::string QuestionnaireContentCreator::GetContent()
 
 std::string QuestionnaireContentCreator::GetCaseContent()
 {
+    const std::unique_ptr<JsonStringWriter> json_writer = Json::CreateStringWriter();
+    json_writer->SetVerbose();
+
+    WriteCaseContent(*json_writer);
+
+    return json_writer->ReleaseString();
+}
+
+
+void QuestionnaireContentCreator::WriteCaseContent(JsonWriter& json_writer)
+{
     if( m_dictionary == nullptr || m_case == nullptr )
         throw CSProException("A dictionary and case must be specified to generate content.");
 
     ASSERT(DictionaryMatches(&m_case->GetCaseMetadata().GetDictionary()));
 
     // create the JSON content
-    const std::unique_ptr<JsonStringWriter> json_writer = Json::CreateStringWriter();
-    json_writer->SetVerbose();
+    ASSERT(json_writer.Verbose());
 
-    auto case_json_writer_serializer_holder = json_writer->GetSerializerHelper().Register(GetCaseJsonWriterSerializerHelper());
+    auto case_json_writer_serializer_holder = json_writer.GetSerializerHelper().Register(GetCaseJsonWriterSerializerHelper());
 
-    m_case->WriteJson(*json_writer);
-
-    return json_writer->ReleaseString();
+    m_case->WriteJson(json_writer);
 }
 
 
@@ -190,6 +200,8 @@ std::shared_ptr<CaseJsonWriterSerializerHelper> QuestionnaireContentCreator::Get
     if( m_caseJsonWriterSerializerHelper == nullptr )
     {
         m_caseJsonWriterSerializerHelper = std::make_unique<CaseJsonWriterSerializerHelper>();
+
+        m_caseJsonWriterSerializerHelper->SetWriteCasePositions(m_writeCasePositions);
 
         if( m_writeLabels.has_value() )
             m_caseJsonWriterSerializerHelper->SetWriteLabels(*m_writeLabels);

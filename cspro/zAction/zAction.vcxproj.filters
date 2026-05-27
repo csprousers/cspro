@@ -26,6 +26,9 @@
     <ClCompile Include="Caller.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="CallerWrappingCaseConstructionReporter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="Clipboard.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -98,6 +101,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Caller.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CallerWrappingCaseConstructionReporter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Encoding.h">

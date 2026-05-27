@@ -1,7 +1,8 @@
-﻿#pragma once
+#pragma once
 
 #include <zToolsO/CancelFlag.h>
 
+class CaseConstructionReporter;
 class HtmlViewCtrl;
 
 namespace ActionInvoker { class Caller; }
@@ -47,4 +48,8 @@ public:
 
     // Returns whether the access token is valid (based on a set of access tokens maintained by the caller).
     virtual bool IsAccessTokenValid(const std::string& /*access_token*/) const { return false; }
+
+    // Returns a CaseConstructionReporter applicable to this caller, or null if reporting should occur
+    // using Listener::OnLogDebugMessage.
+    virtual std::shared_ptr<CaseConstructionReporter> CreateCaseConstructionReporter() { return nullptr; }
 };

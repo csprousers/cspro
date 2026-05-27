@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "NullRepository.h"
 #include "NullRepositoryIterators.h"
 
@@ -87,7 +87,7 @@ void NullRepository::ReadCaseByUuid(Case& /*data_case*/, const std::string& /*uu
 }
 
 
-void NullRepository::WriteCase(Case& /*data_case*/, WriteCaseParameter* /*write_case_parameter = nullptr*/)
+void NullRepository::WriteCase(Case& /*data_case*/, const WriteCaseParameter* /*write_case_parameter = nullptr*/)
 {
 }
 

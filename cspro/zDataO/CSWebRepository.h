@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zDataO/zDataO.h>
 #include <zDataO/CSWebCaseResponse.h>
@@ -41,7 +41,7 @@ public:
     void ReadCase(Case& data_case, const std::string& key) override;
     void ReadCase(Case& data_case, double position_in_repository) override;
     void ReadCaseByUuid(Case& data_case, const std::string& uuid) override;
-    void WriteCase(Case& data_case, WriteCaseParameter* write_case_parameter = nullptr) override;
+    void WriteCase(Case& data_case, const WriteCaseParameter* write_case_parameter = nullptr) override;
     void DeleteCase(double position_in_repository, bool deleted = true) override;
     size_t GetNumberCases() override;
     size_t GetNumberCases(CaseIterationCaseStatus case_status, const CaseIteratorParameters* start_parameters = nullptr) override;
@@ -102,6 +102,8 @@ private:
     std::string CreateKeySearchQuery(const char* content, const CaseIteratorSettings& iterator_settings, size_t offset, size_t limit);
 
     void ReadCase(Case& data_case, const char* status, const char* filter_type, std::string_view filter_value_sv);
+
+    void WriteCaseWorker(Case& data_case);
 
     std::unique_ptr<SyncBinaryDataUploadManager> CreateSyncBinaryDataUploadManager();
 

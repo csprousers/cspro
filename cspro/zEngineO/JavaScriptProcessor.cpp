@@ -1,7 +1,8 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "JavaScriptProcessor.h"
 #include "AllSymbols.h"
 #include "EngineAccessor.h"
+#include "EngineCaseConstructionReporter.h"
 #include "UserFunctionArgumentChecker.h"
 #include "UserFunctionArgumentEvaluator.h"
 #include "Interpreter/LogicInterpreter.h"
@@ -465,7 +466,7 @@ private:
         {
             lister->Write(MessageType::Warning,
                           message_number,
-                          m_engineAccessor.ea_GetSystemMessageIssuer().GetFormattedMessage(message_number, text.GetString().c_str()));
+                          m_engineAccessor.ea_GetSharedSystemMessageIssuer()->GetFormattedMessage(message_number, text.GetString().c_str()));
         }
     }
 
@@ -499,8 +500,15 @@ void EngineJavaScriptProcessor::EnsureExecutorEvaluationState(const ExecutorEval
 
             if( javascript_properties.GetUseActionInvoker() )
             {
-                m_executor->UseActionInvoker(ActionInvoker::GetFunctions(), ActionInvoker::GetNamespaceNames(),
-                                             javascript_properties.GetActionInvokerObjectNameOverride());
+                m_executor->UseActionInvoker(
+                    ActionInvoker::GetFunctions(),
+                    ActionInvoker::GetNamespaceNames(),
+                    std::make_unique<EngineCaseConstructionReporter>(
+                        m_engineData.engine_accessor->ea_GetSharedSystemMessageIssuer(),
+                        nullptr
+                    ),
+                    javascript_properties.GetActionInvokerObjectNameOverride()
+               );
             }
         }
     }
@@ -565,11 +573,14 @@ auto EngineJavaScriptProcessor::ArgumentEvaluator::ConvertValueWorker(const size
 
     catch( const CSProException& exception )
     {
-        SystemMessageIssuer& system_message_issuer = m_javascriptProcessor.m_engineData.engine_accessor->ea_GetSystemMessageIssuer();
+        const std::shared_ptr<SystemMessageIssuer> system_message_issuer =
+            m_javascriptProcessor.m_engineData.engine_accessor->ea_GetSharedSystemMessageIssuer();
 
-        throw CSProException(system_message_issuer.GetFormattedMessage(MGF::JavaScript_value_conversion_error_100467,
-                                                                       ToDisplayString(m_userFunction.GetParameterSymbol(parameter_number).GetType()),
-                                                                       exception.what()));
+        throw CSProException(system_message_issuer->GetFormattedMessage(
+            MGF::JavaScript_value_conversion_error_100467,
+            ToDisplayString(m_userFunction.GetParameterSymbol(parameter_number).GetType()),
+            exception.what()
+        ));
     }
 }
 

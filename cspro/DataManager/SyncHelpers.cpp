@@ -21,7 +21,8 @@ void SyncHelpers::FillDataList(CSortListCtrl& data_list_ctrl, std::vector<SyncDi
 
     if( queried_dictionaries.empty() )
     {
-        ErrorMessage::Display(L"There is no data on the sync service. Upload a data file to the service or use a different service and try again.");
+        ErrorMessage::Display(L"There is no data on the sync service. "
+                              L"Upload data or use a different service and try again.");
         return;
     }
 

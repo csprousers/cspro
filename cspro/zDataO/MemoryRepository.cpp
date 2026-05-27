@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "MemoryRepository.h"
 #include "MemoryRepositoryIterators.h"
 #include <numeric>
@@ -188,16 +188,24 @@ void MemoryRepository::ReadCaseByUuid(Case& data_case, const std::string& uuid)
 }
 
 
-void MemoryRepository::WriteCase(Case& data_case, WriteCaseParameter* const write_case_parameter/* = nullptr*/)
+void MemoryRepository::WriteCase(Case& data_case, const WriteCaseParameter* const write_case_parameter/* = nullptr*/)
 {
     size_t case_insertion_index = m_cases.size();
+    bool replacing_case = false;
 
     if( write_case_parameter != nullptr )
     {
         case_insertion_index = static_cast<size_t>(write_case_parameter->GetPositionInRepository());
 
-        if( write_case_parameter->IsInsertParameter() )
+        if( write_case_parameter->IsModifyParameter() )
         {
+            replacing_case = true;
+        }
+
+        else
+        {
+            ASSERT(write_case_parameter->IsInsertParameter());
+
             // adjust the repository position for any existing cases
             std::for_each(m_cases.begin() + case_insertion_index, m_cases.end(),
                 [](std::shared_ptr<Case>& shift_data_case)
@@ -205,7 +213,7 @@ void MemoryRepository::WriteCase(Case& data_case, WriteCaseParameter* const writ
                     shift_data_case->SetPositionInRepository(shift_data_case->GetPositionInRepository() + 1);
                 });
 
-            // and add the new case
+            // and add a spot for the new case
             m_cases.insert(m_cases.begin() + case_insertion_index, m_caseAccess->CreateCase(true));
         }
     }
@@ -219,18 +227,27 @@ void MemoryRepository::WriteCase(Case& data_case, WriteCaseParameter* const writ
                 return ( search_data_case->GetKey() == data_case.GetKey() );
             });
 
-        // if the case already exists, use its UUID
         if( case_modification_point != m_cases.cend() )
         {
-            case_insertion_index = case_modification_point - m_cases.cbegin();
-            data_case.SetUuid((*case_modification_point)->GetUuid());
+            replacing_case = true;
+            case_insertion_index = std::distance(m_cases.cbegin(), case_modification_point);
         }
+    }
 
-        // otherwise assign a new UUID
-        else
-        {
-            data_case.SetUuid(CreateUuid());
-        }
+    // set the new repository position
+    data_case.SetPositionInRepository(case_insertion_index);
+
+    // if replacing an existing case, use its UUID
+    if( replacing_case )
+    {
+        ASSERT(!m_cases[case_insertion_index]->GetUuid().empty());
+        data_case.SetUuid(m_cases[case_insertion_index]->GetUuid());
+    }
+
+    // otherwise assign a new UUID
+    else
+    {
+        data_case.SetUuid(CreateUuid());
     }
 
     // if adding to the end, add a slot for it
@@ -239,10 +256,6 @@ void MemoryRepository::WriteCase(Case& data_case, WriteCaseParameter* const writ
 
     Case& new_case = *m_cases[case_insertion_index];
     new_case = data_case;
-
-    // set a UUID if one doesn't exist and set the new repository position
-    new_case.GetOrCreateUuid();
-    new_case.SetPositionInRepository(case_insertion_index);
 }
 
 

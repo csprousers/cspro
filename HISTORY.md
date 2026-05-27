@@ -9,6 +9,7 @@ Most CSPro development occurs on a [private repository](https://github.com/CSPro
 
 | Date | Branch | Pull Request Message |
 | --- | --- | --- |
+| 2026&#8209;05&#8209;27 | [Data-actions](https://github.com/CSProDevelopment/cspro/commit/7c83f6773b02dbbc2d34cfa3c3f28cb48de7568e) | added to Action Invoker's Data namespace, adding actions to interact with data sources |
 | 2026&#8209;04&#8209;29 | [merge-zSyncF-zSyncO](https://github.com/CSProDevelopment/cspro/commit/c0869a4ed91f874a05c5142bbe10b88f8830ec85) | merged zSyncF into zSyncO + enabled Bluetooth connections from the Action Invoker |
 | 2026&#8209;04&#8209;29 | [documenting-sync-services](https://github.com/CSProDevelopment/cspro/commit/0ccfd40635ca4985ba8d4744ac423fc1fbddd1b5) | changes made while documenting sync services and Sync actions |
 | 2026&#8209;04&#8209;16 | [website-syncer](https://github.com/CSProDevelopment/cspro/commit/c206149d4a861e3411abd3bd584a59f9159c6a5a) | updated the CSPro Users Website Builder to support clearing outputs and creating files for updating the website |

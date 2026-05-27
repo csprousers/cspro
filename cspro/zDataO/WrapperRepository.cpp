@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "WrapperRepository.h"
 #include "WrapperRepositoryIterators.h"
 #include <zDataO/CaseIterator.h>
@@ -101,7 +101,7 @@ void WrapperRepository::ReadCaseByUuid(Case& data_case, const std::string& uuid)
 }
 
 
-void WrapperRepository::WriteCase(Case& data_case, WriteCaseParameter* const write_case_parameter/* = nullptr*/)
+void WrapperRepository::WriteCase(Case& data_case, const WriteCaseParameter* const write_case_parameter/* = nullptr*/)
 {
     m_repository->WriteCase(data_case, write_case_parameter);
 }

@@ -218,9 +218,11 @@ std::string ActionInfo::GetHelpFilename() const
     // modify some mappings:
     //     - UI.closeDialog -> UI.close
     //     - Logic.updateSymbolValue -> Logic.setSymbolValue
+    //     - Data.getCase -> Data.readCase
     const char* const name_to_use =
         ( namespace_name == "UI" && name == "closeDialog" )          ? "close" :
         ( namespace_name == "Logic" && name == "updateSymbolValue" ) ? "setSymbolValue" :
+        ( namespace_name == "Data" && name == "getCase" )            ? "readCase" :
                                                                        name.c_str();
 
     return FormatText("%s_%s.html", GetFunctionNamespaceEnumClassId('_').c_str(), name_to_use);

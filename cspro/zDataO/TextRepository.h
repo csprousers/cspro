@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zDataO/zDataO.h>
 #include <zDataO/IndexableTextRepository.h>
@@ -33,7 +33,8 @@ public:
     DataRepositoryUniqueCaseIdentifer GetUniqueCaseIdentifer(const CaseKey& case_key) override;
     std::optional<CaseKey> FindCaseKey(CaseIterationMethod iteration_method, CaseIterationOrder iteration_order,
                                        const CaseIteratorParameters* start_parameters = nullptr) override;
-    void WriteCase(Case& data_case, WriteCaseParameter* write_case_parameter = nullptr) override;
+    void ReadCaseByUuid(Case& data_case, const std::string& uuid) override;
+    void WriteCase(Case& data_case, const WriteCaseParameter* write_case_parameter = nullptr) override;
     size_t GetNumberCases(CaseIterationCaseStatus case_status, const CaseIteratorParameters* start_parameters = nullptr) override;
     std::unique_ptr<CaseIterator> CreateIterator(CaseIterationContent iteration_content,
                                                  const CaseIteratorSettings& iterator_settings,
@@ -102,6 +103,9 @@ private:
     // DataRepositoryException::CaseNotFound will be thrown.
     std::string GetKeyFromPosition(int64_t file_position);
 
+    // Handles deleting a case when a case to be written was marked as deleted.
+    void DeleteCaseViaWriteCase(const Case& data_case, const WriteCaseParameter* write_case_parameter);
+
     // Deletes the case from the text file by putting a tilde at the beginning of each record line.
     void DeleteCaseInPlace(int64_t file_position, size_t bytes_for_case);
 
@@ -157,9 +161,10 @@ private:
 
     std::shared_ptr<TextRepositoryIndexCreator> m_indexCreator;
 
-    // CSEntry-specific objects
+    // other objects
     std::unique_ptr<TextRepositoryNotesFile> m_notesFile;
     std::unique_ptr<TextRepositoryStatusFile> m_statusFile;
+    bool m_deleteCaseShouldDeleteNotesAndStatuses;
 
     // transaction objects
     bool m_useTransactionManager;

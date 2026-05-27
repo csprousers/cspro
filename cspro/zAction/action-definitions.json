@@ -137,9 +137,17 @@
       },
       {
         "name": "uuid",
-        "description": "The UUID of a specific case to attach to the questionnaire content. If both \"uuid\" and \"key\" are provided, the \"uuid\" value is prioritized.",
+        "description": "The UUID of a specific case to attach to the questionnaire content.",
         "types": [
           "string"
+        ],
+        "required": false
+      },
+      {
+        "name": "position",
+        "description": "The \"position\" of the case in the data source.",
+        "types": [
+          "number"
         ],
         "required": false
       },
@@ -226,8 +234,154 @@
   },
   {
     "namespace": "Data",
+    "name": "close",
+    "description": "Closes a previously opened data source.",
+    "parameters": [
+      {
+        "name": "dataId",
+        "description": "The data source ID or the name of a dictionary.",
+        "types": [
+          "number",
+          "string"
+        ],
+        "required": false
+      }
+    ]
+  },
+  {
+    "namespace": "Data",
+    "name": "contains",
+    "description": "Returns whether a data source contains a specific case.",
+    "parameters": [
+      {
+        "name": "dataId",
+        "description": "The data source ID or the name of a dictionary.",
+        "types": [
+          "number",
+          "string"
+        ],
+        "required": false
+      },
+      {
+        "name": "key",
+        "description": "The key (case IDs) of a case.",
+        "types": [
+          "string"
+        ],
+        "required": false
+      },
+      {
+        "name": "uuid",
+        "description": "The UUID of a case.",
+        "types": [
+          "string"
+        ],
+        "required": false
+      },
+      {
+        "name": "position",
+        "description": "The \"position\" of the case in the data source.",
+        "types": [
+          "number"
+        ],
+        "required": false
+      }
+    ],
+    "returns": [
+      {
+        "name": "",
+        "description": "True if the case exists.",
+        "types": [
+          "boolean"
+        ]
+      }
+    ]
+  },
+  {
+    "namespace": "Data",
+    "name": "countCases",
+    "description": "Returns the number of cases in a data source.",
+    "parameters": [
+      {
+        "name": "dataId",
+        "description": "The data source ID or the name of a dictionary.",
+        "types": [
+          "number",
+          "string"
+        ],
+        "required": false
+      },
+      {
+        "name": "status",
+        "description": "Options for the status of the cases to query. (Default value is \"notDeletedOnly\".)",
+        "types": [
+          "string"
+        ],
+        "required": false
+      },
+      {
+        "name": "filter",
+        "description": "Options for how the queried data should be filtered.",
+        "types": [
+          "object"
+        ],
+        "required": false
+      }
+    ],
+    "returns": [
+      {
+        "name": "",
+        "description": "The number of cases.",
+        "types": [
+          "number"
+        ]
+      }
+    ]
+  },
+  {
+    "namespace": "Data",
+    "name": "deleteCase",
+    "description": "Deletes a case from a data source.",
+    "parameters": [
+      {
+        "name": "dataId",
+        "description": "The data source ID or the name of a dictionary.",
+        "types": [
+          "number",
+          "string"
+        ],
+        "required": false
+      },
+      {
+        "name": "key",
+        "description": "The key (case IDs) of a case.",
+        "types": [
+          "string"
+        ],
+        "required": false
+      },
+      {
+        "name": "uuid",
+        "description": "The UUID of a case.",
+        "types": [
+          "string"
+        ],
+        "required": false
+      },
+      {
+        "name": "position",
+        "description": "The \"position\" of the case in the data source.",
+        "types": [
+          "number"
+        ],
+        "required": false
+      }
+    ]
+  },
+  {
+    "namespace": "Data",
     "name": "getCase",
-    "description": "Returns a specific case, or the current case, associated with a dictionary.",
+    "description": "This action is deprecated. Use Data.getCurrentCase or Data.readCase instead.",
     "parameters": [
       {
         "name": "name",
@@ -239,7 +393,7 @@
       },
       {
         "name": "key",
-        "description": "The key (case IDs) of a specific case to lookup.",
+        "description": "The key (case IDs) of a case.",
         "types": [
           "string"
         ],
@@ -247,7 +401,7 @@
       },
       {
         "name": "uuid",
-        "description": "The UUID of a specific case to lookup. If both \"uuid\" and \"key\" are provided, the \"uuid\" value is prioritized.",
+        "description": "The UUID of a case.",
         "types": [
           "string"
         ],
@@ -268,6 +422,407 @@
         "description": "The current case.",
         "types": [
           "object"
+        ]
+      }
+    ]
+  },
+  {
+    "namespace": "Data",
+    "name": "getCurrentCase",
+    "description": "Returns the current case associated with an application's dictionary.",
+    "parameters": [
+      {
+        "name": "dataId",
+        "description": "The data source ID or the name of a dictionary.",
+        "types": [
+          "number",
+          "string"
+        ],
+        "required": false
+      },
+      {
+        "name": "serializationOptions",
+        "description": "Options for how the case should be serialized.",
+        "types": [
+          "object"
+        ],
+        "required": false
+      }
+    ],
+    "returns": [
+      {
+        "name": "",
+        "description": "The current case.",
+        "types": [
+          "object"
+        ]
+      }
+    ]
+  },
+  {
+    "namespace": "Data",
+    "name": "open",
+    "description": "Opens a data source and returns an ID that can be used for future operations.",
+    "parameters": [
+      {
+        "name": "connection",
+        "description": "The connection string specifying the data source. Either \"connection\" or \"name\" must be specified.",
+        "types": [
+          "string",
+          "object"
+        ],
+        "required": false
+      },
+      {
+        "name": "name",
+        "description": "The name of a dictionary. Either \"connection\" or \"name\" must be specified.",
+        "types": [
+          "string"
+        ],
+        "required": false
+      },
+      {
+        "name": "dictionary",
+        "description": "The dictionary that describes the data source's cases (when using a \"connection\"). It can be a dictionary name, path, or the JSON contents of a dictionary.",
+        "types": [
+          "string",
+          "object"
+        ],
+        "required": false
+      },
+      {
+        "name": "openFlags",
+        "description": "Flags to control how the data source is opened (when using a \"connection\"). (Default value is \"read\".)",
+        "types": [
+          "string"
+        ],
+        "required": false
+      }
+    ],
+    "returns": [
+      {
+        "name": "",
+        "description": "An ID that identifies this data source.",
+        "types": [
+          "number"
+        ]
+      }
+    ]
+  },
+  {
+    "namespace": "Data",
+    "name": "query",
+    "description": "Queries content from a data source.",
+    "parameters": [
+      {
+        "name": "dataId",
+        "description": "The data source ID or the name of a dictionary.",
+        "types": [
+          "number",
+          "string"
+        ],
+        "required": false
+      },
+      {
+        "name": "content",
+        "description": "The content to query.",
+        "types": [
+          "string"
+        ],
+        "required": true
+      },
+      {
+        "name": "status",
+        "description": "Options for the status of the cases to query. (Default value is \"notDeletedOnly\".)",
+        "types": [
+          "string"
+        ],
+        "required": false
+      },
+      {
+        "name": "sort",
+        "description": "Options for how the queried data should be sorted.",
+        "types": [
+          "object"
+        ],
+        "required": false
+      },
+      {
+        "name": "filter",
+        "description": "Options for how the queried data should be filtered.",
+        "types": [
+          "object"
+        ],
+        "required": false
+      },
+      {
+        "name": "limit",
+        "description": "The maximum number of results to return from the query.",
+        "types": [
+          "number"
+        ],
+        "required": false
+      },
+      {
+        "name": "offset",
+        "description": "The number of results to skip before starting to return results from the query. (Default value is 0.)",
+        "types": [
+          "number"
+        ],
+        "required": false
+      },
+      {
+        "name": "serializationOptions",
+        "description": "Options for how cases should be serialized.",
+        "types": [
+          "object"
+        ],
+        "required": false
+      }
+    ],
+    "returns": [
+      {
+        "name": "",
+        "description": "A count or an array containing the query results.",
+        "types": [
+          "number",
+          "array"
+        ]
+      }
+    ]
+  },
+  {
+    "namespace": "Data",
+    "name": "queryCases",
+    "description": "Queries cases from a data source.",
+    "parameters": [
+      {
+        "name": "dataId",
+        "description": "The data source ID or the name of a dictionary.",
+        "types": [
+          "number",
+          "string"
+        ],
+        "required": false
+      },
+      {
+        "name": "status",
+        "description": "Options for the status of the cases to query. (Default value is \"notDeletedOnly\".)",
+        "types": [
+          "string"
+        ],
+        "required": false
+      },
+      {
+        "name": "sort",
+        "description": "Options for how the queried data should be sorted.",
+        "types": [
+          "object"
+        ],
+        "required": false
+      },
+      {
+        "name": "filter",
+        "description": "Options for how the queried data should be filtered.",
+        "types": [
+          "object"
+        ],
+        "required": false
+      },
+      {
+        "name": "limit",
+        "description": "The maximum number of cases to return from the query.",
+        "types": [
+          "number"
+        ],
+        "required": false
+      },
+      {
+        "name": "offset",
+        "description": "The number of cases to skip before starting to return results from the query. (Default value is 0.)",
+        "types": [
+          "number"
+        ],
+        "required": false
+      },
+      {
+        "name": "serializationOptions",
+        "description": "Options for how cases should be serialized.",
+        "types": [
+          "object"
+        ],
+        "required": false
+      }
+    ],
+    "returns": [
+      {
+        "name": "",
+        "description": "An array containing the cases.",
+        "types": [
+          "array"
+        ]
+      }
+    ]
+  },
+  {
+    "namespace": "Data",
+    "name": "queryKeys",
+    "description": "Queries case keys from a data source.",
+    "parameters": [
+      {
+        "name": "dataId",
+        "description": "The data source ID or the name of a dictionary.",
+        "types": [
+          "number",
+          "string"
+        ],
+        "required": false
+      },
+      {
+        "name": "status",
+        "description": "Options for the status of the cases to query. (Default value is \"notDeletedOnly\".)",
+        "types": [
+          "string"
+        ],
+        "required": false
+      },
+      {
+        "name": "sort",
+        "description": "Options for how the queried data should be sorted.",
+        "types": [
+          "object"
+        ],
+        "required": false
+      },
+      {
+        "name": "filter",
+        "description": "Options for how the queried data should be filtered.",
+        "types": [
+          "object"
+        ],
+        "required": false
+      },
+      {
+        "name": "limit",
+        "description": "The maximum number of case keys to return from the query.",
+        "types": [
+          "number"
+        ],
+        "required": false
+      },
+      {
+        "name": "offset",
+        "description": "The number of case keys to skip before starting to return results from the query. (Default value is 0.)",
+        "types": [
+          "number"
+        ],
+        "required": false
+      }
+    ],
+    "returns": [
+      {
+        "name": "",
+        "description": "An array containing the case keys.",
+        "types": [
+          "array"
+        ]
+      }
+    ]
+  },
+  {
+    "namespace": "Data",
+    "name": "readCase",
+    "description": "Returns a case read from a data source.",
+    "parameters": [
+      {
+        "name": "dataId",
+        "description": "The data source ID or the name of a dictionary.",
+        "types": [
+          "number",
+          "string"
+        ],
+        "required": false
+      },
+      {
+        "name": "key",
+        "description": "The key (case IDs) of a case.",
+        "types": [
+          "string"
+        ],
+        "required": false
+      },
+      {
+        "name": "uuid",
+        "description": "The UUID of a case.",
+        "types": [
+          "string"
+        ],
+        "required": false
+      },
+      {
+        "name": "position",
+        "description": "The \"position\" of the case in the data source.",
+        "types": [
+          "number"
+        ],
+        "required": false
+      },
+      {
+        "name": "serializationOptions",
+        "description": "Options for how the case should be serialized.",
+        "types": [
+          "object"
+        ],
+        "required": false
+      }
+    ],
+    "returns": [
+      {
+        "name": "",
+        "description": "The case.",
+        "types": [
+          "object"
+        ]
+      }
+    ]
+  },
+  {
+    "namespace": "Data",
+    "name": "writeCase",
+    "description": "Writes a case to a data source.",
+    "parameters": [
+      {
+        "name": "dataId",
+        "description": "The data source ID or the name of a dictionary.",
+        "types": [
+          "number",
+          "string"
+        ],
+        "required": false
+      },
+      {
+        "name": "case",
+        "description": "The case content.",
+        "types": [
+          "object"
+        ],
+        "required": true
+      },
+      {
+        "name": "replace",
+        "description": "Details about where to write the case in the data source if overwriting an existing case.",
+        "types": [
+          "object"
+        ],
+        "required": false
+      }
+    ],
+    "returns": [
+      {
+        "name": "",
+        "description": "The \"position\" of the written case in the data source (if known).",
+        "types": [
+          "number"
         ]
       }
     ]

@@ -443,7 +443,7 @@ void TextRepositoryStatusFile::Save(const bool force_write_to_disk/* = false*/)
 }
 
 
-void TextRepositoryStatusFile::WriteCase(Case& data_case, WriteCaseParameter* const write_case_parameter)
+void TextRepositoryStatusFile::WriteCase(Case& data_case, const WriteCaseParameter* const write_case_parameter)
 {
     const std::string& key = data_case.GetKey();
     bool modified = false;

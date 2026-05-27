@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "TextRepository.h"
 #include "NullRepositoryIterators.h"
 #include "TextRepositoryIndexCreator.h"
@@ -61,6 +61,7 @@ TextRepository::TextRepository(std::shared_ptr<const CaseAccess> case_access, co
         m_wideBufferPosition(nullptr),
         m_wideBufferEnd(nullptr),
         m_ignoreNextCharacterIfNewline(false),
+        m_deleteCaseShouldDeleteNotesAndStatuses(true),
         m_useTransactionManager(false),
         m_numberTransactions(0)
 {
@@ -922,6 +923,13 @@ void TextRepository::ReadCase(Case& data_case, const int64_t file_position, cons
 }
 
 
+void TextRepository::ReadCaseByUuid(Case& /*data_case*/, const std::string& /*uuid*/)
+{
+    // text files don't have UUIDs
+    throw DataRepositoryException::CaseNotFound();
+}
+
+
 void TextRepository::SetUpBatchCase(Case& data_case)
 {
     const auto& line_iterator_begin = m_wideBufferLines.cbegin() + m_wideBufferLineCaseStartLineIndex;
@@ -933,10 +941,16 @@ void TextRepository::SetUpBatchCase(Case& data_case)
 }
 
 
-void TextRepository::WriteCase(Case& data_case, WriteCaseParameter* const write_case_parameter/* = nullptr*/)
+void TextRepository::WriteCase(Case& data_case, const WriteCaseParameter* const write_case_parameter/* = nullptr*/)
 {
     if( IsReadOnly() )
         throw DataRepositoryException::WriteAccessRequired();
+
+    if( data_case.GetDeleted() )
+    {
+        DeleteCaseViaWriteCase(data_case, write_case_parameter);
+        return;
+    }
 
     // update the notes and statues
     if( m_notesFile != nullptr )
@@ -949,7 +963,8 @@ void TextRepository::WriteCase(Case& data_case, WriteCaseParameter* const write_
     const char* const output_text = m_textToCaseConverter->CaseToTextUtf8(data_case, &output_text_length);
 
     // quickly write out the case and get out (for batch processing)
-    if( m_accessType == DataRepositoryAccess::BatchOutput || m_accessType == DataRepositoryAccess::BatchOutputAppend )
+    if( m_accessType == DataRepositoryAccess::BatchOutput ||
+        m_accessType == DataRepositoryAccess::BatchOutputAppend )
     {
         ASSERT(PortableFunctions::ftelli64(m_file) == m_fileSize);
 
@@ -975,7 +990,7 @@ void TextRepository::WriteCase(Case& data_case, WriteCaseParameter* const write_
     const std::string this_key = data_case.GetKey();
     std::string key_to_search;
 
-    // this will be from CSEntry
+    // this will be from CSEntry or from Data.writeCase
     if( write_case_parameter != nullptr )
     {
         if( write_case_parameter->IsModifyParameter() )
@@ -985,6 +1000,7 @@ void TextRepository::WriteCase(Case& data_case, WriteCaseParameter* const write_
 
         else
         {
+            ASSERT(write_case_parameter->IsInsertParameter());
             write_method = WriteMethod::Insert;
             key_to_search = GetKeyFromPosition(static_cast<int64_t>(write_case_parameter->GetPositionInRepository()));
         }
@@ -1025,6 +1041,9 @@ void TextRepository::WriteCase(Case& data_case, WriteCaseParameter* const write_
             // otherwise delete the case and add it to the end
             else
             {
+                ASSERT(m_deleteCaseShouldDeleteNotesAndStatuses);
+                const RAII::SetValueAndRestoreOnDestruction delete_case_modifier(m_deleteCaseShouldDeleteNotesAndStatuses, false);
+
                 IndexableTextRepository::DeleteCase(this_key);
                 write_method = WriteMethod::EndOfFile;
             }
@@ -1094,6 +1113,36 @@ void TextRepository::WriteCase(Case& data_case, WriteCaseParameter* const write_
             m_fileSize += output_text_length;
 
         data_case.SetPositionInRepository(static_cast<double>(write_position));
+    }
+}
+
+
+void TextRepository::DeleteCaseViaWriteCase(const Case& data_case, const WriteCaseParameter* const write_case_parameter)
+{
+    // the Data.writeCase action can be used to write cases marked as deleted;
+    // in repositories that support duplicates, this operation is allowed even if the case does not exist;
+    // here we will throw an exception only if the user specifies a specific case (write_case_parameter != nullptr)
+    // and that case does not exist
+    ASSERT(data_case.GetDeleted());
+
+    if( write_case_parameter == nullptr )
+    {
+        try
+        {
+            IndexableTextRepository::DeleteCase(data_case.GetKey());
+        }
+
+        catch( const DataRepositoryException::CaseNotFound& )
+        {
+            // if the case cannot be found, that is fine;
+            // only deletion-specific exceptions will be thrown
+        }
+    }
+
+    else
+    {
+        ASSERT(write_case_parameter->IsModifyParameter());
+        IndexableTextRepository::DeleteCase(write_case_parameter->GetPositionInRepository());
     }
 }
 
@@ -1213,11 +1262,14 @@ void TextRepository::DeleteCase(const int64_t file_position, const size_t bytes_
         fflush(m_file);
 
     // update the notes and statuses
-    if( m_notesFile != nullptr )
-        m_notesFile->DeleteCase(*key_lookup);
+    if( m_deleteCaseShouldDeleteNotesAndStatuses )
+    {
+        if( m_notesFile != nullptr )
+            m_notesFile->DeleteCase(*key_lookup);
 
-    if( m_statusFile != nullptr )
-        m_statusFile->DeleteCase(*key_lookup);
+        if( m_statusFile != nullptr )
+            m_statusFile->DeleteCase(*key_lookup);
+    }
 }
 
 

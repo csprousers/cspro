@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zCaseO/zCaseO.h>
 #include <zCaseO/CaseItemPrinter.h>
@@ -24,6 +24,9 @@ public:
     bool GetVerbose() const           { return m_verbose; }
     void SetVerbose(bool flag = true) { m_verbose = flag; }
 
+    bool GetWriteCasePositions() const           { return m_writeCasePositions; }
+    void SetWriteCasePositions(bool flag = true) { m_writeCasePositions = flag; }
+
     bool GetWriteBlankValues() const           { return m_writeBlankValues; }
     void SetWriteBlankValues(bool flag = true) { m_writeBlankValues = flag; }
 
@@ -47,6 +50,7 @@ public:
 
 private:
     bool m_verbose;
+    bool m_writeCasePositions;
     bool m_writeBlankValues;
     bool m_writeLabels;
     std::unique_ptr<const CaseItemPrinter> m_caseItemPrinter;
@@ -57,6 +61,7 @@ private:
 
 inline CaseJsonWriterSerializerHelper::CaseJsonWriterSerializerHelper()
     :   m_verbose(false),
+        m_writeCasePositions(false),
         m_writeBlankValues(false),
         m_writeLabels(false)
 {
@@ -92,6 +97,7 @@ public:
     virtual std::unique_ptr<BinaryContentReader> CreateBinaryContentReader(std::optional<uint64_t> size);
 
     void ParseJson(Case& data_case, const JsonNode& json_node);
+    void ParseJson_noexcept(Case& data_case, const JsonNode& json_node) noexcept;
 
     static void ParseNumericCaseItem(const NumericCaseItem& numeric_case_item, CaseItemIndex& index, const JsonNode& case_item_node);
     static void ParseStringCaseItem(const StringCaseItem& string_case_item, CaseItemIndex& index, const JsonNode& case_item_node);

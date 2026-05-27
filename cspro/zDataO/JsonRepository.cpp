@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "JsonRepository.h"
 #include "JsonRepositoryBinaryDataIO.h"
 #include "JsonRepositoryIndexCreator.h"
@@ -638,18 +638,26 @@ void JsonRepository::PopulateCaseIdentifiers(std::string& key, std::string& uuid
 }
 
 
-DataRepositoryUniqueCaseIdentifer JsonRepository::GetUniqueCaseIdentifer(const CaseKey& case_key)
+std::string JsonRepository::GetUuidByPosition(const double position_in_repository)
 {
     EnsureSqlStatementIsPrepared(Sqlite::Commands::QueryUuidByPosition, m_stmtQueryUuidByPosition);
     const SQLiteResetOnDestruction rod(*m_stmtQueryUuidByPosition);
 
-    m_stmtQueryUuidByPosition->Bind(1, static_cast<int64_t>(case_key.GetPositionInRepository()));
+    m_stmtQueryUuidByPosition->Bind(1, static_cast<int64_t>(position_in_repository));
 
     if( m_stmtQueryUuidByPosition->Step() != SQLITE_ROW )
         throw DataRepositoryException::CaseNotFound();
 
-    return DataRepositoryUniqueCaseIdentifer(DataRepositoryUniqueCaseIdentifer::Type::Uuid,
-                                             m_stmtQueryUuidByPosition->GetColumn<std::string>(0));
+    return m_stmtQueryUuidByPosition->GetColumn<std::string>(0);
+}
+
+
+DataRepositoryUniqueCaseIdentifer JsonRepository::GetUniqueCaseIdentifer(const CaseKey& case_key)
+{
+    return DataRepositoryUniqueCaseIdentifer(
+        DataRepositoryUniqueCaseIdentifer::Type::Uuid,
+        GetUuidByPosition(case_key.GetPositionInRepository())
+    );
 }
 
 
@@ -786,9 +794,15 @@ inline void JsonRepository::SetFilePosition(const int64_t file_position)
     {
         PortableFunctions::fseeki64(m_file, file_position, SEEK_SET);
         m_filePosition = file_position;
-
-        ASSERT(m_filePosition == PortableFunctions::ftelli64(m_file));
     }
+
+    else
+    {
+        // switching from reading <-> writing requires calling a file repositioning function
+        fseek(m_file, 0, SEEK_CUR);
+    }
+
+    ASSERT(m_filePosition == PortableFunctions::ftelli64(m_file));
 }
 
 
@@ -970,7 +984,7 @@ void JsonRepository::ShiftIndexPositions(const int64_t first_file_position_to_sh
 }
 
 
-void JsonRepository::WriteCase(Case& data_case, WriteCaseParameter* const write_case_parameter/* = nullptr*/)
+void JsonRepository::WriteCase(Case& data_case, const WriteCaseParameter* const write_case_parameter/* = nullptr*/)
 {
     if( IsReadOnly() )
         throw DataRepositoryException::WriteAccessRequired();
@@ -985,20 +999,25 @@ void JsonRepository::WriteCase(Case& data_case, WriteCaseParameter* const write_
     ASSERT(m_file != nullptr);
 
     // determine where to write the case
-    ASSERT(write_case_parameter == nullptr || ( ( write_case_parameter != nullptr ) == ( m_accessType == DataRepositoryAccess::EntryInput ) ));
-
     int64_t anchor_file_position = -1;
+    std::string uuid_of_case_to_replace;
     bool write_before_anchor = false;
-    bool use_new_uuid = false;
 
+    // this will be from CSEntry or from Data.writeCase
     if( write_case_parameter != nullptr )
     {
-        ASSERT(m_accessType == DataRepositoryAccess::EntryInput);
-
         anchor_file_position = static_cast<int64_t>(write_case_parameter->GetPositionInRepository());
 
-        if( write_case_parameter->IsInsertParameter() )
+        if( write_case_parameter->IsModifyParameter() )
+        {
+            uuid_of_case_to_replace = GetUuidByPosition(write_case_parameter->GetPositionInRepository());
+        }
+
+        else
+        {
+            ASSERT(write_case_parameter->IsInsertParameter());
             write_before_anchor = true;
+        }
     }
 
     else if( m_accessType == DataRepositoryAccess::ReadWrite )
@@ -1013,15 +1032,11 @@ void JsonRepository::WriteCase(Case& data_case, WriteCaseParameter* const write_
         if( m_stmtQueryPositionUuidByKey->Step() == SQLITE_ROW )
         {
             anchor_file_position = m_stmtQueryPositionUuidByKey->GetColumn<int64_t>(0);
-            data_case.SetUuid(m_stmtQueryPositionUuidByKey->GetColumn<std::string>(1));
-        }
-
-        // otherwise generate a new one so a loaded case that has its IDs modified will be saved with a unique UUID
-        else
-        {
-            use_new_uuid = true;
+            uuid_of_case_to_replace = m_stmtQueryPositionUuidByKey->GetColumn<std::string>(1);
         }
     }
+
+    data_case.SetUuid(!uuid_of_case_to_replace.empty() ? std::move(uuid_of_case_to_replace) : CreateUuid());
 
     // determine how many bytes the current case takes up (if it is to be replaced)
     std::optional<size_t> bytes_for_case_to_replace;
@@ -1029,23 +1044,20 @@ void JsonRepository::WriteCase(Case& data_case, WriteCaseParameter* const write_
     if( !write_before_anchor && anchor_file_position != -1 )
         bytes_for_case_to_replace = GetBytesFromPosition(anchor_file_position);
 
-    WriteCaseForEntryInputReadWrite(data_case, anchor_file_position, std::move(bytes_for_case_to_replace), use_new_uuid);
+    WriteCaseForEntryInputReadWrite(data_case, anchor_file_position, std::move(bytes_for_case_to_replace));
 }
 
 
-void JsonRepository::WriteCaseForEntryInputReadWrite(Case& data_case, const int64_t anchor_file_position, const std::optional<size_t> bytes_for_case_to_replace, const bool use_new_uuid)
+void JsonRepository::WriteCaseForEntryInputReadWrite(Case& data_case, const int64_t anchor_file_position, const std::optional<size_t> bytes_for_case_to_replace)
 {
     ASSERT(m_accessType == DataRepositoryAccess::EntryInput || m_accessType == DataRepositoryAccess::ReadWrite);
+    ASSERT(!data_case.GetUuid().empty());
 
     const bool add_case_to_end = ( anchor_file_position == -1 );
     const bool insert_case_above_anchor = ( !add_case_to_end && !bytes_for_case_to_replace.has_value() );
 
     ASSERT(add_case_to_end || ( anchor_file_position >= 1 && anchor_file_position < ( m_fileSize - std::string_view("]").size() ) ));
     ASSERT(!bytes_for_case_to_replace.has_value() || anchor_file_position >= 1);
-
-    // use a new UUID as necessary
-    if( use_new_uuid || data_case.GetUuid().empty() )
-        data_case.SetUuid(CreateUuid());
 
     // convert the case
     const std::string case_json = ConvertCaseToJson(data_case);
@@ -1272,7 +1284,7 @@ void JsonRepository::DeleteCase(const int64_t file_position, const size_t bytes_
     if( data_case->GetDeleted() != deleted )
     {
         data_case->SetDeleted(deleted);
-        WriteCaseForEntryInputReadWrite(*data_case, file_position, bytes_for_case, false);
+        WriteCaseForEntryInputReadWrite(*data_case, file_position, bytes_for_case);
     }
 }
 

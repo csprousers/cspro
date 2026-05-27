@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zDataO/zDataO.h>
 #include <zDataO/DataRepositoryDefines.h>
@@ -114,12 +114,11 @@ public:
 
     // Reads the case at the given UUID. If no case with the given UUID is in the repository,
     // DataRepositoryException::CaseNotFound will be thrown.
-    // The default implementation uses PopulateCaseIdentifiers to determine the position and then calls the position-based ReadCase.
-    virtual void ReadCaseByUuid(Case& data_case, const std::string& uuid);
+    virtual void ReadCaseByUuid(Case& data_case, const std::string& uuid) = 0;
 
-    // Writes the case using rules based on the access parameters previously specified when creating
-    // the repository.
-    virtual void WriteCase(Case& data_case, WriteCaseParameter* write_case_parameter = nullptr) = 0;
+    // Writes the case using rules based on the access parameters previously specified when creating the repository.
+    // The case's deleted status may be set; if so, the case is written as deleted (when applicable).
+    virtual void WriteCase(Case& data_case, const WriteCaseParameter* write_case_parameter = nullptr) = 0;
 
     // Modifies the case's deleted status. If the case does not exist,
     // DataRepositoryException::CaseNotFound will be thrown.
@@ -171,6 +170,6 @@ protected:
 public:
     void ReadCasetainer(Case& casetainer, const std::string& key);
     void ReadCasetainer(Case& casetainer, double position_in_repository);
-    void WriteCasetainer(Case& casetainer, WriteCaseParameter* write_case_parameter = nullptr);
+    void WriteCasetainer(Case& casetainer, const WriteCaseParameter* write_case_parameter = nullptr);
     static bool NextCasetainer(CaseIterator& case_iterator, Case& data_case);
 };

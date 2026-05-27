@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zDataO/zDataO.h>
 #include <zDataO/ISyncableDataRepository.h>
@@ -38,7 +38,7 @@ public:
     void ReadCase(Case& data_case, const std::string& key) override;
     void ReadCase(Case& data_case, double position_in_repository) override;
     void ReadCaseByUuid(Case& data_case, const std::string& uuid) override;
-    void WriteCase(Case& data_case, WriteCaseParameter* write_case_parameter/* = nullptr*/) override;
+    void WriteCase(Case& data_case, const WriteCaseParameter* write_case_parameter = nullptr) override;
     void CommitTransactionIfTooBig();
     void DeleteCase(double position_in_repository, bool deleted = true) override;
     size_t GetNumberCases() override;
@@ -93,15 +93,15 @@ private:
     void UpdateVectorClock(const Case& data_case);
     void ClearNotes(const Case& data_case);
     void WriteNotes(const Case& data_case);
+    std::string GetUuidByPosition(double position_in_repository);
     void IncrementVectorClock(const std::string& uuid);
-    void IncrementVectorClock(double position_in_repository);
     int UpdateCase(const Case& data_case, int64_t revision);
     int InsertCase(const Case& data_case, int64_t revision);
     int InsertOrUpdateCase(const Case& data_case, int64_t revision, sqlite3_stmt* pStmt);
     void BindPartialSave(const Case& data_case, SQLiteStatement &insertCase);
     void CreatePreparedStatements();
     void ClearPreparedStatements();
-    double GetInsertPosition(double insert_before_position_in_repository);
+    double CreateInsertPosition(double insert_before_position_in_repository);
     std::unique_ptr<SQLiteStatement> GetKeySearchIteratorStatement(const CaseIteratorSettings& iterator_settings,
                                                                    size_t offset, size_t limit, const char* base_sql) const;
     void WriteIteratorSelectFromSql(std::stringstream& sql, CaseIterationContent iteration_content) const;
@@ -159,6 +159,7 @@ private:
     sqlite3_stmt* m_stmtModifyDeleteStatus;
     sqlite3_stmt* m_stmtInsertRevision;
     sqlite3_stmt* m_stmtInsertLocalRevision;
+    sqlite3_stmt* m_stmtQueryUuidByPosition;
     sqlite3_stmt* m_stmtUpdateClock;
     sqlite3_stmt* m_stmtIncrementClock;
     sqlite3_stmt* m_stmtNewClock;

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 // JNI Includes
 #include <jni.h>
@@ -162,6 +162,7 @@ namespace JNIReferences
     extern jmethodID methodActionInvokerListener_onClose;
     extern jmethodID methodActionInvokerListener_onEngineProgramControlExecuted;
     extern jmethodID methodActionInvokerListener_onPostWebMessage;
+    extern jmethodID methodActionInvokerListener_onConsoleLog;
 
     extern jclass classActionInvokerActivityResult;
     extern jmethodID methodActionInvokerActivityResultConstructor;

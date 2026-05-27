@@ -1,8 +1,9 @@
-﻿#pragma once
+#pragma once
 
 #include <zUtilO/DataTypes.h>
 #include <zUtilO/ProcessSummary.h>
 
+namespace ActionInvoker { class CallerWrappingCaseConstructionReporter; }
 class Case;
 
 
@@ -10,6 +11,8 @@ class Case;
 
 class CaseConstructionReporter
 {
+    friend ActionInvoker::CallerWrappingCaseConstructionReporter;
+
 public:
     CaseConstructionReporter(std::shared_ptr<ProcessSummary> process_summary = nullptr);
     virtual ~CaseConstructionReporter() { }

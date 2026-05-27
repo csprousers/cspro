@@ -113,6 +113,9 @@
     <ClInclude Include="Engine.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="EngineDictionaryModifier.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="EngineExecutor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -308,6 +311,9 @@
       <Filter>Source Files\ex2</Filter>
     </ClCompile>
     <ClCompile Include="engdrv.cpp">
+      <Filter>Source Files\ex2</Filter>
+    </ClCompile>
+    <ClCompile Include="EngineDictionaryModifier.cpp">
       <Filter>Source Files\ex2</Filter>
     </ClCompile>
     <ClCompile Include="Entifaz.cpp">

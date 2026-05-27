@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zDataO/zDataO.h>
 #include <zDataO/DataRepositoryDefines.h>
@@ -44,7 +44,7 @@ public:
     const CaseIteratorParameters* GetParameters() const                  { return m_parameters.has_value() ? &(*m_parameters) : nullptr; }
     void SetParameters(std::optional<CaseIteratorParameters> parameters) { m_parameters = std::move(parameters); }
 
-    static CaseIteratorSettings CreateFromJson(const JsonNode& json_node);
+    static CaseIteratorSettings CreateFromJson(const JsonNode& json_node, std::optional<CaseIterationCaseStatus> default_status = std::nullopt);
     void WriteJson(JsonWriter& json_writer, bool write_to_new_json_object = true) const;
 
 private:
