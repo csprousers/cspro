@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zUtilF/zUtilF.h>
 #include <zUtilO/ResizableDlg.h>
@@ -54,7 +54,7 @@ private:
 private:
     CTreeCtrl m_credentialsTreeCtrl;
     bool m_populatingCredentialsTreeCtrl;
-    CStatic m_detailsText;
+    CEdit m_detailsText;
     std::unique_ptr<CMFCMenuButton> m_clearAllButton;
     CMenu m_clearAllMenu;
     std::map<CredentialType, std::vector<std::unique_ptr<Credential>>> m_credentials;
