@@ -7,7 +7,7 @@ cd temp\libgit2
 
 
 rem ... find the latest version number here: https://github.com/libgit2/libgit2/releases/latest/
-set lg_version=1.9.2
+set lg_version=1.9.4
 
 
 rem ... get the latest version
