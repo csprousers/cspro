@@ -471,7 +471,7 @@ void ActionInvoker::Runtime::DataWrapper::FillArray_CaseSummaries(JsonWriter& js
 {
     CaseSummary case_summary;
 
-    while( iterator.NextCaseKey(case_summary) )
+    while( iterator.NextCaseSummary(case_summary) )
     {
         json_writer.BeginObject()
                    .Write(JK::key, case_summary.GetKey())
