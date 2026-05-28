@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "QuestionTextEditor.h"
 #include "QuestionTextProperties.h"
 #include <zToolsO/Encoders.h>
@@ -97,6 +97,9 @@ int QuestionTextTextEditor::GetLexerLanguage(const Application* const applicatio
 void QuestionTextTextEditor::Initialize(CWnd* const pParent, const std::string& /*application_file_path*/)
 {
     m_logicCtrl->ReplaceCEdit(pParent, true, true, GetLexerLanguage(nullptr));
+
+    // the question text saved to YAML should not have carriage returns
+    m_logicCtrl->SetEOLMode(Scintilla::EndOfLine::Lf);
 
     // turn off modifications for many events to prevent CQSFEView::OnEditorChangeText
     // from being called for events such as clearing markers
