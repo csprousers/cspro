@@ -15,6 +15,7 @@ LOCAL_SRC_FILES         += $(ZSYNCO_SRC_PATH)/BluetoothSyncService.cpp
 LOCAL_SRC_FILES         += $(ZSYNCO_SRC_PATH)/BluetoothObexConnection.cpp
 LOCAL_SRC_FILES         += $(ZSYNCO_SRC_PATH)/BluetoothObexServer.cpp
 LOCAL_SRC_FILES         += $(ZSYNCO_SRC_PATH)/CSWebSyncService.cpp
+LOCAL_SRC_FILES         += $(ZSYNCO_SRC_PATH)/DataSyncer.cpp
 LOCAL_SRC_FILES         += $(ZSYNCO_SRC_PATH)/DialogBasedSyncListener.cpp
 LOCAL_SRC_FILES         += $(ZSYNCO_SRC_PATH)/DropboxLocalSyncService.cpp
 LOCAL_SRC_FILES         += $(ZSYNCO_SRC_PATH)/DropboxSyncService.cpp
