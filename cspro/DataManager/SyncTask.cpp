@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "SyncTask.h"
 #include "SyncHelpers.h"
 #include "TaskRunnerSyncListener.h"
@@ -32,7 +32,7 @@ void SyncTask::Run()
 
     m_syncClient.SetSyncListener(std::make_unique<TaskRunnerSyncListener>(m_taskRunner, m_cancelFlag));
 
-    const SyncClient::SyncResult result = m_syncClient.SyncData(m_syncDirection, *syncable_data_repository, m_universe);
+    const SyncClient::SyncResult result = m_syncClient.SyncData(*syncable_data_repository, m_syncDirection, m_universe);
 
     if( result != SyncClient::SyncResult::SYNC_OK )
         throw CSProException("There was an error syncing data.");

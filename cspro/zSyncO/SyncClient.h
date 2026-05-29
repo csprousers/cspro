@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zSyncO/zSyncO.h>
 #include <zSyncO/ISyncService.h>
@@ -68,7 +68,7 @@ public:
     const DeviceId& GetServerDeviceId() const;
 
     // Sync data file using smart sync.
-    SyncResult SyncData(SyncDirection direction, ISyncableDataRepository& repository, const std::string& universe);
+    SyncResult SyncData(ISyncableDataRepository& repository, SyncDirection sync_direction, const std::string& universe);
 
     ///<summary>Sync non-data file. If to_path ends in a slash, it is assumed to be a directory and the filename will be appended to it.</summary>
     ///<param name="direction">direction of sync (PUT or GET)</param>

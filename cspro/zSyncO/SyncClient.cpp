@@ -407,7 +407,7 @@ const DeviceId& SyncClient::GetServerDeviceId() const
 }
 
 
-SyncClient::SyncResult SyncClient::SyncData(const SyncDirection direction, ISyncableDataRepository& repository, const std::string& universe)
+SyncClient::SyncResult SyncClient::SyncData(ISyncableDataRepository& repository, const SyncDirection direction, const std::string& universe)
 {
     try
     {

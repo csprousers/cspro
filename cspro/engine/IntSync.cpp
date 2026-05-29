@@ -339,7 +339,7 @@ double CIntDriver::ex_syncdata(const int program_index)
 
         try
         {
-            if( GetSyncClient().SyncData(*direction, *syncable_data_repository, universe) == SyncClient::SyncResult::SYNC_OK )
+            if( GetSyncClient().SyncData(*syncable_data_repository, *direction, universe) == SyncClient::SyncResult::SYNC_OK )
                 success = true;
         }
         catch(...) { ASSERT(false); sync_exception = std::current_exception(); }

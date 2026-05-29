@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "AppSyncParamRunner.h"
 #include "SyncClient.h"
 #include <zDictO/DDClass.h>
@@ -31,7 +31,7 @@ int AppSyncParamRunner::Run(SyncClient& sync_client, const AppSyncParameters& sy
             dictionaries_synced = 0;
         }
 
-        if( sync_client.SyncData(sync_params.sync_direction, *syncable_data_repository, SO::Empty_string) == SyncClient::SyncResult::SYNC_OK )
+        if( sync_client.SyncData(*syncable_data_repository, sync_params.sync_direction, SO::Empty_string) == SyncClient::SyncResult::SYNC_OK )
             ++(*dictionaries_synced);
     }
 
