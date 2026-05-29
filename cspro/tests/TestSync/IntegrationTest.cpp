@@ -1028,8 +1028,7 @@ namespace SyncUnitTest
                 const int64_t timestamp = GetTimestamp();
                 const SyncMessage sync_message(timestamp, "CSPro-TestSync-Key-" + IntToString(timestamp), "CSPro-TestSync-Value");
                 const std::optional<JsonNode> sync_message_response = sync_client.SendSyncMessage(sync_message);
-                Assert::IsTrue(sync_message_response.has_value());
-                Assert::IsTrue(sync_message_response->IsEmpty());
+                Assert::IsTrue(!sync_message_response.has_value());
 
                 result = sync_client.Disconnect();
                 Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);

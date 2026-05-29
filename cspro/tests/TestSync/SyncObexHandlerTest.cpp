@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "CaseTestHelpers.h"
 #include "TestRepoBuilder.h"
 #include <zToolsO/PortableFunctions.h>
@@ -94,14 +94,14 @@ namespace SyncUnitTest
             std::string serverRevisionFromGet = responseHeaders.GetValue("ETag");
             resource.reset();
 
-            SyncCaseSerializer sync_case_serializer = SyncCaseSerializer::CreateFromCSProVersion(case_access, responseHeaders);
+            SyncCaseSerializer sync_case_serializer = SyncCaseSerializer::CreateFromCSProVersion(case_access, requestHeaders);
             std::vector<std::shared_ptr<Case>> responseCases = sync_case_serializer.ParseSyncableCaseData(responseJson);
 
             // First get, should retrieve all three server cases
             Assert::AreEqual(3, (int)responseCases.size());
             Verify(Method(mockEngineAccessor, GetDataRepository)).Exactly(1);
 
-            std::string putJson = GetSyncableCaseData(case_access, SpanHelpers::CreatePointersSpan(clientCases), SyncCaseSerializer::Version::V2);
+            std::string putJson = GetSyncableCaseData(case_access, SpanHelpers::CreatePointersSpan(clientCases), SyncCaseSerializer::Version::V3);
             responseCode = handler.onPut(OBEX_SYNC_DATA_MEDIA_TYPE, UTF8_TODO::GetCString(syncPath), requestHeaders, resource);
             Assert::AreEqual((int)OBEX_OK, (int)responseCode);
             resource->openForWriting();
@@ -168,7 +168,7 @@ namespace SyncUnitTest
             // Add new case on client and put
             std::shared_ptr<Case> clientCase5 = CreateCase(*case_access, "guid5", 1, { "newclientdata5" });
             clientCase5->SetVectorClock(clockClient1);
-            putJson = GetSyncableCaseData(case_access, { clientCase5.get() }, SyncCaseSerializer::Version::V2);
+            putJson = GetSyncableCaseData(case_access, { clientCase5.get() }, SyncCaseSerializer::Version::V3);
             requestHeaders = HeaderList();
             requestHeaders.Add_UserAgent_CSProSyncClient();
             requestHeaders.Add(SyncCustomHeaders::IF_REVISION_EXISTS_HEADER, serverRevisionFromPut);
@@ -250,7 +250,7 @@ namespace SyncUnitTest
             Assert::IsFalse(responseHeaders.GetValue("ETag").empty(), L"Response missing etag");
             resource.reset();
 
-            SyncCaseSerializer sync_case_serializer = SyncCaseSerializer::CreateFromCSProVersion(case_access, responseHeaders);
+            SyncCaseSerializer sync_case_serializer = SyncCaseSerializer::CreateFromCSProVersion(case_access, requestHeaders);
             std::vector<std::shared_ptr<Case>> responseCases = sync_case_serializer.ParseSyncableCaseData(responseJson);
 
             // First get, should retrieve the two server cases
@@ -310,7 +310,7 @@ namespace SyncUnitTest
             HeaderList requestHeaders;
             requestHeaders.Add_UserAgent_CSProSyncClient();
             requestHeaders.Add(SyncCustomHeaders::DEVICE_ID_HEADER, clientDeviceId);
-            std::string putJson = GetSyncableCaseData(case_access, { clientCase1.get(), clientCase2.get() }, SyncCaseSerializer::Version::V2);
+            std::string putJson = GetSyncableCaseData(case_access, { clientCase1.get(), clientCase2.get() }, SyncCaseSerializer::Version::V3);
             std::unique_ptr<IObexResource> resource;
             ObexResponseCode responseCode = handler.onPut(OBEX_SYNC_DATA_MEDIA_TYPE, UTF8_TODO::GetCString(syncPath), requestHeaders, resource);
             Assert::AreEqual((int)OBEX_OK, (int)responseCode);
@@ -338,8 +338,9 @@ namespace SyncUnitTest
             // Add a case on server from a different client
             std::shared_ptr<Case> clientCase3 = CreateCase(*case_access, "guid3", 3, { "13newclientdata3" });
             clientCase3->SetVectorClock(clockClient1);
-            putJson = GetSyncableCaseData(case_access, { clientCase3.get() }, SyncCaseSerializer::Version::V2);
+            putJson = GetSyncableCaseData(case_access, { clientCase3.get() }, SyncCaseSerializer::Version::V3);
             HeaderList requestHeadersClient2;
+            requestHeadersClient2.Add_UserAgent_CSProSyncClient();
             requestHeadersClient2.Add(SyncCustomHeaders::DEVICE_ID_HEADER, ": client2");
             responseCode = handler.onPut(OBEX_SYNC_DATA_MEDIA_TYPE, UTF8_TODO::GetCString(syncPath), requestHeadersClient2, resource);
             Assert::AreEqual((int)OBEX_OK, (int)responseCode);
@@ -406,7 +407,7 @@ namespace SyncUnitTest
             Assert::IsFalse(responseHeaders.GetValue("ETag").empty(), L"Response missing etag");
             resource.reset();
 
-            SyncCaseSerializer sync_case_serializer = SyncCaseSerializer::CreateFromCSProVersion(case_access, responseHeaders);
+            SyncCaseSerializer sync_case_serializer = SyncCaseSerializer::CreateFromCSProVersion(case_access, requestHeaders);
             std::vector<std::shared_ptr<Case>> responseCases = sync_case_serializer.ParseSyncableCaseData(responseJson);
             Assert::AreEqual(size_t(10), responseCases.size());
             MergeCaseList(clientCases, responseCases);
