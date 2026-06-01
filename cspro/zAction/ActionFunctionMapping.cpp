@@ -69,6 +69,7 @@ const std::map<ActionInvoker::Action, ActionInvoker::Runtime::ActionFunctionPoin
     { Action::Sync_connect,                        &Runtime::Sync_connect                        },
     { Action::Sync_disconnect,                     &Runtime::Sync_disconnect                     },
     { Action::Sync_sendMessage,                    &Runtime::Sync_sendMessage                    },
+    { Action::Sync_syncData,                       &Runtime::Sync_syncData                       },
     { Action::Sync_syncParadata,                   &Runtime::Sync_syncParadata                   },
     { Action::System_createShortcut,               &Runtime::System_createShortcut               },
     { Action::System_getSharableUri,               &Runtime::System_getSharableUri               },

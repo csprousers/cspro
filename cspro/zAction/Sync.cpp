@@ -1,6 +1,15 @@
 #include "stdafx.h"
+#include "DataWrapper.h"
 #include <zParadataO/Syncer.h>
 #include <zSyncO/SyncRunnerActionInvoker.h>
+
+
+CREATE_JSON_KEY(conflicts)
+namespace JK { constexpr const char* new_ = "new"; }
+CREATE_JSON_KEY(received)
+CREATE_JSON_KEY(sent)
+CREATE_JSON_KEY(stale)
+CREATE_JSON_KEY(updates)
 
 
 // --------------------------------------------------------------------------
@@ -101,6 +110,86 @@ ActionInvoker::Result ActionInvoker::Runtime::Sync_disconnect(const JsonNode& js
     sync_runner.Disconnect(caller);
 
     return Result::Undefined();
+}
+
+
+ActionInvoker::Result ActionInvoker::Runtime::Sync_syncData(const JsonNode& json_node, Caller& caller)
+{
+    ActionInvokerSyncRunner& sync_runner = SyncServiceWrapper::GetSyncRunner(*this, json_node, caller);
+
+    const std::shared_ptr<DataWrapper> data_wrapper = DataWrapper::GetDataWrapper(*this, json_node, caller);
+    DataRepository& data_repository = data_wrapper->GetDataRepository();
+    ISyncableDataRepository* const syncable_data_repository = data_repository.GetSyncableDataRepository();
+
+    if( syncable_data_repository == nullptr )
+    {
+        throw CSProException("Synchronization routines are not supported using data sources of type: %s",
+                             ToString(data_repository.GetRepositoryType()));
+    }
+
+    const SyncDirection sync_direction = json_node.GetOrDefault(JK::direction, SyncDirection::Both);
+
+    // make sure that data sources connected to dictionaries owned by the interpreter are properly updated
+    const std::unique_ptr<EngineDictionaryModifier> engine_dictionary_modifier =
+        ( sync_direction == SyncDirection::Put ) ? nullptr :
+                                                   data_wrapper->CreateEngineDictionaryModifier(*this);
+
+    DataSyncStatistics sync_stats;
+
+    auto run_sync = [&](const std::string& universe)
+    {
+        sync_stats += sync_runner.SyncData(caller, *syncable_data_repository, sync_direction, universe);
+    };
+
+    if( json_node.Contains(JK::universe) )
+    {
+        const JsonNode universe_json_node = json_node.Get(JK::universe);
+
+        if( universe_json_node.IsArray() )
+        {
+            for( const JsonNode& array_node : universe_json_node.GetArray() )
+                run_sync(array_node.Get<std::string>());
+        }
+
+        else
+        {
+            run_sync(universe_json_node.Get<std::string>());
+        }
+    }
+
+    else
+    {
+        run_sync(SO::Empty_string);
+    }
+
+    if( engine_dictionary_modifier != nullptr )
+        engine_dictionary_modifier->FinishedWithModifications();
+
+    const std::unique_ptr<JsonStringWriter> json_writer = Json::CreateStringWriter();
+
+    json_writer->BeginObject();
+
+    if( sync_direction != SyncDirection::Get )
+    {
+        json_writer->BeginObject(JK::sent)
+                    .Write(JK::count, sync_stats.cases_sent)
+                    .EndObject();
+    }
+
+    if( sync_direction != SyncDirection::Put )
+    {
+        json_writer->BeginObject(JK::received)
+                    .Write(JK::count, sync_stats.cases_received)
+                    .Write(JK::new_, sync_stats.cases_not_in_repository)
+                    .Write(JK::updates, sync_stats.cases_newer_on_remote)
+                    .Write(JK::stale, sync_stats.cases_newer_in_repository)
+                    .Write(JK::conflicts, sync_stats.cases_with_conflicts)
+                    .EndObject();
+    }
+
+    json_writer->EndObject();
+
+    return Result::JsonText(*json_writer);
 }
 
 

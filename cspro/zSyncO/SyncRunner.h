@@ -1,9 +1,11 @@
 #pragma once
 
 #include <zSyncO/zSyncO.h>
+#include <zSyncO/DataSyncStatistics.h>
 
 class ConnectResponse;
 class CSWebConnection;
+class ISyncableDataRepository;
 class ISyncService;
 namespace Paradata { class SyncConnectionEvent; class Syncer; class SyncEvent; class SyncServiceInstance; }
 class SyncConnectionString;
@@ -76,6 +78,12 @@ public:
 
     // Downloads a dictionary specification from the sync service.
     std::string GetDictionarySpec(ISyncService& sync_service, const std::string& dictionary_name);
+
+    // Syncs the data source with the sync service.
+    DataSyncStatistics SyncData(ISyncService& sync_service, const ConnectResponse& connect_response,
+                                const DeviceId& device_id, ISyncableDataRepository& syncable_data_repository,
+                                SyncDirection sync_direction, const std::string& universe,
+                                ParadataLogger* paradata_logger = nullptr);
 
 
     // --------------------------------------------------------------------------

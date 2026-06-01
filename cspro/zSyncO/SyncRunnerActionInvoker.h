@@ -1,8 +1,10 @@
-﻿#pragma once
+#pragma once
 
 #include <zSyncO/zSyncO.h>
 
 namespace ActionInvoker { class Caller; }
+struct DataSyncStatistics;
+class ISyncableDataRepository;
 namespace Paradata { class Syncer; }
 class SyncConnectionString;
 enum class SyncDirection;
@@ -24,6 +26,10 @@ public:
     // Calls ISyncService::Disconnect. The connection object will be destroyed
     // regardless of whether an exception is thrown.
     virtual void Disconnect(ActionInvoker::Caller& caller) = 0;
+
+    // Calls SyncRunner::SyncData.
+    virtual DataSyncStatistics SyncData(ActionInvoker::Caller& caller, ISyncableDataRepository& syncable_data_repository,
+                                        SyncDirection sync_direction, const std::string& universe) = 0;
 
     // Calls SyncRunner::SendSyncMessage (with a constructed SyncMessage).
     virtual std::optional<JsonNode> SendSyncMessage(ActionInvoker::Caller& caller, SharableString message_name, JsonNode message_value) = 0;

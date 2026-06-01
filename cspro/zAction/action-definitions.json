@@ -2853,6 +2853,56 @@
   },
   {
     "namespace": "Sync",
+    "name": "syncData",
+    "description": "Synchronizes the cases in a data source with a synchronization service.",
+    "parameters": [
+      {
+        "name": "syncId",
+        "description": "The synchronization service ID.",
+        "types": [
+          "number"
+        ],
+        "required": false
+      },
+      {
+        "name": "dataId",
+        "description": "The data source ID or the name of a dictionary.",
+        "types": [
+          "number",
+          "string"
+        ],
+        "required": false
+      },
+      {
+        "name": "direction",
+        "description": "The synchronization direction. (Default value is \"both\".).",
+        "types": [
+          "string"
+        ],
+        "required": false
+      },
+      {
+        "name": "universe",
+        "description": "A universe that restricts cases transfered to cases with keys starting with the universe.",
+        "types": [
+          "string",
+          "array"
+        ],
+        "required": false
+      }
+    ],
+    "returns": [
+      {
+        "name": "",
+        "description": "Information about the number of cases involved in the synchronization.",
+        "types": [
+          "object"
+        ]
+      }
+    ]
+  },
+  {
+    "namespace": "Sync",
     "name": "syncParadata",
     "description": "Synchronizes the events in a paradata log with a synchronization service.",
     "parameters": [

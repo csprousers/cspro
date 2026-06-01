@@ -282,6 +282,7 @@ private:
     Result Sync_connect(const JsonNode& json_node, Caller& caller);
     Result Sync_disconnect(const JsonNode& json_node, Caller& caller);
     Result Sync_sendMessage(const JsonNode& json_node, Caller& caller);
+    Result Sync_syncData(const JsonNode& json_node, Caller& caller);
     Result Sync_syncParadata(const JsonNode& json_node, Caller& caller);
     Result System_createShortcut(const JsonNode& json_node, Caller& caller);
     Result System_getSharableUri(const JsonNode& json_node, Caller& caller);

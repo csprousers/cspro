@@ -78,6 +78,7 @@ namespace ActionInvoker
         Sync_connect                        = 55590,
         Sync_disconnect                     = 40552,
         Sync_sendMessage                    = 51928,
+        Sync_syncData                       =  5783,
         Sync_syncParadata                   = 31308,
         System_createShortcut               = 37361,
         System_getSharableUri               = 20827,

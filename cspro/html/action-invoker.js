@@ -180,6 +180,8 @@ Sync = {
   disconnectAsync: (args)=>{return CSProActionInvoker.$Impl.runAsync(this,40552,args);},
   sendMessage: (args)=>{return CSProActionInvoker.$Impl.run(this,51928,args);},
   sendMessageAsync: (args)=>{return CSProActionInvoker.$Impl.runAsync(this,51928,args);},
+  syncData: (args)=>{return CSProActionInvoker.$Impl.run(this,5783,args);},
+  syncDataAsync: (args)=>{return CSProActionInvoker.$Impl.runAsync(this,5783,args);},
   syncParadata: (args)=>{return CSProActionInvoker.$Impl.run(this,31308,args);},
   syncParadataAsync: (args)=>{return CSProActionInvoker.$Impl.runAsync(this,31308,args);}
 };

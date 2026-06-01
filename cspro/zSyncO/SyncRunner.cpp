@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "SyncRunner.h"
+#include "DataSyncer.h"
 #include "BluetoothDeviceInfo.h"
 #include "ISyncService.h"
 #include "SyncDictionaryInfo.h"
@@ -341,6 +342,18 @@ std::string SyncRunner::GetDictionarySpec(ISyncService& sync_service, const std:
         SYNCLOG_ERROR << "Error downloading dictionary: " << exception.what();
         throw;
     }
+}
+
+
+DataSyncStatistics SyncRunner::SyncData(ISyncService& sync_service, const ConnectResponse& connect_response,
+                                        const DeviceId& device_id, ISyncableDataRepository& syncable_data_repository,
+                                        const SyncDirection sync_direction, const std::string& universe,
+                                        ParadataLogger* const paradata_logger/* = nullptr*/)
+{
+    DataSyncer data_syncer(sync_service, connect_response, m_syncListener, device_id,
+                           syncable_data_repository, universe, paradata_logger);
+
+    return data_syncer.Sync(sync_direction);
 }
 
 

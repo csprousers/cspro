@@ -577,7 +577,7 @@ Language=EN
 100112 Error downloading from directory %s.
 100113 Invalid file specification: %s
 100114 Synchronization error: %s
-100116 Invalid file used with %s for %s, only CSPro DB files support sync. Please make sure that the file type is CSPro DB and that it is not closed in CSPro application logic.
+100116 Invalid data source used with %s for %s, only CSPro DB files support sync. Please make sure that the data source type is CSPro DB and that it is not closed in CSPro application logic.
 100117 File "%s" is to large to synchronize. Files greater than 2GB are not supported.
 100118 Error reading file %s for upload. Check that the path to the file on the local device is correct.
 100120 %s is not a valid URL for connecting to CSWeb. Must start with http:// or https://.
