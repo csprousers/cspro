@@ -2854,6 +2854,12 @@
   {
     "namespace": "Sync",
     "name": "syncData",
+    "aliases": [
+      {
+        "namespace": "Data",
+        "name": "sync"
+      }
+    ],
     "description": "Synchronizes the cases in a data source with a synchronization service.",
     "parameters": [
       {

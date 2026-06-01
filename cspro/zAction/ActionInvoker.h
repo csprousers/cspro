@@ -237,6 +237,7 @@ private:
     Result Data_queryCases(const JsonNode& json_node, Caller& caller);
     Result Data_queryKeys(const JsonNode& json_node, Caller& caller);
     Result Data_readCase(const JsonNode& json_node, Caller& caller);
+    Result Data_sync(const JsonNode& json_node, Caller& caller);
     Result Data_writeCase(const JsonNode& json_node, Caller& caller);
     Result Dictionary_getDictionary(const JsonNode& json_node, Caller& caller);
     Result File_copy(const JsonNode& json_node, Caller& caller);

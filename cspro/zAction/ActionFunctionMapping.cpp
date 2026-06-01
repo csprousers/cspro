@@ -24,6 +24,7 @@ const std::map<ActionInvoker::Action, ActionInvoker::Runtime::ActionFunctionPoin
     { Action::Data_queryCases,                     &Runtime::Data_queryCases                     },
     { Action::Data_queryKeys,                      &Runtime::Data_queryKeys                      },
     { Action::Data_readCase,                       &Runtime::Data_readCase                       },
+    { Action::Data_sync,                           &Runtime::Data_sync                           },
     { Action::Data_writeCase,                      &Runtime::Data_writeCase                      },
     { Action::Dictionary_getDictionary,            &Runtime::Dictionary_getDictionary            },
     { Action::File_copy,                           &Runtime::File_copy                           },

@@ -887,3 +887,9 @@ ActionInvoker::Result ActionInvoker::Runtime::Data_writeCase(const JsonNode& jso
     return ( data_case->GetPositionInRepository() != -1 ) ? Result::Number(data_case->GetPositionInRepository()) :
                                                             Result::Undefined();
 }
+
+
+ActionInvoker::Result ActionInvoker::Runtime::Data_sync(const JsonNode& json_node, Caller& caller)
+{
+    return Sync_syncData(json_node, caller);
+}

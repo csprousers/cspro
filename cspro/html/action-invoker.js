@@ -57,6 +57,8 @@ Data = {
   queryKeysAsync: (args)=>{return CSProActionInvoker.$Impl.runAsync(this,30585,args);},
   readCase: (args)=>{return CSProActionInvoker.$Impl.run(this,36320,args);},
   readCaseAsync: (args)=>{return CSProActionInvoker.$Impl.runAsync(this,36320,args);},
+  sync: (args)=>{return CSProActionInvoker.$Impl.run(this,18535,args);},
+  syncAsync: (args)=>{return CSProActionInvoker.$Impl.runAsync(this,18535,args);},
   writeCase: (args)=>{return CSProActionInvoker.$Impl.run(this,30855,args);},
   writeCaseAsync: (args)=>{return CSProActionInvoker.$Impl.runAsync(this,30855,args);}
 };

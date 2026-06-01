@@ -33,6 +33,7 @@ namespace ActionInvoker
         Data_queryCases                     = 23028,
         Data_queryKeys                      = 30585,
         Data_readCase                       = 36320,
+        Data_sync                           = 18535,
         Data_writeCase                      = 30855,
         Dictionary_getDictionary            = 43928,
         File_copy                           = 20829,
