@@ -645,13 +645,13 @@ namespace
                 catch(...) { ASSERT(false); }
             }
 
-            const ISyncableDataRepository::SyncStats stats = m_pRepo->GetLastSyncStats();
+            const DataSyncStatistics sync_stats = m_pRepo->GetLastSyncStats();
 
-            SYNCLOG_INFO << "Received " << stats.cases_received << " cases. "
-                         << stats.cases_not_in_repository << " new cases, "
-                         << stats.cases_newer_on_remote << " updated, "
-                         << stats.cases_newer_in_repository << " ignored, "
-                         << stats.cases_with_conflicts << " conflicts.";
+            SYNCLOG_INFO << "Received " << sync_stats.cases_received << " cases. "
+                         << sync_stats.cases_not_in_repository << " new cases, "
+                         << sync_stats.cases_newer_on_remote << " updated, "
+                         << sync_stats.cases_newer_in_repository << " ignored, "
+                         << sync_stats.cases_with_conflicts << " conflicts.";
 
             // Add new rev for this sync
             std::string etag = FormatText("ETag: %d", thisSyncRev);

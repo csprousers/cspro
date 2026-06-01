@@ -33,6 +33,7 @@
     <ClInclude Include="ChooseBluetoothDeviceDialog.h" />
     <ClInclude Include="CSWebSyncService.h" />
     <ClInclude Include="DataSyncer.h" />
+    <ClInclude Include="DataSyncStatistics.h" />
     <ClInclude Include="DialogBasedSyncListener.h" />
     <ClInclude Include="DropboxLocalSyncService.h" />
     <ClInclude Include="DropboxSyncService.h" />

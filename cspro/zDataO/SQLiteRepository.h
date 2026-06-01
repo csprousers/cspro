@@ -57,7 +57,7 @@ public:
                                const std::string& server_revision, int client_revision) override;
     void ClearBinarySyncHistory(const DeviceId& server_device_id, int client_revision = -1) override;
     void EndSync() override;
-    SyncStats GetLastSyncStats() const override;
+    DataSyncStatistics GetLastSyncStats() const override;
     std::unique_ptr<CaseIterator> GetCasesModifiedSinceRevisionIterator(int client_revision, const std::string& last_case_uuid, const std::string& universe,
                                                                         size_t limit = std::numeric_limits<size_t>::max(), size_t* out_case_count = nullptr, int* out_last_client_revision = nullptr,
                                                                         cs::cref_optional<DeviceId> ignore_gets_from_device_id = std::nullopt,
@@ -146,7 +146,7 @@ private:
     };
 
     SyncParams m_currentSyncParams;
-    SyncStats m_currentSyncStats;
+    DataSyncStatistics m_currentSyncStats;
 
     sqlite3_stmt* m_stmtInsertCase;
     sqlite3_stmt* m_stmtUpdateCase;

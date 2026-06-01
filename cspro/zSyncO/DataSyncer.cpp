@@ -36,7 +36,7 @@ DataSyncer::DataSyncer(ISyncService& sync_service, const ConnectResponse& connec
 }
 
 
-void DataSyncer::Sync(const SyncDirection sync_direction)
+DataSyncStatistics DataSyncer::Sync(const SyncDirection sync_direction)
 {
     try
     {
@@ -47,11 +47,15 @@ void DataSyncer::Sync(const SyncDirection sync_direction)
                      << " direction \"" << ToString(sync_direction) << "\""
                      << " universe \"" << m_universe << "\"";
 
-        if( sync_direction != SyncDirection::Put )
-            SyncGet();
+        DataSyncStatistics sync_stats =
+            ( sync_direction != SyncDirection::Put )
+            ? SyncGet()
+            : DataSyncStatistics();
 
         if( sync_direction != SyncDirection::Get )
-            SyncPut();
+            sync_stats += SyncPut();
+
+        return sync_stats;
     }
 
     catch( const SyncCancelException& exception )
@@ -84,7 +88,7 @@ void DataSyncer::Sync(const SyncDirection sync_direction)
 }
 
 
-void DataSyncer::SyncGet()
+DataSyncStatistics DataSyncer::SyncGet()
 {
     std::optional<SyncHistoryEntry> last_sync_revision = GetRevisionFromLastSync(SyncDirection::Get);
 
@@ -228,7 +232,7 @@ void DataSyncer::SyncGet()
 
     data_chunk.ResetOptimization();
 
-    const ISyncableDataRepository::SyncStats sync_stats = m_syncableDataRepository.GetLastSyncStats();
+    DataSyncStatistics sync_stats = m_syncableDataRepository.GetLastSyncStats();
 
     SYNCLOG_INFO << "New sync service revision = " << server_revision;
     SYNCLOG_INFO << "Sync GET completed. ";
@@ -237,10 +241,12 @@ void DataSyncer::SyncGet()
                  << sync_stats.cases_newer_on_remote << " updated, "
                  << sync_stats.cases_newer_in_repository << " ignored, "
                  << sync_stats.cases_with_conflicts << " conflicts";
+
+    return sync_stats;
 }
 
 
-void DataSyncer::SyncPut()
+DataSyncStatistics DataSyncer::SyncPut()
 {
     DeviceId exclude_gets_from_device_id = m_connectResponse.GetServerDeviceId();
     std::optional<SyncHistoryEntry> last_sync_revision = GetRevisionFromLastSync(SyncDirection::Put);
@@ -454,11 +460,13 @@ void DataSyncer::SyncPut()
 
     data_chunk.ResetOptimization();
 
-    const ISyncableDataRepository::SyncStats sync_stats = m_syncableDataRepository.GetLastSyncStats();
+    DataSyncStatistics sync_stats = m_syncableDataRepository.GetLastSyncStats();
 
     SYNCLOG_INFO << "New sync service revision = " << server_revision;
     SYNCLOG_INFO << "Sync PUT completed. ";
     SYNCLOG_INFO << "Uploaded " << sync_stats.cases_sent << " cases";
+
+    return sync_stats;
 }
 
 

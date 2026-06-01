@@ -2,6 +2,7 @@
 
 #include <zSyncO/SyncRunner.h>
 
+struct DataSyncStatistics;
 class SyncHistoryEntry;
 
 
@@ -18,11 +19,11 @@ public:
                ISyncableDataRepository& syncable_data_repository, const std::string& universe,
                SyncRunner::ParadataLogger* paradata_logger);
 
-    void Sync(SyncDirection sync_direction);
+    DataSyncStatistics Sync(SyncDirection sync_direction);
 
 private:
-    void SyncGet();
-    void SyncPut();
+    DataSyncStatistics SyncGet();
+    DataSyncStatistics SyncPut();
 
     std::optional<SyncHistoryEntry> GetRevisionFromLastSync(SyncDirection sync_direction) const;
 

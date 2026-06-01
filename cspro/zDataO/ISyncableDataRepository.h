@@ -1,8 +1,9 @@
-﻿#pragma once
+#pragma once
 
 #include <zDataO/DataRepository.h>
 #include <zToolsO/span.h>
 #include <zAppO/SyncTypes.h>
+#include <zSyncO/DataSyncStatistics.h>
 
 class SyncBinaryDataUploadManager;
 class SyncHistoryEntry;
@@ -15,17 +16,6 @@ protected:
 
 public:
     ISyncableDataRepository* GetSyncableDataRepository() override { return this; }
-
-    // Info on cases synced.
-    struct SyncStats
-    {
-        size_t cases_not_in_repository;
-        size_t cases_newer_in_repository;
-        size_t cases_newer_on_remote;
-        size_t cases_with_conflicts;
-        size_t cases_received;
-        size_t cases_sent;
-    };
 
     // Start syncing cases from a remote repository with this repository.
     virtual void StartSync(DeviceId server_device_id, std::string remote_device_name, std::string username, SyncDirection direction, std::string universe,
@@ -45,7 +35,7 @@ public:
     virtual void EndSync() = 0;
 
     // Get info about the last sync.
-    virtual SyncStats GetLastSyncStats() const = 0;
+    virtual DataSyncStatistics GetLastSyncStats() const = 0;
 
     // Clear the binary sync history for the repository.
     virtual void ClearBinarySyncHistory(const DeviceId& server_device_id, int client_revision = -1) = 0;

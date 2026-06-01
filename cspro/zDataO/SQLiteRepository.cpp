@@ -1506,7 +1506,7 @@ void SQLiteRepository::StartSync(DeviceId server_device_id, std::string remote_d
         }
     }
 
-    m_currentSyncStats = { 0 };
+    m_currentSyncStats = DataSyncStatistics();
 
     // Save these here - they get written to DB when cases are received/sent that way
     // we don't record anything if we never contact the server.
@@ -1734,7 +1734,7 @@ void SQLiteRepository::EndSync()
 }
 
 
-ISyncableDataRepository::SyncStats SQLiteRepository::GetLastSyncStats() const
+DataSyncStatistics SQLiteRepository::GetLastSyncStats() const
 {
     return m_currentSyncStats;
 }

@@ -54,6 +54,9 @@
     <ClInclude Include="DataSyncer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="DataSyncStatistics.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="DialogBasedSyncListener.h">
       <Filter>Header Files</Filter>
     </ClInclude>
