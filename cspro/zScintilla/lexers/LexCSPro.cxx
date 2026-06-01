@@ -70,7 +70,7 @@ void LexCSPro::SetPostIdentifierState(Lexilla::StyleContext& sc)
             return;
         }
 
-        // if not followed by a dot, see see if this is a keyword
+        // if not followed by a dot, see if this is a keyword
         else if( next_ch != '.' && IsKeyword(sc, m_lexParameters.keywords) )
         {
             sc.ChangeState(SCE_CSPRO_KEYWORD);
@@ -80,8 +80,35 @@ void LexCSPro::SetPostIdentifierState(Lexilla::StyleContext& sc)
     }
 
     // see if this is a function namespace (a parent or child one)
-    if( ( sc.state == SCE_CSPRO_IDENTIFIER && IsKeyword(sc, m_lexParameters.function_namespaces_parent) ) ||
-        ( sc.state == SCE_CSPRO_IDENTIFIER_AFTER_FUNCTION_NAMESPACE_DOT && IsKeyword(sc, m_lexParameters.function_namespaces_child) ) )
+    bool is_function_namespace = false;
+
+    if( sc.state == SCE_CSPRO_IDENTIFIER )
+    {
+        is_function_namespace = IsKeyword(sc, m_lexParameters.function_namespaces_parent);
+    }
+
+    else if( sc.state == SCE_CSPRO_IDENTIFIER_AFTER_FUNCTION_NAMESPACE_DOT )
+    {
+        if( IsKeyword(sc, m_lexParameters.function_namespaces_child) )
+        {
+            // because Sync is a namespace, make sure that the "sync" of CS.Data.sync
+            // is treated as a dot-notation function, not a namespace;
+            // we can check this by seeing if "Sync" was used as opposed to "sync"
+            if( strcmp(m_keywordCheckBuffer, "sync") == 0 )
+            {
+                static_assert(_countof(m_keywordCheckBuffer) >= 2);
+                sc.GetCurrent(m_keywordCheckBuffer, 2);
+                is_function_namespace = ( m_keywordCheckBuffer[0] == 'S' );
+            }
+
+            else
+            {
+                is_function_namespace = true;
+            }
+        }
+    }
+
+    if( is_function_namespace )
     {
         sc.ChangeState(( sc.state == SCE_CSPRO_IDENTIFIER ) ? SCE_CSPRO_FUNCTION_NAMESPACE_PARENT :
                                                               SCE_CSPRO_FUNCTION_NAMESPACE_CHILD);
