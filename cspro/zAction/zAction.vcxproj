@@ -53,6 +53,7 @@
     <ClInclude Include="ActionInvoker.h" />
     <ClInclude Include="Caller.h" />
     <ClInclude Include="CallerWrappingCaseConstructionReporter.h" />
+    <ClInclude Include="DataWrapper.h" />
     <ClInclude Include="Encoding.h" />
     <ClInclude Include="Exception.h" />
     <ClInclude Include="ExceptionThrowingJsonReaderInterface.h" />
