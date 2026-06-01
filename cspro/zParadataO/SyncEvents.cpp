@@ -154,6 +154,69 @@ void SyncConnectionEvent::Save(Log& log, long base_event_id) const
 
 
 // --------------------------------------------------------------------------
+// SyncDataEvent
+// --------------------------------------------------------------------------
+
+void SyncDataEvent::SetupTables(Log& log)
+{
+    log.CreateTable(ParadataTable::SyncDataEvent)
+            .AddColumn("sync_service_instance", Table::ColumnType::Long)
+            .AddColumn("data_source_instance", Table::ColumnType::Long, true)
+            .AddColumn("direction", Table::ColumnType::Integer)
+                    .AddCode(SyncDirection::Put, ToString(SyncDirection::Put))
+                    .AddCode(SyncDirection::Get, ToString(SyncDirection::Get))
+                    .AddCode(SyncDirection::Both, ToString(SyncDirection::Both))
+            .AddColumn("universe_text", Table::ColumnType::Long, true)
+            .AddColumn("cases_sent", Table::ColumnType::Integer, true)
+            .AddColumn("cases_received", Table::ColumnType::Integer, true)
+            .AddColumn("cases_received_new", Table::ColumnType::Integer, true)
+            .AddColumn("cases_received_updates", Table::ColumnType::Integer, true)
+            .AddColumn("cases_received_stale", Table::ColumnType::Integer, true)
+            .AddColumn("cases_received_conflicts", Table::ColumnType::Integer, true)
+            .AddColumn("duration", Table::ColumnType::Double)
+            .AddColumn("exception_text", Table::ColumnType::Long, true)
+        ;
+}
+
+
+SyncDataEvent::SyncDataEvent(std::shared_ptr<const SyncServiceInstance> sync_service_instance,
+                             const void* const data_repository, const SyncDirection sync_direction, std::string universe)
+    :   SyncEvent(std::move(sync_service_instance)),
+        m_dataRepository(data_repository),
+        m_syncDirection(sync_direction),
+        m_universe(std::move(universe))
+{
+}
+
+
+void SyncDataEvent::Save(Log& log, long base_event_id) const
+{
+    Table& sync_message_event_table = log.GetTable(ParadataTable::SyncDataEvent);
+
+    auto get_ptr = [](const auto& value) { return &value; };
+
+    const bool put = ( m_syncStats.has_value() && m_syncDirection != SyncDirection::Get );
+    const bool get = ( m_syncStats.has_value() && m_syncDirection != SyncDirection::Put );
+
+    sync_message_event_table.Insert(&base_event_id,
+        GetSyncServiceInstanceId(),
+        GetOptionalValueOrNull(log.GetInstanceGeneratingObject(m_dataRepository)),
+        static_cast<int>(m_syncDirection),
+        !m_universe.empty() ? get_ptr(log.AddText(m_universe)) : nullptr,
+        put ? get_ptr(static_cast<int>(m_syncStats->cases_sent)) : nullptr,
+        get ? get_ptr(static_cast<int>(m_syncStats->cases_received)) : nullptr,
+        get ? get_ptr(static_cast<int>(m_syncStats->cases_not_in_repository)) : nullptr,
+        get ? get_ptr(static_cast<int>(m_syncStats->cases_newer_on_remote)) : nullptr,
+        get ? get_ptr(static_cast<int>(m_syncStats->cases_newer_in_repository)) : nullptr,
+        get ? get_ptr(static_cast<int>(m_syncStats->cases_with_conflicts)) : nullptr,
+        GetDuration(),
+        GetOptionalValueOrNull(GetExceptionTextId(log))
+    );
+}
+
+
+
+// --------------------------------------------------------------------------
 // SyncMessageEvent
 // --------------------------------------------------------------------------
 

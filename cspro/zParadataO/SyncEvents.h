@@ -1,12 +1,12 @@
-﻿#pragma once
+#pragma once
 
 #include <zParadataO/Event.h>
 #include <zUtilO/SyncConnectionString.h>
 #include <zAppO/SyncTypes.h>
 #include <zSyncO/SyncRunner.h>
 
-namespace Paradata { class SyncConnectionEvent; class SyncEvent; class SyncMessageEvent;
-                     class SyncParadataEvent; class SyncServiceInstance; }
+namespace Paradata { class SyncConnectionEvent; class SyncDataEvent; class SyncEvent;
+                     class SyncMessageEvent; class SyncParadataEvent; class SyncServiceInstance; }
 
 
 // --------------------------------------------------------------------------
@@ -93,6 +93,28 @@ private:
     std::optional<std::tuple<std::shared_ptr<SyncServiceInstance>,
                              SyncRunner::ConnectionSource,
                              SyncConnectionString>> m_connectData;
+};
+
+
+// --------------------------------------------------------------------------
+// SyncDataEvent
+// --------------------------------------------------------------------------
+
+class ZPARADATAO_API Paradata::SyncDataEvent : public SyncEvent
+{
+    DECLARE_PARADATA_EVENT(SyncDataEvent)
+
+public:
+    SyncDataEvent(std::shared_ptr<const SyncServiceInstance> sync_service_instance,
+                  const void* data_repository, SyncDirection sync_direction, std::string universe);
+
+    void SetStatistics(const DataSyncStatistics& sync_stats) { m_syncStats = sync_stats; }
+
+private:
+    const void* m_dataRepository;
+    SyncDirection m_syncDirection;
+    std::string m_universe;
+    std::optional<DataSyncStatistics> m_syncStats;
 };
 
 

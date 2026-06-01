@@ -350,10 +350,39 @@ DataSyncStatistics SyncRunner::SyncData(ISyncService& sync_service, const Connec
                                         const SyncDirection sync_direction, const std::string& universe,
                                         ParadataLogger* const paradata_logger/* = nullptr*/)
 {
-    DataSyncer data_syncer(sync_service, connect_response, m_syncListener, device_id,
-                           syncable_data_repository, universe, paradata_logger);
+    std::optional<ParadataLogger::EventHolder<Paradata::SyncDataEvent>> sync_data_event_holder;
 
-    return data_syncer.Sync(sync_direction);
+    if( paradata_logger != nullptr )
+    {
+        sync_data_event_holder.emplace(
+            paradata_logger->CreateSyncEvent<Paradata::SyncDataEvent>(
+                &syncable_data_repository,
+                sync_direction,
+                universe
+            )
+        );
+    }
+
+    try
+    {
+        DataSyncer data_syncer(sync_service, connect_response, m_syncListener, device_id,
+                               syncable_data_repository, universe);
+
+        DataSyncStatistics sync_stats = data_syncer.Sync(sync_direction);
+
+        if( sync_data_event_holder.has_value() )
+            sync_data_event_holder->event->SetStatistics(sync_stats);
+
+        return sync_stats;
+    }
+
+    catch( const std::exception& exception )
+    {
+        if( sync_data_event_holder.has_value() )
+            sync_data_event_holder->SetResultFailure(exception);
+
+        throw;
+    }
 }
 
 
@@ -364,8 +393,12 @@ std::optional<JsonNode> SyncRunner::SendSyncMessage(ISyncService& sync_service, 
 
     if( paradata_logger != nullptr )
     {
-        sync_message_event_holder.emplace(paradata_logger->CreateSyncEvent<Paradata::SyncMessageEvent>(sync_message.GetName(),
-                                                                                                       sync_message.GetValueAsOptionalJsonText()));
+        sync_message_event_holder.emplace(
+            paradata_logger->CreateSyncEvent<Paradata::SyncMessageEvent>(
+                sync_message.GetName(),
+                sync_message.GetValueAsOptionalJsonText()
+            )
+        );
     }
 
     try
@@ -411,8 +444,12 @@ void SyncRunner::SyncParadata(ISyncService& sync_service, Paradata::Syncer& para
 
     if( paradata_logger != nullptr )
     {
-        sync_paradata_event_holder.emplace(paradata_logger->CreateSyncEvent<Paradata::SyncParadataEvent>(sync_direction,
-                                                                                                         paradata_syncer.GetLogFilePath()));
+        sync_paradata_event_holder.emplace(
+            paradata_logger->CreateSyncEvent<Paradata::SyncParadataEvent>(
+                sync_direction,
+                paradata_syncer.GetLogFilePath()
+            )
+        );
     }
 
     try

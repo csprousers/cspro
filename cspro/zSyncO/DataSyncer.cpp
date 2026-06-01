@@ -22,15 +22,13 @@ namespace
 
 DataSyncer::DataSyncer(ISyncService& sync_service, const ConnectResponse& connect_response,
                        std::shared_ptr<SyncListener> sync_listener, const DeviceId& device_id,
-                       ISyncableDataRepository& syncable_data_repository, const std::string& universe,
-                       SyncRunner::ParadataLogger* const paradata_logger)
+                       ISyncableDataRepository& syncable_data_repository, const std::string& universe)
     :   m_syncService(sync_service),
         m_connectResponse(connect_response),
         m_syncListener(std::move(sync_listener)),
         m_deviceId(device_id),
         m_syncableDataRepository(syncable_data_repository),
-        m_universe(universe),
-        m_paradataLogger(paradata_logger)
+        m_universe(universe)
 {
     ASSERT(m_syncListener != nullptr);
 }
@@ -58,7 +56,7 @@ DataSyncStatistics DataSyncer::Sync(const SyncDirection sync_direction)
         return sync_stats;
     }
 
-    catch( const SyncCancelException& exception )
+    catch( const SyncCancelException& )
     {
         SYNCLOG_INFO << "Syncing data canceled";
 

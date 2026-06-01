@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zParadataO/zParadataO.h>
 
@@ -78,6 +78,7 @@ namespace Paradata
         SyncServiceInfo,
         SyncServiceInstance,
         SyncConnectionEvent,
+        SyncDataEvent,
         SyncMessageEvent,
         SyncParadataEvent,
 

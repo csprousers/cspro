@@ -16,8 +16,7 @@ class DataSyncer
 public:
     DataSyncer(ISyncService& sync_service, const ConnectResponse& connect_response,
                std::shared_ptr<SyncListener> sync_listener, const DeviceId& device_id,
-               ISyncableDataRepository& syncable_data_repository, const std::string& universe,
-               SyncRunner::ParadataLogger* paradata_logger);
+               ISyncableDataRepository& syncable_data_repository, const std::string& universe);
 
     DataSyncStatistics Sync(SyncDirection sync_direction);
 
@@ -36,5 +35,4 @@ private:
     const DeviceId& m_deviceId;
     ISyncableDataRepository& m_syncableDataRepository;
     const std::string& m_universe;
-    SyncRunner::ParadataLogger* m_paradataLogger;
 };

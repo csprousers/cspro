@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "TableDefinitions.h"
 
 using namespace Paradata;
@@ -79,6 +79,7 @@ namespace
         { ParadataTable::SyncServiceInfo,              -1,  "sync_service_info",            InsertType::AutoIncrementIfUnique },
         { ParadataTable::SyncServiceInstance,          -1,  "sync_service_instance",        InsertType::AutoIncrement },
         { ParadataTable::SyncConnectionEvent,       15001,  "sync_connection_event",        InsertType::WithId },
+        { ParadataTable::SyncDataEvent,             15031,  "sync_data_event",              InsertType::WithId },
         { ParadataTable::SyncMessageEvent,          15011,  "sync_message_event",           InsertType::WithId },
         { ParadataTable::SyncParadataEvent,         15021,  "sync_paradata_event",          InsertType::WithId },
     };
