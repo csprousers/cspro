@@ -2017,14 +2017,39 @@ void SQLiteRepository::AddBinarySignaturesNotSyncedWithRemote(const Case& data_c
 }
 
 
+SyncHistoryEntry SQLiteRepository::CreateSyncHistoryEntry(SQLiteStatement& stmt)
+{
+    // For legacy files with no device name use device id
+    DeviceId this_device_id = stmt.GetColumn<DeviceId>(2);
+    std::string this_device_name = stmt.IsColumnNull(3) ? this_device_id : stmt.GetColumn<std::string>(3);
+
+    return SyncHistoryEntry(
+        stmt.GetColumn<int>(0),
+        stmt.GetColumn<int>(1),
+        std::move(this_device_id),
+        std::move(this_device_name),
+        static_cast<SyncDirection>(stmt.GetColumn<int>(4)),
+        stmt.GetColumn<std::string>(5),
+        stmt.GetColumn<int64_t>(6),
+        stmt.GetColumn<std::string>(7),
+        static_cast<SyncHistoryEntry::SyncState>(stmt.GetColumn<int>(8)),
+        stmt.GetColumn<std::string>(9)
+    );
+}
+
+
 std::optional<SyncHistoryEntry> SQLiteRepository::GetLastSyncForDevice(const DeviceId& device_id, const SyncDirection direction) const
 {
+    ASSERT(!device_id.empty());
+    ASSERT(direction != SyncDirection::Both);
+
     SQLiteStatement statement(m_db, m_stmtRevisionByDevice,
         "SELECT id, file_revision, device_id, device_name, direction, universe, timestamp, server_revision, partial, last_id "
         "FROM sync_history "
         "WHERE device_id=? AND direction=? "
         "ORDER BY id DESC "
-        "LIMIT 1");
+        "LIMIT 1"
+    );
 
     statement.Bind(1, device_id)
              .Bind(2, static_cast<int>(direction));
@@ -2038,16 +2063,7 @@ std::optional<SyncHistoryEntry> SQLiteRepository::GetLastSyncForDevice(const Dev
 
     else if( result == SQLITE_ROW )
     {
-        return SyncHistoryEntry(statement.GetColumn<int>(0),
-                                statement.GetColumn<int>(1),
-                                statement.GetColumn<DeviceId>(2),
-                                statement.GetColumn<std::string>(3),
-                                static_cast<SyncDirection>(statement.GetColumn<int>(4)),
-                                statement.GetColumn<std::string>(5),
-                                statement.GetColumn<int64_t>(6),
-                                statement.GetColumn<std::string>(7),
-                                static_cast<SyncHistoryEntry::SyncState>(statement.GetColumn<int>(8)),
-                                statement.GetColumn<std::string>(9));
+        return CreateSyncHistoryEntry(statement);
     }
 
     else
@@ -2057,37 +2073,30 @@ std::optional<SyncHistoryEntry> SQLiteRepository::GetLastSyncForDevice(const Dev
 }
 
 
-std::vector<SyncHistoryEntry> SQLiteRepository::GetSyncHistory(const DeviceId& device_id/* = DeviceId()*/, const SyncDirection direction/* = SyncDirection::Both*/,
-                                                               const int start_serial_number/* = 0*/)
+std::vector<SyncHistoryEntry> SQLiteRepository::GetSyncHistory(const DeviceId& device_id/* = DeviceId()*/, const std::optional<SyncDirection> direction/* = std::nullopt*/,
+                                                               const std::optional<int> start_serial_number/* = std::nullopt*/, const size_t limit/* = std::numeric_limits<size_t>::max()*/)
 {
-    SQLiteStatement statement(m_db, m_stmtRevisionsByDeviceSince,
-        "SELECT id, file_revision, device_id, device_name, direction, universe, timestamp, server_revision, partial, last_id FROM sync_history "
-        "WHERE id >= @id AND (@dev='' OR device_id=@dev) AND (@dir = 3 OR @dir = direction) ORDER BY id ASC");
+    ASSERT(direction != SyncDirection::Both);
+    ASSERT(start_serial_number != 0);
 
-    statement.Bind("@id", start_serial_number)
+    SQLiteStatement statement(m_db, m_stmtRevisionsByDeviceSince,
+        "SELECT id, file_revision, device_id, device_name, direction, universe, timestamp, server_revision, partial, last_id "
+        "FROM sync_history "
+        "WHERE id >= @id AND (@dev='' OR device_id=@dev) AND (@dir = 3 OR @dir = direction) "
+        "ORDER BY id DESC "
+        "LIMIT @li"
+    );
+
+    statement.Bind("@id", start_serial_number.value_or(0))
              .Bind("@dev", device_id)
-             .Bind("@dir", static_cast<int>(direction));
+             .Bind("@dir", static_cast<int>(direction.value_or(SyncDirection::Both)))
+             .Bind("@li", limit);
 
     std::vector<SyncHistoryEntry> entries;
     int result;
 
     while( ( result = statement.Step() ) == SQLITE_ROW )
-    {
-        // For legacy files with no device name use device id
-        DeviceId this_device_id = statement.GetColumn<DeviceId>(2);
-        std::string this_device_name = statement.IsColumnNull(3) ? this_device_id : statement.GetColumn<std::string>(3);
-
-        entries.emplace_back(statement.GetColumn<int>(0),
-                             statement.GetColumn<int>(1),
-                             std::move(this_device_id),
-                             std::move(this_device_name),
-                             static_cast<SyncDirection>(statement.GetColumn<int>(4)),
-                             statement.GetColumn<std::string>(5),
-                             statement.GetColumn<int>(6),
-                             statement.GetColumn<std::string>(7),
-                             static_cast<SyncHistoryEntry::SyncState>(statement.GetColumn<int>(8)),
-                             statement.GetColumn<std::string>(9));
-    }
+        entries.emplace_back(CreateSyncHistoryEntry(statement));
 
     if( result != SQLITE_DONE )
         throw SQLiteErrorWithMessage(m_db);

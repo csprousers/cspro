@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "DataSummaryContentCreator.h"
 #include <zHtml/HtmlWriter.h>
 #include <zDataO/SyncHistoryEntry.h>
@@ -73,26 +73,28 @@ SharableString DataSummaryContentCreator::GetHtmlContent(bool /*embed_resources 
 
     if( syncable_repository != nullptr )
     {
-        const std::vector<SyncHistoryEntry>& sync_history = syncable_repository->GetSyncHistory();
+        constexpr bool ShowOnlyLastSync = true;
+
+        const std::vector<SyncHistoryEntry>& sync_history = syncable_repository->GetSyncHistory(
+            DeviceId(),
+            std::nullopt,
+            std::nullopt,
+            ShowOnlyLastSync ? 1 : std::numeric_limits<size_t>::max()
+        );
 
         if( !sync_history.empty() )
         {
             html_writer.WriteRaw(BlankRow_sv);
 
-            constexpr bool ShowOnlyLastSync = true;
-
-            for( auto sync_history_itr = sync_history.crbegin(); sync_history_itr != sync_history.crend(); ++sync_history_itr )
+            for( const SyncHistoryEntry& sync_history_entry : sync_history )
             {
-                const double sync_time = static_cast<double>(sync_history_itr->GetDateTime());
+                const double sync_time = static_cast<double>(sync_history_entry.GetDateTime());
 
                 const std::string time_ago_with_time = FormatText("%s (%s)", GetTimeAgo(sync_time).c_str(),
                                                                              FormatTimestamp(sync_time).c_str());
 
                 html_writer << "<tr><td class=\"dv_summary_table_header\">Last Sync</td><td>" << time_ago_with_time
-                            << "<br>" << sync_history_itr->GetDeviceName() << "</td></tr>";
-
-                if( ShowOnlyLastSync )
-                    break;
+                            << "<br>" << sync_history_entry.GetDeviceName() << "</td></tr>";
             }
         }
     }

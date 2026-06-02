@@ -53,7 +53,11 @@ public:
     virtual std::optional<SyncHistoryEntry> GetLastSyncForDevice(const DeviceId& device_id, SyncDirection direction) const = 0;
 
     // Get all syncs since for a device since a particular serial number.
-    virtual std::vector<SyncHistoryEntry> GetSyncHistory(const DeviceId& device_id = DeviceId(), SyncDirection direction = SyncDirection::Both, int start_serial_number = 0) = 0;
+    // The sync history is returned in descending order (most recent first).
+    // If device_id is empty, then syncs for all devices are returned.
+    // If direction is not defined, then syncs in both directions are returned.
+    virtual std::vector<SyncHistoryEntry> GetSyncHistory(const DeviceId& device_id = DeviceId(), std::optional<SyncDirection> direction = std::nullopt,
+                                                         std::optional<int> start_serial_number = std::nullopt, size_t limit = std::numeric_limits<size_t>::max()) = 0;
 
     // Check if the client revision exists in the repository.
     virtual bool IsValidClientRevision(int client_revision) const = 0;

@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "SynchronizeDlg.h"
 #include "SyncHelpers.h"
 #include <zUtilO/DynamicLayoutControlResizer.h>
@@ -68,14 +68,21 @@ std::tuple<SyncConnectionString, SyncDirection, std::string> SynchronizeDlg::Get
     ISyncableDataRepository* const syncable_repository = data_repository->GetSyncableDataRepository();
     ASSERT(syncable_repository != nullptr);
 
-    const std::vector<SyncHistoryEntry>& sync_history = syncable_repository->GetSyncHistory();
+    constexpr size_t EntriesNeededForCalculation = 2;
+
+    const std::vector<SyncHistoryEntry>& sync_history = syncable_repository->GetSyncHistory(
+        DeviceId(),
+        std::nullopt,
+        std::nullopt,
+        EntriesNeededForCalculation
+    );
 
     // if there is no history, suggest putting to the last used sync service, which
     // SyncServiceSelectorDlg will do with an undefined sync connection string
     if( sync_history.empty() )
         return { SyncConnectionString(), SyncDirection::Put, std::string() };
 
-    const SyncHistoryEntry& last_sync_history = sync_history.back();
+    const SyncHistoryEntry& last_sync_history = sync_history.front();
 
     std::tuple<SyncConnectionString, SyncDirection, std::string> sync_params =
     {
@@ -90,7 +97,7 @@ std::tuple<SyncConnectionString, SyncDirection, std::string> SynchronizeDlg::Get
 
     if( std::get<1>(sync_params) == SyncDirection::Put && sync_history.size() > 1 )
     {
-        const SyncHistoryEntry& second_to_last_sync_history = sync_history[sync_history.size() - 2];
+        const SyncHistoryEntry& second_to_last_sync_history = sync_history[1];
 
         if( second_to_last_sync_history.GetDirection() == SyncDirection::Get &&
             second_to_last_sync_history.GetDeviceName() == last_sync_history.GetDeviceName() &&

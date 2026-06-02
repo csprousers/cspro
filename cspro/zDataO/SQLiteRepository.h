@@ -64,7 +64,8 @@ public:
                                                                         cs::cref_optional<std::vector<std::string>> revisions_to_exclude = std::nullopt) override;
     void AddBinarySignaturesNotSyncedWithRemote(const Case& data_case, const DeviceId& server_device_id, std::vector<std::string>& signatures_to_sync) override;
     std::optional<SyncHistoryEntry> GetLastSyncForDevice(const DeviceId& device_id, SyncDirection direction) const override;
-    std::vector<SyncHistoryEntry> GetSyncHistory(const DeviceId& device_id = DeviceId(), SyncDirection direction = SyncDirection::Both, int start_serial_number = 0) override;
+    std::vector<SyncHistoryEntry> GetSyncHistory(const DeviceId& device_id = DeviceId(), std::optional<SyncDirection> direction = std::nullopt,
+                                                 std::optional<int> start_serial_number = std::nullopt, size_t limit = std::numeric_limits<size_t>::max()) override;
     bool IsValidClientRevision(int client_revision) const override;
     bool IsPreviousSync(int client_revision, const DeviceId& device_id) const override;
     std::optional<double> GetSyncTime(const std::string& device_identifier, const std::string& case_uuid) const override;
@@ -123,6 +124,8 @@ private:
     void EndMakeDatabaseTemporarilyWriteable(sqlite3** db);
     void UpdateFilePosition(Case& data_case);
     static std::string GetDictionaryStructureMd5(sqlite3* db);
+
+    static SyncHistoryEntry CreateSyncHistoryEntry(SQLiteStatement& stmt);
 
 private:
     mutable sqlite3* m_db;
