@@ -3,6 +3,7 @@
 #include <zSyncO/zSyncO.h>
 
 namespace ActionInvoker { class Caller; }
+class ConnectResponse;
 struct DataSyncStatistics;
 class ISyncableDataRepository;
 namespace Paradata { class Syncer; }
@@ -21,7 +22,7 @@ public:
     SYNC_API static std::unique_ptr<ActionInvokerSyncRunner> Instantiate();
 
     // Calls SyncRunner::Connect and holds the connection.
-    virtual void Connect(ActionInvoker::Caller& caller, const SyncConnectionString& sync_connection_string) = 0;
+    virtual std::shared_ptr<const ConnectResponse> Connect(ActionInvoker::Caller& caller, const SyncConnectionString& sync_connection_string) = 0;
 
     // Calls ISyncService::Disconnect. The connection object will be destroyed
     // regardless of whether an exception is thrown.

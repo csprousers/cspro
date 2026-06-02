@@ -1,10 +1,9 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "ConnectResponse.h"
 #include "OAuth2Token.h"
 #include "UsernamePassword.h"
 
 
-CREATE_JSON_KEY(apiVersion)
 CREATE_JSON_KEY(client_id)
 CREATE_JSON_KEY(client_secret)
 CREATE_JSON_KEY(expires_in)

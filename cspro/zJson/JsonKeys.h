@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 
 #define CREATE_JSON_KEY(KEY_NAME) namespace JK { constexpr const char* KEY_NAME = #KEY_NAME; }
@@ -19,6 +19,7 @@ namespace JK
     CJK(aliases)
     CJK(allowDataManagerModifications)
     CJK(allowExport)
+    CJK(apiVersion)
     CJK(arguments)
     CJK(ascending)
     CJK(askOperatorId)
@@ -86,6 +87,7 @@ namespace JK
     CJK(destination)
     CJK(detailed)
     CJK(deviceId)
+    CJK(deviceName)
     CJK(deviceStateIntervalMinutes)
     CJK(dictionaries)
     CJK(dictionary)

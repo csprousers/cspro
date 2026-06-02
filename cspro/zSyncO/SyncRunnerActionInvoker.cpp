@@ -73,7 +73,7 @@ public:
     ActionInvokerSyncRunnerImpl();
     ~ActionInvokerSyncRunnerImpl();
 
-    void Connect(ActionInvoker::Caller& caller, const SyncConnectionString& sync_connection_string) override;
+    std::shared_ptr<const ConnectResponse> Connect(ActionInvoker::Caller& caller, const SyncConnectionString& sync_connection_string) override;
     void Disconnect(ActionInvoker::Caller& caller) override;
 
     DataSyncStatistics SyncData(ActionInvoker::Caller& caller, ISyncableDataRepository& syncable_data_repository,
@@ -144,7 +144,7 @@ auto ActionInvokerSyncRunnerImpl::ExecuteWithCaller(ActionInvoker::Caller& calle
 }
 
 
-void ActionInvokerSyncRunnerImpl::Connect(ActionInvoker::Caller& caller, const SyncConnectionString& sync_connection_string)
+std::shared_ptr<const ConnectResponse> ActionInvokerSyncRunnerImpl::Connect(ActionInvoker::Caller& caller, const SyncConnectionString& sync_connection_string)
 {
     ASSERT(m_syncService == nullptr && m_connectResponse == nullptr);
     ASSERT(m_paradataLogger == nullptr);
@@ -172,6 +172,8 @@ void ActionInvokerSyncRunnerImpl::Connect(ActionInvoker::Caller& caller, const S
                 ASSERT(m_paradataLogger != nullptr);
             }
         });
+
+    return m_connectResponse;
 }
 
 

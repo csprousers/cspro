@@ -129,7 +129,8 @@
           * Logic: setSymbolValue
           * Network: fetch, fetchBody, fetchBytes, fetchFile, fetchJson,
               fetchText
-          * Sync: connect, disconnect, sendMessage, syncData, syncParadata
+          * Sync: connect, disconnect, getConnectionInfo, sendMessage,
+              syncData, syncParadata
           * System: createShortcut
           * UI: close, setWebViewOptions
 

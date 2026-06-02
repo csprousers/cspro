@@ -69,6 +69,7 @@ const std::map<ActionInvoker::Action, ActionInvoker::Runtime::ActionFunctionPoin
     { Action::Sqlite_rekey,                        &Runtime::Sqlite_rekey                        },
     { Action::Sync_connect,                        &Runtime::Sync_connect                        },
     { Action::Sync_disconnect,                     &Runtime::Sync_disconnect                     },
+    { Action::Sync_getConnectionInfo,              &Runtime::Sync_getConnectionInfo              },
     { Action::Sync_sendMessage,                    &Runtime::Sync_sendMessage                    },
     { Action::Sync_syncData,                       &Runtime::Sync_syncData                       },
     { Action::Sync_syncParadata,                   &Runtime::Sync_syncParadata                   },

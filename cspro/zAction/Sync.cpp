@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "DataWrapper.h"
 #include <zParadataO/Syncer.h>
+#include <zNetwork/ConnectResponse.h>
 #include <zSyncO/SyncRunnerActionInvoker.h>
 
 
@@ -19,26 +20,40 @@ CREATE_JSON_KEY(updates)
 class ActionInvoker::Runtime::SyncServiceWrapper
 {
 public:
-    SyncServiceWrapper(Runtime& runtime, std::unique_ptr<ActionInvokerSyncRunner> sync_runner);
+    SyncServiceWrapper(Runtime& runtime, std::unique_ptr<ActionInvokerSyncRunner> sync_runner, SyncConnectionString sync_connection_string,
+                       std::shared_ptr<const ConnectResponse> connect_response, int64_t connection_start_time);
 
     static int GetSyncId(Runtime& runtime, const JsonNode& json_node, Caller& caller);
     static auto GetSyncServiceWrapper(Runtime& runtime, int sync_id);
     static auto GetSyncServiceWrapper(Runtime& runtime, const JsonNode& json_node, Caller& caller);
     static ActionInvokerSyncRunner& GetSyncRunner(Runtime& runtime, const JsonNode& json_node, Caller& caller);
 
-    ActionInvokerSyncRunner& GetSyncRunner() { return *m_syncRunner; }
+    ActionInvokerSyncRunner& GetSyncRunner()                        { return *m_syncRunner; }
+    const SyncConnectionString& GetSafeSyncConnectionString() const { return m_safeSyncConnectionString; }
+    const ConnectResponse& GetConnectResponse() const               { return *m_connectResponse; }
+    int64_t GetStartConnectionTime() const                          { return m_connectionStartTime; }
 
 private:
     Runtime& m_runtime;
     std::unique_ptr<ActionInvokerSyncRunner> m_syncRunner;
+    SyncConnectionString m_safeSyncConnectionString;
+    std::shared_ptr<const ConnectResponse> m_connectResponse;
+    int64_t m_connectionStartTime;
 };
 
 
-ActionInvoker::Runtime::SyncServiceWrapper::SyncServiceWrapper(Runtime& runtime, std::unique_ptr<ActionInvokerSyncRunner> sync_runner)
+ActionInvoker::Runtime::SyncServiceWrapper::SyncServiceWrapper(
+    Runtime& runtime, std::unique_ptr<ActionInvokerSyncRunner> sync_runner, SyncConnectionString sync_connection_string,
+    std::shared_ptr<const ConnectResponse> connect_response, const int64_t connection_start_time)
     :   m_runtime(runtime),
-        m_syncRunner(std::move(sync_runner))
+        m_syncRunner(std::move(sync_runner)),
+        m_safeSyncConnectionString(std::move(sync_connection_string)),
+        m_connectResponse(std::move(connect_response)),
+        m_connectionStartTime(connection_start_time)
 {
-    ASSERT(m_syncRunner != nullptr);
+    ASSERT(m_syncRunner != nullptr && m_connectResponse != nullptr);
+
+    m_safeSyncConnectionString.RemoveSensitiveProperties();
 }
 
 
@@ -84,12 +99,22 @@ ActionInvoker::Result ActionInvoker::Runtime::Sync_connect(const JsonNode& json_
     std::unique_ptr<ActionInvokerSyncRunner> sync_runner = ObjectTransporter::CreateActionInvokerSyncRunner();
     ASSERT(sync_runner != nullptr);
 
-    const SyncConnectionString sync_connection_string = json_node.Get<SyncConnectionString>(JK::connection);
-    sync_runner->Connect(caller, sync_connection_string);
+    SyncConnectionString sync_connection_string = json_node.Get<SyncConnectionString>(JK::connection);
+    std::shared_ptr<const ConnectResponse> connect_response = sync_runner->Connect(caller, sync_connection_string);
+    const int64_t connection_time = GetTimestamp();
 
     const int sync_id = CreateResourceId(Resource::SyncService, caller);
 
-    m_syncServiceWrappers.try_emplace(sync_id, std::make_unique<SyncServiceWrapper>(*this, std::move(sync_runner)));
+    m_syncServiceWrappers.try_emplace(
+        sync_id,
+        std::make_unique<SyncServiceWrapper>(
+            *this,
+            std::move(sync_runner),
+            std::move(sync_connection_string),
+            std::move(connect_response),
+            connection_time
+        ));
+
 
     return Result::Number(sync_id);
 }
@@ -110,6 +135,29 @@ ActionInvoker::Result ActionInvoker::Runtime::Sync_disconnect(const JsonNode& js
     sync_runner.Disconnect(caller);
 
     return Result::Undefined();
+}
+
+
+ActionInvoker::Result ActionInvoker::Runtime::Sync_getConnectionInfo(const JsonNode& json_node, Caller& caller)
+{
+    const int sync_id = SyncServiceWrapper::GetSyncId(*this, json_node, caller);
+    const auto& sync_service_wrapper_lookup = SyncServiceWrapper::GetSyncServiceWrapper(*this, sync_id);
+    const SyncServiceWrapper& sync_service_wrapper = *sync_service_wrapper_lookup->second;
+    const ConnectResponse& connect_response = sync_service_wrapper.GetConnectResponse();
+
+    const std::unique_ptr<JsonStringWriter> json_writer = Json::CreateStringWriter();
+
+    json_writer->BeginObject()
+                .Write(JK::syncId, sync_id)
+                .WriteDate(JK::startTime, sync_service_wrapper.GetStartConnectionTime())
+                .Write(JK::connection, sync_service_wrapper.GetSafeSyncConnectionString())
+                .Write(JK::deviceId, connect_response.GetServerDeviceId())
+                .Write(JK::deviceName, connect_response.GetServerName())
+                .Write(JK::username, connect_response.GetUsername())
+                .Write(JK::apiVersion, connect_response.GetApiVersion())
+                .EndObject();
+
+    return Result::JsonText(*json_writer);
 }
 
 

@@ -2805,6 +2805,30 @@
   },
   {
     "namespace": "Sync",
+    "name": "getConnectionInfo",
+    "description": "Returns information about the synchronization service connection.",
+    "parameters": [
+      {
+        "name": "syncId",
+        "description": "The synchronization service ID.",
+        "types": [
+          "number"
+        ],
+        "required": false
+      }
+    ],
+    "returns": [
+      {
+        "name": "",
+        "description": "Information about the connection.",
+        "types": [
+          "object"
+        ]
+      }
+    ]
+  },
+  {
+    "namespace": "Sync",
     "name": "sendMessage",
     "description": "Sends a message to a synchronization service, returning the service's response.",
     "parameters": [

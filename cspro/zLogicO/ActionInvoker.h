@@ -78,6 +78,7 @@ namespace ActionInvoker
         Sqlite_rekey                        =  3856,
         Sync_connect                        = 55590,
         Sync_disconnect                     = 40552,
+        Sync_getConnectionInfo              = 59734,
         Sync_sendMessage                    = 51928,
         Sync_syncData                       =  5783,
         Sync_syncParadata                   = 31308,

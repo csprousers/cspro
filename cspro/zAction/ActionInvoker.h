@@ -282,6 +282,7 @@ private:
     Result Sqlite_rekey(const JsonNode& json_node, Caller& caller);
     Result Sync_connect(const JsonNode& json_node, Caller& caller);
     Result Sync_disconnect(const JsonNode& json_node, Caller& caller);
+    Result Sync_getConnectionInfo(const JsonNode& json_node, Caller& caller);
     Result Sync_sendMessage(const JsonNode& json_node, Caller& caller);
     Result Sync_syncData(const JsonNode& json_node, Caller& caller);
     Result Sync_syncParadata(const JsonNode& json_node, Caller& caller);
