@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zUtilO/zUtilO.h>
 #include <zUtilO/PropertyString.h>
@@ -62,6 +62,9 @@ public:
     // Adds the username and password properties.
     void SetUsernamePasswordProperties(std::string username, std::string password);
 
+    // Removes any sensitive properties (e.g., password).
+    void RemoveSensitiveProperties();
+
     // Returns the sync connection string represented as a string.
     std::string ToString() const;
 
@@ -97,6 +100,9 @@ private:
     static SyncServiceType CalculateImplicitSyncServiceType(const std::string& resource);
 
     void Initialize(std::optional<SyncServiceType> sync_service_type);
+
+    template<typename CF>
+    static void RemoveSensitiveProperties(const SyncConnectionString& sync_connection_string, const CF& callback_function);
 
     std::string ToString(std::string resource) const;
 
