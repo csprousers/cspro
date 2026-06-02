@@ -295,6 +295,15 @@ DataSyncStatistics DataSyncer::SyncPut()
             last_case_uuid = last_sync_revision->GetLastCaseUuid();
     }
 
+    m_syncableDataRepository.StartSync(
+        m_connectResponse.GetServerDeviceId(),
+        m_connectResponse.GetServerName(),
+        m_connectResponse.GetUsername(),
+        SyncDirection::Put,
+        m_universe,
+        SyncDataUseRemoteCaseOnConflict
+    );
+
     IDataChunk& data_chunk =  m_syncService.GetChunk();
     data_chunk.EnableOptimization();
 
@@ -313,15 +322,6 @@ DataSyncStatistics DataSyncer::SyncPut()
     SYNCLOG_INFO << "Total new/modified cases since last sync: " << case_count;
 
     m_syncListener->SetProgressTotal(case_count);
-
-    m_syncableDataRepository.StartSync(
-        m_connectResponse.GetServerDeviceId(),
-        m_connectResponse.GetServerName(),
-        m_connectResponse.GetUsername(),
-        SyncDirection::Put,
-        m_universe,
-        SyncDataUseRemoteCaseOnConflict
-    );
 
     const std::unique_ptr<SyncBinaryDataUploadManager> sync_binary_data_upload_manager =
         m_syncableDataRepository.GetCaseAccess().GetCaseMetadata().UsesBinaryData()
