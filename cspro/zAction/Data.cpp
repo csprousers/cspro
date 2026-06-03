@@ -134,6 +134,21 @@ std::unique_ptr<EngineDictionaryModifier> ActionInvoker::Runtime::DataWrapper::C
 }
 
 
+ISyncableDataRepository& ActionInvoker::Runtime::DataWrapper::GetSyncableDataRepository()
+{
+    DataRepository& data_repository = GetDataRepository();
+    ISyncableDataRepository* const syncable_data_repository = data_repository.GetSyncableDataRepository();
+
+    if( syncable_data_repository == nullptr )
+    {
+        throw CSProException("Synchronization routines are not supported using data sources of type: %s",
+                             ToString(data_repository.GetRepositoryType()));
+    }
+
+    return *syncable_data_repository;
+}
+
+
 ActionInvoker::Runtime::DataWrapper::EvaluateType ActionInvoker::Runtime::DataWrapper::EvaluateDataId(
     Runtime& runtime, const JsonNode& json_node, Caller& caller)
 {

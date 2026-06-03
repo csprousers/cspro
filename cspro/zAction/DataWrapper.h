@@ -32,6 +32,9 @@ public:
     // Returns the data repository.
     virtual DataRepository& GetDataRepository() = 0;
 
+    // Returns the ISyncableDataRepository object, throwing an exception if the repository does not support data synchronization.
+    ISyncableDataRepository& GetSyncableDataRepository();
+
     // Returns the non-null dictionary.
     virtual std::shared_ptr<const CDataDict> GetDictionary() = 0;
 

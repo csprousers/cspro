@@ -1,8 +1,7 @@
 #include "stdafx.h"
 #include "DataWrapper.h"
+#include "SyncServiceWrapper.h"
 #include <zParadataO/Syncer.h>
-#include <zNetwork/ConnectResponse.h>
-#include <zSyncO/SyncRunnerActionInvoker.h>
 
 
 CREATE_JSON_KEY(conflicts)
@@ -16,31 +15,6 @@ CREATE_JSON_KEY(updates)
 // --------------------------------------------------------------------------
 // SyncServiceWrapper
 // --------------------------------------------------------------------------
-
-class ActionInvoker::Runtime::SyncServiceWrapper
-{
-public:
-    SyncServiceWrapper(Runtime& runtime, std::unique_ptr<ActionInvokerSyncRunner> sync_runner, SyncConnectionString sync_connection_string,
-                       std::shared_ptr<const ConnectResponse> connect_response, int64_t connection_start_time);
-
-    static int GetSyncId(Runtime& runtime, const JsonNode& json_node, Caller& caller);
-    static auto GetSyncServiceWrapper(Runtime& runtime, int sync_id);
-    static auto GetSyncServiceWrapper(Runtime& runtime, const JsonNode& json_node, Caller& caller);
-    static ActionInvokerSyncRunner& GetSyncRunner(Runtime& runtime, const JsonNode& json_node, Caller& caller);
-
-    ActionInvokerSyncRunner& GetSyncRunner()                        { return *m_syncRunner; }
-    const SyncConnectionString& GetSafeSyncConnectionString() const { return m_safeSyncConnectionString; }
-    const ConnectResponse& GetConnectResponse() const               { return *m_connectResponse; }
-    int64_t GetStartConnectionTime() const                          { return m_connectionStartTime; }
-
-private:
-    Runtime& m_runtime;
-    std::unique_ptr<ActionInvokerSyncRunner> m_syncRunner;
-    SyncConnectionString m_safeSyncConnectionString;
-    std::shared_ptr<const ConnectResponse> m_connectResponse;
-    int64_t m_connectionStartTime;
-};
-
 
 ActionInvoker::Runtime::SyncServiceWrapper::SyncServiceWrapper(
     Runtime& runtime, std::unique_ptr<ActionInvokerSyncRunner> sync_runner, SyncConnectionString sync_connection_string,
@@ -166,14 +140,7 @@ ActionInvoker::Result ActionInvoker::Runtime::Sync_syncData(const JsonNode& json
     ActionInvokerSyncRunner& sync_runner = SyncServiceWrapper::GetSyncRunner(*this, json_node, caller);
 
     const std::shared_ptr<DataWrapper> data_wrapper = DataWrapper::GetDataWrapper(*this, json_node, caller);
-    DataRepository& data_repository = data_wrapper->GetDataRepository();
-    ISyncableDataRepository* const syncable_data_repository = data_repository.GetSyncableDataRepository();
-
-    if( syncable_data_repository == nullptr )
-    {
-        throw CSProException("Synchronization routines are not supported using data sources of type: %s",
-                             ToString(data_repository.GetRepositoryType()));
-    }
+    ISyncableDataRepository& syncable_data_repository = data_wrapper->GetSyncableDataRepository();
 
     const SyncDirection sync_direction = json_node.GetOrDefault(JK::direction, SyncDirection::Both);
 
@@ -186,7 +153,7 @@ ActionInvoker::Result ActionInvoker::Runtime::Sync_syncData(const JsonNode& json
 
     auto run_sync = [&](const std::string& universe)
     {
-        sync_stats += sync_runner.SyncData(caller, *syncable_data_repository, sync_direction, universe);
+        sync_stats += sync_runner.SyncData(caller, syncable_data_repository, sync_direction, universe);
     };
 
     if( json_node.Contains(JK::universe) )

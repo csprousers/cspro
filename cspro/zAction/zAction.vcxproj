@@ -67,6 +67,7 @@
     <ClInclude Include="PortableRunner.h" />
     <ClInclude Include="Result.h" />
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="SyncServiceWrapper.h" />
     <ClInclude Include="WebCaller.h" />
     <ClInclude Include="WebController.h" />
     <ClInclude Include="WebListener.h" />
