@@ -10,11 +10,11 @@ struct ISQLiteQuestionnaireSerializer;
 struct sqlite3;
 struct sqlite3_stmt;
 class SQLiteStatement;
-struct SyncTimeCache;
 
 
 class ZDATAO_API SQLiteRepository : public ISyncableDataRepository
 {
+    class SyncStatusEvaluator;
     friend class SQLiteRepositoryCaseIterator;
 
 protected:
@@ -68,7 +68,7 @@ public:
                                                  std::optional<int> start_serial_number = std::nullopt, size_t limit = std::numeric_limits<size_t>::max()) override;
     bool IsValidClientRevision(int client_revision) const override;
     bool IsPreviousSync(int client_revision, const DeviceId& device_id) const override;
-    std::optional<double> GetSyncTime(const std::string& device_identifier, const std::string& case_uuid) const override;
+    std::optional<double> GetSyncTime(const std::string& device_identifier, const std::string& case_uuid) override;
 
     static std::unique_ptr<CDataDict> GetEmbeddedDictionary(const ConnectionString& connection_string);
 
@@ -126,6 +126,9 @@ private:
     static std::string GetDictionaryStructureMd5(sqlite3* db);
 
     static SyncHistoryEntry CreateSyncHistoryEntry(SQLiteStatement& stmt);
+
+    template<typename CF>
+    auto DoWithSyncStatusEvaluator(const CF& callback_function);
 
 private:
     mutable sqlite3* m_db;
@@ -187,7 +190,5 @@ private:
     sqlite3_stmt* m_stmtClearSyncRevLastId;
     sqlite3_stmt* m_stmtGetFileOrderFromUuid;
 
-    // for synctime
-    mutable std::unique_ptr<SyncTimeCache> m_syncTimeCache;
-    mutable sqlite3_stmt* m_stmtGetCaseRev;
+    std::unique_ptr<SyncStatusEvaluator> m_syncStatusEvaluator;
 };

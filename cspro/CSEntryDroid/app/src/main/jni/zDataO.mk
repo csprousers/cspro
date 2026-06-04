@@ -32,6 +32,7 @@ LOCAL_SRC_FILES         += $(ZDATAO_SRC_PATH)/SQLiteQuestionnaireSerializer.cpp
 LOCAL_SRC_FILES         += $(ZDATAO_SRC_PATH)/SQLiteRepository.cpp
 LOCAL_SRC_FILES         += $(ZDATAO_SRC_PATH)/SQLiteRepositoryCaseLoader.cpp
 LOCAL_SRC_FILES         += $(ZDATAO_SRC_PATH)/SQLiteRepositoryIterators.cpp
+LOCAL_SRC_FILES         += $(ZDATAO_SRC_PATH)/SQLiteSyncStatusEvaluator.cpp
 LOCAL_SRC_FILES         += $(ZDATAO_SRC_PATH)/SyncBinaryDataUploadManager.cpp
 LOCAL_SRC_FILES         += $(ZDATAO_SRC_PATH)/SyncCaseJsonSerializer.cpp
 LOCAL_SRC_FILES         += $(ZDATAO_SRC_PATH)/SyncCaseSerializer.cpp
