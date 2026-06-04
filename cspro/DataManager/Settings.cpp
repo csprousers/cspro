@@ -173,23 +173,38 @@ void Settings::EnsurePerDataSourceDataSettings(PerDataSourceData& per_data_sourc
 
 
 template<typename T>
-void Settings::ResetUniqueToDataSourceSettings(T& settings)
+void Settings::ResetUniqueToDataSourceSettings(T& /*settings*/)
 {
-    if constexpr(std::is_same_v<T, ExportDataSettings>)
-    {
-        settings.base_file_path.clear();
-    }
+}
 
-    else if constexpr(std::is_same_v<T, ExtractBinaryDataSettings>)
-    {
-        settings.output_directory.clear();
-    }
 
-    else if constexpr(std::is_same_v<T, ExtractNotesSettings>)
-    {
-        settings.notes_connection_string.Clear();
-        settings.notes_dictionary_file_path.clear();
-    }
+template<>
+void Settings::ResetUniqueToDataSourceSettings(ExportDataSettings& settings)
+{
+    settings.base_file_path.clear();
+}
+
+
+template<>
+void Settings::ResetUniqueToDataSourceSettings(ExtractBinaryDataSettings& settings)
+{
+    settings.output_directory.clear();
+}
+
+
+template<>
+void Settings::ResetUniqueToDataSourceSettings(ExtractNotesSettings& settings)
+{
+    settings.notes_connection_string.Clear();
+    settings.notes_dictionary_file_path.clear();
+}
+
+
+template<>
+void Settings::ResetUniqueToDataSourceSettings(ViewableCaseIteratorSettings& settings)
+{
+    // clear the key filter
+    settings.SetParameters(std::nullopt);
 }
 
 
