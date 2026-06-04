@@ -2,6 +2,11 @@
 #include "SQLiteSyncStatusEvaluator.h"
 
 
+CREATE_JSON_KEY(deviceNames)
+CREATE_JSON_KEY(firstSyncTime)
+CREATE_JSON_KEY(lastSyncTime)
+
+
 SQLiteRepository::SyncStatusEvaluator::SyncStatusEvaluator(SQLiteRepository& repository)
     :   m_repository(repository)
 {
@@ -13,6 +18,7 @@ void SQLiteRepository::SyncStatusEvaluator::ClearPreparedStatements()
     m_stmtGetDeviceIdFromName.Finalize();
     m_stmtGetSyncTimeData.Finalize();
     m_stmtGetCaseRevision.Finalize();
+    m_stmtGetSyncHistory.Finalize();
 }
 
 
@@ -183,4 +189,82 @@ std::tuple<std::string, int> SQLiteRepository::SyncStatusEvaluator::GetCaseRevis
 void SQLiteRepository::SyncStatusEvaluator::WriteSyncStatus(JsonWriter& json_writer, const JsonNode& json_node,
                                                             const SharableString& device_id, const SharableString& device_name)
 {
+    const std::string_view content_sv = json_node.GetOrDefault<std::string_view>(JK::content, "summary");
+
+    if( content_sv == "syncServices" )
+    {
+        WriteSyncStatus_syncServices(json_writer);
+    }
+
+    else
+    {
+        throw CSProException("'%s' is not a valid content type.", std::string(content_sv).c_str());
+    }
+}
+
+
+void SQLiteRepository::SyncStatusEvaluator::WriteSyncStatus_syncServices(JsonWriter& json_writer)
+{
+    json_writer.BeginArray();
+
+    const Sqlite::Statement::Runner stmt_runner_gsh(m_repository.m_db, m_stmtGetSyncHistory,
+        "SELECT `device_id`, `device_name`, MIN(`timestamp`), MAX(`timestamp`) "
+        "FROM `sync_history` "
+        "GROUP BY `device_id`, `device_name` "
+        "ORDER BY `device_id`;"
+    );
+
+    // because a device may have multiple names, we may have to process multiple rows before writing the data
+    struct Data
+    {
+        std::string device_id;
+        std::vector<std::string> device_names;
+        int64_t min_timestamp;
+        int64_t max_timestamp;
+    };
+
+    Data data;
+
+    auto write_data = [&]()
+    {
+        ASSERT(!data.device_id.empty());
+
+        json_writer.BeginObject()
+                   .Write(JK::deviceId, data.device_id)
+                   .Write(JK::deviceNames, data.device_names)
+                   .WriteDate(JK::firstSyncTime, data.min_timestamp)
+                   .WriteDate(JK::lastSyncTime, data.max_timestamp)
+                   .EndObject();
+    };
+
+    while( m_stmtGetSyncHistory.Step() == Sqlite::Result::Row )
+    {
+        std::string device_id = m_stmtGetSyncHistory.GetColumn<std::string>(0);
+        const int64_t min_timestamp = m_stmtGetSyncHistory.GetColumn<int64_t>(2);
+        const int64_t max_timestamp = m_stmtGetSyncHistory.GetColumn<int64_t>(3);
+
+        if( device_id != data.device_id )
+        {
+            if( !data.device_id.empty() )
+                write_data();
+
+            data.device_id = std::move(device_id);
+            data.device_names.clear();
+            data.min_timestamp = min_timestamp;
+            data.max_timestamp = max_timestamp;
+        }
+
+        else
+        {
+            data.min_timestamp = std::min(data.min_timestamp, min_timestamp);
+            data.max_timestamp = std::max(data.min_timestamp, max_timestamp);
+        }
+
+        data.device_names.emplace_back(m_stmtGetSyncHistory.GetColumn<std::string>(1));
+    }
+
+    if( !data.device_id.empty() )
+        write_data();
+
+    json_writer.EndArray();
 }
