@@ -66,5 +66,5 @@ public:
     virtual bool IsPreviousSync(int client_revision, const DeviceId& device_id) const = 0;
 
     // Process a request from the synctime logic function.
-    virtual std::optional<double> GetSyncTime(const std::string& device_identifier, const std::string& case_uuid) = 0;
+    virtual std::optional<double> GetSyncTime(const SharableString& device_identifier, const SharableString& case_uuid) = 0;
 };

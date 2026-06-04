@@ -66,6 +66,14 @@ void Sqlite::Statement::ThrowExceptionForCheckValidBinding(const int result)
 }
 
 
+void Sqlite::Statement::ClearBindings()
+{
+    CheckStatementIsPrepared();
+
+    sqlite3_clear_bindings(*m_statementPtr);
+}
+
+
 int Sqlite::Statement::GetBindingsCount() const
 {
     CheckStatementIsPrepared();

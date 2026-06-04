@@ -49,6 +49,9 @@ public:
     // Parameter numbers start with 1.
     // --------------------------------------------------------------------------
 
+    // Clears anything bound to the prepared statement.
+    void ClearBindings();
+
     // Returns the number of bindings associated with the prepared statement.
     int GetBindingsCount() const;
 

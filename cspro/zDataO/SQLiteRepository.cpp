@@ -2260,7 +2260,7 @@ auto SQLiteRepository::DoWithSyncStatusEvaluator(const CF& callback_function)
 }
 
 
-std::optional<double> SQLiteRepository::GetSyncTime(const std::string& device_identifier, const std::string& case_uuid)
+std::optional<double> SQLiteRepository::GetSyncTime(const SharableString& device_identifier, const SharableString& case_uuid)
 {
     return DoWithSyncStatusEvaluator(
         [&] { return m_syncStatusEvaluator->GetSyncTime(device_identifier, case_uuid); }

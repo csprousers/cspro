@@ -68,7 +68,7 @@ public:
                                                  std::optional<int> start_serial_number = std::nullopt, size_t limit = std::numeric_limits<size_t>::max()) override;
     bool IsValidClientRevision(int client_revision) const override;
     bool IsPreviousSync(int client_revision, const DeviceId& device_id) const override;
-    std::optional<double> GetSyncTime(const std::string& device_identifier, const std::string& case_uuid) override;
+    std::optional<double> GetSyncTime(const SharableString& device_identifier, const SharableString& case_uuid) override;
 
     static std::unique_ptr<CDataDict> GetEmbeddedDictionary(const ConnectionString& connection_string);
 
