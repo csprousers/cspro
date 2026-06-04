@@ -69,6 +69,7 @@ public:
     bool IsValidClientRevision(int client_revision) const override;
     bool IsPreviousSync(int client_revision, const DeviceId& device_id) const override;
     std::optional<double> GetSyncTime(const SharableString& device_identifier, const SharableString& case_uuid) override;
+    void WriteSyncStatus(JsonWriter& json_writer, const JsonNode& json_node, const SharableString& device_id, const SharableString& device_name) override;
 
     static std::unique_ptr<CDataDict> GetEmbeddedDictionary(const ConnectionString& connection_string);
 

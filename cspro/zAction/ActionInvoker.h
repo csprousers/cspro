@@ -232,6 +232,7 @@ private:
     Result Data_deleteCase(const JsonNode& json_node, Caller& caller);
     Result Data_getCase(const JsonNode& json_node, Caller& caller);
     Result Data_getCurrentCase(const JsonNode& json_node, Caller& caller);
+    Result Data_getSyncStatus(const JsonNode& json_node, Caller& caller);
     Result Data_open(const JsonNode& json_node, Caller& caller);
     Result Data_query(const JsonNode& json_node, Caller& caller);
     Result Data_queryCases(const JsonNode& json_node, Caller& caller);

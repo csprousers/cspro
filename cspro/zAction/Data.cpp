@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "CallerWrappingCaseConstructionReporter.h"
 #include "DataWrapper.h"
+#include "SyncServiceWrapper.h"
 #include <zUtilO/Versioning.h>
 #include <zDictO/DDClass.h>
 #include <zCaseO/Case.h>
@@ -907,4 +908,29 @@ ActionInvoker::Result ActionInvoker::Runtime::Data_writeCase(const JsonNode& jso
 ActionInvoker::Result ActionInvoker::Runtime::Data_sync(const JsonNode& json_node, Caller& caller)
 {
     return Sync_syncData(json_node, caller);
+}
+
+
+ActionInvoker::Result ActionInvoker::Runtime::Data_getSyncStatus(const JsonNode& json_node, Caller& caller)
+{
+    const std::shared_ptr<DataWrapper> data_wrapper = DataWrapper::GetDataWrapper(*this, json_node, caller);
+    ISyncableDataRepository& syncable_data_repository = data_wrapper->GetSyncableDataRepository();
+
+    SharableString device_id = json_node.GetOrConstruct<SharableString>(JK::deviceId);
+    SharableString device_name = json_node.GetOrConstruct<SharableString>(JK::deviceName);
+
+    // if no device was specified, but a sync ID was, use the connection's device ID
+    if( !device_id.IsSet() && !device_name.IsSet() )
+    {
+        const ConnectResponse* const connect_response = SyncServiceWrapper::GetConnectionResponse(*this, json_node, caller);
+
+        if( connect_response != nullptr )
+            device_id = connect_response->GetServerDeviceId();
+    }
+
+    const std::unique_ptr<JsonStringWriter> json_writer = Json::CreateStringWriter();
+
+    syncable_data_repository.WriteSyncStatus(*json_writer, json_node, device_id, device_name);
+
+    return Result::JsonText(*json_writer);
 }

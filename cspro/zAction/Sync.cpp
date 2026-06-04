@@ -63,6 +63,20 @@ ActionInvokerSyncRunner& ActionInvoker::Runtime::SyncServiceWrapper::GetSyncRunn
 }
 
 
+const ConnectResponse* ActionInvoker::Runtime::SyncServiceWrapper::GetConnectionResponse(
+    Runtime& runtime, const JsonNode& json_node, Caller& caller)
+{
+    if( json_node.Contains(JK::syncId) )
+    {
+        const int sync_id = GetSyncId(runtime, json_node, caller);
+        const auto& sync_service_wrapper_lookup = GetSyncServiceWrapper(runtime, sync_id);
+        return sync_service_wrapper_lookup->second->m_connectResponse.get();
+    }
+
+    return nullptr;
+}
+
+
 
 // --------------------------------------------------------------------------
 // Sync actions

@@ -125,7 +125,8 @@
     -  Action Invoker additions:
           * throwException
           * Data: close, contains, countCases, deleteCase, getCurrentCase,
-              open, query, queryCases, queryKeys, readCase, sync, writeCase
+              getSyncStatus, open, query, queryCases, queryKeys, readCase,
+              sync, writeCase
           * Logic: setSymbolValue
           * Network: fetch, fetchBody, fetchBytes, fetchFile, fetchJson,
               fetchText

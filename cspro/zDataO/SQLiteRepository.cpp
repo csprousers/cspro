@@ -2266,3 +2266,11 @@ std::optional<double> SQLiteRepository::GetSyncTime(const SharableString& device
         [&] { return m_syncStatusEvaluator->GetSyncTime(device_identifier, case_uuid); }
     );
 }
+
+
+void SQLiteRepository::WriteSyncStatus(JsonWriter& json_writer, const JsonNode& json_node, const SharableString& device_id, const SharableString& device_name)
+{
+    return DoWithSyncStatusEvaluator(
+        [&] { return m_syncStatusEvaluator->WriteSyncStatus(json_writer, json_node, device_id, device_name); }
+    );
+}

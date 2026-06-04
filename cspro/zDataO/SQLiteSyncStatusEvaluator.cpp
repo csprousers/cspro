@@ -178,3 +178,9 @@ std::tuple<std::string, int> SQLiteRepository::SyncStatusEvaluator::GetCaseRevis
 
     return { std::string(), -1 };
 }
+
+
+void SQLiteRepository::SyncStatusEvaluator::WriteSyncStatus(JsonWriter& json_writer, const JsonNode& json_node,
+                                                            const SharableString& device_id, const SharableString& device_name)
+{
+}

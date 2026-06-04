@@ -13,6 +13,8 @@ public:
 
     std::optional<double> GetSyncTime(const SharableString& device_identifier, const SharableString& case_uuid);
 
+    void WriteSyncStatus(JsonWriter& json_writer, const JsonNode& json_node, const SharableString& device_id, const SharableString& device_name);
+
 private:
     struct SyncTimeData;
 

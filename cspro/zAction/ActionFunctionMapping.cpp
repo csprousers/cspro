@@ -19,6 +19,7 @@ const std::map<ActionInvoker::Action, ActionInvoker::Runtime::ActionFunctionPoin
     { Action::Data_deleteCase,                     &Runtime::Data_deleteCase                     },
     { Action::Data_getCase,                        &Runtime::Data_getCase                        },
     { Action::Data_getCurrentCase,                 &Runtime::Data_getCurrentCase                 },
+    { Action::Data_getSyncStatus,                  &Runtime::Data_getSyncStatus                  },
     { Action::Data_open,                           &Runtime::Data_open                           },
     { Action::Data_query,                          &Runtime::Data_query                          },
     { Action::Data_queryCases,                     &Runtime::Data_queryCases                     },

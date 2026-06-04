@@ -28,6 +28,7 @@ namespace ActionInvoker
         Data_deleteCase                     = 50680,
         Data_getCase                        = 36632,
         Data_getCurrentCase                 = 12123,
+        Data_getSyncStatus                  = 36886,
         Data_open                           = 56346,
         Data_query                          = 13492,
         Data_queryCases                     = 23028,

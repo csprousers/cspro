@@ -67,4 +67,7 @@ public:
 
     // Process a request from the synctime logic function.
     virtual std::optional<double> GetSyncTime(const SharableString& device_identifier, const SharableString& case_uuid) = 0;
+
+    // Parses the arguments coming from the Data.getSyncStatus action and writes synchronization information to the JSON writer.
+    virtual void WriteSyncStatus(JsonWriter& json_writer, const JsonNode& json_node, const SharableString& device_id, const SharableString& device_name) = 0;
 };

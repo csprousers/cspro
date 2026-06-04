@@ -1,6 +1,6 @@
 #pragma once
 
-#include <zDataO/DataRepository.h>
+#include <zDataO/ISyncableDataRepository.h>
 #include <engine/EngineDictionaryModifier.h>
 
 
