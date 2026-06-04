@@ -22,13 +22,9 @@ void Sqlite::Statement::CheckDefinitionsAtCompileTime()
 }
 
 
-Sqlite::Statement::~Statement()
+Sqlite::Statement::~Statement() noexcept
 {
-    if( IsPrepared() )
-    {
-        sqlite3_finalize(*m_statementPtr);
-        *m_statementPtr = nullptr;
-    }
+    Finalize();
 }
 
 
@@ -43,6 +39,16 @@ Sqlite::Statement Sqlite::Statement::Prepare(sqlite3* const db, const std::strin
         throw Exception(db, SO::Empty_string, "Error creating SQLite statement: %s", std::string(sql_sv).c_str());
 
     return Statement(std::move(statement_ptr));
+}
+
+
+void Sqlite::Statement::Finalize() noexcept
+{
+    if( IsPrepared() )
+    {
+        sqlite3_finalize(*m_statementPtr);
+        *m_statementPtr = nullptr;
+    }
 }
 
 
