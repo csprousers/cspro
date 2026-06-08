@@ -1895,6 +1895,7 @@ std::unique_ptr<CaseIterator> SQLiteRepository::GetCasesModifiedSinceRevisionIte
         last_case_uuid,
         universe,
         limit,
+        false,
         out_case_count,
         out_last_client_revision,
         ignore_gets_from_device_id,
@@ -1906,7 +1907,8 @@ std::unique_ptr<CaseIterator> SQLiteRepository::GetCasesModifiedSinceRevisionIte
 std::unique_ptr<SQLiteRepositoryCaseIterator> SQLiteRepository::GetCasesModifiedSinceRevisionIterator(
     const CaseIterationContent iteration_content, const bool add_uuid_to_case_key_query,
     const int client_revision, const std::string& last_case_uuid, const std::string& universe,
-    const size_t limit, size_t* const out_case_count, int* const out_last_client_revision,
+    const size_t limit, const bool return_null_if_limit_is_0,
+    size_t* const out_case_count, int* const out_last_client_revision,
     const cs::cref_optional<DeviceId>& ignore_gets_from_device_id,
     const cs::cref_optional<std::vector<std::string>>& revisions_to_exclude)
 {
@@ -1998,6 +2000,9 @@ std::unique_ptr<SQLiteRepositoryCaseIterator> SQLiteRepository::GetCasesModified
         maxStmt.Step();
         *out_last_client_revision = maxStmt.GetColumn<int>(0);
     }
+
+    if( limit == 0 && return_null_if_limit_is_0 )
+        return nullptr;
 
     std::stringstream sql;
     WriteIteratorSelectFromSql(sql, iteration_content, add_uuid_to_case_key_query);

@@ -9,13 +9,14 @@ class CDictItem;
 struct ISQLiteQuestionnaireSerializer;
 struct sqlite3;
 struct sqlite3_stmt;
+class SQLiteRepositoryCaseIterator;
 class SQLiteStatement;
 
 
 class ZDATAO_API SQLiteRepository : public ISyncableDataRepository
 {
     class SyncStatusEvaluator;
-    friend class SQLiteRepositoryCaseIterator;
+    friend SQLiteRepositoryCaseIterator;
 
 protected:
     SQLiteRepository(DataRepositoryType type, std::shared_ptr<const CaseAccess> case_access, DataRepositoryAccess access_type, DeviceId deviceId);
@@ -128,8 +129,9 @@ private:
 
     std::unique_ptr<SQLiteRepositoryCaseIterator> GetCasesModifiedSinceRevisionIterator(
         CaseIterationContent iteration_content, bool add_uuid_to_case_key_query,
-        int client_revision, const std::string& last_case_uuid,
-        const std::string& universe, size_t limit, size_t* out_case_count, int* out_last_client_revision,
+        int client_revision, const std::string& last_case_uuid, const std::string& universe,
+        size_t limit, bool return_null_if_limit_is_0,
+        size_t* out_case_count, int* out_last_client_revision,
         const cs::cref_optional<DeviceId>& ignore_gets_from_device_id,
         const cs::cref_optional<std::vector<std::string>>& revisions_to_exclude);
 

@@ -46,10 +46,16 @@ private:
     static void WriteSyncHistoryData(JsonWriter& json_writer, const SyncHistoryData& sync_history_data);
     static void WriteSyncHistoryData(JsonWriter& json_writer, const char* key, const SyncHistoryData& sync_history_data);
 
+    // Used by the "casesPendingSync" and "summary" queries to process the results of the call to
+    // SQLiteRepository::GetCasesModifiedSinceRevisionIterator.
+    std::unique_ptr<SQLiteRepositoryCaseIterator> CreateCasesModifiedSinceRevisionIterator(
+        const SharableString& device_id, const std::string& universe, size_t limit, size_t* out_case_count);
+
     void WriteSyncStatus_syncServices(JsonWriter& json_writer);
     void WriteSyncStatus_syncHistory(JsonWriter& json_writer, const SharableString& device_id, const SharableString& device_name);
     void WriteSyncStatus_casesPendingSync(JsonWriter& json_writer, const SharableString& device_id, const std::string& universe);
     void WriteSyncStatus_caseStatus(JsonWriter& json_writer, const JsonNode& json_node, const SharableString& device_id);
+    void WriteSyncStatus_summary(JsonWriter& json_writer, SharableString device_id);
 
 private:
     SQLiteRepository& m_repository;
@@ -61,6 +67,7 @@ private:
     Sqlite::Statement m_stmtGetSyncServices;
     Sqlite::Statement m_stmtGetSyncHistory;
     Sqlite::Statement m_stmtGetCaseLastSync;
+    Sqlite::Statement m_stmtGetLatestSyncHistory;
 
     // for synctime
     struct SyncTimeData
