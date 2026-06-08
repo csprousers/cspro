@@ -106,7 +106,7 @@ private:
     double CreateInsertPosition(double insert_before_position_in_repository);
     std::unique_ptr<SQLiteStatement> GetKeySearchIteratorStatement(const CaseIteratorSettings& iterator_settings,
                                                                    size_t offset, size_t limit, const char* base_sql) const;
-    void WriteIteratorSelectFromSql(std::stringstream& sql, CaseIterationContent iteration_content) const;
+    void WriteIteratorSelectFromSql(std::stringstream& sql, CaseIterationContent iteration_content, bool add_uuid_to_case_key_query) const;
     void UpdateDictionary(sqlite3* pDB);
     void ReconcileDictionaries(sqlite3** pDB);
     int GetSchemaVersion(sqlite3* pDB) const;
@@ -125,6 +125,13 @@ private:
     void EndMakeDatabaseTemporarilyWriteable(sqlite3** db);
     void UpdateFilePosition(Case& data_case);
     static std::string GetDictionaryStructureMd5(sqlite3* db);
+
+    std::unique_ptr<SQLiteRepositoryCaseIterator> GetCasesModifiedSinceRevisionIterator(
+        CaseIterationContent iteration_content, bool add_uuid_to_case_key_query,
+        int client_revision, const std::string& last_case_uuid,
+        const std::string& universe, size_t limit, size_t* out_case_count, int* out_last_client_revision,
+        const cs::cref_optional<DeviceId>& ignore_gets_from_device_id,
+        const cs::cref_optional<std::vector<std::string>>& revisions_to_exclude);
 
     static SyncHistoryEntry CreateSyncHistoryEntry(SQLiteStatement& stmt);
 

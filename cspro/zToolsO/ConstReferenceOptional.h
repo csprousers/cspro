@@ -25,36 +25,36 @@ template<typename T>
 class cs::cref_optional
 {
 public:
-    cref_optional(const T& value)
+    cref_optional(const T& value) noexcept
         :   m_value(&value)
     {
     }
 
-    cref_optional()
+    cref_optional() noexcept
         :   m_value(nullptr)
     {
     }
 
-    cref_optional(std::nullopt_t)
+    cref_optional(std::nullopt_t) noexcept
         :   m_value(nullptr)
     {
     }
 
-    cref_optional(const cref_optional& rhs)
+    cref_optional(const cref_optional& rhs) noexcept
         :   m_value(rhs.m_value)
     {
     }
 
-    cref_optional(cref_optional&& rhs)
+    cref_optional(cref_optional&& rhs) noexcept
         :   m_value(rhs.m_value),
             m_modifiedValue(std::move(rhs.m_modifiedValue))
     {
     }
 
-    static cref_optional FromPointer(const T* value)
+    static cref_optional FromPointer(const T* value) noexcept
     {
         return ( value != nullptr ) ? cref_optional<T>(*value) :
-                                        cref_optional<T>();
+                                      cref_optional<T>();
     }
 
     template<typename RT>
@@ -97,12 +97,18 @@ public:
         return *this;
     }
 
-    [[nodiscard]] bool has_value() const
+    [[nodiscard]] bool has_value() const noexcept
     {
         return ( m_value != nullptr );
     }
 
-    [[nodiscard]] const T* get() const
+    void reset() noexcept
+    {
+        m_value = nullptr;
+        m_modifiedValue.reset();
+    }
+
+    [[nodiscard]] const T* get() const noexcept
     {
         return m_value;
     }

@@ -21,7 +21,11 @@ private:
     // Returns the device ID associated with the device name, or an empty string if no such device exists.
     // Device names are matched in a case-insensitive manner based on the beginning of the string,
     // so a name like .../api would match with an entry like .../api/.
-    std::string GetDeviceIdFromName(const std::string& device_name);
+    // If ensure_that_only_one_device_matches is true, then an exception is thrown if no device, or more than one device, matches.
+    std::string GetDeviceIdFromName(const std::string& device_name, bool ensure_that_only_one_device_matches);
+
+    // Returns the device ID if only one exists in the sync_history table, throwing an exception otherwise.
+    std::string GetDeviceIdIfUnique();
 
     const std::map<int, std::vector<SyncTimeData>>& GetSyncTimesForDeviceIdentifier(const SharableString& device_identifier);
 
@@ -38,15 +42,20 @@ private:
 
     void WriteSyncStatus_syncServices(JsonWriter& json_writer);
     void WriteSyncStatus_syncHistory(JsonWriter& json_writer, const SharableString& device_id, const SharableString& device_name);
+    void WriteSyncStatus_casesPendingSync(JsonWriter& json_writer, SharableString device_id, const SharableString& device_name,
+                                          const std::string& universe);
 
 private:
     SQLiteRepository& m_repository;
 
-    // for synctime
     Sqlite::Statement m_stmtGetDeviceIdFromName;
+    Sqlite::Statement m_stmtGetUniqueDeviceId;
     Sqlite::Statement m_stmtGetSyncTimeData;
     Sqlite::Statement m_stmtGetCaseRevision;
+    Sqlite::Statement m_stmtGetSyncServices;
+    Sqlite::Statement m_stmtGetSyncHistory;
 
+    // for synctime
     struct SyncTimeData
     {
         double timestamp;
@@ -55,9 +64,4 @@ private:
     };
 
     std::map<std::string, std::map<int, std::vector<SyncTimeData>>> m_deviceIdentifierToFileRevisionToSyncTimeDataMap;
-
-    // Data.getSyncStatus
-    Sqlite::Statement m_stmtGetSyncServices;
-    Sqlite::Statement m_stmtGetSyncHistory;
-
 };

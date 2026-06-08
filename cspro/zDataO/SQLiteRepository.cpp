@@ -1096,7 +1096,8 @@ size_t SQLiteRepository::GetNumberCases(const CaseIterationCaseStatus case_statu
 }
 
 
-void SQLiteRepository::WriteIteratorSelectFromSql(std::stringstream& sql, CaseIterationContent iteration_content) const
+void SQLiteRepository::WriteIteratorSelectFromSql(std::stringstream& sql, const CaseIterationContent iteration_content,
+                                                  const bool add_uuid_to_case_key_query) const
 {
     const bool get_case_note_for_case_summary = ( iteration_content == CaseIterationContent::CaseSummary &&
                                                   m_caseAccess->GetUsesNotes() && CaseIterator::RequiresCaseNote() );
@@ -1105,7 +1106,13 @@ void SQLiteRepository::WriteIteratorSelectFromSql(std::stringstream& sql, CaseIt
         << ( ( iteration_content == CaseIterationContent::Case ) ? "`cases`.`id`" : "`cases`.`key`" )
         << ", `cases`.`file_order`";
 
-    if( iteration_content != CaseIterationContent::CaseKey )
+    if( add_uuid_to_case_key_query )
+    {
+        ASSERT(iteration_content == CaseIterationContent::CaseKey);
+        sql << ", `cases`.`id`";
+    }
+
+    else if( iteration_content != CaseIterationContent::CaseKey )
     {
         sql << ", `cases`.`deleted`";
 
@@ -1118,8 +1125,11 @@ void SQLiteRepository::WriteIteratorSelectFromSql(std::stringstream& sql, CaseIt
 
             if( iteration_content == CaseIterationContent::Case )
             {
-                sql << ", `cases`.`partial_save_field_name`, `cases`.`partial_save_level_key`, `cases`.`partial_save_record_occurrence`,"
-                            "`cases`.`partial_save_item_occurrence`, `cases`.`partial_save_subitem_occurrence`";
+                sql << ", `cases`.`partial_save_field_name`"
+                       ", `cases`.`partial_save_level_key`"
+                       ", `cases`.`partial_save_record_occurrence`"
+                       ", `cases`.`partial_save_item_occurrence`"
+                       ", `cases`.`partial_save_subitem_occurrence`";
             }
         }
 
@@ -1143,7 +1153,7 @@ std::unique_ptr<CaseIterator> SQLiteRepository::CreateIterator(const CaseIterati
                                                   CaseIterator::RequiresCaseNote() );
 
     std::stringstream sql;
-    WriteIteratorSelectFromSql(sql, iteration_content);
+    WriteIteratorSelectFromSql(sql, iteration_content, false);
     sql << "JOIN ( %s ) AS `filtered_cases` ON `cases`.`file_order` = `filtered_cases`.`file_order` ";
 
     if( get_case_note_for_case_summary )
@@ -1872,10 +1882,33 @@ void SQLiteRepository::BindPartialSave(const Case& data_case, SQLiteStatement &i
 }
 
 
-std::unique_ptr<CaseIterator> SQLiteRepository::GetCasesModifiedSinceRevisionIterator(const int client_revision, const std::string& last_case_uuid, const std::string& universe,
-                                                                                      const size_t limit/* = std::numeric_limits<size_t>::max()*/, size_t* const out_case_count/* = nullptr*/, int* const out_last_client_revision/* = nullptr*/,
-                                                                                      const cs::cref_optional<DeviceId> ignore_gets_from_device_id/* = std::nullopt*/,
-                                                                                      const cs::cref_optional<std::vector<std::string>> revisions_to_exclude/* = std::nullopt*/)
+std::unique_ptr<CaseIterator> SQLiteRepository::GetCasesModifiedSinceRevisionIterator(
+    const int client_revision, const std::string& last_case_uuid, const std::string& universe,
+    const size_t limit/* = std::numeric_limits<size_t>::max()*/, size_t* const out_case_count/* = nullptr*/, int* const out_last_client_revision/* = nullptr*/,
+    const cs::cref_optional<DeviceId> ignore_gets_from_device_id/* = std::nullopt*/,
+    const cs::cref_optional<std::vector<std::string>> revisions_to_exclude/* = std::nullopt*/)
+{
+    return GetCasesModifiedSinceRevisionIterator(
+        CaseIterationContent::Case,
+        false,
+        client_revision,
+        last_case_uuid,
+        universe,
+        limit,
+        out_case_count,
+        out_last_client_revision,
+        ignore_gets_from_device_id,
+        revisions_to_exclude
+    );
+}
+
+
+std::unique_ptr<SQLiteRepositoryCaseIterator> SQLiteRepository::GetCasesModifiedSinceRevisionIterator(
+    const CaseIterationContent iteration_content, const bool add_uuid_to_case_key_query,
+    const int client_revision, const std::string& last_case_uuid, const std::string& universe,
+    const size_t limit, size_t* const out_case_count, int* const out_last_client_revision,
+    const cs::cref_optional<DeviceId>& ignore_gets_from_device_id,
+    const cs::cref_optional<std::vector<std::string>>& revisions_to_exclude)
 {
     std::stringstream where_sql;
     std::optional<std::string> universe_to_bind;
@@ -1940,7 +1973,10 @@ std::unique_ptr<CaseIterator> SQLiteRepository::GetCasesModifiedSinceRevisionIte
 
     if( out_case_count != nullptr )
     {
-        SQLiteStatement countStmt(m_db, SO::Concatenate("SELECT COUNT(*) FROM cases WHERE ", evaluated_where_sql));
+        SQLiteStatement countStmt(m_db,
+            SO::Concatenate("SELECT COUNT(*) FROM cases WHERE ", evaluated_where_sql)
+        );
+
         bind_shared_options(countStmt, false);
 
         countStmt.Step();
@@ -1949,11 +1985,14 @@ std::unique_ptr<CaseIterator> SQLiteRepository::GetCasesModifiedSinceRevisionIte
 
     if( out_last_client_revision != nullptr )
     {
-        SQLiteStatement maxStmt(m_db, SO::Concatenate("SELECT COALESCE(MAX(last_modified_revision), (SELECT MAX(last_modified_revision) FROM cases)) "
-                                                      "FROM (SELECT last_modified_revision FROM cases "
-                                                      "WHERE ", evaluated_where_sql,
-                                                      "ORDER BY last_modified_revision "
-                                                      "LIMIT @lim)"));
+        SQLiteStatement maxStmt(m_db, SO::Concatenate(
+            "SELECT COALESCE(MAX(last_modified_revision), (SELECT MAX(last_modified_revision) FROM cases)) "
+            "FROM (SELECT last_modified_revision FROM cases "
+            "WHERE ", evaluated_where_sql,
+            "ORDER BY last_modified_revision "
+            "LIMIT @lim)"
+        ));
+
         bind_shared_options(maxStmt, true);
 
         maxStmt.Step();
@@ -1961,15 +2000,18 @@ std::unique_ptr<CaseIterator> SQLiteRepository::GetCasesModifiedSinceRevisionIte
     }
 
     std::stringstream sql;
-    WriteIteratorSelectFromSql(sql, CaseIterationContent::Case);
+    WriteIteratorSelectFromSql(sql, iteration_content, add_uuid_to_case_key_query);
 
-    auto statement = std::make_unique<SQLiteStatement>(m_db, SO::Concatenate(sql.str(),
-                                                                             "WHERE ", evaluated_where_sql,
-                                                                             "ORDER BY last_modified_revision, id "
-                                                                             "LIMIT @lim"));
+    auto statement = std::make_unique<SQLiteStatement>(m_db, SO::Concatenate(
+        sql.str(),
+        "WHERE ", evaluated_where_sql,
+        "ORDER BY last_modified_revision, id "
+        "LIMIT @lim"
+    ));
+
     bind_shared_options(*statement, true);
 
-    return std::make_unique<SQLiteRepositoryCaseIterator>(*this, CaseIterationContent::Case, std::move(statement), nullptr);
+    return std::make_unique<SQLiteRepositoryCaseIterator>(*this, iteration_content, std::move(statement), nullptr);
 }
 
 
