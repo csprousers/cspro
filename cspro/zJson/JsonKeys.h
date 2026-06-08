@@ -331,6 +331,7 @@ namespace JK
     CJK(tileLayers)
     CJK(tileProvider)
     CJK(tileProviders)
+    CJK(time)
     CJK(timestamp)
     CJK(title)
     CJK(titleBarColor)

@@ -4,7 +4,12 @@
 
 CREATE_JSON_KEY(deviceNames)
 CREATE_JSON_KEY(firstSyncTime)
+CREATE_JSON_KEY(lastGet)
+CREATE_JSON_KEY(lastPut)
+CREATE_JSON_KEY(lastSyncedUuid)
 CREATE_JSON_KEY(lastSyncTime)
+CREATE_JSON_KEY(partial)
+CREATE_JSON_KEY(syncHistory)
 
 
 SQLiteRepository::SyncStatusEvaluator::SyncStatusEvaluator(SQLiteRepository& repository)
@@ -18,6 +23,7 @@ void SQLiteRepository::SyncStatusEvaluator::ClearPreparedStatements()
     m_stmtGetDeviceIdFromName.Finalize();
     m_stmtGetSyncTimeData.Finalize();
     m_stmtGetCaseRevision.Finalize();
+    m_stmtGetSyncServices.Finalize();
     m_stmtGetSyncHistory.Finalize();
 }
 
@@ -67,7 +73,7 @@ std::optional<double> SQLiteRepository::SyncStatusEvaluator::GetSyncTime(const S
 
 std::string SQLiteRepository::SyncStatusEvaluator::GetDeviceIdFromName(const std::string& device_name)
 {
-    const Sqlite::Statement::Runner stmt_runner_gdifn(m_repository.m_db, m_stmtGetDeviceIdFromName,
+    const Sqlite::Statement::Runner stmt_runner(m_repository.m_db, m_stmtGetDeviceIdFromName,
         "SELECT `device_id` FROM `sync_history` "
         "WHERE INSTR(LOWER(`device_name`), LOWER(?)) = 1 "
         "LIMIT 1;"
@@ -112,7 +118,7 @@ const std::map<int, std::vector<SQLiteRepository::SyncStatusEvaluator::SyncTimeD
     }
 
     // get all of the sync times for this device
-    const Sqlite::Statement::Runner stmt_runner_gcr(m_repository.m_db, m_stmtGetSyncTimeData,
+    const Sqlite::Statement::Runner stmt_runner(m_repository.m_db, m_stmtGetSyncTimeData,
         "SELECT `file_revision`, `timestamp`, `universe`, `partial`, `last_id` "
         "FROM `sync_history` "
         "WHERE ( @di IS NULL AND @dn IS NULL ) OR "
@@ -164,7 +170,7 @@ const std::map<int, std::vector<SQLiteRepository::SyncStatusEvaluator::SyncTimeD
 
 std::tuple<std::string, int> SQLiteRepository::SyncStatusEvaluator::GetCaseRevisionFromUuid(const std::string& case_uuid)
 {
-    const Sqlite::Statement::Runner stmt_runner_gcr(m_repository.m_db, m_stmtGetCaseRevision,
+    const Sqlite::Statement::Runner stmt_runner(m_repository.m_db, m_stmtGetCaseRevision,
         "SELECT `key`, `last_modified_revision` "
         "FROM `cases` "
         "WHERE `id` = ? "
@@ -186,6 +192,62 @@ std::tuple<std::string, int> SQLiteRepository::SyncStatusEvaluator::GetCaseRevis
 }
 
 
+struct SQLiteRepository::SyncStatusEvaluator::SyncHistoryData
+{
+    int64_t time;
+    std::string device_id;
+    std::string device_name;
+    std::string username;
+    std::string universe;
+    SyncDirection direction;
+    bool partial;
+    std::optional<std::string> last_synced_uuid;
+};
+
+
+std::unique_ptr<SQLiteRepository::SyncStatusEvaluator::SyncHistoryData>
+    SQLiteRepository::SyncStatusEvaluator::CreateSyncHistoryData(Sqlite::Statement& stmt)
+{
+    static_assert(static_cast<int>(SyncHistoryEntry::SyncState::Complete) == 0);
+
+    return std::unique_ptr<SQLiteRepository::SyncStatusEvaluator::SyncHistoryData>(new SyncHistoryData
+    {
+        stmt.GetColumn<int64_t>(0),
+        stmt.GetColumn<std::string>(1),
+        stmt.GetColumn<std::string>(2),
+        stmt.GetColumn<std::string>(3),
+        stmt.GetColumn<std::string>(4),
+        static_cast<SyncDirection>(stmt.GetColumn<int>(5)),
+        stmt.GetColumn<bool>(6),
+        stmt.GetOptionalColumn<std::string>(7)
+    });
+}
+
+
+void SQLiteRepository::SyncStatusEvaluator::WriteSyncHistoryData(JsonWriter& json_writer, const SyncHistoryData& sync_history_data)
+{
+    ASSERT(sync_history_data.direction != SyncDirection::Both);
+
+    json_writer.BeginObject()
+               .WriteDate(JK::time, sync_history_data.time)
+               .Write(JK::deviceId, sync_history_data.device_id)
+               .Write(JK::deviceName, sync_history_data.device_name)
+               .Write(JK::username, sync_history_data.username)
+               .Write(JK::direction, ( sync_history_data.direction == SyncDirection::Get ) ? "get" : "put")
+               .Write(JK::partial, sync_history_data.partial)
+               .WriteIfHasValue(JK::lastSyncedUuid, sync_history_data.last_synced_uuid)
+               .EndObject();
+}
+
+
+void SQLiteRepository::SyncStatusEvaluator::WriteSyncHistoryData(JsonWriter& json_writer, const char* const key,
+                                                                 const SyncHistoryData& sync_history_data)
+{
+    json_writer.Key(key);
+    WriteSyncHistoryData(json_writer, sync_history_data);
+}
+
+
 void SQLiteRepository::SyncStatusEvaluator::WriteSyncStatus(JsonWriter& json_writer, const JsonNode& json_node,
                                                             const SharableString& device_id, const SharableString& device_name)
 {
@@ -194,6 +256,11 @@ void SQLiteRepository::SyncStatusEvaluator::WriteSyncStatus(JsonWriter& json_wri
     if( content_sv == "syncServices" )
     {
         WriteSyncStatus_syncServices(json_writer);
+    }
+
+    else if( content_sv == "syncHistory" )
+    {
+        WriteSyncStatus_syncHistory(json_writer, device_id, device_name);
     }
 
     else
@@ -205,9 +272,7 @@ void SQLiteRepository::SyncStatusEvaluator::WriteSyncStatus(JsonWriter& json_wri
 
 void SQLiteRepository::SyncStatusEvaluator::WriteSyncStatus_syncServices(JsonWriter& json_writer)
 {
-    json_writer.BeginArray();
-
-    const Sqlite::Statement::Runner stmt_runner_gsh(m_repository.m_db, m_stmtGetSyncHistory,
+    const Sqlite::Statement::Runner stmt_runner(m_repository.m_db, m_stmtGetSyncServices,
         "SELECT `device_id`, `device_name`, MIN(`timestamp`), MAX(`timestamp`) "
         "FROM `sync_history` "
         "GROUP BY `device_id`, `device_name` "
@@ -237,11 +302,13 @@ void SQLiteRepository::SyncStatusEvaluator::WriteSyncStatus_syncServices(JsonWri
                    .EndObject();
     };
 
-    while( m_stmtGetSyncHistory.Step() == Sqlite::Result::Row )
+    json_writer.BeginArray();
+
+    while( m_stmtGetSyncServices.Step() == Sqlite::Result::Row )
     {
-        std::string device_id = m_stmtGetSyncHistory.GetColumn<std::string>(0);
-        const int64_t min_timestamp = m_stmtGetSyncHistory.GetColumn<int64_t>(2);
-        const int64_t max_timestamp = m_stmtGetSyncHistory.GetColumn<int64_t>(3);
+        std::string device_id = m_stmtGetSyncServices.GetColumn<std::string>(0);
+        const int64_t min_timestamp = m_stmtGetSyncServices.GetColumn<int64_t>(2);
+        const int64_t max_timestamp = m_stmtGetSyncServices.GetColumn<int64_t>(3);
 
         if( device_id != data.device_id )
         {
@@ -260,11 +327,67 @@ void SQLiteRepository::SyncStatusEvaluator::WriteSyncStatus_syncServices(JsonWri
             data.max_timestamp = std::max(data.min_timestamp, max_timestamp);
         }
 
-        data.device_names.emplace_back(m_stmtGetSyncHistory.GetColumn<std::string>(1));
+        data.device_names.emplace_back(m_stmtGetSyncServices.GetColumn<std::string>(1));
     }
 
     if( !data.device_id.empty() )
         write_data();
 
     json_writer.EndArray();
+}
+
+
+void SQLiteRepository::SyncStatusEvaluator::WriteSyncStatus_syncHistory(JsonWriter& json_writer, const SharableString& device_id,
+                                                                        const SharableString& device_name)
+{
+    const Sqlite::Statement::Runner stmt_runner(m_repository.m_db, m_stmtGetSyncHistory,
+        "SELECT `timestamp`, `device_id`, `device_name`, `user_name`, `universe`, `direction`, `partial`, `last_id` "
+        "FROM `sync_history` "
+        "WHERE ( @di IS NULL AND @dn IS NULL ) OR "
+              "( @di IS NOT NULL AND `device_id` = @di ) OR "
+              "( @dn IS NOT NULL AND INSTR(LOWER(`device_name`), LOWER(@dn)) = 1 ) "
+        "ORDER BY `id` DESC;"
+    );
+
+    m_stmtGetSyncHistory.ClearBindings();
+
+    if( device_id.IsSet() )
+        m_stmtGetSyncHistory.Bind("@di", *device_id);
+
+    if( device_name.IsSet() )
+        m_stmtGetSyncHistory.Bind("@dn", *device_name);
+
+    std::shared_ptr<const SyncHistoryData> last_get;
+    std::shared_ptr<const SyncHistoryData> last_put;
+
+    json_writer.BeginObject()
+               .BeginArray(JK::syncHistory);
+
+    while( m_stmtGetSyncHistory.Step() == Sqlite::Result::Row )
+    {
+        std::unique_ptr<const SyncHistoryData> sync_history_data = CreateSyncHistoryData(m_stmtGetSyncHistory);
+        WriteSyncHistoryData(json_writer, *sync_history_data);
+
+        if( sync_history_data->direction == SyncDirection::Get )
+        {
+            if( last_get == nullptr )
+                last_get = std::move(sync_history_data);
+        }
+
+        else if( last_put == nullptr )
+        {
+            ASSERT(sync_history_data->direction == SyncDirection::Put);
+            last_put = std::move(sync_history_data);
+        }
+    }
+
+    json_writer.EndArray();
+
+    if( last_get != nullptr )
+        WriteSyncHistoryData(json_writer, JK::lastGet, *last_get);
+
+    if( last_put != nullptr )
+        WriteSyncHistoryData(json_writer, JK::lastPut, *last_put);
+
+    json_writer.EndObject();
 }

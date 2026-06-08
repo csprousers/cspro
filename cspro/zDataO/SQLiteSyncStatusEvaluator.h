@@ -28,7 +28,16 @@ private:
     // Returns the case key and revision from a UUID, returning a blank string for the key if no such case exists.
     std::tuple<std::string, int> GetCaseRevisionFromUuid(const std::string& case_uuid);
 
+    // Constructs a SyncHistoryData object from a row in a query's result.
+    struct SyncHistoryData;
+    static std::unique_ptr<SyncHistoryData> CreateSyncHistoryData(Sqlite::Statement& stmt);
+
+    // Writes a SyncHistoryData entry to JSON.
+    static void WriteSyncHistoryData(JsonWriter& json_writer, const SyncHistoryData& sync_history_data);
+    static void WriteSyncHistoryData(JsonWriter& json_writer, const char* key, const SyncHistoryData& sync_history_data);
+
     void WriteSyncStatus_syncServices(JsonWriter& json_writer);
+    void WriteSyncStatus_syncHistory(JsonWriter& json_writer, const SharableString& device_id, const SharableString& device_name);
 
 private:
     SQLiteRepository& m_repository;
@@ -48,6 +57,7 @@ private:
     std::map<std::string, std::map<int, std::vector<SyncTimeData>>> m_deviceIdentifierToFileRevisionToSyncTimeDataMap;
 
     // Data.getSyncStatus
+    Sqlite::Statement m_stmtGetSyncServices;
     Sqlite::Statement m_stmtGetSyncHistory;
 
 };
