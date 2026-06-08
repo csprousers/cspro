@@ -1,5 +1,6 @@
 #pragma once
 
+#include <zAction/ActionInvoker.h>
 #include <zDataO/ISyncableDataRepository.h>
 #include <engine/EngineDictionaryModifier.h>
 
@@ -51,11 +52,6 @@ public:
     // Closes the data repository (when owned by the Action Invoker) and destroys the resource ID.
     static void Close(Runtime& runtime, const JsonNode& json_node, Caller& caller);
 
-    // Returns one of JK::uuid, JK::position, JK::key, or optionally nullptr (if default_to_key is false).
-    // If both a UUID and a key are specified, the UUID is prioritized.
-    // The position is also prioritized above the key.
-    static const char* GetSpecifiedCaseIdentifier(const JsonNode& json_node, bool default_to_key);
-
     // Returns the position in the repository based on a UUID lookup.
     static double GetPositionFromUuid(DataRepository& data_repository, const JsonNode& json_node);
 
@@ -92,3 +88,20 @@ private:
 
     static std::unique_ptr<ActionInvokerOwned> OpenDataRepository(Runtime& runtime, const JsonNode& json_node);
 };
+
+
+
+// --------------------------------------------------------------------------
+// inline implementations
+// --------------------------------------------------------------------------
+
+// Returns one of JK::uuid, JK::position, JK::key, or optionally nullptr (if default_to_key is false).
+// If both a UUID and a key are specified, the UUID is prioritized.
+// The position is also prioritized above the key.
+inline const char* GetSpecifiedCaseIdentifier(const JsonNode& json_node, const bool default_to_key)
+{
+    return ( json_node.Contains(JK::uuid) )                  ? JK::uuid :
+           ( json_node.Contains(JK::position) )              ? JK::position :
+           ( default_to_key || json_node.Contains(JK::key) ) ? JK::key :
+                                                               nullptr;
+}

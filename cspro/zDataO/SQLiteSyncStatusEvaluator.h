@@ -27,10 +27,16 @@ private:
     // Returns the device ID if only one exists in the sync_history table, throwing an exception otherwise.
     std::string GetDeviceIdIfUnique();
 
+    // Processes the device ID and name arguments, returning a unique non-blank device ID.
+    // If no argument is provided, the value of GetDeviceIdIfUnique is returned.
+    SharableString EvaluateSingleDeviceIdArgument(SharableString device_id, const SharableString& device_name);
+
     const std::map<int, std::vector<SyncTimeData>>& GetSyncTimesForDeviceIdentifier(const SharableString& device_identifier);
 
-    // Returns the case key and revision from a UUID, returning a blank string for the key if no such case exists.
-    std::tuple<std::string, int> GetCaseRevisionFromUuid(const std::string& case_uuid);
+    // Returns the key / position / UUID, and the revision, matched against a case identifier,
+    // returning a blank string for the key if no such case exists.
+    template<typename T>
+    std::tuple<CaseKey, std::string, int> GetCaseRevisionFromIdentifier(const char* binding_parameter_name, const T& binding_value);
 
     // Constructs a SyncHistoryData object from a row in a query's result.
     struct SyncHistoryData;
@@ -42,8 +48,8 @@ private:
 
     void WriteSyncStatus_syncServices(JsonWriter& json_writer);
     void WriteSyncStatus_syncHistory(JsonWriter& json_writer, const SharableString& device_id, const SharableString& device_name);
-    void WriteSyncStatus_casesPendingSync(JsonWriter& json_writer, SharableString device_id, const SharableString& device_name,
-                                          const std::string& universe);
+    void WriteSyncStatus_casesPendingSync(JsonWriter& json_writer, const SharableString& device_id, const std::string& universe);
+    void WriteSyncStatus_caseStatus(JsonWriter& json_writer, const JsonNode& json_node, const SharableString& device_id);
 
 private:
     SQLiteRepository& m_repository;
@@ -54,6 +60,7 @@ private:
     Sqlite::Statement m_stmtGetCaseRevision;
     Sqlite::Statement m_stmtGetSyncServices;
     Sqlite::Statement m_stmtGetSyncHistory;
+    Sqlite::Statement m_stmtGetCaseLastSync;
 
     // for synctime
     struct SyncTimeData

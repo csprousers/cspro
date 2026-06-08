@@ -356,15 +356,6 @@ void ActionInvoker::Runtime::DataWrapper::Close(Runtime& runtime, const JsonNode
 }
 
 
-const char* ActionInvoker::Runtime::DataWrapper::GetSpecifiedCaseIdentifier(const JsonNode& json_node, const bool default_to_key)
-{
-    return ( json_node.Contains(JK::uuid) )                  ? JK::uuid :
-           ( json_node.Contains(JK::position) )              ? JK::position :
-           ( default_to_key || json_node.Contains(JK::key) ) ? JK::key :
-                                                               nullptr;
-}
-
-
 double ActionInvoker::Runtime::DataWrapper::GetPositionFromUuid(DataRepository& data_repository, const JsonNode& json_node)
 {
     std::string uuid = json_node.Get<std::string>(JK::uuid);
@@ -388,7 +379,7 @@ std::unique_ptr<WriteCaseParameter> ActionInvoker::Runtime::DataWrapper::Process
         return nullptr;
 
     const JsonNode replace_json_node = json_node.Get(JK::replace);
-    const char* const identifier = DataWrapper::GetSpecifiedCaseIdentifier(replace_json_node, true);
+    const char* const identifier = GetSpecifiedCaseIdentifier(replace_json_node, true);
 
     std::string key = ( identifier == JK::key ) ? replace_json_node.Get<std::string>(JK::key) : std::string();
     std::string uuid = ( identifier == JK::uuid ) ? replace_json_node.Get<std::string>(JK::uuid) : std::string();
@@ -545,7 +536,7 @@ ActionInvoker::Result ActionInvoker::Runtime::Data_close(const JsonNode& json_no
 std::unique_ptr<Case> ActionInvoker::Runtime::ReadCase(const JsonNode& json_node, DataRepository& data_repository,
                                                        const bool return_null_if_no_case_identifier_present)
 {
-    const char* const identifier = DataWrapper::GetSpecifiedCaseIdentifier(json_node, !return_null_if_no_case_identifier_present);
+    const char* const identifier = GetSpecifiedCaseIdentifier(json_node, !return_null_if_no_case_identifier_present);
 
     if( identifier == nullptr )
     {
@@ -694,7 +685,7 @@ ActionInvoker::Result ActionInvoker::Runtime::Data_contains(const JsonNode& json
     const std::shared_ptr<DataWrapper> data_wrapper = DataWrapper::GetDataWrapper(*this, json_node, caller);
     DataRepository& data_repository = data_wrapper->GetDataRepository();
 
-    const char* const identifier = DataWrapper::GetSpecifiedCaseIdentifier(json_node, true);
+    const char* const identifier = GetSpecifiedCaseIdentifier(json_node, true);
     bool contains_case;
 
     if( identifier == JK::key )
@@ -843,7 +834,7 @@ ActionInvoker::Result ActionInvoker::Runtime::Data_deleteCase(const JsonNode& js
     const std::shared_ptr<DataWrapper> data_wrapper = DataWrapper::GetDataWrapper(*this, json_node, caller);
     DataRepository& data_repository = data_wrapper->GetDataRepository();
 
-    const char* const identifier = DataWrapper::GetSpecifiedCaseIdentifier(json_node, true);
+    const char* const identifier = GetSpecifiedCaseIdentifier(json_node, true);
 
     // make sure that data sources connected to dictionaries owned by the interpreter are properly updated
     const std::unique_ptr<EngineDictionaryModifier> engine_dictionary_modifier = data_wrapper->CreateEngineDictionaryModifier(*this);
