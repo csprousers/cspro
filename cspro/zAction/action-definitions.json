@@ -475,7 +475,7 @@
       },
       {
         "name": "content",
-        "description": "The type of status information to return. (Default value is \"summary\".)",
+        "description": "The synchronization status content to query. (Default value is \"summary\".)",
         "types": [
           "string"
         ],
@@ -500,6 +500,46 @@
       {
         "name": "syncId",
         "description": "A synchronization service ID, with the service's device ID used to filter the content.",
+        "types": [
+          "number"
+        ],
+        "required": false
+      },
+      {
+        "name": "key",
+        "description": "The key (case IDs) of a specific case used to filter the content.",
+        "types": [
+          "string"
+        ],
+        "required": false
+      },
+      {
+        "name": "uuid",
+        "description": "The UUID of a specific case used to filter the content.",
+        "types": [
+          "string"
+        ],
+        "required": false
+      },
+      {
+        "name": "position",
+        "description": "The \"position\" of a specific case used to filter the content.",
+        "types": [
+          "number"
+        ],
+        "required": false
+      },
+      {
+        "name": "universe",
+        "description": "A universe to limit the cases that are considered as part of a synchronization status query.",
+        "types": [
+          "string"
+        ],
+        "required": false
+      },
+      {
+        "name": "limit",
+        "description": "The maximum number of results to return from the query.",
         "types": [
           "number"
         ],

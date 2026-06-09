@@ -26,7 +26,8 @@ SQLiteRepository::SyncStatusEvaluator::SyncStatusEvaluator(SQLiteRepository& rep
 
 void SQLiteRepository::SyncStatusEvaluator::ClearPreparedStatements()
 {
-    m_stmtGetDeviceIdFromName.Finalize();
+    m_stmtGetDeviceIdFromNameForSyncTime.Finalize();
+    m_stmtGetDeviceIdFromNameForSyncStatus.Finalize();
     m_stmtGetUniqueDeviceId.Finalize();
     m_stmtGetSyncTimeData.Finalize();
     m_stmtGetCaseRevision.Finalize();
@@ -82,45 +83,65 @@ std::optional<double> SQLiteRepository::SyncStatusEvaluator::GetSyncTime(const S
 }
 
 
-std::string SQLiteRepository::SyncStatusEvaluator::GetDeviceIdFromName(const std::string& device_name, const bool ensure_that_only_one_device_matches)
+std::string SQLiteRepository::SyncStatusEvaluator::GetDeviceIdFromNameForSyncTime(const std::string& device_name)
 {
-    const Sqlite::Statement::Runner stmt_runner(m_repository.m_db, m_stmtGetDeviceIdFromName,
+    const Sqlite::Statement::Runner stmt_runner(m_repository.m_db, m_stmtGetDeviceIdFromNameForSyncTime,
         "SELECT `device_id` "
         "FROM `sync_history` "
         "WHERE INSTR(LOWER(`device_name`), LOWER(?)) = 1 "
-        "LIMIT ?;"
+        "LIMIT 1;"
     );
 
-    m_stmtGetDeviceIdFromName.Bind(1, device_name);
-    m_stmtGetDeviceIdFromName.Bind(2, ensure_that_only_one_device_matches ? -1 : 1);
+    m_stmtGetDeviceIdFromNameForSyncTime.Bind(1, device_name);
 
-    if( m_stmtGetDeviceIdFromName.Step() == Sqlite::Result::Row )
-    {
-        std::string device_id = m_stmtGetDeviceIdFromName.GetColumn<std::string>(0);
-
-        if( ensure_that_only_one_device_matches &&
-            m_stmtGetDeviceIdFromName.Step() != Sqlite::Result::Done )
-        {
-            throw CSProException("There are multiple devices associated with the name '%s', including '%s' and '%s'.",
-                                 device_name.c_str(),
-                                 device_id.c_str(),
-                                 m_stmtGetDeviceIdFromName.GetColumn<std::string>(0).c_str());
-        }
-
-        return device_id;
-    }
-
-    else if( ensure_that_only_one_device_matches )
-    {
-        throw CSProException("There is no device associated with the name '%s'.",
-                             device_name.c_str());
-    }
+    if( m_stmtGetDeviceIdFromNameForSyncTime.Step() == Sqlite::Result::Row )
+        return m_stmtGetDeviceIdFromNameForSyncTime.GetColumn<std::string>(0);
 
     return std::string();
 }
 
 
-std::string SQLiteRepository::SyncStatusEvaluator::GetDeviceIdIfUnique()
+SharableString SQLiteRepository::SyncStatusEvaluator::GetDeviceIdFromNameForSyncStatus(const std::string& device_name,
+                                                                                       const bool ensure_that_only_one_device_matches,
+                                                                                       const bool ensure_that_a_device_matches)
+{
+    const Sqlite::Statement::Runner stmt_runner(m_repository.m_db, m_stmtGetDeviceIdFromNameForSyncStatus,
+        "SELECT DISTINCT `device_id` "
+        "FROM `sync_history` "
+        "WHERE `device_name` = ? "
+        "LIMIT ?;"
+    );
+
+    m_stmtGetDeviceIdFromNameForSyncStatus.Bind(1, device_name);
+    m_stmtGetDeviceIdFromNameForSyncStatus.Bind(2, ensure_that_only_one_device_matches ? -1 : 1);
+
+    if( m_stmtGetDeviceIdFromNameForSyncStatus.Step() == Sqlite::Result::Row )
+    {
+        std::string device_id = m_stmtGetDeviceIdFromNameForSyncStatus.GetColumn<std::string>(0);
+
+        if( ensure_that_only_one_device_matches &&
+            m_stmtGetDeviceIdFromNameForSyncStatus.Step() != Sqlite::Result::Done )
+        {
+            throw CSProException("There are multiple devices associated with the name '%s', including '%s' and '%s'.",
+                                 device_name.c_str(),
+                                 device_id.c_str(),
+                                 m_stmtGetDeviceIdFromNameForSyncStatus.GetColumn<std::string>(0).c_str());
+        }
+
+        return device_id;
+    }
+
+    else if( ensure_that_a_device_matches )
+    {
+        throw CSProException("There is no device associated with the name '%s'.",
+                             device_name.c_str());
+    }
+
+    return CreateUuid();
+}
+
+
+std::string SQLiteRepository::SyncStatusEvaluator::GetDeviceIdIfUnique(const bool create_fake_device_id_if_no_syncs_have_occurred)
 {
     const Sqlite::Statement::Runner stmt_runner(m_repository.m_db, m_stmtGetUniqueDeviceId,
         "SELECT DISTINCT `device_id` "
@@ -129,32 +150,17 @@ std::string SQLiteRepository::SyncStatusEvaluator::GetDeviceIdIfUnique()
     );
 
     if( m_stmtGetUniqueDeviceId.Step() != Sqlite::Result::Row )
+    {
+        if( create_fake_device_id_if_no_syncs_have_occurred )
+            return CreateUuid();
+
         throw CSProException("The data source has never been synchronized.");
+    }
 
     std::string device_id = m_stmtGetUniqueDeviceId.GetColumn<std::string>(0);
 
     if( m_stmtGetUniqueDeviceId.Step() != Sqlite::Result::Done )
         throw CSProException("You must specify a synchronization service as the data source has been synchronized with multiple services.");
-
-    return device_id;
-}
-
-
-SharableString SQLiteRepository::SyncStatusEvaluator::EvaluateSingleDeviceIdArgument(SharableString device_id, const SharableString& device_name)
-{
-    if( device_id.IsSet() )
-    {
-        if( device_id->empty() )
-            throw CSProException("The device ID cannot be blank.");
-    }
-
-    else
-    {
-        device_id = device_name.IsSet() ? GetDeviceIdFromName(*device_name, true) :
-                                          GetDeviceIdIfUnique();
-    }
-
-    ASSERT(!device_id->empty());
 
     return device_id;
 }
@@ -180,7 +186,7 @@ const std::map<int, std::vector<SQLiteRepository::SyncStatusEvaluator::SyncTimeD
 
     if( device_identifier.IsSet() )
     {
-        std::string matched_device_id = GetDeviceIdFromName(*device_identifier, false);
+        std::string matched_device_id = GetDeviceIdFromNameForSyncTime(*device_identifier);
 
         if( !matched_device_id.empty() )
         {
@@ -333,6 +339,9 @@ void SQLiteRepository::SyncStatusEvaluator::WriteSyncHistoryData(JsonWriter& jso
 void SQLiteRepository::SyncStatusEvaluator::WriteSyncStatus(JsonWriter& json_writer, const JsonNode& json_node,
                                                             const SharableString& device_id, const SharableString& device_name)
 {
+    ASSERT(device_id.IsSet() == !device_id->empty());
+    ASSERT(device_name.IsSet() == !device_name->empty());
+
     const std::string_view content_sv = json_node.GetOrDefault<std::string_view>(JK::content, "summary");
 
     if( content_sv == "syncServices" )
@@ -342,33 +351,33 @@ void SQLiteRepository::SyncStatusEvaluator::WriteSyncStatus(JsonWriter& json_wri
 
     else if( content_sv == JK::syncHistory )
     {
-        WriteSyncStatus_syncHistory(json_writer, device_id, device_name);
+        WriteSyncStatus_syncHistory(
+            json_writer,
+            device_id,
+            device_name,
+            json_node.GetOptional<uint32_t>(JK::limit)
+        );
     }
 
     else if( content_sv == JK::casesPendingSync )
     {
         WriteSyncStatus_casesPendingSync(
             json_writer,
-            EvaluateSingleDeviceIdArgument(device_id, device_name),
-            json_node.GetOrConstruct<std::string>(JK::universe)
+            device_id,
+            device_name,
+            json_node.GetOrConstruct<std::string>(JK::universe),
+            json_node.GetOptional<uint32_t>(JK::limit)
         );
     }
 
     else if( content_sv == "caseStatus" )
     {
-        WriteSyncStatus_caseStatus(
-            json_writer,
-            json_node,
-            ( device_id.IsSet() || device_name.IsSet() ) ? EvaluateSingleDeviceIdArgument(device_id, device_name) : SharableString()
-        );
+        WriteSyncStatus_caseStatus(json_writer, json_node, device_id, device_name);
     }
 
     else if( content_sv == "summary" )
     {
-        WriteSyncStatus_summary(
-            json_writer,
-            ( device_id.IsSet() || device_name.IsSet() ) ? EvaluateSingleDeviceIdArgument(device_id, device_name) : SharableString()
-        );
+        WriteSyncStatus_summary(json_writer, device_id, device_name);
     }
 
     else
@@ -446,24 +455,30 @@ void SQLiteRepository::SyncStatusEvaluator::WriteSyncStatus_syncServices(JsonWri
 
 
 void SQLiteRepository::SyncStatusEvaluator::WriteSyncStatus_syncHistory(JsonWriter& json_writer, const SharableString& device_id,
-                                                                        const SharableString& device_name)
+                                                                        const SharableString& device_name, const std::optional<uint32_t> limit)
 {
     const Sqlite::Statement::Runner stmt_runner(m_repository.m_db, m_stmtGetSyncHistory,
         SELECT_SQL_FOR_SYNC_HISTORY_DATA
         "FROM `sync_history` "
-        "WHERE ( @di IS NULL AND @dn IS NULL ) OR "
-              "( @di IS NOT NULL AND `device_id` = @di ) OR "
-              "( @dn IS NOT NULL AND INSTR(LOWER(`device_name`), LOWER(@dn)) = 1 ) "
-        "ORDER BY `id` DESC;"
+        "WHERE ( @di IS NULL OR `device_id` = @di ) AND "
+              "( @dn IS NULL OR `device_name` = @dn ) "
+        "ORDER BY `id` DESC "
+        "LIMIT @lim;"
     );
 
     m_stmtGetSyncHistory.ClearBindings();
 
     if( device_id.IsSet() )
+    {
         m_stmtGetSyncHistory.Bind("@di", *device_id);
+    }
 
-    if( device_name.IsSet() )
+    else if( device_name.IsSet() )
+    {
         m_stmtGetSyncHistory.Bind("@dn", *device_name);
+    }
+
+    m_stmtGetSyncHistory.Bind("@lim", limit.has_value() ? static_cast<int64_t>(*limit) : -1);
 
     std::shared_ptr<const SyncHistoryData> last_get;
     std::shared_ptr<const SyncHistoryData> last_put;
@@ -504,15 +519,12 @@ void SQLiteRepository::SyncStatusEvaluator::WriteSyncStatus_syncHistory(JsonWrit
 std::unique_ptr<SQLiteRepositoryCaseIterator> SQLiteRepository::SyncStatusEvaluator::CreateCasesModifiedSinceRevisionIterator(
     const SharableString& device_id, const std::string& universe, const size_t limit, size_t* const out_case_count)
 {
-    ASSERT(device_id.IsSet());
-
     // this implementation is based on DataSyncer::SyncGet and DataSyncer::GetRevisionFromLastSync
     cs::cref_optional<DeviceId> exclude_gets_from_device_id = *device_id;
 
-    std::optional<SyncHistoryEntry> last_sync_revision = m_repository.GetLastSyncForDevice(
-        *device_id,
-        SyncDirection::Put
-    );
+    std::optional<SyncHistoryEntry> last_sync_revision = device_id.IsSet()
+        ? m_repository.GetLastSyncForDevice(*device_id, SyncDirection::Put)
+        : std::nullopt;
 
     if( last_sync_revision.has_value() )
     {
@@ -563,13 +575,22 @@ std::unique_ptr<SQLiteRepositoryCaseIterator> SQLiteRepository::SyncStatusEvalua
 }
 
 
-void SQLiteRepository::SyncStatusEvaluator::WriteSyncStatus_casesPendingSync(JsonWriter& json_writer, const SharableString& device_id,
-                                                                             const std::string& universe)
+void SQLiteRepository::SyncStatusEvaluator::WriteSyncStatus_casesPendingSync(JsonWriter& json_writer, SharableString device_id,
+                                                                             const SharableString& device_name, const std::string& universe,
+                                                                             const std::optional<uint32_t> limit)
 {
+    if( !device_id.IsSet() )
+    {
+        device_id = device_name.IsSet() ? GetDeviceIdFromNameForSyncStatus(*device_name, true, false) :
+                                          GetDeviceIdIfUnique(true);
+    }
+
+    ASSERT(!device_id->empty());
+
     const std::unique_ptr<SQLiteRepositoryCaseIterator> case_iterator = CreateCasesModifiedSinceRevisionIterator(
         device_id,
         universe,
-        std::numeric_limits<size_t>::max(),
+        limit.has_value() ? static_cast<size_t>(*limit) : std::numeric_limits<size_t>::max(),
         nullptr
     );
 
@@ -584,8 +605,8 @@ void SQLiteRepository::SyncStatusEvaluator::WriteSyncStatus_casesPendingSync(Jso
     {
         json_writer.BeginObject()
                    .Write(JK::key, case_key.GetKey())
-                   .Write(JK::uuid, uuid)
                    .Write(JK::position, case_key.GetPositionInRepository())
+                   .Write(JK::uuid, uuid)
                    .EndObject();
     }
 
@@ -594,7 +615,7 @@ void SQLiteRepository::SyncStatusEvaluator::WriteSyncStatus_casesPendingSync(Jso
 
 
 void SQLiteRepository::SyncStatusEvaluator::WriteSyncStatus_caseStatus(JsonWriter& json_writer, const JsonNode& json_node,
-                                                                       const SharableString& device_id)
+                                                                       const SharableString& device_id, const SharableString& device_name)
 {
     const char* const identifier = GetSpecifiedCaseIdentifier(json_node, true);
 
@@ -616,7 +637,8 @@ void SQLiteRepository::SyncStatusEvaluator::WriteSyncStatus_caseStatus(JsonWrite
             "WHERE ( `file_revision` >= @rev ) AND "
                   "( `partial` = 0 OR ? <= @uuid ) AND "
                   "( `universe` IS NULL OR INSTR(@key, `universe`) = 1 ) AND "
-                  "( @di IS NULL OR `device_id` = @di ) "
+                  "( @di IS NULL OR `device_id` = @di ) AND "
+                  "( @dn IS NULL OR `device_name` = @dn ) "
             "GROUP BY `device_id` "
         ") AS `sh` ON `sync_history`.`id` = `sh`.`min_id`;"
     );
@@ -628,7 +650,14 @@ void SQLiteRepository::SyncStatusEvaluator::WriteSyncStatus_caseStatus(JsonWrite
                          .Bind("@key", case_key.GetKey());
 
     if( device_id.IsSet() )
+    {
         m_stmtGetCaseLastSync.Bind("@di", *device_id);
+    }
+
+    else if( device_name.IsSet() )
+    {
+        m_stmtGetCaseLastSync.Bind("@dn", *device_name);
+    }
 
     json_writer.BeginObject()
                .Write(JK::key, case_key.GetKey())
@@ -647,7 +676,8 @@ void SQLiteRepository::SyncStatusEvaluator::WriteSyncStatus_caseStatus(JsonWrite
 }
 
 
-void SQLiteRepository::SyncStatusEvaluator::WriteSyncStatus_summary(JsonWriter& json_writer, SharableString device_id)
+void SQLiteRepository::SyncStatusEvaluator::WriteSyncStatus_summary(JsonWriter& json_writer, SharableString device_id,
+                                                                    const SharableString& device_name)
 {
     // add information about the lastest get and put
     const Sqlite::Statement::Runner stmt_runner(m_repository.m_db, m_stmtGetLatestSyncHistory,
@@ -656,7 +686,8 @@ void SQLiteRepository::SyncStatusEvaluator::WriteSyncStatus_summary(JsonWriter& 
         "JOIN ( "
             "SELECT MAX(`id`) AS `max_id` "
             "FROM `sync_history` "
-            "WHERE ( @di IS NULL OR `device_id` = @di ) "
+            "WHERE ( @di IS NULL OR `device_id` = @di ) AND "
+                  "( @dn IS NULL OR `device_name` = @dn ) "
             "GROUP BY `direction` "
         ") AS `sh` ON `sync_history`.`id` = `sh`.`max_id`;"
     );
@@ -664,7 +695,14 @@ void SQLiteRepository::SyncStatusEvaluator::WriteSyncStatus_summary(JsonWriter& 
     m_stmtGetLatestSyncHistory.ClearBindings();
 
     if( device_id.IsSet() )
+    {
         m_stmtGetLatestSyncHistory.Bind("@di", *device_id);
+    }
+
+    else if( device_name.IsSet() )
+    {
+        m_stmtGetLatestSyncHistory.Bind("@dn", *device_name);
+    }
 
     json_writer.BeginObject();
 
@@ -702,16 +740,21 @@ void SQLiteRepository::SyncStatusEvaluator::WriteSyncStatus_summary(JsonWriter& 
 
     // add the number of cases that are pending sync when the user specifies a device,
     // or if only one device has been used for synchronization
-    if( !device_id.IsSet() )
+    bool write_cases_pending_sync = device_id.IsSet();
+
+    if( !write_cases_pending_sync )
     {
         try
         {
-            device_id = GetDeviceIdIfUnique();
+            device_id = device_name.IsSet() ? GetDeviceIdFromNameForSyncStatus(*device_name, true, false) :
+                                              GetDeviceIdIfUnique(true);
+
+            write_cases_pending_sync = true;
         }
         catch(...) { }
     }
 
-    if( device_id.IsSet() )
+    if( write_cases_pending_sync )
     {
         size_t out_case_count;
         VERIFY(CreateCasesModifiedSinceRevisionIterator(device_id, SO::Empty_string, 0, &out_case_count) == nullptr);

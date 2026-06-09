@@ -907,8 +907,18 @@ ActionInvoker::Result ActionInvoker::Runtime::Data_getSyncStatus(const JsonNode&
     const std::shared_ptr<DataWrapper> data_wrapper = DataWrapper::GetDataWrapper(*this, json_node, caller);
     ISyncableDataRepository& syncable_data_repository = data_wrapper->GetSyncableDataRepository();
 
-    SharableString device_id = json_node.GetOrConstruct<SharableString>(JK::deviceId);
-    SharableString device_name = json_node.GetOrConstruct<SharableString>(JK::deviceName);
+    auto evaluate_device_identifier = [&](const char* const key, const char* const type)
+    {
+        SharableString device_identifier = json_node.GetOrConstruct<SharableString>(key);
+
+        if( device_identifier.IsSet() && device_identifier->empty() )
+            throw CSProException("The device %s cannot be blank.", type);
+
+        return device_identifier;
+    };
+
+    SharableString device_id = evaluate_device_identifier(JK::deviceId, "ID");
+    const SharableString device_name = evaluate_device_identifier(JK::deviceName, "name");
 
     // if no device was specified, but a sync ID was, use the connection's device ID
     if( !device_id.IsSet() && !device_name.IsSet() )

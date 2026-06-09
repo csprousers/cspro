@@ -19,17 +19,19 @@ private:
     struct SyncTimeData;
 
     // Returns the device ID associated with the device name, or an empty string if no such device exists.
-    // Device names are matched in a case-insensitive manner based on the beginning of the string,
+    // For ...ForSyncTime, device names are matched in a case-insensitive manner based on the beginning of the string,
     // so a name like .../api would match with an entry like .../api/.
-    // If ensure_that_only_one_device_matches is true, then an exception is thrown if no device, or more than one device, matches.
-    std::string GetDeviceIdFromName(const std::string& device_name, bool ensure_that_only_one_device_matches);
+    // For ...ForSyncStatus, the device name must match identically.
+    // If ensure_that_only_one_device_matches is true, an exception is thrown if more than one device matches.
+    // If ensure_that_a_device_matches is true, an exception is thrown if no device matches.
+    // Otherwise, if the device name has no matches, a fake device ID string is returned.
+    std::string GetDeviceIdFromNameForSyncTime(const std::string& device_name);
+    SharableString GetDeviceIdFromNameForSyncStatus(const std::string& device_name, bool ensure_that_only_one_device_matches, bool ensure_that_a_device_matches);
 
-    // Returns the device ID if only one exists in the sync_history table, throwing an exception otherwise.
-    std::string GetDeviceIdIfUnique();
-
-    // Processes the device ID and name arguments, returning a unique non-blank device ID.
-    // If no argument is provided, the value of GetDeviceIdIfUnique is returned.
-    SharableString EvaluateSingleDeviceIdArgument(SharableString device_id, const SharableString& device_name);
+    // Returns the device ID if only one exists in the sync_history table, throwing an exception if
+    // there have been synchronizations with multiple devices. Based on create_fake_device_id_if_no_syncs_have_occurred,
+    // a fake device ID string may be returned if there have been no synchronizations.
+    std::string GetDeviceIdIfUnique(bool create_fake_device_id_if_no_syncs_have_occurred);
 
     const std::map<int, std::vector<SyncTimeData>>& GetSyncTimesForDeviceIdentifier(const SharableString& device_identifier);
 
@@ -52,15 +54,23 @@ private:
         const SharableString& device_id, const std::string& universe, size_t limit, size_t* out_case_count);
 
     void WriteSyncStatus_syncServices(JsonWriter& json_writer);
-    void WriteSyncStatus_syncHistory(JsonWriter& json_writer, const SharableString& device_id, const SharableString& device_name);
-    void WriteSyncStatus_casesPendingSync(JsonWriter& json_writer, const SharableString& device_id, const std::string& universe);
-    void WriteSyncStatus_caseStatus(JsonWriter& json_writer, const JsonNode& json_node, const SharableString& device_id);
-    void WriteSyncStatus_summary(JsonWriter& json_writer, SharableString device_id);
+
+    void WriteSyncStatus_syncHistory(JsonWriter& json_writer, const SharableString& device_id,
+                                     const SharableString& device_name, std::optional<uint32_t> limit);
+
+    void WriteSyncStatus_casesPendingSync(JsonWriter& json_writer, SharableString device_id, const SharableString& device_name,
+                                          const std::string& universe, std::optional<uint32_t> limit);
+
+    void WriteSyncStatus_caseStatus(JsonWriter& json_writer, const JsonNode& json_node,
+                                    const SharableString& device_id, const SharableString& device_name);
+
+    void WriteSyncStatus_summary(JsonWriter& json_writer, SharableString device_id, const SharableString& device_name);
 
 private:
     SQLiteRepository& m_repository;
 
-    Sqlite::Statement m_stmtGetDeviceIdFromName;
+    Sqlite::Statement m_stmtGetDeviceIdFromNameForSyncTime;
+    Sqlite::Statement m_stmtGetDeviceIdFromNameForSyncStatus;
     Sqlite::Statement m_stmtGetUniqueDeviceId;
     Sqlite::Statement m_stmtGetSyncTimeData;
     Sqlite::Statement m_stmtGetCaseRevision;

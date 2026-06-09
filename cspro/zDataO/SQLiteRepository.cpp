@@ -2133,13 +2133,13 @@ std::vector<SyncHistoryEntry> SQLiteRepository::GetSyncHistory(const DeviceId& d
         "FROM sync_history "
         "WHERE id >= @id AND (@dev='' OR device_id=@dev) AND (@dir = 3 OR @dir = direction) "
         "ORDER BY id DESC "
-        "LIMIT @li"
+        "LIMIT @lim"
     );
 
     statement.Bind("@id", start_serial_number.value_or(0))
              .Bind("@dev", device_id)
              .Bind("@dir", static_cast<int>(direction.value_or(SyncDirection::Both)))
-             .Bind("@li", limit);
+             .Bind("@lim", limit);
 
     std::vector<SyncHistoryEntry> entries;
     int result;
