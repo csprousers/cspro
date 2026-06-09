@@ -339,7 +339,7 @@ double CIntDriver::ex_syncdata(const int program_index)
 
         try
         {
-            if( GetSyncClient().SyncData(*direction, *syncable_data_repository, universe) == SyncClient::SyncResult::SYNC_OK )
+            if( GetSyncClient().SyncData(*syncable_data_repository, *direction, universe) == SyncClient::SyncResult::SYNC_OK )
                 success = true;
         }
         catch(...) { ASSERT(false); sync_exception = std::current_exception(); }
@@ -547,8 +547,12 @@ double CIntDriver::ex_synctime(const int program_index)
         return NOTAPPL;
     }
 
-    const std::string device_identifier = EvaluateOptionalOrConstruct<std::string>(va_node.arguments[1]);
-    const std::string case_uuid = EvaluateOptionalOrConstruct<std::string>(va_node.arguments[2]);
+    SharableString device_identifier = EvaluateNullableSharableString(va_node.arguments[1]);
+    const SharableString case_uuid = EvaluateNullableSharableString(va_node.arguments[2]);
+
+    // if a case UUID is provided but no device identifier, make it clear that the device identifier was not set
+    if( case_uuid.IsSet() && device_identifier->empty() )
+        device_identifier.Reset();
 
     try
     {

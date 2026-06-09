@@ -6,4 +6,4 @@ set msbuild="C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Curre
 
 :start
 %msbuild% "..\..\build-tools\build-tools.sln" /p:Configuration=Debug /p:Platform=x64 /target:"Action Invoker Definition Updater"
-"..\..\build-tools\build\x64\Debug\bin\Action Invoker Definition Updater.exe" ".."
+"..\..\build-tools\build\x64\Debug\bin\Action Invoker Definition Updater.exe"

@@ -1,8 +1,9 @@
-﻿#pragma once
+#pragma once
 
 #include <zDataO/DataRepository.h>
 #include <zToolsO/span.h>
 #include <zAppO/SyncTypes.h>
+#include <zSyncO/DataSyncStatistics.h>
 
 class SyncBinaryDataUploadManager;
 class SyncHistoryEntry;
@@ -15,17 +16,6 @@ protected:
 
 public:
     ISyncableDataRepository* GetSyncableDataRepository() override { return this; }
-
-    // Info on cases synced.
-    struct SyncStats
-    {
-        size_t cases_not_in_repository;
-        size_t cases_newer_in_repository;
-        size_t cases_newer_on_remote;
-        size_t cases_with_conflicts;
-        size_t cases_received;
-        size_t cases_sent;
-    };
 
     // Start syncing cases from a remote repository with this repository.
     virtual void StartSync(DeviceId server_device_id, std::string remote_device_name, std::string username, SyncDirection direction, std::string universe,
@@ -45,7 +35,7 @@ public:
     virtual void EndSync() = 0;
 
     // Get info about the last sync.
-    virtual SyncStats GetLastSyncStats() const = 0;
+    virtual DataSyncStatistics GetLastSyncStats() const = 0;
 
     // Clear the binary sync history for the repository.
     virtual void ClearBinarySyncHistory(const DeviceId& server_device_id, int client_revision = -1) = 0;
@@ -63,7 +53,11 @@ public:
     virtual std::optional<SyncHistoryEntry> GetLastSyncForDevice(const DeviceId& device_id, SyncDirection direction) const = 0;
 
     // Get all syncs since for a device since a particular serial number.
-    virtual std::vector<SyncHistoryEntry> GetSyncHistory(const DeviceId& device_id = DeviceId(), SyncDirection direction = SyncDirection::Both, int start_serial_number = 0) = 0;
+    // The sync history is returned in descending order (most recent first).
+    // If device_id is empty, then syncs for all devices are returned.
+    // If direction is not defined, then syncs in both directions are returned.
+    virtual std::vector<SyncHistoryEntry> GetSyncHistory(const DeviceId& device_id = DeviceId(), std::optional<SyncDirection> direction = std::nullopt,
+                                                         std::optional<int> start_serial_number = std::nullopt, size_t limit = std::numeric_limits<size_t>::max()) = 0;
 
     // Check if the client revision exists in the repository.
     virtual bool IsValidClientRevision(int client_revision) const = 0;
@@ -72,5 +66,8 @@ public:
     virtual bool IsPreviousSync(int client_revision, const DeviceId& device_id) const = 0;
 
     // Process a request from the synctime logic function.
-    virtual std::optional<double> GetSyncTime(const std::string& device_identifier, const std::string& case_uuid) const = 0;
+    virtual std::optional<double> GetSyncTime(const SharableString& device_identifier, const SharableString& case_uuid) = 0;
+
+    // Parses the arguments coming from the Data.getSyncStatus action and writes synchronization information to the JSON writer.
+    virtual void WriteSyncStatus(JsonWriter& json_writer, const JsonNode& json_node, const SharableString& device_id, const SharableString& device_name) = 0;
 };

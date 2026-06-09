@@ -22,13 +22,9 @@ void Sqlite::Statement::CheckDefinitionsAtCompileTime()
 }
 
 
-Sqlite::Statement::~Statement()
+Sqlite::Statement::~Statement() noexcept
 {
-    if( IsPrepared() )
-    {
-        sqlite3_finalize(*m_statementPtr);
-        *m_statementPtr = nullptr;
-    }
+    Finalize();
 }
 
 
@@ -46,6 +42,16 @@ Sqlite::Statement Sqlite::Statement::Prepare(sqlite3* const db, const std::strin
 }
 
 
+void Sqlite::Statement::Finalize() noexcept
+{
+    if( IsPrepared() )
+    {
+        sqlite3_finalize(*m_statementPtr);
+        *m_statementPtr = nullptr;
+    }
+}
+
+
 void Sqlite::Statement::ThrowExceptionForCheckStatementIsPrepared()
 {
     throw Exception("The SQLite statement is not prepared.");
@@ -57,6 +63,14 @@ void Sqlite::Statement::ThrowExceptionForCheckValidBinding(const int result)
     ASSERT(result != SQLITE_OK);
 
     throw Exception("The SQLite statement binding failed: %s", sqlite3_errstr(result));
+}
+
+
+void Sqlite::Statement::ClearBindings()
+{
+    CheckStatementIsPrepared();
+
+    sqlite3_clear_bindings(*m_statementPtr);
 }
 
 

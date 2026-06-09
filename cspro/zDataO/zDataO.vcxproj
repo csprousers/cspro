@@ -67,6 +67,7 @@
     <ClInclude Include="SQLiteErrorWithMessage.h" />
     <ClInclude Include="SQLiteRepository.h" />
     <ClInclude Include="SQLiteRepositoryIterators.h" />
+    <ClInclude Include="SQLiteSyncStatusEvaluator.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="SyncBinaryContentReader.h" />
     <ClInclude Include="SyncBinaryDataUploadManager.h" />
@@ -113,6 +114,7 @@
     <ClCompile Include="SQLiteRepository.cpp" />
     <ClCompile Include="SQLiteRepositoryCaseLoader.cpp" />
     <ClCompile Include="SQLiteRepositoryIterators.cpp" />
+    <ClCompile Include="SQLiteSyncStatusEvaluator.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>

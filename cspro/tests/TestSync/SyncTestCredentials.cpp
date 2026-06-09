@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "SyncTestCredentials.h"
 #include "CaseTestHelpers.h"
 
@@ -17,8 +17,9 @@ The credentials file should contain sync connection strings like:
   }
 }
 
-The CSWeb user's role should allow read/write/delete access for the
-default dictionary.
+The CSWeb user's role should allow read / write / delete (via the API)
+access the dictionary. The Standard User and Developer roles do not
+support all of these permissions by default.
 --------------------------------------------------------------------------*/
 
 

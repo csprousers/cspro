@@ -33,6 +33,7 @@ add_library(${PROJECT_NAME}
     SQLiteRepository.cpp
     SQLiteRepositoryCaseLoader.cpp
     SQLiteRepositoryIterators.cpp
+    SQLiteSyncStatusEvaluator.cpp
     SyncBinaryDataUploadManager.cpp
     SyncCaseJsonSerializer.cpp
     SyncCaseSerializer.cpp

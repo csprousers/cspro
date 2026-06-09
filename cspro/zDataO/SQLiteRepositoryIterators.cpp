@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "SQLiteRepositoryIterators.h"
 
 
@@ -70,17 +70,26 @@ bool SQLiteRepositoryCaseIterator::NextCaseForNonCaseReading(T& case_object)
 bool SQLiteRepositoryCaseIterator::NextCaseKey(CaseKey& case_key)
 {
     if( m_iterationContent == CaseIterationContent::Case )
-    {
         return NextCaseForNonCaseReading(case_key);
-    }
 
-    else if( !Step() )
-    {
+    if( !Step() )
         return false;
-    }
 
     case_key.SetKey(m_statement->GetColumn<std::string>(0));
     case_key.SetPositionInRepository(m_statement->GetColumn<double>(1));
+
+    return true;
+}
+
+
+bool SQLiteRepositoryCaseIterator::NextCaseKeyAndUuid(CaseKey& case_key, std::string& uuid)
+{
+    ASSERT(m_statement->GetColumnCount() == 3);
+
+    if( !NextCaseKey(case_key) )
+        return false;
+
+    uuid = m_statement->GetColumn<std::string>(2);
 
     return true;
 }

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zDataO/CaseIterator.h>
 #include <zDataO/SQLiteRepository.h>
@@ -21,6 +21,7 @@ public:
                                  CaseIterationCaseStatus case_status, const CaseIteratorParameters* start_parameters);
 
     bool NextCaseKey(CaseKey& case_key) override;
+    bool NextCaseKeyAndUuid(CaseKey& case_key, std::string& uuid);
     bool NextCaseSummary(CaseSummary& case_summary) override;
     bool NextCase(Case& data_case) override;
     int GetPercentRead() const override;

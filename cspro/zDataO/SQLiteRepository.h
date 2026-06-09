@@ -9,13 +9,14 @@ class CDictItem;
 struct ISQLiteQuestionnaireSerializer;
 struct sqlite3;
 struct sqlite3_stmt;
+class SQLiteRepositoryCaseIterator;
 class SQLiteStatement;
-struct SyncTimeCache;
 
 
 class ZDATAO_API SQLiteRepository : public ISyncableDataRepository
 {
-    friend class SQLiteRepositoryCaseIterator;
+    class SyncStatusEvaluator;
+    friend SQLiteRepositoryCaseIterator;
 
 protected:
     SQLiteRepository(DataRepositoryType type, std::shared_ptr<const CaseAccess> case_access, DataRepositoryAccess access_type, DeviceId deviceId);
@@ -57,17 +58,19 @@ public:
                                const std::string& server_revision, int client_revision) override;
     void ClearBinarySyncHistory(const DeviceId& server_device_id, int client_revision = -1) override;
     void EndSync() override;
-    SyncStats GetLastSyncStats() const override;
+    DataSyncStatistics GetLastSyncStats() const override;
     std::unique_ptr<CaseIterator> GetCasesModifiedSinceRevisionIterator(int client_revision, const std::string& last_case_uuid, const std::string& universe,
                                                                         size_t limit = std::numeric_limits<size_t>::max(), size_t* out_case_count = nullptr, int* out_last_client_revision = nullptr,
                                                                         cs::cref_optional<DeviceId> ignore_gets_from_device_id = std::nullopt,
                                                                         cs::cref_optional<std::vector<std::string>> revisions_to_exclude = std::nullopt) override;
     void AddBinarySignaturesNotSyncedWithRemote(const Case& data_case, const DeviceId& server_device_id, std::vector<std::string>& signatures_to_sync) override;
     std::optional<SyncHistoryEntry> GetLastSyncForDevice(const DeviceId& device_id, SyncDirection direction) const override;
-    std::vector<SyncHistoryEntry> GetSyncHistory(const DeviceId& device_id = DeviceId(), SyncDirection direction = SyncDirection::Both, int start_serial_number = 0) override;
+    std::vector<SyncHistoryEntry> GetSyncHistory(const DeviceId& device_id = DeviceId(), std::optional<SyncDirection> direction = std::nullopt,
+                                                 std::optional<int> start_serial_number = std::nullopt, size_t limit = std::numeric_limits<size_t>::max()) override;
     bool IsValidClientRevision(int client_revision) const override;
     bool IsPreviousSync(int client_revision, const DeviceId& device_id) const override;
-    std::optional<double> GetSyncTime(const std::string& device_identifier, const std::string& case_uuid) const override;
+    std::optional<double> GetSyncTime(const SharableString& device_identifier, const SharableString& case_uuid) override;
+    void WriteSyncStatus(JsonWriter& json_writer, const JsonNode& json_node, const SharableString& device_id, const SharableString& device_name) override;
 
     static std::unique_ptr<CDataDict> GetEmbeddedDictionary(const ConnectionString& connection_string);
 
@@ -104,7 +107,7 @@ private:
     double CreateInsertPosition(double insert_before_position_in_repository);
     std::unique_ptr<SQLiteStatement> GetKeySearchIteratorStatement(const CaseIteratorSettings& iterator_settings,
                                                                    size_t offset, size_t limit, const char* base_sql) const;
-    void WriteIteratorSelectFromSql(std::stringstream& sql, CaseIterationContent iteration_content) const;
+    void WriteIteratorSelectFromSql(std::stringstream& sql, CaseIterationContent iteration_content, bool add_uuid_to_case_key_query) const;
     void UpdateDictionary(sqlite3* pDB);
     void ReconcileDictionaries(sqlite3** pDB);
     int GetSchemaVersion(sqlite3* pDB) const;
@@ -123,6 +126,19 @@ private:
     void EndMakeDatabaseTemporarilyWriteable(sqlite3** db);
     void UpdateFilePosition(Case& data_case);
     static std::string GetDictionaryStructureMd5(sqlite3* db);
+
+    std::unique_ptr<SQLiteRepositoryCaseIterator> GetCasesModifiedSinceRevisionIterator(
+        CaseIterationContent iteration_content, bool add_uuid_to_case_key_query,
+        int client_revision, const std::string& last_case_uuid, const std::string& universe,
+        size_t limit, bool return_null_if_limit_is_0,
+        size_t* out_case_count, int* out_last_client_revision,
+        const cs::cref_optional<DeviceId>& ignore_gets_from_device_id,
+        const cs::cref_optional<std::vector<std::string>>& revisions_to_exclude);
+
+    static SyncHistoryEntry CreateSyncHistoryEntry(SQLiteStatement& stmt);
+
+    template<typename CF>
+    auto DoWithSyncStatusEvaluator(const CF& callback_function);
 
 private:
     mutable sqlite3* m_db;
@@ -146,7 +162,7 @@ private:
     };
 
     SyncParams m_currentSyncParams;
-    SyncStats m_currentSyncStats;
+    DataSyncStatistics m_currentSyncStats;
 
     sqlite3_stmt* m_stmtInsertCase;
     sqlite3_stmt* m_stmtUpdateCase;
@@ -184,7 +200,5 @@ private:
     sqlite3_stmt* m_stmtClearSyncRevLastId;
     sqlite3_stmt* m_stmtGetFileOrderFromUuid;
 
-    // for synctime
-    mutable std::unique_ptr<SyncTimeCache> m_syncTimeCache;
-    mutable sqlite3_stmt* m_stmtGetCaseRev;
+    std::unique_ptr<SyncStatusEvaluator> m_syncStatusEvaluator;
 };

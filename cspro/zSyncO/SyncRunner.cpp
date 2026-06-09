@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "SyncRunner.h"
+#include "DataSyncer.h"
 #include "BluetoothDeviceInfo.h"
 #include "ISyncService.h"
 #include "SyncDictionaryInfo.h"
@@ -344,6 +345,47 @@ std::string SyncRunner::GetDictionarySpec(ISyncService& sync_service, const std:
 }
 
 
+DataSyncStatistics SyncRunner::SyncData(ISyncService& sync_service, const ConnectResponse& connect_response,
+                                        const DeviceId& device_id, ISyncableDataRepository& syncable_data_repository,
+                                        const SyncDirection sync_direction, const std::string& universe,
+                                        ParadataLogger* const paradata_logger/* = nullptr*/)
+{
+    std::optional<ParadataLogger::EventHolder<Paradata::SyncDataEvent>> sync_data_event_holder;
+
+    if( paradata_logger != nullptr )
+    {
+        sync_data_event_holder.emplace(
+            paradata_logger->CreateSyncEvent<Paradata::SyncDataEvent>(
+                &syncable_data_repository,
+                sync_direction,
+                universe
+            )
+        );
+    }
+
+    try
+    {
+        DataSyncer data_syncer(sync_service, connect_response, m_syncListener, device_id,
+                               syncable_data_repository, universe);
+
+        DataSyncStatistics sync_stats = data_syncer.Sync(sync_direction);
+
+        if( sync_data_event_holder.has_value() )
+            sync_data_event_holder->event->SetStatistics(sync_stats);
+
+        return sync_stats;
+    }
+
+    catch( const std::exception& exception )
+    {
+        if( sync_data_event_holder.has_value() )
+            sync_data_event_holder->SetResultFailure(exception);
+
+        throw;
+    }
+}
+
+
 std::optional<JsonNode> SyncRunner::SendSyncMessage(ISyncService& sync_service, const DeviceId& device_id, const SyncMessage& sync_message,
                                                     ParadataLogger* const paradata_logger/* = nullptr*/)
 {
@@ -351,8 +393,12 @@ std::optional<JsonNode> SyncRunner::SendSyncMessage(ISyncService& sync_service, 
 
     if( paradata_logger != nullptr )
     {
-        sync_message_event_holder.emplace(paradata_logger->CreateSyncEvent<Paradata::SyncMessageEvent>(sync_message.GetName(),
-                                                                                                       sync_message.GetValueAsOptionalJsonText()));
+        sync_message_event_holder.emplace(
+            paradata_logger->CreateSyncEvent<Paradata::SyncMessageEvent>(
+                sync_message.GetName(),
+                sync_message.GetValueAsOptionalJsonText()
+            )
+        );
     }
 
     try
@@ -398,8 +444,12 @@ void SyncRunner::SyncParadata(ISyncService& sync_service, Paradata::Syncer& para
 
     if( paradata_logger != nullptr )
     {
-        sync_paradata_event_holder.emplace(paradata_logger->CreateSyncEvent<Paradata::SyncParadataEvent>(sync_direction,
-                                                                                                         paradata_syncer.GetLogFilePath()));
+        sync_paradata_event_holder.emplace(
+            paradata_logger->CreateSyncEvent<Paradata::SyncParadataEvent>(
+                sync_direction,
+                paradata_syncer.GetLogFilePath()
+            )
+        );
     }
 
     try

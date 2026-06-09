@@ -22,7 +22,7 @@ ParadataWrapperRepository::ParadataWrapperRepository(cs::non_null_shared_or_raw_
 template<typename EventT, typename... Args>
 void ParadataWrapperRepository::LogEvent(Args&&... args)
 {
-    m_paradataDriver->RegisterAndLogEvent(std::make_unique<EventT>(std::forward<Args>(args)...), this);
+    m_paradataDriver->RegisterAndLogEvent(std::make_unique<EventT>(std::forward<Args>(args)...), m_repository.get());
 }
 
 

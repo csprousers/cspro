@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zParadataO/zParadataO.h>
 #include <zParadataO/TableDefinitions.h>
@@ -41,6 +41,7 @@ public:
     void StopInstance(Instance instance_type);
 
     std::optional<long> GetInstance(const Event& event) const;
+    std::optional<long> GetInstanceGeneratingObject(const void* instance_generating_object) const;
     void StartInstance(const Event& event, long id);
     void StopInstance(const Event& event);
 

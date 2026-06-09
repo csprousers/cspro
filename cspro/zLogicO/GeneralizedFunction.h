@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zLogicO/zLogicO.h>
 
@@ -50,7 +50,7 @@ namespace GF // GF = Generalized Function
         std::vector<Variable> returns;
 
         ZLOGICO_API static Function CreateFromJson(const JsonNode& json_node);
-        ZLOGICO_API void WriteJson(JsonWriter& json_writer) const;
+        ZLOGICO_API void WriteJson(JsonWriter& json_writer, const std::function<void(JsonWriter&)>* additional_properties_writer = nullptr) const;
     };
 }
 

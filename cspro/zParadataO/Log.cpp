@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "Log.h"
 #include "Event.h"
 #include "EventList.h"
@@ -182,6 +182,7 @@ void Log::SetupEventTables()
     GpsEvent::SetupTables(*this);
     ImputeEvent::SetupTables(*this);
     SyncConnectionEvent::SetupTables(*this);
+    SyncDataEvent::SetupTables(*this);
     SyncMessageEvent::SetupTables(*this);
     SyncParadataEvent::SetupTables(*this);
 }
@@ -256,13 +257,20 @@ void Log::StopInstance(const Instance instance_type)
 
 std::optional<long> Log::GetInstance(const Event& event) const
 {
-    const long* instance_lookup = m_eventInstances.Find(event.m_instanceGeneratingObject);
+    const long* const instance_lookup = m_eventInstances.Find(event.m_instanceGeneratingObject);
 
 #ifdef PARADATA_CHECK_INSTANCES
     ASSERT(instance_lookup != nullptr);
 #endif
 
-    return ( instance_lookup != nullptr ) ? (std::optional<long>)*instance_lookup : std::nullopt;
+    return ( instance_lookup != nullptr ) ? std::make_optional(*instance_lookup): std::nullopt;
+}
+
+
+std::optional<long> Log::GetInstanceGeneratingObject(const void* const instance_generating_object) const
+{
+    const long* const instance_lookup = m_eventInstances.Find(instance_generating_object);
+    return ( instance_lookup != nullptr ) ? std::make_optional(*instance_lookup): std::nullopt;
 }
 
 

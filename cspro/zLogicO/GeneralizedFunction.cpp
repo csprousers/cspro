@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "GeneralizedFunction.h"
 
 using namespace GF;
@@ -110,12 +110,16 @@ Function Function::CreateFromJson(const JsonNode& json_node)
 }
 
 
-void Function::WriteJson(JsonWriter& json_writer) const
+void Function::WriteJson(JsonWriter& json_writer, const std::function<void(JsonWriter&)>* const additional_properties_writer/* = nullptr*/) const
 {
     json_writer.BeginObject()
                .WriteIfNotBlank(JK::namespace_, namespace_name)
-               .Write(JK::name, name)
-               .WriteIfNotBlank(JK::description, description)
+               .Write(JK::name, name);
+
+    if( additional_properties_writer != nullptr )
+        (*additional_properties_writer)(json_writer);
+
+    json_writer.WriteIfNotBlank(JK::description, description)
                .WriteIfNotEmpty(JK::parameters, parameters)
                .WriteIfNotEmpty(JK::deprecatedParameters, deprecated_parameters)
                .WriteIfNotEmpty(JK::returns, returns)

@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "CaseTestHelpers.h"
 #include "FakeSyncService.h"
 #include "FakeSyncServiceFactory.h"
@@ -81,7 +81,7 @@ namespace SyncUnitTest
             ISyncableDataRepository* pRepo = repoBuilder.GetRepo();
 
             sync_client.ConnectCSWeb(hostUrl, std::make_unique<LoginCredentials>(username, password));
-            const SyncClient::SyncResult result = sync_client.SyncData(SyncDirection::Both, *pRepo, "");
+            const SyncClient::SyncResult result = sync_client.SyncData(*pRepo, SyncDirection::Both, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
 
             repoBuilder.verifyCaseInRepo(*serverCase1);
@@ -122,7 +122,7 @@ namespace SyncUnitTest
             repoBuilder.setInitialRepoCases({ clientUpdate1, clientUpdate2}, myDeviceId);
 
             sync_client.ConnectCSWeb(hostUrl, std::make_unique<LoginCredentials>(username, password));
-            const SyncClient::SyncResult result = sync_client.SyncData(SyncDirection::Both, *pRepo, "");
+            const SyncClient::SyncResult result = sync_client.SyncData(*pRepo, SyncDirection::Both, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
 
             repoBuilder.verifyCaseInRepo(*serverCase1);
@@ -163,7 +163,7 @@ namespace SyncUnitTest
             repoBuilder.setInitialRepoCases({ clientCase1, clientCase2 }, myDeviceId);
 
             sync_client.ConnectCSWeb(hostUrl, std::make_unique<LoginCredentials>(username, password));
-            const SyncClient::SyncResult result = sync_client.SyncData(SyncDirection::Both, *pRepo, "");
+            const SyncClient::SyncResult result = sync_client.SyncData(*pRepo, SyncDirection::Both, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
 
             repoBuilder.verifyCaseInRepo(*clientCase1);
@@ -210,7 +210,7 @@ namespace SyncUnitTest
             repoBuilder.setInitialRepoCases(clientCases, myDeviceId);
 
             sync_client.ConnectCSWeb(hostUrl, std::make_unique<LoginCredentials>(username, password));
-            const SyncClient::SyncResult result = sync_client.SyncData(SyncDirection::Both, *pRepo, "");
+            const SyncClient::SyncResult result = sync_client.SyncData(*pRepo, SyncDirection::Both, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
 
             repoBuilder.verifyCaseInRepo(*clientCase1);
@@ -242,19 +242,19 @@ namespace SyncUnitTest
 
             // First sync - should send both cases
             sync_client.ConnectCSWeb(hostUrl, std::make_unique<LoginCredentials>(username, password));
-            SyncClient::SyncResult result = sync_client.SyncData(SyncDirection::Both, *pRepo, "");
+            SyncClient::SyncResult result = sync_client.SyncData(*pRepo, SyncDirection::Both, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
             Assert::AreEqual(size_t(2), fakeSyncServiceFactory.getServer()->GetNumberOfCasesInLastPutCases());
 
             // Sync again - should send nothing since no mods
-            result = sync_client.SyncData(SyncDirection::Both, *pRepo, "");
+            result = sync_client.SyncData(*pRepo, SyncDirection::Both, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
             Assert::AreEqual(size_t(0), fakeSyncServiceFactory.getServer()->GetNumberOfCasesInLastPutCases());
 
             // Modify a case and sync again - should send only modified case
             clientCaseClock.increment(myDeviceId);
             repoBuilder.updateRepoCase(clientCase1->GetUuid(), 1, "newdata1");
-            result = sync_client.SyncData(SyncDirection::Both, *pRepo, "");
+            result = sync_client.SyncData(*pRepo, SyncDirection::Both, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
             Assert::AreEqual(size_t(1), fakeSyncServiceFactory.getServer()->GetNumberOfCasesInLastPutCases());
         }
@@ -294,19 +294,19 @@ namespace SyncUnitTest
             sync_client.ConnectCSWeb(hostUrl, std::make_unique<LoginCredentials>(username, password));
 
             // Sync with put - should add cases to server but none to client
-            SyncClient::SyncResult result = sync_client.SyncData(SyncDirection::Put, *pRepo, "");
+            SyncClient::SyncResult result = sync_client.SyncData(*pRepo, SyncDirection::Put, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
             Assert::AreEqual(size_t(2), fakeSyncServiceFactory.getServer()->GetNumberOfCasesInLastPutCases());
             Assert::AreEqual(size_t(2), pRepo->GetNumberCases());
 
             // Sync with get - should cause no change in server cases (despite new case3 added), add two cases to client
             repoBuilder.addRepoCase("guidc3", 3, "clientdata3");
-            result = sync_client.SyncData(SyncDirection::Get, *pRepo, "");
+            result = sync_client.SyncData(*pRepo, SyncDirection::Get, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
             Assert::AreEqual(5, (int) pRepo->GetNumberCases());
 
             // Sync with put again - should now send only the modified case
-            result = sync_client.SyncData(SyncDirection::Put, *pRepo, "");
+            result = sync_client.SyncData(*pRepo, SyncDirection::Put, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
             Assert::AreEqual(size_t(1), fakeSyncServiceFactory.getServer()->GetNumberOfCasesInLastPutCases());
             Assert::AreEqual(size_t(5), pRepo->GetNumberCases());
@@ -369,9 +369,9 @@ namespace SyncUnitTest
             sync_client.ConnectCSWeb(hostUrl, std::make_unique<LoginCredentials>(username, password));
 
             // First sync, should get two cases back from server
-            SyncClient::SyncResult result = sync_client.SyncData(SyncDirection::Get, *pRepo, "");
+            SyncClient::SyncResult result = sync_client.SyncData(*pRepo, SyncDirection::Get, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
-            result = sync_client.SyncData(SyncDirection::Get, *pRepo, "");
+            result = sync_client.SyncData(*pRepo, SyncDirection::Get, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
 
             auto disconnectResult = sync_client.Disconnect();
@@ -423,9 +423,9 @@ namespace SyncUnitTest
             sync_client.ConnectCSWeb(hostUrl, std::make_unique<LoginCredentials>(username, password));
 
             // First sync, should get two cases back from server
-            SyncClient::SyncResult result = sync_client.SyncData(SyncDirection::Put, *pRepo, "");
+            SyncClient::SyncResult result = sync_client.SyncData(*pRepo, SyncDirection::Put, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
-            result = sync_client.SyncData(SyncDirection::Put, *pRepo, "");
+            result = sync_client.SyncData(*pRepo, SyncDirection::Put, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
 
             auto disconnectResult = sync_client.Disconnect();
@@ -521,26 +521,26 @@ namespace SyncUnitTest
             sync_client.ConnectCSWeb(hostUrl, std::make_unique<LoginCredentials>(username, password));
 
             // First sync gets nothing
-            SyncClient::SyncResult result = sync_client.SyncData(SyncDirection::Get, *pRepo, "");
+            SyncClient::SyncResult result = sync_client.SyncData(*pRepo, SyncDirection::Get, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_ERROR, result);
             Assert::AreEqual(0, (int) pRepo->GetNumberCases());
 
             // Second sync should get 10 cases back from server with error
-            result = sync_client.SyncData(SyncDirection::Get, *pRepo, "");
+            result = sync_client.SyncData(*pRepo, SyncDirection::Get, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_ERROR, result);
             Assert::AreEqual(10, (int) pRepo->GetNumberCases());
             for (int i = 0; i < 10; ++i)
                 repoBuilder.verifyCaseInRepo(*serverCases[i]);
 
             // Third should get 10 more cases back from server with error
-            result = sync_client.SyncData(SyncDirection::Get, *pRepo, "");
+            result = sync_client.SyncData(*pRepo, SyncDirection::Get, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_ERROR, result);
             Assert::AreEqual(20, (int) pRepo->GetNumberCases());
             for (int i = 0; i < 20; ++i)
                 repoBuilder.verifyCaseInRepo(*serverCases[i]);
 
             // Fourth sync should get 10 more cases back from server with no error
-            result = sync_client.SyncData(SyncDirection::Get, *pRepo, "");
+            result = sync_client.SyncData(*pRepo, SyncDirection::Get, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
             Assert::AreEqual(30, (int) pRepo->GetNumberCases());
             for (size_t i = 0; i < serverCases.size(); ++i)
@@ -643,19 +643,19 @@ namespace SyncUnitTest
             sync_client.ConnectCSWeb(hostUrl, std::make_unique<LoginCredentials>(username, password));
 
             // First sync uploads nothing - gets error
-            SyncClient::SyncResult result = sync_client.SyncData(SyncDirection::Put, *pRepo, "");
+            SyncClient::SyncResult result = sync_client.SyncData(*pRepo, SyncDirection::Put, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_ERROR, result);
 
             // Second sync should put 10 cases with error
-            result = sync_client.SyncData(SyncDirection::Put, *pRepo, "");
+            result = sync_client.SyncData(*pRepo, SyncDirection::Put, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_ERROR, result);
 
             // Third sync should put the remaining 15 cases
-            result = sync_client.SyncData(SyncDirection::Put, *pRepo, "");
+            result = sync_client.SyncData(*pRepo, SyncDirection::Put, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
 
             // Fourth sync should upload nothing since everything was already uploaded
-            result = sync_client.SyncData(SyncDirection::Put, *pRepo, "");
+            result = sync_client.SyncData(*pRepo, SyncDirection::Put, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
 
             auto disconnectResult = sync_client.Disconnect();
@@ -754,7 +754,7 @@ namespace SyncUnitTest
             sync_client.ConnectCSWeb(hostUrl, std::make_unique<LoginCredentials>(username, password));
 
             // First sync gets initial server cases, sends nothing to server
-            SyncClient::SyncResult result = sync_client.SyncData(SyncDirection::Both, *pRepo, "");
+            SyncClient::SyncResult result = sync_client.SyncData(*pRepo, SyncDirection::Both, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
             Assert::AreEqual(10, (int) pRepo->GetNumberCases());
 
@@ -772,18 +772,18 @@ namespace SyncUnitTest
             repoBuilder.updateRepoCase(serverCases[0]->GetUuid(), 1, { "data" });
 
             // Sync again, only 2 changed cases on server downloaded, only 2 changed on client uploaded
-            result = sync_client.SyncData(SyncDirection::Both, *pRepo, "");
+            result = sync_client.SyncData(*pRepo, SyncDirection::Both, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
             Assert::AreEqual(12, (int) pRepo->GetNumberCases());
 
             // Next sync should put/get nothing
-            result = sync_client.SyncData(SyncDirection::Both, *pRepo, "");
+            result = sync_client.SyncData(*pRepo, SyncDirection::Both, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
             Assert::AreEqual(12, (int) pRepo->GetNumberCases());
 
             // Simulate a server reset and make sure that all cases are uploaded on next sync
             serverRev = 1;
-            result = sync_client.SyncData(SyncDirection::Both, *pRepo, "");
+            result = sync_client.SyncData(*pRepo, SyncDirection::Both, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
             Assert::AreEqual(12, (int) pRepo->GetNumberCases());
 

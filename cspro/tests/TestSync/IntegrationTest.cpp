@@ -94,7 +94,7 @@ namespace SyncUnitTest
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
 
             // First sync - empty server, shouldn't get any cases
-            result = client1.SyncData(SyncDirection::Both, *pRepo, "");
+            result = client1.SyncData(*pRepo, SyncDirection::Both, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
             Assert::AreEqual(size_t(0), pRepo->GetNumberCases());
 
@@ -105,7 +105,7 @@ namespace SyncUnitTest
             repoBuilder.addRepoCase(newCase1Guid, 1, { "NEWCASE1DATA" });
             std::string newCase2Guid = CreateUuid();
             repoBuilder.addRepoCase(newCase2Guid, 2, { "NEWCASE2DATA" });
-            result = client1.SyncData(SyncDirection::Both, *pRepo, "");
+            result = client1.SyncData(*pRepo, SyncDirection::Both, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
             Assert::AreEqual(size_t(2), pRepo->GetNumberCases());
 
@@ -114,7 +114,7 @@ namespace SyncUnitTest
             repoBuilder.updateRepoCase(newCase1Guid, 1, updatedCaseData);
 
             // Still shouldn't get any new cases back
-            result = client1.SyncData(SyncDirection::Both, *pRepo, "");
+            result = client1.SyncData(*pRepo, SyncDirection::Both, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
             Assert::AreEqual(size_t(2), pRepo->GetNumberCases());
 
@@ -131,7 +131,7 @@ namespace SyncUnitTest
 
             result = client2.ConnectCSWeb(credentials.sync_connection_string, std::make_unique<LoginCredentials>(credentials.username_password));
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
-            result = client2.SyncData(SyncDirection::Both, *pRepo, "");
+            result = client2.SyncData(*pRepo, SyncDirection::Both, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
             Assert::AreEqual(size_t(2), pRepo->GetNumberCases());
 
@@ -171,7 +171,7 @@ namespace SyncUnitTest
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
 
             // Upload test case to server
-            result = client1.SyncData(SyncDirection::Put, *pRepo, "");
+            result = client1.SyncData(*pRepo, SyncDirection::Put, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
 
             result = client1.Disconnect();
@@ -188,7 +188,7 @@ namespace SyncUnitTest
 
             result = client2.ConnectCSWeb(credentials.sync_connection_string, std::make_unique<LoginCredentials>(credentials.username_password));
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
-            result = client2.SyncData(SyncDirection::Get, *pRepo, "");
+            result = client2.SyncData(*pRepo, SyncDirection::Get, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
 
             // Make sure partial save status came through
@@ -238,7 +238,7 @@ namespace SyncUnitTest
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
 
             // Upload test case to server
-            result = client1.SyncData(SyncDirection::Put, *pRepo, "");
+            result = client1.SyncData(*pRepo, SyncDirection::Put, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
 
             // Sync with a second client to check if the notes were saved correctly
@@ -251,7 +251,7 @@ namespace SyncUnitTest
 
             result = client2.ConnectCSWeb(credentials.sync_connection_string, std::make_unique<LoginCredentials>(credentials.username_password));
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
-            result = client2.SyncData(SyncDirection::Get, *pRepo, "");
+            result = client2.SyncData(*pRepo, SyncDirection::Get, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
 
             // Make sure notes came through
@@ -261,11 +261,11 @@ namespace SyncUnitTest
             // Update note on client1 and resync
             notes[0] = createNote(*case_access, "note1contentmodified", "TEST_ITEM", 1, 0, 0, "op1", time(nullptr));
             repoBuilder.updateRepoCaseNotes(caseGuid, notes);
-            result = client1.SyncData(SyncDirection::Put, *pRepo, "");
+            result = client1.SyncData(*pRepo, SyncDirection::Put, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
 
             // Download to client2
-            result = client2.SyncData(SyncDirection::Get, *pRepo, "");
+            result = client2.SyncData(*pRepo, SyncDirection::Get, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
 
             // Make sure update came through
@@ -299,7 +299,7 @@ namespace SyncUnitTest
             repoBuilder.addRepoCase(newCaseGuid, 1, unicodeData);
 
             // Sync the new case
-            result = client.SyncData(SyncDirection::Both, *pRepo, "");
+            result = client.SyncData(*pRepo, SyncDirection::Both, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
 
             result = client.Disconnect();
@@ -315,7 +315,7 @@ namespace SyncUnitTest
 
             result = client2.ConnectCSWeb(credentials.sync_connection_string, std::make_unique<LoginCredentials>(credentials.username_password));
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
-            result = client2.SyncData(SyncDirection::Both, *pRepo, "");
+            result = client2.SyncData(*pRepo, SyncDirection::Both, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
 
             // Make sure case got synced correctly
@@ -341,7 +341,7 @@ namespace SyncUnitTest
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
 
             // First sync
-            result = client.SyncData(SyncDirection::Both, *pClient1Repo, "");
+            result = client.SyncData(*pClient1Repo, SyncDirection::Both, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
             Assert::AreEqual(size_t(0), pClient1Repo->GetNumberCases());
 
@@ -362,7 +362,7 @@ namespace SyncUnitTest
             client1RepoBuilder.setInitialRepoCases(initCases, client1DeviceId);
 
             // Sync cases to server
-            result = client.SyncData(SyncDirection::Both, *pClient1Repo, "");
+            result = client.SyncData(*pClient1Repo, SyncDirection::Both, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
             Assert::AreEqual(size_t(3), pClient1Repo->GetNumberCases());
 
@@ -387,12 +387,12 @@ namespace SyncUnitTest
             // Sync both clients
             result = client2.ConnectCSWeb(credentials.sync_connection_string, std::make_unique<LoginCredentials>(credentials.username_password));
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
-            result = client2.SyncData(SyncDirection::Both, *pClient2Repo, "");
+            result = client2.SyncData(*pClient2Repo, SyncDirection::Both, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
             result = client2.Disconnect();
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
 
-            result = client.SyncData(SyncDirection::Both, *pClient1Repo, "");
+            result = client.SyncData(*pClient1Repo, SyncDirection::Both, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
             result = client.Disconnect();
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
@@ -442,7 +442,7 @@ namespace SyncUnitTest
             client1RepoBuilder.setInitialRepoCases(initCases, client1DeviceId);
 
             // Sync cases to server
-            result = client.SyncData(SyncDirection::Put, *pClient1Repo, "");
+            result = client.SyncData(*pClient1Repo, SyncDirection::Put, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
             Assert::AreEqual(size_t(3), pClient1Repo->GetNumberCases());
 
@@ -467,12 +467,12 @@ namespace SyncUnitTest
             // Sync put for both clients to generate conflict
             result = client2.ConnectCSWeb(credentials.sync_connection_string, std::make_unique<LoginCredentials>(credentials.username_password));
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
-            result = client2.SyncData(SyncDirection::Put, *pClient2Repo, "");
+            result = client2.SyncData(*pClient2Repo, SyncDirection::Put, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
             result = client2.Disconnect();
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
 
-            result = client.SyncData(SyncDirection::Put, *pClient1Repo, "");
+            result = client.SyncData(*pClient1Repo, SyncDirection::Put, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
             result = client.Disconnect();
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
@@ -486,7 +486,7 @@ namespace SyncUnitTest
 
             result = client3.ConnectCSWeb(credentials.sync_connection_string, std::make_unique<LoginCredentials>(credentials.username_password));
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
-            result = client3.SyncData(SyncDirection::Get, *pClient3Repo, "");
+            result = client3.SyncData(*pClient3Repo, SyncDirection::Get, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
 
             result = client3.Disconnect();
@@ -508,7 +508,7 @@ namespace SyncUnitTest
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
 
             // Initial sync with server using get to get baseline num cases
-            result = client.SyncData(SyncDirection::Get, *pClient1Repo, "");
+            result = client.SyncData(*pClient1Repo, SyncDirection::Get, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
             const size_t numInitialServerCases = pClient1Repo->GetNumberCases();
 
@@ -519,7 +519,7 @@ namespace SyncUnitTest
             client1RepoBuilder.addRepoCase(newCase2Guid, 2, "NEWCASE2DATA");
 
             // Put local cases to server - results in 2 new cases on server, same number in client1
-            result = client.SyncData(SyncDirection::Put, *pClient1Repo, "");
+            result = client.SyncData(*pClient1Repo, SyncDirection::Put, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
             Assert::AreEqual(numInitialServerCases + 2, pClient1Repo->GetNumberCases());
 
@@ -540,12 +540,12 @@ namespace SyncUnitTest
 
             // Do a get with client2 - make sure we get both cases from client 1, server cases remain unchanged, client2
             // has one more case than server
-            result = client2.SyncData(SyncDirection::Get, *pClient2Repo, "");
+            result = client2.SyncData(*pClient2Repo, SyncDirection::Get, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
             Assert::AreEqual(numInitialServerCases + 3, pClient2Repo->GetNumberCases());
 
             // Do a get with client1 to make sure the previous get didn't upload anything
-            result = client.SyncData(SyncDirection::Get, *pClient1Repo, "");
+            result = client.SyncData(*pClient1Repo, SyncDirection::Get, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
             Assert::AreEqual(numInitialServerCases + 2, pClient1Repo->GetNumberCases());
 
@@ -553,18 +553,18 @@ namespace SyncUnitTest
             // client1 matches server
             std::string newCase4Guid = CreateUuid();
             client1RepoBuilder.addRepoCase(newCase4Guid, 4, "NEWCASE4DATA");
-            result = client.SyncData(SyncDirection::Put, *pClient1Repo, "");
+            result = client.SyncData(*pClient1Repo, SyncDirection::Put, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
 
             // Do a put with client2 - make sure we don't get the new case (case4), this  uploads case3 resulting in server having
             // all 4 new cases but client2 doesn't have case4
-            result = client2.SyncData(SyncDirection::Put, *pClient2Repo, "");
+            result = client2.SyncData(*pClient2Repo, SyncDirection::Put, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
             Assert::AreEqual(numInitialServerCases + 3, pClient2Repo->GetNumberCases());
 
             // Do a get with client2 - make sure we do get case4 (server should send everything since direction changed)
             // Server and client2 now both have all four new cases
-            result = client2.SyncData(SyncDirection::Get, *pClient2Repo, "");
+            result = client2.SyncData(*pClient2Repo, SyncDirection::Get, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
             Assert::AreEqual(numInitialServerCases + 4, pClient2Repo->GetNumberCases());
         }
@@ -664,13 +664,13 @@ namespace SyncUnitTest
             newClock.increment(client1DeviceId);
             std::string newCase1Guid = CreateUuid();
             repoBuilder.addRepoCase(newCase1Guid, 9, "NEWCASE1DATA");
-            result = client1.SyncData(SyncDirection::Both, *pRepo, "");
+            result = client1.SyncData(*pRepo, SyncDirection::Both, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
             Assert::AreEqual(size_t(1), pRepo->GetNumberCases());
 
             // Delete the new case and sync
             repoBuilder.GetRepo()->DeleteCase("  9");
-            result = client1.SyncData(SyncDirection::Both, *pRepo, "");
+            result = client1.SyncData(*pRepo, SyncDirection::Both, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
 
             result = client1.Disconnect();
@@ -686,7 +686,7 @@ namespace SyncUnitTest
 
             result = client2.ConnectCSWeb(credentials.sync_connection_string, std::make_unique<LoginCredentials>(credentials.username_password));
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
-            result = client2.SyncData(SyncDirection::Both, *pRepo, "");
+            result = client2.SyncData(*pRepo, SyncDirection::Both, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
 
             // Make sure case got deleted
@@ -721,7 +721,7 @@ namespace SyncUnitTest
             repoBuilder.addRepoCase(newCase1Guid, 0, "NEWCASE0DATA");
             std::string newCase2Guid = CreateUuid();
             repoBuilder.addRepoCase(newCase2Guid, 1, "NEWCASE1DATA");
-            result = client1.SyncData(SyncDirection::Both, *pRepo, universe);
+            result = client1.SyncData(*pRepo, SyncDirection::Both, universe);
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
             Assert::AreEqual(size_t(2), pRepo->GetNumberCases());
 
@@ -738,7 +738,7 @@ namespace SyncUnitTest
 
             result = client2.ConnectCSWeb(credentials.sync_connection_string, std::make_unique<LoginCredentials>(credentials.username_password));
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
-            result = client2.SyncData(SyncDirection::Both, *pRepo, universe);
+            result = client2.SyncData(*pRepo, SyncDirection::Both, universe);
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
 
             // Should only get one new case - the one in universe
@@ -839,7 +839,7 @@ namespace SyncUnitTest
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
 
             // Upload initial cases to server
-            result = client1.SyncData(SyncDirection::Put, *pRepo1, "");
+            result = client1.SyncData(*pRepo1, SyncDirection::Put, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
 
             // Sync with a second client
@@ -855,7 +855,7 @@ namespace SyncUnitTest
 
             // Get first chunk of results then fail on unrecoverable error
             httpConnection2->setErrorInGetAfterCalls(HttpResponse::Status_404_NotFound, 1);
-            result = client2.SyncData(SyncDirection::Both, *pRepo2, "");
+            result = client2.SyncData(*pRepo2, SyncDirection::Both, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_ERROR, result);
             Assert::AreEqual(size_t(chunkSize), repo2Builder.GetRepo()->GetNumberCases());
 
@@ -865,10 +865,10 @@ namespace SyncUnitTest
             repo1Builder.addRepoCase("00000000-0000-0000-0000-000000000000", 1, "added\r\n");
             repo1Builder.addRepoCase("10000000-0000-0000-0000-000000000000", 1, "added\r\n");
 
-            result = client1.SyncData(SyncDirection::Put, *pRepo1, "");
+            result = client1.SyncData(*pRepo1, SyncDirection::Put, "");
 
             // Get the remaining cases
-            result = client2.SyncData(SyncDirection::Both, *pRepo2, "");
+            result = client2.SyncData(*pRepo2, SyncDirection::Both, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
             Assert::AreEqual(initialCases.size() + 2, repo2Builder.GetRepo()->GetNumberCases());
 
@@ -921,13 +921,13 @@ namespace SyncUnitTest
             // Try to upload first chunk of cases to server and fail with error
             // before uploading any cases
             httpConnection1->setErrorInPostAfterCalls(HttpResponse::Status_404_NotFound, 0);
-            result = client1.SyncData(SyncDirection::Put, *pRepo1, "");
+            result = client1.SyncData(*pRepo1, SyncDirection::Put, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_ERROR, result);
 
             // Upload first chunk of cases to server and fail with error
             // before second
             httpConnection1->setErrorInPostAfterCalls(HttpResponse::Status_404_NotFound, 1);
-            result = client1.SyncData(SyncDirection::Put, *pRepo1, "");
+            result = client1.SyncData(*pRepo1, SyncDirection::Put, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_ERROR, result);
 
             // Sync with a second client to see if first chunk is uploaded
@@ -938,7 +938,7 @@ namespace SyncUnitTest
             client2.SetSyncListener(std::make_unique<SyncLogSyncListener>());
             result = client2.ConnectCSWeb(credentials.sync_connection_string, std::make_unique<LoginCredentials>(credentials.username_password));
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
-            result = client2.SyncData(SyncDirection::Get, *pRepo2, "");
+            result = client2.SyncData(*pRepo2, SyncDirection::Get, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
             Assert::AreEqual(chunkSize, repo2Builder.GetRepo()->GetLastSyncStats().cases_received);
 
@@ -955,11 +955,11 @@ namespace SyncUnitTest
 
             // Upload rest of cases
             httpConnection1->setErrorInPostAfterCalls(HttpResponse::Status_404_NotFound, -1);
-            result = client1.SyncData(SyncDirection::Put, *pRepo1, "");
+            result = client1.SyncData(*pRepo1, SyncDirection::Put, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
 
             // Sync with second client again to make sure rest of cases were downloaded
-            result = client2.SyncData(SyncDirection::Get, *pRepo2, "");
+            result = client2.SyncData(*pRepo2, SyncDirection::Get, "");
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
             Assert::AreEqual(casesToUpload.size() - chunkSize + 1, repo2Builder.GetRepo()->GetLastSyncStats().cases_received);
             Assert::AreEqual(casesToUpload.size(), repo2Builder.GetRepo()->GetNumberCases());
@@ -999,10 +999,10 @@ namespace SyncUnitTest
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
 
             // Sync with multiple chunks to have mutliple sync revisions
-            result = client1.SyncData(SyncDirection::Both, *pRepo1, "");
+            result = client1.SyncData(*pRepo1, SyncDirection::Both, "");
 
             // Do another sync, make sure that no new cases are downloaded
-            result = client1.SyncData(SyncDirection::Get, *pRepo1, "");
+            result = client1.SyncData(*pRepo1, SyncDirection::Get, "");
             Assert::AreEqual(size_t(0), repo1Builder.GetRepo()->GetLastSyncStats().cases_received);
         }
 
@@ -1028,8 +1028,7 @@ namespace SyncUnitTest
                 const int64_t timestamp = GetTimestamp();
                 const SyncMessage sync_message(timestamp, "CSPro-TestSync-Key-" + IntToString(timestamp), "CSPro-TestSync-Value");
                 const std::optional<JsonNode> sync_message_response = sync_client.SendSyncMessage(sync_message);
-                Assert::IsTrue(sync_message_response.has_value());
-                Assert::IsTrue(sync_message_response->IsEmpty());
+                Assert::IsTrue(!sync_message_response.has_value());
 
                 result = sync_client.Disconnect();
                 Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);

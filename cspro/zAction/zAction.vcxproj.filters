@@ -106,6 +106,9 @@
     <ClInclude Include="CallerWrappingCaseConstructionReporter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="DataWrapper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="Encoding.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -143,6 +146,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="stdafx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SyncServiceWrapper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="WebCaller.h">

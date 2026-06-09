@@ -22,29 +22,35 @@ public:
     class Runner;
 
 private:
-    Statement(std::shared_ptr<sqlite3_stmt*> statement_ptr);
+    Statement(std::shared_ptr<sqlite3_stmt*> statement_ptr) noexcept;
 
 public:
-    Statement();
+    Statement() noexcept;
     Statement(const Statement& rhs) = delete;
-    Statement(Statement&& rhs) = default;
-    ~Statement();
+    Statement(Statement&& rhs) noexcept = default;
+    ~Statement() noexcept;
 
     Statement& operator=(const Statement& rhs) = delete;
-    Statement& operator=(Statement&& rhs) = default;
+    Statement& operator=(Statement&& rhs) noexcept = default;
 
     // Prepares a statement for an open database.
     // This method should not be used when using Sqlite::DB as that class has a PrepareStatement method.
     static Statement Prepare(sqlite3* db, std::string_view sql_sv, const char** end_of_parsed_statement = nullptr);
 
     // Returns true if the statement is prepared and still valid.
-    bool IsPrepared() const;
+    bool IsPrepared() const noexcept;
+
+    // Finalizes the statement.
+    void Finalize() noexcept;
 
 
     // --------------------------------------------------------------------------
     // BINDING
     // Parameter numbers start with 1.
     // --------------------------------------------------------------------------
+
+    // Clears anything bound to the prepared statement.
+    void ClearBindings();
 
     // Returns the number of bindings associated with the prepared statement.
     int GetBindingsCount() const;
@@ -205,7 +211,17 @@ public:
         :   m_stmt(stmt)
     {
         if( !m_stmt.IsPrepared() )
-            m_stmt = db.PrepareStatement(std::forward<SqlT>(sql));
+        {
+            if constexpr(std::is_same_v<DbT, sqlite3*>)
+            {
+                m_stmt = Statement::Prepare(db, std::forward<SqlT>(sql));
+            }
+
+            else
+            {
+                m_stmt = db.PrepareStatement(std::forward<SqlT>(sql));
+            }
+        }
     }
 
     ~Runner()
@@ -223,20 +239,20 @@ private:
 // inline implementations
 // --------------------------------------------------------------------------
 
-inline Sqlite::Statement::Statement()
+inline Sqlite::Statement::Statement() noexcept
 {
     ASSERT(!IsPrepared());
 }
 
 
-inline Sqlite::Statement::Statement(std::shared_ptr<sqlite3_stmt*> statement_ptr)
+inline Sqlite::Statement::Statement(std::shared_ptr<sqlite3_stmt*> statement_ptr) noexcept
     :   m_statementPtr(std::move(statement_ptr))
 {
     ASSERT(IsPrepared());
 }
 
 
-inline bool Sqlite::Statement::IsPrepared() const
+inline bool Sqlite::Statement::IsPrepared() const noexcept
 {
     return ( m_statementPtr != nullptr && *m_statementPtr != nullptr );
 }

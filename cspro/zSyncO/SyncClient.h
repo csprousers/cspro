@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zSyncO/zSyncO.h>
 #include <zSyncO/ISyncService.h>
@@ -7,9 +7,7 @@
 #include <zNetwork/LoginCredentials.h>
 
 class ApplicationPackageManager;
-class ISyncableDataRepository;
 class ISyncServiceFactory;
-class SyncHistoryEntry;
 
 
 // Main client side interface to smart sync.
@@ -68,7 +66,7 @@ public:
     const DeviceId& GetServerDeviceId() const;
 
     // Sync data file using smart sync.
-    SyncResult SyncData(SyncDirection direction, ISyncableDataRepository& repository, const std::string& universe);
+    SyncResult SyncData(ISyncableDataRepository& syncable_data_repository, SyncDirection sync_direction, const std::string& universe);
 
     ///<summary>Sync non-data file. If to_path ends in a slash, it is assumed to be a directory and the filename will be appended to it.</summary>
     ///<param name="direction">direction of sync (PUT or GET)</param>
@@ -138,13 +136,7 @@ private:
 
     SyncResult DisconnectFromSyncService();
 
-    void SyncDataGet(ISyncableDataRepository& repository, const std::string& universe);
-    void SyncDataPut(ISyncableDataRepository& repository, const std::string& universe);
-
     void UploadDictionaryWorker(const std::string& dictionary_file_path);
-
-    std::optional<SyncHistoryEntry> GetRevisionFromLastSync(SyncDirection direction, ISyncableDataRepository& repository, const std::string& universe) const;
-    static std::vector<std::string> GetPutRevisionsSince(const DeviceId& device_id, ISyncableDataRepository& repository, const int start_serial_number);
 
     SyncResult GetFilesWithWildcard(const std::string& from_path, const std::string& to_path);
     SyncResult GetFile(const std::string& from_path, cs::cref_optional<std::string> to_path);

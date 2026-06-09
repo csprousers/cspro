@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zAppO/SyncTypes.h>
 #include <zDataO/ISyncableDataRepository.h>
@@ -61,8 +61,15 @@ public:
 
     std::shared_ptr<Case> updateRepoCase(std::string uuid, const int id, const std::string& data)
     {
+        std::string key;
+        double position_in_repository;
+        m_pRepo->PopulateCaseIdentifiers(key, uuid, position_in_repository);
+
+        WriteCaseParameter write_case_parameter = WriteCaseParameter::CreateModifyParameter(
+            CaseKey(std::move(key), position_in_repository)
+        );
+
         std::shared_ptr<Case> data_case = CreateCase(m_pRepo->GetCaseAccess(), std::move(uuid), id, { data }, false);
-        WriteCaseParameter write_case_parameter = WriteCaseParameter::CreateModifyParameter(*data_case);
         m_pRepo->WriteCase(*data_case, &write_case_parameter);
         return data_case;
     }

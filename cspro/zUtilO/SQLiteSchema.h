@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zSql/SQLite.h>
 #include <zUtilO/zUtilO.h>
@@ -58,7 +58,7 @@ namespace SQLiteSchema {
         std::vector<Column> columns;
         std::vector<ForeignKey> foreign_keys;
 
-        Table& operator+=(const Column&& rhs)
+        Table& operator+=(const Column& rhs)
         {
             columns.emplace_back(rhs);
             return *this;
@@ -143,7 +143,7 @@ namespace SQLiteSchema {
         /// <summary>
         /// Combine two schemas
         /// </summary>
-        Schema& operator+=(const Schema&& rhs)
+        Schema& operator+=(Schema&& rhs)
         {
             tables.insert(tables.end(), std::make_move_iterator(rhs.tables.begin()), std::make_move_iterator(rhs.tables.end()));
             indexes.insert(indexes.end(), std::make_move_iterator(rhs.indexes.begin()), std::make_move_iterator(rhs.indexes.end()));

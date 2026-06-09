@@ -46,6 +46,7 @@ namespace
     constexpr std::string_view MdTag_sv                     = "md";
     constexpr std::string_view NoteTag_sv                   = "note";
     constexpr std::string_view MetadataTag_sv               = "metadata";
+    constexpr std::string_view DefineTag_sv                 = "define";
     constexpr std::string_view DefinitionTag_sv             = "definition";
     constexpr std::string_view IncludeTag_sv                = "include";
     constexpr std::string_view CalloutTag_sv                = "callout";
@@ -562,8 +563,13 @@ std::string CSDocCompilerWorker::PreprocessTextForDefinitionsAndIncludes(const s
         // see if this is an actual preprocessor tag
         const std::string_view start_tag_sv = SO::TrimLeft(text_sv.substr(start_tag_position + 1));
 
-        if( !SO::StartsWith(start_tag_sv, DefinitionTag_sv) &&
-            !SO::StartsWith(start_tag_sv, IncludeTag_sv) )
+        const size_t expected_tag_components =
+            SO::StartsWith(start_tag_sv, DefineTag_sv)     ? 4 :
+            SO::StartsWith(start_tag_sv, DefinitionTag_sv) ? 3 :
+            SO::StartsWith(start_tag_sv, IncludeTag_sv)    ? 3 :
+                                                             0;
+
+        if( expected_tag_components == 0 )
         {
             // continue preprocessing text following the beginning of the start tag
             next_tag_offset = start_tag_position + 1;
@@ -579,27 +585,42 @@ std::string CSDocCompilerWorker::PreprocessTextForDefinitionsAndIncludes(const s
 
         std::optional<std::string> preprocessed_text;
 
-        if( tag_components.size() == 3 && tag_components.back() == "/" )
+        if( tag_components.size() == expected_tag_components && tag_components.back() == "/" )
         {
             const std::string& tag_name = tag_components.front();
             const std::string& tag_value = tag_components[1];
 
             try
             {
-                if( tag_name == DefinitionTag_sv )
+                if( tag_name == DefineTag_sv )
+                {
+                    m_localDefinitions.insert_or_assign(tag_value, tag_components[2]);
+
+                    preprocessed_text.emplace();
+                }
+
+                else if( tag_name == DefinitionTag_sv )
                 {
                     constexpr std::string_view SpecialDefinitionIndicator_sv = "::";
                     const size_t double_colon_pos = tag_value.find(SpecialDefinitionIndicator_sv);
 
                     if( double_colon_pos != std::string::npos )
                     {
-                        preprocessed_text = m_settings.GetSpecialDefinition(tag_value.substr(0, double_colon_pos),
-                                                                            tag_value.substr(double_colon_pos + SpecialDefinitionIndicator_sv.length()));
+                        preprocessed_text = m_settings.GetSpecialDefinition(
+                            tag_value.substr(0, double_colon_pos),
+                            tag_value.substr(double_colon_pos + SpecialDefinitionIndicator_sv.length())
+                        );
                     }
 
                     else
                     {
-                        preprocessed_text = m_settings.GetDefinition(tag_value);
+                        // prioritize local definitions over global definitions so that definitions can be overridden within a document
+                        const auto& local_definition_lookup = m_localDefinitions.find(tag_value);
+
+                        preprocessed_text =
+                            ( local_definition_lookup != m_localDefinitions.cend() ) ?
+                            local_definition_lookup->second :
+                            m_settings.GetDefinition(tag_value);
                     }
                 }
 
@@ -631,9 +652,11 @@ std::string CSDocCompilerWorker::PreprocessTextForDefinitionsAndIncludes(const s
         }
 
         // otherwise include the text prior to the start tag, the preprocessed text, and then preprocess all text following the end tag
-        return SO::Concatenate(text_sv.substr(0, tag_position.start),
-                               *preprocessed_text +
-                               PreprocessTextForDefinitionsAndIncludes(text_sv.substr(tag_position.end + 1)));
+        return SO::Concatenate(
+            text_sv.substr(0, tag_position.start),
+            *preprocessed_text,
+            PreprocessTextForDefinitionsAndIncludes(text_sv.substr(tag_position.end + 1))
+        );
     }
 
     return ReturnProgrammingError(std::string());

@@ -125,11 +125,13 @@
     -  Action Invoker additions:
           * throwException
           * Data: close, contains, countCases, deleteCase, getCurrentCase,
-              open, query, queryCases, queryKeys, readCase, writeCase
+              getSyncStatus, open, query, queryCases, queryKeys, readCase,
+              sync, writeCase
           * Logic: setSymbolValue
           * Network: fetch, fetchBody, fetchBytes, fetchFile, fetchJson,
               fetchText
-          * Sync: connect, disconnect, sendMessage, syncParadata
+          * Sync: connect, disconnect, getConnectionInfo, sendMessage,
+              syncData, syncParadata
           * System: createShortcut
           * UI: close, setWebViewOptions
 

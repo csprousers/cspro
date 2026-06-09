@@ -461,6 +461,104 @@
   },
   {
     "namespace": "Data",
+    "name": "getSyncStatus",
+    "description": "Returns information about the synchronization state of the data source.",
+    "parameters": [
+      {
+        "name": "dataId",
+        "description": "The data source ID or the name of a dictionary.",
+        "types": [
+          "number",
+          "string"
+        ],
+        "required": false
+      },
+      {
+        "name": "content",
+        "description": "The synchronization status content to query. (Default value is \"summary\".)",
+        "types": [
+          "string"
+        ],
+        "required": false
+      },
+      {
+        "name": "deviceId",
+        "description": "The device ID of a synchronization service, used to filter the content.",
+        "types": [
+          "string"
+        ],
+        "required": false
+      },
+      {
+        "name": "deviceName",
+        "description": "The device name of a synchronization service, used to filter the content.",
+        "types": [
+          "string"
+        ],
+        "required": false
+      },
+      {
+        "name": "syncId",
+        "description": "A synchronization service ID, with the service's device ID used to filter the content.",
+        "types": [
+          "number"
+        ],
+        "required": false
+      },
+      {
+        "name": "key",
+        "description": "The key (case IDs) of a specific case used to filter the content.",
+        "types": [
+          "string"
+        ],
+        "required": false
+      },
+      {
+        "name": "uuid",
+        "description": "The UUID of a specific case used to filter the content.",
+        "types": [
+          "string"
+        ],
+        "required": false
+      },
+      {
+        "name": "position",
+        "description": "The \"position\" of a specific case used to filter the content.",
+        "types": [
+          "number"
+        ],
+        "required": false
+      },
+      {
+        "name": "universe",
+        "description": "A universe to limit the cases that are considered as part of a synchronization status query.",
+        "types": [
+          "string"
+        ],
+        "required": false
+      },
+      {
+        "name": "limit",
+        "description": "The maximum number of results to return from the query.",
+        "types": [
+          "number"
+        ],
+        "required": false
+      }
+    ],
+    "returns": [
+      {
+        "name": "",
+        "description": "An array or object containing the queried synchronization state.",
+        "types": [
+          "array",
+          "object"
+        ]
+      }
+    ]
+  },
+  {
+    "namespace": "Data",
     "name": "open",
     "description": "Opens a data source and returns an ID that can be used for future operations.",
     "parameters": [
@@ -2805,6 +2903,30 @@
   },
   {
     "namespace": "Sync",
+    "name": "getConnectionInfo",
+    "description": "Returns information about the synchronization service connection.",
+    "parameters": [
+      {
+        "name": "syncId",
+        "description": "The synchronization service ID.",
+        "types": [
+          "number"
+        ],
+        "required": false
+      }
+    ],
+    "returns": [
+      {
+        "name": "",
+        "description": "Information about the connection.",
+        "types": [
+          "object"
+        ]
+      }
+    ]
+  },
+  {
+    "namespace": "Sync",
     "name": "sendMessage",
     "description": "Sends a message to a synchronization service, returning the service's response.",
     "parameters": [
@@ -2846,6 +2968,62 @@
           "number",
           "boolean",
           "array",
+          "object"
+        ]
+      }
+    ]
+  },
+  {
+    "namespace": "Sync",
+    "name": "syncData",
+    "aliases": [
+      {
+        "namespace": "Data",
+        "name": "sync"
+      }
+    ],
+    "description": "Synchronizes the cases in a data source with a synchronization service.",
+    "parameters": [
+      {
+        "name": "syncId",
+        "description": "The synchronization service ID.",
+        "types": [
+          "number"
+        ],
+        "required": false
+      },
+      {
+        "name": "dataId",
+        "description": "The data source ID or the name of a dictionary.",
+        "types": [
+          "number",
+          "string"
+        ],
+        "required": false
+      },
+      {
+        "name": "direction",
+        "description": "The synchronization direction. (Default value is \"both\".).",
+        "types": [
+          "string"
+        ],
+        "required": false
+      },
+      {
+        "name": "universe",
+        "description": "A universe that restricts cases transfered to cases with keys starting with the universe.",
+        "types": [
+          "string",
+          "array"
+        ],
+        "required": false
+      }
+    ],
+    "returns": [
+      {
+        "name": "",
+        "description": "Information about the number of cases involved in the synchronization.",
+        "types": [
           "object"
         ]
       }

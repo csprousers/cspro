@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <CSDocument/CSDocCompilerSettings.h>
 #include <zToolsO/span.h>
@@ -186,6 +186,7 @@ private:
 private:
     const SD& m_sd;
     CSDocCompilerSettings& m_settings;
+    std::map<std::string, std::string> m_localDefinitions;
     std::vector<std::string> m_paragraphs;
     std::string m_html;
 

@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "SyncRunnerActionInvoker.h"
 #include "ISyncService.h"
 #include "SyncMessage.h"
@@ -73,8 +73,11 @@ public:
     ActionInvokerSyncRunnerImpl();
     ~ActionInvokerSyncRunnerImpl();
 
-    void Connect(ActionInvoker::Caller& caller, const SyncConnectionString& sync_connection_string) override;
+    std::shared_ptr<const ConnectResponse> Connect(ActionInvoker::Caller& caller, const SyncConnectionString& sync_connection_string) override;
     void Disconnect(ActionInvoker::Caller& caller) override;
+
+    DataSyncStatistics SyncData(ActionInvoker::Caller& caller, ISyncableDataRepository& syncable_data_repository,
+                                SyncDirection sync_direction, const std::string& universe) override;
 
     std::optional<JsonNode> SendSyncMessage(ActionInvoker::Caller& caller, SharableString message_name, JsonNode message_value) override;
 
@@ -141,7 +144,7 @@ auto ActionInvokerSyncRunnerImpl::ExecuteWithCaller(ActionInvoker::Caller& calle
 }
 
 
-void ActionInvokerSyncRunnerImpl::Connect(ActionInvoker::Caller& caller, const SyncConnectionString& sync_connection_string)
+std::shared_ptr<const ConnectResponse> ActionInvokerSyncRunnerImpl::Connect(ActionInvoker::Caller& caller, const SyncConnectionString& sync_connection_string)
 {
     ASSERT(m_syncService == nullptr && m_connectResponse == nullptr);
     ASSERT(m_paradataLogger == nullptr);
@@ -169,6 +172,8 @@ void ActionInvokerSyncRunnerImpl::Connect(ActionInvoker::Caller& caller, const S
                 ASSERT(m_paradataLogger != nullptr);
             }
         });
+
+    return m_connectResponse;
 }
 
 
@@ -191,6 +196,21 @@ void ActionInvokerSyncRunnerImpl::Disconnect()
     const std::unique_ptr<SyncRunner::ParadataLogger> paradata_logger = std::move(m_paradataLogger);
 
     m_syncRunner.Disconnect(*sync_service, paradata_logger.get());
+}
+
+
+DataSyncStatistics ActionInvokerSyncRunnerImpl::SyncData(ActionInvoker::Caller& caller, ISyncableDataRepository& syncable_data_repository,
+                                                         const SyncDirection sync_direction, const std::string& universe)
+{
+    ASSERT(m_syncService != nullptr && m_connectResponse != nullptr);
+
+    return ExecuteWithCaller(caller,
+        [&]()
+        {
+            return m_syncRunner.SyncData(*m_syncService, *m_connectResponse, GetDeviceId(),
+                                         syncable_data_repository, sync_direction, universe,
+                                         m_paradataLogger.get());
+        });
 }
 
 

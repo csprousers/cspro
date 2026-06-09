@@ -249,6 +249,29 @@ void SyncConnectionString::SetUsernamePasswordProperties(std::string username, s
 }
 
 
+template<typename CF>
+void SyncConnectionString::RemoveSensitiveProperties(const SyncConnectionString& sync_connection_string, const CF& callback_function)
+{
+    constexpr const char* SensitiveAttributes[] =
+    {
+        SCSProperty::username,
+        SCSProperty::password,
+    };
+
+    for( const char* const sensitive_attribute : SensitiveAttributes )
+    {
+        if( sync_connection_string.HasProperty(sensitive_attribute) )
+            callback_function()->ClearProperty(sensitive_attribute);
+    }
+}
+
+
+void SyncConnectionString::RemoveSensitiveProperties()
+{
+    RemoveSensitiveProperties(*this, [this]() { return this; });
+}
+
+
 std::string SyncConnectionString::ToString(std::string resource) const
 {
     if( !IsDefined() )
@@ -296,20 +319,16 @@ std::string SyncConnectionString::ToDisplayString() const
 
 std::string SyncConnectionString::ToSafeString() const
 {
-    constexpr const char* SensitiveAttributes[] = { SCSProperty::username, SCSProperty::password };
-
     std::unique_ptr<SyncConnectionString> non_sensitive_sync_connection_string;
 
-    for( const char* const sensitive_attribute : SensitiveAttributes )
-    {
-        if( HasProperty(sensitive_attribute) )
+    RemoveSensitiveProperties(*this,
+        [&]()
         {
             if( non_sensitive_sync_connection_string == nullptr )
                 non_sensitive_sync_connection_string = std::make_unique<SyncConnectionString>(*this);
 
-            non_sensitive_sync_connection_string->ClearProperty(sensitive_attribute);
-        }
-    }
+            return non_sensitive_sync_connection_string.get();
+        });
 
     return ( non_sensitive_sync_connection_string != nullptr ) ? non_sensitive_sync_connection_string->ToString() :
                                                                  ToString();
