@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zToolsO/CaseInsensitiveComparer.h>
 
@@ -11,6 +11,9 @@ struct LexerStyle
     COLORREF background_color = NoOverride;
     bool bold = false;
     bool italic = false;
+
+    bool operator==(const LexerStyle& rhs) const;
+    bool operator!=(const LexerStyle& rhs) const { return !operator==(rhs); }
 };
 
 
@@ -46,6 +49,15 @@ private:
 // --------------------------------------------------------------------------
 // inline implementations
 // --------------------------------------------------------------------------
+
+inline bool LexerStyle::operator==(const LexerStyle& rhs) const
+{
+    return ( foreground_color == rhs.foreground_color &&
+              background_color == rhs.background_color &&
+              bold == rhs.bold &&
+              italic == rhs.italic );
+}
+
 
 inline const std::map<unsigned char, LexerStyle>& LexerProperties::GetStyles(const int lexer_language)
 {

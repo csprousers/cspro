@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "ScintillaColorizer.h"
 #include <zToolsO/Encoders.h>
 #include <zUtilO/PortableColor.h>
@@ -157,8 +157,7 @@ namespace
             // set the style if it has changed from the previous entity or if this entity has tags
             const LexerStyle style = colorizer.GetStyle(entity.style_index);
 
-            bool set_style = ( !current_style.has_value() ||
-                               memcmp(&(*current_style), &style, sizeof(style)) != 0 );
+            bool set_style = ( current_style != style );
             bool end_style = false;
 
             if constexpr(std::is_same_v<ET, ScintillaColorizer::ExtendedEntity>)
