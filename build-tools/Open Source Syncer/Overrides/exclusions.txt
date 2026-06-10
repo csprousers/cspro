@@ -19,6 +19,7 @@
 
 # some build tool batch scripts
 
+/build-tools/Build CSPro Users Website.bat
 /build-tools/Create Installer.bat
 /build-tools/Run Update Example Files.bat
 /build-tools/Run Update SQLite.bat
