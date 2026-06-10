@@ -1,4 +1,4 @@
-﻿//------------------------------------------------------------------------
+//------------------------------------------------------------------------
 //
 //  IntCapi.cpp        CSPRO CAPI INTERPRETER
 //
@@ -48,7 +48,16 @@ auto CIntDriver::EvaluateCapiLogic(const Symbol& symbol, const int program_index
         // ... or the question text
         else if constexpr(std::is_same_v<T, CapiText>)
         {
-            ExecuteProgramStatements(program_index);
+            try
+            {
+                ExecuteProgramStatements(program_index);
+            }
+
+            catch( const ExitProgramControlException& )
+            {
+                // allow calls to exit to short-circuit question text evaluation
+            }
+
             return true;
         }
 
