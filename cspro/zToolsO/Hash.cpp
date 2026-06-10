@@ -118,8 +118,103 @@ std::vector<std::byte> Hash::HexStringToBytes(const std::string_view hex_string_
 
 
 // --------------------------------------------------------------------------
+// Hash::CreatorHelper
+// --------------------------------------------------------------------------
+
+class Hash::CreatorHelper
+{
+public:
+    template<size_t digest_size,
+             typename ContextT,
+             auto InitFunc,
+             auto UpdateFunc, typename UpdateFuncBufferT,
+             auto FinalFunc>
+    static std::string CreateFromFile(const char* digest_type, const InterfaceString& file_path, bool throw_exception_on_read_error);
+};
+
+
+template<size_t digest_size,
+         typename ContextT,
+         auto InitFunc,
+         auto UpdateFunc, typename UpdateFuncBufferT,
+         auto FinalFunc>
+std::string Hash::CreatorHelper::CreateFromFile(const char* const digest_type,
+                                                const InterfaceString& file_path,
+                                                const bool throw_exception_on_read_error)
+{
+    auto return_error = [&]()
+    {
+        if( throw_exception_on_read_error )
+            throw CSProException("A %s could not be created for: %s", digest_type, file_path.c_str_utf8());
+
+        return std::string();
+    };
+
+    FILE* const file = !file_path.empty() ? PortableFunctions::FileOpen(file_path, "rb") :
+                                            nullptr;
+
+    if( file == nullptr )
+        return return_error();
+
+    ContextT ctx;
+    InitFunc(&ctx);
+
+    constexpr size_t BufferSize = 64 * 1024;
+    static_assert(BufferSize <= std::numeric_limits<UpdateFuncBufferT>::max());
+
+    auto buffer = std::make_unique_for_overwrite<char[]>(BufferSize);
+
+    class DigestError { };
+    bool success = true;
+
+    try
+    {
+        do
+        {
+            const size_t bytes_read = fread(buffer.get(), 1, BufferSize, file);
+
+            if( ferror(file) )
+                throw DigestError();
+
+            UpdateFunc(&ctx, buffer.get(), static_cast<UpdateFuncBufferT>(bytes_read));
+
+        } while( !feof(file) );
+    }
+
+    catch( const DigestError& )
+    {
+        success = false;
+    }
+
+    fclose(file);
+
+    uint8_t digest[digest_size];
+    FinalFunc(digest, &ctx);
+
+    if( !success )
+        return return_error();
+
+    return BytesToHexString(digest, digest_size);
+}
+
+
+
+// --------------------------------------------------------------------------
 // Hash::Md5
 // --------------------------------------------------------------------------
+
+std::string Hash::Md5::CreateFromFile(const InterfaceString& file_path, const bool throw_exception_on_read_error/* = false*/)
+{
+    return CreatorHelper::CreateFromFile<
+        16,
+        MD5_CTX,
+        MD5_Init,
+        MD5_Update, unsigned long,
+        MD5_Final>(
+            "MD5", file_path, throw_exception_on_read_error
+        );
+}
+
 
 template<typename CF>
 std::string Hash::Md5::GenerateMd5(const CF& md5_update_callback)
@@ -134,59 +229,7 @@ std::string Hash::Md5::GenerateMd5(const CF& md5_update_callback)
     unsigned char result[HexSequences];
     MD5_Final(result, &ctx);
 
-    std::string md5_string(HexSequences * 2, '\0');
-    char* md5_string_buffer = md5_string.data();
-
-    for( size_t i = 0; i < HexSequences; ++i, md5_string_buffer += 2 )
-        std::snprintf(md5_string_buffer, 3, "%02x", static_cast<unsigned int>(result[i]));
-
-    return md5_string;
-}
-
-
-std::string Hash::Md5::CreateFromFile(const InterfaceString& file_path, const bool throw_exception_on_read_error/* = false*/)
-{
-    auto return_error = [&]()
-    {
-        if( throw_exception_on_read_error )
-            throw CSProException("A MD5 could not be created for: %s", file_path.c_str_utf8());
-
-        return std::string();
-    };
-
-    FILE* const file = !file_path.empty() ? PortableFunctions::FileOpen(file_path, "rb") :
-                                            nullptr;
-
-    if( file == nullptr )
-        return return_error();
-
-    constexpr size_t BufferSize = 64 * 1024;
-    auto buffer = std::make_unique_for_overwrite<char[]>(BufferSize);
-
-    std::string md5_string;
-    class Md5Error { };
-
-    try
-    {
-        md5_string = GenerateMd5([&](MD5_CTX& ctx) -> bool
-        {
-            const size_t bytes_read = fread(buffer.get(), 1, BufferSize, file);
-            MD5_Update(&ctx, buffer.get(), uint32_cast(bytes_read));
-
-            if( ferror(file) )
-                throw Md5Error();
-
-            return !feof(file);
-        });
-    }
-    catch( const Md5Error& ) { }
-
-    fclose(file);
-
-    if( md5_string.empty() )
-        return return_error();
-
-    return md5_string;
+    return BytesToHexString(result, HexSequences);
 }
 
 
@@ -241,4 +284,30 @@ std::string Hash::Md5::Create(const std::byte* const contents, const size_t size
         MD5_Update(&ctx, contents, uint32_cast(size));
         return false;
     });
+}
+
+
+
+// --------------------------------------------------------------------------
+// Hash::Sha256
+// --------------------------------------------------------------------------
+
+std::string Hash::Sha256::CreateFromFile(const InterfaceString& file_path, const bool throw_exception_on_read_error/* = false*/)
+{
+    return CreatorHelper::CreateFromFile<
+        32,
+        SHA256_CTX,
+        SHA256_Init,
+        SHA256_Update, size_t,
+        SHA256_Final>(
+            "SHA-256", file_path, throw_exception_on_read_error
+        );
+}
+
+
+std::string Hash::Sha256::Create(const std::byte* const contents, const size_t size)
+{
+    uint8_t sha256[32];
+    SHA256_Buf(contents, size, sha256);
+    return BytesToHexString(sha256, sizeof(sha256));
 }

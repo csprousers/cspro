@@ -10,12 +10,16 @@
 //     - Provides bytes <-> hex string conversions.
 //
 // The Hash::Md5 class creates Message-Digest (RFC 1321) hashes.
+//
+// The Hash::Sha256 class creates SHA-256 (Secure Hash Algorithm) hashes.
 // --------------------------------------------------------------------------
 
 class CLASS_DECL_ZTOOLSO Hash
 {
 public:
+    class CreatorHelper;
     class Md5;
+    class Sha256;
 
     constexpr static size_t DefaultHashLength = 32;
     constexpr static size_t MaxHashLength     = 500;
@@ -84,4 +88,29 @@ public:
 private:
     template<typename CF>
     static std::string GenerateMd5(const CF& md5_update_callback);
+};
+
+
+
+// --------------------------------------------------------------------------
+// Hash::Sha256
+// --------------------------------------------------------------------------
+
+class CLASS_DECL_ZTOOLSO Hash::Sha256
+{
+public:
+    // Returns the SHA-256 of a file.
+    // If throw_exception_on_read_error is false, an empty string is returned on error.
+    static std::string CreateFromFile(const InterfaceString& file_path, bool throw_exception_on_read_error = false);
+
+    // Returns the SHA-256 of a block of memory.
+    static std::string Create(const std::byte* contents, size_t size);
+
+    // Returns the SHA-256 of a block of memory of an object that has data and size members.
+    template<typename T>
+    static std::string Create(const T& contents)
+    {
+        static_assert(sizeof(std::remove_pointer_t<decltype(contents.data())>) == sizeof(std::byte));
+        return Create(reinterpret_cast<const std::byte*>(contents.data()), contents.size());
+    }
 };

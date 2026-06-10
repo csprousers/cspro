@@ -7,16 +7,94 @@ CREATE_JSON_KEY(salt)
 CREATE_JSON_KEY(saltFormat)
 
 
+// --------------------------------------------------------------------------
+// Hasher
+// --------------------------------------------------------------------------
+
+namespace ActionInvoker { class Hasher; }
+
+class ActionInvoker::Hasher
+{
+public:
+    static Result HashMd5(Runtime& runtime, const JsonNode& json_node, Caller& caller)
+    {
+        return HashWorker<Hash::Md5, 32>(runtime, json_node, caller);
+    }
+
+    static Result HashSha256(Runtime& runtime, const JsonNode& json_node, Caller& caller)
+    {
+        return HashWorker<Hash::Sha256, 64>(runtime, json_node, caller);
+    }
+
+private:
+    template<typename HashT, size_t expected_size>
+    static Result HashWorker(Runtime& runtime, const JsonNode& json_node, Caller& caller);
+};
+
+
+template<typename HashT, size_t expected_size>
+ActionInvoker::Result ActionInvoker::Hasher::HashWorker(Runtime& runtime, const JsonNode& json_node, Caller& caller)
+{
+    const char* const input_type = GetUniqueKeyFromChoices(json_node, JK::path, JK::text, JK::bytes);
+    std::string digest;
+
+    // path
+    if( input_type == JK::path )
+    {
+        const std::string path = caller.EvaluateAbsolutePath(json_node.Get<std::string>(JK::path));
+
+        digest = HashT::CreateFromFile(path, true);
+    }
+
+    // text
+    else if( input_type == JK::text )
+    {
+        digest = HashT::Create(json_node.Get<std::string_view>(JK::text));
+    }
+
+    // bytes
+    else
+    {
+        ASSERT(input_type == JK::bytes);
+
+        const std::string_view bytes_sv = json_node.Get<std::string_view>(JK::bytes);
+
+        const std::shared_ptr<const std::vector<std::byte>> bytes = StringToBytesConverter::Convert(
+            runtime, bytes_sv, json_node, JK::bytesFormat
+        );
+
+        digest = HashT::Create(*bytes);
+    }
+
+    ASSERT(SO::IsLower(digest) && digest.length() == expected_size);
+
+    return Result::String(std::move(digest));
+}
+
+
+
+// --------------------------------------------------------------------------
+// Hash actions
+// --------------------------------------------------------------------------
+
 ActionInvoker::Result ActionInvoker::Runtime::Hash_createHash(const JsonNode& json_node, Caller& caller)
 {
     // default to PBKDF2_SHA256
     const size_t hash_type = json_node.Contains(JK::type) ?
-        json_node.GetFromStringOptions(JK::type, { "MD5", "EncryptedCSProDB", "PBKDF2_SHA256" }) :
-        2;
+        json_node.GetFromStringOptions(JK::type, { "MD5", "SHA-256", "SHA256", "EncryptedCSProDB", "PBKDF2_SHA256" }) :
+        4;
 
-    // Hash.createHash can be used to create a MD5
+    // MD5
     if( hash_type == 0 )
-        return Hash_createMd5(json_node, caller);
+    {
+        return Hasher::HashMd5(*this, json_node, caller);
+    }
+
+    // SHA-256
+    else if( hash_type == 1 || hash_type == 2 )
+    {
+        return Hasher::HashSha256(*this, json_node, caller);
+    }
 
     const char* const input_type = GetUniqueKeyFromChoices(json_node, JK::path, JK::text, JK::bytes);
     std::shared_ptr<const std::vector<std::byte>> content;
@@ -50,8 +128,8 @@ ActionInvoker::Result ActionInvoker::Runtime::Hash_createHash(const JsonNode& js
     int iterations;
     std::shared_ptr<const std::vector<std::byte>> salt;
 
-    // Hash.createHash can create the hash necessary to open a .csdbe file
-    if( hash_type == 1 )
+    // EncryptedCSProDB: create the hash necessary to open a .csdbe file
+    if( hash_type == 3 )
     {
         length = EncryptedSQLiteRepository::PasswordHashSize;
         iterations = EncryptedSQLiteRepository::PasswordHashIterations;
@@ -61,10 +139,10 @@ ActionInvoker::Result ActionInvoker::Runtime::Hash_createHash(const JsonNode& js
         salt = std::make_unique<std::vector<std::byte>>(csdbe_salt, csdbe_salt + _countof(EncryptedSQLiteRepository::FixedSalt));
     }
 
-    // otherwise we will use PBKDF2_SHA256
+    // PBKDF2_SHA256
     else
     {
-        ASSERT(hash_type == 2);
+        ASSERT(hash_type == 4);
 
         length = Hash::DefaultHashLength;
         iterations = Hash::DefaultIterations;
@@ -107,35 +185,5 @@ ActionInvoker::Result ActionInvoker::Runtime::Hash_createHash(const JsonNode& js
 
 ActionInvoker::Result ActionInvoker::Runtime::Hash_createMd5(const JsonNode& json_node, Caller& caller)
 {
-    const char* const input_type = GetUniqueKeyFromChoices(json_node, JK::path, JK::text, JK::bytes);
-    std::string md5;
-
-    // path
-    if( input_type == JK::path )
-    {
-        const std::string path = caller.EvaluateAbsolutePath(json_node.Get<std::string>(JK::path));
-
-        md5 = Hash::Md5::CreateFromFile(path, true);
-    }
-
-    // text
-    else if( input_type == JK::text )
-    {
-        md5 = Hash::Md5::Create(json_node.Get<std::string_view>(JK::text));
-    }
-
-    // bytes
-    else
-    {
-        ASSERT(input_type == JK::bytes);
-
-        const std::string_view bytes_sv = json_node.Get<std::string_view>(JK::bytes);
-        const std::shared_ptr<const std::vector<std::byte>> bytes = StringToBytesConverter::Convert(*this, bytes_sv, json_node, JK::bytesFormat);
-
-        md5 = Hash::Md5::Create(*bytes);
-    }
-
-    ASSERT(SO::IsLower(md5) && md5.length() == 32);
-
-    return Result::String(std::move(md5));
+    return Hasher::HashMd5(*this, json_node, caller);
 }
