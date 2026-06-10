@@ -37,7 +37,7 @@ namespace
         std::string PrefixAttribute(const std::string_view attribute_sv) override
         {
             // instead of storing the full file path in the credentials, store a hash of it
-            return "CSPro_data_" + Hash::Hash(attribute_sv, 16);
+            return "CSPro_data_" + Hash::Create(attribute_sv, 16);
         }
     };
 }

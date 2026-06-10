@@ -269,7 +269,7 @@ std::string LibraryManager::CalculateCacheKey(const std::vector<Input>& inputs, 
         }
     }
 
-    return Hash::Hash(cache_key_inputs, LibrariesHashHexLength / 2);
+    return Hash::Create(cache_key_inputs, LibrariesHashHexLength / 2);
 }
 
 

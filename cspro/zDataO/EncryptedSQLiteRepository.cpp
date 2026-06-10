@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "EncryptedSQLiteRepository.h"
 #include "EncryptedSQLiteRepositoryPasswordManager.h"
 #include <zToolsO/Hash.h>
@@ -88,9 +88,14 @@ int EncryptedSQLiteRepository::OpenSQLiteDatabaseFile(const CDataDict* const dic
             // generate the password hash with the fixed salt; it would be ideal to have a randomly
             // generated salt, but because there is no place to store this, we will use a fixed salt
             // even though this does not add cryptographic value
-            const std::vector<std::byte> password_hash = Hash::Hash(reinterpret_cast<const std::byte*>(password.c_str()), password.length(),
-                                                                    reinterpret_cast<const std::byte*>(FixedSalt), _countof(FixedSalt),
-                                                                    PasswordHashSize, PasswordHashIterations);
+            const std::vector<std::byte> password_hash = Hash::Create(
+                reinterpret_cast<const std::byte*>(password.c_str()),
+                password.length(),
+                reinterpret_cast<const std::byte*>(FixedSalt),
+                _countof(FixedSalt),
+                PasswordHashSize,
+                PasswordHashIterations
+            );
 
             const bool success = file_open_by_password_hash_callback(password_hash.data());
 

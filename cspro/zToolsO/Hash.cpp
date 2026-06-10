@@ -8,9 +8,13 @@ extern "C"
 }
 
 
-std::vector<std::byte> Hash::Hash(const std::byte* const data, const size_t data_length,
-                                  const std::byte* const salt, const size_t salt_length,
-                                  const size_t hash_length, const size_t iterations/* = DefaultIterations*/)
+// --------------------------------------------------------------------------
+// Hash: PBKDF2_SHA256
+// --------------------------------------------------------------------------
+
+std::vector<std::byte> Hash::Create(const std::byte* const data, const size_t data_length,
+                                    const std::byte* const salt, const size_t salt_length,
+                                    const size_t hash_length, const size_t iterations/* = DefaultIterations*/)
 {
     static_assert(sizeof(uint8_t) == sizeof(std::byte));
     std::vector<std::byte> hash(hash_length);
@@ -25,35 +29,35 @@ std::vector<std::byte> Hash::Hash(const std::byte* const data, const size_t data
 }
 
 
-std::string Hash::Hash(const std::byte* const data, const size_t data_length, const size_t hash_length, const std::string_view salt_sv)
+std::string Hash::Create(const std::byte* const data, const size_t data_length, const size_t hash_length, const std::string_view salt_sv)
 {
-    const std::vector<std::byte> hash = Hash(data, data_length,
-                                             reinterpret_cast<const std::byte*>(salt_sv.data()), salt_sv.length(),
-                                             hash_length);
+    const std::vector<std::byte> hash = Create(data, data_length,
+                                               reinterpret_cast<const std::byte*>(salt_sv.data()), salt_sv.length(),
+                                               hash_length);
 
     return BytesToHexString(hash.data(), hash.size());
 }
 
 
-std::string Hash::Hash(const std::byte* const data, const size_t data_length, const size_t hash_length/* = DefaultHashLength*/)
+std::string Hash::Create(const std::byte* const data, const size_t data_length, const size_t hash_length/* = DefaultHashLength*/)
 {
-    const std::vector<std::byte> hash = Hash(data, data_length,
-                                             nullptr, 0,
-                                             hash_length);
+    const std::vector<std::byte> hash = Create(data, data_length,
+                                               nullptr, 0,
+                                               hash_length);
 
     return BytesToHexString(hash.data(), hash.size());
 }
 
 
-std::string Hash::Hash(const std::string_view text_sv, const size_t hash_length, const std::string_view salt_sv)
+std::string Hash::Create(const std::string_view text_sv, const size_t hash_length, const std::string_view salt_sv)
 {
-    return Hash(reinterpret_cast<const std::byte*>(text_sv.data()), text_sv.length(), hash_length, salt_sv);
+    return Create(reinterpret_cast<const std::byte*>(text_sv.data()), text_sv.length(), hash_length, salt_sv);
 }
 
 
-std::string Hash::Hash(const std::string_view text_sv, const size_t hash_length/* = DefaultHashLength*/)
+std::string Hash::Create(const std::string_view text_sv, const size_t hash_length/* = DefaultHashLength*/)
 {
-    return Hash(reinterpret_cast<const std::byte*>(text_sv.data()), text_sv.length(), hash_length);
+    return Create(reinterpret_cast<const std::byte*>(text_sv.data()), text_sv.length(), hash_length);
 }
 
 

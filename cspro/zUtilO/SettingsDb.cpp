@@ -409,7 +409,7 @@ std::string SettingsDb::ImplDb::GetDbKey(const KeyObfuscator* const key_obfuscat
     else
     {
         ASSERT(*key_obfuscator == KeyObfuscator::Hash);
-        return Hash::Hash(key_sv);
+        return Hash::Create(key_sv);
     }
 }
 

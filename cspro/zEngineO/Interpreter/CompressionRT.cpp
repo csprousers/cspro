@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "IncludesRT.h"
 #include "List.h"
 #include "Nodes/Various.h"
@@ -81,16 +81,16 @@ double LogicInterpreter::ex_hash(const int program_index)
 
     if( IsString(hash_node.value_data_type) )
     {
-        hash = salt.has_value() ? Hash::Hash(*std::get<SharableString>(value), hash_length, salt->GetString()) :
-                                  Hash::Hash(*std::get<SharableString>(value), hash_length);
+        hash = salt.has_value() ? Hash::Create(*std::get<SharableString>(value), hash_length, salt->GetString()) :
+                                  Hash::Create(*std::get<SharableString>(value), hash_length);
     }
 
     else
     {
         ASSERT(IsNumeric(hash_node.value_data_type));
 
-        hash = salt.has_value() ? Hash::Hash(reinterpret_cast<const std::byte*>(&std::get<double>(value)), sizeof(double), hash_length, salt->GetString()) :
-                                  Hash::Hash(reinterpret_cast<const std::byte*>(&std::get<double>(value)), sizeof(double), hash_length);
+        hash = salt.has_value() ? Hash::Create(reinterpret_cast<const std::byte*>(&std::get<double>(value)), sizeof(double), hash_length, salt->GetString()) :
+                                  Hash::Create(reinterpret_cast<const std::byte*>(&std::get<double>(value)), sizeof(double), hash_length);
     }
 
     if( m_usingLogicSettingsV0 )

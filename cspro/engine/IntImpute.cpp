@@ -1,4 +1,4 @@
-﻿#include "StandardSystemIncludes.h"
+#include "StandardSystemIncludes.h"
 #include "Interpreter.h"
 #include "FrequencyDriver.h"
 #include "ImputationDriver.h"
@@ -490,7 +490,7 @@ namespace
                 // if the source value set was not a linked value set, create a fake link because
                 // then the initial and imputed, and potentially stat values, can be linked
                 if( !dest_dict_value_set.IsLinkedValueSet() )
-                    dest_dict_value_set.LinkValueSetByCode(Hash::Hash(source_dict_value_set.GetName()));
+                    dest_dict_value_set.LinkValueSetByCode(Hash::Create(source_dict_value_set.GetName()));
 
                 dest_dict_item.AddValueSet(std::move(dest_dict_value_set));
             }

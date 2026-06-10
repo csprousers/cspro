@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include <zToolsO/Hash.h>
 #include <zUtilO/PortableFileSystem.h>
 
@@ -33,7 +33,7 @@ ActionInvoker::Result ActionInvoker::Runtime::System_createShortcut(const JsonNo
 
     // the shortcut ID will be a hash of the target and label
     constexpr size_t HashLength = 4;
-    const std::string shortcut_id = Hash::Hash(target_file_path + *label, HashLength);
+    const std::string shortcut_id = Hash::Create(target_file_path + *label, HashLength);
 
     PortableRunner::System_CreateShortcut(shortcut_id, target_file_path, icon_file_path, *label, long_label);
 

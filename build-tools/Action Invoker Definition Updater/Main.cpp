@@ -131,7 +131,7 @@ int wmain()
             for( const FunctionWithAliases::Alias& alias : action_definition.aliases )
             {
                 GF::Function aliased_action_definition = action_definition;
-                aliased_action_definition.namespace_name= alias.namespace_name;
+                aliased_action_definition.namespace_name = alias.namespace_name;
                 aliased_action_definition.name = alias.name;
                 action_infos.emplace_back(aliased_action_definition);
             }
@@ -238,9 +238,15 @@ int ActionInfo::CalculateHash() const
 {
     const std::string action_name = GetNamespaceAndName('.');
 
-    const std::vector<std::byte> hash_data = Hash::Hash(reinterpret_cast<const std::byte*>(action_name.data()), action_name.length(),
-                                                        reinterpret_cast<const std::byte*>(HashSalt_sv.data()), HashSalt_sv.length(),
-                                                        HashLength, HashIterations);
+    const std::vector<std::byte> hash_data = Hash::Create(
+        reinterpret_cast<const std::byte*>(action_name.data()),
+        action_name.length(),
+        reinterpret_cast<const std::byte*>(HashSalt_sv.data()),
+        HashSalt_sv.length(),
+        HashLength,
+        HashIterations
+    );
+
     ASSERT(hash_data.size() == sizeof(HashType));
     static_assert(sizeof(HashType) < sizeof(int));
 

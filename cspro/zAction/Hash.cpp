@@ -93,9 +93,14 @@ ActionInvoker::Result ActionInvoker::Runtime::Hash_createHash(const JsonNode& js
         }
     }
 
-    const std::vector<std::byte> hash = Hash::Hash(content->data(), content->size(),
-                                                   ( salt != nullptr ) ? salt->data() : nullptr, ( salt != nullptr ) ? salt->size() : 0,
-                                                   length, iterations);
+    const std::vector<std::byte> hash = Hash::Create(
+        content->data(),
+        content->size(),
+        ( salt != nullptr ) ? salt->data() : nullptr,
+        ( salt != nullptr ) ? salt->size() : 0,
+        length,
+        iterations
+    );
 
     return Result::String(Hash::BytesToHexString(hash.data(), hash.size()));
 }
