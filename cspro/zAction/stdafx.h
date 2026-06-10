@@ -9,6 +9,7 @@
 #include <zToolsO/base64.h>
 #include <zToolsO/Encoders.h>
 #include <zToolsO/FileIO.h>
+#include <zToolsO/Hash.h>
 #include <zToolsO/ObjectTransporter.h>
 #include <zToolsO/Utf8.h>
 #include <zUtilO/ArrUtil.h>

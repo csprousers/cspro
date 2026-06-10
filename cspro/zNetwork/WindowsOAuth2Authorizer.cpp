@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #include "WindowsOAuth2Authorizer.h"
 #include "WindowsOAuth2AuthorizerWaitDlg.h"
-#include <zToolsO/Hash.h>
 #include <zToolsO/UniqueId.h>
 #include <zUtilO/Interapp.h>
 #include <zUtilO/MimeType.h>

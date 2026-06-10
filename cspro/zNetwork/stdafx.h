@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <engine/StandardSystemIncludes.h>
 #include <StandardIncludes/strict_errors.h>
@@ -11,6 +11,7 @@
 #include <zNetwork/SyncLog.h>
 #include <zToolsO/Encoders.h>
 #include <zToolsO/FileIO.h>
+#include <zToolsO/Hash.h>
 #include <zToolsO/Utf8.h>
 #include <zJson/Json.h>
 #include <zUtilO/SyncConnectionString.h>

@@ -2,7 +2,6 @@
 #include "DocSetBuilder.h"
 #include "CSDocCompilerSettings.h"
 #include "PdfCreator.h"
-#include <zToolsO/Hash.h>
 
 
 // --------------------------------------------------------------------------

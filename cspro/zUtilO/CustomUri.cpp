@@ -1,6 +1,5 @@
 #include "StdAfx.h"
 #include "CustomUri.h"
-#include <zToolsO/Hash.h>
 #include <zToolsO/UniqueId.h>
 #include <zDataO/ConnectionStringProperties.h>
 #include <zDataO/DataRepositoryHelpers.h>

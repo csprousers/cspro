@@ -9,6 +9,7 @@
 #include <zPlatformO/PlatformInterface.h>
 #include <zToolsO/DirectoryLister.h>
 #include <zToolsO/Encoders.h>
+#include <zToolsO/Hash.h>
 #include <zToolsO/Tools.h>
 #include <zToolsO/Utf8.h>
 #include <zJson/Json.h>

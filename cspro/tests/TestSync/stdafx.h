@@ -4,6 +4,7 @@
 #include <StandardIncludes/strict_errors.h>
 
 #include <zToolsO/FileIO.h>
+#include <zToolsO/Hash.h>
 #include <zToolsO/SpanHelpers.h>
 #include <zToolsO/Tools.h>
 #include <zToolsO/Utf8.h>

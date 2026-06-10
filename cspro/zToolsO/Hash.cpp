@@ -1,10 +1,12 @@
 #include "StdAfx.h"
 #include "Hash.h"
 #include "Encoders.h"
+#include <istream>
 
 extern "C"
 {
-#include "scrypt/sha256.h"
+#include "md5.h"
+#include <external/scrypt/sha256.h>
 }
 
 
@@ -111,4 +113,141 @@ std::vector<std::byte> Hash::HexStringToBytes(const std::string_view hex_string_
     std::vector<std::byte> bytes(hex_string_sv.length() / 2);
     HexStringToBytesBuffer(hex_string_sv, bytes.data(), throw_exceptions);
     return bytes;
+}
+
+
+
+// --------------------------------------------------------------------------
+// Hash: MD5
+// --------------------------------------------------------------------------
+
+namespace
+{
+    template<typename CF>
+    std::string GenerateMd5(const CF& md5_update_callback)
+    {
+        MD5_CTX ctx;
+        MD5_Init(&ctx);
+
+        do { } while( md5_update_callback(ctx) );
+
+        constexpr size_t HexSequences = 16;
+
+        unsigned char result[HexSequences];
+        MD5_Final(result, &ctx);
+
+        std::string md5_string(HexSequences * 2, '\0');
+        char* md5_string_buffer = md5_string.data();
+
+        for( size_t i = 0; i < HexSequences; ++i, md5_string_buffer += 2 )
+            std::snprintf(md5_string_buffer, 3, "%02x", static_cast<unsigned int>(result[i]));
+
+        return md5_string;
+    }
+}
+
+
+std::string PortableFunctions::FileMd5(const InterfaceString& file_path, const bool throw_exception_on_read_error/* = false*/)
+{
+    auto return_error = [&]()
+    {
+        if( throw_exception_on_read_error )
+            throw CSProException("A MD5 could not be created for: %s", file_path.c_str_utf8());
+
+        return std::string();
+    };
+
+    FILE* const file = !file_path.empty() ? PortableFunctions::FileOpen(file_path, "rb") :
+                                            nullptr;
+
+    if( file == nullptr )
+        return return_error();
+
+    constexpr size_t BufferSize = 64 * 1024;
+    auto buffer = std::make_unique_for_overwrite<char[]>(BufferSize);
+
+    std::string md5_string;
+    class Md5Error { };
+
+    try
+    {
+        md5_string = GenerateMd5([&](MD5_CTX& ctx) -> bool
+        {
+            const size_t bytes_read = fread(buffer.get(), 1, BufferSize, file);
+            MD5_Update(&ctx, buffer.get(), uint32_cast(bytes_read));
+
+            if( ferror(file) )
+                throw Md5Error();
+
+            return !feof(file);
+        });
+    }
+    catch( const Md5Error& ) { }
+
+    fclose(file);
+
+    if( md5_string.empty() )
+        return return_error();
+
+    return md5_string;
+}
+
+
+std::string PortableFunctions::StreamMd5(std::istream& input_stream)
+{
+    if( input_stream )
+    {
+        class Md5Error { };
+
+        try
+        {
+            constexpr size_t BufferSize = 64 * 1024;
+            auto buffer = std::make_unique_for_overwrite<char[]>(BufferSize);
+
+            return GenerateMd5(
+                [&](MD5_CTX& ctx) -> bool
+                {
+                    input_stream.read(buffer.get(), BufferSize);
+
+                    const std::streamsize bytes_read = input_stream.gcount();
+
+                    if( bytes_read > 0 )
+                    {
+                        MD5_Update(&ctx, buffer.get(), static_cast<unsigned long>(bytes_read));
+                        return true;
+                    }
+
+                    else if( input_stream.eof() )
+                    {
+                        return false;
+                    }
+
+                    else
+                    {
+                        throw Md5Error();
+                    }
+
+                });
+        }
+
+        catch( const Md5Error& ) { }
+    }
+
+    throw CSProException("A MD5 could not be created for the input stream.");
+}
+
+
+std::string PortableFunctions::BinaryMd5(const std::byte* const contents, const size_t size)
+{
+    return GenerateMd5([&](MD5_CTX& ctx) -> bool
+    {
+        MD5_Update(&ctx, contents, uint32_cast(size));
+        return false;
+    });
+}
+
+
+std::string PortableFunctions::StringMd5(const std::string_view text_sv)
+{
+    return BinaryMd5(reinterpret_cast<const std::byte*>(text_sv.data()), text_sv.length());
 }

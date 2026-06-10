@@ -1,6 +1,7 @@
 #include "StandardSystemIncludes.h"
 #include "Interpreter.h"
 #include "ParameterManager.h"
+#include <zToolsO/Hash.h>
 #include <zToolsO/Serializer.h>
 
 

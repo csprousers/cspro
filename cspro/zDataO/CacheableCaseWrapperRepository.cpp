@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #include "CacheableCaseWrapperRepository.h"
 #include "CacheableCaseWrapperRepositoryCaseIterators.h"
-#include <zToolsO/Hash.h>
 
 
 // --------------------------------------------------------------------------

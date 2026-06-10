@@ -1,5 +1,4 @@
-﻿#include "stdafx.h"
-#include <zToolsO/Hash.h>
+#include "stdafx.h"
 #include <zDataO/EncryptedSQLiteRepository.h>
 
 

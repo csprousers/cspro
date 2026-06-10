@@ -1,5 +1,6 @@
-﻿#pragma once
+#pragma once
 
+#include <zToolsO/Hash.h>
 #include <zToolsO/Utf8.h>
 #include <zUtilO/Interapp.h>
 

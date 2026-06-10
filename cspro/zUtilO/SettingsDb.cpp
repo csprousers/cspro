@@ -1,6 +1,5 @@
 #include "StdAfx.h"
 #include "SettingsDb.h"
-#include <zToolsO/Hash.h>
 #include <zSql/DB.h>
 #include <zSql/SQLiteHelpers.h>
 #include <zUtilO/CSProExecutables.h>

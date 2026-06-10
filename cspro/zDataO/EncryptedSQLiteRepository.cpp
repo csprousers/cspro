@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #include "EncryptedSQLiteRepository.h"
 #include "EncryptedSQLiteRepositoryPasswordManager.h"
-#include <zToolsO/Hash.h>
 #include <zSql/Encryption.h>
 #include <zUtilO/Interapp.h>
 

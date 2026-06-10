@@ -1,6 +1,7 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "ExtractBinaryDataTask.h"
 #include "TaskRunner.h"
+#include <zToolsO/Hash.h>
 #include <zCaseO/BinaryCaseItem.h>
 
 
