@@ -34,7 +34,7 @@ namespace ActionInvoker
 
             SO::MakeLower(path_for_md5);
 
-            std::string md5 = PortableFunctions::StringMd5(path_for_md5);
+            std::string md5 = Hash::Md5::Create(path_for_md5);
             ASSERT(md5 == SO::ToLower(md5));
 
             return md5;

@@ -46,7 +46,7 @@ void ApplicationPackage::PrepareBuild()
 
     for( File& file : m_files )
     {
-        file.signature = PortableFunctions::FileMd5(file.path);
+        file.signature = Hash::Md5::CreateFromFile(file.path);
 
         if( file.signature.empty() )
             throw FileIO::Exception::FileNotFound(file.path);

@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "SyncCaseSerializer.h"
 #include "SyncCaseIncrementalParser.h"
 #include "SyncBinaryDataUploadManager.h"
@@ -370,7 +370,7 @@ void SyncCaseSerializer::ParseSyncableCaseDataBinaryData(std::vector<std::shared
 
         // read the content, check its validity, and add it to our map of binary content
         std::vector<std::byte> content = content_reader(signature);
-        const std::string content_md5 = PortableFunctions::BinaryMd5(content);
+        const std::string content_md5 = Hash::Md5::Create(content);
 
         SYNCLOG_INFO << "Read binary item from sync stream (MD5: " << content_md5 << ", size: " << content.size() << ")";
 

@@ -49,7 +49,7 @@ namespace SyncUnitTest
 
             result = sync_client.SyncFile(SyncDirection::Get, server_file_path, download_temporary_file.GetPath());
             Assert::AreEqual(SyncClient::SyncResult::SYNC_OK, result);
-            Assert::AreEqual(PortableFunctions::StringMd5(file_contents), PortableFunctions::FileMd5(download_temporary_file.GetPath()));
+            Assert::AreEqual(Hash::Md5::Create(file_contents), Hash::Md5::CreateFromFile(download_temporary_file.GetPath()));
 
             // download the file again and make sure it is not re-downloaded by checking modified time
             const int64_t file_modified_time = PortableFunctions::FileModifiedTime(download_temporary_file.GetPath());

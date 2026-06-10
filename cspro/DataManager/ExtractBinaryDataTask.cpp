@@ -133,7 +133,7 @@ void ExtractBinaryDataTask::ProcessCase(Case& data_case)
                 m_writtenSignatures.try_emplace(file_path, binary_data_accessor.GetSignature());
 
                 if( PortableFunctions::FileSize(file_path) == static_cast<int64_t>(binary_data_accessor.GetBinaryDataSize()) &&
-                    PortableFunctions::FileMd5(file_path) == binary_data_accessor.GetSignature() )
+                    Hash::Md5::CreateFromFile(file_path) == binary_data_accessor.GetSignature() )
                 {
                     ++m_skippedFiles;
                 }

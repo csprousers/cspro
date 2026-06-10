@@ -118,36 +118,33 @@ std::vector<std::byte> Hash::HexStringToBytes(const std::string_view hex_string_
 
 
 // --------------------------------------------------------------------------
-// Hash: MD5
+// Hash::Md5
 // --------------------------------------------------------------------------
 
-namespace
+template<typename CF>
+std::string Hash::Md5::GenerateMd5(const CF& md5_update_callback)
 {
-    template<typename CF>
-    std::string GenerateMd5(const CF& md5_update_callback)
-    {
-        MD5_CTX ctx;
-        MD5_Init(&ctx);
+    MD5_CTX ctx;
+    MD5_Init(&ctx);
 
-        do { } while( md5_update_callback(ctx) );
+    do { } while( md5_update_callback(ctx) );
 
-        constexpr size_t HexSequences = 16;
+    constexpr size_t HexSequences = 16;
 
-        unsigned char result[HexSequences];
-        MD5_Final(result, &ctx);
+    unsigned char result[HexSequences];
+    MD5_Final(result, &ctx);
 
-        std::string md5_string(HexSequences * 2, '\0');
-        char* md5_string_buffer = md5_string.data();
+    std::string md5_string(HexSequences * 2, '\0');
+    char* md5_string_buffer = md5_string.data();
 
-        for( size_t i = 0; i < HexSequences; ++i, md5_string_buffer += 2 )
-            std::snprintf(md5_string_buffer, 3, "%02x", static_cast<unsigned int>(result[i]));
+    for( size_t i = 0; i < HexSequences; ++i, md5_string_buffer += 2 )
+        std::snprintf(md5_string_buffer, 3, "%02x", static_cast<unsigned int>(result[i]));
 
-        return md5_string;
-    }
+    return md5_string;
 }
 
 
-std::string PortableFunctions::FileMd5(const InterfaceString& file_path, const bool throw_exception_on_read_error/* = false*/)
+std::string Hash::Md5::CreateFromFile(const InterfaceString& file_path, const bool throw_exception_on_read_error/* = false*/)
 {
     auto return_error = [&]()
     {
@@ -193,7 +190,7 @@ std::string PortableFunctions::FileMd5(const InterfaceString& file_path, const b
 }
 
 
-std::string PortableFunctions::StreamMd5(std::istream& input_stream)
+std::string Hash::Md5::CreateFromStream(std::istream& input_stream)
 {
     if( input_stream )
     {
@@ -237,17 +234,11 @@ std::string PortableFunctions::StreamMd5(std::istream& input_stream)
 }
 
 
-std::string PortableFunctions::BinaryMd5(const std::byte* const contents, const size_t size)
+std::string Hash::Md5::Create(const std::byte* const contents, const size_t size)
 {
     return GenerateMd5([&](MD5_CTX& ctx) -> bool
     {
         MD5_Update(&ctx, contents, uint32_cast(size));
         return false;
     });
-}
-
-
-std::string PortableFunctions::StringMd5(const std::string_view text_sv)
-{
-    return BinaryMd5(reinterpret_cast<const std::byte*>(text_sv.data()), text_sv.length());
 }

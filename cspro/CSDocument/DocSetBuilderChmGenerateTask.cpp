@@ -141,7 +141,7 @@ const std::string& DocSetBuilderChmGenerateTask::AddChmInput(std::string file_pa
             // issue an error when the contents are different
             if( !SO::EqualsNoCase(file_path, previously_added_file_path) &&
                 PortableFunctions::FileSizeAndModifiedTime(file_path) != PortableFunctions::FileSizeAndModifiedTime(previously_added_file_path) &&
-                PortableFunctions::FileMd5(file_path) != PortableFunctions::FileMd5(previously_added_file_path) )
+                Hash::Md5::CreateFromFile(file_path) != Hash::Md5::CreateFromFile(previously_added_file_path) )
             {
                 throw CSProException("Multiple files with the same name cannot be built into a %s: %s",
                                      ChmDisplayText, file_path.c_str());

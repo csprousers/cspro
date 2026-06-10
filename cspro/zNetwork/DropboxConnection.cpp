@@ -341,7 +341,7 @@ void DropboxConnection::ProcessNon304Download(const HttpResponse& response, std:
 
 void DropboxConnection::Download(const std::string& remote_file_path, const std::string& local_file_path)
 {
-    DropboxConnection::Download(remote_file_path, local_file_path, PortableFunctions::FileMd5(local_file_path));
+    DropboxConnection::Download(remote_file_path, local_file_path, Hash::Md5::CreateFromFile(local_file_path));
 }
 
 
@@ -373,7 +373,7 @@ bool DropboxConnection::Download(const std::string& remote_file_path, const std:
 
     if( !new_etag.empty() )
     {
-        const std::string downloaded_file_md5 = PortableFunctions::FileMd5(local_file_path);
+        const std::string downloaded_file_md5 = Hash::Md5::CreateFromFile(local_file_path);
         ASSERT(!downloaded_file_md5.empty() && ( existing_etag == nullptr || downloaded_file_md5 != existing_file_md5 ));
 
         m_etagsDb->Write(downloaded_file_md5, new_etag);

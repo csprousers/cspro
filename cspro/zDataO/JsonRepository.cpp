@@ -1567,7 +1567,7 @@ void JsonRepositoryBinaryDataIO::WriteBinaryData(JsonRepository& json_repository
     {
         // otherwise save the file using a filename based on the file's (MD5) signature
         const BinaryData& binary_data = binary_data_accessor.GetBinaryData();
-        ASSERT(binary_data_accessor.GetSignature() == PortableFunctions::BinaryMd5(binary_data.GetContent()));
+        ASSERT(binary_data_accessor.GetSignature() == Hash::Md5::Create(binary_data.GetContent()));
 
         // only save the file if it does not already exist (with any extension)
         if( DirectoryLister().SetNameFilter(binary_data_accessor.GetSignature() + ".*").GetPaths(binary_data_directory).empty() )

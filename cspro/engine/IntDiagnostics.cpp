@@ -73,7 +73,7 @@ double CIntDriver::exdiagnostics(int iExpr)
         if( parameter.has_value() && *parameter == ParameterManager::Parameter::Diagnostics_Md5 )
         {
             std::wstring filename = EvalFullPathFileName(arguments[1]);
-            diagnostics_text = UTF8_TODO::GetWide(PortableFunctions::FileMd5(filename));
+            diagnostics_text = UTF8_TODO::GetWide(Hash::Md5::CreateFromFile(filename));
         }
 
         return AssignAlphaValue(std::move(diagnostics_text));

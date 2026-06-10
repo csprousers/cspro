@@ -8,11 +8,15 @@
 // The Hash class:
 //     - Hashes data using PBKDF2_SHA256.
 //     - Provides bytes <-> hex string conversions.
+//
+// The Hash::Md5 class creates Message-Digest (RFC 1321) hashes.
 // --------------------------------------------------------------------------
 
 class CLASS_DECL_ZTOOLSO Hash
 {
 public:
+    class Md5;
+
     constexpr static size_t DefaultHashLength = 32;
     constexpr static size_t MaxHashLength     = 500;
 
@@ -52,24 +56,32 @@ public:
 
 
 // --------------------------------------------------------------------------
-// MD5
+// Hash::Md5
 // --------------------------------------------------------------------------
 
-namespace PortableFunctions
+class CLASS_DECL_ZTOOLSO Hash::Md5
 {
-    // Returns MD5 Message-Digest (RFC 1321) of a file.
+public:
+    // Returns the MD5 of a file.
     // If throw_exception_on_read_error is false, an empty string is returned on error.
-    CLASS_DECL_ZTOOLSO std::string FileMd5(const InterfaceString& file_path, bool throw_exception_on_read_error = false);
+    static std::string CreateFromFile(const InterfaceString& file_path, bool throw_exception_on_read_error = false);
 
-    // Returns MD5 Message-Digest (RFC 1321) of a stream, throwing an exception on error.
+    // Returns the MD5 of a stream, throwing an exception on error.
     // The stream position is not reset after the calculation.
-    CLASS_DECL_ZTOOLSO std::string StreamMd5(std::istream& input_stream);
+    static std::string CreateFromStream(std::istream& input_stream);
 
-    // Returns MD5 Message-Digest (RFC 1321) of a block of memory.
-    CLASS_DECL_ZTOOLSO std::string BinaryMd5(const std::byte* contents, size_t size);
-    inline std::string BinaryMd5(const std::vector<std::byte>& contents) { return BinaryMd5(contents.data(), contents.size()); }
-    inline std::string BinaryMd5(const BinaryBlock& contents)            { return BinaryMd5(contents.data(), contents.size()); }
+    // Returns the MD5 of a block of memory.
+    static std::string Create(const std::byte* contents, size_t size);
 
-    // Returns MD5 Message-Digest (RFC 1321) of a string.
-    CLASS_DECL_ZTOOLSO std::string StringMd5(std::string_view text_sv);
-}
+    // Returns the MD5 of a block of memory of an object that has data and size members.
+    template<typename T>
+    static std::string Create(const T& contents)
+    {
+        static_assert(sizeof(std::remove_pointer_t<decltype(contents.data())>) == sizeof(std::byte));
+        return Create(reinterpret_cast<const std::byte*>(contents.data()), contents.size());
+    }
+
+private:
+    template<typename CF>
+    static std::string GenerateMd5(const CF& md5_update_callback);
+};

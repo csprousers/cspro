@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "LocalFileConnection.h"
 #include "StreamCopier.h"
 #include <zToolsO/DirectoryLister.h>
@@ -155,7 +155,7 @@ std::vector<FileInfo> LocalFileConnection::GetDirectoryListing(const std::string
             directory_listing.emplace_back(type, std::move(filename), path_from_root,
                                            PortableFunctions::FileSize(full_path),
                                            PortableFunctions::FileModifiedTime(full_path),
-                                           request_file_md5s ? PortableFunctions::FileMd5(full_path) : std::string());
+                                           request_file_md5s ? Hash::Md5::CreateFromFile(full_path) : std::string());
         }
 
         else

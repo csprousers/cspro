@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "SQLiteBinaryItemSerializer.h"
 #include "SQLiteBinaryContentReader.h"
 #include "SQLiteErrorWithMessage.h"
@@ -113,7 +113,7 @@ void SQLiteBinaryItemSerializer::GetContentAndInsert(const BinaryDataAccessor& b
 
     // insert the new binary content
     const std::vector<std::byte>& content = binary_data_accessor.GetBinaryData().GetContent();
-    ASSERT(binary_data_accessor.IsDefinedAndContentLoaded() && signature == PortableFunctions::BinaryMd5(content));
+    ASSERT(binary_data_accessor.IsDefinedAndContentLoaded() && signature == Hash::Md5::Create(content));
 
     const SQLiteResetOnDestruction rod(m_stmtInsertContent);
     m_stmtInsertContent.Bind(1, signature)

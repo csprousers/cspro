@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "BinaryDataAccessor.h"
 #include "BinaryContentReader.h"
 
@@ -102,7 +102,7 @@ BinaryData& BinaryDataAccessor::GetBinaryData()
 const std::string& BinaryDataAccessor::GetSignature() const
 {
     if( m_signature.empty() && std::holds_alternative<BinaryData>(*m_data) )
-        m_signature = PortableFunctions::BinaryMd5(std::get<BinaryData>(*m_data).GetContent());
+        m_signature = Hash::Md5::Create(std::get<BinaryData>(*m_data).GetContent());
 
     ASSERT(( IsDefined() && IsValidSignature(m_signature) ) || ( !IsDefined() && m_signature.empty() ));
 

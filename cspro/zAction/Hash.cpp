@@ -115,17 +115,13 @@ ActionInvoker::Result ActionInvoker::Runtime::Hash_createMd5(const JsonNode& jso
     {
         const std::string path = caller.EvaluateAbsolutePath(json_node.Get<std::string>(JK::path));
 
-        md5 = PortableFunctions::FileMd5(path);
-
-        // PortableFunctions::FileMd5 returns a blank string if the file cannot be opened
-        if( md5.empty() )
-            throw FileIO::Exception::FileNotFound(path);
+        md5 = Hash::Md5::CreateFromFile(path, true);
     }
 
     // text
     else if( input_type == JK::text )
     {
-        md5 = PortableFunctions::StringMd5(json_node.Get<std::string_view>(JK::text));
+        md5 = Hash::Md5::Create(json_node.Get<std::string_view>(JK::text));
     }
 
     // bytes
@@ -136,7 +132,7 @@ ActionInvoker::Result ActionInvoker::Runtime::Hash_createMd5(const JsonNode& jso
         const std::string_view bytes_sv = json_node.Get<std::string_view>(JK::bytes);
         const std::shared_ptr<const std::vector<std::byte>> bytes = StringToBytesConverter::Convert(*this, bytes_sv, json_node, JK::bytesFormat);
 
-        md5 = PortableFunctions::BinaryMd5(*bytes);
+        md5 = Hash::Md5::Create(*bytes);
     }
 
     ASSERT(SO::IsLower(md5) && md5.length() == 32);

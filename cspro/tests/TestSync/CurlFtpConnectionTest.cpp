@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "SyncTestCredentials.h"
 #include <zUtilO/TemporaryFile.h>
 #include <zNetwork/CurlFtpConnection.h>
@@ -54,7 +54,7 @@ namespace SyncUnitTest
 
             const TemporaryFile download_temp_file;
             connection.Download(remote_file_path, download_temp_file.GetPath());
-            Assert::AreEqual(PortableFunctions::FileMd5(upload_temp_file.GetPath()), PortableFunctions::FileMd5(download_temp_file.GetPath()));
+            Assert::AreEqual(Hash::Md5::CreateFromFile(upload_temp_file.GetPath()), Hash::Md5::CreateFromFile(download_temp_file.GetPath()));
 
             connection.Disconnect();
         }
