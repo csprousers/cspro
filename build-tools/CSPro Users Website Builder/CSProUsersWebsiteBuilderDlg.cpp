@@ -23,6 +23,7 @@ namespace
 BEGIN_MESSAGE_MAP(CSProUsersWebsiteBuilderDlg, ResizableDlgEx)
     ON_COMMAND_RANGE(IDC_BUILD_SITE, IDC_BUILD_SITE, OnBuildTask)
     ON_COMMAND_RANGE(IDC_UPDATE_BLOG, IDC_UPDATE_BLOG, OnBuildTask)
+    ON_COMMAND_RANGE(IDC_UPDATE_RELEASES, IDC_UPDATE_RELEASES, OnBuildTask)
     ON_COMMAND_RANGE(IDC_UPDATE_HELPS, IDC_UPDATE_HELPS, OnBuildTask)
     ON_COMMAND_RANGE(IDC_UPDATE_MOBILE_WORKSHOP, IDC_UPDATE_MOBILE_WORKSHOP, OnBuildTask)
     ON_COMMAND_RANGE(IDC_UPDATE_GOOGLE_PLAY_PRIVACY_POLICY, IDC_UPDATE_GOOGLE_PLAY_PRIVACY_POLICY, OnBuildTask)
@@ -169,6 +170,10 @@ void CSProUsersWebsiteBuilderDlg::OnBuildTask(const UINT nID)
                             builder->UpdateBlog();
                             break;
 
+                        case IDC_UPDATE_RELEASES:
+                            builder->UpdateReleases();
+                            break;
+
                         case IDC_UPDATE_HELPS:
                             builder->UpdateHelps();
                             break;
@@ -199,7 +204,7 @@ void CSProUsersWebsiteBuilderDlg::OnBuildTask(const UINT nID)
                     m_loggingListBox.AddText("\nTask completed successfully at " + DateTime::LocalDateTimeString(DateTime::Now()));
                 }
 
-                catch( const CSProException& exception )
+                catch( const std::exception& exception )
                 {
                     m_loggingListBox.AddText("\nTask ended in error: %s", exception.what());
                     ErrorMessage::PostMessageForDisplay(exception);

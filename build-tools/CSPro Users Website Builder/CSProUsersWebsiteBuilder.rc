@@ -68,6 +68,7 @@ BEGIN
     GROUPBOX        "Create",IDC_STATIC,7,178,311,78
     PUSHBUTTON      "Build Site (production)",IDC_BUILD_SITE,17,191,129,14
     PUSHBUTTON      "Update Blog",IDC_UPDATE_BLOG,17,212,129,14
+    PUSHBUTTON      "Update Releases",IDC_UPDATE_RELEASES,17,233,129,14
     PUSHBUTTON      "Update Helps",IDC_UPDATE_HELPS,179,190,129,14
     PUSHBUTTON      "Update Mobile Workshop Materials",IDC_UPDATE_MOBILE_WORKSHOP,179,212,129,14
     PUSHBUTTON      "Update Google Play Privacy Policy",IDC_UPDATE_GOOGLE_PLAY_PRIVACY_POLICY,179,233,129,14
@@ -129,6 +130,7 @@ END
 IDD_BUILDER AFX_DIALOG_LAYOUT
 BEGIN
     0,
+    0, 0, 0, 0,
     0, 0, 0, 0,
     0, 0, 0, 0,
     0, 0, 0, 0,
