@@ -22,7 +22,7 @@ This document lists the steps necessary to create a CSPro release.
 
 ## Code
 
-1. When creating a branch for this preparation work, name it using the following convention:
+1. When creating a branch for this preparation work, name it using the following conventions:
     - release/v8.0.0-20240319
     - prerelease/v8.1.0-alpha-20260227
 
@@ -44,14 +44,25 @@ This document lists the steps necessary to create a CSPro release.
     - cspro/html/Update Android HTML Assets.bat
     - cspro/zAction/action-definitions-updater.bat
 
-5. The following are sample commit message for some of the changes above:
+5. Update the Android assets by running:
+    - build-tools/Create Installer.bat
+        - Select *Regenerate Assets* (in the CSPro Installer Generator)
+
+6. The following are sample commit messages for some of the changes:
+    - updated the versioning information for the CSPro 8.1.0 release
     - updated the versioning information for a CSPro 8.1.0 release (alpha: 2026-02-27)
     - updated the resource IDs using the Resource ID Numberer
     - updated the Android assets (as of 2026-02-27)
 
-6. Tag the repository using a variant of the branch name. For example:
+7. Tag the repository using a variant of the branch name. For example:
     - v8.0.1-2024-03-19
     - v8.1.0-2026-02-27-alpha
+
+8. Merge the branch into *dev*.
+
+9. Create a [new release](https://github.com/CSProDevelopment/cspro/releases/new) from the tag.
+
+10. If this is not a prerelease, merge *dev* into *main* and optionally create a *release* branch.
 
 
 ## Messages
@@ -74,11 +85,25 @@ This document lists the steps necessary to create a CSPro release.
     - CSPro/topics/release_history.csdoc
     - Shared/definitions.json
 
+2. Tag the repository using a variant of the branch name. For example:
+    - v8.0.1-2024-03-19
+
+3. Create a [new release](https://github.com/csprousers/helps/releases/new) from the tag.
+
+4. If this is not a prerelease, merge *dev* into *main* and optionally create a *release* branch.
+
 
 ## Examples
 
 1. Resave the CSPro application files using the current version by running:
     - build-tools/Run Update Example Files.bat
+
+2. Tag the repository using a variant of the branch name. For example:
+    - v8.0.1-2024-03-19
+
+3. Create a [new release](https://github.com/csprousers/examples/releases/new) from the tag.
+
+4. If this is not a prerelease, merge *dev* into *main* and optionally create a *release* branch.
 
 
 ## Release - Windows
@@ -112,16 +137,43 @@ This document lists the steps necessary to create a CSPro release.
 
 ## Release - Android (Google Play)
 
-1. Open the CSPro Installer Generator by running:
+1. If not already done, update the Android assets by running:
     - build-tools/Create Installer.bat
+        - Select *Regenerate Assets* (in the CSPro Installer Generator)
 
-2. Select *Regenerate Assets*.
+2. Open Android Studio.
 
-3. Open Android Studio.
+3. Select *Build* -> *Generate Signed App Bundle or APK*.
+
+4. Select *Android App Bundle*.
+
+5. Specify:
+    - *Key store path* -> cspro/CSEntryDroid/.csentrydroidkeystore
+    - *Key store password* -> (the password)
+    - *Key alias* -> gov.census.cspro.csentrydroid
+    - *Key password* -> (the same password as above)
+
+6. On the next screen, for *build variant*, select *release*.
+
+7. Upload to Google Play the following files:
+    - cspro/CSEntryDroid/app/release/app-release.aab
+    - cspro/CSEntryDroid/app/build/outputs/native-debug-symbols/release/native-debug-symbols.zip
+
+
+## Release - Android (CSPro Users Website APK for Sideloading)
+
+1. If not already done, update the Android assets by running:
+    - build-tools/Create Installer.bat
+        - Select *Regenerate Assets* (in the CSPro Installer Generator)
+
+2. Open Android Studio.
+
+3. Uncomment out the code around QUERY_ALL_PACKAGES in:
+    - cspro/CSEntryDroid/app/src/main/AndroidManifest.xml
 
 4. Select *Build* -> *Generate Signed App Bundle or APK*.
 
-5. Select *Android App Bundle*.
+5. Select *APK*.
 
 6. Specify:
     - *Key store path* -> cspro/CSEntryDroid/.csentrydroidkeystore
@@ -131,36 +183,7 @@ This document lists the steps necessary to create a CSPro release.
 
 7. On the next screen, for *build variant*, select *release*.
 
-8. Upload to Google Play the following files:
-    - cspro/CSEntryDroid/app/release/app-release.aab
-    - cspro/CSEntryDroid/app/build/outputs/native-debug-symbols/release/native-debug-symbols.zip
-
-
-## Release - Android (CSPro Users Website APK for Sideloading)
-
-1. Open the CSPro Installer Generator by running:
-    - build-tools/Create Installer.bat
-
-2. Select *Regenerate Assets*.
-
-3. Open Android Studio.
-
-4. Uncomment out the code around QUERY_ALL_PACKAGES in:
-    - cspro/CSEntryDroid/app/src/main/AndroidManifest.xml
-
-5. Select *Build* -> *Generate Signed App Bundle or APK*.
-
-6. Select *APK*.
-
-7. Specify:
-    - *Key store path* -> cspro/CSEntryDroid/.csentrydroidkeystore
-    - *Key store password* -> (the password)
-    - *Key alias* -> gov.census.cspro.csentrydroid
-    - *Key password* -> (the same password as above)
-
-8. On the next screen, for *build variant*, select *release*.
-
-9. Upload to the CSPro Users website the following file, renamed as indicated above in *Naming Conventions*:
+8. Upload to the CSPro Users website the following file, renamed as indicated above in *Naming Conventions*:
     - cspro/CSEntryDroid/app/release/app-release.apk
 
 

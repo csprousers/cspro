@@ -67,13 +67,8 @@ std::vector<ReleaseTag> ReleaseTag::Populate(GitRepository& repo, const std::str
         std::count_if(release_tags.cbegin(), release_tags.cend(),
                       [&](const ReleaseTag& rt) { return rt.prerelease; });
 
-    if( prerelease_tags > 1 )
-    {
-        throw CSProException("There should not be %zu prerelease tags.", prerelease_tags);
-    }
-
-    else if( prerelease_tags == 1 &&
-             !release_tags.back().prerelease )
+    if( prerelease_tags == 1 &&
+        !release_tags.back().prerelease )
     {
         throw CSProException("The only prerelease tag must be the final one: " + release_tags.back().tag_name);
     }
