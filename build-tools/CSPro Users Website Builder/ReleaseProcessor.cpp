@@ -91,6 +91,9 @@ private:
     // Creates the HTML table for a release.
     std::string CreateReleaseHtml(const Release& release);
 
+    // Creates the HTML listing downloadable APKs.
+    std::string CreateApkHtml();
+
 private:
     SettingsDb m_settingsDb;
     const Inputs& m_inputs;
@@ -119,10 +122,12 @@ void ReleaseProcessor::Process()
     const std::optional<Release> beta_release = ReadBeta(latest_release.release_date);
     ASSERT(!beta_release.has_value() || beta_release->release_date > latest_release.release_date);
 
+    const std::string apk_file_path = Path::Combine(m_inputs.csprousers_input, "apk", "index.html");
     const std::string beta_file_path = Path::Combine(m_inputs.csprousers_input, "beta", "index.html");
     const std::string downloads_file_path = Path::Combine(m_inputs.csprousers_input, "downloads", "index.html");
     const std::string releases_file_path = Path::Combine(m_inputs.csprousers_input, "releases", "index.html");
 
+    std::string apk_html = FileIO::ReadText(apk_file_path);
     std::string beta_html = FileIO::ReadText(beta_file_path);
     std::string downloads_html = FileIO::ReadText(downloads_file_path);
     std::string releases_html = FileIO::ReadText(releases_file_path);
@@ -154,7 +159,12 @@ void ReleaseProcessor::Process()
 
     InsertHtml(releases_html, ArchivedReleasesMarker_sv, archived_releases_html);
 
+    // update the APKs
+    constexpr std::string_view ApksMarker_sv = "{% comment %}apks{% endcomment %}";
+    InsertHtml(apk_html, ApksMarker_sv, CreateApkHtml());
+
     // save the modified files
+    FileIO::WriteText(apk_file_path, apk_html, false);
     FileIO::WriteText(beta_file_path, beta_html, false);
     FileIO::WriteText(downloads_file_path, downloads_html, false);
     FileIO::WriteText(releases_file_path, releases_html, false);
@@ -396,6 +406,7 @@ std::string ReleaseProcessor::GetReleaseFilePath(const Release& release, const R
     {
         case ReleaseAsset::ReleaseNotes:
         case ReleaseAsset::Installer_x86:
+        case ReleaseAsset::CSEntry_apk:
         case ReleaseAsset::CSWeb_tarball:
         case ReleaseAsset::CSWeb_zip:
         {
@@ -405,11 +416,6 @@ std::string ReleaseProcessor::GetReleaseFilePath(const Release& release, const R
                 FormatText("%d.%d", release.cspro_version_major, release.cspro_version_minor),
                 filename
             );
-        }
-
-        case ReleaseAsset::CSEntry_apk:
-        {
-            return Path::Combine(m_inputs.csprousers_output, "apk", filename);
         }
 
         case ReleaseAsset::WhatsNewHelp:
@@ -532,7 +538,7 @@ std::string ReleaseProcessor::CreateReleaseResourceHtml<ReleaseAsset::Installer_
 template<>
 std::string ReleaseProcessor::CreateReleaseResourceHtml<ReleaseAsset::CSEntry_apk>(const Release& release)
 {
-    const std::string& apk_file_path = GetReleaseFilePath(release, ReleaseAsset::CSEntry_apk);
+    std::string apk_file_path = GetReleaseFilePath(release, ReleaseAsset::CSEntry_apk);
 
     if( apk_file_path.empty() )
         return std::string();
@@ -541,11 +547,13 @@ std::string ReleaseProcessor::CreateReleaseResourceHtml<ReleaseAsset::CSEntry_ap
         "<a "
         "class=\"apk-link\" "
         "href=\"{{ %s }}\" "
-        "data-url=\"{{ site.baseurl }}/apk/%s\">"
+        "data-url=\"{{ site.baseurl }}/releases/%d.%d/%s\">"
         "%s"
         "</a>"
         "<span class=\"apk-hashes\" style=\"display: none;\">%s</span>",
         release.prerelease_type.empty() ? "site.csentry_google_play_url" : "page.csentry_google_play_testing_url",
+        release.cspro_version_major,
+        release.cspro_version_minor,
         Path::GetFilename(apk_file_path).c_str(),
         release.prerelease_type.empty() ? "CSEntry on Google Play" : "<em>Google Play: sign up as a beta tester</em>",
         CreateReleaseResourceHashes(apk_file_path).c_str()
@@ -710,6 +718,69 @@ std::string ReleaseProcessor::CreateReleaseHtml(const Release& release)
         "\n</table>"
         "\n"
     );
+
+    return html;
+}
+
+
+std::string ReleaseProcessor::CreateApkHtml()
+{
+    const std::string releases_directory = Path::Combine(m_inputs.csprousers_output, "releases");
+
+    // find all APKs and group them by version
+    std::map<std::string, std::vector<std::string>> version_to_apk_file_paths;
+
+    DirectoryLister directory_lister(true);
+    directory_lister.SetNameFilter("*.apk");
+
+    for( std::string& apk_file_path : directory_lister.GetPaths(releases_directory) )
+    {
+        const std::string apk_filename = Path::GetFilename(apk_file_path);
+
+        ASSERT(Path::IsSlashChar(apk_file_path[apk_file_path.length() - apk_filename.length() - 1]));
+        std::string version = Path::GetFilename(std::string_view(apk_file_path).substr(0, apk_file_path.length() - apk_filename.length() - 1));
+
+        version_to_apk_file_paths[std::move(version)].emplace_back(std::move(apk_file_path));
+    }
+
+    // write out all APKs, sorted by version
+    std::string html;
+
+    for( auto itr = version_to_apk_file_paths.rbegin(); itr != version_to_apk_file_paths.rend(); ++itr )
+    {
+        html.append("\n<tr><td>")
+            .append(itr->first)
+            .append("</td><td>");
+
+        // sort the APKs in order of newest to oldest
+        std::vector<std::string>& apk_file_paths = itr->second;
+
+        std::sort(apk_file_paths.begin(), apk_file_paths.end(),
+            [&](const std::string& apk1, const std::string& apk2) { return ( apk1 > apk2 ); }
+        );
+
+        for( auto apk_itr = apk_file_paths.cbegin(); apk_itr != apk_file_paths.cend(); ++apk_itr )
+        {
+            const std::string& apk_file_path = *apk_itr;
+            const std::string apk_filename = Path::GetFilename(apk_file_path);
+
+            if( apk_itr != apk_file_paths.cbegin() )
+                html.append("<br>");
+
+            html.append(FormatText(
+                "<a href=\"{{ site.baseurl }}/releases/%s/%s\">%s</a>"
+                "<span class=\"apk-hashes\">%s</span>",
+                itr->first.c_str(),
+                apk_filename.c_str(),
+                apk_filename.c_str(),
+                CreateReleaseResourceHashes(apk_file_path).c_str()
+            ));
+        }
+
+        html.append("</td></tr>");
+    }
+
+    html.push_back('\n');
 
     return html;
 }

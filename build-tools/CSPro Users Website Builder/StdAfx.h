@@ -4,6 +4,7 @@
 #include <StandardIncludes/strict_errors.h>
 
 #include "resource.h"
+#include <zToolsO/DirectoryLister.h>
 #include <zToolsO/FileIO.h>
 #include <zToolsO/Tools.h>
 #include <zToolsO/Utf8.h>
