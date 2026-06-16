@@ -49,6 +49,9 @@ private:
     void ReadReleases();
     static Release ReadRelease(const JsonNode& json_node);
 
+    // Sets GitHub tags for the release.
+    static void AddGitHubTags(Release& release);
+
     // Returns the expected filename of a release asset.
     std::string GetReleaseFilename(const Release& release, ReleaseAsset asset);
 
@@ -181,58 +184,72 @@ Release ReleaseProcessor::ReadRelease(const JsonNode& json_node)
         json_node.GetArrayOrEmpty(JK::missing).GetVector<std::string>()
     };
 
-    // add the GitHub tags
-    if( release.cspro_version_major > 8 || release.cspro_version >= "8.0.1" )
-    {
-        auto set_github_tag = [&](std::string repository)
-        {
-            std::string tag = FormatText(
-                "v%d.%d.%d-%s",
-                release.cspro_version_major,
-                release.cspro_version_minor,
-                release.cspro_version_patch,
-                release.release_date.c_str()
-            );
-
-            // the override will be prefixed with the repository
-            const auto& override_lookup = release.filename_overrides.find(
-                FormatText("%s:%s", repository.c_str(), tag.c_str())
-            );
-
-            if( override_lookup != release.filename_overrides.cend() )
-                tag = override_lookup->second;
-
-            release.github_tags.try_emplace(std::move(repository), std::move(tag));
-        };
-
-        set_github_tag("cspro");
-        set_github_tag("csweb");
-    }
+    AddGitHubTags(release);
 
     return release;
 }
 
 
+void ReleaseProcessor::AddGitHubTags(Release& release)
+{
+    auto set_github_tag = [&](std::string repository)
+    {
+        std::string tag = FormatText(
+            "v%d.%d.%d-%s",
+            release.cspro_version_major,
+            release.cspro_version_minor,
+            release.cspro_version_patch,
+            release.release_date.c_str()
+        );
+
+        // the override will be be "github-" followed by the repository name
+        const auto& override_lookup = release.filename_overrides.find("github-" + repository);
+
+        if( override_lookup != release.filename_overrides.cend() )
+            tag = override_lookup->second;
+
+        release.github_tags.try_emplace(std::move(repository), std::move(tag));
+    };
+
+    if( release.cspro_version_major > 8 || release.cspro_version >= "8.0.1" )
+    {
+        set_github_tag("cspro");
+        set_github_tag("csweb");
+    }
+
+    if( release.cspro_version_major > 7 || release.cspro_version >= "7.5.0" )
+    {
+        set_github_tag("helps");
+        set_github_tag("examples");
+    }
+}
+
+
 std::string ReleaseProcessor::GetReleaseFilename(const Release& release, const ReleaseAsset asset)
 {
+    std::string override_text;
     std::string filename;
 
     switch( asset )
     {
         case ReleaseAsset::ReleaseNotes:
         {
+            override_text = "release-notes";
             filename = SO::Concatenate("cspro-", release.cspro_version, "-release-notes.txt");
             break;
         }
 
         case ReleaseAsset::Installer_x86:
         {
+            override_text = "cspro-x86";
             filename = SO::Concatenate("cspro-", release.cspro_version, "-windows-x86.exe");
             break;
         }
 
         case ReleaseAsset::CSEntry_apk:
         {
+            override_text = "csentry";
+
             if( release.cspro_version_major > 7 || release.cspro_version >= "7.2.1" )
                 filename = SO::Concatenate("csentry-", release.cspro_version, ".apk");
 
@@ -241,6 +258,8 @@ std::string ReleaseProcessor::GetReleaseFilename(const Release& release, const R
 
         case ReleaseAsset::CSWeb_tarball:
         {
+            override_text = "csweb-tarball";
+
             if( release.cspro_version_major > 7 || release.csweb_version >= "7.3" )
                 filename = SO::Concatenate("csweb-", release.csweb_version, ".tar.gz");
 
@@ -249,6 +268,8 @@ std::string ReleaseProcessor::GetReleaseFilename(const Release& release, const R
 
         case ReleaseAsset::CSWeb_zip:
         {
+            override_text = "csweb-zip";
+
             if( !release.csweb_version.empty() )
                 filename = SO::Concatenate("csweb-", release.csweb_version, ".zip");
 
@@ -257,6 +278,8 @@ std::string ReleaseProcessor::GetReleaseFilename(const Release& release, const R
 
         case ReleaseAsset::WhatsNewHelp:
         {
+            override_text = "whats-new";
+
             if( release.cspro_version_major >= 7 )
                 filename = FormatText("what_is_new_in_cspro_%d_%d.html", release.cspro_version_major, release.cspro_version_minor);
 
@@ -269,8 +292,10 @@ std::string ReleaseProcessor::GetReleaseFilename(const Release& release, const R
         }
     }
 
+    ASSERT(!override_text.empty());
+
     // see if the file is missing
-    const auto& missing_lookup = std::find(release.missing_files.cbegin(), release.missing_files.cend(), filename);
+    const auto& missing_lookup = std::find(release.missing_files.cbegin(), release.missing_files.cend(), override_text);
 
     if( missing_lookup != release.missing_files.cend() )
     {
@@ -280,7 +305,7 @@ std::string ReleaseProcessor::GetReleaseFilename(const Release& release, const R
     // see if the name is overridden
     else
     {
-        const auto& override_lookup = release.filename_overrides.find(filename);
+        const auto& override_lookup = release.filename_overrides.find(override_text);
 
         if( override_lookup != release.filename_overrides.cend() )
             filename = override_lookup->second;
@@ -503,9 +528,10 @@ std::string ReleaseProcessor::CreateReleaseResourceHtml<ReleaseAsset::WhatsNewHe
         return std::string();
 
     return FormatText(
-        "<a href=\"{{ site.baseurl }}/help/CSPro/%s\">%s</a>",
+        "<a href=\"{{ site.baseurl }}/help/CSPro/%s\">What's New in CSPro %d.%d?</a>",
         html_filename.c_str(),
-        html_filename.c_str()
+        release.cspro_version_major,
+        release.cspro_version_minor
     );
 }
 
@@ -517,7 +543,7 @@ std::string ReleaseProcessor::CreateReleaseSourceCodeUrls(const Release& release
     if( release.github_tags.empty() )
         return html;
 
-    for( const char* const displayable_repository : { "CSPro", "CSWeb" } )
+    for( const char* const displayable_repository : { "CSPro", "CSWeb", "Helps", "Examples" } )
     {
         const auto& lookup = release.github_tags.find(SO::ToLower(displayable_repository));
 
@@ -530,7 +556,7 @@ std::string ReleaseProcessor::CreateReleaseSourceCodeUrls(const Release& release
                 displayable_repository
             );
 
-            SO::AppendWithSeparator(html, url, " &mdash; ");
+            SO::AppendWithSeparator(html, url, " • ");
         }
     }
 
@@ -548,13 +574,13 @@ std::string ReleaseProcessor::CreateReleaseHtml(const Release& release)
         release.release_date.c_str()
     );
 
-    auto add_row = [&](const cs::string_sz product, const std::string& resource_html)
+    auto add_row = [&](const char* const product, const std::string& resource_html)
     {
         if( resource_html.empty() )
             return;
 
         html.append("\n<tr><td>")
-            .append(product.c_str())
+            .append(product)
             .append("</td><td>")
             .append(resource_html)
             .append("</td></tr>");
@@ -568,8 +594,7 @@ std::string ReleaseProcessor::CreateReleaseHtml(const Release& release)
 
     add_row("Release Notes", CreateReleaseResourceHtml<ReleaseAsset::ReleaseNotes>(release));
 
-    const std::string whats_new_text = FormatText("What's New in CSPro %d.%d", release.cspro_version_major, release.cspro_version_minor);
-    add_row(whats_new_text, CreateReleaseResourceHtml<ReleaseAsset::WhatsNewHelp>(release));
+    add_row("What's New?", CreateReleaseResourceHtml<ReleaseAsset::WhatsNewHelp>(release));
 
     add_row("Source Code", CreateReleaseSourceCodeUrls(release));
 
