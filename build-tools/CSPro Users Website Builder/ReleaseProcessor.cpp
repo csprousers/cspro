@@ -3,10 +3,11 @@
 #include <zToolsO/Hash.h>
 
 
-CREATE_JSON_KEY(cspro)
 CREATE_JSON_KEY(csweb)
 CREATE_JSON_KEY(missing)
 CREATE_JSON_KEY(overrides)
+CREATE_JSON_KEY(prerelease)
+
 
 // --------------------------------------------------------------------------
 // Release
@@ -17,6 +18,8 @@ enum class ReleaseAsset { ReleaseNotes, Installer_x86, CSEntry_apk, CSWeb_tarbal
 struct Release
 {
     std::string release_date;
+
+    std::string prerelease_type;
 
     std::string cspro_version;
     int cspro_version_major;
@@ -46,8 +49,13 @@ public:
 
 private:
     // Reads the release information from the releases.json file.
-    void ReadReleases();
-    static Release ReadRelease(const JsonNode& json_node);
+    std::vector<Release> ReadReleases();
+
+    // Reads the release information from the beta.json file.
+    std::optional<Release> ReadBeta(const std::string& latest_release_date);
+
+    // Creates a Release object from the JSON.
+    static Release ParseRelease(const JsonNode& json_node);
 
     // Sets GitHub tags for the release.
     static void AddGitHubTags(Release& release);
@@ -77,13 +85,15 @@ private:
     // Creates the HTML for the links to the source code.
     static std::string CreateReleaseSourceCodeUrls(const Release& release);
 
-    // Creates the HTML table for a release
+    // Creates the HTML for a beta release.
+    std::string CreateBetaHtml(const std::optional<Release>& beta_release);
+
+    // Creates the HTML table for a release.
     std::string CreateReleaseHtml(const Release& release);
 
 private:
     SettingsDb m_settingsDb;
     const Inputs& m_inputs;
-    std::vector<Release> m_releases;
 };
 
 
@@ -96,22 +106,34 @@ ReleaseProcessor::ReleaseProcessor(const Inputs& inputs)
 
 void ReleaseProcessor::Process()
 {
-    ReadReleases();
+    // read the releases
+    const std::vector<Release> releases = ReadReleases();
 
     // there should be at least one "latest" and one "archived" release
-    if( m_releases.size() < 2 )
+    if( releases.size() < 2 )
         throw ProgrammingErrorException();
 
+    const Release& latest_release = releases.front();
+
+    // read an optional beta
+    const std::optional<Release> beta_release = ReadBeta(latest_release.release_date);
+    ASSERT(!beta_release.has_value() || beta_release->release_date > latest_release.release_date);
+
+    const std::string beta_file_path = Path::Combine(m_inputs.csprousers_input, "beta", "index.html");
     const std::string downloads_file_path = Path::Combine(m_inputs.csprousers_input, "downloads", "index.html");
     const std::string releases_file_path = Path::Combine(m_inputs.csprousers_input, "releases", "index.html");
 
+    std::string beta_html = FileIO::ReadText(beta_file_path);
     std::string downloads_html = FileIO::ReadText(downloads_file_path);
     std::string releases_html = FileIO::ReadText(releases_file_path);
 
+    // update the beta
+    constexpr std::string_view BetaMarker_sv = "{% comment %}beta{% endcomment %}";
+    InsertHtml(beta_html, BetaMarker_sv, CreateBetaHtml(beta_release));
+
     // update the latest release in both the downloads page and the releases page
     constexpr std::string_view LatestReleaseMarker_sv = "{% comment %}latest-release{% endcomment %}";
-
-    const std::string latest_release_html = CreateReleaseHtml(m_releases.front());
+    const std::string latest_release_html = CreateReleaseHtml(latest_release);
 
     InsertHtml(downloads_html, LatestReleaseMarker_sv, latest_release_html);
     InsertHtml(releases_html, LatestReleaseMarker_sv, latest_release_html);
@@ -122,7 +144,7 @@ void ReleaseProcessor::Process()
 
     std::string archived_releases_html;
 
-    for( auto release_itr = m_releases.cbegin() + 1; release_itr != m_releases.cend(); ++release_itr )
+    for( auto release_itr = releases.cbegin() + 1; release_itr != releases.cend(); ++release_itr )
     {
         archived_releases_html.append(CreateReleaseHtml(*release_itr))
                               .append(ArchivedReleasesSeparator_sv);
@@ -133,33 +155,63 @@ void ReleaseProcessor::Process()
     InsertHtml(releases_html, ArchivedReleasesMarker_sv, archived_releases_html);
 
     // save the modified files
+    FileIO::WriteText(beta_file_path, beta_html, false);
     FileIO::WriteText(downloads_file_path, downloads_html, false);
     FileIO::WriteText(releases_file_path, releases_html, false);
 }
 
 
-void ReleaseProcessor::ReadReleases()
+std::vector<Release> ReleaseProcessor::ReadReleases()
 {
     const std::string releases_json_file_path = Path::Combine(m_inputs.csprousers_input, "releases", "releases.json");
     const JsonNode json_node = Json::ParseFile(releases_json_file_path);
 
+    std::vector<Release> releases;
+
     for( const JsonNode& release_json_node : json_node.GetArray() )
-        m_releases.emplace_back(ReadRelease(release_json_node));
+    {
+        releases.emplace_back(ParseRelease(release_json_node));
+        ASSERT(releases.back().prerelease_type.empty());
+    }
 
     // sort the releases in order of newest to oldest
-    std::sort(m_releases.begin(), m_releases.end(),
+    std::sort(releases.begin(), releases.end(),
         [&](const Release& r1, const Release& r2) { return ( r1.release_date > r2.release_date  ); }
     );
+
+    return releases;
 }
 
 
-Release ReleaseProcessor::ReadRelease(const JsonNode& json_node)
+std::optional<Release> ReleaseProcessor::ReadBeta(const std::string& latest_release_date)
 {
-    std::string cspro_version = json_node.Get<std::string>(JK::cspro);
+    const std::string beta_json_file_path = Path::Combine(m_inputs.csprousers_input, "beta", "beta.json");
+    const JsonNode json_node = Json::ParseFile(beta_json_file_path);
+
+    Release beta_release = ParseRelease(json_node);
+    ASSERT(!beta_release.prerelease_type.empty());
+
+    // a beta must be newer than all releases
+    if( beta_release.release_date > latest_release_date )
+        return beta_release;
+
+    return std::nullopt;
+}
+
+
+Release ReleaseProcessor::ParseRelease(const JsonNode& json_node)
+{
+    std::string cspro_version = json_node.Get<std::string>(JK::version);
     const std::vector<std::string> version = SO::SplitString(cspro_version, '.');
 
     if( version.size() != 3 )
         throw ProgrammingErrorException();
+
+    const int cspro_version_major = std::stoi(version[0]);
+
+    std::string csweb_version = ( cspro_version_major >= 7 )
+        ? json_node.GetOrDefault(JK::csweb, cspro_version)
+        : std::string();
 
     std::map<std::string, std::string> filename_overrides;
 
@@ -175,11 +227,12 @@ Release ReleaseProcessor::ReadRelease(const JsonNode& json_node)
     Release release
     {
         json_node.Get<std::string>(JK::date),
+        json_node.GetOrConstruct<std::string>(JK::prerelease),
         std::move(cspro_version),
-        std::stoi(version[0]),
+        cspro_version_major,
         std::stoi(version[1]),
         std::stoi(version[2]),
-        json_node.GetOrConstruct<std::string>(JK::csweb),
+        std::move(csweb_version),
         std::move(filename_overrides),
         json_node.GetArrayOrEmpty(JK::missing).GetVector<std::string>()
     };
@@ -201,6 +254,10 @@ void ReleaseProcessor::AddGitHubTags(Release& release)
             release.cspro_version_patch,
             release.release_date.c_str()
         );
+
+        // prerelease tags include the type
+        if( !release.prerelease_type.empty() )
+            SO::AppendWithSeparator(tag, release.prerelease_type, '-');
 
         // the override will be be "github-" followed by the repository name
         const auto& override_lookup = release.filename_overrides.find("github-" + repository);
@@ -230,19 +287,32 @@ std::string ReleaseProcessor::GetReleaseFilename(const Release& release, const R
     std::string override_text;
     std::string filename;
 
+    std::string version_text = ( asset == ReleaseAsset::CSWeb_tarball || asset == ReleaseAsset::CSWeb_zip )
+        ? release.csweb_version
+        : release.cspro_version;
+
+    // preleases include the type and date
+    if( !release.prerelease_type.empty() )
+    {
+        std::string date_without_hyphens = release.release_date;
+        SO::Remove(date_without_hyphens, '-');
+        SO::AppendWithSeparator(version_text, release.prerelease_type, '-');
+        SO::AppendWithSeparator(version_text, date_without_hyphens, '-');
+    }
+
     switch( asset )
     {
         case ReleaseAsset::ReleaseNotes:
         {
             override_text = "release-notes";
-            filename = SO::Concatenate("cspro-", release.cspro_version, "-release-notes.txt");
+            filename = SO::Concatenate("cspro-", version_text, "-release-notes.txt");
             break;
         }
 
         case ReleaseAsset::Installer_x86:
         {
             override_text = "cspro-x86";
-            filename = SO::Concatenate("cspro-", release.cspro_version, "-windows-x86.exe");
+            filename = SO::Concatenate("cspro-", version_text, "-windows-x86.exe");
             break;
         }
 
@@ -251,7 +321,7 @@ std::string ReleaseProcessor::GetReleaseFilename(const Release& release, const R
             override_text = "csentry";
 
             if( release.cspro_version_major > 7 || release.cspro_version >= "7.2.1" )
-                filename = SO::Concatenate("csentry-", release.cspro_version, ".apk");
+                filename = SO::Concatenate("csentry-", version_text, ".apk");
 
             break;
         }
@@ -261,7 +331,7 @@ std::string ReleaseProcessor::GetReleaseFilename(const Release& release, const R
             override_text = "csweb-tarball";
 
             if( release.cspro_version_major > 7 || release.csweb_version >= "7.3" )
-                filename = SO::Concatenate("csweb-", release.csweb_version, ".tar.gz");
+                filename = SO::Concatenate("csweb-", version_text, ".tar.gz");
 
             break;
         }
@@ -271,7 +341,7 @@ std::string ReleaseProcessor::GetReleaseFilename(const Release& release, const R
             override_text = "csweb-zip";
 
             if( !release.csweb_version.empty() )
-                filename = SO::Concatenate("csweb-", release.csweb_version, ".zip");
+                filename = SO::Concatenate("csweb-", version_text, ".zip");
 
             break;
         }
@@ -470,12 +540,14 @@ std::string ReleaseProcessor::CreateReleaseResourceHtml<ReleaseAsset::CSEntry_ap
     std::string html = FormatText(
         "<a "
         "class=\"apk-link\" "
-        "href=\"{{ site.csentry_google_play_url }}\" "
+        "href=\"{{ %s }}\" "
         "data-url=\"{{ site.baseurl }}/apk/%s\">"
-        "CSEntry on Google Play"
+        "%s"
         "</a>"
         "<span class=\"apk-hashes\" style=\"display: none;\">%s</span>",
+        release.prerelease_type.empty() ? "site.csentry_google_play_url" : "page.csentry_google_play_testing_url",
         Path::GetFilename(apk_file_path).c_str(),
+        release.prerelease_type.empty() ? "CSEntry on Google Play" : "<em>Google Play: sign up as a beta tester</em>",
         CreateReleaseResourceHashes(apk_file_path).c_str()
     );
 
@@ -543,7 +615,7 @@ std::string ReleaseProcessor::CreateReleaseSourceCodeUrls(const Release& release
     if( release.github_tags.empty() )
         return html;
 
-    for( const char* const displayable_repository : { "CSPro", "CSWeb", "Helps", "Examples" } )
+    auto add_url = [&](const char* const displayable_repository)
     {
         const auto& lookup = release.github_tags.find(SO::ToLower(displayable_repository));
 
@@ -558,7 +630,41 @@ std::string ReleaseProcessor::CreateReleaseSourceCodeUrls(const Release& release
 
             SO::AppendWithSeparator(html, url, " • ");
         }
+    };
+
+    add_url("CSPro");
+    add_url("CSWeb");
+
+    // omit helps and examples for prereleases
+    if( release.prerelease_type.empty() )
+    {
+        add_url("Helps");
+        add_url("Examples");
     }
+
+    return html;
+}
+
+
+std::string ReleaseProcessor::CreateBetaHtml(const std::optional<Release>& beta_release)
+{
+    if( !beta_release.has_value() )
+    {
+        return
+            "\n<h2>Current Beta</h2>"
+            "\n<hr>"
+            "\n<p><em>No beta release is currently available. Visit the <a href=\"{{ site.baseurl }}/downloads/\">Downloads</a> page to find the latest release.</em></p>"
+            "\n";
+    }
+
+    std::string html = FormatText(
+        "\n<h2>Current %s</h2>"
+        "\n<hr>"
+        "\n<p><strong>Prereleases should be used at your own risk!</strong></p>",
+        SO::ToProperCase(beta_release->prerelease_type).c_str()
+    );
+
+    html.append(CreateReleaseHtml(*beta_release));
 
     return html;
 }
@@ -568,10 +674,11 @@ std::string ReleaseProcessor::CreateReleaseHtml(const Release& release)
 {
     std::string html = FormatText(
         "\n<table class=\"release-table\">"
-        "\n<thead><tr><th>CSPro %s &mdash; %s</th><th>Resource</th></tr></thead>"
+        "\n<thead><tr><th>CSPro %s &mdash; %s%s</th><th>Resource</th></tr></thead>"
         "\n<tbody>",
         release.cspro_version.c_str(),
-        release.release_date.c_str()
+        release.release_date.c_str(),
+        release.prerelease_type.empty() ? "" : FormatText(" (%s)", release.prerelease_type.c_str()).c_str()
     );
 
     auto add_row = [&](const char* const product, const std::string& resource_html)
