@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "CodePurifierView.h"
 #include "DiffTool.h"
 #include "EditorConfigApplier.h"
@@ -623,7 +623,7 @@ void CodePurifierView::OnModifiedFileDiff()
             const std::string temp_filename_wihout_extension = SO::Concatenate(
                 Path::GetFilenameWithoutExtension(modified_file.file_path),
                 "-", ( clean_commit != nullptr ) ? clean_commit->GetObjectId().GetHexHash().substr(0, 7) : ReturnProgrammingError(""),
-                "-", Hash::Hash(modified_file.file_path, 2)
+                "-", Hash::Create(modified_file.file_path, 2)
             );
 
             old_file_path = PortableFunctions::CreateFilePath(

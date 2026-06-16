@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <engine/StandardSystemIncludes.h>
 #include <engine/StrictCompilerErrors.h>
@@ -8,6 +8,7 @@
 #include <zDataO/DataRepositoryHelpers.h>
 #include <zDataO/DataRepositoryUniqueCaseIdentifer.h>
 #include <zDataO/WriteCaseParameter.h>
+#include <zToolsO/Hash.h>
 #include <zToolsO/NewlineSubstitutor.h>
 #include <zToolsO/Special.h>
 #include <zToolsO/TextEncoding.h>

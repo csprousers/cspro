@@ -2,7 +2,6 @@
 #include "DocSetBuilder.h"
 #include "CSDocCompilerSettings.h"
 #include "PdfCreator.h"
-#include <zToolsO/Hash.h>
 
 
 // --------------------------------------------------------------------------
@@ -104,7 +103,7 @@ std::string CSDocCompilerSettingsForBuildingPdf::CreateHtmlAnchorId(const std::s
     // the anchor ID will be a hash of the relative path of the CSPro Document to the Document Set
     const std::string relative_path = GetRelativePathForDisplay(doc_set_spec.GetFilePath(), csdoc_file_path);
 
-    return Hash::Hash(relative_path, hash_length, salt_sv);
+    return Hash::Create(relative_path, hash_length, salt_sv);
 }
 
 

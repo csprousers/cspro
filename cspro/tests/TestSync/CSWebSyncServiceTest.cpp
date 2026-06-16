@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "CaseTestHelpers.h"
 #include "CSWebSyncServiceWithModifiableApi.h"
 #include "SyncTestCredentials.h"
@@ -717,7 +717,7 @@ namespace SyncUnitTest
             s << fileContent;
             s.close();
 
-            const std::string expectedMd5 = PortableFunctions::FileMd5(destFilePath);
+            const std::string expectedMd5 = Hash::Md5::CreateFromFile(destFilePath);
             PortableFunctions::FileDelete(destFilePath);
 
             Mock<HttpConnection> mockHttp;
@@ -793,7 +793,7 @@ namespace SyncUnitTest
             s << fileContent;
             s.close();
 
-            const std::string expectedMd5 = PortableFunctions::FileMd5(srcFilePath);
+            const std::string expectedMd5 = Hash::Md5::CreateFromFile(srcFilePath);
 
             Mock<HttpConnection> mockHttp;
             CSWebSyncService sync_service(std::unique_ptr<HttpConnection>(&mockHttp.get()), hostUrl, username_password);
@@ -926,7 +926,7 @@ namespace SyncUnitTest
 
             const std::string input_file_path = Path::Combine(Html::GetDirectory(Html::Subdirectory::Images),
                                                               "report-icon.svg");
-            const std::string input_file_md5 = PortableFunctions::FileMd5(input_file_path);
+            const std::string input_file_md5 = Hash::Md5::CreateFromFile(input_file_path);
 
             auto create_remote_path = [&]()
             {
@@ -950,12 +950,12 @@ namespace SyncUnitTest
             TemporaryFile temporary_file_1;
             bool downloaded_file = sync_service.GetFile(remote_path_1, temporary_file_1.GetPath(), std::string());
             Assert::IsTrue(downloaded_file);
-            Assert::AreEqual(input_file_md5, PortableFunctions::FileMd5(temporary_file_1.GetPath()));
+            Assert::AreEqual(input_file_md5, Hash::Md5::CreateFromFile(temporary_file_1.GetPath()));
 
             TemporaryFile temporary_file_2;
             downloaded_file = sync_service.GetFile(remote_path_2, temporary_file_2.GetPath(), std::string());
             Assert::IsTrue(downloaded_file);
-            Assert::AreEqual(input_file_md5, PortableFunctions::FileMd5(temporary_file_2.GetPath()));
+            Assert::AreEqual(input_file_md5, Hash::Md5::CreateFromFile(temporary_file_2.GetPath()));
 
             // test 4: make sure the file is not downloaded if if already exists
             downloaded_file = sync_service.GetFile(remote_path_1, temporary_file_1.GetPath(), input_file_md5);

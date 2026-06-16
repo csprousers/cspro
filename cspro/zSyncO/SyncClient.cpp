@@ -621,7 +621,7 @@ SyncClient::SyncResult SyncClient::GetFilesWithWildcard(const std::string& from_
                 std::regex_match(file_info.GetName(), from_regex) )
             {
                 const std::string evaluated_to_path = Path::Combine(to_path, file_info.GetName());
-                const std::string existing_file_md5 = PortableFunctions::FileMd5(evaluated_to_path);
+                const std::string existing_file_md5 = Hash::Md5::CreateFromFile(evaluated_to_path);
 
                 if( existing_file_md5.empty() || !SO::EqualsNoCase(existing_file_md5, file_info.GetMd5()) )
                 {
@@ -681,7 +681,7 @@ SyncClient::SyncResult SyncClient::GetFile(const std::string& from_path, cs::cre
 
         ASSERT(*to_path == PortableFunctions::PathToNativeSlash(*to_path));
 
-        const std::string existing_file_md5 = PortableFunctions::FileMd5(*to_path);
+        const std::string existing_file_md5 = Hash::Md5::CreateFromFile(*to_path);
 
         SYNCLOG_INFO << "Downloading file: " << from_path << " to: " << *to_path;
 

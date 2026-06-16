@@ -100,7 +100,7 @@ std::unique_ptr<ApplicationPackageManager::ApplicationWithSignature> Application
         {
             package->SetInstallPath(installed_package_directory);
 
-            return std::make_unique<ApplicationWithSignature>(ApplicationWithSignature { std::move(*package), PortableFunctions::StringMd5(*installed_package_json) });
+            return std::make_unique<ApplicationWithSignature>(ApplicationWithSignature { std::move(*package), Hash::Md5::Create(*installed_package_json) });
         }
     }
 

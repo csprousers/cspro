@@ -223,7 +223,7 @@ std::string LibraryManager::CalculateCacheKey(const std::vector<Input>& inputs, 
             ASSERT(lookup == m_fileData.cend());
 
             std::unique_ptr<FileData> file_data(new FileData { std::move(binary_block) });
-            file_data->md5 = PortableFunctions::BinaryMd5(file_data->file_data);
+            file_data->md5 = Hash::Md5::Create(file_data->file_data);
             return m_fileData.try_emplace(input, std::move(file_data)).first;
         };
 
@@ -269,7 +269,7 @@ std::string LibraryManager::CalculateCacheKey(const std::vector<Input>& inputs, 
         }
     }
 
-    return Hash::Hash(cache_key_inputs, LibrariesHashHexLength / 2);
+    return Hash::Create(cache_key_inputs, LibrariesHashHexLength / 2);
 }
 
 

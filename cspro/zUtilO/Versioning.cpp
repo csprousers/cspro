@@ -5,7 +5,7 @@
 
 namespace
 {
-    constexpr int CSProReleaseDate = 20260527;
+    constexpr int CSProReleaseDate = 20260616;
 
     // to override the version that appears in the UI (but not serialized files), replace 'x' with the version override
     constexpr std::string_view NumberDetailedTextOverride_sv = "x.x.x";

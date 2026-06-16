@@ -898,7 +898,7 @@ ObexResponseCode SyncObexHandler::handleDirectoryListing(const std::string& path
             directory_listing.emplace_back(type, std::move(filename), UTF8_TODO::GetUtf8(pathFromRoot),
                                            PortableFunctions::FileSize(fullPath),
                                            int64_t(0),
-                                           request_file_md5s ? PortableFunctions::FileMd5(fullPath) : std::string());
+                                           request_file_md5s ? Hash::Md5::CreateFromFile(fullPath) : std::string());
         }
 
         else
@@ -947,7 +947,7 @@ ObexResponseCode SyncObexHandler::handleFileGet(CString path, const HeaderList& 
 
     CString ifNoneMatch = UTF8_TODO::GetCString(requestHeaders.GetValue("If-None-Match"));
     if (!ifNoneMatch.IsEmpty() && PortableFunctions::FileExists(fullPath)) {
-        std::wstring md5 = UTF8_TODO::GetWide(PortableFunctions::FileMd5(fullPath));
+        std::wstring md5 = UTF8_TODO::GetWide(Hash::Md5::CreateFromFile(fullPath));
         if (SO::EqualsNoCase(md5, ifNoneMatch)) {
             SYNCLOG_INFO << "File not modified. Skipping.";
             return OBEX_NOT_MODIFIED;

@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "Encryption.h"
 #include "base64.h"
 #include "Hash.h"
@@ -55,7 +55,7 @@ private:
     int m_rounds;
     static constexpr size_t KeySize = 4 * ( RIJNDAEL_MAXNR + 1 );
     static constexpr size_t BlockSize = 16;
-    uint32_t m_rijndaelEncryptionKey[KeySize]; 
+    uint32_t m_rijndaelEncryptionKey[KeySize];
     uint32_t m_rijndaelDecryptionKey[KeySize];
 };
 
@@ -66,8 +66,8 @@ RijndaelEncryptor::RijndaelEncryptor(const std::string_view key_sv, const bool u
 {
     // generate a 256-bit hash from the key
     constexpr size_t HashSizeBits = 256;
-    const std::vector<std::byte> key_hash = Hash::Hash(reinterpret_cast<const std::byte*>(key_sv.data()), key_sv.length(),
-                                                       nullptr, 0, HashSizeBits / 8);
+    const std::vector<std::byte> key_hash = Hash::Create(reinterpret_cast<const std::byte*>(key_sv.data()), key_sv.length(),
+                                                         nullptr, 0, HashSizeBits / 8);
     ASSERT(key_hash.size() == 32);
 
     // create the Rijndael encryption and decryption keys
@@ -75,7 +75,7 @@ RijndaelEncryptor::RijndaelEncryptor(const std::string_view key_sv, const bool u
     ASSERT(m_rounds == RIJNDAEL_MAXNR);
 
     const int dec_rounds = rijndaelKeySetupDec(m_rijndaelDecryptionKey, reinterpret_cast<const uint8_t*>(key_hash.data()), HashSizeBits);
-    ASSERT(m_rounds == dec_rounds);            
+    ASSERT(m_rounds == dec_rounds);
 }
 
 
@@ -237,7 +237,7 @@ std::vector<std::byte> RijndaelEncryptor::EncryptWorker(const cs::span<const std
             encrypt(remaining_data_itr);
             remaining_data_itr += BlockSize;
         }
-    }   
+    }
 
     return output_buffer;
 }

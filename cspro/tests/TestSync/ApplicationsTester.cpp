@@ -127,18 +127,18 @@ void ApplicationsTester::RunTest(SyncClient& sync_client, const std::optional<si
 
     const std::string not_updated_source_file_path = package_aaa.application_package.GetFiles()[0].path;
     const std::string not_updated_installed_file_path = Path::Combine(package_aaa_install_directory, PortableFunctions::PathGetFilename(not_updated_source_file_path));
-    const std::string not_updated_initial_md5 = PortableFunctions::FileMd5(not_updated_source_file_path);
-    Assert::AreEqual(not_updated_initial_md5, PortableFunctions::FileMd5(not_updated_installed_file_path));
+    const std::string not_updated_initial_md5 = Hash::Md5::CreateFromFile(not_updated_source_file_path);
+    Assert::AreEqual(not_updated_initial_md5, Hash::Md5::CreateFromFile(not_updated_installed_file_path));
 
     FileIO::WriteText(not_updated_source_file_path, "", false);
-    Assert::AreEqual(EmptyMd5, PortableFunctions::FileMd5(not_updated_source_file_path).c_str());
+    Assert::AreEqual(EmptyMd5, Hash::Md5::CreateFromFile(not_updated_source_file_path).c_str());
 
     const std::string updated_source_file_path = package_aaa.application_package.GetFiles()[1].path;
     const std::string updated_installed_file_path = Path::Combine(package_aaa_install_directory, PortableFunctions::PathGetFilename(updated_source_file_path));
-    Assert::AreEqual(PortableFunctions::FileMd5(updated_source_file_path), PortableFunctions::FileMd5(updated_installed_file_path));
+    Assert::AreEqual(Hash::Md5::CreateFromFile(updated_source_file_path), Hash::Md5::CreateFromFile(updated_installed_file_path));
 
     FileIO::WriteText(updated_source_file_path, "", false);
-    Assert::AreEqual(EmptyMd5, PortableFunctions::FileMd5(updated_source_file_path).c_str());
+    Assert::AreEqual(EmptyMd5, Hash::Md5::CreateFromFile(updated_source_file_path).c_str());
 
 
     // test 10: upload an updated package (AAA)
@@ -157,8 +157,8 @@ void ApplicationsTester::RunTest(SyncClient& sync_client, const std::optional<si
 
 
     // test 12: make sure that the updates came through properly
-    Assert::AreEqual(not_updated_initial_md5, PortableFunctions::FileMd5(not_updated_installed_file_path));
-    Assert::AreEqual(EmptyMd5, PortableFunctions::FileMd5(updated_installed_file_path).c_str());
+    Assert::AreEqual(not_updated_initial_md5, Hash::Md5::CreateFromFile(not_updated_installed_file_path));
+    Assert::AreEqual(EmptyMd5, Hash::Md5::CreateFromFile(updated_installed_file_path).c_str());
 
 
     // test 13: make sure the installed packages are correct

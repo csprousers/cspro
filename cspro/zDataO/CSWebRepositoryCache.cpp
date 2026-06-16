@@ -96,7 +96,7 @@ std::unique_ptr<CSWebRepositoryCache> CSWebRepositoryCache::Create(CSWebReposito
     {
         const std::string values_for_password_hash = SO::Concatenate(user.id, user.role_name, DoubleToString(GetTimestamp<double>()));
 
-        cache_password.emplace(Hash::Hash(
+        cache_password.emplace(Hash::Create(
             reinterpret_cast<const std::byte*>(values_for_password_hash.data()),
             values_for_password_hash.length(),
             reinterpret_cast<const std::byte*>(dictionary_name.data()),

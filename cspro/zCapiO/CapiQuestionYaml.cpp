@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "CapiQuestionYaml.h"
 #include "CapiQuestionManager.h"
 #include <yaml-cpp/yaml.h>
@@ -287,6 +287,8 @@ std::string WriteToYaml(const CapiQuestionManager& question_manager)
 
                     for( const auto& [language_name, capi_text] : texts )
                     {
+                        ASSERT(capi_text.GetText().GetString().find('\r') == std::string::npos);
+
                         out << YAML::Key << language_name;
 
                         out << YAML::BeginMap;

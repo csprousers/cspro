@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "CSWebConnection.h"
 #include "ConnectResponse.h"
 #include "HeaderList.h"
@@ -465,7 +465,7 @@ T CSWebConnection::ExecuteRestPutBinaryData(const std::string& path, int error_m
 {
     HeaderList headers = GetBaseHeaders();
     headers.Add_ContentType_OctetStream()
-           .Add_ContentMD5(PortableFunctions::BinaryMd5(data));
+           .Add_ContentMD5(Hash::Md5::Create(data));
 
     std::unique_ptr<const std::string> compressed_data;
     std::optional<MemoryStream> memory_stream;
@@ -659,7 +659,7 @@ bool CSWebConnection::GetFileUsingEndpoint(const std::string& remote_file_path, 
                 local_output_file_stream.close();
 
                 if( client_md5 != nullptr )
-                    *client_md5 = PortableFunctions::FileMd5(local_file_path);
+                    *client_md5 = Hash::Md5::CreateFromFile(local_file_path);
             });
     }
 
@@ -858,7 +858,7 @@ std::string CSWebConnection::DownloadDictionaryBinaryData(const std::string& dic
             data = body.ToString();
 
             if( client_md5 != nullptr )
-                *client_md5 = PortableFunctions::StringMd5(data);
+                *client_md5 = Hash::Md5::Create(data);
         });
 
     return data; // BINARY_BLOCK_TODO CSWebConnection::DownloadDictionaryBinaryData could return a BinaryBlock

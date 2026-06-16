@@ -3,12 +3,17 @@
 Most CSPro development occurs on a [private repository](https://github.com/CSProDevelopment/cspro), though the commits are mirrored to this [public repository](https://github.com/csprousers/cspro). This document lists information about each pull request merged into the private repository, starting with pull requests for CSPro 7.6.
 
 
-## CSPro (current development)
+## CSPro 8.1.0
+
+**Installer**: [https://csprousers.org/releases/8.1/cspro-8.1.0-windows-x86.exe](https://csprousers.org/releases/8.1/cspro-8.1.0-windows-x86.exe)
+
+**Release notes**: [https://csprousers.org/releases/8.1/cspro-8.1.0-release-notes.txt](https://csprousers.org/releases/8.1/cspro-8.1.0-release-notes.txt)
 
 **Merged pull requests**:
 
 | Date | Branch | Pull Request Message |
 | --- | --- | --- |
+| 2026&#8209;06&#8209;16 | [release/v8.1.0-20260616](https://github.com/CSProDevelopment/cspro/commit/07e99435f9b638841486c6ab8397237a5d312226) | final work for the CSPro 8.1.0 release |
 | 2026&#8209;06&#8209;09 | [action-invoker-sync-data](https://github.com/CSProDevelopment/cspro/commit/e6322afcf86d65147d7900c8edd6cb624d938561) | added actions for synchronizing data and querying the state of synchronization |
 | 2026&#8209;05&#8209;27 | [prerelease/v8.1.0-beta-20260527](https://github.com/CSProDevelopment/cspro/commit/2501552cfa4002910ee3fa0cd6529dfe37e33199) | preparations for a CSPro 8.1.0 release (beta-2026-05-27) |
 | 2026&#8209;05&#8209;27 | [Data-actions](https://github.com/CSProDevelopment/cspro/commit/7c83f6773b02dbbc2d34cfa3c3f28cb48de7568e) | added to Action Invoker's Data namespace, adding actions to interact with data sources |

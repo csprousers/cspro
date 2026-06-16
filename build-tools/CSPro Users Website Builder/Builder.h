@@ -13,6 +13,8 @@ public:
 
     void UpdateBlog();
 
+    void UpdateReleases();
+
     void UpdateHelps();
 
     void UpdateMobileWorkshop();

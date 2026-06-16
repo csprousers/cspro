@@ -26,6 +26,7 @@
     <ClCompile Include="Builder.cpp" />
     <ClCompile Include="CSProUsersWebsiteBuilder.cpp" />
     <ClCompile Include="CSProUsersWebsiteBuilderDlg.cpp" />
+    <ClCompile Include="ReleaseProcessor.cpp" />
     <ClCompile Include="StdAfx.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>

@@ -1,4 +1,4 @@
-﻿//***************************************************************************
+//***************************************************************************
 //  File name: DDClass.cpp
 //
 //  Description:
@@ -1012,7 +1012,7 @@ namespace
 
         std::string GetMd5() const
         {
-            return PortableFunctions::BinaryMd5(m_structureData);
+            return Hash::Md5::Create(m_structureData);
         }
 
     protected:

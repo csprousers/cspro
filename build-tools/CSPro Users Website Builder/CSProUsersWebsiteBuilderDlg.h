@@ -2,7 +2,6 @@
 
 #include "Inputs.h"
 #include <zUtilO/ResizableDlg.h>
-#include <zUtilO/SettingsDb.h>
 #include <zEditO/LogicCtrl.h>
 #include <afxmenubutton.h>
 

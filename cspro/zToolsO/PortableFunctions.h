@@ -101,22 +101,6 @@ namespace PortableFunctions
     // Returns the "command-line string for the current process," or a blank string in the portable environments.
     CLASS_DECL_ZTOOLSO std::string GetCommandLine();
 
-    // Returns MD5 Message-Digest (RFC 1321) of a file.
-    // If throw_exception_on_read_error is false, an empty string is returned on error.
-    CLASS_DECL_ZTOOLSO std::string FileMd5(const InterfaceString& file_path, bool throw_exception_on_read_error = false);
-
-    // Returns MD5 Message-Digest (RFC 1321) of a stream, throwing an exception on error.
-    // The stream position is not reset after the calculation.
-    CLASS_DECL_ZTOOLSO std::string StreamMd5(std::istream& input_stream);
-
-    // Returns MD5 Message-Digest (RFC 1321) of a block of memory.
-    CLASS_DECL_ZTOOLSO std::string BinaryMd5(const std::byte* contents, size_t size);
-    inline std::string BinaryMd5(const std::vector<std::byte>& contents) { return BinaryMd5(contents.data(), contents.size()); }
-    inline std::string BinaryMd5(const BinaryBlock& contents)            { return BinaryMd5(contents.data(), contents.size()); }
-
-    // Returns MD5 Message-Digest (RFC 1321) of a string.
-    CLASS_DECL_ZTOOLSO std::string StringMd5(std::string_view text_sv);
-
     ///<summary>Get current file position as offset from file start in bytes. 64 bit version of ftell.</summary>
     CLASS_DECL_ZTOOLSO int64_t ftelli64(FILE* stream);
 
