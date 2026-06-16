@@ -14,7 +14,7 @@ public:
     static constexpr const char* NumberDetailedText = "8.1.0";
     static constexpr const char* CSProVersionText   = "CSPro 8.1";
 
-    static constexpr ReleaseType ReleaseType        = ReleaseType::Beta;
+    static constexpr ReleaseType ReleaseType        = ReleaseType::Release;
     static constexpr bool        IsPrerelease       = ( ReleaseType != ::ReleaseType::Release );
 
     CLASS_DECL_ZUTILO static int GetReleaseDate();

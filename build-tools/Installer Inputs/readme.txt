@@ -1,4 +1,4 @@
-﻿CSPro 8.1.0 (beta)                                               27 May 2026
+CSPro 8.1.0                                                     16 June 2026
 
 ============================================================================
 
@@ -89,9 +89,9 @@
 
          * Deleting and undeleting cases.
 
-    -  Markdown can be used while specifying question text, in templated
-       reports, and can be viewed (as generated HTML) using the view
-       function or in CSView. CSCode supports editing Markdown.
+    -  Markdown can be used when specifying question text, in templated
+       reports, and can be viewed using the view function or in CSView.
+       CSCode supports editing Markdown.
 
     -  Applications can access the QuickJS-NG JavaScript Engine from CSPro
        logic. Using the JS namespace, it is possible to evaluate JavaScript,
@@ -113,13 +113,13 @@
        incrementally.
 
     -  Language additions:
-          * Logic: setValueFromJson
           * Image functions: getExif
           * JS functions: eval, getValue, getValueJson, hasValue, invoke,
               setValue, setValueFromJson
           * Report functions: writeEncoded, writeEncodedLine, writeLine
           * StringWriter functions: clear, toString, write, writeEncoded,
               writeEncodedLine, writeLine
+          * Symbol functions: setValueFromJson
           * ValueSet functions: removeDuplicates
 
     -  Action Invoker additions:
@@ -235,7 +235,7 @@
         Microsoft Windows Vista, 7, 8, 10, or 11
 
     To run the CSEntry application on an Android phone or tablet, the
-    device must run Android version 4.0 (Ice Cream Sandwich) or higher.
+    device must run Android version 7.0 (Nougat) or higher.
 
 ============================================================================
 
@@ -243,7 +243,7 @@
 
     CSPro comes with several example programs to help you learn about the
     software's functionality. The examples are in a subfolder of the
-    Documents folder, "CSPro\Examples 8.1." You can also view the examples
+    Documents folder, "CSPro\Examples 8.1". You can also view the examples
     folder via a link on the Help menu in the CSPro Designer.
 
 ============================================================================
@@ -1603,8 +1603,7 @@
 
     Comments, questions, and suggestions should be addressed to:
 
-        Methodology & Software Development Branch
-        International Programs
+        International Programs Center
         U.S. Census Bureau
         Washington, DC 20233-8860
         United States of America
