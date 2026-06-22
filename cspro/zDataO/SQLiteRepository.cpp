@@ -915,8 +915,7 @@ void SQLiteRepository::WriteCase(Case& data_case, const WriteCaseParameter* cons
             throw SQLiteErrorWithMessage(m_db);
 
         // Update the file pos in the case to make caching work
-        if( m_accessType == DataRepositoryAccess::ReadWrite )
-            UpdateFilePosition(data_case);
+        UpdateFilePosition(data_case);
 
         data_case.GetVectorClock().increment(m_deviceId);
         InsertVectorClock(data_case);
