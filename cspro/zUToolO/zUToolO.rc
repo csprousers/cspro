@@ -64,8 +64,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 8,1,0,0
- PRODUCTVERSION 8,1,0,0
+ FILEVERSION 8,1,1,0
+ PRODUCTVERSION 8,1,1,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -81,11 +81,11 @@ BEGIN
         BLOCK "040904B0"
         BEGIN
             VALUE "FileDescription", "zUToolO DLL"
-            VALUE "FileVersion", "8.1.0.0"
+            VALUE "FileVersion", "8.1.1.0"
             VALUE "InternalName", "zUToolO"
             VALUE "OriginalFilename", "zUToolO.DLL"
             VALUE "ProductName", "CSPro 8.1"
-            VALUE "ProductVersion", "8.1.0.0"
+            VALUE "ProductVersion", "8.1.1.0"
         END
     END
     BLOCK "VarFileInfo"
