@@ -343,8 +343,9 @@ std::optional<T> SimpleDbMap::Get(const std::string& key) noexcept
     try
     {
         Sqlite::Statement& stmt = m_currentTable->stmt_get;
-        stmt.Reset()
-            .Bind(1, key);
+        const Sqlite::Statement::Resetter stmt_resetter(stmt);
+
+        stmt.Bind(1, key);
 
         if( stmt.Step() == Sqlite::Result::Row  )
             return stmt.GetColumn<T>(0);
