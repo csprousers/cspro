@@ -244,6 +244,9 @@
     <ClInclude Include="Dictgrid.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="DictionaryAnalysisDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="DictionaryMacros.h">
       <Filter>Header Files</Filter>
     </ClInclude>

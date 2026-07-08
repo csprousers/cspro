@@ -163,13 +163,7 @@ BEGIN
         MENUITEM "&Full Screen\tCtrl+J",        ID_VIEW_FULLSCREEN
         MENUITEM SEPARATOR
         MENUITEM "Aliases",                     ID_VIEW_ALIASES
-        POPUP "Dictionary &Analysis"
-        BEGIN
-            MENUITEM "Numeric/Alpha Items Without Value Sets", ID_DICT_ANALYSIS_ITEMS_NO_VALUE_SETS
-            MENUITEM "Numeric Items Without Value Sets", ID_DICT_ANALYSIS_NUMERIC_ITEMS_NO_VALUE_SETS
-            MENUITEM "Numeric Items With Overlapping Value Sets", ID_DICT_ANALYSIS_NUMERIC_ITEMS_OVERLAPPING_VALUE_SETS
-            MENUITEM "Numeric Items With Mismatched ZeroFill or DecChar Options", ID_DICT_ANALYSIS_NUMERIC_ITEMS_MISMATCHED_ZF_DC
-        END
+        MENUITEM "Dictionary &Analysis",        ID_DICTIONARY_ANALYSIS
         MENUITEM SEPARATOR
         MENUITEM "Dictionary",                  ID_VIEW_DICTIONARY
         MENUITEM "Questionnaire",               ID_VIEW_QUESTIONNAIRE
@@ -778,15 +772,16 @@ END
 
 STRINGTABLE
 BEGIN
+    ID_DICTIONARY_ANALYSIS  "Analyze the dictionary and its properties\nDictionary Analysis"
     ID_EDIT_ADD             "Add level, record, item, or value to end of list\nAdd"
-END
-
-STRINGTABLE
-BEGIN
     ID_EDIT_ADD_NEXT        "Add"
     ID_EDIT_DELETE          "Delete selected level, record, item, or value\nDelete"
     ID_EDIT_FLATTEN_OCCURRENCES 
                             "Convert multiply occurring items to singly occurring items\nFlatten Occurrences"
+END
+
+STRINGTABLE
+BEGIN
     ID_EDIT_INSERT          "Insert level, record, item, or value at selection point\nInsert"
     ID_EDIT_LANGUAGES       "Edit Dictionary Languages"
     ID_EDIT_MAKE_SUBITEMS   "Make selected items into subitems\nConvert to Subitems"
@@ -801,12 +796,13 @@ END
 STRINGTABLE
 BEGIN
     ID_OPTIONS_ABS_REL      "Toggles between relative and absolute item positions\nRelative/Absolute"
+    ID_OPTIONS_ENABLE_BINARY_ITEMS 
+                            "Enable the use of binary items\nEnable Binary Items"
 END
 
 STRINGTABLE
 BEGIN
-    ID_OPTIONS_ENABLE_BINARY_ITEMS 
-                            "Enable the use of binary items\nEnable Binary Items"
+    ID_VIEW_ALIASES         "View the names of dictionary aliases\nAliases"
     ID_VIEW_DICTIONARY      "View dictionary layout\nDictionary"
     ID_VIEW_LAYOUT          "Show or hide the layout view\nLayout"
     ID_VIEW_PROPERTIES      "Show or hide additional properties\nProperties"

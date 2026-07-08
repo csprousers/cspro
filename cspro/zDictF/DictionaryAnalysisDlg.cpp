@@ -1,15 +1,26 @@
 #include "StdAfx.h"
+#include "DictionaryAnalysisDlg.h"
 #include <zUtilF/TextReportDlg.h>
 #include <zDictO/ValueSetResponse.h>
 
 
-void CDictChildWnd::RunDictAnalysis(const std::function<void(const CDictItem&)>& analysis_function,
-                                    const std::function<bool(std::string&, std::string&)>& summary_results_function)
+DictionaryAnalysisDlg::DictionaryAnalysisDlg(const CDataDict& dictionary)
+    :   m_dictionary(dictionary)
 {
-    CDDDoc* pDoc = assert_cast<CDDDoc*>(GetActiveDocument());
+}
 
+
+void DictionaryAnalysisDlg::DoModal()
+{
+    // TODO
+}
+
+
+void DictionaryAnalysisDlg::RunDictAnalysis(const std::function<void(const CDictItem&)>& analysis_function,
+                                            const std::function<bool(std::string&, std::string&)>& summary_results_function)
+{
     // call the analysis function for each item
-    DictionaryIterator::Foreach<CDictItem>(*pDoc->GetDict(),
+    DictionaryIterator::Foreach<CDictItem>(m_dictionary,
         [&](const CDictItem& dict_item)
         {
             analysis_function(dict_item);
@@ -32,7 +43,7 @@ void CDictChildWnd::RunDictAnalysis(const std::function<void(const CDictItem&)>&
 }
 
 
-void CDictChildWnd::RunDictAnalysisNoValueSets(const bool numerics_only)
+void DictionaryAnalysisDlg::RunDictAnalysisNoValueSets(const bool numerics_only)
 {
     int number_items_without_value_sets = 0;
     std::string items_without_value_sets;
@@ -69,13 +80,13 @@ void CDictChildWnd::RunDictAnalysisNoValueSets(const bool numerics_only)
 }
 
 
-void CDictChildWnd::OnDictAnalysisItemsNoValueSets()
+void DictionaryAnalysisDlg::OnDictAnalysisItemsNoValueSets()
 {
     RunDictAnalysisNoValueSets(false);
 }
 
 
-void CDictChildWnd::OnDictAnalysisNumericItemsNoValueSets()
+void DictionaryAnalysisDlg::OnDictAnalysisNumericItemsNoValueSets()
 {
     RunDictAnalysisNoValueSets(true);
 }
@@ -153,7 +164,8 @@ namespace
     }
 }
 
-void CDictChildWnd::OnDictAnalysisNumericItemsOverlappingValueSets()
+
+void DictionaryAnalysisDlg::OnDictAnalysisNumericItemsOverlappingValueSets()
 {
     int number_overlapping_value_sets = 0;
     std::string overlapping_value_sets;
@@ -193,15 +205,13 @@ void CDictChildWnd::OnDictAnalysisNumericItemsOverlappingValueSets()
 }
 
 
-void CDictChildWnd::OnDictAnalysisNumericMismatchedZeroFillDecChar()
+void DictionaryAnalysisDlg::OnDictAnalysisNumericMismatchedZeroFillDecChar()
 {
     int number_mismatched_items = 0;
     std::string mismatched_items;
 
-    CDDDoc* pDoc = assert_cast<CDDDoc*>(GetActiveDocument());
-    const CDataDict* pDict = pDoc->GetDict();
-    bool default_zero_fill = pDict->IsZeroFill();
-    bool default_dec_char = pDict->IsDecChar();
+    const bool default_zero_fill = m_dictionary.IsZeroFill();
+    const bool default_dec_char = m_dictionary.IsDecChar();
 
     const std::function<void(const CDictItem&)> analysis_function =
         [&](const CDictItem& dict_item)
@@ -209,8 +219,8 @@ void CDictChildWnd::OnDictAnalysisNumericMismatchedZeroFillDecChar()
             if( dict_item.GetContentType() != ContentType::Numeric )
                 return;
 
-            bool zero_fill_mismatch = ( dict_item.GetZeroFill() != default_zero_fill );
-            bool dec_char_mismatch = ( dict_item.GetDecimal() > 0 && dict_item.GetDecChar() != default_dec_char );
+            const bool zero_fill_mismatch = ( dict_item.GetZeroFill() != default_zero_fill );
+            const bool dec_char_mismatch = ( dict_item.GetDecimal() > 0 && dict_item.GetDecChar() != default_dec_char );
 
             if( zero_fill_mismatch || dec_char_mismatch )
             {

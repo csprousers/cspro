@@ -101,6 +101,7 @@
     <ClInclude Include="DictClipboard.h" />
     <ClInclude Include="DictDialogBar.h" />
     <ClInclude Include="Dictgrid.h" />
+    <ClInclude Include="DictionaryAnalysisDlg.h" />
     <ClInclude Include="DictionaryMacros.h" />
     <ClInclude Include="DictPropertyGridBaseManager.h" />
     <ClInclude Include="DictPropertyGridCtrl.h" />

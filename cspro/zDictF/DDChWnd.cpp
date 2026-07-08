@@ -13,6 +13,7 @@
 #include "StdAfx.h"
 #include "DDChWnd.h"
 #include "DDLView.h"
+#include "DictionaryAnalysisDlg.h"
 #include "FindDlg.h"
 #include <zUtilF/TextReportDlg.h>
 
@@ -28,7 +29,7 @@ namespace
 {
     void UpdateRelativePositionsStatusBar(const CDataDict& dictionary)
     {
-        const TCHAR* text = dictionary.IsPosRelative() ? _T("Relative Positions") : _T("Absolute Positions");
+        const TCHAR* text = dictionary.IsPosRelative() ? L"Relative Positions" : L"Absolute Positions";
         AfxGetMainWnd()->SendMessage(WM_IMSA_SET_STATUSBAR_PANE, (WPARAM)text);
     }
 }
@@ -39,20 +40,6 @@ namespace
 // CDictChildWnd
 
 IMPLEMENT_DYNCREATE(CDictChildWnd, COXMDIChildWndSizeDock)
-
-CDictChildWnd::CDictChildWnd()
-    :   m_bLayout(FALSE), m_bQuestionnaireView(FALSE), m_iGridViewPaneSize(0),
-        m_bViewPropertiesPanel(FALSE), m_pQuestionnaireView(nullptr)
-{
-    // Get Global Settings
-    TCHAR pszTemp[10];
-    GetPrivateProfileString(_T("intl"), _T("sDecimal"), _T("."), pszTemp, 10, _T("WIN.INI"));
-    m_cDecimal = pszTemp[0];
-}
-
-CDictChildWnd::~CDictChildWnd()
-{
-}
 
 
 BEGIN_MESSAGE_MAP(CDictChildWnd, COXMDIChildWndSizeDock)
@@ -65,29 +52,38 @@ BEGIN_MESSAGE_MAP(CDictChildWnd, COXMDIChildWndSizeDock)
     ON_COMMAND(ID_FILE_PAGE_SETUP, OnFilePageSetup)
     ON_UPDATE_COMMAND_UI(ID_VIEW_LAYOUT, OnUpdateViewLayout)
     ON_COMMAND(ID_VIEW_ALIASES, OnViewAliases)
-    ON_COMMAND(ID_DICT_ANALYSIS_ITEMS_NO_VALUE_SETS, OnDictAnalysisItemsNoValueSets)
-    ON_COMMAND(ID_DICT_ANALYSIS_NUMERIC_ITEMS_NO_VALUE_SETS, OnDictAnalysisNumericItemsNoValueSets)
-    ON_COMMAND(ID_DICT_ANALYSIS_NUMERIC_ITEMS_OVERLAPPING_VALUE_SETS, OnDictAnalysisNumericItemsOverlappingValueSets)
-    ON_COMMAND(ID_DICT_ANALYSIS_NUMERIC_ITEMS_MISMATCHED_ZF_DC, OnDictAnalysisNumericMismatchedZeroFillDecChar)
+    ON_COMMAND(ID_DICTIONARY_ANALYSIS, OnDictionaryAnaylsis)
     ON_MESSAGE(UWM::Dictionary::Find, OnFind)        // Find text
-    ON_COMMAND(ID_VIEW_PROPERTIES, &CDictChildWnd::OnViewProperties)
-    ON_UPDATE_COMMAND_UI(ID_VIEW_PROPERTIES, &CDictChildWnd::OnUpdateViewProperties)
-    ON_COMMAND(ID_VIEW_QUESTIONNAIRE, &CDictChildWnd::OnViewQuestionnaire)
-    ON_UPDATE_COMMAND_UI(ID_VIEW_QUESTIONNAIRE, &CDictChildWnd::OnUpdateViewQuestionnaire)
-    ON_UPDATE_COMMAND_UI(ID_EDIT_LANGUAGES, &CDictChildWnd::OnUpdateEditLanguages)
-    ON_UPDATE_COMMAND_UI(ID_EDIT_RELATION, &CDictChildWnd::OnUpdateEditRelation)
-    ON_UPDATE_COMMAND_UI(ID_EDIT_SECURITY_OPTIONS, &CDictChildWnd::OnUpdateEditSecurityOptions)
-    ON_UPDATE_COMMAND_UI(ID_DICTIONARY_MACROS, &CDictChildWnd::OnUpdateDictionaryMacros)
-    ON_UPDATE_COMMAND_UI(ID_OPTIONS_ENABLE_BINARY_ITEMS, &CDictChildWnd::OnUpdateOptionsEnableBinaryItems)
-    ON_UPDATE_COMMAND_UI(ID_OPTIONS_ABS_REL, &CDictChildWnd::OnUpdateOptionsAbsRel)
-    ON_UPDATE_COMMAND_UI(ID_OPTIONS_ZEROFILL, &CDictChildWnd::OnUpdateOptionsZeroFill)
+    ON_COMMAND(ID_VIEW_PROPERTIES, OnViewProperties)
+    ON_UPDATE_COMMAND_UI(ID_VIEW_PROPERTIES, OnUpdateViewProperties)
+    ON_COMMAND(ID_VIEW_QUESTIONNAIRE, OnViewQuestionnaire)
+    ON_UPDATE_COMMAND_UI(ID_VIEW_QUESTIONNAIRE, OnUpdateViewQuestionnaire)
+    ON_UPDATE_COMMAND_UI(ID_EDIT_LANGUAGES, OnUpdateEditLanguages)
+    ON_UPDATE_COMMAND_UI(ID_EDIT_RELATION, OnUpdateEditRelation)
+    ON_UPDATE_COMMAND_UI(ID_EDIT_SECURITY_OPTIONS, OnUpdateEditSecurityOptions)
+    ON_UPDATE_COMMAND_UI(ID_DICTIONARY_MACROS, OnUpdateDictionaryMacros)
+    ON_UPDATE_COMMAND_UI(ID_OPTIONS_ENABLE_BINARY_ITEMS, OnUpdateOptionsEnableBinaryItems)
+    ON_UPDATE_COMMAND_UI(ID_OPTIONS_ABS_REL, OnUpdateOptionsAbsRel)
+    ON_UPDATE_COMMAND_UI(ID_OPTIONS_ZEROFILL, OnUpdateOptionsZeroFill)
     ON_UPDATE_COMMAND_UI(ID_OPTIONS_DECCHAR, OnUpdateOptionsDecChar)
-    //}}AFX_MSG_MAP
-
-
-    ON_COMMAND(ID_VIEW_DICTIONARY, &CDictChildWnd::OnViewDictionary)
-    ON_UPDATE_COMMAND_UI(ID_VIEW_DICTIONARY, &CDictChildWnd::OnUpdateViewDictionary)
+    ON_COMMAND(ID_VIEW_DICTIONARY, OnViewDictionary)
+    ON_UPDATE_COMMAND_UI(ID_VIEW_DICTIONARY, OnUpdateViewDictionary)
 END_MESSAGE_MAP()
+
+
+CDictChildWnd::CDictChildWnd()
+    :   m_iGridViewPaneSize(0),
+        m_bLayout(FALSE),
+        m_bQuestionnaireView(FALSE),
+        m_bViewPropertiesPanel(FALSE),
+        m_pQuestionnaireView(nullptr)
+{
+    // Get Global Settings
+    TCHAR pszTemp[10];
+    GetPrivateProfileString(L"intl", L"sDecimal", L".", pszTemp, 10, L"WIN.INI");
+    m_cDecimal = pszTemp[0];
+}
+
 
 /////////////////////////////////////////////////////////////////////////////
 // CDictChildWnd message handlers
@@ -306,7 +302,7 @@ void CDictChildWnd::OnEditFind() {
             ptDlgOrigin = CPoint(rcViewClient.right-rcDlgRect.Size().cx, rcViewClient.bottom-rcDlgRect.Size().cy);    // left, top of dialog, relative to client view
             ClientToScreen(&ptDlgOrigin );                      // convert to absolute (screen) coordinates
             DictFind::dlg.MoveWindow(ptDlgOrigin.x - 20, ptDlgOrigin.y, rcDlgRect.Size().cx, rcDlgRect.Size().cy);  // x,y,width,height
-            DictFind::dlg.SetWindowText(_T("Find Dictionary Text"));
+            DictFind::dlg.SetWindowText(L"Find Dictionary Text");
             DictFind::dlg.ShowWindow (SW_SHOW);
         }
         // Set the input focus to the "Find What" combo box ...
@@ -420,7 +416,7 @@ LRESULT CDictChildWnd::OnFind(WPARAM /*wParam*/, LPARAM /*lParam*/) {
         bFound = pDict->Find(bNext, bCaseSensitive, find_text, iLevel, iRec, iItem, iVSet, iValue);
     }
     if (!bFound) {
-        AfxMessageBox(_T("Not found"));
+        AfxMessageBox(L"Not found");
         return 0;
     }
 
@@ -517,7 +513,7 @@ void CDictChildWnd::OnViewAliases()
 
     if( aliases.empty() )
     {
-        AfxMessageBox(_T("There are no defined aliases."));
+        AfxMessageBox(L"There are no defined aliases.");
     }
 
     else
@@ -534,6 +530,15 @@ void CDictChildWnd::OnViewAliases()
         text_report_dialog.UseFixedWidthFont();
         text_report_dialog.DoModal();
     }
+}
+
+
+void CDictChildWnd::OnDictionaryAnaylsis()
+{
+    const CDDDoc* const pDoc = assert_cast<CDDDoc*>(GetActiveDocument());
+
+    DictionaryAnalysisDlg dlg(pDoc->GetDictionary());
+    dlg.DoModal();
 }
 
 
@@ -562,7 +567,6 @@ void CDictChildWnd::DisplayActiveMode() {
         m_wndSplitter.RecalcLayout();
     }
 }
-
 
 
 void CDictChildWnd::OnViewProperties()
@@ -617,7 +621,7 @@ void CDictChildWnd::OnViewQuestionnaire()
         m_pQuestionnaireView = new QuestionnaireView(*pDoc);
         CCreateContext context = CCreateContext();
         context.m_pCurrentDoc = pDoc;
-        if (!m_pQuestionnaireView->Create(NULL, _T(""), dwStyle, rect, &m_wndSplitter, iID, &context)) {
+        if (!m_pQuestionnaireView->Create(NULL, L"", dwStyle, rect, &m_wndSplitter, iID, &context)) {
             TRACE0("Failed to create questionnaire view\n");
             ASSERT(false);
             return;
