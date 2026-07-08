@@ -9,11 +9,19 @@
 
 namespace Analysis
 {
-    constexpr int ItemsWithoutValueSets                = 0;
-    constexpr int NumericItemsWithoutValueSets         = 1;
-    constexpr int NumericItemsWithOverlappingValueSets = 2;
-    constexpr int ItemsWithMismatchedDecCharOptions    = 3;
-    constexpr int ItemsWithMismatchedZeroFillOptions   = 4;
+    // Items
+    constexpr int ItemsWithMismatchedDecCharOptions    = 101;
+    constexpr int ItemsWithMismatchedZeroFillOptions   = 102;
+
+    // Value Sets
+    constexpr int ItemsWithoutValueSets                = 201;
+    constexpr int NumericItemsWithoutValueSets         = 202;
+    constexpr int NumericItemsWithOverlappingValueSets = 203;
+
+    // Value Set: Special Values
+    constexpr int ValueSetsUsingSpecials               = 301;
+    constexpr int ValueSetsUsingMissing                = 302;
+    constexpr int ValueSetsUsingRefused                = 303;
 }
 
 
@@ -112,6 +120,12 @@ HTREEITEM DictionaryAnalysisDlg::PopulateAnalysisTypes()
     add_type(L"Numeric items without value sets", Analysis::NumericItemsWithoutValueSets);
     add_type(L"Numeric items with overlapping value sets", Analysis::NumericItemsWithOverlappingValueSets);
 
+    tvi.hParent = TVI_ROOT;
+    tvi.hParent = add_type(L"Value Set: Special Values", -1);
+    add_type(L"Value sets using special values", Analysis::ValueSetsUsingSpecials);
+    add_type(L"Value sets using missing", Analysis::ValueSetsUsingMissing);
+    add_type(L"Value sets using refused", Analysis::ValueSetsUsingRefused);
+
     return initial_node_to_select;
 }
 
@@ -165,6 +179,14 @@ void DictionaryAnalysisDlg::RunAnalysis()
 
     switch( m_analysisType )
     {
+        // Items
+        case Analysis::ItemsWithMismatchedDecCharOptions:
+            return OnMismatchedDecCharZeroFill(true);
+
+        case Analysis::ItemsWithMismatchedZeroFillOptions:
+            return OnMismatchedDecCharZeroFill(false);
+
+        // Value Sets
         case Analysis::ItemsWithoutValueSets:
             return OnWithoutValueSets(false);
 
@@ -174,12 +196,17 @@ void DictionaryAnalysisDlg::RunAnalysis()
         case Analysis::NumericItemsWithOverlappingValueSets:
             return OnNumericItemsOverlappingValueSets();
 
-        case Analysis::ItemsWithMismatchedDecCharOptions:
-            return OnMismatchedDecCharZeroFill(true);
+        // Value Set: Special Values
+        case Analysis::ValueSetsUsingSpecials:
+            return OnValueSetsUsingSpecials(std::nullopt);
 
-        case Analysis::ItemsWithMismatchedZeroFillOptions:
-            return OnMismatchedDecCharZeroFill(false);
+        case Analysis::ValueSetsUsingMissing:
+            return OnValueSetsUsingSpecials(MISSING);
 
+        case Analysis::ValueSetsUsingRefused:
+            return OnValueSetsUsingSpecials(REFUSED);
+
+        // (category headings)
         default:
             ASSERT(m_analysisType == -1);
             return SetResultsText(SO::Empty_string);
@@ -433,6 +460,75 @@ void DictionaryAnalysisDlg::OnMismatchedDecCharZeroFill(const bool dec_char)
                 m_resultRows.size(),
                 PluralizeWord(m_resultRows.size()),
                 option_type
+            );
+        };
+
+    RunAnalysis(analysis_function, get_header_function);
+}
+
+
+void DictionaryAnalysisDlg::OnValueSetsUsingSpecials(const std::optional<double> special_value)
+{
+    const std::function<void(const CDictItem&)> analysis_function =
+        [&](const CDictItem& dict_item)
+        {
+            if( dict_item.GetContentType() != ContentType::Numeric ||
+                !dict_item.HasValueSets() )
+            {
+                return;
+            }
+
+            for( const DictValueSet& dict_value_set : dict_item.GetValueSets() )
+            {
+                std::set<double> special_values_processed;
+
+                for( const DictValue& dict_value : dict_value_set.GetValues() )
+                {
+                    if( !dict_value.IsSpecial() )
+                        continue;
+
+                    const double this_special_value = dict_value.GetSpecialValue();
+
+                    if( ( !special_value.has_value() || this_special_value == *special_value ) &&
+                        special_values_processed.find(this_special_value) == special_values_processed.cend() )
+                    {
+                        special_values_processed.insert(dict_value.GetSpecialValue());
+
+                        std::string& result_row = m_resultRows.emplace_back(
+                            SO::CreateParentheticalExpression(
+                                dict_item.GetName().c_str(),
+                                dict_value_set.GetName().c_str()
+                            )
+                        );
+
+                        // add the type of special value when listing all special values
+                        if( !special_value.has_value() )
+                        {
+                            result_row.append(": ")
+                                      .append(SpecialValues::ValueToString(dict_value.GetSpecialValue(), false));
+                        }
+                    }
+                }
+            }
+        };
+
+    const std::function<std::string()> get_header_function =
+        [&]() -> std::string
+        {
+            const char* const special_type =
+                ( !special_value.has_value() ) ? "special" :
+                ( special_value == MISSING )   ? "missing" :
+              /*( special_value == REFUSED )*/   "refused";
+
+            if( m_resultRows.empty() )
+                return FormatText("There are no value sets using %s values.", special_type);
+
+            return FormatText(
+                "There %s %zu value set%s using %s values:",
+                PluralizeWord(m_resultRows.size(), "is", "are"),
+                m_resultRows.size(),
+                PluralizeWord(m_resultRows.size()),
+                special_type
             );
         };
 

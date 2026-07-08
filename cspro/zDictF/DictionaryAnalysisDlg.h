@@ -41,6 +41,8 @@ private:
 
     void OnMismatchedDecCharZeroFill(bool dec_char); // vs. zero_fill
 
+    void OnValueSetsUsingSpecials(std::optional<double> special_value);
+
 private:
     const CDataDict& m_dictionary;
 
