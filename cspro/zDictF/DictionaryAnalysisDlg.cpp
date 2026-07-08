@@ -1,6 +1,8 @@
 #include "StdAfx.h"
 #include "DictionaryAnalysisDlg.h"
+#include <zToolsO/WinSettings.h>
 #include <zUtilO/DynamicLayoutControlResizer.h>
+#include <zUtilO/TreeCtrlHelpers.h>
 #include <zUtilO/WindowHelpers.h>
 #include <zDictO/ValueSetResponse.h>
 
@@ -23,7 +25,7 @@ namespace Order
 
 
 BEGIN_MESSAGE_MAP(DictionaryAnalysisDlg, DynamicLayoutResizableDlg)
-    ON_LBN_SELCHANGE(IDC_ANALYSIS_TYPE, OnAnalysisTypeChange)
+    ON_NOTIFY(TVN_SELCHANGED, IDC_ANALYSIS_TYPE, OnAnalysisTypeChange)
     ON_BN_CLICKED(IDC_DICTIONARY, OnAnalysisOrderChange)
     ON_BN_CLICKED(IDC_ALPHABETICAL, OnAnalysisOrderChange)
     ON_COMMAND(IDC_COPY_TO_CLIPBOARD, OnCopyToClipboard)
@@ -33,7 +35,8 @@ END_MESSAGE_MAP()
 DictionaryAnalysisDlg::DictionaryAnalysisDlg(const CDataDict& dictionary, CWnd* const pParent/* = nullptr*/)
     :   DynamicLayoutResizableDlg(IDD_DICTIONARY_ANALYSIS, pParent),
         m_dictionary(dictionary),
-        m_analysisOrder(Order::Dictionary)
+        m_analysisType(WinSettings::Read<DWORD>(WinSettings::Type::DictionaryAnalysisType, Analysis::NumericItemsWithoutValueSets)),
+        m_analysisOrder(WinSettings::Read<DWORD>(WinSettings::Type::DictionaryAnalysisOrder, Order::Dictionary))
 {
     SerializeDialogSize("DictionaryAnalysisDlg");
 }
@@ -43,7 +46,7 @@ void DictionaryAnalysisDlg::DoDataExchange(CDataExchange* const pDX)
 {
     __super::DoDataExchange(pDX);
 
-    DDX_Control(pDX, IDC_ANALYSIS_TYPE, m_analysisTypeListBox);
+    DDX_Control(pDX, IDC_ANALYSIS_TYPE, m_analysisTypeTreeCtrl);
     DDX_Radio(pDX, IDC_DICTIONARY, m_analysisOrder);
     DDX_Control(pDX, IDC_RESULTS, m_resultsEditCtrl);
 }
@@ -56,21 +59,16 @@ BOOL DictionaryAnalysisDlg::OnInitDialog()
     WindowHelpers::RemoveDialogSystemIcon(*this);
 
     // add the analysis types
-    m_analysisTypeListBox.AddString(L"Items without value sets");
-    m_analysisTypeListBox.AddString(L"Numeric items without value sets");
-    m_analysisTypeListBox.AddString(L"Numeric items with overlapping value sets");
-    m_analysisTypeListBox.AddString(L"Items with mismatched DecChar options");
-    m_analysisTypeListBox.AddString(L"Items with mismatched ZeroFill options");
+    HTREEITEM initial_node_to_select = PopulateAnalysisTypes();
+    TreeCtrlHelpers::ExpandAllNodes(m_analysisTypeTreeCtrl);
 
     // set up the read-only Scintilla control to show the results
     m_resultsEditCtrl.ReplaceCEdit(this, false, false, SCLEX_NULL);
     m_resultsEditCtrl.SetWrapMode(Scintilla::Wrap::WhiteSpace);
 
-    // run the analysis for the first item
-    m_analysisTypeListBox.SetCurSel(Analysis::ItemsWithoutValueSets);
-    PostMessage(WM_COMMAND,
-                MAKEWPARAM(IDC_ANALYSIS_TYPE, LBN_SELCHANGE),
-                reinterpret_cast<LPARAM>(m_analysisTypeListBox.m_hWnd));
+    // run the analysis for the selected item
+    if( initial_node_to_select != nullptr )
+        m_analysisTypeTreeCtrl.SelectItem(initial_node_to_select);
 
     return TRUE;
 }
@@ -82,9 +80,90 @@ std::vector<std::tuple<CWnd*, SizingDirection>> DictionaryAnalysisDlg::GetDynami
 }
 
 
-void DictionaryAnalysisDlg::OnAnalysisTypeChange()
+HTREEITEM DictionaryAnalysisDlg::PopulateAnalysisTypes()
 {
-    switch( m_analysisTypeListBox.GetCurSel() )
+    HTREEITEM initial_node_to_select = nullptr;
+
+    TV_INSERTSTRUCT tvi { };
+    tvi.item.mask = TVIF_TEXT | TVIF_PARAM;
+    tvi.hInsertAfter = TVI_LAST;
+
+    auto add_type = [&](const wchar_t* const text, const int analysis_type)
+    {
+        tvi.item.pszText = const_cast<wchar_t*>(text);
+        tvi.item.lParam = analysis_type;
+
+        HTREEITEM hTreeItem = m_analysisTypeTreeCtrl.InsertItem(&tvi);
+
+        if( m_analysisType == analysis_type )
+            initial_node_to_select = hTreeItem;
+
+        return hTreeItem;
+    };
+
+    tvi.hParent = TVI_ROOT;
+    tvi.hParent = add_type(L"Items", -1);
+    add_type(L"Items with mismatched DecChar options", Analysis::ItemsWithMismatchedDecCharOptions);
+    add_type(L"Items with mismatched ZeroFill options", Analysis::ItemsWithMismatchedZeroFillOptions);
+
+    tvi.hParent = TVI_ROOT;
+    tvi.hParent = add_type(L"Value Sets", -1);
+    add_type(L"Items without value sets", Analysis::ItemsWithoutValueSets);
+    add_type(L"Numeric items without value sets", Analysis::NumericItemsWithoutValueSets);
+    add_type(L"Numeric items with overlapping value sets", Analysis::NumericItemsWithOverlappingValueSets);
+
+    return initial_node_to_select;
+}
+
+
+void DictionaryAnalysisDlg::OnAnalysisTypeChange(NMHDR* const pNMHDR, LRESULT* const pResult)
+{
+    const NM_TREEVIEW* const pNMTreeView = reinterpret_cast<NM_TREEVIEW*>(pNMHDR);
+
+    m_analysisType = ( pNMTreeView->itemNew.hItem != nullptr )
+        ? static_cast<int>(m_analysisTypeTreeCtrl.GetItemData(pNMTreeView->itemNew.hItem))
+        : -1;
+
+    if( m_analysisType != -1 )
+        WinSettings::Write<DWORD>(WinSettings::Type::DictionaryAnalysisType, m_analysisType);
+
+    RunAnalysis();
+
+    *pResult = 0;
+}
+
+
+void DictionaryAnalysisDlg::OnAnalysisOrderChange()
+{
+    m_analysisOrder = IsDlgButtonChecked(IDC_DICTIONARY) ? Order::Dictionary : Order::Alphabetical;
+    WinSettings::Write<DWORD>(WinSettings::Type::DictionaryAnalysisOrder, m_analysisOrder);
+
+    RunAnalysis();
+}
+
+
+void DictionaryAnalysisDlg::OnCopyToClipboard()
+{
+    ASSERT(!m_resultsTextForClipboard.empty());
+
+    WinClipboard::PutText(this, m_resultsTextForClipboard);
+}
+
+
+void DictionaryAnalysisDlg::SetResultsText(const std::string& results_text)
+{
+    m_resultsEditCtrl.SetText(results_text);
+
+    GetDlgItem(IDC_COPY_TO_CLIPBOARD)->EnableWindow(!m_resultsTextForClipboard.empty());
+}
+
+
+void DictionaryAnalysisDlg::RunAnalysis()
+{
+    m_resultRows.clear();
+    m_resultsTextForClipboard.clear();
+
+    switch( m_analysisType )
     {
         case Analysis::ItemsWithoutValueSets:
             return OnWithoutValueSets(false);
@@ -102,31 +181,17 @@ void DictionaryAnalysisDlg::OnAnalysisTypeChange()
             return OnMismatchedDecCharZeroFill(false);
 
         default:
-            ASSERT(false);
+            ASSERT(m_analysisType == -1);
+            return SetResultsText(SO::Empty_string);
     }
-}
-
-
-void DictionaryAnalysisDlg::OnAnalysisOrderChange()
-{
-    UpdateData(TRUE);
-    OnAnalysisTypeChange();
-}
-
-
-void DictionaryAnalysisDlg::OnCopyToClipboard()
-{
-    ASSERT(!m_resultsTextForClipboard.empty());
-
-    WinClipboard::PutText(this, m_resultsTextForClipboard);
 }
 
 
 void DictionaryAnalysisDlg::RunAnalysis(const std::function<void(const CDictItem&)>& analysis_function,
                                         const std::function<std::string()>& get_header_function)
 {
-    m_resultRows.clear();
-    m_resultsTextForClipboard.clear();
+    ASSERT(m_resultRows.empty());
+    ASSERT(m_resultsTextForClipboard.empty());
 
     std::string results_text;
 
@@ -168,10 +233,7 @@ void DictionaryAnalysisDlg::RunAnalysis(const std::function<void(const CDictItem
         results_text = SO::Concatenate("There was an error running the analysis:\n\n", exception.what());
     }
 
-    m_resultsEditCtrl.SetText(results_text);
-
-    const bool has_results = !m_resultsTextForClipboard.empty();
-    GetDlgItem(IDC_COPY_TO_CLIPBOARD)->EnableWindow(has_results);
+    SetResultsText(results_text);
 }
 
 

@@ -19,12 +19,17 @@ protected:
 
     std::vector<std::tuple<CWnd*, SizingDirection>> GetDynamicLayoutControls() override;
 
-    void OnAnalysisTypeChange();
+    void OnAnalysisTypeChange(NMHDR* pNMHDR, LRESULT* pResult);
     void OnAnalysisOrderChange();
 
     void OnCopyToClipboard();
 
 private:
+    HTREEITEM PopulateAnalysisTypes();
+
+    void SetResultsText(const std::string& results_text);
+
+    void RunAnalysis();
     void RunAnalysis(const std::function<void(const CDictItem&)>& analysis_function,
                      const std::function<std::string()>& get_header_function);
 
@@ -39,7 +44,8 @@ private:
 private:
     const CDataDict& m_dictionary;
 
-    CListBox m_analysisTypeListBox;
+    CTreeCtrl m_analysisTypeTreeCtrl;
+    int m_analysisType;
     int m_analysisOrder;
     ReadOnlyEditCtrl m_resultsEditCtrl;
 
