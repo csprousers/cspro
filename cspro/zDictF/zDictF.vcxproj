@@ -32,6 +32,7 @@
     <ClCompile Include="DictClipboard.cpp" />
     <ClCompile Include="DictDialogBar.cpp" />
     <ClCompile Include="Dictgrid.cpp" />
+    <ClCompile Include="DictionaryAnalysisDlg.cpp" />
     <ClCompile Include="DictionaryMacros.cpp" />
     <ClCompile Include="DictPropertyGridBaseManager.cpp" />
     <ClCompile Include="DictPropertyGridCtrl.cpp" />

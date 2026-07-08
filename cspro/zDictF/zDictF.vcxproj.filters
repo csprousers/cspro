@@ -60,6 +60,9 @@
     <ClCompile Include="Dictgrid.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="DictionaryAnalysisDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="DictionaryMacros.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
