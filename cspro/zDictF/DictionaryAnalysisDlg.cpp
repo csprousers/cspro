@@ -5,25 +5,35 @@
 #include <zDictO/ValueSetResponse.h>
 
 
-namespace Selection
+namespace Analysis
 {
-    constexpr int ItemsWithoutValueSets = 0;
-    constexpr int NumericItemsWithoutValueSets = 1;
+    constexpr int ItemsWithoutValueSets                = 0;
+    constexpr int NumericItemsWithoutValueSets         = 1;
     constexpr int NumericItemsWithOverlappingValueSets = 2;
-    constexpr int ItemsWithMismatchedDecCharOptions = 3;
-    constexpr int ItemsWithMismatchedZeroFillOptions = 4;
+    constexpr int ItemsWithMismatchedDecCharOptions    = 3;
+    constexpr int ItemsWithMismatchedZeroFillOptions   = 4;
+}
+
+
+namespace Order
+{
+    constexpr int Dictionary   = 0;
+    constexpr int Alphabetical = 1;
 }
 
 
 BEGIN_MESSAGE_MAP(DictionaryAnalysisDlg, DynamicLayoutResizableDlg)
     ON_LBN_SELCHANGE(IDC_ANALYSIS_TYPE, OnAnalysisTypeChange)
+    ON_BN_CLICKED(IDC_DICTIONARY, OnAnalysisOrderChange)
+    ON_BN_CLICKED(IDC_ALPHABETICAL, OnAnalysisOrderChange)
     ON_COMMAND(IDC_COPY_TO_CLIPBOARD, OnCopyToClipboard)
 END_MESSAGE_MAP()
 
 
 DictionaryAnalysisDlg::DictionaryAnalysisDlg(const CDataDict& dictionary, CWnd* const pParent/* = nullptr*/)
     :   DynamicLayoutResizableDlg(IDD_DICTIONARY_ANALYSIS, pParent),
-        m_dictionary(dictionary)
+        m_dictionary(dictionary),
+        m_analysisOrder(Order::Dictionary)
 {
     SerializeDialogSize("DictionaryAnalysisDlg");
 }
@@ -34,6 +44,7 @@ void DictionaryAnalysisDlg::DoDataExchange(CDataExchange* const pDX)
     __super::DoDataExchange(pDX);
 
     DDX_Control(pDX, IDC_ANALYSIS_TYPE, m_analysisTypeListBox);
+    DDX_Radio(pDX, IDC_DICTIONARY, m_analysisOrder);
     DDX_Control(pDX, IDC_RESULTS, m_resultsEditCtrl);
 }
 
@@ -56,7 +67,7 @@ BOOL DictionaryAnalysisDlg::OnInitDialog()
     m_resultsEditCtrl.SetWrapMode(Scintilla::Wrap::WhiteSpace);
 
     // run the analysis for the first item
-    m_analysisTypeListBox.SetCurSel(Selection::ItemsWithoutValueSets);
+    m_analysisTypeListBox.SetCurSel(Analysis::ItemsWithoutValueSets);
     PostMessage(WM_COMMAND,
                 MAKEWPARAM(IDC_ANALYSIS_TYPE, LBN_SELCHANGE),
                 reinterpret_cast<LPARAM>(m_analysisTypeListBox.m_hWnd));
@@ -75,19 +86,19 @@ void DictionaryAnalysisDlg::OnAnalysisTypeChange()
 {
     switch( m_analysisTypeListBox.GetCurSel() )
     {
-        case Selection::ItemsWithoutValueSets:
+        case Analysis::ItemsWithoutValueSets:
             return OnWithoutValueSets(false);
 
-        case Selection::NumericItemsWithoutValueSets:
+        case Analysis::NumericItemsWithoutValueSets:
             return OnWithoutValueSets(true);
 
-        case Selection::NumericItemsWithOverlappingValueSets:
+        case Analysis::NumericItemsWithOverlappingValueSets:
             return OnNumericItemsOverlappingValueSets();
 
-        case Selection::ItemsWithMismatchedDecCharOptions:
+        case Analysis::ItemsWithMismatchedDecCharOptions:
             return OnMismatchedDecCharZeroFill(true);
 
-        case Selection::ItemsWithMismatchedZeroFillOptions:
+        case Analysis::ItemsWithMismatchedZeroFillOptions:
             return OnMismatchedDecCharZeroFill(false);
 
         default:
@@ -96,20 +107,28 @@ void DictionaryAnalysisDlg::OnAnalysisTypeChange()
 }
 
 
+void DictionaryAnalysisDlg::OnAnalysisOrderChange()
+{
+    UpdateData(TRUE);
+    OnAnalysisTypeChange();
+}
+
+
 void DictionaryAnalysisDlg::OnCopyToClipboard()
 {
-    ASSERT(!m_resultsForClipboard.empty());
+    ASSERT(!m_resultsTextForClipboard.empty());
 
-    WinClipboard::PutText(this, m_resultsForClipboard);
+    WinClipboard::PutText(this, m_resultsTextForClipboard);
 }
 
 
 void DictionaryAnalysisDlg::RunAnalysis(const std::function<void(const CDictItem&)>& analysis_function,
                                         const std::function<std::string()>& get_header_function)
 {
-    std::string results;
+    m_resultRows.clear();
+    m_resultsTextForClipboard.clear();
 
-    m_resultsForClipboard.clear();
+    std::string results_text;
 
     try
     {
@@ -119,32 +138,45 @@ void DictionaryAnalysisDlg::RunAnalysis(const std::function<void(const CDictItem
             [&](const CDictItem& dict_item) { analysis_function(dict_item); }
         );
 
-        // get and the header and construct the results (header and the list of items)
-        results = get_header_function();
-
-        if( !m_resultsForClipboard.empty() )
+        // if the callback function fills in m_resultRows, convert it to m_resultsTextForClipboard
+        if( !m_resultRows.empty() )
         {
-            results.append("\n\n")
-                   .append(m_resultsForClipboard);
+            ASSERT(m_resultsTextForClipboard.empty());
+
+            if( m_analysisOrder == Order::Alphabetical )
+            {
+                std::sort(m_resultRows.begin(), m_resultRows.end(),
+                          [&](const std::string& r1, const std::string& r2) { return ( SO::CompareNoCase(r1, r2) < 0 ); });
+            }
+
+            m_resultsTextForClipboard = SO::CreateSingleString(m_resultRows, "\n");
+        }
+
+
+        // get and the header and construct the results (header and the list of items)
+        results_text = get_header_function();
+
+        if( !m_resultsTextForClipboard.empty() )
+        {
+            results_text.append("\n\n")
+                        .append(m_resultsTextForClipboard);
         }
     }
 
     catch( const CSProException& exception )
     {
-        results = SO::Concatenate("There was an error running the analysis:\n\n", exception.what());
+        results_text = SO::Concatenate("There was an error running the analysis:\n\n", exception.what());
     }
 
-    m_resultsEditCtrl.SetText(results);
+    m_resultsEditCtrl.SetText(results_text);
 
-    const bool has_results = !m_resultsForClipboard.empty();
+    const bool has_results = !m_resultsTextForClipboard.empty();
     GetDlgItem(IDC_COPY_TO_CLIPBOARD)->EnableWindow(has_results);
 }
 
 
 void DictionaryAnalysisDlg::OnWithoutValueSets(const bool numerics_only)
 {
-    size_t number_items_without_value_sets = 0;
-
     const std::function<void(const CDictItem&)> analysis_function =
         [&](const CDictItem& dict_item)
         {
@@ -155,17 +187,13 @@ void DictionaryAnalysisDlg::OnWithoutValueSets(const bool numerics_only)
             }
 
             if( !dict_item.HasValueSets() )
-            {
-                ++number_items_without_value_sets;
-                m_resultsForClipboard.append(dict_item.GetName())
-                                     .push_back('\n');
-            }
+                m_resultRows.emplace_back(dict_item.GetName());
         };
 
     const std::function<std::string()> get_header_function =
         [&]()
         {
-            if( number_items_without_value_sets == 0 )
+            if( m_resultRows.empty() )
             {
                 return FormatText(
                     "No %s items exist that do not have a value set defined.",
@@ -175,10 +203,10 @@ void DictionaryAnalysisDlg::OnWithoutValueSets(const bool numerics_only)
 
             return FormatText(
                 "There %s %zu %s item%s without a value set:",
-                PluralizeWord(number_items_without_value_sets, "is", "are"),
-                number_items_without_value_sets,
+                PluralizeWord(m_resultRows.size(), "is", "are"),
+                m_resultRows.size(),
                 numerics_only ? "numeric" : "eligible",
-                PluralizeWord(number_items_without_value_sets)
+                PluralizeWord(m_resultRows.size())
             );
         };
 
@@ -262,8 +290,6 @@ bool DictionaryAnalysisDlg::DoesValueSetHaveOverlappingRanges(const CDictItem& d
 
 void DictionaryAnalysisDlg::OnNumericItemsOverlappingValueSets()
 {
-    size_t number_overlapping_value_sets = 0;
-
     const std::function<void(const CDictItem&)> analysis_function =
         [&](const CDictItem& dict_item)
         {
@@ -274,12 +300,10 @@ void DictionaryAnalysisDlg::OnNumericItemsOverlappingValueSets()
             {
                 if( DoesValueSetHaveOverlappingRanges(dict_item, dict_value_set) )
                 {
-                    ++number_overlapping_value_sets;
-                    m_resultsForClipboard.append(FormatText(
-                        "%s (%s)\n",
+                    m_resultRows.emplace_back(SO::CreateParentheticalExpression(
                         dict_item.GetName().c_str(),
-                        dict_value_set.GetName().c_str())
-                    );
+                        dict_value_set.GetName().c_str()
+                    ));
                 }
             }
         };
@@ -287,14 +311,14 @@ void DictionaryAnalysisDlg::OnNumericItemsOverlappingValueSets()
     const std::function<std::string()> get_header_function =
         [&]() -> std::string
         {
-            if( number_overlapping_value_sets == 0 )
+            if( m_resultRows.empty() )
                 return "There are no numeric value sets with overlapping ranges.";
 
             return FormatText(
                 "There %s %zu numeric value set%s with overlapping ranges:",
-                PluralizeWord(number_overlapping_value_sets, "is", "are"),
-                number_overlapping_value_sets,
-                PluralizeWord(number_overlapping_value_sets)
+                PluralizeWord(m_resultRows.size(), "is", "are"),
+                m_resultRows.size(),
+                PluralizeWord(m_resultRows.size())
             );
         };
 
@@ -304,8 +328,6 @@ void DictionaryAnalysisDlg::OnNumericItemsOverlappingValueSets()
 
 void DictionaryAnalysisDlg::OnMismatchedDecCharZeroFill(const bool dec_char)
 {
-    size_t number_mismatched_items = 0;
-
     const bool dict_default_value = dec_char ? m_dictionary.IsDecChar() : m_dictionary.IsZeroFill();
 
     const std::function<void(const CDictItem&)> analysis_function =
@@ -332,11 +354,7 @@ void DictionaryAnalysisDlg::OnMismatchedDecCharZeroFill(const bool dec_char)
             }
 
             if( dict_default_value != item_value )
-            {
-                ++number_mismatched_items;
-                m_resultsForClipboard.append(dict_item.GetName())
-                                     .push_back('\n');
-            }
+                m_resultRows.emplace_back(dict_item.GetName());
         };
 
     const std::function<std::string()> get_header_function =
@@ -344,19 +362,14 @@ void DictionaryAnalysisDlg::OnMismatchedDecCharZeroFill(const bool dec_char)
         {
             const char* const option_type = dec_char ? "DecChar" : "ZeroFill";
 
-            if( number_mismatched_items == 0 )
-            {
-                return FormatText(
-                    "There are no numeric items with mismatched %s options.",
-                    option_type
-                );
-            }
+            if( m_resultRows.empty() )
+                return FormatText("There are no numeric items with mismatched %s options.", option_type);
 
             return FormatText(
                 "There %s %zu item%s with a mismatched %s option:",
-                PluralizeWord(number_mismatched_items, "is", "are"),
-                number_mismatched_items,
-                PluralizeWord(number_mismatched_items),
+                PluralizeWord(m_resultRows.size(), "is", "are"),
+                m_resultRows.size(),
+                PluralizeWord(m_resultRows.size()),
                 option_type
             );
         };

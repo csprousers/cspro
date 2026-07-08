@@ -20,6 +20,7 @@ protected:
     std::vector<std::tuple<CWnd*, SizingDirection>> GetDynamicLayoutControls() override;
 
     void OnAnalysisTypeChange();
+    void OnAnalysisOrderChange();
 
     void OnCopyToClipboard();
 
@@ -39,7 +40,9 @@ private:
     const CDataDict& m_dictionary;
 
     CListBox m_analysisTypeListBox;
+    int m_analysisOrder;
     ReadOnlyEditCtrl m_resultsEditCtrl;
 
-    std::string m_resultsForClipboard;
+    std::vector<std::string> m_resultRows;
+    std::string m_resultsTextForClipboard;
 };
