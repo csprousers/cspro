@@ -142,8 +142,7 @@ private:
 
 
     // Data
-    static std::unique_ptr<Case> ReadCase(const JsonNode& json_node, DataRepository& data_repository,
-                                          bool return_null_if_no_case_identifier_present);
+    static std::unique_ptr<const Case> ReadCase(const JsonNode& json_node, const char* identifier, DataRepository& data_repository);
 
     Result GetQuestionnaireContentWithCaseData(std::variant<std::shared_ptr<const CDataDict>, std::unique_ptr<QuestionnaireContentCreator>> dictionary_or_questionnaire_content_creator,
                                                std::unique_ptr<const Case> data_case, const JsonNode& json_node,
