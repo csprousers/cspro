@@ -72,8 +72,8 @@ IDR_MAINFRAME           ICON                    "res\\RunPff.ico"
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 8,1,0,0
- PRODUCTVERSION 8,1,0,0
+ FILEVERSION 8,1,1,0
+ PRODUCTVERSION 8,1,1,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -90,11 +90,11 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "U.S. Census Bureau"
             VALUE "FileDescription", "Run CSPro Application"
-            VALUE "FileVersion", "8.1.0.0"
+            VALUE "FileVersion", "8.1.1.0"
             VALUE "InternalName", "RunPff"
             VALUE "OriginalFilename", "RunPff.EXE"
             VALUE "ProductName", "CSPro 8.1"
-            VALUE "ProductVersion", "8.1.0.0"
+            VALUE "ProductVersion", "8.1.1.0"
         END
     END
     BLOCK "VarFileInfo"
