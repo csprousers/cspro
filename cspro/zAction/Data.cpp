@@ -533,16 +533,9 @@ ActionInvoker::Result ActionInvoker::Runtime::Data_close(const JsonNode& json_no
 }
 
 
-std::unique_ptr<Case> ActionInvoker::Runtime::ReadCase(const JsonNode& json_node, DataRepository& data_repository,
-                                                       const bool return_null_if_no_case_identifier_present)
+std::unique_ptr<const Case> ActionInvoker::Runtime::ReadCase(const JsonNode& json_node, const char* const identifier, DataRepository& data_repository)
 {
-    const char* const identifier = GetSpecifiedCaseIdentifier(json_node, !return_null_if_no_case_identifier_present);
-
-    if( identifier == nullptr )
-    {
-        ASSERT(return_null_if_no_case_identifier_present);
-        return nullptr;
-    }
+    ASSERT(identifier != nullptr);
 
     std::unique_ptr<Case> data_case = data_repository.GetCaseAccess().CreateCase(true);
 
@@ -664,7 +657,8 @@ ActionInvoker::Result ActionInvoker::Runtime::Data_readCase(const JsonNode& json
     const std::shared_ptr<DataWrapper> data_wrapper = DataWrapper::GetDataWrapper(*this, json_node, caller);
     DataRepository& data_repository = data_wrapper->GetDataRepository();
 
-    std::unique_ptr<Case> data_case = ReadCase(json_node, data_repository, false);
+    const char* const identifier = GetSpecifiedCaseIdentifier(json_node, true);
+    std::unique_ptr<const Case> data_case = ReadCase(json_node, identifier, data_repository);
     ASSERT(data_case != nullptr);
 
     std::string case_content;

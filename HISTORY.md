@@ -3,13 +3,17 @@
 Most CSPro development occurs on a [private repository](https://github.com/CSProDevelopment/cspro), though the commits are mirrored to this [public repository](https://github.com/csprousers/cspro). This document lists information about each pull request merged into the private repository, starting with pull requests for CSPro 7.6.
 
 
-## CSPro (current development)
+## CSPro 8.1.2
+
+**Installer**: [https://csprousers.org/releases/8.1/cspro-8.1.2-windows-x86.exe](https://csprousers.org/releases/8.1/cspro-8.1.2-windows-x86.exe)
+
+**Release notes**: [https://csprousers.org/releases/8.1/cspro-8.1.2-release-notes.txt](https://csprousers.org/releases/8.1/cspro-8.1.2-release-notes.txt)
 
 **Merged pull requests**:
 
 | Date | Branch | Pull Request Message |
 | --- | --- | --- |
-| 2026&#8209;07&#8209;09 | [release/8.1.1](https://github.com/CSProDevelopment/cspro/commit/6fda53f9421316baa94746ba4f03bf0fad71d69b) | fixed bugs, creating version 8.1.1 |
+| 2026&#8209;07&#8209;09 | [release/v8.1.2-20260709](https://github.com/CSProDevelopment/cspro/commit/33230654d63b20ff8e50bb0961cc2d89f283c38f) | fixed bugs, creating version 8.1.2 |
 
 
 ## CSPro 8.1.1
@@ -17,6 +21,12 @@ Most CSPro development occurs on a [private repository](https://github.com/CSPro
 **Installer**: [https://csprousers.org/releases/8.1/cspro-8.1.1-windows-x86.exe](https://csprousers.org/releases/8.1/cspro-8.1.1-windows-x86.exe)
 
 **Release notes**: [https://csprousers.org/releases/8.1/cspro-8.1.1-release-notes.txt](https://csprousers.org/releases/8.1/cspro-8.1.1-release-notes.txt)
+
+**Merged pull requests**:
+
+| Date | Branch | Pull Request Message |
+| --- | --- | --- |
+| 2026&#8209;07&#8209;09 | [release/8.1.1](https://github.com/CSProDevelopment/cspro/commit/6fda53f9421316baa94746ba4f03bf0fad71d69b) | fixed bugs, creating version 8.1.1 |
 
 
 ## CSPro 8.1.0

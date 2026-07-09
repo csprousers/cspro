@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#include "DataWrapper.h"
 #include <zAppO/PFF.h>
 #include <zFormO/FormFile.h>
 #include <zCapiO/CapiQuestionManager.h>
@@ -292,31 +293,37 @@ ActionInvoker::Result ActionInvoker::Runtime::Application_getQuestionnaireConten
     if( application != nullptr && application->GetUseQuestionText() )
         questionnaire_content_creator->SetCapiQuestionManager(application->GetCapiQuestionManager());
 
+    std::unique_ptr<const Case> data_case;
+    const char* const case_identifier = GetSpecifiedCaseIdentifier(json_node, false);
+
     // return content with a case, either directly specified...
-    std::unique_ptr<const Case> data_case = ActionInvoker::Runtime::ReadCase(
-        json_node,
-        GetInterpreterAccessor().GetDataRepository(dictionary->GetName(), false),
-        true // return_null_case_if_no_key_present
-    );
+    if( case_identifier != nullptr )
+    {
+        data_case = ActionInvoker::Runtime::ReadCase(
+            json_node,
+            case_identifier,
+            GetInterpreterAccessor().GetDataRepository(dictionary->GetName(), false)
+        );
+    }
 
-    const bool case_content_is_from_current_case = ( data_case == nullptr );
-
-    // ...or the current case
-    if( case_content_is_from_current_case )
+    // ...or the current case (when the interpreter is available and there is a current case)
+    else
     {
         try
         {
             data_case = GetInterpreterAccessor().GetCurrentCase(dictionary->GetName());
         }
-
-        catch(...)
-        {
-            // if no case is available, return content without a case
-            return Result::JsonText(questionnaire_content_creator->GetContent());
-        }
+        catch(...) { }
     }
 
-    ASSERT(data_case != nullptr);
+    // if no case is available, return content without a case
+    if( data_case == nullptr )
+    {
+        ASSERT(case_identifier == nullptr);
+        return Result::JsonText(questionnaire_content_creator->GetContent());
+    }
+
+    const bool case_content_is_from_current_case = ( case_identifier == nullptr );
 
     return GetQuestionnaireContentWithCaseData(
         std::move(questionnaire_content_creator),
