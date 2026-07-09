@@ -2,6 +2,7 @@
 #include "AndroidFtpConnection.h"
 #include "JNIHelpers.h"
 #include <zToolsO/FileIO.h>
+#include <zToolsO/PortableFunctions.h>
 #include <zUtilO/TemporaryFile.h>
 #include <zNetwork/FileInfo.h>
 #include <zNetwork/SyncException.h>
@@ -219,21 +220,50 @@ void AndroidFtpConnection::Upload(std::istream& input_stream, const int64_t inpu
 }
 
 
-bool AndroidFtpConnection::FileExists(const std::string& remote_path)
+bool AndroidFtpConnection::FileExists(const std::string& remote_path) // FTP_TODO properly implement
 {
-    remote_path; return false; // FTP_TODO
+    return ( FileIsRegular(remote_path) || FileIsDirectory(remote_path) );
 }
 
 
-bool AndroidFtpConnection::FileIsRegular(const std::string& remote_path)
+bool AndroidFtpConnection::FileIsRegular(const std::string& remote_path) // FTP_TODO properly implement
 {
-    remote_path; return false; // FTP_TODO
+    try
+    {
+        FileModifiedTime(remote_path);
+        return true;
+    }
+    catch(...) { }
+
+    return false;
 }
 
 
-bool AndroidFtpConnection::FileIsDirectory(const std::string& remote_path)
+bool AndroidFtpConnection::FileIsDirectory(const std::string& remote_path) // FTP_TODO properly implement
 {
-    remote_path; return false; // FTP_TODO
+    try
+    {
+        // FileModifiedTime doesn't work on directories (at least not on all servers),
+        // so we need to do a directory listing of the parent here
+        const std::string remote_path_without_trailing_slash = Path::RemoveTrailingSlash(remote_path);
+        const std::string parent_remote_path = PortableFunctions::PathGetDirectory(remote_path_without_trailing_slash);
+        const std::string directory_name = Path::GetFilename(remote_path_without_trailing_slash);
+
+        const std::vector<FileInfo> directory_listing = AndroidFtpConnection::GetDirectoryListing(parent_remote_path, false);
+
+        const auto& lookup = std::find_if(directory_listing.cbegin(), directory_listing.cend(),
+            [&](const FileInfo& fi)
+            {
+                return ( fi.GetType() == FileInfo::FileType::Directory &&
+                         fi.GetName() == directory_name );
+            });
+
+        if( lookup != directory_listing.cend() )
+            return true;
+    }
+    catch(...) { }
+
+    return false;
 }
 
 
@@ -319,19 +349,22 @@ std::vector<FileInfo> AndroidFtpConnection::GetDirectoryListing(const std::strin
 }
 
 
-void AndroidFtpConnection::FileRename(const std::string& old_remote_file_path, const std::string& new_remote_file_path)
+void AndroidFtpConnection::FileRename(const std::string& old_remote_file_path, const std::string& new_remote_file_path) // FTP_TODO implement
 {
-    old_remote_file_path; new_remote_file_path; // FTP_TODO
+    old_remote_file_path; new_remote_file_path;
+    ASSERT(false);
 }
 
 
-void AndroidFtpConnection::FileDelete(const std::string& remote_file_path)
+void AndroidFtpConnection::FileDelete(const std::string& remote_file_path) // FTP_TODO implement
 {
-    remote_file_path; // FTP_TODO
+    remote_file_path;
+    ASSERT(false);
 }
 
 
-void AndroidFtpConnection::DirectoryDelete(const std::string& remote_directory_path)
+void AndroidFtpConnection::DirectoryDelete(const std::string& remote_directory_path) // FTP_TODO implement
 {
-    remote_directory_path; // FTP_TODO
+    remote_directory_path;
+    ASSERT(false);
 }
