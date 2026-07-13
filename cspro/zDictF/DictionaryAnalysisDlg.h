@@ -33,6 +33,8 @@ private:
     void RunAnalysis(const std::function<void(const CDictItem&)>& analysis_function,
                      const std::function<std::string()>& get_header_function);
 
+    static std::string GetValueSetDisplayText(const CDictItem& dict_item, const DictValueSet& dict_value_set);
+
     void OnWithoutValueSets(bool numerics_only);
 
     static void ThrowIfDiscreteValueFallsWithinRange(double discrete_value, const ValueSetResponse& range);
@@ -40,6 +42,10 @@ private:
     void OnNumericItemsOverlappingValueSets();
 
     void OnMismatchedDecCharZeroFill(bool dec_char); // vs. zero_fill
+
+    void OnLinkedValueSets();
+    void OnLinkedValueSetsCandidates();
+    static bool ValueSetValuesMatch(const DictValueSet& dict_value_set1, const DictValueSet& dict_value_set2);
 
     void OnValueSetsUsingSpecials(std::optional<double> special_value);
 

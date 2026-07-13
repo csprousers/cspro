@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "DictValuePair.h"
 
 
@@ -12,6 +12,13 @@ DictValuePair::DictValuePair(const CString& from/* = CString()*/, const CString&
 DictValuePair::DictValuePair(std::string from, std::string to/* = std::string()*/)
     :   DictValuePair(UTF8_TODO::GetCString(from), UTF8_TODO::GetCString(to))
 {
+}
+
+
+bool DictValuePair::operator==(const DictValuePair& rhs) const noexcept
+{
+    return ( m_from == rhs.m_from &&
+             m_to == rhs.m_to );
 }
 
 
