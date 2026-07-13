@@ -163,13 +163,7 @@ BEGIN
         MENUITEM "&Full Screen\tCtrl+J",        ID_VIEW_FULLSCREEN
         MENUITEM SEPARATOR
         MENUITEM "Aliases",                     ID_VIEW_ALIASES
-        POPUP "Dictionary &Analysis"
-        BEGIN
-            MENUITEM "Numeric/Alpha Items Without Value Sets", ID_DICT_ANALYSIS_ITEMS_NO_VALUE_SETS
-            MENUITEM "Numeric Items Without Value Sets", ID_DICT_ANALYSIS_NUMERIC_ITEMS_NO_VALUE_SETS
-            MENUITEM "Numeric Items With Overlapping Value Sets", ID_DICT_ANALYSIS_NUMERIC_ITEMS_OVERLAPPING_VALUE_SETS
-            MENUITEM "Numeric Items With Mismatched ZeroFill or DecChar Options", ID_DICT_ANALYSIS_NUMERIC_ITEMS_MISMATCHED_ZF_DC
-        END
+        MENUITEM "Dictionary &Analysis",        ID_DICTIONARY_ANALYSIS
         MENUITEM SEPARATOR
         MENUITEM "Dictionary",                  ID_VIEW_DICTIONARY
         MENUITEM "Questionnaire",               ID_VIEW_QUESTIONNAIRE
@@ -587,6 +581,23 @@ BEGIN
     CONTROL         "",IDC_DICT_PROP_PLACE_HOLDER,"Static",SS_BLACKFRAME | NOT WS_VISIBLE,0,1,309,175
 END
 
+IDD_DICTIONARY_ANALYSIS DIALOGEX 0, 0, 533, 217
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+CAPTION "Dictionary Analysis"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    GROUPBOX        "Analysis",IDC_STATIC,7,7,214,183
+    CONTROL         "",IDC_ANALYSIS_TYPE,"SysTreeView32",TVS_HASLINES | TVS_SHOWSELALWAYS | WS_BORDER | WS_HSCROLL | WS_TABSTOP,14,20,199,144
+    LTEXT           "Results order:",IDC_STATIC,14,174,46,8
+    CONTROL         "Dictionary",IDC_DICTIONARY,"Button",BS_AUTORADIOBUTTON | WS_GROUP,69,174,48,10
+    CONTROL         "Alphabetical",IDC_ALPHABETICAL,"Button",BS_AUTORADIOBUTTON,128,174,55,10
+    GROUPBOX        "Results",IDC_STATIC,231,7,295,183
+    EDITTEXT        IDC_RESULTS,238,20,282,144,ES_MULTILINE | ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "Copy Results to Clipboard",IDC_COPY_TO_CLIPBOARD,419,169,101,14,WS_DISABLED
+    PUSHBUTTON      "Close",IDCANCEL,203,196,50,14
+    PUSHBUTTON      "&Help",ID_HELP,267,196,50,14
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -687,6 +698,14 @@ BEGIN
         TOPMARGIN, 7
         BOTTOMMARGIN, 169
     END
+
+    IDD_DICTIONARY_ANALYSIS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 526
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 210
+    END
 END
 #endif    // APSTUDIO_INVOKED
 
@@ -740,6 +759,21 @@ BEGIN
     0
 END
 
+IDD_DICTIONARY_ANALYSIS AFX_DIALOG_LAYOUT
+BEGIN
+    0,
+    0, 0, 0, 100,
+    0, 0, 0, 100,
+    0, 100, 0, 0,
+    0, 100, 0, 0,
+    0, 100, 0, 0,
+    0, 0, 100, 100,
+    0, 0, 100, 100,
+    100, 100, 0, 0,
+    50, 100, 0, 0,
+    50, 100, 0, 0
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -778,15 +812,16 @@ END
 
 STRINGTABLE
 BEGIN
+    ID_DICTIONARY_ANALYSIS  "Analyze the dictionary and its properties\nDictionary Analysis"
     ID_EDIT_ADD             "Add level, record, item, or value to end of list\nAdd"
-END
-
-STRINGTABLE
-BEGIN
     ID_EDIT_ADD_NEXT        "Add"
     ID_EDIT_DELETE          "Delete selected level, record, item, or value\nDelete"
     ID_EDIT_FLATTEN_OCCURRENCES 
                             "Convert multiply occurring items to singly occurring items\nFlatten Occurrences"
+END
+
+STRINGTABLE
+BEGIN
     ID_EDIT_INSERT          "Insert level, record, item, or value at selection point\nInsert"
     ID_EDIT_LANGUAGES       "Edit Dictionary Languages"
     ID_EDIT_MAKE_SUBITEMS   "Make selected items into subitems\nConvert to Subitems"
@@ -801,12 +836,13 @@ END
 STRINGTABLE
 BEGIN
     ID_OPTIONS_ABS_REL      "Toggles between relative and absolute item positions\nRelative/Absolute"
+    ID_OPTIONS_ENABLE_BINARY_ITEMS 
+                            "Enable the use of binary items\nEnable Binary Items"
 END
 
 STRINGTABLE
 BEGIN
-    ID_OPTIONS_ENABLE_BINARY_ITEMS 
-                            "Enable the use of binary items\nEnable Binary Items"
+    ID_VIEW_ALIASES         "View the names of dictionary aliases\nAliases"
     ID_VIEW_DICTIONARY      "View dictionary layout\nDictionary"
     ID_VIEW_LAYOUT          "Show or hide the layout view\nLayout"
     ID_VIEW_PROPERTIES      "Show or hide additional properties\nProperties"

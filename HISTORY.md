@@ -3,6 +3,15 @@
 Most CSPro development occurs on a [private repository](https://github.com/CSProDevelopment/cspro), though the commits are mirrored to this [public repository](https://github.com/csprousers/cspro). This document lists information about each pull request merged into the private repository, starting with pull requests for CSPro 7.6.
 
 
+## CSPro (current development)
+
+**Merged pull requests**:
+
+| Date | Branch | Pull Request Message |
+| --- | --- | --- |
+| 2026&#8209;07&#8209;13 | [dictionary-analysis-dialog](https://github.com/CSProDevelopment/cspro/commit/627293268b40ea5506dca4de407f4e98bb8794bb) | reworked the dictionary analysis reports into a single dialog and added reports about linked value sets and special values |
+
+
 ## CSPro 8.1.2
 
 **Installer**: [https://csprousers.org/releases/8.1/cspro-8.1.2-windows-x86.exe](https://csprousers.org/releases/8.1/cspro-8.1.2-windows-x86.exe)

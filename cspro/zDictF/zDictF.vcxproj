@@ -32,6 +32,7 @@
     <ClCompile Include="DictClipboard.cpp" />
     <ClCompile Include="DictDialogBar.cpp" />
     <ClCompile Include="Dictgrid.cpp" />
+    <ClCompile Include="DictionaryAnalysisDlg.cpp" />
     <ClCompile Include="DictionaryMacros.cpp" />
     <ClCompile Include="DictPropertyGridBaseManager.cpp" />
     <ClCompile Include="DictPropertyGridCtrl.cpp" />
@@ -100,6 +101,7 @@
     <ClInclude Include="DictClipboard.h" />
     <ClInclude Include="DictDialogBar.h" />
     <ClInclude Include="Dictgrid.h" />
+    <ClInclude Include="DictionaryAnalysisDlg.h" />
     <ClInclude Include="DictionaryMacros.h" />
     <ClInclude Include="DictPropertyGridBaseManager.h" />
     <ClInclude Include="DictPropertyGridCtrl.h" />
@@ -154,6 +156,10 @@
     </ProjectReference>
     <ProjectReference Include="..\zDictO\zDictO.vcxproj">
       <Project>{b33d6166-52a8-453e-837e-e23b233149e9}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zEditO\zEditO.vcxproj">
+      <Project>{adef6fc1-00ee-4f3a-84dd-43ee2f108bb0}</Project>
       <Private>false</Private>
     </ProjectReference>
     <ProjectReference Include="..\zGridO\zGridO.vcxproj">

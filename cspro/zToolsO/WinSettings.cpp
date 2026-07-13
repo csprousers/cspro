@@ -1,13 +1,13 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "WinSettings.h"
 
 
 namespace
 {
     const HKEY BaseKey = HKEY_CURRENT_USER;
-    constexpr const TCHAR* SettingsKey = L"Software\\U.S. Census Bureau\\CSPro Settings";
+    constexpr const wchar_t* SettingsKey = L"Software\\U.S. Census Bureau\\CSPro Settings";
 
-    constexpr const TCHAR* TypeNames[] =
+    constexpr const wchar_t* TypeNames[] =
     {
         L"View Names in Tree",
         L"Append Labels to Names",
@@ -18,6 +18,9 @@ namespace
         L"Frequency Filename Extension",
 
         L"Add Image to Resource Folder",
+
+        L"Dictionary Analysis: Type",
+        L"Dictionary Analysis: Order",
 
         L"Trace Window: Always on Top",
 
@@ -64,7 +67,7 @@ WinSettings::~WinSettings()
     // save any settings that were modified
     for( const KeyType& key : m_savedSettings )
     {
-        const TCHAR* key_text = GetKeyText(key);
+        const wchar_t* const key_text = GetKeyText(key);
         const std::variant<std::wstring, DWORD>& value = m_loadedSettings[key];
 
         if( std::holds_alternative<std::wstring>(value) )
@@ -82,7 +85,7 @@ WinSettings::~WinSettings()
 }
 
 
-const TCHAR* WinSettings::GetKeyText(const KeyType& key)
+const wchar_t* WinSettings::GetKeyText(const KeyType& key)
 {
     return std::holds_alternative<Type>(key) ? TypeNames[static_cast<size_t>(std::get<Type>(key))] :
                                                std::get<std::wstring>(key).c_str();
@@ -118,7 +121,7 @@ T WinSettings::ReadWorker(KeyType key, T* default_value)
     // if not, look it up in the registry
     T value;
     bool value_found;
-    const TCHAR* key_text = GetKeyText(key);
+    const wchar_t* key_text = GetKeyText(key);
 
     if constexpr(std::is_same_v<T, std::wstring>)
     {

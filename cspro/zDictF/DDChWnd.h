@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 //***************************************************************************
 //  File name: DDChWnd.h
@@ -21,56 +21,38 @@
 class CDictItem;
 
 
-/////////////////////////////////////////////////////////////////////////////
-// CDictChildWnd frame
-
 class CLASS_DECL_ZDICTF CDictChildWnd : public COXMDIChildWndSizeDock
 {
     DECLARE_DYNCREATE(CDictChildWnd)
+
     friend class CDictDialogBar;
+
 protected:
     CDictChildWnd();
 
-protected:
-    CDictSplitterWnd   m_wndSplitter;
-    QuestionnaireView* m_pQuestionnaireView;
-    BOOL            m_bLayout;
-    BOOL            m_bQuestionnaireView;
-    BOOL            m_bViewPropertiesPanel;
-    TCHAR           m_cDecimal;
-
-// Operations
 public:
     TCHAR GetDecimal() const { return m_cDecimal; }
+
+    CDictDialogBar* GetDictDlgBar() { return &m_dictDlgBar; }
+
+    QuestionnaireView* GetQuestionnaireView() { return m_pQuestionnaireView; }
+    BOOL isQuestionnaireView() const          { return m_bQuestionnaireView;  }
+
+    void ActivateFrame(int nCmdShow = -1) override;
+    BOOL Create(LPCTSTR lpszClassName, LPCTSTR lpszWindowName, DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_OVERLAPPEDWINDOW, const RECT& rect = rectDefault, CMDIFrameWnd* pParentWnd = NULL, CCreateContext* pContext = NULL) override;
+
     void SetFindActive(bool bFind);
     LRESULT OnFind(WPARAM wParam, LPARAM lParam);
-    CDictDialogBar* GetDictDlgBar() { return &m_dictDlgBar; }
-    QuestionnaireView* GetQuestionnaireView() { return m_pQuestionnaireView; }
-    BOOL isQuestionnaireView() { return m_bQuestionnaireView;  }
 
-private:
-    CDictDialogBar m_dictDlgBar;
+    void DisplayActiveMode();
 
-public:
-    int            m_iGridViewPaneSize;
-
-// Overrides
-    // ClassWizard generated virtual function overrides
-    //{{AFX_VIRTUAL(CDictChildWnd)
-    public:
-    virtual void ActivateFrame(int nCmdShow = -1);
-    virtual BOOL Create(LPCTSTR lpszClassName, LPCTSTR lpszWindowName, DWORD dwStyle = WS_CHILD | WS_VISIBLE | WS_OVERLAPPEDWINDOW, const RECT& rect = rectDefault, CMDIFrameWnd* pParentWnd = NULL, CCreateContext* pContext = NULL);
-    protected:
-    virtual BOOL PreCreateWindow(CREATESTRUCT& cs);
-    virtual BOOL OnCreateClient(LPCREATESTRUCT lpcs, CCreateContext* pContext);
-    //}}AFX_VIRTUAL
-
-// Implementation
 protected:
-    virtual ~CDictChildWnd();
+    BOOL PreCreateWindow(CREATESTRUCT& cs) override;
+    BOOL OnCreateClient(LPCREATESTRUCT lpcs, CCreateContext* pContext) override;
 
-    // Generated message map functions
-    //{{AFX_MSG(CDictChildWnd)
+protected:
+    DECLARE_MESSAGE_MAP()
+
     afx_msg void OnMDIActivate(BOOL bActivate, CWnd* pActivateWnd, CWnd* pDeactivateWnd);
     afx_msg void OnSysCommand( UINT nID, LPARAM lParam );
     afx_msg void OnViewLayout();
@@ -79,12 +61,9 @@ protected:
     afx_msg void OnFilePageSetup();
     afx_msg void OnUpdateViewLayout(CCmdUI* pCmdUI);
     afx_msg void OnViewAliases();
+    afx_msg void OnDictionaryAnaylsis();
     afx_msg void OnViewProperties();
     afx_msg void OnUpdateViewProperties(CCmdUI* pCmdUI);
-    afx_msg void OnDictAnalysisItemsNoValueSets();
-    afx_msg void OnDictAnalysisNumericItemsNoValueSets();
-    afx_msg void OnDictAnalysisNumericItemsOverlappingValueSets();
-    afx_msg void OnDictAnalysisNumericMismatchedZeroFillDecChar();
     afx_msg void OnViewQuestionnaire();
     afx_msg void OnUpdateViewQuestionnaire(CCmdUI* pCmdUI);
     afx_msg void OnUpdateEditLanguages(CCmdUI* pCmdUI);
@@ -97,19 +76,18 @@ protected:
     afx_msg void OnUpdateOptionsDecChar(CCmdUI* pCmdUI);
     afx_msg void OnViewDictionary();
     afx_msg void OnUpdateViewDictionary(CCmdUI* pCmdUI);
-    //}}AFX_MSG
-    DECLARE_MESSAGE_MAP()
-
-private:
-    void RunDictAnalysis(const std::function<void(const CDictItem&)>& analysis_function,
-                         const std::function<bool(std::string&, std::string&)>& summary_results_function);
-    void RunDictAnalysisNoValueSets(bool numerics_only);
 
 public:
-    void DisplayActiveMode();
+    int m_iGridViewPaneSize;
+
+protected:
+    CDictSplitterWnd m_wndSplitter;
+    BOOL m_bLayout;
+    BOOL m_bQuestionnaireView;
+    BOOL m_bViewPropertiesPanel;
+    TCHAR m_cDecimal;
+    QuestionnaireView* m_pQuestionnaireView;
+
+private:
+    CDictDialogBar m_dictDlgBar;
 };
-
-/////////////////////////////////////////////////////////////////////////////
-
-//{{AFX_INSERT_LOCATION}}
-// Microsoft Visual C++ will insert additional declarations immediately before the previous line.

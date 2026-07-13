@@ -60,6 +60,9 @@
     <ClCompile Include="Dictgrid.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="DictionaryAnalysisDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="DictionaryMacros.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -239,6 +242,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Dictgrid.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DictionaryAnalysisDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DictionaryMacros.h">

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #if defined(WIN_DESKTOP) || defined(_CONSOLE)
 
@@ -6,7 +6,13 @@
 #include <zToolsO/WinRegistry.h>
 
 
-// a simple way to load and store settings from the Windows registry
+// --------------------------------------------------------------------------
+// WinSettings
+//
+// This class is a simple way to load and store settings from the Windows
+// registry.
+// --------------------------------------------------------------------------
+
 class CLASS_DECL_ZTOOLSO WinSettings
 {
 public:
@@ -21,6 +27,9 @@ public:
         FrequencyFilenameExtension,
 
         AddImageToResourceFolder,
+
+        DictionaryAnalysisType,
+        DictionaryAnalysisOrder,
 
         TraceWindowAlwaysOnTop,
 
@@ -65,7 +74,7 @@ public:
     static void Write(KeyType key, const T& value);
 
 private:
-    static const TCHAR* GetKeyText(const KeyType& key);
+    static const wchar_t* GetKeyText(const KeyType& key);
 
 private:
     template<typename T>

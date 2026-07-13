@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zDictO/zDictO.h>
 
@@ -8,6 +8,9 @@ class CLASS_DECL_ZDICTO DictValuePair
 public:
     DictValuePair(const CString& from = CString(), const CString& to = CString());
     DictValuePair(std::string from, std::string to = std::string());
+
+    bool operator==(const DictValuePair& rhs) const noexcept;
+    bool operator!=(const DictValuePair& rhs) const noexcept { return !( *this == rhs ); }
 
     const CString& GetFrom() const    { return m_from; }
     void SetFrom(const CString& from) { m_from = from; }

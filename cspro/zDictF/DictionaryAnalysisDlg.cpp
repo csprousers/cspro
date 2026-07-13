@@ -1,0 +1,810 @@
+#include "StdAfx.h"
+#include "DictionaryAnalysisDlg.h"
+#include <zToolsO/WinSettings.h>
+#include <zUtilO/DynamicLayoutControlResizer.h>
+#include <zUtilO/TreeCtrlHelpers.h>
+#include <zUtilO/WindowHelpers.h>
+#include <zDictO/ValueSetResponse.h>
+
+
+namespace Analysis
+{
+    // Items
+    constexpr int ItemsWithMismatchedDecCharOptions    = 101;
+    constexpr int ItemsWithMismatchedZeroFillOptions   = 102;
+
+    // Value Sets
+    constexpr int ItemsWithoutValueSets                = 201;
+    constexpr int NumericItemsWithoutValueSets         = 202;
+    constexpr int NumericItemsWithOverlappingValueSets = 203;
+
+    // Value Sets: Links
+    constexpr int LinkedValueSets                      = 301;
+    constexpr int LinkedValueSetsCandidates            = 302;
+
+    // Value Set: Special Values
+    constexpr int ValueSetsUsingSpecials               = 401;
+    constexpr int ValueSetsUsingMissing                = 402;
+    constexpr int ValueSetsUsingRefused                = 403;
+}
+
+
+namespace Order
+{
+    constexpr int Dictionary   = 0;
+    constexpr int Alphabetical = 1;
+}
+
+
+BEGIN_MESSAGE_MAP(DictionaryAnalysisDlg, DynamicLayoutResizableDlg)
+    ON_NOTIFY(TVN_SELCHANGED, IDC_ANALYSIS_TYPE, OnAnalysisTypeChange)
+    ON_BN_CLICKED(IDC_DICTIONARY, OnAnalysisOrderChange)
+    ON_BN_CLICKED(IDC_ALPHABETICAL, OnAnalysisOrderChange)
+    ON_COMMAND(IDC_COPY_TO_CLIPBOARD, OnCopyToClipboard)
+END_MESSAGE_MAP()
+
+
+DictionaryAnalysisDlg::DictionaryAnalysisDlg(const CDataDict& dictionary, CWnd* const pParent/* = nullptr*/)
+    :   DynamicLayoutResizableDlg(IDD_DICTIONARY_ANALYSIS, pParent),
+        m_dictionary(dictionary),
+        m_analysisType(WinSettings::Read<DWORD>(WinSettings::Type::DictionaryAnalysisType, Analysis::NumericItemsWithoutValueSets)),
+        m_analysisOrder(WinSettings::Read<DWORD>(WinSettings::Type::DictionaryAnalysisOrder, Order::Dictionary))
+{
+    SerializeDialogSize("DictionaryAnalysisDlg");
+}
+
+
+void DictionaryAnalysisDlg::DoDataExchange(CDataExchange* const pDX)
+{
+    __super::DoDataExchange(pDX);
+
+    DDX_Control(pDX, IDC_ANALYSIS_TYPE, m_analysisTypeTreeCtrl);
+    DDX_Radio(pDX, IDC_DICTIONARY, m_analysisOrder);
+    DDX_Control(pDX, IDC_RESULTS, m_resultsEditCtrl);
+}
+
+
+BOOL DictionaryAnalysisDlg::OnInitDialog()
+{
+    __super::OnInitDialog();
+
+    WindowHelpers::RemoveDialogSystemIcon(*this);
+
+    // add the analysis types
+    HTREEITEM initial_node_to_select = PopulateAnalysisTypes();
+    TreeCtrlHelpers::ExpandAllNodes(m_analysisTypeTreeCtrl);
+
+    // set up the read-only Scintilla control to show the results
+    m_resultsEditCtrl.ReplaceCEdit(this, false, false, SCLEX_NULL);
+    m_resultsEditCtrl.SetWrapMode(Scintilla::Wrap::WhiteSpace);
+
+    // run the analysis for the selected item
+    if( initial_node_to_select != nullptr )
+        m_analysisTypeTreeCtrl.SelectItem(initial_node_to_select);
+
+    return TRUE;
+}
+
+
+std::vector<std::tuple<CWnd*, SizingDirection>> DictionaryAnalysisDlg::GetDynamicLayoutControls()
+{
+    return { { &m_resultsEditCtrl, SizingDirection::XY } };
+}
+
+
+HTREEITEM DictionaryAnalysisDlg::PopulateAnalysisTypes()
+{
+    HTREEITEM initial_node_to_select = nullptr;
+
+    TV_INSERTSTRUCT tvi { };
+    tvi.item.mask = TVIF_TEXT | TVIF_PARAM;
+    tvi.hInsertAfter = TVI_LAST;
+
+    auto add_type = [&](const wchar_t* const text, const int analysis_type)
+    {
+        tvi.item.pszText = const_cast<wchar_t*>(text);
+        tvi.item.lParam = analysis_type;
+
+        HTREEITEM hTreeItem = m_analysisTypeTreeCtrl.InsertItem(&tvi);
+
+        if( m_analysisType == analysis_type )
+            initial_node_to_select = hTreeItem;
+
+        return hTreeItem;
+    };
+
+    tvi.hParent = TVI_ROOT;
+    tvi.hParent = add_type(L"Items", -1);
+    add_type(L"Items with mismatched DecChar options", Analysis::ItemsWithMismatchedDecCharOptions);
+    add_type(L"Items with mismatched ZeroFill options", Analysis::ItemsWithMismatchedZeroFillOptions);
+
+    tvi.hParent = TVI_ROOT;
+    tvi.hParent = add_type(L"Value Sets", -1);
+    add_type(L"Items without value sets", Analysis::ItemsWithoutValueSets);
+    add_type(L"Numeric items without value sets", Analysis::NumericItemsWithoutValueSets);
+    add_type(L"Numeric items with overlapping value sets", Analysis::NumericItemsWithOverlappingValueSets);
+
+    tvi.hParent = TVI_ROOT;
+    tvi.hParent = add_type(L"Value Sets: Links", -1);
+    add_type(L"Value sets linked", Analysis::LinkedValueSets);
+    add_type(L"Identical value sets (link candidates)", Analysis::LinkedValueSetsCandidates);
+
+    tvi.hParent = TVI_ROOT;
+    tvi.hParent = add_type(L"Value Set: Special Values", -1);
+    add_type(L"Value sets using special values", Analysis::ValueSetsUsingSpecials);
+    add_type(L"Value sets using missing", Analysis::ValueSetsUsingMissing);
+    add_type(L"Value sets using refused", Analysis::ValueSetsUsingRefused);
+
+    return initial_node_to_select;
+}
+
+
+void DictionaryAnalysisDlg::OnAnalysisTypeChange(NMHDR* const pNMHDR, LRESULT* const pResult)
+{
+    const NM_TREEVIEW* const pNMTreeView = reinterpret_cast<NM_TREEVIEW*>(pNMHDR);
+
+    m_analysisType = ( pNMTreeView->itemNew.hItem != nullptr )
+        ? static_cast<int>(m_analysisTypeTreeCtrl.GetItemData(pNMTreeView->itemNew.hItem))
+        : -1;
+
+    if( m_analysisType != -1 )
+        WinSettings::Write<DWORD>(WinSettings::Type::DictionaryAnalysisType, m_analysisType);
+
+    RunAnalysis();
+
+    *pResult = 0;
+}
+
+
+void DictionaryAnalysisDlg::OnAnalysisOrderChange()
+{
+    m_analysisOrder = IsDlgButtonChecked(IDC_DICTIONARY) ? Order::Dictionary : Order::Alphabetical;
+    WinSettings::Write<DWORD>(WinSettings::Type::DictionaryAnalysisOrder, m_analysisOrder);
+
+    RunAnalysis();
+}
+
+
+void DictionaryAnalysisDlg::OnCopyToClipboard()
+{
+    ASSERT(!m_resultsTextForClipboard.empty());
+
+    WinClipboard::PutText(this, m_resultsTextForClipboard);
+}
+
+
+void DictionaryAnalysisDlg::SetResultsText(const std::string& results_text)
+{
+    m_resultsEditCtrl.SetText(results_text);
+
+    GetDlgItem(IDC_COPY_TO_CLIPBOARD)->EnableWindow(!m_resultsTextForClipboard.empty());
+}
+
+
+void DictionaryAnalysisDlg::RunAnalysis()
+{
+    m_resultRows.clear();
+    m_resultsTextForClipboard.clear();
+
+    switch( m_analysisType )
+    {
+        // Items
+        case Analysis::ItemsWithMismatchedDecCharOptions:
+            return OnMismatchedDecCharZeroFill(true);
+
+        case Analysis::ItemsWithMismatchedZeroFillOptions:
+            return OnMismatchedDecCharZeroFill(false);
+
+        // Value Sets
+        case Analysis::ItemsWithoutValueSets:
+            return OnWithoutValueSets(false);
+
+        case Analysis::NumericItemsWithoutValueSets:
+            return OnWithoutValueSets(true);
+
+        case Analysis::NumericItemsWithOverlappingValueSets:
+            return OnNumericItemsOverlappingValueSets();
+
+        // Value Sets: Links
+        case Analysis::LinkedValueSets:
+            return OnLinkedValueSets();
+
+        case Analysis::LinkedValueSetsCandidates:
+            return OnLinkedValueSetsCandidates();
+
+        // Value Set: Special Values
+        case Analysis::ValueSetsUsingSpecials:
+            return OnValueSetsUsingSpecials(std::nullopt);
+
+        case Analysis::ValueSetsUsingMissing:
+            return OnValueSetsUsingSpecials(MISSING);
+
+        case Analysis::ValueSetsUsingRefused:
+            return OnValueSetsUsingSpecials(REFUSED);
+
+        // (category headings)
+        default:
+            ASSERT(m_analysisType == -1);
+            return SetResultsText(SO::Empty_string);
+    }
+}
+
+
+void DictionaryAnalysisDlg::RunAnalysis(const std::function<void(const CDictItem&)>& analysis_function,
+                                        const std::function<std::string()>& get_header_function)
+{
+    ASSERT(m_resultRows.empty());
+    ASSERT(m_resultsTextForClipboard.empty());
+
+    std::string results_text;
+
+    try
+    {
+        // call the analysis function for each item
+        if( analysis_function )
+        {
+            DictionaryIterator::Foreach<CDictItem>(
+                m_dictionary,
+                [&](const CDictItem& dict_item) { analysis_function(dict_item); }
+            );
+        }
+
+        // if the callback function fills in m_resultRows, convert it to m_resultsTextForClipboard
+        if( !m_resultRows.empty() )
+        {
+            ASSERT(m_resultsTextForClipboard.empty());
+
+            if( m_analysisOrder == Order::Alphabetical )
+            {
+                std::sort(m_resultRows.begin(), m_resultRows.end(),
+                          [&](const std::string& r1, const std::string& r2) { return ( SO::CompareNoCase(r1, r2) < 0 ); });
+            }
+
+            m_resultsTextForClipboard = SO::CreateSingleString(m_resultRows, "\n");
+        }
+
+
+        // get and the header and construct the results (header and the list of items)
+        results_text = get_header_function();
+
+        if( !m_resultsTextForClipboard.empty() )
+        {
+            results_text.append("\n\n")
+                        .append(m_resultsTextForClipboard);
+        }
+    }
+
+    catch( const CSProException& exception )
+    {
+        results_text = SO::Concatenate("There was an error running the analysis:\n\n", exception.what());
+    }
+
+    SetResultsText(results_text);
+}
+
+
+inline std::string DictionaryAnalysisDlg::GetValueSetDisplayText(const CDictItem& dict_item, const DictValueSet& dict_value_set)
+{
+    return SO::CreateParentheticalExpression(dict_item.GetName(), dict_value_set.GetName());
+}
+
+
+void DictionaryAnalysisDlg::OnWithoutValueSets(const bool numerics_only)
+{
+    const std::function<void(const CDictItem&)> analysis_function =
+        [&](const CDictItem& dict_item)
+        {
+            if( !DictionaryRules::CanHaveValueSet(dict_item) ||
+                ( numerics_only && dict_item.GetContentType() != ContentType::Numeric ) )
+            {
+                return;
+            }
+
+            if( !dict_item.HasValueSets() )
+                m_resultRows.emplace_back(dict_item.GetName());
+        };
+
+    const std::function<std::string()> get_header_function =
+        [&]()
+        {
+            if( m_resultRows.empty() )
+            {
+                return FormatText(
+                    "No %s items exist that do not have a value set defined.",
+                    numerics_only ? "numeric" : "eligible"
+                );
+            }
+
+            return FormatText(
+                "There %s %zu %s item%s without a value set:",
+                PluralizeWord(m_resultRows.size(), "is", "are"),
+                m_resultRows.size(),
+                numerics_only ? "numeric" : "eligible",
+                PluralizeWord(m_resultRows.size())
+            );
+        };
+
+    RunAnalysis(analysis_function, get_header_function);
+}
+
+
+inline void DictionaryAnalysisDlg::ThrowIfDiscreteValueFallsWithinRange(const double discrete_value, const ValueSetResponse& range)
+{
+    if( discrete_value >= range.GetMinimumValue() &&
+        discrete_value <= range.GetMaximumValue() )
+    {
+        throw std::exception();
+    }
+}
+
+
+bool DictionaryAnalysisDlg::DoesValueSetHaveOverlappingRanges(const CDictItem& dict_item, const DictValueSet& dict_value_set)
+{
+    std::set<double> discretes;
+    std::vector<std::shared_ptr<const ValueSetResponse>> ranges;
+    bool has_overlapping_ranges = false;
+
+    try
+    {
+        for( const DictValue& dict_value : dict_value_set.GetValues() )
+        {
+            for( const DictValuePair& dict_value_pair : dict_value.GetValuePairs() )
+            {
+                // use ValueSetResponse to easily parse each pair
+                auto value_set_response = std::make_unique<const ValueSetResponse>(dict_item, dict_value, dict_value_pair);
+
+                if( value_set_response->IsDiscrete() )
+                {
+                    const double discrete_value = value_set_response->GetMinimumValue();
+
+                    if( discretes.find(discrete_value) != discretes.end() )
+                        throw std::exception();
+
+                    discretes.insert(discrete_value);
+                }
+
+                else
+                {
+                    ranges.emplace_back(std::move(value_set_response));
+                }
+            }
+        }
+
+        // in the above loop, any duplicate discrete values will be detected; now check for range overlaps
+
+        // first check if the discretes are in any of the ranges
+        for( const double discrete_value : discretes )
+        {
+            for( const std::shared_ptr<const ValueSetResponse>& range : ranges )
+                ThrowIfDiscreteValueFallsWithinRange(discrete_value, *range);
+        }
+
+        // now check if any of the ranges overlap any of the other ranges
+        for( const std::shared_ptr<const ValueSetResponse>& range1 : ranges )
+        {
+            for( const std::shared_ptr<const ValueSetResponse>& range2 : ranges )
+            {
+                if( range1 != range2 )
+                {
+                    ThrowIfDiscreteValueFallsWithinRange(range1->GetMinimumValue(), *range2);
+                    ThrowIfDiscreteValueFallsWithinRange(range1->GetMaximumValue(), *range2);
+                }
+            }
+        }
+    }
+
+    catch(...)
+    {
+        has_overlapping_ranges = true;
+    }
+
+    return has_overlapping_ranges;
+}
+
+
+void DictionaryAnalysisDlg::OnNumericItemsOverlappingValueSets()
+{
+    const std::function<void(const CDictItem&)> analysis_function =
+        [&](const CDictItem& dict_item)
+        {
+            if( dict_item.GetContentType() != ContentType::Numeric )
+                return;
+
+            for( const DictValueSet& dict_value_set : dict_item.GetValueSets() )
+            {
+                if( DoesValueSetHaveOverlappingRanges(dict_item, dict_value_set) )
+                    m_resultRows.emplace_back(GetValueSetDisplayText(dict_item, dict_value_set));
+            }
+        };
+
+    const std::function<std::string()> get_header_function =
+        [&]() -> std::string
+        {
+            if( m_resultRows.empty() )
+                return "There are no numeric value sets with overlapping ranges.";
+
+            return FormatText(
+                "There %s %zu numeric value set%s with overlapping ranges:",
+                PluralizeWord(m_resultRows.size(), "is", "are"),
+                m_resultRows.size(),
+                PluralizeWord(m_resultRows.size())
+            );
+        };
+
+    RunAnalysis(analysis_function, get_header_function);
+}
+
+
+void DictionaryAnalysisDlg::OnMismatchedDecCharZeroFill(const bool dec_char)
+{
+    const bool dict_default_value = dec_char ? m_dictionary.IsDecChar() : m_dictionary.IsZeroFill();
+
+    const std::function<void(const CDictItem&)> analysis_function =
+        [&](const CDictItem& dict_item)
+        {
+            bool item_value;
+
+            if( dict_item.GetContentType() != ContentType::Numeric )
+            {
+                return;
+            }
+
+            else if( dec_char )
+            {
+                if( dict_item.GetDecimal() == 0 )
+                    return;
+
+                item_value = dict_item.GetDecChar();
+            }
+
+            else
+            {
+                item_value = dict_item.GetZeroFill();
+            }
+
+            if( dict_default_value != item_value )
+                m_resultRows.emplace_back(dict_item.GetName());
+        };
+
+    const std::function<std::string()> get_header_function =
+        [&]()
+        {
+            const char* const option_type = dec_char ? "DecChar" : "ZeroFill";
+
+            if( m_resultRows.empty() )
+                return FormatText("There are no numeric items with mismatched %s options.", option_type);
+
+            return FormatText(
+                "There %s %zu item%s with a mismatched %s option:",
+                PluralizeWord(m_resultRows.size(), "is", "are"),
+                m_resultRows.size(),
+                PluralizeWord(m_resultRows.size()),
+                option_type
+            );
+        };
+
+    RunAnalysis(analysis_function, get_header_function);
+}
+
+
+void DictionaryAnalysisDlg::OnLinkedValueSets()
+{
+    std::vector<std::tuple<std::string, std::vector<std::string>>> linkages;
+
+    const std::function<void(const CDictItem&)> analysis_function =
+        [&](const CDictItem& dict_item)
+        {
+            for( const DictValueSet& dict_value_set : dict_item.GetValueSets() )
+            {
+                if( !dict_value_set.IsLinkedValueSet() )
+                    continue;
+
+                const auto lookup = std::find_if(linkages.begin(), linkages.end(),
+                    [&](const auto& link_code_and_names)
+                    {
+                        return ( std::get<0>(link_code_and_names) == dict_value_set.GetLinkedValueSetCode() );
+                    });
+
+                std::vector<std::string>& link_texts = std::get<1>(
+                    ( lookup != linkages.end() )
+                    ? *lookup
+                    : linkages.emplace_back(dict_value_set.GetLinkedValueSetCode(), std::vector<std::string>())
+                );
+
+                link_texts.emplace_back(GetValueSetDisplayText(dict_item, dict_value_set));
+            }
+        };
+
+    const std::function<std::string()> get_header_function =
+        [&]() -> std::string
+        {
+            if( linkages.empty() )
+                return "There are no linked value sets.";
+
+            if( m_analysisOrder == Order::Alphabetical )
+            {
+                // first sort the list of value set names...
+                for( auto& [link_code, link_code_and_names] : linkages )
+                {
+                    std::sort(link_code_and_names.begin(), link_code_and_names.end(),
+                        [&](const std::string& n1, const std::string& n2)
+                        {
+                            return ( SO::CompareNoCase(n1, n2) < 0 ); }
+                        );
+                }
+
+                // ...then sort by the first name
+                std::sort(linkages.begin(), linkages.end(),
+                    [&](const auto& lc_n1, const auto& lc_n2)
+                    {
+                        return ( SO::CompareNoCase(std::get<1>(lc_n1).front(), std::get<1>(lc_n2).front()) < 0 );
+                    });
+            }
+
+            size_t number_value_sets = 0;
+
+            for( const auto& [link_code, link_code_and_names] : linkages )
+            {
+                if( !m_resultsTextForClipboard.empty() )
+                    m_resultsTextForClipboard.append("\n\n-----\n\n");
+
+                m_resultsTextForClipboard.append(SO::CreateSingleString(link_code_and_names, "\n"));
+
+                number_value_sets += link_code_and_names.size();
+            }
+
+            return FormatText(
+                "There %s %zu sets of linked value set%s containing %zu value sets:",
+                PluralizeWord(linkages.size(), "is", "are"),
+                linkages.size(),
+                PluralizeWord(linkages.size()),
+                number_value_sets
+            );
+        };
+
+    RunAnalysis(analysis_function, get_header_function);
+}
+
+
+void DictionaryAnalysisDlg::OnLinkedValueSetsCandidates()
+{
+    // first populate a list of value sets, grouped by attributes of items that can be linked
+    using ItemAttributes = std::tuple<ContentType, UINT, UINT, bool>;
+    std::vector<std::tuple<ItemAttributes, std::vector<std::tuple<const CDictItem*, const DictValueSet*>>>> value_sets_by_item_attributes;
+
+    DictionaryIterator::Foreach<CDictItem>(
+        m_dictionary,
+        [&](const CDictItem& dict_item)
+        {
+            for( const DictValueSet& dict_value_set : dict_item.GetValueSets() )
+            {
+                ItemAttributes item_attributes(
+                    dict_item.GetContentType(),
+                    dict_item.GetLen(),
+                    dict_item.GetDecimal(),
+                    dict_item.GetDecChar()
+                );
+
+                auto lookup = std::find_if(value_sets_by_item_attributes.begin(), value_sets_by_item_attributes.end(),
+                    [&](const auto& vsbia) { return ( std::get<0>(vsbia) == item_attributes ); }
+                );
+
+                if( lookup == value_sets_by_item_attributes.end() )
+                {
+                    value_sets_by_item_attributes.emplace_back(std::move(item_attributes), std::vector<std::tuple<const CDictItem*, const DictValueSet*>>());
+                    lookup = value_sets_by_item_attributes.end() - 1;
+                }
+
+                std::get<1>(*lookup).emplace_back(&dict_item, &dict_value_set);
+            }
+        }
+    );
+
+    // if necessary, sort alphabetically before any further processing
+    if( m_analysisOrder == Order::Alphabetical )
+    {
+        // first sort the list of value set names...
+        for( auto& [item_attributes, item_and_value_sets] : value_sets_by_item_attributes )
+        {
+            std::sort(item_and_value_sets.begin(),item_and_value_sets.end(),
+                [&](const auto& i1_vs1, const auto& i2_vs2)
+                {
+                    return ( SO::CompareNoCase(std::get<0>(i1_vs1)->GetName(), std::get<0>(i2_vs2)->GetName()) < 0 );
+                });
+        }
+
+        // ...then sort by the first name
+        std::sort(value_sets_by_item_attributes.begin(), value_sets_by_item_attributes.end(),
+            [&](const auto& vsbia_1, const auto& vsbia_2)
+            {
+                return ( SO::CompareNoCase(
+                    std::get<0>(std::get<1>(vsbia_1).front())->GetName(),
+                    std::get<1>(std::get<1>(vsbia_2).front())->GetName()
+                ) < 0 );
+            });
+    }
+
+    // process non-linked value sets, checking if there are any other value sets with the identical values
+    std::map<size_t, std::vector<std::tuple<const CDictItem*, const DictValueSet*>>> first_index_to_identical_value_sets;
+
+    for( const auto& [item_attributes, item_and_value_sets] : value_sets_by_item_attributes )
+    {
+        for( size_t i = 1; i < item_and_value_sets.size(); ++i )
+        {
+            const auto& [dict_item, dict_value_set] = item_and_value_sets[i];
+
+            if( dict_value_set->IsLinkedValueSet() )
+                continue;
+
+            std::set<std::string> linked_value_set_codes_checked;
+
+            for( size_t j = 0; j < i; ++j )
+            {
+                const auto& [other_dict_item, other_dict_value_set] = item_and_value_sets[j];
+
+                // linked value sets only have to be checked once
+                if( other_dict_value_set->IsLinkedValueSet() )
+                {
+                    if( linked_value_set_codes_checked.find(other_dict_value_set->GetLinkedValueSetCode()) != linked_value_set_codes_checked.cend() )
+                        continue;
+
+                    linked_value_set_codes_checked.insert(other_dict_value_set->GetLinkedValueSetCode());
+                }
+
+                if( ValueSetValuesMatch(*dict_value_set, *other_dict_value_set) )
+                {
+                    std::vector<std::tuple<const CDictItem*, const DictValueSet*>>& identical_value_sets = first_index_to_identical_value_sets[j];
+                    ASSERT(identical_value_sets.empty() || std::get<1>(identical_value_sets.front()) == other_dict_value_set);
+
+                    if( identical_value_sets.empty() )
+                        identical_value_sets.emplace_back(other_dict_item, other_dict_value_set);
+
+                    identical_value_sets.emplace_back(dict_item, dict_value_set);
+
+                    break;
+                }
+            }
+        }
+    }
+
+    const std::function<std::string()> get_header_function =
+        [&]() -> std::string
+        {
+            if( first_index_to_identical_value_sets.empty() )
+                return "There are no identical value sets that are not already linked.";
+
+            for( const auto& [first_index, identical_value_sets] : first_index_to_identical_value_sets )
+            {
+                if( !m_resultsTextForClipboard.empty() )
+                    m_resultsTextForClipboard.append("\n-----\n\n");
+
+                for( const auto& [dict_item, dict_value_set] : identical_value_sets )
+                {
+                    m_resultsTextForClipboard.append(GetValueSetDisplayText(*dict_item, *dict_value_set));
+
+                    if( dict_value_set->IsLinkedValueSet() )
+                    {
+                        const size_t other_links = m_dictionary.CountValueSetLinks(*dict_value_set) - 1;
+
+                        m_resultsTextForClipboard.append(FormatText(
+                            " (linked to %zu other value set%s)",
+                            other_links,
+                            PluralizeWord(other_links)
+                        ));
+                    }
+
+                    m_resultsTextForClipboard.push_back('\n');
+                }
+            }
+
+            return FormatText(
+                "There %s %zu sets of value sets containing identical values:",
+                PluralizeWord(first_index_to_identical_value_sets.size(), "is", "are"),
+                first_index_to_identical_value_sets.size()
+            );
+        };
+
+    RunAnalysis({ }, get_header_function);
+}
+
+
+bool DictionaryAnalysisDlg::ValueSetValuesMatch(const DictValueSet& dict_value_set1, const DictValueSet& dict_value_set2)
+{
+    if( dict_value_set1.GetNumValues() != dict_value_set2.GetNumValues() )
+        return false;
+
+    auto dvs2_itr = dict_value_set2.GetValues().cbegin();
+
+    for( const DictValue& dict_value1 : dict_value_set1.GetValues() )
+    {
+        const DictValue& dict_value2 = *(dvs2_itr++);
+
+        if( dict_value1.GetLabelSet () != dict_value2.GetLabelSet() ||
+            dict_value1.GetNote() != dict_value2.GetNote() ||
+            dict_value1.GetImageFilePath() != dict_value2.GetImageFilePath() ||
+            dict_value1.GetTextColor() != dict_value2.GetTextColor() ||
+            dict_value1.GetSpecialValue<std::optional<double>>() != dict_value2.GetSpecialValue<std::optional<double>>() ||
+            dict_value1.GetNumValuePairs() != dict_value2.GetNumValuePairs() )
+        {
+            return false;
+        }
+
+        auto dvp2_itr = dict_value2.GetValuePairs().cbegin();
+
+        for( const DictValuePair& dict_value_pair1 : dict_value1.GetValuePairs() )
+        {
+            const DictValuePair& dict_value_pair2 = *(dvp2_itr++);
+
+            if( dict_value_pair1 != dict_value_pair2 )
+                return false;
+        }
+    }
+
+    return true;
+}
+
+
+void DictionaryAnalysisDlg::OnValueSetsUsingSpecials(const std::optional<double> special_value)
+{
+    const std::function<void(const CDictItem&)> analysis_function =
+        [&](const CDictItem& dict_item)
+        {
+            if( dict_item.GetContentType() != ContentType::Numeric ||
+                !dict_item.HasValueSets() )
+            {
+                return;
+            }
+
+            for( const DictValueSet& dict_value_set : dict_item.GetValueSets() )
+            {
+                std::set<double> special_values_processed;
+
+                for( const DictValue& dict_value : dict_value_set.GetValues() )
+                {
+                    if( !dict_value.IsSpecial() )
+                        continue;
+
+                    const double this_special_value = dict_value.GetSpecialValue();
+
+                    if( ( !special_value.has_value() || this_special_value == *special_value ) &&
+                        special_values_processed.find(this_special_value) == special_values_processed.cend() )
+                    {
+                        special_values_processed.insert(dict_value.GetSpecialValue());
+
+                        std::string& result_row = m_resultRows.emplace_back(
+                            GetValueSetDisplayText(dict_item, dict_value_set)
+                        );
+
+                        // add the type of special value when listing all special values
+                        if( !special_value.has_value() )
+                        {
+                            result_row.append(": ")
+                                      .append(SpecialValues::ValueToString(dict_value.GetSpecialValue(), false));
+                        }
+                    }
+                }
+            }
+        };
+
+    const std::function<std::string()> get_header_function =
+        [&]()
+        {
+            const char* const special_type =
+                ( !special_value.has_value() ) ? "special" :
+                ( special_value == MISSING )   ? "missing" :
+              /*( special_value == REFUSED )*/   "refused";
+
+            if( m_resultRows.empty() )
+                return FormatText("There are no value sets using %s values.", special_type);
+
+            return FormatText(
+                "There %s %zu value set%s using %s values:",
+                PluralizeWord(m_resultRows.size(), "is", "are"),
+                m_resultRows.size(),
+                PluralizeWord(m_resultRows.size()),
+                special_type
+            );
+        };
+
+    RunAnalysis(analysis_function, get_header_function);
+}
