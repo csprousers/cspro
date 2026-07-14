@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "SymbolCalculator.h"
 #include "AllSymbols.h"
 #include <engine/Ctab.h>
@@ -347,8 +347,6 @@ const Symbol* SymbolCalculator::GetFirstSymbolWithOccurrences(const Symbol& symb
 
 int SymbolCalculator::GetLevelNumber_base1(const Symbol& symbol)
 {
-    constexpr int NoLevelNumber = 9;
-
     // ENGINECR_TODO it would be nice GetLevel()/GetLevelNumber() throughout the code was consistent
     // in whether the value is zero- or one-based
     switch( symbol.GetType() )

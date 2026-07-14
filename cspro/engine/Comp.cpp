@@ -1,4 +1,4 @@
-﻿#include "StandardSystemIncludes.h"
+#include "StandardSystemIncludes.h"
 #include "Tables.h"
 #include "CompIlad.h"
 #include <zUtilO/MemoryHelpers.h>
@@ -462,7 +462,7 @@ void CEngineCompFunc::rutasync_as_global_compilation_COMPILER_DLL_TODO(const Sym
     {
         ValueConserver compilation_index_conserver(InCompIdx, compilation_symbol.GetSymbolIndex());
 
-        SetCompilationSymbol(compilation_symbol);
+        SetCompilationSymbol(&compilation_symbol);
 
         compilation_function();
     };

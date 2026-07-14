@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "IncludesCC.h"
 #include "AllSymbols.h"
 #include "PublishDateCompilerHelper.h"
@@ -492,7 +492,7 @@ int LogicCompiler::CompileFunctionsVarious()
                 IssueError(MGF::savepartial_invalid_in_level0_8050);
 
             // savepartial can only be called from within a field
-            if( GetCompilationSymbolType() != SymbolType::Variable )
+            if( !IsCompiling(SymbolType::Variable) )
                 IssueError(MGF::savepartial_invalid_in_proc_8054);
         }
 

@@ -1,25 +1,60 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "IncludesCC.h"
 #include "File.h"
 
 
-void LogicCompiler::SetCompilationSymbol(const Symbol& symbol)
+void LogicCompiler::SetCompilationSymbol(const Symbol* const symbol) noexcept
 {
-    m_compilationSymbol = &symbol;
+    m_compilationSymbol = symbol;
+}
+
+
+SymbolType LogicCompiler::GetCompilationSymbolType() const noexcept
+{
+    if( m_compilationSymbol != nullptr )
+        return m_compilationSymbol->GetType();
+
+    return SymbolType::None;
 }
 
 
 int LogicCompiler::GetCompilationLevelNumber_base1() const
 {
-    return SymbolCalculator::GetLevelNumber_base1(*m_compilationSymbol);
+    if( m_compilationSymbol != nullptr )
+        return SymbolCalculator::GetLevelNumber_base1(*m_compilationSymbol);
+
+    return SymbolCalculator::NoLevelNumber;
 }
 
 
-bool LogicCompiler::IsNoLevelCompilation() const
+bool LogicCompiler::IsCompiling(const Symbol& symbol) const noexcept
 {
-    return m_compilationSymbol->IsOneOf(SymbolType::Application,
-                                        SymbolType::Report,
-                                        SymbolType::UserFunction);
+    return ( m_compilationSymbol == &symbol );
+}
+
+
+bool LogicCompiler::IsCompiling(const SymbolType symbol_type) const noexcept
+{
+    return ( GetCompilationSymbolType() == symbol_type );
+}
+
+
+bool LogicCompiler::IsGlobalCompilation() const noexcept
+{
+    return IsCompiling(SymbolType::Application);
+}
+
+
+bool LogicCompiler::IsNoLevelCompilation() const noexcept
+{
+    if( m_compilationSymbol == nullptr )
+        return true;
+
+    return m_compilationSymbol->IsOneOf(
+        SymbolType::Application,
+        SymbolType::Report,
+        SymbolType::UserFunction
+    );
 }
 
 

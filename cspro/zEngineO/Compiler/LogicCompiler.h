@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zEngineO/zEngineO.h>
 #include <zEngineO/EngineData.h>
@@ -8,8 +8,10 @@
 #include <zLogicO/BaseCompiler.h>
 #include <zLogicO/FunctionTable.h>
 
+class CodeFile;
 class CompilerHelper;
 template<typename T> class ConstantConserver;
+class DictNamedBase;
 class DynamicValueSet;
 enum class EngineAppType : int;
 class LoopStack;
@@ -41,16 +43,16 @@ public:
     // (CompilersCC.cpp)
     // --------------------------------------------------------------------------
 public:
-    void SetCompilationSymbol(const Symbol& symbol);
+    void SetCompilationSymbol(const Symbol* symbol) noexcept;
 
-    const Symbol& GetCompilationSymbol() const   { return *m_compilationSymbol; }
-    SymbolType GetCompilationSymbolType() const  { return m_compilationSymbol->GetType(); }
+    const Symbol* GetCompilationSymbol() const noexcept { return m_compilationSymbol; }
+    SymbolType GetCompilationSymbolType() const noexcept;
     int GetCompilationLevelNumber_base1() const;
 
-    bool IsCompiling(const Symbol& symbol) const   { return ( &symbol == m_compilationSymbol ); }
-    bool IsCompiling(SymbolType symbol_type) const { return ( symbol_type == GetCompilationSymbolType() ); }
-    bool IsGlobalCompilation() const               { return IsCompiling(SymbolType::Application); }
-    bool IsNoLevelCompilation() const;
+    bool IsCompiling(const Symbol& symbol) const noexcept;
+    bool IsCompiling(SymbolType symbol_type) const noexcept;
+    bool IsGlobalCompilation() const noexcept;
+    bool IsNoLevelCompilation() const noexcept;
 
     EngineAppType GetEngineAppType() const;
 
@@ -704,7 +706,7 @@ protected:
     cs::non_null_shared_or_raw_ptr<EngineData> m_engineData;
 
 private:
-    // The symbol that is currently being compiled (non-null during compilation).
+    // The symbol that is currently being compiled (if applicable).
     const Symbol* m_compilationSymbol;
 
     // The type of the procedure currently being compiled.

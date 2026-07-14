@@ -1,4 +1,4 @@
-﻿//----------------------------------------------------------------------
+//----------------------------------------------------------------------
 //  Compissa.cpp
 //----------------------------------------------------------------------
 #include "StandardSystemIncludes.h"
@@ -30,7 +30,7 @@ int CEngineCompFunc::rutasync(const int symbol_index, const std::function<void()
     m_allowMultVarWithoutIndex = false;
 
     const Symbol& compilation_symbol = NPT_Ref(symbol_index);
-    SetCompilationSymbol(compilation_symbol);
+    SetCompilationSymbol(&compilation_symbol);
 
     ObjInComp = compilation_symbol.GetType();
     InCompIdx = symbol_index;
@@ -377,7 +377,7 @@ int CEngineCompFunc::CompileCapiLogic(const CapiLogicParameters& capi_logic_para
     {
         auto set_compilation_details = [&]()
         {
-            SetCompilationSymbol(*symbol);
+            SetCompilationSymbol(symbol);
             SetCapiLogicLocation(capi_logic_parameters.capi_logic_location);
         };
 
