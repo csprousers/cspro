@@ -40,24 +40,8 @@ android {
         multiDexEnabled true
 
         externalNativeBuild {
-            ndkBuild {
-                // use ccache when available
-                try {
-                    if ("ccache --version".execute().waitFor() == 0) {
-                        arguments "NDK_CCACHE=ccache"
-                    }
-                } catch (Exception ignored) {
-                }
-
-                arguments "APP_STL:=c++_static",
-                          "-j" + Runtime.runtime.availableProcessors(),
-                          "APP_LDFLAGS+=-Wl,-z,max-page-size=16384"
-
-                cppFlags "-frtti",
-                         "-fexceptions",
-                         "-I${file("../..").absolutePath}",
-                         "-std=c++17",
-                         "-Werror=return-type"
+            cmake {
+                arguments "-DANDROID_STL=c++_static"
             }
         }
     }
@@ -69,7 +53,7 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
 
             externalNativeBuild {
-                ndkBuild {
+                cmake {
                     abiFilters 'armeabi-v7a', 'arm64-v8a'
                 }
             }
@@ -77,7 +61,7 @@ android {
 
         debug {
             externalNativeBuild {
-                ndkBuild {
+                cmake {
                     abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86'
                     cppFlags "-DDEBUG=1", "-D_DEBUG=1"
                 }
@@ -86,8 +70,11 @@ android {
     }
 
     externalNativeBuild {
-        ndkBuild {
-            path 'src/main/jni/Android.mk'
+        cmake {
+            path "src/main/jni/CMakeLists.txt"
+
+            // Use the same build folder as the Visual Studio builds
+            buildStagingDirectory "${rootProject.projectDir}/../build/android-ndk"
         }
     }
 
