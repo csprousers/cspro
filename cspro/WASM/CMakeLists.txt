@@ -1,6 +1,11 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.22)
 
-project(CSPro)
+project(CSEntry LANGUAGES C CXX)
+
+# use C++17
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 # global compiler options
 add_compile_options(
@@ -43,29 +48,35 @@ add_executable(${PROJECT_NAME}
     "WasmLocalFileServer.cpp"
 )
 
-# add JavaScript bindings
-set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS -lembind)
+set_target_properties(${PROJECT_NAME}
+    # add JavaScript bindings
+    PROPERTIES LINK_FLAGS -lembind
+)
 
-# enable exceptions
-target_link_options(${PROJECT_NAME} PUBLIC -fwasm-exceptions)
+target_link_options(${PROJECT_NAME} PUBLIC
+    # enable exceptions
+    -fwasm-exceptions
 
-# allow memory to grow as needed
-target_link_options(${PROJECT_NAME} PUBLIC -sALLOW_MEMORY_GROWTH)
+    # allow memory to grow as needed
+    -sALLOW_MEMORY_GROWTH
 
-# allow multithreading using Wasm Workers
-target_link_options(${PROJECT_NAME} PUBLIC -sWASM_WORKERS)
+    # allow multithreading using Wasm Workers
+    -sWASM_WORKERS
 
-# use the WasmFS file system, which allows access to the file system from multiple threads
-target_link_options(${PROJECT_NAME} PUBLIC -sWASMFS)
+    # use the WasmFS file system, which allows access to the file system from multiple threads
+    -sWASMFS
 
-# bundle the assets
-target_link_options(${PROJECT_NAME} PUBLIC --preload-file ${CMAKE_CURRENT_SOURCE_DIR}/Assets@Assets/)
+    # bundle the assets
+    --preload-file ${CMAKE_CURRENT_SOURCE_DIR}/Assets@Assets/
+)
 
 # copy the WASM html directory to the output root
-add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different ${CMAKE_CURRENT_SOURCE_DIR}/html ${CMAKE_CURRENT_BINARY_DIR})
+add_custom_command(TARGET ${PROJECT_NAME}
+    POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different ${CMAKE_CURRENT_SOURCE_DIR}/html ${CMAKE_CURRENT_BINARY_DIR}
+)
 
 # supporting libraries
-target_link_libraries(${PROJECT_NAME}
+target_link_libraries(${PROJECT_NAME} PRIVATE
     # external libraries
     zlib
 

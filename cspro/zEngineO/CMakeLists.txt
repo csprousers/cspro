@@ -1,6 +1,6 @@
 project(zEngineO)
 
-include_directories(${PROJECT_NAME} PUBLIC
+include_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}
     ${EXTERNAL_DIRECTORY}/geometry.hpp/include
     ${EXTERNAL_DIRECTORY}/variant/include

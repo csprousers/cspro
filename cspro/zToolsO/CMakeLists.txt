@@ -5,7 +5,7 @@ set(MD4C_DIRECTORY ${EXTERNAL_DIRECTORY}/md4c)
 set(RIJNDAEL_DIRECTORY rijndael)
 set(SCRYPT_DIRECTORY ${EXTERNAL_DIRECTORY}/scrypt)
 
-include_directories(${PROJECT_NAME} PUBLIC
+include_directories(${PROJECT_NAME} PRIVATE
     ${EXTERNAL_DIRECTORY}
 )
 

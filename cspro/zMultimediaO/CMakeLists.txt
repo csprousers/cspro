@@ -7,7 +7,7 @@ set(LIBWEBM_DIRECTORY ${EXTERNAL_DIRECTORY}/libwebm)
 set(LIBWEBP_DIRECTORY ${EXTERNAL_DIRECTORY}/libwebp)
 set(QRCODEGEN_DIRECTORY ${EXTERNAL_DIRECTORY}/qrcodegen)
 
-include_directories(${PROJECT_NAME} PUBLIC
+include_directories(${PROJECT_NAME} PRIVATE
     ${EXTERNAL_DIRECTORY}
     ${GPAC_DIRECTORY}/include
     ${LIBWEBM_DIRECTORY}
@@ -221,4 +221,9 @@ add_library(${PROJECT_NAME}
     ${LIBWEBP_DIRECTORY}/src/utils/utils.c
 
     ${QRCODEGEN_DIRECTORY}/qrcodegen.cpp
+)
+
+target_compile_definitions(${PROJECT_NAME} PRIVATE
+    # allow the WebP library to use multiple threads
+    WEBP_USE_THREAD
 )

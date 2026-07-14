@@ -1,6 +1,6 @@
 project(zAppO)
 
-include_directories(${PROJECT_NAME} PUBLIC
+include_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}
 )
 

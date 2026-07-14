@@ -1,6 +1,6 @@
 project(zDataO)
 
-include_directories(${PROJECT_NAME} PUBLIC
+include_directories(${PROJECT_NAME} PRIVATE
     ${EXTERNAL_DIRECTORY}
 )
 
