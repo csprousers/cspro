@@ -119,6 +119,22 @@ public:
 
 
     // --------------------------------------------------------------------------
+    // token and next token helpers
+    // (NextTokenCC.cpp + TokenCC.cpp)
+    // --------------------------------------------------------------------------
+public:
+    // gets the current token's data type (between Numeric and String); if unknown, DataType::Numeric is returned
+    DataType GetCurrentTokenDataType();
+
+    bool IsCurrentTokenString() { return IsString(GetCurrentTokenDataType()); }
+
+    enum class NextTokenHelperResult { Unknown, NumericConstantNonNegative, StringLiteral, WorkString, Array, List, DictionaryRelatedSymbol };
+    NextTokenHelperResult CheckNextTokenHelper(SymbolType preferred_symbol_type = SymbolType::None);
+
+    std::optional<SymbolType> GetNextTokenSymbolType();
+
+
+    // --------------------------------------------------------------------------
     // compiler helpers
     // (CompilerHelper.cpp)
     // --------------------------------------------------------------------------
@@ -127,6 +143,43 @@ public:
     T& GetCompilerHelper();
 
     LoopStack& GetLoopStack();
+
+
+    // --------------------------------------------------------------------------
+    // basic expressions
+    // (ExpressionsCC.cpp)
+    // --------------------------------------------------------------------------
+public:
+    int exprlog();
+    int expror();
+    int termlog();
+    int factlog();
+    int expr();
+    int term();
+    int factor();
+    int prim();
+
+
+    // --------------------------------------------------------------------------
+    // routing methods
+    // (RoutingCC.cpp)
+    // --------------------------------------------------------------------------
+public:
+    int CompileStatements(bool create_new_local_symbol_stack = true, bool allow_multiple_statements = true);
+
+private:
+    int RouteFunctionCall();
+
+
+    // --------------------------------------------------------------------------
+    // "Control Flow" statements
+    // (ControlFlowCC.cpp)
+    // --------------------------------------------------------------------------
+public:
+    int CompileIfStatement();
+    int CompileWhileLoop();
+    int CompileDoLoop();
+    int CompileNextOrBreakInLoop();
 
 
     // --------------------------------------------------------------------------
@@ -216,17 +269,6 @@ public:
     // --------------------------------------------------------------------------
 public:
     int CompileBarcodeFunctions();
-
-
-    // --------------------------------------------------------------------------
-    // "Control Flow" statements
-    // (ControlFlowCC.cpp)
-    // --------------------------------------------------------------------------
-public:
-    int CompileIfStatement();
-    int CompileWhileLoop();
-    int CompileDoLoop();
-    int CompileNextOrBreakInLoop();
 
 
     // --------------------------------------------------------------------------
@@ -605,37 +647,6 @@ public:
     int CompileSqlQueryFunction(bool from_paradata_function = false);
     int CompileSyncFunctions();
     int CompileUserbarFunction();
-
-
-    // --------------------------------------------------------------------------
-    // basic expressions
-    // (ExpressionsCC.cpp)
-    // --------------------------------------------------------------------------
-public:
-    int exprlog();
-    int expror();
-    int termlog();
-    int factlog();
-    int expr();
-    int term();
-    int factor();
-    int prim();
-
-
-    // --------------------------------------------------------------------------
-    // token and next token helpers
-    // (NextTokenCC.cpp + TokenCC.cpp)
-    // --------------------------------------------------------------------------
-public:
-    // gets the current token's data type (between Numeric and String); if unknown, DataType::Numeric is returned
-    DataType GetCurrentTokenDataType();
-
-    bool IsCurrentTokenString() { return IsString(GetCurrentTokenDataType()); }
-
-    enum class NextTokenHelperResult { Unknown, NumericConstantNonNegative, StringLiteral, WorkString, Array, List, DictionaryRelatedSymbol };
-    NextTokenHelperResult CheckNextTokenHelper(SymbolType preferred_symbol_type = SymbolType::None);
-
-    std::optional<SymbolType> GetNextTokenSymbolType();
 
 
     // --------------------------------------------------------------------------

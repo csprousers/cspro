@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "IncludesCC.h"
 #include "CompilationExtendedInformation.h"
 #include "ValueSet.h"
@@ -132,7 +132,7 @@ int LogicCompiler::CompileWhen()
         return std::vector({ -1 });
     };
 
-    std::function<int(size_t)> action_compiler = [&](size_t/* index*/)
+    const std::function<int(size_t)> action_compiler = [&](size_t/* index*/)
     {
         // allow empty actions
         if( Tkn == TOKSEMICOLON )
@@ -143,7 +143,7 @@ int LogicCompiler::CompileWhen()
 
         else
         {
-            return instruc_COMPILER_DLL_TODO(false, false);
+            return CompileStatements(false, false);
         }
     };
 

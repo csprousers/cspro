@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "IncludesCC.h"
 #include "Report.h"
 #include "Nodes/Report.h"
@@ -111,7 +111,7 @@ void LogicCompiler::CompileReport(const ReportFile& report_file)
             {
                 NextToken();
 
-                const int program_index = instruc_COMPILER_DLL_TODO();
+                const int program_index = CompileStatements();
 
                 // if the entire buffer was not processed, issue an error
                 if( Tkn != TOKEOP )

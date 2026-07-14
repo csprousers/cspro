@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "IncludesCC.h"
 #include "BinarySymbol.h"
 #include "Nodes/Strings.h"
@@ -41,7 +41,7 @@ int LogicCompiler::CompileStringExpression()
                 if( !IsCurrentTokenString() )
                     IssueError(MGF::string_expression_invalid_96);
 
-                string_expression = rutfunc_COMPILER_DLL_TODO();
+                string_expression = RouteFunctionCall();
                 break;
             }
 
@@ -62,7 +62,7 @@ int LogicCompiler::CompileStringExpression()
             case TOKUSERFUNCTION:
             {
                 check_if_object_is_string(NPT_Ref(Tokstindex));
-                string_expression = rutfunc_COMPILER_DLL_TODO();
+                string_expression = RouteFunctionCall();
                 break;
             }
 

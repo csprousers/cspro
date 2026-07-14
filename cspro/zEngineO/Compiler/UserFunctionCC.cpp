@@ -225,7 +225,7 @@ UserFunction* LogicCompiler::CompileUserFunction(const bool compiling_function_p
                     function_body_symbols.emplace_back(symbol_index);
                 }));
 
-            int function_body = instruc_COMPILER_DLL_TODO(false);
+            int function_body = CompileStatements(false);
 
 #ifdef _DEBUG
             // ensure that all locally-declared variables support recursion

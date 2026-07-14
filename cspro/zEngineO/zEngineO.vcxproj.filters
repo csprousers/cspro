@@ -167,6 +167,9 @@
     <ClCompile Include="Compiler\ReportCC.cpp">
       <Filter>Source Files\Compiler</Filter>
     </ClCompile>
+    <ClCompile Include="Compiler\RoutingCC.cpp">
+      <Filter>Source Files\Compiler</Filter>
+    </ClCompile>
     <ClCompile Include="Compiler\StringsCC.cpp">
       <Filter>Source Files\Compiler</Filter>
     </ClCompile>

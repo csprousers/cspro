@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "IncludesCC.h"
 
 
@@ -216,7 +216,7 @@ int LogicCompiler::prim()
 
     else if( Tkn == TOKFUNCTION || Tkn == TOKUSERFUNCTION )
     {
-        p1 = rutfunc_COMPILER_DLL_TODO();
+        p1 = RouteFunctionCall();
     }
 
     else if( Tkn == TOKLIST )

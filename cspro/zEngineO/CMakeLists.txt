@@ -92,6 +92,7 @@ add_library(${PROJECT_NAME}
     Compiler/PffCC.cpp
     Compiler/QueryCC.cpp
     Compiler/ReportCC.cpp
+    Compiler/RoutingCC.cpp
     Compiler/StringsCC.cpp
     Compiler/StringWriterCC.cpp
     Compiler/SwitchCC.cpp

@@ -64,6 +64,7 @@
     <ClCompile Include="Compiler\PffCC.cpp" />
     <ClCompile Include="Compiler\QueryCC.cpp" />
     <ClCompile Include="Compiler\ReportCC.cpp" />
+    <ClCompile Include="Compiler\RoutingCC.cpp" />
     <ClCompile Include="Compiler\StringsCC.cpp" />
     <ClCompile Include="Compiler\StringWriterCC.cpp" />
     <ClCompile Include="Compiler\SwitchCC.cpp" />
