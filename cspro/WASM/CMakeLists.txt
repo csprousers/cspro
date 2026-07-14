@@ -14,6 +14,7 @@ add_compile_options(
 
     # allow multithreading using Wasm Workers
     -sWASM_WORKERS
+    -pthread
 
     # require non-void functions to have a return statement
     -Werror=return-type
@@ -62,6 +63,7 @@ target_link_options(${PROJECT_NAME} PUBLIC
 
     # allow multithreading using Wasm Workers
     -sWASM_WORKERS
+    -pthread
 
     # use the WasmFS file system, which allows access to the file system from multiple threads
     -sWASMFS

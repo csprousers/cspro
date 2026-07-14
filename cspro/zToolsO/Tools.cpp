@@ -15,7 +15,7 @@
 
 
 template<>
-TextEncoding GetEncodingFromBOM(const int iFileHandle)
+CLASS_DECL_ZTOOLSO TextEncoding GetEncodingFromBOM(const int iFileHandle)
 {
     // files without a BOM will be treated as UTF-8
     TextEncoding text_encoding = TextEncoding::Type::Utf8;
@@ -38,11 +38,9 @@ TextEncoding GetEncodingFromBOM(const int iFileHandle)
     return text_encoding;
 }
 
-template CLASS_DECL_ZTOOLSO TextEncoding GetEncodingFromBOM(int iFileHandle);
-
 
 template<>
-Encoding GetEncodingFromBOM(const int iFileHandle)
+CLASS_DECL_ZTOOLSO Encoding GetEncodingFromBOM(const int iFileHandle)
 {
     const TextEncoding text_encoding = GetEncodingFromBOM<TextEncoding>(iFileHandle);
 
@@ -65,9 +63,6 @@ Encoding GetEncodingFromBOM(const int iFileHandle)
             return ReturnProgrammingError(Encoding::Invalid);
     }
 }
-
-template CLASS_DECL_ZTOOLSO Encoding GetEncodingFromBOM(int iFileHandle);
-
 
 
 Encoding GetEncodingFromBOM(FILE* const file)

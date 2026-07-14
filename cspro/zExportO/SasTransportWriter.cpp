@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "SasTransportWriter.h"
 #include <zToolsO/Special.h>
 
@@ -244,8 +244,8 @@ void SasTransportWriter::WriteDataSetMetadata(const DataSet& data_set)
 
 
     // write the second member header (the data set label)
-    snprintf(m_header, sizeof(m_header), "%16.16s"    "%-24.24s" "%-40.40s"              "%-8.8s",
-                                         m_timestamp, "",        data_set.label.c_str(), "");
+    snprintf(m_header, sizeof(m_header), "%16.16s"    "%-24.24s" "%-40.40s",
+                                         m_timestamp, "",        data_set.label.c_str());
 
     WriteRecord(m_header);
 

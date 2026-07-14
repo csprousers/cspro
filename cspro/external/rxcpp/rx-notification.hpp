@@ -167,7 +167,7 @@ private:
         virtual void accept(const typename base::observer_type& o) const {
             o.on_error(ep);
         }
-        const rxu::error_ptr ep;
+        rxu::error_ptr ep;
     };
 
     struct on_completed_notification : public base {
