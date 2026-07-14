@@ -5,105 +5,106 @@
 
 bool LogicCompiler::IsValidStatementStartToken(const TokenCode token_code) noexcept
 {
-    static const std::set ValidStatementStartTokens =
+    switch( token_code )
     {
-        TOKHASH,
-        TOKIF,
-        TOKWHILE,
-        TOKRECODE,
-        TOKVAR,
-        TOKWORKSTRING,
-        TOKFUNCTION,
-        TOKCROSSTAB,
-        TOKKWFREQ,
-        TOKEXPORT,
-        TOKKWCTAB,
-        TOKFOR,
-        TOKFORCASE,
-        TOKSTOP,
-        TOKENDCASE,
-        TOKUNIVERSE,
-        TOKASK,
-        TOKSKIP,
-        TOKMOVE,
-        TOKEXIT,
-        TOKREENTER,
-        TOKENTER,
-        TOKADVANCE,
-        TOKENDSECT,
-        TOKENDLEVL,
-        TOKNOINPUT,
-        TOKBREAK,
-        TOKNEXT,
-        TOKDO,
-        TOKSET,
-        TOKUSERFUNCTION,
-        TOKNUMERIC,
-        TOKALPHA,
-        TOKSTRING,
-        TOKCONFIG,
-        TOKPERSISTENT,
-        TOKKWFILE,
-        TOKKWARRAY,
-        TOKKWLIST,
-        TOKKWMAP,
-        TOKKWVALUESET,
-        TOKARRAY,
-        TOKLIST,
-        TOKVALUESET,
-        TOKKWPFF,
-        TOKPFF,
-        TOKWHEN,
-        TOKKWSYSTEMAPP,
-        TOKKWAUDIO,
-        TOKAUDIO,
-        TOKKWHASHMAP,
-        TOKHASHMAP,
-        TOKFREQ,
-        TOKKWCASE,
-        TOKDICT,
-        TOKKWDATASOURCE,
-        TOKKWIMAGE,
-        TOKIMAGE,
-        TOKKWDOCUMENT,
-        TOKDOCUMENT,
-        TOKKWGEOMETRY,
-        TOKGEOMETRY,
-        TOKDECLARE,
-        TOKKWSTRINGWRITER,
-        TOKKWVIDEO,
-        TOKVIDEO,
-    };
+        case TokenCode::TOKADVANCE:
+        case TokenCode::TOKALPHA:
+        case TokenCode::TOKARRAY:
+        case TokenCode::TOKASK:
+        case TokenCode::TOKAUDIO:
+        case TokenCode::TOKBREAK:
+        case TokenCode::TOKCONFIG:
+        case TokenCode::TOKCROSSTAB:
+        case TokenCode::TOKDECLARE:
+        case TokenCode::TOKDICT:
+        case TokenCode::TOKDO:
+        case TokenCode::TOKDOCUMENT:
+        case TokenCode::TOKENDCASE:
+        case TokenCode::TOKENDLEVL:
+        case TokenCode::TOKENDSECT:
+        case TokenCode::TOKENTER:
+        case TokenCode::TOKEXIT:
+        case TokenCode::TOKEXPORT:
+        case TokenCode::TOKFOR:
+        case TokenCode::TOKFORCASE:
+        case TokenCode::TOKFREQ:
+        case TokenCode::TOKFUNCTION:
+        case TokenCode::TOKGEOMETRY:
+        case TokenCode::TOKHASH:
+        case TokenCode::TOKHASHMAP:
+        case TokenCode::TOKIF:
+        case TokenCode::TOKIMAGE:
+        case TokenCode::TOKKWARRAY:
+        case TokenCode::TOKKWAUDIO:
+        case TokenCode::TOKKWCASE:
+        case TokenCode::TOKKWCTAB:
+        case TokenCode::TOKKWDATASOURCE:
+        case TokenCode::TOKKWDOCUMENT:
+        case TokenCode::TOKKWFILE:
+        case TokenCode::TOKKWFREQ:
+        case TokenCode::TOKKWGEOMETRY:
+        case TokenCode::TOKKWHASHMAP:
+        case TokenCode::TOKKWIMAGE:
+        case TokenCode::TOKKWLIST:
+        case TokenCode::TOKKWMAP:
+        case TokenCode::TOKKWPFF:
+        case TokenCode::TOKKWSTRINGWRITER:
+        case TokenCode::TOKKWSYSTEMAPP:
+        case TokenCode::TOKKWVALUESET:
+        case TokenCode::TOKKWVIDEO:
+        case TokenCode::TOKLIST:
+        case TokenCode::TOKMOVE:
+        case TokenCode::TOKNEXT:
+        case TokenCode::TOKNOINPUT:
+        case TokenCode::TOKNUMERIC:
+        case TokenCode::TOKPERSISTENT:
+        case TokenCode::TOKPFF:
+        case TokenCode::TOKRECODE:
+        case TokenCode::TOKREENTER:
+        case TokenCode::TOKSET:
+        case TokenCode::TOKSKIP:
+        case TokenCode::TOKSTOP:
+        case TokenCode::TOKSTRING:
+        case TokenCode::TOKUNIVERSE:
+        case TokenCode::TOKUSERFUNCTION:
+        case TokenCode::TOKVALUESET:
+        case TokenCode::TOKVAR:
+        case TokenCode::TOKVIDEO:
+        case TokenCode::TOKWHEN:
+        case TokenCode::TOKWHILE:
+        case TokenCode::TOKWORKSTRING:
+            return true;
+    }
 
-    return ( ValidStatementStartTokens.find(token_code) != ValidStatementStartTokens.cend() );
+    return false;
 }
 
 
 bool LogicCompiler::IsValidStatementEndToken(const TokenCode token_code) noexcept
 {
-    // IsValidStatementEndToken: checks if last ending token is a valid end-of-statement
-    //   - normally was a ";" only, but more tokens are now accepted
-    // ... change: Feb 22, 00 Only ";" is a valid end-of-statement
-    bool    bIsValid = false;
+    // returns true if the token is a valid end-of-statement
+    switch( token_code )
+    {
+        // originally only a semicolon was allowed...
+        case TokenCode::TOKSEMICOLON:
 
-    switch( token_code ) {
-        case TOKENDIF    :
-        case TOKENDDO    :
-        case TOKENDRECODE:
-        case TOKEND      :
-        case TOKENDSECT  :
-        case TOKENDLEVL  :
-        case TOKELSE     :
-        case TOKELSEIF   :
-        case TOKSEMICOLON:
+        // ... but more tokens were accepted on Feb 22, 2000
+        case TokenCode::TOKELSE:
+        case TokenCode::TOKELSEIF:
+        case TokenCode::TOKEND:
+        case TokenCode::TOKENDDO:
+        case TokenCode::TOKENDIF:
+        case TokenCode::TOKENDLEVL:
+        case TokenCode::TOKENDRECODE:
+        case TokenCode::TOKENDSECT:
+
         // uncomment the line below and the user will be allowed to
         // avoid the semicolon in the very last statement of a procedure
-        case TOKEOP      :
-            bIsValid = true;
-            break;
+        case TokenCode::TOKEOP:
+            return true;
     }
 
-    return bIsValid;
+    return false;
 }
 
 
@@ -868,7 +869,7 @@ int LogicCompiler::CompileStatements(const bool create_new_local_symbol_stack/* 
 int LogicCompiler::RouteFunctionCall()
 {
     // analyze user-defined functions...
-    if( Tkn == TOKUSERFUNCTION )
+    if( Tkn == TokenCode::TOKUSERFUNCTION )
         return CompileUserFunctionCall();
 
     // ...or built-in functions
