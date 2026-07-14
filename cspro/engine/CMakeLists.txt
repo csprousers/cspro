@@ -1,7 +1,5 @@
 project(engine)
 
-include(../WASM/Definitions.cmake)
-
 set(CEXENTRY_DIRECTORY ${CSPRO_DIRECTORY}/engine)
 set(ZCAPIO_DIRECTORY ${CSPRO_DIRECTORY}/zCapiO)
 set(ZENTRYO_DIRECTORY ${CSPRO_DIRECTORY}/zEntryO)

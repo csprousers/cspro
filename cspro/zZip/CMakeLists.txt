@@ -1,7 +1,5 @@
 project(zZip)
 
-include(../WASM/Definitions.cmake)
-
 set(MINIZ_DIRECTORY ${EXTERNAL_DIRECTORY}/miniz)
 
 add_library(${PROJECT_NAME}

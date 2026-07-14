@@ -1,7 +1,5 @@
 project(zHtml)
 
-include(../WASM/Definitions.cmake)
-
 set(GUMBO_DIRECTORY ${EXTERNAL_DIRECTORY}/gumbo)
 
 add_library(${PROJECT_NAME}

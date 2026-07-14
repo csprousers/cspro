@@ -1,7 +1,5 @@
 project(zLogicO)
 
-include(../WASM/Definitions.cmake)
-
 add_library(${PROJECT_NAME}
     ActionInvoker.cpp
     BaseCompiler.cpp

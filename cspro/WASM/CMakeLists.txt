@@ -1,5 +1,41 @@
 cmake_minimum_required(VERSION 3.10)
 
+project(CSPro)
+
+# global compiler options
+add_compile_options(
+    # enable exception handling
+    -fwasm-exceptions
+
+    # allow multithreading using Wasm Workers
+    -sWASM_WORKERS
+
+    # require non-void functions to have a return statement
+    -Werror=return-type
+
+    # suppress warnings: expression result unused
+    -Wno-unused-value
+
+    # suppress warnings: enumeration values not handled in switch
+    -Wno-switch
+)
+
+# global compiler definitions
+add_compile_definitions(
+    WASM
+    UNICODE=1
+    _UNICODE=1
+)
+
+# set the directories for the CSPro solution root and the external libraries
+set(CSPRO_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/..)
+set(EXTERNAL_DIRECTORY ${CSPRO_DIRECTORY}/external)
+
+# global include directories
+include_directories(
+    ${CSPRO_DIRECTORY}
+)
+
 # add_subdirectory(../external/zlib zlib)
 # add_subdirectory(../engine engine)
 # add_subdirectory(../zAction zAction)
@@ -42,11 +78,6 @@ add_subdirectory(../zUtilO zUtilO)
 # add_subdirectory(../zViewO zViewO)
 # add_subdirectory(../zYaml zYaml)
 # add_subdirectory(../zZip zZip)
-
-
-project(CSPro)
-
-include(Definitions.cmake)
 
 add_executable(${PROJECT_NAME}
     "WasmBindings.cpp"

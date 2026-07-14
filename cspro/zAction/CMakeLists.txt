@@ -1,7 +1,5 @@
 project(zAction)
 
-include(../WASM/Definitions.cmake)
-
 add_library(${PROJECT_NAME}
     ActionFunctionMapping.cpp
     ActionInvoker.cpp

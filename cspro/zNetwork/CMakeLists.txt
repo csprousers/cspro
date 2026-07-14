@@ -1,7 +1,5 @@
 project(zNetwork)
 
-include(../WASM/Definitions.cmake)
-
 set(EASYLOGGING_DIRECTORY ${EXTERNAL_DIRECTORY}/easylogging)
 
 include_directories(${PROJECT_NAME} PUBLIC

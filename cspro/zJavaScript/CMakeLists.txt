@@ -1,7 +1,5 @@
 project(zJavaScript)
 
-include(../WASM/Definitions.cmake)
-
 set(QUICKJS_DIRECTORY ${EXTERNAL_DIRECTORY}/QuickJS)
 
 add_library(${PROJECT_NAME}

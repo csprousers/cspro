@@ -1,7 +1,5 @@
 project(zFreqO)
 
-include(../WASM/Definitions.cmake)
-
 add_library(${PROJECT_NAME}
     ExcelFrequencyPrinter.cpp
     Frequency.cpp

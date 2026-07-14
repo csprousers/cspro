@@ -1,7 +1,5 @@
 project(zEngineO)
 
-include(../WASM/Definitions.cmake)
-
 include_directories(${PROJECT_NAME} PUBLIC
     ${CMAKE_CURRENT_LIST_DIR}
     ${EXTERNAL_DIRECTORY}/geometry.hpp/include

@@ -1,7 +1,5 @@
 project(zExcelO)
 
-include(../WASM/Definitions.cmake)
-
 set(LIBXLSXWRITER_DIRECTORY ${EXTERNAL_DIRECTORY}/libxlsxwriter)
 
 include_directories(${PROJECT_NAME} PUBLIC

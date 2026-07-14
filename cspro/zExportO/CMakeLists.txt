@@ -1,7 +1,5 @@
 project(zExportO)
 
-include(../WASM/Definitions.cmake)
-
 set(LIBRDATA_READSTAT_DIRECTORY ${EXTERNAL_DIRECTORY}/librdata+ReadStat)
 set(LIBRDATA_DIRECTORY ${EXTERNAL_DIRECTORY}/librdata)
 set(READSTAT_DIRECTORY ${EXTERNAL_DIRECTORY}/ReadStat)

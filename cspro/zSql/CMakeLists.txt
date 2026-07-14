@@ -1,7 +1,5 @@
 project(zSql)
 
-include(../WASM/Definitions.cmake)
-
 add_compile_definitions(SQLITE_TEMP_STORE=3) # use memory for temp files
 
 set(SQLITE_DIRECTORY ${EXTERNAL_DIRECTORY}/SQLite)

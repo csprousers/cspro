@@ -1,7 +1,5 @@
 project(zlib)
 
-include(../../WASM/Definitions.cmake)
-
 add_compile_definitions(HAVE_UNISTD_H)
 
 set(ZLIB_DIRECTORY ${EXTERNAL_DIRECTORY}/zlib)

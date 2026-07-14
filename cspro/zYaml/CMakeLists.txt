@@ -1,7 +1,5 @@
 project(zYaml)
 
-include(../WASM/Definitions.cmake)
-
 set(YAML_DIRECTORY ${EXTERNAL_DIRECTORY}/yaml-cpp)
 
 include_directories(${PROJECT_NAME} PUBLIC

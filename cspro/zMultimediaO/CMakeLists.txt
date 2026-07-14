@@ -1,7 +1,5 @@
 project(zMultimediaO)
 
-include(../WASM/Definitions.cmake)
-
 set(GPAC_SRC_PATH ${EXTERNAL_DIRECTORY}/gpac/src)
 set(LIBEXIF_SRC_PATH ${EXTERNAL_DIRECTORY}/libexif)
 set(LIBWEBM_SRC_PATH ${EXTERNAL_DIRECTORY}/libwebm)

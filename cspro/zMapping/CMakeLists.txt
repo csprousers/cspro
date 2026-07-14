@@ -1,7 +1,5 @@
 project(zMapping)
 
-include(../WASM/Definitions.cmake)
-
 include_directories(${PROJECT_NAME} PUBLIC
     ${EXTERNAL_DIRECTORY}
     ${EXTERNAL_DIRECTORY}/geometry.hpp/include

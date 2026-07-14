@@ -1,7 +1,5 @@
 project(zToolsO)
 
-include(../WASM/Definitions.cmake)
-
 set(BZIP2_DIRECTORY ${EXTERNAL_DIRECTORY}/bzip2)
 set(MD4C_DIRECTORY ${EXTERNAL_DIRECTORY}/md4c)
 set(SCRYPT_DIRECTORY ${EXTERNAL_DIRECTORY}/scrypt)

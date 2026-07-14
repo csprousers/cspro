@@ -1,7 +1,5 @@
 project(zFormO)
 
-include(../WASM/Definitions.cmake)
-
 add_library(${PROJECT_NAME}
     Block.cpp
     Box.cpp

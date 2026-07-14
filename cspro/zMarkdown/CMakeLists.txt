@@ -1,7 +1,5 @@
 project(zMarkdown)
 
-include(../WASM/Definitions.cmake)
-
 set(MD4C_DIRECTORY ${EXTERNAL_DIRECTORY}/md4c)
 
 add_library(${PROJECT_NAME}
