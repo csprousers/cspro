@@ -1,6 +1,6 @@
 project(zlib)
 
-include(../Definitions.cmake)
+include(../../WASM/Definitions.cmake)
 
 add_compile_definitions(HAVE_UNISTD_H)
 

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
-# add_subdirectory(zlib)
+# add_subdirectory(../external/zlib zlib)
 # add_subdirectory(../engine engine)
 # add_subdirectory(../zAction zAction)
 add_subdirectory(../zAppO zAppO)
