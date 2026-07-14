@@ -1,7 +1,5 @@
 project(zFormO)
 
-include(../WASM/Definitions.cmake)
-
 add_library(${PROJECT_NAME}
     Block.cpp
     Box.cpp
@@ -20,4 +18,8 @@ add_library(${PROJECT_NAME}
     RosterCells.cpp
     RosterColumn.cpp
     Text.cpp
+)
+
+target_precompile_headers(${PROJECT_NAME} PRIVATE
+    StdAfx.h
 )

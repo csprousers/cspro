@@ -1,7 +1,5 @@
 project(zUtilO)
 
-include(../WASM/Definitions.cmake)
-
 add_library(${PROJECT_NAME}
     BasicLogger.cpp
     BinaryContentCacher.cpp
@@ -46,4 +44,8 @@ add_library(${PROJECT_NAME}
     Versioning.cpp
     Viewers.cpp
     VirtualDirectoryLister.cpp
+)
+
+target_precompile_headers(${PROJECT_NAME} PRIVATE
+    StdAfx.h
 )

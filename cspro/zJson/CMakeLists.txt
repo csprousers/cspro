@@ -1,18 +1,20 @@
 project(zJson)
 
-include(../WASM/Definitions.cmake)
-
-include_directories(${PROJECT_NAME} PUBLIC
+include_directories(${PROJECT_NAME} PRIVATE
     ${EXTERNAL_DIRECTORY}
 )
 
 add_library(${PROJECT_NAME}
-	IncrementalJsonObjectArrayParser.cpp
-	Json.cpp
-	JsonFormattingOptions.cpp
-	JsonNode.cpp
-	JsonObjectCreator.cpp
-	JsonSpecFile.cpp
-	JsonStream.cpp
-	JsonWriter.cpp
+    IncrementalJsonObjectArrayParser.cpp
+    Json.cpp
+    JsonFormattingOptions.cpp
+    JsonNode.cpp
+    JsonObjectCreator.cpp
+    JsonSpecFile.cpp
+    JsonStream.cpp
+    JsonWriter.cpp
+)
+
+target_precompile_headers(${PROJECT_NAME} PRIVATE
+    stdafx.h
 )

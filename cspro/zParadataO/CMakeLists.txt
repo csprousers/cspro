@@ -1,7 +1,5 @@
 project(zParadataO)
 
-include(../WASM/Definitions.cmake)
-
 add_library(${PROJECT_NAME}
     ApplicationEvent.cpp
     CaseEvent.cpp
@@ -29,4 +27,8 @@ add_library(${PROJECT_NAME}
     SyncEvents.cpp
     Table.cpp
     TableDefinitions.cpp
+)
+
+target_precompile_headers(${PROJECT_NAME} PRIVATE
+    stdafx.h
 )

@@ -7,14 +7,20 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+# use ccache when available
+find_program(CCACHE_PROGRAM ccache)
+if(CCACHE_PROGRAM)
+    set(CMAKE_C_COMPILER_LAUNCHER ${CCACHE_PROGRAM})
+    set(CMAKE_CXX_COMPILER_LAUNCHER ${CCACHE_PROGRAM})
+endif()
+
 # global compiler options
 add_compile_options(
-    # enable exception handling
-    -fwasm-exceptions
+    # use Run-Time Type Information
+    -frtti
 
-    # allow multithreading using Wasm Workers
-    -sWASM_WORKERS
-    -pthread
+    # enable exception handling
+    -fexceptions
 
     # require non-void functions to have a return statement
     -Werror=return-type
@@ -28,13 +34,13 @@ add_compile_options(
 
 # global compiler definitions
 add_compile_definitions(
-    WASM
+    ANDROID=1
     UNICODE=1
     _UNICODE=1
 )
 
 # set the directories for the CSPro solution root and the external libraries
-set(CSPRO_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/..)
+set(CSPRO_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../../../../..)
 set(EXTERNAL_DIRECTORY ${CSPRO_DIRECTORY}/external)
 
 # global include directories
@@ -42,43 +48,51 @@ include_directories(
     ${CSPRO_DIRECTORY}
 )
 
-# CSEntry (WASM) files
-add_executable(${PROJECT_NAME}
-    "WasmBindings.cpp"
-    "WasmController.cpp"
-    "WasmLocalFileServer.cpp"
+# CSEntry (Android) files
+add_library(${PROJECT_NAME} SHARED
+    ActionInvoker.cpp
+    ActionInvokerPortableRunner.cpp
+    AndroidApplicationInterface.cpp
+    AndroidBluetoothAdapter.cpp
+    AndroidBluetoothObexTransport.cpp
+    AndroidEngineInterface.cpp
+    AndroidFtpConnection.cpp
+    AndroidHtmlMapUI.cpp
+    AndroidHttpConnection.cpp
+    AndroidLocalFileServer.cpp
+    AndroidMapUI.cpp
+    GeometryJni.cpp
+    gov_census_cspro_bridge_CNPifFile.cpp
+    gov_census_cspro_engine_EngineInterface_jni.cpp
+    gov_census_cspro_form_CDEField_jni.cpp
+    gov_census_cspro_form_EntryPage_jni.cpp
+    gov_census_cspro_smartsync_addapp_DeploymentPackageDownloader.cpp
+    gov_census_cspro_smartsync_http_IStreamWrapper_jni.cpp
+    gov_census_cspro_smartsync_http_OStreamWrapper_jni.cpp
+    gov_census_cspro_smartsync_p2p_AndroidBluetoothAdapter_jni.cpp
+    gov_census_cspro_smartsync_SyncListenerWrapper_jni.cpp
+    JNIHelpers.cpp
 )
 
-set_target_properties(${PROJECT_NAME}
-    # add JavaScript bindings
-    PROPERTIES LINK_FLAGS -lembind
+# CSEntry (Android) include directories
+target_include_directories(${PROJECT_NAME} PRIVATE
+    ${EXTERNAL_DIRECTORY}
+    ${EXTERNAL_DIRECTORY}/rxcpp
+    ${EXTERNAL_DIRECTORY}/geometry.hpp/include
+    ${EXTERNAL_DIRECTORY}/variant/include
 )
 
-target_link_options(${PROJECT_NAME} PUBLIC
-    # enable exceptions
-    -fwasm-exceptions
-
-    # allow memory to grow as needed
-    -sALLOW_MEMORY_GROWTH
-
-    # allow multithreading using Wasm Workers
-    -sWASM_WORKERS
-    -pthread
-
-    # use the WasmFS file system, which allows access to the file system from multiple threads
-    -sWASMFS
-
-    # bundle the assets
-    --preload-file ${CMAKE_CURRENT_SOURCE_DIR}/Assets@Assets/
-)
-
-# copy the WASM html directory to the output root
-add_custom_command(TARGET ${PROJECT_NAME}
-    POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different ${CMAKE_CURRENT_SOURCE_DIR}/html ${CMAKE_CURRENT_BINARY_DIR}
+# enable 16 KiB memory pages
+target_link_options(${PROJECT_NAME} PRIVATE
+    "-Wl,-z,max-page-size=16384"
 )
 
 # supporting libraries
 target_link_libraries(${PROJECT_NAME} PRIVATE
+    # Android libraries
+    android
+    log
+
     # external libraries
     zlib
 

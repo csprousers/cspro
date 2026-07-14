@@ -1,12 +1,11 @@
 project(zToolsO)
 
-include(../WASM/Definitions.cmake)
-
 set(BZIP2_DIRECTORY ${EXTERNAL_DIRECTORY}/bzip2)
 set(MD4C_DIRECTORY ${EXTERNAL_DIRECTORY}/md4c)
+set(RIJNDAEL_DIRECTORY rijndael)
 set(SCRYPT_DIRECTORY ${EXTERNAL_DIRECTORY}/scrypt)
 
-include_directories(${PROJECT_NAME} PUBLIC
+include_directories(${PROJECT_NAME} PRIVATE
     ${EXTERNAL_DIRECTORY}
 )
 
@@ -50,8 +49,6 @@ add_library(${PROJECT_NAME}
     uuid.cpp
     VarFuncs.cpp
 
-    rijndael/rijndael-alg-fst.c
-
     ${BZIP2_DIRECTORY}/blocksort.c
     ${BZIP2_DIRECTORY}/bzlib.c
     ${BZIP2_DIRECTORY}/compress.c
@@ -62,6 +59,12 @@ add_library(${PROJECT_NAME}
 
     ${MD4C_DIRECTORY}/entity.c
 
+    ${RIJNDAEL_DIRECTORY}/rijndael-alg-fst.c
+
     ${SCRYPT_DIRECTORY}/insecure_memzero.c
     ${SCRYPT_DIRECTORY}/sha256.c
+)
+
+target_precompile_headers(${PROJECT_NAME} PRIVATE
+    "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/StdAfx.h>"
 )

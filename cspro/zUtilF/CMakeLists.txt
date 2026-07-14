@@ -1,7 +1,5 @@
 project(zUtilF)
 
-include(../WASM/Definitions.cmake)
-
 add_library(${PROJECT_NAME}
     ChoiceDlg.cpp
     HtmlDialogFunctionRunner.cpp
@@ -14,4 +12,8 @@ add_library(${PROJECT_NAME}
     SelectDlg.cpp
     SelectFileDlg.cpp
     TextInputDlg.cpp
+)
+
+target_precompile_headers(${PROJECT_NAME} PRIVATE
+    StdAfx.h
 )

@@ -1,7 +1,5 @@
 project(zMessageO)
 
-include(../WASM/Definitions.cmake)
-
 add_library(${PROJECT_NAME}
     MessageEvaluator.cpp
     MessageFile.cpp
@@ -9,4 +7,8 @@ add_library(${PROJECT_NAME}
     Messages.cpp
     SystemMessageFormatter.cpp
     SystemMessages.cpp
+)
+
+target_precompile_headers(${PROJECT_NAME} PRIVATE
+    stdafx.h
 )

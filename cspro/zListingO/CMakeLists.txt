@@ -1,7 +1,5 @@
 project(zListingO)
 
-include(../WASM/Definitions.cmake)
-
 add_library(${PROJECT_NAME}
     CsvLister.cpp
     DataFileLister.cpp
@@ -13,4 +11,8 @@ add_library(${PROJECT_NAME}
     ListingHelpers.cpp
     TextLister.cpp
     TextWriteFile.cpp
+)
+
+target_precompile_headers(${PROJECT_NAME} PRIVATE
+    stdafx.h
 )

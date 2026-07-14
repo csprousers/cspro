@@ -1,7 +1,5 @@
 project(zMarkdown)
 
-include(../WASM/Definitions.cmake)
-
 set(MD4C_DIRECTORY ${EXTERNAL_DIRECTORY}/md4c)
 
 add_library(${PROJECT_NAME}
@@ -10,4 +8,8 @@ add_library(${PROJECT_NAME}
 
     ${MD4C_DIRECTORY}/md4c.c
     ${MD4C_DIRECTORY}/md4c-html.c
+)
+
+target_precompile_headers(${PROJECT_NAME} PRIVATE
+    "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/StdAfx.h>"
 )

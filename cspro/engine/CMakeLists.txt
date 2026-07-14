@@ -1,13 +1,11 @@
 project(engine)
 
-include(../WASM/Definitions.cmake)
-
 set(CEXENTRY_DIRECTORY ${CSPRO_DIRECTORY}/engine)
 set(ZCAPIO_DIRECTORY ${CSPRO_DIRECTORY}/zCapiO)
 set(ZENTRYO_DIRECTORY ${CSPRO_DIRECTORY}/zEntryO)
 set(ZISSALIB_DIRECTORY ${CSPRO_DIRECTORY}/zIssaLib)
 
-include_directories(${PROJECT_NAME} PUBLIC
+include_directories(${PROJECT_NAME} PRIVATE
     ${EXTERNAL_DIRECTORY}
     ${EXTERNAL_DIRECTORY}/geometry.hpp/include
     ${EXTERNAL_DIRECTORY}/variant/include

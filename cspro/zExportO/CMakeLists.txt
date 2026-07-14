@@ -1,7 +1,5 @@
 project(zExportO)
 
-include(../WASM/Definitions.cmake)
-
 set(LIBRDATA_READSTAT_DIRECTORY ${EXTERNAL_DIRECTORY}/librdata+ReadStat)
 set(LIBRDATA_DIRECTORY ${EXTERNAL_DIRECTORY}/librdata)
 set(READSTAT_DIRECTORY ${EXTERNAL_DIRECTORY}/ReadStat)
@@ -43,4 +41,8 @@ add_library(${PROJECT_NAME}
     ${READSTAT_DIRECTORY}/spss/readstat_spss_parse.c
     ${READSTAT_DIRECTORY}/stata/readstat_dta.c
     ${READSTAT_DIRECTORY}/stata/readstat_dta_write.c
+)
+
+target_precompile_headers(${PROJECT_NAME} PRIVATE
+    "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/stdafx.h>"
 )

@@ -1,7 +1,5 @@
 project(zCaseO)
 
-include(../WASM/Definitions.cmake)
-
 add_library(${PROJECT_NAME}
     BinaryCaseItem.cpp
     Case.cpp
@@ -24,4 +22,8 @@ add_library(${PROJECT_NAME}
     StringCaseItem.cpp
     TextToCaseConverter.cpp
     VectorClock.cpp
+)
+
+target_precompile_headers(${PROJECT_NAME} PRIVATE
+    stdafx.h
 )

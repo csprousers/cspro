@@ -1,7 +1,5 @@
 project(zDictO)
 
-include(../WASM/Definitions.cmake)
-
 add_library(${PROJECT_NAME}
     CaptureInfo.cpp
     DDClass.cpp
@@ -22,4 +20,8 @@ add_library(${PROJECT_NAME}
     ValueProcessor.cpp
     ValueSetFixer.cpp
     ValueSetResponse.cpp
+)
+
+target_precompile_headers(${PROJECT_NAME} PRIVATE
+    StdAfx.h
 )

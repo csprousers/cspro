@@ -1,7 +1,5 @@
 project(zAction)
 
-include(../WASM/Definitions.cmake)
-
 add_library(${PROJECT_NAME}
     ActionFunctionMapping.cpp
     ActionInvoker.cpp
@@ -15,14 +13,19 @@ add_library(${PROJECT_NAME}
     Exception.cpp
     File.cpp
     Hash.cpp
+    JsonExecutor.cpp
     Localhost.cpp
     Logic.cpp
-    Path.cpp
     Message.cpp
     Network.cpp
+    Path.cpp
     Settings.cpp
     Sqlite.cpp
     Sync.cpp
     System.cpp
     UserInterface.cpp
+)
+
+target_precompile_headers(${PROJECT_NAME} PRIVATE
+    stdafx.h
 )

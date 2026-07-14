@@ -9,6 +9,7 @@
             "cmakeCommandArgs": "",
             "buildCommandArgs": "",
             "ctestCommandArgs": "",
+            "cmakeExecutable": "C:/code/cmake/bin/cmake.exe",
             "cmakeToolchain": "C:/code/emsdk/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake",
             "inheritEnvironments": [],
             "intelliSenseMode": "windows-clang-x64"
@@ -22,6 +23,7 @@
             "cmakeCommandArgs": "",
             "buildCommandArgs": "",
             "ctestCommandArgs": "",
+            "cmakeExecutable": "C:/code/cmake/bin/cmake.exe",
             "cmakeToolchain": "C:/code/emsdk/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake",
             "inheritEnvironments": []
         }

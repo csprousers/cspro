@@ -9,6 +9,7 @@ Most CSPro development occurs on a [private repository](https://github.com/CSPro
 
 | Date | Branch | Pull Request Message |
 | --- | --- | --- |
+| 2026&#8209;07&#8209;14 | [android-cmake](https://github.com/CSProDevelopment/cspro/commit/652bb11960af3d73c326c8a2fbe5c1c4533c3a1c) | refactored the Android build to use CMake |
 | 2026&#8209;07&#8209;13 | [dictionary-analysis-dialog](https://github.com/CSProDevelopment/cspro/commit/627293268b40ea5506dca4de407f4e98bb8794bb) | reworked the dictionary analysis reports into a single dialog and added reports about linked value sets and special values |
 
 

@@ -1,8 +1,6 @@
 project(zDataO)
 
-include(../WASM/Definitions.cmake)
-
-include_directories(${PROJECT_NAME} PUBLIC
+include_directories(${PROJECT_NAME} PRIVATE
     ${EXTERNAL_DIRECTORY}
 )
 
@@ -41,4 +39,8 @@ add_library(${PROJECT_NAME}
     TextRepositoryNotesFile.cpp
     TextRepositoryStatusFile.cpp
     WrapperRepository.cpp
+)
+
+target_precompile_headers(${PROJECT_NAME} PRIVATE
+    stdafx.h
 )

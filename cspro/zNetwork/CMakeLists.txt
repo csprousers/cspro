@@ -1,12 +1,6 @@
 project(zNetwork)
 
-include(../WASM/Definitions.cmake)
-
 set(EASYLOGGING_DIRECTORY ${EXTERNAL_DIRECTORY}/easylogging)
-
-include_directories(${PROJECT_NAME} PUBLIC
-    ${EASYLOGGING_DIRECTORY}
-)
 
 add_library(${PROJECT_NAME}
     CSWebConnection.cpp
@@ -27,4 +21,13 @@ add_library(${PROJECT_NAME}
     SyncLogSyncListener.cpp
 
     ${EASYLOGGING_DIRECTORY}/easylogging++.cc
+)
+
+target_precompile_headers(${PROJECT_NAME} PRIVATE
+    stdafx.h
+)
+
+set_source_files_properties(
+    ${EASYLOGGING_DIRECTORY}/easylogging++.cc
+    PROPERTIES SKIP_PRECOMPILE_HEADERS ON
 )

@@ -1,9 +1,5 @@
 project(zlib)
 
-include(../Definitions.cmake)
-
-add_compile_definitions(HAVE_UNISTD_H)
-
 set(ZLIB_DIRECTORY ${EXTERNAL_DIRECTORY}/zlib)
 
 add_library(${PROJECT_NAME}
@@ -22,4 +18,8 @@ add_library(${PROJECT_NAME}
     ${ZLIB_DIRECTORY}/trees.c
     ${ZLIB_DIRECTORY}/uncompr.c
     ${ZLIB_DIRECTORY}/zutil.c
+)
+
+target_compile_definitions(${PROJECT_NAME} PRIVATE
+    HAVE_UNISTD_H
 )

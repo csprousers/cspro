@@ -1,8 +1,6 @@
 project(zAppO)
 
-include(../WASM/Definitions.cmake)
-
-include_directories(${PROJECT_NAME} PUBLIC
+include_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}
 )
 
@@ -30,4 +28,8 @@ add_library(${PROJECT_NAME}
     Properties/MappingProperties.cpp
     Properties/MappingTileProviderProperties.cpp
     Properties/ParadataProperties.cpp
+)
+
+target_precompile_headers(${PROJECT_NAME} PRIVATE
+    stdafx.h
 )

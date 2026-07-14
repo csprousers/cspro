@@ -1,7 +1,5 @@
 project(zHtml)
 
-include(../WASM/Definitions.cmake)
-
 set(GUMBO_DIRECTORY ${EXTERNAL_DIRECTORY}/gumbo)
 
 add_library(${PROJECT_NAME}
@@ -10,6 +8,8 @@ add_library(${PROJECT_NAME}
     CssProvider.cpp
     FileSystemVirtualFileMappingHandler.cpp
     HtmlDlgBaseRunner.cpp
+    HtmlishSanitizer.cpp
+    HtmlTextConverter.cpp
     LocalhostUrl.cpp
     PortableLocalFileServer.cpp
     PortableLocalhost.cpp
@@ -29,4 +29,8 @@ add_library(${PROJECT_NAME}
     ${GUMBO_DIRECTORY}/utf8.c
     ${GUMBO_DIRECTORY}/util.c
     ${GUMBO_DIRECTORY}/vector.c
+)
+
+target_precompile_headers(${PROJECT_NAME} PRIVATE
+    "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/stdafx.h>"
 )
