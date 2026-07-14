@@ -404,8 +404,7 @@ int& CEngineCompFunc::GetLastFoundVariableIndex()
 
 #include <zToolsO/ValueConserver.h>
 
-template<typename CF>
-int CEngineCompFunc::HandleErrors_COMPILER_DLL_TODO(CF callback_function)
+int CEngineCompFunc::HandleErrors_COMPILER_DLL_TODO(const std::function<int()>& callback_function)
 {
     int p = callback_function();
 
@@ -434,11 +433,6 @@ int CEngineCompFunc::varsanal_COMPILER_DLL_TODO(int fmt)
 int CEngineCompFunc::tvarsanal_COMPILER_DLL_TODO()
 {
     return HandleErrors_COMPILER_DLL_TODO([&]() { return tvarsanal(); } );
-}
-
-int CEngineCompFunc::rutfunc_COMPILER_DLL_TODO()
-{
-    return HandleErrors_COMPILER_DLL_TODO([&]() { return rutfunc(); } );
 }
 
 int CEngineCompFunc::instruc_COMPILER_DLL_TODO(bool create_new_local_symbol_stack, bool allow_multiple_statements)

@@ -1,4 +1,4 @@
-﻿//---------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 //  EXPRESC.cpp   compiler of expressions
 //---------------------------------------------------------------------------
 #include "StandardSystemIncludes.h"
@@ -1440,107 +1440,40 @@ int CEngineCompFunc::tvarsanal()
 }
 
 
-int CEngineCompFunc::rutfunc()
+int CEngineCompFunc::rutfunc_COMPILER_DLL_TODO(const Logic::FunctionCompilationType compilation_type)
 {
-    // rutfunc: calls a function-analyzer
-
-    // analyze user-defined functions...
-    if( Tkn == TOKUSERFUNCTION )
-        return CompileUserFunctionCall();
-
-    // ...or built-in functions
-    ASSERT(CurrentToken.function_details != nullptr);
-
-    using CompilationFunction = int(CEngineCompFunc::*)();
-
-    static std::map<Logic::FunctionCompilationType, CompilationFunction> CompilationFunctionMap =
+    return HandleErrors_COMPILER_DLL_TODO([&]()
     {
-        { Logic::FunctionCompilationType::ArgumentsFixedN,          &LogicCompiler::CompileFunctionsArgumentsFixedN },
-        { Logic::FunctionCompilationType::ArgumentsVaryingN,        &LogicCompiler::CompileFunctionsArgumentsVaryingN },
-        { Logic::FunctionCompilationType::ArgumentSpecification,    &LogicCompiler::CompileFunctionsArgumentSpecification },
-
-        { Logic::FunctionCompilationType::Removed,                  &LogicCompiler::CompileFunctionsRemovedFromLanguage },
-
-        { Logic::FunctionCompilationType::Various,                  &LogicCompiler::CompileFunctionsVarious },
-
-        { Logic::FunctionCompilationType::Impute,                   &LogicCompiler::CompileImputeFunction },
-        { Logic::FunctionCompilationType::Invoke,                   &LogicCompiler::CompileInvokeFunction },
-        { Logic::FunctionCompilationType::GPS,                      &LogicCompiler::CompileGpsFunction },
-        { Logic::FunctionCompilationType::Paradata,                 &LogicCompiler::CompileParadataFunction },
-        { Logic::FunctionCompilationType::SetFile,                  &LogicCompiler::CompileSetFileFunction },
-        { Logic::FunctionCompilationType::SetValueSet,              &LogicCompiler::CompileSetValueSetFunction },
-        { Logic::FunctionCompilationType::Sync,                     &LogicCompiler::CompileSyncFunctions },
-        { Logic::FunctionCompilationType::Trace,                    &LogicCompiler::CompileTraceFunction },
-        { Logic::FunctionCompilationType::Userbar,                  &LogicCompiler::CompileUserbarFunction },
-
-        // dictionary related
-        { Logic::FunctionCompilationType::DictionaryVarious,        &LogicCompiler::CompileDictionaryFunctionsVarious },
-        { Logic::FunctionCompilationType::CaseSearch,               &LogicCompiler::CompileDictionaryFunctionsCaseSearch },
-        { Logic::FunctionCompilationType::CaseIO,                   &LogicCompiler::CompileDictionaryFunctionsCaseIO },
-        { Logic::FunctionCompilationType::Case,                     &LogicCompiler::CompileCaseFunctions },
-
-        { Logic::FunctionCompilationType::Item,                     &LogicCompiler::CompileItemFunctions },
-
-        // symbols and namespaces
-        { Logic::FunctionCompilationType::Array,                    &LogicCompiler::CompileLogicArrayFunctions },
-        { Logic::FunctionCompilationType::Audio,                    &LogicCompiler::CompileLogicAudioFunctions },
-        { Logic::FunctionCompilationType::Barcode,                  &LogicCompiler::CompileBarcodeFunctions },
-        { Logic::FunctionCompilationType::CS,                       &LogicCompiler::CompileActionInvokerFunctions },
-        { Logic::FunctionCompilationType::Document,                 &LogicCompiler::CompileLogicDocumentFunctions },
-        { Logic::FunctionCompilationType::File,                     &LogicCompiler::CompileLogicFileFunctions },
-        { Logic::FunctionCompilationType::Geometry,                 &LogicCompiler::CompileLogicGeometryFunctions },
-        { Logic::FunctionCompilationType::HashMap,                  &LogicCompiler::CompileLogicHashMapFunctions },
-        { Logic::FunctionCompilationType::Image,                    &LogicCompiler::CompileLogicImageFunctions },
-        { Logic::FunctionCompilationType::JS,                       &LogicCompiler::CompileJavaScriptFunctions },
-        { Logic::FunctionCompilationType::List,                     &LogicCompiler::CompileLogicListFunctions },
-        { Logic::FunctionCompilationType::Map,                      &LogicCompiler::CompileLogicMapFunctions },
-        { Logic::FunctionCompilationType::Message,                  &LogicCompiler::CompileMessageFunctions },
-        { Logic::FunctionCompilationType::NamedFrequency,           &LogicCompiler::CompileNamedFrequencyFunctions },
-        { Logic::FunctionCompilationType::Path,                     &LogicCompiler::CompilePathFunctions },
-        { Logic::FunctionCompilationType::Pff,                      &LogicCompiler::CompileLogicPffFunctions},
-        { Logic::FunctionCompilationType::Report,                   &LogicCompiler::CompileReportFunctions },
-        { Logic::FunctionCompilationType::StringWriter,             &LogicCompiler::CompileStringWriterFunctions },
-        { Logic::FunctionCompilationType::Symbol,                   &LogicCompiler::CompileSymbolFunctions },
-        { Logic::FunctionCompilationType::SystemApp,                &LogicCompiler::CompileSystemAppFunctions },
-        { Logic::FunctionCompilationType::TextTemplate,             &LogicCompiler::CompileTextTemplateFunctions },
-        { Logic::FunctionCompilationType::UserInterface,            &LogicCompiler::CompileUserInterfaceFunctions },
-        { Logic::FunctionCompilationType::ValueSet,                 &LogicCompiler::CompileValueSetFunctions },
-        { Logic::FunctionCompilationType::Video,                    &LogicCompiler::CompileLogicVideoFunctions },
-
-        // other
-        { Logic::FunctionCompilationType::FN2,                      &CEngineCompFunc::cfun_compile_count },
-        { Logic::FunctionCompilationType::FN3,                      &CEngineCompFunc::cfun_compile_sum },
-        { Logic::FunctionCompilationType::FN4,                      &CEngineCompFunc::cfun_fn4 },
-        { Logic::FunctionCompilationType::FN6,                      &CEngineCompFunc::cfun_fn6 },
-        { Logic::FunctionCompilationType::FN8,                      &CEngineCompFunc::cfun_fn8 },
-        { Logic::FunctionCompilationType::FNS,                      &CEngineCompFunc::cfun_fns },
-        { Logic::FunctionCompilationType::FNC,                      &CEngineCompFunc::cfun_fnc },
-        { Logic::FunctionCompilationType::FNB,                      &CEngineCompFunc::cfun_fnb },
-        { Logic::FunctionCompilationType::FNTC,                     &CEngineCompFunc::cfun_fntc },
-        { Logic::FunctionCompilationType::FNH,                      &CEngineCompFunc::cfun_fnh },
-        { Logic::FunctionCompilationType::FNG,                      &CEngineCompFunc::cfun_fng },
-        { Logic::FunctionCompilationType::FNGR,                     &CEngineCompFunc::cfun_fngr },
-        { Logic::FunctionCompilationType::FNID,                     &CEngineCompFunc::cfun_fnins },
-        { Logic::FunctionCompilationType::FNSRT,                    &CEngineCompFunc::cfun_fnsrt },
-        { Logic::FunctionCompilationType::FNMAXOCC,                 &CEngineCompFunc::cfun_fnmaxocc },
-        { Logic::FunctionCompilationType::FNINVALUESET,             &CEngineCompFunc::cfun_fninvalueset },
-        { Logic::FunctionCompilationType::FNEXECSYSTEM,             &CEngineCompFunc::cfun_fnexecsystem },
-        { Logic::FunctionCompilationType::FNSHOW,                   &CEngineCompFunc::cfun_fnshow },
-        { Logic::FunctionCompilationType::FNITEMLIST,               &CEngineCompFunc::cfun_fnitemlist },
-        { Logic::FunctionCompilationType::FNDECK,                   &CEngineCompFunc::cfun_fndeck },
-        { Logic::FunctionCompilationType::FNCAPTURETYPE,            &CEngineCompFunc::cfun_fncapturetype },
-        { Logic::FunctionCompilationType::FNOCCS,                   &CEngineCompFunc::cfun_fnoccs },
-        { Logic::FunctionCompilationType::FNNOTE,                   &CEngineCompFunc::cfun_fnnote },
-        { Logic::FunctionCompilationType::FNSTRPARM,                &CEngineCompFunc::cfun_fnstrparm },
-        { Logic::FunctionCompilationType::FNPROPERTY,               &CEngineCompFunc::cfun_fnproperty },
-    };
-
-    const auto& compilation_function_lookup = CompilationFunctionMap.find(CurrentToken.function_details->compilation_type);
-
-    if( compilation_function_lookup == CompilationFunctionMap.cend() )
-        IssueError(21);
-
-    return (this->*compilation_function_lookup->second)();
+        switch( compilation_type )
+        {
+            case Logic::FunctionCompilationType::FN2:           return cfun_compile_count();
+            case Logic::FunctionCompilationType::FN3:           return cfun_compile_sum();
+            case Logic::FunctionCompilationType::FN4:           return cfun_fn4();
+            case Logic::FunctionCompilationType::FN6:           return cfun_fn6();
+            case Logic::FunctionCompilationType::FN8:           return cfun_fn8();
+            case Logic::FunctionCompilationType::FNS:           return cfun_fns();
+            case Logic::FunctionCompilationType::FNC:           return cfun_fnc();
+            case Logic::FunctionCompilationType::FNB:           return cfun_fnb();
+            case Logic::FunctionCompilationType::FNTC:          return cfun_fntc();
+            case Logic::FunctionCompilationType::FNH:           return cfun_fnh();
+            case Logic::FunctionCompilationType::FNG:           return cfun_fng();
+            case Logic::FunctionCompilationType::FNGR:          return cfun_fngr();
+            case Logic::FunctionCompilationType::FNID:          return cfun_fnins();
+            case Logic::FunctionCompilationType::FNSRT:         return cfun_fnsrt();
+            case Logic::FunctionCompilationType::FNMAXOCC:      return cfun_fnmaxocc();
+            case Logic::FunctionCompilationType::FNINVALUESET:  return cfun_fninvalueset();
+            case Logic::FunctionCompilationType::FNEXECSYSTEM:  return cfun_fnexecsystem();
+            case Logic::FunctionCompilationType::FNSHOW:        return cfun_fnshow();
+            case Logic::FunctionCompilationType::FNITEMLIST:    return cfun_fnitemlist();
+            case Logic::FunctionCompilationType::FNDECK:        return cfun_fndeck();
+            case Logic::FunctionCompilationType::FNCAPTURETYPE: return cfun_fncapturetype();
+            case Logic::FunctionCompilationType::FNOCCS:        return cfun_fnoccs();
+            case Logic::FunctionCompilationType::FNNOTE:        return cfun_fnnote();
+            case Logic::FunctionCompilationType::FNSTRPARM:     return cfun_fnstrparm();
+            case Logic::FunctionCompilationType::FNPROPERTY:    return cfun_fnproperty();
+            default:                                            return ReturnProgrammingError(-1);
+        }
+    });
 }
 
 

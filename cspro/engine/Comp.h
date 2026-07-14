@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 //---------------------------------------------------------------------------
 //  File name: Comp.h
@@ -281,8 +281,6 @@ public:
     int     tvarsanal();
 
     std::vector<const DictNamedBase*> GetImplicitSubscriptCalculationStack(const EngineItem& engine_item) const override;
-
-    int     rutfunc();
 
     int     cfun_fnmaxocc();
     int     cfun_fninvalueset();
@@ -625,14 +623,13 @@ private:
     int& get_COMPILER_DLL_TODO_InCompIdx() override { return m_InCompIdx; }
     std::tuple<int, bool>& get_COMPILER_DLL_TODO_m_loneAlphaFunctionCallTester() override { return m_loneAlphaFunctionCallTester; }
 
-    template<typename CF>
-    int HandleErrors_COMPILER_DLL_TODO(CF callback_function);
+    int HandleErrors_COMPILER_DLL_TODO(const std::function<int()>& callback_function);
 
     int CompileHas_COMPILER_DLL_TODO(int iVarNode) override;
     int crelalpha_COMPILER_DLL_TODO() override;
     int varsanal_COMPILER_DLL_TODO(int fmt) override;
     int tvarsanal_COMPILER_DLL_TODO() override;
-    int rutfunc_COMPILER_DLL_TODO() override;
+    int rutfunc_COMPILER_DLL_TODO(Logic::FunctionCompilationType compilation_type) override;
     int instruc_COMPILER_DLL_TODO(bool create_new_local_symbol_stack = true, bool allow_multiple_statements = true) override;
     int CompileReenterStatement_COMPILER_DLL_TODO(bool bNextTkn = true) override;
     int CompileMoveStatement_COMPILER_DLL_TODO(bool bFromSelectStatement = false) override;

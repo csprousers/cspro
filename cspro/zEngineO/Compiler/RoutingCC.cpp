@@ -760,11 +760,6 @@ int LogicCompiler::CompileStatements(const bool create_new_local_symbol_stack/* 
 
 int LogicCompiler::RouteFunctionCall()
 {
-    return rutfunc_COMPILER_DLL_TODO();
-
-#ifdef REFERENCE // the implementation in engine/ExpresC.cpp
-    // rutfunc: calls a function-analyzer
-
     // analyze user-defined functions...
     if( Tkn == TOKUSERFUNCTION )
         return CompileUserFunctionCall();
@@ -772,9 +767,10 @@ int LogicCompiler::RouteFunctionCall()
     // ...or built-in functions
     ASSERT(CurrentToken.function_details != nullptr);
 
-    using CompilationFunction = int(CEngineCompFunc::*)();
+    using CompilationFunction = int(LogicCompiler::*)();
+    constexpr CompilationFunction implement_COMPILER_DLL_TODO = nullptr; // implement in zEngineO
 
-    static std::map<Logic::FunctionCompilationType, CompilationFunction> CompilationFunctionMap =
+    static const std::map<Logic::FunctionCompilationType, CompilationFunction> CompilationFunctionMap =
     {
         { Logic::FunctionCompilationType::ArgumentsFixedN,          &LogicCompiler::CompileFunctionsArgumentsFixedN },
         { Logic::FunctionCompilationType::ArgumentsVaryingN,        &LogicCompiler::CompileFunctionsArgumentsVaryingN },
@@ -829,38 +825,40 @@ int LogicCompiler::RouteFunctionCall()
         { Logic::FunctionCompilationType::Video,                    &LogicCompiler::CompileLogicVideoFunctions },
 
         // other
-        { Logic::FunctionCompilationType::FN2,                      &CEngineCompFunc::cfun_compile_count },
-        { Logic::FunctionCompilationType::FN3,                      &CEngineCompFunc::cfun_compile_sum },
-        { Logic::FunctionCompilationType::FN4,                      &CEngineCompFunc::cfun_fn4 },
-        { Logic::FunctionCompilationType::FN6,                      &CEngineCompFunc::cfun_fn6 },
-        { Logic::FunctionCompilationType::FN8,                      &CEngineCompFunc::cfun_fn8 },
-        { Logic::FunctionCompilationType::FNS,                      &CEngineCompFunc::cfun_fns },
-        { Logic::FunctionCompilationType::FNC,                      &CEngineCompFunc::cfun_fnc },
-        { Logic::FunctionCompilationType::FNB,                      &CEngineCompFunc::cfun_fnb },
-        { Logic::FunctionCompilationType::FNTC,                     &CEngineCompFunc::cfun_fntc },
-        { Logic::FunctionCompilationType::FNH,                      &CEngineCompFunc::cfun_fnh },
-        { Logic::FunctionCompilationType::FNG,                      &CEngineCompFunc::cfun_fng },
-        { Logic::FunctionCompilationType::FNGR,                     &CEngineCompFunc::cfun_fngr },
-        { Logic::FunctionCompilationType::FNID,                     &CEngineCompFunc::cfun_fnins },
-        { Logic::FunctionCompilationType::FNSRT,                    &CEngineCompFunc::cfun_fnsrt },
-        { Logic::FunctionCompilationType::FNMAXOCC,                 &CEngineCompFunc::cfun_fnmaxocc },
-        { Logic::FunctionCompilationType::FNINVALUESET,             &CEngineCompFunc::cfun_fninvalueset },
-        { Logic::FunctionCompilationType::FNEXECSYSTEM,             &CEngineCompFunc::cfun_fnexecsystem },
-        { Logic::FunctionCompilationType::FNSHOW,                   &CEngineCompFunc::cfun_fnshow },
-        { Logic::FunctionCompilationType::FNITEMLIST,               &CEngineCompFunc::cfun_fnitemlist },
-        { Logic::FunctionCompilationType::FNDECK,                   &CEngineCompFunc::cfun_fndeck },
-        { Logic::FunctionCompilationType::FNCAPTURETYPE,            &CEngineCompFunc::cfun_fncapturetype },
-        { Logic::FunctionCompilationType::FNOCCS,                   &CEngineCompFunc::cfun_fnoccs },
-        { Logic::FunctionCompilationType::FNNOTE,                   &CEngineCompFunc::cfun_fnnote },
-        { Logic::FunctionCompilationType::FNSTRPARM,                &CEngineCompFunc::cfun_fnstrparm },
-        { Logic::FunctionCompilationType::FNPROPERTY,               &CEngineCompFunc::cfun_fnproperty },
+        { Logic::FunctionCompilationType::FN2,                      implement_COMPILER_DLL_TODO }, // cfun_compile_count },
+        { Logic::FunctionCompilationType::FN3,                      implement_COMPILER_DLL_TODO }, // cfun_compile_sum
+        { Logic::FunctionCompilationType::FN4,                      implement_COMPILER_DLL_TODO }, // cfun_fn4
+        { Logic::FunctionCompilationType::FN6,                      implement_COMPILER_DLL_TODO }, // cfun_fn6
+        { Logic::FunctionCompilationType::FN8,                      implement_COMPILER_DLL_TODO }, // cfun_fn8
+        { Logic::FunctionCompilationType::FNS,                      implement_COMPILER_DLL_TODO }, // cfun_fns
+        { Logic::FunctionCompilationType::FNC,                      implement_COMPILER_DLL_TODO }, // cfun_fnc
+        { Logic::FunctionCompilationType::FNB,                      implement_COMPILER_DLL_TODO }, // cfun_fnb
+        { Logic::FunctionCompilationType::FNTC,                     implement_COMPILER_DLL_TODO }, // cfun_fntc
+        { Logic::FunctionCompilationType::FNH,                      implement_COMPILER_DLL_TODO }, // cfun_fnh
+        { Logic::FunctionCompilationType::FNG,                      implement_COMPILER_DLL_TODO }, // cfun_fng
+        { Logic::FunctionCompilationType::FNGR,                     implement_COMPILER_DLL_TODO }, // cfun_fngr
+        { Logic::FunctionCompilationType::FNID,                     implement_COMPILER_DLL_TODO }, // cfun_fnins
+        { Logic::FunctionCompilationType::FNSRT,                    implement_COMPILER_DLL_TODO }, // cfun_fnsrt
+        { Logic::FunctionCompilationType::FNMAXOCC,                 implement_COMPILER_DLL_TODO }, // cfun_fnmaxocc
+        { Logic::FunctionCompilationType::FNINVALUESET,             implement_COMPILER_DLL_TODO }, // cfun_fninvalueset
+        { Logic::FunctionCompilationType::FNEXECSYSTEM,             implement_COMPILER_DLL_TODO }, // cfun_fnexecsystem
+        { Logic::FunctionCompilationType::FNSHOW,                   implement_COMPILER_DLL_TODO }, // cfun_fnshow
+        { Logic::FunctionCompilationType::FNITEMLIST,               implement_COMPILER_DLL_TODO }, // cfun_fnitemlist
+        { Logic::FunctionCompilationType::FNDECK,                   implement_COMPILER_DLL_TODO }, // cfun_fndeck
+        { Logic::FunctionCompilationType::FNCAPTURETYPE,            implement_COMPILER_DLL_TODO }, // cfun_fncapturetype
+        { Logic::FunctionCompilationType::FNOCCS,                   implement_COMPILER_DLL_TODO }, // cfun_fnoccs
+        { Logic::FunctionCompilationType::FNNOTE,                   implement_COMPILER_DLL_TODO }, // cfun_fnnote
+        { Logic::FunctionCompilationType::FNSTRPARM,                implement_COMPILER_DLL_TODO }, // cfun_fnstrparm
+        { Logic::FunctionCompilationType::FNPROPERTY,               implement_COMPILER_DLL_TODO }, // cfun_fnproperty
     };
 
     const auto& compilation_function_lookup = CompilationFunctionMap.find(CurrentToken.function_details->compilation_type);
 
     if( compilation_function_lookup == CompilationFunctionMap.cend() )
-        IssueError(21);
+        IssueError(MGF::arithmetic_expression_invalid_21);
+
+    if( compilation_function_lookup->second == implement_COMPILER_DLL_TODO )
+        return rutfunc_COMPILER_DLL_TODO(CurrentToken.function_details->compilation_type);
 
     return (this->*compilation_function_lookup->second)();
-#endif
 }
