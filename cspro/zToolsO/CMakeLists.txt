@@ -2,6 +2,7 @@ project(zToolsO)
 
 set(BZIP2_DIRECTORY ${EXTERNAL_DIRECTORY}/bzip2)
 set(MD4C_DIRECTORY ${EXTERNAL_DIRECTORY}/md4c)
+set(RIJNDAEL_DIRECTORY rijndael)
 set(SCRYPT_DIRECTORY ${EXTERNAL_DIRECTORY}/scrypt)
 
 include_directories(${PROJECT_NAME} PUBLIC
@@ -48,8 +49,6 @@ add_library(${PROJECT_NAME}
     uuid.cpp
     VarFuncs.cpp
 
-    rijndael/rijndael-alg-fst.c
-
     ${BZIP2_DIRECTORY}/blocksort.c
     ${BZIP2_DIRECTORY}/bzlib.c
     ${BZIP2_DIRECTORY}/compress.c
@@ -59,6 +58,8 @@ add_library(${PROJECT_NAME}
     ${BZIP2_DIRECTORY}/randtable.c
 
     ${MD4C_DIRECTORY}/entity.c
+
+    ${RIJNDAEL_DIRECTORY}/rijndael-alg-fst.c
 
     ${SCRYPT_DIRECTORY}/insecure_memzero.c
     ${SCRYPT_DIRECTORY}/sha256.c

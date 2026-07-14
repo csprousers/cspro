@@ -9,5 +9,8 @@ include_directories(${PROJECT_NAME} PUBLIC
 add_library(${PROJECT_NAME}
     CoordinateConverter.cpp
     GeoJson.cpp
+    HtmlMapUI.cpp
+    MBTilesReader.cpp
     OfflineTileProvider.cpp
+    TPKReader.cpp
 )

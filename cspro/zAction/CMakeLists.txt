@@ -13,11 +13,12 @@ add_library(${PROJECT_NAME}
     Exception.cpp
     File.cpp
     Hash.cpp
+    JsonExecutor.cpp
     Localhost.cpp
     Logic.cpp
-    Path.cpp
     Message.cpp
     Network.cpp
+    Path.cpp
     Settings.cpp
     Sqlite.cpp
     Sync.cpp

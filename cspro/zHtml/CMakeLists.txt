@@ -8,6 +8,8 @@ add_library(${PROJECT_NAME}
     CssProvider.cpp
     FileSystemVirtualFileMappingHandler.cpp
     HtmlDlgBaseRunner.cpp
+    HtmlishSanitizer.cpp
+    HtmlTextConverter.cpp
     LocalhostUrl.cpp
     PortableLocalFileServer.cpp
     PortableLocalhost.cpp
