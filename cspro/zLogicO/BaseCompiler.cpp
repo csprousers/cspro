@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "BaseCompiler.h"
 #include "BaseCompilerSettings.h"
 #include "FunctionTable.h"
@@ -18,7 +18,8 @@ using namespace Logic;
 
 BaseCompiler::BaseCompiler(SymbolTable& symbol_table)
     :   m_symbolTable(symbol_table),
-        m_tokensEnd(m_tokens + _countof(m_tokens)),
+        m_tokens(std::make_unique_for_overwrite<Token[]>(NumberTokensToBuffer)),
+        m_tokensEnd(m_tokens.get() + NumberTokensToBuffer),
         m_currentToken(const_cast<Token*>(m_tokensEnd) - 1),
         m_suppressErrorReporting(false),
         m_suppressExceptionsOnInvalidSymbols(false),
@@ -34,7 +35,7 @@ const Token& BaseCompiler::NextTokenWithPreference(SymbolType preferred_symbol_t
 
     // move the current token to the next one
     if( ++m_currentToken == m_tokensEnd )
-        m_currentToken = m_tokens;
+        m_currentToken = m_tokens.get();
 
     // read and process the next token
     const BasicToken* const basic_token = NextBasicToken();
