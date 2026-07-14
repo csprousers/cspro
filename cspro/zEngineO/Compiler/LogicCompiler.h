@@ -167,7 +167,10 @@ public:
 public:
     int CompileStatements(bool create_new_local_symbol_stack = true, bool allow_multiple_statements = true);
 
-private:
+protected: // COMPILER_DLL_TODO make private
+    static bool IsValidStatementStartToken(const TokenCode token_code) noexcept;
+    static bool IsValidStatementEndToken(const TokenCode token_code) noexcept;
+
     int RouteFunctionCall();
 
 

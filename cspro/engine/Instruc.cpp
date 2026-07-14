@@ -45,109 +45,6 @@
 const int TSMAXIDLEN = 16;              // max. len for a break-id var
 
 
-bool ValidInstructionStartToken(const TokenCode token_code)
-{
-    static const std::set ValidInstructionStartTokens =
-    {
-        TOKHASH,
-        TOKIF,
-        TOKWHILE,
-        TOKRECODE,
-        TOKVAR,
-        TOKWORKSTRING,
-        TOKFUNCTION,
-        TOKCROSSTAB,
-        TOKKWFREQ,
-        TOKEXPORT,
-        TOKKWCTAB,
-        TOKFOR,
-        TOKFORCASE,
-        TOKSTOP,
-        TOKENDCASE,
-        TOKUNIVERSE,
-        TOKASK,
-        TOKSKIP,
-        TOKMOVE,
-        TOKEXIT,
-        TOKREENTER,
-        TOKENTER,
-        TOKADVANCE,
-        TOKENDSECT,
-        TOKENDLEVL,
-        TOKNOINPUT,
-        TOKBREAK,
-        TOKNEXT,
-        TOKDO,
-        TOKSET,
-        TOKUSERFUNCTION,
-        TOKNUMERIC,
-        TOKALPHA,
-        TOKSTRING,
-        TOKCONFIG,
-        TOKPERSISTENT,
-        TOKKWFILE,
-        TOKKWARRAY,
-        TOKKWLIST,
-        TOKKWMAP,
-        TOKKWVALUESET,
-        TOKARRAY,
-        TOKLIST,
-        TOKVALUESET,
-        TOKKWPFF,
-        TOKPFF,
-        TOKWHEN,
-        TOKKWSYSTEMAPP,
-        TOKKWAUDIO,
-        TOKAUDIO,
-        TOKKWHASHMAP,
-        TOKHASHMAP,
-        TOKFREQ,
-        TOKKWCASE,
-        TOKDICT,
-        TOKKWDATASOURCE,
-        TOKKWIMAGE,
-        TOKIMAGE,
-        TOKKWDOCUMENT,
-        TOKDOCUMENT,
-        TOKKWGEOMETRY,
-        TOKGEOMETRY,
-        TOKDECLARE,
-        TOKKWSTRINGWRITER,
-        TOKKWVIDEO,
-        TOKVIDEO,
-    };
-
-    return ( ValidInstructionStartTokens.find(token_code) != ValidInstructionStartTokens.cend() );
-}
-
-
-bool ValidEndStatement( int iLastTkn ) {
-    // ValidEndStatement: checks if last ending token is a valid end-of-statement
-    //   - normally was a ";" only, but more tokens are now accepted
-    // ... change: Feb 22, 00 Only ";" is a valid end-of-statement
-    bool    bIsValid = false;
-
-    switch( iLastTkn ) {
-        case TOKENDIF    :
-        case TOKENDDO    :
-        case TOKENDRECODE:
-        case TOKEND      :
-        case TOKENDSECT  :
-        case TOKENDLEVL  :
-        case TOKELSE     :
-        case TOKELSEIF   :
-        case TOKSEMICOLON:
-        // uncomment the line below and the user will be allowed to
-        // avoid the semicolon in the very last statement of a procedure
-        case TOKEOP      :
-            bIsValid = true;
-            break;
-    }
-
-    return bIsValid;
-}
-
-
 int CEngineCompFunc::instruc(const bool allow_multiple_statements/* = true*/)
 {
     int iptblock = Prognext;
@@ -175,7 +72,7 @@ int CEngineCompFunc::instruc(const bool allow_multiple_statements/* = true*/)
             while( Tkn == TOKSEMICOLON )
                 NextToken();
 
-            if( !ValidInstructionStartToken(Tkn) )
+            if( !IsValidStatementStartToken(Tkn) )
                 break;
 
             if( ObjInComp == SymbolType::Application && Tkn == TOKNOINPUT )
@@ -819,9 +716,9 @@ int CEngineCompFunc::instruc(const bool allow_multiple_statements/* = true*/)
             //                Every statement must end with a ;
             //  Current rule (Apr 03, 2000):
             //                ";" may be omitted before an end (endif,endwhile,etc.)
-            //                and some other keywords (see ValidEndStatement() method above)
+            //                and some other keywords (see IsValidStatementEndToken method)
             //
-            if( GetSyntErr() == 0 && !ValidEndStatement(Tkn) )
+            if( GetSyntErr() == 0 && !IsValidStatementEndToken(Tkn) )
                 IssueError(2);
 
 #ifdef GENCODE
@@ -1324,7 +1221,7 @@ int CEngineCompFunc::CompileSkipStatement( int* code )
             NextToken();
         }
 
-        else if( ValidEndStatement(Tkn) ) // 20120307 not specifying a variable will skip to the first field in the group
+        else if( IsValidStatementEndToken(Tkn) ) // 20120307 not specifying a variable will skip to the first field in the group
         {
             GROUPT* pGroupT = ( ObjInComp == SymbolType::Block )    ? GetSymbolEngineBlock(InCompIdx).GetGroupT() :
                               ( ObjInComp == SymbolType::Variable ) ? VPT(InCompIdx)->GetParentGPT() :
