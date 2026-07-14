@@ -352,7 +352,7 @@ private:
 
     // instruc.cpp
 public:
-    int     instruc(bool create_new_local_symbol_stack = true, bool allow_multiple_statements = true);
+    int     instruc(bool allow_multiple_statements);
 private:
     void    CheckIdChanger(const VART* pVarT) TEMP_VIRTUAL; // RHF Jul 03, 2005
     int     CompileComputeInstruction();
@@ -630,7 +630,7 @@ private:
     int varsanal_COMPILER_DLL_TODO(int fmt) override;
     int tvarsanal_COMPILER_DLL_TODO() override;
     int rutfunc_COMPILER_DLL_TODO(Logic::FunctionCompilationType compilation_type) override;
-    int instruc_COMPILER_DLL_TODO(bool create_new_local_symbol_stack = true, bool allow_multiple_statements = true) override;
+    int instruc_COMPILER_DLL_TODO(bool allow_multiple_statements) override;
     int CompileReenterStatement_COMPILER_DLL_TODO(bool bNextTkn = true) override;
     int CompileMoveStatement_COMPILER_DLL_TODO(bool bFromSelectStatement = false) override;
     void rutasync_as_global_compilation_COMPILER_DLL_TODO(const Symbol& compilation_symbol, const std::function<void()>& compilation_function) override;

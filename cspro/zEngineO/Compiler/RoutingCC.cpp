@@ -1,10 +1,23 @@
 #include "stdafx.h"
 #include "IncludesCC.h"
+#include <zLogicO/LocalSymbolStack.h>
 
 
 int LogicCompiler::CompileStatements(const bool create_new_local_symbol_stack/* = true*/, const bool allow_multiple_statements/* = true*/)
 {
-    return instruc_COMPILER_DLL_TODO(create_new_local_symbol_stack, allow_multiple_statements);
+    // when compiling a user-defined function or a PROC, create_new_local_symbol_stack will be
+    // false because there is already a local symbol stack created at that level
+    std::optional<Logic::LocalSymbolStack> local_symbol_stack;
+
+    if( create_new_local_symbol_stack )
+        local_symbol_stack.emplace(m_symbolTable.CreateLocalSymbolStack());
+
+    int program_index = instruc_COMPILER_DLL_TODO(allow_multiple_statements);
+
+    if( local_symbol_stack.has_value() )
+        program_index = WrapNodeAroundScopeChange(*local_symbol_stack, program_index);
+
+    return program_index;
 
 #ifdef REFERENCE // the implementation in engine/Instruc.cpp
     int iptblock = Prognext;
@@ -13,13 +26,6 @@ int LogicCompiler::CompileStatements(const bool create_new_local_symbol_stack/* 
     int v_ind = -1;
     int sind;
     int aux;
-
-    // when compiling a user-defined function or a PROC, create_new_local_symbol_stack will be
-    // false because there is already a local symbol stack created at that level
-    std::optional<Logic::LocalSymbolStack> local_symbol_stack;
-
-    if( create_new_local_symbol_stack )
-        local_symbol_stack.emplace(m_symbolTable.CreateLocalSymbolStack());
 
     Nodes::Statement* previous_instruc_st = nullptr;
     Nodes::Statement* prev_st = NULL;
@@ -749,9 +755,6 @@ int LogicCompiler::CompileStatements(const bool create_new_local_symbol_stack/* 
     }
 #endif
 
-
-    if( local_symbol_stack.has_value() )
-        iptblock = WrapNodeAroundScopeChange(*local_symbol_stack, iptblock);
 
     return iptblock;
 #endif

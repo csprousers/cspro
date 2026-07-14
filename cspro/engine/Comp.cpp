@@ -435,9 +435,9 @@ int CEngineCompFunc::tvarsanal_COMPILER_DLL_TODO()
     return HandleErrors_COMPILER_DLL_TODO([&]() { return tvarsanal(); } );
 }
 
-int CEngineCompFunc::instruc_COMPILER_DLL_TODO(bool create_new_local_symbol_stack, bool allow_multiple_statements)
+int CEngineCompFunc::instruc_COMPILER_DLL_TODO(const bool allow_multiple_statements)
 {
-    return HandleErrors_COMPILER_DLL_TODO([&]() { return instruc(create_new_local_symbol_stack, allow_multiple_statements); } );
+    return HandleErrors_COMPILER_DLL_TODO([&]() { return instruc(allow_multiple_statements); } );
 }
 
 int CEngineCompFunc::CompileReenterStatement_COMPILER_DLL_TODO(bool bNextTkn)

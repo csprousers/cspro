@@ -282,7 +282,7 @@ void CEngineCompFunc::CompileSymbolProcs()
         int proc_index = -1;
 
         if( Tkn != TOKPREPRO && Tkn != TOKONFOCUS && Tkn != TOKKILLFOCUS && Tkn != TOKPOSTPRO && Tkn != TOKONOCCCHANGE  && Tkn != TOKTALLY && Tkn != TOKPOSTCALC )
-            proc_index = instruc(false);
+            proc_index = CompileStatements(false);
 
         if( GetSyntErr() != 0 )
         {
@@ -355,7 +355,7 @@ int CEngineCompFunc::CompileCapiLogic(const CapiLogicParameters& capi_logic_para
             // whereas the question text is evaluated as a text template
             question_text_node_index =
                 std::holds_alternative<const CapiCondition*>(condition_or_text_or_token) ? exprlog() :
-                std::holds_alternative<const CapiText*>(condition_or_text_or_token)      ? instruc(false) :
+                std::holds_alternative<const CapiText*>(condition_or_text_or_token)      ? CompileStatements(false) :
                                                                                            CompileFillText();
 
             if( Tkn != TOKEOP || GetSyntErr() != 0 )

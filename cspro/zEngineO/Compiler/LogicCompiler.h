@@ -697,7 +697,7 @@ public:
     virtual int varsanal_COMPILER_DLL_TODO(int fmt) = 0;
     virtual int tvarsanal_COMPILER_DLL_TODO() = 0;
     virtual int rutfunc_COMPILER_DLL_TODO(Logic::FunctionCompilationType compilation_type) = 0;
-    virtual int instruc_COMPILER_DLL_TODO(bool create_new_local_symbol_stack = true, bool allow_multiple_statements = true) = 0;
+    virtual int instruc_COMPILER_DLL_TODO(bool allow_multiple_statements = true) = 0;
     virtual DICT* GetInputDictionary(bool issue_error_if_no_input_dictionary) = 0;
     virtual void MarkAllDictionaryItemsAsUsed() = 0;
     virtual void MarkAllInSectionUsed(SECT* pSecT) = 0;

@@ -1,4 +1,4 @@
-﻿//---------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 //  File name: Instruc.cpp
 //
 //  Description:
@@ -148,7 +148,7 @@ bool ValidEndStatement( int iLastTkn ) {
 }
 
 
-int CEngineCompFunc::instruc(bool create_new_local_symbol_stack/* = true*/, bool allow_multiple_statements/* = true*/)
+int CEngineCompFunc::instruc(const bool allow_multiple_statements/* = true*/)
 {
     int iptblock = Prognext;
     bool bIsSkipStatement = false;
@@ -156,13 +156,6 @@ int CEngineCompFunc::instruc(bool create_new_local_symbol_stack/* = true*/, bool
     int v_ind = -1;
     int sind;
     int aux;
-
-    // when compiling a user-defined function or a PROC, create_new_local_symbol_stack will be
-    // false because there is already a local symbol stack created at that level
-    std::optional<Logic::LocalSymbolStack> local_symbol_stack;
-
-    if( create_new_local_symbol_stack )
-        local_symbol_stack.emplace(m_symbolTable.CreateLocalSymbolStack());
 
     Nodes::Statement* previous_instruc_st = nullptr;
     Nodes::Statement* prev_st = NULL;
@@ -892,10 +885,6 @@ int CEngineCompFunc::instruc(bool create_new_local_symbol_stack/* = true*/, bool
     }
 #endif
 
-
-    if( local_symbol_stack.has_value() )
-        iptblock = WrapNodeAroundScopeChange(*local_symbol_stack, iptblock);
-
     return iptblock;
 }
 
@@ -1136,7 +1125,7 @@ void CEngineCompFunc::CompileForRelation(int iVarIdx, int iRelIdx, pCompileForIn
         if( Tkn == TOKDO )
             NextToken();
 
-        iBlock  = instruc();
+        iBlock  = CompileStatements();
     }
 
 #ifdef GENCODE
@@ -1238,7 +1227,7 @@ void CEngineCompFunc::CompileForGroup(int iVarIdx, int iGrpIdx, pCompileForInFun
         if( Tkn == TOKDO )
             NextToken();
 
-        iBlock = instruc();
+        iBlock = CompileStatements();
 
         // Compiler checks for subscript
         m_bcvarsubcheck = prevVarSubcheckVal;//false;
