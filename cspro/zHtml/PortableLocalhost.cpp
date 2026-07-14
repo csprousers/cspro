@@ -6,7 +6,7 @@
     #include "SharedHtmlLocalFileServer.h"
     #include <zUtilF/ApplicationShutdownRunner.h>
 #elif defined(ANDROID)
-    #include <CSEntryDroid/app/src/main/jni/src/AndroidLocalFileServer.h>
+    #include <CSEntryDroid/app/src/main/jni/AndroidLocalFileServer.h>
 #elif defined(WASM)
     #include <WASM/WasmController.h>
 #endif

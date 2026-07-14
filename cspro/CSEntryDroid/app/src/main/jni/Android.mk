@@ -48,30 +48,29 @@ include $(LOCAL_PATH)/zZip.mk
 include $(CLEAR_VARS)
 
 LOCAL_MODULE            := CSEntry
-CSENTRY_SRC_PATH        := src
 
-LOCAL_SRC_FILES         := $(CSENTRY_SRC_PATH)/JNIHelpers.cpp
-LOCAL_SRC_FILES         += $(CSENTRY_SRC_PATH)/ActionInvoker.cpp
-LOCAL_SRC_FILES         += $(CSENTRY_SRC_PATH)/ActionInvokerPortableRunner.cpp
-LOCAL_SRC_FILES         += $(CSENTRY_SRC_PATH)/AndroidApplicationInterface.cpp
-LOCAL_SRC_FILES         += $(CSENTRY_SRC_PATH)/AndroidBluetoothAdapter.cpp
-LOCAL_SRC_FILES         += $(CSENTRY_SRC_PATH)/AndroidBluetoothObexTransport.cpp
-LOCAL_SRC_FILES         += $(CSENTRY_SRC_PATH)/AndroidEngineInterface.cpp
-LOCAL_SRC_FILES         += $(CSENTRY_SRC_PATH)/AndroidFtpConnection.cpp
-LOCAL_SRC_FILES         += $(CSENTRY_SRC_PATH)/AndroidHtmlMapUI.cpp
-LOCAL_SRC_FILES         += $(CSENTRY_SRC_PATH)/AndroidHttpConnection.cpp
-LOCAL_SRC_FILES         += $(CSENTRY_SRC_PATH)/AndroidLocalFileServer.cpp
-LOCAL_SRC_FILES         += $(CSENTRY_SRC_PATH)/AndroidMapUI.cpp
-LOCAL_SRC_FILES         += $(CSENTRY_SRC_PATH)/GeometryJni.cpp
-LOCAL_SRC_FILES         += $(CSENTRY_SRC_PATH)/gov_census_cspro_bridge_CNPifFile.cpp
-LOCAL_SRC_FILES         += $(CSENTRY_SRC_PATH)/gov_census_cspro_engine_EngineInterface_jni.cpp
-LOCAL_SRC_FILES         += $(CSENTRY_SRC_PATH)/gov_census_cspro_form_CDEField_jni.cpp
-LOCAL_SRC_FILES         += $(CSENTRY_SRC_PATH)/gov_census_cspro_form_EntryPage_jni.cpp
-LOCAL_SRC_FILES         += $(CSENTRY_SRC_PATH)/gov_census_cspro_smartsync_addapp_DeploymentPackageDownloader.cpp
-LOCAL_SRC_FILES         += $(CSENTRY_SRC_PATH)/gov_census_cspro_smartsync_http_IStreamWrapper_jni.cpp
-LOCAL_SRC_FILES         += $(CSENTRY_SRC_PATH)/gov_census_cspro_smartsync_http_OStreamWrapper_jni.cpp
-LOCAL_SRC_FILES         += $(CSENTRY_SRC_PATH)/gov_census_cspro_smartsync_p2p_AndroidBluetoothAdapter_jni.cpp
-LOCAL_SRC_FILES         += $(CSENTRY_SRC_PATH)/gov_census_cspro_smartsync_SyncListenerWrapper_jni.cpp
+LOCAL_SRC_FILES         := JNIHelpers.cpp
+LOCAL_SRC_FILES         += ActionInvoker.cpp
+LOCAL_SRC_FILES         += ActionInvokerPortableRunner.cpp
+LOCAL_SRC_FILES         += AndroidApplicationInterface.cpp
+LOCAL_SRC_FILES         += AndroidBluetoothAdapter.cpp
+LOCAL_SRC_FILES         += AndroidBluetoothObexTransport.cpp
+LOCAL_SRC_FILES         += AndroidEngineInterface.cpp
+LOCAL_SRC_FILES         += AndroidFtpConnection.cpp
+LOCAL_SRC_FILES         += AndroidHtmlMapUI.cpp
+LOCAL_SRC_FILES         += AndroidHttpConnection.cpp
+LOCAL_SRC_FILES         += AndroidLocalFileServer.cpp
+LOCAL_SRC_FILES         += AndroidMapUI.cpp
+LOCAL_SRC_FILES         += GeometryJni.cpp
+LOCAL_SRC_FILES         += gov_census_cspro_bridge_CNPifFile.cpp
+LOCAL_SRC_FILES         += gov_census_cspro_engine_EngineInterface_jni.cpp
+LOCAL_SRC_FILES         += gov_census_cspro_form_CDEField_jni.cpp
+LOCAL_SRC_FILES         += gov_census_cspro_form_EntryPage_jni.cpp
+LOCAL_SRC_FILES         += gov_census_cspro_smartsync_addapp_DeploymentPackageDownloader.cpp
+LOCAL_SRC_FILES         += gov_census_cspro_smartsync_http_IStreamWrapper_jni.cpp
+LOCAL_SRC_FILES         += gov_census_cspro_smartsync_http_OStreamWrapper_jni.cpp
+LOCAL_SRC_FILES         += gov_census_cspro_smartsync_p2p_AndroidBluetoothAdapter_jni.cpp
+LOCAL_SRC_FILES         += gov_census_cspro_smartsync_SyncListenerWrapper_jni.cpp
 
 LOCAL_LDLIBS            := -llog -landroid
 
