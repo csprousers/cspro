@@ -45,3 +45,7 @@ add_library(${PROJECT_NAME}
     Viewers.cpp
     VirtualDirectoryLister.cpp
 )
+
+target_precompile_headers(${PROJECT_NAME} PRIVATE
+    StdAfx.h
+)

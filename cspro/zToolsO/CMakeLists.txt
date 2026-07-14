@@ -64,3 +64,7 @@ add_library(${PROJECT_NAME}
     ${SCRYPT_DIRECTORY}/insecure_memzero.c
     ${SCRYPT_DIRECTORY}/sha256.c
 )
+
+target_precompile_headers(${PROJECT_NAME} PRIVATE
+    "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/StdAfx.h>"
+)

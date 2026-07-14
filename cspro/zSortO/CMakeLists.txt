@@ -5,3 +5,7 @@ add_library(${PROJECT_NAME}
     Sorter.cpp
     SortSpec.cpp
 )
+
+target_precompile_headers(${PROJECT_NAME} PRIVATE
+    stdafx.h
+)

@@ -227,3 +227,14 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
     # allow the WebP library to use multiple threads
     WEBP_USE_THREAD
 )
+
+target_precompile_headers(${PROJECT_NAME} PRIVATE
+    "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/stdafx.h>"
+)
+
+set_source_files_properties(
+    ${LIBWEBM_DIRECTORY}/mkvparser/mkvparser.cc
+    ${LIBWEBM_DIRECTORY}/mkvparser/mkvreader.cc
+    ${QRCODEGEN_DIRECTORY}/qrcodegen.cpp
+    PROPERTIES SKIP_PRECOMPILE_HEADERS ON
+)

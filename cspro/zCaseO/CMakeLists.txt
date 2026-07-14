@@ -23,3 +23,7 @@ add_library(${PROJECT_NAME}
     TextToCaseConverter.cpp
     VectorClock.cpp
 )
+
+target_precompile_headers(${PROJECT_NAME} PRIVATE
+    stdafx.h
+)

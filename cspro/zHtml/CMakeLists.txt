@@ -30,3 +30,7 @@ add_library(${PROJECT_NAME}
     ${GUMBO_DIRECTORY}/util.c
     ${GUMBO_DIRECTORY}/vector.c
 )
+
+target_precompile_headers(${PROJECT_NAME} PRIVATE
+    "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/stdafx.h>"
+)

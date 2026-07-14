@@ -12,3 +12,7 @@ add_library(${PROJECT_NAME}
     TextLister.cpp
     TextWriteFile.cpp
 )
+
+target_precompile_headers(${PROJECT_NAME} PRIVATE
+    stdafx.h
+)

@@ -22,3 +22,12 @@ add_library(${PROJECT_NAME}
 
     ${EASYLOGGING_DIRECTORY}/easylogging++.cc
 )
+
+target_precompile_headers(${PROJECT_NAME} PRIVATE
+    stdafx.h
+)
+
+set_source_files_properties(
+    ${EASYLOGGING_DIRECTORY}/easylogging++.cc
+    PROPERTIES SKIP_PRECOMPILE_HEADERS ON
+)

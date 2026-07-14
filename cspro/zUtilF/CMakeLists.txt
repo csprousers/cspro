@@ -13,3 +13,7 @@ add_library(${PROJECT_NAME}
     SelectFileDlg.cpp
     TextInputDlg.cpp
 )
+
+target_precompile_headers(${PROJECT_NAME} PRIVATE
+    StdAfx.h
+)

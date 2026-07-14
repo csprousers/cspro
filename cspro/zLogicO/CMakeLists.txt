@@ -16,3 +16,7 @@ add_library(${PROJECT_NAME}
     SymbolType.cpp
     TextTemplateTokenizer.cpp
 )
+
+target_precompile_headers(${PROJECT_NAME} PRIVATE
+    stdafx.h
+)

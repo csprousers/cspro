@@ -25,3 +25,7 @@ add_library(${PROJECT_NAME}
     System.cpp
     UserInterface.cpp
 )
+
+target_precompile_headers(${PROJECT_NAME} PRIVATE
+    stdafx.h
+)

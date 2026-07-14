@@ -14,3 +14,7 @@ add_library(${PROJECT_NAME}
     OfflineTileProvider.cpp
     TPKReader.cpp
 )
+
+target_precompile_headers(${PROJECT_NAME} PRIVATE
+    stdafx.h
+)

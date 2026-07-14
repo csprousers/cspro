@@ -6,3 +6,7 @@ add_library(${PROJECT_NAME}
     CSConcatReporter.cpp
     TextConcatenator.cpp
 )
+
+target_precompile_headers(${PROJECT_NAME} PRIVATE
+    stdafx.h
+)

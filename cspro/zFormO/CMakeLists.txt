@@ -19,3 +19,7 @@ add_library(${PROJECT_NAME}
     RosterColumn.cpp
     Text.cpp
 )
+
+target_precompile_headers(${PROJECT_NAME} PRIVATE
+    StdAfx.h
+)

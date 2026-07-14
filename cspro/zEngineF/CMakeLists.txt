@@ -8,3 +8,7 @@ add_library(${PROJECT_NAME}
     ReviewNotesDlg.cpp
     TraceHandler.cpp
 )
+
+target_precompile_headers(${PROJECT_NAME} PRIVATE
+    StdAfx.h
+)

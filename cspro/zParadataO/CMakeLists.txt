@@ -28,3 +28,7 @@ add_library(${PROJECT_NAME}
     Table.cpp
     TableDefinitions.cpp
 )
+
+target_precompile_headers(${PROJECT_NAME} PRIVATE
+    stdafx.h
+)

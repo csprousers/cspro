@@ -42,3 +42,7 @@ add_library(${PROJECT_NAME}
     ${READSTAT_DIRECTORY}/stata/readstat_dta.c
     ${READSTAT_DIRECTORY}/stata/readstat_dta_write.c
 )
+
+target_precompile_headers(${PROJECT_NAME} PRIVATE
+    "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/stdafx.h>"
+)

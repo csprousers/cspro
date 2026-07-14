@@ -5,3 +5,7 @@ add_library(${PROJECT_NAME}
     Packer.cpp
     PackSpec.cpp
 )
+
+target_precompile_headers(${PROJECT_NAME} PRIVATE
+    stdafx.h
+)

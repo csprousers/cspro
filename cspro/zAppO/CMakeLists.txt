@@ -29,3 +29,7 @@ add_library(${PROJECT_NAME}
     Properties/MappingTileProviderProperties.cpp
     Properties/ParadataProperties.cpp
 )
+
+target_precompile_headers(${PROJECT_NAME} PRIVATE
+    stdafx.h
+)

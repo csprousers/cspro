@@ -5,3 +5,7 @@ add_library(${PROJECT_NAME}
     ViewInput.cpp
     ViewInputCreator.cpp
 )
+
+target_precompile_headers(${PROJECT_NAME} PRIVATE
+    StdAfx.h
+)

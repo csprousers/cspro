@@ -15,3 +15,7 @@ add_library(${PROJECT_NAME}
     ${QUICKJS_DIRECTORY}/libunicode.c
     ${QUICKJS_DIRECTORY}/quickjs.c
 )
+
+target_precompile_headers(${PROJECT_NAME} PRIVATE
+    "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/stdafx.h>"
+)

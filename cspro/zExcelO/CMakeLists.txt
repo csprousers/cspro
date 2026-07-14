@@ -47,3 +47,6 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
     NOUNCRYPT
 )
 
+target_precompile_headers(${PROJECT_NAME} PRIVATE
+    "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/stdafx.h>"
+)

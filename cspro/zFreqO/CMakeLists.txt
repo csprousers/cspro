@@ -13,3 +13,7 @@ add_library(${PROJECT_NAME}
     JsonStringFrequencyPrinter.cpp
     TextFrequencyPrinter.cpp
 )
+
+target_precompile_headers(${PROJECT_NAME} PRIVATE
+    stdafx.h
+)

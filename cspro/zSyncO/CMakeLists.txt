@@ -40,3 +40,7 @@ add_library(${PROJECT_NAME}
     SyncRunnerActionInvoker.cpp
     SyncServiceFactory.cpp
 )
+
+target_precompile_headers(${PROJECT_NAME} PRIVATE
+    stdafx.h
+)
