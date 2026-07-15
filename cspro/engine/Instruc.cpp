@@ -39,7 +39,7 @@
 #include <zDictO/DDClass.h>
 #include <zFormO/FormFile.h>
 #include <zLogicO/LocalSymbolStack.h>
-#include <zLogicO/Preprocessor.h>
+#include <zEngineO/Compiler/EnginePreprocessor.h>
 
 
 const int TSMAXIDLEN = 16;              // max. len for a break-id var

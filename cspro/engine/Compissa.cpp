@@ -11,13 +11,13 @@
 #include "CompIlad.h"
 #include "Engine.h"
 #include "Ctab.h"
-#include "Preprocessor.h"
-#include <zEngineO/JavaScriptProcessor.h>
-#include <zEngineO/StringWriter.h>
 #include <zToolsO/RaiiHelpers.h>
 #include <zAppO/Application.h>
 #include <zLogicO/LocalSymbolStack.h>
 #include <zLogicO/TextTemplateTokenizer.h>
+#include <zEngineO/JavaScriptProcessor.h>
+#include <zEngineO/StringWriter.h>
+#include <zEngineO/Compiler/EnginePreprocessor.h>
 #include <zCapiO/CapiCondition.h>
 #include <zCapiO/CapiLogicParameters.h>
 #include <zDesignerF/UWM.h>
@@ -38,9 +38,6 @@ int CEngineCompFunc::rutasync(const int symbol_index, const std::function<void()
     LvlInComp = SymbolCalculator::GetLevelNumber_base1(compilation_symbol);
 
     // preprocess the source buffer
-    if( m_preprocessor == nullptr )
-        m_preprocessor = std::make_unique<EnginePreprocessor>(*this, m_pEngineDriver);
-
     m_preprocessor->ProcessBuffer();
 
     // compile the source buffer

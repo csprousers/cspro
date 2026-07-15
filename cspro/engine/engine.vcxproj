@@ -97,7 +97,6 @@
     <ClCompile Include="ParadataDriver.cpp" />
     <ClCompile Include="ParameterManager.cpp" />
     <ClCompile Include="Pre80Routines.cpp" />
-    <ClCompile Include="Preprocessor.cpp" />
     <ClCompile Include="RangeFunctions.cpp" />
     <ClCompile Include="Relation.cpp" />
     <ClCompile Include="SecX.cpp" />
@@ -163,7 +162,6 @@
     <ClInclude Include="Nodes.h" />
     <ClInclude Include="ParadataDriver.h" />
     <ClInclude Include="ParameterManager.h" />
-    <ClInclude Include="Preprocessor.h" />
     <ClInclude Include="ProgramControl.h" />
     <ClInclude Include="RangeFunctions.h" />
     <ClInclude Include="ReadyFlags.h" />

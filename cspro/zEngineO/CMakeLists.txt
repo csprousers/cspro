@@ -67,6 +67,7 @@ add_library(${PROJECT_NAME}
     Compiler/DictionaryCC.cpp
     Compiler/DocumentCC.cpp
     Compiler/EngineDictionaryCC.cpp
+    Compiler/EnginePreprocessor.cpp
     Compiler/ExpressionsCC.cpp
     Compiler/FileCC.cpp
     Compiler/FreqCC.cpp

@@ -14,6 +14,7 @@ template<typename T> class ConstantConserver;
 class DictNamedBase;
 class DynamicValueSet;
 enum class EngineAppType : int;
+class EnginePreprocessor;
 class LoopStack;
 class MessageEvaluator;
 class MessageManager;
@@ -719,8 +720,10 @@ public:
 protected:
     cs::non_null_shared_or_raw_ptr<EngineData> m_engineData;
 
+    std::unique_ptr<EnginePreprocessor> m_preprocessor;
+
 private:
-    // The symbol that is currently being compiled (if applicable).
+    // The symbol that is currently being compiled (null if not applicable).
     const Symbol* m_compilationSymbol;
 
     // The type of the procedure currently being compiled.

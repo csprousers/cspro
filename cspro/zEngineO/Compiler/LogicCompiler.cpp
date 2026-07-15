@@ -1,12 +1,14 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "IncludesCC.h"
 #include "LogicCompiler.h"
+#include "EnginePreprocessor.h"
 #include <zToolsO/ConstantConserver.h>
 
 
 LogicCompiler::LogicCompiler(cs::non_null_shared_or_raw_ptr<EngineData> engine_data)
     :   Logic::BaseCompiler(engine_data->symbol_table),
         m_engineData(std::move(engine_data)),
+        m_preprocessor(std::make_unique<EnginePreprocessor>(*this, *m_engineData)),
         m_compilationSymbol(nullptr),
         m_procType(ProcType::None),
         m_extendedProcType(ExtendedProcType::None),

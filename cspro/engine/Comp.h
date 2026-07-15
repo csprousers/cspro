@@ -126,8 +126,6 @@ public:
     std::tuple<int, bool> m_loneAlphaFunctionCallTester; // 20140422 count + 2024 flag indicating this is a standalone call to a function
 
 private:
-    std::unique_ptr<Logic::Preprocessor> m_preprocessor;
-
     std::unique_ptr<Logic::ProcDirectory> m_procDirectory;
 
 public:

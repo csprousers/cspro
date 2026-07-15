@@ -191,9 +191,6 @@
     <ClInclude Include="ParameterManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Preprocessor.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="ProgramControl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -471,9 +468,6 @@
     </ClCompile>
     <ClCompile Include="Pre80Routines.cpp">
       <Filter>Source Files\ex2</Filter>
-    </ClCompile>
-    <ClCompile Include="Preprocessor.cpp">
-      <Filter>Source Files\ex1</Filter>
     </ClCompile>
     <ClCompile Include="RangeFunctions.cpp">
       <Filter>Source Files\ex1</Filter>

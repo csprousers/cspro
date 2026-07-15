@@ -39,6 +39,7 @@
     <ClCompile Include="Compiler\DictionaryCC.cpp" />
     <ClCompile Include="Compiler\DocumentCC.cpp" />
     <ClCompile Include="Compiler\EngineDictionaryCC.cpp" />
+    <ClCompile Include="Compiler\EnginePreprocessor.cpp" />
     <ClCompile Include="Compiler\ExpressionsCC.cpp" />
     <ClCompile Include="Compiler\FileCC.cpp" />
     <ClCompile Include="Compiler\FreqCC.cpp" />
@@ -174,6 +175,7 @@
     <ClInclude Include="Compiler\CompilationExtendedInformation.h" />
     <ClInclude Include="Compiler\CompilerHelper.h" />
     <ClInclude Include="Compiler\CompilerMessageIssuer.h" />
+    <ClInclude Include="Compiler\EnginePreprocessor.h" />
     <ClInclude Include="Compiler\ImputeAutomaticStatCompilerHelper.h" />
     <ClInclude Include="Compiler\IncludesCC.h" />
     <ClInclude Include="Compiler\LogicCompiler.h" />

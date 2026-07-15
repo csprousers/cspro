@@ -92,6 +92,9 @@
     <ClCompile Include="Compiler\EngineDictionaryCC.cpp">
       <Filter>Source Files\Compiler</Filter>
     </ClCompile>
+    <ClCompile Include="Compiler\EnginePreprocessor.cpp">
+      <Filter>Source Files\Compiler</Filter>
+    </ClCompile>
     <ClCompile Include="Compiler\ExpressionsCC.cpp">
       <Filter>Source Files\Compiler</Filter>
     </ClCompile>
@@ -485,6 +488,9 @@
       <Filter>Header Files\Compiler</Filter>
     </ClInclude>
     <ClInclude Include="Compiler\CompilerMessageIssuer.h">
+      <Filter>Header Files\Compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="Compiler\EnginePreprocessor.h">
       <Filter>Header Files\Compiler</Filter>
     </ClInclude>
     <ClInclude Include="Compiler\ImputeAutomaticStatCompilerHelper.h">
