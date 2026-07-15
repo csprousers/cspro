@@ -149,7 +149,7 @@ int LogicCompiler::CompileStatements(const bool create_new_local_symbol_stack/* 
         previous_statement_program_index = program_index;
     };
 
-#ifdef USE_OLD_ROUTINE_REFERENCE
+#ifdef OLD_ROUTINE_REFERENCE_COMPILER_DLL_TODO
     int iptblock = Prognext;
     bool bIsSkipStatement = false;
     int code;
@@ -167,7 +167,7 @@ int LogicCompiler::CompileStatements(const bool create_new_local_symbol_stack/* 
     {
         try
         {
-#ifdef USE_OLD_ROUTINE_REFERENCE
+#ifdef OLD_ROUTINE_REFERENCE_COMPILER_DLL_TODO
             // check for cpt, move for function declaration
             if( Tkn == TOKEND && ObjInComp == SymbolType::Application )
                 break;
@@ -182,7 +182,7 @@ int LogicCompiler::CompileStatements(const bool create_new_local_symbol_stack/* 
             if( !IsValidStatementStartToken(Tkn) )
                 break;
 
-#ifdef USE_OLD_ROUTINE_REFERENCE
+#ifdef OLD_ROUTINE_REFERENCE_COMPILER_DLL_TODO
             if( ObjInComp == SymbolType::Application && Tkn == TOKNOINPUT )
                 IssueError( 562 ); // invalid inside a function
 
@@ -206,7 +206,7 @@ int LogicCompiler::CompileStatements(const bool create_new_local_symbol_stack/* 
                 continue;
             }
 
-#ifdef USE_OLD_ROUTINE_REFERENCE
+#ifdef OLD_ROUTINE_REFERENCE_COMPILER_DLL_TODO
 #ifdef GENCODE
             prev_st = NODEPTR_AS(Nodes::Statement);
 #endif
@@ -220,7 +220,6 @@ int LogicCompiler::CompileStatements(const bool create_new_local_symbol_stack/* 
 
             switch( Tkn )
             {
-#ifdef USE_OLD_ROUTINE_REFERENCE
                 // --------------------------------------------------------------------------
                 // symbol creation
                 // --------------------------------------------------------------------------
@@ -228,84 +227,30 @@ int LogicCompiler::CompileStatements(const bool create_new_local_symbol_stack/* 
                 case TokenCode::TOKCONFIG:
                 case TokenCode::TOKDECLARE:
                 case TokenCode::TOKPERSISTENT:
-                    last_added_node_address = CompileSymbolWithModifiers();
-                    break;
-
-                case TokenCode::TOKNUMERIC:
-                    last_added_node_address = CompileWorkVariables();
+                    program_index = CompileSymbolWithModifiers();
                     break;
 
                 case TokenCode::TOKALPHA:
-                case TokenCode::TOKSTRING:
-                    last_added_node_address = CompileLogicStrings();
-                    break;
-
                 case TokenCode::TOKKWARRAY:
-                    last_added_node_address = CompileLogicArrayDeclaration();
-                    break;
-
                 case TokenCode::TOKKWAUDIO:
-                    last_added_node_address = CompileLogicAudioDeclarations();
-                    break;
-
                 case TokenCode::TOKKWCASE:
-                    last_added_node_address = CompileEngineCases();
-                    break;
-
                 case TokenCode::TOKKWDATASOURCE:
-                    last_added_node_address = CompileEngineDataRepositories();
-                    break;
-
                 case TokenCode::TOKKWDOCUMENT:
-                    last_added_node_address = CompileLogicDocumentDeclarations();
-                    break;
-
                 case TokenCode::TOKKWFILE:
-                    last_added_node_address = CompileLogicFiles();
-                    break;
-
                 case TokenCode::TOKKWFREQ:
-                    compilation_address = CompileFrequencyDeclaration();
-                    break;
-
                 case TokenCode::TOKKWGEOMETRY:
-                    last_added_node_address = CompileLogicGeometryDeclarations();
-                    break;
-
                 case TokenCode::TOKKWHASHMAP:
-                    last_added_node_address = CompileLogicHashMapDeclarations();
-                    break;
-
                 case TokenCode::TOKKWIMAGE:
-                    last_added_node_address = CompileLogicImageDeclarations();
-                    break;
-
                 case TokenCode::TOKKWLIST:
-                    last_added_node_address = CompileLogicListDeclarations();
-                    break;
-
                 case TokenCode::TOKKWMAP:
-                    last_added_node_address = CompileLogicMapDeclarations();
-                    break;
-
                 case TokenCode::TOKKWPFF:
-                    last_added_node_address = CompileLogicPffDeclarations();
-                    break;
-
                 case TokenCode::TOKKWSTRINGWRITER:
-                    last_added_node_address = CompileStringWriterDeclarations();
-                    break;
-
                 case TokenCode::TOKKWSYSTEMAPP:
-                    last_added_node_address = CompileSystemAppDeclarations();
-                    break;
-
                 case TokenCode::TOKKWVALUESET:
-                    last_added_node_address = CompileDynamicValueSetDeclarations();
-                    break;
-
                 case TokenCode::TOKKWVIDEO:
-                    last_added_node_address = CompileLogicVideoDeclarations();
+                case TokenCode::TOKNUMERIC:
+                case TokenCode::TOKSTRING:
+                    program_index = CompileSymbolRouter();
                     break;
 
 
@@ -314,6 +259,7 @@ int LogicCompiler::CompileStatements(const bool create_new_local_symbol_stack/* 
                 // --------------------------------------------------------------------------
 
                 //  dictionary items + numeric
+#ifdef OLD_ROUTINE_REFERENCE_COMPILER_DLL_TODO
                 case TokenCode::TOKVAR:
                 {
                     if( NPT_Ref(Tokstindex).IsA(SymbolType::WorkVariable) || VPT(Tokstindex)->IsNumeric() ) {
@@ -347,79 +293,76 @@ int LogicCompiler::CompileStatements(const bool create_new_local_symbol_stack/* 
                         return 0;
                     break;
                 }
-
+#endif
                 case TokenCode::TOKAUDIO:
                 {
-                    compilation_address = CompileLogicAudioComputeInstruction();
+                    program_index = CompileLogicAudioComputeInstruction();
                     break;
                 }
 
                 case TokenCode::TOKDICT:
                 {
-                    if( !GetSymbolEngineDictionary(Tokstindex).HasEngineCase() )
-                        IssueError(47252);
-
-                    CompileEngineCaseComputeInstruction();
+                    program_index = CompileEngineCaseComputeInstruction();
                     break;
                 }
 
                 case TokenCode::TOKDOCUMENT:
                 {
-                    compilation_address = CompileLogicDocumentComputeInstruction();
+                    program_index = CompileLogicDocumentComputeInstruction();
                     break;
                 }
 
                 case TokenCode::TOKFREQ:
                 {
-                    CompileNamedFrequencyComputeInstruction();
+                    program_index = CompileNamedFrequencyComputeInstruction();
                     break;
                 }
 
                 case TokenCode::TOKGEOMETRY:
                 {
-                    compilation_address = CompileLogicGeometryComputeInstruction();
+                    program_index = CompileLogicGeometryComputeInstruction();
                     break;
                 }
 
                 case TokenCode::TOKHASHMAP:
                 {
-                    CompileLogicHashMapComputeInstruction();
+                    program_index = CompileLogicHashMapComputeInstruction();
                     break;
                 }
 
                 case TokenCode::TOKIMAGE:
                 {
-                    compilation_address = CompileLogicImageComputeInstruction();
+                    program_index = CompileLogicImageComputeInstruction();
                     break;
                 }
 
                 case TokenCode::TOKLIST:
                 {
-                    compilation_address = CompileLogicListComputeInstruction();
+                    program_index = CompileLogicListComputeInstruction();
                     break;
                 }
 
                 case TokenCode::TOKPFF:
                 {
-                    CompileLogicPffComputeInstruction();
+                    program_index = program_index = CompileLogicPffComputeInstruction();
                     break;
                 }
 
                 case TokenCode::TOKVALUESET:
                 {
-                    CompileDynamicValueSetComputeInstruction();
+                    program_index = CompileDynamicValueSetComputeInstruction();
                     break;
                 }
 
                 case TokenCode::TOKVIDEO:
                 {
-                    compilation_address = CompileLogicVideoComputeInstruction();
+                    program_index = CompileLogicVideoComputeInstruction();
                     break;
                 }
 
                 case TokenCode::TOKWORKSTRING:
                 {
-                    CompileStringComputeInstruction();
+                    program_index = CompileStringComputeInstruction();
                     break;
                 }
 
@@ -428,6 +371,7 @@ int LogicCompiler::CompileStatements(const bool create_new_local_symbol_stack/* 
                 // functions
                 // --------------------------------------------------------------------------
 
+#ifdef OLD_ROUTINE_REFERENCE_COMPILER_DLL_TODO
                 case TokenCode::TOKFUNCTION:
                 case TokenCode::TOKUSERFUNCTION:
                 {
@@ -464,6 +408,7 @@ int LogicCompiler::CompileStatements(const bool create_new_local_symbol_stack/* 
                     }
                     break;
                 }
+#endif
 
 
                 // --------------------------------------------------------------------------
@@ -471,12 +416,12 @@ int LogicCompiler::CompileStatements(const bool create_new_local_symbol_stack/* 
                 // --------------------------------------------------------------------------
 
                 case TokenCode::TOKRECODE:
-                    compilation_address = CompileRecode();
+                    program_index = CompileRecode();
                     break;
 
                 case TokenCode::TOKWHEN:
                     NextToken();
-                    compilation_address = CompileWhen();
+                    program_index = CompileWhen();
                     break;
 
 
@@ -485,33 +430,36 @@ int LogicCompiler::CompileStatements(const bool create_new_local_symbol_stack/* 
                 // --------------------------------------------------------------------------
 
                 case TokenCode::TOKIF:
-                    compilation_address = CompileIfStatement();
+                    program_index = CompileIfStatement();
                     break;
 
                 case TokenCode::TOKWHILE:
-                    compilation_address = CompileWhileLoop();
+                    program_index = CompileWhileLoop();
                     break;
 
                 case TokenCode::TOKDO:
-                    compilation_address = CompileDoLoop();
+                    program_index = CompileDoLoop();
                     break;
 
                 case TokenCode::TOKNEXT:
-                    compilation_address = CompileNextOrBreakInLoop();
+                    program_index = CompileNextOrBreakInLoop();
                     break;
 
                 case TokenCode::TOKBREAK:
                 {
                     if( NextKeywordIf(TOKBY) )
                     {
+                        IssueError(MGF::OpenMessage_32001, "The compiler available at runtime does not support: break by");
+#ifdef OLD_ROUTINE_REFERENCE_COMPILER_DLL_TODO
                         CompileBreakBy();
                         if( GetSyntErr() != 0 ) // victor Sep 20, 00
                             return 0;
+#endif
                     }
 
                     else
                     {
-                        compilation_address = CompileNextOrBreakInLoop();
+                        program_index = CompileNextOrBreakInLoop();
                     }
 
                     break;
@@ -521,9 +469,10 @@ int LogicCompiler::CompileStatements(const bool create_new_local_symbol_stack/* 
                 {
                     std::optional<SymbolType> next_token_symbol_type = GetNextTokenSymbolType();
 
-                    if( next_token_symbol_type == SymbolType::Dictionary || next_token_symbol_type == SymbolType::Pre80Dictionary )
+                    if( next_token_symbol_type == SymbolType::Dictionary ||
+                        next_token_symbol_type == SymbolType::Pre80Dictionary )
                     {
-                        compilation_address = CompileForDictionaryLoop(TOKFOR);
+                        program_index = CompileForDictionaryLoop(TokenCode::TOKFOR);
                     }
 
                     else
@@ -532,9 +481,12 @@ int LogicCompiler::CompileStatements(const bool create_new_local_symbol_stack/* 
                         // records are prioritized over groups
                         NextTokenWithPreference(SymbolType::Section);
 
+                        IssueError(MGF::OpenMessage_32001, "The compiler available at runtime does not support: for");
+#ifdef OLD_ROUTINE_REFERENCE_COMPILER_DLL_TODO
                         CompileForStatement();
                         if( GetSyntErr() != 0 ) // victor Sep 20, 00
                             return 0;
+#endif
                     }
 
                     break;
@@ -542,7 +494,7 @@ int LogicCompiler::CompileStatements(const bool create_new_local_symbol_stack/* 
 
                 case TokenCode::TOKFORCASE:
                 {
-                    compilation_address = CompileForDictionaryLoop(TOKFORCASE);
+                    program_index = CompileForDictionaryLoop(TokenCode::TOKFORCASE);
                     break;
                 }
 
@@ -550,7 +502,7 @@ int LogicCompiler::CompileStatements(const bool create_new_local_symbol_stack/* 
                 // --------------------------------------------------------------------------
                 // program control
                 // --------------------------------------------------------------------------
-
+#ifdef OLD_ROUTINE_REFERENCE_COMPILER_DLL_TODO
                 case TokenCode::TOKASK:
                     CompileAskStatement();
                     if( GetSyntErr() != 0 )
@@ -837,6 +789,10 @@ int LogicCompiler::CompileStatements(const bool create_new_local_symbol_stack/* 
                         "The compiler available at runtime does not support: '%s'",
                         Logic::KeywordTable::GetKeywordName(Tkn)
                     ).c_str());
+#ifdef OLD_ROUTINE_REFERENCE_COMPILER_DLL_TODO
+                    ASSERT(0);              // should not happen!
+                    break;
+#endif
             }
 
             // Final check at the end of every instruction
@@ -850,7 +806,7 @@ int LogicCompiler::CompileStatements(const bool create_new_local_symbol_stack/* 
 
             link_statement(program_index);
 
-#ifdef USE_OLD_ROUTINE_REFERENCE
+#ifdef OLD_ROUTINE_REFERENCE_COMPILER_DLL_TODO
 #ifdef GENCODE
             // when a compilation address is used (so the node was probably not added at Prognext)...
             if( compilation_address >= 0 )
@@ -902,6 +858,10 @@ int LogicCompiler::CompileStatements(const bool create_new_local_symbol_stack/* 
         }
     }
 #endif // !USE_OLD_ROUTINE
+
+    // terminate the final statement added
+    if( previous_statement_program_index != -1 )
+        GetNode<Nodes::Statement>(previous_statement_program_index).next_st = -1;
 
     if( local_symbol_stack.has_value() )
         first_statement_program_index = WrapNodeAroundScopeChange(*local_symbol_stack, first_statement_program_index);
