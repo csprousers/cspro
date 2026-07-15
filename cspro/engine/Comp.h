@@ -634,6 +634,7 @@ private:
     void rutasync_as_global_compilation_COMPILER_DLL_TODO(const Symbol& compilation_symbol, const std::function<void()>& compilation_function) override;
     DICT* GetInputDictionary(bool issue_error_if_no_input_dictionary) override;
     void MarkAllDictionaryItemsAsUsed() override;
+    void SetCaseAccessSetRequiresFullAccess_COMPILER_DLL_TODO(Symbol& symbol) override;
 
     template<typename NodeType> NodeType& CreateCompilationNode(std::optional<FunctionCode> function_code = std::nullopt, int node_size_offset = 0) { return CreateNode<NodeType>(std::move(function_code), node_size_offset); }
     template<typename NodeType> NodeType& CreateVariableArgumentCompilationNode(std::optional<FunctionCode> function_code, int number_arguments) { return CreateVariableSizeNode<NodeType>(std::move(function_code), number_arguments); }

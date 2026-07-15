@@ -1,31 +1,31 @@
-﻿#include "StandardSystemIncludes.h"
-#include "Engine.h"
-#include "Preprocessor.h"
-#include <zAppO/Application.h>
-#include <zJson/JsonKeys.h>
+#include "stdafx.h"
+#include "IncludesCC.h"
+#include "EnginePreprocessor.h"
 
 
-EnginePreprocessor::EnginePreprocessor(Logic::BasicTokenCompiler& compiler, CEngineDriver* const pEngineDriver)
+EnginePreprocessor::EnginePreprocessor(LogicCompiler& compiler, EngineData& engine_data)
     :   Logic::Preprocessor(compiler),
-        m_pEngineDriver(pEngineDriver),
-        m_symbolTable(m_pEngineDriver->getEngineAreaPtr()->GetSymbolTable()),
-        m_initialSymbolTableSize(m_symbolTable.GetTableSize())
-{            
+        m_compiler(compiler),
+        m_engineData(engine_data)
+{
 }
 
 
 const char* EnginePreprocessor::GetAppType()
 {
-    return ToString(m_pEngineDriver->m_pApplication->GetEngineAppType());
+    return ToString(m_compiler.GetEngineAppType());
 }
 
 
 Symbol* EnginePreprocessor::FindSymbol(const std::string_view symbol_name_sv, const bool search_only_base_symbols)
 {
-    for( Symbol* const symbol : m_symbolTable.FindSymbols(symbol_name_sv) )
+    for( Symbol* const symbol : m_engineData.symbol_table.FindSymbols(symbol_name_sv) )
     {
-        if( !search_only_base_symbols || symbol->GetSymbolIndex() < static_cast<int>(m_initialSymbolTableSize) )
+        if( !search_only_base_symbols ||
+            SymbolCalculator::IsSymbolCreatedAutomatically(*symbol) )
+        {
             return symbol;
+        }
     }
 
     return nullptr;
@@ -55,14 +55,16 @@ void EnginePreprocessor::SetProperty(Symbol* const symbol, const std::string& at
 {
     auto issue_value_error = [&]()
     {
-        std::string error_message = FormatText("the value '%s' is invalid for attribute '%s'",
-                                               std::holds_alternative<double>(value) ? DoubleToString(std::get<double>(value)).c_str() : std::get<SharableString>(value)->c_str(),
-                                               attribute.c_str());
+        std::string error_message = FormatText(
+            "the value '%s' is invalid for attribute '%s'",
+            std::holds_alternative<double>(value) ? DoubleToString(std::get<double>(value)).c_str() : std::get<SharableString>(value)->c_str(),
+            attribute.c_str()
+        );
 
         if( symbol != nullptr )
             error_message.append(FormatText(" for symbol type '%s'", ToString(symbol->GetType())));
 
-        IssueError(69, error_message.c_str());
+        IssueError(MGF::preprocessor_function_error_69, error_message.c_str());
     };
 
     if( symbol != nullptr && symbol->IsA(SymbolType::Pre80Dictionary) && attribute == JK::readOptimization ) // ENGINECR_TODO implement for non-DICT
@@ -73,7 +75,7 @@ void EnginePreprocessor::SetProperty(Symbol* const symbol, const std::string& at
             issue_value_error();
 
         if( !*use_read_optimization )
-            assert_cast<DICT&>(*symbol).GetCaseAccess()->SetRequiresFullAccess();
+            m_compiler.SetCaseAccessSetRequiresFullAccess_COMPILER_DLL_TODO(*symbol);
 
         return;
     }
@@ -83,6 +85,5 @@ void EnginePreprocessor::SetProperty(Symbol* const symbol, const std::string& at
     if( symbol != nullptr )
         error_message.append(FormatText(" for symbol type '%s'", ToString(symbol->GetType())));
 
-    IssueError(69, error_message.c_str());
+    IssueError(MGF::preprocessor_function_error_69, error_message.c_str());
 }
-

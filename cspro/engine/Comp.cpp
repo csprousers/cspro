@@ -482,3 +482,10 @@ void CEngineCompFunc::MarkAllDictionaryItemsAsUsed()
             pDicT->GetCaseAccess()->SetUseAllDictionaryItems();
     }
 }
+
+
+void CEngineCompFunc::SetCaseAccessSetRequiresFullAccess_COMPILER_DLL_TODO(Symbol& symbol)
+{
+    ASSERT(symbol.IsA(SymbolType::Pre80Dictionary));
+    assert_cast<DICT&>(symbol).GetCaseAccess()->SetRequiresFullAccess();
+}

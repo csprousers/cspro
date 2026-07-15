@@ -137,6 +137,58 @@ const DictBase* SymbolCalculator::GetDictBase(const Symbol& symbol)
 }
 
 
+bool SymbolCalculator::IsSymbolCreatedAutomatically(const Symbol& symbol)
+{
+    switch( symbol.GetType() )
+    {
+        case SymbolType::Application:
+        case SymbolType::Block:
+        case SymbolType::Crosstab:
+        case SymbolType::Dictionary:
+        case SymbolType::Flow:
+        case SymbolType::Form:
+        case SymbolType::Group:
+        case SymbolType::Item:
+        case SymbolType::Pre80Dictionary:
+        case SymbolType::Pre80Flow:
+        case SymbolType::Record:
+        case SymbolType::Relation:
+        case SymbolType::Report:
+        case SymbolType::Section:
+        case SymbolType::Variable:
+            return true;
+
+        case SymbolType::Array:
+        case SymbolType::Audio:
+        case SymbolType::Document:
+        case SymbolType::File:
+        case SymbolType::Geometry:
+        case SymbolType::HashMap:
+        case SymbolType::Image:
+        case SymbolType::List:
+        case SymbolType::Map:
+        case SymbolType::NamedFrequency:
+        case SymbolType::Pff:
+        case SymbolType::StringWriter:
+        case SymbolType::SystemApp:
+        case SymbolType::UserFunction:
+        case SymbolType::Video:
+        case SymbolType::WorkString:
+        case SymbolType::WorkVariable:
+            return false;
+
+        case SymbolType::ValueSet:
+            return assert_cast<const ValueSet&>(symbol).IsDynamic();
+
+        case SymbolType::Index_Unused:
+        case SymbolType::None:
+        case SymbolType::Unknown:
+        default:
+            return ReturnProgrammingError(false);
+    }
+}
+
+
 bool SymbolCalculator::DoMultipleLabelsExist(const Symbol& symbol)
 {
     const DictBase* dict_base = GetDictBase(symbol);

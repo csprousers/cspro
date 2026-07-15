@@ -19,6 +19,10 @@ public:
     // Returns the symbol's dictionary object (if applicable).
     static const DictBase* GetDictBase(const Symbol& symbol);
 
+    // Returns true if the symbol was created by the engine automatically (e.g., a VART),
+    // as opposed to one created by the user (e.g., a WorkString).
+    static bool IsSymbolCreatedAutomatically(const Symbol& symbol);
+
     // Returns whether or not there are multiple labels (in different languages) for the symbol.
     static bool DoMultipleLabelsExist(const Symbol& symbol);
 

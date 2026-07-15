@@ -28,6 +28,8 @@ namespace MGF
     constexpr int switch_expecting_array_57                                 =     57;
     constexpr int switch_expecting_double_colon_58                          =     58;
 
+    constexpr int preprocessor_function_error_69                            =     69;
+
     constexpr int integer_constant_expected_82                              =     82;
     constexpr int declaration_invalid_92                                    =     92;
     constexpr int variable_belongs_to_lower_level_93                        =     93;

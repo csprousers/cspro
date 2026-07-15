@@ -705,6 +705,7 @@ public:
     virtual DICT* GetInputDictionary(bool issue_error_if_no_input_dictionary) = 0;
     virtual void MarkAllDictionaryItemsAsUsed() = 0;
     virtual void MarkAllInSectionUsed(SECT* pSecT) = 0;
+    virtual void SetCaseAccessSetRequiresFullAccess_COMPILER_DLL_TODO(Symbol& symbol) = 0;
 
     virtual int CompileReenterStatement_COMPILER_DLL_TODO(bool bNextTkn = true) = 0;
     virtual int CompileMoveStatement_COMPILER_DLL_TODO(bool bFromSelectStatement = false) = 0;
