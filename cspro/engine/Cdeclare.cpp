@@ -314,7 +314,7 @@ void CEngineCompFunc::CompileDictRelations()
 
             try
             {
-                if( rutasync(Appl.GetSymbolIndex()) )
+                if( rutasync(Appl) )
                 {
                     const std::string message = FormatText(" (check relation '%s' declared in the dictionary)", dict_relation.GetName().c_str());
                     ReportError(GetSyntErr(), message.c_str());

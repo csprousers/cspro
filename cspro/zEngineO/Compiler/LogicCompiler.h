@@ -60,6 +60,11 @@ public:
     ProcType GetCompilationProcType() const { return m_procType; }
     void SetCompilationProcType(ProcType proc_type, ExtendedProcType extended_proc_type = ExtendedProcType::None);
 
+    // Compiles the current source buffer for the symbol, if provided.
+    // An optional compilation function can be provided.
+    // The method will not throw exceptions unless a subclass' implementation of ReportError does.
+    int CompileSourceBuffer(const Symbol* compilation_symbol, const std::function<int()>* compilation_function = nullptr);
+
     void CompileExternalCode();
     virtual void CompileExternalCode(const CodeFile& code_file);
 

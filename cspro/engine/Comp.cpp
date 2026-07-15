@@ -461,7 +461,7 @@ void CEngineCompFunc::rutasync_as_global_compilation_COMPILER_DLL_TODO(const Sym
     };
 
     // COMPILER_DLL_TODO eventually we shouldn't have to mock compilation as an application because uses of ObjInComp should account for Application/Report/UserFunction
-    if( rutasync(Appl.GetSymbolIndex(), &this_compilation_function) )
+    if( rutasync(Appl, &this_compilation_function) )
         ReportError(GetSyntErr());
 }
 

@@ -511,7 +511,7 @@ public:
 
     int     compctab( int mode, CTableDef::ETableType eTableType );
 
-    int     rutasync(int symbol_index, const std::function<void()>* compilation_function = nullptr);
+    int     rutasync(const Symbol& compilation_symbol, const std::function<void()>* compilation_function = nullptr);
     int     rutcpttbl();
 
     int CompileForStatement(pCompileForInFunction pCompileFunction = nullptr);

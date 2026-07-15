@@ -23,59 +23,39 @@
 #include <zDesignerF/UWM.h>
 
 
-int CEngineCompFunc::rutasync(const int symbol_index, const std::function<void()>* const compilation_function/* = nullptr*/)
+int CEngineCompFunc::rutasync(const Symbol& compilation_symbol, const std::function<void()>* const compilation_function/* = nullptr*/)
 {
     clearSyntaxErrorStatus();
 
     m_allowMultVarWithoutIndex = false;
 
-    const Symbol& compilation_symbol = NPT_Ref(symbol_index);
-    SetCompilationSymbol(&compilation_symbol);
-
     ObjInComp = compilation_symbol.GetType();
-    InCompIdx = symbol_index;
+    InCompIdx = compilation_symbol.GetSymbolIndex();
 
     LvlInComp = SymbolCalculator::GetLevelNumber_base1(compilation_symbol);
 
-    // preprocess the source buffer
-    m_preprocessor->ProcessBuffer();
-
-    // compile the source buffer
-    if( !m_engineData->logic_byte_code.EnlargeBufferForOneProc() )
-        ReportError(4);
-
-    try
-    {
-        if( compilation_function != nullptr )
+    const std::function<int()> rutasync_compilation_function =
+        [&]()
         {
-            (*compilation_function)();
-        }
+            if( compilation_function != nullptr )
+            {
+                (*compilation_function)();
+            }
 
-        else if( ObjInComp == SymbolType::Application )
-        {
-            CompileApplication();
-        }
+            else if( compilation_symbol.IsA(SymbolType::Application) )
+            {
+                CompileApplication();
+            }
 
-        else
-        {
-            CompileSymbolProcs();
-        }
-    }
+            else
+            {
+                CompileSymbolProcs();
+            }
 
-    catch( const Logic::ParserError& )
-    {
-        // the error should have already been reported
-    }
+            return -1;
+        };
 
-    catch( const CSProException& exception )
-    {
-        ReportError(MGF::OpenMessage, exception.what());
-    }
-
-    catch(...)
-    {
-        ASSERT(false);
-    }
+    CompileSourceBuffer(&compilation_symbol, &rutasync_compilation_function);
 
     return GetSyntErr();
 }
@@ -114,7 +94,7 @@ void CEngineCompFunc::CompileExternalCodeLogic(const CodeFile& code_file)
 
     try
     {
-        if( rutasync(Appl.GetSymbolIndex()) )
+        if( rutasync(Appl) )
             ReportError(GetSyntErr(), Path::GetFilename(code_file.GetFilePath()).c_str());
     }
     catch(...) { ASSERT(false); }
@@ -436,7 +416,7 @@ int CEngineCompFunc::CompileCapiLogic(const CapiLogicParameters& capi_logic_para
 
         set_compilation_details();
 
-        if( rutasync(symbol->GetSymbolIndex(), &compilation_function) )
+        if( rutasync(*symbol, &compilation_function) )
             ReportError(GetSyntErr());
     }
 

@@ -1,4 +1,4 @@
-﻿//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 // COMPALL.cpp  manage compiler functions
 //------------------------------------------------------------------------------
 #include "StandardSystemIncludes.h"
@@ -109,7 +109,7 @@ bool CEngineCompFunc::compobjOk(Symbol* symbol)
 
         try
         {
-            if( rutasync(symbol->GetSymbolIndex()) )
+            if( rutasync(*symbol) )
                 ReportError(GetSyntErr());
         }
         catch(...) { ASSERT(false); }

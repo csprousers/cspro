@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "IncludesCC.h"
+#include "EnginePreprocessor.h"
 #include "File.h"
 
 
@@ -69,6 +70,58 @@ void LogicCompiler::SetCompilationProcType(const ProcType proc_type, const Exten
 {
     m_procType = proc_type;
     m_extendedProcType = extended_proc_type;
+}
+
+
+int LogicCompiler::CompileSourceBuffer(const Symbol* const compilation_symbol, const std::function<int()>* const compilation_function/* = nullptr*/)
+{
+    int program_index = -1;
+
+    try
+    {
+        SetCompilationSymbol(compilation_symbol);
+
+        // preprocess the source buffer
+        m_preprocessor->ProcessBuffer();
+
+        // increase the bytecode space
+        if( !m_engineData->logic_byte_code.EnlargeBufferForOneProc() )
+            IssueError(MGF::bytecode_overflow_4);
+
+        // compile the source buffer
+        if( compilation_function != nullptr )
+        {
+            program_index = (*compilation_function)();
+        }
+
+        else
+        {
+            NextToken();
+
+            program_index = CompileStatements();
+
+            // if the entire buffer was not processed, issue an error
+            if( Tkn != TokenCode::TOKEOP )
+                IssueError(MGF::statement_invalid_1);
+        }
+    }
+
+    catch( const Logic::ParserError& )
+    {
+        // the error should have already been reported
+    }
+
+    catch( const CSProException& exception )
+    {
+        ReportError(MGF::OpenMessage_32001, exception.what());
+    }
+
+    catch(...)
+    {
+        ASSERT(false);
+    }
+
+    return program_index;
 }
 
 
