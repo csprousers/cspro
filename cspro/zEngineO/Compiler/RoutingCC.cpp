@@ -221,157 +221,100 @@ int LogicCompiler::CompileStatements(const bool create_new_local_symbol_stack/* 
             switch( Tkn )
             {
 #ifdef USE_OLD_ROUTINE_REFERENCE
-                case TOKCONFIG:
-                case TOKDECLARE:
-                case TOKPERSISTENT:
+                // --------------------------------------------------------------------------
+                // symbol creation
+                // --------------------------------------------------------------------------
+
+                case TokenCode::TOKCONFIG:
+                case TokenCode::TOKDECLARE:
+                case TokenCode::TOKPERSISTENT:
                     last_added_node_address = CompileSymbolWithModifiers();
                     break;
 
-                case TOKNUMERIC:
+                case TokenCode::TOKNUMERIC:
                     last_added_node_address = CompileWorkVariables();
                     break;
 
-                case TOKALPHA:
-                case TOKSTRING:
+                case TokenCode::TOKALPHA:
+                case TokenCode::TOKSTRING:
                     last_added_node_address = CompileLogicStrings();
                     break;
 
-                case TOKKWARRAY:
+                case TokenCode::TOKKWARRAY:
                     last_added_node_address = CompileLogicArrayDeclaration();
                     break;
 
-                case TOKKWAUDIO:
+                case TokenCode::TOKKWAUDIO:
                     last_added_node_address = CompileLogicAudioDeclarations();
                     break;
 
-                case TOKKWCASE:
+                case TokenCode::TOKKWCASE:
                     last_added_node_address = CompileEngineCases();
                     break;
 
-                case TOKKWDATASOURCE:
+                case TokenCode::TOKKWDATASOURCE:
                     last_added_node_address = CompileEngineDataRepositories();
                     break;
 
-                case TOKKWDOCUMENT:
+                case TokenCode::TOKKWDOCUMENT:
                     last_added_node_address = CompileLogicDocumentDeclarations();
                     break;
 
-                case TOKKWFILE:
+                case TokenCode::TOKKWFILE:
                     last_added_node_address = CompileLogicFiles();
                     break;
 
-                case TOKKWGEOMETRY:
+                case TokenCode::TOKKWFREQ:
+                    compilation_address = CompileFrequencyDeclaration();
+                    break;
+
+                case TokenCode::TOKKWGEOMETRY:
                     last_added_node_address = CompileLogicGeometryDeclarations();
                     break;
 
-                case TOKKWHASHMAP:
+                case TokenCode::TOKKWHASHMAP:
                     last_added_node_address = CompileLogicHashMapDeclarations();
                     break;
 
-                case TOKKWIMAGE:
+                case TokenCode::TOKKWIMAGE:
                     last_added_node_address = CompileLogicImageDeclarations();
                     break;
 
-                case TOKKWLIST:
+                case TokenCode::TOKKWLIST:
                     last_added_node_address = CompileLogicListDeclarations();
                     break;
 
-                case TOKKWMAP:
+                case TokenCode::TOKKWMAP:
                     last_added_node_address = CompileLogicMapDeclarations();
                     break;
 
-                case TOKKWPFF:
+                case TokenCode::TOKKWPFF:
                     last_added_node_address = CompileLogicPffDeclarations();
                     break;
 
-                case TOKKWSTRINGWRITER:
+                case TokenCode::TOKKWSTRINGWRITER:
                     last_added_node_address = CompileStringWriterDeclarations();
                     break;
 
-                case TOKKWSYSTEMAPP:
+                case TokenCode::TOKKWSYSTEMAPP:
                     last_added_node_address = CompileSystemAppDeclarations();
                     break;
 
-                case TOKKWVALUESET:
+                case TokenCode::TOKKWVALUESET:
                     last_added_node_address = CompileDynamicValueSetDeclarations();
                     break;
 
-                case TOKKWVIDEO:
+                case TokenCode::TOKKWVIDEO:
                     last_added_node_address = CompileLogicVideoDeclarations();
                     break;
 
-                case TOKRECODE:
-                    compilation_address = CompileRecode();
-                    break;
 
-                case TOKWHEN:
-                    NextToken();
-                    compilation_address = CompileWhen();
-                    break;
+                // --------------------------------------------------------------------------
+                // symbol assignment
+                // --------------------------------------------------------------------------
 
-                case TOKIF:
-                    compilation_address = CompileIfStatement();
-                    break;
-
-                case TOKWHILE:
-                    compilation_address = CompileWhileLoop();
-                    break;
-
-                case TOKDO:
-                    compilation_address = CompileDoLoop();
-                    break;
-
-                case TOKNEXT:
-                    compilation_address = CompileNextOrBreakInLoop();
-                    break;
-
-                case TOKBREAK:
-                {
-                    if( NextKeywordIf(TOKBY) )
-                    {
-                        CompileBreakBy();
-                        if( GetSyntErr() != 0 ) // victor Sep 20, 00
-                            return 0;
-                    }
-
-                    else
-                    {
-                        compilation_address = CompileNextOrBreakInLoop();
-                    }
-
-                    break;
-                }
-
-                case TOKFOR:
-                {
-                    std::optional<SymbolType> next_token_symbol_type = GetNextTokenSymbolType();
-
-                    if( next_token_symbol_type == SymbolType::Dictionary || next_token_symbol_type == SymbolType::Pre80Dictionary )
-                    {
-                        compilation_address = CompileForDictionaryLoop(TOKFOR);
-                    }
-
-                    else
-                    {
-                        // use preference so, in a normal for loop, external dictionary
-                        // records are prioritized over groups
-                        NextTokenWithPreference(SymbolType::Section);
-
-                        CompileForStatement();
-                        if( GetSyntErr() != 0 ) // victor Sep 20, 00
-                            return 0;
-                    }
-
-                    break;
-                }
-
-                case TOKFORCASE:
-                {
-                    compilation_address = CompileForDictionaryLoop(TOKFORCASE);
-                    break;
-                }
-
-                case TOKVAR:
+                //  dictionary items + numeric
+                case TokenCode::TOKVAR:
                 {
                     if( NPT_Ref(Tokstindex).IsA(SymbolType::WorkVariable) || VPT(Tokstindex)->IsNumeric() ) {
                         CompileComputeInstruction();
@@ -388,14 +331,105 @@ int LogicCompiler::CompileStatements(const bool create_new_local_symbol_stack/* 
                     break;
                 }
 
-                case TOKWORKSTRING:
+                case TokenCode::TOKARRAY:
+                {
+                    if( GetSymbolLogicArray(Tokstindex).IsString() )
+                    {
+                        CompileStringComputeInstruction();
+                    }
+
+                    else
+                    {
+                        CompileComputeInstruction();
+                    }
+
+                    if( GetSyntErr() != 0 )
+                        return 0;
+                    break;
+                }
+
+                case TokenCode::TOKAUDIO:
+                {
+                    compilation_address = CompileLogicAudioComputeInstruction();
+                    break;
+                }
+
+                case TokenCode::TOKDICT:
+                {
+                    if( !GetSymbolEngineDictionary(Tokstindex).HasEngineCase() )
+                        IssueError(47252);
+
+                    CompileEngineCaseComputeInstruction();
+                    break;
+                }
+
+                case TokenCode::TOKDOCUMENT:
+                {
+                    compilation_address = CompileLogicDocumentComputeInstruction();
+                    break;
+                }
+
+                case TokenCode::TOKFREQ:
+                {
+                    CompileNamedFrequencyComputeInstruction();
+                    break;
+                }
+
+                case TokenCode::TOKGEOMETRY:
+                {
+                    compilation_address = CompileLogicGeometryComputeInstruction();
+                    break;
+                }
+
+                case TokenCode::TOKHASHMAP:
+                {
+                    CompileLogicHashMapComputeInstruction();
+                    break;
+                }
+
+                case TokenCode::TOKIMAGE:
+                {
+                    compilation_address = CompileLogicImageComputeInstruction();
+                    break;
+                }
+
+                case TokenCode::TOKLIST:
+                {
+                    compilation_address = CompileLogicListComputeInstruction();
+                    break;
+                }
+
+                case TokenCode::TOKPFF:
+                {
+                    CompileLogicPffComputeInstruction();
+                    break;
+                }
+
+                case TokenCode::TOKVALUESET:
+                {
+                    CompileDynamicValueSetComputeInstruction();
+                    break;
+                }
+
+                case TokenCode::TOKVIDEO:
+                {
+                    compilation_address = CompileLogicVideoComputeInstruction();
+                    break;
+                }
+
+                case TokenCode::TOKWORKSTRING:
                 {
                     CompileStringComputeInstruction();
                     break;
                 }
 
-                case TOKFUNCTION:
-                case TOKUSERFUNCTION:
+
+                // --------------------------------------------------------------------------
+                // functions
+                // --------------------------------------------------------------------------
+
+                case TokenCode::TOKFUNCTION:
+                case TokenCode::TOKUSERFUNCTION:
                 {
                     // TODO: this all needs to be improved at some point;
                     // for now, setting is_lone_function_call to true will allow the calling of functions that return strings
@@ -431,147 +465,106 @@ int LogicCompiler::CompileStatements(const bool create_new_local_symbol_stack/* 
                     break;
                 }
 
-                case TOKARRAY:
-                {
-                    if( GetSymbolLogicArray(Tokstindex).IsString() )
-                    {
-                        CompileStringComputeInstruction();
-                    }
 
-                    else
-                    {
-                        CompileComputeInstruction();
-                    }
+                // --------------------------------------------------------------------------
+                // "switch" statements
+                // --------------------------------------------------------------------------
 
-                    if( GetSyntErr() != 0 )
-                        return 0;
+                case TokenCode::TOKRECODE:
+                    compilation_address = CompileRecode();
                     break;
-                }
 
-                case TOKAUDIO:
-                {
-                    compilation_address = CompileLogicAudioComputeInstruction();
-                    break;
-                }
-
-                case TOKDICT:
-                {
-                    if( !GetSymbolEngineDictionary(Tokstindex).HasEngineCase() )
-                        IssueError(47252);
-
-                    CompileEngineCaseComputeInstruction();
-                    break;
-                }
-
-                case TOKDOCUMENT:
-                {
-                    compilation_address = CompileLogicDocumentComputeInstruction();
-                    break;
-                }
-
-                case TOKGEOMETRY:
-                {
-                    compilation_address = CompileLogicGeometryComputeInstruction();
-                    break;
-                }
-
-                case TOKHASHMAP:
-                {
-                    CompileLogicHashMapComputeInstruction();
-                    break;
-                }
-
-                case TOKIMAGE:
-                {
-                    compilation_address = CompileLogicImageComputeInstruction();
-                    break;
-                }
-
-                case TOKLIST:
-                {
-                    compilation_address = CompileLogicListComputeInstruction();
-                    break;
-                }
-
-                case TOKPFF:
-                {
-                    CompileLogicPffComputeInstruction();
-                    break;
-                }
-
-                case TOKFREQ:
-                {
-                    CompileNamedFrequencyComputeInstruction();
-                    break;
-                }
-
-                case TOKVALUESET:
-                {
-                    CompileDynamicValueSetComputeInstruction();
-                    break;
-                }
-
-                case TOKVIDEO:
-                {
-                    compilation_address = CompileLogicVideoComputeInstruction();
-                    break;
-                }
-
-                case TOKCROSSTAB:
-                {
-                    sind  = Tokstindex;
-
-                    MarkInputBufferToRestartLater();               // mark input buffer to restart
-
+                case TokenCode::TOKWHEN:
                     NextToken();
-                    aux = Tkn;
-                    Tkn = TOKCROSSTAB;
-                    Tokstindex = sind;
-
-                    RestartFromMarkedInputBuffer();               // restart!
-
-                    if( aux == TOKEQOP || aux == TOKLBRACK )
-                        rutcpttbl();
-                    else
-                        CompileComputeInstruction();
-
-                    if( GetSyntErr() != 0 ) // victor Sep 20, 00
-                        return 0;
+                    compilation_address = CompileWhen();
                     break;
-                }
 
-                case TOKKWCTAB:             // CROSSTAB in dict' proc
+
+                // --------------------------------------------------------------------------
+                // "control flow" statements
+                // --------------------------------------------------------------------------
+
+                case TokenCode::TOKIF:
+                    compilation_address = CompileIfStatement();
+                    break;
+
+                case TokenCode::TOKWHILE:
+                    compilation_address = CompileWhileLoop();
+                    break;
+
+                case TokenCode::TOKDO:
+                    compilation_address = CompileDoLoop();
+                    break;
+
+                case TokenCode::TOKNEXT:
+                    compilation_address = CompileNextOrBreakInLoop();
+                    break;
+
+                case TokenCode::TOKBREAK:
                 {
-                    compctab( 1, CTableDef::Ctab_Crosstab );
-                    if( GetSyntErr() != 0 ) // victor Sep 20, 00
-                        return 0;
+                    if( NextKeywordIf(TOKBY) )
+                    {
+                        CompileBreakBy();
+                        if( GetSyntErr() != 0 ) // victor Sep 20, 00
+                            return 0;
+                    }
+
+                    else
+                    {
+                        compilation_address = CompileNextOrBreakInLoop();
+                    }
+
                     break;
                 }
 
-                case TOKKWFREQ:
-                    compilation_address = CompileFrequencyDeclaration();
-                    break;
+                case TokenCode::TOKFOR:
+                {
+                    std::optional<SymbolType> next_token_symbol_type = GetNextTokenSymbolType();
 
-                case TOKEXPORT:
-                    compexport();
-                    if( GetSyntErr() != 0 ) // victor Sep 20, 00
-                        return 0;
-                    break;
+                    if( next_token_symbol_type == SymbolType::Dictionary || next_token_symbol_type == SymbolType::Pre80Dictionary )
+                    {
+                        compilation_address = CompileForDictionaryLoop(TOKFOR);
+                    }
 
-                case TOKASK:
+                    else
+                    {
+                        // use preference so, in a normal for loop, external dictionary
+                        // records are prioritized over groups
+                        NextTokenWithPreference(SymbolType::Section);
+
+                        CompileForStatement();
+                        if( GetSyntErr() != 0 ) // victor Sep 20, 00
+                            return 0;
+                    }
+
+                    break;
+                }
+
+                case TokenCode::TOKFORCASE:
+                {
+                    compilation_address = CompileForDictionaryLoop(TOKFORCASE);
+                    break;
+                }
+
+
+                // --------------------------------------------------------------------------
+                // program control
+                // --------------------------------------------------------------------------
+
+                case TokenCode::TOKASK:
                     CompileAskStatement();
                     if( GetSyntErr() != 0 )
                         return 0;
                     break;
 
-                case TOKSKIP:
-                    CompileSkipStatement( &code );
+                case TokenCode::TOKADVANCE:
+                    CompileAdvanceStatement();
                     if( GetSyntErr() != 0 ) // victor Sep 20, 00
                         return 0;
                     break;
 
                     // RHF INIC Dec 09, 2003 BUCEN_DEC2003 Changes
-                case TOKMOVE:
+                case TokenCode::TOKMOVE:
                     code = Tkn;
                     CompileMoveStatement();
                     if( GetSyntErr() != 0 )
@@ -579,25 +572,25 @@ int LogicCompiler::CompileStatements(const bool create_new_local_symbol_stack/* 
                     break;
                     // RHF END Dec 09, 2003 BUCEN_DEC2003 Changes
 
-                case TOKREENTER:
+                case TokenCode::TOKSKIP:
+                    CompileSkipStatement( &code );
+                    if( GetSyntErr() != 0 ) // victor Sep 20, 00
+                        return 0;
+                    break;
+
+                case TokenCode::TOKREENTER:
                     CompileReenterStatement();
                     if( GetSyntErr() != 0 ) // victor Sep 20, 00
                         return 0;
                     break;
 
-                case TOKADVANCE:
-                    CompileAdvanceStatement();
-                    if( GetSyntErr() != 0 ) // victor Sep 20, 00
-                        return 0;
-                    break;
-
-                case TOKENDCASE:
-                case TOKUNIVERSE:
-                case TOKEXIT:
+                case TokenCode::TOKENDCASE:
+                case TokenCode::TOKUNIVERSE:
+                case TokenCode::TOKEXIT:
                     compilation_address = CompileProgramControl();
                     break;
 
-                case TOKENTER:
+                case TokenCode::TOKENTER:
                     compilation_address = CompileEnter();
                     break;
 
@@ -608,8 +601,8 @@ int LogicCompiler::CompileStatements(const bool create_new_local_symbol_stack/* 
                 //   7. TOKENDSECT
                 //   8. TOKENDLEVL
                 // what?? TOKSKIP, TOKREENTER, TOKADVANCE   // what?? victor Mar 08, 01
-                case TOKSTOP:
-                case TOKENDLEVL:
+                case TokenCode::TOKSTOP:
+                case TokenCode::TOKENDLEVL:
                     // RHF INIC Dec 22, 2003
                     if( NPT(InCompIdx)->IsA(SymbolType::Variable) && VPT(InCompIdx)->GetSubType() != SymbolSubType::Input
                             ||
@@ -619,8 +612,8 @@ int LogicCompiler::CompileStatements(const bool create_new_local_symbol_stack/* 
                     }
                     // RHF END Dec 22, 2003
                     [[fallthrough]];
-                case TOKENDSECT:
-                case TOKNOINPUT:
+                case TokenCode::TOKENDSECT:
+                case TokenCode::TOKNOINPUT:
                 {
                     code = Tkn;
 
@@ -645,7 +638,7 @@ int LogicCompiler::CompileStatements(const bool create_new_local_symbol_stack/* 
                     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                     //   Case 3. TOKSTOP
                     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-                    case TOKSTOP:
+                    case TokenCode::TOKSTOP:
                     {
                         int stop_expr = -1;
 
@@ -677,7 +670,7 @@ int LogicCompiler::CompileStatements(const bool create_new_local_symbol_stack/* 
                     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                     //   Case 6. TOKNOINPUT
                     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-                    case TOKNOINPUT:
+                    case TokenCode::TOKNOINPUT:
                         if( ObjInComp != SymbolType::Variable || ( VPT(InCompIdx)->SYMTfrm <= 0 && Appl.ApplicationType == ModuleType::Entry ) ) // RHF Nov 07, 2001
                             IssueError( 557 );  // not in a field
 
@@ -690,7 +683,7 @@ int LogicCompiler::CompileStatements(const bool create_new_local_symbol_stack/* 
                     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                     //   Case 7. TOKENDSECT
                     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-                    case TOKENDSECT:
+                    case TokenCode::TOKENDSECT:
                         // RHF INIC Dec 04, 2003 Now endgroup can be called from a function
                            //BUCEN_DEC2003 Changes
                         if( ObjInComp == SymbolType::Group && ( GetCompilationProcType() == ProcType::KillFocus || GetCompilationProcType() == ProcType::PostProc ) ||
@@ -706,7 +699,7 @@ int LogicCompiler::CompileStatements(const bool create_new_local_symbol_stack/* 
                     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                     //   Case 8. TOKENDLEVL
                     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-                    case TOKENDLEVL:
+                    case TokenCode::TOKENDLEVL:
                         if( Appl.ApplicationType == ModuleType::Batch ) {
                             issaerror( MessageType::Warning, 88150 ); // RHF Nov 08, 2001 Better here instead of in BatchExEndLevel method
                         }
@@ -733,33 +726,33 @@ int LogicCompiler::CompileStatements(const bool create_new_local_symbol_stack/* 
                         }
 
                         switch( code ) {
-                            case TOKSKIP:                   // what?? victor Mar 08, 01
+                            case TokenCode::TOKSKIP:                   // what?? victor Mar 08, 01
                                 code = SKIPCASE_CODE;
                                 break;
                                 // RHF INIC Dec 09, 2003 BUCEN_DEC2003 Changes
-                            case TOKMOVE:
+                            case TokenCode::TOKMOVE:
                                 code = MOVETO_CODE;
                                 break;
                                 // RHF END Dec 09, 2003  BUCEN_DEC2003 Changes
-                            case TOKTO:                     // what?? victor Mar 08, 01
+                            case TokenCode::TOKTO:                     // what?? victor Mar 08, 01
                                 code = SKIPTO_CODE;
                                 break;
-                            case TOKREENTER:                // what?? victor Mar 08, 01
+                            case TokenCode::TOKREENTER:                // what?? victor Mar 08, 01
                                 code = REENTER_CODE;
                                 break;
-                            case TOKADVANCE:                // what?? victor Mar 08, 01
+                            case TokenCode::TOKADVANCE:                // what?? victor Mar 08, 01
                                 code = ADVANCE_CODE;
                                 break;
-                            case TOKNOINPUT:
+                            case TokenCode::TOKNOINPUT:
                                 code = NOINPUT_CODE;
                                 break;
-                            case TOKSTOP:
+                            case TokenCode::TOKSTOP:
                                 code = STOP_CODE;
                                 break;
-                            case TOKENDLEVL:
+                            case TokenCode::TOKENDLEVL:
                                 code = ENDLEVL_CODE;
                                 break;
-                            case TOKENDSECT:
+                            case TokenCode::TOKENDSECT:
                                 code = ENDSECT_CODE;
                                 break;
                         }
@@ -779,7 +772,54 @@ int LogicCompiler::CompileStatements(const bool create_new_local_symbol_stack/* 
                 } // --- selected-tokens <end>
                     break;                                  // RHF Apr 04, 2000
 
-                case TOKSET:
+
+                // --------------------------------------------------------------------------
+                // crosstabs
+                // --------------------------------------------------------------------------
+
+                case TokenCode::TOKKWCTAB:             // CROSSTAB in dict' proc
+                {
+                    compctab( 1, CTableDef::Ctab_Crosstab );
+                    if( GetSyntErr() != 0 ) // victor Sep 20, 00
+                        return 0;
+                    break;
+                }
+
+                case TokenCode::TOKCROSSTAB:
+                {
+                    sind  = Tokstindex;
+
+                    MarkInputBufferToRestartLater();               // mark input buffer to restart
+
+                    NextToken();
+                    aux = Tkn;
+                    Tkn = TOKCROSSTAB;
+                    Tokstindex = sind;
+
+                    RestartFromMarkedInputBuffer();               // restart!
+
+                    if( aux == TOKEQOP || aux == TOKLBRACK )
+                        rutcpttbl();
+                    else
+                        CompileComputeInstruction();
+
+                    if( GetSyntErr() != 0 ) // victor Sep 20, 00
+                        return 0;
+                    break;
+                }
+
+
+                // --------------------------------------------------------------------------
+                // miscellaneous
+                // --------------------------------------------------------------------------
+
+                case TokenCode::TOKEXPORT:
+                    compexport();
+                    if( GetSyntErr() != 0 ) // victor Sep 20, 00
+                        return 0;
+                    break;
+
+                case TokenCode::TOKSET:
                 {
                     std::optional<int> compilation_node_index = ci_set();
 
