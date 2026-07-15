@@ -1,5 +1,7 @@
 #include "stdafx.h"
 #include "IncludesCC.h"
+#include "EnginePreprocessor.h"
+#include <zLogicO/KeywordTable.h>
 #include <zLogicO/LocalSymbolStack.h>
 
 
@@ -117,14 +119,37 @@ int LogicCompiler::CompileStatements(const bool create_new_local_symbol_stack/* 
     if( create_new_local_symbol_stack )
         local_symbol_stack.emplace(m_symbolTable.CreateLocalSymbolStack());
 
-    int program_index = instruc_COMPILER_DLL_TODO(allow_multiple_statements);
+    int first_statement_program_index = -1;
 
-    if( local_symbol_stack.has_value() )
-        program_index = WrapNodeAroundScopeChange(*local_symbol_stack, program_index);
+#define USE_OLD_ROUTINE
+#ifdef USE_OLD_ROUTINE // the implementation in engine/Instruc.cpp
+    first_statement_program_index = instruc_COMPILER_DLL_TODO(allow_multiple_statements);
 
-    return program_index;
+#else
+    int previous_statement_program_index = -1;
 
-#ifdef REFERENCE // the implementation in engine/Instruc.cpp
+    auto link_statement = [&](const int program_index)
+    {
+        if( program_index == -1 )
+            return;
+
+        // if this is the first statement, set it as such
+        if( first_statement_program_index == -1 )
+        {
+            first_statement_program_index = program_index;
+        }
+
+        // otherwise link the previous statement to this one
+        else
+        {
+            ASSERT(previous_statement_program_index != -1);
+            GetNode<Nodes::Statement>(previous_statement_program_index).next_st = program_index;
+        }
+
+        previous_statement_program_index = program_index;
+    };
+
+#ifdef USE_OLD_ROUTINE_REFERENCE
     int iptblock = Prognext;
     bool bIsSkipStatement = false;
     int code;
@@ -134,6 +159,7 @@ int LogicCompiler::CompileStatements(const bool create_new_local_symbol_stack/* 
 
     Nodes::Statement* previous_instruc_st = nullptr;
     Nodes::Statement* prev_st = NULL;
+#endif
 
     int c = TOKSEMICOLON;
 
@@ -141,58 +167,35 @@ int LogicCompiler::CompileStatements(const bool create_new_local_symbol_stack/* 
     {
         try
         {
+#ifdef USE_OLD_ROUTINE_REFERENCE
             // check for cpt, move for function declaration
             if( Tkn == TOKEND && ObjInComp == SymbolType::Application )
                 break;
 
             bIsSkipStatement = false;
+#endif
 
-            while( Tkn == TOKSEMICOLON )
+            // skip past any semicolons
+            while( Tkn == TokenCode::TOKSEMICOLON )
                 NextToken();
 
             if( !IsValidStatementStartToken(Tkn) )
                 break;
 
+#ifdef USE_OLD_ROUTINE_REFERENCE
             if( ObjInComp == SymbolType::Application && Tkn == TOKNOINPUT )
                 IssueError( 562 ); // invalid inside a function
 
             int saved_prog_next = Prognext;
+#endif
 
-            // 20100518 for compiling trace symbols
+            // when tracing logic, create the trace node for this statement
             if( IsTracingLogic() )
-            {
-                const int trace_program_index = CreateTraceStatement();
-
-                if( trace_program_index != -1 )
-                {
-                    // COMPILER_DLL_TODO ... the following code for adding trace statements is similar to the code at the end of this loop; eventually this should
-                    // all be refactored to easily append statements to one another
-
-                    // ...potentially set the first instruction
-                    if( iptblock == saved_prog_next )
-                    {
-                        iptblock = trace_program_index;
-                    }
-
-                    // or update the previous instruction
-                    else if( previous_instruc_st != nullptr )
-                    {
-                        previous_instruc_st->next_st = trace_program_index;
-                    }
-
-                    prev_st = &GetNode<Nodes::Statement>(trace_program_index);
-                    prev_st->next_st = Prognext;
-
-                    previous_instruc_st = prev_st;
-
-                    saved_prog_next = Prognext;
-                }
-            }
+                link_statement(CreateTraceStatement());
 
             // preprocesor handling
-            if( Tkn == TOKHASH )
+            if( Tkn == TokenCode::TOKHASH )
             {
-                ASSERT(m_preprocessor != nullptr);
                 m_preprocessor->ProcessLineDuringCompilation();
 
                 // ProcessLineDuringCompilation will process all tokens on the line but not move to the next token, so
@@ -203,16 +206,21 @@ int LogicCompiler::CompileStatements(const bool create_new_local_symbol_stack/* 
                 continue;
             }
 
+#ifdef USE_OLD_ROUTINE_REFERENCE
 #ifdef GENCODE
             prev_st = NODEPTR_AS(Nodes::Statement);
 #endif
 
             int last_added_node_address = -1;
             int compilation_address = -1;
+#endif
 
-            // main switch
+            // process the token
+            int program_index = -1;
+
             switch( Tkn )
             {
+#ifdef USE_OLD_ROUTINE_REFERENCE
                 case TOKCONFIG:
                 case TOKDECLARE:
                 case TOKPERSISTENT:
@@ -783,22 +791,26 @@ int LogicCompiler::CompileStatements(const bool create_new_local_symbol_stack/* 
 
                     break;
                 }
-
+#endif
                 default:
-                    ASSERT(0);              // should not happen!
-                    break;
-            } // main switch
+                    IssueError(MGF::OpenMessage_32001, FormatText(
+                        "The compiler available at runtime does not support: '%s'",
+                        Logic::KeywordTable::GetKeywordName(Tkn)
+                    ).c_str());
+            }
 
-            //  Final check at the end of every instruction
-            //  Original Strict rule:
-            //                Every statement must end with a ;
-            //  Current rule (Apr 03, 2000):
-            //                ";" may be omitted before an end (endif,endwhile,etc.)
-            //                and some other keywords (see IsValidStatementEndToken() method)
-            //
-            if( GetSyntErr() == 0 && !IsValidStatementEndToken(Tkn) )
-                IssueError(2);
+            // Final check at the end of every instruction
+            //     Original Strict rule:
+            //         Every statement must end with a ;
+            //     Current rule (Apr 03, 2000):
+            //         ";" may be omitted before an end (endif, enddo, etc.)
+            //         and some other keywords (see IsValidStatementEndToken method)
+            if( !IsValidStatementEndToken(Tkn) )
+                IssueError(MGF::expecting_semicolon_2);
 
+            link_statement(program_index);
+
+#ifdef USE_OLD_ROUTINE_REFERENCE
 #ifdef GENCODE
             // when a compilation address is used (so the node was probably not added at Prognext)...
             if( compilation_address >= 0 )
@@ -827,42 +839,34 @@ int LogicCompiler::CompileStatements(const bool create_new_local_symbol_stack/* 
 
             previous_instruc_st = prev_st;
 #endif
+#endif
             c = Tkn;
         }
 
         catch( const Logic::ParserError& )
         {
             // if there is an error, skip until the next token
-            if( Tkn != TOKSEMICOLON )
+            if( Tkn != TokenCode::TOKSEMICOLON )
             {
-                SkipBasicTokensUntil(TOKSEMICOLON);
+                SkipBasicTokensUntil(TokenCode::TOKSEMICOLON);
                 NextToken();
             }
         }
 
         if( !allow_multiple_statements )
         {
-            if( Tkn == TOKSEMICOLON )
+            if( Tkn == TokenCode::TOKSEMICOLON )
                 NextToken();
 
             break;
         }
-
-    } // end  while( Tkn == TOKSEMICOLON )
-
-
-#ifdef GENCODE
-    if( m_Flagcomp ) {
-        if( prev_st != NULL )
-            prev_st->next_st = -1;
-        else
-            iptblock = -1;
     }
-#endif
+#endif // !USE_OLD_ROUTINE
 
+    if( local_symbol_stack.has_value() )
+        first_statement_program_index = WrapNodeAroundScopeChange(*local_symbol_stack, first_statement_program_index);
 
-    return iptblock;
-#endif
+    return first_statement_program_index;
 }
 
 

@@ -4,6 +4,7 @@
 namespace MGF
 {
     constexpr int statement_invalid_1                                       =      1;
+    constexpr int expecting_semicolon_2                                     =      2;
     constexpr int equals_expected_in_assignment_5                           =      5;
     constexpr int expecting_then_keyword_6                                  =      6;
     constexpr int expecting_else_elseif_endif_keyword_7                     =      7;
