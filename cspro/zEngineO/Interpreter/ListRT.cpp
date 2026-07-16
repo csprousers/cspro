@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "IncludesRT.h"
 #include "List.h"
 #include "SelectDlgHelper.h"
@@ -143,7 +143,7 @@ double LogicInterpreter::ex_List_add(const int program_index)
 
         logic_list.InsertList(logic_list.GetCount() + 1, logic_list_to_add);
 
-        return logic_list_to_add.GetCount();
+        return static_cast<double>(logic_list_to_add.GetCount());
     }
 
     // adding an item
@@ -198,7 +198,7 @@ double LogicInterpreter::ex_List_insert(const int program_index)
 
         logic_list.InsertList(index, logic_list_to_insert);
 
-        return logic_list_to_insert.GetCount();
+        return static_cast<double>(logic_list_to_insert.GetCount());
     }
 
     // inserting an item
@@ -217,7 +217,7 @@ double LogicInterpreter::ex_List_length(const int program_index)
     const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
     const LogicList& logic_list = GetSymbolLogicList(symbol_va_node.symbol_index);
 
-    return logic_list.GetCount();
+    return static_cast<double>(logic_list.GetCount());
 }
 
 
@@ -248,7 +248,7 @@ double LogicInterpreter::ex_List_removeDuplicates(const int program_index)
 
     EnsureListIsNotReadOnly(logic_list, DEFAULT);
 
-    return logic_list.RemoveDuplicates();
+    return static_cast<double>(logic_list.RemoveDuplicates());
 }
 
 
@@ -288,7 +288,7 @@ double LogicInterpreter::ex_List_removeIn(const int program_index)
         }
     }
 
-    return number_removed;
+    return static_cast<double>(number_removed);
 }
 
 
@@ -307,7 +307,7 @@ double LogicInterpreter::ex_List_seek(const int program_index)
         const size_t index = std::visit([&](const auto& this_value) { return logic_list.IndexOf(this_value); }, value);
 
         if( nth == 1 || index == 0 )
-            return index;
+            return static_cast<double>(index);
 
         starting_index = index + 1;
         --nth;
@@ -321,7 +321,7 @@ double LogicInterpreter::ex_List_seek(const int program_index)
                                                            ( std::get<SharableString>(value) == logic_list.GetValue<SharableString>(i) );
 
         if( value_equals && --nth == 0 )
-            return i;
+            return static_cast<double>(i);
     }
 
     return 0;
@@ -356,7 +356,7 @@ double LogicInterpreter::ex_List_show(const int program_index)
     }
 
     SelectDlgHelper select_dlg_helper(GetEngineParadataDriver_INTERPRETER_DLL_TODO(), select_dlg, Paradata::OperatorSelectionEvent::Source::ListShow);
-    return select_dlg_helper.GetSingleSelection();
+    return static_cast<double>(select_dlg_helper.GetSingleSelection());
 }
 
 

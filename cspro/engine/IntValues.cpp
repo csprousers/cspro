@@ -366,7 +366,7 @@ double CIntDriver::exsetvalueset_pre80(int iExpr)
             new_value_set = dynamic_value_set.CreateValueSet(pVarT, value_does_not_fit_in_value_set_warning);
 
             // the return value for a dynamic value set is the number of values in the new value set
-            dRet = new_value_set->GetDictValueSet().GetNumValues();
+            dRet = static_cast<double>(new_value_set->GetDictValueSet().GetNumValues());
         }
 
         // the symbol wasn't a value set or an array
@@ -418,7 +418,7 @@ double CIntDriver::exsetvaluesets(int iExpr)
         }
     }
 
-    return num_value_sets_changed;
+    return static_cast<double>(num_value_sets_changed);
 }
 
 
@@ -480,7 +480,7 @@ double CIntDriver::exrandomizevs(int iExpr)
     for( ValueSet* value_set : valuesets_to_randomize )
         value_set->Randomize(numeric_exclusions, string_exclusions);
 
-    return valuesets_to_randomize.size();
+    return static_cast<double>(valuesets_to_randomize.size());
 }
 
 
@@ -649,7 +649,7 @@ double CIntDriver::exvaluesetadd(int iExpr)
         number_values_added = 1;
     }
 
-    return number_values_added;
+    return static_cast<double>(number_values_added);
 }
 
 
@@ -675,7 +675,7 @@ double CIntDriver::exvaluesetlength(int iExpr)
     const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(iExpr);
     const ValueSet& value_set = GetSymbolValueSet(symbol_va_node.symbol_index);
 
-    return value_set.GetLength();
+    return static_cast<double>(value_set.GetLength());
 }
 
 
@@ -692,8 +692,11 @@ double CIntDriver::exvaluesetremove(int iExpr)
 
     DynamicValueSet& dynamic_value_set = assert_cast<DynamicValueSet&>(value_set);
 
-    return dynamic_value_set.IsNumeric() ? dynamic_value_set.RemoveValue(evalexpr(symbol_va_node.arguments[0])) :
-                                           dynamic_value_set.RemoveValue(EvalAlphaExpr(symbol_va_node.arguments[0]));
+    return static_cast<double>(
+        dynamic_value_set.IsNumeric()
+        ? dynamic_value_set.RemoveValue(evalexpr(symbol_va_node.arguments[0]))
+        : dynamic_value_set.RemoveValue(EvalAlphaExpr(symbol_va_node.arguments[0]))
+    );
 }
 
 
@@ -710,9 +713,9 @@ double CIntDriver::ex_ValueSet_removeDuplicates(const int program_index)
 
     DynamicValueSet& dynamic_value_set = assert_cast<DynamicValueSet&>(value_set);
 
-    return dynamic_value_set.RemoveDuplicates(
+    return static_cast<double>(dynamic_value_set.RemoveDuplicates(
         static_cast<DynamicValueSet::RemoveDuplicatesType>(symbol_va_node.arguments[0])
-    );
+    ));
 }
 
 
@@ -756,7 +759,7 @@ double CIntDriver::exvaluesetshow(int iExpr)
     }
 
     SelectDlgHelper select_dlg_helper(*m_paradataDriver, select_dlg, Paradata::OperatorSelectionEvent::Source::ValueSetShow);
-    const int selected_row_base_one = select_dlg_helper.GetSingleSelection();
+    const size_t selected_row_base_one = select_dlg_helper.GetSingleSelection();
 
     if( value_set.IsNumeric() && selected_row_base_one > 0 )
     {
@@ -765,7 +768,7 @@ double CIntDriver::exvaluesetshow(int iExpr)
 
     else
     {
-        return selected_row_base_one;
+        return static_cast<double>(selected_row_base_one);
     }
 }
 
@@ -802,7 +805,7 @@ double CIntDriver::exvaluesetshow_pre77(int iExpr)
         value_set.ForeachValue(
             [&](const ValueSet::ForeachValueInfo& info, const CString& /*value*/)
             {
-                codes.emplace_back(++index);
+                codes.emplace_back(static_cast<double>(++index));
                 labels.emplace_back(new std::vector<CString> { info.label });
                 row_text_colors.emplace_back(info.text_color);
             });

@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "IncludesRT.h"
 #include "Array.h"
 #include "List.h"
@@ -54,7 +54,7 @@ double LogicInterpreter::AssignStringNull()
 {
     m_workingStrings.emplace_back();
     ASSERT81(!m_workingStrings.back().IsSet());
-    return m_workingStrings.size() - 1;
+    return static_cast<double>(m_workingStrings.size() - 1);
 }
 
 
@@ -384,7 +384,7 @@ double LogicInterpreter::ex_length(const int program_index)
     if( va_with_size_node.arguments[0] >= 0 )
     {
         const SharableString text = EvaluateSharableString(va_with_size_node.arguments[0]);
-        return SO::WideLength(*text);
+        return static_cast<double>(SO::WideLength(*text));
     }
 
     // symbols
@@ -396,7 +396,7 @@ double LogicInterpreter::ex_length(const int program_index)
         if( symbol.IsA(SymbolType::List) )
         {
             const LogicList& logic_list = assert_cast<const LogicList&>(symbol);
-            return logic_list.GetCount();
+            return static_cast<double>(logic_list.GetCount());
         }
 
         // arrays
@@ -426,7 +426,7 @@ double LogicInterpreter::ex_pos_poschar(const int program_index)
         return 0;
 
     // return the position in wide characters, adding 1 because strings are 1-indexed
-    return 1 + SO::WideLength(std::string_view(str->data(), pos));
+    return static_cast<double>(1 + SO::WideLength(std::string_view(str->data(), pos)));
 }
 
 

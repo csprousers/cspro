@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "IncludesCC.h"
 #include "Nodes/Trace.h"
 
@@ -92,7 +92,7 @@ int LogicCompiler::CompileTraceFunction()
 
 namespace
 {
-    std::string GetCompilerTextForTrace(const TokenCode token_code, cs::span<const Logic::BasicToken> basic_tokens)
+    std::string GetCompilerTextForTrace(const TokenCode token_code, const cs::span<const Logic::BasicToken> basic_tokens)
     {
         const Logic::BasicToken* basic_tokens_itr = basic_tokens.begin();
         const Logic::BasicToken* basic_tokens_end = basic_tokens.end();
@@ -100,7 +100,7 @@ namespace
         if( basic_tokens_itr == basic_tokens_end )
             return ReturnProgrammingError(std::string());
 
-        std::string trace_text = FormatText("%-5d:  %s", basic_tokens_itr->line_number, basic_tokens_itr->GetText().c_str());
+        std::string trace_text = FormatText("%-5zu:  %s", basic_tokens_itr->line_number, basic_tokens_itr->GetText().c_str());
 
         bool process_one_line = false;
 

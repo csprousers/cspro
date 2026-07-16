@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "IncludesCC.h"
 #include "AllSymbols.h"
 #include "CommonStoreCompilerHelper.h"
@@ -409,7 +409,7 @@ int LogicCompiler::CompileWorkVariables()
         }
 
 
-        // if a config variable, the value can come from common store
+        // if a config variable, the value can come from the common store
         if( m_symbolCompilerModifier.config_variable )
         {
             const bool value_already_provided = ( initialize_value != -1 );

@@ -1,4 +1,4 @@
-﻿//-------------------------------------------------------------------
+//-------------------------------------------------------------------
 //
 // INTFUNCS.cpp  executes functions (system and user-functions)
 //
@@ -2271,7 +2271,7 @@ double CIntDriver::exshow(int iExpr)
     m_aShowLines.clear();
 
     SelectDlgHelper select_dlg_helper(*m_paradataDriver, select_dlg, Paradata::OperatorSelectionEvent::Source::Show);
-    return select_dlg_helper.GetSingleSelection();
+    return static_cast<double>(select_dlg_helper.GetSingleSelection());
 }
 
 
@@ -2576,7 +2576,7 @@ double CIntDriver::exshowarray(int iExpr)
     }
 
     SelectDlgHelper select_dlg_helper(*m_paradataDriver, select_dlg, Paradata::OperatorSelectionEvent::Source::ShowArray);
-    return select_dlg_helper.GetSingleSelection();
+    return static_cast<double>(select_dlg_helper.GetSingleSelection());
 }
 
 
