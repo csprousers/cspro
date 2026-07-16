@@ -257,6 +257,7 @@ public:
 public:
     LogicArray* CompileLogicArrayDeclarationOnly(bool use_function_parameter_syntax);
     int CompileLogicArrayDeclaration();
+    int CompileLogicArrayComputeInstruction();
     int CompileLogicArrayReference();
     int CompileLogicArrayFunctions();
 

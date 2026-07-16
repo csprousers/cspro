@@ -1,4 +1,4 @@
-﻿//---------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 //  File name: IntInstr.cpp
 //
 //  Description:
@@ -92,7 +92,7 @@ double CIntDriver::excpt(int iExpr)
     else if( iThisVarType == ARRAYVAR_CODE )
     {
         LogicArray* logic_array;
-        std::vector<size_t> indices = EvaluateArrayIndex(compute_node.cpt_var, &logic_array);
+        const std::vector<size_t> indices = EvaluateArrayIndex(compute_node.cpt_var, &logic_array);
 
         if( !indices.empty() )
             logic_array->SetValue(indices, dRightValue);

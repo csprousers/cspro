@@ -347,18 +347,7 @@ int CEngineCompFunc::instruc(const bool allow_multiple_statements/* = true*/)
 
                 case TOKARRAY:
                 {
-                    if( GetSymbolLogicArray(Tokstindex).IsString() )
-                    {
-                        CompileStringComputeInstruction();
-                    }
-
-                    else
-                    {
-                        CompileComputeInstruction();
-                    }
-
-                    if( GetSyntErr() != 0 )
-                        return 0;
+                    compilation_address = CompileLogicArrayComputeInstruction();
                     break;
                 }
 

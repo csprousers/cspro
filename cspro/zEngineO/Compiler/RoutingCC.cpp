@@ -276,24 +276,14 @@ int LogicCompiler::CompileStatements(const bool create_new_local_symbol_stack/* 
                     }
                     break;
                 }
+#endif
 
                 case TokenCode::TOKARRAY:
                 {
-                    if( GetSymbolLogicArray(Tokstindex).IsString() )
-                    {
-                        CompileStringComputeInstruction();
-                    }
-
-                    else
-                    {
-                        CompileComputeInstruction();
-                    }
-
-                    if( GetSyntErr() != 0 )
-                        return 0;
+                    program_index = CompileLogicArrayComputeInstruction();
                     break;
                 }
-#endif
+
                 case TokenCode::TOKAUDIO:
                 {
                     program_index = CompileLogicAudioComputeInstruction();
