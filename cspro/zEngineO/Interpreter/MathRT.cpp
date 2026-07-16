@@ -32,13 +32,13 @@ double LogicInterpreter::ex_WorkVariable_evaluate(const int program_index)
 double LogicInterpreter::ex_WorkVariable_compute(const int program_index)
 {
     const auto& symbol_compute_expression_node = GetNode<Nodes::SymbolComputeExpression>(program_index);
-    WorkVariable& work_string = GetSymbolWorkVariable(symbol_compute_expression_node.lhs_symbol_index_or_compilation);
+    WorkVariable& work_variable = GetSymbolWorkVariable(symbol_compute_expression_node.lhs_symbol_index);
 
-    const double value = Evaluate(symbol_compute_expression_node.rhs_expression);
+    const double rhs_value = Evaluate(symbol_compute_expression_node.rhs_expression);
 
-    work_string.SetValue(value);
+    work_variable.SetValue(rhs_value);
 
-    return value;
+    return rhs_value;
 }
 
 

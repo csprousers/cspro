@@ -83,6 +83,8 @@ double CIntDriver::excpt(int iExpr)
     // left-side is ... the return-value of a user-function:
     if( iThisVarType == UF_CODE )
     {
+        ASSERT(m_engineData->PredatesCompiledLogicVersion(Serializer::Iteration_8_2_000_1)); // now handled in ex_UserFunction_compute
+
         UserFunction& user_function = GetSymbolUserFunction(iThisVar);
         user_function.SetReturnValue(dRightValue);
         return dRightValue;
@@ -91,6 +93,8 @@ double CIntDriver::excpt(int iExpr)
     // left-side is ... a cell of an array:
     else if( iThisVarType == ARRAY_VAR_CODE )
     {
+        ASSERT(m_engineData->PredatesCompiledLogicVersion(Serializer::Iteration_8_2_000_1)); // now handled in ex_Array_compute
+
         LogicArray* logic_array;
         const std::vector<size_t> indices = EvaluateArrayIndex(compute_node.cpt_var, &logic_array);
 

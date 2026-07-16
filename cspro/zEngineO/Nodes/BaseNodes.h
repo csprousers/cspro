@@ -76,7 +76,7 @@ namespace Nodes
     {
         FunctionCode function_code;
         int next_st;
-        int lhs_symbol_index_or_compilation;
+        union { int lhs_symbol_index; int symbol_value_node_index; };
         int rhs_expression;
     };
 

@@ -588,6 +588,8 @@ enum FunctionCode : int
 
     // CSPro 8.2
     WORKVARIABLE_COMPUTE_CODE               = 479, // 20260716
+    ARRAY_COMPUTE_CODE                      = 480, // 20260716
+    USERFUNCTION_COMPUTE_CODE               = 481, // 20260716
 };
 
 

@@ -26,19 +26,25 @@ int LogicCompiler::CompileNumericComputeInstruction()
     switch( symbol.GetType() )
     {
         case SymbolType::Array:
-            symbol_compute_expression_node.function_code = FunctionCode::CPT_CODE;
-            symbol_compute_expression_node.lhs_symbol_index_or_compilation = CompileLogicArrayReference();
+            symbol_compute_expression_node.function_code = FunctionCode::ARRAY_COMPUTE_CODE;
+            break;
+
+        case SymbolType::UserFunction:
+            symbol_compute_expression_node.function_code = FunctionCode::USERFUNCTION_COMPUTE_CODE;
             break;
 
         case SymbolType::WorkVariable:
-            NextToken();
             symbol_compute_expression_node.function_code = FunctionCode::WORKVARIABLE_COMPUTE_CODE;
-            symbol_compute_expression_node.lhs_symbol_index_or_compilation = symbol.GetSymbolIndex();
+            symbol_compute_expression_node.lhs_symbol_index = symbol.GetSymbolIndex();
+            NextToken();
             break;
 
         default:
             throw ProgrammingErrorException();
     }
+
+    if( symbol.GetType() != SymbolType::WorkVariable )
+        symbol_compute_expression_node.symbol_value_node_index = CompileDestinationVariable(symbol);
 
     IssueErrorOnTokenMismatch(TOKEQOP, MGF::equals_expected_in_assignment_5);
 

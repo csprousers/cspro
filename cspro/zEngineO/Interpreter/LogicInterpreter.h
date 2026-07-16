@@ -279,6 +279,7 @@ private:
     // --------------------------------------------------------------------------
 public:
     double ex_Array_var(int program_index);
+    double ex_Array_compute(int program_index);
     double ex_Array_clear(int program_index);
     double ex_Array_length(int program_index);
 
@@ -680,6 +681,14 @@ protected: // INTERPRETER_DLL_TODO change to private
     // If the symbol is a StringWriter, the underlying type (e.g., a Report) is returned.
     // The returned text builder is null if the text template is inaccessible.
     std::tuple<Symbol*, std::string*> GetTextTemplateBuilder(Symbol& symbol);
+
+
+    // --------------------------------------------------------------------------
+    // UserFunction object
+    // (UserFunctionRT.cpp)
+    // --------------------------------------------------------------------------
+public:
+    double ex_UserFunction_compute(int program_index);
 
 
     // --------------------------------------------------------------------------

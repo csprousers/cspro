@@ -1,0 +1,22 @@
+#include "stdafx.h"
+#include "IncludesRT.h"
+#include "UserFunction.h"
+
+
+double LogicInterpreter::ex_UserFunction_compute(const int program_index)
+{
+    const auto& symbol_compute_expression_node = GetNode<Nodes::SymbolComputeExpression>(program_index);
+    const auto& symbol_value_node = GetNode<Nodes::SymbolValue>(symbol_compute_expression_node.symbol_value_node_index);
+    ASSERT(symbol_value_node.symbol_compilation == -1);
+
+    UserFunction& user_function = GetSymbolUserFunction(symbol_value_node.symbol_index);
+
+    // string assignments are handled in exstringcompute
+    ASSERT(IsNumeric(user_function.GetReturnDataType()));
+
+    const double value = Evaluate(symbol_compute_expression_node.rhs_expression);
+
+    user_function.SetReturnValue(value);
+
+    return value;
+}

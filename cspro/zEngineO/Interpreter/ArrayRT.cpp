@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "IncludesRT.h"
 #include "Array.h"
 #include "SubscriptText.h"
@@ -47,6 +47,26 @@ double LogicInterpreter::ex_Array_var(const int program_index)
 }
 
 
+double LogicInterpreter::ex_Array_compute(const int program_index)
+{
+    const auto& symbol_compute_expression_node = GetNode<Nodes::SymbolComputeExpression>(program_index);
+    const auto& symbol_value_node = GetNode<Nodes::SymbolValue>(symbol_compute_expression_node.symbol_value_node_index);
+
+    LogicArray* logic_array;
+    const std::vector<size_t> indices = EvaluateArrayIndex(symbol_value_node.symbol_compilation, &logic_array);
+    ASSERT(logic_array == &NPT_Ref(symbol_value_node.symbol_index));
+
+    if( indices.empty() )
+        return DEFAULT;
+
+    const double value = Evaluate(symbol_compute_expression_node.rhs_expression);
+
+    logic_array->SetValue(indices, value);
+
+    return value;
+}
+
+
 double LogicInterpreter::ex_Array_clear(const int program_index)
 {
     const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
@@ -76,5 +96,5 @@ double LogicInterpreter::ex_Array_length(const LogicArray& logic_array, const si
     }
 
     // don't count the 0th element in the dimension size
-    return logic_array.GetDimension(dimension - 1) - 1;
+    return static_cast<double>(logic_array.GetDimension(dimension - 1) - 1);
 }

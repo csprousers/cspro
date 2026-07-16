@@ -230,9 +230,7 @@ public:
     };
 
 private:
-    // Check the use of varsanal to compile
-    // "variables" that are really UserFunction, WorkVariable or SingleVariables
-    //
+    // Use varsanal to compile "variables" that are really WorkVariable or SingleVariables
     // if it returns false, then *piVarNode has a VarNode changed to return
     // if it returns true, varsanal can continue
     bool    varsanal_basicCheck( int* piVarNode, int fmt );// rcl, Sept 30, 2004

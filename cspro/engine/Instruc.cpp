@@ -821,13 +821,11 @@ int CEngineCompFunc::CompileComputeInstruction()
         compute_node.cpt_var = tvarsanal();
     }
 
-    else if( Tkn == TOKARRAY )
-    {
-        compute_node.cpt_var = CompileLogicArrayReference();
-    }
-
     else
     {
+        ASSERT(NPT_Ref(Tokstindex).IsA(SymbolType::Variable));
+        ASSERT82(true); // if successful, remove the condition below
+
         if( NPT_Ref(Tokstindex).IsA(SymbolType::Variable) )
         {
             const VART* pVarT = VPT(Tokstindex);

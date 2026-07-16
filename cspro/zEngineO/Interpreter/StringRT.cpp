@@ -228,7 +228,7 @@ double LogicInterpreter::ex_WorkString_evaluate(const int program_index)
 double LogicInterpreter::ex_WorkString_compute(const int program_index)
 {
     const auto& symbol_compute_expression_node = GetNode<Nodes::SymbolComputeExpression>(program_index);
-    WorkString& work_string = GetSymbolWorkString(symbol_compute_expression_node.lhs_symbol_index_or_compilation);
+    WorkString& work_string = GetSymbolWorkString(symbol_compute_expression_node.lhs_symbol_index);
 
     work_string.SetString(EvaluateSharableString(symbol_compute_expression_node.rhs_expression));
 

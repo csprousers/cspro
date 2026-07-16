@@ -249,7 +249,7 @@ int LogicCompiler::CompileStringComputeInstruction()
         auto& symbol_compute_expression_node = CreateNode<Nodes::SymbolComputeExpression>(FunctionCode::WORKSTRING_COMPUTE_CODE);
         symbol_compute_expression_node.next_st = -1;
 
-        symbol_compute_expression_node.lhs_symbol_index_or_compilation = symbol.GetSymbolIndex();
+        symbol_compute_expression_node.lhs_symbol_index = symbol.GetSymbolIndex();
 
         NextToken();
 

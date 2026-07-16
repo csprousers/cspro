@@ -350,6 +350,9 @@
     <ClCompile Include="Interpreter\TextTemplateRT.cpp">
       <Filter>Source Files\Interpreter</Filter>
     </ClCompile>
+    <ClCompile Include="Interpreter\UserFunctionRT.cpp">
+      <Filter>Source Files\Interpreter</Filter>
+    </ClCompile>
     <ClCompile Include="Interpreter\UserInterfaceRT.cpp">
       <Filter>Source Files\Interpreter</Filter>
     </ClCompile>

@@ -449,7 +449,7 @@ int CEngineCompFunc::grpanal( int iSymGroup, bool bAllowDimExpr, int iChecklimit
 // varsanal: process variable references generating the corresponding nodes
 //
 
-int CEngineCompFunc::genSVARNode( int iTokStIndex, SymbolType eType )
+int CEngineCompFunc::genSVARNode(const int iTokStIndex, const SymbolType eType)
 {
     ASSERT(eType == SymbolType::Variable || eType == SymbolType::WorkVariable); // RHF Aug 04, 2000
 
@@ -527,9 +527,9 @@ int CEngineCompFunc::varsanal( int fmt, bool bCompleteCompilation )
         return varsanal( fmt, bCompleteCompilation, NULL );
 }
 
-// Check the use of varsanal to compile
-// "variables" that are really UserFunction, WorkVariable or SingleVariables
-//
+
+// Use varsanal to compile "variables" that are really WorkVariable or SingleVariables
+// (formerly also for UserFunction)
 // if it returns false, then *piVarNode has a VarNode changed to return
 // if it returns true, varsanal can continue
 bool CEngineCompFunc::varsanal_basicCheck( int* piVarNode, int fmt )
@@ -537,20 +537,10 @@ bool CEngineCompFunc::varsanal_basicCheck( int* piVarNode, int fmt )
     ASSERT( piVarNode != 0 );
     bool bOk = true;
 
-    // assigning to a function's return value
-    if( Tkn == TOKUSERFUNCTION )
-    {
-        auto& svar_node = CreateNode<SVAR_NODE>();
+    ASSERT(Tkn == TOKVAR);
+    ASSERT82(true); // if successful, remove the condition below
 
-        svar_node.m_iVarType = UF_CODE;
-        svar_node.m_iVarIndex = Tokstindex;
-
-        NextToken(); // eat variable name of the function
-
-        return false; // no changes made to piVarNode, use the same
-    }
-
-    else if( Tkn == TOKVAR )
+    if( Tkn == TOKVAR )
     {
         const Symbol& symbol = NPT_Ref(Tokstindex);
 
@@ -1304,9 +1294,11 @@ int CEngineCompFunc::varsanal( int fmt, bool bCompleteCompilation, bool* pbAllIn
         try
         {
                 if( !varsanal_basicCheck( &iVarNode, fmt ) )
+                {
                         // if false, UserFunction, WorkVariable or SingleVariable detected
                         // get out of here
                         return iVarNode;
+                }
 
                 // Multiple Variable Reference
 

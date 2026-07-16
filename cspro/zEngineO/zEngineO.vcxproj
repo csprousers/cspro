@@ -125,6 +125,7 @@
     <ClCompile Include="Interpreter\SystemAppRT.cpp" />
     <ClCompile Include="Interpreter\SystemRT.cpp" />
     <ClCompile Include="Interpreter\TextTemplateRT.cpp" />
+    <ClCompile Include="Interpreter\UserFunctionRT.cpp" />
     <ClCompile Include="Interpreter\UserInterfaceRT.cpp" />
     <ClCompile Include="Interpreter\VideoRT.cpp" />
     <ClCompile Include="JavaScriptProcessor.cpp" />

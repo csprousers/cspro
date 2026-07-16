@@ -140,6 +140,7 @@ add_library(${PROJECT_NAME}
     Interpreter/SystemAppRT.cpp
     Interpreter/SystemRT.cpp
     Interpreter/TextTemplateRT.cpp
+    Interpreter/UserFunctionRT.cpp
     Interpreter/UserInterfaceRT.cpp
     Interpreter/VideoRT.cpp
 )

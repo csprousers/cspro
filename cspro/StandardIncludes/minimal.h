@@ -8,6 +8,7 @@
 
 #define ASSERT80(f) ASSERT(f)
 #define ASSERT81(f) ASSERT(f)
+#define ASSERT82(f) ASSERT(f)
 
 
 
