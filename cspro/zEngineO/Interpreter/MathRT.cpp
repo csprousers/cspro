@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "IncludesRT.h"
 #include "WorkVariable.h"
 #include <engine/Nodes.h>
@@ -26,6 +26,19 @@ double LogicInterpreter::ex_WorkVariable_evaluate(const int program_index)
 {
     const auto& svar_node = GetNode<SVAR_NODE>(program_index);
     return GetSymbolWorkVariable(svar_node.m_iVarIndex).GetValue();
+}
+
+
+double LogicInterpreter::ex_WorkVariable_assign(const int program_index)
+{
+    const auto& symbol_compute_expression_node = GetNode<Nodes::SymbolComputeExpression>(program_index);
+    WorkVariable& work_string = GetSymbolWorkVariable(symbol_compute_expression_node.lhs_symbol_index_or_compilation);
+
+    const double value = Evaluate(symbol_compute_expression_node.rhs_expression);
+
+    work_string.SetValue(value);
+
+    return value;
 }
 
 

@@ -227,10 +227,10 @@ double LogicInterpreter::ex_WorkString_evaluate(const int program_index)
 
 double LogicInterpreter::ex_WorkString_assign(const int program_index)
 {
-    const auto& symbol_reset_node = GetNode<Nodes::SymbolReset>(program_index);
-    WorkString& work_string = GetSymbolWorkString(symbol_reset_node.symbol_index);
+    const auto& symbol_compute_expression_node = GetNode<Nodes::SymbolComputeExpression>(program_index);
+    WorkString& work_string = GetSymbolWorkString(symbol_compute_expression_node.lhs_symbol_index_or_compilation);
 
-    work_string.SetString(EvaluateSharableString(symbol_reset_node.initialize_value));
+    work_string.SetString(EvaluateSharableString(symbol_compute_expression_node.rhs_expression));
 
     return 0;
 }

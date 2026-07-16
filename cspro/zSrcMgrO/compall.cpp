@@ -1,4 +1,4 @@
-﻿//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 // COMPALL.cpp  manage compiler functions
 //------------------------------------------------------------------------------
 
@@ -53,7 +53,7 @@ bool CEngineCompFunc::compobjOk(Symbol* objp)
 
     try
     {
-        if( rutasync( objp->GetSymbolIndex() ) )
+        if( rutasync(*objp) )
             ReportError(GetSyntErr());
     }
     catch(...) { ASSERT(false); }

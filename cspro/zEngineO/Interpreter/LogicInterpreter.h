@@ -154,6 +154,7 @@ public:
     double ex_numeric_constant(int program_index);
 
     double ex_WorkVariable_evaluate(int program_index);
+    double ex_WorkVariable_assign(int program_index);
 
     double ex_add(int program_index);
     double ex_sub(int program_index);

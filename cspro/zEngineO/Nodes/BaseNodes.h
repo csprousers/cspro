@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 enum FunctionCode : int;
 enum class SubscriptValueType : int { Implicit, ConstantInteger, Expression };
@@ -13,7 +13,7 @@ namespace Nodes
         int element_expressions[1];
     };
 
-    
+
     struct FunctionCall
     {
         FunctionCode function_code;
@@ -69,6 +69,15 @@ namespace Nodes
         int lhs_symbol_index;
         SymbolType rhs_symbol_type;
         int rhs_symbol_index;
+    };
+
+
+    struct SymbolComputeExpression
+    {
+        FunctionCode function_code;
+        int next_st;
+        int lhs_symbol_index_or_compilation;
+        int rhs_expression;
     };
 
 

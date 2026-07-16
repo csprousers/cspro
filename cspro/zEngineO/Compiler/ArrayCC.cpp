@@ -4,7 +4,6 @@
 #include "PreinitializedVariable.h"
 #include "ValueSet.h"
 #include "WorkVariable.h"
-#include <engine/Nodes.h>
 
 
 LogicArray* LogicCompiler::CompileLogicArrayDeclarationOnly(bool use_function_parameter_syntax)
@@ -341,22 +340,16 @@ int LogicCompiler::CompileLogicArrayComputeInstruction()
     ASSERT(Tkn == TOKARRAY);
     const LogicArray& logic_array = GetSymbolLogicArray(Tokstindex);
 
-    if( logic_array.IsString() )
+    if( logic_array.IsNumeric() )
+    {
+        return CompileNumericComputeInstruction();
+    }
+
+    else
+    {
+        ASSERT(logic_array.IsString());
         return CompileStringComputeInstruction();
-
-    auto& compute_node = CreateNode<COMPUTE_NODE>(FunctionCode::CPT_CODE);
-    compute_node.next_st = -1;
-
-    compute_node.cpt_var = CompileLogicArrayReference();
-
-    IssueErrorOnTokenMismatch(TOKEQOP, MGF::equals_expected_in_assignment_5);
-
-    NextToken();
-    compute_node.cpt_expr = CompileExpression(logic_array.GetDataType());
-
-    IssueErrorOnTokenMismatch(TOKSEMICOLON, MGF::expecting_semicolon_30);
-
-    return GetProgramIndex(compute_node);
+    }
 }
 
 

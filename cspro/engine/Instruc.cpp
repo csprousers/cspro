@@ -287,18 +287,29 @@ int CEngineCompFunc::instruc(const bool allow_multiple_statements/* = true*/)
 
                 case TOKVAR:
                 {
-                    if( NPT_Ref(Tokstindex).IsA(SymbolType::WorkVariable) || VPT(Tokstindex)->IsNumeric() ) {
+                    const Symbol& symbol = NPT_Ref(Tokstindex);
+
+                    if( symbol.IsA(SymbolType::WorkVariable) )
+                    {
+                        compilation_address = CompileNumericComputeInstruction();
+                    }
+
+                    else if( assert_cast<const VART&>(symbol).IsNumeric() )
+                    {
                         CompileComputeInstruction();
                         if( GetSyntErr() != 0 )
                             IssueError(GetSyntErr());
                         if( Tkn == TOKVAR || Tkn == TOKCTE || Tkn == TOKLPAREN )
                             IssueError( 2 );
                     }
-                    else {
+
+                    else
+                    {
                         CompileStringComputeInstruction();
                         if( GetSyntErr() != 0 ) // victor Sep 20, 00
                             return 0;
                     }
+
                     break;
                 }
 

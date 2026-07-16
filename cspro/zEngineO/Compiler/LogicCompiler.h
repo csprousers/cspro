@@ -205,6 +205,9 @@ public:
     WorkVariable* CompileWorkVariableDeclaration();
     int CompileWorkVariables();
 
+    // Compiles assignment statements for: Array, numeric.
+    int CompileNumericComputeInstruction();
+
 
     // --------------------------------------------------------------------------
     // strings
@@ -223,6 +226,7 @@ public:
     int CompileSymbolNameText(SymbolType required_symbol_type = SymbolType::None, bool throw_exception_is_symbol_is_not_found = true);
     int CompileFillText();
 
+    // Compiles assignment statements for: Array, function, string, and dictionary items.
     int CompileStringComputeInstruction();
 
     WorkString* CompileLogicStringDeclaration(TokenCode token_code, const WorkString* work_string_to_copy_attributes = nullptr);

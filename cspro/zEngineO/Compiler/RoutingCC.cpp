@@ -259,24 +259,40 @@ int LogicCompiler::CompileStatements(const bool create_new_local_symbol_stack/* 
                 // --------------------------------------------------------------------------
 
                 //  dictionary items + numeric
-#ifdef OLD_ROUTINE_REFERENCE_COMPILER_DLL_TODO
                 case TokenCode::TOKVAR:
                 {
-                    if( NPT_Ref(Tokstindex).IsA(SymbolType::WorkVariable) || VPT(Tokstindex)->IsNumeric() ) {
+                    const Symbol& symbol = NPT_Ref(Tokstindex);
+
+                    if( symbol.IsA(SymbolType::WorkVariable) )
+                    {
+                        program_index = CompileNumericComputeInstruction();
+                    }
+
+                    else
+                    {
+                        // COMPILER_DLL_TODO remove message
+                        IssueError(MGF::OpenMessage_32001, "The compiler available at runtime does not assignments to dictionary items");
+                    }
+
+#ifdef OLD_ROUTINE_REFERENCE_COMPILER_DLL_TODO
+                    else if( assert_cast<const VART&>(symbol).IsNumeric() )
+                    {
                         CompileComputeInstruction();
                         if( GetSyntErr() != 0 )
                             IssueError(GetSyntErr());
                         if( Tkn == TOKVAR || Tkn == TOKCTE || Tkn == TOKLPAREN )
                             IssueError( 2 );
                     }
-                    else {
+
+                    else
+                    {
                         CompileStringComputeInstruction();
                         if( GetSyntErr() != 0 ) // victor Sep 20, 00
                             return 0;
                     }
+#endif
                     break;
                 }
-#endif
 
                 case TokenCode::TOKARRAY:
                 {
