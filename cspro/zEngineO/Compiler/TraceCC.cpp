@@ -172,10 +172,14 @@ int LogicCompiler::CreateTraceStatement()
     std::string trace_text = GetCompilerTextForTrace(Tkn, GetBasicTokensSpanFromCurrentToken());
 
     auto& trace_node = CreateNode<Nodes::Trace>(FunctionCode::FNTRACE_CODE);
-
     trace_node.action = Nodes::Trace::Action::LogicText;
     trace_node.argument = CreateStringLiteralNode(std::move(trace_text));
+    const int trace_node_program_index = GetProgramIndex(trace_node);
 
     // create the function call statement to call the trace function node
-    return CompileFunctionCall(GetProgramIndex(trace_node));
+    auto& function_call_node = CreateNode<Nodes::FunctionCall>(FunctionCode::FUCALL_CODE);
+    function_call_node.next_st = -1;
+    function_call_node.expression = trace_node_program_index;
+
+    return GetProgramIndex(function_call_node);
 }

@@ -319,40 +319,22 @@ int CEngineCompFunc::instruc(const bool allow_multiple_statements/* = true*/)
                     break;
                 }
 
-                case TOKFUNCTION:
                 case TOKUSERFUNCTION:
                 {
-                    // TODO: this all needs to be improved at some point;
-                    // for now, setting is_lone_function_call to true will allow the calling of functions that return strings
-                    auto& [call_tester, is_lone_function_call] = m_loneAlphaFunctionCallTester;
-                    ASSERT(!is_lone_function_call);
-                    const RAII::SetValueAndRestoreOnDestruction<bool> is_lone_function_caller_setter(is_lone_function_call, true);
-
-                    if( Tkn == TOKFUNCTION || Tokstindex != InCompIdx )
+                    // the user-defined function may be receiving its return value (e.g.: MyFunc = 5;)
+                    if( Tokstindex == InCompIdx && !IsNextToken(TOKLPAREN) )
                     {
-                        compilation_address = CompileFunctionCall();
+                        compilation_address = CompileUserFunctionComputeInstruction();
+                        break;
                     }
 
-                    else
-                    {
-                        // the user function could be called recursively or could be receiving its return value
-                        UserFunction& user_function = GetSymbolUserFunction(Tokstindex);
+                    // otherwise the user-defined function is being called, and the fallthrough code for functions applies
+                    [[fallthrough]];
+                }
 
-                        if( IsNextToken(TOKLPAREN) )
-                        {
-                            compilation_address = CompileFunctionCall();
-                        }
-
-                        else if( user_function.GetReturnType() == SymbolType::WorkVariable )
-                        {
-                            CompileComputeInstruction();
-                        }
-
-                        else
-                        {
-                            CompileStringComputeInstruction();
-                        }
-                    }
+                case TOKFUNCTION:
+                {
+                    compilation_address = CompileFunctionCall();
                     break;
                 }
 

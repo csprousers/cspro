@@ -570,6 +570,7 @@ private:
     // --------------------------------------------------------------------------
 public:
     int CompileUserFunctionDeclarations();
+    int CompileUserFunctionComputeInstruction();
     int CompileUserFunctionCall(bool allow_function_name_without_parentheses = false);
 
     int CompileInvokeFunction();
@@ -641,7 +642,7 @@ public:
     int CompileExpression(DataType data_type);
     int CompileExpressionOrObject(const std::vector<GF::VariableType>& variable_types, const char* argument_name = "unknown");
 
-    int CompileFunctionCall(int program_index = -1);
+    int CompileFunctionCall();
 
     int CompileFunctionsArgumentsFixedN();
     int CompileFunctionsArgumentsVaryingN();

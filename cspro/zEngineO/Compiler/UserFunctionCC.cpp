@@ -654,6 +654,27 @@ int LogicCompiler::CompileUserFunctionDeclarations()
 }
 
 
+// --------------------------------------------------------------------------
+// compile assignments to user-defined functions
+// --------------------------------------------------------------------------
+
+int LogicCompiler::CompileUserFunctionComputeInstruction()
+{
+    ASSERT(Tkn == TOKUSERFUNCTION);
+    const UserFunction& user_function = GetSymbolUserFunction(Tokstindex);
+
+    if( IsNumeric(user_function.GetReturnDataType()) )
+    {
+        return CompileNumericComputeInstruction();
+    }
+
+    else
+    {
+        ASSERT(IsString(user_function.GetReturnDataType()));
+        return CompileStringComputeInstruction();
+    }
+}
+
 
 // --------------------------------------------------------------------------
 // compile calls to user-defined functions

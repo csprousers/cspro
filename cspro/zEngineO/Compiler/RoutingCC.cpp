@@ -377,44 +377,24 @@ int LogicCompiler::CompileStatements(const bool create_new_local_symbol_stack/* 
                 // functions
                 // --------------------------------------------------------------------------
 
-#ifdef OLD_ROUTINE_REFERENCE_COMPILER_DLL_TODO
-                case TokenCode::TOKFUNCTION:
                 case TokenCode::TOKUSERFUNCTION:
                 {
-                    // TODO: this all needs to be improved at some point;
-                    // for now, setting is_lone_function_call to true will allow the calling of functions that return strings
-                    auto& [call_tester, is_lone_function_call] = m_loneAlphaFunctionCallTester;
-                    ASSERT(!is_lone_function_call);
-                    const RAII::SetValueAndRestoreOnDestruction<bool> is_lone_function_caller_setter(is_lone_function_call, true);
-
-                    if( Tkn == TOKFUNCTION || Tokstindex != InCompIdx )
+                    // the user-defined function may be receiving its return value (e.g.: MyFunc = 5;)
+                    if( Tokstindex == get_COMPILER_DLL_TODO_InCompIdx() && !IsNextToken(TOKLPAREN) )
                     {
-                        compilation_address = CompileFunctionCall();
+                        program_index = CompileUserFunctionComputeInstruction();
+                        break;
                     }
 
-                    else
-                    {
-                        // the user function could be called recursively or could be receiving its return value
-                        UserFunction& user_function = GetSymbolUserFunction(Tokstindex);
+                    // otherwise the user-defined function is being called, and the fallthrough code for functions applies
+                    [[fallthrough]];
+                }
 
-                        if( IsNextToken(TOKLPAREN) )
-                        {
-                            compilation_address = CompileFunctionCall();
-                        }
-
-                        else if( user_function.GetReturnType() == SymbolType::WorkVariable )
-                        {
-                            CompileComputeInstruction();
-                        }
-
-                        else
-                        {
-                            CompileStringComputeInstruction();
-                        }
-                    }
+                case TokenCode::TOKFUNCTION:
+                {
+                    program_index = CompileFunctionCall();
                     break;
                 }
-#endif
 
 
                 // --------------------------------------------------------------------------
