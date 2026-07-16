@@ -154,7 +154,7 @@ public:
     double ex_numeric_constant(int program_index);
 
     double ex_WorkVariable_evaluate(int program_index);
-    double ex_WorkVariable_assign(int program_index);
+    double ex_WorkVariable_compute(int program_index);
 
     double ex_add(int program_index);
     double ex_sub(int program_index);
@@ -224,7 +224,7 @@ public:
     std::string ApplyV0Escapes(std::string text, V0_EscapeType v0_escape_type = V0_EscapeType::NewlinesToSlashN);
 
     double ex_WorkString_evaluate(int program_index);
-    double ex_WorkString_assign(int program_index);
+    double ex_WorkString_compute(int program_index);
 
     double ex_string_eq(int program_index);
     double ex_string_ne(int program_index);

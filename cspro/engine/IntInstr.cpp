@@ -89,7 +89,7 @@ double CIntDriver::excpt(int iExpr)
     }
 
     // left-side is ... a cell of an array:
-    else if( iThisVarType == ARRAYVAR_CODE )
+    else if( iThisVarType == ARRAY_VAR_CODE )
     {
         LogicArray* logic_array;
         const std::vector<size_t> indices = EvaluateArrayIndex(compute_node.cpt_var, &logic_array);

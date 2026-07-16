@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "IncludesCC.h"
 #include "List.h"
 #include "HashMap.h"
@@ -196,7 +196,7 @@ int LogicCompiler::CompileLogicHashMapReference(const LogicHashMap* hashmap/* = 
 
     NextToken();
 
-    auto& element_reference_node = CreateNode<Nodes::ElementReference>(FunctionCode::HASHMAPVAR_CODE);
+    auto& element_reference_node = CreateNode<Nodes::ElementReference>(FunctionCode::HASHMAP_VAR_CODE);
 
     element_reference_node.symbol_index = hashmap->GetSymbolIndex();
     element_reference_node.element_expressions[0] = CreateListNode(arguments);

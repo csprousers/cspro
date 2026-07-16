@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "IncludesRT.h"
 #include "HashMap.h"
 #include "List.h"
@@ -30,7 +30,7 @@ std::vector<LogicHashMap::Data> LogicInterpreter::EvaluateHashMapIndex(const int
 {
     const auto& element_reference_node = GetNode<Nodes::ElementReference>(hashmap_node_expression);
     LogicHashMap*& hashmap = *out_hashmap;
-    ASSERT(element_reference_node.function_code == HASHMAPVAR_CODE);
+    ASSERT(element_reference_node.function_code == HASHMAP_VAR_CODE);
 
     hashmap = &GetSymbolLogicHashMap(element_reference_node.symbol_index);
 

@@ -812,7 +812,7 @@ CIntDriver::pDoubleFunction CIntDriver::m_pExFuncs[] =
 /* 443 */   &CIntDriver::ex_Barcode_createQRCode, // Barcode.createQRCode + Image.createQRCode
 /* 444 */   &CIntDriver::exScopeChange,
 /* 445 */   &CIntDriver::exdictaccess,
-/* 446 */   &CIntDriver::ex_WorkString_assign,
+/* 446 */   &CIntDriver::ex_WorkString_compute,
 /* 447 */   &CIntDriver::ex_ActionInvoker,
 /* 448 */   &CIntDriver::ex_Symbol_getName,
 /* 449 */   &CIntDriver::ex_Symbol_getLabel,
@@ -845,7 +845,7 @@ CIntDriver::pDoubleFunction CIntDriver::m_pExFuncs[] =
 /* 476 */   &CIntDriver::ex_Video_width_height, // Video.width
 /* 477 */   &CIntDriver::ex_Video_width_height, // Video.height
 /* 478 */   &CIntDriver::ex_ValueSet_removeDuplicates,
-/* 479 */   &CIntDriver::ex_WorkVariable_assign,
+/* 479 */   &CIntDriver::ex_WorkVariable_compute,
 
 
             // placeholders to allow new logic functions to be added to an existing serialization

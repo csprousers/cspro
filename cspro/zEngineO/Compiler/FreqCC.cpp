@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "IncludesCC.h"
 #include "NamedFrequency.h"
 #include "Report.h"
@@ -1430,7 +1430,7 @@ int LogicCompiler::CompileNamedFrequencyReference()
 
     NextToken();
 
-    auto& element_reference_node = CreateNode<Nodes::ElementReference>(FunctionCode::FREQVAR_CODE);
+    auto& element_reference_node = CreateNode<Nodes::ElementReference>(FunctionCode::FREQ_VAR_CODE);
 
     element_reference_node.symbol_index = named_frequency.GetSymbolIndex();
     element_reference_node.element_expressions[0] = subscript_expression;

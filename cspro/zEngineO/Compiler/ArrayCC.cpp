@@ -424,7 +424,7 @@ int LogicCompiler::CompileLogicArrayReference()
 
     NextToken();
 
-    auto& element_reference_node = CreateVariableSizeNode<Nodes::ElementReference>(FunctionCode::ARRAYVAR_CODE, index_expressions.size());
+    auto& element_reference_node = CreateVariableSizeNode<Nodes::ElementReference>(FunctionCode::ARRAY_VAR_CODE, index_expressions.size());
 
     element_reference_node.symbol_index = logic_array.GetSymbolIndex();
     memcpy(element_reference_node.element_expressions, index_expressions.data(), index_expressions.size() * sizeof(index_expressions[0]));

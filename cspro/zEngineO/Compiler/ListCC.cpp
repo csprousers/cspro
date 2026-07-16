@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "IncludesCC.h"
 #include "List.h"
 #include "PreinitializedVariable.h"
@@ -200,7 +200,7 @@ int LogicCompiler::CompileLogicListReference(const LogicList* logic_list/* = nul
 
     NextToken();
 
-    auto& element_reference_node = CreateNode<Nodes::ElementReference>(FunctionCode::LISTVAR_CODE);
+    auto& element_reference_node = CreateNode<Nodes::ElementReference>(FunctionCode::LIST_VAR_CODE);
 
     element_reference_node.symbol_index = logic_list->GetSymbolIndex();
     element_reference_node.element_expressions[0] = subscript_expression;

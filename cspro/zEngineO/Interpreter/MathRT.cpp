@@ -29,7 +29,7 @@ double LogicInterpreter::ex_WorkVariable_evaluate(const int program_index)
 }
 
 
-double LogicInterpreter::ex_WorkVariable_assign(const int program_index)
+double LogicInterpreter::ex_WorkVariable_compute(const int program_index)
 {
     const auto& symbol_compute_expression_node = GetNode<Nodes::SymbolComputeExpression>(program_index);
     WorkVariable& work_string = GetSymbolWorkVariable(symbol_compute_expression_node.lhs_symbol_index_or_compilation);

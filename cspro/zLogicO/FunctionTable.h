@@ -306,7 +306,7 @@ enum FunctionCode : int
     FNDIREXIST_CODE                         = 224, // GHM 20141024
     FNDIRCREATE_CODE                        = 225, // GHM 20141024
     // previously sync                      = 226, // GHM 20141024
-    LISTVAR_CODE                            = 227, // GHM 20141106
+    LIST_VAR_CODE                           = 227, // GHM 20141106
     FNDIRLIST_CODE                          = 228, // GHM 20141107
     FNSYSPARM_CODE                          = 229, // GHM 20141217 (a new version)
     FNPUBLISHDATE_CODE                      = 234, // GHM 20150203 (it used to be 9999 because there is no
@@ -369,7 +369,7 @@ enum FunctionCode : int
     SYMBOL_RESET_CODE                       = 274, // 20180517
     DECRYPT_STRING_CODE                     = 275, // 20180522
     FNDIRDELETE_CODE                        = 276, // ALW 20180525
-    ARRAYVAR_CODE                           = 277, // 20180530
+    ARRAY_VAR_CODE                          = 277, // 20180530
     TVAR_CODE                               = 278, // previously code 36
     EXIT_CODE                               = 279, // 20180612 (a new version)
     FNGETBLUETOOTHNAME_CODE                 = 280,
@@ -469,7 +469,7 @@ enum FunctionCode : int
     PATHFN_GETFILENAME_CODE                 = 368, // 20200720
     PATHFN_GETFILENAMEWITHOUTEXTENSION_CODE = 369, // 20200720
     FNSYNC_PARADATA_CODE                    = 370, // 20200724
-    HASHMAPVAR_CODE                         = 371, // 20200803
+    HASHMAP_VAR_CODE                        = 371, // 20200803
     HASHMAPFN_COMPUTE_CODE                  = 372, // 20200803
     HASHMAPFN_CLEAR_CODE                    = 373, // 20200803
     HASHMAPFN_CONTAINS_CODE                 = 374, // 20200803
@@ -488,7 +488,7 @@ enum FunctionCode : int
     FREQFN_SAVE_CODE                        = 385, // 20200925
     FREQFN_TALLY_CODE                       = 386, // 20200925
     FREQFN_VIEW_CODE                        = 387, // 20200925
-    FREQVAR_CODE                            = 388, // 20201001
+    FREQ_VAR_CODE                           = 388, // 20201001
     FREQFN_COMPUTE_CODE                     = 389, // 20201001
     WORKSTRING_CODE                         = 390, // 20201022
 
