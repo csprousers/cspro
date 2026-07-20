@@ -24,8 +24,10 @@ double LogicInterpreter::ex_numeric_constant(const int program_index)
 
 double LogicInterpreter::ex_WorkVariable_evaluate(const int program_index)
 {
-    const auto& svar_node = GetNode<SVAR_NODE>(program_index);
-    return GetSymbolWorkVariable(svar_node.m_iVarIndex).GetValue();
+    const auto& element_reference_single_node = GetNode<Nodes::ElementReferenceSingle>(program_index);
+    const WorkVariable& work_variable = GetSymbolWorkVariable(element_reference_single_node.symbol_index);
+
+    return work_variable.GetValue();
 }
 
 

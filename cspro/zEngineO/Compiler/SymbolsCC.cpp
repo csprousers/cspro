@@ -447,6 +447,23 @@ int LogicCompiler::CompileWorkVariables()
 }
 
 
+int LogicCompiler::CompileWorkVariableReference()
+{
+    ASSERT(Tkn == TOKVAR && NPT_Ref(Tokstindex).IsA(SymbolType::WorkVariable));
+
+    auto& element_reference_single_node = CreateNode<Nodes::ElementReferenceSingle>(FunctionCode::WORKVARIABLE_VAR_CODE);
+    element_reference_single_node.symbol_index = Tokstindex;
+
+    // move past the variable name
+    NextToken();
+
+    if( Tkn == TOKLPAREN )
+        IssueError(MGF::single_variable_cannot_have_subscript_25);
+
+    return GetProgramIndex(element_reference_single_node);
+}
+
+
 
 // --------------------------------------------------------------------------
 // Logic Strings (string, alpha)

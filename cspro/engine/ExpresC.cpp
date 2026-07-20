@@ -458,7 +458,7 @@ int CEngineCompFunc::genSVARNode(const int iTokStIndex, const SymbolType eType)
 
     auto& svar_node = CreateNode<SVAR_NODE>();
 
-    svar_node.m_iVarType = ( eType == SymbolType::WorkVariable ) ? WVAR_CODE : SVAR_CODE;
+    svar_node.m_iVarType = ( eType == SymbolType::WorkVariable ) ? FunctionCode::WORKVARIABLE_VAR_CODE : SVAR_CODE;
     svar_node.m_iVarIndex = iTokStIndex;
 
     return GetProgramIndex(svar_node);

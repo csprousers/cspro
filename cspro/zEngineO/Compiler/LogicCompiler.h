@@ -204,6 +204,7 @@ public:
 
     WorkVariable* CompileWorkVariableDeclaration();
     int CompileWorkVariables();
+    int CompileWorkVariableReference();
 
     // Compiles assignment statements for: Array, function, and numeric.
     int CompileNumericComputeInstruction();

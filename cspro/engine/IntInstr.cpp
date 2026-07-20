@@ -156,7 +156,7 @@ double CIntDriver::excpt(int iExpr)
     }
 
     // left-side is ... a work-variable:
-    else if( iThisVarType == WVAR_CODE )
+    else if( iThisVarType == FunctionCode::WORKVARIABLE_VAR_CODE )
     {
         ASSERT(m_engineData->PredatesCompiledLogicVersion(Serializer::Iteration_8_2_000_1)); // now handled in LogicInterpreter::ex_WorkVariable_assign)
         WorkVariable& work_variable = GetSymbolWorkVariable(iThisVar);

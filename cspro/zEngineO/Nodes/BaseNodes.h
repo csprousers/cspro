@@ -6,10 +6,15 @@ enum class SubscriptValueType : int { Implicit, ConstantInteger, Expression };
 
 namespace Nodes
 {
-    struct ElementReference
+    struct ElementReferenceSingle
     {
         FunctionCode function_code;
         int symbol_index;
+    };
+
+
+    struct ElementReference : public ElementReferenceSingle
+    {
         int element_expressions[1];
     };
 

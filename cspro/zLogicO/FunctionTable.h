@@ -45,7 +45,7 @@ enum FunctionCode : int
     GT_CODE                                 = 19,
     EQU_CODE                                = 20,
     STRING_COMPUTE_CODE                     = 21,
-    WVAR_CODE                               = 22,
+    WORKVARIABLE_VAR_CODE                   = 22,
     IF_CODE                                 = 23,
     WHILE_CODE                              = 24,
     BOX_CODE                                = 25,
