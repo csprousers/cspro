@@ -93,6 +93,131 @@ double LogicInterpreter::ex_string_literal(const int program_index)
 }
 
 
+double LogicInterpreter::ex_string_compute(const int program_index)
+{
+    // for assigning string expressions to strings, arrays, user-defined functions, and variables
+    const Nodes::StringCompute* string_compute_node;
+    const Nodes::SymbolValue* symbol_value_node;
+    std::unique_ptr<std::tuple<Nodes::StringCompute, Nodes::SymbolValue>> simulated_nodes_for_pre80_pen_file;
+
+    if( m_engineData->MeetsCompiledLogicVersion(Serializer::Iteration_8_0_000_1) )
+    {
+        string_compute_node = &GetNode<Nodes::StringCompute>(program_index);
+        symbol_value_node = &GetNode<Nodes::SymbolValue>(string_compute_node->symbol_value_node_index);
+    }
+
+    else
+    {
+        // convert pre-8.0 nodes
+        enum class MoveType : int { Variable = 1, LogicArray, UserFunction, CrossTab, WorkString };
+        struct MOVE_NODE
+        {
+            int st_code;
+            int next_st;
+            MoveType move_type;
+            int move_expr;
+            int ssipos;
+            int sslen;
+            int char_obj;
+        };
+
+        const auto& move_node = GetNode<MOVE_NODE>(program_index);
+
+        simulated_nodes_for_pre80_pen_file = std::make_unique<std::tuple<Nodes::StringCompute, Nodes::SymbolValue>>();
+        Nodes::StringCompute& simulated_string_compute_node = std::get<0>(*simulated_nodes_for_pre80_pen_file);
+        Nodes::SymbolValue& simulated_symbol_value_node = std::get<1>(*simulated_nodes_for_pre80_pen_file);
+        string_compute_node = &simulated_string_compute_node;
+        symbol_value_node = &simulated_symbol_value_node;
+
+        simulated_string_compute_node.substring_index_expression = move_node.ssipos;
+        simulated_string_compute_node.substring_length_expression = move_node.sslen;
+        simulated_string_compute_node.string_expression = move_node.char_obj;
+
+        switch( move_node.move_type )
+        {
+            case MoveType::LogicArray:
+            case MoveType::UserFunction:
+            case MoveType::Variable:
+                simulated_symbol_value_node.symbol_index = GetNode<Nodes::ElementReference>(move_node.move_expr).symbol_index;
+                break;
+
+            case MoveType::WorkString:
+                simulated_symbol_value_node.symbol_index = move_node.move_expr;
+                break;
+
+            default:
+                ASSERT(false);
+        }
+
+        simulated_symbol_value_node.symbol_compilation = move_node.move_expr;
+    };
+
+    // evaluate the value to be assigned
+    std::wstring rhs_value = UTF8_TODO::GetWide(Evaluate<std::string>(string_compute_node->string_expression));
+
+    // if there are no subscripts used, we can set the value directly
+    if( string_compute_node->substring_index_expression == -1 )
+    {
+        AssignValueToSymbol_INTERPRETER_DLL_TODO(*symbol_value_node, SharableString(UTF8_TODO::GetUtf8(std::move(rhs_value))));
+    }
+
+    // otherwise get the variable's current value and apply the new value on top of it
+    else
+    {
+        // INTERPRETER_DLL_TODO change to: ModifySymbolValue<SharableString>(symbol_value_node,
+        ModifySymbolValue_SharableString_INTERPRETER_DLL_TODO(*symbol_value_node,
+            [&](SharableString& temp_lhs_value)
+            {
+                std::wstring lhs_value = UTF8_TODO::GetWide(*temp_lhs_value);
+                int starting_position = Evaluate<int>(string_compute_node->substring_index_expression) - 1;
+
+                // return if the starting position is invalid
+                if( starting_position < 0 )
+                    return;
+
+                int rhs_chars_to_copy = rhs_value.length();
+                int chars_to_copy;
+
+                // if no length is specified, copy the the entire RHS string
+                if( string_compute_node->substring_length_expression == -1 )
+                {
+                    chars_to_copy = rhs_chars_to_copy;
+                }
+
+                // otherwise copy the number of characters requested
+                else
+                {
+                    chars_to_copy = Evaluate<int>(string_compute_node->substring_length_expression);
+
+                    // return if nothing to copy
+                    if( chars_to_copy <= 0 )
+                        return;
+
+                    rhs_chars_to_copy = std::min(chars_to_copy, rhs_chars_to_copy);
+                }
+
+                // increase the LHS string length as necessary
+                int max_string_length = starting_position + chars_to_copy;
+
+                if( max_string_length > static_cast<int>(lhs_value.length()) )
+                    lhs_value.resize(max_string_length, ' ');
+
+                // copy all of some of the RHS string
+                wchar_t* const lhs_value_starting_position = lhs_value.data() + starting_position;
+                _tmemcpy(lhs_value_starting_position, rhs_value.c_str(), rhs_chars_to_copy);
+
+                // if more characters were requested to copy than exist in the RHS string, pad the LHS string with spaces
+                if( chars_to_copy > rhs_chars_to_copy )
+                    _tmemset(lhs_value_starting_position + rhs_chars_to_copy, ' ', chars_to_copy - rhs_chars_to_copy);
+
+                temp_lhs_value = UTF8_TODO::GetUtf8(lhs_value);
+            });
+    }
+
+    return 0;
+}
+
+
 
 // --------------------------------------------------------------------------
 // string escaping routines

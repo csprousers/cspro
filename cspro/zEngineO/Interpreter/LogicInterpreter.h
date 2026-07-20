@@ -213,6 +213,7 @@ public:
     std::string GetWorkingString(size_t index);
 
     double ex_string_literal(int program_index);
+    double ex_string_compute(int program_index);
 
     // If using the original logic settings, "\\n" characters will be converted to "\n" (or "\r\n"),
     // and optionally, "\\\\" characters will be converted to "\\"
@@ -738,6 +739,7 @@ private:
     virtual SharableString EvaluateTextFill(int program_index) = 0; // INTERPRETER_DLL_TODO remove as virtual
     virtual bool Report_Evaluate_INTERPRETER_DLL_TODO(Report& report) = 0; // INTERPRETER_DLL_TODO remove as virtual
     virtual void ModifySymbolValue_double_INTERPRETER_DLL_TODO(const Nodes::SymbolValue& symbol_value_node, const std::function<void(double&)>& modify_value_function) = 0;
+    virtual void ModifySymbolValue_SharableString_INTERPRETER_DLL_TODO(const Nodes::SymbolValue& symbol_value_node, const std::function<void(SharableString&)>& modify_value_function) = 0;
     virtual bool AssignValueToSymbol_INTERPRETER_DLL_TODO(const Nodes::SymbolValue& symbol_value_node, double value) = 0;
     virtual bool AssignValueToSymbol_INTERPRETER_DLL_TODO(const Nodes::SymbolValue& symbol_value_node, SharableString value) = 0;
     virtual double RunSoonToBeRemoveFeature(std::string_view feature_sv, int program_index, void* tag) = 0;

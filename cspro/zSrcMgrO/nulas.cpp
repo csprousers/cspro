@@ -35,6 +35,7 @@ bool CIntDriver::Report_Evaluate_INTERPRETER_DLL_TODO(Report& report) { return R
 SharableString CIntDriver::EvaluateTextFill(int program_index) { return ReturnProgrammingError(SharableString()); }
 SharableString CIntDriver::EvaluateUserMessage(int message_node_index, FunctionCode function_code, int* out_message_number) { return ReturnProgrammingError(std::string()); }
 void CIntDriver::ModifySymbolValue_double_INTERPRETER_DLL_TODO(const Nodes::SymbolValue& symbol_value_node, const std::function<void(double&)>& modify_value_function) { ASSERT(false); }
+void CIntDriver::ModifySymbolValue_SharableString_INTERPRETER_DLL_TODO(const Nodes::SymbolValue& symbol_value_node, const std::function<void(SharableString&)>& modify_value_function) { ASSERT(false); }
 bool CIntDriver::AssignValueToSymbol_INTERPRETER_DLL_TODO(const Nodes::SymbolValue& symbol_value_node, double value) { return ReturnProgrammingError(false); }
 bool CIntDriver::AssignValueToSymbol_INTERPRETER_DLL_TODO(const Nodes::SymbolValue& symbol_value_node, SharableString value) { return ReturnProgrammingError(false); }
 double CIntDriver::RunSoonToBeRemoveFeature(std::string_view feature_sv, int program_index, void* tag) { return ReturnProgrammingError(0.0); }

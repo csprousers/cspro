@@ -11,7 +11,7 @@ double LogicInterpreter::ex_UserFunction_compute(const int program_index)
 
     UserFunction& user_function = GetSymbolUserFunction(symbol_value_node.symbol_index);
 
-    // string assignments are handled in exstringcompute
+    // string assignments are handled in ex_string_compute
     ASSERT(IsNumeric(user_function.GetReturnDataType()));
 
     const double value = Evaluate(symbol_compute_expression_node.rhs_expression);

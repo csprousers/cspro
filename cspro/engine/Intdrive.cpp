@@ -335,7 +335,7 @@ CIntDriver::pDoubleFunction CIntDriver::m_pExFuncs[] =
 /*  18 */   &CIntDriver::ex_ge,
 /*  19 */   &CIntDriver::ex_gt,
 /*  20 */   &CIntDriver::ex_equ,
-/*  21 */   &CIntDriver::exstringcompute,
+/*  21 */   &CIntDriver::ex_string_compute,
 /*  22 */   &CIntDriver::ex_WorkVariable_evaluate,
 /*  23 */   &CIntDriver::exif,
 /*  24 */   &CIntDriver::exwhile,
@@ -1472,6 +1472,12 @@ bool CIntDriver::Report_Evaluate_INTERPRETER_DLL_TODO(Report& report)
 void CIntDriver::ModifySymbolValue_double_INTERPRETER_DLL_TODO(const Nodes::SymbolValue& symbol_value_node, const std::function<void(double&)>& modify_value_function)
 {
     ModifySymbolValue<double>(symbol_value_node, modify_value_function);
+}
+
+
+void CIntDriver::ModifySymbolValue_SharableString_INTERPRETER_DLL_TODO(const Nodes::SymbolValue& symbol_value_node, const std::function<void(SharableString&)>& modify_value_function)
+{
+    ModifySymbolValue<SharableString>(symbol_value_node, modify_value_function);
 }
 
 

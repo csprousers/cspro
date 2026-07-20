@@ -332,7 +332,6 @@ public:
 
     double  extavar(int iExpr);
     double  excpt(int iExpr);
-    double  exstringcompute(int program_index);
     double  exif(int iExpr);
     double  exbox(int iExpr);
     double  excharobj(int program_index);
@@ -998,6 +997,7 @@ private:
     std::string GetFormattedMessageWorker(int message_number, ...) override;
     bool Report_Evaluate_INTERPRETER_DLL_TODO(Report& report) override;
     void ModifySymbolValue_double_INTERPRETER_DLL_TODO(const Nodes::SymbolValue& symbol_value_node, const std::function<void(double&)>& modify_value_function) override;
+    void ModifySymbolValue_SharableString_INTERPRETER_DLL_TODO(const Nodes::SymbolValue& symbol_value_node, const std::function<void(SharableString&)>& modify_value_function) override;
     bool AssignValueToSymbol_INTERPRETER_DLL_TODO(const Nodes::SymbolValue& symbol_value_node, double value) override;
     bool AssignValueToSymbol_INTERPRETER_DLL_TODO(const Nodes::SymbolValue& symbol_value_node, SharableString value) override;
     double RunSoonToBeRemoveFeature(std::string_view feature_sv, int program_index, void* tag) override;
