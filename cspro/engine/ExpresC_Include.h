@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #ifdef GENCODE
 #include <engine/Exappl.h>
@@ -9,7 +9,6 @@
 #include <engine/Engine.h>
 #include <engine/Ctab.h>
 #include <engine/CompUtil.h>
-#include <engine/ParameterManager.h>
 #include <zToolsO/Utf8.h>
 #include <zDictO/DDClass.h>
 #include <zCaseO/CaseAccess.h>

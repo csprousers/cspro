@@ -416,9 +416,6 @@ public:
     template<typename T, typename... Args>
     static std::string Concatenate(T&& arg1, Args const&... args);
 
-    template<typename... Args>
-    static std::wstring ConcatenateWS(std::wstring text1, Args... textN);
-
     // removes any text following the character; the character is optionally removed
     CLASS_DECL_ZTOOLSO static std::string_view RemoveTextFollowingCharacter(std::string_view text_sv, char ch, bool remove_ch);
 
@@ -1533,14 +1530,6 @@ std::string SO::Concatenate(T&& arg1, Args const&... args)
     }
 
     return text;
-}
-
-
-template<typename... Args>
-std::wstring SO::ConcatenateWS(std::wstring text1, Args... textN)
-{
-    SO::Append(text1, textN...);
-    return text1;
 }
 
 

@@ -1,8 +1,8 @@
-﻿#include "StandardSystemIncludes.h"
+#include "StandardSystemIncludes.h"
 #include "Interpreter.h"
 #include "Engine.h"
-#include "ParameterManager.h"
 #include "VariableWorker.h"
+#include <zEngineO/ParameterManager.h>
 #include <zPlatformO/PlatformInterface.h>
 #include <zToolsO/Screen.h>
 #include <zUtilF/KeyboardLoader.h>
@@ -70,19 +70,19 @@ ParameterManager::Parameter CIntDriver::GetSetPropertyParser(int iExpr, std::set
 
 
     // process the property
-    CString property = EvalAlphaExprCS(arguments[argument_counter--]);
+    const SharableString property = EvaluateSharableString(arguments[argument_counter--]);
 
-    ParameterManager::Parameter parameter = ParameterManager::Parse(FNGETPROPERTY_CODE, property);
+    const ParameterManager::Parameter parameter = ParameterManager::Parse(FunctionCode::FNGETPROPERTY_CODE, *property);
 
     if( parameter == ParameterManager::Parameter::Invalid )
     {
-        issaerror(MessageType::Error, 1100, UTF8_TODO::GetUtf8(property).c_str());
+        issaerror(MessageType::Error, 1100, property->c_str());
         throw std::exception();
     }
 
-    if( set_function && ParameterManager::Parse(FNSETPROPERTY_CODE, property) == ParameterManager::Parameter::Invalid )
+    if( set_function && ParameterManager::Parse(FunctionCode::FNSETPROPERTY_CODE, *property) == ParameterManager::Parameter::Invalid )
     {
-        issaerror(MessageType::Error, 1102, UTF8_TODO::GetUtf8(property).c_str());
+        issaerror(MessageType::Error, 1102, property->c_str());
         throw std::exception();
     }
 
@@ -100,7 +100,7 @@ ParameterManager::Parameter CIntDriver::GetSetPropertyParser(int iExpr, std::set
     {
         if( symbol != nullptr )
         {
-            issaerror(MessageType::Error, 1106, application_property ? "application" : "system", UTF8_TODO::GetUtf8(property).c_str());
+            issaerror(MessageType::Error, 1106, application_property ? "application" : "system", property->c_str());
             throw std::exception();
         }
     }
@@ -110,7 +110,7 @@ ParameterManager::Parameter CIntDriver::GetSetPropertyParser(int iExpr, std::set
     {
         if( symbol == nullptr )
         {
-            issaerror(MessageType::Error, 1105, UTF8_TODO::GetUtf8(property).c_str());
+            issaerror(MessageType::Error, 1105, property->c_str());
             throw std::exception();
         }
 
@@ -134,7 +134,7 @@ ParameterManager::Parameter CIntDriver::GetSetPropertyParser(int iExpr, std::set
 
         if( !set_function && symbol_set->size() != 1 )
         {
-            issaerror(MessageType::Error, item_property ? 1103 : 1104, UTF8_TODO::GetUtf8(property).c_str());
+            issaerror(MessageType::Error, item_property ? 1103 : 1104, property->c_str());
             throw std::exception();
         }
     }
@@ -1053,7 +1053,7 @@ void EngineParadataDriver::LogProperties()
         std::string value = UTF8_TODO::GetUtf8(m_pIntDriver->GetProperty(parameter));
 
         if( !value.empty() )
-            RegisterAndLogEvent(std::make_unique<Paradata::PropertyEvent>(UTF8_TODO::GetUtf8(ParameterManager::GetDisplayName(parameter)), std::move(value), false));
+            RegisterAndLogEvent(std::make_unique<Paradata::PropertyEvent>(ParameterManager::GetDisplayName(parameter), std::move(value), false));
     }
 }
 
@@ -1075,8 +1075,12 @@ double CIntDriver::exprotect(int iExpr)
 
             if( Paradata::Logger::IsOpen() )
             {
-                m_paradataDriver->RegisterAndLogEvent(std::make_unique<Paradata::PropertyEvent>(UTF8_TODO::GetUtf8(ParameterManager::GetDisplayName(ParameterManager::Parameter::Property_Protected)),
-                                                                                                UTF8_TODO::GetUtf8(PropertyValueToString(protect)), true, m_paradataDriver->CreateObject(*pVarT)));
+                m_paradataDriver->RegisterAndLogEvent(std::make_unique<Paradata::PropertyEvent>(
+                    ParameterManager::GetDisplayName(ParameterManager::Parameter::Property_Protected),
+                    UTF8_TODO::GetUtf8(PropertyValueToString(protect)),
+                    true,
+                    m_paradataDriver->CreateObject(*pVarT)
+                ));
             }
 
             return true;

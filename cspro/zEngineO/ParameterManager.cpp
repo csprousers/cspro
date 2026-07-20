@@ -1,9 +1,5 @@
-﻿#include "StandardSystemIncludes.h"
+#include "stdafx.h"
 #include "ParameterManager.h"
-#include <zJson/JsonKeys.h>
-#include <zUtilO/Interapp.h>
-#include <zAppO/Properties/ApplicationProperties.h>
-#include <zFormO/FormFile.h>
 
 using namespace ParameterManager;
 
@@ -20,7 +16,7 @@ namespace
 
     struct PMapping
     {
-        const TCHAR* const parameter_text;
+        std::variant<const char*, const wchar_t*> parameter_text;
         int min_arguments;
         int max_arguments;
         ParameterArgument additional_argument;
@@ -29,21 +25,21 @@ namespace
 
     const FMapping FunctionMappings[] =
     {
-        { FNDIAGNOSTICS_CODE, Parameter::Diagnostics_Version,             Parameter::Diagnostics_Md5 },
-        { FNSETPROPERTY_CODE, Parameter::Property_AutoAdvanceOnSelection, Parameter::Property_ValidationMethod },
-        { FNGETPROPERTY_CODE, Parameter::Property_AutoAdvanceOnSelection, Parameter::Property_MaxDisplayHeight },
+        { FunctionCode::FNDIAGNOSTICS_CODE, Parameter::Diagnostics_Version,             Parameter::Diagnostics_Md5 },
+        { FunctionCode::FNSETPROPERTY_CODE, Parameter::Property_AutoAdvanceOnSelection, Parameter::Property_ValidationMethod },
+        { FunctionCode::FNGETPROPERTY_CODE, Parameter::Property_AutoAdvanceOnSelection, Parameter::Property_MaxDisplayHeight },
     };
 
 
     const PMapping ParameterMappings[] =
     {
         // diagnostics
-        { _T("version"),          0, 0, ParameterArgument::Unused },
-        { _T("version_detailed"), 0, 0, ParameterArgument::Unused },
-        { _T("releasedate"),      0, 0, ParameterArgument::Unused },
-        { _T("beta"),             0, 0, ParameterArgument::Unused },
-        { _T("serializer"),       0, 0, ParameterArgument::Unused },
-        { _T("md5"),              1, 1, ParameterArgument::Unused },
+        { "version",          0, 0, ParameterArgument::Unused },
+        { "version_detailed", 0, 0, ParameterArgument::Unused },
+        { "releasedate",      0, 0, ParameterArgument::Unused },
+        { "beta",             0, 0, ParameterArgument::Unused },
+        { "serializer",       0, 0, ParameterArgument::Unused },
+        { "md5",              1, 1, ParameterArgument::Unused },
 
         // settable/gettable properties
 #define AddApplicationProperty(property_name) { property_name, 0, 0, ParameterArgument::ApplicationProperty }
@@ -51,75 +47,75 @@ namespace
 #define AddFieldProperty(property_name)       { property_name, 0, 0, ParameterArgument::FieldProperty }
 #define AddSystemProperty(property_name)      { property_name, 0, 0, ParameterArgument::SystemProperty }
 
-        AddApplicationProperty(_T("AutoAdvanceOnSelection")),
-        AddApplicationProperty(_T("ComboBoxShowOnlyDiscreteValues")),
-        AddApplicationProperty(_T("DisplayCodesAlongsideLabels")),
-        AddApplicationProperty(_T("NotesDeleteOtherOperators")),
-        AddApplicationProperty(_T("NotesEditOtherOperators")),
-        AddApplicationProperty(_T("PartialSave")),
-        AddApplicationProperty(_T("AutoPartialSaveMinutes")),
-        AddApplicationProperty(_T("ParadataRecordIteratorLoadCases")),
-        AddApplicationProperty(_T("ParadataRecordValues")),
-        AddApplicationProperty(_T("ParadataRecordCoordinates")),
-        AddApplicationProperty(_T("ParadataDeviceStateMinutes")),
-        AddApplicationProperty(_T("ParadataGpsLocationMinutes")),
-        AddApplicationProperty(_T("ShowEndCaseDialog")),
-        AddApplicationProperty(_T("ShowErrorMessageNumbers")),
-        AddApplicationProperty(_T("ShowLabelsInCaseTree")),
-        AddApplicationProperty(_T("ShowNavigationControls")),
-        AddApplicationProperty(_T("ShowSkippedFields")),
-        AddApplicationProperty(_T("ShowRefusals")),
-        AddApplicationProperty(_T("SpecialValuesZero")),
-        AddApplicationProperty(_T("UpdateSaveArrayFile")),
-        AddApplicationProperty(UTF8_TODO::Create_wide_c_str(JK::useHtmlComponentsInsteadOfNativeVersions)),
-        AddApplicationProperty(_T("WindowTitle")),
+        AddApplicationProperty("AutoAdvanceOnSelection"),
+        AddApplicationProperty("ComboBoxShowOnlyDiscreteValues"),
+        AddApplicationProperty("DisplayCodesAlongsideLabels"),
+        AddApplicationProperty("NotesDeleteOtherOperators"),
+        AddApplicationProperty("NotesEditOtherOperators"),
+        AddApplicationProperty("PartialSave"),
+        AddApplicationProperty("AutoPartialSaveMinutes"),
+        AddApplicationProperty("ParadataRecordIteratorLoadCases"),
+        AddApplicationProperty("ParadataRecordValues"),
+        AddApplicationProperty("ParadataRecordCoordinates"),
+        AddApplicationProperty("ParadataDeviceStateMinutes"),
+        AddApplicationProperty("ParadataGpsLocationMinutes"),
+        AddApplicationProperty("ShowEndCaseDialog"),
+        AddApplicationProperty("ShowErrorMessageNumbers"),
+        AddApplicationProperty("ShowLabelsInCaseTree"),
+        AddApplicationProperty("ShowNavigationControls"),
+        AddApplicationProperty("ShowSkippedFields"),
+        AddApplicationProperty("ShowRefusals"),
+        AddApplicationProperty("SpecialValuesZero"),
+        AddApplicationProperty("UpdateSaveArrayFile"),
+        AddApplicationProperty(JK::useHtmlComponentsInsteadOfNativeVersions),
+        AddApplicationProperty("WindowTitle"),
 
-        AddFieldProperty(_T("AlwaysVisualValue")),
-        AddFieldProperty(_T("CanEnterNotAppl")),
-        AddFieldProperty(_T("CanEnterOutOfRange")),
-        AddFieldProperty(_T("CapturePosX")),
-        AddFieldProperty(_T("CapturePosY")),
-        AddFieldProperty(_T("DataCaptureType")),
+        AddFieldProperty("AlwaysVisualValue"),
+        AddFieldProperty("CanEnterNotAppl"),
+        AddFieldProperty("CanEnterOutOfRange"),
+        AddFieldProperty("CapturePosX"),
+        AddFieldProperty("CapturePosY"),
+        AddFieldProperty("DataCaptureType"),
         AddFieldProperty(CMD_CAPTURE_TYPE),
         AddFieldProperty(CMD_CAPTURE_TYPE_DATE),
         AddFieldProperty(FRM_CMD_FORCEORANGE),
         AddFieldProperty(FRM_CMD_HIDE_IN_CASETREE),
         AddFieldProperty(FRM_CMD_KEYBOARD_ID),
         AddFieldProperty(FRM_CMD_PROTECTED),
-        AddFieldProperty(_T("ShowExtendedControlTitle")),
+        AddFieldProperty("ShowExtendedControlTitle"),
         AddFieldProperty(FRM_CMD_UPPERCASE),
         AddFieldProperty(FRM_CMD_ENTERKEY),
         AddFieldProperty(FRM_CMD_VALIDATION_METHOD),
 
         // gettable properties
-        AddApplicationProperty(_T("AppType")),
-        AddApplicationProperty(_T("CAPI")),
-        AddApplicationProperty(_T("CaseTree")),
-        AddApplicationProperty(_T("CenterForms")),
-        AddApplicationProperty(_T("CreateListing")),
-        AddApplicationProperty(_T("CreateLog")),
-        AddApplicationProperty(_T("DecimalComma")),
-        AddApplicationProperty(_T("OperatorID")),
-        AddApplicationProperty(_T("ParadataCollection")),
-        AddApplicationProperty(_T("Path")),
-        AddApplicationProperty(_T("ShowFieldLabels")),
+        AddApplicationProperty("AppType"),
+        AddApplicationProperty("CAPI"),
+        AddApplicationProperty("CaseTree"),
+        AddApplicationProperty("CenterForms"),
+        AddApplicationProperty("CreateListing"),
+        AddApplicationProperty("CreateLog"),
+        AddApplicationProperty("DecimalComma"),
+        AddApplicationProperty("OperatorID"),
+        AddApplicationProperty("ParadataCollection"),
+        AddApplicationProperty("Path"),
+        AddApplicationProperty("ShowFieldLabels"),
 
         AddFieldProperty(FRM_CMD_ALLOWMULTILINE),
         AddFieldProperty(FRM_CMD_AUTOINCREMENT),
-        AddItemProperty(_T("DataType")),
-        AddItemProperty(_T("Decimal")),
-        AddItemProperty(_T("DecimalChar")),
-        AddItemProperty(_T("Len")),
+        AddItemProperty("DataType"),
+        AddItemProperty("Decimal"),
+        AddItemProperty("DecimalChar"),
+        AddItemProperty("Len"),
         AddFieldProperty(FRM_CMD_PERSISTENT),
         AddFieldProperty(FRM_CMD_SEQUENTIAL),
         AddFieldProperty(FRM_CMD_SKIPTO),
         AddFieldProperty(FRM_CMD_USEUNICODETEXTBOX),
         AddFieldProperty(FRM_CMD_VERIFY),
-        AddItemProperty(_T("ZeroFill")),
+        AddItemProperty("ZeroFill"),
 
         // gettable system properties
-        AddSystemProperty(_T("MaxDisplayWidth")),
-        AddSystemProperty(_T("MaxDisplayHeight")),
+        AddSystemProperty("MaxDisplayWidth"),
+        AddSystemProperty("MaxDisplayHeight"),
     };
 
     static_assert(_countof(ParameterMappings) == ( static_cast<size_t>(Parameter::Property_MaxDisplayHeight) + 1 ));
@@ -143,7 +139,7 @@ namespace
 }
 
 
-Parameter ParameterManager::Parse(const FunctionCode function_code, wstring_view parameter_text_sv,
+Parameter ParameterManager::Parse(const FunctionCode function_code, const std::string_view parameter_text_sv,
                                   int* const min_arguments/* = nullptr*/, int* const max_arguments/* = nullptr*/)
 {
     const PMapping* mapping;
@@ -154,7 +150,9 @@ Parameter ParameterManager::Parse(const FunctionCode function_code, wstring_view
     // find the parameter
     for( ; mapping <= last_mapping; ++mapping )
     {
-        if( SO::EqualsNoCase(mapping->parameter_text, parameter_text_sv) )
+        if( std::holds_alternative<const char*>(mapping->parameter_text)
+            ? SO::EqualsNoCase(std::get<const char*>(mapping->parameter_text), parameter_text_sv)
+            : SO::EqualsNoCase(std::get<const wchar_t*>(mapping->parameter_text), parameter_text_sv) )
         {
             if( min_arguments != nullptr )
                 *min_arguments = mapping->min_arguments;
@@ -170,9 +168,14 @@ Parameter ParameterManager::Parse(const FunctionCode function_code, wstring_view
 }
 
 
-const TCHAR* ParameterManager::GetDisplayName(const Parameter parameter)
+const char* ParameterManager::GetDisplayName(const Parameter parameter)
 {
-    return ParameterMappings[static_cast<size_t>(parameter)].parameter_text;
+    // restore the commented-out line when all the parameters are non-wide
+    // return ParameterMappings[static_cast<size_t>(parameter)].parameter_text;
+    const PMapping& mapping = ParameterMappings[static_cast<size_t>(parameter)];
+    return std::holds_alternative<const char*>(mapping.parameter_text)
+        ? std::get<const char*>(mapping.parameter_text)
+        : UTF8_TODO::Create_Reference(std::get<const wchar_t*>(mapping.parameter_text)).c_str();
 }
 
 

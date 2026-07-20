@@ -1,88 +1,17 @@
-#include "StandardSystemIncludes.h"
-#include "Interpreter.h"
+#include "stdafx.h"
+#include "IncludesRT.h"
 #include "ParameterManager.h"
 #include <zToolsO/Hash.h>
-#include <zToolsO/Serializer.h>
 
 
-double CIntDriver::exdiagnostics(int iExpr)
+double LogicInterpreter::ex_diagnostics(const int program_index)
 {
-    auto run = [&](int number_arguments, const int* arguments)
-    {
-        bool show_all_parameters = ( number_arguments == 0 );
-        std::optional<ParameterManager::Parameter> parameter;
-
-        if( !show_all_parameters )
-        {
-            std::wstring parameter_text = EvalAlphaExpr(arguments[0]);
-            int min_arguments;
-            int max_arguments;
-            int provided_arguments = number_arguments - 1;
-
-            parameter = ParameterManager::Parse(FNDIAGNOSTICS_CODE, parameter_text, &min_arguments, &max_arguments);
-
-            if( *parameter == ParameterManager::Parameter::Invalid )
-            {
-                issaerror(MessageType::Error, 1100, UTF8_TODO::GetUtf8(parameter_text).c_str());
-                return AssignStringNull();
-            }
-
-            // check if the number of arguments is valid
-            if( provided_arguments < min_arguments || provided_arguments > max_arguments )
-            {
-                issaerror(MessageType::Error, 1101, UTF8_TODO::GetUtf8(parameter_text).c_str(), provided_arguments);
-                return AssignStringNull();
-            }
-        }
-
-        ASSERT(show_all_parameters == !parameter.has_value() && parameter != ParameterManager::Parameter::Invalid);
-
-        // if no parameter was provided, construct a string with all of the values of the zero-argument parameters
-        std::wstring diagnostics_text;
-
-        auto assign_parameter = [&](auto parameter, wstring_view value)
-        {
-            if( show_all_parameters )
-            {
-                SO::AppendWithSeparator(diagnostics_text,
-                                        SO::ConcatenateWS(ParameterManager::GetDisplayName(parameter), L": ", value),
-                                        L", ");
-            }
-
-            else
-            {
-                diagnostics_text = value;
-            }
-        };
-
-        if( show_all_parameters || *parameter == ParameterManager::Parameter::Diagnostics_Version )
-            assign_parameter(ParameterManager::Parameter::Diagnostics_Version, UTF8_TODO::GetWide(Versioning::NumberText));
-
-        if( show_all_parameters || *parameter == ParameterManager::Parameter::Diagnostics_VersionDetailed )
-            assign_parameter(ParameterManager::Parameter::Diagnostics_VersionDetailed, UTF8_TODO::GetWide(Versioning::NumberDetailedText));
-
-        if( show_all_parameters || *parameter == ParameterManager::Parameter::Diagnostics_ReleaseDate )
-            assign_parameter(ParameterManager::Parameter::Diagnostics_ReleaseDate, UTF8_TODO::GetCString(IntToString(Versioning::GetReleaseDate())));
-
-        if( show_all_parameters || *parameter == ParameterManager::Parameter::Diagnostics_Beta )
-            assign_parameter(ParameterManager::Parameter::Diagnostics_Beta, Versioning::IsPrerelease ? L"1" : L"0");
-
-        if( show_all_parameters || *parameter == ParameterManager::Parameter::Diagnostics_Serializer )
-            assign_parameter(ParameterManager::Parameter::Diagnostics_Serializer, UTF8_TODO::GetCString(IntToString(Serializer::GetCurrentVersion())));
-
-        if( parameter.has_value() && *parameter == ParameterManager::Parameter::Diagnostics_Md5 )
-        {
-            std::wstring filename = EvalFullPathFileName(arguments[1]);
-            diagnostics_text = UTF8_TODO::GetWide(Hash::Md5::CreateFromFile(filename));
-        }
-
-        return AssignAlphaValue(std::move(diagnostics_text));
-    };
+    std::unique_ptr<std::byte[]> fnn_node_for_pre_80;
+    const FNN_NODE* fnn_node;
 
     if( m_engineData->MeetsCompiledLogicVersion(Serializer::Iteration_8_0_000_1) )
     {
-        const auto& fnn_node = GetNode<FNN_NODE>(iExpr);
-        return run(fnn_node.fn_nargs, fnn_node.fn_expr);
+        fnn_node = &GetNode<FNN_NODE>(program_index);
     }
 
     else
@@ -96,8 +25,8 @@ double CIntDriver::exdiagnostics(int iExpr)
             int next;
         };
 
-        const LL* ll_node = &GetNode<LL>(iExpr);
-        ASSERT(ll_node->code_or_value == FNDIAGNOSTICS_CODE);
+        const LL* ll_node = &GetNode<LL>(program_index);
+        ASSERT(ll_node->code_or_value == FunctionCode::FNDIAGNOSTICS_CODE);
 
         while( ll_node->next >= 0 )
         {
@@ -105,6 +34,84 @@ double CIntDriver::exdiagnostics(int iExpr)
             arguments.emplace_back(ll_node->code_or_value);
         }
 
-        return run((int)arguments.size(), arguments.data());
+        fnn_node_for_pre_80 = std::make_unique_for_overwrite<std::byte[]>(sizeof(FNN_NODE) + sizeof(int) * ( arguments.size() - 1 ));
+        FNN_NODE* const modifiable_fnn_node = reinterpret_cast<FNN_NODE*>(fnn_node_for_pre_80.get());
+        modifiable_fnn_node->fn_nargs = int32_cast(arguments.size());
+        memcpy(modifiable_fnn_node->fn_expr, arguments.data(), arguments.size() * sizeof(int));
+        fnn_node = modifiable_fnn_node;
     }
+
+    const bool show_all_parameters = ( fnn_node->fn_nargs == 0 );
+    std::optional<ParameterManager::Parameter> parameter;
+
+    if( !show_all_parameters )
+    {
+        const SharableString parameter_text = EvaluateSharableString(fnn_node->fn_expr[0]);
+        int min_arguments;
+        int max_arguments;
+        const int provided_arguments = fnn_node->fn_nargs - 1;
+
+        parameter = ParameterManager::Parse(FunctionCode::FNDIAGNOSTICS_CODE, *parameter_text, &min_arguments, &max_arguments);
+
+        if( *parameter == ParameterManager::Parameter::Invalid )
+        {
+            IssueMessage(MessageType::Error, MGF::property_invalid_parameter_1100, parameter_text->c_str());
+            return AssignStringNull();
+        }
+
+        // check if the number of arguments is valid
+        if( provided_arguments < min_arguments || provided_arguments > max_arguments )
+        {
+            IssueMessage(MessageType::Error, MGF::property_arguments_count_mismatch_1101,
+                         ParameterManager::GetDisplayName(*parameter), provided_arguments);
+            return AssignStringNull();
+        }
+    }
+
+    ASSERT(show_all_parameters == !parameter.has_value() &&
+           parameter != ParameterManager::Parameter::Invalid);
+
+    // if no parameter was provided, construct a string with all of the values of the zero-argument parameters
+    std::string diagnostics_text;
+
+    auto assign_parameter = [&](const ParameterManager::Parameter parameter, const std::string_view value_sv)
+    {
+        if( show_all_parameters )
+        {
+            if( !diagnostics_text.empty() )
+                diagnostics_text.append(", ");
+
+            diagnostics_text.append(ParameterManager::GetDisplayName(parameter))
+                            .append(": ")
+                            .append(value_sv);
+        }
+
+        else
+        {
+            diagnostics_text = value_sv;
+        }
+    };
+
+    if( show_all_parameters || *parameter == ParameterManager::Parameter::Diagnostics_Version )
+        assign_parameter(ParameterManager::Parameter::Diagnostics_Version, Versioning::NumberText);
+
+    if( show_all_parameters || *parameter == ParameterManager::Parameter::Diagnostics_VersionDetailed )
+        assign_parameter(ParameterManager::Parameter::Diagnostics_VersionDetailed, Versioning::NumberDetailedText);
+
+    if( show_all_parameters || *parameter == ParameterManager::Parameter::Diagnostics_ReleaseDate )
+        assign_parameter(ParameterManager::Parameter::Diagnostics_ReleaseDate, IntToString(Versioning::GetReleaseDate()));
+
+    if( show_all_parameters || *parameter == ParameterManager::Parameter::Diagnostics_Beta )
+        assign_parameter(ParameterManager::Parameter::Diagnostics_Beta, Versioning::IsPrerelease ? "1" : "0");
+
+    if( show_all_parameters || *parameter == ParameterManager::Parameter::Diagnostics_Serializer )
+        assign_parameter(ParameterManager::Parameter::Diagnostics_Serializer, IntToString(Serializer::GetCurrentVersion()));
+
+    if( parameter.has_value() && *parameter == ParameterManager::Parameter::Diagnostics_Md5 )
+    {
+        const std::string file_path = EvaluatePath(fnn_node->fn_expr[1]);
+        diagnostics_text = Hash::Md5::CreateFromFile(file_path);
+    }
+
+    return AssignString(std::move(diagnostics_text));
 }

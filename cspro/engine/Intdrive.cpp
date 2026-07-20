@@ -620,7 +620,7 @@ CIntDriver::pDoubleFunction CIntDriver::m_pExFuncs[] =
 /* 251 */   &CIntDriver::exforcase,
 /* 252 */   &CIntDriver::ex_timestamp,
 /* 253 */   &CIntDriver::exkeylist,
-/* 254 */   &CIntDriver::exdiagnostics,
+/* 254 */   &CIntDriver::ex_diagnostics,
 /* 255 */   &CIntDriver::ex_compress,
 /* 256 */   &CIntDriver::ex_decompress,
 /* 257 */   &CIntDriver::exask,

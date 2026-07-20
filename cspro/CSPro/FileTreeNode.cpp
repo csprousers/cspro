@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "FileTreeNode.h"
 
 
@@ -15,9 +15,12 @@ FileTreeNode::FileTreeNode(const AppFileType app_file_type, std::string path)
 
 std::wstring FileTreeNode::GetName() const
 {
-    return SO::ConcatenateWS(TreeNode::GetName(),
-                             L": ",
-                             UTF8_TODO::GetWide(PortableFunctions::PathGetFilename(GetPath())));
+    std::wstring name = TreeNode::GetName();
+
+    name.append(L": ")
+        .append(TC::ToWide(Path::GetFilename(GetPath())));
+
+    return name;
 }
 
 

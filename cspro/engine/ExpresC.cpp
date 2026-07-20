@@ -4,6 +4,7 @@
 #include "StandardSystemIncludes.h"
 #include "ExpresC_Include.h"
 #include <zEngineO/AllSymbols.h>
+#include <zEngineO/ParameterManager.h>
 #include <zEngineO/Compiler/TokenHelper.h>
 #include <zEngineO/Nodes/Dictionaries.h>
 #include <zEngineO/Nodes/File.h>
@@ -2233,7 +2234,7 @@ int CEngineCompFunc::cfun_fnstrparm()
         // if the parameter is known at compile-time, validate it
         struct ParameterDetails
         {
-            CString text;
+            std::string text;
             int min_arguments;
             int max_arguments;
         };
@@ -2243,13 +2244,13 @@ int CEngineCompFunc::cfun_fnstrparm()
         if( next_token_helper_result == NextTokenHelperResult::StringLiteral )
         {
             parameter_details.emplace();
-            parameter_details->text = UTF8_TODO::GetCString(Tokstr);
+            parameter_details->text = Tokstr;
 
             ParameterManager::Parameter parameter = ParameterManager::Parse(function_code, parameter_details->text,
                 &parameter_details->min_arguments, &parameter_details->max_arguments);
 
             if( parameter == ParameterManager::Parameter::Invalid )
-                IssueError(1100, UTF8_TODO::GetUtf8(parameter_details->text).c_str());
+                IssueError(1100, parameter_details->text.c_str());
         }
 
         arguments.emplace_back(CompileStringExpression());
@@ -2268,7 +2269,7 @@ int CEngineCompFunc::cfun_fnstrparm()
             const int provided_arguments = static_cast<int>(arguments.size()) - 1;
 
             if( provided_arguments < parameter_details->min_arguments || provided_arguments > parameter_details->max_arguments )
-                IssueError(1101, UTF8_TODO::GetUtf8(parameter_details->text).c_str(), provided_arguments);
+                IssueError(1101, parameter_details->text.c_str(), provided_arguments);
         }
     }
 
@@ -2289,7 +2290,7 @@ int CEngineCompFunc::cfun_fnproperty()
     size_t argument_counter = 0;
 
     bool first_argument_was_dictionary_related_symbol = false;
-    CString property_name;
+    std::string property_name;
     std::optional<ParameterManager::ParameterArgument> property_type;
 
     NextToken();
@@ -2314,15 +2315,19 @@ int CEngineCompFunc::cfun_fnproperty()
 
     if( next_token_helper_result == NextTokenHelperResult::StringLiteral )
     {
-        property_name = UTF8_TODO::GetCString(Tokstr);
+        property_name = Tokstr;
 
-        ParameterManager::Parameter parameter = ParameterManager::Parse(FNGETPROPERTY_CODE, property_name);
+        ParameterManager::Parameter parameter = ParameterManager::Parse(FunctionCode::FNGETPROPERTY_CODE, property_name);
 
         if( parameter == ParameterManager::Parameter::Invalid )
-            IssueError(1100, UTF8_TODO::GetUtf8(property_name).c_str());
+        {
+            IssueError(1100, property_name.c_str());
+        }
 
-        else if( set_function && ParameterManager::Parse(FNSETPROPERTY_CODE, property_name) == ParameterManager::Parameter::Invalid )
-            IssueError(1102, UTF8_TODO::GetUtf8(property_name).c_str());
+        else if( set_function && ParameterManager::Parse(FunctionCode::FNSETPROPERTY_CODE, property_name) == ParameterManager::Parameter::Invalid )
+        {
+            IssueError(1102, property_name.c_str());
+        }
 
         property_type = ParameterManager::GetAdditionalArgument(parameter);
     }
@@ -2362,7 +2367,7 @@ int CEngineCompFunc::cfun_fnproperty()
         application_property || property_type == ParameterManager::ParameterArgument::SystemProperty )
     {
         if( argument_counter > min_arguments )
-            IssueError(1106, application_property ? "application" : "system", UTF8_TODO::GetUtf8(property_name).c_str());
+            IssueError(1106, application_property ? "application" : "system", property_name.c_str());
     }
 
     else if( bool item_property = ( property_type == ParameterManager::ParameterArgument::ItemProperty );
@@ -2370,13 +2375,13 @@ int CEngineCompFunc::cfun_fnproperty()
     {
         if( argument_counter == min_arguments )
         {
-            IssueError(1105, UTF8_TODO::GetUtf8(property_name).c_str());
+            IssueError(1105, property_name.c_str());
         }
 
         else if( first_argument_was_dictionary_related_symbol && !set_function )
         {
             if( !NPT(arguments[0])->IsA(SymbolType::Variable) )
-                IssueError(item_property ? 1103 : 1104, UTF8_TODO::GetUtf8(property_name).c_str());
+                IssueError(item_property ? 1103 : 1104, property_name.c_str());
         }
     }
 

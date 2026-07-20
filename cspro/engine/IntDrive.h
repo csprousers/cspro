@@ -26,7 +26,6 @@
 
 #include <zEngineO/Interpreter/LogicInterpreter.h>
 #include <engine/Nodes.h>
-#include <engine/ParameterManager.h>
 #include <engine/DeFld.h>
 #include <zTbdO/cttree.h>
 
@@ -60,6 +59,7 @@ class TraceHandler;
 class VTSTRUCT;
 namespace Nodes { struct SetAccessFirstLast; }
 namespace Paradata { class Event; class ExternalApplicationEvent; class FieldInfo; }
+namespace ParameterManager { enum class Parameter; }
 namespace Pre77Report { class ReportManager; }
 
 
@@ -697,7 +697,6 @@ public:
     double  exgetcaselabel(int iExpr);
     double  exsetcaselabel(int iExpr);
 
-    double  exdiagnostics(int iExpr);
     double  exsetattr(int iExpr);
     double  exvaluelimit(int iExpr);
     double  exfor_group(int iExpr);                   // RHC Aug 17, 2000

@@ -99,6 +99,9 @@ namespace MGF
 
     constexpr int invalid_subscript_1008                                    =   1008;
 
+    constexpr int property_invalid_parameter_1100                           =   1100;
+    constexpr int property_arguments_count_mismatch_1101                    =   1101;
+
     constexpr int dictionary_form_symbol_expected_1108                      =   1108;
 
     constexpr int getos_invalid_argument_1201                               =   1201;

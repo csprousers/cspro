@@ -1,5 +1,6 @@
-﻿#pragma once
+#pragma once
 
+#include <zEngineO/zEngineO.h>
 #include <zLogicO/FunctionTable.h>
 
 
@@ -99,8 +100,8 @@ namespace ParameterManager
         SystemProperty,
     };
 
-    Parameter Parse(FunctionCode function_code, wstring_view parameter_text_sv, int* min_arguments = nullptr, int* max_arguments = nullptr);
-    const TCHAR* GetDisplayName(Parameter parameter);
-    ParameterArgument GetAdditionalArgument(Parameter parameter);
-    std::vector<Parameter> GetParametersOfArgument(ParameterArgument parameter_argument);
+    ZENGINEO_API Parameter Parse(FunctionCode function_code, std::string_view parameter_text_sv, int* min_arguments = nullptr, int* max_arguments = nullptr);
+    ZENGINEO_API const char* GetDisplayName(Parameter parameter);
+    ZENGINEO_API ParameterArgument GetAdditionalArgument(Parameter parameter);
+    ZENGINEO_API std::vector<Parameter> GetParametersOfArgument(ParameterArgument parameter_argument);
 }

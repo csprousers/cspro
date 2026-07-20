@@ -6,6 +6,7 @@
 #include <zDictO/ValueProcessor.h>
 #include <zBridgeO/NPff.h>
 #include <engine/IntDrive.h>
+#include <zEngineO/ParameterManager.h>
 #include <zEngineO/ResponseProcessor.h>
 #include <zEngineO/ValueSet.h>
 
@@ -366,38 +367,34 @@ bool CoreEntryPageField::IsFieldFilled() const
 }
 
 
-#ifdef _CONSOLE
-
-std::vector<CString> CoreEntryPageField::GetVerboseFieldInformation() const
+std::vector<std::string> CoreEntryPageField::GetVerboseFieldInformation() const
 {
-    CString text;
-
-    // field properties ... initially put in a set and then add alphabetically to the vector
-    std::set<CString> properties_set;
-    std::set<int> symbols_set;
-    symbols_set.insert(m_pField->GetSymbol());
+    std::vector<std::string> field_information;
+    std::set<int> symbols_set { m_pField->GetSymbol() };
 
     for( int i = 0; i < 2; i++ )
     {
-        ParameterManager::Parameter thisProperty = ( i == 0 ) ?
-            ParameterManager::Parameter::Property_CanEnterNotAppl : ParameterManager::Parameter::Property_AllowMultiLine;
+        ParameterManager::Parameter thisProperty = ( i == 0 )
+            ? ParameterManager::Parameter::Property_CanEnterNotAppl
+            : ParameterManager::Parameter::Property_AllowMultiLine;
 
-        ParameterManager::Parameter lastProperty = ( i == 0 ) ?
-            ParameterManager::Parameter::Property_UseEnterKey : ParameterManager::Parameter::Property_ZeroFill;
+        const ParameterManager::Parameter lastProperty = ( i == 0 )
+            ? ParameterManager::Parameter::Property_UseEnterKey
+            : ParameterManager::Parameter::Property_ZeroFill;
 
         while( thisProperty <= lastProperty )
         {
-            text.Format(_T("%s: %s"), ParameterManager::GetDisplayName(thisProperty), m_pIntDriver->GetProperty(thisProperty, &symbols_set));
-            properties_set.insert(text);
+            field_information.emplace_back(SO::CreateColonSeparatedString(
+                ParameterManager::GetDisplayName(thisProperty),
+                UTF8_TODO::GetUtf8(m_pIntDriver->GetProperty(thisProperty, &symbols_set))
+            ));
+
             thisProperty = static_cast<ParameterManager::Parameter>(static_cast<int>(thisProperty) + 1);
         }
     }
 
-    // add the properties in alphabetical order
-    std::vector<CString> field_information;
-
-    for( const CString& property_text : properties_set )
-        field_information.push_back(property_text);
+    // return the properties in alphabetical order
+    std::sort(field_information.begin(), field_information.end(), cs::case_insensitive_less());
 
     return field_information;
 }
@@ -408,5 +405,3 @@ std::string CoreEntryPageField::GetValueSetName() const
     return ( m_valueSet != nullptr ) ? m_valueSet->GetName() :
                                        "<undefined>";
 }
-
-#endif // ending _CONSOLE

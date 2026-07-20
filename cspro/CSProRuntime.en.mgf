@@ -166,8 +166,8 @@ Language=EN
 1088   Invalid subscript: %s(%f) -- %p
 1089   Invalid subscript in swap: %s(%d and %d), occs = %d -- %p
 
-1100   The parameter %s is invalid
-1101   The parameter %s does not support %d arguments
+1100   The parameter '%s' is invalid
+1101   The parameter '%s' does not support %d arguments
 
 1102   The property %s is read only and cannot be set
 1103   Using the GetProperty function, you can only access %s on items
