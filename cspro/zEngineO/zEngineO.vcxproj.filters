@@ -326,6 +326,12 @@
     <ClCompile Include="Interpreter\PathRT.cpp">
       <Filter>Source Files\Interpreter</Filter>
     </ClCompile>
+    <ClCompile Include="Interpreter\PffRT.cpp">
+      <Filter>Source Files\Interpreter</Filter>
+    </ClCompile>
+    <ClCompile Include="Interpreter\PropertiesRT.cpp">
+      <Filter>Source Files\Interpreter</Filter>
+    </ClCompile>
     <ClCompile Include="Interpreter\ReportRT.cpp">
       <Filter>Source Files\Interpreter</Filter>
     </ClCompile>
@@ -356,6 +362,12 @@
     <ClCompile Include="Interpreter\UserInterfaceRT.cpp">
       <Filter>Source Files\Interpreter</Filter>
     </ClCompile>
+    <ClCompile Include="Interpreter\ValueSetRT.cpp">
+      <Filter>Source Files\Interpreter</Filter>
+    </ClCompile>
+    <ClCompile Include="Interpreter\VariableRT.cpp">
+      <Filter>Source Files\Interpreter</Filter>
+    </ClCompile>
     <ClCompile Include="Interpreter\VideoRT.cpp">
       <Filter>Source Files\Interpreter</Filter>
     </ClCompile>
@@ -375,6 +387,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="NamedFrequency.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ParameterManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="PenReaderApplicationLoader.cpp">
@@ -689,6 +704,9 @@
       <Filter>Header Files\Nodes</Filter>
     </ClInclude>
     <ClInclude Include="OnKeyMapping.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ParameterManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="PenReaderApplicationLoader.h">

@@ -67,9 +67,6 @@
     <ClCompile Include="..\engine\oexpresc.cpp">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\engine\ParameterManager.cpp">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-    </ClCompile>
     <ClCompile Include="..\engine\RangeFunctions.cpp">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
     </ClCompile>

@@ -60,7 +60,6 @@
     <ClCompile Include="Intchars.cpp" />
     <ClCompile Include="IntDataAccess.cpp" />
     <ClCompile Include="Intdentr.cpp" />
-    <ClCompile Include="IntDiagnostics.cpp" />
     <ClCompile Include="Intdrive.cpp" />
     <ClCompile Include="IntDynamicLogicEvaluation.cpp" />
     <ClCompile Include="intenter.cpp" />
@@ -76,7 +75,6 @@
     <ClCompile Include="IntMessages.cpp" />
     <ClCompile Include="IntOccurrences.cpp" />
     <ClCompile Include="IntPath.cpp" />
-    <ClCompile Include="IntPff.cpp" />
     <ClCompile Include="IntPre77Report.cpp" />
     <ClCompile Include="IntProgramControl.cpp" />
     <ClCompile Include="IntProperties.cpp" />
@@ -86,8 +84,6 @@
     <ClCompile Include="IntUserbar.cpp" />
     <ClCompile Include="IntUserFunction.cpp" />
     <ClCompile Include="IntUserInterface.cpp" />
-    <ClCompile Include="IntValues.cpp" />
-    <ClCompile Include="IntVariable.cpp" />
     <ClCompile Include="Intxtab.cpp" />
     <ClCompile Include="Int_set.cpp" />
     <ClCompile Include="Listing.cpp" />
@@ -95,7 +91,6 @@
     <ClCompile Include="Nextnode.cpp" />
     <ClCompile Include="oexpresc.cpp" />
     <ClCompile Include="ParadataDriver.cpp" />
-    <ClCompile Include="ParameterManager.cpp" />
     <ClCompile Include="Pre80Routines.cpp" />
     <ClCompile Include="RangeFunctions.cpp" />
     <ClCompile Include="Relation.cpp" />
@@ -161,7 +156,6 @@
     <ClInclude Include="Messages.h" />
     <ClInclude Include="Nodes.h" />
     <ClInclude Include="ParadataDriver.h" />
-    <ClInclude Include="ParameterManager.h" />
     <ClInclude Include="ProgramControl.h" />
     <ClInclude Include="RangeFunctions.h" />
     <ClInclude Include="ReadyFlags.h" />
