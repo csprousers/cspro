@@ -378,10 +378,10 @@ Language=EN
 47172  You cannot add a value set ('%s') to itself
 
 /* --- Pffs */
-47191  The PFF "%s" does not exist or could not be read
-47192  The PFF is not valid or could not be saved to "%s"
-47194  The PFF property "%s" cannot accept a dictionary argument
-47195  There was an error executing "%s": %s
+47191  The PFF '%s' does not exist or could not be read
+47192  The PFF is not valid or could not be saved to '%s'
+47194  The PFF property '%s' cannot accept a dictionary argument
+47195  There was an error executing '%s': %s
 
 /* --- Text Templates */
 48111  Error generating the text template %s: %s

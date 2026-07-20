@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "Pff.h"
 #include "PffExecutor.h"
 
@@ -81,9 +81,9 @@ std::shared_ptr<const PFF> LogicPff::GetSharedPff()
 }
 
 
-bool LogicPff::Load(std::wstring filename)
+bool LogicPff::Load(const std::string& file_path)
 {
-    auto new_pff = std::make_shared<PFF>(WS2CS(std::move(filename)));
+    auto new_pff = std::make_unique<PFF>(UTF8_TODO::GetCString(file_path));
 
     if( !new_pff->LoadPifFile(true) )
         return false;
@@ -95,11 +95,11 @@ bool LogicPff::Load(std::wstring filename)
 }
 
 
-bool LogicPff::Save(std::wstring filename)
+bool LogicPff::Save(const std::string& file_path)
 {
     EnsurePffExists();
 
-    m_pff->SetPifFileName(WS2CS(std::move(filename)));
+    m_pff->SetPifFileName(UTF8_TODO::GetCString(file_path));
 
     if( !m_pff->Save(true) )
         return false;
@@ -124,8 +124,8 @@ std::string LogicPff::GetRunnableFilePath()
         if( clear_app_description )
             m_pff->SetAppDescription(m_pff->GetEvaluatedAppDescription());
 
-        std::string temp_file_path = GetUniqueTempFilePath(PortableFunctions::PathAppendFileExtension(GetName(), FileExtensions::Pff), true);
-        Save(UTF8_TODO::GetWide(std::move(temp_file_path)));
+        const std::string temp_file_path = GetUniqueTempFilePath(PortableFunctions::PathAppendFileExtension(GetName(), FileExtensions::Pff), true);
+        Save(temp_file_path);
 
         if( clear_app_description )
             m_pff->SetAppDescription(L"");
@@ -135,25 +135,25 @@ std::string LogicPff::GetRunnableFilePath()
 }
 
 
-std::vector<std::wstring> LogicPff::GetProperties(const std::wstring& property_name)
+std::vector<std::string> LogicPff::GetProperties(const std::string& property_name)
 {
     EnsurePffExists();
 
-    return m_pff->GetProperties(WS2CS(property_name));
+    return UTF8_TODO::GetUtf8(m_pff->GetProperties(UTF8_TODO::GetCString(property_name)));
 }
 
 
-void LogicPff::SetProperties(const std::wstring& property_name, const std::vector<std::wstring>& values,
-                             std::wstring filename_for_relative_path_evaluation)
+void LogicPff::SetProperties(const std::string& property_name, const std::vector<SharableString>& values,
+                             std::string file_path_for_relative_path_evaluation)
 {
     EnsurePffExists();
 
-    std::wstring temp_filename = CS2WS(m_pff->GetPifFileName());
-    m_pff->SetPifFileName(WS2CS(std::move(filename_for_relative_path_evaluation)));
+    std::string file_path_to_restore = UTF8_TODO::GetUtf8(m_pff->GetPifFileName());
+    m_pff->SetPifFileName(UTF8_TODO::GetCString(std::move(file_path_for_relative_path_evaluation)));
 
-    m_pff->SetProperties(property_name, values);
+    m_pff->SetProperties(UTF8_TODO::GetWide(property_name), UTF8_TODO::GetWide(values));
 
-    m_pff->SetPifFileName(WS2CS(std::move(temp_filename)));
+    m_pff->SetPifFileName(UTF8_TODO::GetCString(std::move(file_path_to_restore)));
 
     m_modified = true;
 }

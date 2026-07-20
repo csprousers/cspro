@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "IncludesCC.h"
 #include "List.h"
 #include "Pff.h"
@@ -83,7 +83,7 @@ int LogicCompiler::CompileLogicPffFunctions()
     //           pff_name.load(filename | form_file_name)
     //           pff_name.save(filename)
     //           pff_name.setProperty(property_name, value_string | value_number | value_list | value_dictionary)
-    FunctionCode function_code = CurrentToken.function_details->code;
+    const FunctionCode function_code = CurrentToken.function_details->code;
     const LogicPff& logic_pff = assert_cast<const LogicPff&>(*CurrentToken.symbol);
     int number_arguments = CurrentToken.function_details->number_arguments;
     std::vector<int> arguments;
@@ -93,7 +93,8 @@ int LogicCompiler::CompileLogicPffFunctions()
 
     std::optional<std::string> set_property_string_literal_argument;
 
-    if( function_code == FunctionCode::PFFFN_SETPROPERTY_CODE && CheckNextTokenHelper() == NextTokenHelperResult::StringLiteral )
+    if( function_code == FunctionCode::PFFFN_SETPROPERTY_CODE &&
+        CheckNextTokenHelper() == NextTokenHelperResult::StringLiteral )
     {
         NextToken();
         set_property_string_literal_argument = Tokstr;
@@ -170,7 +171,7 @@ int LogicCompiler::CompileLogicPffFunctions()
 
                     // check that this property name supports a dictionary argument
                     if( set_property_string_literal_argument.has_value() &&
-                        !PffExecutor::IsValidEmbeddedProperty(*set_property_string_literal_argument) )
+                        !PffExecutor::IsEmbeddedDictionaryProperty(*set_property_string_literal_argument) )
                     {
                         IssueError(MGF::Pff_property_invalid_with_dictionary_47194, set_property_string_literal_argument->c_str());
                     }

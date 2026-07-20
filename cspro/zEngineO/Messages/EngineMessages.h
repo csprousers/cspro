@@ -188,6 +188,8 @@ namespace MGF
     constexpr int ValueSet_add_cannot_add_self_47172                        =  47172;
 
     constexpr int Pff_load_argument_invalid_47190                           =  47190;
+    constexpr int Pff_load_error_47191                                      =  47191;
+    constexpr int Pff_save_error_47192                                      =  47192;
     constexpr int Pff_invalid_assignment_47193                              =  47193;
     constexpr int Pff_property_invalid_with_dictionary_47194                =  47194;
 

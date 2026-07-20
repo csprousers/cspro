@@ -1,17 +1,15 @@
-﻿#include "StandardSystemIncludes.h"
-#include "Interpreter.h"
-#include <zEngineO/EngineDictionary.h>
-#include <zEngineO/List.h>
-#include <zEngineO/Pff.h>
-#include <zEngineO/PffExecutor.h>
-#include <zEngineO/Messages/EngineMessages.h>
-#include <zUtilO/TemporaryFile.h>
-#include <zBridgeO/NPff.h>
+#include "stdafx.h"
+#include "IncludesRT.h"
+#include "EngineDictionary.h"
+#include "List.h"
+#include "Pff.h"
+#include "PffExecutor.h"
+#include <engine/DicT.h>
 
 
-double CIntDriver::expffcompute(int iExpr)
+double LogicInterpreter::ex_Pff_compute(const int program_index)
 {
-    const auto& symbol_compute_node = GetNode<Nodes::SymbolCompute>(iExpr);
+    const auto& symbol_compute_node = GetNode<Nodes::SymbolCompute>(program_index);
     ASSERT(symbol_compute_node.rhs_symbol_type == SymbolType::Pff);
 
     LogicPff& lhs_logic_pff = GetSymbolLogicPff(symbol_compute_node.lhs_symbol_index);
@@ -23,28 +21,31 @@ double CIntDriver::expffcompute(int iExpr)
 }
 
 
-double CIntDriver::expffload(int iExpr)
+double LogicInterpreter::ex_Pff_load(const int program_index)
 {
-    const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(iExpr);
+    const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
     LogicPff& logic_pff = GetSymbolLogicPff(symbol_va_node.symbol_index);
-    std::wstring pff_filename;
+    std::string pff_file_path;
 
     // when using the flow file name, load the current PFF
     if( symbol_va_node.arguments[0] < 0 )
     {
-        pff_filename = CS2WS(m_pEngineDriver->m_pPifFile->GetPifFileName());
+        if( m_engineData->pff != nullptr )
+            pff_file_path = GetAbsolutePath(UTF8_TODO::GetUtf8(m_engineData->pff->GetPifFileName()));
+
+        ASSERT(!pff_file_path.empty());
     }
 
     else
     {
-        pff_filename = EvalAlphaExpr(symbol_va_node.arguments[0]);
+        pff_file_path = EvaluatePath(symbol_va_node.arguments[0]);
     }
 
-    MakeFullPathFileName(pff_filename);
-
-    if( !PortableFunctions::FileExists(pff_filename) || !logic_pff.Load(pff_filename) )
+    if( pff_file_path.empty() ||
+        !PortableFunctions::FileIsRegular(pff_file_path) ||
+        !logic_pff.Load(pff_file_path) )
     {
-        issaerror(MessageType::Error, 47191, UTF8_TODO::GetUtf8(pff_filename).c_str());
+        IssueMessage(MessageType::Error, MGF::Pff_load_error_47191, pff_file_path.c_str());
         return 0;
     }
 
@@ -52,18 +53,20 @@ double CIntDriver::expffload(int iExpr)
 }
 
 
-double CIntDriver::expffsave(int iExpr)
+double LogicInterpreter::ex_Pff_save(const int program_index)
 {
-    const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(iExpr);
+    const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
     LogicPff& logic_pff = GetSymbolLogicPff(symbol_va_node.symbol_index);
 
     // make sure that the filename ends with .pff
-    const std::string pff_file_path = PortableFunctions::PathEnsureFileExtension(EvaluatePath(symbol_va_node.arguments[0]),
-                                                                                 FileExtensions::Pff);
+    const std::string pff_file_path = PortableFunctions::PathEnsureFileExtension(
+        EvaluatePath(symbol_va_node.arguments[0]),
+        FileExtensions::Pff
+    );
 
-    if( !logic_pff.Save(UTF8_TODO::GetWide(pff_file_path)) )
+    if( !logic_pff.Save(pff_file_path) )
     {
-        issaerror(MessageType::Error, 47192, pff_file_path.c_str());
+        IssueMessage(MessageType::Error, MGF::Pff_save_error_47192, pff_file_path.c_str());
         return 0;
     }
 
@@ -71,12 +74,12 @@ double CIntDriver::expffsave(int iExpr)
 }
 
 
-double CIntDriver::expffgetproperty(int iExpr)
+double LogicInterpreter::ex_Pff_getProperty(const int program_index)
 {
-    const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(iExpr);
+    const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
     LogicPff& logic_pff = GetSymbolLogicPff(symbol_va_node.symbol_index);
 
-    std::wstring property_name = EvalAlphaExpr(symbol_va_node.arguments[0]);
+    const SharableString property_name = EvaluateSharableString(symbol_va_node.arguments[0]);
     LogicList* logic_list;
 
     if( m_engineData->MeetsCompiledLogicVersion(Serializer::Iteration_8_0_000_1) )
@@ -91,12 +94,11 @@ double CIntDriver::expffgetproperty(int iExpr)
                                                            nullptr;
     }
 
-    const std::vector<std::wstring> values_temp = logic_pff.GetProperties(property_name);
-    std::vector<SharableString> values;
-    for( const std::wstring& vt : values_temp ) values.emplace_back(UTF8_TODO::GetUtf8(vt));
+    std::vector<std::string> values = logic_pff.GetProperties(*property_name);
 
-    double return_value = !values.empty() ? AssignString(values.front()) :
-                                            AssignStringNull();
+    const double return_value = !values.empty()
+        ? AssignString(values.front())
+        : AssignStringNull();
 
     if( logic_list != nullptr )
     {
@@ -116,9 +118,9 @@ double CIntDriver::expffgetproperty(int iExpr)
 }
 
 
-double CIntDriver::expffsetproperty(int iExpr)
+double LogicInterpreter::ex_Pff_setProperty(const int program_index)
 {
-    const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(iExpr);
+    const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
     LogicPff& logic_pff = GetSymbolLogicPff(symbol_va_node.symbol_index);
 
     const SharableString property_name = EvaluateSharableString(symbol_va_node.arguments[0]);
@@ -146,32 +148,33 @@ double CIntDriver::expffsetproperty(int iExpr)
         else
         {
             ASSERT(symbol.IsOneOf(SymbolType::Dictionary, SymbolType::Pre80Dictionary));
-            std::shared_ptr<const CDataDict> dictionary =
-                symbol.IsA(SymbolType::Dictionary) ? assert_cast<const EngineDictionary&>(symbol).GetSharedDictionary() :
-                                                     assert_cast<const DICT&>(symbol).GetSharedDictionary();
 
-            // use the dictionary filename for the PFF value
+            std::shared_ptr<const CDataDict> dictionary = symbol.IsA(SymbolType::Dictionary)
+                ? assert_cast<const EngineDictionary&>(symbol).GetSharedDictionary()
+                : assert_cast<const DICT&>(symbol).GetSharedDictionary();
+
+            // use the dictionary file path for the PFF value
             values.emplace_back(dictionary->GetFilePath());
 
             // set the embedded dictionary, issuing an error if the property name is invalid
             if( logic_pff.GetPffExecutor() == nullptr )
                 logic_pff.SetPffExecutor(std::make_unique<PffExecutor>());
 
-            if( !logic_pff.GetPffExecutor()->SetEmbeddedDictionary(UTF8_TODO::GetWide(*property_name), std::move(dictionary)) )
-                issaerror(MessageType::Error, 47194, property_name->c_str());
+            if( !logic_pff.GetPffExecutor()->SetEmbeddedDictionary(*property_name, std::move(dictionary)) )
+                IssueMessage(MessageType::Error, MGF::Pff_property_invalid_with_dictionary_47194, property_name->c_str());
         }
     }
 
-    logic_pff.SetProperties(UTF8_TODO::GetWide(*property_name), UTF8_TODO::GetWide(values), CS2WS(m_pEngineDriver->m_pPifFile->GetAppFName()));
+    logic_pff.SetProperties(*property_name, values, GetCurrentApplicationFilePath());
 
     return 1;
 }
 
 
-double CIntDriver::expffexec(int iExpr)
+double LogicInterpreter::ex_Pff_exec(const int program_index)
 {
-    const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(iExpr);
+    const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
     LogicPff& logic_pff = GetSymbolLogicPff(symbol_va_node.symbol_index);
 
-    return ExExecPFF(&logic_pff);
+    return ExExecPFF_INTERPRETER_DLL_TODO(logic_pff);
 }

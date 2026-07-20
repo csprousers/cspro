@@ -53,6 +53,7 @@ void CIntDriver::ExecuteCallbackUserFunction(int field_symbol_index, UserFunctio
 std::unique_ptr<UserFunctionArgumentEvaluator> CIntDriver::EvaluateArgumentsForCallbackUserFunction(int program_index, FunctionCode function_code) { return ReturnProgrammingError(nullptr); }
 double CIntDriver::ex_Freq_view(const NamedFrequency& named_frequency, const ViewerOptions* viewer_options, int frequency_parameters_node_index) { return ReturnProgrammingError(0); }
 double CIntDriver::exCase_view(const DICT& dictionary, const ViewerOptions* viewer_options) { return ReturnProgrammingError(0); }
+double CIntDriver::ExExecPFF_INTERPRETER_DLL_TODO(LogicPff& logic_pff) { throw ProgrammingErrorException(); }
 
 
 double* CIntDriver::svaraddr( VARX* pVarX ) const { ASSERT(0); return NULL; }

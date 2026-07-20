@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zEngineO/zEngineO.h>
 #include <zAppO/PFF.h>
@@ -9,17 +9,10 @@ class CDataDict;
 class ZENGINEO_API PffExecutor
 {
 public:
-    static bool IsValidEmbeddedProperty(const std::string& property_name)
-    {
-        return SO::EqualsOneOfNoCase(property_name, UTF8_TODO::GetUtf8(PFF_COMMAND_INPUT_DICT),
-                                                    UTF8_TODO::GetUtf8(PFF_COMMAND_OUTPUT_DICT));
-    }
-
-    bool SetEmbeddedDictionary(const std::wstring& property_name, std::shared_ptr<const CDataDict> dictionary);
-
+    static bool IsEmbeddedDictionaryProperty(const std::string& property_name);
+    bool SetEmbeddedDictionary(const std::string& property_name, std::shared_ptr<const CDataDict> dictionary);
 
     static bool CanExecute(APPTYPE app_type);
-
     bool Execute(const PFF& pff);
 
 private:

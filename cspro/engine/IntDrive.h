@@ -638,16 +638,6 @@ public:
     double ex_Path_selectFile(int program_index);
 
 
-    // Pff functions
-public:
-    double expffexec(int iExpr);
-    double expffgetproperty(int iExpr);
-    double expffload(int iExpr);
-    double expffsave(int iExpr);
-    double expffsetproperty(int iExpr);
-    double expffcompute(int iExpr);
-
-
     // ValueSet functions
 public:
     double exvaluesetadd(int iExpr);
@@ -1003,6 +993,7 @@ private:
     int Get_m_iExSymbol_INTERPRETER_DLL_TODO() override { return m_iExSymbol; }
     bool IsExecutionInterrupted() const override;
     EngineParadataDriver& GetEngineParadataDriver_INTERPRETER_DLL_TODO() override;
+    double ExExecPFF_INTERPRETER_DLL_TODO(LogicPff& logic_pff) override;
 
 
 private:

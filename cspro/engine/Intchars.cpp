@@ -919,6 +919,12 @@ double CIntDriver::ExExecPFF(int iExpr) // 20100601
 }
 
 
+double CIntDriver::ExExecPFF_INTERPRETER_DLL_TODO(LogicPff& logic_pff)
+{
+    return ExExecPFF(&logic_pff);
+}
+
+
 double CIntDriver::ExExecPFF(std::variant<LogicPff*, std::string> logic_pff_or_pff_file_path, std::optional<int> flags/* = std::nullopt*/)
 {
     LogicPff* logic_pff = nullptr;
