@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "IncludesRT.h"
 #include "EngineDictionary.h"
 #include "HashMap.h"
@@ -48,7 +48,7 @@ double LogicInterpreter::ex_getos(const int program_index)
                                                               ";",
                                                               operating_system_details.version_number);
 
-            AssignValueToSymbol_INTERPRETER_DLL_TODO(GetNode<Nodes::SymbolValue>(additional_details_node), std::move(text_description));
+            AssignValueToSymbol(GetNode<Nodes::SymbolValue>(additional_details_node), std::move(text_description));
         }
     }
 

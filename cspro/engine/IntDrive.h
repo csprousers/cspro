@@ -44,7 +44,6 @@ class CSettings;
 class CSubTable;
 class DictValue;
 enum class FieldStatus : int;
-class FrequencyDriver;
 class ImputationDriver;
 struct InterpreterExecuteResult;
 class ItemIndex;
@@ -58,7 +57,7 @@ struct SyncObjects;
 class TraceHandler;
 class VTSTRUCT;
 namespace Nodes { struct SetAccessFirstLast; }
-namespace Paradata { class Event; class ExternalApplicationEvent; class FieldInfo; }
+namespace Paradata { class ExternalApplicationEvent; }
 namespace ParameterManager { enum class Parameter; }
 namespace Pre77Report { class ReportManager; }
 
@@ -435,9 +434,6 @@ public:
     template<typename T> void ModifyVARTValue(int variable_compilation, const std::function<void(T&)>& modify_value_function,
                                               std::unique_ptr<Paradata::FieldInfo>* paradata_field_info = nullptr);
 
-    template<typename T> bool AssignValueToSymbol(const Nodes::SymbolValue& symbol_value_node, T value);
-    template<typename T> T EvaluateSymbolValue(const Nodes::SymbolValue& symbol_value_node);
-    template<typename T> void ModifySymbolValue(const Nodes::SymbolValue& symbol_value_node, const std::function<void(T&)>& modify_value_function);
 
 private:
     // int calculateLimitsForGroup( int indexArray[], int iSymGroup )
@@ -985,15 +981,18 @@ private:
     void IssueMessageWorker(MessageType message_type, int message_number, ...) override;
     std::string GetFormattedMessageWorker(int message_number, ...) override;
     bool Report_Evaluate_INTERPRETER_DLL_TODO(Report& report) override;
-    void ModifySymbolValue_double_INTERPRETER_DLL_TODO(const Nodes::SymbolValue& symbol_value_node, const std::function<void(double&)>& modify_value_function) override;
-    void ModifySymbolValue_SharableString_INTERPRETER_DLL_TODO(const Nodes::SymbolValue& symbol_value_node, const std::function<void(SharableString&)>& modify_value_function) override;
-    bool AssignValueToSymbol_INTERPRETER_DLL_TODO(const Nodes::SymbolValue& symbol_value_node, double value) override;
-    bool AssignValueToSymbol_INTERPRETER_DLL_TODO(const Nodes::SymbolValue& symbol_value_node, SharableString value) override;
     double RunSoonToBeRemoveFeature(std::string_view feature_sv, int program_index, void* tag) override;
     int Get_m_iExSymbol_INTERPRETER_DLL_TODO() override { return m_iExSymbol; }
     bool IsExecutionInterrupted() const override;
     EngineParadataDriver& GetEngineParadataDriver_INTERPRETER_DLL_TODO() override;
     double ExExecPFF_INTERPRETER_DLL_TODO(LogicPff& logic_pff) override;
+    FrequencyDriver* GetFrequencyDriver_INTERPRETER_DLL_TODO() override;
+    void AssignValueToVART_INTERPRETER_DLL_TODO(int variable_compilation, double value) override;
+    void AssignValueToVART_INTERPRETER_DLL_TODO(int variable_compilation, SharableString value) override;
+    double EvaluateVARTValue_double_INTERPRETER_DLL_TODO(int variable_compilation) override;
+    SharableString EvaluateVARTValue_SharableString_INTERPRETER_DLL_TODO(int variable_compilation) override;
+    void ModifyVARTValue_INTERPRETER_DLL_TODO(int variable_compilation, const std::function<void(double&)>& modify_value_function, std::unique_ptr<Paradata::FieldInfo>* paradata_field_info = nullptr) override;
+    void ModifyVARTValue_INTERPRETER_DLL_TODO(int variable_compilation, const std::function<void(SharableString&)>& modify_value_function, std::unique_ptr<Paradata::FieldInfo>* paradata_field_info = nullptr) override;
 
 
 private:

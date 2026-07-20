@@ -195,7 +195,7 @@ double LogicInterpreter::ex_string_compute(const int program_index)
     // if there are no subscripts used, we can set the value directly
     if( string_compute_node->substring_index_expression == -1 )
     {
-        AssignValueToSymbol_INTERPRETER_DLL_TODO(*symbol_value_node, std::move(rhs_value));
+        AssignValueToSymbol(*symbol_value_node, std::move(rhs_value));
     }
 
     // otherwise get the variable's current value and apply the new value on top of it
@@ -213,8 +213,7 @@ double LogicInterpreter::ex_string_compute(const int program_index)
         if( chars_to_copy.has_value() && *chars_to_copy <= 0 )
             return DEFAULT;
 
-        // INTERPRETER_DLL_TODO change to: ModifySymbolValue<SharableString>(symbol_value_node,
-        ModifySymbolValue_SharableString_INTERPRETER_DLL_TODO(*symbol_value_node,
+        ModifySymbolValue<SharableString>(*symbol_value_node,
             [&](SharableString& lhs_value)
             {
                 // the subscript handling routine could be converted to only use UTF-8 strings,

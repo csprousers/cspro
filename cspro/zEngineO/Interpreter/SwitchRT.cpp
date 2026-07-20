@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "IncludesRT.h"
 #include "List.h"
 #include "StringComparer.h"
@@ -143,12 +143,12 @@ double LogicInterpreter::ex_recode(const int program_index)
 
             if( IsNumeric(data_type) )
             {
-                AssignValueToSymbol_INTERPRETER_DLL_TODO(symbol_value_node, Evaluate(*action));
+                AssignValueToSymbol(symbol_value_node, Evaluate(*action));
             }
 
             else if( IsString(data_type) )
             {
-                AssignValueToSymbol_INTERPRETER_DLL_TODO(symbol_value_node, EvaluateSharableString(*action));
+                AssignValueToSymbol(symbol_value_node, EvaluateSharableString(*action));
             }
 
             else

@@ -404,8 +404,7 @@ double LogicInterpreter::ex_inc(const int program_index)
     double increment_value = EvaluateOptional(va_node.arguments[1], 1);
     double return_value = DEFAULT;
 
-    // INTERPRETER_DLL_TODO change to: ModifySymbolValue<double>(symbol_value_node,
-    ModifySymbolValue_double_INTERPRETER_DLL_TODO(symbol_value_node,
+    ModifySymbolValue<double>(symbol_value_node,
         [&](double& value)
         {
             if( !PreprocessSpecialValues(value, increment_value, value) )

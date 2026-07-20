@@ -1469,30 +1469,6 @@ bool CIntDriver::Report_Evaluate_INTERPRETER_DLL_TODO(Report& report)
 }
 
 
-void CIntDriver::ModifySymbolValue_double_INTERPRETER_DLL_TODO(const Nodes::SymbolValue& symbol_value_node, const std::function<void(double&)>& modify_value_function)
-{
-    ModifySymbolValue<double>(symbol_value_node, modify_value_function);
-}
-
-
-void CIntDriver::ModifySymbolValue_SharableString_INTERPRETER_DLL_TODO(const Nodes::SymbolValue& symbol_value_node, const std::function<void(SharableString&)>& modify_value_function)
-{
-    ModifySymbolValue<SharableString>(symbol_value_node, modify_value_function);
-}
-
-
-bool CIntDriver::AssignValueToSymbol_INTERPRETER_DLL_TODO(const Nodes::SymbolValue& symbol_value_node, const double value)
-{
-    return AssignValueToSymbol(symbol_value_node, value);
-}
-
-
-bool CIntDriver::AssignValueToSymbol_INTERPRETER_DLL_TODO(const Nodes::SymbolValue& symbol_value_node, SharableString value)
-{
-    return AssignValueToSymbol(symbol_value_node, std::move(value));
-}
-
-
 double CIntDriver::RunSoonToBeRemoveFeature(const std::string_view feature_sv, const int program_index, void* /*tag*/)
 {
     if( feature_sv == "prompt_pre77" )
@@ -1524,4 +1500,11 @@ bool CIntDriver::IsExecutionInterrupted() const
 EngineParadataDriver& CIntDriver::GetEngineParadataDriver_INTERPRETER_DLL_TODO()
 {
     return *m_paradataDriver;
+}
+
+
+FrequencyDriver* CIntDriver::GetFrequencyDriver_INTERPRETER_DLL_TODO()
+{
+    ASSERT(m_frequencyDriver != nullptr);
+    return m_frequencyDriver.get();
 }

@@ -15,6 +15,7 @@ class BinarySymbol;
 class ConnectionString;
 enum class EncodeType : int;
 class EngineParadataDriver;
+class FrequencyDriver;
 enum FunctionCode : int;
 class PortableColor;
 class JsonReaderInterface;
@@ -24,7 +25,7 @@ namespace ActionInvoker { class Caller; class Runtime; }
 namespace JavaScript { class Value; }
 namespace Nodes { struct ItemSubscript; struct List; struct SymbolComputeWithSubscript;
                   struct SymbolVariableArgumentsWithSubscript; struct SymbolValue; }
-namespace Paradata { class Event; }
+namespace Paradata { class Event; class FieldInfo; }
 namespace SpecialFunction { enum class Code : int; }
 
 
@@ -730,6 +731,16 @@ protected:
 
 
     // --------------------------------------------------------------------------
+    // "Variable" functions
+    // (VariableRT.cpp)
+    // --------------------------------------------------------------------------
+public:
+    template<typename T> bool AssignValueToSymbol(const Nodes::SymbolValue& symbol_value_node, T value);
+    template<typename T> T EvaluateSymbolValue(const Nodes::SymbolValue& symbol_value_node);
+    template<typename T> void ModifySymbolValue(const Nodes::SymbolValue& symbol_value_node, const std::function<void(T&)>& modify_value_function);
+
+
+    // --------------------------------------------------------------------------
     // Video object functions
     // (VideoRT.cpp)
     // --------------------------------------------------------------------------
@@ -759,10 +770,6 @@ private:
     virtual void RegisterAndLogEvent_INTERPRETER_DLL_TODO(std::shared_ptr<Paradata::Event> event, const void* instance_object = nullptr) = 0;
     virtual SharableString EvaluateTextFill(int program_index) = 0; // INTERPRETER_DLL_TODO remove as virtual
     virtual bool Report_Evaluate_INTERPRETER_DLL_TODO(Report& report) = 0; // INTERPRETER_DLL_TODO remove as virtual
-    virtual void ModifySymbolValue_double_INTERPRETER_DLL_TODO(const Nodes::SymbolValue& symbol_value_node, const std::function<void(double&)>& modify_value_function) = 0;
-    virtual void ModifySymbolValue_SharableString_INTERPRETER_DLL_TODO(const Nodes::SymbolValue& symbol_value_node, const std::function<void(SharableString&)>& modify_value_function) = 0;
-    virtual bool AssignValueToSymbol_INTERPRETER_DLL_TODO(const Nodes::SymbolValue& symbol_value_node, double value) = 0;
-    virtual bool AssignValueToSymbol_INTERPRETER_DLL_TODO(const Nodes::SymbolValue& symbol_value_node, SharableString value) = 0;
     virtual double RunSoonToBeRemoveFeature(std::string_view feature_sv, int program_index, void* tag) = 0;
     virtual bool HasSpecialFunction(SpecialFunction::Code special_function) = 0; // INTERPRETER_DLL_TODO remove as virtual
     virtual double ExecSpecialFunction(int symbol_index, SpecialFunction::Code special_function, std::vector<std::variant<double, SharableString>> arguments) = 0; // INTERPRETER_DLL_TODO remove as virtual
@@ -781,6 +788,13 @@ private:
     virtual double ex_Freq_view(const NamedFrequency& named_frequency, const ViewerOptions* viewer_options, int frequency_parameters_node_index) = 0; // INTERPRETER_DLL_TODO remove as virtual
     virtual double exCase_view(const CSymbolDict& dictionary, const ViewerOptions* viewer_options) = 0; // INTERPRETER_DLL_TODO remove as virtual
     virtual double ExExecPFF_INTERPRETER_DLL_TODO(LogicPff& logic_pff) = 0; // INTERPRETER_DLL_TODO remove as virtual
+    virtual FrequencyDriver* GetFrequencyDriver_INTERPRETER_DLL_TODO() = 0;
+    virtual void AssignValueToVART_INTERPRETER_DLL_TODO(int variable_compilation, double value) = 0; // INTERPRETER_DLL_TODO remove as virtual
+    virtual void AssignValueToVART_INTERPRETER_DLL_TODO(int variable_compilation, SharableString value) = 0; // INTERPRETER_DLL_TODO remove as virtual
+    virtual double EvaluateVARTValue_double_INTERPRETER_DLL_TODO(int variable_compilation) = 0; // INTERPRETER_DLL_TODO remove as virtual
+    virtual SharableString EvaluateVARTValue_SharableString_INTERPRETER_DLL_TODO(int variable_compilation) = 0; // INTERPRETER_DLL_TODO remove as virtual
+    virtual void ModifyVARTValue_INTERPRETER_DLL_TODO(int variable_compilation, const std::function<void(double&)>& modify_value_function, std::unique_ptr<Paradata::FieldInfo>* paradata_field_info = nullptr) = 0; // INTERPRETER_DLL_TODO remove as virtual
+    virtual void ModifyVARTValue_INTERPRETER_DLL_TODO(int variable_compilation, const std::function<void(SharableString&)>& modify_value_function, std::unique_ptr<Paradata::FieldInfo>* paradata_field_info = nullptr) = 0; // INTERPRETER_DLL_TODO remove as virtual
 };
 
 
