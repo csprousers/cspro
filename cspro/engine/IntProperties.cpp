@@ -1,7 +1,7 @@
 #include "StandardSystemIncludes.h"
 #include "Interpreter.h"
 #include "Engine.h"
-#include "VariableWorker.h"
+#include "VariableIterator.h"
 #include <zEngineO/ParameterManager.h>
 #include <zPlatformO/PlatformInterface.h>
 #include <zToolsO/Screen.h>

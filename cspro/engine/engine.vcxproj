@@ -172,7 +172,7 @@
     <ClInclude Include="TableDef.h" />
     <ClInclude Include="Tables.h" />
     <ClInclude Include="Tbd_save.h" />
-    <ClInclude Include="VariableWorker.h" />
+    <ClInclude Include="VariableIterator.h" />
     <ClInclude Include="VarT.h" />
     <ClInclude Include="VarX.h" />
     <ClInclude Include="VTStruct.h" />

@@ -236,7 +236,7 @@
     <ClInclude Include="Tbd_save.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="VariableWorker.h">
+    <ClInclude Include="VariableIterator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="VarT.h">

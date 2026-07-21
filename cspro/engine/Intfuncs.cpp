@@ -12,7 +12,7 @@
 #include "StandardSystemIncludes.h"
 #include "Interpreter.h"
 #include "Engine.h"
-#include "VariableWorker.h"
+#include "VariableIterator.h"
 #include <zEngineO/AllSymbols.h>
 #include <zEngineO/Interpreter/SelectDlgHelper.h>
 #include <zEngineO/Messages/EngineMessages.h>

@@ -4,7 +4,7 @@
 #include "Report.h"
 #include "ValueSet.h"
 #include "Nodes/Frequency.h"
-#include <engine/VariableWorker.h>
+#include <engine/VariableIterator.h>
 #include <zFreqO/Frequency.h>
 
 
