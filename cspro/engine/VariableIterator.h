@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zEngineO/Block.h>
 #include <engine/Form2.h>
@@ -8,104 +8,116 @@
 
 
 template<typename VariableFunction>
-int VariableWorker(const Logic::SymbolTable& symbol_table, Symbol* symbol, const VariableFunction& variable_worker_function)
+size_t ForeachVariable(const Logic::SymbolTable& symbol_table, Symbol& symbol, const VariableFunction& variable_worker_function)
 {
     auto GetSymbolTable = [&]() -> const Logic::SymbolTable& { return symbol_table; };
 
-    ASSERT(symbol != nullptr);
-    int num_fields_processed = 0;
+    size_t variables_processed = 0;
 
-    // a variable
-    if( symbol->IsA(SymbolType::Variable) )
+    switch( symbol.GetType() )
     {
-        num_fields_processed += variable_worker_function(assert_cast<VART*>(symbol)) ? 1 : 0;
-    }
-
-    // a block
-    else if( symbol->IsA(SymbolType::Block) )
-    {
-        const EngineBlock& engine_block = assert_cast<const EngineBlock&>(*symbol);
-
-        for( VART* pVarT : engine_block.GetVarTs() )
-            num_fields_processed += variable_worker_function(pVarT);
-    }
-
-    // a form or group
-    else if( symbol->IsOneOf(SymbolType::Form, SymbolType::Group) )
-    {
-        GROUPT* pGroupT = nullptr;
-
-        if( symbol->IsA(SymbolType::Form) )
+        // variable
+        case SymbolType::Variable:
         {
-            FORM* pFormT = assert_cast<FORM*>(symbol);
-            int iSymGroup = pFormT->GetSymGroup();
-            pGroupT = ( iSymGroup > 0 ) ? assert_cast<GROUPT*>(symbol) : nullptr;
+            variables_processed += variable_worker_function(assert_cast<VART&>(symbol));
+            break;
         }
 
-        else
+        // block
+        case SymbolType::Block:
         {
-            pGroupT = assert_cast<GROUPT*>(symbol);
+            const EngineBlock& engine_block = assert_cast<const EngineBlock&>(symbol);
+
+            for( VART* const pVarT : engine_block.GetVarTs() )
+                variables_processed += variable_worker_function(*pVarT);
+
+            break;
         }
 
-        if( pGroupT != nullptr )
+        // form or group
+        case SymbolType::Form:
+        case SymbolType::Group:
         {
-            for( int i = 0; i < pGroupT->GetNumItems(); i++ )
+            GROUPT* pGroupT;
+
+            if( symbol.IsA(SymbolType::Form) )
             {
-                int iSymItem = pGroupT->GetItemSymbol(i);
+                FORM& form = assert_cast<FORM&>(symbol);
+                const int iSymGroup = form.GetSymGroup();
+                pGroupT = ( iSymGroup > 0 ) ? GPT_Positive(iSymGroup) : nullptr;
+            }
 
-                if( iSymItem <= 0 )
-                    continue;
+            else
+            {
+                pGroupT = &assert_cast<GROUPT&>(symbol);
+            }
 
-                Symbol* pSymbolOnGoup = &NPT_Ref(iSymItem);
-
-                if( pSymbolOnGoup->IsA(SymbolType::Variable) )
+            if( pGroupT != nullptr )
+            {
+                for( int i = 0; i < pGroupT->GetNumItems(); ++i )
                 {
-                    num_fields_processed += VariableWorker(symbol_table, (VART*)pSymbolOnGoup, variable_worker_function);
-                }
+                    const int iSymItem = pGroupT->GetItemSymbol(i);
 
-                else if( pSymbolOnGoup->IsA(SymbolType::Group) )
-                {
-                    num_fields_processed += VariableWorker(symbol_table, (GROUPT*)pSymbolOnGoup, variable_worker_function);
+                    if( iSymItem <= 0 )
+                        continue;
+
+                    Symbol& symbol_on_group = NPT_Ref(iSymItem);
+
+                    if( symbol_on_group.IsA(SymbolType::Variable) )
+                    {
+                        variables_processed += ForeachVariable(symbol_table, assert_cast<VART&>(symbol_on_group), variable_worker_function);
+                    }
+
+                    else if( symbol_on_group.IsA(SymbolType::Group) )
+                    {
+                        variables_processed += ForeachVariable(symbol_table, assert_cast<GROUPT&>(symbol_on_group), variable_worker_function);
+                    }
                 }
             }
+
+            break;
         }
-    }
 
-    // a record
-    else if( symbol->IsA(SymbolType::Section) )
-    {
-        SECT* pSecT = assert_cast<SECT*>(symbol);
-
-        int iSymVar = pSecT->SYMTfvar;
-
-        while( iSymVar > 0 )
+        // record
+        case SymbolType::Section:
         {
-            VART* pVarT = VPT(iSymVar);
-            num_fields_processed += VariableWorker(symbol_table, pVarT, variable_worker_function);
-            iSymVar = pVarT->SYMTfwd;
+            SECT& sect = assert_cast<SECT&>(symbol);
+
+            int iSymVar = sect.SYMTfvar;
+
+            while( iSymVar > 0 )
+            {
+                VART* const pVarT = VPT(iSymVar);
+                variables_processed += ForeachVariable(symbol_table, *pVarT, variable_worker_function);
+                iSymVar = pVarT->SYMTfwd;
+            }
+
+            break;
         }
-    }
 
-    // a dictionary
-    else if( symbol->IsA(SymbolType::Pre80Dictionary) )
-    {
-        DICT* pDicT = assert_cast<DICT*>(symbol);
-
-        int iSymSec = pDicT->SYMTfsec;
-
-        // process all of the fields
-        while( iSymSec > 0 )
+        // dictionary
+        case SymbolType::Pre80Dictionary:
         {
-            SECT* pSecT = SPT(iSymSec);
-            num_fields_processed += VariableWorker(symbol_table, pSecT, variable_worker_function);
-            iSymSec = pSecT->SYMTfwd;
+            DICT& dict = assert_cast<DICT&>(symbol);
+
+            int iSymSec = dict.SYMTfsec;
+
+            // process all of the fields
+            while( iSymSec > 0 )
+            {
+                SECT* const pSecT = SPT(iSymSec);
+                variables_processed += ForeachVariable(symbol_table, *pSecT, variable_worker_function);
+                iSymSec = pSecT->SYMTfwd;
+            }
+
+            break;
         }
+
+        // invalid
+        default:
+            ASSERT(false);
+            break;
     }
 
-    else
-    {
-        ASSERT(false);
-    }
-
-    return num_fields_processed;
+    return variables_processed;
 }

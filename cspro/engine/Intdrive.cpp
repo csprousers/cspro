@@ -557,8 +557,8 @@ CIntDriver::pDoubleFunction CIntDriver::m_pExFuncs[] =
 /* 188 */   &CIntDriver::exsetvaluesets,     // GHM 20100523
 /* 189 */   &CIntDriver::ExExecPFF,          // GHM 20100601
 /* 190 */   &CIntDriver::exseek,             // GHM 20100602
-/* 191 */   &CIntDriver::exgetcapturetype,   // GHM 20100608
-/* 192 */   &CIntDriver::exsetcapturetype,   // GHM 20100608
+/* 191 */   &CIntDriver::ex_getcapturetype,  // GHM 20100608
+/* 192 */   &CIntDriver::ex_setcapturetype,  // GHM 20100608
 /* 193 */   &CIntDriver::ex_setfont,         // GHM 20100618
 /* 194 */   &CIntDriver::exorientation,      // GHM 20100618 getorientation
 /* 195 */   &CIntDriver::exorientation,      // GHM 20100618 setorientation
@@ -700,7 +700,7 @@ CIntDriver::pDoubleFunction CIntDriver::m_pExFuncs[] =
 /* 331 */   &CIntDriver::ex_Pff_setProperty,
 /* 332 */   &CIntDriver::ex_ValueSet_length,
 /* 333 */   &CIntDriver::ex_ischecked,
-/* 334 */   &CIntDriver::exprotect,
+/* 334 */   &CIntDriver::ex_protect,
 /* 335 */   &CIntDriver::ex_when,
 /* 336 */   &CIntDriver::ex_syncapp,
 /* 337 */   &CIntDriver::exfiletime,

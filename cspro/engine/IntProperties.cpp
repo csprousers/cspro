@@ -116,21 +116,21 @@ ParameterManager::Parameter CIntDriver::GetSetPropertyParser(int iExpr, std::set
 
         bool item_property = ( additional_argument == ParameterManager::ParameterArgument::ItemProperty );
 
-        auto get_set_item_populator = [&](VART* pVarT) -> bool
+        auto get_set_item_populator = [&](VART& vart)
         {
-            if( pVarT->GetDictItem() != nullptr ) // don't add working variables
+            if( vart.GetDictItem() != nullptr ) // don't add working variables
             {
-                if( item_property || GetCDEFieldFromVART(pVarT) != nullptr )
+                if( item_property || GetCDEFieldFromVART(&vart) != nullptr )
                 {
-                    symbol_set->insert(pVarT->GetSymbolIndex());
-                    return true;
+                    symbol_set->insert(vart.GetSymbolIndex());
+                    return 1;
                 }
             }
 
-            return false;
+            return 0;
         };
 
-        VariableWorker(GetSymbolTable(), symbol, get_set_item_populator);
+        ForeachVariable(GetSymbolTable(), *symbol, get_set_item_populator);
 
         if( !set_function && symbol_set->size() != 1 )
         {
@@ -1058,41 +1058,39 @@ void EngineParadataDriver::LogProperties()
 }
 
 
-double CIntDriver::exprotect(int iExpr)
+double CIntDriver::ex_protect(const int program_index)
 {
-    const auto& va_node = GetNode<Nodes::VariableArguments>(iExpr);
+    const auto& va_node = GetNode<Nodes::VariableArguments>(program_index);
     Symbol& symbol = NPT_Ref(va_node.arguments[0]);
     const bool protect = EvaluateConditional(va_node.arguments[1]);
 
-    auto variable_protect_setter = [&](VART* pVarT) -> bool
+    auto variable_protect_setter = [&](VART& vart)
     {
-        CDEField* pField = GetCDEFieldFromVART(pVarT);
+        CDEField* const pField = GetCDEFieldFromVART(&vart);
 
-        if( pField != nullptr )
+        if( pField == nullptr )
+            return 0;
+
+        pField->IsProtected(protect);
+        vart.SetBehavior(protect ? AsProtected : pField->IsEnterKeyRequired() ? AsEnter : AsAutoSkip);
+
+        if( Paradata::Logger::IsOpen() )
         {
-            pField->IsProtected(protect);
-            pVarT->SetBehavior(protect ? AsProtected : pField->IsEnterKeyRequired() ? AsEnter : AsAutoSkip);
-
-            if( Paradata::Logger::IsOpen() )
-            {
-                m_paradataDriver->RegisterAndLogEvent(std::make_unique<Paradata::PropertyEvent>(
-                    ParameterManager::GetDisplayName(ParameterManager::Parameter::Property_Protected),
-                    UTF8_TODO::GetUtf8(PropertyValueToString(protect)),
-                    true,
-                    m_paradataDriver->CreateObject(*pVarT)
-                ));
-            }
-
-            return true;
+            m_paradataDriver->RegisterAndLogEvent(std::make_unique<Paradata::PropertyEvent>(
+                ParameterManager::GetDisplayName(ParameterManager::Parameter::Property_Protected),
+                UTF8_TODO::GetUtf8(PropertyValueToString(protect)),
+                true,
+                m_paradataDriver->CreateObject(vart)
+            ));
         }
 
-        return false;
+        return 1;
     };
 
-    int fields_processed = VariableWorker(GetSymbolTable(), &symbol, variable_protect_setter);
+    const size_t fields_processed = ForeachVariable(GetSymbolTable(), symbol, variable_protect_setter);
 
-    if( fields_processed > 0 )
+    if( fields_processed != 0 )
         frm_capimode(0, 1);
 
-    return fields_processed;
+    return static_cast<double>(fields_processed);
 }

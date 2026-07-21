@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zDictO/zDictO.h>
 
@@ -133,8 +133,8 @@ class CLASS_DECL_ZDICTO DateCaptureInfo : public ExtendedCaptureInfo
 public:
     bool operator==(const DateCaptureInfo& rhs) const;
 
-    const std::string& GetFormat() const       {  return m_format; }
-    void SetFormat(std::string_view format_sv) { m_format = SO::ToUpper(format_sv); }
+    const std::string& GetFormat() const { return m_format; }
+    void SetFormat(std::string format);
 
     static std::vector<const char*> GetPossibleFormats(const CDictItem& dict_item);
 

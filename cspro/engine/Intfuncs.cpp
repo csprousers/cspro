@@ -2967,73 +2967,78 @@ CDEField* CIntDriver::GetCDEFieldFromVART(VART* pVarT)
 }
 
 
-double CIntDriver::exgetcapturetype(int iExpr) // 20100608
+double CIntDriver::ex_getcapturetype(const int program_index)
 {
-    const auto& function_node = GetNode<FNN_NODE>(iExpr);
-    const VART* pVarT = VPT(function_node.fn_expr[0]);
+    const auto& fnn_node = GetNode<FNN_NODE>(program_index);
+    const VART* const pVarT = VPT(fnn_node.fn_expr[0]);
 
     // use the evaluated capture info so that Unspecified is never returned
-    return (int)pVarT->GetEvaluatedCaptureInfo().GetCaptureType();
+    return static_cast<double>(pVarT->GetEvaluatedCaptureInfo().GetCaptureType());
 }
 
 
-double CIntDriver::exsetcapturetype(int iExpr)
+double CIntDriver::ex_setcapturetype(const int program_index)
 {
-    // 20100623 we'll want to refresh the responses window in case the capture type has been changed
+    // refresh the responses window in case the capture type has been changed
     WindowsDesktopMessage::Post(UWM::CSEntry::ShowCapi);
 
-    const FNN_NODE* pFunc = (FNN_NODE*)PPT(iExpr);
-    Symbol* pSymbol = NPT(pFunc->fn_expr[0]);
+    const auto& fnn_node = GetNode<FNN_NODE>(program_index);
+    Symbol& symbol = NPT_Ref(fnn_node.fn_expr[0]);
 
-    int int_capture_type = Evaluate<int>(pFunc->fn_expr[1]);
+    const int int_capture_type = Evaluate<int>(fnn_node.fn_expr[1]);
 
-    if( int_capture_type < (int)CaptureType::FirstDefined || int_capture_type > (int)CaptureType::LastDefined )
-        return DEFAULT;
-
-    CaptureType new_capture_type = (CaptureType)int_capture_type;
-    CString date_format;
-
-    if( pFunc->fn_nargs == 3 && new_capture_type == CaptureType::Date )
+    if( int_capture_type < static_cast<int>(CaptureType::FirstDefined) ||
+        int_capture_type > static_cast<int>(CaptureType::LastDefined) )
     {
-        date_format = EvalAlphaExprCS(pFunc->fn_expr[2]);
-        date_format.Trim();
+        return DEFAULT;
     }
 
-    auto setcapturetype_processor = [&](VART* pVarT) -> bool
+    const CaptureType new_capture_type = static_cast<CaptureType>(int_capture_type);
+    SharableString date_format;
+
+    if( fnn_node.fn_nargs == 3 && new_capture_type == CaptureType::Date )
     {
-        const CDictItem* pDictItem = pVarT->GetDictItem();
+        date_format = EvaluateSharableString(fnn_node.fn_expr[2]);
+        date_format.MakeTrim();
+    }
+
+    auto setcapturetype_processor = [&](VART& vart)
+    {
+        const CDictItem& dict_item = *vart.GetDictItem();
 
         CaptureInfo new_capture_info = new_capture_type;
 
         if( new_capture_type == CaptureType::Date )
         {
             // if the date format is specified, use it; if not, use an existing date format when possible
-            std::string date_format_to_use = UTF8_TODO::GetUtf8(date_format);
+            SharableString date_format_to_use = date_format;
 
-            if( date_format_to_use.empty() && pVarT->GetCaptureInfo().GetCaptureType() == CaptureType::Date )
-                date_format_to_use = pVarT->GetCaptureInfo().GetExtended<DateCaptureInfo>().GetFormat();
+            if( date_format_to_use->empty() && vart.GetCaptureInfo().GetCaptureType() == CaptureType::Date )
+                date_format_to_use = vart.GetCaptureInfo().GetExtended<DateCaptureInfo>().GetFormat();
 
-            if( !date_format_to_use.empty() )
+            if( !date_format_to_use->empty() )
             {
-                new_capture_info.GetExtended<DateCaptureInfo>().SetFormat(date_format_to_use);
+                new_capture_info.GetExtended<DateCaptureInfo>().SetFormat(date_format_to_use.Release());
 
-                if( !new_capture_info.GetExtended<DateCaptureInfo>().IsFormatValid(*pDictItem) )
-                    return false;
+                if( !new_capture_info.GetExtended<DateCaptureInfo>().IsFormatValid(dict_item) )
+                    return 0;
             }
         }
 
-        CaptureInfo valid_capture_info = new_capture_info.MakeValid(*pDictItem, pVarT->GetCurrentDictValueSet());
+        CaptureInfo valid_capture_info = new_capture_info.MakeValid(dict_item, vart.GetCurrentDictValueSet());
 
         if( valid_capture_info.GetCaptureType() == new_capture_type )
         {
-            pVarT->SetCaptureInfo(valid_capture_info);
-            return true;
+            vart.SetCaptureInfo(std::move(valid_capture_info));
+            return 1;
         }
 
-        return false;
+        return 0;
     };
 
-    return VariableWorker(GetSymbolTable(), pSymbol, setcapturetype_processor);
+    const size_t fields_modified = ForeachVariable(GetSymbolTable(), symbol, setcapturetype_processor);
+
+    return static_cast<double>(fields_modified);
 }
 
 
@@ -3052,12 +3057,14 @@ double CIntDriver::ex_setcapturepos(const int program_index)
         Evaluate<LONG>(fnn_node.fn_expr[2])
     };
 
-    return VariableWorker(GetSymbolTable(), &symbol,
-        [&](VART* const pVarT)
+    const size_t fields_modified = ForeachVariable(GetSymbolTable(), symbol,
+        [&](VART& vart)
         {
-            pVarT->SetCapturePos(point);
-            return true;
+            vart.SetCapturePos(point);
+            return 1;
         });
+
+    return static_cast<double>(fields_modified);
 #endif
 }
 
@@ -3083,16 +3090,18 @@ double CIntDriver::ex_changekeyboard(const int program_index)
     {
         const unsigned keyboard_id = m_keyboardLoader->GetKeyboardId(Evaluate<unsigned int>(va_node.arguments[0]));
 
-        return VariableWorker(GetSymbolTable(), &symbol,
-            [&](VART* const pVarT)
+        const size_t fields_modified = ForeachVariable(GetSymbolTable(), symbol,
+            [&](VART& vart)
             {
                 // no reason to change it if it's not on a form
-                if( !pVarT->IsUsed() )
-                    return false;
+                if( !vart.IsUsed() )
+                    return 0;
 
-                pVarT->SetKeyboardLayoutId(keyboard_id);
-                return true;
+                vart.SetKeyboardLayoutId(keyboard_id);
+                return 1;
             });
+
+        return static_cast<double>(fields_modified);
     }
 #endif
 }

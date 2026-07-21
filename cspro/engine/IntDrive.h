@@ -525,9 +525,9 @@ public:
 
     double  ex_trace(int program_index);
 
-    double  exgetcapturetype(int iExpr);         // 20100608
-    double  exsetcapturetype(int iExpr);         // 20100608
-    double  ex_setcapturepos(int program_index);
+    double ex_getcapturetype(int program_index);
+    double ex_setcapturetype(int program_index);
+    double ex_setcapturepos(int program_index);
 
     double  ex_changekeyboard(int iExpr);
 
@@ -740,7 +740,7 @@ public:
     CString GetProperty(ParameterManager::Parameter parameter, std::set<int>* symbol_set = nullptr);
     double  exgetproperty(int iExpr);
     double  exsetproperty(int iExpr);
-    double  exprotect(int iExpr);
+    double ex_protect(int program_index);
 
     double  ExExecSystem(int iExpr);
     std::unique_ptr<Paradata::ExternalApplicationEvent> ExExecCommonBeforeExecute(FunctionCode source, const std::string& command, int flags);

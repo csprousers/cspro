@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "CaptureInfo.h"
 #include "ValueProcessor.h"
 #include <zToolsO/Serializer.h>
@@ -629,6 +629,13 @@ bool DateCaptureInfo::IsCaptureTypePossible(const CDictItem& dict_item)
     }
 
     return false;
+}
+
+
+void DateCaptureInfo::SetFormat(std::string format)
+{
+    m_format = std::move(format);
+    SO::MakeUpper(m_format);
 }
 
 
