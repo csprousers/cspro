@@ -265,7 +265,7 @@ public:
     const GROUPT* GetOwnerGPT() const       { return m_pOwnerGroupT; }
     void    SetOwnerGroup( int iSymGroup );                             // victor May 24, 00
     FLOW*   GetOwnerFlow( void );                                       // victor Jul 20, 00
-    virtual int GetOwnerDic( void ) const; // marked as virtual only so that it is accessible to zEngineO's SymbolCalculator
+    virtual int GetOwnerDic( void ) const; // INTERPRETER_DLL_TODO marked as virtual only so that it is accessible to zEngineO's SymbolCalculator
     int     GetOwnerSec( void ) const;
     bool    IsInAForm() const               { return( SYMTfrm > 0 ); }
     int     GetFormSymbol() const           { return( IsInAForm() ? SYMTfrm : 0 ); }
@@ -273,7 +273,7 @@ public:
     void    SetSubItemOf( int iSymItem );                               // victor Jul 04, 00
     int     GetOwnerSymItem( void )         { return m_iOwnerSymItem; } // victor Jul 04, 00
     VART*   GetOwnerVarT() const            { return m_pOwnerVarT; }    // victor Jul 04, 00
-    virtual GROUPT* GetParentGPT( int iAncestor = 0 ) const;            // RHF Jul 28, 2000, marked as virtual only so that it is accessible to zEngineO's SymbolCalculator
+    virtual GROUPT* GetParentGPT( int iAncestor = 0 ) const;            // RHF Jul 28, 2000, INTERPRETER_DLL_TODO marked as virtual only so that it is accessible to zEngineO's SymbolCalculator
     int     GetParentGroup( int iAncestor = 0 );                        // RHF Oct 24, 2000
     void    SetParentGPT( GROUPT* pGroupT ) { m_pParentGroupT = pGroupT; } // victor Jun 10, 00
     bool    IsAncestor( int iSymGroup, bool bCountingOccurrences );     // RHF Oct 31, 2000
@@ -352,8 +352,7 @@ public:
     bool    IsArray() const { return ( m_iNumDim > 0 ); }               // victor Jun 10, 00
     int     GetFullNumOccs( bool bBySecOccs = false );                  // victor Jul 10, 00
 
-    // marked as virtual only so that it is accessible to zEngineO
-    virtual int GetMaxOccsInDim( CDimension::VDimType dType );          // victor Jul 20, 00
+    virtual int GetMaxOccsInDim( CDimension::VDimType dType );          // victor Jul 20, 00 INTERPRETER_DLL_TODO marked as virtual only so that it is accessible from zEngineO
     int GetMaxOccsInDim( int iDim ) const;                              // victor Jul 20, 00
 
     // GetMaxOccsInFixedDim( int iDim )
@@ -440,7 +439,7 @@ public:
     // --- utilization in execution
 public:
     bool    IsUsed() const              { return m_bIsUsed; }
-    virtual void SetUsed(bool used); // marked as virtual only so that it is accessible to zEngineO
+    virtual void SetUsed(bool used); // INTERPRETER_DLL_TODO marked as virtual only so that it is accessible from zEngineO
     bool    IsMarked() const        { return( m_bMarked ); }        // RHF Mar 21, 2000
     void    SetMarked(bool bMarked) { m_bMarked = bMarked; }        // RHF Mar 21, 2000
 
@@ -451,7 +450,7 @@ public:
 
     // --- other methods
 public:
-    virtual int GetLevel() const; // marked as virtual only so that it is accessible to zEngineO's SymbolCalculator
+    virtual int GetLevel() const; // INTERPRETER_DLL_TODO marked as virtual only so that it is accessible to zEngineO's SymbolCalculator
     void    dvaltochar( const double dValue, csprochar* pBuf ) const;
 
 private:
@@ -504,9 +503,9 @@ public:
     void ResetCurrentValueSet() { SetCurrentValueSet(m_baseValueSet); }
     const ValueSet* GetCurrentValueSet() const { return m_currentValueSet.get(); }
     const DictValueSet* GetCurrentDictValueSet() const;
-    void SetCurrentValueSet(std::shared_ptr<const ValueSet> value_set);
+    virtual void SetCurrentValueSet(std::shared_ptr<const ValueSet> value_set); // INTERPRETER_DLL_TODO marked as virtual only so that it is accessible from zEngineO
 
-    const ValueProcessor& GetCurrentValueProcessor() const;
+    virtual const ValueProcessor& GetCurrentValueProcessor() const; // INTERPRETER_DLL_TODO marked as virtual only so that it is accessible from zEngineO
     const NumericValueProcessor& GetCurrentNumericValueProcessor() const;
 
 public:

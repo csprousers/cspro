@@ -2,6 +2,8 @@
 #include "IncludesRT.h"
 #include "SelectDlgHelper.h"
 #include "ValueSet.h"
+#include <engine/Nodes.h>
+#include <engine/VariableIterator.h>
 #include <zDictO/Definitions.h>
 #include <zDictO/ValueProcessor.h>
 
@@ -10,28 +12,32 @@
 // value set-related functions
 // --------------------------------------------------------------------------
 
-double CIntDriver::exvaluelimit(int iExpr) // minvalue and maxvalue
+double LogicInterpreter::ex_minvalue_maxvalue(const int program_index)
 {
-    const auto& function_node = GetNode<FNC_NODE>(iExpr);
-    const Symbol* symbol = NPT(function_node.isymb);
+    const auto& element_reference_single_node = GetNode<Nodes::ElementReferenceSingle>(program_index);
+    const Symbol& symbol = NPT_Ref(element_reference_single_node.symbol_index);
     const ValueProcessor* value_processor;
 
-    if( symbol->IsA(SymbolType::Variable) )
+    // variable
+    if( symbol.IsA(SymbolType::Variable) )
     {
-        const VART* pVarT = assert_cast<const VART*>(symbol);
-        value_processor = &pVarT->GetCurrentValueProcessor();
+        const VART& vart = assert_cast<const VART&>(symbol);
+        value_processor = &vart.GetCurrentValueProcessor();
     }
 
-    else // value set
+    // value set
+    else
     {
-        const ValueSet* value_set = assert_cast<const ValueSet*>(symbol);
-        value_processor = &value_set->GetValueProcessor();
+        ASSERT(symbol.IsA(SymbolType::ValueSet));
+        const ValueSet& value_set = assert_cast<const ValueSet&>(symbol);
+        value_processor = &value_set.GetValueProcessor();
     }
 
-    const NumericValueProcessor* numeric_value_processor = assert_cast<const NumericValueProcessor*>(value_processor);
+    const NumericValueProcessor& numeric_value_processor = assert_cast<const NumericValueProcessor&>(*value_processor);
 
-    return ( function_node.fn_code == FNMINVALUE_CODE ) ? numeric_value_processor->GetMinValue() :
-                                                          numeric_value_processor->GetMaxValue();
+    return ( element_reference_single_node.function_code == FunctionCode::FNMINVALUE_CODE )
+        ? numeric_value_processor.GetMinValue()
+        : numeric_value_processor.GetMaxValue();
 }
 
 
@@ -74,40 +80,46 @@ double CIntDriver::exinvalueset(int iExpr)
 }
 
 
-double CIntDriver::exgetimage(int iExpr)
+double LogicInterpreter::ex_getimage(const int program_index)
 {
-    const auto& function_node = GetNode<FNG_NODE>(iExpr);
-    const Symbol* symbol = NPT(function_node.symbol_index);
+    const auto& function_node = GetNode<FNG_NODE>(program_index);
+    const Symbol& symbol = NPT_Ref(function_node.symbol_index);
     const ValueProcessor* value_processor;
 
-    if( symbol->IsA(SymbolType::Variable) )
+    // variable
+    if( symbol.IsA(SymbolType::Variable) )
     {
-        const VART* pVarT = assert_cast<const VART*>(symbol);
-        value_processor = &pVarT->GetCurrentValueProcessor();
+        const VART& vart = assert_cast<const VART&>(symbol);
+        value_processor = &vart.GetCurrentValueProcessor();
     }
 
+    // value set
     else
     {
-        const ValueSet* value_set = assert_cast<const ValueSet*>(symbol);
-        value_processor = &value_set->GetValueProcessor();
+        ASSERT(symbol.IsA(SymbolType::ValueSet));
+        const ValueSet& value_set = assert_cast<const ValueSet&>(symbol);
+        value_processor = &value_set.GetValueProcessor();
     }
 
     const DictValue* dict_value;
 
-    if( IsNumeric(*symbol) )
+    if( IsNumeric(symbol) )
     {
-        double value = evalexpr(function_node.m_iExpr);
+        const double value = Evaluate(function_node.m_iExpr);
         dict_value = value_processor->GetDictValue(value);
     }
 
     else
     {
-        CString value = EvalAlphaExprCS(function_node.m_iExpr);
-        dict_value = value_processor->GetDictValue(value);
+        ASSERT(IsString(symbol));
+        const SharableString value = EvaluateSharableString(function_node.m_iExpr);
+        dict_value = value_processor->GetDictValue(*value);
     }
 
-    return ( dict_value != nullptr ) ? AssignString(dict_value->GetImageFilePath()) :
-                                       AssignStringNull();
+    if( dict_value != nullptr )
+        return AssignString(dict_value->GetImageFilePath());
+
+    return AssignStringNull();
 }
 
 
@@ -398,57 +410,60 @@ double CIntDriver::exsetvalueset_pre80(int iExpr)
 }
 
 
-double CIntDriver::exsetvaluesets(int iExpr)
+double LogicInterpreter::ex_setvaluesets(const int program_index)
 {
     // for changing the value sets of all items to those matching the string passed
-    const auto& fnn_node = GetNode<FNN_NODE>(iExpr);
+    const auto& fnn_node = GetNode<FNN_NODE>(program_index);
     const SharableString value_set_pattern = EvaluateSharableString(fnn_node.fn_expr[0]);
     size_t num_value_sets_changed = 0;
 
     // process each of the value sets
     for( const ValueSet* const value_set : m_engineData->value_sets_not_dynamic )
     {
-        // change the value set if the search pattern was found
-        if( value_set->GetName().find(*value_set_pattern) != std::string::npos )
-        {
-            VART* pVarT = value_set->GetVarT();
-            pVarT->SetCurrentValueSet(std::dynamic_pointer_cast<const ValueSet, const Symbol>(GetSharedSymbol(value_set->GetSymbolIndex())));
-            ++num_value_sets_changed;
-        }
+        // change the value set only if the search pattern was found
+        if( value_set->GetName().find(*value_set_pattern) == std::string::npos )
+            continue;
+
+        VART* const vart = value_set->GetVarT();
+        ASSERT(vart != nullptr);
+
+        vart->SetCurrentValueSet(std::dynamic_pointer_cast<const ValueSet, const Symbol>(GetSharedSymbol(value_set->GetSymbolIndex())));
+
+        ++num_value_sets_changed;
     }
 
     return static_cast<double>(num_value_sets_changed);
 }
 
 
-double CIntDriver::exrandomizevs(int iExpr)
+double LogicInterpreter::ex_randomizevs(const int program_index)
 {
-    const auto& va_with_size_node = GetNode<Nodes::VariableArgumentsWithSize>(iExpr);
+    const auto& va_with_size_node = GetNode<Nodes::VariableArgumentsWithSize>(program_index);
     Symbol& symbol = NPT_Ref(va_with_size_node.arguments[0]);
-    bool numeric = true;
 
-    if( symbol.IsOneOf(SymbolType::Variable, SymbolType::ValueSet) )
-        numeric = IsNumeric(symbol);
+    const bool numeric = symbol.IsOneOf(SymbolType::Variable, SymbolType::ValueSet)
+        ? IsNumeric(symbol)
+        : true;
 
-    std::vector<double> numeric_exclusions;
-    std::vector<CString> string_exclusions;
+    std::variant<std::vector<double>, std::vector<SharableString>> exclusions = numeric
+        ? std::variant<std::vector<double>, std::vector<SharableString>>(std::vector<double>())
+        : std::variant<std::vector<double>, std::vector<SharableString>>(std::vector<SharableString>());
 
-    int exclusion_end_index = m_engineData->MeetsCompiledLogicVersion(Serializer::Iteration_8_0_000_1) ?
-        va_with_size_node.number_arguments : ( va_with_size_node.number_arguments + 1 );
+    const int exclusion_end_index = m_engineData->MeetsCompiledLogicVersion(Serializer::Iteration_8_0_000_1)
+        ? va_with_size_node.number_arguments
+        : ( va_with_size_node.number_arguments + 1 );
 
     for( int i = 1; i < exclusion_end_index; ++i )
     {
         if( numeric )
         {
-            double exclusion_value = evalexpr(va_with_size_node.arguments[i]);
-            numeric_exclusions.emplace_back(exclusion_value);
+            std::get<0>(exclusions).emplace_back(Evaluate(va_with_size_node.arguments[i]));
         }
 
         else
         {
-            CString exclusion_value = EvalAlphaExprCS(va_with_size_node.arguments[i]);
-            exclusion_value.TrimRight();
-            string_exclusions.emplace_back(exclusion_value);
+            SharableString& exclusion = std::get<1>(exclusions).emplace_back(EvaluateSharableString(va_with_size_node.arguments[i]));
+            exclusion.MakeTrimRight();
         }
     }
 
@@ -463,21 +478,24 @@ double CIntDriver::exrandomizevs(int iExpr)
     // randomize an encompassing symbol (like a dictionary)
     else
     {
-        VariableWorker(GetSymbolTable(), &symbol,
-            [&](VART* pVarT) -> bool
+        ForeachVariable(GetSymbolTable(), symbol,
+            [&](VART& vart)
             {
-                const ValueSet* value_set = pVarT->GetCurrentValueSet();
+                const ValueSet* const value_set = vart.GetCurrentValueSet();
 
                 if( value_set != nullptr )
+                {
                     valuesets_to_randomize.emplace_back(const_cast<ValueSet*>(value_set));
+                    return 1;
+                }
 
-                return 1;
+                return 0;
             });
     }
 
     // do the randomizations
-    for( ValueSet* value_set : valuesets_to_randomize )
-        value_set->Randomize(numeric_exclusions, string_exclusions);
+    for( ValueSet* const value_set : valuesets_to_randomize )
+        value_set->Randomize(exclusions);
 
     return static_cast<double>(valuesets_to_randomize.size());
 }

@@ -731,10 +731,15 @@ protected:
 
 
     // --------------------------------------------------------------------------
-    // ValueSet object functions
+    // ValueSet object and value set-related functions
     // (ValueSetRT.cpp)
     // --------------------------------------------------------------------------
 public:
+    double ex_minvalue_maxvalue(int program_index);
+    double ex_getimage(int program_index);
+    double ex_setvaluesets(int program_index);
+    double ex_randomizevs(int program_index);
+
     double ex_ValueSet_compute(int program_index);
     double ex_ValueSet_add(int program_index);
     double ex_ValueSet_clear(int program_index);

@@ -475,9 +475,6 @@ public:
     double  exinvalueset(int iExpr);
     double  exsetvalueset(int iExpr); // RHF Aug 28, 2002
     double  exsetvalueset_pre80(int iExpr);
-    double  exsetvaluesets(int iExpr);    // 20100523
-    double  exrandomizevs(int iExpr);     // 20110811
-
 
     double  ex_paradata(int program_index);
     double  exsqlquery(int program_index);
@@ -671,7 +668,6 @@ public:
     double  exsetcaselabel(int iExpr);
 
     double  exsetattr(int iExpr);
-    double  exvaluelimit(int iExpr);
     double  exfor_group(int iExpr);                   // RHC Aug 17, 2000
     double  exfor_relation(int iExpr);
     //////////////////////////////////////////////////////////////////////////
@@ -699,7 +695,6 @@ public:
     std::tuple<Symbol*, Symbol*> GetEvaluatedSymbolFromSymbolName(const std::string& symbol_name_and_potential_subscript, SymbolType preferred_symbol_type = SymbolType::None);
 
     double  exgetlabel(int iExpr);                    // RHF Aug 25, 2000
-    double  exgetimage(int iExpr);                    // 20150809
 
     CString EvaluateOccurrenceLabel(const Symbol* symbol, const std::optional<int>& zero_based_occurrence);
     double  exgetocclabel(int iExpr);

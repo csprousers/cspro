@@ -49,7 +49,7 @@ public:
     virtual void ForeachValue(const std::function<void(const ForeachValueInfo&, double, const std::optional<double>&)>& numeric_callback_function) const;
     virtual void ForeachValue(const std::function<void(const ForeachValueInfo&, const CString&)>& string_callback_function) const;
 
-    virtual void Randomize(const std::vector<double>& numeric_exclusions, const std::vector<CString>& string_exclusions);
+    virtual void Randomize(const std::variant<std::vector<double>, std::vector<SharableString>>& exclusions);
 
     virtual void Sort(bool ascending, bool sort_by_label);
 
@@ -124,7 +124,7 @@ public:
     virtual void ForeachValue(const std::function<void(const ForeachValueInfo&, double, const std::optional<double>&)>& numeric_callback_function) const override;
     virtual void ForeachValue(const std::function<void(const ForeachValueInfo&, const CString&)>& string_callback_function) const override;
 
-    void Randomize(const std::vector<double>& numeric_exclusions, const std::vector<CString>& string_exclusions) override;
+    void Randomize(const std::variant<std::vector<double>, std::vector<SharableString>>& exclusions) override;
 
     void Sort(bool ascending, bool sort_by_label) override;
 

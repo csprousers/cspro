@@ -486,8 +486,8 @@ CIntDriver::pDoubleFunction CIntDriver::m_pExFuncs[] =
 /* 124 */   &CIntDriver::exnmembers,
 /* 125 */   &CIntDriver::exnoopAbort,  // previously exset_output
 /* 126 */   &CIntDriver::exnoopAbort,  // previously exrecord
-/* 127 */   &CIntDriver::exvaluelimit, // minvalue
-/* 128 */   &CIntDriver::exvaluelimit, // maxvalue
+/* 127 */   &CIntDriver::ex_minvalue_maxvalue, // minvalue
+/* 128 */   &CIntDriver::ex_minvalue_maxvalue, // maxvalue
 /* 129 */   &CIntDriver::exfor_group,
 /* 130 */   &CIntDriver::exnoopAbort,  // previously extbd
 /* 131 */   NULL,
@@ -554,7 +554,7 @@ CIntDriver::pDoubleFunction CIntDriver::m_pExFuncs[] =
 /* 185 */   &CIntDriver::exuserbar,          // GHM 20100414
 /* 186 */   &CIntDriver::exmessageoverrides, // GHM 20100518
 /* 187 */   &CIntDriver::ex_trace,           // GHM 20100518
-/* 188 */   &CIntDriver::exsetvaluesets,     // GHM 20100523
+/* 188 */   &CIntDriver::ex_setvaluesets,    // GHM 20100523
 /* 189 */   &CIntDriver::ExExecPFF,          // GHM 20100601
 /* 190 */   &CIntDriver::exseek,             // GHM 20100602
 /* 191 */   &CIntDriver::ex_getcapturetype,  // GHM 20100608
@@ -570,7 +570,7 @@ CIntDriver::pDoubleFunction CIntDriver::m_pExFuncs[] =
 /* 201 */   &CIntDriver::ex_setcapturepos,   // GHM 20110502
 /* 202 */   &CIntDriver::ex_abs,             // GHM 20110721
 /* 203 */   &CIntDriver::ex_randomin,        // GHM 20110721
-/* 204 */   &CIntDriver::exrandomizevs,      // GHM 20110811
+/* 204 */   &CIntDriver::ex_randomizevs,     // GHM 20110811
 /* 205 */   &CIntDriver::ex_getusername,     // GHM 20111028
 /* 206 */   &CIntDriver::exfileempty,        // GHM 20120627
 /* 207 */   &CIntDriver::ex_changekeyboard,  // GHM 20120820
@@ -598,7 +598,7 @@ CIntDriver::pDoubleFunction CIntDriver::m_pExFuncs[] =
 /* 229 */   &CIntDriver::ex_sysparm,         // GHM 20141217
 /* 230 */   &CIntDriver::ex_connection,      // GHM 20150421
 /* 231 */   &CIntDriver::ex_prompt,          // GHM 20150422
-/* 232 */   &CIntDriver::exgetimage,         // GHM 20150809
+/* 232 */   &CIntDriver::ex_getimage,        // GHM 20150809
 /* 233 */   &CIntDriver::ex_round,           // GHM 20150821
 /* 234 */   &CIntDriver::exnoopAbort,        // GHM 20151130 an old implementation of exuuid ... now a publishdate placeholder
 /* 235 */   &CIntDriver::exsavepartial,      // GHM 20151216

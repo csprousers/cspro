@@ -123,7 +123,7 @@ void ValueSet::ForeachValue(const std::function<void(const ForeachValueInfo&, co
 }
 
 
-void ValueSet::Randomize(const std::vector<double>& numeric_exclusions, const std::vector<CString>& string_exclusions)
+void ValueSet::Randomize(const std::variant<std::vector<double>, std::vector<SharableString>>& exclusions)
 {
     const ValueProcessor& value_processor = GetValueProcessor();
 
@@ -132,9 +132,11 @@ void ValueSet::Randomize(const std::vector<double>& numeric_exclusions, const st
 
     if( IsNumeric() )
     {
-        for( double exclusion_value : numeric_exclusions )
+        ASSERT(exclusions.index() == 0);
+
+        for( const double exclusion : std::get<0>(exclusions) )
         {
-            const DictValue* dict_value = value_processor.GetDictValue(exclusion_value);
+            const DictValue* const dict_value = value_processor.GetDictValue(exclusion);
 
             if( dict_value != nullptr )
                 values_to_exclude.insert(dict_value);
@@ -143,9 +145,11 @@ void ValueSet::Randomize(const std::vector<double>& numeric_exclusions, const st
 
     else
     {
-        for( const CString& exclusion_value : string_exclusions )
+        ASSERT(exclusions.index() == 1);
+
+        for( const SharableString& exclusion : std::get<1>(exclusions) )
         {
-            const DictValue* dict_value = value_processor.GetDictValue(exclusion_value);
+            const DictValue* const dict_value = value_processor.GetDictValue(*exclusion);
 
             if( dict_value != nullptr )
                 values_to_exclude.insert(dict_value);
@@ -541,20 +545,23 @@ void DynamicValueSet::ForeachValue(const std::function<void(const ForeachValueIn
 }
 
 
-void DynamicValueSet::Randomize(const std::vector<double>& numeric_exclusions, const std::vector<CString>& string_exclusions)
+void DynamicValueSet::Randomize(const std::variant<std::vector<double>, std::vector<SharableString>>& exclusions)
 {
-    std::unique_ptr<std::vector<size_t>> indices_to_randomize;
+    std::optional<std::vector<size_t>> indices_to_randomize;
 
     // get the filtered list of indices to randomize if necessary
-    if( ( m_numeric && !numeric_exclusions.empty() ) || ( !m_numeric && !string_exclusions.empty() ) )
+    ASSERT(exclusions.index() == ( m_numeric ? 0 : 1 ));
+
+    if( !( m_numeric ? std::get<0>(exclusions).empty() : std::get<1>(exclusions).empty() ) )
     {
-        indices_to_randomize = std::make_unique<std::vector<size_t>>();
+        indices_to_randomize.emplace();
 
         for( size_t i = 0; i < m_entries.size(); ++i )
         {
             if( m_numeric )
             {
                 const NumericDynamicValueSetEntry& numeric_entry = GetEntry<NumericDynamicValueSetEntry>(i);
+                const std::vector<double>& numeric_exclusions = std::get<0>(exclusions);
 
                 if( std::find(numeric_exclusions.cbegin(), numeric_exclusions.cend(), numeric_entry.from_value) != numeric_exclusions.cend() )
                     continue;
@@ -563,8 +570,9 @@ void DynamicValueSet::Randomize(const std::vector<double>& numeric_exclusions, c
             else
             {
                 const StringDynamicValueSetEntry& string_entry = GetEntry<StringDynamicValueSetEntry>(i);
+                const std::vector<SharableString>& string_exclusions = std::get<1>(exclusions);
 
-                if( std::find(string_exclusions.cbegin(), string_exclusions.cend(), UTF8_TODO::GetCString(string_entry.value)) != string_exclusions.cend() )
+                if( std::find(string_exclusions.cbegin(), string_exclusions.cend(), string_entry.value) != string_exclusions.cend() )
                     continue;
             }
 
@@ -575,7 +583,7 @@ void DynamicValueSet::Randomize(const std::vector<double>& numeric_exclusions, c
     std::default_random_engine random_engine(Randomizer::NextSeed());
 
     // if randomizing the whole value set, we can do this simply
-    if( indices_to_randomize == nullptr || indices_to_randomize->size() == m_entries.size() )
+    if( !indices_to_randomize.has_value() || indices_to_randomize->size() == m_entries.size() )
     {
         std::shuffle(m_entries.begin(), m_entries.end(), std::move(random_engine));
     }
@@ -774,43 +782,51 @@ public:
 
     double GetMinValue() const override
     {
-        double min_value = DEFAULT;
+        std::optional<double> min_value;
 
         for( const DynamicValueSetEntry& entry : VI_V(m_entries) )
         {
             const NumericDynamicValueSetEntry& numeric_entry = assert_cast<const NumericDynamicValueSetEntry&>(entry);
 
-            if( !IsSpecial(numeric_entry.from_value) )
-            {
-                if( numeric_entry.from_value < min_value || min_value == DEFAULT )
-                    min_value = numeric_entry.from_value;
-            }
+            // special values are not counted as min/max values
+            if( numeric_entry.to_value.has_value() && IsSpecial(*numeric_entry.to_value) )
+                continue;
+
+            if( !min_value.has_value() || numeric_entry.from_value < *min_value )
+                min_value = numeric_entry.from_value;
         }
 
-        return min_value;
+        return min_value.value_or(DEFAULT);
     }
 
     double GetMaxValue() const override
     {
-        double max_value = DEFAULT;
+        std::optional<double> max_value;
 
         for( const DynamicValueSetEntry& entry : VI_V(m_entries) )
         {
             const NumericDynamicValueSetEntry& numeric_entry = assert_cast<const NumericDynamicValueSetEntry&>(entry);
+            double entry_max_value;
 
-            double entry_max_value = numeric_entry.from_value;
-
-            if( numeric_entry.to_value.has_value() && !IsSpecial(*numeric_entry.to_value) )
-                entry_max_value = *numeric_entry.to_value;
-
-            if( !IsSpecial(entry_max_value) )
+            if( numeric_entry.to_value.has_value() )
             {
-                if( entry_max_value > max_value || max_value == DEFAULT )
-                    max_value = entry_max_value;
+                // special values are not counted as min/max values
+                if( IsSpecial(*numeric_entry.to_value) )
+                    continue;
+
+                entry_max_value = *numeric_entry.to_value;
             }
+
+            else
+            {
+                entry_max_value = numeric_entry.from_value;
+            }
+
+            if( !max_value.has_value() || entry_max_value > *max_value)
+                max_value = entry_max_value;
         }
 
-        return max_value;
+        return max_value.value_or(DEFAULT);
     }
 
     bool IsValid(double value) const override

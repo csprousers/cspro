@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "ValueProcessor.h"
 #include "ValueSetResponse.h"
 #include <zToolsO/FloatingPointMath.h>
@@ -391,7 +391,7 @@ public:
         if( dict_value == nullptr && !m_discretes.GetVector().empty() && !IsSpecial(value) )
             dict_value = GetDictValueWithFuzzyNoiseMatch(value);
 
-        return dict_value;                                           
+        return dict_value;
     }
 
     std::vector<const DictValue*> GetMatchingDictValues(double value) const override
@@ -429,7 +429,7 @@ public:
 
                 auto update_min_max = [&](double value)
                 {
-                    // special values won't be counted as min/max values
+                    // special values are not counted as min/max values
                     if( !IsSpecial(value) )
                     {
                         if( value < m_minValue )
@@ -581,7 +581,7 @@ private:
 
     const DictValue* GetDictValueWithFuzzyNoiseMatch(double value) const
     {
-        // floating point precision issues may result in a value not being matched, so check for 
+        // floating point precision issues may result in a value not being matched, so check for
         // values with some imprecision; this was reported as a bug for discrete values, so this
         // algorithm only checks discretes, but could later be extended to do the same for ranges
         const std::vector<std::tuple<double, size_t>>& discretes = m_discretes.GetVector();
