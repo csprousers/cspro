@@ -111,12 +111,12 @@ public:
 
     void ValidateNumericFromTo(double from_value, std::optional<double>& to_value) const;
 
-    void AddValue(std::wstring label, std::string image_file_path, PortableColor text_color, double from_value, std::optional<double> to_value);
-    void AddValue(std::wstring label, std::string image_file_path, PortableColor text_color, std::wstring value);
+    void AddValue(SharableString label, std::string image_file_path, PortableColor text_color, double from_value, std::optional<double> to_value);
+    void AddValue(SharableString label, std::string image_file_path, PortableColor text_color, SharableString value);
     size_t AddValues(const ValueSet& value_set);
 
     size_t RemoveValue(double value);
-    size_t RemoveValue(wstring_view value_sv);
+    size_t RemoveValue(std::string_view value_sv);
 
     enum class RemoveDuplicatesType : int { ByCodeLabel = 0, ByCode = 1, ByLabel = 2 };
     size_t RemoveDuplicates(RemoveDuplicatesType remove_type);

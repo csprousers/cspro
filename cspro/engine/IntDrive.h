@@ -634,19 +634,6 @@ public:
     double ex_Path_selectFile(int program_index);
 
 
-    // ValueSet functions
-public:
-    double exvaluesetadd(int iExpr);
-    double exvaluesetclear(int iExpr);
-    double exvaluesetlength(int iExpr);
-    double exvaluesetremove(int iExpr);
-    double ex_ValueSet_removeDuplicates(int program_index);
-    double exvaluesetshow(int iExpr);
-    double exvaluesetshow_pre77(int iExpr);
-    double exvaluesetsort(int iExpr);
-    double exvaluesetcompute(int iExpr);
-
-
     // dynamic logic evaluation functions
 public:
     InterpreterExecuteResult EvaluateLogic(SharableString logic, CancelFlag& cancel_flag);
@@ -789,7 +776,7 @@ public:
     double  exshowarray(int iExpr);
     double  exshowarray_pre77(int iExpr);
 
-    int SelectDlgHelper_pre77(int iFunCode, const CString* csHeading, const std::vector<std::vector<CString>*>* paData,
+    int SelectDlgHelper_pre77(int iFunCode, const CString& csHeading, const std::vector<std::vector<CString>*>* paData,
                               const std::vector<CString>* paColumnTitles, std::vector<bool>* pbaSelections,
                               const std::vector<PortableColor>* row_text_colors) override;
 

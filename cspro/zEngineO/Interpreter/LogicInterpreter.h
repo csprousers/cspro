@@ -393,7 +393,7 @@ public:
     double ex_HashMap_length(int program_index);
     double ex_HashMap_remove(int program_index);
 
-protected: // INTERPRETER_DLL_TODO change to private
+private:
     // Returns the index, or an empty vector if the index is invalid.
     std::vector<std::variant<double, SharableString>> EvaluateHashMapIndex(const Nodes::List& dimension_expressions_node, int number_dimension_expressions);
     std::vector<std::variant<double, SharableString>> EvaluateHashMapIndex(const Nodes::List& dimension_expressions_node);
@@ -443,7 +443,7 @@ public:
     template<typename SymbolT = Symbol>
     SymbolT& GetFromSymbolOrEngineItemForStaticFunction(int symbol_index, int subscript_compilation);
 
-protected: // INTERPRETER_DLL_TODO change to private
+private:
     template<typename SymbolT>
     SymbolT EvaluateSymbolReference_GetSymbol(int symbol_index);
 
@@ -513,7 +513,7 @@ public:
     double ex_List_show_pre77(int program_index);
     double ex_List_sort(int program_index);
 
-protected: // INTERPRETER_DLL_TODO change to private
+private:
     // Returns the one-based index, or std::nullopt if the index is invalid.
     std::optional<size_t> EvaluateListIndex(int listvar_node_expression, LogicList** out_logic_list, bool for_assignment);
 
@@ -624,7 +624,7 @@ public:
     double ex_Report_view(int program_index);
     double ex_Report_save(int program_index);
 
-protected: // INTERPRETER_DLL_TODO change to private
+private:
     double ex_Report_view(Report& report, const ViewerOptions* viewer_options);
     std::unique_ptr<std::string> GenerateReport(Report& report, const std::string* output_file_path);
 
@@ -731,6 +731,22 @@ protected:
 
 
     // --------------------------------------------------------------------------
+    // ValueSet object functions
+    // (ValueSetRT.cpp)
+    // --------------------------------------------------------------------------
+public:
+    double ex_ValueSet_compute(int program_index);
+    double ex_ValueSet_add(int program_index);
+    double ex_ValueSet_clear(int program_index);
+    double ex_ValueSet_length(int program_index);
+    double ex_ValueSet_remove(int program_index);
+    double ex_ValueSet_removeDuplicates(int program_index);
+    double ex_ValueSet_show(int program_index);
+    double ex_ValueSet_show_pre77(int program_index);
+    double ex_ValueSet_sort(int program_index);
+
+
+    // --------------------------------------------------------------------------
     // "Variable" functions
     // (VariableRT.cpp)
     // --------------------------------------------------------------------------
@@ -778,7 +794,7 @@ private:
     virtual std::shared_ptr<Symbol> GetFromSymbolOrEngineItemWorker_INTERPRETER_DLL_TODO(const SymbolReference<std::shared_ptr<Symbol>>& symbol_reference, bool use_exceptions) = 0;
     virtual EvaluatedEngineItemSubscript EvaluateEngineItemSubscript(const EngineItem& engine_item, const Nodes::ItemSubscript& item_subscript_node) = 0; // INTERPRETER_DLL_TODO remove as virtual
     virtual bool IsDataAccessible(const Symbol& symbol, bool issue_error_if_inaccessible) = 0;
-    virtual int SelectDlgHelper_pre77(int iFunCode, const CString* csHeading, const std::vector<std::vector<CString>*>* paData,
+    virtual int SelectDlgHelper_pre77(int iFunCode, const CString& csHeading, const std::vector<std::vector<CString>*>* paData,
                                       const std::vector<CString>* paColumnTitles, std::vector<bool>* pbaSelections,
                                       const std::vector<PortableColor>* row_text_colors) = 0;
     virtual EngineParadataDriver& GetEngineParadataDriver_INTERPRETER_DLL_TODO() = 0;

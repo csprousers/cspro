@@ -2372,7 +2372,7 @@ double CIntDriver::exshow_pre77(int iExpr, int iActualForNode)
     if( pShowNode->m_iHeading >= 0 )
         csHeading = EvalAlphaExprCS(pShowNode->m_iHeading);
 
-    int iRet = SelectDlgHelper_pre77(pShowNode->fn_code, &csHeading, &aData, &aColumnTitles, nullptr, nullptr);
+    int iRet = SelectDlgHelper_pre77(pShowNode->fn_code, csHeading, &aData, &aColumnTitles, nullptr, nullptr);
 
     for( const auto& data : aData )
         delete data;
@@ -2716,7 +2716,7 @@ double CIntDriver::exshowarray_pre77(int iExpr)
         }
     }
 
-    int iRet = SelectDlgHelper_pre77(ptrfunc->fn_code, &csHeading, &aData, bLabelsDefined ? &aColumnTitles : nullptr, nullptr, nullptr);
+    int iRet = SelectDlgHelper_pre77(ptrfunc->fn_code, csHeading, &aData, bLabelsDefined ? &aColumnTitles : nullptr, nullptr, nullptr);
 
     for( std::vector<std::vector<CString>*>::size_type i = 0; i < aData.size(); i++ )
         delete aData[i];
@@ -3696,16 +3696,18 @@ double CIntDriver::exgetvaluelabel(int iExpr)
 // returns 0 if the user cancels the box
 // if pbaSelections is NULL, returns the 1-based index of the single selection;
 // if pbaSelections is not NULL, then returns 1 on success with the selected values in pbaSelections
-int CIntDriver::SelectDlgHelper_pre77(int iFunCode, const CString* csHeading, const std::vector<std::vector<CString>*>* paData,
+int CIntDriver::SelectDlgHelper_pre77(int iFunCode, const CString& csHeading, const std::vector<std::vector<CString>*>* paData,
                                       const std::vector<CString>* paColumnTitles, std::vector<bool>* pbaSelections,
                                       const std::vector<PortableColor>* row_text_colors)
 {
     ASSERT(!UseHtmlDialogs());
 
-    ASSERT(csHeading != nullptr && paData != nullptr);
+    ASSERT(paData != nullptr);
 
     if( paData->size() == 0 ) // nothing to choose from
+    {
         return 0;
+    }
 
     else if( paData->size() > MAX_ITEMS ) // too many rows
     {
@@ -3738,7 +3740,7 @@ int CIntDriver::SelectDlgHelper_pre77(int iFunCode, const CString* csHeading, co
     }
 
     // remove newlines from any of the text strings
-    std::unique_ptr<CString> modified_header;
+    cs::non_null_shared_or_raw_ptr<const CString> heading_to_use(&csHeading);
     std::unique_ptr<std::vector<std::unique_ptr<std::vector<CString>>>> modified_vectors;
     std::unique_ptr<std::vector<std::vector<CString>*>> modified_data;
 
@@ -3765,11 +3767,8 @@ int CIntDriver::SelectDlgHelper_pre77(int iFunCode, const CString* csHeading, co
         return modified_vector;
     };
 
-    if( SO::ContainsNewlineCharacter(wstring_view(*csHeading)) )
-    {
-        modified_header = std::make_unique<CString>(NewlineSubstitutor::NewlineToSpace(*csHeading));
-        csHeading = modified_header.get();
-    }
+    if( SO::ContainsNewlineCharacter(wstring_view(csHeading)) )
+        heading_to_use = std::make_unique<CString>(NewlineSubstitutor::NewlineToSpace(csHeading));
 
     for( size_t i = 0; i < paData->size(); ++i )
     {
@@ -3804,8 +3803,8 @@ int CIntDriver::SelectDlgHelper_pre77(int iFunCode, const CString* csHeading, co
     // set up the dialog options
     CSelectListCtrlOptions cOptions;
 
-    cOptions.m_bUseTitle = !csHeading->IsEmpty();
-    cOptions.m_csTitle = *csHeading;
+    cOptions.m_bUseTitle = !heading_to_use->IsEmpty();
+    cOptions.m_csTitle = *heading_to_use;
     cOptions.m_iMinMark = 0;
     cOptions.m_iMaxMark = bSingleSelection ? 1 : -1;
     cOptions.m_bUseColTitle = ( paColumnTitles != NULL );
@@ -3858,17 +3857,17 @@ int CIntDriver::SelectDlgHelper_pre77(int iFunCode, const CString* csHeading, co
 #else //!WIN_DESKTOP
     if( iFunCode == FNACCEPT_CODE )
     {
-        iRet = PlatformInterface::GetInstance()->GetApplicationInterface()->ShowChoiceDialog(*csHeading, *paData);
+        iRet = PlatformInterface::GetInstance()->GetApplicationInterface()->ShowChoiceDialog(csHeading, *paData);
     }
 
     else if( iFunCode == FNSHOW_CODE || iFunCode == FNSHOWARRAY_CODE || iFunCode == LISTFN_SHOW_CODE || iFunCode == VALUESETFN_SHOW_CODE )
     {
-        iRet = PlatformInterface::GetInstance()->GetApplicationInterface()->ShowShowDialog(paColumnTitles, row_text_colors, *paData, *csHeading);
+        iRet = PlatformInterface::GetInstance()->GetApplicationInterface()->ShowShowDialog(paColumnTitles, row_text_colors, *paData, csHeading);
     }
 
     else if( iFunCode == FNSELCASE_CODE )
     {
-        iRet = PlatformInterface::GetInstance()->GetApplicationInterface()->ShowSelcaseDialog(paColumnTitles, *paData, *csHeading, pbaSelections);
+        iRet = PlatformInterface::GetInstance()->GetApplicationInterface()->ShowSelcaseDialog(paColumnTitles, *paData, csHeading, pbaSelections);
     }
 
  //   else

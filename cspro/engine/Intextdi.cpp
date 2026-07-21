@@ -1551,7 +1551,7 @@ double CIntDriver::exselcase_pre77(int iExpr)
                 marked_selections->resize(paData->size(), false);
             }
 
-            iRet = SelectDlgHelper_pre77(FNSELCASE_CODE, &csHeading, paData, &aColumnTitles, marked_selections.get(), nullptr);
+            iRet = SelectDlgHelper_pre77(FNSELCASE_CODE, csHeading, paData, &aColumnTitles, marked_selections.get(), nullptr);
 
             for( std::vector<std::vector<CString>*>::size_type i = 0; i < paData->size(); i++ )
                 delete paData->at(i);

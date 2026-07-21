@@ -1,4 +1,4 @@
-﻿#include "StandardSystemIncludes.h"
+#include "StandardSystemIncludes.h"
 #include "Interpreter.h"
 #include "Engine.h"
 #include <zEngineO/Array.h>
@@ -91,7 +91,7 @@ double CIntDriver::exaccept_pre77(int iExpr)
     for( const CString& choice : choices )
         select_dlg_data.emplace_back(new std::vector<CString> { choice });
 
-    int selection = SelectDlgHelper_pre77(function_node.fn_code, &heading, &select_dlg_data, nullptr, nullptr, nullptr);
+    int selection = SelectDlgHelper_pre77(function_node.fn_code, heading, &select_dlg_data, nullptr, nullptr, nullptr);
 
     for( const auto& data : select_dlg_data )
         delete data;

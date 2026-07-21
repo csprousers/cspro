@@ -100,6 +100,11 @@ template CLASS_DECL_ZTOOLSO CString UTF8_TODO::GetCString(const std::string_view
 template CLASS_DECL_ZTOOLSO CString UTF8_TODO::GetCString(const cs::string_sz& text_or_sv);
 template CLASS_DECL_ZTOOLSO CString UTF8_TODO::GetCString(const cs::string_view_sz& text_or_sv);
 
+template<> CLASS_DECL_ZTOOLSO CString UTF8_TODO::GetCString(const SharableString& text_or_sv)
+{
+    return GetCString(*text_or_sv);
+}
+
 
 std::string UTF8_TODO::GetUtf8(const wstring_view text_sv)
 {

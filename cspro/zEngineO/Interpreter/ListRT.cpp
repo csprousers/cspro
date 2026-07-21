@@ -365,7 +365,7 @@ double LogicInterpreter::ex_List_show_pre77(const int program_index)
     const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
     const LogicList& logic_list = GetSymbolLogicList(symbol_va_node.symbol_index);
 
-    const CString heading = UTF8_TODO::GetCString(EvaluateNullableSharableString(symbol_va_node.arguments[0]).GetString());
+    const SharableString heading = EvaluateNullableSharableString(symbol_va_node.arguments[0]);
     std::vector<std::vector<CString>*> data;
 
     for( size_t i = 1; i <= logic_list.GetCount(); ++i )
@@ -376,7 +376,7 @@ double LogicInterpreter::ex_List_show_pre77(const int program_index)
         data.emplace_back(new std::vector<CString> { UTF8_TODO::GetCString(*value) });
     }
 
-    const int selection = SelectDlgHelper_pre77(symbol_va_node.function_code, &heading, &data, nullptr, nullptr, nullptr);
+    const int selection = SelectDlgHelper_pre77(symbol_va_node.function_code, UTF8_TODO::GetCString(heading), &data, nullptr, nullptr, nullptr);
 
     for( const std::vector<CString>* const d : data )
         delete d;
