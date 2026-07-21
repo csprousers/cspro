@@ -820,18 +820,13 @@ private:
         for( const DynamicValueSetEntry& entry : VI_V(m_entries) )
         {
             const NumericDynamicValueSetEntry& numeric_entry = assert_cast<const NumericDynamicValueSetEntry&>(entry);
-            bool matches = ( value == numeric_entry.from_value );
 
-            if( !matches && numeric_entry.to_value.has_value() )
+            if( !numeric_entry.to_value.has_value() ? ( value == numeric_entry.from_value ) :
+                IsSpecial(*numeric_entry.to_value)  ? ( value == *numeric_entry.to_value ) :
+                                                      ( value >= numeric_entry.from_value && value <= *numeric_entry.to_value ) )
             {
-                matches = ( value == *numeric_entry.to_value );
-
-                if( !matches && !IsSpecial(value) )
-                    matches = ( value >= numeric_entry.from_value && value <= *numeric_entry.to_value );
-            }
-
-            if( matches )
                 return &numeric_entry;
+            }
         }
 
         return nullptr;
