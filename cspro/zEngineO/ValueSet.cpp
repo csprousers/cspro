@@ -748,43 +748,51 @@ public:
 
     double GetMinValue() const override
     {
-        double min_value = DEFAULT;
+        std::optional<double> min_value;
 
         for( const DynamicValueSetEntry& entry : VI_V(m_entries) )
         {
             const NumericDynamicValueSetEntry& numeric_entry = assert_cast<const NumericDynamicValueSetEntry&>(entry);
 
-            if( !IsSpecial(numeric_entry.from_value) )
-            {
-                if( numeric_entry.from_value < min_value || min_value == DEFAULT )
-                    min_value = numeric_entry.from_value;
-            }
+            // special values are not counted as min/max values
+            if( numeric_entry.to_value.has_value() && IsSpecial(*numeric_entry.to_value) )
+                continue;
+
+            if( !min_value.has_value() || numeric_entry.from_value < *min_value )
+                min_value = numeric_entry.from_value;
         }
 
-        return min_value;
+        return min_value.value_or(DEFAULT);
     }
 
     double GetMaxValue() const override
     {
-        double max_value = DEFAULT;
+        std::optional<double> max_value;
 
         for( const DynamicValueSetEntry& entry : VI_V(m_entries) )
         {
             const NumericDynamicValueSetEntry& numeric_entry = assert_cast<const NumericDynamicValueSetEntry&>(entry);
+            double entry_max_value;
 
-            double entry_max_value = numeric_entry.from_value;
-
-            if( numeric_entry.to_value.has_value() && !IsSpecial(*numeric_entry.to_value) )
-                entry_max_value = *numeric_entry.to_value;
-
-            if( !IsSpecial(entry_max_value) )
+            if( numeric_entry.to_value.has_value() )
             {
-                if( entry_max_value > max_value || max_value == DEFAULT )
-                    max_value = entry_max_value;
+                // special values are not counted as min/max values
+                if( IsSpecial(*numeric_entry.to_value) )
+                    continue;
+
+                entry_max_value = *numeric_entry.to_value;
             }
+
+            else
+            {
+                entry_max_value = numeric_entry.from_value;
+            }
+
+            if( !max_value.has_value() || entry_max_value > *max_value)
+                max_value = entry_max_value;
         }
 
-        return max_value;
+        return max_value.value_or(DEFAULT);
     }
 
     bool IsValid(double value) const override
