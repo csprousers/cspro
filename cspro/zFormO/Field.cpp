@@ -34,7 +34,7 @@ void CDEField::BaseConstructorInit()
 
     m_bHidden           = false; // RHF Nov 22, 2002
 
-    m_sPlusTarget.Empty();
+    m_plusTarget.clear();
 
     m_bVerify = true;
     m_eValidationMethod = ValidationMethod::Validate;
@@ -302,7 +302,7 @@ void CDEField::operator=(const CDEField& field)
     m_bAutoIncrement    = field.m_bAutoIncrement;
     m_bUpperCase        = field.m_bUpperCase;
 
-    m_sPlusTarget   = field.m_sPlusTarget;
+    m_plusTarget = field.m_plusTarget;
 
     m_fieldLabelType = field.m_fieldLabelType;
 
@@ -496,7 +496,7 @@ bool CDEField::Build (CSpecFile& frmFile, bool bSilent /* = false */) {
         else if( csCmd.CompareNoCase(FRM_CMD_SKIPTO) == 0 )
         {
             if( !csArg.IsEmpty() )
-                SetPlusTarget(csArg);
+                SetPlusTarget(UTF8_TODO::GetUtf8(csArg));
         }
 
         else if( csCmd.CompareNoCase(FRM_CMD_PROTECTED) == 0 )
@@ -666,8 +666,8 @@ void CDEField::Save(CSpecFile& frmFile, bool bGridField) const
     if( GetValidationMethod() != ValidationMethod::Validate )
         frmFile.PutLine(FRM_CMD_VALIDATION_METHOD, GetValidationMethod() == ValidationMethod::ValidateWithConfirmation ? CSPRO_ARG_CONFIRM : CSPRO_ARG_NOCONFIRM);
 
-    if( !GetPlusTarget().IsEmpty() )
-        frmFile.PutLine(FRM_CMD_SKIPTO, GetPlusTarget());
+    if( !GetPlusTarget().empty() )
+        frmFile.PutLine(FRM_CMD_SKIPTO, UTF8_TODO::GetCString(GetPlusTarget()));
 
     if (IsUpperCase())
         frmFile.PutLine(FRM_CMD_UPPERCASE, CSPRO_ARG_YES);
@@ -726,7 +726,7 @@ void CDEField::serialize(Serializer& ar) // 20121114
 
         ar.SerializeEnum(m_eValidationMethod);
 
-        ar & m_sPlusTarget
+        ar & m_plusTarget
            & m_bProtected
            & m_bSequential
            & m_bMirror

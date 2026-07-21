@@ -141,8 +141,8 @@ public:
     void SetDictItem(const CDictItem* pDictItem) { m_pDictItem = pDictItem;}
     const CDictItem* GetDictItem() const         { return m_pDictItem; }
 
-    const CString& GetPlusTarget() const                 { return m_sPlusTarget; }
-    void           SetPlusTarget(const CString& sString) { m_sPlusTarget = sString; }
+    const std::string& GetPlusTarget() const    { return m_plusTarget; }
+    void SetPlusTarget(std::string plus_target) { m_plusTarget = std::move(plus_target); }
 
     bool        GetVerifyFlag() const { return m_bVerify;}
     void        SetVerifyFlag(bool bFlag) { m_bVerify = bFlag;}
@@ -222,7 +222,7 @@ private:
 
     unsigned int m_keyboardLayoutId;
 
-    CString m_sPlusTarget;  //"+"Key skip to target
+    std::string m_plusTarget; // "+" key skip to target
 
     PortableFont m_font;
 };

@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "FieldPropertiesDlg.h"
 #include "KeyboardInputDlg.h"
 #include <zUtilF/KeyboardLoader.h>
@@ -196,7 +196,7 @@ keep this around as an example of how to default enum type strings;
             int iPos = m_cmbFldSel.AddString(name);
             m_cmbFldSel.SetItemDataPtr(iPos, pBase);
 
-            if( m_pField->GetPlusTarget().CompareNoCase(name) == 0 )
+            if( SO::EqualsNoCase(m_pField->GetPlusTarget(), name) )
                 m_iCurSkipSel = iPos;
         };
 
@@ -241,12 +241,12 @@ void CFieldPropDlg::OnOK()
     if(iCurSel >= 0) {
         CDEItemBase* pBase = (CDEItemBase*)m_cmbFldSel.GetItemDataPtr(iCurSel);
         if(pBase) {
-            m_pField->SetPlusTarget(pBase->GetName());
+            m_pField->SetPlusTarget(UTF8_TODO::GetUtf8(pBase->GetName()));
         }
         else {
             CString sString;
             m_cmbFldSel.GetLBText(iCurSel, sString);
-            m_pField->SetPlusTarget(sString);
+            m_pField->SetPlusTarget(UTF8_TODO::GetUtf8(sString));
         }
     }
 

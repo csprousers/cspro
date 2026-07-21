@@ -633,7 +633,7 @@ CString CIntDriver::GetProperty(ParameterManager::Parameter parameter, std::set<
                 break;
 
             case ParameterManager::Parameter::Property_SkipTo:
-                property = pField->GetPlusTarget();
+                property = UTF8_TODO::GetCString(pField->GetPlusTarget());
                 break;
 
             case ParameterManager::Parameter::Property_UseUnicodeTextBox:
