@@ -1,4 +1,4 @@
-﻿//***************************************************************************
+//***************************************************************************
 //  File name: FrmChWnd.cpp
 //
 //  Description:
@@ -2187,8 +2187,9 @@ void CFormChildWnd::RunMultipleFieldPropertiesDialog(std::vector<CDEField*>* sel
 
                 else
                 {
-                    CaptureInfo capture_info = dlg.UseDefaultCaptureType() ? CaptureInfo::GetDefaultCaptureInfo(*pField->GetDictItem()) :
-                                                                                dlg.GetCaptureType();
+                    CaptureInfo capture_info = dlg.UseDefaultCaptureType()
+                        ? CaptureInfo::GetDefaultCaptureInfo(*pField->GetDictItem())
+                        : dlg.GetCaptureType();
 
                     if( !capture_info.IsSpecified() ||
                         CaptureInfo::IsCaptureTypePossible(*pField->GetDictItem(), capture_info.GetCaptureType()) )
@@ -2196,7 +2197,7 @@ void CFormChildWnd::RunMultipleFieldPropertiesDialog(std::vector<CDEField*>* sel
                         // only modify the capture info when it changed (so that any secondary settings like
                         // date formats are not overwritten)
                         if( pField->GetCaptureInfo().GetCaptureType() != capture_info.GetCaptureType() )
-                            pField->SetCaptureInfo(capture_info);
+                            pField->SetCaptureInfo(std::move(capture_info));
 
                         pField->SetUseUnicodeTextBox(false);
                         pField->SetMultiLineOption(false);

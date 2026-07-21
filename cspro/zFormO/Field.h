@@ -86,8 +86,8 @@ public:
     unsigned int GetKeyboardLayoutId() const    { return m_keyboardLayoutId; }
     void SetKeyboardLayoutId(unsigned int klid) { m_keyboardLayoutId = klid; }
 
-    const CaptureInfo& GetCaptureInfo() const            { return m_captureInfo; }
-    void SetCaptureInfo(const CaptureInfo& capture_info) { m_captureInfo = capture_info; }
+    const CaptureInfo& GetCaptureInfo() const     { return m_captureInfo; }
+    void SetCaptureInfo(CaptureInfo capture_info) { m_captureInfo = std::move(capture_info); }
 
     void SetupCaptureInfo(const CDictItem& dict_item, const DragOptions& drag_options);
 

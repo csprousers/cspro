@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 //---------------------------------------------------------------------------
 //  File name: VarT.h
@@ -422,7 +422,7 @@ public:
 
     // capture information
     const CaptureInfo& GetCaptureInfo() const { return m_captureInfo; }
-    void SetCaptureInfo(const CaptureInfo& capture_info);
+    void SetCaptureInfo(CaptureInfo capture_info);
     const CaptureInfo& GetEvaluatedCaptureInfo() const;
 
     bool GetShowQuestionText() const    { return m_showQuestionText; }

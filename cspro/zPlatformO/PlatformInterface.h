@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #ifndef WIN_DESKTOP
 
@@ -62,8 +62,8 @@ public:
     virtual void EngineAbort() = 0;
     virtual bool ExecSystem(const std::string& command, bool wait) = 0;
     virtual bool ExecPff(const std::string& pff_file_path) = 0;
-    virtual CString GetProperty(const CString& parameter) = 0;
-    virtual void SetProperty(const CString& parameter, const CString& value) = 0;
+    virtual std::string GetProperty(const std::string& parameter) = 0;
+    virtual void SetProperty(const std::string& parameter, const std::string& value) = 0;
     virtual void ShowProgressDialog(const std::string& message) = 0;
     virtual void HideProgressDialog() = 0;
     virtual bool UpdateProgressDialog(int progressPercent, const std::string* message) = 0;

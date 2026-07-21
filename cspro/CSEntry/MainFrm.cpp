@@ -4889,18 +4889,18 @@ LRESULT CMainFrame::OnChangeInputRepository(WPARAM /*wParam*/, LPARAM /*lParam*/
 LRESULT CMainFrame::OnWindowTitleQuery(const WPARAM wParam, const LPARAM lParam)
 {
     const bool get_title = static_cast<bool>(wParam);
-    CString& window_title = *reinterpret_cast<CString*>(lParam);
+    std::string& window_title = *reinterpret_cast<std::string*>(lParam);
 
-    CEntryrunDoc* pRunDoc = GetDocument();
+    CEntryrunDoc* const pRunDoc = GetDocument();
 
     if( get_title )
     {
-        window_title = UTF8_TODO::GetCString(pRunDoc->GetWindowTitle());
+        window_title = pRunDoc->GetWindowTitle();
     }
 
     else
     {
-        pRunDoc->SetWindowTitle(UTF8_TODO::GetUtf8(window_title));
+        pRunDoc->SetWindowTitle(window_title);
         SetWindowText(TC::ToWide(pRunDoc->MakeTitle()).c_str());
     }
 

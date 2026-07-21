@@ -735,11 +735,12 @@ public:
     double  exdirlist(int program_index);
 
 private:
-    ParameterManager::Parameter GetSetPropertyParser(int iExpr, std::set<int>* symbol_set, std::variant<double, CString>* out_value = nullptr);
+    ParameterManager::Parameter GetSetPropertyParser(int program_index, std::set<int>& symbol_set,
+                                                     std::variant<double, std::string>* out_value = nullptr);
 public:
-    CString GetProperty(ParameterManager::Parameter parameter, std::set<int>* symbol_set = nullptr);
-    double  exgetproperty(int iExpr);
-    double  exsetproperty(int iExpr);
+    std::string GetProperty(ParameterManager::Parameter parameter, std::set<int>* symbol_set = nullptr);
+    double ex_getproperty(int program_index);
+    double ex_setproperty(int program_index);
     double ex_protect(int program_index);
 
     double  ExExecSystem(int iExpr);

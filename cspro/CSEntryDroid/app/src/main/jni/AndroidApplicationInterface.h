@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zPlatformO/PlatformInterface.h>
 #include <zPlatformO/PortableMFC.h>
@@ -50,8 +50,8 @@ public:
     void EngineAbort() override;
     bool ExecSystem(const std::string& command, bool wait) override;
     bool ExecPff(const std::string& pff_file_path) override;
-    CString GetProperty(const CString& parameter) override;
-    void SetProperty(const CString& parameter, const CString& value) override;
+    std::string GetProperty(const std::string& parameter) override;
+    void SetProperty(const std::string& parameter, const std::string& value) override;
     void ShowProgressDialog(const std::string& message) override;
     void HideProgressDialog() override;
     bool UpdateProgressDialog(int progressPercent, const std::string* message) override;

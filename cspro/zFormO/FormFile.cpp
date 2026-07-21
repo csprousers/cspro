@@ -3755,13 +3755,16 @@ bool CDEFormFile::CheckFieldAttributes(CDEField* pSource, CString& sMsg)
 
     catch( const CaptureInfo::ValidationException& exception )
     {
-        CaptureInfo new_capture_info = pSource->GetCaptureInfo().MakeValid(*pDictItem,
-            pDictItem->GetFirstValueSetOrNull(), false);
+        CaptureInfo new_capture_info = pSource->GetCaptureInfo().MakeValid(
+            *pDictItem,
+            pDictItem->GetFirstValueSetOrNull(),
+            false // get_capture_type_supported_on_current_platform
+        );
 
         sMsg.AppendFormat(_T("%s: %s\nThe capture type has been reset to: %s.\n"), pSource->GetName().GetString(),
                           UTF8_TODO::GetWide(exception.what()).c_str(), UTF8_TODO::GetWide(new_capture_info.GetDescription()).c_str());
 
-        pSource->SetCaptureInfo(new_capture_info);
+        pSource->SetCaptureInfo(std::move(new_capture_info));
     }
 
     if( pSource->IsMirror() && pSource->GetCaptureInfo() != CaptureInfo::GetBaseCaptureType(*pDictItem) )

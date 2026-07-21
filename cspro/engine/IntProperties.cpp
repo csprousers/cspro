@@ -18,29 +18,31 @@ namespace
 {
     struct InvalidValueException : public CSProException
     {
-        InvalidValueException(const std::variant<double, CString>& value_, bool type_error = false)
+        InvalidValueException(const std::variant<double, std::string>& value_, const bool type_error = false)
             :   CSProException("Invalid value"),
                 value(value_),
                 error_number(type_error ? 1109 : 1107)
         {
         }
 
-        std::variant<double, CString> value;
+        std::variant<double, std::string> value;
         int error_number;
     };
 
-    CString ValueToString(const std::variant<double, CString>& value)
+    std::string ValueToString(const std::variant<double, std::string>& value)
     {
-        return std::holds_alternative<double>(value) ? UTF8_TODO::GetCString(DoubleToString(std::get<double>(value))) :
-                                                       std::get<CString>(value);
+        if( std::holds_alternative<double>(value) )
+            return DoubleToString(std::get<double>(value));
+
+        return std::get<std::string>(value);
     }
 }
 
 
-ParameterManager::Parameter CIntDriver::GetSetPropertyParser(int iExpr, std::set<int>* symbol_set,
-                                                             std::variant<double, CString>* out_value/* = nullptr*/)
+ParameterManager::Parameter CIntDriver::GetSetPropertyParser(const int program_index, std::set<int>& symbol_set,
+                                                             std::variant<double, std::string>* const out_value/* = nullptr*/)
 {
-    const auto& various_node = GetNode<FNVARIOUS_NODE>(iExpr);
+    const auto& various_node = GetNode<FNVARIOUS_NODE>(program_index);
     const bool set_function = ( various_node.fn_code == FunctionCode::FNSETPROPERTY_CODE );
     const int* const arguments = various_node.fn_expr;
     size_t argument_counter = set_function ? 3 : 1;
@@ -53,17 +55,11 @@ ParameterManager::Parameter CIntDriver::GetSetPropertyParser(int iExpr, std::set
     {
         ASSERT(out_value != nullptr);
 
-        if( arguments[argument_counter - 1] == (int)DataType::String )
-        {
-            *out_value = EvalAlphaExprCS(arguments[argument_counter]);
-            std::get<CString>(*out_value).Trim();
-        }
+        const DataType data_type = static_cast<DataType>(arguments[argument_counter - 1]);
+        *out_value = EvaluateVariant<std::string>(data_type, arguments[argument_counter]);
 
-        else
-        {
-            ASSERT(arguments[argument_counter - 1] == (int)DataType::Numeric);
-            *out_value = evalexpr(arguments[argument_counter]);
-        }
+        if( data_type == DataType::String )
+            SO::MakeTrim(std::get<std::string>(*out_value));
 
         argument_counter -= 2;
     }
@@ -93,7 +89,7 @@ ParameterManager::Parameter CIntDriver::GetSetPropertyParser(int iExpr, std::set
     if( argument_counter == 0 )
         symbol = NPT(arguments[0]);
 
-    ParameterManager::ParameterArgument additional_argument = ParameterManager::GetAdditionalArgument(parameter);
+    const ParameterManager::ParameterArgument additional_argument = ParameterManager::GetAdditionalArgument(parameter);
 
     if( bool application_property = ( additional_argument == ParameterManager::ParameterArgument::ApplicationProperty );
         application_property || additional_argument == ParameterManager::ParameterArgument::SystemProperty )
@@ -114,7 +110,7 @@ ParameterManager::Parameter CIntDriver::GetSetPropertyParser(int iExpr, std::set
             throw std::exception();
         }
 
-        bool item_property = ( additional_argument == ParameterManager::ParameterArgument::ItemProperty );
+        const bool item_property = ( additional_argument == ParameterManager::ParameterArgument::ItemProperty );
 
         auto get_set_item_populator = [&](VART& vart)
         {
@@ -122,7 +118,7 @@ ParameterManager::Parameter CIntDriver::GetSetPropertyParser(int iExpr, std::set
             {
                 if( item_property || GetCDEFieldFromVART(&vart) != nullptr )
                 {
-                    symbol_set->insert(vart.GetSymbolIndex());
+                    symbol_set.insert(vart.GetSymbolIndex());
                     return 1;
                 }
             }
@@ -132,7 +128,7 @@ ParameterManager::Parameter CIntDriver::GetSetPropertyParser(int iExpr, std::set
 
         ForeachVariable(GetSymbolTable(), *symbol, get_set_item_populator);
 
-        if( !set_function && symbol_set->size() != 1 )
+        if( !set_function && symbol_set.size() != 1 )
         {
             issaerror(MessageType::Error, item_property ? 1103 : 1104, property->c_str());
             throw std::exception();
@@ -143,25 +139,26 @@ ParameterManager::Parameter CIntDriver::GetSetPropertyParser(int iExpr, std::set
 }
 
 
-CString PropertyValueToString(bool value)
+std::string PropertyValueToString(const bool value)
 {
-    return value ? CSPRO_ARG_YES :
-                   CSPRO_ARG_NO;
+    return value ? UTF8_TODO::GetUtf8(CSPRO_ARG_YES) :
+                   UTF8_TODO::GetUtf8(CSPRO_ARG_NO);
 }
 
-bool StringToPropertyValueBool(const std::variant<double, CString>& value)
+
+bool StringToPropertyValueBool(const std::variant<double, std::string>& value)
 {
     if( std::holds_alternative<double>(value) )
     {
         return ( std::get<double>(value) != 0 );
     }
 
-    else if( std::get<CString>(value).CompareNoCase(CSPRO_ARG_YES) == 0 )
+    else if( SO::EqualsNoCase(std::get<std::string>(value), CSPRO_ARG_YES) )
     {
         return true;
     }
 
-    else if( std::get<CString>(value).CompareNoCase(CSPRO_ARG_NO) == 0 )
+    else if( SO::EqualsNoCase(std::get<std::string>(value), CSPRO_ARG_NO) )
     {
         return false;
     }
@@ -173,31 +170,41 @@ bool StringToPropertyValueBool(const std::variant<double, CString>& value)
 }
 
 
-CString PropertyValueToString(int value)
+std::string PropertyValueToString(const int value)
 {
-    return UTF8_TODO::GetCString(IntToString(value));
+    return IntToString(value);
 }
 
-int StringToPropertyValueInt(const std::variant<double, CString>& value)
+
+int StringToPropertyValueInt(const std::variant<double, std::string>& value)
 {
     if( std::holds_alternative<double>(value) )
     {
-        return (int)std::get<double>(value);
+        return static_cast<int>(std::get<double>(value));
     }
 
     else
     {
-        return _ttoi(std::get<CString>(value));
+        try
+        {
+            return std::stoi(std::get<std::string>(value));
+        }
+
+        catch(...)
+        {
+            throw InvalidValueException(value);
+        }
     }
 }
 
 
-CString PropertyValueToString(unsigned int value)
+std::string PropertyValueToString(const unsigned int value)
 {
-    return UTF8_TODO::GetCString(IntToString(value));
+    return IntToString(value);
 }
 
-unsigned int StringToPropertyValueUnsignedInt(const std::variant<double, CString>& value)
+
+unsigned int StringToPropertyValueUnsignedInt(const std::variant<double, std::string>& value)
 {
     if( std::holds_alternative<double>(value) )
     {
@@ -206,46 +213,57 @@ unsigned int StringToPropertyValueUnsignedInt(const std::variant<double, CString
 
     else
     {
-        return _tcstoul(std::get<CString>(value), nullptr, 10);
+        try
+        {
+            return std::stoul(std::get<std::string>(value));
+        }
+
+        catch(...)
+        {
+            throw InvalidValueException(value);
+        }
     }
 }
 
 
-const int PropertyForceOutOfRangeFlags = CANENTER_NOTAPPL | CANENTER_OUTOFRANGE;
-const int PropertyValidationMethodFlags = PropertyForceOutOfRangeFlags | CANENTER_SET_VIA_VALIDATION_METHOD;
-const int PropertyValidationMethodNoConfirmFlags =  CANENTER_NOTAPPL_NOCONFIRM | CANENTER_OUTOFRANGE_NOCONFIRM;
+constexpr int PropertyForceOutOfRangeFlags = CANENTER_NOTAPPL | CANENTER_OUTOFRANGE;
+constexpr int PropertyValidationMethodFlags = PropertyForceOutOfRangeFlags | CANENTER_SET_VIA_VALIDATION_METHOD;
+constexpr int PropertyValidationMethodNoConfirmFlags =  CANENTER_NOTAPPL_NOCONFIRM | CANENTER_OUTOFRANGE_NOCONFIRM;
 
-const TCHAR* const ARG_DEFAULT = _T("Default");
-const TCHAR* const ARG_CUSTOM  = _T("Custom");
+constexpr const char* const ARG_DEFAULT = "Default";
+constexpr const char* const ARG_CUSTOM  = "Custom";
 
-CString PropertyValueConfirmToString(TCHAR iBehavior, TCHAR iOn, TCHAR iOnNoConfirm)
+
+std::string PropertyValueConfirmToString(const TCHAR iBehavior, const TCHAR iOn, const TCHAR iOnNoConfirm)
 {
     if( ( iBehavior & iOn ) != 0 )
     {
-        return ( ( iBehavior & iOnNoConfirm ) != 0 ) ? CSPRO_ARG_NOCONFIRM : CSPRO_ARG_CONFIRM;
+        return ( ( iBehavior & iOnNoConfirm ) != 0 ) ? UTF8_TODO::GetUtf8(CSPRO_ARG_NOCONFIRM) :
+                                                       UTF8_TODO::GetUtf8(CSPRO_ARG_CONFIRM);
     }
 
     else
     {
-        return CSPRO_ARG_NO;
+        return UTF8_TODO::GetUtf8(CSPRO_ARG_NO);
     }
 }
 
-TCHAR StringToPropertyValueConfirm(const CString& value, TCHAR iBehavior, TCHAR iOn, TCHAR iOnNoConfirm)
+
+TCHAR StringToPropertyValueConfirm(const std::string& value, const TCHAR iBehavior, const TCHAR iOn, const TCHAR iOnNoConfirm)
 {
     TCHAR new_behavior;
 
-    if( value.CompareNoCase(CSPRO_ARG_CONFIRM) == 0 )
+    if( SO::EqualsNoCase(value, CSPRO_ARG_CONFIRM) )
     {
         new_behavior = ( iBehavior | iOn & ~iOnNoConfirm );
     }
 
-    else if( value.CompareNoCase(CSPRO_ARG_NOCONFIRM) == 0 )
+    else if( SO::EqualsNoCase(value, CSPRO_ARG_NOCONFIRM) )
     {
         new_behavior = ( iBehavior | iOn | iOnNoConfirm );
     }
 
-    else if( value.CompareNoCase(CSPRO_ARG_NO) == 0 )
+    else if( SO::EqualsNoCase(value, CSPRO_ARG_NO) )
     {
         new_behavior = ( iBehavior & ~iOn );
     }
@@ -258,16 +276,17 @@ TCHAR StringToPropertyValueConfirm(const CString& value, TCHAR iBehavior, TCHAR 
     return ( new_behavior & ~CANENTER_SET_VIA_VALIDATION_METHOD );
 }
 
-CString PropertyValueValidationMethodToString(TCHAR iBehavior)
+
+std::string PropertyValueValidationMethodToString(const TCHAR iBehavior)
 {
     // some checks when both are turned on
     if( ( iBehavior & PropertyValidationMethodFlags ) == PropertyValidationMethodFlags )
     {
         if( ( iBehavior & PropertyValidationMethodNoConfirmFlags ) == PropertyValidationMethodNoConfirmFlags  )
-            return CSPRO_ARG_NOCONFIRM;
+            return UTF8_TODO::GetUtf8(CSPRO_ARG_NOCONFIRM);
 
         if( ( iBehavior & PropertyValidationMethodNoConfirmFlags ) == 0 )
-            return CSPRO_ARG_CONFIRM;
+            return UTF8_TODO::GetUtf8(CSPRO_ARG_CONFIRM);
     }
 
     // 'Default' if none are turned on
@@ -278,19 +297,20 @@ CString PropertyValueValidationMethodToString(TCHAR iBehavior)
     return ARG_CUSTOM;
 }
 
-TCHAR StringToPropertyValueValidationMethod(const CString& value, TCHAR iBehavior)
+
+TCHAR StringToPropertyValueValidationMethod(const std::string& value, const TCHAR iBehavior)
 {
-    if( value.CompareNoCase(CSPRO_ARG_NOCONFIRM) == 0 )
+    if( SO::EqualsNoCase(value, CSPRO_ARG_NOCONFIRM) )
     {
         return ( iBehavior | PropertyValidationMethodFlags | PropertyValidationMethodNoConfirmFlags );
     }
 
-    else if( value.CompareNoCase(CSPRO_ARG_CONFIRM) == 0 )
+    else if( SO::EqualsNoCase(value, CSPRO_ARG_CONFIRM) )
     {
         return ( ( iBehavior | PropertyValidationMethodFlags ) & ~PropertyValidationMethodNoConfirmFlags );
     }
 
-    else if( value.CompareNoCase(ARG_DEFAULT) == 0 )
+    else if( SO::EqualsNoCase(value, ARG_DEFAULT) )
     {
         return ( iBehavior & ~( PropertyValidationMethodFlags | PropertyValidationMethodNoConfirmFlags ) );
     }
@@ -302,14 +322,15 @@ TCHAR StringToPropertyValueValidationMethod(const CString& value, TCHAR iBehavio
 }
 
 
-CString PropertyValueToString(CaptureType capture_type)
+std::string PropertyValueToString(const CaptureType capture_type)
 {
     return CaptureInfo::GetCaptureTypeName(capture_type);
 }
 
-CaptureType StringToPropertyValueCaptureType(const CString& value)
+
+CaptureType StringToPropertyValueCaptureType(const std::string& value)
 {
-    std::optional<CaptureType> capture_type = CaptureInfo::GetCaptureTypeFromSerializableName(UTF8_TODO::GetUtf8(value));
+    const std::optional<CaptureType> capture_type = CaptureInfo::GetCaptureTypeFromSerializableName(value);
 
     if( capture_type.has_value() )
     {
@@ -323,43 +344,43 @@ CaptureType StringToPropertyValueCaptureType(const CString& value)
 }
 
 
-CString PropertyValueToString(CaseTreeType case_tree_type)
+std::string PropertyValueToString(const CaseTreeType case_tree_type)
 {
     switch( case_tree_type )
     {
-        case CaseTreeType::Always:      return _T("Always");
-        case CaseTreeType::MobileOnly:  return _T("Mobile");
-        case CaseTreeType::DesktopOnly: return _T("Desktop");
+        case CaseTreeType::Always:      return "Always";
+        case CaseTreeType::MobileOnly:  return "Mobile";
+        case CaseTreeType::DesktopOnly: return "Desktop";
         case CaseTreeType::Never:
-        default:                        return _T("Never");
+        default:                        return "Never";
     }
 }
 
 
-CString PropertyValueToString(ParadataProperties::CollectionType collection_type)
+std::string PropertyValueToString(const ParadataProperties::CollectionType collection_type)
 {
-    return ( collection_type == ParadataProperties::CollectionType::AllEvents )  ? _T("AllEvents") :
-           ( collection_type == ParadataProperties::CollectionType::SomeEvents ) ? _T("SomeEvents") :
-                                                                                   CSPRO_ARG_NO;
+    return ( collection_type == ParadataProperties::CollectionType::AllEvents )  ? "AllEvents" :
+           ( collection_type == ParadataProperties::CollectionType::SomeEvents ) ? "SomeEvents" :
+                                                                                   UTF8_TODO::GetUtf8(CSPRO_ARG_NO);
 }
 
 
-template<typename T> CString PropertyValueToString(T); // this will prevent any automatic casts
+template<typename T> std::string PropertyValueToString(T); // this will prevent any automatic casts
 
 
-CString CIntDriver::GetProperty(ParameterManager::Parameter parameter, std::set<int>* symbol_set/* = nullptr*/)
+std::string CIntDriver::GetProperty(const ParameterManager::Parameter parameter, std::set<int>* const symbol_set/* = nullptr*/)
 {
-    CString property;
+    std::string property;
 
-    ParameterManager::ParameterArgument additional_argument = ParameterManager::GetAdditionalArgument(parameter);
+    const ParameterManager::ParameterArgument additional_argument = ParameterManager::GetAdditionalArgument(parameter);
 
     // application properties
     if( additional_argument == ParameterManager::ParameterArgument::ApplicationProperty )
     {
         ASSERT(symbol_set == nullptr || symbol_set->size() == 0);
 
-        const Application* application = m_pEngineDriver->m_pPifFile->GetApplication();
-        const auto& application_properties = application->GetApplicationProperties();
+        const Application* const application = m_pEngineDriver->m_pPifFile->GetApplication();
+        const ApplicationProperties& application_properties = application->GetApplicationProperties();
 
         switch( parameter )
         {
@@ -439,13 +460,13 @@ CString CIntDriver::GetProperty(ParameterManager::Parameter parameter, std::set<
             {
                 if( application->GetEngineAppType() == EngineAppType::Entry )
                 {
-                    property = _T("DataEntry");
+                    property = "DataEntry";
                 }
 
                 else
                 {
-                    property = UTF8_TODO::GetCString(ToString(application->GetEngineAppType()));
-                    property.SetAt(0, std::towupper(property[0]));
+                    property = ToString(application->GetEngineAppType());
+                    property.front() = static_cast<char>(std::toupper(property.front()));
                 }
 
                 break;
@@ -500,7 +521,7 @@ CString CIntDriver::GetProperty(ParameterManager::Parameter parameter, std::set<
                 if( parameter == ParameterManager::Parameter::Property_WindowTitle )
                     WindowsDesktopMessage::Send(WM_IMSA_WINDOW_TITLE_QUERY, true, &property);
 #else
-                CString parameter_name = GetDisplayName(parameter);
+                const std::string parameter_name = GetDisplayName(parameter);
                 property = PlatformInterface::GetInstance()->GetApplicationInterface()->GetProperty(parameter_name);
 #endif
                 break;
@@ -519,8 +540,8 @@ CString CIntDriver::GetProperty(ParameterManager::Parameter parameter, std::set<
     {
         ASSERT(symbol_set != nullptr && symbol_set->size() == 1);
 
-        VART* pVarT = VPT(*(symbol_set->begin()));
-        const CDictItem* pDictItem = pVarT->GetDictItem();
+        VART* const pVarT = VPT(*(symbol_set->begin()));
+        const CDictItem* const pDictItem = pVarT->GetDictItem();
         CDEField* pField = nullptr;
 
         if( additional_argument == ParameterManager::ParameterArgument::FieldProperty )
@@ -544,11 +565,11 @@ CString CIntDriver::GetProperty(ParameterManager::Parameter parameter, std::set<
                 break;
 
             case ParameterManager::Parameter::Property_CapturePosX:
-                property = PropertyValueToString((int)pVarT->GetCapturePos().x);
+                property = PropertyValueToString(static_cast<int>(pVarT->GetCapturePos().x));
                 break;
 
             case ParameterManager::Parameter::Property_CapturePosY:
-                property = PropertyValueToString((int)pVarT->GetCapturePos().y);
+                property = PropertyValueToString(static_cast<int>(pVarT->GetCapturePos().y));
                 break;
 
             case ParameterManager::Parameter::Property_DataCaptureType:
@@ -563,7 +584,7 @@ CString CIntDriver::GetProperty(ParameterManager::Parameter parameter, std::set<
             {
                 // use the evaluated capture info
                 if( pVarT->GetEvaluatedCaptureInfo().GetCaptureType() == CaptureType::Date )
-                    property = UTF8_TODO::GetCString(pVarT->GetEvaluatedCaptureInfo().GetExtended<DateCaptureInfo>().GetFormat());
+                    property = pVarT->GetEvaluatedCaptureInfo().GetExtended<DateCaptureInfo>().GetFormat();
 
                 break;
             }
@@ -613,7 +634,7 @@ CString CIntDriver::GetProperty(ParameterManager::Parameter parameter, std::set<
                 break;
 
             case ParameterManager::Parameter::Property_Decimal:
-                property = PropertyValueToString((int)pDictItem->GetDecimal());
+                property = PropertyValueToString(static_cast<int>(pDictItem->GetDecimal()));
                 break;
 
             case ParameterManager::Parameter::Property_DecimalChar:
@@ -621,7 +642,7 @@ CString CIntDriver::GetProperty(ParameterManager::Parameter parameter, std::set<
                 break;
 
             case ParameterManager::Parameter::Property_Len:
-                property = PropertyValueToString((int)pDictItem->GetLen());
+                property = PropertyValueToString(static_cast<int>(pDictItem->GetLen()));
                 break;
 
             case ParameterManager::Parameter::Property_Persistent:
@@ -633,7 +654,7 @@ CString CIntDriver::GetProperty(ParameterManager::Parameter parameter, std::set<
                 break;
 
             case ParameterManager::Parameter::Property_SkipTo:
-                property = UTF8_TODO::GetCString(pField->GetPlusTarget());
+                property = pField->GetPlusTarget();
                 break;
 
             case ParameterManager::Parameter::Property_UseUnicodeTextBox:
@@ -663,11 +684,11 @@ CString CIntDriver::GetProperty(ParameterManager::Parameter parameter, std::set<
         switch( parameter )
         {
             case ParameterManager::Parameter::Property_MaxDisplayWidth:
-                property = PropertyValueToString((int)Screen::GetMaxDisplayWidth());
+                property = PropertyValueToString(static_cast<int>(Screen::GetMaxDisplayWidth()));
                 break;
 
             case ParameterManager::Parameter::Property_MaxDisplayHeight:
-                property = PropertyValueToString((int)Screen::GetMaxDisplayHeight());
+                property = PropertyValueToString(static_cast<int>(Screen::GetMaxDisplayHeight()));
                 break;
 
             default:
@@ -680,55 +701,51 @@ CString CIntDriver::GetProperty(ParameterManager::Parameter parameter, std::set<
 }
 
 
-double CIntDriver::exgetproperty(int iExpr)
+double CIntDriver::ex_getproperty(const int program_index)
 {
-    CString value;
-
     try
     {
         std::set<int> symbol_set;
-        ParameterManager::Parameter parameter = GetSetPropertyParser(iExpr, &symbol_set);
-        value = GetProperty(parameter, &symbol_set);
+        const ParameterManager::Parameter parameter = GetSetPropertyParser(program_index, symbol_set);
+        return AssignString(GetProperty(parameter, &symbol_set));
     }
 
     catch(...)
     {
-        value = _T("<invalid property>");
+        return AssignString("<invalid property>");
     }
-
-    return AssignAlphaValue(value);
 }
 
 
-double CIntDriver::exsetproperty(int iExpr)
+double CIntDriver::ex_setproperty(const int program_index)
 {
-    double properties_modified = 0;
+    std::optional<size_t> properties_modified = 0;
     bool refresh_screen = false;
-    CString parameter_name;
+    std::string parameter_name;
 
     try
     {
         std::set<int> symbol_set;
-        std::variant<double, CString> value;
-        ParameterManager::Parameter parameter = GetSetPropertyParser(iExpr, &symbol_set, &value);
+        std::variant<double, std::string> value;
+        const ParameterManager::Parameter parameter = GetSetPropertyParser(program_index, symbol_set, &value);
 
-        auto get_string_value = [&]() -> const CString&
+        auto get_string_value = [&]() -> const std::string&
         {
-            if( !std::holds_alternative<CString>(value) )
+            if( !std::holds_alternative<std::string>(value) )
                 throw InvalidValueException(value, true);
 
-            return std::get<CString>(value);
+            return std::get<std::string>(value);
         };
 
         parameter_name = ParameterManager::GetDisplayName(parameter);
-        ParameterManager::ParameterArgument additional_argument = ParameterManager::GetAdditionalArgument(parameter);
+        const ParameterManager::ParameterArgument additional_argument = ParameterManager::GetAdditionalArgument(parameter);
 
         if( additional_argument == ParameterManager::ParameterArgument::ApplicationProperty )
         {
             ASSERT(symbol_set.empty());
 
-            Application* application = m_pEngineDriver->m_pPifFile->GetApplication();
-            auto& application_properties = application->GetApplicationProperties();
+            Application* const application = m_pEngineDriver->m_pPifFile->GetApplication();
+            ApplicationProperties& application_properties = application->GetApplicationProperties();
 
             properties_modified = 1;
 
@@ -812,20 +829,21 @@ double CIntDriver::exsetproperty(int iExpr)
                 case ParameterManager::Parameter::Property_ShowSkippedFields:
                 {
                     // make sure the value is valid
-                    bool boolean_value = StringToPropertyValueBool(value);
+                    const bool boolean_value = StringToPropertyValueBool(value);
 #ifdef WIN_DESKTOP
                     UNREFERENCED_PARAMETER(boolean_value);
                     properties_modified = 0;
 #else
                     PlatformInterface::GetInstance()->GetApplicationInterface()->SetProperty(
-                        parameter_name, PropertyValueToString(boolean_value));
+                        parameter_name, PropertyValueToString(boolean_value)
+                    );
 #endif
                     break;
                 }
 
                 case ParameterManager::Parameter::Property_WindowTitle:
                 {
-                    CString window_title = ValueToString(value);
+                    const std::string window_title = ValueToString(value);
 #ifdef WIN_DESKTOP
                     WindowsDesktopMessage::Send(WM_IMSA_WINDOW_TITLE_QUERY, false, &window_title);
 #else
@@ -841,7 +859,11 @@ double CIntDriver::exsetproperty(int iExpr)
 
             if( properties_modified == 1 && Paradata::Logger::IsOpen() )
             {
-                m_paradataDriver->RegisterAndLogEvent(std::make_unique<Paradata::PropertyEvent>(UTF8_TODO::GetUtf8(parameter_name), UTF8_TODO::GetUtf8(ValueToString(value)), true));
+                m_paradataDriver->RegisterAndLogEvent(std::make_unique<Paradata::PropertyEvent>(
+                    parameter_name,
+                    ValueToString(value),
+                    true
+                ));
             }
         }
 
@@ -850,9 +872,9 @@ double CIntDriver::exsetproperty(int iExpr)
         else if( additional_argument == ParameterManager::ParameterArgument::ItemProperty ||
                  additional_argument == ParameterManager::ParameterArgument::FieldProperty )
         {
-            for( const auto& symbol_index : symbol_set )
+            for( const int symbol_index : symbol_set )
             {
-                VART* pVarT = VPT(symbol_index);
+                VART* const pVarT = VPT(symbol_index);
                 CDEField* pField = nullptr;
 
                 if( additional_argument == ParameterManager::ParameterArgument::FieldProperty )
@@ -891,15 +913,15 @@ double CIntDriver::exsetproperty(int iExpr)
                     case ParameterManager::Parameter::Property_DataCaptureType:
                     case ParameterManager::Parameter::Property_CaptureType:
                     {
-                        CaptureType new_capture_type = StringToPropertyValueCaptureType(get_string_value());
-                        CaptureInfo new_capture_info = CaptureInfo(new_capture_type);
+                        const CaptureType new_capture_type = StringToPropertyValueCaptureType(get_string_value());
+                        const CaptureInfo new_capture_info = CaptureInfo(new_capture_type);
                         CaptureInfo valid_capture_info = new_capture_info.MakeValid(*pVarT->GetDictItem(), pVarT->GetCurrentDictValueSet());
 
                         if( valid_capture_info.GetCaptureType() == new_capture_type )
                         {
                             // only change the capture type if it is different (so type-specific settings like date formats aren't lost)
                             if( pVarT->GetCaptureInfo().GetCaptureType() != new_capture_type )
-                                pVarT->SetCaptureInfo(valid_capture_info);
+                                pVarT->SetCaptureInfo(std::move(valid_capture_info));
                         }
 
                         else
@@ -912,27 +934,24 @@ double CIntDriver::exsetproperty(int iExpr)
 
                     case ParameterManager::Parameter::Property_CaptureDateFormat:
                     {
-                        if( pVarT->GetCaptureInfo().GetCaptureType() == CaptureType::Date )
+                        success = ( pVarT->GetCaptureInfo().GetCaptureType() == CaptureType::Date );
+
+                        if( success )
                         {
                             CaptureInfo new_capture_info = pVarT->GetCaptureInfo();
-                            new_capture_info.GetExtended<DateCaptureInfo>().SetFormat(UTF8_TODO::GetUtf8(get_string_value()));
+                            new_capture_info.GetExtended<DateCaptureInfo>().SetFormat(get_string_value());
 
-                            CaptureInfo valid_capture_info = new_capture_info.MakeValid(*pVarT->GetDictItem(), pVarT->GetCurrentDictValueSet());
+                            const CaptureInfo valid_capture_info = new_capture_info.MakeValid(*pVarT->GetDictItem(), pVarT->GetCurrentDictValueSet());
 
                             if( new_capture_info == valid_capture_info )
                             {
-                                pVarT->SetCaptureInfo(new_capture_info);
+                                pVarT->SetCaptureInfo(std::move(new_capture_info));
                             }
 
                             else
                             {
                                 success = false;
                             }
-                        }
-
-                        else
-                        {
-                            success = false;
                         }
 
                         break;
@@ -965,9 +984,9 @@ double CIntDriver::exsetproperty(int iExpr)
 
                     case ParameterManager::Parameter::Property_Protected:
                     {
-                        bool bProtected = StringToPropertyValueBool(value);
-                        pField->IsProtected(bProtected);
-                        pVarT->SetBehavior(bProtected ? AsProtected : pField->IsEnterKeyRequired() ? AsEnter : AsAutoSkip);
+                        const bool protect = StringToPropertyValueBool(value);
+                        pField->IsProtected(protect);
+                        pVarT->SetBehavior(protect ? AsProtected : pField->IsEnterKeyRequired() ? AsEnter : AsAutoSkip);
                         refresh_screen = true;
                         break;
                     }
@@ -1008,12 +1027,16 @@ double CIntDriver::exsetproperty(int iExpr)
 
                 if( success )
                 {
-                    ++properties_modified;
+                    ++*properties_modified;
 
                     if( Paradata::Logger::IsOpen() )
                     {
-                        m_paradataDriver->RegisterAndLogEvent(std::make_unique<Paradata::PropertyEvent>(UTF8_TODO::GetUtf8(parameter_name), UTF8_TODO::GetUtf8(ValueToString(value)), true,
-                                                                                                        m_paradataDriver->CreateObject(*pVarT)));
+                        m_paradataDriver->RegisterAndLogEvent(std::make_unique<Paradata::PropertyEvent>(
+                            parameter_name,
+                            ValueToString(value),
+                            true,
+                            m_paradataDriver->CreateObject(*pVarT)
+                        ));
                     }
                 }
             }
@@ -1030,19 +1053,22 @@ double CIntDriver::exsetproperty(int iExpr)
 
     catch( const InvalidValueException& exception ) // an invalid value
     {
-        issaerror(MessageType::Error, exception.error_number, UTF8_TODO::GetUtf8(parameter_name).c_str(), UTF8_TODO::GetUtf8(ValueToString(exception.value)).c_str());
-        properties_modified = DEFAULT;
+        issaerror(MessageType::Error, exception.error_number, parameter_name.c_str(), ValueToString(exception.value).c_str());
+        properties_modified.reset();
     }
 
     catch(...)
     {
-        properties_modified = DEFAULT;
+        properties_modified.reset();
     }
 
     if( refresh_screen )
         frm_capimode(0, 1);
 
-    return properties_modified;
+    if( !properties_modified.has_value() )
+        return DEFAULT;
+
+    return static_cast<double>(*properties_modified);
 }
 
 
@@ -1050,10 +1076,16 @@ void EngineParadataDriver::LogProperties()
 {
     for( const ParameterManager::Parameter& parameter : ParameterManager::GetParametersOfArgument(ParameterManager::ParameterArgument::ApplicationProperty) )
     {
-        std::string value = UTF8_TODO::GetUtf8(m_pIntDriver->GetProperty(parameter));
+        std::string value = m_pIntDriver->GetProperty(parameter);
 
         if( !value.empty() )
-            RegisterAndLogEvent(std::make_unique<Paradata::PropertyEvent>(ParameterManager::GetDisplayName(parameter), std::move(value), false));
+        {
+            RegisterAndLogEvent(std::make_unique<Paradata::PropertyEvent>(
+                ParameterManager::GetDisplayName(parameter),
+                std::move(value),
+                false
+            ));
+        }
     }
 }
 
@@ -1078,7 +1110,7 @@ double CIntDriver::ex_protect(const int program_index)
         {
             m_paradataDriver->RegisterAndLogEvent(std::make_unique<Paradata::PropertyEvent>(
                 ParameterManager::GetDisplayName(ParameterManager::Parameter::Property_Protected),
-                UTF8_TODO::GetUtf8(PropertyValueToString(protect)),
+                PropertyValueToString(protect),
                 true,
                 m_paradataDriver->CreateObject(vart)
             ));

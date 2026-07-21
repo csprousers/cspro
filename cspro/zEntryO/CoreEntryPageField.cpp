@@ -386,7 +386,7 @@ std::vector<std::string> CoreEntryPageField::GetVerboseFieldInformation() const
         {
             field_information.emplace_back(SO::CreateColonSeparatedString(
                 ParameterManager::GetDisplayName(thisProperty),
-                UTF8_TODO::GetUtf8(m_pIntDriver->GetProperty(thisProperty, &symbols_set))
+                m_pIntDriver->GetProperty(thisProperty, &symbols_set)
             ));
 
             thisProperty = static_cast<ParameterManager::Parameter>(static_cast<int>(thisProperty) + 1);
