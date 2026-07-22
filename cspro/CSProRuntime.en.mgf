@@ -179,7 +179,6 @@ Language=EN
 1109   The property '%s' expects a string value, not the number '%s'
 
 2001   Cannot open file: %s
-2004   No memory for corrector data structures
 2013   Record occurrences %s for record %s
 2014   Section occurrences %s for section %s because there is no information in the corresponding level
 

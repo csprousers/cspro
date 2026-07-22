@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 //---------------------------------------------------------------------------
 //  File name: EntDrv.h
@@ -144,9 +144,6 @@ public:
     // --- related to flow management
 public:
     bool    MakeField3( DEFLD3* pszFld3, const DEFLD* pszFld ); // RHF Jul 31, 2000
-
-    // --- decorr.cpp
-    void    corr_init( void );
 
     // --- defuncs.cpp
 public:

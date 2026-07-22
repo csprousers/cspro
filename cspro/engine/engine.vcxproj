@@ -39,7 +39,6 @@
     <ClCompile Include="Comp_set.cpp" />
     <ClCompile Include="Ctab.cpp" />
     <ClCompile Include="Ctab_Helper.cpp" />
-    <ClCompile Include="Decorr.cpp" />
     <ClCompile Include="DeWrite.cpp" />
     <ClCompile Include="DicX.cpp" />
     <ClCompile Include="Do_xtab.cpp" />

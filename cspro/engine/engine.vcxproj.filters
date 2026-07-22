@@ -292,9 +292,6 @@
     <ClCompile Include="Ctab_Helper.cpp">
       <Filter>Source Files\ex1</Filter>
     </ClCompile>
-    <ClCompile Include="Decorr.cpp">
-      <Filter>Source Files\dep</Filter>
-    </ClCompile>
     <ClCompile Include="DeWrite.cpp">
       <Filter>Source Files\CEXEntry</Filter>
     </ClCompile>
