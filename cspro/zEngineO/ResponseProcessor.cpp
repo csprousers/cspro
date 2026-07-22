@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "ResponseProcessor.h"
 #include <zToolsO/Special.h>
 #include <zToolsO/VectorHelpers.h>
@@ -113,29 +113,32 @@ void ResponseProcessor::RemoveRangeResponses(bool remove_range_responses)
 }
 
 
-void ResponseProcessor::SetCanEnterNotAppl(bool add_notappl)
+void ResponseProcessor::SetCanEnterNotAppl(const bool add_notappl)
 {
     ASSERT(m_valueProcessor->GetDictItem().GetContentType() == ContentType::Numeric);
 
-    // if notappl is already in the value set, there is no need to add it
-    if( m_valueSetContainsNotApplOrBlank )
-        return;
-
-    if( add_notappl != ( m_addedNotApplResponse != nullptr ) )
+    // if notappl is already in the value set, or it has already been added,
+    // there is no need to add it
+    if( ( m_valueSetContainsNotApplOrBlank ) ||
+        ( add_notappl == ( m_addedNotApplResponse != nullptr ) ) )
     {
-        if( m_addedNotApplResponse == nullptr )
-        {
-            const SharableString notappl_text = MGF::GetMessageText(110005, "Not Applicable");
-            m_addedNotApplResponse = std::make_unique<ValueSetResponse>(UTF8_TODO::GetCString(*notappl_text), NOTAPPL);
-        }
-
-        else
-        {
-            m_addedNotApplResponse.reset();
-        }
-
-        GenerateFilteredResponses();
+        return;
     }
+
+    if( m_addedNotApplResponse == nullptr )
+    {
+        m_addedNotApplResponse = std::make_unique<ValueSetResponse>(
+            MGF::GetMessageText(110005, "Not Applicable"),
+            NOTAPPL
+        );
+    }
+
+    else
+    {
+        m_addedNotApplResponse.reset();
+    }
+
+    GenerateFilteredResponses();
 }
 
 
@@ -202,7 +205,7 @@ CString ResponseProcessor::GetInputFromResponseIndex(size_t index) const
 
     else if( content_type == ContentType::Alpha )
     {
-        return m_valueProcessor->GetOutput(response->GetCode());
+        return m_valueProcessor->GetOutput(UTF8_TODO::GetCString(response->GetCode()));
     }
 
     else
@@ -227,23 +230,30 @@ void ResponseProcessor::DoCheckboxCalculations() const
     m_checkboxCalculations = CheckboxCalculations { 1, 0 };
 
     for( const auto& response : GetResponses() )
-        m_checkboxCalculations->checkbox_width = std::max(m_checkboxCalculations->checkbox_width, response->GetCode().GetLength());
+    {
+        m_checkboxCalculations->checkbox_width = std::max(
+            m_checkboxCalculations->checkbox_width,
+            SO::WideLength(response->GetCode())
+        );
+    }
 
     m_checkboxCalculations->max_selections = m_valueProcessor->GetDictItem().GetLen() / m_checkboxCalculations->checkbox_width;
 }
 
 
-int ResponseProcessor::GetCheckboxWidth() const
+size_t ResponseProcessor::GetCheckboxWidth() const
 {
     DoCheckboxCalculations();
     return m_checkboxCalculations->checkbox_width;
 }
+
 
 size_t ResponseProcessor::GetCheckboxMaxSelections() const
 {
     DoCheckboxCalculations();
     return m_checkboxCalculations->max_selections;
 }
+
 
 std::vector<size_t> ResponseProcessor::GetCheckboxResponseIndices(const CString& value) const
 {
@@ -298,7 +308,7 @@ CString ResponseProcessor::GetInputFromCheckboxIndices(const std::vector<size_t>
 
     for( const size_t& index : indices )
     {
-        CIMSAString this_value = responses[index]->GetCode();
+        CIMSAString this_value = UTF8_TODO::GetCString(responses[index]->GetCode());
         this_value.MakeExactLength(m_checkboxCalculations->checkbox_width);
         checkbox_string = checkbox_string + this_value;
     }
@@ -362,7 +372,7 @@ void ResponseProcessor::SortResponses(bool ascending, bool sort_by_label)
 
             if( sort_by_label )
             {
-                comparison = response1->GetLabel().CompareNoCase(response2->GetLabel());
+                comparison = SO::CompareNoCase(response1->GetLabel(), response2->GetLabel());
             }
 
             else if( content_type == ContentType::Numeric )
@@ -372,7 +382,7 @@ void ResponseProcessor::SortResponses(bool ascending, bool sort_by_label)
 
             else if( content_type == ContentType::Alpha )
             {
-                comparison = response1->GetCode().Compare(response2->GetCode());
+                comparison = response1->GetCode().compare(response2->GetCode());
             }
 
             else

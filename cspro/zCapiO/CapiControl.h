@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zCapiO/ExtendedControl.h>
 
@@ -24,7 +24,7 @@ public:
     // Get smallest size required to draw all controls.
     CSize GetControlsMinSize();
 
-    CSize Filter(wstring_view filter_sv);
+    CSize Filter(std::string_view filter_sv);
 
     void UpdateSelection(const CString& keyedText);
 

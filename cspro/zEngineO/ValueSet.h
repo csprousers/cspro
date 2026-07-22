@@ -41,13 +41,13 @@ public:
 
     struct ForeachValueInfo
     {
-        const CString& label;
+        const SharableString& label;
         const std::string& image_file_path;
         const PortableColor& text_color;
     };
 
     virtual void ForeachValue(const std::function<void(const ForeachValueInfo&, double, const std::optional<double>&)>& numeric_callback_function) const;
-    virtual void ForeachValue(const std::function<void(const ForeachValueInfo&, const CString&)>& string_callback_function) const;
+    virtual void ForeachValue(const std::function<void(const ForeachValueInfo&, const SharableString&)>& string_callback_function) const;
 
     virtual void Randomize(const std::variant<std::vector<double>, std::vector<SharableString>>& exclusions);
 
@@ -122,7 +122,7 @@ public:
     size_t RemoveDuplicates(RemoveDuplicatesType remove_type);
 
     virtual void ForeachValue(const std::function<void(const ForeachValueInfo&, double, const std::optional<double>&)>& numeric_callback_function) const override;
-    virtual void ForeachValue(const std::function<void(const ForeachValueInfo&, const CString&)>& string_callback_function) const override;
+    virtual void ForeachValue(const std::function<void(const ForeachValueInfo&, const SharableString&)>& string_callback_function) const override;
 
     void Randomize(const std::variant<std::vector<double>, std::vector<SharableString>>& exclusions) override;
 

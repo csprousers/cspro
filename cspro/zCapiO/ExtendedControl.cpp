@@ -608,7 +608,7 @@ void CExtendedControl::OnClickedButtonSearch()
     if (search_edit_text->IsWindowVisible()) {
         CString search_string;
         search_edit_text->GetWindowText(search_string);
-        m_pCapiControl->Filter(search_string);
+        m_pCapiControl->Filter(TC::ToUtf8(search_string));
     }
     else {
         search_edit_text->ShowWindow(SW_NORMAL);

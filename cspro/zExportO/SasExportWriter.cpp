@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "SasExportWriter.h"
 #include "EncodedTextWriter.h"
 #include <zDictO/ValueSetResponse.h>
@@ -538,9 +538,11 @@ void SasExportWriter::CreateFormatsAndWriteSyntax()
 
                         write_value_header();
 
-                        m_syntaxFileWriter->WriteFormattedLine("\t\t%s='%s'",
-                                                               value_text.c_str(),
-                                                               EscapeSasLiteral(UTF8_TODO::GetUtf8(response->GetLabel())).c_str());
+                        m_syntaxFileWriter->WriteFormattedLine(
+                            "\t\t%s='%s'",
+                            value_text.c_str(),
+                            EscapeSasLiteral(response->GetLabel()).c_str()
+                        );
                     }
                 }
 
@@ -550,15 +552,17 @@ void SasExportWriter::CreateFormatsAndWriteSyntax()
                     {
                         write_value_header();
 
-                        std::string value = UTF8_TODO::GetUtf8(response->GetCode());
+                        std::string value = response->GetCode();
                         SO::MakeExactLength(value, data_variable->length);
 
-                        std::string label = UTF8_TODO::GetUtf8(response->GetLabel());
+                        std::string label = response->GetLabel();
                         SO::MakeExactLength(label, std::max(label.length(), static_cast<size_t>(data_variable->length)));
 
-                        m_syntaxFileWriter->WriteFormattedLine("\t\t'%s'='%s'",
-                                                               EscapeSasLiteral(value).c_str(),
-                                                               EscapeSasLiteral(label).c_str());
+                        m_syntaxFileWriter->WriteFormattedLine(
+                            "\t\t'%s'='%s'",
+                            EscapeSasLiteral(value).c_str(),
+                            EscapeSasLiteral(label).c_str()
+                        );
                     }
                 }
 

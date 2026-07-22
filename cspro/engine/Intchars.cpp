@@ -574,7 +574,9 @@ double CIntDriver::exgetlabel(int iExpr)
 
         else
         {
-            const DictValue* dict_value = value_processor->GetDictValueByLabel(EvalAlphaExprCS(fng_node.m_iExpr));
+            const DictValue* const dict_value = value_processor->GetDictValueByLabel(
+                EvaluateSharableString(fng_node.m_iExpr).GetString()
+            );
 
             // take the label from the first value pair
             if( dict_value != nullptr && dict_value->HasValuePairs() )

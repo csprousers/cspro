@@ -63,13 +63,13 @@ public:
         return nullptr;
     }
 
-    const DictValue* GetDictValueByLabel(const CString& label) const
+    const DictValue* GetDictValueByLabel(const std::string_view label_sv) const
     {
         if( m_dictValueSet != nullptr )
         {
             for( const DictValue& dict_value : m_dictValueSet->GetValues() )
             {
-                if( dict_value.GetLabel().CompareNoCase(label) == 0 )
+                if( SO::EqualsNoCase(label_sv, dict_value.GetLabel()) )
                     return &dict_value;
             }
         }
@@ -762,9 +762,9 @@ const DictValue* ValueProcessor::GetDictValue(const CString& value, bool pad_val
 }
 
 
-const DictValue* ValueProcessor::GetDictValueByLabel(const CString& label) const
+const DictValue* ValueProcessor::GetDictValueByLabel(const std::string_view label_sv) const
 {
-    return GetFullValueProcessor().GetDictValueByLabel(label);
+    return GetFullValueProcessor().GetDictValueByLabel(label_sv);
 }
 
 

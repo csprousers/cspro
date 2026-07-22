@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zDictO/zDictO.h>
 
@@ -33,7 +33,7 @@ public:
     const DictValue* GetDictValue(const std::wstring& value, bool pad_value_to_length = true) const { return GetDictValue(WS2CS(value), pad_value_to_length); }
     const DictValue* GetDictValue(const std::string& value, bool pad_value_to_length = true) const  { return GetDictValue(UTF8_TODO::GetCString(value), pad_value_to_length); }
 
-    virtual const DictValue* GetDictValueByLabel(const CString& label) const;
+    virtual const DictValue* GetDictValueByLabel(std::string_view label_sv) const;
 
     // frequency routines
     virtual std::vector<const DictValue*> GetMatchingDictValues(double value) const;

@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "CapiControl.h"
 #include <zUtilO/Interapp.h>
 #include <zMultimediaO/ImageManager.h>
@@ -47,21 +47,28 @@ void CCapiControl::CreateControls()
 {
     CRect controlRect;
 
-    auto process_label = [&](CClientDC& pDC, INT_PTR i, CString label_text)
+    auto process_label = [&](CClientDC& pDC, INT_PTR i, std::wstring label_text)
     {
-        if( label_text.IsEmpty() ) // empty labels were messing up the spacing of the labels
-            label_text = _T(" ");
+        // empty labels were messing up the spacing of the labels
+        if( label_text.empty() )
+        {
+            label_text = L" ";
+        }
 
-        label_text.Replace(_T("&"), _T("&&")); // prevent Windows from converting &s to accelerator keys
+        // prevent Windows from converting &s to accelerator keys
+        else
+        {
+            SO::Replace(label_text, L"&", L"&&");
+        }
 
         CRect textRect;
-        pDC.DrawTextEx(label_text, &textRect, DT_CALCRECT, nullptr);
+        pDC.DrawTextEx(label_text.c_str(), &textRect, DT_CALCRECT, nullptr);
 
         controlRect.top = controlRect.left = 0;
         controlRect.right = textRect.Width();
         controlRect.bottom = textRect.Height();
 
-        m_labels[i].Create(label_text, WS_CHILD | WS_VISIBLE | SS_NOTIFY, controlRect, this, EXTENDED_CONTROL_RESOURCE_ID + 1 + i);
+        m_labels[i].Create(label_text.c_str(), WS_CHILD | WS_VISIBLE | SS_NOTIFY, controlRect, this, EXTENDED_CONTROL_RESOURCE_ID + 1 + i);
         m_labels[i].SetFont(m_pParent->GetControlFont());
     };
 
@@ -101,24 +108,24 @@ void CCapiControl::CreateControls()
             // It will get sized correctly in the LayoutInGrid method.
             m_rowBackgrounds[i].Create(_T(""),WS_CHILD | WS_VISIBLE,controlRect,this,EXTENDED_CONTROL_RESOURCE_ID + 1 + i);
 
-            CString code_text = responses[i]->GetCode();
+            std::wstring code_text = TC::ToWide(responses[i]->GetCode());
 
-            if( code_text.IsEmpty() )
-                code_text = _T(" ");
+            if( code_text.empty() )
+                code_text = L" ";
 
-            CSize textSize = pDC.GetTextExtent(code_text);
+            CSize textSize = pDC.GetTextExtent(code_text.c_str());
 
             controlRect.top = controlRect.left = 0;
             controlRect.right = textSize.cx;
             controlRect.bottom = textSize.cy;
 
-            m_values[i].Create(code_text,WS_CHILD | WS_VISIBLE | SS_NOTIFY,controlRect,this,EXTENDED_CONTROL_RESOURCE_ID + 1 + i);
+            m_values[i].Create(code_text.c_str(),WS_CHILD | WS_VISIBLE | SS_NOTIFY,controlRect,this,EXTENDED_CONTROL_RESOURCE_ID + 1 + i);
             m_values[i].SetFont(m_pParent->GetControlFont());
         }
 
         // now draw the labels in a second column
         for( INT_PTR i = 0; i < number_responses; i++ )
-            process_label(pDC, i, responses[i]->GetLabel());
+            process_label(pDC, i, TC::ToWide(responses[i]->GetLabel()));
 
         // Now the images and colors
         for( INT_PTR i = 0; i < number_responses; i++ )
@@ -155,12 +162,12 @@ void CCapiControl::CreateControls()
 
         for( INT_PTR i = 0; i < number_responses; i++ )
         {
-            CString code_text = responses[i]->GetCode();
+            std::wstring code_text = TC::ToWide(responses[i]->GetCode());
 
-            if( code_text.IsEmpty() )
-                code_text = _T(" ");
+            if( code_text.empty() )
+                code_text = L" ";
 
-            CSize textSize = pDC.GetTextExtent(code_text);
+            CSize textSize = pDC.GetTextExtent(code_text.c_str());
 
             controlRect.top = controlRect.left = 0;
             controlRect.right = textSize.cx + 3 * characterWidth; // Add 3 characters spacing to leave space for button
@@ -172,7 +179,7 @@ void CCapiControl::CreateControls()
             const DWORD dwStyle = WS_CHILD | WS_VISIBLE | ( uses_checkbox ? BS_AUTOCHECKBOX : BS_AUTORADIOBUTTON );
 
             CButton& button = m_buttons[i];
-            button.Create(code_text, dwStyle, controlRect, this, EXTENDED_CONTROL_RESOURCE_ID + 1 + i);
+            button.Create(code_text.c_str(), dwStyle, controlRect, this, EXTENDED_CONTROL_RESOURCE_ID + 1 + i);
             button.SetFont(m_pParent->GetControlFont());
 
             // don't use visual styles for the checkboxes, otherwise they will be drawn with a gray
@@ -183,7 +190,7 @@ void CCapiControl::CreateControls()
 
         // now draw the labels in a second column
         for( INT_PTR i = 0; i < number_responses; i++ )
-            process_label(pDC, i, responses[i]->GetLabel());
+            process_label(pDC, i, TC::ToWide(responses[i]->GetLabel()));
 
         // Now the images and colors
         for( INT_PTR i = 0; i < number_responses; i++ )
@@ -1027,7 +1034,7 @@ void CCapiControl::CreateStaticControlWithImage(CStatic& static_control, UINT co
 }
 
 
-CSize CCapiControl::Filter(const wstring_view filter_sv)
+CSize CCapiControl::Filter(const std::string_view filter_sv)
 {
     // Reset the scroll position
     BOOL horzBar,vertBar;
@@ -1046,7 +1053,7 @@ CSize CCapiControl::Filter(const wstring_view filter_sv)
     for( int i = 0; i < static_cast<int>(responses.size()); i++ )
     {
         const bool filteredOut = ( useFiltering &&
-                                   SO::FindNoCase(UTF8_TODO::GetUtf8(responses[i]->GetLabel()), UTF8_TODO::GetUtf8(filter_sv)) == std::string_view::npos );
+                                   SO::FindNoCase(responses[i]->GetLabel(), filter_sv) == std::string_view::npos );
         const int showOrHide = filteredOut ? SW_HIDE : SW_SHOW;
         m_labels[i].ShowWindow(showOrHide);
 

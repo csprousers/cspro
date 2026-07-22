@@ -610,7 +610,7 @@ double LogicInterpreter::ex_ValueSet_add(const int program_index)
                         if( add_value )
                         {
                             dynamic_value_set.AddValue(
-                                UTF8_TODO::GetUtf8(info.label),
+                                info.label,
                                 info.image_file_path,
                                 info.text_color,
                                 low_value_to_add,
@@ -802,16 +802,16 @@ double LogicInterpreter::ex_ValueSet_show(const int program_index)
             {
                 // use the from code, unless the to code is special, in which case that will be used
                 codes->emplace_back(( high_value.has_value() && IsSpecial(*high_value) ) ? *high_value : low_value);
-                select_dlg.AddRow(UTF8_TODO::GetUtf8(info.label), info.text_color);
+                select_dlg.AddRow(info.label, info.text_color);
             });
     }
 
     else
     {
         value_set.ForeachValue(
-            [&](const ValueSet::ForeachValueInfo& info, const CString& /*value*/)
+            [&](const ValueSet::ForeachValueInfo& info, const SharableString& /*value*/)
             {
-                select_dlg.AddRow(UTF8_TODO::GetUtf8(info.label), info.text_color);
+                select_dlg.AddRow(info.label, info.text_color);
             });
     }
 
@@ -843,11 +843,11 @@ double LogicInterpreter::ex_ValueSet_show_pre77(const int program_index)
     if( value_set.IsNumeric() )
     {
         value_set.ForeachValue(
-            [&](const ValueSet::ForeachValueInfo& info, double low_value, const std::optional<double>& high_value)
+            [&](const ValueSet::ForeachValueInfo& info, const double low_value, const std::optional<double>& high_value)
             {
                 // use the from code, unless the to code is special, in which case that will be used
                 codes.emplace_back(( high_value.has_value() && IsSpecial(*high_value) ) ? *high_value : low_value);
-                labels.emplace_back(new std::vector<CString> { info.label });
+                labels.emplace_back(new std::vector<CString> { UTF8_TODO::GetCString(info.label) });
                 row_text_colors.emplace_back(info.text_color);
             });
     }
@@ -858,10 +858,10 @@ double LogicInterpreter::ex_ValueSet_show_pre77(const int program_index)
         size_t index = 0;
 
         value_set.ForeachValue(
-            [&](const ValueSet::ForeachValueInfo& info, const CString& /*value*/)
+            [&](const ValueSet::ForeachValueInfo& info, const SharableString& /*value*/)
             {
                 codes.emplace_back(static_cast<double>(++index));
-                labels.emplace_back(new std::vector<CString> { info.label });
+                labels.emplace_back(new std::vector<CString> { UTF8_TODO::GetCString(info.label) });
                 row_text_colors.emplace_back(info.text_color);
             });
     }

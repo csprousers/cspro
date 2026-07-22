@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zEngineO/zEngineO.h>
 #include <zToolsO/CSProException.h>
@@ -36,7 +36,7 @@ public:
     double GetNumericInputFromResponseIndex(size_t index) const;
 
     // for checkboxes
-    int GetCheckboxWidth() const;
+    size_t GetCheckboxWidth() const;
     size_t GetCheckboxMaxSelections() const;
 
     std::vector<size_t> GetCheckboxResponseIndices(const CString& value) const;
@@ -61,7 +61,7 @@ private:
 private:
     struct CheckboxCalculations
     {
-        int checkbox_width;
+        size_t checkbox_width;
         size_t max_selections;
     };
 
