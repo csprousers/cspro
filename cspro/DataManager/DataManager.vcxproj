@@ -179,10 +179,6 @@
       <Project>{07d7da9d-03ed-437c-8a1f-cb2e76a3ef6a}</Project>
       <Private>false</Private>
     </ProjectReference>
-    <ProjectReference Include="..\zSyncF\zSyncF.vcxproj">
-      <Project>{f937df04-b0cb-4b04-8671-d7cfb13cae56}</Project>
-      <Private>false</Private>
-    </ProjectReference>
     <ProjectReference Include="..\zSyncO\zSyncO.vcxproj">
       <Project>{006d748a-cd6e-411d-9146-d1575172fb30}</Project>
       <Private>false</Private>
