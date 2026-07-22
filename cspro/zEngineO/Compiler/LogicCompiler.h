@@ -604,7 +604,7 @@ public:
 
 
     // --------------------------------------------------------------------------
-    // ValueSet object and setvalueset function
+    // ValueSet object and value set-related functions
     // (ValueSetCC.cpp)
     // --------------------------------------------------------------------------
 public:
@@ -613,6 +613,7 @@ public:
     int CompileDynamicValueSetComputeInstruction(const DynamicValueSet* value_set_from_declaration = nullptr);
     int CompileValueSetFunctions();
 
+    int CompileValueSetRelatedFunctions();
     int CompileSetValueSetFunction();
 
 

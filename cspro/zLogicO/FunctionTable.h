@@ -664,9 +664,8 @@ namespace Logic
         FNG                     =  224,
         FNMAXOCC                =  225,
         SetFile                 =  226,
-        FNINVALUESET            =  227,
+        ValueSetRelated         =  227,
 
-        SetValueSet             =  232, // RHF Aug 28, 2002
         File                    =  233,
         FNEXECSYSTEM            =  234,
         FNSHOW                  =  235,

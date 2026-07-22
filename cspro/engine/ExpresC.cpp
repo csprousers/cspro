@@ -1454,7 +1454,6 @@ int CEngineCompFunc::rutfunc_COMPILER_DLL_TODO(const Logic::FunctionCompilationT
             case Logic::FunctionCompilationType::FNID:          return cfun_fnins();
             case Logic::FunctionCompilationType::FNSRT:         return cfun_fnsrt();
             case Logic::FunctionCompilationType::FNMAXOCC:      return cfun_fnmaxocc();
-            case Logic::FunctionCompilationType::FNINVALUESET:  return cfun_fninvalueset();
             case Logic::FunctionCompilationType::FNEXECSYSTEM:  return cfun_fnexecsystem();
             case Logic::FunctionCompilationType::FNSHOW:        return cfun_fnshow();
             case Logic::FunctionCompilationType::FNITEMLIST:    return cfun_fnitemlist();
@@ -3818,100 +3817,6 @@ int CEngineCompFunc::cfun_fnmaxocc()
     }
 }
 
-
-int CEngineCompFunc::cfun_fninvalueset() {
-        int     iProg    = Prognext;
-        int     iFunCode = CurrentToken.function_details->code;
-        int     iExpr=0, iSymVSet=0, iSymVar=0;
-
-#ifdef GENCODE
-        FNINVALUSET_NODE*   ptrfunc = NODEPTR_AS( FNINVALUSET_NODE );
-
-        if( m_Flagcomp ) {
-            ADVANCE_NODE( FNINVALUSET_NODE );
-
-            ptrfunc->fn_code = iFunCode;
-        }
-#endif
-        NextToken();                          // name of function
-        if( Tkn != TOKLPAREN )
-            THROW_PARSER_ERROR0( 14 );
-        NextToken();
-
-        // the last check prevents alpha working variables
-        if( IsCurrentTokenVART(*this) && VPT(Tokstindex)->GetDictItem() != NULL )
-        {
-            iSymVar=Tokstindex;
-
-            VART*   pVarT=VPT(iSymVar);
-
-            if( pVarT->IsNumeric() )
-                    iExpr = varsanal( pVarT->GetFmt() );
-            else
-                    iExpr = CompileStringExpression();
-
-            if( GetSyntErr() != 0 )
-                return 0;
-
-            if( Tkn == TOKCOMMA ) {
-                    NextToken();
-
-                    if( Tkn != TOKVALUESET )
-                        IssueError(33115);
-
-                    iSymVSet = Tokstindex;
-
-                    const ValueSet& value_set = GetSymbolValueSet(iSymVSet);
-
-                    if( value_set.IsDynamic() || value_set.GetVarT() != pVarT )
-                        IssueError(940);
-
-                    NextToken();
-            }
-        }
-
-        // a new mode (20150131) so that you can check if a number/string is in a value set without
-        // having to set the item to the variable that you want to check
-        else
-        {
-            iSymVar = -1;
-
-            DataType value_data_type = GetCurrentTokenDataType();
-
-            iExpr = CompileExpression(value_data_type);
-
-            if( Tkn != TOKCOMMA )
-                 THROW_PARSER_ERROR0( 528 );
-
-            NextToken();
-
-            if( Tkn != TOKVALUESET )
-                THROW_PARSER_ERROR0( 33115 );
-
-            iSymVSet = Tokstindex;
-
-            const ValueSet& value_set = GetSymbolValueSet(iSymVSet);
-
-            if( value_set.GetDataType() != value_data_type )
-                IssueError(941, ToString(value_data_type));
-
-            NextToken();
-        }
-
-        IssueErrorOnTokenMismatch(TOKRPAREN, 17);
-
-        NextToken();
-
-#ifdef GENCODE
-        if( m_Flagcomp ) {
-                ptrfunc->m_iSymVar = iSymVar;
-                ptrfunc->m_iExpr = iExpr;
-                ptrfunc->m_iSymVSet = iSymVSet;
-        }
-#endif
-
-        return iProg;
-}
 
 //-----------------------------------------------------------------------
 //  cfun_fnc : compile function / class FNC

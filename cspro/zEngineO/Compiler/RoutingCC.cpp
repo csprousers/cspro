@@ -883,10 +883,10 @@ int LogicCompiler::RouteFunctionCall()
         { Logic::FunctionCompilationType::GPS,                      &LogicCompiler::CompileGpsFunction },
         { Logic::FunctionCompilationType::Paradata,                 &LogicCompiler::CompileParadataFunction },
         { Logic::FunctionCompilationType::SetFile,                  &LogicCompiler::CompileSetFileFunction },
-        { Logic::FunctionCompilationType::SetValueSet,              &LogicCompiler::CompileSetValueSetFunction },
         { Logic::FunctionCompilationType::Sync,                     &LogicCompiler::CompileSyncFunctions },
         { Logic::FunctionCompilationType::Trace,                    &LogicCompiler::CompileTraceFunction },
         { Logic::FunctionCompilationType::Userbar,                  &LogicCompiler::CompileUserbarFunction },
+        { Logic::FunctionCompilationType::ValueSetRelated,          &LogicCompiler::CompileValueSetRelatedFunctions },
 
         // dictionary related
         { Logic::FunctionCompilationType::DictionaryVarious,        &LogicCompiler::CompileDictionaryFunctionsVarious },
@@ -938,7 +938,6 @@ int LogicCompiler::RouteFunctionCall()
         { Logic::FunctionCompilationType::FNID,                     implement_COMPILER_DLL_TODO }, // cfun_fnins
         { Logic::FunctionCompilationType::FNSRT,                    implement_COMPILER_DLL_TODO }, // cfun_fnsrt
         { Logic::FunctionCompilationType::FNMAXOCC,                 implement_COMPILER_DLL_TODO }, // cfun_fnmaxocc
-        { Logic::FunctionCompilationType::FNINVALUESET,             implement_COMPILER_DLL_TODO }, // cfun_fninvalueset
         { Logic::FunctionCompilationType::FNEXECSYSTEM,             implement_COMPILER_DLL_TODO }, // cfun_fnexecsystem
         { Logic::FunctionCompilationType::FNSHOW,                   implement_COMPILER_DLL_TODO }, // cfun_fnshow
         { Logic::FunctionCompilationType::FNITEMLIST,               implement_COMPILER_DLL_TODO }, // cfun_fnitemlist

@@ -934,8 +934,8 @@ namespace
             FunctionCode::FNINVALUESET_CODE,
             SymbolType::None,
             DataType::Numeric,
-            FunctionCompilationType::FNINVALUESET,
-            1,
+            FunctionCompilationType::ValueSetRelated,
+            4,
         },
         {
             "invoke",
@@ -1584,7 +1584,7 @@ namespace
             FunctionCode::FNSETVALUESET_CODE,
             SymbolType::None,
             DataType::Numeric,
-            FunctionCompilationType::SetValueSet,
+            FunctionCompilationType::ValueSetRelated,
             -1,
         },
         {

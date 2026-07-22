@@ -279,7 +279,6 @@ public:
     std::vector<const DictNamedBase*> GetImplicitSubscriptCalculationStack(const EngineItem& engine_item) const override;
 
     int     cfun_fnmaxocc();
-    int     cfun_fninvalueset();
     int     cfun_fnexecsystem();
 
     int     cfun_fnitemlist(); // 20091203 for functions that list items and records but still use FNN_NODE
