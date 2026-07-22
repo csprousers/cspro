@@ -700,6 +700,9 @@
     <ClInclude Include="Nodes\UserInterface.h">
       <Filter>Header Files\Nodes</Filter>
     </ClInclude>
+    <ClInclude Include="Nodes\ValueSet.h">
+      <Filter>Header Files\Nodes</Filter>
+    </ClInclude>
     <ClInclude Include="Nodes\Various.h">
       <Filter>Header Files\Nodes</Filter>
     </ClInclude>

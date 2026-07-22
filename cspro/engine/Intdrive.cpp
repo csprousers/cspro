@@ -520,8 +520,8 @@ CIntDriver::pDoubleFunction CIntDriver::m_pExFuncs[] =
 /* 157 */   &CIntDriver::exforbreak,       // RHC Sep 04, 2000
 /* 158 */   &CIntDriver::ex_setfile,
 /* 159 */   &CIntDriver::exmaxocc_pre80,
-/* 160 */   &CIntDriver::exinvalueset,
-/* 161 */   &CIntDriver::exsetvalueset,    // RHF Aug 28, 2002
+/* 160 */   &CIntDriver::ex_invalueset,
+/* 161 */   &CIntDriver::ex_setvalueset,   // RHF Aug 28, 2002
 
 // RHF INIC Oct 15, 2004
 /* 162 */   &CIntDriver::exfilecreate,
@@ -1507,4 +1507,11 @@ FrequencyDriver* CIntDriver::GetFrequencyDriver_INTERPRETER_DLL_TODO()
 {
     ASSERT(m_frequencyDriver != nullptr);
     return m_frequencyDriver.get();
+}
+
+
+int CIntDriver::SymbolTableSearch_INTERPRETER_DLL_TODO(const std::string_view full_symbol_name_sv, const SymbolType preferred_symbol_type,
+                                                       const std::vector<SymbolType>* const allowable_symbol_types) const
+{
+    return m_pEngineArea->SymbolTableSearch(full_symbol_name_sv, preferred_symbol_type, allowable_symbol_types);
 }

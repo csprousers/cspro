@@ -85,6 +85,7 @@ namespace MGF
     constexpr int dictionary_or_file_expected_930                           =    930;
     constexpr int setfile_invalid_use_of_create_in_non_entry_931            =    931;
 
+    constexpr int ValueSet_item_valueset_mismatch_940                       =    940;
     constexpr int ValueSet_not_correct_data_type_941                        =    941;
 
     constexpr int Array_not_correct_data_type_955                           =    955;
@@ -183,6 +184,9 @@ namespace MGF
 
     constexpr int string_expression_expected_45006                          =  45006;
 
+    constexpr int ValueSet_contains_values_not_valid_for_field_47161        =  47161;
+    constexpr int ValueSet_symbol_is_not_of_type_47164                      =  47164;
+    constexpr int ValueSet_symbol_does_not_exist_47165                      =  47165;
     constexpr int ValueSet_invalid_operation_for_dict_value_set_47170       =  47170;
     constexpr int ValueSet_add_not_correct_data_type_47171                  =  47171;
     constexpr int ValueSet_add_cannot_add_self_47172                        =  47172;

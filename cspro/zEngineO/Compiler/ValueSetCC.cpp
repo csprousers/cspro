@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "IncludesCC.h"
 #include "ValueSet.h"
+#include "Nodes/ValueSet.h"
 #include <engine/VarT.h>
 
 
@@ -384,99 +385,83 @@ int LogicCompiler::CompileValueSetRelatedFunctions()
     // --------------------------------------------------------------------------
     else if( function_code == FunctionCode::FNINVALUESET_CODE )
     {
-#ifdef COMPILER_DLL_TODO
-        int     iProg    = Prognext;
-        int     iFunCode = CurrentToken.function_details->code;
-        int     iExpr=0, iSymVSet=0, iSymVar=0;
+        auto& invalueset_node = CreateNode<Nodes::InValueSet>(function_code);
 
-#ifdef GENCODE
-        FNINVALUSET_NODE*   ptrfunc = NODEPTR_AS( FNINVALUSET_NODE );
-
-        if( m_Flagcomp ) {
-            ADVANCE_NODE( FNINVALUSET_NODE );
-
-            ptrfunc->fn_code = iFunCode;
-        }
-#endif
-        NextToken();                          // name of function
-        if( Tkn != TOKLPAREN )
-            THROW_PARSER_ERROR0( 14 );
         NextToken();
 
-        // the last check prevents alpha working variables
-        if( IsCurrentTokenVART(*this) && VPT(Tokstindex)->GetDictItem() != NULL )
+        VART* vart;
+        DataType value_data_type;
+        bool process_value_set;
+
+        // the value can be specified using an item name...
+        if( IsCurrentTokenVART(*this) )
         {
-            iSymVar=Tokstindex;
+            vart = VPT(Tokstindex);
+            value_data_type = vart->GetDataType();
 
-            VART*   pVarT=VPT(iSymVar);
+            invalueset_node.item_symbol_index = vart->GetSymbolIndex();
+            invalueset_node.value_expression = IsNumeric(value_data_type)
+                ? varsanal_COMPILER_DLL_TODO(vart->GetFmt())
+                : CompileStringExpression(); // COMPILER_DLL_TODO varsanal does not produce a
+                                             // node that can be used by functions like EvaluateString
+                                             // in the same way varsanal does for numerics ... perhaps add
+                                             // a method that can compile variables, and also checks that accessing
+                                             // them is valid (as done in CompileDestinationVariable)
 
-            if( pVarT->IsNumeric() )
-                    iExpr = varsanal( pVarT->GetFmt() );
-            else
-                    iExpr = CompileStringExpression();
-
-            if( GetSyntErr() != 0 )
-                return 0;
-
-            if( Tkn == TOKCOMMA ) {
-                    NextToken();
-
-                    if( Tkn != TOKVALUESET )
-                        IssueError(33115);
-
-                    iSymVSet = Tokstindex;
-
-                    const ValueSet& value_set = GetSymbolValueSet(iSymVSet);
-
-                    if( value_set.IsDynamic() || value_set.GetVarT() != pVarT )
-                        IssueError(940);
-
-                    NextToken();
-            }
+            process_value_set = ( Tkn == TOKCOMMA );
         }
 
-        // a new mode (20150131) so that you can check if a number/string is in a value set without
-        // having to set the item to the variable that you want to check
+        // ...or by specifying a value directly
         else
         {
-            iSymVar = -1;
+            vart = nullptr;
+            value_data_type = GetCurrentTokenDataType();
 
-            DataType value_data_type = GetCurrentTokenDataType();
+            invalueset_node.item_symbol_index = -1;
+            invalueset_node.value_expression = CompileExpression(value_data_type);
 
-            iExpr = CompileExpression(value_data_type);
+            IssueErrorOnTokenMismatch(TOKCOMMA, MGF::function_call_comma_expected_528);
 
-            if( Tkn != TOKCOMMA )
-                 THROW_PARSER_ERROR0( 528 );
+            process_value_set = true;
+        }
 
+        if( process_value_set )
+        {
             NextToken();
 
             if( Tkn != TOKVALUESET )
-                THROW_PARSER_ERROR0( 33115 );
+                IssueError(MGF::object_of_type_expected_33116, ToString(SymbolType::ValueSet));
 
-            iSymVSet = Tokstindex;
+            const ValueSet& value_set = GetSymbolValueSet(Tokstindex);
 
-            const ValueSet& value_set = GetSymbolValueSet(iSymVSet);
+            if( vart != nullptr )
+            {
+                if( value_set.IsDynamic() || vart != value_set.GetVarT() )
+                    IssueError(MGF::ValueSet_item_valueset_mismatch_940);
 
-            if( value_set.GetDataType() != value_data_type )
-                IssueError(941, ToString(value_data_type));
+                ASSERT(value_data_type == value_set.GetDataType());
+            }
+
+            else if( value_data_type != value_set.GetDataType() )
+            {
+                IssueError(MGF::ValueSet_not_correct_data_type_941, ToString(value_data_type));
+            }
+
+            invalueset_node.value_set_symbol_index = value_set.GetSymbolIndex();
 
             NextToken();
         }
 
-        IssueErrorOnTokenMismatch(TOKRPAREN, 17);
+        else
+        {
+            invalueset_node.value_set_symbol_index = -1;
+        }
+
+        IssueErrorOnTokenMismatch(TOKRPAREN, MGF::right_parenthesis_expected_in_function_call_17);
 
         NextToken();
 
-#ifdef GENCODE
-        if( m_Flagcomp ) {
-                ptrfunc->m_iSymVar = iSymVar;
-                ptrfunc->m_iExpr = iExpr;
-                ptrfunc->m_iSymVSet = iSymVSet;
-        }
-#endif
-
-        return iProg;
-#endif
+        return GetProgramIndex(invalueset_node);
     }
 
 

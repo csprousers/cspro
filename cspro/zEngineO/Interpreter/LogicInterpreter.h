@@ -736,7 +736,10 @@ protected:
     // --------------------------------------------------------------------------
 public:
     double ex_minvalue_maxvalue(int program_index);
+    double ex_invalueset(int program_index);
     double ex_getimage(int program_index);
+    double ex_setvalueset(int program_index);
+    double ex_setvalueset_pre80(int program_index);
     double ex_setvaluesets(int program_index);
     double ex_randomizevs(int program_index);
 
@@ -816,6 +819,10 @@ private:
     virtual SharableString EvaluateVARTValue_SharableString_INTERPRETER_DLL_TODO(int variable_compilation) = 0; // INTERPRETER_DLL_TODO remove as virtual
     virtual void ModifyVARTValue_INTERPRETER_DLL_TODO(int variable_compilation, const std::function<void(double&)>& modify_value_function, std::unique_ptr<Paradata::FieldInfo>* paradata_field_info = nullptr) = 0; // INTERPRETER_DLL_TODO remove as virtual
     virtual void ModifyVARTValue_INTERPRETER_DLL_TODO(int variable_compilation, const std::function<void(SharableString&)>& modify_value_function, std::unique_ptr<Paradata::FieldInfo>* paradata_field_info = nullptr) = 0; // INTERPRETER_DLL_TODO remove as virtual
+    int SymbolTableSearchWithPreference_INTERPRETER_DLL_TODO(std::string_view full_symbol_name_sv, SymbolType preferred_symbol_type) const { return SymbolTableSearch_INTERPRETER_DLL_TODO(full_symbol_name_sv, preferred_symbol_type, nullptr); }
+    int SymbolTableSearch_INTERPRETER_DLL_TODO(std::string_view full_symbol_name_sv, const std::vector<SymbolType>& allowable_symbol_types, SymbolType preferred_symbol_type = SymbolType::None) const { return SymbolTableSearch_INTERPRETER_DLL_TODO(full_symbol_name_sv, preferred_symbol_type, &allowable_symbol_types); }
+    virtual int SymbolTableSearch_INTERPRETER_DLL_TODO(std::string_view full_symbol_name_sv, SymbolType preferred_symbol_type,
+                                                       const std::vector<SymbolType>* allowable_symbol_types) const = 0; // INTERPRETER_DLL_TODO refactor
 };
 
 

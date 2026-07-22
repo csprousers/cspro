@@ -57,6 +57,8 @@ double CIntDriver::EvaluateVARTValue_double_INTERPRETER_DLL_TODO(int variable_co
 SharableString CIntDriver::EvaluateVARTValue_SharableString_INTERPRETER_DLL_TODO(int variable_compilation) { throw ProgrammingErrorException(); }
 void CIntDriver::ModifyVARTValue_INTERPRETER_DLL_TODO(int variable_compilation, const std::function<void(double&)>& modify_value_function, std::unique_ptr<Paradata::FieldInfo>* paradata_field_info/* = nullptr*/) { throw ProgrammingErrorException(); }
 void CIntDriver::ModifyVARTValue_INTERPRETER_DLL_TODO(int variable_compilation, const std::function<void(SharableString&)>& modify_value_function, std::unique_ptr<Paradata::FieldInfo>* paradata_field_info/* = nullptr*/) { throw ProgrammingErrorException(); }
+int CIntDriver::SymbolTableSearch_INTERPRETER_DLL_TODO(std::string_view full_symbol_name_sv, SymbolType preferred_symbol_type,
+                                                       const std::vector<SymbolType>* allowable_symbol_types) const { throw ProgrammingErrorException(); }
 
 
 double* CIntDriver::svaraddr( VARX* pVarX ) const { ASSERT(0); return NULL; }

@@ -245,6 +245,7 @@
     <ClInclude Include="Nodes\Trace.h" />
     <ClInclude Include="Nodes\UserFunction.h" />
     <ClInclude Include="Nodes\UserInterface.h" />
+    <ClInclude Include="Nodes\ValueSet.h" />
     <ClInclude Include="Nodes\Various.h" />
     <ClInclude Include="OnKeyMapping.h" />
     <ClInclude Include="ParameterManager.h" />

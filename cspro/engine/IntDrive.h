@@ -472,10 +472,6 @@ public:
 
     double  exedit(int iExpr);
 
-    double  exinvalueset(int iExpr);
-    double  exsetvalueset(int iExpr); // RHF Aug 28, 2002
-    double  exsetvalueset_pre80(int iExpr);
-
     double  ex_paradata(int program_index);
     double  exsqlquery(int program_index);
     double  exsqlquery(int program_index, const std::function<double(sqlite3*, const std::string&)>* setreportdata_callback);
@@ -976,6 +972,8 @@ private:
     SharableString EvaluateVARTValue_SharableString_INTERPRETER_DLL_TODO(int variable_compilation) override;
     void ModifyVARTValue_INTERPRETER_DLL_TODO(int variable_compilation, const std::function<void(double&)>& modify_value_function, std::unique_ptr<Paradata::FieldInfo>* paradata_field_info = nullptr) override;
     void ModifyVARTValue_INTERPRETER_DLL_TODO(int variable_compilation, const std::function<void(SharableString&)>& modify_value_function, std::unique_ptr<Paradata::FieldInfo>* paradata_field_info = nullptr) override;
+    int SymbolTableSearch_INTERPRETER_DLL_TODO(std::string_view full_symbol_name_sv, SymbolType preferred_symbol_type,
+                                               const std::vector<SymbolType>* allowable_symbol_types) const override;
 
 
 private:

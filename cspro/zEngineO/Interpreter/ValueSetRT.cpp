@@ -1,7 +1,9 @@
 #include "stdafx.h"
 #include "IncludesRT.h"
+#include "Array.h"
 #include "SelectDlgHelper.h"
 #include "ValueSet.h"
+#include "Nodes/ValueSet.h"
 #include <engine/Nodes.h>
 #include <engine/VariableIterator.h>
 #include <zDictO/Definitions.h>
@@ -41,42 +43,42 @@ double LogicInterpreter::ex_minvalue_maxvalue(const int program_index)
 }
 
 
-double CIntDriver::exinvalueset(int iExpr)
+double LogicInterpreter::ex_invalueset(const int program_index)
 {
-    const auto& function_node = GetNode<FNINVALUSET_NODE>(iExpr);
+    const auto& invalueset_node = GetNode<Nodes::InValueSet>(program_index);
     const ValueProcessor* value_processor;
     bool numeric;
-    bool in_value_set;
 
     // searching based on the item
-    if( function_node.m_iSymVar >= 0 && function_node.m_iSymVSet == 0 )
+    if( m_engineData->MeetsCompiledLogicVersion(Serializer::Iteration_8_2_000_1)
+        ? ( invalueset_node.value_set_symbol_index == -1 )
+        : ( invalueset_node.value_set_symbol_index >= 0 && invalueset_node.value_set_symbol_index == 0 ) )
     {
-        const VART* pVarT = VPT(function_node.m_iSymVar);
-        value_processor = &pVarT->GetCurrentValueProcessor();
-        numeric = pVarT->IsNumeric();
+        ASSERT(invalueset_node.item_symbol_index != -1);
+        const VART& vart = *VPT(invalueset_node.item_symbol_index);
+        value_processor = &vart.GetCurrentValueProcessor();
+        numeric = vart.IsNumeric();
     }
 
     // searching based on the value set
     else
     {
-        const ValueSet& value_set = GetSymbolValueSet(function_node.m_iSymVSet);
+        const ValueSet& value_set = GetSymbolValueSet(invalueset_node.value_set_symbol_index);
         value_processor = &value_set.GetValueProcessor();
         numeric = value_set.IsNumeric();
     }
 
     if( numeric )
     {
-        double value = evalexpr(function_node.m_iExpr);
-        in_value_set = value_processor->IsValid(value);
+        const double value = Evaluate(invalueset_node.value_expression);
+        return value_processor->IsValid(value);
     }
 
     else
     {
-        CString value = EvalAlphaExprCS(function_node.m_iExpr);
-        in_value_set = value_processor->IsValid(value);
+        const SharableString value = EvaluateSharableString(invalueset_node.value_expression);
+        return value_processor->IsValid(UTF8_TODO::GetCString(*value));
     }
-
-    return in_value_set ? 1 : 0;
 }
 
 
@@ -123,24 +125,24 @@ double LogicInterpreter::ex_getimage(const int program_index)
 }
 
 
-double CIntDriver::exsetvalueset(int iExpr)
+double LogicInterpreter::ex_setvalueset(const int program_index)
 {
     if( m_engineData->PredatesCompiledLogicVersion(Serializer::Iteration_8_0_000_1) )
-        return exsetvalueset_pre80(iExpr);
+        return ex_setvalueset_pre80(program_index);
 
-    const auto& va_node = GetNode<Nodes::VariableArguments>(iExpr);
+    const auto& va_node = GetNode<Nodes::VariableArguments>(program_index);
 
-    auto validate_symbol = [&](int symbol_index, SymbolType symbol_type) -> Symbol*
+    auto validate_symbol = [&](int symbol_index, const SymbolType symbol_type) -> Symbol*
     {
         // lookup the symbol by name
         if( symbol_index < 0 )
         {
             const SharableString symbol_name = EvaluateSharableString(-1 * symbol_index);
-            symbol_index = m_pEngineArea->SymbolTableSearchWithPreference(SO::Trim(*symbol_name), symbol_type);
+            symbol_index = SymbolTableSearchWithPreference_INTERPRETER_DLL_TODO(SO::Trim(*symbol_name), symbol_type);
 
             if( symbol_index <= 0 )
             {
-                issaerror(MessageType::Error, 47165, symbol_name->c_str());
+                IssueMessage(MessageType::Error, MGF::ValueSet_symbol_does_not_exist_47165, symbol_name->c_str());
                 return nullptr;
             }
         }
@@ -149,19 +151,23 @@ double CIntDriver::exsetvalueset(int iExpr)
 
         if( !symbol.IsA(symbol_type) )
         {
-            issaerror(MessageType::Error, 47164, symbol.GetName().c_str(), ToString(symbol_type));
+            IssueMessage(MessageType::Error, MGF::ValueSet_symbol_is_not_of_type_47164, symbol.GetName().c_str(), ToString(symbol_type));
             return nullptr;
         }
 
         return &symbol;
     };
 
-    VART* pVarT = assert_nullable_cast<VART*>(validate_symbol(va_node.arguments[0], SymbolType::Variable));
+    VART* const pVarT= assert_nullable_cast<VART*>(
+        validate_symbol(va_node.arguments[0], SymbolType::Variable)
+    );
 
     if( pVarT == nullptr )
         return 0;
 
-    const ValueSet* value_set = assert_nullable_cast<const ValueSet*>(validate_symbol(va_node.arguments[1], SymbolType::ValueSet));
+    const ValueSet* const value_set = assert_nullable_cast<const ValueSet*>(
+        validate_symbol(va_node.arguments[1], SymbolType::ValueSet)
+    );
 
     if( value_set == nullptr )
         return 0;
@@ -182,12 +188,12 @@ double CIntDriver::exsetvalueset(int iExpr)
     // check that the value set can apply to the variable
     if( pVarT->GetDataType() != new_value_set->GetDataType() )
     {
-        issaerror(MessageType::Error, 941, ToString(pVarT->GetDataType()));
+        IssueMessage(MessageType::Error, MGF::ValueSet_not_correct_data_type_941, ToString(pVarT->GetDataType()));
         return 0;
     }
 
     if( value_does_not_fit_in_value_set_warning )
-        issaerror(MessageType::Warning, 47161, pVarT->GetName().c_str());
+        IssueMessage(MessageType::Warning, MGF::ValueSet_contains_values_not_valid_for_field_47161, pVarT->GetName().c_str());
 
     pVarT->SetCurrentValueSet(std::move(new_value_set));
 
@@ -195,7 +201,7 @@ double CIntDriver::exsetvalueset(int iExpr)
 }
 
 
-double CIntDriver::exsetvalueset_pre80(int iExpr)
+double LogicInterpreter::ex_setvalueset_pre80(const int program_index)
 {
     ASSERT(m_engineData->PredatesCompiledLogicVersion(Serializer::Iteration_8_0_000_1));
 
@@ -212,7 +218,7 @@ double CIntDriver::exsetvalueset_pre80(int iExpr)
         int m_iImagesCtab;
     };
 
-    const FNSETVALUESET_NODE* pFunc = &GetNode<FNSETVALUESET_NODE>(iExpr);
+    const FNSETVALUESET_NODE* pFunc = &GetNode<FNSETVALUESET_NODE>(program_index);
     int iSymbol = pFunc->m_iSymbol;
     double dRet = 0;
     bool value_does_not_fit_in_value_set_warning = false;
@@ -225,31 +231,31 @@ double CIntDriver::exsetvalueset_pre80(int iExpr)
         // the variable name is supplied as an alpha expression
         if( pFunc->m_iIsAtAlpha == 1 )
         {
-            CString csVarName = EvalAlphaExprCS(-iSymbol + 1);
-            csVarName.TrimRight();
+            SharableString var_name = EvaluateSharableString(-iSymbol + 1);
+            var_name.MakeTrimRight();
 
-            if( csVarName.GetLength() > 0  )
-                iSymbol = m_pEngineArea->SymbolTableSearch(UTF8_TODO::GetUtf8(csVarName), { SymbolType::Variable });
+            if( !var_name->empty()  )
+                iSymbol = SymbolTableSearch_INTERPRETER_DLL_TODO(*var_name, { SymbolType::Variable });
         }
 
         // the variable's symbol number is supplied
         else
         {
-            iSymbol = evalexpr<int>(-iSymbol);
+            iSymbol = Evaluate<int>(-iSymbol);
         }
 
         if( iSymbol <= 0 || iSymbol >= static_cast<int>(m_symbolTable.GetTableSize()) )
         {
-            issaerror(MessageType::Error, 47110, iSymbol, static_cast<int>(m_symbolTable.GetTableSize()) - 1);
+            IssueMessage(MessageType::Error, 47110, iSymbol, static_cast<int>(m_symbolTable.GetTableSize()) - 1);
             return dRet;
         }
     }
 
-    Symbol* pVariableSymbol = NPT(iSymbol);
+    Symbol* pVariableSymbol = &NPT_Ref(iSymbol);
 
     if( !pVariableSymbol->IsA(SymbolType::Variable) )
     {
-        issaerror(MessageType::Error, 47164, pVariableSymbol->GetName().c_str(), ToString(SymbolType::Variable));
+        IssueMessage(MessageType::Error, 47164, pVariableSymbol->GetName().c_str(), ToString(SymbolType::Variable));
         return dRet;
     }
 
@@ -259,14 +265,14 @@ double CIntDriver::exsetvalueset_pre80(int iExpr)
     // value set is an alpha expression
     if( pFunc->m_iSymbolValues[1] == -1 )
     {
-        CString csValueSetName = EvalAlphaExprCS(pFunc->m_iSymbolValues[0]);
-        csValueSetName.MakeUpper();
+        SharableString value_set_name = EvaluateSharableString(pFunc->m_iSymbolValues[0]);
+        value_set_name.MakeUpper();
 
-        int value_set_symbol = m_pEngineArea->SymbolTableSearch(UTF8_TODO::GetUtf8(csValueSetName), { SymbolType::ValueSet });
+        int value_set_symbol = SymbolTableSearch_INTERPRETER_DLL_TODO(*value_set_name, { SymbolType::ValueSet });
 
         if( value_set_symbol == 0 )
         {
-            issaerror(MessageType::Error, 47164, UTF8_TODO::GetUtf8(csValueSetName).c_str(), ToString(SymbolType::ValueSet));
+            IssueMessage(MessageType::Error, 47164, value_set_name->c_str(), ToString(SymbolType::ValueSet));
             return dRet;
         }
 
@@ -275,7 +281,7 @@ double CIntDriver::exsetvalueset_pre80(int iExpr)
 
     else
     {
-        Symbol* pSymbol = NPT(pFunc->m_iSymbolValues[0]);
+        Symbol* pSymbol = &NPT_Ref(pFunc->m_iSymbolValues[0]);
 
         // a value set name was specified
         if( pSymbol->IsA(SymbolType::ValueSet) )
@@ -294,7 +300,7 @@ double CIntDriver::exsetvalueset_pre80(int iExpr)
         }
 
         // an array was specified so we will create a dynamic value set
-        else if( NPT(pFunc->m_iSymbolValues[0])->GetType() == SymbolType::Array )
+        else if( pSymbol->IsA(SymbolType::Array) )
         {
             const LogicArray& codes_array = assert_cast<const LogicArray&>(*pSymbol);
             const LogicArray& labels_array = GetSymbolLogicArray(pFunc->m_iSymbolValues[1]);
@@ -304,13 +310,13 @@ double CIntDriver::exsetvalueset_pre80(int iExpr)
             // check that the codes array matches the type of the variable
             if( pVarT->IsAlpha() && !codes_array.IsString() )
             {
-                issaerror(MessageType::Error, 47156);
+                IssueMessage(MessageType::Error, 47156);
                 return dRet;
             }
 
             if( pVarT->IsNumeric() && !codes_array.IsNumeric() )
             {
-                issaerror(MessageType::Error, 47158);
+                IssueMessage(MessageType::Error, 47158);
                 return dRet;
             }
 
@@ -361,16 +367,15 @@ double CIntDriver::exsetvalueset_pre80(int iExpr)
                     if( !image_file_path.empty() )
                         MakeAbsolutePath(image_file_path);
                 }
-                std::wstring wide_label = UTF8_TODO::GetWide(*label); // UTF8_TODO replace wide_label below with label
+
                 if( codes_array.IsNumeric() )
                 {
-                    dynamic_value_set.AddValue(std::move(wide_label), std::move(image_file_path), DictionaryDefaults::ValueLabelTextColor, numeric_codes[i], std::nullopt);
+                    dynamic_value_set.AddValue(std::move(label), std::move(image_file_path), DictionaryDefaults::ValueLabelTextColor, numeric_codes[i], std::nullopt);
                 }
 
                 else
                 {
-                    std::wstring wide_value = UTF8_TODO::GetWide(*string_codes[i]); // UTF8_TODO replace wide_value below with string_codes[i]
-                    dynamic_value_set.AddValue(std::move(wide_label), std::move(image_file_path), DictionaryDefaults::ValueLabelTextColor, std::move(wide_value));
+                    dynamic_value_set.AddValue(std::move(label), std::move(image_file_path), DictionaryDefaults::ValueLabelTextColor, std::move(string_codes[i]));
                 }
             }
 
@@ -394,7 +399,7 @@ double CIntDriver::exsetvalueset_pre80(int iExpr)
     {
         if( pVarT->IsNumeric() != new_value_set->IsNumeric() )
         {
-            issaerror(MessageType::Error, 941, ToString(pVarT->GetDataType()));
+            IssueMessage(MessageType::Error, 941, ToString(pVarT->GetDataType()));
             return dRet;
         }
 
@@ -402,7 +407,7 @@ double CIntDriver::exsetvalueset_pre80(int iExpr)
     }
 
     if( value_does_not_fit_in_value_set_warning )
-        issaerror(MessageType::Warning, 47161, pVarT->GetName().c_str());
+        IssueMessage(MessageType::Warning, 47161, pVarT->GetName().c_str());
 
     pVarT->SetCurrentValueSet(new_value_set);
 

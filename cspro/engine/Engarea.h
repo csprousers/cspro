@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 //---------------------------------------------------------------------------
 //  File name: EngArea.h
@@ -226,7 +226,7 @@ public:
     int SymbolTableSearchWithPreference(std::string_view full_symbol_name_sv, SymbolType preferred_symbol_type) const { return SymbolTableSearch(full_symbol_name_sv, preferred_symbol_type, nullptr); }
     int SymbolTableSearch(std::string_view full_symbol_name_sv, const std::vector<SymbolType>& allowable_symbol_types, SymbolType preferred_symbol_type = SymbolType::None) const { return SymbolTableSearch(full_symbol_name_sv, preferred_symbol_type, &allowable_symbol_types); }
     std::vector<Symbol*> SymbolTableSearchAllSymbols(std::string_view full_symbol_name_sv) const;
-private:
+// private: // INTERPRETER_DLL_TODO refactor
     int SymbolTableSearch(std::string_view full_symbol_name_sv, SymbolType preferred_symbol_type, const std::vector<SymbolType>* allowable_symbol_types) const;
 
 private:
