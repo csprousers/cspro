@@ -677,7 +677,7 @@ double CIntDriver::exdeckarray(int iExpr) // 20100121 for getdeck and putdeck
             VART* pVarT = value_set.GetVarT();
             VARX* pVarX = pVarT->GetVarX();
             double numeric_value = 0;
-            std::wstring string_value;
+            SharableString string_value;
 
             // if a value was provided, it will override whatever is in the variable
             if( deck_array_node->index_expressions[i] >= 0 )
@@ -689,7 +689,7 @@ double CIntDriver::exdeckarray(int iExpr) // 20100121 for getdeck and putdeck
 
                 else
                 {
-                    string_value = EvalAlphaExpr(deck_array_node->index_expressions[i]);
+                    string_value = EvaluateSharableString(deck_array_node->index_expressions[i]);
                 }
             }
 
@@ -706,7 +706,7 @@ double CIntDriver::exdeckarray(int iExpr) // 20100121 for getdeck and putdeck
 
                     else
                     {
-                        string_value = CS2WS(pVarX->GetValue());
+                        string_value = UTF8_TODO::GetUtf8(pVarX->GetValue());
                     }
                 }
 
@@ -736,24 +736,16 @@ double CIntDriver::exdeckarray(int iExpr) // 20100121 for getdeck and putdeck
 
                     else
                     {
-                        string_value = CS2WS(pVarX->GetValue(fixedIndex));
+                        string_value = UTF8_TODO::GetUtf8(pVarX->GetValue(fixedIndex));
                     }
                 }
             }
 
             // now figure out the array index values from the value set
             const ValueProcessor& value_processor = value_set.GetValueProcessor();
-            const DictValue* dict_value;
-
-            if( pVarT->IsNumeric() )
-            {
-                dict_value = value_processor.GetDictValue(numeric_value);
-            }
-
-            else
-            {
-                dict_value = value_processor.GetDictValue(WS2CS(string_value));
-            }
+            const DictValue* const dict_value = pVarT->IsNumeric()
+                ? value_processor.GetDictValue(numeric_value)
+                : value_processor.GetDictValue(*string_value);
 
             // we need to map the value to an index number
             if( dict_value != nullptr )
@@ -3672,8 +3664,9 @@ SharableString CIntDriver::GetValueLabel(const VART* const pVarT, const std::var
 
         const ValueProcessor& value_processor = value_set->GetValueProcessor();
 
-        const DictValue* const dict_value = pVarT->IsAlpha() ? value_processor.GetDictValue(UTF8_TODO::GetCString(*std::get<SharableString>(value))) :
-                                                               value_processor.GetDictValue(std::get<double>(value));
+        const DictValue* const dict_value = pVarT->IsAlpha()
+            ? value_processor.GetDictValue(*std::get<SharableString>(value))
+            : value_processor.GetDictValue(std::get<double>(value));
 
         if( dict_value != nullptr )
             return UTF8_TODO::GetUtf8(dict_value->GetLabel());

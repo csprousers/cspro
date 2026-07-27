@@ -300,7 +300,7 @@ private:
     std::map<VART*,CString>* m_pmapPersistentFields;
     bool m_bPersistentFieldsLastUpdatedOnInsertOrModify;
 
-    std::unique_ptr<std::map<VART*, std::wstring>> m_prefilledNonPersistentFields;
+    std::unique_ptr<std::map<VART*, std::string>> m_prefilledNonPersistentFields;
 
     std::map<VART*, int64_t>* m_pmapAutoIncrementFields;
     DataRepository* m_pLastMappedAutoIncrementFieldsRepository;

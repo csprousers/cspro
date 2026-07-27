@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "CaseTreeBuilder.h"
 #include <zDictO/ValueProcessor.h>
 #include <zDictO/ValueSetResponse.h>
@@ -279,19 +279,17 @@ void CaseTreeBuilder::updateChildren(const std::shared_ptr<CaseTreeNode>& node, 
 
 namespace
 {
-    const DictValue* GetFieldValue_GetDictValueFromInput(std::vector<const ValueProcessor*>& value_processors, const CString& value)
+    const DictValue* GetFieldValue_GetDictValueFromInput(std::vector<const ValueProcessor*>& value_processors, const std::string_view value_sv)
     {
-        const DictValue* dict_value = nullptr;
-
         for( const ValueProcessor* value_processor : value_processors )
         {
-            dict_value = value_processor->GetDictValueFromInput(value);
+            const DictValue* const dict_value  = value_processor->GetDictValueFromInput(value_sv);
 
             if( dict_value != nullptr )
-                break;
+                return dict_value;
         }
 
-        return dict_value;
+        return nullptr;
     }
 }
 
@@ -323,7 +321,7 @@ CString CaseTreeBuilder::GetFieldValue(CDEField* pField, const std::array<int, 3
     // process non-checkboxes
     if( pVarT->GetEvaluatedCaptureInfo().GetCaptureType() != CaptureType::CheckBox )
     {
-        const DictValue* dict_value = GetFieldValue_GetDictValueFromInput(value_processors, csData);
+        const DictValue* dict_value = GetFieldValue_GetDictValueFromInput(value_processors, UTF8_TODO::GetUtf8(csData));
         const DictValuePair* first_dict_value_pair =
             ( dict_value != nullptr && dict_value->HasValuePairs() ) ? &dict_value->GetValuePair(0) : nullptr;
 
@@ -341,7 +339,7 @@ CString CaseTreeBuilder::GetFieldValue(CDEField* pField, const std::array<int, 3
         {
             const ValueProcessor& value_processor = pVarT->GetCurrentValueProcessor();
 
-            double numeric_value = value_processor.GetNumericFromInput(csData);
+            double numeric_value = value_processor.GetNumericFromInput(UTF8_TODO::GetUtf8(csData));
 
             if( numeric_value < MAXVALUE )
                 code = UTF8_TODO::GetCString(ValueSetResponse::FormatValueForDisplay(*pItem, numeric_value));
@@ -367,7 +365,7 @@ CString CaseTreeBuilder::GetFieldValue(CDEField* pField, const std::array<int, 3
             CString this_label = this_value;
             this_label.Trim();
 
-            const DictValue* dict_value = GetFieldValue_GetDictValueFromInput(value_processors, this_value);
+            const DictValue* dict_value = GetFieldValue_GetDictValueFromInput(value_processors, UTF8_TODO::GetUtf8(this_value));
 
             if( dict_value != nullptr )
                 this_label = dict_value->GetLabel();

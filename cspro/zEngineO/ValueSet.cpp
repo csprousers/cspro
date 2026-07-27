@@ -751,7 +751,7 @@ std::unique_ptr<ValueSet> DynamicValueSet::CreateValueSet(VART* pVarT, bool& val
 
 namespace
 {
-    DictValue* CreateTemporaryDictValue(const DynamicValueSetEntry& entry, std::wstring value)
+    DictValue* CreateTemporaryDictValue(const DynamicValueSetEntry& entry, std::string value)
     {
         static DictValue dict_value;
 
@@ -762,10 +762,11 @@ namespace
         if( !dict_value.HasValuePairs() )
             dict_value.AddValuePair(DictValuePair());
 
-        dict_value.GetValuePair(0).SetFrom(WS2CS(std::move(value)));
+        dict_value.GetValuePair(0).SetFrom(UTF8_TODO::GetCString(std::move(value)));
 
         return &dict_value;
     }
+
 
     const DynamicValueSetEntry* FindEntryByLabel(const std::vector<std::unique_ptr<const DynamicValueSetEntry>>& entries, std::string_view label_sv)
     {
@@ -782,168 +783,315 @@ namespace
 }
 
 
+
+// --------------------------------------------------------------------------
+// NumericValueProcessorForDynamicValueSet
+// --------------------------------------------------------------------------
+
 class NumericValueProcessorForDynamicValueSet : public NumericValueProcessor
 {
 public:
-    NumericValueProcessorForDynamicValueSet(const std::vector<std::unique_ptr<const DynamicValueSetEntry>>& entries)
-        :   m_entries(entries)
+    NumericValueProcessorForDynamicValueSet(const std::vector<std::unique_ptr<const DynamicValueSetEntry>>& entries);
+
+    // NumericValueProcessor overrides
+    double GetMinValue() const override;
+    double GetMaxValue() const override;
+
+    double ConvertNumberToEngineFormat(double value) const override;
+    double ConvertNumberFromEngineFormat(double value) const override;
+
+    // ValueProcessor overrides
+    bool IsValid(double value) const override;
+
+    const DictValue* GetDictValue(double value) const override;
+
+    const DictValue* GetDictValueByLabel(std::string_view label_sv) const override;
+
+    std::vector<const DictValue*> GetMatchingDictValues(double value) const override;
+
+    double GetNumericFromInput(std::string_view value_sv) const override;
+
+    std::string GetOutput(double value) const override;
+
+    const std::vector<std::shared_ptr<const ValueSetResponse>>& GetResponses() const override;
+
+private:
+    const NumericDynamicValueSetEntry* FindEntryByValue(double value) const;
+
+    const DictValue* CreateTemporaryDictValueForNumeric(const NumericDynamicValueSetEntry& numeric_entry) const;
+
+private:
+    const std::vector<std::unique_ptr<const DynamicValueSetEntry>>& m_entries;
+};
+
+
+NumericValueProcessorForDynamicValueSet::NumericValueProcessorForDynamicValueSet(const std::vector<std::unique_ptr<const DynamicValueSetEntry>>& entries)
+    :   NumericValueProcessor(nullptr, nullptr),
+        m_entries(entries)
+{
+}
+
+
+double NumericValueProcessorForDynamicValueSet::GetMinValue() const
+{
+    std::optional<double> min_value;
+
+    for( const DynamicValueSetEntry& entry : VI_V(m_entries) )
     {
+        const NumericDynamicValueSetEntry& numeric_entry = assert_cast<const NumericDynamicValueSetEntry&>(entry);
+
+        // special values are not counted as min/max values
+        if( numeric_entry.to_value.has_value() && IsSpecial(*numeric_entry.to_value) )
+            continue;
+
+        if( !min_value.has_value() || numeric_entry.from_value < *min_value )
+            min_value = numeric_entry.from_value;
     }
 
-    double GetMinValue() const override
+    return min_value.value_or(DEFAULT);
+}
+
+
+double NumericValueProcessorForDynamicValueSet::GetMaxValue() const
+{
+    std::optional<double> max_value;
+
+    for( const DynamicValueSetEntry& entry : VI_V(m_entries) )
     {
-        std::optional<double> min_value;
+        const NumericDynamicValueSetEntry& numeric_entry = assert_cast<const NumericDynamicValueSetEntry&>(entry);
+        double entry_max_value;
 
-        for( const DynamicValueSetEntry& entry : VI_V(m_entries) )
+        if( numeric_entry.to_value.has_value() )
         {
-            const NumericDynamicValueSetEntry& numeric_entry = assert_cast<const NumericDynamicValueSetEntry&>(entry);
-
             // special values are not counted as min/max values
-            if( numeric_entry.to_value.has_value() && IsSpecial(*numeric_entry.to_value) )
+            if( IsSpecial(*numeric_entry.to_value) )
                 continue;
 
-            if( !min_value.has_value() || numeric_entry.from_value < *min_value )
-                min_value = numeric_entry.from_value;
+            entry_max_value = *numeric_entry.to_value;
         }
 
-        return min_value.value_or(DEFAULT);
-    }
-
-    double GetMaxValue() const override
-    {
-        std::optional<double> max_value;
-
-        for( const DynamicValueSetEntry& entry : VI_V(m_entries) )
+        else
         {
-            const NumericDynamicValueSetEntry& numeric_entry = assert_cast<const NumericDynamicValueSetEntry&>(entry);
-            double entry_max_value;
-
-            if( numeric_entry.to_value.has_value() )
-            {
-                // special values are not counted as min/max values
-                if( IsSpecial(*numeric_entry.to_value) )
-                    continue;
-
-                entry_max_value = *numeric_entry.to_value;
-            }
-
-            else
-            {
-                entry_max_value = numeric_entry.from_value;
-            }
-
-            if( !max_value.has_value() || entry_max_value > *max_value)
-                max_value = entry_max_value;
+            entry_max_value = numeric_entry.from_value;
         }
 
-        return max_value.value_or(DEFAULT);
+        if( !max_value.has_value() || entry_max_value > *max_value)
+            max_value = entry_max_value;
     }
 
-    bool IsValid(double value) const override
-    {
-        return ( FindEntryByValue(value) != nullptr );
-    }
+    return max_value.value_or(DEFAULT);
+}
 
-    const DictValue* GetDictValue(double value) const override
-    {
-        const NumericDynamicValueSetEntry* numeric_entry = FindEntryByValue(value);
-        return ( numeric_entry != nullptr ) ? CreateTemporaryDictValueForNumeric(*numeric_entry) :
-                                              nullptr;
-    }
 
-    const DictValue* GetDictValueByLabel(const std::string_view label_sv) const override
-    {
-        const DynamicValueSetEntry* const entry = FindEntryByLabel(m_entries, label_sv);
-        return ( entry != nullptr ) ? CreateTemporaryDictValueForNumeric(assert_cast<const NumericDynamicValueSetEntry&>(*entry)) :
-                                      nullptr;
-    }
+double NumericValueProcessorForDynamicValueSet::ConvertNumberToEngineFormat(const double value) const
+{
+    // only used with non-dynamic value sets
+    return ReturnProgrammingError(value);
+}
 
-private:
-    const NumericDynamicValueSetEntry* FindEntryByValue(double value) const
+
+double NumericValueProcessorForDynamicValueSet::ConvertNumberFromEngineFormat(const double value) const
+{
+    // only used with non-dynamic value sets
+    return ReturnProgrammingError(value);
+}
+
+
+bool NumericValueProcessorForDynamicValueSet::IsValid(const double value) const
+{
+    return ( FindEntryByValue(value) != nullptr );
+}
+
+
+const DictValue* NumericValueProcessorForDynamicValueSet::GetDictValue(const double value) const
+{
+    const NumericDynamicValueSetEntry* const numeric_entry = FindEntryByValue(value);
+    return ( numeric_entry != nullptr ) ? CreateTemporaryDictValueForNumeric(*numeric_entry) :
+                                          nullptr;
+}
+
+
+const DictValue* NumericValueProcessorForDynamicValueSet::GetDictValueByLabel(const std::string_view label_sv) const
+{
+    const DynamicValueSetEntry* const entry = FindEntryByLabel(m_entries, label_sv);
+    return ( entry != nullptr ) ? CreateTemporaryDictValueForNumeric(assert_cast<const NumericDynamicValueSetEntry&>(*entry)) :
+                                  nullptr;
+}
+
+
+std::vector<const DictValue*> NumericValueProcessorForDynamicValueSet::GetMatchingDictValues(double /*value*/) const
+{
+    // only used by frequencies with non-dynamic value sets
+    return ReturnProgrammingError(std::vector<const DictValue*>());
+}
+
+
+const NumericDynamicValueSetEntry* NumericValueProcessorForDynamicValueSet::FindEntryByValue(const double value) const
+{
+    for( const DynamicValueSetEntry& entry : VI_V(m_entries) )
     {
-        for( const DynamicValueSetEntry& entry : VI_V(m_entries) )
+        const NumericDynamicValueSetEntry& numeric_entry = assert_cast<const NumericDynamicValueSetEntry&>(entry);
+
+        if( !numeric_entry.to_value.has_value() ? ( value == numeric_entry.from_value ) :
+            IsSpecial(*numeric_entry.to_value)  ? ( value == *numeric_entry.to_value ) :
+                                                  ( value >= numeric_entry.from_value && value <= *numeric_entry.to_value ) )
         {
-            const NumericDynamicValueSetEntry& numeric_entry = assert_cast<const NumericDynamicValueSetEntry&>(entry);
-
-            if( !numeric_entry.to_value.has_value() ? ( value == numeric_entry.from_value ) :
-                IsSpecial(*numeric_entry.to_value)  ? ( value == *numeric_entry.to_value ) :
-                                                      ( value >= numeric_entry.from_value && value <= *numeric_entry.to_value ) )
-            {
-                return &numeric_entry;
-            }
+            return &numeric_entry;
         }
-
-        return nullptr;
     }
 
-    const DictValue* CreateTemporaryDictValueForNumeric(const NumericDynamicValueSetEntry& numeric_entry) const
+    return nullptr;
+}
+
+
+double NumericValueProcessorForDynamicValueSet::GetNumericFromInput(std::string_view /*value_sv*/) const
+{
+    // only used with non-dynamic value sets
+    return ReturnProgrammingError(DEFAULT);
+}
+
+
+std::string NumericValueProcessorForDynamicValueSet::GetOutput(const double value) const
+{
+    // only used with non-dynamic value sets
+    return ReturnProgrammingError(DoubleToString(value));
+}
+
+
+const std::vector<std::shared_ptr<const ValueSetResponse>>& NumericValueProcessorForDynamicValueSet::GetResponses() const
+{
+    // only used with non-dynamic value sets
+    throw ProgrammingErrorException();
+}
+
+
+const DictValue* NumericValueProcessorForDynamicValueSet::CreateTemporaryDictValueForNumeric(const NumericDynamicValueSetEntry& numeric_entry) const
+{
+    // format the from code, right-trimming zeros
+    std::string from_value_text;
+
+    if( !IsSpecial(numeric_entry.from_value) )
     {
-        // format the from code, right-trimming zeros
-        CString from_value_text;
-
-        if( !IsSpecial(numeric_entry.from_value) )
-        {
-            from_value_text.Format(_T("%0.6f"), numeric_entry.from_value);
-            from_value_text.TrimRight(_T('0'));
-            from_value_text.TrimRight(_T('.'));
-        }
-
-        return CreateTemporaryDictValue(numeric_entry, CS2WS(from_value_text));
+        from_value_text = FormatText("%0.6f", numeric_entry.from_value);
+        SO::MakeTrimRight(from_value_text, '0');
+        SO::MakeTrimRight(from_value_text, '.');
     }
 
-private:
-    const std::vector<std::unique_ptr<const DynamicValueSetEntry>>& m_entries;
-};
+    return CreateTemporaryDictValue(numeric_entry, std::move(from_value_text));
+}
 
 
-class StringValueProcessorForDynamicValueSet : public ValueProcessor
+
+// --------------------------------------------------------------------------
+// StringValueProcessorForDynamicValueSet
+// --------------------------------------------------------------------------
+
+class StringValueProcessorForDynamicValueSet : public StringValueProcessor
 {
 public:
-    StringValueProcessorForDynamicValueSet(const std::vector<std::unique_ptr<const DynamicValueSetEntry>>& entries)
-        :   m_entries(entries)
-    {
-    }
+    StringValueProcessorForDynamicValueSet(const std::vector<std::unique_ptr<const DynamicValueSetEntry>>& entries);
 
-    bool IsValid(const CString& value, bool pad_value_to_length/* = true*/) const override
-    {
-        return ( FindEntryByValue(value, pad_value_to_length) != nullptr );
-    }
+    // ValueProcessor overrides
+    bool IsValid(std::string_view value_sv, bool pad_value_to_length = true) const override;
 
-    const DictValue* GetDictValue(const CString& value, bool pad_value_to_length/* = true*/) const override
-    {
-        const StringDynamicValueSetEntry* string_entry = FindEntryByValue(value, pad_value_to_length);
-        return ( string_entry != nullptr ) ? CreateTemporaryDictValue(*string_entry, UTF8_TODO::GetWide(*string_entry->value)) :
-                                             nullptr;
-    }
+    const DictValue* GetDictValue(std::string_view value_sv, bool pad_value_to_length = true) const override;
 
-    const DictValue* GetDictValueByLabel(const std::string_view label_sv) const override
-    {
-        const DynamicValueSetEntry* const entry = FindEntryByLabel(m_entries, label_sv);
-        return ( entry != nullptr ) ? CreateTemporaryDictValue(*entry, UTF8_TODO::GetWide(*assert_cast<const StringDynamicValueSetEntry&>(*entry).value)) :
-                                      nullptr;
-    }
+    const DictValue* GetDictValueByLabel(std::string_view label_sv) const override;
+
+    std::vector<const DictValue*> GetMatchingDictValues(std::string_view value_sv) const override;
+
+    std::string GetAlphaFromInput(std::string value) const override;
+
+    std::string GetOutput(std::string value) const override;
+
+    const std::vector<std::shared_ptr<const ValueSetResponse>>& GetResponses() const override;
 
 private:
-    const StringDynamicValueSetEntry* FindEntryByValue(wstring_view value_sv, bool pad_value_to_length) const
-    {
-        if( pad_value_to_length )
-            value_sv = SO::TrimRight(value_sv);
-
-        for( const DynamicValueSetEntry& entry : VI_V(m_entries) )
-        {
-            const StringDynamicValueSetEntry& string_entry = assert_cast<const StringDynamicValueSetEntry&>(entry);
-
-            if( SO::EqualsNoCase(value_sv, UTF8_TODO::GetWide(*string_entry.value)) )
-                return &string_entry;
-        }
-
-        return nullptr;
-    }
+    const StringDynamicValueSetEntry* FindEntryByValue(std::string_view value_sv, bool pad_value_to_length) const;
 
 private:
     const std::vector<std::unique_ptr<const DynamicValueSetEntry>>& m_entries;
 };
 
+
+StringValueProcessorForDynamicValueSet::StringValueProcessorForDynamicValueSet(const std::vector<std::unique_ptr<const DynamicValueSetEntry>>& entries)
+    :   StringValueProcessor(nullptr, nullptr),
+        m_entries(entries)
+{
+}
+
+
+bool StringValueProcessorForDynamicValueSet::IsValid(const std::string_view value_sv, const bool pad_value_to_length/* = true*/) const
+{
+    return ( FindEntryByValue(value_sv, pad_value_to_length) != nullptr );
+}
+
+
+const DictValue* StringValueProcessorForDynamicValueSet::GetDictValue(const std::string_view value_sv, const bool pad_value_to_length/* = true*/) const
+{
+    const StringDynamicValueSetEntry* const string_entry = FindEntryByValue(value_sv, pad_value_to_length);
+    return ( string_entry != nullptr ) ? CreateTemporaryDictValue(*string_entry, *string_entry->value) :
+                                         nullptr;
+}
+
+
+const DictValue* StringValueProcessorForDynamicValueSet::GetDictValueByLabel(const std::string_view label_sv) const
+{
+    const DynamicValueSetEntry* const entry = FindEntryByLabel(m_entries, label_sv);
+    return ( entry != nullptr ) ? CreateTemporaryDictValue(*entry, *assert_cast<const StringDynamicValueSetEntry&>(*entry).value) :
+                                  nullptr;
+}
+
+
+std::vector<const DictValue*> StringValueProcessorForDynamicValueSet::GetMatchingDictValues(std::string_view /*value_sv*/) const
+{
+    // only used by frequencies with non-dynamic value sets
+    return ReturnProgrammingError(std::vector<const DictValue*>());
+}
+
+
+const StringDynamicValueSetEntry* StringValueProcessorForDynamicValueSet::FindEntryByValue(std::string_view value_sv, const bool pad_value_to_length) const
+{
+    if( pad_value_to_length )
+        value_sv = SO::TrimRight(value_sv);
+
+    for( const DynamicValueSetEntry& entry : VI_V(m_entries) )
+    {
+        const StringDynamicValueSetEntry& string_entry = assert_cast<const StringDynamicValueSetEntry&>(entry);
+
+        if( SO::EqualsNoCase(value_sv, *string_entry.value) )
+            return &string_entry;
+    }
+
+    return nullptr;
+}
+
+
+std::string StringValueProcessorForDynamicValueSet::GetAlphaFromInput(std::string value) const
+{
+    // only used with non-dynamic value sets
+    return ReturnProgrammingError(std::move(value));
+}
+
+
+std::string StringValueProcessorForDynamicValueSet::GetOutput(std::string value) const
+{
+    // only used with non-dynamic value sets
+    return ReturnProgrammingError(std::move(value));
+}
+
+
+const std::vector<std::shared_ptr<const ValueSetResponse>>& StringValueProcessorForDynamicValueSet::GetResponses() const
+{
+    // only used with non-dynamic value sets
+    throw ProgrammingErrorException();
+}
+
+
+
+// --------------------------------------------------------------------------
+// DynamicValueSet::CreateValueProcessor
+// --------------------------------------------------------------------------
 
 void DynamicValueSet::CreateValueProcessor() const
 {

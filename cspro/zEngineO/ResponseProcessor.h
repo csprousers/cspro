@@ -30,9 +30,9 @@ public:
     void SetCanEnterNotAppl(bool add_notappl);
 
     // for radio buttons, drop downs, combo boxes, and toggle buttons
-    size_t GetResponseIndex(const CString& value) const;
+    size_t GetResponseIndex(std::string_view value_sv) const;
 
-    CString GetInputFromResponseIndex(size_t index) const;
+    std::string GetInputFromResponseIndex(size_t index) const;
     double GetNumericInputFromResponseIndex(size_t index) const;
 
     // for checkboxes

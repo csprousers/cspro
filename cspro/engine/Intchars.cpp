@@ -554,19 +554,11 @@ double CIntDriver::exgetlabel(int iExpr)
             value_processor = &pVarT->GetCurrentValueProcessor();
         }
 
-        if( fng_node.m_iOper == (int)GetLabelSearchType::ByCode )
+        if( fng_node.m_iOper == static_cast<int>(GetLabelSearchType::ByCode) )
         {
-            const DictValue* dict_value = nullptr;
-
-            if( IsNumeric(*symbol) )
-            {
-                dict_value = value_processor->GetDictValue(evalexpr(fng_node.m_iExpr));
-            }
-
-            else
-            {
-                dict_value = value_processor->GetDictValue(EvalAlphaExprCS(fng_node.m_iExpr));
-            }
+            const DictValue* const dict_value = IsNumeric(*symbol)
+                ? value_processor->GetDictValue(Evaluate(fng_node.m_iExpr))
+                : value_processor->GetDictValue(EvaluateSharableString(fng_node.m_iExpr).GetString());
 
             if( dict_value != nullptr )
                 label = dict_value->GetLabel();
@@ -574,6 +566,8 @@ double CIntDriver::exgetlabel(int iExpr)
 
         else
         {
+            ASSERT(fng_node.m_iOper == static_cast<int>(GetLabelSearchType::ByLabel));
+
             const DictValue* const dict_value = value_processor->GetDictValueByLabel(
                 EvaluateSharableString(fng_node.m_iExpr).GetString()
             );

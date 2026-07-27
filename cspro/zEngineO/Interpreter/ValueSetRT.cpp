@@ -77,7 +77,7 @@ double LogicInterpreter::ex_invalueset(const int program_index)
     else
     {
         const SharableString value = EvaluateSharableString(invalueset_node.value_expression);
-        return value_processor->IsValid(UTF8_TODO::GetCString(*value));
+        return value_processor->IsValid(*value);
     }
 }
 

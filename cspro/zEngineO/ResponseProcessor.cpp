@@ -19,7 +19,9 @@ ResponseProcessor::ResponseProcessor(std::shared_ptr<const ValueProcessor> value
         m_filteredResponsesHaveRangesRemoved(false),
         m_responsesNeedResetting(false)
 {
-    switch( m_valueProcessor->GetDictItem().GetContentType() )
+    ASSERT(m_valueProcessor->GetDictItem() != nullptr);
+
+    switch( m_valueProcessor->GetDictItem()->GetContentType() )
     {
         case ContentType::Numeric:
             m_valueSetContainsNotApplOrBlank = m_valueProcessor->IsValid(NOTAPPL);
@@ -27,7 +29,7 @@ ResponseProcessor::ResponseProcessor(std::shared_ptr<const ValueProcessor> value
             break;
 
         case ContentType::Alpha:
-            m_valueSetContainsNotApplOrBlank = m_valueProcessor->IsValid(CString());
+            m_valueSetContainsNotApplOrBlank = m_valueProcessor->IsValid(std::string_view());
             break;
 
         default:
@@ -46,7 +48,7 @@ const std::vector<std::shared_ptr<const ValueSetResponse>>& ResponseProcessor::G
 
 void ResponseProcessor::ShowRefusedValue(bool show_refused_value)
 {
-    ASSERT(m_valueProcessor->GetDictItem().GetContentType() == ContentType::Numeric);
+    ASSERT(m_valueProcessor->GetDictItem()->GetContentType() == ContentType::Numeric);
 
     if( m_filteredResponsesShowRefusedOverride )
     {
@@ -62,6 +64,7 @@ void ResponseProcessor::ShowRefusedValue(bool show_refused_value)
         }
     }
 }
+
 
 void ResponseProcessor::AlwaysShowRefusedValue()
 {
@@ -85,7 +88,7 @@ void ResponseProcessor::ApplyCaptureTypeProperties(CaptureType capture_type)
 
 void ResponseProcessor::RemoveRangeResponses(bool remove_range_responses)
 {
-    ASSERT(m_valueProcessor->GetDictItem().GetContentType() == ContentType::Numeric);
+    ASSERT(m_valueProcessor->GetDictItem()->GetContentType() == ContentType::Numeric);
 
     if( remove_range_responses != m_filteredResponsesHaveRangesRemoved )
     {
@@ -115,7 +118,7 @@ void ResponseProcessor::RemoveRangeResponses(bool remove_range_responses)
 
 void ResponseProcessor::SetCanEnterNotAppl(const bool add_notappl)
 {
-    ASSERT(m_valueProcessor->GetDictItem().GetContentType() == ContentType::Numeric);
+    ASSERT(m_valueProcessor->GetDictItem()->GetContentType() == ContentType::Numeric);
 
     // if notappl is already in the value set, or it has already been added,
     // there is no need to add it
@@ -157,9 +160,10 @@ size_t ResponseProcessor::GetValueSetResponseIndex(const DictValue& dict_value) 
     return SIZE_MAX;
 }
 
-size_t ResponseProcessor::GetResponseIndex(const CString& value) const
+
+size_t ResponseProcessor::GetResponseIndex(const std::string_view value_sv) const
 {
-    const DictValue* response_dict_value = m_valueProcessor->GetDictValueFromInput(value);
+    const DictValue* const response_dict_value = m_valueProcessor->GetDictValueFromInput(value_sv);
 
     // if found, get the index of the response
     if( response_dict_value != nullptr )
@@ -168,7 +172,7 @@ size_t ResponseProcessor::GetResponseIndex(const CString& value) const
     // if the value is an added notappl, return the index of that
     if( m_addedNotApplResponse != nullptr )
     {
-        if( SO::IsBlank(value) )
+        if( SO::IsBlank(value_sv) )
         {
             const auto& responses = GetResponses();
             return responses.size() - 1;
@@ -193,10 +197,11 @@ std::shared_ptr<const ValueSetResponse> ResponseProcessor::GetValueSetResponseFr
     return response;
 }
 
-CString ResponseProcessor::GetInputFromResponseIndex(size_t index) const
+
+std::string ResponseProcessor::GetInputFromResponseIndex(const size_t index) const
 {
     const auto& response = GetValueSetResponseFromIndex(index);
-    ContentType content_type = m_valueProcessor->GetDictItem().GetContentType();
+    const ContentType content_type = m_valueProcessor->GetDictItem()->GetContentType();
 
     if( content_type == ContentType::Numeric )
     {
@@ -205,7 +210,7 @@ CString ResponseProcessor::GetInputFromResponseIndex(size_t index) const
 
     else if( content_type == ContentType::Alpha )
     {
-        return m_valueProcessor->GetOutput(UTF8_TODO::GetCString(response->GetCode()));
+        return m_valueProcessor->GetOutput(response->GetCode());
     }
 
     else
@@ -214,9 +219,10 @@ CString ResponseProcessor::GetInputFromResponseIndex(size_t index) const
     }
 }
 
+
 double ResponseProcessor::GetNumericInputFromResponseIndex(size_t index) const
 {
-    ASSERT(m_valueProcessor->GetDictItem().GetContentType() == ContentType::Numeric);
+    ASSERT(m_valueProcessor->GetDictItem()->GetContentType() == ContentType::Numeric);
     const auto& response = GetValueSetResponseFromIndex(index);
     return response->GetMinimumValue();
 }
@@ -237,7 +243,7 @@ void ResponseProcessor::DoCheckboxCalculations() const
         );
     }
 
-    m_checkboxCalculations->max_selections = m_valueProcessor->GetDictItem().GetLen() / m_checkboxCalculations->checkbox_width;
+    m_checkboxCalculations->max_selections = m_valueProcessor->GetDictItem()->GetLen() / m_checkboxCalculations->checkbox_width;
 }
 
 
@@ -258,7 +264,7 @@ size_t ResponseProcessor::GetCheckboxMaxSelections() const
 std::vector<size_t> ResponseProcessor::GetCheckboxResponseIndices(const CString& value) const
 {
     DoCheckboxCalculations();
-    ASSERT(value.GetLength() <= (int)m_valueProcessor->GetDictItem().GetLen());
+    ASSERT(value.GetLength() <= (int)m_valueProcessor->GetDictItem()->GetLen());
 
     std::vector<size_t> indices;
     bool sort_indices = false;
@@ -268,11 +274,11 @@ std::vector<size_t> ResponseProcessor::GetCheckboxResponseIndices(const CString&
     {
         CString this_value = value.Mid(i, m_checkboxCalculations->checkbox_width);
 
-        const DictValue* response_dict_value = m_valueProcessor->GetDictValueFromInput(this_value);
+        const DictValue* const response_dict_value = m_valueProcessor->GetDictValueFromInput(UTF8_TODO::GetUtf8(this_value));
 
         if( response_dict_value != nullptr )
         {
-            size_t index = GetValueSetResponseIndex(*response_dict_value);
+            const size_t index = GetValueSetResponseIndex(*response_dict_value);
 
             // make sure that the indices are in sorted order
             if( index <= last_index && !indices.empty() )
@@ -363,7 +369,7 @@ void ResponseProcessor::RandomizeResponses(const std::set<const DictValue*>& val
 
 void ResponseProcessor::SortResponses(bool ascending, bool sort_by_label)
 {
-    ContentType content_type = m_valueProcessor->GetDictItem().GetContentType();
+    const ContentType content_type = m_valueProcessor->GetDictItem()->GetContentType();
 
     std::sort(m_responses.begin(), m_responses.end(),
         [&](const auto& response1, const auto& response2)
@@ -412,7 +418,7 @@ void ResponseProcessor::GenerateFilteredResponses()
 
 
     // numeric items
-    if( m_valueProcessor->GetDictItem().GetContentType() == ContentType::Numeric )
+    if( m_valueProcessor->GetDictItem()->GetContentType() == ContentType::Numeric )
     {
         m_filteredResponses = std::make_unique<std::vector<std::shared_ptr<const ValueSetResponse>>>();
 
@@ -440,7 +446,7 @@ void ResponseProcessor::GenerateFilteredResponses()
 
 
     // string items
-    else if( m_valueProcessor->GetDictItem().GetContentType() == ContentType::Alpha )
+    else if( m_valueProcessor->GetDictItem()->GetContentType() == ContentType::Alpha )
     {
         m_filteredResponses = std::make_unique<std::vector<std::shared_ptr<const ValueSetResponse>>>();
 

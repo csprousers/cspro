@@ -191,7 +191,7 @@ bool LogicInterpreter::InWorker(const int in_node_expression, const std::variant
                 const ValueProcessor& value_processor = value_set.GetValueProcessor();
 
                 in_range = is_numeric ? value_processor.IsValid(std::get<double>(value)) :
-                                        value_processor.IsValid(UTF8_TODO::GetCString(*std::get<SharableString>(value)));
+                                        value_processor.IsValid(*std::get<SharableString>(value));
             }
         }
 

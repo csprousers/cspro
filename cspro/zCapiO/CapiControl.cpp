@@ -556,7 +556,7 @@ int CCapiControl::SearchVS(CString searchText)
         }
     }
 
-    size_t index = m_pParent->m_responseProcessor->GetResponseIndex(searchText);
+    size_t index = m_pParent->m_responseProcessor->GetResponseIndex(UTF8_TODO::GetUtf8(searchText));
 
     return ( index == SIZE_MAX ) ? -1 : (int)index;
 }
@@ -566,7 +566,7 @@ bool CCapiControl::GetVSSelection(int vsID, CString* newFieldText)
 {
     try
     {
-        *newFieldText = m_pParent->m_responseProcessor->GetInputFromResponseIndex(vsID);
+        *newFieldText = UTF8_TODO::GetCString(m_pParent->m_responseProcessor->GetInputFromResponseIndex(vsID));
         return true;
     }
 

@@ -797,11 +797,12 @@ T CheckBoxCaptureInfo::SharedResponseProcessor(const CString& checkbox_text, con
     // for IsResponseValid, T will be bool
     // for GetResponseLabel, T will be std::vector<const DictValue*>
 
-    ASSERT(value_processor.GetDictItem().GetContentType() == ContentType::Alpha &&
+    ASSERT(value_processor.GetDictItem() != nullptr &&
+           value_processor.GetDictItem()->GetContentType() == ContentType::Alpha &&
            value_processor.GetDictValueSet() != nullptr);
 
-    int checkbox_length = CString(value_processor.GetDictValueSet()->GetValue(0).GetValuePair(0).GetFrom()).Trim().GetLength();
-    ASSERT(checkbox_length == static_cast<int>(CheckBoxCaptureInfo::GetCheckBoxLength(value_processor.GetDictItem(), *value_processor.GetDictValueSet())));
+    const int checkbox_length = CString(value_processor.GetDictValueSet()->GetValue(0).GetValuePair(0).GetFrom()).Trim().GetLength();
+    ASSERT(checkbox_length == static_cast<int>(CheckBoxCaptureInfo::GetCheckBoxLength(*value_processor.GetDictItem(), *value_processor.GetDictValueSet())));
     ASSERT(checkbox_text.GetLength() % checkbox_length == 0);
 
     std::vector<const DictValue*> selected_values;
@@ -823,16 +824,19 @@ T CheckBoxCaptureInfo::SharedResponseProcessor(const CString& checkbox_text, con
         if( !has_non_blank_values )
             continue;
 
-        CString component(checkbox_itr, checkbox_length);
+        const std::string component = UTF8_TODO::GetUtf8(std::wstring_view(checkbox_itr, checkbox_length));
 
-        const DictValue* selected_value = value_processor.GetDictValue(component);
+        const DictValue* const selected_value = value_processor.GetDictValue(component);
 
         // IsResponseValid processing
         if constexpr(std::is_same_v<T, bool>)
         {
             // don't allow duplicate selections
-            if( selected_value == nullptr || std::find(selected_values.cbegin(), selected_values.cend(), selected_value) != selected_values.cend() )
+            if( selected_value == nullptr ||
+                std::find(selected_values.cbegin(), selected_values.cend(), selected_value) != selected_values.cend() )
+            {
                 return false;
+            }
         }
 
         selected_values.emplace_back(selected_value);

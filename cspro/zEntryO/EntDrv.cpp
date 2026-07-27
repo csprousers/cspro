@@ -678,7 +678,7 @@ void CEntryDriver::PrefillNonPersistentFields()
     // load and setup the values
     if( m_prefilledNonPersistentFields == nullptr )
     {
-        m_prefilledNonPersistentFields = std::make_unique<std::map<VART*, std::wstring>>();
+        m_prefilledNonPersistentFields = std::make_unique<std::map<VART*, std::string>>();
 
         for( const auto& [field_name, field_value] : m_pPifFile->GetCustomParams() )
         {
@@ -692,17 +692,17 @@ void CEntryDriver::PrefillNonPersistentFields()
                 if( pVarT->GetLevel() == 1 && !pVarT->IsPersistent() && !pVarT->IsArray() )
                 {
                     // format the value properly for this variable
-                    std::wstring formatted_value;
+                    std::string formatted_value;
 
                     if( pVarT->IsAlpha() )
                     {
-                        formatted_value = UTF8_TODO::GetWide(field_value);
-                        SO::MakeExactLength(formatted_value, pVarT->GetLength());
+                        formatted_value = field_value;
+                        SO::WideMakeExactLength(formatted_value, pVarT->GetLength());
                     }
 
                     else
                     {
-                        double numeric_value = CIMSAString::fVal(field_value);
+                        const double numeric_value = CIMSAString::fVal(field_value);
                         formatted_value = pVarT->GetCurrentValueProcessor().GetOutput(numeric_value);
                     }
 
@@ -717,13 +717,14 @@ void CEntryDriver::PrefillNonPersistentFields()
     {
         for( const auto& [pVarT, formatted_value] : *m_prefilledNonPersistentFields )
         {
+            const std::wstring wide_formatted_value = UTF8_TODO::GetWide(formatted_value);
             TCHAR* variable_text_buffer = m_pIntDriver->GetVarAsciiAddr(pVarT);
-            _tmemcpy(variable_text_buffer, formatted_value.c_str(), formatted_value.length());
+            _tmemcpy(variable_text_buffer, wide_formatted_value.c_str(), wide_formatted_value.length());
 
             if( pVarT->IsNumeric() )
             {
                 double* variable_double_buffer = m_pIntDriver->GetVarFloatAddr(pVarT);
-                *variable_double_buffer = pVarT->GetCurrentValueProcessor().GetNumericFromInput(WS2CS(formatted_value));
+                *variable_double_buffer = pVarT->GetCurrentValueProcessor().GetNumericFromInput(formatted_value);
             }
         }
     }

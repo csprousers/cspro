@@ -1,4 +1,4 @@
-﻿//---------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 //  File name: VarX.cpp
 //
 //  Description:
@@ -690,7 +690,7 @@ bool VARX::InRange(const CNDIndexes* pTheIndex) const
     const VART* pVarT = GetVarT();
     const ValueProcessor& value_processor = pVarT->GetCurrentValueProcessor();
     double numeric_value = 0;
-    CString string_value;
+    std::string string_value;
     bool in_range = false;
 
     switch( pVarT->GetEvaluatedCaptureInfo().GetCaptureType() )
@@ -714,12 +714,12 @@ bool VARX::InRange(const CNDIndexes* pTheIndex) const
     else
     {
         ASSERT(pVarT->IsAlpha());
-        string_value = GetValue(pTheIndex);
+        string_value = UTF8_TODO::GetUtf8(GetValue(pTheIndex));
         in_range = value_processor.IsValid(string_value);
     }
 
     // starting with CSPro 7.3, in range checks will also account for the capture type
-    const auto& evaluated_capture_info = pVarT->GetEvaluatedCaptureInfo();
+    const CaptureInfo& evaluated_capture_info = pVarT->GetEvaluatedCaptureInfo();
 
     // process dates
     if( evaluated_capture_info.GetCaptureType() == CaptureType::Date )
@@ -729,12 +729,11 @@ bool VARX::InRange(const CNDIndexes* pTheIndex) const
         {
             if( pVarT->IsNumeric() )
             {
-                CString numeric_formatter;
-                numeric_formatter.Format(_T("%%%dd"), pVarT->GetLength());
-                string_value.Format(numeric_formatter, (int)numeric_value);
+                const std::string numeric_formatter = FormatText("%%%dd", pVarT->GetLength());
+                string_value = FormatText(numeric_formatter.c_str(), static_cast<int>(numeric_value));
             }
 
-            in_range = evaluated_capture_info.GetExtended<DateCaptureInfo>().IsResponseValid(string_value);
+            in_range = evaluated_capture_info.GetExtended<DateCaptureInfo>().IsResponseValid(UTF8_TODO::GetCString(string_value));
         }
     }
 
@@ -744,7 +743,7 @@ bool VARX::InRange(const CNDIndexes* pTheIndex) const
     {
         // we only need to check if the value was out of range
         if( !in_range )
-            in_range = CheckBoxCaptureInfo::IsResponseValid(string_value, value_processor);
+            in_range = CheckBoxCaptureInfo::IsResponseValid(UTF8_TODO::GetCString(string_value), value_processor);
     }
 
 
@@ -776,7 +775,7 @@ CString VARX::GetValue(const CNDIndexes* pTheIndex) const
             varoutval(*pTheIndex);
 
         const ValueProcessor& value_processor = pVarT->GetCurrentValueProcessor();
-        csValue = value_processor.GetOutput(dValue);
+        csValue = UTF8_TODO::GetCString(value_processor.GetOutput(dValue));
     }
 
     else
@@ -805,11 +804,11 @@ void VARX::SetValue(const CNDIndexes& theIndex, CString csValue, bool* value_has
     if( pVarT->IsNumeric() )
     {
         const ValueProcessor& value_processor = pVarT->GetCurrentValueProcessor();
-        double numeric_value = value_processor.GetNumericFromInput(csValue);
+        double numeric_value = value_processor.GetNumericFromInput(UTF8_TODO::GetUtf8(csValue));
 
         numeric_value = pVarX->varinval(numeric_value, theIndex);
 
-        csValue = value_processor.GetOutput(numeric_value);
+        csValue = UTF8_TODO::GetCString(value_processor.GetOutput(numeric_value));
     }
 
     // see if the value has been modified

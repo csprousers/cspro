@@ -563,8 +563,9 @@ std::tuple<std::string, std::string> CaseTextContentCreator::Formatter::CreateCa
                     ASSERT(parsed_entity->entity->value_processor != nullptr);
 
                     const std::variant<double, std::string> value =
-                        IsNumeric(dict_item->GetDataType()) ? std::variant<double, std::string>(parsed_entity->entity->value_processor->GetNumericFromInput(UTF8_TODO::GetCString(parsed_entity->text))) :
-                                                              std::variant<double, std::string>(parsed_entity->text);
+                        IsNumeric(dict_item->GetDataType())
+                        ? std::variant<double, std::string>(parsed_entity->entity->value_processor->GetNumericFromInput(parsed_entity->text))
+                        : std::variant<double, std::string>(parsed_entity->text);
 
                     // write numeric values properly formatted (e.g., with decimal marks)
                     if( std::holds_alternative<double>(value) )
@@ -586,8 +587,13 @@ std::tuple<std::string, std::string> CaseTextContentCreator::Formatter::CreateCa
                     {
                         for( const DictValueSet& dict_value_set : dict_item->GetValueSets() )
                         {
-                            const std::shared_ptr<const ValueProcessor> value_processor = ValueProcessor::CreateValueProcessor(*dict_item, &dict_value_set);
-                            const DictValue* const dict_value = std::visit([&](const auto& this_value) { return value_processor->GetDictValue(this_value); }, value);
+                            const std::shared_ptr<const ValueProcessor> value_processor =
+                                ValueProcessor::CreateValueProcessor(*dict_item, &dict_value_set);
+
+                            const DictValue* const dict_value = std::visit(
+                                [&](const auto& this_value) { return value_processor->GetDictValue(this_value); },
+                                value
+                            );
 
                             if( dict_value != nullptr )
                             {
