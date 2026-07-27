@@ -199,7 +199,7 @@ void CDataDict::BuildNameList()
                 AddToNameList(*dict_item, level_number, r, i);
 
                 int v = 0;
-                for( const auto& dict_value_set : dict_item->GetValueSets() )
+                for( const DictValueSet& dict_value_set : dict_item->GetValueSets() )
                 {
                     AddToNameList(dict_value_set, level_number, r, i, v);
                     v++;
@@ -262,7 +262,7 @@ void CDataDict::UpdateNameList(int iLevel, int iRec)
         AddToNameList(*dict_item, iLevel, iRec, i);
 
         int v = 0;
-        for( const auto& dict_value_set : dict_item->GetValueSets() )
+        for( const DictValueSet& dict_value_set : dict_item->GetValueSets() )
         {
             AddToNameList(dict_value_set, iLevel, iRec, i, v);
             ++v;
@@ -676,7 +676,7 @@ bool CDataDict::Find(bool bNext, bool bCaseSensitive, const std::string& find_te
 
                         // Check id item value set value labels
                         for (int iV = std::max(iValue,0) ; iV < (int)dict_value_set.GetNumValues() ; iV++) {
-                            const auto& dict_value = dict_value_set.GetValue(iV);
+                            const DictValue& dict_value = dict_value_set.GetValue(iV);
                             csLabel = dict_value.GetLabel();
                             if (!bCaseSensitive) {
                                 csLabel.MakeUpper();
@@ -765,7 +765,7 @@ bool CDataDict::Find(bool bNext, bool bCaseSensitive, const std::string& find_te
 
                         // check record item value set value labels
                        for (int iV = std::max(iValue,0) ; iV < (int)dict_value_set.GetNumValues() ; iV++) {
-                            const auto& dict_value = dict_value_set.GetValue(iV);
+                            const DictValue& dict_value = dict_value_set.GetValue(iV);
                             csLabel = dict_value.GetLabel();
                             if (!bCaseSensitive) {
                                 csLabel.MakeUpper();
@@ -810,7 +810,7 @@ bool CDataDict::Find(bool bNext, bool bCaseSensitive, const std::string& find_te
                         const DictValueSet& dict_value_set = pItem->GetValueSet(iVS);
                         int iLastValue = (int)dict_value_set.GetNumValues() - 1;
                         for (int iV = std::min(iValue,iLastValue) ; iV >= 0 ; iV--) {
-                            const auto& dict_value = dict_value_set.GetValue(iV);
+                            const DictValue& dict_value = dict_value_set.GetValue(iV);
                             csLabel = dict_value.GetLabel();
                             if (!bCaseSensitive) {
                                 csLabel.MakeUpper();
@@ -895,7 +895,7 @@ bool CDataDict::Find(bool bNext, bool bCaseSensitive, const std::string& find_te
                     const DictValueSet& dict_value_set = pItem->GetValueSet(iVS);
                     int iLastValue = (int)dict_value_set.GetNumValues() - 1;
                     for (int iV = std::min(iValue,iLastValue) ; iV >= 0 ; iV--) {
-                        const auto& dict_value = dict_value_set.GetValue(iV);
+                        const DictValue& dict_value = dict_value_set.GetValue(iV);
                         csLabel = dict_value.GetLabel();
                         if (!bCaseSensitive) {
                             csLabel.MakeUpper();

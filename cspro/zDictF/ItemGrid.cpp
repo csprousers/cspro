@@ -445,7 +445,7 @@ void CItemGrid::Update()
                     QuickSetBackColor(ITEM_TO_COL, ir, linkedVSColor);
                     QuickSetBackColor(ITEM_SPECIAL_COL, ir, linkedVSColor);
 
-                    CString csTemp = dict_value_pair.GetFrom();
+                    CString csTemp = UTF8_TODO::GetCString(dict_value_pair.GetFrom());
                     csTemp.Replace(SPACE, SHOWBLANK);
                     QuickSetText      (ITEM_FROM_COL,     ir, csTemp);
                     if (pItem->GetContentType() == ContentType::Alpha) {
@@ -457,7 +457,7 @@ void CItemGrid::Update()
                     else {
                         ASSERT(FALSE); // no value sets for binary items
                     }
-                    csTemp = dict_value_pair.GetTo();
+                    csTemp = UTF8_TODO::GetCString(dict_value_pair.GetTo());
                     csTemp.Replace(SPACE, SHOWBLANK);
                     QuickSetText      (ITEM_TO_COL,       ir, csTemp);
                     if (p > 0) {
@@ -1140,8 +1140,8 @@ bool CItemGrid::EditEnd(bool bSilent)
             }
         }
 
-        CString csOldFrom = dict_value_pair.GetFrom();
-        CString csOldTo = dict_value_pair.GetTo();
+        CString csOldFrom = UTF8_TODO::GetCString(dict_value_pair.GetFrom());
+        CString csOldTo = UTF8_TODO::GetCString(dict_value_pair.GetTo());
 
         CString csNewFrom;
         m_aEditControl[ITEM_FROM_COL]->GetWindowText(csNewFrom);
@@ -1153,8 +1153,8 @@ bool CItemGrid::EditEnd(bool bSilent)
         CString csNewTo;
         m_aEditControl[ITEM_TO_COL]->GetWindowText(csNewTo);
 
-        dict_value_pair.SetFrom(csNewFrom);
-        dict_value_pair.SetTo(csNewTo);
+        dict_value_pair.SetFrom(UTF8_TODO::GetUtf8(csNewFrom));
+        dict_value_pair.SetTo(UTF8_TODO::GetUtf8(csNewTo));
 
         // fix numeric value pairs
         CDictChildWnd* pChildWnd = assert_cast<CDictChildWnd*>(assert_cast<CMDIFrameWnd*>(AfxGetMainWnd())->MDIGetActive());
@@ -1162,20 +1162,20 @@ bool CItemGrid::EditEnd(bool bSilent)
         ValueSetFixer value_set_fixer(*dict_item, pChildWnd->GetDecimal());
         value_set_fixer.Fix(dict_value_pair);
 
-        csNewFrom = dict_value_pair.GetFrom();
-        csNewTo = dict_value_pair.GetTo();
+        csNewFrom = UTF8_TODO::GetCString(dict_value_pair.GetFrom());
+        csNewTo = UTF8_TODO::GetCString(dict_value_pair.GetTo());
 
         if (csNewFrom.Compare(csOldFrom) != 0) {
             bChanged = true;
-            m_aEditControl[ITEM_FROM_COL]->SetWindowText(dict_value_pair.GetFrom());
+            m_aEditControl[ITEM_FROM_COL]->SetWindowText(UTF8_TODO::GetCString(dict_value_pair.GetFrom()));
         }
 
         if (csNewTo.Compare(csOldTo) != 0) {
             bChanged = true;
-            m_aEditControl[ITEM_TO_COL]->SetWindowText(dict_value_pair.GetTo());
+            m_aEditControl[ITEM_TO_COL]->SetWindowText(UTF8_TODO::GetCString(dict_value_pair.GetTo()));
         }
 
-        if (bNewFromWasEmpty && dict_value_pair.GetTo().IsEmpty() && (m_bAdding || m_bInserting)) {
+        if (bNewFromWasEmpty && dict_value_pair.GetTo().empty() && (m_bAdding || m_bInserting)) {
             if (csNewLabel.IsEmpty()) {
                 bUndo = true;
                 m_bAdding = false;
@@ -1198,10 +1198,10 @@ bool CItemGrid::EditEnd(bool bSilent)
                     QuickSetText(ITEM_SPECIAL_COL, row, csNewSpecType);
                 }
                 CIMSAString cs;
-                cs = dict_value_pair.GetFrom();
+                cs = UTF8_TODO::GetCString(dict_value_pair.GetFrom());
                 cs.Replace(SPACE, SHOWBLANK);
                 QuickSetText(ITEM_FROM_COL, row, cs);
-                cs = dict_value_pair.GetTo();
+                cs = UTF8_TODO::GetCString(dict_value_pair.GetTo());
                 cs.Replace(SPACE, SHOWBLANK);
                 QuickSetText(ITEM_TO_COL, row, cs);
             }
@@ -1214,8 +1214,8 @@ bool CItemGrid::EditEnd(bool bSilent)
                     dict_value_set.GetValue(iValue).SetLabel(csOldLabel);
                     dict_value_set.GetValue(iValue).SetSpecialValue(old_special_value);
                 }
-                dict_value_set.GetValue(iValue).GetValuePair(iVPair).SetFrom(csOldFrom);
-                dict_value_set.GetValue(iValue).GetValuePair(iVPair).SetTo(csOldTo);
+                dict_value_set.GetValue(iValue).GetValuePair(iVPair).SetFrom(UTF8_TODO::GetUtf8(csOldFrom));
+                dict_value_set.GetValue(iValue).GetValuePair(iVPair).SetTo(UTF8_TODO::GetUtf8(csOldTo));
             }
         }
     }
@@ -1837,7 +1837,10 @@ namespace
                 }
 
                 // add the value pair
-                dict_value_set.GetValue(value_index).AddValuePair(DictValuePair(values[1], ( values.size() > 2 ) ? values[2] : CString()));
+                dict_value_set.GetValue(value_index).AddValuePair(DictValuePair(
+                    UTF8_TODO::GetUtf8(values[1]),
+                    ( values.size() > 2 ) ? UTF8_TODO::GetUtf8(values[2]) : std::string()
+                ));
             });
 
         ASSERT(dict_value_set.GetNumValues() != 0);
@@ -1848,8 +1851,8 @@ namespace
 
     void OutputDictValue(std::wostringstream& stream, const DictValuePair& dict_value_pair)
     {
-        stream << L"\t" << dict_value_pair.GetFrom().GetString()
-               << L"\t" << dict_value_pair.GetTo().GetString();
+        stream << L"\t" << UTF8_TODO::GetCString(dict_value_pair.GetFrom()).GetString()
+               << L"\t" << UTF8_TODO::GetCString(dict_value_pair.GetTo()).GetString();
     }
 
     std::wostringstream& operator<<(std::wostringstream& stream, const DictValuePair& dict_value_pair)
@@ -2906,10 +2909,10 @@ void CItemGrid::OnFormatValueLabels(UINT nID)
             {
                 const DictValuePair& dict_value_pair = dict_value.GetValuePair(0);
 
-                CString str = dict_value_pair.GetFrom();
+                CString str = UTF8_TODO::GetCString(dict_value_pair.GetFrom());
                 label.Replace(L"%f", str.Trim());
 
-                str = dict_value_pair.GetTo();
+                str = UTF8_TODO::GetCString(dict_value_pair.GetTo());
                 label.Replace(L"%t", str.Trim());
             }
         }

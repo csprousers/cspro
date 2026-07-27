@@ -1850,7 +1850,7 @@ void CDDGView::OnPrint(CDC* pDC, CPrintInfo* pInfo)
 
                 // Print Value Sets
                 if (!m_bPrintBrief) {
-                    for( const auto& dict_value_set : pItem->GetValueSets() ) {
+                    for( const DictValueSet& dict_value_set : pItem->GetValueSets() ) {
                         if (m_iYPos - 2*m_iHeight < iPageHeight) {
                             m_uPage++;
                             m_iYPos = 0;
@@ -1895,14 +1895,14 @@ void CDDGView::OnPrint(CDC* pDC, CPrintInfo* pInfo)
                         // Print Values
                         int iValSize = 0;
 
-                        for( const auto& dict_value : dict_value_set.GetValues() ) {
-                            CString csTemp = dict_value.GetRangeString();
+                        for( const DictValue& dict_value : dict_value_set.GetValues() ) {
+                            CString csTemp = UTF8_TODO::GetCString(dict_value.GetRangeString());
                             CSize this_size = pDC->GetTextExtent(csTemp);
                             if (this_size.cx > iValSize) {
                                 iValSize = this_size.cx;
                             }
                         }
-                        for( const auto& dict_value : dict_value_set.GetValues() ) {
+                        for( const DictValue& dict_value : dict_value_set.GetValues() ) {
                             if (m_iYPos < iPageHeight) {
                                 m_uPage++;
                                 m_iYPos = 0;
@@ -1911,7 +1911,7 @@ void CDDGView::OnPrint(CDC* pDC, CPrintInfo* pInfo)
                                 PrintRecHead(pDC, pInfo, dict_level, pRec, i);
                             }
                             if (pInfo->m_nCurPage == m_uPage) {
-                                CString csTemp = dict_value.GetRangeString();
+                                CString csTemp = UTF8_TODO::GetCString(dict_value.GetRangeString());
                                 if (dict_value.IsSpecial()) {
                                     CString special_code = ( dict_value.GetSpecialValue() == MISSING ) ? _T("(m)") :
                                                            ( dict_value.GetSpecialValue() == REFUSED ) ? _T("(r)") :
@@ -2575,7 +2575,7 @@ void CDDGView::PrintToFile()
 
                 // Print value sets
                 if (!m_bPrintBrief) {
-                    for( const auto& dict_value_set : pItem->GetValueSets() ) {
+                    for( const DictValueSet& dict_value_set : pItem->GetValueSets() ) {
                         if (pItem->GetNumValueSets() > 1 || dict_value_set.GetLabel() != pItem->GetLabel()) {
                             if (m_bPrintNameFirst) {
                                 csText = _T("(")+ PrepareNameForPrinting(dict_value_set.GetName()) + _T(")");
@@ -2620,14 +2620,14 @@ void CDDGView::PrintToFile()
                         // Print Values
                         int iValSize = 0;
 
-                        for( const auto& dict_value : dict_value_set.GetValues() ) {
-                            CString csTemp = dict_value.GetRangeString();
+                        for( const DictValue& dict_value : dict_value_set.GetValues() ) {
+                            CString csTemp = UTF8_TODO::GetCString(dict_value.GetRangeString());
                             if (csTemp.GetLength() > iValSize) {
                                 iValSize = csTemp.GetLength();
                             }
                         }
-                        for( const auto& dict_value : dict_value_set.GetValues() ) {
-                            CString csTemp = dict_value.GetRangeString();
+                        for( const DictValue& dict_value : dict_value_set.GetValues() ) {
+                            CString csTemp = UTF8_TODO::GetCString(dict_value.GetRangeString());
                             csTemp += CString(SPACE, iValSize + 2 - csTemp.GetLength());
                             if (dict_value.IsSpecial()) {
                                 CString special_code = ( dict_value.GetSpecialValue() == MISSING ) ? _T("    (m) ") :

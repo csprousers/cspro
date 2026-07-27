@@ -9,7 +9,7 @@ ValueSetResponse::ValueSetResponse(const CDictItem& dict_item, const DictValue& 
 {
     if( dict_item.GetContentType() == ContentType::Alpha )
     {
-        m_code = UTF8_TODO::GetUtf8(dict_value_pair.GetFrom());
+        m_code = dict_value_pair.GetFrom();
         m_code.MakeTrimRight();
     }
 
@@ -29,7 +29,7 @@ ValueSetResponse::ValueSetResponse(const CDictItem& dict_item, const DictValue& 
 
             // but use the formatted code if it was defined above
             if( m_code->empty() )
-                m_code = UTF8_TODO::GetUtf8(dict_value_pair.GetFrom());
+                m_code = dict_value_pair.GetFrom();
         }
 
         // see if the value is a range

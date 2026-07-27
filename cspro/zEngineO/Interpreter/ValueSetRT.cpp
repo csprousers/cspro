@@ -635,7 +635,7 @@ double LogicInterpreter::ex_ValueSet_add(const int program_index)
                     UTF8_TODO::GetUtf8(dict_value->GetLabel()),
                     dict_value->GetImageFilePath(),
                     dict_value->GetTextColor(),
-                    UTF8_TODO::GetUtf8(dict_value->GetValuePair(0).GetFrom())
+                    dict_value->GetValuePair(0).GetFrom()
                 );
 
                 ++number_values_added;

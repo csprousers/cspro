@@ -1,4 +1,4 @@
-﻿// FreqView.cpp : implementation of the CSFreqView class
+// FreqView.cpp : implementation of the CSFreqView class
 //
 
 #include "StdAfx.h"
@@ -178,7 +178,7 @@ bool CSFreqView::AddRecordIntree(const CDictRecord* pRecord, HTREEITEM htreeLabe
 
         if (pItem->GetNumValueSets() > 1)
         {
-            for( const auto& dict_value_set : pItem->GetValueSets() )
+            for( const DictValueSet& dict_value_set : pItem->GetValueSets() )
             {
                 csItem = SharedSettings::ViewNamesInTree() ? UTF8_TODO::GetCString(dict_value_set.GetName()) :
                                                              dict_value_set.GetLabel();
@@ -249,7 +249,7 @@ bool CSFreqView::AddRecordIntree(const CDictRecord* pRecord, HTREEITEM htreeLabe
 
                 if (pItem->GetNumValueSets() > 1)
                 {
-                    for( const auto& dict_value_set : pItem->GetValueSets() )
+                    for( const DictValueSet& dict_value_set : pItem->GetValueSets() )
                     {
                         csTree = SharedSettings::ViewNamesInTree() ? UTF8_TODO::GetCString(dict_value_set.GetName()) :
                                                                      dict_value_set.GetLabel();

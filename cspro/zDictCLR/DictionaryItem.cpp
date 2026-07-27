@@ -1,4 +1,4 @@
-﻿#include "Stdafx.h"
+#include "Stdafx.h"
 #include "DictionaryItem.h"
 
 
@@ -125,7 +125,7 @@ array<CSPro::Dictionary::ValueSet^>^ CSPro::Dictionary::DictionaryItem::ValueSet
     array<ValueSet^>^ value_sets = gcnew array<ValueSet^>(int32_cast(m_pNativeItem->GetNumValueSets()));
 
     int v = 0;
-    for( const auto& dict_value_set : m_pNativeItem->GetValueSets() )
+    for( const DictValueSet& dict_value_set : m_pNativeItem->GetValueSets() )
         value_sets[v++] = gcnew ValueSet(dict_value_set);
 
     return value_sets;

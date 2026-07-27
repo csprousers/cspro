@@ -756,8 +756,8 @@ void CExport::sas_varattrib( VART* pVarT, int aIndex[DIM_MAXDIM], int aDimFlag[D
     bool bHasFormat = false;
     const CDictItem* dict_item = pVarT->GetDictItem();
     if( dict_item->HasValueSets() ) {
-        const auto& dict_value_set = dict_item->GetValueSet(0); // the base Value-set
-        for( const auto& dict_value : dict_value_set.GetValues() ) {
+        const DictValueSet& dict_value_set = dict_item->GetValueSet(0); // the base Value-set
+        for( const DictValue& dict_value : dict_value_set.GetValues() ) {
             // only for non-special values (or refused), single-pair, no-range (without 'to' bound) count
             if (( !dict_value.IsSpecial() || dict_value.IsSpecialValue(REFUSED) ) && dict_value.GetNumValuePairs() == 1 &&
                      SO::IsBlank(dict_value.GetValuePair(0).GetTo()) &&
@@ -1289,7 +1289,7 @@ int CExport::BuildVarCategories( VART* pVarT ) {
 
         // only for non-special values (or refused), single-pair, no-range (without 'to' bound)
         const DictValuePair& dict_value_pair = dict_value.GetValuePair(0);
-        CIMSAString csFrom = dict_value_pair.GetFrom();
+        CIMSAString csFrom = UTF8_TODO::GetCString(dict_value_pair.GetFrom());
 
         bool        bIsCategory = (
                                     ( !dict_value.IsSpecial() || dict_value.IsSpecialValue(REFUSED) ) &&
@@ -1341,7 +1341,7 @@ int CExport::SASBuildVarCategories( VART* pVarT ) {
 
         // only for non-special (or refused) values, single-pair, no-range (without 'to' bound)
         const DictValuePair& dict_value_pair = dict_value.GetValuePair(0);
-        CIMSAString csFrom = dict_value_pair.GetFrom();
+        CIMSAString csFrom = UTF8_TODO::GetCString(dict_value_pair.GetFrom());
 
         bool        bIsCategory = (
                                     ( !dict_value.IsSpecial() || dict_value.IsSpecialValue(REFUSED) ) &&

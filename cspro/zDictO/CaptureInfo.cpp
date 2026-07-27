@@ -772,7 +772,7 @@ unsigned CheckBoxCaptureInfo::GetCheckBoxLength(const CDictItem& dict_item, cons
 
     for( const DictValue& dict_value : dict_value_set.GetValues() )
     {
-        const unsigned this_trimmed_length = static_cast<unsigned>(SO::WideLength(SO::Trim(UTF8_TODO::GetUtf8(dict_value.GetValuePair(0).GetFrom()))));
+        const unsigned this_trimmed_length = static_cast<unsigned>(SO::WideLength(SO::Trim(dict_value.GetValuePair(0).GetFrom())));
         bool length_is_valid;
 
         if( !trimmed_length.has_value() )
@@ -804,7 +804,7 @@ T CheckBoxCaptureInfo::SharedResponseProcessor(std::string_view checkbox_text_sv
            value_processor.GetDictItem()->GetContentType() == ContentType::Alpha &&
            value_processor.GetDictValueSet() != nullptr);
 
-    const size_t checkbox_length = SO::WideLength(SO::Trim(UTF8_TODO::GetUtf8(value_processor.GetDictValueSet()->GetValue(0).GetValuePair(0).GetFrom())));
+    const size_t checkbox_length = SO::WideLength(SO::Trim(value_processor.GetDictValueSet()->GetValue(0).GetValuePair(0).GetFrom()));
     ASSERT(checkbox_length == CheckBoxCaptureInfo::GetCheckBoxLength(*value_processor.GetDictItem(), *value_processor.GetDictValueSet()));
     ASSERT(SO::WideLength(checkbox_text_sv) % checkbox_length == 0);
 

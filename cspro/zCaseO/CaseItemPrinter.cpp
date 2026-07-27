@@ -73,7 +73,7 @@ std::string CaseItemPrinter::GetLabel(const CaseItem& case_item, const T& value)
     {
         // for the case tree, only use labels for discrete values
         if( ( m_format != Format::CaseTree ) ||
-            ( dict_value->HasValuePairs() && dict_value->GetValuePair(0).GetTo().IsEmpty() ) )
+            ( dict_value->HasValuePairs() && dict_value->GetValuePair(0).GetTo().empty() ) )
         {
             return UTF8_TODO::GetUtf8(dict_value->GetLabel());
         }

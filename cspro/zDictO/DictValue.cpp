@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "DictValue.h"
 #include <zHtml/AccessUrlSerializer.h>
 
@@ -67,19 +67,19 @@ size_t DictValue::GetNumToValues() const
 }
 
 
-CString DictValue::GetRangeString() const
+std::string DictValue::GetRangeString() const
 {
-    CString range_text;
+    std::string range_text;
 
     for( const DictValuePair& dict_value_pair : m_dictValuePairs )
     {
-        if( !range_text.IsEmpty() )
-            range_text += _T(", ");
-
-        range_text += dict_value_pair.GetFrom();
+        SO::AppendWithSeparator(range_text, dict_value_pair.GetFrom(), ", ");
 
         if( !SO::IsBlank(dict_value_pair.GetTo()) )
-            range_text += _T(":") + dict_value_pair.GetTo();
+        {
+            range_text.push_back(':');
+            range_text.append(dict_value_pair.GetTo());
+        }
     }
 
     return range_text;
@@ -155,15 +155,15 @@ void DictValue::serialize(Serializer& ar)
 {
     DictBase::serialize(ar);
 
-    std::optional<CString> special_name;
+    std::optional<std::string> special_name;
 
     if( ar.PredatesVersionIteration(Serializer::Iteration_8_0_000_1) )
     {
-        special_name = ar.Read<CString>();
+        special_name = ar.Read<std::string>();
         SetNote(ar.Read<CString>());
     }
 
-    ar.IgnoreUnusedVariable<CString>(Serializer::Iteration_8_0_000_1); // m_error
+    ar.IgnoreUnusedVariable<std::string>(Serializer::Iteration_8_0_000_1); // m_error
 
     if( ar.PredatesVersionIteration(Serializer::Iteration_8_0_000_1) )
     {
@@ -171,8 +171,8 @@ void DictValue::serialize(Serializer& ar)
         enum class ValueType { Value, Missing, NotAppl, Default, Refused };
         ValueType value_type;
         ar.SerializeEnum(value_type);
-        ASSERT(is_special == !special_name->IsEmpty());
-        ASSERT(special_name->IsEmpty() == ( value_type == ValueType::Value ));
+        ASSERT(is_special == !special_name->empty());
+        ASSERT(special_name->empty() == ( value_type == ValueType::Value ));
 
         if( value_type != ValueType::Value )
         {

@@ -1,4 +1,4 @@
-﻿#include "Stdafx.h"
+#include "Stdafx.h"
 #include "DictionaryValue.h"
 
 
@@ -18,7 +18,7 @@ array<CSPro::Dictionary::ValuePair^>^ CSPro::Dictionary::DictionaryValue::ValueP
 
     int i = 0;
 
-    for( const auto& dict_value_pair : m_dictValue.GetValuePairs() )
+    for( const DictValuePair& dict_value_pair : m_dictValue.GetValuePairs() )
     {
         value_pairs[i] = gcnew ValuePair(dict_value_pair);
         ++i;

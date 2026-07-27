@@ -326,7 +326,7 @@ CString CaseTreeBuilder::GetFieldValue(CDEField* pField, const std::array<int, 3
             ( dict_value != nullptr && dict_value->HasValuePairs() ) ? &dict_value->GetValuePair(0) : nullptr;
 
         // only use labels for discrete values
-        if( first_dict_value_pair != nullptr && first_dict_value_pair->GetTo().IsEmpty() )
+        if( first_dict_value_pair != nullptr && first_dict_value_pair->GetTo().empty() )
         {
             label = dict_value->GetLabel();
 
@@ -342,10 +342,14 @@ CString CaseTreeBuilder::GetFieldValue(CDEField* pField, const std::array<int, 3
             double numeric_value = value_processor.GetNumericFromInput(UTF8_TODO::GetUtf8(csData));
 
             if( numeric_value < MAXVALUE )
+            {
                 code = UTF8_TODO::GetCString(ValueSetResponse::FormatValueForDisplay(*pItem, numeric_value));
+            }
 
             else if( first_dict_value_pair != nullptr )
-                code = first_dict_value_pair->GetFrom();
+            {
+                code = UTF8_TODO::GetCString(first_dict_value_pair->GetFrom());
+            }
         }
     }
 

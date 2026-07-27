@@ -540,7 +540,6 @@ double CIntDriver::exgetlabel(int iExpr)
     {
         ASSERT(symbol->IsOneOf(SymbolType::Variable, SymbolType::ValueSet));
         const ValueProcessor* value_processor;
-        CString label;
 
         if( symbol->IsA(SymbolType::ValueSet) )
         {
@@ -561,7 +560,7 @@ double CIntDriver::exgetlabel(int iExpr)
                 : value_processor->GetDictValue(EvaluateSharableString(fng_node.m_iExpr).GetString());
 
             if( dict_value != nullptr )
-                label = dict_value->GetLabel();
+                return AssignAlphaValue(dict_value->GetLabel());
         }
 
         else
@@ -574,10 +573,10 @@ double CIntDriver::exgetlabel(int iExpr)
 
             // take the label from the first value pair
             if( dict_value != nullptr && dict_value->HasValuePairs() )
-                label = dict_value->GetValuePair(0).GetFrom();
+                return AssignString(dict_value->GetValuePair(0).GetFrom());
         }
 
-        return AssignAlphaValue(label);
+        return AssignStringNull();
     }
 }
 

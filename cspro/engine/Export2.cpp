@@ -2070,16 +2070,16 @@ int CExport::Export_R_ValueLabels( int iVar, int aIndex[DIM_MAXDIM], int aDimFla
 
         bool bPrintedFirst = false;
 
-        for( const auto& dict_value : pItem->GetValueSet(0).GetValues() )
+        for( const DictValue& dict_value : pItem->GetValueSet(0).GetValues() )
         {
             //for( size_t pairs = 0; pairs < dict_value.GetNumValuePairs(); ++pairs )
             const size_t pairs = 0; // duplicate factors aren't allowed in R
             {
-                const auto& dict_value_pair = dict_value.GetValuePair(pairs);
+                const DictValuePair& dict_value_pair = dict_value.GetValuePair(pairs);
 
                 if( !SO::IsBlank(dict_value_pair.GetFrom()) ) // don't allow just not applicable values
                 {
-                    sLevels.AppendFormat(_T("%s%s%s%s"), bPrintedFirst ? _T(",") : _T(""), levelEncloserChar, dict_value_pair.GetFrom().GetString(), levelEncloserChar);
+                    sLevels.AppendFormat(_T("%s%s%s%s"), bPrintedFirst ? _T(",") : _T(""), levelEncloserChar, UTF8_TODO::GetWide(dict_value_pair.GetFrom()).c_str(), levelEncloserChar);
                     sLabels.AppendFormat(_T("%s\"%s\""), bPrintedFirst ? _T(",") : _T(""), dict_value.GetLabel().GetString());
                     bPrintedFirst = true;
                 }

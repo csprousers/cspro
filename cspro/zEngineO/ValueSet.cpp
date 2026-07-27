@@ -14,7 +14,7 @@
 // ValueSet
 // --------------------------------------------------------------------------
 
-ValueSet::ValueSet(std::string value_set_name, VART* pVarT, const DictValueSet* const dict_value_set, EngineData& engine_data)
+ValueSet::ValueSet(std::string value_set_name, VART* const pVarT, const DictValueSet* const dict_value_set, EngineData& engine_data)
     :   Symbol(std::move(value_set_name), SymbolType::ValueSet),
         m_engineData(engine_data),
         m_pVarT(pVarT),
@@ -165,7 +165,7 @@ void ValueSet::Randomize(const std::variant<std::vector<double>, std::vector<Sha
 }
 
 
-void ValueSet::Sort(bool ascending, bool sort_by_label)
+void ValueSet::Sort(const bool ascending, const bool sort_by_label)
 {
     GetResponseProcessor()->SortResponses(ascending, sort_by_label);
 }
@@ -198,8 +198,12 @@ Symbol* ValueSet::FindChildSymbol(const std::string_view symbol_name_sv) const
         // if the list doesn't exist yet, create one
         std::string value_set_list_wrapper_name = SO::Concatenate(GetName(), ".", ListNames[list_index]);
 
-        std::shared_ptr<ValueSetListWrapper> new_wrapper_list(new ValueSetListWrapper(std::move(value_set_list_wrapper_name),
-                                                                                      GetSymbolIndex(), ( list_index == 0 ), m_engineData));
+        std::shared_ptr<ValueSetListWrapper> new_wrapper_list(new ValueSetListWrapper(
+            std::move(value_set_list_wrapper_name),
+            GetSymbolIndex(),
+            ( list_index == 0 ), // codes_wrapper
+            m_engineData
+        ));
 
         value_set_list_wrapper_index = m_engineData.AddSymbol(new_wrapper_list, Logic::SymbolTable::NameMapAddition::DoNotAdd);
 
@@ -329,7 +333,7 @@ void DynamicValueSet::Reset()
 }
 
 
-void DynamicValueSet::ValidateNumericFromTo(double from_value, std::optional<double>& to_value) const
+void DynamicValueSet::ValidateNumericFromTo(const double from_value, std::optional<double>& to_value) const
 {
     // make sure an invalid special value isn't being added as the from value
     if( IsSpecial(from_value) && ( from_value == MISSING || from_value == REFUSED || from_value == DEFAULT ) )
@@ -605,7 +609,7 @@ void DynamicValueSet::Randomize(const std::variant<std::vector<double>, std::vec
 }
 
 
-void DynamicValueSet::Sort(bool ascending, bool sort_by_label)
+void DynamicValueSet::Sort(const bool ascending, const bool sort_by_label)
 {
     std::sort(m_entries.begin(), m_entries.end(),
         [&](const std::unique_ptr<const DynamicValueSetEntry>& entry1, const std::unique_ptr<const DynamicValueSetEntry>& entry2)
@@ -650,7 +654,7 @@ class ValueSetCreatedFromDynamicValueSet : public ValueSet
 {
     // this class is simply ValueSet but with ownership of the dictionary value set memory
 public:
-    ValueSetCreatedFromDynamicValueSet(std::unique_ptr<const DictValueSet> dict_value_set, VART* pVarT, EngineData& engine_data)
+    ValueSetCreatedFromDynamicValueSet(std::unique_ptr<const DictValueSet> dict_value_set, VART* const pVarT, EngineData& engine_data)
         :   ValueSet(*dict_value_set, pVarT, engine_data),
             m_createdDictValueSet(std::move(dict_value_set))
     {
@@ -661,7 +665,8 @@ private:
 };
 
 
-std::tuple<std::unique_ptr<DictValueSet>, bool> DynamicValueSet::CreateDictValueSet(size_t complete_length, size_t length, size_t decimals) const
+std::tuple<std::unique_ptr<DictValueSet>, bool> DynamicValueSet::CreateDictValueSet(
+    const size_t complete_length, const size_t length, const size_t decimals) const
 {
     bool value_does_not_fit_in_value_set_warning = false;
 
@@ -693,13 +698,13 @@ std::tuple<std::unique_ptr<DictValueSet>, bool> DynamicValueSet::CreateDictValue
 
             if( numeric_entry.from_value == NOTAPPL )
             {
-                dict_value_pair.SetFrom(WS2CS(std::wstring(length, ' ')));
+                dict_value_pair.SetFrom(std::string(length, ' '));
                 dict_value.SetSpecialValue(NOTAPPL);
             }
 
             else
             {
-                dict_value_pair.SetFrom(UTF8_TODO::GetCString(format_numeric_value(numeric_entry.from_value)));
+                dict_value_pair.SetFrom(format_numeric_value(numeric_entry.from_value));
             }
 
             if( numeric_entry.to_value.has_value() )
@@ -711,7 +716,7 @@ std::tuple<std::unique_ptr<DictValueSet>, bool> DynamicValueSet::CreateDictValue
 
                 else
                 {
-                    dict_value_pair.SetTo(UTF8_TODO::GetCString(format_numeric_value(*numeric_entry.to_value)));
+                    dict_value_pair.SetTo(format_numeric_value(*numeric_entry.to_value));
                 }
             }
         }
@@ -726,7 +731,7 @@ std::tuple<std::unique_ptr<DictValueSet>, bool> DynamicValueSet::CreateDictValue
             std::string correct_length_value = *string_entry.value;
             SO::WideMakeExactLength(correct_length_value, length);
 
-            dict_value_pair.SetFrom(UTF8_TODO::GetCString(std::move(correct_length_value)));
+            dict_value_pair.SetFrom(std::move(correct_length_value));
         }
 
         dict_value.AddValuePair(std::move(dict_value_pair));
@@ -737,13 +742,15 @@ std::tuple<std::unique_ptr<DictValueSet>, bool> DynamicValueSet::CreateDictValue
 }
 
 
-std::unique_ptr<ValueSet> DynamicValueSet::CreateValueSet(VART* pVarT, bool& value_does_not_fit_in_value_set_warning) const
+std::unique_ptr<ValueSet> DynamicValueSet::CreateValueSet(VART* const pVarT, bool& value_does_not_fit_in_value_set_warning) const
 {
-    const CDictItem* dict_item = pVarT->GetDictItem();
+    const CDictItem* const dict_item = pVarT->GetDictItem();
     ASSERT(dict_item != nullptr);
 
     std::unique_ptr<DictValueSet> dict_value_set;
-    std::tie(dict_value_set, value_does_not_fit_in_value_set_warning) = CreateDictValueSet(dict_item->GetCompleteLen(), dict_item->GetLen(), dict_item->GetDecimal());
+    std::tie(dict_value_set, value_does_not_fit_in_value_set_warning) = CreateDictValueSet(
+        dict_item->GetCompleteLen(), dict_item->GetLen(), dict_item->GetDecimal()
+    );
 
     return std::make_unique<ValueSetCreatedFromDynamicValueSet>(std::move(dict_value_set), pVarT, m_engineData);
 }
@@ -762,7 +769,7 @@ namespace
         if( !dict_value.HasValuePairs() )
             dict_value.AddValuePair(DictValuePair());
 
-        dict_value.GetValuePair(0).SetFrom(UTF8_TODO::GetCString(std::move(value)));
+        dict_value.GetValuePair(0).SetFrom(std::move(value));
 
         return &dict_value;
     }
@@ -1301,7 +1308,7 @@ void DynamicValueSet::WriteValueToJson(JsonWriter& json_writer) const
 
     const size_t complete_length = length + ( ( decimals > 0 ) ? 1 : 0 );
 
-    auto [dict_value_set, value_does_not_fit_in_value_set_warning] = CreateDictValueSet(complete_length, length, decimals);
+    const auto [dict_value_set, value_does_not_fit_in_value_set_warning] = CreateDictValueSet(complete_length, length, decimals);
 
     ASSERT(!value_does_not_fit_in_value_set_warning);
 
@@ -1322,19 +1329,19 @@ void DynamicValueSet::SetValueFromJson(const JsonNode& json_node)
         {
             if( m_numeric )
             {
-                auto get_value = [](const CString& text_value)
+                auto get_value = [](const std::string& text_value)
                 {
                     // the value may be special...
-                    const double* const special_value = SpecialValues::StringIsSpecial<const double*>(UTF8_TODO::GetUtf8(text_value));
+                    const double* const special_value = SpecialValues::StringIsSpecial<const double*>(text_value);
 
                     if( special_value != nullptr )
                         return *special_value;
 
                     // ... or may be a real value
-                    double value = atod(text_value);
+                    const double value = atod(text_value);
 
                     if( value == IMSA_BAD_DOUBLE )
-                        throw CSProException("A numeric value set cannot store the code '%s'", UTF8_TODO::GetUtf8(text_value).c_str());
+                        throw CSProException("A numeric value set cannot store the code '%s'", text_value.c_str());
 
                     return value;
                 };
@@ -1343,8 +1350,9 @@ void DynamicValueSet::SetValueFromJson(const JsonNode& json_node)
 
                 // when no to value is specified, it can inherit the special value status from the DictValue,
                 // which will be a special value when applicable, or std::nullopt if there is no special value (and thus no to value)
-                std::optional<double> to_value = dict_value_pair.GetTo().IsEmpty() ? dict_value.GetSpecialValue<std::optional<double>>() :
-                                                                                     std::make_optional(get_value(dict_value_pair.GetTo()));
+                std::optional<double> to_value = dict_value_pair.GetTo().empty()
+                    ? dict_value.GetSpecialValue<std::optional<double>>()
+                    : std::make_optional(get_value(dict_value_pair.GetTo()));
 
                 ValidateNumericFromTo(from_value, to_value);
 
@@ -1363,7 +1371,7 @@ void DynamicValueSet::SetValueFromJson(const JsonNode& json_node)
                     UTF8_TODO::GetUtf8(dict_value.GetLabel()),
                     dict_value.GetImageFilePath(),
                     dict_value.GetTextColor(),
-                    UTF8_TODO::GetUtf8(dict_value_pair.GetFrom())
+                    dict_value_pair.GetFrom()
                 ));
             }
         }
@@ -1397,7 +1405,8 @@ void ValueSetListWrapper::WriteValueToJson(JsonWriter& json_writer) const
 
 void ValueSetListWrapper::SetValueFromJson(const JsonNode& /*json_node*/)
 {
-    throw NoSetValueFromJsonRoutine("No JSON deserialization routine exists for the List objects in a ValueSet; deserialize the ValueSet instead");
+    throw NoSetValueFromJsonRoutine("No JSON deserialization routine exists for the List objects in a ValueSet; "
+                                    "deserialize the ValueSet instead");
 }
 
 

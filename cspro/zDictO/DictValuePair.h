@@ -6,17 +6,16 @@
 class CLASS_DECL_ZDICTO DictValuePair
 {
 public:
-    DictValuePair(const CString& from = CString(), const CString& to = CString());
-    DictValuePair(std::string from, std::string to = std::string());
+    DictValuePair(std::string from = std::string(), std::string to = std::string());
 
     bool operator==(const DictValuePair& rhs) const noexcept;
     bool operator!=(const DictValuePair& rhs) const noexcept { return !( *this == rhs ); }
 
-    const CString& GetFrom() const    { return m_from; }
-    void SetFrom(const CString& from) { m_from = from; }
+    const std::string& GetFrom() const { return m_from; }
+    void SetFrom(std::string from)     { m_from = std::move(from); }
 
-    const CString& GetTo() const  { return m_to; }
-    void SetTo(const CString& to) { m_to = to; }
+    const std::string& GetTo() const { return m_to; }
+    void SetTo(std::string to)       { m_to = std::move(to); }
 
 
     // serialization
@@ -26,6 +25,6 @@ public:
     void serialize(Serializer& ar);
 
 private:
-    CString m_from;
-    CString m_to;
+    std::string m_from;
+    std::string m_to;
 };

@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include <zUtilO/ArrUtil.h>
 #include <zEditO/LogicView.h>
 #include <zLogicO/ActionInvoker.h>
@@ -36,7 +36,7 @@ namespace
             spaces -= 2;
         }
 
-        reference_text.AppendFormat(L"%s%s%s\n", UTF8_TODO::GetWide(SO::GetRepeatingCharacterString(' ', spaces)).c_str(), add_arrow ? L"` " : L"", text_to_add);
+        reference_text.AppendFormat(L"%s%s%s\n", UTF8_TODO::GetWide(SO::GetRepeatingCharacterString(' ', spaces)).c_str(), add_arrow ? L"` " : L"", text_to_add.c_str());
     }
 
     void AddCommaSeparatedList(CString& reference_text, const std::vector<CString>& list)
@@ -289,10 +289,12 @@ namespace
             has_to = ( has_to || ( dict_value.GetNumToValues() > 0 ) );
         }
 
-        const std::wstring formatter = FormatText(L"%%-%ds ｜ %%%ds%s%%%ds%s%%s\n",
-                                                  max_label_length, dict_item.GetCompleteLen(),
-                                                  has_to ? L" ｜ " : L"", has_to ? dict_item.GetCompleteLen() : 0,
-                                                  has_special ? L" ｜ " : L"");
+        const std::string formatter = FormatText(
+            "%%-%ds ｜ %%%ds%s%%%ds%s%%s\n",
+            max_label_length, dict_item.GetCompleteLen(),
+            has_to ? " ｜ " : "", has_to ? dict_item.GetCompleteLen() : 0,
+            has_special ? " ｜ " : ""
+        );
 
         for( const DictValue& dict_value : dict_value_set.GetValues() )
         {
@@ -300,11 +302,14 @@ namespace
 
             for( const DictValuePair& dict_value_pair : dict_value.GetValuePairs() )
             {
-                reference_text.AppendFormat(formatter.c_str(),
-                                            first_pair ? dict_value.GetLabel().GetString() : L"",
-                                            dict_value_pair.GetFrom().GetString(),
-                                            dict_value_pair.GetTo().GetString(),
-                                            dict_value.IsSpecial() ? UTF8_TODO::GetWide(SpecialValues::ValueToString(dict_value.GetSpecialValue(), false)).c_str() : L"");
+                reference_text.Append(UTF8_TODO::GetCString(FormatText(
+                    formatter.c_str(),
+                    first_pair ? UTF8_TODO::GetUtf8(dict_value.GetLabel()).c_str() : "",
+                    dict_value_pair.GetFrom().c_str(),
+                    dict_value_pair.GetTo().c_str(),
+                    dict_value.IsSpecial() ? SpecialValues::ValueToString(dict_value.GetSpecialValue(), false) : ""
+                )));
+
                 first_pair = false;
             }
         }

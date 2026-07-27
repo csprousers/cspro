@@ -232,7 +232,7 @@ int DoIssaRanges(const CDictItem* pItem, std::vector<Range<double>>& aRanges, co
                 continue;
 
             dLow = atod(dict_value_pair.GetFrom());
-            if( dict_value_pair.GetTo().GetLength() == 0 )
+            if( dict_value_pair.GetTo().empty() )
                 dHigh = dLow;
             else {
                 if( !CIMSAString::IsNumeric(dict_value_pair.GetTo()) ) // Skip alpha values

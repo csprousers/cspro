@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "UniverseDlg.h"
 #include "DictionaryTreeCtrl.h"
 #include <zToolsO/Encoders.h>
@@ -178,7 +178,7 @@ void UniverseDlg::OnDictionaryTreeSelectionChanged(const DictionaryTreeNode& dic
 
                 else if( dict_item->GetContentType() == ContentType::Alpha )
                 {
-                    std::string trimmed_value(SO::TrimRight(UTF8_TODO::GetUtf8(dict_value_pair.GetFrom())));
+                    std::string trimmed_value(SO::TrimRight(dict_value_pair.GetFrom()));
 
                     SO::AppendWithSeparator(values, trimmed_value, ',');
 

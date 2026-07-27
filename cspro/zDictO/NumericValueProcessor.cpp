@@ -260,7 +260,7 @@ template<typename SpecialsMapT>
 void NumericValueSetValueProcessor::SetUpSpecialValue(SpecialsMapT& specials_map, const ValueSetResponse& response,
                                                       const DictValuePair& dict_value_pair) const
 {
-    std::string from_value = UTF8_TODO::GetUtf8(dict_value_pair.GetFrom());
+    std::string from_value = dict_value_pair.GetFrom();
     const double engine_value = response.GetMinimumValue();
 
     std::string_view trimmed_from_value_sv = SO::Trim(from_value);

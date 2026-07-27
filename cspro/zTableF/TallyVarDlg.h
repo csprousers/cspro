@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 class CTallyVarStatFmt;
 
@@ -21,7 +21,7 @@ public:
     bool m_bDisablePct;                 // true to allow percents
     double m_dVarMin, m_dVarMax;        // hard limits for ranges in ntiles and median
     double m_dVarMinDefault, m_dVarMaxDefault; // default limits for ranges in ntiles and median
-    CIMSAString m_sDefaultPropRange;    // default range for proportion
+    std::string m_defaultPropRange;     // default range for proportion
 
 // Dialog Data
     enum { IDD = IDD_TALLY_VAR_NEW };

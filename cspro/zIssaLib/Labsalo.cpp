@@ -1,4 +1,4 @@
-﻿//-----------------------------------------------------------------------
+//-----------------------------------------------------------------------
 //
 // LABSALO.cpp    load & save labels (only DI, SE & VA supported)
 // LOAD LABELS FROM a CSPRO DICTIONARY
@@ -154,17 +154,17 @@ std::vector<TCHAR> CEngineArea::lab_load(int isym)
             const DictValueSet& dict_value_set = pItem->GetValueSet(0);
             int nvalues = 0;
 
-            for( const auto& dict_value : dict_value_set.GetValues() ) {
+            for( const DictValue& dict_value : dict_value_set.GetValues() ) {
                 if( !dict_value.HasValuePairs() )
                     continue;
 
                 // Se usa solamente el 1er par
-                const auto& dict_value_pair = dict_value.GetValuePair(0);
+                const DictValuePair& dict_value_pair = dict_value.GetValuePair(0);
 
-                if( dict_value_pair.GetTo().GetLength() > 0 ) // Se ignora
+                if( !dict_value_pair.GetTo().empty() ) // Se ignora
                     continue;
 
-                strcpymax( vval, dict_value_pair.GetFrom().GetString(), _LVALLAB );
+                strcpymax( vval, UTF8_TODO::GetWide(dict_value_pair.GetFrom()).c_str(), _LVALLAB );
                 strcpymax( vlab, dict_value.GetLabel().GetString(), _LLABLAB );
 
                 trimall( vval ); trimall( vlab );

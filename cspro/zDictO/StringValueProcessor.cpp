@@ -150,7 +150,7 @@ void StringValueSetValueProcessor::CreateData()
         {
             const size_t response_index = m_responses.size();
             m_responses.emplace_back(std::make_unique<const ValueSetResponse>(*m_dictItem, dict_value, dict_value_pair));
-            m_data->alphas.Insert(UTF8_TODO::GetUtf8(dict_value_pair.GetFrom()), response_index);
+            m_data->alphas.Insert(dict_value_pair.GetFrom(), response_index);
         });
 }
 

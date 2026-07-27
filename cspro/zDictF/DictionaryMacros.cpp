@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "DictionaryMacros.h"
 #include "ItemGrid.h"
 #include <zToolsO/FileIO.h>
@@ -744,8 +744,8 @@ void DictionaryMacrosDlg::OnBnClickedCopyValueSets()
                     text.AppendFormat(L"\r\n\t%s%s\t%s\t%s\t%s",
                                       label_indentation.GetString(),
                                       first_pair ? GetLabelWithLanguages(dict_value.GetLabelSet(), copy_all_languages).GetString() : label_indentation.Left(label_indentation.GetLength() - 1).GetString(),
-                                      dict_value_pair.GetFrom().GetString(),
-                                      dict_value_pair.GetTo().GetString(),
+                                      UTF8_TODO::GetWide(dict_value_pair.GetFrom()).c_str(),
+                                      UTF8_TODO::GetWide(dict_value_pair.GetTo()).c_str(),
                                       dict_value.IsSpecial() ? UTF8_TODO::GetWide(SpecialValues::ValueToString(dict_value.GetSpecialValue(), false)).c_str() : L"");
 
                     if( copy_value_set_images && first_pair )
@@ -1075,10 +1075,10 @@ void DictionaryMacrosDlg::OnBnClickedPasteValueSets()
                                             from.Trim(); // 20110901 fixes a problem when pasting in special values with no from
 
                                             if( !special_value.has_value() || !from.IsEmpty() )
-                                                dict_value_pair.SetFrom(makeValueValid(from, dict_item, numValuesModified));
+                                                dict_value_pair.SetFrom(UTF8_TODO::GetUtf8(makeValueValid(from, dict_item, numValuesModified)));
 
                                             if( !to.IsEmpty() )
-                                                dict_value_pair.SetTo(makeValueValid(to, dict_item, numValuesModified));
+                                                dict_value_pair.SetTo(UTF8_TODO::GetUtf8(makeValueValid(to, dict_item, numValuesModified)));
 
                                             dict_value_set->GetValues().back().AddValuePair(std::move(dict_value_pair));
                                         }
@@ -1403,9 +1403,9 @@ void DictionaryMacrosDlg::AddRandomValue(const CaseItem& case_item, CaseItemInde
 
                         for( const DictValuePair& dict_value_pair : dict_value.GetValuePairs() )
                         {
-                            double dFrom = _tstof(dict_value_pair.GetFrom());
+                            double dFrom = _tstof(UTF8_TODO::GetCString(dict_value_pair.GetFrom()));
 
-                            if( dict_value_pair.GetTo().IsEmpty() )
+                            if( dict_value_pair.GetTo().empty() )
                             {
                                 if( dFrom == numeric_value )
                                 {
@@ -1416,7 +1416,7 @@ void DictionaryMacrosDlg::AddRandomValue(const CaseItem& case_item, CaseItemInde
 
                             else
                             {
-                                if( numeric_value >= dFrom && numeric_value <= _tstof(dict_value_pair.GetTo()) )
+                                if( numeric_value >= dFrom && numeric_value <= _tstof(UTF8_TODO::GetCString(dict_value_pair.GetTo())) )
                                 {
                                     invalidValueFound = false;
                                     break;
@@ -1457,15 +1457,15 @@ void DictionaryMacrosDlg::AddRandomValue(const CaseItem& case_item, CaseItemInde
                     {
                         const DictValuePair& dict_value_pair = dict_value.GetValuePair(desiredValue - values);
 
-                        if( dict_value_pair.GetTo().IsEmpty() )
+                        if( dict_value_pair.GetTo().empty() )
                         {
-                            numeric_value = _tstof(dict_value_pair.GetFrom());
+                            numeric_value = _tstof(UTF8_TODO::GetCString(dict_value_pair.GetFrom()));
                         }
 
                         else // if the value here is a range then we need to select a value from within the range
                         {
-                            double dFrom = _tstof(dict_value_pair.GetFrom());
-                            double dTo = _tstof(dict_value_pair.GetTo());
+                            double dFrom = _tstof(UTF8_TODO::GetCString(dict_value_pair.GetFrom()));
+                            double dTo = _tstof(UTF8_TODO::GetCString(dict_value_pair.GetTo()));
                             numeric_value = dFrom + ( dTo - dFrom ) * ( rand() / (double)RAND_MAX );
 
                             // format the number to match the specified decimals
@@ -1503,7 +1503,7 @@ void DictionaryMacrosDlg::AddRandomValue(const CaseItem& case_item, CaseItemInde
                     {
                         for( const DictValuePair& dict_value_pair : dict_value.GetValuePairs() )
                         {
-                            if( dict_value_pair.GetFrom() == string_value )
+                            if( dict_value_pair.GetFrom() == UTF8_TODO::GetUtf8(string_value) )
                             {
                                 invalidValueFound = false;
                                 break;
@@ -1537,7 +1537,7 @@ void DictionaryMacrosDlg::AddRandomValue(const CaseItem& case_item, CaseItemInde
 
                     else
                     {
-                        string_value = dict_value.GetValuePair(desiredValue - values).GetFrom();
+                        string_value = UTF8_TODO::GetCString(dict_value.GetValuePair(desiredValue - values).GetFrom());
                         break;
                     }
                 }
