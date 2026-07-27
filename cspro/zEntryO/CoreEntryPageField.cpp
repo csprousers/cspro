@@ -322,7 +322,7 @@ void CoreEntryPageField::RefreshSelectedResponses()
 
     if( m_evaluatedCaptureInfo.GetCaptureType() == CaptureType::CheckBox )
     {
-        m_selectedIndices = m_responseProcessor->GetCheckboxResponseIndices(m_dataBuffer);
+        m_selectedIndices = m_responseProcessor->GetCheckboxResponseIndices(UTF8_TODO::GetUtf8(m_dataBuffer));
     }
 
     else

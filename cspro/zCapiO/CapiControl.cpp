@@ -468,7 +468,7 @@ void CCapiControl::UpdateSelection(const CString& keyedText)
 
     else if( m_pParent->m_captureType == CaptureType::CheckBox )
     {
-        TranslateStringToCheckbox(keyedText);
+        TranslateStringToCheckbox(UTF8_TODO::GetUtf8(keyedText));
     }
 
     else if( m_pParent->m_captureType == CaptureType::RadioButton )
@@ -694,8 +694,7 @@ LRESULT CCapiControl::WindowProc(UINT message,WPARAM wParam,LPARAM lParam)
                         m_buttons.GetAt(buttonClicked-1).SetCheck(BST_UNCHECKED);
                         return TRUE;
                     } else {
-                        CString newFieldText;
-                        newFieldText = TranslateCheckboxToString();
+                        CString newFieldText = UTF8_TODO::GetCString(TranslateCheckboxToString());
                         AfxTrace(_T("Update text %s\n"), newFieldText.GetString());
                         m_pParent->m_pEdit->SendMessage(UWM::CSEntry::ControlsSetWindowText,(WPARAM)m_pParent->m_captureType,(LPARAM)&newFieldText);
                     }
@@ -787,9 +786,9 @@ BOOL CCapiControl::PreTranslateMessage(MSG* pMsg)
 }
 
 
-void CCapiControl::TranslateStringToCheckbox(CString checkboxString)
+void CCapiControl::TranslateStringToCheckbox(const std::string_view checkbox_text_sv)
 {
-    std::vector<size_t> checked_indices = m_pParent->m_responseProcessor->GetCheckboxResponseIndices(checkboxString);
+    const std::vector<size_t> checked_indices = m_pParent->m_responseProcessor->GetCheckboxResponseIndices(checkbox_text_sv);
     size_t checked_indices_iterator = 0;
 
     for( int i = 0; i < m_buttons.GetSize(); i++ )
@@ -807,14 +806,14 @@ void CCapiControl::TranslateStringToCheckbox(CString checkboxString)
 }
 
 
-CString CCapiControl::TranslateCheckboxToString()
+std::string CCapiControl::TranslateCheckboxToString()
 {
     std::vector<size_t> checked_indices;
 
-    for( int i = 0; i < m_buttons.GetSize() ; i++ )
+    for( int i = 0; i < m_buttons.GetSize(); ++i )
     {
         if( m_buttons.GetAt(i).GetCheck() == BST_CHECKED )
-            checked_indices.push_back(i);
+            checked_indices.emplace_back(i);
     }
 
     if( checked_indices.size() > m_pParent->m_responseProcessor->GetCheckboxMaxSelections() )

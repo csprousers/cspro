@@ -566,7 +566,7 @@ bool CDEField::Build (CSpecFile& frmFile, bool bSilent /* = false */) {
             }
 
             if( use_capture_info_build )
-                m_captureInfo.Build(frmFile, csArg);
+                m_captureInfo.Build(frmFile, UTF8_TODO::GetUtf8(csArg));
         }
 
         else if( csCmd.CompareNoCase(FRM_CMD_KEYBOARD_ID) == 0 ) // 20120817

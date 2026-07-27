@@ -36,8 +36,8 @@ private:
     COleDateTime TranslateStringToDate(CString fieldDateString);
     CString TranslateDateToString();
 
-    void TranslateStringToCheckbox(CString checkboxString);
-    CString TranslateCheckboxToString();
+    void TranslateStringToCheckbox(std::string_view checkbox_text_sv);
+    std::string TranslateCheckboxToString();
 
     int SearchVS(CString searchText);
     bool GetVSSelection(int vsID, CString* newFieldText);

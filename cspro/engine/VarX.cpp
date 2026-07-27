@@ -733,7 +733,7 @@ bool VARX::InRange(const CNDIndexes* pTheIndex) const
                 string_value = FormatText(numeric_formatter.c_str(), static_cast<int>(numeric_value));
             }
 
-            in_range = evaluated_capture_info.GetExtended<DateCaptureInfo>().IsResponseValid(UTF8_TODO::GetCString(string_value));
+            in_range = evaluated_capture_info.GetExtended<DateCaptureInfo>().IsResponseValid(string_value);
         }
     }
 
@@ -743,7 +743,7 @@ bool VARX::InRange(const CNDIndexes* pTheIndex) const
     {
         // we only need to check if the value was out of range
         if( !in_range )
-            in_range = CheckBoxCaptureInfo::IsResponseValid(UTF8_TODO::GetCString(string_value), value_processor);
+            in_range = CheckBoxCaptureInfo::IsResponseValid(string_value, value_processor);
     }
 
 

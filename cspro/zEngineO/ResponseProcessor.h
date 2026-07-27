@@ -39,9 +39,9 @@ public:
     size_t GetCheckboxWidth() const;
     size_t GetCheckboxMaxSelections() const;
 
-    std::vector<size_t> GetCheckboxResponseIndices(const CString& value) const;
+    std::vector<size_t> GetCheckboxResponseIndices(std::string_view value_sv) const;
 
-    CString GetInputFromCheckboxIndices(const std::vector<size_t>& indices) const;
+    std::string GetInputFromCheckboxIndices(const std::vector<size_t>& indices) const;
 
     // other operations
     void ResetResponses();
