@@ -98,11 +98,11 @@ public:
 
     // returns true if the character has the same value in UTF-8 and wide formats
     template<typename CT>
-    static constexpr bool CharacterIsSameInWideAndUtf8(CT ch) noexcept;
+    [[nodiscard]] static constexpr bool CharacterIsSameInWideAndUtf8(CT ch) noexcept;
 
     // returns true if the string type uses wide characters
     template<typename ST>
-    static constexpr bool StringIsWide() noexcept;
+    [[nodiscard]] static constexpr bool StringIsWide() noexcept;
 
 
     // --------------------------------------------------------------------------
@@ -111,7 +111,7 @@ public:
 
     // returns the object's null-terminated string
     template<typename ST>
-    static const char* GetNullTerminatedString(const ST& text);
+    [[nodiscard]] static const char* GetNullTerminatedString(const ST& text);
 
 
     // --------------------------------------------------------------------------
@@ -120,7 +120,7 @@ public:
 
     // returns the length of all of the arguments
     template<typename T, typename... Args>
-    static size_t GetLength(const T& arg1, Args const&... args);
+    [[nodiscard]] static size_t GetLength(const T& arg1, Args const&... args);
 
 
     // --------------------------------------------------------------------------
@@ -129,21 +129,21 @@ public:
 
     // returns the length of the string in wide characters
     template<typename ST>
-    static size_t WideLength(const ST& text_or_sv);
+    [[nodiscard]] static size_t WideLength(const ST& text_or_sv);
 
     // returns the offset into the string, measured in wide characters;
     // the offset does not need to be valid, and if not found, std::string_view::npos is returned
-    CLASS_DECL_ZTOOLSO static size_t WideGetOffset(std::string_view text_sv, size_t wide_offset);
+    CLASS_DECL_ZTOOLSO [[nodiscard]] static size_t WideGetOffset(std::string_view text_sv, size_t wide_offset);
 
     // returns the offset into the string, measured in wide characters;
     // the offset must be valid;
     // can also return const char* / char*
     template<typename RT = size_t, typename CT>
-    CLASS_DECL_ZTOOLSO static RT WideGetOffset(CT* text, size_t wide_offset);
+    CLASS_DECL_ZTOOLSO [[nodiscard]] static RT WideGetOffset(CT* text, size_t wide_offset);
 
     // returns a substring with the offset and count measured in wide characters;
     // note that a std::string_view, not a std::string, is returned
-    CLASS_DECL_ZTOOLSO static std::string_view WideSubstring(std::string_view text_sv, size_t wide_offset, size_t wide_count = std::string_view::npos);
+    CLASS_DECL_ZTOOLSO [[nodiscard]] static std::string_view WideSubstring(std::string_view text_sv, size_t wide_offset, size_t wide_count = std::string_view::npos);
 
     // sets the character at the wide offset
     CLASS_DECL_ZTOOLSO static void WideSetChar(std::string& text, size_t wide_offset, wchar_t ch);
@@ -165,10 +165,10 @@ public:
 
     // transforms the wide character to uppercase/lowercase
     template<bool to_upper>
-    static wchar_t WideCharToCase(wchar_t ch);
+    [[nodiscard]] static wchar_t WideCharToCase(wchar_t ch);
 
-    static wchar_t WideCharToUpper(wchar_t ch) { return WideCharToCase<true>(ch); }
-    static wchar_t WideCharToLower(wchar_t ch) { return WideCharToCase<false>(ch); }
+    [[nodiscard]] static wchar_t WideCharToUpper(wchar_t ch) { return WideCharToCase<true>(ch); }
+    [[nodiscard]] static wchar_t WideCharToLower(wchar_t ch) { return WideCharToCase<false>(ch); }
 
     // transforms the string to uppercase characters
     static std::string& MakeUpper(std::string& text);
@@ -176,27 +176,27 @@ public:
     template<typename ST>
     static std::string ToUpper(ST&& text_or_sv);
 
-    static bool IsUpper(std::string_view text_sv);
+    [[nodiscard]] static bool IsUpper(std::string_view text_sv);
 
     static std::wstring& MakeUpper(std::wstring& text);
-    static std::wstring ToUpper(wstring_view text_sv);
-    static bool IsUpper(wstring_view text_sv);
+    [[nodiscard]] static std::wstring ToUpper(wstring_view text_sv);
+    [[nodiscard]] static bool IsUpper(wstring_view text_sv);
 
     // transforms the string to lowercase characters
     static std::string& MakeLower(std::string& text);
 
     template<typename ST>
-    static std::string ToLower(ST&& text_or_sv);
+    [[nodiscard]] static std::string ToLower(ST&& text_or_sv);
 
-    static bool IsLower(std::string_view text_sv);
+    [[nodiscard]] static bool IsLower(std::string_view text_sv);
 
     CLASS_DECL_ZTOOLSO static std::wstring& MakeLower(std::wstring& text);
 
-    static std::wstring ToLower(wstring_view text_sv);
-    static bool IsLower(wstring_view text_sv);
+    [[nodiscard]] static std::wstring ToLower(wstring_view text_sv);
+    [[nodiscard]] static bool IsLower(wstring_view text_sv);
 
-    CLASS_DECL_ZTOOLSO static std::string ToProperCase(std::string text);
-    CLASS_DECL_ZTOOLSO static std::string TitleToCamelCase(std::string text);
+    CLASS_DECL_ZTOOLSO [[nodiscard]] static std::string ToProperCase(std::string text);
+    CLASS_DECL_ZTOOLSO [[nodiscard]] static std::string TitleToCamelCase(std::string text);
 
 
     // --------------------------------------------------------------------------
@@ -205,53 +205,53 @@ public:
 
     // returns whether the string is empty or only contains space (' ') characters
     template<typename ST>
-    static bool IsBlank(const ST& text);
+    [[nodiscard]] static bool IsBlank(const ST& text);
 
     // returns whether the character is a whitespace character (as determined by std::iswspace)
     template<typename CT>
-    static constexpr bool IsWhitespaceChar(CT ch);
+    [[nodiscard]] static constexpr bool IsWhitespaceChar(CT ch);
 
     // returns whether the string is empty or only contains whitespace characters (as determined by std::iswspace)
     template<typename ST>
-    static bool IsWhitespace(const ST& text);
+    [[nodiscard]] static bool IsWhitespace(const ST& text);
 
     // common whitespace characters
     static constexpr const char* WhitespaceChars = " \n\r\t\v\f";
     static constexpr std::string_view WhitespaceChars_sv = WhitespaceChars;
 
-    static bool Equals(wstring_view sv1, wstring_view sv2) noexcept;
-    CLASS_DECL_ZTOOLSO static bool Equals(std::string_view sv1, wstring_view sv2);
-    static bool Equals(wstring_view sv1, std::string_view sv2) { return Equals(sv2, sv1); }
+    [[nodiscard]] static bool Equals(wstring_view sv1, wstring_view sv2) noexcept;
+    CLASS_DECL_ZTOOLSO [[nodiscard]] static bool Equals(std::string_view sv1, wstring_view sv2);
+    [[nodiscard]] static bool Equals(wstring_view sv1, std::string_view sv2) { return Equals(sv2, sv1); }
 
     // std::string_view's operator== promotes null-terminated strings to string views,
     // which is wasteful, so these Equals methods provide an alternative
-    static bool Equals(std::string_view sv1, const char* text2) noexcept;
-    static bool Equals(const char* text1, std::string_view sv2) noexcept { return Equals(sv2, text1); }
+    [[nodiscard]] static bool Equals(std::string_view sv1, const char* text2) noexcept;
+    [[nodiscard]] static bool Equals(const char* text1, std::string_view sv2) noexcept { return Equals(sv2, text1); }
 
-    CLASS_DECL_ZTOOLSO static int CompareNoCase(std::string_view sv1, std::string_view sv2);
-    CLASS_DECL_ZTOOLSO static int CompareNoCase(wstring_view sv1, wstring_view sv2);
+    CLASS_DECL_ZTOOLSO [[nodiscard]] static int CompareNoCase(std::string_view sv1, std::string_view sv2);
+    CLASS_DECL_ZTOOLSO [[nodiscard]] static int CompareNoCase(wstring_view sv1, wstring_view sv2);
 
     // returns whether the two strings are equal in a case-insensitive manner
     template<typename ST1, typename ST2>
-    static bool EqualsNoCase(const ST1& text1, const ST2& text2);
+    [[nodiscard]] static bool EqualsNoCase(const ST1& text1, const ST2& text2);
 
     template<typename... Args>
-    static bool EqualsOneOf(std::string_view source_sv, std::string_view compare1_sv, Args const&... compare2_and_more);
+    [[nodiscard]] static bool EqualsOneOf(std::string_view source_sv, std::string_view compare1_sv, Args const&... compare2_and_more);
 
     template<typename... Args>
-    static bool EqualsOneOfNoCase(std::string_view source_sv, std::string_view compare1_sv, Args const&... compare2_and_more);
+    [[nodiscard]] static bool EqualsOneOfNoCase(std::string_view source_sv, std::string_view compare1_sv, Args const&... compare2_and_more);
 
     template<typename... Args>
-    static bool EqualsOneOfNoCase(wstring_view source_sv, wstring_view compare1_sv, Args const&... compare2_and_more);
+    [[nodiscard]] static bool EqualsOneOfNoCase(wstring_view source_sv, wstring_view compare1_sv, Args const&... compare2_and_more);
 
     // returns whether the source string starts with the entire second string
     template<typename ST1, typename ST2>
-    static bool StartsWith(const ST1& source, const ST2& starts_with_text);
+    [[nodiscard]] static bool StartsWith(const ST1& source, const ST2& starts_with_text);
 
     // returns whether the source string starts with the entire second string
     // in a case-insensitive manner
     template<typename ST1, typename ST2>
-    static bool StartsWithNoCase(const ST1& source, const ST2& starts_with_text);
+    [[nodiscard]] static bool StartsWithNoCase(const ST1& source, const ST2& starts_with_text);
 
 
     // --------------------------------------------------------------------------
@@ -260,24 +260,24 @@ public:
 
     // searches in a case-insensitive manner, the source string, for the substring;
     // if not found, std::string_view::npos (-1) is returned
-    CLASS_DECL_ZTOOLSO static size_t FindNoCase(std::string_view source_sv, std::string_view substring_sv, size_t offset = 0);
+    CLASS_DECL_ZTOOLSO [[nodiscard]] static size_t FindNoCase(std::string_view source_sv, std::string_view substring_sv, size_t offset = 0);
 
     // returns the indices of two characters, with the second character coming after the first;
     // if both are not found, then the second returned value will be equal to npos
-    static std::tuple<size_t, size_t> FindCharacters(std::string_view text_sv, char ch1, char ch2, size_t offset = 0);
-    CLASS_DECL_ZTOOLSO static std::tuple<size_t, size_t> FindCharacters(wstring_view text_sv, wchar_t ch1, wchar_t ch2, size_t offset = 0);
+    [[nodiscard]] static std::tuple<size_t, size_t> FindCharacters(std::string_view text_sv, char ch1, char ch2, size_t offset = 0);
+    CLASS_DECL_ZTOOLSO [[nodiscard]] static std::tuple<size_t, size_t> FindCharacters(wstring_view text_sv, wchar_t ch1, wchar_t ch2, size_t offset = 0);
 
     // returns the index of the first whitespace character in the source string;
     // if not found, std::string_view::npos (-1) is returned
-    CLASS_DECL_ZTOOLSO static size_t FindFirstWhitespace(std::string_view source_sv, size_t offset = 0);
+    CLASS_DECL_ZTOOLSO [[nodiscard]] static size_t FindFirstWhitespace(std::string_view source_sv, size_t offset = 0);
 
     // returns the substring between the two characters found using the above function;
     // if both are not found, then an empty string view is returned
-    CLASS_DECL_ZTOOLSO static std::string_view GetTextBetweenCharacters(std::string_view text_sv, char ch1, char ch2);
+    CLASS_DECL_ZTOOLSO [[nodiscard]] static std::string_view GetTextBetweenCharacters(std::string_view text_sv, char ch1, char ch2);
 
     // returns the strings to the left and right of the character;
     // if the character is not found, the left string will be equal to the entire string and the right string will be empty
-    CLASS_DECL_ZTOOLSO static std::tuple<std::string_view, std::string_view> GetTextOnEitherSideOfCharacter(std::string_view text_sv, char ch);
+    CLASS_DECL_ZTOOLSO [[nodiscard]] static std::tuple<std::string_view, std::string_view> GetTextOnEitherSideOfCharacter(std::string_view text_sv, char ch);
 
 
     // --------------------------------------------------------------------------
@@ -290,17 +290,17 @@ public:
 
     // indicates whether a '\n' newline character exists in the string
     template<typename ST>
-    static bool ContainsNewlineCharacter(const ST& text);
+    [[nodiscard]] static bool ContainsNewlineCharacter(const ST& text);
 
     // makes sure that newlines are "\r\n", not just "\n"
     static void MakeNewlineCRLF(std::string& text);
-    static std::string ToNewlineCRLF(std::string text);
+    [[nodiscard]] static std::string ToNewlineCRLF(std::string text);
 
     // makes sure that newlines are only "\n", not "\r\n"
     static void MakeNewlineLF(std::string& text);
-    static std::string ToNewlineLF(std::string text);
+    [[nodiscard]] static std::string ToNewlineLF(std::string text);
     CLASS_DECL_ZTOOLSO static void MakeNewlineLF(std::wstring& text);
-    static std::wstring ToNewlineLF(std::wstring text);
+    [[nodiscard]] static std::wstring ToNewlineLF(std::wstring text);
 
     // takes a vector of strings and, if any strings contain newlines, those strings will be split into separate vector entries
     CLASS_DECL_ZTOOLSO static void MakeSplitVectorStringsOnNewlines(std::vector<std::string>& strings);
@@ -312,47 +312,47 @@ public:
 
     // trims whitespace characters from the left or right side of the string, returning a string_view
     template<typename ST>
-    static auto TrimLeft(const ST& text_or_sv);
+    [[nodiscard]] static auto TrimLeft(const ST& text_or_sv);
 
     template<typename ST>
-    static auto TrimRight(const ST& text_or_sv);
+    [[nodiscard]] static auto TrimRight(const ST& text_or_sv);
 
     // trims a specific character from the left or right side of the string, returning a string_view
     template<typename ST>
-    static auto TrimLeft(const ST& text_or_sv, char trim_char) { return SO::TrimLeftRightCharWorker<true, ST, char>(text_or_sv, trim_char); }
+    [[nodiscard]] static auto TrimLeft(const ST& text_or_sv, char trim_char) { return SO::TrimLeftRightCharWorker<true, ST, char>(text_or_sv, trim_char); }
 
     template<typename ST>
-    static auto TrimLeft(const ST& text_or_sv, wchar_t trim_char) { return SO::TrimLeftRightCharWorker<true, ST, wchar_t>(text_or_sv, trim_char); }
+    [[nodiscard]] static auto TrimLeft(const ST& text_or_sv, wchar_t trim_char) { return SO::TrimLeftRightCharWorker<true, ST, wchar_t>(text_or_sv, trim_char); }
 
     template<typename ST>
-    static auto TrimRight(const ST& text_or_sv, char trim_char) { return SO::TrimLeftRightCharWorker<false, ST, char>(text_or_sv, trim_char); }
+    [[nodiscard]] static auto TrimRight(const ST& text_or_sv, char trim_char) { return SO::TrimLeftRightCharWorker<false, ST, char>(text_or_sv, trim_char); }
 
     template<typename ST>
-    static auto TrimRight(const ST& text_or_sv, wchar_t trim_char) { return SO::TrimLeftRightCharWorker<false, ST, wchar_t>(text_or_sv, trim_char); }
+    [[nodiscard]] static auto TrimRight(const ST& text_or_sv, wchar_t trim_char) { return SO::TrimLeftRightCharWorker<false, ST, wchar_t>(text_or_sv, trim_char); }
 
     // trims space (' ') characters from the left or right side of the string, returning a string_view
     template<typename ST>
-    static auto TrimLeftSpace(const ST& text_or_sv) { return SO::TrimLeft(text_or_sv, ' '); }
+    [[nodiscard]] static auto TrimLeftSpace(const ST& text_or_sv) { return SO::TrimLeft(text_or_sv, ' '); }
 
     template<typename ST>
-    static auto TrimRightSpace(const ST& text_or_sv) { return SO::TrimRight(text_or_sv, ' '); }
+    [[nodiscard]] static auto TrimRightSpace(const ST& text_or_sv) { return SO::TrimRight(text_or_sv, ' '); }
 
     // trims any of the specified trim characters from the left side of the string, returning a string_view
     template<typename ST>
-    static auto TrimLeft(const ST& text_or_sv, const std::string_view& trim_chars_sv) { return SO::TrimLeftRightStringViewWorker<true, ST>(text_or_sv, trim_chars_sv); }
+    [[nodiscard]] static auto TrimLeft(const ST& text_or_sv, const std::string_view& trim_chars_sv) { return SO::TrimLeftRightStringViewWorker<true, ST>(text_or_sv, trim_chars_sv); }
 
     template<typename ST>
-    static auto TrimLeft(const ST& text_or_sv, const wstring_view& trim_chars_sv) { return SO::TrimLeftRightStringViewWorker<true, ST>(text_or_sv, trim_chars_sv); }
+    [[nodiscard]] static auto TrimLeft(const ST& text_or_sv, const wstring_view& trim_chars_sv) { return SO::TrimLeftRightStringViewWorker<true, ST>(text_or_sv, trim_chars_sv); }
 
     template<typename ST>
-    static auto TrimRight(const ST& text_or_sv, const std::string_view& trim_chars_sv) { return SO::TrimLeftRightStringViewWorker<false, ST>(text_or_sv, trim_chars_sv); }
+    [[nodiscard]] static auto TrimRight(const ST& text_or_sv, const std::string_view& trim_chars_sv) { return SO::TrimLeftRightStringViewWorker<false, ST>(text_or_sv, trim_chars_sv); }
 
     template<typename ST>
-    static auto TrimRight(const ST& text_or_sv, const wstring_view& trim_chars_sv) { return SO::TrimLeftRightStringViewWorker<false, ST>(text_or_sv, trim_chars_sv); }
+    [[nodiscard]] static auto TrimRight(const ST& text_or_sv, const wstring_view& trim_chars_sv) { return SO::TrimLeftRightStringViewWorker<false, ST>(text_or_sv, trim_chars_sv); }
 
     // left- and right-side trimming versions of the above
     template<typename ST, typename... Args>
-    static auto Trim(const ST& text_or_sv, Args const&... args);
+    [[nodiscard]] static auto Trim(const ST& text_or_sv, Args const&... args);
 
     // left- and right-side trimming versions of the above that bind the changes to the modifiable string argument
     template<typename ST, typename... Args>
@@ -387,7 +387,7 @@ public:
     CLASS_DECL_ZTOOLSO static std::wstring& Remove(std::wstring& text, wchar_t ch);
 
     // removes all whitespace characters from the text
-    CLASS_DECL_ZTOOLSO static std::string RemoveWhitespace(std::string_view text_sv);
+    CLASS_DECL_ZTOOLSO [[nodiscard]] static std::string RemoveWhitespace(std::string_view text_sv);
 
     // sets the length of the string to the desired length, padding with spaces if necessary
     template<bool insert_spaces_at_end = true, typename ST>
@@ -414,17 +414,17 @@ public:
 
     // concatenates the strings, returning the combined string
     template<typename T, typename... Args>
-    static std::string Concatenate(T&& arg1, Args const&... args);
+    [[nodiscard]] static std::string Concatenate(T&& arg1, Args const&... args);
 
     // removes any text following the character; the character is optionally removed
-    CLASS_DECL_ZTOOLSO static std::string_view RemoveTextFollowingCharacter(std::string_view text_sv, char ch, bool remove_ch);
+    CLASS_DECL_ZTOOLSO [[nodiscard]] static std::string_view RemoveTextFollowingCharacter(std::string_view text_sv, char ch, bool remove_ch);
 
     // the default number of spaces per tab and a space string that can be used for the tabs
     static constexpr int DefaultSpacesPerTab = 4;
     static constexpr const char* SingleTabAsSpaces = "    ";
 
     // Converts tabs to spaces, using DefaultSpacesPerTab as the default number of spaces per tab.
-    CLASS_DECL_ZTOOLSO static int ConvertTabsToSpaces(std::string& text, int position_in_line = 0, int spaces_per_tab = DefaultSpacesPerTab);
+    CLASS_DECL_ZTOOLSO [[nodiscard]] static int ConvertTabsToSpaces(std::string& text, int position_in_line = 0, int spaces_per_tab = DefaultSpacesPerTab);
 
     // Converts tabs to spaces and right-trims each line.
     CLASS_DECL_ZTOOLSO static void ConvertTabsToSpacesAndTrimRightEachLine(std::string& text);
@@ -468,41 +468,41 @@ public:
     // be treated as separating entities (e.g., "a;;b;c" would result in 4 [not 3] entities with ; as the separator);
     // the include_empty_entities flag can be set to false to receive results like std::wcstok
     template<typename RT = std::string, typename SeparatorT>
-    static std::vector<RT> SplitString(std::string_view text_sv, const SeparatorT& separators, bool trim_all = true, bool include_empty_entities = true)
+    [[nodiscard]] static std::vector<RT> SplitString(std::string_view text_sv, const SeparatorT& separators, bool trim_all = true, bool include_empty_entities = true)
     {
         return SplitStringWorker<RT, SeparatorT>(text_sv, separators, trim_all, include_empty_entities);
     }
 
     template<typename RT = std::wstring, typename SeparatorT>
-    static std::vector<RT> SplitString(wstring_view text_sv, const SeparatorT& separators, bool trim_all = true, bool include_empty_entities = true)
+    [[nodiscard]] static std::vector<RT> SplitString(wstring_view text_sv, const SeparatorT& separators, bool trim_all = true, bool include_empty_entities = true)
     {
         return SplitStringWorker<RT, SeparatorT>(text_sv, separators, trim_all, include_empty_entities);
     }
 
     // combines the strings into a single string, separating each with the separator
     template<bool right_trim_each_string = true, typename T>
-    static std::string CreateSingleString(const T& strings, std::string_view separator_sv = ", ");
+    [[nodiscard]] static std::string CreateSingleString(const T& strings, std::string_view separator_sv = ", ");
 
     // combines the objects into a single string by calling the callback on each object, separating each with the separator
     template<typename T, typename CF>
-    static std::string CreateSingleStringUsingCallback(const T& objects, const CF& callback_function, std::string_view separator_sv = ", ");
+    [[nodiscard]] static std::string CreateSingleStringUsingCallback(const T& objects, const CF& callback_function, std::string_view separator_sv = ", ");
 
     // if text2_sv is not empty, it is appended to text1, separated by a colon
-    CLASS_DECL_ZTOOLSO static std::string CreateColonSeparatedString(std::string text1, std::string_view text2_sv);
+    CLASS_DECL_ZTOOLSO [[nodiscard]] static std::string CreateColonSeparatedString(std::string text1, std::string_view text2_sv);
 
     // if text2_sv is not empty, it is appended to text1, wrapped in parentheses
-    CLASS_DECL_ZTOOLSO static std::string CreateParentheticalExpression(std::string text1, std::string_view text2_sv);
+    CLASS_DECL_ZTOOLSO [[nodiscard]] static std::string CreateParentheticalExpression(std::string text1, std::string_view text2_sv);
 
     // wraps the text at newline characters and width boundaries, adding hyphens as necessary
-    CLASS_DECL_ZTOOLSO static std::vector<std::wstring> WrapText(wstring_view text_sv, size_t maximum_line_width);
+    CLASS_DECL_ZTOOLSO [[nodiscard]] static std::vector<std::wstring> WrapText(wstring_view text_sv, size_t maximum_line_width);
 
     // returns a C string that contains the specified number of repeating characters
-    CLASS_DECL_ZTOOLSO static const char* GetRepeatingCharacterString(wchar_t ch, size_t length);
+    CLASS_DECL_ZTOOLSO [[nodiscard]] static const char* GetRepeatingCharacterString(wchar_t ch, size_t length);
 
-    static const char* GetDashedLine(size_t length) { return GetRepeatingCharacterString('-', length); }
+    [[nodiscard]] static const char* GetDashedLine(size_t length) { return GetRepeatingCharacterString('-', length); }
 
     // returns a vector of bytes with the text and an optional null terminator
-    CLASS_DECL_ZTOOLSO static std::vector<std::byte> CreateByteVector(std::string_view text_sv, bool include_null_terminator = false);
+    CLASS_DECL_ZTOOLSO [[nodiscard]] static std::vector<std::byte> CreateByteVector(std::string_view text_sv, bool include_null_terminator = false);
 
 
     // --------------------------------------------------------------------------
@@ -510,44 +510,44 @@ public:
     // --------------------------------------------------------------------------
 private:
     template<typename ST>
-    static constexpr bool StringTypeHasPrecalculatedLength() noexcept;
+    [[nodiscard]] static constexpr bool StringTypeHasPrecalculatedLength() noexcept;
 
     template<typename ST>
-    static const auto* GetStringData(const ST& sv_or_cstr);
+    [[nodiscard]] static const auto* GetStringData(const ST& sv_or_cstr);
 
-    CLASS_DECL_ZTOOLSO static size_t WideLengthWorker(const char* text_start, const char* text_end);
-    CLASS_DECL_ZTOOLSO static size_t WideLengthWorker(const char* text_start);
+    CLASS_DECL_ZTOOLSO [[nodiscard]] static size_t WideLengthWorker(const char* text_start, const char* text_end);
+    CLASS_DECL_ZTOOLSO [[nodiscard]] static size_t WideLengthWorker(const char* text_start);
 
     // returns the offset from the end of a UTF-8 string in wide characters;
     // e.g., WideGetOffsetFromEnd(u8"abcdéf", 2) == 4
-    CLASS_DECL_ZTOOLSO static size_t WideGetOffsetFromEnd(std::string_view text_sv, size_t wide_offset);
+    CLASS_DECL_ZTOOLSO [[nodiscard]] static size_t WideGetOffsetFromEnd(std::string_view text_sv, size_t wide_offset);
 
     template<bool insert_spaces_at_end = true>
     CLASS_DECL_ZTOOLSO static void WideMakeExactLengthAdjuster(std::string& text, const ptrdiff_t non_zero_length_difference);
 
     template<typename ST1, typename ST2, bool EqualsMode, bool NoCase>
-    static bool EqualsStartsWithWorker(const ST1& source, const ST2& starts_with_text);
+    [[nodiscard]] static bool EqualsStartsWithWorker(const ST1& source, const ST2& starts_with_text);
 
     template<typename CT, typename Predicate>
-    static auto TrimLeftWorker(const CT* text, size_t length, const Predicate& predicate);
+    [[nodiscard]] static auto TrimLeftWorker(const CT* text, size_t length, const Predicate& predicate);
 
     template<typename CT, typename Predicate>
-    static auto TrimRightWorker(const CT* text, size_t length, const Predicate& predicate);
+    [[nodiscard]] static auto TrimRightWorker(const CT* text, size_t length, const Predicate& predicate);
 
     template<bool trim_left, typename ST, typename CT>
-    static auto TrimLeftRightCharWorker(const ST& text_or_sv, CT trim_char);
+    [[nodiscard]] static auto TrimLeftRightCharWorker(const ST& text_or_sv, CT trim_char);
 
     template<bool trim_left, typename ST, typename SVT>
-    static auto TrimLeftRightStringViewWorker(const ST& text_or_sv, const SVT& trim_chars_sv);
+    [[nodiscard]] static auto TrimLeftRightStringViewWorker(const ST& text_or_sv, const SVT& trim_chars_sv);
 
     template<bool is_from_trim_right, typename ST, typename SVT>
     static ST& MakeTrimWorker(ST& text, SVT trimmed_text_sv);
 
     template<bool to_upper>
-    CLASS_DECL_ZTOOLSO static wchar_t WideCharToCaseWithLocale(wchar_t ch);
+    CLASS_DECL_ZTOOLSO [[nodiscard]] static wchar_t WideCharToCaseWithLocale(wchar_t ch);
 
     template<bool to_upper>
-    CLASS_DECL_ZTOOLSO static size_t FindFirstNonMatchingWideCase(std::string_view text_sv);
+    CLASS_DECL_ZTOOLSO [[nodiscard]] static size_t FindFirstNonMatchingWideCase(std::string_view text_sv);
 
     // out_text should be null (in which case a new string is created with the modified case (if necessary)
     // or should be set to in_text, in which case the modified case string replaces the input text
@@ -561,7 +561,7 @@ private:
     static int ConvertTabsToSpacesWorker(std::string& text, int position_in_line, int spaces_per_tab);
 
     template<typename RT, typename SeparatorT, typename SVT>
-    static std::vector<RT> SplitStringWorker(SVT text_sv, const SeparatorT& separators, bool trim_all, bool include_empty_entities);
+    [[nodiscard]] static std::vector<RT> SplitStringWorker(SVT text_sv, const SeparatorT& separators, bool trim_all, bool include_empty_entities);
 
 private:
     static const std::locale m_localeForCaseConversions;
