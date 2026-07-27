@@ -3,7 +3,7 @@
 #include "CoreEntryEngineInterface.h"
 #include "Runaple.h"
 #include <zToolsO/NewlineSubstitutor.h>
-#include <zDictO/ValueProcessor.h>
+#include <zDictO/NumericValueProcessor.h>
 #include <zBridgeO/NPff.h>
 #include <engine/IntDrive.h>
 #include <zEngineO/ParameterManager.h>

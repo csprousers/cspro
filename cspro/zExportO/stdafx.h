@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <engine/StandardSystemIncludes.h>
 #include <StandardIncludes/strict_errors.h>
@@ -10,7 +10,7 @@
 #include <zUtilO/ConnectionString.h>
 #include <zUtilO/Interapp.h>
 #include <zDictO/DDClass.h>
-#include <zDictO/ValueProcessor.h>
+#include <zDictO/NumericValueProcessor.h>
 #include <zCaseO/Case.h>
 #include <zCaseO/CaseConstructionReporter.h>
 #include <zCaseO/StringCaseItem.h>

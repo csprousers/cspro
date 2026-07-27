@@ -1,9 +1,7 @@
 #include "StdAfx.h"
 #include "ValueProcessor.h"
-#include "ValueSetResponse.h"
-#include <zToolsO/FloatingPointMath.h>
-#include <zToolsO/VarFuncs.h>
-#include <zUtilO/VectorMap.h>
+#include "NumericValueProcessor.h"
+#include "StringValueProcessor.h"
 
 
 class ValueProcessorImpl

@@ -34,10 +34,12 @@
     <ClCompile Include="DictValuePair.cpp" />
     <ClCompile Include="DictValueSet.cpp" />
     <ClCompile Include="ItemIndexHelper.cpp" />
+    <ClCompile Include="NumericValueProcessor.cpp" />
     <ClCompile Include="Pre80SpecFile.cpp" />
     <ClCompile Include="StdAfx.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="StringValueProcessor.cpp" />
     <ClCompile Include="ValueProcessor.cpp" />
     <ClCompile Include="ValueSetFixer.cpp" />
     <ClCompile Include="ValueSetResponse.cpp" />
@@ -63,8 +65,10 @@
     <ClInclude Include="DictValueSet.h" />
     <ClInclude Include="ItemIndex.h" />
     <ClInclude Include="ItemIndexHelper.h" />
+    <ClInclude Include="NumericValueProcessor.h" />
     <ClInclude Include="Rules.h" />
     <ClInclude Include="StdAfx.h" />
+    <ClInclude Include="StringValueProcessor.h" />
     <ClInclude Include="ValueProcessor.h" />
     <ClInclude Include="ValueSetFixer.h" />
     <ClInclude Include="ValueSetResponse.h" />

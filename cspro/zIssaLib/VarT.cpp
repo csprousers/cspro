@@ -23,7 +23,7 @@
 #include <zToolsO/Serializer.h>
 #include <zToolsO/VarFuncs.h>
 #include <zJson/Json.h>
-#include <zDictO/ValueProcessor.h>
+#include <zDictO/NumericValueProcessor.h>
 #include <engine/Engarea.h>
 #include <engine/Engdrv.h>
 #include <engine/Entdrv.h>

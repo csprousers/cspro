@@ -1,4 +1,4 @@
-﻿//---------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 //  File name: Export2.cpp
 //
 //  Description:
@@ -27,7 +27,7 @@
 #include <zEngineO/File.h>
 #include <zToolsO/Tools.h>
 #include <zUtilO/StdioFileUnicode.h>
-#include <zDictO/ValueProcessor.h>
+#include <zDictO/NumericValueProcessor.h>
 #include <zBridgeO/NPff.h>
 
 

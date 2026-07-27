@@ -4,7 +4,8 @@
 #include <engine/VarT.h>
 #include <zToolsO/VectorHelpers.h>
 #include <zUtilO/Randomizer.h>
-#include <zDictO/ValueProcessor.h>
+#include <zDictO/NumericValueProcessor.h>
+#include <zDictO/StringValueProcessor.h>
 #include <zLogicO/ChildSymbolNames.h>
 #include <zJavaScript/Executor.h>
 

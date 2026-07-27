@@ -7,7 +7,7 @@
 #include <engine/Nodes.h>
 #include <engine/VariableIterator.h>
 #include <zDictO/Definitions.h>
-#include <zDictO/ValueProcessor.h>
+#include <zDictO/NumericValueProcessor.h>
 
 
 // --------------------------------------------------------------------------

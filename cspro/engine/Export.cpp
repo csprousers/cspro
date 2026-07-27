@@ -1,4 +1,4 @@
-﻿//---------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 //  File name: Export.cpp
 //
 //  Description:
@@ -24,7 +24,7 @@
 #include "Limits.h"                                     // victor Dec 18, 00
 #include <zEngineO/ValueSet.h>
 #include <zToolsO/Tools.h>
-#include <zDictO/ValueProcessor.h>
+#include <zDictO/NumericValueProcessor.h>
 #include <zBridgeO/NPff.h>
 
 #ifdef _DEBUG

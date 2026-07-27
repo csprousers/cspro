@@ -56,10 +56,16 @@
     <ClCompile Include="ItemIndexHelper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="NumericValueProcessor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="Pre80SpecFile.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="StdAfx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="StringValueProcessor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ValueProcessor.cpp">
@@ -133,10 +139,16 @@
     <ClInclude Include="ItemIndexHelper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="NumericValueProcessor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="Rules.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="StdAfx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="StringValueProcessor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ValueProcessor.h">
