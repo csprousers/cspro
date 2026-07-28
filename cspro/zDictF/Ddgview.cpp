@@ -1600,8 +1600,9 @@ void CDDGView::OnPrint(CDC* pDC, CPrintInfo* pInfo)
             if (pInfo->m_nCurPage == m_uPage) {
                 pDC->TextOut(m_iLabel + m_iIndent, m_iYPos, pRec->GetLabel());
                 pDC->TextOut(m_iName + m_iIndent, m_iYPos, PrepareNameForPrinting(pRec->GetName()));
-                size = pDC->GetTextExtent(pRec->GetRecTypeVal());
-                pDC->TextOut(m_iType - size.cx, m_iYPos, pRec->GetRecTypeVal());
+                const std::wstring wide_rec_type_val = TC::ToWide(pRec->GetRecTypeVal());
+                size = pDC->GetTextExtent(wide_rec_type_val.c_str());
+                pDC->TextOut(m_iType - size.cx, m_iYPos, wide_rec_type_val.c_str());
                 if (pRec->GetRequired()) {
                     size = pDC->GetTextExtent(_T("Yes"));
                     pDC->TextOut(m_iReq - size.cx, m_iYPos, _T("Yes"));
@@ -2378,7 +2379,7 @@ void CDDGView::PrintToFile()
             else {
                 csLine += CString(SPACE,iLineLen - 20 - csLine.GetLength());
             }
-            csText = pRec->GetRecTypeVal();
+            csText = UTF8_TODO::GetCString(pRec->GetRecTypeVal());
             csLine += CString(SPACE,5 - csText.GetLength()) + csText;
             if (pRec->GetRequired()) {
                 csLine += _T("  Yes");

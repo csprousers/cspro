@@ -284,7 +284,7 @@ namespace
 
             // add the record type and first level ID items
             const size_t record_length = GetLengthToStoreValue(m_imputationsAndStatVariables.size());
-            const std::wstring record_length_formatter = FormatText(L"%%0%dd", static_cast<int>(record_length));
+            const std::string record_length_formatter = FormatText("%%0%zud", record_length);
             stat_dictionary->SetRecTypeLen(record_length);
 
             CDictRecord* const destination_id_record = dict_level.GetIdItemsRec();
@@ -346,7 +346,7 @@ namespace
             {
                 CDictRecord impute_record;
                 impute_record.SetRecLen(destination_id_record->GetRecLen());
-                impute_record.SetRecTypeVal(FormatText<CString>(record_length_formatter.c_str(), ++record_counter));
+                impute_record.SetRecTypeVal(FormatText(record_length_formatter.c_str(), ++record_counter));
 
                 FillRecord(imputations_and_stat_variables, impute_record);
 

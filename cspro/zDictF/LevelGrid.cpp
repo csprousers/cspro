@@ -821,6 +821,7 @@ bool CLevelGrid::EditEnd(bool bSilent)
         bChanged = true;
         pRec->SetLabel(csNewLabel);
     }
+
     CString csNewName, csOldName;
     m_aEditControl[LEVEL_NAME_COL]->GetWindowText(csNewName);
     csOldName = UTF8_TODO::GetCString(pRec->GetName());
@@ -829,13 +830,16 @@ bool CLevelGrid::EditEnd(bool bSilent)
         bChangedName = true;
         pRec->SetName(UTF8_TODO::GetUtf8(csNewName));
     }
-    CString csNewValue, csOldValue;
-    m_aEditControl[LEVEL_TYPE_COL]->GetWindowText(csNewValue);
-    csOldValue = pRec->GetRecTypeVal();
-    if (csNewValue.Compare(csOldValue) != 0) {
+
+    std::optional<std::string> old_record_type;
+    const std::string new_record_type = WindowsUtf8::GetText(m_aEditControl[LEVEL_TYPE_COL]);
+    if( new_record_type != pRec->GetRecTypeVal() )
+    {
         bChanged = true;
-        pRec->SetRecTypeVal(csNewValue);
+        old_record_type = pRec->GetRecTypeVal();
+        pRec->SetRecTypeVal(new_record_type);
     }
+
     CString csNewReq;
     m_aEditControl[LEVEL_REQ_COL]->GetWindowText(csNewReq);
     bool bNewReq = false;
@@ -847,6 +851,7 @@ bool CLevelGrid::EditEnd(bool bSilent)
         bChanged = true;
         pRec->SetRequired(bNewReq);
     }
+
     CIMSAString csNewMax;
     m_aEditControl[LEVEL_MAX_COL]->GetWindowText(csNewMax);
     UINT uNewMax = (UINT) csNewMax.Val();
@@ -855,6 +860,7 @@ bool CLevelGrid::EditEnd(bool bSilent)
         bChanged = true;
         pRec->SetMaxRecs(uNewMax);
     }
+
     if (m_bAdding || m_bInserting) {
         if (pRec->GetLabel().IsEmpty() && pRec->GetName().empty()) {
             bUndo = true;
@@ -874,7 +880,7 @@ bool CLevelGrid::EditEnd(bool bSilent)
     CDDDoc* pDoc = assert_cast<CDDDoc*>(assert_cast<CView*>(GetParent())->GetDocument());
     DictionaryValidator* dictionary_validator = pDoc->GetDictionaryValidator();
     if (bChanged) {
-        if (m_pDict->GetNumRecords() <= 1 && csNewValue.IsEmpty()) {
+        if (m_pDict->GetNumRecords() <= 1 && new_record_type.empty()) {
             m_pDict->SetRecTypeStart(0);
             m_pDict->SetRecTypeLen(0);
         }
@@ -886,14 +892,15 @@ bool CLevelGrid::EditEnd(bool bSilent)
             pDoc->SetModified();
             QuickSetText(LEVEL_LABEL_COL, row, csNewLabel);
             QuickSetText(LEVEL_NAME_COL, row, csNewName);
-            QuickSetText(LEVEL_TYPE_COL, row, csNewValue);
+            QuickSetText(LEVEL_TYPE_COL, row, new_record_type);
             QuickSetText(LEVEL_REQ_COL, row, csNewReq);
             QuickSetText(LEVEL_MAX_COL, row, csNewMax);
         }
         else {
             pRec->SetLabel(csOldLabel);
             pRec->SetName(UTF8_TODO::GetUtf8(csOldName));
-            pRec->SetRecTypeVal(csOldValue);
+            if( old_record_type.has_value() )
+                pRec->SetRecTypeVal(std::move(*old_record_type));
             pRec->SetRequired(bOldReq);
             pRec->SetMaxRecs(uOldMax);
         }

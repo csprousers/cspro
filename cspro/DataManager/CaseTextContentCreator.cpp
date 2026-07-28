@@ -251,8 +251,8 @@ void CaseTextContentCreator::Formatter::SetUpRecordTypeMap(const CDataDict& dict
                 // add this record's record type...
                 if( std::holds_alternative<StartLen>(single_dict_record_or_record_type_start_len) )
                 {
-                    ASSERT(dictionary.GetRecTypeLen() == static_cast<size_t>(dict_record.GetRecTypeVal().GetLength()));
-                    record_type_map.try_emplace(UTF8_TODO::GetUtf8(dict_record.GetRecTypeVal()), &dict_record);
+                    ASSERT(dictionary.GetRecTypeLen() == SO::WideLength(dict_record.GetRecTypeVal()));
+                    record_type_map.try_emplace(dict_record.GetRecTypeVal(), &dict_record);
                 }
 
                 // ...and items

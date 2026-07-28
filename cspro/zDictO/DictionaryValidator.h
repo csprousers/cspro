@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 //***************************************************************************
 //  File name: DictionaryValidator.h
@@ -120,7 +120,7 @@ public:
 private:
     bool CheckLabel(CDictRecord* pRec);
     bool CheckName(CDictRecord* pRec);
-    bool CheckRecTypeVal(CDictRecord* pRec);
+    bool CheckRecTypeVal(CDictRecord& dict_record);
     bool CheckRequired(CDictRecord* pRec);
     bool CheckMaxRecs(CDictRecord* pRec);
 
@@ -240,8 +240,8 @@ public:
     int  GetDefaultItemStart(int iLevelNum, int iRecordNum, int iItemNum);
     std::string GetDefaultName(const CString& label) const;
 
-    static bool MakeRecordTypeUnique(const CDataDict& dictionary, CString& record_type, const std::set<CString>& additional_record_types);
-    CString GetDefaultRecTypeVal() const;
+    static bool MakeRecordTypeUnique(const CDataDict& dictionary, std::string& record_type, const std::set<std::string>& additional_record_types);
+    std::string GetDefaultRecTypeVal() const;
 
     static unsigned GetRecordLength(const CDataDict& dictionary, const CDictRecord* dict_record);
     unsigned GetRecordLength(const CDictRecord* dict_record) const { return GetRecordLength(*m_pDict, dict_record); }

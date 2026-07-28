@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "TextToCaseConverter.h"
 #include "FixedWidthNumericCaseItem.h"
 #include "FixedWidthStringCaseItem.h"
@@ -215,7 +215,7 @@ void TextToCaseConverter::CalculateConstructionVariables()
                     // create a fully spaced out copy of the record type
                     if( m_recordTypeLength > 0 )
                     {
-                        text_record_metadata.record_type = CIMSAString::MakeExactLength(case_record_metadata.GetDictRecord().GetRecTypeVal(), m_recordTypeLength);
+                        text_record_metadata.record_type = CIMSAString::MakeExactLength(UTF8_TODO::GetCString(case_record_metadata.GetDictRecord().GetRecTypeVal()), m_recordTypeLength);
                         _tmemcpy(m_recordTypeLookup + case_record_metadata.GetTotalRecordIndex() * m_recordTypeLength, text_record_metadata.record_type, m_recordTypeLength);
                     }
 

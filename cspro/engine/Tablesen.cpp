@@ -198,7 +198,7 @@ bool CExport::ExportAddDictRecord(CDataDict* pDataDict, CString csFileName, CStr
     if( SO::IsBlank(pDictRecord->GetLabel()) ) // 20120504 added this condition so that labels from the input dictionary aren't overwritten
         pDictRecord->SetLabel(UTF8_TODO::GetCString(pDictRecord->GetName())); // + " record" );
 
-    pDictRecord->SetRecTypeVal( m_pszSectionCode );
+    pDictRecord->SetRecTypeVal(UTF8_TODO::GetUtf8(m_pszSectionCode));
 
     pDictRecord->SetDataDict( pDataDict );
     //pDictRecord->SetRecLen:
@@ -227,20 +227,21 @@ bool CExport::ExportAddDictRecord(CDataDict* pDataDict, CString csFileName, CStr
     return bRet;
 }
 
-void CExport::ExportGenRecNameAndType( CDataDict* pDataDict ) {
-    int     iMaxRecTypeVal=0;
-    int     iDummy=0;
-    CMap<CString,LPCTSTR,int,int>   aUsedRecTypes;
+void CExport::ExportGenRecNameAndType( CDataDict* pDataDict )
+{
+    size_t max_rec_type_length = 0;
+    std::set<std::string> used_rec_types;
 
-    // Calculate iMaxRecords and the max length for the record type (iMaxRecTypeVal)
+    // Calculate iMaxRecords and the max length for the record type (iMaxRecTypeVal ... now max_rec_type_length)
     int iMaxRecords=0;
     for( const DictLevel& dict_level : pDataDict->GetLevels() ) {
         for( int iRecord=0; iRecord < dict_level.GetNumRecords(); iRecord++ ) {
             const CDictRecord* pDictRecord = dict_level.GetRecord(iRecord);
 
-            if( !SO::IsBlank(pDictRecord->GetRecTypeVal()) ) {
-                iMaxRecTypeVal = std::max( iMaxRecTypeVal, pDictRecord->GetRecTypeVal().GetLength() );
-                aUsedRecTypes.SetAt(pDictRecord->GetRecTypeVal(), iDummy );
+            if( !SO::IsBlank(pDictRecord->GetRecTypeVal()) )
+            {
+                max_rec_type_length = std::max(max_rec_type_length, SO::WideLength(pDictRecord->GetRecTypeVal()));
+                used_rec_types.insert(pDictRecord->GetRecTypeVal());
             }
 
             iMaxRecords++;
@@ -270,20 +271,20 @@ void CExport::ExportGenRecNameAndType( CDataDict* pDataDict ) {
 
             // Generate a record type
             if( SO::IsBlank(pDictRecord->GetRecTypeVal()) && iMaxRecords > 1 ) { // RHF Nov 09, 2004 Add iMaxRecords > 1
-                CString csRecordType;
+                std::string record_type;
 
                 // Try to insert the record name
                 for( int iCheckRecType=iMinRecordType;;iCheckRecType++ ) {
-                    csRecordType.Format( _T("%0*d"), IntToStringLength(iMaxRecTypeVal), iCheckRecType );
+                    record_type = FormatText("%0*d", IntToStringLength(int32_cast(max_rec_type_length)), iCheckRecType);
 
                     iMinRecordType++;
-                    if( !aUsedRecTypes.Lookup( csRecordType, iDummy) )
+                    if( used_rec_types.find(record_type) == used_rec_types.cend() )
                         break;
                 }
 
-                aUsedRecTypes.SetAt( csRecordType, iDummy);
+                used_rec_types.insert(record_type);
 
-                pDictRecord->SetRecTypeVal( csRecordType );
+                pDictRecord->SetRecTypeVal(std::move(record_type));
             }
         }
     }

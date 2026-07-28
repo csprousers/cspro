@@ -1197,7 +1197,6 @@ void CDEFormFile::CreateGroup(CDEGroup* pGroup, const CDictRecord* pDictRec, int
 {
     int row = rowOffset;
     LONG rightCol = 0;
-    CString RecTypeVal;
 
     pGroup->SetFormNum(iFormNum);
 
@@ -1225,8 +1224,6 @@ void CDEFormFile::CreateGroup(CDEGroup* pGroup, const CDictRecord* pDictRec, int
     pGroup->SetRequired(pDictRec->GetRequired());
     pGroup->SetLabel(pDictRec->GetLabel());
     pGroup->SetTypeName(UTF8_TODO::GetCString(pDictRec->GetName()));
-
-    RecTypeVal = pDictRec->GetRecTypeVal();
 
     if (bIdRec || pDictRec->GetMaxRecs() == 1) // group doesn't loop, not dependant on a rec
     {
@@ -2193,7 +2190,6 @@ void CDEFormFile::CreateGroupForOrder(CDEGroup* pGroup,
 {
     int row = rowOffset;
     LONG rightCol = 0;
-    CString RecTypeVal;
 
     CString sDictName = UTF8_TODO::GetCString(pDictRec->GetDataDict()->GetName());
 
@@ -2225,7 +2221,6 @@ void CDEFormFile::CreateGroupForOrder(CDEGroup* pGroup,
     pGroup->SetLabel(pDictRec->GetLabel());
     pGroup->SetTypeName(UTF8_TODO::GetCString(pDictRec->GetName()));
 
-    RecTypeVal = pDictRec->GetRecTypeVal();
     if (bIdRec) {
         pGroup->SetMaxLoopOccs(1);
     }

@@ -43,12 +43,12 @@ void DictionaryRecord::Note::set(String^ note)
 
 String^ DictionaryRecord::RecordType::get()
 {
-    return gcnew String(m_pNativeRecord->GetRecTypeVal());
+    return clr_helpers::to_SystemString(m_pNativeRecord->GetRecTypeVal());
 }
 
 void DictionaryRecord::RecordType::set(String^ rt)
 {
-    m_pNativeRecord->SetRecTypeVal((CString)rt);
+    m_pNativeRecord->SetRecTypeVal(clr_helpers::to_string(rt));
 }
 
 array<DictionaryItem^>^ DictionaryRecord::Items::get()

@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include <zEngineO/DeprecatedSymbol.h>
 #include <zEngineO/EngineItem.h>
 #include <zEngineO/ValueSet.h>
@@ -142,12 +142,9 @@ void CEngineArea::dictloadsection(DICT* pDicT, const CDictRecord* pRecord, int i
     pSecT->SetLevel( iLevel );
     // COMPLETE ( is_digit( srp->sectlevel ) ) ? srp->sectlevel - '0' : -1;
 
-    const TCHAR* pSecCode = pRecord->GetRecTypeVal();
-    int     iCodeLen = _tcslen(pSecCode);
-
-    for( int iCode = 0; iCode < MAX_RECTYPECODE; iCode++ ) {
-        pSecT->code[iCode] = ( iCode < iCodeLen ) ? pSecCode[iCode] : _T(' ');
-    }
+    std::string section_code = pRecord->GetRecTypeVal();
+    SO::WideMakeExactLength(section_code, MAX_RECTYPECODE);
+    memcpy(pSecT->code, UTF8_TODO::GetWide(section_code).c_str(), MAX_RECTYPECODE);
 
     if( iRecNum == COMMON_SECT ) {
         _tmemset( pSecT->code, _T(' '), MAX_RECTYPECODE );

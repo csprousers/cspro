@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "NewFileCreator.h"
 #include <zToolsO/FileIO.h>
 #include <zUtilO/TextSourceEditable.h>
@@ -63,7 +63,7 @@ std::unique_ptr<CDataDict> NewFileCreator::CreateDictionary(const std::string& d
     CDictRecord dict_record;
     dict_record.SetLabel(dictionary->GetLabel() + _T(" Record"));
     dict_record.SetName(base_name + "_REC");
-    dict_record.SetRecTypeVal(_T("1"));
+    dict_record.SetRecTypeVal("1");
     dict_level.AddRecord(&dict_record);
 
     dictionary->AddLevel(std::move(dict_level));

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zDictO/DictNamedBase.h>
 #include <zDictO/DictItem.h>
@@ -25,7 +25,7 @@ public:
     DictElementType GetElementType() const override { return DictElementType::Record; }
 
     // Extraction methods
-    const CString&      GetRecTypeVal  () const { return m_csRecTypeVal;  }
+    const std::string&  GetRecTypeVal  () const { return m_recTypeVal; }
     bool                GetRequired    () const { return m_bRequired; }
     UINT                GetMaxRecs     () const { return m_uMaxRecs; }
     int                 GetRecLen      () const { return m_iRecLen; }
@@ -47,7 +47,7 @@ public:
     CDictItem* FindItem(std::string_view item_name_sv);
 
     // assignment methods
-    void SetRecTypeVal  (const CString& csRecTypeVal) { m_csRecTypeVal = csRecTypeVal; }
+    void SetRecTypeVal  (std::string rec_type_val) { m_recTypeVal = std::move(rec_type_val); }
     void SetRequired    (bool bRequired) { m_bRequired = bRequired; }
     void SetMaxRecs     (UINT uMaxRecs) { m_uMaxRecs = uMaxRecs; m_occurrenceLabels.DeleteOccurrencesBeyond(uMaxRecs); }
     void SetRecLen      (int iRecLen) { m_iRecLen = iRecLen; }
@@ -84,7 +84,7 @@ public:
 
 private:
     // Data Members
-    CString                         m_csRecTypeVal; // Record type value
+    std::string                     m_recTypeVal;   // Record type value
     bool                            m_bRequired;    // TRUE if required
     UINT                            m_uMaxRecs;     // Maximum number of records
     int                             m_iRecLen;      // Record length

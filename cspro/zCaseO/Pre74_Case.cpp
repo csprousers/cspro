@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "Pre74_Case.h"
 #include <zUtilO/MemoryHelpers.h>
 
@@ -299,7 +299,7 @@ void Pre74_Case::FinalizeLevel(Pre74_CaseLevel* pCaseLevel,bool bAddRequiredReco
 
             // copy over the record type
             if( m_iRecTypeLen > 0 )
-                _tmemcpy(pszRecordBuffer + m_iRecTypeStart,pDictRecord->GetRecTypeVal(),m_iRecTypeLen);
+                _tmemcpy(pszRecordBuffer + m_iRecTypeStart, UTF8_TODO::GetWide(pDictRecord->GetRecTypeVal()).c_str(), m_iRecTypeLen);
         }
     }
 
@@ -322,7 +322,7 @@ void Pre74_Case::FinalizeLevel(Pre74_CaseLevel* pCaseLevel,bool bAddRequiredReco
 
             // copy over the record type
             if( m_iRecTypeLen > 0 )
-                _tmemcpy(pszRecordBuffer + m_iRecTypeStart,pFirstDictRecord->GetRecTypeVal(),m_iRecTypeLen);
+                _tmemcpy(pszRecordBuffer + m_iRecTypeStart, UTF8_TODO::GetWide(pFirstDictRecord->GetRecTypeVal()).c_str(), m_iRecTypeLen);
         }
 
         if( bThrowCaseHasNoValidRecordsException )

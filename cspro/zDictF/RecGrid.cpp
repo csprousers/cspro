@@ -1465,8 +1465,8 @@ bool CRecordGrid::EditEnd(bool bSilent)
                     DictLevel& dict_level = m_pDict->GetLevel(level_number);
                     for (int r = 0 ; r < dict_level.GetNumRecords() ; r++) {
                         CDictRecord* pRec = dict_level.GetRecord(r);
-                        CIMSAString csRecTypeVal = pRec->GetRecTypeVal();
-                        pRec->SetRecTypeVal(csRecTypeVal.AdjustLenLeft(m_pDict->GetRecTypeLen(), ZERO));
+                        CIMSAString csRecTypeVal = UTF8_TODO::GetCString(pRec->GetRecTypeVal());
+                        pRec->SetRecTypeVal(UTF8_TODO::GetUtf8(csRecTypeVal.AdjustLenLeft(m_pDict->GetRecTypeLen(), ZERO)));
                         pRec->SetRecLen(dictionary_validator->GetRecordLength(level_number, r));
                     }
                 }

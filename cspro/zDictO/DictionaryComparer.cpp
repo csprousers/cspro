@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "DictionaryComparer.h"
 
 
@@ -252,7 +252,7 @@ void DictionaryComparer::CompareLevel(const DictLevel& initial_dict_level, const
 
 void DictionaryComparer::CompareRecord(const CDictRecord* const initial_dict_record, const CDictRecord* const final_dict_record)
 {
-    if( initial_dict_record->GetRecTypeVal().Compare(final_dict_record->GetRecTypeVal()) != 0 )
+    if( initial_dict_record->GetRecTypeVal() != final_dict_record->GetRecTypeVal() )
         AddDifference(DictionaryDifference::Type::RecordTypeChanged, initial_dict_record, final_dict_record);
 
     if( initial_dict_record->GetMaxRecs() > final_dict_record->GetMaxRecs() )

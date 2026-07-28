@@ -521,7 +521,7 @@ bool DictionaryValidator::CheckRecTypeLen(CDataDict* pDict)
             DictionaryIterator::Foreach<CDictRecord>(*pDict,
                 [&](const CDictRecord& dict_record)
                 {
-                    iRTLen = std::max(iRTLen, dict_record.GetRecTypeVal().GetLength());
+                    iRTLen = std::max<int>(iRTLen, SO::WideLength(dict_record.GetRecTypeVal()));
                 });
             if (iRTLen == 0) {
                 iRTLen = IntToStringLength(num_records);
@@ -797,7 +797,7 @@ bool DictionaryValidator::IsValid(CDictRecord* pRec,
             m_iInvalidEdit = INT_MAX;
         }
     }
-    if (!CheckRecTypeVal(pRec))  {
+    if (!CheckRecTypeVal(*pRec))  {
         if (m_iInvalidEdit == NONE)  {
             m_iInvalidEdit = 3;
         }
@@ -951,10 +951,10 @@ bool DictionaryValidator::CheckName(CDictRecord* pRec)
 //
 /////////////////////////////////////////////////////////////////////////////
 
-bool DictionaryValidator::CheckRecTypeVal(CDictRecord* pRec)
+bool DictionaryValidator::CheckRecTypeVal(CDictRecord& dict_record)
 {
     bool bValid = true;
-    CIMSAString csRecTypeVal = pRec->GetRecTypeVal();
+    CIMSAString csRecTypeVal = UTF8_TODO::GetCString(dict_record.GetRecTypeVal());
     UINT uRTLen = m_pDict->GetRecTypeLen();
 
     // A Level Id record (COMMON) does not have a value
@@ -967,9 +967,9 @@ bool DictionaryValidator::CheckRecTypeVal(CDictRecord* pRec)
         if (csRecTypeVal.IsEmpty())  {
             bValid = false;
             csMsg = IDS_RULE_MSG221;
-            m_csErrorReport += GetErrorName(*pRec) + csMsg + CRLF;
+            m_csErrorReport += GetErrorName(dict_record) + csMsg + CRLF;
             if (m_bAutoFixAndRecurse)  {
-                pRec->SetRecTypeVal(GetDefaultRecTypeVal());
+                dict_record.SetRecTypeVal(GetDefaultRecTypeVal());
             }
         }
     }
@@ -977,7 +977,7 @@ bool DictionaryValidator::CheckRecTypeVal(CDictRecord* pRec)
     if ((UINT) csRecTypeVal.GetLength() != uRTLen)  {
         bValid = false;
         csMsg.Format(IDS_RULE_MSG222, (int)uRTLen);
-        m_csErrorReport += GetErrorName(*pRec) + csMsg + CRLF;
+        m_csErrorReport += GetErrorName(dict_record) + csMsg + CRLF;
         if (m_bAutoFixAndRecurse)  {
             if (uRTLen == 0)  {
                 // adjust the RTLen
@@ -987,7 +987,7 @@ bool DictionaryValidator::CheckRecTypeVal(CDictRecord* pRec)
             }
             else  {
                 // adjust the RT value
-                pRec->SetRecTypeVal(csRecTypeVal.AdjustLenLeft(m_pDict->GetRecTypeLen(), ZERO));
+                dict_record.SetRecTypeVal(UTF8_TODO::GetUtf8(csRecTypeVal.AdjustLenLeft(m_pDict->GetRecTypeLen(), ZERO)));
             }
         }
     }
@@ -996,9 +996,9 @@ bool DictionaryValidator::CheckRecTypeVal(CDictRecord* pRec)
         if (!csRecTypeVal.IsEmpty() && csRecTypeVal[0] == '~') {
             bValid = false;
             csMsg = IDS_RULE_MSG224;
-            m_csErrorReport += GetErrorName(*pRec) + csMsg + CRLF;
+            m_csErrorReport += GetErrorName(dict_record) + csMsg + CRLF;
             if (m_bAutoFixAndRecurse)  {
-                pRec->SetRecTypeVal(GetDefaultRecTypeVal());
+                dict_record.SetRecTypeVal(GetDefaultRecTypeVal());
             }
         }
     }
@@ -1006,13 +1006,13 @@ bool DictionaryValidator::CheckRecTypeVal(CDictRecord* pRec)
     for( size_t level_number = 0; level_number < m_pDict->GetNumLevels(); ++level_number ) {
         DictLevel& dict_level = m_pDict->GetLevel(level_number);
         for (int r = 0 ; r < dict_level.GetNumRecords() ; r++) {
-            CString csTemp = dict_level.GetRecord(r)->GetRecTypeVal();
+            CString csTemp = UTF8_TODO::GetCString(dict_level.GetRecord(r)->GetRecTypeVal());
             if (csTemp == csRecTypeVal && ((int)level_number != m_iLevelNum || r != m_iRecordNum)) {
                 bValid = false;
                 csMsg = IDS_RULE_MSG225;
-                m_csErrorReport += GetErrorName(*pRec) + csMsg + CRLF;
+                m_csErrorReport += GetErrorName(dict_record) + csMsg + CRLF;
                 if (m_bAutoFixAndRecurse)  {
-                    pRec->SetRecTypeVal(GetDefaultRecTypeVal());
+                    dict_record.SetRecTypeVal(GetDefaultRecTypeVal());
                 }
             }
         }
@@ -3469,16 +3469,16 @@ std::string DictionaryValidator::GetDefaultName(const CString& label) const
 //
 /////////////////////////////////////////////////////////////////////////////
 
-bool DictionaryValidator::MakeRecordTypeUnique(const CDataDict& dictionary, CString& record_type, const std::set<CString>& additional_record_types)
+bool DictionaryValidator::MakeRecordTypeUnique(const CDataDict& dictionary, std::string& record_type, const std::set<std::string>& additional_record_types)
 {
     ASSERT(dictionary.GetRecTypeLen() > 0);
 
-    record_type = CIMSAString::MakeExactLength(record_type, dictionary.GetRecTypeLen());
+    SO::WideMakeExactLength(record_type, dictionary.GetRecTypeLen());
 
     auto is_record_type_unique =
-        [&](const CString& record_type_to_check)
+        [&](const std::string& record_type_to_check)
         {
-            ASSERT(record_type_to_check.GetLength() == (int)dictionary.GetRecTypeLen());
+            ASSERT(SO::WideLength(record_type_to_check) == dictionary.GetRecTypeLen());
 
             if( additional_record_types.find(record_type_to_check) != additional_record_types.cend() )
                 return false;
@@ -3503,40 +3503,44 @@ bool DictionaryValidator::MakeRecordTypeUnique(const CDataDict& dictionary, CStr
     // if the record type is not unique:
 
     // 1. try numbers (up to nine digits)
-    int highest_valid_record_type = (int)Power10[std::min<unsigned>(dictionary.GetRecTypeLen(), 9)] - 1;
+    const int highest_valid_record_type = static_cast<int>(Power10[std::min<unsigned>(dictionary.GetRecTypeLen(), 9)]) - 1;
 
     for( int i = 1; i <= highest_valid_record_type; ++i )
     {
-        record_type.Format(_T("%0*d"), (int)dictionary.GetRecTypeLen(), i);
-        ASSERT(record_type.GetLength() == (int)dictionary.GetRecTypeLen());
+        record_type = FormatText("%0*d", static_cast<int>(dictionary.GetRecTypeLen()), i);
+        ASSERT(record_type.length() == dictionary.GetRecTypeLen());
 
         if( is_record_type_unique(record_type) )
             return true;
     }
 
     // 2. try letters
-    constexpr uint64_t first_letter = 'A';
-    constexpr uint64_t last_letter  = 'Z';
-    constexpr uint64_t letter_range = last_letter - first_letter + 1;
+    constexpr char first_letter = 'A';
+    constexpr char last_letter  = 'Z';
+    constexpr char letter_range = last_letter - first_letter + 1;
 
-    uint64_t number_permutations = (uint64_t)std::min(std::pow<double>(letter_range, dictionary.GetRecTypeLen()), (double)UINT64_MAX);
+    const uint64_t number_permutations = static_cast<uint64_t>(
+        std::min(std::pow<double>(letter_range, dictionary.GetRecTypeLen()), static_cast<double>(UINT64_MAX))
+    );
 
     for( uint64_t i = 0; i < number_permutations; ++i )
     {
-        record_type.Empty();
+        record_type.clear();
 
         uint64_t permutation = i;
 
         do
         {
-            uint64_t remainder = permutation % letter_range;
-            record_type.Insert(0, static_cast<TCHAR>(first_letter + remainder));
+            const char remainder = static_cast<char>(permutation % letter_range);
+            record_type.insert(0, 1, first_letter + remainder);
             permutation /= letter_range;
 
         } while( permutation != 0 );
 
-        for( int padding_needed = (int)dictionary.GetRecTypeLen() - record_type.GetLength(); padding_needed > 0; --padding_needed )
-            record_type.Insert(0, first_letter);
+        const int padding_needed = static_cast<int>(dictionary.GetRecTypeLen() - record_type.length());
+
+        if( padding_needed > 0 )
+            record_type.insert(0, padding_needed, first_letter);
 
         if( is_record_type_unique(record_type) )
             return true;
@@ -3546,28 +3550,25 @@ bool DictionaryValidator::MakeRecordTypeUnique(const CDataDict& dictionary, CStr
 }
 
 
-CString DictionaryValidator::GetDefaultRecTypeVal() const
+std::string DictionaryValidator::GetDefaultRecTypeVal() const
 {
     int iUnique = 0;
-    CIMSAString csRetVal;
     int iMaxNumeric = 99999;
-    int iLen;
-
-    iLen = m_pDict->GetRecTypeLen();
+    int iLen = m_pDict->GetRecTypeLen();
     if (iLen == 0)  {
         ASSERT(m_pDict->GetRecTypeStart() == 0);
-        if (m_pDict->GetNumRecords() == 0)  {
-            return csRetVal;
+        if (m_pDict->GetNumRecords() == 0) {
+            return std::string();
         }
         // 2nd RT in a fresh DD, give it 2 a record type value
-        ASSERT(m_pDict->GetLevel(m_iLevelNum).GetRecord(0)->GetRecTypeVal().IsEmpty());
-        csRetVal = _T("2");
-        return csRetVal;
+        ASSERT(m_pDict->GetLevel(m_iLevelNum).GetRecord(0)->GetRecTypeVal().empty());
+        return "2";
     }
 
     if (m_pDict->GetRecTypeLen() < 6)  {
         iMaxNumeric = (int) pow(10.0, iLen) - 1; // RHF Make compatible with Visual 2005
     }
+    CIMSAString csRetVal;
     csRetVal.Str(iUnique + 1, iLen, ZERO);
     CString csAlphaUnique(TCHAR('A' - 1), 1);
 
@@ -3576,7 +3577,7 @@ CString DictionaryValidator::GetDefaultRecTypeVal() const
         bDone = true;
         for( const DictLevel& dict_level : m_pDict->GetLevels() ) {
             for (int r = 0 ; r < dict_level.GetNumRecords() ; r++)  {
-                if (dict_level.GetRecord(r)->GetRecTypeVal() == csRetVal)  {
+                if (dict_level.GetRecord(r)->GetRecTypeVal() == UTF8_TODO::GetUtf8(csRetVal))  {
                     /*-------------------------------------------------------------------
                         the initial try default RT value already exists, so let's start
                         checking again, increment from 1 until a unique number is found
@@ -3607,7 +3608,7 @@ CString DictionaryValidator::GetDefaultRecTypeVal() const
             }
         }
     }
-    return csRetVal;
+    return UTF8_TODO::GetUtf8(csRetVal);
 }
 
 
