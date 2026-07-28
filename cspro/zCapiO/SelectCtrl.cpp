@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "SelectCtrl.h"
 #include "SelectDlg.h"
 #include <zUtilO/CustomFont.h>
@@ -177,14 +177,17 @@ int CSelectListCtrl::DrawSelection(int nItem, LPDRAWITEMSTRUCT lpDrawItemStruct)
     CFont*  pOldFont=NULL;
 
     // 20100621 to allow for the dynamic setting of fonts for (old style) value sets
-    UserDefinedFonts* pUserFonts = nullptr;
-    AfxGetApp()->GetMainWnd()->SendMessage(WM_IMSA_GET_USER_FONTS, (WPARAM)&pUserFonts);
+    const UserDefinedFonts* const user_defined_fonts = UserDefinedFonts::GetUserDefinedFont(UserDefinedFonts::FontType::ValueSets);
 
-    if( pUserFonts != nullptr && pUserFonts->IsFontDefined(UserDefinedFonts::FontType::ValueSets) ) // user has defined a particular font
-        m_pFont = pUserFonts->GetFont(UserDefinedFonts::FontType::ValueSets);
+    if( user_defined_fonts != nullptr )
+    {
+        m_pFont = user_defined_fonts->GetFont(UserDefinedFonts::FontType::ValueSets);
+    }
 
     else
+    {
         m_pFont = GetParent()->GetFont();// RHF Dec 11, 2002
+    }
 
     if (lpDrawItemStruct != NULL) {
         //pDC = CDC::FromHandle(lpDrawItemStruct->hDC);

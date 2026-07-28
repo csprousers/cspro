@@ -9,9 +9,10 @@ namespace UWM::UtilO
     constexpr unsigned IsReservedWord           = UWM::Ranges::UtilOStart + 1;
     constexpr unsigned GetCodeText              = UWM::Ranges::UtilOStart + 2;
     constexpr unsigned GetSharedDictionaryConst = UWM::Ranges::UtilOStart + 3;
+    constexpr unsigned GetUserFonts             = UWM::Ranges::UtilOStart + 4;
 
     // unlike the above messages, the following message is only used within the project
-    constexpr unsigned ResizableDlgRestoreSize  = UWM::Ranges::UtilOStart + 4;
+    constexpr unsigned ResizableDlgRestoreSize  = UWM::Ranges::UtilOStart + 5;
 
     CHECK_MESSAGE_NUMBERING(ResizableDlgRestoreSize, UWM::Ranges::UtilOLast)
 }

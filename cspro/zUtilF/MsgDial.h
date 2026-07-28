@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 // MsgDial.h : header file
 //
 
@@ -8,7 +8,8 @@
 #include <zUtilF/zUtilF.h>
 #include <zUtilF/CSButton.h>
 #include <zUtilF/MsgOpt.h>
-#include "afxtempl.h"
+
+class UserDefinedFonts;
 
 
 class CLASS_DECL_ZUTILF CMsgDialog : public CDialog
@@ -80,7 +81,7 @@ private:
 
     int  GetAditionalFontHeigth( CString CSFontName );
 
-    void InitFonts(bool userMessage = false);
+    void InitFonts(const UserDefinedFonts* user_defined_fonts);
 
     //
     void CloseDialog();

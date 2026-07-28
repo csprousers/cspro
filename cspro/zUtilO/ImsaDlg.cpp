@@ -1,4 +1,4 @@
-﻿//***************************************************************************
+//***************************************************************************
 //  File name: ImsaDlg.cpp
 //
 //  Description:
@@ -63,14 +63,12 @@ BOOL CNoteDlg::OnInitDialog()
     ASSERT_VALID(pEdit);
 
     // 20100621 to allow for the dynamic setting of fonts for the notes dialog
+    const UserDefinedFonts* const user_defined_fonts = UserDefinedFonts::GetUserDefinedFont(UserDefinedFonts::FontType::Notes);
 
-    UserDefinedFonts* pUserFonts = nullptr;
-    AfxGetMainWnd()->SendMessage(WM_IMSA_GET_USER_FONTS, (WPARAM)&pUserFonts);
-
-    if( pUserFonts != nullptr && pUserFonts->IsFontDefined(UserDefinedFonts::FontType::Notes) ) // user has defined a particular font
+    if( user_defined_fonts != nullptr )
     {
-        GetDlgItem(IDC_NOTEEDIT)->SetFont(pUserFonts->GetFont(UserDefinedFonts::FontType::Notes));
-        SetFont(pUserFonts->GetFont(UserDefinedFonts::FontType::Notes));
+        GetDlgItem(IDC_NOTEEDIT)->SetFont(user_defined_fonts->GetFont(UserDefinedFonts::FontType::Notes));
+        SetFont(user_defined_fonts->GetFont(UserDefinedFonts::FontType::Notes));
     }
 
     SetWindowText(m_csTitle);

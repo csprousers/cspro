@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zUtilO/zUtilO.h>
 
@@ -14,6 +14,9 @@ public:
     CFont* GetFont(FontType font_type) const;
     bool SetFont(FontType font_type, const std::wstring& font_name, int font_size, bool is_bold, bool is_italic);
     void ResetFont(FontType font_type);
+
+    // Sends a message requesting the specified font, returning null if not defined.
+    static const UserDefinedFonts* GetUserDefinedFont(FontType font_type);
 
 private:
     static constexpr size_t GetFontTypeIndex(FontType font_type) { return static_cast<size_t>(font_type) - 1; }

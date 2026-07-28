@@ -1,4 +1,4 @@
-﻿// CustMsg.cpp : implementation file
+// CustMsg.cpp : implementation file
 //
 #include "StdAfx.h"
 #include "CustMsg.h"
@@ -92,37 +92,44 @@ void CCustMsg::ShowMessage()
         //   return;
     }
 
-    // GHM 20100621 to allow for the dynamic setting of fonts for the error message dialog
-    UserDefinedFonts* pUserFonts = nullptr;
+    // 20100621 to allow for the dynamic setting of fonts for the error message dialog
+    // 20100708 on macro's request user-defined fonts will only be used for user error messages
+    bool created_font = false;
 
-    // GHM 20100708 on macro's request user-defined fonts will only be used for user error messages
-    if( m_sMessage.Left(2).CompareNoCase(_T("U ")) == 0)
-        AfxGetMainWnd()->SendMessage(WM_IMSA_GET_USER_FONTS, (WPARAM)&pUserFonts);
-
-    if( pUserFonts != nullptr && pUserFonts->IsFontDefined(UserDefinedFonts::FontType::ErrMsg) ) // user has defined a particular font
+    if( m_pMsgOptions != nullptr && m_pMsgOptions->GetMessageType() == MessageType::User )
     {
-        LOGFONT lf;
-        pUserFonts->GetFont(UserDefinedFonts::FontType::ErrMsg)->GetLogFont(&lf);
+        const UserDefinedFonts* const user_defined_fonts = UserDefinedFonts::GetUserDefinedFont(UserDefinedFonts::FontType::ErrMsg);
 
-        m_ErrorFont2.CreateFontIndirect(&lf);
+        if( user_defined_fonts != nullptr )
+        {
+            LOGFONT lf;
+            user_defined_fonts->GetFont(UserDefinedFonts::FontType::ErrMsg)->GetLogFont(&lf);
 
-        // the header font will be bolded and 4 points larger
-        if( lf.lfHeight < 0 )
-            lf.lfHeight -= 4;
-        else
-            lf.lfHeight += 4;
-        lf.lfWeight = FW_BOLD;
-        m_ErrorFont1.CreateFontIndirect(&lf);
+            m_ErrorFont2.CreateFontIndirect(&lf);
+
+            // the header font will be bolded and 4 points larger
+            if( lf.lfHeight < 0 )
+                lf.lfHeight -= 4;
+            else
+                lf.lfHeight += 4;
+            lf.lfWeight = FW_BOLD;
+            m_ErrorFont1.CreateFontIndirect(&lf);
+
+            created_font = true;
+        }
     }
 
-    m_ErrorFont1.CreateFont (18, 0, 0, 0, 700, FALSE, FALSE, 0, ANSI_CHARSET,
-                            OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
-                            DEFAULT_QUALITY, FF_DONTCARE,
-                            _T("Arial"));
-    m_ErrorFont2.CreateFont (14, 0, 0, 0, 400, FALSE, FALSE, 0, ANSI_CHARSET,
-                            OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
-                            DEFAULT_QUALITY, FF_DONTCARE,
-                            _T("Arial"));
+    if( !created_font )
+    {
+        m_ErrorFont1.CreateFont (18, 0, 0, 0, 700, FALSE, FALSE, 0, ANSI_CHARSET,
+                                OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
+                                DEFAULT_QUALITY, FF_DONTCARE,
+                                _T("Arial"));
+        m_ErrorFont2.CreateFont (14, 0, 0, 0, 400, FALSE, FALSE, 0, ANSI_CHARSET,
+                                OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
+                                DEFAULT_QUALITY, FF_DONTCARE,
+                                _T("Arial"));
+    }
 
 //    m_ErrorFont1.CreateFont(18,0,0,0,700,0,0,0,0,0,0,0,0,_T("MS Sans Serif"));
 //    m_ErrorFont2.CreateFont(14,0,0,0,400,0,0,0,0,0,0,0,0,_T("MS Sans Serif"));

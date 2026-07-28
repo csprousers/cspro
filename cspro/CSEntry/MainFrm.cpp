@@ -20,6 +20,7 @@
 #include "StatDlg.h"
 #include <zToolsO/UWM.h>
 #include <zUtilO/ArrUtil.h>
+#include <zUtilO/CustomFont.h>
 #include <zUtilO/UIThreadRunner.h>
 #include <zUtilF/ManageCredentialsDlg.h>
 #include <zUtilF/MsgDial.h>
@@ -198,7 +199,7 @@ BEGIN_MESSAGE_MAP(CMainFrame, CFrameWnd)
     ON_MESSAGE(WM_IMSA_USERBAR_UPDATE, OnUserbarUpdate)
     ON_MESSAGE(WM_IMSA_SET_MESSAGE_OVERRIDES, OnSetMessageOverrides) // 2010518
     ON_MESSAGE(UWM::CSEntry::UsingOperatorControlledMessages, OnUsingOperatorControlledMessages)
-    ON_MESSAGE(WM_IMSA_GET_USER_FONTS, OnGetUserFonts) // 20100621
+    ON_MESSAGE(UWM::UtilO::GetUserFonts, OnGetUserFonts) // 20100621
     ON_MESSAGE(WM_IMSA_GPS_DIALOG,OnShowGPSDialog) // 20100524
 
     ON_MESSAGE( WM_IMSA_REFRESHCAPIGROUPS, OnSelectiveRefreshCaseTree  )
@@ -4312,13 +4313,21 @@ LRESULT CMainFrame::OnUsingOperatorControlledMessages(WPARAM wParam, LPARAM lPar
 }
 
 
-LRESULT CMainFrame::OnGetUserFonts(const WPARAM wParam, LPARAM /*lParam*/)
+LRESULT CMainFrame::OnGetUserFonts(const WPARAM wParam, const LPARAM lParam)
 {
     UserDefinedFonts*& user_defined_fonts = *reinterpret_cast<UserDefinedFonts**>(wParam);
-    user_defined_fonts = &m_userFonts;
-    return 1;
-}
 
+    if( m_userDefinedFonts == nullptr )
+        m_userDefinedFonts = std::make_unique<UserDefinedFonts>();
+
+    if( lParam == 0 || m_userDefinedFonts->IsFontDefined(static_cast<UserDefinedFonts::FontType>(lParam)) )
+    {
+        user_defined_fonts = m_userDefinedFonts.get();
+        return 1;
+    }
+
+    return 0;
+}
 
 
 // RHF END Nov 21, 2002
