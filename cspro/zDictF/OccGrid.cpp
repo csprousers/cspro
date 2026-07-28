@@ -1,4 +1,4 @@
-﻿// OccGrid.cpp: implementation of the COccGrid class.
+// OccGrid.cpp: implementation of the COccGrid class.
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -75,7 +75,7 @@ void COccGrid::OnSetup()
     for (int row = 0; row < m_iRows; row++)
     {
         QuickSetText(0,row,m_Labels[row]);
-        QuickSetText(-1,row,UTF8_TODO::GetCString(IntToString(row+1)));
+        QuickSetText(-1, row, IntToString(row + 1));
         QuickSetAlignment (-1,row, UG_ALIGNBOTTOM | UG_ALIGNCENTER);
     }
 

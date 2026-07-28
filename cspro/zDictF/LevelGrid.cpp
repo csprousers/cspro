@@ -275,7 +275,7 @@ void CLevelGrid::Update()
             QuickSetText     (LEVEL_LABEL_COL, ir, pRec->GetLabel());
             QuickSetTextColor(LEVEL_LABEL_COL, ir, rgb);
 
-            QuickSetText     (LEVEL_NAME_COL, ir, UTF8_TODO::GetCString(pRec->GetName()));
+            QuickSetText     (LEVEL_NAME_COL, ir, pRec->GetName());
             QuickSetTextColor(LEVEL_NAME_COL, ir, rgb);
 
             QuickSetText     (LEVEL_TYPE_COL, ir, pRec->GetRecTypeVal());

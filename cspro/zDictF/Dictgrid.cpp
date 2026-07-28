@@ -199,7 +199,7 @@ void CDictGrid::Update()
     QuickSetHBackColor(DICT_NOTE_COL,  0, GetSysColor(COLOR_BTNFACE));
     QuickSetBitmap    (DICT_NOTE_COL,  0, m_pDict->GetNote().empty() ? m_pNoteNo : m_pNoteYes);
     QuickSetText      (DICT_LABEL_COL, 0, m_pDict->GetLabel());
-    QuickSetText      (DICT_NAME_COL,  0, UTF8_TODO::GetCString(m_pDict->GetName()));
+    QuickSetText      (DICT_NAME_COL,  0, m_pDict->GetName());
 
     QuickSetBackColor (DICT_NOTE_COL,  1, GetSysColor(COLOR_WINDOW));
     QuickSetHBackColor(DICT_NOTE_COL,  1, GetSysColor(COLOR_WINDOW));
@@ -217,7 +217,7 @@ void CDictGrid::Update()
         QuickSetHBackColor(DICT_NOTE_COL,  row, GetSysColor(COLOR_BTNFACE));
         QuickSetBitmap    (DICT_NOTE_COL,  row, dict_level.GetNote().empty() ? m_pNoteNo : m_pNoteYes);
         QuickSetText      (DICT_LABEL_COL, row, dict_level.GetLabel());
-        QuickSetText      (DICT_NAME_COL,  row, UTF8_TODO::GetCString(dict_level.GetName()));
+        QuickSetText      (DICT_NAME_COL,  row, dict_level.GetName());
     }
     RedrawWindow();
     //force on row change call to fix the property grid refresh when grids change

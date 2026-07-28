@@ -1,4 +1,4 @@
-﻿/***********************************************
+/***********************************************
     Ultimate Grid 97
     Copyright 1994 - 1997 Dundas Software Ltd.
 
@@ -2783,6 +2783,11 @@ int CUGCtrl::QuickSetText(int col,long row,LPCTSTR string){
     m_cell.SetText(string);
     SetCell(col,row,&m_cell);
     return UG_SUCCESS;
+}
+
+int CUGCtrl::QuickSetText(const int col, const long row, const std::string_view string_sv)
+{
+    return QuickSetText(col, row, TC::ToWide(string_sv).c_str());
 }
 /***************************************************
 ****************************************************/

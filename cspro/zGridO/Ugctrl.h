@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 /***********************************************
     Ultimate Grid 97
@@ -380,6 +380,7 @@ public:
     int     EnableJoins(BOOL state);
 
     int     QuickSetText(int col,long row,LPCTSTR string);
+    int     QuickSetText(int col,long row,std::string_view string_sv);
     int     QuickSetNumber(int col,long row,double number);
     int     QuickSetMask(int col,long row,LPCTSTR string);
     int     QuickSetLabelText(int col,long row,LPCTSTR string);

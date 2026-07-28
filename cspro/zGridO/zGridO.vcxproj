@@ -89,5 +89,11 @@
     <ClInclude Include="Ugvscrol.h" />
     <ClInclude Include="zGridO.h" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\zToolsO\zToolsO.vcxproj">
+      <Project>{fb0e28ec-927d-41d0-996c-01c21a7a346b}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

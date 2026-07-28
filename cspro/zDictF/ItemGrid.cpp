@@ -361,7 +361,7 @@ void CItemGrid::Update()
             QuickSetHBackColor(ITEM_NOTE_COL,     ir, GetSysColor(COLOR_BTNFACE));
             QuickSetBitmap    (ITEM_NOTE_COL,     ir, dict_value_set.GetNote().empty() ? m_pNoteNo : m_pNoteYes);
             QuickSetText      (ITEM_SETLABEL_COL, ir, dict_value_set.GetLabel());
-            QuickSetText      (ITEM_SETNAME_COL,  ir, UTF8_TODO::GetCString(dict_value_set.GetName()));
+            QuickSetText      (ITEM_SETNAME_COL,  ir, dict_value_set.GetName());
 
             size_t value_set_links = m_pDict->CountValueSetLinks(dict_value_set);
             bool is_real_linked_value_set = ( value_set_links >= 2 );
@@ -398,7 +398,7 @@ void CItemGrid::Update()
                 QuickSetText      (ITEM_LABEL_COL,    ir, dict_value.GetLabel());
                 QuickSetTextColor (ITEM_LABEL_COL,    ir, dict_value.GetTextColor().ToCOLORREF());
 
-                QuickSetText(ITEM_SPECIAL_COL, ir, dict_value.IsSpecial() ? UTF8_TODO::GetWide(SpecialValues::ValueToString(dict_value.GetSpecialValue(), false)).c_str() : L"");
+                QuickSetText(ITEM_SPECIAL_COL, ir, dict_value.IsSpecial() ? SpecialValues::ValueToString(dict_value.GetSpecialValue(), false) : "");
 
                 int p = 0;
                 for( const DictValuePair& dict_value_pair : dict_value.GetValuePairs() ) {
