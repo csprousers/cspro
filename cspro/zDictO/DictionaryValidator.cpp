@@ -19,8 +19,6 @@
 
 namespace
 {
-    constexpr int MAX_NOTE_LEN = 32000;
-
     CString csMsg; // global for speed; holds string table lookups
 
     CString GetErrorName(const DictNamedBase& dict_element)
@@ -3806,34 +3804,9 @@ bool DictionaryValidator::CheckAliases(DictNamedBase& dict_element, const bool t
 
 bool DictionaryValidator::CheckNote(DictBase& dict_base)
 {
-    bool valid = true;
-
     // if the note is all blank, set to empty
-    if( SO::IsWhitespace(dict_base.GetNote()) && !dict_base.GetNote().IsEmpty() )
-    {
-        dict_base.SetNote(CString());
-    }
+    if( !dict_base.GetNote().empty() && SO::IsWhitespace(dict_base.GetNote()) )
+        dict_base.SetNote(std::string());
 
-    // if the note is too long, truncate it
-    else if( dict_base.GetNote().GetLength() > MAX_NOTE_LEN )
-    {
-        valid = false;
-
-        const DictNamedBase* dict_element_for_name;
-
-        if( dict_base.GetElementType() == DictElementType::Value )
-            dict_element_for_name = &m_pDict->GetLevel(m_iLevelNum).GetRecord(m_iRecordNum)->GetItem(m_iItemNum)->GetValueSet(m_iVSetNum);
-
-        else
-            dict_element_for_name = assert_cast<const DictNamedBase*>(&dict_base);
-
-        m_csErrorReport += GetErrorName(*dict_element_for_name) +
-                           FormatText<CString>(L"The note is too long (maximum %d characters).", MAX_NOTE_LEN) +
-                           CRLF;
-
-        if( m_bAutoFixAndRecurse )
-            dict_base.SetNote(dict_base.GetNote().Left(MAX_NOTE_LEN));
-    }
-
-    return valid;
+    return true;
 }

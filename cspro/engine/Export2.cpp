@@ -1889,12 +1889,8 @@ int CExport::Export_CsProDescription( int iVar, int aIndex[DIM_MAXDIM], int aDim
 
         // Keep track of notes from records whose items are merged into this
         // record so we can add them to exported dict note later.
-        if (!pDictItem->GetRecord()->GetNote().IsEmpty()) {
-            CString note;
-            const CString& record_name = UTF8_TODO::GetCString(pDictItem->GetRecord()->GetName());
-            if (!m_mapRecNotes.Lookup(record_name, note)) {
-                m_mapRecNotes[record_name] = pDictItem->GetRecord()->GetNote();
-            }
+        if (!pDictItem->GetRecord()->GetNote().empty()) {
+            m_mapRecNotes.try_emplace(pDictItem->GetRecord()->GetName(), pDictItem->GetRecord()->GetNote());
         }
     }
 

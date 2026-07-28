@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 //***************************************************************************
 //  File name: DDClass.h
@@ -70,7 +70,7 @@ class CLASS_DECL_ZDICTO CDataDict : public DictNamedBase
     friend class DictionaryPre80SpecFileConverter;
 
 public:
-    bool UseNewSymbols() const { return ( m_note.Find(_T("UseNewSymbols")) == 0 ); } // ENGINECR_TODO remove
+    bool UseNewSymbols() const; // ENGINECR_TODO remove
 
 
 // Methods

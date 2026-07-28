@@ -80,7 +80,9 @@ public:
     [[nodiscard]] const std::string& operator*() const noexcept;
 
     [[nodiscard]] bool operator==(const SharableString& rhs) const noexcept;
+    [[nodiscard]] bool operator!=(const SharableString& rhs) const noexcept;
     [[nodiscard]] bool operator==(const std::string& rhs) const noexcept;
+    [[nodiscard]] bool operator!=(const std::string& rhs) const noexcept;
     [[nodiscard]] bool operator<(const SharableString& rhs) const noexcept;
     [[nodiscard]] bool operator>(const SharableString& rhs) const noexcept;
 
@@ -262,9 +264,21 @@ inline SharableString& SharableString::operator=(SharableString&& rhs) noexcept
 }
 
 
+[[nodiscard]] inline bool SharableString::operator!=(const SharableString& rhs) const noexcept
+{
+    return !operator==(rhs);
+}
+
+
 [[nodiscard]] inline bool SharableString::operator==(const std::string& rhs) const noexcept
 {
     return ( GetString() == rhs );
+}
+
+
+[[nodiscard]] inline bool SharableString::operator!=(const std::string& rhs) const noexcept
+{
+    return !operator==(rhs);
 }
 
 

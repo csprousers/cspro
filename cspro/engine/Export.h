@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <engine/Defines.h>
 
@@ -270,7 +270,7 @@ public:
     bool                m_bCommaDecimal;
 
     // notes collected from exported records
-    CMap<CString, LPCTSTR, CString, CString&> m_mapRecNotes;
+    std::map<std::string, std::string> m_mapRecNotes;
 
     int                 m_iExportItem;
 

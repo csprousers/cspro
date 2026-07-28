@@ -1,4 +1,4 @@
-﻿#include "Stdafx.h"
+#include "Stdafx.h"
 #include "DictionaryLevel.h"
 
 using namespace System;
@@ -37,12 +37,12 @@ void DictionaryLevel::Label::set(System::String^ label)
 
 String^ DictionaryLevel::Note::get()
 {
-    return gcnew String(m_pNativeLevel->GetNote());
+    return clr_helpers::to_SystemString(m_pNativeLevel->GetNote());
 }
 
 void DictionaryLevel::Note::set(System::String^ note)
 {
-    m_pNativeLevel->SetNote((CString)note);
+    m_pNativeLevel->SetNote(clr_helpers::to_string(note));
 }
 
 DictionaryRecord^ DictionaryLevel::IdItems::get()

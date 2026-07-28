@@ -270,23 +270,8 @@ void CLevelGrid::Update()
             QuickSetCellTypeEx(LEVEL_NOTE_COL,  ir, UGCT_BUTTONNOFOCUS);
             QuickSetBackColor (LEVEL_NOTE_COL,  ir, GetSysColor(COLOR_BTNFACE));
             QuickSetHBackColor(LEVEL_NOTE_COL,  ir, GetSysColor(COLOR_BTNFACE));
-            if (pRec->GetNote().GetLength() > 0) {
-                if (rgb == GetSysColor(COLOR_WINDOWTEXT)) {
-                    QuickSetBitmap(LEVEL_NOTE_COL,  ir, m_pNoteYes);
-                }
-                else {
-                    QuickSetBitmap(LEVEL_NOTE_COL,  ir, m_pNoteYesGrayed);
-                }
-            }
-            else {
-                if (rgb == GetSysColor(COLOR_WINDOWTEXT)) {
-                    QuickSetBitmap(LEVEL_NOTE_COL,  ir, m_pNoteNo);
-                }
-                else {
-                    QuickSetBitmap(LEVEL_NOTE_COL,  ir, m_pNoteNoGrayed);
-                }
-            }
-
+            QuickSetBitmap    (LEVEL_NOTE_COL,  ir, pRec->GetNote().empty() ? ( ( rgb == GetSysColor(COLOR_WINDOWTEXT) ) ? m_pNoteNo : m_pNoteNoGrayed ) :
+                                                                              ( ( rgb == GetSysColor(COLOR_WINDOWTEXT) ) ? m_pNoteYes : m_pNoteYesGrayed ));
             QuickSetText     (LEVEL_LABEL_COL, ir, pRec->GetLabel());
             QuickSetTextColor(LEVEL_LABEL_COL, ir, rgb);
 
@@ -1459,22 +1444,21 @@ void CLevelGrid::OnEditNotes()
     int iLevel = m_iLevel;
     int iRec = row - m_iFirstRow;
     CDictRecord* pRec = m_pDict->GetLevel(iLevel).GetRecord(iRec);
-    CString csTitle, csLabel, csNote;
+    CString csTitle, csLabel;
     csTitle.LoadString(IDS_NOTE_TITLE);
     csLabel = pRec->GetLabel().Left(32);
     if (pRec->GetLabel().GetLength() > 32)  {
         csLabel += _T("...");
     }
     csTitle = _T("Record: ") + csLabel + csTitle;
-    csNote = pRec->GetNote();
     CNoteDlg dlgNote;
-    dlgNote.SetTitle(csTitle);
-    dlgNote.SetNote(csNote);
+    dlgNote.SetTitle(CS2WS(csTitle));
+    dlgNote.SetNote(pRec->GetNote());
     if (dlgNote.DoModal() == IDOK)  {
-        if (csNote != dlgNote.GetNote()) {
+        if (pRec->GetNote() != dlgNote.GetNote()) {
             CDDDoc* pDoc = assert_cast<CDDDoc*>(assert_cast<CView*>(GetParent())->GetDocument());
             pDoc->PushUndo(*m_pDict->GetLevel(m_iLevel).GetRecord(row - m_iFirstRow), m_iLevel, row - m_iFirstRow);
-            pRec->SetNote(dlgNote.GetNote());
+            pRec->SetNote(dlgNote.ReleaseNote());
             pDoc->SetModified();
         }
     }

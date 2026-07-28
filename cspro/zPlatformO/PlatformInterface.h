@@ -102,7 +102,7 @@ public:
     virtual bool CaptureImage(EngineUI::CaptureImageNode& capture_image_node) = 0;
     virtual void CreateMapUI(EngineUI::CreateMapUINode& create_map_ui_node) = 0;
     virtual void CreateUserbar(std::unique_ptr<Userbar>& userbar) = 0;
-    virtual CString EditNote(const CString& note, const CString& title, bool case_note) = 0;
+    virtual SharableString EditNote(const SharableString& note, const std::string& title, bool case_note) = 0;
     virtual bool ExecSystemApp(EngineUI::ExecSystemAppNode& exec_system_app_node) = 0;
     virtual std::string GetHtmlDialogsDirectory() = 0;
     virtual void Prompt(EngineUI::PromptNode& options) = 0;

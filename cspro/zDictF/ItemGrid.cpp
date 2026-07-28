@@ -359,12 +359,7 @@ void CItemGrid::Update()
             QuickSetCellTypeEx(ITEM_NOTE_COL,     ir, UGCT_BUTTONNOFOCUS);
             QuickSetBackColor (ITEM_NOTE_COL,     ir, GetSysColor(COLOR_BTNFACE));
             QuickSetHBackColor(ITEM_NOTE_COL,     ir, GetSysColor(COLOR_BTNFACE));
-            if (dict_value_set.GetNote().GetLength() > 0) {
-                QuickSetBitmap(ITEM_NOTE_COL,     ir, m_pNoteYes);
-            }
-            else {
-                QuickSetBitmap(ITEM_NOTE_COL,     ir, m_pNoteNo);
-            }
+            QuickSetBitmap    (ITEM_NOTE_COL,     ir, dict_value_set.GetNote().empty() ? m_pNoteNo : m_pNoteYes);
             QuickSetText      (ITEM_SETLABEL_COL, ir, dict_value_set.GetLabel());
             QuickSetText      (ITEM_SETNAME_COL,  ir, UTF8_TODO::GetCString(dict_value_set.GetName()));
 
@@ -397,12 +392,7 @@ void CItemGrid::Update()
                 QuickSetBackColor (ITEM_NOTE_COL,     ir, GetSysColor(COLOR_BTNFACE));
                 QuickSetHTextColor(ITEM_NOTE_COL,     ir, GetSysColor(COLOR_WINDOWTEXT));
                 QuickSetHBackColor(ITEM_NOTE_COL,     ir, GetSysColor(COLOR_BTNFACE));
-                if (dict_value.GetNote().GetLength() > 0) {
-                    QuickSetBitmap(ITEM_NOTE_COL,     ir, m_pNoteYes);
-                }
-                else {
-                    QuickSetBitmap(ITEM_NOTE_COL,     ir, m_pNoteNo);
-                }
+                QuickSetBitmap    (ITEM_NOTE_COL,     ir, dict_value.GetNote().empty() ? m_pNoteNo : m_pNoteYes);
                 QuickSetText      (ITEM_SETLABEL_COL, ir, L"");
                 QuickSetText      (ITEM_SETNAME_COL,  ir, L"");
                 QuickSetText      (ITEM_LABEL_COL,    ir, dict_value.GetLabel());
@@ -2665,7 +2655,7 @@ void CItemGrid::OnEditNotes()
     int iRec = m_iRec;
     int iItem = m_iItem;
     CDictItem* dict_item = m_pDict->GetLevel(iLevel).GetRecord(iRec)->GetItem(iItem);
-    CIMSAString csTitle, csLabel, csNote;
+    CIMSAString csTitle, csLabel;
     csTitle.LoadString(IDS_NOTE_TITLE);
     CNoteDlg dlgNote;
 
@@ -2678,14 +2668,13 @@ void CItemGrid::OnEditNotes()
             csLabel += L"...";
         }
         csTitle = L"Value Set: " + csLabel + csTitle;
-        csNote = dict_value_set.GetNote();
-        dlgNote.SetTitle(csTitle);
-        dlgNote.SetNote(csNote);
+        dlgNote.SetTitle(CS2WS(csTitle));
+        dlgNote.SetNote(dict_value_set.GetNote());
         if (dlgNote.DoModal() == IDOK)  {
-            if (csNote != dlgNote.GetNote()) {
+            if (dict_value_set.GetNote() != dlgNote.GetNote()) {
                 CDDDoc* pDoc = assert_cast<CDDDoc*>(assert_cast<CView*>(GetParent())->GetDocument());
                 pDoc->PushUndo(*dict_item, m_iLevel, m_iRec, m_iItem, m_aValue[row].vset, row);
-                dict_value_set.SetNote(dlgNote.GetNote());
+                dict_value_set.SetNote(dlgNote.ReleaseNote());
                 pDoc->SetModified();
             }
         }
@@ -2700,11 +2689,10 @@ void CItemGrid::OnEditNotes()
             csLabel += L"...";
         }
         csTitle = L"Value: " + csLabel + csTitle;
-        csNote = dict_value.GetNote();
-        dlgNote.SetTitle(csTitle);
-        dlgNote.SetNote(csNote);
+        dlgNote.SetTitle(CS2WS(csTitle));
+        dlgNote.SetNote(dict_value.GetNote());
         if (dlgNote.DoModal() == IDOK)  {
-            if (csNote != dlgNote.GetNote()) {
+            if (dict_value.GetNote() != dlgNote.GetNote()) {
                 CDDDoc* pDoc = assert_cast<CDDDoc*>(assert_cast<CView*>(GetParent())->GetDocument());
                 pDoc->PushUndo(*dict_item, m_iLevel, m_iRec, m_iItem, m_aValue[row].vset, row);
                 dict_value.SetNote(dlgNote.GetNote());

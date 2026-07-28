@@ -66,20 +66,11 @@ LRESULT EngineUIProcessor::EditNote(EngineUI::EditNoteNode& edit_note_node)
 {
     RuntimeNoteDlg edit_note_dlg;
 
-    edit_note_dlg.SetTitle(edit_note_node.title);
-
-    ASSERT(edit_note_node.note.Find('\r') == -1);
-    CString note_text_with_crlf = edit_note_node.note;
-    note_text_with_crlf.Replace(L"\n", L"\r\n");
-    edit_note_dlg.SetNote(note_text_with_crlf);
+    edit_note_dlg.SetTitle(TC::ToWide(edit_note_node.title));
+    edit_note_dlg.SetNote(*edit_note_node.note);
 
     if( edit_note_dlg.DoModal() == IDOK )
-    {
-        edit_note_node.note = edit_note_dlg.GetNote();
-
-        // only use \n escapes, not \r\n
-        edit_note_node.note.Remove('\r');
-    }
+        edit_note_node.note = edit_note_dlg.ReleaseNote();
 
     return 0;
 }

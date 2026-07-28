@@ -1,4 +1,4 @@
-﻿#include "Stdafx.h"
+#include "Stdafx.h"
 #include "DictionaryRecord.h"
 
 using namespace System;
@@ -33,12 +33,12 @@ void DictionaryRecord::Label::set(String^ label)
 
 String^ DictionaryRecord::Note::get()
 {
-    return gcnew String(m_pNativeRecord->GetNote());
+    return clr_helpers::to_SystemString(m_pNativeRecord->GetNote());
 }
 
 void DictionaryRecord::Note::set(String^ note)
 {
-    m_pNativeRecord->SetNote((CString)note);
+    m_pNativeRecord->SetNote(clr_helpers::to_string(note));
 }
 
 String^ DictionaryRecord::RecordType::get()

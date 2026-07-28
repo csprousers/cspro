@@ -1,4 +1,4 @@
-﻿#include "StandardSystemIncludes.h"
+#include "StandardSystemIncludes.h"
 #include "VarX.h"
 
 #ifdef WIN_DESKTOP
@@ -157,7 +157,7 @@ bool CExport::ExportAddDictRecord(CDataDict* pDataDict, CString csFileName, CStr
 
         if( iNewLevel == 1 ) {
             pDataDict->SetName(UTF8_TODO::GetUtf8(sFile) + "_DICT");
-            pDataDict->SetNote(_T(""));
+            pDataDict->SetNote(std::string());
 
             int     iRecTypeStart = 0;
             int     iRecTypeLen = m_pHeadNode->m_iLenRecId;
@@ -205,26 +205,18 @@ bool CExport::ExportAddDictRecord(CDataDict* pDataDict, CString csFileName, CStr
     //pDictRecord->SetRequired: Default is true
     //pDictRecord->SetMaxRecs: Already filled
     // Add in notes from merged records
-    if (m_mapRecNotes.GetCount() == 1) {
+    if (m_mapRecNotes.size() == 1) {
         // only 1 record, just copy note
-        pDictRecord->SetNote(m_mapRecNotes.PGetFirstAssoc()->value);
-    } else if (m_mapRecNotes.GetCount() > 1) {
+        pDictRecord->SetNote(m_mapRecNotes.cbegin()->second);
+    } else if (m_mapRecNotes.size() > 1) {
         // merge notes from multiple records
-        POSITION pos = m_mapRecNotes.GetStartPosition();
-        CIMSAString sMergedNote;
-        while (pos != NULL)
-        {
-            CString sRecName;
-            CString sNote;
-            m_mapRecNotes.GetNextAssoc( pos, sRecName, sNote );
-            if (pos != m_mapRecNotes.GetStartPosition()) {
-                sMergedNote += _T("\n\n");
-            }
-            sMergedNote += sRecName + _T("\n") + sNote;
+        std::string merged_note;
+        for( const auto& [record_name, note] : m_mapRecNotes ) {
+            SO::AppendWithSeparator(merged_note, record_name + "\n" + note, "\n\n");
         }
-        pDictRecord->SetNote(sMergedNote);
+        pDictRecord->SetNote(std::move(merged_note));
     } else {
-        pDictRecord->SetNote(CIMSAString());
+        pDictRecord->SetNote(std::string());
     }
 
     DictLevel& dict_level = pDataDict->GetLevel(iNewLevel - 1);

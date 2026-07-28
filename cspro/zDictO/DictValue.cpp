@@ -160,7 +160,7 @@ void DictValue::serialize(Serializer& ar)
     if( ar.PredatesVersionIteration(Serializer::Iteration_8_0_000_1) )
     {
         special_name = ar.Read<std::string>();
-        SetNote(ar.Read<CString>());
+        SetNote(ar.Read<std::string>());
     }
 
     ar.IgnoreUnusedVariable<std::string>(Serializer::Iteration_8_0_000_1); // m_error

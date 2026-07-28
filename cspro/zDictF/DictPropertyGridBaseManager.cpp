@@ -1,9 +1,9 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "DictPropertyGridBaseManager.h"
 #include "OccDlg.h"
 
 
-DictPropertyGridBaseManager::DictPropertyGridBaseManager(CDDDoc* pDDDoc, DictBase& dict_base, const CString& type_name)
+DictPropertyGridBaseManager::DictPropertyGridBaseManager(CDDDoc* const pDDDoc, DictBase& dict_base, const CString& type_name)
     :   m_pDDDoc(pDDDoc),
         m_dictBase(dict_base),
         m_typeName(type_name)
@@ -20,7 +20,7 @@ void DictPropertyGridBaseManager::SetModified()
 
 void DictPropertyGridBaseManager::RedrawPropertyGrid()
 {
-    AfxGetMainWnd()->PostMessage(UWM::Designer::RedrawPropertyGrid, (WPARAM)&m_dictBase);
+    WindowsDesktopMessage::Post(UWM::Designer::RedrawPropertyGrid, &m_dictBase);
 }
 
 
@@ -113,34 +113,33 @@ CMFCPropertyGridProperty* DictPropertyGridBaseManager::CreateAliasesProperty()
 template<typename T>
 CMFCPropertyGridProperty* DictPropertyGridBaseManager::CreateNoteProperty()
 {
-    return PropertyGrid::PropertyBuilder<CString>(L"Note",
-                                                  FormatText(L"A note associated with the %s.",
-                                                             SO::ToLower(wstring_view(m_typeName)).c_str()),
-                                                  m_dictBase.GetNote())
-        .SetOnFormat([](const CString& note)
+    return PropertyGrid::PropertyBuilder<std::string>(L"Note",
+                                                      FormatText(L"A note associated with the %s.",
+                                                                 SO::ToLower(wstring_view(m_typeName)).c_str()),
+                                                      m_dictBase.GetNote())
+        .SetOnFormat([](const std::string& note)
             {
                 // show newlines as spaces
-                CString note_copy = note;
+                CString note_copy = UTF8_TODO::GetCString(note);
                 note_copy.Replace(L"\r\n", L" ");
 
                 return note_copy;
             })
-        .SetOnUpdate([&](const CString& note)
+        .SetOnUpdate([&](const std::string& note)
             {
                 m_dictBase.SetNote(note);
                 m_pDDDoc->UpdateAllViews(NULL);
             })
-        .SetOnButtonClick([&]() -> std::optional<CString>
+        .SetOnButtonClick([&]() -> std::optional<std::string>
             {
                 CNoteDlg note_dlg;
-                note_dlg.SetTitle(FormatText<CString>(L"%s: %s (Note)", m_typeName.GetString(), m_dictBase.GetLabel().GetString()));
+                note_dlg.SetTitle(FormatText(L"%s: %s (Note)", m_typeName.GetString(), m_dictBase.GetLabel().GetString()));
                 note_dlg.SetNote(m_dictBase.GetNote());
 
                 if( note_dlg.DoModal() == IDOK && m_dictBase.GetNote() != note_dlg.GetNote() )
-                    return note_dlg.GetNote();
+                    return note_dlg.ReleaseNote();
 
-                else
-                    return std::nullopt;
+                return std::nullopt;
             })
         .Create();
 }

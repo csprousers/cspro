@@ -84,7 +84,7 @@ public:
     bool CaptureImage(EngineUI::CaptureImageNode& capture_image_node) override;
     void CreateMapUI(EngineUI::CreateMapUINode& create_map_ui_node) override;
     void CreateUserbar(std::unique_ptr<Userbar>& userbar) override;
-    CString EditNote(const CString& note, const CString& title, bool case_note) override;
+    SharableString EditNote(const SharableString& note, const std::string& title, bool case_note) override;
     bool ExecSystemApp(EngineUI::ExecSystemAppNode& exec_system_app_node) override;
     std::string GetHtmlDialogsDirectory() override;
     void Prompt(EngineUI::PromptNode& options) override;

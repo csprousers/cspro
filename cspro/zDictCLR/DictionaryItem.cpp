@@ -30,12 +30,12 @@ void CSPro::Dictionary::DictionaryItem::Label::set(System::String^ label)
 
 System::String^ CSPro::Dictionary::DictionaryItem::Note::get()
 {
-    return gcnew System::String(m_pNativeItem->GetNote());
+    return clr_helpers::to_SystemString(m_pNativeItem->GetNote());
 }
 
 void CSPro::Dictionary::DictionaryItem::Note::set(System::String^ note)
 {
-    m_pNativeItem->SetNote((CString)note);
+    m_pNativeItem->SetNote(clr_helpers::to_string(note));
 }
 
 int CSPro::Dictionary::DictionaryItem::Start::get()

@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "DictRecord.h"
 #include "DictionaryValidator.h"
 
@@ -300,11 +300,11 @@ void CDictRecord::serialize(Serializer& ar)
     DictNamedBase::serialize(ar);
 
     if( ar.PredatesVersionIteration(Serializer::Iteration_8_0_000_1) )
-        SetNote(ar.Read<CString>());
+        SetNote(ar.Read<std::string>());
 
     ar & m_csRecTypeVal;
 
-    ar.IgnoreUnusedVariable<CString>(Serializer::Iteration_8_0_000_1); // m_csError
+    ar.IgnoreUnusedVariable<std::string>(Serializer::Iteration_8_0_000_1); // m_csError
 
     ar & m_bRequired;
     ar & m_uMaxRecs;

@@ -72,6 +72,12 @@ CDataDict::CDataDict(const CDataDict& rhs)
 }
 
 
+bool CDataDict::UseNewSymbols() const // ENGINECR_TODO remove
+{
+    return ( m_note.find("UseNewSymbols") == 0 );
+}
+
+
 /////////////////////////////////////////////////////////////////////////////
 //
 //                           CDataDict::GetNumRecords
@@ -1944,9 +1950,9 @@ void CDataDict::serialize(Serializer& ar)
     DictNamedBase::serialize(ar);
 
     if( ar.PredatesVersionIteration(Serializer::Iteration_8_0_000_1) )
-        SetNote(ar.Read<CString>());
+        SetNote(ar.Read<std::string>());
 
-    ar.IgnoreUnusedVariable<CString>(Serializer::Iteration_8_0_000_1); // m_csError
+    ar.IgnoreUnusedVariable<std::string>(Serializer::Iteration_8_0_000_1); // m_csError
 
     ar & m_uRecTypeStart;
     ar & m_uRecTypeLen;

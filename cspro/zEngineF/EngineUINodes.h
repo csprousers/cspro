@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 class IMapUI;
 class MappingProperties;
@@ -59,8 +59,8 @@ namespace EngineUI
 
     struct EditNoteNode
     {
-        CString& note;
-        const CString& title;
+        SharableString& note;
+        const std::string& title;
         bool case_note;
     };
 

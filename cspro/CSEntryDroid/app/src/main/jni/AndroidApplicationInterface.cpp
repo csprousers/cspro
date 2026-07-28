@@ -355,22 +355,25 @@ int AndroidApplicationInterface::ShowChoiceDialog(const CString& title, const st
 }
 
 
-CString AndroidApplicationInterface::EditNote(const CString& note, const CString& title, bool case_note)
+SharableString AndroidApplicationInterface::EditNote(const SharableString& note, const std::string& title, const bool case_note)
 {
     auto env = GetJNIEnvForCurrentThread();
 
-    JNIReferences::scoped_local_ref<jstring> jFieldNote(env, WideToJava(env, note));
-    JNIReferences::scoped_local_ref<jstring> jDialogTitle(env, WideToJava(env, title));
+    JNIReferences::scoped_local_ref<jstring> jFieldNote(env, JavaString::ToJava(*env, note));
+    JNIReferences::scoped_local_ref<jstring> jDialogTitle(env, JavaString::ToJava(*env, title));
 
-    JNIReferences::scoped_local_ref<jstring> newNote(env, (jstring)env->CallStaticObjectMethod(JNIReferences::classApplicationInterface,JNIReferences::methodApplicationInterfaceEditnote,
-                                                                                               jFieldNote.get(), jDialogTitle.get(), case_note));
+    JNIReferences::scoped_local_ref<jstring> jNewNote(env, (jstring)env->CallStaticObjectMethod(
+        JNIReferences::classApplicationInterface,
+        JNIReferences::methodApplicationInterfaceEditnote,
+        jFieldNote.get(),
+        jDialogTitle.get(),
+        case_note
+    ));
 
-    if( newNote.get() != nullptr ) {
-        return JavaToWSZ(env, newNote.get());
-    }
-    else {
-        return note;
-    }
+    if( jNewNote.get() != nullptr )
+        JavaString::ToUtf8(*env, jNewNote.get());
+
+    return note;
 }
 
 

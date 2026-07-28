@@ -188,7 +188,7 @@ void DictValueSet::serialize(Serializer& ar)
     DictNamedBase::serialize(ar);
 
     if( ar.PredatesVersionIteration(Serializer::Iteration_8_0_000_1) )
-        SetNote(ar.Read<CString>());
+        SetNote(ar.Read<std::string>());
 
     ar.IgnoreUnusedVariable<std::string>(Serializer::Iteration_8_0_000_1); // m_error
 

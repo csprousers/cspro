@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zUtilO/zUtilO.h>
 #include <zUtilO/ImsaStr.h>
@@ -47,12 +47,15 @@
 class CLASS_DECL_ZUTILO CNoteDlg : public CDialog
 {
 public:
-    CNoteDlg(bool treat_help_button_as_clear = false, CWnd* pParent = NULL);
+    CNoteDlg(bool treat_help_button_as_clear = false, CWnd* pParent = nullptr);
 
-    void SetNote(const CString& csNoteEdit) { m_csNoteEdit = csNoteEdit; }
-    const CString& GetNote() const          { return m_csNoteEdit; }
+    void SetTitle(std::wstring title) { m_title = std::move(title); }
 
-    void SetTitle(const CString& csTitle)   { m_csTitle = csTitle; }
+    // Input notes with \r\n characters will be returned with \r\n characters,
+    // but otherwise newlines in notes will only use \n characters.
+    void SetNote(std::string note);
+    const std::string& GetNote() const { return m_note; }
+    std::string ReleaseNote()          { return std::move(m_note); }
 
 protected:
     DECLARE_MESSAGE_MAP()
@@ -63,13 +66,14 @@ protected:
     void OnOK() override;
     void OnCancel() override;
 
-    afx_msg void OnHelpbutton();
+    afx_msg void OnHelpButton();
     afx_msg void OnShowWindow(BOOL bShow, UINT nStatus);
 
 private:
     bool m_treatHelpButtonAsClear;
-    CString m_csTitle;
-    CString m_csNoteEdit;
+    std::wstring m_title;
+    std::string m_note;
+    bool m_useOnlyLF;
 };
 
 
