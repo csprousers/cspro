@@ -36,7 +36,7 @@ double LogicInterpreter::ex_WorkVariable_compute(const int program_index)
     const auto& symbol_compute_expression_node = GetNode<Nodes::SymbolComputeExpression>(program_index);
     WorkVariable& work_variable = GetSymbolWorkVariable(symbol_compute_expression_node.lhs_symbol_index);
 
-    const double rhs_value = Evaluate(symbol_compute_expression_node.rhs_expression);
+    const double rhs_value = Evaluate<double>(symbol_compute_expression_node.rhs_expression);
 
     work_variable.SetValue(rhs_value);
 
@@ -107,8 +107,8 @@ bool LogicInterpreter::PreprocessSpecialValues(double& v1, double &v2, double& r
 double LogicInterpreter::ex_add(const int program_index)
 {
     const auto& operator_node = GetNode<Nodes::Operator>(program_index);
-    double v1 = Evaluate(operator_node.left_expr);
-    double v2 = Evaluate(operator_node.right_expr);
+    double v1 = Evaluate<double>(operator_node.left_expr);
+    double v2 = Evaluate<double>(operator_node.right_expr);
     double result;
 
     if( PreprocessSpecialValues(v1, v2, result) )
@@ -124,8 +124,8 @@ double LogicInterpreter::ex_add(const int program_index)
 double LogicInterpreter::ex_sub(const int program_index)
 {
     const auto& operator_node = GetNode<Nodes::Operator>(program_index);
-    double v1 = Evaluate(operator_node.left_expr);
-    double v2 = Evaluate(operator_node.right_expr);
+    double v1 = Evaluate<double>(operator_node.left_expr);
+    double v2 = Evaluate<double>(operator_node.right_expr);
     double result;
 
     if( PreprocessSpecialValues(v1, v2, result) )
@@ -141,7 +141,7 @@ double LogicInterpreter::ex_sub(const int program_index)
 double LogicInterpreter::ex_minus(const int program_index)
 {
     const auto& operator_node = GetNode<Nodes::Operator>(program_index);
-    const double v1 = Evaluate(operator_node.left_expr);
+    const double v1 = Evaluate<double>(operator_node.left_expr);
 
     if( IsSpecial(v1) )
         return v1;
@@ -156,8 +156,8 @@ double LogicInterpreter::ex_minus(const int program_index)
 double LogicInterpreter::ex_mult(const int program_index)
 {
     const auto& operator_node = GetNode<Nodes::Operator>(program_index);
-    double v1 = Evaluate(operator_node.left_expr);
-    double v2 = Evaluate(operator_node.right_expr);
+    double v1 = Evaluate<double>(operator_node.left_expr);
+    double v2 = Evaluate<double>(operator_node.right_expr);
     double result;
 
     if( PreprocessSpecialValues(v1, v2, result) )
@@ -173,8 +173,8 @@ double LogicInterpreter::ex_mult(const int program_index)
 double LogicInterpreter::ex_div(const int program_index)
 {
     const auto& operator_node = GetNode<Nodes::Operator>(program_index);
-    double v1 = Evaluate(operator_node.left_expr);
-    double v2 = Evaluate(operator_node.right_expr);
+    double v1 = Evaluate<double>(operator_node.left_expr);
+    double v2 = Evaluate<double>(operator_node.right_expr);
     double result;
 
     if( PreprocessSpecialValues(v1, v2, result) )
@@ -193,8 +193,8 @@ double LogicInterpreter::ex_div(const int program_index)
 double LogicInterpreter::ex_mod(const int program_index)
 {
     const auto& operator_node = GetNode<Nodes::Operator>(program_index);
-    double v1 = Evaluate(operator_node.left_expr);
-    double v2 = Evaluate(operator_node.right_expr);
+    double v1 = Evaluate<double>(operator_node.left_expr);
+    double v2 = Evaluate<double>(operator_node.right_expr);
     double result;
 
     if( PreprocessSpecialValues(v1, v2, result) )
@@ -213,8 +213,8 @@ double LogicInterpreter::ex_mod(const int program_index)
 double LogicInterpreter::ex_exp(const int program_index)
 {
     const auto& operator_node = GetNode<Nodes::Operator>(program_index);
-    double v1 = Evaluate(operator_node.left_expr);
-    double v2 = Evaluate(operator_node.right_expr);
+    double v1 = Evaluate<double>(operator_node.left_expr);
+    double v2 = Evaluate<double>(operator_node.right_expr);
     double result;
 
     // even if treating special values as 0, it doesn't make sense to treat v2 as 0
@@ -243,8 +243,8 @@ double LogicInterpreter::ex_exp(const int program_index)
 double LogicInterpreter::ex_eq(const int program_index)
 {
     const auto& operator_node = GetNode<Nodes::Operator>(program_index);
-    return FloatingPointMath::Evaluate<TokenCode::TOKEQOP>(Evaluate(operator_node.left_expr),
-                                                           Evaluate(operator_node.right_expr));
+    return FloatingPointMath::Evaluate<TokenCode::TOKEQOP>(Evaluate<double>(operator_node.left_expr),
+                                                           Evaluate<double>(operator_node.right_expr));
 }
 
 
@@ -254,8 +254,8 @@ double LogicInterpreter::ex_eq(const int program_index)
 double LogicInterpreter::ex_ne(const int program_index)
 {
     const auto& operator_node = GetNode<Nodes::Operator>(program_index);
-    return FloatingPointMath::Evaluate<TokenCode::TOKNEOP>(Evaluate(operator_node.left_expr),
-                                                           Evaluate(operator_node.right_expr));
+    return FloatingPointMath::Evaluate<TokenCode::TOKNEOP>(Evaluate<double>(operator_node.left_expr),
+                                                           Evaluate<double>(operator_node.right_expr));
 }
 
 
@@ -265,8 +265,8 @@ double LogicInterpreter::ex_ne(const int program_index)
 double LogicInterpreter::ex_le(const int program_index)
 {
     const auto& operator_node = GetNode<Nodes::Operator>(program_index);
-    return FloatingPointMath::Evaluate<TokenCode::TOKLEOP>(Evaluate(operator_node.left_expr),
-                                                           Evaluate(operator_node.right_expr));
+    return FloatingPointMath::Evaluate<TokenCode::TOKLEOP>(Evaluate<double>(operator_node.left_expr),
+                                                           Evaluate<double>(operator_node.right_expr));
 }
 
 
@@ -276,8 +276,8 @@ double LogicInterpreter::ex_le(const int program_index)
 double LogicInterpreter::ex_lt(const int program_index)
 {
     const auto& operator_node = GetNode<Nodes::Operator>(program_index);
-    return FloatingPointMath::Evaluate<TokenCode::TOKLTOP>(Evaluate(operator_node.left_expr),
-                                                           Evaluate(operator_node.right_expr));
+    return FloatingPointMath::Evaluate<TokenCode::TOKLTOP>(Evaluate<double>(operator_node.left_expr),
+                                                           Evaluate<double>(operator_node.right_expr));
 }
 
 
@@ -287,8 +287,8 @@ double LogicInterpreter::ex_lt(const int program_index)
 double LogicInterpreter::ex_ge(const int program_index)
 {
     const auto& operator_node = GetNode<Nodes::Operator>(program_index);
-    return FloatingPointMath::Evaluate<TokenCode::TOKGEOP>(Evaluate(operator_node.left_expr),
-                                                           Evaluate(operator_node.right_expr));
+    return FloatingPointMath::Evaluate<TokenCode::TOKGEOP>(Evaluate<double>(operator_node.left_expr),
+                                                           Evaluate<double>(operator_node.right_expr));
 }
 
 
@@ -298,8 +298,8 @@ double LogicInterpreter::ex_ge(const int program_index)
 double LogicInterpreter::ex_gt(const int program_index)
 {
     const auto& operator_node = GetNode<Nodes::Operator>(program_index);
-    return FloatingPointMath::Evaluate<TokenCode::TOKGTOP>(Evaluate(operator_node.left_expr),
-                                                           Evaluate(operator_node.right_expr));
+    return FloatingPointMath::Evaluate<TokenCode::TOKGTOP>(Evaluate<double>(operator_node.left_expr),
+                                                           Evaluate<double>(operator_node.right_expr));
 }
 
 
@@ -309,8 +309,8 @@ double LogicInterpreter::ex_gt(const int program_index)
 double LogicInterpreter::ex_equ(const int program_index)
 {
     const auto& operator_node = GetNode<Nodes::Operator>(program_index);
-    const double v1 = Evaluate(operator_node.left_expr);
-    const double v2 = Evaluate(operator_node.right_expr);
+    const double v1 = Evaluate<double>(operator_node.left_expr);
+    const double v2 = Evaluate<double>(operator_node.right_expr);
 
     if( IsSpecial(v1) || IsSpecial(v2) )
         return 0; // TNC Nov 16, 2001
@@ -361,7 +361,7 @@ double LogicInterpreter::ex_and(const int program_index)
 double LogicInterpreter::ex_abs(const int program_index)
 {
     const auto& fnn_node = GetNode<FNN_NODE>(program_index);
-    const double value = Evaluate(fnn_node.fn_expr[0]);
+    const double value = Evaluate<double>(fnn_node.fn_expr[0]);
 
     if( value < 0 )
     {
@@ -379,7 +379,7 @@ double LogicInterpreter::ex_abs(const int program_index)
 double LogicInterpreter::ex_ex(const int program_index)
 {
     const auto& fnn_node = GetNode<FNN_NODE>(program_index);
-    double value = Evaluate(fnn_node.fn_expr[0]);
+    double value = Evaluate<double>(fnn_node.fn_expr[0]);
 
     if( !IsSpecial(value) )
     {
@@ -401,7 +401,7 @@ double LogicInterpreter::ex_inc(const int program_index)
 {
     const auto& va_node = GetNode<Nodes::VariableArguments>(program_index);
     const auto& symbol_value_node = GetNode<Nodes::SymbolValue>(va_node.arguments[0]);
-    double increment_value = EvaluateOptional(va_node.arguments[1], 1);
+    double increment_value = EvaluateOptional<double>(va_node.arguments[1], 1);
     double return_value = DEFAULT;
 
     ModifySymbolValue<double>(symbol_value_node,
@@ -423,7 +423,7 @@ double LogicInterpreter::ex_inc(const int program_index)
 double LogicInterpreter::ex_int(const int program_index)
 {
     const auto& fnn_node = GetNode<FNN_NODE>(program_index);
-    const double value = Evaluate(fnn_node.fn_expr[0]);
+    const double value = Evaluate<double>(fnn_node.fn_expr[0]);
 
     return IsSpecial(value) ? value :
                               floor(value);
@@ -436,7 +436,7 @@ double LogicInterpreter::ex_int(const int program_index)
 double LogicInterpreter::ex_log(const int program_index)
 {
     const auto& fnn_node = GetNode<FNN_NODE>(program_index);
-    const double value = Evaluate(fnn_node.fn_expr[0]);
+    const double value = Evaluate<double>(fnn_node.fn_expr[0]);
 
     return IsSpecial(value) ? value :
            ( value >= 0 )   ? log10(value) :
@@ -455,7 +455,7 @@ double LogicInterpreter::ex_low_high(const int program_index)
 
     for( int i = 0; i < fnn_node.fn_nargs; ++i )
     {
-        const double this_value = Evaluate(fnn_node.fn_expr[i]);
+        const double this_value = Evaluate<double>(fnn_node.fn_expr[i]);
 
         if( !IsSpecial(this_value) )
         {
@@ -475,7 +475,7 @@ double LogicInterpreter::ex_low_high(const int program_index)
 double LogicInterpreter::ex_round(const int program_index)
 {
     const auto& fnn_node = GetNode<FNN_NODE>(program_index);
-    const double value = Evaluate(fnn_node.fn_expr[0]);
+    const double value = Evaluate<double>(fnn_node.fn_expr[0]);
 
     return ( value < 0 )     ? ceil(value - MAGICROUND) :
            !IsSpecial(value) ? floor(value + MAGICROUND) :
@@ -489,7 +489,7 @@ double LogicInterpreter::ex_round(const int program_index)
 double LogicInterpreter::ex_special(const int program_index)
 {
     const auto& fnn_node = GetNode<FNN_NODE>(program_index);
-    return IsSpecial(Evaluate(fnn_node.fn_expr[0]));
+    return IsSpecial(Evaluate<double>(fnn_node.fn_expr[0]));
 }
 
 
@@ -499,7 +499,7 @@ double LogicInterpreter::ex_special(const int program_index)
 double LogicInterpreter::ex_sqrt(const int program_index)
 {
     const auto& fnn_node = GetNode<FNN_NODE>(program_index);
-    const double value = Evaluate(fnn_node.fn_expr[0]);
+    const double value = Evaluate<double>(fnn_node.fn_expr[0]);
 
     return IsSpecial(value) ? value :
            ( value >= 0 )   ? sqrt(value) :
@@ -513,7 +513,7 @@ double LogicInterpreter::ex_sqrt(const int program_index)
 double LogicInterpreter::ex_seed(const int program_index)
 {
     const auto& fnn_node = GetNode<FNN_NODE>(program_index);
-    const double seed_value = Evaluate(fnn_node.fn_expr[0]);
+    const double seed_value = Evaluate<double>(fnn_node.fn_expr[0]);
 
     if( IsSpecial(seed_value) )
         return 0;
@@ -530,8 +530,8 @@ double LogicInterpreter::ex_seed(const int program_index)
 double LogicInterpreter::ex_random(const int program_index)
 {
     const auto& function_node = GetNode<FNN_NODE>(program_index);
-    const double low_value = Evaluate(function_node.fn_expr[0]);
-    const double high_value = Evaluate(function_node.fn_expr[1]);
+    const double low_value = Evaluate<double>(function_node.fn_expr[0]);
+    const double high_value = Evaluate<double>(function_node.fn_expr[1]);
 
     if( low_value > high_value || IsSpecial(low_value) || IsSpecial(high_value) )
         return DEFAULT;

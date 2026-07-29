@@ -59,7 +59,7 @@ double LogicInterpreter::ex_Array_compute(const int program_index)
     if( indices.empty() )
         return DEFAULT;
 
-    const double value = Evaluate(symbol_compute_expression_node.rhs_expression);
+    const double value = Evaluate<double>(symbol_compute_expression_node.rhs_expression);
 
     logic_array->SetValue(indices, value);
 

@@ -267,7 +267,7 @@ std::optional<JavaScript::Value> LogicInterpreter::ConvertValueToJavaScript(Engi
 
         if( symbol_type == SymbolType::WorkVariable )
         {
-            const double value = Evaluate(expression_or_symbol_subscript_compilation);
+            const double value = Evaluate<double>(expression_or_symbol_subscript_compilation);
             return javascript_processor.CreateValue(value);
         }
 

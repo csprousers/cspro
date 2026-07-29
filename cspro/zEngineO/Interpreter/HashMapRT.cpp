@@ -74,7 +74,7 @@ double LogicInterpreter::ex_HashMap_compute(const int program_index)
 
         if( hashmap->IsValueTypeNumeric() )
         {
-            double value = Evaluate(symbol_compute_node.rhs_symbol_index);
+            double value = Evaluate<double>(symbol_compute_node.rhs_symbol_index);
             hashmap->SetValue(dimension_values, value);
             return value;
         }

@@ -1,4 +1,4 @@
-﻿#include "StandardSystemIncludes.h"
+#include "StandardSystemIncludes.h"
 #include "Interpreter.h"
 #include "Ctab.h"
 #include "EngineExecutor.h"
@@ -92,7 +92,7 @@ double CIntDriver::CallUserFunction(UserFunction& user_function, UserFunctionArg
         if( parameter_symbol.IsA(SymbolType::WorkVariable) )
         {
             WorkVariable& work_variable = assert_cast<WorkVariable&>(parameter_symbol);
-            work_variable.SetValue(use_default_argument ? Evaluate(user_function.GetParameterDefaultValue(i)) :
+            work_variable.SetValue(use_default_argument ? Evaluate<double>(user_function.GetParameterDefaultValue(i)) :
                                                           argument_evaluator.GetNumeric(i));
         }
 
@@ -273,7 +273,7 @@ double LogicUserFunctionArgumentEvaluator::GetNumeric(const size_t parameter_num
     ASSERT(parameter_number < m_numberArguments);
     ASSERT(m_interpreter.GetEngineData().PredatesCompiledLogicVersion(Serializer::Iteration_8_0_000_1) || m_argumentExpressions[2 * parameter_number + 1] == -1);
 
-    return m_interpreter.Evaluate(m_argumentExpressions[m_pre80SupportMultiplier * parameter_number]);
+    return m_interpreter.Evaluate<double>(m_argumentExpressions[m_pre80SupportMultiplier * parameter_number]);
 }
 
 
@@ -404,7 +404,7 @@ LogicCallbackUserFunctionArgumentEvaluator::LogicCallbackUserFunctionArgumentEva
         // numeric
         if( parameter_symbol.IsA(SymbolType::WorkVariable) )
         {
-            m_evaluatedArguments.emplace_back(m_interpreter.Evaluate(user_function_node.argument_expressions[m_pre80SupportMultiplier * i]));
+            m_evaluatedArguments.emplace_back(m_interpreter.Evaluate<double>(user_function_node.argument_expressions[m_pre80SupportMultiplier * i]));
         }
 
         // string/alpha
@@ -628,7 +628,7 @@ double InvokeArgumentsProvidedDirectlyArgumentEvaluator::GetNumeric(const size_t
     ASSERT(( std::get<0>(m_arguments[parameter_number]) == ( -1 * static_cast<int>(SymbolType::WorkVariable)) ) ||
            ( std::get<0>(m_arguments[parameter_number]) == -1 ));
 
-    return m_interpreter.Evaluate(std::get<1>(m_arguments[parameter_number]));
+    return m_interpreter.Evaluate<double>(std::get<1>(m_arguments[parameter_number]));
 }
 
 

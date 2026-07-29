@@ -89,7 +89,7 @@ double LogicInterpreter::ex_List_compute(const int program_index)
 
         for( int i = 0; i < list_values.number_elements; ++i )
         {
-            logic_list.IsNumeric() ? logic_list.AddValue(Evaluate(list_values.elements[i])) :
+            logic_list.IsNumeric() ? logic_list.AddValue(Evaluate<double>(list_values.elements[i])) :
                                      logic_list.AddValue(EvaluateSharableString(list_values.elements[i]));
         }
     }
@@ -107,7 +107,7 @@ double LogicInterpreter::ex_List_compute(const int program_index)
 
         else if( logic_list->IsNumeric() )
         {
-            double value = Evaluate(symbol_compute_node.rhs_symbol_index);
+            double value = Evaluate<double>(symbol_compute_node.rhs_symbol_index);
             logic_list->SetValue(*index, value);
             return value;
         }
@@ -149,7 +149,7 @@ double LogicInterpreter::ex_List_add(const int program_index)
     // adding an item
     else
     {
-        logic_list.IsNumeric() ? logic_list.AddValue(Evaluate(symbol_va_node.arguments[1])) :
+        logic_list.IsNumeric() ? logic_list.AddValue(Evaluate<double>(symbol_va_node.arguments[1])) :
                                  logic_list.AddValue(EvaluateSharableString(symbol_va_node.arguments[1]));
 
         return 1;
@@ -204,7 +204,7 @@ double LogicInterpreter::ex_List_insert(const int program_index)
     // inserting an item
     else
     {
-        logic_list.IsNumeric() ? logic_list.InsertValue(index, Evaluate(symbol_va_node.arguments[2])) :
+        logic_list.IsNumeric() ? logic_list.InsertValue(index, Evaluate<double>(symbol_va_node.arguments[2])) :
                                  logic_list.InsertValue(index, EvaluateSharableString(symbol_va_node.arguments[2]));
 
         return 1;

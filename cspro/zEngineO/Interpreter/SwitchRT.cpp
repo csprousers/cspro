@@ -30,7 +30,7 @@ std::optional<std::tuple<const int*, const int*>> LogicInterpreter::EvaluateSwit
         if( IsNumeric(data_type) )
         {
             value_indices.emplace_back(numeric_values.size());
-            numeric_values.emplace_back(Evaluate(value_expression));
+            numeric_values.emplace_back(Evaluate<double>(value_expression));
         }
 
         else
@@ -70,7 +70,7 @@ std::optional<std::tuple<const int*, const int*>> LogicInterpreter::EvaluateSwit
 
                 else
                 {
-                    const double rhs_value = Evaluate(expression);
+                    const double rhs_value = Evaluate<double>(expression);
                     conditions_match = FloatingPointMath::Evaluate(token_code, lhs_value, rhs_value);
                 }
             }
@@ -143,7 +143,7 @@ double LogicInterpreter::ex_recode(const int program_index)
 
             if( IsNumeric(data_type) )
             {
-                AssignValueToSymbol(symbol_value_node, Evaluate(*action));
+                AssignValueToSymbol(symbol_value_node, Evaluate<double>(*action));
             }
 
             else if( IsString(data_type) )
@@ -205,7 +205,7 @@ bool LogicInterpreter::InWorker(const int in_node_expression, const std::variant
             {
                 auto get_number = [&](const int expression) -> double
                 {
-                    return ( expression_evaluator == nullptr ) ? Evaluate(expression) :
+                    return ( expression_evaluator == nullptr ) ? Evaluate<double>(expression) :
                                                                  std::get<double>((*expression_evaluator)(expression));
                 };
 
@@ -357,7 +357,7 @@ double LogicInterpreter::ex_randomin(const int program_index)
         // or a range
         else
         {
-            const double low_value = Evaluate(in_node_entry->expression_low);
+            const double low_value = Evaluate<double>(in_node_entry->expression_low);
 
             if( in_node_entry->expression_high < 0 )
             {
@@ -367,7 +367,7 @@ double LogicInterpreter::ex_randomin(const int program_index)
 
             else
             {
-                const double high_value = Evaluate(in_node_entry->expression_high);
+                const double high_value = Evaluate<double>(in_node_entry->expression_high);
 
                 if( low_value <= high_value && !IsSpecial(high_value) )
                 {

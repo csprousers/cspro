@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "IncludesRT.h"
 #include "SystemApp.h"
 #include <zEngineF/EngineUI.h>
@@ -34,7 +34,7 @@ double LogicInterpreter::ex_SystemApp_setArgument(const int program_index)
 
     else if( value_type == DataType::Numeric )
     {
-        value = Evaluate(value_expression);
+        value = Evaluate<double>(value_expression);
     }
 
     system_app.SetArgument(std::move(argument_name), std::move(value));

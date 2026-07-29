@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "IncludesRT.h"
 #include "LogicInterpreter.h"
 #include "Nodes/TextTemplate.h"
@@ -30,7 +30,7 @@ LogicInterpreter::~LogicInterpreter()
 
 bool LogicInterpreter::EvaluateConditional(const int program_index)
 {
-    return IsTrue(Evaluate(program_index));
+    return IsTrue(Evaluate<double>(program_index));
 }
 
 
@@ -57,7 +57,7 @@ std::variant<double, ST> LogicInterpreter::EvaluateVariant(const DataType value_
 {
     if( value_data_type == DataType::Numeric )
     {
-        return Evaluate(program_index);
+        return Evaluate<double>(program_index);
     }
 
     else

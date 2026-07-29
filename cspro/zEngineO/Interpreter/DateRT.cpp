@@ -35,7 +35,7 @@ double LogicInterpreter::ex_timestamp(const int program_index)
 
         auto evaluate_int = [&](const size_t index)
         {
-            const double value = Evaluate(arguments_list_node.elements[index]);
+            const double value = Evaluate<double>(arguments_list_node.elements[index]);
 
             if( IsSpecial(value) || value < 0 )
             {
@@ -87,7 +87,7 @@ double LogicInterpreter::ex_timestamp(const int program_index)
         // UTC time with a potential offset
         else
         {
-            const double utc_offset_hours = Evaluate(utc_offset_expression);
+            const double utc_offset_hours = Evaluate<double>(utc_offset_expression);
 
             if( IsSpecial(utc_offset_hours) )
                 return DEFAULT;
@@ -114,7 +114,7 @@ double LogicInterpreter::ex_timestring(const int program_index)
 
     else
     {
-        timestamp = Evaluate(timestamp_expression);
+        timestamp = Evaluate<double>(timestamp_expression);
 
         if( IsSpecial(timestamp) )
             return AssignStringNull();
@@ -347,7 +347,7 @@ double LogicInterpreter::ex_dateadd(const int program_index)
 {
     const auto& fnn_node = GetNode<FNN_NODE>(program_index);
     int date = Evaluate<int>(fnn_node.fn_expr[0]);
-    const double period_double = Evaluate(fnn_node.fn_expr[1]);
+    const double period_double = Evaluate<double>(fnn_node.fn_expr[1]);
 
     if( !AdjustAndCheckDate(date, true) || IsSpecial(period_double) )
         return DEFAULT;
@@ -746,8 +746,8 @@ namespace
 double LogicInterpreter::ex_cmcode(const int program_index)
 {
     const auto& fnn_node = GetNode<FNN_NODE>(program_index);
-    const double month = Evaluate(fnn_node.fn_expr[0]);
-    const double year = Evaluate(fnn_node.fn_expr[1]);
+    const double month = Evaluate<double>(fnn_node.fn_expr[0]);
+    const double year = Evaluate<double>(fnn_node.fn_expr[1]);
 
     return cmcode(month, year);
 }
@@ -756,9 +756,9 @@ double LogicInterpreter::ex_cmcode(const int program_index)
 double LogicInterpreter::ex_setlb_setub(const int program_index)
 {
     const auto& fnn_node = GetNode<FNN_NODE>(program_index);
-    const double month = Evaluate(fnn_node.fn_expr[0]);
-    const double year = Evaluate(fnn_node.fn_expr[1]);
-    const double default_value = Evaluate(fnn_node.fn_expr[2]);
+    const double month = Evaluate<double>(fnn_node.fn_expr[0]);
+    const double year = Evaluate<double>(fnn_node.fn_expr[1]);
+    const double default_value = Evaluate<double>(fnn_node.fn_expr[2]);
 
     if( cmcode(1, year) == 9999 )
         return default_value;
@@ -778,14 +778,14 @@ double LogicInterpreter::ex_setlb_setub(const int program_index)
 double LogicInterpreter::ex_adjlba(const int program_index)
 {
     const auto& fnn_node = GetNode<FNN_NODE>(program_index);
-    const double ldb = Evaluate(fnn_node.fn_expr[0]);
-    const double ref_age = Evaluate(fnn_node.fn_expr[4]);
+    const double ldb = Evaluate<double>(fnn_node.fn_expr[0]);
+    const double ref_age = Evaluate<double>(fnn_node.fn_expr[4]);
 
     if( IsSpecial(ref_age) )
         return ldb;
 
-    const double udb = Evaluate(fnn_node.fn_expr[1]);
-    const double lrefd = Evaluate(fnn_node.fn_expr[2]);
+    const double udb = Evaluate<double>(fnn_node.fn_expr[1]);
+    const double lrefd = Evaluate<double>(fnn_node.fn_expr[2]);
 
     const double cm = lrefd - 12 * ( ref_age + 1 );
 
@@ -798,14 +798,14 @@ double LogicInterpreter::ex_adjlba(const int program_index)
 double LogicInterpreter::ex_adjuba(const int program_index)
 {
     const auto& fnn_node = GetNode<FNN_NODE>(program_index);
-    const double udb = Evaluate(fnn_node.fn_expr[1]);
-    const double ref_age = Evaluate(fnn_node.fn_expr[4]);
+    const double udb = Evaluate<double>(fnn_node.fn_expr[1]);
+    const double ref_age = Evaluate<double>(fnn_node.fn_expr[4]);
 
     if( IsSpecial(ref_age) )
         return udb;
 
-    const double ldb = Evaluate(fnn_node.fn_expr[0]);
-    const double urefd = Evaluate(fnn_node.fn_expr[3]);
+    const double ldb = Evaluate<double>(fnn_node.fn_expr[0]);
+    const double urefd = Evaluate<double>(fnn_node.fn_expr[3]);
 
     double cm = urefd - 12 * ref_age;
 
@@ -818,10 +818,10 @@ double LogicInterpreter::ex_adjuba(const int program_index)
 double LogicInterpreter::ex_adjlbi(const int program_index)
 {
     const auto& fnn_node = GetNode<FNN_NODE>(program_index);
-    const double l1 = Evaluate(fnn_node.fn_expr[0]);
-    const double l2 = Evaluate(fnn_node.fn_expr[2]);
-    const double u2 = Evaluate(fnn_node.fn_expr[3]);
-    const double interval = Evaluate(fnn_node.fn_expr[4]);
+    const double l1 = Evaluate<double>(fnn_node.fn_expr[0]);
+    const double l2 = Evaluate<double>(fnn_node.fn_expr[2]);
+    const double u2 = Evaluate<double>(fnn_node.fn_expr[3]);
+    const double interval = Evaluate<double>(fnn_node.fn_expr[4]);
 
     if( IsSpecial(interval) )
         return l2;
@@ -837,10 +837,10 @@ double LogicInterpreter::ex_adjlbi(const int program_index)
 double LogicInterpreter::ex_adjubi(const int program_index)
 {
     const auto& fnn_node = GetNode<FNN_NODE>(program_index);
-    const double l1 = Evaluate(fnn_node.fn_expr[0]);
-    const double u1 = Evaluate(fnn_node.fn_expr[1]);
-    const double u2 = Evaluate(fnn_node.fn_expr[3]);
-    const double interval = Evaluate(fnn_node.fn_expr[4]);
+    const double l1 = Evaluate<double>(fnn_node.fn_expr[0]);
+    const double u1 = Evaluate<double>(fnn_node.fn_expr[1]);
+    const double u2 = Evaluate<double>(fnn_node.fn_expr[3]);
+    const double interval = Evaluate<double>(fnn_node.fn_expr[4]);
 
     if( IsSpecial(interval) )
         return u1;

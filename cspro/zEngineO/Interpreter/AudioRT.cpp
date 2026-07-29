@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "IncludesRT.h"
 #include "Audio.h"
 #include "Document.h"
@@ -211,7 +211,7 @@ double LogicInterpreter::ex_Audio_stop(const int program_index)
 double LogicInterpreter::ex_Audio_record(const int program_index)
 {
     const auto& symbol_va_with_subscript_node = GetOrConvertPre80SymbolVariableArgumentsWithSubscriptNode(program_index);
-    const std::optional<double> seconds = EvaluateOptional(symbol_va_with_subscript_node.arguments[0]);
+    const std::optional<double> seconds = EvaluateOptional<double>(symbol_va_with_subscript_node.arguments[0]);
     LogicAudio* const logic_audio = GetFromSymbolOrEngineItem<LogicAudio*>(symbol_va_with_subscript_node.symbol_index, symbol_va_with_subscript_node.subscript_compilation);
 
     if( logic_audio == nullptr )

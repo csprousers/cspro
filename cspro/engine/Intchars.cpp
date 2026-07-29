@@ -556,7 +556,7 @@ double CIntDriver::exgetlabel(int iExpr)
         if( fng_node.m_iOper == static_cast<int>(GetLabelSearchType::ByCode) )
         {
             const DictValue* const dict_value = IsNumeric(*symbol)
-                ? value_processor->GetDictValue(Evaluate(fng_node.m_iExpr))
+                ? value_processor->GetDictValue(Evaluate<double>(fng_node.m_iExpr))
                 : value_processor->GetDictValue(EvaluateSharableString(fng_node.m_iExpr).GetString());
 
             if( dict_value != nullptr )

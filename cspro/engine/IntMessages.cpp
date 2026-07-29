@@ -1,4 +1,4 @@
-﻿#include "StandardSystemIncludes.h"
+#include "StandardSystemIncludes.h"
 #include "Interpreter.h"
 #include "Engdrv.h"
 #include "Engine.h"
@@ -351,7 +351,7 @@ double CIntDriver::exwarning(const int program_index)
                         const int select_expression = select_movements_list_node.elements[default_button_number - 1];
 
                         if( select_expression != -1 )
-                            Evaluate(select_expression);
+                            Evaluate<double>(select_expression);
 
                         return default_button_number;
                     }
@@ -502,7 +502,7 @@ double CIntDriver::DisplayUserMessage(const int message_node_index)
 
         // if not next or continue, execute the move command
         if( select_expression != -1 )
-            Evaluate(select_expression);
+            Evaluate<double>(select_expression);
 
         // return the index of the button selected
         return selected_button_number;
@@ -513,5 +513,5 @@ double CIntDriver::DisplayUserMessage(const int message_node_index)
 double CIntDriver::exvariablevalue(const int program_index)
 {
     const auto& variable_value_node = GetNode<Nodes::VariableValue>(program_index);
-    return Evaluate(variable_value_node.expression);
+    return Evaluate<double>(variable_value_node.expression);
 }

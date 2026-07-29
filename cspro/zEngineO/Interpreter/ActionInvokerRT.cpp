@@ -167,7 +167,7 @@ double LogicInterpreter::ex_ActionInvoker(const int program_index)
                     case GF::VariableType::Number:
                     {
                         ASSERT(gf_value_node.argument_variable_type == GF::VariableType::Number);
-                        json_writer->Write(Evaluate(gf_value_node.argument_expression));
+                        json_writer->Write(Evaluate<double>(gf_value_node.argument_expression));
                         break;
                     }
 

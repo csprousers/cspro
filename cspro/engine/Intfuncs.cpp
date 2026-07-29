@@ -804,7 +804,7 @@ double CIntDriver::exdeckarray(int iExpr) // 20100121 for getdeck and putdeck
     else // putdeck
     {
         // update the main cell
-        const double putdeck_value = Evaluate(deck_array_node->putdeck_value_expression);
+        const double putdeck_value = Evaluate<double>(deck_array_node->putdeck_value_expression);
         logic_array.SetValue(indices, putdeck_value);
 
         // potentially update the spillover rows

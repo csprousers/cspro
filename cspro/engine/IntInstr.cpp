@@ -408,7 +408,7 @@ double CIntDriver::exbox( int iExpr )
 
                 if( bDepVarIsNumeric )
                 {
-                    dRightValue = Evaluate(pBoxRow->row_expr);
+                    dRightValue = Evaluate<double>(pBoxRow->row_expr);
                     std::get<0>(*logic_array_parameters)->SetValue(std::get<1>(*logic_array_parameters), dRightValue);
                 }
 

@@ -206,7 +206,7 @@ double LogicInterpreter::ex_Image_load(const int program_index)
         const ValueSet& value_set = GetSymbolValueSet(symbol_va_with_subscript_node.arguments[0]);
         const ValueProcessor& value_processor = value_set.GetValueProcessor();
         const DictValue* const dict_value = value_set.IsNumeric() ?
-            value_processor.GetDictValue(Evaluate(symbol_va_with_subscript_node.arguments[1])) :
+            value_processor.GetDictValue(Evaluate<double>(symbol_va_with_subscript_node.arguments[1])) :
             value_processor.GetDictValue(EvaluateSharableString(symbol_va_with_subscript_node.arguments[1]).GetString());
 
         if( dict_value != nullptr )
@@ -243,8 +243,8 @@ double LogicInterpreter::ex_Image_resample(const int program_index)
     const auto& symbol_va_with_subscript_node = GetOrConvertPre80SymbolVariableArgumentsWithSubscriptNode(program_index);
 
     const bool specifying_maxes = ( symbol_va_with_subscript_node.arguments[0] == -1 && symbol_va_with_subscript_node.arguments[1] == -1 );
-    const std::optional<double> specified_width = EvaluateOptional(symbol_va_with_subscript_node.arguments[specifying_maxes ? 2: 0]);
-    const std::optional<double> specified_height = EvaluateOptional(symbol_va_with_subscript_node.arguments[specifying_maxes ? 3: 1]);
+    const std::optional<double> specified_width = EvaluateOptional<double>(symbol_va_with_subscript_node.arguments[specifying_maxes ? 2: 0]);
+    const std::optional<double> specified_height = EvaluateOptional<double>(symbol_va_with_subscript_node.arguments[specifying_maxes ? 3: 1]);
 
     LogicImage* const logic_image = GetFromSymbolOrEngineItem<LogicImage*>(symbol_va_with_subscript_node.symbol_index, symbol_va_with_subscript_node.subscript_compilation);
 
@@ -337,7 +337,7 @@ double LogicInterpreter::ex_Image_save(const int program_index)
     const auto& symbol_va_with_subscript_node = GetOrConvertPre80SymbolVariableArgumentsWithSubscriptNode(program_index);
 
     std::string file_path = EvaluatePath(symbol_va_with_subscript_node.arguments[0]);
-    const std::optional<double> specified_lossy_quality = EvaluateOptional(symbol_va_with_subscript_node.arguments[1]);
+    const std::optional<double> specified_lossy_quality = EvaluateOptional<double>(symbol_va_with_subscript_node.arguments[1]);
 
     LogicImage* const logic_image = GetFromSymbolOrEngineItem<LogicImage*>(symbol_va_with_subscript_node.symbol_index, symbol_va_with_subscript_node.subscript_compilation);
 

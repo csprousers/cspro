@@ -127,8 +127,8 @@ double LogicInterpreter::ex_Map_addMarker(const int program_index)
     if( map_ui == nullptr )
         return 0;
 
-    const double latitude = Evaluate(symbol_va_node.arguments[0]);
-    const double longitude = Evaluate(symbol_va_node.arguments[1]);
+    const double latitude = Evaluate<double>(symbol_va_node.arguments[0]);
+    const double longitude = Evaluate<double>(symbol_va_node.arguments[1]);
 
     return map_ui->AddMarker(latitude, longitude);
 }
@@ -256,8 +256,8 @@ double LogicInterpreter::ex_Map_setMarkerLocation(const int program_index)
         return 0;
 
     const int marker_id = Evaluate<int>(symbol_va_node.arguments[0]);
-    const double latitude = Evaluate(symbol_va_node.arguments[1]);
-    const double longitude = Evaluate(symbol_va_node.arguments[2]);
+    const double latitude = Evaluate<double>(symbol_va_node.arguments[1]);
+    const double longitude = Evaluate<double>(symbol_va_node.arguments[2]);
 
     return map_ui->SetMarkerLocation(marker_id, latitude, longitude);
 }
@@ -461,7 +461,7 @@ double LogicInterpreter::ex_Map_zoomTo(const int program_index)
             bounding_box.min.x,
             bounding_box.max.y,
             bounding_box.max.x,
-            EvaluateOptional(symbol_va_node.arguments[3], 0) / 100
+            EvaluateOptional<double>(symbol_va_node.arguments[3], 0) / 100
         );
     }
 
@@ -469,9 +469,9 @@ double LogicInterpreter::ex_Map_zoomTo(const int program_index)
     else if( symbol_va_node.arguments[3] == -1 )
     {
         return map_ui->ZoomTo(
-            Evaluate(symbol_va_node.arguments[0]),
-            Evaluate(symbol_va_node.arguments[1]),
-            EvaluateOptional(symbol_va_node.arguments[2], -1)
+            Evaluate<double>(symbol_va_node.arguments[0]),
+            Evaluate<double>(symbol_va_node.arguments[1]),
+            EvaluateOptional<double>(symbol_va_node.arguments[2], -1)
         );
     }
 
@@ -479,11 +479,11 @@ double LogicInterpreter::ex_Map_zoomTo(const int program_index)
     else
     {
         return map_ui->ZoomTo(
-            Evaluate(symbol_va_node.arguments[0]),
-            Evaluate(symbol_va_node.arguments[1]),
-            Evaluate(symbol_va_node.arguments[2]),
-            Evaluate(symbol_va_node.arguments[3]),
-            EvaluateOptional(symbol_va_node.arguments[4], 0) / 100
+            Evaluate<double>(symbol_va_node.arguments[0]),
+            Evaluate<double>(symbol_va_node.arguments[1]),
+            Evaluate<double>(symbol_va_node.arguments[2]),
+            Evaluate<double>(symbol_va_node.arguments[3]),
+            EvaluateOptional<double>(symbol_va_node.arguments[4], 0) / 100
         );
     }
 }

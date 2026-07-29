@@ -26,7 +26,7 @@ SharableString LogicInterpreter::EvaluateSharableString(const DataType value_dat
     switch( value_data_type )
     {
         case DataType::String:  return EvaluateSharableString(program_index);
-        case DataType::Numeric: return DoubleToString(Evaluate(program_index));
+        case DataType::Numeric: return DoubleToString(Evaluate<double>(program_index));
         default:                return ReturnProgrammingError(SharableString());
     }
 }

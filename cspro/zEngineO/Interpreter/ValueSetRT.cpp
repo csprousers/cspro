@@ -70,7 +70,7 @@ double LogicInterpreter::ex_invalueset(const int program_index)
 
     if( numeric )
     {
-        const double value = Evaluate(invalueset_node.value_expression);
+        const double value = Evaluate<double>(invalueset_node.value_expression);
         return value_processor->IsValid(value);
     }
 
@@ -107,7 +107,7 @@ double LogicInterpreter::ex_getimage(const int program_index)
 
     if( IsNumeric(symbol) )
     {
-        const double value = Evaluate(function_node.m_iExpr);
+        const double value = Evaluate<double>(function_node.m_iExpr);
         dict_value = value_processor->GetDictValue(value);
     }
 
@@ -462,7 +462,7 @@ double LogicInterpreter::ex_randomizevs(const int program_index)
     {
         if( numeric )
         {
-            std::get<0>(exclusions).emplace_back(Evaluate(va_with_size_node.arguments[i]));
+            std::get<0>(exclusions).emplace_back(Evaluate<double>(va_with_size_node.arguments[i]));
         }
 
         else
@@ -578,8 +578,8 @@ double LogicInterpreter::ex_ValueSet_add(const int program_index)
         // or add a single or range of numeric values
         else if( dynamic_value_set.IsNumeric() )
         {
-            const double from_value = Evaluate(from_code_expression);
-            const double to_value = ( to_code_expression == -1 ) ? from_value : Evaluate(to_code_expression);
+            const double from_value = Evaluate<double>(from_code_expression);
+            const double to_value = ( to_code_expression == -1 ) ? from_value : Evaluate<double>(to_code_expression);
 
             rhs_value_set.ForeachValue(
                 [&](const ValueSet::ForeachValueInfo& info, const double low_value, const std::optional<double>& high_value)
@@ -677,8 +677,8 @@ double LogicInterpreter::ex_ValueSet_add(const int program_index)
 
         else
         {
-            const double from_value = Evaluate(from_code_expression);
-            std::optional<double> to_value = EvaluateOptional(to_code_expression);
+            const double from_value = Evaluate<double>(from_code_expression);
+            std::optional<double> to_value = EvaluateOptional<double>(to_code_expression);
 
             try
             {

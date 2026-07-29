@@ -75,13 +75,13 @@ protected:
     // general evaluation routines
     // --------------------------------------------------------------------------
 public:
-    template<typename T = double>
+    template<typename T>
     T Evaluate(int program_index);
 
-    template<typename T = double>
+    template<typename T>
     std::optional<T> EvaluateOptional(int program_index);
 
-    template<typename T = double, typename DVT>
+    template<typename T, typename DVT>
     T EvaluateOptional(int program_index, DVT&& default_value);
 
     template<typename T>
@@ -838,7 +838,7 @@ const NodeType& LogicInterpreter::GetNode(const int program_index) const
 }
 
 
-template<typename T/* = double*/>
+template<typename T>
 T LogicInterpreter::Evaluate(const int program_index)
 {
     if      constexpr(std::is_same_v<T, SharableString>) { return EvaluateSharableString(program_index); }
@@ -847,7 +847,7 @@ T LogicInterpreter::Evaluate(const int program_index)
 }
 
 
-template<typename T/* = double*/>
+template<typename T>
 std::optional<T> LogicInterpreter::EvaluateOptional(const int program_index)
 {
     if( program_index != -1 )
@@ -857,7 +857,7 @@ std::optional<T> LogicInterpreter::EvaluateOptional(const int program_index)
 }
 
 
-template<typename T/* = double*/, typename DVT>
+template<typename T, typename DVT>
 T LogicInterpreter::EvaluateOptional(int program_index, DVT&& default_value)
 {
     if( program_index != -1 )
