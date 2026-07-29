@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "IncludesCC.h"
 #include "EngineDictionaryFactory.h"
 #include <zLogicO/KeywordTable.h>
@@ -98,7 +98,9 @@ int LogicCompiler::CompileEngineCaseComputeInstruction(EngineDictionary* const e
         ASSERT(Tkn == TOKDICT);
 
         lhs_engine_dictionary = &GetSymbolEngineDictionary(Tokstindex);
-        ASSERT(lhs_engine_dictionary->HasEngineCase());
+
+        if( !lhs_engine_dictionary->HasEngineCase() )
+            IssueError(MGF::Case_assignment_invalid_47252);
 
         // the case must be an external dictionary
         // ENGINECR_TODO should also make sure dictionaries for external forms can't be used

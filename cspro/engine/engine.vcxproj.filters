@@ -188,12 +188,6 @@
     <ClInclude Include="ParadataDriver.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ParameterManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Preprocessor.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="ProgramControl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -242,7 +236,7 @@
     <ClInclude Include="Tbd_save.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="VariableWorker.h">
+    <ClInclude Include="VariableIterator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="VarT.h">
@@ -297,9 +291,6 @@
     </ClCompile>
     <ClCompile Include="Ctab_Helper.cpp">
       <Filter>Source Files\ex1</Filter>
-    </ClCompile>
-    <ClCompile Include="Decorr.cpp">
-      <Filter>Source Files\dep</Filter>
     </ClCompile>
     <ClCompile Include="DeWrite.cpp">
       <Filter>Source Files\CEXEntry</Filter>
@@ -361,9 +352,6 @@
     <ClCompile Include="Intdentr.cpp">
       <Filter>Source Files\dep</Filter>
     </ClCompile>
-    <ClCompile Include="IntDiagnostics.cpp">
-      <Filter>Source Files\ex2</Filter>
-    </ClCompile>
     <ClCompile Include="Intdrive.cpp">
       <Filter>Source Files\ex2</Filter>
     </ClCompile>
@@ -409,9 +397,6 @@
     <ClCompile Include="IntPath.cpp">
       <Filter>Source Files\ex2</Filter>
     </ClCompile>
-    <ClCompile Include="IntPff.cpp">
-      <Filter>Source Files\ex2</Filter>
-    </ClCompile>
     <ClCompile Include="IntPre77Report.cpp">
       <Filter>Source Files\ex2</Filter>
     </ClCompile>
@@ -439,12 +424,6 @@
     <ClCompile Include="IntUserInterface.cpp">
       <Filter>Source Files\ex2</Filter>
     </ClCompile>
-    <ClCompile Include="IntValues.cpp">
-      <Filter>Source Files\ex2</Filter>
-    </ClCompile>
-    <ClCompile Include="IntVariable.cpp">
-      <Filter>Source Files\ex2</Filter>
-    </ClCompile>
     <ClCompile Include="Intxtab.cpp">
       <Filter>Source Files\ex2</Filter>
     </ClCompile>
@@ -466,14 +445,8 @@
     <ClCompile Include="ParadataDriver.cpp">
       <Filter>Source Files\ex2</Filter>
     </ClCompile>
-    <ClCompile Include="ParameterManager.cpp">
-      <Filter>Source Files\ex2</Filter>
-    </ClCompile>
     <ClCompile Include="Pre80Routines.cpp">
       <Filter>Source Files\ex2</Filter>
-    </ClCompile>
-    <ClCompile Include="Preprocessor.cpp">
-      <Filter>Source Files\ex1</Filter>
     </ClCompile>
     <ClCompile Include="RangeFunctions.cpp">
       <Filter>Source Files\ex1</Filter>

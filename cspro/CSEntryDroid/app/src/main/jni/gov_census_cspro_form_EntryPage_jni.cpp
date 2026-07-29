@@ -1,4 +1,4 @@
-﻿#include <engine/StandardSystemIncludes.h>
+#include <engine/StandardSystemIncludes.h>
 #include <android/log.h>
 #include <zFormO/FormFile.h>
 #include <zEntryO/CoreEntryPage.h>
@@ -74,8 +74,8 @@ static jobjectArray GetFieldResponses(JNIEnv *env, const CoreEntryPageField& fie
     for (int i = 0; i < responses.size(); ++i) {
         const auto &response = responses[i];
 
-        JNIReferences::scoped_local_ref<jstring> jcode(env, WideToJava(env, response->GetCode()));
-        JNIReferences::scoped_local_ref<jstring> jlabel(env, WideToJava(env, response->GetLabel()));
+        JNIReferences::scoped_local_ref<jstring> jcode(env, JavaString::ToJava(*env, response->GetCode()));
+        JNIReferences::scoped_local_ref<jstring> jlabel(env, JavaString::ToJava(*env, response->GetLabel()));
         JNIReferences::scoped_local_ref<jstring> jimage(env, JavaString::ToJava(*env, response->GetImageFilePath()));
 
         // create the value pair object

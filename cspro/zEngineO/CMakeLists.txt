@@ -31,6 +31,7 @@ add_library(${PROJECT_NAME}
     LoopStack.cpp
     Map.cpp
     NamedFrequency.cpp
+    ParameterManager.cpp
     PenReaderApplicationLoader.cpp
     PersistentVariableProcessor.cpp
     Pff.cpp
@@ -67,6 +68,7 @@ add_library(${PROJECT_NAME}
     Compiler/DictionaryCC.cpp
     Compiler/DocumentCC.cpp
     Compiler/EngineDictionaryCC.cpp
+    Compiler/EnginePreprocessor.cpp
     Compiler/ExpressionsCC.cpp
     Compiler/FileCC.cpp
     Compiler/FreqCC.cpp
@@ -92,6 +94,7 @@ add_library(${PROJECT_NAME}
     Compiler/PffCC.cpp
     Compiler/QueryCC.cpp
     Compiler/ReportCC.cpp
+    Compiler/RoutingCC.cpp
     Compiler/StringsCC.cpp
     Compiler/StringWriterCC.cpp
     Compiler/SwitchCC.cpp
@@ -130,6 +133,8 @@ add_library(${PROJECT_NAME}
     Interpreter/MathRT.cpp
     Interpreter/NetworkRT.cpp
     Interpreter/PathRT.cpp
+    Interpreter/PffRT.cpp
+    Interpreter/PropertiesRT.cpp
     Interpreter/ReportRT.cpp
     Interpreter/StringRT.cpp
     Interpreter/StringWriterRT.cpp
@@ -138,7 +143,10 @@ add_library(${PROJECT_NAME}
     Interpreter/SystemAppRT.cpp
     Interpreter/SystemRT.cpp
     Interpreter/TextTemplateRT.cpp
+    Interpreter/UserFunctionRT.cpp
     Interpreter/UserInterfaceRT.cpp
+    Interpreter/ValueSetRT.cpp
+    Interpreter/VariableRT.cpp
     Interpreter/VideoRT.cpp
 )
 

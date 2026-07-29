@@ -3,9 +3,10 @@
 #include "CoreEntryEngineInterface.h"
 #include "Runaple.h"
 #include <zToolsO/NewlineSubstitutor.h>
-#include <zDictO/ValueProcessor.h>
+#include <zDictO/NumericValueProcessor.h>
 #include <zBridgeO/NPff.h>
 #include <engine/IntDrive.h>
+#include <zEngineO/ParameterManager.h>
 #include <zEngineO/ResponseProcessor.h>
 #include <zEngineO/ValueSet.h>
 
@@ -77,7 +78,7 @@ void CoreEntryPageField::RefreshValues()
     if( IsNumeric() )
     {
         const NumericValueProcessor* numeric_value_processor = assert_cast<const NumericValueProcessor*>(m_valueProcessor);
-        m_numericEngineValue = numeric_value_processor->GetNumericFromInput(m_dataBuffer);
+        m_numericEngineValue = numeric_value_processor->GetNumericFromInput(UTF8_TODO::GetUtf8(m_dataBuffer));
 
         // in the portable environment we will only use NOTAPPL
         if( m_numericEngineValue == MASKBLK )
@@ -213,7 +214,7 @@ void CoreEntryPageField::SetNumericValue(double value)
     const NumericValueProcessor* numeric_value_processor = assert_cast<const NumericValueProcessor*>(m_valueProcessor);
     value = numeric_value_processor->ConvertNumberToEngineFormat(value);
 
-    CString buffer_value = numeric_value_processor->GetOutput(value);
+    CString buffer_value = UTF8_TODO::GetCString(numeric_value_processor->GetOutput(value));
 
     m_pRunAplEntry->PutVal(m_pField, buffer_value, m_coreEntryEngineInterface->GetCaseModifiedFlagIfNotModified());
 
@@ -239,7 +240,7 @@ void CoreEntryPageField::SetAlphaValue(const CString& value)
 
     ASSERT(!SO::ContainsNewlineCharacter(value) || IsMultiline());
 
-    CString buffer_value = m_valueProcessor->GetOutput(value);
+    CString buffer_value = UTF8_TODO::GetCString(m_valueProcessor->GetOutput(UTF8_TODO::GetUtf8(value)));
 
     m_pField->ApplyPropertiesToValue(buffer_value);
 
@@ -321,14 +322,14 @@ void CoreEntryPageField::RefreshSelectedResponses()
 
     if( m_evaluatedCaptureInfo.GetCaptureType() == CaptureType::CheckBox )
     {
-        m_selectedIndices = m_responseProcessor->GetCheckboxResponseIndices(m_dataBuffer);
+        m_selectedIndices = m_responseProcessor->GetCheckboxResponseIndices(UTF8_TODO::GetUtf8(m_dataBuffer));
     }
 
     else
     {
         m_selectedIndices.clear();
 
-        size_t index = m_responseProcessor->GetResponseIndex(m_dataBuffer);
+        size_t index = m_responseProcessor->GetResponseIndex(UTF8_TODO::GetUtf8(m_dataBuffer));
 
         if( index != SIZE_MAX )
             m_selectedIndices.push_back(index);
@@ -366,38 +367,34 @@ bool CoreEntryPageField::IsFieldFilled() const
 }
 
 
-#ifdef _CONSOLE
-
-std::vector<CString> CoreEntryPageField::GetVerboseFieldInformation() const
+std::vector<std::string> CoreEntryPageField::GetVerboseFieldInformation() const
 {
-    CString text;
-
-    // field properties ... initially put in a set and then add alphabetically to the vector
-    std::set<CString> properties_set;
-    std::set<int> symbols_set;
-    symbols_set.insert(m_pField->GetSymbol());
+    std::vector<std::string> field_information;
+    std::set<int> symbols_set { m_pField->GetSymbol() };
 
     for( int i = 0; i < 2; i++ )
     {
-        ParameterManager::Parameter thisProperty = ( i == 0 ) ?
-            ParameterManager::Parameter::Property_CanEnterNotAppl : ParameterManager::Parameter::Property_AllowMultiLine;
+        ParameterManager::Parameter thisProperty = ( i == 0 )
+            ? ParameterManager::Parameter::Property_CanEnterNotAppl
+            : ParameterManager::Parameter::Property_AllowMultiLine;
 
-        ParameterManager::Parameter lastProperty = ( i == 0 ) ?
-            ParameterManager::Parameter::Property_UseEnterKey : ParameterManager::Parameter::Property_ZeroFill;
+        const ParameterManager::Parameter lastProperty = ( i == 0 )
+            ? ParameterManager::Parameter::Property_UseEnterKey
+            : ParameterManager::Parameter::Property_ZeroFill;
 
         while( thisProperty <= lastProperty )
         {
-            text.Format(_T("%s: %s"), ParameterManager::GetDisplayName(thisProperty), m_pIntDriver->GetProperty(thisProperty, &symbols_set));
-            properties_set.insert(text);
+            field_information.emplace_back(SO::CreateColonSeparatedString(
+                ParameterManager::GetDisplayName(thisProperty),
+                m_pIntDriver->GetProperty(thisProperty, &symbols_set)
+            ));
+
             thisProperty = static_cast<ParameterManager::Parameter>(static_cast<int>(thisProperty) + 1);
         }
     }
 
-    // add the properties in alphabetical order
-    std::vector<CString> field_information;
-
-    for( const CString& property_text : properties_set )
-        field_information.push_back(property_text);
+    // return the properties in alphabetical order
+    std::sort(field_information.begin(), field_information.end(), cs::case_insensitive_less());
 
     return field_information;
 }
@@ -408,5 +405,3 @@ std::string CoreEntryPageField::GetValueSetName() const
     return ( m_valueSet != nullptr ) ? m_valueSet->GetName() :
                                        "<undefined>";
 }
-
-#endif // ending _CONSOLE

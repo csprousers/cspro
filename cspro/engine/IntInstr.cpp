@@ -1,4 +1,4 @@
-﻿//---------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 //  File name: IntInstr.cpp
 //
 //  Description:
@@ -83,16 +83,20 @@ double CIntDriver::excpt(int iExpr)
     // left-side is ... the return-value of a user-function:
     if( iThisVarType == UF_CODE )
     {
+        ASSERT(m_engineData->PredatesCompiledLogicVersion(Serializer::Iteration_8_2_000_1)); // now handled in ex_UserFunction_compute
+
         UserFunction& user_function = GetSymbolUserFunction(iThisVar);
         user_function.SetReturnValue(dRightValue);
         return dRightValue;
     }
 
     // left-side is ... a cell of an array:
-    else if( iThisVarType == ARRAYVAR_CODE )
+    else if( iThisVarType == ARRAY_VAR_CODE )
     {
+        ASSERT(m_engineData->PredatesCompiledLogicVersion(Serializer::Iteration_8_2_000_1)); // now handled in ex_Array_compute
+
         LogicArray* logic_array;
-        std::vector<size_t> indices = EvaluateArrayIndex(compute_node.cpt_var, &logic_array);
+        const std::vector<size_t> indices = EvaluateArrayIndex(compute_node.cpt_var, &logic_array);
 
         if( !indices.empty() )
             logic_array->SetValue(indices, dRightValue);
@@ -152,8 +156,9 @@ double CIntDriver::excpt(int iExpr)
     }
 
     // left-side is ... a work-variable:
-    else if( iThisVarType == WVAR_CODE )
+    else if( iThisVarType == FunctionCode::WORKVARIABLE_VAR_CODE )
     {
+        ASSERT(m_engineData->PredatesCompiledLogicVersion(Serializer::Iteration_8_2_000_1)); // now handled in LogicInterpreter::ex_WorkVariable_assign)
         WorkVariable& work_variable = GetSymbolWorkVariable(iThisVar);
         work_variable.SetValue(dRightValue);
         return dRightValue;

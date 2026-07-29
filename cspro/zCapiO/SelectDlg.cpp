@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "SelectDlg.h"
 #include "RectExtended.h"
 #include <zUtilO/CustomFont.h>
@@ -154,12 +154,10 @@ void CSelectDlg::Start() {
     if( pFont != NULL ) {
 
         // 20111026 so that the sizing of the font in the accept statement is correct
-        UserDefinedFonts* pUserFonts = nullptr;
-        AfxGetApp()->GetMainWnd()->SendMessage(WM_IMSA_GET_USER_FONTS, (WPARAM)&pUserFonts);
+        const UserDefinedFonts* const user_defined_fonts = UserDefinedFonts::GetUserDefinedFont(UserDefinedFonts::FontType::ValueSets);
 
-        if( pUserFonts != nullptr && pUserFonts->IsFontDefined(UserDefinedFonts::FontType::ValueSets) ) // user has defined a particular font
-            pFont = pUserFonts->GetFont(UserDefinedFonts::FontType::ValueSets);
-
+        if( user_defined_fonts != nullptr )
+            pFont = user_defined_fonts->GetFont(UserDefinedFonts::FontType::ValueSets);
 
         SetFont( pFont );
         m_ListCtrl.SetFont( pFont );

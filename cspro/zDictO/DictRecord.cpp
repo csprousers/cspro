@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "DictRecord.h"
 #include "DictionaryValidator.h"
 
@@ -18,7 +18,6 @@ CDictRecord::CDictRecord(bool id_record/* = false*/)
         SetLabel(_T("(Id Items)"));
     }
 
-    m_csRecTypeVal.Empty();
     m_bRequired = DictionaryDefaults::Required;
     SetMaxRecs (DictionaryDefaults::MaxRecs);
     m_iRecLen = DictionaryDefaults::RecLen;
@@ -35,7 +34,7 @@ CDictRecord::CDictRecord(const CDictRecord& r)
     :   DictNamedBase(r),
         m_idRecord(r.m_idRecord)
 {
-    m_csRecTypeVal = r.m_csRecTypeVal;
+    m_recTypeVal = r.m_recTypeVal;
     m_bRequired = r.m_bRequired;
     SetMaxRecs(r.m_uMaxRecs);
     m_iRecLen = r.m_iRecLen;
@@ -193,7 +192,7 @@ void CDictRecord::operator=(const CDictRecord& record)
 
     m_idRecord = record.m_idRecord;
 
-    m_csRecTypeVal = record.m_csRecTypeVal;
+    m_recTypeVal = record.m_recTypeVal;
     m_iRecLen = record.m_iRecLen;
     SetMaxRecs(record.m_uMaxRecs);
     m_bRequired = record.m_bRequired;
@@ -220,9 +219,9 @@ CDictRecord CDictRecord::CreateFromJson(const JsonNode& json_node, bool id_recor
     {
         dict_record.DictNamedBase::ParseJsonInput(json_node);
 
-        dict_record.m_csRecTypeVal = json_node.GetOrConstruct<CString>(JK::recordType);
+        dict_record.m_recTypeVal = json_node.GetOrConstruct<std::string>(JK::recordType);
 
-        const auto& occurrences_node = json_node.Get(JK::occurrences);
+        const JsonNode& occurrences_node = json_node.Get(JK::occurrences);
 
         dict_record.m_bRequired = occurrences_node.Get<bool>(JK::required);
         dict_record.m_uMaxRecs = occurrences_node.Get<unsigned>(JK::maximum);
@@ -267,8 +266,8 @@ void CDictRecord::WriteJson(JsonWriter& json_writer) const
     {
         DictNamedBase::WriteJson(json_writer);
 
-        if( json_writer.Verbose() || !m_csRecTypeVal.IsEmpty() )
-            json_writer.Write(JK::recordType, m_csRecTypeVal);
+        if( json_writer.Verbose() || !m_recTypeVal.empty() )
+            json_writer.Write(JK::recordType, m_recTypeVal);
 
         json_writer.BeginObject(JK::occurrences);
 
@@ -300,11 +299,11 @@ void CDictRecord::serialize(Serializer& ar)
     DictNamedBase::serialize(ar);
 
     if( ar.PredatesVersionIteration(Serializer::Iteration_8_0_000_1) )
-        SetNote(ar.Read<CString>());
+        SetNote(ar.Read<std::string>());
 
-    ar & m_csRecTypeVal;
+    ar & m_recTypeVal;
 
-    ar.IgnoreUnusedVariable<CString>(Serializer::Iteration_8_0_000_1); // m_csError
+    ar.IgnoreUnusedVariable<std::string>(Serializer::Iteration_8_0_000_1); // m_csError
 
     ar & m_bRequired;
     ar & m_uMaxRecs;

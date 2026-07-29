@@ -1,8 +1,8 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "FrequencyPrinterEntry.h"
 #include "FrequencyPrinter.h"
 #include <zToolsO/FloatingPointMath.h>
-#include <zDictO/ValueProcessor.h>
+#include <zDictO/NumericValueProcessor.h>
 
 
 template<typename ValueType, typename CountType>

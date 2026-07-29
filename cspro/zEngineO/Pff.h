@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zEngineO/zEngineO.h>
 #include <zLogicO/Symbol.h>
@@ -20,17 +20,17 @@ public:
 
     std::shared_ptr<const PFF> GetSharedPff();
 
-    bool Load(std::wstring filename);
-    bool Save(std::wstring filename);
+    bool Load(const std::string& file_path);
+    bool Save(const std::string& file_path);
 
     bool IsModified() const { return m_modified; }
 
     std::string GetRunnableFilePath();
 
-    std::vector<std::wstring> GetProperties(const std::wstring& property_name);
+    std::vector<std::string> GetProperties(const std::string& property_name);
 
-    void SetProperties(const std::wstring& property_name, const std::vector<std::wstring>& values,
-                       std::wstring filename_for_relative_path_evaluation);
+    void SetProperties(const std::string& property_name, const std::vector<SharableString>& values,
+                       std::string file_path_for_relative_path_evaluation);
 
     PffExecutor* GetPffExecutor()                                  { return m_pffExecutor.get(); }
     std::shared_ptr<PffExecutor> GetSharedPffExecutor()            { return m_pffExecutor; }

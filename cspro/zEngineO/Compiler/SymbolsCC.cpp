@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "IncludesCC.h"
 #include "AllSymbols.h"
 #include "CommonStoreCompilerHelper.h"
@@ -409,7 +409,7 @@ int LogicCompiler::CompileWorkVariables()
         }
 
 
-        // if a config variable, the value can come from common store
+        // if a config variable, the value can come from the common store
         if( m_symbolCompilerModifier.config_variable )
         {
             const bool value_already_provided = ( initialize_value != -1 );
@@ -444,6 +444,23 @@ int LogicCompiler::CompileWorkVariables()
     IssueErrorOnTokenMismatch(TOKSEMICOLON, MGF::expecting_semicolon_30);
 
     return GetOptionalProgramIndex(symbol_reset_node);
+}
+
+
+int LogicCompiler::CompileWorkVariableReference()
+{
+    ASSERT(Tkn == TOKVAR && NPT_Ref(Tokstindex).IsA(SymbolType::WorkVariable));
+
+    auto& element_reference_single_node = CreateNode<Nodes::ElementReferenceSingle>(FunctionCode::WORKVARIABLE_VAR_CODE);
+    element_reference_single_node.symbol_index = Tokstindex;
+
+    // move past the variable name
+    NextToken();
+
+    if( Tkn == TOKLPAREN )
+        IssueError(MGF::single_variable_cannot_have_subscript_25);
+
+    return GetProgramIndex(element_reference_single_node);
 }
 
 

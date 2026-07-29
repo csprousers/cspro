@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zEngineO/zEngineO.h>
 #include <zEngineO/EngineData.h>
@@ -8,10 +8,13 @@
 #include <zLogicO/BaseCompiler.h>
 #include <zLogicO/FunctionTable.h>
 
+class CodeFile;
 class CompilerHelper;
 template<typename T> class ConstantConserver;
+class DictNamedBase;
 class DynamicValueSet;
 enum class EngineAppType : int;
+class EnginePreprocessor;
 class LoopStack;
 class MessageEvaluator;
 class MessageManager;
@@ -41,21 +44,26 @@ public:
     // (CompilersCC.cpp)
     // --------------------------------------------------------------------------
 public:
-    void SetCompilationSymbol(const Symbol& symbol);
+    void SetCompilationSymbol(const Symbol* symbol) noexcept;
 
-    const Symbol& GetCompilationSymbol() const   { return *m_compilationSymbol; }
-    SymbolType GetCompilationSymbolType() const  { return m_compilationSymbol->GetType(); }
+    const Symbol* GetCompilationSymbol() const noexcept { return m_compilationSymbol; }
+    SymbolType GetCompilationSymbolType() const noexcept;
     int GetCompilationLevelNumber_base1() const;
 
-    bool IsCompiling(const Symbol& symbol) const   { return ( &symbol == m_compilationSymbol ); }
-    bool IsCompiling(SymbolType symbol_type) const { return ( symbol_type == GetCompilationSymbolType() ); }
-    bool IsGlobalCompilation() const               { return IsCompiling(SymbolType::Application); }
-    bool IsNoLevelCompilation() const;
+    bool IsCompiling(const Symbol& symbol) const noexcept;
+    bool IsCompiling(SymbolType symbol_type) const noexcept;
+    bool IsGlobalCompilation() const noexcept;
+    bool IsNoLevelCompilation() const noexcept;
 
     EngineAppType GetEngineAppType() const;
 
     ProcType GetCompilationProcType() const { return m_procType; }
     void SetCompilationProcType(ProcType proc_type, ExtendedProcType extended_proc_type = ExtendedProcType::None);
+
+    // Compiles the current source buffer for the symbol, if provided.
+    // An optional compilation function can be provided.
+    // The method will not throw exceptions unless a subclass' implementation of ReportError does.
+    int CompileSourceBuffer(const Symbol* compilation_symbol, const std::function<int()>* compilation_function = nullptr);
 
     void CompileExternalCode();
     virtual void CompileExternalCode(const CodeFile& code_file);
@@ -117,6 +125,22 @@ public:
 
 
     // --------------------------------------------------------------------------
+    // token and next token helpers
+    // (NextTokenCC.cpp + TokenCC.cpp)
+    // --------------------------------------------------------------------------
+public:
+    // gets the current token's data type (between Numeric and String); if unknown, DataType::Numeric is returned
+    DataType GetCurrentTokenDataType();
+
+    bool IsCurrentTokenString() { return IsString(GetCurrentTokenDataType()); }
+
+    enum class NextTokenHelperResult { Unknown, NumericConstantNonNegative, StringLiteral, WorkString, Array, List, DictionaryRelatedSymbol };
+    NextTokenHelperResult CheckNextTokenHelper(SymbolType preferred_symbol_type = SymbolType::None);
+
+    std::optional<SymbolType> GetNextTokenSymbolType();
+
+
+    // --------------------------------------------------------------------------
     // compiler helpers
     // (CompilerHelper.cpp)
     // --------------------------------------------------------------------------
@@ -125,6 +149,46 @@ public:
     T& GetCompilerHelper();
 
     LoopStack& GetLoopStack();
+
+
+    // --------------------------------------------------------------------------
+    // basic expressions
+    // (ExpressionsCC.cpp)
+    // --------------------------------------------------------------------------
+public:
+    int exprlog();
+    int expror();
+    int termlog();
+    int factlog();
+    int expr();
+    int term();
+    int factor();
+    int prim();
+
+
+    // --------------------------------------------------------------------------
+    // routing methods
+    // (RoutingCC.cpp)
+    // --------------------------------------------------------------------------
+public:
+    int CompileStatements(bool create_new_local_symbol_stack = true, bool allow_multiple_statements = true);
+
+protected: // COMPILER_DLL_TODO make private
+    static bool IsValidStatementStartToken(const TokenCode token_code) noexcept;
+    static bool IsValidStatementEndToken(const TokenCode token_code) noexcept;
+
+    int RouteFunctionCall();
+
+
+    // --------------------------------------------------------------------------
+    // "Control Flow" statements
+    // (ControlFlowCC.cpp)
+    // --------------------------------------------------------------------------
+public:
+    int CompileIfStatement();
+    int CompileWhileLoop();
+    int CompileDoLoop();
+    int CompileNextOrBreakInLoop();
 
 
     // --------------------------------------------------------------------------
@@ -140,6 +204,10 @@ public:
 
     WorkVariable* CompileWorkVariableDeclaration();
     int CompileWorkVariables();
+    int CompileWorkVariableReference();
+
+    // Compiles assignment statements for: Array, function, and numeric.
+    int CompileNumericComputeInstruction();
 
 
     // --------------------------------------------------------------------------
@@ -159,6 +227,7 @@ public:
     int CompileSymbolNameText(SymbolType required_symbol_type = SymbolType::None, bool throw_exception_is_symbol_is_not_found = true);
     int CompileFillText();
 
+    // Compiles assignment statements for: Array, function, string, and dictionary items.
     int CompileStringComputeInstruction();
 
     WorkString* CompileLogicStringDeclaration(TokenCode token_code, const WorkString* work_string_to_copy_attributes = nullptr);
@@ -193,6 +262,7 @@ public:
 public:
     LogicArray* CompileLogicArrayDeclarationOnly(bool use_function_parameter_syntax);
     int CompileLogicArrayDeclaration();
+    int CompileLogicArrayComputeInstruction();
     int CompileLogicArrayReference();
     int CompileLogicArrayFunctions();
 
@@ -214,17 +284,6 @@ public:
     // --------------------------------------------------------------------------
 public:
     int CompileBarcodeFunctions();
-
-
-    // --------------------------------------------------------------------------
-    // "Control Flow" statements
-    // (ControlFlowCC.cpp)
-    // --------------------------------------------------------------------------
-public:
-    int CompileIfStatement();
-    int CompileWhileLoop();
-    int CompileDoLoop();
-    int CompileNextOrBreakInLoop();
 
 
     // --------------------------------------------------------------------------
@@ -512,6 +571,7 @@ private:
     // --------------------------------------------------------------------------
 public:
     int CompileUserFunctionDeclarations();
+    int CompileUserFunctionComputeInstruction();
     int CompileUserFunctionCall(bool allow_function_name_without_parentheses = false);
 
     int CompileInvokeFunction();
@@ -544,7 +604,7 @@ public:
 
 
     // --------------------------------------------------------------------------
-    // ValueSet object and setvalueset function
+    // ValueSet object and value set-related functions
     // (ValueSetCC.cpp)
     // --------------------------------------------------------------------------
 public:
@@ -553,6 +613,7 @@ public:
     int CompileDynamicValueSetComputeInstruction(const DynamicValueSet* value_set_from_declaration = nullptr);
     int CompileValueSetFunctions();
 
+    int CompileValueSetRelatedFunctions();
     int CompileSetValueSetFunction();
 
 
@@ -583,7 +644,7 @@ public:
     int CompileExpression(DataType data_type);
     int CompileExpressionOrObject(const std::vector<GF::VariableType>& variable_types, const char* argument_name = "unknown");
 
-    int CompileFunctionCall(int program_index = -1);
+    int CompileFunctionCall();
 
     int CompileFunctionsArgumentsFixedN();
     int CompileFunctionsArgumentsVaryingN();
@@ -603,37 +664,6 @@ public:
     int CompileSqlQueryFunction(bool from_paradata_function = false);
     int CompileSyncFunctions();
     int CompileUserbarFunction();
-
-
-    // --------------------------------------------------------------------------
-    // basic expressions
-    // (ExpressionsCC.cpp)
-    // --------------------------------------------------------------------------
-public:
-    int exprlog();
-    int expror();
-    int termlog();
-    int factlog();
-    int expr();
-    int term();
-    int factor();
-    int prim();
-
-
-    // --------------------------------------------------------------------------
-    // token and next token helpers
-    // (NextTokenCC.cpp + TokenCC.cpp)
-    // --------------------------------------------------------------------------
-public:
-    // gets the current token's data type (between Numeric and String); if unknown, DataType::Numeric is returned
-    DataType GetCurrentTokenDataType();
-
-    bool IsCurrentTokenString() { return IsString(GetCurrentTokenDataType()); }
-
-    enum class NextTokenHelperResult { Unknown, NumericConstantNonNegative, StringLiteral, WorkString, Array, List, DictionaryRelatedSymbol };
-    NextTokenHelperResult CheckNextTokenHelper(SymbolType preferred_symbol_type = SymbolType::None);
-
-    std::optional<SymbolType> GetNextTokenSymbolType();
 
 
     // --------------------------------------------------------------------------
@@ -683,11 +713,12 @@ public:
     virtual int crelalpha_COMPILER_DLL_TODO() = 0;
     virtual int varsanal_COMPILER_DLL_TODO(int fmt) = 0;
     virtual int tvarsanal_COMPILER_DLL_TODO() = 0;
-    virtual int rutfunc_COMPILER_DLL_TODO() = 0;
-    virtual int instruc_COMPILER_DLL_TODO(bool create_new_local_symbol_stack = true, bool allow_multiple_statements = true) = 0;
+    virtual int rutfunc_COMPILER_DLL_TODO(Logic::FunctionCompilationType compilation_type) = 0;
+    virtual int instruc_COMPILER_DLL_TODO(bool allow_multiple_statements = true) = 0;
     virtual DICT* GetInputDictionary(bool issue_error_if_no_input_dictionary) = 0;
     virtual void MarkAllDictionaryItemsAsUsed() = 0;
     virtual void MarkAllInSectionUsed(SECT* pSecT) = 0;
+    virtual void SetCaseAccessSetRequiresFullAccess_COMPILER_DLL_TODO(Symbol& symbol) = 0;
 
     virtual int CompileReenterStatement_COMPILER_DLL_TODO(bool bNextTkn = true) = 0;
     virtual int CompileMoveStatement_COMPILER_DLL_TODO(bool bFromSelectStatement = false) = 0;
@@ -703,8 +734,10 @@ public:
 protected:
     cs::non_null_shared_or_raw_ptr<EngineData> m_engineData;
 
+    std::unique_ptr<EnginePreprocessor> m_preprocessor;
+
 private:
-    // The symbol that is currently being compiled (non-null during compilation).
+    // The symbol that is currently being compiled (null if not applicable).
     const Symbol* m_compilationSymbol;
 
     // The type of the procedure currently being compiled.

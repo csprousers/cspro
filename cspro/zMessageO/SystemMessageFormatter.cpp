@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "SystemMessageFormatter.h"
 #include "MessageEvaluator.h"
 #include "SystemMessages.h"
@@ -21,8 +21,18 @@ SystemMessageFormatter::~SystemMessageFormatter()
 
 std::string SystemMessageFormatter::GetFormattedMessageVA(const int message_number, va_list parg)
 {
-    m_variableArgumentsMessageParameterEvaluator->Reset(parg);
-    return m_messageEvaluator->GetFormattedMessage(*m_variableArgumentsMessageParameterEvaluator, message_number);
+    // on x86_64, parg will undergo array decay and cannot be passed as an argument to
+    // VariableArgumentsMessageParameterEvaluator::Reset, so create a local copy
+    va_list local_parg;
+    va_copy(local_parg, parg);
+
+    m_variableArgumentsMessageParameterEvaluator->Reset(&local_parg);
+
+    std::string message = m_messageEvaluator->GetFormattedMessage(*m_variableArgumentsMessageParameterEvaluator, message_number);
+
+    va_end(local_parg);
+
+    return message;
 }
 
 

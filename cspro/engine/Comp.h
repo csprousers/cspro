@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 //---------------------------------------------------------------------------
 //  File name: Comp.h
@@ -126,8 +126,6 @@ public:
     std::tuple<int, bool> m_loneAlphaFunctionCallTester; // 20140422 count + 2024 flag indicating this is a standalone call to a function
 
 private:
-    std::unique_ptr<Logic::Preprocessor> m_preprocessor;
-
     std::unique_ptr<Logic::ProcDirectory> m_procDirectory;
 
 public:
@@ -232,9 +230,7 @@ public:
     };
 
 private:
-    // Check the use of varsanal to compile
-    // "variables" that are really UserFunction, WorkVariable or SingleVariables
-    //
+    // Use varsanal to compile "variables" that are really WorkVariable or SingleVariables
     // if it returns false, then *piVarNode has a VarNode changed to return
     // if it returns true, varsanal can continue
     bool    varsanal_basicCheck( int* piVarNode, int fmt );// rcl, Sept 30, 2004
@@ -282,10 +278,7 @@ public:
 
     std::vector<const DictNamedBase*> GetImplicitSubscriptCalculationStack(const EngineItem& engine_item) const override;
 
-    int     rutfunc();
-
     int     cfun_fnmaxocc();
-    int     cfun_fninvalueset();
     int     cfun_fnexecsystem();
 
     int     cfun_fnitemlist(); // 20091203 for functions that list items and records but still use FNN_NODE
@@ -354,7 +347,7 @@ private:
 
     // instruc.cpp
 public:
-    int     instruc(bool create_new_local_symbol_stack = true, bool allow_multiple_statements = true);
+    int     instruc(bool allow_multiple_statements);
 private:
     void    CheckIdChanger(const VART* pVarT) TEMP_VIRTUAL; // RHF Jul 03, 2005
     int     CompileComputeInstruction();
@@ -515,7 +508,7 @@ public:
 
     int     compctab( int mode, CTableDef::ETableType eTableType );
 
-    int     rutasync(int symbol_index, const std::function<void()>* compilation_function = nullptr);
+    int     rutasync(const Symbol& compilation_symbol, const std::function<void()>* compilation_function = nullptr);
     int     rutcpttbl();
 
     int CompileForStatement(pCompileForInFunction pCompileFunction = nullptr);
@@ -625,20 +618,20 @@ private:
     int& get_COMPILER_DLL_TODO_InCompIdx() override { return m_InCompIdx; }
     std::tuple<int, bool>& get_COMPILER_DLL_TODO_m_loneAlphaFunctionCallTester() override { return m_loneAlphaFunctionCallTester; }
 
-    template<typename CF>
-    int HandleErrors_COMPILER_DLL_TODO(CF callback_function);
+    int HandleErrors_COMPILER_DLL_TODO(const std::function<int()>& callback_function);
 
     int CompileHas_COMPILER_DLL_TODO(int iVarNode) override;
     int crelalpha_COMPILER_DLL_TODO() override;
     int varsanal_COMPILER_DLL_TODO(int fmt) override;
     int tvarsanal_COMPILER_DLL_TODO() override;
-    int rutfunc_COMPILER_DLL_TODO() override;
-    int instruc_COMPILER_DLL_TODO(bool create_new_local_symbol_stack = true, bool allow_multiple_statements = true) override;
+    int rutfunc_COMPILER_DLL_TODO(Logic::FunctionCompilationType compilation_type) override;
+    int instruc_COMPILER_DLL_TODO(bool allow_multiple_statements) override;
     int CompileReenterStatement_COMPILER_DLL_TODO(bool bNextTkn = true) override;
     int CompileMoveStatement_COMPILER_DLL_TODO(bool bFromSelectStatement = false) override;
     void rutasync_as_global_compilation_COMPILER_DLL_TODO(const Symbol& compilation_symbol, const std::function<void()>& compilation_function) override;
     DICT* GetInputDictionary(bool issue_error_if_no_input_dictionary) override;
     void MarkAllDictionaryItemsAsUsed() override;
+    void SetCaseAccessSetRequiresFullAccess_COMPILER_DLL_TODO(Symbol& symbol) override;
 
     template<typename NodeType> NodeType& CreateCompilationNode(std::optional<FunctionCode> function_code = std::nullopt, int node_size_offset = 0) { return CreateNode<NodeType>(std::move(function_code), node_size_offset); }
     template<typename NodeType> NodeType& CreateVariableArgumentCompilationNode(std::optional<FunctionCode> function_code, int number_arguments) { return CreateVariableSizeNode<NodeType>(std::move(function_code), number_arguments); }

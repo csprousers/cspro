@@ -4048,13 +4048,13 @@ LRESULT CEntryrunView::OnPlusKey(WPARAM wParam, LPARAM lParam)
 
     //Get the form and find the pluskey field
     CDEFormFile* pFormFile = pRunDoc->GetCurFormFile();
-    CIMSAString sPlusTarget = pField->GetPlusTarget();
-    if(sPlusTarget.IsEmpty()){
+    const std::string& plus_target = pField->GetPlusTarget();
+    if(plus_target.empty()){
         OnEditChange(VK_RETURN, (LPARAM)pEdit);
         return 0;
     }
 
-    else if(sPlusTarget.CompareNoCase(_T("<END>")) ==0){
+    else if(SO::EqualsNoCase(plus_target, "<END>")){
         OnSlashKey(0, (LPARAM)pField);
         return 0;
     }
@@ -4065,7 +4065,7 @@ LRESULT CEntryrunView::OnPlusKey(WPARAM wParam, LPARAM lParam)
         ASSERT(pGroup);
         for(int iIndex =0; iIndex < pGroup->GetNumItems(); iIndex++) {
             CDEItemBase* pBase = pGroup->GetItem(iIndex);
-            if(pBase->GetName().CompareNoCase(sPlusTarget) == 0) {
+            if(SO::EqualsNoCase(plus_target, pBase->GetName())) {
                 if(pBase->IsKindOf(RUNTIME_CLASS(CDEField)) || pBase->IsKindOf(RUNTIME_CLASS(CDEBlock))){
                     pSkipToEntity = pBase;
                     break;

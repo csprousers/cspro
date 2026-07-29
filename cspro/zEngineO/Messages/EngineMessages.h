@@ -4,6 +4,8 @@
 namespace MGF
 {
     constexpr int statement_invalid_1                                       =      1;
+    constexpr int expecting_semicolon_2                                     =      2;
+    constexpr int bytecode_overflow_4                                       =      4;
     constexpr int equals_expected_in_assignment_5                           =      5;
     constexpr int expecting_then_keyword_6                                  =      6;
     constexpr int expecting_else_elseif_endif_keyword_7                     =      7;
@@ -27,6 +29,8 @@ namespace MGF
 
     constexpr int switch_expecting_array_57                                 =     57;
     constexpr int switch_expecting_double_colon_58                          =     58;
+
+    constexpr int preprocessor_function_error_69                            =     69;
 
     constexpr int integer_constant_expected_82                              =     82;
     constexpr int declaration_invalid_92                                    =     92;
@@ -81,6 +85,7 @@ namespace MGF
     constexpr int dictionary_or_file_expected_930                           =    930;
     constexpr int setfile_invalid_use_of_create_in_non_entry_931            =    931;
 
+    constexpr int ValueSet_item_valueset_mismatch_940                       =    940;
     constexpr int ValueSet_not_correct_data_type_941                        =    941;
 
     constexpr int Array_not_correct_data_type_955                           =    955;
@@ -94,6 +99,9 @@ namespace MGF
     constexpr int List_read_only_cannot_be_modified_965                     =    965;
 
     constexpr int invalid_subscript_1008                                    =   1008;
+
+    constexpr int property_invalid_parameter_1100                           =   1100;
+    constexpr int property_arguments_count_mismatch_1101                    =   1101;
 
     constexpr int dictionary_form_symbol_expected_1108                      =   1108;
 
@@ -176,11 +184,16 @@ namespace MGF
 
     constexpr int string_expression_expected_45006                          =  45006;
 
+    constexpr int ValueSet_contains_values_not_valid_for_field_47161        =  47161;
+    constexpr int ValueSet_symbol_is_not_of_type_47164                      =  47164;
+    constexpr int ValueSet_symbol_does_not_exist_47165                      =  47165;
     constexpr int ValueSet_invalid_operation_for_dict_value_set_47170       =  47170;
     constexpr int ValueSet_add_not_correct_data_type_47171                  =  47171;
     constexpr int ValueSet_add_cannot_add_self_47172                        =  47172;
 
     constexpr int Pff_load_argument_invalid_47190                           =  47190;
+    constexpr int Pff_load_error_47191                                      =  47191;
+    constexpr int Pff_save_error_47192                                      =  47192;
     constexpr int Pff_invalid_assignment_47193                              =  47193;
     constexpr int Pff_property_invalid_with_dictionary_47194                =  47194;
 

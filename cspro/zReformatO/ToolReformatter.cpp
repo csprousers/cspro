@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "ToolReformatter.h"
 #include "Reformatter.h"
 #include <zToolsO/File.h>
@@ -95,8 +95,8 @@ void ToolReformatter::GetDictionaryDifferences(BasicLogger& differences_log, con
             else if( difference.type == DictionaryDifference::Type::RecordTypeChanged )
             {
                 difference_text = FormatText("Record type changed ('%s' -> '%s')",
-                                             UTF8_TODO::GetUtf8(initial_dict_record->GetRecTypeVal()).c_str(),
-                                             UTF8_TODO::GetUtf8(final_dict_record->GetRecTypeVal()).c_str());
+                                             initial_dict_record->GetRecTypeVal().c_str(),
+                                             final_dict_record->GetRecTypeVal().c_str());
             }
 
             else if( difference.type == DictionaryDifference::Type::RecordOccurrencesDecreased ||

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zToolsO/zToolsO.h>
 #include <zToolsO/CSProException.h>
@@ -42,9 +42,11 @@ public:
 
     static constexpr int Iteration_8_1_000_1 = 810001;
 
+    static constexpr int Iteration_8_2_000_1 = 820001;
+
     static constexpr int GetEarliestSupportedVersion() { return Iteration_7_7_000_1; }
 
-    static constexpr int GetCurrentVersion()           { return Iteration_8_1_000_1; }
+    static constexpr int GetCurrentVersion()           { return Iteration_8_2_000_1; }
 
 public:
     Serializer();

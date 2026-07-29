@@ -270,27 +270,12 @@ void CLevelGrid::Update()
             QuickSetCellTypeEx(LEVEL_NOTE_COL,  ir, UGCT_BUTTONNOFOCUS);
             QuickSetBackColor (LEVEL_NOTE_COL,  ir, GetSysColor(COLOR_BTNFACE));
             QuickSetHBackColor(LEVEL_NOTE_COL,  ir, GetSysColor(COLOR_BTNFACE));
-            if (pRec->GetNote().GetLength() > 0) {
-                if (rgb == GetSysColor(COLOR_WINDOWTEXT)) {
-                    QuickSetBitmap(LEVEL_NOTE_COL,  ir, m_pNoteYes);
-                }
-                else {
-                    QuickSetBitmap(LEVEL_NOTE_COL,  ir, m_pNoteYesGrayed);
-                }
-            }
-            else {
-                if (rgb == GetSysColor(COLOR_WINDOWTEXT)) {
-                    QuickSetBitmap(LEVEL_NOTE_COL,  ir, m_pNoteNo);
-                }
-                else {
-                    QuickSetBitmap(LEVEL_NOTE_COL,  ir, m_pNoteNoGrayed);
-                }
-            }
-
+            QuickSetBitmap    (LEVEL_NOTE_COL,  ir, pRec->GetNote().empty() ? ( ( rgb == GetSysColor(COLOR_WINDOWTEXT) ) ? m_pNoteNo : m_pNoteNoGrayed ) :
+                                                                              ( ( rgb == GetSysColor(COLOR_WINDOWTEXT) ) ? m_pNoteYes : m_pNoteYesGrayed ));
             QuickSetText     (LEVEL_LABEL_COL, ir, pRec->GetLabel());
             QuickSetTextColor(LEVEL_LABEL_COL, ir, rgb);
 
-            QuickSetText     (LEVEL_NAME_COL, ir, UTF8_TODO::GetCString(pRec->GetName()));
+            QuickSetText     (LEVEL_NAME_COL, ir, pRec->GetName());
             QuickSetTextColor(LEVEL_NAME_COL, ir, rgb);
 
             QuickSetText     (LEVEL_TYPE_COL, ir, pRec->GetRecTypeVal());
@@ -836,6 +821,7 @@ bool CLevelGrid::EditEnd(bool bSilent)
         bChanged = true;
         pRec->SetLabel(csNewLabel);
     }
+
     CString csNewName, csOldName;
     m_aEditControl[LEVEL_NAME_COL]->GetWindowText(csNewName);
     csOldName = UTF8_TODO::GetCString(pRec->GetName());
@@ -844,13 +830,16 @@ bool CLevelGrid::EditEnd(bool bSilent)
         bChangedName = true;
         pRec->SetName(UTF8_TODO::GetUtf8(csNewName));
     }
-    CString csNewValue, csOldValue;
-    m_aEditControl[LEVEL_TYPE_COL]->GetWindowText(csNewValue);
-    csOldValue = pRec->GetRecTypeVal();
-    if (csNewValue.Compare(csOldValue) != 0) {
+
+    std::optional<std::string> old_record_type;
+    const std::string new_record_type = WindowsUtf8::GetText(m_aEditControl[LEVEL_TYPE_COL]);
+    if( new_record_type != pRec->GetRecTypeVal() )
+    {
         bChanged = true;
-        pRec->SetRecTypeVal(csNewValue);
+        old_record_type = pRec->GetRecTypeVal();
+        pRec->SetRecTypeVal(new_record_type);
     }
+
     CString csNewReq;
     m_aEditControl[LEVEL_REQ_COL]->GetWindowText(csNewReq);
     bool bNewReq = false;
@@ -862,6 +851,7 @@ bool CLevelGrid::EditEnd(bool bSilent)
         bChanged = true;
         pRec->SetRequired(bNewReq);
     }
+
     CIMSAString csNewMax;
     m_aEditControl[LEVEL_MAX_COL]->GetWindowText(csNewMax);
     UINT uNewMax = (UINT) csNewMax.Val();
@@ -870,6 +860,7 @@ bool CLevelGrid::EditEnd(bool bSilent)
         bChanged = true;
         pRec->SetMaxRecs(uNewMax);
     }
+
     if (m_bAdding || m_bInserting) {
         if (pRec->GetLabel().IsEmpty() && pRec->GetName().empty()) {
             bUndo = true;
@@ -889,7 +880,7 @@ bool CLevelGrid::EditEnd(bool bSilent)
     CDDDoc* pDoc = assert_cast<CDDDoc*>(assert_cast<CView*>(GetParent())->GetDocument());
     DictionaryValidator* dictionary_validator = pDoc->GetDictionaryValidator();
     if (bChanged) {
-        if (m_pDict->GetNumRecords() <= 1 && csNewValue.IsEmpty()) {
+        if (m_pDict->GetNumRecords() <= 1 && new_record_type.empty()) {
             m_pDict->SetRecTypeStart(0);
             m_pDict->SetRecTypeLen(0);
         }
@@ -901,14 +892,15 @@ bool CLevelGrid::EditEnd(bool bSilent)
             pDoc->SetModified();
             QuickSetText(LEVEL_LABEL_COL, row, csNewLabel);
             QuickSetText(LEVEL_NAME_COL, row, csNewName);
-            QuickSetText(LEVEL_TYPE_COL, row, csNewValue);
+            QuickSetText(LEVEL_TYPE_COL, row, new_record_type);
             QuickSetText(LEVEL_REQ_COL, row, csNewReq);
             QuickSetText(LEVEL_MAX_COL, row, csNewMax);
         }
         else {
             pRec->SetLabel(csOldLabel);
             pRec->SetName(UTF8_TODO::GetUtf8(csOldName));
-            pRec->SetRecTypeVal(csOldValue);
+            if( old_record_type.has_value() )
+                pRec->SetRecTypeVal(std::move(*old_record_type));
             pRec->SetRequired(bOldReq);
             pRec->SetMaxRecs(uOldMax);
         }
@@ -1459,22 +1451,21 @@ void CLevelGrid::OnEditNotes()
     int iLevel = m_iLevel;
     int iRec = row - m_iFirstRow;
     CDictRecord* pRec = m_pDict->GetLevel(iLevel).GetRecord(iRec);
-    CString csTitle, csLabel, csNote;
+    CString csTitle, csLabel;
     csTitle.LoadString(IDS_NOTE_TITLE);
     csLabel = pRec->GetLabel().Left(32);
     if (pRec->GetLabel().GetLength() > 32)  {
         csLabel += _T("...");
     }
     csTitle = _T("Record: ") + csLabel + csTitle;
-    csNote = pRec->GetNote();
     CNoteDlg dlgNote;
-    dlgNote.SetTitle(csTitle);
-    dlgNote.SetNote(csNote);
+    dlgNote.SetTitle(CS2WS(csTitle));
+    dlgNote.SetNote(pRec->GetNote());
     if (dlgNote.DoModal() == IDOK)  {
-        if (csNote != dlgNote.GetNote()) {
+        if (pRec->GetNote() != dlgNote.GetNote()) {
             CDDDoc* pDoc = assert_cast<CDDDoc*>(assert_cast<CView*>(GetParent())->GetDocument());
             pDoc->PushUndo(*m_pDict->GetLevel(m_iLevel).GetRecord(row - m_iFirstRow), m_iLevel, row - m_iFirstRow);
-            pRec->SetNote(dlgNote.GetNote());
+            pRec->SetNote(dlgNote.ReleaseNote());
             pDoc->SetModified();
         }
     }

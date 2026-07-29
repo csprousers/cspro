@@ -15,7 +15,7 @@
   <Import Project="..\..\properties\project-settings.props" />
   <ItemDefinitionGroup>
     <ClCompile>
-      <AdditionalIncludeDirectories>$(VCInstallDir)UnitTest\include;$(CSProDir)tests/include;$(CSProDir)external;$(CSProDir)external/geometry.hpp/include;$(CSProDir)external/variant/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(VCInstallDir)UnitTest/include;$(CSProDir)external;$(CSProDir)external/geometry.hpp/include;$(CSProDir)external/variant/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>$(VCInstallDir)UnitTest/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>

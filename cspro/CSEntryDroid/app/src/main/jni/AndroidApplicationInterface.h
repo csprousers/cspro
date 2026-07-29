@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zPlatformO/PlatformInterface.h>
 #include <zPlatformO/PortableMFC.h>
@@ -50,8 +50,8 @@ public:
     void EngineAbort() override;
     bool ExecSystem(const std::string& command, bool wait) override;
     bool ExecPff(const std::string& pff_file_path) override;
-    CString GetProperty(const CString& parameter) override;
-    void SetProperty(const CString& parameter, const CString& value) override;
+    std::string GetProperty(const std::string& parameter) override;
+    void SetProperty(const std::string& parameter, const std::string& value) override;
     void ShowProgressDialog(const std::string& message) override;
     void HideProgressDialog() override;
     bool UpdateProgressDialog(int progressPercent, const std::string* message) override;
@@ -84,7 +84,7 @@ public:
     bool CaptureImage(EngineUI::CaptureImageNode& capture_image_node) override;
     void CreateMapUI(EngineUI::CreateMapUINode& create_map_ui_node) override;
     void CreateUserbar(std::unique_ptr<Userbar>& userbar) override;
-    CString EditNote(const CString& note, const CString& title, bool case_note) override;
+    SharableString EditNote(const SharableString& note, const std::string& title, bool case_note) override;
     bool ExecSystemApp(EngineUI::ExecSystemAppNode& exec_system_app_node) override;
     std::string GetHtmlDialogsDirectory() override;
     void Prompt(EngineUI::PromptNode& options) override;

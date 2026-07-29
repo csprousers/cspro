@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "IncludesCC.h"
 #include "BinarySymbol.h"
 #include "Nodes/Strings.h"
@@ -41,7 +41,7 @@ int LogicCompiler::CompileStringExpression()
                 if( !IsCurrentTokenString() )
                     IssueError(MGF::string_expression_invalid_96);
 
-                string_expression = rutfunc_COMPILER_DLL_TODO();
+                string_expression = RouteFunctionCall();
                 break;
             }
 
@@ -62,7 +62,7 @@ int LogicCompiler::CompileStringExpression()
             case TOKUSERFUNCTION:
             {
                 check_if_object_is_string(NPT_Ref(Tokstindex));
-                string_expression = rutfunc_COMPILER_DLL_TODO();
+                string_expression = RouteFunctionCall();
                 break;
             }
 
@@ -246,17 +246,17 @@ int LogicCompiler::CompileStringComputeInstruction()
     // if not specifying a substring, we can optimize the code for strings
     if( symbol.IsA(SymbolType::WorkString) && IsNextToken(TOKEQOP) )
     {
-        auto& symbol_reset_node = CreateNode<Nodes::SymbolReset>(FunctionCode::WORKSTRING_COMPUTE_CODE);
+        auto& symbol_compute_expression_node = CreateNode<Nodes::SymbolComputeExpression>(FunctionCode::WORKSTRING_COMPUTE_CODE);
+        symbol_compute_expression_node.next_st = -1;
 
-        symbol_reset_node.next_st = -1;
-        symbol_reset_node.symbol_index = symbol.GetSymbolIndex();
-
-        NextToken();
+        symbol_compute_expression_node.lhs_symbol_index = symbol.GetSymbolIndex();
 
         NextToken();
-        symbol_reset_node.initialize_value = CompileStringExpression();
 
-        program_index = GetProgramIndex(symbol_reset_node);
+        NextToken();
+        symbol_compute_expression_node.rhs_expression = CompileStringExpression();
+
+        program_index = GetProgramIndex(symbol_compute_expression_node);
     }
 
     // otherwise potentially process any substring values

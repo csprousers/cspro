@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include <engine/Engine.h>
 #include <zAppO/Properties/ApplicationProperties.h>
 #include <zMessageO/Messages.h>
@@ -478,51 +478,52 @@ std::tuple<SharableString, bool> CEngineDriver::EditNote(std::shared_ptr<NamedRe
 std::tuple<SharableString, bool> CEngineDriver::EditNote_pre77(std::shared_ptr<NamedReference> named_reference, const std::string* operator_id,
                                                                const int field_symbol, const bool called_from_interface/* = true*/)
 {
-    SharableString original_note_content = *m_pEngineDriver->GetNoteContent(*named_reference, operator_id, field_symbol);
+    SharableString original_note_content = m_pEngineDriver->GetNoteContent(*named_reference, operator_id, field_symbol);
     bool case_note = false;
 
     if( operator_id == nullptr )
         operator_id = &SO::Empty_string;
 
     // generate the dialog title
-    const int MaximumLabelDisplayLength = 32;
+    constexpr int MaximumLabelDisplayLength = 32;
     const Symbol* symbol = NPT(field_symbol);
 
-    CString title_prefix;
+    const char* title_prefix;
     CString field_label;
 
     if( symbol->IsOneOf(SymbolType::Dictionary, SymbolType::Pre80Dictionary) )
     {
-        title_prefix = _T("Case");
+        title_prefix = "Case";
         case_note = true;
     }
 
     else if( symbol->IsA(SymbolType::Group) )
     {
-        title_prefix = _T("Node");
+        title_prefix = "Node";
     }
 
     else if( symbol->IsA(SymbolType::Record) )
     {
-        title_prefix = _T("Record");
+        title_prefix = "Record";
         field_label = assert_cast<const EngineRecord*>(symbol)->GetDictRecord().GetLabel();
     }
 
     else if( symbol->IsA(SymbolType::Section) )
     {
-        title_prefix = _T("Record");
+        title_prefix = "Record";
         field_label = assert_cast<const SECT*>(symbol)->GetDictRecord()->GetLabel();
     }
 
     else if( symbol->IsA(SymbolType::Variable) )
     {
-        title_prefix = _T("Field");
+        title_prefix = "Field";
         field_label = assert_cast<const VART*>(symbol)->GetDictItem()->GetLabel();
     }
 
     else
     {
         ASSERT(false);
+        title_prefix = "";
     }
 
     if( field_label.GetLength() > MaximumLabelDisplayLength )
@@ -531,10 +532,14 @@ std::tuple<SharableString, bool> CEngineDriver::EditNote_pre77(std::shared_ptr<N
         field_label.AppendFormat(_T("..."));
     }
 
-    CString occurrences = UTF8_TODO::GetCString(named_reference->GetMinimalOccurrencesText());
+    const std::string occurrences = named_reference->GetMinimalOccurrencesText();
 
-    CString title = FormatText<CString>(L"%s Note%s%s%s%s", title_prefix.GetString(), field_label.IsEmpty() ? _T("") : _T(": "), field_label.GetString(),
-                                                            occurrences.IsEmpty() ? _T("") : _T(" "), occurrences.GetString());
+    const std::string title = FormatText(
+        "%s Note%s%s%s%s",
+        title_prefix,
+        field_label.IsEmpty() ? "" : ": ", UTF8_TODO::GetUtf8(field_label).c_str(),
+        occurrences.empty() ? "" : " ", occurrences.c_str()
+    );
 
     std::unique_ptr<Paradata::NoteEvent> note_event;
 
@@ -543,14 +548,16 @@ std::tuple<SharableString, bool> CEngineDriver::EditNote_pre77(std::shared_ptr<N
         const CaseItemReference* const case_item_reference = dynamic_cast<const CaseItemReference*>(named_reference.get());
         ASSERT(case_item_reference == nullptr || NPT_Ref(field_symbol).IsA(SymbolType::Variable));
 
-        note_event = std::make_unique<Paradata::NoteEvent>(called_from_interface ? Paradata::NoteEvent::Source::Interface : Paradata::NoteEvent::Source::EditNote,
-                                                           m_pIntDriver->m_paradataDriver->CreateObject(NPT_Ref(field_symbol)),
-                                                           ( case_item_reference != nullptr ) ? m_pIntDriver->m_paradataDriver->CreateFieldInfo(VPT(field_symbol), *case_item_reference) : nullptr,
-                                                           *operator_id);
+        note_event = std::make_unique<Paradata::NoteEvent>(
+            called_from_interface ? Paradata::NoteEvent::Source::Interface : Paradata::NoteEvent::Source::EditNote,
+            m_pIntDriver->m_paradataDriver->CreateObject(NPT_Ref(field_symbol)),
+            ( case_item_reference != nullptr ) ? m_pIntDriver->m_paradataDriver->CreateFieldInfo(VPT(field_symbol), *case_item_reference) : nullptr,
+            *operator_id
+        );
     }
 
-    CString escaped_note_content = UTF8_TODO::GetCString(*m_pIntDriver->ConvertV0Escapes(original_note_content, CIntDriver::V0_EscapeType::NewlinesToSlashN_Backslashes));
-    CString original_escaped_note_content = escaped_note_content;
+    SharableString escaped_note_content = m_pIntDriver->ConvertV0Escapes(original_note_content, CIntDriver::V0_EscapeType::NewlinesToSlashN_Backslashes);
+    const SharableString original_escaped_note_content = escaped_note_content;
 
     EngineUI::EditNoteNode edit_note_node { escaped_note_content, title, case_note };
     SendEngineUIMessage(EngineUI::Type::EditNote, edit_note_node);
@@ -558,7 +565,7 @@ std::tuple<SharableString, bool> CEngineDriver::EditNote_pre77(std::shared_ptr<N
     // if the note was modified, update it
     if( escaped_note_content != original_escaped_note_content )
     {
-        SharableString modified_note_content = m_pIntDriver->ApplyV0Escapes(UTF8_TODO::GetUtf8(escaped_note_content), CIntDriver::V0_EscapeType::NewlinesToSlashN_Backslashes);
+        SharableString modified_note_content = m_pIntDriver->ApplyV0Escapes(escaped_note_content, CIntDriver::V0_EscapeType::NewlinesToSlashN_Backslashes);
 
         SetNote(named_reference, operator_id, modified_note_content, field_symbol, false);
 

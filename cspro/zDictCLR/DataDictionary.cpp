@@ -1,4 +1,4 @@
-﻿#include "Stdafx.h"
+#include "Stdafx.h"
 #include "DataDictionary.h"
 #include <zUtilO/FileExtensions.h>
 
@@ -86,12 +86,12 @@ bool DataDictionary::AllowExport::get()
 
 System::String^ DataDictionary::Note::get()
 {
-    return gcnew System::String(m_pNativeDict->GetNote());
+    return clr_helpers::to_SystemString(m_pNativeDict->GetNote());
 }
 
 void DataDictionary::Note::set(System::String^ note)
 {
-    m_pNativeDict->SetNote((CString)note);
+    m_pNativeDict->SetNote(clr_helpers::to_string(note));
 }
 
 int DataDictionary::RecordTypeStart::get()

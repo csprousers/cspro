@@ -1,4 +1,4 @@
-﻿//----------------------------------------------------------------------
+//----------------------------------------------------------------------
 //  Compissa.cpp
 //----------------------------------------------------------------------
 #include "StandardSystemIncludes.h"
@@ -11,74 +11,51 @@
 #include "CompIlad.h"
 #include "Engine.h"
 #include "Ctab.h"
-#include "Preprocessor.h"
-#include <zEngineO/JavaScriptProcessor.h>
-#include <zEngineO/StringWriter.h>
 #include <zToolsO/RaiiHelpers.h>
 #include <zAppO/Application.h>
 #include <zLogicO/LocalSymbolStack.h>
 #include <zLogicO/TextTemplateTokenizer.h>
+#include <zEngineO/JavaScriptProcessor.h>
+#include <zEngineO/StringWriter.h>
+#include <zEngineO/Compiler/EnginePreprocessor.h>
 #include <zCapiO/CapiCondition.h>
 #include <zCapiO/CapiLogicParameters.h>
 #include <zDesignerF/UWM.h>
 
 
-int CEngineCompFunc::rutasync(const int symbol_index, const std::function<void()>* const compilation_function/* = nullptr*/)
+int CEngineCompFunc::rutasync(const Symbol& compilation_symbol, const std::function<void()>* const compilation_function/* = nullptr*/)
 {
     clearSyntaxErrorStatus();
 
     m_allowMultVarWithoutIndex = false;
 
-    const Symbol& compilation_symbol = NPT_Ref(symbol_index);
-    SetCompilationSymbol(compilation_symbol);
-
     ObjInComp = compilation_symbol.GetType();
-    InCompIdx = symbol_index;
+    InCompIdx = compilation_symbol.GetSymbolIndex();
 
     LvlInComp = SymbolCalculator::GetLevelNumber_base1(compilation_symbol);
 
-    // preprocess the source buffer
-    if( m_preprocessor == nullptr )
-        m_preprocessor = std::make_unique<EnginePreprocessor>(*this, m_pEngineDriver);
-
-    m_preprocessor->ProcessBuffer();
-
-    // compile the source buffer
-    if( !m_engineData->logic_byte_code.EnlargeBufferForOneProc() )
-        ReportError(4);
-
-    try
-    {
-        if( compilation_function != nullptr )
+    const std::function<int()> rutasync_compilation_function =
+        [&]()
         {
-            (*compilation_function)();
-        }
+            if( compilation_function != nullptr )
+            {
+                (*compilation_function)();
+            }
 
-        else if( ObjInComp == SymbolType::Application )
-        {
-            CompileApplication();
-        }
+            else if( compilation_symbol.IsA(SymbolType::Application) )
+            {
+                CompileApplication();
+            }
 
-        else
-        {
-            CompileSymbolProcs();
-        }
-    }
+            else
+            {
+                CompileSymbolProcs();
+            }
 
-    catch( const Logic::ParserError& )
-    {
-        // the error should have already been reported
-    }
+            return -1;
+        };
 
-    catch( const CSProException& exception )
-    {
-        ReportError(MGF::OpenMessage, exception.what());
-    }
-
-    catch(...)
-    {
-        ASSERT(false);
-    }
+    CompileSourceBuffer(&compilation_symbol, &rutasync_compilation_function);
 
     return GetSyntErr();
 }
@@ -117,7 +94,7 @@ void CEngineCompFunc::CompileExternalCodeLogic(const CodeFile& code_file)
 
     try
     {
-        if( rutasync(Appl.GetSymbolIndex()) )
+        if( rutasync(Appl) )
             ReportError(GetSyntErr(), Path::GetFilename(code_file.GetFilePath()).c_str());
     }
     catch(...) { ASSERT(false); }
@@ -282,7 +259,7 @@ void CEngineCompFunc::CompileSymbolProcs()
         int proc_index = -1;
 
         if( Tkn != TOKPREPRO && Tkn != TOKONFOCUS && Tkn != TOKKILLFOCUS && Tkn != TOKPOSTPRO && Tkn != TOKONOCCCHANGE  && Tkn != TOKTALLY && Tkn != TOKPOSTCALC )
-            proc_index = instruc(false);
+            proc_index = CompileStatements(false);
 
         if( GetSyntErr() != 0 )
         {
@@ -355,7 +332,7 @@ int CEngineCompFunc::CompileCapiLogic(const CapiLogicParameters& capi_logic_para
             // whereas the question text is evaluated as a text template
             question_text_node_index =
                 std::holds_alternative<const CapiCondition*>(condition_or_text_or_token) ? exprlog() :
-                std::holds_alternative<const CapiText*>(condition_or_text_or_token)      ? instruc(false) :
+                std::holds_alternative<const CapiText*>(condition_or_text_or_token)      ? CompileStatements(false) :
                                                                                            CompileFillText();
 
             if( Tkn != TOKEOP || GetSyntErr() != 0 )
@@ -377,7 +354,7 @@ int CEngineCompFunc::CompileCapiLogic(const CapiLogicParameters& capi_logic_para
     {
         auto set_compilation_details = [&]()
         {
-            SetCompilationSymbol(*symbol);
+            SetCompilationSymbol(symbol);
             SetCapiLogicLocation(capi_logic_parameters.capi_logic_location);
         };
 
@@ -439,7 +416,7 @@ int CEngineCompFunc::CompileCapiLogic(const CapiLogicParameters& capi_logic_para
 
         set_compilation_details();
 
-        if( rutasync(symbol->GetSymbolIndex(), &compilation_function) )
+        if( rutasync(*symbol, &compilation_function) )
             ReportError(GetSyntErr());
     }
 

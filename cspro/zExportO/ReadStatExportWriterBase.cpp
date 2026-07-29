@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "ReadStatExportWriterBase.h"
 #include <zDictO/ValueSetResponse.h>
 
@@ -231,7 +231,7 @@ void ReadStatExportWriterBase::InitializeReadStatVariables()
                 if( label_set == nullptr )
                     label_set = readstat_add_label_set(m_readStatWriter, READSTAT_TYPE_DOUBLE, label_set_name.c_str());
 
-                readstat_label_double_value(label_set, value_to_add, UTF8_TODO::GetUtf8(response->GetLabel()).c_str());
+                readstat_label_double_value(label_set, value_to_add, response->GetLabel().c_str());
             }
         }
 
@@ -243,13 +243,13 @@ void ReadStatExportWriterBase::InitializeReadStatVariables()
 
             for( const auto& response : value_processor->GetResponses() )
             {
-                std::string value_to_add = UTF8_TODO::GetUtf8(response->GetCode());
+                std::string value_to_add = response->GetCode();
 
                 value_to_add.resize(GetStringWidth(*export_item_mapping.case_item), ' ');
 
                 readstat_label_string_value(label_set,
                                             value_to_add.c_str(),
-                                            UTF8_TODO::GetUtf8(response->GetLabel()).c_str());
+                                            response->GetLabel().c_str());
             }
         }
     }

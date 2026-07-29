@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zDictO/zDictO.h>
 
@@ -11,6 +11,10 @@ class ValueProcessor;
 #define CMD_CAPTURE_TYPE        L"CaptureType"
 #define CMD_CAPTURE_TYPE_DATE   L"CaptureDateFormat"
 
+
+// --------------------------------------------------------------------------
+// CaptureType
+// --------------------------------------------------------------------------
 
 enum class CaptureType : int
 {
@@ -33,6 +37,10 @@ enum class CaptureType : int
     LastDefined  = 13,
 };
 
+
+// --------------------------------------------------------------------------
+// CaptureInfo
+// --------------------------------------------------------------------------
 
 class CLASS_DECL_ZDICTO CaptureInfo
 {
@@ -85,7 +93,7 @@ public:
 
     // serialization
     // ------------------------------
-    void Build(CSpecFile& spec_file, const CString& argument);
+    void Build(CSpecFile& spec_file, std::string_view argument_sv);
     void Save(CSpecFile& spec_file, bool use_pre77_command_names) const;
 
     static CaptureInfo CreateFromJson(const JsonNode& json_node);
@@ -100,6 +108,10 @@ private:
 };
 
 
+
+// --------------------------------------------------------------------------
+// ExtendedCaptureInfo
+// --------------------------------------------------------------------------
 
 class ExtendedCaptureInfo
 {
@@ -126,6 +138,10 @@ protected:
 
 
 
+// --------------------------------------------------------------------------
+// DateCaptureInfo
+// --------------------------------------------------------------------------
+
 class CLASS_DECL_ZDICTO DateCaptureInfo : public ExtendedCaptureInfo
 {
     friend class CaptureInfo;
@@ -133,8 +149,8 @@ class CLASS_DECL_ZDICTO DateCaptureInfo : public ExtendedCaptureInfo
 public:
     bool operator==(const DateCaptureInfo& rhs) const;
 
-    const std::string& GetFormat() const       {  return m_format; }
-    void SetFormat(std::string_view format_sv) { m_format = SO::ToUpper(format_sv); }
+    const std::string& GetFormat() const { return m_format; }
+    void SetFormat(std::string format);
 
     static std::vector<const char*> GetPossibleFormats(const CDictItem& dict_item);
 
@@ -142,7 +158,7 @@ public:
 
     bool IsFormatValid(const CDictItem& dict_item) const;
 
-    bool IsResponseValid(const CString& date_text) const;
+    bool IsResponseValid(std::string_view date_text_sv) const;
 
 protected:
     static bool IsCaptureTypePossible(const CDictItem& dict_item);
@@ -169,15 +185,19 @@ private:
 
 
 
+// --------------------------------------------------------------------------
+// CheckBoxCaptureInfo
+// --------------------------------------------------------------------------
+
 class CLASS_DECL_ZDICTO CheckBoxCaptureInfo : public ExtendedCaptureInfo
 {
     friend class CaptureInfo;
 
     // only static methods for now
 public:
-    static bool IsResponseValid(const CString& checkbox_text, const ValueProcessor& value_processor);
+    static bool IsResponseValid(std::string_view checkbox_text_sv, const ValueProcessor& value_processor);
 
-    static CString GetResponseLabel(const CString& checkbox_text, const ValueProcessor& value_processor);
+    static std::string GetResponseLabel(std::string_view checkbox_text_sv, const ValueProcessor& value_processor);
 
 protected:
     // returns the length of a valid checkbox entry (or 0 if not possible)
@@ -185,5 +205,5 @@ protected:
 
 private:
     template<typename T>
-    static T SharedResponseProcessor(const CString& checkbox_text, const ValueProcessor& value_processor);
+    static T SharedResponseProcessor(std::string_view checkbox_text_sv, const ValueProcessor& value_processor);
 };

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zLogicO/Symbol.h>
 
@@ -34,11 +34,11 @@ public:
     void PrintFrequencies(size_t frequency_index, FrequencyPrinter& frequency_printer,
                           const std::string& frequency_name, const FrequencyPrinterOptions& frequency_printer_options);
 
-    double GetSingleFrequencyCounterCount(int var_node_index);
-    void SetSingleFrequencyCounterCount(int var_node_index, double count);
-    void ModifySingleFrequencyCounterCount(int var_node_index, const std::function<void(double&)>& modify_count_function);
-
     // these methods are marked virtual so that they are accessible from the zEngineO project, not because they will be overridden
+    virtual double GetSingleFrequencyCounterCount(int var_node_index);
+    virtual void SetSingleFrequencyCounterCount(int var_node_index, double count);
+    virtual void ModifySingleFrequencyCounterCount(int var_node_index, const std::function<void(double&)>& modify_count_function);
+
     virtual void CloneFrequencyInInitialState(NamedFrequency& cloned_named_frequency, size_t source_frequency_index);
 
     virtual void WriteJsonMetadata_subclass(const NamedFrequency& named_frequency, JsonWriter& json_writer) const;

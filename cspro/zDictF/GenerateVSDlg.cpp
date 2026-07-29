@@ -1,6 +1,6 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "GenerateVSDlg.h"
-#include <zDictO/ValueProcessor.h>
+#include <zDictO/NumericValueProcessor.h>
 
 
 BEGIN_MESSAGE_MAP(GenerateVSDlg, CDialog)
@@ -28,7 +28,7 @@ GenerateVSDlg::GenerateVSDlg(const CDataDict& dictionary, const CDictItem& dict_
 {
     ASSERT(IsNumeric(m_dictItem));
     const std::shared_ptr<const ValueProcessor> value_processor = ValueProcessor::CreateValueProcessor(m_dictItem);
-    const NumericValueProcessor* const numeric_value_processor = assert_cast<const NumericValueProcessor*>(value_processor.get());
+    const NumericValueProcessor& numeric_value_processor = assert_cast<const NumericValueProcessor&>(*value_processor);
 
     // Initialize Label and Name
     m_label = UTF8_TODO::GetUtf8(m_dictItem.GetLabel());
@@ -37,8 +37,8 @@ GenerateVSDlg::GenerateVSDlg(const CDataDict& dictionary, const CDictItem& dict_
     m_name = m_dictionary.GetUniqueName(m_name);
 
     // Calculate Min and Max values and Min Interval
-    m_minValue = numeric_value_processor->GetMinValue();
-    m_maxValue = numeric_value_processor->GetMaxValue();
+    m_minValue = numeric_value_processor.GetMinValue();
+    m_maxValue = numeric_value_processor.GetMaxValue();
     m_minInterval = pow(10.0, -1.0 * m_dictItem.GetDecimal());
 
     // Initialize To and Interval

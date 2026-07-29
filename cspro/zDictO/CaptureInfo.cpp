@@ -1,7 +1,8 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "CaptureInfo.h"
 #include "ValueProcessor.h"
 #include <zToolsO/Serializer.h>
+#include <zToolsO/Utf8.h>
 #include <zUtilO/SpecFile.h>
 
 
@@ -127,9 +128,9 @@ void CaptureInfo::SetCaptureType(const CaptureType capture_type)
 }
 
 
-void CaptureInfo::Build(CSpecFile& spec_file, const CString& argument)
+void CaptureInfo::Build(CSpecFile& spec_file, const std::string_view argument_sv)
 {
-    SetCaptureType(GetCaptureTypeFromSerializableName(UTF8_TODO::GetUtf8(argument)).value_or(CaptureType::Unspecified));
+    SetCaptureType(GetCaptureTypeFromSerializableName(argument_sv).value_or(CaptureType::Unspecified));
 
     if( m_extendedCaptureInfo != nullptr )
         m_extendedCaptureInfo->Build(spec_file);
@@ -321,7 +322,7 @@ CaptureInfo CaptureInfo::GetDefaultCaptureInfo(const CDictItem& dict_item)
             // length of the field doesn't match the checkbox length
             if( num_values >= 2 )
             {
-                unsigned checkbox_length = CheckBoxCaptureInfo::GetCheckBoxLength(dict_item, *dict_value_set);
+                const unsigned checkbox_length = CheckBoxCaptureInfo::GetCheckBoxLength(dict_item, *dict_value_set);
 
                 if( checkbox_length != 0 && checkbox_length != dict_item.GetLen() )
                     default_capture_type = CaptureType::CheckBox;
@@ -442,10 +443,10 @@ void CaptureInfo::Validate(const CDictItem& dict_item) const
 }
 
 
-CaptureInfo CaptureInfo::MakeValid(const CDictItem& dict_item, const DictValueSet* dict_value_set,
+CaptureInfo CaptureInfo::MakeValid(const CDictItem& dict_item, const DictValueSet* const dict_value_set,
                                    const bool get_capture_type_supported_on_current_platform/* = true*/) const
 {
-    bool has_value_set = ( dict_value_set != nullptr );
+    const bool has_value_set = ( dict_value_set != nullptr );
     size_t num_values = has_value_set ? dict_value_set->GetNumValues() : 0;
     size_t num_to_values = has_value_set ? dict_value_set->GetNumToValues() : 0;
     bool format_is_valid = false;
@@ -622,13 +623,20 @@ bool DateCaptureInfo::IsCaptureTypePossible(const CDictItem& dict_item)
     if( dict_item.GetContentType() == ContentType::Numeric ||
         dict_item.GetContentType() == ContentType::Alpha )
     {
-        int field_length = dict_item.GetLen();
+        const int field_length = dict_item.GetLen();
 
         return ( ( dict_item.GetDecimal() == 0 ) &&
                  ( field_length == 4 || field_length == 6 || field_length == 8 ) );
     }
 
     return false;
+}
+
+
+void DateCaptureInfo::SetFormat(std::string format)
+{
+    m_format = std::move(format);
+    SO::MakeUpper(m_format);
 }
 
 
@@ -702,9 +710,10 @@ void DateCaptureInfo::MakeValid(const CDictItem& dict_item)
 }
 
 
-bool DateCaptureInfo::IsResponseValid(const CString& date_text) const
+bool DateCaptureInfo::IsResponseValid(const std::string_view date_text_sv) const
 {
-   ASSERT(m_format.length() == static_cast<size_t>(date_text.GetLength()));
+   ASSERT(TC::UsesOnlyUtf8SingleByteChars(date_text_sv));
+   ASSERT(m_format.length() == date_text_sv.length());
 
     // use a leap year and a month with 31 days as the default values to
     // make this the most comprehensive when not all values are supplied
@@ -736,8 +745,9 @@ bool DateCaptureInfo::IsResponseValid(const CString& date_text) const
             numeric_component = &day;
         }
 
-        const CString component = date_text.Mid(date_index, component_length);
-        *numeric_component = static_cast<int>(CIMSAString::Val(component));
+        *numeric_component = static_cast<int>(CIMSAString::Val(
+            date_text_sv.substr(date_index, component_length)
+        ));
 
         if( numeric_component == &year && component_length == 2 )
             year += 1900;
@@ -762,7 +772,7 @@ unsigned CheckBoxCaptureInfo::GetCheckBoxLength(const CDictItem& dict_item, cons
 
     for( const DictValue& dict_value : dict_value_set.GetValues() )
     {
-        unsigned this_trimmed_length = SO::Trim(dict_value.GetValuePair(0).GetFrom()).length();
+        const unsigned this_trimmed_length = static_cast<unsigned>(SO::WideLength(SO::Trim(dict_value.GetValuePair(0).GetFrom())));
         bool length_is_valid;
 
         if( !trimmed_length.has_value() )
@@ -785,47 +795,45 @@ unsigned CheckBoxCaptureInfo::GetCheckBoxLength(const CDictItem& dict_item, cons
 
 
 template<typename T>
-T CheckBoxCaptureInfo::SharedResponseProcessor(const CString& checkbox_text, const ValueProcessor& value_processor)
+T CheckBoxCaptureInfo::SharedResponseProcessor(std::string_view checkbox_text_sv, const ValueProcessor& value_processor)
 {
     // for IsResponseValid, T will be bool
     // for GetResponseLabel, T will be std::vector<const DictValue*>
 
-    ASSERT(value_processor.GetDictItem().GetContentType() == ContentType::Alpha &&
+    ASSERT(value_processor.GetDictItem() != nullptr &&
+           value_processor.GetDictItem()->GetContentType() == ContentType::Alpha &&
            value_processor.GetDictValueSet() != nullptr);
 
-    int checkbox_length = CString(value_processor.GetDictValueSet()->GetValue(0).GetValuePair(0).GetFrom()).Trim().GetLength();
-    ASSERT(checkbox_length == static_cast<int>(CheckBoxCaptureInfo::GetCheckBoxLength(value_processor.GetDictItem(), *value_processor.GetDictValueSet())));
-    ASSERT(checkbox_text.GetLength() % checkbox_length == 0);
+    const size_t checkbox_length = SO::WideLength(SO::Trim(value_processor.GetDictValueSet()->GetValue(0).GetValuePair(0).GetFrom()));
+    ASSERT(checkbox_length == CheckBoxCaptureInfo::GetCheckBoxLength(*value_processor.GetDictItem(), *value_processor.GetDictValueSet()));
+    ASSERT(SO::WideLength(checkbox_text_sv) % checkbox_length == 0);
 
     std::vector<const DictValue*> selected_values;
 
-    for( const wchar_t* checkbox_itr = checkbox_text; *checkbox_itr != 0; checkbox_itr += checkbox_length )
+    while( !checkbox_text_sv.empty() )
     {
+        const size_t checkbox_end_pos = SO::WideGetOffset(checkbox_text_sv, checkbox_length);
+        const std::string_view checkbox_value_sv = checkbox_text_sv.substr(0, checkbox_end_pos);
+        ASSERT(SO::WideLength(checkbox_value_sv) == checkbox_length);
+
+        // advance to the next checkbox value prior to processing, as continue is used below
+        checkbox_text_sv = checkbox_text_sv.substr(checkbox_end_pos);
+
         // only check non-blank values
-        bool has_non_blank_values = false;
-
-        for( int i = 0; i < checkbox_length; ++i )
-        {
-            if( checkbox_itr[i] != ' ' )
-            {
-                has_non_blank_values = true;
-                break;
-            }
-        }
-
-        if( !has_non_blank_values )
+        if( SO::IsBlank(checkbox_value_sv) )
             continue;
 
-        CString component(checkbox_itr, checkbox_length);
-
-        const DictValue* selected_value = value_processor.GetDictValue(component);
+        const DictValue* const selected_value = value_processor.GetDictValue(checkbox_value_sv);
 
         // IsResponseValid processing
         if constexpr(std::is_same_v<T, bool>)
         {
             // don't allow duplicate selections
-            if( selected_value == nullptr || std::find(selected_values.cbegin(), selected_values.cend(), selected_value) != selected_values.cend() )
+            if( selected_value == nullptr ||
+                std::find(selected_values.cbegin(), selected_values.cend(), selected_value) != selected_values.cend() )
+            {
                 return false;
+            }
         }
 
         selected_values.emplace_back(selected_value);
@@ -845,28 +853,23 @@ T CheckBoxCaptureInfo::SharedResponseProcessor(const CString& checkbox_text, con
 }
 
 
-bool CheckBoxCaptureInfo::IsResponseValid(const CString& checkbox_text, const ValueProcessor& value_processor)
+bool CheckBoxCaptureInfo::IsResponseValid(const std::string_view checkbox_text_sv, const ValueProcessor& value_processor)
 {
-    return SharedResponseProcessor<bool>(checkbox_text, value_processor);
+    return SharedResponseProcessor<bool>(checkbox_text_sv, value_processor);
 }
 
 
-CString CheckBoxCaptureInfo::GetResponseLabel(const CString& checkbox_text, const ValueProcessor& value_processor)
+std::string CheckBoxCaptureInfo::GetResponseLabel(const std::string_view checkbox_text_sv, const ValueProcessor& value_processor)
 {
-    std::vector<const DictValue*> selected_values =
-        SharedResponseProcessor<std::vector<const DictValue*>>(checkbox_text, value_processor);
+    const std::vector<const DictValue*> selected_values =
+        SharedResponseProcessor<std::vector<const DictValue*>>(checkbox_text_sv, value_processor);
 
-    CString checkbox_label;
+    std::string checkbox_label;
 
-    for( const DictValue* dict_value : selected_values )
+    for( const DictValue* const dict_value : selected_values )
     {
         if( dict_value != nullptr )
-        {
-            if( !checkbox_label.IsEmpty() )
-                checkbox_label.Append(L", ");
-
-            checkbox_label.Append(dict_value->GetLabel());
-        }
+            SO::AppendWithSeparator(checkbox_label, UTF8_TODO::GetUtf8(dict_value->GetLabel()), ", ");
     }
 
     return checkbox_label;

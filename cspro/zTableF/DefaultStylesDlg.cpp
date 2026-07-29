@@ -1,4 +1,4 @@
-﻿//***************************************************************************
+//***************************************************************************
 //  File name: DefaultStylesDlg.cpp
 //
 //  Description:
@@ -89,7 +89,7 @@ CDefaultStylesDlg::CDefaultStylesDlg(CFmtReg& fmtReg,CTabView* pTabView)
     m_varTallyFmtDlgR.m_dVarMin = DBL_MIN;
     m_varTallyFmtDlgR.m_dVarMaxDefault = 100;
     m_varTallyFmtDlgR.m_dVarMinDefault = 100;
-    m_varTallyFmtDlgR.m_sDefaultPropRange = _T("1");
+    m_varTallyFmtDlgR.m_defaultPropRange = "1";
     m_varTallyFmtDlgR.Create(CTallyVarDlg::IDD, this);
 
     AddPage(&m_varTallyFmtDlgR, _T("Tally Attributes (Row)"));
@@ -101,7 +101,7 @@ CDefaultStylesDlg::CDefaultStylesDlg(CFmtReg& fmtReg,CTabView* pTabView)
     m_varTallyFmtDlgC.m_dVarMin = DBL_MIN;
     m_varTallyFmtDlgC.m_dVarMaxDefault = 100;
     m_varTallyFmtDlgC.m_dVarMinDefault = 100;
-    m_varTallyFmtDlgC.m_sDefaultPropRange = _T("1");
+    m_varTallyFmtDlgC.m_defaultPropRange = "1";
     AddPage(&m_varTallyFmtDlgC, _T("Tally Attributes (Column)"));
 
     // Application format page

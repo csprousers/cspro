@@ -1,4 +1,4 @@
-﻿#include "StandardSystemIncludes.h"
+#include "StandardSystemIncludes.h"
 #include "VarX.h"
 
 #ifdef WIN_DESKTOP
@@ -157,7 +157,7 @@ bool CExport::ExportAddDictRecord(CDataDict* pDataDict, CString csFileName, CStr
 
         if( iNewLevel == 1 ) {
             pDataDict->SetName(UTF8_TODO::GetUtf8(sFile) + "_DICT");
-            pDataDict->SetNote(_T(""));
+            pDataDict->SetNote(std::string());
 
             int     iRecTypeStart = 0;
             int     iRecTypeLen = m_pHeadNode->m_iLenRecId;
@@ -198,33 +198,25 @@ bool CExport::ExportAddDictRecord(CDataDict* pDataDict, CString csFileName, CStr
     if( SO::IsBlank(pDictRecord->GetLabel()) ) // 20120504 added this condition so that labels from the input dictionary aren't overwritten
         pDictRecord->SetLabel(UTF8_TODO::GetCString(pDictRecord->GetName())); // + " record" );
 
-    pDictRecord->SetRecTypeVal( m_pszSectionCode );
+    pDictRecord->SetRecTypeVal(UTF8_TODO::GetUtf8(m_pszSectionCode));
 
     pDictRecord->SetDataDict( pDataDict );
     //pDictRecord->SetRecLen:
     //pDictRecord->SetRequired: Default is true
     //pDictRecord->SetMaxRecs: Already filled
     // Add in notes from merged records
-    if (m_mapRecNotes.GetCount() == 1) {
+    if (m_mapRecNotes.size() == 1) {
         // only 1 record, just copy note
-        pDictRecord->SetNote(m_mapRecNotes.PGetFirstAssoc()->value);
-    } else if (m_mapRecNotes.GetCount() > 1) {
+        pDictRecord->SetNote(m_mapRecNotes.cbegin()->second);
+    } else if (m_mapRecNotes.size() > 1) {
         // merge notes from multiple records
-        POSITION pos = m_mapRecNotes.GetStartPosition();
-        CIMSAString sMergedNote;
-        while (pos != NULL)
-        {
-            CString sRecName;
-            CString sNote;
-            m_mapRecNotes.GetNextAssoc( pos, sRecName, sNote );
-            if (pos != m_mapRecNotes.GetStartPosition()) {
-                sMergedNote += _T("\n\n");
-            }
-            sMergedNote += sRecName + _T("\n") + sNote;
+        std::string merged_note;
+        for( const auto& [record_name, note] : m_mapRecNotes ) {
+            SO::AppendWithSeparator(merged_note, record_name + "\n" + note, "\n\n");
         }
-        pDictRecord->SetNote(sMergedNote);
+        pDictRecord->SetNote(std::move(merged_note));
     } else {
-        pDictRecord->SetNote(CIMSAString());
+        pDictRecord->SetNote(std::string());
     }
 
     DictLevel& dict_level = pDataDict->GetLevel(iNewLevel - 1);
@@ -235,20 +227,21 @@ bool CExport::ExportAddDictRecord(CDataDict* pDataDict, CString csFileName, CStr
     return bRet;
 }
 
-void CExport::ExportGenRecNameAndType( CDataDict* pDataDict ) {
-    int     iMaxRecTypeVal=0;
-    int     iDummy=0;
-    CMap<CString,LPCTSTR,int,int>   aUsedRecTypes;
+void CExport::ExportGenRecNameAndType( CDataDict* pDataDict )
+{
+    size_t max_rec_type_length = 0;
+    std::set<std::string> used_rec_types;
 
-    // Calculate iMaxRecords and the max length for the record type (iMaxRecTypeVal)
+    // Calculate iMaxRecords and the max length for the record type (iMaxRecTypeVal ... now max_rec_type_length)
     int iMaxRecords=0;
     for( const DictLevel& dict_level : pDataDict->GetLevels() ) {
         for( int iRecord=0; iRecord < dict_level.GetNumRecords(); iRecord++ ) {
             const CDictRecord* pDictRecord = dict_level.GetRecord(iRecord);
 
-            if( !SO::IsBlank(pDictRecord->GetRecTypeVal()) ) {
-                iMaxRecTypeVal = std::max( iMaxRecTypeVal, pDictRecord->GetRecTypeVal().GetLength() );
-                aUsedRecTypes.SetAt(pDictRecord->GetRecTypeVal(), iDummy );
+            if( !SO::IsBlank(pDictRecord->GetRecTypeVal()) )
+            {
+                max_rec_type_length = std::max(max_rec_type_length, SO::WideLength(pDictRecord->GetRecTypeVal()));
+                used_rec_types.insert(pDictRecord->GetRecTypeVal());
             }
 
             iMaxRecords++;
@@ -278,20 +271,20 @@ void CExport::ExportGenRecNameAndType( CDataDict* pDataDict ) {
 
             // Generate a record type
             if( SO::IsBlank(pDictRecord->GetRecTypeVal()) && iMaxRecords > 1 ) { // RHF Nov 09, 2004 Add iMaxRecords > 1
-                CString csRecordType;
+                std::string record_type;
 
                 // Try to insert the record name
                 for( int iCheckRecType=iMinRecordType;;iCheckRecType++ ) {
-                    csRecordType.Format( _T("%0*d"), IntToStringLength(iMaxRecTypeVal), iCheckRecType );
+                    record_type = FormatText("%0*d", IntToStringLength(int32_cast(max_rec_type_length)), iCheckRecType);
 
                     iMinRecordType++;
-                    if( !aUsedRecTypes.Lookup( csRecordType, iDummy) )
+                    if( used_rec_types.find(record_type) == used_rec_types.cend() )
                         break;
                 }
 
-                aUsedRecTypes.SetAt( csRecordType, iDummy);
+                used_rec_types.insert(record_type);
 
-                pDictRecord->SetRecTypeVal( csRecordType );
+                pDictRecord->SetRecTypeVal(std::move(record_type));
             }
         }
     }

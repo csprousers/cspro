@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "ResponseProcessor.h"
 #include <zToolsO/Special.h>
 #include <zToolsO/VectorHelpers.h>
@@ -19,7 +19,9 @@ ResponseProcessor::ResponseProcessor(std::shared_ptr<const ValueProcessor> value
         m_filteredResponsesHaveRangesRemoved(false),
         m_responsesNeedResetting(false)
 {
-    switch( m_valueProcessor->GetDictItem().GetContentType() )
+    ASSERT(m_valueProcessor->GetDictItem() != nullptr);
+
+    switch( m_valueProcessor->GetDictItem()->GetContentType() )
     {
         case ContentType::Numeric:
             m_valueSetContainsNotApplOrBlank = m_valueProcessor->IsValid(NOTAPPL);
@@ -27,7 +29,7 @@ ResponseProcessor::ResponseProcessor(std::shared_ptr<const ValueProcessor> value
             break;
 
         case ContentType::Alpha:
-            m_valueSetContainsNotApplOrBlank = m_valueProcessor->IsValid(CString());
+            m_valueSetContainsNotApplOrBlank = m_valueProcessor->IsValid(std::string_view());
             break;
 
         default:
@@ -44,9 +46,9 @@ const std::vector<std::shared_ptr<const ValueSetResponse>>& ResponseProcessor::G
 }
 
 
-void ResponseProcessor::ShowRefusedValue(bool show_refused_value)
+void ResponseProcessor::ShowRefusedValue(const bool show_refused_value)
 {
-    ASSERT(m_valueProcessor->GetDictItem().GetContentType() == ContentType::Numeric);
+    ASSERT(m_valueProcessor->GetDictItem()->GetContentType() == ContentType::Numeric);
 
     if( m_filteredResponsesShowRefusedOverride )
     {
@@ -63,6 +65,7 @@ void ResponseProcessor::ShowRefusedValue(bool show_refused_value)
     }
 }
 
+
 void ResponseProcessor::AlwaysShowRefusedValue()
 {
     ASSERT(IsRefusedValueHidden());
@@ -72,9 +75,9 @@ void ResponseProcessor::AlwaysShowRefusedValue()
 }
 
 
-void ResponseProcessor::ApplyCaptureTypeProperties(CaptureType capture_type)
+void ResponseProcessor::ApplyCaptureTypeProperties(const CaptureType capture_type)
 {
-    bool saved_filtered_responses_have_blanks_removed = m_filteredResponsesHaveBlanksRemoved;
+    const bool saved_filtered_responses_have_blanks_removed = m_filteredResponsesHaveBlanksRemoved;
 
     m_filteredResponsesHaveBlanksRemoved = ( capture_type == CaptureType::ToggleButton && m_valueSetContainsNotApplOrBlank );
 
@@ -83,9 +86,9 @@ void ResponseProcessor::ApplyCaptureTypeProperties(CaptureType capture_type)
 }
 
 
-void ResponseProcessor::RemoveRangeResponses(bool remove_range_responses)
+void ResponseProcessor::RemoveRangeResponses(const bool remove_range_responses)
 {
-    ASSERT(m_valueProcessor->GetDictItem().GetContentType() == ContentType::Numeric);
+    ASSERT(m_valueProcessor->GetDictItem()->GetContentType() == ContentType::Numeric);
 
     if( remove_range_responses != m_filteredResponsesHaveRangesRemoved )
     {
@@ -94,7 +97,7 @@ void ResponseProcessor::RemoveRangeResponses(bool remove_range_responses)
         {
             m_valueSetContainsRanges = false;
 
-            for( const auto& response : m_responses )
+            for( const std::shared_ptr<const ValueSetResponse>& response : m_responses )
             {
                 if( !response->IsDiscrete() )
                 {
@@ -113,35 +116,38 @@ void ResponseProcessor::RemoveRangeResponses(bool remove_range_responses)
 }
 
 
-void ResponseProcessor::SetCanEnterNotAppl(bool add_notappl)
+void ResponseProcessor::SetCanEnterNotAppl(const bool add_notappl)
 {
-    ASSERT(m_valueProcessor->GetDictItem().GetContentType() == ContentType::Numeric);
+    ASSERT(m_valueProcessor->GetDictItem()->GetContentType() == ContentType::Numeric);
 
-    // if notappl is already in the value set, there is no need to add it
-    if( m_valueSetContainsNotApplOrBlank )
-        return;
-
-    if( add_notappl != ( m_addedNotApplResponse != nullptr ) )
+    // if notappl is already in the value set, or it has already been added,
+    // there is no need to add it
+    if( ( m_valueSetContainsNotApplOrBlank ) ||
+        ( add_notappl == ( m_addedNotApplResponse != nullptr ) ) )
     {
-        if( m_addedNotApplResponse == nullptr )
-        {
-            const SharableString notappl_text = MGF::GetMessageText(110005, "Not Applicable");
-            m_addedNotApplResponse = std::make_unique<ValueSetResponse>(UTF8_TODO::GetCString(*notappl_text), NOTAPPL);
-        }
-
-        else
-        {
-            m_addedNotApplResponse.reset();
-        }
-
-        GenerateFilteredResponses();
+        return;
     }
+
+    if( m_addedNotApplResponse == nullptr )
+    {
+        m_addedNotApplResponse = std::make_unique<ValueSetResponse>(
+            MGF::GetMessageText(110005, "Not Applicable"),
+            NOTAPPL
+        );
+    }
+
+    else
+    {
+        m_addedNotApplResponse.reset();
+    }
+
+    GenerateFilteredResponses();
 }
 
 
 size_t ResponseProcessor::GetValueSetResponseIndex(const DictValue& dict_value) const
 {
-    const auto& responses = GetResponses();
+    const std::vector<std::shared_ptr<const ValueSetResponse>>& responses = GetResponses();
 
     for( size_t i = 0; i < responses.size(); ++i )
     {
@@ -154,9 +160,10 @@ size_t ResponseProcessor::GetValueSetResponseIndex(const DictValue& dict_value) 
     return SIZE_MAX;
 }
 
-size_t ResponseProcessor::GetResponseIndex(const CString& value) const
+
+size_t ResponseProcessor::GetResponseIndex(const std::string_view value_sv) const
 {
-    const DictValue* response_dict_value = m_valueProcessor->GetDictValueFromInput(value);
+    const DictValue* const response_dict_value = m_valueProcessor->GetDictValueFromInput(value_sv);
 
     // if found, get the index of the response
     if( response_dict_value != nullptr )
@@ -165,9 +172,9 @@ size_t ResponseProcessor::GetResponseIndex(const CString& value) const
     // if the value is an added notappl, return the index of that
     if( m_addedNotApplResponse != nullptr )
     {
-        if( SO::IsBlank(value) )
+        if( SO::IsBlank(value_sv) )
         {
-            const auto& responses = GetResponses();
+            const std::vector<std::shared_ptr<const ValueSetResponse>>& responses = GetResponses();
             return responses.size() - 1;
         }
     }
@@ -177,12 +184,12 @@ size_t ResponseProcessor::GetResponseIndex(const CString& value) const
 }
 
 
-std::shared_ptr<const ValueSetResponse> ResponseProcessor::GetValueSetResponseFromIndex(size_t index) const
+std::shared_ptr<const ValueSetResponse> ResponseProcessor::GetValueSetResponseFromIndex(const size_t index) const
 {
-    const auto& responses = GetResponses();
+    const std::vector<std::shared_ptr<const ValueSetResponse>>& responses = GetResponses();
     ASSERT(index < responses.size());
 
-    const auto& response = responses[index];
+    const std::shared_ptr<const ValueSetResponse>& response = responses[index];
 
     if( !response->IsDiscrete() )
         throw ResponseProcessor::SelectionError();
@@ -190,10 +197,11 @@ std::shared_ptr<const ValueSetResponse> ResponseProcessor::GetValueSetResponseFr
     return response;
 }
 
-CString ResponseProcessor::GetInputFromResponseIndex(size_t index) const
+
+std::string ResponseProcessor::GetInputFromResponseIndex(const size_t index) const
 {
-    const auto& response = GetValueSetResponseFromIndex(index);
-    ContentType content_type = m_valueProcessor->GetDictItem().GetContentType();
+    const std::shared_ptr<const ValueSetResponse>& response = GetValueSetResponseFromIndex(index);
+    const ContentType content_type = m_valueProcessor->GetDictItem()->GetContentType();
 
     if( content_type == ContentType::Numeric )
     {
@@ -211,10 +219,11 @@ CString ResponseProcessor::GetInputFromResponseIndex(size_t index) const
     }
 }
 
-double ResponseProcessor::GetNumericInputFromResponseIndex(size_t index) const
+
+double ResponseProcessor::GetNumericInputFromResponseIndex(const size_t index) const
 {
-    ASSERT(m_valueProcessor->GetDictItem().GetContentType() == ContentType::Numeric);
-    const auto& response = GetValueSetResponseFromIndex(index);
+    ASSERT(m_valueProcessor->GetDictItem()->GetContentType() == ContentType::Numeric);
+    const std::shared_ptr<const ValueSetResponse>& response = GetValueSetResponseFromIndex(index);
     return response->GetMinimumValue();
 }
 
@@ -226,18 +235,24 @@ void ResponseProcessor::DoCheckboxCalculations() const
 
     m_checkboxCalculations = CheckboxCalculations { 1, 0 };
 
-    for( const auto& response : GetResponses() )
-        m_checkboxCalculations->checkbox_width = std::max(m_checkboxCalculations->checkbox_width, response->GetCode().GetLength());
+    for( const std::shared_ptr<const ValueSetResponse>& response : GetResponses() )
+    {
+        m_checkboxCalculations->checkbox_width = std::max(
+            m_checkboxCalculations->checkbox_width,
+            SO::WideLength(response->GetCode())
+        );
+    }
 
-    m_checkboxCalculations->max_selections = m_valueProcessor->GetDictItem().GetLen() / m_checkboxCalculations->checkbox_width;
+    m_checkboxCalculations->max_selections = m_valueProcessor->GetDictItem()->GetLen() / m_checkboxCalculations->checkbox_width;
 }
 
 
-int ResponseProcessor::GetCheckboxWidth() const
+size_t ResponseProcessor::GetCheckboxWidth() const
 {
     DoCheckboxCalculations();
     return m_checkboxCalculations->checkbox_width;
 }
+
 
 size_t ResponseProcessor::GetCheckboxMaxSelections() const
 {
@@ -245,30 +260,36 @@ size_t ResponseProcessor::GetCheckboxMaxSelections() const
     return m_checkboxCalculations->max_selections;
 }
 
-std::vector<size_t> ResponseProcessor::GetCheckboxResponseIndices(const CString& value) const
+
+std::vector<size_t> ResponseProcessor::GetCheckboxResponseIndices(std::string_view value_sv) const
 {
     DoCheckboxCalculations();
-    ASSERT(value.GetLength() <= (int)m_valueProcessor->GetDictItem().GetLen());
+    ASSERT(SO::WideLength(value_sv) <= m_valueProcessor->GetDictItem()->GetLen());
 
     std::vector<size_t> indices;
     bool sort_indices = false;
     size_t last_index = 0;
 
-    for( int i = 0; i < value.GetLength(); i += m_checkboxCalculations->checkbox_width )
+    while( !value_sv.empty() )
     {
-        CString this_value = value.Mid(i, m_checkboxCalculations->checkbox_width);
+        const size_t checkbox_end_pos = SO::WideGetOffset(value_sv, m_checkboxCalculations->checkbox_width);
+        const std::string_view checkbox_value_sv = value_sv.substr(0, checkbox_end_pos);
+        ASSERT(SO::WideLength(checkbox_value_sv) == m_checkboxCalculations->checkbox_width);
 
-        const DictValue* response_dict_value = m_valueProcessor->GetDictValueFromInput(this_value);
+        // advance to the next checkbox value prior to processing, as continue is used below
+        value_sv = value_sv.substr(checkbox_end_pos);
+
+        const DictValue* const response_dict_value = m_valueProcessor->GetDictValueFromInput(checkbox_value_sv);
 
         if( response_dict_value != nullptr )
         {
-            size_t index = GetValueSetResponseIndex(*response_dict_value);
+            const size_t index = GetValueSetResponseIndex(*response_dict_value);
 
             // make sure that the indices are in sorted order
             if( index <= last_index && !indices.empty() )
             {
                 // prevent duplicate checkbox codes from resulting in multiple entries in indices
-                if( std::find(indices.begin(), indices.end(), index) != indices.end() )
+                if( std::find(indices.cbegin(), indices.cend(), index) != indices.cend() )
                     continue;
 
                 sort_indices = true;
@@ -287,20 +308,21 @@ std::vector<size_t> ResponseProcessor::GetCheckboxResponseIndices(const CString&
     return indices;
 }
 
-CString ResponseProcessor::GetInputFromCheckboxIndices(const std::vector<size_t>& indices) const
+
+std::string ResponseProcessor::GetInputFromCheckboxIndices(const std::vector<size_t>& indices) const
 {
     DoCheckboxCalculations();
     ASSERT(indices.size() <= m_checkboxCalculations->max_selections);
 
-    const auto& responses = GetResponses();
+    const std::vector<std::shared_ptr<const ValueSetResponse>>& responses = GetResponses();
 
-    CString checkbox_string;
+    std::string checkbox_string;
 
     for( const size_t& index : indices )
     {
-        CIMSAString this_value = responses[index]->GetCode();
-        this_value.MakeExactLength(m_checkboxCalculations->checkbox_width);
-        checkbox_string = checkbox_string + this_value;
+        std::string this_value = responses[index]->GetCode();
+        SO::WideMakeExactLength(this_value, m_checkboxCalculations->checkbox_width);
+        checkbox_string.append(this_value);
     }
 
     return checkbox_string;
@@ -351,9 +373,9 @@ void ResponseProcessor::RandomizeResponses(const std::set<const DictValue*>& val
 }
 
 
-void ResponseProcessor::SortResponses(bool ascending, bool sort_by_label)
+void ResponseProcessor::SortResponses(const bool ascending, const bool sort_by_label)
 {
-    ContentType content_type = m_valueProcessor->GetDictItem().GetContentType();
+    const ContentType content_type = m_valueProcessor->GetDictItem()->GetContentType();
 
     std::sort(m_responses.begin(), m_responses.end(),
         [&](const auto& response1, const auto& response2)
@@ -362,7 +384,7 @@ void ResponseProcessor::SortResponses(bool ascending, bool sort_by_label)
 
             if( sort_by_label )
             {
-                comparison = response1->GetLabel().CompareNoCase(response2->GetLabel());
+                comparison = SO::CompareNoCase(response1->GetLabel(), response2->GetLabel());
             }
 
             else if( content_type == ContentType::Numeric )
@@ -372,7 +394,7 @@ void ResponseProcessor::SortResponses(bool ascending, bool sort_by_label)
 
             else if( content_type == ContentType::Alpha )
             {
-                comparison = response1->GetCode().Compare(response2->GetCode());
+                comparison = response1->GetCode().compare(response2->GetCode());
             }
 
             else
@@ -402,11 +424,11 @@ void ResponseProcessor::GenerateFilteredResponses()
 
 
     // numeric items
-    if( m_valueProcessor->GetDictItem().GetContentType() == ContentType::Numeric )
+    if( m_valueProcessor->GetDictItem()->GetContentType() == ContentType::Numeric )
     {
         m_filteredResponses = std::make_unique<std::vector<std::shared_ptr<const ValueSetResponse>>>();
 
-        for( const auto& response : m_responses )
+        for( const std::shared_ptr<const ValueSetResponse>& response : m_responses )
         {
             // filter refused
             if( !m_filteredResponsesShowRefused && response->GetMinimumValue() == REFUSED )
@@ -430,11 +452,11 @@ void ResponseProcessor::GenerateFilteredResponses()
 
 
     // string items
-    else if( m_valueProcessor->GetDictItem().GetContentType() == ContentType::Alpha )
+    else if( m_valueProcessor->GetDictItem()->GetContentType() == ContentType::Alpha )
     {
         m_filteredResponses = std::make_unique<std::vector<std::shared_ptr<const ValueSetResponse>>>();
 
-        for( const auto& response : m_responses )
+        for( const std::shared_ptr<const ValueSetResponse>& response : m_responses )
         {
             // filter blanks
             if( m_filteredResponsesHaveBlanksRemoved && SO::IsBlank(response->GetCode()) )

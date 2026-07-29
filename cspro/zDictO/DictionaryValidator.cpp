@@ -1,4 +1,4 @@
-﻿//***************************************************************************
+//***************************************************************************
 //  File name: DDRules.cpp
 //
 //  Description:
@@ -19,8 +19,6 @@
 
 namespace
 {
-    constexpr int MAX_NOTE_LEN = 32000;
-
     CString csMsg; // global for speed; holds string table lookups
 
     CString GetErrorName(const DictNamedBase& dict_element)
@@ -523,7 +521,7 @@ bool DictionaryValidator::CheckRecTypeLen(CDataDict* pDict)
             DictionaryIterator::Foreach<CDictRecord>(*pDict,
                 [&](const CDictRecord& dict_record)
                 {
-                    iRTLen = std::max(iRTLen, dict_record.GetRecTypeVal().GetLength());
+                    iRTLen = std::max<int>(iRTLen, SO::WideLength(dict_record.GetRecTypeVal()));
                 });
             if (iRTLen == 0) {
                 iRTLen = IntToStringLength(num_records);
@@ -799,7 +797,7 @@ bool DictionaryValidator::IsValid(CDictRecord* pRec,
             m_iInvalidEdit = INT_MAX;
         }
     }
-    if (!CheckRecTypeVal(pRec))  {
+    if (!CheckRecTypeVal(*pRec))  {
         if (m_iInvalidEdit == NONE)  {
             m_iInvalidEdit = 3;
         }
@@ -953,10 +951,10 @@ bool DictionaryValidator::CheckName(CDictRecord* pRec)
 //
 /////////////////////////////////////////////////////////////////////////////
 
-bool DictionaryValidator::CheckRecTypeVal(CDictRecord* pRec)
+bool DictionaryValidator::CheckRecTypeVal(CDictRecord& dict_record)
 {
     bool bValid = true;
-    CIMSAString csRecTypeVal = pRec->GetRecTypeVal();
+    CIMSAString csRecTypeVal = UTF8_TODO::GetCString(dict_record.GetRecTypeVal());
     UINT uRTLen = m_pDict->GetRecTypeLen();
 
     // A Level Id record (COMMON) does not have a value
@@ -969,9 +967,9 @@ bool DictionaryValidator::CheckRecTypeVal(CDictRecord* pRec)
         if (csRecTypeVal.IsEmpty())  {
             bValid = false;
             csMsg = IDS_RULE_MSG221;
-            m_csErrorReport += GetErrorName(*pRec) + csMsg + CRLF;
+            m_csErrorReport += GetErrorName(dict_record) + csMsg + CRLF;
             if (m_bAutoFixAndRecurse)  {
-                pRec->SetRecTypeVal(GetDefaultRecTypeVal());
+                dict_record.SetRecTypeVal(GetDefaultRecTypeVal());
             }
         }
     }
@@ -979,7 +977,7 @@ bool DictionaryValidator::CheckRecTypeVal(CDictRecord* pRec)
     if ((UINT) csRecTypeVal.GetLength() != uRTLen)  {
         bValid = false;
         csMsg.Format(IDS_RULE_MSG222, (int)uRTLen);
-        m_csErrorReport += GetErrorName(*pRec) + csMsg + CRLF;
+        m_csErrorReport += GetErrorName(dict_record) + csMsg + CRLF;
         if (m_bAutoFixAndRecurse)  {
             if (uRTLen == 0)  {
                 // adjust the RTLen
@@ -989,7 +987,7 @@ bool DictionaryValidator::CheckRecTypeVal(CDictRecord* pRec)
             }
             else  {
                 // adjust the RT value
-                pRec->SetRecTypeVal(csRecTypeVal.AdjustLenLeft(m_pDict->GetRecTypeLen(), ZERO));
+                dict_record.SetRecTypeVal(UTF8_TODO::GetUtf8(csRecTypeVal.AdjustLenLeft(m_pDict->GetRecTypeLen(), ZERO)));
             }
         }
     }
@@ -998,9 +996,9 @@ bool DictionaryValidator::CheckRecTypeVal(CDictRecord* pRec)
         if (!csRecTypeVal.IsEmpty() && csRecTypeVal[0] == '~') {
             bValid = false;
             csMsg = IDS_RULE_MSG224;
-            m_csErrorReport += GetErrorName(*pRec) + csMsg + CRLF;
+            m_csErrorReport += GetErrorName(dict_record) + csMsg + CRLF;
             if (m_bAutoFixAndRecurse)  {
-                pRec->SetRecTypeVal(GetDefaultRecTypeVal());
+                dict_record.SetRecTypeVal(GetDefaultRecTypeVal());
             }
         }
     }
@@ -1008,13 +1006,13 @@ bool DictionaryValidator::CheckRecTypeVal(CDictRecord* pRec)
     for( size_t level_number = 0; level_number < m_pDict->GetNumLevels(); ++level_number ) {
         DictLevel& dict_level = m_pDict->GetLevel(level_number);
         for (int r = 0 ; r < dict_level.GetNumRecords() ; r++) {
-            CString csTemp = dict_level.GetRecord(r)->GetRecTypeVal();
+            CString csTemp = UTF8_TODO::GetCString(dict_level.GetRecord(r)->GetRecTypeVal());
             if (csTemp == csRecTypeVal && ((int)level_number != m_iLevelNum || r != m_iRecordNum)) {
                 bValid = false;
                 csMsg = IDS_RULE_MSG225;
-                m_csErrorReport += GetErrorName(*pRec) + csMsg + CRLF;
+                m_csErrorReport += GetErrorName(dict_record) + csMsg + CRLF;
                 if (m_bAutoFixAndRecurse)  {
-                    pRec->SetRecTypeVal(GetDefaultRecTypeVal());
+                    dict_record.SetRecTypeVal(GetDefaultRecTypeVal());
                 }
             }
         }
@@ -2358,7 +2356,7 @@ bool DictionaryValidator::CheckLabel(DictValue& dict_value)
     // Missing From value
     if (!dict_value.GetLabel().IsEmpty()) {
         ASSERT(dict_value.HasValuePairs());
-        if (dict_value.GetValuePair(0).GetFrom().IsEmpty() && !dict_value.IsSpecialValue(NOTAPPL)) {
+        if (dict_value.GetValuePair(0).GetFrom().empty() && !dict_value.IsSpecialValue(NOTAPPL)) {
             bValid = false;
             csMsg = IDS_RULE_MSG506;
             CDictItem* pItem = m_pDict->GetLevel(m_iLevelNum).GetRecord(m_iRecordNum)->GetItem(m_iItemNum);
@@ -2431,13 +2429,13 @@ bool DictionaryValidator::IsValid(DictValuePair& dict_value_pair, int iLevelNum,
     m_iInvalidEdit = NONE;
 
     // If both pairs empty, make From all spaces
-    if (dict_value_pair.GetFrom().IsEmpty() && dict_value_pair.GetTo().IsEmpty()) {
+    if (dict_value_pair.GetFrom().empty() && dict_value_pair.GetTo().empty()) {
         UINT uLen = m_pDict->GetLevel(m_iLevelNum).GetRecord(m_iRecordNum)->GetItem(m_iItemNum)->GetLen();
-        dict_value_pair.SetFrom(CString(SPACE, (int)uLen));
+        dict_value_pair.SetFrom(std::string(uLen, SPACE));
     }
     // If From = To, make To empty
     if (dict_value_pair.GetFrom() == dict_value_pair.GetTo()) {
-        dict_value_pair.SetTo(_T(""));
+        dict_value_pair.SetTo(std::string());
     }
 
     bool bIsFromField = true;
@@ -2483,26 +2481,26 @@ bool DictionaryValidator::CheckDataType(DictValuePair& dict_value_pair, bool& bI
     switch (content_type)  {
         case ContentType::Numeric:
             // To value cannot be defined for Special values.
-            if (dict_value.IsSpecial() && !dict_value_pair.GetTo().IsEmpty()) {
+            if (dict_value.IsSpecial() && !dict_value_pair.GetTo().empty()) {
                 bValid = false;
                 bIsFromField = false;
                 csMsg = IDS_RULE_MSG607;
-                m_csErrorReport += GetErrorName(*pItem) + dict_value_pair.GetTo() + _T(": ") + csMsg + CRLF;
+                m_csErrorReport += GetErrorName(*pItem) + UTF8_TODO::GetCString(dict_value_pair.GetTo()) + _T(": ") + csMsg + CRLF;
                 if (m_bAutoFixAndRecurse) {
-                    dict_value_pair.SetTo(_T(""));
+                    dict_value_pair.SetTo(std::string());
                 }
             }
 
-            if (dict_value_pair.GetTo().IsEmpty()) {
+            if (dict_value_pair.GetTo().empty()) {
                 // From value must be either numeric or blank (if the special value is notappl).
                 if( !SO::IsWhitespace(dict_value_pair.GetFrom()) || !dict_value.IsSpecialValue(NOTAPPL) ) {
                     if (!CIMSAString::IsNumeric(dict_value_pair.GetFrom())) {
                         bValid = false;
                         bIsFromField = true;
                         csMsg = dict_value.IsSpecial() ? IDS_RULE_MSG601 : IDS_RULE_MSG602;
-                        m_csErrorReport += GetErrorName(*pItem) + dict_value_pair.GetFrom() + _T(": ") + csMsg + CRLF;
+                        m_csErrorReport += GetErrorName(*pItem) + UTF8_TODO::GetCString(dict_value_pair.GetFrom()) + _T(": ") + csMsg + CRLF;
                         if (m_bAutoFixAndRecurse)  {
-                            dict_value_pair.SetFrom(CIMSAString::MakeNumeric(dict_value_pair.GetFrom()));
+                            dict_value_pair.SetFrom(UTF8_TODO::GetUtf8(CIMSAString::MakeNumeric(UTF8_TODO::GetCString(dict_value_pair.GetFrom()))));
                         }
                     }
                 }
@@ -2514,9 +2512,9 @@ bool DictionaryValidator::CheckDataType(DictValuePair& dict_value_pair, bool& bI
                     bValid = false;
                     bIsFromField = true;
                     csMsg = IDS_RULE_MSG602;
-                    m_csErrorReport += GetErrorName(*pItem) + dict_value_pair.GetFrom() + _T(": ") + csMsg + CRLF;
+                    m_csErrorReport += GetErrorName(*pItem) + UTF8_TODO::GetCString(dict_value_pair.GetFrom()) + _T(": ") + csMsg + CRLF;
                     if (m_bAutoFixAndRecurse) {
-                        dict_value_pair.SetFrom(CIMSAString::MakeNumeric(dict_value_pair.GetFrom()));
+                        dict_value_pair.SetFrom(UTF8_TODO::GetUtf8(CIMSAString::MakeNumeric(UTF8_TODO::GetCString(dict_value_pair.GetFrom()))));
                     }
                 }
                 // To value must be numeric.
@@ -2524,9 +2522,9 @@ bool DictionaryValidator::CheckDataType(DictValuePair& dict_value_pair, bool& bI
                     bValid = false;
                     bIsFromField = false;
                     csMsg = IDS_RULE_MSG603;
-                    m_csErrorReport += GetErrorName(*pItem) + dict_value_pair.GetTo() + _T(": ") + csMsg + CRLF;
+                    m_csErrorReport += GetErrorName(*pItem) + UTF8_TODO::GetCString(dict_value_pair.GetTo()) + _T(": ") + csMsg + CRLF;
                     if (m_bAutoFixAndRecurse) {
-                        dict_value_pair.SetTo(CIMSAString::MakeNumeric(dict_value_pair.GetTo()));
+                        dict_value_pair.SetTo(UTF8_TODO::GetUtf8(CIMSAString::MakeNumeric(UTF8_TODO::GetCString(dict_value_pair.GetTo()))));
                     }
                 }
             }
@@ -2534,13 +2532,13 @@ bool DictionaryValidator::CheckDataType(DictValuePair& dict_value_pair, bool& bI
 
         case ContentType::Alpha:
             // To value cannot be defined for Alphanumeric items.
-            if (!dict_value_pair.GetTo().IsEmpty())  {
+            if (!dict_value_pair.GetTo().empty())  {
                 bValid = false;
                 bIsFromField = false;
                 csMsg = IDS_RULE_MSG604;
-                m_csErrorReport += GetErrorName(*pItem) + dict_value_pair.GetTo() + _T(": ") + csMsg + CRLF;
+                m_csErrorReport += GetErrorName(*pItem) + UTF8_TODO::GetCString(dict_value_pair.GetTo()) + _T(": ") + csMsg + CRLF;
                 if (m_bAutoFixAndRecurse) {
-                    dict_value_pair.SetTo(_T(""));
+                    dict_value_pair.SetTo(std::string());
                 }
             }
             break;
@@ -2571,8 +2569,8 @@ bool DictionaryValidator::CheckLen(DictValuePair& dict_value_pair, bool& bIsFrom
     UINT uLen = pItem->GetLen();
 
     // If From is blank and To is empty, make From all blank.
-    if (SO::IsBlank(dict_value_pair.GetFrom()) && dict_value_pair.GetTo().IsEmpty())  {
-        dict_value_pair.SetFrom(CIMSAString(dict_value_pair.GetFrom()).AdjustLenLeft(uLen, SPACE));
+    if (SO::IsBlank(dict_value_pair.GetFrom()) && dict_value_pair.GetTo().empty())  {
+        dict_value_pair.SetFrom(UTF8_TODO::GetUtf8(CIMSAString(UTF8_TODO::GetCString(dict_value_pair.GetFrom())).AdjustLenLeft(uLen, SPACE)));
         return bValid;
     }
 
@@ -2583,7 +2581,7 @@ bool DictionaryValidator::CheckLen(DictValuePair& dict_value_pair, bool& bIsFrom
         TCHAR decimal_ch = CIMSAString::GetDecChar();
         uLen = pItem->GetCompleteLen();
         // From value is longer than the item length.
-        CString csFrom = dict_value_pair.GetFrom();
+        CString csFrom = UTF8_TODO::GetCString(dict_value_pair.GetFrom());
         if ((UINT) csFrom.GetLength() > uLen) {
             bValid = false;
             bIsFromField= true;
@@ -2594,22 +2592,22 @@ bool DictionaryValidator::CheckLen(DictValuePair& dict_value_pair, bool& bIsFrom
                     UINT i = csFrom.GetLength() - pItem->GetDecimal() - 1;
                     ASSERT(i < (UINT) csFrom.GetLength());
                     if (csFrom.GetAt(i) == decimal_ch) {
-                        dict_value_pair.SetFrom(_T("0"));
+                        dict_value_pair.SetFrom("0");
                     }
                     else {
-                        dict_value_pair.SetFrom(HYPHEN + csFrom.Right(uLen - 1));
+                        dict_value_pair.SetFrom(UTF8_TODO::GetUtf8(HYPHEN + csFrom.Right(uLen - 1)));
                     }
                 }
                 else  {
-                    dict_value_pair.SetFrom(csFrom.Right(uLen));
+                    dict_value_pair.SetFrom(UTF8_TODO::GetUtf8(csFrom.Right(uLen)));
                 }
                 dValue = atod(dict_value_pair.GetFrom());
-                dict_value_pair.SetFrom(dtoa(dValue, pszTemp, pItem->GetDecimal(), decimal_ch, false));
+                dict_value_pair.SetFrom(UTF8_TODO::GetUtf8(dtoa(dValue, pszTemp, pItem->GetDecimal(), decimal_ch, false)));
             }
         }
         // To value is longer than the item length.
-        if ((UINT) dict_value_pair.GetTo().GetLength() > uLen)  {
-            CString csTo = dict_value_pair.GetTo();
+        if (SO::WideLength(dict_value_pair.GetTo()) > uLen)  {
+            CString csTo = UTF8_TODO::GetCString(dict_value_pair.GetTo());
             bValid = false;
             bIsFromField= false;
             csMsg = IDS_RULE_MSG606;
@@ -2619,48 +2617,50 @@ bool DictionaryValidator::CheckLen(DictValuePair& dict_value_pair, bool& bIsFrom
                     UINT i = csTo.GetLength() - pItem->GetDecimal() - 1;
                     ASSERT(i < (UINT) csTo.GetLength());
                     if (csTo.GetAt(i) == decimal_ch) {
-                        dict_value_pair.SetTo(_T("0"));
+                        dict_value_pair.SetTo("0");
                     }
                     else {
-                        dict_value_pair.SetTo(HYPHEN + csTo.Right(uLen - 1));
+                        dict_value_pair.SetTo(UTF8_TODO::GetUtf8(HYPHEN + csTo.Right(uLen - 1)));
                     }
                 }
                 else  {
-                    dict_value_pair.SetTo(csTo.Right(uLen));
+                    dict_value_pair.SetTo(UTF8_TODO::GetUtf8(csTo.Right(uLen)));
                 }
                 dValue = atod(dict_value_pair.GetTo());
-                dict_value_pair.SetTo(dtoa(dValue, pszTemp, pItem->GetDecimal(), decimal_ch, false));
+                dict_value_pair.SetTo(UTF8_TODO::GetUtf8(dtoa(dValue, pszTemp, pItem->GetDecimal(), decimal_ch, false)));
             }
         }
     }
     else {
-        if ((UINT) dict_value_pair.GetFrom().GetLength() < uLen) {
+        const size_t from_wide_length = SO::WideLength(dict_value_pair.GetFrom());
+        if (from_wide_length < uLen) {
             // auto fill without a message
-            dict_value_pair.SetFrom(CIMSAString(dict_value_pair.GetFrom()).AdjustLenRight(uLen, SPACE));
+            dict_value_pair.SetFrom(UTF8_TODO::GetUtf8(CIMSAString(UTF8_TODO::GetCString(dict_value_pair.GetFrom())).AdjustLenRight(uLen, SPACE)));
         }
-        else if ((UINT) dict_value_pair.GetFrom().GetLength() > uLen) {
+        else if (from_wide_length > uLen) {
             // From value too long
             bValid = false;
             bIsFromField= true;
             csMsg = IDS_RULE_MSG605;
-            m_csErrorReport += GetErrorName(*pItem) + dict_value_pair.GetFrom() + _T(": ") + csMsg + CRLF;
+            m_csErrorReport += GetErrorName(*pItem) + UTF8_TODO::GetCString(dict_value_pair.GetFrom()) + _T(": ") + csMsg + CRLF;
             if (m_bAutoFixAndRecurse)  {
-                dict_value_pair.SetFrom(dict_value_pair.GetFrom().Left(uLen));
+                dict_value_pair.SetFrom(UTF8_TODO::GetUtf8(UTF8_TODO::GetCString(dict_value_pair.GetFrom()).Left(uLen)));
             }
         }
-        if (!dict_value_pair.GetTo().IsEmpty()) {
-            if ((UINT) dict_value_pair.GetTo().GetLength() < uLen) {
+        if (!dict_value_pair.GetTo().empty()) {
+            const size_t to_wide_length = SO::WideLength(dict_value_pair.GetTo());
+            if (to_wide_length < uLen) {
                 // auto fill without a message
-                dict_value_pair.SetTo(CIMSAString(dict_value_pair.GetTo()).AdjustLenRight(uLen, SPACE));
+                dict_value_pair.SetTo(UTF8_TODO::GetUtf8(CIMSAString(UTF8_TODO::GetCString(dict_value_pair.GetTo())).AdjustLenRight(uLen, SPACE)));
             }
-            else if ((UINT) dict_value_pair.GetTo().GetLength() > uLen) {
+            else if (to_wide_length > uLen) {
                 // To value is too long.
                 bValid = false;
                 bIsFromField= false;
                 csMsg = IDS_RULE_MSG606;
-                m_csErrorReport += GetErrorName(*pItem) + dict_value_pair.GetTo() + _T(": ") + csMsg + CRLF;
+                m_csErrorReport += GetErrorName(*pItem) + UTF8_TODO::GetCString(dict_value_pair.GetTo()) + _T(": ") + csMsg + CRLF;
                 if (m_bAutoFixAndRecurse)  {
-                    dict_value_pair.SetTo(dict_value_pair.GetTo().Left(uLen));
+                    dict_value_pair.SetTo(UTF8_TODO::GetUtf8(UTF8_TODO::GetCString(dict_value_pair.GetTo()).Left(uLen)));
                 }
             }
         }
@@ -2679,7 +2679,7 @@ bool DictionaryValidator::CheckFromTo(DictValuePair& dict_value_pair)
 {
     bool bRetVal = true;
 
-    if( !dict_value_pair.GetTo().IsEmpty() )
+    if( !dict_value_pair.GetTo().empty() )
     {
         CDictItem* pItem = m_pDict->GetLevel(m_iLevelNum).GetRecord(m_iRecordNum)->GetItem(m_iItemNum);
         ASSERT(pItem);
@@ -2693,9 +2693,9 @@ bool DictionaryValidator::CheckFromTo(DictValuePair& dict_value_pair)
             if (!bRetVal)  {
                 // To value must be greater than From value.
                 csMsg = IDS_RULE_MSG611;
-                m_csErrorReport += GetErrorName(*pItem) + dict_value_pair.GetTo() + _T(": ") + csMsg + _T("\r\n");
+                m_csErrorReport += GetErrorName(*pItem) + UTF8_TODO::GetCString(dict_value_pair.GetTo()) + _T(": ") + csMsg + _T("\r\n");
                 if (m_bAutoFixAndRecurse)  {
-                    dict_value_pair.SetTo(_T(""));
+                    dict_value_pair.SetTo(std::string());
                 }
             }
         }
@@ -3469,16 +3469,16 @@ std::string DictionaryValidator::GetDefaultName(const CString& label) const
 //
 /////////////////////////////////////////////////////////////////////////////
 
-bool DictionaryValidator::MakeRecordTypeUnique(const CDataDict& dictionary, CString& record_type, const std::set<CString>& additional_record_types)
+bool DictionaryValidator::MakeRecordTypeUnique(const CDataDict& dictionary, std::string& record_type, const std::set<std::string>& additional_record_types)
 {
     ASSERT(dictionary.GetRecTypeLen() > 0);
 
-    record_type = CIMSAString::MakeExactLength(record_type, dictionary.GetRecTypeLen());
+    SO::WideMakeExactLength(record_type, dictionary.GetRecTypeLen());
 
     auto is_record_type_unique =
-        [&](const CString& record_type_to_check)
+        [&](const std::string& record_type_to_check)
         {
-            ASSERT(record_type_to_check.GetLength() == (int)dictionary.GetRecTypeLen());
+            ASSERT(SO::WideLength(record_type_to_check) == dictionary.GetRecTypeLen());
 
             if( additional_record_types.find(record_type_to_check) != additional_record_types.cend() )
                 return false;
@@ -3503,40 +3503,44 @@ bool DictionaryValidator::MakeRecordTypeUnique(const CDataDict& dictionary, CStr
     // if the record type is not unique:
 
     // 1. try numbers (up to nine digits)
-    int highest_valid_record_type = (int)Power10[std::min<unsigned>(dictionary.GetRecTypeLen(), 9)] - 1;
+    const int highest_valid_record_type = static_cast<int>(Power10[std::min<unsigned>(dictionary.GetRecTypeLen(), 9)]) - 1;
 
     for( int i = 1; i <= highest_valid_record_type; ++i )
     {
-        record_type.Format(_T("%0*d"), (int)dictionary.GetRecTypeLen(), i);
-        ASSERT(record_type.GetLength() == (int)dictionary.GetRecTypeLen());
+        record_type = FormatText("%0*d", static_cast<int>(dictionary.GetRecTypeLen()), i);
+        ASSERT(record_type.length() == dictionary.GetRecTypeLen());
 
         if( is_record_type_unique(record_type) )
             return true;
     }
 
     // 2. try letters
-    constexpr uint64_t first_letter = 'A';
-    constexpr uint64_t last_letter  = 'Z';
-    constexpr uint64_t letter_range = last_letter - first_letter + 1;
+    constexpr char first_letter = 'A';
+    constexpr char last_letter  = 'Z';
+    constexpr char letter_range = last_letter - first_letter + 1;
 
-    uint64_t number_permutations = (uint64_t)std::min(std::pow<double>(letter_range, dictionary.GetRecTypeLen()), (double)UINT64_MAX);
+    const uint64_t number_permutations = static_cast<uint64_t>(
+        std::min(std::pow<double>(letter_range, dictionary.GetRecTypeLen()), static_cast<double>(UINT64_MAX))
+    );
 
     for( uint64_t i = 0; i < number_permutations; ++i )
     {
-        record_type.Empty();
+        record_type.clear();
 
         uint64_t permutation = i;
 
         do
         {
-            uint64_t remainder = permutation % letter_range;
-            record_type.Insert(0, static_cast<TCHAR>(first_letter + remainder));
+            const char remainder = static_cast<char>(permutation % letter_range);
+            record_type.insert(0, 1, first_letter + remainder);
             permutation /= letter_range;
 
         } while( permutation != 0 );
 
-        for( int padding_needed = (int)dictionary.GetRecTypeLen() - record_type.GetLength(); padding_needed > 0; --padding_needed )
-            record_type.Insert(0, first_letter);
+        const int padding_needed = static_cast<int>(dictionary.GetRecTypeLen() - record_type.length());
+
+        if( padding_needed > 0 )
+            record_type.insert(0, padding_needed, first_letter);
 
         if( is_record_type_unique(record_type) )
             return true;
@@ -3546,28 +3550,25 @@ bool DictionaryValidator::MakeRecordTypeUnique(const CDataDict& dictionary, CStr
 }
 
 
-CString DictionaryValidator::GetDefaultRecTypeVal() const
+std::string DictionaryValidator::GetDefaultRecTypeVal() const
 {
     int iUnique = 0;
-    CIMSAString csRetVal;
     int iMaxNumeric = 99999;
-    int iLen;
-
-    iLen = m_pDict->GetRecTypeLen();
+    int iLen = m_pDict->GetRecTypeLen();
     if (iLen == 0)  {
         ASSERT(m_pDict->GetRecTypeStart() == 0);
-        if (m_pDict->GetNumRecords() == 0)  {
-            return csRetVal;
+        if (m_pDict->GetNumRecords() == 0) {
+            return std::string();
         }
         // 2nd RT in a fresh DD, give it 2 a record type value
-        ASSERT(m_pDict->GetLevel(m_iLevelNum).GetRecord(0)->GetRecTypeVal().IsEmpty());
-        csRetVal = _T("2");
-        return csRetVal;
+        ASSERT(m_pDict->GetLevel(m_iLevelNum).GetRecord(0)->GetRecTypeVal().empty());
+        return "2";
     }
 
     if (m_pDict->GetRecTypeLen() < 6)  {
         iMaxNumeric = (int) pow(10.0, iLen) - 1; // RHF Make compatible with Visual 2005
     }
+    CIMSAString csRetVal;
     csRetVal.Str(iUnique + 1, iLen, ZERO);
     CString csAlphaUnique(TCHAR('A' - 1), 1);
 
@@ -3576,7 +3577,7 @@ CString DictionaryValidator::GetDefaultRecTypeVal() const
         bDone = true;
         for( const DictLevel& dict_level : m_pDict->GetLevels() ) {
             for (int r = 0 ; r < dict_level.GetNumRecords() ; r++)  {
-                if (dict_level.GetRecord(r)->GetRecTypeVal() == csRetVal)  {
+                if (dict_level.GetRecord(r)->GetRecTypeVal() == UTF8_TODO::GetUtf8(csRetVal))  {
                     /*-------------------------------------------------------------------
                         the initial try default RT value already exists, so let's start
                         checking again, increment from 1 until a unique number is found
@@ -3607,7 +3608,7 @@ CString DictionaryValidator::GetDefaultRecTypeVal() const
             }
         }
     }
-    return csRetVal;
+    return UTF8_TODO::GetUtf8(csRetVal);
 }
 
 
@@ -3804,34 +3805,9 @@ bool DictionaryValidator::CheckAliases(DictNamedBase& dict_element, const bool t
 
 bool DictionaryValidator::CheckNote(DictBase& dict_base)
 {
-    bool valid = true;
-
     // if the note is all blank, set to empty
-    if( SO::IsWhitespace(dict_base.GetNote()) && !dict_base.GetNote().IsEmpty() )
-    {
-        dict_base.SetNote(CString());
-    }
+    if( !dict_base.GetNote().empty() && SO::IsWhitespace(dict_base.GetNote()) )
+        dict_base.SetNote(std::string());
 
-    // if the note is too long, truncate it
-    else if( dict_base.GetNote().GetLength() > MAX_NOTE_LEN )
-    {
-        valid = false;
-
-        const DictNamedBase* dict_element_for_name;
-
-        if( dict_base.GetElementType() == DictElementType::Value )
-            dict_element_for_name = &m_pDict->GetLevel(m_iLevelNum).GetRecord(m_iRecordNum)->GetItem(m_iItemNum)->GetValueSet(m_iVSetNum);
-
-        else
-            dict_element_for_name = assert_cast<const DictNamedBase*>(&dict_base);
-
-        m_csErrorReport += GetErrorName(*dict_element_for_name) +
-                           FormatText<CString>(L"The note is too long (maximum %d characters).", MAX_NOTE_LEN) +
-                           CRLF;
-
-        if( m_bAutoFixAndRecurse )
-            dict_base.SetNote(dict_base.GetNote().Left(MAX_NOTE_LEN));
-    }
-
-    return valid;
+    return true;
 }

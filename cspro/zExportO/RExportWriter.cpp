@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "RExportWriter.h"
 
 
@@ -402,7 +402,7 @@ std::unique_ptr<RExportWriter::FactoredVector> RExportWriter::FactorVector(const
             auto use_dict_value_if_valid = [&](const DictValue* dict_value)
             {
                 if( ( dict_value != nullptr ) &&
-                    ( m_factorRanges || ( dict_value->GetNumValuePairs() == 1 && dict_value->GetValuePair(0).GetTo().IsEmpty() ) ) )
+                    ( m_factorRanges || ( dict_value->GetNumValuePairs() == 1 && dict_value->GetValuePair(0).GetTo().empty() ) ) )
                 {
                     label = UTF8_TODO::GetUtf8(dict_value->GetLabel());
                     at_least_one_valid_label_found = true;
@@ -427,7 +427,7 @@ std::unique_ptr<RExportWriter::FactoredVector> RExportWriter::FactorVector(const
             else
             {
                 // if the label doesn't exist, use the value
-                if( !use_dict_value_if_valid(value_processor->GetDictValue(UTF8_TODO::GetWide(value))) )
+                if( !use_dict_value_if_valid(value_processor->GetDictValue(value)) )
                     label = value;
             }
 

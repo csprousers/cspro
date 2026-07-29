@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 // ExptDoc.h : interface of the CExportDoc class
 //
@@ -118,7 +118,7 @@ public:
     CIMSAString m_csSTATADescFile;
     CIMSAString m_csSTATALabelFile;
     CIMSAString m_csRDescFile;
-    CStringArray m_rectypes;
+    std::vector<std::string> m_recTypes;
     int GetNumExpRecTypes();
     bool GenerateApplogic(CSpecFile& appFile);
     bool GenerateBatchApp4MultiModel();

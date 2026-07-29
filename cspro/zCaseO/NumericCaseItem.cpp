@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "NumericCaseItem.h"
 
 
@@ -13,8 +13,8 @@ NumericCaseItem::NumericCaseItem(const CDictItem& dict_item, Type type/* = Type:
     {
         if( dict_value.IsSpecial() && dict_value.HasValuePairs() )
         {
-            const auto& dict_value_pair = dict_value.GetValuePair(0);
-            std::wstring trimmed_from_value = SO::Trim(dict_value_pair.GetFrom());
+            const DictValuePair& dict_value_pair = dict_value.GetValuePair(0);
+            const std::string trimmed_from_value(SO::Trim(dict_value_pair.GetFrom()));
 
             if( CIMSAString::IsNumeric(trimmed_from_value, false) )
             {

@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "IncludesRT.h"
 #include "Array.h"
 #include "List.h"
@@ -54,7 +54,7 @@ double LogicInterpreter::AssignStringNull()
 {
     m_workingStrings.emplace_back();
     ASSERT81(!m_workingStrings.back().IsSet());
-    return m_workingStrings.size() - 1;
+    return static_cast<double>(m_workingStrings.size() - 1);
 }
 
 
@@ -90,6 +90,163 @@ double LogicInterpreter::ex_string_literal(const int program_index)
 {
     const auto& string_literal_node = GetNode<Nodes::StringLiteral>(program_index);
     return AssignString(m_engineData->string_literals[string_literal_node.string_literal_index]);
+}
+
+
+// this function is templated so that it can handle both std::string and std::wstring objects
+template<auto memset_T, typename T>
+void ex_string_compute_handle_subscripts(T& lhs_value, const T& rhs_value, const size_t starting_position, const std::optional<size_t> chars_to_copy)
+{
+    size_t rhs_chars_to_copy;
+    size_t padding;
+
+    // if no length is specified, copy the the entire RHS string
+    if( !chars_to_copy.has_value() )
+    {
+        rhs_chars_to_copy = rhs_value.length();
+        padding = 0;
+    }
+
+    // otherwise copy the number of characters requested
+    else
+    {
+        rhs_chars_to_copy = std::min(*chars_to_copy, rhs_value.length());
+        padding = *chars_to_copy - rhs_chars_to_copy;
+    }
+
+    // increase the LHS string length as necessary
+    const size_t max_string_length = starting_position + rhs_chars_to_copy + padding;
+
+    if( max_string_length > lhs_value.length() )
+        lhs_value.resize(max_string_length, ' ');
+
+    // copy all of some of the RHS string
+    typename T::pointer const lhs_value_starting_position = lhs_value.data() + starting_position;
+    memcpy(lhs_value_starting_position, rhs_value.c_str(), rhs_chars_to_copy * sizeof(typename T::value_type));
+
+    // if more characters were requested to copy than exist in the RHS string, pad the LHS string with spaces
+    if( padding != 0 )
+        memset_T(lhs_value_starting_position + rhs_chars_to_copy, ' ', padding);
+}
+
+
+double LogicInterpreter::ex_string_compute(const int program_index)
+{
+    // for assigning string expressions to strings, arrays, user-defined functions, and variables
+    const Nodes::StringCompute* string_compute_node;
+    const Nodes::SymbolValue* symbol_value_node;
+    std::unique_ptr<std::tuple<Nodes::StringCompute, Nodes::SymbolValue>> simulated_nodes_for_pre80_pen_file;
+
+    if( m_engineData->MeetsCompiledLogicVersion(Serializer::Iteration_8_0_000_1) )
+    {
+        string_compute_node = &GetNode<Nodes::StringCompute>(program_index);
+        symbol_value_node = &GetNode<Nodes::SymbolValue>(string_compute_node->symbol_value_node_index);
+    }
+
+    else
+    {
+        // convert pre-8.0 nodes
+        enum class MoveType : int { Variable = 1, LogicArray, UserFunction, CrossTab, WorkString };
+        struct MOVE_NODE
+        {
+            int st_code;
+            int next_st;
+            MoveType move_type;
+            int move_expr;
+            int ssipos;
+            int sslen;
+            int char_obj;
+        };
+
+        const auto& move_node = GetNode<MOVE_NODE>(program_index);
+
+        simulated_nodes_for_pre80_pen_file = std::make_unique<std::tuple<Nodes::StringCompute, Nodes::SymbolValue>>();
+        Nodes::StringCompute& simulated_string_compute_node = std::get<0>(*simulated_nodes_for_pre80_pen_file);
+        Nodes::SymbolValue& simulated_symbol_value_node = std::get<1>(*simulated_nodes_for_pre80_pen_file);
+        string_compute_node = &simulated_string_compute_node;
+        symbol_value_node = &simulated_symbol_value_node;
+
+        simulated_string_compute_node.substring_index_expression = move_node.ssipos;
+        simulated_string_compute_node.substring_length_expression = move_node.sslen;
+        simulated_string_compute_node.string_expression = move_node.char_obj;
+
+        switch( move_node.move_type )
+        {
+            case MoveType::LogicArray:
+            case MoveType::UserFunction:
+            case MoveType::Variable:
+                simulated_symbol_value_node.symbol_index = GetNode<Nodes::ElementReference>(move_node.move_expr).symbol_index;
+                break;
+
+            case MoveType::WorkString:
+                simulated_symbol_value_node.symbol_index = move_node.move_expr;
+                break;
+
+            default:
+                ASSERT(false);
+        }
+
+        simulated_symbol_value_node.symbol_compilation = move_node.move_expr;
+    };
+
+    // evaluate the value to be assigned
+    SharableString rhs_value = EvaluateSharableString(string_compute_node->string_expression);
+
+    // if there are no subscripts used, we can set the value directly
+    if( string_compute_node->substring_index_expression == -1 )
+    {
+        AssignValueToSymbol(*symbol_value_node, std::move(rhs_value));
+    }
+
+    // otherwise get the variable's current value and apply the new value on top of it
+    else
+    {
+        const int starting_position = Evaluate<int>(string_compute_node->substring_index_expression) - 1;
+
+        // return if the starting position is invalid
+        if( starting_position < 0 )
+            return DEFAULT;
+
+        // return if the number of characters to copy is invalid or would result in nothing to copy
+        const std::optional<int> chars_to_copy = EvaluateOptional<int>(string_compute_node->substring_length_expression);
+
+        if( chars_to_copy.has_value() && *chars_to_copy <= 0 )
+            return DEFAULT;
+
+        ModifySymbolValue<SharableString>(*symbol_value_node,
+            [&](SharableString& lhs_value)
+            {
+                // the subscript handling routine could be converted to only use UTF-8 strings,
+                // using SO::WideGetOffset to determine where to modify the LHS string, but for
+                // simplicity, for now strings will be converted to wide strings as necessary
+                if( TC::UsesOnlyUtf8SingleByteChars(*lhs_value) &&
+                    TC::UsesOnlyUtf8SingleByteChars(*rhs_value) )
+                {
+                    ex_string_compute_handle_subscripts<&memset>(
+                        lhs_value.MakeModifiable(),
+                        *rhs_value,
+                        starting_position,
+                        chars_to_copy
+                    );
+                }
+
+                else
+                {
+                    std::wstring wide_lhs_value = TC::ToWide(*lhs_value);
+
+                    ex_string_compute_handle_subscripts<&wmemset>(
+                        wide_lhs_value,
+                        TC::ToWide(*rhs_value),
+                        starting_position,
+                        chars_to_copy
+                    );
+
+                    lhs_value = TC::ToUtf8(wide_lhs_value);
+                }
+            });
+    }
+
+    return 0;
 }
 
 
@@ -225,12 +382,12 @@ double LogicInterpreter::ex_WorkString_evaluate(const int program_index)
 }
 
 
-double LogicInterpreter::ex_WorkString_assign(const int program_index)
+double LogicInterpreter::ex_WorkString_compute(const int program_index)
 {
-    const auto& symbol_reset_node = GetNode<Nodes::SymbolReset>(program_index);
-    WorkString& work_string = GetSymbolWorkString(symbol_reset_node.symbol_index);
+    const auto& symbol_compute_expression_node = GetNode<Nodes::SymbolComputeExpression>(program_index);
+    WorkString& work_string = GetSymbolWorkString(symbol_compute_expression_node.lhs_symbol_index);
 
-    work_string.SetString(EvaluateSharableString(symbol_reset_node.initialize_value));
+    work_string.SetString(EvaluateSharableString(symbol_compute_expression_node.rhs_expression));
 
     return 0;
 }
@@ -384,7 +541,7 @@ double LogicInterpreter::ex_length(const int program_index)
     if( va_with_size_node.arguments[0] >= 0 )
     {
         const SharableString text = EvaluateSharableString(va_with_size_node.arguments[0]);
-        return SO::WideLength(*text);
+        return static_cast<double>(SO::WideLength(*text));
     }
 
     // symbols
@@ -396,7 +553,7 @@ double LogicInterpreter::ex_length(const int program_index)
         if( symbol.IsA(SymbolType::List) )
         {
             const LogicList& logic_list = assert_cast<const LogicList&>(symbol);
-            return logic_list.GetCount();
+            return static_cast<double>(logic_list.GetCount());
         }
 
         // arrays
@@ -426,7 +583,7 @@ double LogicInterpreter::ex_pos_poschar(const int program_index)
         return 0;
 
     // return the position in wide characters, adding 1 because strings are 1-indexed
-    return 1 + SO::WideLength(std::string_view(str->data(), pos));
+    return static_cast<double>(1 + SO::WideLength(std::string_view(str->data(), pos)));
 }
 
 

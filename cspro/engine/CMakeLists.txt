@@ -24,7 +24,6 @@ add_library(${PROJECT_NAME}
     ${CEXENTRY_DIRECTORY}/VarX.cpp
 
     # dep
-    Decorr.cpp
     Intdentr.cpp
     intenter.cpp
 
@@ -41,7 +40,6 @@ add_library(${PROJECT_NAME}
     IntCase.cpp
     Intchars.cpp
     IntDataAccess.cpp
-    IntDiagnostics.cpp
     Intdrive.cpp
     IntDynamicLogicEvaluation.cpp
     InterpreterAccessor.cpp
@@ -56,7 +54,6 @@ add_library(${PROJECT_NAME}
     IntMessages.cpp
     IntOccurrences.cpp
     IntPath.cpp
-    IntPff.cpp
     IntPre77Report.cpp
     IntProgramControl.cpp
     IntProperties.cpp
@@ -65,13 +62,10 @@ add_library(${PROJECT_NAME}
     IntUserbar.cpp
     IntUserFunction.cpp
     IntUserInterface.cpp
-    IntValues.cpp
-    IntVariable.cpp
     Listing.cpp
     LoadSaveBinary.cpp
     Nextnode.cpp
     ParadataDriver.cpp
-    ParameterManager.cpp
     Pre80Routines.cpp
 
     # issa

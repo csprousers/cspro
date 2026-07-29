@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 //---------------------------------------------------------------------------
 //  File name: CCross.h
 //
@@ -59,7 +59,7 @@ public:
     // Fill m_aSubExpresion
     void MakeSubExpresion( CArray<int,int>& aNodeExpr, int* pCtNodebase, const Logic::SymbolTable* pSymbolTable );
 
-    virtual int GetTableLevel() const { return m_iTableLevel; } // marked as virtual only so that it is accessible to zEngineO's SymbolCalculator
+    virtual int GetTableLevel() const { return m_iTableLevel; } // INTERPRETER_DLL_TODO marked as virtual only so that it is accessible to zEngineO's SymbolCalculator
     void SetTableLevel(int iLevel)    { m_iTableLevel = iLevel; }
 
 

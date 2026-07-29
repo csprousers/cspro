@@ -359,14 +359,9 @@ void CItemGrid::Update()
             QuickSetCellTypeEx(ITEM_NOTE_COL,     ir, UGCT_BUTTONNOFOCUS);
             QuickSetBackColor (ITEM_NOTE_COL,     ir, GetSysColor(COLOR_BTNFACE));
             QuickSetHBackColor(ITEM_NOTE_COL,     ir, GetSysColor(COLOR_BTNFACE));
-            if (dict_value_set.GetNote().GetLength() > 0) {
-                QuickSetBitmap(ITEM_NOTE_COL,     ir, m_pNoteYes);
-            }
-            else {
-                QuickSetBitmap(ITEM_NOTE_COL,     ir, m_pNoteNo);
-            }
+            QuickSetBitmap    (ITEM_NOTE_COL,     ir, dict_value_set.GetNote().empty() ? m_pNoteNo : m_pNoteYes);
             QuickSetText      (ITEM_SETLABEL_COL, ir, dict_value_set.GetLabel());
-            QuickSetText      (ITEM_SETNAME_COL,  ir, UTF8_TODO::GetCString(dict_value_set.GetName()));
+            QuickSetText      (ITEM_SETNAME_COL,  ir, dict_value_set.GetName());
 
             size_t value_set_links = m_pDict->CountValueSetLinks(dict_value_set);
             bool is_real_linked_value_set = ( value_set_links >= 2 );
@@ -397,18 +392,13 @@ void CItemGrid::Update()
                 QuickSetBackColor (ITEM_NOTE_COL,     ir, GetSysColor(COLOR_BTNFACE));
                 QuickSetHTextColor(ITEM_NOTE_COL,     ir, GetSysColor(COLOR_WINDOWTEXT));
                 QuickSetHBackColor(ITEM_NOTE_COL,     ir, GetSysColor(COLOR_BTNFACE));
-                if (dict_value.GetNote().GetLength() > 0) {
-                    QuickSetBitmap(ITEM_NOTE_COL,     ir, m_pNoteYes);
-                }
-                else {
-                    QuickSetBitmap(ITEM_NOTE_COL,     ir, m_pNoteNo);
-                }
+                QuickSetBitmap    (ITEM_NOTE_COL,     ir, dict_value.GetNote().empty() ? m_pNoteNo : m_pNoteYes);
                 QuickSetText      (ITEM_SETLABEL_COL, ir, L"");
                 QuickSetText      (ITEM_SETNAME_COL,  ir, L"");
                 QuickSetText      (ITEM_LABEL_COL,    ir, dict_value.GetLabel());
                 QuickSetTextColor (ITEM_LABEL_COL,    ir, dict_value.GetTextColor().ToCOLORREF());
 
-                QuickSetText(ITEM_SPECIAL_COL, ir, dict_value.IsSpecial() ? UTF8_TODO::GetWide(SpecialValues::ValueToString(dict_value.GetSpecialValue(), false)).c_str() : L"");
+                QuickSetText(ITEM_SPECIAL_COL, ir, dict_value.IsSpecial() ? SpecialValues::ValueToString(dict_value.GetSpecialValue(), false) : "");
 
                 int p = 0;
                 for( const DictValuePair& dict_value_pair : dict_value.GetValuePairs() ) {
@@ -445,7 +435,7 @@ void CItemGrid::Update()
                     QuickSetBackColor(ITEM_TO_COL, ir, linkedVSColor);
                     QuickSetBackColor(ITEM_SPECIAL_COL, ir, linkedVSColor);
 
-                    CString csTemp = dict_value_pair.GetFrom();
+                    CString csTemp = UTF8_TODO::GetCString(dict_value_pair.GetFrom());
                     csTemp.Replace(SPACE, SHOWBLANK);
                     QuickSetText      (ITEM_FROM_COL,     ir, csTemp);
                     if (pItem->GetContentType() == ContentType::Alpha) {
@@ -457,7 +447,7 @@ void CItemGrid::Update()
                     else {
                         ASSERT(FALSE); // no value sets for binary items
                     }
-                    csTemp = dict_value_pair.GetTo();
+                    csTemp = UTF8_TODO::GetCString(dict_value_pair.GetTo());
                     csTemp.Replace(SPACE, SHOWBLANK);
                     QuickSetText      (ITEM_TO_COL,       ir, csTemp);
                     if (p > 0) {
@@ -1140,8 +1130,8 @@ bool CItemGrid::EditEnd(bool bSilent)
             }
         }
 
-        CString csOldFrom = dict_value_pair.GetFrom();
-        CString csOldTo = dict_value_pair.GetTo();
+        CString csOldFrom = UTF8_TODO::GetCString(dict_value_pair.GetFrom());
+        CString csOldTo = UTF8_TODO::GetCString(dict_value_pair.GetTo());
 
         CString csNewFrom;
         m_aEditControl[ITEM_FROM_COL]->GetWindowText(csNewFrom);
@@ -1153,8 +1143,8 @@ bool CItemGrid::EditEnd(bool bSilent)
         CString csNewTo;
         m_aEditControl[ITEM_TO_COL]->GetWindowText(csNewTo);
 
-        dict_value_pair.SetFrom(csNewFrom);
-        dict_value_pair.SetTo(csNewTo);
+        dict_value_pair.SetFrom(UTF8_TODO::GetUtf8(csNewFrom));
+        dict_value_pair.SetTo(UTF8_TODO::GetUtf8(csNewTo));
 
         // fix numeric value pairs
         CDictChildWnd* pChildWnd = assert_cast<CDictChildWnd*>(assert_cast<CMDIFrameWnd*>(AfxGetMainWnd())->MDIGetActive());
@@ -1162,20 +1152,20 @@ bool CItemGrid::EditEnd(bool bSilent)
         ValueSetFixer value_set_fixer(*dict_item, pChildWnd->GetDecimal());
         value_set_fixer.Fix(dict_value_pair);
 
-        csNewFrom = dict_value_pair.GetFrom();
-        csNewTo = dict_value_pair.GetTo();
+        csNewFrom = UTF8_TODO::GetCString(dict_value_pair.GetFrom());
+        csNewTo = UTF8_TODO::GetCString(dict_value_pair.GetTo());
 
         if (csNewFrom.Compare(csOldFrom) != 0) {
             bChanged = true;
-            m_aEditControl[ITEM_FROM_COL]->SetWindowText(dict_value_pair.GetFrom());
+            m_aEditControl[ITEM_FROM_COL]->SetWindowText(UTF8_TODO::GetCString(dict_value_pair.GetFrom()));
         }
 
         if (csNewTo.Compare(csOldTo) != 0) {
             bChanged = true;
-            m_aEditControl[ITEM_TO_COL]->SetWindowText(dict_value_pair.GetTo());
+            m_aEditControl[ITEM_TO_COL]->SetWindowText(UTF8_TODO::GetCString(dict_value_pair.GetTo()));
         }
 
-        if (bNewFromWasEmpty && dict_value_pair.GetTo().IsEmpty() && (m_bAdding || m_bInserting)) {
+        if (bNewFromWasEmpty && dict_value_pair.GetTo().empty() && (m_bAdding || m_bInserting)) {
             if (csNewLabel.IsEmpty()) {
                 bUndo = true;
                 m_bAdding = false;
@@ -1198,10 +1188,10 @@ bool CItemGrid::EditEnd(bool bSilent)
                     QuickSetText(ITEM_SPECIAL_COL, row, csNewSpecType);
                 }
                 CIMSAString cs;
-                cs = dict_value_pair.GetFrom();
+                cs = UTF8_TODO::GetCString(dict_value_pair.GetFrom());
                 cs.Replace(SPACE, SHOWBLANK);
                 QuickSetText(ITEM_FROM_COL, row, cs);
-                cs = dict_value_pair.GetTo();
+                cs = UTF8_TODO::GetCString(dict_value_pair.GetTo());
                 cs.Replace(SPACE, SHOWBLANK);
                 QuickSetText(ITEM_TO_COL, row, cs);
             }
@@ -1214,8 +1204,8 @@ bool CItemGrid::EditEnd(bool bSilent)
                     dict_value_set.GetValue(iValue).SetLabel(csOldLabel);
                     dict_value_set.GetValue(iValue).SetSpecialValue(old_special_value);
                 }
-                dict_value_set.GetValue(iValue).GetValuePair(iVPair).SetFrom(csOldFrom);
-                dict_value_set.GetValue(iValue).GetValuePair(iVPair).SetTo(csOldTo);
+                dict_value_set.GetValue(iValue).GetValuePair(iVPair).SetFrom(UTF8_TODO::GetUtf8(csOldFrom));
+                dict_value_set.GetValue(iValue).GetValuePair(iVPair).SetTo(UTF8_TODO::GetUtf8(csOldTo));
             }
         }
     }
@@ -1837,7 +1827,10 @@ namespace
                 }
 
                 // add the value pair
-                dict_value_set.GetValue(value_index).AddValuePair(DictValuePair(values[1], ( values.size() > 2 ) ? values[2] : CString()));
+                dict_value_set.GetValue(value_index).AddValuePair(DictValuePair(
+                    UTF8_TODO::GetUtf8(values[1]),
+                    ( values.size() > 2 ) ? UTF8_TODO::GetUtf8(values[2]) : std::string()
+                ));
             });
 
         ASSERT(dict_value_set.GetNumValues() != 0);
@@ -1848,8 +1841,8 @@ namespace
 
     void OutputDictValue(std::wostringstream& stream, const DictValuePair& dict_value_pair)
     {
-        stream << L"\t" << dict_value_pair.GetFrom().GetString()
-               << L"\t" << dict_value_pair.GetTo().GetString();
+        stream << L"\t" << UTF8_TODO::GetCString(dict_value_pair.GetFrom()).GetString()
+               << L"\t" << UTF8_TODO::GetCString(dict_value_pair.GetTo()).GetString();
     }
 
     std::wostringstream& operator<<(std::wostringstream& stream, const DictValuePair& dict_value_pair)
@@ -2662,7 +2655,7 @@ void CItemGrid::OnEditNotes()
     int iRec = m_iRec;
     int iItem = m_iItem;
     CDictItem* dict_item = m_pDict->GetLevel(iLevel).GetRecord(iRec)->GetItem(iItem);
-    CIMSAString csTitle, csLabel, csNote;
+    CIMSAString csTitle, csLabel;
     csTitle.LoadString(IDS_NOTE_TITLE);
     CNoteDlg dlgNote;
 
@@ -2675,14 +2668,13 @@ void CItemGrid::OnEditNotes()
             csLabel += L"...";
         }
         csTitle = L"Value Set: " + csLabel + csTitle;
-        csNote = dict_value_set.GetNote();
-        dlgNote.SetTitle(csTitle);
-        dlgNote.SetNote(csNote);
+        dlgNote.SetTitle(CS2WS(csTitle));
+        dlgNote.SetNote(dict_value_set.GetNote());
         if (dlgNote.DoModal() == IDOK)  {
-            if (csNote != dlgNote.GetNote()) {
+            if (dict_value_set.GetNote() != dlgNote.GetNote()) {
                 CDDDoc* pDoc = assert_cast<CDDDoc*>(assert_cast<CView*>(GetParent())->GetDocument());
                 pDoc->PushUndo(*dict_item, m_iLevel, m_iRec, m_iItem, m_aValue[row].vset, row);
-                dict_value_set.SetNote(dlgNote.GetNote());
+                dict_value_set.SetNote(dlgNote.ReleaseNote());
                 pDoc->SetModified();
             }
         }
@@ -2697,11 +2689,10 @@ void CItemGrid::OnEditNotes()
             csLabel += L"...";
         }
         csTitle = L"Value: " + csLabel + csTitle;
-        csNote = dict_value.GetNote();
-        dlgNote.SetTitle(csTitle);
-        dlgNote.SetNote(csNote);
+        dlgNote.SetTitle(CS2WS(csTitle));
+        dlgNote.SetNote(dict_value.GetNote());
         if (dlgNote.DoModal() == IDOK)  {
-            if (csNote != dlgNote.GetNote()) {
+            if (dict_value.GetNote() != dlgNote.GetNote()) {
                 CDDDoc* pDoc = assert_cast<CDDDoc*>(assert_cast<CView*>(GetParent())->GetDocument());
                 pDoc->PushUndo(*dict_item, m_iLevel, m_iRec, m_iItem, m_aValue[row].vset, row);
                 dict_value.SetNote(dlgNote.GetNote());
@@ -2906,10 +2897,10 @@ void CItemGrid::OnFormatValueLabels(UINT nID)
             {
                 const DictValuePair& dict_value_pair = dict_value.GetValuePair(0);
 
-                CString str = dict_value_pair.GetFrom();
+                CString str = UTF8_TODO::GetCString(dict_value_pair.GetFrom());
                 label.Replace(L"%f", str.Trim());
 
-                str = dict_value_pair.GetTo();
+                str = UTF8_TODO::GetCString(dict_value_pair.GetTo());
                 label.Replace(L"%t", str.Trim());
             }
         }

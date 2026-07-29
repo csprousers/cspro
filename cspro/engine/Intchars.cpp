@@ -1,4 +1,4 @@
-﻿//----------------------------------------------------------------------
+//----------------------------------------------------------------------
 //
 //  INTCHARS.cpp      interpreting char functions
 //
@@ -370,133 +370,6 @@ double CIntDriver::excharobj(int program_index)
 }
 
 
-double CIntDriver::exstringcompute(int program_index)
-{
-    // for assigning string expressions to strings, arrays, user-defined functions, and variables
-    const Nodes::StringCompute* string_compute_node;
-    const Nodes::SymbolValue* symbol_value_node;
-    std::unique_ptr<std::tuple<Nodes::StringCompute, Nodes::SymbolValue>> simulated_nodes_for_pre80_pen_file;
-
-    if( m_engineData->MeetsCompiledLogicVersion(Serializer::Iteration_8_0_000_1) )
-    {
-        string_compute_node = &GetNode<Nodes::StringCompute>(program_index);
-        symbol_value_node = &GetNode<Nodes::SymbolValue>(string_compute_node->symbol_value_node_index);
-    }
-
-    else
-    {
-        // convert pre-8.0 nodes
-        enum class MoveType : int { Variable = 1, LogicArray, UserFunction, CrossTab, WorkString };
-        struct MOVE_NODE
-        {
-            int st_code;
-            int next_st;
-            MoveType move_type;
-            int move_expr;
-            int ssipos;
-            int sslen;
-            int char_obj;
-        };
-
-        const auto& move_node = GetNode<MOVE_NODE>(program_index);
-
-        simulated_nodes_for_pre80_pen_file = std::make_unique<std::tuple<Nodes::StringCompute, Nodes::SymbolValue>>();
-        Nodes::StringCompute& simulated_string_compute_node = std::get<0>(*simulated_nodes_for_pre80_pen_file);
-        Nodes::SymbolValue& simulated_symbol_value_node = std::get<1>(*simulated_nodes_for_pre80_pen_file);
-        string_compute_node = &simulated_string_compute_node;
-        symbol_value_node = &simulated_symbol_value_node;
-
-        simulated_string_compute_node.substring_index_expression = move_node.ssipos;
-        simulated_string_compute_node.substring_length_expression = move_node.sslen;
-        simulated_string_compute_node.string_expression = move_node.char_obj;
-
-        switch( move_node.move_type )
-        {
-            case MoveType::LogicArray:
-                simulated_symbol_value_node.symbol_index = GetNode<Nodes::ElementReference>(move_node.move_expr).symbol_index;
-                break;
-
-            case MoveType::UserFunction:
-            case MoveType::Variable:
-                simulated_symbol_value_node.symbol_index = GetNode<SVAR_NODE>(move_node.move_expr).m_iVarIndex;
-                break;
-
-            case MoveType::WorkString:
-                simulated_symbol_value_node.symbol_index = move_node.move_expr;
-                break;
-
-            default:
-                ASSERT(false);
-        }
-
-        simulated_symbol_value_node.symbol_compilation = move_node.move_expr;
-    };
-
-    // evaluate the value to be assigned
-    std::wstring rhs_value = EvalAlphaExpr(string_compute_node->string_expression);
-
-    // if there are no subscripts used, we can set the value directly
-    if( string_compute_node->substring_index_expression == -1 )
-    {
-        AssignValueToSymbol(*symbol_value_node, SharableString(UTF8_TODO::GetUtf8(std::move(rhs_value))));
-    }
-
-    // otherwise get the variable's current value and apply the new value on top of it
-    else
-    {
-        ModifySymbolValue<SharableString>(*symbol_value_node,
-            [&](SharableString& temp_lhs_value)
-            {
-                std::wstring lhs_value = UTF8_TODO::GetWide(*temp_lhs_value);
-                int starting_position = Evaluate<int>(string_compute_node->substring_index_expression) - 1;
-
-                // return if the starting position is invalid
-                if( starting_position < 0 )
-                    return;
-
-                int rhs_chars_to_copy = rhs_value.length();
-                int chars_to_copy;
-
-                // if no length is specified, copy the the entire RHS string
-                if( string_compute_node->substring_length_expression == -1 )
-                {
-                    chars_to_copy = rhs_chars_to_copy;
-                }
-
-                // otherwise copy the number of characters requested
-                else
-                {
-                    chars_to_copy = Evaluate<int>(string_compute_node->substring_length_expression);
-
-                    // return if nothing to copy
-                    if( chars_to_copy <= 0 )
-                        return;
-
-                    rhs_chars_to_copy = std::min(chars_to_copy, rhs_chars_to_copy);
-                }
-
-                // increase the LHS string length as necessary
-                int max_string_length = starting_position + chars_to_copy;
-
-                if( max_string_length > static_cast<int>(lhs_value.length()) )
-                    lhs_value.resize(max_string_length, ' ');
-
-                // copy all of some of the RHS string
-                wchar_t* const lhs_value_starting_position = lhs_value.data() + starting_position;
-                _tmemcpy(lhs_value_starting_position, rhs_value.c_str(), rhs_chars_to_copy);
-
-                // if more characters were requested to copy than exist in the RHS string, pad the LHS string with spaces
-                if( chars_to_copy > rhs_chars_to_copy )
-                    _tmemset(lhs_value_starting_position + rhs_chars_to_copy, ' ', chars_to_copy - rhs_chars_to_copy);
-
-                temp_lhs_value = UTF8_TODO::GetUtf8(lhs_value);
-            });
-    }
-
-    return 0;
-}
-
-
 Symbol& CIntDriver::GetSymbolFromSymbolName(const std::string_view symbol_name_sv, SymbolType preferred_symbol_type/* = SymbolType::None*/)
 {
     try
@@ -667,7 +540,6 @@ double CIntDriver::exgetlabel(int iExpr)
     {
         ASSERT(symbol->IsOneOf(SymbolType::Variable, SymbolType::ValueSet));
         const ValueProcessor* value_processor;
-        CString label;
 
         if( symbol->IsA(SymbolType::ValueSet) )
         {
@@ -681,34 +553,30 @@ double CIntDriver::exgetlabel(int iExpr)
             value_processor = &pVarT->GetCurrentValueProcessor();
         }
 
-        if( fng_node.m_iOper == (int)GetLabelSearchType::ByCode )
+        if( fng_node.m_iOper == static_cast<int>(GetLabelSearchType::ByCode) )
         {
-            const DictValue* dict_value = nullptr;
-
-            if( IsNumeric(*symbol) )
-            {
-                dict_value = value_processor->GetDictValue(evalexpr(fng_node.m_iExpr));
-            }
-
-            else
-            {
-                dict_value = value_processor->GetDictValue(EvalAlphaExprCS(fng_node.m_iExpr));
-            }
+            const DictValue* const dict_value = IsNumeric(*symbol)
+                ? value_processor->GetDictValue(Evaluate(fng_node.m_iExpr))
+                : value_processor->GetDictValue(EvaluateSharableString(fng_node.m_iExpr).GetString());
 
             if( dict_value != nullptr )
-                label = dict_value->GetLabel();
+                return AssignAlphaValue(dict_value->GetLabel());
         }
 
         else
         {
-            const DictValue* dict_value = value_processor->GetDictValueByLabel(EvalAlphaExprCS(fng_node.m_iExpr));
+            ASSERT(fng_node.m_iOper == static_cast<int>(GetLabelSearchType::ByLabel));
+
+            const DictValue* const dict_value = value_processor->GetDictValueByLabel(
+                EvaluateSharableString(fng_node.m_iExpr).GetString()
+            );
 
             // take the label from the first value pair
             if( dict_value != nullptr && dict_value->HasValuePairs() )
-                label = dict_value->GetValuePair(0).GetFrom();
+                return AssignString(dict_value->GetValuePair(0).GetFrom());
         }
 
-        return AssignAlphaValue(label);
+        return AssignStringNull();
     }
 }
 
@@ -1043,6 +911,12 @@ double CIntDriver::ExExecPFF(int iExpr) // 20100601
     {
         return ExExecPFF(EvaluatePath(execsystem_node.m_iCommand), execsystem_node.m_iOptions);
     }
+}
+
+
+double CIntDriver::ExExecPFF_INTERPRETER_DLL_TODO(LogicPff& logic_pff)
+{
+    return ExExecPFF(&logic_pff);
 }
 
 

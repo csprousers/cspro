@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "CustomFont.h"
 
 
@@ -26,29 +26,32 @@ private:
 // UserDefinedFonts
 // --------------------------------------------------------------------------
 
-bool UserDefinedFonts::IsFontDefined(FontType font_type) const
+bool UserDefinedFonts::IsFontDefined(const FontType font_type) const
 {
     return ( GetFont(font_type) != nullptr );
 }
 
 
-CFont* UserDefinedFonts::GetFont(FontType font_type) const
+CFont* UserDefinedFonts::GetFont(const FontType font_type) const
 {
     ASSERT(font_type != FontType::All);
-    size_t index = GetFontTypeIndex(font_type);
+    const size_t index = GetFontTypeIndex(font_type);
     return ( index < m_fonts.size() && m_fonts[index] != nullptr ) ? m_fonts[index]->GetFont() : nullptr;
 }
 
 
-bool UserDefinedFonts::SetFont(FontType font_type, const std::wstring& font_name, int font_size, bool is_bold, bool is_italic)
+bool UserDefinedFonts::SetFont(const FontType font_type, const std::wstring& font_name, const int font_size, const bool is_bold, const bool is_italic)
 {
     auto new_font = std::make_unique<CFont>();
 
-    BOOL create_font_success = new_font->CreateFont(-1 * font_size, 0, 0, 0,
-                                                    is_bold ? FW_BOLD : FW_NORMAL,
-                                                    is_italic,
-                                                    FALSE, 0, ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, FF_DONTCARE,
-                                                    font_name.c_str());
+    const BOOL create_font_success = new_font->CreateFont(
+        -1 * font_size,
+        0, 0, 0,
+        is_bold ? FW_BOLD : FW_NORMAL,
+        is_italic,
+        FALSE, 0, ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, FF_DONTCARE,
+        font_name.c_str()
+    );
 
     if( create_font_success == FALSE || AfxGetMainWnd() == nullptr )
         return false;
@@ -56,7 +59,7 @@ bool UserDefinedFonts::SetFont(FontType font_type, const std::wstring& font_name
     // see if the font requested can actually be created
     CClientDC hDC(AfxGetMainWnd());
 
-    CFont* current_font = hDC.GetCurrentFont();
+    CFont* const current_font = hDC.GetCurrentFont();
     hDC.SelectObject(new_font.get());
 
     TEXTMETRIC tm;
@@ -93,7 +96,7 @@ bool UserDefinedFonts::SetFont(FontType font_type, const std::wstring& font_name
         end_index = start_index;
     }
 
-    size_t necessary_vector_size = end_index + 1;
+    const size_t necessary_vector_size = end_index + 1;
 
     if( m_fonts.size() < necessary_vector_size )
         m_fonts.resize(necessary_vector_size);
@@ -108,7 +111,7 @@ bool UserDefinedFonts::SetFont(FontType font_type, const std::wstring& font_name
 }
 
 
-void UserDefinedFonts::ResetFont(FontType font_type)
+void UserDefinedFonts::ResetFont(const FontType font_type)
 {
     size_t start_index;
     size_t end_index;
@@ -127,4 +130,15 @@ void UserDefinedFonts::ResetFont(FontType font_type)
 
     for( size_t index = start_index; index < m_fonts.size() && index <= end_index; ++index )
         m_fonts[index].reset();
+}
+
+
+const UserDefinedFonts* UserDefinedFonts::GetUserDefinedFont(const FontType font_type)
+{
+    const UserDefinedFonts* user_defined_fonts;
+
+    if( WindowsDesktopMessage::Send(UWM::UtilO::GetUserFonts, &user_defined_fonts, font_type) == 1 )
+        return user_defined_fonts;
+
+    return nullptr;
 }

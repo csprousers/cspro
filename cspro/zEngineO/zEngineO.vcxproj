@@ -39,6 +39,7 @@
     <ClCompile Include="Compiler\DictionaryCC.cpp" />
     <ClCompile Include="Compiler\DocumentCC.cpp" />
     <ClCompile Include="Compiler\EngineDictionaryCC.cpp" />
+    <ClCompile Include="Compiler\EnginePreprocessor.cpp" />
     <ClCompile Include="Compiler\ExpressionsCC.cpp" />
     <ClCompile Include="Compiler\FileCC.cpp" />
     <ClCompile Include="Compiler\FreqCC.cpp" />
@@ -64,6 +65,7 @@
     <ClCompile Include="Compiler\PffCC.cpp" />
     <ClCompile Include="Compiler\QueryCC.cpp" />
     <ClCompile Include="Compiler\ReportCC.cpp" />
+    <ClCompile Include="Compiler\RoutingCC.cpp" />
     <ClCompile Include="Compiler\StringsCC.cpp" />
     <ClCompile Include="Compiler\StringWriterCC.cpp" />
     <ClCompile Include="Compiler\SwitchCC.cpp" />
@@ -115,6 +117,8 @@
     <ClCompile Include="Interpreter\MathRT.cpp" />
     <ClCompile Include="Interpreter\NetworkRT.cpp" />
     <ClCompile Include="Interpreter\PathRT.cpp" />
+    <ClCompile Include="Interpreter\PffRT.cpp" />
+    <ClCompile Include="Interpreter\PropertiesRT.cpp" />
     <ClCompile Include="Interpreter\ReportRT.cpp" />
     <ClCompile Include="Interpreter\StringRT.cpp" />
     <ClCompile Include="Interpreter\StringWriterRT.cpp" />
@@ -123,7 +127,10 @@
     <ClCompile Include="Interpreter\SystemAppRT.cpp" />
     <ClCompile Include="Interpreter\SystemRT.cpp" />
     <ClCompile Include="Interpreter\TextTemplateRT.cpp" />
+    <ClCompile Include="Interpreter\UserFunctionRT.cpp" />
     <ClCompile Include="Interpreter\UserInterfaceRT.cpp" />
+    <ClCompile Include="Interpreter\ValueSetRT.cpp" />
+    <ClCompile Include="Interpreter\VariableRT.cpp" />
     <ClCompile Include="Interpreter\VideoRT.cpp" />
     <ClCompile Include="JavaScriptProcessor.cpp" />
     <ClCompile Include="List.cpp" />
@@ -131,6 +138,7 @@
     <ClCompile Include="LoopStack.cpp" />
     <ClCompile Include="Map.cpp" />
     <ClCompile Include="NamedFrequency.cpp" />
+    <ClCompile Include="ParameterManager.cpp" />
     <ClCompile Include="PenReaderApplicationLoader.cpp" />
     <ClCompile Include="PenWriterApplicationLoader.cpp" />
     <ClCompile Include="PersistentVariableProcessor.cpp" />
@@ -173,6 +181,7 @@
     <ClInclude Include="Compiler\CompilationExtendedInformation.h" />
     <ClInclude Include="Compiler\CompilerHelper.h" />
     <ClInclude Include="Compiler\CompilerMessageIssuer.h" />
+    <ClInclude Include="Compiler\EnginePreprocessor.h" />
     <ClInclude Include="Compiler\ImputeAutomaticStatCompilerHelper.h" />
     <ClInclude Include="Compiler\IncludesCC.h" />
     <ClInclude Include="Compiler\LogicCompiler.h" />
@@ -236,8 +245,10 @@
     <ClInclude Include="Nodes\Trace.h" />
     <ClInclude Include="Nodes\UserFunction.h" />
     <ClInclude Include="Nodes\UserInterface.h" />
+    <ClInclude Include="Nodes\ValueSet.h" />
     <ClInclude Include="Nodes\Various.h" />
     <ClInclude Include="OnKeyMapping.h" />
+    <ClInclude Include="ParameterManager.h" />
     <ClInclude Include="PenReaderApplicationLoader.h" />
     <ClInclude Include="PenWriterApplicationLoader.h" />
     <ClInclude Include="PersistentVariableProcessor.h" />

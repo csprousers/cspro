@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "IncludesCC.h"
 #include "LoopStack.h"
 #include "WorkVariable.h"
@@ -38,7 +38,7 @@ int LogicCompiler::CompileIfStatement()
         IssueErrorOnTokenMismatch(TOKTHEN, MGF::expecting_then_keyword_6);
 
         NextToken();
-        if_node.then_program_index = instruc_COMPILER_DLL_TODO();
+        if_node.then_program_index = CompileStatements();
 
         previous_if_node = &if_node;
 
@@ -47,7 +47,7 @@ int LogicCompiler::CompileIfStatement()
     if( Tkn == TOKELSE )
     {
         NextToken();
-        previous_if_node->else_program_index = instruc_COMPILER_DLL_TODO();
+        previous_if_node->else_program_index = CompileStatements();
     }
 
     else if( Tkn == TOKENDIF )
@@ -87,7 +87,7 @@ int LogicCompiler::CompileWhileLoop()
 
     // read the loop contents
     NextToken();
-    while_node.block_program_index = instruc_COMPILER_DLL_TODO();
+    while_node.block_program_index = CompileStatements();
 
     IssueErrorOnTokenMismatch(TOKENDDO, MGF::expecting_enddo_keyword_10);
 
@@ -166,7 +166,7 @@ int LogicCompiler::CompileDoLoop()
     }
 
     // read the loop contents (using false because the local symbol stack was created above)
-    do_node.block_program_index = instruc_COMPILER_DLL_TODO(false);
+    do_node.block_program_index = CompileStatements(false);
 
     IssueErrorOnTokenMismatch(TOKENDDO, MGF::expecting_enddo_keyword_10);
 

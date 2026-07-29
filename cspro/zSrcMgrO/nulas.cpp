@@ -34,16 +34,13 @@ bool CIntDriver::IsExecutionInterrupted() const { return ReturnProgrammingError(
 bool CIntDriver::Report_Evaluate_INTERPRETER_DLL_TODO(Report& report) { return ReturnProgrammingError(false); }
 SharableString CIntDriver::EvaluateTextFill(int program_index) { return ReturnProgrammingError(SharableString()); }
 SharableString CIntDriver::EvaluateUserMessage(int message_node_index, FunctionCode function_code, int* out_message_number) { return ReturnProgrammingError(std::string()); }
-void CIntDriver::ModifySymbolValue_double_INTERPRETER_DLL_TODO(const Nodes::SymbolValue& symbol_value_node, const std::function<void(double&)>& modify_value_function) { ASSERT(false); }
-bool CIntDriver::AssignValueToSymbol_INTERPRETER_DLL_TODO(const Nodes::SymbolValue& symbol_value_node, double value) { return ReturnProgrammingError(false); }
-bool CIntDriver::AssignValueToSymbol_INTERPRETER_DLL_TODO(const Nodes::SymbolValue& symbol_value_node, SharableString value) { return ReturnProgrammingError(false); }
 double CIntDriver::RunSoonToBeRemoveFeature(std::string_view feature_sv, int program_index, void* tag) { return ReturnProgrammingError(0.0); }
 bool CIntDriver::HasSpecialFunction(SpecialFunction::Code special_function) { return ReturnProgrammingError(false); }
 double CIntDriver::ExecSpecialFunction(int symbol_index, SpecialFunction::Code special_function, std::vector<std::variant<double, SharableString>> arguments) { return ReturnProgrammingError(DEFAULT); }
 Symbol* CIntDriver::GetFromSymbolOrEngineItemWorker_INTERPRETER_DLL_TODO(const SymbolReference<Symbol*>& symbol_reference, bool use_exceptions) { return ReturnProgrammingError(nullptr); }
 std::shared_ptr<Symbol> CIntDriver::GetFromSymbolOrEngineItemWorker_INTERPRETER_DLL_TODO(const SymbolReference<std::shared_ptr<Symbol>>& symbol_reference, bool use_exceptions)  { return ReturnProgrammingError(nullptr); }
 EvaluatedEngineItemSubscript CIntDriver::EvaluateEngineItemSubscript(const EngineItem& engine_item, const Nodes::ItemSubscript& item_subscript_node) { return ReturnProgrammingError(EvaluatedEngineItemSubscript()); }
-int CIntDriver::SelectDlgHelper_pre77(int iFunCode, const CString* csHeading, const std::vector<std::vector<CString>*>* paData,
+int CIntDriver::SelectDlgHelper_pre77(int iFunCode, const CString& csHeading, const std::vector<std::vector<CString>*>* paData,
                                       const std::vector<CString>* paColumnTitles, std::vector<bool>* pbaSelections,
                                       const std::vector<PortableColor>* row_text_colors) { return ReturnProgrammingError(0); }
 EngineParadataDriver& CIntDriver::GetEngineParadataDriver_INTERPRETER_DLL_TODO() { throw ProgrammingErrorException(); }
@@ -52,6 +49,16 @@ void CIntDriver::ExecuteCallbackUserFunction(int field_symbol_index, UserFunctio
 std::unique_ptr<UserFunctionArgumentEvaluator> CIntDriver::EvaluateArgumentsForCallbackUserFunction(int program_index, FunctionCode function_code) { return ReturnProgrammingError(nullptr); }
 double CIntDriver::ex_Freq_view(const NamedFrequency& named_frequency, const ViewerOptions* viewer_options, int frequency_parameters_node_index) { return ReturnProgrammingError(0); }
 double CIntDriver::exCase_view(const DICT& dictionary, const ViewerOptions* viewer_options) { return ReturnProgrammingError(0); }
+double CIntDriver::ExExecPFF_INTERPRETER_DLL_TODO(LogicPff& logic_pff) { throw ProgrammingErrorException(); }
+FrequencyDriver* CIntDriver::GetFrequencyDriver_INTERPRETER_DLL_TODO() { throw ProgrammingErrorException(); }
+void CIntDriver::AssignValueToVART_INTERPRETER_DLL_TODO(int variable_compilation, double value) { throw ProgrammingErrorException(); }
+void CIntDriver::AssignValueToVART_INTERPRETER_DLL_TODO(int variable_compilation, SharableString value) { throw ProgrammingErrorException(); }
+double CIntDriver::EvaluateVARTValue_double_INTERPRETER_DLL_TODO(int variable_compilation) { throw ProgrammingErrorException(); }
+SharableString CIntDriver::EvaluateVARTValue_SharableString_INTERPRETER_DLL_TODO(int variable_compilation) { throw ProgrammingErrorException(); }
+void CIntDriver::ModifyVARTValue_INTERPRETER_DLL_TODO(int variable_compilation, const std::function<void(double&)>& modify_value_function, std::unique_ptr<Paradata::FieldInfo>* paradata_field_info/* = nullptr*/) { throw ProgrammingErrorException(); }
+void CIntDriver::ModifyVARTValue_INTERPRETER_DLL_TODO(int variable_compilation, const std::function<void(SharableString&)>& modify_value_function, std::unique_ptr<Paradata::FieldInfo>* paradata_field_info/* = nullptr*/) { throw ProgrammingErrorException(); }
+int CIntDriver::SymbolTableSearch_INTERPRETER_DLL_TODO(std::string_view full_symbol_name_sv, SymbolType preferred_symbol_type,
+                                                       const std::vector<SymbolType>* allowable_symbol_types) const { throw ProgrammingErrorException(); }
 
 
 double* CIntDriver::svaraddr( VARX* pVarX ) const { ASSERT(0); return NULL; }

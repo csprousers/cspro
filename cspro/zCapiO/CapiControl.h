@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zCapiO/ExtendedControl.h>
 
@@ -24,7 +24,7 @@ public:
     // Get smallest size required to draw all controls.
     CSize GetControlsMinSize();
 
-    CSize Filter(wstring_view filter_sv);
+    CSize Filter(std::string_view filter_sv);
 
     void UpdateSelection(const CString& keyedText);
 
@@ -36,8 +36,8 @@ private:
     COleDateTime TranslateStringToDate(CString fieldDateString);
     CString TranslateDateToString();
 
-    void TranslateStringToCheckbox(CString checkboxString);
-    CString TranslateCheckboxToString();
+    void TranslateStringToCheckbox(std::string_view checkbox_text_sv);
+    std::string TranslateCheckboxToString();
 
     int SearchVS(CString searchText);
     bool GetVSSelection(int vsID, CString* newFieldText);

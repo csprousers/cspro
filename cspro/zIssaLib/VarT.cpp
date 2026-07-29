@@ -1,4 +1,4 @@
-﻿//---------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 //  File name: VarT.cpp
 //
 //  Description:
@@ -23,7 +23,7 @@
 #include <zToolsO/Serializer.h>
 #include <zToolsO/VarFuncs.h>
 #include <zJson/Json.h>
-#include <zDictO/ValueProcessor.h>
+#include <zDictO/NumericValueProcessor.h>
 #include <engine/Engarea.h>
 #include <engine/Engdrv.h>
 #include <engine/Entdrv.h>
@@ -818,11 +818,11 @@ const NumericValueProcessor& CSymbolVar::GetCurrentNumericValueProcessor() const
 }
 
 
-void CSymbolVar::SetCaptureInfo(const CaptureInfo& capture_info)
+void CSymbolVar::SetCaptureInfo(CaptureInfo capture_info)
 {
     ASSERT(!capture_info.IsSpecified() || CaptureInfo::IsCaptureTypePossible(*m_pDictItem, capture_info.GetCaptureType()));
 
-    m_captureInfo = capture_info;
+    m_captureInfo = std::move(capture_info);
     m_evaluatedCaptureInfo.reset();
 }
 

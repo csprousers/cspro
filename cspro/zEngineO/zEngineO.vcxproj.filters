@@ -92,6 +92,9 @@
     <ClCompile Include="Compiler\EngineDictionaryCC.cpp">
       <Filter>Source Files\Compiler</Filter>
     </ClCompile>
+    <ClCompile Include="Compiler\EnginePreprocessor.cpp">
+      <Filter>Source Files\Compiler</Filter>
+    </ClCompile>
     <ClCompile Include="Compiler\ExpressionsCC.cpp">
       <Filter>Source Files\Compiler</Filter>
     </ClCompile>
@@ -165,6 +168,9 @@
       <Filter>Source Files\Compiler</Filter>
     </ClCompile>
     <ClCompile Include="Compiler\ReportCC.cpp">
+      <Filter>Source Files\Compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="Compiler\RoutingCC.cpp">
       <Filter>Source Files\Compiler</Filter>
     </ClCompile>
     <ClCompile Include="Compiler\StringsCC.cpp">
@@ -320,6 +326,12 @@
     <ClCompile Include="Interpreter\PathRT.cpp">
       <Filter>Source Files\Interpreter</Filter>
     </ClCompile>
+    <ClCompile Include="Interpreter\PffRT.cpp">
+      <Filter>Source Files\Interpreter</Filter>
+    </ClCompile>
+    <ClCompile Include="Interpreter\PropertiesRT.cpp">
+      <Filter>Source Files\Interpreter</Filter>
+    </ClCompile>
     <ClCompile Include="Interpreter\ReportRT.cpp">
       <Filter>Source Files\Interpreter</Filter>
     </ClCompile>
@@ -344,7 +356,16 @@
     <ClCompile Include="Interpreter\TextTemplateRT.cpp">
       <Filter>Source Files\Interpreter</Filter>
     </ClCompile>
+    <ClCompile Include="Interpreter\UserFunctionRT.cpp">
+      <Filter>Source Files\Interpreter</Filter>
+    </ClCompile>
     <ClCompile Include="Interpreter\UserInterfaceRT.cpp">
+      <Filter>Source Files\Interpreter</Filter>
+    </ClCompile>
+    <ClCompile Include="Interpreter\ValueSetRT.cpp">
+      <Filter>Source Files\Interpreter</Filter>
+    </ClCompile>
+    <ClCompile Include="Interpreter\VariableRT.cpp">
       <Filter>Source Files\Interpreter</Filter>
     </ClCompile>
     <ClCompile Include="Interpreter\VideoRT.cpp">
@@ -366,6 +387,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="NamedFrequency.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ParameterManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="PenReaderApplicationLoader.cpp">
@@ -482,6 +506,9 @@
       <Filter>Header Files\Compiler</Filter>
     </ClInclude>
     <ClInclude Include="Compiler\CompilerMessageIssuer.h">
+      <Filter>Header Files\Compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="Compiler\EnginePreprocessor.h">
       <Filter>Header Files\Compiler</Filter>
     </ClInclude>
     <ClInclude Include="Compiler\ImputeAutomaticStatCompilerHelper.h">
@@ -673,10 +700,16 @@
     <ClInclude Include="Nodes\UserInterface.h">
       <Filter>Header Files\Nodes</Filter>
     </ClInclude>
+    <ClInclude Include="Nodes\ValueSet.h">
+      <Filter>Header Files\Nodes</Filter>
+    </ClInclude>
     <ClInclude Include="Nodes\Various.h">
       <Filter>Header Files\Nodes</Filter>
     </ClInclude>
     <ClInclude Include="OnKeyMapping.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ParameterManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="PenReaderApplicationLoader.h">

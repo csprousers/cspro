@@ -1,9 +1,10 @@
-﻿//---------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 //  EXPRESC.cpp   compiler of expressions
 //---------------------------------------------------------------------------
 #include "StandardSystemIncludes.h"
 #include "ExpresC_Include.h"
 #include <zEngineO/AllSymbols.h>
+#include <zEngineO/ParameterManager.h>
 #include <zEngineO/Compiler/TokenHelper.h>
 #include <zEngineO/Nodes/Dictionaries.h>
 #include <zEngineO/Nodes/File.h>
@@ -449,7 +450,7 @@ int CEngineCompFunc::grpanal( int iSymGroup, bool bAllowDimExpr, int iChecklimit
 // varsanal: process variable references generating the corresponding nodes
 //
 
-int CEngineCompFunc::genSVARNode( int iTokStIndex, SymbolType eType )
+int CEngineCompFunc::genSVARNode(const int iTokStIndex, const SymbolType eType)
 {
     ASSERT(eType == SymbolType::Variable || eType == SymbolType::WorkVariable); // RHF Aug 04, 2000
 
@@ -458,7 +459,7 @@ int CEngineCompFunc::genSVARNode( int iTokStIndex, SymbolType eType )
 
     auto& svar_node = CreateNode<SVAR_NODE>();
 
-    svar_node.m_iVarType = ( eType == SymbolType::WorkVariable ) ? WVAR_CODE : SVAR_CODE;
+    svar_node.m_iVarType = ( eType == SymbolType::WorkVariable ) ? FunctionCode::WORKVARIABLE_VAR_CODE : SVAR_CODE;
     svar_node.m_iVarIndex = iTokStIndex;
 
     return GetProgramIndex(svar_node);
@@ -527,9 +528,9 @@ int CEngineCompFunc::varsanal( int fmt, bool bCompleteCompilation )
         return varsanal( fmt, bCompleteCompilation, NULL );
 }
 
-// Check the use of varsanal to compile
-// "variables" that are really UserFunction, WorkVariable or SingleVariables
-//
+
+// Use varsanal to compile "variables" that are really WorkVariable or SingleVariables
+// (formerly also for UserFunction)
 // if it returns false, then *piVarNode has a VarNode changed to return
 // if it returns true, varsanal can continue
 bool CEngineCompFunc::varsanal_basicCheck( int* piVarNode, int fmt )
@@ -537,20 +538,10 @@ bool CEngineCompFunc::varsanal_basicCheck( int* piVarNode, int fmt )
     ASSERT( piVarNode != 0 );
     bool bOk = true;
 
-    // assigning to a function's return value
-    if( Tkn == TOKUSERFUNCTION )
-    {
-        auto& svar_node = CreateNode<SVAR_NODE>();
+    ASSERT(Tkn == TOKVAR);
+    ASSERT82(true); // if successful, remove the condition below
 
-        svar_node.m_iVarType = UF_CODE;
-        svar_node.m_iVarIndex = Tokstindex;
-
-        NextToken(); // eat variable name of the function
-
-        return false; // no changes made to piVarNode, use the same
-    }
-
-    else if( Tkn == TOKVAR )
+    if( Tkn == TOKVAR )
     {
         const Symbol& symbol = NPT_Ref(Tokstindex);
 
@@ -1304,9 +1295,11 @@ int CEngineCompFunc::varsanal( int fmt, bool bCompleteCompilation, bool* pbAllIn
         try
         {
                 if( !varsanal_basicCheck( &iVarNode, fmt ) )
+                {
                         // if false, UserFunction, WorkVariable or SingleVariable detected
                         // get out of here
                         return iVarNode;
+                }
 
                 // Multiple Variable Reference
 
@@ -1440,107 +1433,39 @@ int CEngineCompFunc::tvarsanal()
 }
 
 
-int CEngineCompFunc::rutfunc()
+int CEngineCompFunc::rutfunc_COMPILER_DLL_TODO(const Logic::FunctionCompilationType compilation_type)
 {
-    // rutfunc: calls a function-analyzer
-
-    // analyze user-defined functions...
-    if( Tkn == TOKUSERFUNCTION )
-        return CompileUserFunctionCall();
-
-    // ...or built-in functions
-    ASSERT(CurrentToken.function_details != nullptr);
-
-    using CompilationFunction = int(CEngineCompFunc::*)();
-
-    static std::map<Logic::FunctionCompilationType, CompilationFunction> CompilationFunctionMap =
+    return HandleErrors_COMPILER_DLL_TODO([&]()
     {
-        { Logic::FunctionCompilationType::ArgumentsFixedN,          &LogicCompiler::CompileFunctionsArgumentsFixedN },
-        { Logic::FunctionCompilationType::ArgumentsVaryingN,        &LogicCompiler::CompileFunctionsArgumentsVaryingN },
-        { Logic::FunctionCompilationType::ArgumentSpecification,    &LogicCompiler::CompileFunctionsArgumentSpecification },
-
-        { Logic::FunctionCompilationType::Removed,                  &LogicCompiler::CompileFunctionsRemovedFromLanguage },
-
-        { Logic::FunctionCompilationType::Various,                  &LogicCompiler::CompileFunctionsVarious },
-
-        { Logic::FunctionCompilationType::Impute,                   &LogicCompiler::CompileImputeFunction },
-        { Logic::FunctionCompilationType::Invoke,                   &LogicCompiler::CompileInvokeFunction },
-        { Logic::FunctionCompilationType::GPS,                      &LogicCompiler::CompileGpsFunction },
-        { Logic::FunctionCompilationType::Paradata,                 &LogicCompiler::CompileParadataFunction },
-        { Logic::FunctionCompilationType::SetFile,                  &LogicCompiler::CompileSetFileFunction },
-        { Logic::FunctionCompilationType::SetValueSet,              &LogicCompiler::CompileSetValueSetFunction },
-        { Logic::FunctionCompilationType::Sync,                     &LogicCompiler::CompileSyncFunctions },
-        { Logic::FunctionCompilationType::Trace,                    &LogicCompiler::CompileTraceFunction },
-        { Logic::FunctionCompilationType::Userbar,                  &LogicCompiler::CompileUserbarFunction },
-
-        // dictionary related
-        { Logic::FunctionCompilationType::DictionaryVarious,        &LogicCompiler::CompileDictionaryFunctionsVarious },
-        { Logic::FunctionCompilationType::CaseSearch,               &LogicCompiler::CompileDictionaryFunctionsCaseSearch },
-        { Logic::FunctionCompilationType::CaseIO,                   &LogicCompiler::CompileDictionaryFunctionsCaseIO },
-        { Logic::FunctionCompilationType::Case,                     &LogicCompiler::CompileCaseFunctions },
-
-        { Logic::FunctionCompilationType::Item,                     &LogicCompiler::CompileItemFunctions },
-
-        // symbols and namespaces
-        { Logic::FunctionCompilationType::Array,                    &LogicCompiler::CompileLogicArrayFunctions },
-        { Logic::FunctionCompilationType::Audio,                    &LogicCompiler::CompileLogicAudioFunctions },
-        { Logic::FunctionCompilationType::Barcode,                  &LogicCompiler::CompileBarcodeFunctions },
-        { Logic::FunctionCompilationType::CS,                       &LogicCompiler::CompileActionInvokerFunctions },
-        { Logic::FunctionCompilationType::Document,                 &LogicCompiler::CompileLogicDocumentFunctions },
-        { Logic::FunctionCompilationType::File,                     &LogicCompiler::CompileLogicFileFunctions },
-        { Logic::FunctionCompilationType::Geometry,                 &LogicCompiler::CompileLogicGeometryFunctions },
-        { Logic::FunctionCompilationType::HashMap,                  &LogicCompiler::CompileLogicHashMapFunctions },
-        { Logic::FunctionCompilationType::Image,                    &LogicCompiler::CompileLogicImageFunctions },
-        { Logic::FunctionCompilationType::JS,                       &LogicCompiler::CompileJavaScriptFunctions },
-        { Logic::FunctionCompilationType::List,                     &LogicCompiler::CompileLogicListFunctions },
-        { Logic::FunctionCompilationType::Map,                      &LogicCompiler::CompileLogicMapFunctions },
-        { Logic::FunctionCompilationType::Message,                  &LogicCompiler::CompileMessageFunctions },
-        { Logic::FunctionCompilationType::NamedFrequency,           &LogicCompiler::CompileNamedFrequencyFunctions },
-        { Logic::FunctionCompilationType::Path,                     &LogicCompiler::CompilePathFunctions },
-        { Logic::FunctionCompilationType::Pff,                      &LogicCompiler::CompileLogicPffFunctions},
-        { Logic::FunctionCompilationType::Report,                   &LogicCompiler::CompileReportFunctions },
-        { Logic::FunctionCompilationType::StringWriter,             &LogicCompiler::CompileStringWriterFunctions },
-        { Logic::FunctionCompilationType::Symbol,                   &LogicCompiler::CompileSymbolFunctions },
-        { Logic::FunctionCompilationType::SystemApp,                &LogicCompiler::CompileSystemAppFunctions },
-        { Logic::FunctionCompilationType::TextTemplate,             &LogicCompiler::CompileTextTemplateFunctions },
-        { Logic::FunctionCompilationType::UserInterface,            &LogicCompiler::CompileUserInterfaceFunctions },
-        { Logic::FunctionCompilationType::ValueSet,                 &LogicCompiler::CompileValueSetFunctions },
-        { Logic::FunctionCompilationType::Video,                    &LogicCompiler::CompileLogicVideoFunctions },
-
-        // other
-        { Logic::FunctionCompilationType::FN2,                      &CEngineCompFunc::cfun_compile_count },
-        { Logic::FunctionCompilationType::FN3,                      &CEngineCompFunc::cfun_compile_sum },
-        { Logic::FunctionCompilationType::FN4,                      &CEngineCompFunc::cfun_fn4 },
-        { Logic::FunctionCompilationType::FN6,                      &CEngineCompFunc::cfun_fn6 },
-        { Logic::FunctionCompilationType::FN8,                      &CEngineCompFunc::cfun_fn8 },
-        { Logic::FunctionCompilationType::FNS,                      &CEngineCompFunc::cfun_fns },
-        { Logic::FunctionCompilationType::FNC,                      &CEngineCompFunc::cfun_fnc },
-        { Logic::FunctionCompilationType::FNB,                      &CEngineCompFunc::cfun_fnb },
-        { Logic::FunctionCompilationType::FNTC,                     &CEngineCompFunc::cfun_fntc },
-        { Logic::FunctionCompilationType::FNH,                      &CEngineCompFunc::cfun_fnh },
-        { Logic::FunctionCompilationType::FNG,                      &CEngineCompFunc::cfun_fng },
-        { Logic::FunctionCompilationType::FNGR,                     &CEngineCompFunc::cfun_fngr },
-        { Logic::FunctionCompilationType::FNID,                     &CEngineCompFunc::cfun_fnins },
-        { Logic::FunctionCompilationType::FNSRT,                    &CEngineCompFunc::cfun_fnsrt },
-        { Logic::FunctionCompilationType::FNMAXOCC,                 &CEngineCompFunc::cfun_fnmaxocc },
-        { Logic::FunctionCompilationType::FNINVALUESET,             &CEngineCompFunc::cfun_fninvalueset },
-        { Logic::FunctionCompilationType::FNEXECSYSTEM,             &CEngineCompFunc::cfun_fnexecsystem },
-        { Logic::FunctionCompilationType::FNSHOW,                   &CEngineCompFunc::cfun_fnshow },
-        { Logic::FunctionCompilationType::FNITEMLIST,               &CEngineCompFunc::cfun_fnitemlist },
-        { Logic::FunctionCompilationType::FNDECK,                   &CEngineCompFunc::cfun_fndeck },
-        { Logic::FunctionCompilationType::FNCAPTURETYPE,            &CEngineCompFunc::cfun_fncapturetype },
-        { Logic::FunctionCompilationType::FNOCCS,                   &CEngineCompFunc::cfun_fnoccs },
-        { Logic::FunctionCompilationType::FNNOTE,                   &CEngineCompFunc::cfun_fnnote },
-        { Logic::FunctionCompilationType::FNSTRPARM,                &CEngineCompFunc::cfun_fnstrparm },
-        { Logic::FunctionCompilationType::FNPROPERTY,               &CEngineCompFunc::cfun_fnproperty },
-    };
-
-    const auto& compilation_function_lookup = CompilationFunctionMap.find(CurrentToken.function_details->compilation_type);
-
-    if( compilation_function_lookup == CompilationFunctionMap.cend() )
-        IssueError(21);
-
-    return (this->*compilation_function_lookup->second)();
+        switch( compilation_type )
+        {
+            case Logic::FunctionCompilationType::FN2:           return cfun_compile_count();
+            case Logic::FunctionCompilationType::FN3:           return cfun_compile_sum();
+            case Logic::FunctionCompilationType::FN4:           return cfun_fn4();
+            case Logic::FunctionCompilationType::FN6:           return cfun_fn6();
+            case Logic::FunctionCompilationType::FN8:           return cfun_fn8();
+            case Logic::FunctionCompilationType::FNS:           return cfun_fns();
+            case Logic::FunctionCompilationType::FNC:           return cfun_fnc();
+            case Logic::FunctionCompilationType::FNB:           return cfun_fnb();
+            case Logic::FunctionCompilationType::FNTC:          return cfun_fntc();
+            case Logic::FunctionCompilationType::FNH:           return cfun_fnh();
+            case Logic::FunctionCompilationType::FNG:           return cfun_fng();
+            case Logic::FunctionCompilationType::FNGR:          return cfun_fngr();
+            case Logic::FunctionCompilationType::FNID:          return cfun_fnins();
+            case Logic::FunctionCompilationType::FNSRT:         return cfun_fnsrt();
+            case Logic::FunctionCompilationType::FNMAXOCC:      return cfun_fnmaxocc();
+            case Logic::FunctionCompilationType::FNEXECSYSTEM:  return cfun_fnexecsystem();
+            case Logic::FunctionCompilationType::FNSHOW:        return cfun_fnshow();
+            case Logic::FunctionCompilationType::FNITEMLIST:    return cfun_fnitemlist();
+            case Logic::FunctionCompilationType::FNDECK:        return cfun_fndeck();
+            case Logic::FunctionCompilationType::FNCAPTURETYPE: return cfun_fncapturetype();
+            case Logic::FunctionCompilationType::FNOCCS:        return cfun_fnoccs();
+            case Logic::FunctionCompilationType::FNNOTE:        return cfun_fnnote();
+            case Logic::FunctionCompilationType::FNSTRPARM:     return cfun_fnstrparm();
+            case Logic::FunctionCompilationType::FNPROPERTY:    return cfun_fnproperty();
+            default:                                            return ReturnProgrammingError(-1);
+        }
+    });
 }
 
 
@@ -2308,7 +2233,7 @@ int CEngineCompFunc::cfun_fnstrparm()
         // if the parameter is known at compile-time, validate it
         struct ParameterDetails
         {
-            CString text;
+            std::string text;
             int min_arguments;
             int max_arguments;
         };
@@ -2318,13 +2243,13 @@ int CEngineCompFunc::cfun_fnstrparm()
         if( next_token_helper_result == NextTokenHelperResult::StringLiteral )
         {
             parameter_details.emplace();
-            parameter_details->text = UTF8_TODO::GetCString(Tokstr);
+            parameter_details->text = Tokstr;
 
             ParameterManager::Parameter parameter = ParameterManager::Parse(function_code, parameter_details->text,
                 &parameter_details->min_arguments, &parameter_details->max_arguments);
 
             if( parameter == ParameterManager::Parameter::Invalid )
-                IssueError(1100, UTF8_TODO::GetUtf8(parameter_details->text).c_str());
+                IssueError(1100, parameter_details->text.c_str());
         }
 
         arguments.emplace_back(CompileStringExpression());
@@ -2343,7 +2268,7 @@ int CEngineCompFunc::cfun_fnstrparm()
             const int provided_arguments = static_cast<int>(arguments.size()) - 1;
 
             if( provided_arguments < parameter_details->min_arguments || provided_arguments > parameter_details->max_arguments )
-                IssueError(1101, UTF8_TODO::GetUtf8(parameter_details->text).c_str(), provided_arguments);
+                IssueError(1101, parameter_details->text.c_str(), provided_arguments);
         }
     }
 
@@ -2364,7 +2289,7 @@ int CEngineCompFunc::cfun_fnproperty()
     size_t argument_counter = 0;
 
     bool first_argument_was_dictionary_related_symbol = false;
-    CString property_name;
+    std::string property_name;
     std::optional<ParameterManager::ParameterArgument> property_type;
 
     NextToken();
@@ -2389,15 +2314,19 @@ int CEngineCompFunc::cfun_fnproperty()
 
     if( next_token_helper_result == NextTokenHelperResult::StringLiteral )
     {
-        property_name = UTF8_TODO::GetCString(Tokstr);
+        property_name = Tokstr;
 
-        ParameterManager::Parameter parameter = ParameterManager::Parse(FNGETPROPERTY_CODE, property_name);
+        ParameterManager::Parameter parameter = ParameterManager::Parse(FunctionCode::FNGETPROPERTY_CODE, property_name);
 
         if( parameter == ParameterManager::Parameter::Invalid )
-            IssueError(1100, UTF8_TODO::GetUtf8(property_name).c_str());
+        {
+            IssueError(1100, property_name.c_str());
+        }
 
-        else if( set_function && ParameterManager::Parse(FNSETPROPERTY_CODE, property_name) == ParameterManager::Parameter::Invalid )
-            IssueError(1102, UTF8_TODO::GetUtf8(property_name).c_str());
+        else if( set_function && ParameterManager::Parse(FunctionCode::FNSETPROPERTY_CODE, property_name) == ParameterManager::Parameter::Invalid )
+        {
+            IssueError(1102, property_name.c_str());
+        }
 
         property_type = ParameterManager::GetAdditionalArgument(parameter);
     }
@@ -2437,7 +2366,7 @@ int CEngineCompFunc::cfun_fnproperty()
         application_property || property_type == ParameterManager::ParameterArgument::SystemProperty )
     {
         if( argument_counter > min_arguments )
-            IssueError(1106, application_property ? "application" : "system", UTF8_TODO::GetUtf8(property_name).c_str());
+            IssueError(1106, application_property ? "application" : "system", property_name.c_str());
     }
 
     else if( bool item_property = ( property_type == ParameterManager::ParameterArgument::ItemProperty );
@@ -2445,13 +2374,13 @@ int CEngineCompFunc::cfun_fnproperty()
     {
         if( argument_counter == min_arguments )
         {
-            IssueError(1105, UTF8_TODO::GetUtf8(property_name).c_str());
+            IssueError(1105, property_name.c_str());
         }
 
         else if( first_argument_was_dictionary_related_symbol && !set_function )
         {
             if( !NPT(arguments[0])->IsA(SymbolType::Variable) )
-                IssueError(item_property ? 1103 : 1104, UTF8_TODO::GetUtf8(property_name).c_str());
+                IssueError(item_property ? 1103 : 1104, property_name.c_str());
         }
     }
 
@@ -3888,100 +3817,6 @@ int CEngineCompFunc::cfun_fnmaxocc()
     }
 }
 
-
-int CEngineCompFunc::cfun_fninvalueset() {
-        int     iProg    = Prognext;
-        int     iFunCode = CurrentToken.function_details->code;
-        int     iExpr=0, iSymVSet=0, iSymVar=0;
-
-#ifdef GENCODE
-        FNINVALUSET_NODE*   ptrfunc = NODEPTR_AS( FNINVALUSET_NODE );
-
-        if( m_Flagcomp ) {
-            ADVANCE_NODE( FNINVALUSET_NODE );
-
-            ptrfunc->fn_code = iFunCode;
-        }
-#endif
-        NextToken();                          // name of function
-        if( Tkn != TOKLPAREN )
-            THROW_PARSER_ERROR0( 14 );
-        NextToken();
-
-        // the last check prevents alpha working variables
-        if( IsCurrentTokenVART(*this) && VPT(Tokstindex)->GetDictItem() != NULL )
-        {
-            iSymVar=Tokstindex;
-
-            VART*   pVarT=VPT(iSymVar);
-
-            if( pVarT->IsNumeric() )
-                    iExpr = varsanal( pVarT->GetFmt() );
-            else
-                    iExpr = CompileStringExpression();
-
-            if( GetSyntErr() != 0 )
-                return 0;
-
-            if( Tkn == TOKCOMMA ) {
-                    NextToken();
-
-                    if( Tkn != TOKVALUESET )
-                        IssueError(33115);
-
-                    iSymVSet = Tokstindex;
-
-                    const ValueSet& value_set = GetSymbolValueSet(iSymVSet);
-
-                    if( value_set.IsDynamic() || value_set.GetVarT() != pVarT )
-                        IssueError(940);
-
-                    NextToken();
-            }
-        }
-
-        // a new mode (20150131) so that you can check if a number/string is in a value set without
-        // having to set the item to the variable that you want to check
-        else
-        {
-            iSymVar = -1;
-
-            DataType value_data_type = GetCurrentTokenDataType();
-
-            iExpr = CompileExpression(value_data_type);
-
-            if( Tkn != TOKCOMMA )
-                 THROW_PARSER_ERROR0( 528 );
-
-            NextToken();
-
-            if( Tkn != TOKVALUESET )
-                THROW_PARSER_ERROR0( 33115 );
-
-            iSymVSet = Tokstindex;
-
-            const ValueSet& value_set = GetSymbolValueSet(iSymVSet);
-
-            if( value_set.GetDataType() != value_data_type )
-                IssueError(941, ToString(value_data_type));
-
-            NextToken();
-        }
-
-        IssueErrorOnTokenMismatch(TOKRPAREN, 17);
-
-        NextToken();
-
-#ifdef GENCODE
-        if( m_Flagcomp ) {
-                ptrfunc->m_iSymVar = iSymVar;
-                ptrfunc->m_iExpr = iExpr;
-                ptrfunc->m_iSymVSet = iSymVSet;
-        }
-#endif
-
-        return iProg;
-}
 
 //-----------------------------------------------------------------------
 //  cfun_fnc : compile function / class FNC

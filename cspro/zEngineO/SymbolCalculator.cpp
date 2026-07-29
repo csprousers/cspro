@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "SymbolCalculator.h"
 #include "AllSymbols.h"
 #include <engine/Ctab.h>
@@ -133,6 +133,58 @@ const DictBase* SymbolCalculator::GetDictBase(const Symbol& symbol)
             return ( engine_item_accessor != nullptr ) ? &engine_item_accessor->GetDictItem() :
                                                          nullptr;
         }
+    }
+}
+
+
+bool SymbolCalculator::IsSymbolCreatedAutomatically(const Symbol& symbol)
+{
+    switch( symbol.GetType() )
+    {
+        case SymbolType::Application:
+        case SymbolType::Block:
+        case SymbolType::Crosstab:
+        case SymbolType::Dictionary:
+        case SymbolType::Flow:
+        case SymbolType::Form:
+        case SymbolType::Group:
+        case SymbolType::Item:
+        case SymbolType::Pre80Dictionary:
+        case SymbolType::Pre80Flow:
+        case SymbolType::Record:
+        case SymbolType::Relation:
+        case SymbolType::Report:
+        case SymbolType::Section:
+        case SymbolType::Variable:
+            return true;
+
+        case SymbolType::Array:
+        case SymbolType::Audio:
+        case SymbolType::Document:
+        case SymbolType::File:
+        case SymbolType::Geometry:
+        case SymbolType::HashMap:
+        case SymbolType::Image:
+        case SymbolType::List:
+        case SymbolType::Map:
+        case SymbolType::NamedFrequency:
+        case SymbolType::Pff:
+        case SymbolType::StringWriter:
+        case SymbolType::SystemApp:
+        case SymbolType::UserFunction:
+        case SymbolType::Video:
+        case SymbolType::WorkString:
+        case SymbolType::WorkVariable:
+            return false;
+
+        case SymbolType::ValueSet:
+            return assert_cast<const ValueSet&>(symbol).IsDynamic();
+
+        case SymbolType::Index_Unused:
+        case SymbolType::None:
+        case SymbolType::Unknown:
+        default:
+            return ReturnProgrammingError(false);
     }
 }
 
@@ -347,8 +399,6 @@ const Symbol* SymbolCalculator::GetFirstSymbolWithOccurrences(const Symbol& symb
 
 int SymbolCalculator::GetLevelNumber_base1(const Symbol& symbol)
 {
-    constexpr int NoLevelNumber = 9;
-
     // ENGINECR_TODO it would be nice GetLevel()/GetLevelNumber() throughout the code was consistent
     // in whether the value is zero- or one-based
     switch( symbol.GetType() )

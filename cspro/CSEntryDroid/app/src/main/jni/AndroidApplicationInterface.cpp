@@ -99,7 +99,7 @@ ObjectTransporter* AndroidApplicationInterface::GetObjectTransporter()
 
 void AndroidApplicationInterface::RefreshPage(RefreshPageContents contents)
 {
-    JNIEnv* pEnv = GetJNIEnvForCurrentThread();
+    JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
 
     if( contents == RefreshPageContents::All || contents == RefreshPageContents::Notes )
         pEnv->CallStaticVoidMethod(JNIReferences::classApplicationInterface, JNIReferences::methodApplicationInterfaceRefreshNotes);
@@ -123,7 +123,7 @@ SharableString AndroidApplicationInterface::DisplayCSHtmlDlg(const NavigationAdd
     if( action_invoker_access_token_override == nullptr )
         return DisplayHtmlDialogFunctionDlg(navigation_address, action_invoker_access_token_override, SharableString(), exception_holder);
 
-    JNIEnv* pEnv = GetJNIEnvForCurrentThread();
+    JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
 
     ASSERT(navigation_address.IsHtmlFilePath());
     const std::string url = PortableLocalhost::CreateFileUrl(navigation_address.GetHtmlFilePath());
@@ -156,7 +156,7 @@ SharableString AndroidApplicationInterface::DisplayHtmlDialogFunctionDlg(const N
                                                                          const SharableString& display_options_json,
                                                                          ExceptionHolder* const exception_holder)
 {
-    JNIEnv* pEnv = GetJNIEnvForCurrentThread();
+    JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
 
     ASSERT(navigation_address.IsHtmlFilePath());
     const std::string url = PortableLocalhost::CreateFileUrl(navigation_address.GetHtmlFilePath());
@@ -191,7 +191,7 @@ SharableString AndroidApplicationInterface::DisplayHtmlDialogFunctionDlg(const N
 
 int AndroidApplicationInterface::ShowModalDialog(const cs::string_view_sz title_sv, const cs::string_view_sz message_sv, const int mbType)
 {
-    JNIEnv* pEnv = GetJNIEnvForCurrentThread();
+    JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
 
     JNIReferences::scoped_local_ref<jstring> jTitle(pEnv, JavaString::ToJava(*pEnv, title_sv));
     JNIReferences::scoped_local_ref<jstring> jMessage(pEnv, JavaString::ToJava(*pEnv, message_sv));
@@ -219,7 +219,7 @@ int AndroidApplicationInterface::ShowModalDialog(const cs::string_view_sz title_
 
 int AndroidApplicationInterface::ShowMessage(const CString& title, const CString& message, const std::vector<CString> &buttons)
 {
-    JNIEnv* pEnv = GetJNIEnvForCurrentThread();
+    JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
 
     jstring errmsgTitle = WideToJava(pEnv, title);
     jstring errmsgMessage = WideToJava(pEnv, message);
@@ -355,22 +355,25 @@ int AndroidApplicationInterface::ShowChoiceDialog(const CString& title, const st
 }
 
 
-CString AndroidApplicationInterface::EditNote(const CString& note, const CString& title, bool case_note)
+SharableString AndroidApplicationInterface::EditNote(const SharableString& note, const std::string& title, const bool case_note)
 {
     auto env = GetJNIEnvForCurrentThread();
 
-    JNIReferences::scoped_local_ref<jstring> jFieldNote(env, WideToJava(env, note));
-    JNIReferences::scoped_local_ref<jstring> jDialogTitle(env, WideToJava(env, title));
+    JNIReferences::scoped_local_ref<jstring> jFieldNote(env, JavaString::ToJava(*env, note));
+    JNIReferences::scoped_local_ref<jstring> jDialogTitle(env, JavaString::ToJava(*env, title));
 
-    JNIReferences::scoped_local_ref<jstring> newNote(env, (jstring)env->CallStaticObjectMethod(JNIReferences::classApplicationInterface,JNIReferences::methodApplicationInterfaceEditnote,
-                                                                                               jFieldNote.get(), jDialogTitle.get(), case_note));
+    JNIReferences::scoped_local_ref<jstring> jNewNote(env, (jstring)env->CallStaticObjectMethod(
+        JNIReferences::classApplicationInterface,
+        JNIReferences::methodApplicationInterfaceEditnote,
+        jFieldNote.get(),
+        jDialogTitle.get(),
+        case_note
+    ));
 
-    if( newNote.get() != nullptr ) {
-        return JavaToWSZ(env, newNote.get());
-    }
-    else {
-        return note;
-    }
+    if( jNewNote.get() != nullptr )
+        JavaString::ToUtf8(*env, jNewNote.get());
+
+    return note;
 }
 
 
@@ -496,7 +499,7 @@ int AndroidApplicationInterface::ShowSelcaseDialog(const std::vector<CString>* c
 
 bool AndroidApplicationInterface::ExecPff(const std::string& pff_file_path)
 {
-    JNIEnv* pEnv = GetJNIEnvForCurrentThread();
+    JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
 
     JNIReferences::scoped_local_ref<jstring> jPffFilePath(pEnv, JavaString::ToJava(*pEnv, pff_file_path));
 
@@ -585,28 +588,37 @@ bool AndroidApplicationInterface::IsNetworkConnected(const bool wifi, const bool
 }
 
 
-CString AndroidApplicationInterface::GetProperty(const CString& parameter)
+std::string AndroidApplicationInterface::GetProperty(const std::string& parameter)
 {
-    JNIEnv* pEnv = GetJNIEnvForCurrentThread();
-    JNIReferences::scoped_local_ref<jstring> jparameter(pEnv, WideToJava(pEnv, parameter));
+    JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
+    const JNIReferences::scoped_local_ref<jstring> jParameter(pEnv, JavaString::ToJava(*pEnv, parameter));
 
-    JNIReferences::scoped_local_ref<jstring> jresult(pEnv, (jstring)pEnv->CallStaticObjectMethod(JNIReferences::classApplicationInterface,JNIReferences::methodApplicationInterfaceGetProperty, jparameter.get()));
+    const JNIReferences::scoped_local_ref<jstring> jResult(pEnv,
+        (jstring)pEnv->CallStaticObjectMethod(
+            JNIReferences::classApplicationInterface,
+            JNIReferences::methodApplicationInterfaceGetProperty,
+            jParameter.get()
+        )
+    );
 
-    CString result;
-    if (jresult.get() != nullptr)
-        result = JavaToWSZ(pEnv, jresult.get());
+    if( jResult.get() != nullptr )
+        return JavaString::ToUtf8(*pEnv, jResult.get());
 
-    return result;
+    return std::string();
 }
 
 
-void AndroidApplicationInterface::SetProperty(const CString& parameter, const CString& value)
+void AndroidApplicationInterface::SetProperty(const std::string& parameter, const std::string& value)
 {
-    JNIEnv* pEnv = GetJNIEnvForCurrentThread();
-    JNIReferences::scoped_local_ref<jstring> jparameter(pEnv, WideToJava(pEnv, parameter));
-    JNIReferences::scoped_local_ref<jstring> jvalue(pEnv, WideToJava(pEnv, value));
+    JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
+    const JNIReferences::scoped_local_ref<jstring> jParameter(pEnv, JavaString::ToJava(*pEnv, parameter));
+    const JNIReferences::scoped_local_ref<jstring> jValue(pEnv, JavaString::ToJava(*pEnv, value));
 
-    pEnv->CallStaticVoidMethod(JNIReferences::classApplicationInterface,JNIReferences::methodApplicationInterfaceSetProperty, jparameter.get(), jvalue.get());
+    pEnv->CallStaticVoidMethod(JNIReferences::classApplicationInterface,
+        JNIReferences::methodApplicationInterfaceSetProperty,
+        jParameter.get(),
+        jValue.get()
+    );
 }
 
 
@@ -763,7 +775,7 @@ OAuth2Token AndroidApplicationInterface::OAuth2Authorize_GoogleDrive(OAuth2Autho
 
 std::optional<UsernamePassword> AndroidApplicationInterface::ShowLoginDialog(const std::string& server, const bool show_invalid_error)
 {
-    JNIEnv* pEnv = GetJNIEnvForCurrentThread();
+    JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
     auto jServer =  JavaString::ToJava(*pEnv, server);
 
     auto retVal = (jstring)pEnv->CallStaticObjectMethod(JNIReferences::classApplicationInterface, JNIReferences::methodApplicationInterfaceLoginDialog,
@@ -853,7 +865,7 @@ void AndroidApplicationInterface::ParadataDriverManager(Paradata::PortableMessag
 
 void AndroidApplicationInterface::GetParadataCachedEvents()
 {
-    JNIEnv* pEnv = GetJNIEnvForCurrentThread();
+    JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
 
 
     jobject object = pEnv->CallStaticObjectMethod(JNIReferences::classApplicationInterface, JNIReferences::methodApplicationInterfaceParadataDriverManager,
@@ -1001,7 +1013,7 @@ std::string AndroidApplicationInterface::GetLocaleLanguage() const
 
 void AndroidApplicationInterface::MediaScanFiles(const std::vector<CString>& paths)
 {
-    JNIEnv* pEnv = GetJNIEnvForCurrentThread();
+    JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
     JNIReferences::scoped_local_ref<jobjectArray> jpaths(pEnv, pEnv->NewObjectArray(paths.size(),JNIReferences::classString,pEnv->NewStringUTF("")));
 
     for( int i = 0; i < paths.size(); i++ )
@@ -1047,7 +1059,7 @@ void AndroidApplicationInterface::FileCopySharableUri(const std::string& sharabl
 
 bool AndroidApplicationInterface::View(const Viewer& viewer)
 {
-    JNIEnv* pEnv = GetJNIEnvForCurrentThread();
+    JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
     const auto& data = viewer.GetData();
 
     if( data.content_type == Viewer::Data::Type::FilePath )
@@ -1080,7 +1092,7 @@ bool AndroidApplicationInterface::View(const Viewer& viewer)
 
 void AndroidApplicationInterface::ViewWebPageWithJavaScriptInterface(const Viewer& viewer, const std::string& url)
 {
-    JNIEnv* pEnv = GetJNIEnvForCurrentThread();
+    JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
     JNIReferences::scoped_local_ref<jstring> jTitle(pEnv, JavaString::ToJava(*pEnv, viewer.GetOptions().title));
     JNIReferences::scoped_local_ref<jstring> jUrl(pEnv, JavaString::ToJava(*pEnv, url));
     JNIReferences::scoped_local_ref<jstring> jActionInvokerAccessTokenOverride(pEnv, JavaString::ToJava(*pEnv, viewer.GetData().action_invoker_access_token_override.get()));
@@ -1155,7 +1167,7 @@ SharableString AndroidApplicationInterface::ThreadWaitForComplete(const long thr
 
 void AndroidApplicationInterface::Prompt(EngineUI::PromptNode& prompt_node)
 {
-    JNIEnv* pEnv = GetJNIEnvForCurrentThread();
+    JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
 
     jstring title = WideToJava(pEnv, prompt_node.title);
     jstring initial_value = WideToJava(pEnv, prompt_node.initial_value);

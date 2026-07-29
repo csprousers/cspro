@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "DictClipboard.h"
 #include <zAppO/LanguageSerializerHelper.h>
 
@@ -282,7 +282,7 @@ DictPastedValues<T> DictClipboard::GetNamedElementsFromClipboard(CWnd* pWnd) con
                     if( dictionary.GetNumRecords() == 0 )
                     {
                         dictionary.SetRecTypeStart(1);
-                        dictionary.SetRecTypeLen(std::max(1, non_id_records_added.front()->GetRecTypeVal().GetLength()));
+                        dictionary.SetRecTypeLen(std::max<UINT>(1, SO::WideLength(non_id_records_added.front()->GetRecTypeVal())));
                     }
 
                     // otherwise disallow the operation
@@ -292,20 +292,21 @@ DictPastedValues<T> DictClipboard::GetNamedElementsFromClipboard(CWnd* pWnd) con
                     }
                 }
 
-                std::set<CString> record_types_added;
+                std::set<std::string> record_types_added;
 
-                for( CDictRecord* dict_record : non_id_records_added )
+                for( CDictRecord* const dict_record : non_id_records_added )
                 {
-                    CString record_type = dict_record->GetRecTypeVal();
+                    std::string record_type = dict_record->GetRecTypeVal();
 
                     if( !DictionaryValidator::MakeRecordTypeUnique(dictionary, record_type, record_types_added) )
                     {
-                        throw CSProException("A unique record type could not be created for %s. Try pasting again after increasing the record type length",
+                        throw CSProException("A unique record type could not be created for '%s'. "
+                                             "Try pasting again after increasing the record type length.",
                                              dict_record->GetName().c_str());
                     }
 
                     dict_record->SetRecTypeVal(record_type);
-                    record_types_added.insert(record_type);
+                    record_types_added.insert(std::move(record_type));
                 }
             }
         }

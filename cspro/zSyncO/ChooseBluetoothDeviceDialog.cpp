@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #include "ChooseBluetoothDeviceDialog.h"
 #include <zUtilO/CustomFont.h>
-#include <zUtilO/Interapp.h>
 #include <zNetwork/SyncException.h>
 
 
@@ -124,11 +123,15 @@ LRESULT ChooseBluetoothDeviceDialog::OnScanError(WPARAM wParam, LPARAM /*lParam*
 
 void ChooseBluetoothDeviceDialog::SetUpFont()
 {
-    UserDefinedFonts* pUserFonts = nullptr;
-    AfxGetApp()->GetMainWnd()->SendMessage(WM_IMSA_GET_USER_FONTS, (WPARAM)&pUserFonts);
-    m_pFont = ( pUserFonts != nullptr ) ? pUserFonts->GetFont(UserDefinedFonts::FontType::ValueSets) : nullptr;
+    const UserDefinedFonts* const user_defined_fonts = UserDefinedFonts::GetUserDefinedFont(UserDefinedFonts::FontType::ValueSets);
 
-    if( m_pFont == nullptr )
+    if( user_defined_fonts != nullptr )
+    {
+        m_pFont = user_defined_fonts->GetFont(UserDefinedFonts::FontType::ValueSets);
+        ASSERT(m_pFont != nullptr);
+    }
+
+    else
     {
         if (!((HFONT) m_defaultFont))
             m_defaultFont.CreatePointFont(8 * 10, _T("MS Shell Dlg"));

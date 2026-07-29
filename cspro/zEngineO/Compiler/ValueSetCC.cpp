@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "IncludesCC.h"
 #include "ValueSet.h"
+#include "Nodes/ValueSet.h"
 #include <engine/VarT.h>
 
 
@@ -362,15 +363,125 @@ int LogicCompiler::CompileValueSetFunctions()
 }
 
 
+int LogicCompiler::CompileValueSetRelatedFunctions()
+{
+    const FunctionCode function_code = CurrentToken.function_details->code;
+
+    NextToken();
+    IssueErrorOnTokenMismatch(TOKLPAREN, MGF::left_parenthesis_expected_in_function_call_14);
+
+
+    // --------------------------------------------------------------------------
+    // setvalueset
+    // --------------------------------------------------------------------------
+    if( function_code == FunctionCode::FNSETVALUESET_CODE )
+    {
+        return CompileSetValueSetFunction();
+    }
+
+
+    // --------------------------------------------------------------------------
+    // invalueset
+    // --------------------------------------------------------------------------
+    else if( function_code == FunctionCode::FNINVALUESET_CODE )
+    {
+        auto& invalueset_node = CreateNode<Nodes::InValueSet>(function_code);
+
+        NextToken();
+
+        VART* vart;
+        DataType value_data_type;
+        bool process_value_set;
+
+        // the value can be specified using an item name...
+        if( IsCurrentTokenVART(*this) )
+        {
+            vart = VPT(Tokstindex);
+            value_data_type = vart->GetDataType();
+
+            invalueset_node.item_symbol_index = vart->GetSymbolIndex();
+            invalueset_node.value_expression = IsNumeric(value_data_type)
+                ? varsanal_COMPILER_DLL_TODO(vart->GetFmt())
+                : CompileStringExpression(); // COMPILER_DLL_TODO varsanal does not produce a
+                                             // node that can be used by functions like EvaluateString
+                                             // in the same way varsanal does for numerics ... perhaps add
+                                             // a method that can compile variables, and also checks that accessing
+                                             // them is valid (as done in CompileDestinationVariable)
+
+            process_value_set = ( Tkn == TOKCOMMA );
+        }
+
+        // ...or by specifying a value directly
+        else
+        {
+            vart = nullptr;
+            value_data_type = GetCurrentTokenDataType();
+
+            invalueset_node.item_symbol_index = -1;
+            invalueset_node.value_expression = CompileExpression(value_data_type);
+
+            IssueErrorOnTokenMismatch(TOKCOMMA, MGF::function_call_comma_expected_528);
+
+            process_value_set = true;
+        }
+
+        if( process_value_set )
+        {
+            NextToken();
+
+            if( Tkn != TOKVALUESET )
+                IssueError(MGF::object_of_type_expected_33116, ToString(SymbolType::ValueSet));
+
+            const ValueSet& value_set = GetSymbolValueSet(Tokstindex);
+
+            if( vart != nullptr )
+            {
+                if( value_set.IsDynamic() || vart != value_set.GetVarT() )
+                    IssueError(MGF::ValueSet_item_valueset_mismatch_940);
+
+                ASSERT(value_data_type == value_set.GetDataType());
+            }
+
+            else if( value_data_type != value_set.GetDataType() )
+            {
+                IssueError(MGF::ValueSet_not_correct_data_type_941, ToString(value_data_type));
+            }
+
+            invalueset_node.value_set_symbol_index = value_set.GetSymbolIndex();
+
+            NextToken();
+        }
+
+        else
+        {
+            invalueset_node.value_set_symbol_index = -1;
+        }
+
+        IssueErrorOnTokenMismatch(TOKRPAREN, MGF::right_parenthesis_expected_in_function_call_17);
+
+        NextToken();
+
+        return GetProgramIndex(invalueset_node);
+    }
+
+
+    // --------------------------------------------------------------------------
+    // unhandled function code
+    // --------------------------------------------------------------------------
+    else
+    {
+        return ReturnProgrammingError(-1);
+    }
+}
+
+
 int LogicCompiler::CompileSetValueSetFunction()
 {
     int item_symbol_index;
     int value_set_symbol_index;
     std::optional<DataType> value_data_type;
 
-    NextToken();
-    IssueErrorOnTokenMismatch(TOKLPAREN, MGF::left_parenthesis_expected_in_function_call_14);
-
+    // the tokens 'setvalueset' and '(' have already been read in CompileValueSetRelatedFunctions
     NextToken();
 
     // @ specified before a string allows the specification of the item at runtime

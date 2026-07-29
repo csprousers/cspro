@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zDictO/zDictO.h>
 #include <zAppO/LabelSet.h>
@@ -29,8 +29,8 @@ public:
     void SetLabel(const CString& label) { m_label.SetLabel(label); }
 
     // note
-    const CString& GetNote() const    { return m_note; }
-    void SetNote(const CString& note) { m_note = note; }
+    const std::string& GetNote() const { return m_note; }
+    void SetNote(std::string note)     { m_note = std::move(note); }
 
 protected:
     DictBase& operator=(const DictBase& rhs) noexcept;
@@ -44,5 +44,5 @@ protected:
 
 protected:
     LabelSet m_label;
-    CString m_note;
+    std::string m_note;
 };

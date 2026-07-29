@@ -1,4 +1,4 @@
-﻿//-------------------------------------------------------------------
+//-------------------------------------------------------------------
 //
 // INTFUNCS.cpp  executes functions (system and user-functions)
 //
@@ -12,7 +12,7 @@
 #include "StandardSystemIncludes.h"
 #include "Interpreter.h"
 #include "Engine.h"
-#include "VariableWorker.h"
+#include "VariableIterator.h"
 #include <zEngineO/AllSymbols.h>
 #include <zEngineO/Interpreter/SelectDlgHelper.h>
 #include <zEngineO/Messages/EngineMessages.h>
@@ -677,7 +677,7 @@ double CIntDriver::exdeckarray(int iExpr) // 20100121 for getdeck and putdeck
             VART* pVarT = value_set.GetVarT();
             VARX* pVarX = pVarT->GetVarX();
             double numeric_value = 0;
-            std::wstring string_value;
+            SharableString string_value;
 
             // if a value was provided, it will override whatever is in the variable
             if( deck_array_node->index_expressions[i] >= 0 )
@@ -689,7 +689,7 @@ double CIntDriver::exdeckarray(int iExpr) // 20100121 for getdeck and putdeck
 
                 else
                 {
-                    string_value = EvalAlphaExpr(deck_array_node->index_expressions[i]);
+                    string_value = EvaluateSharableString(deck_array_node->index_expressions[i]);
                 }
             }
 
@@ -706,7 +706,7 @@ double CIntDriver::exdeckarray(int iExpr) // 20100121 for getdeck and putdeck
 
                     else
                     {
-                        string_value = CS2WS(pVarX->GetValue());
+                        string_value = UTF8_TODO::GetUtf8(pVarX->GetValue());
                     }
                 }
 
@@ -736,24 +736,16 @@ double CIntDriver::exdeckarray(int iExpr) // 20100121 for getdeck and putdeck
 
                     else
                     {
-                        string_value = CS2WS(pVarX->GetValue(fixedIndex));
+                        string_value = UTF8_TODO::GetUtf8(pVarX->GetValue(fixedIndex));
                     }
                 }
             }
 
             // now figure out the array index values from the value set
             const ValueProcessor& value_processor = value_set.GetValueProcessor();
-            const DictValue* dict_value;
-
-            if( pVarT->IsNumeric() )
-            {
-                dict_value = value_processor.GetDictValue(numeric_value);
-            }
-
-            else
-            {
-                dict_value = value_processor.GetDictValue(WS2CS(string_value));
-            }
+            const DictValue* const dict_value = pVarT->IsNumeric()
+                ? value_processor.GetDictValue(numeric_value)
+                : value_processor.GetDictValue(*string_value);
 
             // we need to map the value to an index number
             if( dict_value != nullptr )
@@ -2271,7 +2263,7 @@ double CIntDriver::exshow(int iExpr)
     m_aShowLines.clear();
 
     SelectDlgHelper select_dlg_helper(*m_paradataDriver, select_dlg, Paradata::OperatorSelectionEvent::Source::Show);
-    return select_dlg_helper.GetSingleSelection();
+    return static_cast<double>(select_dlg_helper.GetSingleSelection());
 }
 
 
@@ -2372,7 +2364,7 @@ double CIntDriver::exshow_pre77(int iExpr, int iActualForNode)
     if( pShowNode->m_iHeading >= 0 )
         csHeading = EvalAlphaExprCS(pShowNode->m_iHeading);
 
-    int iRet = SelectDlgHelper_pre77(pShowNode->fn_code, &csHeading, &aData, &aColumnTitles, nullptr, nullptr);
+    int iRet = SelectDlgHelper_pre77(pShowNode->fn_code, csHeading, &aData, &aColumnTitles, nullptr, nullptr);
 
     for( const auto& data : aData )
         delete data;
@@ -2576,7 +2568,7 @@ double CIntDriver::exshowarray(int iExpr)
     }
 
     SelectDlgHelper select_dlg_helper(*m_paradataDriver, select_dlg, Paradata::OperatorSelectionEvent::Source::ShowArray);
-    return select_dlg_helper.GetSingleSelection();
+    return static_cast<double>(select_dlg_helper.GetSingleSelection());
 }
 
 
@@ -2716,7 +2708,7 @@ double CIntDriver::exshowarray_pre77(int iExpr)
         }
     }
 
-    int iRet = SelectDlgHelper_pre77(ptrfunc->fn_code, &csHeading, &aData, bLabelsDefined ? &aColumnTitles : nullptr, nullptr, nullptr);
+    int iRet = SelectDlgHelper_pre77(ptrfunc->fn_code, csHeading, &aData, bLabelsDefined ? &aColumnTitles : nullptr, nullptr, nullptr);
 
     for( std::vector<std::vector<CString>*>::size_type i = 0; i < aData.size(); i++ )
         delete aData[i];
@@ -2967,73 +2959,78 @@ CDEField* CIntDriver::GetCDEFieldFromVART(VART* pVarT)
 }
 
 
-double CIntDriver::exgetcapturetype(int iExpr) // 20100608
+double CIntDriver::ex_getcapturetype(const int program_index)
 {
-    const auto& function_node = GetNode<FNN_NODE>(iExpr);
-    const VART* pVarT = VPT(function_node.fn_expr[0]);
+    const auto& fnn_node = GetNode<FNN_NODE>(program_index);
+    const VART* const pVarT = VPT(fnn_node.fn_expr[0]);
 
     // use the evaluated capture info so that Unspecified is never returned
-    return (int)pVarT->GetEvaluatedCaptureInfo().GetCaptureType();
+    return static_cast<double>(pVarT->GetEvaluatedCaptureInfo().GetCaptureType());
 }
 
 
-double CIntDriver::exsetcapturetype(int iExpr)
+double CIntDriver::ex_setcapturetype(const int program_index)
 {
-    // 20100623 we'll want to refresh the responses window in case the capture type has been changed
+    // refresh the responses window in case the capture type has been changed
     WindowsDesktopMessage::Post(UWM::CSEntry::ShowCapi);
 
-    const FNN_NODE* pFunc = (FNN_NODE*)PPT(iExpr);
-    Symbol* pSymbol = NPT(pFunc->fn_expr[0]);
+    const auto& fnn_node = GetNode<FNN_NODE>(program_index);
+    Symbol& symbol = NPT_Ref(fnn_node.fn_expr[0]);
 
-    int int_capture_type = Evaluate<int>(pFunc->fn_expr[1]);
+    const int int_capture_type = Evaluate<int>(fnn_node.fn_expr[1]);
 
-    if( int_capture_type < (int)CaptureType::FirstDefined || int_capture_type > (int)CaptureType::LastDefined )
-        return DEFAULT;
-
-    CaptureType new_capture_type = (CaptureType)int_capture_type;
-    CString date_format;
-
-    if( pFunc->fn_nargs == 3 && new_capture_type == CaptureType::Date )
+    if( int_capture_type < static_cast<int>(CaptureType::FirstDefined) ||
+        int_capture_type > static_cast<int>(CaptureType::LastDefined) )
     {
-        date_format = EvalAlphaExprCS(pFunc->fn_expr[2]);
-        date_format.Trim();
+        return DEFAULT;
     }
 
-    auto setcapturetype_processor = [&](VART* pVarT) -> bool
+    const CaptureType new_capture_type = static_cast<CaptureType>(int_capture_type);
+    SharableString date_format;
+
+    if( fnn_node.fn_nargs == 3 && new_capture_type == CaptureType::Date )
     {
-        const CDictItem* pDictItem = pVarT->GetDictItem();
+        date_format = EvaluateSharableString(fnn_node.fn_expr[2]);
+        date_format.MakeTrim();
+    }
+
+    auto setcapturetype_processor = [&](VART& vart)
+    {
+        const CDictItem& dict_item = *vart.GetDictItem();
 
         CaptureInfo new_capture_info = new_capture_type;
 
         if( new_capture_type == CaptureType::Date )
         {
             // if the date format is specified, use it; if not, use an existing date format when possible
-            std::string date_format_to_use = UTF8_TODO::GetUtf8(date_format);
+            SharableString date_format_to_use = date_format;
 
-            if( date_format_to_use.empty() && pVarT->GetCaptureInfo().GetCaptureType() == CaptureType::Date )
-                date_format_to_use = pVarT->GetCaptureInfo().GetExtended<DateCaptureInfo>().GetFormat();
+            if( date_format_to_use->empty() && vart.GetCaptureInfo().GetCaptureType() == CaptureType::Date )
+                date_format_to_use = vart.GetCaptureInfo().GetExtended<DateCaptureInfo>().GetFormat();
 
-            if( !date_format_to_use.empty() )
+            if( !date_format_to_use->empty() )
             {
-                new_capture_info.GetExtended<DateCaptureInfo>().SetFormat(date_format_to_use);
+                new_capture_info.GetExtended<DateCaptureInfo>().SetFormat(date_format_to_use.Release());
 
-                if( !new_capture_info.GetExtended<DateCaptureInfo>().IsFormatValid(*pDictItem) )
-                    return false;
+                if( !new_capture_info.GetExtended<DateCaptureInfo>().IsFormatValid(dict_item) )
+                    return 0;
             }
         }
 
-        CaptureInfo valid_capture_info = new_capture_info.MakeValid(*pDictItem, pVarT->GetCurrentDictValueSet());
+        CaptureInfo valid_capture_info = new_capture_info.MakeValid(dict_item, vart.GetCurrentDictValueSet());
 
         if( valid_capture_info.GetCaptureType() == new_capture_type )
         {
-            pVarT->SetCaptureInfo(valid_capture_info);
-            return true;
+            vart.SetCaptureInfo(std::move(valid_capture_info));
+            return 1;
         }
 
-        return false;
+        return 0;
     };
 
-    return VariableWorker(GetSymbolTable(), pSymbol, setcapturetype_processor);
+    const size_t fields_modified = ForeachVariable(GetSymbolTable(), symbol, setcapturetype_processor);
+
+    return static_cast<double>(fields_modified);
 }
 
 
@@ -3052,12 +3049,14 @@ double CIntDriver::ex_setcapturepos(const int program_index)
         Evaluate<LONG>(fnn_node.fn_expr[2])
     };
 
-    return VariableWorker(GetSymbolTable(), &symbol,
-        [&](VART* const pVarT)
+    const size_t fields_modified = ForeachVariable(GetSymbolTable(), symbol,
+        [&](VART& vart)
         {
-            pVarT->SetCapturePos(point);
-            return true;
+            vart.SetCapturePos(point);
+            return 1;
         });
+
+    return static_cast<double>(fields_modified);
 #endif
 }
 
@@ -3083,16 +3082,18 @@ double CIntDriver::ex_changekeyboard(const int program_index)
     {
         const unsigned keyboard_id = m_keyboardLoader->GetKeyboardId(Evaluate<unsigned int>(va_node.arguments[0]));
 
-        return VariableWorker(GetSymbolTable(), &symbol,
-            [&](VART* const pVarT)
+        const size_t fields_modified = ForeachVariable(GetSymbolTable(), symbol,
+            [&](VART& vart)
             {
                 // no reason to change it if it's not on a form
-                if( !pVarT->IsUsed() )
-                    return false;
+                if( !vart.IsUsed() )
+                    return 0;
 
-                pVarT->SetKeyboardLayoutId(keyboard_id);
-                return true;
+                vart.SetKeyboardLayoutId(keyboard_id);
+                return 1;
             });
+
+        return static_cast<double>(fields_modified);
     }
 #endif
 }
@@ -3663,8 +3664,9 @@ SharableString CIntDriver::GetValueLabel(const VART* const pVarT, const std::var
 
         const ValueProcessor& value_processor = value_set->GetValueProcessor();
 
-        const DictValue* const dict_value = pVarT->IsAlpha() ? value_processor.GetDictValue(UTF8_TODO::GetCString(*std::get<SharableString>(value))) :
-                                                               value_processor.GetDictValue(std::get<double>(value));
+        const DictValue* const dict_value = pVarT->IsAlpha()
+            ? value_processor.GetDictValue(*std::get<SharableString>(value))
+            : value_processor.GetDictValue(std::get<double>(value));
 
         if( dict_value != nullptr )
             return UTF8_TODO::GetUtf8(dict_value->GetLabel());
@@ -3696,16 +3698,18 @@ double CIntDriver::exgetvaluelabel(int iExpr)
 // returns 0 if the user cancels the box
 // if pbaSelections is NULL, returns the 1-based index of the single selection;
 // if pbaSelections is not NULL, then returns 1 on success with the selected values in pbaSelections
-int CIntDriver::SelectDlgHelper_pre77(int iFunCode, const CString* csHeading, const std::vector<std::vector<CString>*>* paData,
+int CIntDriver::SelectDlgHelper_pre77(int iFunCode, const CString& csHeading, const std::vector<std::vector<CString>*>* paData,
                                       const std::vector<CString>* paColumnTitles, std::vector<bool>* pbaSelections,
                                       const std::vector<PortableColor>* row_text_colors)
 {
     ASSERT(!UseHtmlDialogs());
 
-    ASSERT(csHeading != nullptr && paData != nullptr);
+    ASSERT(paData != nullptr);
 
     if( paData->size() == 0 ) // nothing to choose from
+    {
         return 0;
+    }
 
     else if( paData->size() > MAX_ITEMS ) // too many rows
     {
@@ -3738,7 +3742,7 @@ int CIntDriver::SelectDlgHelper_pre77(int iFunCode, const CString* csHeading, co
     }
 
     // remove newlines from any of the text strings
-    std::unique_ptr<CString> modified_header;
+    cs::non_null_shared_or_raw_ptr<const CString> heading_to_use(&csHeading);
     std::unique_ptr<std::vector<std::unique_ptr<std::vector<CString>>>> modified_vectors;
     std::unique_ptr<std::vector<std::vector<CString>*>> modified_data;
 
@@ -3765,11 +3769,8 @@ int CIntDriver::SelectDlgHelper_pre77(int iFunCode, const CString* csHeading, co
         return modified_vector;
     };
 
-    if( SO::ContainsNewlineCharacter(wstring_view(*csHeading)) )
-    {
-        modified_header = std::make_unique<CString>(NewlineSubstitutor::NewlineToSpace(*csHeading));
-        csHeading = modified_header.get();
-    }
+    if( SO::ContainsNewlineCharacter(wstring_view(csHeading)) )
+        heading_to_use = std::make_unique<CString>(NewlineSubstitutor::NewlineToSpace(csHeading));
 
     for( size_t i = 0; i < paData->size(); ++i )
     {
@@ -3804,8 +3805,8 @@ int CIntDriver::SelectDlgHelper_pre77(int iFunCode, const CString* csHeading, co
     // set up the dialog options
     CSelectListCtrlOptions cOptions;
 
-    cOptions.m_bUseTitle = !csHeading->IsEmpty();
-    cOptions.m_csTitle = *csHeading;
+    cOptions.m_bUseTitle = !heading_to_use->IsEmpty();
+    cOptions.m_csTitle = *heading_to_use;
     cOptions.m_iMinMark = 0;
     cOptions.m_iMaxMark = bSingleSelection ? 1 : -1;
     cOptions.m_bUseColTitle = ( paColumnTitles != NULL );
@@ -3858,17 +3859,17 @@ int CIntDriver::SelectDlgHelper_pre77(int iFunCode, const CString* csHeading, co
 #else //!WIN_DESKTOP
     if( iFunCode == FNACCEPT_CODE )
     {
-        iRet = PlatformInterface::GetInstance()->GetApplicationInterface()->ShowChoiceDialog(*csHeading, *paData);
+        iRet = PlatformInterface::GetInstance()->GetApplicationInterface()->ShowChoiceDialog(csHeading, *paData);
     }
 
     else if( iFunCode == FNSHOW_CODE || iFunCode == FNSHOWARRAY_CODE || iFunCode == LISTFN_SHOW_CODE || iFunCode == VALUESETFN_SHOW_CODE )
     {
-        iRet = PlatformInterface::GetInstance()->GetApplicationInterface()->ShowShowDialog(paColumnTitles, row_text_colors, *paData, *csHeading);
+        iRet = PlatformInterface::GetInstance()->GetApplicationInterface()->ShowShowDialog(paColumnTitles, row_text_colors, *paData, csHeading);
     }
 
     else if( iFunCode == FNSELCASE_CODE )
     {
-        iRet = PlatformInterface::GetInstance()->GetApplicationInterface()->ShowSelcaseDialog(paColumnTitles, *paData, *csHeading, pbaSelections);
+        iRet = PlatformInterface::GetInstance()->GetApplicationInterface()->ShowSelcaseDialog(paColumnTitles, *paData, csHeading, pbaSelections);
     }
 
  //   else

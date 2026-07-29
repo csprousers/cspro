@@ -10,7 +10,6 @@
 #include <CSEntry/RunView.h>
 #include <CSEntry/XSplWnd.h>
 
-#include <zUtilO/CustomFont.h>
 #include <zUtilO/BCMenu.h>
 #include <zUtilF/ApplicationShutdownRunner.h>
 #include <zBridgeO/NPff.h>
@@ -24,6 +23,8 @@ class CLeftView;
 class CCaseTree;
 class ObjectTransporter;
 class QSFView;
+class UserDefinedFonts;
+
 
 class CMainFrame : public CFrameWnd
 {
@@ -103,7 +104,7 @@ protected:  // control bar embedded members
     CReBar      m_wndReBar;
     //      CDEDlgBar      m_wndDlgBar;
 
-    UserDefinedFonts m_userFonts; // 20100621
+    std::unique_ptr<UserDefinedFonts> m_userDefinedFonts;
 
     LRESULT OnGetObjectTransporter(WPARAM wParam, LPARAM lParam);
 

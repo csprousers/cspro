@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zDictO/zDictO.h>
 #include <zDictO/DictBase.h>
@@ -46,7 +46,7 @@ public:
     size_t GetNumToValues() const;
 
     // returns a range string that can be used with proportions
-    CString GetRangeString() const;
+    std::string GetRangeString() const;
 
 
     // serialization

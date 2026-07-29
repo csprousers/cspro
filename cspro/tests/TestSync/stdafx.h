@@ -23,5 +23,4 @@
 
 #include <tests/TestSync/ToString.h>
 
-#define _SILENCE_CXX17_UNCAUGHT_EXCEPTION_DEPRECATION_WARNING
-#include <fakeit.hpp>
+#include <external/fakeit/fakeit.hpp>

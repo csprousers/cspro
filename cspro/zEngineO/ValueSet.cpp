@@ -4,7 +4,8 @@
 #include <engine/VarT.h>
 #include <zToolsO/VectorHelpers.h>
 #include <zUtilO/Randomizer.h>
-#include <zDictO/ValueProcessor.h>
+#include <zDictO/NumericValueProcessor.h>
+#include <zDictO/StringValueProcessor.h>
 #include <zLogicO/ChildSymbolNames.h>
 #include <zJavaScript/Executor.h>
 
@@ -13,7 +14,7 @@
 // ValueSet
 // --------------------------------------------------------------------------
 
-ValueSet::ValueSet(std::string value_set_name, VART* pVarT, const DictValueSet* const dict_value_set, EngineData& engine_data)
+ValueSet::ValueSet(std::string value_set_name, VART* const pVarT, const DictValueSet* const dict_value_set, EngineData& engine_data)
     :   Symbol(std::move(value_set_name), SymbolType::ValueSet),
         m_engineData(engine_data),
         m_pVarT(pVarT),
@@ -100,30 +101,34 @@ void ValueSet::ForeachValue(const std::function<void(const ForeachValueInfo&, do
 
     for( const ValueSetResponse& response : VI_V(GetResponseProcessor()->GetUnfilteredResponses()) )
     {
-        std::optional<double> to_value;
+        const std::optional<double> to_value = !response.IsDiscrete()
+            ? std::make_optional(response.GetMaximumValue())
+            : std::nullopt;
 
-        if( !response.IsDiscrete() )
-            to_value = response.GetMaximumValue();
-
-        numeric_callback_function(ForeachValueInfo { response.GetLabel(), response.GetImageFilePath(), response.GetTextColor() },
-                                  response.GetMinimumValue(), to_value);
+        numeric_callback_function(
+            ForeachValueInfo { response.GetLabelSharableString(), response.GetImageFilePath(), response.GetTextColor() },
+            response.GetMinimumValue(),
+            to_value
+        );
     }
 }
 
 
-void ValueSet::ForeachValue(const std::function<void(const ForeachValueInfo&, const CString&)>& string_callback_function) const
+void ValueSet::ForeachValue(const std::function<void(const ForeachValueInfo&, const SharableString&)>& string_callback_function) const
 {
     ASSERT(IsString());
 
     for( const ValueSetResponse& response : VI_V(GetResponseProcessor()->GetUnfilteredResponses()) )
     {
-        string_callback_function(ForeachValueInfo { response.GetLabel(), response.GetImageFilePath(), response.GetTextColor() },
-                                 response.GetCode());
+        string_callback_function(
+            ForeachValueInfo { response.GetLabelSharableString(), response.GetImageFilePath(), response.GetTextColor() },
+            response.GetCodeSharableString()
+        );
     }
 }
 
 
-void ValueSet::Randomize(const std::vector<double>& numeric_exclusions, const std::vector<CString>& string_exclusions)
+void ValueSet::Randomize(const std::variant<std::vector<double>, std::vector<SharableString>>& exclusions)
 {
     const ValueProcessor& value_processor = GetValueProcessor();
 
@@ -132,9 +137,11 @@ void ValueSet::Randomize(const std::vector<double>& numeric_exclusions, const st
 
     if( IsNumeric() )
     {
-        for( double exclusion_value : numeric_exclusions )
+        ASSERT(exclusions.index() == 0);
+
+        for( const double exclusion : std::get<0>(exclusions) )
         {
-            const DictValue* dict_value = value_processor.GetDictValue(exclusion_value);
+            const DictValue* const dict_value = value_processor.GetDictValue(exclusion);
 
             if( dict_value != nullptr )
                 values_to_exclude.insert(dict_value);
@@ -143,9 +150,11 @@ void ValueSet::Randomize(const std::vector<double>& numeric_exclusions, const st
 
     else
     {
-        for( const CString& exclusion_value : string_exclusions )
+        ASSERT(exclusions.index() == 1);
+
+        for( const SharableString& exclusion : std::get<1>(exclusions) )
         {
-            const DictValue* dict_value = value_processor.GetDictValue(exclusion_value);
+            const DictValue* const dict_value = value_processor.GetDictValue(*exclusion);
 
             if( dict_value != nullptr )
                 values_to_exclude.insert(dict_value);
@@ -156,7 +165,7 @@ void ValueSet::Randomize(const std::vector<double>& numeric_exclusions, const st
 }
 
 
-void ValueSet::Sort(bool ascending, bool sort_by_label)
+void ValueSet::Sort(const bool ascending, const bool sort_by_label)
 {
     GetResponseProcessor()->SortResponses(ascending, sort_by_label);
 }
@@ -189,8 +198,12 @@ Symbol* ValueSet::FindChildSymbol(const std::string_view symbol_name_sv) const
         // if the list doesn't exist yet, create one
         std::string value_set_list_wrapper_name = SO::Concatenate(GetName(), ".", ListNames[list_index]);
 
-        std::shared_ptr<ValueSetListWrapper> new_wrapper_list(new ValueSetListWrapper(std::move(value_set_list_wrapper_name),
-                                                                                      GetSymbolIndex(), ( list_index == 0 ), m_engineData));
+        std::shared_ptr<ValueSetListWrapper> new_wrapper_list(new ValueSetListWrapper(
+            std::move(value_set_list_wrapper_name),
+            GetSymbolIndex(),
+            ( list_index == 0 ), // codes_wrapper
+            m_engineData
+        ));
 
         value_set_list_wrapper_index = m_engineData.AddSymbol(new_wrapper_list, Logic::SymbolTable::NameMapAddition::DoNotAdd);
 
@@ -225,16 +238,16 @@ void ValueSet::serialize_subclass(Serializer& ar)
 
 struct DynamicValueSetEntry
 {
-    CString label;
+    SharableString label;
     std::string image_file_path;
     PortableColor text_color;
 
-    DynamicValueSetEntry(const CString& label_, std::string image_file_path_, PortableColor text_color_)
-        :   label(label_),
+    DynamicValueSetEntry(SharableString label_, std::string image_file_path_, PortableColor text_color_)
+        :   label(std::move(label_)),
             image_file_path(std::move(image_file_path_)),
             text_color(std::move(text_color_))
     {
-        label.TrimRight();
+        label.MakeTrimRight();
     }
 
     virtual ~DynamicValueSetEntry() { }
@@ -246,9 +259,9 @@ struct NumericDynamicValueSetEntry : public DynamicValueSetEntry
     double from_value;
     std::optional<double> to_value;
 
-    NumericDynamicValueSetEntry(const CString& label_, std::string image_file_path_,
+    NumericDynamicValueSetEntry(SharableString label_, std::string image_file_path_,
                                 PortableColor text_color_, double from_value_, std::optional<double> to_value_)
-        :   DynamicValueSetEntry(label_, std::move(image_file_path_), std::move(text_color_)),
+        :   DynamicValueSetEntry(std::move(label_), std::move(image_file_path_), std::move(text_color_)),
             from_value(from_value_),
             to_value(std::move(to_value_))
     {
@@ -264,14 +277,14 @@ struct NumericDynamicValueSetEntry : public DynamicValueSetEntry
 
 struct StringDynamicValueSetEntry : public DynamicValueSetEntry
 {
-    std::wstring value;
+    SharableString value;
 
-    StringDynamicValueSetEntry(const CString& label, std::string image_file_path_,
-                               PortableColor text_color_, std::wstring value_)
-        :   DynamicValueSetEntry(label, std::move(image_file_path_), std::move(text_color_)),
+    StringDynamicValueSetEntry(SharableString label_, std::string image_file_path_,
+                               PortableColor text_color_, SharableString value_)
+        :   DynamicValueSetEntry(std::move(label_), std::move(image_file_path_), std::move(text_color_)),
             value(std::move(value_))
     {
-        SO::MakeTrimRight(value);
+        value.MakeTrimRight();
     }
 
     bool CodeIsEqual(const StringDynamicValueSetEntry& rhs) const
@@ -320,7 +333,7 @@ void DynamicValueSet::Reset()
 }
 
 
-void DynamicValueSet::ValidateNumericFromTo(double from_value, std::optional<double>& to_value) const
+void DynamicValueSet::ValidateNumericFromTo(const double from_value, std::optional<double>& to_value) const
 {
     // make sure an invalid special value isn't being added as the from value
     if( IsSpecial(from_value) && ( from_value == MISSING || from_value == REFUSED || from_value == DEFAULT ) )
@@ -348,17 +361,30 @@ void DynamicValueSet::ValidateNumericFromTo(double from_value, std::optional<dou
 }
 
 
-void DynamicValueSet::AddValue(std::wstring label, std::string image_file_path, PortableColor text_color, const double from_value, std::optional<double> to_value)
+void DynamicValueSet::AddValue(SharableString label, std::string image_file_path, PortableColor text_color, const double from_value, std::optional<double> to_value)
 {
     ASSERT(IsNumeric());
-    m_entries.emplace_back(std::make_unique<NumericDynamicValueSetEntry>(WS2CS(label), std::move(image_file_path), std::move(text_color), from_value, std::move(to_value)));
+
+    m_entries.emplace_back(std::make_unique<NumericDynamicValueSetEntry>(
+        std::move(label),
+        std::move(image_file_path),
+        std::move(text_color),
+        from_value,
+        std::move(to_value)
+    ));
 }
 
 
-void DynamicValueSet::AddValue(std::wstring label, std::string image_file_path, PortableColor text_color, std::wstring value)
+void DynamicValueSet::AddValue(SharableString label, std::string image_file_path, PortableColor text_color, SharableString value)
 {
     ASSERT(IsString());
-    m_entries.emplace_back(std::make_unique<StringDynamicValueSetEntry>(WS2CS(label), std::move(image_file_path), std::move(text_color), std::move(value)));
+
+    m_entries.emplace_back(std::make_unique<StringDynamicValueSetEntry>(
+        std::move(label),
+        std::move(image_file_path),
+        std::move(text_color),
+        std::move(value)
+    ));
 }
 
 
@@ -369,9 +395,16 @@ size_t DynamicValueSet::AddValues(const ValueSet& value_set)
     if( m_numeric )
     {
         value_set.ForeachValue(
-            [&](const ForeachValueInfo& info, double low_value, const std::optional<double>& high_value)
+            [&](const ForeachValueInfo& info, const double low_value, const std::optional<double>& high_value)
             {
-                AddValue(CS2WS(info.label), info.image_file_path, info.text_color, low_value, high_value);
+                AddValue(
+                    info.label,
+                    info.image_file_path,
+                    info.text_color,
+                    low_value,
+                    high_value
+                );
+
                 ++number_values_added;
             });
     }
@@ -379,9 +412,15 @@ size_t DynamicValueSet::AddValues(const ValueSet& value_set)
     else
     {
         value_set.ForeachValue(
-            [&](const ForeachValueInfo& info, const CString& value)
+            [&](const ForeachValueInfo& info, const SharableString& value)
             {
-                AddValue(CS2WS(info.label), info.image_file_path, info.text_color, CS2WS(value));
+                AddValue(
+                    info.label,
+                    info.image_file_path,
+                    info.text_color,
+                    value
+                );
+
                 ++number_values_added;
             });
     }
@@ -390,7 +429,7 @@ size_t DynamicValueSet::AddValues(const ValueSet& value_set)
 }
 
 
-size_t DynamicValueSet::RemoveValue(double value)
+size_t DynamicValueSet::RemoveValue(const double value)
 {
     ASSERT(IsNumeric());
     size_t number_values_removed = 0;
@@ -412,7 +451,7 @@ size_t DynamicValueSet::RemoveValue(double value)
 }
 
 
-size_t DynamicValueSet::RemoveValue(wstring_view value_sv)
+size_t DynamicValueSet::RemoveValue(std::string_view value_sv)
 {
     ASSERT(IsString());
     size_t number_values_removed = 0;
@@ -423,7 +462,7 @@ size_t DynamicValueSet::RemoveValue(wstring_view value_sv)
     {
         const StringDynamicValueSetEntry& string_entry = GetEntry<StringDynamicValueSetEntry>(i);
 
-        if( value_sv == string_entry.value )
+        if( value_sv == *string_entry.value )
         {
             m_entries.erase(m_entries.begin() + i);
             ++number_values_removed;
@@ -495,13 +534,16 @@ void DynamicValueSet::ForeachValue(const std::function<void(const ForeachValueIn
     {
         const NumericDynamicValueSetEntry& numeric_entry = assert_cast<const NumericDynamicValueSetEntry&>(entry);
 
-        numeric_callback_function(ForeachValueInfo { entry.label, entry.image_file_path, entry.text_color },
-                                  numeric_entry.from_value, numeric_entry.to_value);
+        numeric_callback_function(
+            ForeachValueInfo { entry.label, entry.image_file_path, entry.text_color },
+            numeric_entry.from_value,
+            numeric_entry.to_value
+        );
     }
 }
 
 
-void DynamicValueSet::ForeachValue(const std::function<void(const ForeachValueInfo&, const CString&)>& string_callback_function) const
+void DynamicValueSet::ForeachValue(const std::function<void(const ForeachValueInfo&, const SharableString&)>& string_callback_function) const
 {
     ASSERT(IsString());
 
@@ -509,26 +551,31 @@ void DynamicValueSet::ForeachValue(const std::function<void(const ForeachValueIn
     {
         const StringDynamicValueSetEntry& string_entry = assert_cast<const StringDynamicValueSetEntry&>(entry);
 
-        string_callback_function(ForeachValueInfo { entry.label, entry.image_file_path, entry.text_color },
-                                 WS2CS(string_entry.value));
+        string_callback_function(
+            ForeachValueInfo { entry.label, entry.image_file_path, entry.text_color },
+            string_entry.value
+        );
     }
 }
 
 
-void DynamicValueSet::Randomize(const std::vector<double>& numeric_exclusions, const std::vector<CString>& string_exclusions)
+void DynamicValueSet::Randomize(const std::variant<std::vector<double>, std::vector<SharableString>>& exclusions)
 {
-    std::unique_ptr<std::vector<size_t>> indices_to_randomize;
+    std::optional<std::vector<size_t>> indices_to_randomize;
 
     // get the filtered list of indices to randomize if necessary
-    if( ( m_numeric && !numeric_exclusions.empty() ) || ( !m_numeric && !string_exclusions.empty() ) )
+    ASSERT(exclusions.index() == ( m_numeric ? 0 : 1 ));
+
+    if( !( m_numeric ? std::get<0>(exclusions).empty() : std::get<1>(exclusions).empty() ) )
     {
-        indices_to_randomize = std::make_unique<std::vector<size_t>>();
+        indices_to_randomize.emplace();
 
         for( size_t i = 0; i < m_entries.size(); ++i )
         {
             if( m_numeric )
             {
                 const NumericDynamicValueSetEntry& numeric_entry = GetEntry<NumericDynamicValueSetEntry>(i);
+                const std::vector<double>& numeric_exclusions = std::get<0>(exclusions);
 
                 if( std::find(numeric_exclusions.cbegin(), numeric_exclusions.cend(), numeric_entry.from_value) != numeric_exclusions.cend() )
                     continue;
@@ -537,8 +584,9 @@ void DynamicValueSet::Randomize(const std::vector<double>& numeric_exclusions, c
             else
             {
                 const StringDynamicValueSetEntry& string_entry = GetEntry<StringDynamicValueSetEntry>(i);
+                const std::vector<SharableString>& string_exclusions = std::get<1>(exclusions);
 
-                if( std::find(string_exclusions.cbegin(), string_exclusions.cend(), WS2CS(string_entry.value)) != string_exclusions.cend() )
+                if( std::find(string_exclusions.cbegin(), string_exclusions.cend(), string_entry.value) != string_exclusions.cend() )
                     continue;
             }
 
@@ -549,7 +597,7 @@ void DynamicValueSet::Randomize(const std::vector<double>& numeric_exclusions, c
     std::default_random_engine random_engine(Randomizer::NextSeed());
 
     // if randomizing the whole value set, we can do this simply
-    if( indices_to_randomize == nullptr || indices_to_randomize->size() == m_entries.size() )
+    if( !indices_to_randomize.has_value() || indices_to_randomize->size() == m_entries.size() )
     {
         std::shuffle(m_entries.begin(), m_entries.end(), std::move(random_engine));
     }
@@ -561,7 +609,7 @@ void DynamicValueSet::Randomize(const std::vector<double>& numeric_exclusions, c
 }
 
 
-void DynamicValueSet::Sort(bool ascending, bool sort_by_label)
+void DynamicValueSet::Sort(const bool ascending, const bool sort_by_label)
 {
     std::sort(m_entries.begin(), m_entries.end(),
         [&](const std::unique_ptr<const DynamicValueSetEntry>& entry1, const std::unique_ptr<const DynamicValueSetEntry>& entry2)
@@ -570,7 +618,7 @@ void DynamicValueSet::Sort(bool ascending, bool sort_by_label)
 
             if( sort_by_label )
             {
-                comparison = entry1->label.CompareNoCase(entry2->label);
+                comparison = SO::CompareNoCase(*entry1->label, *entry2->label);
             }
 
             else if( m_numeric )
@@ -584,7 +632,7 @@ void DynamicValueSet::Sort(bool ascending, bool sort_by_label)
             {
                 const StringDynamicValueSetEntry& string_entry1 = assert_cast<const StringDynamicValueSetEntry&>(*entry1);
                 const StringDynamicValueSetEntry& string_entry2 = assert_cast<const StringDynamicValueSetEntry&>(*entry2);
-                comparison = string_entry1.value.compare(string_entry2.value);
+                comparison = string_entry1.value->compare(*string_entry2.value);
             }
 
             return ascending ? ( comparison < 0 ) :
@@ -606,7 +654,7 @@ class ValueSetCreatedFromDynamicValueSet : public ValueSet
 {
     // this class is simply ValueSet but with ownership of the dictionary value set memory
 public:
-    ValueSetCreatedFromDynamicValueSet(std::unique_ptr<const DictValueSet> dict_value_set, VART* pVarT, EngineData& engine_data)
+    ValueSetCreatedFromDynamicValueSet(std::unique_ptr<const DictValueSet> dict_value_set, VART* const pVarT, EngineData& engine_data)
         :   ValueSet(*dict_value_set, pVarT, engine_data),
             m_createdDictValueSet(std::move(dict_value_set))
     {
@@ -617,7 +665,8 @@ private:
 };
 
 
-std::tuple<std::unique_ptr<DictValueSet>, bool> DynamicValueSet::CreateDictValueSet(size_t complete_length, size_t length, size_t decimals) const
+std::tuple<std::unique_ptr<DictValueSet>, bool> DynamicValueSet::CreateDictValueSet(
+    const size_t complete_length, const size_t length, const size_t decimals) const
 {
     bool value_does_not_fit_in_value_set_warning = false;
 
@@ -630,7 +679,7 @@ std::tuple<std::unique_ptr<DictValueSet>, bool> DynamicValueSet::CreateDictValue
         DictValue dict_value;
         DictValuePair dict_value_pair;
 
-        dict_value.SetLabel(entry.label);
+        dict_value.SetLabel(UTF8_TODO::GetCString(entry.label));
         dict_value.SetImageFilePath(entry.image_file_path);
         dict_value.SetTextColor(entry.text_color);
 
@@ -649,13 +698,13 @@ std::tuple<std::unique_ptr<DictValueSet>, bool> DynamicValueSet::CreateDictValue
 
             if( numeric_entry.from_value == NOTAPPL )
             {
-                dict_value_pair.SetFrom(WS2CS(std::wstring(length, ' ')));
+                dict_value_pair.SetFrom(std::string(length, ' '));
                 dict_value.SetSpecialValue(NOTAPPL);
             }
 
             else
             {
-                dict_value_pair.SetFrom(UTF8_TODO::GetCString(format_numeric_value(numeric_entry.from_value)));
+                dict_value_pair.SetFrom(format_numeric_value(numeric_entry.from_value));
             }
 
             if( numeric_entry.to_value.has_value() )
@@ -667,7 +716,7 @@ std::tuple<std::unique_ptr<DictValueSet>, bool> DynamicValueSet::CreateDictValue
 
                 else
                 {
-                    dict_value_pair.SetTo(UTF8_TODO::GetCString(format_numeric_value(*numeric_entry.to_value)));
+                    dict_value_pair.SetTo(format_numeric_value(*numeric_entry.to_value));
                 }
             }
         }
@@ -677,12 +726,12 @@ std::tuple<std::unique_ptr<DictValueSet>, bool> DynamicValueSet::CreateDictValue
             const StringDynamicValueSetEntry& string_entry = assert_cast<const StringDynamicValueSetEntry&>(entry);
             ASSERT(length == complete_length);
 
-            value_does_not_fit_in_value_set_warning = value_does_not_fit_in_value_set_warning || ( string_entry.value.length() > length );
+            value_does_not_fit_in_value_set_warning = value_does_not_fit_in_value_set_warning || ( string_entry.value->length() > length );
 
-            std::wstring correct_length_value = string_entry.value;
-            SO::MakeExactLength(correct_length_value, length);
+            std::string correct_length_value = *string_entry.value;
+            SO::WideMakeExactLength(correct_length_value, length);
 
-            dict_value_pair.SetFrom(WS2CS(std::move(correct_length_value)));
+            dict_value_pair.SetFrom(std::move(correct_length_value));
         }
 
         dict_value.AddValuePair(std::move(dict_value_pair));
@@ -693,13 +742,15 @@ std::tuple<std::unique_ptr<DictValueSet>, bool> DynamicValueSet::CreateDictValue
 }
 
 
-std::unique_ptr<ValueSet> DynamicValueSet::CreateValueSet(VART* pVarT, bool& value_does_not_fit_in_value_set_warning) const
+std::unique_ptr<ValueSet> DynamicValueSet::CreateValueSet(VART* const pVarT, bool& value_does_not_fit_in_value_set_warning) const
 {
-    const CDictItem* dict_item = pVarT->GetDictItem();
+    const CDictItem* const dict_item = pVarT->GetDictItem();
     ASSERT(dict_item != nullptr);
 
     std::unique_ptr<DictValueSet> dict_value_set;
-    std::tie(dict_value_set, value_does_not_fit_in_value_set_warning) = CreateDictValueSet(dict_item->GetCompleteLen(), dict_item->GetLen(), dict_item->GetDecimal());
+    std::tie(dict_value_set, value_does_not_fit_in_value_set_warning) = CreateDictValueSet(
+        dict_item->GetCompleteLen(), dict_item->GetLen(), dict_item->GetDecimal()
+    );
 
     return std::make_unique<ValueSetCreatedFromDynamicValueSet>(std::move(dict_value_set), pVarT, m_engineData);
 }
@@ -707,29 +758,30 @@ std::unique_ptr<ValueSet> DynamicValueSet::CreateValueSet(VART* pVarT, bool& val
 
 namespace
 {
-    DictValue* CreateTemporaryDictValue(const DynamicValueSetEntry& entry, std::wstring value)
+    DictValue* CreateTemporaryDictValue(const DynamicValueSetEntry& entry, std::string value)
     {
         static DictValue dict_value;
 
-        dict_value.SetLabel(entry.label);
+        dict_value.SetLabel(UTF8_TODO::GetCString(entry.label));
         dict_value.SetImageFilePath(entry.image_file_path);
         dict_value.SetTextColor(entry.text_color);
 
         if( !dict_value.HasValuePairs() )
             dict_value.AddValuePair(DictValuePair());
 
-        dict_value.GetValuePair(0).SetFrom(WS2CS(std::move(value)));
+        dict_value.GetValuePair(0).SetFrom(std::move(value));
 
         return &dict_value;
     }
 
-    const DynamicValueSetEntry* FindEntryByLabel(const std::vector<std::unique_ptr<const DynamicValueSetEntry>>& entries, wstring_view label_sv)
+
+    const DynamicValueSetEntry* FindEntryByLabel(const std::vector<std::unique_ptr<const DynamicValueSetEntry>>& entries, std::string_view label_sv)
     {
         label_sv = SO::Trim(label_sv);
 
         for( const DynamicValueSetEntry& entry : VI_V(entries) )
         {
-            if( SO::EqualsNoCase(label_sv, entry.label) )
+            if( SO::EqualsNoCase(label_sv, *entry.label) )
                 return &entry;
         }
 
@@ -738,165 +790,315 @@ namespace
 }
 
 
+
+// --------------------------------------------------------------------------
+// NumericValueProcessorForDynamicValueSet
+// --------------------------------------------------------------------------
+
 class NumericValueProcessorForDynamicValueSet : public NumericValueProcessor
 {
 public:
-    NumericValueProcessorForDynamicValueSet(const std::vector<std::unique_ptr<const DynamicValueSetEntry>>& entries)
-        :   m_entries(entries)
-    {
-    }
+    NumericValueProcessorForDynamicValueSet(const std::vector<std::unique_ptr<const DynamicValueSetEntry>>& entries);
 
-    double GetMinValue() const override
-    {
-        double min_value = DEFAULT;
+    // NumericValueProcessor overrides
+    double GetMinValue() const override;
+    double GetMaxValue() const override;
 
-        for( const DynamicValueSetEntry& entry : VI_V(m_entries) )
-        {
-            const NumericDynamicValueSetEntry& numeric_entry = assert_cast<const NumericDynamicValueSetEntry&>(entry);
+    double ConvertNumberToEngineFormat(double value) const override;
+    double ConvertNumberFromEngineFormat(double value) const override;
 
-            if( !IsSpecial(numeric_entry.from_value) )
-            {
-                if( numeric_entry.from_value < min_value || min_value == DEFAULT )
-                    min_value = numeric_entry.from_value;
-            }
-        }
+    // ValueProcessor overrides
+    bool IsValid(double value) const override;
 
-        return min_value;
-    }
+    const DictValue* GetDictValue(double value) const override;
 
-    double GetMaxValue() const override
-    {
-        double max_value = DEFAULT;
+    const DictValue* GetDictValueByLabel(std::string_view label_sv) const override;
 
-        for( const DynamicValueSetEntry& entry : VI_V(m_entries) )
-        {
-            const NumericDynamicValueSetEntry& numeric_entry = assert_cast<const NumericDynamicValueSetEntry&>(entry);
+    std::vector<const DictValue*> GetMatchingDictValues(double value) const override;
 
-            double entry_max_value = numeric_entry.from_value;
+    double GetNumericFromInput(std::string_view value_sv) const override;
 
-            if( numeric_entry.to_value.has_value() && !IsSpecial(*numeric_entry.to_value) )
-                entry_max_value = *numeric_entry.to_value;
+    std::string GetOutput(double value) const override;
 
-            if( !IsSpecial(entry_max_value) )
-            {
-                if( entry_max_value > max_value || max_value == DEFAULT )
-                    max_value = entry_max_value;
-            }
-        }
-
-        return max_value;
-    }
-
-    bool IsValid(double value) const override
-    {
-        return ( FindEntryByValue(value) != nullptr );
-    }
-
-    const DictValue* GetDictValue(double value) const override
-    {
-        const NumericDynamicValueSetEntry* numeric_entry = FindEntryByValue(value);
-        return ( numeric_entry != nullptr ) ? CreateTemporaryDictValueForNumeric(*numeric_entry) :
-                                              nullptr;
-    }
-
-    const DictValue* GetDictValueByLabel(const CString& label) const override
-    {
-        const DynamicValueSetEntry* entry = FindEntryByLabel(m_entries, label);
-        return ( entry != nullptr ) ? CreateTemporaryDictValueForNumeric(assert_cast<const NumericDynamicValueSetEntry&>(*entry)) :
-                                      nullptr;
-    }
+    const std::vector<std::shared_ptr<const ValueSetResponse>>& GetResponses() const override;
 
 private:
-    const NumericDynamicValueSetEntry* FindEntryByValue(double value) const
-    {
-        for( const DynamicValueSetEntry& entry : VI_V(m_entries) )
-        {
-            const NumericDynamicValueSetEntry& numeric_entry = assert_cast<const NumericDynamicValueSetEntry&>(entry);
-            bool matches = ( value == numeric_entry.from_value );
+    const NumericDynamicValueSetEntry* FindEntryByValue(double value) const;
 
-            if( !matches && numeric_entry.to_value.has_value() )
-            {
-                matches = ( value == *numeric_entry.to_value );
-
-                if( !matches && !IsSpecial(value) )
-                    matches = ( value >= numeric_entry.from_value && value <= *numeric_entry.to_value );
-            }
-
-            if( matches )
-                return &numeric_entry;
-        }
-
-        return nullptr;
-    }
-
-    const DictValue* CreateTemporaryDictValueForNumeric(const NumericDynamicValueSetEntry& numeric_entry) const
-    {
-        // format the from code, right-trimming zeros
-        CString from_value_text;
-
-        if( !IsSpecial(numeric_entry.from_value) )
-        {
-            from_value_text.Format(_T("%0.6f"), numeric_entry.from_value);
-            from_value_text.TrimRight(_T('0'));
-            from_value_text.TrimRight(_T('.'));
-        }
-
-        return CreateTemporaryDictValue(numeric_entry, CS2WS(from_value_text));
-    }
+    const DictValue* CreateTemporaryDictValueForNumeric(const NumericDynamicValueSetEntry& numeric_entry) const;
 
 private:
     const std::vector<std::unique_ptr<const DynamicValueSetEntry>>& m_entries;
 };
 
 
-class StringValueProcessorForDynamicValueSet : public ValueProcessor
+NumericValueProcessorForDynamicValueSet::NumericValueProcessorForDynamicValueSet(const std::vector<std::unique_ptr<const DynamicValueSetEntry>>& entries)
+    :   NumericValueProcessor(nullptr, nullptr),
+        m_entries(entries)
+{
+}
+
+
+double NumericValueProcessorForDynamicValueSet::GetMinValue() const
+{
+    std::optional<double> min_value;
+
+    for( const DynamicValueSetEntry& entry : VI_V(m_entries) )
+    {
+        const NumericDynamicValueSetEntry& numeric_entry = assert_cast<const NumericDynamicValueSetEntry&>(entry);
+
+        // special values are not counted as min/max values
+        if( numeric_entry.to_value.has_value() && IsSpecial(*numeric_entry.to_value) )
+            continue;
+
+        if( !min_value.has_value() || numeric_entry.from_value < *min_value )
+            min_value = numeric_entry.from_value;
+    }
+
+    return min_value.value_or(DEFAULT);
+}
+
+
+double NumericValueProcessorForDynamicValueSet::GetMaxValue() const
+{
+    std::optional<double> max_value;
+
+    for( const DynamicValueSetEntry& entry : VI_V(m_entries) )
+    {
+        const NumericDynamicValueSetEntry& numeric_entry = assert_cast<const NumericDynamicValueSetEntry&>(entry);
+        double entry_max_value;
+
+        if( numeric_entry.to_value.has_value() )
+        {
+            // special values are not counted as min/max values
+            if( IsSpecial(*numeric_entry.to_value) )
+                continue;
+
+            entry_max_value = *numeric_entry.to_value;
+        }
+
+        else
+        {
+            entry_max_value = numeric_entry.from_value;
+        }
+
+        if( !max_value.has_value() || entry_max_value > *max_value)
+            max_value = entry_max_value;
+    }
+
+    return max_value.value_or(DEFAULT);
+}
+
+
+double NumericValueProcessorForDynamicValueSet::ConvertNumberToEngineFormat(const double value) const
+{
+    // only used with non-dynamic value sets
+    return ReturnProgrammingError(value);
+}
+
+
+double NumericValueProcessorForDynamicValueSet::ConvertNumberFromEngineFormat(const double value) const
+{
+    // only used with non-dynamic value sets
+    return ReturnProgrammingError(value);
+}
+
+
+bool NumericValueProcessorForDynamicValueSet::IsValid(const double value) const
+{
+    return ( FindEntryByValue(value) != nullptr );
+}
+
+
+const DictValue* NumericValueProcessorForDynamicValueSet::GetDictValue(const double value) const
+{
+    const NumericDynamicValueSetEntry* const numeric_entry = FindEntryByValue(value);
+    return ( numeric_entry != nullptr ) ? CreateTemporaryDictValueForNumeric(*numeric_entry) :
+                                          nullptr;
+}
+
+
+const DictValue* NumericValueProcessorForDynamicValueSet::GetDictValueByLabel(const std::string_view label_sv) const
+{
+    const DynamicValueSetEntry* const entry = FindEntryByLabel(m_entries, label_sv);
+    return ( entry != nullptr ) ? CreateTemporaryDictValueForNumeric(assert_cast<const NumericDynamicValueSetEntry&>(*entry)) :
+                                  nullptr;
+}
+
+
+std::vector<const DictValue*> NumericValueProcessorForDynamicValueSet::GetMatchingDictValues(double /*value*/) const
+{
+    // only used by frequencies with non-dynamic value sets
+    return ReturnProgrammingError(std::vector<const DictValue*>());
+}
+
+
+const NumericDynamicValueSetEntry* NumericValueProcessorForDynamicValueSet::FindEntryByValue(const double value) const
+{
+    for( const DynamicValueSetEntry& entry : VI_V(m_entries) )
+    {
+        const NumericDynamicValueSetEntry& numeric_entry = assert_cast<const NumericDynamicValueSetEntry&>(entry);
+
+        if( !numeric_entry.to_value.has_value() ? ( value == numeric_entry.from_value ) :
+            IsSpecial(*numeric_entry.to_value)  ? ( value == *numeric_entry.to_value ) :
+                                                  ( value >= numeric_entry.from_value && value <= *numeric_entry.to_value ) )
+        {
+            return &numeric_entry;
+        }
+    }
+
+    return nullptr;
+}
+
+
+double NumericValueProcessorForDynamicValueSet::GetNumericFromInput(std::string_view /*value_sv*/) const
+{
+    // only used with non-dynamic value sets
+    return ReturnProgrammingError(DEFAULT);
+}
+
+
+std::string NumericValueProcessorForDynamicValueSet::GetOutput(const double value) const
+{
+    // only used with non-dynamic value sets
+    return ReturnProgrammingError(DoubleToString(value));
+}
+
+
+const std::vector<std::shared_ptr<const ValueSetResponse>>& NumericValueProcessorForDynamicValueSet::GetResponses() const
+{
+    // only used with non-dynamic value sets
+    throw ProgrammingErrorException();
+}
+
+
+const DictValue* NumericValueProcessorForDynamicValueSet::CreateTemporaryDictValueForNumeric(const NumericDynamicValueSetEntry& numeric_entry) const
+{
+    // format the from code, right-trimming zeros
+    std::string from_value_text;
+
+    if( !IsSpecial(numeric_entry.from_value) )
+    {
+        from_value_text = FormatText("%0.6f", numeric_entry.from_value);
+        SO::MakeTrimRight(from_value_text, '0');
+        SO::MakeTrimRight(from_value_text, '.');
+    }
+
+    return CreateTemporaryDictValue(numeric_entry, std::move(from_value_text));
+}
+
+
+
+// --------------------------------------------------------------------------
+// StringValueProcessorForDynamicValueSet
+// --------------------------------------------------------------------------
+
+class StringValueProcessorForDynamicValueSet : public StringValueProcessor
 {
 public:
-    StringValueProcessorForDynamicValueSet(const std::vector<std::unique_ptr<const DynamicValueSetEntry>>& entries)
-        :   m_entries(entries)
-    {
-    }
+    StringValueProcessorForDynamicValueSet(const std::vector<std::unique_ptr<const DynamicValueSetEntry>>& entries);
 
-    bool IsValid(const CString& value, bool pad_value_to_length/* = true*/) const override
-    {
-        return ( FindEntryByValue(value, pad_value_to_length) != nullptr );
-    }
+    // ValueProcessor overrides
+    bool IsValid(std::string_view value_sv, bool pad_value_to_length = true) const override;
 
-    const DictValue* GetDictValue(const CString& value, bool pad_value_to_length/* = true*/) const override
-    {
-        const StringDynamicValueSetEntry* string_entry = FindEntryByValue(value, pad_value_to_length);
-        return ( string_entry != nullptr ) ? CreateTemporaryDictValue(*string_entry, string_entry->value) :
-                                             nullptr;
-    }
+    const DictValue* GetDictValue(std::string_view value_sv, bool pad_value_to_length = true) const override;
 
-    const DictValue* GetDictValueByLabel(const CString& label) const override
-    {
-        const DynamicValueSetEntry* entry = FindEntryByLabel(m_entries, label);
-        return ( entry != nullptr ) ? CreateTemporaryDictValue(*entry, assert_cast<const StringDynamicValueSetEntry&>(*entry).value) :
-                                      nullptr;
-    }
+    const DictValue* GetDictValueByLabel(std::string_view label_sv) const override;
+
+    std::vector<const DictValue*> GetMatchingDictValues(std::string_view value_sv) const override;
+
+    std::string GetAlphaFromInput(std::string value) const override;
+
+    std::string GetOutput(std::string value) const override;
+
+    const std::vector<std::shared_ptr<const ValueSetResponse>>& GetResponses() const override;
 
 private:
-    const StringDynamicValueSetEntry* FindEntryByValue(wstring_view value_sv, bool pad_value_to_length) const
-    {
-        if( pad_value_to_length )
-            value_sv = SO::TrimRight(value_sv);
-
-        for( const DynamicValueSetEntry& entry : VI_V(m_entries) )
-        {
-            const StringDynamicValueSetEntry& string_entry = assert_cast<const StringDynamicValueSetEntry&>(entry);
-
-            if( SO::EqualsNoCase(value_sv, string_entry.value) )
-                return &string_entry;
-        }
-
-        return nullptr;
-    }
+    const StringDynamicValueSetEntry* FindEntryByValue(std::string_view value_sv, bool pad_value_to_length) const;
 
 private:
     const std::vector<std::unique_ptr<const DynamicValueSetEntry>>& m_entries;
 };
 
+
+StringValueProcessorForDynamicValueSet::StringValueProcessorForDynamicValueSet(const std::vector<std::unique_ptr<const DynamicValueSetEntry>>& entries)
+    :   StringValueProcessor(nullptr, nullptr),
+        m_entries(entries)
+{
+}
+
+
+bool StringValueProcessorForDynamicValueSet::IsValid(const std::string_view value_sv, const bool pad_value_to_length/* = true*/) const
+{
+    return ( FindEntryByValue(value_sv, pad_value_to_length) != nullptr );
+}
+
+
+const DictValue* StringValueProcessorForDynamicValueSet::GetDictValue(const std::string_view value_sv, const bool pad_value_to_length/* = true*/) const
+{
+    const StringDynamicValueSetEntry* const string_entry = FindEntryByValue(value_sv, pad_value_to_length);
+    return ( string_entry != nullptr ) ? CreateTemporaryDictValue(*string_entry, *string_entry->value) :
+                                         nullptr;
+}
+
+
+const DictValue* StringValueProcessorForDynamicValueSet::GetDictValueByLabel(const std::string_view label_sv) const
+{
+    const DynamicValueSetEntry* const entry = FindEntryByLabel(m_entries, label_sv);
+    return ( entry != nullptr ) ? CreateTemporaryDictValue(*entry, *assert_cast<const StringDynamicValueSetEntry&>(*entry).value) :
+                                  nullptr;
+}
+
+
+std::vector<const DictValue*> StringValueProcessorForDynamicValueSet::GetMatchingDictValues(std::string_view /*value_sv*/) const
+{
+    // only used by frequencies with non-dynamic value sets
+    return ReturnProgrammingError(std::vector<const DictValue*>());
+}
+
+
+const StringDynamicValueSetEntry* StringValueProcessorForDynamicValueSet::FindEntryByValue(std::string_view value_sv, const bool pad_value_to_length) const
+{
+    if( pad_value_to_length )
+        value_sv = SO::TrimRight(value_sv);
+
+    for( const DynamicValueSetEntry& entry : VI_V(m_entries) )
+    {
+        const StringDynamicValueSetEntry& string_entry = assert_cast<const StringDynamicValueSetEntry&>(entry);
+
+        if( SO::EqualsNoCase(value_sv, *string_entry.value) )
+            return &string_entry;
+    }
+
+    return nullptr;
+}
+
+
+std::string StringValueProcessorForDynamicValueSet::GetAlphaFromInput(std::string value) const
+{
+    // only used with non-dynamic value sets
+    return ReturnProgrammingError(std::move(value));
+}
+
+
+std::string StringValueProcessorForDynamicValueSet::GetOutput(std::string value) const
+{
+    // only used with non-dynamic value sets
+    return ReturnProgrammingError(std::move(value));
+}
+
+
+const std::vector<std::shared_ptr<const ValueSetResponse>>& StringValueProcessorForDynamicValueSet::GetResponses() const
+{
+    // only used with non-dynamic value sets
+    throw ProgrammingErrorException();
+}
+
+
+
+// --------------------------------------------------------------------------
+// DynamicValueSet::CreateValueProcessor
+// --------------------------------------------------------------------------
 
 void DynamicValueSet::CreateValueProcessor() const
 {
@@ -983,12 +1185,12 @@ const SharableString& ValueSetListWrapper::GetValueString(const size_t index) co
 
         if( m_codesWrapper )
         {
-            return UTF8_TODO::Create_SharableStringReference(dynamic_value_set.GetEntry<StringDynamicValueSetEntry>(index - 1).value);
+            return dynamic_value_set.GetEntry<StringDynamicValueSetEntry>(index - 1).value;
         }
 
         else
         {
-            return UTF8_TODO::Create_SharableStringReference(dynamic_value_set.m_entries[index - 1]->label);
+            return dynamic_value_set.m_entries[index - 1]->label;
         }
     }
 
@@ -998,12 +1200,13 @@ const SharableString& ValueSetListWrapper::GetValueString(const size_t index) co
 
         if( m_codesWrapper )
         {
-            return UTF8_TODO::Create_SharableStringReference(CString(responses[index - 1]->GetCode()).TrimRight());
+            ASSERT(SO::TrimRight(responses[index - 1]->GetCode()).length() == responses[index - 1]->GetCode().length());
+            return responses[index - 1]->GetCodeSharableString();
         }
 
         else
         {
-            return UTF8_TODO::Create_SharableStringReference(responses[index - 1]->GetLabel());
+            return responses[index - 1]->GetLabelSharableString();
         }
     }
 }
@@ -1097,7 +1300,7 @@ void DynamicValueSet::WriteValueToJson(JsonWriter& json_writer) const
         for( const DynamicValueSetEntry& entry : VI_V(m_entries) )
         {
             const StringDynamicValueSetEntry& string_entry = assert_cast<const StringDynamicValueSetEntry&>(entry);
-            length = std::max(length, string_entry.value.length());
+            length = std::max(length, SO::WideLength(*string_entry.value));
         }
 
         length = std::min(length, static_cast<size_t>(MAX_ALPHA_ITEM_LEN));
@@ -1105,7 +1308,7 @@ void DynamicValueSet::WriteValueToJson(JsonWriter& json_writer) const
 
     const size_t complete_length = length + ( ( decimals > 0 ) ? 1 : 0 );
 
-    auto [dict_value_set, value_does_not_fit_in_value_set_warning] = CreateDictValueSet(complete_length, length, decimals);
+    const auto [dict_value_set, value_does_not_fit_in_value_set_warning] = CreateDictValueSet(complete_length, length, decimals);
 
     ASSERT(!value_does_not_fit_in_value_set_warning);
 
@@ -1126,19 +1329,19 @@ void DynamicValueSet::SetValueFromJson(const JsonNode& json_node)
         {
             if( m_numeric )
             {
-                auto get_value = [](const CString& text_value)
+                auto get_value = [](const std::string& text_value)
                 {
                     // the value may be special...
-                    const double* const special_value = SpecialValues::StringIsSpecial<const double*>(UTF8_TODO::GetUtf8(text_value));
+                    const double* const special_value = SpecialValues::StringIsSpecial<const double*>(text_value);
 
                     if( special_value != nullptr )
                         return *special_value;
 
                     // ... or may be a real value
-                    double value = atod(text_value);
+                    const double value = atod(text_value);
 
                     if( value == IMSA_BAD_DOUBLE )
-                        throw CSProException("A numeric value set cannot store the code '%s'", UTF8_TODO::GetUtf8(text_value).c_str());
+                        throw CSProException("A numeric value set cannot store the code '%s'", text_value.c_str());
 
                     return value;
                 };
@@ -1147,19 +1350,29 @@ void DynamicValueSet::SetValueFromJson(const JsonNode& json_node)
 
                 // when no to value is specified, it can inherit the special value status from the DictValue,
                 // which will be a special value when applicable, or std::nullopt if there is no special value (and thus no to value)
-                std::optional<double> to_value = dict_value_pair.GetTo().IsEmpty() ? dict_value.GetSpecialValue<std::optional<double>>() :
-                                                                                     std::make_optional(get_value(dict_value_pair.GetTo()));
+                std::optional<double> to_value = dict_value_pair.GetTo().empty()
+                    ? dict_value.GetSpecialValue<std::optional<double>>()
+                    : std::make_optional(get_value(dict_value_pair.GetTo()));
 
                 ValidateNumericFromTo(from_value, to_value);
 
-                new_entries.emplace_back(std::make_unique<NumericDynamicValueSetEntry>(dict_value.GetLabel(), dict_value.GetImageFilePath(),
-                                                                                       dict_value.GetTextColor(), from_value, std::move(to_value)));
+                new_entries.emplace_back(std::make_unique<NumericDynamicValueSetEntry>(
+                    UTF8_TODO::GetUtf8(dict_value.GetLabel()),
+                    dict_value.GetImageFilePath(),
+                    dict_value.GetTextColor(),
+                    from_value,
+                    std::move(to_value)
+                ));
             }
 
             else
             {
-                new_entries.emplace_back(std::make_unique<StringDynamicValueSetEntry>(dict_value.GetLabel(), dict_value.GetImageFilePath(),
-                                                                                      dict_value.GetTextColor(), CS2WS(dict_value_pair.GetFrom())));
+                new_entries.emplace_back(std::make_unique<StringDynamicValueSetEntry>(
+                    UTF8_TODO::GetUtf8(dict_value.GetLabel()),
+                    dict_value.GetImageFilePath(),
+                    dict_value.GetTextColor(),
+                    dict_value_pair.GetFrom()
+                ));
             }
         }
     }
@@ -1192,7 +1405,8 @@ void ValueSetListWrapper::WriteValueToJson(JsonWriter& json_writer) const
 
 void ValueSetListWrapper::SetValueFromJson(const JsonNode& /*json_node*/)
 {
-    throw NoSetValueFromJsonRoutine("No JSON deserialization routine exists for the List objects in a ValueSet; deserialize the ValueSet instead");
+    throw NoSetValueFromJsonRoutine("No JSON deserialization routine exists for the List objects in a ValueSet; "
+                                    "deserialize the ValueSet instead");
 }
 
 

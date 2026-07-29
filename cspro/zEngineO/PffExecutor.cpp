@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "PffExecutor.h"
 #include <zUtilO/ExecutionStack.h>
 #include <zConcatO/Concatenator.h>
@@ -11,7 +11,17 @@
 #include <zViewO/ViewInputCreator.h>
 
 
-bool PffExecutor::SetEmbeddedDictionary(const std::wstring& property_name, std::shared_ptr<const CDataDict> dictionary)
+bool PffExecutor::IsEmbeddedDictionaryProperty(const std::string& property_name)
+{
+    return SO::EqualsOneOfNoCase(
+        property_name,
+        UTF8_TODO::GetUtf8(PFF_COMMAND_INPUT_DICT),
+        UTF8_TODO::GetUtf8(PFF_COMMAND_OUTPUT_DICT)
+    );
+}
+
+
+bool PffExecutor::SetEmbeddedDictionary(const std::string& property_name, std::shared_ptr<const CDataDict> dictionary)
 {
     if( SO::EqualsNoCase(property_name, PFF_COMMAND_INPUT_DICT) )
     {

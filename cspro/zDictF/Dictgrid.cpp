@@ -197,14 +197,9 @@ void CDictGrid::Update()
     QuickSetCellTypeEx(DICT_NOTE_COL,  0, UGCT_BUTTONNOFOCUS);
     QuickSetBackColor (DICT_NOTE_COL,  0, GetSysColor(COLOR_BTNFACE));
     QuickSetHBackColor(DICT_NOTE_COL,  0, GetSysColor(COLOR_BTNFACE));
-    if (m_pDict->GetNote().GetLength() > 0) {
-        QuickSetBitmap(DICT_NOTE_COL,  0, m_pNoteYes);
-    }
-    else {
-        QuickSetBitmap(DICT_NOTE_COL,  0, m_pNoteNo);
-    }
+    QuickSetBitmap    (DICT_NOTE_COL,  0, m_pDict->GetNote().empty() ? m_pNoteNo : m_pNoteYes);
     QuickSetText      (DICT_LABEL_COL, 0, m_pDict->GetLabel());
-    QuickSetText      (DICT_NAME_COL,  0, UTF8_TODO::GetCString(m_pDict->GetName()));
+    QuickSetText      (DICT_NAME_COL,  0, m_pDict->GetName());
 
     QuickSetBackColor (DICT_NOTE_COL,  1, GetSysColor(COLOR_WINDOW));
     QuickSetHBackColor(DICT_NOTE_COL,  1, GetSysColor(COLOR_WINDOW));
@@ -220,14 +215,9 @@ void CDictGrid::Update()
         QuickSetCellTypeEx(DICT_NOTE_COL,  row, UGCT_BUTTONNOFOCUS);
         QuickSetBackColor (DICT_NOTE_COL,  row, GetSysColor(COLOR_BTNFACE));
         QuickSetHBackColor(DICT_NOTE_COL,  row, GetSysColor(COLOR_BTNFACE));
-        if (dict_level.GetNote().GetLength() > 0) {
-            QuickSetBitmap(DICT_NOTE_COL,  row, m_pNoteYes);
-        }
-        else {
-            QuickSetBitmap(DICT_NOTE_COL,  row, m_pNoteNo);
-        }
+        QuickSetBitmap    (DICT_NOTE_COL,  row, dict_level.GetNote().empty() ? m_pNoteNo : m_pNoteYes);
         QuickSetText      (DICT_LABEL_COL, row, dict_level.GetLabel());
-        QuickSetText      (DICT_NAME_COL,  row, UTF8_TODO::GetCString(dict_level.GetName()));
+        QuickSetText      (DICT_NAME_COL,  row, dict_level.GetName());
     }
     RedrawWindow();
     //force on row change call to fix the property grid refresh when grids change
@@ -1168,23 +1158,23 @@ void CDictGrid::OnEditModify()
 void CDictGrid::OnEditNotes()
 {
     long row = GetCurrentRow();
-    CIMSAString csTitle, csLabel, csNote;
+    CIMSAString csTitle;
     csTitle.LoadString(IDS_NOTE_TITLE);
     CNoteDlg dlgNote;
+
     if (row == 0) {
-        csLabel = m_pDict->GetLabel().Left(32);
+        CString csLabel = m_pDict->GetLabel().Left(32);
         if (m_pDict->GetLabel().GetLength() > 32)  {
             csLabel += _T("...");
         }
         csTitle = _T("Dictionary: ") + csLabel + csTitle;
-        csNote = m_pDict->GetNote();
-        dlgNote.SetTitle(csTitle);
-        dlgNote.SetNote(csNote);
+        dlgNote.SetTitle(CS2WS(csTitle));
+        dlgNote.SetNote(m_pDict->GetNote());
         if (dlgNote.DoModal() == IDOK)  {
-            if (csNote != dlgNote.GetNote()) {
+            if (m_pDict->GetNote() != dlgNote.GetNote()) {
                 CDDDoc* pDoc = assert_cast<CDDDoc*>(assert_cast<CView*>(GetParent())->GetDocument());
                 pDoc->PushUndo(*m_pDict);
-                m_pDict->SetNote(dlgNote.GetNote());
+                m_pDict->SetNote(dlgNote.ReleaseNote());
                 pDoc->SetModified();
             }
         }
@@ -1192,19 +1182,18 @@ void CDictGrid::OnEditNotes()
     else {
         int iLevel = row - LEVEL_ROW_OFFSET;
         DictLevel& dict_level = m_pDict->GetLevel(iLevel);
-        csLabel = dict_level.GetLabel().Left(32);
+        CString csLabel = dict_level.GetLabel().Left(32);
         if (dict_level.GetLabel().GetLength() > 32)  {
             csLabel += _T("...");
         }
         csTitle = _T("Level: ") + csLabel + csTitle;
-        csNote = dict_level.GetNote();
-        dlgNote.SetTitle(csTitle);
-        dlgNote.SetNote(csNote);
+        dlgNote.SetTitle(CS2WS(csTitle));
+        dlgNote.SetNote(dict_level.GetNote());
         if (dlgNote.DoModal() == IDOK)  {
-            if (csNote != dlgNote.GetNote()) {
+            if (dict_level.GetNote() != dlgNote.GetNote()) {
                 CDDDoc* pDoc = assert_cast<CDDDoc*>(assert_cast<CView*>(GetParent())->GetDocument());
                 pDoc->PushUndo(m_pDict->GetLevel(row - LEVEL_ROW_OFFSET), row - LEVEL_ROW_OFFSET);
-                dict_level.SetNote(dlgNote.GetNote());
+                dict_level.SetNote(dlgNote.ReleaseNote());
                 pDoc->SetModified();
             }
         }

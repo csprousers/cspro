@@ -41,15 +41,15 @@ public:
 
     struct ForeachValueInfo
     {
-        const CString& label;
+        const SharableString& label;
         const std::string& image_file_path;
         const PortableColor& text_color;
     };
 
     virtual void ForeachValue(const std::function<void(const ForeachValueInfo&, double, const std::optional<double>&)>& numeric_callback_function) const;
-    virtual void ForeachValue(const std::function<void(const ForeachValueInfo&, const CString&)>& string_callback_function) const;
+    virtual void ForeachValue(const std::function<void(const ForeachValueInfo&, const SharableString&)>& string_callback_function) const;
 
-    virtual void Randomize(const std::vector<double>& numeric_exclusions, const std::vector<CString>& string_exclusions);
+    virtual void Randomize(const std::variant<std::vector<double>, std::vector<SharableString>>& exclusions);
 
     virtual void Sort(bool ascending, bool sort_by_label);
 
@@ -111,20 +111,20 @@ public:
 
     void ValidateNumericFromTo(double from_value, std::optional<double>& to_value) const;
 
-    void AddValue(std::wstring label, std::string image_file_path, PortableColor text_color, double from_value, std::optional<double> to_value);
-    void AddValue(std::wstring label, std::string image_file_path, PortableColor text_color, std::wstring value);
+    void AddValue(SharableString label, std::string image_file_path, PortableColor text_color, double from_value, std::optional<double> to_value);
+    void AddValue(SharableString label, std::string image_file_path, PortableColor text_color, SharableString value);
     size_t AddValues(const ValueSet& value_set);
 
     size_t RemoveValue(double value);
-    size_t RemoveValue(wstring_view value_sv);
+    size_t RemoveValue(std::string_view value_sv);
 
     enum class RemoveDuplicatesType : int { ByCodeLabel = 0, ByCode = 1, ByLabel = 2 };
     size_t RemoveDuplicates(RemoveDuplicatesType remove_type);
 
     virtual void ForeachValue(const std::function<void(const ForeachValueInfo&, double, const std::optional<double>&)>& numeric_callback_function) const override;
-    virtual void ForeachValue(const std::function<void(const ForeachValueInfo&, const CString&)>& string_callback_function) const override;
+    virtual void ForeachValue(const std::function<void(const ForeachValueInfo&, const SharableString&)>& string_callback_function) const override;
 
-    void Randomize(const std::vector<double>& numeric_exclusions, const std::vector<CString>& string_exclusions) override;
+    void Randomize(const std::variant<std::vector<double>, std::vector<SharableString>>& exclusions) override;
 
     void Sort(bool ascending, bool sort_by_label) override;
 

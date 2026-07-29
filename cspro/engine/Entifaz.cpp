@@ -620,8 +620,6 @@ bool CEntryIFaz::C_ModifyStart( int bDoInitFile ) {
     m_pEntryDriver->reset_lastopenlevels();
 
     // starting modify' environment
-    m_pEntryDriver->corr_init();
-
     if( bDoInitFile )
         m_pEntryDriver->DoQid();
 

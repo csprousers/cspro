@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "WindowsUserbar.h"
 #include <zToolsO/NewlineSubstitutor.h>
 #include <zUtilO/CustomFont.h>
@@ -27,10 +27,9 @@ WindowsUserbar::WindowsUserbar()
         m_status(Status::Hidden)
 {
     // if the user has defined a particular font, we'll resize the userbar based on this
-    UserDefinedFonts* user_defined_fonts = nullptr;
-    WindowsDesktopMessage::Send(WM_IMSA_GET_USER_FONTS, &user_defined_fonts);
+    const UserDefinedFonts* const user_defined_fonts = UserDefinedFonts::GetUserDefinedFont(UserDefinedFonts::FontType::Userbar);
 
-    if( user_defined_fonts != nullptr && user_defined_fonts->IsFontDefined(UserDefinedFonts::FontType::Userbar) )
+    if( user_defined_fonts != nullptr )
     {
         LOGFONT lf;
         user_defined_fonts->GetFont(UserDefinedFonts::FontType::Userbar)->GetLogFont(&lf);
@@ -118,10 +117,9 @@ void WindowsUserbar::Pause(bool pause)
 CFont* WindowsUserbar::GetFont()
 {
     // allow for the dynamic setting of fonts for the userbar
-    UserDefinedFonts* user_defined_fonts = nullptr;
-    WindowsDesktopMessage::Send(WM_IMSA_GET_USER_FONTS, &user_defined_fonts);
+    const UserDefinedFonts* const user_defined_fonts = UserDefinedFonts::GetUserDefinedFont(UserDefinedFonts::FontType::Userbar);
 
-    if( user_defined_fonts != nullptr && user_defined_fonts->IsFontDefined(UserDefinedFonts::FontType::Userbar) )
+    if( user_defined_fonts != nullptr )
         return user_defined_fonts->GetFont(UserDefinedFonts::FontType::Userbar);
 
     return &m_font;

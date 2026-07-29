@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 //---------------------------------------------------------------------------
 //  File name: EntDrv.h
@@ -144,9 +144,6 @@ public:
     // --- related to flow management
 public:
     bool    MakeField3( DEFLD3* pszFld3, const DEFLD* pszFld ); // RHF Jul 31, 2000
-
-    // --- decorr.cpp
-    void    corr_init( void );
 
     // --- defuncs.cpp
 public:
@@ -303,7 +300,7 @@ private:
     std::map<VART*,CString>* m_pmapPersistentFields;
     bool m_bPersistentFieldsLastUpdatedOnInsertOrModify;
 
-    std::unique_ptr<std::map<VART*, std::wstring>> m_prefilledNonPersistentFields;
+    std::unique_ptr<std::map<VART*, std::string>> m_prefilledNonPersistentFields;
 
     std::map<VART*, int64_t>* m_pmapAutoIncrementFields;
     DataRepository* m_pLastMappedAutoIncrementFieldsRepository;

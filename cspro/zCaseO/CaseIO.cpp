@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "Pre74_Case.h"
 #include <zUtilO/MemoryHelpers.h>
 
@@ -50,7 +50,9 @@ void Pre74_Case::CalculateConstructionVariables()
 
                     m_aRecTypes[m_iNumRecTypes].Type = new TCHAR[m_iRecTypeLen];
                     _tmemset(m_aRecTypes[m_iNumRecTypes].Type,Constants::BlankCharacter,m_iRecTypeLen);
-                    _tmemcpy(m_aRecTypes[m_iNumRecTypes].Type,pRecord->GetRecTypeVal(),std::min(pRecord->GetRecTypeVal().GetLength(),m_iRecTypeLen));
+
+                    const std::wstring wide_record_type = UTF8_TODO::GetWide(pRecord->GetRecTypeVal());
+                    _tmemcpy(m_aRecTypes[m_iNumRecTypes].Type, wide_record_type.c_str(), std::min<size_t>(wide_record_type.length() ,m_iRecTypeLen));
 
                     m_aRecTypes[m_iNumRecTypes].Level = iLevel;
                     m_aRecTypes[m_iNumRecTypes].Record = iRecord;

@@ -1,4 +1,4 @@
-﻿//***************************************************************************
+//***************************************************************************
 //  Description:
 //       Data Entry application classes implementation
 //
@@ -1197,7 +1197,6 @@ void CDEFormFile::CreateGroup(CDEGroup* pGroup, const CDictRecord* pDictRec, int
 {
     int row = rowOffset;
     LONG rightCol = 0;
-    CString RecTypeVal;
 
     pGroup->SetFormNum(iFormNum);
 
@@ -1225,8 +1224,6 @@ void CDEFormFile::CreateGroup(CDEGroup* pGroup, const CDictRecord* pDictRec, int
     pGroup->SetRequired(pDictRec->GetRequired());
     pGroup->SetLabel(pDictRec->GetLabel());
     pGroup->SetTypeName(UTF8_TODO::GetCString(pDictRec->GetName()));
-
-    RecTypeVal = pDictRec->GetRecTypeVal();
 
     if (bIdRec || pDictRec->GetMaxRecs() == 1) // group doesn't loop, not dependant on a rec
     {
@@ -2193,7 +2190,6 @@ void CDEFormFile::CreateGroupForOrder(CDEGroup* pGroup,
 {
     int row = rowOffset;
     LONG rightCol = 0;
-    CString RecTypeVal;
 
     CString sDictName = UTF8_TODO::GetCString(pDictRec->GetDataDict()->GetName());
 
@@ -2225,7 +2221,6 @@ void CDEFormFile::CreateGroupForOrder(CDEGroup* pGroup,
     pGroup->SetLabel(pDictRec->GetLabel());
     pGroup->SetTypeName(UTF8_TODO::GetCString(pDictRec->GetName()));
 
-    RecTypeVal = pDictRec->GetRecTypeVal();
     if (bIdRec) {
         pGroup->SetMaxLoopOccs(1);
     }
@@ -3334,8 +3329,8 @@ bool CDEFormFile::ReconcileName(const CDataDict& dictionary)
                     CDEItemBase* pItem = pForm->GetItem(iItem);
 
                     pField = DYNAMIC_DOWNCAST(CDEField,pItem);
-                    if(pField && pField->GetPlusTarget().CompareNoCase(sOldName) ==0 ) {
-                        pField->SetPlusTarget(UTF8_TODO::GetCString(pDictItem->GetName()));
+                    if(pField != nullptr && SO::EqualsNoCase(pField->GetPlusTarget(), sOldName)) {
+                        pField->SetPlusTarget(pDictItem->GetName());
                     }
 
                     if (pField && pField->IsMirror()){
@@ -3528,33 +3523,32 @@ bool CDEFormFile::ReconcileSkipTo(CString& sMsg)
     return bRet;
 }
 
-bool CDEFormFile::CheckValidSkip(CDEGroup* pGroup, CDEField* pSource, CString& sMsg)
+bool CDEFormFile::CheckValidSkip(CDEGroup* const pGroup, CDEField* const pSource, CString& sMsg)
 {
     //Go through all the fields of the group
-    int iNumItems = pGroup->GetNumItems();
-    CString sPlusTarget = pSource->GetPlusTarget();
-    sPlusTarget.Trim();
-    if(sPlusTarget.IsEmpty() || sPlusTarget.CompareNoCase(_T("<END>")) ==0){
+    const int iNumItems = pGroup->GetNumItems();
+    const std::string_view plus_target_sv = SO::Trim(pSource->GetPlusTarget());
+    if(plus_target_sv.empty() || SO::EqualsNoCase(plus_target_sv, "<END>")){
         return true;
     }
-    bool bFoundSource = false ;
+    bool bFoundSource = false;
     bool bFoundTarget = false;
     for(int iIndex = 0; iIndex < iNumItems ; iIndex ++) {
         //Go through only siblings of the group items  .No need of recursion by design
         CDEItemBase* pBase = pGroup->GetItem(iIndex);
-        if(pSource ==  pBase) {
+        if(pSource == pBase) {
             bFoundSource = true;
             continue;
         }
-        if(pBase->GetName().CompareNoCase(sPlusTarget)== 0 ) {
+        if(SO::EqualsNoCase(plus_target_sv, pBase->GetName())) {
             bFoundTarget = true;
         }
         if(bFoundTarget){
             if(!bFoundSource) {
                 //Target found before source
-                pSource->SetPlusTarget(_T(""));
+                pSource->SetPlusTarget(std::string());
                 sMsg += pSource->GetName() + _T(" 'Skip to' field reset");
-                sMsg += _T("; Cannot Skip to") + sPlusTarget + _T(".\n");
+                sMsg += _T("; Cannot Skip to") + UTF8_TODO::GetCString(plus_target_sv) + _T(".\n");
                 return false;
             }
             else {
@@ -3563,14 +3557,14 @@ bool CDEFormFile::CheckValidSkip(CDEGroup* pGroup, CDEField* pSource, CString& s
         }
 
     }
-    pSource->SetPlusTarget(_T(""));
+    pSource->SetPlusTarget(std::string());
     if(bFoundSource && !bFoundTarget) {
         sMsg += pSource->GetName() + _T(" 'Skip to' field reset");
         CString sForm = _T("form");
         if(pSource->GetParent()->GetItemType() == CDEItemBase::eItemType::Roster){
             sForm = _T("roster");
         }
-        sMsg += _T("; ")+ sPlusTarget +_T(" not on ") + sForm + _T(".\n");
+        sMsg += _T("; ") + UTF8_TODO::GetCString(plus_target_sv) +_T(" not on ") + sForm + _T(".\n");
     }
     return false;
 }
@@ -3756,13 +3750,16 @@ bool CDEFormFile::CheckFieldAttributes(CDEField* pSource, CString& sMsg)
 
     catch( const CaptureInfo::ValidationException& exception )
     {
-        CaptureInfo new_capture_info = pSource->GetCaptureInfo().MakeValid(*pDictItem,
-            pDictItem->GetFirstValueSetOrNull(), false);
+        CaptureInfo new_capture_info = pSource->GetCaptureInfo().MakeValid(
+            *pDictItem,
+            pDictItem->GetFirstValueSetOrNull(),
+            false // get_capture_type_supported_on_current_platform
+        );
 
         sMsg.AppendFormat(_T("%s: %s\nThe capture type has been reset to: %s.\n"), pSource->GetName().GetString(),
                           UTF8_TODO::GetWide(exception.what()).c_str(), UTF8_TODO::GetWide(new_capture_info.GetDescription()).c_str());
 
-        pSource->SetCaptureInfo(new_capture_info);
+        pSource->SetCaptureInfo(std::move(new_capture_info));
     }
 
     if( pSource->IsMirror() && pSource->GetCaptureInfo() != CaptureInfo::GetBaseCaptureType(*pDictItem) )

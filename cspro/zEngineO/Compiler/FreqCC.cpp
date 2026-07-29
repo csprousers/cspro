@@ -1,10 +1,10 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "IncludesCC.h"
 #include "NamedFrequency.h"
 #include "Report.h"
 #include "ValueSet.h"
 #include "Nodes/Frequency.h"
-#include <engine/VariableWorker.h>
+#include <engine/VariableIterator.h>
 #include <zFreqO/Frequency.h>
 
 
@@ -694,12 +694,12 @@ void FrequencyCompilerHelper::ProcessVariables(Frequency& frequency,
                 }
 
                 // add all variables from this dictionary/record/form/group/block
-                int variables_added = VariableWorker(GetSymbolTable(), const_cast<Symbol*>(&symbol),
-                    [&](VART* pVarT)
+                const size_t variables_added = ForeachVariable(GetSymbolTable(), const_cast<Symbol&>(symbol),
+                    [&](VART& vart)
                     {
-                        if( variable_is_valid_for_level(*pVarT) && AddVariableToFrequency(*pVarT, frequency_flags) )
+                        if( variable_is_valid_for_level(vart) && AddVariableToFrequency(vart, frequency_flags) )
                         {
-                            expanded_variables.emplace_back(ExpandedVariable { pVarT->GetSymbolIndex(), record_occurrence, { } });
+                            expanded_variables.emplace_back(ExpandedVariable { vart.GetSymbolIndex(), record_occurrence, { } });
                             return 1;
                         }
 
@@ -1366,7 +1366,7 @@ int LogicCompiler::CompileFrequencyDeclaration()
         auto& unnamed_frequency_node = CreateNode<Nodes::UnnamedFrequency>(FunctionCode::FREQ_UNNAMED_CODE);
 
         unnamed_frequency_node.next_st = -1;
-        unnamed_frequency_node.frequency_index = frequency_index;
+        unnamed_frequency_node.frequency_index = int32_cast(frequency_index);
         unnamed_frequency_node.universe_expression = universe_expression;
         unnamed_frequency_node.weight_expression = weight_expression;
         unnamed_frequency_node.heading_expressions_list_node = frequency_parameters_node.heading_expressions_list_node;
@@ -1430,7 +1430,7 @@ int LogicCompiler::CompileNamedFrequencyReference()
 
     NextToken();
 
-    auto& element_reference_node = CreateNode<Nodes::ElementReference>(FunctionCode::FREQVAR_CODE);
+    auto& element_reference_node = CreateNode<Nodes::ElementReference>(FunctionCode::FREQ_VAR_CODE);
 
     element_reference_node.symbol_index = named_frequency.GetSymbolIndex();
     element_reference_node.element_expressions[0] = subscript_expression;

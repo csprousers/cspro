@@ -1,135 +1,148 @@
-#include "StandardSystemIncludes.h"
-#include "Interpreter.h"
-#include "Engine.h"
-#include "VariableWorker.h"
-#include <zEngineO/Array.h>
-#include <zEngineO/ValueSet.h>
-#include <zEngineO/Interpreter/SelectDlgHelper.h>
-#include <zUtilO/MemoryHelpers.h>
-#include <zDictO/DDClass.h>
+#include "stdafx.h"
+#include "IncludesRT.h"
+#include "Array.h"
+#include "SelectDlgHelper.h"
+#include "ValueSet.h"
+#include "Nodes/ValueSet.h"
+#include <engine/Nodes.h>
+#include <engine/VariableIterator.h>
 #include <zDictO/Definitions.h>
-#include <zDictO/ValueProcessor.h>
+#include <zDictO/NumericValueProcessor.h>
 
 
-double CIntDriver::exvaluelimit(int iExpr) // minvalue and maxvalue
+// --------------------------------------------------------------------------
+// value set-related functions
+// --------------------------------------------------------------------------
+
+double LogicInterpreter::ex_minvalue_maxvalue(const int program_index)
 {
-    const auto& function_node = GetNode<FNC_NODE>(iExpr);
-    const Symbol* symbol = NPT(function_node.isymb);
+    const auto& element_reference_single_node = GetNode<Nodes::ElementReferenceSingle>(program_index);
+    const Symbol& symbol = NPT_Ref(element_reference_single_node.symbol_index);
     const ValueProcessor* value_processor;
 
-    if( symbol->IsA(SymbolType::Variable) )
+    // variable
+    if( symbol.IsA(SymbolType::Variable) )
     {
-        const VART* pVarT = assert_cast<const VART*>(symbol);
-        value_processor = &pVarT->GetCurrentValueProcessor();
+        const VART& vart = assert_cast<const VART&>(symbol);
+        value_processor = &vart.GetCurrentValueProcessor();
     }
 
-    else // value set
+    // value set
+    else
     {
-        const ValueSet* value_set = assert_cast<const ValueSet*>(symbol);
-        value_processor = &value_set->GetValueProcessor();
+        ASSERT(symbol.IsA(SymbolType::ValueSet));
+        const ValueSet& value_set = assert_cast<const ValueSet&>(symbol);
+        value_processor = &value_set.GetValueProcessor();
     }
 
-    const NumericValueProcessor* numeric_value_processor = assert_cast<const NumericValueProcessor*>(value_processor);
+    const NumericValueProcessor& numeric_value_processor = assert_cast<const NumericValueProcessor&>(*value_processor);
 
-    return ( function_node.fn_code == FNMINVALUE_CODE ) ? numeric_value_processor->GetMinValue() :
-                                                          numeric_value_processor->GetMaxValue();
+    return ( element_reference_single_node.function_code == FunctionCode::FNMINVALUE_CODE )
+        ? numeric_value_processor.GetMinValue()
+        : numeric_value_processor.GetMaxValue();
 }
 
 
-double CIntDriver::exinvalueset(int iExpr)
+double LogicInterpreter::ex_invalueset(const int program_index)
 {
-    const auto& function_node = GetNode<FNINVALUSET_NODE>(iExpr);
+    const auto& invalueset_node = GetNode<Nodes::InValueSet>(program_index);
     const ValueProcessor* value_processor;
     bool numeric;
-    bool in_value_set;
 
     // searching based on the item
-    if( function_node.m_iSymVar >= 0 && function_node.m_iSymVSet == 0 )
+    if( m_engineData->MeetsCompiledLogicVersion(Serializer::Iteration_8_2_000_1)
+        ? ( invalueset_node.value_set_symbol_index == -1 )
+        : ( invalueset_node.value_set_symbol_index >= 0 && invalueset_node.value_set_symbol_index == 0 ) )
     {
-        const VART* pVarT = VPT(function_node.m_iSymVar);
-        value_processor = &pVarT->GetCurrentValueProcessor();
-        numeric = pVarT->IsNumeric();
+        ASSERT(invalueset_node.item_symbol_index != -1);
+        const VART& vart = *VPT(invalueset_node.item_symbol_index);
+        value_processor = &vart.GetCurrentValueProcessor();
+        numeric = vart.IsNumeric();
     }
 
     // searching based on the value set
     else
     {
-        const ValueSet& value_set = GetSymbolValueSet(function_node.m_iSymVSet);
+        const ValueSet& value_set = GetSymbolValueSet(invalueset_node.value_set_symbol_index);
         value_processor = &value_set.GetValueProcessor();
         numeric = value_set.IsNumeric();
     }
 
     if( numeric )
     {
-        double value = evalexpr(function_node.m_iExpr);
-        in_value_set = value_processor->IsValid(value);
+        const double value = Evaluate(invalueset_node.value_expression);
+        return value_processor->IsValid(value);
     }
 
     else
     {
-        CString value = EvalAlphaExprCS(function_node.m_iExpr);
-        in_value_set = value_processor->IsValid(value);
+        const SharableString value = EvaluateSharableString(invalueset_node.value_expression);
+        return value_processor->IsValid(*value);
     }
-
-    return in_value_set ? 1 : 0;
 }
 
 
-double CIntDriver::exgetimage(int iExpr)
+double LogicInterpreter::ex_getimage(const int program_index)
 {
-    const auto& function_node = GetNode<FNG_NODE>(iExpr);
-    const Symbol* symbol = NPT(function_node.symbol_index);
+    const auto& function_node = GetNode<FNG_NODE>(program_index);
+    const Symbol& symbol = NPT_Ref(function_node.symbol_index);
     const ValueProcessor* value_processor;
 
-    if( symbol->IsA(SymbolType::Variable) )
+    // variable
+    if( symbol.IsA(SymbolType::Variable) )
     {
-        const VART* pVarT = assert_cast<const VART*>(symbol);
-        value_processor = &pVarT->GetCurrentValueProcessor();
+        const VART& vart = assert_cast<const VART&>(symbol);
+        value_processor = &vart.GetCurrentValueProcessor();
     }
 
+    // value set
     else
     {
-        const ValueSet* value_set = assert_cast<const ValueSet*>(symbol);
-        value_processor = &value_set->GetValueProcessor();
+        ASSERT(symbol.IsA(SymbolType::ValueSet));
+        const ValueSet& value_set = assert_cast<const ValueSet&>(symbol);
+        value_processor = &value_set.GetValueProcessor();
     }
 
     const DictValue* dict_value;
 
-    if( IsNumeric(*symbol) )
+    if( IsNumeric(symbol) )
     {
-        double value = evalexpr(function_node.m_iExpr);
+        const double value = Evaluate(function_node.m_iExpr);
         dict_value = value_processor->GetDictValue(value);
     }
 
     else
     {
-        CString value = EvalAlphaExprCS(function_node.m_iExpr);
-        dict_value = value_processor->GetDictValue(value);
+        ASSERT(IsString(symbol));
+        const SharableString value = EvaluateSharableString(function_node.m_iExpr);
+        dict_value = value_processor->GetDictValue(*value);
     }
 
-    return ( dict_value != nullptr ) ? AssignString(dict_value->GetImageFilePath()) :
-                                       AssignStringNull();
+    if( dict_value != nullptr )
+        return AssignString(dict_value->GetImageFilePath());
+
+    return AssignStringNull();
 }
 
 
-double CIntDriver::exsetvalueset(int iExpr)
+double LogicInterpreter::ex_setvalueset(const int program_index)
 {
     if( m_engineData->PredatesCompiledLogicVersion(Serializer::Iteration_8_0_000_1) )
-        return exsetvalueset_pre80(iExpr);
+        return ex_setvalueset_pre80(program_index);
 
-    const auto& va_node = GetNode<Nodes::VariableArguments>(iExpr);
+    const auto& va_node = GetNode<Nodes::VariableArguments>(program_index);
 
-    auto validate_symbol = [&](int symbol_index, SymbolType symbol_type) -> Symbol*
+    auto validate_symbol = [&](int symbol_index, const SymbolType symbol_type) -> Symbol*
     {
         // lookup the symbol by name
         if( symbol_index < 0 )
         {
             const SharableString symbol_name = EvaluateSharableString(-1 * symbol_index);
-            symbol_index = m_pEngineArea->SymbolTableSearchWithPreference(SO::Trim(*symbol_name), symbol_type);
+            symbol_index = SymbolTableSearchWithPreference_INTERPRETER_DLL_TODO(SO::Trim(*symbol_name), symbol_type);
 
             if( symbol_index <= 0 )
             {
-                issaerror(MessageType::Error, 47165, symbol_name->c_str());
+                IssueMessage(MessageType::Error, MGF::ValueSet_symbol_does_not_exist_47165, symbol_name->c_str());
                 return nullptr;
             }
         }
@@ -138,19 +151,23 @@ double CIntDriver::exsetvalueset(int iExpr)
 
         if( !symbol.IsA(symbol_type) )
         {
-            issaerror(MessageType::Error, 47164, symbol.GetName().c_str(), ToString(symbol_type));
+            IssueMessage(MessageType::Error, MGF::ValueSet_symbol_is_not_of_type_47164, symbol.GetName().c_str(), ToString(symbol_type));
             return nullptr;
         }
 
         return &symbol;
     };
 
-    VART* pVarT = assert_nullable_cast<VART*>(validate_symbol(va_node.arguments[0], SymbolType::Variable));
+    VART* const pVarT= assert_nullable_cast<VART*>(
+        validate_symbol(va_node.arguments[0], SymbolType::Variable)
+    );
 
     if( pVarT == nullptr )
         return 0;
 
-    const ValueSet* value_set = assert_nullable_cast<const ValueSet*>(validate_symbol(va_node.arguments[1], SymbolType::ValueSet));
+    const ValueSet* const value_set = assert_nullable_cast<const ValueSet*>(
+        validate_symbol(va_node.arguments[1], SymbolType::ValueSet)
+    );
 
     if( value_set == nullptr )
         return 0;
@@ -171,12 +188,12 @@ double CIntDriver::exsetvalueset(int iExpr)
     // check that the value set can apply to the variable
     if( pVarT->GetDataType() != new_value_set->GetDataType() )
     {
-        issaerror(MessageType::Error, 941, ToString(pVarT->GetDataType()));
+        IssueMessage(MessageType::Error, MGF::ValueSet_not_correct_data_type_941, ToString(pVarT->GetDataType()));
         return 0;
     }
 
     if( value_does_not_fit_in_value_set_warning )
-        issaerror(MessageType::Warning, 47161, pVarT->GetName().c_str());
+        IssueMessage(MessageType::Warning, MGF::ValueSet_contains_values_not_valid_for_field_47161, pVarT->GetName().c_str());
 
     pVarT->SetCurrentValueSet(std::move(new_value_set));
 
@@ -184,7 +201,7 @@ double CIntDriver::exsetvalueset(int iExpr)
 }
 
 
-double CIntDriver::exsetvalueset_pre80(int iExpr)
+double LogicInterpreter::ex_setvalueset_pre80(const int program_index)
 {
     ASSERT(m_engineData->PredatesCompiledLogicVersion(Serializer::Iteration_8_0_000_1));
 
@@ -201,7 +218,7 @@ double CIntDriver::exsetvalueset_pre80(int iExpr)
         int m_iImagesCtab;
     };
 
-    const FNSETVALUESET_NODE* pFunc = &GetNode<FNSETVALUESET_NODE>(iExpr);
+    const FNSETVALUESET_NODE* pFunc = &GetNode<FNSETVALUESET_NODE>(program_index);
     int iSymbol = pFunc->m_iSymbol;
     double dRet = 0;
     bool value_does_not_fit_in_value_set_warning = false;
@@ -214,31 +231,31 @@ double CIntDriver::exsetvalueset_pre80(int iExpr)
         // the variable name is supplied as an alpha expression
         if( pFunc->m_iIsAtAlpha == 1 )
         {
-            CString csVarName = EvalAlphaExprCS(-iSymbol + 1);
-            csVarName.TrimRight();
+            SharableString var_name = EvaluateSharableString(-iSymbol + 1);
+            var_name.MakeTrimRight();
 
-            if( csVarName.GetLength() > 0  )
-                iSymbol = m_pEngineArea->SymbolTableSearch(UTF8_TODO::GetUtf8(csVarName), { SymbolType::Variable });
+            if( !var_name->empty()  )
+                iSymbol = SymbolTableSearch_INTERPRETER_DLL_TODO(*var_name, { SymbolType::Variable });
         }
 
         // the variable's symbol number is supplied
         else
         {
-            iSymbol = evalexpr<int>(-iSymbol);
+            iSymbol = Evaluate<int>(-iSymbol);
         }
 
         if( iSymbol <= 0 || iSymbol >= static_cast<int>(m_symbolTable.GetTableSize()) )
         {
-            issaerror(MessageType::Error, 47110, iSymbol, static_cast<int>(m_symbolTable.GetTableSize()) - 1);
+            IssueMessage(MessageType::Error, 47110, iSymbol, static_cast<int>(m_symbolTable.GetTableSize()) - 1);
             return dRet;
         }
     }
 
-    Symbol* pVariableSymbol = NPT(iSymbol);
+    Symbol* pVariableSymbol = &NPT_Ref(iSymbol);
 
     if( !pVariableSymbol->IsA(SymbolType::Variable) )
     {
-        issaerror(MessageType::Error, 47164, pVariableSymbol->GetName().c_str(), ToString(SymbolType::Variable));
+        IssueMessage(MessageType::Error, 47164, pVariableSymbol->GetName().c_str(), ToString(SymbolType::Variable));
         return dRet;
     }
 
@@ -248,14 +265,14 @@ double CIntDriver::exsetvalueset_pre80(int iExpr)
     // value set is an alpha expression
     if( pFunc->m_iSymbolValues[1] == -1 )
     {
-        CString csValueSetName = EvalAlphaExprCS(pFunc->m_iSymbolValues[0]);
-        csValueSetName.MakeUpper();
+        SharableString value_set_name = EvaluateSharableString(pFunc->m_iSymbolValues[0]);
+        value_set_name.MakeUpper();
 
-        int value_set_symbol = m_pEngineArea->SymbolTableSearch(UTF8_TODO::GetUtf8(csValueSetName), { SymbolType::ValueSet });
+        int value_set_symbol = SymbolTableSearch_INTERPRETER_DLL_TODO(*value_set_name, { SymbolType::ValueSet });
 
         if( value_set_symbol == 0 )
         {
-            issaerror(MessageType::Error, 47164, UTF8_TODO::GetUtf8(csValueSetName).c_str(), ToString(SymbolType::ValueSet));
+            IssueMessage(MessageType::Error, 47164, value_set_name->c_str(), ToString(SymbolType::ValueSet));
             return dRet;
         }
 
@@ -264,7 +281,7 @@ double CIntDriver::exsetvalueset_pre80(int iExpr)
 
     else
     {
-        Symbol* pSymbol = NPT(pFunc->m_iSymbolValues[0]);
+        Symbol* pSymbol = &NPT_Ref(pFunc->m_iSymbolValues[0]);
 
         // a value set name was specified
         if( pSymbol->IsA(SymbolType::ValueSet) )
@@ -283,7 +300,7 @@ double CIntDriver::exsetvalueset_pre80(int iExpr)
         }
 
         // an array was specified so we will create a dynamic value set
-        else if( NPT(pFunc->m_iSymbolValues[0])->GetType() == SymbolType::Array )
+        else if( pSymbol->IsA(SymbolType::Array) )
         {
             const LogicArray& codes_array = assert_cast<const LogicArray&>(*pSymbol);
             const LogicArray& labels_array = GetSymbolLogicArray(pFunc->m_iSymbolValues[1]);
@@ -293,13 +310,13 @@ double CIntDriver::exsetvalueset_pre80(int iExpr)
             // check that the codes array matches the type of the variable
             if( pVarT->IsAlpha() && !codes_array.IsString() )
             {
-                issaerror(MessageType::Error, 47156);
+                IssueMessage(MessageType::Error, 47156);
                 return dRet;
             }
 
             if( pVarT->IsNumeric() && !codes_array.IsNumeric() )
             {
-                issaerror(MessageType::Error, 47158);
+                IssueMessage(MessageType::Error, 47158);
                 return dRet;
             }
 
@@ -350,23 +367,22 @@ double CIntDriver::exsetvalueset_pre80(int iExpr)
                     if( !image_file_path.empty() )
                         MakeAbsolutePath(image_file_path);
                 }
-                std::wstring wide_label = UTF8_TODO::GetWide(*label); // UTF8_TODO replace wide_label below with label
+
                 if( codes_array.IsNumeric() )
                 {
-                    dynamic_value_set.AddValue(std::move(wide_label), std::move(image_file_path), DictionaryDefaults::ValueLabelTextColor, numeric_codes[i], std::nullopt);
+                    dynamic_value_set.AddValue(std::move(label), std::move(image_file_path), DictionaryDefaults::ValueLabelTextColor, numeric_codes[i], std::nullopt);
                 }
 
                 else
                 {
-                    std::wstring wide_value = UTF8_TODO::GetWide(*string_codes[i]); // UTF8_TODO replace wide_value below with string_codes[i]
-                    dynamic_value_set.AddValue(std::move(wide_label), std::move(image_file_path), DictionaryDefaults::ValueLabelTextColor, std::move(wide_value));
+                    dynamic_value_set.AddValue(std::move(label), std::move(image_file_path), DictionaryDefaults::ValueLabelTextColor, std::move(string_codes[i]));
                 }
             }
 
             new_value_set = dynamic_value_set.CreateValueSet(pVarT, value_does_not_fit_in_value_set_warning);
 
             // the return value for a dynamic value set is the number of values in the new value set
-            dRet = new_value_set->GetDictValueSet().GetNumValues();
+            dRet = static_cast<double>(new_value_set->GetDictValueSet().GetNumValues());
         }
 
         // the symbol wasn't a value set or an array
@@ -383,7 +399,7 @@ double CIntDriver::exsetvalueset_pre80(int iExpr)
     {
         if( pVarT->IsNumeric() != new_value_set->IsNumeric() )
         {
-            issaerror(MessageType::Error, 941, ToString(pVarT->GetDataType()));
+            IssueMessage(MessageType::Error, 941, ToString(pVarT->GetDataType()));
             return dRet;
         }
 
@@ -391,7 +407,7 @@ double CIntDriver::exsetvalueset_pre80(int iExpr)
     }
 
     if( value_does_not_fit_in_value_set_warning )
-        issaerror(MessageType::Warning, 47161, pVarT->GetName().c_str());
+        IssueMessage(MessageType::Warning, 47161, pVarT->GetName().c_str());
 
     pVarT->SetCurrentValueSet(new_value_set);
 
@@ -399,57 +415,60 @@ double CIntDriver::exsetvalueset_pre80(int iExpr)
 }
 
 
-double CIntDriver::exsetvaluesets(int iExpr)
+double LogicInterpreter::ex_setvaluesets(const int program_index)
 {
     // for changing the value sets of all items to those matching the string passed
-    const auto& fnn_node = GetNode<FNN_NODE>(iExpr);
+    const auto& fnn_node = GetNode<FNN_NODE>(program_index);
     const SharableString value_set_pattern = EvaluateSharableString(fnn_node.fn_expr[0]);
     size_t num_value_sets_changed = 0;
 
     // process each of the value sets
     for( const ValueSet* const value_set : m_engineData->value_sets_not_dynamic )
     {
-        // change the value set if the search pattern was found
-        if( value_set->GetName().find(*value_set_pattern) != std::string::npos )
-        {
-            VART* pVarT = value_set->GetVarT();
-            pVarT->SetCurrentValueSet(std::dynamic_pointer_cast<const ValueSet, const Symbol>(GetSharedSymbol(value_set->GetSymbolIndex())));
-            ++num_value_sets_changed;
-        }
+        // change the value set only if the search pattern was found
+        if( value_set->GetName().find(*value_set_pattern) == std::string::npos )
+            continue;
+
+        VART* const vart = value_set->GetVarT();
+        ASSERT(vart != nullptr);
+
+        vart->SetCurrentValueSet(std::dynamic_pointer_cast<const ValueSet, const Symbol>(GetSharedSymbol(value_set->GetSymbolIndex())));
+
+        ++num_value_sets_changed;
     }
 
-    return num_value_sets_changed;
+    return static_cast<double>(num_value_sets_changed);
 }
 
 
-double CIntDriver::exrandomizevs(int iExpr)
+double LogicInterpreter::ex_randomizevs(const int program_index)
 {
-    const auto& va_with_size_node = GetNode<Nodes::VariableArgumentsWithSize>(iExpr);
+    const auto& va_with_size_node = GetNode<Nodes::VariableArgumentsWithSize>(program_index);
     Symbol& symbol = NPT_Ref(va_with_size_node.arguments[0]);
-    bool numeric = true;
 
-    if( symbol.IsOneOf(SymbolType::Variable, SymbolType::ValueSet) )
-        numeric = IsNumeric(symbol);
+    const bool numeric = symbol.IsOneOf(SymbolType::Variable, SymbolType::ValueSet)
+        ? IsNumeric(symbol)
+        : true;
 
-    std::vector<double> numeric_exclusions;
-    std::vector<CString> string_exclusions;
+    std::variant<std::vector<double>, std::vector<SharableString>> exclusions = numeric
+        ? std::variant<std::vector<double>, std::vector<SharableString>>(std::vector<double>())
+        : std::variant<std::vector<double>, std::vector<SharableString>>(std::vector<SharableString>());
 
-    int exclusion_end_index = m_engineData->MeetsCompiledLogicVersion(Serializer::Iteration_8_0_000_1) ?
-        va_with_size_node.number_arguments : ( va_with_size_node.number_arguments + 1 );
+    const int exclusion_end_index = m_engineData->MeetsCompiledLogicVersion(Serializer::Iteration_8_0_000_1)
+        ? va_with_size_node.number_arguments
+        : ( va_with_size_node.number_arguments + 1 );
 
     for( int i = 1; i < exclusion_end_index; ++i )
     {
         if( numeric )
         {
-            double exclusion_value = evalexpr(va_with_size_node.arguments[i]);
-            numeric_exclusions.emplace_back(exclusion_value);
+            std::get<0>(exclusions).emplace_back(Evaluate(va_with_size_node.arguments[i]));
         }
 
         else
         {
-            CString exclusion_value = EvalAlphaExprCS(va_with_size_node.arguments[i]);
-            exclusion_value.TrimRight();
-            string_exclusions.emplace_back(exclusion_value);
+            SharableString& exclusion = std::get<1>(exclusions).emplace_back(EvaluateSharableString(va_with_size_node.arguments[i]));
+            exclusion.MakeTrimRight();
         }
     }
 
@@ -464,35 +483,44 @@ double CIntDriver::exrandomizevs(int iExpr)
     // randomize an encompassing symbol (like a dictionary)
     else
     {
-        VariableWorker(GetSymbolTable(), &symbol,
-            [&](VART* pVarT) -> bool
+        ForeachVariable(GetSymbolTable(), symbol,
+            [&](VART& vart)
             {
-                const ValueSet* value_set = pVarT->GetCurrentValueSet();
+                const ValueSet* const value_set = vart.GetCurrentValueSet();
 
                 if( value_set != nullptr )
+                {
                     valuesets_to_randomize.emplace_back(const_cast<ValueSet*>(value_set));
+                    return 1;
+                }
 
-                return 1;
+                return 0;
             });
     }
 
     // do the randomizations
-    for( ValueSet* value_set : valuesets_to_randomize )
-        value_set->Randomize(numeric_exclusions, string_exclusions);
+    for( ValueSet* const value_set : valuesets_to_randomize )
+        value_set->Randomize(exclusions);
 
-    return valuesets_to_randomize.size();
+    return static_cast<double>(valuesets_to_randomize.size());
 }
 
 
-double CIntDriver::exvaluesetcompute(int iExpr)
+
+// --------------------------------------------------------------------------
+// ValueSet object functions
+// --------------------------------------------------------------------------
+
+double LogicInterpreter::ex_ValueSet_compute(const int program_index)
 {
-    const auto& symbol_compute_node = GetNode<Nodes::SymbolCompute>(iExpr);
+    const auto& symbol_compute_node = GetNode<Nodes::SymbolCompute>(program_index);
     ValueSet& lhs_value_set = GetSymbolValueSet(symbol_compute_node.lhs_symbol_index);
     const ValueSet& rhs_value_set = GetSymbolValueSet(symbol_compute_node.rhs_symbol_index);
 
     if( !lhs_value_set.IsDynamic() )
     {
-        issaerror(MessageType::Error, 47170, "=", lhs_value_set.GetName().c_str());
+        IssueMessage(MessageType::Error, MGF::ValueSet_invalid_operation_for_dict_value_set_47170,
+                     "=", lhs_value_set.GetName().c_str());
     }
 
     // only do the assignment if they're not assigning a value set to itself
@@ -507,15 +535,16 @@ double CIntDriver::exvaluesetcompute(int iExpr)
 }
 
 
-double CIntDriver::exvaluesetadd(int iExpr)
+double LogicInterpreter::ex_ValueSet_add(const int program_index)
 {
-    const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(iExpr);
+    const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
     ValueSet& value_set = GetSymbolValueSet(symbol_va_node.symbol_index);
     size_t number_values_added = 0;
 
     if( !value_set.IsDynamic() )
     {
-        issaerror(MessageType::Error, 47170, "add", value_set.GetName().c_str());
+        IssueMessage(MessageType::Error, MGF::ValueSet_invalid_operation_for_dict_value_set_47170,
+                     "add", value_set.GetName().c_str());
         return DEFAULT;
     }
 
@@ -534,7 +563,7 @@ double CIntDriver::exvaluesetadd(int iExpr)
 
         if( &rhs_value_set == &dynamic_value_set )
         {
-            issaerror(MessageType::Error, 47172, value_set.GetName().c_str());
+            IssueMessage(MessageType::Error, MGF::ValueSet_add_cannot_add_self_47172, value_set.GetName().c_str());
             return 0;
         }
 
@@ -549,11 +578,11 @@ double CIntDriver::exvaluesetadd(int iExpr)
         // or add a single or range of numeric values
         else if( dynamic_value_set.IsNumeric() )
         {
-            double from_value = evalexpr(from_code_expression);
-            double to_value = ( to_code_expression == -1 ) ? from_value : evalexpr(to_code_expression);
+            const double from_value = Evaluate(from_code_expression);
+            const double to_value = ( to_code_expression == -1 ) ? from_value : Evaluate(to_code_expression);
 
             rhs_value_set.ForeachValue(
-                [&](const ValueSet::ForeachValueInfo& info, double low_value, const std::optional<double>& high_value)
+                [&](const ValueSet::ForeachValueInfo& info, const double low_value, const std::optional<double>& high_value)
                 {
                     if( to_value >= low_value )
                     {
@@ -580,7 +609,14 @@ double CIntDriver::exvaluesetadd(int iExpr)
 
                         if( add_value )
                         {
-                            dynamic_value_set.AddValue(CS2WS(info.label), info.image_file_path, info.text_color, low_value_to_add, std::move(high_value_to_add));
+                            dynamic_value_set.AddValue(
+                                info.label,
+                                info.image_file_path,
+                                info.text_color,
+                                low_value_to_add,
+                                std::move(high_value_to_add)
+                            );
+
                             ++number_values_added;
                         }
                     }
@@ -590,13 +626,18 @@ double CIntDriver::exvaluesetadd(int iExpr)
         // or add a single string value
         else
         {
-            CString value = EvalAlphaExprCS(from_code_expression);
-            const DictValue* dict_value = rhs_value_set.GetValueProcessor().GetDictValue(value);
+            const SharableString value = EvaluateSharableString(from_code_expression);
+            const DictValue* const dict_value = rhs_value_set.GetValueProcessor().GetDictValue(*value);
 
             if( dict_value != nullptr )
             {
-                dynamic_value_set.AddValue(CS2WS(dict_value->GetLabel()), dict_value->GetImageFilePath(), dict_value->GetTextColor(),
-                                           CS2WS(dict_value->GetValuePair(0).GetFrom()));
+                dynamic_value_set.AddValue(
+                    UTF8_TODO::GetUtf8(dict_value->GetLabel()),
+                    dict_value->GetImageFilePath(),
+                    dict_value->GetTextColor(),
+                    dict_value->GetValuePair(0).GetFrom()
+                );
+
                 ++number_values_added;
             }
         }
@@ -604,9 +645,12 @@ double CIntDriver::exvaluesetadd(int iExpr)
 
     else
     {
-        std::wstring label = EvalAlphaExpr(label_expression);
-        std::string image_file_path = ( image_file_path_expression != -1 ) ? EvaluatePath(image_file_path_expression) :
-                                                                             std::string();
+        const SharableString label = EvaluateSharableString(label_expression);
+
+        std::string image_file_path = ( image_file_path_expression != -1 )
+            ? EvaluatePath(image_file_path_expression)
+            : std::string();
+
         std::optional<PortableColor> text_color;
 
         if( text_color_expression != -1 )
@@ -615,7 +659,7 @@ double CIntDriver::exvaluesetadd(int iExpr)
             text_color = PortableColor::FromString(*text_color_text);
 
             if( !text_color.has_value() )
-                issaerror(MessageType::Error, 2036, text_color_text->c_str());
+                IssueMessage(MessageType::Error, MGF::color_invalid_2036, text_color_text->c_str());
         }
 
         if( !text_color.has_value() )
@@ -623,13 +667,17 @@ double CIntDriver::exvaluesetadd(int iExpr)
 
         if( dynamic_value_set.IsString() )
         {
-            std::wstring value = EvalAlphaExpr(from_code_expression);
-            dynamic_value_set.AddValue(std::move(label), std::move(image_file_path), std::move(*text_color), std::move(value));
+            dynamic_value_set.AddValue(
+                std::move(label),
+                std::move(image_file_path),
+                std::move(*text_color),
+                EvaluateSharableString(from_code_expression) // value
+            );
         }
 
         else
         {
-            double from_value = evalexpr(from_code_expression);
+            const double from_value = Evaluate(from_code_expression);
             std::optional<double> to_value = EvaluateOptional(to_code_expression);
 
             try
@@ -639,28 +687,35 @@ double CIntDriver::exvaluesetadd(int iExpr)
 
             catch( const CSProException& exception )
             {
-                issaerror(MessageType::Error, exception);
+                IssueMessage(MessageType::Error, MGF::OpenMessage_32001, exception.what());
                 return 0;
             }
 
-            dynamic_value_set.AddValue(std::move(label), std::move(image_file_path), std::move(*text_color), from_value, std::move(to_value));
+            dynamic_value_set.AddValue(
+                std::move(label),
+                std::move(image_file_path),
+                std::move(*text_color),
+                from_value,
+                std::move(to_value)
+            );
         }
 
         number_values_added = 1;
     }
 
-    return number_values_added;
+    return static_cast<double>(number_values_added);
 }
 
 
-double CIntDriver::exvaluesetclear(int iExpr)
+double LogicInterpreter::ex_ValueSet_clear(const int program_index)
 {
-    const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(iExpr);
+    const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
     ValueSet& value_set = GetSymbolValueSet(symbol_va_node.symbol_index);
 
     if( !value_set.IsDynamic() )
     {
-        issaerror(MessageType::Error, 47170, "clear", value_set.GetName().c_str());
+        IssueMessage(MessageType::Error, MGF::ValueSet_invalid_operation_for_dict_value_set_47170,
+                     "clear", value_set.GetName().c_str());
         return DEFAULT;
     }
 
@@ -670,58 +725,63 @@ double CIntDriver::exvaluesetclear(int iExpr)
 }
 
 
-double CIntDriver::exvaluesetlength(int iExpr)
+double LogicInterpreter::ex_ValueSet_length(const int program_index)
 {
-    const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(iExpr);
+    const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
     const ValueSet& value_set = GetSymbolValueSet(symbol_va_node.symbol_index);
 
-    return value_set.GetLength();
+    return static_cast<double>(value_set.GetLength());
 }
 
 
-double CIntDriver::exvaluesetremove(int iExpr)
-{
-    const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(iExpr);
-    ValueSet& value_set = GetSymbolValueSet(symbol_va_node.symbol_index);
-
-    if( !value_set.IsDynamic() )
-    {
-        issaerror(MessageType::Error, 47170, "remove", value_set.GetName().c_str());
-        return DEFAULT;
-    }
-
-    DynamicValueSet& dynamic_value_set = assert_cast<DynamicValueSet&>(value_set);
-
-    return dynamic_value_set.IsNumeric() ? dynamic_value_set.RemoveValue(evalexpr(symbol_va_node.arguments[0])) :
-                                           dynamic_value_set.RemoveValue(EvalAlphaExpr(symbol_va_node.arguments[0]));
-}
-
-
-double CIntDriver::ex_ValueSet_removeDuplicates(const int program_index)
+double LogicInterpreter::ex_ValueSet_remove(const int program_index)
 {
     const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
     ValueSet& value_set = GetSymbolValueSet(symbol_va_node.symbol_index);
 
     if( !value_set.IsDynamic() )
     {
-        issaerror(MessageType::Error, 47170, "removeDuplicates", value_set.GetName().c_str());
+        IssueMessage(MessageType::Error, MGF::ValueSet_invalid_operation_for_dict_value_set_47170,
+                     "remove", value_set.GetName().c_str());
         return DEFAULT;
     }
 
     DynamicValueSet& dynamic_value_set = assert_cast<DynamicValueSet&>(value_set);
 
-    return dynamic_value_set.RemoveDuplicates(
-        static_cast<DynamicValueSet::RemoveDuplicatesType>(symbol_va_node.arguments[0])
+    return static_cast<double>(
+        dynamic_value_set.IsNumeric()
+        ? dynamic_value_set.RemoveValue(Evaluate<double>(symbol_va_node.arguments[0]))
+        : dynamic_value_set.RemoveValue(Evaluate<SharableString>(symbol_va_node.arguments[0]).GetString())
     );
 }
 
 
-double CIntDriver::exvaluesetshow(int iExpr)
+double LogicInterpreter::ex_ValueSet_removeDuplicates(const int program_index)
+{
+    const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
+    ValueSet& value_set = GetSymbolValueSet(symbol_va_node.symbol_index);
+
+    if( !value_set.IsDynamic() )
+    {
+        IssueMessage(MessageType::Error, MGF::ValueSet_invalid_operation_for_dict_value_set_47170,
+                     "removeDuplicates", value_set.GetName().c_str());
+        return DEFAULT;
+    }
+
+    DynamicValueSet& dynamic_value_set = assert_cast<DynamicValueSet&>(value_set);
+
+    return static_cast<double>(dynamic_value_set.RemoveDuplicates(
+        static_cast<DynamicValueSet::RemoveDuplicatesType>(symbol_va_node.arguments[0])
+    ));
+}
+
+
+double LogicInterpreter::ex_ValueSet_show(const int program_index)
 {
     if( !UseHtmlDialogs() )
-        return exvaluesetshow_pre77(iExpr);
+        return ex_ValueSet_show_pre77(program_index);
 
-    const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(iExpr);
+    const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
     const ValueSet& value_set = GetSymbolValueSet(symbol_va_node.symbol_index);
 
     SelectDlg select_dlg(true, 1);
@@ -742,21 +802,21 @@ double CIntDriver::exvaluesetshow(int iExpr)
             {
                 // use the from code, unless the to code is special, in which case that will be used
                 codes->emplace_back(( high_value.has_value() && IsSpecial(*high_value) ) ? *high_value : low_value);
-                select_dlg.AddRow(UTF8_TODO::GetUtf8(info.label), info.text_color);
+                select_dlg.AddRow(info.label, info.text_color);
             });
     }
 
     else
     {
         value_set.ForeachValue(
-            [&](const ValueSet::ForeachValueInfo& info, const CString& /*value*/)
+            [&](const ValueSet::ForeachValueInfo& info, const SharableString& /*value*/)
             {
-                select_dlg.AddRow(UTF8_TODO::GetUtf8(info.label), info.text_color);
+                select_dlg.AddRow(info.label, info.text_color);
             });
     }
 
-    SelectDlgHelper select_dlg_helper(*m_paradataDriver, select_dlg, Paradata::OperatorSelectionEvent::Source::ValueSetShow);
-    const int selected_row_base_one = select_dlg_helper.GetSingleSelection();
+    SelectDlgHelper select_dlg_helper(GetEngineParadataDriver_INTERPRETER_DLL_TODO(), select_dlg, Paradata::OperatorSelectionEvent::Source::ValueSetShow);
+    const size_t selected_row_base_one = select_dlg_helper.GetSingleSelection();
 
     if( value_set.IsNumeric() && selected_row_base_one > 0 )
     {
@@ -765,19 +825,17 @@ double CIntDriver::exvaluesetshow(int iExpr)
 
     else
     {
-        return selected_row_base_one;
+        return static_cast<double>(selected_row_base_one);
     }
 }
 
 
-double CIntDriver::exvaluesetshow_pre77(int iExpr)
+double LogicInterpreter::ex_ValueSet_show_pre77(const int program_index)
 {
-    const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(iExpr);
+    const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
     const ValueSet& value_set = GetSymbolValueSet(symbol_va_node.symbol_index);
 
-    CString heading = ( symbol_va_node.arguments[0] != -1 ) ? EvalAlphaExprCS(symbol_va_node.arguments[0]) :
-                                                              CString();
-
+    const SharableString heading = EvaluateNullableSharableString(symbol_va_node.arguments[0]);
     std::vector<double> codes;
     std::vector<std::vector<CString>*> labels;
     std::vector<PortableColor> row_text_colors;
@@ -785,11 +843,11 @@ double CIntDriver::exvaluesetshow_pre77(int iExpr)
     if( value_set.IsNumeric() )
     {
         value_set.ForeachValue(
-            [&](const ValueSet::ForeachValueInfo& info, double low_value, const std::optional<double>& high_value)
+            [&](const ValueSet::ForeachValueInfo& info, const double low_value, const std::optional<double>& high_value)
             {
                 // use the from code, unless the to code is special, in which case that will be used
                 codes.emplace_back(( high_value.has_value() && IsSpecial(*high_value) ) ? *high_value : low_value);
-                labels.emplace_back(new std::vector<CString> { info.label });
+                labels.emplace_back(new std::vector<CString> { UTF8_TODO::GetCString(info.label) });
                 row_text_colors.emplace_back(info.text_color);
             });
     }
@@ -800,30 +858,32 @@ double CIntDriver::exvaluesetshow_pre77(int iExpr)
         size_t index = 0;
 
         value_set.ForeachValue(
-            [&](const ValueSet::ForeachValueInfo& info, const CString& /*value*/)
+            [&](const ValueSet::ForeachValueInfo& info, const SharableString& /*value*/)
             {
-                codes.emplace_back(++index);
-                labels.emplace_back(new std::vector<CString> { info.label });
+                codes.emplace_back(static_cast<double>(++index));
+                labels.emplace_back(new std::vector<CString> { UTF8_TODO::GetCString(info.label) });
                 row_text_colors.emplace_back(info.text_color);
             });
     }
 
-    int selection = SelectDlgHelper_pre77(symbol_va_node.function_code, &heading, &labels, nullptr, nullptr, &row_text_colors);
+    const int selection = SelectDlgHelper_pre77(symbol_va_node.function_code, UTF8_TODO::GetCString(heading), &labels, nullptr, nullptr, &row_text_colors);
 
-    safe_delete_vector_contents(labels);
+    for( const std::vector<CString>* const label : labels )
+        delete label;
 
     return ( selection == 0 ) ? 0 : codes[selection - 1];
 }
 
 
-double CIntDriver::exvaluesetsort(int iExpr)
+double LogicInterpreter::ex_ValueSet_sort(const int program_index)
 {
-    const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(iExpr);
+    const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
     ValueSet& value_set = GetSymbolValueSet(symbol_va_node.symbol_index);
-    bool ascending = ( symbol_va_node.arguments[0] == 0 );
-    bool sort_by_label = ( symbol_va_node.arguments[1] == 0 );
 
-    value_set.Sort(ascending, sort_by_label);
+    value_set.Sort(
+        ( symbol_va_node.arguments[0] == 0 ), // ascending
+        ( symbol_va_node.arguments[1] == 0 )  // sort_by_label
+    );
 
     return 1;
 }

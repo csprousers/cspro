@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 //---------------------------------------------------------------------------
 //  File name: Nodes.h
@@ -221,15 +221,6 @@ struct FNINS_NODE
     int group_node;
     int first_occurrence;
     int last_occurrence;
-};
-
-
-struct FNINVALUSET_NODE
-{
-    int fn_code;
-    int m_iSymVar;
-    int m_iExpr;
-    int m_iSymVSet;
 };
 
 

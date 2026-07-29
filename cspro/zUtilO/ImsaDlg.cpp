@@ -1,4 +1,4 @@
-﻿//***************************************************************************
+//***************************************************************************
 //  File name: ImsaDlg.cpp
 //
 //  Description:
@@ -11,6 +11,7 @@
 #include "StdAfx.h"
 #include "ImsaDlg.h"
 #include "CustomFont.h"
+#include "DataExchange.h"
 #include "WindowsUtf8.h"
 #include <afxpriv.h>
 
@@ -22,62 +23,78 @@
 static CRect    rcNoteDlg(0,0,0,0);     // where the last note dialog (CNoteDlg) was placed, static so that it applies accross all views
 
 
-/////////////////////////////////////////////////////////////////////////////
-//
-//                               CNoteDlg::CNoteDlg
-//
-/////////////////////////////////////////////////////////////////////////////
 
-CNoteDlg::CNoteDlg(bool treat_help_button_as_clear, CWnd* pParent /*=NULL*/)
+// --------------------------------------------------------------------------
+// CNoteDlg
+// --------------------------------------------------------------------------
+
+BEGIN_MESSAGE_MAP(CNoteDlg, CDialog)
+    ON_BN_CLICKED(IDC_HELPBUTTON, OnHelpButton)
+    ON_WM_SHOWWINDOW()
+END_MESSAGE_MAP()
+
+
+CNoteDlg::CNoteDlg(const bool treat_help_button_as_clear, CWnd* const pParent/* = nullptr*/)
     :   CDialog(IDD_NOTEDLG, pParent),
-        m_treatHelpButtonAsClear(treat_help_button_as_clear)
+        m_treatHelpButtonAsClear(treat_help_button_as_clear),
+        m_useOnlyLF(true)
 {
 }
 
 
-/////////////////////////////////////////////////////////////////////////////
-//
-//                               CNoteDlg::DoDataExchange
-//
-/////////////////////////////////////////////////////////////////////////////
+void CNoteDlg::SetNote(std::string note)
+{
+    ASSERT(m_useOnlyLF);
 
-void CNoteDlg::DoDataExchange(CDataExchange* pDX) {
+    m_note = std::move(note);
 
-    CDialog::DoDataExchange(pDX);
-    DDX_Text(pDX, IDC_NOTEEDIT, m_csNoteEdit);
+    const size_t first_newline_ch = m_note.find_first_of("\r\n");
+
+    if( first_newline_ch != std::string::npos )
+    {
+        if( m_note.at(first_newline_ch) == '\r' || m_note.find('\r', first_newline_ch + 1) != std::string::npos )
+        {
+            m_useOnlyLF = false;
+        }
+
+        else
+        {
+            SO::MakeNewlineCRLF(m_note);
+        }
+    }
 }
 
 
-/////////////////////////////////////////////////////////////////////////////
-//
-//                               CNoteDlg::OnInitDialog
-//
-/////////////////////////////////////////////////////////////////////////////
+void CNoteDlg::DoDataExchange(CDataExchange* const pDX)
+{
+    __super::DoDataExchange(pDX);
+
+    DDX_Text(pDX, IDC_NOTEEDIT, m_note, true);
+}
+
 
 BOOL CNoteDlg::OnInitDialog()
 {
-    BOOL bRetVal;
-    bRetVal = CDialog::OnInitDialog();
-
-    CEdit* pEdit = (CEdit*) GetDlgItem(IDC_NOTEEDIT);
-    ASSERT_VALID(pEdit);
+    const BOOL result = __super::OnInitDialog();
 
     // 20100621 to allow for the dynamic setting of fonts for the notes dialog
+    const UserDefinedFonts* const user_defined_fonts = UserDefinedFonts::GetUserDefinedFont(UserDefinedFonts::FontType::Notes);
 
-    UserDefinedFonts* pUserFonts = nullptr;
-    AfxGetMainWnd()->SendMessage(WM_IMSA_GET_USER_FONTS, (WPARAM)&pUserFonts);
-
-    if( pUserFonts != nullptr && pUserFonts->IsFontDefined(UserDefinedFonts::FontType::Notes) ) // user has defined a particular font
+    if( user_defined_fonts != nullptr )
     {
-        GetDlgItem(IDC_NOTEEDIT)->SetFont(pUserFonts->GetFont(UserDefinedFonts::FontType::Notes));
-        SetFont(pUserFonts->GetFont(UserDefinedFonts::FontType::Notes));
+        GetDlgItem(IDC_NOTEEDIT)->SetFont(user_defined_fonts->GetFont(UserDefinedFonts::FontType::Notes));
+        SetFont(user_defined_fonts->GetFont(UserDefinedFonts::FontType::Notes));
     }
 
-    SetWindowText(m_csTitle);
-    if (rcNoteDlg.IsRectEmpty())  {
+    SetWindowText(m_title.c_str());
+
+    if( rcNoteDlg.IsRectEmpty() )
+    {
         CenterWindow();
     }
-    else  {
+
+    else
+    {
         MoveWindow(rcNoteDlg);
     }
 
@@ -87,78 +104,57 @@ BOOL CNoteDlg::OnInitDialog()
     SetCapture();
     ReleaseCapture();
 
-    return bRetVal;
+    return result;
 }
 
 
-BEGIN_MESSAGE_MAP(CNoteDlg, CDialog)
-    //{{AFX_MSG_MAP(CNoteDlg)
-    ON_BN_CLICKED(IDC_HELPBUTTON, OnHelpbutton)
-    ON_WM_SHOWWINDOW()
-        //}}AFX_MSG_MAP
-END_MESSAGE_MAP()
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
-//                               CNoteDlg::OnHelpbutton
-//
-/////////////////////////////////////////////////////////////////////////////
-
-void CNoteDlg::OnHelpbutton()
+void CNoteDlg::OnOK()
 {
-    if( m_treatHelpButtonAsClear ) {
-        m_csNoteEdit.Empty();
+    __super::OnOK();
+
+    // Save the window position
+    GetWindowRect(&rcNoteDlg);
+
+    ASSERT(!SO::IsWhitespace(m_note) || m_note.empty());
+
+    if( m_useOnlyLF )
+        SO::MakeNewlineLF(m_note);
+}
+
+
+void CNoteDlg::OnCancel()
+{
+    __super::OnCancel();
+
+    // Save the window position
+    GetWindowRect(&rcNoteDlg);
+}
+
+
+void CNoteDlg::OnHelpButton()
+{
+    if( m_treatHelpButtonAsClear )
+    {
+        m_note.clear();
         UpdateData(FALSE);
     }
 
-    else {
+    else
+    {
         AfxGetApp()->HtmlHelp(HID_BASE_RESOURCE + IDD_NOTEDLG);
     }
 }
 
 
-/////////////////////////////////////////////////////////////////////////////
-//
-//                               CNoteDlg::OnOK
-//
-/////////////////////////////////////////////////////////////////////////////
 
-void CNoteDlg::OnOK() {
+void CNoteDlg::OnShowWindow(const BOOL bShow, const UINT nStatus)
+{
+    static_cast<CEdit*>(GetDlgItem(IDC_NOTEEDIT))->SetSel(-1, 0);
 
-    CDialog::OnOK();
-    GetWindowRect(&rcNoteDlg);      // Save the window position
-
-    if (SO::IsWhitespace(m_csNoteEdit)) {
-        m_csNoteEdit.Empty();
-    }
+    __super::OnShowWindow(bShow, nStatus);
 }
 
 
-/////////////////////////////////////////////////////////////////////////////
-//
-//                               CNoteDlg::OnCancel
-//
-/////////////////////////////////////////////////////////////////////////////
-
-void CNoteDlg::OnCancel() {
-
-    CDialog::OnCancel();
-    GetWindowRect(&rcNoteDlg);      // Save the window position
-}
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
-//                               CNoteDlg::OnShowWindow
-//
-/////////////////////////////////////////////////////////////////////////////
-
-void CNoteDlg::OnShowWindow(BOOL bShow, UINT nStatus) {
-
-    ((CEdit*) GetDlgItem(IDC_NOTEEDIT))->SetSel(-1,0);
-    CDialog::OnShowWindow(bShow, nStatus);
-}
 
 /////////////////////////////////////////////////////////////////////////////
 //

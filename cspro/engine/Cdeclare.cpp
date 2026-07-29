@@ -1,4 +1,4 @@
-﻿//-----------------------------------------------------------------------
+//-----------------------------------------------------------------------
 //
 // CDECLARE.cpp   compiler for declarations in Application procedure
 //
@@ -17,8 +17,8 @@
 #include <zAppO/Application.h>
 #include <zDictO/DDClass.h>
 #include <zListingO/ErrorLister.h>
-#include <zLogicO/Preprocessor.h>
 #include <zLogicO/SourceBuffer.h>
+#include <zEngineO/Compiler/EnginePreprocessor.h>
 
 
 // RHC INIC Sep 20, 2001
@@ -225,7 +225,6 @@ bool CEngineCompFunc::CompileDeclarations()
             // preprocesor handling
             else if( Tkn == TOKHASH )
             {
-                ASSERT(m_preprocessor != nullptr);
                 m_preprocessor->ProcessLineDuringCompilation();
 
                 // ProcessLineDuringCompilation will process all tokens on the line but not move to the next token, so we do that here
@@ -315,7 +314,7 @@ void CEngineCompFunc::CompileDictRelations()
 
             try
             {
-                if( rutasync(Appl.GetSymbolIndex()) )
+                if( rutasync(Appl) )
                 {
                     const std::string message = FormatText(" (check relation '%s' declared in the dictionary)", dict_relation.GetName().c_str());
                     ReportError(GetSyntErr(), message.c_str());

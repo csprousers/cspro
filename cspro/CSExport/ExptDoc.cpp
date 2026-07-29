@@ -1,4 +1,4 @@
-﻿/************************************
+/************************************
   REVISION LOG ENTRY
   Revision By: Chirag
   Revised on 2/26/2002 4:11:15 PM
@@ -337,7 +337,7 @@ CString CExportDoc::GetItemData(TCHAR *record, CDictItem*pItem)
 
 int CExportDoc::GetNumExpRecTypes()
 {
-    m_rectypes.RemoveAll();
+    m_recTypes.clear();
     m_records.RemoveAll();
     //if (m_aItems[0]->GetRecord()->GetRecTypeVal() != "")
     //  m_rectypes.Add(m_aItems[0]->GetRecord()->GetRecTypeVal());
@@ -346,16 +346,16 @@ int CExportDoc::GetNumExpRecTypes()
     {
         if (!m_aItems[i].selected ) continue;
         int j;
-        for (j = 0; j < m_rectypes.GetSize(); j++)
+        for (j = 0; j < m_recTypes.size(); j++)
         {
-            if (m_aItems[i].pItem->GetRecord()->GetRecTypeVal() == m_rectypes[j] || m_aItems[i].pItem->GetRecord()->GetRecTypeVal() == _T(""))
+            if (m_aItems[i].pItem->GetRecord()->GetRecTypeVal() == m_recTypes[j] || m_aItems[i].pItem->GetRecord()->GetRecTypeVal().empty())
                 break;
         }
-        if (j == m_rectypes.GetSize())
+        if (j == m_recTypes.size())
         {
             if (m_aItems[i].pItem->GetRecord()->GetSonNumber() != COMMON)
             {
-                m_rectypes.Add(m_aItems[i].pItem->GetRecord()->GetRecTypeVal());
+                m_recTypes.emplace_back(m_aItems[i].pItem->GetRecord()->GetRecTypeVal());
                 if (SharedSettings::ViewNamesInTree())
                     m_records.Add(UTF8_TODO::GetCString(m_aItems[i].pItem->GetRecord()->GetName()));
                 else
@@ -363,7 +363,7 @@ int CExportDoc::GetNumExpRecTypes()
             }
         }
     }
-    return m_rectypes.GetSize();
+    return m_recTypes.size();
 }
 
 ////////////////////////////////////////////////////////////////////
@@ -1432,7 +1432,7 @@ CString CExportDoc::GetFileName4Rec(const CDictRecord* pRecord)
     int rectypes = GetNumExpRecTypes();
 
     for (int ifile = 0; ifile < rectypes; ifile++){
-        if(pRecord->GetRecTypeVal().CompareNoCase(m_rectypes[ifile]) ==0 ){
+        if(SO::EqualsNoCase(pRecord->GetRecTypeVal(),m_recTypes[ifile])){
             if (rectypes <= (int)m_PifFile.GetExportFilenames().size()){
                 sRet =  m_PifFile.GetExportFilenames()[ifile] ;
                 sRet = _T("\"") + sRet + _T("\"");
@@ -3406,7 +3406,7 @@ CString CExportDoc::GetExportProc(  int                                         
             for(int iSelRecIdx=0; iSelRecIdx<iNumSelRecs; iSelRecIdx++){
 
                 const CDictRecord* pSelRec = paSelRecs->GetAt(iSelRecIdx);
-                CString csRecType = pSelRec->GetRecTypeVal(); //pSelRec->GetName();
+                CString csRecType = UTF8_TODO::GetCString(pSelRec->GetRecTypeVal()); //pSelRec->GetName();
 
                 bool            bHasAnyMultipleItem = false;
                 bool            bIsFlatExport       = IsFlatExport( pSelRec, &bHasAnyMultipleItem );
@@ -3819,7 +3819,7 @@ void FillUsedRecTypes(CArray<const CDictRecord*,const CDictRecord*>& rSelRecords
     for(int iRecIdx=0; iRecIdx<iNumRecords; iRecIdx++){
         const CDictRecord* pDictRecord = rSelRecords.GetAt( iRecIdx );
         //rMapUsedRecTypes.SetAt( pDictRecord->GetName(), pDictRecord->GetName() );
-        rMapUsedRecTypes.SetAt( pDictRecord->GetRecTypeVal(), pDictRecord->GetRecTypeVal() );
+        rMapUsedRecTypes.SetAt( UTF8_TODO::GetCString(pDictRecord->GetRecTypeVal()), UTF8_TODO::GetCString(pDictRecord->GetRecTypeVal()) );
     }
 }
 
@@ -5503,7 +5503,7 @@ bool CExportDoc::IsRecordSingle(const CString& sRecTypeVal)
 {
     bool bRet =false;
     for(int iIndex =0; iIndex < m_aItems.GetSize(); iIndex++){
-        if(m_aItems[iIndex].pItem->GetRecord()->GetRecTypeVal().CompareNoCase(sRecTypeVal) == 0 ) {
+        if(SO::EqualsNoCase(m_aItems[iIndex].pItem->GetRecord()->GetRecTypeVal(), sRecTypeVal)) {
             m_aItems[iIndex].pItem->GetRecord()->GetMaxRecs()>1 ? bRet = false : bRet = true;
             break;
         }

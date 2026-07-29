@@ -1,14 +1,12 @@
-﻿#pragma once
+#pragma once
 
 #include <zLogicO/Preprocessor.h>
-
-class CEngineDriver;
 
 
 class EnginePreprocessor : public Logic::Preprocessor
 {
 public:
-    EnginePreprocessor(Logic::BasicTokenCompiler& compiler, CEngineDriver* pEngineDriver);
+    EnginePreprocessor(LogicCompiler& compiler, EngineData& engine_data);
 
 protected:
     const char* GetAppType() override;
@@ -20,7 +18,6 @@ private:
     static std::optional<T> ParseValue(const std::variant<double, SharableString>& value);
 
 private:
-    CEngineDriver* const m_pEngineDriver;
-    const Logic::SymbolTable& m_symbolTable;
-    const size_t m_initialSymbolTableSize;
+    LogicCompiler& m_compiler;
+    EngineData& m_engineData;
 };

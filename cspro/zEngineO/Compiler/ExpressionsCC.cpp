@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "IncludesCC.h"
 
 
@@ -168,7 +168,8 @@ int LogicCompiler::prim()
     auto& [call_tester, is_lone_function_call] = get_COMPILER_DLL_TODO_m_loneAlphaFunctionCallTester();
     ++call_tester;
 
-    if( Tkn == TOKLPAREN ) // an expression in parentheses
+    // an expression in parentheses
+    if( Tkn == TOKLPAREN )
     {
         NextToken();
 
@@ -179,7 +180,8 @@ int LogicCompiler::prim()
         NextToken();
     }
 
-    else if( Tkn == TOKMINOP ) // 20120405 allow negative constants
+    // 20120405 allow negative constants
+    else if( Tkn == TOKMINOP )
     {
         NextToken();
         IssueErrorOnTokenMismatch(TOKCTE, MGF::arithmetic_expression_invalid_21);
@@ -188,57 +190,70 @@ int LogicCompiler::prim()
         NextToken();
     }
 
-    else if( Tkn == TOKCTE ) // constant
+    // numeric constant
+    else if( Tkn == TOKCTE )
     {
         p1 = CreateNumericConstantNode(Tokvalue);
         NextToken();
     }
 
+    // string (expression)
     else if( IsCurrentTokenString() )
     {
         p1 = crelalpha_COMPILER_DLL_TODO();
     }
 
+    // numeric or dictionary item
     else if( Tkn == TOKVAR )
     {
-        p1 = varsanal_COMPILER_DLL_TODO('N');
+        p1 = NPT_Ref(Tokstindex).IsA(SymbolType::WorkVariable)
+            ? CompileWorkVariableReference()
+            : varsanal_COMPILER_DLL_TODO('N');
     }
 
+    // crosstab
     else if( Tkn == TOKCROSSTAB )
     {
         p1 = tvarsanal_COMPILER_DLL_TODO();
     }
 
+    // Array
     else if( Tkn == TOKARRAY )
     {
         p1 = CompileLogicArrayReference();
     }
 
+    // function or user-defined function
     else if( Tkn == TOKFUNCTION || Tkn == TOKUSERFUNCTION )
     {
-        p1 = rutfunc_COMPILER_DLL_TODO();
+        p1 = RouteFunctionCall();
     }
 
+    // List
     else if( Tkn == TOKLIST )
     {
         p1 = CompileLogicListReference();
     }
 
+    // HashMap
     else if( Tkn == TOKHASHMAP )
     {
         p1 = CompileLogicHashMapReference();
     }
 
+    // named frequency
     else if( Tkn == TOKFREQ )
     {
         p1 = CompileNamedFrequencyReference();
     }
 
-    else if( IsArithmeticOperator(Tkn) ) // two consecutive operators
+    // two consecutive operators
+    else if( IsArithmeticOperator(Tkn) )
     {
         IssueError(MGF::two_consecutive_operators_20);
     }
 
+    // invalid expression
     else
     {
         IssueError(MGF::arithmetic_expression_invalid_21);

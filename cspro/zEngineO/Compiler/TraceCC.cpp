@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "IncludesCC.h"
 #include "Nodes/Trace.h"
 
@@ -92,7 +92,7 @@ int LogicCompiler::CompileTraceFunction()
 
 namespace
 {
-    std::string GetCompilerTextForTrace(const TokenCode token_code, cs::span<const Logic::BasicToken> basic_tokens)
+    std::string GetCompilerTextForTrace(const TokenCode token_code, const cs::span<const Logic::BasicToken> basic_tokens)
     {
         const Logic::BasicToken* basic_tokens_itr = basic_tokens.begin();
         const Logic::BasicToken* basic_tokens_end = basic_tokens.end();
@@ -100,7 +100,7 @@ namespace
         if( basic_tokens_itr == basic_tokens_end )
             return ReturnProgrammingError(std::string());
 
-        std::string trace_text = FormatText("%-5d:  %s", basic_tokens_itr->line_number, basic_tokens_itr->GetText().c_str());
+        std::string trace_text = FormatText("%-5zu:  %s", basic_tokens_itr->line_number, basic_tokens_itr->GetText().c_str());
 
         bool process_one_line = false;
 
@@ -172,10 +172,14 @@ int LogicCompiler::CreateTraceStatement()
     std::string trace_text = GetCompilerTextForTrace(Tkn, GetBasicTokensSpanFromCurrentToken());
 
     auto& trace_node = CreateNode<Nodes::Trace>(FunctionCode::FNTRACE_CODE);
-
     trace_node.action = Nodes::Trace::Action::LogicText;
     trace_node.argument = CreateStringLiteralNode(std::move(trace_text));
+    const int trace_node_program_index = GetProgramIndex(trace_node);
 
     // create the function call statement to call the trace function node
-    return CompileFunctionCall(GetProgramIndex(trace_node));
+    auto& function_call_node = CreateNode<Nodes::FunctionCall>(FunctionCode::FUCALL_CODE);
+    function_call_node.next_st = -1;
+    function_call_node.expression = trace_node_program_index;
+
+    return GetProgramIndex(function_call_node);
 }

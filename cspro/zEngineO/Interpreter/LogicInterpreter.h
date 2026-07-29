@@ -15,6 +15,7 @@ class BinarySymbol;
 class ConnectionString;
 enum class EncodeType : int;
 class EngineParadataDriver;
+class FrequencyDriver;
 enum FunctionCode : int;
 class PortableColor;
 class JsonReaderInterface;
@@ -24,7 +25,7 @@ namespace ActionInvoker { class Caller; class Runtime; }
 namespace JavaScript { class Value; }
 namespace Nodes { struct ItemSubscript; struct List; struct SymbolComputeWithSubscript;
                   struct SymbolVariableArgumentsWithSubscript; struct SymbolValue; }
-namespace Paradata { class Event; }
+namespace Paradata { class Event; class FieldInfo; }
 namespace SpecialFunction { enum class Code : int; }
 
 
@@ -154,6 +155,7 @@ public:
     double ex_numeric_constant(int program_index);
 
     double ex_WorkVariable_evaluate(int program_index);
+    double ex_WorkVariable_compute(int program_index);
 
     double ex_add(int program_index);
     double ex_sub(int program_index);
@@ -212,6 +214,7 @@ public:
     std::string GetWorkingString(size_t index);
 
     double ex_string_literal(int program_index);
+    double ex_string_compute(int program_index);
 
     // If using the original logic settings, "\\n" characters will be converted to "\n" (or "\r\n"),
     // and optionally, "\\\\" characters will be converted to "\\"
@@ -223,7 +226,7 @@ public:
     std::string ApplyV0Escapes(std::string text, V0_EscapeType v0_escape_type = V0_EscapeType::NewlinesToSlashN);
 
     double ex_WorkString_evaluate(int program_index);
-    double ex_WorkString_assign(int program_index);
+    double ex_WorkString_compute(int program_index);
 
     double ex_string_eq(int program_index);
     double ex_string_ne(int program_index);
@@ -278,6 +281,7 @@ private:
     // --------------------------------------------------------------------------
 public:
     double ex_Array_var(int program_index);
+    double ex_Array_compute(int program_index);
     double ex_Array_clear(int program_index);
     double ex_Array_length(int program_index);
 
@@ -389,7 +393,7 @@ public:
     double ex_HashMap_length(int program_index);
     double ex_HashMap_remove(int program_index);
 
-protected: // INTERPRETER_DLL_TODO change to private
+private:
     // Returns the index, or an empty vector if the index is invalid.
     std::vector<std::variant<double, SharableString>> EvaluateHashMapIndex(const Nodes::List& dimension_expressions_node, int number_dimension_expressions);
     std::vector<std::variant<double, SharableString>> EvaluateHashMapIndex(const Nodes::List& dimension_expressions_node);
@@ -439,7 +443,7 @@ public:
     template<typename SymbolT = Symbol>
     SymbolT& GetFromSymbolOrEngineItemForStaticFunction(int symbol_index, int subscript_compilation);
 
-protected: // INTERPRETER_DLL_TODO change to private
+private:
     template<typename SymbolT>
     SymbolT EvaluateSymbolReference_GetSymbol(int symbol_index);
 
@@ -509,7 +513,7 @@ public:
     double ex_List_show_pre77(int program_index);
     double ex_List_sort(int program_index);
 
-protected: // INTERPRETER_DLL_TODO change to private
+private:
     // Returns the one-based index, or std::nullopt if the index is invalid.
     std::optional<size_t> EvaluateListIndex(int listvar_node_expression, LogicList** out_logic_list, bool for_assignment);
 
@@ -592,6 +596,27 @@ private:
 
 
     // --------------------------------------------------------------------------
+    // Pff object functions
+    // (Pff RT.cpp)
+    // --------------------------------------------------------------------------
+public:
+    double ex_Pff_compute(int program_index);
+    double ex_Pff_load(int program_index);
+    double ex_Pff_save(int program_index);
+    double ex_Pff_getProperty(int program_index);
+    double ex_Pff_setProperty(int program_index);
+    double ex_Pff_exec(int program_index);
+
+
+    // --------------------------------------------------------------------------
+    // property functions
+    // (PropertiesRT.cpp)
+    // --------------------------------------------------------------------------
+public:
+    double ex_diagnostics(int program_index);
+
+
+    // --------------------------------------------------------------------------
     // Report object functions
     // (ReportRT.cpp)
     // --------------------------------------------------------------------------
@@ -599,7 +624,7 @@ public:
     double ex_Report_view(int program_index);
     double ex_Report_save(int program_index);
 
-protected: // INTERPRETER_DLL_TODO change to private
+private:
     double ex_Report_view(Report& report, const ViewerOptions* viewer_options);
     std::unique_ptr<std::string> GenerateReport(Report& report, const std::string* output_file_path);
 
@@ -682,6 +707,14 @@ protected: // INTERPRETER_DLL_TODO change to private
 
 
     // --------------------------------------------------------------------------
+    // UserFunction object
+    // (UserFunctionRT.cpp)
+    // --------------------------------------------------------------------------
+public:
+    double ex_UserFunction_compute(int program_index);
+
+
+    // --------------------------------------------------------------------------
     // user interface functions
     // (UserInterfaceRT.cpp)
     // --------------------------------------------------------------------------
@@ -695,6 +728,40 @@ public:
 protected:
     std::optional<CSize> EvaluateSize(int width_program_index, int height_program_index);
     std::unique_ptr<ViewerOptions> EvaluateViewerOptions(const int viewer_options_node_program_index);
+
+
+    // --------------------------------------------------------------------------
+    // ValueSet object and value set-related functions
+    // (ValueSetRT.cpp)
+    // --------------------------------------------------------------------------
+public:
+    double ex_minvalue_maxvalue(int program_index);
+    double ex_invalueset(int program_index);
+    double ex_getimage(int program_index);
+    double ex_setvalueset(int program_index);
+    double ex_setvalueset_pre80(int program_index);
+    double ex_setvaluesets(int program_index);
+    double ex_randomizevs(int program_index);
+
+    double ex_ValueSet_compute(int program_index);
+    double ex_ValueSet_add(int program_index);
+    double ex_ValueSet_clear(int program_index);
+    double ex_ValueSet_length(int program_index);
+    double ex_ValueSet_remove(int program_index);
+    double ex_ValueSet_removeDuplicates(int program_index);
+    double ex_ValueSet_show(int program_index);
+    double ex_ValueSet_show_pre77(int program_index);
+    double ex_ValueSet_sort(int program_index);
+
+
+    // --------------------------------------------------------------------------
+    // "Variable" functions
+    // (VariableRT.cpp)
+    // --------------------------------------------------------------------------
+public:
+    template<typename T> bool AssignValueToSymbol(const Nodes::SymbolValue& symbol_value_node, T value);
+    template<typename T> T EvaluateSymbolValue(const Nodes::SymbolValue& symbol_value_node);
+    template<typename T> void ModifySymbolValue(const Nodes::SymbolValue& symbol_value_node, const std::function<void(T&)>& modify_value_function);
 
 
     // --------------------------------------------------------------------------
@@ -727,9 +794,6 @@ private:
     virtual void RegisterAndLogEvent_INTERPRETER_DLL_TODO(std::shared_ptr<Paradata::Event> event, const void* instance_object = nullptr) = 0;
     virtual SharableString EvaluateTextFill(int program_index) = 0; // INTERPRETER_DLL_TODO remove as virtual
     virtual bool Report_Evaluate_INTERPRETER_DLL_TODO(Report& report) = 0; // INTERPRETER_DLL_TODO remove as virtual
-    virtual void ModifySymbolValue_double_INTERPRETER_DLL_TODO(const Nodes::SymbolValue& symbol_value_node, const std::function<void(double&)>& modify_value_function) = 0;
-    virtual bool AssignValueToSymbol_INTERPRETER_DLL_TODO(const Nodes::SymbolValue& symbol_value_node, double value) = 0;
-    virtual bool AssignValueToSymbol_INTERPRETER_DLL_TODO(const Nodes::SymbolValue& symbol_value_node, SharableString value) = 0;
     virtual double RunSoonToBeRemoveFeature(std::string_view feature_sv, int program_index, void* tag) = 0;
     virtual bool HasSpecialFunction(SpecialFunction::Code special_function) = 0; // INTERPRETER_DLL_TODO remove as virtual
     virtual double ExecSpecialFunction(int symbol_index, SpecialFunction::Code special_function, std::vector<std::variant<double, SharableString>> arguments) = 0; // INTERPRETER_DLL_TODO remove as virtual
@@ -738,15 +802,27 @@ private:
     virtual std::shared_ptr<Symbol> GetFromSymbolOrEngineItemWorker_INTERPRETER_DLL_TODO(const SymbolReference<std::shared_ptr<Symbol>>& symbol_reference, bool use_exceptions) = 0;
     virtual EvaluatedEngineItemSubscript EvaluateEngineItemSubscript(const EngineItem& engine_item, const Nodes::ItemSubscript& item_subscript_node) = 0; // INTERPRETER_DLL_TODO remove as virtual
     virtual bool IsDataAccessible(const Symbol& symbol, bool issue_error_if_inaccessible) = 0;
-    virtual int SelectDlgHelper_pre77(int iFunCode, const CString* csHeading, const std::vector<std::vector<CString>*>* paData,
+    virtual int SelectDlgHelper_pre77(int iFunCode, const CString& csHeading, const std::vector<std::vector<CString>*>* paData,
                                       const std::vector<CString>* paColumnTitles, std::vector<bool>* pbaSelections,
                                       const std::vector<PortableColor>* row_text_colors) = 0;
     virtual EngineParadataDriver& GetEngineParadataDriver_INTERPRETER_DLL_TODO() = 0;
     virtual bool ExecuteProgramStatements(int program_index) = 0; // INTERPRETER_DLL_TODO remove as virtual
     virtual void ExecuteCallbackUserFunction(int field_symbol_index, UserFunctionArgumentEvaluator& argument_evaluator) = 0; // INTERPRETER_DLL_TODO remove as virtual
     virtual std::unique_ptr<UserFunctionArgumentEvaluator> EvaluateArgumentsForCallbackUserFunction(int program_index, FunctionCode function_code) = 0; // INTERPRETER_DLL_TODO remove as virtual
-    virtual double ex_Freq_view(const NamedFrequency& named_frequency, const ViewerOptions* viewer_options, int frequency_parameters_node_index) = 0;// INTERPRETER_DLL_TODO remove as virtual
-    virtual double exCase_view(const CSymbolDict& dictionary, const ViewerOptions* viewer_options) = 0;// INTERPRETER_DLL_TODO remove as virtual
+    virtual double ex_Freq_view(const NamedFrequency& named_frequency, const ViewerOptions* viewer_options, int frequency_parameters_node_index) = 0; // INTERPRETER_DLL_TODO remove as virtual
+    virtual double exCase_view(const CSymbolDict& dictionary, const ViewerOptions* viewer_options) = 0; // INTERPRETER_DLL_TODO remove as virtual
+    virtual double ExExecPFF_INTERPRETER_DLL_TODO(LogicPff& logic_pff) = 0; // INTERPRETER_DLL_TODO remove as virtual
+    virtual FrequencyDriver* GetFrequencyDriver_INTERPRETER_DLL_TODO() = 0;
+    virtual void AssignValueToVART_INTERPRETER_DLL_TODO(int variable_compilation, double value) = 0; // INTERPRETER_DLL_TODO remove as virtual
+    virtual void AssignValueToVART_INTERPRETER_DLL_TODO(int variable_compilation, SharableString value) = 0; // INTERPRETER_DLL_TODO remove as virtual
+    virtual double EvaluateVARTValue_double_INTERPRETER_DLL_TODO(int variable_compilation) = 0; // INTERPRETER_DLL_TODO remove as virtual
+    virtual SharableString EvaluateVARTValue_SharableString_INTERPRETER_DLL_TODO(int variable_compilation) = 0; // INTERPRETER_DLL_TODO remove as virtual
+    virtual void ModifyVARTValue_INTERPRETER_DLL_TODO(int variable_compilation, const std::function<void(double&)>& modify_value_function, std::unique_ptr<Paradata::FieldInfo>* paradata_field_info = nullptr) = 0; // INTERPRETER_DLL_TODO remove as virtual
+    virtual void ModifyVARTValue_INTERPRETER_DLL_TODO(int variable_compilation, const std::function<void(SharableString&)>& modify_value_function, std::unique_ptr<Paradata::FieldInfo>* paradata_field_info = nullptr) = 0; // INTERPRETER_DLL_TODO remove as virtual
+    int SymbolTableSearchWithPreference_INTERPRETER_DLL_TODO(std::string_view full_symbol_name_sv, SymbolType preferred_symbol_type) const { return SymbolTableSearch_INTERPRETER_DLL_TODO(full_symbol_name_sv, preferred_symbol_type, nullptr); }
+    int SymbolTableSearch_INTERPRETER_DLL_TODO(std::string_view full_symbol_name_sv, const std::vector<SymbolType>& allowable_symbol_types, SymbolType preferred_symbol_type = SymbolType::None) const { return SymbolTableSearch_INTERPRETER_DLL_TODO(full_symbol_name_sv, preferred_symbol_type, &allowable_symbol_types); }
+    virtual int SymbolTableSearch_INTERPRETER_DLL_TODO(std::string_view full_symbol_name_sv, SymbolType preferred_symbol_type,
+                                                       const std::vector<SymbolType>* allowable_symbol_types) const = 0; // INTERPRETER_DLL_TODO refactor
 };
 
 

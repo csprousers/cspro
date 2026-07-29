@@ -696,33 +696,33 @@ void CRelGrid::Update()
     const CDictItem* pItem;
     int row = 0;
     for( const DictRelation& dict_relation : m_dictRelations ) {
-        QuickSetText(REL_NAME, row, UTF8_TODO::GetCString(dict_relation.GetName()));
+        QuickSetText(REL_NAME, row, dict_relation.GetName());
         for( const DictRelationPart& dict_relation_part : dict_relation.GetRelationParts() ) {
             m_pDict->LookupName(dict_relation.GetPrimaryName(), nullptr, &pRec, &pItem);
             if (pItem == NULL) {
-                QuickSetText(REL_PRIM, row, UTF8_TODO::GetCString(dict_relation.GetPrimaryName()));
+                QuickSetText(REL_PRIM, row, dict_relation.GetPrimaryName());
             }
             else {
-                QuickSetText(REL_PRIM, row, UTF8_TODO::GetCString(pRec->GetName() + "." + dict_relation.GetPrimaryName()));
+                QuickSetText(REL_PRIM, row, pRec->GetName() + "." + dict_relation.GetPrimaryName());
             }
             if (dict_relation_part.IsPrimaryLinkedByOccurrence()) {
                 QuickSetText(REL_PRIM_LINK, row, REL_OCC);
             }
             else {
-                QuickSetText(REL_PRIM_LINK, row, UTF8_TODO::GetCString(dict_relation_part.GetPrimaryLink()));
+                QuickSetText(REL_PRIM_LINK, row, dict_relation_part.GetPrimaryLink());
             }
             m_pDict->LookupName(dict_relation_part.GetSecondaryName(), nullptr, &pRec, &pItem);
             if (pItem == NULL) {
-                QuickSetText(REL_SEC      , row, UTF8_TODO::GetCString(dict_relation_part.GetSecondaryName()));
+                QuickSetText(REL_SEC      , row, dict_relation_part.GetSecondaryName());
             }
             else {
-                QuickSetText(REL_SEC      , row, UTF8_TODO::GetCString(pRec->GetName() + "." + dict_relation_part.GetSecondaryName()));
+                QuickSetText(REL_SEC      , row, pRec->GetName() + "." + dict_relation_part.GetSecondaryName());
             }
             if (dict_relation_part.IsSecondaryLinkedByOccurrence()) {
                 QuickSetText(REL_SEC_LINK, row, REL_OCC);
             }
             else {
-                QuickSetText(REL_SEC_LINK , row, UTF8_TODO::GetCString(dict_relation_part.GetSecondaryLink()));
+                QuickSetText(REL_SEC_LINK , row, dict_relation_part.GetSecondaryLink());
             }
             row++;
         }

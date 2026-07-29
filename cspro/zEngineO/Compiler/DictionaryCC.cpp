@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "IncludesCC.h"
 #include "EngineDictionary.h"
 #include "LoopStack.h"
@@ -778,7 +778,7 @@ int LogicCompiler::CompileForDictionaryLoop(const TokenCode token_code)
 
     NextToken();
 
-    for_dictionary_node.block_expression = instruc_COMPILER_DLL_TODO();
+    for_dictionary_node.block_expression = CompileStatements();
 
     if( Tkn != TOKENDDO && Tkn != TOKENDFOR )
         IssueError(MGF::expecting_enddo_keyword_10);

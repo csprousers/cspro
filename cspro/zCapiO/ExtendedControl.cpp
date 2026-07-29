@@ -566,12 +566,12 @@ CFont* CExtendedControl::GetControlFont(const bool font_for_number_pad/* = false
     // 20100621 to allow for the dynamic setting of fonts for controls
     const UserDefinedFonts::FontType font_type = font_for_number_pad ? UserDefinedFonts::FontType::NumberPad :
                                                                        UserDefinedFonts::FontType::ValueSets;
-    UserDefinedFonts* user_defined_fonts = nullptr;
 
-    if( WindowsDesktopMessage::Send(WM_IMSA_GET_USER_FONTS, &user_defined_fonts) &&
-        user_defined_fonts != nullptr &&
-        user_defined_fonts->IsFontDefined(font_type) )
+    const UserDefinedFonts* const user_defined_fonts = UserDefinedFonts::GetUserDefinedFont(font_type);
+
+    if( user_defined_fonts != nullptr )
     {
+        ASSERT(user_defined_fonts->IsFontDefined(font_type));
         return user_defined_fonts->GetFont(font_type);
     }
 
@@ -608,7 +608,7 @@ void CExtendedControl::OnClickedButtonSearch()
     if (search_edit_text->IsWindowVisible()) {
         CString search_string;
         search_edit_text->GetWindowText(search_string);
-        m_pCapiControl->Filter(search_string);
+        m_pCapiControl->Filter(TC::ToUtf8(search_string));
     }
     else {
         search_edit_text->ShowWindow(SW_NORMAL);

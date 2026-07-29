@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "Sorter.h"
 #include "SortableKeyDatabase.h"
 #include "SortSpec.h"
@@ -455,7 +455,9 @@ Sorter::RunSuccess Sorter::RunRecordSort()
                         {
                             ASSERT(sort_case_item.sort_item.dict_item->GetContentType() == ContentType::Alpha);
 
-                            m_sortableKeyDatabase->AddCaseKeyValue(UTF8_TODO::GetUtf8(case_record_for_record_sort.GetCaseRecordMetadata().GetDictRecord().GetRecTypeVal()));
+                            m_sortableKeyDatabase->AddCaseKeyValue(
+                                case_record_for_record_sort.GetCaseRecordMetadata().GetDictRecord().GetRecTypeVal()
+                            );
                         }
 
                         else

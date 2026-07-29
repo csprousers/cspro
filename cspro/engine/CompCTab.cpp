@@ -1,4 +1,4 @@
-﻿//---------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 //  File name: Compctab.cpp
 //
 //  Description:
@@ -232,7 +232,7 @@ int DoIssaRanges(const CDictItem* pItem, std::vector<Range<double>>& aRanges, co
                 continue;
 
             dLow = atod(dict_value_pair.GetFrom());
-            if( dict_value_pair.GetTo().GetLength() == 0 )
+            if( dict_value_pair.GetTo().empty() )
                 dHigh = dLow;
             else {
                 if( !CIMSAString::IsNumeric(dict_value_pair.GetTo()) ) // Skip alpha values
@@ -1244,7 +1244,7 @@ int CEngineCompFunc::comp_ctab( CTableDef::ETableType eTableType ) {
                 CHECK_REPETITION(bHasTablogic);
                 NextToken();
 
-                i = instruc();
+                i = CompileStatements();
 
                 if( GetSyntErr() == 0 && Tkn != TOKENDLOGIC ) {
                     SetSyntErr(8602);
@@ -3393,7 +3393,7 @@ void CEngineCompFunc::CompileUnit( int* pNodeBase[TBD_MAXDIM] ) {
                 CHECK_REPETITION(bHasTabLogic);
                 NextToken();
 
-                iTabLogicExpr = instruc();
+                iTabLogicExpr = CompileStatements();
 
                 if( iTabLogicExpr < 0 ) iTabLogicExpr = 0; // Empty
 

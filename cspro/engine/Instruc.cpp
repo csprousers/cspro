@@ -1,4 +1,4 @@
-﻿//---------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 //  File name: Instruc.cpp
 //
 //  Description:
@@ -39,116 +39,13 @@
 #include <zDictO/DDClass.h>
 #include <zFormO/FormFile.h>
 #include <zLogicO/LocalSymbolStack.h>
-#include <zLogicO/Preprocessor.h>
+#include <zEngineO/Compiler/EnginePreprocessor.h>
 
 
 const int TSMAXIDLEN = 16;              // max. len for a break-id var
 
 
-bool ValidInstructionStartToken(const TokenCode token_code)
-{
-    static const std::set ValidInstructionStartTokens =
-    {
-        TOKHASH,
-        TOKIF,
-        TOKWHILE,
-        TOKRECODE,
-        TOKVAR,
-        TOKWORKSTRING,
-        TOKFUNCTION,
-        TOKCROSSTAB,
-        TOKKWFREQ,
-        TOKEXPORT,
-        TOKKWCTAB,
-        TOKFOR,
-        TOKFORCASE,
-        TOKSTOP,
-        TOKENDCASE,
-        TOKUNIVERSE,
-        TOKASK,
-        TOKSKIP,
-        TOKMOVE,
-        TOKEXIT,
-        TOKREENTER,
-        TOKENTER,
-        TOKADVANCE,
-        TOKENDSECT,
-        TOKENDLEVL,
-        TOKNOINPUT,
-        TOKBREAK,
-        TOKNEXT,
-        TOKDO,
-        TOKSET,
-        TOKUSERFUNCTION,
-        TOKNUMERIC,
-        TOKALPHA,
-        TOKSTRING,
-        TOKCONFIG,
-        TOKPERSISTENT,
-        TOKKWFILE,
-        TOKKWARRAY,
-        TOKKWLIST,
-        TOKKWMAP,
-        TOKKWVALUESET,
-        TOKARRAY,
-        TOKLIST,
-        TOKVALUESET,
-        TOKKWPFF,
-        TOKPFF,
-        TOKWHEN,
-        TOKKWSYSTEMAPP,
-        TOKKWAUDIO,
-        TOKAUDIO,
-        TOKKWHASHMAP,
-        TOKHASHMAP,
-        TOKFREQ,
-        TOKKWCASE,
-        TOKDICT,
-        TOKKWDATASOURCE,
-        TOKKWIMAGE,
-        TOKIMAGE,
-        TOKKWDOCUMENT,
-        TOKDOCUMENT,
-        TOKKWGEOMETRY,
-        TOKGEOMETRY,
-        TOKDECLARE,
-        TOKKWSTRINGWRITER,
-        TOKKWVIDEO,
-        TOKVIDEO,
-    };
-
-    return ( ValidInstructionStartTokens.find(token_code) != ValidInstructionStartTokens.cend() );
-}
-
-
-bool ValidEndStatement( int iLastTkn ) {
-    // ValidEndStatement: checks if last ending token is a valid end-of-statement
-    //   - normally was a ";" only, but more tokens are now accepted
-    // ... change: Feb 22, 00 Only ";" is a valid end-of-statement
-    bool    bIsValid = false;
-
-    switch( iLastTkn ) {
-        case TOKENDIF    :
-        case TOKENDDO    :
-        case TOKENDRECODE:
-        case TOKEND      :
-        case TOKENDSECT  :
-        case TOKENDLEVL  :
-        case TOKELSE     :
-        case TOKELSEIF   :
-        case TOKSEMICOLON:
-        // uncomment the line below and the user will be allowed to
-        // avoid the semicolon in the very last statement of a procedure
-        case TOKEOP      :
-            bIsValid = true;
-            break;
-    }
-
-    return bIsValid;
-}
-
-
-int CEngineCompFunc::instruc(bool create_new_local_symbol_stack/* = true*/, bool allow_multiple_statements/* = true*/)
+int CEngineCompFunc::instruc(const bool allow_multiple_statements/* = true*/)
 {
     int iptblock = Prognext;
     bool bIsSkipStatement = false;
@@ -156,13 +53,6 @@ int CEngineCompFunc::instruc(bool create_new_local_symbol_stack/* = true*/, bool
     int v_ind = -1;
     int sind;
     int aux;
-
-    // when compiling a user-defined function or a PROC, create_new_local_symbol_stack will be
-    // false because there is already a local symbol stack created at that level
-    std::optional<Logic::LocalSymbolStack> local_symbol_stack;
-
-    if( create_new_local_symbol_stack )
-        local_symbol_stack.emplace(m_symbolTable.CreateLocalSymbolStack());
 
     Nodes::Statement* previous_instruc_st = nullptr;
     Nodes::Statement* prev_st = NULL;
@@ -182,7 +72,7 @@ int CEngineCompFunc::instruc(bool create_new_local_symbol_stack/* = true*/, bool
             while( Tkn == TOKSEMICOLON )
                 NextToken();
 
-            if( !ValidInstructionStartToken(Tkn) )
+            if( !IsValidStatementStartToken(Tkn) )
                 break;
 
             if( ObjInComp == SymbolType::Application && Tkn == TOKNOINPUT )
@@ -397,18 +287,29 @@ int CEngineCompFunc::instruc(bool create_new_local_symbol_stack/* = true*/, bool
 
                 case TOKVAR:
                 {
-                    if( NPT_Ref(Tokstindex).IsA(SymbolType::WorkVariable) || VPT(Tokstindex)->IsNumeric() ) {
+                    const Symbol& symbol = NPT_Ref(Tokstindex);
+
+                    if( symbol.IsA(SymbolType::WorkVariable) )
+                    {
+                        compilation_address = CompileNumericComputeInstruction();
+                    }
+
+                    else if( assert_cast<const VART&>(symbol).IsNumeric() )
+                    {
                         CompileComputeInstruction();
                         if( GetSyntErr() != 0 )
                             IssueError(GetSyntErr());
                         if( Tkn == TOKVAR || Tkn == TOKCTE || Tkn == TOKLPAREN )
                             IssueError( 2 );
                     }
-                    else {
+
+                    else
+                    {
                         CompileStringComputeInstruction();
                         if( GetSyntErr() != 0 ) // victor Sep 20, 00
                             return 0;
                     }
+
                     break;
                 }
 
@@ -418,57 +319,28 @@ int CEngineCompFunc::instruc(bool create_new_local_symbol_stack/* = true*/, bool
                     break;
                 }
 
-                case TOKFUNCTION:
                 case TOKUSERFUNCTION:
                 {
-                    // TODO: this all needs to be improved at some point;
-                    // for now, setting is_lone_function_call to true will allow the calling of functions that return strings
-                    auto& [call_tester, is_lone_function_call] = m_loneAlphaFunctionCallTester;
-                    ASSERT(!is_lone_function_call);
-                    const RAII::SetValueAndRestoreOnDestruction<bool> is_lone_function_caller_setter(is_lone_function_call, true);
-
-                    if( Tkn == TOKFUNCTION || Tokstindex != InCompIdx )
+                    // the user-defined function may be receiving its return value (e.g.: MyFunc = 5;)
+                    if( Tokstindex == InCompIdx && !IsNextToken(TOKLPAREN) )
                     {
-                        compilation_address = CompileFunctionCall();
+                        compilation_address = CompileUserFunctionComputeInstruction();
+                        break;
                     }
 
-                    else
-                    {
-                        // the user function could be called recursively or could be receiving its return value
-                        UserFunction& user_function = GetSymbolUserFunction(Tokstindex);
+                    // otherwise the user-defined function is being called, and the fallthrough code for functions applies
+                    [[fallthrough]];
+                }
 
-                        if( IsNextToken(TOKLPAREN) )
-                        {
-                            compilation_address = CompileFunctionCall();
-                        }
-
-                        else if( user_function.GetReturnType() == SymbolType::WorkVariable )
-                        {
-                            CompileComputeInstruction();
-                        }
-
-                        else
-                        {
-                            CompileStringComputeInstruction();
-                        }
-                    }
+                case TOKFUNCTION:
+                {
+                    compilation_address = CompileFunctionCall();
                     break;
                 }
 
                 case TOKARRAY:
                 {
-                    if( GetSymbolLogicArray(Tokstindex).IsString() )
-                    {
-                        CompileStringComputeInstruction();
-                    }
-
-                    else
-                    {
-                        CompileComputeInstruction();
-                    }
-
-                    if( GetSyntErr() != 0 )
-                        return 0;
+                    compilation_address = CompileLogicArrayComputeInstruction();
                     break;
                 }
 
@@ -826,9 +698,9 @@ int CEngineCompFunc::instruc(bool create_new_local_symbol_stack/* = true*/, bool
             //                Every statement must end with a ;
             //  Current rule (Apr 03, 2000):
             //                ";" may be omitted before an end (endif,endwhile,etc.)
-            //                and some other keywords (see ValidEndStatement() method above)
+            //                and some other keywords (see IsValidStatementEndToken method)
             //
-            if( GetSyntErr() == 0 && !ValidEndStatement(Tkn) )
+            if( GetSyntErr() == 0 && !IsValidStatementEndToken(Tkn) )
                 IssueError(2);
 
 #ifdef GENCODE
@@ -892,10 +764,6 @@ int CEngineCompFunc::instruc(bool create_new_local_symbol_stack/* = true*/, bool
     }
 #endif
 
-
-    if( local_symbol_stack.has_value() )
-        iptblock = WrapNodeAroundScopeChange(*local_symbol_stack, iptblock);
-
     return iptblock;
 }
 
@@ -935,13 +803,11 @@ int CEngineCompFunc::CompileComputeInstruction()
         compute_node.cpt_var = tvarsanal();
     }
 
-    else if( Tkn == TOKARRAY )
-    {
-        compute_node.cpt_var = CompileLogicArrayReference();
-    }
-
     else
     {
+        ASSERT(NPT_Ref(Tokstindex).IsA(SymbolType::Variable));
+        ASSERT82(true); // if successful, remove the condition below
+
         if( NPT_Ref(Tokstindex).IsA(SymbolType::Variable) )
         {
             const VART* pVarT = VPT(Tokstindex);
@@ -1136,7 +1002,7 @@ void CEngineCompFunc::CompileForRelation(int iVarIdx, int iRelIdx, pCompileForIn
         if( Tkn == TOKDO )
             NextToken();
 
-        iBlock  = instruc();
+        iBlock  = CompileStatements();
     }
 
 #ifdef GENCODE
@@ -1238,7 +1104,7 @@ void CEngineCompFunc::CompileForGroup(int iVarIdx, int iGrpIdx, pCompileForInFun
         if( Tkn == TOKDO )
             NextToken();
 
-        iBlock = instruc();
+        iBlock = CompileStatements();
 
         // Compiler checks for subscript
         m_bcvarsubcheck = prevVarSubcheckVal;//false;
@@ -1335,7 +1201,7 @@ int CEngineCompFunc::CompileSkipStatement( int* code )
             NextToken();
         }
 
-        else if( ValidEndStatement(Tkn) ) // 20120307 not specifying a variable will skip to the first field in the group
+        else if( IsValidStatementEndToken(Tkn) ) // 20120307 not specifying a variable will skip to the first field in the group
         {
             GROUPT* pGroupT = ( ObjInComp == SymbolType::Block )    ? GetSymbolEngineBlock(InCompIdx).GetGroupT() :
                               ( ObjInComp == SymbolType::Variable ) ? VPT(InCompIdx)->GetParentGPT() :

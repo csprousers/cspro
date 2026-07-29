@@ -1510,8 +1510,8 @@ void CDDGView::OnPrint(CDC* pDC, CPrintInfo* pInfo)
 
     // Print notes for dictionary
     if (!m_bPrintBrief) {
-        if (!pDict->GetNote().IsEmpty()) {
-            CIMSAString csNote = pDict->GetNote();
+        if (!pDict->GetNote().empty()) {
+            CIMSAString csNote = UTF8_TODO::GetCString(pDict->GetNote());
             CStringArray acsText;
             FormatNote(pDC, csNote, acsText, m_iPageWidth - 3*m_iIndent);
             pDC->SelectObject(&fontI);
@@ -1573,8 +1573,8 @@ void CDDGView::OnPrint(CDC* pDC, CPrintInfo* pInfo)
                 }
                 m_iYPos -= m_iHeight;
                 if (!m_bPrintBrief) {
-                    if (!dict_level.GetNote().IsEmpty()) {
-                        CIMSAString csNote = dict_level.GetNote();
+                    if (!dict_level.GetNote().empty()) {
+                        CIMSAString csNote = UTF8_TODO::GetCString(dict_level.GetNote());
                         CStringArray acsText;
                         FormatNote(pDC, csNote, acsText, m_iPageWidth - 3*m_iIndent);
                         pDC->SelectObject(&fontI);
@@ -1600,8 +1600,9 @@ void CDDGView::OnPrint(CDC* pDC, CPrintInfo* pInfo)
             if (pInfo->m_nCurPage == m_uPage) {
                 pDC->TextOut(m_iLabel + m_iIndent, m_iYPos, pRec->GetLabel());
                 pDC->TextOut(m_iName + m_iIndent, m_iYPos, PrepareNameForPrinting(pRec->GetName()));
-                size = pDC->GetTextExtent(pRec->GetRecTypeVal());
-                pDC->TextOut(m_iType - size.cx, m_iYPos, pRec->GetRecTypeVal());
+                const std::wstring wide_rec_type_val = TC::ToWide(pRec->GetRecTypeVal());
+                size = pDC->GetTextExtent(wide_rec_type_val.c_str());
+                pDC->TextOut(m_iType - size.cx, m_iYPos, wide_rec_type_val.c_str());
                 if (pRec->GetRequired()) {
                     size = pDC->GetTextExtent(_T("Yes"));
                     pDC->TextOut(m_iReq - size.cx, m_iYPos, _T("Yes"));
@@ -1623,8 +1624,8 @@ void CDDGView::OnPrint(CDC* pDC, CPrintInfo* pInfo)
                 m_iYPos = 0;
             }
             if (!m_bPrintBrief) {
-                if (!pRec->GetNote().IsEmpty()) {
-                    CIMSAString csNote = pRec->GetNote();
+                if (!pRec->GetNote().empty()) {
+                    CIMSAString csNote = UTF8_TODO::GetCString(pRec->GetNote());
                     CStringArray acsText;
                     FormatNote(pDC, csNote, acsText, m_iPageWidth - 4*m_iIndent);
                     pDC->SelectObject(&fontI);
@@ -1824,8 +1825,8 @@ void CDDGView::OnPrint(CDC* pDC, CPrintInfo* pInfo)
 
                 // Print item notes
                 if (!m_bPrintBrief) {
-                    if (!pItem->GetNote().IsEmpty()) {
-                        CIMSAString csNote = pItem->GetNote();
+                    if (!pItem->GetNote().empty()) {
+                        CIMSAString csNote = UTF8_TODO::GetCString(pItem->GetNote());
                         CStringArray acsText;
                         FormatNote(pDC, csNote, acsText, m_iPageWidth - 4*m_iIndent);
                         pDC->SelectObject(&fontI);
@@ -1850,7 +1851,7 @@ void CDDGView::OnPrint(CDC* pDC, CPrintInfo* pInfo)
 
                 // Print Value Sets
                 if (!m_bPrintBrief) {
-                    for( const auto& dict_value_set : pItem->GetValueSets() ) {
+                    for( const DictValueSet& dict_value_set : pItem->GetValueSets() ) {
                         if (m_iYPos - 2*m_iHeight < iPageHeight) {
                             m_uPage++;
                             m_iYPos = 0;
@@ -1868,8 +1869,8 @@ void CDDGView::OnPrint(CDC* pDC, CPrintInfo* pInfo)
 
                         // Print value set notes
                         if (!m_bPrintBrief) {
-                            if (!dict_value_set.GetNote().IsEmpty()) {
-                                CIMSAString csNote = dict_value_set.GetNote();
+                            if (!dict_value_set.GetNote().empty()) {
+                                CIMSAString csNote = UTF8_TODO::GetCString(dict_value_set.GetNote());
                                 CStringArray acsText;
                                 FormatNote(pDC, csNote, acsText, m_iPageWidth - 4*m_iIndent);
                                 pDC->SelectObject(&fontI);
@@ -1895,14 +1896,14 @@ void CDDGView::OnPrint(CDC* pDC, CPrintInfo* pInfo)
                         // Print Values
                         int iValSize = 0;
 
-                        for( const auto& dict_value : dict_value_set.GetValues() ) {
-                            CString csTemp = dict_value.GetRangeString();
+                        for( const DictValue& dict_value : dict_value_set.GetValues() ) {
+                            CString csTemp = UTF8_TODO::GetCString(dict_value.GetRangeString());
                             CSize this_size = pDC->GetTextExtent(csTemp);
                             if (this_size.cx > iValSize) {
                                 iValSize = this_size.cx;
                             }
                         }
-                        for( const auto& dict_value : dict_value_set.GetValues() ) {
+                        for( const DictValue& dict_value : dict_value_set.GetValues() ) {
                             if (m_iYPos < iPageHeight) {
                                 m_uPage++;
                                 m_iYPos = 0;
@@ -1911,7 +1912,7 @@ void CDDGView::OnPrint(CDC* pDC, CPrintInfo* pInfo)
                                 PrintRecHead(pDC, pInfo, dict_level, pRec, i);
                             }
                             if (pInfo->m_nCurPage == m_uPage) {
-                                CString csTemp = dict_value.GetRangeString();
+                                CString csTemp = UTF8_TODO::GetCString(dict_value.GetRangeString());
                                 if (dict_value.IsSpecial()) {
                                     CString special_code = ( dict_value.GetSpecialValue() == MISSING ) ? _T("(m)") :
                                                            ( dict_value.GetSpecialValue() == REFUSED ) ? _T("(r)") :
@@ -1925,8 +1926,8 @@ void CDDGView::OnPrint(CDC* pDC, CPrintInfo* pInfo)
                             m_iYPos -= m_iHeight;
                             // Print value notes
                             if (!m_bPrintBrief) {
-                                if (!dict_value.GetNote().IsEmpty()) {
-                                    CIMSAString csNote = dict_value.GetNote();
+                                if (!dict_value.GetNote().empty()) {
+                                    CIMSAString csNote = UTF8_TODO::GetCString(dict_value.GetNote());
                                     CStringArray acsText;
                                     FormatNote(pDC, csNote, acsText, m_iPageWidth - 4*m_iIndent);
                                     pDC->SelectObject(&fontI);
@@ -2274,8 +2275,8 @@ void CDDGView::PrintToFile()
     ListFile.WriteString(CString(SPACE, (iLineLen - csText.GetLength())/2) + csText + _T("\n\n"));
     // Write Dictionary Note
     if (!m_bPrintBrief) {
-        if (!pDict->GetNote().IsEmpty()) {
-            CIMSAString csNote = pDict->GetNote();
+        if (!pDict->GetNote().empty()) {
+            CIMSAString csNote = UTF8_TODO::GetCString(pDict->GetNote());
             CStringArray acsText;
             WrapText(csNote, acsText, 10, iLineLen - 4);
             for (int x = 0 ; x < acsText.GetSize() ; x++) {
@@ -2337,8 +2338,8 @@ void CDDGView::PrintToFile()
         ListFile.WriteString(csLine + _T("\n"));
         // Write Level Note
         if (!m_bPrintBrief) {
-            if (!dict_level.GetNote().IsEmpty()) {
-                CIMSAString csNote = dict_level.GetNote();
+            if (!dict_level.GetNote().empty()) {
+                CIMSAString csNote = UTF8_TODO::GetCString(dict_level.GetNote());
                 CStringArray acsText;
                 WrapText(csNote, acsText, 10, iLineLen - 4);
                 for (int x = 0 ; x < acsText.GetSize() ; x++) {
@@ -2378,7 +2379,7 @@ void CDDGView::PrintToFile()
             else {
                 csLine += CString(SPACE,iLineLen - 20 - csLine.GetLength());
             }
-            csText = pRec->GetRecTypeVal();
+            csText = UTF8_TODO::GetCString(pRec->GetRecTypeVal());
             csLine += CString(SPACE,5 - csText.GetLength()) + csText;
             if (pRec->GetRequired()) {
                 csLine += _T("  Yes");
@@ -2394,8 +2395,8 @@ void CDDGView::PrintToFile()
 
             // Write Record Note
             if (!m_bPrintBrief) {
-                if (!pRec->GetNote().IsEmpty()) {
-                    CIMSAString csNote = pRec->GetNote();
+                if (!pRec->GetNote().empty()) {
+                    CIMSAString csNote = UTF8_TODO::GetCString(pRec->GetNote());
                     CStringArray acsText;
                     WrapText(csNote, acsText, 12, iLineLen - 4);
                     for (int x = 0 ; x < acsText.GetSize() ; x++) {
@@ -2559,8 +2560,8 @@ void CDDGView::PrintToFile()
 
                 // Write Item Note
                 if (!m_bPrintBrief) {
-                    if (!pItem->GetNote().IsEmpty()) {
-                        CIMSAString csNote = pItem->GetNote();
+                    if (!pItem->GetNote().empty()) {
+                        CIMSAString csNote = UTF8_TODO::GetCString(pItem->GetNote());
                         CStringArray acsText;
                         WrapText(csNote, acsText, 10, iLineLen - 4);
                         for (int x = 0 ; x < acsText.GetSize() ; x++) {
@@ -2575,7 +2576,7 @@ void CDDGView::PrintToFile()
 
                 // Print value sets
                 if (!m_bPrintBrief) {
-                    for( const auto& dict_value_set : pItem->GetValueSets() ) {
+                    for( const DictValueSet& dict_value_set : pItem->GetValueSets() ) {
                         if (pItem->GetNumValueSets() > 1 || dict_value_set.GetLabel() != pItem->GetLabel()) {
                             if (m_bPrintNameFirst) {
                                 csText = _T("(")+ PrepareNameForPrinting(dict_value_set.GetName()) + _T(")");
@@ -2604,8 +2605,8 @@ void CDDGView::PrintToFile()
                         }
 
                         // Print Value Set Note
-                        if (!dict_value_set.GetNote().IsEmpty()) {
-                            CIMSAString csNote = dict_value_set.GetNote();
+                        if (!dict_value_set.GetNote().empty()) {
+                            CIMSAString csNote = UTF8_TODO::GetCString(dict_value_set.GetNote());
                             CStringArray acsText;
                             WrapText(csNote, acsText, 12, iLineLen - 4);
                             for (int x = 0 ; x < acsText.GetSize() ; x++) {
@@ -2620,14 +2621,14 @@ void CDDGView::PrintToFile()
                         // Print Values
                         int iValSize = 0;
 
-                        for( const auto& dict_value : dict_value_set.GetValues() ) {
-                            CString csTemp = dict_value.GetRangeString();
+                        for( const DictValue& dict_value : dict_value_set.GetValues() ) {
+                            CString csTemp = UTF8_TODO::GetCString(dict_value.GetRangeString());
                             if (csTemp.GetLength() > iValSize) {
                                 iValSize = csTemp.GetLength();
                             }
                         }
-                        for( const auto& dict_value : dict_value_set.GetValues() ) {
-                            CString csTemp = dict_value.GetRangeString();
+                        for( const DictValue& dict_value : dict_value_set.GetValues() ) {
+                            CString csTemp = UTF8_TODO::GetCString(dict_value.GetRangeString());
                             csTemp += CString(SPACE, iValSize + 2 - csTemp.GetLength());
                             if (dict_value.IsSpecial()) {
                                 CString special_code = ( dict_value.GetSpecialValue() == MISSING ) ? _T("    (m) ") :
@@ -2652,8 +2653,8 @@ void CDDGView::PrintToFile()
                             ListFile.WriteString(csLine + _T("\n"));
 
                             // Print Value Note
-                            if (!dict_value.GetNote().IsEmpty()) {
-                                CIMSAString csNote = dict_value.GetNote();
+                            if (!dict_value.GetNote().empty()) {
+                                CIMSAString csNote = UTF8_TODO::GetCString(dict_value.GetNote());
                                 CStringArray acsText;
                                 WrapText(csNote, acsText, 14, iLineLen - 4);
                                 for (int x = 0 ; x < acsText.GetSize() ; x++) {

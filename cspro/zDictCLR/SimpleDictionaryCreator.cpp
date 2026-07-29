@@ -1,4 +1,4 @@
-﻿#include "Stdafx.h"
+#include "Stdafx.h"
 #include "SimpleDictionaryCreator.h"
 
 
@@ -72,14 +72,14 @@ void CSPro::Dictionary::SimpleDictionaryCreator::AddItem(bool is_id, System::Str
         dict_value_set.SetName(dict_item.GetName() + "_VS1");
         dict_value_set.SetLabel(dict_item.GetLabel());
 
-        for each( double value in values )
+        for each( const double value in values )
         {
-            TCHAR pszTemp[30];
-            CString formatted_double = dtoa(value, pszTemp, dict_item.GetDecimal(), _T('.'), false);
+            wchar_t wide_buffer[30];
+            std::string formatted_double = UTF8_TODO::GetUtf8(dtoa(value, wide_buffer, dict_item.GetDecimal(), _T('.'), false));
 
             DictValue dict_value;
-            dict_value.SetLabel(_T("Value ") + formatted_double);
-            dict_value.AddValuePair(DictValuePair(formatted_double));
+            dict_value.SetLabel(UTF8_TODO::GetCString("Value " + formatted_double));
+            dict_value.AddValuePair(DictValuePair(std::move(formatted_double)));
 
             dict_value_set.AddValue(std::move(dict_value));
         }

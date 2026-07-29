@@ -207,7 +207,7 @@ double LogicInterpreter::ex_Image_load(const int program_index)
         const ValueProcessor& value_processor = value_set.GetValueProcessor();
         const DictValue* const dict_value = value_set.IsNumeric() ?
             value_processor.GetDictValue(Evaluate(symbol_va_with_subscript_node.arguments[1])) :
-            value_processor.GetDictValue(UTF8_TODO::GetCString(EvaluateSharableString(symbol_va_with_subscript_node.arguments[1]).GetString()));
+            value_processor.GetDictValue(EvaluateSharableString(symbol_va_with_subscript_node.arguments[1]).GetString());
 
         if( dict_value != nullptr )
             file_path = dict_value->GetImageFilePath();

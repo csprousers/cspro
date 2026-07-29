@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zLogicO/SymbolType.h>
 #include <zLogicO/TokenCode.h>
@@ -7,8 +7,8 @@
 constexpr bool IsArithmeticOperator(TokenCode token_code);
 constexpr bool IsRelationalOperator(TokenCode token_code);
 
-// determines if a token is a real VART object and not a WorkVariable (since they both use TOKVAR as their token code);
-// returns true if Tkn == TOKVAR and Symbol::IsA(SymbolType::Variable)
+// Determines if a token is a real VART object and not a WorkVariable (since they both use TOKVAR as their token code).
+// Returns true if Tkn == TOKVAR and Symbol::IsA(SymbolType::Variable).
 template<typename T>
 bool IsCurrentTokenVART(const T& compiler);
 
@@ -58,6 +58,17 @@ constexpr bool IsRelationalOperator(TokenCode token_code)
 template<typename T>
 bool IsCurrentTokenVART(const T& compiler)
 {
-    return ( compiler.GetCurrentToken().code == TOKVAR &&
-             compiler.GetSymbolTable().GetAt(const_cast<T&>(compiler).get_COMPILER_DLL_TODO_Tokstindex()).IsA(SymbolType::Variable) );
+    if( compiler.GetCurrentToken().code == TOKVAR )
+    {
+        const Symbol& symbol = compiler.GetSymbolTable().GetAt(const_cast<T&>(compiler).get_COMPILER_DLL_TODO_Tokstindex());
+
+        if( symbol.IsA(SymbolType::Variable) )
+        {
+            // if the assert is always true, get rid of places that check if VART::GetDictItem is null
+            ASSERT82(assert_cast<const VART&>(symbol).GetDictItem() != nullptr);
+            return true;
+        }
+    }
+
+    return false;
 }

@@ -1,7 +1,7 @@
-﻿#include "StandardSystemIncludes.h"
+#include "StandardSystemIncludes.h"
 #include "Exappl.h"
 #include "Engine.h"
-#include <zDictO/ValueProcessor.h>
+#include <zDictO/NumericValueProcessor.h>
 
 
 // convert a engine value to its display value
@@ -11,7 +11,7 @@ double VARX::varoutval(double value) const
         return value;
 
     const VART* pVarT = GetVarT();
-    const auto& numeric_value_processor = pVarT->GetCurrentNumericValueProcessor();
+    const NumericValueProcessor& numeric_value_processor = pVarT->GetCurrentNumericValueProcessor();
     value = numeric_value_processor.ConvertNumberFromEngineFormat(value);
 
     if( value == NOTAPPL )
@@ -37,7 +37,7 @@ double VARX::varoutval(const CNDIndexes* pTheIndex) const
 double VARX::varinval(double value, const CNDIndexes* pTheIndex)
 {
     const VART* pVarT = GetVarT();
-    const auto& numeric_value_processor = pVarT->GetCurrentNumericValueProcessor();
+    const NumericValueProcessor& numeric_value_processor = pVarT->GetCurrentNumericValueProcessor();
 
     if( value == MASKBLK )
         value = NOTAPPL;

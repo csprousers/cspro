@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "IncludesRT.h"
 #include "WorkVariable.h"
 #include <engine/Nodes.h>
@@ -24,8 +24,23 @@ double LogicInterpreter::ex_numeric_constant(const int program_index)
 
 double LogicInterpreter::ex_WorkVariable_evaluate(const int program_index)
 {
-    const auto& svar_node = GetNode<SVAR_NODE>(program_index);
-    return GetSymbolWorkVariable(svar_node.m_iVarIndex).GetValue();
+    const auto& element_reference_single_node = GetNode<Nodes::ElementReferenceSingle>(program_index);
+    const WorkVariable& work_variable = GetSymbolWorkVariable(element_reference_single_node.symbol_index);
+
+    return work_variable.GetValue();
+}
+
+
+double LogicInterpreter::ex_WorkVariable_compute(const int program_index)
+{
+    const auto& symbol_compute_expression_node = GetNode<Nodes::SymbolComputeExpression>(program_index);
+    WorkVariable& work_variable = GetSymbolWorkVariable(symbol_compute_expression_node.lhs_symbol_index);
+
+    const double rhs_value = Evaluate(symbol_compute_expression_node.rhs_expression);
+
+    work_variable.SetValue(rhs_value);
+
+    return rhs_value;
 }
 
 
@@ -389,8 +404,7 @@ double LogicInterpreter::ex_inc(const int program_index)
     double increment_value = EvaluateOptional(va_node.arguments[1], 1);
     double return_value = DEFAULT;
 
-    // INTERPRETER_DLL_TODO change to: ModifySymbolValue<double>(symbol_value_node,
-    ModifySymbolValue_double_INTERPRETER_DLL_TODO(symbol_value_node,
+    ModifySymbolValue<double>(symbol_value_node,
         [&](double& value)
         {
             if( !PreprocessSpecialValues(value, increment_value, value) )

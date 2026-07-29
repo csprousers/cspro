@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "ValueSetFixer.h"
 
 
@@ -42,10 +42,10 @@ void ValueSetFixer::Fix(DictValue& dict_value)
         // notappl values must be blank
         if( dict_value.IsSpecialValue(NOTAPPL) )
         {
-            if( dict_value_pair.GetFrom().GetLength() != (int)m_dictItem.GetLen() )
-                dict_value_pair.SetFrom(CString(' ', (int)m_dictItem.GetLen()));
+            if( SO::WideLength(dict_value_pair.GetFrom()) != m_dictItem.GetLen() )
+                dict_value_pair.SetFrom(std::string(m_dictItem.GetLen(), ' '));
 
-            ASSERT(dict_value_pair.GetTo().IsEmpty());
+            ASSERT(dict_value_pair.GetTo().empty());
         }
 
         else
@@ -89,9 +89,9 @@ void ValueSetFixer::Fix(DictValuePair& dict_value_pair)
     if( m_dictItem.GetDecimal() > 0 && m_dictItem.GetDecChar() )
         --length_without_decimal_char;
 
-    auto fix = [&](const CString& text) -> const TCHAR*
+    auto fix = [&](const std::string& text)
     {
-        double value = atod(text);
+        const double value = atod(text);
 
         if( value == IMSA_BAD_DOUBLE )
             return text;
@@ -105,7 +105,7 @@ void ValueSetFixer::Fix(DictValuePair& dict_value_pair)
             evaluated_zero_before_decimal = false;
         }
 
-        return dtoa(value, m_dtoaSpace.get(), m_dictItem.GetDecimal(), m_decimalChar, evaluated_zero_before_decimal);
+        return UTF8_TODO::GetUtf8(dtoa(value, m_dtoaSpace.get(), m_dictItem.GetDecimal(), m_decimalChar, evaluated_zero_before_decimal));
     };
 
     if( !SO::IsWhitespace(dict_value_pair.GetFrom()) )

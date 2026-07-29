@@ -26,7 +26,6 @@
 
 #include <zEngineO/Interpreter/LogicInterpreter.h>
 #include <engine/Nodes.h>
-#include <engine/ParameterManager.h>
 #include <engine/DeFld.h>
 #include <zTbdO/cttree.h>
 
@@ -45,7 +44,6 @@ class CSettings;
 class CSubTable;
 class DictValue;
 enum class FieldStatus : int;
-class FrequencyDriver;
 class ImputationDriver;
 struct InterpreterExecuteResult;
 class ItemIndex;
@@ -59,7 +57,8 @@ struct SyncObjects;
 class TraceHandler;
 class VTSTRUCT;
 namespace Nodes { struct SetAccessFirstLast; }
-namespace Paradata { class Event; class ExternalApplicationEvent; class FieldInfo; }
+namespace Paradata { class ExternalApplicationEvent; }
+namespace ParameterManager { enum class Parameter; }
 namespace Pre77Report { class ReportManager; }
 
 
@@ -332,7 +331,6 @@ public:
 
     double  extavar(int iExpr);
     double  excpt(int iExpr);
-    double  exstringcompute(int program_index);
     double  exif(int iExpr);
     double  exbox(int iExpr);
     double  excharobj(int program_index);
@@ -436,9 +434,6 @@ public:
     template<typename T> void ModifyVARTValue(int variable_compilation, const std::function<void(T&)>& modify_value_function,
                                               std::unique_ptr<Paradata::FieldInfo>* paradata_field_info = nullptr);
 
-    template<typename T> bool AssignValueToSymbol(const Nodes::SymbolValue& symbol_value_node, T value);
-    template<typename T> T EvaluateSymbolValue(const Nodes::SymbolValue& symbol_value_node);
-    template<typename T> void ModifySymbolValue(const Nodes::SymbolValue& symbol_value_node, const std::function<void(T&)>& modify_value_function);
 
 private:
     // int calculateLimitsForGroup( int indexArray[], int iSymGroup )
@@ -476,13 +471,6 @@ public:
     double  exwarning(int program_index);
 
     double  exedit(int iExpr);
-
-    double  exinvalueset(int iExpr);
-    double  exsetvalueset(int iExpr); // RHF Aug 28, 2002
-    double  exsetvalueset_pre80(int iExpr);
-    double  exsetvaluesets(int iExpr);    // 20100523
-    double  exrandomizevs(int iExpr);     // 20110811
-
 
     double  ex_paradata(int program_index);
     double  exsqlquery(int program_index);
@@ -530,9 +518,9 @@ public:
 
     double  ex_trace(int program_index);
 
-    double  exgetcapturetype(int iExpr);         // 20100608
-    double  exsetcapturetype(int iExpr);         // 20100608
-    double  ex_setcapturepos(int program_index);
+    double ex_getcapturetype(int program_index);
+    double ex_setcapturetype(int program_index);
+    double ex_setcapturepos(int program_index);
 
     double  ex_changekeyboard(int iExpr);
 
@@ -639,29 +627,6 @@ public:
     double ex_Path_selectFile(int program_index);
 
 
-    // Pff functions
-public:
-    double expffexec(int iExpr);
-    double expffgetproperty(int iExpr);
-    double expffload(int iExpr);
-    double expffsave(int iExpr);
-    double expffsetproperty(int iExpr);
-    double expffcompute(int iExpr);
-
-
-    // ValueSet functions
-public:
-    double exvaluesetadd(int iExpr);
-    double exvaluesetclear(int iExpr);
-    double exvaluesetlength(int iExpr);
-    double exvaluesetremove(int iExpr);
-    double ex_ValueSet_removeDuplicates(int program_index);
-    double exvaluesetshow(int iExpr);
-    double exvaluesetshow_pre77(int iExpr);
-    double exvaluesetsort(int iExpr);
-    double exvaluesetcompute(int iExpr);
-
-
     // dynamic logic evaluation functions
 public:
     InterpreterExecuteResult EvaluateLogic(SharableString logic, CancelFlag& cancel_flag);
@@ -698,9 +663,7 @@ public:
     double  exgetcaselabel(int iExpr);
     double  exsetcaselabel(int iExpr);
 
-    double  exdiagnostics(int iExpr);
     double  exsetattr(int iExpr);
-    double  exvaluelimit(int iExpr);
     double  exfor_group(int iExpr);                   // RHC Aug 17, 2000
     double  exfor_relation(int iExpr);
     //////////////////////////////////////////////////////////////////////////
@@ -728,7 +691,6 @@ public:
     std::tuple<Symbol*, Symbol*> GetEvaluatedSymbolFromSymbolName(const std::string& symbol_name_and_potential_subscript, SymbolType preferred_symbol_type = SymbolType::None);
 
     double  exgetlabel(int iExpr);                    // RHF Aug 25, 2000
-    double  exgetimage(int iExpr);                    // 20150809
 
     CString EvaluateOccurrenceLabel(const Symbol* symbol, const std::optional<int>& zero_based_occurrence);
     double  exgetocclabel(int iExpr);
@@ -764,12 +726,13 @@ public:
     double  exdirlist(int program_index);
 
 private:
-    ParameterManager::Parameter GetSetPropertyParser(int iExpr, std::set<int>* symbol_set, std::variant<double, CString>* out_value = nullptr);
+    ParameterManager::Parameter GetSetPropertyParser(int program_index, std::set<int>& symbol_set,
+                                                     std::variant<double, std::string>* out_value = nullptr);
 public:
-    CString GetProperty(ParameterManager::Parameter parameter, std::set<int>* symbol_set = nullptr);
-    double  exgetproperty(int iExpr);
-    double  exsetproperty(int iExpr);
-    double  exprotect(int iExpr);
+    std::string GetProperty(ParameterManager::Parameter parameter, std::set<int>* symbol_set = nullptr);
+    double ex_getproperty(int program_index);
+    double ex_setproperty(int program_index);
+    double ex_protect(int program_index);
 
     double  ExExecSystem(int iExpr);
     std::unique_ptr<Paradata::ExternalApplicationEvent> ExExecCommonBeforeExecute(FunctionCode source, const std::string& command, int flags);
@@ -805,7 +768,7 @@ public:
     double  exshowarray(int iExpr);
     double  exshowarray_pre77(int iExpr);
 
-    int SelectDlgHelper_pre77(int iFunCode, const CString* csHeading, const std::vector<std::vector<CString>*>* paData,
+    int SelectDlgHelper_pre77(int iFunCode, const CString& csHeading, const std::vector<std::vector<CString>*>* paData,
                               const std::vector<CString>* paColumnTitles, std::vector<bool>* pbaSelections,
                               const std::vector<PortableColor>* row_text_colors) override;
 
@@ -997,13 +960,20 @@ private:
     void IssueMessageWorker(MessageType message_type, int message_number, ...) override;
     std::string GetFormattedMessageWorker(int message_number, ...) override;
     bool Report_Evaluate_INTERPRETER_DLL_TODO(Report& report) override;
-    void ModifySymbolValue_double_INTERPRETER_DLL_TODO(const Nodes::SymbolValue& symbol_value_node, const std::function<void(double&)>& modify_value_function) override;
-    bool AssignValueToSymbol_INTERPRETER_DLL_TODO(const Nodes::SymbolValue& symbol_value_node, double value) override;
-    bool AssignValueToSymbol_INTERPRETER_DLL_TODO(const Nodes::SymbolValue& symbol_value_node, SharableString value) override;
     double RunSoonToBeRemoveFeature(std::string_view feature_sv, int program_index, void* tag) override;
     int Get_m_iExSymbol_INTERPRETER_DLL_TODO() override { return m_iExSymbol; }
     bool IsExecutionInterrupted() const override;
     EngineParadataDriver& GetEngineParadataDriver_INTERPRETER_DLL_TODO() override;
+    double ExExecPFF_INTERPRETER_DLL_TODO(LogicPff& logic_pff) override;
+    FrequencyDriver* GetFrequencyDriver_INTERPRETER_DLL_TODO() override;
+    void AssignValueToVART_INTERPRETER_DLL_TODO(int variable_compilation, double value) override;
+    void AssignValueToVART_INTERPRETER_DLL_TODO(int variable_compilation, SharableString value) override;
+    double EvaluateVARTValue_double_INTERPRETER_DLL_TODO(int variable_compilation) override;
+    SharableString EvaluateVARTValue_SharableString_INTERPRETER_DLL_TODO(int variable_compilation) override;
+    void ModifyVARTValue_INTERPRETER_DLL_TODO(int variable_compilation, const std::function<void(double&)>& modify_value_function, std::unique_ptr<Paradata::FieldInfo>* paradata_field_info = nullptr) override;
+    void ModifyVARTValue_INTERPRETER_DLL_TODO(int variable_compilation, const std::function<void(SharableString&)>& modify_value_function, std::unique_ptr<Paradata::FieldInfo>* paradata_field_info = nullptr) override;
+    int SymbolTableSearch_INTERPRETER_DLL_TODO(std::string_view full_symbol_name_sv, SymbolType preferred_symbol_type,
+                                               const std::vector<SymbolType>* allowable_symbol_types) const override;
 
 
 private:

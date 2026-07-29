@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "ValueSetResponse.h"
 #include <zToolsO/VarFuncs.h>
 
@@ -9,7 +9,8 @@ ValueSetResponse::ValueSetResponse(const CDictItem& dict_item, const DictValue& 
 {
     if( dict_item.GetContentType() == ContentType::Alpha )
     {
-        m_code = CString(SO::TrimRight(dict_value_pair.GetFrom()));
+        m_code = dict_value_pair.GetFrom();
+        m_code.MakeTrimRight();
     }
 
     else if( dict_item.GetContentType() == ContentType::Numeric )
@@ -18,7 +19,7 @@ ValueSetResponse::ValueSetResponse(const CDictItem& dict_item, const DictValue& 
         if( CIMSAString::IsNumeric(dict_value_pair.GetFrom()) )
         {
             m_minValue = atod(dict_value_pair.GetFrom());
-            m_code = UTF8_TODO::GetCString(FormatValueForDisplay(dict_item, m_minValue));
+            m_code = FormatValueForDisplay(dict_item, m_minValue);
         }
 
         // if a special value, use the special value instead
@@ -27,7 +28,7 @@ ValueSetResponse::ValueSetResponse(const CDictItem& dict_item, const DictValue& 
             m_minValue = dict_value.GetSpecialValue();
 
             // but use the formatted code if it was defined above
-            if( m_code.IsEmpty() )
+            if( m_code->empty() )
                 m_code = dict_value_pair.GetFrom();
         }
 
@@ -39,7 +40,7 @@ ValueSetResponse::ValueSetResponse(const CDictItem& dict_item, const DictValue& 
             if( max_value != m_minValue )
             {
                 m_maxValue = max_value;
-                m_code.Append(_T(" - ") + UTF8_TODO::GetCString(FormatValueForDisplay(dict_item, max_value)));
+                m_code.MakeModifiable().append(" - ").append(FormatValueForDisplay(dict_item, max_value));
             }
         }
     }
@@ -51,13 +52,13 @@ ValueSetResponse::ValueSetResponse(const CDictItem& dict_item, const DictValue& 
 }
 
 
-ValueSetResponse::ValueSetResponse(const CString& label, const double value)
+ValueSetResponse::ValueSetResponse(SharableString label, const double value)
     :   m_dictValue(nullptr),
         m_code(label),
         m_minValue(value)
 {
     // this constructor is used to add Not Applicable (from CanEnterNotAppl) to a value set
-    m_nonDictValues = std::make_unique<std::tuple<CString, std::string, PortableColor>>(label, std::string(), DictionaryDefaults::ValueLabelTextColor);
+    m_nonDictValues.reset(new NDV { std::move(label), std::string(), DictionaryDefaults::ValueLabelTextColor });
 }
 
 

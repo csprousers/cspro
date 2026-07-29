@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "IncludesRT.h"
 #include "JavaScriptProcessor.h"
 #include "UserFunction.h"
@@ -368,13 +368,13 @@ bool LogicInterpreter::ConvertValueFromJavaScript(EngineJavaScriptProcessor& jav
 
         if( *evaluated_symbol_type == SymbolType::WorkVariable )
         {
-            return AssignValueToSymbol_INTERPRETER_DLL_TODO(symbol_value_node, javascript_processor.ConvertNumeric(js_value));
+            return AssignValueToSymbol(symbol_value_node, javascript_processor.ConvertNumeric(js_value));
         }
 
         else
         {
             ASSERT(*evaluated_symbol_type == SymbolType::WorkString);
-            return AssignValueToSymbol_INTERPRETER_DLL_TODO(symbol_value_node, javascript_processor.ConvertString(js_value));
+            return AssignValueToSymbol(symbol_value_node, javascript_processor.ConvertString(js_value));
         }
     }
 

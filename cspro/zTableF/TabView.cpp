@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "TabView.h"
 #include "AppFmtDlg.h"
 #include "CompFmtDlg.h"
@@ -3500,7 +3500,7 @@ BOOL CTabView::OnEditVarTallyAttributes(UINT nID)
     varTallyFmtDlg.m_dVarMinDefault = varTallyFmtDlg.m_dVarMin;
     varTallyFmtDlg.m_dVarMaxDefault = varTallyFmtDlg.m_dVarMax;
 
-    varTallyFmtDlg.m_sDefaultPropRange = _T("1"); // default if we can't get it from vset
+    varTallyFmtDlg.m_defaultPropRange = "1"; // default if we can't get it from vset
     ASSERT(pDictVSet->HasValues());
     size_t iVal = 0;
     // skip the specials
@@ -3508,7 +3508,7 @@ BOOL CTabView::OnEditVarTallyAttributes(UINT nID)
         ++iVal;
     }
     if (iVal < pDictVSet->GetNumValues()) {
-        varTallyFmtDlg.m_sDefaultPropRange = pDictVSet->GetValue(iVal).GetRangeString();
+        varTallyFmtDlg.m_defaultPropRange = pDictVSet->GetValue(iVal).GetRangeString();
     }
     if(varTallyFmtDlg.DoModal() == IDOK){
        CTallyFmt defTallyCompare;

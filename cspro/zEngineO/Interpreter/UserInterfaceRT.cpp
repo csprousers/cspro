@@ -1,10 +1,11 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "IncludesRT.h"
 #include "AllSymbols.h"
 #include "Nodes/UserInterface.h"
 #include <zToolsO/NewlineSubstitutor.h>
 #include <zToolsO/Screen.h>
 #include <zUtilO/CustomFont.h>
+#include <zUtilO/UWM.h>
 #include <zHtml/UseHtmlDialogs.h>
 #include <zViewO/ViewInputCreator.h>
 #include <zParadataO/Logger.h>
@@ -374,7 +375,7 @@ double LogicInterpreter::ex_setfont(const int program_index)
 #else
     UserDefinedFonts* user_defined_fonts;
 
-    if( WindowsDesktopMessage::Send(WM_IMSA_GET_USER_FONTS, &user_defined_fonts) != 1 )
+    if( WindowsDesktopMessage::Send(UWM::UtilO::GetUserFonts, &user_defined_fonts) != 1 )
     {
         // if here, we are not running CSEntry
         return 0;

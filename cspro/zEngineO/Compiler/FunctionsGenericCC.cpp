@@ -166,22 +166,20 @@ int LogicCompiler::CompileExpressionOrObject(const std::vector<GF::VariableType>
 }
 
 
-int LogicCompiler::CompileFunctionCall(const int program_index/* = -1*/)
+int LogicCompiler::CompileFunctionCall()
 {
     auto& function_call_node = CreateNode<Nodes::FunctionCall>(FunctionCode::FUCALL_CODE);
-
     function_call_node.next_st = -1;
-    function_call_node.expression = program_index;
 
-    if( function_call_node.expression == -1 )
-    {
-        // TODO: this all needs to be improved at some point;
-        // for now, the use of call_tester is similar to the pre-8.0 code
-        auto& [call_tester, is_lone_function_call] = get_COMPILER_DLL_TODO_m_loneAlphaFunctionCallTester();
-        call_tester = 0;
+    // TODO: this all needs to be improved at some point;
+    // for now, setting is_lone_function_call to true will allow the calling of functions that return strings,
+    // and the use of call_tester is similar to the pre-8.0 code
+    auto& [call_tester, is_lone_function_call] = get_COMPILER_DLL_TODO_m_loneAlphaFunctionCallTester();
+    ASSERT(!is_lone_function_call);
+    const RAII::SetValueAndRestoreOnDestruction<bool> is_lone_function_caller_setter(is_lone_function_call, true);
+    call_tester = 0;
 
-        function_call_node.expression = exprlog();
-    }
+    function_call_node.expression = exprlog();
 
     return GetProgramIndex(function_call_node);
 }

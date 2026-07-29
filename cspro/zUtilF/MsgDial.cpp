@@ -1,9 +1,9 @@
-﻿// MsgDial.cpp : implementation file
+// MsgDial.cpp : implementation file
 //
 
 #include "StdAfx.h"
 #include "MsgDial.h"
-#include <zUtilO/CustomFont.h> // 20100621
+#include <zUtilO/CustomFont.h>
 #include <zUtilO/MemoryHelpers.h>
 
 
@@ -169,16 +169,14 @@ BOOL CMsgDialog::OnInitDialog()
     // but i do want to make it more dynamic, enable (and supplement) the code below
 
     // 20111026 on a trevor request i will now try to make these message look good
-    UserDefinedFonts* pUserFonts = nullptr;
-    AfxGetMainWnd()->SendMessage(WM_IMSA_GET_USER_FONTS, (WPARAM)&pUserFonts);
+    const UserDefinedFonts* user_defined_fonts = nullptr;
 
-    bool is_user_message = ( m_messageOptions.GetMessageType().has_value() && *m_messageOptions.GetMessageType() == MessageType::User );
-
-    if( is_user_message && pUserFonts != nullptr && pUserFonts->IsFontDefined(UserDefinedFonts::FontType::ErrMsg) ) // user has defined a particular font
+    if( m_messageOptions.GetMessageType() == MessageType::User &&
+        ( user_defined_fonts = UserDefinedFonts::GetUserDefinedFont(UserDefinedFonts::FontType::ErrMsg) ) != nullptr )
     {
         // the actual font gets set later, here we just adjust the height/width variables
         LOGFONT lf;
-        pUserFonts->GetFont(UserDefinedFonts::FontType::ErrMsg)->GetLogFont(&lf);
+        user_defined_fonts->GetFont(UserDefinedFonts::FontType::ErrMsg)->GetLogFont(&lf);
 
         m_iTextLabelFontHeigth = abs(lf.lfHeight);
 
@@ -189,7 +187,7 @@ BOOL CMsgDialog::OnInitDialog()
         m_iButtonsHeigth = m_iButtonFontHeigth + 10;
     }
 
-    InitFonts(is_user_message);
+    InitFonts(user_defined_fonts);
 
     // Dimensions
 
@@ -600,22 +598,19 @@ void CMsgDialog::SetBottomMargin(int iBottomMargin)
 }
 
 
-void CMsgDialog::InitFonts(bool userMessage)
+void CMsgDialog::InitFonts(const UserDefinedFonts* const user_defined_fonts)
 {
-    // 20100621 to allow for the dynamic setting of fonts for error messages
-    UserDefinedFonts* pUserFonts = nullptr;
-
     // 20100708 on macro's request user-defined fonts will only be used for user error messages
     // if( NumTextLabels() == 1 && m_pCSAMainText->GetAt(0).Left(2).CompareNoCase("U ") == 0 )
 
     //if( m_pCSAMainText->GetAt(0).Left(2).CompareNoCase(_T("U ")) == 0 ) // 20111026 so that custom fonts can work on long system-controlled messages
-    if( userMessage )
-        AfxGetMainWnd()->SendMessage(WM_IMSA_GET_USER_FONTS, (WPARAM)&pUserFonts);
 
-    if( pUserFonts != nullptr && pUserFonts->GetFont(UserDefinedFonts::FontType::ErrMsg) ) // user has defined a particular font
+    if( user_defined_fonts != nullptr )
     {
+        ASSERT(user_defined_fonts->GetFont(UserDefinedFonts::FontType::ErrMsg));
+
         LOGFONT lf;
-        pUserFonts->GetFont(UserDefinedFonts::FontType::ErrMsg)->GetLogFont(&lf);
+        user_defined_fonts->GetFont(UserDefinedFonts::FontType::ErrMsg)->GetLogFont(&lf);
 
         lf.lfHeight = m_iButtonFontHeigth;
         lf.lfWidth = m_iButtonFontWidth;

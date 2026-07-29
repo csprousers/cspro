@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zDictO/zDictO.h>
 
@@ -6,74 +6,60 @@ class CDictItem;
 class DictValue;
 class DictValueSet;
 class ValueSetResponse;
-class ValueProcessorImpl;
 
+
+// --------------------------------------------------------------------------
+// ValueProcessor
+// --------------------------------------------------------------------------
 
 class CLASS_DECL_ZDICTO ValueProcessor
 {
 protected:
-    ValueProcessor(const CDictItem& dict_item, const DictValueSet* dict_value_set);
-    ValueProcessor();
+    ValueProcessor(const CDictItem* dict_item, const DictValueSet* dict_value_set) noexcept;
 
 public:
+    virtual ~ValueProcessor() noexcept { }
+
+    // Creates a ValueProcessor subclass based on the item and whether or not it has a value set.
     static std::shared_ptr<const ValueProcessor> CreateValueProcessor(const CDictItem& dict_item, const DictValueSet* dict_value_set = nullptr);
 
-    virtual ~ValueProcessor();
+    const CDictItem* GetDictItem() const noexcept        { return m_dictItem; }
+    const DictValueSet* GetDictValueSet() const noexcept { return m_dictValueSet; }
 
-    const CDictItem& GetDictItem() const;
-    const DictValueSet* GetDictValueSet() const;
+    // Returns whether the value is valid.
+    virtual bool IsValid(double value) const = 0;
+    virtual bool IsValid(std::string_view value_sv, bool pad_value_to_length = true) const = 0;
 
-    // validation routines
-    virtual bool IsValid(double value) const;
-    virtual bool IsValid(const CString& value, bool pad_value_to_length = true) const;
+    // Returns the first dictionary value that contains the value, or null if no match.
+    virtual const DictValue* GetDictValue(double value) const = 0;
+    virtual const DictValue* GetDictValue(std::string_view value_sv, bool pad_value_to_length = true) const = 0;
 
-    virtual const DictValue* GetDictValue(double value) const;
-    virtual const DictValue* GetDictValue(const CString& value, bool pad_value_to_length = true) const;
+    // Returns the first dictionary value that contains the label, or null if no match.
+    virtual const DictValue* GetDictValueByLabel(std::string_view label_sv) const;
 
-    const DictValue* GetDictValue(const std::wstring& value, bool pad_value_to_length = true) const { return GetDictValue(WS2CS(value), pad_value_to_length); }
-    const DictValue* GetDictValue(const std::string& value, bool pad_value_to_length = true) const  { return GetDictValue(UTF8_TODO::GetCString(value), pad_value_to_length); }
+    // Returns all dictionary values that contain the value.
+    virtual std::vector<const DictValue*> GetMatchingDictValues(double value) const = 0;
+    virtual std::vector<const DictValue*> GetMatchingDictValues(std::string_view value_sv) const = 0;
 
-    virtual const DictValue* GetDictValueByLabel(const CString& label) const;
+    // Parses the string input value, returning its representation based on item or value set characteristics.
+    // For example, "-99" might return MISSING due to a mapping in the value set,
+    // or "Hello" might return "He" based on an item's length.
+    virtual double GetNumericFromInput(std::string_view value_sv) const = 0;
+    virtual std::string GetAlphaFromInput(std::string value) const = 0;
 
-    // frequency routines
-    virtual std::vector<const DictValue*> GetMatchingDictValues(double value) const;
-    virtual std::vector<const DictValue*> GetMatchingDictValues(wstring_view value) const;
-    std::vector<const DictValue*> GetMatchingDictValues(std::string_view value) const { return GetMatchingDictValues(UTF8_TODO::GetWide(value)); }
+    // Returns the dictionary value associated with the string input value.
+    virtual const DictValue* GetDictValueFromInput(std::string_view value_sv) const = 0;
 
-    // formatting routines
-    double GetNumericFromInput(const CString& value) const;
-    CString GetAlphaFromInput(const CString& value) const;
+    // Converts the value to its string representation for output.
+    // For example, MISSING might return "-99" due to a mapping in the value set,
+    // or "Hello" might return "Hello    " based on an item's length.
+    virtual std::string GetOutput(double value) const = 0;
+    virtual std::string GetOutput(std::string value) const = 0;
 
-    CString GetOutput(double value) const;
-    CString GetOutput(const CString& value) const;
-
-    const DictValue* GetDictValueFromInput(const CString& value) const;
-
-    const std::vector<std::shared_ptr<const ValueSetResponse>>& GetResponses() const;
-
-protected:
-    const ValueProcessorImpl& GetFullValueProcessor() const;
-
-private:
-    std::unique_ptr<ValueProcessorImpl> m_valueProcessor;
-    mutable bool m_valueProcessorIsFullySetup;
-};
-
-
-class CLASS_DECL_ZDICTO NumericValueProcessor : public ValueProcessor
-{
-    friend class ValueProcessor;
-
-private:
-    NumericValueProcessor(const CDictItem& dict_item, const DictValueSet* dict_value_set);
+    // Returns a vector of ValueSetResponse objects (wrapping the dictionary's values).
+    virtual const std::vector<std::shared_ptr<const ValueSetResponse>>& GetResponses() const = 0;
 
 protected:
-    NumericValueProcessor();
-
-public:
-    virtual double GetMinValue() const;
-    virtual double GetMaxValue() const;
-
-    double ConvertNumberToEngineFormat(double value) const;
-    double ConvertNumberFromEngineFormat(double value) const;
+    const CDictItem* m_dictItem;
+    const DictValueSet* m_dictValueSet;
 };

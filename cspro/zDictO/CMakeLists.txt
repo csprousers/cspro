@@ -17,6 +17,8 @@ add_library(${PROJECT_NAME}
     DictValueSet.cpp
     ItemIndexHelper.cpp
     Pre80SpecFile.cpp
+    NumericValueProcessor.cpp
+    StringValueProcessor.cpp
     ValueProcessor.cpp
     ValueSetFixer.cpp
     ValueSetResponse.cpp

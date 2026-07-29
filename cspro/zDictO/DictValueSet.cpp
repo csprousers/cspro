@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "DictValueSet.h"
 
 
@@ -91,11 +91,11 @@ std::tuple<double, double> DictValueSet::GetMinMax() const
 
         for( const DictValuePair& dict_value_pair : dict_value.GetValuePairs() )
         {
-            auto process = [&](const CString& text)
+            auto process = [&](const std::string_view text_sv)
             {
-                if( !SO::IsBlank(text) )
+                if( !SO::IsBlank(text_sv) )
                 {
-                    const double value = CIMSAString::fVal(text);
+                    const double value = CIMSAString::fVal(text_sv);
                     std::get<0>(min_max) = std::min(value, std::get<0>(min_max));
                     std::get<1>(min_max) = std::max(value, std::get<1>(min_max));
                 }
@@ -188,9 +188,9 @@ void DictValueSet::serialize(Serializer& ar)
     DictNamedBase::serialize(ar);
 
     if( ar.PredatesVersionIteration(Serializer::Iteration_8_0_000_1) )
-        SetNote(ar.Read<CString>());
+        SetNote(ar.Read<std::string>());
 
-    ar.IgnoreUnusedVariable<CString>(Serializer::Iteration_8_0_000_1); // m_error
+    ar.IgnoreUnusedVariable<std::string>(Serializer::Iteration_8_0_000_1); // m_error
 
     ar & m_symbolIndex;
 

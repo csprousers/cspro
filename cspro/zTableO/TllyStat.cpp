@@ -1,4 +1,4 @@
-﻿//***************************************************************************
+//***************************************************************************
 //  File name: TllyStat.cpp
 //
 //  Description:
@@ -21,7 +21,7 @@ namespace {
 // find special value in vset if it exists
 const DictValue* FindSpecialValueInVSet(const DictValueSet& dict_value_set, double special_value)
 {
-    for( const auto& dict_value : dict_value_set.GetValues() )
+    for( const DictValue& dict_value : dict_value_set.GetValues() )
     {
         if( dict_value.IsSpecialValue(special_value) )
             return &dict_value;
@@ -75,7 +75,7 @@ int GetNumValsWithCustSpecials(const DictValueSet& dict_value_set, const CustSpe
     int iNumValues = 0;
     if (custSpecials && custSpecials->GetUseCustomSpecVal()) {
         // count only the non-special vals
-        for( const auto& dict_value : dict_value_set.GetValues() ) {
+        for( const DictValue& dict_value : dict_value_set.GetValues() ) {
             if( !dict_value.IsSpecial() ) {
                 ++iNumValues;
             }
@@ -163,7 +163,7 @@ void GetTabValsVSet(CArray<CTabValue*,CTabValue*>& aTabValue, int iStatIndex, co
                     LabelTransformer* pTransformer = NULL)
 {
     if (dict_value_set != nullptr) {
-        for( const auto& dict_value : dict_value_set->GetValues() ) {
+        for( const DictValue& dict_value : dict_value_set->GetValues() ) {
             if (custSpecials && custSpecials->GetUseCustomSpecVal() && dict_value.IsSpecial()) {
                 continue;
             }
@@ -204,7 +204,7 @@ bool ReconcileTabValsVSet(CArray<CTabValue*,CTabValue*>& aTabValue, int iStatInd
 {
     bool bChanged = false;
     if (pVSet != NULL) {
-        for( const auto& dict_value : pVSet->GetValues() ) {
+        for( const DictValue& dict_value : pVSet->GetValues() ) {
             // ignore specials - deal with them later
             if (custSpecials && custSpecials->GetUseCustomSpecVal() && dict_value.IsSpecial()) {
                 continue;

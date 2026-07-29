@@ -1,4 +1,4 @@
-﻿#include "Stdafx.h"
+#include "Stdafx.h"
 #include "ValueSet.h"
 #include <zDictO/DDClass.h>
 
@@ -24,7 +24,7 @@ array<CSPro::Dictionary::DictionaryValue^>^ CSPro::Dictionary::ValueSet::Values:
 
     int i = 0;
 
-    for( const auto& dict_value : m_dictValueSet.GetValues() )
+    for( const DictValue& dict_value : m_dictValueSet.GetValues() )
     {
         values[i] = gcnew DictionaryValue(dict_value);
         ++i;

@@ -251,8 +251,8 @@ void CaseTextContentCreator::Formatter::SetUpRecordTypeMap(const CDataDict& dict
                 // add this record's record type...
                 if( std::holds_alternative<StartLen>(single_dict_record_or_record_type_start_len) )
                 {
-                    ASSERT(dictionary.GetRecTypeLen() == static_cast<size_t>(dict_record.GetRecTypeVal().GetLength()));
-                    record_type_map.try_emplace(UTF8_TODO::GetUtf8(dict_record.GetRecTypeVal()), &dict_record);
+                    ASSERT(dictionary.GetRecTypeLen() == SO::WideLength(dict_record.GetRecTypeVal()));
+                    record_type_map.try_emplace(dict_record.GetRecTypeVal(), &dict_record);
                 }
 
                 // ...and items
@@ -563,8 +563,9 @@ std::tuple<std::string, std::string> CaseTextContentCreator::Formatter::CreateCa
                     ASSERT(parsed_entity->entity->value_processor != nullptr);
 
                     const std::variant<double, std::string> value =
-                        IsNumeric(dict_item->GetDataType()) ? std::variant<double, std::string>(parsed_entity->entity->value_processor->GetNumericFromInput(UTF8_TODO::GetCString(parsed_entity->text))) :
-                                                              std::variant<double, std::string>(parsed_entity->text);
+                        IsNumeric(dict_item->GetDataType())
+                        ? std::variant<double, std::string>(parsed_entity->entity->value_processor->GetNumericFromInput(parsed_entity->text))
+                        : std::variant<double, std::string>(parsed_entity->text);
 
                     // write numeric values properly formatted (e.g., with decimal marks)
                     if( std::holds_alternative<double>(value) )
@@ -586,8 +587,13 @@ std::tuple<std::string, std::string> CaseTextContentCreator::Formatter::CreateCa
                     {
                         for( const DictValueSet& dict_value_set : dict_item->GetValueSets() )
                         {
-                            const std::shared_ptr<const ValueProcessor> value_processor = ValueProcessor::CreateValueProcessor(*dict_item, &dict_value_set);
-                            const DictValue* const dict_value = std::visit([&](const auto& this_value) { return value_processor->GetDictValue(this_value); }, value);
+                            const std::shared_ptr<const ValueProcessor> value_processor =
+                                ValueProcessor::CreateValueProcessor(*dict_item, &dict_value_set);
+
+                            const DictValue* const dict_value = std::visit(
+                                [&](const auto& this_value) { return value_processor->GetDictValue(this_value); },
+                                value
+                            );
 
                             if( dict_value != nullptr )
                             {

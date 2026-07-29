@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 
 template<typename Key, typename Value>
@@ -11,8 +11,11 @@ public:
 
     const std::vector<key_value_pair>& GetVector() const { return m_keyValuePairs; }
 
-    const Value* Find(const Key& key) const;
-    Value* Find(const Key& key);
+    template<typename KeyT>
+    const Value* Find(const KeyT& key) const;
+
+    template<typename KeyT>
+    Value* Find(const KeyT& key);
 
     template<typename KeyT, typename ValueT>
     Value& Insert(KeyT&& key, ValueT&& value);
@@ -22,7 +25,8 @@ public:
 private:
     void ResetKeyPointers();
 
-    const key_value_pair* FindKVP(const Key& key) const;
+    template<typename KeyT>
+    const key_value_pair* FindKVP(const KeyT& key) const;
 
 private:
     std::vector<key_value_pair> m_keyValuePairs;
@@ -40,15 +44,17 @@ VectorMap<Key, Value>::VectorMap()
 
 
 template<typename Key, typename Value>
-const Value* VectorMap<Key, Value>::Find(const Key& key) const
+template<typename KeyT>
+const Value* VectorMap<Key, Value>::Find(const KeyT& key) const
 {
-    const key_value_pair* kvp = FindKVP(key);
+    const key_value_pair* const kvp = FindKVP(key);
     return ( kvp == nullptr ) ? nullptr : &std::get<1>(*kvp);
 }
 
 
 template<typename Key, typename Value>
-Value* VectorMap<Key, Value>::Find(const Key& key)
+template<typename KeyT>
+Value* VectorMap<Key, Value>::Find(const KeyT& key)
 {
     return const_cast<Value*>(const_cast<const VectorMap*>(this)->Find(key));
 }
@@ -73,7 +79,7 @@ Value& VectorMap<Key, Value>::Insert(KeyT&& key, ValueT&& value)
         Value& added_value = std::get<1>(m_keyValuePairs.emplace_back(std::forward<KeyT>(key),
                                                                       std::forward<ValueT>(value)));
 
-        ResetKeyPointers(); 
+        ResetKeyPointers();
 
         return added_value;
     }
@@ -102,7 +108,8 @@ void VectorMap<Key, Value>::ResetKeyPointers()
 
 
 template<typename Key, typename Value>
-const typename VectorMap<Key, Value>::key_value_pair* VectorMap<Key, Value>::FindKVP(const Key& key) const
+template<typename KeyT>
+const typename VectorMap<Key, Value>::key_value_pair* VectorMap<Key, Value>::FindKVP(const KeyT& key) const
 {
     auto search_for_value = [&](const key_value_pair* start, const key_value_pair* end)
     {

@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "DictLevel.h"
 
 
@@ -178,9 +178,9 @@ void DictLevel::serialize(Serializer& ar)
     DictNamedBase::serialize(ar);
 
     if( ar.PredatesVersionIteration(Serializer::Iteration_8_0_000_1) )
-        SetNote(ar.Read<CString>());
+        SetNote(ar.Read<std::string>());
 
-    ar.IgnoreUnusedVariable<CString>(Serializer::Iteration_8_0_000_1); // m_csError
+    ar.IgnoreUnusedVariable<std::string>(Serializer::Iteration_8_0_000_1); // m_csError
 
     if( ar.MeetsVersionIteration(Serializer::Iteration_8_0_002_1) )
         ar & m_levelNumber;

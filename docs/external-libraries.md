@@ -111,6 +111,15 @@ This document lists information about the external libraries used by CSPro. Batc
 5. The built libraries, only used by build tools, are not committed to the repository.
 
 
+### FakeIt
+
+1. Find the latest version here: https://github.com/eranpeer/FakeIt/releases/latest
+2. Edit the batch script, *fakeit.bat*, setting **fakeit_version**.
+3. Run the batch script.
+4. This copies files into the CSPro solution.
+5. The library is built as part of the CSPro solution's tests.
+
+
 ### geometry.hpp
 
 1. Find the latest version here: https://github.com/mapbox/geometry.hpp/releases/latest/

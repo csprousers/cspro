@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "PromptFuncDlg.h"
 #include <zUtilO/CustomFont.h>
 
@@ -38,15 +38,16 @@ BOOL CPromptFunctionDlg::OnInitDialog()
 {
     CDialog::OnInitDialog();
 
-    CFont* pFont = nullptr;
+    CFont* pFont;
+    const UserDefinedFonts* const user_defined_fonts = UserDefinedFonts::GetUserDefinedFont(UserDefinedFonts::FontType::ErrMsg);
 
-    UserDefinedFonts* pUserFonts = nullptr;
-    AfxGetApp()->GetMainWnd()->SendMessage(WM_IMSA_GET_USER_FONTS, (WPARAM)&pUserFonts);
+    if( user_defined_fonts != nullptr )
+    {
+        pFont = user_defined_fonts->GetFont(UserDefinedFonts::FontType::ErrMsg);
+        ASSERT(pFont != nullptr);
+    }
 
-    if( pUserFonts != nullptr )
-        pFont = pUserFonts->GetFont(UserDefinedFonts::FontType::ErrMsg);
-
-    if( pFont == nullptr )
+    else
     {
         m_Font.CreateFont(18,0,0,0,400,FALSE,FALSE,0,DEFAULT_CHARSET,OUT_DEFAULT_PRECIS,CLIP_DEFAULT_PRECIS,DEFAULT_QUALITY,FF_DONTCARE,_T("Arial"));
         pFont = &m_Font;

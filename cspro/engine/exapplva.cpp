@@ -1,4 +1,4 @@
-﻿//---------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 //  File name: ExApplVa.cpp
 //
 //  Description:
@@ -23,6 +23,7 @@
 #include "Exappl.h"
 #include <zEngineO/WorkVariable.h>
 #include <zAppO/FieldStatus.h>
+#include <zParadataO/FieldInfo.h>
 #include <zCaseO/CaseItemReference.h>
 #include <zIssaLib/CsDriver.h>
 
@@ -453,7 +454,7 @@ TCHAR* CIntDriver::GetVarAsciiValue( int iSymVar, int iOccur, bool bVisualValue 
 
         // 1e+50 produce en formato %f del orden de 57 caracteres
         // El valor 11 con formato %f se expande a 11.00000
-        pAsciiVal = (csprochar*)malloc( ( pVarT->GetLength() + 10 ) * sizeof(csprochar)); // GHM 20120130  * sizeof(csprochar) for unicode
+        pAsciiVal = (csprochar*)malloc( ( pVarT->GetLength() + 10 ) * sizeof(csprochar)); // 20120130  * sizeof(csprochar) for unicode
 
         if( pAsciiVal != NULL )
         {
@@ -1450,4 +1451,241 @@ void CIntDriver::ConvertIndex(const C3DIndexes& the3dObject, ItemIndex& item_ind
     item_index.SetRecordOccurrence(std::max(0, the3dObject.getIndexValue(0) - 1));
     item_index.SetItemOccurrence(std::max(0, the3dObject.getIndexValue(1) - 1));
     item_index.SetSubitemOccurrence(std::max(0, the3dObject.getIndexValue(2) - 1));
+}
+
+
+
+// --------------------------------------------------------------------------
+// implementations previously in IntVariable.cpp
+// --------------------------------------------------------------------------
+
+template<typename T>
+void CIntDriver::AssignValueToVART(const int variable_compilation, T value)
+{
+    // TODO: could add checks as in CIntDriver::excpt
+    const MVAR_NODE* pMVarNode = &GetNode<MVAR_NODE>(variable_compilation);
+    VART* pVarT = VPT(pMVarNode->m_iVarIndex);
+    VARX* pVarX = pVarT->GetVarX();
+    int aIndex[DIM_MAXDIM];
+    void* value_storage = nullptr;
+
+    // multiply occurring
+    if( pMVarNode->m_iVarType == MVAR_CODE )
+    {
+        double dIndex[DIM_MAXDIM];
+        mvarGetSubindexes(pMVarNode, dIndex);
+
+        if( pVarX->RemapIndexes(aIndex, dIndex) )
+        {
+            if constexpr(std::is_same_v<T, double>)
+            {
+                CNDIndexes theIndex(ZERO_BASED, aIndex);
+                value_storage = GetMultVarFloatAddr(pVarX, theIndex);
+            }
+
+            else
+            {
+                value_storage = GetMultVarAsciiAddr(pVarX, aIndex);
+            }
+        }
+    }
+
+    // singling occurring
+    else
+    {
+        memset(aIndex, 0, sizeof(int) * DIM_MAXDIM);
+        value_storage = svaraddr(pVarX);
+    }
+
+    if( value_storage != nullptr )
+    {
+        bool need_to_update_related_data = ( pVarX->iRelatedSlot >= 0 );
+
+        if constexpr(std::is_same_v<T, double>)
+        {
+            *static_cast<double*>(value_storage) = value;
+
+            if( Issamod == ModuleType::Entry || need_to_update_related_data )
+            {
+                ModuleType eOldMode = Issamod;
+                Issamod = ModuleType::Batch; // Truco: in order to call varoutval and dvaltochar
+                m_pEngineDriver->prepvar(pVarT, NO_VISUAL_VALUE); // write to ascii buffer
+                Issamod = eOldMode;
+            }
+        }
+
+        else
+        {
+            std::wstring wide_value = UTF8_TODO::GetWide(*value);
+            SO::MakeExactLength(wide_value, pVarT->GetLength());
+            _tmemcpy(static_cast<wchar_t*>(value_storage), wide_value.data(), pVarT->GetLength());
+        }
+
+        // update items/subitems and other related data
+        if( need_to_update_related_data )
+            pVarX->VarxRefreshRelatedData(aIndex);
+    }
+}
+
+void CIntDriver::AssignValueToVART_INTERPRETER_DLL_TODO(const int variable_compilation, const double value)
+{
+    return AssignValueToVART(variable_compilation, value);
+}
+
+void CIntDriver::AssignValueToVART_INTERPRETER_DLL_TODO(const int variable_compilation, SharableString value)
+{
+    return AssignValueToVART(variable_compilation, std::move(value));
+}
+
+
+template<typename T>
+T CIntDriver::EvaluateVARTValue(int variable_compilation)
+{
+    // TODO: could add checks as in CIntDriver::excpt
+    const MVAR_NODE* pMVarNode = &GetNode<MVAR_NODE>(variable_compilation);
+    VART* pVarT = VPT(pMVarNode->m_iVarIndex);
+    VARX* pVarX = pVarT->GetVarX();
+    int aIndex[DIM_MAXDIM];
+    void* value_storage = nullptr;
+
+    // multiply occurring
+    if( pMVarNode->m_iVarType == MVAR_CODE )
+    {
+        double dIndex[DIM_MAXDIM];
+        mvarGetSubindexes(pMVarNode, dIndex);
+
+        if( pVarX->RemapIndexes(aIndex, dIndex) )
+        {
+            if constexpr(std::is_same_v<T, double>)
+            {
+                CNDIndexes theIndex(ZERO_BASED, aIndex);
+                value_storage = GetMultVarFloatAddr(pVarX, theIndex);
+            }
+
+            else
+            {
+                value_storage = GetMultVarAsciiAddr(pVarX, aIndex);
+            }
+        }
+    }
+
+    // singling occurring
+    else
+    {
+        value_storage = svaraddr(pVarX);
+    }
+
+    if( value_storage == nullptr )
+    {
+        return GetInvalidValue<T>();
+    }
+
+    else
+    {
+        if constexpr(std::is_same_v<T, double>)
+        {
+            return *static_cast<double*>(value_storage);
+        }
+
+        else
+        {
+            return UTF8_TODO::GetUtf8(std::wstring_view(static_cast<const wchar_t*>(value_storage), pVarT->GetLength()));
+        }
+    }
+}
+
+double CIntDriver::EvaluateVARTValue_double_INTERPRETER_DLL_TODO(const int variable_compilation)
+{
+    return EvaluateVARTValue<double>(variable_compilation);
+}
+
+SharableString CIntDriver::EvaluateVARTValue_SharableString_INTERPRETER_DLL_TODO(const int variable_compilation)
+{
+    return EvaluateVARTValue<SharableString>(variable_compilation);
+}
+
+
+template<typename T>
+void CIntDriver::ModifyVARTValue(int variable_compilation, const std::function<void(T&)>& modify_value_function,
+                                 std::unique_ptr<Paradata::FieldInfo>* paradata_field_info/* = nullptr*/)
+{
+    // TODO: could add checks as in CIntDriver::excpt
+    const MVAR_NODE* pMVarNode = &GetNode<MVAR_NODE>(variable_compilation);
+    VART* pVarT = VPT(pMVarNode->m_iVarIndex);
+    VARX* pVarX = pVarT->GetVarX();
+    int aIndex[DIM_MAXDIM];
+    double dIndex[DIM_MAXDIM] = { 0 };
+    void* value_storage = nullptr;
+
+    // multiply occurring
+    if( pMVarNode->m_iVarType == MVAR_CODE )
+    {
+        mvarGetSubindexes(pMVarNode, dIndex);
+
+        if( pVarX->RemapIndexes(aIndex, dIndex) )
+        {
+            if constexpr(std::is_same_v<T, double>)
+            {
+                CNDIndexes theIndex(ZERO_BASED, aIndex);
+                value_storage = GetMultVarFloatAddr(pVarX, theIndex);
+            }
+
+            else
+            {
+                value_storage = GetMultVarAsciiAddr(pVarX, aIndex);
+            }
+        }
+    }
+
+    // singling occurring
+    else
+    {
+        memset(aIndex, 0, sizeof(int) * DIM_MAXDIM);
+        value_storage = svaraddr(pVarX);
+    }
+
+    if( value_storage != nullptr )
+    {
+        bool need_to_update_related_data = ( pVarX->iRelatedSlot >= 0 );
+
+        if constexpr(std::is_same_v<T, double>)
+        {
+            modify_value_function(*static_cast<double*>(value_storage));
+
+            if( Issamod == ModuleType::Entry || need_to_update_related_data )
+            {
+                ModuleType eOldMode = Issamod;
+                Issamod = ModuleType::Batch; // Truco: in order to call varoutval and dvaltochar
+                m_pEngineDriver->prepvar(pVarT, NO_VISUAL_VALUE); // write to ascii buffer
+                Issamod = eOldMode;
+            }
+        }
+
+        else
+        {
+            std::wstring wide_value(static_cast<const wchar_t*>(value_storage), pVarT->GetLength());
+            SharableString value = UTF8_TODO::GetUtf8(wide_value);
+            modify_value_function(value);
+            wide_value = UTF8_TODO::GetWide(*value);
+            SO::MakeExactLength(wide_value, pVarT->GetLength());
+            _tmemcpy(static_cast<wchar_t*>(value_storage), wide_value.data(), pVarT->GetLength());
+        }
+
+        // update items/subitems and other related data
+        if( need_to_update_related_data )
+            pVarX->VarxRefreshRelatedData(aIndex);
+    }
+
+    if( paradata_field_info != nullptr )
+        *paradata_field_info = m_paradataDriver->CreateFieldInfo(pVarT, dIndex);
+}
+
+void CIntDriver::ModifyVARTValue_INTERPRETER_DLL_TODO(const int variable_compilation, const std::function<void(double&)>& modify_value_function, std::unique_ptr<Paradata::FieldInfo>* const paradata_field_info/* = nullptr*/)
+{
+    ModifyVARTValue(variable_compilation, modify_value_function, paradata_field_info);
+}
+
+void CIntDriver::ModifyVARTValue_INTERPRETER_DLL_TODO(const int variable_compilation, const std::function<void(SharableString&)>& modify_value_function, std::unique_ptr<Paradata::FieldInfo>* const paradata_field_info/* = nullptr*/)
+{
+    ModifyVARTValue(variable_compilation, modify_value_function, paradata_field_info);
 }

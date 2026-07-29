@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zEntryO/zEntryO.h>
 #include <zCapiO/CapiContentVirtualFileMapping.h>
@@ -65,14 +65,12 @@ public:
 
     bool IsFieldFilled() const;
 
-#ifdef _CONSOLE
-    std::vector<CString> GetVerboseFieldInformation() const;
+    std::vector<std::string> GetVerboseFieldInformation() const;
     std::string GetValueSetName() const;
 
-    CString GetDataBuffer() const { return m_dataBuffer; }
+    const CString& GetDataBuffer() const { return m_dataBuffer; }
     double GetNumericEngineValue() const { return m_numericEngineValue; }
     double GetNumericDisplayValue() const { return m_numericDisplayValue; }
-#endif
 
 private:
     const Logic::SymbolTable& GetSymbolTable() const;

@@ -1,4 +1,4 @@
-﻿// TallyVarDlg.cpp : implementation file
+// TallyVarDlg.cpp : implementation file
 //
 
 #include "StdAfx.h"
@@ -186,7 +186,7 @@ void CTallyVarDlg::OnBnClickedAdd()
             }
             else if (!_tcscmp(pStat->GetType(), _T("Proportion"))) {
                 CTallyVarStatFmtProportion* pStatProportion = static_cast<CTallyVarStatFmtProportion*>(pStat);
-                pStatProportion->SetRange(m_sDefaultPropRange);
+                pStatProportion->SetRange(UTF8_TODO::GetCString(m_defaultPropRange));
             }
         }
 

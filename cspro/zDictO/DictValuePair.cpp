@@ -2,15 +2,9 @@
 #include "DictValuePair.h"
 
 
-DictValuePair::DictValuePair(const CString& from/* = CString()*/, const CString& to/* = CString()*/)
-    :   m_from(from),
-        m_to(to)
-{
-}
-
-
-DictValuePair::DictValuePair(std::string from, std::string to/* = std::string()*/)
-    :   DictValuePair(UTF8_TODO::GetCString(from), UTF8_TODO::GetCString(to))
+DictValuePair::DictValuePair(std::string from/* = std::string()*/, std::string to/* = std::string()*/)
+    :   m_from(std::move(from)),
+        m_to(std::move(to))
 {
 }
 
@@ -26,7 +20,7 @@ DictValuePair DictValuePair::CreateFromJson(const JsonNode& json_node)
 {
     if( json_node.Contains(JK::value) )
     {
-        return DictValuePair(json_node.Get<CString>(JK::value));
+        return DictValuePair(json_node.Get<std::string>(JK::value));
     }
 
     else
@@ -34,9 +28,9 @@ DictValuePair DictValuePair::CreateFromJson(const JsonNode& json_node)
         const JsonNodeArray range_node = json_node.GetArray(JK::range);
 
         if( range_node.size() != 2 )
-            throw JsonParseException("Value ranges must contain exactly 2 entries, not %d", static_cast<int>(range_node.size()));
+            throw JsonParseException("Value ranges must contain exactly 2 entries, not %zu", range_node.size());
 
-        return DictValuePair(range_node[0].Get<CString>(), range_node[1].Get<CString>());
+        return DictValuePair(range_node[0].Get<std::string>(), range_node[1].Get<std::string>());
     }
 }
 
@@ -45,16 +39,16 @@ void DictValuePair::WriteJson(JsonWriter& json_writer) const
 {
     json_writer.BeginObject();
 
-    if( m_to.IsEmpty() )
+    if( m_to.empty() )
     {
-        json_writer.Write(JK::value, SO::TrimRight(UTF8_TODO::GetUtf8(m_from)));
+        json_writer.Write(JK::value, SO::TrimRight(m_from));
     }
 
     else
     {
         json_writer.BeginArray(JK::range)
-                   .Write(SO::TrimRight(UTF8_TODO::GetUtf8(m_from)))
-                   .Write(SO::TrimRight(UTF8_TODO::GetUtf8(m_to)))
+                   .Write(SO::TrimRight(m_from))
+                   .Write(SO::TrimRight(m_to))
                    .EndArray();
     }
 

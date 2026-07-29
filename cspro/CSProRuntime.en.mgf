@@ -166,8 +166,8 @@ Language=EN
 1088   Invalid subscript: %s(%f) -- %p
 1089   Invalid subscript in swap: %s(%d and %d), occs = %d -- %p
 
-1100   The parameter %s is invalid
-1101   The parameter %s does not support %d arguments
+1100   The parameter '%s' is invalid
+1101   The parameter '%s' does not support %d arguments
 
 1102   The property %s is read only and cannot be set
 1103   Using the GetProperty function, you can only access %s on items
@@ -179,7 +179,6 @@ Language=EN
 1109   The property '%s' expects a string value, not the number '%s'
 
 2001   Cannot open file: %s
-2004   No memory for corrector data structures
 2013   Record occurrences %s for record %s
 2014   Section occurrences %s for section %s because there is no information in the corresponding level
 
@@ -378,10 +377,10 @@ Language=EN
 47172  You cannot add a value set ('%s') to itself
 
 /* --- Pffs */
-47191  The PFF "%s" does not exist or could not be read
-47192  The PFF is not valid or could not be saved to "%s"
-47194  The PFF property "%s" cannot accept a dictionary argument
-47195  There was an error executing "%s": %s
+47191  The PFF '%s' does not exist or could not be read
+47192  The PFF is not valid or could not be saved to '%s'
+47194  The PFF property '%s' cannot accept a dictionary argument
+47195  There was an error executing '%s': %s
 
 /* --- Text Templates */
 48111  Error generating the text template %s: %s

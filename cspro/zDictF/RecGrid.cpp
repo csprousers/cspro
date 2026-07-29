@@ -553,7 +553,7 @@ void CRecordGrid::UpdateRecItem(const CDictItem& dict_item, int row, COLORREF rg
     QuickSetHBackColor(REC_NOTE_COL, row, GetSysColor(COLOR_BTNFACE));
 
     bool editable = ( rgb == GetSysColor(COLOR_WINDOWTEXT) );
-    bool note_defined = !dict_item.GetNote().IsEmpty();
+    const bool note_defined = !dict_item.GetNote().empty();
 
     QuickSetBitmap(REC_NOTE_COL, row, ( editable && note_defined ) ? m_pNoteYes :
                                       ( editable )                 ? m_pNoteNo :
@@ -1465,8 +1465,8 @@ bool CRecordGrid::EditEnd(bool bSilent)
                     DictLevel& dict_level = m_pDict->GetLevel(level_number);
                     for (int r = 0 ; r < dict_level.GetNumRecords() ; r++) {
                         CDictRecord* pRec = dict_level.GetRecord(r);
-                        CIMSAString csRecTypeVal = pRec->GetRecTypeVal();
-                        pRec->SetRecTypeVal(csRecTypeVal.AdjustLenLeft(m_pDict->GetRecTypeLen(), ZERO));
+                        CIMSAString csRecTypeVal = UTF8_TODO::GetCString(pRec->GetRecTypeVal());
+                        pRec->SetRecTypeVal(UTF8_TODO::GetUtf8(csRecTypeVal.AdjustLenLeft(m_pDict->GetRecTypeLen(), ZERO)));
                         pRec->SetRecLen(dictionary_validator->GetRecordLength(level_number, r));
                     }
                 }
@@ -2620,22 +2620,21 @@ void CRecordGrid::OnEditNotes()
     int iRec = m_aItem[row].rec;
     int iItem = m_aItem[row].item;
     CDictItem* pItem = m_pDict->GetLevel(iLevel).GetRecord(iRec)->GetItem(iItem);
-    CString csTitle, csLabel, csNote;
+    CString csTitle, csLabel;
     csTitle.LoadString(IDS_NOTE_TITLE);
     csLabel = pItem->GetLabel().Left(32);
     if (pItem->GetLabel().GetLength() > 32)  {
         csLabel += _T("...");
     }
     csTitle = _T("Item: ")+ csLabel + csTitle;
-    csNote = pItem->GetNote();
     CNoteDlg dlgNote;
-    dlgNote.SetTitle(csTitle);
-    dlgNote.SetNote(csNote);
+    dlgNote.SetTitle(CS2WS(csTitle));
+    dlgNote.SetNote(pItem->GetNote());
     if (dlgNote.DoModal() == IDOK)  {
-        if (csNote != dlgNote.GetNote()) {
+        if (pItem->GetNote() != dlgNote.GetNote()) {
             CDDDoc* pDoc = assert_cast<CDDDoc*>(assert_cast<CView*>(GetParent())->GetDocument());
             pDoc->PushUndo(*pItem, m_iLevel, m_iRec, iItem);
-            pItem->SetNote(dlgNote.GetNote());
+            pItem->SetNote(dlgNote.ReleaseNote());
             pDoc->SetModified();
         }
     }

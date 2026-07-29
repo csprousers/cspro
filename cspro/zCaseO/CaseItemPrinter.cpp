@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "CaseItemPrinter.h"
 #include "BinaryCaseItem.h"
 #include "NumericCaseItem.h"
@@ -63,7 +63,7 @@ std::string CaseItemPrinter::GetLabel(const CaseItem& case_item, const T& value)
     if constexpr(std::is_same_v<T, std::string>)
     {
         if( case_item.GetDictItem().GetCaptureInfo().GetCaptureType() == CaptureType::CheckBox )
-            return UTF8_TODO::GetUtf8(CheckBoxCaptureInfo::GetResponseLabel(UTF8_TODO::GetCString(value), *value_processor));
+            return CheckBoxCaptureInfo::GetResponseLabel(value, *value_processor);
     }
 
     // otherwise search for the label
@@ -73,7 +73,7 @@ std::string CaseItemPrinter::GetLabel(const CaseItem& case_item, const T& value)
     {
         // for the case tree, only use labels for discrete values
         if( ( m_format != Format::CaseTree ) ||
-            ( dict_value->HasValuePairs() && dict_value->GetValuePair(0).GetTo().IsEmpty() ) )
+            ( dict_value->HasValuePairs() && dict_value->GetValuePair(0).GetTo().empty() ) )
         {
             return UTF8_TODO::GetUtf8(dict_value->GetLabel());
         }

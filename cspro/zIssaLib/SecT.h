@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 //---------------------------------------------------------------------------
 //  File name: SecT.h
@@ -83,7 +83,7 @@ public:
     int     SYMTfvar;                   // Symt entries with first Var  in Sect
     int     SYMTlvar;                   //                   last  Var  in Sect
     int     m_iLevel;                   // Section hierarchy Level      // formerly 'levl'
-    csprochar    code[MAX_RECTYPECODE+1];    // Section identification code
+    wchar_t code[MAX_RECTYPECODE + 1];  // Section identification code
 
     // --- structural limits on occurrences
 private:

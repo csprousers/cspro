@@ -1,9 +1,8 @@
-﻿#include "StandardSystemIncludes.h"
+#include "StandardSystemIncludes.h"
 #include "Tables.h"
 #include "CompIlad.h"
 #include <zUtilO/MemoryHelpers.h>
 #include <zAppO/Application.h>
-#include <zLogicO/Preprocessor.h>
 #include <zLogicO/ProcDirectory.h>
 #include <zEngineO/EngineItem.h>
 #include <zEngineO/ValueSet.h>
@@ -404,8 +403,7 @@ int& CEngineCompFunc::GetLastFoundVariableIndex()
 
 #include <zToolsO/ValueConserver.h>
 
-template<typename CF>
-int CEngineCompFunc::HandleErrors_COMPILER_DLL_TODO(CF callback_function)
+int CEngineCompFunc::HandleErrors_COMPILER_DLL_TODO(const std::function<int()>& callback_function)
 {
     int p = callback_function();
 
@@ -436,14 +434,9 @@ int CEngineCompFunc::tvarsanal_COMPILER_DLL_TODO()
     return HandleErrors_COMPILER_DLL_TODO([&]() { return tvarsanal(); } );
 }
 
-int CEngineCompFunc::rutfunc_COMPILER_DLL_TODO()
+int CEngineCompFunc::instruc_COMPILER_DLL_TODO(const bool allow_multiple_statements)
 {
-    return HandleErrors_COMPILER_DLL_TODO([&]() { return rutfunc(); } );
-}
-
-int CEngineCompFunc::instruc_COMPILER_DLL_TODO(bool create_new_local_symbol_stack, bool allow_multiple_statements)
-{
-    return HandleErrors_COMPILER_DLL_TODO([&]() { return instruc(create_new_local_symbol_stack, allow_multiple_statements); } );
+    return HandleErrors_COMPILER_DLL_TODO([&]() { return instruc(allow_multiple_statements); } );
 }
 
 int CEngineCompFunc::CompileReenterStatement_COMPILER_DLL_TODO(bool bNextTkn)
@@ -462,13 +455,13 @@ void CEngineCompFunc::rutasync_as_global_compilation_COMPILER_DLL_TODO(const Sym
     {
         ValueConserver compilation_index_conserver(InCompIdx, compilation_symbol.GetSymbolIndex());
 
-        SetCompilationSymbol(compilation_symbol);
+        SetCompilationSymbol(&compilation_symbol);
 
         compilation_function();
     };
 
     // COMPILER_DLL_TODO eventually we shouldn't have to mock compilation as an application because uses of ObjInComp should account for Application/Report/UserFunction
-    if( rutasync(Appl.GetSymbolIndex(), &this_compilation_function) )
+    if( rutasync(Appl, &this_compilation_function) )
         ReportError(GetSyntErr());
 }
 
@@ -488,4 +481,11 @@ void CEngineCompFunc::MarkAllDictionaryItemsAsUsed()
         if( pDicT->GetCaseAccess() != nullptr )
             pDicT->GetCaseAccess()->SetUseAllDictionaryItems();
     }
+}
+
+
+void CEngineCompFunc::SetCaseAccessSetRequiresFullAccess_COMPILER_DLL_TODO(Symbol& symbol)
+{
+    ASSERT(symbol.IsA(SymbolType::Pre80Dictionary));
+    assert_cast<DICT&>(symbol).GetCaseAccess()->SetRequiresFullAccess();
 }

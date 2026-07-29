@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zLogicO/zLogicO.h>
 #include <zLogicO/BasicTokenCompiler.h>
@@ -88,7 +88,7 @@ protected:
 
 private:
     static constexpr size_t NumberTokensToBuffer = 200;
-    Token m_tokens[NumberTokensToBuffer];
+    std::unique_ptr<Token[]> m_tokens;
     const Token* m_tokensEnd;
     Token* m_currentToken;
     std::vector<std::string> m_textTokensForProcessText;

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zEngineO/zEngineO.h>
 #include <zUtilO/DataTypes.h>
@@ -18,6 +18,10 @@ public:
 
     // Returns the symbol's dictionary object (if applicable).
     static const DictBase* GetDictBase(const Symbol& symbol);
+
+    // Returns true if the symbol was created by the engine automatically (e.g., a VART),
+    // as opposed to one created by the user (e.g., a WorkString).
+    static bool IsSymbolCreatedAutomatically(const Symbol& symbol);
 
     // Returns whether or not there are multiple labels (in different languages) for the symbol.
     static bool DoMultipleLabelsExist(const Symbol& symbol);
@@ -39,9 +43,10 @@ public:
     // until one with occurrences is found. If no such symbol is found, the function returns null.
     static const Symbol* GetFirstSymbolWithOccurrences(const Symbol&symbol);
 
-    // Returns the one-based level number of the symbol or -1 if none exists. The level number
-    // of the _FF is 0 and the level number of no-level symbols with "code" is 9. These no-level
-    // symbols are Application(PROC GLOBAL), Report, and UserFunction.
+    // Returns the one-based level number of the symbol or -1 if none exists.
+    // The level number of the _FF is 0 and the level number of no-level symbols with "code" is 9.
+    // These no-level symbols are Application(PROC GLOBAL), Report, and UserFunction.
+    static constexpr int NoLevelNumber = 9;
     static int GetLevelNumber_base1(const Symbol& symbol);
 
     // Returns whether the symbol's data is available on this one-based level number.

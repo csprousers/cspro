@@ -335,7 +335,7 @@ CIntDriver::pDoubleFunction CIntDriver::m_pExFuncs[] =
 /*  18 */   &CIntDriver::ex_ge,
 /*  19 */   &CIntDriver::ex_gt,
 /*  20 */   &CIntDriver::ex_equ,
-/*  21 */   &CIntDriver::exstringcompute,
+/*  21 */   &CIntDriver::ex_string_compute,
 /*  22 */   &CIntDriver::ex_WorkVariable_evaluate,
 /*  23 */   &CIntDriver::exif,
 /*  24 */   &CIntDriver::exwhile,
@@ -486,8 +486,8 @@ CIntDriver::pDoubleFunction CIntDriver::m_pExFuncs[] =
 /* 124 */   &CIntDriver::exnmembers,
 /* 125 */   &CIntDriver::exnoopAbort,  // previously exset_output
 /* 126 */   &CIntDriver::exnoopAbort,  // previously exrecord
-/* 127 */   &CIntDriver::exvaluelimit, // minvalue
-/* 128 */   &CIntDriver::exvaluelimit, // maxvalue
+/* 127 */   &CIntDriver::ex_minvalue_maxvalue, // minvalue
+/* 128 */   &CIntDriver::ex_minvalue_maxvalue, // maxvalue
 /* 129 */   &CIntDriver::exfor_group,
 /* 130 */   &CIntDriver::exnoopAbort,  // previously extbd
 /* 131 */   NULL,
@@ -520,8 +520,8 @@ CIntDriver::pDoubleFunction CIntDriver::m_pExFuncs[] =
 /* 157 */   &CIntDriver::exforbreak,       // RHC Sep 04, 2000
 /* 158 */   &CIntDriver::ex_setfile,
 /* 159 */   &CIntDriver::exmaxocc_pre80,
-/* 160 */   &CIntDriver::exinvalueset,
-/* 161 */   &CIntDriver::exsetvalueset,    // RHF Aug 28, 2002
+/* 160 */   &CIntDriver::ex_invalueset,
+/* 161 */   &CIntDriver::ex_setvalueset,   // RHF Aug 28, 2002
 
 // RHF INIC Oct 15, 2004
 /* 162 */   &CIntDriver::exfilecreate,
@@ -554,11 +554,11 @@ CIntDriver::pDoubleFunction CIntDriver::m_pExFuncs[] =
 /* 185 */   &CIntDriver::exuserbar,          // GHM 20100414
 /* 186 */   &CIntDriver::exmessageoverrides, // GHM 20100518
 /* 187 */   &CIntDriver::ex_trace,           // GHM 20100518
-/* 188 */   &CIntDriver::exsetvaluesets,     // GHM 20100523
+/* 188 */   &CIntDriver::ex_setvaluesets,    // GHM 20100523
 /* 189 */   &CIntDriver::ExExecPFF,          // GHM 20100601
 /* 190 */   &CIntDriver::exseek,             // GHM 20100602
-/* 191 */   &CIntDriver::exgetcapturetype,   // GHM 20100608
-/* 192 */   &CIntDriver::exsetcapturetype,   // GHM 20100608
+/* 191 */   &CIntDriver::ex_getcapturetype,  // GHM 20100608
+/* 192 */   &CIntDriver::ex_setcapturetype,  // GHM 20100608
 /* 193 */   &CIntDriver::ex_setfont,         // GHM 20100618
 /* 194 */   &CIntDriver::exorientation,      // GHM 20100618 getorientation
 /* 195 */   &CIntDriver::exorientation,      // GHM 20100618 setorientation
@@ -570,7 +570,7 @@ CIntDriver::pDoubleFunction CIntDriver::m_pExFuncs[] =
 /* 201 */   &CIntDriver::ex_setcapturepos,   // GHM 20110502
 /* 202 */   &CIntDriver::ex_abs,             // GHM 20110721
 /* 203 */   &CIntDriver::ex_randomin,        // GHM 20110721
-/* 204 */   &CIntDriver::exrandomizevs,      // GHM 20110811
+/* 204 */   &CIntDriver::ex_randomizevs,     // GHM 20110811
 /* 205 */   &CIntDriver::ex_getusername,     // GHM 20111028
 /* 206 */   &CIntDriver::exfileempty,        // GHM 20120627
 /* 207 */   &CIntDriver::ex_changekeyboard,  // GHM 20120820
@@ -598,7 +598,7 @@ CIntDriver::pDoubleFunction CIntDriver::m_pExFuncs[] =
 /* 229 */   &CIntDriver::ex_sysparm,         // GHM 20141217
 /* 230 */   &CIntDriver::ex_connection,      // GHM 20150421
 /* 231 */   &CIntDriver::ex_prompt,          // GHM 20150422
-/* 232 */   &CIntDriver::exgetimage,         // GHM 20150809
+/* 232 */   &CIntDriver::ex_getimage,        // GHM 20150809
 /* 233 */   &CIntDriver::ex_round,           // GHM 20150821
 /* 234 */   &CIntDriver::exnoopAbort,        // GHM 20151130 an old implementation of exuuid ... now a publishdate placeholder
 /* 235 */   &CIntDriver::exsavepartial,      // GHM 20151216
@@ -620,13 +620,13 @@ CIntDriver::pDoubleFunction CIntDriver::m_pExFuncs[] =
 /* 251 */   &CIntDriver::exforcase,
 /* 252 */   &CIntDriver::ex_timestamp,
 /* 253 */   &CIntDriver::exkeylist,
-/* 254 */   &CIntDriver::exdiagnostics,
+/* 254 */   &CIntDriver::ex_diagnostics,
 /* 255 */   &CIntDriver::ex_compress,
 /* 256 */   &CIntDriver::ex_decompress,
 /* 257 */   &CIntDriver::exask,
 /* 258 */   &CIntDriver::excountcases,
-/* 259 */   &CIntDriver::exgetproperty,
-/* 260 */   &CIntDriver::exsetproperty,
+/* 259 */   &CIntDriver::ex_getproperty,
+/* 260 */   &CIntDriver::ex_setproperty,
 /* 261 */   &CIntDriver::exlogtext,
 /* 262 */   &CIntDriver::exwarning,
 /* 263 */   &CIntDriver::ex_tr,
@@ -680,11 +680,11 @@ CIntDriver::pDoubleFunction CIntDriver::m_pExFuncs[] =
 /* 311 */   &CIntDriver::ex_List_seek,
 /* 312 */   &CIntDriver::ex_List_show,
 /* 313 */   &CIntDriver::ex_List_compute,
-/* 314 */   &CIntDriver::exvaluesetadd,
-/* 315 */   &CIntDriver::exvaluesetclear,
-/* 316 */   &CIntDriver::exvaluesetremove,
-/* 317 */   &CIntDriver::exvaluesetshow,
-/* 318 */   &CIntDriver::exvaluesetcompute,
+/* 314 */   &CIntDriver::ex_ValueSet_add,
+/* 315 */   &CIntDriver::ex_ValueSet_clear,
+/* 316 */   &CIntDriver::ex_ValueSet_remove,
+/* 317 */   &CIntDriver::ex_ValueSet_show,
+/* 318 */   &CIntDriver::ex_ValueSet_compute,
 /* 319 */   &CIntDriver::exvariablevalue,
 /* 320 */   &CIntDriver::ex_Map_clear_clearButtons_clearGeometry_clearMarkers, // Map.clearMarkers
 /* 321 */   &CIntDriver::ex_Map_clear_clearButtons_clearGeometry_clearMarkers, // Map.clearButtons
@@ -693,14 +693,14 @@ CIntDriver::pDoubleFunction CIntDriver::m_pExFuncs[] =
 /* 324 */   &CIntDriver::ex_Map_getMarkerLatitude_getMarkerLongitude,    // Map.getMarkerLongitude
 /* 325 */   &CIntDriver::ex_Path_concat,
 /* 326 */   &CIntDriver::ex_view,
-/* 327 */   &CIntDriver::expffexec,
-/* 328 */   &CIntDriver::expffgetproperty,
-/* 329 */   &CIntDriver::expffload,
-/* 330 */   &CIntDriver::expffsave,
-/* 331 */   &CIntDriver::expffsetproperty,
-/* 332 */   &CIntDriver::exvaluesetlength,
+/* 327 */   &CIntDriver::ex_Pff_exec,
+/* 328 */   &CIntDriver::ex_Pff_getProperty,
+/* 329 */   &CIntDriver::ex_Pff_load,
+/* 330 */   &CIntDriver::ex_Pff_save,
+/* 331 */   &CIntDriver::ex_Pff_setProperty,
+/* 332 */   &CIntDriver::ex_ValueSet_length,
 /* 333 */   &CIntDriver::ex_ischecked,
-/* 334 */   &CIntDriver::exprotect,
+/* 334 */   &CIntDriver::ex_protect,
 /* 335 */   &CIntDriver::ex_when,
 /* 336 */   &CIntDriver::ex_syncapp,
 /* 337 */   &CIntDriver::exfiletime,
@@ -717,7 +717,7 @@ CIntDriver::pDoubleFunction CIntDriver::m_pExFuncs[] =
 /* 348 */   &CIntDriver::ex_SystemApp_getResult,
 /* 349 */   &CIntDriver::ex_SystemApp_exec,
 /* 350 */   &CIntDriver::ex_startswith,
-/* 351 */   &CIntDriver::expffcompute,
+/* 351 */   &CIntDriver::ex_Pff_compute,
 /* 352 */   &CIntDriver::ex_Audio_clear,
 /* 353 */   &CIntDriver::ex_Audio_concat,
 /* 354 */   &CIntDriver::ex_Audio_load,
@@ -745,7 +745,7 @@ CIntDriver::pDoubleFunction CIntDriver::m_pExFuncs[] =
 /* 376 */   &CIntDriver::ex_HashMap_remove,
 /* 377 */   &CIntDriver::ex_HashMap_getKeys,
 /* 378 */   &CIntDriver::ex_Audio_length,
-/* 379 */   &CIntDriver::exvaluesetsort,
+/* 379 */   &CIntDriver::ex_ValueSet_sort,
 /* 380 */   &CIntDriver::ex_replace,
 /* 381 */   &CIntDriver::ex_inc,
 /* 382 */   &CIntDriver::exuniverse,
@@ -812,7 +812,7 @@ CIntDriver::pDoubleFunction CIntDriver::m_pExFuncs[] =
 /* 443 */   &CIntDriver::ex_Barcode_createQRCode, // Barcode.createQRCode + Image.createQRCode
 /* 444 */   &CIntDriver::exScopeChange,
 /* 445 */   &CIntDriver::exdictaccess,
-/* 446 */   &CIntDriver::ex_WorkString_assign,
+/* 446 */   &CIntDriver::ex_WorkString_compute,
 /* 447 */   &CIntDriver::ex_ActionInvoker,
 /* 448 */   &CIntDriver::ex_Symbol_getName,
 /* 449 */   &CIntDriver::ex_Symbol_getLabel,
@@ -845,6 +845,9 @@ CIntDriver::pDoubleFunction CIntDriver::m_pExFuncs[] =
 /* 476 */   &CIntDriver::ex_Video_width_height, // Video.width
 /* 477 */   &CIntDriver::ex_Video_width_height, // Video.height
 /* 478 */   &CIntDriver::ex_ValueSet_removeDuplicates,
+/* 479 */   &CIntDriver::ex_WorkVariable_compute,
+/* 480 */   &CIntDriver::ex_Array_compute,
+/* 481 */   &CIntDriver::ex_UserFunction_compute,
 
 
             // placeholders to allow new logic functions to be added to an existing serialization
@@ -1466,24 +1469,6 @@ bool CIntDriver::Report_Evaluate_INTERPRETER_DLL_TODO(Report& report)
 }
 
 
-void CIntDriver::ModifySymbolValue_double_INTERPRETER_DLL_TODO(const Nodes::SymbolValue& symbol_value_node, const std::function<void(double&)>& modify_value_function)
-{
-    ModifySymbolValue<double>(symbol_value_node, modify_value_function);
-}
-
-
-bool CIntDriver::AssignValueToSymbol_INTERPRETER_DLL_TODO(const Nodes::SymbolValue& symbol_value_node, const double value)
-{
-    return AssignValueToSymbol(symbol_value_node, value);
-}
-
-
-bool CIntDriver::AssignValueToSymbol_INTERPRETER_DLL_TODO(const Nodes::SymbolValue& symbol_value_node, SharableString value)
-{
-    return AssignValueToSymbol(symbol_value_node, std::move(value));
-}
-
-
 double CIntDriver::RunSoonToBeRemoveFeature(const std::string_view feature_sv, const int program_index, void* /*tag*/)
 {
     if( feature_sv == "prompt_pre77" )
@@ -1515,4 +1500,18 @@ bool CIntDriver::IsExecutionInterrupted() const
 EngineParadataDriver& CIntDriver::GetEngineParadataDriver_INTERPRETER_DLL_TODO()
 {
     return *m_paradataDriver;
+}
+
+
+FrequencyDriver* CIntDriver::GetFrequencyDriver_INTERPRETER_DLL_TODO()
+{
+    ASSERT(m_frequencyDriver != nullptr);
+    return m_frequencyDriver.get();
+}
+
+
+int CIntDriver::SymbolTableSearch_INTERPRETER_DLL_TODO(const std::string_view full_symbol_name_sv, const SymbolType preferred_symbol_type,
+                                                       const std::vector<SymbolType>* const allowable_symbol_types) const
+{
+    return m_pEngineArea->SymbolTableSearch(full_symbol_name_sv, preferred_symbol_type, allowable_symbol_types);
 }

@@ -68,12 +68,6 @@
     <ClCompile Include="..\engine\oexpresc.cpp">
       <Filter>Source Files\de</Filter>
     </ClCompile>
-    <ClCompile Include="..\engine\ParameterManager.cpp">
-      <Filter>Source Files\de</Filter>
-    </ClCompile>
-    <ClCompile Include="..\engine\Preprocessor.cpp">
-      <Filter>Source Files\de</Filter>
-    </ClCompile>
     <ClCompile Include="..\engine\RangeFunctions.cpp">
       <Filter>Source Files\de</Filter>
     </ClCompile>

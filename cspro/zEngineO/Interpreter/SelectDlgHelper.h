@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <engine/ParadataDriver.h>
 #include <zUtilF/SelectDlg.h>
@@ -11,7 +11,7 @@ public:
     SelectDlgHelper(EngineParadataDriver& paradata_driver, SelectDlg& select_dlg,
                     Paradata::OperatorSelectionEvent::Source operator_selection_event_source);
 
-    int GetSingleSelection();
+    size_t GetSingleSelection();
 
     const std::optional<std::set<size_t>>& GetMultipleSelections();
 
@@ -40,12 +40,12 @@ inline SelectDlgHelper::SelectDlgHelper(EngineParadataDriver& paradata_driver, S
 }
 
 
-inline int SelectDlgHelper::GetSingleSelection()
+inline size_t SelectDlgHelper::GetSingleSelection()
 {
     if( m_selectDlg.GetRows().empty() )
         return 0;
 
-    int selected_row_base_one = 0;
+    size_t selected_row_base_one = 0;
 
     if( m_selectDlg.DoModalOnUIThread() == IDOK )
     {

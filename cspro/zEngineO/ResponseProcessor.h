@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zEngineO/zEngineO.h>
 #include <zToolsO/CSProException.h>
@@ -30,18 +30,18 @@ public:
     void SetCanEnterNotAppl(bool add_notappl);
 
     // for radio buttons, drop downs, combo boxes, and toggle buttons
-    size_t GetResponseIndex(const CString& value) const;
+    size_t GetResponseIndex(std::string_view value_sv) const;
 
-    CString GetInputFromResponseIndex(size_t index) const;
+    std::string GetInputFromResponseIndex(size_t index) const;
     double GetNumericInputFromResponseIndex(size_t index) const;
 
     // for checkboxes
-    int GetCheckboxWidth() const;
+    size_t GetCheckboxWidth() const;
     size_t GetCheckboxMaxSelections() const;
 
-    std::vector<size_t> GetCheckboxResponseIndices(const CString& value) const;
+    std::vector<size_t> GetCheckboxResponseIndices(std::string_view value_sv) const;
 
-    CString GetInputFromCheckboxIndices(const std::vector<size_t>& indices) const;
+    std::string GetInputFromCheckboxIndices(const std::vector<size_t>& indices) const;
 
     // other operations
     void ResetResponses();
@@ -61,7 +61,7 @@ private:
 private:
     struct CheckboxCalculations
     {
-        int checkbox_width;
+        size_t checkbox_width;
         size_t max_selections;
     };
 

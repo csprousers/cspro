@@ -72,6 +72,12 @@ CDataDict::CDataDict(const CDataDict& rhs)
 }
 
 
+bool CDataDict::UseNewSymbols() const // ENGINECR_TODO remove
+{
+    return ( m_note.find("UseNewSymbols") == 0 );
+}
+
+
 /////////////////////////////////////////////////////////////////////////////
 //
 //                           CDataDict::GetNumRecords
@@ -199,7 +205,7 @@ void CDataDict::BuildNameList()
                 AddToNameList(*dict_item, level_number, r, i);
 
                 int v = 0;
-                for( const auto& dict_value_set : dict_item->GetValueSets() )
+                for( const DictValueSet& dict_value_set : dict_item->GetValueSets() )
                 {
                     AddToNameList(dict_value_set, level_number, r, i, v);
                     v++;
@@ -262,7 +268,7 @@ void CDataDict::UpdateNameList(int iLevel, int iRec)
         AddToNameList(*dict_item, iLevel, iRec, i);
 
         int v = 0;
-        for( const auto& dict_value_set : dict_item->GetValueSets() )
+        for( const DictValueSet& dict_value_set : dict_item->GetValueSets() )
         {
             AddToNameList(dict_value_set, iLevel, iRec, i, v);
             ++v;
@@ -494,10 +500,12 @@ const DictNamedBase* CDataDict::LookupName(const std::string& name) const
 
     if( LookupName(name, &dict_level, &dict_record, &dict_item, &dict_value_set) )
     {
-        return ( dict_level != nullptr )  ? static_cast<const DictNamedBase*>(dict_level) :
-               ( dict_record != nullptr ) ? static_cast<const DictNamedBase*>(dict_record) :
-               ( dict_item != nullptr )   ? static_cast<const DictNamedBase*>(dict_item) :
-                                            static_cast<const DictNamedBase*>(dict_value_set);
+        ASSERT(dict_level != nullptr);
+
+        return ( dict_value_set != nullptr ) ? static_cast<const DictNamedBase*>(dict_value_set) :
+               ( dict_item != nullptr )      ? static_cast<const DictNamedBase*>(dict_item) :
+               ( dict_record != nullptr )    ? static_cast<const DictNamedBase*>(dict_record) :
+             /*( dict_level != nullptr )*/     static_cast<const DictNamedBase*>(dict_level);
     }
 
     return nullptr;
@@ -676,7 +684,7 @@ bool CDataDict::Find(bool bNext, bool bCaseSensitive, const std::string& find_te
 
                         // Check id item value set value labels
                         for (int iV = std::max(iValue,0) ; iV < (int)dict_value_set.GetNumValues() ; iV++) {
-                            const auto& dict_value = dict_value_set.GetValue(iV);
+                            const DictValue& dict_value = dict_value_set.GetValue(iV);
                             csLabel = dict_value.GetLabel();
                             if (!bCaseSensitive) {
                                 csLabel.MakeUpper();
@@ -765,7 +773,7 @@ bool CDataDict::Find(bool bNext, bool bCaseSensitive, const std::string& find_te
 
                         // check record item value set value labels
                        for (int iV = std::max(iValue,0) ; iV < (int)dict_value_set.GetNumValues() ; iV++) {
-                            const auto& dict_value = dict_value_set.GetValue(iV);
+                            const DictValue& dict_value = dict_value_set.GetValue(iV);
                             csLabel = dict_value.GetLabel();
                             if (!bCaseSensitive) {
                                 csLabel.MakeUpper();
@@ -810,7 +818,7 @@ bool CDataDict::Find(bool bNext, bool bCaseSensitive, const std::string& find_te
                         const DictValueSet& dict_value_set = pItem->GetValueSet(iVS);
                         int iLastValue = (int)dict_value_set.GetNumValues() - 1;
                         for (int iV = std::min(iValue,iLastValue) ; iV >= 0 ; iV--) {
-                            const auto& dict_value = dict_value_set.GetValue(iV);
+                            const DictValue& dict_value = dict_value_set.GetValue(iV);
                             csLabel = dict_value.GetLabel();
                             if (!bCaseSensitive) {
                                 csLabel.MakeUpper();
@@ -895,7 +903,7 @@ bool CDataDict::Find(bool bNext, bool bCaseSensitive, const std::string& find_te
                     const DictValueSet& dict_value_set = pItem->GetValueSet(iVS);
                     int iLastValue = (int)dict_value_set.GetNumValues() - 1;
                     for (int iV = std::min(iValue,iLastValue) ; iV >= 0 ; iV--) {
-                        const auto& dict_value = dict_value_set.GetValue(iV);
+                        const DictValue& dict_value = dict_value_set.GetValue(iV);
                         csLabel = dict_value.GetLabel();
                         if (!bCaseSensitive) {
                             csLabel.MakeUpper();
@@ -1944,9 +1952,9 @@ void CDataDict::serialize(Serializer& ar)
     DictNamedBase::serialize(ar);
 
     if( ar.PredatesVersionIteration(Serializer::Iteration_8_0_000_1) )
-        SetNote(ar.Read<CString>());
+        SetNote(ar.Read<std::string>());
 
-    ar.IgnoreUnusedVariable<CString>(Serializer::Iteration_8_0_000_1); // m_csError
+    ar.IgnoreUnusedVariable<std::string>(Serializer::Iteration_8_0_000_1); // m_csError
 
     ar & m_uRecTypeStart;
     ar & m_uRecTypeLen;
