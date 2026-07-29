@@ -107,6 +107,7 @@
     <ClCompile Include="Interpreter\GeometryRT.cpp" />
     <ClCompile Include="Interpreter\HashMapRT.cpp" />
     <ClCompile Include="Interpreter\ImageRT.cpp" />
+    <ClCompile Include="Interpreter\InstructionsRT.cpp" />
     <ClCompile Include="Interpreter\ItemRT.cpp" />
     <ClCompile Include="Interpreter\JavaScriptRT.cpp" />
     <ClCompile Include="Interpreter\JsonRT.cpp" />

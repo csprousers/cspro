@@ -296,6 +296,9 @@
     <ClCompile Include="Interpreter\ImageRT.cpp">
       <Filter>Source Files\Interpreter</Filter>
     </ClCompile>
+    <ClCompile Include="Interpreter\InstructionsRT.cpp">
+      <Filter>Source Files\Interpreter</Filter>
+    </ClCompile>
     <ClCompile Include="Interpreter\ItemRT.cpp">
       <Filter>Source Files\Interpreter</Filter>
     </ClCompile>

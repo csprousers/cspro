@@ -123,6 +123,7 @@ add_library(${PROJECT_NAME}
     Interpreter/GeometryRT.cpp
     Interpreter/HashMapRT.cpp
     Interpreter/ImageRT.cpp
+    Interpreter/InstructionsRT.cpp
     Interpreter/ItemRT.cpp
     Interpreter/JavaScriptRT.cpp
     Interpreter/JsonRT.cpp
