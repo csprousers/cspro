@@ -232,6 +232,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zMarkdown", "zMarkdown\zMar
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zViewO", "zViewO\zViewO.vcxproj", "{27008D1D-BBBC-4506-8679-BE5DB42026BC}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TestData", "tests\TestData\TestData.vcxproj", "{A17660D8-1F3F-4A4A-BB2D-E14B5A0FB711}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -1080,12 +1082,21 @@ Global
 		{27008D1D-BBBC-4506-8679-BE5DB42026BC}.Release|Win32.Build.0 = Release|Win32
 		{27008D1D-BBBC-4506-8679-BE5DB42026BC}.Release|x64.ActiveCfg = Release|x64
 		{27008D1D-BBBC-4506-8679-BE5DB42026BC}.Release|x64.Build.0 = Release|x64
+		{A17660D8-1F3F-4A4A-BB2D-E14B5A0FB711}.Debug|Win32.ActiveCfg = Debug|Win32
+		{A17660D8-1F3F-4A4A-BB2D-E14B5A0FB711}.Debug|Win32.Build.0 = Debug|Win32
+		{A17660D8-1F3F-4A4A-BB2D-E14B5A0FB711}.Debug|x64.ActiveCfg = Debug|x64
+		{A17660D8-1F3F-4A4A-BB2D-E14B5A0FB711}.Debug|x64.Build.0 = Debug|x64
+		{A17660D8-1F3F-4A4A-BB2D-E14B5A0FB711}.Release|Win32.ActiveCfg = Release|Win32
+		{A17660D8-1F3F-4A4A-BB2D-E14B5A0FB711}.Release|Win32.Build.0 = Release|Win32
+		{A17660D8-1F3F-4A4A-BB2D-E14B5A0FB711}.Release|x64.ActiveCfg = Release|x64
+		{A17660D8-1F3F-4A4A-BB2D-E14B5A0FB711}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{AEDF1E07-2EA8-4A0B-871B-56557B81B397} = {103EC497-E9E2-4F64-AC64-913DABC2C39E}
+		{A17660D8-1F3F-4A4A-BB2D-E14B5A0FB711} = {103EC497-E9E2-4F64-AC64-913DABC2C39E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {BE013A27-67B4-4FD5-8B62-D848C3BBFEEF}
