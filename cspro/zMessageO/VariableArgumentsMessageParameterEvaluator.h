@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zMessageO/MessageParameterEvaluator.h>
 
@@ -6,34 +6,38 @@
 class VariableArgumentsMessageParameterEvaluator : public MessageParameterEvaluator
 {
 public:
-    VariableArgumentsMessageParameterEvaluator(va_list parg = va_list())
+    VariableArgumentsMessageParameterEvaluator(va_list* const parg = nullptr)
         :   m_parg(parg)
     {
     }
 
-    void Reset(va_list parg)
+    void Reset(va_list* const parg)
     {
         m_parg = parg;
     }
 
     int GetInteger() override
     {
-        return va_arg(m_parg, int);
+        ASSERT(m_parg != nullptr);
+        return va_arg(*m_parg, int);
     }
 
     double GetDouble() override
     {
-        return va_arg(m_parg, double);
+        ASSERT(m_parg != nullptr);
+        return va_arg(*m_parg, double);
     }
 
     SharableString GetString() override
     {
-        return SharableString(va_arg(m_parg, const char*));
+        ASSERT(m_parg != nullptr);
+        return SharableString(va_arg(*m_parg, const char*));
     }
 
     std::variant<int, SharableString> GetChar() override
     {
-        return va_arg(m_parg, int);
+        ASSERT(m_parg != nullptr);
+        return va_arg(*m_parg, int);
     }
 
     SharableString GetProc() override
@@ -52,5 +56,5 @@ public:
     }
 
 private:
-    va_list m_parg;
+    va_list* m_parg;
 };
