@@ -31,6 +31,7 @@ public:
     virtual double ConvertNumberFromEngineFormat(double value) const = 0;
 
     // ValueProcessor overrides
+    using ValueProcessor::IsValid;
     using ValueProcessor::GetDictValue;
 
     const DictValue* GetDictValueFromInput(std::string_view value_sv) const override final;

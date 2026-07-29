@@ -35,8 +35,16 @@
       <Project>{b33d6166-52a8-453e-837e-e23b233149e9}</Project>
       <Private>false</Private>
     </ProjectReference>
+    <ProjectReference Include="..\..\zEngineO\zEngineO.vcxproj">
+      <Project>{45dadbf6-072a-4a5f-94b3-39fb607807f2}</Project>
+      <Private>false</Private>
+    </ProjectReference>
     <ProjectReference Include="..\..\zToolsO\zToolsO.vcxproj">
       <Project>{fb0e28ec-927d-41d0-996c-01c21a7a346b}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\zUtilO\zUtilO.vcxproj">
+      <Project>{9b29cb57-8263-4e12-8908-cc9641fdf0dc}</Project>
       <Private>false</Private>
     </ProjectReference>
   </ItemGroup>

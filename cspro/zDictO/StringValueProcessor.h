@@ -16,6 +16,8 @@ protected:
     using ValueProcessor::ValueProcessor;
 
     // ValueProcessor overrides
+public:
+    using ValueProcessor::IsValid;
     using ValueProcessor::GetDictValue;
 
     const DictValue* GetDictValueFromInput(std::string_view value_sv) const override final;

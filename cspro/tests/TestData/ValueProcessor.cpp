@@ -2,6 +2,9 @@
 #include <zDictO/NumericValueProcessor.h>
 #include <zDictO/StringValueProcessor.h>
 #include <zDictO/ValueSetResponse.h>
+#include <zEngineO/EngineData.h>
+#include <zEngineO/ValueSet.h>
+#include <tests/TestEngine/DummyEngineAccessor.h>
 
 
 TEST_CLASS(ValueProcessorTest)
@@ -9,9 +12,11 @@ TEST_CLASS(ValueProcessorTest)
 public:
     TEST_METHOD(NumericDictionaryItem);
     TEST_METHOD(NumericDictionaryValueSet);
+    TEST_METHOD(NumericDynamicValueSet);
 
     TEST_METHOD(StringDictionaryItem);
     TEST_METHOD(StringDictionaryValueSet);
+    TEST_METHOD(StringDynamicValueSet);
 
 private:
     TEST_METHOD_INITIALIZE(ReadDictionary);
@@ -268,6 +273,64 @@ void ValueProcessorTest::NumericDictionaryValueSet()
 }
 
 
+void ValueProcessorTest::NumericDynamicValueSet()
+{
+    EngineData engine_data(std::make_unique<DummyEngineAccessor>());
+
+    DynamicValueSet value_set("vs", engine_data);
+    Assert::IsTrue(value_set.IsNumeric());
+
+    std::shared_ptr<const NumericValueProcessor> value_processor =
+        std::dynamic_pointer_cast<const NumericValueProcessor, const ValueProcessor>(
+            value_set.GetSharedValueProcessor()
+        );
+    Assert::IsNotNull(value_processor.get());
+
+    // test special values and discretes
+    Assert::IsTrue(value_processor->GetMinValue() == DEFAULT);
+    Assert::IsTrue(value_processor->GetMaxValue() == DEFAULT);
+    Assert::IsFalse(value_processor->IsValid(REFUSED));
+    Assert::IsFalse(value_processor->IsValid(9));
+
+    value_set.AddValue("", "", PortableColor(), 9, REFUSED);
+    Assert::IsTrue(value_processor->GetMinValue() == DEFAULT);
+    Assert::IsTrue(value_processor->GetMaxValue() == DEFAULT);
+    Assert::IsTrue(value_processor->IsValid(REFUSED));
+    Assert::IsFalse(value_processor->IsValid(9));
+
+    value_set.AddValue("", "", PortableColor(), -1.1, std::nullopt);
+    Assert::IsTrue(value_processor->GetMinValue() == -1.1);
+    Assert::IsTrue(value_processor->GetMaxValue() == -1.1);
+    Assert::IsTrue(value_processor->IsValid(-1.1));
+    Assert::IsFalse(value_processor->IsValid(3.3));
+
+    value_set.AddValue("", "", PortableColor(), 3.3, std::nullopt);
+    value_set.AddValue("five-five", "", PortableColor(), 5.5, std::nullopt);
+    Assert::IsTrue(value_processor->GetMinValue() == -1.1);
+    Assert::IsTrue(value_processor->GetMaxValue() == 5.5);
+    Assert::IsTrue(value_processor->IsValid(-1.1));
+    Assert::IsTrue(value_processor->IsValid(3.3));
+    Assert::IsTrue(value_processor->IsValid(REFUSED));
+    Assert::IsFalse(value_processor->IsValid(9));
+    Assert::IsNotNull(value_processor->GetDictValue(5.5));
+    Assert::IsNotNull(value_processor->GetDictValue(REFUSED));
+    Assert::IsNull(value_processor->GetDictValue(9));
+
+    Assert::IsTrue(value_processor->GetDictValueByLabel("five-five")->GetValuePair(0).GetFrom() == "5.5");
+    Assert::IsNull(value_processor->GetDictValueByLabel("six-seven"));
+
+    // test ranges
+    value_set.AddValue("", "", PortableColor(), -40, 40);
+    value_set.AddValue("", "", PortableColor(), 44, 45);
+    Assert::IsTrue(value_processor->GetMinValue() == -40);
+    Assert::IsTrue(value_processor->GetMaxValue() == 45);
+    Assert::IsTrue(value_processor->IsValid(9));
+    Assert::IsFalse(value_processor->IsValid(43));
+    Assert::IsNotNull(value_processor->GetDictValue(9));
+    Assert::IsNull(value_processor->GetDictValue(43));
+}
+
+
 void ValueProcessorTest::StringDictionaryItem()
 {
     std::shared_ptr<const StringItemValueProcessor> value_processor;
@@ -335,4 +398,47 @@ void ValueProcessorTest::StringDictionaryValueSet()
     Assert::IsTrue(responses[1]->GetLabel() == u8"Yaoundé 2");
     Assert::IsTrue(responses[4]->GetLabel() == "Chinese Cities");
     Assert::IsTrue(responses[4]->GetCode() == u8"北京");
+}
+
+
+void ValueProcessorTest::StringDynamicValueSet()
+{
+    EngineData engine_data(std::make_unique<DummyEngineAccessor>());
+
+    DynamicValueSet value_set("vs", engine_data);
+    value_set.SetNumeric(false);
+
+    std::shared_ptr<const StringValueProcessor> value_processor =
+        std::dynamic_pointer_cast<const StringValueProcessor, const ValueProcessor>(
+            value_set.GetSharedValueProcessor()
+        );
+    Assert::IsNotNull(value_processor.get());
+
+    value_set.AddValue("Alpha", "", PortableColor(), "A");
+    value_set.AddValue("Bravo", "", PortableColor(), "B ");
+    value_set.AddValue("Charlie", "", PortableColor(), "C  ");
+
+    // the values added to dynamic string value sets are all right-trimmed, so unlike
+    // value set-based value processors, the padding routine does not account for input
+    // values that have too many spaces
+    Assert::IsTrue(value_processor->IsValid("A", true));
+    Assert::IsTrue(value_processor->IsValid("A", false));
+    Assert::IsTrue(value_processor->IsValid("B", true));
+    Assert::IsFalse(value_processor->IsValid("B ", false));
+    Assert::IsTrue(value_processor->IsValid("A      ", true));
+    Assert::IsFalse(value_processor->IsValid("A      ", false));
+    Assert::IsFalse(value_processor->IsValid("D"));
+
+    Assert::IsNotNull(value_processor->GetDictValue("A", true));
+    Assert::IsNotNull(value_processor->GetDictValue("A", false));
+    Assert::IsNotNull(value_processor->GetDictValue("B", true));
+    Assert::IsNull(value_processor->GetDictValue("B ", false));
+    Assert::IsNotNull(value_processor->GetDictValue("A      ", true));
+    Assert::IsNull(value_processor->GetDictValue("A      ", false));
+    Assert::IsNull(value_processor->GetDictValue("D"));
+
+    Assert::IsTrue(value_processor->GetDictValue("C       ")->GetValuePair(0).GetFrom() == "C");
+
+    Assert::IsNotNull(value_processor->GetDictValueByLabel("Alpha"));
+    Assert::IsNull(value_processor->GetDictValueByLabel("Delta"));
 }
