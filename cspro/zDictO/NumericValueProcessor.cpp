@@ -52,7 +52,9 @@ std::string NumericValueProcessor::GetOutput(std::string value) const
 // --------------------------------------------------------------------------
 
 NumericItemValueProcessor::NumericItemValueProcessor(const CDictItem* const dict_item, const DictValueSet* const dict_value_set)
-    :   NumericValueProcessor(dict_item, dict_value_set)
+    :   NumericValueProcessor(dict_item, dict_value_set),
+        m_minValue(DEFAULT),
+        m_maxValue(DEFAULT)
 {
     ASSERT(m_dictItem != nullptr && m_dictItem->GetContentType() == ContentType::Numeric);
 }
@@ -193,22 +195,24 @@ inline void NumericValueSetValueProcessor::CalculateData() const
 void NumericValueSetValueProcessor::CreateData()
 {
     ASSERT(m_data == nullptr && m_responses.empty());
+    ASSERT(m_minValue == DEFAULT && m_maxValue == DEFAULT);
 
     m_data = std::make_unique<Data>();
 
-    std::optional<double> min_value;
-    std::optional<double> max_value;
+    bool first_min_max_update = true;
 
     auto update_min_max = [&](double value)
     {
         // special values are not counted as min/max values
         if( !IsSpecial(value) )
         {
-            if( !min_value.has_value() || value < *min_value )
-                min_value = value;
+            if( first_min_max_update || value < m_minValue )
+                m_minValue = value;
 
-            if( !max_value.has_value() || value > *max_value )
-                max_value = value;
+            if( first_min_max_update || value > m_maxValue )
+                m_maxValue = value;
+
+            first_min_max_update = false;
         }
     };
 
@@ -249,10 +253,6 @@ void NumericValueSetValueProcessor::CreateData()
     // sort the ranges
     std::sort(m_data->ranges.begin(), m_data->ranges.end(),
               [](const auto& lhs, const auto& rhs) { return ( lhs.from < rhs.from ); });
-
-    // if the min and max values weren't modified (because the value set only had special values), make the values DEFAULT
-    m_minValue = min_value.value_or(DEFAULT);
-    m_maxValue = max_value.value_or(DEFAULT);
 }
 
 

@@ -500,10 +500,12 @@ const DictNamedBase* CDataDict::LookupName(const std::string& name) const
 
     if( LookupName(name, &dict_level, &dict_record, &dict_item, &dict_value_set) )
     {
-        return ( dict_level != nullptr )  ? static_cast<const DictNamedBase*>(dict_level) :
-               ( dict_record != nullptr ) ? static_cast<const DictNamedBase*>(dict_record) :
-               ( dict_item != nullptr )   ? static_cast<const DictNamedBase*>(dict_item) :
-                                            static_cast<const DictNamedBase*>(dict_value_set);
+        ASSERT(dict_level != nullptr);
+
+        return ( dict_value_set != nullptr ) ? static_cast<const DictNamedBase*>(dict_value_set) :
+               ( dict_item != nullptr )      ? static_cast<const DictNamedBase*>(dict_item) :
+               ( dict_record != nullptr )    ? static_cast<const DictNamedBase*>(dict_record) :
+             /*( dict_level != nullptr )*/     static_cast<const DictNamedBase*>(dict_level);
     }
 
     return nullptr;
