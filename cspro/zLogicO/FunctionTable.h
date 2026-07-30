@@ -193,7 +193,7 @@ enum FunctionCode : int
     FNUPDATE_CODE                           = 138, // RHF Nov 17, 2000
     FNWRITE_CODE                            = 139, // RHF Dec 16, 2000
     FOR_RELATION_CODE                       = 141, // RHC Sep 20, 2001
-    REL_CODE                                = 142, // RHC Sep 20, 2001
+    REL_CODE                                = 142, // RHC Sep 20, 2001 no function associated
     FNGETBUFFER_CODE                        = 143, // RHF Sep 21, 2001
     FNINSERT_CODE                           = 144, // Chirag Jul 22, 2002
     FNDELETE_CODE                           = 145, // Chirag Sep 11, 2002

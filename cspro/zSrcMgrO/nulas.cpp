@@ -26,7 +26,7 @@ CIntDriver::CIntDriver(CEngineDriver& engine_driver)
 
 CIntDriver::~CIntDriver() { ASSERT(false); }
 
-double CIntDriver::evalexpr_INTERPRETER_DLL_TODO(const int program_index) { return ReturnProgrammingError(0); }
+double CIntDriver::evalexpr_INTERPRETER_DLL_TODO(double (CIntDriver::*instruction)(int), int program_index) { return ReturnProgrammingError(0); }
 void CIntDriver::RegisterAndLogEvent_INTERPRETER_DLL_TODO(std::shared_ptr<Paradata::Event> event, const void* instance_object) { ASSERT(false); }
 void CIntDriver::IssueMessageWorker(MessageType message_type, int message_number, ...) { ASSERT(false); }
 std::string CIntDriver::GetFormattedMessageWorker(int message_number, ...) { return ReturnProgrammingError(""); }

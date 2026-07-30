@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 
 #ifdef WIN32
@@ -11,6 +11,7 @@
 #pragma warning(error:4172) // returning address of local variable or temporary
 #pragma warning(error:4238) // nonstandard extension used: class rvalue used as lvalue
 #pragma warning(error:4239) // nonstandard extension used : 'token' : conversion from 'type' to 'type'
+#pragma warning(error:4273) // 'function' : inconsistent DLL linkage
 #pragma warning(error:4297) // 'function' : function assumed not to throw an exception but does
 #pragma warning(error:4456) // declaration of 'identifier' hides previous local declaration
 #pragma warning(error:4457) // declaration of 'identifier' hides function parameter

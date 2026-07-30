@@ -12,6 +12,7 @@
 
 class ApplicationInterface;
 class BinarySymbol;
+class CIntDriver;
 class ConnectionString;
 enum class EncodeType : int;
 class EngineParadataDriver;
@@ -69,6 +70,22 @@ public:
 
 protected:
     const LogicByteCode& m_logicByteCode;
+
+
+    // --------------------------------------------------------------------------
+    // instruction routines
+    // (InstructionsRT.cpp)
+    // --------------------------------------------------------------------------
+public:
+    double ExecuteInstruction(FunctionCode function_code, int program_index);
+    double ExecuteInstruction(int program_index);
+
+protected:
+    using Instruction = std::variant<double (LogicInterpreter::*)(int), double (CIntDriver::*)(int)>;
+    static Instruction m_instructions[];
+
+    static size_t MaxInstructionCode_EV_TODO;
+    double ex_unimplemented_LogicInterpreter(int program_index);
 
 
     // --------------------------------------------------------------------------
@@ -790,7 +807,7 @@ protected:
     // INTERPRETER_DLL_TODO...
     // --------------------------------------------------------------------------
 private:
-    virtual double evalexpr_INTERPRETER_DLL_TODO(int program_index) = 0;
+    virtual double evalexpr_INTERPRETER_DLL_TODO(double (CIntDriver::*instruction)(int), int program_index) = 0;
     virtual void RegisterAndLogEvent_INTERPRETER_DLL_TODO(std::shared_ptr<Paradata::Event> event, const void* instance_object = nullptr) = 0;
     virtual SharableString EvaluateTextFill(int program_index) = 0; // INTERPRETER_DLL_TODO remove as virtual
     virtual bool Report_Evaluate_INTERPRETER_DLL_TODO(Report& report) = 0; // INTERPRETER_DLL_TODO remove as virtual
@@ -838,12 +855,29 @@ const NodeType& LogicInterpreter::GetNode(const int program_index) const
 }
 
 
+inline double LogicInterpreter::ExecuteInstruction(const FunctionCode function_code, const int program_index)
+{
+    const Instruction& instruction = m_instructions[static_cast<size_t>(function_code)];
+    ASSERT(instruction.index() == 1 || std::get<0>(instruction) != nullptr);
+
+    return ( instruction.index() == 0 ) ? (this->*(std::get<0>(instruction)))(program_index) :
+                                          evalexpr_INTERPRETER_DLL_TODO(std::get<1>(instruction), program_index);
+}
+
+
+inline double LogicInterpreter::ExecuteInstruction(const int program_index)
+{
+    const int* const function_code_ptr = m_logicByteCode.GetCodeAtPosition(program_index);
+    return ExecuteInstruction(static_cast<FunctionCode>(*function_code_ptr), program_index);
+}
+
+
 template<typename T>
 T LogicInterpreter::Evaluate(const int program_index)
 {
     if      constexpr(std::is_same_v<T, SharableString>) { return EvaluateSharableString(program_index); }
     else if constexpr(std::is_same_v<T, std::string>)    { return EvaluateString(program_index); }
-    else                                                 { return static_cast<T>(evalexpr_INTERPRETER_DLL_TODO(program_index)); }
+    else                                                 { return static_cast<T>(ExecuteInstruction(program_index)); }
 }
 
 

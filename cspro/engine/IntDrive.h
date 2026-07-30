@@ -125,10 +125,6 @@ private:
 private:
     std::vector<std::unique_ptr<std::tuple<CIntDriver&, UserFunction&>>> m_sqlCallbackFunctions;
 
-    // --- functions' array
-private:
-    using pDoubleFunction = double (CIntDriver::*)(int);
-    static pDoubleFunction m_pExFuncs[];
 
     // --- engine links
 public:
@@ -156,6 +152,8 @@ public:
     void StopApplication();
 
 private:
+    void AddIntDriverInstructions();
+
     void EvaluateApplicationStartupJavaScript();
 
 public:
@@ -955,7 +953,7 @@ private:
     // --------------------------------------------------------------------------
     // INTERPRETER_DLL_TODO...
     // --------------------------------------------------------------------------
-    double evalexpr_INTERPRETER_DLL_TODO(int program_index) override;
+    double evalexpr_INTERPRETER_DLL_TODO(double (CIntDriver::*instruction)(int), int program_index) override;
     void RegisterAndLogEvent_INTERPRETER_DLL_TODO(std::shared_ptr<Paradata::Event> event, const void* instance_object = nullptr) override;
     void IssueMessageWorker(MessageType message_type, int message_number, ...) override;
     std::string GetFormattedMessageWorker(int message_number, ...) override;
@@ -996,8 +994,7 @@ private:
 template<typename T/* = double*/>
 T CIntDriver::evalexpr(const int program_index)
 {
-    const int* const function_code_ptr = m_logicByteCode.GetCodeAtPosition(program_index);
-    return static_cast<T>((this->*m_pExFuncs[*function_code_ptr])(program_index));
+    return static_cast<T>(ExecuteInstruction(program_index));
 }
 
 
