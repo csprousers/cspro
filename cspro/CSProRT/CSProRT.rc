@@ -95,8 +95,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 8,1,2,0
- PRODUCTVERSION 8,1,2,0
+ FILEVERSION 8,1,3,0
+ PRODUCTVERSION 8,1,3,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -113,11 +113,11 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "U.S. Census Bureau"
             VALUE "FileDescription", "CSPro Runtime"
-            VALUE "FileVersion", "8.1.2.0"
+            VALUE "FileVersion", "8.1.3.0"
             VALUE "InternalName", "CSProRT"
             VALUE "OriginalFilename", "CSProRT.exe"
             VALUE "ProductName", "CSPro 8.1"
-            VALUE "ProductVersion", "8.1.2.0"
+            VALUE "ProductVersion", "8.1.3.0"
         END
     END
     BLOCK "VarFileInfo"
