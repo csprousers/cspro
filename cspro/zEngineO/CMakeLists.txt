@@ -19,6 +19,7 @@ add_library(${PROJECT_NAME}
     EngineDictionary.cpp
     EngineItem.cpp
     EngineRecord.cpp
+    EngineValue.cpp
     File.cpp
     Flow.cpp
     Geometry.cpp
