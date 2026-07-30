@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include <zUtilO/ArrUtil.h>
 #include <zEditO/LogicView.h>
 #include <zLogicO/ActionInvoker.h>
@@ -36,7 +36,7 @@ namespace
             spaces -= 2;
         }
 
-        reference_text.AppendFormat(L"%s%s%s\n", UTF8_TODO::GetWide(SO::GetRepeatingCharacterString(' ', spaces)).c_str(), add_arrow ? L"` " : L"", text_to_add);
+        reference_text.AppendFormat(L"%s%s%s\n", UTF8_TODO::GetWide(SO::GetRepeatingCharacterString(' ', spaces)).c_str(), add_arrow ? L"` " : L"", text_to_add.c_str());
     }
 
     void AddCommaSeparatedList(CString& reference_text, const std::vector<CString>& list)
