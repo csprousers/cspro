@@ -10,7 +10,8 @@ namespace Engine { class Value; }
 // Engine::Value is a wrapper around values returned the interpreter's
 // instructions. The engine value can be:
 //
-// - double: numeric
+// - double         | decimal values
+// - SharableString | string values
 // --------------------------------------------------------------------------
 
 class Engine::Value
@@ -21,24 +22,32 @@ public:
     // --------------------------------------------------------------------------
 
     Engine::Value(double value) noexcept;
+    Engine::Value(SharableString value) noexcept;
 
 
     // --------------------------------------------------------------------------
     // Access methods.
     // --------------------------------------------------------------------------
 
+    // Returns true if the value is of the specified type.
+    template<typename T>
+    [[nodiscard]] bool is() const noexcept;
+
     // Returns the value if it is of the specified type, throwing an
     // exception if the value is not of the specified type.
     template<typename T>
-    const T& get() const &;
+    [[nodiscard]] const T& get() const &;
 
     template<typename T>
-    T get() &&;
+    [[nodiscard]] T get() &&;
 
     // Casts the value to the specified type, throwing an exception
     // if an implicit conversion is not possible.
     template<typename T>
-    T as();
+    [[nodiscard]] T as() const &;
+
+    template<typename T>
+    [[nodiscard]] T as() &&;
 
 
     // --------------------------------------------------------------------------
@@ -46,7 +55,7 @@ public:
     // --------------------------------------------------------------------------
 
     // Converts the value to a string representation for display.
-    ZENGINEO_API SharableString ToString() const;
+    ZENGINEO_API [[nodiscard]] SharableString ToString() const;
 
 
     // --------------------------------------------------------------------------
@@ -66,7 +75,7 @@ private:
     ZENGINEO_API static const char* GetTypeText();
 
     template<typename ExceptionT, typename T>
-    ExceptionT CreateException() const;
+    [[nodiscard]] ExceptionT CreateException() const;
 
     ZENGINEO_API std::string CreateExceptionMessage(bool is_access_exception, const char* value_type) const;
 
@@ -74,7 +83,7 @@ private:
     ZENGINEO_API T Convert() const;
 
     template<typename T, typename ValueT>
-    static T Convert(const ValueT& value);
+    T Convert(const ValueT& value) const;
 
     // Helpers to determine if a value is in a variant:
     template<typename T, typename Variant>
@@ -88,7 +97,11 @@ private:
     // Members.
     // --------------------------------------------------------------------------
 private:
-    using StorageT = std::variant<double>;
+    using StorageT = std::variant<
+        double,
+        SharableString
+    >;
+
     StorageT m_value;
 };
 
@@ -101,6 +114,19 @@ private:
 inline Engine::Value::Value(const double value) noexcept
     :   m_value(value)
 {
+}
+
+
+inline Engine::Value::Value(SharableString value) noexcept
+    :   m_value(std::move(value))
+{
+}
+
+
+template<typename T>
+bool Engine::Value::is() const noexcept
+{
+    return std::holds_alternative<T>(m_value);
 }
 
 
@@ -125,12 +151,25 @@ T Engine::Value::get() &&
 
 
 template<typename T>
-T Engine::Value::as()
+T Engine::Value::as() const &
 {
     if constexpr(is_in_variant<T, StorageT>::value)
     {
         if( std::holds_alternative<T>(m_value) )
             return std::get<T>(m_value);
+    }
+
+    return Convert<T>();
+}
+
+
+template<typename T>
+T Engine::Value::as() &&
+{
+    if constexpr(is_in_variant<T, StorageT>::value)
+    {
+        if( std::holds_alternative<T>(m_value) )
+            return std::get<T>(std::move(m_value));
     }
 
     return Convert<T>();

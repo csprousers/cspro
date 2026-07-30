@@ -4,7 +4,8 @@
 
 namespace ValueIndex
 {
-    constexpr size_t Double = 0;
+    constexpr size_t Double         = 0;
+    constexpr size_t SharableString = 1;
 }
 
 
@@ -37,6 +38,9 @@ SharableString Engine::Value::ToString() const
         case ValueIndex::Double:
             return DoubleToString(std::get<ValueIndex::Double>(m_value));
 
+        case ValueIndex::SharableString:
+            return std::get<ValueIndex::SharableString>(m_value);
+
         default:
             return ReturnProgrammingError(std::string());
     }
@@ -54,7 +58,7 @@ template ZENGINEO_API SharableString Engine::Value::Convert() const;
 
 
 template<typename T, typename ValueT>
-T Engine::Value::Convert(const ValueT& value)
+T Engine::Value::Convert(const ValueT& value) const
 {
     // as() should already have checked that the types are the same,
     // so no conversion is necessary
@@ -63,7 +67,19 @@ T Engine::Value::Convert(const ValueT& value)
 
 
 template<>
-SharableString Engine::Value::Convert(const double& value)
+SharableString Engine::Value::Convert(const double& value) const
 {
     return DoubleToString(value);
+}
+
+
+template<>
+double Engine::Value::Convert(const SharableString& value) const
+{
+    const std::optional<double> numeric_value = StringToNumber<std::optional<double>>(*value);
+
+    if( numeric_value.has_value() )
+        return *numeric_value;
+
+    throw CreateException<ConversionException, SharableString>();
 }
