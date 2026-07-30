@@ -1,4 +1,4 @@
-﻿#include "StandardSystemIncludes.h"
+#include "StandardSystemIncludes.h"
 #include "Interpreter.h"
 #include "Engine.h"
 #include "Exappl.h"
@@ -653,7 +653,7 @@ void CIntDriver::ProcessSqlCallbackFunction(UserFunction& user_function, void* c
 
     else
     {
-        const SharableString value = GetWorkingSharableString(static_cast<size_t>(return_value));
+        const SharableString value = GetWorkingSharableString(return_value);
         sqlite3_result_text(context, value->c_str(), value->length(), SQLITE_TRANSIENT);
     }
 }

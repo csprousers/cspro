@@ -98,7 +98,7 @@ namespace
                                                                               SpecialFunction::Code::OnSyncMessage,
                                                                               { sync_message.GetName(), sync_message.GetValueForOnSyncMessage() });
 
-            return m_interpreter.GetWorkingSharableString(static_cast<size_t>(message_response));
+            return m_interpreter.GetWorkingSharableString(message_response);
         }
 
 

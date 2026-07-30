@@ -2409,7 +2409,7 @@ double CIntDriver::exshowlist(int iExpr)
 
             if( bAlphaVar )
             {
-                csValue = UTF8_TODO::GetCString(*GetWorkingSharableString(static_cast<size_t>(exavar(iExprSymVar))));
+                csValue = UTF8_TODO::GetCString(*GetWorkingSharableString(exavar(iExprSymVar)));
             }
 
             else

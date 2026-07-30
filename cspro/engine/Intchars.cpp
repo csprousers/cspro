@@ -313,7 +313,7 @@ double CIntDriver::excharobj(int program_index)
 
         if( string_expression_function_code == FunctionCode::SVAR_CODE || string_expression_function_code == FunctionCode::MVAR_CODE )
         {
-            text = UTF8_TODO::GetWide(*GetWorkingSharableString(static_cast<size_t>(exavar(abs_string_expression))));
+            text = UTF8_TODO::GetWide(*GetWorkingSharableString(exavar(abs_string_expression)));
         }
 
         else
@@ -324,7 +324,7 @@ double CIntDriver::excharobj(int program_index)
                 return AssignString(GetSymbolWorkString(GetNode<int>(abs_string_expression + 1)).GetSharableString());
 
             text = ( string_expression_function_code == FunctionCode::WORKSTRING_CODE ) ? UTF8_TODO::GetWide(GetSymbolWorkString(GetNode<int>(abs_string_expression + 1)).GetString()) :
-                   ( string_expression_function_code == FunctionCode::TVAR_CODE )       ? UTF8_TODO::GetWide(*GetWorkingSharableString(static_cast<size_t>(extavar(abs_string_expression)))) :
+                   ( string_expression_function_code == FunctionCode::TVAR_CODE )       ? UTF8_TODO::GetWide(*GetWorkingSharableString(extavar(abs_string_expression))) :
                                                                                           EvalAlphaExpr(abs_string_expression);
         }
     }

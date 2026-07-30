@@ -82,7 +82,7 @@ double LogicInterpreter::ex_ActionInvoker(const int program_index)
         const double result_override = ExecSpecialFunction(Get_m_iExSymbol_INTERPRETER_DLL_TODO(),
                                                            SpecialFunction::Code::OnActionInvokerResult,
                                                            { std::move(action_name), std::move(result), result_type });
-        SharableString result_override_text = GetWorkingSharableString(static_cast<size_t>(result_override));
+        SharableString result_override_text = GetWorkingSharableString(result_override);
 
         if( result_override_text->empty() )
             return false;

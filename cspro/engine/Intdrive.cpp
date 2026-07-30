@@ -361,7 +361,7 @@ void CIntDriver::AddIntDriverInstructions()
     OP_DOUBLE(23, exif);
     OP_DOUBLE(24, exwhile);
     OP_DOUBLE(25, exbox);
-    OP_DOUBLE(26, ex_string_literal);
+    OP_ENGVAL(26, ex_string_literal);
     OP_DOUBLE(27, excharobj);
     OP_DOUBLE(28, ex_string_eq);
     OP_DOUBLE(29, ex_string_ne);
@@ -608,7 +608,7 @@ void CIntDriver::AddIntDriverInstructions()
     OP_DOUBLE(270, exshowarray);
     OP_DOUBLE(271, exselcase);
     OP_DOUBLE(272, ex_timestring);
-    OP_DOUBLE(273, ex_string_literal);
+    OP_ENGVAL(273, ex_string_literal);
     OP_DOUBLE(274, exsymbolreset);
     OP_DOUBLE(275, ex_decryptstring);
     OP_DOUBLE(276, exdirdelete);

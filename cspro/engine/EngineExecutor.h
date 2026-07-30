@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <engine/StandardSystemIncludes.h>
 #include <engine/Interpreter.h>
@@ -43,7 +43,7 @@ InterpreterExecuteResult CIntDriver::Execute(const DataType callback_result_data
     ASSERT(std::holds_alternative<double>(result));
 
     if( callback_result_data_type == DataType::String )
-        result = GetWorkingSharableString(static_cast<size_t>(std::get<double>(result)));
+        result = GetWorkingSharableString(std::get<double>(result));
 
     return InterpreterExecuteResult { std::move(result), program_control_executed };
 }

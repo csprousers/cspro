@@ -42,7 +42,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /*  23 */   OP_ID(exif),
 /*  24 */   OP_ID(exwhile),
 /*  25 */   OP_ID(exbox),
-/*  26 */   OP_LI(ex_string_literal), // an old implementation of ex_string_literal
+/*  26 */   OP(ex_string_literal), // an old implementation of ex_string_literal
 /*  27 */   OP_ID(excharobj),
 /*  28 */   OP_LI(ex_string_eq), // =
 /*  29 */   OP_LI(ex_string_ne), // <>
@@ -341,7 +341,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 270 */   OP_ID(exshowarray),
 /* 271 */   OP_ID(exselcase),
 /* 272 */   OP_LI(ex_timestring),
-/* 273 */   OP_LI(ex_string_literal),
+/* 273 */   OP(ex_string_literal),
 /* 274 */   OP_ID(exsymbolreset),
 /* 275 */   OP_LI(ex_decryptstring),
 /* 276 */   OP_ID(exdirdelete),

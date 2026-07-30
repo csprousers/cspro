@@ -17,7 +17,7 @@
 
 SharableString LogicInterpreter::EvaluateSharableString(const int program_index)
 {
-    return GetWorkingSharableString(Evaluate<size_t>(program_index));
+    return GetWorkingSharableString(Evaluate<Engine::Value>(program_index));
 }
 
 
@@ -40,7 +40,7 @@ SharableString LogicInterpreter::EvaluateNullableSharableString(const int progra
 
 std::string LogicInterpreter::EvaluateString(const int program_index)
 {
-    return GetWorkingString(Evaluate<size_t>(program_index));
+    return GetWorkingSharableString(Evaluate<Engine::Value>(program_index)).Release();
 }
 
 
@@ -58,38 +58,41 @@ double LogicInterpreter::AssignStringNull()
 }
 
 
-SharableString LogicInterpreter::GetWorkingSharableString(const size_t index)
+SharableString LogicInterpreter::GetWorkingSharableString(Engine::Value value)
 {
-    // if the string is the last one in the array, which should almost always be the case, remove it
-    if( ( index + 1 ) == m_workingStrings.size() )
+    // EV_TODO as engine values are being added incrementally to the engine,
+    // values represented as doubles will have come via a function like AssignString
+    if( value.is<double>() )
     {
-        SharableString sharable_string = std::move(m_workingStrings.back());
-        m_workingStrings.pop_back();
-        return sharable_string;
+        const size_t index = static_cast<size_t>(value.get<double>());
+
+        // if the string is the last one in the array, which should almost always be the case, remove it
+        if( ( index + 1 ) == m_workingStrings.size() )
+        {
+            SharableString sharable_string = std::move(m_workingStrings.back());
+            m_workingStrings.pop_back();
+            return sharable_string;
+        }
+
+        else if( index < m_workingStrings.size() )
+        {
+            return m_workingStrings[index];
+        }
+
+        else
+        {
+            return ReturnProgrammingError(SharableString());
+        }
     }
 
-    else if( index < m_workingStrings.size() )
-    {
-        return m_workingStrings[index];
-    }
-
-    else
-    {
-        return ReturnProgrammingError(SharableString());
-    }
+    return std::move(value).as<SharableString>();
 }
 
 
-std::string LogicInterpreter::GetWorkingString(const size_t index)
-{
-    return GetWorkingSharableString(index).Release();
-}
-
-
-double LogicInterpreter::ex_string_literal(const int program_index)
+Engine::Value LogicInterpreter::ex_string_literal(const int program_index)
 {
     const auto& string_literal_node = GetNode<Nodes::StringLiteral>(program_index);
-    return AssignString(m_engineData->string_literals[string_literal_node.string_literal_index]);
+    return m_engineData->string_literals[string_literal_node.string_literal_index];
 }
 
 

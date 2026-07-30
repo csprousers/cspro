@@ -230,10 +230,9 @@ public:
 
     double AssignStringNull();
 
-    SharableString GetWorkingSharableString(size_t index);
-    std::string GetWorkingString(size_t index);
+    SharableString GetWorkingSharableString(Engine::Value value);
 
-    double ex_string_literal(int program_index);
+    Engine::Value ex_string_literal(int program_index);
     double ex_string_compute(int program_index);
 
     // If using the original logic settings, "\\n" characters will be converted to "\n" (or "\r\n"),
