@@ -994,7 +994,7 @@ private:
 template<typename T/* = double*/>
 T CIntDriver::evalexpr(const int program_index)
 {
-    return static_cast<T>(ExecuteInstruction(program_index));
+    return static_cast<T>(ExecuteInstruction(program_index).get<double>());
 }
 
 

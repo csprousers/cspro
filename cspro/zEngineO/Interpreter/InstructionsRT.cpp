@@ -4,8 +4,12 @@
 
 size_t LogicInterpreter::MaxInstructionCode_EV_TODO = 491; // EV_TODO remove
 
-#define OP_LI(instruction) static_cast<double (LogicInterpreter::*)(int)>(&LogicInterpreter::instruction)
-#define OP_ID(instruction) OP_LI(ex_unimplemented_LogicInterpreter)
+// OP    = instructions defined in LogicInterpreter that return Engine::Value
+// OP_LI = instructions defined in LogicInterpreter that return double
+// OP_ID = instructions defined in CIntDriver that return double
+#define OP(instruction) Instruction(static_cast<Engine::Value (LogicInterpreter::*)(int)>(&LogicInterpreter::instruction))
+#define OP_LI(instruction) Instruction(static_cast<double (LogicInterpreter::*)(int)>(&LogicInterpreter::instruction))
+#define OP_ID(instruction) OP(ex_unimplemented_LogicInterpreter)
 
 LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 {
@@ -563,7 +567,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 };
 
 
-double LogicInterpreter::ex_unimplemented_LogicInterpreter(const int program_index) // INTERPRETER_DLL_TODO remove
+Engine::Value LogicInterpreter::ex_unimplemented_LogicInterpreter(const int program_index) // INTERPRETER_DLL_TODO remove
 {
     const auto& function_call_node = GetNode<Nodes::FunctionCall>(program_index);
     const Logic::FunctionDetails* const function_details = Logic::FunctionTable::GetFunctionDetails(function_call_node.function_code);

@@ -2,6 +2,7 @@
 
 #include <zEngineO/zEngineO.h>
 #include <zEngineO/EngineData.h>
+#include <zEngineO/EngineValue.h>
 #include <zToolsO/CancelFlag.h>
 #include <zToolsO/Special.h>
 #include <zToolsO/Tools.h>
@@ -77,15 +78,17 @@ protected:
     // (InstructionsRT.cpp)
     // --------------------------------------------------------------------------
 public:
-    double ExecuteInstruction(FunctionCode function_code, int program_index);
-    double ExecuteInstruction(int program_index);
+    Engine::Value ExecuteInstruction(FunctionCode function_code, int program_index);
+    Engine::Value ExecuteInstruction(int program_index);
 
 protected:
-    using Instruction = std::variant<double (LogicInterpreter::*)(int), double (CIntDriver::*)(int)>;
+    using Instruction = std::variant<Engine::Value (LogicInterpreter::*)(int),
+                                     double (LogicInterpreter::*)(int),
+                                     double (CIntDriver::*)(int)>;
     static Instruction m_instructions[];
 
     static size_t MaxInstructionCode_EV_TODO;
-    double ex_unimplemented_LogicInterpreter(int program_index);
+    Engine::Value ex_unimplemented_LogicInterpreter(int program_index);
 
 
     // --------------------------------------------------------------------------
@@ -855,17 +858,18 @@ const NodeType& LogicInterpreter::GetNode(const int program_index) const
 }
 
 
-inline double LogicInterpreter::ExecuteInstruction(const FunctionCode function_code, const int program_index)
+inline Engine::Value LogicInterpreter::ExecuteInstruction(const FunctionCode function_code, const int program_index)
 {
     const Instruction& instruction = m_instructions[static_cast<size_t>(function_code)];
-    ASSERT(instruction.index() == 1 || std::get<0>(instruction) != nullptr);
+    ASSERT(std::visit([](const auto& instruction_) -> bool { return ( instruction_ != nullptr ); }, instruction));
 
     return ( instruction.index() == 0 ) ? (this->*(std::get<0>(instruction)))(program_index) :
-                                          evalexpr_INTERPRETER_DLL_TODO(std::get<1>(instruction), program_index);
+           ( instruction.index() == 1 ) ? (this->*(std::get<1>(instruction)))(program_index) :
+                                          evalexpr_INTERPRETER_DLL_TODO(std::get<2>(instruction), program_index);
 }
 
 
-inline double LogicInterpreter::ExecuteInstruction(const int program_index)
+inline Engine::Value LogicInterpreter::ExecuteInstruction(const int program_index)
 {
     const int* const function_code_ptr = m_logicByteCode.GetCodeAtPosition(program_index);
     return ExecuteInstruction(static_cast<FunctionCode>(*function_code_ptr), program_index);
@@ -875,9 +879,10 @@ inline double LogicInterpreter::ExecuteInstruction(const int program_index)
 template<typename T>
 T LogicInterpreter::Evaluate(const int program_index)
 {
-    if      constexpr(std::is_same_v<T, SharableString>) { return EvaluateSharableString(program_index); }
+    if      constexpr(std::is_same_v<T, Engine::Value>)  { return ExecuteInstruction(program_index); }
+    else if constexpr(std::is_same_v<T, SharableString>) { return EvaluateSharableString(program_index); }
     else if constexpr(std::is_same_v<T, std::string>)    { return EvaluateString(program_index); }
-    else                                                 { return static_cast<T>(ExecuteInstruction(program_index)); }
+    else                                                 { return static_cast<T>(ExecuteInstruction(program_index).get<double>()); }
 }
 
 
