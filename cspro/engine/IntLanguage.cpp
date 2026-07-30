@@ -1,4 +1,4 @@
-﻿#include "StandardSystemIncludes.h"
+#include "StandardSystemIncludes.h"
 #include "Interpreter.h"
 #include "Engine.h"
 #include <zEngineO/EngineDictionary.h>
@@ -178,7 +178,7 @@ double CIntDriver::ex_getlanguage(int  /*program_index*/)
 double CIntDriver::ex_setlanguage(const int program_index)
 {
     const auto& fnn_node = GetNode<FNN_NODE>(program_index);
-    const SharableString language_name = EvaluateSharableString(fnn_node.fn_expr[0]);
+    const SharableString language_name = Evaluate<SharableString>(fnn_node.fn_expr[0]);
 
     return SetLanguage(*language_name, CIntDriver::SetLanguageSource::Logic);
 }
@@ -191,7 +191,7 @@ double CIntDriver::ex_tr(const int program_index)
 
     if( static_cast<DataType>(va_node.arguments[0]) == DataType::String )
     {
-        const SharableString text = EvaluateSharableString(va_node.arguments[1]);
+        const SharableString text = Evaluate<SharableString>(va_node.arguments[1]);
         return AssignString(user_message_file.GetTranslation(text));
     }
 

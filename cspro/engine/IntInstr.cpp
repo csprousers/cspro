@@ -414,7 +414,7 @@ double CIntDriver::exbox( int iExpr )
 
                 else
                 {
-                    std::get<0>(*logic_array_parameters)->SetValue(std::get<1>(*logic_array_parameters), EvaluateSharableString(pBoxRow->row_expr));
+                    std::get<0>(*logic_array_parameters)->SetValue(std::get<1>(*logic_array_parameters), Evaluate<SharableString>(pBoxRow->row_expr));
                 }
             }
 
@@ -428,7 +428,7 @@ double CIntDriver::exbox( int iExpr )
             else if( pBoxNode->recodeType == Box::BOX_NODE::RecodeType::WorkingAlpha )
             {
                 WorkString& work_string = GetSymbolWorkString(iExprMultSymDepVar);
-                work_string.SetString(EvaluateSharableString(pBoxRow->row_expr));
+                work_string.SetString(Evaluate<SharableString>(pBoxRow->row_expr));
             }
 
             else

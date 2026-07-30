@@ -14,10 +14,10 @@ double CIntDriver::exprompt_pre77(int iExpr)
     const FNVARIOUS_NODE* various_node = (FNVARIOUS_NODE*)PPT(iExpr);
     EngineUI::PromptNode prompt_node;
 
-    prompt_node.title = UTF8_TODO::GetCString(ConvertV0Escapes(EvaluateString(various_node->fn_expr[0]), V0_EscapeType::NewlinesToSlashN_Backslashes));
+    prompt_node.title = UTF8_TODO::GetCString(ConvertV0Escapes(Evaluate<std::string>(various_node->fn_expr[0]), V0_EscapeType::NewlinesToSlashN_Backslashes));
 
     if( various_node->fn_expr[1] >= 0 )
-        prompt_node.initial_value = UTF8_TODO::GetCString(ConvertV0Escapes(EvaluateString(various_node->fn_expr[1]), V0_EscapeType::NewlinesToSlashN_Backslashes));
+        prompt_node.initial_value = UTF8_TODO::GetCString(ConvertV0Escapes(Evaluate<std::string>(various_node->fn_expr[1]), V0_EscapeType::NewlinesToSlashN_Backslashes));
 
     const int& flags = various_node->fn_expr[2];
 

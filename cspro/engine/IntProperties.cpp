@@ -66,7 +66,7 @@ ParameterManager::Parameter CIntDriver::GetSetPropertyParser(const int program_i
 
 
     // process the property
-    const SharableString property = EvaluateSharableString(arguments[argument_counter--]);
+    const SharableString property = Evaluate<SharableString>(arguments[argument_counter--]);
 
     const ParameterManager::Parameter parameter = ParameterManager::Parse(FunctionCode::FNGETPROPERTY_CODE, *property);
 

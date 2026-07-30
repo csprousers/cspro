@@ -46,7 +46,7 @@ double LogicInterpreter::ex_diagnostics(const int program_index)
 
     if( !show_all_parameters )
     {
-        const SharableString parameter_text = EvaluateSharableString(fnn_node->fn_expr[0]);
+        const SharableString parameter_text = Evaluate<SharableString>(fnn_node->fn_expr[0]);
         int min_arguments;
         int max_arguments;
         const int provided_arguments = fnn_node->fn_nargs - 1;

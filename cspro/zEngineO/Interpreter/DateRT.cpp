@@ -18,7 +18,7 @@ double LogicInterpreter::ex_timestamp(const int program_index)
 
     else if( timestamp_node.type == Nodes::Timestamp::Type::RFC3339 )
     {
-        SharableString date_time = EvaluateSharableString(timestamp_node.argument);
+        SharableString date_time = Evaluate<SharableString>(timestamp_node.argument);
 
         if( date_time->length() < PortableFunctions::MinLengthRFC3339DateTimeString )
             return DEFAULT;
@@ -121,7 +121,7 @@ double LogicInterpreter::ex_timestring(const int program_index)
     }
 
     const SharableString formatter = ( format_expression == -1 ) ? SharableString("%c") :
-                                                                   EvaluateSharableString(format_expression);
+                                                                   Evaluate<SharableString>(format_expression);
 
     return AssignString(FormatTimestamp(timestamp, *formatter));
 }
@@ -151,7 +151,7 @@ double LogicInterpreter::ex_sysdate(const int program_index)
 
     else
     {
-        const SharableString formatter = EvaluateSharableString(fnn_node.fn_expr[0]);
+        const SharableString formatter = Evaluate<SharableString>(fnn_node.fn_expr[0]);
 
         const std::optional<uint64_t> date = FormatDate(SO::Trim(*formatter), date_time_components);
 
@@ -180,7 +180,7 @@ double LogicInterpreter::ex_systime(const int program_index)
 
     else
     {
-        const SharableString formatter = EvaluateSharableString(fnn_node.fn_expr[0]);
+        const SharableString formatter = Evaluate<SharableString>(fnn_node.fn_expr[0]);
         std::string_view formatter_sv = SO::Trim(*formatter);
 
         std::optional<uint64_t> result;
@@ -361,7 +361,7 @@ double LogicInterpreter::ex_dateadd(const int program_index)
     // evaluate user-specified period types
     if( fnn_node.fn_nargs > 2 )
     {
-        SharableString period_type_text = EvaluateSharableString(fnn_node.fn_expr[2]);
+        SharableString period_type_text = Evaluate<SharableString>(fnn_node.fn_expr[2]);
         period_type_text.MakeTrim();
 
         if( period_type_text->length() != 1 )
@@ -546,7 +546,7 @@ double LogicInterpreter::ex_datediff(const int program_index)
     // evaluate user-specified period types
     if( fnn_node.fn_nargs > 2 )
     {
-        const SharableString period_type_text = EvaluateSharableString(fnn_node.fn_expr[2]);
+        const SharableString period_type_text = Evaluate<SharableString>(fnn_node.fn_expr[2]);
 
         if( period_type_text->length() == 1 )
         {

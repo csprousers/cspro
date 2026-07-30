@@ -689,7 +689,7 @@ double CIntDriver::exdeckarray(int iExpr) // 20100121 for getdeck and putdeck
 
                 else
                 {
-                    string_value = EvaluateSharableString(deck_array_node->index_expressions[i]);
+                    string_value = Evaluate<SharableString>(deck_array_node->index_expressions[i]);
                 }
             }
 
@@ -2212,7 +2212,7 @@ double CIntDriver::exshow(int iExpr)
         int iNumTitles = std::min(iNumCols, pTitleList->iNumElems);
 
         for( int i = 0; i < iNumTitles; ++i )
-            column_headings.emplace_back(EvaluateSharableString(pTitleList->iSym[i]));
+            column_headings.emplace_back(Evaluate<SharableString>(pTitleList->iSym[i]));
     }
 
     // complete any missing titles
@@ -2242,7 +2242,7 @@ double CIntDriver::exshow(int iExpr)
     SelectDlg select_dlg(true, number_columns);
 
     if( show_node.m_iHeading >= 0 )
-        select_dlg.SetTitle(EvaluateSharableString(show_node.m_iHeading));
+        select_dlg.SetTitle(Evaluate<SharableString>(show_node.m_iHeading));
 
     select_dlg.SetHeader(std::move(column_headings));
 
@@ -2445,7 +2445,7 @@ double CIntDriver::exshowarray(int iExpr)
     std::vector<SharableString> column_headings;
 
     for( int i = 4; i < fnn_node.fn_nargs; ++i )
-        column_headings.emplace_back(EvaluateSharableString(fnn_node.fn_expr[i]));
+        column_headings.emplace_back(Evaluate<SharableString>(fnn_node.fn_expr[i]));
 
     // calculate the number of columns
     size_t start_column = 0;
@@ -2542,7 +2542,7 @@ double CIntDriver::exshowarray(int iExpr)
     SelectDlg select_dlg(true, column_headings.size());
 
     if( title_expression >= 0 )
-        select_dlg.SetTitle(EvaluateSharableString(title_expression));
+        select_dlg.SetTitle(Evaluate<SharableString>(title_expression));
 
     select_dlg.SetHeader(std::move(column_headings));
 
@@ -2938,7 +2938,7 @@ double CIntDriver::ex_trace(const int program_index)
             ( trace_node.action == Nodes::Trace::Action::UserText ) ? TraceHandler::OutputType::UserText :
                                                                       TraceHandler::OutputType::LogicText;
 
-        m_traceHandler->Output(EvaluateSharableString(trace_node.argument), output_type);
+        m_traceHandler->Output(Evaluate<SharableString>(trace_node.argument), output_type);
     }
 
     return 1;
@@ -2990,7 +2990,7 @@ double CIntDriver::ex_setcapturetype(const int program_index)
 
     if( fnn_node.fn_nargs == 3 && new_capture_type == CaptureType::Date )
     {
-        date_format = EvaluateSharableString(fnn_node.fn_expr[2]);
+        date_format = Evaluate<SharableString>(fnn_node.fn_expr[2]);
         date_format.MakeTrim();
     }
 
@@ -3045,8 +3045,8 @@ double CIntDriver::ex_setcapturepos(const int program_index)
 
     const POINT point
     {
-        Evaluate<LONG>(fnn_node.fn_expr[1]),
-        Evaluate<LONG>(fnn_node.fn_expr[2])
+        Evaluate<int>(fnn_node.fn_expr[1]),
+        Evaluate<int>(fnn_node.fn_expr[2])
     };
 
     const size_t fields_modified = ForeachVariable(GetSymbolTable(), symbol,
@@ -3108,7 +3108,7 @@ double CIntDriver::exorientation(int iExpr) // 20100618
 #else
     FNN_NODE* pfun = (FNN_NODE*)PPT(iExpr);
     bool isSetting = pfun->fn_nargs == 1;
-    DWORD setMode = isSetting ? Evaluate<DWORD>(pfun->fn_expr[0]) : 0;
+    DWORD setMode = isSetting ? Evaluate<unsigned int>(pfun->fn_expr[0]) : 0;
 
 
     // code modified from http://weseetips.com/2009/05/10/how-to-change-the-display-orientation/
@@ -3166,7 +3166,7 @@ double CIntDriver::exorientation(int iExpr) // 20100618
 double CIntDriver::exgetrecord(const int iExpr)
 {
     const FNN_NODE* func_node = (FNN_NODE*)PPT(iExpr);
-    const SharableString item_name = EvaluateSharableString(func_node->fn_expr[0]);
+    const SharableString item_name = Evaluate<SharableString>(func_node->fn_expr[0]);
 
     const int symbol_index = m_pEngineArea->SymbolTableSearch(*item_name, { SymbolType::Variable });
 

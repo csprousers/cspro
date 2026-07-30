@@ -106,7 +106,7 @@ double LogicInterpreter::ex_sysparm(const int program_index)
 
     else
     {
-        SharableString argument = EvaluateSharableString(fnn_node.fn_expr[0]);
+        SharableString argument = Evaluate<SharableString>(fnn_node.fn_expr[0]);
         SharableString parameter = ( m_engineData->pff != nullptr ) ? m_engineData->pff->GetCustomParamString(*argument) :
                                                                       SharableString();
 
@@ -158,7 +158,7 @@ double LogicInterpreter::ex_savesetting(const int program_index)
 
         else
         {
-            const SharableString key = EvaluateSharableString(va_node.arguments[0]);
+            const SharableString key = Evaluate<SharableString>(va_node.arguments[0]);
             const SharableString value = EvaluateSharableString(static_cast<DataType>(va_node.arguments[1]), va_node.arguments[2]);
 
             if( value->empty() )
@@ -180,7 +180,7 @@ double LogicInterpreter::ex_savesetting(const int program_index)
 double LogicInterpreter::ex_loadsetting(const int program_index)
 {
     const auto& va_node = GetNode<Nodes::VariableArguments>(program_index);
-    const SharableString key = EvaluateSharableString(va_node.arguments[0]);
+    const SharableString key = Evaluate<SharableString>(va_node.arguments[0]);
     std::optional<std::string> value;
 
     CommonStore* const common_store = m_engineData->GetCommonStore().get();

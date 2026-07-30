@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "IncludesRT.h"
 
 
@@ -35,13 +35,13 @@ void LogicInterpreter::MakeAbsolutePath(std::string& path)
 
 std::string LogicInterpreter::EvaluatePath(const int program_index)
 {
-    return GetAbsolutePath(EvaluateSharableString(program_index).GetString());
+    return GetAbsolutePath(Evaluate<SharableString>(program_index).GetString());
 }
 
 
 SharableString LogicInterpreter::EvaluatePathOrUrl(const int program_index)
 {
-    SharableString path_or_url = EvaluateSharableString(program_index);
+    SharableString path_or_url = Evaluate<SharableString>(program_index);
 
     if( !Encoders::IsDataOrHttpUrl(*path_or_url) )
         MakeAbsolutePath(path_or_url.MakeModifiable());
@@ -58,7 +58,7 @@ void LogicInterpreter::MakeAbsolutePath(ConnectionString& connection_string)
 
 ConnectionString LogicInterpreter::EvaluateConnectionString(const int program_index)
 {
-    ConnectionString connection_string(EvaluateSharableString(program_index).GetString());
+    ConnectionString connection_string(Evaluate<SharableString>(program_index).GetString());
     MakeAbsolutePath(connection_string);
     return connection_string;
 }

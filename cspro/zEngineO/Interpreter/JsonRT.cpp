@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "IncludesRT.h"
 #include "SymbolSerializerHelper.h"
 
@@ -123,7 +123,7 @@ double LogicInterpreter::ex_Symbol_getJson_getValueJson(const int program_index)
 
             if( symbol_va_with_subscript_node.arguments[0] != -1 )
             {
-                const SharableString json_text = EvaluateSharableString(symbol_va_with_subscript_node.arguments[0]);
+                const SharableString json_text = Evaluate<SharableString>(symbol_va_with_subscript_node.arguments[0]);
                 serialization_options_node = std::make_unique<JsonNode>(Json::Parse(*json_text, GetEngineJsonReaderInterface()));
             }
 
@@ -150,7 +150,7 @@ void LogicInterpreter::SetSymbolValueFromJson(Symbol& symbol, const JsonNode& js
 double LogicInterpreter::ex_Symbol_setValueFromJson(const int program_index)
 {
     const auto& symbol_va_with_subscript_node = GetNode<Nodes::SymbolVariableArgumentsWithSubscript>(program_index);
-    const SharableString json_text = EvaluateSharableString(symbol_va_with_subscript_node.arguments[0]);
+    const SharableString json_text = Evaluate<SharableString>(symbol_va_with_subscript_node.arguments[0]);
 
     Symbol* const symbol = GetFromSymbolOrEngineItem(symbol_va_with_subscript_node.symbol_index, symbol_va_with_subscript_node.subscript_compilation);
 

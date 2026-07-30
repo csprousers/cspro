@@ -43,7 +43,7 @@ double LogicInterpreter::ex_JavaScript_eval(const int program_index)
                 // compile and evaluate the script if it was not already compiled
                 if( bytecode_index == -1 )
                 {
-                    const SharableString script = EvaluateSharableString(script_expression);
+                    const SharableString script = Evaluate<SharableString>(script_expression);
 
                     exception_is_from_compilation = true;
                     return AssignString(javascript_processor.EvaluateScript(script.GetString(), exception_is_from_compilation));
@@ -73,7 +73,7 @@ double LogicInterpreter::ex_JavaScript_invoke(const int program_index)
         [&](EngineJavaScriptProcessor& javascript_processor)
         {
             const auto& va_node = GetNode<Nodes::VariableArguments>(program_index);
-            const SharableString function_name = EvaluateSharableString(va_node.arguments[0]);
+            const SharableString function_name = Evaluate<SharableString>(va_node.arguments[0]);
             const Nodes::List& arguments_list = GetListNode(va_node.arguments[1]);
 
             ASSERT(( arguments_list.number_elements % 2 ) == 0);
@@ -123,7 +123,7 @@ double LogicInterpreter::ex_JavaScript_hasValue(const int program_index)
         [&](EngineJavaScriptProcessor& javascript_processor)
         {
             const auto& va_node = GetNode<Nodes::VariableArguments>(program_index);
-            const SharableString name = EvaluateSharableString(va_node.arguments[0]);
+            const SharableString name = Evaluate<SharableString>(va_node.arguments[0]);
 
             return javascript_processor.HasPropertyValue(name.GetString());
         });
@@ -136,7 +136,7 @@ double LogicInterpreter::ex_JavaScript_getValueJson(const int program_index)
         [&](EngineJavaScriptProcessor& javascript_processor)
         {
             const auto& va_node = GetNode<Nodes::VariableArguments>(program_index);
-            const SharableString name = EvaluateSharableString(va_node.arguments[0]);
+            const SharableString name = Evaluate<SharableString>(va_node.arguments[0]);
 
             try
             {
@@ -158,8 +158,8 @@ double LogicInterpreter::ex_JavaScript_setValueFromJson(const int program_index)
         [&](EngineJavaScriptProcessor& javascript_processor)
         {
             const auto& va_node = GetNode<Nodes::VariableArguments>(program_index);
-            const SharableString name = EvaluateSharableString(va_node.arguments[0]);
-            const SharableString json_text = EvaluateSharableString(va_node.arguments[1]);
+            const SharableString name = Evaluate<SharableString>(va_node.arguments[0]);
+            const SharableString json_text = Evaluate<SharableString>(va_node.arguments[1]);
             bool exception_is_from_json_parsing = true;
 
             try
@@ -192,7 +192,7 @@ double LogicInterpreter::ex_JavaScript_getValue(const int program_index)
         [&](EngineJavaScriptProcessor& javascript_processor)
         {
             const auto& va_node = GetNode<Nodes::VariableArguments>(program_index);
-            const SharableString name = EvaluateSharableString(va_node.arguments[0]);
+            const SharableString name = Evaluate<SharableString>(va_node.arguments[0]);
             std::optional<JavaScript::Value> js_value;
             std::optional<SymbolType> evaluated_symbol_type;
 
@@ -233,7 +233,7 @@ double LogicInterpreter::ex_JavaScript_setValue(const int program_index)
         [&](EngineJavaScriptProcessor& javascript_processor)
         {
             const auto& va_node = GetNode<Nodes::VariableArguments>(program_index);
-            const SharableString name = EvaluateSharableString(va_node.arguments[0]);
+            const SharableString name = Evaluate<SharableString>(va_node.arguments[0]);
 
             try
             {
@@ -274,7 +274,7 @@ std::optional<JavaScript::Value> LogicInterpreter::ConvertValueToJavaScript(Engi
         else
         {
             ASSERT(symbol_type == SymbolType::WorkString);
-            const SharableString value = EvaluateSharableString(expression_or_symbol_subscript_compilation);
+            const SharableString value = Evaluate<SharableString>(expression_or_symbol_subscript_compilation);
             return javascript_processor.CreateValue(value.GetString());
         }
     }

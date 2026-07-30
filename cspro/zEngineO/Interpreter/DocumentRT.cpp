@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "IncludesRT.h"
 #include "Audio.h"
 #include "Document.h"
@@ -23,7 +23,7 @@ double LogicInterpreter::ex_Document_compute(const int program_index)
     // assigning a string
     if( symbol_compute_with_subscript_node.rhs_symbol_index == -1 )
     {
-        SharableString document_text = EvaluateSharableString(symbol_compute_with_subscript_node.rhs_subscript_compilation);
+        SharableString document_text = Evaluate<SharableString>(symbol_compute_with_subscript_node.rhs_subscript_compilation);
 
         if( !get_lhs_logic_document() )
             return 0;

@@ -552,7 +552,7 @@ double LogicInterpreter::ex_random(const int program_index)
 double LogicInterpreter::ex_tonumber(const int program_index)
 {
     const auto& fnn_node = GetNode<FNN_NODE>(program_index);
-    const SharableString number_string = EvaluateSharableString(fnn_node.fn_expr[0]);
+    const SharableString number_string = Evaluate<SharableString>(fnn_node.fn_expr[0]);
     const std::string_view trimmed_number_string_sv = SO::Trim(*number_string);
 
     constexpr char DecimalSeparator = '.';

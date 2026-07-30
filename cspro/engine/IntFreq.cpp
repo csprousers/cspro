@@ -1,4 +1,4 @@
-﻿#include "StandardSystemIncludes.h"
+#include "StandardSystemIncludes.h"
 #include "Interpreter.h"
 #include "CIterator.h"
 #include "FrequencyDriver.h"
@@ -38,7 +38,7 @@ namespace
         std::vector<std::string> headings;
 
         for( int i = 0; i < heading_expressions_list_node.number_elements; ++i )
-            headings.emplace_back(interpreter.EvaluateString(heading_expressions_list_node.elements[i]));
+            headings.emplace_back(interpreter.Evaluate<std::string>(heading_expressions_list_node.elements[i]));
 
         return headings;
     }
@@ -1179,7 +1179,7 @@ void FrequencyDriver::UseSingleFrequencyCounterForGettingAndSetting(const int va
     {
         ASSERT(IsString(symbol));
 
-        std::string value = m_pIntDriver->EvaluateString(element_reference_node.element_expressions[0]);
+        std::string value = m_pIntDriver->Evaluate<std::string>(element_reference_node.element_expressions[0]);
 
         // add spacing to fill out the string (if necessary)
         if( symbol.IsA(SymbolType::Variable) )

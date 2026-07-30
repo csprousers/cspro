@@ -143,7 +143,7 @@ double LogicInterpreter::ex_Image_getExif(const int program_index)
         // a single value can be queried...
         if( symbol_va_with_subscript_node.arguments[0] == static_cast<int>(SymbolType::WorkString) )
         {
-            const SharableString name = EvaluateSharableString(symbol_va_with_subscript_node.arguments[1]);
+            const SharableString name = Evaluate<SharableString>(symbol_va_with_subscript_node.arguments[1]);
 
             try
             {
@@ -207,7 +207,7 @@ double LogicInterpreter::ex_Image_load(const int program_index)
         const ValueProcessor& value_processor = value_set.GetValueProcessor();
         const DictValue* const dict_value = value_set.IsNumeric() ?
             value_processor.GetDictValue(Evaluate<double>(symbol_va_with_subscript_node.arguments[1])) :
-            value_processor.GetDictValue(EvaluateSharableString(symbol_va_with_subscript_node.arguments[1]).GetString());
+            value_processor.GetDictValue(Evaluate<SharableString>(symbol_va_with_subscript_node.arguments[1]).GetString());
 
         if( dict_value != nullptr )
             file_path = dict_value->GetImageFilePath();

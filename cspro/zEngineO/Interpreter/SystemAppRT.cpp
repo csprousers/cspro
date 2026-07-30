@@ -21,7 +21,7 @@ double LogicInterpreter::ex_SystemApp_setArgument(const int program_index)
     const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
     SystemApp& system_app = GetSymbolSystemApp(symbol_va_node.symbol_index);
 
-    std::string argument_name = EvaluateString(symbol_va_node.arguments[0]);
+    std::string argument_name = Evaluate<std::string>(symbol_va_node.arguments[0]);
 
     const int value_expression = symbol_va_node.arguments[1];
     const DataType value_type = static_cast<DataType>(symbol_va_node.arguments[2]);
@@ -29,7 +29,7 @@ double LogicInterpreter::ex_SystemApp_setArgument(const int program_index)
 
     if( value_type == DataType::String )
     {
-        value = EvaluateSharableString(value_expression);
+        value = Evaluate<SharableString>(value_expression);
     }
 
     else if( value_type == DataType::Numeric )
@@ -48,7 +48,7 @@ double LogicInterpreter::ex_SystemApp_getResult(const int program_index)
     const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
     const SystemApp& system_app = GetSymbolSystemApp(symbol_va_node.symbol_index);
 
-    const SharableString result_name = EvaluateSharableString(symbol_va_node.arguments[0]);
+    const SharableString result_name = Evaluate<SharableString>(symbol_va_node.arguments[0]);
 
     return AssignString(system_app.GetResult(*result_name));
 }
@@ -61,7 +61,7 @@ double LogicInterpreter::ex_SystemApp_exec(const int program_index)
 
     if( symbol_va_node.arguments[0] >= 0 )
     {
-        exec_system_app_node.package_name = EvaluateSharableString(symbol_va_node.arguments[0]);
+        exec_system_app_node.package_name = Evaluate<SharableString>(symbol_va_node.arguments[0]);
         exec_system_app_node.package_name.MakeTrimRight();
     }
 
@@ -71,7 +71,7 @@ double LogicInterpreter::ex_SystemApp_exec(const int program_index)
 
     // on Android, evaluate the activity
     if( OnAndroid() && symbol_va_node.arguments[1] >= 0 )
-        exec_system_app_node.activity_name = EvaluateSharableString(symbol_va_node.arguments[1]);
+        exec_system_app_node.activity_name = Evaluate<SharableString>(symbol_va_node.arguments[1]);
 
     // for Windows execution, and for the paradata log, get a string of the evaluated arguments
     exec_system_app_node.evaluated_call = *exec_system_app_node.package_name;

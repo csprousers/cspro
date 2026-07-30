@@ -583,7 +583,7 @@ double CIntDriver::exfind_locate(const int program_index)
             EngineDataRepository& engine_data_repository = engine_dictionary.GetEngineDataRepository();
             DataRepository& data_repository = engine_data_repository.GetDataRepository();
 
-            const SharableString search_key = EvaluateSharableString(case_search_node.key_expression);
+            const SharableString search_key = Evaluate<SharableString>(case_search_node.key_expression);
 
             // find with equals can be solved easily
             if( !locate_function && case_search_node.operator_code == TOKEQOP )
@@ -692,7 +692,7 @@ double CIntDriver::exfind_locate(const int program_index)
 
         try
         {
-            const SharableString search_key = EvaluateSharableString(case_search_node.key_expression);
+            const SharableString search_key = Evaluate<SharableString>(case_search_node.key_expression);
 
             // find with equals can be solved easily
             if( !locate_function && case_search_node.operator_code == TOKEQOP )
@@ -1039,7 +1039,7 @@ double CIntDriver::exkeylist(int iExpr)
             iterator_settings.SetParameters(CaseIteratorParameters(
                 CaseIterationStartType::GreaterThanEquals,
                 std::string(),
-                EvaluateString(fn8_node.starts_with_expression))
+                Evaluate<std::string>(fn8_node.starts_with_expression))
             );
         }
 
@@ -1096,7 +1096,7 @@ double CIntDriver::exkeylist(int iExpr)
             iterator_settings.SetParameters(CaseIteratorParameters(
                 CaseIterationStartType::GreaterThanEquals,
                 std::string(),
-                EvaluateString(fn8_node.starts_with_expression))
+                Evaluate<std::string>(fn8_node.starts_with_expression))
             );
         }
 
@@ -1173,14 +1173,14 @@ double CIntDriver::exselcase(int iExpr)
 
         select_dlg = std::make_unique<SelectDlg>(single_selection, number_columns);
 
-        select_dlg->SetTitle(( selcase_node.heading >= 0 ) ? EvaluateSharableString(selcase_node.heading) :
+        select_dlg->SetTitle(( selcase_node.heading >= 0 ) ? Evaluate<SharableString>(selcase_node.heading) :
                                                              "Select Case");
     }
 
     try
     {
         constexpr DICX::CaseIteratorStyle case_iterator_style = DICX::CaseIteratorStyle::FromBoundary;
-        std::optional<std::string> starting_key = EvaluateString(selcase_node.key_expr);
+        std::optional<std::string> starting_key = Evaluate<std::string>(selcase_node.key_expr);
 
         if( starting_key->empty() )
             starting_key.reset();
@@ -1393,7 +1393,7 @@ double CIntDriver::exselcase_pre77(int iExpr)
     try
     {
         DICX::CaseIteratorStyle case_iterator_style = DICX::CaseIteratorStyle::FromBoundary;
-        std::optional<std::string> starting_key = EvaluateString(function_node->key_expr);
+        std::optional<std::string> starting_key = Evaluate<std::string>(function_node->key_expr);
 
         if( starting_key->empty() )
             starting_key.reset();
@@ -1707,7 +1707,7 @@ double CIntDriver::exforcase(int iExpr)
             bool use_where_expression = ( for_dictionary_node.query_type_or_where_expression != -1 );
 
             if( for_dictionary_node.starts_with_expression != -1 )
-                key_prefix = EvaluateString(for_dictionary_node.starts_with_expression);
+                key_prefix = Evaluate<std::string>(for_dictionary_node.starts_with_expression);
 
             engine_data_repository.CreateCaseIterator(EngineDataRepository::CaseIteratorStyle::FromBoundary,
                 std::nullopt, for_dictionary_node.dictionary_access, key_prefix);
@@ -1778,7 +1778,7 @@ double CIntDriver::exforcase(int iExpr)
             bool use_where_expression = ( for_dictionary_node.query_type_or_where_expression != -1 );
 
             if( for_dictionary_node.starts_with_expression != -1 )
-                key_prefix = EvaluateString(for_dictionary_node.starts_with_expression);
+                key_prefix = Evaluate<std::string>(for_dictionary_node.starts_with_expression);
 
             pDicX->CreateCaseIterator(DICX::CaseIteratorStyle::FromBoundary, std::nullopt,
                 for_dictionary_node.dictionary_access, key_prefix);
@@ -1851,7 +1851,7 @@ double CIntDriver::excountcases(int iExpr)
         std::optional<std::string> key_prefix;
 
         if( countcases_node.starts_with_expression != -1 )
-            key_prefix = EvaluateString(countcases_node.starts_with_expression);
+            key_prefix = Evaluate<std::string>(countcases_node.starts_with_expression);
 
         EngineDictionary& data_repository_engine_dictionary = assert_cast<EngineDictionary&>(symbol);
         EngineDataRepository& engine_data_repository = data_repository_engine_dictionary.GetEngineDataRepository();

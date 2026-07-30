@@ -90,7 +90,7 @@ double LogicInterpreter::ex_List_compute(const int program_index)
         for( int i = 0; i < list_values.number_elements; ++i )
         {
             logic_list.IsNumeric() ? logic_list.AddValue(Evaluate<double>(list_values.elements[i])) :
-                                     logic_list.AddValue(EvaluateSharableString(list_values.elements[i]));
+                                     logic_list.AddValue(Evaluate<SharableString>(list_values.elements[i]));
         }
     }
 
@@ -114,7 +114,7 @@ double LogicInterpreter::ex_List_compute(const int program_index)
 
         else
         {
-            logic_list->SetValue(*index, EvaluateSharableString(symbol_compute_node.rhs_symbol_index));
+            logic_list->SetValue(*index, Evaluate<SharableString>(symbol_compute_node.rhs_symbol_index));
         }
     }
 
@@ -150,7 +150,7 @@ double LogicInterpreter::ex_List_add(const int program_index)
     else
     {
         logic_list.IsNumeric() ? logic_list.AddValue(Evaluate<double>(symbol_va_node.arguments[1])) :
-                                 logic_list.AddValue(EvaluateSharableString(symbol_va_node.arguments[1]));
+                                 logic_list.AddValue(Evaluate<SharableString>(symbol_va_node.arguments[1]));
 
         return 1;
     }
@@ -205,7 +205,7 @@ double LogicInterpreter::ex_List_insert(const int program_index)
     else
     {
         logic_list.IsNumeric() ? logic_list.InsertValue(index, Evaluate<double>(symbol_va_node.arguments[2])) :
-                                 logic_list.InsertValue(index, EvaluateSharableString(symbol_va_node.arguments[2]));
+                                 logic_list.InsertValue(index, Evaluate<SharableString>(symbol_va_node.arguments[2]));
 
         return 1;
     }
@@ -339,7 +339,7 @@ double LogicInterpreter::ex_List_show(const int program_index)
     SelectDlg select_dlg(true, 1);
 
     if( symbol_va_node.arguments[0] != -1 )
-        select_dlg.SetTitle(EvaluateSharableString(symbol_va_node.arguments[0]));
+        select_dlg.SetTitle(Evaluate<SharableString>(symbol_va_node.arguments[0]));
 
     const size_t list_count = logic_list.GetCount();
 

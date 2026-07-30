@@ -79,7 +79,7 @@ double LogicInterpreter::ex_Pff_getProperty(const int program_index)
     const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
     LogicPff& logic_pff = GetSymbolLogicPff(symbol_va_node.symbol_index);
 
-    const SharableString property_name = EvaluateSharableString(symbol_va_node.arguments[0]);
+    const SharableString property_name = Evaluate<SharableString>(symbol_va_node.arguments[0]);
     LogicList* logic_list;
 
     if( m_engineData->MeetsCompiledLogicVersion(Serializer::Iteration_8_0_000_1) )
@@ -123,7 +123,7 @@ double LogicInterpreter::ex_Pff_setProperty(const int program_index)
     const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
     LogicPff& logic_pff = GetSymbolLogicPff(symbol_va_node.symbol_index);
 
-    const SharableString property_name = EvaluateSharableString(symbol_va_node.arguments[0]);
+    const SharableString property_name = Evaluate<SharableString>(symbol_va_node.arguments[0]);
     std::vector<SharableString> values;
 
     if( symbol_va_node.arguments[1] >= 0 )

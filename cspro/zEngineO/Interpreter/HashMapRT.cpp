@@ -81,7 +81,7 @@ double LogicInterpreter::ex_HashMap_compute(const int program_index)
 
         else
         {
-            hashmap->SetValue(dimension_values, EvaluateSharableString(symbol_compute_node.rhs_symbol_index));
+            hashmap->SetValue(dimension_values, Evaluate<SharableString>(symbol_compute_node.rhs_symbol_index));
         }
     }
 

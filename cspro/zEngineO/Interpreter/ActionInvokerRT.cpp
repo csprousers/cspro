@@ -133,7 +133,7 @@ double LogicInterpreter::ex_ActionInvoker(const int program_index)
         else if( va_with_size_node.arguments[1] < 0 )
         {
             ASSERT(va_with_size_node.number_arguments == 2);
-            json_arguments = EvaluateSharableString(-1 * va_with_size_node.arguments[1]);
+            json_arguments = Evaluate<SharableString>(-1 * va_with_size_node.arguments[1]);
         }
 
 
@@ -150,7 +150,7 @@ double LogicInterpreter::ex_ActionInvoker(const int program_index)
 
             for( int i = 1; i < va_with_size_node.number_arguments; i += ElementsPerArgument )
             {
-                const SharableString name = EvaluateSharableString(va_with_size_node.arguments[i]);
+                const SharableString name = Evaluate<SharableString>(va_with_size_node.arguments[i]);
                 const auto& gf_value_node = GetNode<Nodes::GeneralizedFunctionValue>(va_with_size_node.arguments[i + 1]);
 
                 json_writer->Key(*name);
@@ -160,7 +160,7 @@ double LogicInterpreter::ex_ActionInvoker(const int program_index)
                     case GF::VariableType::String:
                     {
                         ASSERT(gf_value_node.argument_variable_type == GF::VariableType::String);
-                        json_writer->Write(EvaluateSharableString(gf_value_node.argument_expression));
+                        json_writer->Write(Evaluate<SharableString>(gf_value_node.argument_expression));
                         break;
                     }
 
@@ -191,7 +191,7 @@ double LogicInterpreter::ex_ActionInvoker(const int program_index)
                         else
                         {
                             ASSERT(gf_value_node.argument_variable_type == GF::VariableType::String);
-                            json_writer->Write(Json::Parse(EvaluateSharableString(gf_value_node.argument_expression).GetString()));
+                            json_writer->Write(Json::Parse(Evaluate<SharableString>(gf_value_node.argument_expression).GetString()));
                         }
 
                         break;
@@ -200,7 +200,7 @@ double LogicInterpreter::ex_ActionInvoker(const int program_index)
                     case GF::VariableType::Object:
                     {
                         ASSERT(gf_value_node.argument_variable_type == GF::VariableType::String);
-                        json_writer->Write(Json::Parse(EvaluateSharableString(gf_value_node.argument_expression).GetString()));
+                        json_writer->Write(Json::Parse(Evaluate<SharableString>(gf_value_node.argument_expression).GetString()));
                         break;
                     }
 

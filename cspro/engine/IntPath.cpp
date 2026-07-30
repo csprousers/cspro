@@ -1,4 +1,4 @@
-﻿#include "StandardSystemIncludes.h"
+#include "StandardSystemIncludes.h"
 #include "Interpreter.h"
 #include "Engine.h"
 #include <zEngineO/EngineDictionary.h>
@@ -70,7 +70,7 @@ namespace
         // --------------------------------------------------------------------------
         if( directory_variant_node.type == Nodes::DirectoryVariant::Type::String )
         {
-            std::string filename_or_path = interpreter.EvaluateString(directory_variant_node.code_or_expression);
+            std::string filename_or_path = interpreter.Evaluate<std::string>(directory_variant_node.code_or_expression);
 
             if constexpr(AllowSpecialDirectories)
             {
@@ -207,7 +207,7 @@ namespace
 
         else if( filter_type_or_expression >= 0 )
         {
-            std::string filter = SpecialDirectoryLister::EvaluateFilter(*interpreter.EvaluateSharableString(filter_type_or_expression));
+            std::string filter = SpecialDirectoryLister::EvaluateFilter(*interpreter.Evaluate<SharableString>(filter_type_or_expression));
 
             if( !filter.empty() )
                 return filter;
@@ -253,7 +253,7 @@ double CIntDriver::ex_Path_concat(const int program_index)
     {
         for( int i = 2; i <= number_arguments; ++i )
         {
-            const SharableString this_entity = EvaluateSharableString(va_node.arguments[i]);
+            const SharableString this_entity = Evaluate<SharableString>(va_node.arguments[i]);
 
             if( full_path->empty() )
             {
@@ -286,7 +286,7 @@ double CIntDriver::ex_Path_getDirectoryName(const int program_index)
 double CIntDriver::ex_Path_getExtension(const int program_index)
 {
     const auto& va_node = GetNode<Nodes::VariableArguments>(program_index);
-    const SharableString path = EvaluateSharableString(va_node.arguments[0]);
+    const SharableString path = Evaluate<SharableString>(va_node.arguments[0]);
     return AssignString(PortableFunctions::PathGetFileExtension(*path, true));
 }
 
@@ -294,7 +294,7 @@ double CIntDriver::ex_Path_getExtension(const int program_index)
 double CIntDriver::ex_Path_getFileName(const int program_index)
 {
     const auto& va_node = GetNode<Nodes::VariableArguments>(program_index);
-    const SharableString path = EvaluateSharableString(va_node.arguments[0]);
+    const SharableString path = Evaluate<SharableString>(va_node.arguments[0]);
     return AssignString(PortableFunctions::PathGetFilename(*path));
 }
 
@@ -302,7 +302,7 @@ double CIntDriver::ex_Path_getFileName(const int program_index)
 double CIntDriver::ex_Path_getFileNameWithoutExtension(const int program_index)
 {
     const auto& va_node = GetNode<Nodes::VariableArguments>(program_index);
-    const SharableString path = EvaluateSharableString(va_node.arguments[0]);
+    const SharableString path = Evaluate<SharableString>(va_node.arguments[0]);
     return AssignString(Path::GetFilenameWithoutExtension(*path));
 }
 
@@ -333,7 +333,7 @@ double CIntDriver::ex_Path_selectFile(const int program_index)
 
     // evaluate the title
     if( path_select_file_node.title_expression != -1 )
-        select_file_dlg.SetTitle(EvaluateSharableString(path_select_file_node.title_expression));
+        select_file_dlg.SetTitle(Evaluate<SharableString>(path_select_file_node.title_expression));
 
     // evaluate whether to show directories
     select_file_dlg.SetShowDirectories(EvaluateOptionalConditional(path_select_file_node.show_directories_expression, true));

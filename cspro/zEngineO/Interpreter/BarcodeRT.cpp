@@ -11,7 +11,7 @@ double LogicInterpreter::ex_Barcode_read(const int program_index)
 {
     const auto& va_node = GetNode<Nodes::VariableArguments>(program_index);
     const int& message_text_expression = va_node.arguments[0];
-    const SharableString message_text = ( message_text_expression >= 0 ) ? EvaluateSharableString(message_text_expression).MakeTrim() :
+    const SharableString message_text = ( message_text_expression >= 0 ) ? Evaluate<SharableString>(message_text_expression).MakeTrim() :
                                                                            SharableString();
     std::unique_ptr<Paradata::OperatorSelectionEvent> operator_selection_event;
 
@@ -44,7 +44,7 @@ double LogicInterpreter::ex_Barcode_createQRCode(const int program_index)
             const auto& create_qr_code_options_node = GetNode<Nodes::CreateQRCodeOptions>(create_qr_code_node.options_node_index);
 
             if( create_qr_code_options_node.error_correction_expression != -1 )
-                qr_code.SetErrorCorrectionLevel(*EvaluateSharableString(create_qr_code_options_node.error_correction_expression));
+                qr_code.SetErrorCorrectionLevel(*Evaluate<SharableString>(create_qr_code_options_node.error_correction_expression));
 
             if( create_qr_code_options_node.scale_expression != -1 )
                 qr_code.SetScale(Evaluate<int>(create_qr_code_options_node.scale_expression));
@@ -54,7 +54,7 @@ double LogicInterpreter::ex_Barcode_createQRCode(const int program_index)
 
             auto evaluate_portable_color = [&](const int expression)
             {
-                const SharableString color_text = EvaluateSharableString(expression);
+                const SharableString color_text = Evaluate<SharableString>(expression);
                 const std::optional<PortableColor> color = PortableColor::FromString(*color_text);
 
                 if( !color.has_value() )

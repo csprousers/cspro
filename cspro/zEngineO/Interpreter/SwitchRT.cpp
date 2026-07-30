@@ -38,7 +38,7 @@ std::optional<std::tuple<const int*, const int*>> LogicInterpreter::EvaluateSwit
             ASSERT(IsString(data_type));
 
             value_indices.emplace_back(string_values.size());
-            string_values.emplace_back(EvaluateSharableString(value_expression));
+            string_values.emplace_back(Evaluate<SharableString>(value_expression));
         }
     }
 
@@ -96,7 +96,7 @@ std::optional<std::tuple<const int*, const int*>> LogicInterpreter::EvaluateSwit
                            token_code == TokenCode::TOKGEOP ||
                            token_code == TokenCode::TOKGTOP);
 
-                    const SharableString rhs_value = EvaluateSharableString(expression);
+                    const SharableString rhs_value = Evaluate<SharableString>(expression);
                     conditions_match = m_usingLogicSettingsV0 ? EngineStringComparer::V0::Evaluate(*lhs_value, *rhs_value, token_code) :
                                                                 EngineStringComparer::V8::Evaluate(*lhs_value, *rhs_value, token_code);
                 }
@@ -148,7 +148,7 @@ double LogicInterpreter::ex_recode(const int program_index)
 
             else if( IsString(data_type) )
             {
-                AssignValueToSymbol(symbol_value_node, EvaluateSharableString(*action));
+                AssignValueToSymbol(symbol_value_node, Evaluate<SharableString>(*action));
             }
 
             else
@@ -240,7 +240,7 @@ bool LogicInterpreter::InWorker(const int in_node_expression, const std::variant
             {
                 auto get_string_comparison = [&](const int expression)
                 {
-                    const SharableString rhs = ( expression_evaluator == nullptr ) ? EvaluateSharableString(expression) :
+                    const SharableString rhs = ( expression_evaluator == nullptr ) ? Evaluate<SharableString>(expression) :
                                                                                      std::get<SharableString>((*expression_evaluator)(expression));
 
                     return m_usingLogicSettingsV0 ? EngineStringComparer::V0::Compare(std::get<SharableString>(value).GetString(), rhs.GetString()) :

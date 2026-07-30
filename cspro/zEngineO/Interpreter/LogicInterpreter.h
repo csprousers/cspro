@@ -219,10 +219,8 @@ private:
     // (StringRT.cpp)
     // --------------------------------------------------------------------------
 public:
-    SharableString EvaluateSharableString(int program_index);
     SharableString EvaluateSharableString(DataType value_data_type, int program_index);
     SharableString EvaluateNullableSharableString(int program_index);
-    std::string EvaluateString(int program_index);
     std::string EvaluateString(DataType value_data_type, int program_index);
 
     template<typename T>
@@ -878,10 +876,38 @@ inline Engine::Value LogicInterpreter::ExecuteInstruction(const int program_inde
 template<typename T>
 T LogicInterpreter::Evaluate(const int program_index)
 {
-    if      constexpr(std::is_same_v<T, Engine::Value>)  { return ExecuteInstruction(program_index); }
-    else if constexpr(std::is_same_v<T, SharableString>) { return EvaluateSharableString(program_index); }
-    else if constexpr(std::is_same_v<T, std::string>)    { return EvaluateString(program_index); }
-    else                                                 { return static_cast<T>(ExecuteInstruction(program_index).get<double>()); }
+    static_assert(std::is_same_v<T, double> ||
+                  std::is_same_v<T, int> ||
+                  std::is_same_v<T, unsigned int> ||
+                  std::is_same_v<T, int64_t> ||
+                  std::is_same_v<T, size_t>);
+
+    return static_cast<T>(ExecuteInstruction(program_index).get<double>());
+}
+
+
+template<>
+inline Engine::Value LogicInterpreter::Evaluate(const int program_index)
+{
+    return ExecuteInstruction(program_index);
+}
+
+
+template<>
+inline SharableString LogicInterpreter::Evaluate(const int program_index)
+{
+    // EV_TODO when AssignString is no longer used, we can get rid of
+    // GetWorkingSharableString and use the general template specialization instead
+    return GetWorkingSharableString(Evaluate<Engine::Value>(program_index));
+}
+
+
+template<>
+inline std::string LogicInterpreter::Evaluate(const int program_index)
+{
+    // EV_TODO when AssignString is no longer used, we can add a
+    // template specialization in Engine::Value for getting strings
+    return Evaluate<SharableString>(program_index).Release();
 }
 
 

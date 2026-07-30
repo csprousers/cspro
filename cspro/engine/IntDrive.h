@@ -306,8 +306,8 @@ public:
     template<typename T = double>
     T evalexpr(int program_index);
 
-    std::wstring EvalAlphaExpr(int program_index) { return UTF8_TODO::GetWide(*EvaluateSharableString(program_index)); }
-    CString EvalAlphaExprCS(int program_index)    { return UTF8_TODO::GetCString(*EvaluateSharableString(program_index)); }
+    std::wstring EvalAlphaExpr(int program_index) { return UTF8_TODO::GetWide(*Evaluate<SharableString>(program_index)); }
+    CString EvalAlphaExprCS(int program_index)    { return UTF8_TODO::GetCString(*Evaluate<SharableString>(program_index)); }
 
     // --- basic interpreter functions
 public:

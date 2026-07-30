@@ -1085,7 +1085,7 @@ void CIntDriver::ResetSymbol(Symbol& symbol, const int initialize_value/* = -1*/
             std::vector<SharableString> initial_values;
 
             for( int i = 1; i < array_values->number_elements; ++i )
-                initial_values.emplace_back(EvaluateSharableString(array_values->elements[i]));
+                initial_values.emplace_back(Evaluate<SharableString>(array_values->elements[i]));
 
             logic_array.SetInitialValues(std::move(initial_values), repeat_values);
         }
@@ -1121,7 +1121,7 @@ void CIntDriver::ResetSymbol(Symbol& symbol, const int initialize_value/* = -1*/
     {
         ASSERT(has_initialize_value);
         WorkString& work_string = assert_cast<WorkString&>(symbol);
-        work_string.SetString(EvaluateSharableString(initialize_value));
+        work_string.SetString(Evaluate<SharableString>(initialize_value));
     }
 
 

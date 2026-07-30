@@ -206,7 +206,7 @@ SharableString CIntDriver::EvaluateUserMessage(const int message_node_index, con
         // for messages that are not in the message file, evaluate the message text
         if( message_node.message_expression != -1 )
         {
-            unformatted_message_text = EvaluateSharableString(message_node.message_expression);
+            unformatted_message_text = Evaluate<SharableString>(message_node.message_expression);
             user_message_manager.UpdateUnnumberedMessageText(message_number, unformatted_message_text);
         }
     }
@@ -411,7 +411,7 @@ double CIntDriver::DisplayUserMessage(const int message_node_index)
 
                 // add the button text
                 for( int i = 0; i < select_button_texts_list_node.number_elements; ++i )
-                    select_details->button_texts.emplace_back(EvaluateSharableString(select_button_texts_list_node.elements[i]));
+                    select_details->button_texts.emplace_back(Evaluate<SharableString>(select_button_texts_list_node.elements[i]));
 
                 // check if there is a valid default button number
                 if( extended_message_node->select_default_button_expression != -1 )

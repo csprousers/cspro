@@ -226,7 +226,7 @@ double CIntDriver::exsqlquery(const int program_index)
 double CIntDriver::exsqlquery(const int program_index, const std::function<double(sqlite3*, const std::string&)>* const setreportdata_callback)
 {
     const auto& sqlquery_node = GetNode<Nodes::SqlQuery>(program_index);
-    const SharableString sql_query = EvaluateSharableString(sqlquery_node.sql_query_expression);
+    const SharableString sql_query = Evaluate<SharableString>(sqlquery_node.sql_query_expression);
 
     sqlite3* db = nullptr;
     bool must_close_db = false;

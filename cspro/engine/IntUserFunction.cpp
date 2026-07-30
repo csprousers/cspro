@@ -101,7 +101,7 @@ double CIntDriver::CallUserFunction(UserFunction& user_function, UserFunctionArg
         else if( parameter_symbol.IsA(SymbolType::WorkString) )
         {
             WorkString& work_string = assert_cast<WorkString&>(parameter_symbol);
-            work_string.SetString(use_default_argument ? EvaluateSharableString(user_function.GetParameterDefaultValue(i)) :
+            work_string.SetString(use_default_argument ? Evaluate<SharableString>(user_function.GetParameterDefaultValue(i)) :
                                                          argument_evaluator.GetString(i));
         }
 
@@ -282,7 +282,7 @@ SharableString LogicUserFunctionArgumentEvaluator::GetString(const size_t parame
     ASSERT(parameter_number < m_numberArguments);
     ASSERT(m_interpreter.GetEngineData().PredatesCompiledLogicVersion(Serializer::Iteration_8_0_000_1) || m_argumentExpressions[2 * parameter_number + 1] == -1);
 
-    return m_interpreter.EvaluateSharableString(m_argumentExpressions[m_pre80SupportMultiplier * parameter_number]);
+    return m_interpreter.Evaluate<SharableString>(m_argumentExpressions[m_pre80SupportMultiplier * parameter_number]);
 }
 
 
@@ -410,7 +410,7 @@ LogicCallbackUserFunctionArgumentEvaluator::LogicCallbackUserFunctionArgumentEva
         // string/alpha
         else if( parameter_symbol.IsA(SymbolType::WorkString) )
         {
-            m_evaluatedArguments.emplace_back(m_interpreter.EvaluateSharableString(user_function_node.argument_expressions[m_pre80SupportMultiplier * i]));
+            m_evaluatedArguments.emplace_back(m_interpreter.Evaluate<SharableString>(user_function_node.argument_expressions[m_pre80SupportMultiplier * i]));
         }
 
         // symbols
@@ -637,7 +637,7 @@ SharableString InvokeArgumentsProvidedDirectlyArgumentEvaluator::GetString(const
     ASSERT(( std::get<0>(m_arguments[parameter_number]) == ( -1 * static_cast<int>(SymbolType::WorkString)) ) ||
            ( std::get<0>(m_arguments[parameter_number]) == -1 ));
 
-    return m_interpreter.EvaluateSharableString(std::get<1>(m_arguments[parameter_number]));
+    return m_interpreter.Evaluate<SharableString>(std::get<1>(m_arguments[parameter_number]));
 }
 
 
@@ -808,7 +808,7 @@ template InterpreterExecuteResult CIntDriver::RunInvoke(std::string_view functio
 double CIntDriver::ex_invoke(const int program_index)
 {
     const auto& invoke_node = GetNode<Nodes::Invoke>(program_index);
-    const SharableString function_name = EvaluateSharableString(invoke_node.function_name_expression);
+    const SharableString function_name = Evaluate<SharableString>(invoke_node.function_name_expression);
 
     try
     {
@@ -816,7 +816,7 @@ double CIntDriver::ex_invoke(const int program_index)
 
         if( invoke_node.arguments_expression != -1 )
         {
-            const SharableString json_arguments_text = EvaluateSharableString(invoke_node.arguments_expression);
+            const SharableString json_arguments_text = Evaluate<SharableString>(invoke_node.arguments_expression);
             execute_result = RunInvoke(*function_name, *json_arguments_text, nullptr);
         }
 

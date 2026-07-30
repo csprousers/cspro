@@ -557,7 +557,7 @@ double CIntDriver::exgetlabel(int iExpr)
         {
             const DictValue* const dict_value = IsNumeric(*symbol)
                 ? value_processor->GetDictValue(Evaluate<double>(fng_node.m_iExpr))
-                : value_processor->GetDictValue(EvaluateSharableString(fng_node.m_iExpr).GetString());
+                : value_processor->GetDictValue(Evaluate<SharableString>(fng_node.m_iExpr).GetString());
 
             if( dict_value != nullptr )
                 return AssignAlphaValue(dict_value->GetLabel());
@@ -568,7 +568,7 @@ double CIntDriver::exgetlabel(int iExpr)
             ASSERT(fng_node.m_iOper == static_cast<int>(GetLabelSearchType::ByLabel));
 
             const DictValue* const dict_value = value_processor->GetDictValueByLabel(
-                EvaluateSharableString(fng_node.m_iExpr).GetString()
+                Evaluate<SharableString>(fng_node.m_iExpr).GetString()
             );
 
             // take the label from the first value pair
@@ -754,7 +754,7 @@ std::unique_ptr<std::string> CIntDriver::EvaluateNoteOperatorId(const FNNOTE_NOD
     {
         if( note_node.operator_id_expression != -1 )
         {
-            return std::make_unique<std::string>(EvaluateString(note_node.operator_id_expression));
+            return std::make_unique<std::string>(Evaluate<std::string>(note_node.operator_id_expression));
         }
 
         else if( Issamod == ModuleType::Entry )
@@ -792,7 +792,7 @@ double CIntDriver::exputnote(const int program_index)
     const std::unique_ptr<const std::string> operator_id = EvaluateNoteOperatorId(note_node, field_symbol);
 
     m_pEngineDriver->SetNote(named_reference, operator_id.get(),
-                             EvaluateSharableString(note_node.note_text_expression),
+                             Evaluate<SharableString>(note_node.note_text_expression),
                              field_symbol);
 
     return 1;
@@ -858,7 +858,7 @@ double CIntDriver::ExExecSystem(int iExpr)
 {
     const auto& execsystem_node = GetNode<FNEXECSYSTEM_NODE>(iExpr);
     bool success = false;
-    std::string command = EvaluateString(execsystem_node.m_iCommand);
+    std::string command = Evaluate<std::string>(execsystem_node.m_iCommand);
 
     std::unique_ptr<Paradata::ExternalApplicationEvent> external_application_event = ExExecCommonBeforeExecute(FNEXECSYSTEM_CODE, command, execsystem_node.m_iOptions);
 
@@ -1132,7 +1132,7 @@ double CIntDriver::exsetcaselabel(int iExpr)
         EngineDictionary* engine_dictionary = assert_cast<EngineDictionary*>(symbol);
         Case& data_case = engine_dictionary->GetEngineCase().GetCase();
 
-        data_case.SetCaseLabel(EvaluateString(fn8_node.extra_parameter));
+        data_case.SetCaseLabel(Evaluate<std::string>(fn8_node.extra_parameter));
 
         // refresh the case listing
         if( engine_dictionary->GetSubType() == SymbolSubType::Input )
@@ -1144,7 +1144,7 @@ double CIntDriver::exsetcaselabel(int iExpr)
         DICX* pDicX = DPX(fn8_node.symbol_index);
         Case& data_case = pDicX->GetCase();
 
-        data_case.SetCaseLabel(EvaluateString(fn8_node.extra_parameter));
+        data_case.SetCaseLabel(Evaluate<std::string>(fn8_node.extra_parameter));
 
         // refresh the case listing
         if( symbol->GetSubType() == SymbolSubType::Input )

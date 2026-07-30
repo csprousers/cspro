@@ -76,7 +76,7 @@ double LogicInterpreter::ex_invalueset(const int program_index)
 
     else
     {
-        const SharableString value = EvaluateSharableString(invalueset_node.value_expression);
+        const SharableString value = Evaluate<SharableString>(invalueset_node.value_expression);
         return value_processor->IsValid(*value);
     }
 }
@@ -114,7 +114,7 @@ double LogicInterpreter::ex_getimage(const int program_index)
     else
     {
         ASSERT(IsString(symbol));
-        const SharableString value = EvaluateSharableString(function_node.m_iExpr);
+        const SharableString value = Evaluate<SharableString>(function_node.m_iExpr);
         dict_value = value_processor->GetDictValue(*value);
     }
 
@@ -137,7 +137,7 @@ double LogicInterpreter::ex_setvalueset(const int program_index)
         // lookup the symbol by name
         if( symbol_index < 0 )
         {
-            const SharableString symbol_name = EvaluateSharableString(-1 * symbol_index);
+            const SharableString symbol_name = Evaluate<SharableString>(-1 * symbol_index);
             symbol_index = SymbolTableSearchWithPreference_INTERPRETER_DLL_TODO(SO::Trim(*symbol_name), symbol_type);
 
             if( symbol_index <= 0 )
@@ -231,7 +231,7 @@ double LogicInterpreter::ex_setvalueset_pre80(const int program_index)
         // the variable name is supplied as an alpha expression
         if( pFunc->m_iIsAtAlpha == 1 )
         {
-            SharableString var_name = EvaluateSharableString(-iSymbol + 1);
+            SharableString var_name = Evaluate<SharableString>(-iSymbol + 1);
             var_name.MakeTrimRight();
 
             if( !var_name->empty()  )
@@ -265,7 +265,7 @@ double LogicInterpreter::ex_setvalueset_pre80(const int program_index)
     // value set is an alpha expression
     if( pFunc->m_iSymbolValues[1] == -1 )
     {
-        SharableString value_set_name = EvaluateSharableString(pFunc->m_iSymbolValues[0]);
+        SharableString value_set_name = Evaluate<SharableString>(pFunc->m_iSymbolValues[0]);
         value_set_name.MakeUpper();
 
         int value_set_symbol = SymbolTableSearch_INTERPRETER_DLL_TODO(*value_set_name, { SymbolType::ValueSet });
@@ -419,7 +419,7 @@ double LogicInterpreter::ex_setvaluesets(const int program_index)
 {
     // for changing the value sets of all items to those matching the string passed
     const auto& fnn_node = GetNode<FNN_NODE>(program_index);
-    const SharableString value_set_pattern = EvaluateSharableString(fnn_node.fn_expr[0]);
+    const SharableString value_set_pattern = Evaluate<SharableString>(fnn_node.fn_expr[0]);
     size_t num_value_sets_changed = 0;
 
     // process each of the value sets
@@ -467,7 +467,7 @@ double LogicInterpreter::ex_randomizevs(const int program_index)
 
         else
         {
-            SharableString& exclusion = std::get<1>(exclusions).emplace_back(EvaluateSharableString(va_with_size_node.arguments[i]));
+            SharableString& exclusion = std::get<1>(exclusions).emplace_back(Evaluate<SharableString>(va_with_size_node.arguments[i]));
             exclusion.MakeTrimRight();
         }
     }
@@ -626,7 +626,7 @@ double LogicInterpreter::ex_ValueSet_add(const int program_index)
         // or add a single string value
         else
         {
-            const SharableString value = EvaluateSharableString(from_code_expression);
+            const SharableString value = Evaluate<SharableString>(from_code_expression);
             const DictValue* const dict_value = rhs_value_set.GetValueProcessor().GetDictValue(*value);
 
             if( dict_value != nullptr )
@@ -645,7 +645,7 @@ double LogicInterpreter::ex_ValueSet_add(const int program_index)
 
     else
     {
-        const SharableString label = EvaluateSharableString(label_expression);
+        const SharableString label = Evaluate<SharableString>(label_expression);
 
         std::string image_file_path = ( image_file_path_expression != -1 )
             ? EvaluatePath(image_file_path_expression)
@@ -655,7 +655,7 @@ double LogicInterpreter::ex_ValueSet_add(const int program_index)
 
         if( text_color_expression != -1 )
         {
-            const SharableString text_color_text = EvaluateSharableString(text_color_expression);
+            const SharableString text_color_text = Evaluate<SharableString>(text_color_expression);
             text_color = PortableColor::FromString(*text_color_text);
 
             if( !text_color.has_value() )
@@ -671,7 +671,7 @@ double LogicInterpreter::ex_ValueSet_add(const int program_index)
                 std::move(label),
                 std::move(image_file_path),
                 std::move(*text_color),
-                EvaluateSharableString(from_code_expression) // value
+                Evaluate<SharableString>(from_code_expression) // value
             );
         }
 
@@ -787,7 +787,7 @@ double LogicInterpreter::ex_ValueSet_show(const int program_index)
     SelectDlg select_dlg(true, 1);
 
     if( symbol_va_node.arguments[0] != -1 )
-        select_dlg.SetTitle(EvaluateSharableString(symbol_va_node.arguments[0]));
+        select_dlg.SetTitle(Evaluate<SharableString>(symbol_va_node.arguments[0]));
 
     // numeric value sets will return the code;
     // string value sets will return the label index (not code)

@@ -238,7 +238,7 @@ double LogicInterpreter::ex_Geometry_minLatitude_maxLatitude_minLongitude_maxLon
 double LogicInterpreter::ex_Geometry_getProperty(const int program_index)
 {
     const auto& symbol_va_with_subscript_node = GetOrConvertPre80SymbolVariableArgumentsWithSubscriptNode(program_index);
-    const SharableString property_name = EvaluateSharableString(symbol_va_with_subscript_node.arguments[0]);
+    const SharableString property_name = Evaluate<SharableString>(symbol_va_with_subscript_node.arguments[0]);
     const LogicGeometry* const logic_geometry = GetFromSymbolOrEngineItem<LogicGeometry*>(symbol_va_with_subscript_node.symbol_index,
                                                                                           symbol_va_with_subscript_node.subscript_compilation);
 
@@ -252,7 +252,7 @@ double LogicInterpreter::ex_Geometry_getProperty(const int program_index)
 double LogicInterpreter::ex_Geometry_setProperty(const int program_index)
 {
     const auto& symbol_va_with_subscript_node = GetOrConvertPre80SymbolVariableArgumentsWithSubscriptNode(program_index);
-    const SharableString property_name = EvaluateSharableString(symbol_va_with_subscript_node.arguments[0]);
+    const SharableString property_name = Evaluate<SharableString>(symbol_va_with_subscript_node.arguments[0]);
     const std::variant<double, SharableString> property_value = EvaluateVariant(static_cast<DataType>(symbol_va_with_subscript_node.arguments[1]),
                                                                                 symbol_va_with_subscript_node.arguments[2]);
     LogicGeometry* const logic_geometry = GetFromSymbolOrEngineItem<LogicGeometry*>(symbol_va_with_subscript_node.symbol_index,

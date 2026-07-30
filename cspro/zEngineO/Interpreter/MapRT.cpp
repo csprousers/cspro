@@ -169,13 +169,13 @@ double LogicInterpreter::ex_Map_setMarkerText(const int program_index)
         return 0;
 
     const int marker_id = Evaluate<int>(symbol_va_node.arguments[0]);
-    SharableString text = EvaluateSharableString(symbol_va_node.arguments[1]);
+    SharableString text = Evaluate<SharableString>(symbol_va_node.arguments[1]);
 
     auto evaluate_and_get_color = [&](const int argument_index, const int default_color)
     {
         if( symbol_va_node.arguments[argument_index] >= 0 )
         {
-            const SharableString color_string = EvaluateSharableString(symbol_va_node.arguments[argument_index]);
+            const SharableString color_string = Evaluate<SharableString>(symbol_va_node.arguments[argument_index]);
             const std::optional<PortableColor> portable_color = PortableColor::FromString(*color_string);
 
             if( portable_color.has_value() )
@@ -223,7 +223,7 @@ double LogicInterpreter::ex_Map_setMarkerDescription(const int program_index)
         return 0;
 
     const int marker_id = Evaluate<int>(symbol_va_node.arguments[0]);
-    SharableString description = EvaluateSharableString(symbol_va_node.arguments[1]);
+    SharableString description = Evaluate<SharableString>(symbol_va_node.arguments[1]);
 
     return map_ui->SetMarkerDescription(marker_id, std::move(description));
 }
@@ -320,7 +320,7 @@ double LogicInterpreter::ex_Map_addTextButton(const int program_index)
     if( map_ui == nullptr )
         return 0;
 
-    SharableString label = EvaluateSharableString(symbol_va_node.arguments[0]);
+    SharableString label = Evaluate<SharableString>(symbol_va_node.arguments[0]);
 
     const int callback_index = logic_map.AddCallback(EvaluateArgumentsForCallbackUserFunction(symbol_va_node.arguments[1],
                                                                                               FunctionCode::MAPFN_SHOW_CODE));
@@ -410,7 +410,7 @@ double LogicInterpreter::ex_Map_setBaseMap(const int program_index)
 
     else
     {
-        const SharableString base_map_text = EvaluateSharableString(custom_source_expression);
+        const SharableString base_map_text = Evaluate<SharableString>(custom_source_expression);
         return SetBaseMap(logic_map, FromString(*base_map_text, GetCurrentApplicationFilePath()));
     }
 }
@@ -425,7 +425,7 @@ double LogicInterpreter::ex_Map_setTitle(const int program_index)
     if( map_ui == nullptr )
         return 0;
 
-    return map_ui->SetTitle(EvaluateSharableString(symbol_va_node.arguments[0]));
+    return map_ui->SetTitle(Evaluate<SharableString>(symbol_va_node.arguments[0]));
 }
 
 
