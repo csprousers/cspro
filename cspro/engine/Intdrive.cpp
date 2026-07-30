@@ -409,12 +409,12 @@ void CIntDriver::AddIntDriverInstructions()
     OP_DOUBLE(71, exmax);
     OP_DOUBLE(72, exdisplay);
     OP_DOUBLE(73, exerrmsg);
-    OP_DOUBLE(74, ex_concat);
+    OP_ENGVAL(74, ex_concat);
     OP_DOUBLE(75, ex_tonumber);
     OP_DOUBLE(76, ex_pos_poschar);
     OP_DOUBLE(77, ex_compare);
     OP_DOUBLE(78, ex_length);
-    OP_DOUBLE(79, ex_strip);
+    OP_ENGVAL(79, ex_strip);
     OP_DOUBLE(80, ex_pos_poschar);
     OP_DOUBLE(81, exedit);
     OP_DOUBLE(82, ex_cmcode);
@@ -509,8 +509,8 @@ void CIntDriver::AddIntDriverInstructions()
     OP_DOUBLE(171, ExExecSystem);
     OP_DOUBLE(172, exnoopAbort);
     OP_DOUBLE(173, exshowlist);
-    OP_DOUBLE(174, ex_tolower_toupper);
-    OP_DOUBLE(175, ex_tolower_toupper);
+    OP_ENGVAL(174, ex_tolower_toupper);
+    OP_ENGVAL(175, ex_tolower_toupper);
     OP_DOUBLE(176, excountvalid);
     OP_DOUBLE(177, exnoopIgnore_string);
     OP_DOUBLE(178, exswap);
@@ -610,7 +610,7 @@ void CIntDriver::AddIntDriverInstructions()
     OP_DOUBLE(272, ex_timestring);
     OP_ENGVAL(273, ex_string_literal);
     OP_DOUBLE(274, exsymbolreset);
-    OP_DOUBLE(275, ex_decryptstring);
+    OP_ENGVAL(275, ex_decryptstring);
     OP_DOUBLE(276, exdirdelete);
     OP_DOUBLE(277, ex_Array_var);
     OP_DOUBLE(278, extvar);
@@ -696,7 +696,7 @@ void CIntDriver::AddIntDriverInstructions()
     OP_DOUBLE(358, ex_Audio_record);
     OP_DOUBLE(359, ex_Audio_recordInteractive);
     OP_DOUBLE(360, ex_Audio_compute);
-    OP_DOUBLE(361, ex_encode);
+    OP_ENGVAL(361, ex_encode);
     OP_DOUBLE(362, ex_List_sort);
     OP_DOUBLE(363, ex_List_removeDuplicates);
     OP_DOUBLE(364, ex_List_removeIn);
@@ -715,7 +715,7 @@ void CIntDriver::AddIntDriverInstructions()
     OP_DOUBLE(377, ex_HashMap_getKeys);
     OP_DOUBLE(378, ex_Audio_length);
     OP_DOUBLE(379, ex_ValueSet_sort);
-    OP_DOUBLE(380, ex_replace);
+    OP_ENGVAL(380, ex_replace);
     OP_DOUBLE(381, ex_inc);
     OP_DOUBLE(382, exuniverse);
     OP_DOUBLE(383, ex_Freq_unnamed);
@@ -725,7 +725,7 @@ void CIntDriver::AddIntDriverInstructions()
     OP_DOUBLE(387, ex_Freq_view);
     OP_DOUBLE(388, ex_Freq_var);
     OP_DOUBLE(389, ex_Freq_compute);
-    OP_DOUBLE(390, ex_WorkString_evaluate);
+    OP_ENGVAL(390, ex_WorkString_evaluate);
     OP_DOUBLE(391, exmaxocc);
     OP_DOUBLE(392, exsoccurs);
     OP_DOUBLE(393, exDataAccessValidityCheck);
@@ -781,7 +781,7 @@ void CIntDriver::AddIntDriverInstructions()
     OP_DOUBLE(443, ex_Barcode_createQRCode);
     OP_DOUBLE(444, exScopeChange);
     OP_DOUBLE(445, exdictaccess);
-    OP_DOUBLE(446, ex_WorkString_compute);
+    OP_ENGVAL(446, ex_WorkString_compute);
     OP_DOUBLE(447, ex_ActionInvoker);
     OP_DOUBLE(448, ex_Symbol_getName);
     OP_DOUBLE(449, ex_Symbol_getLabel);

@@ -30,6 +30,33 @@ std::string Engine::Value::CreateExceptionMessage(const bool is_access_exception
 }
 
 
+template<>
+ZENGINEO_API Engine::Value Engine::Value::Undefined<double>() noexcept
+{
+    return NOTAPPL;
+}
+
+
+template<>
+ZENGINEO_API Engine::Value Engine::Value::Undefined<SharableString>() noexcept
+{
+    return SharableString();
+}
+
+
+template<>
+ZENGINEO_API Engine::Value Engine::Value::Invalid<double>() noexcept
+{
+    return DEFAULT;
+}
+
+
+template<>
+ZENGINEO_API Engine::Value Engine::Value::Invalid<SharableString>() noexcept
+{
+    return SharableString();
+}
+
 
 SharableString Engine::Value::ToString() const
 {

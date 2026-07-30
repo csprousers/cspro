@@ -242,8 +242,8 @@ public:
     SharableString ApplyV0Escapes(SharableString text, V0_EscapeType v0_escape_type = V0_EscapeType::NewlinesToSlashN);
     std::string ApplyV0Escapes(std::string text, V0_EscapeType v0_escape_type = V0_EscapeType::NewlinesToSlashN);
 
-    double ex_WorkString_evaluate(int program_index);
-    double ex_WorkString_compute(int program_index);
+    Engine::Value ex_WorkString_evaluate(int program_index);
+    Engine::Value ex_WorkString_compute(int program_index);
 
     double ex_string_eq(int program_index);
     double ex_string_ne(int program_index);
@@ -253,17 +253,17 @@ public:
     double ex_string_gt(int program_index);
     double ex_compare(int program_index);
     double ex_compareNoCase(int program_index);
-    double ex_concat(int program_index);
+    Engine::Value ex_concat(int program_index);
     double ex_ischecked(int program_index);
     double ex_length(int program_index);
     double ex_pos_poschar(int program_index);
     double ex_regexmatch(int program_index);
-    double ex_replace(int program_index);
+    Engine::Value ex_replace(int program_index);
     double ex_startswith(int program_index);
-    double ex_strip(int program_index);
-    double ex_tolower_toupper(int program_index);
-    double ex_decryptstring(int program_index);
-    double ex_encode(int program_index);
+    Engine::Value ex_strip(int program_index);
+    Engine::Value ex_tolower_toupper(int program_index);
+    Engine::Value ex_decryptstring(int program_index);
+    Engine::Value ex_encode(int program_index);
 
 private:
     template<TokenCode token_code>

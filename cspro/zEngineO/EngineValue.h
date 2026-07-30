@@ -24,6 +24,16 @@ public:
     Engine::Value(double value) noexcept;
     Engine::Value(SharableString value) noexcept;
 
+    // EV_TODO: Creates an object of the type "undefined" in case such a type is ever added to the language.
+    // For now, double is mapped to NOTAPPL and SharableString to a blank string.
+    template<typename T>
+    [[nodiscard]] ZENGINEO_API static Engine::Value Undefined() noexcept;
+
+    // EV_TODO: Creates an object of the type "invalid" in case such a type is ever added to the language.
+    // For now, double is mapped to DEFAULT and SharableString to a blank string.
+    template<typename T>
+    [[nodiscard]] ZENGINEO_API static Engine::Value Invalid() noexcept;
+
 
     // --------------------------------------------------------------------------
     // Access methods.
@@ -75,7 +85,7 @@ private:
     ZENGINEO_API static const char* GetTypeText();
 
     template<typename ExceptionT, typename T>
-    [[nodiscard]] ExceptionT CreateException() const;
+    ExceptionT CreateException() const;
 
     ZENGINEO_API std::string CreateExceptionMessage(bool is_access_exception, const char* value_type) const;
 

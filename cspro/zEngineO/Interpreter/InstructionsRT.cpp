@@ -111,12 +111,12 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /*───────┬──────────┬-----------------------------------------------------*/
 /*Op.code│ Function │      ALPHA FUNCTIONS                                */
 /*───────┴──────────┴-----------------------------------------------------*/
-/*  74 */   OP_LI(ex_concat),
+/*  74 */   OP(ex_concat),
 /*  75 */   OP_LI(ex_tonumber),
 /*  76 */   OP_LI(ex_pos_poschar), // pos
 /*  77 */   OP_LI(ex_compare),
 /*  78 */   OP_LI(ex_length),
-/*  79 */   OP_LI(ex_strip),
+/*  79 */   OP(ex_strip),
 /*  80 */   OP_LI(ex_pos_poschar), // poschar
 /*  81 */   OP_ID(exedit),
 
@@ -242,8 +242,8 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 172 */   OP_ID(exnoopAbort),        // an old implementation of exshow
 /* 173 */   OP_ID(exshowlist),
 
-/* 174 */   OP_LI(ex_tolower_toupper), // GHM 20091202 tolower
-/* 175 */   OP_LI(ex_tolower_toupper), // GHM 20091202 toupper
+/* 174 */   OP(ex_tolower_toupper), // GHM 20091202 tolower
+/* 175 */   OP(ex_tolower_toupper), // GHM 20091202 toupper
 /* 176 */   OP_ID(excountvalid),       // GHM 20091202
 /* 177 */   OP_ID(exnoopIgnore_string),// GHM 20091208 previously itemlist
 /* 178 */   OP_ID(exswap),             // GHM 20100105
@@ -343,7 +343,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 272 */   OP_LI(ex_timestring),
 /* 273 */   OP(ex_string_literal),
 /* 274 */   OP_ID(exsymbolreset),
-/* 275 */   OP_LI(ex_decryptstring),
+/* 275 */   OP(ex_decryptstring),
 /* 276 */   OP_ID(exdirdelete),
 /* 277 */   OP_LI(ex_Array_var),
 /* 278 */   OP_ID(extvar),
@@ -429,7 +429,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 358 */   OP_LI(ex_Audio_record),
 /* 359 */   OP_LI(ex_Audio_recordInteractive),
 /* 360 */   OP_LI(ex_Audio_compute),
-/* 361 */   OP_LI(ex_encode),
+/* 361 */   OP(ex_encode),
 /* 362 */   OP_LI(ex_List_sort),
 /* 363 */   OP_LI(ex_List_removeDuplicates),
 /* 364 */   OP_LI(ex_List_removeIn),
@@ -448,7 +448,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 377 */   OP_LI(ex_HashMap_getKeys),
 /* 378 */   OP_LI(ex_Audio_length),
 /* 379 */   OP_LI(ex_ValueSet_sort),
-/* 380 */   OP_LI(ex_replace),
+/* 380 */   OP(ex_replace),
 /* 381 */   OP_LI(ex_inc),
 /* 382 */   OP_ID(exuniverse),
 /* 383 */   OP_ID(ex_Freq_unnamed),
@@ -458,7 +458,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 387 */   OP_ID(ex_Freq_view),
 /* 388 */   OP_ID(ex_Freq_var),
 /* 389 */   OP_ID(ex_Freq_compute),
-/* 390 */   OP_LI(ex_WorkString_evaluate),
+/* 390 */   OP(ex_WorkString_evaluate),
 /* 391 */   OP_ID(exmaxocc),
 /* 392 */   OP_ID(exsoccurs),
 /* 393 */   OP_ID(exDataAccessValidityCheck),
@@ -514,7 +514,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 443 */   OP_LI(ex_Barcode_createQRCode), // Barcode.createQRCode + Image.createQRCode
 /* 444 */   OP_ID(exScopeChange),
 /* 445 */   OP_ID(exdictaccess),
-/* 446 */   OP_LI(ex_WorkString_compute),
+/* 446 */   OP(ex_WorkString_compute),
 /* 447 */   OP_LI(ex_ActionInvoker),
 /* 448 */   OP_LI(ex_Symbol_getName),
 /* 449 */   OP_LI(ex_Symbol_getLabel),

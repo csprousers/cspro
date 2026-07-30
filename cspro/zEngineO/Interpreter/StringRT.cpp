@@ -364,23 +364,25 @@ std::string LogicInterpreter::ApplyV0Escapes(std::string text, const V0_EscapeTy
 // WorkString
 // --------------------------------------------------------------------------
 
-double LogicInterpreter::ex_WorkString_evaluate(const int program_index)
+Engine::Value LogicInterpreter::ex_WorkString_evaluate(const int program_index)
 {
     const auto& va_node = GetNode<Nodes::VariableArguments>(program_index);
     const WorkString& work_string = GetSymbolWorkString(va_node.arguments[0]);
 
-    return AssignString(work_string.GetSharableString());
+    return work_string.GetSharableString();
 }
 
 
-double LogicInterpreter::ex_WorkString_compute(const int program_index)
+Engine::Value LogicInterpreter::ex_WorkString_compute(const int program_index)
 {
     const auto& symbol_compute_expression_node = GetNode<Nodes::SymbolComputeExpression>(program_index);
     WorkString& work_string = GetSymbolWorkString(symbol_compute_expression_node.lhs_symbol_index);
 
-    work_string.SetString(Evaluate<SharableString>(symbol_compute_expression_node.rhs_expression));
+    SharableString value = Evaluate<SharableString>(symbol_compute_expression_node.rhs_expression);
 
-    return 0;
+    work_string.SetString(SharableString(value));
+
+    return value;
 }
 
 
@@ -452,14 +454,14 @@ double LogicInterpreter::ex_compareNoCase(const int program_index)
 }
 
 
-double LogicInterpreter::ex_concat(const int program_index)
+Engine::Value LogicInterpreter::ex_concat(const int program_index)
 {
     const auto& fnn_node = GetNode<FNN_NODE>(program_index);
     ASSERT(fnn_node.fn_nargs >= 1);
 
     // short-circuit concatenating a single value
     if( fnn_node.fn_nargs == 1 )
-        return AssignString(Evaluate<SharableString>(fnn_node.fn_expr[0]));
+        return Evaluate<SharableString>(fnn_node.fn_expr[0]);
 
     std::string result = Evaluate<std::string>(fnn_node.fn_expr[0]);
 
@@ -489,7 +491,7 @@ double LogicInterpreter::ex_concat(const int program_index)
 
     ASSERT(result_data == ( result.data() + concatenated_length ));
 
-    return AssignString(std::move(result));
+    return result;
 }
 
 
@@ -602,16 +604,14 @@ double LogicInterpreter::ex_regexmatch(const int program_index)
 }
 
 
-double LogicInterpreter::ex_replace(const int program_index)
+Engine::Value LogicInterpreter::ex_replace(const int program_index)
 {
     const auto& fnn_node = GetNode<FNN_NODE>(program_index);
     std::string source = Evaluate<std::string>(fnn_node.fn_expr[0]);
     const SharableString replacement_text = Evaluate<SharableString>(fnn_node.fn_expr[1]);
     const SharableString new_text = Evaluate<SharableString>(fnn_node.fn_expr[2]);
 
-    SO::Replace(source, *replacement_text, *new_text);
-
-    return AssignString(std::move(source));
+    return SO::Replace(source, *replacement_text, *new_text);
 }
 
 
@@ -625,18 +625,16 @@ double LogicInterpreter::ex_startswith(const int program_index)
 }
 
 
-double LogicInterpreter::ex_strip(const int program_index)
+Engine::Value LogicInterpreter::ex_strip(const int program_index)
 {
     const auto& fnn_node = GetNode<FNN_NODE>(program_index);
     SharableString text = Evaluate<SharableString>(fnn_node.fn_expr[0]);
 
-    text.MakeTrimRight();
-
-    return AssignString(std::move(text));
+    return text.MakeTrimRight();
 }
 
 
-double LogicInterpreter::ex_tolower_toupper(const int program_index)
+Engine::Value LogicInterpreter::ex_tolower_toupper(const int program_index)
 {
     const auto& fnn_node = GetNode<FNN_NODE>(program_index);
     SharableString text = Evaluate<SharableString>(fnn_node.fn_expr[0]);
@@ -652,11 +650,11 @@ double LogicInterpreter::ex_tolower_toupper(const int program_index)
         text.MakeLower();
     }
 
-    return AssignString(std::move(text));
+    return text;
 }
 
 
-double LogicInterpreter::ex_decryptstring(const int program_index)
+Engine::Value LogicInterpreter::ex_decryptstring(const int program_index)
 {
     // currently this is only used to decrypt locally-declared config variables
     const auto& encryption_node = GetNode<Nodes::Encryption>(program_index);
@@ -665,13 +663,12 @@ double LogicInterpreter::ex_decryptstring(const int program_index)
     const SharableString encrypted_string = Evaluate<SharableString>(encryption_node.string_expression);
 
     Encryptor encryptor(encryption_node.encryption_type);
-    std::string decrypted_string = encryptor.Decrypt(*encrypted_string);
 
-    return AssignString(std::move(decrypted_string));
+    return encryptor.Decrypt(*encrypted_string);
 }
 
 
-double LogicInterpreter::ex_encode(const int program_index)
+Engine::Value LogicInterpreter::ex_encode(const int program_index)
 {
     const auto& encode_node = GetNode<Nodes::Encode>(program_index);
     ASSERT(encode_node.encode_type != EncodeType::Default || encode_node.string_expression >= 0);
@@ -680,13 +677,13 @@ double LogicInterpreter::ex_encode(const int program_index)
     if( encode_node.string_expression < 0 )
     {
         m_currentEncodeType = encode_node.encode_type;
-        return AssignStringNull();
+        return Engine::Value::Undefined<SharableString>();
     }
 
     // or encode a string
     else
     {
-        return AssignString(EncodeText(Evaluate<SharableString>(encode_node.string_expression),
-                                       encode_node.encode_type));
+        return EncodeText(Evaluate<SharableString>(encode_node.string_expression),
+                          encode_node.encode_type);
     }
 }
