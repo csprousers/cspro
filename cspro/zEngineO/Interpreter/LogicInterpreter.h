@@ -340,9 +340,9 @@ public:
     // (CompressionRT.cpp)
     // --------------------------------------------------------------------------
 public:
-    double ex_compress(int program_index);
-    double ex_decompress(int program_index);
-    double ex_hash(int program_index);
+    Engine::Value ex_compress(int program_index);
+    Engine::Value ex_decompress(int program_index);
+    Engine::Value ex_hash(int program_index);
 
 
     // --------------------------------------------------------------------------

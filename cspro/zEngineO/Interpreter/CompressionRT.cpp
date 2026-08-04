@@ -7,7 +7,7 @@
 #include <zZip/ZipFile.h>
 
 
-double LogicInterpreter::ex_compress(const int program_index)
+Engine::Value LogicInterpreter::ex_compress(const int program_index)
 {
     const auto& va_node = GetNode<Nodes::VariableArguments>(program_index);
     std::string zip_file_path = EvaluatePath(va_node.arguments[0]);
@@ -37,17 +37,20 @@ double LogicInterpreter::ex_compress(const int program_index)
     try
     {
         ZipCreator zip_creator(std::move(zip_file_path));
-        return zip_creator.AddFiles(file_paths);
+
+        return Engine::Value::Integer(
+            zip_creator.AddFiles(file_paths)
+        );
     }
 
     catch( const CSProException& )
     {
-        return DEFAULT;
+        return Engine::Value::Invalid<double>();
     }
 }
 
 
-double LogicInterpreter::ex_decompress(const int program_index)
+Engine::Value LogicInterpreter::ex_decompress(const int program_index)
 {
     const auto& fnn_node = GetNode<FNN_NODE>(program_index);
 
@@ -59,17 +62,20 @@ double LogicInterpreter::ex_decompress(const int program_index)
     try
     {
         ZipReader zip_reader(zip_file_path);
-        return zip_reader.ExtractAll(output_directory);
+
+        return Engine::Value::Integer(
+            zip_reader.ExtractAll(output_directory)
+        );
     }
 
     catch( const CSProException& )
     {
-        return DEFAULT;
+        return Engine::Value::Invalid<double>();
     }
 }
 
 
-double LogicInterpreter::ex_hash(const int program_index)
+Engine::Value LogicInterpreter::ex_hash(const int program_index)
 {
     const auto& hash_node = GetNode<Nodes::Hash>(program_index);
 
@@ -96,5 +102,5 @@ double LogicInterpreter::ex_hash(const int program_index)
     if( m_usingLogicSettingsV0 )
         SO::MakeUpper(hash); // Encoders::HexChars changed to lowercase for 8.0, so make it uppercase to match the pre-8.0 results
 
-    return AssignString(std::move(hash));
+    return hash;
 }

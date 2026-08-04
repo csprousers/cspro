@@ -35,7 +35,7 @@ void LogicInterpreter::MakeAbsolutePath(std::string& path)
 
 std::string LogicInterpreter::EvaluatePath(const int program_index)
 {
-    return GetAbsolutePath(Evaluate<SharableString>(program_index).GetString());
+    return GetAbsolutePath(Evaluate<std::string>(program_index));
 }
 
 

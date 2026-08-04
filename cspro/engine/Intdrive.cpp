@@ -590,8 +590,8 @@ void CIntDriver::AddIntDriverInstructions()
     OP_DOUBLE(252, ex_timestamp);
     OP_DOUBLE(253, exkeylist);
     OP_DOUBLE(254, ex_diagnostics);
-    OP_DOUBLE(255, ex_compress);
-    OP_DOUBLE(256, ex_decompress);
+    OP_ENGVAL(255, ex_compress);
+    OP_ENGVAL(256, ex_decompress);
     OP_DOUBLE(257, exask);
     OP_DOUBLE(258, excountcases);
     OP_DOUBLE(259, ex_getproperty);
@@ -679,7 +679,7 @@ void CIntDriver::AddIntDriverInstructions()
     OP_DOUBLE(341, excountcases);
     OP_DOUBLE(342, exkeylist);
     OP_DOUBLE(343, ex_Barcode_read);
-    OP_DOUBLE(344, ex_hash);
+    OP_ENGVAL(344, ex_hash);
     OP_DOUBLE(345, ex_syncmessage);
     OP_DOUBLE(346, ex_SystemApp_clear);
     OP_DOUBLE(347, ex_SystemApp_setArgument);
