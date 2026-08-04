@@ -1425,7 +1425,7 @@ double CIntDriver::ex_Freq_save(const int program_index)
 }
 
 
-double CIntDriver::ex_Freq_view(const int program_index)
+Engine::Value CIntDriver::ex_Freq_view(const int program_index)
 {
     const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
     const NamedFrequency& named_frequency = GetSymbolLogicNamedFrequency(symbol_va_node.symbol_index);
@@ -1448,7 +1448,8 @@ double CIntDriver::ex_Freq_view(const int program_index)
 }
 
 
-double CIntDriver::ex_Freq_view(const NamedFrequency& named_frequency, const ViewerOptions* const viewer_options, const int frequency_parameters_node_index)
+Engine::Value CIntDriver::ex_Freq_view(const NamedFrequency& named_frequency, const ViewerOptions* const viewer_options,
+                                       const int frequency_parameters_node_index)
 {
     const Frequency& frequency = *m_engineData->frequencies[named_frequency.GetFrequencyIndex()];
     bool success = false;
@@ -1459,9 +1460,12 @@ double CIntDriver::ex_Freq_view(const NamedFrequency& named_frequency, const Vie
         HtmlFrequencyPrinter frequency_printer(html_writer, true);
 
         // evaluate the optional printing options and write the frequencies to a string stream
-        m_frequencyDriver->PrintFrequencies(named_frequency.GetFrequencyIndex(), frequency_printer,
-                                            named_frequency.GetName(),
-                                            EvaluateDynamicFrequencyPrinterOptions(*this, frequency, frequency_parameters_node_index));
+        m_frequencyDriver->PrintFrequencies(
+            named_frequency.GetFrequencyIndex(),
+            frequency_printer,
+            named_frequency.GetName(),
+            EvaluateDynamicFrequencyPrinterOptions(*this, frequency, frequency_parameters_node_index)
+        );
 
         Viewer viewer;
         success = viewer.UseEmbeddedViewer()
@@ -1474,7 +1478,7 @@ double CIntDriver::ex_Freq_view(const NamedFrequency& named_frequency, const Vie
         issaerror(MessageType::Error, 94531, exception.what());
     }
 
-    return success ? 1 : 0;
+    return Engine::Value::Bool(success);
 }
 
 

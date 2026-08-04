@@ -139,7 +139,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /*───────┴──────────┴-----------------------------------------------------*/
 /*  92 */   OP_ID(exdemode),
 /*  93 */   OP(ex_special),
-/*  94 */   OP_LI(ex_accept),
+/*  94 */   OP(ex_accept),
 /*  95 */   OP_ID(exclrcase),
 
 /*───────┬──────────┬-----------------------------------------------------*/
@@ -261,7 +261,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 190 */   OP_ID(exseek),             // GHM 20100602
 /* 191 */   OP_ID(ex_getcapturetype),  // GHM 20100608
 /* 192 */   OP_ID(ex_setcapturetype),  // GHM 20100608
-/* 193 */   OP_LI(ex_setfont),         // GHM 20100618
+/* 193 */   OP(ex_setfont),         // GHM 20100618
 /* 194 */   OP_ID(exorientation),      // GHM 20100618 getorientation
 /* 195 */   OP_ID(exorientation),      // GHM 20100618 setorientation
 /* 196 */   OP_ID(ex_pathname),        // GHM 20110107
@@ -299,7 +299,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 228 */   OP_ID(exdirlist),          // GHM 20141107
 /* 229 */   OP_ID(ex_sysparm),         // GHM 20141217
 /* 230 */   OP(ex_connection),      // GHM 20150421
-/* 231 */   OP_ID(ex_prompt),          // GHM 20150422
+/* 231 */   OP(ex_prompt),          // GHM 20150422
 /* 232 */   OP_ID(ex_getimage),        // GHM 20150809
 /* 233 */   OP(ex_round),           // GHM 20150821
 /* 234 */   OP_ID(exnoopAbort),        // GHM 20151130 an old implementation of exuuid ... now a publishdate placeholder
@@ -394,7 +394,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 323 */   OP_LI(ex_Map_getLastClickLatitude_getLastClickLongitude), // Map.getLastClickLongitude
 /* 324 */   OP_LI(ex_Map_getMarkerLatitude_getMarkerLongitude),    // Map.getMarkerLongitude
 /* 325 */   OP_ID(ex_Path_concat),
-/* 326 */   OP_LI(ex_view),
+/* 326 */   OP(ex_view),
 /* 327 */   OP(ex_Pff_exec),
 /* 328 */   OP(ex_Pff_getProperty),
 /* 329 */   OP(ex_Pff_load),
@@ -478,7 +478,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 407 */   OP_LI(ex_Document_clear),
 /* 408 */   OP_LI(ex_Document_load),
 /* 409 */   OP_LI(ex_Document_save),
-/* 410 */   OP_LI(ex_Document_view),
+/* 410 */   OP(ex_Document_view),
 /* 411 */   OP_LI(ex_Geometry_compute),
 /* 412 */   OP_LI(ex_Geometry_clear),
 /* 413 */   OP_LI(ex_Geometry_load),
@@ -499,12 +499,12 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 428 */   OP_ID(exinadvance),
 /* 429 */   OP_LI(ex_Map_saveSnapshot),
 /* 430 */   OP_ID(ex_synctime),
-/* 431 */   OP_LI(ex_htmldialog),
+/* 431 */   OP(ex_htmldialog),
 /* 432 */   OP_ID(ex_Path_getRelativePath),
 /* 433 */   OP_ID(ex_Path_selectFile),
 /* 434 */   OP_ID(ex_invoke),
 /* 435 */   OP_LI(ex_Report_save),
-/* 436 */   OP_LI(ex_Report_view),
+/* 436 */   OP(ex_Report_view),
 /* 437 */   OP_LI(ex_TextTemplate_write_writeEncoded_writeEncodedLine_writeLine), // Report.write prior to CSPro 8.1
 /* 438 */   OP_ID(ex_setbluetoothname),
 /* 439 */   OP_ID(expersistentsymbolreset),

@@ -150,28 +150,34 @@ double LogicInterpreter::ex_Document_save(const int program_index)
 }
 
 
-double LogicInterpreter::ex_Document_view(const int program_index)
+Engine::Value LogicInterpreter::ex_Document_view(const int program_index)
 {
     const auto& symbol_va_with_subscript_node = GetOrConvertPre80SymbolVariableArgumentsWithSubscriptNode(program_index);
     LogicDocument* const logic_document = GetFromSymbolOrEngineItem<LogicDocument*>(symbol_va_with_subscript_node.symbol_index, symbol_va_with_subscript_node.subscript_compilation);
 
     if( logic_document == nullptr )
-        return DEFAULT;
+        return Engine::Value::Invalid<double>();
 
-    const std::unique_ptr<const ViewerOptions> viewer_options = m_engineData->MeetsCompiledLogicVersion(Serializer::Iteration_8_0_000_3) ? EvaluateViewerOptions(symbol_va_with_subscript_node.arguments[0]) :
-                                                                                                                                           nullptr;
+    const std::unique_ptr<const ViewerOptions> viewer_options =
+        m_engineData->MeetsCompiledLogicVersion(Serializer::Iteration_8_0_000_3)
+        ? EvaluateViewerOptions(symbol_va_with_subscript_node.arguments[0])
+        : nullptr;
 
     return ex_Document_view(*logic_document, viewer_options.get());
 }
 
 
-double LogicInterpreter::ex_Document_view(const LogicDocument& logic_document, const ViewerOptions* viewer_options)
+Engine::Value LogicInterpreter::ex_Document_view(const LogicDocument& logic_document, const ViewerOptions* viewer_options)
 {
     if( !logic_document.HasContent() )
     {
-        IssueMessage(MessageType::Error, MGF::Document_no_document_for_action_100340, logic_document.GetName().c_str(), "view the document");
-        return DEFAULT;
+        IssueMessage(MessageType::Error, MGF::Document_no_document_for_action_100340,
+                     logic_document.GetName().c_str(), "view the document");
+
+        return Engine::Value::Invalid<double>();
     }
 
-    return logic_document.View(viewer_options);
+    return Engine::Value::Bool(
+        logic_document.View(viewer_options)
+    );
 }

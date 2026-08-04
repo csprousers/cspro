@@ -68,22 +68,24 @@ std::unique_ptr<ViewerOptions> LogicInterpreter::EvaluateViewerOptions(const int
 }
 
 
-double LogicInterpreter::ex_view(const int program_index)
+Engine::Value LogicInterpreter::ex_view(const int program_index)
 {
     const auto& view_node = GetNode<Nodes::View>(program_index);
 
-    const int subscript_compilation = m_engineData->MeetsCompiledLogicVersion(Serializer::Iteration_8_0_000_1) ? view_node.subscript_compilation :
-                                                                                                                 -1;
+    const int subscript_compilation =
+        m_engineData->MeetsCompiledLogicVersion(Serializer::Iteration_8_0_000_1) ? view_node.subscript_compilation :
+                                                                                   -1;
 
-    const int viewer_options_node_index = m_engineData->MeetsCompiledLogicVersion(Serializer::Iteration_8_0_000_1) ? view_node.viewer_options_node_index :
-                                          m_engineData->MeetsCompiledLogicVersion(Serializer::Iteration_7_7_000_2) ? view_node.subscript_compilation :
-                                                                                                                     -1;
+    const int viewer_options_node_index =
+        m_engineData->MeetsCompiledLogicVersion(Serializer::Iteration_8_0_000_1) ? view_node.viewer_options_node_index :
+        m_engineData->MeetsCompiledLogicVersion(Serializer::Iteration_7_7_000_2) ? view_node.subscript_compilation :
+                                                                                   -1;
     std::unique_ptr<const ViewerOptions> viewer_options = EvaluateViewerOptions(viewer_options_node_index);
 
     // viewing files or URLs
     if( view_node.symbol_index_or_source_expression >= 0 )
     {
-        SharableString file_path_or_url = Evaluate<std::string>(view_node.symbol_index_or_source_expression);
+        SharableString file_path_or_url = Evaluate<SharableString>(view_node.symbol_index_or_source_expression);
         bool success = false;
 
         Viewer viewer;
@@ -123,7 +125,7 @@ double LogicInterpreter::ex_view(const int program_index)
         // handle any program control exceptions that may have resulted from JavaScript calls into CSPro logic
         RethrowProgramControlExceptions();
 
-        return success ? 1 : 0;
+        return Engine::Value::Bool(success);
     }
 
     // viewing objects
@@ -132,7 +134,7 @@ double LogicInterpreter::ex_view(const int program_index)
         Symbol* const symbol = GetFromSymbolOrEngineItem(-1 * view_node.symbol_index_or_source_expression, subscript_compilation);
 
         if( symbol == nullptr )
-            return 0;
+            return Engine::Value::Bool(false);
 
         if( symbol->IsA(SymbolType::Pre80Dictionary) )
         {
@@ -146,7 +148,7 @@ double LogicInterpreter::ex_view(const int program_index)
 
         else if( symbol->IsA(SymbolType::Image) )
         {
-            return ex_Image_view(assert_cast<const LogicImage&>(*symbol), viewer_options.get()).as<double>();
+            return ex_Image_view(assert_cast<const LogicImage&>(*symbol), viewer_options.get());
         }
 
         else if( symbol->IsA(SymbolType::NamedFrequency) )
@@ -161,16 +163,16 @@ double LogicInterpreter::ex_view(const int program_index)
 
         else
         {
-            return ReturnProgrammingError(DEFAULT);
+            return ReturnProgrammingError(Engine::Value::Invalid<double>());
         }
     }
 }
 
 
-double LogicInterpreter::ex_prompt(const int program_index)
+Engine::Value LogicInterpreter::ex_prompt(const int program_index)
 {
     if( !UseHtmlDialogs() )
-        return RunSoonToBeRemoveFeature("prompt_pre77", program_index, nullptr);
+        return RunSoonToBeRemovedFeature("prompt_pre77", program_index, nullptr);
 
     const auto& prompt_node = GetNode<Nodes::Prompt>(program_index);
 
@@ -190,7 +192,10 @@ double LogicInterpreter::ex_prompt(const int program_index)
 
     if( prompt_node.initial_value_expression != -1 )
     {
-        SharableString initial_value = ConvertV0Escapes(Evaluate<SharableString>(prompt_node.initial_value_expression), V0_EscapeType::NewlinesToSlashN_Backslashes);
+        SharableString initial_value = ConvertV0Escapes(
+            Evaluate<SharableString>(prompt_node.initial_value_expression),
+            V0_EscapeType::NewlinesToSlashN_Backslashes
+        );
 
         if( !multiline )
             NewlineSubstitutor::MakeNewlineToSpace(initial_value);
@@ -201,27 +206,30 @@ double LogicInterpreter::ex_prompt(const int program_index)
     std::unique_ptr<Paradata::OperatorSelectionEvent> operator_selection_event;
 
     if( Paradata::Logger::IsOpen() )
-        operator_selection_event = std::make_unique<Paradata::OperatorSelectionEvent>(Paradata::OperatorSelectionEvent::Source::Prompt);
+    {
+        operator_selection_event = std::make_unique<Paradata::OperatorSelectionEvent>(
+            Paradata::OperatorSelectionEvent::Source::Prompt
+        );
+    }
 
-    SharableString return_value;
-
-    if( text_input_dlg.DoModalOnUIThread() == IDOK )
-        return_value = ApplyV0Escapes(text_input_dlg.GetTextInput(), V0_EscapeType::NewlinesToSlashN_Backslashes);
+    Engine::Value return_value = ( text_input_dlg.DoModalOnUIThread() == IDOK )
+        ? Engine::Value(ApplyV0Escapes(text_input_dlg.GetTextInput(), V0_EscapeType::NewlinesToSlashN_Backslashes))
+        : Engine::Value::Undefined<SharableString>();
 
     if( operator_selection_event != nullptr )
     {
-        operator_selection_event->SetPostSelectionValues(std::nullopt, return_value, true);
+        operator_selection_event->SetPostSelectionValues(std::nullopt, return_value.as<SharableString>(), true);
         RegisterAndLogEvent_INTERPRETER_DLL_TODO(std::move(operator_selection_event));
     }
 
-    return AssignString(std::move(return_value));
+    return return_value;
 }
 
 
-double LogicInterpreter::ex_accept(const int program_index)
+Engine::Value LogicInterpreter::ex_accept(const int program_index)
 {
     if( !UseHtmlDialogs() )
-        return RunSoonToBeRemoveFeature("exaccept_pre77", program_index, nullptr);
+        return RunSoonToBeRemovedFeature("exaccept_pre77", program_index, nullptr);
 
     const auto& va_with_size_node = GetNode<Nodes::VariableArgumentsWithSize>(program_index);
 
@@ -268,7 +276,11 @@ double LogicInterpreter::ex_accept(const int program_index)
     std::unique_ptr<Paradata::OperatorSelectionEvent> operator_selection_event;
 
     if( Paradata::Logger::IsOpen() )
-        operator_selection_event = std::make_unique<Paradata::OperatorSelectionEvent>(Paradata::OperatorSelectionEvent::Source::Accept);
+    {
+        operator_selection_event = std::make_unique<Paradata::OperatorSelectionEvent>(
+            Paradata::OperatorSelectionEvent::Source::Accept
+        );
+    }
 
     int selection = 0;
 
@@ -277,17 +289,20 @@ double LogicInterpreter::ex_accept(const int program_index)
 
     if( operator_selection_event != nullptr )
     {
-        SharableString selected_text = ( selection != 0 ) ? choice_dlg.GetSelectedChoiceText() :
-                                                            SharableString();
-        operator_selection_event->SetPostSelectionValues(selection, std::move(selected_text), true);
+        operator_selection_event->SetPostSelectionValues(
+            selection,
+            ( selection != 0 ) ? choice_dlg.GetSelectedChoiceText() : SharableString(),
+            true
+        );
+
         RegisterAndLogEvent_INTERPRETER_DLL_TODO(std::move(operator_selection_event));
     }
 
-    return selection;
+    return Engine::Value::Integer(selection);
 }
 
 
-double LogicInterpreter::ex_htmldialog(const int program_index)
+Engine::Value LogicInterpreter::ex_htmldialog(const int program_index)
 {
     const auto& html_dialog_node = GetNode<Nodes::HtmlDialog>(program_index);
 
@@ -316,7 +331,8 @@ double LogicInterpreter::ex_htmldialog(const int program_index)
             {
                 IssueMessage(MessageType::Error, 2031, Logic::FunctionTable::GetFunctionName(html_dialog_node.function_code),
                                                        full_path_html_file_path.c_str());
-                return AssignStringNull();
+
+                return Engine::Value::Invalid<SharableString>();
             }
         }
     }
@@ -354,31 +370,33 @@ double LogicInterpreter::ex_htmldialog(const int program_index)
         }
     }
 
-    HtmlDialogFunctionRunner html_dialog_function_runner(NavigationAddress::CreateHtmlFilePathReference(full_path_html_file_path),
-                                                         std::move(input_data),
-                                                         std::move(display_options_json));
+    HtmlDialogFunctionRunner html_dialog_function_runner(
+        NavigationAddress::CreateHtmlFilePathReference(full_path_html_file_path),
+        std::move(input_data),
+        std::move(display_options_json)
+    );
 
     html_dialog_function_runner.DoModalOnUIThread();
 
     // handle any program control exceptions that may have resulted from JavaScript calls into CSPro logic
     RethrowProgramControlExceptions();
 
-    return AssignString(html_dialog_function_runner.GetResultsText());
+    return html_dialog_function_runner.GetResultsText();
 }
 
 
-double LogicInterpreter::ex_setfont(const int program_index)
+Engine::Value LogicInterpreter::ex_setfont(const int program_index)
 {
 #ifndef WIN_DESKTOP
     // not applicable on portable platforms
-    return DEFAULT;
+    return Engine::Value::Invalid<double>();
 #else
     UserDefinedFonts* user_defined_fonts;
 
     if( WindowsDesktopMessage::Send(UWM::UtilO::GetUserFonts, &user_defined_fonts) != 1 )
     {
         // if here, we are not running CSEntry
-        return 0;
+        return Engine::Value::Bool(false);
     }
 
     const auto& setfont_node = GetNode<Nodes::SetFont>(program_index);
@@ -391,14 +409,14 @@ double LogicInterpreter::ex_setfont(const int program_index)
     if( is_attribute(Nodes::SetFont::DefaultMask) )
     {
         user_defined_fonts->ResetFont(font_type);
-        return 1;
+        return Engine::Value::Bool(true);
     }
 
     const SharableString font_name = Evaluate<SharableString>(setfont_node.font_name_expression);
     const int font_size = Evaluate<int>(setfont_node.font_size_expression);
 
     if( !user_defined_fonts->SetFont(font_type, TC::ToWide(*font_name), font_size, is_attribute(Nodes::SetFont::BoldMask), is_attribute(Nodes::SetFont::ItalicMask)) )
-        return 0;
+        return Engine::Value::Bool(false);
 
     if( font_type == UserDefinedFonts::FontType::ValueSets ||
         font_type == UserDefinedFonts::FontType::NumberPad ||
@@ -408,6 +426,6 @@ double LogicInterpreter::ex_setfont(const int program_index)
         WindowsDesktopMessage::Post(UWM::CSEntry::ShowCapi);
     }
 
-    return 1;
+    return Engine::Value::Bool(true);
 #endif
 }

@@ -438,7 +438,7 @@ void CIntDriver::AddIntDriverInstructions()
     OP_DOUBLE(91, ex_sysdate);
     OP_DOUBLE(92, exdemode);
     OP_ENGVAL(93, ex_special);
-    OP_DOUBLE(94, ex_accept);
+    OP_ENGVAL(94, ex_accept);
     OP_DOUBLE(95, exclrcase);
     OP_DOUBLE(96, exxtab);
     OP_DOUBLE(97, extblcoord);
@@ -537,7 +537,7 @@ void CIntDriver::AddIntDriverInstructions()
     OP_DOUBLE(190, exseek);
     OP_DOUBLE(191, ex_getcapturetype);
     OP_DOUBLE(192, ex_setcapturetype);
-    OP_DOUBLE(193, ex_setfont);
+    OP_ENGVAL(193, ex_setfont);
     OP_DOUBLE(194, exorientation);
     OP_DOUBLE(195, exorientation);
     OP_DOUBLE(196, ex_pathname);
@@ -575,7 +575,7 @@ void CIntDriver::AddIntDriverInstructions()
     OP_DOUBLE(228, exdirlist);
     OP_DOUBLE(229, ex_sysparm);
     OP_ENGVAL(230, ex_connection);
-    OP_DOUBLE(231, ex_prompt);
+    OP_ENGVAL(231, ex_prompt);
     OP_DOUBLE(232, ex_getimage);
     OP_ENGVAL(233, ex_round);
     OP_DOUBLE(234, exnoopAbort);
@@ -670,7 +670,7 @@ void CIntDriver::AddIntDriverInstructions()
     OP_DOUBLE(323, ex_Map_getLastClickLatitude_getLastClickLongitude);
     OP_DOUBLE(324, ex_Map_getMarkerLatitude_getMarkerLongitude);
     OP_DOUBLE(325, ex_Path_concat);
-    OP_DOUBLE(326, ex_view);
+    OP_ENGVAL(326, ex_view);
     OP_ENGVAL(327, ex_Pff_exec);
     OP_ENGVAL(328, ex_Pff_getProperty);
     OP_ENGVAL(329, ex_Pff_load);
@@ -731,7 +731,7 @@ void CIntDriver::AddIntDriverInstructions()
     OP_DOUBLE(384, ex_Freq_clear);
     OP_DOUBLE(385, ex_Freq_save);
     OP_DOUBLE(386, ex_Freq_tally);
-    OP_DOUBLE(387, ex_Freq_view);
+    OP_ENGVAL_ID(387, ex_Freq_view);
     OP_DOUBLE(388, ex_Freq_var);
     OP_DOUBLE(389, ex_Freq_compute);
     OP_ENGVAL(390, ex_WorkString_evaluate);
@@ -754,7 +754,7 @@ void CIntDriver::AddIntDriverInstructions()
     OP_DOUBLE(407, ex_Document_clear);
     OP_DOUBLE(408, ex_Document_load);
     OP_DOUBLE(409, ex_Document_save);
-    OP_DOUBLE(410, ex_Document_view);
+    OP_ENGVAL(410, ex_Document_view);
     OP_DOUBLE(411, ex_Geometry_compute);
     OP_DOUBLE(412, ex_Geometry_clear);
     OP_DOUBLE(413, ex_Geometry_load);
@@ -775,12 +775,12 @@ void CIntDriver::AddIntDriverInstructions()
     OP_DOUBLE(428, exinadvance);
     OP_DOUBLE(429, ex_Map_saveSnapshot);
     OP_DOUBLE(430, ex_synctime);
-    OP_DOUBLE(431, ex_htmldialog);
+    OP_ENGVAL(431, ex_htmldialog);
     OP_DOUBLE(432, ex_Path_getRelativePath);
     OP_DOUBLE(433, ex_Path_selectFile);
     OP_DOUBLE(434, ex_invoke);
     OP_DOUBLE(435, ex_Report_save);
-    OP_DOUBLE(436, ex_Report_view);
+    OP_ENGVAL(436, ex_Report_view);
     OP_DOUBLE(437, ex_TextTemplate_write_writeEncoded_writeEncodedLine_writeLine);
     OP_DOUBLE(438, ex_setbluetoothname);
     OP_DOUBLE(439, expersistentsymbolreset);
@@ -799,7 +799,7 @@ void CIntDriver::AddIntDriverInstructions()
     OP_DOUBLE(452, exItem_getValueLabel);
     OP_DOUBLE(453, exItem_hasValue_isValid);
     OP_ENGVAL(454, ex_compareNoCase);
-    OP_DOUBLE(455, exCase_view);
+    OP_ENGVAL_ID(455, exCase_view);
     OP_DOUBLE(456, ex_JavaScript_eval);
     OP_DOUBLE(457, ex_JavaScript_invoke);
     OP_DOUBLE(458, ex_JavaScript_hasValue);
@@ -1455,7 +1455,7 @@ bool CIntDriver::Report_Evaluate_INTERPRETER_DLL_TODO(Report& report)
 }
 
 
-double CIntDriver::RunSoonToBeRemoveFeature(const std::string_view feature_sv, const int program_index, void* /*tag*/)
+Engine::Value CIntDriver::RunSoonToBeRemovedFeature(const std::string_view feature_sv, const int program_index, void* /*tag*/)
 {
     if( feature_sv == "prompt_pre77" )
     {
@@ -1469,7 +1469,7 @@ double CIntDriver::RunSoonToBeRemoveFeature(const std::string_view feature_sv, c
 
     else
     {
-        return ReturnProgrammingError(0.0);
+        return ReturnProgrammingError(Engine::Value::Invalid<double>());
     }
 }
 

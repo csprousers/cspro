@@ -375,8 +375,8 @@ public:
     double ex_Document_clear(int program_index);
     double ex_Document_load(int program_index);
     double ex_Document_save(int program_index);
-    double ex_Document_view(int program_index);
-    double ex_Document_view(const LogicDocument& logic_document, const ViewerOptions* viewer_options);
+    Engine::Value ex_Document_view(int program_index);
+    Engine::Value ex_Document_view(const LogicDocument& logic_document, const ViewerOptions* viewer_options);
 
 
     // --------------------------------------------------------------------------
@@ -639,11 +639,11 @@ public:
     // (ReportRT.cpp)
     // --------------------------------------------------------------------------
 public:
-    double ex_Report_view(int program_index);
+    Engine::Value ex_Report_view(int program_index);
     double ex_Report_save(int program_index);
 
 private:
-    double ex_Report_view(Report& report, const ViewerOptions* viewer_options);
+    Engine::Value ex_Report_view(Report& report, const ViewerOptions* viewer_options);
     std::unique_ptr<std::string> GenerateReport(Report& report, const std::string* output_file_path);
 
 
@@ -737,11 +737,11 @@ public:
     // (UserInterfaceRT.cpp)
     // --------------------------------------------------------------------------
 public:
-    double ex_view(int program_index);
-    double ex_prompt(int program_index);
-    double ex_accept(int program_index);
-    double ex_htmldialog(int program_index);
-    double ex_setfont(int program_index);
+    Engine::Value ex_view(int program_index);
+    Engine::Value ex_prompt(int program_index);
+    Engine::Value ex_accept(int program_index);
+    Engine::Value ex_htmldialog(int program_index);
+    Engine::Value ex_setfont(int program_index);
 
 protected:
     std::optional<CSize> EvaluateSize(int width_program_index, int height_program_index);
@@ -813,7 +813,7 @@ private:
     virtual void RegisterAndLogEvent_INTERPRETER_DLL_TODO(std::shared_ptr<Paradata::Event> event, const void* instance_object = nullptr) = 0;
     virtual SharableString EvaluateTextFill(int program_index) = 0; // INTERPRETER_DLL_TODO remove as virtual
     virtual bool Report_Evaluate_INTERPRETER_DLL_TODO(Report& report) = 0; // INTERPRETER_DLL_TODO remove as virtual
-    virtual double RunSoonToBeRemoveFeature(std::string_view feature_sv, int program_index, void* tag) = 0;
+    virtual Engine::Value RunSoonToBeRemovedFeature(std::string_view feature_sv, int program_index, void* tag) = 0;
     virtual bool HasSpecialFunction(SpecialFunction::Code special_function) = 0; // INTERPRETER_DLL_TODO remove as virtual
     virtual double ExecSpecialFunction(int symbol_index, SpecialFunction::Code special_function, std::vector<std::variant<double, SharableString>> arguments) = 0; // INTERPRETER_DLL_TODO remove as virtual
     virtual int Get_m_iExSymbol_INTERPRETER_DLL_TODO() = 0;
@@ -828,8 +828,8 @@ private:
     virtual bool ExecuteProgramStatements(int program_index) = 0; // INTERPRETER_DLL_TODO remove as virtual
     virtual void ExecuteCallbackUserFunction(int field_symbol_index, UserFunctionArgumentEvaluator& argument_evaluator) = 0; // INTERPRETER_DLL_TODO remove as virtual
     virtual std::unique_ptr<UserFunctionArgumentEvaluator> EvaluateArgumentsForCallbackUserFunction(int program_index, FunctionCode function_code) = 0; // INTERPRETER_DLL_TODO remove as virtual
-    virtual double ex_Freq_view(const NamedFrequency& named_frequency, const ViewerOptions* viewer_options, int frequency_parameters_node_index) = 0; // INTERPRETER_DLL_TODO remove as virtual
-    virtual double exCase_view(const CSymbolDict& dictionary, const ViewerOptions* viewer_options) = 0; // INTERPRETER_DLL_TODO remove as virtual
+    virtual Engine::Value ex_Freq_view(const NamedFrequency& named_frequency, const ViewerOptions* viewer_options, int frequency_parameters_node_index) = 0; // INTERPRETER_DLL_TODO remove as virtual
+    virtual Engine::Value exCase_view(const CSymbolDict& dictionary, const ViewerOptions* viewer_options) = 0; // INTERPRETER_DLL_TODO remove as virtual
     virtual Engine::Value ExExecPFF_INTERPRETER_DLL_TODO(LogicPff& logic_pff) = 0; // INTERPRETER_DLL_TODO remove as virtual
     virtual FrequencyDriver* GetFrequencyDriver_INTERPRETER_DLL_TODO() = 0;
     virtual void AssignValueToVART_INTERPRETER_DLL_TODO(int variable_compilation, double value) = 0; // INTERPRETER_DLL_TODO remove as virtual

@@ -499,8 +499,8 @@ public:
     double  exdemode(int iExpr);
     double  exclrcase(int iExpr);
 
-    double  exaccept_pre77(int iExpr);
-    double  exprompt_pre77(int iExpr);
+    Engine::Value exaccept_pre77(int iExpr);
+    Engine::Value exprompt_pre77(int iExpr);
 
     double  excountvalid(int iExpr); // 20091202
 
@@ -570,8 +570,8 @@ private:
 
     // Case functions
 public:
-    double exCase_view(int program_index);
-    double exCase_view(const DICT& dictionary, const ViewerOptions* viewer_options) override;
+    Engine::Value exCase_view(int program_index);
+    Engine::Value exCase_view(const DICT& dictionary, const ViewerOptions* viewer_options) override;
 
 
     // Item functions
@@ -605,8 +605,8 @@ public:
     double ex_Freq_clear(int program_index);
     double ex_Freq_save(int program_index);
     double ex_Freq_tally(int program_index);
-    double ex_Freq_view(int program_index);
-    double ex_Freq_view(const NamedFrequency& named_frequency, const ViewerOptions* viewer_options, int frequency_parameters_node_index) override;
+    Engine::Value ex_Freq_view(int program_index);
+    Engine::Value ex_Freq_view(const NamedFrequency& named_frequency, const ViewerOptions* viewer_options, int frequency_parameters_node_index) override;
     double ex_Freq_var(int program_index);
     double ex_Freq_compute(int program_index);
 
@@ -959,7 +959,7 @@ private:
     void IssueMessageWorker(MessageType message_type, int message_number, ...) override;
     std::string GetFormattedMessageWorker(int message_number, ...) override;
     bool Report_Evaluate_INTERPRETER_DLL_TODO(Report& report) override;
-    double RunSoonToBeRemoveFeature(std::string_view feature_sv, int program_index, void* tag) override;
+    Engine::Value RunSoonToBeRemovedFeature(std::string_view feature_sv, int program_index, void* tag) override;
     int Get_m_iExSymbol_INTERPRETER_DLL_TODO() override { return m_iExSymbol; }
     bool IsExecutionInterrupted() const override;
     EngineParadataDriver& GetEngineParadataDriver_INTERPRETER_DLL_TODO() override;

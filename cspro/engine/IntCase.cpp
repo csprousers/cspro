@@ -1,4 +1,4 @@
-﻿#include "StandardSystemIncludes.h"
+#include "StandardSystemIncludes.h"
 #include "Interpreter.h"
 #include "Engine.h"
 #include "EngineQuestionnaireViewer.h"
@@ -20,26 +20,26 @@ double CIntDriver::exdictcompute(int iExpr)
 }
 
 
-double CIntDriver::exCase_view(const int program_index)
+Engine::Value CIntDriver::exCase_view(const int program_index)
 {
     const auto& symbol_va_with_subscript_node = GetNode<Nodes::SymbolVariableArgumentsWithSubscript>(program_index);
     DICT* pDicT = DPT(symbol_va_with_subscript_node.symbol_index);
-    std::unique_ptr<const ViewerOptions> viewer_options = EvaluateViewerOptions(symbol_va_with_subscript_node.arguments[0]);
+    const std::unique_ptr<const ViewerOptions> viewer_options = EvaluateViewerOptions(symbol_va_with_subscript_node.arguments[0]);
 
     return exCase_view(*pDicT, viewer_options.get());
 }
 
 
-double CIntDriver::exCase_view(const DICT& dictionary, const ViewerOptions* viewer_options)
+Engine::Value CIntDriver::exCase_view(const DICT& dictionary, const ViewerOptions* const viewer_options)
 {
     if( !IsDataAccessible(dictionary, true) )
     {
         ASSERT80(false); // nodes should be wrapped in a data access check, so the above check should not be necessary
-        return 0;
+        return Engine::Value::Bool(false);
     }
 
     EngineQuestionnaireViewer engine_questionnaire_viewer(m_pEngineDriver, dictionary.GetName());
     engine_questionnaire_viewer.View(viewer_options);
 
-    return 1;
+    return Engine::Value::Bool(true);
 }

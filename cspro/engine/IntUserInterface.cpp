@@ -9,7 +9,7 @@
 #include <zParadataO/Logger.h>
 
 
-double CIntDriver::exprompt_pre77(int iExpr)
+Engine::Value CIntDriver::exprompt_pre77(int iExpr)
 {
     const FNVARIOUS_NODE* various_node = (FNVARIOUS_NODE*)PPT(iExpr);
     EngineUI::PromptNode prompt_node;
@@ -44,11 +44,11 @@ double CIntDriver::exprompt_pre77(int iExpr)
         m_paradataDriver->RegisterAndLogEvent(std::move(operator_selection_event));
     }
 
-    return AssignAlphaValue(prompt_node.return_value);
+    return UTF8_TODO::GetUtf8(prompt_node.return_value);
 }
 
 
-double CIntDriver::exaccept_pre77(int iExpr)
+Engine::Value CIntDriver::exaccept_pre77(int iExpr)
 {
     const auto& function_node = GetNode<FNN_NODE>(iExpr);
 
@@ -96,5 +96,5 @@ double CIntDriver::exaccept_pre77(int iExpr)
     for( const auto& data : select_dlg_data )
         delete data;
 
-    return selection;
+    return Engine::Value::Integer(selection);
 }

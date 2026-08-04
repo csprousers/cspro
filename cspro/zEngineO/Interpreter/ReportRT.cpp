@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "IncludesRT.h"
 #include "Report.h"
 #include "Nodes/Report.h"
@@ -16,7 +16,7 @@ double LogicInterpreter::ex_Report_save(const int program_index)
 }
 
 
-double LogicInterpreter::ex_Report_view(const int program_index)
+Engine::Value LogicInterpreter::ex_Report_view(const int program_index)
 {
     const auto& report_view_node = GetNode<Nodes::Report::View>(program_index);
     Report& report = GetSymbolReport(report_view_node.symbol_index);
@@ -26,7 +26,7 @@ double LogicInterpreter::ex_Report_view(const int program_index)
 }
 
 
-double LogicInterpreter::ex_Report_view(Report& report, const ViewerOptions* const viewer_options)
+Engine::Value LogicInterpreter::ex_Report_view(Report& report, const ViewerOptions* const viewer_options)
 {
     // if not creating a HTML or Markdown report, which can be shown in the embedded browser,
     // save the report to a temporary file that will be deleted when the program ends
@@ -42,7 +42,7 @@ double LogicInterpreter::ex_Report_view(Report& report, const ViewerOptions* con
     const std::unique_ptr<std::string> report_text_builder = GenerateReport(report, report_file_path.get());
 
     if( report_text_builder == nullptr )
-        return 0;
+        return Engine::Value::Bool(false);
 
     Viewer viewer;
     viewer.UseEmbeddedViewer();
@@ -68,7 +68,7 @@ double LogicInterpreter::ex_Report_view(Report& report, const ViewerOptions* con
         viewer.ViewFile(*report_file_path);
     }
 
-    return 1;
+    return Engine::Value::Bool(true);
 }
 
 
