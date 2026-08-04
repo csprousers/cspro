@@ -686,10 +686,10 @@ public:
     // (SystemAppRT.cpp)
     // --------------------------------------------------------------------------
 public:
-    double ex_SystemApp_clear(int program_index);
-    double ex_SystemApp_setArgument(int program_index);
-    double ex_SystemApp_getResult(int program_index);
-    double ex_SystemApp_exec(int program_index);
+    Engine::Value ex_SystemApp_clear(int program_index);
+    Engine::Value ex_SystemApp_setArgument(int program_index);
+    Engine::Value ex_SystemApp_getResult(int program_index);
+    Engine::Value ex_SystemApp_exec(int program_index);
 
 
     // --------------------------------------------------------------------------

@@ -690,10 +690,10 @@ void CIntDriver::AddIntDriverInstructions()
     OP_ENGVAL(343, ex_Barcode_read);
     OP_ENGVAL(344, ex_hash);
     OP_DOUBLE(345, ex_syncmessage);
-    OP_DOUBLE(346, ex_SystemApp_clear);
-    OP_DOUBLE(347, ex_SystemApp_setArgument);
-    OP_DOUBLE(348, ex_SystemApp_getResult);
-    OP_DOUBLE(349, ex_SystemApp_exec);
+    OP_ENGVAL(346, ex_SystemApp_clear);
+    OP_ENGVAL(347, ex_SystemApp_setArgument);
+    OP_ENGVAL(348, ex_SystemApp_getResult);
+    OP_ENGVAL(349, ex_SystemApp_exec);
     OP_ENGVAL(350, ex_startswith);
     OP_ENGVAL(351, ex_Pff_compute);
     OP_DOUBLE(352, ex_Audio_clear);

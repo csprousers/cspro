@@ -5,56 +5,46 @@
 #include <zParadataO/Logger.h>
 
 
-double LogicInterpreter::ex_SystemApp_clear(const int program_index)
+Engine::Value LogicInterpreter::ex_SystemApp_clear(const int program_index)
 {
     const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
     SystemApp& system_app = GetSymbolSystemApp(symbol_va_node.symbol_index);
 
     system_app.Reset();
 
-    return 1;
+    return Engine::Value::Bool(true);
 }
 
 
-double LogicInterpreter::ex_SystemApp_setArgument(const int program_index)
+Engine::Value LogicInterpreter::ex_SystemApp_setArgument(const int program_index)
 {
     const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
     SystemApp& system_app = GetSymbolSystemApp(symbol_va_node.symbol_index);
 
     std::string argument_name = Evaluate<std::string>(symbol_va_node.arguments[0]);
 
-    const int value_expression = symbol_va_node.arguments[1];
-    const DataType value_type = static_cast<DataType>(symbol_va_node.arguments[2]);
-    std::optional<std::variant<double, SharableString>> value;
-
-    if( value_type == DataType::String )
-    {
-        value = Evaluate<SharableString>(value_expression);
-    }
-
-    else if( value_type == DataType::Numeric )
-    {
-        value = Evaluate<double>(value_expression);
-    }
+    std::optional<std::variant<double, SharableString>> value = ( symbol_va_node.arguments[1] != -1 )
+        ? std::make_optional(EvaluateVariant(static_cast<DataType>(symbol_va_node.arguments[2]), symbol_va_node.arguments[1]))
+        : std::nullopt;
 
     system_app.SetArgument(std::move(argument_name), std::move(value));
 
-    return 1;
+    return Engine::Value::Bool(true);
 }
 
 
-double LogicInterpreter::ex_SystemApp_getResult(const int program_index)
+Engine::Value LogicInterpreter::ex_SystemApp_getResult(const int program_index)
 {
     const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
     const SystemApp& system_app = GetSymbolSystemApp(symbol_va_node.symbol_index);
 
     const SharableString result_name = Evaluate<SharableString>(symbol_va_node.arguments[0]);
 
-    return AssignString(system_app.GetResult(*result_name));
+    return system_app.GetResult(*result_name);
 }
 
 
-double LogicInterpreter::ex_SystemApp_exec(const int program_index)
+Engine::Value LogicInterpreter::ex_SystemApp_exec(const int program_index)
 {
     const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
     EngineUI::ExecSystemAppNode exec_system_app_node { GetSymbolSystemApp(symbol_va_node.symbol_index) };
@@ -67,7 +57,7 @@ double LogicInterpreter::ex_SystemApp_exec(const int program_index)
 
     // the package name (executable) must be specified on Windows
     if( OnWindowsDesktop() && exec_system_app_node.package_name->empty() )
-        return 0;
+        return Engine::Value::Bool(false);
 
     // on Android, evaluate the activity
     if( OnAndroid() && symbol_va_node.arguments[1] >= 0 )
@@ -87,15 +77,18 @@ double LogicInterpreter::ex_SystemApp_exec(const int program_index)
             constexpr const char* ArgumentFormatter = OnAndroid() ? " %s=%s" :
                                                                     " %s%s";
 
-            SharableString string_value = std::holds_alternative<SharableString>(*argument.value) ? std::get<SharableString>(*argument.value) :
-                                                                                                    DoubleToString(std::get<double>(*argument.value));
+            SharableString string_value = std::holds_alternative<SharableString>(*argument.value)
+                ? std::get<SharableString>(*argument.value)
+                : DoubleToString(std::get<double>(*argument.value));
 
             if constexpr(OnAndroid())
             {
                 string_value = EscapeCommandLineArgument(*string_value);
             }
 
-            exec_system_app_node.evaluated_call.append(FormatText(ArgumentFormatter, argument.name.c_str(), string_value->c_str()));
+            exec_system_app_node.evaluated_call.append(
+                FormatText(ArgumentFormatter, argument.name.c_str(), string_value->c_str())
+            );
         }
 
         else
@@ -108,9 +101,11 @@ double LogicInterpreter::ex_SystemApp_exec(const int program_index)
 
     if( Paradata::Logger::IsOpen() )
     {
-        external_application_event = std::make_unique<Paradata::ExternalApplicationEvent>(Paradata::ExternalApplicationEvent::Source::SystemAppExec,
-                                                                                          exec_system_app_node.evaluated_call,
-                                                                                          false);
+        external_application_event = std::make_unique<Paradata::ExternalApplicationEvent>(
+            Paradata::ExternalApplicationEvent::Source::SystemAppExec,
+            exec_system_app_node.evaluated_call,
+            false
+        );
     }
 
     bool success = ( SendEngineUIMessage(EngineUI::Type::ExecSystemApp, exec_system_app_node) != 0 );
@@ -125,5 +120,5 @@ double LogicInterpreter::ex_SystemApp_exec(const int program_index)
         RegisterAndLogEvent_INTERPRETER_DLL_TODO(std::move(external_application_event));
     }
 
-    return success;
+    return Engine::Value::Bool(success);
 }
