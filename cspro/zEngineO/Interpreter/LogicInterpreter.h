@@ -220,9 +220,7 @@ private:
     // (StringRT.cpp)
     // --------------------------------------------------------------------------
 public:
-    SharableString EvaluateSharableString(DataType value_data_type, int program_index);
     SharableString EvaluateNullableSharableString(int program_index);
-    std::string EvaluateString(DataType value_data_type, int program_index);
 
     template<typename T>
     double AssignString(T&& value);
@@ -699,13 +697,13 @@ public:
     // (SystemRT.cpp)
     // --------------------------------------------------------------------------
 public:
-    double ex_getusername(int program_index);
-    double ex_getos(int program_index);
-    double ex_getdeviceid(int program_index);
-    double ex_uuid(int program_index);
-    double ex_sysparm(int program_index);
-    double ex_savesetting(int program_index);
-    double ex_loadsetting(int program_index);
+    Engine::Value ex_getusername(int program_index);
+    Engine::Value ex_getos(int program_index);
+    Engine::Value ex_getdeviceid(int program_index);
+    Engine::Value ex_uuid(int program_index);
+    Engine::Value ex_sysparm(int program_index);
+    Engine::Value ex_savesetting(int program_index);
+    Engine::Value ex_loadsetting(int program_index);
 
 
     // --------------------------------------------------------------------------

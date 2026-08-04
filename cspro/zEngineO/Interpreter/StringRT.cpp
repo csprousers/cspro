@@ -15,26 +15,10 @@
 // string routines
 // --------------------------------------------------------------------------
 
-SharableString LogicInterpreter::EvaluateSharableString(const DataType value_data_type, const int program_index)
-{
-    switch( value_data_type )
-    {
-        case DataType::String:  return Evaluate<SharableString>(program_index);
-        case DataType::Numeric: return DoubleToString(Evaluate<double>(program_index));
-        default:                return ReturnProgrammingError(SharableString());
-    }
-}
-
 SharableString LogicInterpreter::EvaluateNullableSharableString(const int program_index)
 {
     return ( program_index != -1 ) ? Evaluate<SharableString>(program_index) :
                                      SharableString();
-}
-
-
-std::string LogicInterpreter::EvaluateString(const DataType value_data_type, const int program_index)
-{
-    return EvaluateSharableString(value_data_type, program_index).Release();
 }
 
 

@@ -273,7 +273,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 202 */   OP(ex_abs),             // GHM 20110721
 /* 203 */   OP_LI(ex_randomin),        // GHM 20110721
 /* 204 */   OP_LI(ex_randomizevs),     // GHM 20110811
-/* 205 */   OP_LI(ex_getusername),     // GHM 20111028
+/* 205 */   OP(ex_getusername),     // GHM 20111028
 /* 206 */   OP_ID(exfileempty),        // GHM 20120627
 /* 207 */   OP_ID(ex_changekeyboard),  // GHM 20120820
 /* 208 */   OP_ID(ex_setoutput),       // GHM 20121126
@@ -281,7 +281,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 210 */   OP_ID(exseekMinMax),       // GHM 20130119
 /* 211 */   OP(ex_dateadd),         // GHM 20130225
 /* 212 */   OP(ex_datevalid),       // GHM 20130703
-/* 213 */   OP_LI(ex_getos),           // GHM 20131217
+/* 213 */   OP(ex_getos),           // GHM 20131217
 /* 214 */   OP_ID(exgetocclabel),      // GHM 20140226
 /* 215 */   OP_ID(exfreealphamem),     // GHM 20140228
 /* 216 */   OP_ID(exsetvalue),         // GHM 20140228
@@ -291,13 +291,13 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 220 */   OP_ID(exsetocclabel),      // GHM 20141006
 /* 221 */   OP_ID(exshowocc),          // GHM 20141015 showocc
 /* 222 */   OP_ID(exshowocc),          // GHM 20141015 hideocc
-/* 223 */   OP_ID(ex_getdeviceid),     // GHM 20141023
+/* 223 */   OP(ex_getdeviceid),     // GHM 20141023
 /* 224 */   OP_ID(exdirexist),         // GHM 20141024
 /* 225 */   OP_ID(exdircreate),        // GHM 20141024
 /* 226 */   OP_ID(exnoopAbort),        // GHM 20141024 previously sync
 /* 227 */   OP(ex_List_var),        // GHM 20141106
 /* 228 */   OP_ID(exdirlist),          // GHM 20141107
-/* 229 */   OP_ID(ex_sysparm),         // GHM 20141217
+/* 229 */   OP(ex_sysparm),         // GHM 20141217
 /* 230 */   OP(ex_connection),      // GHM 20150421
 /* 231 */   OP(ex_prompt),          // GHM 20150422
 /* 232 */   OP_ID(ex_getimage),        // GHM 20150809
@@ -309,8 +309,8 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 238 */   OP_ID(ex_syncdata),
 /* 239 */   OP_ID(ex_syncfile),
 /* 240 */   OP_ID(ex_syncserver),
-/* 241 */   OP_ID(ex_savesetting),
-/* 242 */   OP_ID(ex_loadsetting),
+/* 241 */   OP(ex_savesetting),
+/* 242 */   OP(ex_loadsetting),
 /* 243 */   OP_ID(exgetcaselabel),
 /* 244 */   OP_ID(exsetcaselabel),
 /* 245 */   OP_ID(exispartial),
@@ -332,7 +332,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 261 */   OP_ID(exlogtext),
 /* 262 */   OP_ID(exwarning),
 /* 263 */   OP_ID(ex_tr),
-/* 264 */   OP_LI(ex_uuid),
+/* 264 */   OP(ex_uuid),
 /* 265 */   OP_ID(ex_paradata),
 /* 266 */   OP_ID(exsqlquery),
 /* 267 */   OP_ID(expre77_report),

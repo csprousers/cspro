@@ -549,7 +549,7 @@ void CIntDriver::AddIntDriverInstructions()
     OP_ENGVAL(202, ex_abs);
     OP_DOUBLE(203, ex_randomin);
     OP_DOUBLE(204, ex_randomizevs);
-    OP_DOUBLE(205, ex_getusername);
+    OP_ENGVAL(205, ex_getusername);
     OP_DOUBLE(206, exfileempty);
     OP_DOUBLE(207, ex_changekeyboard);
     OP_DOUBLE(208, ex_setoutput);
@@ -557,7 +557,7 @@ void CIntDriver::AddIntDriverInstructions()
     OP_DOUBLE(210, exseekMinMax);
     OP_ENGVAL(211, ex_dateadd);
     OP_ENGVAL(212, ex_datevalid);
-    OP_DOUBLE(213, ex_getos);
+    OP_ENGVAL(213, ex_getos);
     OP_DOUBLE(214, exgetocclabel);
     OP_DOUBLE(215, exfreealphamem);
     OP_DOUBLE(216, exsetvalue);
@@ -567,13 +567,13 @@ void CIntDriver::AddIntDriverInstructions()
     OP_DOUBLE(220, exsetocclabel);
     OP_DOUBLE(221, exshowocc);
     OP_DOUBLE(222, exshowocc);
-    OP_DOUBLE(223, ex_getdeviceid);
+    OP_ENGVAL(223, ex_getdeviceid);
     OP_DOUBLE(224, exdirexist);
     OP_DOUBLE(225, exdircreate);
     OP_DOUBLE(226, exnoopAbort);
     OP_ENGVAL(227, ex_List_var);
     OP_DOUBLE(228, exdirlist);
-    OP_DOUBLE(229, ex_sysparm);
+    OP_ENGVAL(229, ex_sysparm);
     OP_ENGVAL(230, ex_connection);
     OP_ENGVAL(231, ex_prompt);
     OP_DOUBLE(232, ex_getimage);
@@ -585,8 +585,8 @@ void CIntDriver::AddIntDriverInstructions()
     OP_DOUBLE(238, ex_syncdata);
     OP_DOUBLE(239, ex_syncfile);
     OP_DOUBLE(240, ex_syncserver);
-    OP_DOUBLE(241, ex_savesetting);
-    OP_DOUBLE(242, ex_loadsetting);
+    OP_ENGVAL(241, ex_savesetting);
+    OP_ENGVAL(242, ex_loadsetting);
     OP_DOUBLE(243, exgetcaselabel);
     OP_DOUBLE(244, exsetcaselabel);
     OP_DOUBLE(245, exispartial);
@@ -608,7 +608,7 @@ void CIntDriver::AddIntDriverInstructions()
     OP_DOUBLE(261, exlogtext);
     OP_DOUBLE(262, exwarning);
     OP_DOUBLE(263, ex_tr);
-    OP_DOUBLE(264, ex_uuid);
+    OP_ENGVAL(264, ex_uuid);
     OP_DOUBLE(265, ex_paradata);
     OP_DOUBLE(266, exsqlquery);
     OP_DOUBLE(267, expre77_report);

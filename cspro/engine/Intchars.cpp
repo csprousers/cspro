@@ -1161,8 +1161,10 @@ SharableString CIntDriver::EvaluateTextFill(const int program_index)
 
     if( IsBinary(text_fill_node.data_type) )
     {
-        const BinarySymbol* const binary_symbol = GetFromSymbolOrEngineItem<BinarySymbol*>(text_fill_node.symbol_index_or_expression,
-                                                                                           text_fill_node.subscript_compilation);
+        const BinarySymbol* const binary_symbol = GetFromSymbolOrEngineItem<BinarySymbol*>(
+            text_fill_node.symbol_index_or_expression,
+            text_fill_node.subscript_compilation
+        );
 
         return ( binary_symbol != nullptr ) ? LocalhostCreateMappingForBinarySymbol(*binary_symbol) :
                                               SharableString();
@@ -1170,6 +1172,6 @@ SharableString CIntDriver::EvaluateTextFill(const int program_index)
 
     else
     {
-        return EvaluateSharableString(text_fill_node.data_type, text_fill_node.symbol_index_or_expression);
+        return Evaluate<Engine::Value>(text_fill_node.symbol_index_or_expression).as<SharableString>();
     }
 }
