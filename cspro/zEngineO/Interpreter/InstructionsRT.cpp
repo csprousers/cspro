@@ -503,7 +503,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 432 */   OP_ID(ex_Path_getRelativePath),
 /* 433 */   OP_ID(ex_Path_selectFile),
 /* 434 */   OP_ID(ex_invoke),
-/* 435 */   OP_LI(ex_Report_save),
+/* 435 */   OP(ex_Report_save),
 /* 436 */   OP(ex_Report_view),
 /* 437 */   OP(ex_TextTemplate_write_writeEncoded_writeEncodedLine_writeLine), // Report.write prior to CSPro 8.1
 /* 438 */   OP_ID(ex_setbluetoothname),

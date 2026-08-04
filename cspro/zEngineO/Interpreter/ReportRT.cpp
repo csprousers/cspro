@@ -6,13 +6,15 @@
 #include <zViewO/MarkdownViewInput.h>
 
 
-double LogicInterpreter::ex_Report_save(const int program_index)
+Engine::Value LogicInterpreter::ex_Report_save(const int program_index)
 {
     const auto& report_save_node = GetNode<Nodes::Report::Save>(program_index);
     Report& report = GetSymbolReport(report_save_node.symbol_index);
     const std::string report_file_path = EvaluatePath(report_save_node.filename_expression);
 
-    return ( GenerateReport(report, &report_file_path) != nullptr ) ? 1 : 0;
+    return Engine::Value::Bool(
+        ( GenerateReport(report, &report_file_path) != nullptr )
+    );
 }
 
 
@@ -79,7 +81,10 @@ std::unique_ptr<std::string> LogicInterpreter::GenerateReport(Report& report, co
     try
     {
         if( report.GetReportTextBuilder() != nullptr )
-            throw CSProException("Multiple instances of the %s report cannot be generated at the same time.", report.GetName().c_str());
+        {
+            throw CSProException("Multiple instances of the %s report cannot be generated at the same time.",
+                                 report.GetName().c_str());
+        }
 
         report.SetReportTextBuilder(report_text_builder.get());
 

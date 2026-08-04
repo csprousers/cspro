@@ -638,7 +638,7 @@ public:
     // --------------------------------------------------------------------------
 public:
     Engine::Value ex_Report_view(int program_index);
-    double ex_Report_save(int program_index);
+    Engine::Value ex_Report_save(int program_index);
 
 private:
     Engine::Value ex_Report_view(Report& report, const ViewerOptions* viewer_options);

@@ -779,7 +779,7 @@ void CIntDriver::AddIntDriverInstructions()
     OP_DOUBLE(432, ex_Path_getRelativePath);
     OP_DOUBLE(433, ex_Path_selectFile);
     OP_DOUBLE(434, ex_invoke);
-    OP_DOUBLE(435, ex_Report_save);
+    OP_ENGVAL(435, ex_Report_save);
     OP_ENGVAL(436, ex_Report_view);
     OP_ENGVAL(437, ex_TextTemplate_write_writeEncoded_writeEncodedLine_writeLine);
     OP_DOUBLE(438, ex_setbluetoothname);
