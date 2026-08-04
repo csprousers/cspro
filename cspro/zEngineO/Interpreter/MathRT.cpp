@@ -10,7 +10,7 @@
 // numeric routines
 // --------------------------------------------------------------------------
 
-double LogicInterpreter::ex_numeric_constant(const int program_index)
+Engine::Value LogicInterpreter::ex_numeric_constant(const int program_index)
 {
     const auto& const_node = GetNode<CONST_NODE>(program_index);
     return GetNumericConstant(const_node.const_index);
@@ -22,7 +22,7 @@ double LogicInterpreter::ex_numeric_constant(const int program_index)
 // WorkVariable
 // --------------------------------------------------------------------------
 
-double LogicInterpreter::ex_WorkVariable_evaluate(const int program_index)
+Engine::Value LogicInterpreter::ex_WorkVariable_evaluate(const int program_index)
 {
     const auto& element_reference_single_node = GetNode<Nodes::ElementReferenceSingle>(program_index);
     const WorkVariable& work_variable = GetSymbolWorkVariable(element_reference_single_node.symbol_index);
@@ -31,7 +31,7 @@ double LogicInterpreter::ex_WorkVariable_evaluate(const int program_index)
 }
 
 
-double LogicInterpreter::ex_WorkVariable_compute(const int program_index)
+Engine::Value LogicInterpreter::ex_WorkVariable_compute(const int program_index)
 {
     const auto& symbol_compute_expression_node = GetNode<Nodes::SymbolComputeExpression>(program_index);
     WorkVariable& work_variable = GetSymbolWorkVariable(symbol_compute_expression_node.lhs_symbol_index);
@@ -104,7 +104,7 @@ bool LogicInterpreter::PreprocessSpecialValues(double& v1, double &v2, double& r
 // --------------------------------------------------------------------------
 // ex_add: add two values
 // --------------------------------------------------------------------------
-double LogicInterpreter::ex_add(const int program_index)
+Engine::Value LogicInterpreter::ex_add(const int program_index)
 {
     const auto& operator_node = GetNode<Nodes::Operator>(program_index);
     double v1 = Evaluate<double>(operator_node.left_expr);
@@ -121,7 +121,7 @@ double LogicInterpreter::ex_add(const int program_index)
 // --------------------------------------------------------------------------
 // ex_sub: subtract two values
 // --------------------------------------------------------------------------
-double LogicInterpreter::ex_sub(const int program_index)
+Engine::Value LogicInterpreter::ex_sub(const int program_index)
 {
     const auto& operator_node = GetNode<Nodes::Operator>(program_index);
     double v1 = Evaluate<double>(operator_node.left_expr);
@@ -138,7 +138,7 @@ double LogicInterpreter::ex_sub(const int program_index)
 // --------------------------------------------------------------------------
 // ex_minus: execute unary minus operator
 // --------------------------------------------------------------------------
-double LogicInterpreter::ex_minus(const int program_index)
+Engine::Value LogicInterpreter::ex_minus(const int program_index)
 {
     const auto& operator_node = GetNode<Nodes::Operator>(program_index);
     const double v1 = Evaluate<double>(operator_node.left_expr);
@@ -153,7 +153,7 @@ double LogicInterpreter::ex_minus(const int program_index)
 // --------------------------------------------------------------------------
 // ex_mult: multiply two values
 // --------------------------------------------------------------------------
-double LogicInterpreter::ex_mult(const int program_index)
+Engine::Value LogicInterpreter::ex_mult(const int program_index)
 {
     const auto& operator_node = GetNode<Nodes::Operator>(program_index);
     double v1 = Evaluate<double>(operator_node.left_expr);
@@ -170,7 +170,7 @@ double LogicInterpreter::ex_mult(const int program_index)
 // --------------------------------------------------------------------------
 // ex_div: divide two values
 // --------------------------------------------------------------------------
-double LogicInterpreter::ex_div(const int program_index)
+Engine::Value LogicInterpreter::ex_div(const int program_index)
 {
     const auto& operator_node = GetNode<Nodes::Operator>(program_index);
     double v1 = Evaluate<double>(operator_node.left_expr);
@@ -181,7 +181,7 @@ double LogicInterpreter::ex_div(const int program_index)
         return result;
 
     if( v2 == 0 )
-        return DEFAULT;
+        return Engine::Value::Invalid<double>();
 
     return v1 / v2;
 }
@@ -190,7 +190,7 @@ double LogicInterpreter::ex_div(const int program_index)
 // --------------------------------------------------------------------------
 // ex_mod: modulo: v1 % v2
 // --------------------------------------------------------------------------
-double LogicInterpreter::ex_mod(const int program_index)
+Engine::Value LogicInterpreter::ex_mod(const int program_index)
 {
     const auto& operator_node = GetNode<Nodes::Operator>(program_index);
     double v1 = Evaluate<double>(operator_node.left_expr);
@@ -201,7 +201,7 @@ double LogicInterpreter::ex_mod(const int program_index)
         return result;
 
     if( v2 == 0 )
-        return DEFAULT;
+        return Engine::Value::Invalid<double>();
 
     return fmod(v1, v2);
 }
@@ -210,7 +210,7 @@ double LogicInterpreter::ex_mod(const int program_index)
 // --------------------------------------------------------------------------
 // ex_exp: expr ** expr
 // --------------------------------------------------------------------------
-double LogicInterpreter::ex_exp(const int program_index)
+Engine::Value LogicInterpreter::ex_exp(const int program_index)
 {
     const auto& operator_node = GetNode<Nodes::Operator>(program_index);
     double v1 = Evaluate<double>(operator_node.left_expr);
@@ -221,8 +221,10 @@ double LogicInterpreter::ex_exp(const int program_index)
     // because then something like 3^DEFAULT would equal 1
     if( IsSpecial(v2) )
     {
-        return m_engineData->engine_settings.GetTreatSpecialValuesAsZero() ? DEFAULT :
-                                                                             v2;
+        if( m_engineData->engine_settings.GetTreatSpecialValuesAsZero() )
+            return Engine::Value::Invalid<double>();
+
+        return v2;
     }
 
     if( PreprocessSpecialValues(v1, v2, result) )
@@ -231,7 +233,7 @@ double LogicInterpreter::ex_exp(const int program_index)
     result = pow(v1, v2);
 
     if( isnan(result) || !std::isfinite(result) ) // 20131208 a way to check for NaN and infinity
-        return DEFAULT;
+        return Engine::Value::Invalid<double>();
 
     return result;
 }
@@ -240,125 +242,161 @@ double LogicInterpreter::ex_exp(const int program_index)
 // --------------------------------------------------------------------------
 // ex_eq: compare two values for EQual
 // --------------------------------------------------------------------------
-double LogicInterpreter::ex_eq(const int program_index)
+Engine::Value LogicInterpreter::ex_eq(const int program_index)
 {
     const auto& operator_node = GetNode<Nodes::Operator>(program_index);
-    return FloatingPointMath::Evaluate<TokenCode::TOKEQOP>(Evaluate<double>(operator_node.left_expr),
-                                                           Evaluate<double>(operator_node.right_expr));
+
+    return Engine::Value::Bool(
+        FloatingPointMath::Evaluate<TokenCode::TOKEQOP>(
+            Evaluate<double>(operator_node.left_expr),
+            Evaluate<double>(operator_node.right_expr)
+        )
+    );
 }
 
 
 // --------------------------------------------------------------------------
 // ex_ne: compare two values for Not Equal
 // --------------------------------------------------------------------------
-double LogicInterpreter::ex_ne(const int program_index)
+Engine::Value LogicInterpreter::ex_ne(const int program_index)
 {
     const auto& operator_node = GetNode<Nodes::Operator>(program_index);
-    return FloatingPointMath::Evaluate<TokenCode::TOKNEOP>(Evaluate<double>(operator_node.left_expr),
-                                                           Evaluate<double>(operator_node.right_expr));
+
+    return Engine::Value::Bool(
+        FloatingPointMath::Evaluate<TokenCode::TOKNEOP>(
+            Evaluate<double>(operator_node.left_expr),
+            Evaluate<double>(operator_node.right_expr)
+        )
+    );
 }
 
 
 // --------------------------------------------------------------------------
 // ex_le: compare two values for Less or Equal
 // --------------------------------------------------------------------------
-double LogicInterpreter::ex_le(const int program_index)
+Engine::Value LogicInterpreter::ex_le(const int program_index)
 {
     const auto& operator_node = GetNode<Nodes::Operator>(program_index);
-    return FloatingPointMath::Evaluate<TokenCode::TOKLEOP>(Evaluate<double>(operator_node.left_expr),
-                                                           Evaluate<double>(operator_node.right_expr));
+
+    return Engine::Value::Bool(
+        FloatingPointMath::Evaluate<TokenCode::TOKLEOP>(
+            Evaluate<double>(operator_node.left_expr),
+            Evaluate<double>(operator_node.right_expr)
+        )
+    );
 }
 
 
 // --------------------------------------------------------------------------
 // ex_lt: compare two values for Less Than
 // --------------------------------------------------------------------------
-double LogicInterpreter::ex_lt(const int program_index)
+Engine::Value LogicInterpreter::ex_lt(const int program_index)
 {
     const auto& operator_node = GetNode<Nodes::Operator>(program_index);
-    return FloatingPointMath::Evaluate<TokenCode::TOKLTOP>(Evaluate<double>(operator_node.left_expr),
-                                                           Evaluate<double>(operator_node.right_expr));
+
+    return Engine::Value::Bool(
+        FloatingPointMath::Evaluate<TokenCode::TOKLTOP>(
+            Evaluate<double>(operator_node.left_expr),
+            Evaluate<double>(operator_node.right_expr)
+        )
+    );
 }
 
 
 // --------------------------------------------------------------------------
 // ex_ge: compare two values for Greater or Equal
 // --------------------------------------------------------------------------
-double LogicInterpreter::ex_ge(const int program_index)
+Engine::Value LogicInterpreter::ex_ge(const int program_index)
 {
     const auto& operator_node = GetNode<Nodes::Operator>(program_index);
-    return FloatingPointMath::Evaluate<TokenCode::TOKGEOP>(Evaluate<double>(operator_node.left_expr),
-                                                           Evaluate<double>(operator_node.right_expr));
+
+    return Engine::Value::Bool(
+        FloatingPointMath::Evaluate<TokenCode::TOKGEOP>(
+            Evaluate<double>(operator_node.left_expr),
+            Evaluate<double>(operator_node.right_expr)
+        )
+    );
 }
 
 
 // --------------------------------------------------------------------------
 // ex_gt: compare two values for Greater Than
 // --------------------------------------------------------------------------
-double LogicInterpreter::ex_gt(const int program_index)
+Engine::Value LogicInterpreter::ex_gt(const int program_index)
 {
     const auto& operator_node = GetNode<Nodes::Operator>(program_index);
-    return FloatingPointMath::Evaluate<TokenCode::TOKGTOP>(Evaluate<double>(operator_node.left_expr),
-                                                           Evaluate<double>(operator_node.right_expr));
+
+    return Engine::Value::Bool(
+        FloatingPointMath::Evaluate<TokenCode::TOKGTOP>(
+            Evaluate<double>(operator_node.left_expr),
+            Evaluate<double>(operator_node.right_expr)
+        )
+    );
 }
 
 
 // --------------------------------------------------------------------------
 // ex_equ: compare two values for EQual using <=>
 // --------------------------------------------------------------------------
-double LogicInterpreter::ex_equ(const int program_index)
+Engine::Value LogicInterpreter::ex_equ(const int program_index)
 {
     const auto& operator_node = GetNode<Nodes::Operator>(program_index);
     const double v1 = Evaluate<double>(operator_node.left_expr);
     const double v2 = Evaluate<double>(operator_node.right_expr);
 
     if( IsSpecial(v1) || IsSpecial(v2) )
-        return 0; // TNC Nov 16, 2001
+        return Engine::Value::Bool(false); // TNC Nov 16, 2001
 
-    return FloatingPointMath::Equals(v1, v2);
+    return Engine::Value::Bool(
+        FloatingPointMath::Equals(v1, v2)
+    );
 }
 
 
 // --------------------------------------------------------------------------
 // ex_or: OR two values
 // --------------------------------------------------------------------------
-double LogicInterpreter::ex_or(const int program_index)
+Engine::Value LogicInterpreter::ex_or(const int program_index)
 {
     const auto& operator_node = GetNode<Nodes::Operator>(program_index);
 
-    return ( EvaluateConditional(operator_node.left_expr) ||
-             EvaluateConditional(operator_node.right_expr) );
+    return Engine::Value::Bool(
+        ( EvaluateConditional(operator_node.left_expr) ||
+          EvaluateConditional(operator_node.right_expr) )
+    );
 }
 
 
 // --------------------------------------------------------------------------
 // ex_not: NOT (complement) a logical value
 // --------------------------------------------------------------------------
-double LogicInterpreter::ex_not(const int program_index)
+Engine::Value LogicInterpreter::ex_not(const int program_index)
 {
     const auto& operator_node = GetNode<Nodes::Operator>(program_index);
 
     // special values are treated like false, NOT special value is true
-    return !EvaluateConditional(operator_node.left_expr);
+    return Engine::Value::Bool(!EvaluateConditional(operator_node.left_expr));
 }
 
 
 // --------------------------------------------------------------------------
 // ex_and: AND two values
 // --------------------------------------------------------------------------
-double LogicInterpreter::ex_and(const int program_index)
+Engine::Value LogicInterpreter::ex_and(const int program_index)
 {
     const auto& operator_node = GetNode<Nodes::Operator>(program_index);
 
-    return ( EvaluateConditional(operator_node.left_expr) &&
-             EvaluateConditional(operator_node.right_expr) );
+    return Engine::Value::Bool(
+        ( EvaluateConditional(operator_node.left_expr) &&
+          EvaluateConditional(operator_node.right_expr) )
+    );
 }
 
 
 // --------------------------------------------------------------------------
 // ex_abs: absolute value
 // --------------------------------------------------------------------------
-double LogicInterpreter::ex_abs(const int program_index)
+Engine::Value LogicInterpreter::ex_abs(const int program_index)
 {
     const auto& fnn_node = GetNode<FNN_NODE>(program_index);
     const double value = Evaluate<double>(fnn_node.fn_expr[0]);
@@ -376,7 +414,7 @@ double LogicInterpreter::ex_abs(const int program_index)
 // --------------------------------------------------------------------------
 // ex_ex: exponential (with 2.71828)
 // --------------------------------------------------------------------------
-double LogicInterpreter::ex_ex(const int program_index)
+Engine::Value LogicInterpreter::ex_ex(const int program_index)
 {
     const auto& fnn_node = GetNode<FNN_NODE>(program_index);
     double value = Evaluate<double>(fnn_node.fn_expr[0]);
@@ -387,7 +425,7 @@ double LogicInterpreter::ex_ex(const int program_index)
 
         // convert NaN and infinity to default
         if( isnan(value) || !std::isfinite(value) )
-            return DEFAULT;
+            return Engine::Value::Invalid<double>();
     }
 
     return value;
@@ -397,30 +435,27 @@ double LogicInterpreter::ex_ex(const int program_index)
 // --------------------------------------------------------------------------
 // ex_inc: increment a value
 // --------------------------------------------------------------------------
-double LogicInterpreter::ex_inc(const int program_index)
+Engine::Value LogicInterpreter::ex_inc(const int program_index)
 {
     const auto& va_node = GetNode<Nodes::VariableArguments>(program_index);
     const auto& symbol_value_node = GetNode<Nodes::SymbolValue>(va_node.arguments[0]);
     double increment_value = EvaluateOptional<double>(va_node.arguments[1], 1);
-    double return_value = DEFAULT;
 
-    ModifySymbolValue<double>(symbol_value_node,
+    return ModifySymbolValue<double>(symbol_value_node,
         [&](double& value)
         {
             if( !PreprocessSpecialValues(value, increment_value, value) )
                 value += increment_value;
 
-            return_value = value;
+            return value;
         });
-
-    return return_value;
 }
 
 
 // --------------------------------------------------------------------------
 // ex_int: return a value's integer portion
 // --------------------------------------------------------------------------
-double LogicInterpreter::ex_int(const int program_index)
+Engine::Value LogicInterpreter::ex_int(const int program_index)
 {
     const auto& fnn_node = GetNode<FNN_NODE>(program_index);
     const double value = Evaluate<double>(fnn_node.fn_expr[0]);
@@ -433,21 +468,21 @@ double LogicInterpreter::ex_int(const int program_index)
 // --------------------------------------------------------------------------
 // ex_log: logarithm
 // --------------------------------------------------------------------------
-double LogicInterpreter::ex_log(const int program_index)
+Engine::Value LogicInterpreter::ex_log(const int program_index)
 {
     const auto& fnn_node = GetNode<FNN_NODE>(program_index);
     const double value = Evaluate<double>(fnn_node.fn_expr[0]);
 
-    return IsSpecial(value) ? value :
-           ( value >= 0 )   ? log10(value) :
-                              DEFAULT;
+    return IsSpecial(value) ? Engine::Value(value) :
+           ( value >= 0 )   ? Engine::Value(log10(value)) :
+                              Engine::Value::Invalid<double>();
 }
 
 
 // --------------------------------------------------------------------------
 // ex_low_high: low and high functions
 // --------------------------------------------------------------------------
-double LogicInterpreter::ex_low_high(const int program_index)
+Engine::Value LogicInterpreter::ex_low_high(const int program_index)
 {
     const auto& fnn_node = GetNode<FNN_NODE>(program_index);
     const bool want_minimum = ( fnn_node.fn_code == FunctionCode::FNLOW_CODE );
@@ -465,14 +500,15 @@ double LogicInterpreter::ex_low_high(const int program_index)
         }
     }
 
-    return value.value_or(DEFAULT);
+    return value.has_value() ? Engine::Value(*value) :
+                               Engine::Value::Invalid<double>();
 }
 
 
 // --------------------------------------------------------------------------
 // ex_round: round a value
 // --------------------------------------------------------------------------
-double LogicInterpreter::ex_round(const int program_index)
+Engine::Value LogicInterpreter::ex_round(const int program_index)
 {
     const auto& fnn_node = GetNode<FNN_NODE>(program_index);
     const double value = Evaluate<double>(fnn_node.fn_expr[0]);
@@ -486,55 +522,58 @@ double LogicInterpreter::ex_round(const int program_index)
 // --------------------------------------------------------------------------
 // ex_special: check is a value is special
 // --------------------------------------------------------------------------
-double LogicInterpreter::ex_special(const int program_index)
+Engine::Value LogicInterpreter::ex_special(const int program_index)
 {
     const auto& fnn_node = GetNode<FNN_NODE>(program_index);
-    return IsSpecial(Evaluate<double>(fnn_node.fn_expr[0]));
+
+    return Engine::Value::Bool(
+        IsSpecial(Evaluate<double>(fnn_node.fn_expr[0]))
+    );
 }
 
 
 // --------------------------------------------------------------------------
 // ex_sqrt: square root
 // --------------------------------------------------------------------------
-double LogicInterpreter::ex_sqrt(const int program_index)
+Engine::Value LogicInterpreter::ex_sqrt(const int program_index)
 {
     const auto& fnn_node = GetNode<FNN_NODE>(program_index);
     const double value = Evaluate<double>(fnn_node.fn_expr[0]);
 
-    return IsSpecial(value) ? value :
-           ( value >= 0 )   ? sqrt(value) :
-                              DEFAULT;
+    return IsSpecial(value) ? Engine::Value(value) :
+           ( value >= 0 )   ? Engine::Value(sqrt(value)) :
+                              Engine::Value::Invalid<double>();
 }
 
 
 // --------------------------------------------------------------------------
 // ex_seed: seed the random number generator
 // --------------------------------------------------------------------------
-double LogicInterpreter::ex_seed(const int program_index)
+Engine::Value LogicInterpreter::ex_seed(const int program_index)
 {
     const auto& fnn_node = GetNode<FNN_NODE>(program_index);
     const double seed_value = Evaluate<double>(fnn_node.fn_expr[0]);
 
     if( IsSpecial(seed_value) )
-        return 0;
+        return Engine::Value::Bool(false);
 
     Randomizer::Seed(static_cast<uint32_t>(seed_value));
 
-    return 1;
+    return Engine::Value::Bool(true);
 }
 
 
 // --------------------------------------------------------------------------
 // ex_random: generate a random number
 // --------------------------------------------------------------------------
-double LogicInterpreter::ex_random(const int program_index)
+Engine::Value LogicInterpreter::ex_random(const int program_index)
 {
     const auto& function_node = GetNode<FNN_NODE>(program_index);
     const double low_value = Evaluate<double>(function_node.fn_expr[0]);
     const double high_value = Evaluate<double>(function_node.fn_expr[1]);
 
     if( low_value > high_value || IsSpecial(low_value) || IsSpecial(high_value) )
-        return DEFAULT;
+        return Engine::Value::Invalid<double>();
 
     int64_t int_low_value = static_cast<int64_t>(low_value);
     const int64_t difference = static_cast<int64_t>(high_value) - int_low_value;
@@ -542,14 +581,14 @@ double LogicInterpreter::ex_random(const int program_index)
     if( difference != 0 )
         int_low_value += static_cast<int64_t>(Randomizer::Next() * ( difference + 1 ) );
 
-    return static_cast<double>(int_low_value);
+    return Engine::Value::Integer(int_low_value);
 }
 
 
 // --------------------------------------------------------------------------
 // ex_tonumber: convert a string to a number
 // --------------------------------------------------------------------------
-double LogicInterpreter::ex_tonumber(const int program_index)
+Engine::Value LogicInterpreter::ex_tonumber(const int program_index)
 {
     const auto& fnn_node = GetNode<FNN_NODE>(program_index);
     const SharableString number_string = Evaluate<SharableString>(fnn_node.fn_expr[0]);
@@ -609,15 +648,15 @@ double LogicInterpreter::ex_tonumber(const int program_index)
     // if there was no numeric portion of the string, return 1/0 if boolean, or DEFAULT otherwise
     if( length_number_section == 0 )
     {
-        return SO::EqualsNoCase(trimmed_number_string_sv, "true")  ? 1 :
-               SO::EqualsNoCase(trimmed_number_string_sv, "false") ? 0 :
-                                                                     DEFAULT;
+        return SO::EqualsNoCase(trimmed_number_string_sv, "true")  ? Engine::Value(1) :
+               SO::EqualsNoCase(trimmed_number_string_sv, "false") ? Engine::Value(0) :
+                                                                     Engine::Value::Invalid<double>();
     }
 
     // get just the string portion
     const double value = atod(std::string_view(start_number_section, length_number_section));
 
-    return ( value == IMSA_BAD_DOUBLE || IsSpecial(value) ) ? DEFAULT :
-           ( sign == Sign::Negative )                       ? ( -1 * value ) :
-                                                              value;
+    return ( value == IMSA_BAD_DOUBLE || IsSpecial(value) ) ? Engine::Value::Invalid<double>() :
+           ( sign == Sign::Negative )                       ? Engine::Value(-1 * value) :
+                                                              Engine::Value(value);
 }

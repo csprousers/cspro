@@ -172,40 +172,40 @@ protected: // INTERPRETER_DLL_TODO change to private
     // (MathRT.cpp)
     // --------------------------------------------------------------------------
 public:
-    double ex_numeric_constant(int program_index);
+    Engine::Value ex_numeric_constant(int program_index);
 
-    double ex_WorkVariable_evaluate(int program_index);
-    double ex_WorkVariable_compute(int program_index);
+    Engine::Value ex_WorkVariable_evaluate(int program_index);
+    Engine::Value ex_WorkVariable_compute(int program_index);
 
-    double ex_add(int program_index);
-    double ex_sub(int program_index);
-    double ex_minus(int program_index);
-    double ex_mult(int program_index);
-    double ex_div(int program_index);
-    double ex_mod(int program_index);
-    double ex_exp(int program_index);
-    double ex_eq(int program_index);
-    double ex_ne(int program_index);
-    double ex_le(int program_index);
-    double ex_lt(int program_index);
-    double ex_ge(int program_index);
-    double ex_gt(int program_index);
-    double ex_equ(int program_index);
-    double ex_or(int program_index);
-    double ex_not(int program_index);
-    double ex_and(int program_index);
-    double ex_abs(int program_index);
-    double ex_ex(int program_index);
-    double ex_inc(int program_index);
-    double ex_int(int program_index);
-    double ex_log(int program_index);
-    double ex_low_high(int program_index);
-    double ex_special(int program_index);
-    double ex_sqrt(int program_index);
-    double ex_round(int program_index);
-    double ex_seed(int program_index);
-    double ex_random(int program_index);
-    double ex_tonumber(int program_index);
+    Engine::Value ex_add(int program_index);
+    Engine::Value ex_sub(int program_index);
+    Engine::Value ex_minus(int program_index);
+    Engine::Value ex_mult(int program_index);
+    Engine::Value ex_div(int program_index);
+    Engine::Value ex_mod(int program_index);
+    Engine::Value ex_exp(int program_index);
+    Engine::Value ex_eq(int program_index);
+    Engine::Value ex_ne(int program_index);
+    Engine::Value ex_le(int program_index);
+    Engine::Value ex_lt(int program_index);
+    Engine::Value ex_ge(int program_index);
+    Engine::Value ex_gt(int program_index);
+    Engine::Value ex_equ(int program_index);
+    Engine::Value ex_or(int program_index);
+    Engine::Value ex_not(int program_index);
+    Engine::Value ex_and(int program_index);
+    Engine::Value ex_abs(int program_index);
+    Engine::Value ex_ex(int program_index);
+    Engine::Value ex_inc(int program_index);
+    Engine::Value ex_int(int program_index);
+    Engine::Value ex_log(int program_index);
+    Engine::Value ex_low_high(int program_index);
+    Engine::Value ex_special(int program_index);
+    Engine::Value ex_sqrt(int program_index);
+    Engine::Value ex_round(int program_index);
+    Engine::Value ex_seed(int program_index);
+    Engine::Value ex_random(int program_index);
+    Engine::Value ex_tonumber(int program_index);
 
 private:
     bool PreprocessSpecialValues(double& v1, double &v2, double& result) const;

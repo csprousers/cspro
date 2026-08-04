@@ -16,29 +16,29 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /*------------------┬-----------------------------------------------------*/
 /*Op.code│ Function │      COMMANDS                                       */
 /*-----------------─┴-----------------------------------------------------*/
-/*   0 */   OP_LI(ex_numeric_constant),
+/*   0 */   OP(ex_numeric_constant),
 /*   1 */   OP_ID(exsvar),
 /*   2 */   OP_ID(exmvar),
 /*   3 */   OP_ID(excpt),
-/*   4 */   OP_LI(ex_add),
-/*   5 */   OP_LI(ex_sub),
-/*   6 */   OP_LI(ex_mult),
-/*   7 */   OP_LI(ex_div),
-/*   8 */   OP_LI(ex_mod),
-/*   9 */   OP_LI(ex_minus),
-/*  10 */   OP_LI(ex_exp),
-/*  11 */   OP_LI(ex_or),
-/*  12 */   OP_LI(ex_and),
-/*  13 */   OP_LI(ex_not),
-/*  14 */   OP_LI(ex_eq),
-/*  15 */   OP_LI(ex_ne),
-/*  16 */   OP_LI(ex_le),
-/*  17 */   OP_LI(ex_lt),
-/*  18 */   OP_LI(ex_ge),
-/*  19 */   OP_LI(ex_gt),
-/*  20 */   OP_LI(ex_equ),
+/*   4 */   OP(ex_add),
+/*   5 */   OP(ex_sub),
+/*   6 */   OP(ex_mult),
+/*   7 */   OP(ex_div),
+/*   8 */   OP(ex_mod),
+/*   9 */   OP(ex_minus),
+/*  10 */   OP(ex_exp),
+/*  11 */   OP(ex_or),
+/*  12 */   OP(ex_and),
+/*  13 */   OP(ex_not),
+/*  14 */   OP(ex_eq),
+/*  15 */   OP(ex_ne),
+/*  16 */   OP(ex_le),
+/*  17 */   OP(ex_lt),
+/*  18 */   OP(ex_ge),
+/*  19 */   OP(ex_gt),
+/*  20 */   OP(ex_equ),
 /*  21 */   OP(ex_string_compute),
-/*  22 */   OP_LI(ex_WorkVariable_evaluate),
+/*  22 */   OP(ex_WorkVariable_evaluate),
 /*  23 */   OP_ID(exif),
 /*  24 */   OP_ID(exwhile),
 /*  25 */   OP_ID(exbox),
@@ -91,12 +91,12 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /*───────┴──────────┴-----------------------------------------------------*/
 /*  56 */   OP_ID(exvisualvalue),
 /*  57 */   OP_ID(exhighlight),
-/*  58 */   OP_LI(ex_sqrt),
-/*  59 */   OP_LI(ex_ex),
-/*  60 */   OP_LI(ex_int),
-/*  61 */   OP_LI(ex_log),
-/*  62 */   OP_LI(ex_seed),
-/*  63 */   OP_LI(ex_random),
+/*  58 */   OP(ex_sqrt),
+/*  59 */   OP(ex_ex),
+/*  60 */   OP(ex_int),
+/*  61 */   OP(ex_log),
+/*  62 */   OP(ex_seed),
+/*  63 */   OP(ex_random),
 /*  64 */   OP_ID(exnoccurs),
 /*  65 */   OP_ID(exsoccurs_pre80),
 /*  66 */   OP_ID(exnoopAbort), // exvoccurs
@@ -112,7 +112,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /*Op.code│ Function │      ALPHA FUNCTIONS                                */
 /*───────┴──────────┴-----------------------------------------------------*/
 /*  74 */   OP(ex_concat),
-/*  75 */   OP_LI(ex_tonumber),
+/*  75 */   OP(ex_tonumber),
 /*  76 */   OP(ex_pos_poschar), // pos
 /*  77 */   OP(ex_compare),
 /*  78 */   OP(ex_length),
@@ -138,7 +138,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /*Op.code│ Function │      OTHER FUNCTIONS                                */
 /*───────┴──────────┴-----------------------------------------------------*/
 /*  92 */   OP_ID(exdemode),
-/*  93 */   OP_LI(ex_special),
+/*  93 */   OP(ex_special),
 /*  94 */   OP_LI(ex_accept),
 /*  95 */   OP_ID(exclrcase),
 
@@ -266,11 +266,11 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 195 */   OP_ID(exorientation),      // GHM 20100618 setorientation
 /* 196 */   OP_ID(ex_pathname),        // GHM 20110107
 /* 197 */   OP_ID(exgps),              // GHM 20110223
-/* 198 */   OP_LI(ex_low_high),        // GHM 20110301 low
-/* 199 */   OP_LI(ex_low_high),        // GHM 20110301 high
+/* 198 */   OP(ex_low_high),        // GHM 20110301 low
+/* 199 */   OP(ex_low_high),        // GHM 20110301 high
 /* 200 */   OP_ID(exgetrecord),        // GHM 20110302
 /* 201 */   OP_ID(ex_setcapturepos),   // GHM 20110502
-/* 202 */   OP_LI(ex_abs),             // GHM 20110721
+/* 202 */   OP(ex_abs),             // GHM 20110721
 /* 203 */   OP_LI(ex_randomin),        // GHM 20110721
 /* 204 */   OP_LI(ex_randomizevs),     // GHM 20110811
 /* 205 */   OP_LI(ex_getusername),     // GHM 20111028
@@ -301,7 +301,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 230 */   OP_ID(ex_connection),      // GHM 20150421
 /* 231 */   OP_ID(ex_prompt),          // GHM 20150422
 /* 232 */   OP_ID(ex_getimage),        // GHM 20150809
-/* 233 */   OP_ID(ex_round),           // GHM 20150821
+/* 233 */   OP(ex_round),           // GHM 20150821
 /* 234 */   OP_ID(exnoopAbort),        // GHM 20151130 an old implementation of exuuid ... now a publishdate placeholder
 /* 235 */   OP_ID(exsavepartial),      // GHM 20151216
 /* 236 */   OP_ID(ex_syncconnect),
@@ -449,7 +449,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 378 */   OP_LI(ex_Audio_length),
 /* 379 */   OP_LI(ex_ValueSet_sort),
 /* 380 */   OP(ex_replace),
-/* 381 */   OP_LI(ex_inc),
+/* 381 */   OP(ex_inc),
 /* 382 */   OP_ID(exuniverse),
 /* 383 */   OP_ID(ex_Freq_unnamed),
 /* 384 */   OP_ID(ex_Freq_clear),
@@ -547,7 +547,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 476 */   OP_LI(ex_Video_width_height), // Video.width
 /* 477 */   OP_LI(ex_Video_width_height), // Video.height
 /* 478 */   OP_LI(ex_ValueSet_removeDuplicates),
-/* 479 */   OP_LI(ex_WorkVariable_compute),
+/* 479 */   OP(ex_WorkVariable_compute),
 /* 480 */   OP_LI(ex_Array_compute),
 /* 481 */   OP_LI(ex_UserFunction_compute),
 
