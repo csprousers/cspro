@@ -3,6 +3,7 @@
 #include <zEngineO/zEngineO.h>
 #include <zToolsO/CSProException.h>
 
+enum class DataType;
 namespace Engine { class Value; }
 
 
@@ -41,10 +42,14 @@ public:
     template<typename T>
     [[nodiscard]] ZENGINEO_API static Value Undefined() noexcept;
 
+    [[nodiscard]] ZENGINEO_API static Value Undefined(DataType data_type) noexcept;
+
     // EV_TODO: Creates an object of the type "invalid" in case such a type is ever added to the language.
     // For now, double is mapped to DEFAULT and SharableString to a blank string.
     template<typename T>
     [[nodiscard]] ZENGINEO_API static Value Invalid() noexcept;
+
+    [[nodiscard]] ZENGINEO_API static Value Invalid(DataType data_type) noexcept;
 
 
     // --------------------------------------------------------------------------

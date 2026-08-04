@@ -516,19 +516,19 @@ private:
     // (ListRT.cpp)
     // --------------------------------------------------------------------------
 public:
-    double ex_List_var(int program_index);
-    double ex_List_compute(int program_index);
-    double ex_List_add(int program_index);
-    double ex_List_clear(int program_index);
-    double ex_List_insert(int program_index);
-    double ex_List_length(int program_index);
-    double ex_List_remove(int program_index);
-    double ex_List_removeDuplicates(int program_index);
-    double ex_List_removeIn(int program_index);
-    double ex_List_seek(int program_index);
-    double ex_List_show(int program_index);
-    double ex_List_show_pre77(int program_index);
-    double ex_List_sort(int program_index);
+    Engine::Value ex_List_var(int program_index);
+    Engine::Value ex_List_compute(int program_index);
+    Engine::Value ex_List_add(int program_index);
+    Engine::Value ex_List_clear(int program_index);
+    Engine::Value ex_List_insert(int program_index);
+    Engine::Value ex_List_length(int program_index);
+    Engine::Value ex_List_remove(int program_index);
+    Engine::Value ex_List_removeDuplicates(int program_index);
+    Engine::Value ex_List_removeIn(int program_index);
+    Engine::Value ex_List_seek(int program_index);
+    Engine::Value ex_List_show(int program_index);
+    Engine::Value ex_List_show_pre77(int program_index);
+    Engine::Value ex_List_sort(int program_index);
 
 private:
     // Returns the one-based index, or std::nullopt if the index is invalid.

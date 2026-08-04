@@ -295,7 +295,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 224 */   OP_ID(exdirexist),         // GHM 20141024
 /* 225 */   OP_ID(exdircreate),        // GHM 20141024
 /* 226 */   OP_ID(exnoopAbort),        // GHM 20141024 previously sync
-/* 227 */   OP_ID(ex_List_var),        // GHM 20141106
+/* 227 */   OP(ex_List_var),        // GHM 20141106
 /* 228 */   OP_ID(exdirlist),          // GHM 20141107
 /* 229 */   OP_ID(ex_sysparm),         // GHM 20141217
 /* 230 */   OP_ID(ex_connection),      // GHM 20150421
@@ -374,14 +374,14 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 303 */   OP_LI(ex_Map_setBaseMap),
 /* 304 */   OP_LI(ex_Map_setTitle),
 /* 305 */   OP_LI(ex_Map_zoomTo),
-/* 306 */   OP_LI(ex_List_add),
-/* 307 */   OP_LI(ex_List_clear),
-/* 308 */   OP_LI(ex_List_insert),
-/* 309 */   OP_LI(ex_List_length),
-/* 310 */   OP_LI(ex_List_remove),
-/* 311 */   OP_LI(ex_List_seek),
-/* 312 */   OP_LI(ex_List_show),
-/* 313 */   OP_LI(ex_List_compute),
+/* 306 */   OP(ex_List_add),
+/* 307 */   OP(ex_List_clear),
+/* 308 */   OP(ex_List_insert),
+/* 309 */   OP(ex_List_length),
+/* 310 */   OP(ex_List_remove),
+/* 311 */   OP(ex_List_seek),
+/* 312 */   OP(ex_List_show),
+/* 313 */   OP(ex_List_compute),
 /* 314 */   OP_LI(ex_ValueSet_add),
 /* 315 */   OP_LI(ex_ValueSet_clear),
 /* 316 */   OP_LI(ex_ValueSet_remove),
@@ -430,9 +430,9 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 359 */   OP_LI(ex_Audio_recordInteractive),
 /* 360 */   OP_LI(ex_Audio_compute),
 /* 361 */   OP(ex_encode),
-/* 362 */   OP_LI(ex_List_sort),
-/* 363 */   OP_LI(ex_List_removeDuplicates),
-/* 364 */   OP_LI(ex_List_removeIn),
+/* 362 */   OP(ex_List_sort),
+/* 363 */   OP(ex_List_removeDuplicates),
+/* 364 */   OP(ex_List_removeIn),
 /* 365 */   OP_ID(ex_Path_concat),
 /* 366 */   OP_ID(ex_Path_getDirectoryName),
 /* 367 */   OP_ID(ex_Path_getExtension),

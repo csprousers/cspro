@@ -44,6 +44,17 @@ ZENGINEO_API Engine::Value Engine::Value::Undefined<SharableString>() noexcept
 }
 
 
+Engine::Value Engine::Value::Undefined(const DataType data_type) noexcept
+{
+    switch( data_type )
+    {
+        case DataType::Numeric: return Undefined<double>();
+        case DataType::String:  return Undefined<SharableString>();
+        default:                return ReturnProgrammingError(Undefined<double>());
+    }
+}
+
+
 template<>
 ZENGINEO_API Engine::Value Engine::Value::Invalid<double>() noexcept
 {
@@ -55,6 +66,17 @@ template<>
 ZENGINEO_API Engine::Value Engine::Value::Invalid<SharableString>() noexcept
 {
     return SharableString();
+}
+
+
+Engine::Value Engine::Value::Invalid(const DataType data_type) noexcept
+{
+    switch( data_type )
+    {
+        case DataType::Numeric: return Invalid<double>();
+        case DataType::String:  return Invalid<SharableString>();
+        default:                return ReturnProgrammingError(Invalid<double>());
+    }
 }
 
 
