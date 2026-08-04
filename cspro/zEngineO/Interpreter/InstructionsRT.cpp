@@ -539,13 +539,13 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 468 */   OP(ex_StringWriter_toString),
 /* 469 */   OP(ex_Image_getExif),
 /* 470 */   OP(ex_StringWriter_clear),
-/* 471 */   OP_LI(ex_Video_compute),
-/* 472 */   OP_LI(ex_Video_clear),
-/* 473 */   OP_LI(ex_Video_load),
-/* 474 */   OP_LI(ex_Video_save),
-/* 475 */   OP_LI(ex_Video_length),
-/* 476 */   OP_LI(ex_Video_width_height), // Video.width
-/* 477 */   OP_LI(ex_Video_width_height), // Video.height
+/* 471 */   OP(ex_Video_compute),
+/* 472 */   OP(ex_Video_clear),
+/* 473 */   OP(ex_Video_load),
+/* 474 */   OP(ex_Video_save),
+/* 475 */   OP(ex_Video_length),
+/* 476 */   OP(ex_Video_width_height), // Video.width
+/* 477 */   OP(ex_Video_width_height), // Video.height
 /* 478 */   OP_LI(ex_ValueSet_removeDuplicates),
 /* 479 */   OP(ex_WorkVariable_compute),
 /* 480 */   OP_LI(ex_Array_compute),
