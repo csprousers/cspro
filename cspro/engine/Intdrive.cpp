@@ -574,7 +574,7 @@ void CIntDriver::AddIntDriverInstructions()
     OP_ENGVAL(227, ex_List_var);
     OP_DOUBLE(228, exdirlist);
     OP_DOUBLE(229, ex_sysparm);
-    OP_DOUBLE(230, ex_connection);
+    OP_ENGVAL(230, ex_connection);
     OP_DOUBLE(231, ex_prompt);
     OP_DOUBLE(232, ex_getimage);
     OP_ENGVAL(233, ex_round);

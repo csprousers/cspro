@@ -590,7 +590,7 @@ private:
     // (NetworkRT.cpp)
     // --------------------------------------------------------------------------
 public:
-    double ex_connection(int program_index);
+    Engine::Value ex_connection(int program_index);
 
 
     // --------------------------------------------------------------------------
