@@ -121,7 +121,7 @@ void ex_string_compute_handle_subscripts(T& lhs_value, const T& rhs_value, const
 }
 
 
-double LogicInterpreter::ex_string_compute(const int program_index)
+Engine::Value LogicInterpreter::ex_string_compute(const int program_index)
 {
     // for assigning string expressions to strings, arrays, user-defined functions, and variables
     const Nodes::StringCompute* string_compute_node;
@@ -186,7 +186,8 @@ double LogicInterpreter::ex_string_compute(const int program_index)
     // if there are no subscripts used, we can set the value directly
     if( string_compute_node->substring_index_expression == -1 )
     {
-        AssignValueToSymbol(*symbol_value_node, std::move(rhs_value));
+        AssignValueToSymbol(*symbol_value_node, rhs_value);
+        return rhs_value;
     }
 
     // otherwise get the variable's current value and apply the new value on top of it
@@ -196,15 +197,15 @@ double LogicInterpreter::ex_string_compute(const int program_index)
 
         // return if the starting position is invalid
         if( starting_position < 0 )
-            return DEFAULT;
+            return Engine::Value::Invalid<SharableString>();
 
         // return if the number of characters to copy is invalid or would result in nothing to copy
         const std::optional<int> chars_to_copy = EvaluateOptional<int>(string_compute_node->substring_length_expression);
 
         if( chars_to_copy.has_value() && *chars_to_copy <= 0 )
-            return DEFAULT;
+            return Engine::Value::Invalid<SharableString>();
 
-        ModifySymbolValue<SharableString>(*symbol_value_node,
+        return ModifySymbolValue<SharableString>(*symbol_value_node,
             [&](SharableString& lhs_value)
             {
                 // the subscript handling routine could be converted to only use UTF-8 strings,
@@ -223,11 +224,11 @@ double LogicInterpreter::ex_string_compute(const int program_index)
 
                 else
                 {
-                    std::wstring wide_lhs_value = TC::ToWide(*lhs_value);
+                    std::wstring wide_lhs_value = UTF8_TODO::GetWide(*lhs_value);
 
                     ex_string_compute_handle_subscripts<&wmemset>(
                         wide_lhs_value,
-                        TC::ToWide(*rhs_value),
+                        UTF8_TODO::GetWide(*rhs_value),
                         starting_position,
                         chars_to_copy
                     );
@@ -236,8 +237,6 @@ double LogicInterpreter::ex_string_compute(const int program_index)
                 }
             });
     }
-
-    return 0;
 }
 
 
@@ -269,7 +268,7 @@ namespace
 SharableString LogicInterpreter::ConvertV0Escapes(SharableString text, const V0_EscapeType v0_escape_type/* = V0_EscapeType::NewlinesToSlashN*/)
 {
     if( m_usingLogicSettingsV0 )
-        text = ConvertV0Escapes(*text, v0_escape_type);
+        return ConvertV0Escapes(text.Release(), v0_escape_type);
 
     return text;
 }
@@ -318,7 +317,7 @@ std::string LogicInterpreter::ConvertV0Escapes(std::string text, const V0_Escape
 SharableString LogicInterpreter::ApplyV0Escapes(SharableString text, const V0_EscapeType v0_escape_type/* = V0_EscapeType::NewlinesToSlashN*/)
 {
     if( m_usingLogicSettingsV0 )
-        text = ConvertV0Escapes(*text, v0_escape_type);
+        return ConvertV0Escapes(text.Release(), v0_escape_type);
 
     return text;
 }
@@ -392,7 +391,7 @@ Engine::Value LogicInterpreter::ex_WorkString_compute(const int program_index)
 // --------------------------------------------------------------------------
 
 template<TokenCode token_code>
-double LogicInterpreter::ex_string_operators(const int program_index)
+Engine::Value LogicInterpreter::ex_string_operators(const int program_index)
 {
     // string operator evaluation: =, <>, <, <=, >=, >
     const auto& oper_node = GetNode<Nodes::Operator>(program_index);
@@ -402,38 +401,42 @@ double LogicInterpreter::ex_string_operators(const int program_index)
     ASSERT(token_code == EngineStringComparer::StringFunctionCodeToTokenCode(static_cast<FunctionCode>(oper_node.oper)));
 
     if( m_usingLogicSettingsV0 )
-        return EngineStringComparer::V0::Evaluate(*lhs, *rhs, token_code);
+        return Engine::Value::Integer(EngineStringComparer::V0::Evaluate(*lhs, *rhs, token_code));
 
-    return EngineStringComparer::V8::Evaluate<token_code>(*lhs, *rhs);
+    return Engine::Value::Integer(
+        EngineStringComparer::V8::Evaluate<token_code>(*lhs, *rhs)
+    );
 }
 
 
-double LogicInterpreter::ex_string_eq(const int program_index) { return ex_string_operators<TokenCode::TOKEQOP>(program_index); }
-double LogicInterpreter::ex_string_ne(const int program_index) { return ex_string_operators<TokenCode::TOKNEOP>(program_index); }
-double LogicInterpreter::ex_string_lt(const int program_index) { return ex_string_operators<TokenCode::TOKLTOP>(program_index); }
-double LogicInterpreter::ex_string_le(const int program_index) { return ex_string_operators<TokenCode::TOKLEOP>(program_index); }
-double LogicInterpreter::ex_string_ge(const int program_index) { return ex_string_operators<TokenCode::TOKGEOP>(program_index); }
-double LogicInterpreter::ex_string_gt(const int program_index) { return ex_string_operators<TokenCode::TOKGTOP>(program_index); }
+Engine::Value LogicInterpreter::ex_string_eq(const int program_index) { return ex_string_operators<TokenCode::TOKEQOP>(program_index); }
+Engine::Value LogicInterpreter::ex_string_ne(const int program_index) { return ex_string_operators<TokenCode::TOKNEOP>(program_index); }
+Engine::Value LogicInterpreter::ex_string_lt(const int program_index) { return ex_string_operators<TokenCode::TOKLTOP>(program_index); }
+Engine::Value LogicInterpreter::ex_string_le(const int program_index) { return ex_string_operators<TokenCode::TOKLEOP>(program_index); }
+Engine::Value LogicInterpreter::ex_string_ge(const int program_index) { return ex_string_operators<TokenCode::TOKGEOP>(program_index); }
+Engine::Value LogicInterpreter::ex_string_gt(const int program_index) { return ex_string_operators<TokenCode::TOKGTOP>(program_index); }
 
 
-double LogicInterpreter::ex_compare(const int program_index)
+Engine::Value LogicInterpreter::ex_compare(const int program_index)
 {
     const auto& fnn_node = GetNode<FNN_NODE>(program_index);
     const SharableString lhs = Evaluate<SharableString>(fnn_node.fn_expr[0]);
     const SharableString rhs = Evaluate<SharableString>(fnn_node.fn_expr[1]);
 
     if( m_usingLogicSettingsV0 )
-        return EngineStringComparer::V0::Compare(*lhs, *rhs);
+        return Engine::Value::Integer(EngineStringComparer::V0::Compare(*lhs, *rhs));
 
     const int comparison = lhs->compare(*rhs);
 
-    return ( comparison == 0 ) ?  0 :
-           ( comparison < 0 )  ? -1 :
-                                  1;
+    return Engine::Value::Integer(
+        ( comparison == 0 ) ?  0 :
+        ( comparison < 0 )  ? -1 :
+                               1
+    );
 }
 
 
-double LogicInterpreter::ex_compareNoCase(const int program_index)
+Engine::Value LogicInterpreter::ex_compareNoCase(const int program_index)
 {
     const auto& va_node = GetNode<Nodes::VariableArguments>(program_index);
     SharableString lhs = Evaluate<SharableString>(va_node.arguments[0]);
@@ -443,14 +446,16 @@ double LogicInterpreter::ex_compareNoCase(const int program_index)
     {
         lhs.MakeLower();
         rhs.MakeLower();
-        return EngineStringComparer::V0::Compare(*lhs, *rhs);
+        return Engine::Value::Integer(EngineStringComparer::V0::Compare(*lhs, *rhs));
     }
 
     const int comparison = SO::CompareNoCase(*lhs, *rhs);
 
-    return ( comparison == 0 ) ?  0 :
-           ( comparison < 0 )  ? -1 :
-                                  1;
+    return Engine::Value::Integer(
+        ( comparison == 0 ) ?  0 :
+        ( comparison < 0 )  ? -1 :
+                               1
+    );
 }
 
 
@@ -495,7 +500,7 @@ Engine::Value LogicInterpreter::ex_concat(const int program_index)
 }
 
 
-double LogicInterpreter::ex_ischecked(const int program_index)
+Engine::Value LogicInterpreter::ex_ischecked(const int program_index)
 {
     const auto& fnn_node = GetNode<FNN_NODE>(program_index);
     const SharableString code = Evaluate<SharableString>(fnn_node.fn_expr[0]);
@@ -505,7 +510,7 @@ double LogicInterpreter::ex_ischecked(const int program_index)
     const size_t wide_code_length = SO::WideLength(*code);
 
     if( wide_code_length == 0 || ( SO::WideLength(*checkbox_field_value) % wide_code_length ) != 0 )
-        return 0;
+        return Engine::Value::Bool(false);
 
     std::string_view checkbox_field_value_sv = *checkbox_field_value;
 
@@ -514,19 +519,19 @@ double LogicInterpreter::ex_ischecked(const int program_index)
         const std::string_view this_code_sv = SO::WideSubstring(checkbox_field_value_sv, 0, wide_code_length);
 
         if( this_code_sv.empty() )
-            return 0;
+            return Engine::Value::Bool(false);
 
         if( *code == this_code_sv )
-            return 1;
+            return Engine::Value::Bool(true);
 
         checkbox_field_value_sv = checkbox_field_value_sv.substr(this_code_sv.length());
     }
 
-    return 0;
+    return Engine::Value::Bool(false);
 }
 
 
-double LogicInterpreter::ex_length(const int program_index)
+Engine::Value LogicInterpreter::ex_length(const int program_index)
 {
     const auto& va_with_size_node = GetNode<Nodes::VariableArgumentsWithSize>(program_index);
 
@@ -534,7 +539,7 @@ double LogicInterpreter::ex_length(const int program_index)
     if( va_with_size_node.arguments[0] >= 0 )
     {
         const SharableString text = Evaluate<SharableString>(va_with_size_node.arguments[0]);
-        return static_cast<double>(SO::WideLength(*text));
+        return Engine::Value::Integer(SO::WideLength(*text));
     }
 
     // symbols
@@ -546,7 +551,7 @@ double LogicInterpreter::ex_length(const int program_index)
         if( symbol.IsA(SymbolType::List) )
         {
             const LogicList& logic_list = assert_cast<const LogicList&>(symbol);
-            return static_cast<double>(logic_list.GetCount());
+            return Engine::Value::Integer(logic_list.GetCount());
         }
 
         // arrays
@@ -559,7 +564,7 @@ double LogicInterpreter::ex_length(const int program_index)
 }
 
 
-double LogicInterpreter::ex_pos_poschar(const int program_index)
+Engine::Value LogicInterpreter::ex_pos_poschar(const int program_index)
 {
     const auto& fnn_node = GetNode<FNN_NODE>(program_index);
 
@@ -569,18 +574,19 @@ double LogicInterpreter::ex_pos_poschar(const int program_index)
     // 2nd arg - string to be searched
     const SharableString str = Evaluate<SharableString>(fnn_node.fn_expr[1]);
 
-    const size_t pos = ( fnn_node.fn_code == FunctionCode::FNPOS_CODE ) ? str->find(*pattern) :
-                                                                          str->find_first_of(*pattern);
+    const size_t pos = ( fnn_node.fn_code == FunctionCode::FNPOS_CODE )
+        ? str->find(*pattern)
+        : str->find_first_of(*pattern);
 
     if( pos == std::string::npos )
-        return 0;
+        return Engine::Value::Integer(0);
 
     // return the position in wide characters, adding 1 because strings are 1-indexed
-    return static_cast<double>(1 + SO::WideLength(std::string_view(str->data(), pos)));
+    return Engine::Value::Integer(1 + SO::WideLength(std::string_view(str->data(), pos)));
 }
 
 
-double LogicInterpreter::ex_regexmatch(const int program_index)
+Engine::Value LogicInterpreter::ex_regexmatch(const int program_index)
 {
     const auto& va_node = GetNode<Nodes::VariableArguments>(program_index);
     SharableString target = Evaluate<SharableString>(va_node.arguments[0]);
@@ -592,7 +598,7 @@ double LogicInterpreter::ex_regexmatch(const int program_index)
     try
     {
         if( std::regex_match(*target, std::regex(*regex)) )
-            return 1;
+            return Engine::Value::Bool(true);
     }
 
     catch( const std::regex_error& )
@@ -600,7 +606,7 @@ double LogicInterpreter::ex_regexmatch(const int program_index)
         IssueMessage(MessageType::Error, 100260, regex->c_str());
     }
 
-    return 0;
+    return Engine::Value::Bool(false);
 }
 
 
@@ -615,13 +621,13 @@ Engine::Value LogicInterpreter::ex_replace(const int program_index)
 }
 
 
-double LogicInterpreter::ex_startswith(const int program_index)
+Engine::Value LogicInterpreter::ex_startswith(const int program_index)
 {
     const auto& fnn_node = GetNode<FNN_NODE>(program_index);
     const SharableString starts_with_text = Evaluate<SharableString>(fnn_node.fn_expr[0]);
     const SharableString source_text = Evaluate<SharableString>(fnn_node.fn_expr[1]);
 
-    return SO::StartsWith(*source_text, *starts_with_text);
+    return Engine::Value::Bool(SO::StartsWith(*source_text, *starts_with_text));
 }
 
 

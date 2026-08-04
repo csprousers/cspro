@@ -429,8 +429,8 @@ private:
 public:
     template<typename T> void AssignValueToVART(int variable_compilation, T value);
     template<typename T> T EvaluateVARTValue(int variable_compilation);
-    template<typename T> void ModifyVARTValue(int variable_compilation, const std::function<void(T&)>& modify_value_function,
-                                              std::unique_ptr<Paradata::FieldInfo>* paradata_field_info = nullptr);
+    template<typename T> Engine::Value ModifyVARTValue(int variable_compilation, const std::function<void(T&)>& modify_value_function,
+                                                       std::unique_ptr<Paradata::FieldInfo>* paradata_field_info = nullptr);
 
 
 private:
@@ -968,8 +968,8 @@ private:
     void AssignValueToVART_INTERPRETER_DLL_TODO(int variable_compilation, SharableString value) override;
     double EvaluateVARTValue_double_INTERPRETER_DLL_TODO(int variable_compilation) override;
     SharableString EvaluateVARTValue_SharableString_INTERPRETER_DLL_TODO(int variable_compilation) override;
-    void ModifyVARTValue_INTERPRETER_DLL_TODO(int variable_compilation, const std::function<void(double&)>& modify_value_function, std::unique_ptr<Paradata::FieldInfo>* paradata_field_info = nullptr) override;
-    void ModifyVARTValue_INTERPRETER_DLL_TODO(int variable_compilation, const std::function<void(SharableString&)>& modify_value_function, std::unique_ptr<Paradata::FieldInfo>* paradata_field_info = nullptr) override;
+    Engine::Value ModifyVARTValue_INTERPRETER_DLL_TODO(int variable_compilation, const std::function<void(double&)>& modify_value_function, std::unique_ptr<Paradata::FieldInfo>* paradata_field_info = nullptr) override;
+    Engine::Value ModifyVARTValue_INTERPRETER_DLL_TODO(int variable_compilation, const std::function<void(SharableString&)>& modify_value_function, std::unique_ptr<Paradata::FieldInfo>* paradata_field_info = nullptr) override;
     int SymbolTableSearch_INTERPRETER_DLL_TODO(std::string_view full_symbol_name_sv, SymbolType preferred_symbol_type,
                                                const std::vector<SymbolType>* allowable_symbol_types) const override;
 

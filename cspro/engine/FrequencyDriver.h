@@ -37,7 +37,7 @@ public:
     // these methods are marked virtual so that they are accessible from the zEngineO project, not because they will be overridden
     virtual double GetSingleFrequencyCounterCount(int var_node_index);
     virtual void SetSingleFrequencyCounterCount(int var_node_index, double count);
-    virtual void ModifySingleFrequencyCounterCount(int var_node_index, const std::function<void(double&)>& modify_count_function);
+    virtual double ModifySingleFrequencyCounterCount(int var_node_index, const std::function<void(double&)>& modify_count_function);
 
     virtual void CloneFrequencyInInitialState(NamedFrequency& cloned_named_frequency, size_t source_frequency_index);
 

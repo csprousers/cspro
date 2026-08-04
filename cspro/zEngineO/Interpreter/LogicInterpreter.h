@@ -231,7 +231,7 @@ public:
     SharableString GetWorkingSharableString(Engine::Value value);
 
     Engine::Value ex_string_literal(int program_index);
-    double ex_string_compute(int program_index);
+    Engine::Value ex_string_compute(int program_index);
 
     // If using the original logic settings, "\\n" characters will be converted to "\n" (or "\r\n"),
     // and optionally, "\\\\" characters will be converted to "\\"
@@ -245,21 +245,21 @@ public:
     Engine::Value ex_WorkString_evaluate(int program_index);
     Engine::Value ex_WorkString_compute(int program_index);
 
-    double ex_string_eq(int program_index);
-    double ex_string_ne(int program_index);
-    double ex_string_lt(int program_index);
-    double ex_string_le(int program_index);
-    double ex_string_ge(int program_index);
-    double ex_string_gt(int program_index);
-    double ex_compare(int program_index);
-    double ex_compareNoCase(int program_index);
+    Engine::Value ex_string_eq(int program_index);
+    Engine::Value ex_string_ne(int program_index);
+    Engine::Value ex_string_lt(int program_index);
+    Engine::Value ex_string_le(int program_index);
+    Engine::Value ex_string_ge(int program_index);
+    Engine::Value ex_string_gt(int program_index);
+    Engine::Value ex_compare(int program_index);
+    Engine::Value ex_compareNoCase(int program_index);
     Engine::Value ex_concat(int program_index);
-    double ex_ischecked(int program_index);
-    double ex_length(int program_index);
-    double ex_pos_poschar(int program_index);
-    double ex_regexmatch(int program_index);
+    Engine::Value ex_ischecked(int program_index);
+    Engine::Value ex_length(int program_index);
+    Engine::Value ex_pos_poschar(int program_index);
+    Engine::Value ex_regexmatch(int program_index);
     Engine::Value ex_replace(int program_index);
-    double ex_startswith(int program_index);
+    Engine::Value ex_startswith(int program_index);
     Engine::Value ex_strip(int program_index);
     Engine::Value ex_tolower_toupper(int program_index);
     Engine::Value ex_decryptstring(int program_index);
@@ -267,7 +267,7 @@ public:
 
 private:
     template<TokenCode token_code>
-    double ex_string_operators(int program_index);
+    Engine::Value ex_string_operators(int program_index);
 
 private:
     // temporary strings created by logic functions
@@ -778,7 +778,7 @@ public:
 public:
     template<typename T> bool AssignValueToSymbol(const Nodes::SymbolValue& symbol_value_node, T value);
     template<typename T> T EvaluateSymbolValue(const Nodes::SymbolValue& symbol_value_node);
-    template<typename T> void ModifySymbolValue(const Nodes::SymbolValue& symbol_value_node, const std::function<void(T&)>& modify_value_function);
+    template<typename T> Engine::Value ModifySymbolValue(const Nodes::SymbolValue& symbol_value_node, const std::function<void(T&)>& modify_value_function);
 
 
     // --------------------------------------------------------------------------
@@ -834,8 +834,8 @@ private:
     virtual void AssignValueToVART_INTERPRETER_DLL_TODO(int variable_compilation, SharableString value) = 0; // INTERPRETER_DLL_TODO remove as virtual
     virtual double EvaluateVARTValue_double_INTERPRETER_DLL_TODO(int variable_compilation) = 0; // INTERPRETER_DLL_TODO remove as virtual
     virtual SharableString EvaluateVARTValue_SharableString_INTERPRETER_DLL_TODO(int variable_compilation) = 0; // INTERPRETER_DLL_TODO remove as virtual
-    virtual void ModifyVARTValue_INTERPRETER_DLL_TODO(int variable_compilation, const std::function<void(double&)>& modify_value_function, std::unique_ptr<Paradata::FieldInfo>* paradata_field_info = nullptr) = 0; // INTERPRETER_DLL_TODO remove as virtual
-    virtual void ModifyVARTValue_INTERPRETER_DLL_TODO(int variable_compilation, const std::function<void(SharableString&)>& modify_value_function, std::unique_ptr<Paradata::FieldInfo>* paradata_field_info = nullptr) = 0; // INTERPRETER_DLL_TODO remove as virtual
+    virtual Engine::Value ModifyVARTValue_INTERPRETER_DLL_TODO(int variable_compilation, const std::function<void(double&)>& modify_value_function, std::unique_ptr<Paradata::FieldInfo>* paradata_field_info = nullptr) = 0; // INTERPRETER_DLL_TODO remove as virtual
+    virtual Engine::Value ModifyVARTValue_INTERPRETER_DLL_TODO(int variable_compilation, const std::function<void(SharableString&)>& modify_value_function, std::unique_ptr<Paradata::FieldInfo>* paradata_field_info = nullptr) = 0; // INTERPRETER_DLL_TODO remove as virtual
     int SymbolTableSearchWithPreference_INTERPRETER_DLL_TODO(std::string_view full_symbol_name_sv, SymbolType preferred_symbol_type) const { return SymbolTableSearch_INTERPRETER_DLL_TODO(full_symbol_name_sv, preferred_symbol_type, nullptr); }
     int SymbolTableSearch_INTERPRETER_DLL_TODO(std::string_view full_symbol_name_sv, const std::vector<SymbolType>& allowable_symbol_types, SymbolType preferred_symbol_type = SymbolType::None) const { return SymbolTableSearch_INTERPRETER_DLL_TODO(full_symbol_name_sv, preferred_symbol_type, &allowable_symbol_types); }
     virtual int SymbolTableSearch_INTERPRETER_DLL_TODO(std::string_view full_symbol_name_sv, SymbolType preferred_symbol_type,

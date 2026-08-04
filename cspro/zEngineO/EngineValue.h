@@ -21,18 +21,30 @@ public:
     // Constructors for creating engine values.
     // --------------------------------------------------------------------------
 
-    Engine::Value(double value) noexcept;
-    Engine::Value(SharableString value) noexcept;
+    Value(double value) noexcept;
+    Value(SharableString value) noexcept;
+    Value(std::string value) noexcept;
+
+    // EV_TODO: Creates an object of the type "bool" in case such a type is ever added to the language.
+    // For now, the value is stored as a double.
+    [[nodiscard]] static Value Bool(bool value) noexcept;
+
+    // EV_TODO: Creates an object of the type "integer" in case such a type is ever added to the language.
+    // For now, the value is stored as a double.
+    [[nodiscard]] static Value Integer(int value) noexcept;
+    [[nodiscard]] static Value Integer(unsigned int value) noexcept;
+    [[nodiscard]] static Value Integer(int64_t value) noexcept;
+    [[nodiscard]] static Value Integer(size_t value) noexcept;
 
     // EV_TODO: Creates an object of the type "undefined" in case such a type is ever added to the language.
     // For now, double is mapped to NOTAPPL and SharableString to a blank string.
     template<typename T>
-    [[nodiscard]] ZENGINEO_API static Engine::Value Undefined() noexcept;
+    [[nodiscard]] ZENGINEO_API static Value Undefined() noexcept;
 
     // EV_TODO: Creates an object of the type "invalid" in case such a type is ever added to the language.
     // For now, double is mapped to DEFAULT and SharableString to a blank string.
     template<typename T>
-    [[nodiscard]] ZENGINEO_API static Engine::Value Invalid() noexcept;
+    [[nodiscard]] ZENGINEO_API static Value Invalid() noexcept;
 
 
     // --------------------------------------------------------------------------
@@ -47,6 +59,9 @@ public:
     // exception if the value is not of the specified type.
     template<typename T>
     [[nodiscard]] const T& get() const &;
+
+    template<typename T>
+    [[nodiscard]] T& get() &;
 
     template<typename T>
     [[nodiscard]] T get() &&;
@@ -133,6 +148,42 @@ inline Engine::Value::Value(SharableString value) noexcept
 }
 
 
+inline Engine::Value::Value(std::string value) noexcept
+    :   m_value(std::move(value))
+{
+}
+
+
+inline Engine::Value Engine::Value::Bool(const bool value) noexcept
+{
+    return Value(static_cast<double>(value));
+}
+
+
+inline Engine::Value Engine::Value::Integer(const int value) noexcept
+{
+    return Value(static_cast<double>(value));
+}
+
+
+inline Engine::Value Engine::Value::Integer(const unsigned int value) noexcept
+{
+    return Value(static_cast<double>(value));
+}
+
+
+inline Engine::Value Engine::Value::Integer(const int64_t value) noexcept
+{
+    return Value(static_cast<double>(value));
+}
+
+
+inline Engine::Value Engine::Value::Integer(const size_t value) noexcept
+{
+    return Value(static_cast<double>(value));
+}
+
+
 template<typename T>
 bool Engine::Value::is() const noexcept
 {
@@ -142,6 +193,16 @@ bool Engine::Value::is() const noexcept
 
 template<typename T>
 const T& Engine::Value::get() const &
+{
+    if( std::holds_alternative<T>(m_value) )
+        return std::get<T>(m_value);
+
+    throw CreateException<AccessException, T>();
+}
+
+
+template<typename T>
+T& Engine::Value::get() &
 {
     if( std::holds_alternative<T>(m_value) )
         return std::get<T>(m_value);

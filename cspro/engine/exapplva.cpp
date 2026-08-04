@@ -1606,8 +1606,8 @@ SharableString CIntDriver::EvaluateVARTValue_SharableString_INTERPRETER_DLL_TODO
 
 
 template<typename T>
-void CIntDriver::ModifyVARTValue(int variable_compilation, const std::function<void(T&)>& modify_value_function,
-                                 std::unique_ptr<Paradata::FieldInfo>* paradata_field_info/* = nullptr*/)
+Engine::Value CIntDriver::ModifyVARTValue(const int variable_compilation, const std::function<void(T&)>& modify_value_function,
+                                          std::unique_ptr<Paradata::FieldInfo>* const paradata_field_info/* = nullptr*/)
 {
     // TODO: could add checks as in CIntDriver::excpt
     const MVAR_NODE* pMVarNode = &GetNode<MVAR_NODE>(variable_compilation);
@@ -1644,13 +1644,17 @@ void CIntDriver::ModifyVARTValue(int variable_compilation, const std::function<v
         value_storage = svaraddr(pVarX);
     }
 
+    Engine::Value value = Engine::Value::Invalid<T>();
+
     if( value_storage != nullptr )
     {
         bool need_to_update_related_data = ( pVarX->iRelatedSlot >= 0 );
 
         if constexpr(std::is_same_v<T, double>)
         {
-            modify_value_function(*static_cast<double*>(value_storage));
+            double& double_value = *static_cast<double*>(value_storage);
+            modify_value_function(double_value);
+            value = double_value;
 
             if( Issamod == ModuleType::Entry || need_to_update_related_data )
             {
@@ -1664,9 +1668,9 @@ void CIntDriver::ModifyVARTValue(int variable_compilation, const std::function<v
         else
         {
             std::wstring wide_value(static_cast<const wchar_t*>(value_storage), pVarT->GetLength());
-            SharableString value = UTF8_TODO::GetUtf8(wide_value);
-            modify_value_function(value);
-            wide_value = UTF8_TODO::GetWide(*value);
+            value = SharableString(UTF8_TODO::GetUtf8(wide_value));
+            modify_value_function(value.get<SharableString>());
+            wide_value = UTF8_TODO::GetWide(*value.get<SharableString>());
             SO::MakeExactLength(wide_value, pVarT->GetLength());
             _tmemcpy(static_cast<wchar_t*>(value_storage), wide_value.data(), pVarT->GetLength());
         }
@@ -1678,14 +1682,16 @@ void CIntDriver::ModifyVARTValue(int variable_compilation, const std::function<v
 
     if( paradata_field_info != nullptr )
         *paradata_field_info = m_paradataDriver->CreateFieldInfo(pVarT, dIndex);
+
+    return value;
 }
 
-void CIntDriver::ModifyVARTValue_INTERPRETER_DLL_TODO(const int variable_compilation, const std::function<void(double&)>& modify_value_function, std::unique_ptr<Paradata::FieldInfo>* const paradata_field_info/* = nullptr*/)
+Engine::Value CIntDriver::ModifyVARTValue_INTERPRETER_DLL_TODO(const int variable_compilation, const std::function<void(double&)>& modify_value_function, std::unique_ptr<Paradata::FieldInfo>* const paradata_field_info/* = nullptr*/)
 {
-    ModifyVARTValue(variable_compilation, modify_value_function, paradata_field_info);
+    return ModifyVARTValue(variable_compilation, modify_value_function, paradata_field_info);
 }
 
-void CIntDriver::ModifyVARTValue_INTERPRETER_DLL_TODO(const int variable_compilation, const std::function<void(SharableString&)>& modify_value_function, std::unique_ptr<Paradata::FieldInfo>* const paradata_field_info/* = nullptr*/)
+Engine::Value CIntDriver::ModifyVARTValue_INTERPRETER_DLL_TODO(const int variable_compilation, const std::function<void(SharableString&)>& modify_value_function, std::unique_ptr<Paradata::FieldInfo>* const paradata_field_info/* = nullptr*/)
 {
-    ModifyVARTValue(variable_compilation, modify_value_function, paradata_field_info);
+    return ModifyVARTValue(variable_compilation, modify_value_function, paradata_field_info);
 }

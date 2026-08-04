@@ -1217,12 +1217,13 @@ void FrequencyDriver::SetSingleFrequencyCounterCount(const int var_node_index, c
 }
 
 
-void FrequencyDriver::ModifySingleFrequencyCounterCount(int var_node_index, const std::function<void(double&)>& modify_count_function)
+double FrequencyDriver::ModifySingleFrequencyCounterCount(int var_node_index, const std::function<void(double&)>& modify_count_function)
 {
     double count;
     UseSingleFrequencyCounterForGettingAndSetting(var_node_index,
                                                   [&](const double c) { count = c; modify_count_function(count); },
-                                                  [&] { return count; });
+                                                  [&]() { return count; });
+    return count;
 }
 
 

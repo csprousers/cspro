@@ -37,19 +37,19 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /*  18 */   OP_LI(ex_ge),
 /*  19 */   OP_LI(ex_gt),
 /*  20 */   OP_LI(ex_equ),
-/*  21 */   OP_LI(ex_string_compute),
+/*  21 */   OP(ex_string_compute),
 /*  22 */   OP_LI(ex_WorkVariable_evaluate),
 /*  23 */   OP_ID(exif),
 /*  24 */   OP_ID(exwhile),
 /*  25 */   OP_ID(exbox),
 /*  26 */   OP(ex_string_literal), // an old implementation of ex_string_literal
 /*  27 */   OP_ID(excharobj),
-/*  28 */   OP_LI(ex_string_eq), // =
-/*  29 */   OP_LI(ex_string_ne), // <>
-/*  30 */   OP_LI(ex_string_le), // <=
-/*  31 */   OP_LI(ex_string_lt), // <
-/*  32 */   OP_LI(ex_string_ge), // >=
-/*  33 */   OP_LI(ex_string_gt), // >
+/*  28 */   OP(ex_string_eq), // =
+/*  29 */   OP(ex_string_ne), // <>
+/*  30 */   OP(ex_string_le), // <=
+/*  31 */   OP(ex_string_lt), // <
+/*  32 */   OP(ex_string_ge), // >=
+/*  33 */   OP(ex_string_gt), // >
 /*  34 */   OP_ID(excpttbl),
 /*  35 */   OP_ID(exnoopAbort),
 /*  36 */   OP_ID(exnoopAbort), // an old implementation of ex_Array_var
@@ -113,11 +113,11 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /*───────┴──────────┴-----------------------------------------------------*/
 /*  74 */   OP(ex_concat),
 /*  75 */   OP_LI(ex_tonumber),
-/*  76 */   OP_LI(ex_pos_poschar), // pos
-/*  77 */   OP_LI(ex_compare),
-/*  78 */   OP_LI(ex_length),
+/*  76 */   OP(ex_pos_poschar), // pos
+/*  77 */   OP(ex_compare),
+/*  78 */   OP(ex_length),
 /*  79 */   OP(ex_strip),
-/*  80 */   OP_LI(ex_pos_poschar), // poschar
+/*  80 */   OP(ex_pos_poschar), // poschar
 /*  81 */   OP_ID(exedit),
 
 /*───────┬──────────┬-----------------------------------------------------*/
@@ -349,7 +349,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 278 */   OP_ID(extvar),
 /* 279 */   OP_ID(ex_exit),
 /* 280 */   OP_ID(ex_getbluetoothname),
-/* 281 */   OP_LI(ex_regexmatch),
+/* 281 */   OP(ex_regexmatch),
 /* 282 */   OP_ID(exnoopAbort), // BLOCK_CODE
 /* 283 */   OP_ID(exgetvaluelabel),
 /* 284 */   OP_LI(ex_Array_clear),
@@ -401,7 +401,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 330 */   OP_LI(ex_Pff_save),
 /* 331 */   OP_LI(ex_Pff_setProperty),
 /* 332 */   OP_LI(ex_ValueSet_length),
-/* 333 */   OP_LI(ex_ischecked),
+/* 333 */   OP(ex_ischecked),
 /* 334 */   OP_ID(ex_protect),
 /* 335 */   OP_LI(ex_when),
 /* 336 */   OP_ID(ex_syncapp),
@@ -418,7 +418,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 347 */   OP_LI(ex_SystemApp_setArgument),
 /* 348 */   OP_LI(ex_SystemApp_getResult),
 /* 349 */   OP_LI(ex_SystemApp_exec),
-/* 350 */   OP_LI(ex_startswith),
+/* 350 */   OP(ex_startswith),
 /* 351 */   OP_LI(ex_Pff_compute),
 /* 352 */   OP_LI(ex_Audio_clear),
 /* 353 */   OP_LI(ex_Audio_concat),
@@ -522,7 +522,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 451 */   OP_ID(exItem_hasValue_isValid), // Item.hasValue
 /* 452 */   OP_ID(exItem_getValueLabel),
 /* 453 */   OP_ID(exItem_hasValue_isValid), // Item.isValid
-/* 454 */   OP_LI(ex_compareNoCase),
+/* 454 */   OP(ex_compareNoCase),
 /* 455 */   OP_ID(exCase_view),
 /* 456 */   OP_LI(ex_JavaScript_eval),
 /* 457 */   OP_LI(ex_JavaScript_invoke),

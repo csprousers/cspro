@@ -330,7 +330,7 @@ void CIntDriver::AddIntDriverInstructions()
         ASSERT(op_code == op_code_counter++); \
         Instruction& instruction = m_instructions[static_cast<size_t>(op_code)]; \
         const bool is_undefined = ( instruction.index() == 0 && std::get<0>(instruction) == &CIntDriver::ex_unimplemented_LogicInterpreter ); \
-        ASSERT(is_undefined || ( instruction.index() == 1 && std::get<1>(instruction) == &CIntDriver::function )); \
+        ASSERT(is_undefined || ( instruction.index() == 1 && std::get<1>(instruction) == static_cast<double (CIntDriver::*)(int)>(&CIntDriver::function) )); \
         if( is_undefined ) \
             instruction = static_cast<double (CIntDriver::*)(int)>(&CIntDriver::function); \
     }
@@ -356,19 +356,19 @@ void CIntDriver::AddIntDriverInstructions()
     OP_DOUBLE(18, ex_ge);
     OP_DOUBLE(19, ex_gt);
     OP_DOUBLE(20, ex_equ);
-    OP_DOUBLE(21, ex_string_compute);
+    OP_ENGVAL(21, ex_string_compute);
     OP_DOUBLE(22, ex_WorkVariable_evaluate);
     OP_DOUBLE(23, exif);
     OP_DOUBLE(24, exwhile);
     OP_DOUBLE(25, exbox);
     OP_ENGVAL(26, ex_string_literal);
     OP_DOUBLE(27, excharobj);
-    OP_DOUBLE(28, ex_string_eq);
-    OP_DOUBLE(29, ex_string_ne);
-    OP_DOUBLE(30, ex_string_le);
-    OP_DOUBLE(31, ex_string_lt);
-    OP_DOUBLE(32, ex_string_ge);
-    OP_DOUBLE(33, ex_string_gt);
+    OP_ENGVAL(28, ex_string_eq);
+    OP_ENGVAL(29, ex_string_ne);
+    OP_ENGVAL(30, ex_string_le);
+    OP_ENGVAL(31, ex_string_lt);
+    OP_ENGVAL(32, ex_string_ge);
+    OP_ENGVAL(33, ex_string_gt);
     OP_DOUBLE(34, excpttbl);
     OP_DOUBLE(35, exnoopAbort);
     OP_DOUBLE(36, exnoopAbort);
@@ -411,11 +411,11 @@ void CIntDriver::AddIntDriverInstructions()
     OP_DOUBLE(73, exerrmsg);
     OP_ENGVAL(74, ex_concat);
     OP_DOUBLE(75, ex_tonumber);
-    OP_DOUBLE(76, ex_pos_poschar);
-    OP_DOUBLE(77, ex_compare);
-    OP_DOUBLE(78, ex_length);
+    OP_ENGVAL(76, ex_pos_poschar);
+    OP_ENGVAL(77, ex_compare);
+    OP_ENGVAL(78, ex_length);
     OP_ENGVAL(79, ex_strip);
-    OP_DOUBLE(80, ex_pos_poschar);
+    OP_ENGVAL(80, ex_pos_poschar);
     OP_DOUBLE(81, exedit);
     OP_DOUBLE(82, ex_cmcode);
     OP_DOUBLE(83, ex_setlb_setub);
@@ -616,7 +616,7 @@ void CIntDriver::AddIntDriverInstructions()
     OP_DOUBLE(278, extvar);
     OP_DOUBLE(279, ex_exit);
     OP_DOUBLE(280, ex_getbluetoothname);
-    OP_DOUBLE(281, ex_regexmatch);
+    OP_ENGVAL(281, ex_regexmatch);
     OP_DOUBLE(282, exnoopAbort);
     OP_DOUBLE(283, exgetvaluelabel);
     OP_DOUBLE(284, ex_Array_clear);
@@ -668,7 +668,7 @@ void CIntDriver::AddIntDriverInstructions()
     OP_DOUBLE(330, ex_Pff_save);
     OP_DOUBLE(331, ex_Pff_setProperty);
     OP_DOUBLE(332, ex_ValueSet_length);
-    OP_DOUBLE(333, ex_ischecked);
+    OP_ENGVAL(333, ex_ischecked);
     OP_DOUBLE(334, ex_protect);
     OP_DOUBLE(335, ex_when);
     OP_DOUBLE(336, ex_syncapp);
@@ -685,7 +685,7 @@ void CIntDriver::AddIntDriverInstructions()
     OP_DOUBLE(347, ex_SystemApp_setArgument);
     OP_DOUBLE(348, ex_SystemApp_getResult);
     OP_DOUBLE(349, ex_SystemApp_exec);
-    OP_DOUBLE(350, ex_startswith);
+    OP_ENGVAL(350, ex_startswith);
     OP_DOUBLE(351, ex_Pff_compute);
     OP_DOUBLE(352, ex_Audio_clear);
     OP_DOUBLE(353, ex_Audio_concat);
@@ -789,7 +789,7 @@ void CIntDriver::AddIntDriverInstructions()
     OP_DOUBLE(451, exItem_hasValue_isValid);
     OP_DOUBLE(452, exItem_getValueLabel);
     OP_DOUBLE(453, exItem_hasValue_isValid);
-    OP_DOUBLE(454, ex_compareNoCase);
+    OP_ENGVAL(454, ex_compareNoCase);
     OP_DOUBLE(455, exCase_view);
     OP_DOUBLE(456, ex_JavaScript_eval);
     OP_DOUBLE(457, ex_JavaScript_invoke);

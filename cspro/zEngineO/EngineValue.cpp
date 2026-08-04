@@ -74,16 +74,6 @@ SharableString Engine::Value::ToString() const
 }
 
 
-template<typename T>
-T Engine::Value::Convert() const
-{
-    return std::visit([&](const auto& value) { return Convert<T>(value); }, m_value);
-}
-
-template ZENGINEO_API double Engine::Value::Convert() const;
-template ZENGINEO_API SharableString Engine::Value::Convert() const;
-
-
 template<typename T, typename ValueT>
 T Engine::Value::Convert(const ValueT& value) const
 {
@@ -110,3 +100,13 @@ double Engine::Value::Convert(const SharableString& value) const
 
     throw CreateException<ConversionException, SharableString>();
 }
+
+
+template<typename T>
+T Engine::Value::Convert() const
+{
+    return std::visit([&](const auto& value) { return Convert<T>(value); }, m_value);
+}
+
+template ZENGINEO_API double Engine::Value::Convert() const;
+template ZENGINEO_API SharableString Engine::Value::Convert() const;
