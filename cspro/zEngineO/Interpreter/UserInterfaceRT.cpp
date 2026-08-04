@@ -146,7 +146,7 @@ double LogicInterpreter::ex_view(const int program_index)
 
         else if( symbol->IsA(SymbolType::Image) )
         {
-            return ex_Image_view(assert_cast<const LogicImage&>(*symbol), viewer_options.get());
+            return ex_Image_view(assert_cast<const LogicImage&>(*symbol), viewer_options.get()).as<double>();
         }
 
         else if( symbol->IsA(SymbolType::NamedFrequency) )

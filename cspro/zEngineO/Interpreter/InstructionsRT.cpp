@@ -464,16 +464,16 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 393 */   OP_ID(exDataAccessValidityCheck),
 /* 394 */   OP_ID(exdictcompute),
 /* 395 */   OP_ID(exkey), // currentkey
-/* 396 */   OP_LI(ex_Image_compute),
-/* 397 */   OP_LI(ex_Image_captureSignature_takePhoto), // Image.captureSignature
-/* 398 */   OP_LI(ex_Image_clear),
-/* 399 */   OP_LI(ex_Image_width_height), // Image.height
-/* 400 */   OP_LI(ex_Image_load),
-/* 401 */   OP_LI(ex_Image_resample),
-/* 402 */   OP_LI(ex_Image_save),
-/* 403 */   OP_LI(ex_Image_captureSignature_takePhoto), // Image.takePhoto
-/* 404 */   OP_LI(ex_Image_view),
-/* 405 */   OP_LI(ex_Image_width_height), // Image.width
+/* 396 */   OP(ex_Image_compute),
+/* 397 */   OP(ex_Image_captureSignature_takePhoto), // Image.captureSignature
+/* 398 */   OP(ex_Image_clear),
+/* 399 */   OP(ex_Image_width_height), // Image.height
+/* 400 */   OP(ex_Image_load),
+/* 401 */   OP(ex_Image_resample),
+/* 402 */   OP(ex_Image_save),
+/* 403 */   OP(ex_Image_captureSignature_takePhoto), // Image.takePhoto
+/* 404 */   OP(ex_Image_view),
+/* 405 */   OP(ex_Image_width_height), // Image.width
 /* 406 */   OP_LI(ex_Document_compute),
 /* 407 */   OP_LI(ex_Document_clear),
 /* 408 */   OP_LI(ex_Document_load),
@@ -537,7 +537,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 466 */   OP_LI(ex_TextTemplate_write_writeEncoded_writeEncodedLine_writeLine), // Report/StringWriter.writeEncodedLine
 /* 467 */   OP_LI(ex_TextTemplate_write_writeEncoded_writeEncodedLine_writeLine), // Report/StringWriter.writeLine
 /* 468 */   OP_LI(ex_StringWriter_toString),
-/* 469 */   OP_LI(ex_Image_getExif),
+/* 469 */   OP(ex_Image_getExif),
 /* 470 */   OP_LI(ex_StringWriter_clear),
 /* 471 */   OP_LI(ex_Video_compute),
 /* 472 */   OP_LI(ex_Video_clear),
