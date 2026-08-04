@@ -792,8 +792,8 @@ void CIntDriver::AddIntDriverInstructions()
     OP_DOUBLE(445, exdictaccess);
     OP_ENGVAL(446, ex_WorkString_compute);
     OP_DOUBLE(447, ex_ActionInvoker);
-    OP_DOUBLE(448, ex_Symbol_getName);
-    OP_DOUBLE(449, ex_Symbol_getLabel);
+    OP_ENGVAL(448, ex_Symbol_getName);
+    OP_ENGVAL(449, ex_Symbol_getLabel);
     OP_DOUBLE(450, ex_Map_clear_clearButtons_clearGeometry_clearMarkers);
     OP_DOUBLE(451, exItem_hasValue_isValid);
     OP_DOUBLE(452, exItem_getValueLabel);

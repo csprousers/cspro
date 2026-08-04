@@ -677,8 +677,8 @@ private:
     // (SymbolRT.cpp)
     // --------------------------------------------------------------------------
 public:
-    double ex_Symbol_getLabel(int program_index);
-    double ex_Symbol_getName(int program_index);
+    Engine::Value ex_Symbol_getLabel(int program_index);
+    Engine::Value ex_Symbol_getName(int program_index);
 
 
     // --------------------------------------------------------------------------
