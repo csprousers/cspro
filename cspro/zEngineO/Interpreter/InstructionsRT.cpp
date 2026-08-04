@@ -123,16 +123,16 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /*───────┬──────────┬-----------------------------------------------------*/
 /*Op.code│ Function │      DATE FUNCTIONS                                 */
 /*───────┴──────────┴-----------------------------------------------------*/
-/*  82 */   OP_LI(ex_cmcode),
-/*  83 */   OP_LI(ex_setlb_setub), // setub
-/*  84 */   OP_LI(ex_setlb_setub), // setlb
-/*  85 */   OP_LI(ex_adjuba),
-/*  86 */   OP_LI(ex_adjlba),
-/*  87 */   OP_LI(ex_adjlbi),
-/*  88 */   OP_LI(ex_adjubi),
+/*  82 */   OP(ex_cmcode),
+/*  83 */   OP(ex_setlb_setub), // setub
+/*  84 */   OP(ex_setlb_setub), // setlb
+/*  85 */   OP(ex_adjuba),
+/*  86 */   OP(ex_adjlba),
+/*  87 */   OP(ex_adjlbi),
+/*  88 */   OP(ex_adjubi),
 /*  89 */   OP_ID(exnoopAbort), // exdatechk
-/*  90 */   OP_LI(ex_systime),
-/*  91 */   OP_LI(ex_sysdate),
+/*  90 */   OP(ex_systime),
+/*  91 */   OP(ex_sysdate),
 
 /*───────┬──────────┬-----------------------------------------------------*/
 /*Op.code│ Function │      OTHER FUNCTIONS                                */
@@ -247,7 +247,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 176 */   OP_ID(excountvalid),       // GHM 20091202
 /* 177 */   OP_ID(exnoopIgnore_string),// GHM 20091208 previously itemlist
 /* 178 */   OP_ID(exswap),             // GHM 20100105
-/* 179 */   OP_LI(ex_datediff),        // GHM 20100119
+/* 179 */   OP(ex_datediff),        // GHM 20100119
 /* 180 */   OP_ID(exdeckarray),        // GHM 20100119 putdeck
 /* 181 */   OP_ID(exdeckarray),        // GHM 20100119 getdeck
 /* 182 */   OP_ID(ex_getlanguage),     // GHM 20100309
@@ -279,8 +279,8 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 208 */   OP_ID(ex_setoutput),       // GHM 20121126
 /* 209 */   OP_ID(exseekMinMax),       // GHM 20130119
 /* 210 */   OP_ID(exseekMinMax),       // GHM 20130119
-/* 211 */   OP_LI(ex_dateadd),         // GHM 20130225
-/* 212 */   OP_LI(ex_datevalid),       // GHM 20130703
+/* 211 */   OP(ex_dateadd),         // GHM 20130225
+/* 212 */   OP(ex_datevalid),       // GHM 20130703
 /* 213 */   OP_LI(ex_getos),           // GHM 20131217
 /* 214 */   OP_ID(exgetocclabel),      // GHM 20140226
 /* 215 */   OP_ID(exfreealphamem),     // GHM 20140228
@@ -320,7 +320,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 249 */   OP_ID(exputnote),
 /* 250 */   OP_ID(exisverified),
 /* 251 */   OP_ID(exforcase),
-/* 252 */   OP_ID(ex_timestamp),
+/* 252 */   OP(ex_timestamp),
 /* 253 */   OP_ID(exkeylist),
 /* 254 */   OP_ID(ex_diagnostics),
 /* 255 */   OP(ex_compress),
@@ -340,7 +340,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 269 */   OP_ID(exshow),
 /* 270 */   OP_ID(exshowarray),
 /* 271 */   OP_ID(exselcase),
-/* 272 */   OP_LI(ex_timestring),
+/* 272 */   OP(ex_timestring),
 /* 273 */   OP(ex_string_literal),
 /* 274 */   OP_ID(exsymbolreset),
 /* 275 */   OP(ex_decryptstring),

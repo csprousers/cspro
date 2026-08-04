@@ -351,19 +351,19 @@ public:
     // (DateRT.cpp)
     // --------------------------------------------------------------------------
 public:
-    double ex_timestamp(int program_index);
-    double ex_timestring(int program_index);
-    double ex_sysdate(int program_index);
-    double ex_systime(int program_index);
-    double ex_dateadd(int program_index);
-    double ex_datediff(int program_index);
-    double ex_datevalid(int program_index);
-    double ex_cmcode(int program_index);
-    double ex_setlb_setub(int program_index);
-    double ex_adjlba(int program_index);
-    double ex_adjuba(int program_index);
-    double ex_adjlbi(int program_index);
-    double ex_adjubi(int program_index);
+    Engine::Value ex_timestamp(int program_index);
+    Engine::Value ex_timestring(int program_index);
+    Engine::Value ex_sysdate(int program_index);
+    Engine::Value ex_systime(int program_index);
+    Engine::Value ex_dateadd(int program_index);
+    Engine::Value ex_datediff(int program_index);
+    Engine::Value ex_datevalid(int program_index);
+    Engine::Value ex_cmcode(int program_index);
+    Engine::Value ex_setlb_setub(int program_index);
+    Engine::Value ex_adjlba(int program_index);
+    Engine::Value ex_adjuba(int program_index);
+    Engine::Value ex_adjlbi(int program_index);
+    Engine::Value ex_adjubi(int program_index);
 
 
     // --------------------------------------------------------------------------
