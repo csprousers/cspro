@@ -411,7 +411,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 340 */   OP_ID(exselcase),
 /* 341 */   OP_ID(excountcases),
 /* 342 */   OP_ID(exkeylist),
-/* 343 */   OP_LI(ex_Barcode_read),
+/* 343 */   OP(ex_Barcode_read),
 /* 344 */   OP(ex_hash),
 /* 345 */   OP_ID(ex_syncmessage),
 /* 346 */   OP_LI(ex_SystemApp_clear),
@@ -511,7 +511,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 440 */   OP_LI(ex_Symbol_getJson_getValueJson), // symbol.getJson
 /* 441 */   OP_LI(ex_Symbol_getJson_getValueJson), // symbol.getValueJson
 /* 442 */   OP_LI(ex_Symbol_setValueFromJson),
-/* 443 */   OP_LI(ex_Barcode_createQRCode), // Barcode.createQRCode + Image.createQRCode
+/* 443 */   OP(ex_Barcode_createQRCode), // Barcode.createQRCode + Image.createQRCode
 /* 444 */   OP_ID(exScopeChange),
 /* 445 */   OP_ID(exdictaccess),
 /* 446 */   OP(ex_WorkString_compute),

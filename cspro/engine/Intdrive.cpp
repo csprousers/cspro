@@ -678,7 +678,7 @@ void CIntDriver::AddIntDriverInstructions()
     OP_DOUBLE(340, exselcase);
     OP_DOUBLE(341, excountcases);
     OP_DOUBLE(342, exkeylist);
-    OP_DOUBLE(343, ex_Barcode_read);
+    OP_ENGVAL(343, ex_Barcode_read);
     OP_ENGVAL(344, ex_hash);
     OP_DOUBLE(345, ex_syncmessage);
     OP_DOUBLE(346, ex_SystemApp_clear);
@@ -778,7 +778,7 @@ void CIntDriver::AddIntDriverInstructions()
     OP_DOUBLE(440, ex_Symbol_getJson_getValueJson);
     OP_DOUBLE(441, ex_Symbol_getJson_getValueJson);
     OP_DOUBLE(442, ex_Symbol_setValueFromJson);
-    OP_DOUBLE(443, ex_Barcode_createQRCode);
+    OP_ENGVAL(443, ex_Barcode_createQRCode);
     OP_DOUBLE(444, exScopeChange);
     OP_DOUBLE(445, exdictaccess);
     OP_ENGVAL(446, ex_WorkString_compute);

@@ -331,8 +331,8 @@ public:
     // (BarcodeRT.cpp)
     // --------------------------------------------------------------------------
 public:
-    double ex_Barcode_read(int program_index);
-    double ex_Barcode_createQRCode(int program_index);
+    Engine::Value ex_Barcode_read(int program_index);
+    Engine::Value ex_Barcode_createQRCode(int program_index);
 
 
     // --------------------------------------------------------------------------
