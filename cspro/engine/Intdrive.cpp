@@ -781,7 +781,7 @@ void CIntDriver::AddIntDriverInstructions()
     OP_DOUBLE(434, ex_invoke);
     OP_DOUBLE(435, ex_Report_save);
     OP_ENGVAL(436, ex_Report_view);
-    OP_DOUBLE(437, ex_TextTemplate_write_writeEncoded_writeEncodedLine_writeLine);
+    OP_ENGVAL(437, ex_TextTemplate_write_writeEncoded_writeEncodedLine_writeLine);
     OP_DOUBLE(438, ex_setbluetoothname);
     OP_DOUBLE(439, expersistentsymbolreset);
     OP_ENGVAL(440, ex_Symbol_getJson_getValueJson);
@@ -808,13 +808,13 @@ void CIntDriver::AddIntDriverInstructions()
     OP_DOUBLE(461, ex_JavaScript_getValue);
     OP_DOUBLE(462, ex_JavaScript_setValue);
     OP_DOUBLE(463, ex_JavaScript_UserFunctionCall);
-    OP_DOUBLE(464, ex_TextTemplate_write_writeEncoded_writeEncodedLine_writeLine);
-    OP_DOUBLE(465, ex_TextTemplate_write_writeEncoded_writeEncodedLine_writeLine);
-    OP_DOUBLE(466, ex_TextTemplate_write_writeEncoded_writeEncodedLine_writeLine);
-    OP_DOUBLE(467, ex_TextTemplate_write_writeEncoded_writeEncodedLine_writeLine);
-    OP_DOUBLE(468, ex_StringWriter_toString);
+    OP_ENGVAL(464, ex_TextTemplate_write_writeEncoded_writeEncodedLine_writeLine);
+    OP_ENGVAL(465, ex_TextTemplate_write_writeEncoded_writeEncodedLine_writeLine);
+    OP_ENGVAL(466, ex_TextTemplate_write_writeEncoded_writeEncodedLine_writeLine);
+    OP_ENGVAL(467, ex_TextTemplate_write_writeEncoded_writeEncodedLine_writeLine);
+    OP_ENGVAL(468, ex_StringWriter_toString);
     OP_ENGVAL(469, ex_Image_getExif);
-    OP_DOUBLE(470, ex_StringWriter_clear);
+    OP_ENGVAL(470, ex_StringWriter_clear);
     OP_DOUBLE(471, ex_Video_compute);
     OP_DOUBLE(472, ex_Video_clear);
     OP_DOUBLE(473, ex_Video_load);

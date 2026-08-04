@@ -652,8 +652,8 @@ private:
     // (StringWriterRT.cpp)
     // --------------------------------------------------------------------------
 public:
-    double ex_StringWriter_clear(int program_index);
-    double ex_StringWriter_toString(int program_index);
+    Engine::Value ex_StringWriter_clear(int program_index);
+    Engine::Value ex_StringWriter_toString(int program_index);
 
 
     // --------------------------------------------------------------------------
@@ -713,7 +713,7 @@ public:
     // (TextTemplateRT.cpp)
     // --------------------------------------------------------------------------
 public:
-    double ex_TextTemplate_write_writeEncoded_writeEncodedLine_writeLine(int program_index);
+    Engine::Value ex_TextTemplate_write_writeEncoded_writeEncodedLine_writeLine(int program_index);
 
 protected: // INTERPRETER_DLL_TODO change to private
     SharableString EncodeText(SharableString text, EncodeType encode_type);

@@ -505,7 +505,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 434 */   OP_ID(ex_invoke),
 /* 435 */   OP_LI(ex_Report_save),
 /* 436 */   OP(ex_Report_view),
-/* 437 */   OP_LI(ex_TextTemplate_write_writeEncoded_writeEncodedLine_writeLine), // Report.write prior to CSPro 8.1
+/* 437 */   OP(ex_TextTemplate_write_writeEncoded_writeEncodedLine_writeLine), // Report.write prior to CSPro 8.1
 /* 438 */   OP_ID(ex_setbluetoothname),
 /* 439 */   OP_ID(expersistentsymbolreset),
 /* 440 */   OP(ex_Symbol_getJson_getValueJson), // symbol.getJson
@@ -532,13 +532,13 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 461 */   OP_LI(ex_JavaScript_getValue),
 /* 462 */   OP_LI(ex_JavaScript_setValue),
 /* 463 */   OP_LI(ex_JavaScript_UserFunctionCall),
-/* 464 */   OP_LI(ex_TextTemplate_write_writeEncoded_writeEncodedLine_writeLine), // Report/StringWriter.write
-/* 465 */   OP_LI(ex_TextTemplate_write_writeEncoded_writeEncodedLine_writeLine), // Report/StringWriter.writeEncoded
-/* 466 */   OP_LI(ex_TextTemplate_write_writeEncoded_writeEncodedLine_writeLine), // Report/StringWriter.writeEncodedLine
-/* 467 */   OP_LI(ex_TextTemplate_write_writeEncoded_writeEncodedLine_writeLine), // Report/StringWriter.writeLine
-/* 468 */   OP_LI(ex_StringWriter_toString),
+/* 464 */   OP(ex_TextTemplate_write_writeEncoded_writeEncodedLine_writeLine), // Report/StringWriter.write
+/* 465 */   OP(ex_TextTemplate_write_writeEncoded_writeEncodedLine_writeLine), // Report/StringWriter.writeEncoded
+/* 466 */   OP(ex_TextTemplate_write_writeEncoded_writeEncodedLine_writeLine), // Report/StringWriter.writeEncodedLine
+/* 467 */   OP(ex_TextTemplate_write_writeEncoded_writeEncodedLine_writeLine), // Report/StringWriter.writeLine
+/* 468 */   OP(ex_StringWriter_toString),
 /* 469 */   OP(ex_Image_getExif),
-/* 470 */   OP_LI(ex_StringWriter_clear),
+/* 470 */   OP(ex_StringWriter_clear),
 /* 471 */   OP_LI(ex_Video_compute),
 /* 472 */   OP_LI(ex_Video_clear),
 /* 473 */   OP_LI(ex_Video_load),

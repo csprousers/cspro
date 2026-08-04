@@ -1,9 +1,9 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "IncludesRT.h"
 #include "StringWriter.h"
 
 
-double LogicInterpreter::ex_StringWriter_clear(const int program_index)
+Engine::Value LogicInterpreter::ex_StringWriter_clear(const int program_index)
 {
     const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
     StringWriter& string_writer = GetSymbolStringWriter(symbol_va_node.symbol_index);
@@ -12,15 +12,15 @@ double LogicInterpreter::ex_StringWriter_clear(const int program_index)
     std::tie(std::ignore, text_builder) = GetTextTemplateBuilder(string_writer);
 
     if( text_builder == nullptr )
-        return 0;
+        return Engine::Value::Bool(false);
 
     text_builder->clear();
 
-    return 1;
+    return Engine::Value::Bool(true);
 }
 
 
-double LogicInterpreter::ex_StringWriter_toString(const int program_index)
+Engine::Value LogicInterpreter::ex_StringWriter_toString(const int program_index)
 {
     const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
     StringWriter& string_writer = GetSymbolStringWriter(symbol_va_node.symbol_index);
@@ -29,7 +29,7 @@ double LogicInterpreter::ex_StringWriter_toString(const int program_index)
     std::tie(std::ignore, text_builder) = GetTextTemplateBuilder(string_writer);
 
     if( text_builder == nullptr )
-        return AssignStringNull();
+        return Engine::Value::Invalid<SharableString>();
 
-    return AssignString(*text_builder);
+    return *text_builder;
 }
