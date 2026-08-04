@@ -84,6 +84,7 @@ public:
 protected:
     using Instruction = std::variant<Engine::Value (LogicInterpreter::*)(int),
                                      double (LogicInterpreter::*)(int),
+                                     Engine::Value (CIntDriver::*)(int),
                                      double (CIntDriver::*)(int)>;
     static Instruction m_instructions[];
 
@@ -617,12 +618,12 @@ private:
     // (Pff RT.cpp)
     // --------------------------------------------------------------------------
 public:
-    double ex_Pff_compute(int program_index);
-    double ex_Pff_load(int program_index);
-    double ex_Pff_save(int program_index);
-    double ex_Pff_getProperty(int program_index);
-    double ex_Pff_setProperty(int program_index);
-    double ex_Pff_exec(int program_index);
+    Engine::Value ex_Pff_compute(int program_index);
+    Engine::Value ex_Pff_load(int program_index);
+    Engine::Value ex_Pff_save(int program_index);
+    Engine::Value ex_Pff_getProperty(int program_index);
+    Engine::Value ex_Pff_setProperty(int program_index);
+    Engine::Value ex_Pff_exec(int program_index);
 
 
     // --------------------------------------------------------------------------
@@ -807,6 +808,7 @@ protected:
     // INTERPRETER_DLL_TODO...
     // --------------------------------------------------------------------------
 private:
+    virtual Engine::Value evalexpr_INTERPRETER_DLL_TODO(Engine::Value (CIntDriver::*instruction)(int), int program_index) = 0;
     virtual double evalexpr_INTERPRETER_DLL_TODO(double (CIntDriver::*instruction)(int), int program_index) = 0;
     virtual void RegisterAndLogEvent_INTERPRETER_DLL_TODO(std::shared_ptr<Paradata::Event> event, const void* instance_object = nullptr) = 0;
     virtual SharableString EvaluateTextFill(int program_index) = 0; // INTERPRETER_DLL_TODO remove as virtual
@@ -828,7 +830,7 @@ private:
     virtual std::unique_ptr<UserFunctionArgumentEvaluator> EvaluateArgumentsForCallbackUserFunction(int program_index, FunctionCode function_code) = 0; // INTERPRETER_DLL_TODO remove as virtual
     virtual double ex_Freq_view(const NamedFrequency& named_frequency, const ViewerOptions* viewer_options, int frequency_parameters_node_index) = 0; // INTERPRETER_DLL_TODO remove as virtual
     virtual double exCase_view(const CSymbolDict& dictionary, const ViewerOptions* viewer_options) = 0; // INTERPRETER_DLL_TODO remove as virtual
-    virtual double ExExecPFF_INTERPRETER_DLL_TODO(LogicPff& logic_pff) = 0; // INTERPRETER_DLL_TODO remove as virtual
+    virtual Engine::Value ExExecPFF_INTERPRETER_DLL_TODO(LogicPff& logic_pff) = 0; // INTERPRETER_DLL_TODO remove as virtual
     virtual FrequencyDriver* GetFrequencyDriver_INTERPRETER_DLL_TODO() = 0;
     virtual void AssignValueToVART_INTERPRETER_DLL_TODO(int variable_compilation, double value) = 0; // INTERPRETER_DLL_TODO remove as virtual
     virtual void AssignValueToVART_INTERPRETER_DLL_TODO(int variable_compilation, SharableString value) = 0; // INTERPRETER_DLL_TODO remove as virtual
@@ -862,7 +864,8 @@ inline Engine::Value LogicInterpreter::ExecuteInstruction(const FunctionCode fun
 
     return ( instruction.index() == 0 ) ? (this->*(std::get<0>(instruction)))(program_index) :
            ( instruction.index() == 1 ) ? (this->*(std::get<1>(instruction)))(program_index) :
-                                          evalexpr_INTERPRETER_DLL_TODO(std::get<2>(instruction), program_index);
+           ( instruction.index() == 2 ) ? evalexpr_INTERPRETER_DLL_TODO(std::get<2>(instruction), program_index) :
+                                          evalexpr_INTERPRETER_DLL_TODO(std::get<3>(instruction), program_index);
 }
 
 

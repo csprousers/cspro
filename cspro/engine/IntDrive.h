@@ -732,12 +732,12 @@ public:
     double ex_setproperty(int program_index);
     double ex_protect(int program_index);
 
-    double  ExExecSystem(int iExpr);
+    Engine::Value ExExecSystem(int iExpr);
     std::unique_ptr<Paradata::ExternalApplicationEvent> ExExecCommonBeforeExecute(FunctionCode source, const std::string& command, int flags);
-    bool    ExExecCommonExecute(const std::string& command, int flags);
-    double  ExExecCommonAfterExecute(FunctionCode source, int flags, bool success, std::unique_ptr<Paradata::ExternalApplicationEvent> external_application_event);
-    double  ExExecPFF(int iExpr);
-    double  ExExecPFF(std::variant<LogicPff*, std::string> logic_pff_or_pff_file_path, std::optional<int> flags = std::nullopt);
+    bool ExExecCommonExecute(const std::string& command, int flags);
+    Engine::Value ExExecCommonAfterExecute(FunctionCode source, int flags, bool success, std::unique_ptr<Paradata::ExternalApplicationEvent> external_application_event);
+    Engine::Value ExExecPFF(int iExpr);
+    Engine::Value ExExecPFF(std::variant<LogicPff*, std::string> logic_pff_or_pff_file_path, std::optional<int> flags = std::nullopt);
 
     double exwhile(int iExpr);
     double ex_do(int program_index);
@@ -953,6 +953,7 @@ private:
     // --------------------------------------------------------------------------
     // INTERPRETER_DLL_TODO...
     // --------------------------------------------------------------------------
+    Engine::Value evalexpr_INTERPRETER_DLL_TODO(Engine::Value (CIntDriver::*instruction)(int), int program_index) override;
     double evalexpr_INTERPRETER_DLL_TODO(double (CIntDriver::*instruction)(int), int program_index) override;
     void RegisterAndLogEvent_INTERPRETER_DLL_TODO(std::shared_ptr<Paradata::Event> event, const void* instance_object = nullptr) override;
     void IssueMessageWorker(MessageType message_type, int message_number, ...) override;
@@ -962,7 +963,7 @@ private:
     int Get_m_iExSymbol_INTERPRETER_DLL_TODO() override { return m_iExSymbol; }
     bool IsExecutionInterrupted() const override;
     EngineParadataDriver& GetEngineParadataDriver_INTERPRETER_DLL_TODO() override;
-    double ExExecPFF_INTERPRETER_DLL_TODO(LogicPff& logic_pff) override;
+    Engine::Value ExExecPFF_INTERPRETER_DLL_TODO(LogicPff& logic_pff) override;
     FrequencyDriver* GetFrequencyDriver_INTERPRETER_DLL_TODO() override;
     void AssignValueToVART_INTERPRETER_DLL_TODO(int variable_compilation, double value) override;
     void AssignValueToVART_INTERPRETER_DLL_TODO(int variable_compilation, SharableString value) override;

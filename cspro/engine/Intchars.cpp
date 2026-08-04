@@ -854,7 +854,7 @@ double CIntDriver::exfreealphamem(const int program_index)
 //----------------------------------------------------------------------
 //  ExExecSystem: execute EXECSYSTEM function
 //----------------------------------------------------------------------
-double CIntDriver::ExExecSystem(int iExpr)
+Engine::Value CIntDriver::ExExecSystem(int iExpr)
 {
     const auto& execsystem_node = GetNode<FNEXECSYSTEM_NODE>(iExpr);
     bool success = false;
@@ -897,7 +897,7 @@ double CIntDriver::ExExecSystem(int iExpr)
 }
 
 
-double CIntDriver::ExExecPFF(int iExpr) // 20100601
+Engine::Value CIntDriver::ExExecPFF(int iExpr) // 20100601
 {
     const auto& execsystem_node = GetNode<FNEXECSYSTEM_NODE>(iExpr);
 
@@ -914,13 +914,13 @@ double CIntDriver::ExExecPFF(int iExpr) // 20100601
 }
 
 
-double CIntDriver::ExExecPFF_INTERPRETER_DLL_TODO(LogicPff& logic_pff)
+Engine::Value CIntDriver::ExExecPFF_INTERPRETER_DLL_TODO(LogicPff& logic_pff)
 {
     return ExExecPFF(&logic_pff);
 }
 
 
-double CIntDriver::ExExecPFF(std::variant<LogicPff*, std::string> logic_pff_or_pff_file_path, std::optional<int> flags/* = std::nullopt*/)
+Engine::Value CIntDriver::ExExecPFF(std::variant<LogicPff*, std::string> logic_pff_or_pff_file_path, std::optional<int> flags/* = std::nullopt*/)
 {
     LogicPff* logic_pff = nullptr;
     std::shared_ptr<const PFF> pff;
@@ -1077,8 +1077,8 @@ bool CIntDriver::ExExecCommonExecute(const std::string& command, const int flags
 #endif // WIN_DESKTOP
 
 
-double CIntDriver::ExExecCommonAfterExecute(const FunctionCode source, const int flags, const bool success,
-                                            std::unique_ptr<Paradata::ExternalApplicationEvent> external_application_event)
+Engine::Value CIntDriver::ExExecCommonAfterExecute(const FunctionCode source, const int flags, const bool success,
+                                                   std::unique_ptr<Paradata::ExternalApplicationEvent> external_application_event)
 {
     if( ( flags & EXECSYSTEM_STOP ) != 0 )
     {
@@ -1097,7 +1097,7 @@ double CIntDriver::ExExecCommonAfterExecute(const FunctionCode source, const int
         m_paradataDriver->RegisterAndLogEvent(std::move(external_application_event));
     }
 
-    return success ? 1 : 0;
+    return Engine::Value::Bool(success);
 }
 
 

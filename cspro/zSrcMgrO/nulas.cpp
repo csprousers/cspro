@@ -26,6 +26,7 @@ CIntDriver::CIntDriver(CEngineDriver& engine_driver)
 
 CIntDriver::~CIntDriver() { ASSERT(false); }
 
+Engine::Value CIntDriver::evalexpr_INTERPRETER_DLL_TODO(Engine::Value (CIntDriver::*instruction)(int), int program_index) { return ReturnProgrammingError(0); }
 double CIntDriver::evalexpr_INTERPRETER_DLL_TODO(double (CIntDriver::*instruction)(int), int program_index) { return ReturnProgrammingError(0); }
 void CIntDriver::RegisterAndLogEvent_INTERPRETER_DLL_TODO(std::shared_ptr<Paradata::Event> event, const void* instance_object) { ASSERT(false); }
 void CIntDriver::IssueMessageWorker(MessageType message_type, int message_number, ...) { ASSERT(false); }
@@ -49,7 +50,7 @@ void CIntDriver::ExecuteCallbackUserFunction(int field_symbol_index, UserFunctio
 std::unique_ptr<UserFunctionArgumentEvaluator> CIntDriver::EvaluateArgumentsForCallbackUserFunction(int program_index, FunctionCode function_code) { return ReturnProgrammingError(nullptr); }
 double CIntDriver::ex_Freq_view(const NamedFrequency& named_frequency, const ViewerOptions* viewer_options, int frequency_parameters_node_index) { return ReturnProgrammingError(0); }
 double CIntDriver::exCase_view(const DICT& dictionary, const ViewerOptions* viewer_options) { return ReturnProgrammingError(0); }
-double CIntDriver::ExExecPFF_INTERPRETER_DLL_TODO(LogicPff& logic_pff) { throw ProgrammingErrorException(); }
+Engine::Value CIntDriver::ExExecPFF_INTERPRETER_DLL_TODO(LogicPff& logic_pff) { throw ProgrammingErrorException(); }
 FrequencyDriver* CIntDriver::GetFrequencyDriver_INTERPRETER_DLL_TODO() { throw ProgrammingErrorException(); }
 void CIntDriver::AssignValueToVART_INTERPRETER_DLL_TODO(int variable_compilation, double value) { throw ProgrammingErrorException(); }
 void CIntDriver::AssignValueToVART_INTERPRETER_DLL_TODO(int variable_compilation, SharableString value) { throw ProgrammingErrorException(); }

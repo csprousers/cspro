@@ -324,6 +324,15 @@ void CIntDriver::AddIntDriverInstructions()
     ASSERT(std::get<0>(m_instructions[static_cast<size_t>(op_code)]) == &CIntDriver::function); \
     ASSERT(std::get<0>(m_instructions[static_cast<size_t>(op_code)]) != &CIntDriver::ex_unimplemented_LogicInterpreter);
 
+// OP_ENGVAL_ID = instructions defined in CIntDriver that return Engine::Value
+#define OP_ENGVAL_ID(op_code, function) \
+    { \
+        ASSERT(op_code == op_code_counter++); \
+        Instruction& instruction = m_instructions[static_cast<size_t>(op_code)]; \
+        ASSERT(instruction.index() == 0 && std::get<0>(instruction) == &CIntDriver::ex_unimplemented_LogicInterpreter); \
+        instruction = static_cast<Engine::Value (CIntDriver::*)(int)>(&CIntDriver::function); \
+    }
+
 // OP_DOUBLE = instructions defined in LogicInterpreter or CIntDriver that return double
 #define OP_DOUBLE(op_code, function) \
     { \
@@ -506,7 +515,7 @@ void CIntDriver::AddIntDriverInstructions()
     OP_DOUBLE(168, exfileconcat);
     OP_DOUBLE(169, exfileread);
     OP_DOUBLE(170, exfilewrite);
-    OP_DOUBLE(171, ExExecSystem);
+    OP_ENGVAL_ID(171, ExExecSystem);
     OP_DOUBLE(172, exnoopAbort);
     OP_DOUBLE(173, exshowlist);
     OP_ENGVAL(174, ex_tolower_toupper);
@@ -524,7 +533,7 @@ void CIntDriver::AddIntDriverInstructions()
     OP_DOUBLE(186, exmessageoverrides);
     OP_DOUBLE(187, ex_trace);
     OP_DOUBLE(188, ex_setvaluesets);
-    OP_DOUBLE(189, ExExecPFF);
+    OP_ENGVAL_ID(189, ExExecPFF);
     OP_DOUBLE(190, exseek);
     OP_DOUBLE(191, ex_getcapturetype);
     OP_DOUBLE(192, ex_setcapturetype);
@@ -662,11 +671,11 @@ void CIntDriver::AddIntDriverInstructions()
     OP_DOUBLE(324, ex_Map_getMarkerLatitude_getMarkerLongitude);
     OP_DOUBLE(325, ex_Path_concat);
     OP_DOUBLE(326, ex_view);
-    OP_DOUBLE(327, ex_Pff_exec);
-    OP_DOUBLE(328, ex_Pff_getProperty);
-    OP_DOUBLE(329, ex_Pff_load);
-    OP_DOUBLE(330, ex_Pff_save);
-    OP_DOUBLE(331, ex_Pff_setProperty);
+    OP_ENGVAL(327, ex_Pff_exec);
+    OP_ENGVAL(328, ex_Pff_getProperty);
+    OP_ENGVAL(329, ex_Pff_load);
+    OP_ENGVAL(330, ex_Pff_save);
+    OP_ENGVAL(331, ex_Pff_setProperty);
     OP_DOUBLE(332, ex_ValueSet_length);
     OP_ENGVAL(333, ex_ischecked);
     OP_DOUBLE(334, ex_protect);
@@ -686,7 +695,7 @@ void CIntDriver::AddIntDriverInstructions()
     OP_DOUBLE(348, ex_SystemApp_getResult);
     OP_DOUBLE(349, ex_SystemApp_exec);
     OP_ENGVAL(350, ex_startswith);
-    OP_DOUBLE(351, ex_Pff_compute);
+    OP_ENGVAL(351, ex_Pff_compute);
     OP_DOUBLE(352, ex_Audio_clear);
     OP_DOUBLE(353, ex_Audio_concat);
     OP_DOUBLE(354, ex_Audio_load);
@@ -1388,6 +1397,13 @@ double CIntDriver::exScopeChange(const int program_index)
 // --------------------------------------------------------------------------
 // INTERPRETER_DLL_TODO...
 // --------------------------------------------------------------------------
+
+Engine::Value CIntDriver::evalexpr_INTERPRETER_DLL_TODO(Engine::Value (CIntDriver::*instruction)(int), const int program_index)
+{
+    ASSERT(instruction != nullptr);
+    return (this->*instruction)(program_index);
+}
+
 
 double CIntDriver::evalexpr_INTERPRETER_DLL_TODO(double (CIntDriver::*instruction)(int), const int program_index)
 {
