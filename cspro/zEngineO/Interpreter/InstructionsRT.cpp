@@ -508,9 +508,9 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 437 */   OP_LI(ex_TextTemplate_write_writeEncoded_writeEncodedLine_writeLine), // Report.write prior to CSPro 8.1
 /* 438 */   OP_ID(ex_setbluetoothname),
 /* 439 */   OP_ID(expersistentsymbolreset),
-/* 440 */   OP_LI(ex_Symbol_getJson_getValueJson), // symbol.getJson
-/* 441 */   OP_LI(ex_Symbol_getJson_getValueJson), // symbol.getValueJson
-/* 442 */   OP_LI(ex_Symbol_setValueFromJson),
+/* 440 */   OP(ex_Symbol_getJson_getValueJson), // symbol.getJson
+/* 441 */   OP(ex_Symbol_getJson_getValueJson), // symbol.getValueJson
+/* 442 */   OP(ex_Symbol_setValueFromJson),
 /* 443 */   OP(ex_Barcode_createQRCode), // Barcode.createQRCode + Image.createQRCode
 /* 444 */   OP_ID(exScopeChange),
 /* 445 */   OP_ID(exdictaccess),

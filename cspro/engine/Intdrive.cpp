@@ -784,9 +784,9 @@ void CIntDriver::AddIntDriverInstructions()
     OP_DOUBLE(437, ex_TextTemplate_write_writeEncoded_writeEncodedLine_writeLine);
     OP_DOUBLE(438, ex_setbluetoothname);
     OP_DOUBLE(439, expersistentsymbolreset);
-    OP_DOUBLE(440, ex_Symbol_getJson_getValueJson);
-    OP_DOUBLE(441, ex_Symbol_getJson_getValueJson);
-    OP_DOUBLE(442, ex_Symbol_setValueFromJson);
+    OP_ENGVAL(440, ex_Symbol_getJson_getValueJson);
+    OP_ENGVAL(441, ex_Symbol_getJson_getValueJson);
+    OP_ENGVAL(442, ex_Symbol_setValueFromJson);
     OP_ENGVAL(443, ex_Barcode_createQRCode);
     OP_DOUBLE(444, exScopeChange);
     OP_DOUBLE(445, exdictaccess);

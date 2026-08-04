@@ -505,8 +505,8 @@ public:
     JsonReaderInterface* GetEngineJsonReaderInterface();
     std::string GetSymbolJson(const Symbol& symbol, Symbol::SymbolJsonOutput symbol_json_output, const JsonNode* serialization_options_node);
     void SetSymbolValueFromJson(Symbol& symbol, const JsonNode& json_node);
-    double ex_Symbol_getJson_getValueJson(int program_index);
-    double ex_Symbol_setValueFromJson(int program_index);
+    Engine::Value ex_Symbol_getJson_getValueJson(int program_index);
+    Engine::Value ex_Symbol_setValueFromJson(int program_index);
 
 private:
     std::unique_ptr<JsonReaderInterface> m_engineJsonReaderInterface;
