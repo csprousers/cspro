@@ -322,7 +322,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 251 */   OP_ID(exforcase),
 /* 252 */   OP(ex_timestamp),
 /* 253 */   OP_ID(exkeylist),
-/* 254 */   OP_ID(ex_diagnostics),
+/* 254 */   OP(ex_diagnostics),
 /* 255 */   OP(ex_compress),
 /* 256 */   OP(ex_decompress),
 /* 257 */   OP_ID(exask),

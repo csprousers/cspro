@@ -598,7 +598,7 @@ void CIntDriver::AddIntDriverInstructions()
     OP_DOUBLE(251, exforcase);
     OP_ENGVAL(252, ex_timestamp);
     OP_DOUBLE(253, exkeylist);
-    OP_DOUBLE(254, ex_diagnostics);
+    OP_ENGVAL(254, ex_diagnostics);
     OP_ENGVAL(255, ex_compress);
     OP_ENGVAL(256, ex_decompress);
     OP_DOUBLE(257, exask);

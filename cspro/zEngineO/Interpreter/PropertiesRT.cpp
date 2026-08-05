@@ -4,7 +4,7 @@
 #include <zToolsO/Hash.h>
 
 
-double LogicInterpreter::ex_diagnostics(const int program_index)
+Engine::Value LogicInterpreter::ex_diagnostics(const int program_index)
 {
     std::unique_ptr<std::byte[]> fnn_node_for_pre_80;
     const FNN_NODE* fnn_node;
@@ -56,7 +56,7 @@ double LogicInterpreter::ex_diagnostics(const int program_index)
         if( *parameter == ParameterManager::Parameter::Invalid )
         {
             IssueMessage(MessageType::Error, MGF::property_invalid_parameter_1100, parameter_text->c_str());
-            return AssignStringNull();
+            return Engine::Value::Invalid<SharableString>();
         }
 
         // check if the number of arguments is valid
@@ -64,7 +64,7 @@ double LogicInterpreter::ex_diagnostics(const int program_index)
         {
             IssueMessage(MessageType::Error, MGF::property_arguments_count_mismatch_1101,
                          ParameterManager::GetDisplayName(*parameter), provided_arguments);
-            return AssignStringNull();
+            return Engine::Value::Invalid<SharableString>();
         }
     }
 
@@ -113,5 +113,5 @@ double LogicInterpreter::ex_diagnostics(const int program_index)
         diagnostics_text = Hash::Md5::CreateFromFile(file_path);
     }
 
-    return AssignString(std::move(diagnostics_text));
+    return diagnostics_text;
 }

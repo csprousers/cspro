@@ -631,7 +631,7 @@ public:
     // (PropertiesRT.cpp)
     // --------------------------------------------------------------------------
 public:
-    double ex_diagnostics(int program_index);
+    Engine::Value ex_diagnostics(int program_index);
 
 
     // --------------------------------------------------------------------------
