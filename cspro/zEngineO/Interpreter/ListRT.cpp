@@ -105,23 +105,14 @@ Engine::Value LogicInterpreter::ex_List_compute(const int program_index)
         const std::optional<size_t> index = EvaluateListIndex(symbol_compute_node.lhs_symbol_index, &logic_list, true);
 
         if( !index.has_value() )
-        {
             return Engine::Value::Invalid(logic_list->GetDataType());
-        }
 
-        else if( logic_list->IsNumeric() )
-        {
-            double value = Evaluate<double>(symbol_compute_node.rhs_symbol_index);
-            logic_list->SetValue(*index, value);
-            return value;
-        }
+        Engine::Value value = Evaluate<Engine::Value>(symbol_compute_node.rhs_symbol_index);
 
-        else
-        {
-            SharableString value = Evaluate<SharableString>(symbol_compute_node.rhs_symbol_index);
-            logic_list->SetValue(*index, value);
-            return value;
-        }
+        logic_list->IsNumeric() ? logic_list->SetValue(*index, value.as<double>()) :
+                                  logic_list->SetValue(*index, value.as<SharableString>());
+
+        return value;
     }
 }
 

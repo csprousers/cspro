@@ -39,7 +39,10 @@ std::vector<LogicHashMap::Data> LogicInterpreter::EvaluateHashMapIndex(const int
 
     if( bounds_checking && !hashmap->HasDefaultValue() && !hashmap->Contains(dimension_values) )
     {
-        IssueMessage(MessageType::Error, MGF::invalid_subscript_1008, hashmap->GetName().c_str(), GetSubscriptText(dimension_values).c_str());
+        IssueMessage(MessageType::Error, MGF::invalid_subscript_1008,
+                     hashmap->GetName().c_str(),
+                     GetSubscriptText(dimension_values).c_str());
+
         dimension_values.clear();
     }
 
@@ -47,22 +50,26 @@ std::vector<LogicHashMap::Data> LogicInterpreter::EvaluateHashMapIndex(const int
 }
 
 
-double LogicInterpreter::ex_HashMap_var(const int program_index)
+Engine::Value LogicInterpreter::ex_HashMap_var(const int program_index)
 {
     const LogicHashMap* hashmap;
-    std::vector<LogicHashMap::Data> dimension_values = EvaluateHashMapIndex(program_index, const_cast<LogicHashMap**>(&hashmap), true);
+    const std::vector<LogicHashMap::Data> dimension_values = EvaluateHashMapIndex(
+        program_index,
+        const_cast<LogicHashMap**>(&hashmap),
+        true // bounds_checking
+    );
 
     if( dimension_values.empty() )
-        return AssignInvalidValue(hashmap->GetValueType());
+        return Engine::Value::Invalid(hashmap->GetValueType());
 
     std::optional<LogicHashMap::Data> value = hashmap->GetValue(dimension_values);
     ASSERT(value.has_value());
 
-    return AssignVariantValue(std::move(*value));
+    return std::visit([](auto&& v) { return Engine::Value(std::forward<decltype(v)>(v)); }, std::move(*value));
 }
 
 
-double LogicInterpreter::ex_HashMap_compute(const int program_index)
+Engine::Value LogicInterpreter::ex_HashMap_compute(const int program_index)
 {
     const auto& symbol_compute_node = GetNode<Nodes::SymbolCompute>(program_index);
 
@@ -70,19 +77,18 @@ double LogicInterpreter::ex_HashMap_compute(const int program_index)
     if( symbol_compute_node.rhs_symbol_type == SymbolType::None )
     {
         LogicHashMap* hashmap;
-        const std::vector<LogicHashMap::Data> dimension_values = EvaluateHashMapIndex(symbol_compute_node.lhs_symbol_index, &hashmap, false);
+        const std::vector<LogicHashMap::Data> dimension_values = EvaluateHashMapIndex(
+            symbol_compute_node.lhs_symbol_index,
+            &hashmap,
+            false // bounds_checking
+        );
 
-        if( hashmap->IsValueTypeNumeric() )
-        {
-            double value = Evaluate<double>(symbol_compute_node.rhs_symbol_index);
-            hashmap->SetValue(dimension_values, value);
-            return value;
-        }
+        Engine::Value value = Evaluate<Engine::Value>(symbol_compute_node.rhs_symbol_index);
 
-        else
-        {
-            hashmap->SetValue(dimension_values, Evaluate<SharableString>(symbol_compute_node.rhs_symbol_index));
-        }
+        hashmap->IsValueTypeNumeric() ? hashmap->SetValue(dimension_values, value.as<double>()) :
+                                        hashmap->SetValue(dimension_values, value.as<SharableString>());
+
+        return value;
     }
 
     // assigning a hashmap to a hashmap
@@ -94,24 +100,24 @@ double LogicInterpreter::ex_HashMap_compute(const int program_index)
         const LogicHashMap& rhs_hashmap = GetSymbolLogicHashMap(symbol_compute_node.rhs_symbol_index);
 
         lhs_hashmap = rhs_hashmap;
-    }
 
-    return 0;
+        return Engine::Value::Undefined(lhs_hashmap.GetValueType());
+    }
 }
 
 
-double LogicInterpreter::ex_HashMap_clear(const int program_index)
+Engine::Value LogicInterpreter::ex_HashMap_clear(const int program_index)
 {
     const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
     LogicHashMap& hashmap = GetSymbolLogicHashMap(symbol_va_node.symbol_index);
 
     hashmap.Reset();
 
-    return 1;
+    return Engine::Value::Bool(true);
 }
 
 
-double LogicInterpreter::ex_HashMap_contains(const int program_index)
+Engine::Value LogicInterpreter::ex_HashMap_contains(const int program_index)
 {
     const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
     const LogicHashMap& hashmap = GetSymbolLogicHashMap(symbol_va_node.symbol_index);
@@ -119,11 +125,13 @@ double LogicInterpreter::ex_HashMap_contains(const int program_index)
     const std::vector<LogicHashMap::Data> dimension_values = EvaluateHashMapIndex(GetListNode(symbol_va_node.arguments[0]));
     ASSERT(!dimension_values.empty() && dimension_values.size() <= hashmap.GetNumberDimensions());
 
-    return hashmap.Contains(dimension_values);
+    return Engine::Value::Bool(
+        hashmap.Contains(dimension_values)
+    );
 }
 
 
-double LogicInterpreter::ex_HashMap_length(const int program_index)
+Engine::Value LogicInterpreter::ex_HashMap_length(const int program_index)
 {
     const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
     const LogicHashMap& hashmap = GetSymbolLogicHashMap(symbol_va_node.symbol_index);
@@ -131,11 +139,13 @@ double LogicInterpreter::ex_HashMap_length(const int program_index)
     const std::vector<LogicHashMap::Data> dimension_values = EvaluateHashMapIndex(GetListNode(symbol_va_node.arguments[0]));
     ASSERT(dimension_values.size() < hashmap.GetNumberDimensions());
 
-    return hashmap.GetLength(dimension_values);
+    return Engine::Value::Integer(
+        hashmap.GetLength(dimension_values)
+    );
 }
 
 
-double LogicInterpreter::ex_HashMap_remove(const int program_index)
+Engine::Value LogicInterpreter::ex_HashMap_remove(const int program_index)
 {
     const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
     LogicHashMap& hashmap = GetSymbolLogicHashMap(symbol_va_node.symbol_index);
@@ -143,11 +153,13 @@ double LogicInterpreter::ex_HashMap_remove(const int program_index)
     const std::vector<LogicHashMap::Data> dimension_values = EvaluateHashMapIndex(GetListNode(symbol_va_node.arguments[0]));
     ASSERT(!dimension_values.empty() && dimension_values.size() <= hashmap.GetNumberDimensions());
 
-    return hashmap.Remove(dimension_values) ? 1 : 0;
+    return Engine::Value::Bool(
+        hashmap.Remove(dimension_values)
+    );
 }
 
 
-double LogicInterpreter::ex_HashMap_getKeys(const int program_index)
+Engine::Value LogicInterpreter::ex_HashMap_getKeys(const int program_index)
 {
     const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
     const LogicHashMap& hashmap = GetSymbolLogicHashMap(symbol_va_node.symbol_index);
@@ -160,7 +172,7 @@ double LogicInterpreter::ex_HashMap_getKeys(const int program_index)
     if( getkeys_list.IsReadOnly() )
     {
         IssueMessage(MessageType::Error, MGF::List_read_only_cannot_be_modified_965, getkeys_list.GetName().c_str());
-        return DEFAULT;
+        return Engine::Value::Invalid<double>();
     }
 
     getkeys_list.Reset();
@@ -192,5 +204,7 @@ double LogicInterpreter::ex_HashMap_getKeys(const int program_index)
         }
     }
 
-    return getkeys_list.GetCount();
+    return Engine::Value::Integer(
+        getkeys_list.GetCount()
+    );
 }

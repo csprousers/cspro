@@ -403,13 +403,13 @@ private:
     // (HashMapRT.cpp)
     // --------------------------------------------------------------------------
 public:
-    double ex_HashMap_var(int program_index);
-    double ex_HashMap_compute(int program_index);
-    double ex_HashMap_clear(int program_index);
-    double ex_HashMap_contains(int program_index);
-    double ex_HashMap_getKeys(int program_index);
-    double ex_HashMap_length(int program_index);
-    double ex_HashMap_remove(int program_index);
+    Engine::Value ex_HashMap_var(int program_index);
+    Engine::Value ex_HashMap_compute(int program_index);
+    Engine::Value ex_HashMap_clear(int program_index);
+    Engine::Value ex_HashMap_contains(int program_index);
+    Engine::Value ex_HashMap_getKeys(int program_index);
+    Engine::Value ex_HashMap_length(int program_index);
+    Engine::Value ex_HashMap_remove(int program_index);
 
 private:
     // Returns the index, or an empty vector if the index is invalid.
