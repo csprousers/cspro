@@ -753,23 +753,23 @@ protected:
     // (ValueSetRT.cpp)
     // --------------------------------------------------------------------------
 public:
-    double ex_minvalue_maxvalue(int program_index);
-    double ex_invalueset(int program_index);
-    double ex_getimage(int program_index);
-    double ex_setvalueset(int program_index);
-    double ex_setvalueset_pre80(int program_index);
-    double ex_setvaluesets(int program_index);
-    double ex_randomizevs(int program_index);
+    Engine::Value ex_minvalue_maxvalue(int program_index);
+    Engine::Value ex_invalueset(int program_index);
+    Engine::Value ex_getimage(int program_index);
+    Engine::Value ex_setvalueset(int program_index);
+    Engine::Value ex_setvalueset_pre80(int program_index);
+    Engine::Value ex_setvaluesets(int program_index);
+    Engine::Value ex_randomizevs(int program_index);
 
-    double ex_ValueSet_compute(int program_index);
-    double ex_ValueSet_add(int program_index);
-    double ex_ValueSet_clear(int program_index);
-    double ex_ValueSet_length(int program_index);
-    double ex_ValueSet_remove(int program_index);
-    double ex_ValueSet_removeDuplicates(int program_index);
-    double ex_ValueSet_show(int program_index);
-    double ex_ValueSet_show_pre77(int program_index);
-    double ex_ValueSet_sort(int program_index);
+    Engine::Value ex_ValueSet_compute(int program_index);
+    Engine::Value ex_ValueSet_add(int program_index);
+    Engine::Value ex_ValueSet_clear(int program_index);
+    Engine::Value ex_ValueSet_length(int program_index);
+    Engine::Value ex_ValueSet_remove(int program_index);
+    Engine::Value ex_ValueSet_removeDuplicates(int program_index);
+    Engine::Value ex_ValueSet_show(int program_index);
+    Engine::Value ex_ValueSet_show_pre77(int program_index);
+    Engine::Value ex_ValueSet_sort(int program_index);
 
 
     // --------------------------------------------------------------------------

@@ -471,8 +471,8 @@ void CIntDriver::AddIntDriverInstructions()
     OP_DOUBLE(124, exnmembers);
     OP_DOUBLE(125, exnoopAbort);
     OP_DOUBLE(126, exnoopAbort);
-    OP_DOUBLE(127, ex_minvalue_maxvalue);
-    OP_DOUBLE(128, ex_minvalue_maxvalue);
+    OP_ENGVAL(127, ex_minvalue_maxvalue);
+    OP_ENGVAL(128, ex_minvalue_maxvalue);
     OP_DOUBLE(129, exfor_group);
     OP_DOUBLE(130, exnoopAbort);
     OP_DOUBLE(131, exnoopAbort);
@@ -504,8 +504,8 @@ void CIntDriver::AddIntDriverInstructions()
     OP_DOUBLE(157, exforbreak);
     OP_DOUBLE(158, ex_setfile);
     OP_DOUBLE(159, exmaxocc_pre80);
-    OP_DOUBLE(160, ex_invalueset);
-    OP_DOUBLE(161, ex_setvalueset);
+    OP_ENGVAL(160, ex_invalueset);
+    OP_ENGVAL(161, ex_setvalueset);
     OP_DOUBLE(162, exfilecreate);
     OP_DOUBLE(163, exfileexist);
     OP_DOUBLE(164, exfiledelete);
@@ -532,7 +532,7 @@ void CIntDriver::AddIntDriverInstructions()
     OP_DOUBLE(185, exuserbar);
     OP_DOUBLE(186, exmessageoverrides);
     OP_DOUBLE(187, ex_trace);
-    OP_DOUBLE(188, ex_setvaluesets);
+    OP_ENGVAL(188, ex_setvaluesets);
     OP_ENGVAL_ID(189, ExExecPFF);
     OP_DOUBLE(190, exseek);
     OP_DOUBLE(191, ex_getcapturetype);
@@ -548,7 +548,7 @@ void CIntDriver::AddIntDriverInstructions()
     OP_DOUBLE(201, ex_setcapturepos);
     OP_ENGVAL(202, ex_abs);
     OP_ENGVAL(203, ex_randomin);
-    OP_DOUBLE(204, ex_randomizevs);
+    OP_ENGVAL(204, ex_randomizevs);
     OP_ENGVAL(205, ex_getusername);
     OP_DOUBLE(206, exfileempty);
     OP_DOUBLE(207, ex_changekeyboard);
@@ -576,7 +576,7 @@ void CIntDriver::AddIntDriverInstructions()
     OP_ENGVAL(229, ex_sysparm);
     OP_ENGVAL(230, ex_connection);
     OP_ENGVAL(231, ex_prompt);
-    OP_DOUBLE(232, ex_getimage);
+    OP_ENGVAL(232, ex_getimage);
     OP_ENGVAL(233, ex_round);
     OP_DOUBLE(234, exnoopAbort);
     OP_DOUBLE(235, exsavepartial);
@@ -658,11 +658,11 @@ void CIntDriver::AddIntDriverInstructions()
     OP_ENGVAL(311, ex_List_seek);
     OP_ENGVAL(312, ex_List_show);
     OP_ENGVAL(313, ex_List_compute);
-    OP_DOUBLE(314, ex_ValueSet_add);
-    OP_DOUBLE(315, ex_ValueSet_clear);
-    OP_DOUBLE(316, ex_ValueSet_remove);
-    OP_DOUBLE(317, ex_ValueSet_show);
-    OP_DOUBLE(318, ex_ValueSet_compute);
+    OP_ENGVAL(314, ex_ValueSet_add);
+    OP_ENGVAL(315, ex_ValueSet_clear);
+    OP_ENGVAL(316, ex_ValueSet_remove);
+    OP_ENGVAL(317, ex_ValueSet_show);
+    OP_ENGVAL(318, ex_ValueSet_compute);
     OP_DOUBLE(319, exvariablevalue);
     OP_DOUBLE(320, ex_Map_clear_clearButtons_clearGeometry_clearMarkers);
     OP_DOUBLE(321, ex_Map_clear_clearButtons_clearGeometry_clearMarkers);
@@ -676,7 +676,7 @@ void CIntDriver::AddIntDriverInstructions()
     OP_ENGVAL(329, ex_Pff_load);
     OP_ENGVAL(330, ex_Pff_save);
     OP_ENGVAL(331, ex_Pff_setProperty);
-    OP_DOUBLE(332, ex_ValueSet_length);
+    OP_ENGVAL(332, ex_ValueSet_length);
     OP_ENGVAL(333, ex_ischecked);
     OP_DOUBLE(334, ex_protect);
     OP_ENGVAL(335, ex_when);
@@ -723,7 +723,7 @@ void CIntDriver::AddIntDriverInstructions()
     OP_ENGVAL(376, ex_HashMap_remove);
     OP_ENGVAL(377, ex_HashMap_getKeys);
     OP_DOUBLE(378, ex_Audio_length);
-    OP_DOUBLE(379, ex_ValueSet_sort);
+    OP_ENGVAL(379, ex_ValueSet_sort);
     OP_ENGVAL(380, ex_replace);
     OP_ENGVAL(381, ex_inc);
     OP_DOUBLE(382, exuniverse);
@@ -822,7 +822,7 @@ void CIntDriver::AddIntDriverInstructions()
     OP_ENGVAL(475, ex_Video_length);
     OP_ENGVAL(476, ex_Video_width_height);
     OP_ENGVAL(477, ex_Video_width_height);
-    OP_DOUBLE(478, ex_ValueSet_removeDuplicates);
+    OP_ENGVAL(478, ex_ValueSet_removeDuplicates);
     OP_ENGVAL(479, ex_WorkVariable_compute);
     OP_DOUBLE(480, ex_Array_compute);
     OP_DOUBLE(481, ex_UserFunction_compute);

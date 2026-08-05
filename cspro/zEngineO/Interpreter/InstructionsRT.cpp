@@ -188,8 +188,8 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 124 */   OP_ID(exnmembers),
 /* 125 */   OP_ID(exnoopAbort),  // previously exset_output
 /* 126 */   OP_ID(exnoopAbort),  // previously exrecord
-/* 127 */   OP_LI(ex_minvalue_maxvalue), // minvalue
-/* 128 */   OP_LI(ex_minvalue_maxvalue), // maxvalue
+/* 127 */   OP(ex_minvalue_maxvalue), // minvalue
+/* 128 */   OP(ex_minvalue_maxvalue), // maxvalue
 /* 129 */   OP_ID(exfor_group),
 /* 130 */   OP_ID(exnoopAbort),  // previously extbd
 /* 131 */   OP_ID(exnoopAbort),  // GROUP_CODE
@@ -222,8 +222,8 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 157 */   OP_ID(exforbreak),       // RHC Sep 04, 2000
 /* 158 */   OP_ID(ex_setfile),
 /* 159 */   OP_ID(exmaxocc_pre80),
-/* 160 */   OP_LI(ex_invalueset),
-/* 161 */   OP_LI(ex_setvalueset),   // RHF Aug 28, 2002
+/* 160 */   OP(ex_invalueset),
+/* 161 */   OP(ex_setvalueset),   // RHF Aug 28, 2002
 
 // RHF INIC Oct 15, 2004
 /* 162 */   OP_ID(exfilecreate),
@@ -256,7 +256,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 185 */   OP_ID(exuserbar),          // GHM 20100414
 /* 186 */   OP_ID(exmessageoverrides), // GHM 20100518
 /* 187 */   OP_ID(ex_trace),           // GHM 20100518
-/* 188 */   OP_LI(ex_setvaluesets),    // GHM 20100523
+/* 188 */   OP(ex_setvaluesets),    // GHM 20100523
 /* 189 */   OP_ID(ExExecPFF),          // GHM 20100601
 /* 190 */   OP_ID(exseek),             // GHM 20100602
 /* 191 */   OP_ID(ex_getcapturetype),  // GHM 20100608
@@ -272,7 +272,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 201 */   OP_ID(ex_setcapturepos),   // GHM 20110502
 /* 202 */   OP(ex_abs),             // GHM 20110721
 /* 203 */   OP(ex_randomin),        // GHM 20110721
-/* 204 */   OP_LI(ex_randomizevs),     // GHM 20110811
+/* 204 */   OP(ex_randomizevs),     // GHM 20110811
 /* 205 */   OP(ex_getusername),     // GHM 20111028
 /* 206 */   OP_ID(exfileempty),        // GHM 20120627
 /* 207 */   OP_ID(ex_changekeyboard),  // GHM 20120820
@@ -300,7 +300,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 229 */   OP(ex_sysparm),         // GHM 20141217
 /* 230 */   OP(ex_connection),      // GHM 20150421
 /* 231 */   OP(ex_prompt),          // GHM 20150422
-/* 232 */   OP_ID(ex_getimage),        // GHM 20150809
+/* 232 */   OP(ex_getimage),        // GHM 20150809
 /* 233 */   OP(ex_round),           // GHM 20150821
 /* 234 */   OP_ID(exnoopAbort),        // GHM 20151130 an old implementation of exuuid ... now a publishdate placeholder
 /* 235 */   OP_ID(exsavepartial),      // GHM 20151216
@@ -382,11 +382,11 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 311 */   OP(ex_List_seek),
 /* 312 */   OP(ex_List_show),
 /* 313 */   OP(ex_List_compute),
-/* 314 */   OP_LI(ex_ValueSet_add),
-/* 315 */   OP_LI(ex_ValueSet_clear),
-/* 316 */   OP_LI(ex_ValueSet_remove),
-/* 317 */   OP_LI(ex_ValueSet_show),
-/* 318 */   OP_LI(ex_ValueSet_compute),
+/* 314 */   OP(ex_ValueSet_add),
+/* 315 */   OP(ex_ValueSet_clear),
+/* 316 */   OP(ex_ValueSet_remove),
+/* 317 */   OP(ex_ValueSet_show),
+/* 318 */   OP(ex_ValueSet_compute),
 /* 319 */   OP_ID(exvariablevalue),
 /* 320 */   OP_LI(ex_Map_clear_clearButtons_clearGeometry_clearMarkers), // Map.clearMarkers
 /* 321 */   OP_LI(ex_Map_clear_clearButtons_clearGeometry_clearMarkers), // Map.clearButtons
@@ -400,7 +400,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 329 */   OP(ex_Pff_load),
 /* 330 */   OP(ex_Pff_save),
 /* 331 */   OP(ex_Pff_setProperty),
-/* 332 */   OP_LI(ex_ValueSet_length),
+/* 332 */   OP(ex_ValueSet_length),
 /* 333 */   OP(ex_ischecked),
 /* 334 */   OP_ID(ex_protect),
 /* 335 */   OP(ex_when),
@@ -447,7 +447,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 376 */   OP(ex_HashMap_remove),
 /* 377 */   OP(ex_HashMap_getKeys),
 /* 378 */   OP_LI(ex_Audio_length),
-/* 379 */   OP_LI(ex_ValueSet_sort),
+/* 379 */   OP(ex_ValueSet_sort),
 /* 380 */   OP(ex_replace),
 /* 381 */   OP(ex_inc),
 /* 382 */   OP_ID(exuniverse),
@@ -546,7 +546,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 475 */   OP(ex_Video_length),
 /* 476 */   OP(ex_Video_width_height), // Video.width
 /* 477 */   OP(ex_Video_width_height), // Video.height
-/* 478 */   OP_LI(ex_ValueSet_removeDuplicates),
+/* 478 */   OP(ex_ValueSet_removeDuplicates),
 /* 479 */   OP(ex_WorkVariable_compute),
 /* 480 */   OP_LI(ex_Array_compute),
 /* 481 */   OP_LI(ex_UserFunction_compute),
