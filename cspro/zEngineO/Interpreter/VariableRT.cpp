@@ -116,6 +116,16 @@ bool LogicInterpreter::AssignValueToSymbol(const Nodes::SymbolValue& symbol_valu
 template ZENGINEO_API bool LogicInterpreter::AssignValueToSymbol<double>(const Nodes::SymbolValue& symbol_value_node, double value);
 template ZENGINEO_API bool LogicInterpreter::AssignValueToSymbol<SharableString>(const Nodes::SymbolValue& symbol_value_node, SharableString value);
 
+template<>
+ZENGINEO_API bool LogicInterpreter::AssignValueToSymbol<Engine::Value>(const Nodes::SymbolValue& symbol_value_node, Engine::Value value)
+{
+    const Symbol& symbol = NPT_Ref(symbol_value_node.symbol_index);
+    ASSERT(IsNumeric(symbol) || IsString(symbol));
+
+    return IsNumeric(symbol) ? AssignValueToSymbol(symbol_value_node, std::move(value).as<double>()) :
+                               AssignValueToSymbol(symbol_value_node, std::move(value).as<SharableString>());
+}
+
 
 template<typename T>
 T LogicInterpreter::EvaluateSymbolValue(const Nodes::SymbolValue& symbol_value_node)
@@ -232,6 +242,16 @@ T LogicInterpreter::EvaluateSymbolValue(const Nodes::SymbolValue& symbol_value_n
 
 template ZENGINEO_API double LogicInterpreter::EvaluateSymbolValue<double>(const Nodes::SymbolValue& symbol_value_node);
 template ZENGINEO_API SharableString LogicInterpreter::EvaluateSymbolValue<SharableString>(const Nodes::SymbolValue& symbol_value_nodevalue);
+
+template<>
+ZENGINEO_API Engine::Value LogicInterpreter::EvaluateSymbolValue(const Nodes::SymbolValue& symbol_value_node)
+{
+    const Symbol& symbol = NPT_Ref(symbol_value_node.symbol_index);
+    ASSERT(IsNumeric(symbol) || IsString(symbol));
+
+    return IsNumeric(symbol) ? Engine::Value(EvaluateSymbolValue<double>(symbol_value_node)) :
+                               Engine::Value(EvaluateSymbolValue<SharableString>(symbol_value_node));
+}
 
 
 template<typename T>

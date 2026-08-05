@@ -476,8 +476,8 @@ void CIntDriver::AddIntDriverInstructions()
     OP_DOUBLE(129, exfor_group);
     OP_DOUBLE(130, exnoopAbort);
     OP_DOUBLE(131, exnoopAbort);
-    OP_DOUBLE(132, exfucall);
-    OP_DOUBLE(133, ex_in);
+    OP_ENGVAL_ID(132, exfucall);
+    OP_ENGVAL(133, ex_in);
     OP_DOUBLE(134, ex_do);
     OP_DOUBLE(135, ex_impute);
     OP_DOUBLE(136, exfncurocc);
@@ -547,7 +547,7 @@ void CIntDriver::AddIntDriverInstructions()
     OP_DOUBLE(200, exgetrecord);
     OP_DOUBLE(201, ex_setcapturepos);
     OP_ENGVAL(202, ex_abs);
-    OP_DOUBLE(203, ex_randomin);
+    OP_ENGVAL(203, ex_randomin);
     OP_DOUBLE(204, ex_randomizevs);
     OP_ENGVAL(205, ex_getusername);
     OP_DOUBLE(206, exfileempty);
@@ -679,10 +679,10 @@ void CIntDriver::AddIntDriverInstructions()
     OP_DOUBLE(332, ex_ValueSet_length);
     OP_ENGVAL(333, ex_ischecked);
     OP_DOUBLE(334, ex_protect);
-    OP_DOUBLE(335, ex_when);
+    OP_ENGVAL(335, ex_when);
     OP_DOUBLE(336, ex_syncapp);
     OP_DOUBLE(337, exfiletime);
-    OP_DOUBLE(338, ex_recode);
+    OP_ENGVAL(338, ex_recode);
     OP_DOUBLE(339, exforcase);
     OP_DOUBLE(340, exselcase);
     OP_DOUBLE(341, excountcases);
@@ -995,8 +995,11 @@ void CIntDriver::ExecuteProcTable(int iCtab, ProcType proc_type)
 }
 
 
-bool CIntDriver::ExecuteProgramStatements(int program_index)
+template<typename T/* = bool*/>
+T CIntDriver::ExecuteProgramStatements(int program_index)
 {
+    std::optional<Engine::Value> last_evaluated_value;
+
     // execute a block of statements
     while( program_index >= 0 && !m_bStopExec )
     {
@@ -1004,7 +1007,7 @@ bool CIntDriver::ExecuteProgramStatements(int program_index)
 
         try
         {
-            ExecuteInstruction(static_cast<FunctionCode>(statement_node.st_code), program_index);
+            last_evaluated_value = ExecuteInstruction(static_cast<FunctionCode>(statement_node.st_code), program_index);
         }
 
         catch( LogicStackSaver& logic_stack_saver )
@@ -1021,11 +1024,29 @@ bool CIntDriver::ExecuteProgramStatements(int program_index)
         m_bStopExec = ( m_bSkipStmt || m_bStopProc );
 
         if( GetRequestIssued() )
-            return true;
+            break;
     }
 
-    // no request issued
-    return false;
+    // return whether a request was issued
+    if constexpr(std::is_same_v<T,bool>)
+    {
+        return GetRequestIssued();
+    }
+
+    // return the last evaluated value
+    else
+    {
+        if( last_evaluated_value.has_value() )
+            return std::move(*last_evaluated_value);
+
+        return Engine::Value::Undefined<double>();
+    }
+}
+
+
+Engine::Value CIntDriver::ExecuteInstructions(const int program_index)
+{
+    return ExecuteProgramStatements<Engine::Value>(program_index);
 }
 
 

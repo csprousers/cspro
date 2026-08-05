@@ -670,7 +670,7 @@ public:
     double  getMaxIndexForVariableUsingStack( VART* pVarT, REL_NODE* pRelNode );  // rcl, Dec 18, 2004
     //////////////////////////////////////////////////////////////////////////
     double  exdofor_relation( FORRELATION_NODE* pFor, double* dTableWeight=NULL, int* iTabLogicExpr=NULL, LIST_NODE* pListNode=NULL  ); // RHF Jul 03, 2002
-    double  exfucall(int iExpr);                      // RHF Aug 21, 2000
+    Engine::Value exfucall(int iExpr);                // RHF Aug 21, 2000
 
     double  exupdate(int iExpr);                      // RHF Nov 17, 2000
     double  exgetbuffer(int iExpr);                   // RHF Sep 21, 2001
@@ -896,7 +896,9 @@ public:
     bool ExecuteProcBlock(int iSymBlock, ProcType proc_type);
     void ExecuteProcTable(int iCtab, ProcType proc_type);
 
-    bool ExecuteProgramStatements(int program_index) override;
+    template<typename T = bool>
+    T ExecuteProgramStatements(int program_index);
+    Engine::Value ExecuteInstructions(int program_index) override;
 
     // runs the callback function and returns whether a movement or program control action has occurred;
     // any thrown ProgramControlException exceptions will be stored and can be processed by calling RethrowProgramControlExceptions

@@ -18,29 +18,10 @@ std::optional<std::tuple<const int*, const int*>> LogicInterpreter::EvaluateSwit
     const int* const actions = condition_checks + ( switch_node.number_actions * ( switch_node.number_condition_values * 2 ) );
 
     // calculate the condition values
-    std::vector<double> numeric_values;
-    std::vector<SharableString> string_values;
-    std::vector<size_t> value_indices;
+    std::vector<Engine::Value> values;
 
     for( int i = 0; i < switch_node.number_condition_values; ++i )
-    {
-        const DataType data_type = static_cast<DataType>(condition_values[i * 2]);
-        const int value_expression = condition_values[i * 2 + 1];
-
-        if( IsNumeric(data_type) )
-        {
-            value_indices.emplace_back(numeric_values.size());
-            numeric_values.emplace_back(Evaluate<double>(value_expression));
-        }
-
-        else
-        {
-            ASSERT(IsString(data_type));
-
-            value_indices.emplace_back(string_values.size());
-            string_values.emplace_back(Evaluate<SharableString>(value_expression));
-        }
-    }
+        values.emplace_back(Evaluate<Engine::Value>(condition_values[i * 2 + 1]));
 
     // check each condition
     for( int action_index = 0; action_index < switch_node.number_actions; ++action_index )
@@ -56,35 +37,33 @@ std::optional<std::tuple<const int*, const int*>> LogicInterpreter::EvaluateSwit
             if( token_code == TokenCode::Unspecified )
                 continue;
 
-            const DataType data_type = static_cast<DataType>(condition_values[i * 2]);
+            const Engine::Value& value = values[i];
+            ASSERT(( value.is<double>() && static_cast<DataType>(condition_values[i * 2]) == DataType::Numeric ) ||
+                   ( value.is<SharableString>() && static_cast<DataType>(condition_values[i * 2]) == DataType::String ));
 
             // numeric conditions
-            if( IsNumeric(data_type) )
+            if( value.is<double>() )
             {
-                const double lhs_value = numeric_values[value_indices[i]];
-
                 if( token_code == TokenCode::TOKIN )
                 {
-                    conditions_match = InWorker(expression, lhs_value);
+                    conditions_match = InWorker(expression, value.get<double>());
                 }
 
                 else
                 {
                     const double rhs_value = Evaluate<double>(expression);
-                    conditions_match = FloatingPointMath::Evaluate(token_code, lhs_value, rhs_value);
+                    conditions_match = FloatingPointMath::Evaluate(token_code, value.get<double>(), rhs_value);
                 }
             }
 
             // string conditions
             else
             {
-                ASSERT(IsString(data_type));
-
-                const SharableString& lhs_value = string_values[value_indices[i]];
+                ASSERT(value.is<SharableString>());
 
                 if( token_code == TokenCode::TOKIN )
                 {
-                    conditions_match = InWorker(expression, lhs_value);
+                    conditions_match = InWorker(expression, value.get<SharableString>());
                 }
 
                 else
@@ -97,8 +76,10 @@ std::optional<std::tuple<const int*, const int*>> LogicInterpreter::EvaluateSwit
                            token_code == TokenCode::TOKGTOP);
 
                     const SharableString rhs_value = Evaluate<SharableString>(expression);
-                    conditions_match = m_usingLogicSettingsV0 ? EngineStringComparer::V0::Evaluate(*lhs_value, *rhs_value, token_code) :
-                                                                EngineStringComparer::V8::Evaluate(*lhs_value, *rhs_value, token_code);
+
+                    conditions_match = m_usingLogicSettingsV0
+                        ? EngineStringComparer::V0::Evaluate(*value.get<SharableString>(), *rhs_value, token_code)
+                        : EngineStringComparer::V8::Evaluate(*value.get<SharableString>(), *rhs_value, token_code);
                 }
             }
         }
@@ -112,53 +93,42 @@ std::optional<std::tuple<const int*, const int*>> LogicInterpreter::EvaluateSwit
 }
 
 
-double LogicInterpreter::ex_when(const int program_index)
+Engine::Value LogicInterpreter::ex_when(const int program_index)
 {
     const std::optional<std::tuple<const int*, const int*>> destinations_and_actions = EvaluateSwitchConditions(program_index);
 
-    if( destinations_and_actions.has_value() )
-    {
-        const int* const action = std::get<1>(*destinations_and_actions);
-        ExecuteProgramStatements(*action);
-    }
+    if( !destinations_and_actions.has_value() )
+        return Engine::Value::Undefined<SharableString>();
 
-    return 0;
+    const int* const action = std::get<1>(*destinations_and_actions);
+
+    return ExecuteInstructions(*action);
 }
 
 
-double LogicInterpreter::ex_recode(const int program_index)
+Engine::Value LogicInterpreter::ex_recode(const int program_index)
 {
     const std::optional<std::tuple<const int*, const int*>> destinations_and_actions = EvaluateSwitchConditions(program_index);
 
-    if( destinations_and_actions.has_value() )
+    if( !destinations_and_actions.has_value() )
+        return Engine::Value::Undefined<SharableString>();
+
+    const auto& switch_node = GetNode<Nodes::Switch>(program_index);
+    const int* result_destination = std::get<0>(*destinations_and_actions);
+    const int* action = std::get<1>(*destinations_and_actions);
+    const Nodes::SymbolValue* symbol_value_node = nullptr;
+
+    for( int i = 0; i < switch_node.number_destinations; ++i, ++result_destination, ++action )
     {
-        const auto& switch_node = GetNode<Nodes::Switch>(program_index);
-        const int* result_destination = std::get<0>(*destinations_and_actions);
-        const int* action = std::get<1>(*destinations_and_actions);
-
-        for( int i = 0; i < switch_node.number_destinations; ++i, ++result_destination, ++action )
-        {
-            const auto& symbol_value_node = GetNode<Nodes::SymbolValue>(*result_destination);
-            const DataType data_type = SymbolCalculator::GetDataType(NPT_Ref(symbol_value_node.symbol_index));
-
-            if( IsNumeric(data_type) )
-            {
-                AssignValueToSymbol(symbol_value_node, Evaluate<double>(*action));
-            }
-
-            else if( IsString(data_type) )
-            {
-                AssignValueToSymbol(symbol_value_node, Evaluate<SharableString>(*action));
-            }
-
-            else
-            {
-                throw ProgrammingErrorException();
-            }
-        }
+        symbol_value_node = &GetNode<Nodes::SymbolValue>(*result_destination);
+        AssignValueToSymbol(*symbol_value_node, Evaluate<Engine::Value>(*action));
     }
 
-    return 0;
+    // return the value of the last assignment
+    if( symbol_value_node != nullptr )
+        return EvaluateSymbolValue<Engine::Value>(*symbol_value_node);
+
+    return ReturnProgrammingError(Engine::Value::Undefined<SharableString>());
 }
 
 
@@ -266,37 +236,45 @@ bool LogicInterpreter::InWorker(const int in_node_expression, const std::variant
 }
 
 
-double LogicInterpreter::ex_in(const int program_index)
+Engine::Value LogicInterpreter::ex_in(const int program_index)
 {
     if( m_engineData->MeetsCompiledLogicVersion(Serializer::Iteration_8_0_000_1) )
     {
         const auto& in_node = GetNode<Nodes::In>(program_index);
-        return InWorker(in_node.right_expr, EvaluateVariant(in_node.data_type, in_node.left_expr));
+
+        return Engine::Value::Bool(
+            InWorker(in_node.right_expr, EvaluateVariant(in_node.data_type, in_node.left_expr))
+        );
     }
 
     else
     {
         const auto& operator_node = GetNode<Nodes::Operator>(program_index);
-        const DataType data_type = ( GetNode<Nodes::Operator>(operator_node.left_expr).oper == CHOBJ_CODE ) ? DataType::String : DataType::Numeric;
-        return InWorker(operator_node.right_expr, EvaluateVariant(data_type, operator_node.left_expr));
+        const DataType data_type = ( GetNode<Nodes::Operator>(operator_node.left_expr).oper == CHOBJ_CODE )
+            ? DataType::String
+            : DataType::Numeric;
+
+        return Engine::Value::Bool(
+            InWorker(operator_node.right_expr, EvaluateVariant(data_type, operator_node.left_expr))
+        );
     }
 }
 
 
-double LogicInterpreter::ex_randomin(const int program_index)
+Engine::Value LogicInterpreter::ex_randomin(const int program_index)
 {
     const auto& fnn_node = GetNode<FNN_NODE>(program_index);
     const Nodes::In::Entry* in_node_entry = &GetNode<Nodes::In::Entry>(fnn_node.fn_expr[0]);
 
     struct RandomInRange
     {
-        RandomInRange(double low_value_)
+        RandomInRange(const double low_value_)
             :   low_value(low_value_),
                 values_in_range(1)
         {
         }
 
-        RandomInRange(int low_value_, int high_value_)
+        RandomInRange(const int low_value_, const int high_value_)
             :   low_value(low_value_),
                 values_in_range(high_value_ - low_value_ + 1)
         {
@@ -397,5 +375,5 @@ double LogicInterpreter::ex_randomin(const int program_index)
         }
     }
 
-    return DEFAULT;
+    return Engine::Value::Invalid<double>();
 }

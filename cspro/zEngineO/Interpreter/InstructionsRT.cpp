@@ -194,7 +194,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 130 */   OP_ID(exnoopAbort),  // previously extbd
 /* 131 */   OP_ID(exnoopAbort),  // GROUP_CODE
 /* 132 */   OP_ID(exfucall),
-/* 133 */   OP_LI(ex_in),        // RHC Oct 16, 2000
+/* 133 */   OP(ex_in),        // RHC Oct 16, 2000
 /* 134 */   OP_ID(ex_do),        // RHC Oct 16, 2000
 /* 135 */   OP_ID(ex_impute),    // RHF Oct 25, 2000
 /* 136 */   OP_ID(exfncurocc),   // RHC Oct 16, 2000
@@ -271,7 +271,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 200 */   OP_ID(exgetrecord),        // GHM 20110302
 /* 201 */   OP_ID(ex_setcapturepos),   // GHM 20110502
 /* 202 */   OP(ex_abs),             // GHM 20110721
-/* 203 */   OP_LI(ex_randomin),        // GHM 20110721
+/* 203 */   OP(ex_randomin),        // GHM 20110721
 /* 204 */   OP_LI(ex_randomizevs),     // GHM 20110811
 /* 205 */   OP(ex_getusername),     // GHM 20111028
 /* 206 */   OP_ID(exfileempty),        // GHM 20120627
@@ -403,10 +403,10 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 332 */   OP_LI(ex_ValueSet_length),
 /* 333 */   OP(ex_ischecked),
 /* 334 */   OP_ID(ex_protect),
-/* 335 */   OP_LI(ex_when),
+/* 335 */   OP(ex_when),
 /* 336 */   OP_ID(ex_syncapp),
 /* 337 */   OP_ID(exfiletime),
-/* 338 */   OP_LI(ex_recode),
+/* 338 */   OP(ex_recode),
 /* 339 */   OP_ID(exforcase),
 /* 340 */   OP_ID(exselcase),
 /* 341 */   OP_ID(excountcases),

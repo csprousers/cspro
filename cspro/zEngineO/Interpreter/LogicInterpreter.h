@@ -81,6 +81,8 @@ public:
     Engine::Value ExecuteInstruction(FunctionCode function_code, int program_index);
     Engine::Value ExecuteInstruction(int program_index);
 
+    virtual Engine::Value ExecuteInstructions(int program_index) = 0; // INTERPRETER_DLL_TODO remove as virtual
+
 protected:
     using Instruction = std::variant<Engine::Value (LogicInterpreter::*)(int),
                                      double (LogicInterpreter::*)(int),
@@ -659,11 +661,11 @@ public:
     // (SwitchRT.cpp)
     // --------------------------------------------------------------------------
 public:
-    double ex_recode(int program_index);
-    double ex_when(int program_index);
+    Engine::Value ex_recode(int program_index);
+    Engine::Value ex_when(int program_index);
 
-    double ex_in(int program_index);
-    double ex_randomin(int program_index);
+    Engine::Value ex_in(int program_index);
+    Engine::Value ex_randomin(int program_index);
 
 private:
     std::optional<std::tuple<const int*, const int*>> EvaluateSwitchConditions(int program_index);
@@ -823,7 +825,6 @@ private:
                                       const std::vector<CString>* paColumnTitles, std::vector<bool>* pbaSelections,
                                       const std::vector<PortableColor>* row_text_colors) = 0;
     virtual EngineParadataDriver& GetEngineParadataDriver_INTERPRETER_DLL_TODO() = 0;
-    virtual bool ExecuteProgramStatements(int program_index) = 0; // INTERPRETER_DLL_TODO remove as virtual
     virtual void ExecuteCallbackUserFunction(int field_symbol_index, UserFunctionArgumentEvaluator& argument_evaluator) = 0; // INTERPRETER_DLL_TODO remove as virtual
     virtual std::unique_ptr<UserFunctionArgumentEvaluator> EvaluateArgumentsForCallbackUserFunction(int program_index, FunctionCode function_code) = 0; // INTERPRETER_DLL_TODO remove as virtual
     virtual Engine::Value ex_Freq_view(const NamedFrequency& named_frequency, const ViewerOptions* viewer_options, int frequency_parameters_node_index) = 0; // INTERPRETER_DLL_TODO remove as virtual

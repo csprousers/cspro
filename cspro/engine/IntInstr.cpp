@@ -38,13 +38,10 @@
 #pragma warning( once: 4244 )
 
 
-double CIntDriver::exfucall(int iExpr)
+Engine::Value CIntDriver::exfucall(int iExpr)
 {
     const auto& function_call_node = GetNode<Nodes::FunctionCall>(iExpr);
-
-    evalexpr(function_call_node.expression);
-
-    return 0;
+    return ExecuteInstruction(function_call_node.expression);
 }
 
 
