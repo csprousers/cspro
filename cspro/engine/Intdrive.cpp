@@ -750,10 +750,10 @@ void CIntDriver::AddIntDriverInstructions()
     OP_ENGVAL(403, ex_Image_captureSignature_takePhoto);
     OP_ENGVAL(404, ex_Image_view);
     OP_ENGVAL(405, ex_Image_width_height);
-    OP_DOUBLE(406, ex_Document_compute);
-    OP_DOUBLE(407, ex_Document_clear);
-    OP_DOUBLE(408, ex_Document_load);
-    OP_DOUBLE(409, ex_Document_save);
+    OP_ENGVAL(406, ex_Document_compute);
+    OP_ENGVAL(407, ex_Document_clear);
+    OP_ENGVAL(408, ex_Document_load);
+    OP_ENGVAL(409, ex_Document_save);
     OP_ENGVAL(410, ex_Document_view);
     OP_DOUBLE(411, ex_Geometry_compute);
     OP_DOUBLE(412, ex_Geometry_clear);

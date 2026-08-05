@@ -474,10 +474,10 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 403 */   OP(ex_Image_captureSignature_takePhoto), // Image.takePhoto
 /* 404 */   OP(ex_Image_view),
 /* 405 */   OP(ex_Image_width_height), // Image.width
-/* 406 */   OP_LI(ex_Document_compute),
-/* 407 */   OP_LI(ex_Document_clear),
-/* 408 */   OP_LI(ex_Document_load),
-/* 409 */   OP_LI(ex_Document_save),
+/* 406 */   OP(ex_Document_compute),
+/* 407 */   OP(ex_Document_clear),
+/* 408 */   OP(ex_Document_load),
+/* 409 */   OP(ex_Document_save),
 /* 410 */   OP(ex_Document_view),
 /* 411 */   OP_LI(ex_Geometry_compute),
 /* 412 */   OP_LI(ex_Geometry_clear),

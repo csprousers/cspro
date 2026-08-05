@@ -371,10 +371,10 @@ public:
     // (DocumentRT.cpp)
     // --------------------------------------------------------------------------
 public:
-    double ex_Document_compute(int program_index);
-    double ex_Document_clear(int program_index);
-    double ex_Document_load(int program_index);
-    double ex_Document_save(int program_index);
+    Engine::Value ex_Document_compute(int program_index);
+    Engine::Value ex_Document_clear(int program_index);
+    Engine::Value ex_Document_load(int program_index);
+    Engine::Value ex_Document_save(int program_index);
     Engine::Value ex_Document_view(int program_index);
     Engine::Value ex_Document_view(const LogicDocument& logic_document, const ViewerOptions* viewer_options);
 
