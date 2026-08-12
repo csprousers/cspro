@@ -298,13 +298,13 @@ private:
     // (ArrayRT.cpp)
     // --------------------------------------------------------------------------
 public:
-    double ex_Array_var(int program_index);
-    double ex_Array_compute(int program_index);
-    double ex_Array_clear(int program_index);
-    double ex_Array_length(int program_index);
+    Engine::Value ex_Array_var(int program_index);
+    Engine::Value ex_Array_compute(int program_index);
+    Engine::Value ex_Array_clear(int program_index);
+    Engine::Value ex_Array_length(int program_index);
 
 protected: // INTERPRETER_DLL_TODO change to private
-    double ex_Array_length(const LogicArray& logic_array, size_t dimension);
+    Engine::Value ex_Array_length(const LogicArray& logic_array, size_t dimension);
 
     // Returns the index, or an empty vector if the index is invalid.
     std::vector<size_t> EvaluateArrayIndex(int arrayvar_node_expression, LogicArray** out_logic_array);

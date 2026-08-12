@@ -345,15 +345,15 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 274 */   OP_ID(exsymbolreset),
 /* 275 */   OP(ex_decryptstring),
 /* 276 */   OP_ID(exdirdelete),
-/* 277 */   OP_LI(ex_Array_var),
+/* 277 */   OP(ex_Array_var),
 /* 278 */   OP_ID(extvar),
 /* 279 */   OP_ID(ex_exit),
 /* 280 */   OP_ID(ex_getbluetoothname),
 /* 281 */   OP(ex_regexmatch),
 /* 282 */   OP_ID(exnoopAbort), // BLOCK_CODE
 /* 283 */   OP_ID(exgetvaluelabel),
-/* 284 */   OP_LI(ex_Array_clear),
-/* 285 */   OP_LI(ex_Array_length),
+/* 284 */   OP(ex_Array_clear),
+/* 285 */   OP(ex_Array_length),
 /* 286 */   OP_LI(ex_Map_show),
 /* 287 */   OP_LI(ex_Map_hide),
 /* 288 */   OP_LI(ex_Map_addMarker),
@@ -548,7 +548,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 477 */   OP(ex_Video_width_height), // Video.height
 /* 478 */   OP(ex_ValueSet_removeDuplicates),
 /* 479 */   OP(ex_WorkVariable_compute),
-/* 480 */   OP_LI(ex_Array_compute),
+/* 480 */   OP(ex_Array_compute),
 /* 481 */   OP_LI(ex_UserFunction_compute),
 
 

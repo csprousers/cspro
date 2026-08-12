@@ -621,15 +621,15 @@ void CIntDriver::AddIntDriverInstructions()
     OP_DOUBLE(274, exsymbolreset);
     OP_ENGVAL(275, ex_decryptstring);
     OP_DOUBLE(276, exdirdelete);
-    OP_DOUBLE(277, ex_Array_var);
+    OP_ENGVAL(277, ex_Array_var);
     OP_DOUBLE(278, extvar);
     OP_DOUBLE(279, ex_exit);
     OP_DOUBLE(280, ex_getbluetoothname);
     OP_ENGVAL(281, ex_regexmatch);
     OP_DOUBLE(282, exnoopAbort);
     OP_DOUBLE(283, exgetvaluelabel);
-    OP_DOUBLE(284, ex_Array_clear);
-    OP_DOUBLE(285, ex_Array_length);
+    OP_ENGVAL(284, ex_Array_clear);
+    OP_ENGVAL(285, ex_Array_length);
     OP_DOUBLE(286, ex_Map_show);
     OP_DOUBLE(287, ex_Map_hide);
     OP_DOUBLE(288, ex_Map_addMarker);
@@ -824,7 +824,7 @@ void CIntDriver::AddIntDriverInstructions()
     OP_ENGVAL(477, ex_Video_width_height);
     OP_ENGVAL(478, ex_ValueSet_removeDuplicates);
     OP_ENGVAL(479, ex_WorkVariable_compute);
-    OP_DOUBLE(480, ex_Array_compute);
+    OP_ENGVAL(480, ex_Array_compute);
     OP_DOUBLE(481, ex_UserFunction_compute);
     OP_DOUBLE(482, exnoopAbortPlaceholderForFutureFunction);
     OP_DOUBLE(483, exnoopAbortPlaceholderForFutureFunction);
