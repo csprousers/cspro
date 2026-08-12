@@ -524,14 +524,14 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 453 */   OP_ID(exItem_hasValue_isValid), // Item.isValid
 /* 454 */   OP(ex_compareNoCase),
 /* 455 */   OP_ID(exCase_view),
-/* 456 */   OP_LI(ex_JavaScript_eval),
-/* 457 */   OP_LI(ex_JavaScript_invoke),
-/* 458 */   OP_LI(ex_JavaScript_hasValue),
-/* 459 */   OP_LI(ex_JavaScript_getValueJson),
-/* 460 */   OP_LI(ex_JavaScript_setValueFromJson),
-/* 461 */   OP_LI(ex_JavaScript_getValue),
-/* 462 */   OP_LI(ex_JavaScript_setValue),
-/* 463 */   OP_LI(ex_JavaScript_UserFunctionCall),
+/* 456 */   OP(ex_JavaScript_eval),
+/* 457 */   OP(ex_JavaScript_invoke),
+/* 458 */   OP(ex_JavaScript_hasValue),
+/* 459 */   OP(ex_JavaScript_getValueJson),
+/* 460 */   OP(ex_JavaScript_setValueFromJson),
+/* 461 */   OP(ex_JavaScript_getValue),
+/* 462 */   OP(ex_JavaScript_setValue),
+/* 463 */   OP(ex_JavaScript_UserFunctionCall),
 /* 464 */   OP(ex_TextTemplate_write_writeEncoded_writeEncodedLine_writeLine), // Report/StringWriter.write
 /* 465 */   OP(ex_TextTemplate_write_writeEncoded_writeEncodedLine_writeLine), // Report/StringWriter.writeEncoded
 /* 466 */   OP(ex_TextTemplate_write_writeEncoded_writeEncodedLine_writeLine), // Report/StringWriter.writeEncodedLine

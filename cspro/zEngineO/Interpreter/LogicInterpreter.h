@@ -475,18 +475,17 @@ private:
     // (JavaScriptRT.cpp)
     // --------------------------------------------------------------------------
 public:
-    double ex_JavaScript_eval(int program_index);
-    double ex_JavaScript_invoke(int program_index);
-    double ex_JavaScript_hasValue(int program_index);
-    double ex_JavaScript_getValueJson(int program_index);
-    double ex_JavaScript_setValueFromJson(int program_index);
-    double ex_JavaScript_getValue(int program_index);
-    double ex_JavaScript_setValue(int program_index);
-    double ex_JavaScript_UserFunctionCall(int program_index);
+    Engine::Value ex_JavaScript_eval(int program_index);
+    Engine::Value ex_JavaScript_invoke(int program_index);
+    Engine::Value ex_JavaScript_hasValue(int program_index);
+    Engine::Value ex_JavaScript_getValueJson(int program_index);
+    Engine::Value ex_JavaScript_setValueFromJson(int program_index);
+    Engine::Value ex_JavaScript_getValue(int program_index);
+    Engine::Value ex_JavaScript_setValue(int program_index);
+    Engine::Value ex_JavaScript_UserFunctionCall(int program_index);
 
 private:
-    template<typename CF>
-    auto ExecuteWithJavaScriptProcessor(const CF& callback_function);
+    Engine::Value ExecuteWithJavaScriptProcessor(const std::function<Engine::Value(EngineJavaScriptProcessor&)>& callback_function);
 
     std::optional<JavaScript::Value> ConvertValueToJavaScript(EngineJavaScriptProcessor& javascript_processor,
                                                               int symbol_type_or_index, int expression_or_symbol_subscript_compilation);
