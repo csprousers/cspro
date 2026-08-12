@@ -2,6 +2,7 @@
 #include "IncludesRT.h"
 #include "Report.h"
 #include "Nodes/Report.h"
+#include <engine/InterpreterAccessor.h>
 #include <zUtilO/TemporaryFile.h>
 #include <zViewO/MarkdownViewInput.h>
 
@@ -89,23 +90,23 @@ std::unique_ptr<std::string> LogicInterpreter::GenerateReport(Report& report, co
         report.SetReportTextBuilder(report_text_builder.get());
 
 #ifdef INTERPRETER_DLL_TODO
-        const bool program_control_executed = Execute(
+        const InterpreterExecuteResult execute_result = Execute(
             [&]()
             {
                 // run the code to generate the report
                 ValueConserver field_symbol_index_conserver(m_FieldSymbol, m_iExSymbol);
                 ValueConserver execution_symbol_index_conserver(m_iExSymbol, report.GetSymbolIndex());
 
-                ExecuteProgramStatements(report.GetProgramIndex());
+                return ExecuteProgramStatements<Engine::Value>(report.GetProgramIndex());
             });
 #else
-        const bool program_control_executed = Report_Evaluate_INTERPRETER_DLL_TODO(report);
+        const InterpreterExecuteResult execute_result = Report_Evaluate_INTERPRETER_DLL_TODO(report);
 #endif
 
         report.SetReportTextBuilder(nullptr);
 
         // if there was a program control statement executed, act as though the report could not be generated
-        if( program_control_executed )
+        if( execute_result.program_control_executed )
         {
             report_text_builder.reset();
         }

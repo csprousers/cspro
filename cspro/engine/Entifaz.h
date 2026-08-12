@@ -26,6 +26,7 @@
 #include <zIssaLib/CsDriver.h>
 #include <zEntryO/CapiHandler.h>
 
+namespace Engine { class Value; }
 namespace SpecialFunction { enum class Code : int; }
 
 
@@ -143,7 +144,7 @@ public:
     int     C_GetMaxNumLevel();
 
     bool    HasSpecialFunction(SpecialFunction::Code special_function);
-    double  ExecSpecialFunction(int symbol_index, SpecialFunction::Code special_function, double argument);
+    Engine::Value ExecSpecialFunction(int symbol_index, SpecialFunction::Code special_function, double argument);
     void    RunGlobalOnFocus(int symbol_index);
 
     C3DObject* CallCsDriverBrain();               // victor Dec 10, 01

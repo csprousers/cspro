@@ -233,6 +233,16 @@ JavaScript::Value EngineJavaScriptProcessor::CreateValue(const std::variant<doub
 }
 
 
+JavaScript::Value EngineJavaScriptProcessor::CreateValue(const Engine::Value& value)
+{
+    if( value.is<double>() )
+        return CreateValue(value.get<double>());
+
+    ASSERT(value.is<SharableString>());
+    return CreateValue(value.as<SharableString>());
+}
+
+
 JavaScript::Value EngineJavaScriptProcessor::CreateValue(const Symbol& symbol)
 {
     switch( symbol.GetType() )

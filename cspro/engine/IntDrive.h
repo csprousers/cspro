@@ -45,7 +45,6 @@ class CSubTable;
 class DictValue;
 enum class FieldStatus : int;
 class ImputationDriver;
-struct InterpreterExecuteResult;
 class ItemIndex;
 class KeyboardLoader;
 class LoopStack;
@@ -311,7 +310,7 @@ public:
 
     // --- basic interpreter functions
 public:
-    double CallUserFunction(UserFunction& user_function, UserFunctionArgumentEvaluator& argument_evaluator);
+    Engine::Value CallUserFunction(UserFunction& user_function, UserFunctionArgumentEvaluator& argument_evaluator);
     void ExecuteCallbackUserFunction(int field_symbol_index, UserFunctionArgumentEvaluator& argument_evaluator) override;
 private:
     std::unique_ptr<UserFunctionArgumentEvaluator> EvaluateArgumentsForCallbackUserFunction(int program_index, FunctionCode function_code) override;
@@ -342,8 +341,8 @@ public:
 
     double  extvar(int iExpr);
 
-    double  exuserfunctioncall(int program_index);
-    double  ex_invoke(int program_index);
+    Engine::Value ex_UserFunction_call(int program_index);
+    Engine::Value ex_invoke(int program_index);
     template<typename T>
     InterpreterExecuteResult RunInvoke(std::string_view function_name_sv, const T& variable_arguments, CancelFlag* cancel_flag);
 
@@ -900,14 +899,12 @@ public:
     T ExecuteProgramStatements(int program_index);
     Engine::Value ExecuteInstructions(int program_index) override;
 
-    // runs the callback function and returns whether a movement or program control action has occurred;
-    // any thrown ProgramControlException exceptions will be stored and can be processed by calling RethrowProgramControlExceptions
+    // Runs the callback function and returns the evaluation result, including a flag
+    // indicating whether a movement or program control action has occurred.
+    // Any thrown ProgramControlException exceptions will be stored and can be processed
+    // by calling RethrowProgramControlExceptions.
     template<typename CF>
-    bool Execute(CF callback_function);
-
-    // calls Execute and converts the callback function's result to a string
-    template<typename CF>
-    InterpreterExecuteResult Execute(DataType callback_result_data_type, CF callback_function);
+    InterpreterExecuteResult Execute(CF callback_function);
 
 
     // scope functions
@@ -928,7 +925,7 @@ private:
 
 public:
     bool HasSpecialFunction(SpecialFunction::Code special_function) override;
-    double ExecSpecialFunction(int symbol_index, SpecialFunction::Code special_function, std::vector<std::variant<double, SharableString>> arguments) override;
+    Engine::Value ExecSpecialFunction(int symbol_index, SpecialFunction::Code special_function, std::vector<std::variant<double, SharableString>> arguments) override;
 
     bool ExecuteOnSystemMessage(MessageType message_type, int message_number, const std::string& message_text);
 
@@ -960,7 +957,7 @@ private:
     void RegisterAndLogEvent_INTERPRETER_DLL_TODO(std::shared_ptr<Paradata::Event> event, const void* instance_object = nullptr) override;
     void IssueMessageWorker(MessageType message_type, int message_number, ...) override;
     std::string GetFormattedMessageWorker(int message_number, ...) override;
-    bool Report_Evaluate_INTERPRETER_DLL_TODO(Report& report) override;
+    InterpreterExecuteResult Report_Evaluate_INTERPRETER_DLL_TODO(Report& report) override;
     Engine::Value RunSoonToBeRemovedFeature(std::string_view feature_sv, int program_index, void* tag) override;
     int Get_m_iExSymbol_INTERPRETER_DLL_TODO() override { return m_iExSymbol; }
     bool IsExecutionInterrupted() const override;

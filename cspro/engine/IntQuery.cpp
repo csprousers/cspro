@@ -644,16 +644,17 @@ void CIntDriver::ProcessSqlCallbackFunction(UserFunction& user_function, void* c
     ASSERT(user_function.GetNumberParameters() == static_cast<size_t>(iArgC));
 
     SqlQueryUserFunctionArgumentEvaluator argument_evaluator(iArgC, reinterpret_cast<sqlite3_value**>(void_ppArgV));
-    const double return_value = CallUserFunction(user_function, argument_evaluator);
+    const Engine::Value return_value = CallUserFunction(user_function, argument_evaluator);
 
-    if( user_function.GetReturnType() == SymbolType::WorkVariable )
+    if( return_value.is<double>() )
     {
-        sqlite3_result_double(context, return_value);
+        sqlite3_result_double(context, return_value.get<double>());
     }
 
     else
     {
-        const SharableString value = GetWorkingSharableString(return_value);
+        ASSERT(return_value.is<SharableString>());
+        const SharableString value = return_value.as<SharableString>();
         sqlite3_result_text(context, value->c_str(), value->length(), SQLITE_TRANSIENT);
     }
 }

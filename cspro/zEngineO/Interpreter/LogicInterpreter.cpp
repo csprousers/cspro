@@ -112,17 +112,3 @@ double LogicInterpreter::AssignInvalidValue(const DataType data_type)
         return AssignStringNull();
     }
 }
-
-
-double LogicInterpreter::AssignVariantValue(std::variant<double, SharableString>&& value)
-{
-    return std::holds_alternative<double>(value) ? std::get<double>(value) :
-                                                   AssignString(std::move(std::get<SharableString>(value)));
-}
-
-
-double LogicInterpreter::AssignVariantValue(const std::variant<double, SharableString>& value)
-{
-    return std::holds_alternative<double>(value) ? std::get<double>(value) :
-                                                   AssignString(std::get<SharableString>(value));
-}

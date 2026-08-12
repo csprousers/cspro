@@ -187,7 +187,8 @@ T LogicInterpreter::EvaluateSymbolValue(const Nodes::SymbolValue& symbol_value_n
         case SymbolType::UserFunction:
         {
             const UserFunction& user_function = GetSymbolUserFunction(symbol_value_node.symbol_index);
-            return std::get<T>(user_function.GetReturnValue());
+            ASSERT(user_function.GetReturnValue().is<T>());
+            return user_function.GetReturnValue().get<T>();
         }
 
         // variable
@@ -326,8 +327,9 @@ Engine::Value LogicInterpreter::ModifySymbolValue(const Nodes::SymbolValue& symb
         case SymbolType::UserFunction:
         {
             UserFunction& user_function = GetSymbolUserFunction(symbol_value_node.symbol_index);
+            ASSERT(user_function.GetReturnValue().is<T>());
 
-            T value = std::get<T>(user_function.GetReturnValue());
+            T value = user_function.GetReturnValue().get<T>();
             modify_value_function(value);
             user_function.SetReturnValue(value);
 

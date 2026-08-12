@@ -381,7 +381,7 @@ void CIntDriver::AddIntDriverInstructions()
     OP_DOUBLE(34, excpttbl);
     OP_DOUBLE(35, exnoopAbort);
     OP_DOUBLE(36, exnoopAbort);
-    OP_DOUBLE(37, exuserfunctioncall);
+    OP_ENGVAL_ID(37, ex_UserFunction_call);
     OP_DOUBLE(38, exnoopAbort);
     OP_DOUBLE(39, exnoopAbort);
     OP_DOUBLE(40, exskipto);
@@ -778,7 +778,7 @@ void CIntDriver::AddIntDriverInstructions()
     OP_ENGVAL(431, ex_htmldialog);
     OP_DOUBLE(432, ex_Path_getRelativePath);
     OP_DOUBLE(433, ex_Path_selectFile);
-    OP_DOUBLE(434, ex_invoke);
+    OP_ENGVAL_ID(434, ex_invoke);
     OP_ENGVAL(435, ex_Report_save);
     OP_ENGVAL(436, ex_Report_view);
     OP_ENGVAL(437, ex_TextTemplate_write_writeEncoded_writeEncodedLine_writeLine);
@@ -791,7 +791,7 @@ void CIntDriver::AddIntDriverInstructions()
     OP_DOUBLE(444, exScopeChange);
     OP_DOUBLE(445, exdictaccess);
     OP_ENGVAL(446, ex_WorkString_compute);
-    OP_DOUBLE(447, ex_ActionInvoker);
+    OP_ENGVAL(447, ex_ActionInvoker);
     OP_ENGVAL(448, ex_Symbol_getName);
     OP_ENGVAL(449, ex_Symbol_getLabel);
     OP_DOUBLE(450, ex_Map_clear_clearButtons_clearGeometry_clearMarkers);
@@ -825,7 +825,7 @@ void CIntDriver::AddIntDriverInstructions()
     OP_ENGVAL(478, ex_ValueSet_removeDuplicates);
     OP_ENGVAL(479, ex_WorkVariable_compute);
     OP_ENGVAL(480, ex_Array_compute);
-    OP_DOUBLE(481, ex_UserFunction_compute);
+    OP_ENGVAL(481, ex_UserFunction_compute);
     OP_DOUBLE(482, exnoopAbortPlaceholderForFutureFunction);
     OP_DOUBLE(483, exnoopAbortPlaceholderForFutureFunction);
     OP_DOUBLE(484, exnoopAbortPlaceholderForFutureFunction);
@@ -1250,25 +1250,24 @@ bool CIntDriver::HasSpecialFunction(const SpecialFunction::Code special_function
 }
 
 
-double CIntDriver::ExecSpecialFunction(const int iSymVar, const SpecialFunction::Code special_function,
-                                       std::vector<std::variant<double, SharableString>> arguments)
+Engine::Value CIntDriver::ExecSpecialFunction(const int iSymVar, const SpecialFunction::Code special_function,
+                                              std::vector<std::variant<double, SharableString>> arguments)
 {
     UserFunction* const user_function = GetSpecialFunctions()[static_cast<size_t>(special_function)];
 
     if( user_function == nullptr )
     {
-        ASSERT(false);
         const SpecialFunction::Definition& definition = SpecialFunction::GetDefinitions()[static_cast<size_t>(special_function)];
-        return AssignInvalidValue(
+        return ReturnProgrammingError(Engine::Value::Invalid(
             ( definition.returns == SymbolType::WorkVariable ) ? DataType::Numeric :
             ( definition.returns == SymbolType::WorkString )   ? DataType::String :
                                                                  ReturnProgrammingError(DataType::Numeric)
-        );
+        ));
     }
 
     // if there is no function body, return the default value
     if( user_function->GetProgramIndex() < 0 )
-        return AssignInvalidValue(user_function->GetReturnDataType());
+        return Engine::Value::Invalid(user_function->GetReturnDataType());
 
     // Now Execute the code
     m_bSkipStmt = false; // RHF Sep 20, 2000.
@@ -1277,14 +1276,14 @@ double CIntDriver::ExecSpecialFunction(const int iSymVar, const SpecialFunction:
     // So the PreProc of the Roster is not executed (see DeSetNextField GroupCompletion
     // is not called when m_bSkipStmt is true.!!!
     if( m_bStopProc )
-        return AssignInvalidValue(user_function->GetReturnDataType());
+        return Engine::Value::Invalid(user_function->GetReturnDataType());
 
     // TODO: make sure that all functions can work properly when m_iExSymbol is 0; for
     // now only allow this in OnSystemMessage because that is an obscure feature (and if
     // m_iExSymbol is 0, we will activate the special function checking that keeps things
     // like movement statements from executing)
     if( iSymVar <= 0 && special_function != SpecialFunction::Code::OnSystemMessage )
-        return AssignInvalidValue(user_function->GetReturnDataType());
+        return Engine::Value::Invalid(user_function->GetReturnDataType());
 
     const RAII::SetValueAndRestoreOnDestruction proc_type_modifier(m_procType, ProcType::OnFocus);
     const RAII::SetValueAndRestoreOnDestruction symbol_modifier(m_iExSymbol, iSymVar);
@@ -1298,7 +1297,7 @@ double CIntDriver::ExecSpecialFunction(const int iSymVar, const SpecialFunction:
     m_bExecSpecFunc = ( special_function == SpecialFunction::Code::GlobalOnFocus || m_iExSymbol <= 0 );
 
     NumericStringValuesOnlyUserFunctionArgumentEvaluator<false> argument_evaluator(std::move(arguments));
-    const double return_value = CallUserFunction(*user_function, argument_evaluator);
+    Engine::Value return_value = CallUserFunction(*user_function, argument_evaluator);
 
     m_bExecSpecFunc = false;
 
@@ -1350,7 +1349,13 @@ bool CIntDriver::ExecuteOnSystemMessage(const MessageType message_type, const in
 
     if( ++infinite_loop_prevention <= RecursionCountMax )
     {
-        issue_message = ( ExecSpecialFunction(m_iExSymbol, SpecialFunction::Code::OnSystemMessage, arguments) != 0 );
+        const Engine::Value on_system_message_result = ExecSpecialFunction(
+            m_iExSymbol, SpecialFunction::Code::OnSystemMessage, arguments
+        );
+
+        ASSERT(on_system_message_result.is<double>());
+
+        issue_message = ( on_system_message_result.as<double>() != 0 );
         --infinite_loop_prevention;
     }
 
@@ -1462,7 +1467,7 @@ std::string CIntDriver::GetFormattedMessageWorker(const int message_number, ...)
 
 #include "EngineExecutor.h"
 #include <zToolsO/ValueConserver.h>
-bool CIntDriver::Report_Evaluate_INTERPRETER_DLL_TODO(Report& report)
+InterpreterExecuteResult CIntDriver::Report_Evaluate_INTERPRETER_DLL_TODO(Report& report)
 {
     return Execute(
         [&]()
@@ -1471,7 +1476,7 @@ bool CIntDriver::Report_Evaluate_INTERPRETER_DLL_TODO(Report& report)
             ValueConserver field_symbol_index_conserver(m_FieldSymbol, m_iExSymbol);
             ValueConserver execution_symbol_index_conserver(m_iExSymbol, report.GetSymbolIndex());
 
-            ExecuteProgramStatements(report.GetProgramIndex());
+            return ExecuteProgramStatements<Engine::Value>(report.GetProgramIndex());
         });
 }
 

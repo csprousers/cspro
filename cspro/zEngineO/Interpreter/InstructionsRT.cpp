@@ -53,7 +53,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /*  34 */   OP_ID(excpttbl),
 /*  35 */   OP_ID(exnoopAbort),
 /*  36 */   OP_ID(exnoopAbort), // an old implementation of ex_Array_var
-/*  37 */   OP_ID(exuserfunctioncall),
+/*  37 */   OP_ID(ex_UserFunction_call),
 /*  38 */   OP_ID(exnoopAbort), // an old implementation of exexit
 /*  39 */   OP_ID(exnoopAbort), // exfor_view,
 
@@ -515,7 +515,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 444 */   OP_ID(exScopeChange),
 /* 445 */   OP_ID(exdictaccess),
 /* 446 */   OP(ex_WorkString_compute),
-/* 447 */   OP_LI(ex_ActionInvoker),
+/* 447 */   OP(ex_ActionInvoker),
 /* 448 */   OP(ex_Symbol_getName),
 /* 449 */   OP(ex_Symbol_getLabel),
 /* 450 */   OP_LI(ex_Map_clear_clearButtons_clearGeometry_clearMarkers), // Map.clear
@@ -549,7 +549,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 478 */   OP(ex_ValueSet_removeDuplicates),
 /* 479 */   OP(ex_WorkVariable_compute),
 /* 480 */   OP(ex_Array_compute),
-/* 481 */   OP_LI(ex_UserFunction_compute),
+/* 481 */   OP(ex_UserFunction_compute),
 
 
             // placeholders to allow new logic functions to be added to an existing serialization

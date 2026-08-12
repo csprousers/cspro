@@ -96,6 +96,22 @@ SharableString Engine::Value::ToString() const
 }
 
 
+bool Engine::Value::IsUndefined() const
+{
+    switch( m_value.index() )
+    {
+        case ValueIndex::Double:
+            return ( std::get<ValueIndex::Double>(m_value) == NOTAPPL );
+
+        case ValueIndex::SharableString:
+            return ( std::get<ValueIndex::SharableString>(m_value)->empty() );
+
+        default:
+            return ReturnProgrammingError(true);
+    }
+}
+
+
 template<typename T, typename ValueT>
 T Engine::Value::Convert(const ValueT& value) const
 {

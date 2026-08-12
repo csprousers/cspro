@@ -448,7 +448,7 @@ public:
 
 
     bool HasSpecialFunction(SpecialFunction::Code special_function);
-    double ExecSpecialFunction(SpecialFunction::Code special_function, double argument = 0);
+    Engine::Value ExecSpecialFunction(SpecialFunction::Code special_function, double argument = 0);
 
     void SetProgressForPreEntrySkip(); // 20130415
 

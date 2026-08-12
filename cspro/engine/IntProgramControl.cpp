@@ -1,4 +1,4 @@
-﻿#include "StandardSystemIncludes.h"
+#include "StandardSystemIncludes.h"
 #include "Interpreter.h"
 #include "ProgramControl.h"
 #include <zEngineO/UserFunction.h>
@@ -65,7 +65,7 @@ double CIntDriver::ex_exit(const int program_index)
     {
         // set the user function's return value
         UserFunction& user_function = GetSymbolUserFunction(statement_node.arguments[0]);
-        user_function.SetReturnValue(EvaluateVariant(user_function.GetReturnDataType(), statement_node.arguments[1]));
+        user_function.SetReturnValue(Evaluate<Engine::Value>(statement_node.arguments[1]));
     }
 
     throw ExitProgramControlException();

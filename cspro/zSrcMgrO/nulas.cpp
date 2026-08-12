@@ -32,12 +32,12 @@ void CIntDriver::RegisterAndLogEvent_INTERPRETER_DLL_TODO(std::shared_ptr<Parada
 void CIntDriver::IssueMessageWorker(MessageType message_type, int message_number, ...) { ASSERT(false); }
 std::string CIntDriver::GetFormattedMessageWorker(int message_number, ...) { return ReturnProgrammingError(""); }
 bool CIntDriver::IsExecutionInterrupted() const { return ReturnProgrammingError(false); }
-bool CIntDriver::Report_Evaluate_INTERPRETER_DLL_TODO(Report& report) { return ReturnProgrammingError(false); }
+InterpreterExecuteResult CIntDriver::Report_Evaluate_INTERPRETER_DLL_TODO(Report& report) { throw ProgrammingErrorException(); }
 SharableString CIntDriver::EvaluateTextFill(int program_index) { return ReturnProgrammingError(SharableString()); }
 SharableString CIntDriver::EvaluateUserMessage(int message_node_index, FunctionCode function_code, int* out_message_number) { return ReturnProgrammingError(std::string()); }
 Engine::Value CIntDriver::RunSoonToBeRemovedFeature(std::string_view feature_sv, int program_index, void* tag) { return ReturnProgrammingError(0); }
 bool CIntDriver::HasSpecialFunction(SpecialFunction::Code special_function) { return ReturnProgrammingError(false); }
-double CIntDriver::ExecSpecialFunction(int symbol_index, SpecialFunction::Code special_function, std::vector<std::variant<double, SharableString>> arguments) { return ReturnProgrammingError(DEFAULT); }
+Engine::Value CIntDriver::ExecSpecialFunction(int symbol_index, SpecialFunction::Code special_function, std::vector<std::variant<double, SharableString>> arguments) { return ReturnProgrammingError(DEFAULT); }
 Symbol* CIntDriver::GetFromSymbolOrEngineItemWorker_INTERPRETER_DLL_TODO(const SymbolReference<Symbol*>& symbol_reference, bool use_exceptions) { return ReturnProgrammingError(nullptr); }
 std::shared_ptr<Symbol> CIntDriver::GetFromSymbolOrEngineItemWorker_INTERPRETER_DLL_TODO(const SymbolReference<std::shared_ptr<Symbol>>& symbol_reference, bool use_exceptions)  { return ReturnProgrammingError(nullptr); }
 EvaluatedEngineItemSubscript CIntDriver::EvaluateEngineItemSubscript(const EngineItem& engine_item, const Nodes::ItemSubscript& item_subscript_node) { return ReturnProgrammingError(EvaluatedEngineItemSubscript()); }

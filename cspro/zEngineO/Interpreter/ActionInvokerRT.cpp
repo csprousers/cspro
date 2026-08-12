@@ -71,25 +71,24 @@ void LogicInterpreter::SetActionInvokerRuntime(std::shared_ptr<ActionInvoker::Ru
 }
 
 
-double LogicInterpreter::ex_ActionInvoker(const int program_index)
+Engine::Value LogicInterpreter::ex_ActionInvoker(const int program_index)
 {
     // OnActionInvokerResult routines
     const bool has_OnActionInvokerResult = HasSpecialFunction(SpecialFunction::Code::OnActionInvokerResult);
-    std::optional<double> result_override_OnActionInvokerResult;
+    std::optional<Engine::Value> result_override_OnActionInvokerResult;
 
     auto OnActionInvokerResult_process = [&](SharableString action_name, SharableString result, const char* const result_type)
     {
-        const double result_override = ExecSpecialFunction(Get_m_iExSymbol_INTERPRETER_DLL_TODO(),
-                                                           SpecialFunction::Code::OnActionInvokerResult,
-                                                           { std::move(action_name), std::move(result), result_type });
-        SharableString result_override_text = GetWorkingSharableString(result_override);
+        result_override_OnActionInvokerResult = ExecSpecialFunction(
+            Get_m_iExSymbol_INTERPRETER_DLL_TODO(),
+            SpecialFunction::Code::OnActionInvokerResult,
+            { std::move(action_name), std::move(result), result_type }
+        );
 
-        if( result_override_text->empty() )
-            return false;
+        if( result_override_OnActionInvokerResult->IsUndefined() )
+            result_override_OnActionInvokerResult.reset();
 
-        result_override_OnActionInvokerResult = AssignString(std::move(result_override_text));
-
-        return true;
+        return result_override_OnActionInvokerResult.has_value();
     };
 
     auto OnActionInvokerResult_process_exception = [&](SharableString action_name, const CSProException& exception)
@@ -257,27 +256,27 @@ double LogicInterpreter::ex_ActionInvoker(const int program_index)
                 string_result_in_json.emplace();
 
             if( OnActionInvokerResult_process(ActionInvoker::GetActionName(action), *string_result_in_json, result_type) )
-                return *result_override_OnActionInvokerResult;
+                return std::move(*result_override_OnActionInvokerResult);
         }
 
 
         // return the result
         if( result.GetType() == ActionInvoker::Result::Type::Undefined )
         {
-            return AssignStringNull();
+            return Engine::Value::Undefined<SharableString>();
         }
 
         else if( result.GetType() == ActionInvoker::Result::Type::JsonText )
         {
             ASSERT(SO::EqualsOneOf(ActionInvoker::JsonResponse::GetResultTypeText<true>(result), "object", "array", "null"));
-            return AssignString(result.GetStringResult());
+            return result.GetStringResult();
         }
 
         // for bool/numeric/string values, potentially convert the results
         else if( m_engineData->application != nullptr &&
                  m_engineData->application->GetLogicSettings().GetActionInvokerConvertResults() )
         {
-            return AssignString(result.GetResultAsString<true>());
+            return result.GetResultAsString<true>();
         }
 
         // if not converted, return bool/numeric/string values in JSON string format
@@ -285,7 +284,7 @@ double LogicInterpreter::ex_ActionInvoker(const int program_index)
         {
             ensure_result_in_json();
             ASSERT(string_result_in_json.has_value());
-            return AssignString(std::move(*string_result_in_json));
+            return std::move(*string_result_in_json);
         }
     }
 
@@ -294,7 +293,7 @@ double LogicInterpreter::ex_ActionInvoker(const int program_index)
         const SharableString action_name = ActionInvoker::GetActionName(action);
 
         if( has_OnActionInvokerResult && OnActionInvokerResult_process_exception(action_name, exception) )
-            return *result_override_OnActionInvokerResult;
+            return std::move(*result_override_OnActionInvokerResult);
 
         IssueMessage(MessageType::Error, 9206, action_name->c_str(), exception.what());
     }
@@ -305,5 +304,5 @@ double LogicInterpreter::ex_ActionInvoker(const int program_index)
         IssueMessage(MessageType::Error, 9207, exception.what());
     }
 
-    return AssignStringNull();
+    return Engine::Value::Invalid<SharableString>();
 }

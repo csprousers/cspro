@@ -94,11 +94,15 @@ namespace
             if( !m_interpreter.HasSpecialFunction(SpecialFunction::Code::OnSyncMessage) )
                 return std::nullopt;
 
-            const double message_response = m_interpreter.ExecSpecialFunction(m_fieldSymbolIndex,
-                                                                              SpecialFunction::Code::OnSyncMessage,
-                                                                              { sync_message.GetName(), sync_message.GetValueForOnSyncMessage() });
+            Engine::Value message_response = m_interpreter.ExecSpecialFunction(
+                m_fieldSymbolIndex,
+                SpecialFunction::Code::OnSyncMessage,
+                { sync_message.GetName(), sync_message.GetValueForOnSyncMessage() }
+            );
 
-            return m_interpreter.GetWorkingSharableString(message_response);
+            ASSERT(message_response.is<SharableString>());
+
+            return std::move(message_response).as<SharableString>();
         }
 
 

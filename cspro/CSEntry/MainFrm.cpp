@@ -970,7 +970,16 @@ void CMainFrame::OnStop(bool* close_csentry_after_stopping)
    // RHF END  Dec 11, 2003 BUCEN_DEC2003 Changes
         bool    bStopFromApp=(pDoc->GetCurField()==NULL);// RHF Feb 23, 2004
         bool    bHasStopFunction=pRunApl->HasSpecialFunction(SpecialFunction::Code::OnStop);
-        bool    bCancelStop = !bStopFromApp && bHasStopFunction && (pRunApl->ExecSpecialFunction(SpecialFunction::Code::OnStop) == 0); // RHF Feb 23, 2004 Add  !bStopFromApp
+        bool    bCancelStop = !bStopFromApp && bHasStopFunction; // RHF Feb 23, 2004 Add  !bStopFromApp
+
+        if( bCancelStop )
+        {
+            const Engine::Value on_stop_result = pRunApl->ExecSpecialFunction(SpecialFunction::Code::OnStop);
+            ASSERT(on_stop_result.is<double>());
+
+            if( on_stop_result.get<double>() != 0 )
+                bCancelStop = false;
+        }
 
         if( !bStopFromApp && bHasStopFunction && pRunApl->HasSomeRequest() // RHF Feb 23, 2004 Add  !bStopFromApp
                                               && !pRunApl->IsEndingModifyMode() ) { // 20110222 added !IsEndingModifyMode

@@ -1,6 +1,7 @@
-﻿#pragma once
+#pragma once
 
 #include <zEngineO/zEngineO.h>
+#include <zEngineO/EngineValue.h>
 #include <zJavaScript/Definitions.h>
 
 class InterpreterAccessor;
@@ -69,6 +70,7 @@ public:
     JavaScript::Value CreateValue(const std::string& value);
     JavaScript::Value CreateValue(const SharableString& value);
     JavaScript::Value CreateValue(const std::variant<double, SharableString>& value);
+    JavaScript::Value CreateValue(const Engine::Value& value);
     JavaScript::Value CreateValue(const Symbol& symbol);
     JavaScript::Value CreateValue(const UserFunction& user_function);
 

@@ -19,6 +19,7 @@ enum class EncodeType : int;
 class EngineParadataDriver;
 class FrequencyDriver;
 enum FunctionCode : int;
+struct InterpreterExecuteResult;
 class PortableColor;
 class JsonReaderInterface;
 class UserFunctionArgumentEvaluator;
@@ -126,9 +127,6 @@ public:
     static T GetInvalidValue();
 
     double AssignInvalidValue(DataType data_type);
-
-    double AssignVariantValue(std::variant<double, SharableString>&& value);
-    double AssignVariantValue(const std::variant<double, SharableString>& value);
 
 
     // --------------------------------------------------------------------------
@@ -286,7 +284,7 @@ public:
     // Sets the Action Invoker runtime.
     void SetActionInvokerRuntime(std::shared_ptr<ActionInvoker::Runtime> runtime);
 
-    double ex_ActionInvoker(int program_index);
+    Engine::Value ex_ActionInvoker(int program_index);
 
 private:
     std::shared_ptr<ActionInvoker::Runtime> m_actionInvokerRuntime;
@@ -729,7 +727,7 @@ protected: // INTERPRETER_DLL_TODO change to private
     // (UserFunctionRT.cpp)
     // --------------------------------------------------------------------------
 public:
-    double ex_UserFunction_compute(int program_index);
+    Engine::Value ex_UserFunction_compute(int program_index);
 
 
     // --------------------------------------------------------------------------
@@ -812,10 +810,10 @@ private:
     virtual double evalexpr_INTERPRETER_DLL_TODO(double (CIntDriver::*instruction)(int), int program_index) = 0;
     virtual void RegisterAndLogEvent_INTERPRETER_DLL_TODO(std::shared_ptr<Paradata::Event> event, const void* instance_object = nullptr) = 0;
     virtual SharableString EvaluateTextFill(int program_index) = 0; // INTERPRETER_DLL_TODO remove as virtual
-    virtual bool Report_Evaluate_INTERPRETER_DLL_TODO(Report& report) = 0; // INTERPRETER_DLL_TODO remove as virtual
+    virtual InterpreterExecuteResult Report_Evaluate_INTERPRETER_DLL_TODO(Report& report) = 0; // INTERPRETER_DLL_TODO remove as virtual
     virtual Engine::Value RunSoonToBeRemovedFeature(std::string_view feature_sv, int program_index, void* tag) = 0;
     virtual bool HasSpecialFunction(SpecialFunction::Code special_function) = 0; // INTERPRETER_DLL_TODO remove as virtual
-    virtual double ExecSpecialFunction(int symbol_index, SpecialFunction::Code special_function, std::vector<std::variant<double, SharableString>> arguments) = 0; // INTERPRETER_DLL_TODO remove as virtual
+    virtual Engine::Value ExecSpecialFunction(int symbol_index, SpecialFunction::Code special_function, std::vector<std::variant<double, SharableString>> arguments) = 0; // INTERPRETER_DLL_TODO remove as virtual
     virtual int Get_m_iExSymbol_INTERPRETER_DLL_TODO() = 0;
     virtual Symbol* GetFromSymbolOrEngineItemWorker_INTERPRETER_DLL_TODO(const SymbolReference<Symbol*>& symbol_reference, bool use_exceptions) = 0;
     virtual std::shared_ptr<Symbol> GetFromSymbolOrEngineItemWorker_INTERPRETER_DLL_TODO(const SymbolReference<std::shared_ptr<Symbol>>& symbol_reference, bool use_exceptions) = 0;

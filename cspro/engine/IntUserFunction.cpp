@@ -66,7 +66,7 @@ namespace
 }
 
 
-double CIntDriver::CallUserFunction(UserFunction& user_function, UserFunctionArgumentEvaluator& argument_evaluator)
+Engine::Value CIntDriver::CallUserFunction(UserFunction& user_function, UserFunctionArgumentEvaluator& argument_evaluator)
 {
     // reset the return value
     user_function.Reset();
@@ -226,7 +226,7 @@ double CIntDriver::CallUserFunction(UserFunction& user_function, UserFunctionArg
 
     m_bStopExec = false;
 
-    return AssignVariantValue(user_function.GetReturnValue());
+    return user_function.GetReturnValue();
 }
 
 
@@ -306,14 +306,14 @@ std::shared_ptr<Symbol> LogicUserFunctionArgumentEvaluator::GetSymbol(const size
 }
 
 
-double CIntDriver::exuserfunctioncall(const int program_index)
+Engine::Value CIntDriver::ex_UserFunction_call(const int program_index)
 {
     const auto& user_function_node = GetNode<Nodes::UserFunction>(program_index);
     UserFunction& user_function = GetSymbolUserFunction(user_function_node.user_function_symbol_index);
 
     // execute the user-defined function
     LogicUserFunctionArgumentEvaluator argument_evaluator(*this, user_function, user_function_node);
-    const double return_value = CallUserFunction(user_function, argument_evaluator);
+    Engine::Value return_value = CallUserFunction(user_function, argument_evaluator);
 
     // if any arguments were passed by reference, assign the values to the destination variables
     const Nodes::List& reference_destinations_list_node = GetListNode(user_function_node.reference_destinations_list);
@@ -486,7 +486,8 @@ void CIntDriver::ExecuteCallbackUserFunction(const int field_symbol_index, UserF
     m_iExSymbol = field_symbol_index;
     m_iExLevel = SymbolCalculator::GetLevelNumber_base1(NPT_Ref(field_symbol_index));
 
-    LogicCallbackUserFunctionArgumentEvaluator* const actual_argument_evaluator = assert_cast<LogicCallbackUserFunctionArgumentEvaluator*>(&argument_evaluator);
+    LogicCallbackUserFunctionArgumentEvaluator* const actual_argument_evaluator =
+        assert_cast<LogicCallbackUserFunctionArgumentEvaluator*>(&argument_evaluator);
 
     const Nodes::UserFunction& user_function_node = actual_argument_evaluator->GetUserFunctionNode();
     UserFunction& user_function = GetSymbolUserFunction(user_function_node.user_function_symbol_index);
@@ -494,8 +495,9 @@ void CIntDriver::ExecuteCallbackUserFunction(const int field_symbol_index, UserF
     if( Paradata::Logger::IsOpen() )
     {
         const Paradata::OperatorSelectionEvent::Source source =
-            ( actual_argument_evaluator->GetFunctionCode() == FNUSERBAR_CODE ) ? Paradata::OperatorSelectionEvent::Source::Userbar :
-                                                                                 Paradata::OperatorSelectionEvent::Source::MapShow;
+            ( actual_argument_evaluator->GetFunctionCode() == FNUSERBAR_CODE )
+            ? Paradata::OperatorSelectionEvent::Source::Userbar
+            : Paradata::OperatorSelectionEvent::Source::MapShow;
 
         auto operator_selection_event = std::make_unique<Paradata::OperatorSelectionEvent>(source);
         operator_selection_event->SetPostSelectionValues(std::nullopt, user_function.GetName(), false);
@@ -704,7 +706,7 @@ InterpreterExecuteResult CIntDriver::RunInvoke(const std::string_view function_n
             // execute the function
             ASSERT(json_arguments != nullptr);
             argument_evaluator = std::make_unique<InvokeArgumentsProvidedUsingJsonArgumentEvaluator>(*this, *user_function, *json_arguments);
-            return Execute(user_function->GetReturnDataType(), [&]() { return CallUserFunction(*user_function, *argument_evaluator); });
+            return Execute([&]() { return CallUserFunction(*user_function, *argument_evaluator); });
         }
 
         catch( const JsonParseException& exception )
@@ -738,8 +740,10 @@ InterpreterExecuteResult CIntDriver::RunInvoke(const std::string_view function_n
 
             for( ; argument_index < number_arguments; ++argument_index )
             {
-                auto& [symbol_index, subscript_compilation] = arguments.emplace_back(arguments_list.elements[2 * argument_index],
-                                                                                     arguments_list.elements[2 * argument_index + 1]);
+                auto& [symbol_index, subscript_compilation] = arguments.emplace_back(
+                    arguments_list.elements[2 * argument_index],
+                    arguments_list.elements[2 * argument_index + 1]
+                );
 
                 if( m_engineData->PredatesCompiledLogicVersion(Serializer::Iteration_8_0_000_1) )
                 {
@@ -791,7 +795,7 @@ InterpreterExecuteResult CIntDriver::RunInvoke(const std::string_view function_n
 
             // execute the function
             InvokeArgumentsProvidedDirectlyArgumentEvaluator argument_evaluator(*this, arguments);
-            return Execute(user_function->GetReturnDataType(), [&]() { return CallUserFunction(*user_function, argument_evaluator); });
+            return Execute([&]() { return CallUserFunction(*user_function, argument_evaluator); });
         }
 
         catch( const UserFunctionArgumentChecker::CheckError& error )
@@ -805,14 +809,14 @@ InterpreterExecuteResult CIntDriver::RunInvoke(const std::string_view function_n
 template InterpreterExecuteResult CIntDriver::RunInvoke(std::string_view function_name_sv, const JsonNode& variable_arguments, CancelFlag* cancel_flag);
 
 
-double CIntDriver::ex_invoke(const int program_index)
+Engine::Value CIntDriver::ex_invoke(const int program_index)
 {
     const auto& invoke_node = GetNode<Nodes::Invoke>(program_index);
     const SharableString function_name = Evaluate<SharableString>(invoke_node.function_name_expression);
 
     try
     {
-        InterpreterExecuteResult execute_result;
+        std::optional<InterpreterExecuteResult> execute_result;
 
         if( invoke_node.arguments_expression != -1 )
         {
@@ -826,17 +830,17 @@ double CIntDriver::ex_invoke(const int program_index)
             execute_result = RunInvoke(*function_name, arguments_list, nullptr);
         }
 
-        if( execute_result.program_control_executed )
+        if( execute_result->program_control_executed )
             RethrowProgramControlExceptions();
 
-        return AssignString(std::holds_alternative<SharableString>(execute_result.result) ? std::move(std::get<SharableString>(execute_result.result)) :
-                                                                                            DoubleToString(std::get<double>(execute_result.result)));
+        return std::move(execute_result->result).as<SharableString>();
     }
 
     catch( const CSProException& exception )
     {
         issaerror(MessageType::Error, 50051, Logic::FunctionTable::GetFunctionName(invoke_node.function_code),
                                              function_name->c_str(), exception.what());
-        return AssignStringNull();
+
+        return Engine::Value::Invalid<SharableString>();
     }
 }

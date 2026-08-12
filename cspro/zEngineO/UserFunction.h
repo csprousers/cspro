@@ -1,6 +1,7 @@
 #pragma once
 
 #include <zEngineO/zEngineO.h>
+#include <zEngineO/EngineValue.h>
 #include <zEngineO/UserFunctionLocalSymbolsManager.h>
 
 struct EngineData;
@@ -50,8 +51,8 @@ public:
     // runtime methods
     UserFunctionLocalSymbolsManager GetLocalSymbolsManager() { return UserFunctionLocalSymbolsManager(*this); }
 
-    void SetReturnValue(std::variant<double, SharableString> return_value);
-    const std::variant<double, SharableString>& GetReturnValue() const { return m_returnValue; }
+    void SetReturnValue(Engine::Value return_value);
+    Engine::Value GetReturnValue() const;
 
     // Symbol overrides
     void CompareDeclarationAttributes(const Symbol& symbol) const override;
@@ -62,6 +63,9 @@ public:
     void serialize_subclass(Serializer& ar) override;
 
     void WriteJsonMetadata_subclass(JsonWriter& json_writer) const override;
+
+private:
+    Engine::Value PreprocessReturnValue(Engine::Value return_value) const;
 
 private:
     EngineData& m_engineData;
@@ -78,7 +82,7 @@ private:
     std::vector<int> m_functionBodySymbols;
 
     // runtime only
-    std::variant<double, SharableString> m_returnValue;
+    std::optional<Engine::Value> m_returnValue;
 
     std::vector<std::shared_ptr<UserFunctionLocalSymbolsManager::Data>> m_localSymbolsManagerData;
     size_t m_functionCallCount;

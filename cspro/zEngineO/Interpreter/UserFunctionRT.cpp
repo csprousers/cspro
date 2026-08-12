@@ -3,7 +3,7 @@
 #include "UserFunction.h"
 
 
-double LogicInterpreter::ex_UserFunction_compute(const int program_index)
+Engine::Value LogicInterpreter::ex_UserFunction_compute(const int program_index)
 {
     const auto& symbol_compute_expression_node = GetNode<Nodes::SymbolComputeExpression>(program_index);
     const auto& symbol_value_node = GetNode<Nodes::SymbolValue>(symbol_compute_expression_node.symbol_value_node_index);

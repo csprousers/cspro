@@ -43,6 +43,8 @@ public:
 
     InterpreterExecuteResult CallUserFunction(UserFunction& user_function, UserFunctionArgumentEvaluator& argument_evaluator) override;
 
+    std::variant<double, SharableString> CreateVariantFromEngineValue(Engine::Value value) override;
+
     std::string GetSymbolJson(const std::string& symbol_name_and_potential_subscript, Symbol::SymbolJsonOutput symbol_json_output, const JsonNode* serialization_options_node) override;
     void SetSymbolValueFromJson(const std::string& symbol_name_and_potential_subscript, const JsonNode& json_node) override;
 
@@ -164,11 +166,17 @@ InterpreterExecuteResult EngineInterpreterAccessor::RunInvoke(const std::string_
 
 InterpreterExecuteResult EngineInterpreterAccessor::CallUserFunction(UserFunction& user_function, UserFunctionArgumentEvaluator& argument_evaluator)
 {
-    return m_interpreter.Execute(user_function.GetReturnDataType(),
-        [&]()
-        {
-            return m_interpreter.CallUserFunction(user_function, argument_evaluator);
-        });
+    return m_interpreter.Execute([&]() { return m_interpreter.CallUserFunction(user_function, argument_evaluator); });
+}
+
+
+std::variant<double, SharableString> EngineInterpreterAccessor::CreateVariantFromEngineValue(Engine::Value value)
+{
+    if( value.is<double>() )
+        return value.get<double>();
+
+    ASSERT(value.is<SharableString>());
+    return std::move(value).as<SharableString>();
 }
 
 

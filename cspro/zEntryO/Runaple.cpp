@@ -933,12 +933,12 @@ bool CRunAplEntry::HasSpecialFunction(const SpecialFunction::Code special_functi
 }
 
 
-double CRunAplEntry::ExecSpecialFunction(const SpecialFunction::Code special_function, double const argument/* = 0*/)
+Engine::Value CRunAplEntry::ExecSpecialFunction(const SpecialFunction::Code special_function, double const argument/* = 0*/)
 {
     const int symbol_index = m_pCurEngineField ? m_pCurEngineField->GetSymbol() : -1;
 
     if( symbol_index <= 0 || m_pEntryIFaz == nullptr )
-        return DEFAULT;
+        return Engine::Value::Invalid<double>();
 
     return m_pEntryIFaz->ExecSpecialFunction(symbol_index, special_function, argument);
 }

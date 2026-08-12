@@ -969,12 +969,16 @@ void CEntryDriver::ViewCurrentCase()
     // with the return value indicating whether to show the default case view
     if( m_pIntDriver->HasSpecialFunction(SpecialFunction::Code::OnViewQuestionnaire) )
     {
-        const double return_value = m_pIntDriver->ExecSpecialFunction(pVarT->GetSymbolIndex(),
-                                                                      SpecialFunction::Code::OnViewQuestionnaire,
-                                                                      { pDicT->GetName() });
+        const Engine::Value return_value = m_pIntDriver->ExecSpecialFunction(
+            pVarT->GetSymbolIndex(),
+            SpecialFunction::Code::OnViewQuestionnaire,
+            { pDicT->GetName() }
+        );
+
+        ASSERT(return_value.is<double>());
 
         // return if the user wants to suppress showing the current case
-        if( !IsTrue(return_value) )
+        if( !IsTrue(return_value.get<double>()) )
             return;
     }
 

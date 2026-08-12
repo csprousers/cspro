@@ -5674,18 +5674,22 @@ bool CsDriver::AcceptFieldValue( CFlowAtom* pAtom ) {    // victor May 21, 01
             {
                 ASSERT(!m_pIntDriver->GetRequestIssued());
 
-                double on_refused_result = m_pIntDriver->ExecSpecialFunction(pVarT->GetSymbolIndex(), SpecialFunction::Code::OnRefused, { });
+                Engine::Value on_refused_result = m_pIntDriver->ExecSpecialFunction(
+                    pVarT->GetSymbolIndex(), SpecialFunction::Code::OnRefused, { }
+                );
+
+                ASSERT(on_refused_result.is<double>());
 
                 if( m_pIntDriver->GetRequestIssued() )
                 {
                     request_issued_in_on_refused = true;
-                    on_refused_result = 0;
+                    on_refused_result = Engine::Value::Bool(false);
                 }
 
                 if( field_validation_event != nullptr )
-                    field_validation_event->SetOnRefusedResult(on_refused_result);
+                    field_validation_event->SetOnRefusedResult(on_refused_result.get<double>());
 
-                bAccepted = ( on_refused_result != 0 );
+                bAccepted = ( on_refused_result.get<double>() != 0 );
             }
         }
 
