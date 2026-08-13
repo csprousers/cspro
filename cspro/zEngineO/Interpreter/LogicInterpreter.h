@@ -20,6 +20,7 @@ class EngineParadataDriver;
 class FrequencyDriver;
 enum FunctionCode : int;
 struct InterpreterExecuteResult;
+class LoopStack;
 class PortableColor;
 class JsonReaderInterface;
 class UserFunctionArgumentEvaluator;
@@ -158,6 +159,19 @@ protected: // INTERPRETER_DLL_TODO change to private
 
 protected: // INTERPRETER_DLL_TODO change to private
     std::exception_ptr m_caughtProgramControlException;
+
+
+    // --------------------------------------------------------------------------
+    // "Control Flow" routines
+    // (ControlFlowRT.cpp)
+    // --------------------------------------------------------------------------
+public:
+    Engine::Value ex_if(int program_index);
+    Engine::Value ex_while(int program_index);
+    Engine::Value ex_do(int program_index);
+    Engine::Value ex_for_next(int program_index);
+    Engine::Value ex_for_break(int program_index);
+    Engine::Value ex_exit(int program_index);
 
 
     // --------------------------------------------------------------------------
@@ -793,6 +807,7 @@ public:
     // --------------------------------------------------------------------------
 public:
     const EngineData& GetEngineData() const { return *m_engineData; }
+    EngineData& GetEngineData()             { return *m_engineData; }
 
 protected:
     cs::non_null_shared_or_raw_ptr<EngineData> m_engineData;
@@ -837,6 +852,9 @@ private:
     int SymbolTableSearch_INTERPRETER_DLL_TODO(std::string_view full_symbol_name_sv, const std::vector<SymbolType>& allowable_symbol_types, SymbolType preferred_symbol_type = SymbolType::None) const { return SymbolTableSearch_INTERPRETER_DLL_TODO(full_symbol_name_sv, preferred_symbol_type, &allowable_symbol_types); }
     virtual int SymbolTableSearch_INTERPRETER_DLL_TODO(std::string_view full_symbol_name_sv, SymbolType preferred_symbol_type,
                                                        const std::vector<SymbolType>* allowable_symbol_types) const = 0; // INTERPRETER_DLL_TODO refactor
+    virtual bool GetRequestIssued_INTERPRETER_DLL_TODO() const = 0; // INTERPRETER_DLL_TODO is this needed?
+    virtual LoopStack& GetLoopStack() = 0; // INTERPRETER_DLL_TODO remove as virtual
+    virtual bool Get_m_bStopExec_INTERPRETER_DLL_TODO() const = 0; // INTERPRETER_DLL_TODO is this needed?
 };
 
 

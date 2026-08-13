@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zLogicO/FunctionTable.h>
 
@@ -9,7 +9,7 @@ namespace Nodes
     {
         FunctionCode function_code;
         int next_st;
-        int loop_type;
+        TokenCode loop_type;
         int counter_symbol_value_node_index;
         int counter_initial_value_expression;
         int counter_increment_by_expression;

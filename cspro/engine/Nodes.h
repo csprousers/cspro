@@ -160,14 +160,14 @@ struct BREAK_NODE
 };
 
 
-struct ST_NODE
+struct ST_NODE // use Nodes::Statement instead
 {
     int st_code;
     int next_st;
 };
 
 
-struct STN_NODE
+struct STN_NODE // use Nodes::StatementWithArguments instead
 {
     int st_code;
     int next_st;

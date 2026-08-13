@@ -37,8 +37,8 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /*  20 */   OP(ex_equ),
 /*  21 */   OP(ex_string_compute),
 /*  22 */   OP(ex_WorkVariable_evaluate),
-/*  23 */   OP_ID(exif),
-/*  24 */   OP_ID(exwhile),
+/*  23 */   OP(ex_if),
+/*  24 */   OP(ex_while),
 /*  25 */   OP_ID(exbox),
 /*  26 */   OP(ex_string_literal), // an old implementation of ex_string_literal
 /*  27 */   OP_ID(excharobj),
@@ -193,7 +193,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 131 */   OP(ex_nop_abort), // GROUP_CODE
 /* 132 */   OP_ID(exfucall),
 /* 133 */   OP(ex_in),        // RHC Oct 16, 2000
-/* 134 */   OP_ID(ex_do),        // RHC Oct 16, 2000
+/* 134 */   OP(ex_do),        // RHC Oct 16, 2000
 /* 135 */   OP_ID(ex_impute),    // RHF Oct 25, 2000
 /* 136 */   OP_ID(exfncurocc),   // RHC Oct 16, 2000
 /* 137 */   OP_ID(exfntotocc),   // RHC Oct 16, 2000
@@ -216,8 +216,8 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 153 */   OP_ID(exmoveto),         // RHF Dec 09, 2003
 /* 154 */   OP(ex_nop_abort),     // an old implementation of exsavepartial [original: RHF Dec 01, 2003]
 /* 155 */   OP_ID(ex_getoperatorid), // RHF Dec 03, 2003
-/* 156 */   OP_ID(exfornext),        // RHC Sep 04, 2000
-/* 157 */   OP_ID(exforbreak),       // RHC Sep 04, 2000
+/* 156 */   OP(ex_for_next),      // RHC Sep 04, 2000
+/* 157 */   OP(ex_for_break),     // RHC Sep 04, 2000
 /* 158 */   OP_ID(ex_setfile),
 /* 159 */   OP_ID(exmaxocc_pre80),
 /* 160 */   OP(ex_invalueset),
@@ -345,7 +345,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 276 */   OP_ID(exdirdelete),
 /* 277 */   OP(ex_Array_var),
 /* 278 */   OP_ID(extvar),
-/* 279 */   OP_ID(ex_exit),
+/* 279 */   OP(ex_exit),
 /* 280 */   OP_ID(ex_getbluetoothname),
 /* 281 */   OP(ex_regexmatch),
 /* 282 */   OP(ex_nop_abort), // BLOCK_CODE

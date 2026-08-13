@@ -847,7 +847,8 @@ int LogicCompiler::CompileStatements(const bool create_new_local_symbol_stack/* 
     // terminate the final statement added
 #ifdef USE_OLD_ROUTINE
     // this may assert while using the Designer due to code not running due to the GENCODE preprocessor definition
-    ASSERT(GetNode<Nodes::Statement>(previous_statement_program_index).next_st == -1 ||
+    ASSERT(previous_statement_program_index == -1 ||
+           GetNode<Nodes::Statement>(previous_statement_program_index).next_st == -1 ||
            GetNode<Nodes::Statement>(previous_statement_program_index).next_st > previous_statement_program_index);
 #else
     if( previous_statement_program_index != -1 )

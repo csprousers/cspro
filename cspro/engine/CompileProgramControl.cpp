@@ -1,4 +1,4 @@
-﻿#include "StandardSystemIncludes.h"
+#include "StandardSystemIncludes.h"
 #include "ExpresC_Include.h"
 #include <zEngineO/LoopStack.h>
 #include <zEngineO/UserFunction.h>
@@ -27,7 +27,7 @@ int CEngineCompFunc::CompileProgramControl()
             IssueError(822, get_statement_name());
     };
 
-    
+
     // endcase
     if( program_control_token == TOKENDCASE )
     {
@@ -101,10 +101,10 @@ int CEngineCompFunc::CompileProgramControl()
             exit_expression = CompileExpression(user_function.GetReturnDataType());
         }
 
-        auto& statement_node = CreateVariableArgumentCompilationNode<STN_NODE>(EXIT_CODE, 2);
+        auto& statement_node = CreateVariableArgumentCompilationNode<Nodes::StatementWithArguments>(EXIT_CODE, 2);
         statement_node.next_st = -1;
-        statement_node.arguments[0] = user_function_symbol_index;
-        statement_node.arguments[1] = exit_expression;
+        statement_node.expressions[0] = user_function_symbol_index;
+        statement_node.expressions[1] = exit_expression;
 
         program_index = GetCompilationNodeProgramIndex(statement_node);
     }

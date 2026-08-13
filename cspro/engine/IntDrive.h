@@ -47,7 +47,6 @@ enum class FieldStatus : int;
 class ImputationDriver;
 class ItemIndex;
 class KeyboardLoader;
-class LoopStack;
 class NamedReference;
 class SelcaseManager;
 struct sqlite3;
@@ -156,10 +155,6 @@ private:
     void EvaluateApplicationStartupJavaScript();
 
 public:
-    LoopStack& GetLoopStack();
-
-    EngineData& GetEngineData() { return *m_engineData; }
-
     // --- execution flags
     void    Enable3D_Driver()                  { m_bUse3D_Driver = true; }          // victor May 16, 01
     void    Disable3D_Driver()                 { m_bUse3D_Driver = false; }         // victor May 16, 01
@@ -328,7 +323,6 @@ public:
 
     SharableString extavar(int iExpr);
     double  excpt(int iExpr);
-    double  exif(int iExpr);
     double  exbox(int iExpr);
     Engine::Value excharobj(int program_index);
 
@@ -397,7 +391,6 @@ public:
     double exendcase(int iExpr);
     double exuniverse(int iExpr);
     double exskipcase(int iExpr);
-    double ex_exit(int program_index);
 
     double  exstop(int iExpr);
     double  exispartial(int iExpr);
@@ -712,10 +705,6 @@ public:
     Engine::Value ExExecPFF(int iExpr);
     Engine::Value ExExecPFF(std::variant<LogicPff*, std::string> logic_pff_or_pff_file_path, std::optional<int> flags = std::nullopt);
 
-    double exwhile(int iExpr);
-    double ex_do(int program_index);
-    double exfornext(int iExpr);
-    double exforbreak(int iExpr);
 
 public:
     double  exfncurocc(int iExpr);                    // RHC Oct 30, 2000
@@ -946,6 +935,11 @@ private:
     Engine::Value ModifyVARTValue_INTERPRETER_DLL_TODO(int variable_compilation, const std::function<void(SharableString&)>& modify_value_function, std::unique_ptr<Paradata::FieldInfo>* paradata_field_info = nullptr) override;
     int SymbolTableSearch_INTERPRETER_DLL_TODO(std::string_view full_symbol_name_sv, SymbolType preferred_symbol_type,
                                                const std::vector<SymbolType>* allowable_symbol_types) const override;
+    bool GetRequestIssued_INTERPRETER_DLL_TODO() const { return GetRequestIssued(); }
+public:
+    LoopStack& GetLoopStack() override;
+private:
+    bool Get_m_bStopExec_INTERPRETER_DLL_TODO() const { return m_bStopExec; }
 
 
 private:

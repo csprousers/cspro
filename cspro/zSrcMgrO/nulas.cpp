@@ -60,6 +60,7 @@ Engine::Value CIntDriver::ModifyVARTValue_INTERPRETER_DLL_TODO(int variable_comp
 Engine::Value CIntDriver::ModifyVARTValue_INTERPRETER_DLL_TODO(int variable_compilation, const std::function<void(SharableString&)>& modify_value_function, std::unique_ptr<Paradata::FieldInfo>* paradata_field_info/* = nullptr*/) { throw ProgrammingErrorException(); }
 int CIntDriver::SymbolTableSearch_INTERPRETER_DLL_TODO(std::string_view full_symbol_name_sv, SymbolType preferred_symbol_type,
                                                        const std::vector<SymbolType>* allowable_symbol_types) const { throw ProgrammingErrorException(); }
+LoopStack& CIntDriver::GetLoopStack() { throw ProgrammingErrorException(); }
 
 
 double* CIntDriver::svaraddr( VARX* pVarX ) const { ASSERT(0); return NULL; }

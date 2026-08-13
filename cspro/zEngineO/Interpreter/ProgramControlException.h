@@ -1,6 +1,6 @@
-﻿#pragma once
+#pragma once
 
-#include <engine/LogicStackSaver.h>
+#include <zEngineO/Interpreter/LogicStackSaver.h>
 #include <stdexcept>
 
 

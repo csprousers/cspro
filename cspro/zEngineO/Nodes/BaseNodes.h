@@ -67,6 +67,12 @@ namespace Nodes
     };
 
 
+    struct StatementWithArguments : public Statement
+    {
+        int expressions[1];
+    };
+
+
     struct SymbolCompute
     {
         FunctionCode function_code;

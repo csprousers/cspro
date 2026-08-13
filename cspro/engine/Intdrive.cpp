@@ -367,8 +367,8 @@ void CIntDriver::AddIntDriverInstructions()
     OP_ENGVAL(20, ex_equ);
     OP_ENGVAL(21, ex_string_compute);
     OP_ENGVAL(22, ex_WorkVariable_evaluate);
-    OP_DOUBLE(23, exif);
-    OP_DOUBLE(24, exwhile);
+    OP_ENGVAL(23, ex_if);
+    OP_ENGVAL(24, ex_while);
     OP_DOUBLE(25, exbox);
     OP_ENGVAL(26, ex_string_literal);
     OP_ENGVAL_ID(27, excharobj);
@@ -478,7 +478,7 @@ void CIntDriver::AddIntDriverInstructions()
     OP_ENGVAL(131, ex_nop_abort);
     OP_ENGVAL_ID(132, exfucall);
     OP_ENGVAL(133, ex_in);
-    OP_DOUBLE(134, ex_do);
+    OP_ENGVAL(134, ex_do);
     OP_DOUBLE(135, ex_impute);
     OP_DOUBLE(136, exfncurocc);
     OP_DOUBLE(137, exfntotocc);
@@ -500,8 +500,8 @@ void CIntDriver::AddIntDriverInstructions()
     OP_DOUBLE(153, exmoveto);
     OP_ENGVAL(154, ex_nop_abort);
     OP_ENGVAL_ID(155, ex_getoperatorid);
-    OP_DOUBLE(156, exfornext);
-    OP_DOUBLE(157, exforbreak);
+    OP_ENGVAL(156, ex_for_next);
+    OP_ENGVAL(157, ex_for_break);
     OP_DOUBLE(158, ex_setfile);
     OP_DOUBLE(159, exmaxocc_pre80);
     OP_ENGVAL(160, ex_invalueset);
@@ -623,7 +623,7 @@ void CIntDriver::AddIntDriverInstructions()
     OP_DOUBLE(276, exdirdelete);
     OP_ENGVAL(277, ex_Array_var);
     OP_DOUBLE(278, extvar);
-    OP_DOUBLE(279, ex_exit);
+    OP_ENGVAL(279, ex_exit);
     OP_ENGVAL_ID(280, ex_getbluetoothname);
     OP_ENGVAL(281, ex_regexmatch);
     OP_ENGVAL(282, ex_nop_abort);
