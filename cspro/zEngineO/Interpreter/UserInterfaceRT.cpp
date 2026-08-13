@@ -429,3 +429,67 @@ Engine::Value LogicInterpreter::ex_setfont(const int program_index)
     return Engine::Value::Bool(true);
 #endif
 }
+
+
+// getorientation and setorientation both call this function; only setorientation has parameters
+double CIntDriver::exorientation(int iExpr) // 20100618
+{
+#ifndef WIN_DESKTOP
+    // not applicable on portable platforms
+    return DEFAULT;
+#else
+    FNN_NODE* pfun = (FNN_NODE*)PPT(iExpr);
+    bool isSetting = pfun->fn_nargs == 1;
+    DWORD setMode = isSetting ? Evaluate<unsigned int>(pfun->fn_expr[0]) : 0;
+
+
+    // code modified from http://weseetips.com/2009/05/10/how-to-change-the-display-orientation/
+
+    // Get current Device Mode.
+    DEVMODE DeviceMode;
+    ZeroMemory(&DeviceMode,sizeof(DeviceMode));
+    DeviceMode.dmSize = sizeof(DEVMODE);
+
+    EnumDisplaySettings(NULL,ENUM_CURRENT_SETTINGS,&DeviceMode);
+
+    if( !isSetting )
+        return DeviceMode.dmDisplayOrientation * 90;
+
+    // no need to change the orientation if the screen is currently that orientation
+    if( DeviceMode.dmDisplayOrientation == setMode )
+        return 1;
+
+    bool isCurrentlyLandscape = DeviceMode.dmDisplayOrientation == DMDO_DEFAULT || DeviceMode.dmDisplayOrientation == DMDO_180;
+    bool isRequestingLandscape;
+
+    switch( setMode )
+    {
+        case 0:   // DMDO_DEFAULT:
+        case 180: // DMDO_180:
+            isRequestingLandscape = true;
+            break;
+
+        case 90:  // DMDO_90:
+        case 270: // DMDO_270:
+            isRequestingLandscape  = false;
+            break;
+
+        default:
+            return 0; // they are requesting an invalid orientation
+    }
+
+    setMode /= 90; // get it into the DMDO formats
+
+    if( isCurrentlyLandscape != isRequestingLandscape )
+    {
+        // swap height and width
+        DWORD dwTemp = DeviceMode.dmPelsHeight;
+        DeviceMode.dmPelsHeight = DeviceMode.dmPelsWidth;
+        DeviceMode.dmPelsWidth = dwTemp;
+    }
+
+    DeviceMode.dmDisplayOrientation = setMode;
+
+    return ChangeDisplaySettings(&DeviceMode,0) == DISP_CHANGE_SUCCESSFUL;
+#endif
+}

@@ -1,9 +1,9 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "Shlwapi.h"
 #include <engine/Engine.h>
 #include <engine/Batdrv.h>
 #include <engine/Ctab.h>
-#include <engine/ProgramControl.h>
+#include <zEngineO/Interpreter/ProgramControlException.h>
 
 #ifdef _DEBUG
 #define new DEBUG_NEW

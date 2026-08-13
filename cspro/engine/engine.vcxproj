@@ -150,11 +150,9 @@
     <ClInclude Include="InterpreterAccessor.h" />
     <ClInclude Include="InterpreterMessageIssuer.h" />
     <ClInclude Include="ItemData.h" />
-    <ClInclude Include="LogicStackSaver.h" />
     <ClInclude Include="Messages.h" />
     <ClInclude Include="Nodes.h" />
     <ClInclude Include="ParadataDriver.h" />
-    <ClInclude Include="ProgramControl.h" />
     <ClInclude Include="RangeFunctions.h" />
     <ClInclude Include="ReadyFlags.h" />
     <ClInclude Include="Relation.h" />

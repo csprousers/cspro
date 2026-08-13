@@ -565,6 +565,13 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 };
 
 
+Engine::Value CIntDriver::exfucall(int iExpr)
+{
+    const auto& function_call_node = GetNode<Nodes::FunctionCall>(iExpr);
+    return ExecuteInstruction(function_call_node.expression);
+}
+
+
 Engine::Value LogicInterpreter::ex_nop_ignore(const int program_index)
 {
     const auto& function_call_node = GetNode<Nodes::FunctionCall>(program_index);

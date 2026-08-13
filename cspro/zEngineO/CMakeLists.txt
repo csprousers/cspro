@@ -118,6 +118,7 @@ add_library(${PROJECT_NAME}
     Interpreter/BarcodeRT.cpp
     Interpreter/BytecodeRT.cpp
     Interpreter/CompressionRT.cpp
+    Interpreter/ControlFlowRT.cpp
     Interpreter/DateRT.cpp
     Interpreter/DocumentRT.cpp
     Interpreter/ExecutionRT.cpp
@@ -145,6 +146,7 @@ add_library(${PROJECT_NAME}
     Interpreter/SystemAppRT.cpp
     Interpreter/SystemRT.cpp
     Interpreter/TextTemplateRT.cpp
+    Interpreter/TraceRT.cpp
     Interpreter/UserFunctionRT.cpp
     Interpreter/UserInterfaceRT.cpp
     Interpreter/ValueSetRT.cpp

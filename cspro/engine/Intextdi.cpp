@@ -6,10 +6,10 @@
 #include "StandardSystemIncludes.h"
 #include "Engine.h"
 #include "Interpreter.h"
-#include "ProgramControl.h"
 #include "SelcaseManager.h"
 #include <zEngineO/AllSymbols.h>
 #include <zEngineO/LoopStack.h>
+#include <zEngineO/Interpreter/ProgramControlException.h>
 #include <zEngineO/Interpreter/SelectDlgHelper.h>
 #include <zEngineO/Messages/EngineMessages.h>
 #include <zEngineO/Nodes/Dictionaries.h>

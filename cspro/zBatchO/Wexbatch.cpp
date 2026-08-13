@@ -1,4 +1,4 @@
-﻿//---------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 //
 //  wExbatch: Batch Processor main program
 //
@@ -11,7 +11,7 @@
 //----------------------------------------------------------------------------
 // compiling forbidden objects
 #include <engine/CompIlad.h>
-#include <engine/ProgramControl.h>
+#include <zEngineO/Interpreter/ProgramControlException.h>
 #include <zIssaLib/CsDriver.h>
 
 void CEntryDriver::BuildQuestMgr() { ASSERT(0); }

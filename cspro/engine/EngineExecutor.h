@@ -3,7 +3,7 @@
 #include <engine/StandardSystemIncludes.h>
 #include <engine/Interpreter.h>
 #include <engine/InterpreterAccessor.h>
-#include <engine/ProgramControl.h>
+#include <zEngineO/Interpreter/ProgramControlException.h>
 
 
 template<typename CF>

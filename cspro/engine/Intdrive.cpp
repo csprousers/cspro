@@ -16,7 +16,6 @@
 #include "FrequencyDriver.h"
 #include "ImputationDriver.h"
 #include "InterpreterMessageIssuer.h"
-#include "ProgramControl.h"
 #include "SelcaseManager.h"
 #include <zPlatformO/PlatformInterface.h>
 #include <zLogicO/SpecialFunction.h>
@@ -26,6 +25,7 @@
 #include <zEngineO/LoopStack.h>
 #include <zEngineO/SaveArrayFile.h>
 #include <zEngineO/UserFunctionArgumentEvaluator.h>
+#include <zEngineO/Interpreter/ProgramControlException.h>
 #include <zEngineF/TraceHandler.h>
 #include <zEngineF/WindowsApplicationInterface.h>
 #include <zToolsO/Tools.h>

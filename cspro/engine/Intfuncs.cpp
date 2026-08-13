@@ -17,8 +17,6 @@
 #include <zEngineO/Interpreter/SelectDlgHelper.h>
 #include <zEngineO/Messages/EngineMessages.h>
 #include <zEngineO/Nodes/File.h>
-#include <zEngineO/Nodes/Trace.h>
-#include <zEngineF/TraceHandler.h>
 #include <zPlatformO/PlatformInterface.h>
 #include <zToolsO/DirectoryLister.h>
 #include <zToolsO/FileIO.h>
@@ -2894,56 +2892,6 @@ double CIntDriver::excountvalid(int iExpr) // 20091203 count the number non-spec
 }
 
 
-double CIntDriver::ex_trace(const int program_index)
-{
-    const auto& trace_node = GetNode<Nodes::Trace>(program_index);
-
-    auto get_trace_hander = [&]() -> TraceHandler&
-    {
-        // we need to make sure that a trace handler exists
-        if( m_traceHandler == nullptr )
-            m_traceHandler = TraceHandler::CreateTraceHandler();
-
-        return *m_traceHandler;
-    };
-
-    // turn trace off
-    if( trace_node.action == Nodes::Trace::Action::TurnOff  )
-    {
-        m_traceHandler.reset();
-        return 1;
-    }
-
-    // trace with a window
-    if( trace_node.action == Nodes::Trace::Action::WindowOn )
-    {
-        return get_trace_hander().TurnOnWindowTrace();
-    }
-
-    // trace with a file
-    else if( const bool append = ( trace_node.action == Nodes::Trace::Action::FileOn ); append || trace_node.action == Nodes::Trace::Action::FileOnClear )
-    {
-        const std::string file_path = EvaluatePath(trace_node.argument);
-        return get_trace_hander().TurnOnFileTrace(file_path, append);
-    }
-
-    // trace some text
-    else if( m_traceHandler != nullptr )
-    {
-        ASSERT(trace_node.action == Nodes::Trace::Action::UserText ||
-               trace_node.action == Nodes::Trace::Action::LogicText);
-
-        const TraceHandler::OutputType output_type =
-            ( trace_node.action == Nodes::Trace::Action::UserText ) ? TraceHandler::OutputType::UserText :
-                                                                      TraceHandler::OutputType::LogicText;
-
-        m_traceHandler->Output(Evaluate<SharableString>(trace_node.argument), output_type);
-    }
-
-    return 1;
-}
-
-
 CDEField* CIntDriver::GetCDEFieldFromVART(VART* pVarT)
 {
     for( const auto& pFF : m_pEngineDriver->GetApplication()->GetRuntimeFormFiles() )
@@ -3094,70 +3042,6 @@ double CIntDriver::ex_changekeyboard(const int program_index)
 
         return static_cast<double>(fields_modified);
     }
-#endif
-}
-
-
-// getorientation and setorientation both call this function; only setorientation has parameters
-double CIntDriver::exorientation(int iExpr) // 20100618
-{
-#ifndef WIN_DESKTOP
-    // not applicable on portable platforms
-    return DEFAULT;
-#else
-    FNN_NODE* pfun = (FNN_NODE*)PPT(iExpr);
-    bool isSetting = pfun->fn_nargs == 1;
-    DWORD setMode = isSetting ? Evaluate<unsigned int>(pfun->fn_expr[0]) : 0;
-
-
-    // code modified from http://weseetips.com/2009/05/10/how-to-change-the-display-orientation/
-
-    // Get current Device Mode.
-    DEVMODE DeviceMode;
-    ZeroMemory(&DeviceMode,sizeof(DeviceMode));
-    DeviceMode.dmSize = sizeof(DEVMODE);
-
-    EnumDisplaySettings(NULL,ENUM_CURRENT_SETTINGS,&DeviceMode);
-
-    if( !isSetting )
-        return DeviceMode.dmDisplayOrientation * 90;
-
-    // no need to change the orientation if the screen is currently that orientation
-    if( DeviceMode.dmDisplayOrientation == setMode )
-        return 1;
-
-    bool isCurrentlyLandscape = DeviceMode.dmDisplayOrientation == DMDO_DEFAULT || DeviceMode.dmDisplayOrientation == DMDO_180;
-    bool isRequestingLandscape;
-
-    switch( setMode )
-    {
-        case 0:   // DMDO_DEFAULT:
-        case 180: // DMDO_180:
-            isRequestingLandscape = true;
-            break;
-
-        case 90:  // DMDO_90:
-        case 270: // DMDO_270:
-            isRequestingLandscape  = false;
-            break;
-
-        default:
-            return 0; // they are requesting an invalid orientation
-    }
-
-    setMode /= 90; // get it into the DMDO formats
-
-    if( isCurrentlyLandscape != isRequestingLandscape )
-    {
-        // swap height and width
-        DWORD dwTemp = DeviceMode.dmPelsHeight;
-        DeviceMode.dmPelsHeight = DeviceMode.dmPelsWidth;
-        DeviceMode.dmPelsWidth = dwTemp;
-    }
-
-    DeviceMode.dmDisplayOrientation = setMode;
-
-    return ChangeDisplaySettings(&DeviceMode,0) == DISP_CHANGE_SUCCESSFUL;
 #endif
 }
 

@@ -176,9 +176,6 @@
     <ClInclude Include="ItemData.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="LogicStackSaver.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Messages.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -186,9 +183,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ParadataDriver.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ProgramControl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="RangeFunctions.h">

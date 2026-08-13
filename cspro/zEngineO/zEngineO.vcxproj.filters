@@ -281,6 +281,9 @@
     <ClCompile Include="Interpreter\CompressionRT.cpp">
       <Filter>Source Files\Interpreter</Filter>
     </ClCompile>
+    <ClCompile Include="Interpreter\ControlFlowRT.cpp">
+      <Filter>Source Files\Interpreter</Filter>
+    </ClCompile>
     <ClCompile Include="Interpreter\DateRT.cpp">
       <Filter>Source Files\Interpreter</Filter>
     </ClCompile>
@@ -360,6 +363,9 @@
       <Filter>Source Files\Interpreter</Filter>
     </ClCompile>
     <ClCompile Include="Interpreter\TextTemplateRT.cpp">
+      <Filter>Source Files\Interpreter</Filter>
+    </ClCompile>
+    <ClCompile Include="Interpreter\TraceRT.cpp">
       <Filter>Source Files\Interpreter</Filter>
     </ClCompile>
     <ClCompile Include="Interpreter\UserFunctionRT.cpp">
@@ -608,6 +614,12 @@
       <Filter>Header Files\Interpreter</Filter>
     </ClInclude>
     <ClInclude Include="Interpreter\LogicInterpreter.h">
+      <Filter>Header Files\Interpreter</Filter>
+    </ClInclude>
+    <ClInclude Include="Interpreter\LogicStackSaver.h">
+      <Filter>Header Files\Interpreter</Filter>
+    </ClInclude>
+    <ClInclude Include="Interpreter\ProgramControlException.h">
       <Filter>Header Files\Interpreter</Filter>
     </ClInclude>
     <ClInclude Include="Interpreter\SelectDlgHelper.h">

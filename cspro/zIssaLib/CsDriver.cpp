@@ -34,7 +34,6 @@
 #include <engine/Engine.h>
 #include <engine/Entifaz.h>
 #include <engine/IntDrive.h>
-#include <engine/ProgramControl.h>
 #include <zToolsO/VarFuncs.h>
 #include <zAppO/Properties/ApplicationProperties.h>
 #include <zMessageO/MessageManager.h>
@@ -43,6 +42,7 @@
 #include <zParadataO/Logger.h>
 #include <zBridgeO/NPff.h>
 #include <zLogicO/SpecialFunction.h>
+#include <zEngineO/Interpreter/ProgramControlException.h>
 
 
 #define BOOL2STRING(b) ((b)==true?_T("true"):_T("false"))

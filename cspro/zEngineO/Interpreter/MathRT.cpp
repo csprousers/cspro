@@ -660,3 +660,195 @@ Engine::Value LogicInterpreter::ex_tonumber(const int program_index)
            ( sign == Sign::Negative )                       ? Engine::Value(-1 * value) :
                                                               Engine::Value(value);
 }
+
+
+//----------------------------------------------------------------------
+//  exedit: execute EDIT function
+//----------------------------------------------------------------------
+namespace
+{
+    struct PAT_DESC
+    {
+        int len;
+        int num;
+        int dec;
+        TCHAR pad;
+        int sig;
+    };
+
+    bool exedit_scan(CString pattern, PAT_DESC* pat_desc)
+    {
+        constexpr char DecimalSeparator = '.';
+
+        pat_desc->len = 0;
+        pat_desc->num = 0;
+        pat_desc->dec = 0;
+        pat_desc->pad = BLANK;
+        pat_desc->sig = 9999;
+
+        const TCHAR* pattern_itr = pattern.GetBuffer();
+        bool bOnly9 = false;
+
+        if( *pattern_itr != '9' && *pattern_itr != 'Z' && *pattern_itr != 0 )
+        {
+            pat_desc->len = 1;
+            pat_desc->pad = *pattern_itr++;
+        }
+
+        for( ;  *pattern_itr != 0 && *pattern_itr != DecimalSeparator; pattern_itr++ )
+        {
+            if( *pattern_itr == '9' )
+            {
+                if( !bOnly9 )
+                    pat_desc->sig = ( pattern_itr - pattern );
+
+                bOnly9 = true;
+                pat_desc->num++;
+            }
+
+            else if( *pattern_itr == 'Z' )
+            {
+                if( bOnly9 )
+                    return false;
+
+                pat_desc->num++;
+            }
+
+            pat_desc->len++;
+        }
+
+        if( *pattern_itr == DecimalSeparator )
+        {
+            pat_desc->len++;
+            pattern_itr++;
+
+            while( *pattern_itr )
+            {
+                if( *pattern_itr == '9' )
+                {
+                    bOnly9 = true;
+                    pat_desc->dec++;
+                }
+
+                else if( *pattern_itr == 'Z' )
+                {
+                    if( bOnly9 )
+                        return false;
+
+                    pat_desc->dec++;
+                }
+
+                pat_desc->len++;
+                pattern_itr++;
+            }
+        }
+
+        pat_desc->num += pat_desc->dec;
+
+        return true;
+    }
+}
+
+
+Engine::Value CIntDriver::exedit(const int iExpr)
+{
+    const auto& va_node = GetNode<Nodes::VariableArguments>(iExpr);
+    CString pattern = EvalAlphaExprCS(va_node.arguments[0]);
+    double value = evalexpr(va_node.arguments[1]);
+    CString edit_result;
+
+    // process normal values
+    if( value > -MAXVALUE && !IsSpecial(value) )
+    {
+        PAT_DESC pat_desc;
+
+        // check that the pattern is valid
+        if( exedit_scan(pattern, &pat_desc) )
+        {
+            TCHAR* chvalue = edit_result.GetBufferSetLength(pattern.GetLength());
+
+            bool value_is_negative = ( value < 0 );
+
+            if( value_is_negative )
+                value = -value;
+
+            if( pat_desc.dec > 0 )
+                value *= Power10[pat_desc.dec];
+
+            value = floor(value + MAGICROUND);
+
+            CString formattedValue;
+            formattedValue.Format(_T("%.0f"), value);
+            int len = formattedValue.GetLength();
+            const TCHAR* pv = formattedValue.GetBuffer() + len - 1;
+
+            _tmemset(chvalue, pat_desc.pad, pat_desc.len);
+
+            const TCHAR* pp = pattern.GetBuffer() + pat_desc.len - 1;
+            TCHAR* pr = chvalue + pat_desc.len - 1;
+
+            int i = 0;
+
+            for( ; i < pat_desc.len; i++ )
+            {
+                if( *pp == '9' )
+                {
+                    if( len > 0 )
+                    {
+                        *pr-- = *pv--;
+                        len--;
+                    }
+
+                    else
+                    {
+                        *pr-- = '0';
+                    }
+                }
+
+                else if( *pp == 'Z' )
+                {
+                    if( len > 0 )
+                    {
+                        *pr-- = *pv--;
+                        len--;
+                    }
+
+                    else
+                    {
+                        break;
+                    }
+                }
+
+                else
+                {
+                    if( len > 0 || ( pp - pattern ) >= pat_desc.sig )
+                        *pr-- = *pp;
+                }
+
+                pp--;
+            }
+
+            if( value_is_negative )
+            {
+                if( i < pat_desc.len )
+                {
+                    *pr = '-';
+                }
+
+                else
+                {
+                    *(++pr) = '-';
+                }
+            }
+        }
+    }
+
+    // process special values
+    else if( IsSpecial(value) )
+    {
+        edit_result = UTF8_TODO::GetCString(SpecialValues::ValueToString(value));
+        SO::MakeExactLength(edit_result, pattern.GetLength());
+    }
+
+    return UTF8_TODO::GetUtf8(edit_result);
+}

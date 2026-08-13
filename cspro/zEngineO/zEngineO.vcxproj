@@ -102,6 +102,7 @@
     <ClCompile Include="Interpreter\BarcodeRT.cpp" />
     <ClCompile Include="Interpreter\BytecodeRT.cpp" />
     <ClCompile Include="Interpreter\CompressionRT.cpp" />
+    <ClCompile Include="Interpreter\ControlFlowRT.cpp" />
     <ClCompile Include="Interpreter\DateRT.cpp" />
     <ClCompile Include="Interpreter\DocumentRT.cpp" />
     <ClCompile Include="Interpreter\ExecutionRT.cpp" />
@@ -129,6 +130,7 @@
     <ClCompile Include="Interpreter\SystemAppRT.cpp" />
     <ClCompile Include="Interpreter\SystemRT.cpp" />
     <ClCompile Include="Interpreter\TextTemplateRT.cpp" />
+    <ClCompile Include="Interpreter\TraceRT.cpp" />
     <ClCompile Include="Interpreter\UserFunctionRT.cpp" />
     <ClCompile Include="Interpreter\UserInterfaceRT.cpp" />
     <ClCompile Include="Interpreter\ValueSetRT.cpp" />
@@ -215,6 +217,8 @@
     <ClInclude Include="Imputation.h" />
     <ClInclude Include="Interpreter\IncludesRT.h" />
     <ClInclude Include="Interpreter\LogicInterpreter.h" />
+    <ClInclude Include="Interpreter\LogicStackSaver.h" />
+    <ClInclude Include="Interpreter\ProgramControlException.h" />
     <ClInclude Include="Interpreter\SelectDlgHelper.h" />
     <ClInclude Include="Interpreter\StringComparer.h" />
     <ClInclude Include="JavaScriptProcessor.h" />
