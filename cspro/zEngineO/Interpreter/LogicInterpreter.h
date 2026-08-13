@@ -120,16 +120,6 @@ public:
 
 
     // --------------------------------------------------------------------------
-    // general assignment routines
-    // --------------------------------------------------------------------------
-public:
-    template<typename T>
-    static T GetInvalidValue();
-
-    double AssignInvalidValue(DataType data_type);
-
-
-    // --------------------------------------------------------------------------
     // message routines
     // --------------------------------------------------------------------------
 public:
@@ -222,13 +212,6 @@ private:
 public:
     SharableString EvaluateNullableSharableString(int program_index);
 
-    template<typename T>
-    double AssignString(T&& value);
-
-    double AssignStringNull();
-
-    SharableString GetWorkingSharableString(Engine::Value value);
-
     Engine::Value ex_string_literal(int program_index);
     Engine::Value ex_string_compute(int program_index);
 
@@ -269,9 +252,6 @@ private:
     Engine::Value ex_string_operators(int program_index);
 
 private:
-    // temporary strings created by logic functions
-    std::vector<SharableString> m_workingStrings;
-
     // the encoding type for the encode function
     EncodeType m_currentEncodeType;
 
@@ -910,17 +890,19 @@ inline Engine::Value LogicInterpreter::Evaluate(const int program_index)
 template<>
 inline SharableString LogicInterpreter::Evaluate(const int program_index)
 {
-    // EV_TODO when AssignString is no longer used, we can get rid of
-    // GetWorkingSharableString and use the general template specialization instead
-    return GetWorkingSharableString(Evaluate<Engine::Value>(program_index));
+#ifdef _DEBUG
+    Engine::Value value = Evaluate<Engine::Value>(program_index);
+    ASSERT82(value.is<SharableString>());
+    return value.as<SharableString>();
+#else
+    return Evaluate<Engine::Value>(program_index).as<SharableString>();
+#endif
 }
 
 
 template<>
 inline std::string LogicInterpreter::Evaluate(const int program_index)
 {
-    // EV_TODO when AssignString is no longer used, we can add a
-    // template specialization in Engine::Value for getting strings
     return Evaluate<SharableString>(program_index).Release();
 }
 
@@ -974,23 +956,6 @@ std::string LogicInterpreter::GetFormattedMessage(const int message_number, Args
 #endif
 
     return GetFormattedMessageWorker(message_number, args...);
-}
-
-
-template<typename T>
-double LogicInterpreter::AssignString(T&& value)
-{
-    if constexpr(cs::is_optional<T>::value)
-    {
-        return value.has_value() ? AssignString(std::move(*value)) :
-                                   AssignStringNull();
-    }
-
-    else
-    {
-        m_workingStrings.emplace_back(std::forward<T>(value));
-        return static_cast<double>(m_workingStrings.size() - 1);
-    }
 }
 
 

@@ -607,9 +607,9 @@ double CIntDriver::exnoopIgnore_numeric(int /*iExpr*/)
 }
 
 
-double CIntDriver::exnoopIgnore_string(int iExpr)
+Engine::Value CIntDriver::exnoopIgnore_string(int /*iExpr*/)
 {
-    return AssignStringNull();
+    return Engine::Value::Invalid<SharableString>();
 }
 
 

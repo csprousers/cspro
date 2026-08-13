@@ -145,7 +145,7 @@ T LogicInterpreter::EvaluateSymbolValue(const Nodes::SymbolValue& symbol_value_n
             const std::vector<size_t> indices = EvaluateArrayIndex(symbol_value_node.symbol_compilation, const_cast<LogicArray**>(&logic_array));
 
             if( indices.empty() )
-                return GetInvalidValue<T>();
+                return Engine::Value::Invalid<T>().template get<T>();
 
             return logic_array->GetValue<T>(indices);
         }
@@ -157,7 +157,7 @@ T LogicInterpreter::EvaluateSymbolValue(const Nodes::SymbolValue& symbol_value_n
             const std::vector<LogicHashMap::Data> dimension_values = EvaluateHashMapIndex(symbol_value_node.symbol_compilation, const_cast<LogicHashMap**>(&hashmap), true);
 
             if( dimension_values.empty() )
-                return GetInvalidValue<T>();
+                return Engine::Value::Invalid<T>().template get<T>();
 
             return std::get<T>(*hashmap->GetValue(dimension_values));
         }
@@ -169,7 +169,7 @@ T LogicInterpreter::EvaluateSymbolValue(const Nodes::SymbolValue& symbol_value_n
             const std::optional<size_t> index = EvaluateListIndex(symbol_value_node.symbol_compilation, const_cast<LogicList**>(&logic_list), false);
 
             if( !index.has_value() )
-                return GetInvalidValue<T>();
+                return Engine::Value::Invalid<T>().template get<T>();
 
             return logic_list->GetValue<T>(*index);
         }
@@ -238,7 +238,7 @@ T LogicInterpreter::EvaluateSymbolValue(const Nodes::SymbolValue& symbol_value_n
         }
     }
 
-    return ReturnProgrammingError(GetInvalidValue<T>());
+    return ReturnProgrammingError(Engine::Value::Invalid<T>().template get<T>());
 }
 
 template ZENGINEO_API double LogicInterpreter::EvaluateSymbolValue<double>(const Nodes::SymbolValue& symbol_value_node);

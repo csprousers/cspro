@@ -701,23 +701,23 @@ std::string CIntDriver::GetProperty(const ParameterManager::Parameter parameter,
 }
 
 
-double CIntDriver::ex_getproperty(const int program_index)
+Engine::Value CIntDriver::ex_getproperty(const int program_index)
 {
     try
     {
         std::set<int> symbol_set;
         const ParameterManager::Parameter parameter = GetSetPropertyParser(program_index, symbol_set);
-        return AssignString(GetProperty(parameter, &symbol_set));
+        return GetProperty(parameter, &symbol_set);
     }
 
     catch(...)
     {
-        return AssignString("<invalid property>");
+        return SharableString("<invalid property>");
     }
 }
 
 
-double CIntDriver::ex_setproperty(const int program_index)
+Engine::Value CIntDriver::ex_setproperty(const int program_index)
 {
     std::optional<size_t> properties_modified = 0;
     bool refresh_screen = false;
@@ -1066,9 +1066,9 @@ double CIntDriver::ex_setproperty(const int program_index)
         frm_capimode(0, 1);
 
     if( !properties_modified.has_value() )
-        return DEFAULT;
+        return Engine::Value::Invalid<double>();
 
-    return static_cast<double>(*properties_modified);
+    return Engine::Value::Integer(*properties_modified);
 }
 
 
@@ -1090,7 +1090,7 @@ void EngineParadataDriver::LogProperties()
 }
 
 
-double CIntDriver::ex_protect(const int program_index)
+Engine::Value CIntDriver::ex_protect(const int program_index)
 {
     const auto& va_node = GetNode<Nodes::VariableArguments>(program_index);
     Symbol& symbol = NPT_Ref(va_node.arguments[0]);
@@ -1124,5 +1124,5 @@ double CIntDriver::ex_protect(const int program_index)
     if( fields_processed != 0 )
         frm_capimode(0, 1);
 
-    return static_cast<double>(fields_processed);
+    return Engine::Value::Integer(fields_processed);
 }

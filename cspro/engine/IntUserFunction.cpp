@@ -120,7 +120,7 @@ Engine::Value CIntDriver::CallUserFunction(UserFunction& user_function, UserFunc
 
                 catch( const UserFunctionArgumentEvaluator::InvalidSubscript& )
                 {
-                    return AssignInvalidValue(user_function.GetReturnDataType());
+                    return Engine::Value::Invalid(user_function.GetReturnDataType());
                 }
             }
 

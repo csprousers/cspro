@@ -335,7 +335,7 @@ public:
     double  excpttbl(int iExpr);
 
     double  exnoopIgnore_numeric(int iExpr);
-    double  exnoopIgnore_string(int iExpr);
+    Engine::Value exnoopIgnore_string(int iExpr);
     double  exnoopAbort(int iExpr);
     double  exnoopAbortPlaceholderForFutureFunction(int iExpr);
 
@@ -456,7 +456,7 @@ public:
     double  exdisplay(int program_index);
     double  exerrmsg(int program_index);
     double  exwrite(int program_index);
-    double  exmaketext(int program_index);
+    Engine::Value exmaketext(int program_index);
     double  exlogtext(int program_index);
     double  exwarning(int program_index);
 
@@ -477,12 +477,12 @@ public:
     double ex_syncfile(int program_index);
     double ex_syncserver(int program_index);
     double ex_syncapp(int program_index);
-    double ex_syncmessage(int program_index);
+    Engine::Value ex_syncmessage(int program_index);
     double ex_syncparadata(int program_index);
     double ex_synctime(int program_index);
 
-    double ex_getbluetoothname(int program_index);
-    double ex_setbluetoothname(int program_index);
+    Engine::Value ex_getbluetoothname(int program_index);
+    Engine::Value ex_setbluetoothname(int program_index);
 
     double exsavepartial(int iExpr);
     Engine::Value ex_getoperatorid(int program_index);
@@ -498,9 +498,9 @@ public:
 
     double  exdeckarray(int iExpr); // for getdeck and putdeck
 
-    double  ex_getlanguage(int program_index);
-    double  ex_setlanguage(int program_index);
-    double  ex_tr(int program_index);
+    Engine::Value ex_getlanguage(int program_index);
+    Engine::Value ex_setlanguage(int program_index);
+    Engine::Value ex_tr(int program_index);
 
     double  exuserbar(int iExpr); // 20100414
 
@@ -519,7 +519,7 @@ public:
     double  exgps(int iExpr);               // 20110223
     std::unique_ptr<Paradata::Event> CreateParadataGpsEvent(std::string_view event_type_sv, std::string_view event_information_sv);
 
-    double  exgetrecord(int iExpr);     // 20110302
+    Engine::Value ex_getrecord(int program_index);
 
     double  ex_setoutput(int program_index);
 
@@ -531,14 +531,14 @@ public:
     VARX*   AssignParser(int iExpr, std::unique_ptr<CNDIndexes>& pTheIndex, int* aIndex); // 20140422
 
     SharableString GetValueLabel(const VART* pVarT, const std::variant<double, SharableString>& value);
-    double  exgetvaluelabel(int iExpr);
-    double  exvariablevalue(int program_index);
+    Engine::Value ex_getvaluelabel(int program_index);
+    Engine::Value ex_variablevalue(int program_index);
 
     double  exxtab(int iExpr);
     double  extblcoord(int iExpr); // tblrow, tblcol, tbllay
     double  extblsum(int iExpr);
     double  extblmed(int iExpr);
-    double  exfilename(int iExpr);
+    Engine::Value exfilename(int iExpr);
 
     Engine::Value ex_key_currentkey(int program_index);
     double  exkeylist(int iExpr);
@@ -552,7 +552,7 @@ public:
     bool IsDataAccessible(const Symbol& symbol, bool issue_error_if_inaccessible) override;
     void EnsureDataIsAccessible(const Symbol& symbol); // calls IsDataAccessible and throws an exception on error
 private:
-    double exDataAccessValidityCheck(int program_index);
+    Engine::Value exDataAccessValidityCheck(int program_index);
 
     // EngineDictionary functions
     double exdictcompute(int iExpr);
@@ -566,8 +566,8 @@ public:
 
     // Item functions
 public:
-    double exItem_getValueLabel(int program_index);
-    double exItem_hasValue_isValid(int program_index);
+    Engine::Value exItem_getValueLabel(int program_index);
+    Engine::Value exItem_hasValue_isValid(int program_index);
 
 private:
     std::tuple<EngineItemAccessor*, bool> GetEngineItemAccessorAndVisualValueFlag(const Nodes::SymbolVariableArgumentsWithSubscript& symbol_va_with_subscript_node, int visual_value_argument_index);
@@ -637,7 +637,7 @@ private:
     void    EntryInputRepositoryChangingActions();
 
 public:
-    double  exgetcaselabel(int iExpr);
+    Engine::Value ex_getcaselabel(int program_index);
     double  exsetcaselabel(int iExpr);
 
     double  exsetattr(int iExpr);
@@ -658,9 +658,9 @@ private:
     std::tuple<std::shared_ptr<NamedReference>, int> EvaluateNoteReference(const FNNOTE_NODE& note_node);
     std::unique_ptr<std::string> EvaluateNoteOperatorId(const FNNOTE_NODE& note_node, int field_symbol);
 public:
-    double  exgetnote(int program_index);
-    double  exeditnote(int program_index);
-    double  exputnote(int program_index);
+    Engine::Value exgetnote(int program_index);
+    Engine::Value exeditnote(int program_index);
+    Engine::Value exputnote(int program_index);
 
     // both "get symbol" methods throw an exception if the symbol is not found;
     // the "evaluated" version allows the specification of subscripts and returns the base symbol (non-null), as well as the wrapped symbol (potentially null)
@@ -706,9 +706,9 @@ private:
                                                      std::variant<double, std::string>* out_value = nullptr);
 public:
     std::string GetProperty(ParameterManager::Parameter parameter, std::set<int>* symbol_set = nullptr);
-    double ex_getproperty(int program_index);
-    double ex_setproperty(int program_index);
-    double ex_protect(int program_index);
+    Engine::Value ex_getproperty(int program_index);
+    Engine::Value ex_setproperty(int program_index);
+    Engine::Value ex_protect(int program_index);
 
     Engine::Value ExExecSystem(int iExpr);
     std::unique_ptr<Paradata::ExternalApplicationEvent> ExExecCommonBeforeExecute(FunctionCode source, const std::string& command, int flags);

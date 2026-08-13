@@ -480,7 +480,7 @@ double CIntDriver::ex_syncapp(int /*program_index*/)
 }
 
 
-double CIntDriver::ex_syncmessage(const int program_index)
+Engine::Value CIntDriver::ex_syncmessage(const int program_index)
 {
     const auto& va_node = GetNode<Nodes::VariableArguments>(program_index);
     ASSERT(va_node.arguments[0] == -1); // the type of message, for now, is ignored
@@ -491,10 +491,10 @@ double CIntDriver::ex_syncmessage(const int program_index)
     const std::optional<JsonNode> response_json_node = GetSyncClient().SendSyncMessage(sync_message);
 
     if( !response_json_node.has_value() )
-        return AssignStringNull();
+        return Engine::Value::Undefined<SharableString>();
 
-    return AssignString(response_json_node->IsString() ? response_json_node->Get<SharableString>() :
-                                                         response_json_node->GetNodeAsSharableString());
+    return response_json_node->IsString() ? response_json_node->Get<SharableString>() :
+                                            response_json_node->GetNodeAsSharableString();
 }
 
 
@@ -575,7 +575,7 @@ double CIntDriver::ex_synctime(const int program_index)
 }
 
 
-double CIntDriver::ex_getbluetoothname(int /*program_index*/)
+Engine::Value CIntDriver::ex_getbluetoothname(int /*program_index*/)
 {
     if( m_syncObjects == nullptr )
         GetSyncClient();
@@ -584,12 +584,14 @@ double CIntDriver::ex_getbluetoothname(int /*program_index*/)
 
     const std::shared_ptr<IBluetoothAdapter> bluetooth_adapter = m_syncObjects->login_accessor->GetBluetoothAdapter();
 
-    return ( bluetooth_adapter != nullptr ) ? AssignString(bluetooth_adapter->GetName()) :
-                                              AssignStringNull();
+    if( bluetooth_adapter == nullptr )
+        return Engine::Value::Undefined<SharableString>();
+
+    return bluetooth_adapter->GetName();    
 }
 
 
-double CIntDriver::ex_setbluetoothname(const int program_index)
+Engine::Value CIntDriver::ex_setbluetoothname(const int program_index)
 {
     const auto& fnn_node = GetNode<FNN_NODE>(program_index);
     const SharableString bluetooth_name = Evaluate<SharableString>(fnn_node.fn_expr[0]);
@@ -604,7 +606,7 @@ double CIntDriver::ex_setbluetoothname(const int program_index)
     if( bluetooth_adapter == nullptr )
     {
         issaerror(MessageType::Error, 100146);
-        return 0;
+        return Engine::Value::Bool(false);
     }
 
     try
@@ -613,12 +615,12 @@ double CIntDriver::ex_setbluetoothname(const int program_index)
         if( bluetooth_adapter->GetName() != *bluetooth_name )
             bluetooth_adapter->SetName(*bluetooth_name);
 
-        return 1;
+        return Engine::Value::Bool(true);
     }
 
     catch( const CSProException& exception )
     {
         issaerror(MessageType::Error, 100174, exception.what());
-        return 0;
+        return Engine::Value::Bool(false);
     }
 }

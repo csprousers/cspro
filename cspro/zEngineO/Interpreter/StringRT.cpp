@@ -22,45 +22,6 @@ SharableString LogicInterpreter::EvaluateNullableSharableString(const int progra
 }
 
 
-double LogicInterpreter::AssignStringNull()
-{
-    m_workingStrings.emplace_back();
-    ASSERT81(!m_workingStrings.back().IsSet());
-    return static_cast<double>(m_workingStrings.size() - 1);
-}
-
-
-SharableString LogicInterpreter::GetWorkingSharableString(Engine::Value value)
-{
-    // EV_TODO as engine values are being added incrementally to the engine,
-    // values represented as doubles will have come via a function like AssignString
-    if( value.is<double>() )
-    {
-        const size_t index = static_cast<size_t>(value.get<double>());
-
-        // if the string is the last one in the array, which should almost always be the case, remove it
-        if( ( index + 1 ) == m_workingStrings.size() )
-        {
-            SharableString sharable_string = std::move(m_workingStrings.back());
-            m_workingStrings.pop_back();
-            return sharable_string;
-        }
-
-        else if( index < m_workingStrings.size() )
-        {
-            return m_workingStrings[index];
-        }
-
-        else
-        {
-            return ReturnProgrammingError(SharableString());
-        }
-    }
-
-    return std::move(value).as<SharableString>();
-}
-
-
 Engine::Value LogicInterpreter::ex_string_literal(const int program_index)
 {
     const auto& string_literal_node = GetNode<Nodes::StringLiteral>(program_index);

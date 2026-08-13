@@ -1577,7 +1577,7 @@ T CIntDriver::EvaluateVARTValue(int variable_compilation)
 
     if( value_storage == nullptr )
     {
-        return GetInvalidValue<T>();
+        return Engine::Value::Invalid<T>().template get<T>();
     }
 
     else

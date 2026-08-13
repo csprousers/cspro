@@ -266,7 +266,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 197 */   OP_ID(exgps),              // GHM 20110223
 /* 198 */   OP(ex_low_high),        // GHM 20110301 low
 /* 199 */   OP(ex_low_high),        // GHM 20110301 high
-/* 200 */   OP_ID(exgetrecord),        // GHM 20110302
+/* 200 */   OP_ID(ex_getrecord),       // GHM 20110302
 /* 201 */   OP_ID(ex_setcapturepos),   // GHM 20110502
 /* 202 */   OP(ex_abs),             // GHM 20110721
 /* 203 */   OP(ex_randomin),        // GHM 20110721
@@ -309,7 +309,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 240 */   OP_ID(ex_syncserver),
 /* 241 */   OP(ex_savesetting),
 /* 242 */   OP(ex_loadsetting),
-/* 243 */   OP_ID(exgetcaselabel),
+/* 243 */   OP_ID(ex_getcaselabel),
 /* 244 */   OP_ID(exsetcaselabel),
 /* 245 */   OP_ID(exispartial),
 /* 246 */   OP_ID(exsetoperatorid),
@@ -349,7 +349,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 280 */   OP_ID(ex_getbluetoothname),
 /* 281 */   OP(ex_regexmatch),
 /* 282 */   OP_ID(exnoopAbort), // BLOCK_CODE
-/* 283 */   OP_ID(exgetvaluelabel),
+/* 283 */   OP_ID(ex_getvaluelabel),
 /* 284 */   OP(ex_Array_clear),
 /* 285 */   OP(ex_Array_length),
 /* 286 */   OP(ex_Map_show),
@@ -385,7 +385,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 316 */   OP(ex_ValueSet_remove),
 /* 317 */   OP(ex_ValueSet_show),
 /* 318 */   OP(ex_ValueSet_compute),
-/* 319 */   OP_ID(exvariablevalue),
+/* 319 */   OP_ID(ex_variablevalue),
 /* 320 */   OP(ex_Map_clear_clearButtons_clearGeometry_clearMarkers), // Map.clearMarkers
 /* 321 */   OP(ex_Map_clear_clearButtons_clearGeometry_clearMarkers), // Map.clearButtons
 /* 322 */   OP(ex_Map_getLastClickLatitude_getLastClickLongitude), // Map.getLastClickLatitude

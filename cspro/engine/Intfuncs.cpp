@@ -3162,17 +3162,17 @@ double CIntDriver::exorientation(int iExpr) // 20100618
 }
 
 
-double CIntDriver::exgetrecord(const int iExpr)
+Engine::Value CIntDriver::ex_getrecord(const int program_index)
 {
-    const FNN_NODE* func_node = (FNN_NODE*)PPT(iExpr);
-    const SharableString item_name = Evaluate<SharableString>(func_node->fn_expr[0]);
+    const auto& fnn_node = GetNode<FNN_NODE>(program_index);
+    const SharableString item_name = Evaluate<SharableString>(fnn_node.fn_expr[0]);
 
     const int symbol_index = m_pEngineArea->SymbolTableSearch(*item_name, { SymbolType::Variable });
 
-    if( symbol_index != 0 )
-        return AssignString(NPT_Ref(symbol_index).GetName());
+    if( symbol_index == 0 )
+        return Engine::Value::Invalid<SharableString>();
 
-    return AssignStringNull();
+    return NPT_Ref(symbol_index).GetName();
 }
 
 
@@ -3673,12 +3673,11 @@ SharableString CIntDriver::GetValueLabel(const VART* const pVarT, const std::var
 }
 
 
-double CIntDriver::exgetvaluelabel(int iExpr)
+Engine::Value CIntDriver::ex_getvaluelabel(const int program_index)
 {
-    const auto& va_node = GetNode<Nodes::VariableArguments>(iExpr);
-    const VART* pVarT = VPT(va_node.arguments[0]);
-
-    return AssignString(GetValueLabel(pVarT, EvaluateVariant<SharableString>(pVarT->GetDataType(), va_node.arguments[1])));
+    const auto& va_node = GetNode<Nodes::VariableArguments>(program_index);
+    const VART* const pVarT = VPT(va_node.arguments[0]);
+    return GetValueLabel(pVarT, EvaluateVariant<SharableString>(pVarT->GetDataType(), va_node.arguments[1]));
 }
 
 

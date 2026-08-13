@@ -367,7 +367,7 @@ Engine::Value CIntDriver::excharobj(int program_index)
             text_substr_sv = text_substr_sv.substr(0, utf8_length);
     }
 
-    return text_substr_sv;
+    return SharableString(text_substr_sv);
 }
 
 
@@ -764,27 +764,27 @@ std::unique_ptr<std::string> CIntDriver::EvaluateNoteOperatorId(const FNNOTE_NOD
 }
 
 
-double CIntDriver::exgetnote(const int program_index)
+Engine::Value CIntDriver::exgetnote(const int program_index)
 {
     const auto& note_node = GetNode<FNNOTE_NODE>(program_index);
     const auto [named_reference, field_symbol] = EvaluateNoteReference(note_node);
 
     if( named_reference == nullptr )
-        return AssignStringNull();
+        return Engine::Value::Invalid<SharableString>();
 
     const std::unique_ptr<const std::string> operator_id = EvaluateNoteOperatorId(note_node, field_symbol);
 
-    return AssignString(m_pEngineDriver->GetNoteContent(*named_reference, operator_id.get(), field_symbol));
+    return m_pEngineDriver->GetNoteContent(*named_reference, operator_id.get(), field_symbol);
 }
 
 
-double CIntDriver::exputnote(const int program_index)
+Engine::Value CIntDriver::exputnote(const int program_index)
 {
     const auto& note_node = GetNode<FNNOTE_NODE>(program_index);
     const auto [named_reference, field_symbol] =  EvaluateNoteReference(note_node);
 
     if( named_reference == nullptr )
-        return 0;
+        return Engine::Value::Bool(false);
 
     const std::unique_ptr<const std::string> operator_id = EvaluateNoteOperatorId(note_node, field_symbol);
 
@@ -792,21 +792,21 @@ double CIntDriver::exputnote(const int program_index)
                              Evaluate<SharableString>(note_node.note_text_expression),
                              field_symbol);
 
-    return 1;
+    return Engine::Value::Bool(true);
 }
 
 
-double CIntDriver::exeditnote(const int program_index)
+Engine::Value CIntDriver::exeditnote(const int program_index)
 {
     const auto& note_node = GetNode<FNNOTE_NODE>(program_index);
     const auto [named_reference, field_symbol] =  EvaluateNoteReference(note_node);
 
     if( named_reference == nullptr )
-        return AssignStringNull();
+        return Engine::Value::Invalid<SharableString>();
 
     const std::unique_ptr<const std::string> operator_id = EvaluateNoteOperatorId(note_node, field_symbol);
 
-    return AssignString(std::get<SharableString>(m_pEngineDriver->EditNote(named_reference, operator_id.get(), field_symbol, false)));
+    return std::get<SharableString>(m_pEngineDriver->EditNote(named_reference, operator_id.get(), field_symbol, false));
 }
 
 
@@ -1100,23 +1100,23 @@ Engine::Value CIntDriver::ExExecCommonAfterExecute(const FunctionCode source, co
 }
 
 
-double CIntDriver::exgetcaselabel(int iExpr)
+Engine::Value CIntDriver::ex_getcaselabel(const int program_index)
 {
-    const auto& fn8_node = GetNode<FN8_NODE>(iExpr);
-    const Symbol* symbol = NPT(fn8_node.symbol_index);
+    const auto& fn8_node = GetNode<FN8_NODE>(program_index);
+    const Symbol& symbol = NPT_Ref(fn8_node.symbol_index);
 
-    if( symbol->IsA(SymbolType::Dictionary) )
+    if( symbol.IsA(SymbolType::Dictionary) )
     {
-        const EngineDictionary* engine_dictionary = assert_cast<const EngineDictionary*>(symbol);
-        const Case& data_case = engine_dictionary->GetEngineCase().GetCase();
-
-        return AssignString(data_case.GetCaseLabel());
+        const EngineDictionary& engine_dictionary = assert_cast<const EngineDictionary&>(symbol);
+        const Case& data_case = engine_dictionary.GetEngineCase().GetCase();
+        return data_case.GetCaseLabel();
     }
 
     else
     {
-        const DICX* pDicX = DPX(fn8_node.symbol_index);
-        return AssignString(pDicX->GetCase().GetCaseLabel());
+        ASSERT(symbol.IsA(SymbolType::Pre80Dictionary));
+        const DICX* const pDicX = DPX(fn8_node.symbol_index);
+        return pDicX->GetCase().GetCaseLabel();
     }
 }
 

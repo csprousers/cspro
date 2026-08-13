@@ -2039,28 +2039,30 @@ double CIntDriver::ex_setoutput(const int program_index)
 //  exfilename      ejecuta funcion 'FILENAME'
 //
 //----------------------------------------------------------------------
-double CIntDriver::exfilename(int iExpr)
+Engine::Value CIntDriver::exfilename(int iExpr)
 {
     const auto& fn8_node = GetNode<FN8_NODE>(iExpr);
 
     // the paradata log
     if( fn8_node.symbol_index == -2 )
-        return AssignString(Paradata::Logger::GetFilePath());
+        return Paradata::Logger::GetFilePath();
 
     // symbols
-    Symbol* const symbol = GetFromSymbolOrEngineItem(fn8_node.symbol_index,
-                                                     m_engineData->MeetsCompiledLogicVersion(Serializer::Iteration_8_0_000_1) ? fn8_node.extra_parameter : -1);
+    Symbol* const symbol = GetFromSymbolOrEngineItem(
+        fn8_node.symbol_index,
+        m_engineData->MeetsCompiledLogicVersion(Serializer::Iteration_8_0_000_1) ? fn8_node.extra_parameter : -1
+    );
 
     if( symbol == nullptr )
-        return AssignStringNull();
+        return Engine::Value::Invalid<SharableString>();
 
     // dictionary
     if( symbol->IsA(SymbolType::Dictionary) )
     {
         const EngineDictionary& engine_dictionary = assert_cast<const EngineDictionary&>(*symbol);
         const ConnectionString& connection_string = engine_dictionary.GetEngineDataRepository().GetDataRepository().GetConnectionString();
-        return connection_string.HasFilePath() ? AssignString(connection_string.GetFilePath()) :
-                                                 AssignStringNull();
+        return connection_string.HasFilePath() ? connection_string.GetFilePath() :
+                                                 Engine::Value::Undefined<SharableString>();
     }
 
     else if( symbol->IsA(SymbolType::Pre80Dictionary) )
@@ -2068,38 +2070,38 @@ double CIntDriver::exfilename(int iExpr)
         const DICT* const pDicT = assert_cast<const DICT*>(symbol);
         const DICX* const pDicX = pDicT->GetDicX();
         const ConnectionString& connection_string = pDicX->GetDataRepository().GetConnectionString();
-        return connection_string.HasFilePath() ? AssignString(connection_string.GetFilePath()) :
-                                                 AssignStringNull();
+        return connection_string.HasFilePath() ? connection_string.GetFilePath() :
+                                                 Engine::Value::Undefined<SharableString>();
     }
 
     // File
     else if( symbol->IsA(SymbolType::File) )
     {
         const LogicFile& logic_file = assert_cast<const LogicFile&>(*symbol);
-        return AssignString(logic_file.GetFilePath());
+        return logic_file.GetFilePath();
     }
 
     // Pff
     else if( symbol->IsA(SymbolType::Pff) )
     {
         LogicPff& logic_pff = assert_cast<LogicPff&>(*symbol);
-        return AssignString(logic_pff.GetRunnableFilePath());
+        return logic_pff.GetRunnableFilePath();
     }
 
     // Report
     else if( symbol->IsA(SymbolType::Report) )
     {
         const Report& report = assert_cast<const Report&>(*symbol);
-        return AssignString(report.GetFilePath());
+        return report.GetFilePath();
     }
 
     // Audio, Document, Geometry, Image, Video
     else if( BinarySymbol::IsBinarySymbol(*symbol) )
     {
-        return AssignString(assert_cast<const BinarySymbol&>(*symbol).GetPath());
+        return assert_cast<const BinarySymbol&>(*symbol).GetPath();
     }
 
-    return AssignStringNull();
+    return Engine::Value::Invalid<SharableString>();
 }
 
 

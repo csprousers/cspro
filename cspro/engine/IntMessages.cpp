@@ -300,9 +300,9 @@ double CIntDriver::exwrite(const int program_index)
 }
 
 
-double CIntDriver::exmaketext(const int program_index)
+Engine::Value CIntDriver::exmaketext(const int program_index)
 {
-    return AssignString(EvaluateUserMessage(program_index, FunctionCode::FNMAKETEXT_CODE));
+    return EvaluateUserMessage(program_index, FunctionCode::FNMAKETEXT_CODE);
 }
 
 
@@ -510,8 +510,8 @@ double CIntDriver::DisplayUserMessage(const int message_node_index)
 }
 
 
-double CIntDriver::exvariablevalue(const int program_index)
+Engine::Value CIntDriver::ex_variablevalue(const int program_index)
 {
     const auto& variable_value_node = GetNode<Nodes::VariableValue>(program_index);
-    return Evaluate<double>(variable_value_node.expression);
+    return Evaluate<Engine::Value>(variable_value_node.expression);
 }
