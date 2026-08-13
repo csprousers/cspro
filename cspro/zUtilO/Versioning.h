@@ -11,7 +11,7 @@ class Versioning
 public:
     static constexpr double      Number             =  8.1;
     static constexpr const char* NumberText         = "8.1";
-    static constexpr const char* NumberDetailedText = "8.1.2";
+    static constexpr const char* NumberDetailedText = "8.1.3";
     static constexpr const char* CSProVersionText   = "CSPro 8.1";
 
     static constexpr ReleaseType ReleaseType        = ReleaseType::Release;

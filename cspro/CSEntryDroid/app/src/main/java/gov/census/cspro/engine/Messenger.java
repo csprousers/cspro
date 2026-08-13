@@ -92,6 +92,9 @@ public class Messenger implements Runnable, Application.ActivityLifecycleCallbac
 
     public static Messenger getInstance()
     {
+        if (m_messenger == null) {
+            m_messenger = new Messenger();
+        }
         return m_messenger;
     }
 
