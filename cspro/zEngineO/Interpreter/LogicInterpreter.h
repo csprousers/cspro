@@ -313,16 +313,16 @@ protected: // INTERPRETER_DLL_TODO change to private
     // (AudioRT.cpp)
     // --------------------------------------------------------------------------
 public:
-    double ex_Audio_compute(int program_index);
-    double ex_Audio_clear(int program_index);
-    double ex_Audio_concat(int program_index);
-    double ex_Audio_length(int program_index);
-    double ex_Audio_load(int program_index);
-    double ex_Audio_play(int program_index);
-    double ex_Audio_save(int program_index);
-    double ex_Audio_stop(int program_index);
-    double ex_Audio_record(int program_index);
-    double ex_Audio_recordInteractive(int program_index);
+    Engine::Value ex_Audio_compute(int program_index);
+    Engine::Value ex_Audio_clear(int program_index);
+    Engine::Value ex_Audio_concat(int program_index);
+    Engine::Value ex_Audio_length(int program_index);
+    Engine::Value ex_Audio_load(int program_index);
+    Engine::Value ex_Audio_play(int program_index);
+    Engine::Value ex_Audio_save(int program_index);
+    Engine::Value ex_Audio_stop(int program_index);
+    Engine::Value ex_Audio_record(int program_index);
+    Engine::Value ex_Audio_recordInteractive(int program_index);
 
 
     // --------------------------------------------------------------------------

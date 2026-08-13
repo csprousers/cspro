@@ -57,12 +57,12 @@ Engine::Value LogicInterpreter::ex_Video_compute(const int program_index)
     const Symbol* const rhs_symbol = GetFromSymbolOrEngineItem<Symbol*>(symbol_compute_with_subscript_node.rhs_symbol_index, symbol_compute_with_subscript_node.rhs_subscript_compilation);
 
     if( rhs_symbol == nullptr )
-        return Engine::Value::Undefined<double>();
+        return Engine::Value::Invalid<double>();
 
     LogicVideo* const lhs_logic_video = GetFromSymbolOrEngineItem<LogicVideo*>(lhs_symbol_reference);
 
     if( lhs_logic_video == nullptr )
-        return Engine::Value::Undefined<double>();
+        return Engine::Value::Invalid<double>();
 
     try
     {

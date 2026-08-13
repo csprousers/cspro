@@ -64,12 +64,12 @@ Engine::Value LogicInterpreter::ex_Image_compute(const int program_index)
     const Symbol* const rhs_symbol = GetFromSymbolOrEngineItem<Symbol*>(symbol_compute_with_subscript_node.rhs_symbol_index, symbol_compute_with_subscript_node.rhs_subscript_compilation);
 
     if( rhs_symbol == nullptr )
-        return Engine::Value::Undefined<double>();
+        return Engine::Value::Invalid<double>();
 
     LogicImage* const lhs_logic_image = GetFromSymbolOrEngineItem<LogicImage*>(lhs_symbol_reference);
 
     if( lhs_logic_image == nullptr )
-        return Engine::Value::Undefined<double>();
+        return Engine::Value::Invalid<double>();
 
     try
     {
