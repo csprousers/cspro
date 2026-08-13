@@ -53,7 +53,6 @@ add_library(${PROJECT_NAME}
     IntLanguage.cpp
     IntMessages.cpp
     IntOccurrences.cpp
-    IntPath.cpp
     IntPre77Report.cpp
     IntProgramControl.cpp
     IntProperties.cpp

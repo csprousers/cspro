@@ -73,7 +73,6 @@
     <ClCompile Include="IntLanguage.cpp" />
     <ClCompile Include="IntMessages.cpp" />
     <ClCompile Include="IntOccurrences.cpp" />
-    <ClCompile Include="IntPath.cpp" />
     <ClCompile Include="IntPre77Report.cpp" />
     <ClCompile Include="IntProgramControl.cpp" />
     <ClCompile Include="IntProperties.cpp" />
