@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <engine/StandardSystemIncludes.h>
 #include <engine/Interpreter.h>
@@ -7,9 +7,11 @@
 
 
 template<typename CF>
-bool CIntDriver::Execute(const CF callback_function)
+InterpreterExecuteResult CIntDriver::Execute(const CF callback_function)
 {
     ASSERT(!m_caughtProgramControlException);
+
+    InterpreterExecuteResult execute_result { Engine::Value::Undefined<double>(), false };
 
     // these statements clear any preexisting stuff that might have been going on
     m_bSkipStmt = false;
@@ -18,7 +20,7 @@ bool CIntDriver::Execute(const CF callback_function)
 
     try
     {
-        callback_function();
+        execute_result.result = callback_function();
     }
 
     catch( const ProgramControlException& )
@@ -28,22 +30,8 @@ bool CIntDriver::Execute(const CF callback_function)
 
     m_bStopExec = ( m_bSkipStmt || m_bStopProc );
 
-    return ( m_caughtProgramControlException ||
-             m_bStopExec ||
-             GetRequestIssued() );
-}
+    if( m_caughtProgramControlException || m_bStopExec || GetRequestIssued() )
+        execute_result.program_control_executed = true;
 
-
-template<typename CF>
-InterpreterExecuteResult CIntDriver::Execute(const DataType callback_result_data_type, const CF callback_function)
-{
-    std::variant<double, SharableString> result;
-    bool program_control_executed = Execute([&]() { result = callback_function(); });
-
-    ASSERT(std::holds_alternative<double>(result));
-
-    if( callback_result_data_type == DataType::String )
-        result = GetWorkingSharableString(static_cast<size_t>(std::get<double>(result)));
-
-    return InterpreterExecuteResult { std::move(result), program_control_executed };
+    return execute_result;
 }

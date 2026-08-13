@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zEngineO/zEngineO.h>
 #include <zEngineO/UserFunction.h>
@@ -15,7 +15,7 @@
 //             numeric and string values. A flag indicates if the
 //             arguments are guaranteed to be of the correct type.
 //             If false, and the supplied type is not correct, the argument
-//             returned is created using LogicInterpreter::GetInvalidValue.
+//             returned is created using Engine::Value::Invalid.
 // --------------------------------------------------------------------------
 
 class ZENGINEO_API UserFunctionArgumentEvaluator

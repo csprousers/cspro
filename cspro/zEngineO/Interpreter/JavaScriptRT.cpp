@@ -6,8 +6,8 @@
 #include <zJavaScript/Value.h>
 
 
-template<typename CF>
-auto LogicInterpreter::ExecuteWithJavaScriptProcessor(const CF& callback_function)
+Engine::Value LogicInterpreter::ExecuteWithJavaScriptProcessor(
+    const std::function<Engine::Value(EngineJavaScriptProcessor&)>& callback_function)
 {
     ASSERT(!IsExecutionInterrupted());
 
@@ -17,7 +17,7 @@ auto LogicInterpreter::ExecuteWithJavaScriptProcessor(const CF& callback_functio
     javascript_processor.GetExecutor().SetCancelFlag(&m_bStopProc);
     const CancelFlag::ListenerHolder cancel_flag_listener_holder = m_bStopProc.AddListener([&]() { javascript_processor.GetExecutor().CancelEvaluation(); });
 
-    auto result = callback_function(javascript_processor);
+    Engine::Value result = callback_function(javascript_processor);
 
     // because JavaScript functions can call back into user-defined functions that might
     // trigger a propgram control exception, we will rethrow the exception once the
@@ -28,10 +28,10 @@ auto LogicInterpreter::ExecuteWithJavaScriptProcessor(const CF& callback_functio
 }
 
 
-double LogicInterpreter::ex_JavaScript_eval(const int program_index)
+Engine::Value LogicInterpreter::ex_JavaScript_eval(const int program_index)
 {
     return ExecuteWithJavaScriptProcessor(
-        [&](EngineJavaScriptProcessor& javascript_processor)
+        [&](EngineJavaScriptProcessor& javascript_processor) -> Engine::Value
         {
             const auto& va_node = GetNode<Nodes::VariableArguments>(program_index);
             const int& bytecode_index = va_node.arguments[0];
@@ -43,16 +43,16 @@ double LogicInterpreter::ex_JavaScript_eval(const int program_index)
                 // compile and evaluate the script if it was not already compiled
                 if( bytecode_index == -1 )
                 {
-                    const SharableString script = EvaluateSharableString(script_expression);
+                    const SharableString script = Evaluate<SharableString>(script_expression);
 
                     exception_is_from_compilation = true;
-                    return AssignString(javascript_processor.EvaluateScript(script.GetString(), exception_is_from_compilation));
+                    return javascript_processor.EvaluateScript(script.GetString(), exception_is_from_compilation);
                 }
 
                 // evaluate scripts that were already compiled (because the script was a string literal)
                 else
                 {
-                    return AssignString(javascript_processor.EvaluateBytecode(bytecode_index));
+                    return javascript_processor.EvaluateBytecode(bytecode_index);
                 }
             }
 
@@ -61,19 +61,19 @@ double LogicInterpreter::ex_JavaScript_eval(const int program_index)
                 const int message = exception_is_from_compilation ? MGF::JavaScript_compilation_error_100463 :
                                                                     MGF::JavaScript_evaluation_error_100464;
                 IssueMessage(MessageType::Error, message, exception.what());
-                return AssignStringNull();
+                return Engine::Value::Invalid<SharableString>();
             }
     });
 }
 
 
-double LogicInterpreter::ex_JavaScript_invoke(const int program_index)
+Engine::Value LogicInterpreter::ex_JavaScript_invoke(const int program_index)
 {
     return ExecuteWithJavaScriptProcessor(
-        [&](EngineJavaScriptProcessor& javascript_processor)
+        [&](EngineJavaScriptProcessor& javascript_processor) -> Engine::Value
         {
             const auto& va_node = GetNode<Nodes::VariableArguments>(program_index);
-            const SharableString function_name = EvaluateSharableString(va_node.arguments[0]);
+            const SharableString function_name = Evaluate<SharableString>(va_node.arguments[0]);
             const Nodes::List& arguments_list = GetListNode(va_node.arguments[1]);
 
             ASSERT(( arguments_list.number_elements % 2 ) == 0);
@@ -95,7 +95,7 @@ double LogicInterpreter::ex_JavaScript_invoke(const int program_index)
                     std::optional<JavaScript::Value> js_value = ConvertValueToJavaScript(javascript_processor, elements_itr[0], elements_itr[1]);
 
                     if( !js_value.has_value() )
-                        return AssignStringNull();
+                        return Engine::Value::Invalid<SharableString>();
 
                     new (js_argument_itr) JavaScript::Value(std::move(*js_value));
                 }
@@ -105,67 +105,69 @@ double LogicInterpreter::ex_JavaScript_invoke(const int program_index)
             {
                 const JavaScript::Value js_result = javascript_processor.InvokeFunction(function_name.GetString(),
                                                                                         number_arguments, js_arguments.get());
-                return AssignString(js_result.ToString());
+                return js_result.ToString();
             }
 
             catch( const CSProException& exception )
             {
                 IssueMessage(MessageType::Error, MGF::JavaScript_evaluation_error_100464, exception.what());
-                return AssignStringNull();
+                return Engine::Value::Invalid<SharableString>();
             }
     });
 }
 
 
-double LogicInterpreter::ex_JavaScript_hasValue(const int program_index)
+Engine::Value LogicInterpreter::ex_JavaScript_hasValue(const int program_index)
 {
     return ExecuteWithJavaScriptProcessor(
         [&](EngineJavaScriptProcessor& javascript_processor)
         {
             const auto& va_node = GetNode<Nodes::VariableArguments>(program_index);
-            const SharableString name = EvaluateSharableString(va_node.arguments[0]);
+            const SharableString name = Evaluate<SharableString>(va_node.arguments[0]);
 
-            return javascript_processor.HasPropertyValue(name.GetString());
+            return Engine::Value::Bool(
+                javascript_processor.HasPropertyValue(name.GetString())
+            );
         });
 }
 
 
-double LogicInterpreter::ex_JavaScript_getValueJson(const int program_index)
+Engine::Value LogicInterpreter::ex_JavaScript_getValueJson(const int program_index)
 {
     return ExecuteWithJavaScriptProcessor(
-        [&](EngineJavaScriptProcessor& javascript_processor)
+        [&](EngineJavaScriptProcessor& javascript_processor) -> Engine::Value
         {
             const auto& va_node = GetNode<Nodes::VariableArguments>(program_index);
-            const SharableString name = EvaluateSharableString(va_node.arguments[0]);
+            const SharableString name = Evaluate<SharableString>(va_node.arguments[0]);
 
             try
             {
-                return AssignString(javascript_processor.GetValueJson(name.GetString()));
+                return javascript_processor.GetValueJson(name.GetString());
             }
 
             catch( const CSProException& exception )
             {
                 IssueMessage(MessageType::Error, MGF::JavaScript_evaluation_error_100464, exception.what());
-                return AssignStringNull();
+                return Engine::Value::Invalid<SharableString>();
             }
         });
 }
 
 
-double LogicInterpreter::ex_JavaScript_setValueFromJson(const int program_index)
+Engine::Value LogicInterpreter::ex_JavaScript_setValueFromJson(const int program_index)
 {
     return ExecuteWithJavaScriptProcessor(
         [&](EngineJavaScriptProcessor& javascript_processor)
         {
             const auto& va_node = GetNode<Nodes::VariableArguments>(program_index);
-            const SharableString name = EvaluateSharableString(va_node.arguments[0]);
-            const SharableString json_text = EvaluateSharableString(va_node.arguments[1]);
+            const SharableString name = Evaluate<SharableString>(va_node.arguments[0]);
+            const SharableString json_text = Evaluate<SharableString>(va_node.arguments[1]);
             bool exception_is_from_json_parsing = true;
 
             try
             {
                 javascript_processor.SetValueFromJson(name.GetString(), json_text.GetString(), exception_is_from_json_parsing);
-                return true;
+                return Engine::Value::Bool(true);
             }
 
             catch( const CSProException& exception )
@@ -180,19 +182,19 @@ double LogicInterpreter::ex_JavaScript_setValueFromJson(const int program_index)
                     IssueMessage(MessageType::Error, MGF::JavaScript_evaluation_error_100464, exception.what());
                 }
 
-                return false;
+                return Engine::Value::Bool(false);
             }
     });
 }
 
 
-double LogicInterpreter::ex_JavaScript_getValue(const int program_index)
+Engine::Value LogicInterpreter::ex_JavaScript_getValue(const int program_index)
 {
     return ExecuteWithJavaScriptProcessor(
         [&](EngineJavaScriptProcessor& javascript_processor)
         {
             const auto& va_node = GetNode<Nodes::VariableArguments>(program_index);
-            const SharableString name = EvaluateSharableString(va_node.arguments[0]);
+            const SharableString name = Evaluate<SharableString>(va_node.arguments[0]);
             std::optional<JavaScript::Value> js_value;
             std::optional<SymbolType> evaluated_symbol_type;
 
@@ -202,9 +204,13 @@ double LogicInterpreter::ex_JavaScript_getValue(const int program_index)
 
                 // if the method returns false, a runtime error should have already given
                 // information about the error (e.g., an invalid Array index)
-                return ConvertValueFromJavaScript(javascript_processor, *js_value,
-                                                  va_node.arguments[1], va_node.arguments[2],
-                                                  evaluated_symbol_type);
+                return Engine::Value::Bool(
+                    ConvertValueFromJavaScript(
+                        javascript_processor, *js_value,
+                        va_node.arguments[1], va_node.arguments[2],
+                        evaluated_symbol_type
+                    )
+                );
             }
 
             catch( const CSProException& exception )
@@ -221,19 +227,19 @@ double LogicInterpreter::ex_JavaScript_getValue(const int program_index)
                     IssueMessage(MessageType::Error, MGF::JavaScript_evaluation_error_100464, exception.what());
                 }
 
-                return false;
+                return Engine::Value::Bool(false);
             }
         });
 }
 
 
-double LogicInterpreter::ex_JavaScript_setValue(const int program_index)
+Engine::Value LogicInterpreter::ex_JavaScript_setValue(const int program_index)
 {
     return ExecuteWithJavaScriptProcessor(
         [&](EngineJavaScriptProcessor& javascript_processor)
         {
             const auto& va_node = GetNode<Nodes::VariableArguments>(program_index);
-            const SharableString name = EvaluateSharableString(va_node.arguments[0]);
+            const SharableString name = Evaluate<SharableString>(va_node.arguments[0]);
 
             try
             {
@@ -242,7 +248,7 @@ double LogicInterpreter::ex_JavaScript_setValue(const int program_index)
                 if( js_value.has_value() )
                 {
                     javascript_processor.SetValue(name.GetString(), std::move(*js_value));
-                    return true;
+                    return Engine::Value::Bool(true);
                 }
             }
 
@@ -251,7 +257,7 @@ double LogicInterpreter::ex_JavaScript_setValue(const int program_index)
                 IssueMessage(MessageType::Error, MGF::JavaScript_evaluation_error_100464, exception.what());
             }
 
-            return false;
+            return Engine::Value::Bool(false);
         });
 }
 
@@ -267,14 +273,14 @@ std::optional<JavaScript::Value> LogicInterpreter::ConvertValueToJavaScript(Engi
 
         if( symbol_type == SymbolType::WorkVariable )
         {
-            const double value = Evaluate(expression_or_symbol_subscript_compilation);
+            const double value = Evaluate<double>(expression_or_symbol_subscript_compilation);
             return javascript_processor.CreateValue(value);
         }
 
         else
         {
             ASSERT(symbol_type == SymbolType::WorkString);
-            const SharableString value = EvaluateSharableString(expression_or_symbol_subscript_compilation);
+            const SharableString value = Evaluate<SharableString>(expression_or_symbol_subscript_compilation);
             return javascript_processor.CreateValue(value.GetString());
         }
     }
@@ -292,7 +298,7 @@ std::optional<JavaScript::Value> LogicInterpreter::ConvertValueToJavaScript(Engi
 }
 
 
-double LogicInterpreter::ex_JavaScript_UserFunctionCall(const int program_index)
+Engine::Value LogicInterpreter::ex_JavaScript_UserFunctionCall(const int program_index)
 {
     return ExecuteWithJavaScriptProcessor(
         [&](EngineJavaScriptProcessor& javascript_processor)
@@ -317,22 +323,19 @@ double LogicInterpreter::ex_JavaScript_UserFunctionCall(const int program_index)
                 js_result = javascript_processor.InvokeFunction(user_function.GetName(),
                                                                 user_function.GetNumberParameters(), js_arguments.get());
 
+                if( js_result->IsUndefined() )
+                    return Engine::Value::Undefined(user_function.GetReturnDataType());
+
                 // when not undefined, convert the return value
-                if( !js_result->IsUndefined() )
-                {
-                    if( IsNumeric(user_function.GetReturnDataType()) )
-                    {
-                        user_function.SetReturnValue(javascript_processor.ConvertNumeric(*js_result));
-                    }
+                ASSERT(IsNumeric(user_function.GetReturnDataType()) || IsString(user_function.GetReturnDataType()));
 
-                    else
-                    {
-                        ASSERT(IsString(user_function.GetReturnDataType()));
-                        user_function.SetReturnValue(javascript_processor.ConvertString(*js_result));
-                    }
-                }
+                Engine::Value value = IsNumeric(user_function.GetReturnDataType())
+                    ? Engine::Value(javascript_processor.ConvertNumeric(*js_result))
+                    : Engine::Value(javascript_processor.ConvertString(*js_result));
 
-                return 1;
+                user_function.SetReturnValue(value);
+
+                return value;
             }
 
             catch( const CSProException& exception )
@@ -348,7 +351,7 @@ double LogicInterpreter::ex_JavaScript_UserFunctionCall(const int program_index)
                     IssueMessage(MessageType::Error, MGF::JavaScript_evaluation_error_100464, exception.what());
                 }
 
-                return 0;
+                return Engine::Value::Invalid(user_function.GetReturnDataType());
             }
     });
 }

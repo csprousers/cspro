@@ -88,6 +88,7 @@
     <ClCompile Include="EngineDictionary.cpp" />
     <ClCompile Include="EngineItem.cpp" />
     <ClCompile Include="EngineRecord.cpp" />
+    <ClCompile Include="EngineValue.cpp" />
     <ClCompile Include="File.cpp" />
     <ClCompile Include="FileApplicationLoader.cpp" />
     <ClCompile Include="Flow.cpp" />
@@ -107,6 +108,7 @@
     <ClCompile Include="Interpreter\GeometryRT.cpp" />
     <ClCompile Include="Interpreter\HashMapRT.cpp" />
     <ClCompile Include="Interpreter\ImageRT.cpp" />
+    <ClCompile Include="Interpreter\InstructionsRT.cpp" />
     <ClCompile Include="Interpreter\ItemRT.cpp" />
     <ClCompile Include="Interpreter\JavaScriptRT.cpp" />
     <ClCompile Include="Interpreter\JsonRT.cpp" />
@@ -203,6 +205,7 @@
     <ClInclude Include="EngineItem.h" />
     <ClInclude Include="EngineRecord.h" />
     <ClInclude Include="EngineSettings.h" />
+    <ClInclude Include="EngineValue.h" />
     <ClInclude Include="File.h" />
     <ClInclude Include="FileApplicationLoader.h" />
     <ClInclude Include="Flow.h" />

@@ -1,4 +1,4 @@
-﻿#include "StandardSystemIncludes.h"
+#include "StandardSystemIncludes.h"
 #include "Interpreter.h"
 #include "Engine.h"
 #include <zEngineO/Nodes/GPS.h>
@@ -569,7 +569,7 @@ double CIntDriver::exgps(int iExpr)
 
             int wait_time = (int)maxWaitTime;
             const std::optional<int> desired_accuracy = ( gps_node.options[1] != 0 ) ? std::make_optional(Evaluate<int>(gps_node.options[1])) : std::nullopt;
-            const std::optional<std::string> gpsDialogText = ( gps_node.options[2] != 0 ) ? std::make_optional(EvaluateString(gps_node.options[2])) : std::nullopt;
+            const std::optional<std::string> gpsDialogText = ( gps_node.options[2] != 0 ) ? std::make_optional(Evaluate<std::string>(gps_node.options[2])) : std::nullopt;
 
             if( Paradata::Logger::IsOpen() )
                 gps_event = std::make_unique<Paradata::GpsReadRequestEvent>(Paradata::GpsEvent::Action::Read, wait_time, desired_accuracy, gpsDialogText);
@@ -663,7 +663,7 @@ double CIntDriver::exgps(int iExpr)
 
             else if( base_map_type == 0 )
             {
-                const SharableString base_map_text = EvaluateSharableString(base_map_filename_expression);
+                const SharableString base_map_text = Evaluate<SharableString>(base_map_filename_expression);
                 base_map_selection = FromString(*base_map_text, UTF8_TODO::GetUtf8(m_pEngineDriver->m_pPifFile->GetAppFName()));
             }
 

@@ -57,19 +57,19 @@ bool ImageRT::EnsureImageExistsAndIsValid(LogicInterpreter& interpreter, const L
 }
 
 
-double LogicInterpreter::ex_Image_compute(const int program_index)
+Engine::Value LogicInterpreter::ex_Image_compute(const int program_index)
 {
     const auto& symbol_compute_with_subscript_node = GetOrConvertPre80SymbolComputeWithSubscriptNode(program_index);
     const SymbolReference<Symbol*> lhs_symbol_reference = EvaluateSymbolReference<Symbol*>(symbol_compute_with_subscript_node.lhs_symbol_index, symbol_compute_with_subscript_node.lhs_subscript_compilation);
     const Symbol* const rhs_symbol = GetFromSymbolOrEngineItem<Symbol*>(symbol_compute_with_subscript_node.rhs_symbol_index, symbol_compute_with_subscript_node.rhs_subscript_compilation);
 
     if( rhs_symbol == nullptr )
-        return 0;
+        return Engine::Value::Invalid<double>();
 
     LogicImage* const lhs_logic_image = GetFromSymbolOrEngineItem<LogicImage*>(lhs_symbol_reference);
 
     if( lhs_logic_image == nullptr )
-        return 0;
+        return Engine::Value::Invalid<double>();
 
     try
     {
@@ -96,25 +96,25 @@ double LogicInterpreter::ex_Image_compute(const int program_index)
                                          exception.what());
     }
 
-    return 0;
+    return Engine::Value::Undefined<double>();
 }
 
 
-double LogicInterpreter::ex_Image_clear(const int program_index)
+Engine::Value LogicInterpreter::ex_Image_clear(const int program_index)
 {
     const auto& symbol_va_with_subscript_node = GetOrConvertPre80SymbolVariableArgumentsWithSubscriptNode(program_index);
     LogicImage* const logic_image = GetFromSymbolOrEngineItem<LogicImage*>(symbol_va_with_subscript_node.symbol_index, symbol_va_with_subscript_node.subscript_compilation);
 
     if( logic_image == nullptr )
-        return 0;
+        return Engine::Value::Bool(false);
 
     logic_image->Reset();
 
-    return 1;
+    return Engine::Value::Bool(true);
 }
 
 
-double LogicInterpreter::ex_Image_getExif(const int program_index)
+Engine::Value LogicInterpreter::ex_Image_getExif(const int program_index)
 {
     const auto& symbol_va_with_subscript_node = GetOrConvertPre80SymbolVariableArgumentsWithSubscriptNode(program_index);
     LogicImage* const logic_image = GetFromSymbolOrEngineItem<LogicImage*>(symbol_va_with_subscript_node.symbol_index, symbol_va_with_subscript_node.subscript_compilation);
@@ -128,7 +128,7 @@ double LogicInterpreter::ex_Image_getExif(const int program_index)
             hashmap.Reset();
         }
 
-        return AssignStringNull();
+        return Engine::Value::Invalid<SharableString>();
     }
 
     try
@@ -137,24 +137,26 @@ double LogicInterpreter::ex_Image_getExif(const int program_index)
 
         // by default, values are returned in their raw form
         const ExifReader::ValueType value_type =
-            EvaluateOptionalConditional(symbol_va_with_subscript_node.arguments[2], false) ? ExifReader::ValueType::ForDisplay :
-                                                                                             ExifReader::ValueType::Raw;
+            EvaluateOptionalConditional(symbol_va_with_subscript_node.arguments[2], false)
+            ? ExifReader::ValueType::ForDisplay
+            : ExifReader::ValueType::Raw;
 
         // a single value can be queried...
         if( symbol_va_with_subscript_node.arguments[0] == static_cast<int>(SymbolType::WorkString) )
         {
-            const SharableString name = EvaluateSharableString(symbol_va_with_subscript_node.arguments[1]);
+            const SharableString name = Evaluate<SharableString>(symbol_va_with_subscript_node.arguments[1]);
 
             try
             {
-                return AssignString(exif_reader.GetValueFromName(value_type, *name));
+                return exif_reader.GetValueFromName(value_type, *name);
             }
 
             catch( const CSProException& exception )
             {
                 IssueMessage(MessageType::Error, MGF::Image_invalid_exif_tag_name_100328,
                                                  name->c_str(), exception.what());
-                return AssignStringNull();
+
+                return Engine::Value::Invalid<SharableString>();
             }
         }
 
@@ -176,18 +178,18 @@ double LogicInterpreter::ex_Image_getExif(const int program_index)
                     hashmap.SetValue({ name }, std::move(value));
                 });
 
-            return AssignStringNull();
+            return Engine::Value::Undefined<SharableString>();
         }
     }
 
     catch(...)
     {
-        return ReturnProgrammingError(AssignStringNull());
+        return ReturnProgrammingError(Engine::Value::Invalid<SharableString>());
     }
 }
 
 
-double LogicInterpreter::ex_Image_load(const int program_index)
+Engine::Value LogicInterpreter::ex_Image_load(const int program_index)
 {
     const auto& symbol_va_with_subscript_node = GetOrConvertPre80SymbolVariableArgumentsWithSubscriptNode(program_index);
 
@@ -205,9 +207,9 @@ double LogicInterpreter::ex_Image_load(const int program_index)
     {
         const ValueSet& value_set = GetSymbolValueSet(symbol_va_with_subscript_node.arguments[0]);
         const ValueProcessor& value_processor = value_set.GetValueProcessor();
-        const DictValue* const dict_value = value_set.IsNumeric() ?
-            value_processor.GetDictValue(Evaluate(symbol_va_with_subscript_node.arguments[1])) :
-            value_processor.GetDictValue(EvaluateSharableString(symbol_va_with_subscript_node.arguments[1]).GetString());
+        const DictValue* const dict_value = value_set.IsNumeric()
+            ? value_processor.GetDictValue(Evaluate<double>(symbol_va_with_subscript_node.arguments[1]))
+            : value_processor.GetDictValue(Evaluate<SharableString>(symbol_va_with_subscript_node.arguments[1]).GetString());
 
         if( dict_value != nullptr )
             file_path = dict_value->GetImageFilePath();
@@ -216,7 +218,7 @@ double LogicInterpreter::ex_Image_load(const int program_index)
     LogicImage* const logic_image = GetFromSymbolOrEngineItem<LogicImage*>(symbol_va_with_subscript_node.symbol_index, symbol_va_with_subscript_node.subscript_compilation);
 
     if( logic_image == nullptr )
-        return 0;
+        return Engine::Value::Bool(false);
 
     // load the image
     try
@@ -231,25 +233,26 @@ double LogicInterpreter::ex_Image_load(const int program_index)
     {
         IssueMessage(MessageType::Error, MGF::Image_load_error_100322,
                                          file_path.c_str(), exception.what());
-        return 0;
+
+        return Engine::Value::Bool(false);
     }
 
-    return 1;
+    return Engine::Value::Bool(true);
 }
 
 
-double LogicInterpreter::ex_Image_resample(const int program_index)
+Engine::Value LogicInterpreter::ex_Image_resample(const int program_index)
 {
     const auto& symbol_va_with_subscript_node = GetOrConvertPre80SymbolVariableArgumentsWithSubscriptNode(program_index);
 
     const bool specifying_maxes = ( symbol_va_with_subscript_node.arguments[0] == -1 && symbol_va_with_subscript_node.arguments[1] == -1 );
-    const std::optional<double> specified_width = EvaluateOptional(symbol_va_with_subscript_node.arguments[specifying_maxes ? 2: 0]);
-    const std::optional<double> specified_height = EvaluateOptional(symbol_va_with_subscript_node.arguments[specifying_maxes ? 3: 1]);
+    const std::optional<double> specified_width = EvaluateOptional<double>(symbol_va_with_subscript_node.arguments[specifying_maxes ? 2 : 0]);
+    const std::optional<double> specified_height = EvaluateOptional<double>(symbol_va_with_subscript_node.arguments[specifying_maxes ? 3 : 1]);
 
     LogicImage* const logic_image = GetFromSymbolOrEngineItem<LogicImage*>(symbol_va_with_subscript_node.symbol_index, symbol_va_with_subscript_node.subscript_compilation);
 
     if( logic_image == nullptr || !ImageRT::EnsureImageExistsAndIsValid(*this, *logic_image, "resample the image") )
-        return DEFAULT;
+        return Engine::Value::Invalid<double>();
 
     try
     {
@@ -281,8 +284,9 @@ double LogicInterpreter::ex_Image_resample(const int program_index)
             if( width.has_value() )
             {
                 new_width = *width;
-                new_height = height.has_value() ? *height :
-                                                  static_cast<int>(new_width / current_width_double * current_height_double);
+                new_height = height.has_value()
+                    ? *height
+                    : static_cast<int>(new_width / current_width_double * current_height_double);
             }
 
             // resample on height only
@@ -325,24 +329,25 @@ double LogicInterpreter::ex_Image_resample(const int program_index)
     {
         IssueMessage(MessageType::Error, MGF::Image_resample_error_100324,
                                          logic_image->GetName().c_str(), exception.what());
-        return 0;
+
+        return Engine::Value::Bool(false);
     }
 
-    return 1;
+    return Engine::Value::Bool(true);
 }
 
 
-double LogicInterpreter::ex_Image_save(const int program_index)
+Engine::Value LogicInterpreter::ex_Image_save(const int program_index)
 {
     const auto& symbol_va_with_subscript_node = GetOrConvertPre80SymbolVariableArgumentsWithSubscriptNode(program_index);
 
     std::string file_path = EvaluatePath(symbol_va_with_subscript_node.arguments[0]);
-    const std::optional<double> specified_lossy_quality = EvaluateOptional(symbol_va_with_subscript_node.arguments[1]);
+    const std::optional<double> specified_lossy_quality = EvaluateOptional<double>(symbol_va_with_subscript_node.arguments[1]);
 
     LogicImage* const logic_image = GetFromSymbolOrEngineItem<LogicImage*>(symbol_va_with_subscript_node.symbol_index, symbol_va_with_subscript_node.subscript_compilation);
 
     if( logic_image == nullptr || !ImageRT::EnsureImageExists(*this, *logic_image, "save the image") )
-        return DEFAULT;
+        return Engine::Value::Invalid<double>();
 
     try
     {
@@ -374,14 +379,15 @@ double LogicInterpreter::ex_Image_save(const int program_index)
     {
         IssueMessage(MessageType::Error, MGF::Image_save_error_100323,
                                          logic_image->GetName().c_str(), exception.what());
-        return 0;
+
+        return Engine::Value::Bool(false);
     }
 
-    return 1;
+    return Engine::Value::Bool(true);
 }
 
 
-double LogicInterpreter::ex_Image_captureSignature_takePhoto(const int program_index)
+Engine::Value LogicInterpreter::ex_Image_captureSignature_takePhoto(const int program_index)
 {
     const auto& symbol_va_with_subscript_node = GetOrConvertPre80SymbolVariableArgumentsWithSubscriptNode(program_index);
     const bool capture_signature = ( symbol_va_with_subscript_node.function_code == FunctionCode::IMAGEFN_CAPTURESIGNATURE_CODE );
@@ -399,13 +405,14 @@ double LogicInterpreter::ex_Image_captureSignature_takePhoto(const int program_i
     }
 
     const SharableString message = EvaluateNullableSharableString(symbol_va_with_subscript_node.arguments[0]);
-    const bool show_existing_image = m_engineData->MeetsCompiledLogicVersion(Serializer::Iteration_8_0_000_3) ? EvaluateOptionalConditional(symbol_va_with_subscript_node.arguments[1], true) :
-                                                                                                                false;
+    const bool show_existing_image = m_engineData->MeetsCompiledLogicVersion(Serializer::Iteration_8_0_000_3)
+        ? EvaluateOptionalConditional(symbol_va_with_subscript_node.arguments[1], true)
+        : false;
 
     LogicImage* const logic_image = GetFromSymbolOrEngineItem<LogicImage*>(symbol_va_with_subscript_node.symbol_index, symbol_va_with_subscript_node.subscript_compilation);
 
     if( logic_image == nullptr )
-        return 0;
+        return Engine::Value::Bool(false);
 
     try
     {
@@ -423,7 +430,7 @@ double LogicInterpreter::ex_Image_captureSignature_takePhoto(const int program_i
                                           message, image_localhost_url);
 
         if( image_capture_dlg.DoModalOnUIThread() != IDOK )
-            return 0;
+            return Engine::Value::Bool(false);
 
         ASSERT(!image_capture_dlg.GetImageDataUrl().empty());
 
@@ -438,10 +445,10 @@ double LogicInterpreter::ex_Image_captureSignature_takePhoto(const int program_i
     catch( const CSProException& exception )
     {
         IssueMessage(MessageType::Error, MGF::Image_signature_error_100325, exception.what());
-        return 0;
+        Engine::Value::Bool(false);
     }
 
-    return 1;
+    return Engine::Value::Bool(true);
 #else
     return capture_signature ? ex_Image_captureSignature_native(program_index) :
                                ex_Image_takePhoto_native(program_index);
@@ -449,7 +456,7 @@ double LogicInterpreter::ex_Image_captureSignature_takePhoto(const int program_i
 }
 
 
-double LogicInterpreter::ex_Image_captureSignature_native(const int program_index)
+Engine::Value LogicInterpreter::ex_Image_captureSignature_native(const int program_index)
 {
     const auto& symbol_va_with_subscript_node = GetOrConvertPre80SymbolVariableArgumentsWithSubscriptNode(program_index);
 
@@ -463,12 +470,12 @@ double LogicInterpreter::ex_Image_captureSignature_native(const int program_inde
     LogicImage* const logic_image = GetFromSymbolOrEngineItem<LogicImage*>(symbol_va_with_subscript_node.symbol_index, symbol_va_with_subscript_node.subscript_compilation);
 
     if( logic_image == nullptr )
-        return 0;
+        return Engine::Value::Bool(false);
 
     try
     {
         if( SendEngineUIMessage(EngineUI::Type::CaptureImage, capture_image_node) != 1 )
-            return 0;
+            return Engine::Value::Bool(false);
 
         logic_image->Load(capture_image_node.output_file_path, true);
 
@@ -483,14 +490,14 @@ double LogicInterpreter::ex_Image_captureSignature_native(const int program_inde
     catch( const CSProException& exception )
     {
         IssueMessage(MessageType::Error, MGF::Image_signature_error_100325, exception.what());
-        return 0;
+        return Engine::Value::Bool(false);
     }
 
-    return 1;
+    return Engine::Value::Bool(true);
 }
 
 
-double LogicInterpreter::ex_Image_takePhoto_native(const int program_index)
+Engine::Value LogicInterpreter::ex_Image_takePhoto_native(const int program_index)
 {
     const auto& symbol_va_with_subscript_node = GetOrConvertPre80SymbolVariableArgumentsWithSubscriptNode(program_index);
 
@@ -504,12 +511,12 @@ double LogicInterpreter::ex_Image_takePhoto_native(const int program_index)
     LogicImage* const logic_image = GetFromSymbolOrEngineItem<LogicImage*>(symbol_va_with_subscript_node.symbol_index, symbol_va_with_subscript_node.subscript_compilation);
 
     if( logic_image == nullptr )
-        return 0;
+        return Engine::Value::Bool(false);
 
     try
     {
         if( SendEngineUIMessage(EngineUI::Type::CaptureImage, capture_image_node) != 1 )
-            return 0;
+            return Engine::Value::Bool(false);
 
         logic_image->Load(capture_image_node.output_file_path, true);
 
@@ -524,47 +531,52 @@ double LogicInterpreter::ex_Image_takePhoto_native(const int program_index)
     catch( const CSProException& exception )
     {
         IssueMessage(MessageType::Error, MGF::Image_photo_error_100326, exception.what());
-        return 0;
+        return Engine::Value::Bool(false);
     }
 
-    return 1;
+    return Engine::Value::Bool(true);
 }
 
 
-double LogicInterpreter::ex_Image_view(const int program_index)
+Engine::Value LogicInterpreter::ex_Image_view(const int program_index)
 {
     const auto& symbol_va_with_subscript_node = GetOrConvertPre80SymbolVariableArgumentsWithSubscriptNode(program_index);
     LogicImage* const logic_image = GetFromSymbolOrEngineItem<LogicImage*>(symbol_va_with_subscript_node.symbol_index, symbol_va_with_subscript_node.subscript_compilation);
 
     if( logic_image == nullptr )
-        return DEFAULT;
+        return Engine::Value::Invalid<double>();
 
-    const std::unique_ptr<const ViewerOptions> viewer_options = m_engineData->MeetsCompiledLogicVersion(Serializer::Iteration_8_0_000_3) ? EvaluateViewerOptions(symbol_va_with_subscript_node.arguments[0]) :
-                                                                                                                                           nullptr;
+    const std::unique_ptr<const ViewerOptions> viewer_options =
+        m_engineData->MeetsCompiledLogicVersion(Serializer::Iteration_8_0_000_3)
+        ? EvaluateViewerOptions(symbol_va_with_subscript_node.arguments[0])
+        : nullptr;
 
     return ex_Image_view(*logic_image, viewer_options.get());
 }
 
 
-double LogicInterpreter::ex_Image_view(const LogicImage& logic_image, const ViewerOptions* const viewer_options)
+Engine::Value LogicInterpreter::ex_Image_view(const LogicImage& logic_image, const ViewerOptions* const viewer_options)
 {
     if( !ImageRT::EnsureImageExists(*this, logic_image, "view the image") )
-        return DEFAULT;
+        return Engine::Value::Invalid<double>();
 
     logic_image.View(viewer_options);
 
-    return 1;
+    return Engine::Value::Bool(true);
 }
 
 
-double LogicInterpreter::ex_Image_width_height(const int program_index)
+Engine::Value LogicInterpreter::ex_Image_width_height(const int program_index)
 {
     const auto& symbol_va_with_subscript_node = GetOrConvertPre80SymbolVariableArgumentsWithSubscriptNode(program_index);
     LogicImage* const logic_image = GetFromSymbolOrEngineItem<LogicImage*>(symbol_va_with_subscript_node.symbol_index, symbol_va_with_subscript_node.subscript_compilation);
 
     if( logic_image == nullptr || !ImageRT::EnsureImageExistsAndIsValid(*this, *logic_image, nullptr) )
-        return DEFAULT;
+        return Engine::Value::Invalid<double>();
 
-    return ( symbol_va_with_subscript_node.function_code == FunctionCode::IMAGEFN_WIDTH_CODE ) ? logic_image->GetWidth() :
-                                                                                                 logic_image->GetHeight();
+    return Engine::Value::Integer(
+        ( symbol_va_with_subscript_node.function_code == FunctionCode::IMAGEFN_WIDTH_CODE )
+        ? logic_image->GetWidth()
+        : logic_image->GetHeight()
+    );
 }

@@ -883,7 +883,9 @@ void CDEEdit::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
         if( pRunApl->HasSomeRequest() )
             return;
 
-        double dNewCharCtl = pRunApl->ExecSpecialFunction(SpecialFunction::Code::OnChar, nChar);
+        const Engine::Value newCharCtl = pRunApl->ExecSpecialFunction(SpecialFunction::Code::OnChar, nChar);
+        ASSERT(newCharCtl.is<double>());
+        const double dNewCharCtl = newCharCtl.get<double>();
 
         if( pRunApl->HasSomeRequest() )
         {

@@ -7,23 +7,26 @@
 // timestamp-style functions
 // --------------------------------------------------------------------------
 
-double LogicInterpreter::ex_timestamp(const int program_index)
+Engine::Value LogicInterpreter::ex_timestamp(const int program_index)
 {
     const auto& timestamp_node = GetNode<Nodes::Timestamp>(program_index);
 
-    if( m_engineData->PredatesCompiledLogicVersion(Serializer::Iteration_8_0_000_1) || timestamp_node.type == Nodes::Timestamp::Type::Current )
+    if( m_engineData->PredatesCompiledLogicVersion(Serializer::Iteration_8_0_000_1) ||
+        timestamp_node.type == Nodes::Timestamp::Type::Current )
     {
         return GetTimestamp<double>();
     }
 
     else if( timestamp_node.type == Nodes::Timestamp::Type::RFC3339 )
     {
-        SharableString date_time = EvaluateSharableString(timestamp_node.argument);
+        SharableString date_time = Evaluate<SharableString>(timestamp_node.argument);
 
         if( date_time->length() < PortableFunctions::MinLengthRFC3339DateTimeString )
-            return DEFAULT;
+            return Engine::Value::Invalid<double>();
 
-        return static_cast<double>(PortableFunctions::ParseRFC3339DateTime(date_time.Release()));
+        return Engine::Value::Integer(
+            PortableFunctions::ParseRFC3339DateTime(date_time.Release())
+        );
     }
 
     else
@@ -35,7 +38,7 @@ double LogicInterpreter::ex_timestamp(const int program_index)
 
         auto evaluate_int = [&](const size_t index)
         {
-            const double value = Evaluate(arguments_list_node.elements[index]);
+            const double value = Evaluate<double>(arguments_list_node.elements[index]);
 
             if( IsSpecial(value) || value < 0 )
             {
@@ -73,7 +76,7 @@ double LogicInterpreter::ex_timestamp(const int program_index)
         }
 
         if( special_value_read )
-            return DEFAULT;
+            return Engine::Value::Invalid<double>();
 
         const int utc_offset_expression = arguments_list_node.elements[arguments_list_node.number_elements - 1];
         double utc_offset_in_seconds;
@@ -87,10 +90,10 @@ double LogicInterpreter::ex_timestamp(const int program_index)
         // UTC time with a potential offset
         else
         {
-            const double utc_offset_hours = Evaluate(utc_offset_expression);
+            const double utc_offset_hours = Evaluate<double>(utc_offset_expression);
 
             if( IsSpecial(utc_offset_hours) )
-                return DEFAULT;
+                return Engine::Value::Invalid<double>();
 
             utc_offset_in_seconds = utc_offset_hours * DateHelper::SecondsInHour<double>();
         }
@@ -100,7 +103,7 @@ double LogicInterpreter::ex_timestamp(const int program_index)
 }
 
 
-double LogicInterpreter::ex_timestring(const int program_index)
+Engine::Value LogicInterpreter::ex_timestring(const int program_index)
 {
     const auto& va_node = GetNode<Nodes::VariableArguments>(program_index);
     const int& timestamp_expression = va_node.arguments[0];
@@ -114,16 +117,17 @@ double LogicInterpreter::ex_timestring(const int program_index)
 
     else
     {
-        timestamp = Evaluate(timestamp_expression);
+        timestamp = Evaluate<double>(timestamp_expression);
 
         if( IsSpecial(timestamp) )
-            return AssignStringNull();
+            return Engine::Value::Invalid<SharableString>();
     }
 
-    const SharableString formatter = ( format_expression == -1 ) ? SharableString("%c") :
-                                                                   EvaluateSharableString(format_expression);
+    const SharableString formatter = ( format_expression == -1 )
+        ? SharableString("%c")
+        : Evaluate<SharableString>(format_expression);
 
-    return AssignString(FormatTimestamp(timestamp, *formatter));
+    return FormatTimestamp(timestamp, *formatter);
 }
 
 
@@ -132,7 +136,7 @@ double LogicInterpreter::ex_timestring(const int program_index)
 // sysdate/systime functions
 // --------------------------------------------------------------------------
 
-double LogicInterpreter::ex_sysdate(const int program_index)
+Engine::Value LogicInterpreter::ex_sysdate(const int program_index)
 {
     const auto& fnn_node = GetNode<FNN_NODE>(program_index);
 
@@ -146,22 +150,24 @@ double LogicInterpreter::ex_sysdate(const int program_index)
     // the default format is YYMMDD
     if( fnn_node.fn_nargs == 0 )
     {
-        return DateTime::TimeToYYMMDD(date_time_components);
+        return Engine::Value::Integer(
+            DateTime::TimeToYYMMDD(date_time_components)
+        );
     }
 
     else
     {
-        const SharableString formatter = EvaluateSharableString(fnn_node.fn_expr[0]);
+        const SharableString formatter = Evaluate<SharableString>(fnn_node.fn_expr[0]);
 
         const std::optional<uint64_t> date = FormatDate(SO::Trim(*formatter), date_time_components);
 
-        return date.has_value() ? *date :
-                                  DEFAULT;
+        return date.has_value() ? Engine::Value::Integer(*date) :
+                                  Engine::Value::Invalid<double>();
     }
 }
 
 
-double LogicInterpreter::ex_systime(const int program_index)
+Engine::Value LogicInterpreter::ex_systime(const int program_index)
 {
     const auto& fnn_node = GetNode<FNN_NODE>(program_index);
 
@@ -175,12 +181,14 @@ double LogicInterpreter::ex_systime(const int program_index)
     // the default format is HHMMSS
     if( fnn_node.fn_nargs == 0 )
     {
-        return DateTime::TimeToHHMMSS(date_time_components);
+        return Engine::Value::Integer(
+            DateTime::TimeToHHMMSS(date_time_components)
+        );
     }
 
     else
     {
-        const SharableString formatter = EvaluateSharableString(fnn_node.fn_expr[0]);
+        const SharableString formatter = Evaluate<SharableString>(fnn_node.fn_expr[0]);
         std::string_view formatter_sv = SO::Trim(*formatter);
 
         std::optional<uint64_t> result;
@@ -206,7 +214,7 @@ double LogicInterpreter::ex_systime(const int program_index)
 
             else
             {
-                return DEFAULT;
+                return Engine::Value::Invalid<double>();
             }
 
             result = value + ( result.has_value() ? ( *result * 100 ) : 0 );
@@ -214,8 +222,8 @@ double LogicInterpreter::ex_systime(const int program_index)
             formatter_sv = formatter_sv.substr(2);
         }
 
-        return result.has_value() ? *result :
-                                    DEFAULT;
+        return result.has_value() ? Engine::Value::Integer(*result) :
+                                    Engine::Value::Invalid<double>();
     }
 }
 
@@ -343,14 +351,14 @@ namespace
 }
 
 
-double LogicInterpreter::ex_dateadd(const int program_index)
+Engine::Value LogicInterpreter::ex_dateadd(const int program_index)
 {
     const auto& fnn_node = GetNode<FNN_NODE>(program_index);
     int date = Evaluate<int>(fnn_node.fn_expr[0]);
-    const double period_double = Evaluate(fnn_node.fn_expr[1]);
+    const double period_double = Evaluate<double>(fnn_node.fn_expr[1]);
 
     if( !AdjustAndCheckDate(date, true) || IsSpecial(period_double) )
-        return DEFAULT;
+        return Engine::Value::Invalid<double>();
 
     int period_int = static_cast<int>(period_double);
     const bool period_was_integer = ( period_double == period_int );
@@ -361,11 +369,11 @@ double LogicInterpreter::ex_dateadd(const int program_index)
     // evaluate user-specified period types
     if( fnn_node.fn_nargs > 2 )
     {
-        SharableString period_type_text = EvaluateSharableString(fnn_node.fn_expr[2]);
+        SharableString period_type_text = Evaluate<SharableString>(fnn_node.fn_expr[2]);
         period_type_text.MakeTrim();
 
         if( period_type_text->length() != 1 )
-            return DEFAULT;
+            return Engine::Value::Invalid<double>();
 
         switch( std::toupper(period_type_text->front()) )
         {
@@ -417,7 +425,7 @@ double LogicInterpreter::ex_dateadd(const int program_index)
             // invalid period type
             default:
             {
-                return DEFAULT;
+                return Engine::Value::Invalid<double>();
             }
         }
     }
@@ -487,18 +495,18 @@ double LogicInterpreter::ex_dateadd(const int program_index)
     }
 #endif
 
-    return *new_date;
+    return Engine::Value::Integer(*new_date);
 }
 
 
-double LogicInterpreter::ex_datediff(const int program_index)
+Engine::Value LogicInterpreter::ex_datediff(const int program_index)
 {
     const auto& fnn_node = GetNode<FNN_NODE>(program_index);
     int start_date = Evaluate<int>(fnn_node.fn_expr[0]);
     int end_date = Evaluate<int>(fnn_node.fn_expr[1]);
 
     if( !AdjustAndCheckDate(start_date, false) || !AdjustAndCheckDate(end_date, false) )
-        return DEFAULT;
+        return Engine::Value::Invalid<double>();
 
     const bool start_year_is_missing = ( DateHelper::GetYYYY(start_date) == 0 );
     const bool end_year_is_missing = ( DateHelper::GetYYYY(end_date) == 0 );
@@ -546,7 +554,7 @@ double LogicInterpreter::ex_datediff(const int program_index)
     // evaluate user-specified period types
     if( fnn_node.fn_nargs > 2 )
     {
-        const SharableString period_type_text = EvaluateSharableString(fnn_node.fn_expr[2]);
+        const SharableString period_type_text = Evaluate<SharableString>(fnn_node.fn_expr[2]);
 
         if( period_type_text->length() == 1 )
         {
@@ -556,7 +564,7 @@ double LogicInterpreter::ex_datediff(const int program_index)
                 case 'M': period_type = PeriodType::Month; break;
                 case 'D': period_type = PeriodType::Day;   break;
                 case 'W': period_type = PeriodType::Week;  break;
-                default:                                   return DEFAULT;
+                default:                                   return Engine::Value::Invalid<double>();
             }
         }
 
@@ -577,7 +585,7 @@ double LogicInterpreter::ex_datediff(const int program_index)
 
         else
         {
-            return DEFAULT;
+            return Engine::Value::Invalid<double>();
         }
     }
 
@@ -588,7 +596,7 @@ double LogicInterpreter::ex_datediff(const int program_index)
     }
 
     if( start_date == end_date )
-        return 0;
+        return Engine::Value::Integer(0);
 
     // calculate the date with the start date before the end date
     const bool make_negative = ( start_date > end_date );
@@ -706,17 +714,21 @@ double LogicInterpreter::ex_datediff(const int program_index)
         }
     }
 
-    return make_negative ? ( -1 * date_difference ) :
-                           date_difference;
+    return Engine::Value::Integer(
+        make_negative ? ( -1 * date_difference ) :
+                        date_difference
+    );
 }
 
 
-double LogicInterpreter::ex_datevalid(const int program_index)
+Engine::Value LogicInterpreter::ex_datevalid(const int program_index)
 {
     const auto& fnn_node = GetNode<FNN_NODE>(program_index);
     const int date = Evaluate<int>(fnn_node.fn_expr[0]);
 
-    return DateHelper::IsValid(date) ? 1 : 0;
+    return Engine::Value::Bool(
+        DateHelper::IsValid(date)
+    );
 }
 
 
@@ -743,22 +755,22 @@ namespace
 }
 
 
-double LogicInterpreter::ex_cmcode(const int program_index)
+Engine::Value LogicInterpreter::ex_cmcode(const int program_index)
 {
     const auto& fnn_node = GetNode<FNN_NODE>(program_index);
-    const double month = Evaluate(fnn_node.fn_expr[0]);
-    const double year = Evaluate(fnn_node.fn_expr[1]);
+    const double month = Evaluate<double>(fnn_node.fn_expr[0]);
+    const double year = Evaluate<double>(fnn_node.fn_expr[1]);
 
     return cmcode(month, year);
 }
 
 
-double LogicInterpreter::ex_setlb_setub(const int program_index)
+Engine::Value LogicInterpreter::ex_setlb_setub(const int program_index)
 {
     const auto& fnn_node = GetNode<FNN_NODE>(program_index);
-    const double month = Evaluate(fnn_node.fn_expr[0]);
-    const double year = Evaluate(fnn_node.fn_expr[1]);
-    const double default_value = Evaluate(fnn_node.fn_expr[2]);
+    const double month = Evaluate<double>(fnn_node.fn_expr[0]);
+    const double year = Evaluate<double>(fnn_node.fn_expr[1]);
+    const double default_value = Evaluate<double>(fnn_node.fn_expr[2]);
 
     if( cmcode(1, year) == 9999 )
         return default_value;
@@ -775,17 +787,17 @@ double LogicInterpreter::ex_setlb_setub(const int program_index)
 }
 
 
-double LogicInterpreter::ex_adjlba(const int program_index)
+Engine::Value LogicInterpreter::ex_adjlba(const int program_index)
 {
     const auto& fnn_node = GetNode<FNN_NODE>(program_index);
-    const double ldb = Evaluate(fnn_node.fn_expr[0]);
-    const double ref_age = Evaluate(fnn_node.fn_expr[4]);
+    const double ldb = Evaluate<double>(fnn_node.fn_expr[0]);
+    const double ref_age = Evaluate<double>(fnn_node.fn_expr[4]);
 
     if( IsSpecial(ref_age) )
         return ldb;
 
-    const double udb = Evaluate(fnn_node.fn_expr[1]);
-    const double lrefd = Evaluate(fnn_node.fn_expr[2]);
+    const double udb = Evaluate<double>(fnn_node.fn_expr[1]);
+    const double lrefd = Evaluate<double>(fnn_node.fn_expr[2]);
 
     const double cm = lrefd - 12 * ( ref_age + 1 );
 
@@ -795,17 +807,17 @@ double LogicInterpreter::ex_adjlba(const int program_index)
 }
 
 
-double LogicInterpreter::ex_adjuba(const int program_index)
+Engine::Value LogicInterpreter::ex_adjuba(const int program_index)
 {
     const auto& fnn_node = GetNode<FNN_NODE>(program_index);
-    const double udb = Evaluate(fnn_node.fn_expr[1]);
-    const double ref_age = Evaluate(fnn_node.fn_expr[4]);
+    const double udb = Evaluate<double>(fnn_node.fn_expr[1]);
+    const double ref_age = Evaluate<double>(fnn_node.fn_expr[4]);
 
     if( IsSpecial(ref_age) )
         return udb;
 
-    const double ldb = Evaluate(fnn_node.fn_expr[0]);
-    const double urefd = Evaluate(fnn_node.fn_expr[3]);
+    const double ldb = Evaluate<double>(fnn_node.fn_expr[0]);
+    const double urefd = Evaluate<double>(fnn_node.fn_expr[3]);
 
     double cm = urefd - 12 * ref_age;
 
@@ -815,13 +827,13 @@ double LogicInterpreter::ex_adjuba(const int program_index)
 }
 
 
-double LogicInterpreter::ex_adjlbi(const int program_index)
+Engine::Value LogicInterpreter::ex_adjlbi(const int program_index)
 {
     const auto& fnn_node = GetNode<FNN_NODE>(program_index);
-    const double l1 = Evaluate(fnn_node.fn_expr[0]);
-    const double l2 = Evaluate(fnn_node.fn_expr[2]);
-    const double u2 = Evaluate(fnn_node.fn_expr[3]);
-    const double interval = Evaluate(fnn_node.fn_expr[4]);
+    const double l1 = Evaluate<double>(fnn_node.fn_expr[0]);
+    const double l2 = Evaluate<double>(fnn_node.fn_expr[2]);
+    const double u2 = Evaluate<double>(fnn_node.fn_expr[3]);
+    const double interval = Evaluate<double>(fnn_node.fn_expr[4]);
 
     if( IsSpecial(interval) )
         return l2;
@@ -834,13 +846,13 @@ double LogicInterpreter::ex_adjlbi(const int program_index)
 }
 
 
-double LogicInterpreter::ex_adjubi(const int program_index)
+Engine::Value LogicInterpreter::ex_adjubi(const int program_index)
 {
     const auto& fnn_node = GetNode<FNN_NODE>(program_index);
-    const double l1 = Evaluate(fnn_node.fn_expr[0]);
-    const double u1 = Evaluate(fnn_node.fn_expr[1]);
-    const double u2 = Evaluate(fnn_node.fn_expr[3]);
-    const double interval = Evaluate(fnn_node.fn_expr[4]);
+    const double l1 = Evaluate<double>(fnn_node.fn_expr[0]);
+    const double u1 = Evaluate<double>(fnn_node.fn_expr[1]);
+    const double u2 = Evaluate<double>(fnn_node.fn_expr[3]);
+    const double interval = Evaluate<double>(fnn_node.fn_expr[4]);
 
     if( IsSpecial(interval) )
         return u1;

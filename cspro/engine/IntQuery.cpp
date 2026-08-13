@@ -1,4 +1,4 @@
-﻿#include "StandardSystemIncludes.h"
+#include "StandardSystemIncludes.h"
 #include "Interpreter.h"
 #include "Engine.h"
 #include "Exappl.h"
@@ -226,7 +226,7 @@ double CIntDriver::exsqlquery(const int program_index)
 double CIntDriver::exsqlquery(const int program_index, const std::function<double(sqlite3*, const std::string&)>* const setreportdata_callback)
 {
     const auto& sqlquery_node = GetNode<Nodes::SqlQuery>(program_index);
-    const SharableString sql_query = EvaluateSharableString(sqlquery_node.sql_query_expression);
+    const SharableString sql_query = Evaluate<SharableString>(sqlquery_node.sql_query_expression);
 
     sqlite3* db = nullptr;
     bool must_close_db = false;
@@ -644,16 +644,17 @@ void CIntDriver::ProcessSqlCallbackFunction(UserFunction& user_function, void* c
     ASSERT(user_function.GetNumberParameters() == static_cast<size_t>(iArgC));
 
     SqlQueryUserFunctionArgumentEvaluator argument_evaluator(iArgC, reinterpret_cast<sqlite3_value**>(void_ppArgV));
-    const double return_value = CallUserFunction(user_function, argument_evaluator);
+    const Engine::Value return_value = CallUserFunction(user_function, argument_evaluator);
 
-    if( user_function.GetReturnType() == SymbolType::WorkVariable )
+    if( return_value.is<double>() )
     {
-        sqlite3_result_double(context, return_value);
+        sqlite3_result_double(context, return_value.get<double>());
     }
 
     else
     {
-        const SharableString value = GetWorkingSharableString(static_cast<size_t>(return_value));
+        ASSERT(return_value.is<SharableString>());
+        const SharableString value = return_value.as<SharableString>();
         sqlite3_result_text(context, value->c_str(), value->length(), SQLITE_TRANSIENT);
     }
 }

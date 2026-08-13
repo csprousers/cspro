@@ -126,7 +126,9 @@ UINT CDEBaseEdit::RemapChar( CRunAplEntry* pRunApl, UINT nChar, int* iCtrlFlags)
         if( bPressedHelpKey )
             m_bTrapNextHelp = true;
 
-        double dNewCharCtl = pRunApl->ExecSpecialFunction(SpecialFunction::Code::OnKey, iCharCtrl);
+        const Engine::Value newCharCtl = pRunApl->ExecSpecialFunction(SpecialFunction::Code::OnKey, iCharCtrl);
+        ASSERT(newCharCtl.is<double>());
+        double dNewCharCtl = newCharCtl.get<double>();
 
         if( bPressedHelpKey && dNewCharCtl == 112 ) // the user isn't overriding help
             m_bTrapNextHelp = false;

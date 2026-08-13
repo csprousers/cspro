@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "IncludesCC.h"
 #include "SystemApp.h"
 
@@ -65,7 +65,7 @@ int LogicCompiler::CompileSystemAppFunctions()
             NextToken();
             const bool read_string = IsCurrentTokenString();
 
-            // setargument can take a string or number
+            // setArgument can take a string or number
             if( read_string || function_code != FunctionCode::SYSTEMAPPFN_SETARGUMENT_CODE )
             {
                 symbol_va_node.arguments[1] = CompileStringExpression();

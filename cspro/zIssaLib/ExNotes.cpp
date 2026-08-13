@@ -718,7 +718,7 @@ std::vector<std::wstring> CEngineDriver::GetOccurrenceLabels(const VART* pVarT, 
                                                                                                         case_item_reference->GetItemOccurrence();
         }
 
-        occurrence_labels[1] = CS2WS(m_pIntDriver->EvaluateOccurrenceLabel(symbol_with_occs, zero_based_occurrence));
+        occurrence_labels[1] = UTF8_TODO::GetWide(m_pIntDriver->EvaluateOccurrenceLabel(*symbol_with_occs, zero_based_occurrence));
 
         // properly assign the symbol with occurrences for the record occurrence label (which will be located two levels up)
         const GROUPT* pGroupT = ((const VART*)symbol_with_occs)->GetOwnerGPT()->GetOwnerGPT();
@@ -733,7 +733,7 @@ std::vector<std::wstring> CEngineDriver::GetOccurrenceLabels(const VART* pVarT, 
         if( case_item_reference != nullptr )
             zero_based_occurrence = case_item_reference->GetRecordOccurrence();
 
-        occurrence_labels[0] = CS2WS(m_pIntDriver->EvaluateOccurrenceLabel(symbol_with_occs, zero_based_occurrence));
+        occurrence_labels[0] = UTF8_TODO::GetWide(m_pIntDriver->EvaluateOccurrenceLabel(*symbol_with_occs, zero_based_occurrence));
     }
 
     return occurrence_labels;

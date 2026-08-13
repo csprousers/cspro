@@ -239,6 +239,9 @@
     <ClCompile Include="EngineRecord.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="EngineValue.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="File.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -294,6 +297,9 @@
       <Filter>Source Files\Interpreter</Filter>
     </ClCompile>
     <ClCompile Include="Interpreter\ImageRT.cpp">
+      <Filter>Source Files\Interpreter</Filter>
+    </ClCompile>
+    <ClCompile Include="Interpreter\InstructionsRT.cpp">
       <Filter>Source Files\Interpreter</Filter>
     </ClCompile>
     <ClCompile Include="Interpreter\ItemRT.cpp">
@@ -572,6 +578,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="EngineSettings.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="EngineValue.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="File.h">

@@ -7,7 +7,7 @@
 #include <engine/DicT.h>
 
 
-double LogicInterpreter::ex_Pff_compute(const int program_index)
+Engine::Value LogicInterpreter::ex_Pff_compute(const int program_index)
 {
     const auto& symbol_compute_node = GetNode<Nodes::SymbolCompute>(program_index);
     ASSERT(symbol_compute_node.rhs_symbol_type == SymbolType::Pff);
@@ -17,11 +17,11 @@ double LogicInterpreter::ex_Pff_compute(const int program_index)
 
     lhs_logic_pff = rhs_logic_pff;
 
-    return 0;
+    return Engine::Value::Undefined<double>();
 }
 
 
-double LogicInterpreter::ex_Pff_load(const int program_index)
+Engine::Value LogicInterpreter::ex_Pff_load(const int program_index)
 {
     const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
     LogicPff& logic_pff = GetSymbolLogicPff(symbol_va_node.symbol_index);
@@ -46,14 +46,14 @@ double LogicInterpreter::ex_Pff_load(const int program_index)
         !logic_pff.Load(pff_file_path) )
     {
         IssueMessage(MessageType::Error, MGF::Pff_load_error_47191, pff_file_path.c_str());
-        return 0;
+        return Engine::Value::Bool(false);
     }
 
-    return 1;
+    return Engine::Value::Bool(true);
 }
 
 
-double LogicInterpreter::ex_Pff_save(const int program_index)
+Engine::Value LogicInterpreter::ex_Pff_save(const int program_index)
 {
     const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
     LogicPff& logic_pff = GetSymbolLogicPff(symbol_va_node.symbol_index);
@@ -67,19 +67,19 @@ double LogicInterpreter::ex_Pff_save(const int program_index)
     if( !logic_pff.Save(pff_file_path) )
     {
         IssueMessage(MessageType::Error, MGF::Pff_save_error_47192, pff_file_path.c_str());
-        return 0;
+        return Engine::Value::Bool(false);
     }
 
-    return 1;
+    return Engine::Value::Bool(true);
 }
 
 
-double LogicInterpreter::ex_Pff_getProperty(const int program_index)
+Engine::Value LogicInterpreter::ex_Pff_getProperty(const int program_index)
 {
     const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
     LogicPff& logic_pff = GetSymbolLogicPff(symbol_va_node.symbol_index);
 
-    const SharableString property_name = EvaluateSharableString(symbol_va_node.arguments[0]);
+    const SharableString property_name = Evaluate<SharableString>(symbol_va_node.arguments[0]);
     LogicList* logic_list;
 
     if( m_engineData->MeetsCompiledLogicVersion(Serializer::Iteration_8_0_000_1) )
@@ -96,9 +96,9 @@ double LogicInterpreter::ex_Pff_getProperty(const int program_index)
 
     std::vector<std::string> values = logic_pff.GetProperties(*property_name);
 
-    const double return_value = !values.empty()
-        ? AssignString(values.front())
-        : AssignStringNull();
+    Engine::Value return_value = !values.empty()
+        ? Engine::Value(values.front())
+        : Engine::Value::Undefined<SharableString>();
 
     if( logic_list != nullptr )
     {
@@ -118,18 +118,19 @@ double LogicInterpreter::ex_Pff_getProperty(const int program_index)
 }
 
 
-double LogicInterpreter::ex_Pff_setProperty(const int program_index)
+Engine::Value LogicInterpreter::ex_Pff_setProperty(const int program_index)
 {
     const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
     LogicPff& logic_pff = GetSymbolLogicPff(symbol_va_node.symbol_index);
 
-    const SharableString property_name = EvaluateSharableString(symbol_va_node.arguments[0]);
+    const SharableString property_name = Evaluate<SharableString>(symbol_va_node.arguments[0]);
     std::vector<SharableString> values;
 
     if( symbol_va_node.arguments[1] >= 0 )
     {
-        values.emplace_back(EvaluateSharableString(static_cast<DataType>(symbol_va_node.arguments[1]),
-                                                   symbol_va_node.arguments[2]));
+        values.emplace_back(
+            Evaluate<Engine::Value>(symbol_va_node.arguments[2]).as<SharableString>()
+        );
     }
 
     else
@@ -167,11 +168,11 @@ double LogicInterpreter::ex_Pff_setProperty(const int program_index)
 
     logic_pff.SetProperties(*property_name, values, GetCurrentApplicationFilePath());
 
-    return 1;
+    return Engine::Value::Bool(true);
 }
 
 
-double LogicInterpreter::ex_Pff_exec(const int program_index)
+Engine::Value LogicInterpreter::ex_Pff_exec(const int program_index)
 {
     const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
     LogicPff& logic_pff = GetSymbolLogicPff(symbol_va_node.symbol_index);

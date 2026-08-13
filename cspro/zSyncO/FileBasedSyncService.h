@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zSyncO/zSyncO.h>
 #include <zSyncO/ISyncService.h>
@@ -40,7 +40,7 @@ class PFF;
 // When doing a GET, the client first does a directory listing and then
 // only downloads files with modified dates more recent than that of
 // the last sync.
-
+// --------------------------------------------------------------------------
 
 class SYNC_API FileBasedSyncService : public ISyncService
 {

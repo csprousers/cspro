@@ -1,15 +1,17 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include <zUtilO/Versioning.h>
 
 
 template<typename CF>
 ActionInvoker::Result ActionInvoker::Runtime::Logic_executeWorker(const CF callback_function)
 {
-    InterpreterExecuteResult execute_result = callback_function(GetInterpreterAccessor());
+    InterpreterAccessor& interpreter_accessor = GetInterpreterAccessor();
+    InterpreterExecuteResult execute_result = callback_function(interpreter_accessor);
 
     if( execute_result.program_control_executed )
     {
-        // let all listeners know that a program control statement was executed (which will generally mean that dialogs will close)
+        // let all listeners know that a program control statement was executed
+        // (which will generally mean that dialogs will close)
         IterateOverListeners(
             [&](Listener& listener)
             {
@@ -18,7 +20,7 @@ ActionInvoker::Result ActionInvoker::Runtime::Logic_executeWorker(const CF callb
             });
     }
 
-    return Result::NumberOrString(std::move(execute_result.result));
+    return Result::NumberOrString(interpreter_accessor.CreateVariantFromEngineValue(std::move(execute_result.result)));
 }
 
 

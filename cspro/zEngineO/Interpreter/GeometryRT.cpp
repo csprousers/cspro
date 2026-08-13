@@ -39,7 +39,7 @@ bool LogicInterpreter::EnsureGeometryExistsAndHasValidContent(const LogicGeometr
 }
 
 
-double LogicInterpreter::ex_Geometry_compute(const int program_index)
+Engine::Value LogicInterpreter::ex_Geometry_compute(const int program_index)
 {
     const auto& symbol_compute_with_subscript_node = GetOrConvertPre80SymbolComputeWithSubscriptNode(program_index);
     const SymbolReference<Symbol*> lhs_symbol_reference = EvaluateSymbolReference<Symbol*>(symbol_compute_with_subscript_node.lhs_symbol_index,
@@ -47,12 +47,12 @@ double LogicInterpreter::ex_Geometry_compute(const int program_index)
     const Symbol* const rhs_symbol = GetFromSymbolOrEngineItem<Symbol*>(symbol_compute_with_subscript_node.rhs_symbol_index, symbol_compute_with_subscript_node.rhs_subscript_compilation);
 
     if( rhs_symbol == nullptr )
-        return 0;
+        return Engine::Value::Invalid<double>();
 
     LogicGeometry* const lhs_logic_geometry = GetFromSymbolOrEngineItem<LogicGeometry*>(lhs_symbol_reference);
 
     if( lhs_logic_geometry == nullptr )
-        return 0;
+        return Engine::Value::Invalid<double>();
 
     try
     {
@@ -78,26 +78,26 @@ double LogicInterpreter::ex_Geometry_compute(const int program_index)
                                          rhs_symbol->GetName().c_str(), lhs_logic_geometry->GetName().c_str(), exception.what());
     }
 
-    return 0;
+    return Engine::Value::Undefined<double>();
 }
 
 
-double LogicInterpreter::ex_Geometry_clear(const int program_index)
+Engine::Value LogicInterpreter::ex_Geometry_clear(const int program_index)
 {
     const auto& symbol_va_with_subscript_node = GetOrConvertPre80SymbolVariableArgumentsWithSubscriptNode(program_index);
     LogicGeometry* const logic_geometry = GetFromSymbolOrEngineItem<LogicGeometry*>(symbol_va_with_subscript_node.symbol_index,
                                                                                     symbol_va_with_subscript_node.subscript_compilation);
 
     if( logic_geometry == nullptr )
-        return 0;
+        return Engine::Value::Bool(false);
 
     logic_geometry->Reset();
 
-    return 1;
+    return Engine::Value::Bool(true);
 }
 
 
-double LogicInterpreter::ex_Geometry_load(const int program_index)
+Engine::Value LogicInterpreter::ex_Geometry_load(const int program_index)
 {
     const auto& symbol_va_with_subscript_node = GetOrConvertPre80SymbolVariableArgumentsWithSubscriptNode(program_index);
     const std::string file_path = EvaluatePath(symbol_va_with_subscript_node.arguments[0]);
@@ -105,7 +105,7 @@ double LogicInterpreter::ex_Geometry_load(const int program_index)
                                                                                     symbol_va_with_subscript_node.subscript_compilation);
 
     if( logic_geometry == nullptr )
-        return 0;
+        return Engine::Value::Bool(false);
 
     try
     {
@@ -116,14 +116,14 @@ double LogicInterpreter::ex_Geometry_load(const int program_index)
     {
         IssueMessage(MessageType::Error, MGF::Geometry_load_error_100352,
                                          file_path.c_str(), exception.what());
-        return 0;
+        return Engine::Value::Bool(false);
     }
 
-    return 1;
+    return Engine::Value::Bool(true);
 }
 
 
-double LogicInterpreter::ex_Geometry_save(const int program_index)
+Engine::Value LogicInterpreter::ex_Geometry_save(const int program_index)
 {
     const auto& symbol_va_with_subscript_node = GetOrConvertPre80SymbolVariableArgumentsWithSubscriptNode(program_index);
     const std::string file_path = EvaluatePath(symbol_va_with_subscript_node.arguments[0]);
@@ -131,7 +131,7 @@ double LogicInterpreter::ex_Geometry_save(const int program_index)
                                                                                     symbol_va_with_subscript_node.subscript_compilation);
 
     if( logic_geometry == nullptr || !EnsureGeometryExistsAndHasValidContent(*logic_geometry, "save the geometry") )
-        return DEFAULT;
+        return Engine::Value::Invalid<double>();
 
     try
     {
@@ -142,14 +142,14 @@ double LogicInterpreter::ex_Geometry_save(const int program_index)
     {
         IssueMessage(MessageType::Error, MGF::Geometry_save_error_100353,
                                          file_path.c_str(), exception.what());
-        return 0;
+        return Engine::Value::Bool(false);
     }
 
-    return 1;
+    return Engine::Value::Bool(true);
 }
 
 
-double LogicInterpreter::ex_Geometry_tracePolygon_walkPolygon(const int program_index)
+Engine::Value LogicInterpreter::ex_Geometry_tracePolygon_walkPolygon(const int program_index)
 {
     const auto& symbol_va_with_subscript_node = GetOrConvertPre80SymbolVariableArgumentsWithSubscriptNode(program_index);
     const bool trace_polgyon = ( symbol_va_with_subscript_node.function_code == FunctionCode::GEOMETRYFN_TRACE_POLYGON_CODE );
@@ -170,7 +170,7 @@ double LogicInterpreter::ex_Geometry_tracePolygon_walkPolygon(const int program_
                                                                                     symbol_va_with_subscript_node.subscript_compilation);
 
     if( logic_geometry == nullptr )
-        return 0;
+        return Engine::Value::Bool(false);
 
     std::unique_ptr<Geometry::Polygon> captured_polygon;
 
@@ -196,35 +196,36 @@ double LogicInterpreter::ex_Geometry_tracePolygon_walkPolygon(const int program_
 
         logic_geometry->SetGeometry(std::move(*captured_polygon), std::move(binary_data_metadata));
 
-        return 1;
+        return Engine::Value::Bool(true);
     }
 
-    return 0;
+    return Engine::Value::Bool(false);
 }
 
 
-double LogicInterpreter::ex_Geometry_area_perimeter(const int program_index)
+Engine::Value LogicInterpreter::ex_Geometry_area_perimeter(const int program_index)
 {
     const auto& symbol_va_with_subscript_node = GetOrConvertPre80SymbolVariableArgumentsWithSubscriptNode(program_index);
     const LogicGeometry* const logic_geometry = GetFromSymbolOrEngineItem<LogicGeometry*>(symbol_va_with_subscript_node.symbol_index,
                                                                                           symbol_va_with_subscript_node.subscript_compilation);
 
     if( logic_geometry == nullptr || !EnsureGeometryExistsAndHasValidContent(*logic_geometry, nullptr) )
-        return DEFAULT;
+        return Engine::Value::Invalid<double>();
 
-    return ( symbol_va_with_subscript_node.function_code == FunctionCode::GEOMETRYFN_AREA_CODE ) ? logic_geometry->Area() :
-                                                                                                   logic_geometry->Perimeter();
+    return ( symbol_va_with_subscript_node.function_code == FunctionCode::GEOMETRYFN_AREA_CODE )
+        ? logic_geometry->Area()
+        : logic_geometry->Perimeter();
 }
 
 
-double LogicInterpreter::ex_Geometry_minLatitude_maxLatitude_minLongitude_maxLongitude(const int program_index)
+Engine::Value LogicInterpreter::ex_Geometry_minLatitude_maxLatitude_minLongitude_maxLongitude(const int program_index)
 {
     const auto& symbol_va_with_subscript_node = GetOrConvertPre80SymbolVariableArgumentsWithSubscriptNode(program_index);
     const LogicGeometry* const logic_geometry = GetFromSymbolOrEngineItem<LogicGeometry*>(symbol_va_with_subscript_node.symbol_index,
                                                                                           symbol_va_with_subscript_node.subscript_compilation);
 
     if( logic_geometry == nullptr || !EnsureGeometryExistsAndHasValidContent(*logic_geometry, nullptr) )
-        return DEFAULT;
+        return Engine::Value::Invalid<double>();
 
     const Geometry::BoundingBox& bounding_box = logic_geometry->GetBoundingBox();
 
@@ -235,33 +236,33 @@ double LogicInterpreter::ex_Geometry_minLatitude_maxLatitude_minLongitude_maxLon
 }
 
 
-double LogicInterpreter::ex_Geometry_getProperty(const int program_index)
+Engine::Value LogicInterpreter::ex_Geometry_getProperty(const int program_index)
 {
     const auto& symbol_va_with_subscript_node = GetOrConvertPre80SymbolVariableArgumentsWithSubscriptNode(program_index);
-    const SharableString property_name = EvaluateSharableString(symbol_va_with_subscript_node.arguments[0]);
+    const SharableString property_name = Evaluate<SharableString>(symbol_va_with_subscript_node.arguments[0]);
     const LogicGeometry* const logic_geometry = GetFromSymbolOrEngineItem<LogicGeometry*>(symbol_va_with_subscript_node.symbol_index,
                                                                                           symbol_va_with_subscript_node.subscript_compilation);
 
     if( logic_geometry == nullptr || !EnsureGeometryExistsAndHasValidContent(*logic_geometry, nullptr) )
-        return AssignStringNull();
+        return Engine::Value::Invalid<SharableString>();
 
-    return AssignString(logic_geometry->GetProperty(*property_name));
+    return logic_geometry->GetProperty(*property_name);
 }
 
 
-double LogicInterpreter::ex_Geometry_setProperty(const int program_index)
+Engine::Value LogicInterpreter::ex_Geometry_setProperty(const int program_index)
 {
     const auto& symbol_va_with_subscript_node = GetOrConvertPre80SymbolVariableArgumentsWithSubscriptNode(program_index);
-    const SharableString property_name = EvaluateSharableString(symbol_va_with_subscript_node.arguments[0]);
+    const SharableString property_name = Evaluate<SharableString>(symbol_va_with_subscript_node.arguments[0]);
     const std::variant<double, SharableString> property_value = EvaluateVariant(static_cast<DataType>(symbol_va_with_subscript_node.arguments[1]),
                                                                                 symbol_va_with_subscript_node.arguments[2]);
     LogicGeometry* const logic_geometry = GetFromSymbolOrEngineItem<LogicGeometry*>(symbol_va_with_subscript_node.symbol_index,
                                                                                     symbol_va_with_subscript_node.subscript_compilation);
 
     if( logic_geometry == nullptr || !EnsureGeometryExistsAndHasValidContent(*logic_geometry, "set property values") )
-        return 0;
+        return Engine::Value::Bool(false);
 
     logic_geometry->SetProperty(*property_name, property_value);
 
-    return 1;
+    return Engine::Value::Bool(true);
 }

@@ -394,9 +394,6 @@
     <ClCompile Include="IntOccurrences.cpp">
       <Filter>Source Files\ex2</Filter>
     </ClCompile>
-    <ClCompile Include="IntPath.cpp">
-      <Filter>Source Files\ex2</Filter>
-    </ClCompile>
     <ClCompile Include="IntPre77Report.cpp">
       <Filter>Source Files\ex2</Filter>
     </ClCompile>

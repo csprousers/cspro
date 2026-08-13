@@ -1,21 +1,22 @@
-﻿#include "StandardSystemIncludes.h"
+#include "StandardSystemIncludes.h"
 #include "Interpreter.h"
 #include <zEngineO/EngineDictionary.h>
 #include <zEngineO/Messages/EngineMessages.h>
 #include <zEngineO/Nodes/DataAccess.h>
 
 
-double CIntDriver::exDataAccessValidityCheck(const int program_index)
+Engine::Value CIntDriver::exDataAccessValidityCheck(const int program_index)
 {
     const auto& data_access_validity_check_node = GetNode<Nodes::DataAccessValidityCheck>(program_index);
 
     if constexpr(DebugMode())
     {
         const Symbol& check_symbol = NPT_Ref(data_access_validity_check_node.symbol_index);
-        const EngineDictionary* engine_dictionary = SymbolCalculator::GetEngineDictionary(check_symbol);
-        const Symbol* dictionary_based_symbol = ( engine_dictionary != nullptr )              ? engine_dictionary :
-                                                check_symbol.IsA(SymbolType::Pre80Dictionary) ? &check_symbol:
-                                                                                                nullptr;
+        const EngineDictionary* const engine_dictionary = SymbolCalculator::GetEngineDictionary(check_symbol);
+        const Symbol* const dictionary_based_symbol =
+            ( engine_dictionary != nullptr )              ? engine_dictionary :
+            check_symbol.IsA(SymbolType::Pre80Dictionary) ? &check_symbol:
+                                                            nullptr;
         ASSERT(dictionary_based_symbol != nullptr && ( dictionary_based_symbol->GetSubType() == SymbolSubType::Input ||
                                                        dictionary_based_symbol->GetSubType() == SymbolSubType::Output ));
     }
@@ -26,13 +27,10 @@ double CIntDriver::exDataAccessValidityCheck(const int program_index)
         issaerror(MessageType::Error, MGF::DataAccess_data_not_available_until_lower_level_94601, symbol.GetName().c_str());
 
         // return the invalid value
-        return AssignInvalidValue(data_access_validity_check_node.function_return_data_type);
+        return Engine::Value::Invalid(data_access_validity_check_node.function_return_data_type);
     }
 
-    else
-    {
-        return evalexpr(data_access_validity_check_node.program_index);
-    }
+    return Evaluate<Engine::Value>(data_access_validity_check_node.program_index);
 }
 
 

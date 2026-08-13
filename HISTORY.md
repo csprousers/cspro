@@ -9,6 +9,7 @@ Most CSPro development occurs on a [private repository](https://github.com/CSPro
 
 | Date | Branch | Pull Request Message |
 | --- | --- | --- |
+| 2026&#8209;08&#8209;13 | [engine-value](https://github.com/CSProDevelopment/cspro/commit/3173a70be978c420f2b156f524a5ef05fac793b7) | partially reworked the interpreter to return complex "engine values" rather than simply double values |
 | 2026&#8209;07&#8209;29 | [engine-to-dll+value-processor](https://github.com/CSProDevelopment/cspro/commit/8e120762c455c3ee401890753ebb25996f9dcbc8) | moved some engine functionality to zEngineO + refactored the value processors (and some other objects) to use non-wide strings |
 | 2026&#8209;07&#8209;14 | [android-cmake](https://github.com/CSProDevelopment/cspro/commit/652bb11960af3d73c326c8a2fbe5c1c4533c3a1c) | refactored the Android build to use CMake |
 | 2026&#8209;07&#8209;13 | [dictionary-analysis-dialog](https://github.com/CSProDevelopment/cspro/commit/627293268b40ea5506dca4de407f4e98bb8794bb) | reworked the dictionary analysis reports into a single dialog and added reports about linked value sets and special values |

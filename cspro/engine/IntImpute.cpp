@@ -909,7 +909,7 @@ double CIntDriver::eximpute_worker(const TIN& impute_node, TIO imputation)
 
     // update a (non-string literal) title
     if( impute_node.title_expression != -1 )
-        imputation_frequency.imputation->SetTitle(EvaluateString(impute_node.title_expression));
+        imputation_frequency.imputation->SetTitle(Evaluate<std::string>(impute_node.title_expression));
 
 
     // process the stat variables

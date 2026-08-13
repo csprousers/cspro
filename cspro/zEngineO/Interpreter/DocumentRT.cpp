@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "IncludesRT.h"
 #include "Audio.h"
 #include "Document.h"
@@ -7,10 +7,13 @@
 #include "Video.h"
 
 
-double LogicInterpreter::ex_Document_compute(const int program_index)
+Engine::Value LogicInterpreter::ex_Document_compute(const int program_index)
 {
     const auto& symbol_compute_with_subscript_node = GetOrConvertPre80SymbolComputeWithSubscriptNode(program_index);
-    const SymbolReference<Symbol*> lhs_symbol_reference = EvaluateSymbolReference<Symbol*>(symbol_compute_with_subscript_node.lhs_symbol_index, symbol_compute_with_subscript_node.lhs_subscript_compilation);
+    const SymbolReference<Symbol*> lhs_symbol_reference = EvaluateSymbolReference<Symbol*>(
+        symbol_compute_with_subscript_node.lhs_symbol_index,
+        symbol_compute_with_subscript_node.lhs_subscript_compilation
+    );
 
     LogicDocument* lhs_logic_document;
 
@@ -23,10 +26,10 @@ double LogicInterpreter::ex_Document_compute(const int program_index)
     // assigning a string
     if( symbol_compute_with_subscript_node.rhs_symbol_index == -1 )
     {
-        SharableString document_text = EvaluateSharableString(symbol_compute_with_subscript_node.rhs_subscript_compilation);
+        SharableString document_text = Evaluate<SharableString>(symbol_compute_with_subscript_node.rhs_subscript_compilation);
 
         if( !get_lhs_logic_document() )
-            return 0;
+            return Engine::Value::Undefined<double>();
 
         *lhs_logic_document = document_text.Release();
     }
@@ -34,10 +37,13 @@ double LogicInterpreter::ex_Document_compute(const int program_index)
     // assigning another symbol
     else
     {
-        Symbol* const rhs_symbol = GetFromSymbolOrEngineItem(symbol_compute_with_subscript_node.rhs_symbol_index, symbol_compute_with_subscript_node.rhs_subscript_compilation);
+        Symbol* const rhs_symbol = GetFromSymbolOrEngineItem(
+            symbol_compute_with_subscript_node.rhs_symbol_index,
+            symbol_compute_with_subscript_node.rhs_subscript_compilation
+        );
 
         if( rhs_symbol == nullptr || !get_lhs_logic_document() )
-            return 0;
+            return Engine::Value::Undefined<double>();
 
         try
         {
@@ -78,32 +84,38 @@ double LogicInterpreter::ex_Document_compute(const int program_index)
         }
     }
 
-    return 0;
+    return Engine::Value::Undefined<double>();
 }
 
 
-double LogicInterpreter::ex_Document_clear(const int program_index)
+Engine::Value LogicInterpreter::ex_Document_clear(const int program_index)
 {
     const auto& symbol_va_with_subscript_node = GetOrConvertPre80SymbolVariableArgumentsWithSubscriptNode(program_index);
-    LogicDocument* const logic_document = GetFromSymbolOrEngineItem<LogicDocument*>(symbol_va_with_subscript_node.symbol_index, symbol_va_with_subscript_node.subscript_compilation);
+    LogicDocument* const logic_document = GetFromSymbolOrEngineItem<LogicDocument*>(
+        symbol_va_with_subscript_node.symbol_index,
+        symbol_va_with_subscript_node.subscript_compilation
+    );
 
     if( logic_document == nullptr )
-        return 0;
+        return Engine::Value::Bool(false);
 
     logic_document->Reset();
 
-    return 1;
+    return Engine::Value::Bool(true);
 }
 
 
-double LogicInterpreter::ex_Document_load(const int program_index)
+Engine::Value LogicInterpreter::ex_Document_load(const int program_index)
 {
     const auto& symbol_va_with_subscript_node = GetOrConvertPre80SymbolVariableArgumentsWithSubscriptNode(program_index);
     const std::string file_path = EvaluatePath(symbol_va_with_subscript_node.arguments[0]);
-    LogicDocument* const logic_document = GetFromSymbolOrEngineItem<LogicDocument*>(symbol_va_with_subscript_node.symbol_index, symbol_va_with_subscript_node.subscript_compilation);
+    LogicDocument* const logic_document = GetFromSymbolOrEngineItem<LogicDocument*>(
+        symbol_va_with_subscript_node.symbol_index,
+        symbol_va_with_subscript_node.subscript_compilation
+    );
 
     if( logic_document == nullptr )
-        return 0;
+        return Engine::Value::Bool(false);
 
     try
     {
@@ -113,26 +125,31 @@ double LogicInterpreter::ex_Document_load(const int program_index)
     catch( const CSProException& exception )
     {
         IssueMessage(MessageType::Error, MGF::Document_load_error_100341, file_path.c_str(), exception.what());
-        return 0;
+        return Engine::Value::Bool(false);
     }
 
-    return 1;
+    return Engine::Value::Bool(true);
 }
 
 
-double LogicInterpreter::ex_Document_save(const int program_index)
+Engine::Value LogicInterpreter::ex_Document_save(const int program_index)
 {
     const auto& symbol_va_with_subscript_node = GetOrConvertPre80SymbolVariableArgumentsWithSubscriptNode(program_index);
     const std::string file_path = EvaluatePath(symbol_va_with_subscript_node.arguments[0]);
-    LogicDocument* const logic_document = GetFromSymbolOrEngineItem<LogicDocument*>(symbol_va_with_subscript_node.symbol_index, symbol_va_with_subscript_node.subscript_compilation);
+    LogicDocument* const logic_document = GetFromSymbolOrEngineItem<LogicDocument*>(
+        symbol_va_with_subscript_node.symbol_index,
+        symbol_va_with_subscript_node.subscript_compilation
+    );
 
     if( logic_document == nullptr )
-        return DEFAULT;
+        return Engine::Value::Invalid<double>();
 
     if( !logic_document->HasContent() )
     {
-        IssueMessage(MessageType::Error, MGF::Document_no_document_for_action_100340, logic_document->GetName().c_str(), "save the document");
-        return DEFAULT;
+        IssueMessage(MessageType::Error, MGF::Document_no_document_for_action_100340,
+                     logic_document->GetName().c_str(), "save the document");
+
+        return Engine::Value::Invalid<double>();
     }
 
     try
@@ -143,35 +160,41 @@ double LogicInterpreter::ex_Document_save(const int program_index)
     catch( const CSProException& exception )
     {
         IssueMessage(MessageType::Error, MGF::Document_save_error_100342, file_path.c_str(), exception.what());
-        return 0;
+        return Engine::Value::Bool(false);
     }
 
-    return 1;
+    return Engine::Value::Bool(true);
 }
 
 
-double LogicInterpreter::ex_Document_view(const int program_index)
+Engine::Value LogicInterpreter::ex_Document_view(const int program_index)
 {
     const auto& symbol_va_with_subscript_node = GetOrConvertPre80SymbolVariableArgumentsWithSubscriptNode(program_index);
     LogicDocument* const logic_document = GetFromSymbolOrEngineItem<LogicDocument*>(symbol_va_with_subscript_node.symbol_index, symbol_va_with_subscript_node.subscript_compilation);
 
     if( logic_document == nullptr )
-        return DEFAULT;
+        return Engine::Value::Invalid<double>();
 
-    const std::unique_ptr<const ViewerOptions> viewer_options = m_engineData->MeetsCompiledLogicVersion(Serializer::Iteration_8_0_000_3) ? EvaluateViewerOptions(symbol_va_with_subscript_node.arguments[0]) :
-                                                                                                                                           nullptr;
+    const std::unique_ptr<const ViewerOptions> viewer_options =
+        m_engineData->MeetsCompiledLogicVersion(Serializer::Iteration_8_0_000_3)
+        ? EvaluateViewerOptions(symbol_va_with_subscript_node.arguments[0])
+        : nullptr;
 
     return ex_Document_view(*logic_document, viewer_options.get());
 }
 
 
-double LogicInterpreter::ex_Document_view(const LogicDocument& logic_document, const ViewerOptions* viewer_options)
+Engine::Value LogicInterpreter::ex_Document_view(const LogicDocument& logic_document, const ViewerOptions* viewer_options)
 {
     if( !logic_document.HasContent() )
     {
-        IssueMessage(MessageType::Error, MGF::Document_no_document_for_action_100340, logic_document.GetName().c_str(), "view the document");
-        return DEFAULT;
+        IssueMessage(MessageType::Error, MGF::Document_no_document_for_action_100340,
+                     logic_document.GetName().c_str(), "view the document");
+
+        return Engine::Value::Invalid<double>();
     }
 
-    return logic_document.View(viewer_options);
+    return Engine::Value::Bool(
+        logic_document.View(viewer_options)
+    );
 }

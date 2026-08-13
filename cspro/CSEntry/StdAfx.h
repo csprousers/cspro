@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <engine/StandardSystemIncludes.h>
 // X64_TODO #include <StandardIncludes/strict_errors.h>
@@ -20,5 +20,6 @@
 #include <zCaseTreeF/CaseTree.h>
 #include <zCaseTreeF/UWM.h>
 #include <zLogicO/SpecialFunction.h>
+#include <zEngineO/EngineValue.h>
 
 enum END_MODE { PARTIAL_SAVE = 1 , FINISH_CASE = 2 , DISCARD_CASE, CANCEL_MODE };

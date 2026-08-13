@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "IncludesRT.h"
 #include "LogicInterpreter.h"
 #include "Nodes/TextTemplate.h"
@@ -30,7 +30,7 @@ LogicInterpreter::~LogicInterpreter()
 
 bool LogicInterpreter::EvaluateConditional(const int program_index)
 {
-    return IsTrue(Evaluate(program_index));
+    return IsTrue(Evaluate<double>(program_index));
 }
 
 
@@ -57,7 +57,7 @@ std::variant<double, ST> LogicInterpreter::EvaluateVariant(const DataType value_
 {
     if( value_data_type == DataType::Numeric )
     {
-        return Evaluate(program_index);
+        return Evaluate<double>(program_index);
     }
 
     else
@@ -69,60 +69,3 @@ std::variant<double, ST> LogicInterpreter::EvaluateVariant(const DataType value_
 
 template ZENGINEO_API std::variant<double, SharableString> LogicInterpreter::EvaluateVariant(DataType value_data_type, int program_index);
 template ZENGINEO_API std::variant<double, std::string> LogicInterpreter::EvaluateVariant(DataType value_data_type, int program_index);
-
-
-
-// --------------------------------------------------------------------------
-// general assignment routines
-// --------------------------------------------------------------------------
-
-template<typename T>
-T LogicInterpreter::GetInvalidValue()
-{
-    if constexpr(std::is_same_v<T, double>)
-    {
-        return DEFAULT;
-    }
-
-    else if constexpr(std::is_same_v<T, SharableString>)
-    {
-        return SharableString();
-    }
-
-    else
-    {
-        static_assert_false();
-    }
-}
-
-template ZENGINEO_API double LogicInterpreter::GetInvalidValue();
-template ZENGINEO_API SharableString LogicInterpreter::GetInvalidValue();
-
-
-double LogicInterpreter::AssignInvalidValue(const DataType data_type)
-{
-    if( IsNumeric(data_type) )
-    {
-        return GetInvalidValue<double>();
-    }
-
-    else
-    {
-        ASSERT(IsString(data_type));
-        return AssignStringNull();
-    }
-}
-
-
-double LogicInterpreter::AssignVariantValue(std::variant<double, SharableString>&& value)
-{
-    return std::holds_alternative<double>(value) ? std::get<double>(value) :
-                                                   AssignString(std::move(std::get<SharableString>(value)));
-}
-
-
-double LogicInterpreter::AssignVariantValue(const std::variant<double, SharableString>& value)
-{
-    return std::holds_alternative<double>(value) ? std::get<double>(value) :
-                                                   AssignString(std::get<SharableString>(value));
-}

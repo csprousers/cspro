@@ -36,14 +36,14 @@ std::optional<size_t> LogicInterpreter::EvaluateListIndex(const int listvar_node
 }
 
 
-double LogicInterpreter::ex_List_var(const int program_index)
+Engine::Value LogicInterpreter::ex_List_var(const int program_index)
 {
     const LogicList* logic_list;
     const std::optional<size_t> index = EvaluateListIndex(program_index, const_cast<LogicList**>(&logic_list), false);
 
     if( !index.has_value() )
     {
-        return AssignInvalidValue(logic_list->GetDataType());
+        return Engine::Value::Invalid(logic_list->GetDataType());
     }
 
     else if( logic_list->IsNumeric() )
@@ -53,12 +53,12 @@ double LogicInterpreter::ex_List_var(const int program_index)
 
     else
     {
-        return AssignString(logic_list->GetValue<SharableString>(*index));
+        return logic_list->GetValue<SharableString>(*index);
     }
 }
 
 
-double LogicInterpreter::ex_List_compute(const int program_index)
+Engine::Value LogicInterpreter::ex_List_compute(const int program_index)
 {
     const auto& symbol_compute_node = GetNode<Nodes::SymbolCompute>(program_index);
 
@@ -67,7 +67,7 @@ double LogicInterpreter::ex_List_compute(const int program_index)
         LogicList& lhs_logic_list = GetSymbolLogicList(symbol_compute_node.lhs_symbol_index);
         const LogicList& rhs_logic_list = GetSymbolLogicList(symbol_compute_node.rhs_symbol_index);
 
-        EnsureListIsNotReadOnly(lhs_logic_list, DEFAULT);
+        EnsureListIsNotReadOnly(lhs_logic_list, Engine::Value::Invalid(lhs_logic_list.GetDataType()));
 
         // only do the assignment if they're not assigning a list to itself
         if( &lhs_logic_list != &rhs_logic_list )
@@ -75,13 +75,15 @@ double LogicInterpreter::ex_List_compute(const int program_index)
             lhs_logic_list.Reset();
             lhs_logic_list.InsertList(1, rhs_logic_list);
         }
+
+        return Engine::Value::Undefined(lhs_logic_list.GetDataType());
     }
 
     else if( symbol_compute_node.rhs_symbol_type == SymbolType::Variable )
     {
         LogicList& logic_list = GetSymbolLogicList(symbol_compute_node.lhs_symbol_index);
 
-        EnsureListIsNotReadOnly(logic_list, DEFAULT);
+        EnsureListIsNotReadOnly(logic_list, Engine::Value::Invalid(logic_list.GetDataType()));
 
         logic_list.Reset();
 
@@ -89,9 +91,11 @@ double LogicInterpreter::ex_List_compute(const int program_index)
 
         for( int i = 0; i < list_values.number_elements; ++i )
         {
-            logic_list.IsNumeric() ? logic_list.AddValue(Evaluate(list_values.elements[i])) :
-                                     logic_list.AddValue(EvaluateSharableString(list_values.elements[i]));
+            logic_list.IsNumeric() ? logic_list.AddValue(Evaluate<double>(list_values.elements[i])) :
+                                     logic_list.AddValue(Evaluate<SharableString>(list_values.elements[i]));
         }
+
+        return Engine::Value::Undefined(logic_list.GetDataType());
     }
 
     else
@@ -101,33 +105,24 @@ double LogicInterpreter::ex_List_compute(const int program_index)
         const std::optional<size_t> index = EvaluateListIndex(symbol_compute_node.lhs_symbol_index, &logic_list, true);
 
         if( !index.has_value() )
-        {
-            return DEFAULT;
-        }
+            return Engine::Value::Invalid(logic_list->GetDataType());
 
-        else if( logic_list->IsNumeric() )
-        {
-            double value = Evaluate(symbol_compute_node.rhs_symbol_index);
-            logic_list->SetValue(*index, value);
-            return value;
-        }
+        Engine::Value value = Evaluate<Engine::Value>(symbol_compute_node.rhs_symbol_index);
 
-        else
-        {
-            logic_list->SetValue(*index, EvaluateSharableString(symbol_compute_node.rhs_symbol_index));
-        }
+        logic_list->IsNumeric() ? logic_list->SetValue(*index, value.as<double>()) :
+                                  logic_list->SetValue(*index, value.as<SharableString>());
+
+        return value;
     }
-
-    return 0;
 }
 
 
-double LogicInterpreter::ex_List_add(const int program_index)
+Engine::Value LogicInterpreter::ex_List_add(const int program_index)
 {
     const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
     LogicList& logic_list = GetSymbolLogicList(symbol_va_node.symbol_index);
 
-    EnsureListIsNotReadOnly(logic_list, DEFAULT);
+    EnsureListIsNotReadOnly(logic_list, Engine::Value::Invalid<double>());
 
     // adding a list
     if( symbol_va_node.arguments[0] == 1 )
@@ -138,50 +133,50 @@ double LogicInterpreter::ex_List_add(const int program_index)
         if( &logic_list_to_add == &logic_list )
         {
             IssueMessage(MessageType::Error, MGF::List_cannot_assign_to_itself_963, logic_list.GetName().c_str());
-            return 0;
+            return Engine::Value::Integer(0);
         }
 
         logic_list.InsertList(logic_list.GetCount() + 1, logic_list_to_add);
 
-        return static_cast<double>(logic_list_to_add.GetCount());
+        return Engine::Value::Integer(logic_list_to_add.GetCount());
     }
 
     // adding an item
     else
     {
-        logic_list.IsNumeric() ? logic_list.AddValue(Evaluate(symbol_va_node.arguments[1])) :
-                                 logic_list.AddValue(EvaluateSharableString(symbol_va_node.arguments[1]));
+        logic_list.IsNumeric() ? logic_list.AddValue(Evaluate<double>(symbol_va_node.arguments[1])) :
+                                 logic_list.AddValue(Evaluate<SharableString>(symbol_va_node.arguments[1]));
 
-        return 1;
+        return Engine::Value::Integer(1);
     }
 }
 
 
-double LogicInterpreter::ex_List_clear(const int program_index)
+Engine::Value LogicInterpreter::ex_List_clear(const int program_index)
 {
     const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
     LogicList& logic_list = GetSymbolLogicList(symbol_va_node.symbol_index);
 
-    EnsureListIsNotReadOnly(logic_list, DEFAULT);
+    EnsureListIsNotReadOnly(logic_list, Engine::Value::Invalid<double>());
 
     logic_list.Reset();
 
-    return 1;
+    return Engine::Value::Bool(true);
 }
 
 
-double LogicInterpreter::ex_List_insert(const int program_index)
+Engine::Value LogicInterpreter::ex_List_insert(const int program_index)
 {
     const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
     LogicList& logic_list = GetSymbolLogicList(symbol_va_node.symbol_index);
     const size_t index = Evaluate<size_t>(symbol_va_node.arguments[0]);
 
-    EnsureListIsNotReadOnly(logic_list, DEFAULT);
+    EnsureListIsNotReadOnly(logic_list, Engine::Value::Invalid<double>());
 
     if( !logic_list.IsValidIndex(index) && index != ( logic_list.GetCount() + 1 ) )
     {
         IssueMessage(MessageType::Error, MGF::List_invalid_index_964, index, logic_list.GetName().c_str(), static_cast<int>(logic_list.GetCount()));
-        return 0;
+        return Engine::Value::Integer(0);
     }
 
     // inserting a list
@@ -193,72 +188,72 @@ double LogicInterpreter::ex_List_insert(const int program_index)
         if( &logic_list_to_insert == &logic_list )
         {
             IssueMessage(MessageType::Error, MGF::List_cannot_assign_to_itself_963, logic_list.GetName().c_str());
-            return 0;
+            return Engine::Value::Integer(0);
         }
 
         logic_list.InsertList(index, logic_list_to_insert);
 
-        return static_cast<double>(logic_list_to_insert.GetCount());
+        return Engine::Value::Integer(logic_list_to_insert.GetCount());
     }
 
     // inserting an item
     else
     {
-        logic_list.IsNumeric() ? logic_list.InsertValue(index, Evaluate(symbol_va_node.arguments[2])) :
-                                 logic_list.InsertValue(index, EvaluateSharableString(symbol_va_node.arguments[2]));
+        logic_list.IsNumeric() ? logic_list.InsertValue(index, Evaluate<double>(symbol_va_node.arguments[2])) :
+                                 logic_list.InsertValue(index, Evaluate<SharableString>(symbol_va_node.arguments[2]));
 
-        return 1;
+        return Engine::Value::Integer(1);
     }
 }
 
 
-double LogicInterpreter::ex_List_length(const int program_index)
+Engine::Value LogicInterpreter::ex_List_length(const int program_index)
 {
     const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
     const LogicList& logic_list = GetSymbolLogicList(symbol_va_node.symbol_index);
 
-    return static_cast<double>(logic_list.GetCount());
+    return Engine::Value::Integer(logic_list.GetCount());
 }
 
 
-double LogicInterpreter::ex_List_remove(const int program_index)
+Engine::Value LogicInterpreter::ex_List_remove(const int program_index)
 {
     const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
     LogicList& logic_list = GetSymbolLogicList(symbol_va_node.symbol_index);
     const size_t index = Evaluate<size_t>(symbol_va_node.arguments[0]);
 
-    EnsureListIsNotReadOnly(logic_list, DEFAULT);
+    EnsureListIsNotReadOnly(logic_list, Engine::Value::Invalid<double>());
 
     if( !logic_list.IsValidIndex(index) )
     {
         IssueMessage(MessageType::Error, MGF::List_invalid_index_964, index, logic_list.GetName().c_str(), static_cast<int>(logic_list.GetCount()));
-        return 0;
+        return Engine::Value::Bool(false);
     }
 
     logic_list.Remove(index);
 
-    return 1;
+    return Engine::Value::Bool(true);
 }
 
 
-double LogicInterpreter::ex_List_removeDuplicates(const int program_index)
+Engine::Value LogicInterpreter::ex_List_removeDuplicates(const int program_index)
 {
     const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
     LogicList& logic_list = GetSymbolLogicList(symbol_va_node.symbol_index);
 
-    EnsureListIsNotReadOnly(logic_list, DEFAULT);
+    EnsureListIsNotReadOnly(logic_list, Engine::Value::Invalid<double>());
 
-    return static_cast<double>(logic_list.RemoveDuplicates());
+    return Engine::Value::Integer(logic_list.RemoveDuplicates());
 }
 
 
-double LogicInterpreter::ex_List_removeIn(const int program_index)
+Engine::Value LogicInterpreter::ex_List_removeIn(const int program_index)
 {
     const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
     LogicList& logic_list = GetSymbolLogicList(symbol_va_node.symbol_index);
     const int in_node_expression = symbol_va_node.arguments[0];
 
-    EnsureListIsNotReadOnly(logic_list, DEFAULT);
+    EnsureListIsNotReadOnly(logic_list, Engine::Value::Invalid<double>());
 
     // to ensure that expressions don't get evaluated over and over, we will cache the values here
     std::map<int, std::variant<double, SharableString>> cached_values;
@@ -288,11 +283,11 @@ double LogicInterpreter::ex_List_removeIn(const int program_index)
         }
     }
 
-    return static_cast<double>(number_removed);
+    return Engine::Value::Integer(number_removed);
 }
 
 
-double LogicInterpreter::ex_List_seek(const int program_index)
+Engine::Value LogicInterpreter::ex_List_seek(const int program_index)
 {
     const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
     const LogicList& logic_list = GetSymbolLogicList(symbol_va_node.symbol_index);
@@ -307,7 +302,7 @@ double LogicInterpreter::ex_List_seek(const int program_index)
         const size_t index = std::visit([&](const auto& this_value) { return logic_list.IndexOf(this_value); }, value);
 
         if( nth == 1 || index == 0 )
-            return static_cast<double>(index);
+            return Engine::Value::Integer(index);
 
         starting_index = index + 1;
         --nth;
@@ -321,14 +316,14 @@ double LogicInterpreter::ex_List_seek(const int program_index)
                                                            ( std::get<SharableString>(value) == logic_list.GetValue<SharableString>(i) );
 
         if( value_equals && --nth == 0 )
-            return static_cast<double>(i);
+            return Engine::Value::Integer(i);
     }
 
-    return 0;
+    return Engine::Value::Integer(0);
 }
 
 
-double LogicInterpreter::ex_List_show(const int program_index)
+Engine::Value LogicInterpreter::ex_List_show(const int program_index)
 {
     if( !UseHtmlDialogs() )
         return ex_List_show_pre77(program_index);
@@ -339,7 +334,7 @@ double LogicInterpreter::ex_List_show(const int program_index)
     SelectDlg select_dlg(true, 1);
 
     if( symbol_va_node.arguments[0] != -1 )
-        select_dlg.SetTitle(EvaluateSharableString(symbol_va_node.arguments[0]));
+        select_dlg.SetTitle(Evaluate<SharableString>(symbol_va_node.arguments[0]));
 
     const size_t list_count = logic_list.GetCount();
 
@@ -355,12 +350,17 @@ double LogicInterpreter::ex_List_show(const int program_index)
             select_dlg.AddRow(logic_list.GetValue<SharableString>(i));
     }
 
-    SelectDlgHelper select_dlg_helper(GetEngineParadataDriver_INTERPRETER_DLL_TODO(), select_dlg, Paradata::OperatorSelectionEvent::Source::ListShow);
-    return static_cast<double>(select_dlg_helper.GetSingleSelection());
+    SelectDlgHelper select_dlg_helper(
+        GetEngineParadataDriver_INTERPRETER_DLL_TODO(),
+        select_dlg,
+        Paradata::OperatorSelectionEvent::Source::ListShow
+    );
+
+    return Engine::Value::Integer(select_dlg_helper.GetSingleSelection());
 }
 
 
-double LogicInterpreter::ex_List_show_pre77(const int program_index)
+Engine::Value LogicInterpreter::ex_List_show_pre77(const int program_index)
 {
     const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
     const LogicList& logic_list = GetSymbolLogicList(symbol_va_node.symbol_index);
@@ -381,19 +381,19 @@ double LogicInterpreter::ex_List_show_pre77(const int program_index)
     for( const std::vector<CString>* const d : data )
         delete d;
 
-    return selection;
+    return Engine::Value::Integer(selection);
 }
 
 
-double LogicInterpreter::ex_List_sort(const int program_index)
+Engine::Value LogicInterpreter::ex_List_sort(const int program_index)
 {
     const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
     LogicList& logic_list = GetSymbolLogicList(symbol_va_node.symbol_index);
     const bool ascending = ( symbol_va_node.arguments[0] == 0 );
 
-    EnsureListIsNotReadOnly(logic_list, DEFAULT);
+    EnsureListIsNotReadOnly(logic_list, Engine::Value::Invalid<double>());
 
     logic_list.Sort(ascending);
 
-    return 1;
+    return Engine::Value::Bool(true);
 }

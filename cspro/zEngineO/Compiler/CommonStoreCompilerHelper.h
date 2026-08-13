@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zEngineO/Compiler/CompilerHelper.h>
 #include <zUtilO/CommonStore.h>
@@ -45,7 +45,7 @@ std::optional<T> CommonStoreCompilerHelper::GetConfigValue(const std::string& sy
     // numeric
     if constexpr(std::is_same_v<T, double>)
     {
-        std::optional<double> numeric_value = StringToNumber<std::optional<double>>(UTF8_TODO::GetWide(*value));
+        std::optional<double> numeric_value = StringToNumber<std::optional<double>>(*value);
 
         if( numeric_value.has_value() )
             return *numeric_value;

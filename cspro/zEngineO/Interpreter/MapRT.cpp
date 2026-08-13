@@ -13,14 +13,14 @@
 #pragma warning(pop)
 
 
-double LogicInterpreter::ex_Map_show(const int program_index)
+Engine::Value LogicInterpreter::ex_Map_show(const int program_index)
 {
     const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
     LogicMap& logic_map = GetSymbolLogicMap(symbol_va_node.symbol_index);
     IMapUI* const map_ui = logic_map.GetMapUI();
 
     if( map_ui == nullptr )
-        return 0;
+        return Engine::Value::Bool(false);
 
     // if a base map has not been set, then set the default one
     if( !map_ui->IsBaseMapDefined() && m_engineData->pff != nullptr )
@@ -28,7 +28,7 @@ double LogicInterpreter::ex_Map_show(const int program_index)
 
     // show the map
     if( !map_ui->Show() )
-        return 0;
+        return Engine::Value::Bool(false);
 
     logic_map.SetIsShowing(true);
 
@@ -99,49 +99,53 @@ double LogicInterpreter::ex_Map_show(const int program_index)
         }
     }
 
-    return 1;
+    return Engine::Value::Bool(true);
 }
 
 
-double LogicInterpreter::ex_Map_hide(const int program_index)
+Engine::Value LogicInterpreter::ex_Map_hide(const int program_index)
 {
     const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
     LogicMap& logic_map = GetSymbolLogicMap(symbol_va_node.symbol_index);
     IMapUI* const map_ui = logic_map.GetMapUI();
 
     if( map_ui == nullptr )
-        return 0;
+        return Engine::Value::Bool(false);
 
     logic_map.SetIsShowing(false);
 
-    return map_ui->Hide();
+    return Engine::Value::Bool(
+        map_ui->Hide()
+    );
 }
 
 
-double LogicInterpreter::ex_Map_addMarker(const int program_index)
+Engine::Value LogicInterpreter::ex_Map_addMarker(const int program_index)
 {
     const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
     LogicMap& logic_map = GetSymbolLogicMap(symbol_va_node.symbol_index);
     IMapUI* const map_ui = logic_map.GetMapUI();
 
     if( map_ui == nullptr )
-        return 0;
+        return Engine::Value::Integer(0);
 
-    const double latitude = Evaluate(symbol_va_node.arguments[0]);
-    const double longitude = Evaluate(symbol_va_node.arguments[1]);
+    const double latitude = Evaluate<double>(symbol_va_node.arguments[0]);
+    const double longitude = Evaluate<double>(symbol_va_node.arguments[1]);
 
-    return map_ui->AddMarker(latitude, longitude);
+    return Engine::Value::Integer(
+        map_ui->AddMarker(latitude, longitude)
+    );
 }
 
 
-double LogicInterpreter::ex_Map_setMarkerImage(const int program_index)
+Engine::Value LogicInterpreter::ex_Map_setMarkerImage(const int program_index)
 {
     const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
     LogicMap& logic_map = GetSymbolLogicMap(symbol_va_node.symbol_index);
     IMapUI* const map_ui = logic_map.GetMapUI();
 
     if( map_ui == nullptr )
-        return 0;
+        return Engine::Value::Bool(false);
 
     const int marker_id = Evaluate<int>(symbol_va_node.arguments[0]);
 
@@ -152,30 +156,32 @@ double LogicInterpreter::ex_Map_setMarkerImage(const int program_index)
         !PortableFunctions::FileIsRegular(*image_url_or_file_path) )
     {
         IssueMessage(MessageType::Error, MGF::cannot_open_file_2001, image_url_or_file_path->c_str());
-        return 0;
+        return Engine::Value::Bool(false);
     }
 
-    return map_ui->SetMarkerImage(marker_id, *image_url_or_file_path);
+    return Engine::Value::Bool(
+        map_ui->SetMarkerImage(marker_id, *image_url_or_file_path)
+    );
 }
 
 
-double LogicInterpreter::ex_Map_setMarkerText(const int program_index)
+Engine::Value LogicInterpreter::ex_Map_setMarkerText(const int program_index)
 {
     const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
     LogicMap& logic_map = GetSymbolLogicMap(symbol_va_node.symbol_index);
     IMapUI* const map_ui = logic_map.GetMapUI();
 
     if( map_ui == nullptr )
-        return 0;
+        return Engine::Value::Bool(false);
 
     const int marker_id = Evaluate<int>(symbol_va_node.arguments[0]);
-    SharableString text = EvaluateSharableString(symbol_va_node.arguments[1]);
+    SharableString text = Evaluate<SharableString>(symbol_va_node.arguments[1]);
 
     auto evaluate_and_get_color = [&](const int argument_index, const int default_color)
     {
         if( symbol_va_node.arguments[argument_index] >= 0 )
         {
-            const SharableString color_string = EvaluateSharableString(symbol_va_node.arguments[argument_index]);
+            const SharableString color_string = Evaluate<SharableString>(symbol_va_node.arguments[argument_index]);
             const std::optional<PortableColor> portable_color = PortableColor::FromString(*color_string);
 
             if( portable_color.has_value() )
@@ -190,152 +196,168 @@ double LogicInterpreter::ex_Map_setMarkerText(const int program_index)
     const int background_color = evaluate_and_get_color(2, 0xFFFFFFFF); // default background color is white
     const int text_color = evaluate_and_get_color(3, 0xFF000000); // default text color is black
 
-    return map_ui->SetMarkerText(marker_id, std::move(text), background_color, text_color);
+    return Engine::Value::Bool(
+        map_ui->SetMarkerText(marker_id, std::move(text), background_color, text_color)
+    );
 }
 
 
-double LogicInterpreter::ex_Map_setMarkerOnClick_setMarkerOnClickInfo(const int program_index)
+Engine::Value LogicInterpreter::ex_Map_setMarkerOnClick_setMarkerOnClickInfo(const int program_index)
 {
     const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
     LogicMap& logic_map = GetSymbolLogicMap(symbol_va_node.symbol_index);
     IMapUI* const map_ui = logic_map.GetMapUI();
 
     if( map_ui == nullptr )
-        return 0;
+        return Engine::Value::Bool(false);
 
     const int marker_id = Evaluate<int>(symbol_va_node.arguments[0]);
 
     const int callback_index = logic_map.AddCallback(EvaluateArgumentsForCallbackUserFunction(symbol_va_node.arguments[1],
                                                                                               FunctionCode::MAPFN_SHOW_CODE));
 
-    return ( symbol_va_node.function_code == FunctionCode::MAPFN_SET_MARKER_ON_CLICK_CODE ) ? map_ui->SetMarkerOnClick(marker_id, callback_index) :
-                                                                                              map_ui->SetMarkerOnClickInfoWindow(marker_id, callback_index);
+    return Engine::Value::Bool(( symbol_va_node.function_code == FunctionCode::MAPFN_SET_MARKER_ON_CLICK_CODE )
+        ? map_ui->SetMarkerOnClick(marker_id, callback_index)
+        : map_ui->SetMarkerOnClickInfoWindow(marker_id, callback_index)
+    );
 }
 
 
-double LogicInterpreter::ex_Map_setMarkerDescription(const int program_index)
+Engine::Value LogicInterpreter::ex_Map_setMarkerDescription(const int program_index)
 {
     const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
     LogicMap& logic_map = GetSymbolLogicMap(symbol_va_node.symbol_index);
     IMapUI* const map_ui = logic_map.GetMapUI();
 
     if( map_ui == nullptr )
-        return 0;
+        return Engine::Value::Bool(false);
 
     const int marker_id = Evaluate<int>(symbol_va_node.arguments[0]);
-    SharableString description = EvaluateSharableString(symbol_va_node.arguments[1]);
+    SharableString description = Evaluate<SharableString>(symbol_va_node.arguments[1]);
 
-    return map_ui->SetMarkerDescription(marker_id, std::move(description));
+    return Engine::Value::Bool(
+        map_ui->SetMarkerDescription(marker_id, std::move(description))
+    );
 }
 
 
-double LogicInterpreter::ex_Map_setMarkerOnDrag(const int program_index)
+Engine::Value LogicInterpreter::ex_Map_setMarkerOnDrag(const int program_index)
 {
     const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
     LogicMap& logic_map = GetSymbolLogicMap(symbol_va_node.symbol_index);
     IMapUI* const map_ui = logic_map.GetMapUI();
 
     if( map_ui == nullptr )
-        return 0;
+        return Engine::Value::Bool(false);
 
     const int marker_id = Evaluate<int>(symbol_va_node.arguments[0]);
 
     const int callback_index = logic_map.AddCallback(EvaluateArgumentsForCallbackUserFunction(symbol_va_node.arguments[1],
                                                                                               FunctionCode::MAPFN_SHOW_CODE));
-    return map_ui->SetMarkerOnDrag(marker_id, callback_index);
+    return Engine::Value::Bool(
+        map_ui->SetMarkerOnDrag(marker_id, callback_index)
+    );
 }
 
 
-double LogicInterpreter::ex_Map_setMarkerLocation(const int program_index)
+Engine::Value LogicInterpreter::ex_Map_setMarkerLocation(const int program_index)
 {
     const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
     LogicMap& logic_map = GetSymbolLogicMap(symbol_va_node.symbol_index);
     IMapUI* const map_ui = logic_map.GetMapUI();
 
     if( map_ui == nullptr )
-        return 0;
+        return Engine::Value::Bool(false);
 
     const int marker_id = Evaluate<int>(symbol_va_node.arguments[0]);
-    const double latitude = Evaluate(symbol_va_node.arguments[1]);
-    const double longitude = Evaluate(symbol_va_node.arguments[2]);
+    const double latitude = Evaluate<double>(symbol_va_node.arguments[1]);
+    const double longitude = Evaluate<double>(symbol_va_node.arguments[2]);
 
-    return map_ui->SetMarkerLocation(marker_id, latitude, longitude);
+    return Engine::Value::Bool(
+        map_ui->SetMarkerLocation(marker_id, latitude, longitude)
+    );
 }
 
 
-double LogicInterpreter::ex_Map_getMarkerLatitude_getMarkerLongitude(const int program_index)
+Engine::Value LogicInterpreter::ex_Map_getMarkerLatitude_getMarkerLongitude(const int program_index)
 {
     const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
     LogicMap& logic_map = GetSymbolLogicMap(symbol_va_node.symbol_index);
     IMapUI* const map_ui = logic_map.GetMapUI();
 
     if( map_ui == nullptr )
-        return 0;
+        return Engine::Value::Bool(false);
 
     const int marker_id = Evaluate<int>(symbol_va_node.arguments[0]);
     const std::optional<std::tuple<double, double>> latitude_longitude = map_ui->GetMarkerLocation(marker_id);
 
-    return ( !latitude_longitude.has_value() )                                              ? DEFAULT :
+    return ( !latitude_longitude.has_value() )                                              ? Engine::Value::Invalid<double>() :
            ( symbol_va_node.function_code == FunctionCode::MAPFN_GET_MARKER_LATITUDE_CODE ) ? std::get<0>(*latitude_longitude):
                                                                                               std::get<1>(*latitude_longitude);
 }
 
 
-double LogicInterpreter::ex_Map_removeMarker(const int program_index)
+Engine::Value LogicInterpreter::ex_Map_removeMarker(const int program_index)
 {
     const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
     LogicMap& logic_map = GetSymbolLogicMap(symbol_va_node.symbol_index);
     IMapUI* const map_ui = logic_map.GetMapUI();
 
     if( map_ui == nullptr )
-        return 0;
+        return Engine::Value::Bool(false);
 
     const int marker_id = Evaluate<int>(symbol_va_node.arguments[0]);
 
-    return map_ui->RemoveMarker(marker_id);
+    return Engine::Value::Bool(
+        map_ui->RemoveMarker(marker_id)
+    );
 }
 
 
-double LogicInterpreter::ex_Map_showCurrentLocation(const int program_index)
+Engine::Value LogicInterpreter::ex_Map_showCurrentLocation(const int program_index)
 {
     const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
     LogicMap& logic_map = GetSymbolLogicMap(symbol_va_node.symbol_index);
     IMapUI* const map_ui = logic_map.GetMapUI();
 
     if( map_ui == nullptr )
-        return 0;
+        return Engine::Value::Bool(false);
 
     const bool show = EvaluateConditional(symbol_va_node.arguments[0]);
 
-    return map_ui->SetShowCurrentLocation(show);
+    return Engine::Value::Bool(
+        map_ui->SetShowCurrentLocation(show)
+    );
 }
 
 
-double LogicInterpreter::ex_Map_addTextButton(const int program_index)
+Engine::Value LogicInterpreter::ex_Map_addTextButton(const int program_index)
 {
     const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
     LogicMap& logic_map = GetSymbolLogicMap(symbol_va_node.symbol_index);
     IMapUI* const map_ui = logic_map.GetMapUI();
 
     if( map_ui == nullptr )
-        return 0;
+        return Engine::Value::Integer(0);
 
-    SharableString label = EvaluateSharableString(symbol_va_node.arguments[0]);
+    SharableString label = Evaluate<SharableString>(symbol_va_node.arguments[0]);
 
     const int callback_index = logic_map.AddCallback(EvaluateArgumentsForCallbackUserFunction(symbol_va_node.arguments[1],
                                                                                               FunctionCode::MAPFN_SHOW_CODE));
-    return map_ui->AddTextButton(std::move(label), callback_index);
+    return Engine::Value::Integer(
+        map_ui->AddTextButton(std::move(label), callback_index)
+    );
 }
 
 
-double LogicInterpreter::ex_Map_addImageButton(const int program_index)
+Engine::Value LogicInterpreter::ex_Map_addImageButton(const int program_index)
 {
     const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
     LogicMap& logic_map = GetSymbolLogicMap(symbol_va_node.symbol_index);
     IMapUI* const map_ui = logic_map.GetMapUI();
 
     if( map_ui == nullptr )
-        return 0;
+        return Engine::Value::Integer(0);
 
     const SharableString image_url_or_file_path = EvaluatePathOrUrl(symbol_va_node.arguments[0]);
 
@@ -344,27 +366,31 @@ double LogicInterpreter::ex_Map_addImageButton(const int program_index)
         !PortableFunctions::FileIsRegular(*image_url_or_file_path) )
     {
         IssueMessage(MessageType::Error, MGF::cannot_open_file_2001, image_url_or_file_path->c_str());
-        return 0;
+        return Engine::Value::Integer(0);
     }
 
     const int callback_index = logic_map.AddCallback(EvaluateArgumentsForCallbackUserFunction(symbol_va_node.arguments[1],
                                                                                               FunctionCode::MAPFN_SHOW_CODE));
-    return map_ui->AddImageButton(*image_url_or_file_path, callback_index);
+    return Engine::Value::Integer(
+        map_ui->AddImageButton(*image_url_or_file_path, callback_index)
+    );
 }
 
 
-double LogicInterpreter::ex_Map_removeButton(const int program_index)
+Engine::Value LogicInterpreter::ex_Map_removeButton(const int program_index)
 {
     const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
     LogicMap& logic_map = GetSymbolLogicMap(symbol_va_node.symbol_index);
     IMapUI* const map_ui = logic_map.GetMapUI();
 
     if( map_ui == nullptr )
-        return 0;
+        return Engine::Value::Bool(false);
 
     const int button_id = Evaluate<int>(symbol_va_node.arguments[0]);
 
-    return map_ui->RemoveButton(button_id);
+    return Engine::Value::Bool(
+        map_ui->RemoveButton(button_id)
+    );
 }
 
 
@@ -396,7 +422,7 @@ bool LogicInterpreter::SetBaseMap(LogicMap& logic_map, T base_map_selection)
 }
 
 
-double LogicInterpreter::ex_Map_setBaseMap(const int program_index)
+Engine::Value LogicInterpreter::ex_Map_setBaseMap(const int program_index)
 {
     const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
     LogicMap& logic_map = GetSymbolLogicMap(symbol_va_node.symbol_index);
@@ -405,38 +431,45 @@ double LogicInterpreter::ex_Map_setBaseMap(const int program_index)
 
     if( base_map_type > 0 )
     {
-        return SetBaseMap(logic_map, BaseMapSelection(static_cast<BaseMap>(base_map_type)));
+        return Engine::Value::Bool(
+            SetBaseMap(logic_map, BaseMapSelection(static_cast<BaseMap>(base_map_type)))
+        );
     }
 
     else
     {
-        const SharableString base_map_text = EvaluateSharableString(custom_source_expression);
-        return SetBaseMap(logic_map, FromString(*base_map_text, GetCurrentApplicationFilePath()));
+        const SharableString base_map_text = Evaluate<SharableString>(custom_source_expression);
+
+        return Engine::Value::Bool(
+            SetBaseMap(logic_map, FromString(*base_map_text, GetCurrentApplicationFilePath()))
+        );
     }
 }
 
 
-double LogicInterpreter::ex_Map_setTitle(const int program_index)
+Engine::Value LogicInterpreter::ex_Map_setTitle(const int program_index)
 {
     const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
     LogicMap& logic_map = GetSymbolLogicMap(symbol_va_node.symbol_index);
     IMapUI* const map_ui = logic_map.GetMapUI();
 
     if( map_ui == nullptr )
-        return 0;
+        return Engine::Value::Bool(false);
 
-    return map_ui->SetTitle(EvaluateSharableString(symbol_va_node.arguments[0]));
+    return Engine::Value::Bool(
+        map_ui->SetTitle(Evaluate<SharableString>(symbol_va_node.arguments[0]))
+    );
 }
 
 
-double LogicInterpreter::ex_Map_zoomTo(const int program_index)
+Engine::Value LogicInterpreter::ex_Map_zoomTo(const int program_index)
 {
     const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
     LogicMap& logic_map = GetSymbolLogicMap(symbol_va_node.symbol_index);
     IMapUI* const map_ui = logic_map.GetMapUI();
 
     if( map_ui == nullptr )
-        return 0;
+        return Engine::Value::Bool(false);
 
     // geometry / [padding]
     if( symbol_va_node.arguments[0] == -1 )
@@ -451,45 +484,51 @@ double LogicInterpreter::ex_Map_zoomTo(const int program_index)
         if( logic_geometry == nullptr ||
             !EnsureGeometryExistsAndHasValidContent(*logic_geometry, "use it as the bounds for a map") )
         {
-            return 0;
+            return Engine::Value::Bool(false);
         }
 
         const Geometry::BoundingBox& bounding_box = logic_geometry->GetBoundingBox();
 
-        return map_ui->ZoomTo(
-            bounding_box.min.y,
-            bounding_box.min.x,
-            bounding_box.max.y,
-            bounding_box.max.x,
-            EvaluateOptional(symbol_va_node.arguments[3], 0) / 100
+        return Engine::Value::Bool(
+            map_ui->ZoomTo(
+                bounding_box.min.y,
+                bounding_box.min.x,
+                bounding_box.max.y,
+                bounding_box.max.x,
+                EvaluateOptional<double>(symbol_va_node.arguments[3], 0) / 100
+            )
         );
     }
 
     // latitude / longitude / [zoom]
     else if( symbol_va_node.arguments[3] == -1 )
     {
-        return map_ui->ZoomTo(
-            Evaluate(symbol_va_node.arguments[0]),
-            Evaluate(symbol_va_node.arguments[1]),
-            EvaluateOptional(symbol_va_node.arguments[2], -1)
+        return Engine::Value::Bool(
+            map_ui->ZoomTo(
+                Evaluate<double>(symbol_va_node.arguments[0]),
+                Evaluate<double>(symbol_va_node.arguments[1]),
+                EvaluateOptional<double>(symbol_va_node.arguments[2], -1)
+            )
         );
     }
 
     // min latitude / min longitude / max latitude / max longitude / [padding]
     else
     {
-        return map_ui->ZoomTo(
-            Evaluate(symbol_va_node.arguments[0]),
-            Evaluate(symbol_va_node.arguments[1]),
-            Evaluate(symbol_va_node.arguments[2]),
-            Evaluate(symbol_va_node.arguments[3]),
-            EvaluateOptional(symbol_va_node.arguments[4], 0) / 100
+        return Engine::Value::Bool(
+            map_ui->ZoomTo(
+                Evaluate<double>(symbol_va_node.arguments[0]),
+                Evaluate<double>(symbol_va_node.arguments[1]),
+                Evaluate<double>(symbol_va_node.arguments[2]),
+                Evaluate<double>(symbol_va_node.arguments[3]),
+                EvaluateOptional<double>(symbol_va_node.arguments[4], 0) / 100
+            )
         );
     }
 }
 
 
-double LogicInterpreter::ex_Map_setOnClick(const int program_index)
+Engine::Value LogicInterpreter::ex_Map_setOnClick(const int program_index)
 {
     const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
     LogicMap& logic_map = GetSymbolLogicMap(symbol_va_node.symbol_index);
@@ -498,18 +537,18 @@ double LogicInterpreter::ex_Map_setOnClick(const int program_index)
                                                                                               FunctionCode::MAPFN_SHOW_CODE));
     logic_map.SetOnClickCallbackId(callback_index);
 
-    return 1;
+    return Engine::Value::Bool(true);
 }
 
 
-double LogicInterpreter::ex_Map_clear_clearButtons_clearGeometry_clearMarkers(const int program_index)
+Engine::Value LogicInterpreter::ex_Map_clear_clearButtons_clearGeometry_clearMarkers(const int program_index)
 {
     const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
     LogicMap& logic_map = GetSymbolLogicMap(symbol_va_node.symbol_index);
     IMapUI* const map_ui = logic_map.GetMapUI();
 
     if( map_ui == nullptr )
-        return 0;
+        return Engine::Value::Bool(false);
 
     switch( symbol_va_node.function_code )
     {
@@ -531,62 +570,67 @@ double LogicInterpreter::ex_Map_clear_clearButtons_clearGeometry_clearMarkers(co
             break;
     }
 
-    return 1;
+    return Engine::Value::Bool(true);
 }
 
 
-double LogicInterpreter::ex_Map_getLastClickLatitude_getLastClickLongitude(const int program_index)
+Engine::Value LogicInterpreter::ex_Map_getLastClickLatitude_getLastClickLongitude(const int program_index)
 {
     const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
     const LogicMap& logic_map = GetSymbolLogicMap(symbol_va_node.symbol_index);
 
-    return ( symbol_va_node.function_code == FunctionCode::MAPFN_GET_LAST_CLICK_LATITUDE_CODE ) ? logic_map.GetLastClickLatitude() :
-                                                                                                  logic_map.GetLastClickLongitude();
+    return ( symbol_va_node.function_code == FunctionCode::MAPFN_GET_LAST_CLICK_LATITUDE_CODE )
+        ? logic_map.GetLastClickLatitude()
+        : logic_map.GetLastClickLongitude();
 }
 
 
-double LogicInterpreter::ex_Map_addGeometry(const int program_index)
+Engine::Value LogicInterpreter::ex_Map_addGeometry(const int program_index)
 {
     const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
     LogicMap& logic_map = GetSymbolLogicMap(symbol_va_node.symbol_index);
     IMapUI* const map_ui = logic_map.GetMapUI();
 
     if( map_ui == nullptr )
-        return 0;
+        return Engine::Value::Integer(0);
 
     const LogicGeometry* const logic_geometry = GetFromSymbolOrEngineItem<LogicGeometry*>(symbol_va_node.arguments[0],
                                                                                           m_engineData->MeetsCompiledLogicVersion(Serializer::Iteration_8_0_000_1) ? symbol_va_node.arguments[1] : -1);
 
     if( logic_geometry == nullptr || !EnsureGeometryExistsAndHasValidContent(*logic_geometry, "add it to a map") )
-        return 0;
+        return Engine::Value::Integer(0);
 
-    return map_ui->AddGeometry(logic_geometry->GetSharedFeatures(), logic_geometry->GetSharedBoundingBox());
+    return Engine::Value::Integer(
+        map_ui->AddGeometry(logic_geometry->GetSharedFeatures(), logic_geometry->GetSharedBoundingBox())
+    );
 }
 
 
-double LogicInterpreter::ex_Map_removeGeometry(const int program_index)
+Engine::Value LogicInterpreter::ex_Map_removeGeometry(const int program_index)
 {
     const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
     LogicMap& logic_map = GetSymbolLogicMap(symbol_va_node.symbol_index);
     IMapUI* const map_ui = logic_map.GetMapUI();
 
     if( map_ui == nullptr )
-        return 0;
+        return Engine::Value::Bool(false);
 
     const int geometry_id = Evaluate<int>(symbol_va_node.arguments[0]);
 
-    return map_ui->RemoveGeometry(geometry_id);
+    return Engine::Value::Bool(
+        map_ui->RemoveGeometry(geometry_id)
+    );
 }
 
 
-double LogicInterpreter::ex_Map_saveSnapshot(const int program_index)
+Engine::Value LogicInterpreter::ex_Map_saveSnapshot(const int program_index)
 {
     const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
     LogicMap& logic_map = GetSymbolLogicMap(symbol_va_node.symbol_index);
     IMapUI* const map_ui = logic_map.GetMapUI();
 
     if( map_ui == nullptr )
-        return 0;
+        return Engine::Value::Bool(false);
 
     try
     {
@@ -595,12 +639,14 @@ double LogicInterpreter::ex_Map_saveSnapshot(const int program_index)
 
         const std::string image_file_path = EvaluatePath(symbol_va_node.arguments[0]);
 
-        return map_ui->SaveSnapshot(image_file_path);
+        return Engine::Value::Bool(
+            map_ui->SaveSnapshot(image_file_path)
+        );
     }
 
     catch( const CSProException& exception )
     {
         IssueMessage(MessageType::Error, MGF::Map_snapshot_error_94206, logic_map.GetName().c_str(), exception.what());
-        return 0;
+        return Engine::Value::Bool(false);
     }
 }

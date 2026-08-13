@@ -33,7 +33,7 @@ namespace
 
         else if( expression < 0 )
         {
-            const std::string direction_string = interpreter.EvaluateString(-1 * expression);
+            const std::string direction_string = interpreter.Evaluate<std::string>(-1 * expression);
 
             return SO::EqualsNoCase(direction_string, ToString(SyncDirection::Put))  ? std::make_optional(SyncDirection::Put) :
                    SO::EqualsNoCase(direction_string, ToString(SyncDirection::Get))  ? std::make_optional(SyncDirection::Get) :
@@ -94,11 +94,15 @@ namespace
             if( !m_interpreter.HasSpecialFunction(SpecialFunction::Code::OnSyncMessage) )
                 return std::nullopt;
 
-            const double message_response = m_interpreter.ExecSpecialFunction(m_fieldSymbolIndex,
-                                                                              SpecialFunction::Code::OnSyncMessage,
-                                                                              { sync_message.GetName(), sync_message.GetValueForOnSyncMessage() });
+            Engine::Value message_response = m_interpreter.ExecSpecialFunction(
+                m_fieldSymbolIndex,
+                SpecialFunction::Code::OnSyncMessage,
+                { sync_message.GetName(), sync_message.GetValueForOnSyncMessage() }
+            );
 
-            return m_interpreter.GetWorkingSharableString(static_cast<size_t>(message_response));
+            ASSERT(message_response.is<SharableString>());
+
+            return std::move(message_response).as<SharableString>();
         }
 
 
@@ -153,7 +157,7 @@ double CIntDriver::ex_syncconnect(const int program_index)
     // process sync connection strings
     if( connection_type == 0 )
     {
-        sync_connection_string.emplace(EvaluateSharableString(va_node.arguments[1]).GetString());
+        sync_connection_string.emplace(Evaluate<SharableString>(va_node.arguments[1]).GetString());
         sync_connection_string->AdjustRelativePath(GetCurrentWorkingDirectory());
     }
 
@@ -177,7 +181,7 @@ double CIntDriver::ex_syncconnect(const int program_index)
         {
             // add the URL and the type (in case the URL doesn't start properly)
             // e.g., in CSPro 8.0 you could say: syncconnect(FTP, "localhost")
-            std::string sync_connection_string_text = EvaluateString(va_node.arguments[1]);
+            std::string sync_connection_string_text = Evaluate<std::string>(va_node.arguments[1]);
             SO::MakeTrim(sync_connection_string_text);
 
             // add the type
@@ -190,8 +194,8 @@ double CIntDriver::ex_syncconnect(const int program_index)
             // add the username and password
             if( va_node.arguments[2] >= 0 )
             {
-                sync_connection_string->SetUsernamePasswordProperties(EvaluateString(va_node.arguments[2]),
-                                                                      EvaluateString(va_node.arguments[3]));
+                sync_connection_string->SetUsernamePasswordProperties(Evaluate<std::string>(va_node.arguments[2]),
+                                                                      Evaluate<std::string>(va_node.arguments[3]));
             }
         };
 
@@ -212,7 +216,7 @@ double CIntDriver::ex_syncconnect(const int program_index)
                 // add the server device name as a path
                 if( va_node.arguments[1] != -1 )
                 {
-                    std::string service_device_name = EvaluateString(va_node.arguments[1]);
+                    std::string service_device_name = Evaluate<std::string>(va_node.arguments[1]);
                     SO::MakeTrim(service_device_name);
                     Path::MakeCombineForwardSlash(sync_connection_string_text, Encoders::ToUri(std::move(service_device_name)));
                 }
@@ -246,7 +250,7 @@ double CIntDriver::ex_syncconnect(const int program_index)
             // LocalFiles
             case 6:
             {
-                std::string directory_path = EvaluateString(va_node.arguments[1]);
+                std::string directory_path = Evaluate<std::string>(va_node.arguments[1]);
 
                 if( SO::StartsWith(directory_path, "file:/") )
                 {
@@ -385,7 +389,7 @@ double CIntDriver::ex_syncfile(const int program_index)
         }
     };
 
-    std::string from_path = EvaluateString(va_node.arguments[1]);
+    std::string from_path = Evaluate<std::string>(va_node.arguments[1]);
     std::string to_path = EvaluateOptionalOrConstruct<std::string>(va_node.arguments[2]);
 
     if( *sync_direction == SyncDirection::Get )
@@ -476,21 +480,21 @@ double CIntDriver::ex_syncapp(int /*program_index*/)
 }
 
 
-double CIntDriver::ex_syncmessage(const int program_index)
+Engine::Value CIntDriver::ex_syncmessage(const int program_index)
 {
     const auto& va_node = GetNode<Nodes::VariableArguments>(program_index);
     ASSERT(va_node.arguments[0] == -1); // the type of message, for now, is ignored
 
-    const SyncMessage sync_message(EvaluateSharableString(va_node.arguments[1]),
+    const SyncMessage sync_message(Evaluate<SharableString>(va_node.arguments[1]),
                                    EvaluateNullableSharableString(va_node.arguments[2]));
 
     const std::optional<JsonNode> response_json_node = GetSyncClient().SendSyncMessage(sync_message);
 
     if( !response_json_node.has_value() )
-        return AssignStringNull();
+        return Engine::Value::Undefined<SharableString>();
 
-    return AssignString(response_json_node->IsString() ? response_json_node->Get<SharableString>() :
-                                                         response_json_node->GetNodeAsSharableString());
+    return response_json_node->IsString() ? response_json_node->Get<SharableString>() :
+                                            response_json_node->GetNodeAsSharableString();
 }
 
 
@@ -571,7 +575,7 @@ double CIntDriver::ex_synctime(const int program_index)
 }
 
 
-double CIntDriver::ex_getbluetoothname(int /*program_index*/)
+Engine::Value CIntDriver::ex_getbluetoothname(int /*program_index*/)
 {
     if( m_syncObjects == nullptr )
         GetSyncClient();
@@ -580,15 +584,17 @@ double CIntDriver::ex_getbluetoothname(int /*program_index*/)
 
     const std::shared_ptr<IBluetoothAdapter> bluetooth_adapter = m_syncObjects->login_accessor->GetBluetoothAdapter();
 
-    return ( bluetooth_adapter != nullptr ) ? AssignString(bluetooth_adapter->GetName()) :
-                                              AssignStringNull();
+    if( bluetooth_adapter == nullptr )
+        return Engine::Value::Undefined<SharableString>();
+
+    return bluetooth_adapter->GetName();    
 }
 
 
-double CIntDriver::ex_setbluetoothname(const int program_index)
+Engine::Value CIntDriver::ex_setbluetoothname(const int program_index)
 {
     const auto& fnn_node = GetNode<FNN_NODE>(program_index);
-    const SharableString bluetooth_name = EvaluateSharableString(fnn_node.fn_expr[0]);
+    const SharableString bluetooth_name = Evaluate<SharableString>(fnn_node.fn_expr[0]);
 
     if( m_syncObjects == nullptr )
         GetSyncClient();
@@ -600,7 +606,7 @@ double CIntDriver::ex_setbluetoothname(const int program_index)
     if( bluetooth_adapter == nullptr )
     {
         issaerror(MessageType::Error, 100146);
-        return 0;
+        return Engine::Value::Bool(false);
     }
 
     try
@@ -609,12 +615,12 @@ double CIntDriver::ex_setbluetoothname(const int program_index)
         if( bluetooth_adapter->GetName() != *bluetooth_name )
             bluetooth_adapter->SetName(*bluetooth_name);
 
-        return 1;
+        return Engine::Value::Bool(true);
     }
 
     catch( const CSProException& exception )
     {
         issaerror(MessageType::Error, 100174, exception.what());
-        return 0;
+        return Engine::Value::Bool(false);
     }
 }

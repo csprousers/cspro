@@ -25,14 +25,14 @@ std::vector<size_t> LogicInterpreter::EvaluateArrayIndex(const int arrayvar_node
 }
 
 
-double LogicInterpreter::ex_Array_var(const int program_index)
+Engine::Value LogicInterpreter::ex_Array_var(const int program_index)
 {
     const LogicArray* logic_array;
     const std::vector<size_t> indices = EvaluateArrayIndex(program_index, const_cast<LogicArray**>(&logic_array));
 
     if( indices.empty() )
     {
-        return AssignInvalidValue(logic_array->GetDataType());
+        return Engine::Value::Invalid(logic_array->GetDataType());
     }
 
     else if( logic_array->IsNumeric() )
@@ -42,12 +42,12 @@ double LogicInterpreter::ex_Array_var(const int program_index)
 
     else
     {
-        return AssignString(logic_array->GetValue<SharableString>(indices));
+        return logic_array->GetValue<SharableString>(indices);
     }
 }
 
 
-double LogicInterpreter::ex_Array_compute(const int program_index)
+Engine::Value LogicInterpreter::ex_Array_compute(const int program_index)
 {
     const auto& symbol_compute_expression_node = GetNode<Nodes::SymbolComputeExpression>(program_index);
     const auto& symbol_value_node = GetNode<Nodes::SymbolValue>(symbol_compute_expression_node.symbol_value_node_index);
@@ -57,9 +57,9 @@ double LogicInterpreter::ex_Array_compute(const int program_index)
     ASSERT(logic_array == &NPT_Ref(symbol_value_node.symbol_index));
 
     if( indices.empty() )
-        return DEFAULT;
+        return Engine::Value::Invalid<double>();
 
-    const double value = Evaluate(symbol_compute_expression_node.rhs_expression);
+    const double value = Evaluate<double>(symbol_compute_expression_node.rhs_expression);
 
     logic_array->SetValue(indices, value);
 
@@ -67,18 +67,18 @@ double LogicInterpreter::ex_Array_compute(const int program_index)
 }
 
 
-double LogicInterpreter::ex_Array_clear(const int program_index)
+Engine::Value LogicInterpreter::ex_Array_clear(const int program_index)
 {
     const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
     LogicArray& logic_array = GetSymbolLogicArray(symbol_va_node.symbol_index);
 
     logic_array.Reset();
 
-    return 1;
+    return Engine::Value::Bool(true);
 }
 
 
-double LogicInterpreter::ex_Array_length(const int program_index)
+Engine::Value LogicInterpreter::ex_Array_length(const int program_index)
 {
     const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
 
@@ -87,14 +87,16 @@ double LogicInterpreter::ex_Array_length(const int program_index)
 }
 
 
-double LogicInterpreter::ex_Array_length(const LogicArray& logic_array, const size_t dimension)
+Engine::Value LogicInterpreter::ex_Array_length(const LogicArray& logic_array, const size_t dimension)
 {
     if( dimension < 1 || dimension > logic_array.GetNumberDimensions() )
     {
         IssueMessage(MessageType::Error, MGF::Array_invalid_dimension_19041, logic_array.GetName().c_str(), static_cast<int>(dimension));
-        return DEFAULT;
+        return Engine::Value::Invalid<double>();
     }
 
     // don't count the 0th element in the dimension size
-    return static_cast<double>(logic_array.GetDimension(dimension - 1) - 1);
+    return Engine::Value::Integer(
+        logic_array.GetDimension(dimension - 1) - 1
+    );
 }

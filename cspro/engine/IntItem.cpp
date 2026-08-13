@@ -1,4 +1,4 @@
-﻿#include "StandardSystemIncludes.h"
+#include "StandardSystemIncludes.h"
 #include "Interpreter.h"
 #include "BinaryStorageFor80.h"
 #include <zEngineO/Audio.h>
@@ -228,7 +228,7 @@ SymbolT CIntDriver::GetFromSymbolOrEngineItemWorker(const SymbolReference<Symbol
     // or one must be created
     else
     {
-        *value_address = pDicT->m_binaryStorageFor80.size();
+        *value_address = static_cast<double>(pDicT->m_binaryStorageFor80.size());
 
         binary_storage = pDicT->m_binaryStorageFor80.emplace_back(std::make_shared<BinaryStorageFor80>(BinaryStorageFor80 { BinaryDataAccessor(), nullptr })).get();
     }
@@ -385,7 +385,7 @@ std::tuple<EngineItemAccessor*, bool> CIntDriver::GetEngineItemAccessorAndVisual
 }
 
 
-double CIntDriver::exItem_getValueLabel(int program_index)
+Engine::Value CIntDriver::exItem_getValueLabel(const int program_index)
 {
     const auto& symbol_va_with_subscript_node = GetNode<Nodes::SymbolVariableArgumentsWithSubscript>(program_index);
     const std::optional<std::string> language = EvaluateOptional<std::string>(symbol_va_with_subscript_node.arguments[1]);
@@ -394,17 +394,17 @@ double CIntDriver::exItem_getValueLabel(int program_index)
     std::tie(engine_item_accessor, visual_value) = GetEngineItemAccessorAndVisualValueFlag(symbol_va_with_subscript_node, 0);
 
     if( engine_item_accessor == nullptr )
-        return AssignStringNull();
+        return Engine::Value::Invalid<SharableString>();
 
-    if( visual_value ) // BINARY_TYPES_TO_ENGINE_TODO + ENGINECR_TODO if on a form and skipped, return AssignStringNull
+    if( visual_value ) // BINARY_TYPES_TO_ENGINE_TODO + ENGINECR_TODO if on a form and skipped, return Undefined or Invalid
     {
     }
 
-    return AssignString(engine_item_accessor->GetValueLabel(language));
+    return engine_item_accessor->GetValueLabel(language);
 }
 
 
-double CIntDriver::exItem_hasValue_isValid(int program_index)
+Engine::Value CIntDriver::exItem_hasValue_isValid(const int program_index)
 {
     const auto& symbol_va_with_subscript_node = GetNode<Nodes::SymbolVariableArgumentsWithSubscript>(program_index);
     EngineItemAccessor* engine_item_accessor;
@@ -412,20 +412,20 @@ double CIntDriver::exItem_hasValue_isValid(int program_index)
     std::tie(engine_item_accessor, visual_value) = GetEngineItemAccessorAndVisualValueFlag(symbol_va_with_subscript_node, 0);
 
     if( engine_item_accessor == nullptr )
-        return DEFAULT;
+        return Engine::Value::Invalid<double>();
 
-    if( visual_value ) // BINARY_TYPES_TO_ENGINE_TODO + ENGINECR_TODO if on a form and skipped, return 0
+    if( visual_value ) // BINARY_TYPES_TO_ENGINE_TODO + ENGINECR_TODO if on a form and skipped, return false
     {
     }
 
     if( symbol_va_with_subscript_node.function_code == FunctionCode::ITEMFN_HASVALUE_CODE )
     {
-        return engine_item_accessor->HasValue();
+        return Engine::Value::Bool(engine_item_accessor->HasValue());
     }
 
     else
     {
         ASSERT(symbol_va_with_subscript_node.function_code == FunctionCode::ITEMFN_ISVALID_CODE);
-        return engine_item_accessor->IsValid();
+        return Engine::Value::Bool(engine_item_accessor->IsValid());
     }
 }

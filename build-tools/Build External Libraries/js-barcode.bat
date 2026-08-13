@@ -6,7 +6,7 @@ mkdir temp\jsbarcode
 cd temp\jsbarcode
 
 
-rem ... find the latest version number here: https://github.com/lindell/JsBarcode//releases/latest/
+rem ... find the latest version number here: https://github.com/lindell/JsBarcode/releases/latest/
 set jsb_version=3.12.3
 
 

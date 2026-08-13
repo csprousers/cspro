@@ -20,6 +20,7 @@ Some long-running development projects are identifiable by a TODO noted in comme
 | DD_STD_REFACTOR_TODO | Refactoring dictionary objects to use the C++ Standard Library.
 | EIA_TODO_REMOVE | Temporary code to allow EngineItem-style access to a VART.
 | ENGINECR_TODO | Introducing Case and DataSource logic objects.
+| EV_TODO | Refactoring the interpreter to return complex engine values rather than simply doubles.
 | FLOW_TODO | Refactoring related to flow.
 | FORM_TODO | Refactoring the form file.
 | FTP_TODO | Adding FTP functionality using the Action Invoker.

@@ -2,6 +2,7 @@
 
 #include <zLogicO/SymbolType.h>
 #include <zLogicO/TokenCode.h>
+#include <engine/VarT.h>
 
 
 constexpr bool IsArithmeticOperator(TokenCode token_code);
@@ -65,6 +66,7 @@ bool IsCurrentTokenVART(const T& compiler)
         if( symbol.IsA(SymbolType::Variable) )
         {
             // if the assert is always true, get rid of places that check if VART::GetDictItem is null
+            // and remove the inclusion of engine/VarT.h above
             ASSERT82(assert_cast<const VART&>(symbol).GetDictItem() != nullptr);
             return true;
         }

@@ -2,6 +2,7 @@
 
 #include <zLogicO/Symbol.h>
 #include <zAppO/FieldStatus.h>
+#include <zEngineO/EngineValue.h>
 
 class CancelFlag;
 class Case;
@@ -18,7 +19,7 @@ class UserFunctionArgumentEvaluator;
 
 struct InterpreterExecuteResult
 {
-    std::variant<double, SharableString> result;
+    Engine::Value result;
     bool program_control_executed;
 };
 
@@ -61,6 +62,9 @@ public:
 
     // Executes the user-defined function with the provided arguments.
     virtual InterpreterExecuteResult CallUserFunction(UserFunction& user_function, UserFunctionArgumentEvaluator& argument_evaluator) = 0;
+
+    // Converts an engine value to either a number or string.
+    virtual std::variant<double, SharableString> CreateVariantFromEngineValue(Engine::Value value) = 0;
 
     // Throws exceptions.
     virtual std::string GetSymbolJson(const std::string& symbol_name_and_potential_subscript, Symbol::SymbolJsonOutput symbol_json_output, const JsonNode* serialization_options_node) = 0;

@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "UserFunctionArgumentEvaluator.h"
 #include "Interpreter/LogicInterpreter.h"
 
@@ -47,7 +47,7 @@ T NumericStringValuesOnlyUserFunctionArgumentEvaluator<ArgumentsAreCorrectType>:
     if constexpr(!ArgumentsAreCorrectType)
     {
         if( !std::holds_alternative<T>(argument) )
-            return LogicInterpreter::GetInvalidValue<T>();
+            return Engine::Value::Invalid<T>().template get<T>();
     }
 
     ASSERT(std::holds_alternative<T>(argument));

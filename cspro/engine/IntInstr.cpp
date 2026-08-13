@@ -38,13 +38,10 @@
 #pragma warning( once: 4244 )
 
 
-double CIntDriver::exfucall(int iExpr)
+Engine::Value CIntDriver::exfucall(int iExpr)
 {
     const auto& function_call_node = GetNode<Nodes::FunctionCall>(iExpr);
-
-    evalexpr(function_call_node.expression);
-
-    return 0;
+    return ExecuteInstruction(function_call_node.expression);
 }
 
 
@@ -408,13 +405,13 @@ double CIntDriver::exbox( int iExpr )
 
                 if( bDepVarIsNumeric )
                 {
-                    dRightValue = Evaluate(pBoxRow->row_expr);
+                    dRightValue = Evaluate<double>(pBoxRow->row_expr);
                     std::get<0>(*logic_array_parameters)->SetValue(std::get<1>(*logic_array_parameters), dRightValue);
                 }
 
                 else
                 {
-                    std::get<0>(*logic_array_parameters)->SetValue(std::get<1>(*logic_array_parameters), EvaluateSharableString(pBoxRow->row_expr));
+                    std::get<0>(*logic_array_parameters)->SetValue(std::get<1>(*logic_array_parameters), Evaluate<SharableString>(pBoxRow->row_expr));
                 }
             }
 
@@ -428,7 +425,7 @@ double CIntDriver::exbox( int iExpr )
             else if( pBoxNode->recodeType == Box::BOX_NODE::RecodeType::WorkingAlpha )
             {
                 WorkString& work_string = GetSymbolWorkString(iExprMultSymDepVar);
-                work_string.SetString(EvaluateSharableString(pBoxRow->row_expr));
+                work_string.SetString(Evaluate<SharableString>(pBoxRow->row_expr));
             }
 
             else
@@ -610,9 +607,9 @@ double CIntDriver::exnoopIgnore_numeric(int /*iExpr*/)
 }
 
 
-double CIntDriver::exnoopIgnore_string(int iExpr)
+Engine::Value CIntDriver::exnoopIgnore_string(int /*iExpr*/)
 {
-    return AssignStringNull();
+    return Engine::Value::Invalid<SharableString>();
 }
 
 

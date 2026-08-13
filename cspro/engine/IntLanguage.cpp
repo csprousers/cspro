@@ -1,4 +1,4 @@
-﻿#include "StandardSystemIncludes.h"
+#include "StandardSystemIncludes.h"
 #include "Interpreter.h"
 #include "Engine.h"
 #include <zEngineO/EngineDictionary.h>
@@ -169,30 +169,32 @@ std::vector<Language> CIntDriver::GetLanguages(const bool include_only_capi_lang
 }
 
 
-double CIntDriver::ex_getlanguage(int  /*program_index*/)
+Engine::Value CIntDriver::ex_getlanguage(int /*program_index*/)
 {
-    return AssignString(m_pEngineDriver->GetCurrentLanguageName());
+    return m_pEngineDriver->GetCurrentLanguageName();
 }
 
 
-double CIntDriver::ex_setlanguage(const int program_index)
+Engine::Value CIntDriver::ex_setlanguage(const int program_index)
 {
     const auto& fnn_node = GetNode<FNN_NODE>(program_index);
-    const SharableString language_name = EvaluateSharableString(fnn_node.fn_expr[0]);
+    const SharableString language_name = Evaluate<SharableString>(fnn_node.fn_expr[0]);
 
-    return SetLanguage(*language_name, CIntDriver::SetLanguageSource::Logic);
+    return Engine::Value::Bool(
+        SetLanguage(*language_name, CIntDriver::SetLanguageSource::Logic)
+    );
 }
 
 
-double CIntDriver::ex_tr(const int program_index)
+Engine::Value CIntDriver::ex_tr(const int program_index)
 {
     const auto& va_node = GetNode<Nodes::VariableArguments>(program_index);
     const MessageFile& user_message_file = m_pEngineDriver->GetUserMessageManager().GetMessageFile();
 
     if( static_cast<DataType>(va_node.arguments[0]) == DataType::String )
     {
-        const SharableString text = EvaluateSharableString(va_node.arguments[1]);
-        return AssignString(user_message_file.GetTranslation(text));
+        const SharableString text = Evaluate<SharableString>(va_node.arguments[1]);
+        return user_message_file.GetTranslation(text);
     }
 
     else
@@ -200,6 +202,6 @@ double CIntDriver::ex_tr(const int program_index)
         ASSERT(static_cast<DataType>(va_node.arguments[0]) == DataType::Numeric);
 
         const int message_number = Evaluate<int>(va_node.arguments[1]);
-        return AssignString(user_message_file.GetMessageText(message_number));
+        return user_message_file.GetMessageText(message_number);
     }
 }

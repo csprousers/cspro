@@ -1,4 +1,4 @@
-﻿#include "StandardSystemIncludes.h"
+#include "StandardSystemIncludes.h"
 #include "Interpreter.h"
 #include "EngineExecutor.h"
 #include <zEngineO/UserFunctionArgumentEvaluator.h>
@@ -191,9 +191,5 @@ InterpreterExecuteResult CIntDriver::EvaluateLogic(SharableString logic, CancelF
     NumericStringValuesOnlyUserFunctionArgumentEvaluator<true> argument_evaluator(std::move(arguments));
 
     // execute the function
-    return Execute(user_function->GetReturnDataType(),
-        [&]()
-        {
-            return CallUserFunction(*user_function, argument_evaluator);
-        });
+    return Execute([&]() { return CallUserFunction(*user_function, argument_evaluator); });
 }

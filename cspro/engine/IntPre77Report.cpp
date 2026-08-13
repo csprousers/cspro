@@ -1,4 +1,4 @@
-﻿#include "StandardSystemIncludes.h"
+#include "StandardSystemIncludes.h"
 #include "Interpreter.h"
 #include "Engine.h"
 #include <zEngineO/Array.h>
@@ -156,7 +156,7 @@ double CIntDriver::expre77_setreportdata(int iExpr)
             // process string expressions
             if( iSourceType == PRE77_SETREPORTDATA_SOURCE_STRING_EXPRESSION )
             {
-                json_writer->Write(EvaluateString(iSourceSymbol));
+                json_writer->Write(Evaluate<std::string>(iSourceSymbol));
             }
 
 

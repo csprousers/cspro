@@ -13,7 +13,6 @@ UserFunction::UserFunction(std::string user_function_name, EngineData& engine_da
         m_returnType(SymbolType::WorkVariable),
         m_returnPaddingStringLength(0),
         m_sqlCallbackFunction(false),
-        m_returnValue(0.0),
         m_functionCallCount(0)
 {
 }
@@ -91,34 +90,34 @@ void UserFunction::CompareDeclarationAttributes(const SymbolType return_type, co
 
 void UserFunction::Reset()
 {
-    if( m_returnType == SymbolType::WorkVariable )
-    {
-        m_returnValue = DEFAULT;
-    }
-
-    else
-    {
-        if( std::holds_alternative<SharableString>(m_returnValue) )
-        {
-            std::get<SharableString>(m_returnValue).Reset();
-        }
-
-        else
-        {
-            m_returnValue.emplace<SharableString>();
-        }
-    }
+    m_returnValue.reset();
 }
 
 
-void UserFunction::SetReturnValue(std::variant<double, SharableString> return_value)
+Engine::Value UserFunction::PreprocessReturnValue(Engine::Value return_value) const
 {
-    ASSERT(( m_returnType == SymbolType::WorkVariable ) == std::holds_alternative<double>(return_value));
+    ASSERT(( m_returnType == SymbolType::WorkVariable && return_value.is<double>() ) ||
+           ( m_returnType == SymbolType::WorkString && return_value.is<SharableString>() ));
 
-    m_returnValue = std::move(return_value);
+    if( return_value.is<SharableString>() && m_returnPaddingStringLength != 0 )
+        return_value.get<SharableString>().WideMakeExactLength(m_returnPaddingStringLength);
 
-    if( std::holds_alternative<SharableString>(m_returnValue) && m_returnPaddingStringLength != 0 )
-        std::get<SharableString>(m_returnValue).WideMakeExactLength(m_returnPaddingStringLength);
+    return return_value;
+}
+
+
+void UserFunction::SetReturnValue(Engine::Value return_value)
+{
+    m_returnValue = PreprocessReturnValue(std::move(return_value));
+}
+
+
+Engine::Value UserFunction::GetReturnValue() const
+{
+    if( m_returnValue.has_value() )
+        return *m_returnValue;
+
+    return PreprocessReturnValue(Engine::Value::Invalid(GetReturnDataType()));
 }
 
 

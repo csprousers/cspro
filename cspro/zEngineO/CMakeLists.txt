@@ -19,6 +19,7 @@ add_library(${PROJECT_NAME}
     EngineDictionary.cpp
     EngineItem.cpp
     EngineRecord.cpp
+    EngineValue.cpp
     File.cpp
     Flow.cpp
     Geometry.cpp
@@ -123,6 +124,7 @@ add_library(${PROJECT_NAME}
     Interpreter/GeometryRT.cpp
     Interpreter/HashMapRT.cpp
     Interpreter/ImageRT.cpp
+    Interpreter/InstructionsRT.cpp
     Interpreter/ItemRT.cpp
     Interpreter/JavaScriptRT.cpp
     Interpreter/JsonRT.cpp

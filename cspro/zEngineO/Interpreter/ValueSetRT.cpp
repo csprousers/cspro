@@ -14,7 +14,7 @@
 // value set-related functions
 // --------------------------------------------------------------------------
 
-double LogicInterpreter::ex_minvalue_maxvalue(const int program_index)
+Engine::Value LogicInterpreter::ex_minvalue_maxvalue(const int program_index)
 {
     const auto& element_reference_single_node = GetNode<Nodes::ElementReferenceSingle>(program_index);
     const Symbol& symbol = NPT_Ref(element_reference_single_node.symbol_index);
@@ -43,7 +43,7 @@ double LogicInterpreter::ex_minvalue_maxvalue(const int program_index)
 }
 
 
-double LogicInterpreter::ex_invalueset(const int program_index)
+Engine::Value LogicInterpreter::ex_invalueset(const int program_index)
 {
     const auto& invalueset_node = GetNode<Nodes::InValueSet>(program_index);
     const ValueProcessor* value_processor;
@@ -68,21 +68,16 @@ double LogicInterpreter::ex_invalueset(const int program_index)
         numeric = value_set.IsNumeric();
     }
 
-    if( numeric )
-    {
-        const double value = Evaluate(invalueset_node.value_expression);
-        return value_processor->IsValid(value);
-    }
+    const Engine::Value value = Evaluate<Engine::Value>(invalueset_node.value_expression);
 
-    else
-    {
-        const SharableString value = EvaluateSharableString(invalueset_node.value_expression);
-        return value_processor->IsValid(*value);
-    }
+    return Engine::Value::Bool(
+        numeric ? value_processor->IsValid(value.get<double>()) :
+                  value_processor->IsValid(*value.get<SharableString>())
+    );
 }
 
 
-double LogicInterpreter::ex_getimage(const int program_index)
+Engine::Value LogicInterpreter::ex_getimage(const int program_index)
 {
     const auto& function_node = GetNode<FNG_NODE>(program_index);
     const Symbol& symbol = NPT_Ref(function_node.symbol_index);
@@ -107,25 +102,25 @@ double LogicInterpreter::ex_getimage(const int program_index)
 
     if( IsNumeric(symbol) )
     {
-        const double value = Evaluate(function_node.m_iExpr);
+        const double value = Evaluate<double>(function_node.m_iExpr);
         dict_value = value_processor->GetDictValue(value);
     }
 
     else
     {
         ASSERT(IsString(symbol));
-        const SharableString value = EvaluateSharableString(function_node.m_iExpr);
+        const SharableString value = Evaluate<SharableString>(function_node.m_iExpr);
         dict_value = value_processor->GetDictValue(*value);
     }
 
     if( dict_value != nullptr )
-        return AssignString(dict_value->GetImageFilePath());
+        return dict_value->GetImageFilePath();
 
-    return AssignStringNull();
+    return Engine::Value::Undefined<SharableString>();
 }
 
 
-double LogicInterpreter::ex_setvalueset(const int program_index)
+Engine::Value LogicInterpreter::ex_setvalueset(const int program_index)
 {
     if( m_engineData->PredatesCompiledLogicVersion(Serializer::Iteration_8_0_000_1) )
         return ex_setvalueset_pre80(program_index);
@@ -137,7 +132,7 @@ double LogicInterpreter::ex_setvalueset(const int program_index)
         // lookup the symbol by name
         if( symbol_index < 0 )
         {
-            const SharableString symbol_name = EvaluateSharableString(-1 * symbol_index);
+            const SharableString symbol_name = Evaluate<SharableString>(-1 * symbol_index);
             symbol_index = SymbolTableSearchWithPreference_INTERPRETER_DLL_TODO(SO::Trim(*symbol_name), symbol_type);
 
             if( symbol_index <= 0 )
@@ -163,14 +158,14 @@ double LogicInterpreter::ex_setvalueset(const int program_index)
     );
 
     if( pVarT == nullptr )
-        return 0;
+        return Engine::Value::Bool(false);
 
     const ValueSet* const value_set = assert_nullable_cast<const ValueSet*>(
         validate_symbol(va_node.arguments[1], SymbolType::ValueSet)
     );
 
     if( value_set == nullptr )
-        return 0;
+        return Engine::Value::Bool(false);
 
     std::shared_ptr<const ValueSet> new_value_set;
     bool value_does_not_fit_in_value_set_warning = false;
@@ -189,7 +184,7 @@ double LogicInterpreter::ex_setvalueset(const int program_index)
     if( pVarT->GetDataType() != new_value_set->GetDataType() )
     {
         IssueMessage(MessageType::Error, MGF::ValueSet_not_correct_data_type_941, ToString(pVarT->GetDataType()));
-        return 0;
+        return Engine::Value::Bool(false);
     }
 
     if( value_does_not_fit_in_value_set_warning )
@@ -197,11 +192,11 @@ double LogicInterpreter::ex_setvalueset(const int program_index)
 
     pVarT->SetCurrentValueSet(std::move(new_value_set));
 
-    return 1;
+    return Engine::Value::Bool(true);
 }
 
 
-double LogicInterpreter::ex_setvalueset_pre80(const int program_index)
+Engine::Value LogicInterpreter::ex_setvalueset_pre80(const int program_index)
 {
     ASSERT(m_engineData->PredatesCompiledLogicVersion(Serializer::Iteration_8_0_000_1));
 
@@ -231,7 +226,7 @@ double LogicInterpreter::ex_setvalueset_pre80(const int program_index)
         // the variable name is supplied as an alpha expression
         if( pFunc->m_iIsAtAlpha == 1 )
         {
-            SharableString var_name = EvaluateSharableString(-iSymbol + 1);
+            SharableString var_name = Evaluate<SharableString>(-iSymbol + 1);
             var_name.MakeTrimRight();
 
             if( !var_name->empty()  )
@@ -265,7 +260,7 @@ double LogicInterpreter::ex_setvalueset_pre80(const int program_index)
     // value set is an alpha expression
     if( pFunc->m_iSymbolValues[1] == -1 )
     {
-        SharableString value_set_name = EvaluateSharableString(pFunc->m_iSymbolValues[0]);
+        SharableString value_set_name = Evaluate<SharableString>(pFunc->m_iSymbolValues[0]);
         value_set_name.MakeUpper();
 
         int value_set_symbol = SymbolTableSearch_INTERPRETER_DLL_TODO(*value_set_name, { SymbolType::ValueSet });
@@ -415,11 +410,11 @@ double LogicInterpreter::ex_setvalueset_pre80(const int program_index)
 }
 
 
-double LogicInterpreter::ex_setvaluesets(const int program_index)
+Engine::Value LogicInterpreter::ex_setvaluesets(const int program_index)
 {
     // for changing the value sets of all items to those matching the string passed
     const auto& fnn_node = GetNode<FNN_NODE>(program_index);
-    const SharableString value_set_pattern = EvaluateSharableString(fnn_node.fn_expr[0]);
+    const SharableString value_set_pattern = Evaluate<SharableString>(fnn_node.fn_expr[0]);
     size_t num_value_sets_changed = 0;
 
     // process each of the value sets
@@ -437,11 +432,11 @@ double LogicInterpreter::ex_setvaluesets(const int program_index)
         ++num_value_sets_changed;
     }
 
-    return static_cast<double>(num_value_sets_changed);
+    return Engine::Value::Integer(num_value_sets_changed);
 }
 
 
-double LogicInterpreter::ex_randomizevs(const int program_index)
+Engine::Value LogicInterpreter::ex_randomizevs(const int program_index)
 {
     const auto& va_with_size_node = GetNode<Nodes::VariableArgumentsWithSize>(program_index);
     Symbol& symbol = NPT_Ref(va_with_size_node.arguments[0]);
@@ -460,14 +455,16 @@ double LogicInterpreter::ex_randomizevs(const int program_index)
 
     for( int i = 1; i < exclusion_end_index; ++i )
     {
+        Engine::Value value = Evaluate<Engine::Value>(va_with_size_node.arguments[i]);
+
         if( numeric )
         {
-            std::get<0>(exclusions).emplace_back(Evaluate(va_with_size_node.arguments[i]));
+            std::get<0>(exclusions).emplace_back(value.get<double>());
         }
 
         else
         {
-            SharableString& exclusion = std::get<1>(exclusions).emplace_back(EvaluateSharableString(va_with_size_node.arguments[i]));
+            SharableString& exclusion = std::get<1>(exclusions).emplace_back(std::move(value).get<SharableString>());
             exclusion.MakeTrimRight();
         }
     }
@@ -502,7 +499,7 @@ double LogicInterpreter::ex_randomizevs(const int program_index)
     for( ValueSet* const value_set : valuesets_to_randomize )
         value_set->Randomize(exclusions);
 
-    return static_cast<double>(valuesets_to_randomize.size());
+    return Engine::Value::Integer(valuesets_to_randomize.size());
 }
 
 
@@ -511,7 +508,7 @@ double LogicInterpreter::ex_randomizevs(const int program_index)
 // ValueSet object functions
 // --------------------------------------------------------------------------
 
-double LogicInterpreter::ex_ValueSet_compute(const int program_index)
+Engine::Value LogicInterpreter::ex_ValueSet_compute(const int program_index)
 {
     const auto& symbol_compute_node = GetNode<Nodes::SymbolCompute>(program_index);
     ValueSet& lhs_value_set = GetSymbolValueSet(symbol_compute_node.lhs_symbol_index);
@@ -531,11 +528,11 @@ double LogicInterpreter::ex_ValueSet_compute(const int program_index)
         lhs_dynamic_value_set.AddValues(rhs_value_set);
     }
 
-    return 0;
+    return Engine::Value::Undefined(lhs_value_set.GetDataType());
 }
 
 
-double LogicInterpreter::ex_ValueSet_add(const int program_index)
+Engine::Value LogicInterpreter::ex_ValueSet_add(const int program_index)
 {
     const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
     ValueSet& value_set = GetSymbolValueSet(symbol_va_node.symbol_index);
@@ -545,7 +542,8 @@ double LogicInterpreter::ex_ValueSet_add(const int program_index)
     {
         IssueMessage(MessageType::Error, MGF::ValueSet_invalid_operation_for_dict_value_set_47170,
                      "add", value_set.GetName().c_str());
-        return DEFAULT;
+
+        return Engine::Value::Invalid<double>();
     }
 
     DynamicValueSet& dynamic_value_set = assert_cast<DynamicValueSet&>(value_set);
@@ -564,7 +562,7 @@ double LogicInterpreter::ex_ValueSet_add(const int program_index)
         if( &rhs_value_set == &dynamic_value_set )
         {
             IssueMessage(MessageType::Error, MGF::ValueSet_add_cannot_add_self_47172, value_set.GetName().c_str());
-            return 0;
+            return Engine::Value::Integer(0);
         }
 
         // add the entire value set
@@ -578,8 +576,8 @@ double LogicInterpreter::ex_ValueSet_add(const int program_index)
         // or add a single or range of numeric values
         else if( dynamic_value_set.IsNumeric() )
         {
-            const double from_value = Evaluate(from_code_expression);
-            const double to_value = ( to_code_expression == -1 ) ? from_value : Evaluate(to_code_expression);
+            const double from_value = Evaluate<double>(from_code_expression);
+            const double to_value = ( to_code_expression == -1 ) ? from_value : Evaluate<double>(to_code_expression);
 
             rhs_value_set.ForeachValue(
                 [&](const ValueSet::ForeachValueInfo& info, const double low_value, const std::optional<double>& high_value)
@@ -626,7 +624,7 @@ double LogicInterpreter::ex_ValueSet_add(const int program_index)
         // or add a single string value
         else
         {
-            const SharableString value = EvaluateSharableString(from_code_expression);
+            const SharableString value = Evaluate<SharableString>(from_code_expression);
             const DictValue* const dict_value = rhs_value_set.GetValueProcessor().GetDictValue(*value);
 
             if( dict_value != nullptr )
@@ -645,7 +643,7 @@ double LogicInterpreter::ex_ValueSet_add(const int program_index)
 
     else
     {
-        const SharableString label = EvaluateSharableString(label_expression);
+        SharableString label = Evaluate<SharableString>(label_expression);
 
         std::string image_file_path = ( image_file_path_expression != -1 )
             ? EvaluatePath(image_file_path_expression)
@@ -655,7 +653,7 @@ double LogicInterpreter::ex_ValueSet_add(const int program_index)
 
         if( text_color_expression != -1 )
         {
-            const SharableString text_color_text = EvaluateSharableString(text_color_expression);
+            const SharableString text_color_text = Evaluate<SharableString>(text_color_expression);
             text_color = PortableColor::FromString(*text_color_text);
 
             if( !text_color.has_value() )
@@ -671,14 +669,14 @@ double LogicInterpreter::ex_ValueSet_add(const int program_index)
                 std::move(label),
                 std::move(image_file_path),
                 std::move(*text_color),
-                EvaluateSharableString(from_code_expression) // value
+                Evaluate<SharableString>(from_code_expression) // value
             );
         }
 
         else
         {
-            const double from_value = Evaluate(from_code_expression);
-            std::optional<double> to_value = EvaluateOptional(to_code_expression);
+            const double from_value = Evaluate<double>(from_code_expression);
+            std::optional<double> to_value = EvaluateOptional<double>(to_code_expression);
 
             try
             {
@@ -688,7 +686,7 @@ double LogicInterpreter::ex_ValueSet_add(const int program_index)
             catch( const CSProException& exception )
             {
                 IssueMessage(MessageType::Error, MGF::OpenMessage_32001, exception.what());
-                return 0;
+                return Engine::Value::Integer(0);
             }
 
             dynamic_value_set.AddValue(
@@ -703,11 +701,11 @@ double LogicInterpreter::ex_ValueSet_add(const int program_index)
         number_values_added = 1;
     }
 
-    return static_cast<double>(number_values_added);
+    return Engine::Value::Integer(number_values_added);
 }
 
 
-double LogicInterpreter::ex_ValueSet_clear(const int program_index)
+Engine::Value LogicInterpreter::ex_ValueSet_clear(const int program_index)
 {
     const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
     ValueSet& value_set = GetSymbolValueSet(symbol_va_node.symbol_index);
@@ -716,25 +714,26 @@ double LogicInterpreter::ex_ValueSet_clear(const int program_index)
     {
         IssueMessage(MessageType::Error, MGF::ValueSet_invalid_operation_for_dict_value_set_47170,
                      "clear", value_set.GetName().c_str());
-        return DEFAULT;
+
+        return Engine::Value::Invalid<double>();
     }
 
     value_set.Reset();
 
-    return 1;
+    return Engine::Value::Bool(true);
 }
 
 
-double LogicInterpreter::ex_ValueSet_length(const int program_index)
+Engine::Value LogicInterpreter::ex_ValueSet_length(const int program_index)
 {
     const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
     const ValueSet& value_set = GetSymbolValueSet(symbol_va_node.symbol_index);
 
-    return static_cast<double>(value_set.GetLength());
+    return Engine::Value::Integer(value_set.GetLength());
 }
 
 
-double LogicInterpreter::ex_ValueSet_remove(const int program_index)
+Engine::Value LogicInterpreter::ex_ValueSet_remove(const int program_index)
 {
     const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
     ValueSet& value_set = GetSymbolValueSet(symbol_va_node.symbol_index);
@@ -743,12 +742,13 @@ double LogicInterpreter::ex_ValueSet_remove(const int program_index)
     {
         IssueMessage(MessageType::Error, MGF::ValueSet_invalid_operation_for_dict_value_set_47170,
                      "remove", value_set.GetName().c_str());
-        return DEFAULT;
+
+        return Engine::Value::Invalid<double>();
     }
 
     DynamicValueSet& dynamic_value_set = assert_cast<DynamicValueSet&>(value_set);
 
-    return static_cast<double>(
+    return Engine::Value::Integer(
         dynamic_value_set.IsNumeric()
         ? dynamic_value_set.RemoveValue(Evaluate<double>(symbol_va_node.arguments[0]))
         : dynamic_value_set.RemoveValue(Evaluate<SharableString>(symbol_va_node.arguments[0]).GetString())
@@ -756,7 +756,7 @@ double LogicInterpreter::ex_ValueSet_remove(const int program_index)
 }
 
 
-double LogicInterpreter::ex_ValueSet_removeDuplicates(const int program_index)
+Engine::Value LogicInterpreter::ex_ValueSet_removeDuplicates(const int program_index)
 {
     const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
     ValueSet& value_set = GetSymbolValueSet(symbol_va_node.symbol_index);
@@ -765,18 +765,19 @@ double LogicInterpreter::ex_ValueSet_removeDuplicates(const int program_index)
     {
         IssueMessage(MessageType::Error, MGF::ValueSet_invalid_operation_for_dict_value_set_47170,
                      "removeDuplicates", value_set.GetName().c_str());
-        return DEFAULT;
+
+        return Engine::Value::Invalid<double>();
     }
 
     DynamicValueSet& dynamic_value_set = assert_cast<DynamicValueSet&>(value_set);
 
-    return static_cast<double>(dynamic_value_set.RemoveDuplicates(
+    return Engine::Value::Integer(dynamic_value_set.RemoveDuplicates(
         static_cast<DynamicValueSet::RemoveDuplicatesType>(symbol_va_node.arguments[0])
     ));
 }
 
 
-double LogicInterpreter::ex_ValueSet_show(const int program_index)
+Engine::Value LogicInterpreter::ex_ValueSet_show(const int program_index)
 {
     if( !UseHtmlDialogs() )
         return ex_ValueSet_show_pre77(program_index);
@@ -787,7 +788,7 @@ double LogicInterpreter::ex_ValueSet_show(const int program_index)
     SelectDlg select_dlg(true, 1);
 
     if( symbol_va_node.arguments[0] != -1 )
-        select_dlg.SetTitle(EvaluateSharableString(symbol_va_node.arguments[0]));
+        select_dlg.SetTitle(Evaluate<SharableString>(symbol_va_node.arguments[0]));
 
     // numeric value sets will return the code;
     // string value sets will return the label index (not code)
@@ -825,12 +826,12 @@ double LogicInterpreter::ex_ValueSet_show(const int program_index)
 
     else
     {
-        return static_cast<double>(selected_row_base_one);
+        return Engine::Value::Integer(selected_row_base_one);
     }
 }
 
 
-double LogicInterpreter::ex_ValueSet_show_pre77(const int program_index)
+Engine::Value LogicInterpreter::ex_ValueSet_show_pre77(const int program_index)
 {
     const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
     const ValueSet& value_set = GetSymbolValueSet(symbol_va_node.symbol_index);
@@ -875,7 +876,7 @@ double LogicInterpreter::ex_ValueSet_show_pre77(const int program_index)
 }
 
 
-double LogicInterpreter::ex_ValueSet_sort(const int program_index)
+Engine::Value LogicInterpreter::ex_ValueSet_sort(const int program_index)
 {
     const auto& symbol_va_node = GetNode<Nodes::SymbolVariableArguments>(program_index);
     ValueSet& value_set = GetSymbolValueSet(symbol_va_node.symbol_index);
@@ -885,5 +886,5 @@ double LogicInterpreter::ex_ValueSet_sort(const int program_index)
         ( symbol_va_node.arguments[1] == 0 )  // sort_by_label
     );
 
-    return 1;
+    return Engine::Value::Bool(true);
 }

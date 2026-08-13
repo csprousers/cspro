@@ -1,4 +1,4 @@
-﻿#include "StandardSystemIncludes.h"
+#include "StandardSystemIncludes.h"
 #include "Interpreter.h"
 #include "Engdrv.h"
 #include "Engine.h"
@@ -206,7 +206,7 @@ SharableString CIntDriver::EvaluateUserMessage(const int message_node_index, con
         // for messages that are not in the message file, evaluate the message text
         if( message_node.message_expression != -1 )
         {
-            unformatted_message_text = EvaluateSharableString(message_node.message_expression);
+            unformatted_message_text = Evaluate<SharableString>(message_node.message_expression);
             user_message_manager.UpdateUnnumberedMessageText(message_number, unformatted_message_text);
         }
     }
@@ -300,9 +300,9 @@ double CIntDriver::exwrite(const int program_index)
 }
 
 
-double CIntDriver::exmaketext(const int program_index)
+Engine::Value CIntDriver::exmaketext(const int program_index)
 {
-    return AssignString(EvaluateUserMessage(program_index, FunctionCode::FNMAKETEXT_CODE));
+    return EvaluateUserMessage(program_index, FunctionCode::FNMAKETEXT_CODE);
 }
 
 
@@ -351,7 +351,7 @@ double CIntDriver::exwarning(const int program_index)
                         const int select_expression = select_movements_list_node.elements[default_button_number - 1];
 
                         if( select_expression != -1 )
-                            Evaluate(select_expression);
+                            Evaluate<double>(select_expression);
 
                         return default_button_number;
                     }
@@ -411,7 +411,7 @@ double CIntDriver::DisplayUserMessage(const int message_node_index)
 
                 // add the button text
                 for( int i = 0; i < select_button_texts_list_node.number_elements; ++i )
-                    select_details->button_texts.emplace_back(EvaluateSharableString(select_button_texts_list_node.elements[i]));
+                    select_details->button_texts.emplace_back(Evaluate<SharableString>(select_button_texts_list_node.elements[i]));
 
                 // check if there is a valid default button number
                 if( extended_message_node->select_default_button_expression != -1 )
@@ -502,7 +502,7 @@ double CIntDriver::DisplayUserMessage(const int message_node_index)
 
         // if not next or continue, execute the move command
         if( select_expression != -1 )
-            Evaluate(select_expression);
+            Evaluate<double>(select_expression);
 
         // return the index of the button selected
         return selected_button_number;
@@ -510,8 +510,8 @@ double CIntDriver::DisplayUserMessage(const int message_node_index)
 }
 
 
-double CIntDriver::exvariablevalue(const int program_index)
+Engine::Value CIntDriver::ex_variablevalue(const int program_index)
 {
     const auto& variable_value_node = GetNode<Nodes::VariableValue>(program_index);
-    return Evaluate(variable_value_node.expression);
+    return Evaluate<Engine::Value>(variable_value_node.expression);
 }

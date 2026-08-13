@@ -592,7 +592,7 @@ bool CEntryIFaz::HasSpecialFunction(const SpecialFunction::Code special_function
 }
 
 
-double CEntryIFaz::ExecSpecialFunction(const int symbol_index, const SpecialFunction::Code special_function, const double argument)
+Engine::Value CEntryIFaz::ExecSpecialFunction(const int symbol_index, const SpecialFunction::Code special_function, const double argument)
 {
     return m_pIntDriver->ExecSpecialFunction(symbol_index, special_function, { argument });
 }

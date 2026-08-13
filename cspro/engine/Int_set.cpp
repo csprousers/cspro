@@ -1,4 +1,4 @@
-﻿//--------------------------------------------------------------------------
+//--------------------------------------------------------------------------
 //
 // INT_SET.cpp    : interpret SET commands
 //
@@ -791,7 +791,7 @@ double CIntDriver::exmessageoverrides(const int program_index)
 
         // a custom error message is getting passed
         if( pset_ac.idic >= 0 )
-            message_overrides.clear_text = EvaluateString(pset_ac.idic);
+            message_overrides.clear_text = Evaluate<std::string>(pset_ac.idic);
 
         // a custom keystroke is getting passed
         if( pset_ac.iidx >= 0 )

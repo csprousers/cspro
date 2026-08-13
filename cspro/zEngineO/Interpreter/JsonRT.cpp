@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "IncludesRT.h"
 #include "SymbolSerializerHelper.h"
 
@@ -53,7 +53,8 @@ private:
 };
 
 
-std::string LogicInterpreter::GetSymbolJson(const Symbol& symbol, const Symbol::SymbolJsonOutput symbol_json_output, const JsonNode* const serialization_options_node)
+std::string LogicInterpreter::GetSymbolJson(const Symbol& symbol, const Symbol::SymbolJsonOutput symbol_json_output,
+                                            const JsonNode* const serialization_options_node)
 {
     cs::shared_or_raw_ptr<JsonProperties> json_properties;
 
@@ -62,7 +63,10 @@ std::string LogicInterpreter::GetSymbolJson(const Symbol& symbol, const Symbol::
         // parse any serialization properties specified (on top of the application's default properties)...
         if( serialization_options_node != nullptr )
         {
-            json_properties = std::make_unique<JsonProperties>(m_engineData->application->GetApplicationProperties().GetJsonProperties());
+            json_properties = std::make_unique<JsonProperties>(
+                m_engineData->application->GetApplicationProperties().GetJsonProperties()
+            );
+
             json_properties->UpdateFromJson(*serialization_options_node);
         }
 
@@ -79,8 +83,11 @@ std::string LogicInterpreter::GetSymbolJson(const Symbol& symbol, const Symbol::
         json_properties = std::make_unique<JsonProperties>();
     }
 
-    const std::unique_ptr<JsonStringWriter> json_writer = Json::CreateStringWriter(( json_properties->GetJsonFormat() == JsonProperties::JsonFormat::Compact ) ? JsonFormattingOptions::Compact :
-                                                                                                                                                                 JsonFormattingOptions::PrettySpacing);
+    const std::unique_ptr<JsonStringWriter> json_writer = Json::CreateStringWriter(
+        ( json_properties->GetJsonFormat() == JsonProperties::JsonFormat::Compact )
+        ? JsonFormattingOptions::Compact
+        : JsonFormattingOptions::PrettySpacing
+    );
 
     JsonRT::EngineSymbolSerializerHelper engine_symbol_serializer_helper(*this, *json_properties);
     const auto symbol_serializer_holder = json_writer->GetSerializerHelper().Register(&engine_symbol_serializer_helper);
@@ -91,7 +98,7 @@ std::string LogicInterpreter::GetSymbolJson(const Symbol& symbol, const Symbol::
 }
 
 
-double LogicInterpreter::ex_Symbol_getJson_getValueJson(const int program_index)
+Engine::Value LogicInterpreter::ex_Symbol_getJson_getValueJson(const int program_index)
 {
     const auto& symbol_va_with_subscript_node = GetNode<Nodes::SymbolVariableArgumentsWithSubscript>(program_index);
     const Symbol* symbol;
@@ -101,8 +108,9 @@ double LogicInterpreter::ex_Symbol_getJson_getValueJson(const int program_index)
     {
         symbol = &GetFromSymbolOrEngineItemForStaticFunction(symbol_va_with_subscript_node.symbol_index, symbol_va_with_subscript_node.subscript_compilation);
 
-        symbol_json_output = IsDataAccessible(*symbol, false) ? Symbol::SymbolJsonOutput::MetadataAndValue :
-                                                                Symbol::SymbolJsonOutput::Metadata;
+        symbol_json_output = IsDataAccessible(*symbol, false)
+            ? Symbol::SymbolJsonOutput::MetadataAndValue
+            : Symbol::SymbolJsonOutput::Metadata;
     }
 
     else
@@ -123,21 +131,21 @@ double LogicInterpreter::ex_Symbol_getJson_getValueJson(const int program_index)
 
             if( symbol_va_with_subscript_node.arguments[0] != -1 )
             {
-                const SharableString json_text = EvaluateSharableString(symbol_va_with_subscript_node.arguments[0]);
+                const SharableString json_text = Evaluate<SharableString>(symbol_va_with_subscript_node.arguments[0]);
                 serialization_options_node = std::make_unique<JsonNode>(Json::Parse(*json_text, GetEngineJsonReaderInterface()));
             }
 
-            return AssignString(GetSymbolJson(*symbol, symbol_json_output, serialization_options_node.get()));
+            return GetSymbolJson(*symbol, symbol_json_output, serialization_options_node.get());
         }
 
         catch( const CSProException& exception )
         {
-            IssueMessage(MessageType::Error, MGF::JSON_Symbol_get_error_100441, symbol->GetName().c_str(),
-                                                                                exception.what());
+            IssueMessage(MessageType::Error, MGF::JSON_Symbol_get_error_100441,
+                         symbol->GetName().c_str(), exception.what());
         }
     }
 
-    return AssignStringNull();
+    return Engine::Value::Invalid<SharableString>();
 }
 
 
@@ -147,10 +155,10 @@ void LogicInterpreter::SetSymbolValueFromJson(Symbol& symbol, const JsonNode& js
 }
 
 
-double LogicInterpreter::ex_Symbol_setValueFromJson(const int program_index)
+Engine::Value LogicInterpreter::ex_Symbol_setValueFromJson(const int program_index)
 {
     const auto& symbol_va_with_subscript_node = GetNode<Nodes::SymbolVariableArgumentsWithSubscript>(program_index);
-    const SharableString json_text = EvaluateSharableString(symbol_va_with_subscript_node.arguments[0]);
+    const SharableString json_text = Evaluate<SharableString>(symbol_va_with_subscript_node.arguments[0]);
 
     Symbol* const symbol = GetFromSymbolOrEngineItem(symbol_va_with_subscript_node.symbol_index, symbol_va_with_subscript_node.subscript_compilation);
 
@@ -162,15 +170,15 @@ double LogicInterpreter::ex_Symbol_setValueFromJson(const int program_index)
 
             SetSymbolValueFromJson(*symbol, json_node);
 
-            return 1;
+            return Engine::Value::Bool(true);
         }
 
         catch( const CSProException& exception )
         {
-            IssueMessage(MessageType::Error, MGF::JSON_Symbol_set_error_100442, symbol->GetName().c_str(),
-                                                                                exception.what());
+            IssueMessage(MessageType::Error, MGF::JSON_Symbol_set_error_100442,
+                         symbol->GetName().c_str(), exception.what());
         }
     }
 
-    return 0;
+    return Engine::Value::Bool(false);
 }

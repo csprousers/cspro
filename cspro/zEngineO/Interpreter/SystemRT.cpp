@@ -6,19 +6,19 @@
 #include <zUtilO/CommonStore.h>
 
 
-double LogicInterpreter::ex_getusername(int /*program_index*/)
+Engine::Value LogicInterpreter::ex_getusername(int /*program_index*/)
 {
-    return AssignString(GetDeviceUserName());
+    return GetDeviceUserName();
 }
 
 
-double LogicInterpreter::ex_getos(const int program_index)
+Engine::Value LogicInterpreter::ex_getos(const int program_index)
 {
     const auto& va_node = GetNode<Nodes::VariableArguments>(program_index);
     const int& additional_details_node = va_node.arguments[0];
 
     // the return value: Windows = 10, Android = 20
-    constexpr double os_number = OnWindows() ? 10 : 20;
+    constexpr int os_number = OnWindows() ? 10 : 20;
 
     if( additional_details_node != -1 )
     {
@@ -44,34 +44,34 @@ double LogicInterpreter::ex_getos(const int program_index)
         // ...or a string with the operating system and version
         else
         {
-            SharableString text_description = SO::Concatenate(operating_system_details.operating_system,
-                                                              ";",
-                                                              operating_system_details.version_number);
+            SharableString text_description = SO::Concatenate(
+                operating_system_details.operating_system, ";", operating_system_details.version_number
+            );
 
             AssignValueToSymbol(GetNode<Nodes::SymbolValue>(additional_details_node), std::move(text_description));
         }
     }
 
-    return os_number;
+    return Engine::Value::Integer(os_number);
 }
 
 
-double LogicInterpreter::ex_getdeviceid(int /*program_index*/)
+Engine::Value LogicInterpreter::ex_getdeviceid(int /*program_index*/)
 {
     // originally this function was called getmac and returend the MAC address; on 20141218 it was decided
     // to change it so that it returns a unique device ID; on Windows it will return the MAC address, while on
     // Android it will return the ANDROID_ID (which is longer than the MAC address)
-    return AssignString(SharableString::FromStaticStringPointer(&GetDeviceId()));
+    return SharableString::FromStaticStringPointer(&GetDeviceId());
 }
 
 
-double LogicInterpreter::ex_uuid(const int program_index)
+Engine::Value LogicInterpreter::ex_uuid(const int program_index)
 {
     const auto& va_node = GetNode<Nodes::VariableArguments>(program_index);
 
     if( va_node.arguments[0] == -1 )
     {
-        return AssignString(CreateUuid());
+        return CreateUuid();
     }
 
     else
@@ -81,18 +81,18 @@ double LogicInterpreter::ex_uuid(const int program_index)
 
         if( symbol.IsA(SymbolType::Dictionary) )
         {
-            return AssignString(assert_cast<EngineDictionary&>(symbol).GetEngineCase().GetCase().GetOrCreateUuid());
+            return assert_cast<EngineDictionary&>(symbol).GetEngineCase().GetCase().GetOrCreateUuid();
         }
 
         else
         {
-            return AssignString(assert_cast<DICT&>(symbol).GetDicX()->GetCase().GetOrCreateUuid());
+            return assert_cast<DICT&>(symbol).GetDicX()->GetCase().GetOrCreateUuid();
         }
     }
 }
 
 
-double LogicInterpreter::ex_sysparm(const int program_index)
+Engine::Value LogicInterpreter::ex_sysparm(const int program_index)
 {
     // previously this function only returned the one Parameter= parameter, but
     // now it can also return values from a map of parameters
@@ -101,14 +101,16 @@ double LogicInterpreter::ex_sysparm(const int program_index)
     if( fnn_node.fn_nargs == 0 )
     {
         if( m_engineData->pff != nullptr )
-            return AssignString(UTF8_TODO::GetUtf8(m_engineData->pff->GetParamString()));
+            return UTF8_TODO::GetUtf8(m_engineData->pff->GetParamString());
     }
 
     else
     {
-        SharableString argument = EvaluateSharableString(fnn_node.fn_expr[0]);
-        SharableString parameter = ( m_engineData->pff != nullptr ) ? m_engineData->pff->GetCustomParamString(*argument) :
-                                                                      SharableString();
+        SharableString argument = Evaluate<SharableString>(fnn_node.fn_expr[0]);
+
+        SharableString parameter = ( m_engineData->pff != nullptr )
+            ? m_engineData->pff->GetCustomParamString(*argument)
+            : SharableString();
 
         // if the parameter isn't specified in the PFF file, check if it is a command line argument;
         // if so, return the argument (meaning that checking if sysparm isn't blank is a way of seeing
@@ -132,14 +134,14 @@ double LogicInterpreter::ex_sysparm(const int program_index)
             }
         }
 
-        return AssignString(std::move(parameter));
+        return parameter;
     }
 
-    return AssignStringNull();
+    return Engine::Value::Undefined<SharableString>();
 }
 
 
-double LogicInterpreter::ex_savesetting(const int program_index)
+Engine::Value LogicInterpreter::ex_savesetting(const int program_index)
 {
     const auto& va_node = GetNode<Nodes::VariableArguments>(program_index);
     bool success = false;
@@ -158,8 +160,8 @@ double LogicInterpreter::ex_savesetting(const int program_index)
 
         else
         {
-            const SharableString key = EvaluateSharableString(va_node.arguments[0]);
-            const SharableString value = EvaluateSharableString(static_cast<DataType>(va_node.arguments[1]), va_node.arguments[2]);
+            const SharableString key = Evaluate<SharableString>(va_node.arguments[0]);
+            const SharableString value = Evaluate<Engine::Value>(va_node.arguments[2]).as<SharableString>();
 
             if( value->empty() )
             {
@@ -177,10 +179,10 @@ double LogicInterpreter::ex_savesetting(const int program_index)
 }
 
 
-double LogicInterpreter::ex_loadsetting(const int program_index)
+Engine::Value LogicInterpreter::ex_loadsetting(const int program_index)
 {
     const auto& va_node = GetNode<Nodes::VariableArguments>(program_index);
-    const SharableString key = EvaluateSharableString(va_node.arguments[0]);
+    const SharableString key = Evaluate<SharableString>(va_node.arguments[0]);
     std::optional<std::string> value;
 
     CommonStore* const common_store = m_engineData->GetCommonStore().get();
@@ -194,11 +196,12 @@ double LogicInterpreter::ex_loadsetting(const int program_index)
         // if they gave a default value, put that in the database and return it
         if( !value.has_value() && va_node.arguments[1] != -1 )
         {
-            SharableString default_value = EvaluateSharableString(static_cast<DataType>(va_node.arguments[1]), va_node.arguments[2]);
+            SharableString default_value = Evaluate<Engine::Value>(va_node.arguments[2]).as<SharableString>();
             common_store->PutString(*key, *default_value);
-            return AssignString(std::move(default_value));
+            return default_value;
         }
     }
 
-    return AssignString(std::move(value));
+    return value.has_value() ? Engine::Value(std::move(*value)) :
+                               Engine::Value::Undefined<SharableString>();
 }

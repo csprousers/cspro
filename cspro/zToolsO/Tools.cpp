@@ -683,11 +683,12 @@ std::string GetWindowsSpecialFolder(const WindowsSpecialFolder folder)
 
     else if( folder == WindowsSpecialFolder::ProgramFiles32 )
     {
-        folder_value = CSIDL_PROGRAM_FILES;
+        folder_value = CSIDL_PROGRAM_FILESX86;
     }
 
     else /*if( folder == WindowsSpecialFolder::ProgramFiles64 )*/
     {
+#ifndef X64_BUILD
         // 20111102 the 64-bit request didn't actually work, so using the values from the registry instead
         WinRegistry registry;
 
@@ -700,6 +701,7 @@ std::string GetWindowsSpecialFolder(const WindowsSpecialFolder folder)
         }
 
         // default to the 32-bit version if there is no registry entry
+#endif
         folder_value = CSIDL_PROGRAM_FILES;
     }
 

@@ -403,7 +403,7 @@ int LogicCompiler::CompileValueSetRelatedFunctions()
             invalueset_node.value_expression = IsNumeric(value_data_type)
                 ? varsanal_COMPILER_DLL_TODO(vart->GetFmt())
                 : CompileStringExpression(); // COMPILER_DLL_TODO varsanal does not produce a
-                                             // node that can be used by functions like EvaluateString
+                                             // node that can be used by functions like Evaluate<std::string>
                                              // in the same way varsanal does for numerics ... perhaps add
                                              // a method that can compile variables, and also checks that accessing
                                              // them is valid (as done in CompileDestinationVariable)

@@ -2,6 +2,7 @@
 
 #include <zEngineO/zEngineO.h>
 #include <zEngineO/EngineData.h>
+#include <zEngineO/EngineValue.h>
 #include <zToolsO/CancelFlag.h>
 #include <zToolsO/Special.h>
 #include <zToolsO/Tools.h>
@@ -12,11 +13,13 @@
 
 class ApplicationInterface;
 class BinarySymbol;
+class CIntDriver;
 class ConnectionString;
 enum class EncodeType : int;
 class EngineParadataDriver;
 class FrequencyDriver;
 enum FunctionCode : int;
+struct InterpreterExecuteResult;
 class PortableColor;
 class JsonReaderInterface;
 class UserFunctionArgumentEvaluator;
@@ -72,16 +75,37 @@ protected:
 
 
     // --------------------------------------------------------------------------
+    // instruction routines
+    // (InstructionsRT.cpp)
+    // --------------------------------------------------------------------------
+public:
+    Engine::Value ExecuteInstruction(FunctionCode function_code, int program_index);
+    Engine::Value ExecuteInstruction(int program_index);
+
+    virtual Engine::Value ExecuteInstructions(int program_index) = 0; // INTERPRETER_DLL_TODO remove as virtual
+
+protected:
+    using Instruction = std::variant<Engine::Value (LogicInterpreter::*)(int),
+                                     double (LogicInterpreter::*)(int),
+                                     Engine::Value (CIntDriver::*)(int),
+                                     double (CIntDriver::*)(int)>;
+    static Instruction m_instructions[];
+
+    static size_t MaxInstructionCode_EV_TODO;
+    Engine::Value ex_unimplemented_LogicInterpreter(int program_index);
+
+
+    // --------------------------------------------------------------------------
     // general evaluation routines
     // --------------------------------------------------------------------------
 public:
-    template<typename T = double>
+    template<typename T>
     T Evaluate(int program_index);
 
-    template<typename T = double>
+    template<typename T>
     std::optional<T> EvaluateOptional(int program_index);
 
-    template<typename T = double, typename DVT>
+    template<typename T, typename DVT>
     T EvaluateOptional(int program_index, DVT&& default_value);
 
     template<typename T>
@@ -93,19 +117,6 @@ public:
 
     template<typename ST = SharableString> // ST can also be std::string
     std::variant<double, ST> EvaluateVariant(DataType value_data_type, int program_index);
-
-
-    // --------------------------------------------------------------------------
-    // general assignment routines
-    // --------------------------------------------------------------------------
-public:
-    template<typename T>
-    static T GetInvalidValue();
-
-    double AssignInvalidValue(DataType data_type);
-
-    double AssignVariantValue(std::variant<double, SharableString>&& value);
-    double AssignVariantValue(const std::variant<double, SharableString>& value);
 
 
     // --------------------------------------------------------------------------
@@ -152,40 +163,40 @@ protected: // INTERPRETER_DLL_TODO change to private
     // (MathRT.cpp)
     // --------------------------------------------------------------------------
 public:
-    double ex_numeric_constant(int program_index);
+    Engine::Value ex_numeric_constant(int program_index);
 
-    double ex_WorkVariable_evaluate(int program_index);
-    double ex_WorkVariable_compute(int program_index);
+    Engine::Value ex_WorkVariable_evaluate(int program_index);
+    Engine::Value ex_WorkVariable_compute(int program_index);
 
-    double ex_add(int program_index);
-    double ex_sub(int program_index);
-    double ex_minus(int program_index);
-    double ex_mult(int program_index);
-    double ex_div(int program_index);
-    double ex_mod(int program_index);
-    double ex_exp(int program_index);
-    double ex_eq(int program_index);
-    double ex_ne(int program_index);
-    double ex_le(int program_index);
-    double ex_lt(int program_index);
-    double ex_ge(int program_index);
-    double ex_gt(int program_index);
-    double ex_equ(int program_index);
-    double ex_or(int program_index);
-    double ex_not(int program_index);
-    double ex_and(int program_index);
-    double ex_abs(int program_index);
-    double ex_ex(int program_index);
-    double ex_inc(int program_index);
-    double ex_int(int program_index);
-    double ex_log(int program_index);
-    double ex_low_high(int program_index);
-    double ex_special(int program_index);
-    double ex_sqrt(int program_index);
-    double ex_round(int program_index);
-    double ex_seed(int program_index);
-    double ex_random(int program_index);
-    double ex_tonumber(int program_index);
+    Engine::Value ex_add(int program_index);
+    Engine::Value ex_sub(int program_index);
+    Engine::Value ex_minus(int program_index);
+    Engine::Value ex_mult(int program_index);
+    Engine::Value ex_div(int program_index);
+    Engine::Value ex_mod(int program_index);
+    Engine::Value ex_exp(int program_index);
+    Engine::Value ex_eq(int program_index);
+    Engine::Value ex_ne(int program_index);
+    Engine::Value ex_le(int program_index);
+    Engine::Value ex_lt(int program_index);
+    Engine::Value ex_ge(int program_index);
+    Engine::Value ex_gt(int program_index);
+    Engine::Value ex_equ(int program_index);
+    Engine::Value ex_or(int program_index);
+    Engine::Value ex_not(int program_index);
+    Engine::Value ex_and(int program_index);
+    Engine::Value ex_abs(int program_index);
+    Engine::Value ex_ex(int program_index);
+    Engine::Value ex_inc(int program_index);
+    Engine::Value ex_int(int program_index);
+    Engine::Value ex_log(int program_index);
+    Engine::Value ex_low_high(int program_index);
+    Engine::Value ex_special(int program_index);
+    Engine::Value ex_sqrt(int program_index);
+    Engine::Value ex_round(int program_index);
+    Engine::Value ex_seed(int program_index);
+    Engine::Value ex_random(int program_index);
+    Engine::Value ex_tonumber(int program_index);
 
 private:
     bool PreprocessSpecialValues(double& v1, double &v2, double& result) const;
@@ -199,22 +210,10 @@ private:
     // (StringRT.cpp)
     // --------------------------------------------------------------------------
 public:
-    SharableString EvaluateSharableString(int program_index);
-    SharableString EvaluateSharableString(DataType value_data_type, int program_index);
     SharableString EvaluateNullableSharableString(int program_index);
-    std::string EvaluateString(int program_index);
-    std::string EvaluateString(DataType value_data_type, int program_index);
 
-    template<typename T>
-    double AssignString(T&& value);
-
-    double AssignStringNull();
-
-    SharableString GetWorkingSharableString(size_t index);
-    std::string GetWorkingString(size_t index);
-
-    double ex_string_literal(int program_index);
-    double ex_string_compute(int program_index);
+    Engine::Value ex_string_literal(int program_index);
+    Engine::Value ex_string_compute(int program_index);
 
     // If using the original logic settings, "\\n" characters will be converted to "\n" (or "\r\n"),
     // and optionally, "\\\\" characters will be converted to "\\"
@@ -225,37 +224,34 @@ public:
     SharableString ApplyV0Escapes(SharableString text, V0_EscapeType v0_escape_type = V0_EscapeType::NewlinesToSlashN);
     std::string ApplyV0Escapes(std::string text, V0_EscapeType v0_escape_type = V0_EscapeType::NewlinesToSlashN);
 
-    double ex_WorkString_evaluate(int program_index);
-    double ex_WorkString_compute(int program_index);
+    Engine::Value ex_WorkString_evaluate(int program_index);
+    Engine::Value ex_WorkString_compute(int program_index);
 
-    double ex_string_eq(int program_index);
-    double ex_string_ne(int program_index);
-    double ex_string_lt(int program_index);
-    double ex_string_le(int program_index);
-    double ex_string_ge(int program_index);
-    double ex_string_gt(int program_index);
-    double ex_compare(int program_index);
-    double ex_compareNoCase(int program_index);
-    double ex_concat(int program_index);
-    double ex_ischecked(int program_index);
-    double ex_length(int program_index);
-    double ex_pos_poschar(int program_index);
-    double ex_regexmatch(int program_index);
-    double ex_replace(int program_index);
-    double ex_startswith(int program_index);
-    double ex_strip(int program_index);
-    double ex_tolower_toupper(int program_index);
-    double ex_decryptstring(int program_index);
-    double ex_encode(int program_index);
+    Engine::Value ex_string_eq(int program_index);
+    Engine::Value ex_string_ne(int program_index);
+    Engine::Value ex_string_lt(int program_index);
+    Engine::Value ex_string_le(int program_index);
+    Engine::Value ex_string_ge(int program_index);
+    Engine::Value ex_string_gt(int program_index);
+    Engine::Value ex_compare(int program_index);
+    Engine::Value ex_compareNoCase(int program_index);
+    Engine::Value ex_concat(int program_index);
+    Engine::Value ex_ischecked(int program_index);
+    Engine::Value ex_length(int program_index);
+    Engine::Value ex_pos_poschar(int program_index);
+    Engine::Value ex_regexmatch(int program_index);
+    Engine::Value ex_replace(int program_index);
+    Engine::Value ex_startswith(int program_index);
+    Engine::Value ex_strip(int program_index);
+    Engine::Value ex_tolower_toupper(int program_index);
+    Engine::Value ex_decryptstring(int program_index);
+    Engine::Value ex_encode(int program_index);
 
 private:
     template<TokenCode token_code>
-    double ex_string_operators(int program_index);
+    Engine::Value ex_string_operators(int program_index);
 
 private:
-    // temporary strings created by logic functions
-    std::vector<SharableString> m_workingStrings;
-
     // the encoding type for the encode function
     EncodeType m_currentEncodeType;
 
@@ -268,7 +264,7 @@ public:
     // Sets the Action Invoker runtime.
     void SetActionInvokerRuntime(std::shared_ptr<ActionInvoker::Runtime> runtime);
 
-    double ex_ActionInvoker(int program_index);
+    Engine::Value ex_ActionInvoker(int program_index);
 
 private:
     std::shared_ptr<ActionInvoker::Runtime> m_actionInvokerRuntime;
@@ -280,13 +276,13 @@ private:
     // (ArrayRT.cpp)
     // --------------------------------------------------------------------------
 public:
-    double ex_Array_var(int program_index);
-    double ex_Array_compute(int program_index);
-    double ex_Array_clear(int program_index);
-    double ex_Array_length(int program_index);
+    Engine::Value ex_Array_var(int program_index);
+    Engine::Value ex_Array_compute(int program_index);
+    Engine::Value ex_Array_clear(int program_index);
+    Engine::Value ex_Array_length(int program_index);
 
 protected: // INTERPRETER_DLL_TODO change to private
-    double ex_Array_length(const LogicArray& logic_array, size_t dimension);
+    Engine::Value ex_Array_length(const LogicArray& logic_array, size_t dimension);
 
     // Returns the index, or an empty vector if the index is invalid.
     std::vector<size_t> EvaluateArrayIndex(int arrayvar_node_expression, LogicArray** out_logic_array);
@@ -297,16 +293,16 @@ protected: // INTERPRETER_DLL_TODO change to private
     // (AudioRT.cpp)
     // --------------------------------------------------------------------------
 public:
-    double ex_Audio_compute(int program_index);
-    double ex_Audio_clear(int program_index);
-    double ex_Audio_concat(int program_index);
-    double ex_Audio_length(int program_index);
-    double ex_Audio_load(int program_index);
-    double ex_Audio_play(int program_index);
-    double ex_Audio_save(int program_index);
-    double ex_Audio_stop(int program_index);
-    double ex_Audio_record(int program_index);
-    double ex_Audio_recordInteractive(int program_index);
+    Engine::Value ex_Audio_compute(int program_index);
+    Engine::Value ex_Audio_clear(int program_index);
+    Engine::Value ex_Audio_concat(int program_index);
+    Engine::Value ex_Audio_length(int program_index);
+    Engine::Value ex_Audio_load(int program_index);
+    Engine::Value ex_Audio_play(int program_index);
+    Engine::Value ex_Audio_save(int program_index);
+    Engine::Value ex_Audio_stop(int program_index);
+    Engine::Value ex_Audio_record(int program_index);
+    Engine::Value ex_Audio_recordInteractive(int program_index);
 
 
     // --------------------------------------------------------------------------
@@ -314,8 +310,8 @@ public:
     // (BarcodeRT.cpp)
     // --------------------------------------------------------------------------
 public:
-    double ex_Barcode_read(int program_index);
-    double ex_Barcode_createQRCode(int program_index);
+    Engine::Value ex_Barcode_read(int program_index);
+    Engine::Value ex_Barcode_createQRCode(int program_index);
 
 
     // --------------------------------------------------------------------------
@@ -323,9 +319,9 @@ public:
     // (CompressionRT.cpp)
     // --------------------------------------------------------------------------
 public:
-    double ex_compress(int program_index);
-    double ex_decompress(int program_index);
-    double ex_hash(int program_index);
+    Engine::Value ex_compress(int program_index);
+    Engine::Value ex_decompress(int program_index);
+    Engine::Value ex_hash(int program_index);
 
 
     // --------------------------------------------------------------------------
@@ -333,19 +329,19 @@ public:
     // (DateRT.cpp)
     // --------------------------------------------------------------------------
 public:
-    double ex_timestamp(int program_index);
-    double ex_timestring(int program_index);
-    double ex_sysdate(int program_index);
-    double ex_systime(int program_index);
-    double ex_dateadd(int program_index);
-    double ex_datediff(int program_index);
-    double ex_datevalid(int program_index);
-    double ex_cmcode(int program_index);
-    double ex_setlb_setub(int program_index);
-    double ex_adjlba(int program_index);
-    double ex_adjuba(int program_index);
-    double ex_adjlbi(int program_index);
-    double ex_adjubi(int program_index);
+    Engine::Value ex_timestamp(int program_index);
+    Engine::Value ex_timestring(int program_index);
+    Engine::Value ex_sysdate(int program_index);
+    Engine::Value ex_systime(int program_index);
+    Engine::Value ex_dateadd(int program_index);
+    Engine::Value ex_datediff(int program_index);
+    Engine::Value ex_datevalid(int program_index);
+    Engine::Value ex_cmcode(int program_index);
+    Engine::Value ex_setlb_setub(int program_index);
+    Engine::Value ex_adjlba(int program_index);
+    Engine::Value ex_adjuba(int program_index);
+    Engine::Value ex_adjlbi(int program_index);
+    Engine::Value ex_adjubi(int program_index);
 
 
     // --------------------------------------------------------------------------
@@ -353,12 +349,12 @@ public:
     // (DocumentRT.cpp)
     // --------------------------------------------------------------------------
 public:
-    double ex_Document_compute(int program_index);
-    double ex_Document_clear(int program_index);
-    double ex_Document_load(int program_index);
-    double ex_Document_save(int program_index);
-    double ex_Document_view(int program_index);
-    double ex_Document_view(const LogicDocument& logic_document, const ViewerOptions* viewer_options);
+    Engine::Value ex_Document_compute(int program_index);
+    Engine::Value ex_Document_clear(int program_index);
+    Engine::Value ex_Document_load(int program_index);
+    Engine::Value ex_Document_save(int program_index);
+    Engine::Value ex_Document_view(int program_index);
+    Engine::Value ex_Document_view(const LogicDocument& logic_document, const ViewerOptions* viewer_options);
 
 
     // --------------------------------------------------------------------------
@@ -366,15 +362,15 @@ public:
     // (GeometryRT.cpp)
     // --------------------------------------------------------------------------
 public:
-    double ex_Geometry_compute(int program_index);
-    double ex_Geometry_clear(int program_index);
-    double ex_Geometry_load(int program_index);
-    double ex_Geometry_save(int program_index);
-    double ex_Geometry_tracePolygon_walkPolygon(int program_index);
-    double ex_Geometry_area_perimeter(int program_index);
-    double ex_Geometry_minLatitude_maxLatitude_minLongitude_maxLongitude(int program_index);
-    double ex_Geometry_getProperty(int program_index);
-    double ex_Geometry_setProperty(int program_index);
+    Engine::Value ex_Geometry_compute(int program_index);
+    Engine::Value ex_Geometry_clear(int program_index);
+    Engine::Value ex_Geometry_load(int program_index);
+    Engine::Value ex_Geometry_save(int program_index);
+    Engine::Value ex_Geometry_tracePolygon_walkPolygon(int program_index);
+    Engine::Value ex_Geometry_area_perimeter(int program_index);
+    Engine::Value ex_Geometry_minLatitude_maxLatitude_minLongitude_maxLongitude(int program_index);
+    Engine::Value ex_Geometry_getProperty(int program_index);
+    Engine::Value ex_Geometry_setProperty(int program_index);
 
 private:
     bool EnsureGeometryExistsAndHasValidContent(const LogicGeometry& logic_geometry, const char* action_for_displayed_error_message);
@@ -385,13 +381,13 @@ private:
     // (HashMapRT.cpp)
     // --------------------------------------------------------------------------
 public:
-    double ex_HashMap_var(int program_index);
-    double ex_HashMap_compute(int program_index);
-    double ex_HashMap_clear(int program_index);
-    double ex_HashMap_contains(int program_index);
-    double ex_HashMap_getKeys(int program_index);
-    double ex_HashMap_length(int program_index);
-    double ex_HashMap_remove(int program_index);
+    Engine::Value ex_HashMap_var(int program_index);
+    Engine::Value ex_HashMap_compute(int program_index);
+    Engine::Value ex_HashMap_clear(int program_index);
+    Engine::Value ex_HashMap_contains(int program_index);
+    Engine::Value ex_HashMap_getKeys(int program_index);
+    Engine::Value ex_HashMap_length(int program_index);
+    Engine::Value ex_HashMap_remove(int program_index);
 
 private:
     // Returns the index, or an empty vector if the index is invalid.
@@ -405,18 +401,18 @@ private:
     // (ImageRT.cpp)
     // --------------------------------------------------------------------------
 public:
-    double ex_Image_compute(int program_index);
-    double ex_Image_clear(int program_index);
-    double ex_Image_getExif(int program_index);
-    double ex_Image_load(int program_index);
-    double ex_Image_resample(int program_index);
-    double ex_Image_save(int program_index);
-    double ex_Image_captureSignature_takePhoto(int program_index);
-    double ex_Image_captureSignature_native(int program_index);
-    double ex_Image_takePhoto_native(int program_index);
-    double ex_Image_view(int program_index);
-    double ex_Image_view(const LogicImage& logic_image, const ViewerOptions* viewer_options);
-    double ex_Image_width_height(int program_index);
+    Engine::Value ex_Image_compute(int program_index);
+    Engine::Value ex_Image_clear(int program_index);
+    Engine::Value ex_Image_getExif(int program_index);
+    Engine::Value ex_Image_load(int program_index);
+    Engine::Value ex_Image_resample(int program_index);
+    Engine::Value ex_Image_save(int program_index);
+    Engine::Value ex_Image_captureSignature_takePhoto(int program_index);
+    Engine::Value ex_Image_captureSignature_native(int program_index);
+    Engine::Value ex_Image_takePhoto_native(int program_index);
+    Engine::Value ex_Image_view(int program_index);
+    Engine::Value ex_Image_view(const LogicImage& logic_image, const ViewerOptions* viewer_options);
+    Engine::Value ex_Image_width_height(int program_index);
 
 
     // --------------------------------------------------------------------------
@@ -459,18 +455,17 @@ private:
     // (JavaScriptRT.cpp)
     // --------------------------------------------------------------------------
 public:
-    double ex_JavaScript_eval(int program_index);
-    double ex_JavaScript_invoke(int program_index);
-    double ex_JavaScript_hasValue(int program_index);
-    double ex_JavaScript_getValueJson(int program_index);
-    double ex_JavaScript_setValueFromJson(int program_index);
-    double ex_JavaScript_getValue(int program_index);
-    double ex_JavaScript_setValue(int program_index);
-    double ex_JavaScript_UserFunctionCall(int program_index);
+    Engine::Value ex_JavaScript_eval(int program_index);
+    Engine::Value ex_JavaScript_invoke(int program_index);
+    Engine::Value ex_JavaScript_hasValue(int program_index);
+    Engine::Value ex_JavaScript_getValueJson(int program_index);
+    Engine::Value ex_JavaScript_setValueFromJson(int program_index);
+    Engine::Value ex_JavaScript_getValue(int program_index);
+    Engine::Value ex_JavaScript_setValue(int program_index);
+    Engine::Value ex_JavaScript_UserFunctionCall(int program_index);
 
 private:
-    template<typename CF>
-    auto ExecuteWithJavaScriptProcessor(const CF& callback_function);
+    Engine::Value ExecuteWithJavaScriptProcessor(const std::function<Engine::Value(EngineJavaScriptProcessor&)>& callback_function);
 
     std::optional<JavaScript::Value> ConvertValueToJavaScript(EngineJavaScriptProcessor& javascript_processor,
                                                               int symbol_type_or_index, int expression_or_symbol_subscript_compilation);
@@ -487,8 +482,8 @@ public:
     JsonReaderInterface* GetEngineJsonReaderInterface();
     std::string GetSymbolJson(const Symbol& symbol, Symbol::SymbolJsonOutput symbol_json_output, const JsonNode* serialization_options_node);
     void SetSymbolValueFromJson(Symbol& symbol, const JsonNode& json_node);
-    double ex_Symbol_getJson_getValueJson(int program_index);
-    double ex_Symbol_setValueFromJson(int program_index);
+    Engine::Value ex_Symbol_getJson_getValueJson(int program_index);
+    Engine::Value ex_Symbol_setValueFromJson(int program_index);
 
 private:
     std::unique_ptr<JsonReaderInterface> m_engineJsonReaderInterface;
@@ -499,19 +494,19 @@ private:
     // (ListRT.cpp)
     // --------------------------------------------------------------------------
 public:
-    double ex_List_var(int program_index);
-    double ex_List_compute(int program_index);
-    double ex_List_add(int program_index);
-    double ex_List_clear(int program_index);
-    double ex_List_insert(int program_index);
-    double ex_List_length(int program_index);
-    double ex_List_remove(int program_index);
-    double ex_List_removeDuplicates(int program_index);
-    double ex_List_removeIn(int program_index);
-    double ex_List_seek(int program_index);
-    double ex_List_show(int program_index);
-    double ex_List_show_pre77(int program_index);
-    double ex_List_sort(int program_index);
+    Engine::Value ex_List_var(int program_index);
+    Engine::Value ex_List_compute(int program_index);
+    Engine::Value ex_List_add(int program_index);
+    Engine::Value ex_List_clear(int program_index);
+    Engine::Value ex_List_insert(int program_index);
+    Engine::Value ex_List_length(int program_index);
+    Engine::Value ex_List_remove(int program_index);
+    Engine::Value ex_List_removeDuplicates(int program_index);
+    Engine::Value ex_List_removeIn(int program_index);
+    Engine::Value ex_List_seek(int program_index);
+    Engine::Value ex_List_show(int program_index);
+    Engine::Value ex_List_show_pre77(int program_index);
+    Engine::Value ex_List_sort(int program_index);
 
 private:
     // Returns the one-based index, or std::nullopt if the index is invalid.
@@ -537,30 +532,30 @@ private:
     // (MapRT.cpp)
     // --------------------------------------------------------------------------
 public:
-    double ex_Map_show(int program_index);
-    double ex_Map_hide(int program_index);
-    double ex_Map_addMarker(int program_index);
-    double ex_Map_setMarkerImage(int program_index);
-    double ex_Map_setMarkerText(int program_index);
-    double ex_Map_setMarkerOnClick_setMarkerOnClickInfo(int program_index);
-    double ex_Map_setMarkerDescription(int program_index);
-    double ex_Map_setMarkerOnDrag(int program_index);
-    double ex_Map_setMarkerLocation(int program_index);
-    double ex_Map_getMarkerLatitude_getMarkerLongitude(int program_index);
-    double ex_Map_removeMarker(int program_index);
-    double ex_Map_setOnClick(int program_index);
-    double ex_Map_showCurrentLocation(int program_index);
-    double ex_Map_addTextButton(int program_index);
-    double ex_Map_addImageButton(int program_index);
-    double ex_Map_removeButton(int program_index);
-    double ex_Map_setBaseMap(int program_index);
-    double ex_Map_setTitle(int program_index);
-    double ex_Map_zoomTo(int program_index);
-    double ex_Map_clear_clearButtons_clearGeometry_clearMarkers(int program_index);
-    double ex_Map_getLastClickLatitude_getLastClickLongitude(int program_index);
-    double ex_Map_addGeometry(int program_index);
-    double ex_Map_removeGeometry(int program_index);
-    double ex_Map_saveSnapshot(int program_index);
+    Engine::Value ex_Map_show(int program_index);
+    Engine::Value ex_Map_hide(int program_index);
+    Engine::Value ex_Map_addMarker(int program_index);
+    Engine::Value ex_Map_setMarkerImage(int program_index);
+    Engine::Value ex_Map_setMarkerText(int program_index);
+    Engine::Value ex_Map_setMarkerOnClick_setMarkerOnClickInfo(int program_index);
+    Engine::Value ex_Map_setMarkerDescription(int program_index);
+    Engine::Value ex_Map_setMarkerOnDrag(int program_index);
+    Engine::Value ex_Map_setMarkerLocation(int program_index);
+    Engine::Value ex_Map_getMarkerLatitude_getMarkerLongitude(int program_index);
+    Engine::Value ex_Map_removeMarker(int program_index);
+    Engine::Value ex_Map_setOnClick(int program_index);
+    Engine::Value ex_Map_showCurrentLocation(int program_index);
+    Engine::Value ex_Map_addTextButton(int program_index);
+    Engine::Value ex_Map_addImageButton(int program_index);
+    Engine::Value ex_Map_removeButton(int program_index);
+    Engine::Value ex_Map_setBaseMap(int program_index);
+    Engine::Value ex_Map_setTitle(int program_index);
+    Engine::Value ex_Map_zoomTo(int program_index);
+    Engine::Value ex_Map_clear_clearButtons_clearGeometry_clearMarkers(int program_index);
+    Engine::Value ex_Map_getLastClickLatitude_getLastClickLongitude(int program_index);
+    Engine::Value ex_Map_addGeometry(int program_index);
+    Engine::Value ex_Map_removeGeometry(int program_index);
+    Engine::Value ex_Map_saveSnapshot(int program_index);
 
 private:
     template<typename T>
@@ -572,10 +567,11 @@ private:
     // (NetworkRT.cpp)
     // --------------------------------------------------------------------------
 public:
-    double ex_connection(int program_index);
+    Engine::Value ex_connection(int program_index);
 
 
     // --------------------------------------------------------------------------
+    // path routines +
     // path functions
     // (PathRT.cpp)
     // --------------------------------------------------------------------------
@@ -591,6 +587,17 @@ public:
     void MakeAbsolutePath(ConnectionString& connection_string);
     ConnectionString EvaluateConnectionString(int program_index);
 
+    Engine::Value ex_pathname(int program_index);
+    Engine::Value ex_Path_concat(int program_index);
+    Engine::Value ex_Path_getDirectoryName(int program_index);
+    Engine::Value ex_Path_getExtension(int program_index);
+    Engine::Value ex_Path_getFileName(int program_index);
+    Engine::Value ex_Path_getFileNameWithoutExtension(int program_index);
+    Engine::Value ex_Path_getRelativePath(int program_index);
+    Engine::Value ex_Path_selectFile(int program_index);
+
+    Engine::Value ex_dirlist(const int program_index);
+
 private:
     std::string m_currentWorkingDirectory;
 
@@ -600,12 +607,12 @@ private:
     // (Pff RT.cpp)
     // --------------------------------------------------------------------------
 public:
-    double ex_Pff_compute(int program_index);
-    double ex_Pff_load(int program_index);
-    double ex_Pff_save(int program_index);
-    double ex_Pff_getProperty(int program_index);
-    double ex_Pff_setProperty(int program_index);
-    double ex_Pff_exec(int program_index);
+    Engine::Value ex_Pff_compute(int program_index);
+    Engine::Value ex_Pff_load(int program_index);
+    Engine::Value ex_Pff_save(int program_index);
+    Engine::Value ex_Pff_getProperty(int program_index);
+    Engine::Value ex_Pff_setProperty(int program_index);
+    Engine::Value ex_Pff_exec(int program_index);
 
 
     // --------------------------------------------------------------------------
@@ -613,7 +620,7 @@ public:
     // (PropertiesRT.cpp)
     // --------------------------------------------------------------------------
 public:
-    double ex_diagnostics(int program_index);
+    Engine::Value ex_diagnostics(int program_index);
 
 
     // --------------------------------------------------------------------------
@@ -621,11 +628,11 @@ public:
     // (ReportRT.cpp)
     // --------------------------------------------------------------------------
 public:
-    double ex_Report_view(int program_index);
-    double ex_Report_save(int program_index);
+    Engine::Value ex_Report_view(int program_index);
+    Engine::Value ex_Report_save(int program_index);
 
 private:
-    double ex_Report_view(Report& report, const ViewerOptions* viewer_options);
+    Engine::Value ex_Report_view(Report& report, const ViewerOptions* viewer_options);
     std::unique_ptr<std::string> GenerateReport(Report& report, const std::string* output_file_path);
 
 
@@ -634,8 +641,8 @@ private:
     // (StringWriterRT.cpp)
     // --------------------------------------------------------------------------
 public:
-    double ex_StringWriter_clear(int program_index);
-    double ex_StringWriter_toString(int program_index);
+    Engine::Value ex_StringWriter_clear(int program_index);
+    Engine::Value ex_StringWriter_toString(int program_index);
 
 
     // --------------------------------------------------------------------------
@@ -643,11 +650,11 @@ public:
     // (SwitchRT.cpp)
     // --------------------------------------------------------------------------
 public:
-    double ex_recode(int program_index);
-    double ex_when(int program_index);
+    Engine::Value ex_recode(int program_index);
+    Engine::Value ex_when(int program_index);
 
-    double ex_in(int program_index);
-    double ex_randomin(int program_index);
+    Engine::Value ex_in(int program_index);
+    Engine::Value ex_randomin(int program_index);
 
 private:
     std::optional<std::tuple<const int*, const int*>> EvaluateSwitchConditions(int program_index);
@@ -661,8 +668,8 @@ private:
     // (SymbolRT.cpp)
     // --------------------------------------------------------------------------
 public:
-    double ex_Symbol_getLabel(int program_index);
-    double ex_Symbol_getName(int program_index);
+    Engine::Value ex_Symbol_getLabel(int program_index);
+    Engine::Value ex_Symbol_getName(int program_index);
 
 
     // --------------------------------------------------------------------------
@@ -670,10 +677,10 @@ public:
     // (SystemAppRT.cpp)
     // --------------------------------------------------------------------------
 public:
-    double ex_SystemApp_clear(int program_index);
-    double ex_SystemApp_setArgument(int program_index);
-    double ex_SystemApp_getResult(int program_index);
-    double ex_SystemApp_exec(int program_index);
+    Engine::Value ex_SystemApp_clear(int program_index);
+    Engine::Value ex_SystemApp_setArgument(int program_index);
+    Engine::Value ex_SystemApp_getResult(int program_index);
+    Engine::Value ex_SystemApp_exec(int program_index);
 
 
     // --------------------------------------------------------------------------
@@ -681,13 +688,13 @@ public:
     // (SystemRT.cpp)
     // --------------------------------------------------------------------------
 public:
-    double ex_getusername(int program_index);
-    double ex_getos(int program_index);
-    double ex_getdeviceid(int program_index);
-    double ex_uuid(int program_index);
-    double ex_sysparm(int program_index);
-    double ex_savesetting(int program_index);
-    double ex_loadsetting(int program_index);
+    Engine::Value ex_getusername(int program_index);
+    Engine::Value ex_getos(int program_index);
+    Engine::Value ex_getdeviceid(int program_index);
+    Engine::Value ex_uuid(int program_index);
+    Engine::Value ex_sysparm(int program_index);
+    Engine::Value ex_savesetting(int program_index);
+    Engine::Value ex_loadsetting(int program_index);
 
 
     // --------------------------------------------------------------------------
@@ -695,7 +702,7 @@ public:
     // (TextTemplateRT.cpp)
     // --------------------------------------------------------------------------
 public:
-    double ex_TextTemplate_write_writeEncoded_writeEncodedLine_writeLine(int program_index);
+    Engine::Value ex_TextTemplate_write_writeEncoded_writeEncodedLine_writeLine(int program_index);
 
 protected: // INTERPRETER_DLL_TODO change to private
     SharableString EncodeText(SharableString text, EncodeType encode_type);
@@ -711,7 +718,7 @@ protected: // INTERPRETER_DLL_TODO change to private
     // (UserFunctionRT.cpp)
     // --------------------------------------------------------------------------
 public:
-    double ex_UserFunction_compute(int program_index);
+    Engine::Value ex_UserFunction_compute(int program_index);
 
 
     // --------------------------------------------------------------------------
@@ -719,11 +726,11 @@ public:
     // (UserInterfaceRT.cpp)
     // --------------------------------------------------------------------------
 public:
-    double ex_view(int program_index);
-    double ex_prompt(int program_index);
-    double ex_accept(int program_index);
-    double ex_htmldialog(int program_index);
-    double ex_setfont(int program_index);
+    Engine::Value ex_view(int program_index);
+    Engine::Value ex_prompt(int program_index);
+    Engine::Value ex_accept(int program_index);
+    Engine::Value ex_htmldialog(int program_index);
+    Engine::Value ex_setfont(int program_index);
 
 protected:
     std::optional<CSize> EvaluateSize(int width_program_index, int height_program_index);
@@ -735,23 +742,23 @@ protected:
     // (ValueSetRT.cpp)
     // --------------------------------------------------------------------------
 public:
-    double ex_minvalue_maxvalue(int program_index);
-    double ex_invalueset(int program_index);
-    double ex_getimage(int program_index);
-    double ex_setvalueset(int program_index);
-    double ex_setvalueset_pre80(int program_index);
-    double ex_setvaluesets(int program_index);
-    double ex_randomizevs(int program_index);
+    Engine::Value ex_minvalue_maxvalue(int program_index);
+    Engine::Value ex_invalueset(int program_index);
+    Engine::Value ex_getimage(int program_index);
+    Engine::Value ex_setvalueset(int program_index);
+    Engine::Value ex_setvalueset_pre80(int program_index);
+    Engine::Value ex_setvaluesets(int program_index);
+    Engine::Value ex_randomizevs(int program_index);
 
-    double ex_ValueSet_compute(int program_index);
-    double ex_ValueSet_add(int program_index);
-    double ex_ValueSet_clear(int program_index);
-    double ex_ValueSet_length(int program_index);
-    double ex_ValueSet_remove(int program_index);
-    double ex_ValueSet_removeDuplicates(int program_index);
-    double ex_ValueSet_show(int program_index);
-    double ex_ValueSet_show_pre77(int program_index);
-    double ex_ValueSet_sort(int program_index);
+    Engine::Value ex_ValueSet_compute(int program_index);
+    Engine::Value ex_ValueSet_add(int program_index);
+    Engine::Value ex_ValueSet_clear(int program_index);
+    Engine::Value ex_ValueSet_length(int program_index);
+    Engine::Value ex_ValueSet_remove(int program_index);
+    Engine::Value ex_ValueSet_removeDuplicates(int program_index);
+    Engine::Value ex_ValueSet_show(int program_index);
+    Engine::Value ex_ValueSet_show_pre77(int program_index);
+    Engine::Value ex_ValueSet_sort(int program_index);
 
 
     // --------------------------------------------------------------------------
@@ -761,7 +768,7 @@ public:
 public:
     template<typename T> bool AssignValueToSymbol(const Nodes::SymbolValue& symbol_value_node, T value);
     template<typename T> T EvaluateSymbolValue(const Nodes::SymbolValue& symbol_value_node);
-    template<typename T> void ModifySymbolValue(const Nodes::SymbolValue& symbol_value_node, const std::function<void(T&)>& modify_value_function);
+    template<typename T> Engine::Value ModifySymbolValue(const Nodes::SymbolValue& symbol_value_node, const std::function<void(T&)>& modify_value_function);
 
 
     // --------------------------------------------------------------------------
@@ -769,17 +776,20 @@ public:
     // (VideoRT.cpp)
     // --------------------------------------------------------------------------
 public:
-    double ex_Video_compute(int program_index);
-    double ex_Video_clear(int program_index);
-    double ex_Video_length(int program_index);
-    double ex_Video_load(int program_index);
-    double ex_Video_save(int program_index);
-    double ex_Video_width_height(int program_index);
+    Engine::Value ex_Video_compute(int program_index);
+    Engine::Value ex_Video_clear(int program_index);
+    Engine::Value ex_Video_length(int program_index);
+    Engine::Value ex_Video_load(int program_index);
+    Engine::Value ex_Video_save(int program_index);
+    Engine::Value ex_Video_width_height(int program_index);
 
 
     // --------------------------------------------------------------------------
     // other class variables
     // --------------------------------------------------------------------------
+public:
+    const EngineData& GetEngineData() const { return *m_engineData; }
+
 protected:
     cs::non_null_shared_or_raw_ptr<EngineData> m_engineData;
     cs::non_null_shared_or_raw_ptr<ApplicationInterface> m_applicationInterface;
@@ -790,13 +800,14 @@ protected:
     // INTERPRETER_DLL_TODO...
     // --------------------------------------------------------------------------
 private:
-    virtual double evalexpr_INTERPRETER_DLL_TODO(int program_index) = 0;
+    virtual Engine::Value evalexpr_INTERPRETER_DLL_TODO(Engine::Value (CIntDriver::*instruction)(int), int program_index) = 0;
+    virtual double evalexpr_INTERPRETER_DLL_TODO(double (CIntDriver::*instruction)(int), int program_index) = 0;
     virtual void RegisterAndLogEvent_INTERPRETER_DLL_TODO(std::shared_ptr<Paradata::Event> event, const void* instance_object = nullptr) = 0;
     virtual SharableString EvaluateTextFill(int program_index) = 0; // INTERPRETER_DLL_TODO remove as virtual
-    virtual bool Report_Evaluate_INTERPRETER_DLL_TODO(Report& report) = 0; // INTERPRETER_DLL_TODO remove as virtual
-    virtual double RunSoonToBeRemoveFeature(std::string_view feature_sv, int program_index, void* tag) = 0;
+    virtual InterpreterExecuteResult Report_Evaluate_INTERPRETER_DLL_TODO(Report& report) = 0; // INTERPRETER_DLL_TODO remove as virtual
+    virtual Engine::Value RunSoonToBeRemovedFeature(std::string_view feature_sv, int program_index, void* tag) = 0;
     virtual bool HasSpecialFunction(SpecialFunction::Code special_function) = 0; // INTERPRETER_DLL_TODO remove as virtual
-    virtual double ExecSpecialFunction(int symbol_index, SpecialFunction::Code special_function, std::vector<std::variant<double, SharableString>> arguments) = 0; // INTERPRETER_DLL_TODO remove as virtual
+    virtual Engine::Value ExecSpecialFunction(int symbol_index, SpecialFunction::Code special_function, std::vector<std::variant<double, SharableString>> arguments) = 0; // INTERPRETER_DLL_TODO remove as virtual
     virtual int Get_m_iExSymbol_INTERPRETER_DLL_TODO() = 0;
     virtual Symbol* GetFromSymbolOrEngineItemWorker_INTERPRETER_DLL_TODO(const SymbolReference<Symbol*>& symbol_reference, bool use_exceptions) = 0;
     virtual std::shared_ptr<Symbol> GetFromSymbolOrEngineItemWorker_INTERPRETER_DLL_TODO(const SymbolReference<std::shared_ptr<Symbol>>& symbol_reference, bool use_exceptions) = 0;
@@ -806,19 +817,18 @@ private:
                                       const std::vector<CString>* paColumnTitles, std::vector<bool>* pbaSelections,
                                       const std::vector<PortableColor>* row_text_colors) = 0;
     virtual EngineParadataDriver& GetEngineParadataDriver_INTERPRETER_DLL_TODO() = 0;
-    virtual bool ExecuteProgramStatements(int program_index) = 0; // INTERPRETER_DLL_TODO remove as virtual
     virtual void ExecuteCallbackUserFunction(int field_symbol_index, UserFunctionArgumentEvaluator& argument_evaluator) = 0; // INTERPRETER_DLL_TODO remove as virtual
     virtual std::unique_ptr<UserFunctionArgumentEvaluator> EvaluateArgumentsForCallbackUserFunction(int program_index, FunctionCode function_code) = 0; // INTERPRETER_DLL_TODO remove as virtual
-    virtual double ex_Freq_view(const NamedFrequency& named_frequency, const ViewerOptions* viewer_options, int frequency_parameters_node_index) = 0; // INTERPRETER_DLL_TODO remove as virtual
-    virtual double exCase_view(const CSymbolDict& dictionary, const ViewerOptions* viewer_options) = 0; // INTERPRETER_DLL_TODO remove as virtual
-    virtual double ExExecPFF_INTERPRETER_DLL_TODO(LogicPff& logic_pff) = 0; // INTERPRETER_DLL_TODO remove as virtual
+    virtual Engine::Value ex_Freq_view(const NamedFrequency& named_frequency, const ViewerOptions* viewer_options, int frequency_parameters_node_index) = 0; // INTERPRETER_DLL_TODO remove as virtual
+    virtual Engine::Value exCase_view(const CSymbolDict& dictionary, const ViewerOptions* viewer_options) = 0; // INTERPRETER_DLL_TODO remove as virtual
+    virtual Engine::Value ExExecPFF_INTERPRETER_DLL_TODO(LogicPff& logic_pff) = 0; // INTERPRETER_DLL_TODO remove as virtual
     virtual FrequencyDriver* GetFrequencyDriver_INTERPRETER_DLL_TODO() = 0;
     virtual void AssignValueToVART_INTERPRETER_DLL_TODO(int variable_compilation, double value) = 0; // INTERPRETER_DLL_TODO remove as virtual
     virtual void AssignValueToVART_INTERPRETER_DLL_TODO(int variable_compilation, SharableString value) = 0; // INTERPRETER_DLL_TODO remove as virtual
     virtual double EvaluateVARTValue_double_INTERPRETER_DLL_TODO(int variable_compilation) = 0; // INTERPRETER_DLL_TODO remove as virtual
     virtual SharableString EvaluateVARTValue_SharableString_INTERPRETER_DLL_TODO(int variable_compilation) = 0; // INTERPRETER_DLL_TODO remove as virtual
-    virtual void ModifyVARTValue_INTERPRETER_DLL_TODO(int variable_compilation, const std::function<void(double&)>& modify_value_function, std::unique_ptr<Paradata::FieldInfo>* paradata_field_info = nullptr) = 0; // INTERPRETER_DLL_TODO remove as virtual
-    virtual void ModifyVARTValue_INTERPRETER_DLL_TODO(int variable_compilation, const std::function<void(SharableString&)>& modify_value_function, std::unique_ptr<Paradata::FieldInfo>* paradata_field_info = nullptr) = 0; // INTERPRETER_DLL_TODO remove as virtual
+    virtual Engine::Value ModifyVARTValue_INTERPRETER_DLL_TODO(int variable_compilation, const std::function<void(double&)>& modify_value_function, std::unique_ptr<Paradata::FieldInfo>* paradata_field_info = nullptr) = 0; // INTERPRETER_DLL_TODO remove as virtual
+    virtual Engine::Value ModifyVARTValue_INTERPRETER_DLL_TODO(int variable_compilation, const std::function<void(SharableString&)>& modify_value_function, std::unique_ptr<Paradata::FieldInfo>* paradata_field_info = nullptr) = 0; // INTERPRETER_DLL_TODO remove as virtual
     int SymbolTableSearchWithPreference_INTERPRETER_DLL_TODO(std::string_view full_symbol_name_sv, SymbolType preferred_symbol_type) const { return SymbolTableSearch_INTERPRETER_DLL_TODO(full_symbol_name_sv, preferred_symbol_type, nullptr); }
     int SymbolTableSearch_INTERPRETER_DLL_TODO(std::string_view full_symbol_name_sv, const std::vector<SymbolType>& allowable_symbol_types, SymbolType preferred_symbol_type = SymbolType::None) const { return SymbolTableSearch_INTERPRETER_DLL_TODO(full_symbol_name_sv, preferred_symbol_type, &allowable_symbol_types); }
     virtual int SymbolTableSearch_INTERPRETER_DLL_TODO(std::string_view full_symbol_name_sv, SymbolType preferred_symbol_type,
@@ -838,16 +848,66 @@ const NodeType& LogicInterpreter::GetNode(const int program_index) const
 }
 
 
-template<typename T/* = double*/>
-T LogicInterpreter::Evaluate(const int program_index)
+inline Engine::Value LogicInterpreter::ExecuteInstruction(const FunctionCode function_code, const int program_index)
 {
-    if      constexpr(std::is_same_v<T, SharableString>) { return EvaluateSharableString(program_index); }
-    else if constexpr(std::is_same_v<T, std::string>)    { return EvaluateString(program_index); }
-    else                                                 { return static_cast<T>(evalexpr_INTERPRETER_DLL_TODO(program_index)); }
+    const Instruction& instruction = m_instructions[static_cast<size_t>(function_code)];
+    ASSERT(std::visit([](const auto& instruction_) -> bool { return ( instruction_ != nullptr ); }, instruction));
+
+    return ( instruction.index() == 0 ) ? (this->*(std::get<0>(instruction)))(program_index) :
+           ( instruction.index() == 1 ) ? (this->*(std::get<1>(instruction)))(program_index) :
+           ( instruction.index() == 2 ) ? evalexpr_INTERPRETER_DLL_TODO(std::get<2>(instruction), program_index) :
+                                          evalexpr_INTERPRETER_DLL_TODO(std::get<3>(instruction), program_index);
 }
 
 
-template<typename T/* = double*/>
+inline Engine::Value LogicInterpreter::ExecuteInstruction(const int program_index)
+{
+    const int* const function_code_ptr = m_logicByteCode.GetCodeAtPosition(program_index);
+    return ExecuteInstruction(static_cast<FunctionCode>(*function_code_ptr), program_index);
+}
+
+
+template<typename T>
+T LogicInterpreter::Evaluate(const int program_index)
+{
+    static_assert(std::is_same_v<T, double> ||
+                  std::is_same_v<T, int> ||
+                  std::is_same_v<T, unsigned int> ||
+                  std::is_same_v<T, int64_t> ||
+                  std::is_same_v<T, size_t>);
+
+    return static_cast<T>(ExecuteInstruction(program_index).get<double>());
+}
+
+
+template<>
+inline Engine::Value LogicInterpreter::Evaluate(const int program_index)
+{
+    return ExecuteInstruction(program_index);
+}
+
+
+template<>
+inline SharableString LogicInterpreter::Evaluate(const int program_index)
+{
+#ifdef _DEBUG
+    Engine::Value value = Evaluate<Engine::Value>(program_index);
+    ASSERT82(value.is<SharableString>());
+    return value.as<SharableString>();
+#else
+    return Evaluate<Engine::Value>(program_index).as<SharableString>();
+#endif
+}
+
+
+template<>
+inline std::string LogicInterpreter::Evaluate(const int program_index)
+{
+    return Evaluate<SharableString>(program_index).Release();
+}
+
+
+template<typename T>
 std::optional<T> LogicInterpreter::EvaluateOptional(const int program_index)
 {
     if( program_index != -1 )
@@ -857,7 +917,7 @@ std::optional<T> LogicInterpreter::EvaluateOptional(const int program_index)
 }
 
 
-template<typename T/* = double*/, typename DVT>
+template<typename T, typename DVT>
 T LogicInterpreter::EvaluateOptional(int program_index, DVT&& default_value)
 {
     if( program_index != -1 )
@@ -896,23 +956,6 @@ std::string LogicInterpreter::GetFormattedMessage(const int message_number, Args
 #endif
 
     return GetFormattedMessageWorker(message_number, args...);
-}
-
-
-template<typename T>
-double LogicInterpreter::AssignString(T&& value)
-{
-    if constexpr(cs::is_optional<T>::value)
-    {
-        return value.has_value() ? AssignString(std::move(*value)) :
-                                   AssignStringNull();
-    }
-
-    else
-    {
-        m_workingStrings.emplace_back(std::forward<T>(value));
-        return static_cast<double>(m_workingStrings.size() - 1);
-    }
 }
 
 

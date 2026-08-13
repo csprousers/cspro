@@ -1,22 +1,25 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "IncludesRT.h"
 #include "Report.h"
 #include "Nodes/Report.h"
+#include <engine/InterpreterAccessor.h>
 #include <zUtilO/TemporaryFile.h>
 #include <zViewO/MarkdownViewInput.h>
 
 
-double LogicInterpreter::ex_Report_save(const int program_index)
+Engine::Value LogicInterpreter::ex_Report_save(const int program_index)
 {
     const auto& report_save_node = GetNode<Nodes::Report::Save>(program_index);
     Report& report = GetSymbolReport(report_save_node.symbol_index);
     const std::string report_file_path = EvaluatePath(report_save_node.filename_expression);
 
-    return ( GenerateReport(report, &report_file_path) != nullptr ) ? 1 : 0;
+    return Engine::Value::Bool(
+        ( GenerateReport(report, &report_file_path) != nullptr )
+    );
 }
 
 
-double LogicInterpreter::ex_Report_view(const int program_index)
+Engine::Value LogicInterpreter::ex_Report_view(const int program_index)
 {
     const auto& report_view_node = GetNode<Nodes::Report::View>(program_index);
     Report& report = GetSymbolReport(report_view_node.symbol_index);
@@ -26,7 +29,7 @@ double LogicInterpreter::ex_Report_view(const int program_index)
 }
 
 
-double LogicInterpreter::ex_Report_view(Report& report, const ViewerOptions* const viewer_options)
+Engine::Value LogicInterpreter::ex_Report_view(Report& report, const ViewerOptions* const viewer_options)
 {
     // if not creating a HTML or Markdown report, which can be shown in the embedded browser,
     // save the report to a temporary file that will be deleted when the program ends
@@ -42,7 +45,7 @@ double LogicInterpreter::ex_Report_view(Report& report, const ViewerOptions* con
     const std::unique_ptr<std::string> report_text_builder = GenerateReport(report, report_file_path.get());
 
     if( report_text_builder == nullptr )
-        return 0;
+        return Engine::Value::Bool(false);
 
     Viewer viewer;
     viewer.UseEmbeddedViewer();
@@ -68,7 +71,7 @@ double LogicInterpreter::ex_Report_view(Report& report, const ViewerOptions* con
         viewer.ViewFile(*report_file_path);
     }
 
-    return 1;
+    return Engine::Value::Bool(true);
 }
 
 
@@ -79,28 +82,31 @@ std::unique_ptr<std::string> LogicInterpreter::GenerateReport(Report& report, co
     try
     {
         if( report.GetReportTextBuilder() != nullptr )
-            throw CSProException("Multiple instances of the %s report cannot be generated at the same time.", report.GetName().c_str());
+        {
+            throw CSProException("Multiple instances of the %s report cannot be generated at the same time.",
+                                 report.GetName().c_str());
+        }
 
         report.SetReportTextBuilder(report_text_builder.get());
 
 #ifdef INTERPRETER_DLL_TODO
-        const bool program_control_executed = Execute(
+        const InterpreterExecuteResult execute_result = Execute(
             [&]()
             {
                 // run the code to generate the report
                 ValueConserver field_symbol_index_conserver(m_FieldSymbol, m_iExSymbol);
                 ValueConserver execution_symbol_index_conserver(m_iExSymbol, report.GetSymbolIndex());
 
-                ExecuteProgramStatements(report.GetProgramIndex());
+                return ExecuteProgramStatements<Engine::Value>(report.GetProgramIndex());
             });
 #else
-        const bool program_control_executed = Report_Evaluate_INTERPRETER_DLL_TODO(report);
+        const InterpreterExecuteResult execute_result = Report_Evaluate_INTERPRETER_DLL_TODO(report);
 #endif
 
         report.SetReportTextBuilder(nullptr);
 
         // if there was a program control statement executed, act as though the report could not be generated
-        if( program_control_executed )
+        if( execute_result.program_control_executed )
         {
             report_text_builder.reset();
         }

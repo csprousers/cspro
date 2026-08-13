@@ -17,9 +17,7 @@
 #include <zEngineO/Interpreter/SelectDlgHelper.h>
 #include <zEngineO/Messages/EngineMessages.h>
 #include <zEngineO/Nodes/File.h>
-#include <zEngineO/Nodes/Switch.h>
 #include <zEngineO/Nodes/Trace.h>
-#include <zEngineO/Nodes/Various.h>
 #include <zEngineF/TraceHandler.h>
 #include <zPlatformO/PlatformInterface.h>
 #include <zToolsO/DirectoryLister.h>
@@ -689,7 +687,7 @@ double CIntDriver::exdeckarray(int iExpr) // 20100121 for getdeck and putdeck
 
                 else
                 {
-                    string_value = EvaluateSharableString(deck_array_node->index_expressions[i]);
+                    string_value = Evaluate<SharableString>(deck_array_node->index_expressions[i]);
                 }
             }
 
@@ -804,7 +802,7 @@ double CIntDriver::exdeckarray(int iExpr) // 20100121 for getdeck and putdeck
     else // putdeck
     {
         // update the main cell
-        const double putdeck_value = Evaluate(deck_array_node->putdeck_value_expression);
+        const double putdeck_value = Evaluate<double>(deck_array_node->putdeck_value_expression);
         logic_array.SetValue(indices, putdeck_value);
 
         // potentially update the spillover rows
@@ -1574,7 +1572,8 @@ double CIntDriver::ExFileCopyRenameProcessor(const int program_index, const CF c
     const auto& file_node = GetNode<Nodes::File>(program_index);
     const Nodes::List& elements_list = GetListNode(file_node.elements_list_node);
 
-    const std::optional<std::string> output_path = UTF8_TODO::GetOptionalUtf8(ExGetFileName(elements_list.elements[0]));
+    const std::optional<std::wstring> wide_output_path = ExGetFileName(elements_list.elements[0]);
+    const std::optional<std::string> output_path = wide_output_path.has_value() ? std::make_optional(UTF8_TODO::GetUtf8(*wide_output_path)) : std::nullopt;
 
     if( !output_path.has_value() )
         return DEFAULT;
@@ -2212,7 +2211,7 @@ double CIntDriver::exshow(int iExpr)
         int iNumTitles = std::min(iNumCols, pTitleList->iNumElems);
 
         for( int i = 0; i < iNumTitles; ++i )
-            column_headings.emplace_back(EvaluateSharableString(pTitleList->iSym[i]));
+            column_headings.emplace_back(Evaluate<SharableString>(pTitleList->iSym[i]));
     }
 
     // complete any missing titles
@@ -2242,7 +2241,7 @@ double CIntDriver::exshow(int iExpr)
     SelectDlg select_dlg(true, number_columns);
 
     if( show_node.m_iHeading >= 0 )
-        select_dlg.SetTitle(EvaluateSharableString(show_node.m_iHeading));
+        select_dlg.SetTitle(Evaluate<SharableString>(show_node.m_iHeading));
 
     select_dlg.SetHeader(std::move(column_headings));
 
@@ -2409,7 +2408,7 @@ double CIntDriver::exshowlist(int iExpr)
 
             if( bAlphaVar )
             {
-                csValue = UTF8_TODO::GetCString(*GetWorkingSharableString(static_cast<size_t>(exavar(iExprSymVar))));
+                csValue = UTF8_TODO::GetCString(*exavar(iExprSymVar).get<SharableString>());
             }
 
             else
@@ -2445,7 +2444,7 @@ double CIntDriver::exshowarray(int iExpr)
     std::vector<SharableString> column_headings;
 
     for( int i = 4; i < fnn_node.fn_nargs; ++i )
-        column_headings.emplace_back(EvaluateSharableString(fnn_node.fn_expr[i]));
+        column_headings.emplace_back(Evaluate<SharableString>(fnn_node.fn_expr[i]));
 
     // calculate the number of columns
     size_t start_column = 0;
@@ -2542,7 +2541,7 @@ double CIntDriver::exshowarray(int iExpr)
     SelectDlg select_dlg(true, column_headings.size());
 
     if( title_expression >= 0 )
-        select_dlg.SetTitle(EvaluateSharableString(title_expression));
+        select_dlg.SetTitle(Evaluate<SharableString>(title_expression));
 
     select_dlg.SetHeader(std::move(column_headings));
 
@@ -2938,7 +2937,7 @@ double CIntDriver::ex_trace(const int program_index)
             ( trace_node.action == Nodes::Trace::Action::UserText ) ? TraceHandler::OutputType::UserText :
                                                                       TraceHandler::OutputType::LogicText;
 
-        m_traceHandler->Output(EvaluateSharableString(trace_node.argument), output_type);
+        m_traceHandler->Output(Evaluate<SharableString>(trace_node.argument), output_type);
     }
 
     return 1;
@@ -2990,7 +2989,7 @@ double CIntDriver::ex_setcapturetype(const int program_index)
 
     if( fnn_node.fn_nargs == 3 && new_capture_type == CaptureType::Date )
     {
-        date_format = EvaluateSharableString(fnn_node.fn_expr[2]);
+        date_format = Evaluate<SharableString>(fnn_node.fn_expr[2]);
         date_format.MakeTrim();
     }
 
@@ -3045,8 +3044,8 @@ double CIntDriver::ex_setcapturepos(const int program_index)
 
     const POINT point
     {
-        Evaluate<LONG>(fnn_node.fn_expr[1]),
-        Evaluate<LONG>(fnn_node.fn_expr[2])
+        Evaluate<int>(fnn_node.fn_expr[1]),
+        Evaluate<int>(fnn_node.fn_expr[2])
     };
 
     const size_t fields_modified = ForeachVariable(GetSymbolTable(), symbol,
@@ -3108,7 +3107,7 @@ double CIntDriver::exorientation(int iExpr) // 20100618
 #else
     FNN_NODE* pfun = (FNN_NODE*)PPT(iExpr);
     bool isSetting = pfun->fn_nargs == 1;
-    DWORD setMode = isSetting ? Evaluate<DWORD>(pfun->fn_expr[0]) : 0;
+    DWORD setMode = isSetting ? Evaluate<unsigned int>(pfun->fn_expr[0]) : 0;
 
 
     // code modified from http://weseetips.com/2009/05/10/how-to-change-the-display-orientation/
@@ -3163,17 +3162,17 @@ double CIntDriver::exorientation(int iExpr) // 20100618
 }
 
 
-double CIntDriver::exgetrecord(const int iExpr)
+Engine::Value CIntDriver::ex_getrecord(const int program_index)
 {
-    const FNN_NODE* func_node = (FNN_NODE*)PPT(iExpr);
-    const SharableString item_name = EvaluateSharableString(func_node->fn_expr[0]);
+    const auto& fnn_node = GetNode<FNN_NODE>(program_index);
+    const SharableString item_name = Evaluate<SharableString>(fnn_node.fn_expr[0]);
 
     const int symbol_index = m_pEngineArea->SymbolTableSearch(*item_name, { SymbolType::Variable });
 
-    if( symbol_index != 0 )
-        return AssignString(NPT_Ref(symbol_index).GetName());
+    if( symbol_index == 0 )
+        return Engine::Value::Invalid<SharableString>();
 
-    return AssignStringNull();
+    return NPT_Ref(symbol_index).GetName();
 }
 
 
@@ -3203,30 +3202,29 @@ std::vector<int> CIntDriver::EvaluateValidIndices(int iSymGroup, int iSymItem, i
 }
 
 
-double CIntDriver::exgetocclabel(int iExpr)
+Engine::Value CIntDriver::ex_getocclabel(const int program_index)
 {
-    const auto& various_node = GetNode<FNVARIOUS_NODE>(iExpr);
-    const Symbol* symbol = NPT(various_node.fn_expr[0]);
-    int occurrence_expression = various_node.fn_expr[1];
+    const auto& various_node = GetNode<FNVARIOUS_NODE>(program_index);
+    const Symbol& symbol = NPT_Ref(various_node.fn_expr[0]);
+    const int occurrence_expression = various_node.fn_expr[1];
     std::optional<int> zero_based_occurrence;
 
     if( occurrence_expression != -1 )
         zero_based_occurrence = Evaluate<int>(occurrence_expression) - 1;
 
-    return AssignAlphaValue(EvaluateOccurrenceLabel(symbol, zero_based_occurrence));
+    return EvaluateOccurrenceLabel(symbol, zero_based_occurrence);
 }
 
 
-CString CIntDriver::EvaluateOccurrenceLabel(const Symbol* symbol, const std::optional<int>& zero_based_occurrence)
+std::string CIntDriver::EvaluateOccurrenceLabel(const Symbol& symbol, const std::optional<int>& zero_based_occurrence)
 {
-    ASSERT(symbol != nullptr);
     bool bUseBatchLogic = Issamod != ModuleType::Entry;
     int iSpecifiedOcc = zero_based_occurrence.value_or(0);
     CString label;
 
-    if( symbol->IsA(SymbolType::Variable) ) // item
+    if( symbol.IsA(SymbolType::Variable) ) // item
     {
-        auto pVarT = assert_cast<const VART*>(symbol);
+        auto pVarT = assert_cast<const VART*>(&symbol);
         const CDictItem* item = pVarT->GetDictItem();
         ASSERT(item != nullptr);
 
@@ -3237,9 +3235,9 @@ CString CIntDriver::EvaluateOccurrenceLabel(const Symbol* symbol, const std::opt
             label = item->GetOccurrenceLabels().GetLabel(iSpecifiedOcc);
     }
 
-    else if( symbol->IsA(SymbolType::Record) ) // record
+    else if( symbol.IsA(SymbolType::Record) ) // record
     {
-        auto engine_record = assert_cast<const EngineRecord*>(symbol);
+        const EngineRecord& engine_record = assert_cast<const EngineRecord&>(symbol);
 
         if( !zero_based_occurrence.has_value() )
         {
@@ -3247,13 +3245,13 @@ CString CIntDriver::EvaluateOccurrenceLabel(const Symbol* symbol, const std::opt
             // iSpecifiedOcc = (int)GetCurOccFromChildrenGroups(engine_record, bUseBatchLogic) - 1;
         }
 
-        if( iSpecifiedOcc >= 0 && iSpecifiedOcc < (int)engine_record->GetDictRecord().GetMaxRecs() )
-            label = engine_record->GetDictRecord().GetOccurrenceLabels().GetLabel(iSpecifiedOcc);
+        if( iSpecifiedOcc >= 0 && iSpecifiedOcc < (int)engine_record.GetDictRecord().GetMaxRecs() )
+            label = engine_record.GetDictRecord().GetOccurrenceLabels().GetLabel(iSpecifiedOcc);
     }
 
-    else if( symbol->IsA(SymbolType::Section) ) // record
+    else if( symbol.IsA(SymbolType::Section) ) // record
     {
-        auto pSecT = assert_cast<const SECT*>(symbol);
+        auto pSecT = assert_cast<const SECT*>(&symbol);
 
         if( !zero_based_occurrence.has_value() )
             iSpecifiedOcc = (int)GetCurOccFromChildrenGroups(pSecT,bUseBatchLogic) - 1;
@@ -3262,9 +3260,9 @@ CString CIntDriver::EvaluateOccurrenceLabel(const Symbol* symbol, const std::opt
             label = pSecT->GetDictRecord()->GetOccurrenceLabels().GetLabel(iSpecifiedOcc);
     }
 
-    else if( symbol->IsOneOf(SymbolType::Group) ) // group
+    else if( symbol.IsOneOf(SymbolType::Group) ) // group
     {
-        auto pGroupT = assert_cast<const GROUPT*>(symbol);
+        auto pGroupT = assert_cast<const GROUPT*>(&symbol);
 
         if( !zero_based_occurrence.has_value() )
             iSpecifiedOcc = GetCurOccFromGroup(pGroupT, bUseBatchLogic) - 1;
@@ -3304,7 +3302,7 @@ CString CIntDriver::EvaluateOccurrenceLabel(const Symbol* symbol, const std::opt
         ASSERT(false);
     }
 
-    return label;
+    return UTF8_TODO::GetUtf8(label);
 }
 
 
@@ -3399,9 +3397,9 @@ double CIntDriver::exshowocc(int iExpr)
 
 
 // 20140422 based on code that was originally exassign ... the caller must delete pTheIndex if non-NULL
-VARX* CIntDriver::AssignParser(int iExpr, CNDIndexes *& pTheIndex, int* aIndex)
+VARX* CIntDriver::AssignParser(int iExpr, std::unique_ptr<CNDIndexes>& pTheIndex, int* aIndex)
 {
-    pTheIndex = NULL;
+    ASSERT(pTheIndex == nullptr);
 
     const auto& va_with_size_node = GetNode<Nodes::VariableArgumentsWithSize>(iExpr);
     int iVariable = va_with_size_node.arguments[0];
@@ -3513,11 +3511,11 @@ VARX* CIntDriver::AssignParser(int iExpr, CNDIndexes *& pTheIndex, int* aIndex)
         }
     }
 
-    pTheIndex = new CNDIndexes(ZERO_BASED,aIndex);
+    pTheIndex = std::make_unique<CNDIndexes>(ZERO_BASED, aIndex);
 
     if( !CheckIndexArray(pVarT,*pTheIndex ) )
     {
-        delete pTheIndex;
+        pTheIndex.reset();
         return NULL;
     }
 
@@ -3529,9 +3527,9 @@ double CIntDriver::exsetvalue(int iExpr) // 20140228
 {
     const auto& va_with_size_node = GetNode<Nodes::VariableArgumentsWithSize>(iExpr);
 
-    CNDIndexes* pTheIndex;
+    std::unique_ptr<CNDIndexes> pTheIndex;
     int aIndex[DIM_MAXDIM];
-    VARX* pVarX = AssignParser(iExpr,pTheIndex,aIndex);
+    VARX* pVarX = AssignParser(iExpr, pTheIndex, aIndex);
 
     if( !pVarX )
         return 0;
@@ -3591,53 +3589,43 @@ double CIntDriver::exsetvalue(int iExpr) // 20140228
         }
     }
 
-    delete pTheIndex;
-
     return dRet;
 }
 
 
 double CIntDriver::exgetvalue(int iExpr) // 20140422
 {
-    CNDIndexes* pTheIndex;
+    std::unique_ptr<CNDIndexes> pTheIndex;
     int aIndex[DIM_MAXDIM];
-    VARX* pVarX = AssignParser(iExpr,pTheIndex,aIndex);
+    VARX* pVarX = AssignParser(iExpr, pTheIndex, aIndex);
 
     if( !pVarX )
         return DEFAULT;
 
     VART* pVarT = pVarX->GetVarT();
 
-    double dRet = pVarT->IsAlpha() ? DEFAULT : GetVarFloatValue(pVarX,*pTheIndex);
-
-    delete pTheIndex;
-
-    return dRet;
+    return pVarT->IsAlpha() ? DEFAULT : GetVarFloatValue(pVarX, *pTheIndex);
 }
 
 
-double CIntDriver::exgetvaluealpha(int iExpr) // 20140422
+Engine::Value CIntDriver::ex_getvaluealpha(const int program_index)
 {
-    CNDIndexes* pTheIndex;
+    std::unique_ptr<CNDIndexes> pTheIndex;
     int aIndex[DIM_MAXDIM];
-    VARX* pVarX = AssignParser(iExpr, pTheIndex, aIndex);
-
-    CString alpha_value;
+    VARX* const pVarX = AssignParser(program_index, pTheIndex, aIndex);
 
     if( pVarX != nullptr )
     {
-        VART* pVarT = pVarX->GetVarT();
+        VART* const pVarT = pVarX->GetVarT();
 
         if( pVarT->IsAlpha() )
         {
-            const TCHAR* buffer = pVarT->IsArray() ? GetMultVarAsciiAddr(pVarX, aIndex) : GetSingVarAsciiAddr(pVarX);
-            alpha_value = CString(buffer, pVarT->GetLength());
+            const TCHAR* const buffer = pVarT->IsArray() ? GetMultVarAsciiAddr(pVarX, aIndex) : GetSingVarAsciiAddr(pVarX);
+            return UTF8_TODO::GetUtf8(std::wstring_view(buffer, pVarT->GetLength()));
         }
-
-        delete pTheIndex;
     }
 
-    return AssignAlphaValue(alpha_value);
+    return Engine::Value::Invalid<SharableString>();
 }
 
 
@@ -3685,12 +3673,11 @@ SharableString CIntDriver::GetValueLabel(const VART* const pVarT, const std::var
 }
 
 
-double CIntDriver::exgetvaluelabel(int iExpr)
+Engine::Value CIntDriver::ex_getvaluelabel(const int program_index)
 {
-    const auto& va_node = GetNode<Nodes::VariableArguments>(iExpr);
-    const VART* pVarT = VPT(va_node.arguments[0]);
-
-    return AssignString(GetValueLabel(pVarT, EvaluateVariant<SharableString>(pVarT->GetDataType(), va_node.arguments[1])));
+    const auto& va_node = GetNode<Nodes::VariableArguments>(program_index);
+    const VART* const pVarT = VPT(va_node.arguments[0]);
+    return GetValueLabel(pVarT, EvaluateVariant<SharableString>(pVarT->GetDataType(), va_node.arguments[1]));
 }
 
 

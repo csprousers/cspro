@@ -116,6 +116,16 @@ bool LogicInterpreter::AssignValueToSymbol(const Nodes::SymbolValue& symbol_valu
 template ZENGINEO_API bool LogicInterpreter::AssignValueToSymbol<double>(const Nodes::SymbolValue& symbol_value_node, double value);
 template ZENGINEO_API bool LogicInterpreter::AssignValueToSymbol<SharableString>(const Nodes::SymbolValue& symbol_value_node, SharableString value);
 
+template<>
+ZENGINEO_API bool LogicInterpreter::AssignValueToSymbol<Engine::Value>(const Nodes::SymbolValue& symbol_value_node, Engine::Value value)
+{
+    const Symbol& symbol = NPT_Ref(symbol_value_node.symbol_index);
+    ASSERT(IsNumeric(symbol) || IsString(symbol));
+
+    return IsNumeric(symbol) ? AssignValueToSymbol(symbol_value_node, std::move(value).as<double>()) :
+                               AssignValueToSymbol(symbol_value_node, std::move(value).as<SharableString>());
+}
+
 
 template<typename T>
 T LogicInterpreter::EvaluateSymbolValue(const Nodes::SymbolValue& symbol_value_node)
@@ -135,9 +145,9 @@ T LogicInterpreter::EvaluateSymbolValue(const Nodes::SymbolValue& symbol_value_n
             const std::vector<size_t> indices = EvaluateArrayIndex(symbol_value_node.symbol_compilation, const_cast<LogicArray**>(&logic_array));
 
             if( indices.empty() )
-                return GetInvalidValue<T>();
+                return Engine::Value::Invalid<T>().template get<T>();
 
-            return logic_array->GetValue<T>(indices);            
+            return logic_array->GetValue<T>(indices);
         }
 
         // HashMap
@@ -147,9 +157,9 @@ T LogicInterpreter::EvaluateSymbolValue(const Nodes::SymbolValue& symbol_value_n
             const std::vector<LogicHashMap::Data> dimension_values = EvaluateHashMapIndex(symbol_value_node.symbol_compilation, const_cast<LogicHashMap**>(&hashmap), true);
 
             if( dimension_values.empty() )
-                return GetInvalidValue<T>();
+                return Engine::Value::Invalid<T>().template get<T>();
 
-            return std::get<T>(*hashmap->GetValue(dimension_values));            
+            return std::get<T>(*hashmap->GetValue(dimension_values));
         }
 
         // List
@@ -159,7 +169,7 @@ T LogicInterpreter::EvaluateSymbolValue(const Nodes::SymbolValue& symbol_value_n
             const std::optional<size_t> index = EvaluateListIndex(symbol_value_node.symbol_compilation, const_cast<LogicList**>(&logic_list), false);
 
             if( !index.has_value() )
-                return GetInvalidValue<T>();
+                return Engine::Value::Invalid<T>().template get<T>();
 
             return logic_list->GetValue<T>(*index);
         }
@@ -177,7 +187,8 @@ T LogicInterpreter::EvaluateSymbolValue(const Nodes::SymbolValue& symbol_value_n
         case SymbolType::UserFunction:
         {
             const UserFunction& user_function = GetSymbolUserFunction(symbol_value_node.symbol_index);
-            return std::get<T>(user_function.GetReturnValue());
+            ASSERT(user_function.GetReturnValue().is<T>());
+            return user_function.GetReturnValue().get<T>();
         }
 
         // variable
@@ -227,15 +238,25 @@ T LogicInterpreter::EvaluateSymbolValue(const Nodes::SymbolValue& symbol_value_n
         }
     }
 
-    return ReturnProgrammingError(GetInvalidValue<T>());
+    return ReturnProgrammingError(Engine::Value::Invalid<T>().template get<T>());
 }
 
 template ZENGINEO_API double LogicInterpreter::EvaluateSymbolValue<double>(const Nodes::SymbolValue& symbol_value_node);
 template ZENGINEO_API SharableString LogicInterpreter::EvaluateSymbolValue<SharableString>(const Nodes::SymbolValue& symbol_value_nodevalue);
 
+template<>
+ZENGINEO_API Engine::Value LogicInterpreter::EvaluateSymbolValue(const Nodes::SymbolValue& symbol_value_node)
+{
+    const Symbol& symbol = NPT_Ref(symbol_value_node.symbol_index);
+    ASSERT(IsNumeric(symbol) || IsString(symbol));
+
+    return IsNumeric(symbol) ? Engine::Value(EvaluateSymbolValue<double>(symbol_value_node)) :
+                               Engine::Value(EvaluateSymbolValue<SharableString>(symbol_value_node));
+}
+
 
 template<typename T>
-void LogicInterpreter::ModifySymbolValue(const Nodes::SymbolValue& symbol_value_node, const std::function<void(T&)>& modify_value_function)
+Engine::Value LogicInterpreter::ModifySymbolValue(const Nodes::SymbolValue& symbol_value_node, const std::function<void(T&)>& modify_value_function)
 {
     Symbol& symbol = NPT_Ref(symbol_value_node.symbol_index);
 
@@ -251,14 +272,14 @@ void LogicInterpreter::ModifySymbolValue(const Nodes::SymbolValue& symbol_value_
             LogicArray* logic_array;
             const std::vector<size_t> indices = EvaluateArrayIndex(symbol_value_node.symbol_compilation, &logic_array);
 
-            if( !indices.empty() )
-            {
-                T value = logic_array->GetValue<T>(indices);
-                modify_value_function(value);
-                logic_array->SetValue(indices, std::move(value));
-            }
+            if( indices.empty() )
+                break;
 
-            break;
+            T value = logic_array->GetValue<T>(indices);
+            modify_value_function(value);
+            logic_array->SetValue(indices, value);
+
+            return value;
         }
 
         // HashMap
@@ -267,14 +288,14 @@ void LogicInterpreter::ModifySymbolValue(const Nodes::SymbolValue& symbol_value_
             LogicHashMap* hashmap;
             const std::vector<LogicHashMap::Data> dimension_values = EvaluateHashMapIndex(symbol_value_node.symbol_compilation, &hashmap, true);
 
-            if( !dimension_values.empty() )
-            {
-                T value = std::get<T>(*hashmap->GetValue(dimension_values));
-                modify_value_function(value);
-                hashmap->SetValue(dimension_values, std::move(value));
-            }
+            if( dimension_values.empty() )
+                break;
 
-            break;
+            T value = std::get<T>(*hashmap->GetValue(dimension_values));
+            modify_value_function(value);
+            hashmap->SetValue(dimension_values, value);
+
+            return value;
         }
 
         // List
@@ -283,21 +304,21 @@ void LogicInterpreter::ModifySymbolValue(const Nodes::SymbolValue& symbol_value_
             LogicList* logic_list;
             const std::optional<size_t> index = EvaluateListIndex(symbol_value_node.symbol_compilation, &logic_list, false);
 
-            if( index.has_value() )
-            {
-                T value = logic_list->GetValue<T>(*index);
-                modify_value_function(value);
-                logic_list->SetValue(*index, std::move(value));
-            }
+            if( !index.has_value() )
+                break;
 
-            break;
+            T value = logic_list->GetValue<T>(*index);
+            modify_value_function(value);
+            logic_list->SetValue(*index, value);
+
+            return value;
         }
 
         // named frequency
         case SymbolType::NamedFrequency:
         {
             if constexpr(std::is_same_v<T, double>)
-                GetFrequencyDriver_INTERPRETER_DLL_TODO()->ModifySingleFrequencyCounterCount(symbol_value_node.symbol_compilation, modify_value_function);
+                return GetFrequencyDriver_INTERPRETER_DLL_TODO()->ModifySingleFrequencyCounterCount(symbol_value_node.symbol_compilation, modify_value_function);
 
             break;
         }
@@ -306,19 +327,19 @@ void LogicInterpreter::ModifySymbolValue(const Nodes::SymbolValue& symbol_value_
         case SymbolType::UserFunction:
         {
             UserFunction& user_function = GetSymbolUserFunction(symbol_value_node.symbol_index);
+            ASSERT(user_function.GetReturnValue().is<T>());
 
-            T value = std::get<T>(user_function.GetReturnValue());
+            T value = user_function.GetReturnValue().get<T>();
             modify_value_function(value);
-            user_function.SetReturnValue(std::move(value));
+            user_function.SetReturnValue(value);
 
-            break;
+            return value;
         }
 
         // variable
         case SymbolType::Variable:
         {
-            ModifyVARTValue_INTERPRETER_DLL_TODO(symbol_value_node.symbol_compilation, modify_value_function);
-            break;
+            return ModifyVARTValue_INTERPRETER_DLL_TODO(symbol_value_node.symbol_compilation, modify_value_function);
         }
 
         // work string
@@ -328,9 +349,11 @@ void LogicInterpreter::ModifySymbolValue(const Nodes::SymbolValue& symbol_value_
             {
                 WorkString& work_string = assert_cast<WorkString&>(symbol);
 
-                T value = work_string.GetSharableString();
+                SharableString value = work_string.GetSharableString();
                 modify_value_function(value);
-                work_string.SetString(std::move(value));
+                work_string.SetString(SharableString(value));
+
+                return value;
             }
 
             break;
@@ -343,9 +366,11 @@ void LogicInterpreter::ModifySymbolValue(const Nodes::SymbolValue& symbol_value_
             {
                 WorkVariable& work_variable = assert_cast<WorkVariable&>(symbol);
 
-                T value = work_variable.GetValue();
+                double value = work_variable.GetValue();
                 modify_value_function(value);
-                work_variable.SetValue(std::move(value));
+                work_variable.SetValue(value);
+
+                return value;
             }
 
             break;
@@ -358,7 +383,9 @@ void LogicInterpreter::ModifySymbolValue(const Nodes::SymbolValue& symbol_value_
             break;
         }
     }
+
+    return Engine::Value::Invalid<T>();
 }
 
-template ZENGINEO_API void LogicInterpreter::ModifySymbolValue<double>(const Nodes::SymbolValue& symbol_value_node, const std::function<void(double&)>& modify_value_function);
-template ZENGINEO_API void LogicInterpreter::ModifySymbolValue<SharableString>(const Nodes::SymbolValue& symbol_value_node, const std::function<void(SharableString&)>& modify_value_function);
+template ZENGINEO_API Engine::Value LogicInterpreter::ModifySymbolValue<double>(const Nodes::SymbolValue& symbol_value_node, const std::function<void(double&)>& modify_value_function);
+template ZENGINEO_API Engine::Value LogicInterpreter::ModifySymbolValue<SharableString>(const Nodes::SymbolValue& symbol_value_node, const std::function<void(SharableString&)>& modify_value_function);

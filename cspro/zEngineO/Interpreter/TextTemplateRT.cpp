@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "IncludesRT.h"
 #include "Report.h"
 #include "StringWriter.h"
@@ -141,7 +141,7 @@ std::tuple<Symbol*, std::string*> LogicInterpreter::GetTextTemplateBuilder(Symbo
 }
 
 
-double LogicInterpreter::ex_TextTemplate_write_writeEncoded_writeEncodedLine_writeLine(const int program_index)
+Engine::Value LogicInterpreter::ex_TextTemplate_write_writeEncoded_writeEncodedLine_writeLine(const int program_index)
 {
     const auto& text_template_node = GetNode<Nodes::TextTemplate>(program_index);
     Symbol& specified_symbol = NPT_Ref(text_template_node.symbol_index);
@@ -151,7 +151,7 @@ double LogicInterpreter::ex_TextTemplate_write_writeEncoded_writeEncodedLine_wri
     std::tie(underying_text_template_symbol, text_builder) = GetTextTemplateBuilder(specified_symbol);
 
     if( text_builder == nullptr )
-        return 0;
+        return Engine::Value::Bool(false);
 
     ASSERT(underying_text_template_symbol != nullptr);
 
@@ -196,5 +196,5 @@ double LogicInterpreter::ex_TextTemplate_write_writeEncoded_writeEncodedLine_wri
             text_builder->push_back('\n');
     }
 
-    return 1;
+    return Engine::Value::Bool(true);
 }

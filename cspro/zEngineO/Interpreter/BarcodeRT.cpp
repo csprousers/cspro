@@ -7,16 +7,18 @@
 #include <zParadataO/Logger.h>
 
 
-double LogicInterpreter::ex_Barcode_read(const int program_index)
+Engine::Value LogicInterpreter::ex_Barcode_read(const int program_index)
 {
     const auto& va_node = GetNode<Nodes::VariableArguments>(program_index);
-    const int& message_text_expression = va_node.arguments[0];
-    const SharableString message_text = ( message_text_expression >= 0 ) ? EvaluateSharableString(message_text_expression).MakeTrim() :
-                                                                           SharableString();
+    const SharableString message_text = EvaluateOptionalOrConstruct<SharableString>(va_node.arguments[0]).MakeTrim();
     std::unique_ptr<Paradata::OperatorSelectionEvent> operator_selection_event;
 
     if( Paradata::Logger::IsOpen() )
-        operator_selection_event = std::make_unique<Paradata::OperatorSelectionEvent>(Paradata::OperatorSelectionEvent::Source::BarcodeRead);
+    {
+        operator_selection_event = std::make_unique<Paradata::OperatorSelectionEvent>(
+            Paradata::OperatorSelectionEvent::Source::BarcodeRead
+        );
+    }
 
     SharableString barcode = m_applicationInterface->BarcodeRead(*message_text);
 
@@ -26,11 +28,11 @@ double LogicInterpreter::ex_Barcode_read(const int program_index)
         RegisterAndLogEvent_INTERPRETER_DLL_TODO(std::move(operator_selection_event));
     }
 
-    return AssignString(std::move(barcode));
+    return barcode;
 }
 
 
-double LogicInterpreter::ex_Barcode_createQRCode(const int program_index)
+Engine::Value LogicInterpreter::ex_Barcode_createQRCode(const int program_index)
 {
     const auto& create_qr_code_node = GetNode<Nodes::CreateQRCode>(program_index);
 
@@ -44,7 +46,7 @@ double LogicInterpreter::ex_Barcode_createQRCode(const int program_index)
             const auto& create_qr_code_options_node = GetNode<Nodes::CreateQRCodeOptions>(create_qr_code_node.options_node_index);
 
             if( create_qr_code_options_node.error_correction_expression != -1 )
-                qr_code.SetErrorCorrectionLevel(*EvaluateSharableString(create_qr_code_options_node.error_correction_expression));
+                qr_code.SetErrorCorrectionLevel(*Evaluate<SharableString>(create_qr_code_options_node.error_correction_expression));
 
             if( create_qr_code_options_node.scale_expression != -1 )
                 qr_code.SetScale(Evaluate<int>(create_qr_code_options_node.scale_expression));
@@ -54,7 +56,7 @@ double LogicInterpreter::ex_Barcode_createQRCode(const int program_index)
 
             auto evaluate_portable_color = [&](const int expression)
             {
-                const SharableString color_text = EvaluateSharableString(expression);
+                const SharableString color_text = Evaluate<SharableString>(expression);
                 const std::optional<PortableColor> color = PortableColor::FromString(*color_text);
 
                 if( !color.has_value() )
@@ -72,7 +74,7 @@ double LogicInterpreter::ex_Barcode_createQRCode(const int program_index)
 
 
         // create the QR code
-        SharableString text = EvaluateSharableString(create_qr_code_node.value_data_type, create_qr_code_node.value_expression);
+        SharableString text = Evaluate<Engine::Value>(create_qr_code_node.value_expression).as<SharableString>();
         qr_code.Create(*text);
 
         std::unique_ptr<Multimedia::Image> qr_code_bitmap = qr_code.GetImage();
@@ -81,10 +83,13 @@ double LogicInterpreter::ex_Barcode_createQRCode(const int program_index)
         // move the QR code image to a Image object...
         if( create_qr_code_node.symbol_index_or_filename_expression < 0 )
         {
-            LogicImage* const logic_image = GetFromSymbolOrEngineItem<LogicImage*>(-1 * create_qr_code_node.symbol_index_or_filename_expression, create_qr_code_node.subscript_compilation);
+            LogicImage* const logic_image = GetFromSymbolOrEngineItem<LogicImage*>(
+                -1 * create_qr_code_node.symbol_index_or_filename_expression,
+                create_qr_code_node.subscript_compilation
+            );
 
             if( logic_image == nullptr )
-                return 0;
+                return Engine::Value::Bool(false);
 
             logic_image->Load(std::move(qr_code_bitmap), "qr-code.bmp");
 
@@ -105,8 +110,8 @@ double LogicInterpreter::ex_Barcode_createQRCode(const int program_index)
     catch( const CSProException& exception )
     {
         IssueMessage(MessageType::Error, 100331, exception.what());
-        return 0;
+        return Engine::Value::Bool(false);
     }
 
-    return 1;
+    return Engine::Value::Bool(true);
 }
