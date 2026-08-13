@@ -378,6 +378,9 @@ namespace MGF
 
     constexpr int StringWriter_option_invalid_for_function_parameter_100360 = 100360;
 
+    constexpr int Path_file_selection_error_100372                          = 100372;
+    constexpr int Path_invalid_directory_or_filter_100373                   = 100373;
+    constexpr int Path_start_root_directory_error_100374                    = 100374;
     constexpr int Path_invalid_directory_100379                             = 100379;
 
     constexpr int Item_subscript_cannot_be_empty_100400                     = 100400;

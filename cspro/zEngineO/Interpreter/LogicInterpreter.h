@@ -591,6 +591,7 @@ public:
 
 
     // --------------------------------------------------------------------------
+    // path routines +
     // path functions
     // (PathRT.cpp)
     // --------------------------------------------------------------------------
@@ -605,6 +606,17 @@ public:
 
     void MakeAbsolutePath(ConnectionString& connection_string);
     ConnectionString EvaluateConnectionString(int program_index);
+
+    Engine::Value ex_pathname(int program_index);
+    Engine::Value ex_Path_concat(int program_index);
+    Engine::Value ex_Path_getDirectoryName(int program_index);
+    Engine::Value ex_Path_getExtension(int program_index);
+    Engine::Value ex_Path_getFileName(int program_index);
+    Engine::Value ex_Path_getFileNameWithoutExtension(int program_index);
+    Engine::Value ex_Path_getRelativePath(int program_index);
+    Engine::Value ex_Path_selectFile(int program_index);
+
+    Engine::Value ex_dirlist(const int program_index);
 
 private:
     std::string m_currentWorkingDirectory;
@@ -795,6 +807,9 @@ public:
     // --------------------------------------------------------------------------
     // other class variables
     // --------------------------------------------------------------------------
+public:
+    const EngineData& GetEngineData() const { return *m_engineData; }
+
 protected:
     cs::non_null_shared_or_raw_ptr<EngineData> m_engineData;
     cs::non_null_shared_or_raw_ptr<ApplicationInterface> m_applicationInterface;

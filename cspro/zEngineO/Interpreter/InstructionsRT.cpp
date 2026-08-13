@@ -264,7 +264,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 193 */   OP(ex_setfont),         // GHM 20100618
 /* 194 */   OP_ID(exorientation),      // GHM 20100618 getorientation
 /* 195 */   OP_ID(exorientation),      // GHM 20100618 setorientation
-/* 196 */   OP_ID(ex_pathname),        // GHM 20110107
+/* 196 */   OP(ex_pathname),        // GHM 20110107
 /* 197 */   OP_ID(exgps),              // GHM 20110223
 /* 198 */   OP(ex_low_high),        // GHM 20110301 low
 /* 199 */   OP(ex_low_high),        // GHM 20110301 high
@@ -296,7 +296,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 225 */   OP_ID(exdircreate),        // GHM 20141024
 /* 226 */   OP_ID(exnoopAbort),        // GHM 20141024 previously sync
 /* 227 */   OP(ex_List_var),        // GHM 20141106
-/* 228 */   OP_ID(exdirlist),          // GHM 20141107
+/* 228 */   OP(ex_dirlist),         // GHM 20141107
 /* 229 */   OP(ex_sysparm),         // GHM 20141217
 /* 230 */   OP(ex_connection),      // GHM 20150421
 /* 231 */   OP(ex_prompt),          // GHM 20150422
@@ -393,7 +393,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 322 */   OP_LI(ex_Map_getLastClickLatitude_getLastClickLongitude), // Map.getLastClickLatitude
 /* 323 */   OP_LI(ex_Map_getLastClickLatitude_getLastClickLongitude), // Map.getLastClickLongitude
 /* 324 */   OP_LI(ex_Map_getMarkerLatitude_getMarkerLongitude),    // Map.getMarkerLongitude
-/* 325 */   OP_ID(ex_Path_concat),
+/* 325 */   OP(ex_Path_concat), // pathconcat
 /* 326 */   OP(ex_view),
 /* 327 */   OP(ex_Pff_exec),
 /* 328 */   OP(ex_Pff_getProperty),
@@ -433,11 +433,11 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 362 */   OP(ex_List_sort),
 /* 363 */   OP(ex_List_removeDuplicates),
 /* 364 */   OP(ex_List_removeIn),
-/* 365 */   OP_ID(ex_Path_concat),
-/* 366 */   OP_ID(ex_Path_getDirectoryName),
-/* 367 */   OP_ID(ex_Path_getExtension),
-/* 368 */   OP_ID(ex_Path_getFileName),
-/* 369 */   OP_ID(ex_Path_getFileNameWithoutExtension),
+/* 365 */   OP(ex_Path_concat), // Path.concat
+/* 366 */   OP(ex_Path_getDirectoryName),
+/* 367 */   OP(ex_Path_getExtension),
+/* 368 */   OP(ex_Path_getFileName),
+/* 369 */   OP(ex_Path_getFileNameWithoutExtension),
 /* 370 */   OP_ID(ex_syncparadata),
 /* 371 */   OP(ex_HashMap_var),
 /* 372 */   OP(ex_HashMap_compute),
@@ -500,8 +500,8 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 429 */   OP_LI(ex_Map_saveSnapshot),
 /* 430 */   OP_ID(ex_synctime),
 /* 431 */   OP(ex_htmldialog),
-/* 432 */   OP_ID(ex_Path_getRelativePath),
-/* 433 */   OP_ID(ex_Path_selectFile),
+/* 432 */   OP(ex_Path_getRelativePath),
+/* 433 */   OP(ex_Path_selectFile),
 /* 434 */   OP_ID(ex_invoke),
 /* 435 */   OP(ex_Report_save),
 /* 436 */   OP(ex_Report_view),

@@ -516,8 +516,6 @@ public:
 
     double  exorientation(int iExpr);       // 20100618
 
-    double  ex_pathname(int program_index);
-
     double  exgps(int iExpr);               // 20110223
     std::unique_ptr<Paradata::Event> CreateParadataGpsEvent(std::string_view event_type_sv, std::string_view event_information_sv);
 
@@ -604,17 +602,6 @@ public:
 
 private:
     std::unique_ptr<FrequencyDriver> m_frequencyDriver;
-
-
-    // Path functions
-public:
-    double ex_Path_concat(int program_index);
-    double ex_Path_getDirectoryName(int program_index);
-    double ex_Path_getExtension(int program_index);
-    double ex_Path_getFileName(int program_index);
-    double ex_Path_getFileNameWithoutExtension(int program_index);
-    double ex_Path_getRelativePath(int program_index);
-    double ex_Path_selectFile(int program_index);
 
 
     // dynamic logic evaluation functions
@@ -713,7 +700,6 @@ public:
     double  exdirexist(int iExpr);
     double  exdircreate(int iExpr);
     double  exdirdelete(int program_index);
-    double  exdirlist(int program_index);
 
 private:
     ParameterManager::Parameter GetSetPropertyParser(int program_index, std::set<int>& symbol_set,

@@ -321,7 +321,7 @@ void CIntDriver::AddIntDriverInstructions()
 #define OP_ENGVAL(op_code, function) \
     ASSERT(op_code == op_code_counter++); \
     ASSERT(m_instructions[static_cast<size_t>(op_code)].index() == 0); \
-    ASSERT(std::get<0>(m_instructions[static_cast<size_t>(op_code)]) == &CIntDriver::function); \
+    ASSERT(std::get<0>(m_instructions[static_cast<size_t>(op_code)]) == static_cast<Engine::Value (CIntDriver::*)(int)>(&CIntDriver::function)); \
     ASSERT(std::get<0>(m_instructions[static_cast<size_t>(op_code)]) != &CIntDriver::ex_unimplemented_LogicInterpreter);
 
 // OP_ENGVAL_ID = instructions defined in CIntDriver that return Engine::Value
@@ -540,7 +540,7 @@ void CIntDriver::AddIntDriverInstructions()
     OP_ENGVAL(193, ex_setfont);
     OP_DOUBLE(194, exorientation);
     OP_DOUBLE(195, exorientation);
-    OP_DOUBLE(196, ex_pathname);
+    OP_ENGVAL(196, ex_pathname);
     OP_DOUBLE(197, exgps);
     OP_ENGVAL(198, ex_low_high);
     OP_ENGVAL(199, ex_low_high);
@@ -572,7 +572,7 @@ void CIntDriver::AddIntDriverInstructions()
     OP_DOUBLE(225, exdircreate);
     OP_DOUBLE(226, exnoopAbort);
     OP_ENGVAL(227, ex_List_var);
-    OP_DOUBLE(228, exdirlist);
+    OP_ENGVAL(228, ex_dirlist);
     OP_ENGVAL(229, ex_sysparm);
     OP_ENGVAL(230, ex_connection);
     OP_ENGVAL(231, ex_prompt);
@@ -669,7 +669,7 @@ void CIntDriver::AddIntDriverInstructions()
     OP_DOUBLE(322, ex_Map_getLastClickLatitude_getLastClickLongitude);
     OP_DOUBLE(323, ex_Map_getLastClickLatitude_getLastClickLongitude);
     OP_DOUBLE(324, ex_Map_getMarkerLatitude_getMarkerLongitude);
-    OP_DOUBLE(325, ex_Path_concat);
+    OP_ENGVAL(325, ex_Path_concat);
     OP_ENGVAL(326, ex_view);
     OP_ENGVAL(327, ex_Pff_exec);
     OP_ENGVAL(328, ex_Pff_getProperty);
@@ -709,11 +709,11 @@ void CIntDriver::AddIntDriverInstructions()
     OP_ENGVAL(362, ex_List_sort);
     OP_ENGVAL(363, ex_List_removeDuplicates);
     OP_ENGVAL(364, ex_List_removeIn);
-    OP_DOUBLE(365, ex_Path_concat);
-    OP_DOUBLE(366, ex_Path_getDirectoryName);
-    OP_DOUBLE(367, ex_Path_getExtension);
-    OP_DOUBLE(368, ex_Path_getFileName);
-    OP_DOUBLE(369, ex_Path_getFileNameWithoutExtension);
+    OP_ENGVAL(365, ex_Path_concat);
+    OP_ENGVAL(366, ex_Path_getDirectoryName);
+    OP_ENGVAL(367, ex_Path_getExtension);
+    OP_ENGVAL(368, ex_Path_getFileName);
+    OP_ENGVAL(369, ex_Path_getFileNameWithoutExtension);
     OP_DOUBLE(370, ex_syncparadata);
     OP_ENGVAL(371, ex_HashMap_var);
     OP_ENGVAL(372, ex_HashMap_compute);
@@ -776,8 +776,8 @@ void CIntDriver::AddIntDriverInstructions()
     OP_DOUBLE(429, ex_Map_saveSnapshot);
     OP_DOUBLE(430, ex_synctime);
     OP_ENGVAL(431, ex_htmldialog);
-    OP_DOUBLE(432, ex_Path_getRelativePath);
-    OP_DOUBLE(433, ex_Path_selectFile);
+    OP_ENGVAL(432, ex_Path_getRelativePath);
+    OP_ENGVAL(433, ex_Path_selectFile);
     OP_ENGVAL_ID(434, ex_invoke);
     OP_ENGVAL(435, ex_Report_save);
     OP_ENGVAL(436, ex_Report_view);
