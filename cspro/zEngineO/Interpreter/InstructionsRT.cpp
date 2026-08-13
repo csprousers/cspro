@@ -165,7 +165,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 109 */   OP_ID(exwritecase),
 /* 110 */   OP_ID(exdelcase),
 /* 111 */   OP_ID(exfind_locate),         // find
-/* 112 */   OP_ID(exkey),                 // key
+/* 112 */   OP_ID(ex_key_currentkey),     // key
 /* 113 */   OP_ID(ex_open),
 /* 114 */   OP_ID(ex_close),
 /* 115 */   OP_ID(exfind_locate),         // locate
@@ -204,7 +204,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 140 */   OP_ID(exnoopAbort),  // an old implementation of exispartial [original: RHF Mar 06, 2001]
 /* 141 */   OP_ID(exfor_relation),
 /* 142 */   OP_ID(exnoopAbort),  // REL_CODE
-/* 143 */   OP_ID(exgetbuffer),
+/* 143 */   OP_ID(exgetbuffer),      // RHF Sep 21, 2001
 /* 144 */   OP_ID(exinsert_delete),  // Chirag, Jul 22, 2002
 /* 145 */   OP_ID(exinsert_delete),  // Chirag, Sep 11, 2002
 /* 146 */   OP_ID(exsort),           // Chirag, Sep 11, 2002
@@ -217,7 +217,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 
 /* 153 */   OP_ID(exmoveto),         // RHF Dec 09, 2003
 /* 154 */   OP_ID(exnoopAbort),      // an old implementation of exsavepartial [original: RHF Dec 01, 2003]
-/* 155 */   OP_ID(exgetoperatorid),  // RHF Dec 03, 2003
+/* 155 */   OP_ID(ex_getoperatorid), // RHF Dec 03, 2003
 /* 156 */   OP_ID(exfornext),        // RHC Sep 04, 2000
 /* 157 */   OP_ID(exforbreak),       // RHC Sep 04, 2000
 /* 158 */   OP_ID(ex_setfile),
@@ -282,11 +282,11 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 211 */   OP(ex_dateadd),         // GHM 20130225
 /* 212 */   OP(ex_datevalid),       // GHM 20130703
 /* 213 */   OP(ex_getos),           // GHM 20131217
-/* 214 */   OP_ID(exgetocclabel),      // GHM 20140226
+/* 214 */   OP_ID(ex_getocclabel),     // GHM 20140226
 /* 215 */   OP_ID(exfreealphamem),     // GHM 20140228
 /* 216 */   OP_ID(exsetvalue),         // GHM 20140228
 /* 217 */   OP_ID(exgetvalue),         // GHM 20140422
-/* 218 */   OP_ID(exgetvaluealpha),    // GHM 20140422
+/* 218 */   OP_ID(ex_getvaluealpha),   // GHM 20140422
 /* 219 */   OP_ID(exnoopAbort),        // GHM 20140423 an old implementation of exshowarray
 /* 220 */   OP_ID(exsetocclabel),      // GHM 20141006
 /* 221 */   OP_ID(exshowocc),          // GHM 20141015 showocc
@@ -463,7 +463,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 392 */   OP_ID(exsoccurs),
 /* 393 */   OP_ID(exDataAccessValidityCheck),
 /* 394 */   OP_ID(exdictcompute),
-/* 395 */   OP_ID(exkey), // currentkey
+/* 395 */   OP_ID(ex_key_currentkey), // currentkey
 /* 396 */   OP(ex_Image_compute),
 /* 397 */   OP(ex_Image_captureSignature_takePhoto), // Image.captureSignature
 /* 398 */   OP(ex_Image_clear),

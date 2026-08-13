@@ -324,13 +324,13 @@ public:
     double  exsvar(int iExpr);
     double  exmvar(int iExpr);
     double  exmvar( MVAR_NODE* ptrvar );                // rcl, Jul 22, 2004
-    double  exavar(int iExpr);
+    Engine::Value exavar(int iExpr);
 
-    double  extavar(int iExpr);
+    SharableString extavar(int iExpr);
     double  excpt(int iExpr);
     double  exif(int iExpr);
     double  exbox(int iExpr);
-    double  excharobj(int program_index);
+    Engine::Value excharobj(int program_index);
 
     double  excpttbl(int iExpr);
 
@@ -420,17 +420,10 @@ public:
     double   exsoccurs_pre80(int iExpr);
     int      exsoccurs(const SECT* pSecT, bool use_rules_for_binary_dict_items = false); // RHF May 14, 2003
 
-    // Helper methods to reduce coding or repeating in some other methods
-private:
-    template<typename T>
-    double AssignAlphaValue(const T& value);
-
-public:
     template<typename T> void AssignValueToVART(int variable_compilation, T value);
     template<typename T> T EvaluateVARTValue(int variable_compilation);
     template<typename T> Engine::Value ModifyVARTValue(int variable_compilation, const std::function<void(T&)>& modify_value_function,
                                                        std::unique_ptr<Paradata::FieldInfo>* paradata_field_info = nullptr);
-
 
 private:
     // int calculateLimitsForGroup( int indexArray[], int iSymGroup )
@@ -467,7 +460,7 @@ public:
     double  exlogtext(int program_index);
     double  exwarning(int program_index);
 
-    double  exedit(int iExpr);
+    Engine::Value exedit(int iExpr);
 
     double  ex_paradata(int program_index);
     double  exsqlquery(int program_index);
@@ -492,7 +485,7 @@ public:
     double ex_setbluetoothname(int program_index);
 
     double exsavepartial(int iExpr);
-    double exgetoperatorid(int iExpr);
+    Engine::Value ex_getoperatorid(int program_index);
     double exsetoperatorid(int iExpr);
 
     double  exdemode(int iExpr);
@@ -536,8 +529,8 @@ public:
 
     double  exsetvalue(int iExpr);      // 20140228
     double  exgetvalue(int iExpr);      // 20140422
-    double  exgetvaluealpha(int iExpr); // 20140422
-    VARX*   AssignParser(int iExpr,CNDIndexes *& pTheIndex,int * aIndex); // 20140422
+    Engine::Value ex_getvaluealpha(int program_index);
+    VARX*   AssignParser(int iExpr, std::unique_ptr<CNDIndexes>& pTheIndex, int* aIndex); // 20140422
 
     SharableString GetValueLabel(const VART* pVarT, const std::variant<double, SharableString>& value);
     double  exgetvaluelabel(int iExpr);
@@ -549,7 +542,7 @@ public:
     double  extblmed(int iExpr);
     double  exfilename(int iExpr);
 
-    double  exkey(int iExpr); // key + currentkey
+    Engine::Value ex_key_currentkey(int program_index);
     double  exkeylist(int iExpr);
     double  exfind_locate(int program_index);
     double  exdictaccess(int program_index);
@@ -672,7 +665,7 @@ public:
     Engine::Value exfucall(int iExpr);                // RHF Aug 21, 2000
 
     double  exupdate(int iExpr);                      // RHF Nov 17, 2000
-    double  exgetbuffer(int iExpr);                   // RHF Sep 21, 2001
+    Engine::Value exgetbuffer(int iExpr);
 
 private:
     std::tuple<std::shared_ptr<NamedReference>, int> EvaluateNoteReference(const FNNOTE_NODE& note_node);
@@ -687,10 +680,10 @@ public:
     Symbol& GetSymbolFromSymbolName(std::string_view symbol_name_sv, SymbolType preferred_symbol_type = SymbolType::None);
     std::tuple<Symbol*, Symbol*> GetEvaluatedSymbolFromSymbolName(const std::string& symbol_name_and_potential_subscript, SymbolType preferred_symbol_type = SymbolType::None);
 
-    double  exgetlabel(int iExpr);                    // RHF Aug 25, 2000
+    Engine::Value exgetlabel(int iExpr);
 
-    CString EvaluateOccurrenceLabel(const Symbol* symbol, const std::optional<int>& zero_based_occurrence);
-    double  exgetocclabel(int iExpr);
+    std::string EvaluateOccurrenceLabel(const Symbol& symbol, const std::optional<int>& zero_based_occurrence);
+    Engine::Value ex_getocclabel(int program_index);
     double  exsetocclabel(int iExpr);
     double  exshowocc(int iExpr);
 
@@ -995,19 +988,4 @@ template<typename T/* = double*/>
 T CIntDriver::evalexpr(const int program_index)
 {
     return static_cast<T>(ExecuteInstruction(program_index).get<double>());
-}
-
-
-template<typename T>
-double CIntDriver::AssignAlphaValue(const T& value)
-{
-    if constexpr(cs::is_optional<T>::value)
-    {
-        return AssignString(UTF8_TODO::GetOptionalUtf8(value));
-    }
-
-    else
-    {
-        return AssignString(UTF8_TODO::GetUtf8(value));
-    }
 }

@@ -114,7 +114,7 @@ namespace
 }
 
 
-double CIntDriver::exedit(int iExpr)
+Engine::Value CIntDriver::exedit(const int iExpr)
 {
     const auto& va_node = GetNode<Nodes::VariableArguments>(iExpr);
     CString pattern = EvalAlphaExprCS(va_node.arguments[0]);
@@ -214,18 +214,17 @@ double CIntDriver::exedit(int iExpr)
         SO::MakeExactLength(edit_result, pattern.GetLength());
     }
 
-    return AssignAlphaValue(edit_result);
+    return UTF8_TODO::GetUtf8(edit_result);
 }
 
 
 //----------------------------------------------------------------------
 //  extavar:  execute table alpha var
 //----------------------------------------------------------------------
-double CIntDriver::extavar(int iExpr)
+SharableString CIntDriver::extavar(int iExpr)
 {
 #ifndef WIN_DESKTOP
     // crosstabs don't exist in the portable environments
-    ASSERT(false);
 #else
     const TVAR_NODE* pTableNode = (TVAR_NODE*)PPT(iExpr);
     CTAB* pCtab = XPT( pTableNode->tvar_index );
@@ -243,28 +242,27 @@ double CIntDriver::extavar(int iExpr)
     if( pBuf != nullptr )
     {
         int len = pCtab->GetAcumType() / sizeof(TCHAR);
-        return AssignAlphaValue(CString(pBuf, len));
+        return UTF8_TODO::GetUtf8(std::wstring_view(pBuf, len));
     }
 #endif
 
-    return AssignStringNull();
+    return ReturnProgrammingError(SharableString());
 }
 
 
 //----------------------------------------------------------------------
 //  exavar:  execute alpha var
 //----------------------------------------------------------------------
-double CIntDriver::exavar(int iEpxr)
+Engine::Value CIntDriver::exavar(int iEpxr)
 {
     const SVAR_NODE* pSVAR = (SVAR_NODE*)PPT(iEpxr);
     const MVAR_NODE* pMVAR = (MVAR_NODE*)PPT(iEpxr);
-    CString csValue;
 
     if( pSVAR->m_iVarType == SVAR_CODE )
     {
         VART* pVarT = VPT(pSVAR->m_iVarIndex);
         VARX* const pVarX = pVarT->GetVarX();
-        csValue = CString((LPCTSTR)svaraddr(pVarX), pVarT->GetLength());
+        return UTF8_TODO::GetUtf8(std::wstring_view((LPCTSTR)svaraddr(pVarX), pVarT->GetLength()));
     }
 
     else if( pMVAR->m_iVarType == MVAR_CODE )
@@ -279,41 +277,42 @@ double CIntDriver::exavar(int iEpxr)
 
         if( variable_address != nullptr )
         {
-            csValue = CString(variable_address, pVarT->GetLength());
+            return UTF8_TODO::GetUtf8(std::wstring_view(variable_address, pVarT->GetLength()));
         }
 
         else
         {
-            csValue = CString(_T(' '), pVarT->GetLength());
+            return std::string(pVarT->GetLength(), ' ');
         }
     }
 
-    return AssignAlphaValue(csValue);
+    return Engine::Value::Invalid<SharableString>();
 }
 
 
 //----------------------------------------------------------------------
 //  excharobj : executes alpha object
 //----------------------------------------------------------------------
-double CIntDriver::excharobj(int program_index)
+Engine::Value CIntDriver::excharobj(int program_index)
 {
     const auto& string_expression_node = GetNode<Nodes::StringExpression>(program_index);
-    std::wstring text;
+    SharableString text;
 
     if( string_expression_node.string_expression >= 0 &&
         m_engineData->MeetsCompiledLogicVersion(Serializer::Iteration_8_0_000_1) )
     {
-        text = EvalAlphaExpr(string_expression_node.string_expression);
+        text = Evaluate<SharableString>(string_expression_node.string_expression);
     }
 
     else
     {
-        int abs_string_expression = std::abs(string_expression_node.string_expression);
-        FunctionCode string_expression_function_code = GetNode<FunctionCode>(abs_string_expression);
+        const int abs_string_expression = std::abs(string_expression_node.string_expression);
+        const FunctionCode string_expression_function_code = GetNode<FunctionCode>(abs_string_expression);
 
-        if( string_expression_function_code == FunctionCode::SVAR_CODE || string_expression_function_code == FunctionCode::MVAR_CODE )
+        if( string_expression_function_code == FunctionCode::SVAR_CODE ||
+            string_expression_function_code == FunctionCode::MVAR_CODE )
         {
-            text = UTF8_TODO::GetWide(*GetWorkingSharableString(exavar(abs_string_expression)));
+            text = exavar(abs_string_expression).get<SharableString>();
         }
 
         else
@@ -321,52 +320,54 @@ double CIntDriver::excharobj(int program_index)
             ASSERT(m_engineData->PredatesCompiledLogicVersion(Serializer::Iteration_8_0_000_1));
 
             if( string_expression_function_code == FunctionCode::WORKSTRING_CODE && string_expression_node.substring_index_expression == -1 ) // UTF8_TODO here until all the objects return SharableStrings
-                return AssignString(GetSymbolWorkString(GetNode<int>(abs_string_expression + 1)).GetSharableString());
+                return GetSymbolWorkString(GetNode<int>(abs_string_expression + 1)).GetSharableString();
 
-            text = ( string_expression_function_code == FunctionCode::WORKSTRING_CODE ) ? UTF8_TODO::GetWide(GetSymbolWorkString(GetNode<int>(abs_string_expression + 1)).GetString()) :
-                   ( string_expression_function_code == FunctionCode::TVAR_CODE )       ? UTF8_TODO::GetWide(*GetWorkingSharableString(extavar(abs_string_expression))) :
-                                                                                          EvalAlphaExpr(abs_string_expression);
+            text = ( string_expression_function_code == FunctionCode::WORKSTRING_CODE ) ? GetSymbolWorkString(GetNode<int>(abs_string_expression + 1)).GetSharableString() :
+                   ( string_expression_function_code == FunctionCode::TVAR_CODE )       ? extavar(abs_string_expression) :
+                                                                                          Evaluate<SharableString>(abs_string_expression);
         }
     }
 
 
     // done if no substring values are present
     if( string_expression_node.substring_index_expression == -1 )
-        return AssignAlphaValue(std::move(text));
+        return text;
 
 
     // parse the substring values
-    int text_length = text.length();
-    int starting_position = Evaluate<int>(string_expression_node.substring_index_expression);
+    const int wide_text_length = text.WideLength();
+    int wide_starting_position = Evaluate<int>(string_expression_node.substring_index_expression);
 
-    if( starting_position < 0 )
+    if( wide_starting_position < 0 )
     {
         // A negative start position means index from right end of string.
         // This allows code like "foobar"[-3] which results in "bar"
-        starting_position = text_length + starting_position + 1;
+        wide_starting_position = wide_text_length + wide_starting_position + 1;
     }
 
     // return a blank string if the substring values are not valid
-    if( --starting_position < 0 || ( starting_position >= text_length && starting_position > 0 ) )
-        return AssignStringNull();
+    if( --wide_starting_position < 0 || ( wide_starting_position >= wide_text_length && wide_starting_position > 0 ) )
+        return Engine::Value::Invalid<SharableString>();
 
-    int length;
+    const size_t utf8_starting_position = SO::WideGetOffset(*text, wide_starting_position);
+    std::string_view text_substr_sv(std::string_view(*text).substr(utf8_starting_position));
 
     if( string_expression_node.substring_length_expression != -1 )
     {
-        length = Evaluate<int>(string_expression_node.substring_length_expression);
-        length = std::max(0, length); // negative lengths are invalid
+        const int wide_length = Evaluate<int>(string_expression_node.substring_length_expression);
+
+        // negative lengths are invalid
+        if( wide_length < 0 )
+            return Engine::Value::Invalid<SharableString>();
+
+        const size_t utf8_length = SO::WideGetOffset(text_substr_sv, wide_length);
+
+        // only create a substring when the length is less than the string's length
+        if( utf8_length < text_substr_sv.length() )
+            text_substr_sv = text_substr_sv.substr(0, utf8_length);
     }
 
-    else
-    {
-        length = text_length;
-    }
-
-    if( starting_position + length > text_length )
-        length = text_length - starting_position;
-
-    return AssignAlphaValue(text.substr(starting_position, length));
+    return text_substr_sv;
 }
 
 
@@ -478,7 +479,7 @@ std::tuple<Symbol*, Symbol*> CIntDriver::GetEvaluatedSymbolFromSymbolName(const 
 }
 
 
-double CIntDriver::exgetlabel(int iExpr)
+Engine::Value CIntDriver::exgetlabel(int iExpr)
 {
     const auto& fng_node = GetNode<FNG_NODE>(iExpr);
     int symbol_index = fng_node.symbol_index;
@@ -493,7 +494,7 @@ double CIntDriver::exgetlabel(int iExpr)
     if( symbol_index == -1 )
     {
         if( m_iExSymbol <= 0 )
-            return AssignStringNull();
+            return Engine::Value::Undefined<SharableString>();
 
         symbol_index = m_iExSymbol;
     }
@@ -505,7 +506,7 @@ double CIntDriver::exgetlabel(int iExpr)
 
         if( data_case.GetPartialSaveCaseItemReference() == nullptr )
         {
-            return AssignStringNull();
+            return Engine::Value::Undefined<SharableString>();
         }
 
         else
@@ -513,17 +514,19 @@ double CIntDriver::exgetlabel(int iExpr)
             const CaseItemReference& partial_save_case_item_reference = *data_case.GetPartialSaveCaseItemReference();
 
             // return the name along with the occurrences
-            return AssignString(partial_save_case_item_reference.GetName() +
-                                partial_save_case_item_reference.GetItemIndexHelper().GetMinimalOccurrencesText(partial_save_case_item_reference));
+            return SO::Concatenate(
+                partial_save_case_item_reference.GetName(),
+                partial_save_case_item_reference.GetItemIndexHelper().GetMinimalOccurrencesText(partial_save_case_item_reference)
+            );
         }
     }
 
 
-    const Symbol* const symbol = NPT(symbol_index);
+    const Symbol& symbol = NPT_Ref(symbol_index);
 
     // getsymbol: evaluate the symbol
     if( fng_node.m_iFunCode == FunctionCode::FNGETSYMBOL_CODE )
-        return AssignString(symbol->GetName());
+        return symbol.GetName();
 
 
     // getlabel: evaluate the label
@@ -531,36 +534,36 @@ double CIntDriver::exgetlabel(int iExpr)
     // only 1 parameter was used in the function
     if( fng_node.m_iExpr == -1 )
     {
-        return AssignString(SymbolCalculator::GetLabel(*symbol));
+        return SymbolCalculator::GetLabel(symbol);
     }
 
     // otherwise 2 parameters were used, which means that we need
     // to search for a code or label in the value set
     else
     {
-        ASSERT(symbol->IsOneOf(SymbolType::Variable, SymbolType::ValueSet));
+        ASSERT(symbol.IsOneOf(SymbolType::Variable, SymbolType::ValueSet));
         const ValueProcessor* value_processor;
 
-        if( symbol->IsA(SymbolType::ValueSet) )
+        if( symbol.IsA(SymbolType::ValueSet) )
         {
-            const ValueSet* value_set = assert_cast<const ValueSet*>(symbol);
-            value_processor = &value_set->GetValueProcessor();
+            const ValueSet& value_set = assert_cast<const ValueSet&>(symbol);
+            value_processor = &value_set.GetValueProcessor();
         }
 
         else
         {
-            const VART* pVarT = assert_cast<const VART*>(symbol);
-            value_processor = &pVarT->GetCurrentValueProcessor();
+            const VART& vart = assert_cast<const VART&>(symbol);
+            value_processor = &vart.GetCurrentValueProcessor();
         }
 
         if( fng_node.m_iOper == static_cast<int>(GetLabelSearchType::ByCode) )
         {
-            const DictValue* const dict_value = IsNumeric(*symbol)
+            const DictValue* const dict_value = IsNumeric(symbol)
                 ? value_processor->GetDictValue(Evaluate<double>(fng_node.m_iExpr))
                 : value_processor->GetDictValue(Evaluate<SharableString>(fng_node.m_iExpr).GetString());
 
             if( dict_value != nullptr )
-                return AssignAlphaValue(dict_value->GetLabel());
+                return UTF8_TODO::GetUtf8(dict_value->GetLabel());
         }
 
         else
@@ -573,25 +576,24 @@ double CIntDriver::exgetlabel(int iExpr)
 
             // take the label from the first value pair
             if( dict_value != nullptr && dict_value->HasValuePairs() )
-                return AssignString(dict_value->GetValuePair(0).GetFrom());
+                return dict_value->GetValuePair(0).GetFrom();
         }
 
-        return AssignStringNull();
+        return Engine::Value::Undefined<SharableString>();
     }
 }
 
 
-double CIntDriver::exgetbuffer(int iExpr)
+Engine::Value CIntDriver::exgetbuffer(int iExpr)
 {
     const FNC_NODE* pFngNode = (FNC_NODE*)PPT(iExpr);
     SVAR_NODE* pSVAR = (SVAR_NODE*)PPT(pFngNode->isymb);
     MVAR_NODE* pMVAR = (MVAR_NODE*)PPT(pFngNode->isymb);
-    CString csValue;
 
     if( pSVAR->m_iVarType == SVAR_CODE )
     {
         VART* const pVarT = VPT(pSVAR->m_iVarIndex);
-        csValue = CString(pVarT->GetAsciiValue(0), pVarT->GetLength());
+        return UTF8_TODO::GetUtf8(std::wstring_view(pVarT->GetAsciiValue(0), pVarT->GetLength()));
     }
 
     else if( pMVAR->m_iVarType == MVAR_CODE )
@@ -601,15 +603,10 @@ double CIntDriver::exgetbuffer(int iExpr)
 
         VART* pVarT = VPT(pMVAR->m_iVarIndex);
 
-        csValue = CString((LPCTSTR)pVarT->GetAsciiValue((int)subindex[0]), pVarT->GetLength());
+        return UTF8_TODO::GetUtf8(std::wstring_view((LPCTSTR)pVarT->GetAsciiValue((int)subindex[0]), pVarT->GetLength()));
     }
 
-    else
-    {
-        ASSERT(0);
-    }
-
-    return AssignAlphaValue(csValue);
+    return ReturnProgrammingError(Engine::Value::Invalid<SharableString>());
 }
 
 
@@ -813,10 +810,12 @@ double CIntDriver::exeditnote(const int program_index)
 }
 
 
-double CIntDriver::exgetoperatorid(int iExpr)
+Engine::Value CIntDriver::ex_getoperatorid(const int program_index)
 {
-    CString operator_id = ( Issamod == ModuleType::Entry ) ? assert_cast<CEntryDriver*>(m_pEngineDriver)->GetOperatorId() : CString();
-    return AssignAlphaValue(operator_id);
+    if( Issamod == ModuleType::Entry )
+        return UTF8_TODO::GetUtf8(assert_cast<CEntryDriver*>(m_pEngineDriver)->GetOperatorId());
+
+    return Engine::Value::Undefined<SharableString>();
 }
 
 

@@ -63,7 +63,6 @@ public:
     static std::string GetUtf8(wstring_view text_sv);
 
     static std::optional<std::wstring> GetOptionalWide(const std::optional<std::string>& optional_text);
-    static std::optional<std::string> GetOptionalUtf8(const std::optional<std::wstring>& optional_text);
 
     static std::vector<std::string> GetUtf8(const std::vector<std::wstring>& texts);
     static std::vector<std::wstring> GetWide(const std::vector<std::string>& texts);

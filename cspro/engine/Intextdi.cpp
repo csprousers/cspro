@@ -976,39 +976,47 @@ double CIntDriver::exdictaccess(const Nodes::SetAccessFirstLast& set_access_firs
 //  exkey           ejecuta funcion 'KEY'
 //
 //----------------------------------------------------------------------
-double CIntDriver::exkey(int iExpr)
+Engine::Value CIntDriver::ex_key_currentkey(const int program_index)
 {
-    const auto& fn8_node = GetNode<FN8_NODE>(iExpr);
-    const Symbol* symbol = NPT(fn8_node.symbol_index);
+    const auto& fn8_node = GetNode<FN8_NODE>(program_index);
+    const Symbol& symbol = NPT_Ref(fn8_node.symbol_index);
 
-    if( symbol->IsA(SymbolType::Dictionary) )
+    if( symbol.IsA(SymbolType::Dictionary) )
     {
-        const EngineDictionary* engine_dictionary = assert_cast<const EngineDictionary*>(symbol);
-        const EngineCase& engine_case = engine_dictionary->GetEngineCase();
+        const EngineDictionary& engine_dictionary = assert_cast<const EngineDictionary&>(symbol);
+        const EngineCase& engine_case = engine_dictionary.GetEngineCase();
 
         if( fn8_node.function_code == FunctionCode::FNKEY_CODE )
         {
             const std::optional<CaseKey>& initial_case_key = engine_case.GetInitialCaseKey();
-            return initial_case_key.has_value() ? AssignString(initial_case_key->GetKey()) :
-                                                  AssignStringNull();
+
+            if( initial_case_key.has_value() )
+                return initial_case_key->GetKey();
+
+            return Engine::Value::Undefined<SharableString>();
         }
 
         else
         {
             ASSERT(fn8_node.function_code == FunctionCode::FNCURRENTKEY_CODE); // ENGINECR_TODO(currentkey) test once the IDs are modifiable
-            return AssignString(engine_case.GetCase().GetKey());
+            return engine_case.GetCase().GetKey();
         }
     }
 
     else
     {
-        const DICX* pDicX = DPX(fn8_node.symbol_index);
+        const DICX* const pDicX = DPX(fn8_node.symbol_index);
 
         if( fn8_node.function_code == FunctionCode::FNKEY_CODE )
-            return AssignAlphaValue(pDicX->GetCase().GetPre74_Case()->GetKey());
+        {
+            return UTF8_TODO::GetUtf8(pDicX->GetCase().GetPre74_Case()->GetKey());
+        }
 
         else
-            return AssignAlphaValue(m_pEngineDriver->key_string(pDicX->GetDicT()));
+        {
+            ASSERT(fn8_node.function_code == FunctionCode::FNCURRENTKEY_CODE);
+            return UTF8_TODO::GetUtf8(m_pEngineDriver->key_string(pDicX->GetDicT()));
+        }
     }
 }
 

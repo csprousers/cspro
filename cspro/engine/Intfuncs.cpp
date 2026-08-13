@@ -17,9 +17,7 @@
 #include <zEngineO/Interpreter/SelectDlgHelper.h>
 #include <zEngineO/Messages/EngineMessages.h>
 #include <zEngineO/Nodes/File.h>
-#include <zEngineO/Nodes/Switch.h>
 #include <zEngineO/Nodes/Trace.h>
-#include <zEngineO/Nodes/Various.h>
 #include <zEngineF/TraceHandler.h>
 #include <zPlatformO/PlatformInterface.h>
 #include <zToolsO/DirectoryLister.h>
@@ -1574,7 +1572,8 @@ double CIntDriver::ExFileCopyRenameProcessor(const int program_index, const CF c
     const auto& file_node = GetNode<Nodes::File>(program_index);
     const Nodes::List& elements_list = GetListNode(file_node.elements_list_node);
 
-    const std::optional<std::string> output_path = UTF8_TODO::GetOptionalUtf8(ExGetFileName(elements_list.elements[0]));
+    const std::optional<std::wstring> wide_output_path = ExGetFileName(elements_list.elements[0]);
+    const std::optional<std::string> output_path = wide_output_path.has_value() ? std::make_optional(UTF8_TODO::GetUtf8(*wide_output_path)) : std::nullopt;
 
     if( !output_path.has_value() )
         return DEFAULT;
@@ -2409,7 +2408,7 @@ double CIntDriver::exshowlist(int iExpr)
 
             if( bAlphaVar )
             {
-                csValue = UTF8_TODO::GetCString(*GetWorkingSharableString(exavar(iExprSymVar)));
+                csValue = UTF8_TODO::GetCString(*exavar(iExprSymVar).get<SharableString>());
             }
 
             else
@@ -3203,30 +3202,29 @@ std::vector<int> CIntDriver::EvaluateValidIndices(int iSymGroup, int iSymItem, i
 }
 
 
-double CIntDriver::exgetocclabel(int iExpr)
+Engine::Value CIntDriver::ex_getocclabel(const int program_index)
 {
-    const auto& various_node = GetNode<FNVARIOUS_NODE>(iExpr);
-    const Symbol* symbol = NPT(various_node.fn_expr[0]);
-    int occurrence_expression = various_node.fn_expr[1];
+    const auto& various_node = GetNode<FNVARIOUS_NODE>(program_index);
+    const Symbol& symbol = NPT_Ref(various_node.fn_expr[0]);
+    const int occurrence_expression = various_node.fn_expr[1];
     std::optional<int> zero_based_occurrence;
 
     if( occurrence_expression != -1 )
         zero_based_occurrence = Evaluate<int>(occurrence_expression) - 1;
 
-    return AssignAlphaValue(EvaluateOccurrenceLabel(symbol, zero_based_occurrence));
+    return EvaluateOccurrenceLabel(symbol, zero_based_occurrence);
 }
 
 
-CString CIntDriver::EvaluateOccurrenceLabel(const Symbol* symbol, const std::optional<int>& zero_based_occurrence)
+std::string CIntDriver::EvaluateOccurrenceLabel(const Symbol& symbol, const std::optional<int>& zero_based_occurrence)
 {
-    ASSERT(symbol != nullptr);
     bool bUseBatchLogic = Issamod != ModuleType::Entry;
     int iSpecifiedOcc = zero_based_occurrence.value_or(0);
     CString label;
 
-    if( symbol->IsA(SymbolType::Variable) ) // item
+    if( symbol.IsA(SymbolType::Variable) ) // item
     {
-        auto pVarT = assert_cast<const VART*>(symbol);
+        auto pVarT = assert_cast<const VART*>(&symbol);
         const CDictItem* item = pVarT->GetDictItem();
         ASSERT(item != nullptr);
 
@@ -3237,9 +3235,9 @@ CString CIntDriver::EvaluateOccurrenceLabel(const Symbol* symbol, const std::opt
             label = item->GetOccurrenceLabels().GetLabel(iSpecifiedOcc);
     }
 
-    else if( symbol->IsA(SymbolType::Record) ) // record
+    else if( symbol.IsA(SymbolType::Record) ) // record
     {
-        auto engine_record = assert_cast<const EngineRecord*>(symbol);
+        const EngineRecord& engine_record = assert_cast<const EngineRecord&>(symbol);
 
         if( !zero_based_occurrence.has_value() )
         {
@@ -3247,13 +3245,13 @@ CString CIntDriver::EvaluateOccurrenceLabel(const Symbol* symbol, const std::opt
             // iSpecifiedOcc = (int)GetCurOccFromChildrenGroups(engine_record, bUseBatchLogic) - 1;
         }
 
-        if( iSpecifiedOcc >= 0 && iSpecifiedOcc < (int)engine_record->GetDictRecord().GetMaxRecs() )
-            label = engine_record->GetDictRecord().GetOccurrenceLabels().GetLabel(iSpecifiedOcc);
+        if( iSpecifiedOcc >= 0 && iSpecifiedOcc < (int)engine_record.GetDictRecord().GetMaxRecs() )
+            label = engine_record.GetDictRecord().GetOccurrenceLabels().GetLabel(iSpecifiedOcc);
     }
 
-    else if( symbol->IsA(SymbolType::Section) ) // record
+    else if( symbol.IsA(SymbolType::Section) ) // record
     {
-        auto pSecT = assert_cast<const SECT*>(symbol);
+        auto pSecT = assert_cast<const SECT*>(&symbol);
 
         if( !zero_based_occurrence.has_value() )
             iSpecifiedOcc = (int)GetCurOccFromChildrenGroups(pSecT,bUseBatchLogic) - 1;
@@ -3262,9 +3260,9 @@ CString CIntDriver::EvaluateOccurrenceLabel(const Symbol* symbol, const std::opt
             label = pSecT->GetDictRecord()->GetOccurrenceLabels().GetLabel(iSpecifiedOcc);
     }
 
-    else if( symbol->IsOneOf(SymbolType::Group) ) // group
+    else if( symbol.IsOneOf(SymbolType::Group) ) // group
     {
-        auto pGroupT = assert_cast<const GROUPT*>(symbol);
+        auto pGroupT = assert_cast<const GROUPT*>(&symbol);
 
         if( !zero_based_occurrence.has_value() )
             iSpecifiedOcc = GetCurOccFromGroup(pGroupT, bUseBatchLogic) - 1;
@@ -3304,7 +3302,7 @@ CString CIntDriver::EvaluateOccurrenceLabel(const Symbol* symbol, const std::opt
         ASSERT(false);
     }
 
-    return label;
+    return UTF8_TODO::GetUtf8(label);
 }
 
 
@@ -3399,9 +3397,9 @@ double CIntDriver::exshowocc(int iExpr)
 
 
 // 20140422 based on code that was originally exassign ... the caller must delete pTheIndex if non-NULL
-VARX* CIntDriver::AssignParser(int iExpr, CNDIndexes *& pTheIndex, int* aIndex)
+VARX* CIntDriver::AssignParser(int iExpr, std::unique_ptr<CNDIndexes>& pTheIndex, int* aIndex)
 {
-    pTheIndex = NULL;
+    ASSERT(pTheIndex == nullptr);
 
     const auto& va_with_size_node = GetNode<Nodes::VariableArgumentsWithSize>(iExpr);
     int iVariable = va_with_size_node.arguments[0];
@@ -3513,11 +3511,11 @@ VARX* CIntDriver::AssignParser(int iExpr, CNDIndexes *& pTheIndex, int* aIndex)
         }
     }
 
-    pTheIndex = new CNDIndexes(ZERO_BASED,aIndex);
+    pTheIndex = std::make_unique<CNDIndexes>(ZERO_BASED, aIndex);
 
     if( !CheckIndexArray(pVarT,*pTheIndex ) )
     {
-        delete pTheIndex;
+        pTheIndex.reset();
         return NULL;
     }
 
@@ -3529,9 +3527,9 @@ double CIntDriver::exsetvalue(int iExpr) // 20140228
 {
     const auto& va_with_size_node = GetNode<Nodes::VariableArgumentsWithSize>(iExpr);
 
-    CNDIndexes* pTheIndex;
+    std::unique_ptr<CNDIndexes> pTheIndex;
     int aIndex[DIM_MAXDIM];
-    VARX* pVarX = AssignParser(iExpr,pTheIndex,aIndex);
+    VARX* pVarX = AssignParser(iExpr, pTheIndex, aIndex);
 
     if( !pVarX )
         return 0;
@@ -3591,53 +3589,43 @@ double CIntDriver::exsetvalue(int iExpr) // 20140228
         }
     }
 
-    delete pTheIndex;
-
     return dRet;
 }
 
 
 double CIntDriver::exgetvalue(int iExpr) // 20140422
 {
-    CNDIndexes* pTheIndex;
+    std::unique_ptr<CNDIndexes> pTheIndex;
     int aIndex[DIM_MAXDIM];
-    VARX* pVarX = AssignParser(iExpr,pTheIndex,aIndex);
+    VARX* pVarX = AssignParser(iExpr, pTheIndex, aIndex);
 
     if( !pVarX )
         return DEFAULT;
 
     VART* pVarT = pVarX->GetVarT();
 
-    double dRet = pVarT->IsAlpha() ? DEFAULT : GetVarFloatValue(pVarX,*pTheIndex);
-
-    delete pTheIndex;
-
-    return dRet;
+    return pVarT->IsAlpha() ? DEFAULT : GetVarFloatValue(pVarX, *pTheIndex);
 }
 
 
-double CIntDriver::exgetvaluealpha(int iExpr) // 20140422
+Engine::Value CIntDriver::ex_getvaluealpha(const int program_index)
 {
-    CNDIndexes* pTheIndex;
+    std::unique_ptr<CNDIndexes> pTheIndex;
     int aIndex[DIM_MAXDIM];
-    VARX* pVarX = AssignParser(iExpr, pTheIndex, aIndex);
-
-    CString alpha_value;
+    VARX* const pVarX = AssignParser(program_index, pTheIndex, aIndex);
 
     if( pVarX != nullptr )
     {
-        VART* pVarT = pVarX->GetVarT();
+        VART* const pVarT = pVarX->GetVarT();
 
         if( pVarT->IsAlpha() )
         {
-            const TCHAR* buffer = pVarT->IsArray() ? GetMultVarAsciiAddr(pVarX, aIndex) : GetSingVarAsciiAddr(pVarX);
-            alpha_value = CString(buffer, pVarT->GetLength());
+            const TCHAR* const buffer = pVarT->IsArray() ? GetMultVarAsciiAddr(pVarX, aIndex) : GetSingVarAsciiAddr(pVarX);
+            return UTF8_TODO::GetUtf8(std::wstring_view(buffer, pVarT->GetLength()));
         }
-
-        delete pTheIndex;
     }
 
-    return AssignAlphaValue(alpha_value);
+    return Engine::Value::Invalid<SharableString>();
 }
 
 

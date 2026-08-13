@@ -121,15 +121,6 @@ std::optional<std::wstring> UTF8_TODO::GetOptionalWide(const std::optional<std::
 }
 
 
-std::optional<std::string> UTF8_TODO::GetOptionalUtf8(const std::optional<std::wstring>& optional_text)
-{
-    if( optional_text.has_value() )
-        return GetUtf8(*optional_text);
-
-    return std::nullopt;
-}
-
-
 std::vector<std::string> UTF8_TODO::GetUtf8(const std::vector<std::wstring>& texts)
 {
     std::vector<std::string> utf8_texts;
