@@ -98,6 +98,9 @@ namespace MGF
     constexpr int List_invalid_index_964                                    =    964;
     constexpr int List_read_only_cannot_be_modified_965                     =    965;
 
+    constexpr int invalid_operation_removed_1005                            =   1005;
+    constexpr int invalid_operation_not_implemented_1006                    =   1006;
+
     constexpr int invalid_subscript_1008                                    =   1008;
 
     constexpr int property_invalid_parameter_1100                           =   1100;

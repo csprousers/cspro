@@ -49,11 +49,11 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /*  32 */   OP(ex_string_ge), // >=
 /*  33 */   OP(ex_string_gt), // >
 /*  34 */   OP_ID(excpttbl),
-/*  35 */   OP_ID(exnoopAbort),
-/*  36 */   OP_ID(exnoopAbort), // an old implementation of ex_Array_var
+/*  35 */   OP(ex_nop_abort), // TBL_CODE
+/*  36 */   OP(ex_nop_abort), // an old implementation of ex_Array_var
 /*  37 */   OP_ID(ex_UserFunction_call),
-/*  38 */   OP_ID(exnoopAbort), // an old implementation of exexit
-/*  39 */   OP_ID(exnoopAbort), // exfor_view,
+/*  38 */   OP(ex_nop_abort), // an old implementation of exexit
+/*  39 */   OP(ex_nop_abort), // exfor_view
 
 /*───────┬──────────┬-----------------------------------------------------*/
 /*Op.code│ Function │      Data Entry COMMANDS                            */
@@ -70,11 +70,11 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /*Op.code│ Function │      Batch COMMANDS                                 */
 /*───────┴──────────┴-----------------------------------------------------*/
 /*  47 */   OP_ID(exskipcase),
-/*  48 */   OP_ID(exnoopAbort), // previously exnowrite
+/*  48 */   OP(ex_nop_abort), // previously exnowrite
 /*  49 */   OP_ID(exstop),
-/*  50 */   OP_ID(exnoopIgnore_numeric), // previously exWriteForm
+/*  50 */   OP(ex_nop_ignore), // previously exWriteForm
 /*  51 */   OP_ID(exctab),
-/*  52 */   OP_ID(exnoopAbort), // the removed, batch-only, exfreq
+/*  52 */   OP(ex_nop_abort), // the removed, batch-only, exfreq
 /*  53 */   OP_ID(exbreak),
 /*  54 */   OP_ID(exexport),
 
@@ -97,7 +97,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /*  63 */   OP(ex_random),
 /*  64 */   OP_ID(exnoccurs),
 /*  65 */   OP_ID(exsoccurs_pre80),
-/*  66 */   OP_ID(exnoopAbort), // exvoccurs
+/*  66 */   OP(ex_nop_abort), // exvoccurs
 /*  67 */   OP_ID(excount),
 /*  68 */   OP_ID(exsum),
 /*  69 */   OP_ID(exavrge),
@@ -128,7 +128,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /*  86 */   OP(ex_adjlba),
 /*  87 */   OP(ex_adjlbi),
 /*  88 */   OP(ex_adjubi),
-/*  89 */   OP_ID(exnoopAbort), // exdatechk
+/*  89 */   OP(ex_nop_abort), // exdatechk
 /*  90 */   OP(ex_systime),
 /*  91 */   OP(ex_sysdate),
 
@@ -154,12 +154,12 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /*Op.code│ Function │      INDEXED FILES FUNCTIONS                        */
 /*───────┴──────────┴-----------------------------------------------------*/
 /* 102 */   OP_ID(exfilename),
-/* 103 */   OP_ID(exnoopAbort),           // an old implementation of exselcase
-/* 104 */   OP_ID(exnoopAbort),           // previously a locked version of exselcase
+/* 103 */   OP(ex_nop_abort),          // an old implementation of exselcase
+/* 104 */   OP(ex_nop_abort),          // previously a locked version of exselcase
 /* 105 */   OP_ID(exloadcase),
-/* 106 */   OP_ID(exnoopAbort),           // previously a locked version of exloadcase
+/* 106 */   OP(ex_nop_abort),          // previously a locked version of exloadcase
 /* 107 */   OP_ID(exretrieve),
-/* 108 */   OP_ID(exnoopAbort),           // previously a locked version of exretrieve
+/* 108 */   OP(ex_nop_abort),          // previously a locked version of exretrieve
 /* 109 */   OP_ID(exwritecase),
 /* 110 */   OP_ID(exdelcase),
 /* 111 */   OP_ID(exfind_locate),         // find
@@ -167,13 +167,13 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 113 */   OP_ID(ex_open),
 /* 114 */   OP_ID(ex_close),
 /* 115 */   OP_ID(exfind_locate),         // locate
-/* 116 */   OP_ID(exnoopAbort),           // previously exexec
-/* 117 */   OP_ID(exnoopAbort),           // an old implementation of exsysparm
-/* 118 */   OP_ID(exnoopIgnore_numeric),  // previously exioerror
-/* 119 */   OP_ID(exnoopAbort),           // previously exwriteacl
-/* 120 */   OP_ID(exnoopIgnore_numeric),  // previously exdemenu
+/* 116 */   OP(ex_nop_abort),          // previously exexec
+/* 117 */   OP(ex_nop_abort),          // an old implementation of exsysparm
+/* 118 */   OP(ex_nop_ignore),  // previously exioerror
+/* 119 */   OP(ex_nop_abort),          // previously exwriteacl
+/* 120 */   OP(ex_nop_ignore),  // previously exdemenu
 /* 121 */   OP_ID(exsetattr),
-/* 122 */   OP_ID(exnoopAbort),           // previously set file
+/* 122 */   OP(ex_nop_abort),          // previously set file
 
 /*───────┬──────────┬-----------------------------------------------------*/
 /*Op.code│ Function │      Data Entry COMMANDS - extension                */
@@ -184,13 +184,13 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /*Op.code│ Function │      NUMERIC FUNCTIONS   - extension                */
 /*───────┴──────────┴-----------------------------------------------------*/
 /* 124 */   OP_ID(exnmembers),
-/* 125 */   OP_ID(exnoopAbort),  // previously exset_output
-/* 126 */   OP_ID(exnoopAbort),  // previously exrecord
+/* 125 */   OP(ex_nop_abort), // previously exset_output
+/* 126 */   OP(ex_nop_abort), // previously exrecord
 /* 127 */   OP(ex_minvalue_maxvalue), // minvalue
 /* 128 */   OP(ex_minvalue_maxvalue), // maxvalue
 /* 129 */   OP_ID(exfor_group),
-/* 130 */   OP_ID(exnoopAbort),  // previously extbd
-/* 131 */   OP_ID(exnoopAbort),  // GROUP_CODE
+/* 130 */   OP(ex_nop_abort), // previously extbd
+/* 131 */   OP(ex_nop_abort), // GROUP_CODE
 /* 132 */   OP_ID(exfucall),
 /* 133 */   OP(ex_in),        // RHC Oct 16, 2000
 /* 134 */   OP_ID(ex_do),        // RHC Oct 16, 2000
@@ -199,22 +199,22 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 137 */   OP_ID(exfntotocc),   // RHC Oct 16, 2000
 /* 138 */   OP_ID(exupdate),     // RHF Nov 17, 2000
 /* 139 */   OP_ID(exwrite),      // RHF Dec 16, 2000
-/* 140 */   OP_ID(exnoopAbort),  // an old implementation of exispartial [original: RHF Mar 06, 2001]
+/* 140 */   OP(ex_nop_abort), // an old implementation of exispartial [original: RHF Mar 06, 2001]
 /* 141 */   OP_ID(exfor_relation),
-/* 142 */   OP_ID(exnoopAbort),  // REL_CODE
+/* 142 */   OP(ex_nop_abort), // REL_CODE
 /* 143 */   OP_ID(exgetbuffer),      // RHF Sep 21, 2001
 /* 144 */   OP_ID(exinsert_delete),  // Chirag, Jul 22, 2002
 /* 145 */   OP_ID(exinsert_delete),  // Chirag, Sep 11, 2002
 /* 146 */   OP_ID(exsort),           // Chirag, Sep 11, 2002
 /* 147 */   OP_ID(exgetlabel),       // RHF Aug 25, 2000
 /* 148 */   OP_ID(exgetlabel),       // getsymbol RHF Mar 23, 2001
-/* 149 */   OP_ID(exnoopAbort),      // an old implementation of exgetnote  [original: RHF Nov 19, 2002]
-/* 150 */   OP_ID(exnoopAbort),      // an old implementation of exeditnote [original: RHF Nov 19, 2002]
-/* 151 */   OP_ID(exnoopAbort),      // an old implementation of exputnote  [original: RHF Nov 19, 2002]
+/* 149 */   OP(ex_nop_abort),     // an old implementation of exgetnote  [original: RHF Nov 19, 2002]
+/* 150 */   OP(ex_nop_abort),     // an old implementation of exeditnote [original: RHF Nov 19, 2002]
+/* 151 */   OP(ex_nop_abort),     // an old implementation of exputnote  [original: RHF Nov 19, 2002]
 /* 152 */   OP_ID(exmaketext),       // RHF Jun 08, 2001
 
 /* 153 */   OP_ID(exmoveto),         // RHF Dec 09, 2003
-/* 154 */   OP_ID(exnoopAbort),      // an old implementation of exsavepartial [original: RHF Dec 01, 2003]
+/* 154 */   OP(ex_nop_abort),     // an old implementation of exsavepartial [original: RHF Dec 01, 2003]
 /* 155 */   OP_ID(ex_getoperatorid), // RHF Dec 03, 2003
 /* 156 */   OP_ID(exfornext),        // RHC Sep 04, 2000
 /* 157 */   OP_ID(exforbreak),       // RHC Sep 04, 2000
@@ -237,13 +237,13 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 
 /* 171 */   OP_ID(ExExecSystem),
 
-/* 172 */   OP_ID(exnoopAbort),        // an old implementation of exshow
+/* 172 */   OP(ex_nop_abort),       // an old implementation of exshow
 /* 173 */   OP_ID(exshowlist),
 
 /* 174 */   OP(ex_tolower_toupper), // GHM 20091202 tolower
 /* 175 */   OP(ex_tolower_toupper), // GHM 20091202 toupper
 /* 176 */   OP_ID(excountvalid),       // GHM 20091202
-/* 177 */   OP_ID(exnoopIgnore_string),// GHM 20091208 previously itemlist
+/* 177 */   OP(ex_nop_ignore),      // GHM 20091208 previously itemlist
 /* 178 */   OP_ID(exswap),             // GHM 20100105
 /* 179 */   OP(ex_datediff),        // GHM 20100119
 /* 180 */   OP_ID(exdeckarray),        // GHM 20100119 putdeck
@@ -285,14 +285,14 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 216 */   OP_ID(exsetvalue),         // GHM 20140228
 /* 217 */   OP_ID(exgetvalue),         // GHM 20140422
 /* 218 */   OP_ID(ex_getvaluealpha),   // GHM 20140422
-/* 219 */   OP_ID(exnoopAbort),        // GHM 20140423 an old implementation of exshowarray
+/* 219 */   OP(ex_nop_abort),       // GHM 20140423 an old implementation of exshowarray
 /* 220 */   OP_ID(exsetocclabel),      // GHM 20141006
 /* 221 */   OP_ID(exshowocc),          // GHM 20141015 showocc
 /* 222 */   OP_ID(exshowocc),          // GHM 20141015 hideocc
 /* 223 */   OP(ex_getdeviceid),     // GHM 20141023
 /* 224 */   OP_ID(exdirexist),         // GHM 20141024
 /* 225 */   OP_ID(exdircreate),        // GHM 20141024
-/* 226 */   OP_ID(exnoopAbort),        // GHM 20141024 previously sync
+/* 226 */   OP(ex_nop_abort),       // GHM 20141024 previously sync
 /* 227 */   OP(ex_List_var),        // GHM 20141106
 /* 228 */   OP(ex_dirlist),         // GHM 20141107
 /* 229 */   OP(ex_sysparm),         // GHM 20141217
@@ -300,7 +300,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 231 */   OP(ex_prompt),          // GHM 20150422
 /* 232 */   OP(ex_getimage),        // GHM 20150809
 /* 233 */   OP(ex_round),           // GHM 20150821
-/* 234 */   OP_ID(exnoopAbort),        // GHM 20151130 an old implementation of exuuid ... now a publishdate placeholder
+/* 234 */   OP(ex_nop_abort),       // GHM 20151130 an old implementation of exuuid ... now a publishdate placeholder
 /* 235 */   OP_ID(exsavepartial),      // GHM 20151216
 /* 236 */   OP_ID(ex_syncconnect),
 /* 237 */   OP_ID(ex_syncdisconnect),
@@ -348,7 +348,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 279 */   OP_ID(ex_exit),
 /* 280 */   OP_ID(ex_getbluetoothname),
 /* 281 */   OP(ex_regexmatch),
-/* 282 */   OP_ID(exnoopAbort), // BLOCK_CODE
+/* 282 */   OP(ex_nop_abort), // BLOCK_CODE
 /* 283 */   OP_ID(ex_getvaluelabel),
 /* 284 */   OP(ex_Array_clear),
 /* 285 */   OP(ex_Array_length),
@@ -552,17 +552,50 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 
             // placeholders to allow new logic functions to be added to an existing serialization
             // iteration without causing crashes to old builds at the same iteration
-            OP_ID(exnoopAbortPlaceholderForFutureFunction),
-            OP_ID(exnoopAbortPlaceholderForFutureFunction),
-            OP_ID(exnoopAbortPlaceholderForFutureFunction),
-            OP_ID(exnoopAbortPlaceholderForFutureFunction),
-            OP_ID(exnoopAbortPlaceholderForFutureFunction),
-            OP_ID(exnoopAbortPlaceholderForFutureFunction),
-            OP_ID(exnoopAbortPlaceholderForFutureFunction),
-            OP_ID(exnoopAbortPlaceholderForFutureFunction),
-            OP_ID(exnoopAbortPlaceholderForFutureFunction),
-            OP_ID(exnoopAbortPlaceholderForFutureFunction),
+            OP(ex_nop_abortFutureFunction),
+            OP(ex_nop_abortFutureFunction),
+            OP(ex_nop_abortFutureFunction),
+            OP(ex_nop_abortFutureFunction),
+            OP(ex_nop_abortFutureFunction),
+            OP(ex_nop_abortFutureFunction),
+            OP(ex_nop_abortFutureFunction),
+            OP(ex_nop_abortFutureFunction),
+            OP(ex_nop_abortFutureFunction),
+            OP(ex_nop_abortFutureFunction),
 };
+
+
+Engine::Value LogicInterpreter::ex_nop_ignore(const int program_index)
+{
+    const auto& function_call_node = GetNode<Nodes::FunctionCall>(program_index);
+
+    switch( function_call_node.function_code )
+    {
+        case FNITEMLIST_CODE:
+            return Engine::Value::Invalid<SharableString>();
+
+        default:
+            return Engine::Value::Invalid<double>();
+    }
+}
+
+
+Engine::Value LogicInterpreter::ex_nop_abort(int /*program_index*/)
+{
+    // this instruction is for codes of removed functions, or for instances when
+    // FunctionCode was used for a non-function (and thus never had an instruction)
+    ASSERT(false);
+    IssueMessage(MessageType::Abort, MGF::invalid_operation_removed_1005);
+    return Engine::Value::Invalid<double>();
+}
+
+
+Engine::Value LogicInterpreter::ex_nop_abortFutureFunction(int /*program_index*/)
+{
+    ASSERT(false);
+    IssueMessage(MessageType::Abort, MGF::invalid_operation_not_implemented_1006);
+    return Engine::Value::Invalid<double>();
+}
 
 
 Engine::Value LogicInterpreter::ex_unimplemented_LogicInterpreter(const int program_index) // INTERPRETER_DLL_TODO remove

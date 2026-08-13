@@ -84,6 +84,10 @@ public:
 
     virtual Engine::Value ExecuteInstructions(int program_index) = 0; // INTERPRETER_DLL_TODO remove as virtual
 
+    Engine::Value ex_nop_ignore(int program_index);
+    Engine::Value ex_nop_abort(int program_index);
+    Engine::Value ex_nop_abortFutureFunction(int program_index);
+
 protected:
     using Instruction = std::variant<Engine::Value (LogicInterpreter::*)(int),
                                      double (LogicInterpreter::*)(int),

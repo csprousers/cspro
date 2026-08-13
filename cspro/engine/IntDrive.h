@@ -334,11 +334,6 @@ public:
 
     double  excpttbl(int iExpr);
 
-    double  exnoopIgnore_numeric(int iExpr);
-    Engine::Value exnoopIgnore_string(int iExpr);
-    double  exnoopAbort(int iExpr);
-    double  exnoopAbortPlaceholderForFutureFunction(int iExpr);
-
     double  extvar(int iExpr);
 
     Engine::Value ex_UserFunction_call(int program_index);

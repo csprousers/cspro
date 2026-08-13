@@ -140,7 +140,7 @@ Language=EN
 1001   Unable to open file %s - please check file status
 1003   Warning: input variable assignment to %s
 1004   No room for character object descriptor
-1005   Invalid operation code
+1005   This application uses functionality only available in an old version of CSPro.
 1006   This application uses functions only available in a newer version of this CSPro release. Please update your program.
 1007   No occurrence: %s(%d) -- %p
 1008   Invalid subscript: %s(%s) -- %p

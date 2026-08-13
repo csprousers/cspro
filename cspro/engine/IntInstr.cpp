@@ -601,33 +601,6 @@ double CIntDriver::exstop( int iExpr )
 }
 
 
-double CIntDriver::exnoopIgnore_numeric(int /*iExpr*/)
-{
-    return 0;
-}
-
-
-Engine::Value CIntDriver::exnoopIgnore_string(int /*iExpr*/)
-{
-    return Engine::Value::Invalid<SharableString>();
-}
-
-
-double CIntDriver::exnoopAbort(int /*iExpr*/)
-{
-    // exnoopAbort: no operation invalid call
-    issaerror(MessageType::Abort, 1005);
-    return 0;
-}
-
-
-double CIntDriver::exnoopAbortPlaceholderForFutureFunction(int /*iExpr*/)
-{
-    issaerror(MessageType::Abort, 1006);
-    return 0;
-}
-
-
 double CIntDriver::exwhile(int iExpr)
 {
     const auto& while_node = GetNode<Nodes::While>(iExpr);
