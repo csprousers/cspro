@@ -120,12 +120,6 @@ int LogicCompiler::CompileStatements(const bool create_new_local_symbol_stack/* 
         local_symbol_stack.emplace(m_symbolTable.CreateLocalSymbolStack());
 
     int first_statement_program_index = -1;
-
-#define USE_OLD_ROUTINE
-#ifdef USE_OLD_ROUTINE // the implementation in engine/Instruc.cpp
-    first_statement_program_index = instruc_COMPILER_DLL_TODO(allow_multiple_statements);
-
-#else
     int previous_statement_program_index = -1;
 
     auto link_statement = [&](const int program_index)
@@ -149,6 +143,11 @@ int LogicCompiler::CompileStatements(const bool create_new_local_symbol_stack/* 
         previous_statement_program_index = program_index;
     };
 
+#define USE_OLD_ROUTINE
+#ifdef USE_OLD_ROUTINE // the implementation in engine/Instruc.cpp
+    link_statement(instruc_COMPILER_DLL_TODO(allow_multiple_statements));
+
+#else
 #ifdef OLD_ROUTINE_REFERENCE_COMPILER_DLL_TODO
     int iptblock = Prognext;
     bool bIsSkipStatement = false;
@@ -271,7 +270,7 @@ int LogicCompiler::CompileStatements(const bool create_new_local_symbol_stack/* 
                     else
                     {
                         // COMPILER_DLL_TODO remove message
-                        IssueError(MGF::OpenMessage_32001, "The compiler available at runtime does not assignments to dictionary items");
+                        IssueError(MGF::OpenMessage_32001, "The compiler available at runtime does not support assignments to dictionary items");
                     }
 
 #ifdef OLD_ROUTINE_REFERENCE_COMPILER_DLL_TODO
@@ -846,8 +845,18 @@ int LogicCompiler::CompileStatements(const bool create_new_local_symbol_stack/* 
 #endif // !USE_OLD_ROUTINE
 
     // terminate the final statement added
+#ifdef USE_OLD_ROUTINE
+    // this may assert while using the Designer due to code not running due to the GENCODE preprocessor definition
+    ASSERT(GetNode<Nodes::Statement>(previous_statement_program_index).next_st == -1 ||
+           GetNode<Nodes::Statement>(previous_statement_program_index).next_st > previous_statement_program_index);
+#else
     if( previous_statement_program_index != -1 )
-        GetNode<Nodes::Statement>(previous_statement_program_index).next_st = -1;
+    {
+        Nodes::Statement& statement_node = GetNode<Nodes::Statement>(previous_statement_program_index);
+        ASSERT(statement_node.next_st == -1 || statement_node.next_st == 0);
+        statement_node.next_st = -1;
+    }
+#endif
 
     if( local_symbol_stack.has_value() )
         first_statement_program_index = WrapNodeAroundScopeChange(*local_symbol_stack, first_statement_program_index);

@@ -1686,6 +1686,11 @@ Engine::Value CIntDriver::ModifyVARTValue(const int variable_compilation, const 
     return value;
 }
 
+template Engine::Value CIntDriver::ModifyVARTValue(int variable_compilation, const std::function<void(double&)>& modify_value_function,
+                                                   std::unique_ptr<Paradata::FieldInfo>* paradata_field_info/* = nullptr*/);
+template Engine::Value CIntDriver::ModifyVARTValue(int variable_compilation, const std::function<void(SharableString&)>& modify_value_function,
+                                                   std::unique_ptr<Paradata::FieldInfo>* paradata_field_info/* = nullptr*/);
+
 Engine::Value CIntDriver::ModifyVARTValue_INTERPRETER_DLL_TODO(const int variable_compilation, const std::function<void(double&)>& modify_value_function, std::unique_ptr<Paradata::FieldInfo>* const paradata_field_info/* = nullptr*/)
 {
     return ModifyVARTValue(variable_compilation, modify_value_function, paradata_field_info);

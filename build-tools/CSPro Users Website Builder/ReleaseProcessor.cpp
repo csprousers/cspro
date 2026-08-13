@@ -593,7 +593,9 @@ template<>
 std::string ReleaseProcessor::CreateReleaseResourceHtml<ReleaseAsset::ReleaseNotes>(const Release& release)
 {
     const std::string txt_file_path = GetReleaseFilePath(release, ReleaseAsset::ReleaseNotes);
-    ASSERT(PortableFunctions::FileIsRegular(txt_file_path));
+
+    if( !PortableFunctions::FileIsRegular(txt_file_path) )
+        throw FileIO::Exception::FileNotFound(txt_file_path);
 
     return CreateReleasesUrlHtml(release, txt_file_path, nullptr);
 }
