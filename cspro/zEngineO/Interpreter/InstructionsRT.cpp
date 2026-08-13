@@ -5,10 +5,8 @@
 size_t LogicInterpreter::MaxInstructionCode_EV_TODO = 491; // EV_TODO remove
 
 // OP    = instructions defined in LogicInterpreter that return Engine::Value
-// OP_LI = instructions defined in LogicInterpreter that return double
 // OP_ID = instructions defined in CIntDriver that return double
 #define OP(instruction) Instruction(static_cast<Engine::Value (LogicInterpreter::*)(int)>(&LogicInterpreter::instruction))
-#define OP_LI(instruction) Instruction(static_cast<double (LogicInterpreter::*)(int)>(&LogicInterpreter::instruction))
 #define OP_ID(instruction) OP(ex_unimplemented_LogicInterpreter)
 
 LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
@@ -354,26 +352,26 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 283 */   OP_ID(exgetvaluelabel),
 /* 284 */   OP(ex_Array_clear),
 /* 285 */   OP(ex_Array_length),
-/* 286 */   OP_LI(ex_Map_show),
-/* 287 */   OP_LI(ex_Map_hide),
-/* 288 */   OP_LI(ex_Map_addMarker),
-/* 289 */   OP_LI(ex_Map_setMarkerImage),
-/* 290 */   OP_LI(ex_Map_setMarkerText),
-/* 291 */   OP_LI(ex_Map_setMarkerOnClick_setMarkerOnClickInfo), // Map.setMarkerOnClick
-/* 292 */   OP_LI(ex_Map_setMarkerOnClick_setMarkerOnClickInfo), // Map.setMarkerOnClickInfo
-/* 293 */   OP_LI(ex_Map_setMarkerDescription),
-/* 294 */   OP_LI(ex_Map_setMarkerOnDrag),
-/* 295 */   OP_LI(ex_Map_setMarkerLocation),
-/* 296 */   OP_LI(ex_Map_getMarkerLatitude_getMarkerLongitude),  // Map.getMarkerLatitude
-/* 297 */   OP_LI(ex_Map_removeMarker),
-/* 298 */   OP_LI(ex_Map_setOnClick),
-/* 299 */   OP_LI(ex_Map_showCurrentLocation),
-/* 300 */   OP_LI(ex_Map_addTextButton),
-/* 301 */   OP_LI(ex_Map_addImageButton),
-/* 302 */   OP_LI(ex_Map_removeButton),
-/* 303 */   OP_LI(ex_Map_setBaseMap),
-/* 304 */   OP_LI(ex_Map_setTitle),
-/* 305 */   OP_LI(ex_Map_zoomTo),
+/* 286 */   OP(ex_Map_show),
+/* 287 */   OP(ex_Map_hide),
+/* 288 */   OP(ex_Map_addMarker),
+/* 289 */   OP(ex_Map_setMarkerImage),
+/* 290 */   OP(ex_Map_setMarkerText),
+/* 291 */   OP(ex_Map_setMarkerOnClick_setMarkerOnClickInfo), // Map.setMarkerOnClick
+/* 292 */   OP(ex_Map_setMarkerOnClick_setMarkerOnClickInfo), // Map.setMarkerOnClickInfo
+/* 293 */   OP(ex_Map_setMarkerDescription),
+/* 294 */   OP(ex_Map_setMarkerOnDrag),
+/* 295 */   OP(ex_Map_setMarkerLocation),
+/* 296 */   OP(ex_Map_getMarkerLatitude_getMarkerLongitude),  // Map.getMarkerLatitude
+/* 297 */   OP(ex_Map_removeMarker),
+/* 298 */   OP(ex_Map_setOnClick),
+/* 299 */   OP(ex_Map_showCurrentLocation),
+/* 300 */   OP(ex_Map_addTextButton),
+/* 301 */   OP(ex_Map_addImageButton),
+/* 302 */   OP(ex_Map_removeButton),
+/* 303 */   OP(ex_Map_setBaseMap),
+/* 304 */   OP(ex_Map_setTitle),
+/* 305 */   OP(ex_Map_zoomTo),
 /* 306 */   OP(ex_List_add),
 /* 307 */   OP(ex_List_clear),
 /* 308 */   OP(ex_List_insert),
@@ -388,11 +386,11 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 317 */   OP(ex_ValueSet_show),
 /* 318 */   OP(ex_ValueSet_compute),
 /* 319 */   OP_ID(exvariablevalue),
-/* 320 */   OP_LI(ex_Map_clear_clearButtons_clearGeometry_clearMarkers), // Map.clearMarkers
-/* 321 */   OP_LI(ex_Map_clear_clearButtons_clearGeometry_clearMarkers), // Map.clearButtons
-/* 322 */   OP_LI(ex_Map_getLastClickLatitude_getLastClickLongitude), // Map.getLastClickLatitude
-/* 323 */   OP_LI(ex_Map_getLastClickLatitude_getLastClickLongitude), // Map.getLastClickLongitude
-/* 324 */   OP_LI(ex_Map_getMarkerLatitude_getMarkerLongitude),    // Map.getMarkerLongitude
+/* 320 */   OP(ex_Map_clear_clearButtons_clearGeometry_clearMarkers), // Map.clearMarkers
+/* 321 */   OP(ex_Map_clear_clearButtons_clearGeometry_clearMarkers), // Map.clearButtons
+/* 322 */   OP(ex_Map_getLastClickLatitude_getLastClickLongitude), // Map.getLastClickLatitude
+/* 323 */   OP(ex_Map_getLastClickLatitude_getLastClickLongitude), // Map.getLastClickLongitude
+/* 324 */   OP(ex_Map_getMarkerLatitude_getMarkerLongitude),    // Map.getMarkerLongitude
 /* 325 */   OP(ex_Path_concat), // pathconcat
 /* 326 */   OP(ex_view),
 /* 327 */   OP(ex_Pff_exec),
@@ -479,25 +477,25 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 408 */   OP(ex_Document_load),
 /* 409 */   OP(ex_Document_save),
 /* 410 */   OP(ex_Document_view),
-/* 411 */   OP_LI(ex_Geometry_compute),
-/* 412 */   OP_LI(ex_Geometry_clear),
-/* 413 */   OP_LI(ex_Geometry_load),
-/* 414 */   OP_LI(ex_Geometry_save),
-/* 415 */   OP_LI(ex_Map_addGeometry),
-/* 416 */   OP_LI(ex_Map_removeGeometry),
-/* 417 */   OP_LI(ex_Map_clear_clearButtons_clearGeometry_clearMarkers), // Map.clearGeometry
-/* 418 */   OP_LI(ex_Geometry_tracePolygon_walkPolygon), // Geometry.tracePolygon
-/* 419 */   OP_LI(ex_Geometry_tracePolygon_walkPolygon), // Geometry.walkPolygon
-/* 420 */   OP_LI(ex_Geometry_area_perimeter), // Geometry.area
-/* 421 */   OP_LI(ex_Geometry_area_perimeter), // Geometry.perimeter
-/* 422 */   OP_LI(ex_Geometry_minLatitude_maxLatitude_minLongitude_maxLongitude), // Geometry.minLatitude
-/* 423 */   OP_LI(ex_Geometry_minLatitude_maxLatitude_minLongitude_maxLongitude), // Geometry.maxLatitude
-/* 424 */   OP_LI(ex_Geometry_minLatitude_maxLatitude_minLongitude_maxLongitude), // Geometry.minLongitude
-/* 425 */   OP_LI(ex_Geometry_minLatitude_maxLatitude_minLongitude_maxLongitude), // Geometry.maxLongitude
-/* 426 */   OP_LI(ex_Geometry_getProperty),
-/* 427 */   OP_LI(ex_Geometry_setProperty),
+/* 411 */   OP(ex_Geometry_compute),
+/* 412 */   OP(ex_Geometry_clear),
+/* 413 */   OP(ex_Geometry_load),
+/* 414 */   OP(ex_Geometry_save),
+/* 415 */   OP(ex_Map_addGeometry),
+/* 416 */   OP(ex_Map_removeGeometry),
+/* 417 */   OP(ex_Map_clear_clearButtons_clearGeometry_clearMarkers), // Map.clearGeometry
+/* 418 */   OP(ex_Geometry_tracePolygon_walkPolygon), // Geometry.tracePolygon
+/* 419 */   OP(ex_Geometry_tracePolygon_walkPolygon), // Geometry.walkPolygon
+/* 420 */   OP(ex_Geometry_area_perimeter), // Geometry.area
+/* 421 */   OP(ex_Geometry_area_perimeter), // Geometry.perimeter
+/* 422 */   OP(ex_Geometry_minLatitude_maxLatitude_minLongitude_maxLongitude), // Geometry.minLatitude
+/* 423 */   OP(ex_Geometry_minLatitude_maxLatitude_minLongitude_maxLongitude), // Geometry.maxLatitude
+/* 424 */   OP(ex_Geometry_minLatitude_maxLatitude_minLongitude_maxLongitude), // Geometry.minLongitude
+/* 425 */   OP(ex_Geometry_minLatitude_maxLatitude_minLongitude_maxLongitude), // Geometry.maxLongitude
+/* 426 */   OP(ex_Geometry_getProperty),
+/* 427 */   OP(ex_Geometry_setProperty),
 /* 428 */   OP_ID(exinadvance),
-/* 429 */   OP_LI(ex_Map_saveSnapshot),
+/* 429 */   OP(ex_Map_saveSnapshot),
 /* 430 */   OP_ID(ex_synctime),
 /* 431 */   OP(ex_htmldialog),
 /* 432 */   OP(ex_Path_getRelativePath),
@@ -518,7 +516,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 447 */   OP(ex_ActionInvoker),
 /* 448 */   OP(ex_Symbol_getName),
 /* 449 */   OP(ex_Symbol_getLabel),
-/* 450 */   OP_LI(ex_Map_clear_clearButtons_clearGeometry_clearMarkers), // Map.clear
+/* 450 */   OP(ex_Map_clear_clearButtons_clearGeometry_clearMarkers), // Map.clear
 /* 451 */   OP_ID(exItem_hasValue_isValid), // Item.hasValue
 /* 452 */   OP_ID(exItem_getValueLabel),
 /* 453 */   OP_ID(exItem_hasValue_isValid), // Item.isValid

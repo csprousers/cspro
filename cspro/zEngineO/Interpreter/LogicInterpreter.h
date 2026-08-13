@@ -382,15 +382,15 @@ public:
     // (GeometryRT.cpp)
     // --------------------------------------------------------------------------
 public:
-    double ex_Geometry_compute(int program_index);
-    double ex_Geometry_clear(int program_index);
-    double ex_Geometry_load(int program_index);
-    double ex_Geometry_save(int program_index);
-    double ex_Geometry_tracePolygon_walkPolygon(int program_index);
-    double ex_Geometry_area_perimeter(int program_index);
-    double ex_Geometry_minLatitude_maxLatitude_minLongitude_maxLongitude(int program_index);
-    double ex_Geometry_getProperty(int program_index);
-    double ex_Geometry_setProperty(int program_index);
+    Engine::Value ex_Geometry_compute(int program_index);
+    Engine::Value ex_Geometry_clear(int program_index);
+    Engine::Value ex_Geometry_load(int program_index);
+    Engine::Value ex_Geometry_save(int program_index);
+    Engine::Value ex_Geometry_tracePolygon_walkPolygon(int program_index);
+    Engine::Value ex_Geometry_area_perimeter(int program_index);
+    Engine::Value ex_Geometry_minLatitude_maxLatitude_minLongitude_maxLongitude(int program_index);
+    Engine::Value ex_Geometry_getProperty(int program_index);
+    Engine::Value ex_Geometry_setProperty(int program_index);
 
 private:
     bool EnsureGeometryExistsAndHasValidContent(const LogicGeometry& logic_geometry, const char* action_for_displayed_error_message);
@@ -552,30 +552,30 @@ private:
     // (MapRT.cpp)
     // --------------------------------------------------------------------------
 public:
-    double ex_Map_show(int program_index);
-    double ex_Map_hide(int program_index);
-    double ex_Map_addMarker(int program_index);
-    double ex_Map_setMarkerImage(int program_index);
-    double ex_Map_setMarkerText(int program_index);
-    double ex_Map_setMarkerOnClick_setMarkerOnClickInfo(int program_index);
-    double ex_Map_setMarkerDescription(int program_index);
-    double ex_Map_setMarkerOnDrag(int program_index);
-    double ex_Map_setMarkerLocation(int program_index);
-    double ex_Map_getMarkerLatitude_getMarkerLongitude(int program_index);
-    double ex_Map_removeMarker(int program_index);
-    double ex_Map_setOnClick(int program_index);
-    double ex_Map_showCurrentLocation(int program_index);
-    double ex_Map_addTextButton(int program_index);
-    double ex_Map_addImageButton(int program_index);
-    double ex_Map_removeButton(int program_index);
-    double ex_Map_setBaseMap(int program_index);
-    double ex_Map_setTitle(int program_index);
-    double ex_Map_zoomTo(int program_index);
-    double ex_Map_clear_clearButtons_clearGeometry_clearMarkers(int program_index);
-    double ex_Map_getLastClickLatitude_getLastClickLongitude(int program_index);
-    double ex_Map_addGeometry(int program_index);
-    double ex_Map_removeGeometry(int program_index);
-    double ex_Map_saveSnapshot(int program_index);
+    Engine::Value ex_Map_show(int program_index);
+    Engine::Value ex_Map_hide(int program_index);
+    Engine::Value ex_Map_addMarker(int program_index);
+    Engine::Value ex_Map_setMarkerImage(int program_index);
+    Engine::Value ex_Map_setMarkerText(int program_index);
+    Engine::Value ex_Map_setMarkerOnClick_setMarkerOnClickInfo(int program_index);
+    Engine::Value ex_Map_setMarkerDescription(int program_index);
+    Engine::Value ex_Map_setMarkerOnDrag(int program_index);
+    Engine::Value ex_Map_setMarkerLocation(int program_index);
+    Engine::Value ex_Map_getMarkerLatitude_getMarkerLongitude(int program_index);
+    Engine::Value ex_Map_removeMarker(int program_index);
+    Engine::Value ex_Map_setOnClick(int program_index);
+    Engine::Value ex_Map_showCurrentLocation(int program_index);
+    Engine::Value ex_Map_addTextButton(int program_index);
+    Engine::Value ex_Map_addImageButton(int program_index);
+    Engine::Value ex_Map_removeButton(int program_index);
+    Engine::Value ex_Map_setBaseMap(int program_index);
+    Engine::Value ex_Map_setTitle(int program_index);
+    Engine::Value ex_Map_zoomTo(int program_index);
+    Engine::Value ex_Map_clear_clearButtons_clearGeometry_clearMarkers(int program_index);
+    Engine::Value ex_Map_getLastClickLatitude_getLastClickLongitude(int program_index);
+    Engine::Value ex_Map_addGeometry(int program_index);
+    Engine::Value ex_Map_removeGeometry(int program_index);
+    Engine::Value ex_Map_saveSnapshot(int program_index);
 
 private:
     template<typename T>
