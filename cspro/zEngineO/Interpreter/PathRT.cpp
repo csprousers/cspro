@@ -512,6 +512,63 @@ Engine::Value LogicInterpreter::ex_Path_selectFile(const int program_index)
 }
 
 
+
+// --------------------------------------------------------------------------
+// directory functions
+// --------------------------------------------------------------------------
+
+#ifdef EV_TODO
+
+double CIntDriver::exdirexist(int iExpr)
+{
+    const auto& fnn_node = GetNode<FNN_NODE>(iExpr);
+    std::wstring directory = EvalFullPathFileName(fnn_node.fn_expr[0]);
+
+    return PortableFunctions::FileIsDirectory(directory) ? 1 : 0;
+}
+
+
+double CIntDriver::exdircreate(int iExpr)
+{
+    const auto& fnn_node = GetNode<FNN_NODE>(iExpr);
+    std::wstring directory = EvalFullPathFileName(fnn_node.fn_expr[0]);
+
+    return PortableFunctions::PathMakeDirectories(directory) ? 1 : 0;
+}
+
+
+double CIntDriver::exdirdelete(const int program_index)
+{
+    const auto& fnn_node = GetNode<FNN_NODE>(program_index);
+
+    std::string directory = PortableFunctions::PathRemoveTrailingSlash(EvaluatePath(fnn_node.fn_expr[0]));
+    std::string parent_directory = PortableFunctions::PathGetDirectory(directory);
+    std::string directory_name = PortableFunctions::PathGetFilename(directory);
+
+    const std::vector<std::string> directories = DirectoryLister().SetIncludeFiles(false)
+                                                                  .SetIncludeDirectories(true)
+                                                                  .SetNameFilter(directory_name)
+                                                                  .GetPaths(parent_directory);
+
+    // indicate that the directory was not valid if no directories matched when not using wildcards
+    if( directories.empty() && !Path::Path::HasWildcardCharacters(directory_name) )
+        return DEFAULT;
+
+    size_t directories_deleted = 0;
+
+    for( const std::string& this_directory : directories )
+    {
+        if( PortableFunctions::DirectoryDelete(this_directory) )
+            ++directories_deleted;
+    }
+
+    return ( directories_deleted == directories.size() ) ? directories_deleted :
+                                                           DEFAULT;
+}
+
+#endif
+
+
 Engine::Value LogicInterpreter::ex_dirlist(const int program_index)
 {
     const auto& dirlist_node = GetNode<Nodes::DirList>(program_index);
@@ -586,3 +643,510 @@ Engine::Value LogicInterpreter::ex_dirlist(const int program_index)
 
     return Engine::Value::Bool(true);
 }
+
+
+
+// --------------------------------------------------------------------------
+// file functions
+// --------------------------------------------------------------------------
+
+#ifdef EV_TODO
+
+std::optional<std::wstring> CIntDriver::ExGetFileName(int iFileOrAlphaExpr)
+{
+    std::wstring filename;
+
+    if( iFileOrAlphaExpr >= 0 )
+    {
+        filename = EvalAlphaExpr(iFileOrAlphaExpr);
+    }
+
+    else
+    {
+        const LogicFile& logic_file = GetSymbolLogicFile(-iFileOrAlphaExpr);
+        filename = UTF8_TODO::GetWide(logic_file.GetFilePath());
+    }
+
+    MakeFullPathFileName(filename);
+
+    if( !filename.empty() )
+        return filename;
+
+    return std::nullopt;
+}
+
+
+std::vector<std::wstring> CIntDriver::ExGetFileNames(int iExpr)
+{
+    std::vector<std::wstring> filenames;
+
+    if( iExpr >= 0 )
+    {
+        filenames.emplace_back(EvalAlphaExpr(iExpr));
+    }
+
+    else
+    {
+        const Symbol& symbol = NPT_Ref(-1 * iExpr);
+
+        if( symbol.IsA(SymbolType::File) )
+        {
+            filenames.emplace_back(UTF8_TODO::GetWide(assert_cast<const LogicFile&>(symbol).GetFilePath()));
+        }
+
+        else
+        {
+            const LogicList& logic_list = assert_cast<const LogicList&>(symbol);
+            const size_t list_count = logic_list.GetCount();
+
+            for( size_t i = 1; i <= list_count; i++ )
+                filenames.emplace_back(UTF8_TODO::GetWide(*logic_list.GetValue<SharableString>(i)));
+        }
+    }
+
+    // remove any blank strings and make the filenames full paths
+    for( auto filename_itr = filenames.begin(); filename_itr != filenames.end(); )
+    {
+        MakeFullPathFileName(*filename_itr);
+
+        if( filename_itr->empty() )
+        {
+            filename_itr = filenames.erase(filename_itr);
+        }
+
+        else
+        {
+            ++filename_itr;
+        }
+    }
+
+    return filenames;
+}
+
+
+double CIntDriver::exfileexist(int iExpr)
+{
+    const auto& file_node = GetNode<Nodes::File>(iExpr);
+    std::optional<std::wstring> filename = ExGetFileName(file_node.symbol_index_or_string_expression);
+
+    return ( filename.has_value() &&
+             !DirectoryLister::GetFilePathsWithPossibleWildcard(UTF8_TODO::GetUtf8(*filename), false).empty() ) ? 1 : 0;
+}
+
+
+double CIntDriver::exfileempty(int iExpr)
+{
+    // 20120627 by request from trevor
+    const auto& file_node = GetNode<Nodes::File>(iExpr);
+
+    // if the file is open, use the file handle to do the check
+    if( file_node.symbol_index_or_string_expression < 0 )
+    {
+        LogicFile& logic_file = GetSymbolLogicFile(-1 * file_node.symbol_index_or_string_expression);
+
+        if( logic_file.IsOpen() )
+        {
+            CFile& file = logic_file.GetFile();
+
+            if( file.GetLength() == 0 )
+            {
+                return 1;
+            }
+
+            else if( file.GetLength() == TextEncoding::Utf8Bom_sv.length() )
+            {
+                auto position = file.GetPosition();
+                file.SeekToBegin();
+
+                std::vector<char> bytes_read(TextEncoding::Utf8Bom_sv.length());
+                file.Read(bytes_read.data(), TextEncoding::Utf8Bom_sv.length());
+
+                file.Seek(position, CFile::begin);
+
+                return ( memcmp(bytes_read.data(), TextEncoding::Utf8Bom_sv.data(), TextEncoding::Utf8Bom_sv.length()) == 0 );
+            }
+
+            else
+            {
+                return 0;
+            }
+        }
+    }
+
+
+    std::optional<std::wstring> filename = ExGetFileName(file_node.symbol_index_or_string_expression);
+
+    if( filename.has_value() && PortableFunctions::FileIsRegular(*filename) )
+    {
+        int64_t size = PortableFunctions::FileSize(*filename);
+        bool empty = ( size == 0 );
+
+        if( !empty && size == TextEncoding::Utf8Bom_sv.length() ) // see if it's just the BOM
+        {
+            try
+            {
+                std::unique_ptr<std::vector<std::byte>> content = FileIO::Read(*filename);
+                empty = ( memcmp(content->data(), TextEncoding::Utf8Bom_sv.data(), TextEncoding::Utf8Bom_sv.length()) == 0 );
+            }
+
+            catch( const FileIO::Exception& )
+            {
+            }
+        }
+
+        return empty ? 1 : 0;
+    }
+
+    return DEFAULT;
+}
+
+
+double CIntDriver::exfilesize(int iExpr)
+{
+    const auto& file_node = GetNode<Nodes::File>(iExpr);
+    std::optional<std::wstring> filename = ExGetFileName(file_node.symbol_index_or_string_expression);
+
+    if( filename.has_value() && PortableFunctions::FileIsRegular(*filename) )
+        return static_cast<double>(PortableFunctions::FileSize(*filename));
+
+    return DEFAULT;
+}
+
+
+double CIntDriver::exfiletime(int iExpr)
+{
+    const auto& file_node = GetNode<Nodes::File>(iExpr);
+    std::optional<std::wstring> filename = ExGetFileName(file_node.symbol_index_or_string_expression);
+
+    if( filename.has_value() && PortableFunctions::FileIsRegular(*filename) )
+        return static_cast<double>(PortableFunctions::FileModifiedTime(*filename));
+
+    return DEFAULT;
+}
+
+
+Engine::Value CIntDriver::exfilename(int iExpr)
+{
+    const auto& fn8_node = GetNode<FN8_NODE>(iExpr);
+
+    // the paradata log
+    if( fn8_node.symbol_index == -2 )
+        return Paradata::Logger::GetFilePath();
+
+    // symbols
+    Symbol* const symbol = GetFromSymbolOrEngineItem(
+        fn8_node.symbol_index,
+        m_engineData->MeetsCompiledLogicVersion(Serializer::Iteration_8_0_000_1) ? fn8_node.extra_parameter : -1
+    );
+
+    if( symbol == nullptr )
+        return Engine::Value::Invalid<SharableString>();
+
+    // dictionary
+    if( symbol->IsA(SymbolType::Dictionary) )
+    {
+        const EngineDictionary& engine_dictionary = assert_cast<const EngineDictionary&>(*symbol);
+        const ConnectionString& connection_string = engine_dictionary.GetEngineDataRepository().GetDataRepository().GetConnectionString();
+        return connection_string.HasFilePath() ? connection_string.GetFilePath() :
+                                                 Engine::Value::Undefined<SharableString>();
+    }
+
+    else if( symbol->IsA(SymbolType::Pre80Dictionary) )
+    {
+        const DICT* const pDicT = assert_cast<const DICT*>(symbol);
+        const DICX* const pDicX = pDicT->GetDicX();
+        const ConnectionString& connection_string = pDicX->GetDataRepository().GetConnectionString();
+        return connection_string.HasFilePath() ? connection_string.GetFilePath() :
+                                                 Engine::Value::Undefined<SharableString>();
+    }
+
+    // File
+    else if( symbol->IsA(SymbolType::File) )
+    {
+        const LogicFile& logic_file = assert_cast<const LogicFile&>(*symbol);
+        return logic_file.GetFilePath();
+    }
+
+    // Pff
+    else if( symbol->IsA(SymbolType::Pff) )
+    {
+        LogicPff& logic_pff = assert_cast<LogicPff&>(*symbol);
+        return logic_pff.GetRunnableFilePath();
+    }
+
+    // Report
+    else if( symbol->IsA(SymbolType::Report) )
+    {
+        const Report& report = assert_cast<const Report&>(*symbol);
+        return report.GetFilePath();
+    }
+
+    // Audio, Document, Geometry, Image, Video
+    else if( BinarySymbol::IsBinarySymbol(*symbol) )
+    {
+        return assert_cast<const BinarySymbol&>(*symbol).GetPath();
+    }
+
+    return Engine::Value::Invalid<SharableString>();
+}
+
+
+double CIntDriver::exfilecreate(int iExpr)
+{
+    const auto& file_node = GetNode<Nodes::File>(iExpr);
+    std::optional<std::wstring> filename = ExGetFileName(file_node.symbol_index_or_string_expression);
+
+    if( filename.has_value() )
+    {
+        try
+        {
+            FileIO::WriteText(*filename, std::string_view(), true);
+            return 1;
+        }
+
+        catch( const FileIO::Exception& )
+        {
+        }
+    }
+
+    return 0;
+}
+
+
+double CIntDriver::exfiledelete(int iExpr)
+{
+    const auto& file_node = GetNode<Nodes::File>(iExpr);
+    std::vector<std::wstring> filenames;
+
+    for( const std::wstring& filename : ExGetFileNames(file_node.symbol_index_or_string_expression) )
+        DirectoryLister::AddFilenamesWithPossibleWildcard(filenames, filename, true);
+
+    bool deletion_error = false;
+    size_t files_deleted = 0;
+
+    for( const std::wstring& filename : filenames )
+    {
+        if( PortableFunctions::FileDelete(filename) )
+        {
+            ++files_deleted;
+        }
+
+        else
+        {
+            deletion_error = true;
+        }
+    }
+
+    return deletion_error ? DEFAULT : files_deleted;
+}
+
+
+template<typename CF>
+double CIntDriver::ExFileCopyRenameProcessor(const int program_index, const CF callback_function)
+{
+    const auto& file_node = GetNode<Nodes::File>(program_index);
+    const Nodes::List& elements_list = GetListNode(file_node.elements_list_node);
+
+    const std::optional<std::wstring> wide_output_path = ExGetFileName(elements_list.elements[0]);
+    const std::optional<std::string> output_path = wide_output_path.has_value() ? std::make_optional(UTF8_TODO::GetUtf8(*wide_output_path)) : std::nullopt;
+
+    if( !output_path.has_value() )
+        return DEFAULT;
+
+    if( Path::HasWildcardCharacters(*output_path) )
+    {
+        issaerror(MessageType::Error, 33056);
+        return DEFAULT;
+    }
+
+    const bool output_is_folder = PortableFunctions::FileIsDirectory(*output_path);
+
+    std::vector<std::string> input_file_paths;
+
+    for( const std::string& input_file_path : UTF8_TODO::GetUtf8(ExGetFileNames(file_node.symbol_index_or_string_expression)) )
+    {
+        DirectoryLister::AddFilePathsWithPossibleWildcard(input_file_paths, input_file_path, true);
+
+        if( !output_is_folder && Path::HasWildcardCharacters(input_file_path) )
+        {
+            // if a wildcard is used in the Input, then the Output must be an existent folder
+            issaerror(MessageType::Error, 33057, output_path->c_str());
+            return DEFAULT;
+        }
+    }
+
+    size_t files_processed = 0;
+
+    for( const std::string& input_file_path : input_file_paths )
+    {
+        const std::string output_file_path = !output_is_folder ? *output_path :
+                                                                 Path::Combine(*output_path, PortableFunctions::PathGetFilename(input_file_path));
+
+        if( callback_function(input_file_path, output_file_path) )
+            ++files_processed;
+    }
+
+    return ( files_processed == input_file_paths.size() ) ? files_processed :
+                                                            DEFAULT;
+}
+
+
+double CIntDriver::ex_filecopy(const int program_index)
+{
+    return ExFileCopyRenameProcessor(program_index,
+        [](const std::string& input_file_path, const std::string& output_file_path)
+        {
+            try
+            {
+                PortableFileSystem::FileCopy(input_file_path, output_file_path, FileOverwriteFlag::Different);
+                return true;
+            }
+
+            catch(...)
+            {
+                return false;
+            }
+        });
+}
+
+
+double CIntDriver::ex_filerename(const int program_index)
+{
+    return ExFileCopyRenameProcessor(program_index,
+        [](const std::string& input_file_path, const std::string& output_file_path)
+        {
+            return PortableFunctions::FileRename(input_file_path, output_file_path);
+        });
+}
+
+
+namespace
+{
+    class EngineConcatenatorReporter : public ConcatenatorReporter
+    {
+    public:
+        EngineConcatenatorReporter(CIntDriver& interpreter, const CDataDict* dictionary)
+            :   ConcatenatorReporter(( dictionary != nullptr ) ? dictionary->CreateProcessSummary() : std::make_unique<ProcessSummary>()),
+                m_interpreter(interpreter),
+                m_pEngineDriver(m_interpreter.m_pEngineDriver)
+        {
+        }
+
+        bool IsCanceled() const override
+        {
+            return m_interpreter.m_bStopProc;
+        }
+
+        // progress reporting does not exist when invoked from fileconcat
+        void SetSource(const std::string& /*source_text*/) override { }
+        void SetKey(const std::string& /*key*/) override { }
+
+        void ErrorFileOpenFailed(const std::string& file_path) override
+        {
+            issaerror(MessageType::Error, 2001, file_path.c_str());
+        }
+
+        void ErrorDataSourceOpenFailed(const ConnectionString& connection_string, const std::string& error_message) override
+        {
+            issaerror(MessageType::Error, 2001, SO::CreateParentheticalExpression(connection_string.ToDisplayString(), error_message).c_str());
+        }
+
+        void ErrorInvalidEncoding(const std::string& file_path) override
+        {
+            issaerror(MessageType::Error, 14012, file_path.c_str());
+        }
+
+        void ErrorDuplicateCase(const std::string& /*key*/, const ConnectionString& /*connection_string*/, const ConnectionString& /*previous_connection_string*/) override
+        {
+            // ignore duplicate cases as it would be very annoying to show a message for each one
+        }
+
+        void ErrorOther(const ConnectionString& connection_string, const std::string& error_message) override
+        {
+            issaerror(MessageType::Error, 14013, connection_string.ToDisplayString().c_str(), error_message.c_str());
+        }
+
+    private:
+        CIntDriver& m_interpreter;
+        CEngineDriver* m_pEngineDriver;
+    };
+}
+
+
+double CIntDriver::exfileconcat(int iExpr)
+{
+    const auto& file_node = GetNode<Nodes::File>(iExpr);
+    const Nodes::List& elements_list = GetListNode(file_node.elements_list_node);
+
+    // If the first argument is a dictionary then this is case concat using
+    // the dictionary, otherwise it is just a filename and we use text concat.
+    std::shared_ptr<const CDataDict> dictionary;
+    std::unique_ptr<EngineCaseConstructionReporter> case_construction_reporter;
+
+    int output_file_expression;
+    int input_file_start_position;
+
+    // Case concat
+    if( file_node.symbol_index_or_string_expression < 0 )
+    {
+        const Symbol& symbol = NPT_Ref(-1 * file_node.symbol_index_or_string_expression);
+
+        if( symbol.IsA(SymbolType::Dictionary) )
+        {
+            dictionary = assert_cast<const EngineDictionary&>(symbol).GetSharedDictionary();
+        }
+
+        else
+        {
+            dictionary = assert_cast<const DICT&>(symbol).GetSharedDictionary();
+        }
+
+        case_construction_reporter = std::make_unique<EngineCaseConstructionReporter>(m_pEngineDriver->GetSharedSystemMessageIssuer(), nullptr);
+
+        output_file_expression = elements_list.elements[0];
+        input_file_start_position = 1;
+    }
+
+    // Text concat
+    else
+    {
+        output_file_expression = file_node.symbol_index_or_string_expression;
+        input_file_start_position = 0;
+    }
+
+    const ConnectionString output_connection_string = EvaluateConnectionString(output_file_expression);
+
+    std::vector<ConnectionString> input_connection_strings;
+
+    for( int i = input_file_start_position; i < elements_list.number_elements; ++i )
+    {
+        for( const std::wstring& filename : ExGetFileNames(elements_list.elements[i]) )
+        {
+            ConnectionString connection_string(UTF8_TODO::GetUtf8(filename));
+            MakeAbsolutePath(connection_string);
+            PathHelpers::ExpandConnectionStringWildcards(input_connection_strings, connection_string);
+        }
+    }
+
+    if( input_connection_strings.empty() )
+        return 0;
+
+    try
+    {
+        EngineConcatenatorReporter engine_concatenator_reporter(*this, dictionary.get());
+
+        Concatenator().Run(engine_concatenator_reporter,
+                           input_connection_strings, output_connection_string,
+                           dictionary, std::move(case_construction_reporter));
+
+        return 1;
+    }
+
+    catch( const CSProException& exception )
+    {
+        issaerror(MessageType::Error, 14011, exception.what());
+        return 0;
+    }
+}
+
+#endif

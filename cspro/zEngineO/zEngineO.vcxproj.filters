@@ -293,6 +293,9 @@
     <ClCompile Include="Interpreter\ExecutionRT.cpp">
       <Filter>Source Files\Interpreter</Filter>
     </ClCompile>
+    <ClCompile Include="Interpreter\FileRT.cpp">
+      <Filter>Source Files\Interpreter</Filter>
+    </ClCompile>
     <ClCompile Include="Interpreter\GeometryRT.cpp">
       <Filter>Source Files\Interpreter</Filter>
     </ClCompile>

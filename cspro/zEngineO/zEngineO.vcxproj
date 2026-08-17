@@ -106,6 +106,7 @@
     <ClCompile Include="Interpreter\DateRT.cpp" />
     <ClCompile Include="Interpreter\DocumentRT.cpp" />
     <ClCompile Include="Interpreter\ExecutionRT.cpp" />
+    <ClCompile Include="Interpreter\FileRT.cpp" />
     <ClCompile Include="Interpreter\GeometryRT.cpp" />
     <ClCompile Include="Interpreter\HashMapRT.cpp" />
     <ClCompile Include="Interpreter\ImageRT.cpp" />

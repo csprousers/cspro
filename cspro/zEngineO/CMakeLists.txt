@@ -127,6 +127,7 @@ add_library(${PROJECT_NAME}
     Interpreter/ImageRT.cpp
     Interpreter/InstructionsRT.cpp
     Interpreter/ItemRT.cpp
+    Interpreter/FileRT.cpp
     Interpreter/JavaScriptRT.cpp
     Interpreter/JsonRT.cpp
     Interpreter/ListRT.cpp
