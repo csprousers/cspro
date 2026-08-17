@@ -1,14 +1,22 @@
-﻿#pragma once
+#pragma once
 
 #include <zEngineF/zEngineF.h>
 
 namespace FileIO { class TextFile; }
 
 
-// the base trace handler class implements the file trace handler (for all environmnets)
-// and a subclass will implement a version for Windows that can use a window
+// --------------------------------------------------------------------------
+// TraceHandler
+//
+// The base trace handler class implements the file trace handler (for all
+// environments). A subclass, WindowsTraceHandler, implements a version for
+// Windows that can use a window.
+//
+// Some methods are marked as virtual so that they are accessible from
+// zEngineO.
+// --------------------------------------------------------------------------
 
-class CLASS_DECL_ZENGINEF TraceHandler
+class TraceHandler
 {
 public:
     enum class OutputType { LogicText, SystemText, UserText };
@@ -23,9 +31,9 @@ public:
 
     virtual bool TurnOnWindowTrace();
 
-    bool TurnOnFileTrace(const std::string& file_path, bool append);
+    virtual bool TurnOnFileTrace(const std::string& file_path, bool append);
 
-    void Output(SharableString text, OutputType output_type);
+    virtual void Output(SharableString text, OutputType output_type);
 
 protected:
     virtual void OutputLine(SharableString text);

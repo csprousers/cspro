@@ -1,10 +1,20 @@
 #include "stdafx.h"
 #include "IncludesRT.h"
 #include "Nodes/Trace.h"
+#include <zEngineF/EngineUI.h>
 #include <zEngineF/TraceHandler.h>
 
 
-double CIntDriver::ex_trace(const int program_index)
+void LogicInterpreter::DoWithTraceHandler(const std::function<void(TraceHandler&)>& callback_function)
+{
+    ASSERT(callback_function);
+
+    if( m_traceHandler != nullptr )
+        callback_function(*m_traceHandler);
+}
+
+
+Engine::Value LogicInterpreter::ex_trace(const int program_index)
 {
     const auto& trace_node = GetNode<Nodes::Trace>(program_index);
 
@@ -12,7 +22,10 @@ double CIntDriver::ex_trace(const int program_index)
     {
         // we need to make sure that a trace handler exists
         if( m_traceHandler == nullptr )
-            m_traceHandler = TraceHandler::CreateTraceHandler();
+        {
+            SendEngineUIMessage(EngineUI::Type::CreateTraceHandler, m_traceHandler);
+            ASSERT(m_traceHandler != nullptr);
+        }
 
         return *m_traceHandler;
     };
@@ -21,20 +34,26 @@ double CIntDriver::ex_trace(const int program_index)
     if( trace_node.action == Nodes::Trace::Action::TurnOff  )
     {
         m_traceHandler.reset();
-        return 1;
+        return Engine::Value::Bool(true);
     }
 
     // trace with a window
     if( trace_node.action == Nodes::Trace::Action::WindowOn )
     {
-        return get_trace_hander().TurnOnWindowTrace();
+        return Engine::Value::Bool(
+            get_trace_hander().TurnOnWindowTrace()
+        );
     }
 
     // trace with a file
-    else if( const bool append = ( trace_node.action == Nodes::Trace::Action::FileOn ); append || trace_node.action == Nodes::Trace::Action::FileOnClear )
+    else if( const bool append = ( trace_node.action == Nodes::Trace::Action::FileOn );
+             append || trace_node.action == Nodes::Trace::Action::FileOnClear )
     {
         const std::string file_path = EvaluatePath(trace_node.argument);
-        return get_trace_hander().TurnOnFileTrace(file_path, append);
+
+        return Engine::Value::Bool(
+            get_trace_hander().TurnOnFileTrace(file_path, append)
+        );
     }
 
     // trace some text
@@ -50,5 +69,5 @@ double CIntDriver::ex_trace(const int program_index)
         m_traceHandler->Output(Evaluate<SharableString>(trace_node.argument), output_type);
     }
 
-    return 1;
+    return Engine::Value::Bool(true);
 }

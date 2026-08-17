@@ -23,6 +23,7 @@ struct InterpreterExecuteResult;
 class LoopStack;
 class PortableColor;
 class JsonReaderInterface;
+class TraceHandler;
 class UserFunctionArgumentEvaluator;
 class VirtualFileMappingHandler;
 namespace ActionInvoker { class Caller; class Runtime; }
@@ -753,6 +754,20 @@ public:
 protected:
     std::optional<CSize> EvaluateSize(int width_program_index, int height_program_index);
     std::unique_ptr<ViewerOptions> EvaluateViewerOptions(const int viewer_options_node_program_index);
+
+
+    // --------------------------------------------------------------------------
+    // trace functionality
+    // (TraceCC.cpp)
+    // --------------------------------------------------------------------------
+public:
+    // Executes the callback only if a trace handler is in use.
+    void DoWithTraceHandler(const std::function<void(TraceHandler&)>& callback_function);
+
+    Engine::Value ex_trace(int program_index);
+
+protected:
+    std::unique_ptr<TraceHandler> m_traceHandler;
 
 
     // --------------------------------------------------------------------------

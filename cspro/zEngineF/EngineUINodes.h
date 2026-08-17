@@ -15,6 +15,7 @@ namespace EngineUI
         CaptureImage,
         ColorizeLogic,
         CreateMapUI,
+        CreateTraceHandler,
         CreateUserbar,
         CreateVirtualFileMappingAroundViewHtmlContent,
         EditNote,

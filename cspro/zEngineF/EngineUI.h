@@ -1,9 +1,10 @@
-﻿#pragma once
+#pragma once
 
 #include <zEngineF/zEngineF.h>
 #include <zEngineF/EngineUINodes.h>
 #include <zPlatformO/PlatformInterface.h>
 
+class TraceHandler;
 class Userbar;
 class Viewer;
 
@@ -15,7 +16,8 @@ public:
 
 private:
     // single implementation for Windows and Android
-    LRESULT CreateVirtualFileMappingAroundViewHtmlContent(EngineUI::CreateVirtualFileMappingAroundViewHtmlContentNode& node);
+    static LRESULT CreateTraceHandler(std::unique_ptr<TraceHandler>& trace_handler);
+    static LRESULT CreateVirtualFileMappingAroundViewHtmlContent(EngineUI::CreateVirtualFileMappingAroundViewHtmlContentNode& node);
 
     // platform-specific
     LRESULT CaptureImage(EngineUI::CaptureImageNode& capture_image_node);

@@ -10,7 +10,6 @@
 #include <engine/SelcaseManager.h>
 #include <zEngineO/LoopStack.h>
 #include <zEngineO/UserFunctionArgumentEvaluator.h>
-#include <zEngineF/TraceHandler.h>
 #include <zEngineF/WindowsApplicationInterface.h>
 #include <zUtilF/KeyboardLoader.h>
 #include <zIssaLib/CFlAdmin.h>

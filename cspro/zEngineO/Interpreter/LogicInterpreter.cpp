@@ -3,6 +3,7 @@
 #include "LogicInterpreter.h"
 #include "Nodes/TextTemplate.h"
 #include <zHtml/VirtualFileMapping.h>
+#include <zEngineF/TraceHandler.h>
 #include <zAction/Caller.h>
 
 

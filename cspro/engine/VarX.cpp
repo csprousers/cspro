@@ -397,11 +397,14 @@ bool VARX::RemapIndexes( int* paIndex, double* aOccur, bool bCheckTotal, bool bG
         }
 
         // 20100601 added on tom's request
-        if( m_pEngineDriver->m_pIntDriver->m_traceHandler != nullptr )
-        {
-            m_pEngineDriver->m_pIntDriver->m_traceHandler->Output(FormatText("Invalid subscript: %s(%.0f)", pVarT->GetName().c_str(), dBadSubscript),
-                                                                  TraceHandler::OutputType::SystemText);
-        }
+        m_pEngineDriver->m_pIntDriver->DoWithTraceHandler(
+            [&](TraceHandler& trace_handler)
+            {
+                trace_handler.Output(
+                    FormatText("Invalid subscript: %s(%.0f)", pVarT->GetName().c_str(), dBadSubscript),
+                    TraceHandler::OutputType::SystemText
+                );
+            });
     }
 
     for( int i=0; i < DIM_MAXDIM; i++ )

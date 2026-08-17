@@ -52,7 +52,6 @@ class SelcaseManager;
 struct sqlite3;
 class SyncClient;
 struct SyncObjects;
-class TraceHandler;
 class VTSTRUCT;
 namespace Nodes { struct SetAccessFirstLast; }
 namespace Paradata { class ExternalApplicationEvent; }
@@ -131,7 +130,6 @@ public:
     CSettings* m_pEngineSettings;
 
     std::unique_ptr<LoopStack> m_loopStack;
-    std::unique_ptr<TraceHandler> m_traceHandler;
     std::unique_ptr<EngineParadataDriver> m_paradataDriver; // non-null
     std::unique_ptr<Pre77Report::ReportManager> m_pre77reportManager;
 
@@ -493,8 +491,6 @@ public:
     double  exuserbar(int iExpr); // 20100414
 
     double  exmessageoverrides(int program_index);
-
-    double  ex_trace(int program_index);
 
     double ex_getcapturetype(int program_index);
     double ex_setcapturetype(int program_index);
@@ -935,11 +931,11 @@ private:
     Engine::Value ModifyVARTValue_INTERPRETER_DLL_TODO(int variable_compilation, const std::function<void(SharableString&)>& modify_value_function, std::unique_ptr<Paradata::FieldInfo>* paradata_field_info = nullptr) override;
     int SymbolTableSearch_INTERPRETER_DLL_TODO(std::string_view full_symbol_name_sv, SymbolType preferred_symbol_type,
                                                const std::vector<SymbolType>* allowable_symbol_types) const override;
-    bool GetRequestIssued_INTERPRETER_DLL_TODO() const { return GetRequestIssued(); }
+    bool GetRequestIssued_INTERPRETER_DLL_TODO() const override { return GetRequestIssued(); }
 public:
     LoopStack& GetLoopStack() override;
 private:
-    bool Get_m_bStopExec_INTERPRETER_DLL_TODO() const { return m_bStopExec; }
+    bool Get_m_bStopExec_INTERPRETER_DLL_TODO() const override { return m_bStopExec; }
 
 
 private:

@@ -531,7 +531,7 @@ void CIntDriver::AddIntDriverInstructions()
     OP_DOUBLE(184, exendcase);
     OP_DOUBLE(185, exuserbar);
     OP_DOUBLE(186, exmessageoverrides);
-    OP_DOUBLE(187, ex_trace);
+    OP_ENGVAL(187, ex_trace);
     OP_ENGVAL(188, ex_setvaluesets);
     OP_ENGVAL_ID(189, ExExecPFF);
     OP_DOUBLE(190, exseek);
