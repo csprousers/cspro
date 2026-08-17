@@ -425,7 +425,7 @@ void CIntDriver::AddIntDriverInstructions()
     OP_ENGVAL(78, ex_length);
     OP_ENGVAL(79, ex_strip);
     OP_ENGVAL(80, ex_pos_poschar);
-    OP_ENGVAL_ID(81, exedit);
+    OP_ENGVAL(81, ex_edit);
     OP_ENGVAL(82, ex_cmcode);
     OP_ENGVAL(83, ex_setlb_setub);
     OP_ENGVAL(84, ex_setlb_setub);
@@ -476,7 +476,7 @@ void CIntDriver::AddIntDriverInstructions()
     OP_DOUBLE(129, exfor_group);
     OP_ENGVAL(130, ex_nop_abort);
     OP_ENGVAL(131, ex_nop_abort);
-    OP_ENGVAL_ID(132, exfucall);
+    OP_ENGVAL(132, ex_functionCall);
     OP_ENGVAL(133, ex_in);
     OP_ENGVAL(134, ex_do);
     OP_DOUBLE(135, ex_impute);
@@ -538,8 +538,8 @@ void CIntDriver::AddIntDriverInstructions()
     OP_DOUBLE(191, ex_getcapturetype);
     OP_DOUBLE(192, ex_setcapturetype);
     OP_ENGVAL(193, ex_setfont);
-    OP_DOUBLE(194, exorientation);
-    OP_DOUBLE(195, exorientation);
+    OP_ENGVAL(194, ex_getorientation_setorientation);
+    OP_ENGVAL(195, ex_getorientation_setorientation);
     OP_ENGVAL(196, ex_pathname);
     OP_DOUBLE(197, exgps);
     OP_ENGVAL(198, ex_low_high);

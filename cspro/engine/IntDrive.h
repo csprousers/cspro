@@ -446,8 +446,6 @@ public:
     double  exlogtext(int program_index);
     double  exwarning(int program_index);
 
-    Engine::Value exedit(int iExpr);
-
     double  ex_paradata(int program_index);
     double  exsqlquery(int program_index);
     double  exsqlquery(int program_index, const std::function<double(sqlite3*, const std::string&)>* setreportdata_callback);
@@ -497,8 +495,6 @@ public:
     double ex_setcapturepos(int program_index);
 
     double  ex_changekeyboard(int iExpr);
-
-    double  exorientation(int iExpr);       // 20100618
 
     double  exgps(int iExpr);               // 20110223
     std::unique_ptr<Paradata::Event> CreateParadataGpsEvent(std::string_view event_type_sv, std::string_view event_information_sv);
@@ -633,7 +629,6 @@ public:
     double  getMaxIndexForVariableUsingStack( VART* pVarT, REL_NODE* pRelNode );  // rcl, Dec 18, 2004
     //////////////////////////////////////////////////////////////////////////
     double  exdofor_relation( FORRELATION_NODE* pFor, double* dTableWeight=NULL, int* iTabLogicExpr=NULL, LIST_NODE* pListNode=NULL  ); // RHF Jul 03, 2002
-    Engine::Value exfucall(int iExpr);                // RHF Aug 21, 2000
 
     double  exupdate(int iExpr);                      // RHF Nov 17, 2000
     Engine::Value exgetbuffer(int iExpr);

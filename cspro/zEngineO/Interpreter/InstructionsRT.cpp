@@ -116,7 +116,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /*  78 */   OP(ex_length),
 /*  79 */   OP(ex_strip),
 /*  80 */   OP(ex_pos_poschar), // poschar
-/*  81 */   OP_ID(exedit),
+/*  81 */   OP(ex_edit),
 
 /*───────┬──────────┬-----------------------------------------------------*/
 /*Op.code│ Function │      DATE FUNCTIONS                                 */
@@ -191,7 +191,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 129 */   OP_ID(exfor_group),
 /* 130 */   OP(ex_nop_abort), // previously extbd
 /* 131 */   OP(ex_nop_abort), // GROUP_CODE
-/* 132 */   OP_ID(exfucall),
+/* 132 */   OP(ex_functionCall), // RHF Aug 21, 2000
 /* 133 */   OP(ex_in),        // RHC Oct 16, 2000
 /* 134 */   OP(ex_do),        // RHC Oct 16, 2000
 /* 135 */   OP_ID(ex_impute),    // RHF Oct 25, 2000
@@ -260,8 +260,8 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 191 */   OP_ID(ex_getcapturetype),  // GHM 20100608
 /* 192 */   OP_ID(ex_setcapturetype),  // GHM 20100608
 /* 193 */   OP(ex_setfont),         // GHM 20100618
-/* 194 */   OP_ID(exorientation),      // GHM 20100618 getorientation
-/* 195 */   OP_ID(exorientation),      // GHM 20100618 setorientation
+/* 194 */   OP(ex_getorientation_setorientation), // GHM 20100618 getorientation
+/* 195 */   OP(ex_getorientation_setorientation), // GHM 20100618 setorientation
 /* 196 */   OP(ex_pathname),        // GHM 20110107
 /* 197 */   OP_ID(exgps),              // GHM 20110223
 /* 198 */   OP(ex_low_high),        // GHM 20110301 low
@@ -565,9 +565,9 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 };
 
 
-Engine::Value CIntDriver::exfucall(int iExpr)
+Engine::Value LogicInterpreter::ex_functionCall(const int program_index)
 {
-    const auto& function_call_node = GetNode<Nodes::FunctionCall>(iExpr);
+    const auto& function_call_node = GetNode<Nodes::FunctionCall>(program_index);
     return ExecuteInstruction(function_call_node.expression);
 }
 

@@ -86,6 +86,8 @@ public:
 
     virtual Engine::Value ExecuteInstructions(int program_index) = 0; // INTERPRETER_DLL_TODO remove as virtual
 
+    Engine::Value ex_functionCall(int program_index);
+
     Engine::Value ex_nop_ignore(int program_index);
     Engine::Value ex_nop_abort(int program_index);
     Engine::Value ex_nop_abortFutureFunction(int program_index);
@@ -216,6 +218,7 @@ public:
     Engine::Value ex_seed(int program_index);
     Engine::Value ex_random(int program_index);
     Engine::Value ex_tonumber(int program_index);
+    Engine::Value ex_edit(int program_index);
 
 private:
     bool PreprocessSpecialValues(double& v1, double &v2, double& result) const;
@@ -741,7 +744,7 @@ public:
 
 
     // --------------------------------------------------------------------------
-    // user interface functions
+    // "User Interface" functions
     // (UserInterfaceRT.cpp)
     // --------------------------------------------------------------------------
 public:
@@ -750,6 +753,7 @@ public:
     Engine::Value ex_accept(int program_index);
     Engine::Value ex_htmldialog(int program_index);
     Engine::Value ex_setfont(int program_index);
+    Engine::Value ex_getorientation_setorientation(int program_index);
 
 protected:
     std::optional<CSize> EvaluateSize(int width_program_index, int height_program_index);

@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #include "IncludesRT.h"
 #include "WorkVariable.h"
-#include <engine/Nodes.h>
 #include <zToolsO/FloatingPointMath.h>
 #include <zUtilO/Randomizer.h>
 
@@ -662,193 +661,183 @@ Engine::Value LogicInterpreter::ex_tonumber(const int program_index)
 }
 
 
-//----------------------------------------------------------------------
-//  exedit: execute EDIT function
-//----------------------------------------------------------------------
-namespace
+// --------------------------------------------------------------------------
+// ex_edit: format a number as a string
+// --------------------------------------------------------------------------
+namespace MathRT
 {
-    struct PAT_DESC
-    {
-        int len;
-        int num;
-        int dec;
-        TCHAR pad;
-        int sig;
-    };
-
-    bool exedit_scan(CString pattern, PAT_DESC* pat_desc)
-    {
-        constexpr char DecimalSeparator = '.';
-
-        pat_desc->len = 0;
-        pat_desc->num = 0;
-        pat_desc->dec = 0;
-        pat_desc->pad = BLANK;
-        pat_desc->sig = 9999;
-
-        const TCHAR* pattern_itr = pattern.GetBuffer();
-        bool bOnly9 = false;
-
-        if( *pattern_itr != '9' && *pattern_itr != 'Z' && *pattern_itr != 0 )
-        {
-            pat_desc->len = 1;
-            pat_desc->pad = *pattern_itr++;
-        }
-
-        for( ;  *pattern_itr != 0 && *pattern_itr != DecimalSeparator; pattern_itr++ )
-        {
-            if( *pattern_itr == '9' )
-            {
-                if( !bOnly9 )
-                    pat_desc->sig = ( pattern_itr - pattern );
-
-                bOnly9 = true;
-                pat_desc->num++;
-            }
-
-            else if( *pattern_itr == 'Z' )
-            {
-                if( bOnly9 )
-                    return false;
-
-                pat_desc->num++;
-            }
-
-            pat_desc->len++;
-        }
-
-        if( *pattern_itr == DecimalSeparator )
-        {
-            pat_desc->len++;
-            pattern_itr++;
-
-            while( *pattern_itr )
-            {
-                if( *pattern_itr == '9' )
-                {
-                    bOnly9 = true;
-                    pat_desc->dec++;
-                }
-
-                else if( *pattern_itr == 'Z' )
-                {
-                    if( bOnly9 )
-                        return false;
-
-                    pat_desc->dec++;
-                }
-
-                pat_desc->len++;
-                pattern_itr++;
-            }
-        }
-
-        pat_desc->num += pat_desc->dec;
-
-        return true;
-    }
+    struct EditPattern;
+    std::unique_ptr<EditPattern> ex_edit_scan(const std::string& pattern);
 }
 
 
-Engine::Value CIntDriver::exedit(const int iExpr)
+struct MathRT::EditPattern
 {
-    const auto& va_node = GetNode<Nodes::VariableArguments>(iExpr);
-    CString pattern = EvalAlphaExprCS(va_node.arguments[0]);
-    double value = evalexpr(va_node.arguments[1]);
-    CString edit_result;
+    size_t length = 0;
+    size_t decimal = 0;
+    char padding = ' ';
+    size_t first_nine_pos = std::numeric_limits<size_t>::max();
+};
+
+
+std::unique_ptr<MathRT::EditPattern> MathRT::ex_edit_scan(const std::string& pattern)
+{
+    constexpr char DecimalSeparator = '.';
+
+    auto edit_pattern = std::make_unique<MathRT::EditPattern>();
+
+    const char* const pattern_data = pattern.c_str();
+    const char* pattern_itr = pattern_data;
+    bool only_nines = false;
+
+    char ch = *pattern_itr;
+
+    if( ch != '9' && ch != 'Z' && ch != '\0' )
+    {
+        edit_pattern->length = 1;
+        edit_pattern->padding = *pattern_itr++;
+    }
+
+    for( ; ( ch = *pattern_itr ) != '\0' && ch != DecimalSeparator; ++pattern_itr )
+    {
+        if( ch == '9' )
+        {
+            if( !only_nines )
+                edit_pattern->first_nine_pos = pattern_itr - pattern_data;
+
+            only_nines = true;
+        }
+
+        else if( ch == 'Z' )
+        {
+            if( only_nines )
+                return nullptr;
+        }
+
+        ++edit_pattern->length;
+    }
+
+    if( ch == DecimalSeparator )
+    {
+        ++edit_pattern->length;
+        ++pattern_itr;
+
+        while( ( ch = *pattern_itr ) != '\0' )
+        {
+            if( ch == '9' )
+            {
+                only_nines = true;
+                ++edit_pattern->decimal;
+            }
+
+            else if( ch == 'Z' )
+            {
+                if( only_nines )
+                    return nullptr;
+
+                ++edit_pattern->decimal;
+            }
+
+            ++edit_pattern->length;
+            ++pattern_itr;
+        }
+    }
+
+    return edit_pattern;
+}
+
+
+Engine::Value LogicInterpreter::ex_edit(const int program_index)
+{
+    const auto& va_node = GetNode<Nodes::VariableArguments>(program_index);
+    const SharableString pattern = Evaluate<SharableString>(va_node.arguments[0]);
+    double value = Evaluate<double>(va_node.arguments[1]);
 
     // process normal values
     if( value > -MAXVALUE && !IsSpecial(value) )
     {
-        PAT_DESC pat_desc;
-
         // check that the pattern is valid
-        if( exedit_scan(pattern, &pat_desc) )
+        const std::unique_ptr<MathRT::EditPattern> edit_pattern = MathRT::ex_edit_scan(*pattern);
+
+        if( edit_pattern == nullptr )
+            return Engine::Value::Invalid<SharableString>();
+
+        const bool value_is_negative = ( value < 0 );
+
+        if( value_is_negative )
+            value = -value;
+
+        if( edit_pattern->decimal > 0 )
+            value *= Power10[edit_pattern->decimal];
+
+        value = floor(value + MAGICROUND);
+
+        const std::string formatted_value = FormatText("%.0f", value);
+
+        std::string edit_result(edit_pattern->length, edit_pattern->padding);
+
+        const char* const pattern_data = pattern->c_str();
+        const char* pattern_ritr = pattern_data + edit_pattern->length - 1;
+        const char* formatted_value_ritr = &formatted_value.back();
+        size_t formatted_value_length = formatted_value.length();
+        char* edit_result_ritr = &edit_result.back();
+
+        for( ; edit_pattern->length > 0; --edit_pattern->length )
         {
-            TCHAR* chvalue = edit_result.GetBufferSetLength(pattern.GetLength());
-
-            bool value_is_negative = ( value < 0 );
-
-            if( value_is_negative )
-                value = -value;
-
-            if( pat_desc.dec > 0 )
-                value *= Power10[pat_desc.dec];
-
-            value = floor(value + MAGICROUND);
-
-            CString formattedValue;
-            formattedValue.Format(_T("%.0f"), value);
-            int len = formattedValue.GetLength();
-            const TCHAR* pv = formattedValue.GetBuffer() + len - 1;
-
-            _tmemset(chvalue, pat_desc.pad, pat_desc.len);
-
-            const TCHAR* pp = pattern.GetBuffer() + pat_desc.len - 1;
-            TCHAR* pr = chvalue + pat_desc.len - 1;
-
-            int i = 0;
-
-            for( ; i < pat_desc.len; i++ )
+            if( *pattern_ritr == '9' )
             {
-                if( *pp == '9' )
+                if( formatted_value_length > 0 )
                 {
-                    if( len > 0 )
-                    {
-                        *pr-- = *pv--;
-                        len--;
-                    }
-
-                    else
-                    {
-                        *pr-- = '0';
-                    }
-                }
-
-                else if( *pp == 'Z' )
-                {
-                    if( len > 0 )
-                    {
-                        *pr-- = *pv--;
-                        len--;
-                    }
-
-                    else
-                    {
-                        break;
-                    }
+                    *edit_result_ritr-- = *formatted_value_ritr--;
+                    --formatted_value_length;
                 }
 
                 else
                 {
-                    if( len > 0 || ( pp - pattern ) >= pat_desc.sig )
-                        *pr-- = *pp;
+                    *edit_result_ritr-- = '0';
                 }
-
-                pp--;
             }
 
-            if( value_is_negative )
+            else if( *pattern_ritr == 'Z' )
             {
-                if( i < pat_desc.len )
+                if( formatted_value_length > 0 )
                 {
-                    *pr = '-';
+                    *edit_result_ritr-- = *formatted_value_ritr--;
+                    --formatted_value_length;
                 }
 
                 else
                 {
-                    *(++pr) = '-';
+                    break;
                 }
             }
+
+            else
+            {
+                if( formatted_value_length > 0 || static_cast<size_t>(pattern_ritr - pattern_data) >= edit_pattern->first_nine_pos )
+                    *edit_result_ritr-- = *pattern_ritr;
+            }
+
+            --pattern_ritr;
         }
+
+        if( value_is_negative )
+        {
+            // ensure that the sign is present, even when the entire result was used for the pattern
+            edit_result_ritr[( edit_pattern->length > 0 ) ? 0 : 1] = '-';
+        }
+
+        return edit_result;
     }
 
     // process special values
     else if( IsSpecial(value) )
     {
-        edit_result = UTF8_TODO::GetCString(SpecialValues::ValueToString(value));
-        SO::MakeExactLength(edit_result, pattern.GetLength());
+        std::string edit_result = SpecialValues::ValueToString(value);
+        ASSERT(TC::UsesOnlyUtf8SingleByteChars(edit_result));
+        SO::MakeExactLength(edit_result, pattern.WideLength());
+        return edit_result;
     }
 
-    return UTF8_TODO::GetUtf8(edit_result);
+    return Engine::Value::Invalid<SharableString>();
 }
