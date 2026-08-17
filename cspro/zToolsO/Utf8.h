@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zToolsO/zToolsO.h>
 
@@ -36,6 +36,9 @@ public:
     // Returns the wide character representation of the first character in the UTF-8 string.
     constexpr static wchar_t GetWideCharFromUtf8Sequence(const char* text, size_t utf8_bytes_from_first_byte);
     constexpr static wchar_t GetWideCharFromUtf8Sequence(const char* text);
+
+    // Returns true if the string only uses UTF-8 single byte characters.
+    CLASS_DECL_ZTOOLSO static bool UsesOnlyUtf8SingleByteChars(std::string_view text_sv);
 
     // Returns the UTF-8 representation of a single wide character.
     CLASS_DECL_ZTOOLSO static const std::string& GetUtf8ForWideChar(wchar_t ch);
