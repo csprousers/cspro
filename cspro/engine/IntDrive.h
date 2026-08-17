@@ -162,7 +162,6 @@ public:
 
     template<typename T>
     void MakeFullPathFileName(T& filename) const;
-    std::wstring EvalFullPathFileName(int iExpr);
 
     // --- pre-allocating memory for execution
 public:
@@ -676,9 +675,6 @@ public:
     double  exfilewrite(int iExpr);
 
     double  exfiletime(int iExpr);
-    double  exdirexist(int iExpr);
-    double  exdircreate(int iExpr);
-    double  exdirdelete(int program_index);
 
 private:
     ParameterManager::Parameter GetSetPropertyParser(int program_index, std::set<int>& symbol_set,

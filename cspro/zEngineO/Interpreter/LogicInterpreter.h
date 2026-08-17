@@ -625,7 +625,10 @@ public:
     Engine::Value ex_Path_getRelativePath(int program_index);
     Engine::Value ex_Path_selectFile(int program_index);
 
-    Engine::Value ex_dirlist(const int program_index);
+    Engine::Value ex_direxist(int program_index);
+    Engine::Value ex_dircreate(int program_index);
+    Engine::Value ex_dirdelete(int program_index);
+    Engine::Value ex_dirlist(int program_index);
 
 private:
     std::string m_currentWorkingDirectory;
@@ -764,7 +767,7 @@ public:
 
 protected:
     std::optional<CSize> EvaluateSize(int width_program_index, int height_program_index);
-    std::unique_ptr<ViewerOptions> EvaluateViewerOptions(const int viewer_options_node_program_index);
+    std::unique_ptr<ViewerOptions> EvaluateViewerOptions(int viewer_options_node_program_index);
 
 
     // --------------------------------------------------------------------------

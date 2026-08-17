@@ -568,8 +568,8 @@ void CIntDriver::AddIntDriverInstructions()
     OP_DOUBLE(221, exshowocc);
     OP_DOUBLE(222, exshowocc);
     OP_ENGVAL(223, ex_getdeviceid);
-    OP_DOUBLE(224, exdirexist);
-    OP_DOUBLE(225, exdircreate);
+    OP_ENGVAL(224, ex_direxist);
+    OP_ENGVAL(225, ex_dircreate);
     OP_ENGVAL(226, ex_nop_abort);
     OP_ENGVAL(227, ex_List_var);
     OP_ENGVAL(228, ex_dirlist);
@@ -620,7 +620,7 @@ void CIntDriver::AddIntDriverInstructions()
     OP_ENGVAL(273, ex_string_literal);
     OP_DOUBLE(274, exsymbolreset);
     OP_ENGVAL(275, ex_decryptstring);
-    OP_DOUBLE(276, exdirdelete);
+    OP_ENGVAL(276, ex_dirdelete);
     OP_ENGVAL(277, ex_Array_var);
     OP_DOUBLE(278, extvar);
     OP_ENGVAL(279, ex_exit);

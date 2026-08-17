@@ -1424,14 +1424,6 @@ template void CIntDriver::MakeFullPathFileName(CString& filename) const;
 template void CIntDriver::MakeFullPathFileName(std::wstring& filename) const;
 
 
-std::wstring CIntDriver::EvalFullPathFileName(int iExpr)
-{
-    std::wstring filename = EvalAlphaExpr(iExpr);
-    MakeFullPathFileName(filename);
-    return filename;
-}
-
-
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 double CIntDriver::exshow(int iExpr)

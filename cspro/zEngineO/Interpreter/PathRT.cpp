@@ -517,27 +517,29 @@ Engine::Value LogicInterpreter::ex_Path_selectFile(const int program_index)
 // directory functions
 // --------------------------------------------------------------------------
 
-#ifdef EV_TODO
-
-double CIntDriver::exdirexist(int iExpr)
+Engine::Value LogicInterpreter::ex_direxist(const int program_index)
 {
-    const auto& fnn_node = GetNode<FNN_NODE>(iExpr);
-    std::wstring directory = EvalFullPathFileName(fnn_node.fn_expr[0]);
+    const auto& fnn_node = GetNode<FNN_NODE>(program_index);
+    const std::string directory = EvaluatePath(fnn_node.fn_expr[0]);
 
-    return PortableFunctions::FileIsDirectory(directory) ? 1 : 0;
+    return Engine::Value::Bool(
+        PortableFunctions::FileIsDirectory(directory)
+    );
 }
 
 
-double CIntDriver::exdircreate(int iExpr)
+Engine::Value LogicInterpreter::ex_dircreate(const int program_index)
 {
-    const auto& fnn_node = GetNode<FNN_NODE>(iExpr);
-    std::wstring directory = EvalFullPathFileName(fnn_node.fn_expr[0]);
+    const auto& fnn_node = GetNode<FNN_NODE>(program_index);
+    const std::string directory = EvaluatePath(fnn_node.fn_expr[0]);
 
-    return PortableFunctions::PathMakeDirectories(directory) ? 1 : 0;
+    return Engine::Value::Bool(
+        PortableFunctions::PathMakeDirectories(directory)
+    );
 }
 
 
-double CIntDriver::exdirdelete(const int program_index)
+Engine::Value LogicInterpreter::ex_dirdelete(const int program_index)
 {
     const auto& fnn_node = GetNode<FNN_NODE>(program_index);
 
@@ -545,14 +547,16 @@ double CIntDriver::exdirdelete(const int program_index)
     std::string parent_directory = PortableFunctions::PathGetDirectory(directory);
     std::string directory_name = PortableFunctions::PathGetFilename(directory);
 
-    const std::vector<std::string> directories = DirectoryLister().SetIncludeFiles(false)
-                                                                  .SetIncludeDirectories(true)
-                                                                  .SetNameFilter(directory_name)
-                                                                  .GetPaths(parent_directory);
+    const std::vector<std::string> directories =
+        DirectoryLister()
+        .SetIncludeFiles(false)
+        .SetIncludeDirectories(true)
+        .SetNameFilter(directory_name)
+        .GetPaths(parent_directory);
 
     // indicate that the directory was not valid if no directories matched when not using wildcards
     if( directories.empty() && !Path::Path::HasWildcardCharacters(directory_name) )
-        return DEFAULT;
+        return Engine::Value::Invalid<double>();
 
     size_t directories_deleted = 0;
 
@@ -562,11 +566,10 @@ double CIntDriver::exdirdelete(const int program_index)
             ++directories_deleted;
     }
 
-    return ( directories_deleted == directories.size() ) ? directories_deleted :
-                                                           DEFAULT;
+    return ( directories_deleted == directories.size() )
+        ? Engine::Value::Integer(directories_deleted)
+        : Engine::Value::Invalid<double>();
 }
-
-#endif
 
 
 Engine::Value LogicInterpreter::ex_dirlist(const int program_index)
