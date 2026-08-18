@@ -1847,7 +1847,7 @@ CString DictionaryMacrosDlg::GetTempDataFileName(CString csFilename)
 
 ConnectionString DictionaryMacrosDlg::GetTempDataFileConnectionString(const ConnectionString& connection_string)
 {
-    return ConnectionString(connection_string.ToString(UTF8_TODO::GetUtf8(GetTempDataFileName(UTF8_TODO::GetCString(connection_string.GetFilePath())))));
+    return ConnectionString(connection_string.ToString(UTF8_TODO::GetUtf8(GetTempDataFileName(UTF8_TODO::GetCString(connection_string.GetFilePath()))), true));
 }
 
 

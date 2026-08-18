@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "PathHelpers.h"
 #include <zToolsO/DirectoryLister.h>
 
@@ -39,8 +39,7 @@ ConnectionString PathHelpers::AppendToConnectionStringFilename(const ConnectionS
 
     output_file_path = PortableFunctions::PathAppendFileExtension(output_file_path, extension);
 
-    return ConnectionString(connection_string.ToString(output_file_path));
-
+    return ConnectionString(connection_string.ToString(output_file_path, true));
 }
 
 
@@ -144,14 +143,24 @@ void PathHelpers::ExpandConnectionStringWildcards(std::vector<ConnectionString>&
     // evaluate the filename to see if it has any wildcards
     if( connection_string.HasFilePath() )
     {
-        const std::string filename = PortableFunctions::PathGetFilename(connection_string.GetFilePath());
+        const std::string filename = Path::GetFilename(connection_string.GetFilePath());
 
         if( Path::HasWildcardCharacters(filename) )
         {
-            for( std::string& evaluated_file_path : DirectoryLister().SetNameFilter(filename)
-                                                                     .GetPaths(PortableFunctions::PathGetDirectory(connection_string.GetFilePath())) )
+            // the connection string for a wildcard like *.js?? will come with type Text, even though a file
+            // evaluated as .json should be treated as JSON, so the type needs to be recalculated when the
+            // extension uses a wildcard
+            const std::string extension = Path::GetExtension(filename);
+            const bool inherit_type_from_parent = ( !extension.empty() && !Path::HasWildcardCharacters(extension) );
+
+            DirectoryLister directory_lister;
+            directory_lister.SetNameFilter(filename);
+
+            for( std::string& evaluated_file_path : directory_lister.GetPaths(PortableFunctions::PathGetDirectory(connection_string.GetFilePath())) )
             {
-                expanded_connection_strings.emplace_back(connection_string.ToString(std::move(evaluated_file_path)));
+                expanded_connection_strings.emplace_back(
+                    connection_string.ToString(std::move(evaluated_file_path), inherit_type_from_parent)
+                );
             }
 
             return;

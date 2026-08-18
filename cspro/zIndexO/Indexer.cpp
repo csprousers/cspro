@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "Indexer.h"
 #include <zToolsO/File.h>
 #include <zToolsO/NewlineSubstitutor.h>
@@ -665,7 +665,7 @@ void Indexer::CalculateOutputConnectionStrings()
                 std::string new_file_path = MakeFullPath(directory, PortableFunctions::PathAppendFileExtension(std::move(new_filename), extension));
 
                 // this will ensure that any connection strings properties are maintained
-                index_result.output_connection_string = ConnectionString(index_result.output_connection_string.ToString(std::move(new_file_path)));
+                index_result.output_connection_string = ConnectionString(index_result.output_connection_string.ToString(std::move(new_file_path), true));
             }
         }
     }

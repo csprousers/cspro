@@ -363,12 +363,12 @@ bool ConnectionString::TypeCanBeCalculatedImplicitly() const
 }
 
 
-std::string ConnectionString::ToString(std::string file_path) const
+std::string ConnectionString::ToString(std::string file_path, const bool inherit_type_from_parent) const
 {
     ASSERT(IsDefined());
 
     // add the type when necessary
-    if( !TypeCanBeCalculatedImplicitly(file_path) )
+    if( inherit_type_from_parent && !TypeCanBeCalculatedImplicitly(file_path) )
     {
         std::vector<std::tuple<std::string, std::string>> properties = m_properties;
         properties.insert(properties.begin(), std::make_tuple(ConnectionStringDataRepositoryPropertyType,
@@ -389,7 +389,7 @@ std::string ConnectionString::ToStringWithoutDirectory() const
     if( !HasFilePath() )
         return ToString();
 
-    return ToString(PortableFunctions::PathGetFilename(m_resource));
+    return ToString(PortableFunctions::PathGetFilename(m_resource), true);
 }
 
 
@@ -400,8 +400,9 @@ std::string ConnectionString::ToRelativeString(std::string directory_path, const
 
     const std::string adjusted_directory_path = PortableFunctions::PathEnsureTrailingSlash(std::move(directory_path));
 
-    return use_display_mode ? ToString(GetRelativePathForDisplay(adjusted_directory_path, m_resource)) :
-                              ToString(UTF8_TODO::GetUtf8(GetRelativeFName(UTF8_TODO::GetWide(adjusted_directory_path), UTF8_TODO::GetWide(m_resource))));
+    return use_display_mode
+        ? ToString(GetRelativePathForDisplay(adjusted_directory_path, m_resource), true)
+        : ToString(UTF8_TODO::GetUtf8(GetRelativeFName(UTF8_TODO::GetWide(adjusted_directory_path), UTF8_TODO::GetWide(m_resource))), true);
 }
 
 
