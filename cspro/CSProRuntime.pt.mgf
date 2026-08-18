@@ -215,7 +215,7 @@ Language=PT
 31090  Dimensão inválida especificada para o item '%s' no comando de exportação
 
 /* --- File */
-33056  Expressão com curinga (wildcard) não pode ser usada para um arquivo ou diretório
+33056  Expressão com curinga (wildcard) não pode ser usada para um arquivo ou diretório: %s
 33057  Diretório '%s' especificado é inválido ou não existe
 
 /* --- Relation Run-Time */

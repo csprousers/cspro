@@ -13,22 +13,14 @@
 #include "Interpreter.h"
 #include "Engine.h"
 #include "VariableIterator.h"
+#include <zEngineO/Array.h>
 #include <zEngineO/AllSymbols.h>
 #include <zEngineO/Interpreter/SelectDlgHelper.h>
 #include <zEngineO/Messages/EngineMessages.h>
 #include <zEngineO/Nodes/File.h>
 #include <zPlatformO/PlatformInterface.h>
-#include <zToolsO/DirectoryLister.h>
-#include <zToolsO/FileIO.h>
 #include <zToolsO/NewlineSubstitutor.h>
-#include <zToolsO/TextConverter.h>
-#include <zToolsO/TextEncoding.h>
-#include <zToolsO/Utf8.h>
-#include <zToolsO/VarFuncs.h>
-#include <zUtilO/PathHelpers.h>
-#include <zUtilO/PortableFileSystem.h>
 #include <zUtilF/KeyboardLoader.h>
-#include <zMessageO/MessageFile.h>
 #include <zDictO/ValueProcessor.h>
 #include <zDictO/ValueSetResponse.h>
 #include <zFormO/FormFile.h>
@@ -36,11 +28,6 @@
 #include <zIssaLib/CsDriver.h>
 #include <zBridgeO/NPff.h>
 #include <zCapiO/SelectDlg.h>
-#include <zCaseO/Case.h>
-#include <zConcatO/Concatenator.h>
-#include <zConcatO/ConcatenatorReporter.h>
-#include <zParadataO/Logger.h>
-#include <zEngineO/EngineCaseConstructionReporter.h>
 #include <CSEntry/UWM.h>
 
 
@@ -1404,24 +1391,6 @@ double CIntDriver::ex_setfile(const int program_index)
 
     return 0;
 }
-
-
-template<typename T>
-void CIntDriver::MakeFullPathFileName(T& filename) const
-{
-    if constexpr(std::is_same_v<T, CString>)
-    {
-        filename = WS2CS(MakeFullPath(GetWorkingFolder(m_pEngineDriver->m_pPifFile->GetAppFName()), SO::TrimRight(filename)));
-    }
-
-    else if constexpr(std::is_same_v<T, std::wstring>)
-    {
-        filename = MakeFullPath(GetWorkingFolder(m_pEngineDriver->m_pPifFile->GetAppFName()), SO::TrimRight(filename));
-    }
-}
-
-template void CIntDriver::MakeFullPathFileName(CString& filename) const;
-template void CIntDriver::MakeFullPathFileName(std::wstring& filename) const;
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////

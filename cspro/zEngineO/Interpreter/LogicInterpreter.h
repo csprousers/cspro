@@ -630,6 +630,16 @@ public:
     Engine::Value ex_dirdelete(int program_index);
     Engine::Value ex_dirlist(int program_index);
 
+    Engine::Value ex_fileexist(int program_index);
+    Engine::Value ex_fileempty(int program_index);
+    Engine::Value ex_filesize(int program_index);
+    Engine::Value ex_filetime(int program_index);
+    Engine::Value ex_filename(int program_index);
+    Engine::Value ex_filecreate(int program_index);
+    Engine::Value ex_filedelete(int program_index);
+    Engine::Value ex_filecopy_filerename(int program_index);
+    Engine::Value ex_fileconcat(int program_index);
+
 private:
     std::string m_currentWorkingDirectory;
 
@@ -882,6 +892,7 @@ private:
     virtual int SymbolTableSearch_INTERPRETER_DLL_TODO(std::string_view full_symbol_name_sv, SymbolType preferred_symbol_type,
                                                        const std::vector<SymbolType>* allowable_symbol_types) const = 0; // INTERPRETER_DLL_TODO refactor
     virtual bool GetRequestIssued_INTERPRETER_DLL_TODO() const = 0; // INTERPRETER_DLL_TODO is this needed?
+public:
     virtual LoopStack& GetLoopStack() = 0; // INTERPRETER_DLL_TODO remove as virtual
     virtual bool Get_m_bStopExec_INTERPRETER_DLL_TODO() const = 0; // INTERPRETER_DLL_TODO is this needed?
 };

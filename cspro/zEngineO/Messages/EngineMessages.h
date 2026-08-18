@@ -174,12 +174,19 @@ namespace MGF
     constexpr int CS_json_argument_error_9205                               =   9205;
     constexpr int CS_access_without_token_prompt_9208                       =   9208;
 
+    constexpr int concat_error_14011                                        =  14011;
+    constexpr int concat_text_file_encoding_not_supported_14012             =  14012;
+    constexpr int concat_data_source_error_14013                            =  14013;
+
     constexpr int Array_invalid_dimension_19041                             =  19041;
     constexpr int SaveArray_only_allowed_in_proc_global_19004               =  19004;
 
     constexpr int setoutput_valid_only_for_batch_29006                      =  29006;
 
     constexpr int OpenMessage_32001                                         =  32001;
+
+    constexpr int path_wildcard_not_supported_33056                         =  33056;
+    constexpr int path_target_directory_does_not_exist_33057                =  33057;
 
     constexpr int item_expected_33109                                       =  33109;
     constexpr int object_of_type_expected_33116                             =  33116;
@@ -432,7 +439,6 @@ namespace MGF_TODO
     constexpr int m_790     =    790;
     constexpr int m_33054   =  33054;
     constexpr int m_33055   =  33055;
-    constexpr int m_33056   =  33056;
     constexpr int m_33059   =  33059;
     constexpr int m_90003   =  90003;
     constexpr int m_90004   =  90004;

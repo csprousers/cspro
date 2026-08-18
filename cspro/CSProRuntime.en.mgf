@@ -339,8 +339,8 @@ Language=EN
 32002  Error executing '%s': %s
 
 /* --- File */
-33056  Wildcard expression not supported for the target filename or folder
-33057  Target folder '%s' is invalid or doesn't exist
+33056  Wildcard expression not supported for the target filename or folder: %s
+33057  Target directory is invalid or does not exist: %s
 
 /* --- Relation Run-Time */
 33108  Multiple Relation can only be used in tables/crosstab in %p

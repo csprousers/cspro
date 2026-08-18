@@ -3516,6 +3516,12 @@ int CEngineCompFunc::cfun_fn8()
         symbol = NPT(Tokstindex);
         assert_cast<LogicFile*>(symbol)->SetUsed();
 
+        if( fn8_node.function_code == FunctionCode::FNFILENAME_CODE )
+        {
+            ASSERT(CurrentToken.symbol_subscript_compilation == -1);
+            fn8_node.extra_parameter = -1;
+        }
+
         NextToken();
     }
 

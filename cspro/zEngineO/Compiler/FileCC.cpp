@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "IncludesCC.h"
 #include "EngineDictionary.h"
 #include "File.h"
@@ -226,7 +226,7 @@ int LogicCompiler::CompileLogicFileFunctions()
             {
                 // don't allow wildcard characters in the target of these functions
                 if( next_token_helper_result == NextTokenHelperResult::StringLiteral && Path::HasWildcardCharacters(Tokstr) )
-                    IssueError(MGF_TODO::m_33056);
+                    IssueError(MGF::path_wildcard_not_supported_33056, Tokstr.c_str());
 
                 if( IsCurrentTokenString() )
                 {

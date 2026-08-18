@@ -47,7 +47,7 @@ public:
     {
         return std::make_unique<EngineCaseConstructionReporter>(
             m_engineData.engine_accessor->ea_GetSharedSystemMessageIssuer(),
-            nullptr
+            nullptr // process_summary
         );
     }
 

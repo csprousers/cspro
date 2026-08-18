@@ -446,7 +446,7 @@ void CIntDriver::AddIntDriverInstructions()
     OP_DOUBLE(99, extblcoord);
     OP_DOUBLE(100, extblsum);
     OP_DOUBLE(101, extblmed);
-    OP_ENGVAL_ID(102, exfilename);
+    OP_ENGVAL(102, ex_filename);
     OP_ENGVAL(103, ex_nop_abort);
     OP_ENGVAL(104, ex_nop_abort);
     OP_DOUBLE(105, exloadcase);
@@ -506,13 +506,13 @@ void CIntDriver::AddIntDriverInstructions()
     OP_DOUBLE(159, exmaxocc_pre80);
     OP_ENGVAL(160, ex_invalueset);
     OP_ENGVAL(161, ex_setvalueset);
-    OP_DOUBLE(162, exfilecreate);
-    OP_DOUBLE(163, exfileexist);
-    OP_DOUBLE(164, exfiledelete);
-    OP_DOUBLE(165, ex_filecopy);
-    OP_DOUBLE(166, ex_filerename);
-    OP_DOUBLE(167, exfilesize);
-    OP_DOUBLE(168, exfileconcat);
+    OP_ENGVAL(162, ex_filecreate);
+    OP_ENGVAL(163, ex_fileexist);
+    OP_ENGVAL(164, ex_filedelete);
+    OP_ENGVAL(165, ex_filecopy_filerename);
+    OP_ENGVAL(166, ex_filecopy_filerename);
+    OP_ENGVAL(167, ex_filesize);
+    OP_ENGVAL(168, ex_fileconcat);
     OP_DOUBLE(169, exfileread);
     OP_DOUBLE(170, exfilewrite);
     OP_ENGVAL_ID(171, ExExecSystem);
@@ -550,7 +550,7 @@ void CIntDriver::AddIntDriverInstructions()
     OP_ENGVAL(203, ex_randomin);
     OP_ENGVAL(204, ex_randomizevs);
     OP_ENGVAL(205, ex_getusername);
-    OP_DOUBLE(206, exfileempty);
+    OP_ENGVAL(206, ex_fileempty);
     OP_DOUBLE(207, ex_changekeyboard);
     OP_DOUBLE(208, ex_setoutput);
     OP_DOUBLE(209, exseekMinMax);
@@ -681,7 +681,7 @@ void CIntDriver::AddIntDriverInstructions()
     OP_ENGVAL_ID(334, ex_protect);
     OP_ENGVAL(335, ex_when);
     OP_DOUBLE(336, ex_syncapp);
-    OP_DOUBLE(337, exfiletime);
+    OP_ENGVAL(337, ex_filetime);
     OP_ENGVAL(338, ex_recode);
     OP_DOUBLE(339, exforcase);
     OP_DOUBLE(340, exselcase);

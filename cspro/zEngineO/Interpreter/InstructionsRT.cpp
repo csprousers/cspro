@@ -153,7 +153,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /*───────┬──────────┬-----------------------------------------------------*/
 /*Op.code│ Function │      INDEXED FILES FUNCTIONS                        */
 /*───────┴──────────┴-----------------------------------------------------*/
-/* 102 */   OP_ID(exfilename),
+/* 102 */   OP(ex_filename),
 /* 103 */   OP(ex_nop_abort),          // an old implementation of exselcase
 /* 104 */   OP(ex_nop_abort),          // previously a locked version of exselcase
 /* 105 */   OP_ID(exloadcase),
@@ -224,13 +224,13 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 161 */   OP(ex_setvalueset),   // RHF Aug 28, 2002
 
 // RHF INIC Oct 15, 2004
-/* 162 */   OP_ID(exfilecreate),
-/* 163 */   OP_ID(exfileexist),
-/* 164 */   OP_ID(exfiledelete),
-/* 165 */   OP_ID(ex_filecopy),
-/* 166 */   OP_ID(ex_filerename),
-/* 167 */   OP_ID(exfilesize),
-/* 168 */   OP_ID(exfileconcat),
+/* 162 */   OP(ex_filecreate),
+/* 163 */   OP(ex_fileexist),
+/* 164 */   OP(ex_filedelete),
+/* 165 */   OP(ex_filecopy_filerename), // filecopy
+/* 166 */   OP(ex_filecopy_filerename), // filerename
+/* 167 */   OP(ex_filesize),
+/* 168 */   OP(ex_fileconcat),
 /* 169 */   OP_ID(exfileread),
 /* 170 */   OP_ID(exfilewrite),
 // RHF END Oct 15, 2004
@@ -272,7 +272,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 203 */   OP(ex_randomin),        // GHM 20110721
 /* 204 */   OP(ex_randomizevs),     // GHM 20110811
 /* 205 */   OP(ex_getusername),     // GHM 20111028
-/* 206 */   OP_ID(exfileempty),        // GHM 20120627
+/* 206 */   OP(ex_fileempty),       // GHM 20120627
 /* 207 */   OP_ID(ex_changekeyboard),  // GHM 20120820
 /* 208 */   OP_ID(ex_setoutput),       // GHM 20121126
 /* 209 */   OP_ID(exseekMinMax),       // GHM 20130119
@@ -290,8 +290,8 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 221 */   OP_ID(exshowocc),          // GHM 20141015 showocc
 /* 222 */   OP_ID(exshowocc),          // GHM 20141015 hideocc
 /* 223 */   OP(ex_getdeviceid),     // GHM 20141023
-/* 224 */   OP_ID(exdirexist),         // GHM 20141024
-/* 225 */   OP_ID(exdircreate),        // GHM 20141024
+/* 224 */   OP(ex_direxist),        // GHM 20141024
+/* 225 */   OP(ex_dircreate),       // GHM 20141024
 /* 226 */   OP(ex_nop_abort),       // GHM 20141024 previously sync
 /* 227 */   OP(ex_List_var),        // GHM 20141106
 /* 228 */   OP(ex_dirlist),         // GHM 20141107
@@ -342,7 +342,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 273 */   OP(ex_string_literal),
 /* 274 */   OP_ID(exsymbolreset),
 /* 275 */   OP(ex_decryptstring),
-/* 276 */   OP_ID(exdirdelete),
+/* 276 */   OP(ex_dirdelete),
 /* 277 */   OP(ex_Array_var),
 /* 278 */   OP_ID(extvar),
 /* 279 */   OP(ex_exit),
@@ -403,7 +403,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 334 */   OP_ID(ex_protect),
 /* 335 */   OP(ex_when),
 /* 336 */   OP_ID(ex_syncapp),
-/* 337 */   OP_ID(exfiletime),
+/* 337 */   OP(ex_filetime),
 /* 338 */   OP(ex_recode),
 /* 339 */   OP_ID(exforcase),
 /* 340 */   OP_ID(exselcase),

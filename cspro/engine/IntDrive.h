@@ -160,9 +160,6 @@ public:
     void    SetRequestIssued( bool bX = true ) { m_bRequestIssuedByEngine = bX; }   // victor May 16, 01
     bool    GetRequestIssued() const           { return m_bRequestIssuedByEngine; } // victor May 16, 01
 
-    template<typename T>
-    void MakeFullPathFileName(T& filename) const;
-
     // --- pre-allocating memory for execution
 public:
     void    AllocExecBase();                      // formerly 'exalloc0'
@@ -517,7 +514,6 @@ public:
     double  extblcoord(int iExpr); // tblrow, tblcol, tbllay
     double  extblsum(int iExpr);
     double  extblmed(int iExpr);
-    Engine::Value exfilename(int iExpr);
 
     Engine::Value ex_key_currentkey(int program_index);
     double  exkeylist(int iExpr);
@@ -655,26 +651,9 @@ public:
     double  exmaxocc(int iExpr);
     double  exmaxocc_pre80(int iExpr);
 
-private:
-    std::optional<std::wstring> ExGetFileName(int iExpr);
-    std::vector<std::wstring> ExGetFileNames(int iExpr);
-
-    template<typename CF>
-    double ExFileCopyRenameProcessor(int program_index, CF callback_function);
-
 public:
-    double  exfilecreate(int iExpr);
-    double  exfileexist(int iExpr);
-    double  exfiledelete(int iExpr);
-    double  ex_filecopy(int program_index);
-    double  ex_filerename(int program_index);
-    double  exfilesize(int iExpr);
-    double  exfileempty(int iExpr);
-    double  exfileconcat(int iExpr);
     double  exfileread(int iExpr);
     double  exfilewrite(int iExpr);
-
-    double  exfiletime(int iExpr);
 
 private:
     ParameterManager::Parameter GetSetPropertyParser(int program_index, std::set<int>& symbol_set,
@@ -925,7 +904,6 @@ private:
     bool GetRequestIssued_INTERPRETER_DLL_TODO() const override { return GetRequestIssued(); }
 public:
     LoopStack& GetLoopStack() override;
-private:
     bool Get_m_bStopExec_INTERPRETER_DLL_TODO() const override { return m_bStopExec; }
 
 
