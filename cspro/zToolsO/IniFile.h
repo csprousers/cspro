@@ -1,7 +1,7 @@
-﻿#pragma once
+#pragma once
 
 #include <zToolsO/zToolsO.h>
-#include <zToolsO/File.h>
+#include <zToolsO/TextFile.h>
 
 
 // IniFileReader and IniFileWriter can be used in places where

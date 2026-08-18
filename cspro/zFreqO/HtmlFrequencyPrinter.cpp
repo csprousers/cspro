@@ -1,6 +1,6 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "HtmlFrequencyPrinter.h"
-#include <zToolsO/File.h>
+#include <zToolsO/TextFile.h>
 #include <zUtilO/StdioFileUnicode.h>
 #include <zHtml/HtmlWriter.h>
 #include <zEngineF/EngineUI.h>
@@ -357,7 +357,6 @@ void HtmlFrequencyPrinter::PrintStatistics(const FrequencyTable& frequency_table
                               << "</td><td>" << formatted_value_type2s[i]
                               << "</td><td>" << formatted_value_type6s[i]
                               << "</td></tr>";
-                    
             }
 
             *m_htmlWriter << "</table>\n";

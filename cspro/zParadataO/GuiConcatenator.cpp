@@ -1,6 +1,6 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "GuiConcatenator.h"
-#include <zToolsO/File.h>
+#include <zToolsO/TextFile.h>
 #include <zUtilO/ProcessSummary.h>
 #include <zUtilF/ProcessSummaryDlg.h>
 #include <zAppO/PFF.h>

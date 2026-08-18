@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "Indexer.h"
-#include <zToolsO/File.h>
 #include <zToolsO/NewlineSubstitutor.h>
+#include <zToolsO/TextFile.h>
 #include <zToolsO/Tools.h>
 #include <zSql/DB.h>
 #include <zUtilO/BasicLogger.h>

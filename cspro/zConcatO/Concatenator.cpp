@@ -1,9 +1,8 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "Concatenator.h"
 #include "CaseConcatenator.h"
 #include "CSConcatReporter.h"
 #include "TextConcatenator.h"
-#include <zToolsO/File.h>
 #include <zToolsO/NewlineSubstitutor.h>
 #include <zUtilF/ProcessSummaryDlg.h>
 #include <zAppO/PFF.h>

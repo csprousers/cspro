@@ -1,7 +1,7 @@
-﻿#pragma once
+#pragma once
 
 #include <zFreqO/TextFrequencyPrinter.h>
-#include <zToolsO/File.h>
+#include <zToolsO/TextFile.h>
 
 
 class TextFileFrequencyPrinter : public TextFrequencyPrinter

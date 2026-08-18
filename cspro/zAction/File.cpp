@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include <zToolsO/File.h>
+#include <zToolsO/TextFile.h>
 #include <zUtilO/PortableFileSystem.h>
 
 

@@ -1,9 +1,9 @@
 #include "stdafx.h"
 #include "ToolReformatter.h"
 #include "Reformatter.h"
-#include <zToolsO/File.h>
 #include <zToolsO/NewlineSubstitutor.h>
 #include <zToolsO/NumberToString.h>
+#include <zToolsO/TextFile.h>
 #include <zUtilO/BasicLogger.h>
 #include <zUtilF/ProcessSummaryDlg.h>
 #include <zAppO/PFF.h>

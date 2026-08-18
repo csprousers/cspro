@@ -8,6 +8,7 @@
 #include <zToolsO/DirectoryLister.h>
 #include <zToolsO/FileIO.h>
 #include <zToolsO/Hash.h>
+#include <zToolsO/TextFile.h>
 #include <zToolsO/Utf8.h>
 #include <zToolsO/VectorHelpers.h>
 #include <zToolsO/WinClipboard.h>

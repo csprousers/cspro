@@ -2,7 +2,6 @@
 #include "TextConcatenator.h"
 #include "ConcatenatorHelpers.h"
 #include "ConcatenatorReporter.h"
-#include <zToolsO/File.h>
 #include <zToolsO/Utf8.h>
 #include <zToolsO/Utf8Convert.h>
 #include <zUtilO/TemporaryFile.h>
