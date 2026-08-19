@@ -54,6 +54,12 @@ public:
     // Returns the current file position.
     int64_t GetPosition();
 
+    // Flushes the stream.
+    void Flush();
+
+    // Flushes the stream and returns the current file position.
+    int64_t FlushAndGetPosition();
+
     // Reads bytes up to the length specified, returning the number of bytes read.
     size_t Read(void* buffer, size_t max_length);
 

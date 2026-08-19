@@ -380,10 +380,14 @@ public:
 
 
     // --------------------------------------------------------------------------
-    // File object and other file-related functions
+    // File object functions
     // (FileRT.cpp)
     // --------------------------------------------------------------------------
 public:
+    Engine::Value ex_File_open(LogicFile& logic_file, bool create, bool append, int file_path_expression);
+    Engine::Value ex_File_close(LogicFile& logic_file);
+    Engine::Value ex_File_read(int program_index);
+    Engine::Value ex_File_write(int program_index);
 
 
     // --------------------------------------------------------------------------
@@ -601,7 +605,7 @@ public:
 
     // --------------------------------------------------------------------------
     // path routines +
-    // path functions
+    // path functions and some file-related functions
     // (PathRT.cpp)
     // --------------------------------------------------------------------------
 public:

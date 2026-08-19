@@ -457,8 +457,8 @@ void CIntDriver::AddIntDriverInstructions()
     OP_DOUBLE(110, exdelcase);
     OP_DOUBLE(111, exfind_locate);
     OP_ENGVAL_ID(112, ex_key_currentkey);
-    OP_DOUBLE(113, ex_open);
-    OP_DOUBLE(114, ex_close);
+    OP_ENGVAL_ID(113, ex_open);
+    OP_ENGVAL_ID(114, ex_close);
     OP_DOUBLE(115, exfind_locate);
     OP_ENGVAL(116, ex_nop_abort);
     OP_ENGVAL(117, ex_nop_abort);
@@ -502,7 +502,7 @@ void CIntDriver::AddIntDriverInstructions()
     OP_ENGVAL_ID(155, ex_getoperatorid);
     OP_ENGVAL(156, ex_for_next);
     OP_ENGVAL(157, ex_for_break);
-    OP_DOUBLE(158, ex_setfile);
+    OP_ENGVAL_ID(158, ex_setfile);
     OP_DOUBLE(159, exmaxocc_pre80);
     OP_ENGVAL(160, ex_invalueset);
     OP_ENGVAL(161, ex_setvalueset);
@@ -513,8 +513,8 @@ void CIntDriver::AddIntDriverInstructions()
     OP_ENGVAL(166, ex_filecopy_filerename);
     OP_ENGVAL(167, ex_filesize);
     OP_ENGVAL(168, ex_fileconcat);
-    OP_DOUBLE(169, exfileread);
-    OP_DOUBLE(170, exfilewrite);
+    OP_ENGVAL(169, ex_File_read);
+    OP_ENGVAL(170, ex_File_write);
     OP_ENGVAL_ID(171, ExExecSystem);
     OP_ENGVAL(172, ex_nop_abort);
     OP_DOUBLE(173, exshowlist);

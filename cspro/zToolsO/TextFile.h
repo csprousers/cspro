@@ -66,8 +66,9 @@ public:
     // Lines are written to the file based on the values of m_textEncoding and m_writeNewlineAsCRLF.
     TextFile& OpenForTextWriting(InterfaceString file_path, bool append, int share_flag = INT_MIN);
 
-    // Flushes the stream and returns the current file position.
-    int64_t FlushAndGetPosition();
+    // Opens a file for reading and writing ("rb+" or "wb+" if create is true) and potentially seeks to the end of the file.
+    // When opening files in this mode, you must manually call Flush everytime you switch between reading and writing.
+    TextFile& OpenForTextReadingAndWriting(InterfaceString file_path, bool create, bool append, int share_flag = INT_MIN);
 
     // Reads characters up to a newline character (which is processed),
     // returning true if a line was read.

@@ -806,29 +806,38 @@ Engine::Value LogicInterpreter::ex_fileempty(const int program_index)
 
         if( logic_file.IsOpen() )
         {
-            CFile& file = logic_file.GetFile();
-
-            if( file.GetLength() == 0 )
+            try
             {
-                return Engine::Value::Bool(true);
-            }
+                FileIO::TextFile& text_file = logic_file.GetTextFile();
+                logic_file.StartOperation(false); // reading
 
-            else if( file.GetLength() == TextEncoding::Utf8Bom_sv.length() )
-            {
-                const ULONGLONG position = file.GetPosition();
-                file.SeekToBegin();
+                const int64_t current_position = text_file.FlushAndGetPosition();
 
-                auto content = std::make_unique_for_overwrite<char[]>(TextEncoding::Utf8Bom_sv.length());
-                const size_t bytes_read = file.Read(content.get(), TextEncoding::Utf8Bom_sv.length());
+                text_file.SeekToEnd();
+                const int64_t length = text_file.GetPosition();
 
-                file.Seek(position, CFile::begin);
-
-                if( bytes_read == TextEncoding::Utf8Bom_sv.length() &&
-                    memcmp(content.get(), TextEncoding::Utf8Bom_sv.data(), TextEncoding::Utf8Bom_sv.length()) == 0 )
+                if( length == 0 )
                 {
+                    ASSERT(current_position == length);
                     return Engine::Value::Bool(true);
                 }
+
+                else if( length == static_cast<int64_t>(TextEncoding::Utf8Bom_sv.length()) )
+                {
+                    char buffer[TextEncoding::Utf8Bom_sv.length()];
+                    text_file.Seek(0, SEEK_SET);
+                    text_file.ReadExact(buffer, TextEncoding::Utf8Bom_sv.length());
+
+                    if( memcmp(buffer, TextEncoding::Utf8Bom_sv.data(), TextEncoding::Utf8Bom_sv.length()) == 0 )
+                    {
+                        ASSERT(current_position == length);
+                        return Engine::Value::Bool(true);
+                    }
+                }
+
+                text_file.Seek(current_position, SEEK_SET);
             }
+            catch(...) { ASSERT(false); }
 
             return Engine::Value::Bool(false);
         }

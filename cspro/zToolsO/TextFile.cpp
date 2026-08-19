@@ -112,14 +112,35 @@ FileIO::TextFile& FileIO::TextFile::OpenForTextWriting(InterfaceString file_path
 }
 
 
-int64_t FileIO::TextFile::FlushAndGetPosition()
+FileIO::TextFile& FileIO::TextFile::OpenForTextReadingAndWriting(InterfaceString file_path, const bool create,
+                                                                 const bool append, const int share_flag/* = INT_MIN*/)
 {
-    ASSERT(IsOpen());
+    ASSERT(( create != append ) || ( !create && !append ));
 
-    if( fflush(m_file) != 0 )
-        throw FileIO::Exception("There was an error flushing the file: %s", GetPath().c_str());
+    Open(std::move(file_path), create ? "wb+" : "rb+", share_flag);
 
-    return GetPosition();
+    // write, or process, a potential BOM
+    if( m_textEncoding.UsesBom() )
+    {
+        if( create )
+        {
+            Write(m_textEncoding.GetBom());
+        }
+
+        else
+        {
+            m_textEncoding.UpdateEncoding(m_file);
+        }
+    }
+
+    // create an encoding converter
+    m_textConverter = m_textEncoding.CreateConverter();
+
+    // when appending, move to the end
+    if( append )
+        SeekToEnd();
+
+    return *this;
 }
 
 

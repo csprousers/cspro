@@ -1,9 +1,9 @@
-﻿#pragma once
+#pragma once
 
 #include <zEngineO/zEngineO.h>
 #include <zLogicO/Symbol.h>
 
-enum class Encoding : int;
+namespace FileIO { class TextFile; }
 
 
 class ZENGINEO_API LogicFile : public Symbol
@@ -13,28 +13,31 @@ private:
 
 public:
     LogicFile(std::string file_name);
-    ~LogicFile();
+    ~LogicFile() noexcept;
 
-    bool IsUsed() const { return m_isUsed; }
-    void SetUsed()      { m_isUsed = true; }
+    bool IsUsed() const noexcept { return m_isUsed; }
+    void SetUsed()      noexcept { m_isUsed = true; }
 
-    bool HasGlobalVisibility() const { return m_hasGlobalVisibility; }
-    void SetGlobalVisibility()       { m_hasGlobalVisibility = true; }
+    bool HasGlobalVisibility() const noexcept { return m_hasGlobalVisibility; }
+    void SetGlobalVisibility()       noexcept { m_hasGlobalVisibility = true; }
 
-    bool IsWrittenTo() const { return m_isWrittenTo; }
-    void SetIsWrittenTo()    { m_isWrittenTo = true; }
+    bool IsWrittenTo() const noexcept { return m_isWrittenTo; }
+    void SetIsWrittenTo()    noexcept { m_isWrittenTo = true; }
 
-    const std::string& GetFilePath() const  { return m_filePath; }
-    void SetFilePath(std::string file_path) { m_filePath = std::move(file_path); }
+    const std::string& GetFilePath() const  noexcept { return m_filePath; }
+    void SetFilePath(std::string file_path) noexcept { m_filePath = std::move(file_path); }
 
-    bool Open(bool create_new, bool append, bool truncate);
-    bool IsOpen() const;
+    bool IsOpen() const noexcept { return ( m_textFile != nullptr ); }
 
-    bool Close();
+    FileIO::TextFile& GetTextFile() noexcept { ASSERT(IsOpen()); return *m_textFile; }
 
-    CFile& GetFile() { return m_file; }
+    // the runtime actions Open, Close, and StartOperation can throw exceptions
+    void Open(bool create, bool append, bool create_if_not_exist);
 
-    Encoding GetEncoding() const { return m_encoding; }
+    void Close();
+
+    // Calls a file repositioning function (as required when switching from reading <-> writing).
+    void StartOperation(bool writing);
 
     // Symbol overrides
     void CopyCompileTimeAttributes(const Symbol& symbol) override;
@@ -48,10 +51,13 @@ public:
     void WriteValueToJson(JsonWriter& json_writer) const override;
 
 private:
+    void Close_noexcept() noexcept;
+
+private:
     bool m_isUsed;
     bool m_hasGlobalVisibility;
     bool m_isWrittenTo;
     std::string m_filePath;
-    CFile m_file;
-    Encoding m_encoding;
+    std::unique_ptr<FileIO::TextFile> m_textFile;
+    std::optional<bool> m_lastOperationWasWriting;
 };

@@ -1,6 +1,5 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "File.h"
-#include <zToolsO/TextEncoding.h>
 #include <zUtilO/StdioFileUnicode.h>
 
 
@@ -12,8 +11,7 @@ LogicFile::LogicFile(std::string file_name)
     :   Symbol(std::move(file_name), SymbolType::File),
         m_isUsed(false),
         m_hasGlobalVisibility(false),
-        m_isWrittenTo(false),
-        m_encoding(Encoding::Invalid)
+        m_isWrittenTo(false)
 {
 }
 
@@ -22,15 +20,14 @@ LogicFile::LogicFile(const LogicFile& logic_file)
     :   Symbol(logic_file),
         m_isUsed(logic_file.m_isUsed),
         m_hasGlobalVisibility(logic_file.m_hasGlobalVisibility),
-        m_isWrittenTo(logic_file.m_isWrittenTo),
-        m_encoding(Encoding::Invalid)
+        m_isWrittenTo(logic_file.m_isWrittenTo)
 {
 }
 
 
-LogicFile::~LogicFile()
+LogicFile::~LogicFile() noexcept
 {
-    Close();
+    Close_noexcept();
 }
 
 
@@ -49,110 +46,107 @@ std::unique_ptr<Symbol> LogicFile::CloneInInitialState() const
 }
 
 
-bool LogicFile::Open(const bool create_new, const bool append, const bool truncate)
+void LogicFile::Open(bool create, bool append, const bool create_if_not_exist)
 {
-    bool success = false;
+    // | create | append |
+    // -------------------
+    // | true   | false  | create a new file
+    // | false  | true   | open an existing file, at the end, or create one if create_if_not_exist is true
+    // | false  | false  | open an existing file, or create one if create_if_not_exist is true
+    ASSERT(( create != append ) || ( !create && !append ));
 
-    if( !IsOpen() && !m_filePath.empty() )
+    if( m_textFile != nullptr )
+        return;
+
+    if( m_filePath.empty() )
+        throw CSProException("You must specify the path of a file to open.");
+
+    ASSERT(!m_lastOperationWasWriting.has_value());
+
+    std::optional<TextEncoding> text_encoding;
+    static_assert(TextEncoding::DefaultEncoding == TextEncoding::Type::Utf8Bom);
+
+    // file exists
+    if( PortableFunctions::FileIsRegular(m_filePath) )
     {
-        UINT open_flags = CFile::modeReadWrite | CFile::shareExclusive;
-
-        if( create_new )
-        {
-            open_flags |= CFile::modeCreate;
-
-            if( !truncate )
-                open_flags |= CFile::modeNoTruncate;
-        }
-
-        Encoding file_encoding = Encoding::Invalid;
-
-        const bool file_exists = GetFileBOM(m_filePath, file_encoding);
+        text_encoding = TextEncoding::ReadFileBom(m_filePath, TextEncoding::Type::Ansi);
 
         // if only reading, ANSI is fine, but if writing, convert to UTF-8
-        if( file_exists && file_encoding == Encoding::Ansi && IsWrittenTo() )
+        if( IsWrittenTo() && text_encoding->GetType() == TextEncoding::Type::Ansi )
         {
-            // if can't convert to UTF-8, return false
             if( !CStdioFileUnicode::ConvertAnsiToUTF8(m_filePath) )
-                return false;
+                throw CSProException("Could not convert the file from ANSI to UTF-8: " + m_filePath);
 
-            file_encoding = Encoding::Utf8;
-        }
-
-        if( !file_exists )
-        {
-            m_encoding = Encoding::Utf8;
-        }
-
-        else if( file_encoding == Encoding::Utf8 || file_encoding == Encoding::Ansi )
-        {
-            m_encoding = file_encoding;
-        }
-
-        // the file encoding could have been UTF-16LE or something else but we're not going to support it; we'll read in those files as if they were ANSI
-        else
-        {
-            m_encoding = Encoding::Ansi;
-        }
-
-        // open the file
-        if( m_file.Open(UTF8_TODO::GetWide(m_filePath).c_str(), open_flags) )
-        {
-            success = true;
-
-            if( m_encoding == Encoding::Utf8 )
-            {
-                if( IsWrittenTo() && m_file.GetLength() < TextEncoding::Utf8Bom_sv.length() ) // write out the UTF-8 BOM
-                {
-                    m_file.Write(TextEncoding::Utf8Bom_sv.data(), TextEncoding::Utf8Bom_sv.length());
-                }
-
-                else // skip past the BOM
-                {
-                    m_file.Seek(TextEncoding::Utf8Bom_sv.length(), CFile::begin);
-                }
-            }
-
-            if( append )
-                m_file.SeekToEnd();
+            text_encoding.reset();
         }
     }
 
-    return success;
-}
+    // file does not exist
+    else
+    {
+        if( create_if_not_exist )
+        {
+            create = true;
+            append = false;
+        }
 
+        if( !create )
+            throw FileIO::Exception::FileNotFound(m_filePath);
 
-bool LogicFile::IsOpen() const
-{
-#ifdef WIN_DESKTOP
-    return ( m_file.m_hFile != CFile::hFileNull );
-#else
-    return m_file.IsOpen();
+        // create the directory for the file when necessary
+        FileIO::CreateDirectoriesForFile(m_filePath);
+    }
+
+    auto text_file = std::make_unique<FileIO::TextFile>();
+    text_file->SetWriteNewlineAsCRLF(false);
+
+    if( text_encoding.has_value() )
+        text_file->SetTextEncoding(*text_encoding);
+
+    text_file->OpenForTextReadingAndWriting(m_filePath, create, append
+#ifdef WIN32
+        , _SH_DENYRW // share_flag
 #endif
+    );
+
+    m_textFile = std::move(text_file);
 }
 
 
 void LogicFile::Reset()
 {
-    Close();
+    Close_noexcept();
 }
 
 
-bool LogicFile::Close()
+void LogicFile::Close()
 {
-    bool success = false;
+    m_textFile.reset();
+    m_lastOperationWasWriting.reset();
+}
 
-    if( IsOpen() )
+
+void LogicFile::Close_noexcept() noexcept
+{
+    try
     {
-        try
-        {
-            m_file.Close();
-            success = true;
-        }
-        catch(...) { }
+        Close();
     }
+    catch(...) { ASSERT(false); }
+}
 
-    return success;
+
+void LogicFile::StartOperation(const bool writing)
+{
+    ASSERT(IsOpen());
+
+    if( m_lastOperationWasWriting == writing )
+        return;
+
+    if( m_lastOperationWasWriting.has_value() )
+        m_textFile->Seek(0, SEEK_CUR);
+
+    m_lastOperationWasWriting = writing;
 }
 
 

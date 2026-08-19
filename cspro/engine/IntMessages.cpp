@@ -72,7 +72,7 @@ MessageFormat::Type MessageArgumentsMessageParameterEvaluator::GetMessageFormatT
 
 bool MessageArgumentsMessageParameterEvaluator::ReplaceSpecialValuesWithSpaces() const
 {
-    return ( m_functionCode == FNWRITE_CODE || m_functionCode == FNFILE_WRITE_CODE );
+    return ( m_functionCode == FNWRITE_CODE || m_functionCode == FILEFN_WRITE_CODE );
 }
 
 

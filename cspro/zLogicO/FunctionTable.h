@@ -219,8 +219,8 @@ enum FunctionCode : int
     FNFILE_RENAME_CODE                      = 166,
     FNFILE_SIZE_CODE                        = 167,
     FNFILE_CONCAT_CODE                      = 168,
-    FNFILE_READ_CODE                        = 169,
-    FNFILE_WRITE_CODE                       = 170,
+    FILEFN_READ_CODE                        = 169,
+    FILEFN_WRITE_CODE                       = 170,
     FNEXECSYSTEM_CODE                       = 171,
     FNSHOWLIST_CODE                         = 173,
 

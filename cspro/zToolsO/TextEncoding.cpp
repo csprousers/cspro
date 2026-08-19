@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "TextEncoding.h"
 #include "File.h"
 #include "TextConverter.h"
@@ -84,26 +84,26 @@ TextEncoding::Type TextEncoding::GetType(FILE* const file, const Type default_en
     }
 
     // UTF-8
-    if( first_ch == Utf8Bom_sv[0] )
+    if( first_ch == static_cast<unsigned char>(Utf8Bom_sv[0]) )
     {
-        if( fgetc(file) == Utf8Bom_sv[1] &&
-            fgetc(file) == Utf8Bom_sv[2] )
+        if( fgetc(file) == static_cast<unsigned char>(Utf8Bom_sv[1]) &&
+            fgetc(file) == static_cast<unsigned char>(Utf8Bom_sv[2]) )
         {
             return Type::Utf8Bom;
         }
     }
 
     // UTF-16LE
-    else if( first_ch == Utf16LEBom_sv[0] )
+    else if( first_ch == static_cast<unsigned char>(Utf16LEBom_sv[0]) )
     {
-        if( fgetc(file) == Utf16LEBom_sv[1] )
+        if( fgetc(file) == static_cast<unsigned char>(Utf16LEBom_sv[1]) )
             return Type::Utf16LE;
     }
 
     // UTF-16BE
-    else if( first_ch == Utf16BEBom_sv[0] )
+    else if( first_ch == static_cast<unsigned char>(Utf16BEBom_sv[0]) )
     {
-        if( fgetc(file) == Utf16BEBom_sv[1] )
+        if( fgetc(file) == static_cast<unsigned char>(Utf16BEBom_sv[1]) )
             return Type::Utf16BE;
     }
 
@@ -114,7 +114,8 @@ TextEncoding::Type TextEncoding::GetType(FILE* const file, const Type default_en
 }
 
 
-TextEncoding TextEncoding::ReadFileBom(const std::string& file_path, Type default_encoding_if_no_bom/* = DefaultEncodingIfNoBom*/)
+TextEncoding TextEncoding::ReadFileBom(const std::string& file_path,
+                                       const Type default_encoding_if_no_bom/* = DefaultEncodingIfNoBom*/) noexcept
 {
     try
     {

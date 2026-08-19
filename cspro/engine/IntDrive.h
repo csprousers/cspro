@@ -602,9 +602,9 @@ public:
     double  exforcase(int iExpr);
     double  excountcases(int iExpr);
 
-    double  ex_open(int program_index);
-    double  ex_close(int program_index);
-    double  ex_setfile(int program_index);
+    Engine::Value ex_open(int program_index);
+    Engine::Value ex_close(int program_index);
+    Engine::Value ex_setfile(int program_index);
     bool    ex_setfile_dictionary(EngineDictionary& engine_dictionary, const ConnectionString& connection_string, bool create_new, bool open_or_create);
     bool    ex_setfile_dictionary(DICT* pDicT, const ConnectionString& connection_string, bool create_new, bool open_or_create);
 
@@ -650,10 +650,6 @@ public:
 
     double  exmaxocc(int iExpr);
     double  exmaxocc_pre80(int iExpr);
-
-public:
-    double  exfileread(int iExpr);
-    double  exfilewrite(int iExpr);
 
 private:
     ParameterManager::Parameter GetSetPropertyParser(int program_index, std::set<int>& symbol_set,

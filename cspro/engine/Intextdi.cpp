@@ -2039,11 +2039,10 @@ double CIntDriver::ex_setoutput(const int program_index)
 // ex_open
 //
 //----------------------------------------------------------------------
-double CIntDriver::ex_open(const int program_index)
+Engine::Value CIntDriver::ex_open(const int program_index)
 {
     const auto& fn8_node = GetNode<FN8_NODE>(program_index);
     Symbol& symbol = NPT_Ref(fn8_node.symbol_index);
-    bool success = true;
 
     const bool create = ( fn8_node.extra_parameter == static_cast<int>(Nodes::SetFile::Mode::Create) );
     const bool append = ( fn8_node.extra_parameter == static_cast<int>(Nodes::SetFile::Mode::Append) );
@@ -2057,7 +2056,7 @@ double CIntDriver::ex_open(const int program_index)
             engine_data_repository.GetLastClosedConnectionString() :
             engine_data_repository.GetDataRepository().GetConnectionString();
 
-        success = ex_setfile_dictionary(engine_dictionary, connection_string, create, append);
+        return ex_setfile_dictionary(engine_dictionary, connection_string, create, append);
     }
 
     else if( symbol.IsA(SymbolType::Pre80Dictionary) )
@@ -2069,18 +2068,18 @@ double CIntDriver::ex_open(const int program_index)
             pDicX->GetLastClosedConnectionString() :
             pDicX->GetDataRepository().GetConnectionString();
 
-        success = ex_setfile_dictionary(&pDicT, connection_string, create, append);
+        return ex_setfile_dictionary(&pDicT, connection_string, create, append);
     }
 
     else if( symbol.IsA(SymbolType::File) )
     {
-        LogicFile& logic_file = assert_cast<LogicFile&>(symbol);
-
-        if( !logic_file.Open(create, append, true) )
-            success = false;
+        return ex_File_open(assert_cast<LogicFile&>(symbol), create, append, -1);
     }
 
-    return success ? 1 : 0;
+    else
+    {
+        return ReturnProgrammingError(Engine::Value::Bool(false));
+    }
 }
 
 
@@ -2089,11 +2088,10 @@ double CIntDriver::ex_open(const int program_index)
 // ex_close
 //
 //----------------------------------------------------------------------
-double CIntDriver::ex_close(const int program_index)
+Engine::Value CIntDriver::ex_close(const int program_index)
 {
     const auto& fn8_node = GetNode<FN8_NODE>(program_index);
     Symbol& symbol = NPT_Ref(fn8_node.symbol_index);
-    bool success = true;
 
     if( symbol.IsA(SymbolType::Dictionary) )
     {
@@ -2123,18 +2121,15 @@ double CIntDriver::ex_close(const int program_index)
 
     else if( symbol.IsA(SymbolType::File) )
     {
-        LogicFile& logic_file = assert_cast<LogicFile&>(symbol);
-
-        if( !logic_file.Close() )
-            success = false;
+        return ex_File_close(assert_cast<LogicFile&>(symbol));
     }
 
     else
     {
-        success = ReturnProgrammingError(false);
+        return ReturnProgrammingError(Engine::Value::Bool(false));
     }
 
-    return success ? 1 : 0;
+    return Engine::Value::Bool(true);
 }
 
 

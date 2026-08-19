@@ -1335,41 +1335,16 @@ double CIntDriver::exsavepartial(int iExpr)
 }
 
 
-double CIntDriver::ex_setfile(const int program_index)
+Engine::Value CIntDriver::ex_setfile(const int program_index)
 {
     const auto& setfile_node = GetNode<Nodes::SetFile>(program_index);
     Symbol& symbol = NPT_Ref(setfile_node.symbol_index);
-    bool create = ( setfile_node.mode == Nodes::SetFile::Mode::Create );
+    const bool create = ( setfile_node.mode == Nodes::SetFile::Mode::Create );
     const bool append = ( setfile_node.mode == Nodes::SetFile::Mode::Append );
 
     if( symbol.IsA(SymbolType::File) )
     {
-        LogicFile& logic_file = assert_cast<LogicFile&>(symbol);
-
-        // close any existing file
-        logic_file.Close();
-
-        std::string file_path = EvaluatePath(setfile_node.filename_expression);
-
-        // create the directory if necessary
-        if( ( create || append ) && !PortableFunctions::PathMakeDirectories(PortableFunctions::PathGetDirectory(file_path)) )
-            return 0;
-
-        bool truncate = true;
-
-        if( append )
-        {
-            create = true;
-            truncate = false;
-        }
-
-        logic_file.SetFilePath(std::move(file_path));
-
-        if( !logic_file.GetFilePath().empty() )
-        {
-            if( logic_file.Open(create, append, truncate) )
-                return 1;
-        }
+        return ex_File_open(assert_cast<LogicFile&>(symbol), create, append, setfile_node.filename_expression);
     }
 
     else if( symbol.IsA(SymbolType::Dictionary) )
@@ -1386,10 +1361,8 @@ double CIntDriver::ex_setfile(const int program_index)
 
     else
     {
-        ASSERT(false);
+        return ReturnProgrammingError(Engine::Value::Bool(false));
     }
-
-    return 0;
 }
 
 

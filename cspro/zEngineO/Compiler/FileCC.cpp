@@ -70,7 +70,7 @@ int LogicCompiler::CompileLogicFileFunctions()
         NextTokenHelperResult next_token_helper_result = CheckNextTokenHelper();
         NextToken();
 
-        if( Tkn != TOKFILE && ( function_code == FunctionCode::FNFILE_READ_CODE || function_code == FunctionCode::FNFILE_WRITE_CODE ) )
+        if( Tkn != TOKFILE && ( function_code == FunctionCode::FILEFN_READ_CODE || function_code == FunctionCode::FILEFN_WRITE_CODE ) )
         {
             IssueError(MGF_TODO::m_33054);
         }
@@ -140,7 +140,7 @@ int LogicCompiler::CompileLogicFileFunctions()
     bool check_for_right_parenthesis = true;
 
 
-    if( function_code == FunctionCode::FNFILE_WRITE_CODE )
+    if( function_code == FunctionCode::FILEFN_WRITE_CODE )
     {
         int expression = 0;
 
@@ -159,7 +159,7 @@ int LogicCompiler::CompileLogicFileFunctions()
 
         else
         {
-            expression = CompileMessageFunction(FunctionCode::FNFILE_WRITE_CODE);
+            expression = CompileMessageFunction(FunctionCode::FILEFN_WRITE_CODE);
             check_for_right_parenthesis = false;
         }
 
@@ -170,7 +170,7 @@ int LogicCompiler::CompileLogicFileFunctions()
     }
 
 
-    else if( function_code == FunctionCode::FNFILE_READ_CODE )
+    else if( function_code == FunctionCode::FILEFN_READ_CODE )
     {
         if( dot_notation_logic_file == nullptr )
             IssueErrorOnTokenMismatch(TOKCOMMA, MGF::function_call_comma_expected_528);

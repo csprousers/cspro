@@ -150,6 +150,22 @@ int64_t FileIO::File::GetPosition()
 }
 
 
+void FileIO::File::Flush()
+{
+    ASSERT(IsOpen());
+
+    if( fflush(m_file) != 0 )
+        throw FileIO::Exception("There was an error flushing the file: %s", GetPath().c_str());
+}
+
+
+int64_t FileIO::File::FlushAndGetPosition()
+{
+    Flush();
+    return GetPosition();
+}
+
+
 void FileIO::File::DeleteFile(const std::string& file_path) noexcept
 {
     ASSERT(!file_path.empty());

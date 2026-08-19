@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "IncludesCC.h"
 #include "Nodes/Messages.h"
 #include <engine/VarT.h>
@@ -40,7 +40,7 @@ int LogicCompiler::CompileMessageFunction(FunctionCode function_code)
 
     // a few functions use the message compilation, simulated as maketext, but have already read in the left parenthesis
     if( function_code == FunctionCode::FNTRACE_CODE ||
-        function_code == FunctionCode::FNFILE_WRITE_CODE ||
+        function_code == FunctionCode::FILEFN_WRITE_CODE ||
         function_code == FunctionCode::TEXTTEMPLATEFN_WRITE_CODE ||
         function_code == FunctionCode::TEXTTEMPLATEFN_WRITEENCODED_CODE ||
         function_code == FunctionCode::TEXTTEMPLATEFN_WRITEENCODEDLINE_CODE ||

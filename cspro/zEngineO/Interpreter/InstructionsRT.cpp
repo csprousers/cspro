@@ -231,8 +231,8 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 166 */   OP(ex_filecopy_filerename), // filerename
 /* 167 */   OP(ex_filesize),
 /* 168 */   OP(ex_fileconcat),
-/* 169 */   OP_ID(exfileread),
-/* 170 */   OP_ID(exfilewrite),
+/* 169 */   OP(ex_File_read),  // File.read + fileread
+/* 170 */   OP(ex_File_write), // File.write + filewrite
 // RHF END Oct 15, 2004
 
 /* 171 */   OP_ID(ExExecSystem),
