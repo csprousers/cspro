@@ -281,7 +281,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 212 */   OP(ex_datevalid),       // GHM 20130703
 /* 213 */   OP(ex_getos),           // GHM 20131217
 /* 214 */   OP_ID(ex_getocclabel),     // GHM 20140226
-/* 215 */   OP_ID(exfreealphamem),     // GHM 20140228
+/* 215 */   OP(ex_nop_ignore),      // GHM 20140228 previously exfreealphamem
 /* 216 */   OP_ID(exsetvalue),         // GHM 20140228
 /* 217 */   OP_ID(exgetvalue),         // GHM 20140422
 /* 218 */   OP_ID(ex_getvaluealpha),   // GHM 20140422
@@ -576,9 +576,18 @@ Engine::Value LogicInterpreter::ex_nop_ignore(const int program_index)
 {
     const auto& function_call_node = GetNode<Nodes::FunctionCall>(program_index);
 
-    switch( function_call_node.function_code )
+    // as long as < 8.2 .pen files are supported, this implementation of FNFREEALPHAMEM_CODE will be kept here;
+    // freeing string memory is no longer necessary with the adoption of Engine::Value
+    if( static_cast<int>(function_call_node.function_code) == 215 )
     {
-        case FNITEMLIST_CODE:
+        ASSERT(m_engineData->PredatesCompiledLogicVersion(Serializer::Iteration_8_2_000_1));
+        return Evaluate<Engine::Value>(GetNode<Nodes::Statement>(program_index).next_st);
+    }
+
+    switch( static_cast<int>(function_call_node.function_code) )
+    {
+        case static_cast<int>(FNITEMLIST_CODE):
+        case 215: // FNFREEALPHAMEM_CODE:
             return Engine::Value::Invalid<SharableString>();
 
         default:

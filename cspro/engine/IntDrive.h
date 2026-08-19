@@ -499,8 +499,6 @@ public:
 
     double  ex_setoutput(int program_index);
 
-    double  exfreealphamem(int program_index);
-
     double  exsetvalue(int iExpr);      // 20140228
     double  exgetvalue(int iExpr);      // 20140422
     Engine::Value ex_getvaluealpha(int program_index);

@@ -559,7 +559,7 @@ void CIntDriver::AddIntDriverInstructions()
     OP_ENGVAL(212, ex_datevalid);
     OP_ENGVAL(213, ex_getos);
     OP_ENGVAL_ID(214, ex_getocclabel);
-    OP_DOUBLE(215, exfreealphamem);
+    OP_ENGVAL(215, ex_nop_ignore);
     OP_DOUBLE(216, exsetvalue);
     OP_DOUBLE(217, exgetvalue);
     OP_ENGVAL_ID(218, ex_getvaluealpha);

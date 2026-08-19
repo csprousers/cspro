@@ -646,18 +646,6 @@ double CIntDriver::exsetoperatorid(int iExpr)
 }
 
 
-// 20140228 this function simply deletes the memory associated with a function that returns an alpha
-// (in the past it wasn't possible to call a function like editnote() without having to assign the return
-// value to something, which seemed a bit silly)
-double CIntDriver::exfreealphamem(const int program_index)
-{
-    const auto& fnc_node = GetNode<FNC_NODE>(program_index);
-    EvalAlphaExpr(fnc_node.isymb);
-    return 1; // in case this is being used as a conditional, always return true
-}
-
-
-
 //----------------------------------------------------------------------
 //  ExExecSystem: execute EXECSYSTEM function
 //----------------------------------------------------------------------

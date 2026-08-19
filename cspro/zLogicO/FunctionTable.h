@@ -292,7 +292,7 @@ enum FunctionCode : int
     // CSPro 6.0
     FNGETOS_CODE                            = 213, // GHM 20131217
     FNGETOCCLABEL_CODE                      = 214, // GHM 20140226
-    FNFREEALPHAMEM_CODE                     = 215, // GHM 20140228
+    // FNFREEALPHAMEM_CODE                  = 215, // GHM 20140228
     FNSETVALUE_CODE                         = 216, // GHM 20140228
     FNGETVALUE_CODE                         = 217, // GHM 20140422
     FNGETVALUEALPHA_CODE                    = 218, // GHM 20140422

@@ -41,12 +41,16 @@ int CEngineCompFunc::crelalpha()
         if( !is_lone_function_call && call_tester != 1 )
             IssueError(693);
 
-        // 20140228 now allow the user to call an alpha function without having to assign the result to something;
-        // this will be useful for functions like editnote
+        return p1;
+
+        /*
+        // removed on 20260819, no longer necessary due to the adoption of Engine::Value, but the old code
+        // is kept here for reference until the m_loneAlphaFunctionCallTester hacks are resolved
         auto& fnc_node = CreateCompilationNode<FNC_NODE>(FunctionCode::FNFREEALPHAMEM_CODE);
         fnc_node.isymb = p1;
 
         return GetProgramIndex(fnc_node);
+        */
     }
 
     const FunctionCode oper = static_cast<FunctionCode>(static_cast<int>(Tkn) + ( CH_EQ_CODE - EQ_CODE ) );
