@@ -149,6 +149,7 @@ add_library(${PROJECT_NAME}
     Interpreter/SystemRT.cpp
     Interpreter/TextTemplateRT.cpp
     Interpreter/TraceRT.cpp
+    Interpreter/UserbarRT.cpp
     Interpreter/UserFunctionRT.cpp
     Interpreter/UserInterfaceRT.cpp
     Interpreter/ValueSetRT.cpp

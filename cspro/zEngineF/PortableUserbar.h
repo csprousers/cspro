@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zEngineF/zEngineF.h>
 #include <zEngineO/Userbar.h>
@@ -10,7 +10,7 @@ struct PortableUserbarItem
     PortableUserbarItem& operator=(PortableUserbarItem&&) = default;
 
     int id;
-    std::wstring text;
+    std::string text;
     std::optional<Userbar::Action> action;
 };
 
@@ -28,17 +28,17 @@ public:
 
     void Pause(bool pause) override;
 
-    int AddButton(std::wstring text, std::optional<Action> action) override;
-    int AddField(std::wstring text, std::optional<Action> action) override;
-    int AddText(std::wstring text) override;
+    int AddButton(std::string text, std::optional<Action> action) override;
+    int AddField(std::string text, std::optional<Action> action) override;
+    int AddText(std::string text) override;
     int AddSpacing(int spacing) override;
 
-    std::optional<std::wstring> GetFieldText(int id) override;
+    std::optional<std::string> GetFieldText(int id) override;
     std::optional<int> GetLastActivatedItem() const override { return m_lastActivatedItemId; }
 
     bool SetColor(COLORREF color, std::optional<int> id) override;
 
-    bool Modify(int id, std::optional<std::wstring> text, std::optional<Action> action, std::optional<int> spacing) override;
+    bool Modify(int id, std::optional<std::string> text, std::optional<Action> action, std::optional<int> spacing) override;
 
     bool Remove(int id) override;
 

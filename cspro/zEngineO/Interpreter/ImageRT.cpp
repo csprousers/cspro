@@ -6,7 +6,6 @@
 #include "ValueSet.h"
 #include <zHtml/VirtualFileMapping.h>
 #include <zUtilF/ImageCaptureDlg.h>
-#include <zEngineF/EngineUI.h>
 #include <zDictO/ValueProcessor.h>
 #include <zMultimediaO/ExifReader.h>
 

@@ -374,6 +374,9 @@
     <ClCompile Include="Interpreter\TraceRT.cpp">
       <Filter>Source Files\Interpreter</Filter>
     </ClCompile>
+    <ClCompile Include="Interpreter\UserbarRT.cpp">
+      <Filter>Source Files\Interpreter</Filter>
+    </ClCompile>
     <ClCompile Include="Interpreter\UserFunctionRT.cpp">
       <Filter>Source Files\Interpreter</Filter>
     </ClCompile>

@@ -406,9 +406,6 @@
     <ClCompile Include="Inttbl.cpp">
       <Filter>Source Files\ex2</Filter>
     </ClCompile>
-    <ClCompile Include="IntUserbar.cpp">
-      <Filter>Source Files\ex2</Filter>
-    </ClCompile>
     <ClCompile Include="IntUserFunction.cpp">
       <Filter>Source Files\ex2</Filter>
     </ClCompile>

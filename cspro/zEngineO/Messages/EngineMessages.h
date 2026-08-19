@@ -272,6 +272,8 @@ namespace MGF
     constexpr int UserFunction_declared_but_never_defined_50009             =  50009;
     constexpr int UserFunction_JavaScript_function_requires_declare_50010   =  50010;
 
+    constexpr int userbar_error_50106                                       =  50106;
+
     constexpr int prompt_invalid_combination_51102                          =  51102;
     constexpr int timestamp_argument_error_51111                            =  51111;
 

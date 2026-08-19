@@ -1315,6 +1315,12 @@ bool CoreEntryEngineInterface::GetSystemSetting(const std::string& setting_name,
 }
 
 
+Userbar* CoreEntryEngineInterface::GetUserbar()
+{
+    return m_pIntDriver->GetUserbar();
+}
+
+
 const AppMappingOptions& CoreEntryEngineInterface::GetMappingOptions() const
 {
     return m_pPifFile->GetApplication()->GetMappingOptions();

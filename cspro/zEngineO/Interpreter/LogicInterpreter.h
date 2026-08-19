@@ -25,6 +25,7 @@ class LoopStack;
 class PortableColor;
 class JsonReaderInterface;
 class TraceHandler;
+class Userbar;
 class UserFunctionArgumentEvaluator;
 class VirtualFileMappingHandler;
 namespace ActionInvoker { class Caller; class Runtime; }
@@ -761,6 +762,19 @@ protected: // INTERPRETER_DLL_TODO change to private
     // If the symbol is a StringWriter, the underlying type (e.g., a Report) is returned.
     // The returned text builder is null if the text template is inaccessible.
     std::tuple<Symbol*, std::string*> GetTextTemplateBuilder(Symbol& symbol);
+
+
+    // --------------------------------------------------------------------------
+    // userbar functionality
+    // (UserbarRT.cpp)
+    // --------------------------------------------------------------------------
+public:
+    Userbar* GetUserbar() noexcept { return m_userbar.get(); }
+
+    Engine::Value ex_userbar(int program_index);
+
+private:
+    std::unique_ptr<Userbar> m_userbar;
 
 
     // --------------------------------------------------------------------------

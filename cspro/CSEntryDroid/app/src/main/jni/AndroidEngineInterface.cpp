@@ -1,4 +1,4 @@
-﻿#include <engine/StandardSystemIncludes.h>
+#include <engine/StandardSystemIncludes.h>
 #include "AndroidEngineInterface.h"
 #include "AndroidApplicationInterface.h"
 #include "AndroidUserbar.h"
@@ -108,12 +108,12 @@ CString AndroidEngineInterface::GetStartKeyString()
     return GetPifFile()->GetStartKeyString();
 }
 
-void AndroidEngineInterface::RunUserbarFunction(int userbar_index)
+void AndroidEngineInterface::RunUserbarFunction(const int userbar_index)
 {
-    AndroidUserbar* userbar = (AndroidUserbar*)GetRunAplEntry()->GetUserbar();
+    AndroidUserbar* const userbar = assert_cast<AndroidUserbar*>(GetUserbar());
     ASSERT(userbar != nullptr);
 
-    UserFunctionArgumentEvaluator* user_function_argument_evaluator = userbar->GetFunctionForButton(userbar_index);
+    UserFunctionArgumentEvaluator* const user_function_argument_evaluator = userbar->GetFunctionForButton(userbar_index);
 
     if( user_function_argument_evaluator != nullptr )
         ExecuteCallbackUserFunction(*user_function_argument_evaluator);

@@ -482,8 +482,6 @@ public:
     Engine::Value ex_setlanguage(int program_index);
     Engine::Value ex_tr(int program_index);
 
-    double  exuserbar(int iExpr); // 20100414
-
     double  exmessageoverrides(int program_index);
 
     double ex_getcapturetype(int program_index);

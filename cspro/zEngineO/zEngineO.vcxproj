@@ -133,6 +133,7 @@
     <ClCompile Include="Interpreter\SystemRT.cpp" />
     <ClCompile Include="Interpreter\TextTemplateRT.cpp" />
     <ClCompile Include="Interpreter\TraceRT.cpp" />
+    <ClCompile Include="Interpreter\UserbarRT.cpp" />
     <ClCompile Include="Interpreter\UserFunctionRT.cpp" />
     <ClCompile Include="Interpreter\UserInterfaceRT.cpp" />
     <ClCompile Include="Interpreter\ValueSetRT.cpp" />

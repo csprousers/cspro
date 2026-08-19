@@ -529,7 +529,7 @@ void CIntDriver::AddIntDriverInstructions()
     OP_ENGVAL_ID(182, ex_getlanguage);
     OP_ENGVAL_ID(183, ex_setlanguage);
     OP_DOUBLE(184, exendcase);
-    OP_DOUBLE(185, exuserbar);
+    OP_ENGVAL(185, ex_userbar);
     OP_DOUBLE(186, exmessageoverrides);
     OP_ENGVAL(187, ex_trace);
     OP_ENGVAL(188, ex_setvaluesets);

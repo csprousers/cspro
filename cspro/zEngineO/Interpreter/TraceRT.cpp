@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #include "IncludesRT.h"
 #include "Nodes/Trace.h"
-#include <zEngineF/EngineUI.h>
 #include <zEngineF/TraceHandler.h>
 
 

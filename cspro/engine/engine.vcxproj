@@ -79,7 +79,6 @@
     <ClCompile Include="IntQuery.cpp" />
     <ClCompile Include="IntSync.cpp" />
     <ClCompile Include="Inttbl.cpp" />
-    <ClCompile Include="IntUserbar.cpp" />
     <ClCompile Include="IntUserFunction.cpp" />
     <ClCompile Include="IntUserInterface.cpp" />
     <ClCompile Include="Intxtab.cpp" />

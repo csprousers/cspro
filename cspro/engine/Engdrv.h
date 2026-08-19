@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 //---------------------------------------------------------------------------
 //  File name: EngDrv.h
@@ -46,7 +46,6 @@ class LogicByteCode;
 class MessageManager;
 class Pre74_CaseLevel;
 class Pre74_CaseRecord;
-class Userbar;
 namespace Listing { class ErrorLister; class WriteFile; }
 
 
@@ -74,15 +73,6 @@ protected:
 
 private:
     std::unique_ptr<const ExecutionStackEntry> m_executionStackEntry;
-
-    // userbar
-private:
-    std::unique_ptr<Userbar> m_userbar;
-
-public:
-    bool HasUserbar() const                           { return ( m_userbar != nullptr ); }
-    Userbar& GetUserbar()                             { ASSERT(HasUserbar()); return *m_userbar; }
-    void SetUserbar(std::unique_ptr<Userbar> userbar);
 
 public:
     ModuleType      m_Issamod;

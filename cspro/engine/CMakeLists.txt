@@ -58,7 +58,6 @@ add_library(${PROJECT_NAME}
     IntProperties.cpp
     IntQuery.cpp
     IntSync.cpp
-    IntUserbar.cpp
     IntUserFunction.cpp
     IntUserInterface.cpp
     Listing.cpp
