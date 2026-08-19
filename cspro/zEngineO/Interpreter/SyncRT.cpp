@@ -587,7 +587,7 @@ Engine::Value CIntDriver::ex_getbluetoothname(int /*program_index*/)
     if( bluetooth_adapter == nullptr )
         return Engine::Value::Undefined<SharableString>();
 
-    return bluetooth_adapter->GetName();    
+    return bluetooth_adapter->GetName();
 }
 
 

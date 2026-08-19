@@ -1,4 +1,4 @@
-﻿#include "StandardSystemIncludes.h"
+#include "StandardSystemIncludes.h"
 #include "Interpreter.h"
 #include <zEngineO/Userbar.h>
 #include <zEngineO/UserFunction.h>
