@@ -124,6 +124,7 @@
     <ClCompile Include="Interpreter\PffRT.cpp" />
     <ClCompile Include="Interpreter\PropertiesRT.cpp" />
     <ClCompile Include="Interpreter\ReportRT.cpp" />
+    <ClCompile Include="Interpreter\RuntimeRT.cpp" />
     <ClCompile Include="Interpreter\StringRT.cpp" />
     <ClCompile Include="Interpreter\StringWriterRT.cpp" />
     <ClCompile Include="Interpreter\SwitchRT.cpp" />

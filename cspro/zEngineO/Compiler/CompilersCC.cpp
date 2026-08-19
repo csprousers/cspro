@@ -59,7 +59,7 @@ bool LogicCompiler::IsNoLevelCompilation() const noexcept
 }
 
 
-EngineAppType LogicCompiler::GetEngineAppType() const
+EngineAppType LogicCompiler::GetEngineAppType() const noexcept
 {
     return ( m_engineData->application != nullptr ) ? m_engineData->application->GetEngineAppType() :
                                                       EngineAppType::Invalid;

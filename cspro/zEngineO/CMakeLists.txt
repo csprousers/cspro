@@ -140,6 +140,7 @@ add_library(${PROJECT_NAME}
     Interpreter/PffRT.cpp
     Interpreter/PropertiesRT.cpp
     Interpreter/ReportRT.cpp
+    Interpreter/RuntimeRT.cpp
     Interpreter/StringRT.cpp
     Interpreter/StringWriterRT.cpp
     Interpreter/SwitchRT.cpp

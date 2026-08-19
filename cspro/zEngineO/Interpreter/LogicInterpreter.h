@@ -16,6 +16,7 @@ class BinarySymbol;
 class CIntDriver;
 class ConnectionString;
 enum class EncodeType : int;
+enum class EngineAppType;
 class EngineParadataDriver;
 class FrequencyDriver;
 enum FunctionCode : int;
@@ -43,6 +44,17 @@ public:
 
 
     // --------------------------------------------------------------------------
+    // runtime information and flags
+    // (RuntimeRT.cpp)
+    // --------------------------------------------------------------------------
+public:
+    EngineAppType GetEngineAppType() const noexcept;
+
+public: // INTERPRETER_DLL_TODO reevaluate if these should be public, and also don't use Hungarian notation
+    CancelFlag m_bStopProc;
+
+
+    // --------------------------------------------------------------------------
     // symbol table routines
     // --------------------------------------------------------------------------
 public:
@@ -50,14 +62,6 @@ public:
 
 protected:
     Logic::SymbolTable& m_symbolTable;
-
-
-    // --------------------------------------------------------------------------
-    // execution flags
-    // --------------------------------------------------------------------------
-
-public: // INTERPRETER_DLL_TODO reevaluate if these should be public, and also don't use Hungarian notation
-    CancelFlag m_bStopProc;
 
 
     // --------------------------------------------------------------------------

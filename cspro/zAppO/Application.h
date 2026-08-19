@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zAppO/zAppO.h>
 #include <zAppO/AppMessageFile.h>
@@ -49,8 +49,8 @@ public:
     double GetVersion() const               { return m_version; }
     int GetSerializerArchiveVersion() const { return m_serializerArchiveVersion; }
 
-    EngineAppType GetEngineAppType() const               { return m_engineAppType; }
-    void SetEngineAppType(EngineAppType engine_app_type) { m_engineAppType = engine_app_type; }
+    EngineAppType GetEngineAppType() const noexcept               { return m_engineAppType; }
+    void SetEngineAppType(EngineAppType engine_app_type) noexcept { m_engineAppType = engine_app_type; }
 
     AppFileType GetApplicationAppFileType() const;
 
