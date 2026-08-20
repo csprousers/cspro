@@ -75,7 +75,6 @@
     <ClCompile Include="IntPre77Report.cpp" />
     <ClCompile Include="IntProgramControl.cpp" />
     <ClCompile Include="IntProperties.cpp" />
-    <ClCompile Include="IntQuery.cpp" />
     <ClCompile Include="IntSync.cpp" />
     <ClCompile Include="Inttbl.cpp" />
     <ClCompile Include="IntUserFunction.cpp" />

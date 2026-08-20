@@ -391,9 +391,6 @@
     <ClCompile Include="IntProperties.cpp">
       <Filter>Source Files\ex2</Filter>
     </ClCompile>
-    <ClCompile Include="IntQuery.cpp">
-      <Filter>Source Files\ex2</Filter>
-    </ClCompile>
     <ClCompile Include="IntSync.cpp">
       <Filter>Source Files\ex2</Filter>
     </ClCompile>

@@ -693,6 +693,14 @@ public:
 
 
     // --------------------------------------------------------------------------
+    // query-related functions
+    // (QueryRT.cpp)
+    // --------------------------------------------------------------------------
+public:
+    Engine::Value ex_paradata(int program_index);
+
+
+    // --------------------------------------------------------------------------
     // Report object functions
     // (ReportRT.cpp)
     // --------------------------------------------------------------------------
@@ -934,6 +942,7 @@ private:
                                                        const std::vector<SymbolType>* allowable_symbol_types) const = 0; // INTERPRETER_DLL_TODO refactor
     virtual bool GetRequestIssued_INTERPRETER_DLL_TODO() const = 0; // INTERPRETER_DLL_TODO is this needed?
     virtual void Execute_INTERPRETER_DLL_TODO(bool before_running_callback_function) = 0; // INTERPRETER_DLL_TODO refactor
+    virtual void ClearParadataCachedObjects_INTERPRETER_DLL_TODO() = 0; // INTERPRETER_DLL_TODO refactor
 public:
     virtual LoopStack& GetLoopStack() = 0; // INTERPRETER_DLL_TODO remove as virtual
     virtual bool Get_m_bStopExec_INTERPRETER_DLL_TODO() const = 0; // INTERPRETER_DLL_TODO is this needed?

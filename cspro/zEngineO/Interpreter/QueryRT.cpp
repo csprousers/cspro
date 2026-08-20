@@ -1,11 +1,9 @@
-#include "StandardSystemIncludes.h"
-#include "Interpreter.h"
-#include "Engine.h"
-#include "Exappl.h"
+#include "stdafx.h"
+#include "IncludesRT.h"
 #include <zLogicO/SymbolTableIterator.h>
 #include <zEngineO/Array.h>
 #include <zEngineO/EngineDictionary.h>
-#include <zEngineO/List.h>
+#include "List.h"
 #include <zEngineO/UserFunctionArgumentEvaluator.h>
 #include <zEngineO/Nodes/Query.h>
 #include <zToolsO/DirectoryLister.h>
@@ -14,58 +12,81 @@
 #include <zUtilO/SqlLogicFunctions.h>
 #include <zDictO/DDClass.h>
 #include <zBridgeO/NPff.h>
-#include <zParadataO/Logger.h>
 #include <zParadataO/Concatenator.h>
+#include <zParadataO/Logger.h>
 #include <zDataO/DataRepositoryHelpers.h>
 #include <zDataO/EncryptedSQLiteRepository.h>
 #include <zDataO/SQLiteRepository.h>
 #include <zDataO/TextRepository.h>
 
 
-namespace
+// --------------------------------------------------------------------------
+// paradata concatenator
+// --------------------------------------------------------------------------
+
+namespace QueryRT { class EngineParadataConcatenator; }
+
+
+class QueryRT::EngineParadataConcatenator : public Paradata::Concatenator
 {
-    class LogicConcatenator : public Paradata::Concatenator
-    {
-    public:
-        LogicConcatenator(CIntDriver* const interpreter)
-            :   m_pEngineDriver(interpreter->m_pEngineDriver),
-                m_pIntDriver(interpreter),
-                m_logsConcatenated(0)
-        {
-        }
+public:
+    EngineParadataConcatenator(LogicInterpreter& interpreter);
 
-        double GetReturnValue() const
-        {
-            return m_logsConcatenated.value_or(DEFAULT);
-        }
+    Engine::Value GetReturnValue() const noexcept;
 
-    protected:
-        void OnInputProcessedSuccess(const std::variant<std::string, sqlite3*>& /*output_file_path_or_database*/, int64_t /*events_processed*/) override
-        {
-            if( m_logsConcatenated.has_value() )
-                ++(*m_logsConcatenated);
-        }
+protected:
+    void OnInputProcessedSuccess(const std::variant<std::string, sqlite3*>& output_file_path_or_database, int64_t events_processed) override final;
+    void OnInputProcessedError(const std::string& input_file_path, const char* error_message) override final;
+    bool UserRequestsCancellation() override;
 
-        void OnInputProcessedError(const std::string& input_file_path, const char* const error_message) override
-        {
-            issaerror(MessageType::Error, 8291, FormatText(" in file %s", input_file_path.c_str()).c_str(), error_message);
-            m_logsConcatenated.reset();
-        }
+private:
+    LogicInterpreter& m_interpreter;
+    size_t m_logsConcatenated;
+    bool m_processingErrors;
+};
 
-        bool UserRequestsCancellation() override
-        {
-            return m_pIntDriver->m_bStopProc;
-        }
 
-    private:
-        CEngineDriver* m_pEngineDriver;
-        CIntDriver* m_pIntDriver;
-        std::optional<double> m_logsConcatenated;
-    };
+QueryRT::EngineParadataConcatenator::EngineParadataConcatenator(LogicInterpreter& interpreter)
+    :   m_interpreter(interpreter),
+        m_logsConcatenated(0),
+        m_processingErrors(false)
+{
 }
 
 
-double CIntDriver::ex_paradata(const int program_index)
+Engine::Value QueryRT::EngineParadataConcatenator::GetReturnValue() const noexcept
+{
+    return m_processingErrors ? Engine::Value::Invalid<double>() :
+                                Engine::Value::Integer(m_logsConcatenated);
+}
+
+
+void QueryRT::EngineParadataConcatenator::OnInputProcessedSuccess(const std::variant<std::string, sqlite3*>& /*output_file_path_or_database*/, int64_t /*events_processed*/)
+{
+    ++m_logsConcatenated;
+}
+
+
+void QueryRT::EngineParadataConcatenator::OnInputProcessedError(const std::string& input_file_path, const char* const error_message)
+{
+    m_interpreter.IssueMessage(MessageType::Error, MGF::Query_paradata_concat_error_8291,
+                               FormatText(" in file %s", input_file_path.c_str()).c_str(),
+                               error_message);
+}
+
+
+bool QueryRT::EngineParadataConcatenator::UserRequestsCancellation()
+{
+    return m_interpreter.m_bStopProc;
+}
+
+
+
+// --------------------------------------------------------------------------
+// paradata function
+// --------------------------------------------------------------------------
+
+Engine::Value LogicInterpreter::ex_paradata(const int program_index)
 {
     const auto& va_node = GetNode<Nodes::VariableArguments>(program_index);
     const int action = va_node.arguments[0];
@@ -79,7 +100,9 @@ double CIntDriver::ex_paradata(const int program_index)
 
         Paradata::Logger::Stop();
 
-        return Paradata::Logger::Start(std::move(file_path), m_pEngineDriver->m_pPifFile->GetApplication());
+        return Engine::Value::Bool(
+            Paradata::Logger::Start(std::move(file_path), m_engineData->application)
+        );
     }
 
 
@@ -91,11 +114,14 @@ double CIntDriver::ex_paradata(const int program_index)
         if( Paradata::Logger::IsOpen() && Paradata::Logger::Flush() )
         {
             Paradata::Logger::Stop();
-            m_paradataDriver->ClearCachedObjects();
-            return !Paradata::Logger::IsOpen();
+
+            ClearParadataCachedObjects_INTERPRETER_DLL_TODO();
+
+            if( !Paradata::Logger::IsOpen() )
+                return Engine::Value::Bool(true);
         }
 
-        return 0;
+        return Engine::Value::Bool(false);
     }
 
 
@@ -104,10 +130,10 @@ double CIntDriver::ex_paradata(const int program_index)
     // --------------------------------------------------------------------------
     else if( action == 3 )
     {
-        if( Paradata::Logger::IsOpen() )
-            return Paradata::Logger::Flush();
-
-        return 0;
+        return Engine::Value::Bool(
+            ( Paradata::Logger::IsOpen() &&
+              Paradata::Logger::Flush() )
+        );
     }
 
 
@@ -127,11 +153,17 @@ double CIntDriver::ex_paradata(const int program_index)
 
         for( int i = 0; i < number_arguments; i += 2 )
         {
-            const bool arugment_is_file_path = ( va_node.arguments[i + 2] == 0 );
+            const bool argument_is_file_path = ( va_node.arguments[i + 2] == 0 );
             const int argument = va_node.arguments[i + 3];
             std::vector<std::string> file_paths;
 
-            if( arugment_is_file_path )
+            auto add_logs_with_wildcard_support = [&](const std::string& file_path)
+            {
+                // evaluate the path in case it uses wildcards
+                DirectoryLister::AddFilePathsWithPossibleWildcard(file_paths, file_path, true);
+            };
+
+            if( argument_is_file_path )
             {
                 std::string file_path = EvaluatePath(argument);
 
@@ -143,8 +175,7 @@ double CIntDriver::ex_paradata(const int program_index)
 
                 else
                 {
-                    // evaluate the filename in case it uses wildcards
-                    DirectoryLister::AddFilePathsWithPossibleWildcard(file_paths, file_path, true);
+                    add_logs_with_wildcard_support(file_path);
                 }
             }
 
@@ -155,7 +186,10 @@ double CIntDriver::ex_paradata(const int program_index)
                 const size_t list_count = logic_list.GetCount();
 
                 for( size_t j = 1; j <= list_count; ++j )
-                    file_paths.emplace_back(GetAbsolutePath(logic_list.GetValue<SharableString>(j).GetString()));
+                {
+                    const std::string file_path = GetAbsolutePath(logic_list.GetValue<SharableString>(j).GetString());
+                    add_logs_with_wildcard_support(file_path);
+                }
             }
 
             if( i > 0 )
@@ -184,38 +218,46 @@ double CIntDriver::ex_paradata(const int program_index)
             if( output_file_path_is_currently_open_paradata_log )
             {
                 if( !output_is_also_an_input )
-                    throw CSProException("You cannot concatenate into the currently open paradata log without also specifying that log as an input log");
+                {
+                    throw CSProException("You cannot concatenate into the currently open paradata log without "
+                                         "also specifying that log as an input log.");
+                }
 
                 output_db_override = Paradata::Logger::GetSqlite();
             }
 
-            LogicConcatenator logic_concatenator(this);
+            QueryRT::EngineParadataConcatenator engine_paradata_concatenator(*this);
 
             if( output_db_override != nullptr )
             {
                 paradata_log_file_paths.erase(output_file_path);
-                logic_concatenator.Run(output_db_override, paradata_log_file_paths);
+                engine_paradata_concatenator.Run(output_db_override, paradata_log_file_paths);
             }
 
             else
             {
-                logic_concatenator.Run(output_file_path, paradata_log_file_paths);
+                engine_paradata_concatenator.Run(output_file_path, paradata_log_file_paths);
             }
 
-            return logic_concatenator.GetReturnValue();
+            return engine_paradata_concatenator.GetReturnValue();
         }
 
         catch( const CSProException& exception )
         {
-            issaerror(MessageType::Error, 8291, "", exception.what());
-            return DEFAULT;
+            IssueMessage(MessageType::Error, MGF::Query_paradata_concat_error_8291, "", exception.what());
+            return Engine::Value::Invalid<double>();
         }
     }
 
 
-    return ReturnProgrammingError(0);
+    return ReturnProgrammingError(Engine::Value::Invalid<double>());
 }
 
+
+
+// --------------------------------------------------------------------------
+// sqlquery
+// --------------------------------------------------------------------------
 
 double CIntDriver::exsqlquery(const int program_index)
 {

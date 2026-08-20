@@ -163,6 +163,7 @@ namespace MGF
     constexpr int Query_record_must_be_working_storage_8273                 =   8273;
     constexpr int Query_paradata_concat_invalid_arguments_8274              =   8274;
     constexpr int Query_paradata_concat_invalid_output_argument_8275        =   8275;
+    constexpr int Query_paradata_concat_error_8291                          =   8291;
 
     constexpr int SpecialFunction_invalid_case_9112                         =   9112;
     constexpr int SpecialFunction_invalid_syntax_9113                       =   9113;

@@ -609,7 +609,7 @@ void CIntDriver::AddIntDriverInstructions()
     OP_DOUBLE(262, exwarning);
     OP_ENGVAL_ID(263, ex_tr);
     OP_ENGVAL(264, ex_uuid);
-    OP_DOUBLE(265, ex_paradata);
+    OP_ENGVAL(265, ex_paradata);
     OP_DOUBLE(266, exsqlquery);
     OP_DOUBLE(267, expre77_report);
     OP_DOUBLE(268, expre77_setreportdata);
@@ -1548,4 +1548,10 @@ void CIntDriver::Execute_INTERPRETER_DLL_TODO(const bool before_running_callback
     {
         m_bStopExec = ( m_bSkipStmt || m_bStopProc );
     }
+}
+
+
+void CIntDriver::ClearParadataCachedObjects_INTERPRETER_DLL_TODO()
+{
+    m_paradataDriver->ClearCachedObjects();
 }

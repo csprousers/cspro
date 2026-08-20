@@ -442,7 +442,6 @@ public:
     double  exlogtext(int program_index);
     double  exwarning(int program_index);
 
-    double  ex_paradata(int program_index);
     double  exsqlquery(int program_index);
     double  exsqlquery(int program_index, const std::function<double(sqlite3*, const std::string&)>* setreportdata_callback);
     double  expre77_setreportdata(int iExpr);
@@ -882,6 +881,7 @@ private:
                                                const std::vector<SymbolType>* allowable_symbol_types) const override;
     bool GetRequestIssued_INTERPRETER_DLL_TODO() const override { return GetRequestIssued(); }
     void Execute_INTERPRETER_DLL_TODO(bool before_running_callback_function) override;
+    void ClearParadataCachedObjects_INTERPRETER_DLL_TODO() override;
 public:
     LoopStack& GetLoopStack() override;
     bool Get_m_bStopExec_INTERPRETER_DLL_TODO() const override { return m_bStopExec; }

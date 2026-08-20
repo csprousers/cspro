@@ -61,6 +61,7 @@ Engine::Value CIntDriver::ModifyVARTValue_INTERPRETER_DLL_TODO(int variable_comp
 int CIntDriver::SymbolTableSearch_INTERPRETER_DLL_TODO(std::string_view full_symbol_name_sv, SymbolType preferred_symbol_type,
                                                        const std::vector<SymbolType>* allowable_symbol_types) const { throw ProgrammingErrorException(); }
 void CIntDriver::Execute_INTERPRETER_DLL_TODO(bool before_running_callback_function) { throw ProgrammingErrorException(); }
+void CIntDriver::ClearParadataCachedObjects_INTERPRETER_DLL_TODO() { throw ProgrammingErrorException(); }
 LoopStack& CIntDriver::GetLoopStack() { throw ProgrammingErrorException(); }
 
 

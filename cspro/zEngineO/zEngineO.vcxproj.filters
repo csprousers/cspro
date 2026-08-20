@@ -347,6 +347,9 @@
     <ClCompile Include="Interpreter\PropertiesRT.cpp">
       <Filter>Source Files\Interpreter</Filter>
     </ClCompile>
+    <ClCompile Include="Interpreter\QueryRT.cpp">
+      <Filter>Source Files\Interpreter</Filter>
+    </ClCompile>
     <ClCompile Include="Interpreter\ReportRT.cpp">
       <Filter>Source Files\Interpreter</Filter>
     </ClCompile>

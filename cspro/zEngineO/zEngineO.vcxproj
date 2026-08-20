@@ -124,6 +124,7 @@
     <ClCompile Include="Interpreter\PathRT.cpp" />
     <ClCompile Include="Interpreter\PffRT.cpp" />
     <ClCompile Include="Interpreter\PropertiesRT.cpp" />
+    <ClCompile Include="Interpreter\QueryRT.cpp" />
     <ClCompile Include="Interpreter\ReportRT.cpp" />
     <ClCompile Include="Interpreter\RuntimeRT.cpp" />
     <ClCompile Include="Interpreter\StringRT.cpp" />
