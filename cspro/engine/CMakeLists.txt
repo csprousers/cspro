@@ -41,7 +41,6 @@ add_library(${PROJECT_NAME}
     Intchars.cpp
     IntDataAccess.cpp
     Intdrive.cpp
-    IntDynamicLogicEvaluation.cpp
     InterpreterAccessor.cpp
     Intexpr.cpp
     Intextdi.cpp

@@ -117,6 +117,7 @@
     <ClCompile Include="Interpreter\ListRT.cpp" />
     <ClCompile Include="Interpreter\LocalhostRT.cpp" />
     <ClCompile Include="Interpreter\LogicInterpreter.cpp" />
+    <ClCompile Include="Interpreter\LogicRT.cpp" />
     <ClCompile Include="Interpreter\MapRT.cpp" />
     <ClCompile Include="Interpreter\MathRT.cpp" />
     <ClCompile Include="Interpreter\NetworkRT.cpp" />
@@ -188,6 +189,7 @@
     <ClInclude Include="Compiler\CompilationExtendedInformation.h" />
     <ClInclude Include="Compiler\CompilerHelper.h" />
     <ClInclude Include="Compiler\CompilerMessageIssuer.h" />
+    <ClInclude Include="Compiler\DynamicLogicCompiler.h" />
     <ClInclude Include="Compiler\EnginePreprocessor.h" />
     <ClInclude Include="Compiler\ImputeAutomaticStatCompilerHelper.h" />
     <ClInclude Include="Compiler\IncludesCC.h" />

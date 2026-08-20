@@ -572,6 +572,18 @@ private:
 
 
     // --------------------------------------------------------------------------
+    // dynamic logic evaluation functions
+    // (LogicRT.cpp)
+    // --------------------------------------------------------------------------
+public:
+    // Compiles and evaluates the logic, throwing exceptions that result from
+    // compiler errors or when the logic is evaluated by the interpreter.
+    // The only logic currently supported is the ability to call user-defined
+    // functions with numeric constants and string literals
+    InterpreterExecuteResult EvaluateLogic(SharableString logic, CancelFlag& cancel_flag);
+
+
+    // --------------------------------------------------------------------------
     // Map object functions
     // (MapRT.cpp)
     // --------------------------------------------------------------------------
@@ -903,6 +915,7 @@ private:
                                       const std::vector<CString>* paColumnTitles, std::vector<bool>* pbaSelections,
                                       const std::vector<PortableColor>* row_text_colors) = 0;
     virtual EngineParadataDriver& GetEngineParadataDriver_INTERPRETER_DLL_TODO() = 0;
+    virtual Engine::Value CallUserFunction(UserFunction& user_function, UserFunctionArgumentEvaluator& argument_evaluator) = 0; // INTERPRETER_DLL_TODO remove as virtual
     virtual void ExecuteCallbackUserFunction(int field_symbol_index, UserFunctionArgumentEvaluator& argument_evaluator) = 0; // INTERPRETER_DLL_TODO remove as virtual
     virtual std::unique_ptr<UserFunctionArgumentEvaluator> EvaluateArgumentsForCallbackUserFunction(int program_index, FunctionCode function_code) = 0; // INTERPRETER_DLL_TODO remove as virtual
     virtual Engine::Value ex_Freq_view(const NamedFrequency& named_frequency, const ViewerOptions* viewer_options, int frequency_parameters_node_index) = 0; // INTERPRETER_DLL_TODO remove as virtual

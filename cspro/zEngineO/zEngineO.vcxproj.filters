@@ -326,6 +326,9 @@
     <ClCompile Include="Interpreter\LogicInterpreter.cpp">
       <Filter>Source Files\Interpreter</Filter>
     </ClCompile>
+    <ClCompile Include="Interpreter\LogicRT.cpp">
+      <Filter>Source Files\Interpreter</Filter>
+    </ClCompile>
     <ClCompile Include="Interpreter\MapRT.cpp">
       <Filter>Source Files\Interpreter</Filter>
     </ClCompile>
@@ -527,6 +530,9 @@
       <Filter>Header Files\Compiler</Filter>
     </ClInclude>
     <ClInclude Include="Compiler\CompilerMessageIssuer.h">
+      <Filter>Header Files\Compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="Compiler\DynamicLogicCompiler.h">
       <Filter>Header Files\Compiler</Filter>
     </ClInclude>
     <ClInclude Include="Compiler\EnginePreprocessor.h">

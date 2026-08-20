@@ -45,6 +45,7 @@ int CIntDriver::SelectDlgHelper_pre77(int iFunCode, const CString& csHeading, co
                                       const std::vector<PortableColor>* row_text_colors) { return ReturnProgrammingError(0); }
 EngineParadataDriver& CIntDriver::GetEngineParadataDriver_INTERPRETER_DLL_TODO() { throw ProgrammingErrorException(); }
 Engine::Value CIntDriver::ExecuteInstructions(int program_index) { return ReturnProgrammingError(0); }
+Engine::Value CIntDriver::CallUserFunction(UserFunction& user_function, UserFunctionArgumentEvaluator& argument_evaluator) { throw ProgrammingErrorException(); }
 void CIntDriver::ExecuteCallbackUserFunction(int field_symbol_index, UserFunctionArgumentEvaluator& argument_evaluator) { ASSERT(false); }
 std::unique_ptr<UserFunctionArgumentEvaluator> CIntDriver::EvaluateArgumentsForCallbackUserFunction(int program_index, FunctionCode function_code) { return ReturnProgrammingError(nullptr); }
 Engine::Value CIntDriver::ex_Freq_view(const NamedFrequency& named_frequency, const ViewerOptions* viewer_options, int frequency_parameters_node_index) { return ReturnProgrammingError(0); }

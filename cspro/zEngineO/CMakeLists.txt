@@ -133,6 +133,7 @@ add_library(${PROJECT_NAME}
     Interpreter/ListRT.cpp
     Interpreter/LocalhostRT.cpp
     Interpreter/LogicInterpreter.cpp
+    Interpreter/LogicRT.cpp
     Interpreter/MapRT.cpp
     Interpreter/MathRT.cpp
     Interpreter/NetworkRT.cpp

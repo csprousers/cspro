@@ -299,7 +299,7 @@ public:
 
     // --- basic interpreter functions
 public:
-    Engine::Value CallUserFunction(UserFunction& user_function, UserFunctionArgumentEvaluator& argument_evaluator);
+    Engine::Value CallUserFunction(UserFunction& user_function, UserFunctionArgumentEvaluator& argument_evaluator) override;
     void ExecuteCallbackUserFunction(int field_symbol_index, UserFunctionArgumentEvaluator& argument_evaluator) override;
 private:
     std::unique_ptr<UserFunctionArgumentEvaluator> EvaluateArgumentsForCallbackUserFunction(int program_index, FunctionCode function_code) override;
@@ -573,11 +573,6 @@ public:
 
 private:
     std::unique_ptr<FrequencyDriver> m_frequencyDriver;
-
-
-    // dynamic logic evaluation functions
-public:
-    InterpreterExecuteResult EvaluateLogic(SharableString logic, CancelFlag& cancel_flag);
 
 
 private:

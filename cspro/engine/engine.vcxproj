@@ -60,7 +60,6 @@
     <ClCompile Include="IntDataAccess.cpp" />
     <ClCompile Include="Intdentr.cpp" />
     <ClCompile Include="Intdrive.cpp" />
-    <ClCompile Include="IntDynamicLogicEvaluation.cpp" />
     <ClCompile Include="intenter.cpp" />
     <ClCompile Include="InterpreterAccessor.cpp" />
     <ClCompile Include="Intexpr.cpp" />

@@ -346,9 +346,6 @@
     <ClCompile Include="Intdrive.cpp">
       <Filter>Source Files\ex2</Filter>
     </ClCompile>
-    <ClCompile Include="IntDynamicLogicEvaluation.cpp">
-      <Filter>Source Files\ex2</Filter>
-    </ClCompile>
     <ClCompile Include="intenter.cpp">
       <Filter>Source Files\dep</Filter>
     </ClCompile>
