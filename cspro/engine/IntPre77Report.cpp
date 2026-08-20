@@ -140,7 +140,7 @@ double CIntDriver::expre77_setreportdata(int iExpr)
                     }
                 };
 
-            if( exsqlquery(iSourceSymbol, &setreportdata_callback) == DEFAULT )
+            if( ex_sqlquery(iSourceSymbol, &setreportdata_callback).get<double>() == DEFAULT )
                 return 0;
         }
 

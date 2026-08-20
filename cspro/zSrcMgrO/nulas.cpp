@@ -54,6 +54,8 @@ Engine::Value CIntDriver::ExExecPFF_INTERPRETER_DLL_TODO(LogicPff& logic_pff) { 
 FrequencyDriver* CIntDriver::GetFrequencyDriver_INTERPRETER_DLL_TODO() { throw ProgrammingErrorException(); }
 void CIntDriver::AssignValueToVART_INTERPRETER_DLL_TODO(int variable_compilation, double value) { throw ProgrammingErrorException(); }
 void CIntDriver::AssignValueToVART_INTERPRETER_DLL_TODO(int variable_compilation, SharableString value) { throw ProgrammingErrorException(); }
+void CIntDriver::AssignValueToVART_INTERPRETER_DLL_TODO(VART& vart, int zero_based_occurrence, double value) { throw ProgrammingErrorException(); }
+void CIntDriver::AssignValueToVART_INTERPRETER_DLL_TODO(VART& vart, int zero_based_occurrence, SharableString value) { throw ProgrammingErrorException(); }
 double CIntDriver::EvaluateVARTValue_double_INTERPRETER_DLL_TODO(int variable_compilation) { throw ProgrammingErrorException(); }
 SharableString CIntDriver::EvaluateVARTValue_SharableString_INTERPRETER_DLL_TODO(int variable_compilation) { throw ProgrammingErrorException(); }
 Engine::Value CIntDriver::ModifyVARTValue_INTERPRETER_DLL_TODO(int variable_compilation, const std::function<void(double&)>& modify_value_function, std::unique_ptr<Paradata::FieldInfo>* paradata_field_info/* = nullptr*/) { throw ProgrammingErrorException(); }

@@ -381,6 +381,10 @@
       <Project>{d4ca666c-f10e-4bc1-bc08-ba291052c1d9}</Project>
       <Private>false</Private>
     </ProjectReference>
+    <ProjectReference Include="..\zSql\zSql.vcxproj">
+      <Project>{d20eded4-35e5-465c-a43e-746f632d4eaf}</Project>
+      <Private>false</Private>
+    </ProjectReference>
     <ProjectReference Include="..\zToolsO\zToolsO.vcxproj">
       <Project>{fb0e28ec-927d-41d0-996c-01c21a7a346b}</Project>
       <Private>false</Private>

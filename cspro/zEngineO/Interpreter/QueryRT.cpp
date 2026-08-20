@@ -1,31 +1,38 @@
 #include "stdafx.h"
 #include "IncludesRT.h"
-#include <zLogicO/SymbolTableIterator.h>
-#include <zEngineO/Array.h>
-#include <zEngineO/EngineDictionary.h>
+#include "Array.h"
+#include "EngineDictionary.h"
 #include "List.h"
-#include <zEngineO/UserFunctionArgumentEvaluator.h>
-#include <zEngineO/Nodes/Query.h>
+#include "UserFunctionArgumentEvaluator.h"
+#include "Nodes/Query.h"
+#include <engine/DicX.h>
+#include <zLogicO/SymbolTableIterator.h>
 #include <zToolsO/DirectoryLister.h>
+#include <zSql/DB.h>
 #include <zSql/SQLite.h>
 #include <zSql/SQLiteHelpers.h>
 #include <zUtilO/SqlLogicFunctions.h>
-#include <zDictO/DDClass.h>
-#include <zBridgeO/NPff.h>
 #include <zParadataO/Concatenator.h>
 #include <zParadataO/Logger.h>
 #include <zDataO/DataRepositoryHelpers.h>
 #include <zDataO/EncryptedSQLiteRepository.h>
-#include <zDataO/SQLiteRepository.h>
-#include <zDataO/TextRepository.h>
+
+
+namespace QueryRT
+{
+    class EngineParadataConcatenator;
+    class SqlQueryProcessor;
+    class SqlQueryUserFunctionArgumentEvaluator;
+
+    using InterpreterAndUserFunction = std::tuple<LogicInterpreter&, UserFunction&>;
+
+    void SqlCallbackFunction(sqlite3_context* context, int iArgC, sqlite3_value** ppArgV);
+}
 
 
 // --------------------------------------------------------------------------
-// paradata concatenator
+// Paradata: paradata concatenator
 // --------------------------------------------------------------------------
-
-namespace QueryRT { class EngineParadataConcatenator; }
-
 
 class QueryRT::EngineParadataConcatenator : public Paradata::Concatenator
 {
@@ -83,7 +90,7 @@ bool QueryRT::EngineParadataConcatenator::UserRequestsCancellation()
 
 
 // --------------------------------------------------------------------------
-// paradata function
+// Paradata: paradata function
 // --------------------------------------------------------------------------
 
 Engine::Value LogicInterpreter::ex_paradata(const int program_index)
@@ -256,372 +263,445 @@ Engine::Value LogicInterpreter::ex_paradata(const int program_index)
 
 
 // --------------------------------------------------------------------------
-// sqlquery
+// SQLite: sqlquery function
 // --------------------------------------------------------------------------
 
-double CIntDriver::exsqlquery(const int program_index)
+class QueryRT::SqlQueryProcessor
 {
-    return exsqlquery(program_index, nullptr);
+public:
+    SqlQueryProcessor(LogicInterpreter& interpreter) noexcept;
+
+    sqlite3* GetDb() noexcept { return m_db; }
+
+    void UseParadataDb();
+    void UseDataRepository(DataRepository& data_repository);
+    void UseFile(const ConnectionString& connection_string);
+
+    void ExecuteStatements(const std::string& sql_query);
+
+    Engine::Value ProcessResult(Symbol* symbol);
+
+private:
+    template<typename T>
+    T GetValue(int column_number);
+
+    static Engine::Value ProcessNoRows(Symbol* symbol);
+
+    // When not storing results in an object, the return value will
+    // be the numeric result of the the first row / first column.
+    Engine::Value ProcessRows();
+
+    // When using an object, the results will be placed in the object and
+    // the return value will be the number of results placed in the object.
+    Engine::Value ProcessRows(LogicArray& logic_array);
+    Engine::Value ProcessRows(LogicList& logic_list);
+    Engine::Value ProcessRows(SECT* const pSecT);
+
+private:
+    LogicInterpreter& m_interpreter;
+    sqlite3* m_db;
+    std::unique_ptr<Sqlite::DB> m_openedDb;
+    Sqlite::Statement m_stmt;
+    bool m_queryHasRows;
+};
+
+
+QueryRT::SqlQueryProcessor::SqlQueryProcessor(LogicInterpreter& interpreter) noexcept
+    :   m_interpreter(interpreter),
+        m_db(nullptr),
+        m_queryHasRows(false)
+{
 }
 
 
-double CIntDriver::exsqlquery(const int program_index, const std::function<double(sqlite3*, const std::string&)>* const setreportdata_callback)
+void QueryRT::SqlQueryProcessor::UseParadataDb()
 {
-    const auto& sqlquery_node = GetNode<Nodes::SqlQuery>(program_index);
-    const SharableString sql_query = Evaluate<SharableString>(sqlquery_node.sql_query_expression);
+    m_db = Paradata::Logger::GetSqlite();
 
-    sqlite3* db = nullptr;
-    bool must_close_db = false;
-    double return_value = DEFAULT;
+    if( m_db == nullptr )
+        throw CSProException("No paradata log is open.");
 
-    try
+    Paradata::Logger::Flush();
+}
+
+
+void QueryRT::SqlQueryProcessor::UseDataRepository(DataRepository& data_repository)
+{
+    m_db = DataRepositoryHelpers::GetSqliteDatabase(data_repository);
+
+    if( m_db == nullptr )
     {
-        // access the database
-        if( sqlquery_node.source_type == Nodes::SqlQuery::Type::Paradata )
+        throw CSProException(
+            ( data_repository.GetRepositoryType() == DataRepositoryType::Text )
+            ? "You can only execute queries on Text data sources that use an index."
+            : "You can only execute queries on CSPro DB, Text, or JSON data sources."
+        );
+    }
+}
+
+
+void QueryRT::SqlQueryProcessor::UseFile(const ConnectionString& connection_string)
+{
+    if( connection_string.HasFilePath() &&
+        PortableFunctions::PathMakeDirectories(PortableFunctions::PathGetDirectory(connection_string.GetFilePath())) )
+    {
+        // if specifying an Encrypted CSPro DB file, open it so that a password can be processed
+        if( connection_string.GetType() == DataRepositoryType::EncryptedSQLite )
         {
-            db = Paradata::Logger::GetSqlite();
+            const int result = EncryptedSQLiteRepository::OpenSQLiteDatabaseFile(nullptr, connection_string, &m_db, SQLITE_OPEN_READWRITE);
 
-            if( db == nullptr )
-                throw CSProException("No paradata log is open");
-
-            Paradata::Logger::Flush();
+            if( result == Sqlite::Result::OK )
+                m_openedDb = std::make_unique<Sqlite::DB>(Sqlite::DB::CreateWrapper(m_db, true));
         }
 
-        else if( sqlquery_node.source_type == Nodes::SqlQuery::Type::Dictionary )
+        else
         {
-            Symbol& symbol = NPT_Ref(sqlquery_node.source_symbol_index_or_expression);
-            DataRepository* data_repository;
+            m_openedDb = std::make_unique<Sqlite::DB>();
 
-            if( symbol.IsA(SymbolType::Dictionary) )
+            m_openedDb->Open(connection_string.GetFilePath(),
+                             Sqlite::OpenFlags::ReadWrite | Sqlite::OpenFlags::Create);
+
+            m_db = m_openedDb->GetDb();
+        }
+    }
+
+    if( m_openedDb == nullptr )
+        throw CSProException("The SQLite file could not be opened: " + connection_string.ToDisplayString());
+}
+
+
+void QueryRT::SqlQueryProcessor::ExecuteStatements(const std::string& sql_query)
+{
+    const std::vector<std::string> sql_statements = SQLiteHelpers::SplitSqlStatement(sql_query);
+    auto sql_statements_itr = sql_statements.cbegin();
+    const auto sql_statements_end = sql_statements.cend();
+
+    if( sql_statements_itr == sql_statements_end )
+        throw CSProException("Empty SQL statement.");
+
+    do
+    {
+        m_stmt = Sqlite::Statement::Prepare(m_db, *sql_statements_itr);
+
+        const int result = m_stmt.Step();
+        m_queryHasRows = ( result == Sqlite::Result::Row );
+
+        if( !m_queryHasRows && result != Sqlite::Result::Done )
+            throw CSProException("Error executing SQLite statement: %s", sqlite3_errmsg(m_db));
+
+    } while( ++sql_statements_itr != sql_statements_end );
+}
+
+
+template<>
+double QueryRT::SqlQueryProcessor::GetValue(const int column_number)
+{
+    ASSERT(m_queryHasRows);
+    ASSERT(Engine::Value::Undefined<double>().get<double>() == NOTAPPL);
+
+    return m_stmt.IsColumnNull(column_number)
+        ? NOTAPPL
+        : m_stmt.GetColumn<double>(column_number);
+}
+
+
+template<>
+SharableString QueryRT::SqlQueryProcessor::GetValue(const int column_number)
+{
+    ASSERT(m_queryHasRows);
+    ASSERT(Engine::Value::Undefined<SharableString>().get<SharableString>() == SharableString());
+
+    return m_stmt.IsColumnNull(column_number)
+        ? SharableString()
+        : m_stmt.GetColumn<std::string>(column_number);
+}
+
+
+Engine::Value QueryRT::SqlQueryProcessor::ProcessResult(Symbol* const symbol)
+{
+    ASSERT(m_stmt.IsPrepared());
+
+    return ( !m_queryHasRows )                  ? ProcessNoRows(symbol) :
+           ( symbol == nullptr )                ? ProcessRows() :
+           ( symbol->IsA(SymbolType::Array) )   ? ProcessRows(assert_cast<LogicArray&>(*symbol)) :
+           ( symbol->IsA(SymbolType::List) )    ? ProcessRows(assert_cast<LogicList&>(*symbol)) :
+           ( symbol->IsA(SymbolType::Section) ) ? ProcessRows(assert_cast<SECT*>(symbol)) :
+                                                  throw ProgrammingErrorException();
+}
+
+
+Engine::Value QueryRT::SqlQueryProcessor::ProcessNoRows(Symbol* const symbol)
+{
+    // zero out the length of the object (if applicable)
+    if( symbol != nullptr )
+    {
+        if( symbol->IsA(SymbolType::List) )
+        {
+            assert_cast<LogicList&>(*symbol).Reset();
+        }
+
+        else if( symbol->IsA(SymbolType::Section) )
+        {
+            assert_cast<SECT*>(symbol)->GetGroup(0)->SetTotalOccurrences(0);
+        }
+    }
+
+    // the return value will signal that no rows were returned or that something
+    // (like a CREATE TABLE) succeeded but that the return value is not applicable
+    return Engine::Value::Integer(0);
+}
+
+
+Engine::Value QueryRT::SqlQueryProcessor::ProcessRows()
+{
+    return GetValue<double>(0);
+}
+
+
+Engine::Value QueryRT::SqlQueryProcessor::ProcessRows(LogicArray& logic_array)
+{
+    ASSERT(logic_array.GetNumberDimensions() <= 2);
+
+    const int number_columns = m_stmt.GetColumnCount();
+    ASSERT(number_columns > 0);
+
+    // - 1 in the next two statements because the arrays will be filled in starting at index 1
+    const size_t max_rows_to_read = logic_array.GetDimension(0) - 1;
+
+    const size_t columns_to_read = ( logic_array.GetNumberDimensions() == 1 )
+        ? 1
+        : std::min(static_cast<size_t>(number_columns), logic_array.GetDimension(1) - 1);
+
+    std::vector<size_t> indices(logic_array.GetNumberDimensions(), 0);
+
+    do
+    {
+        ++indices[0];
+
+        for( int column = 0; column < columns_to_read; ++column )
+        {
+            if( columns_to_read != 1 )
+                indices[1] = column + 1;
+
+            ASSERT(logic_array.IsValidIndex(indices));
+
+            if( logic_array.IsNumeric() )
             {
-                EngineDictionary& engine_dictionary = assert_cast<EngineDictionary&>(symbol);
-                data_repository = &engine_dictionary.GetEngineDataRepository().GetDataRepository();
+                logic_array.SetValue(indices, GetValue<double>(column));
             }
 
             else
             {
-                DICX* const pDicX = assert_cast<DICT&>(symbol).GetDicX();
-                data_repository = &pDicX->GetDataRepository();
-            }
-
-            db = DataRepositoryHelpers::GetSqliteDatabase(*data_repository);
-
-            if( db == nullptr )
-            {
-                if( data_repository->GetRepositoryType() == DataRepositoryType::Text )
-                {
-                    throw CSProException("You can only execute queries on text files that use an index");
-                }
-
-                else
-                {
-                    throw CSProException("You can only execute queries on CSPro DB or text files");
-                }
+                logic_array.SetValue(indices, GetValue<SharableString>(column));
             }
         }
 
-        else if( sqlquery_node.source_type == Nodes::SqlQuery::Type::File )
+    } while( indices[0] < max_rows_to_read && m_stmt.Step() == Sqlite::Result::Row );
+
+    return Engine::Value::Integer(indices[0]);
+}
+
+
+Engine::Value QueryRT::SqlQueryProcessor::ProcessRows(LogicList& logic_list)
+{
+    constexpr size_t MaximumRowsToRead = 10000;
+
+    logic_list.Reset();
+
+    size_t row = 0;
+
+    do
+    {
+        if( logic_list.IsNumeric() )
         {
-            const ConnectionString connection_string = EvaluateConnectionString(sqlquery_node.source_symbol_index_or_expression);
+            logic_list.AddValue(GetValue<double>(0));
+        }
 
-            bool success = ( connection_string.HasFilePath() &&
-                             PortableFunctions::PathMakeDirectories(PortableFunctions::PathGetDirectory(connection_string.GetFilePath())) );
+        else
+        {
+            logic_list.AddValue(GetValue<SharableString>(0));
+        }
 
-            if( success )
+    } while( ++row < MaximumRowsToRead && m_stmt.Step() == Sqlite::Result::Row );
+
+    return Engine::Value::Integer(row);
+}
+
+
+Engine::Value QueryRT::SqlQueryProcessor::ProcessRows(SECT* const pSecT)
+{
+    const int number_columns = m_stmt.GetColumnCount();
+    ASSERT(number_columns > 0);
+
+    // map the columns
+    auto GetSymbolTable = [&]() -> const Logic::SymbolTable& { return m_interpreter.GetSymbolTable(); };
+
+    std::map<int, VART*> item_mapping;
+
+    for( int column = 0; column < number_columns; ++column )
+    {
+        const std::string column_name = m_stmt.GetColumnName(column);
+        VART* pVarT;
+
+        for( int iSymVar = pSecT->SYMTfvar; iSymVar >= 0; iSymVar = pVarT->SYMTfwd )
+        {
+            pVarT = VPT(iSymVar);
+
+            // do not look at subitems or items that occur
+            const CDictItem& dict_item = *pVarT->GetDictItem();
+
+            if( ( dict_item.GetItemType() == ItemType::Subitem ) ||
+                ( dict_item.GetOccurs() > 1 ) )
             {
-                // if specifying an Encrypted CSPro DB file, open it so that a password can be processed
-                if( SO::EqualsNoCase(PortableFunctions::PathGetFileExtension(connection_string.GetFilePath()), FileExtensions::Data::EncryptedCSProDB) )
+                continue;
+            }
+
+            if( SO::EqualsNoCase(pVarT->GetName(), column_name) )
+            {
+                item_mapping.try_emplace(column, pVarT);
+                break;
+            }
+        }
+    }
+
+    // fill the items
+    int occurrence = 0;
+
+    do
+    {
+        for( const auto& [column, pVarT] : item_mapping )
+        {
+            if( pVarT->IsNumeric() )
+            {
+                m_interpreter.AssignValueToVART_INTERPRETER_DLL_TODO(*pVarT, occurrence, GetValue<double>(column));
+            }
+
+            else
+            {
+                m_interpreter.AssignValueToVART_INTERPRETER_DLL_TODO(*pVarT, occurrence, GetValue<SharableString>(column));
+            }
+        }
+
+    } while( ++occurrence < pSecT->GetMaxOccs() && m_stmt.Step() == Sqlite::Result::Row );
+
+    pSecT->GetGroup(0)->SetTotalOccurrences(occurrence);
+
+    return Engine::Value::Integer(occurrence);
+}
+
+
+Engine::Value LogicInterpreter::ex_sqlquery(const int program_index)
+{
+    return ex_sqlquery(program_index, nullptr);
+}
+
+
+Engine::Value LogicInterpreter::ex_sqlquery(const int program_index, const std::function<double(sqlite3*, const std::string&)>* const setreportdata_callback)
+{
+    const auto& sqlquery_node = GetNode<Nodes::SqlQuery>(program_index);
+    const SharableString sql_query = Evaluate<SharableString>(sqlquery_node.sql_query_expression);
+
+    QueryRT::SqlQueryProcessor processor(*this);
+
+    try
+    {
+        switch( sqlquery_node.source_type )
+        {
+            // access paradata
+            case Nodes::SqlQuery::Type::Paradata:
+            {
+                processor.UseParadataDb();
+                break;
+            }
+
+            // access a data repository
+            case Nodes::SqlQuery::Type::Dictionary:
+            {
+                Symbol& symbol = NPT_Ref(sqlquery_node.source_symbol_index_or_expression);
+                DataRepository* data_repository;
+
+                if( symbol.IsA(SymbolType::Dictionary) )
                 {
-                    success = ( EncryptedSQLiteRepository::OpenSQLiteDatabaseFile(nullptr, connection_string, &db, SQLITE_OPEN_READWRITE) == SQLITE_OK );
+                    EngineDictionary& engine_dictionary = assert_cast<EngineDictionary&>(symbol);
+                    data_repository = &engine_dictionary.GetEngineDataRepository().GetDataRepository();
                 }
 
                 else
                 {
-                    success = ( sqlite3_open(connection_string.GetFilePath().c_str(), &db) == SQLITE_OK );
+                    DICX* const pDicX = assert_cast<DICT&>(symbol).GetDicX();
+                    data_repository = &pDicX->GetDataRepository();
                 }
+
+                processor.UseDataRepository(*data_repository);
+                break;
             }
 
-            if( !success )
-                throw CSProException("The SQLite file could not be opened: " + connection_string.ToDisplayString());
+            // open a SQLite file
+            case Nodes::SqlQuery::Type::File:
+            {
+                const ConnectionString connection_string = EvaluateConnectionString(sqlquery_node.source_symbol_index_or_expression);
+                processor.UseFile(connection_string);
+                break;
+            }
 
-            must_close_db = true;
+            default:
+               throw ProgrammingErrorException();
         }
 
-        ASSERT(db != nullptr);
+        ASSERT(processor.GetDb() != nullptr);
 
         // register any user-specified logic functions as SQL functions
-        RegisterSqlCallbackFunctions(db);
-
+        RegisterSqlCallbackFunctions(processor.GetDb());
 
         // if called from setreportdata, call back into the report system
         if( sqlquery_node.destination_symbol_index == Nodes::SqlQuery::SetReportDataDestinationJson )
         {
             ASSERT(setreportdata_callback != nullptr);
-            return_value = (*setreportdata_callback)(db, sql_query.GetString());
+            return (*setreportdata_callback)(processor.GetDb(), sql_query.GetString());
         }
 
-        else // called from a standard sqlquery call
+        // otherwise execute a standard sqlquery call
+        else
         {
-            Symbol* const symbol = ( sqlquery_node.destination_symbol_index >= 0 ) ? &NPT_Ref(sqlquery_node.destination_symbol_index) :
-                                                                                     nullptr;
+            Symbol* const symbol = ( sqlquery_node.destination_symbol_index >= 0 )
+                ? &NPT_Ref(sqlquery_node.destination_symbol_index)
+                : nullptr;
 
-            // execute the query
-            sqlite3_stmt* stmt = nullptr;
+            processor.ExecuteStatements(*sql_query);
 
-            const std::vector<std::string> sql_statements = SQLiteHelpers::SplitSqlStatement(sql_query.GetString());
-
-            if( sql_statements.empty() )
-                throw CSProException("Empty SQL statement");
-
-            // execute any helper statements
-            for( size_t i = 0; i < ( sql_statements.size() - 1 ); i++ )
-            {
-                if( sqlite3_exec(db, sql_statements[i].c_str(), nullptr, nullptr, nullptr) != SQLITE_OK )
-                    throw CSProException("SQL syntax: %s", sqlite3_errmsg(db));
-            }
-
-            if( sqlite3_prepare_v2(db, sql_statements.back().c_str(), -1, &stmt, nullptr) != SQLITE_OK )
-                throw CSProException("SQL syntax: %s", sqlite3_errmsg(db));
-
-            const int sql_result = sqlite3_step(stmt);
-
-            if( sql_result == SQLITE_DONE )
-            {
-                // the return value will signal that no rows were returned or that
-                // something (like a CREATE TABLE) succeeded but that the return value is not applicable
-                return_value = 0;
-
-                // zero out the length of the object (if applicable)
-                if( symbol != nullptr )
-                {
-                    if( symbol->IsA(SymbolType::List) )
-                    {
-                        assert_cast<LogicList&>(*symbol).Reset();
-                    }
-
-                    else if( symbol->IsA(SymbolType::Section) )
-                    {
-                        assert_cast<SECT*>(symbol)->GetGroup(0)->SetTotalOccurrences(0);
-                    }
-                }
-            }
-
-            else if( sql_result == SQLITE_ROW )
-            {
-                const int number_columns = sqlite3_column_count(stmt);
-                ASSERT(number_columns > 0);
-
-                if( symbol == nullptr )
-                {
-                    // the return value will be the first row / first column result
-                    const bool value_is_null = ( sqlite3_column_type(stmt, 0) == SQLITE_NULL );
-                    return_value = value_is_null ? NOTAPPL : sqlite3_column_double(stmt, 0);
-                }
-
-                else
-                {
-                    // the results will be placed in the object and the
-                    // the return value will be the number of results placed in the object
-
-                    // --------------------------------------------------------------------------
-                    // fill in an array
-                    // --------------------------------------------------------------------------
-                    if( symbol->IsA(SymbolType::Array) )
-                    {
-                        LogicArray& logic_array = assert_cast<LogicArray&>(*symbol);
-
-                        // - 1 in the next two statements because the arrays will be filled in starting at index 1
-                        const size_t max_rows_to_read = logic_array.GetDimension(0) - 1;
-                        size_t columns_to_read = 1;
-
-                        std::vector<size_t> indices(logic_array.GetNumberDimensions(), 0);
-
-                        if( logic_array.GetNumberDimensions() == 2 )
-                        {
-                            columns_to_read = std::min(static_cast<size_t>(number_columns), logic_array.GetDimension(1) - 1);
-                        }
-
-                        do
-                        {
-                            ++indices[0];
-
-                            for( size_t column = 0; column < columns_to_read; ++column )
-                            {
-                                if( columns_to_read != 1 )
-                                    indices[1] = column + 1;
-
-                                ASSERT(logic_array.IsValidIndex(indices));
-
-                                const bool value_is_null = ( sqlite3_column_type(stmt, column) == SQLITE_NULL );
-
-                                if( logic_array.IsNumeric() )
-                                {
-                                    logic_array.SetValue(indices, value_is_null ? NOTAPPL :
-                                                                                  sqlite3_column_double(stmt, column));
-                                }
-
-                                else
-                                {
-                                    logic_array.SetValue(indices, value_is_null ? SharableString() :
-                                                                                  SharableString(reinterpret_cast<const char*>(sqlite3_column_text(stmt, column))));
-                                }
-                            }
-
-                        } while( indices[0] < max_rows_to_read && sqlite3_step(stmt) == SQLITE_ROW );
-
-                        return_value = indices[0];
-                    }
-
-
-                    // --------------------------------------------------------------------------
-                    // fill in a list
-                    // --------------------------------------------------------------------------
-                    else if( symbol->IsA(SymbolType::List) )
-                    {
-                        LogicList& logic_list = assert_cast<LogicList&>(*symbol);
-                        logic_list.Reset();
-
-                        constexpr size_t MaximumRowsToRead = 10000;
-                        size_t row_number = 0;
-
-                        do
-                        {
-                            const bool value_is_null = ( sqlite3_column_type(stmt, 0) == SQLITE_NULL );
-
-                            if( logic_list.IsNumeric() )
-                            {
-                                logic_list.AddValue(value_is_null ? NOTAPPL :
-                                                                    sqlite3_column_double(stmt, 0));
-                            }
-
-                            else
-                            {
-                                logic_list.AddValue(value_is_null ? SharableString() :
-                                                                    SharableString(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0))));
-                            }
-
-                        } while( ++row_number < MaximumRowsToRead && sqlite3_step(stmt) == SQLITE_ROW );
-
-                        return_value = row_number;
-                    }
-
-
-                    // --------------------------------------------------------------------------
-                    // fill in a record
-                    // --------------------------------------------------------------------------
-                    else
-                    {
-                        SECT* const pSecT = assert_cast<SECT*>(symbol);
-
-                        // map the columns
-                        std::vector<VART*> aItemMapping(number_columns, nullptr);
-
-                        for( int iColumn = 0; iColumn < number_columns; iColumn++ )
-                        {
-                            const std::string column_name = sqlite3_column_name(stmt, iColumn);
-                            VART* pVarT = nullptr;
-
-                            for( int iSymVar = pSecT->SYMTfvar; iSymVar >= 0; iSymVar = pVarT->SYMTfwd )
-                            {
-                                pVarT = VPT(iSymVar);
-                                const CDictItem* pDictItem = pVarT->GetDictItem();
-
-                                if( ( pDictItem->GetItemType() == ItemType::Subitem ) || // don't look at subitems
-                                    ( pDictItem->GetOccurs() > 1 ) ) // don't look at items that occur
-                                {
-                                    continue;
-                                }
-
-                                else if( SO::EqualsNoCase(pVarT->GetName(), column_name) )
-                                {
-                                    aItemMapping[iColumn] = pVarT;
-                                    break;
-                                }
-                            }
-                        }
-
-                        // fill the items
-                        CNDIndexes theIndex(ZERO_BASED);
-                        theIndex.setAtOrigin();
-                        int iRowNumber = 0;
-
-                        do
-                        {
-                            theIndex.setIndexValue(CDimension::Record,iRowNumber);
-                            iRowNumber++;
-
-                            for( int iColumn = 0; iColumn < number_columns; iColumn++ )
-                            {
-                                VART* const pVarT = aItemMapping[iColumn];
-
-                                if( pVarT == nullptr ) // the column wasn't mapped
-                                    continue;
-
-                                const bool value_is_null = ( sqlite3_column_type(stmt, iColumn) == SQLITE_NULL );
-
-                                if( pVarT->IsNumeric() )
-                                {
-                                    VARX* const pVarX = pVarT->GetVarX();
-                                    const double dValue = value_is_null ? NOTAPPL : sqlite3_column_double(stmt, iColumn);
-                                    SetVarFloatValue(dValue,pVarX,theIndex);
-                                }
-
-                                else
-                                {
-                                    CString csValue = value_is_null ? CString() : UTF8_TODO::GetCString(reinterpret_cast<const char*>(sqlite3_column_text(stmt, iColumn)));
-                                    TCHAR* lpszBuffer = GetVarAsciiAddr(pVarT,theIndex);
-                                    _tmemcpy(lpszBuffer, CIMSAString::MakeExactLength(csValue, pVarT->GetLength()), pVarT->GetLength());
-                                }
-                            }
-
-                        } while( iRowNumber < pSecT->GetMaxOccs() && sqlite3_step(stmt) == SQLITE_ROW );
-
-                        pSecT->GetGroup(0)->SetTotalOccurrences(iRowNumber);
-
-                        return_value = iRowNumber;
-                    }
-                }
-            }
-
-            safe_sqlite3_finalize(stmt);
+            return processor.ProcessResult(symbol);
         }
     }
 
     catch( const CSProException& exception )
     {
-        const std::string filename = ( db != nullptr ) ? FormatText("(%s)", PortableFunctions::PathGetFilename(sqlite3_db_filename(db, nullptr)).c_str()) :
-                                                         std::string();
-        issaerror(MessageType::Error, 8292, filename.c_str(), exception.what());
+        const char* const file_path = ( processor.GetDb() != nullptr )
+            ? sqlite3_db_filename(processor.GetDb(), nullptr)
+            : nullptr;
+
+        IssueMessage(MessageType::Error, MGF::Query_sqlquery_error_8292,
+                     ( file_path != nullptr ) ? FormatText("(%s)", Path::GetFilename(file_path).c_str()).c_str() : "",
+                     exception.what());
+
+        return Engine::Value::Invalid<double>();
     }
-
-    if( must_close_db )
-        sqlite3_close(db);
-
-    return return_value;
 }
 
 
 
 // --------------------------------------------------------------------------
-// routines for calling back into user-defined function from SQL queries
+// SQLite: routines for calling back into user-defined functions from queries
 // --------------------------------------------------------------------------
 
-
-namespace
+void QueryRT::SqlCallbackFunction(sqlite3_context* const context, int iArgC, sqlite3_value** const ppArgV)
 {
-    using InterpreterAndUserFunction = std::tuple<CIntDriver&, UserFunction&>;
+    auto& [interpreter, user_function] = *static_cast<InterpreterAndUserFunction*>(sqlite3_user_data(context));
 
-    void SqlCallbackFunction(sqlite3_context* const context, int iArgC, sqlite3_value** const ppArgV)
-    {
-        InterpreterAndUserFunction& interpreter_and_user_function = *static_cast<InterpreterAndUserFunction*>(sqlite3_user_data(context));
-
-        std::get<0>(interpreter_and_user_function).ProcessSqlCallbackFunction(std::get<1>(interpreter_and_user_function),
-                                                                              static_cast<void*>(context), iArgC, static_cast<void*>(ppArgV));
-    }
+    interpreter.ProcessSqlCallbackFunction(user_function, static_cast<void*>(context), iArgC, static_cast<void*>(ppArgV));
 }
 
 
-void CIntDriver::RegisterSqlCallbackFunctions(sqlite3* const db)
+void LogicInterpreter::RegisterSqlCallbackFunctions(sqlite3* const db)
 {
     SqlLogicFunctions::RegisterCallbackFunctions(db,
         [&]()
@@ -631,10 +711,20 @@ void CIntDriver::RegisterSqlCallbackFunctions(sqlite3* const db)
                 {
                     if( user_function.IsSqlCallbackFunction() )
                     {
-                        auto interpreter_and_user_function = std::make_unique<InterpreterAndUserFunction>(*this, user_function);
+                        auto interpreter_and_user_function = std::make_unique<QueryRT::InterpreterAndUserFunction>(*this, user_function);
 
-                        if( sqlite3_create_function(db, user_function.GetName().c_str(), user_function.GetNumberParameters(),
-                                                    SQLITE_UTF8, interpreter_and_user_function.get(), SqlCallbackFunction, nullptr, nullptr) != SQLITE_OK )
+                        const int result = sqlite3_create_function(
+                            db,
+                            user_function.GetName().c_str(),
+                            int32_cast(user_function.GetNumberParameters()),
+                            SQLITE_UTF8,
+                            interpreter_and_user_function.get(),
+                            QueryRT::SqlCallbackFunction,
+                            nullptr, // xStep
+                            nullptr // xFinal
+                        );
+
+                        if( result != Sqlite::Result::OK )
                         {
                             throw CSProException("There was an error adding the user-defined function '%s' as a SQL callback function.",
                                                  user_function.GetName().c_str());
@@ -647,7 +737,12 @@ void CIntDriver::RegisterSqlCallbackFunctions(sqlite3* const db)
 }
 
 
-class SqlQueryUserFunctionArgumentEvaluator : public UserFunctionArgumentEvaluator
+
+// --------------------------------------------------------------------------
+// SQLite: routines to pass arguments from SQLite to user-defined functions
+// --------------------------------------------------------------------------
+
+class QueryRT::SqlQueryUserFunctionArgumentEvaluator : public UserFunctionArgumentEvaluator
 {
 public:
     SqlQueryUserFunctionArgumentEvaluator(const size_t number_arguments, sqlite3_value** const ppArgV)
@@ -680,12 +775,13 @@ private:
 };
 
 
-void CIntDriver::ProcessSqlCallbackFunction(UserFunction& user_function, void* const void_context, const int iArgC, void* const void_ppArgV)
+void LogicInterpreter::ProcessSqlCallbackFunction(UserFunction& user_function, void* const void_context,
+                                                  const int iArgC, void* const void_ppArgV)
 {
     sqlite3_context* const context = reinterpret_cast<sqlite3_context*>(void_context);
     ASSERT(user_function.GetNumberParameters() == static_cast<size_t>(iArgC));
 
-    SqlQueryUserFunctionArgumentEvaluator argument_evaluator(iArgC, reinterpret_cast<sqlite3_value**>(void_ppArgV));
+    QueryRT::SqlQueryUserFunctionArgumentEvaluator argument_evaluator(iArgC, reinterpret_cast<sqlite3_value**>(void_ppArgV));
     const Engine::Value return_value = CallUserFunction(user_function, argument_evaluator);
 
     if( return_value.is<double>() )
@@ -697,6 +793,6 @@ void CIntDriver::ProcessSqlCallbackFunction(UserFunction& user_function, void* c
     {
         ASSERT(return_value.is<SharableString>());
         const SharableString value = return_value.as<SharableString>();
-        sqlite3_result_text(context, value->c_str(), value->length(), SQLITE_TRANSIENT);
+        sqlite3_result_text(context, value->c_str(), int32_cast(value->length()), SQLITE_TRANSIENT);
     }
 }

@@ -49,7 +49,6 @@ class ItemIndex;
 class KeyboardLoader;
 class NamedReference;
 class SelcaseManager;
-struct sqlite3;
 class SyncClient;
 struct SyncObjects;
 class VTSTRUCT;
@@ -118,9 +117,6 @@ private:
     };
     FOR_STACK ForStack[FOR_STACK_MAX];
 // RHC END Sep 20, 2001
-
-private:
-    std::vector<std::unique_ptr<std::tuple<CIntDriver&, UserFunction&>>> m_sqlCallbackFunctions;
 
 
     // --- engine links
@@ -442,13 +438,8 @@ public:
     double  exlogtext(int program_index);
     double  exwarning(int program_index);
 
-    double  exsqlquery(int program_index);
-    double  exsqlquery(int program_index, const std::function<double(sqlite3*, const std::string&)>* setreportdata_callback);
     double  expre77_setreportdata(int iExpr);
     double  expre77_report(int iExpr);
-
-    void RegisterSqlCallbackFunctions(sqlite3* db);
-    void ProcessSqlCallbackFunction(UserFunction& user_function, void* void_context, int iArgC, void* void_ppArgV);
 
     double ex_syncconnect(int program_index);
     double ex_syncdisconnect(int program_index);
@@ -873,6 +864,8 @@ private:
     FrequencyDriver* GetFrequencyDriver_INTERPRETER_DLL_TODO() override;
     void AssignValueToVART_INTERPRETER_DLL_TODO(int variable_compilation, double value) override;
     void AssignValueToVART_INTERPRETER_DLL_TODO(int variable_compilation, SharableString value) override;
+    void AssignValueToVART_INTERPRETER_DLL_TODO(VART& vart, int zero_based_occurrence, double value) override;
+    void AssignValueToVART_INTERPRETER_DLL_TODO(VART& vart, int zero_based_occurrence, SharableString value) override;
     double EvaluateVARTValue_double_INTERPRETER_DLL_TODO(int variable_compilation) override;
     SharableString EvaluateVARTValue_SharableString_INTERPRETER_DLL_TODO(int variable_compilation) override;
     Engine::Value ModifyVARTValue_INTERPRETER_DLL_TODO(int variable_compilation, const std::function<void(double&)>& modify_value_function, std::unique_ptr<Paradata::FieldInfo>* paradata_field_info = nullptr) override;

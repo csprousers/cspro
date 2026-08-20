@@ -164,6 +164,7 @@ namespace MGF
     constexpr int Query_paradata_concat_invalid_arguments_8274              =   8274;
     constexpr int Query_paradata_concat_invalid_output_argument_8275        =   8275;
     constexpr int Query_paradata_concat_error_8291                          =   8291;
+    constexpr int Query_sqlquery_error_8292                                 =   8292;
 
     constexpr int SpecialFunction_invalid_case_9112                         =   9112;
     constexpr int SpecialFunction_invalid_syntax_9113                       =   9113;

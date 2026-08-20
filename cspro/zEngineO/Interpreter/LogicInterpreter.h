@@ -24,6 +24,7 @@ struct InterpreterExecuteResult;
 class LoopStack;
 class PortableColor;
 class JsonReaderInterface;
+struct sqlite3;
 class TraceHandler;
 class Userbar;
 class UserFunctionArgumentEvaluator;
@@ -698,6 +699,14 @@ public:
     // --------------------------------------------------------------------------
 public:
     Engine::Value ex_paradata(int program_index);
+    Engine::Value ex_sqlquery(int program_index);
+    Engine::Value ex_sqlquery(int program_index, const std::function<double(sqlite3*, const std::string&)>* setreportdata_callback);
+
+    void RegisterSqlCallbackFunctions(sqlite3* db);
+    void ProcessSqlCallbackFunction(UserFunction& user_function, void* void_context, int iArgC, void* void_ppArgV);
+
+private:
+    std::vector<std::unique_ptr<std::tuple<LogicInterpreter&, UserFunction&>>> m_sqlCallbackFunctions;
 
 
     // --------------------------------------------------------------------------
@@ -932,6 +941,10 @@ private:
     virtual FrequencyDriver* GetFrequencyDriver_INTERPRETER_DLL_TODO() = 0;
     virtual void AssignValueToVART_INTERPRETER_DLL_TODO(int variable_compilation, double value) = 0; // INTERPRETER_DLL_TODO remove as virtual
     virtual void AssignValueToVART_INTERPRETER_DLL_TODO(int variable_compilation, SharableString value) = 0; // INTERPRETER_DLL_TODO remove as virtual
+public:
+    virtual void AssignValueToVART_INTERPRETER_DLL_TODO(VART& vart, int zero_based_occurrence, double value) = 0; // INTERPRETER_DLL_TODO refactor
+    virtual void AssignValueToVART_INTERPRETER_DLL_TODO(VART& vart, int zero_based_occurrence, SharableString value) = 0; // INTERPRETER_DLL_TODO refactor
+private:
     virtual double EvaluateVARTValue_double_INTERPRETER_DLL_TODO(int variable_compilation) = 0; // INTERPRETER_DLL_TODO remove as virtual
     virtual SharableString EvaluateVARTValue_SharableString_INTERPRETER_DLL_TODO(int variable_compilation) = 0; // INTERPRETER_DLL_TODO remove as virtual
     virtual Engine::Value ModifyVARTValue_INTERPRETER_DLL_TODO(int variable_compilation, const std::function<void(double&)>& modify_value_function, std::unique_ptr<Paradata::FieldInfo>* paradata_field_info = nullptr) = 0; // INTERPRETER_DLL_TODO remove as virtual

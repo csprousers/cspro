@@ -332,7 +332,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 263 */   OP_ID(ex_tr),
 /* 264 */   OP(ex_uuid),
 /* 265 */   OP(ex_paradata),
-/* 266 */   OP_ID(exsqlquery),
+/* 266 */   OP(ex_sqlquery),
 /* 267 */   OP_ID(expre77_report),
 /* 268 */   OP_ID(expre77_setreportdata),
 /* 269 */   OP_ID(exshow),

@@ -610,7 +610,7 @@ void CIntDriver::AddIntDriverInstructions()
     OP_ENGVAL_ID(263, ex_tr);
     OP_ENGVAL(264, ex_uuid);
     OP_ENGVAL(265, ex_paradata);
-    OP_DOUBLE(266, exsqlquery);
+    OP_ENGVAL(266, ex_sqlquery);
     OP_DOUBLE(267, expre77_report);
     OP_DOUBLE(268, expre77_setreportdata);
     OP_DOUBLE(269, exshow);
