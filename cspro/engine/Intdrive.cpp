@@ -1466,7 +1466,7 @@ std::string CIntDriver::GetFormattedMessageWorker(const int message_number, ...)
 }
 
 
-#include "EngineExecutor.h"
+#include "InterpreterAccessor.h"
 #include <zToolsO/ValueConserver.h>
 InterpreterExecuteResult CIntDriver::Report_Evaluate_INTERPRETER_DLL_TODO(Report& report)
 {
@@ -1501,11 +1501,15 @@ Engine::Value CIntDriver::RunSoonToBeRemovedFeature(const std::string_view featu
 }
 
 
-bool CIntDriver::IsExecutionInterrupted() const
+bool CIntDriver::IsExecutionInterrupted() const noexcept
 {
-    return ( m_caughtProgramControlException ||
+    // INTERPRETER_DLL_TODO 2 of 4 checks now handled in LogicInterpreter
+    if( LogicInterpreter::IsExecutionInterrupted() )
+        return true;
+
+    return ( // m_caughtProgramControlException ||
              m_bStopExec ||
-             m_bStopProc ||
+             //m_bStopProc ||
              GetRequestIssued() );
 }
 
@@ -1527,4 +1531,21 @@ int CIntDriver::SymbolTableSearch_INTERPRETER_DLL_TODO(const std::string_view fu
                                                        const std::vector<SymbolType>* const allowable_symbol_types) const
 {
     return m_pEngineArea->SymbolTableSearch(full_symbol_name_sv, preferred_symbol_type, allowable_symbol_types);
+}
+
+
+void CIntDriver::Execute_INTERPRETER_DLL_TODO(const bool before_running_callback_function)
+{
+    if( before_running_callback_function )
+    {
+        // these statements clear any preexisting stuff that might have been going on
+        m_bSkipStmt = false;
+        m_bStopExec = m_bStopProc;
+        SetRequestIssued(false);
+    }
+
+    else
+    {
+        m_bStopExec = ( m_bSkipStmt || m_bStopProc );
+    }
 }

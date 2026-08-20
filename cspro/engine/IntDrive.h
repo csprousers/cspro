@@ -820,14 +820,6 @@ public:
     T ExecuteProgramStatements(int program_index);
     Engine::Value ExecuteInstructions(int program_index) override;
 
-    // Runs the callback function and returns the evaluation result, including a flag
-    // indicating whether a movement or program control action has occurred.
-    // Any thrown ProgramControlException exceptions will be stored and can be processed
-    // by calling RethrowProgramControlExceptions.
-    template<typename CF>
-    InterpreterExecuteResult Execute(CF callback_function);
-
-
     // scope functions
     double exScopeChange(int program_index);
 
@@ -881,7 +873,7 @@ private:
     InterpreterExecuteResult Report_Evaluate_INTERPRETER_DLL_TODO(Report& report) override;
     Engine::Value RunSoonToBeRemovedFeature(std::string_view feature_sv, int program_index, void* tag) override;
     int Get_m_iExSymbol_INTERPRETER_DLL_TODO() override { return m_iExSymbol; }
-    bool IsExecutionInterrupted() const override;
+    bool IsExecutionInterrupted() const noexcept override;
     EngineParadataDriver& GetEngineParadataDriver_INTERPRETER_DLL_TODO() override;
     Engine::Value ExExecPFF_INTERPRETER_DLL_TODO(LogicPff& logic_pff) override;
     FrequencyDriver* GetFrequencyDriver_INTERPRETER_DLL_TODO() override;
@@ -894,6 +886,7 @@ private:
     int SymbolTableSearch_INTERPRETER_DLL_TODO(std::string_view full_symbol_name_sv, SymbolType preferred_symbol_type,
                                                const std::vector<SymbolType>* allowable_symbol_types) const override;
     bool GetRequestIssued_INTERPRETER_DLL_TODO() const override { return GetRequestIssued(); }
+    void Execute_INTERPRETER_DLL_TODO(bool before_running_callback_function) override;
 public:
     LoopStack& GetLoopStack() override;
     bool Get_m_bStopExec_INTERPRETER_DLL_TODO() const override { return m_bStopExec; }

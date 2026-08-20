@@ -1,7 +1,7 @@
 #include "StandardSystemIncludes.h"
 #include "Interpreter.h"
 #include "Ctab.h"
-#include "EngineExecutor.h"
+#include "InterpreterAccessor.h"
 #include "ParadataDriver.h"
 #include <zEngineO/AllSymbols.h>
 #include <zEngineO/UserFunctionArgumentChecker.h>

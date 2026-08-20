@@ -116,9 +116,6 @@
     <ClInclude Include="EngineDictionaryModifier.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="EngineExecutor.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="EngineObjectTransporter.h">
       <Filter>Header Files</Filter>
     </ClInclude>

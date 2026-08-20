@@ -2,7 +2,6 @@
 #include "Interpreter.h"
 #include "InterpreterAccessor.h"
 #include "EngineDictionaryModifier.h"
-#include "EngineExecutor.h"
 #include "ParadataDriver.h"
 #include <zEngineO/BinarySymbol.h>
 #include <zEngineO/EngineDictionary.h>

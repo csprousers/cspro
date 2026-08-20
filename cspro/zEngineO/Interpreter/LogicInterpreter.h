@@ -159,13 +159,19 @@ private:
 
 public:
     // Returns a flag that indicates that the interpreter should stop execution.
-    virtual bool IsExecutionInterrupted() const { return ReturnProgrammingError(false); } // INTERPRETER_DLL_TODO remove as virtual and replace this implementation
+    virtual bool IsExecutionInterrupted() const noexcept; // INTERPRETER_DLL_TODO remove as virtual once all flags are out of CIntDriver
+
+    // Runs the callback function and returns the evaluation result, including a flag
+    // indicating whether a movement or program control action has occurred.
+    // Any thrown ProgramControlException exceptions will be stored and can be processed
+    // by calling RethrowProgramControlExceptions.
+    InterpreterExecuteResult Execute(const std::function<Engine::Value()>& callback_function);
 
 protected: // INTERPRETER_DLL_TODO change to private
     // Throws a previously-caught program control exception (if applicable).
     void RethrowProgramControlExceptions();
 
-protected: // INTERPRETER_DLL_TODO change to private
+private:
     std::exception_ptr m_caughtProgramControlException;
 
 
@@ -914,6 +920,7 @@ private:
     virtual int SymbolTableSearch_INTERPRETER_DLL_TODO(std::string_view full_symbol_name_sv, SymbolType preferred_symbol_type,
                                                        const std::vector<SymbolType>* allowable_symbol_types) const = 0; // INTERPRETER_DLL_TODO refactor
     virtual bool GetRequestIssued_INTERPRETER_DLL_TODO() const = 0; // INTERPRETER_DLL_TODO is this needed?
+    virtual void Execute_INTERPRETER_DLL_TODO(bool before_running_callback_function) = 0; // INTERPRETER_DLL_TODO refactor
 public:
     virtual LoopStack& GetLoopStack() = 0; // INTERPRETER_DLL_TODO remove as virtual
     virtual bool Get_m_bStopExec_INTERPRETER_DLL_TODO() const = 0; // INTERPRETER_DLL_TODO is this needed?

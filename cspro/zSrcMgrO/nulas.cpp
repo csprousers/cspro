@@ -30,7 +30,7 @@ double CIntDriver::evalexpr_INTERPRETER_DLL_TODO(double (CIntDriver::*instructio
 void CIntDriver::RegisterAndLogEvent_INTERPRETER_DLL_TODO(std::shared_ptr<Paradata::Event> event, const void* instance_object) { ASSERT(false); }
 void CIntDriver::IssueMessageWorker(MessageType message_type, int message_number, ...) { ASSERT(false); }
 std::string CIntDriver::GetFormattedMessageWorker(int message_number, ...) { return ReturnProgrammingError(""); }
-bool CIntDriver::IsExecutionInterrupted() const { return ReturnProgrammingError(false); }
+bool CIntDriver::IsExecutionInterrupted() const noexcept { return ReturnProgrammingError(false); }
 InterpreterExecuteResult CIntDriver::Report_Evaluate_INTERPRETER_DLL_TODO(Report& report) { throw ProgrammingErrorException(); }
 SharableString CIntDriver::EvaluateTextFill(int program_index) { return ReturnProgrammingError(SharableString()); }
 SharableString CIntDriver::EvaluateUserMessage(int message_node_index, FunctionCode function_code, int* out_message_number) { return ReturnProgrammingError(std::string()); }
@@ -59,6 +59,7 @@ Engine::Value CIntDriver::ModifyVARTValue_INTERPRETER_DLL_TODO(int variable_comp
 Engine::Value CIntDriver::ModifyVARTValue_INTERPRETER_DLL_TODO(int variable_compilation, const std::function<void(SharableString&)>& modify_value_function, std::unique_ptr<Paradata::FieldInfo>* paradata_field_info/* = nullptr*/) { throw ProgrammingErrorException(); }
 int CIntDriver::SymbolTableSearch_INTERPRETER_DLL_TODO(std::string_view full_symbol_name_sv, SymbolType preferred_symbol_type,
                                                        const std::vector<SymbolType>* allowable_symbol_types) const { throw ProgrammingErrorException(); }
+void CIntDriver::Execute_INTERPRETER_DLL_TODO(bool before_running_callback_function) { throw ProgrammingErrorException(); }
 LoopStack& CIntDriver::GetLoopStack() { throw ProgrammingErrorException(); }
 
 
