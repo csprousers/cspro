@@ -5,6 +5,8 @@ import android.content.SharedPreferences
 import androidx.multidex.MultiDexApplication
 import gov.census.cspro.commonui.CSStyle
 import gov.census.cspro.commonui.OnCSStyleChangedListener
+import gov.census.cspro.engine.EngineInterface
+import gov.census.cspro.engine.Messenger
 import gov.census.cspro.engine.Util
 import timber.log.Timber
 import timber.log.Timber.DebugTree
@@ -18,6 +20,14 @@ class CSEntry : MultiDexApplication() {
         context = applicationContext
 
         System.loadLibrary("CSEntry")
+
+        //fix for application crash on restore on some occasions.
+        // instantiate engine-layer singletons here, guaranteed to run once per process
+        // before any activity — closes the gap where a recreated activity (e.g. after
+        // process death) could reach EngineInterface.getInstance()/Messenger.getInstance()
+        // before some other activity's onCreate() had a chance to initialize them.
+        EngineInterface.CreateEngineInterfaceInstance(this)
+        Messenger.CreateMessengerInstance()
 
         if (BuildConfig.DEBUG) {
             Timber.plant(DebugTree())
