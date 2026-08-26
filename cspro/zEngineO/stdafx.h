@@ -23,3 +23,4 @@
 #include <zAppO/PFF.h>
 #include <zDictO/DDClass.h>
 #include <zFormO/FormFile.h>
+#include <zParadataO/Logger.h>

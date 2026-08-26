@@ -27,7 +27,6 @@ CIntDriver::~CIntDriver() { ASSERT(false); }
 
 Engine::Value CIntDriver::evalexpr_INTERPRETER_DLL_TODO(Engine::Value (CIntDriver::*instruction)(int), int program_index) { return ReturnProgrammingError(0); }
 double CIntDriver::evalexpr_INTERPRETER_DLL_TODO(double (CIntDriver::*instruction)(int), int program_index) { return ReturnProgrammingError(0); }
-void CIntDriver::RegisterAndLogEvent_INTERPRETER_DLL_TODO(std::shared_ptr<Paradata::Event> event, const void* instance_object) { ASSERT(false); }
 void CIntDriver::IssueMessageWorker(MessageType message_type, int message_number, ...) { ASSERT(false); }
 std::string CIntDriver::GetFormattedMessageWorker(int message_number, ...) { return ReturnProgrammingError(""); }
 bool CIntDriver::IsExecutionInterrupted() const noexcept { return ReturnProgrammingError(false); }
@@ -63,6 +62,7 @@ Engine::Value CIntDriver::ModifyVARTValue_INTERPRETER_DLL_TODO(int variable_comp
 int CIntDriver::SymbolTableSearch_INTERPRETER_DLL_TODO(std::string_view full_symbol_name_sv, SymbolType preferred_symbol_type,
                                                        const std::vector<SymbolType>* allowable_symbol_types) const { throw ProgrammingErrorException(); }
 void CIntDriver::Execute_INTERPRETER_DLL_TODO(bool before_running_callback_function) { throw ProgrammingErrorException(); }
+Paradata::ParadataDriver& CIntDriver::GetParadataDriver_INTERPRETER_DLL_TODO() { throw ProgrammingErrorException(); }
 void CIntDriver::ClearParadataCachedObjects_INTERPRETER_DLL_TODO() { throw ProgrammingErrorException(); }
 LoopStack& CIntDriver::GetLoopStack() { throw ProgrammingErrorException(); }
 

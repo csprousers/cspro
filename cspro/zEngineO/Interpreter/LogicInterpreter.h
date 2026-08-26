@@ -33,9 +33,13 @@ namespace ActionInvoker { class Caller; class Runtime; }
 namespace JavaScript { class Value; }
 namespace Nodes { struct ItemSubscript; struct List; struct SymbolComputeWithSubscript;
                   struct SymbolVariableArgumentsWithSubscript; struct SymbolValue; }
-namespace Paradata { class Event; class FieldInfo; }
+namespace Paradata { class FieldInfo; class ParadataDriver; }
 namespace SpecialFunction { enum class Code : int; }
 
+
+// --------------------------------------------------------------------------
+// LogicInterpreter
+// --------------------------------------------------------------------------
 
 class ZENGINEO_API LogicInterpreter
 {
@@ -917,7 +921,6 @@ protected:
 private:
     virtual Engine::Value evalexpr_INTERPRETER_DLL_TODO(Engine::Value (CIntDriver::*instruction)(int), int program_index) = 0;
     virtual double evalexpr_INTERPRETER_DLL_TODO(double (CIntDriver::*instruction)(int), int program_index) = 0;
-    virtual void RegisterAndLogEvent_INTERPRETER_DLL_TODO(std::shared_ptr<Paradata::Event> event, const void* instance_object = nullptr) = 0;
     virtual SharableString EvaluateTextFill(int program_index) = 0; // INTERPRETER_DLL_TODO remove as virtual
     virtual InterpreterExecuteResult Report_Evaluate_INTERPRETER_DLL_TODO(Report& report) = 0; // INTERPRETER_DLL_TODO remove as virtual
     virtual Engine::Value RunSoonToBeRemovedFeature(std::string_view feature_sv, int program_index, void* tag) = 0;
@@ -955,6 +958,7 @@ private:
                                                        const std::vector<SymbolType>* allowable_symbol_types) const = 0; // INTERPRETER_DLL_TODO refactor
     virtual bool GetRequestIssued_INTERPRETER_DLL_TODO() const = 0; // INTERPRETER_DLL_TODO is this needed?
     virtual void Execute_INTERPRETER_DLL_TODO(bool before_running_callback_function) = 0; // INTERPRETER_DLL_TODO refactor
+    virtual Paradata::ParadataDriver& GetParadataDriver_INTERPRETER_DLL_TODO() = 0;// INTERPRETER_DLL_TODO is this needed?
     virtual void ClearParadataCachedObjects_INTERPRETER_DLL_TODO() = 0; // INTERPRETER_DLL_TODO refactor
 public:
     virtual LoopStack& GetLoopStack() = 0; // INTERPRETER_DLL_TODO remove as virtual

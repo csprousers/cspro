@@ -53,7 +53,7 @@ class SyncClient;
 struct SyncObjects;
 class VTSTRUCT;
 namespace Nodes { struct SetAccessFirstLast; }
-namespace Paradata { class ExternalApplicationEvent; }
+namespace Paradata { class Event; class ExternalApplicationEvent; }
 namespace ParameterManager { enum class Parameter; }
 namespace Pre77Report { class ReportManager; }
 
@@ -852,7 +852,6 @@ private:
     // --------------------------------------------------------------------------
     Engine::Value evalexpr_INTERPRETER_DLL_TODO(Engine::Value (CIntDriver::*instruction)(int), int program_index) override;
     double evalexpr_INTERPRETER_DLL_TODO(double (CIntDriver::*instruction)(int), int program_index) override;
-    void RegisterAndLogEvent_INTERPRETER_DLL_TODO(std::shared_ptr<Paradata::Event> event, const void* instance_object = nullptr) override;
     void IssueMessageWorker(MessageType message_type, int message_number, ...) override;
     std::string GetFormattedMessageWorker(int message_number, ...) override;
     InterpreterExecuteResult Report_Evaluate_INTERPRETER_DLL_TODO(Report& report) override;
@@ -874,6 +873,7 @@ private:
                                                const std::vector<SymbolType>* allowable_symbol_types) const override;
     bool GetRequestIssued_INTERPRETER_DLL_TODO() const override { return GetRequestIssued(); }
     void Execute_INTERPRETER_DLL_TODO(bool before_running_callback_function) override;
+    Paradata::ParadataDriver& GetParadataDriver_INTERPRETER_DLL_TODO() override;
     void ClearParadataCachedObjects_INTERPRETER_DLL_TODO() override;
 public:
     LoopStack& GetLoopStack() override;

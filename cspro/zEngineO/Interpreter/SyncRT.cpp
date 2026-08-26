@@ -18,7 +18,6 @@
 #include <zSyncO/SyncMessage.h>
 #include <zSyncO/SyncObexHandler.h>
 #include <zSyncO/SyncServiceFactory.h>
-#include <zParadataO/Logger.h>
 
 
 namespace

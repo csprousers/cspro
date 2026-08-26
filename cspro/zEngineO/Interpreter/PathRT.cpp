@@ -12,7 +12,6 @@
 #include <zUtilO/PortableFileSystem.h>
 #include <zUtilO/SpecialDirectoryLister.h>
 #include <zUtilF/SelectFileDlg.h>
-#include <zParadataO/Logger.h>
 #include <zConcatO/Concatenator.h>
 #include <zConcatO/ConcatenatorReporter.h>
 

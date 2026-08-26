@@ -8,7 +8,6 @@
 #include <zMessageO/MessageManager.h>
 #include <zListingO/WriteFile.h>
 #include <zBridgeO/NPff.h>
-#include <zParadataO/Logger.h>
 #include <zIssaLib/CsDriver.h>
 
 

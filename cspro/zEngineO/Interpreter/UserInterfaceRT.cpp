@@ -8,7 +8,6 @@
 #include <zUtilO/UWM.h>
 #include <zHtml/UseHtmlDialogs.h>
 #include <zViewO/ViewInputCreator.h>
-#include <zParadataO/Logger.h>
 #include <zUtilF/ChoiceDlg.h>
 #include <zUtilF/HtmlDialogFunctionRunner.h>
 #include <zUtilF/TextInputDlg.h>
@@ -219,7 +218,7 @@ Engine::Value LogicInterpreter::ex_prompt(const int program_index)
     if( operator_selection_event != nullptr )
     {
         operator_selection_event->SetPostSelectionValues(std::nullopt, return_value.as<SharableString>(), true);
-        RegisterAndLogEvent_INTERPRETER_DLL_TODO(std::move(operator_selection_event));
+        GetParadataDriver_INTERPRETER_DLL_TODO().RegisterAndLogEvent(std::move(operator_selection_event));
     }
 
     return return_value;
@@ -295,7 +294,7 @@ Engine::Value LogicInterpreter::ex_accept(const int program_index)
             true
         );
 
-        RegisterAndLogEvent_INTERPRETER_DLL_TODO(std::move(operator_selection_event));
+        GetParadataDriver_INTERPRETER_DLL_TODO().RegisterAndLogEvent(std::move(operator_selection_event));
     }
 
     return Engine::Value::Integer(selection);

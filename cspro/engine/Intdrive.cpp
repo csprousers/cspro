@@ -1439,13 +1439,6 @@ double CIntDriver::evalexpr_INTERPRETER_DLL_TODO(double (CIntDriver::*instructio
 }
 
 
-void CIntDriver::RegisterAndLogEvent_INTERPRETER_DLL_TODO(std::shared_ptr<Paradata::Event> event, const void* instance_object/* = nullptr*/)
-{
-    ASSERT(m_paradataDriver != nullptr);
-    m_paradataDriver->RegisterAndLogEvent(std::move(event), instance_object);
-}
-
-
 void CIntDriver::IssueMessageWorker(const MessageType message_type, const int message_number, ...)
 {
     va_list parg;
@@ -1548,6 +1541,13 @@ void CIntDriver::Execute_INTERPRETER_DLL_TODO(const bool before_running_callback
     {
         m_bStopExec = ( m_bSkipStmt || m_bStopProc );
     }
+}
+
+
+Paradata::ParadataDriver& CIntDriver::GetParadataDriver_INTERPRETER_DLL_TODO()
+{
+    ASSERT(m_paradataDriver != nullptr);
+    return *m_paradataDriver;
 }
 
 

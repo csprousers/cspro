@@ -13,7 +13,6 @@
 #include <zSql/SQLiteHelpers.h>
 #include <zUtilO/SqlLogicFunctions.h>
 #include <zParadataO/Concatenator.h>
-#include <zParadataO/Logger.h>
 #include <zDataO/DataRepositoryHelpers.h>
 #include <zDataO/EncryptedSQLiteRepository.h>
 
