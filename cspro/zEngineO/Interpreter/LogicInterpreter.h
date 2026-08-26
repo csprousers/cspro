@@ -56,6 +56,8 @@ public:
 public:
     EngineAppType GetEngineAppType() const noexcept;
 
+    virtual std::string GetCurrentProcName() const = 0; // INTERPRETER_DLL_TODO remove as virtual
+
 public: // INTERPRETER_DLL_TODO reevaluate if these should be public, and also don't use Hungarian notation
     CancelFlag m_bStopProc;
 

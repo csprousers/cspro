@@ -107,7 +107,7 @@ int     CIntDriver::GetFlagColor( TCHAR* pFlag ) const { ASSERT(0); return 0; }
 void    CEngineArea::SecxEnd() { ASSERT(0); }
 void    CEngineArea::DicxEnd() { ASSERT(0); }
 
-std::string CIntDriver::ProcName() { return std::string(); }
+std::string CIntDriver::GetCurrentProcName() const { return std::string(); }
 
 void    GROUPT::OccTreeFree() {}
 

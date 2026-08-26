@@ -258,7 +258,7 @@ void CIntDriver::PrepareForExportExec(int iSymbol, const ProcType proc_type)
 }
 
 
-std::string CIntDriver::ProcName()
+std::string CIntDriver::GetCurrentProcName() const
 {
     if( m_iExSymbol <= 0 )
         return "Unknown";

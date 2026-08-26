@@ -781,11 +781,6 @@ private:
 
 public:
     SharableString EvaluateVariableParameter(const std::variant<double, SharableString>& value, int value_expression, bool request_label);
-
-    // --- miscellaneous
-public:
-    std::string ProcName();
-
     // --- engine links
 public:
     CsDriver* GetCsDriver()               { return m_pCsDriver; }      // victor May 16, 01
@@ -878,6 +873,7 @@ private:
 public:
     LoopStack& GetLoopStack() override;
     bool Get_m_bStopExec_INTERPRETER_DLL_TODO() const override { return m_bStopExec; }
+    std::string GetCurrentProcName() const override;
 
 
 private:

@@ -1,4 +1,4 @@
-﻿//---------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 //
 //  intDEntr: interpreting Data-Entry exclusive commands
 //
@@ -687,7 +687,7 @@ double CIntDriver::BatchExSkipTo( int iExpr ) {         // victor Mar 08, 01
     BatchExSetSkipping(o3DSourceDummy, source_proc_type, o3DTarget, target_proc_type);
 
     // 88200 %d inconsistent fields detected following a 'skip to' command in %p
-    m_csSkipStructMsg = UTF8_TODO::GetCString(FormatText(MGF::GetMessageText(88190)->c_str(), bSkipToNext ? "SKIP TO NEXT" : "SKIP", ProcName().c_str()));
+    m_csSkipStructMsg = UTF8_TODO::GetCString(FormatText(MGF::GetMessageText(88190)->c_str(), bSkipToNext ? "SKIP TO NEXT" : "SKIP", GetCurrentProcName().c_str()));
 
     return 0;
 }
@@ -805,7 +805,7 @@ double CIntDriver::BatchExEndsect( int iExpr ) {        // victor Mar 08, 01
     BatchExSetSkipping(o3DSourceDummy, source_proc_type, o3DTarget, target_proc_type);
 
     // 88200 %d inconsistent fields detected following a 'skip to' command in %p
-    m_csSkipStructMsg = UTF8_TODO::GetCString(FormatText(MGF::GetMessageText(88190)->c_str(), "ENDGROUP", ProcName().c_str()));
+    m_csSkipStructMsg = UTF8_TODO::GetCString(FormatText(MGF::GetMessageText(88190)->c_str(), "ENDGROUP", GetCurrentProcName().c_str()));
 
     return 0;
 }
@@ -1379,7 +1379,7 @@ double CIntDriver::BatchExSkipToAt( int iExpr ) {       // victor Mar 26, 01
     BatchExSetSkipping(o3DSourceDummy, source_proc_type, o3DTarget, target_proc_type);
 
     // 88200 %d inconsistent fields detected following a 'skip to' command in %p
-    m_csSkipStructMsg = UTF8_TODO::GetCString(FormatText(MGF::GetMessageText(88190)->c_str(), bSkipToNext ? "SKIP TO NEXT (by reference)" : "SKIP (by reference)", ProcName().c_str()));
+    m_csSkipStructMsg = UTF8_TODO::GetCString(FormatText(MGF::GetMessageText(88190)->c_str(), bSkipToNext ? "SKIP TO NEXT (by reference)" : "SKIP (by reference)", GetCurrentProcName().c_str()));
 
     return 0;
 }
@@ -2269,7 +2269,7 @@ double CIntDriver::exask(int iExpr) // for ask-if and targetless skips
                 BatchExSetSkipping(o3DSourceDummy, m_procType, o3DTarget, ProcType::PreProc);
 
                 // 88200 %d inconsistent fields detected following a 'skip to' command in %p
-                m_csSkipStructMsg = UTF8_TODO::GetCString(FormatText(MGF::GetMessageText(88190)->c_str(), skip_name, ProcName().c_str()));
+                m_csSkipStructMsg = UTF8_TODO::GetCString(FormatText(MGF::GetMessageText(88190)->c_str(), skip_name, GetCurrentProcName().c_str()));
             }
         }
     }

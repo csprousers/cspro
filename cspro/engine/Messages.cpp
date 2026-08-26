@@ -1,4 +1,4 @@
-﻿#include "StandardSystemIncludes.h"
+#include "StandardSystemIncludes.h"
 #include "Comp.h"
 #include "Engdrv.h"
 #include "IntDrive.h"
@@ -28,7 +28,7 @@ namespace
 
         SharableString GetProc() override
         {
-            return ( m_interpreter != nullptr ) ? m_interpreter->ProcName() :
+            return ( m_interpreter != nullptr ) ? m_interpreter->GetCurrentProcName() :
                                                   "Unknown";
         }
 

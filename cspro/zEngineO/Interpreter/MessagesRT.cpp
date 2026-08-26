@@ -103,7 +103,7 @@ std::variant<int, SharableString> MessageArgumentsMessageParameterEvaluator::Get
 
 SharableString MessageArgumentsMessageParameterEvaluator::GetProc()
 {
-    return m_interpreter->ProcName();
+    return m_interpreter.GetCurrentProcName();
 }
 
 
