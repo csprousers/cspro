@@ -1,6 +1,10 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "IncludesRT.h"
 #include "EngineItem.h"
+#include "ValueSet.h"
+#include <engine/VarT.h>
+#include <zDictO/ValueProcessor.h>
+#include <zDictO/ValueSetResponse.h>
 
 
 // --------------------------------------------------------------------------
@@ -120,3 +124,60 @@ SymbolReference<T> LogicInterpreter::EvaluateSymbolReference(int symbol_index, i
 // INTERPRETER_DLL_TODO remove ZENGINEO_API
 template ZENGINEO_API SymbolReference<Symbol*> LogicInterpreter::EvaluateSymbolReference(int symbol_index, int subscript_compilation);
 template ZENGINEO_API SymbolReference<std::shared_ptr<Symbol>> LogicInterpreter::EvaluateSymbolReference(int symbol_index, int subscript_compilation);
+
+
+
+// --------------------------------------------------------------------------
+// Item functions
+// --------------------------------------------------------------------------
+
+SharableString LogicInterpreter::GetItemValueLabel(const VART& vart, const std::variant<double, SharableString>& value)
+{
+    ASSERT(vart.IsAlpha() == std::holds_alternative<SharableString>(value));
+
+    // three passes to evaluate the label:
+    // 1) look at the current value set
+    // 2) look at the base value set
+    const ValueSet* value_set = vart.GetCurrentValueSet();
+
+    while( value_set != nullptr )
+    {
+        const ValueProcessor& value_processor = value_set->GetValueProcessor();
+
+        const DictValue* const dict_value = vart.IsAlpha()
+            ? value_processor.GetDictValue(*std::get<SharableString>(value))
+            : value_processor.GetDictValue(std::get<double>(value));
+
+        if( dict_value != nullptr )
+            return UTF8_TODO::GetUtf8(dict_value->GetLabel());
+
+        // if not in the current value set, check the base value set
+        const ValueSet* const base_value_set = vart.GetBaseValueSet();
+
+        if( value_set == base_value_set )
+            break;
+
+        value_set = base_value_set;
+    }
+
+    // 3) format the code nicely
+    if( vart.IsAlpha() )
+    {
+        return SharableString(std::get<SharableString>(value)).MakeTrim();
+    }
+
+    else
+    {
+        return ValueSetResponse::FormatValueForDisplay(*vart.GetDictItem(), std::get<double>(value));
+    }
+}
+
+
+Engine::Value LogicInterpreter::ex_getvaluelabel(const int program_index)
+{
+    const auto& va_node = GetNode<Nodes::VariableArguments>(program_index);
+    const VART& vart = GetSymbol<VART>(va_node.arguments[0]);
+    const std::variant<double, SharableString> value = EvaluateVariant<SharableString>(vart.GetDataType(), va_node.arguments[1]);
+
+    return GetItemValueLabel(vart, value);
+}

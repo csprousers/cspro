@@ -68,6 +68,13 @@ public: // INTERPRETER_DLL_TODO reevaluate if these should be public, and also d
 public:
     Logic::SymbolTable& GetSymbolTable() const { return m_symbolTable; }
 
+    // Looks up a symbol from the symbol table and returns it using assert_cast.
+    template<typename T = Symbol>
+    const T& GetSymbol(int symbol_index) const;
+
+    template<typename T = Symbol>
+    T& GetSymbol(int symbol_index);
+
 protected:
     Logic::SymbolTable& m_symbolTable;
 
@@ -489,6 +496,11 @@ public:
     // if the subscript is invalid, a runtime message will appear, but the symbol will still be returned.
     template<typename SymbolT = Symbol>
     SymbolT& GetFromSymbolOrEngineItemForStaticFunction(int symbol_index, int subscript_compilation);
+
+    // Returns the label for an item, looking at the current, and base, value set for a match.
+    // If no value set label exists, the value is formatted as a string.
+    SharableString GetItemValueLabel(const VART& vart, const std::variant<double, SharableString>& value);
+    Engine::Value ex_getvaluelabel(int program_index);
 
 private:
     template<typename SymbolT>
@@ -972,6 +984,20 @@ public:
 // --------------------------------------------------------------------------
 // inline implementations
 // --------------------------------------------------------------------------
+
+template<typename T/* = Symbol*/>
+const T& LogicInterpreter::GetSymbol(const int symbol_index) const
+{
+    return assert_cast<const T&>(m_symbolTable.GetAt(symbol_index));
+}
+
+
+template<typename T/* = Symbol*/>
+T& LogicInterpreter::GetSymbol(const int symbol_index)
+{
+    return assert_cast<T&>(m_symbolTable.GetAt(symbol_index));
+}
+
 
 template<typename NodeType>
 const NodeType& LogicInterpreter::GetNode(const int program_index) const

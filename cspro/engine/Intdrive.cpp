@@ -627,7 +627,7 @@ void CIntDriver::AddIntDriverInstructions()
     OP_ENGVAL_ID(280, ex_getbluetoothname);
     OP_ENGVAL(281, ex_regexmatch);
     OP_ENGVAL(282, ex_nop_abort);
-    OP_ENGVAL_ID(283, ex_getvaluelabel);
+    OP_ENGVAL(283, ex_getvaluelabel);
     OP_ENGVAL(284, ex_Array_clear);
     OP_ENGVAL(285, ex_Array_length);
     OP_ENGVAL(286, ex_Map_show);

@@ -2730,58 +2730,6 @@ Engine::Value CIntDriver::ex_getvaluealpha(const int program_index)
 }
 
 
-SharableString CIntDriver::GetValueLabel(const VART* const pVarT, const std::variant<double, SharableString>& value)
-{
-    ASSERT(pVarT->IsAlpha() == std::holds_alternative<SharableString>(value));
-
-    // three passes to evaluate the label:
-    // 1) look at the current value set
-    // 2) look at the base value set
-    const ValueSet* value_set = pVarT->GetCurrentValueSet();
-
-    for( int pass = 0; pass < 2; ++pass )
-    {
-        if( pass == 1 )
-        {
-            const ValueSet* base_value_set = pVarT->GetBaseValueSet();
-            value_set = ( base_value_set != value_set ) ? base_value_set :
-                                                          nullptr;
-        }
-
-        if( value_set == nullptr )
-            break;
-
-        const ValueProcessor& value_processor = value_set->GetValueProcessor();
-
-        const DictValue* const dict_value = pVarT->IsAlpha()
-            ? value_processor.GetDictValue(*std::get<SharableString>(value))
-            : value_processor.GetDictValue(std::get<double>(value));
-
-        if( dict_value != nullptr )
-            return UTF8_TODO::GetUtf8(dict_value->GetLabel());
-    }
-
-    // 3) format the code nicely
-    if( pVarT->IsAlpha() )
-    {
-        return SharableString(std::get<SharableString>(value)).MakeTrim();
-    }
-
-    else
-    {
-        return ValueSetResponse::FormatValueForDisplay(*pVarT->GetDictItem(), std::get<double>(value));
-    }
-}
-
-
-Engine::Value CIntDriver::ex_getvaluelabel(const int program_index)
-{
-    const auto& va_node = GetNode<Nodes::VariableArguments>(program_index);
-    const VART* const pVarT = VPT(va_node.arguments[0]);
-    return GetValueLabel(pVarT, EvaluateVariant<SharableString>(pVarT->GetDataType(), va_node.arguments[1]));
-}
-
-
 // used in the accept, show, showarray, and selcase functions
 // returns 0 if the user cancels the box
 // if pbaSelections is NULL, returns the 1-based index of the single selection;

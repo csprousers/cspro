@@ -492,8 +492,6 @@ public:
     Engine::Value ex_getvaluealpha(int program_index);
     VARX*   AssignParser(int iExpr, std::unique_ptr<CNDIndexes>& pTheIndex, int* aIndex); // 20140422
 
-    SharableString GetValueLabel(const VART* pVarT, const std::variant<double, SharableString>& value);
-    Engine::Value ex_getvaluelabel(int program_index);
     Engine::Value ex_variablevalue(int program_index);
 
     double  exxtab(int iExpr);

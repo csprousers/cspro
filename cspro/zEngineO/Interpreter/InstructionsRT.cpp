@@ -349,7 +349,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 280 */   OP_ID(ex_getbluetoothname),
 /* 281 */   OP(ex_regexmatch),
 /* 282 */   OP(ex_nop_abort), // BLOCK_CODE
-/* 283 */   OP_ID(ex_getvaluelabel),
+/* 283 */   OP(ex_getvaluelabel),
 /* 284 */   OP(ex_Array_clear),
 /* 285 */   OP(ex_Array_length),
 /* 286 */   OP(ex_Map_show),
