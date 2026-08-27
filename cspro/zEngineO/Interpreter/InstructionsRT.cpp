@@ -494,7 +494,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 425 */   OP(ex_Geometry_minLatitude_maxLatitude_minLongitude_maxLongitude), // Geometry.maxLongitude
 /* 426 */   OP(ex_Geometry_getProperty),
 /* 427 */   OP(ex_Geometry_setProperty),
-/* 428 */   OP_ID(exinadvance),
+/* 428 */   OP(ex_inadvance),
 /* 429 */   OP(ex_Map_saveSnapshot),
 /* 430 */   OP_ID(ex_synctime),
 /* 431 */   OP(ex_htmldialog),

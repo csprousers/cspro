@@ -136,6 +136,7 @@ add_library(${PROJECT_NAME}
     Interpreter/LogicRT.cpp
     Interpreter/MapRT.cpp
     Interpreter/MathRT.cpp
+    Interpreter/MovementRT.cpp
     Interpreter/NetworkRT.cpp
     Interpreter/PathRT.cpp
     Interpreter/PffRT.cpp

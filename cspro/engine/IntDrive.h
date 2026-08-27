@@ -391,7 +391,6 @@ public:
     double  exset(int iExpr);
     double  exvisualvalue(int iExpr);
     double  exhighlight(int iExpr);
-    double  exinadvance(int iExpr);
 
     double   exnoccurs(int iExpr);
     double   exsoccurs(int iExpr);

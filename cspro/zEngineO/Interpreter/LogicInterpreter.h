@@ -638,6 +638,14 @@ private:
 
 
     // --------------------------------------------------------------------------
+    // movement routines
+    // (MovementRT.cpp)
+    // --------------------------------------------------------------------------
+public:
+    Engine::Value ex_inadvance(int program_index);
+
+
+    // --------------------------------------------------------------------------
     // network functions
     // (NetworkRT.cpp)
     // --------------------------------------------------------------------------
@@ -974,6 +982,7 @@ private:
     virtual void Execute_INTERPRETER_DLL_TODO(bool before_running_callback_function) = 0; // INTERPRETER_DLL_TODO refactor
     virtual Paradata::ParadataDriver& GetParadataDriver_INTERPRETER_DLL_TODO() = 0;// INTERPRETER_DLL_TODO is this needed?
     virtual void ClearParadataCachedObjects_INTERPRETER_DLL_TODO() = 0; // INTERPRETER_DLL_TODO refactor
+    virtual bool InAdvance_INTERPRETER_DLL_TODO() const = 0; // INTERPRETER_DLL_TODO refactor
 public:
     virtual LoopStack& GetLoopStack() = 0; // INTERPRETER_DLL_TODO remove as virtual
     virtual bool Get_m_bStopExec_INTERPRETER_DLL_TODO() const = 0; // INTERPRETER_DLL_TODO is this needed?

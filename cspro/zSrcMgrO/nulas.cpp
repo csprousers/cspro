@@ -65,6 +65,7 @@ void CIntDriver::Execute_INTERPRETER_DLL_TODO(bool before_running_callback_funct
 Paradata::ParadataDriver& CIntDriver::GetParadataDriver_INTERPRETER_DLL_TODO() { throw ProgrammingErrorException(); }
 void CIntDriver::ClearParadataCachedObjects_INTERPRETER_DLL_TODO() { throw ProgrammingErrorException(); }
 LoopStack& CIntDriver::GetLoopStack() { throw ProgrammingErrorException(); }
+bool CIntDriver::InAdvance_INTERPRETER_DLL_TODO() const { throw ProgrammingErrorException(); }
 
 
 double* CIntDriver::svaraddr( VARX* pVarX ) const { ASSERT(0); return NULL; }

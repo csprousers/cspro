@@ -120,6 +120,7 @@
     <ClCompile Include="Interpreter\LogicRT.cpp" />
     <ClCompile Include="Interpreter\MapRT.cpp" />
     <ClCompile Include="Interpreter\MathRT.cpp" />
+    <ClCompile Include="Interpreter\MovementRT.cpp" />
     <ClCompile Include="Interpreter\NetworkRT.cpp" />
     <ClCompile Include="Interpreter\PathRT.cpp" />
     <ClCompile Include="Interpreter\PffRT.cpp" />

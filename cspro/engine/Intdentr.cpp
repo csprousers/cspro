@@ -2291,3 +2291,10 @@ double CIntDriver::exask(int iExpr) // for ask-if and targetless skips
 
     return 0;
 }
+
+
+bool CIntDriver::InAdvance_INTERPRETER_DLL_TODO() const
+{
+    return ( m_pCsDriver->GetSourceOfNodeAdvance() >= 0 ||
+             m_pCsDriver->GetNumOfPendingAdvances() > 0 );
+}

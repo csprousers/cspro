@@ -335,6 +335,9 @@
     <ClCompile Include="Interpreter\MathRT.cpp">
       <Filter>Source Files\Interpreter</Filter>
     </ClCompile>
+    <ClCompile Include="Interpreter\MovementRT.cpp">
+      <Filter>Source Files\Interpreter</Filter>
+    </ClCompile>
     <ClCompile Include="Interpreter\NetworkRT.cpp">
       <Filter>Source Files\Interpreter</Filter>
     </ClCompile>

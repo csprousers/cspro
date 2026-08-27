@@ -772,7 +772,7 @@ void CIntDriver::AddIntDriverInstructions()
     OP_ENGVAL(425, ex_Geometry_minLatitude_maxLatitude_minLongitude_maxLongitude);
     OP_ENGVAL(426, ex_Geometry_getProperty);
     OP_ENGVAL(427, ex_Geometry_setProperty);
-    OP_DOUBLE(428, exinadvance);
+    OP_ENGVAL(428, ex_inadvance);
     OP_ENGVAL(429, ex_Map_saveSnapshot);
     OP_DOUBLE(430, ex_synctime);
     OP_ENGVAL(431, ex_htmldialog);

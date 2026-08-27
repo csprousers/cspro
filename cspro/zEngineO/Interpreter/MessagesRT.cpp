@@ -321,49 +321,44 @@ double CIntDriver::exlogtext(const int program_index)
 
 double CIntDriver::exwarning(const int program_index)
 {
-    if( Issamod == ModuleType::Entry )
+    // if advancing, don't display the message
+    if( GetEngineAppType() == EngineAppType::Entry &&
+        InAdvance_INTERPRETER_DLL_TODO() )
     {
-        // if advancing, don't display the message
-        const bool is_advancing = ( m_pCsDriver->GetSourceOfNodeAdvance() >= 0 ) ||
-                                  ( m_pCsDriver->GetNumOfPendingAdvances() > 0 );
+        const auto& message_node = GetNode<Nodes::Message>(program_index);
 
-        if( is_advancing )
+        // return if there was no select statement
+        if( message_node.extended_message_node_index == -1 )
+            return 1;
+
+        // otherwise follow the route that doesn't require operator intervention
+        const auto& extended_message_node = GetNode<Nodes::ExtendedMessage>(message_node.extended_message_node_index);
+        const auto& select_movements_list_node = GetListNode(extended_message_node.select_movements_list);
+
+        if( select_movements_list_node.number_elements > 0 )
         {
-            const auto& message_node = GetNode<Nodes::Message>(program_index);
-
-            // return if there was no select statement
-            if( message_node.extended_message_node_index == -1 )
-                return 1;
-
-            // otherwise follow the route that doesn't require operator intervention
-            const auto& extended_message_node = GetNode<Nodes::ExtendedMessage>(message_node.extended_message_node_index);
-            const auto& select_movements_list_node = GetListNode(extended_message_node.select_movements_list);
-
-            if( select_movements_list_node.number_elements > 0 )
+            if( extended_message_node.select_default_button_expression != -1 )
             {
-                if( extended_message_node.select_default_button_expression != -1 )
+                const int default_button_number = Evaluate<int>(extended_message_node.select_default_button_expression);
+
+                if( default_button_number >= 1 && default_button_number <= select_movements_list_node.number_elements )
                 {
-                    const int default_button_number = Evaluate<int>(extended_message_node.select_default_button_expression);
+                    const int select_expression = select_movements_list_node.elements[default_button_number - 1];
 
-                    if( default_button_number >= 1 && default_button_number <= select_movements_list_node.number_elements )
-                    {
-                        const int select_expression = select_movements_list_node.elements[default_button_number - 1];
+                    if( select_expression != -1 )
+                        Evaluate<double>(select_expression);
 
-                        if( select_expression != -1 )
-                            Evaluate<double>(select_expression);
-
-                        return default_button_number;
-                    }
+                    return default_button_number;
                 }
+            }
 
-                // if no default button, set the return value to the first continue value
-                else
+            // if no default button, set the return value to the first continue value
+            else
+            {
+                for( int i = 0; i < select_movements_list_node.number_elements; ++i )
                 {
-                    for( int i = 0; i < select_movements_list_node.number_elements; ++i )
-                    {
-                        if( select_movements_list_node.elements[i] == -1 )
-                            return i + 1;
-                    }
+                    if( select_movements_list_node.elements[i] == -1 )
+                        return i + 1;
                 }
             }
         }

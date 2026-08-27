@@ -927,21 +927,6 @@ double CIntDriver::exhighlight(int iExpr)
 }
 
 
-double CIntDriver::exinadvance(int iExpr)
-{
-    bool is_advancing = false;
-
-    if( Issamod == ModuleType::Entry )
-    {
-        // the same check used by the warning function
-        is_advancing = ( m_pCsDriver->GetSourceOfNodeAdvance() >= 0 ) ||
-                       ( m_pCsDriver->GetNumOfPendingAdvances() > 0 );
-    }
-
-    return is_advancing ? 1 : 0;
-}
-
-
 double CIntDriver::exvisualvalue(int iExpr)
 {
     const auto& fnh_node = GetNode<FNH_NODE>(iExpr);
