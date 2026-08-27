@@ -2,10 +2,6 @@ project(zYaml)
 
 set(YAML_DIRECTORY ${EXTERNAL_DIRECTORY}/yaml-cpp)
 
-include_directories(${PROJECT_NAME} PRIVATE
-    ${YAML_DIRECTORY}/include
-)
-
 add_library(${PROJECT_NAME}
     ${YAML_DIRECTORY}/src/binary.cpp
     ${YAML_DIRECTORY}/src/convert.cpp
@@ -37,3 +33,8 @@ add_library(${PROJECT_NAME}
     ${YAML_DIRECTORY}/src/stream.cpp
     ${YAML_DIRECTORY}/src/tag.cpp
 )
+
+target_include_directories(${PROJECT_NAME} PRIVATE
+    ${YAML_DIRECTORY}/include
+)
+

@@ -1,9 +1,5 @@
 project(zDataO)
 
-include_directories(${PROJECT_NAME} PRIVATE
-    ${EXTERNAL_DIRECTORY}
-)
-
 add_library(${PROJECT_NAME}
     CacheableCaseWrapperRepository.cpp
     CaseIteratorSettings.cpp
@@ -39,6 +35,10 @@ add_library(${PROJECT_NAME}
     TextRepositoryNotesFile.cpp
     TextRepositoryStatusFile.cpp
     WrapperRepository.cpp
+)
+
+target_include_directories(${PROJECT_NAME} PRIVATE
+    ${EXTERNAL_DIRECTORY}
 )
 
 target_precompile_headers(${PROJECT_NAME} PRIVATE

@@ -5,10 +5,6 @@ set(MD4C_DIRECTORY ${EXTERNAL_DIRECTORY}/md4c)
 set(RIJNDAEL_DIRECTORY rijndael)
 set(SCRYPT_DIRECTORY ${EXTERNAL_DIRECTORY}/scrypt)
 
-include_directories(${PROJECT_NAME} PRIVATE
-    ${EXTERNAL_DIRECTORY}
-)
-
 add_library(${PROJECT_NAME}
     base64.cpp
     BinaryGen.cpp
@@ -64,6 +60,10 @@ add_library(${PROJECT_NAME}
 
     ${SCRYPT_DIRECTORY}/insecure_memzero.c
     ${SCRYPT_DIRECTORY}/sha256.c
+)
+
+target_include_directories(${PROJECT_NAME} PRIVATE
+    ${EXTERNAL_DIRECTORY}
 )
 
 target_precompile_headers(${PROJECT_NAME} PRIVATE

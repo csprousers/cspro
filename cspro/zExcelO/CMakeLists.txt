@@ -2,11 +2,6 @@ project(zExcelO)
 
 set(LIBXLSXWRITER_DIRECTORY ${EXTERNAL_DIRECTORY}/libxlsxwriter)
 
-include_directories(${PROJECT_NAME} PRIVATE
-    ${LIBXLSXWRITER_DIRECTORY}/include
-    ${EXTERNAL_DIRECTORY}/zlib
-)
-
 add_library(${PROJECT_NAME}
     ExcelWriter.cpp
 
@@ -45,6 +40,11 @@ add_library(${PROJECT_NAME}
 target_compile_definitions(${PROJECT_NAME} PRIVATE
     IOAPI_NO_64
     NOUNCRYPT
+)
+
+target_include_directories(${PROJECT_NAME} PRIVATE
+    ${LIBXLSXWRITER_DIRECTORY}/include
+    ${EXTERNAL_DIRECTORY}/zlib
 )
 
 target_precompile_headers(${PROJECT_NAME} PRIVATE

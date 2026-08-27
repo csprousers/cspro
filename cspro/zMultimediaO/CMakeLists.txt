@@ -7,13 +7,6 @@ set(LIBWEBM_DIRECTORY ${EXTERNAL_DIRECTORY}/libwebm)
 set(LIBWEBP_DIRECTORY ${EXTERNAL_DIRECTORY}/libwebp)
 set(QRCODEGEN_DIRECTORY ${EXTERNAL_DIRECTORY}/qrcodegen)
 
-include_directories(${PROJECT_NAME} PRIVATE
-    ${EXTERNAL_DIRECTORY}
-    ${GPAC_DIRECTORY}/include
-    ${LIBWEBM_DIRECTORY}
-    ${LIBWEBP_DIRECTORY}
-)
-
 add_library(${PROJECT_NAME}
     BmpFile.cpp
     ExifReader.cpp
@@ -226,6 +219,13 @@ add_library(${PROJECT_NAME}
 target_compile_definitions(${PROJECT_NAME} PRIVATE
     # allow the WebP library to use multiple threads
     WEBP_USE_THREAD
+)
+
+target_include_directories(${PROJECT_NAME} PRIVATE
+    ${EXTERNAL_DIRECTORY}
+    ${GPAC_DIRECTORY}/include
+    ${LIBWEBM_DIRECTORY}
+    ${LIBWEBP_DIRECTORY}
 )
 
 target_precompile_headers(${PROJECT_NAME} PRIVATE
