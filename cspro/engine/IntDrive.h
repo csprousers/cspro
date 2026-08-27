@@ -40,7 +40,6 @@ class CDEField;
 class CIntDriver;
 class CMsgOptions;
 class CsDriver;
-class CSettings;
 class CSubTable;
 class DictValue;
 enum class FieldStatus : int;
@@ -430,13 +429,6 @@ public:
     std::vector<int> EvaluateValidIndices(int iSymGroup, int iSymItem, int iWhere); // 20110810
     int GetTrueGroupOccs(int iSymGroup, bool use_rules_for_binary_dict_items = false); // victor Dec 10, 01
 
-    double  exdisplay(int program_index);
-    double  exerrmsg(int program_index);
-    double  exwrite(int program_index);
-    Engine::Value exmaketext(int program_index);
-    double  exlogtext(int program_index);
-    double  exwarning(int program_index);
-
     double  expre77_setreportdata(int iExpr);
     double  expre77_report(int iExpr);
 
@@ -490,8 +482,6 @@ public:
     double  exgetvalue(int iExpr);      // 20140422
     Engine::Value ex_getvaluealpha(int program_index);
     VARX*   AssignParser(int iExpr, std::unique_ptr<CNDIndexes>& pTheIndex, int* aIndex); // 20140422
-
-    Engine::Value ex_variablevalue(int program_index);
 
     double  exxtab(int iExpr);
     double  extblcoord(int iExpr); // tblrow, tblcol, tbllay
@@ -771,13 +761,6 @@ private:
     void    ExpWrite1Record();
     void    ExpWriteVar( VART* pVarT, int iOccur = 0 );    // formerly 'expoutvar'
 
-    // --- ISSA-like messages management
-private:
-    SharableString EvaluateUserMessage(int message_node_index, FunctionCode function_code, int* out_message_number = nullptr) override;
-    double DisplayUserMessage(int message_node_index);
-
-public:
-    SharableString EvaluateVariableParameter(const std::variant<double, SharableString>& value, int value_expression, bool request_label);
     // --- engine links
 public:
     CsDriver* GetCsDriver()               { return m_pCsDriver; }      // victor May 16, 01
@@ -867,6 +850,12 @@ private:
     void Execute_INTERPRETER_DLL_TODO(bool before_running_callback_function) override;
     Paradata::ParadataDriver& GetParadataDriver_INTERPRETER_DLL_TODO() override;
     void ClearParadataCachedObjects_INTERPRETER_DLL_TODO() override;
+    const CSettings* GetSettings_INTERPRETER_DLL_TODO() const override { return m_pEngineSettings; }
+    Listing::WriteFile* GetWriteFile_INTERPRETER_DLL_TODO() override;
+    MessageEvaluator& GetUserMessageEvaluator_INTERPRETER_DLL_TODO() override;
+    MessageManager& GetUserMessageManager_INTERPRETER_DLL_TODO() override;
+    int DisplayMessage_INTERPRETER_DLL_TODO(MessageType message_type, const RuntimeMessage& runtime_message) override;
+    bool InAdvance_INTERPRETER_DLL_TODO() const override;
 public:
     LoopStack& GetLoopStack() override;
     bool Get_m_bStopExec_INTERPRETER_DLL_TODO() const override { return m_bStopExec; }

@@ -1,4 +1,4 @@
-﻿//-------------------------------------------------------------------------//
+//-------------------------------------------------------------------------//
 //                                                                         //
 //  deFUNCS : data entry functions                                         //
 //                                                                         //
@@ -11,6 +11,7 @@
 #include <zCaseO/Case.h>
 #include <zMessageO/MessageManager.h>
 #include <zMessageO/Messages.h>
+#include <zMessageO/RuntimeMessage.h>
 #include <zParadataO/Logger.h>
 
 #ifdef _DEBUG
@@ -203,22 +204,28 @@ bool CEntryDriver::ConfirmValue(const bool value_is_notappl, VART* const pVarT, 
     }
 
     // otherwise, show a message with yes/no buttons
+    RuntimeMessage runtime_message
+    {
+        message_number,
+        message_number,
+        FormatText(MGF::GetMessageText(message_number)->c_str(), pVarT->GetName().c_str(), occurrence_text.c_str())
+    };
 
-    SharableString message_text = FormatText(MGF::GetMessageText(message_number)->c_str(), pVarT->GetName().c_str(), occurrence_text.c_str());
     m_pEngineDriver->GetSystemMessageManager().IncrementMessageCount(message_number);
 
     std::unique_ptr<Paradata::MessageEvent> message_event;
 
     if( Paradata::Logger::IsOpen() )
-        message_event = m_pIntDriver->m_paradataDriver->CreateMessageEvent(MessageType::Error, message_number, message_text);
+        message_event = m_pIntDriver->m_paradataDriver->CreateMessageEvent(MessageType::Error, message_number, runtime_message.message_text);
 
-    const MessageSelectDetails select_details
-    {
-        { MGF::GetMessageText(MGF::Yes), MGF::GetMessageText(MGF::No) },
-        1  // default to selecting No
-    };
+    runtime_message.select_buttons.reset(new RuntimeMessage::SelectButtons
+        {
+            { MGF::GetMessageText(MGF::Yes), MGF::GetMessageText(MGF::No) },
+            1  // default to selecting No
+        }
+    );
 
-    const int selected_button_number = DisplayMessage(message_type, message_number, std::move(message_text), &select_details);
+    const int selected_button_number = DisplayMessage(message_type, runtime_message);
 
     if( message_event != nullptr )
     {

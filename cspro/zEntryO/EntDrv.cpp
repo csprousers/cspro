@@ -22,6 +22,7 @@
 #include <zHtml/WebViewSyncOperationMarker.h>
 #include <zAppO/Application.h>
 #include <zMessageO/Messages.h>
+#include <zMessageO/RuntimeMessage.h>
 #include <zDictO/ValueProcessor.h>
 #include <zBridgeO/NPff.h>
 #include <zCapiO/CapiQuestionManager.h>
@@ -823,24 +824,27 @@ bool CEntryDriver::EditNote(const bool case_note, const DEFLD* defld/* = nullptr
 }
 
 
-int CEntryDriver::DisplayMessage(const MessageType message_type, const int message_number, SharableString message_text, const MessageSelectDetails* const select_details)
+int CEntryDriver::DisplayMessage(const MessageType message_type, const RuntimeMessage& runtime_message)
 {
     // abort messages aren't displayed using the entry message because they are handled elsewhere
     ASSERT(message_type != MessageType::Abort);
 
     if( !UseHtmlDialogs() )
-        return DisplayMessage_pre77(message_type, message_number, UTF8_TODO::GetCString(*message_text), select_details);
+        return DisplayMessage_pre77(message_type, runtime_message);
 
     cs::shared_or_raw_ptr<const std::vector<SharableString>> message_buttons;
     int default_button_index = 0;
 
-    if( select_details != nullptr )
+    if( runtime_message.select_buttons != nullptr )
     {
-        message_buttons = &select_details->button_texts;
-        default_button_index = select_details->default_button_number;
+        message_buttons = &runtime_message.select_buttons->button_texts;
 
-        // the default button index needs to be one-based
-        ++default_button_index;
+        if( runtime_message.select_buttons->default_button_number.has_value() )
+        {
+            // + 1 as the default button index is one-based
+            default_button_index = int32_cast(*runtime_message.select_buttons->default_button_number + 1);
+        }
+
         ASSERT(static_cast<size_t>(default_button_index) <= message_buttons->size());
     }
 
@@ -849,23 +853,23 @@ int CEntryDriver::DisplayMessage(const MessageType message_type, const int messa
     {
         // use the old message style while in operator-controlled mode
         if( WindowsDesktopMessage::Send(UWM::CSEntry::UsingOperatorControlledMessages) == 1 )
-            return DisplayMessage_pre77(message_type, message_number, UTF8_TODO::GetCString(*message_text), select_details);
+            return DisplayMessage_pre77(message_type, runtime_message);
 
         // CSEntry may decide that this error message does not need to be displayed
         // (for example, while in an interactive edit)
-        if( WindowsDesktopMessage::Send(UWM::CSEntry::PreprocessEngineMessage, static_cast<WPARAM>(message_type), message_number) < 0 )
+        if( WindowsDesktopMessage::Send(UWM::CSEntry::PreprocessEngineMessage, static_cast<WPARAM>(message_type), runtime_message.message_number_for_display) < 0 )
             return 1;
 
         // to allow simple error messages to display during synchronous JavaScript calls
         // into the engine, display messages using a native message box
         if( WebViewSyncOperationMarker::IsOperationInProgress() )
         {
-            ErrorMessage::Display(*message_text);
+            ErrorMessage::Display(*runtime_message.message_text);
             return 1;
         }
 
         // add the default OK text
-        message_buttons = std::make_shared<std::vector<SharableString>>(std::vector<SharableString>({ MGF::GetMessageText(MGF::Ok) }));
+        message_buttons = std::make_unique<std::vector<SharableString>>(std::vector<SharableString>({ MGF::GetMessageText(MGF::Ok) }));
     }
 
     ErrmsgDlg errmsg_dlg;
@@ -878,11 +882,11 @@ int CEntryDriver::DisplayMessage(const MessageType message_type, const int messa
             ( message_type == MessageType::Warning ) ? MGF::GetMessageText(MGF::SystemWarningTitle) :
                                                        MGF::GetMessageText(MGF::SystemErrorTitle);
 
-        errmsg_dlg.SetTitle(FormatText("%s (%d)", message_type_text->c_str(), message_number));
+        errmsg_dlg.SetTitle(FormatText("%s (%d)", message_type_text->c_str(), runtime_message.message_number_for_display));
     }
 
     // add the message text, default button index, and buttons
-    errmsg_dlg.SetMessage(std::move(message_text));
+    errmsg_dlg.SetMessage(runtime_message.message_text);
     errmsg_dlg.SetDefaultButtonIndex(default_button_index);
     errmsg_dlg.SetButtons(*message_buttons);
 
@@ -902,20 +906,21 @@ int CEntryDriver::DisplayMessage(const MessageType message_type, const int messa
 }
 
 
-int CEntryDriver::DisplayMessage_pre77(const MessageType message_type, const int message_number, const CString& message_text, const MessageSelectDetails* const select_details)
+int CEntryDriver::DisplayMessage_pre77(const MessageType message_type, const RuntimeMessage& runtime_message)
 {
     std::vector<CString> message_buttons;
     int default_button_number = -1;
 
-    if( select_details != nullptr )
+    if( runtime_message.select_buttons != nullptr )
     {
-        for( const SharableString& button_text : select_details->button_texts )
+        for( const SharableString& button_text : runtime_message.select_buttons->button_texts )
             message_buttons.emplace_back(UTF8_TODO::GetCString(*button_text));
 
-        default_button_number = select_details->default_button_number;
+        if( runtime_message.select_buttons->default_button_number.has_value() )
+            default_button_number = int32_cast(*runtime_message.select_buttons->default_button_number);
     }
 
-    CString message = message_text;
+    CString message = UTF8_TODO::GetCString(*runtime_message.message_text);
     message.TrimRight();
 
     // construct the title
@@ -930,15 +935,16 @@ int CEntryDriver::DisplayMessage_pre77(const MessageType message_type, const int
             ( message_type == MessageType::Warning ) ? MGF::GetMessageText(MGF::SystemWarningTitle) :
                                                        MGF::GetMessageText(MGF::SystemErrorTitle);
 
-        title.Format(_T("%s (%d)"), UTF8_TODO::GetWide(*message_type_text).c_str(), message_number);
+        title.Format(_T("%s (%d)"), UTF8_TODO::GetWide(*message_type_text).c_str(), runtime_message.message_number_for_display);
     }
 
-    CMsgOptions message_options(title, message, MB_OK, default_button_number, -1, message_buttons, message_type, message_number);
+    CMsgOptions message_options(title, message, MB_OK, default_button_number, -1, message_buttons,
+                                message_type, runtime_message.message_number_for_display);
 
     while( true )
     {
 #ifdef WIN_DESKTOP
-        const LRESULT selected_button_number = WindowsDesktopMessage::Send(WM_IMSA_ENGINEMSG, &message_options);
+        const int selected_button_number = static_cast<int>(WindowsDesktopMessage::Send(WM_IMSA_ENGINEMSG, &message_options));
 #else
         const int selected_button_number = PlatformInterface::GetInstance()->GetApplicationInterface()->ShowMessage(title, message, message_buttons);
 #endif

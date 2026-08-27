@@ -103,8 +103,8 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /*  69 */   OP_ID(exavrge),
 /*  70 */   OP_ID(exmin),
 /*  71 */   OP_ID(exmax),
-/*  72 */   OP_ID(exdisplay),
-/*  73 */   OP_ID(exerrmsg),
+/*  72 */   OP(ex_display),
+/*  73 */   OP(ex_errmsg),
 
 /*───────┬──────────┬-----------------------------------------------------*/
 /*Op.code│ Function │      ALPHA FUNCTIONS                                */
@@ -198,7 +198,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 136 */   OP_ID(exfncurocc),   // RHC Oct 16, 2000
 /* 137 */   OP_ID(exfntotocc),   // RHC Oct 16, 2000
 /* 138 */   OP_ID(exupdate),     // RHF Nov 17, 2000
-/* 139 */   OP_ID(exwrite),      // RHF Dec 16, 2000
+/* 139 */   OP(ex_write),     // RHF Dec 16, 2000
 /* 140 */   OP(ex_nop_abort), // an old implementation of exispartial [original: RHF Mar 06, 2001]
 /* 141 */   OP_ID(exfor_relation),
 /* 142 */   OP(ex_nop_abort), // REL_CODE
@@ -211,7 +211,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 149 */   OP(ex_nop_abort),     // an old implementation of exgetnote  [original: RHF Nov 19, 2002]
 /* 150 */   OP(ex_nop_abort),     // an old implementation of exeditnote [original: RHF Nov 19, 2002]
 /* 151 */   OP(ex_nop_abort),     // an old implementation of exputnote  [original: RHF Nov 19, 2002]
-/* 152 */   OP_ID(exmaketext),       // RHF Jun 08, 2001
+/* 152 */   OP(ex_maketext),      // RHF Jun 08, 2001
 
 /* 153 */   OP_ID(exmoveto),         // RHF Dec 09, 2003
 /* 154 */   OP(ex_nop_abort),     // an old implementation of exsavepartial [original: RHF Dec 01, 2003]
@@ -327,8 +327,8 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 258 */   OP_ID(excountcases),
 /* 259 */   OP_ID(ex_getproperty),
 /* 260 */   OP_ID(ex_setproperty),
-/* 261 */   OP_ID(exlogtext),
-/* 262 */   OP_ID(exwarning),
+/* 261 */   OP(ex_logtext),
+/* 262 */   OP(ex_warning),
 /* 263 */   OP_ID(ex_tr),
 /* 264 */   OP(ex_uuid),
 /* 265 */   OP(ex_paradata),
@@ -385,7 +385,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 316 */   OP(ex_ValueSet_remove),
 /* 317 */   OP(ex_ValueSet_show),
 /* 318 */   OP(ex_ValueSet_compute),
-/* 319 */   OP_ID(ex_variablevalue),
+/* 319 */   OP(ex_variablevalue),
 /* 320 */   OP(ex_Map_clear_clearButtons_clearGeometry_clearMarkers), // Map.clearMarkers
 /* 321 */   OP(ex_Map_clear_clearButtons_clearGeometry_clearMarkers), // Map.clearButtons
 /* 322 */   OP(ex_Map_getLastClickLatitude_getLastClickLongitude), // Map.getLastClickLatitude

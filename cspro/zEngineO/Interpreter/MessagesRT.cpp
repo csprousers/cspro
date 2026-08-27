@@ -1,14 +1,20 @@
-#include "StandardSystemIncludes.h"
-#include "Interpreter.h"
-#include "Engdrv.h"
-#include "Engine.h"
-#include <zEngineO/Nodes/Messages.h>
+#include "stdafx.h"
+#include "IncludesRT.h"
+#include "Nodes/Messages.h"
+#include <engine/Settings.h>
+#include <engine/VarT.h>
 #include <zMessageO/Messages.h>
 #include <zMessageO/MessageEvaluator.h>
 #include <zMessageO/MessageManager.h>
+#include <zMessageO/RuntimeMessage.h>
 #include <zListingO/WriteFile.h>
-#include <zBridgeO/NPff.h>
-#include <zIssaLib/CsDriver.h>
+
+
+namespace MessagesRT
+{
+    struct MessageArgument;
+    class MessageArgumentsMessageParameterEvaluator;
+}
 
 
 // --------------------------------------------------------------------------
@@ -16,17 +22,18 @@
 // MessageArgumentsMessageParameterEvaluator
 // --------------------------------------------------------------------------
 
-struct MessageArgument
+struct MessagesRT::MessageArgument
 {
     std::variant<double, SharableString> value;
     int value_expression;
 };
 
 
-class MessageArgumentsMessageParameterEvaluator : public MessageParameterEvaluator
+class MessagesRT::MessageArgumentsMessageParameterEvaluator : public MessageParameterEvaluator
 {
 public:
-    MessageArgumentsMessageParameterEvaluator(CIntDriver* interpreter, const std::vector<MessageArgument>& arguments, FunctionCode function_code);
+    MessageArgumentsMessageParameterEvaluator(LogicInterpreter& interpreter, const std::vector<MessageArgument>& arguments,
+                                              FunctionCode function_code);
 
     MessageFormat::Type GetMessageFormatType(const MessageFormat& message_format) const override;
     bool ReplaceSpecialValuesWithSpaces() const override;
@@ -43,25 +50,29 @@ private:
 
     const MessageArgument& GetArgument(ArgumentType argument_type);
 
+    // Evaluates the %v variable formatter.
+    SharableString EvaluateMessageVariableArgument(const std::variant<double, SharableString>& value,
+                                                   int value_expression, bool request_label);
+
 private:
-    CIntDriver* m_interpreter;
+    LogicInterpreter& m_interpreter;
     const std::vector<MessageArgument>& m_arguments;
     size_t m_nextArgumentIndex;
     FunctionCode m_functionCode;
 };
 
 
-MessageArgumentsMessageParameterEvaluator::MessageArgumentsMessageParameterEvaluator(CIntDriver* const interpreter, const std::vector<MessageArgument>& arguments, const FunctionCode function_code)
+MessagesRT::MessageArgumentsMessageParameterEvaluator::MessageArgumentsMessageParameterEvaluator(
+    LogicInterpreter& interpreter, const std::vector<MessageArgument>& arguments, const FunctionCode function_code)
     :   m_interpreter(interpreter),
         m_arguments(arguments),
         m_nextArgumentIndex(0),
         m_functionCode(function_code)
 {
-    ASSERT(m_interpreter != nullptr);
 }
 
 
-MessageFormat::Type MessageArgumentsMessageParameterEvaluator::GetMessageFormatType(const MessageFormat& message_format) const
+MessageFormat::Type MessagesRT::MessageArgumentsMessageParameterEvaluator::GetMessageFormatType(const MessageFormat& message_format) const
 {
     // process integers as doubles so that special values can be formatted properly
     return ( message_format.type == MessageFormat::Type::Integer ) ? MessageFormat::Type::Double :
@@ -69,59 +80,60 @@ MessageFormat::Type MessageArgumentsMessageParameterEvaluator::GetMessageFormatT
 }
 
 
-bool MessageArgumentsMessageParameterEvaluator::ReplaceSpecialValuesWithSpaces() const
+bool MessagesRT::MessageArgumentsMessageParameterEvaluator::ReplaceSpecialValuesWithSpaces() const
 {
-    return ( m_functionCode == FNWRITE_CODE || m_functionCode == FILEFN_WRITE_CODE );
+    return ( m_functionCode == FNWRITE_CODE ||
+             m_functionCode == FILEFN_WRITE_CODE );
 }
 
 
-int MessageArgumentsMessageParameterEvaluator::GetInteger()
+int MessagesRT::MessageArgumentsMessageParameterEvaluator::GetInteger()
 {
     throw ProgrammingErrorException();
 }
 
 
-double MessageArgumentsMessageParameterEvaluator::GetDouble()
+double MessagesRT::MessageArgumentsMessageParameterEvaluator::GetDouble()
 {
     const MessageArgument& argument = GetArgument(ArgumentType::Number);
     return std::get<double>(argument.value);
 }
 
 
-SharableString MessageArgumentsMessageParameterEvaluator::GetString()
+SharableString MessagesRT::MessageArgumentsMessageParameterEvaluator::GetString()
 {
     const MessageArgument& argument = GetArgument(ArgumentType::String);
     return std::get<SharableString>(argument.value);
 }
 
 
-std::variant<int, SharableString> MessageArgumentsMessageParameterEvaluator::GetChar()
+std::variant<int, SharableString> MessagesRT::MessageArgumentsMessageParameterEvaluator::GetChar()
 {
     return MessageArgumentsMessageParameterEvaluator::GetString();
 }
 
 
-SharableString MessageArgumentsMessageParameterEvaluator::GetProc()
+SharableString MessagesRT::MessageArgumentsMessageParameterEvaluator::GetProc()
 {
     return m_interpreter.GetCurrentProcName();
 }
 
 
-SharableString MessageArgumentsMessageParameterEvaluator::GetVariable()
+SharableString MessagesRT::MessageArgumentsMessageParameterEvaluator::GetVariable()
 {
     const MessageArgument& argument = GetArgument(ArgumentType::Either);
-    return m_interpreter->EvaluateVariableParameter(argument.value, argument.value_expression, false);
+    return EvaluateMessageVariableArgument(argument.value, argument.value_expression, false);
 }
 
 
-SharableString MessageArgumentsMessageParameterEvaluator::GetVariableLabel()
+SharableString MessagesRT::MessageArgumentsMessageParameterEvaluator::GetVariableLabel()
 {
     const MessageArgument& argument = GetArgument(ArgumentType::Either);
-    return m_interpreter->EvaluateVariableParameter(argument.value, argument.value_expression, true);
+    return EvaluateMessageVariableArgument(argument.value, argument.value_expression, true);
 }
 
 
-const MessageArgument& MessageArgumentsMessageParameterEvaluator::GetArgument(const ArgumentType argument_type)
+const MessagesRT::MessageArgument& MessagesRT::MessageArgumentsMessageParameterEvaluator::GetArgument(const ArgumentType argument_type)
 {
     if( m_nextArgumentIndex >= m_arguments.size() )
         throw MessageParameterEvaluator::EvaluationException(MGF::GetMessageText(MGF::InvalidMessageParameterNumber).GetString());
@@ -139,40 +151,34 @@ const MessageArgument& MessageArgumentsMessageParameterEvaluator::GetArgument(co
     const size_t expected_parameter_type_index = ( argument_type == ArgumentType::Number ) ? 0 : 1;
     const SharableString formatter = MGF::GetMessageText(MGF::InvalidMessageParameterCount);
 
-    throw MessageParameterEvaluator::EvaluationException(formatter->c_str(), ParameterTypes[expected_parameter_type_index], ParameterTypes[1 - expected_parameter_type_index]);
+    throw MessageParameterEvaluator::EvaluationException(
+        formatter->c_str(),
+        ParameterTypes[expected_parameter_type_index],
+        ParameterTypes[1 - expected_parameter_type_index]
+    );
 }
 
 
-
-// --------------------------------------------------------------------------
-// CIntDriver
-// --------------------------------------------------------------------------
-
-SharableString CIntDriver::EvaluateVariableParameter(const std::variant<double, SharableString>& value, const int value_expression, const bool request_label)
+SharableString MessagesRT::MessageArgumentsMessageParameterEvaluator::EvaluateMessageVariableArgument(
+    const std::variant<double, SharableString>& value, const int value_expression, const bool request_label)
 {
     const bool is_numeric = std::holds_alternative<double>(value);
-    const int expression_type = GetNode<int>(value_expression);
+    const int expression_type = m_interpreter.GetNode<int>(value_expression);
 
     if( expression_type == FunctionCode::FN_VARIABLE_VALUE_CODE ) // CSPro 7.3+
     {
-        const auto& variable_value_node = GetNode<Nodes::VariableValue>(value_expression);
-        const VART* const pVarT = VPT(variable_value_node.symbol_index);
-        const CDictItem* const dict_item = pVarT->GetDictItem();
+        const auto& variable_value_node = m_interpreter.GetNode<Nodes::VariableValue>(value_expression);
+        const VART& vart = m_interpreter.GetSymbol<VART>(variable_value_node.symbol_index);
+        const CDictItem* const dict_item = vart.GetDictItem();
 
         if( request_label && dict_item != nullptr )
         {
-            return GetValueLabel(pVarT, value);
+            return m_interpreter.GetItemValueLabel(vart, value);
         }
 
         else if( is_numeric )
         {
-            const VARX* const pVarX = pVarT->GetVarX();
-            const double numeric_value = pVarX->varoutval(std::get<double>(value));
-
-            std::wstring formatted_variable(pVarT->GetLength(), '\0');
-            pVarT->dvaltochar(numeric_value, formatted_variable.data());
-
-            return UTF8_TODO::GetUtf8(formatted_variable);
+            return vart.dvaltochar(std::get<double>(value), true);
         }
     }
 
@@ -181,11 +187,17 @@ SharableString CIntDriver::EvaluateVariableParameter(const std::variant<double, 
 }
 
 
-SharableString CIntDriver::EvaluateUserMessage(const int message_node_index, const FunctionCode function_code, int* const out_message_number/* = nullptr*/)
+
+// --------------------------------------------------------------------------
+// message routines
+// --------------------------------------------------------------------------
+
+SharableString LogicInterpreter::EvaluateUserMessage(const int message_node_index, const FunctionCode function_code,
+                                                     int* const out_message_number/* = nullptr*/)
 {
     const auto& message_node = GetNode<Nodes::Message>(message_node_index);
-    MessageManager& user_message_manager = m_pEngineDriver->GetUserMessageManager();
-    MessageEvaluator& user_message_evaluator = m_pEngineDriver->GetUserMessageEvaluator();
+    MessageManager& user_message_manager = GetUserMessageManager_INTERPRETER_DLL_TODO();
+    MessageEvaluator& user_message_evaluator = GetUserMessageEvaluator_INTERPRETER_DLL_TODO();
 
     // get the message number
     int message_number;
@@ -216,7 +228,7 @@ SharableString CIntDriver::EvaluateUserMessage(const int message_node_index, con
 
     // evaluate any arguments passed along with the message
     const auto& argument_list_node = GetListNode(message_node.argument_list);
-    std::vector<MessageArgument> arguments;
+    std::vector<MessagesRT::MessageArgument> arguments;
 
     for( int i = 0; i < argument_list_node.number_elements; ++i )
     {
@@ -238,7 +250,8 @@ SharableString CIntDriver::EvaluateUserMessage(const int message_node_index, con
             }
 
             // added the second argument for strings combined with the + operator
-            else if( variable_value_node.function_code == FunctionCode::CHOBJ_CODE || variable_value_node.function_code == FunctionCode::FNCONCAT_CODE )
+            else if( variable_value_node.function_code == FunctionCode::CHOBJ_CODE ||
+                     variable_value_node.function_code == FunctionCode::FNCONCAT_CODE )
             {
                 argument_data_type = DataType::String;
             }
@@ -249,7 +262,7 @@ SharableString CIntDriver::EvaluateUserMessage(const int message_node_index, con
             }
         }
 
-        arguments.emplace_back(MessageArgument
+        arguments.emplace_back(MessagesRT::MessageArgument
             {
                 EvaluateVariant<SharableString>(argument_data_type, argument_list_node.elements[i]),
                 argument_list_node.elements[i]
@@ -257,69 +270,79 @@ SharableString CIntDriver::EvaluateUserMessage(const int message_node_index, con
     }
 
     // format the message text
-    MessageArgumentsMessageParameterEvaluator message_parameter_evaluator(this, arguments, function_code);
+    MessagesRT::MessageArgumentsMessageParameterEvaluator message_parameter_evaluator(*this, arguments, function_code);
 
-    if( unformatted_message_text.IsSet() )
-    {
-        return user_message_evaluator.GetFormattedMessage(message_parameter_evaluator, *unformatted_message_text);
-    }
-
-    else
-    {
-        return user_message_evaluator.GetFormattedMessage(message_parameter_evaluator, message_number);
-    }
+    return unformatted_message_text.IsSet()
+        ? user_message_evaluator.GetFormattedMessage(message_parameter_evaluator, *unformatted_message_text)
+        : user_message_evaluator.GetFormattedMessage(message_parameter_evaluator, message_number);
 }
 
 
-double CIntDriver::exerrmsg(const int program_index)
+
+// --------------------------------------------------------------------------
+// message functions
+// --------------------------------------------------------------------------
+
+Engine::Value LogicInterpreter::ex_errmsg(const int program_index)
 {
-    if( !m_pEngineSettings->IsErrmsgMessageOn() )
-        return 0;
+    const CSettings* const settings = GetSettings_INTERPRETER_DLL_TODO();
+
+    if( settings != nullptr && !settings->IsErrmsgMessageOn() )
+        return Engine::Value::Integer(0);
 
     return DisplayUserMessage(program_index);
 }
 
 
-double CIntDriver::exdisplay(const int program_index)
+Engine::Value LogicInterpreter::ex_display(const int program_index)
 {
-    if( !m_pEngineSettings->IsDisplayMessageOn() )
-        return 0;
+    const CSettings* const settings = GetSettings_INTERPRETER_DLL_TODO();
+
+    if( settings != nullptr && !settings->IsDisplayMessageOn() )
+        return Engine::Value::Integer(0);
 
     return DisplayUserMessage(program_index);
 }
 
 
-double CIntDriver::exwrite(const int program_index)
+Engine::Value LogicInterpreter::ex_write(const int program_index)
 {
-    ASSERT(m_pEngineDriver->GetWriteFile() != nullptr);
+    Listing::WriteFile* const write_file = GetWriteFile_INTERPRETER_DLL_TODO();
 
-    m_pEngineDriver->GetWriteFile()->WriteLine(EvaluateUserMessage(program_index, FunctionCode::FNWRITE_CODE));
+    if( write_file == nullptr )
+        return Engine::Value::Bool(false);
 
-    return 1;
+    write_file->WriteLine(EvaluateUserMessage(program_index, FunctionCode::FNWRITE_CODE));
+
+    return Engine::Value::Bool(true);
 }
 
 
-Engine::Value CIntDriver::exmaketext(const int program_index)
+Engine::Value LogicInterpreter::ex_maketext(const int program_index)
 {
     return EvaluateUserMessage(program_index, FunctionCode::FNMAKETEXT_CODE);
 }
 
 
-double CIntDriver::exlogtext(const int program_index)
+Engine::Value LogicInterpreter::ex_logtext(const int program_index)
 {
     if( !Paradata::Logger::IsOpen() )
-        return 0;
+        return Engine::Value::Bool(false);
 
     int message_number;
     SharableString message_text = EvaluateUserMessage(program_index, FunctionCode::FNLOGTEXT_CODE, &message_number);
 
-    m_paradataDriver->RegisterAndLogEvent(m_paradataDriver->CreateMessageEvent(FunctionCode::FNLOGTEXT_CODE, message_number, std::move(message_text)));
+    GetParadataDriver_INTERPRETER_DLL_TODO().RegisterAndLogEvent(
+        GetParadataDriver_INTERPRETER_DLL_TODO().CreateMessageEvent(
+            FunctionCode::FNLOGTEXT_CODE, message_number, std::move(message_text)
+        )
+    );
 
-    return 1;
+    return Engine::Value::Bool(true);
 }
 
 
-double CIntDriver::exwarning(const int program_index)
+Engine::Value LogicInterpreter::ex_warning(const int program_index)
 {
     // if advancing, don't display the message
     if( GetEngineAppType() == EngineAppType::Entry &&
@@ -329,7 +352,7 @@ double CIntDriver::exwarning(const int program_index)
 
         // return if there was no select statement
         if( message_node.extended_message_node_index == -1 )
-            return 1;
+            return Engine::Value::Integer(1);
 
         // otherwise follow the route that doesn't require operator intervention
         const auto& extended_message_node = GetNode<Nodes::ExtendedMessage>(message_node.extended_message_node_index);
@@ -346,9 +369,9 @@ double CIntDriver::exwarning(const int program_index)
                     const int select_expression = select_movements_list_node.elements[default_button_number - 1];
 
                     if( select_expression != -1 )
-                        Evaluate<double>(select_expression);
+                        ExecuteInstruction(select_expression);
 
-                    return default_button_number;
+                    return Engine::Value::Integer(default_button_number);
                 }
             }
 
@@ -358,7 +381,7 @@ double CIntDriver::exwarning(const int program_index)
                 for( int i = 0; i < select_movements_list_node.number_elements; ++i )
                 {
                     if( select_movements_list_node.elements[i] == -1 )
-                        return i + 1;
+                        return Engine::Value::Integer(i + 1);
                 }
             }
         }
@@ -368,20 +391,33 @@ double CIntDriver::exwarning(const int program_index)
 }
 
 
-double CIntDriver::DisplayUserMessage(const int message_node_index)
+Engine::Value LogicInterpreter::ex_variablevalue(const int program_index)
+{
+    const auto& variable_value_node = GetNode<Nodes::VariableValue>(program_index);
+    return Evaluate<Engine::Value>(variable_value_node.expression);
+}
+
+
+Engine::Value LogicInterpreter::DisplayUserMessage(const int message_node_index)
 {
     const auto& message_node = GetNode<Nodes::Message>(message_node_index);
     const Nodes::ExtendedMessage* extended_message_node = nullptr;
 
-    MessageManager& user_message_manager = m_pEngineDriver->GetUserMessageManager();
+    MessageManager& user_message_manager = GetUserMessageManager_INTERPRETER_DLL_TODO();
 
     // evaluate the message
-    int message_number;
-    SharableString message_text = ConvertV0Escapes(EvaluateUserMessage(message_node_index, message_node.function_code, &message_number));
+    RuntimeMessage runtime_message;
+
+    runtime_message.message_text = ConvertV0Escapes(
+        EvaluateUserMessage(message_node_index, message_node.function_code, &runtime_message.message_number)
+    );
+
+    // display messages showing the line number for unnumbered messages
+    runtime_message.message_number_for_display = user_message_manager.GetMessageNumberForDisplay(runtime_message.message_number);
 
     // process the extended options
-    std::unique_ptr<CEngineDriver::MessageSelectDetails> select_details;
     Nodes::ExtendedMessage::DisplayType display_type = Nodes::ExtendedMessage::DisplayType::Default;
+    const EngineAppType engine_app_type = GetEngineAppType();
 
     if( message_node.extended_message_node_index != -1 )
     {
@@ -389,60 +425,65 @@ double CIntDriver::DisplayUserMessage(const int message_node_index)
 
         // with variable-numbered messages, we need to set the denominator information at runtime
         if( extended_message_node->denominator_symbol_index != -1 )
-            user_message_manager.AddDenominator(message_number, extended_message_node->denominator_symbol_index);
+            user_message_manager.AddDenominator(runtime_message.message_number, extended_message_node->denominator_symbol_index);
 
         // modify the default display type
         display_type = extended_message_node->display_type;
 
         // process any select options
-        if( Issamod == ModuleType::Entry )
+        if( engine_app_type == EngineAppType::Entry )
         {
             const Nodes::List& select_button_texts_list_node = GetListNode(extended_message_node->select_button_texts_list);
 
             if( select_button_texts_list_node.number_elements > 0 )
             {
-                select_details = std::make_unique<CEngineDriver::MessageSelectDetails>();
+                runtime_message.select_buttons = std::make_unique<RuntimeMessage::SelectButtons>();
 
                 // add the button text
                 for( int i = 0; i < select_button_texts_list_node.number_elements; ++i )
-                    select_details->button_texts.emplace_back(Evaluate<SharableString>(select_button_texts_list_node.elements[i]));
+                {
+                    runtime_message.select_buttons->button_texts.emplace_back(
+                        Evaluate<SharableString>(select_button_texts_list_node.elements[i])
+                    );
+                }
 
                 // check if there is a valid default button number
                 if( extended_message_node->select_default_button_expression != -1 )
-                    select_details->default_button_number = Evaluate<int>(extended_message_node->select_default_button_expression);
+                {
+                    // - 1 because the button index provided in logic is one-based
+                    runtime_message.select_buttons->default_button_number =
+                        Evaluate<size_t>(extended_message_node->select_default_button_expression) - 1;
 
-                if( select_details->default_button_number < 0 || select_details->default_button_number > static_cast<int>(select_details->button_texts.size()) )
-                    select_details->default_button_number = 0;
-
-                // the button number should be zero-based (or -1 if none specified)
-                --select_details->default_button_number;
+                    if( runtime_message.select_buttons->default_button_number >= runtime_message.select_buttons->button_texts.size() )
+                        runtime_message.select_buttons->default_button_number.reset();
+                }
             }
         }
     }
 
     // it is possible to override the default display type in a batch application
-    if( Issamod == ModuleType::Batch &&
+    if( engine_app_type == EngineAppType::Batch &&
         display_type == Nodes::ExtendedMessage::DisplayType::Default &&
-        m_pEngineDriver->m_pPifFile->GetErrMsgOverride() != ErrMsgOverride::No )
+        m_engineData->pff != nullptr &&
+        m_engineData->pff->GetErrMsgOverride() != ErrMsgOverride::No )
     {
-        display_type = ( m_pEngineDriver->m_pPifFile->GetErrMsgOverride() == ErrMsgOverride::Case ) ? Nodes::ExtendedMessage::DisplayType::Case :
-                                                                                                      Nodes::ExtendedMessage::DisplayType::Summary;
+        display_type = ( m_engineData->pff->GetErrMsgOverride() == ErrMsgOverride::Case )
+            ? Nodes::ExtendedMessage::DisplayType::Case
+            : Nodes::ExtendedMessage::DisplayType::Summary;
     }
 
     // increment the message count if this isn't a case message
     if( display_type != Nodes::ExtendedMessage::DisplayType::Case )
     {
-        user_message_manager.IncrementMessageCount(message_number);
+        user_message_manager.IncrementMessageCount(runtime_message.message_number);
 
         // if this is a summary message, return without displaying the message
         if( display_type == Nodes::ExtendedMessage::DisplayType::Summary )
-            return 1;
+            return Engine::Value::Integer(1);
     }
 
 
-    // display the message until a proper response is given (showing the line number for unnumbered messages)
-    const int message_number_for_display = user_message_manager.GetMessageNumberForDisplay(message_number);
-
+    // display the message until a proper response is given
     while( true )
     {
         // create paradata events if necessary
@@ -451,38 +492,45 @@ double CIntDriver::DisplayUserMessage(const int message_node_index)
 
         if( Paradata::Logger::IsOpen() )
         {
-            message_event = m_paradataDriver->CreateMessageEvent(message_node.function_code, message_number, message_text);
+            message_event = GetParadataDriver_INTERPRETER_DLL_TODO().CreateMessageEvent(
+                message_node.function_code, runtime_message.message_number, runtime_message.message_text
+            );
 
-            if( select_details != nullptr )
-                operator_selection_event = std::make_unique<Paradata::OperatorSelectionEvent>(Paradata::OperatorSelectionEvent::Source::Errmsg);
+            if( runtime_message.select_buttons != nullptr )
+            {
+                operator_selection_event = std::make_unique<Paradata::OperatorSelectionEvent>(
+                    Paradata::OperatorSelectionEvent::Source::Errmsg
+                );
+            }
         }
 
         // display the message
-        const int selected_button_number = m_pEngineDriver->DisplayMessage(MessageType::User, message_number_for_display, std::move(message_text), select_details.get());
-
+        const int selected_button_number = DisplayMessage_INTERPRETER_DLL_TODO(MessageType::User, runtime_message);
         ASSERT(selected_button_number > 0);
 
         // log the paradata events
         if( message_event != nullptr )
         {
-            if( Issamod == ModuleType::Entry )
+            if( engine_app_type == EngineAppType::Entry )
                 message_event->SetPostDisplayReturnValue(selected_button_number);
 
-            m_paradataDriver->RegisterAndLogEvent(std::move(message_event));
+            GetParadataDriver_INTERPRETER_DLL_TODO().RegisterAndLogEvent(std::move(message_event));
         }
 
         if( operator_selection_event != nullptr )
         {
-            SharableString button_text = ( selected_button_number == 0 ) ? SharableString() :
-                                                                           select_details->button_texts[selected_button_number - 1];
+            operator_selection_event->SetPostSelectionValues(
+                selected_button_number,
+                ( selected_button_number == 0 ) ? SharableString() : runtime_message.select_buttons->button_texts[selected_button_number - 1],
+                true // set_display_duration
+            );
 
-            operator_selection_event->SetPostSelectionValues(selected_button_number, std::move(button_text), true);
-            m_paradataDriver->RegisterAndLogEvent(std::move(operator_selection_event));
+            GetParadataDriver_INTERPRETER_DLL_TODO().RegisterAndLogEvent(std::move(operator_selection_event));
         }
 
         // if not in a select statement, we are done, with the return value meaning success
-        if( select_details == nullptr )
-            return 1;
+        if( runtime_message.select_buttons == nullptr )
+            return Engine::Value::Integer(1);
 
         // otherwise, the selected button number is returned, and if there is a movement
         // associated with the button, we need to execute the movement
@@ -496,16 +544,9 @@ double CIntDriver::DisplayUserMessage(const int message_node_index)
 
         // if not next or continue, execute the move command
         if( select_expression != -1 )
-            Evaluate<double>(select_expression);
+            ExecuteInstruction(select_expression);
 
         // return the index of the button selected
-        return selected_button_number;
+        return Engine::Value::Integer(selected_button_number);
     }
-}
-
-
-Engine::Value CIntDriver::ex_variablevalue(const int program_index)
-{
-    const auto& variable_value_node = GetNode<Nodes::VariableValue>(program_index);
-    return Evaluate<Engine::Value>(variable_value_node.expression);
 }

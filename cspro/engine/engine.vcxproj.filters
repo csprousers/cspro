@@ -376,9 +376,6 @@
     <ClCompile Include="IntLanguage.cpp">
       <Filter>Source Files\ex2</Filter>
     </ClCompile>
-    <ClCompile Include="IntMessages.cpp">
-      <Filter>Source Files\ex2</Filter>
-    </ClCompile>
     <ClCompile Include="IntOccurrences.cpp">
       <Filter>Source Files\ex2</Filter>
     </ClCompile>

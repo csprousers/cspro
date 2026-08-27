@@ -50,7 +50,6 @@ add_library(${PROJECT_NAME}
     Intinstr.cpp
     IntItem.cpp
     IntLanguage.cpp
-    IntMessages.cpp
     IntOccurrences.cpp
     IntPre77Report.cpp
     IntProgramControl.cpp

@@ -42,11 +42,12 @@ class CompilerCreator;
 class CWnd;
 class ExecutionStackEntry;
 class InterpreterAccessor;
+namespace Listing { class ErrorLister; class WriteFile; }
 class LogicByteCode;
 class MessageManager;
 class Pre74_CaseLevel;
 class Pre74_CaseRecord;
-namespace Listing { class ErrorLister; class WriteFile; }
+struct RuntimeMessage;
 
 
 class CEngineDriver
@@ -116,8 +117,7 @@ public:
     MessageManager& GetUserMessageManager()     { return *m_userMessageManager; }
     MessageEvaluator& GetUserMessageEvaluator() { return *m_userMessageEvaluator; }
 
-    struct MessageSelectDetails { std::vector<SharableString> button_texts; int default_button_number; };
-    virtual int DisplayMessage(MessageType message_type, int message_number, SharableString message_text, const MessageSelectDetails* select_details);
+    virtual int DisplayMessage(MessageType message_type, const RuntimeMessage& runtime_message);
 
     // listing and write files
 private:

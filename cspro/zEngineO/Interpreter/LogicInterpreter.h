@@ -15,15 +15,19 @@ class ApplicationInterface;
 class BinarySymbol;
 class CIntDriver;
 class ConnectionString;
+class CSettings;
 enum class EncodeType : int;
 enum class EngineAppType;
 class EngineParadataDriver;
 class FrequencyDriver;
 enum FunctionCode : int;
 struct InterpreterExecuteResult;
-class LoopStack;
-class PortableColor;
 class JsonReaderInterface;
+class LoopStack;
+class MessageEvaluator;
+class MessageManager;
+class PortableColor;
+struct RuntimeMessage;
 struct sqlite3;
 class TraceHandler;
 class Userbar;
@@ -31,6 +35,7 @@ class UserFunctionArgumentEvaluator;
 class VirtualFileMappingHandler;
 namespace ActionInvoker { class Caller; class Runtime; }
 namespace JavaScript { class Value; }
+namespace Listing { class WriteFile; }
 namespace Nodes { struct ItemSubscript; struct List; struct SymbolComputeWithSubscript;
                   struct SymbolVariableArgumentsWithSubscript; struct SymbolValue; }
 namespace Paradata { class FieldInfo; class ParadataDriver; }
@@ -148,6 +153,7 @@ public:
 
     // --------------------------------------------------------------------------
     // message routines
+    // (MessagesRT.cpp)
     // --------------------------------------------------------------------------
 public:
     // Issues the system message.
@@ -158,12 +164,20 @@ public:
     template<typename... Args>
     std::string GetFormattedMessage(int message_number, Args const&... args);
 
-    // Returns an evaluated user message.
-    virtual SharableString EvaluateUserMessage(int message_node_index, FunctionCode function_code, int* out_message_number = nullptr) = 0; // INTERPRETER_DLL_TODO remove as virtual
+    Engine::Value ex_errmsg(int program_index);
+    Engine::Value ex_display(int program_index);
+    Engine::Value ex_write(int program_index);
+    Engine::Value ex_maketext(int program_index);
+    Engine::Value ex_logtext(int program_index);
+    Engine::Value ex_warning(int program_index);
+    Engine::Value ex_variablevalue(int program_index);
 
 private:
     virtual void IssueMessageWorker(MessageType message_type, int message_number, ...) = 0; // INTERPRETER_DLL_TODO remove as virtual
     virtual std::string GetFormattedMessageWorker(int message_number, ...) = 0; // INTERPRETER_DLL_TODO remove as virtual
+
+    SharableString EvaluateUserMessage(int message_node_index, FunctionCode function_code, int* out_message_number = nullptr);
+    Engine::Value DisplayUserMessage(int message_node_index);
 
 
     // --------------------------------------------------------------------------
@@ -982,6 +996,11 @@ private:
     virtual void Execute_INTERPRETER_DLL_TODO(bool before_running_callback_function) = 0; // INTERPRETER_DLL_TODO refactor
     virtual Paradata::ParadataDriver& GetParadataDriver_INTERPRETER_DLL_TODO() = 0;// INTERPRETER_DLL_TODO is this needed?
     virtual void ClearParadataCachedObjects_INTERPRETER_DLL_TODO() = 0; // INTERPRETER_DLL_TODO refactor
+    virtual const CSettings* GetSettings_INTERPRETER_DLL_TODO() const = 0; // INTERPRETER_DLL_TODO is this needed?
+    virtual Listing::WriteFile* GetWriteFile_INTERPRETER_DLL_TODO() = 0; // INTERPRETER_DLL_TODO is this needed?
+    virtual MessageEvaluator& GetUserMessageEvaluator_INTERPRETER_DLL_TODO() = 0; // INTERPRETER_DLL_TODO is this needed?
+    virtual MessageManager& GetUserMessageManager_INTERPRETER_DLL_TODO() = 0; // INTERPRETER_DLL_TODO is this needed?
+    virtual int DisplayMessage_INTERPRETER_DLL_TODO(MessageType message_type, const RuntimeMessage& runtime_message) = 0; // INTERPRETER_DLL_TODO refactor
     virtual bool InAdvance_INTERPRETER_DLL_TODO() const = 0; // INTERPRETER_DLL_TODO refactor
 public:
     virtual LoopStack& GetLoopStack() = 0; // INTERPRETER_DLL_TODO remove as virtual

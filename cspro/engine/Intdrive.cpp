@@ -416,8 +416,8 @@ void CIntDriver::AddIntDriverInstructions()
     OP_DOUBLE(69, exavrge);
     OP_DOUBLE(70, exmin);
     OP_DOUBLE(71, exmax);
-    OP_DOUBLE(72, exdisplay);
-    OP_DOUBLE(73, exerrmsg);
+    OP_ENGVAL(72, ex_display);
+    OP_ENGVAL(73, ex_errmsg);
     OP_ENGVAL(74, ex_concat);
     OP_ENGVAL(75, ex_tonumber);
     OP_ENGVAL(76, ex_pos_poschar);
@@ -483,7 +483,7 @@ void CIntDriver::AddIntDriverInstructions()
     OP_DOUBLE(136, exfncurocc);
     OP_DOUBLE(137, exfntotocc);
     OP_DOUBLE(138, exupdate);
-    OP_DOUBLE(139, exwrite);
+    OP_ENGVAL(139, ex_write);
     OP_ENGVAL(140, ex_nop_abort);
     OP_DOUBLE(141, exfor_relation);
     OP_ENGVAL(142, ex_nop_abort);
@@ -496,7 +496,7 @@ void CIntDriver::AddIntDriverInstructions()
     OP_ENGVAL(149, ex_nop_abort);
     OP_ENGVAL(150, ex_nop_abort);
     OP_ENGVAL(151, ex_nop_abort);
-    OP_ENGVAL_ID(152, exmaketext);
+    OP_ENGVAL(152, ex_maketext);
     OP_DOUBLE(153, exmoveto);
     OP_ENGVAL(154, ex_nop_abort);
     OP_ENGVAL_ID(155, ex_getoperatorid);
@@ -605,8 +605,8 @@ void CIntDriver::AddIntDriverInstructions()
     OP_DOUBLE(258, excountcases);
     OP_ENGVAL_ID(259, ex_getproperty);
     OP_ENGVAL_ID(260, ex_setproperty);
-    OP_DOUBLE(261, exlogtext);
-    OP_DOUBLE(262, exwarning);
+    OP_ENGVAL(261, ex_logtext);
+    OP_ENGVAL(262, ex_warning);
     OP_ENGVAL_ID(263, ex_tr);
     OP_ENGVAL(264, ex_uuid);
     OP_ENGVAL(265, ex_paradata);
@@ -663,7 +663,7 @@ void CIntDriver::AddIntDriverInstructions()
     OP_ENGVAL(316, ex_ValueSet_remove);
     OP_ENGVAL(317, ex_ValueSet_show);
     OP_ENGVAL(318, ex_ValueSet_compute);
-    OP_ENGVAL_ID(319, ex_variablevalue);
+    OP_ENGVAL(319, ex_variablevalue);
     OP_ENGVAL(320, ex_Map_clear_clearButtons_clearGeometry_clearMarkers);
     OP_ENGVAL(321, ex_Map_clear_clearButtons_clearGeometry_clearMarkers);
     OP_ENGVAL(322, ex_Map_getLastClickLatitude_getLastClickLongitude);
@@ -1554,4 +1554,22 @@ Paradata::ParadataDriver& CIntDriver::GetParadataDriver_INTERPRETER_DLL_TODO()
 void CIntDriver::ClearParadataCachedObjects_INTERPRETER_DLL_TODO()
 {
     m_paradataDriver->ClearCachedObjects();
+}
+
+
+Listing::WriteFile* CIntDriver::GetWriteFile_INTERPRETER_DLL_TODO()
+{
+    return m_pEngineDriver->GetWriteFile();
+}
+
+
+MessageEvaluator& CIntDriver::GetUserMessageEvaluator_INTERPRETER_DLL_TODO()
+{
+    return m_pEngineDriver->GetUserMessageEvaluator();
+}
+
+
+MessageManager& CIntDriver::GetUserMessageManager_INTERPRETER_DLL_TODO()
+{
+    return m_pEngineDriver->GetUserMessageManager();
 }

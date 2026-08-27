@@ -32,7 +32,6 @@ std::string CIntDriver::GetFormattedMessageWorker(int message_number, ...) { ret
 bool CIntDriver::IsExecutionInterrupted() const noexcept { return ReturnProgrammingError(false); }
 InterpreterExecuteResult CIntDriver::Report_Evaluate_INTERPRETER_DLL_TODO(Report& report) { throw ProgrammingErrorException(); }
 SharableString CIntDriver::EvaluateTextFill(int program_index) { return ReturnProgrammingError(SharableString()); }
-SharableString CIntDriver::EvaluateUserMessage(int message_node_index, FunctionCode function_code, int* out_message_number) { return ReturnProgrammingError(std::string()); }
 Engine::Value CIntDriver::RunSoonToBeRemovedFeature(std::string_view feature_sv, int program_index, void* tag) { return ReturnProgrammingError(0); }
 bool CIntDriver::HasSpecialFunction(SpecialFunction::Code special_function) { return ReturnProgrammingError(false); }
 Engine::Value CIntDriver::ExecSpecialFunction(int symbol_index, SpecialFunction::Code special_function, std::vector<std::variant<double, SharableString>> arguments) { return ReturnProgrammingError(DEFAULT); }
@@ -65,6 +64,9 @@ void CIntDriver::Execute_INTERPRETER_DLL_TODO(bool before_running_callback_funct
 Paradata::ParadataDriver& CIntDriver::GetParadataDriver_INTERPRETER_DLL_TODO() { throw ProgrammingErrorException(); }
 void CIntDriver::ClearParadataCachedObjects_INTERPRETER_DLL_TODO() { throw ProgrammingErrorException(); }
 LoopStack& CIntDriver::GetLoopStack() { throw ProgrammingErrorException(); }
+Listing::WriteFile* CIntDriver::GetWriteFile_INTERPRETER_DLL_TODO() { throw ProgrammingErrorException(); }
+MessageEvaluator& CIntDriver::GetUserMessageEvaluator_INTERPRETER_DLL_TODO() { throw ProgrammingErrorException(); }
+MessageManager& CIntDriver::GetUserMessageManager_INTERPRETER_DLL_TODO() { throw ProgrammingErrorException(); }
 bool CIntDriver::InAdvance_INTERPRETER_DLL_TODO() const { throw ProgrammingErrorException(); }
 
 
@@ -98,6 +100,7 @@ bool    CIntDriver::SetVarFloatValueSingle( double dValue, VARX* pVarX ) { ASSER
 
 double  CIntDriver::GetVarFloatValue( VART* pVarT, const CNDIndexes& theIndex ) const { ASSERT(0); return 0; }
 double  CIntDriver::GetVarFloatValue( VARX* pVarX, const CNDIndexes& theIndex ) const { ASSERT(0); return 0; }
+double  CIntDriver::GetVarFloatValue( VARX* pVarX ) const { ASSERT(0); return 0; }
 
 void    SECX::InitSecOccArray( double dInitValue, TCHAR cInitLight, int iMaxOccs ) { ASSERT(0); }
 TCHAR*   SECX::GetAsciiAreaAtOccur( int iOccur ) { ASSERT(0); return NULL; }
