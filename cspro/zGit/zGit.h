@@ -1,10 +1,10 @@
-﻿#pragma once
+#pragma once
 
 
-#ifndef WIN32
-#   define ZGIT_API
+#ifdef CSPRO_NO_DLLS
+    #define ZGIT_API
 #elif defined(ZGIT_IMPL)
-#   define ZGIT_API __declspec(dllexport)
+    #define ZGIT_API __declspec(dllexport)
 #else
-#   define ZGIT_API __declspec(dllimport)
+    #define ZGIT_API __declspec(dllimport)
 #endif

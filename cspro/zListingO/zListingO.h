@@ -1,11 +1,10 @@
-﻿#pragma once
+#pragma once
 
-#ifdef WIN32
-    #ifdef ZLISTINGO_EXPORTS
-    #define ZLISTINGO_API __declspec(dllexport)
-    #else
-    #define ZLISTINGO_API __declspec(dllimport)
-    #endif
-#else
+
+#ifdef CSPRO_NO_DLLS
     #define ZLISTINGO_API
+#elif defined(ZLISTINGO_EXPORTS)
+    #define ZLISTINGO_API __declspec(dllexport)
+#else
+    #define ZLISTINGO_API __declspec(dllimport)
 #endif

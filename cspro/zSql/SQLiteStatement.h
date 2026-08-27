@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zSql/SQLite.h>
 #include <zToolsO/Utf8Convert.h>
@@ -152,15 +152,18 @@ public:
     {
         const int pn = GetParameterNumber(parameter_number_or_name);
 
-        if constexpr(std::is_same_v<VT, int>)
+        if constexpr(( std::is_same_v<VT, int> ) ||
+                     ( std::is_same_v<VT, long> && sizeof(VT) == sizeof(int) ))
         {
-            sqlite3_bind_int(m_stmt, pn, value);
+            sqlite3_bind_int(m_stmt, pn, static_cast<int>(value));
         }
 
         else if constexpr(std::is_same_v<VT, uint32_t> ||
                           std::is_same_v<VT, int64_t> ||
                           std::is_same_v<VT, uint64_t> ||
-                          std::is_same_v<VT, long>)
+                          std::is_same_v<VT, long> ||
+                          std::is_same_v<VT, unsigned long> ||
+                          std::is_same_v<VT, size_t>)
         {
             sqlite3_bind_int64(m_stmt, pn, static_cast<int64_t>(value));
         }
@@ -305,16 +308,18 @@ public:
     template <typename VT>
     VT GetColumn(const int column_num)
     {
-        if constexpr(std::is_same_v<VT, int>)
+        if constexpr(( std::is_same_v<VT, int> ) ||
+                     ( std::is_same_v<VT, long> && sizeof(VT) == sizeof(int) ))
         {
-            return sqlite3_column_int(m_stmt, column_num);
+            return static_cast<VT>(sqlite3_column_int(m_stmt, column_num));
         }
 
         else if constexpr(std::is_same_v<VT, uint32_t> ||
                           std::is_same_v<VT, int64_t> ||
                           std::is_same_v<VT, uint64_t> ||
                           std::is_same_v<VT, long> ||
-                          std::is_same_v<VT, unsigned long>)
+                          std::is_same_v<VT, unsigned long> ||
+                          std::is_same_v<VT, size_t>)
         {
             return static_cast<VT>(sqlite3_column_int64(m_stmt, column_num));
         }

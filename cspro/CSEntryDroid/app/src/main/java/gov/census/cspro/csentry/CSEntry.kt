@@ -1,17 +1,17 @@
 package gov.census.cspro.csentry
 
+import android.app.Application
 import android.content.Context
 import android.content.SharedPreferences
-import androidx.multidex.MultiDexApplication
 import gov.census.cspro.commonui.CSStyle
 import gov.census.cspro.commonui.OnCSStyleChangedListener
 import gov.census.cspro.engine.Util
 import timber.log.Timber
 import timber.log.Timber.DebugTree
 import java.util.*
-
 //import gov.census.cspro.util.CrashReporter;
-class CSEntry : MultiDexApplication() {
+
+class CSEntry : Application() {
 
     override fun onCreate() {
         super.onCreate()

@@ -1,11 +1,10 @@
-﻿#pragma once
+#pragma once
 
-#ifdef WIN32
-    #ifdef ZAPPO_EXPORTS
-    #define ZAPPO_API __declspec(dllexport)
-    #else
-    #define ZAPPO_API __declspec(dllimport)
-    #endif
-#else
+
+#ifdef CSPRO_NO_DLLS
     #define ZAPPO_API
+#elif defined(ZAPPO_EXPORTS)
+    #define ZAPPO_API __declspec(dllexport)
+#else
+    #define ZAPPO_API __declspec(dllimport)
 #endif

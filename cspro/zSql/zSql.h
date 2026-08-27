@@ -1,15 +1,14 @@
-﻿#pragma once
+#pragma once
 
 
-#ifdef WIN32
-    #ifdef ZSQL_EXPORTS
-        #define ZSQL_API __declspec(dllexport)
-    #else
-        #define ZSQL_API __declspec(dllimport)
-    #endif
-#else
+#ifdef CSPRO_NO_DLLS
     #define ZSQL_API
+#elif defined(ZSQL_EXPORTS)
+    #define ZSQL_API __declspec(dllexport)
+#else
+    #define ZSQL_API __declspec(dllimport)
 #endif
+
 
 #define SQLITE_API ZSQL_API
 

@@ -9,6 +9,7 @@ Most CSPro development occurs on a [private repository](https://github.com/CSPro
 
 | Date | Branch | Pull Request Message |
 | --- | --- | --- |
+| 2026&#8209;08&#8209;27 | [portable-builds-cmake](https://github.com/CSProDevelopment/cspro/commit/0c17be1b54e19efa29846388b9858b4f980c4f69) | used CMake to build the console application + updated the Android build |
 | 2026&#8209;08&#8209;27 | [engine-to-dll+engine-value](https://github.com/CSProDevelopment/cspro/commit/6a4bb71a2abf6b3ee01650c129f510e73f5c4433) | moved some engine functionality to zEngineO, refactoring functions to use engine values |
 | 2026&#8209;08&#8209;13 | [engine-value](https://github.com/CSProDevelopment/cspro/commit/3173a70be978c420f2b156f524a5ef05fac793b7) | partially reworked the interpreter to return complex "engine values" rather than simply double values |
 | 2026&#8209;07&#8209;29 | [engine-to-dll+value-processor](https://github.com/CSProDevelopment/cspro/commit/8e120762c455c3ee401890753ebb25996f9dcbc8) | moved some engine functionality to zEngineO + refactored the value processors (and some other objects) to use non-wide strings |

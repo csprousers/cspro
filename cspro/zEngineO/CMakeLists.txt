@@ -1,11 +1,5 @@
 project(zEngineO)
 
-include_directories(${PROJECT_NAME} PRIVATE
-    ${CMAKE_CURRENT_LIST_DIR}
-    ${EXTERNAL_DIRECTORY}/geometry.hpp/include
-    ${EXTERNAL_DIRECTORY}/variant/include
-)
-
 add_library(${PROJECT_NAME}
     Audio.cpp
     Array.cpp
@@ -160,6 +154,12 @@ add_library(${PROJECT_NAME}
     Interpreter/ValueSetRT.cpp
     Interpreter/VariableRT.cpp
     Interpreter/VideoRT.cpp
+)
+
+target_include_directories(${PROJECT_NAME} PRIVATE
+    ${CMAKE_CURRENT_LIST_DIR}
+    ${EXTERNAL_DIRECTORY}/geometry.hpp/include
+    ${EXTERNAL_DIRECTORY}/variant/include
 )
 
 target_precompile_headers(${PROJECT_NAME} PRIVATE

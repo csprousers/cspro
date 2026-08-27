@@ -1,11 +1,10 @@
-﻿#pragma once
+#pragma once
 
-#ifdef WIN32
-    #ifdef ZCONCATO_EXPORTS
-    #define ZCONCATO_API __declspec(dllexport)
-    #else
-    #define ZCONCATO_API __declspec(dllimport)
-    #endif
-#else
+
+#ifdef CSPRO_NO_DLLS
     #define ZCONCATO_API
+#elif defined(ZCONCATO_EXPORTS)
+    #define ZCONCATO_API __declspec(dllexport)
+#else
+    #define ZCONCATO_API __declspec(dllimport)
 #endif

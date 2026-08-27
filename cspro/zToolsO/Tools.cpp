@@ -1035,6 +1035,9 @@ const OperatingSystemDetails& GetOperatingSystemDetails()
 #elif defined(ANDROID)
         details.version_number = PlatformInterface::GetInstance()->GetVersionNumber();
 
+#elif defined(WASM)
+        details.version_number = "WASM_TODO";
+
 #else
         static_assert_false();
 #endif

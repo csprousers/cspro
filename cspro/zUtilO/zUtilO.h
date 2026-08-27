@@ -1,11 +1,10 @@
-﻿#pragma once
+#pragma once
 
-#ifdef _WIN32
-#ifdef ZUTILO_IMPL
+
+#ifdef CSPRO_NO_DLLS
+    #define CLASS_DECL_ZUTILO
+#elif defined(ZUTILO_IMPL)
     #define CLASS_DECL_ZUTILO __declspec(dllexport)
 #else
     #define CLASS_DECL_ZUTILO __declspec(dllimport)
-#endif
-#else
-#define CLASS_DECL_ZUTILO
 #endif

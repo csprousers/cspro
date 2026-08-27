@@ -2,10 +2,6 @@ project(zYaml)
 
 set(YAML_DIRECTORY ${EXTERNAL_DIRECTORY}/yaml-cpp)
 
-include_directories(${PROJECT_NAME} PRIVATE
-    ${YAML_DIRECTORY}/include
-)
-
 add_library(${PROJECT_NAME}
     ${YAML_DIRECTORY}/src/binary.cpp
     ${YAML_DIRECTORY}/src/convert.cpp
@@ -37,3 +33,14 @@ add_library(${PROJECT_NAME}
     ${YAML_DIRECTORY}/src/stream.cpp
     ${YAML_DIRECTORY}/src/tag.cpp
 )
+
+if(CSPRO_BUILD_CONSOLE)
+    target_compile_definitions(${PROJECT_NAME} PRIVATE
+        YAML_CPP_STATIC_DEFINE
+    )
+endif()
+
+target_include_directories(${PROJECT_NAME} PRIVATE
+    ${YAML_DIRECTORY}/include
+)
+

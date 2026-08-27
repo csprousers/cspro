@@ -1,10 +1,5 @@
 project(zSyncO)
 
-include_directories(${PROJECT_NAME} PRIVATE
-    ${EXTERNAL_DIRECTORY}
-    ${EXTERNAL_DIRECTORY}/rxcpp
-)
-
 add_library(${PROJECT_NAME}
     AppSyncParamRunner.cpp
     ApplicationPackage.cpp
@@ -39,6 +34,11 @@ add_library(${PROJECT_NAME}
     SyncRunner.cpp
     SyncRunnerActionInvoker.cpp
     SyncServiceFactory.cpp
+)
+
+target_include_directories(${PROJECT_NAME} PRIVATE
+    ${EXTERNAL_DIRECTORY}
+    ${EXTERNAL_DIRECTORY}/rxcpp
 )
 
 target_precompile_headers(${PROJECT_NAME} PRIVATE

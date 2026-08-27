@@ -1,9 +1,5 @@
 project(zAppO)
 
-include_directories(${PROJECT_NAME} PRIVATE
-    ${CMAKE_CURRENT_LIST_DIR}
-)
-
 add_library(${PROJECT_NAME}
     AppFileType.cpp
     Application.cpp
@@ -28,6 +24,10 @@ add_library(${PROJECT_NAME}
     Properties/MappingProperties.cpp
     Properties/MappingTileProviderProperties.cpp
     Properties/ParadataProperties.cpp
+)
+
+target_include_directories(${PROJECT_NAME} PRIVATE
+    ${CMAKE_CURRENT_LIST_DIR}
 )
 
 target_precompile_headers(${PROJECT_NAME} PRIVATE

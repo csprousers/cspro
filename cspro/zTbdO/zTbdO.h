@@ -1,10 +1,10 @@
-﻿#pragma once
+#pragma once
+
 
 //---------------------------------------------------------------------------
 //  File name: zTbdO.h
 //
-//  Description:
-//                              Contain all the headers necesaries to use the zTbd.dll app.
+//  Description: Contain all the headers necesaries to use the zTbd.dll app.
 //
 //  History:    Date       Author   Comment
 //              ---------------------------
@@ -12,12 +12,10 @@
 //
 //---------------------------------------------------------------------------
 
-#ifdef WIN32
-#ifdef ZTBDO_IMPL
-#define CLASS_DECL_ZTBDO __declspec(dllexport)
+#ifdef CSPRO_NO_DLLS
+    #define CLASS_DECL_ZTBDO
+#elif defined(ZTBDO_IMPL)
+    #define CLASS_DECL_ZTBDO __declspec(dllexport)
 #else
-#define CLASS_DECL_ZTBDO __declspec(dllimport)
-#endif
-#else
-#define CLASS_DECL_ZTBDO
+    #define CLASS_DECL_ZTBDO __declspec(dllimport)
 #endif

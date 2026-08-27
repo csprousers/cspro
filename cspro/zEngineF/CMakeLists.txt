@@ -7,6 +7,7 @@ add_library(${PROJECT_NAME}
     PortableUserbar.cpp
     ReviewNotesDlg.cpp
     TraceHandler.cpp
+    $<$<BOOL:${WIN32}>:WindowsApplicationInterface.cpp>
 )
 
 target_precompile_headers(${PROJECT_NAME} PRIVATE

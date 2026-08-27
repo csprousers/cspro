@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 //***************************************************************************
 //  File name: zBridgeO.h
@@ -12,14 +12,12 @@
 //
 //***************************************************************************
 
-#ifdef WIN32
-#ifdef ZBRIDGEO_IMPL
+#ifdef CSPRO_NO_DLLS
+    #define CLASS_DECL_ZBRIDGEO
+#elif defined(ZBRIDGEO_IMPL)
     #define CLASS_DECL_ZBRIDGEO __declspec(dllexport)
 #else
     #define CLASS_DECL_ZBRIDGEO __declspec(dllimport)
-#endif
-#else
-#define CLASS_DECL_ZBRIDGEO
 #endif
 
 

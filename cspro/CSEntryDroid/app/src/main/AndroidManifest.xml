@@ -354,8 +354,7 @@
     <activity
       android:name="com.karumi.dexter.DexterActivity"
       android:exported="false"
-      tools:node="merge"
-      tools:replace="android:exported" />
+      tools:node="merge" />
   </application>
 
 </manifest>

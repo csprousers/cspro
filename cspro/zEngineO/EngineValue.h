@@ -32,10 +32,8 @@ public:
 
     // EV_TODO: Creates an object of the type "integer" in case such a type is ever added to the language.
     // For now, the value is stored as a double.
-    [[nodiscard]] static Value Integer(int value) noexcept;
-    [[nodiscard]] static Value Integer(unsigned int value) noexcept;
-    [[nodiscard]] static Value Integer(int64_t value) noexcept;
-    [[nodiscard]] static Value Integer(size_t value) noexcept;
+    template<typename T>
+    [[nodiscard]] static Value Integer(T value) noexcept;
 
     // EV_TODO: Creates an object of the type "undefined" in case such a type is ever added to the language.
     // For now, double is mapped to NOTAPPL and SharableString to a blank string.
@@ -169,25 +167,8 @@ inline Engine::Value Engine::Value::Bool(const bool value) noexcept
 }
 
 
-inline Engine::Value Engine::Value::Integer(const int value) noexcept
-{
-    return Value(static_cast<double>(value));
-}
-
-
-inline Engine::Value Engine::Value::Integer(const unsigned int value) noexcept
-{
-    return Value(static_cast<double>(value));
-}
-
-
-inline Engine::Value Engine::Value::Integer(const int64_t value) noexcept
-{
-    return Value(static_cast<double>(value));
-}
-
-
-inline Engine::Value Engine::Value::Integer(const size_t value) noexcept
+template<typename T>
+Engine::Value Engine::Value::Integer(const T value) noexcept
 {
     return Value(static_cast<double>(value));
 }

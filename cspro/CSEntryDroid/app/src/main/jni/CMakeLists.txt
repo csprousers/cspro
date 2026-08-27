@@ -14,6 +14,9 @@ if(CCACHE_PROGRAM)
     set(CMAKE_CXX_COMPILER_LAUNCHER ${CCACHE_PROGRAM})
 endif()
 
+# CSPro build type
+set(CSPRO_BUILD_ANDROID ON CACHE BOOL "")
+
 # global compiler options
 add_compile_options(
     # use Run-Time Type Information
@@ -35,6 +38,7 @@ add_compile_options(
 # global compiler definitions
 add_compile_definitions(
     ANDROID=1
+    CSPRO_NO_DLLS=1
     UNICODE=1
     _UNICODE=1
 )

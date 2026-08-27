@@ -16,6 +16,11 @@ add_library(${PROJECT_NAME}
     ${QUICKJS_DIRECTORY}/quickjs.c
 )
 
+# QuickJS requires compiling code with features from latest C working draft
+if (MSVC)
+    target_compile_options(${PROJECT_NAME} PRIVATE /std:clatest)
+endif()
+
 target_precompile_headers(${PROJECT_NAME} PRIVATE
     "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/stdafx.h>"
 )
