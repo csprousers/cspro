@@ -34,6 +34,12 @@ add_library(${PROJECT_NAME}
     ${YAML_DIRECTORY}/src/tag.cpp
 )
 
+if(CSPRO_BUILD_CONSOLE)
+    target_compile_definitions(${PROJECT_NAME} PRIVATE
+        YAML_CPP_STATIC_DEFINE
+    )
+endif()
+
 target_include_directories(${PROJECT_NAME} PRIVATE
     ${YAML_DIRECTORY}/include
 )

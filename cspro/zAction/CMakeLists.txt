@@ -19,6 +19,7 @@ add_library(${PROJECT_NAME}
     Message.cpp
     Network.cpp
     Path.cpp
+    $<$<BOOL:${CSPRO_BUILD_CONSOLE}>:PortableRunnerConsole.cpp>
     Settings.cpp
     Sqlite.cpp
     Sync.cpp

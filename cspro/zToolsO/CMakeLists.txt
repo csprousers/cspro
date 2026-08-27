@@ -30,6 +30,7 @@ add_library(${PROJECT_NAME}
     ObjectTransporter.cpp
     Path.cpp
     PortableFunctions.cpp
+    $<$<BOOL:${WIN32}>:SafePath.cpp>
     Screen.cpp
     serializer.cpp
     SharableString.cpp
@@ -45,6 +46,7 @@ add_library(${PROJECT_NAME}
     Utf8FileStream.cpp
     uuid.cpp
     VarFuncs.cpp
+    $<$<BOOL:${WIN32}>:WinRegistry.cpp>
 
     ${BZIP2_DIRECTORY}/blocksort.c
     ${BZIP2_DIRECTORY}/bzlib.c

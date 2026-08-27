@@ -20,6 +20,8 @@ add_library(${PROJECT_NAME}
     ${ZLIB_DIRECTORY}/zutil.c
 )
 
-target_compile_definitions(${PROJECT_NAME} PRIVATE
-    HAVE_UNISTD_H
-)
+if(NOT CSPRO_BUILD_CONSOLE)
+    target_compile_definitions(${PROJECT_NAME} PRIVATE
+        HAVE_UNISTD_H
+    )
+endif()

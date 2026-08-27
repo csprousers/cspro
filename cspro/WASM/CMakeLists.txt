@@ -12,6 +12,9 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+# CSPro build type
+set(CSPRO_BUILD_WASM ON CACHE BOOL "")
+
 # global compiler options
 add_compile_options(
     # enable exception handling

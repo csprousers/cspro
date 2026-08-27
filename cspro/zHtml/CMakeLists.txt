@@ -31,6 +31,13 @@ add_library(${PROJECT_NAME}
     ${GUMBO_DIRECTORY}/vector.c
 )
 
+if(WIN32)
+    # for Gumbo's dummy strings.h
+    target_include_directories(${PROJECT_NAME} PRIVATE
+        ${GUMBO_DIRECTORY}
+    )
+endif()
+
 target_precompile_headers(${PROJECT_NAME} PRIVATE
     "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/stdafx.h>"
 )
