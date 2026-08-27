@@ -18,11 +18,11 @@
 #include <zTableF/TabView.h>
 #include <zTableF/TabChWnd.h>
 #include <zCapiO/QSFView.h>
-#include <zCapiO/UWM.h>
 #include <zSrcMgrO/DesignerApplicationLoader.h>
 #include <zSrcMgrO/DesignerCapiLogicCompiler.h>
 #include <zSrcMgrO/DesignerCompiler.h>
 #include <zEngineF/EngineUI.h>
+#include <zExTab/RunTab.h>
 
 
 constexpr int DICTTOOLBARPOS = 1;

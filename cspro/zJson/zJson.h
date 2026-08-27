@@ -1,11 +1,10 @@
-﻿#pragma once
+#pragma once
 
-#ifdef WIN32
-    #ifdef ZJSON_EXPORTS
-    #define ZJSON_API __declspec(dllexport)
-    #else
-    #define ZJSON_API __declspec(dllimport)
-    #endif
-#else
+
+#ifdef CSPRO_NO_DLLS
     #define ZJSON_API
+#elif defined(ZJSON_EXPORTS)
+    #define ZJSON_API __declspec(dllexport)
+#else
+    #define ZJSON_API __declspec(dllimport)
 #endif

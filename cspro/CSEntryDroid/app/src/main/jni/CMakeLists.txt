@@ -35,6 +35,7 @@ add_compile_options(
 # global compiler definitions
 add_compile_definitions(
     ANDROID=1
+    CSPRO_NO_DLLS=1
     UNICODE=1
     _UNICODE=1
 )

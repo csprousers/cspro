@@ -1,11 +1,10 @@
-﻿#pragma once
+#pragma once
 
-#ifdef  ZEXTAB_IMPL
+
+#ifdef CSPRO_NO_DLLS
+    #define CLASS_DECL_ZEXTAB
+#elif defined(ZEXTAB_IMPL)
     #define CLASS_DECL_ZEXTAB __declspec(dllexport)
 #else
     #define CLASS_DECL_ZEXTAB __declspec(dllimport)
 #endif
-
-
-#include <zExTab/RunTab.h>
-#include "SelDlg.h"

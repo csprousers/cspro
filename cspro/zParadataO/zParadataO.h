@@ -1,11 +1,10 @@
-﻿#pragma once
+#pragma once
 
-#ifdef WIN32
-    #ifdef ZPARADATAO_EXPORTS
-    #define ZPARADATAO_API __declspec(dllexport)
-    #else
-    #define ZPARADATAO_API __declspec(dllimport)
-    #endif
-#else
+
+#ifdef CSPRO_NO_DLLS
     #define ZPARADATAO_API
+#elif defined(ZPARADATAO_EXPORTS)
+    #define ZPARADATAO_API __declspec(dllexport)
+#else
+    #define ZPARADATAO_API __declspec(dllimport)
 #endif

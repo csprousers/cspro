@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #pragma warning(disable:4251) // 'type' : class 'type1' needs to have dll-interface to be used by clients of class 'type2'
 
@@ -3973,7 +3973,7 @@ public:
 // errors with the static class member std::basic_string::npos.
 // I modified it to contain a std::basic_string instead of
 // deriving from one.
-#ifdef SS_WIN32
+#if defined(SS_WIN32) && !defined(CSPRO_NO_DLLS)
 #ifdef SSDLL_IMPL
 #define SSDLLSPEC __declspec(dllexport)
 #else

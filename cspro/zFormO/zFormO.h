@@ -1,11 +1,10 @@
-﻿#pragma once
+#pragma once
 
-#ifdef _WIN32
-    #ifdef ZFORMO_IMPL
-        #define CLASS_DECL_ZFORMO __declspec(dllexport)
-    #else
-        #define CLASS_DECL_ZFORMO __declspec(dllimport)
-    #endif
-#else
+
+#ifdef CSPRO_NO_DLLS
     #define CLASS_DECL_ZFORMO
+#elif defined(ZFORMO_IMPL)
+    #define CLASS_DECL_ZFORMO __declspec(dllexport)
+#else
+    #define CLASS_DECL_ZFORMO __declspec(dllimport)
 #endif

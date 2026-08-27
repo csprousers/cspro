@@ -1,18 +1,19 @@
-﻿#pragma once
+#pragma once
 
 // zGrid2O.h
 // for CSPro 2.1
 // chris
 
-
-#ifdef ZGRID2O_IMPL
+#ifdef CSPRO_NO_DLLS
+    #define CLASS_DECL_ZGRID2O
+#elif defined(ZGRID2O_IMPL)
     #define CLASS_DECL_ZGRID2O __declspec(dllexport)
 #else
     #define CLASS_DECL_ZGRID2O __declspec(dllimport)
 #endif
 
 
-const int GRIDSEP_SIZE = 1;
+constexpr int GRIDSEP_SIZE = 1;
 
 enum GridObjPosition { posNone, posBottomRight, posTopRight, posCenterRight, posBottomLeft, posTopLeft, posCenterLeft, posAlignRight, posAlignLeft };
 

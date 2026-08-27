@@ -1,11 +1,10 @@
-﻿#pragma once
+#pragma once
 
-#ifdef _WIN32
-    #ifdef ZDICTO_IMPL
-        #define CLASS_DECL_ZDICTO __declspec(dllexport)
-    #else
-        #define CLASS_DECL_ZDICTO __declspec(dllimport)
-    #endif
-#else
+
+#ifdef CSPRO_NO_DLLS
     #define CLASS_DECL_ZDICTO
+#elif defined(ZDICTO_IMPL)
+    #define CLASS_DECL_ZDICTO __declspec(dllexport)
+#else
+    #define CLASS_DECL_ZDICTO __declspec(dllimport)
 #endif

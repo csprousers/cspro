@@ -1,11 +1,10 @@
-﻿#pragma once
+#pragma once
 
-#ifdef WIN32
-#ifdef ZLOGICO_EXPORTS
+
+#ifdef CSPRO_NO_DLLS
+    #define ZLOGICO_API
+#elif defined(ZLOGICO_EXPORTS)
     #define ZLOGICO_API __declspec(dllexport)
 #else
     #define ZLOGICO_API __declspec(dllimport)
-#endif // ZLOGICO_EXPORTS
-#else
-#define ZLOGICO_API
 #endif

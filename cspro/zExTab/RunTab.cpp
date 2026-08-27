@@ -1,6 +1,7 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "RunTab.h"
 #include "PifDlgBuilder.h"
+#include "SelDlg.h"
 #include "TabExecutionDlg.h"
 #include <zUtilO/ProcessSummary.h>
 #include <zUtilO/SimpleDbMap.h>
