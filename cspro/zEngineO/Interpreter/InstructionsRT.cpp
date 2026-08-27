@@ -302,11 +302,11 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 233 */   OP(ex_round),           // GHM 20150821
 /* 234 */   OP(ex_nop_abort),       // GHM 20151130 an old implementation of exuuid ... now a publishdate placeholder
 /* 235 */   OP_ID(exsavepartial),      // GHM 20151216
-/* 236 */   OP_ID(ex_syncconnect),
-/* 237 */   OP_ID(ex_syncdisconnect),
-/* 238 */   OP_ID(ex_syncdata),
-/* 239 */   OP_ID(ex_syncfile),
-/* 240 */   OP_ID(ex_syncserver),
+/* 236 */   OP(ex_syncconnect),
+/* 237 */   OP(ex_syncdisconnect),
+/* 238 */   OP(ex_syncdata),
+/* 239 */   OP(ex_syncfile),
+/* 240 */   OP(ex_syncserver),
 /* 241 */   OP(ex_savesetting),
 /* 242 */   OP(ex_loadsetting),
 /* 243 */   OP_ID(ex_getcaselabel),
@@ -346,7 +346,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 277 */   OP(ex_Array_var),
 /* 278 */   OP_ID(extvar),
 /* 279 */   OP(ex_exit),
-/* 280 */   OP_ID(ex_getbluetoothname),
+/* 280 */   OP(ex_getbluetoothname),
 /* 281 */   OP(ex_regexmatch),
 /* 282 */   OP(ex_nop_abort), // BLOCK_CODE
 /* 283 */   OP(ex_getvaluelabel),
@@ -402,7 +402,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 333 */   OP(ex_ischecked),
 /* 334 */   OP_ID(ex_protect),
 /* 335 */   OP(ex_when),
-/* 336 */   OP_ID(ex_syncapp),
+/* 336 */   OP(ex_syncapp),
 /* 337 */   OP(ex_filetime),
 /* 338 */   OP(ex_recode),
 /* 339 */   OP_ID(exforcase),
@@ -411,7 +411,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 342 */   OP_ID(exkeylist),
 /* 343 */   OP(ex_Barcode_read),
 /* 344 */   OP(ex_hash),
-/* 345 */   OP_ID(ex_syncmessage),
+/* 345 */   OP(ex_syncmessage),
 /* 346 */   OP(ex_SystemApp_clear),
 /* 347 */   OP(ex_SystemApp_setArgument),
 /* 348 */   OP(ex_SystemApp_getResult),
@@ -436,7 +436,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 367 */   OP(ex_Path_getExtension),
 /* 368 */   OP(ex_Path_getFileName),
 /* 369 */   OP(ex_Path_getFileNameWithoutExtension),
-/* 370 */   OP_ID(ex_syncparadata),
+/* 370 */   OP(ex_syncparadata),
 /* 371 */   OP(ex_HashMap_var),
 /* 372 */   OP(ex_HashMap_compute),
 /* 373 */   OP(ex_HashMap_clear),
@@ -496,7 +496,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 427 */   OP(ex_Geometry_setProperty),
 /* 428 */   OP(ex_inadvance),
 /* 429 */   OP(ex_Map_saveSnapshot),
-/* 430 */   OP_ID(ex_synctime),
+/* 430 */   OP(ex_synctime),
 /* 431 */   OP(ex_htmldialog),
 /* 432 */   OP(ex_Path_getRelativePath),
 /* 433 */   OP(ex_Path_selectFile),
@@ -504,7 +504,7 @@ LogicInterpreter::Instruction LogicInterpreter::m_instructions[] =
 /* 435 */   OP(ex_Report_save),
 /* 436 */   OP(ex_Report_view),
 /* 437 */   OP(ex_TextTemplate_write_writeEncoded_writeEncodedLine_writeLine), // Report.write prior to CSPro 8.1
-/* 438 */   OP_ID(ex_setbluetoothname),
+/* 438 */   OP(ex_setbluetoothname),
 /* 439 */   OP_ID(expersistentsymbolreset),
 /* 440 */   OP(ex_Symbol_getJson_getValueJson), // symbol.getJson
 /* 441 */   OP(ex_Symbol_getJson_getValueJson), // symbol.getValueJson

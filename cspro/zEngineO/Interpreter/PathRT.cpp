@@ -466,7 +466,7 @@ Engine::Value LogicInterpreter::ex_Path_selectFile(const int program_index)
             // otherwise use the application directory
             else
             {
-                start_directory = PortableFunctions::PathGetDirectory(GetCurrentApplicationFilePath());
+                start_directory = GetCurrentWorkingDirectory();
             }
         }
 

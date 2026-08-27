@@ -18,6 +18,7 @@ class ConnectionString;
 class CSettings;
 enum class EncodeType : int;
 enum class EngineAppType;
+class EngineDictionaryModifier;
 class EngineParadataDriver;
 class FrequencyDriver;
 enum FunctionCode : int;
@@ -29,6 +30,9 @@ class MessageManager;
 class PortableColor;
 struct RuntimeMessage;
 struct sqlite3;
+class SyncClient;
+class SyncDriver;
+class SystemMessageIssuer;
 class TraceHandler;
 class Userbar;
 class UserFunctionArgumentEvaluator;
@@ -799,6 +803,33 @@ public:
 
 
     // --------------------------------------------------------------------------
+    // Synchronization functions
+    // (SyncRT.cpp)
+    // --------------------------------------------------------------------------
+public:
+    SyncClient& GetSyncClient();
+
+    Engine::Value ex_syncconnect(int program_index);
+    Engine::Value ex_syncdisconnect(int program_index);
+    Engine::Value ex_syncdata(int program_index);
+    Engine::Value ex_syncfile(int program_index);
+    Engine::Value ex_syncserver(int program_index);
+    Engine::Value ex_syncapp(int program_index);
+    Engine::Value ex_syncmessage(int program_index);
+    Engine::Value ex_syncparadata(int program_index);
+    Engine::Value ex_synctime(int program_index);
+
+    Engine::Value ex_getbluetoothname(int program_index);
+    Engine::Value ex_setbluetoothname(int program_index);
+
+private:
+    SyncDriver& GetSyncDriver();
+
+private:
+    std::unique_ptr<SyncDriver> m_syncDriver;
+
+
+    // --------------------------------------------------------------------------
     // SystemApp object functions
     // (SystemAppRT.cpp)
     // --------------------------------------------------------------------------
@@ -960,8 +991,10 @@ private:
     virtual SharableString EvaluateTextFill(int program_index) = 0; // INTERPRETER_DLL_TODO remove as virtual
     virtual InterpreterExecuteResult Report_Evaluate_INTERPRETER_DLL_TODO(Report& report) = 0; // INTERPRETER_DLL_TODO remove as virtual
     virtual Engine::Value RunSoonToBeRemovedFeature(std::string_view feature_sv, int program_index, void* tag) = 0;
+public:
     virtual bool HasSpecialFunction(SpecialFunction::Code special_function) = 0; // INTERPRETER_DLL_TODO remove as virtual
     virtual Engine::Value ExecSpecialFunction(int symbol_index, SpecialFunction::Code special_function, std::vector<std::variant<double, SharableString>> arguments) = 0; // INTERPRETER_DLL_TODO remove as virtual
+private:
     virtual int Get_m_iExSymbol_INTERPRETER_DLL_TODO() = 0;
     virtual Symbol* GetFromSymbolOrEngineItemWorker_INTERPRETER_DLL_TODO(const SymbolReference<Symbol*>& symbol_reference, bool use_exceptions) = 0;
     virtual std::shared_ptr<Symbol> GetFromSymbolOrEngineItemWorker_INTERPRETER_DLL_TODO(const SymbolReference<std::shared_ptr<Symbol>>& symbol_reference, bool use_exceptions) = 0;
@@ -989,7 +1022,9 @@ private:
     virtual Engine::Value ModifyVARTValue_INTERPRETER_DLL_TODO(int variable_compilation, const std::function<void(double&)>& modify_value_function, std::unique_ptr<Paradata::FieldInfo>* paradata_field_info = nullptr) = 0; // INTERPRETER_DLL_TODO remove as virtual
     virtual Engine::Value ModifyVARTValue_INTERPRETER_DLL_TODO(int variable_compilation, const std::function<void(SharableString&)>& modify_value_function, std::unique_ptr<Paradata::FieldInfo>* paradata_field_info = nullptr) = 0; // INTERPRETER_DLL_TODO remove as virtual
     int SymbolTableSearchWithPreference_INTERPRETER_DLL_TODO(std::string_view full_symbol_name_sv, SymbolType preferred_symbol_type) const { return SymbolTableSearch_INTERPRETER_DLL_TODO(full_symbol_name_sv, preferred_symbol_type, nullptr); }
+public:
     int SymbolTableSearch_INTERPRETER_DLL_TODO(std::string_view full_symbol_name_sv, const std::vector<SymbolType>& allowable_symbol_types, SymbolType preferred_symbol_type = SymbolType::None) const { return SymbolTableSearch_INTERPRETER_DLL_TODO(full_symbol_name_sv, preferred_symbol_type, &allowable_symbol_types); }
+private:
     virtual int SymbolTableSearch_INTERPRETER_DLL_TODO(std::string_view full_symbol_name_sv, SymbolType preferred_symbol_type,
                                                        const std::vector<SymbolType>* allowable_symbol_types) const = 0; // INTERPRETER_DLL_TODO refactor
     virtual bool GetRequestIssued_INTERPRETER_DLL_TODO() const = 0; // INTERPRETER_DLL_TODO is this needed?
@@ -1000,11 +1035,17 @@ private:
     virtual Listing::WriteFile* GetWriteFile_INTERPRETER_DLL_TODO() = 0; // INTERPRETER_DLL_TODO is this needed?
     virtual MessageEvaluator& GetUserMessageEvaluator_INTERPRETER_DLL_TODO() = 0; // INTERPRETER_DLL_TODO is this needed?
     virtual MessageManager& GetUserMessageManager_INTERPRETER_DLL_TODO() = 0; // INTERPRETER_DLL_TODO is this needed?
+public:
+    virtual std::shared_ptr<SystemMessageIssuer> GetSharedSystemMessageIssuer_INTERPRETER_DLL_TODO() = 0; // INTERPRETER_DLL_TODO is this needed?
+private:
     virtual int DisplayMessage_INTERPRETER_DLL_TODO(MessageType message_type, const RuntimeMessage& runtime_message) = 0; // INTERPRETER_DLL_TODO refactor
     virtual bool InAdvance_INTERPRETER_DLL_TODO() const = 0; // INTERPRETER_DLL_TODO refactor
 public:
     virtual LoopStack& GetLoopStack() = 0; // INTERPRETER_DLL_TODO remove as virtual
     virtual bool Get_m_bStopExec_INTERPRETER_DLL_TODO() const = 0; // INTERPRETER_DLL_TODO is this needed?
+private:
+    virtual void SetStopCode_INTERPRETER_DLL_TODO() const = 0; // INTERPRETER_DLL_TODO is this needed?
+    virtual std::unique_ptr<EngineDictionaryModifier> CreateEngineDictionaryModifier_INTERPRETER_DLL_TODO(Symbol& symbol) = 0; // INTERPRETER_DLL_TODO refactor
 };
 
 

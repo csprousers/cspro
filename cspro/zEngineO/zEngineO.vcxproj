@@ -133,6 +133,7 @@
     <ClCompile Include="Interpreter\StringWriterRT.cpp" />
     <ClCompile Include="Interpreter\SwitchRT.cpp" />
     <ClCompile Include="Interpreter\SymbolRT.cpp" />
+    <ClCompile Include="Interpreter\SyncRT.cpp" />
     <ClCompile Include="Interpreter\SystemAppRT.cpp" />
     <ClCompile Include="Interpreter\SystemRT.cpp" />
     <ClCompile Include="Interpreter\TextTemplateRT.cpp" />
@@ -229,6 +230,7 @@
     <ClInclude Include="Interpreter\ProgramControlException.h" />
     <ClInclude Include="Interpreter\SelectDlgHelper.h" />
     <ClInclude Include="Interpreter\StringComparer.h" />
+    <ClInclude Include="Interpreter\SyncDriver.h" />
     <ClInclude Include="JavaScriptProcessor.h" />
     <ClInclude Include="List.h" />
     <ClInclude Include="LogicByteCode.h" />
@@ -367,6 +369,10 @@
       <Project>{ea52b4fa-021b-4f0c-8209-ef54aa538476}</Project>
       <Private>false</Private>
     </ProjectReference>
+    <ProjectReference Include="..\zNetwork\zNetwork.vcxproj">
+      <Project>{07d7da9d-03ed-437c-8a1f-cb2e76a3ef6a}</Project>
+      <Private>false</Private>
+    </ProjectReference>
     <ProjectReference Include="..\zPackO\zPackO.vcxproj">
       <Project>{9e5e9d64-f6da-11ec-b939-0242ac120002}</Project>
       <Private>false</Private>
@@ -385,6 +391,10 @@
     </ProjectReference>
     <ProjectReference Include="..\zSql\zSql.vcxproj">
       <Project>{d20eded4-35e5-465c-a43e-746f632d4eaf}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zSyncO\zSyncO.vcxproj">
+      <Project>{006d748a-cd6e-411d-9146-d1575172fb30}</Project>
       <Private>false</Private>
     </ProjectReference>
     <ProjectReference Include="..\zToolsO\zToolsO.vcxproj">

@@ -1,14 +1,13 @@
-#include "StandardSystemIncludes.h"
-#include "Interpreter.h"
-#include "EngineDictionaryModifier.h"
-#include <zToolsO/Encoders.h>
+#include "stdafx.h"
+#include "IncludesRT.h"
+#include "EngineDictionary.h"
+#include "SyncDriver.h"
+#include <engine/DicT.h>
+#include <engine/DicX.h>
+#include <engine/EngineDictionaryModifier.h>
 #include <zLogicO/SpecialFunction.h>
-#include <zEngineO/EngineDictionary.h>
-#include <zPlatformO/PlatformInterface.h>
 #include <zMessageO/Messages.h>
-#include <zBridgeO/NPff.h>
 #include <zDataO/ISyncableDataRepository.h>
-#include <zNetwork/LoginAccessor.h>
 #include <zSyncO/ApplicationPackageManager.h>
 #include <zSyncO/BluetoothObexServer.h>
 #include <zSyncO/DialogBasedSyncListener.h>
@@ -19,133 +18,155 @@
 #include <zSyncO/SyncObexHandler.h>
 #include <zSyncO/SyncServiceFactory.h>
 
+namespace SyncRT { class SyncObexEngineAccessor; }
 
-namespace
+
+// --------------------------------------------------------------------------
+// SyncDriver
+// --------------------------------------------------------------------------
+
+SyncDriver::SyncDriver(LogicInterpreter& interpreter)
+    :   m_interpreter(interpreter),
+        m_loginAccessor(std::make_unique<SyncLoginAccessor>()),
+        m_syncClient(std::make_unique<SyncClient>(GetDeviceId(), std::make_unique<SyncServiceFactory>(m_loginAccessor))),
+        m_syncListener(std::make_unique<DialogBasedSyncListener>(m_interpreter.GetSharedSystemMessageIssuer_INTERPRETER_DLL_TODO()))
 {
-    std::optional<SyncDirection> GetSyncDirection(CIntDriver& interpreter, const int expression)
-    {
-        if( expression >= static_cast<int>(SyncDirection::Put) &&
-            expression <= static_cast<int>(SyncDirection::Both) )
-        {
-            return static_cast<SyncDirection>(expression);
-        }
-
-        else if( expression < 0 )
-        {
-            const std::string direction_string = interpreter.Evaluate<std::string>(-1 * expression);
-
-            return SO::EqualsNoCase(direction_string, ToString(SyncDirection::Put))  ? std::make_optional(SyncDirection::Put) :
-                   SO::EqualsNoCase(direction_string, ToString(SyncDirection::Get))  ? std::make_optional(SyncDirection::Get) :
-                   SO::EqualsNoCase(direction_string, ToString(SyncDirection::Both)) ? std::make_optional(SyncDirection::Both) :
-                                                                                       std::nullopt;
-        }
-
-        else
-        {
-            return std::nullopt;
-        }
-    }
-
-
-    std::unique_ptr<ApplicationPackageManager> CreateApplicationPackageManager()
-    {
-#ifdef WIN_DESKTOP
-        return nullptr;
-#else
-        return std::make_unique<ApplicationPackageManager>(PlatformInterface::GetInstance()->GetCSEntryDirectory());
-#endif
-    }
-
-
-    class SyncObexEngineAccessor : public ISyncObexEngineAccessor
-    {
-    public:
-        SyncObexEngineAccessor(CIntDriver& interpreter, const int field_symbol_index)
-            :   m_interpreter(interpreter),
-                m_pEngineArea(m_interpreter.m_pEngineArea),
-                m_fieldSymbolIndex(field_symbol_index)
-        {
-        }
-
-        DataRepository* GetDataRepository(const std::string& syncable_dictionary_name, const std::string& dictionary_name) override
-        {
-            const int dictionary_symbol_index = m_pEngineArea->SymbolTableSearch(dictionary_name, { SymbolType::Pre80Dictionary });
-
-            if( dictionary_symbol_index != 0 )
-            {
-                DICT* pDicT = DPT(dictionary_symbol_index);
-                DICX* pDicX = pDicT->GetDicX();
-
-                if( syncable_dictionary_name == pDicT->GetDataDict()->GetSyncableName() )
-                    return &pDicX->GetDataRepository().GetRealRepository();
-            }
-
-            return nullptr;
-        }
-
-        std::unique_ptr<ApplicationPackageManager> CreateApplicationPackageManager() override
-        {
-            return ::CreateApplicationPackageManager();
-        }
-
-        std::optional<SharableString> OnSyncMessage(const SyncMessage& sync_message) override
-        {
-            if( !m_interpreter.HasSpecialFunction(SpecialFunction::Code::OnSyncMessage) )
-                return std::nullopt;
-
-            Engine::Value message_response = m_interpreter.ExecSpecialFunction(
-                m_fieldSymbolIndex,
-                SpecialFunction::Code::OnSyncMessage,
-                { sync_message.GetName(), sync_message.GetValueForOnSyncMessage() }
-            );
-
-            ASSERT(message_response.is<SharableString>());
-
-            return std::move(message_response).as<SharableString>();
-        }
-
-
-    private:
-        const Logic::SymbolTable& GetSymbolTable() const { return m_pEngineArea->GetSymbolTable(); }
-
-    private:
-        CIntDriver& m_interpreter;
-        CEngineArea* m_pEngineArea;
-        int m_fieldSymbolIndex;
-    };
+    m_syncClient->SetSyncListener(m_syncListener);
 }
 
 
-struct SyncObjects
+SyncDriver::~SyncDriver()
 {
-    std::shared_ptr<LoginAccessor> login_accessor;
-    std::unique_ptr<SyncClient> sync_client;
-    std::shared_ptr<SyncListener> sync_listener;
+}
+
+
+std::optional<SyncDirection> SyncDriver::EvaluateSyncDirection(const int expression) const
+{
+    if( expression >= static_cast<int>(SyncDirection::Put) &&
+        expression <= static_cast<int>(SyncDirection::Both) )
+    {
+        return static_cast<SyncDirection>(expression);
+    }
+
+    else if( expression < 0 )
+    {
+        const SharableString direction_string = m_interpreter.Evaluate<SharableString>(-1 * expression);
+
+        return SO::EqualsNoCase(*direction_string, ToString(SyncDirection::Put))  ? std::make_optional(SyncDirection::Put) :
+               SO::EqualsNoCase(*direction_string, ToString(SyncDirection::Get))  ? std::make_optional(SyncDirection::Get) :
+               SO::EqualsNoCase(*direction_string, ToString(SyncDirection::Both)) ? std::make_optional(SyncDirection::Both) :
+                                                                                    std::nullopt;
+    }
+
+    else
+    {
+        return std::nullopt;
+    }
+}
+
+
+std::unique_ptr<ApplicationPackageManager> SyncDriver::CreateApplicationPackageManager()
+{
+#ifdef WIN_DESKTOP
+    return nullptr;
+#else
+    return std::make_unique<ApplicationPackageManager>(PlatformInterface::GetInstance()->GetCSEntryDirectory());
+#endif
+}
+
+
+
+// --------------------------------------------------------------------------
+// SyncRT::SyncObexEngineAccessor
+// --------------------------------------------------------------------------
+
+class SyncRT::SyncObexEngineAccessor : public ISyncObexEngineAccessor
+{
+public:
+    SyncObexEngineAccessor(LogicInterpreter& interpreter, int field_symbol_index);
+
+    DataRepository* GetDataRepository(const std::string& syncable_dictionary_name, const std::string& dictionary_name) override;
+    std::unique_ptr<ApplicationPackageManager> CreateApplicationPackageManager() override;
+    std::optional<SharableString> OnSyncMessage(const SyncMessage& sync_message) override;
+
+private:
+    LogicInterpreter& m_interpreter;
+    int m_fieldSymbolIndex;
 };
 
 
-SyncClient& CIntDriver::GetSyncClient()
+SyncRT::SyncObexEngineAccessor::SyncObexEngineAccessor(LogicInterpreter& interpreter, const int field_symbol_index)
+    :   m_interpreter(interpreter),
+        m_fieldSymbolIndex(field_symbol_index)
 {
-    if( m_syncObjects == nullptr )
-    {
-        auto login_accessor = std::make_shared<SyncLoginAccessor>();
-
-        m_syncObjects = std::make_unique<SyncObjects>(
-            SyncObjects
-            {
-                login_accessor,
-                std::make_unique<SyncClient>(GetDeviceId(), std::make_unique<SyncServiceFactory>(std::move(login_accessor))),
-                std::make_unique<DialogBasedSyncListener>(m_pEngineDriver->GetSharedSystemMessageIssuer())
-            });
-
-            m_syncObjects->sync_client->SetSyncListener(m_syncObjects->sync_listener);
-    }
-
-    return *m_syncObjects->sync_client;
 }
 
 
-double CIntDriver::ex_syncconnect(const int program_index)
+DataRepository* SyncRT::SyncObexEngineAccessor::GetDataRepository(const std::string& syncable_dictionary_name,
+                                                                  const std::string& dictionary_name)
+{
+    const int dictionary_symbol_index = m_interpreter.SymbolTableSearch_INTERPRETER_DLL_TODO(
+        dictionary_name, { SymbolType::Pre80Dictionary }
+    );
+
+    if( dictionary_symbol_index != 0 )
+    {
+        DICT& dict = m_interpreter.GetSymbol<DICT>(dictionary_symbol_index);
+
+        if( syncable_dictionary_name == dict.GetDataDict()->GetSyncableName() )
+            return &dict.GetDicX()->GetDataRepository().GetRealRepository();
+    }
+
+    return nullptr;
+}
+
+
+std::unique_ptr<ApplicationPackageManager> SyncRT::SyncObexEngineAccessor::CreateApplicationPackageManager()
+{
+    return SyncDriver::CreateApplicationPackageManager();
+}
+
+
+std::optional<SharableString> SyncRT::SyncObexEngineAccessor::OnSyncMessage(const SyncMessage& sync_message)
+{
+    if( !m_interpreter.HasSpecialFunction(SpecialFunction::Code::OnSyncMessage) )
+        return std::nullopt;
+
+    Engine::Value message_response = m_interpreter.ExecSpecialFunction(
+        m_fieldSymbolIndex,
+        SpecialFunction::Code::OnSyncMessage,
+        { sync_message.GetName(), sync_message.GetValueForOnSyncMessage() }
+    );
+
+    ASSERT(message_response.is<SharableString>());
+
+    return std::move(message_response).as<SharableString>();
+}
+
+
+
+
+// --------------------------------------------------------------------------
+// synchronization functions
+// --------------------------------------------------------------------------
+
+SyncDriver& LogicInterpreter::GetSyncDriver()
+{
+    if( m_syncDriver == nullptr )
+        m_syncDriver = std::make_unique<SyncDriver>(*this);
+
+    return *m_syncDriver;
+}
+
+
+SyncClient& LogicInterpreter::GetSyncClient()
+{
+    SyncDriver& sync_driver = GetSyncDriver();
+    return sync_driver .GetSyncClient();
+}
+
+
+Engine::Value LogicInterpreter::ex_syncconnect(const int program_index)
 {
     const auto& va_node = GetNode<Nodes::VariableArguments>(program_index);
     SyncClient& sync_client = GetSyncClient();
@@ -269,37 +290,44 @@ double CIntDriver::ex_syncconnect(const int program_index)
 
             // Error
             default:
-                return ReturnProgrammingError(0);
+                return ReturnProgrammingError(Engine::Value::Bool(false));
         }
     }
 
     ASSERT(sync_connection_string.has_value());
 
-    const SyncClient::SyncResult result = sync_client.Connect(*sync_connection_string);
-
-    return ( result == SyncClient::SyncResult::SYNC_OK );
+    return Engine::Value::Bool(
+        ( sync_client.Connect(*sync_connection_string) == SyncClient::SyncResult::SYNC_OK )
+    );
 }
 
 
-double CIntDriver::ex_syncdisconnect(int /*program_index*/)
+Engine::Value LogicInterpreter::ex_syncdisconnect(int /*program_index*/)
 {
-    return ( GetSyncClient().Disconnect() == SyncClient::SyncResult::SYNC_OK );
+    SyncClient& sync_client = GetSyncClient();
+
+    return Engine::Value::Bool(
+        ( sync_client.Disconnect() == SyncClient::SyncResult::SYNC_OK )
+    );
 }
 
 
-double CIntDriver::ex_syncdata(const int program_index)
+Engine::Value LogicInterpreter::ex_syncdata(const int program_index)
 {
     const auto& va_node = GetNode<Nodes::VariableArguments>(program_index);
 
-    const std::optional<SyncDirection> direction = GetSyncDirection(*this, va_node.arguments[0]);
+    SyncDriver& sync_driver = GetSyncDriver();
+    const std::optional<SyncDirection> sync_direction = sync_driver.EvaluateSyncDirection(va_node.arguments[0]);
 
-    if( !direction.has_value() )
+    if( !sync_direction.has_value() )
     {
-        issaerror(MessageType::Error, 94000, Logic::FunctionTable::GetFunctionName(va_node.function_code));
-        return 0;
+        IssueMessage(MessageType::Error, MGF::sync_direction_invalid_94000,
+                     Logic::FunctionTable::GetFunctionName(va_node.function_code));
+
+        return Engine::Value::Bool(false);
     }
 
-    Symbol& symbol = NPT_Ref(va_node.arguments[1]);
+    Symbol& symbol = GetSymbol(va_node.arguments[1]);
     ISyncableDataRepository* syncable_data_repository;
 
     // because the cases may change during the sync, this object will ensure
@@ -311,8 +339,8 @@ double CIntDriver::ex_syncdata(const int program_index)
         EngineDictionary& engine_dictionary = assert_cast<EngineDictionary&>(symbol);
         syncable_data_repository = engine_dictionary.GetEngineDataRepository().GetDataRepository().GetSyncableDataRepository();
 
-        if( *direction != SyncDirection::Put )
-            engine_dictionary_modifier = EngineDictionaryModifier::Create(*this, engine_dictionary);
+        if( *sync_direction != SyncDirection::Put )
+            engine_dictionary_modifier = CreateEngineDictionaryModifier_INTERPRETER_DLL_TODO(engine_dictionary);
     }
 
     else
@@ -320,17 +348,20 @@ double CIntDriver::ex_syncdata(const int program_index)
         DICT& dict = assert_cast<DICT&>(symbol);
         syncable_data_repository = dict.GetDicX()->GetDataRepository().GetSyncableDataRepository();
 
-        if( *direction != SyncDirection::Put )
-            engine_dictionary_modifier = EngineDictionaryModifier::Create(*this, dict);
+        if( *sync_direction != SyncDirection::Put )
+            engine_dictionary_modifier = CreateEngineDictionaryModifier_INTERPRETER_DLL_TODO(dict);
     }
 
     if( syncable_data_repository == nullptr )
     {
-        issaerror(MessageType::Error, 100116, Logic::FunctionTable::GetFunctionName(va_node.function_code), symbol.GetName().c_str());
-        return 0;
+        IssueMessage(MessageType::Error, MGF::sync_invalid_data_source_100116,
+                     Logic::FunctionTable::GetFunctionName(va_node.function_code),
+                     symbol.GetName().c_str());
+
+        return Engine::Value::Bool(false);
     }
 
-    const std::string universe = EvaluateOptionalOrConstruct<std::string>(va_node.arguments[2]);
+    const SharableString universe = EvaluateNullableSharableString(va_node.arguments[2]);
     bool success = false;
 
     try
@@ -342,7 +373,9 @@ double CIntDriver::ex_syncdata(const int program_index)
 
         try
         {
-            if( GetSyncClient().SyncData(*syncable_data_repository, *direction, universe) == SyncClient::SyncResult::SYNC_OK )
+            SyncClient& sync_client = sync_driver.GetSyncClient();
+
+            if( sync_client.SyncData(*syncable_data_repository, *sync_direction, *universe) == SyncClient::SyncResult::SYNC_OK )
                 success = true;
         }
         catch(...) { ASSERT(false); sync_exception = std::current_exception(); }
@@ -356,30 +389,31 @@ double CIntDriver::ex_syncdata(const int program_index)
 
     catch( const CSProException& exception )
     {
-        issaerror(MessageType::Error, 100114, exception.what());
+        IssueMessage(MessageType::Error, MGF::sync_generic_error_100114, exception.what());
     }
 
-    return success;
+    return Engine::Value::Bool(success);
 }
 
 
-double CIntDriver::ex_syncfile(const int program_index)
+Engine::Value LogicInterpreter::ex_syncfile(const int program_index)
 {
     const auto& va_node = GetNode<Nodes::VariableArguments>(program_index);
 
-    const std::optional<SyncDirection> sync_direction = GetSyncDirection(*this, va_node.arguments[0]);
+    SyncDriver& sync_driver = GetSyncDriver();
+    const std::optional<SyncDirection> sync_direction = sync_driver.EvaluateSyncDirection(va_node.arguments[0]);
 
     if( !sync_direction.has_value() || *sync_direction == SyncDirection::Both )
     {
-        issaerror(MessageType::Error, 94003);
-        return 0;
+        IssueMessage(MessageType::Error, MGF::sync_direction_invalid_or_both_94003);
+        return Engine::Value::Bool(false);
     }
 
     auto evaluate_local_path = [&](std::string& path)
     {
         if( path.empty() )
         {
-            path = PortableFunctions::PathGetDirectory(UTF8_TODO::GetUtf8(m_pEngineDriver->m_pPifFile->GetAppFName()));
+            path = GetCurrentWorkingDirectory();
         }
 
         else
@@ -402,60 +436,64 @@ double CIntDriver::ex_syncfile(const int program_index)
         evaluate_local_path(from_path);
     }
 
-    return ( GetSyncClient().SyncFile(*sync_direction, std::move(from_path), std::move(to_path)) == SyncClient::SyncResult::SYNC_OK );
+    SyncClient& sync_client = sync_driver.GetSyncClient();
+
+    return Engine::Value::Bool(
+        ( sync_client.SyncFile(*sync_direction, std::move(from_path), std::move(to_path)) == SyncClient::SyncResult::SYNC_OK )
+    );
 }
 
 
-double CIntDriver::ex_syncserver(const int program_index)
+Engine::Value LogicInterpreter::ex_syncserver(const int program_index)
 {
     const auto& va_node = GetNode<Nodes::VariableArguments>(program_index);
     ASSERT(va_node.arguments[0] == 2); // the connection type is always 2 (Bluetooth) for now
 
-    if( m_syncObjects == nullptr )
-        GetSyncClient();
-
-    ASSERT(m_syncObjects->login_accessor != nullptr && m_syncObjects->sync_listener != nullptr);
-
-    std::shared_ptr<IBluetoothAdapter> bluetooth_adapter = m_syncObjects->login_accessor->GetBluetoothAdapter();
+    SyncDriver& sync_driver = GetSyncDriver();
+    std::shared_ptr<IBluetoothAdapter> bluetooth_adapter = sync_driver.GetLoginAccessor().GetBluetoothAdapter();
 
     // Bluetooth not supported on this device
     if( bluetooth_adapter == nullptr )
     {
-        issaerror(MessageType::Error, 100146);
-        return 0;
+        IssueMessage(MessageType::Error, MGF::sync_feature_not_supported_100146, "Bluetooth");
+        return Engine::Value::Bool(false);
     }
 
     // Default file root is app directory
     std::string root_directory = ( va_node.arguments[1] != -1 ) ? EvaluatePath(va_node.arguments[1]) :
-                                                                  UTF8_TODO::GetUtf8(GetFilePath(m_pEngineDriver->m_pPifFile->GetAppFName()));
+                                                                  GetCurrentWorkingDirectory();
 
-    BluetoothObexServer bluetooth_server(std::move(bluetooth_adapter),
-                                         std::make_unique<SyncObexHandler>(GetDeviceId(), std::move(root_directory), std::make_unique<SyncObexEngineAccessor>(*this, m_iExSymbol)),
-                                         m_syncObjects->sync_listener);
+    BluetoothObexServer bluetooth_server(
+        std::move(bluetooth_adapter),
+        std::make_unique<SyncObexHandler>(GetDeviceId(), std::move(root_directory), std::make_unique<SyncRT::SyncObexEngineAccessor>(*this, Get_m_iExSymbol_INTERPRETER_DLL_TODO())),
+        sync_driver.GetSharedSyncClient()
+    );
 
     try
     {
-        return bluetooth_server.run();
+        return Engine::Value::Bool(
+            ( bluetooth_server.run() != 0)
+        );
     }
 
     catch( const CSProException& exception )
     {
-        issaerror(MessageType::Error, 100153, exception.what());
-        return 0;
+        IssueMessage(MessageType::Error, MGF::sync_error_running_sync_service_100153, exception.what());
+        return Engine::Value::Bool(false);
     }
 }
 
 
-double CIntDriver::ex_syncapp(int /*program_index*/)
+Engine::Value LogicInterpreter::ex_syncapp(int /*program_index*/)
 {
-    const std::string application_file_path = PortableFunctions::PathReplaceFileExtension(UTF8_TODO::GetUtf8(m_pEngineDriver->m_pPifFile->GetAppFName()), FileExtensions::BinaryEntryPen);
+    const std::string application_file_path = Path::ReplaceExtension(GetCurrentApplicationFilePath(), FileExtensions::BinaryEntryPen);
     const int64_t app_file_time_before = PortableFunctions::FileModifiedTime(application_file_path);
 
-    const std::unique_ptr<ApplicationPackageManager> application_package_manager = CreateApplicationPackageManager();
+    const std::unique_ptr<ApplicationPackageManager> application_package_manager = SyncDriver::CreateApplicationPackageManager();
     SyncClient& sync_client = GetSyncClient();
 
     if( application_package_manager != nullptr &&
-        sync_client.UpdateApplication(*application_package_manager, UTF8_TODO::GetUtf8(m_pEngineDriver->m_pPifFile->GetAppFName())) == SyncClient::SyncResult::SYNC_OK )
+        sync_client.UpdateApplication(*application_package_manager, GetCurrentApplicationFilePath()) == SyncClient::SyncResult::SYNC_OK )
     {
         if( PortableFunctions::FileModifiedTime(application_file_path) > app_file_time_before )
         {
@@ -465,21 +503,25 @@ double CIntDriver::ex_syncapp(int /*program_index*/)
             ErrorMessage::Display(*restart_message);
 
 #ifndef WIN_DESKTOP
-            const CString& pff_file_path = m_pEngineDriver->m_pPifFile->GetPifFileName();
-            PlatformInterface::GetInstance()->GetApplicationInterface()->ExecPff(UTF8_TODO::GetUtf8(pff_file_path));
+            if( m_engineData->pff != nullptr )
+            {
+                PlatformInterface::GetInstance()->GetApplicationInterface()->ExecPff(
+                    UTF8_TODO::GetUtf8(m_engineData->pff->GetPifFileName())
+                );
+            }
 #endif
             m_bStopProc = true;
-            m_pEngineDriver->SetStopCode(1);
+            SetStopCode_INTERPRETER_DLL_TODO();
         }
 
-        return 1;
+        return Engine::Value::Bool(true);
     }
 
-    return 0;
+    return Engine::Value::Bool(false);
 }
 
 
-Engine::Value CIntDriver::ex_syncmessage(const int program_index)
+Engine::Value LogicInterpreter::ex_syncmessage(const int program_index)
 {
     const auto& va_node = GetNode<Nodes::VariableArguments>(program_index);
     ASSERT(va_node.arguments[0] == -1); // the type of message, for now, is ignored
@@ -487,7 +529,8 @@ Engine::Value CIntDriver::ex_syncmessage(const int program_index)
     const SyncMessage sync_message(Evaluate<SharableString>(va_node.arguments[1]),
                                    EvaluateNullableSharableString(va_node.arguments[2]));
 
-    const std::optional<JsonNode> response_json_node = GetSyncClient().SendSyncMessage(sync_message);
+    SyncClient& sync_client = GetSyncClient();
+    const std::optional<JsonNode> response_json_node = sync_client.SendSyncMessage(sync_message);
 
     if( !response_json_node.has_value() )
         return Engine::Value::Undefined<SharableString>();
@@ -497,16 +540,17 @@ Engine::Value CIntDriver::ex_syncmessage(const int program_index)
 }
 
 
-double CIntDriver::ex_syncparadata(const int program_index)
+Engine::Value LogicInterpreter::ex_syncparadata(const int program_index)
 {
     const auto& va_node = GetNode<Nodes::VariableArguments>(program_index);
 
-    const std::optional<SyncDirection> sync_direction = GetSyncDirection(*this, va_node.arguments[0]);
+    SyncDriver& sync_driver = GetSyncDriver();
+    const std::optional<SyncDirection> sync_direction = sync_driver.EvaluateSyncDirection(va_node.arguments[0]);
 
     if( !sync_direction.has_value() )
     {
-        issaerror(MessageType::Error, 94000, Logic::FunctionTable::GetFunctionName(va_node.function_code));
-        return 0;
+        IssueMessage(MessageType::Error, MGF::sync_direction_invalid_94000, Logic::FunctionTable::GetFunctionName(va_node.function_code));
+        return Engine::Value::Bool(false);
     }
 
     try
@@ -514,24 +558,26 @@ double CIntDriver::ex_syncparadata(const int program_index)
         if( !Paradata::Logger::IsOpen() )
             throw CSProException("A paradata log must be open before calling syncparadata.");
 
-        if( GetSyncClient().SyncParadata(*sync_direction) == SyncClient::SyncResult::SYNC_OK )
-            return 1;
+        SyncClient& sync_client = sync_driver.GetSyncClient();
+
+        if( sync_client.SyncParadata(*sync_direction) == SyncClient::SyncResult::SYNC_OK )
+            return Engine::Value::Bool(true);
     }
 
     catch( const CSProException& exception )
     {
-        issaerror(MessageType::Error, 8295, exception.what());
+        IssueMessage(MessageType::Error, MGF::Query_paradata_sync_error_8295, exception.what());
     }
 
-    return 0;
+    return Engine::Value::Bool(false);
 }
 
 
-double CIntDriver::ex_synctime(const int program_index)
+Engine::Value LogicInterpreter::ex_synctime(const int program_index)
 {
     const auto& va_node = GetNode<Nodes::VariableArguments>(program_index);
 
-    Symbol& symbol = NPT_Ref(va_node.arguments[0]);
+    Symbol& symbol = GetSymbol(va_node.arguments[0]);
     ISyncableDataRepository* syncable_data_repository;
 
     if( symbol.IsA(SymbolType::Dictionary) )
@@ -546,8 +592,11 @@ double CIntDriver::ex_synctime(const int program_index)
 
     if( syncable_data_repository == nullptr )
     {
-        issaerror(MessageType::Error, 100116, Logic::FunctionTable::GetFunctionName(va_node.function_code), symbol.GetName().c_str());
-        return NOTAPPL;
+        IssueMessage(MessageType::Error, MGF::sync_invalid_data_source_100116,
+                     Logic::FunctionTable::GetFunctionName(va_node.function_code),
+                     symbol.GetName().c_str());
+
+        return Engine::Value::Undefined<double>();
     }
 
     SharableString device_identifier = EvaluateNullableSharableString(va_node.arguments[1]);
@@ -559,7 +608,7 @@ double CIntDriver::ex_synctime(const int program_index)
 
     try
     {
-        std::optional<double> time = syncable_data_repository->GetSyncTime(device_identifier, case_uuid);
+        const std::optional<double> time = syncable_data_repository->GetSyncTime(device_identifier, case_uuid);
 
         if( time.has_value() )
             return *time;
@@ -567,21 +616,17 @@ double CIntDriver::ex_synctime(const int program_index)
 
     catch( const CSProException& exception )
     {
-        issaerror(MessageType::Error, 100153, exception.what());
+        IssueMessage(MessageType::Error, MGF::sync_error_running_sync_service_100153, exception.what());
     }
 
-    return NOTAPPL;
+    return Engine::Value::Undefined<double>();
 }
 
 
-Engine::Value CIntDriver::ex_getbluetoothname(int /*program_index*/)
+Engine::Value LogicInterpreter::ex_getbluetoothname(int /*program_index*/)
 {
-    if( m_syncObjects == nullptr )
-        GetSyncClient();
-
-    ASSERT(m_syncObjects->login_accessor != nullptr);
-
-    const std::shared_ptr<IBluetoothAdapter> bluetooth_adapter = m_syncObjects->login_accessor->GetBluetoothAdapter();
+    SyncDriver& sync_driver = GetSyncDriver();
+    const std::shared_ptr<const IBluetoothAdapter> bluetooth_adapter = sync_driver.GetLoginAccessor().GetBluetoothAdapter();
 
     if( bluetooth_adapter == nullptr )
         return Engine::Value::Undefined<SharableString>();
@@ -590,21 +635,17 @@ Engine::Value CIntDriver::ex_getbluetoothname(int /*program_index*/)
 }
 
 
-Engine::Value CIntDriver::ex_setbluetoothname(const int program_index)
+Engine::Value LogicInterpreter::ex_setbluetoothname(const int program_index)
 {
     const auto& fnn_node = GetNode<FNN_NODE>(program_index);
     const SharableString bluetooth_name = Evaluate<SharableString>(fnn_node.fn_expr[0]);
 
-    if( m_syncObjects == nullptr )
-        GetSyncClient();
-
-    ASSERT(m_syncObjects->login_accessor != nullptr);
-
-    const std::shared_ptr<IBluetoothAdapter> bluetooth_adapter = m_syncObjects->login_accessor->GetBluetoothAdapter();
+    SyncDriver& sync_driver = GetSyncDriver();
+    const std::shared_ptr<IBluetoothAdapter> bluetooth_adapter = sync_driver.GetLoginAccessor().GetBluetoothAdapter();
 
     if( bluetooth_adapter == nullptr )
     {
-        issaerror(MessageType::Error, 100146);
+        IssueMessage(MessageType::Error, MGF::sync_feature_not_supported_100146, "Bluetooth");
         return Engine::Value::Bool(false);
     }
 
@@ -619,7 +660,7 @@ Engine::Value CIntDriver::ex_setbluetoothname(const int program_index)
 
     catch( const CSProException& exception )
     {
-        issaerror(MessageType::Error, 100174, exception.what());
+        IssueMessage(MessageType::Error, MGF::sync_set_bluetooth_name_error_100174, exception.what());
         return Engine::Value::Bool(false);
     }
 }

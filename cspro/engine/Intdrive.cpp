@@ -580,11 +580,11 @@ void CIntDriver::AddIntDriverInstructions()
     OP_ENGVAL(233, ex_round);
     OP_ENGVAL(234, ex_nop_abort);
     OP_DOUBLE(235, exsavepartial);
-    OP_DOUBLE(236, ex_syncconnect);
-    OP_DOUBLE(237, ex_syncdisconnect);
-    OP_DOUBLE(238, ex_syncdata);
-    OP_DOUBLE(239, ex_syncfile);
-    OP_DOUBLE(240, ex_syncserver);
+    OP_ENGVAL(236, ex_syncconnect);
+    OP_ENGVAL(237, ex_syncdisconnect);
+    OP_ENGVAL(238, ex_syncdata);
+    OP_ENGVAL(239, ex_syncfile);
+    OP_ENGVAL(240, ex_syncserver);
     OP_ENGVAL(241, ex_savesetting);
     OP_ENGVAL(242, ex_loadsetting);
     OP_ENGVAL_ID(243, ex_getcaselabel);
@@ -624,7 +624,7 @@ void CIntDriver::AddIntDriverInstructions()
     OP_ENGVAL(277, ex_Array_var);
     OP_DOUBLE(278, extvar);
     OP_ENGVAL(279, ex_exit);
-    OP_ENGVAL_ID(280, ex_getbluetoothname);
+    OP_ENGVAL(280, ex_getbluetoothname);
     OP_ENGVAL(281, ex_regexmatch);
     OP_ENGVAL(282, ex_nop_abort);
     OP_ENGVAL(283, ex_getvaluelabel);
@@ -680,7 +680,7 @@ void CIntDriver::AddIntDriverInstructions()
     OP_ENGVAL(333, ex_ischecked);
     OP_ENGVAL_ID(334, ex_protect);
     OP_ENGVAL(335, ex_when);
-    OP_DOUBLE(336, ex_syncapp);
+    OP_ENGVAL(336, ex_syncapp);
     OP_ENGVAL(337, ex_filetime);
     OP_ENGVAL(338, ex_recode);
     OP_DOUBLE(339, exforcase);
@@ -689,7 +689,7 @@ void CIntDriver::AddIntDriverInstructions()
     OP_DOUBLE(342, exkeylist);
     OP_ENGVAL(343, ex_Barcode_read);
     OP_ENGVAL(344, ex_hash);
-    OP_ENGVAL_ID(345, ex_syncmessage);
+    OP_ENGVAL(345, ex_syncmessage);
     OP_ENGVAL(346, ex_SystemApp_clear);
     OP_ENGVAL(347, ex_SystemApp_setArgument);
     OP_ENGVAL(348, ex_SystemApp_getResult);
@@ -714,7 +714,7 @@ void CIntDriver::AddIntDriverInstructions()
     OP_ENGVAL(367, ex_Path_getExtension);
     OP_ENGVAL(368, ex_Path_getFileName);
     OP_ENGVAL(369, ex_Path_getFileNameWithoutExtension);
-    OP_DOUBLE(370, ex_syncparadata);
+    OP_ENGVAL(370, ex_syncparadata);
     OP_ENGVAL(371, ex_HashMap_var);
     OP_ENGVAL(372, ex_HashMap_compute);
     OP_ENGVAL(373, ex_HashMap_clear);
@@ -774,7 +774,7 @@ void CIntDriver::AddIntDriverInstructions()
     OP_ENGVAL(427, ex_Geometry_setProperty);
     OP_ENGVAL(428, ex_inadvance);
     OP_ENGVAL(429, ex_Map_saveSnapshot);
-    OP_DOUBLE(430, ex_synctime);
+    OP_ENGVAL(430, ex_synctime);
     OP_ENGVAL(431, ex_htmldialog);
     OP_ENGVAL(432, ex_Path_getRelativePath);
     OP_ENGVAL(433, ex_Path_selectFile);
@@ -782,7 +782,7 @@ void CIntDriver::AddIntDriverInstructions()
     OP_ENGVAL(435, ex_Report_save);
     OP_ENGVAL(436, ex_Report_view);
     OP_ENGVAL(437, ex_TextTemplate_write_writeEncoded_writeEncodedLine_writeLine);
-    OP_ENGVAL_ID(438, ex_setbluetoothname);
+    OP_ENGVAL(438, ex_setbluetoothname);
     OP_DOUBLE(439, expersistentsymbolreset);
     OP_ENGVAL(440, ex_Symbol_getJson_getValueJson);
     OP_ENGVAL(441, ex_Symbol_getJson_getValueJson);
@@ -1572,4 +1572,24 @@ MessageEvaluator& CIntDriver::GetUserMessageEvaluator_INTERPRETER_DLL_TODO()
 MessageManager& CIntDriver::GetUserMessageManager_INTERPRETER_DLL_TODO()
 {
     return m_pEngineDriver->GetUserMessageManager();
+}
+
+
+std::shared_ptr<SystemMessageIssuer> CIntDriver::GetSharedSystemMessageIssuer_INTERPRETER_DLL_TODO()
+{
+    return m_pEngineDriver->GetSharedSystemMessageIssuer();
+}
+
+
+void CIntDriver::SetStopCode_INTERPRETER_DLL_TODO() const
+{
+    m_pEngineDriver->SetStopCode(1);
+}
+
+
+#include "EngineDictionaryModifier.h"
+std::unique_ptr<EngineDictionaryModifier> CIntDriver::CreateEngineDictionaryModifier_INTERPRETER_DLL_TODO(Symbol& symbol)
+{
+    ASSERT(symbol.IsA(SymbolType::Pre80Dictionary));
+    return EngineDictionaryModifier::Create(*this, assert_cast<DICT&>(symbol));
 }

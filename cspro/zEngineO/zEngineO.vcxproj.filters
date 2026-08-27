@@ -374,6 +374,9 @@
     <ClCompile Include="Interpreter\SymbolRT.cpp">
       <Filter>Source Files\Interpreter</Filter>
     </ClCompile>
+    <ClCompile Include="Interpreter\SyncRT.cpp">
+      <Filter>Source Files\Interpreter</Filter>
+    </ClCompile>
     <ClCompile Include="Interpreter\SystemAppRT.cpp">
       <Filter>Source Files\Interpreter</Filter>
     </ClCompile>
@@ -650,6 +653,9 @@
       <Filter>Header Files\Interpreter</Filter>
     </ClInclude>
     <ClInclude Include="Interpreter\StringComparer.h">
+      <Filter>Header Files\Interpreter</Filter>
+    </ClInclude>
+    <ClInclude Include="Interpreter\SyncDriver.h">
       <Filter>Header Files\Interpreter</Filter>
     </ClInclude>
     <ClInclude Include="JavaScriptProcessor.h">

@@ -165,6 +165,7 @@ namespace MGF
     constexpr int Query_paradata_concat_invalid_output_argument_8275        =   8275;
     constexpr int Query_paradata_concat_error_8291                          =   8291;
     constexpr int Query_sqlquery_error_8292                                 =   8292;
+    constexpr int Query_paradata_sync_error_8295                            =   8295;
 
     constexpr int SpecialFunction_invalid_case_9112                         =   9112;
     constexpr int SpecialFunction_invalid_syntax_9113                       =   9113;
@@ -290,6 +291,9 @@ namespace MGF
     constexpr int Variable_destination_not_correct_data_type_93012          =  93012;
     constexpr int Variable_destination_function_error_93013                 =  93013;
 
+    constexpr int sync_direction_invalid_94000                              =  94000;
+    constexpr int sync_direction_invalid_or_both_94003                      =  94003;
+
     constexpr int variable_modifier_duplicated_94100                        =  94100;
     constexpr int variable_modifier_invalid_94101                           =  94101;
     constexpr int CommonStore_cannot_be_opened_94102                        =  94102;
@@ -359,6 +363,10 @@ namespace MGF
     constexpr int deprecation_setvalueset_with_at_string_literal_95032      =  95032;
 
     constexpr int sync_generic_error_100114                                 = 100114;
+    constexpr int sync_invalid_data_source_100116                           = 100116;
+    constexpr int sync_feature_not_supported_100146                         = 100146;
+    constexpr int sync_error_running_sync_service_100153                    = 100153;
+    constexpr int sync_set_bluetooth_name_error_100174                      = 100174;
 
     constexpr int regex_invalid_100260                                      = 100260;
 

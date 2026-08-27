@@ -54,7 +54,6 @@ add_library(${PROJECT_NAME}
     IntPre77Report.cpp
     IntProgramControl.cpp
     IntProperties.cpp
-    IntSync.cpp
     IntUserFunction.cpp
     IntUserInterface.cpp
     Listing.cpp

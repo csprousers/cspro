@@ -67,7 +67,10 @@ LoopStack& CIntDriver::GetLoopStack() { throw ProgrammingErrorException(); }
 Listing::WriteFile* CIntDriver::GetWriteFile_INTERPRETER_DLL_TODO() { throw ProgrammingErrorException(); }
 MessageEvaluator& CIntDriver::GetUserMessageEvaluator_INTERPRETER_DLL_TODO() { throw ProgrammingErrorException(); }
 MessageManager& CIntDriver::GetUserMessageManager_INTERPRETER_DLL_TODO() { throw ProgrammingErrorException(); }
+std::shared_ptr<SystemMessageIssuer> CIntDriver::GetSharedSystemMessageIssuer_INTERPRETER_DLL_TODO() { throw ProgrammingErrorException(); }
 bool CIntDriver::InAdvance_INTERPRETER_DLL_TODO() const { throw ProgrammingErrorException(); }
+void CIntDriver::SetStopCode_INTERPRETER_DLL_TODO() const { }
+std::unique_ptr<EngineDictionaryModifier> CIntDriver::CreateEngineDictionaryModifier_INTERPRETER_DLL_TODO(Symbol& symbol) { throw ProgrammingErrorException(); }
 
 
 double* CIntDriver::svaraddr( VARX* pVarX ) const { ASSERT(0); return NULL; }

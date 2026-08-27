@@ -149,6 +149,7 @@ add_library(${PROJECT_NAME}
     Interpreter/StringWriterRT.cpp
     Interpreter/SwitchRT.cpp
     Interpreter/SymbolRT.cpp
+    Interpreter/SyncRT.cpp
     Interpreter/SystemAppRT.cpp
     Interpreter/SystemRT.cpp
     Interpreter/TextTemplateRT.cpp

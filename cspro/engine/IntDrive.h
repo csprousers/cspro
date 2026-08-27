@@ -49,7 +49,6 @@ class KeyboardLoader;
 class NamedReference;
 class SelcaseManager;
 class SyncClient;
-struct SyncObjects;
 class VTSTRUCT;
 namespace Nodes { struct SetAccessFirstLast; }
 namespace Paradata { class Event; class ExternalApplicationEvent; }
@@ -432,18 +431,6 @@ public:
     double  expre77_setreportdata(int iExpr);
     double  expre77_report(int iExpr);
 
-    double ex_syncconnect(int program_index);
-    double ex_syncdisconnect(int program_index);
-    double ex_syncdata(int program_index);
-    double ex_syncfile(int program_index);
-    double ex_syncserver(int program_index);
-    double ex_syncapp(int program_index);
-    Engine::Value ex_syncmessage(int program_index);
-    double ex_syncparadata(int program_index);
-    double ex_synctime(int program_index);
-
-    Engine::Value ex_getbluetoothname(int program_index);
-    Engine::Value ex_setbluetoothname(int program_index);
 
     double exsavepartial(int iExpr);
     Engine::Value ex_getoperatorid(int program_index);
@@ -807,8 +794,6 @@ public:
     void SetStartupLanguage();
     std::vector<Language> GetLanguages(bool include_only_capi_languages = true) const;
 
-    SyncClient& GetSyncClient();
-
     std::unique_ptr<C3DObject> ConvertIndex(const CaseItem& case_item, const ItemIndex& item_index);
     std::unique_ptr<C3DObject> ConvertIndex(const CaseItemReference& case_item_reference);
     void ConvertIndex(const C3DIndexes& the3dObject, ItemIndex& item_index);
@@ -854,12 +839,16 @@ private:
     Listing::WriteFile* GetWriteFile_INTERPRETER_DLL_TODO() override;
     MessageEvaluator& GetUserMessageEvaluator_INTERPRETER_DLL_TODO() override;
     MessageManager& GetUserMessageManager_INTERPRETER_DLL_TODO() override;
+    std::shared_ptr<SystemMessageIssuer> GetSharedSystemMessageIssuer_INTERPRETER_DLL_TODO() override;
     int DisplayMessage_INTERPRETER_DLL_TODO(MessageType message_type, const RuntimeMessage& runtime_message) override;
     bool InAdvance_INTERPRETER_DLL_TODO() const override;
 public:
     LoopStack& GetLoopStack() override;
     bool Get_m_bStopExec_INTERPRETER_DLL_TODO() const override { return m_bStopExec; }
     std::string GetCurrentProcName() const override;
+private:
+    void SetStopCode_INTERPRETER_DLL_TODO() const override;
+    std::unique_ptr<EngineDictionaryModifier> CreateEngineDictionaryModifier_INTERPRETER_DLL_TODO(Symbol& symbol) override;
 
 
 private:
@@ -867,8 +856,6 @@ private:
     std::vector<CString> m_aShowLines;
 
     std::unique_ptr<SelcaseManager> m_selcaseManager;
-
-    std::shared_ptr<SyncObjects> m_syncObjects;
 
     std::unique_ptr<KeyboardLoader> m_keyboardLoader; // non-null
 };
