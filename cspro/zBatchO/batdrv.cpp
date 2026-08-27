@@ -1,13 +1,13 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include <engine/Engine.h>
 #include <engine/Batdrv.h>
 #include <engine/Ctab.h>
-#include <engine/ProgramControl.h>
 #include <zMessageO/Messages.h>
 #include <zCaseO/Case.h>
 #include <zCaseO/CaseConstructionReporter.h>
 #include <zDataO/DataRepository.h>
 #include <zParadataO/Logger.h>
+#include <zEngineO/Interpreter/ProgramControlException.h>
 
 #ifdef _DEBUG
 #define new DEBUG_NEW

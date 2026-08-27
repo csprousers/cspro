@@ -1,5 +1,6 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "EngineUI.h"
+#include "TraceHandler.h"
 #include <zUtilO/CSProExecutables.h>
 #include <zHtml/PortableLocalhost.h>
 
@@ -26,6 +27,12 @@ LRESULT EngineUIProcessor::ProcessMessage(const WPARAM wParam, const LPARAM lPar
         {
             EngineUI::CreateMapUINode* const create_map_ui_node = reinterpret_cast<EngineUI::CreateMapUINode*>(lParam);
             return CreateMapUI(*create_map_ui_node);
+        }
+
+        case EngineUI::Type::CreateTraceHandler:
+        {
+            std::unique_ptr<TraceHandler>* const trace_handler = reinterpret_cast<std::unique_ptr<TraceHandler>*>(lParam);
+            return CreateTraceHandler(*trace_handler);
         }
 
         case EngineUI::Type::CreateUserbar:
@@ -81,6 +88,14 @@ LRESULT EngineUIProcessor::ProcessMessage(const WPARAM wParam, const LPARAM lPar
             return ReturnProgrammingError(0);
         }
     }
+}
+
+
+LRESULT EngineUIProcessor::CreateTraceHandler(std::unique_ptr<TraceHandler>& trace_handler)
+{
+    ASSERT(trace_handler == nullptr);
+    trace_handler = TraceHandler::CreateTraceHandler();
+    return 1;
 }
 
 

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zEntryO/zEntryO.h>
 #include <zEntryO/CoreEntryFieldNote.h>
@@ -22,6 +22,7 @@ class CommonStore;
 class CoreEntryPage;
 struct EngineData;
 class ObjectTransporter;
+class Userbar;
 class UserFunctionArgumentEvaluator;
 
 
@@ -140,6 +141,8 @@ public:
     CommonStore* GetCommonStore();
     static std::string GetSystemSetting(const std::string& setting_name, std::variant<cs::string_sz, std::string> default_value);
     static bool GetSystemSetting(const std::string& setting_name, bool default_value);
+
+    Userbar* GetUserbar();
 
     CRunAplEntry* GetRunAplEntry() { return m_pRunAplEntry; }
 

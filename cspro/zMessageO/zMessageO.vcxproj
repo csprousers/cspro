@@ -39,6 +39,7 @@
     <ClInclude Include="Messages.h" />
     <ClInclude Include="MessageSummary.h" />
     <ClInclude Include="MessageType.h" />
+    <ClInclude Include="RuntimeMessage.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="SystemMessageFormatter.h" />
     <ClInclude Include="SystemMessageIssuer.h" />

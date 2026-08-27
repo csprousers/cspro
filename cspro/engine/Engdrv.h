@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 //---------------------------------------------------------------------------
 //  File name: EngDrv.h
@@ -42,12 +42,12 @@ class CompilerCreator;
 class CWnd;
 class ExecutionStackEntry;
 class InterpreterAccessor;
+namespace Listing { class ErrorLister; class WriteFile; }
 class LogicByteCode;
 class MessageManager;
 class Pre74_CaseLevel;
 class Pre74_CaseRecord;
-class Userbar;
-namespace Listing { class ErrorLister; class WriteFile; }
+struct RuntimeMessage;
 
 
 class CEngineDriver
@@ -74,15 +74,6 @@ protected:
 
 private:
     std::unique_ptr<const ExecutionStackEntry> m_executionStackEntry;
-
-    // userbar
-private:
-    std::unique_ptr<Userbar> m_userbar;
-
-public:
-    bool HasUserbar() const                           { return ( m_userbar != nullptr ); }
-    Userbar& GetUserbar()                             { ASSERT(HasUserbar()); return *m_userbar; }
-    void SetUserbar(std::unique_ptr<Userbar> userbar);
 
 public:
     ModuleType      m_Issamod;
@@ -126,8 +117,7 @@ public:
     MessageManager& GetUserMessageManager()     { return *m_userMessageManager; }
     MessageEvaluator& GetUserMessageEvaluator() { return *m_userMessageEvaluator; }
 
-    struct MessageSelectDetails { std::vector<SharableString> button_texts; int default_button_number; };
-    virtual int DisplayMessage(MessageType message_type, int message_number, SharableString message_text, const MessageSelectDetails* select_details);
+    virtual int DisplayMessage(MessageType message_type, const RuntimeMessage& runtime_message);
 
     // listing and write files
 private:

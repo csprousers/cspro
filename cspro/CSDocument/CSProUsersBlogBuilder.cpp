@@ -1,8 +1,7 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "CSProUsersBlogBuilder.h"
 #include "CSDocCompiler.h"
 #include "HtmlTags.h"
-#include <zToolsO/File.h>
 #include <zToolsO/VectorHelpers.h>
 #include <zHtml/TagModifier.h>
 

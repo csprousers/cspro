@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zUtilO/zUtilO.h>
 #include <zUtilO/PropertyString.h>
@@ -86,7 +86,9 @@ public:
     std::string ToString() const;
 
     // Returns the connection string represented as a string using the specified file path.
-    std::string ToString(std::string file_path) const;
+    // When inherit_type_from_parent is false, the repository type will be calculated based
+    // on the file path rather than using the parent connection string's type.
+    std::string ToString(std::string file_path, bool inherit_type_from_parent) const;
 
     // Returns the connection string represented as a string, with any directory removed from file paths.
     std::string ToStringWithoutDirectory() const;
@@ -225,5 +227,5 @@ inline const std::string& ConnectionString::GetUrl() const
 
 inline std::string ConnectionString::ToString() const
 {
-    return ToString(m_resource);
+    return ToString(m_resource, true);
 }

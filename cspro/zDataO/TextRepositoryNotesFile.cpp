@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "TextRepositoryNotesFile.h"
 #include "TextRepository.h"
-#include <zToolsO/File.h>
+#include <zToolsO/TextFile.h>
 #include <zUtilO/NameShortener.h>
 
 

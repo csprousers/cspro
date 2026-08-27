@@ -1,6 +1,6 @@
 #include "StdAfx.h"
 #include "TraceHandler.h"
-#include <zToolsO/File.h>
+#include <zToolsO/TextFile.h>
 
 #ifdef WIN_DESKTOP
 #include "WindowsTraceHandler.h"

@@ -6,10 +6,10 @@
 #include "StandardSystemIncludes.h"
 #include "Engine.h"
 #include "Interpreter.h"
-#include "ProgramControl.h"
 #include "SelcaseManager.h"
 #include <zEngineO/AllSymbols.h>
 #include <zEngineO/LoopStack.h>
+#include <zEngineO/Interpreter/ProgramControlException.h>
 #include <zEngineO/Interpreter/SelectDlgHelper.h>
 #include <zEngineO/Messages/EngineMessages.h>
 #include <zEngineO/Nodes/Dictionaries.h>
@@ -2036,85 +2036,13 @@ double CIntDriver::ex_setoutput(const int program_index)
 
 //----------------------------------------------------------------------
 //
-//  exfilename      ejecuta funcion 'FILENAME'
-//
-//----------------------------------------------------------------------
-Engine::Value CIntDriver::exfilename(int iExpr)
-{
-    const auto& fn8_node = GetNode<FN8_NODE>(iExpr);
-
-    // the paradata log
-    if( fn8_node.symbol_index == -2 )
-        return Paradata::Logger::GetFilePath();
-
-    // symbols
-    Symbol* const symbol = GetFromSymbolOrEngineItem(
-        fn8_node.symbol_index,
-        m_engineData->MeetsCompiledLogicVersion(Serializer::Iteration_8_0_000_1) ? fn8_node.extra_parameter : -1
-    );
-
-    if( symbol == nullptr )
-        return Engine::Value::Invalid<SharableString>();
-
-    // dictionary
-    if( symbol->IsA(SymbolType::Dictionary) )
-    {
-        const EngineDictionary& engine_dictionary = assert_cast<const EngineDictionary&>(*symbol);
-        const ConnectionString& connection_string = engine_dictionary.GetEngineDataRepository().GetDataRepository().GetConnectionString();
-        return connection_string.HasFilePath() ? connection_string.GetFilePath() :
-                                                 Engine::Value::Undefined<SharableString>();
-    }
-
-    else if( symbol->IsA(SymbolType::Pre80Dictionary) )
-    {
-        const DICT* const pDicT = assert_cast<const DICT*>(symbol);
-        const DICX* const pDicX = pDicT->GetDicX();
-        const ConnectionString& connection_string = pDicX->GetDataRepository().GetConnectionString();
-        return connection_string.HasFilePath() ? connection_string.GetFilePath() :
-                                                 Engine::Value::Undefined<SharableString>();
-    }
-
-    // File
-    else if( symbol->IsA(SymbolType::File) )
-    {
-        const LogicFile& logic_file = assert_cast<const LogicFile&>(*symbol);
-        return logic_file.GetFilePath();
-    }
-
-    // Pff
-    else if( symbol->IsA(SymbolType::Pff) )
-    {
-        LogicPff& logic_pff = assert_cast<LogicPff&>(*symbol);
-        return logic_pff.GetRunnableFilePath();
-    }
-
-    // Report
-    else if( symbol->IsA(SymbolType::Report) )
-    {
-        const Report& report = assert_cast<const Report&>(*symbol);
-        return report.GetFilePath();
-    }
-
-    // Audio, Document, Geometry, Image, Video
-    else if( BinarySymbol::IsBinarySymbol(*symbol) )
-    {
-        return assert_cast<const BinarySymbol&>(*symbol).GetPath();
-    }
-
-    return Engine::Value::Invalid<SharableString>();
-}
-
-
-//----------------------------------------------------------------------
-//
 // ex_open
 //
 //----------------------------------------------------------------------
-double CIntDriver::ex_open(const int program_index)
+Engine::Value CIntDriver::ex_open(const int program_index)
 {
     const auto& fn8_node = GetNode<FN8_NODE>(program_index);
     Symbol& symbol = NPT_Ref(fn8_node.symbol_index);
-    bool success = true;
 
     const bool create = ( fn8_node.extra_parameter == static_cast<int>(Nodes::SetFile::Mode::Create) );
     const bool append = ( fn8_node.extra_parameter == static_cast<int>(Nodes::SetFile::Mode::Append) );
@@ -2128,7 +2056,7 @@ double CIntDriver::ex_open(const int program_index)
             engine_data_repository.GetLastClosedConnectionString() :
             engine_data_repository.GetDataRepository().GetConnectionString();
 
-        success = ex_setfile_dictionary(engine_dictionary, connection_string, create, append);
+        return ex_setfile_dictionary(engine_dictionary, connection_string, create, append);
     }
 
     else if( symbol.IsA(SymbolType::Pre80Dictionary) )
@@ -2140,18 +2068,18 @@ double CIntDriver::ex_open(const int program_index)
             pDicX->GetLastClosedConnectionString() :
             pDicX->GetDataRepository().GetConnectionString();
 
-        success = ex_setfile_dictionary(&pDicT, connection_string, create, append);
+        return ex_setfile_dictionary(&pDicT, connection_string, create, append);
     }
 
     else if( symbol.IsA(SymbolType::File) )
     {
-        LogicFile& logic_file = assert_cast<LogicFile&>(symbol);
-
-        if( !logic_file.Open(create, append, true) )
-            success = false;
+        return ex_File_open(assert_cast<LogicFile&>(symbol), create, append, -1);
     }
 
-    return success ? 1 : 0;
+    else
+    {
+        return ReturnProgrammingError(Engine::Value::Bool(false));
+    }
 }
 
 
@@ -2160,11 +2088,10 @@ double CIntDriver::ex_open(const int program_index)
 // ex_close
 //
 //----------------------------------------------------------------------
-double CIntDriver::ex_close(const int program_index)
+Engine::Value CIntDriver::ex_close(const int program_index)
 {
     const auto& fn8_node = GetNode<FN8_NODE>(program_index);
     Symbol& symbol = NPT_Ref(fn8_node.symbol_index);
-    bool success = true;
 
     if( symbol.IsA(SymbolType::Dictionary) )
     {
@@ -2194,18 +2121,15 @@ double CIntDriver::ex_close(const int program_index)
 
     else if( symbol.IsA(SymbolType::File) )
     {
-        LogicFile& logic_file = assert_cast<LogicFile&>(symbol);
-
-        if( !logic_file.Close() )
-            success = false;
+        return ex_File_close(assert_cast<LogicFile&>(symbol));
     }
 
     else
     {
-        success = ReturnProgrammingError(false);
+        return ReturnProgrammingError(Engine::Value::Bool(false));
     }
 
-    return success ? 1 : 0;
+    return Engine::Value::Bool(true);
 }
 
 

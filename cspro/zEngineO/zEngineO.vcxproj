@@ -102,9 +102,11 @@
     <ClCompile Include="Interpreter\BarcodeRT.cpp" />
     <ClCompile Include="Interpreter\BytecodeRT.cpp" />
     <ClCompile Include="Interpreter\CompressionRT.cpp" />
+    <ClCompile Include="Interpreter\ControlFlowRT.cpp" />
     <ClCompile Include="Interpreter\DateRT.cpp" />
     <ClCompile Include="Interpreter\DocumentRT.cpp" />
     <ClCompile Include="Interpreter\ExecutionRT.cpp" />
+    <ClCompile Include="Interpreter\FileRT.cpp" />
     <ClCompile Include="Interpreter\GeometryRT.cpp" />
     <ClCompile Include="Interpreter\HashMapRT.cpp" />
     <ClCompile Include="Interpreter\ImageRT.cpp" />
@@ -115,20 +117,28 @@
     <ClCompile Include="Interpreter\ListRT.cpp" />
     <ClCompile Include="Interpreter\LocalhostRT.cpp" />
     <ClCompile Include="Interpreter\LogicInterpreter.cpp" />
+    <ClCompile Include="Interpreter\LogicRT.cpp" />
     <ClCompile Include="Interpreter\MapRT.cpp" />
     <ClCompile Include="Interpreter\MathRT.cpp" />
+    <ClCompile Include="Interpreter\MessagesRT.cpp" />
+    <ClCompile Include="Interpreter\MovementRT.cpp" />
     <ClCompile Include="Interpreter\NetworkRT.cpp" />
     <ClCompile Include="Interpreter\PathRT.cpp" />
     <ClCompile Include="Interpreter\PffRT.cpp" />
     <ClCompile Include="Interpreter\PropertiesRT.cpp" />
+    <ClCompile Include="Interpreter\QueryRT.cpp" />
     <ClCompile Include="Interpreter\ReportRT.cpp" />
+    <ClCompile Include="Interpreter\RuntimeRT.cpp" />
     <ClCompile Include="Interpreter\StringRT.cpp" />
     <ClCompile Include="Interpreter\StringWriterRT.cpp" />
     <ClCompile Include="Interpreter\SwitchRT.cpp" />
     <ClCompile Include="Interpreter\SymbolRT.cpp" />
+    <ClCompile Include="Interpreter\SyncRT.cpp" />
     <ClCompile Include="Interpreter\SystemAppRT.cpp" />
     <ClCompile Include="Interpreter\SystemRT.cpp" />
     <ClCompile Include="Interpreter\TextTemplateRT.cpp" />
+    <ClCompile Include="Interpreter\TraceRT.cpp" />
+    <ClCompile Include="Interpreter\UserbarRT.cpp" />
     <ClCompile Include="Interpreter\UserFunctionRT.cpp" />
     <ClCompile Include="Interpreter\UserInterfaceRT.cpp" />
     <ClCompile Include="Interpreter\ValueSetRT.cpp" />
@@ -183,6 +193,7 @@
     <ClInclude Include="Compiler\CompilationExtendedInformation.h" />
     <ClInclude Include="Compiler\CompilerHelper.h" />
     <ClInclude Include="Compiler\CompilerMessageIssuer.h" />
+    <ClInclude Include="Compiler\DynamicLogicCompiler.h" />
     <ClInclude Include="Compiler\EnginePreprocessor.h" />
     <ClInclude Include="Compiler\ImputeAutomaticStatCompilerHelper.h" />
     <ClInclude Include="Compiler\IncludesCC.h" />
@@ -215,8 +226,11 @@
     <ClInclude Include="Imputation.h" />
     <ClInclude Include="Interpreter\IncludesRT.h" />
     <ClInclude Include="Interpreter\LogicInterpreter.h" />
+    <ClInclude Include="Interpreter\LogicStackSaver.h" />
+    <ClInclude Include="Interpreter\ProgramControlException.h" />
     <ClInclude Include="Interpreter\SelectDlgHelper.h" />
     <ClInclude Include="Interpreter\StringComparer.h" />
+    <ClInclude Include="Interpreter\SyncDriver.h" />
     <ClInclude Include="JavaScriptProcessor.h" />
     <ClInclude Include="List.h" />
     <ClInclude Include="LogicByteCode.h" />
@@ -355,6 +369,10 @@
       <Project>{ea52b4fa-021b-4f0c-8209-ef54aa538476}</Project>
       <Private>false</Private>
     </ProjectReference>
+    <ProjectReference Include="..\zNetwork\zNetwork.vcxproj">
+      <Project>{07d7da9d-03ed-437c-8a1f-cb2e76a3ef6a}</Project>
+      <Private>false</Private>
+    </ProjectReference>
     <ProjectReference Include="..\zPackO\zPackO.vcxproj">
       <Project>{9e5e9d64-f6da-11ec-b939-0242ac120002}</Project>
       <Private>false</Private>
@@ -369,6 +387,14 @@
     </ProjectReference>
     <ProjectReference Include="..\zSortO\zSortO.vcxproj">
       <Project>{d4ca666c-f10e-4bc1-bc08-ba291052c1d9}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zSql\zSql.vcxproj">
+      <Project>{d20eded4-35e5-465c-a43e-746f632d4eaf}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\zSyncO\zSyncO.vcxproj">
+      <Project>{006d748a-cd6e-411d-9146-d1575172fb30}</Project>
       <Private>false</Private>
     </ProjectReference>
     <ProjectReference Include="..\zToolsO\zToolsO.vcxproj">

@@ -16,7 +16,6 @@
 #include "FrequencyDriver.h"
 #include "ImputationDriver.h"
 #include "InterpreterMessageIssuer.h"
-#include "ProgramControl.h"
 #include "SelcaseManager.h"
 #include <zPlatformO/PlatformInterface.h>
 #include <zLogicO/SpecialFunction.h>
@@ -26,6 +25,7 @@
 #include <zEngineO/LoopStack.h>
 #include <zEngineO/SaveArrayFile.h>
 #include <zEngineO/UserFunctionArgumentEvaluator.h>
+#include <zEngineO/Interpreter/ProgramControlException.h>
 #include <zEngineF/TraceHandler.h>
 #include <zEngineF/WindowsApplicationInterface.h>
 #include <zToolsO/Tools.h>
@@ -258,7 +258,7 @@ void CIntDriver::PrepareForExportExec(int iSymbol, const ProcType proc_type)
 }
 
 
-std::string CIntDriver::ProcName()
+std::string CIntDriver::GetCurrentProcName() const
 {
     if( m_iExSymbol <= 0 )
         return "Unknown";
@@ -367,8 +367,8 @@ void CIntDriver::AddIntDriverInstructions()
     OP_ENGVAL(20, ex_equ);
     OP_ENGVAL(21, ex_string_compute);
     OP_ENGVAL(22, ex_WorkVariable_evaluate);
-    OP_DOUBLE(23, exif);
-    OP_DOUBLE(24, exwhile);
+    OP_ENGVAL(23, ex_if);
+    OP_ENGVAL(24, ex_while);
     OP_DOUBLE(25, exbox);
     OP_ENGVAL(26, ex_string_literal);
     OP_ENGVAL_ID(27, excharobj);
@@ -379,11 +379,11 @@ void CIntDriver::AddIntDriverInstructions()
     OP_ENGVAL(32, ex_string_ge);
     OP_ENGVAL(33, ex_string_gt);
     OP_DOUBLE(34, excpttbl);
-    OP_DOUBLE(35, exnoopAbort);
-    OP_DOUBLE(36, exnoopAbort);
+    OP_ENGVAL(35, ex_nop_abort);
+    OP_ENGVAL(36, ex_nop_abort);
     OP_ENGVAL_ID(37, ex_UserFunction_call);
-    OP_DOUBLE(38, exnoopAbort);
-    OP_DOUBLE(39, exnoopAbort);
+    OP_ENGVAL(38, ex_nop_abort);
+    OP_ENGVAL(39, ex_nop_abort);
     OP_DOUBLE(40, exskipto);
     OP_DOUBLE(41, exadvance);
     OP_DOUBLE(42, exreenter);
@@ -392,11 +392,11 @@ void CIntDriver::AddIntDriverInstructions()
     OP_DOUBLE(45, exendlevl);
     OP_DOUBLE(46, exenter);
     OP_DOUBLE(47, exskipcase);
-    OP_DOUBLE(48, exnoopAbort);
+    OP_ENGVAL(48, ex_nop_abort);
     OP_DOUBLE(49, exstop);
-    OP_DOUBLE(50, exnoopIgnore_numeric);
+    OP_ENGVAL(50, ex_nop_ignore);
     OP_DOUBLE(51, exctab);
-    OP_DOUBLE(52, exnoopAbort);
+    OP_ENGVAL(52, ex_nop_abort);
     OP_DOUBLE(53, exbreak);
     OP_DOUBLE(54, exexport);
     OP_DOUBLE(55, exset);
@@ -410,14 +410,14 @@ void CIntDriver::AddIntDriverInstructions()
     OP_ENGVAL(63, ex_random);
     OP_DOUBLE(64, exnoccurs);
     OP_DOUBLE(65, exsoccurs_pre80);
-    OP_DOUBLE(66, exnoopAbort);
+    OP_ENGVAL(66, ex_nop_abort);
     OP_DOUBLE(67, excount);
     OP_DOUBLE(68, exsum);
     OP_DOUBLE(69, exavrge);
     OP_DOUBLE(70, exmin);
     OP_DOUBLE(71, exmax);
-    OP_DOUBLE(72, exdisplay);
-    OP_DOUBLE(73, exerrmsg);
+    OP_ENGVAL(72, ex_display);
+    OP_ENGVAL(73, ex_errmsg);
     OP_ENGVAL(74, ex_concat);
     OP_ENGVAL(75, ex_tonumber);
     OP_ENGVAL(76, ex_pos_poschar);
@@ -425,7 +425,7 @@ void CIntDriver::AddIntDriverInstructions()
     OP_ENGVAL(78, ex_length);
     OP_ENGVAL(79, ex_strip);
     OP_ENGVAL(80, ex_pos_poschar);
-    OP_ENGVAL_ID(81, exedit);
+    OP_ENGVAL(81, ex_edit);
     OP_ENGVAL(82, ex_cmcode);
     OP_ENGVAL(83, ex_setlb_setub);
     OP_ENGVAL(84, ex_setlb_setub);
@@ -433,7 +433,7 @@ void CIntDriver::AddIntDriverInstructions()
     OP_ENGVAL(86, ex_adjlba);
     OP_ENGVAL(87, ex_adjlbi);
     OP_ENGVAL(88, ex_adjubi);
-    OP_DOUBLE(89, exnoopAbort);
+    OP_ENGVAL(89, ex_nop_abort);
     OP_ENGVAL(90, ex_systime);
     OP_ENGVAL(91, ex_sysdate);
     OP_DOUBLE(92, exdemode);
@@ -446,82 +446,82 @@ void CIntDriver::AddIntDriverInstructions()
     OP_DOUBLE(99, extblcoord);
     OP_DOUBLE(100, extblsum);
     OP_DOUBLE(101, extblmed);
-    OP_ENGVAL_ID(102, exfilename);
-    OP_DOUBLE(103, exnoopAbort);
-    OP_DOUBLE(104, exnoopAbort);
+    OP_ENGVAL(102, ex_filename);
+    OP_ENGVAL(103, ex_nop_abort);
+    OP_ENGVAL(104, ex_nop_abort);
     OP_DOUBLE(105, exloadcase);
-    OP_DOUBLE(106, exnoopAbort);
+    OP_ENGVAL(106, ex_nop_abort);
     OP_DOUBLE(107, exretrieve);
-    OP_DOUBLE(108, exnoopAbort);
+    OP_ENGVAL(108, ex_nop_abort);
     OP_DOUBLE(109, exwritecase);
     OP_DOUBLE(110, exdelcase);
     OP_DOUBLE(111, exfind_locate);
     OP_ENGVAL_ID(112, ex_key_currentkey);
-    OP_DOUBLE(113, ex_open);
-    OP_DOUBLE(114, ex_close);
+    OP_ENGVAL_ID(113, ex_open);
+    OP_ENGVAL_ID(114, ex_close);
     OP_DOUBLE(115, exfind_locate);
-    OP_DOUBLE(116, exnoopAbort);
-    OP_DOUBLE(117, exnoopAbort);
-    OP_DOUBLE(118, exnoopIgnore_numeric);
-    OP_DOUBLE(119, exnoopAbort);
-    OP_DOUBLE(120, exnoopIgnore_numeric);
+    OP_ENGVAL(116, ex_nop_abort);
+    OP_ENGVAL(117, ex_nop_abort);
+    OP_ENGVAL(118, ex_nop_ignore);
+    OP_ENGVAL(119, ex_nop_abort);
+    OP_ENGVAL(120, ex_nop_ignore);
     OP_DOUBLE(121, exsetattr);
-    OP_DOUBLE(122, exnoopAbort);
+    OP_ENGVAL(122, ex_nop_abort);
     OP_DOUBLE(123, exfor_dict);
     OP_DOUBLE(124, exnmembers);
-    OP_DOUBLE(125, exnoopAbort);
-    OP_DOUBLE(126, exnoopAbort);
+    OP_ENGVAL(125, ex_nop_abort);
+    OP_ENGVAL(126, ex_nop_abort);
     OP_ENGVAL(127, ex_minvalue_maxvalue);
     OP_ENGVAL(128, ex_minvalue_maxvalue);
     OP_DOUBLE(129, exfor_group);
-    OP_DOUBLE(130, exnoopAbort);
-    OP_DOUBLE(131, exnoopAbort);
-    OP_ENGVAL_ID(132, exfucall);
+    OP_ENGVAL(130, ex_nop_abort);
+    OP_ENGVAL(131, ex_nop_abort);
+    OP_ENGVAL(132, ex_functionCall);
     OP_ENGVAL(133, ex_in);
-    OP_DOUBLE(134, ex_do);
+    OP_ENGVAL(134, ex_do);
     OP_DOUBLE(135, ex_impute);
     OP_DOUBLE(136, exfncurocc);
     OP_DOUBLE(137, exfntotocc);
     OP_DOUBLE(138, exupdate);
-    OP_DOUBLE(139, exwrite);
-    OP_DOUBLE(140, exnoopAbort);
+    OP_ENGVAL(139, ex_write);
+    OP_ENGVAL(140, ex_nop_abort);
     OP_DOUBLE(141, exfor_relation);
-    OP_DOUBLE(142, exnoopAbort);
+    OP_ENGVAL(142, ex_nop_abort);
     OP_ENGVAL_ID(143, exgetbuffer);
     OP_DOUBLE(144, exinsert_delete);
     OP_DOUBLE(145, exinsert_delete);
     OP_DOUBLE(146, exsort);
     OP_ENGVAL_ID(147, exgetlabel);
     OP_ENGVAL_ID(148, exgetlabel);
-    OP_DOUBLE(149, exnoopAbort);
-    OP_DOUBLE(150, exnoopAbort);
-    OP_DOUBLE(151, exnoopAbort);
-    OP_ENGVAL_ID(152, exmaketext);
+    OP_ENGVAL(149, ex_nop_abort);
+    OP_ENGVAL(150, ex_nop_abort);
+    OP_ENGVAL(151, ex_nop_abort);
+    OP_ENGVAL(152, ex_maketext);
     OP_DOUBLE(153, exmoveto);
-    OP_DOUBLE(154, exnoopAbort);
+    OP_ENGVAL(154, ex_nop_abort);
     OP_ENGVAL_ID(155, ex_getoperatorid);
-    OP_DOUBLE(156, exfornext);
-    OP_DOUBLE(157, exforbreak);
-    OP_DOUBLE(158, ex_setfile);
+    OP_ENGVAL(156, ex_for_next);
+    OP_ENGVAL(157, ex_for_break);
+    OP_ENGVAL_ID(158, ex_setfile);
     OP_DOUBLE(159, exmaxocc_pre80);
     OP_ENGVAL(160, ex_invalueset);
     OP_ENGVAL(161, ex_setvalueset);
-    OP_DOUBLE(162, exfilecreate);
-    OP_DOUBLE(163, exfileexist);
-    OP_DOUBLE(164, exfiledelete);
-    OP_DOUBLE(165, ex_filecopy);
-    OP_DOUBLE(166, ex_filerename);
-    OP_DOUBLE(167, exfilesize);
-    OP_DOUBLE(168, exfileconcat);
-    OP_DOUBLE(169, exfileread);
-    OP_DOUBLE(170, exfilewrite);
+    OP_ENGVAL(162, ex_filecreate);
+    OP_ENGVAL(163, ex_fileexist);
+    OP_ENGVAL(164, ex_filedelete);
+    OP_ENGVAL(165, ex_filecopy_filerename);
+    OP_ENGVAL(166, ex_filecopy_filerename);
+    OP_ENGVAL(167, ex_filesize);
+    OP_ENGVAL(168, ex_fileconcat);
+    OP_ENGVAL(169, ex_File_read);
+    OP_ENGVAL(170, ex_File_write);
     OP_ENGVAL_ID(171, ExExecSystem);
-    OP_DOUBLE(172, exnoopAbort);
+    OP_ENGVAL(172, ex_nop_abort);
     OP_DOUBLE(173, exshowlist);
     OP_ENGVAL(174, ex_tolower_toupper);
     OP_ENGVAL(175, ex_tolower_toupper);
     OP_DOUBLE(176, excountvalid);
-    OP_ENGVAL_ID(177, exnoopIgnore_string);
+    OP_ENGVAL(177, ex_nop_ignore);
     OP_DOUBLE(178, exswap);
     OP_ENGVAL(179, ex_datediff);
     OP_DOUBLE(180, exdeckarray);
@@ -529,17 +529,17 @@ void CIntDriver::AddIntDriverInstructions()
     OP_ENGVAL_ID(182, ex_getlanguage);
     OP_ENGVAL_ID(183, ex_setlanguage);
     OP_DOUBLE(184, exendcase);
-    OP_DOUBLE(185, exuserbar);
+    OP_ENGVAL(185, ex_userbar);
     OP_DOUBLE(186, exmessageoverrides);
-    OP_DOUBLE(187, ex_trace);
+    OP_ENGVAL(187, ex_trace);
     OP_ENGVAL(188, ex_setvaluesets);
     OP_ENGVAL_ID(189, ExExecPFF);
     OP_DOUBLE(190, exseek);
     OP_DOUBLE(191, ex_getcapturetype);
     OP_DOUBLE(192, ex_setcapturetype);
     OP_ENGVAL(193, ex_setfont);
-    OP_DOUBLE(194, exorientation);
-    OP_DOUBLE(195, exorientation);
+    OP_ENGVAL(194, ex_getorientation_setorientation);
+    OP_ENGVAL(195, ex_getorientation_setorientation);
     OP_ENGVAL(196, ex_pathname);
     OP_DOUBLE(197, exgps);
     OP_ENGVAL(198, ex_low_high);
@@ -550,7 +550,7 @@ void CIntDriver::AddIntDriverInstructions()
     OP_ENGVAL(203, ex_randomin);
     OP_ENGVAL(204, ex_randomizevs);
     OP_ENGVAL(205, ex_getusername);
-    OP_DOUBLE(206, exfileempty);
+    OP_ENGVAL(206, ex_fileempty);
     OP_DOUBLE(207, ex_changekeyboard);
     OP_DOUBLE(208, ex_setoutput);
     OP_DOUBLE(209, exseekMinMax);
@@ -559,18 +559,18 @@ void CIntDriver::AddIntDriverInstructions()
     OP_ENGVAL(212, ex_datevalid);
     OP_ENGVAL(213, ex_getos);
     OP_ENGVAL_ID(214, ex_getocclabel);
-    OP_DOUBLE(215, exfreealphamem);
+    OP_ENGVAL(215, ex_nop_ignore);
     OP_DOUBLE(216, exsetvalue);
     OP_DOUBLE(217, exgetvalue);
     OP_ENGVAL_ID(218, ex_getvaluealpha);
-    OP_DOUBLE(219, exnoopAbort);
+    OP_ENGVAL(219, ex_nop_abort);
     OP_DOUBLE(220, exsetocclabel);
     OP_DOUBLE(221, exshowocc);
     OP_DOUBLE(222, exshowocc);
     OP_ENGVAL(223, ex_getdeviceid);
-    OP_DOUBLE(224, exdirexist);
-    OP_DOUBLE(225, exdircreate);
-    OP_DOUBLE(226, exnoopAbort);
+    OP_ENGVAL(224, ex_direxist);
+    OP_ENGVAL(225, ex_dircreate);
+    OP_ENGVAL(226, ex_nop_abort);
     OP_ENGVAL(227, ex_List_var);
     OP_ENGVAL(228, ex_dirlist);
     OP_ENGVAL(229, ex_sysparm);
@@ -578,13 +578,13 @@ void CIntDriver::AddIntDriverInstructions()
     OP_ENGVAL(231, ex_prompt);
     OP_ENGVAL(232, ex_getimage);
     OP_ENGVAL(233, ex_round);
-    OP_DOUBLE(234, exnoopAbort);
+    OP_ENGVAL(234, ex_nop_abort);
     OP_DOUBLE(235, exsavepartial);
-    OP_DOUBLE(236, ex_syncconnect);
-    OP_DOUBLE(237, ex_syncdisconnect);
-    OP_DOUBLE(238, ex_syncdata);
-    OP_DOUBLE(239, ex_syncfile);
-    OP_DOUBLE(240, ex_syncserver);
+    OP_ENGVAL(236, ex_syncconnect);
+    OP_ENGVAL(237, ex_syncdisconnect);
+    OP_ENGVAL(238, ex_syncdata);
+    OP_ENGVAL(239, ex_syncfile);
+    OP_ENGVAL(240, ex_syncserver);
     OP_ENGVAL(241, ex_savesetting);
     OP_ENGVAL(242, ex_loadsetting);
     OP_ENGVAL_ID(243, ex_getcaselabel);
@@ -605,12 +605,12 @@ void CIntDriver::AddIntDriverInstructions()
     OP_DOUBLE(258, excountcases);
     OP_ENGVAL_ID(259, ex_getproperty);
     OP_ENGVAL_ID(260, ex_setproperty);
-    OP_DOUBLE(261, exlogtext);
-    OP_DOUBLE(262, exwarning);
+    OP_ENGVAL(261, ex_logtext);
+    OP_ENGVAL(262, ex_warning);
     OP_ENGVAL_ID(263, ex_tr);
     OP_ENGVAL(264, ex_uuid);
-    OP_DOUBLE(265, ex_paradata);
-    OP_DOUBLE(266, exsqlquery);
+    OP_ENGVAL(265, ex_paradata);
+    OP_ENGVAL(266, ex_sqlquery);
     OP_DOUBLE(267, expre77_report);
     OP_DOUBLE(268, expre77_setreportdata);
     OP_DOUBLE(269, exshow);
@@ -620,14 +620,14 @@ void CIntDriver::AddIntDriverInstructions()
     OP_ENGVAL(273, ex_string_literal);
     OP_DOUBLE(274, exsymbolreset);
     OP_ENGVAL(275, ex_decryptstring);
-    OP_DOUBLE(276, exdirdelete);
+    OP_ENGVAL(276, ex_dirdelete);
     OP_ENGVAL(277, ex_Array_var);
     OP_DOUBLE(278, extvar);
-    OP_DOUBLE(279, ex_exit);
-    OP_ENGVAL_ID(280, ex_getbluetoothname);
+    OP_ENGVAL(279, ex_exit);
+    OP_ENGVAL(280, ex_getbluetoothname);
     OP_ENGVAL(281, ex_regexmatch);
-    OP_DOUBLE(282, exnoopAbort);
-    OP_ENGVAL_ID(283, ex_getvaluelabel);
+    OP_ENGVAL(282, ex_nop_abort);
+    OP_ENGVAL(283, ex_getvaluelabel);
     OP_ENGVAL(284, ex_Array_clear);
     OP_ENGVAL(285, ex_Array_length);
     OP_ENGVAL(286, ex_Map_show);
@@ -663,7 +663,7 @@ void CIntDriver::AddIntDriverInstructions()
     OP_ENGVAL(316, ex_ValueSet_remove);
     OP_ENGVAL(317, ex_ValueSet_show);
     OP_ENGVAL(318, ex_ValueSet_compute);
-    OP_ENGVAL_ID(319, ex_variablevalue);
+    OP_ENGVAL(319, ex_variablevalue);
     OP_ENGVAL(320, ex_Map_clear_clearButtons_clearGeometry_clearMarkers);
     OP_ENGVAL(321, ex_Map_clear_clearButtons_clearGeometry_clearMarkers);
     OP_ENGVAL(322, ex_Map_getLastClickLatitude_getLastClickLongitude);
@@ -680,8 +680,8 @@ void CIntDriver::AddIntDriverInstructions()
     OP_ENGVAL(333, ex_ischecked);
     OP_ENGVAL_ID(334, ex_protect);
     OP_ENGVAL(335, ex_when);
-    OP_DOUBLE(336, ex_syncapp);
-    OP_DOUBLE(337, exfiletime);
+    OP_ENGVAL(336, ex_syncapp);
+    OP_ENGVAL(337, ex_filetime);
     OP_ENGVAL(338, ex_recode);
     OP_DOUBLE(339, exforcase);
     OP_DOUBLE(340, exselcase);
@@ -689,7 +689,7 @@ void CIntDriver::AddIntDriverInstructions()
     OP_DOUBLE(342, exkeylist);
     OP_ENGVAL(343, ex_Barcode_read);
     OP_ENGVAL(344, ex_hash);
-    OP_ENGVAL_ID(345, ex_syncmessage);
+    OP_ENGVAL(345, ex_syncmessage);
     OP_ENGVAL(346, ex_SystemApp_clear);
     OP_ENGVAL(347, ex_SystemApp_setArgument);
     OP_ENGVAL(348, ex_SystemApp_getResult);
@@ -714,7 +714,7 @@ void CIntDriver::AddIntDriverInstructions()
     OP_ENGVAL(367, ex_Path_getExtension);
     OP_ENGVAL(368, ex_Path_getFileName);
     OP_ENGVAL(369, ex_Path_getFileNameWithoutExtension);
-    OP_DOUBLE(370, ex_syncparadata);
+    OP_ENGVAL(370, ex_syncparadata);
     OP_ENGVAL(371, ex_HashMap_var);
     OP_ENGVAL(372, ex_HashMap_compute);
     OP_ENGVAL(373, ex_HashMap_clear);
@@ -772,9 +772,9 @@ void CIntDriver::AddIntDriverInstructions()
     OP_ENGVAL(425, ex_Geometry_minLatitude_maxLatitude_minLongitude_maxLongitude);
     OP_ENGVAL(426, ex_Geometry_getProperty);
     OP_ENGVAL(427, ex_Geometry_setProperty);
-    OP_DOUBLE(428, exinadvance);
+    OP_ENGVAL(428, ex_inadvance);
     OP_ENGVAL(429, ex_Map_saveSnapshot);
-    OP_DOUBLE(430, ex_synctime);
+    OP_ENGVAL(430, ex_synctime);
     OP_ENGVAL(431, ex_htmldialog);
     OP_ENGVAL(432, ex_Path_getRelativePath);
     OP_ENGVAL(433, ex_Path_selectFile);
@@ -782,7 +782,7 @@ void CIntDriver::AddIntDriverInstructions()
     OP_ENGVAL(435, ex_Report_save);
     OP_ENGVAL(436, ex_Report_view);
     OP_ENGVAL(437, ex_TextTemplate_write_writeEncoded_writeEncodedLine_writeLine);
-    OP_ENGVAL_ID(438, ex_setbluetoothname);
+    OP_ENGVAL(438, ex_setbluetoothname);
     OP_DOUBLE(439, expersistentsymbolreset);
     OP_ENGVAL(440, ex_Symbol_getJson_getValueJson);
     OP_ENGVAL(441, ex_Symbol_getJson_getValueJson);
@@ -826,17 +826,18 @@ void CIntDriver::AddIntDriverInstructions()
     OP_ENGVAL(479, ex_WorkVariable_compute);
     OP_ENGVAL(480, ex_Array_compute);
     OP_ENGVAL(481, ex_UserFunction_compute);
-    OP_DOUBLE(482, exnoopAbortPlaceholderForFutureFunction);
-    OP_DOUBLE(483, exnoopAbortPlaceholderForFutureFunction);
-    OP_DOUBLE(484, exnoopAbortPlaceholderForFutureFunction);
-    OP_DOUBLE(485, exnoopAbortPlaceholderForFutureFunction);
-    OP_DOUBLE(486, exnoopAbortPlaceholderForFutureFunction);
-    OP_DOUBLE(487, exnoopAbortPlaceholderForFutureFunction);
-    OP_DOUBLE(488, exnoopAbortPlaceholderForFutureFunction);
-    OP_DOUBLE(489, exnoopAbortPlaceholderForFutureFunction);
-    OP_DOUBLE(490, exnoopAbortPlaceholderForFutureFunction);
-    OP_DOUBLE(491, exnoopAbortPlaceholderForFutureFunction);
+    OP_ENGVAL(482, ex_nop_abortFutureFunction);
+    OP_ENGVAL(483, ex_nop_abortFutureFunction);
+    OP_ENGVAL(484, ex_nop_abortFutureFunction);
+    OP_ENGVAL(485, ex_nop_abortFutureFunction);
+    OP_ENGVAL(486, ex_nop_abortFutureFunction);
+    OP_ENGVAL(487, ex_nop_abortFutureFunction);
+    OP_ENGVAL(488, ex_nop_abortFutureFunction);
+    OP_ENGVAL(489, ex_nop_abortFutureFunction);
+    OP_ENGVAL(490, ex_nop_abortFutureFunction);
+    OP_ENGVAL(491, ex_nop_abortFutureFunction);
 #undef OP_ENGVAL
+#undef OP_ENGVAL_ID
 #undef OP_DOUBLE
 
     ASSERT(op_code_counter == ( MaxInstructionCode_EV_TODO + 1 ));
@@ -1438,13 +1439,6 @@ double CIntDriver::evalexpr_INTERPRETER_DLL_TODO(double (CIntDriver::*instructio
 }
 
 
-void CIntDriver::RegisterAndLogEvent_INTERPRETER_DLL_TODO(std::shared_ptr<Paradata::Event> event, const void* instance_object/* = nullptr*/)
-{
-    ASSERT(m_paradataDriver != nullptr);
-    m_paradataDriver->RegisterAndLogEvent(std::move(event), instance_object);
-}
-
-
 void CIntDriver::IssueMessageWorker(const MessageType message_type, const int message_number, ...)
 {
     va_list parg;
@@ -1465,7 +1459,7 @@ std::string CIntDriver::GetFormattedMessageWorker(const int message_number, ...)
 }
 
 
-#include "EngineExecutor.h"
+#include "InterpreterAccessor.h"
 #include <zToolsO/ValueConserver.h>
 InterpreterExecuteResult CIntDriver::Report_Evaluate_INTERPRETER_DLL_TODO(Report& report)
 {
@@ -1500,11 +1494,15 @@ Engine::Value CIntDriver::RunSoonToBeRemovedFeature(const std::string_view featu
 }
 
 
-bool CIntDriver::IsExecutionInterrupted() const
+bool CIntDriver::IsExecutionInterrupted() const noexcept
 {
-    return ( m_caughtProgramControlException ||
+    // INTERPRETER_DLL_TODO 2 of 4 checks now handled in LogicInterpreter
+    if( LogicInterpreter::IsExecutionInterrupted() )
+        return true;
+
+    return ( // m_caughtProgramControlException ||
              m_bStopExec ||
-             m_bStopProc ||
+             //m_bStopProc ||
              GetRequestIssued() );
 }
 
@@ -1526,4 +1524,72 @@ int CIntDriver::SymbolTableSearch_INTERPRETER_DLL_TODO(const std::string_view fu
                                                        const std::vector<SymbolType>* const allowable_symbol_types) const
 {
     return m_pEngineArea->SymbolTableSearch(full_symbol_name_sv, preferred_symbol_type, allowable_symbol_types);
+}
+
+
+void CIntDriver::Execute_INTERPRETER_DLL_TODO(const bool before_running_callback_function)
+{
+    if( before_running_callback_function )
+    {
+        // these statements clear any preexisting stuff that might have been going on
+        m_bSkipStmt = false;
+        m_bStopExec = m_bStopProc;
+        SetRequestIssued(false);
+    }
+
+    else
+    {
+        m_bStopExec = ( m_bSkipStmt || m_bStopProc );
+    }
+}
+
+
+Paradata::ParadataDriver& CIntDriver::GetParadataDriver_INTERPRETER_DLL_TODO()
+{
+    ASSERT(m_paradataDriver != nullptr);
+    return *m_paradataDriver;
+}
+
+
+void CIntDriver::ClearParadataCachedObjects_INTERPRETER_DLL_TODO()
+{
+    m_paradataDriver->ClearCachedObjects();
+}
+
+
+Listing::WriteFile* CIntDriver::GetWriteFile_INTERPRETER_DLL_TODO()
+{
+    return m_pEngineDriver->GetWriteFile();
+}
+
+
+MessageEvaluator& CIntDriver::GetUserMessageEvaluator_INTERPRETER_DLL_TODO()
+{
+    return m_pEngineDriver->GetUserMessageEvaluator();
+}
+
+
+MessageManager& CIntDriver::GetUserMessageManager_INTERPRETER_DLL_TODO()
+{
+    return m_pEngineDriver->GetUserMessageManager();
+}
+
+
+std::shared_ptr<SystemMessageIssuer> CIntDriver::GetSharedSystemMessageIssuer_INTERPRETER_DLL_TODO()
+{
+    return m_pEngineDriver->GetSharedSystemMessageIssuer();
+}
+
+
+void CIntDriver::SetStopCode_INTERPRETER_DLL_TODO() const
+{
+    m_pEngineDriver->SetStopCode(1);
+}
+
+
+#include "EngineDictionaryModifier.h"
+std::unique_ptr<EngineDictionaryModifier> CIntDriver::CreateEngineDictionaryModifier_INTERPRETER_DLL_TODO(Symbol& symbol)
+{
+    ASSERT(symbol.IsA(SymbolType::Pre80Dictionary));
+    return EngineDictionaryModifier::Create(*this, assert_cast<DICT&>(symbol));
 }

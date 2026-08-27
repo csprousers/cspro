@@ -55,7 +55,7 @@ public:
     bool IsGlobalCompilation() const noexcept;
     bool IsNoLevelCompilation() const noexcept;
 
-    EngineAppType GetEngineAppType() const;
+    EngineAppType GetEngineAppType() const noexcept;
 
     ProcType GetCompilationProcType() const { return m_procType; }
     void SetCompilationProcType(ProcType proc_type, ExtendedProcType extended_proc_type = ExtendedProcType::None);

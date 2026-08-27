@@ -140,7 +140,7 @@ double CIntDriver::expre77_setreportdata(int iExpr)
                     }
                 };
 
-            if( exsqlquery(iSourceSymbol, &setreportdata_callback) == DEFAULT )
+            if( ex_sqlquery(iSourceSymbol, &setreportdata_callback).get<double>() == DEFAULT )
                 return 0;
         }
 
@@ -360,13 +360,13 @@ double CIntDriver::expre77_report(int iExpr)
     bool bViewMode = true;
     double dRetVal = 1;
 
-    CString csTemplateFilename = WS2CS(EvalFullPathFileName(pFun->fn_expr[0]));
+    CString csTemplateFilename = UTF8_TODO::GetCString(EvaluatePath(pFun->fn_expr[0]));
     CString csOutputFilename;
 
     if( pFun->fn_nargs > 1 )
     {
         bViewMode = false;
-        csOutputFilename = WS2CS(EvalFullPathFileName(pFun->fn_expr[1]));
+        csOutputFilename = UTF8_TODO::GetCString(EvaluatePath(pFun->fn_expr[1]));
     }
 
     CreateReportManager(this);

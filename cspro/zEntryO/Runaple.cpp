@@ -160,8 +160,7 @@ bool CRunAplEntry::Start( const int iMode )
     GetSettings()->SetEnterOutOfRange(false); // can potentially remove (look at changeset checked in on 20150114)
 
     // we need to display the user bar if the user pressed stop and then is starting to enter data again
-    if( GetEntryDriver()->HasUserbar() )
-        GetEntryDriver()->GetUserbar().Pause(false);
+    PauseUserbar(false);
 
     if( iMode == CRUNAPL_ADD )
     {
@@ -207,8 +206,7 @@ bool CRunAplEntry::Stop()
         }
 
         // we need to turn off the user bar if the user pressed stop
-        if( GetEntryDriver()->HasUserbar() )
-            PauseUserbar(true);
+        PauseUserbar(true);
 
 #ifdef WIN_DESKTOP
         if( bClose )
@@ -220,16 +218,12 @@ bool CRunAplEntry::Stop()
 }
 
 
-Userbar* CRunAplEntry::GetUserbar()
+void CRunAplEntry::PauseUserbar(const bool pause)
 {
-    return GetEntryDriver()->HasUserbar() ? &GetEntryDriver()->GetUserbar() : nullptr;
-}
+    Userbar* const userbar = GetEntryDriver()->m_pIntDriver->GetUserbar();
 
-
-void CRunAplEntry::PauseUserbar(bool pause)
-{
-    ASSERT(GetEntryDriver()->HasUserbar());
-    GetEntryDriver()->GetUserbar().Pause(pause);
+    if( userbar != nullptr )
+        userbar->Pause(pause);
 }
 
 

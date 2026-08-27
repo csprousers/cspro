@@ -116,9 +116,6 @@
     <ClInclude Include="EngineDictionaryModifier.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="EngineExecutor.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="EngineObjectTransporter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -176,9 +173,6 @@
     <ClInclude Include="ItemData.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="LogicStackSaver.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Messages.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -186,9 +180,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ParadataDriver.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ProgramControl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="RangeFunctions.h">
@@ -355,9 +346,6 @@
     <ClCompile Include="Intdrive.cpp">
       <Filter>Source Files\ex2</Filter>
     </ClCompile>
-    <ClCompile Include="IntDynamicLogicEvaluation.cpp">
-      <Filter>Source Files\ex2</Filter>
-    </ClCompile>
     <ClCompile Include="intenter.cpp">
       <Filter>Source Files\dep</Filter>
     </ClCompile>
@@ -388,9 +376,6 @@
     <ClCompile Include="IntLanguage.cpp">
       <Filter>Source Files\ex2</Filter>
     </ClCompile>
-    <ClCompile Include="IntMessages.cpp">
-      <Filter>Source Files\ex2</Filter>
-    </ClCompile>
     <ClCompile Include="IntOccurrences.cpp">
       <Filter>Source Files\ex2</Filter>
     </ClCompile>
@@ -403,16 +388,7 @@
     <ClCompile Include="IntProperties.cpp">
       <Filter>Source Files\ex2</Filter>
     </ClCompile>
-    <ClCompile Include="IntQuery.cpp">
-      <Filter>Source Files\ex2</Filter>
-    </ClCompile>
-    <ClCompile Include="IntSync.cpp">
-      <Filter>Source Files\ex2</Filter>
-    </ClCompile>
     <ClCompile Include="Inttbl.cpp">
-      <Filter>Source Files\ex2</Filter>
-    </ClCompile>
-    <ClCompile Include="IntUserbar.cpp">
       <Filter>Source Files\ex2</Filter>
     </ClCompile>
     <ClCompile Include="IntUserFunction.cpp">

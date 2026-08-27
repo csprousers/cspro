@@ -1,8 +1,6 @@
 #include "stdafx.h"
 #include "IncludesRT.h"
 #include "SystemApp.h"
-#include <zEngineF/EngineUI.h>
-#include <zParadataO/Logger.h>
 
 
 Engine::Value LogicInterpreter::ex_SystemApp_clear(const int program_index)
@@ -117,7 +115,7 @@ Engine::Value LogicInterpreter::ex_SystemApp_exec(const int program_index)
     if( external_application_event != nullptr )
     {
         external_application_event->SetPostExecutionValues(success, true);
-        RegisterAndLogEvent_INTERPRETER_DLL_TODO(std::move(external_application_event));
+        GetParadataDriver_INTERPRETER_DLL_TODO().RegisterAndLogEvent(std::move(external_application_event));
     }
 
     return Engine::Value::Bool(success);

@@ -1,13 +1,17 @@
-﻿#pragma once
+#pragma once
 
 #include <zParadataO/NamedObject.h>
-#include <zMessageO/MessageType.h>
-#include <zLogicO/FunctionTable.h>
 
+enum FunctionCode : int;
+enum class MessageType;
 namespace Paradata { class Event; class MessageEvent; class ParadataDriver; }
 
 
-// interface for an object that can fill the PROC information for events
+// --------------------------------------------------------------------------
+// Paradata::ParadataDriver
+//
+// An interface for an object that can fill the PROC information for events.
+// --------------------------------------------------------------------------
 
 class Paradata::ParadataDriver
 {

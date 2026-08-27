@@ -1,8 +1,11 @@
 #include "stdafx.h"
 #include "IncludesRT.h"
 #include "LogicInterpreter.h"
+#include "SyncDriver.h"
+#include "Userbar.h"
 #include "Nodes/TextTemplate.h"
 #include <zHtml/VirtualFileMapping.h>
+#include <zEngineF/TraceHandler.h>
 #include <zAction/Caller.h>
 
 

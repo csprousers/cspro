@@ -1,4 +1,4 @@
-﻿#include "StandardSystemIncludes.h"
+#include "StandardSystemIncludes.h"
 #include "Comp.h"
 #include "Engdrv.h"
 #include "IntDrive.h"
@@ -9,6 +9,7 @@
 #include <zMessageO/Messages.h>
 #include <zMessageO/MessageEvaluator.h>
 #include <zMessageO/MessageManager.h>
+#include <zMessageO/RuntimeMessage.h>
 #include <zMessageO/SystemMessageIssuer.h>
 #include <zMessageO/VariableArgumentsMessageParameterEvaluator.h>
 #include <zListingO/ErrorLister.h>
@@ -28,7 +29,7 @@ namespace
 
         SharableString GetProc() override
         {
-            return ( m_interpreter != nullptr ) ? m_interpreter->ProcName() :
+            return ( m_interpreter != nullptr ) ? m_interpreter->GetCurrentProcName() :
                                                   "Unknown";
         }
 
@@ -87,7 +88,9 @@ namespace
                 // display the message
                 m_pEngineDriver->GetSystemMessageManager().IncrementMessageCount(message_number);
 
-                const int selected_button_number = m_pEngineDriver->DisplayMessage(message_type, message_number, message_text, nullptr);
+                const RuntimeMessage runtime_message { message_number, message_number, message_text };
+
+                const int selected_button_number = m_pEngineDriver->DisplayMessage(message_type, runtime_message);
 
                 // log the paradata message event
                 if( message_event != nullptr )
@@ -182,11 +185,16 @@ void CEngineDriver::UpdateMessageIssuers(const bool set_on_system_message_define
 }
 
 
-int CEngineDriver::DisplayMessage(const MessageType message_type, const int message_number,
-                                  SharableString message_text, const MessageSelectDetails* /*select_details*/)
+int CEngineDriver::DisplayMessage(const MessageType message_type, const RuntimeMessage& runtime_message)
 {
     if( m_lister != nullptr )
-        m_lister->Write(message_type, message_number, std::move(message_text));
+        m_lister->Write(message_type, runtime_message.message_number_for_display, runtime_message.message_text);
 
     return 1;
+}
+
+
+int CIntDriver::DisplayMessage_INTERPRETER_DLL_TODO(const MessageType message_type, const RuntimeMessage& runtime_message)
+{
+    return m_pEngineDriver->DisplayMessage(message_type, runtime_message);
 }

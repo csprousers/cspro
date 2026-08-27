@@ -2,20 +2,20 @@
 #include "WindowsUserbar.h"
 #include <zToolsO/NewlineSubstitutor.h>
 #include <zUtilO/CustomFont.h>
-#include <zUtilO/WindowsWS.h>
+#include <zUtilO/WindowsUtf8.h>
 
 
 namespace Default
 {
-    constexpr long Height           = 30;
-    constexpr long Spacing          = 10;
-    constexpr long ButtonHeight     = 23;
-    constexpr long ButtonPadding    = 20;
-    constexpr long FieldHeight      = 16;
-    constexpr long FieldPadding     = 10;
+    constexpr long Height             = 30;
+    constexpr long Spacing            = 10;
+    constexpr long ButtonHeight       = 23;
+    constexpr long ButtonPadding      = 20;
+    constexpr long FieldHeight        = 16;
+    constexpr long FieldPadding       = 10;
 
-    constexpr const TCHAR* FontName = _T("MS Sans Serif");
-    constexpr int FontSize          = 8;
+    constexpr const wchar_t* FontName = L"MS Sans Serif";
+    constexpr int FontSize            = 8;
 }
 
 
@@ -42,7 +42,7 @@ WindowsUserbar::WindowsUserbar()
     }
 
     CRect rect(0, 0, ::GetSystemMetrics(SM_CXSCREEN), m_height);
-    m_wnd->Create(_T("STATIC"), nullptr, WS_CHILD, rect, AfxGetApp()->GetMainWnd(), static_cast<UINT>(-1));
+    m_wnd->Create(L"STATIC", nullptr, WS_CHILD, rect, AfxGetApp()->GetMainWnd(), static_cast<UINT>(-1));
 
     // create the default font
     m_font.CreatePointFont(Default::FontSize * 10, Default::FontName);
@@ -199,24 +199,25 @@ int WindowsUserbar::AddItem(WindowsUserbarItem::Type item_type, std::optional<Ac
 }
 
 
-int WindowsUserbar::AddButton(std::wstring text, std::optional<Action> action)
+int WindowsUserbar::AddButton(std::string text, std::optional<Action> action)
 {
     NewlineSubstitutor::MakeNewlineToSpace(text);
+    const std::wstring wide_text = TC::ToWide(text);
 
     return AddItem(WindowsUserbarItem::Type::Button, std::move(action),
-        [&](WindowsUserbarItem& item, long x)
+        [&](WindowsUserbarItem& item, const long x)
         {
-            CFont* font = GetFont();
+            CFont* const font = GetFont();
 
             CClientDC dc(m_wnd);
             dc.SelectObject(font);
-            CSize text_extent = dc.GetTextExtent(text.c_str());
+            CSize text_extent = dc.GetTextExtent(wide_text.c_str());
 
             const long y = ( m_height - m_buttonHeight ) / 2;
             item.rect = CRect(x, y, x + text_extent.cx + Default::ButtonPadding, y + m_buttonHeight);
 
-            CButton* button_window = new CButton;
-            button_window->Create(text.c_str(), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, item.rect, m_wnd, (UINT)-1);
+            CButton* const button_window = new CButton;
+            button_window->Create(wide_text.c_str(), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, item.rect, m_wnd, static_cast<UINT>(-1));
             button_window->SetFont(font);
 
             return button_window;
@@ -241,7 +242,7 @@ namespace
     END_MESSAGE_MAP()
 
 
-    void FieldEdit::OnKeyUp(UINT nChar, UINT nRepCnt, UINT nFlags)
+    void FieldEdit::OnKeyUp(const UINT nChar, const UINT nRepCnt, const UINT nFlags)
     {
         if( nChar == VK_RETURN )
         {
@@ -256,53 +257,55 @@ namespace
 }
 
 
-int WindowsUserbar::AddField(std::wstring text, std::optional<Action> action)
+int WindowsUserbar::AddField(std::string text, std::optional<Action> action)
 {
     NewlineSubstitutor::MakeNewlineToSpace(text);
+    const std::wstring wide_text = TC::ToWide(text);
 
     return AddItem(WindowsUserbarItem::Type::Field, std::move(action),
-        [&](WindowsUserbarItem& item, long x)
+        [&](WindowsUserbarItem& item, const long x)
         {
-            CFont* font = GetFont();
+            CFont* const font = GetFont();
 
             CClientDC dc(m_wnd);
             dc.SelectObject(font);
-            CSize text_extent = dc.GetTextExtent(text.c_str());
+            const CSize text_extent = dc.GetTextExtent(wide_text.c_str());
 
             const long y = ( m_height - m_fieldHeight ) / 2;
             item.rect = CRect(x, y, x + text_extent.cx + Default::FieldPadding, y + m_fieldHeight);
 
             CEdit* edit_window = new FieldEdit;
-            edit_window->Create(WS_CHILD | WS_VISIBLE | ES_AUTOHSCROLL, item.rect, m_wnd, (UINT)-1);
+            edit_window->Create(WS_CHILD | WS_VISIBLE | ES_AUTOHSCROLL, item.rect, m_wnd, static_cast<UINT>(-1));
             edit_window->SetFont(font);
 
             // an empty string can be used to set the length, but we won't actually fill the box with spaces
             if( !SO::IsBlank(text) )
-                edit_window->SetWindowText(text.c_str());
+                edit_window->SetWindowText(wide_text.c_str());
 
             return edit_window;
         });
 }
 
 
-int WindowsUserbar::AddText(std::wstring text)
+int WindowsUserbar::AddText(std::string text)
 {
     NewlineSubstitutor::MakeNewlineToSpace(text);
+    const std::wstring wide_text = TC::ToWide(text);
 
     return AddItem(WindowsUserbarItem::Type::Text, std::nullopt,
-        [&](WindowsUserbarItem& item, long x)
+        [&](WindowsUserbarItem& item, const long x)
         {
-            CFont* font = GetFont();
+            CFont* const font = GetFont();
 
             CClientDC dc(m_wnd);
             dc.SelectObject(font);
-            CSize text_extent = dc.GetTextExtent(text.c_str());
+            const CSize text_extent = dc.GetTextExtent(wide_text.c_str());
 
             const long y = ( m_height - text_extent.cy ) / 2;
             item.rect = CRect(x, y, x + text_extent.cx, y + text_extent.cy);
 
-            CStatic* static_window = new CStatic();
-            static_window->Create(text.c_str(), WS_CHILD | WS_VISIBLE, item.rect, m_wnd);
+            CStatic* const static_window = new CStatic();
+            static_window->Create(wide_text.c_str(), WS_CHILD | WS_VISIBLE, item.rect, m_wnd);
             static_window->SetFont(font);
 
             return static_window;
@@ -313,7 +316,7 @@ int WindowsUserbar::AddText(std::wstring text)
 int WindowsUserbar::AddSpacing(int spacing)
 {
     return AddItem(WindowsUserbarItem::Type::Spacing, std::nullopt,
-        [&](WindowsUserbarItem& item, long x)
+        [&](WindowsUserbarItem& item, const long x)
         {
             item.rect = CRect(x, 0, x + std::max(0, spacing), 0); // the y coordinates don't matter
 
@@ -322,19 +325,18 @@ int WindowsUserbar::AddSpacing(int spacing)
 }
 
 
-std::optional<std::wstring> WindowsUserbar::GetFieldText(int id)
+std::optional<std::string> WindowsUserbar::GetFieldText(int id)
 {
-    const WindowsUserbarItem* item = GetItem(id);
+    const WindowsUserbarItem* const item = GetItem(id);
 
     if( item == nullptr || item->type != WindowsUserbarItem::Type::Field )
         return std::nullopt;
 
-    return WindowsWS::GetWindowText(*item->window);
+    return WindowsUtf8::GetText(*item->window);
 }
 
 
-
-bool WindowsUserbar::SetColor(COLORREF color, std::optional<int> id)
+bool WindowsUserbar::SetColor(const COLORREF color, const std::optional<int> id)
 {
     // setting the value for the entire userbar
     if( !id.has_value() )
@@ -347,7 +349,7 @@ bool WindowsUserbar::SetColor(COLORREF color, std::optional<int> id)
     // otherwise the user is changing trying to change the color of a text string
     else
     {
-        WindowsUserbarItem* item = GetItem(*id);
+        WindowsUserbarItem* const item = GetItem(*id);
 
         if( item != nullptr && item->type == WindowsUserbarItem::Type::Text )
         {
@@ -361,7 +363,7 @@ bool WindowsUserbar::SetColor(COLORREF color, std::optional<int> id)
 }
 
 
-bool WindowsUserbar::Modify(int id, std::optional<std::wstring> text, std::optional<Action> action, std::optional<int> spacing)
+bool WindowsUserbar::Modify(const int id, std::optional<std::string> text, std::optional<Action> action, const std::optional<int> spacing)
 {
     const std::optional<size_t> item_index = GetItemIndex(id);
 
@@ -383,13 +385,14 @@ bool WindowsUserbar::Modify(int id, std::optional<std::wstring> text, std::optio
         else
         {
             NewlineSubstitutor::MakeNewlineToSpace(*text);
+            const std::wstring wide_text = TC::ToWide(*text);
 
             // buttons and text have to be resized based on the new text size
             if( item.type == WindowsUserbarItem::Type::Button || item.type == WindowsUserbarItem::Type::Text )
             {
                 CClientDC dc(m_wnd);
                 dc.SelectObject(item.window->GetFont());
-                CSize text_extent = dc.GetTextExtent(text->c_str());
+                CSize text_extent = dc.GetTextExtent(wide_text.c_str());
 
                 const int new_width = text_extent.cx + ( ( item.type == WindowsUserbarItem::Type::Button ) ? Default::ButtonPadding : 0 );
                 spacing_shift_amount = new_width - item.rect.Width();
@@ -397,7 +400,7 @@ bool WindowsUserbar::Modify(int id, std::optional<std::wstring> text, std::optio
                 item.window->SetWindowPos(nullptr, 0, 0, new_width, item.rect.Height(), SWP_NOMOVE | SWP_NOZORDER);
             }
 
-            item.window->SetWindowText(text->c_str());
+            item.window->SetWindowText(wide_text.c_str());
         }
     }
 
@@ -439,7 +442,7 @@ bool WindowsUserbar::Modify(int id, std::optional<std::wstring> text, std::optio
 }
 
 
-bool WindowsUserbar::Remove(int id)
+bool WindowsUserbar::Remove(const int id)
 {
     const std::optional<size_t> item_index = GetItemIndex(id);
 
@@ -456,7 +459,7 @@ bool WindowsUserbar::Remove(int id)
 }
 
 
-LRESULT WindowsUserbarWnd::WindowProc(UINT message, WPARAM wParam, LPARAM lParam)
+LRESULT WindowsUserbarWnd::WindowProc(const UINT message, const WPARAM wParam, const LPARAM lParam)
 {
     // set the userbar's background color
     if( message == WM_PAINT )
@@ -465,7 +468,7 @@ LRESULT WindowsUserbarWnd::WindowProc(UINT message, WPARAM wParam, LPARAM lParam
         {
             PAINTSTRUCT ps;
             RECT rect;
-            CDC* pDC = BeginPaint(&ps);
+            CDC* const pDC = BeginPaint(&ps);
             GetWindowRect(&rect);
             ScreenToClient(&rect);
             pDC->FillRect(&rect, m_userbar.m_backgroundColor.get());
@@ -478,7 +481,7 @@ LRESULT WindowsUserbarWnd::WindowProc(UINT message, WPARAM wParam, LPARAM lParam
     // set the foreground and background colors of text strings
     else if( message == WM_CTLCOLORSTATIC )
     {
-        WindowsUserbarItem* item = m_userbar.GetItem(reinterpret_cast<HWND>(lParam));
+        WindowsUserbarItem* const item = m_userbar.GetItem(reinterpret_cast<HWND>(lParam));
 
         if( item != nullptr && ( item->color.has_value() || m_userbar.m_backgroundColor != nullptr ) )
         {
@@ -502,7 +505,7 @@ LRESULT WindowsUserbarWnd::WindowProc(UINT message, WPARAM wParam, LPARAM lParam
     // process a user having pressed enter in a text field
     else if( message == UWM::Engine::UserbarEditReturnKey )
     {
-        WindowsUserbarItem* item = m_userbar.GetItem(reinterpret_cast<HWND>(wParam));
+        WindowsUserbarItem* const item = m_userbar.GetItem(reinterpret_cast<HWND>(wParam));
 
         if( item != nullptr )
         {
@@ -517,7 +520,7 @@ LRESULT WindowsUserbarWnd::WindowProc(UINT message, WPARAM wParam, LPARAM lParam
     // handle a button click
     else if( message == WM_COMMAND && HIWORD(wParam) == BN_CLICKED )
     {
-        WindowsUserbarItem* item = m_userbar.GetItem(reinterpret_cast<HWND>(lParam));
+        WindowsUserbarItem* const item = m_userbar.GetItem(reinterpret_cast<HWND>(lParam));
 
         if( item != nullptr )
         {

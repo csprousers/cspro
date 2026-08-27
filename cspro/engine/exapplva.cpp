@@ -1538,6 +1538,33 @@ void CIntDriver::AssignValueToVART_INTERPRETER_DLL_TODO(const int variable_compi
 }
 
 
+void CIntDriver::AssignValueToVART_INTERPRETER_DLL_TODO(VART& vart, int zero_based_occurrence, double value)
+{
+    ASSERT(zero_based_occurrence >= 0);
+
+    CNDIndexes theIndex(ZERO_BASED);
+    theIndex.setAtOrigin();
+    theIndex.setIndexValue(CDimension::Record, zero_based_occurrence);
+
+    SetVarFloatValue(value, vart.GetVarX(), theIndex);
+}
+
+
+void CIntDriver::AssignValueToVART_INTERPRETER_DLL_TODO(VART& vart, int zero_based_occurrence, SharableString value)
+{
+    ASSERT(zero_based_occurrence >= 0);
+
+    CNDIndexes theIndex(ZERO_BASED);
+    theIndex.setAtOrigin();
+    theIndex.setIndexValue(CDimension::Record, zero_based_occurrence);
+
+    value.WideMakeExactLength(vart.GetLength());
+
+    wchar_t* const buffer = GetVarAsciiAddr(&vart, theIndex);
+    _tmemcpy(buffer, UTF8_TODO::GetWide(*value).c_str(), vart.GetLength());
+}
+
+
 template<typename T>
 T CIntDriver::EvaluateVARTValue(int variable_compilation)
 {

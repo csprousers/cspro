@@ -680,6 +680,18 @@ void CSymbolVar::dvaltochar( const double dValue, csprochar* pBuf ) const
 // RHF END Aug 23, 2002
 
 
+std::string CSymbolVar::dvaltochar(double value, const bool convert_number_from_engine_format) const
+{
+    if( convert_number_from_engine_format )
+    {
+        ASSERT(m_pVarX != nullptr);
+        value = m_pVarX->varoutval(value);
+    }
+
+    return ::dvaltochar<std::string>(value, m_iLength, m_iNumDec, m_bZeroFill, m_bDecChar);
+}
+
+
 // RHF INIC May 2, 2001
 void CSymbolVar::DoNeedConvertSomeSubItem() {
     m_bNeedConvertSomeSubItem = false;

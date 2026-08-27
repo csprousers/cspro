@@ -1,4 +1,4 @@
-﻿//------------------------------------------------------------------------
+//------------------------------------------------------------------------
 //
 //  EXAPPL.cpp    data and structures used by CSPRO executors
 //
@@ -136,12 +136,6 @@ void CEngineDriver::BuildMessageManagers()
     {
         ASSERT(false); // APP_LOAD_TODO make sure this never happens
     }
-}
-
-
-void CEngineDriver::SetUserbar(std::unique_ptr<Userbar> userbar)
-{
-    m_userbar = std::move(userbar);
 }
 
 

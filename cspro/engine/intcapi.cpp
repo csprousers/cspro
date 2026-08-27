@@ -11,8 +11,8 @@
 #include "Interpreter.h"
 #include "Engine.h"
 #include "Entdrv.h"
-#include "ProgramControl.h"
 #include <zEngineO/StringWriter.h>
+#include <zEngineO/Interpreter/ProgramControlException.h>
 #include <zToolsO/Encoders.h>
 #include <zCapiO/CapiName.h>
 #include <zCapiO/CapiQuestionManager.h>

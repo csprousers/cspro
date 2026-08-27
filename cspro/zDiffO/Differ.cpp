@@ -1,8 +1,8 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "Differ.h"
 #include "DiffSpec.h"
-#include <zToolsO/File.h>
 #include <zToolsO/NewlineSubstitutor.h>
+#include <zToolsO/TextFile.h>
 #include <zUtilF/ProcessSummaryDlg.h>
 #include <zAppO/PFF.h>
 #include <zCaseO/Case.h>

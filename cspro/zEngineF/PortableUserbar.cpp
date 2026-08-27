@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "PortableUserbar.h"
 
 
@@ -35,12 +35,12 @@ void PortableUserbar::Pause(bool /*pause*/)
 }
 
 
-int PortableUserbar::AddButton(std::wstring text, std::optional<Action> action)
+int PortableUserbar::AddButton(std::string text, std::optional<Action> action)
 {
     if( action.has_value() && std::holds_alternative<Userbar::ControlAction>(*action) )
         throw FeatureNotImplemented();
 
-    int id = m_items.empty() ? StartingId : ( m_items.back().id + 1 );
+    const int id = m_items.empty() ? StartingId : ( m_items.back().id + 1 );
 
     // add the button
     m_items.emplace_back(PortableUserbarItem { id, std::move(text), std::move(action) });
@@ -51,13 +51,13 @@ int PortableUserbar::AddButton(std::wstring text, std::optional<Action> action)
 }
 
 
-int PortableUserbar::AddField(std::wstring /*text*/, std::optional<Action> /*action*/)
+int PortableUserbar::AddField(std::string /*text*/, std::optional<Action> /*action*/)
 {
     throw FeatureNotImplemented();
 }
 
 
-int PortableUserbar::AddText(std::wstring /*text*/)
+int PortableUserbar::AddText(std::string /*text*/)
 {
     throw FeatureNotImplemented();
 }
@@ -69,7 +69,7 @@ int PortableUserbar::AddSpacing(int /*spacing*/)
 }
 
 
-std::optional<std::wstring> PortableUserbar::GetFieldText(int /*id*/)
+std::optional<std::string> PortableUserbar::GetFieldText(int /*id*/)
 {
     return std::nullopt;
 }
@@ -81,7 +81,7 @@ bool PortableUserbar::SetColor(COLORREF /*color*/, std::optional<int> /*id*/)
 }
 
 
-bool PortableUserbar::Modify(int id, std::optional<std::wstring> text, std::optional<Action> action, std::optional<int> /*spacing*/)
+bool PortableUserbar::Modify(const int id, std::optional<std::string> text, std::optional<Action> action, std::optional<int> /*spacing*/)
 {
     auto lookup = std::find_if(m_items.begin(), m_items.end(),
                                [&](const PortableUserbarItem& item) { return ( item.id == id ); });
@@ -111,7 +111,7 @@ bool PortableUserbar::Modify(int id, std::optional<std::wstring> text, std::opti
 }
 
 
-bool PortableUserbar::Remove(int id)
+bool PortableUserbar::Remove(const int id)
 {
     const auto& lookup = std::find_if(m_items.begin(), m_items.end(),
                                       [&](const PortableUserbarItem& item) { return ( item.id == id ); });

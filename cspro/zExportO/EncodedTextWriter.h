@@ -1,6 +1,6 @@
 #pragma once
 
-#include <zToolsO/File.h>
+#include <zToolsO/TextFile.h>
 
 
 class EncodedTextWriter : private FileIO::TextFile

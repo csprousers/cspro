@@ -87,7 +87,6 @@ Language=PT
 1000   Não foi possível alocar memória para a tabela %s
 1001   Não foi possível abrir o arquivo %s - por favor verifique o status do arquivo
 
-1005   Código de operação inválido
 1007   Não existe a ocorrência: %s(%d) -- %p
 1008   Subscrito inválido: %s(%s) -- %p
 1009   Tabela %s não será produzida - não há memória disponível
@@ -216,7 +215,7 @@ Language=PT
 31090  Dimensão inválida especificada para o item '%s' no comando de exportação
 
 /* --- File */
-33056  Expressão com curinga (wildcard) não pode ser usada para um arquivo ou diretório
+33056  Expressão com curinga (wildcard) não pode ser usada para um arquivo ou diretório: %s
 33057  Diretório '%s' especificado é inválido ou não existe
 
 /* --- Relation Run-Time */

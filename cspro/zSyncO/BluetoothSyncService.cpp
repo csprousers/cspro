@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "BluetoothSyncService.h"
 #include "BluetoothChunk.h"
 #include "BluetoothObexConnection.h"
@@ -11,6 +11,7 @@
 #include <zNetwork/SyncCustomHeaders.h>
 #include <zDictO/DDClass.h>
 #include <zDataO/ISyncableDataRepository.h>
+#include <zEngineO/Messages/EngineMessages.h>
 
 
 namespace
@@ -60,7 +61,7 @@ std::shared_ptr<ConnectResponse> BluetoothSyncService::Connect()
 {
     // No bluetooth support on this device
     if (m_pAdapter == nullptr)
-        throw SyncError(100146, "Bluetooth");
+        throw SyncError(MGF::sync_feature_not_supported_100146, "Bluetooth");
 
     if (!m_pAdapter->IsEnabled())
         m_pAdapter->Enable();

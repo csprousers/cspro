@@ -118,6 +118,7 @@ add_library(${PROJECT_NAME}
     Interpreter/BarcodeRT.cpp
     Interpreter/BytecodeRT.cpp
     Interpreter/CompressionRT.cpp
+    Interpreter/ControlFlowRT.cpp
     Interpreter/DateRT.cpp
     Interpreter/DocumentRT.cpp
     Interpreter/ExecutionRT.cpp
@@ -126,25 +127,34 @@ add_library(${PROJECT_NAME}
     Interpreter/ImageRT.cpp
     Interpreter/InstructionsRT.cpp
     Interpreter/ItemRT.cpp
+    Interpreter/FileRT.cpp
     Interpreter/JavaScriptRT.cpp
     Interpreter/JsonRT.cpp
     Interpreter/ListRT.cpp
     Interpreter/LocalhostRT.cpp
     Interpreter/LogicInterpreter.cpp
+    Interpreter/LogicRT.cpp
     Interpreter/MapRT.cpp
     Interpreter/MathRT.cpp
+    Interpreter/MessagesRT.cpp
+    Interpreter/MovementRT.cpp
     Interpreter/NetworkRT.cpp
     Interpreter/PathRT.cpp
     Interpreter/PffRT.cpp
     Interpreter/PropertiesRT.cpp
+    Interpreter/QueryRT.cpp
     Interpreter/ReportRT.cpp
+    Interpreter/RuntimeRT.cpp
     Interpreter/StringRT.cpp
     Interpreter/StringWriterRT.cpp
     Interpreter/SwitchRT.cpp
     Interpreter/SymbolRT.cpp
+    Interpreter/SyncRT.cpp
     Interpreter/SystemAppRT.cpp
     Interpreter/SystemRT.cpp
     Interpreter/TextTemplateRT.cpp
+    Interpreter/TraceRT.cpp
+    Interpreter/UserbarRT.cpp
     Interpreter/UserFunctionRT.cpp
     Interpreter/UserInterfaceRT.cpp
     Interpreter/ValueSetRT.cpp

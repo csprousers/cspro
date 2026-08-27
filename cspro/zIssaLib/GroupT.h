@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 //---------------------------------------------------------------------------
 //  File name: GroupT.h
@@ -361,7 +361,7 @@ public:
     int     GetDataOccurrences() const    { return m_iDataOccs; }
 
     void    SetCurrentOccurrences( int iOcc );
-    void    SetTotalOccurrences( int iOcc );
+    virtual void SetTotalOccurrences( int iOcc ); // INTERPRETER_DLL_TODO marked as virtual only so that it is accessible from zEngineO
     void    SetDataOccurrences( int iOcc );             // victor Mar 23, 00
 
     void    AdjustTotalOccs( void );                    // victor May 28, 01

@@ -1354,7 +1354,7 @@ void CMainFrame::OnUpdatePause(CCmdUI* pCmdUI)
 
     pCmdUI->SetCheck(m_bPause);
 
-    if( pDoc->GetAppMode() != NO_MODE && pDoc->GetRunApl()->GetEntryDriver()->HasUserbar() )
+    if( pDoc->GetAppMode() != NO_MODE )
         pDoc->GetRunApl()->PauseUserbar(m_bPause);
 }
 

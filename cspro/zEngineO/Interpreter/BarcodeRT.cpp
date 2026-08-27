@@ -4,7 +4,6 @@
 #include "Nodes/Barcode.h"
 #include <zMultimediaO/Image.h>
 #include <zMultimediaO/QRCode.h>
-#include <zParadataO/Logger.h>
 
 
 Engine::Value LogicInterpreter::ex_Barcode_read(const int program_index)
@@ -25,7 +24,7 @@ Engine::Value LogicInterpreter::ex_Barcode_read(const int program_index)
     if( operator_selection_event != nullptr )
     {
         operator_selection_event->SetPostSelectionValues(std::nullopt, barcode, true);
-        RegisterAndLogEvent_INTERPRETER_DLL_TODO(std::move(operator_selection_event));
+        GetParadataDriver_INTERPRETER_DLL_TODO().RegisterAndLogEvent(std::move(operator_selection_event));
     }
 
     return barcode;

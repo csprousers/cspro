@@ -1,8 +1,8 @@
-﻿#pragma once
+#pragma once
 
 #include <zListingO/zListingO.h>
 #include <zListingO/Lister.h>
-#include <zToolsO/File.h>
+#include <zToolsO/TextFile.h>
 
 class CDataDict;
 class ConnectionString;

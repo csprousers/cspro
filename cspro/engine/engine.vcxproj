@@ -60,7 +60,6 @@
     <ClCompile Include="IntDataAccess.cpp" />
     <ClCompile Include="Intdentr.cpp" />
     <ClCompile Include="Intdrive.cpp" />
-    <ClCompile Include="IntDynamicLogicEvaluation.cpp" />
     <ClCompile Include="intenter.cpp" />
     <ClCompile Include="InterpreterAccessor.cpp" />
     <ClCompile Include="Intexpr.cpp" />
@@ -71,15 +70,11 @@
     <ClCompile Include="IntInstr.cpp" />
     <ClCompile Include="IntItem.cpp" />
     <ClCompile Include="IntLanguage.cpp" />
-    <ClCompile Include="IntMessages.cpp" />
     <ClCompile Include="IntOccurrences.cpp" />
     <ClCompile Include="IntPre77Report.cpp" />
     <ClCompile Include="IntProgramControl.cpp" />
     <ClCompile Include="IntProperties.cpp" />
-    <ClCompile Include="IntQuery.cpp" />
-    <ClCompile Include="IntSync.cpp" />
     <ClCompile Include="Inttbl.cpp" />
-    <ClCompile Include="IntUserbar.cpp" />
     <ClCompile Include="IntUserFunction.cpp" />
     <ClCompile Include="IntUserInterface.cpp" />
     <ClCompile Include="Intxtab.cpp" />
@@ -130,7 +125,6 @@
     <ClInclude Include="Engdrv.h" />
     <ClInclude Include="Engine.h" />
     <ClInclude Include="EngineDictionaryModifier.h" />
-    <ClInclude Include="EngineExecutor.h" />
     <ClInclude Include="EngineObjectTransporter.h" />
     <ClInclude Include="EngineQuestionnaireViewer.h" />
     <ClInclude Include="Entdrv.h" />
@@ -150,11 +144,9 @@
     <ClInclude Include="InterpreterAccessor.h" />
     <ClInclude Include="InterpreterMessageIssuer.h" />
     <ClInclude Include="ItemData.h" />
-    <ClInclude Include="LogicStackSaver.h" />
     <ClInclude Include="Messages.h" />
     <ClInclude Include="Nodes.h" />
     <ClInclude Include="ParadataDriver.h" />
-    <ClInclude Include="ProgramControl.h" />
     <ClInclude Include="RangeFunctions.h" />
     <ClInclude Include="ReadyFlags.h" />
     <ClInclude Include="Relation.h" />

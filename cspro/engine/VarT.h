@@ -451,7 +451,8 @@ public:
     // --- other methods
 public:
     virtual int GetLevel() const; // INTERPRETER_DLL_TODO marked as virtual only so that it is accessible to zEngineO's SymbolCalculator
-    void    dvaltochar( const double dValue, csprochar* pBuf ) const;
+    void    dvaltochar( double dValue, csprochar* pBuf ) const;
+    [[noreturn]] virtual std::string dvaltochar(double value, bool convert_number_from_engine_format) const; // INTERPRETER_DLL_TODO marked as virtual only so that it is accessible from zEngineO
 
 private:
     bool m_bNeedConvertSomeSubItem;

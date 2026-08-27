@@ -12,6 +12,7 @@
 #include <zDictO/DDClass.h>
 #include <zParadataO/Logger.h>
 #include <zParadataO/Syncer.h>
+#include <zEngineO/Messages/EngineMessages.h>
 
 
 SyncClient::SyncClient(DeviceId device_id, std::unique_ptr<ISyncServiceFactory> sync_service_factory)
@@ -418,7 +419,7 @@ SyncClient::SyncResult SyncClient::SyncData(ISyncableDataRepository& syncable_da
     catch( const CSProException& exception )
     {
         if( m_syncListener != nullptr )
-            m_syncListener->ReportError(100114, exception.what());
+            m_syncListener->ReportError(MGF::sync_generic_error_100114, exception.what());
 
         if( dynamic_cast<const SyncCancelException*>(&exception) != nullptr )
             return SyncResult::SYNC_CANCELED;

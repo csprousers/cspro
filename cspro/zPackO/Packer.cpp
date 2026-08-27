@@ -1,7 +1,7 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "Packer.h"
 #include "PackSpec.h"
-#include <zToolsO/File.h>
+#include <zToolsO/TextFile.h>
 #include <zZip/ZipFile.h>
 
 

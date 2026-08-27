@@ -101,6 +101,7 @@
     <ClCompile Include="StringOperations.cpp" />
     <ClCompile Include="TextConverterAnsi.cpp" />
     <ClCompile Include="TextEncoding.cpp" />
+    <ClCompile Include="TextFile.cpp" />
     <ClCompile Include="Tools.cpp" />
     <ClCompile Include="UniqueId.cpp" />
     <ClCompile Include="Utf8.cpp" />
@@ -190,6 +191,7 @@
     <ClInclude Include="string_sz.h" />
     <ClInclude Include="TextConverter.h" />
     <ClInclude Include="TextEncoding.h" />
+    <ClInclude Include="TextFile.h" />
     <ClInclude Include="TextFormatter.h" />
     <ClInclude Include="ThreadCacher.h" />
     <ClInclude Include="Tools.h" />

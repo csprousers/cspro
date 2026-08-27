@@ -41,6 +41,7 @@ add_library(${PROJECT_NAME}
     StringOperations.cpp
     TextConverterAnsi.cpp
     TextEncoding.cpp
+    TextFile.cpp
     Tools.cpp
     UniqueId.cpp
     Utf8.cpp

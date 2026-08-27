@@ -281,6 +281,9 @@
     <ClCompile Include="Interpreter\CompressionRT.cpp">
       <Filter>Source Files\Interpreter</Filter>
     </ClCompile>
+    <ClCompile Include="Interpreter\ControlFlowRT.cpp">
+      <Filter>Source Files\Interpreter</Filter>
+    </ClCompile>
     <ClCompile Include="Interpreter\DateRT.cpp">
       <Filter>Source Files\Interpreter</Filter>
     </ClCompile>
@@ -288,6 +291,9 @@
       <Filter>Source Files\Interpreter</Filter>
     </ClCompile>
     <ClCompile Include="Interpreter\ExecutionRT.cpp">
+      <Filter>Source Files\Interpreter</Filter>
+    </ClCompile>
+    <ClCompile Include="Interpreter\FileRT.cpp">
       <Filter>Source Files\Interpreter</Filter>
     </ClCompile>
     <ClCompile Include="Interpreter\GeometryRT.cpp">
@@ -320,10 +326,19 @@
     <ClCompile Include="Interpreter\LogicInterpreter.cpp">
       <Filter>Source Files\Interpreter</Filter>
     </ClCompile>
+    <ClCompile Include="Interpreter\LogicRT.cpp">
+      <Filter>Source Files\Interpreter</Filter>
+    </ClCompile>
     <ClCompile Include="Interpreter\MapRT.cpp">
       <Filter>Source Files\Interpreter</Filter>
     </ClCompile>
     <ClCompile Include="Interpreter\MathRT.cpp">
+      <Filter>Source Files\Interpreter</Filter>
+    </ClCompile>
+    <ClCompile Include="Interpreter\MessagesRT.cpp">
+      <Filter>Source Files\Interpreter</Filter>
+    </ClCompile>
+    <ClCompile Include="Interpreter\MovementRT.cpp">
       <Filter>Source Files\Interpreter</Filter>
     </ClCompile>
     <ClCompile Include="Interpreter\NetworkRT.cpp">
@@ -338,7 +353,13 @@
     <ClCompile Include="Interpreter\PropertiesRT.cpp">
       <Filter>Source Files\Interpreter</Filter>
     </ClCompile>
+    <ClCompile Include="Interpreter\QueryRT.cpp">
+      <Filter>Source Files\Interpreter</Filter>
+    </ClCompile>
     <ClCompile Include="Interpreter\ReportRT.cpp">
+      <Filter>Source Files\Interpreter</Filter>
+    </ClCompile>
+    <ClCompile Include="Interpreter\RuntimeRT.cpp">
       <Filter>Source Files\Interpreter</Filter>
     </ClCompile>
     <ClCompile Include="Interpreter\StringRT.cpp">
@@ -353,6 +374,9 @@
     <ClCompile Include="Interpreter\SymbolRT.cpp">
       <Filter>Source Files\Interpreter</Filter>
     </ClCompile>
+    <ClCompile Include="Interpreter\SyncRT.cpp">
+      <Filter>Source Files\Interpreter</Filter>
+    </ClCompile>
     <ClCompile Include="Interpreter\SystemAppRT.cpp">
       <Filter>Source Files\Interpreter</Filter>
     </ClCompile>
@@ -360,6 +384,12 @@
       <Filter>Source Files\Interpreter</Filter>
     </ClCompile>
     <ClCompile Include="Interpreter\TextTemplateRT.cpp">
+      <Filter>Source Files\Interpreter</Filter>
+    </ClCompile>
+    <ClCompile Include="Interpreter\TraceRT.cpp">
+      <Filter>Source Files\Interpreter</Filter>
+    </ClCompile>
+    <ClCompile Include="Interpreter\UserbarRT.cpp">
       <Filter>Source Files\Interpreter</Filter>
     </ClCompile>
     <ClCompile Include="Interpreter\UserFunctionRT.cpp">
@@ -514,6 +544,9 @@
     <ClInclude Include="Compiler\CompilerMessageIssuer.h">
       <Filter>Header Files\Compiler</Filter>
     </ClInclude>
+    <ClInclude Include="Compiler\DynamicLogicCompiler.h">
+      <Filter>Header Files\Compiler</Filter>
+    </ClInclude>
     <ClInclude Include="Compiler\EnginePreprocessor.h">
       <Filter>Header Files\Compiler</Filter>
     </ClInclude>
@@ -610,10 +643,19 @@
     <ClInclude Include="Interpreter\LogicInterpreter.h">
       <Filter>Header Files\Interpreter</Filter>
     </ClInclude>
+    <ClInclude Include="Interpreter\LogicStackSaver.h">
+      <Filter>Header Files\Interpreter</Filter>
+    </ClInclude>
+    <ClInclude Include="Interpreter\ProgramControlException.h">
+      <Filter>Header Files\Interpreter</Filter>
+    </ClInclude>
     <ClInclude Include="Interpreter\SelectDlgHelper.h">
       <Filter>Header Files\Interpreter</Filter>
     </ClInclude>
     <ClInclude Include="Interpreter\StringComparer.h">
+      <Filter>Header Files\Interpreter</Filter>
+    </ClInclude>
+    <ClInclude Include="Interpreter\SyncDriver.h">
       <Filter>Header Files\Interpreter</Filter>
     </ClInclude>
     <ClInclude Include="JavaScriptProcessor.h">

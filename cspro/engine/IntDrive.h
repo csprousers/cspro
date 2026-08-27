@@ -40,23 +40,18 @@ class CDEField;
 class CIntDriver;
 class CMsgOptions;
 class CsDriver;
-class CSettings;
 class CSubTable;
 class DictValue;
 enum class FieldStatus : int;
 class ImputationDriver;
 class ItemIndex;
 class KeyboardLoader;
-class LoopStack;
 class NamedReference;
 class SelcaseManager;
-struct sqlite3;
 class SyncClient;
-struct SyncObjects;
-class TraceHandler;
 class VTSTRUCT;
 namespace Nodes { struct SetAccessFirstLast; }
-namespace Paradata { class ExternalApplicationEvent; }
+namespace Paradata { class Event; class ExternalApplicationEvent; }
 namespace ParameterManager { enum class Parameter; }
 namespace Pre77Report { class ReportManager; }
 
@@ -121,9 +116,6 @@ private:
     FOR_STACK ForStack[FOR_STACK_MAX];
 // RHC END Sep 20, 2001
 
-private:
-    std::vector<std::unique_ptr<std::tuple<CIntDriver&, UserFunction&>>> m_sqlCallbackFunctions;
-
 
     // --- engine links
 public:
@@ -132,7 +124,6 @@ public:
     CSettings* m_pEngineSettings;
 
     std::unique_ptr<LoopStack> m_loopStack;
-    std::unique_ptr<TraceHandler> m_traceHandler;
     std::unique_ptr<EngineParadataDriver> m_paradataDriver; // non-null
     std::unique_ptr<Pre77Report::ReportManager> m_pre77reportManager;
 
@@ -156,20 +147,12 @@ private:
     void EvaluateApplicationStartupJavaScript();
 
 public:
-    LoopStack& GetLoopStack();
-
-    EngineData& GetEngineData() { return *m_engineData; }
-
     // --- execution flags
     void    Enable3D_Driver()                  { m_bUse3D_Driver = true; }          // victor May 16, 01
     void    Disable3D_Driver()                 { m_bUse3D_Driver = false; }         // victor May 16, 01
     bool    IsUsing3D_Driver() const           { return m_bUse3D_Driver; }          // victor May 16, 01
     void    SetRequestIssued( bool bX = true ) { m_bRequestIssuedByEngine = bX; }   // victor May 16, 01
     bool    GetRequestIssued() const           { return m_bRequestIssuedByEngine; } // victor May 16, 01
-
-    template<typename T>
-    void MakeFullPathFileName(T& filename) const;
-    std::wstring EvalFullPathFileName(int iExpr);
 
     // --- pre-allocating memory for execution
 public:
@@ -310,7 +293,7 @@ public:
 
     // --- basic interpreter functions
 public:
-    Engine::Value CallUserFunction(UserFunction& user_function, UserFunctionArgumentEvaluator& argument_evaluator);
+    Engine::Value CallUserFunction(UserFunction& user_function, UserFunctionArgumentEvaluator& argument_evaluator) override;
     void ExecuteCallbackUserFunction(int field_symbol_index, UserFunctionArgumentEvaluator& argument_evaluator) override;
 private:
     std::unique_ptr<UserFunctionArgumentEvaluator> EvaluateArgumentsForCallbackUserFunction(int program_index, FunctionCode function_code) override;
@@ -328,16 +311,10 @@ public:
 
     SharableString extavar(int iExpr);
     double  excpt(int iExpr);
-    double  exif(int iExpr);
     double  exbox(int iExpr);
     Engine::Value excharobj(int program_index);
 
     double  excpttbl(int iExpr);
-
-    double  exnoopIgnore_numeric(int iExpr);
-    Engine::Value exnoopIgnore_string(int iExpr);
-    double  exnoopAbort(int iExpr);
-    double  exnoopAbortPlaceholderForFutureFunction(int iExpr);
 
     double  extvar(int iExpr);
 
@@ -402,7 +379,6 @@ public:
     double exendcase(int iExpr);
     double exuniverse(int iExpr);
     double exskipcase(int iExpr);
-    double ex_exit(int program_index);
 
     double  exstop(int iExpr);
     double  exispartial(int iExpr);
@@ -413,7 +389,6 @@ public:
     double  exset(int iExpr);
     double  exvisualvalue(int iExpr);
     double  exhighlight(int iExpr);
-    double  exinadvance(int iExpr);
 
     double   exnoccurs(int iExpr);
     double   exsoccurs(int iExpr);
@@ -453,36 +428,9 @@ public:
     std::vector<int> EvaluateValidIndices(int iSymGroup, int iSymItem, int iWhere); // 20110810
     int GetTrueGroupOccs(int iSymGroup, bool use_rules_for_binary_dict_items = false); // victor Dec 10, 01
 
-    double  exdisplay(int program_index);
-    double  exerrmsg(int program_index);
-    double  exwrite(int program_index);
-    Engine::Value exmaketext(int program_index);
-    double  exlogtext(int program_index);
-    double  exwarning(int program_index);
-
-    Engine::Value exedit(int iExpr);
-
-    double  ex_paradata(int program_index);
-    double  exsqlquery(int program_index);
-    double  exsqlquery(int program_index, const std::function<double(sqlite3*, const std::string&)>* setreportdata_callback);
     double  expre77_setreportdata(int iExpr);
     double  expre77_report(int iExpr);
 
-    void RegisterSqlCallbackFunctions(sqlite3* db);
-    void ProcessSqlCallbackFunction(UserFunction& user_function, void* void_context, int iArgC, void* void_ppArgV);
-
-    double ex_syncconnect(int program_index);
-    double ex_syncdisconnect(int program_index);
-    double ex_syncdata(int program_index);
-    double ex_syncfile(int program_index);
-    double ex_syncserver(int program_index);
-    double ex_syncapp(int program_index);
-    Engine::Value ex_syncmessage(int program_index);
-    double ex_syncparadata(int program_index);
-    double ex_synctime(int program_index);
-
-    Engine::Value ex_getbluetoothname(int program_index);
-    Engine::Value ex_setbluetoothname(int program_index);
 
     double exsavepartial(int iExpr);
     Engine::Value ex_getoperatorid(int program_index);
@@ -502,19 +450,13 @@ public:
     Engine::Value ex_setlanguage(int program_index);
     Engine::Value ex_tr(int program_index);
 
-    double  exuserbar(int iExpr); // 20100414
-
     double  exmessageoverrides(int program_index);
-
-    double  ex_trace(int program_index);
 
     double ex_getcapturetype(int program_index);
     double ex_setcapturetype(int program_index);
     double ex_setcapturepos(int program_index);
 
     double  ex_changekeyboard(int iExpr);
-
-    double  exorientation(int iExpr);       // 20100618
 
     double  exgps(int iExpr);               // 20110223
     std::unique_ptr<Paradata::Event> CreateParadataGpsEvent(std::string_view event_type_sv, std::string_view event_information_sv);
@@ -523,22 +465,15 @@ public:
 
     double  ex_setoutput(int program_index);
 
-    double  exfreealphamem(int program_index);
-
     double  exsetvalue(int iExpr);      // 20140228
     double  exgetvalue(int iExpr);      // 20140422
     Engine::Value ex_getvaluealpha(int program_index);
     VARX*   AssignParser(int iExpr, std::unique_ptr<CNDIndexes>& pTheIndex, int* aIndex); // 20140422
 
-    SharableString GetValueLabel(const VART* pVarT, const std::variant<double, SharableString>& value);
-    Engine::Value ex_getvaluelabel(int program_index);
-    Engine::Value ex_variablevalue(int program_index);
-
     double  exxtab(int iExpr);
     double  extblcoord(int iExpr); // tblrow, tblcol, tbllay
     double  extblsum(int iExpr);
     double  extblmed(int iExpr);
-    Engine::Value exfilename(int iExpr);
 
     Engine::Value ex_key_currentkey(int program_index);
     double  exkeylist(int iExpr);
@@ -604,11 +539,6 @@ private:
     std::unique_ptr<FrequencyDriver> m_frequencyDriver;
 
 
-    // dynamic logic evaluation functions
-public:
-    InterpreterExecuteResult EvaluateLogic(SharableString logic, CancelFlag& cancel_flag);
-
-
 private:
     template<typename T>
     bool EvaluateCaseFunctionParameters(const CDataDict& dictionary, const T& key_arguments_list_node_or_function_node, std::wstring& key);
@@ -627,9 +557,9 @@ public:
     double  exforcase(int iExpr);
     double  excountcases(int iExpr);
 
-    double  ex_open(int program_index);
-    double  ex_close(int program_index);
-    double  ex_setfile(int program_index);
+    Engine::Value ex_open(int program_index);
+    Engine::Value ex_close(int program_index);
+    Engine::Value ex_setfile(int program_index);
     bool    ex_setfile_dictionary(EngineDictionary& engine_dictionary, const ConnectionString& connection_string, bool create_new, bool open_or_create);
     bool    ex_setfile_dictionary(DICT* pDicT, const ConnectionString& connection_string, bool create_new, bool open_or_create);
 
@@ -649,7 +579,6 @@ public:
     double  getMaxIndexForVariableUsingStack( VART* pVarT, REL_NODE* pRelNode );  // rcl, Dec 18, 2004
     //////////////////////////////////////////////////////////////////////////
     double  exdofor_relation( FORRELATION_NODE* pFor, double* dTableWeight=NULL, int* iTabLogicExpr=NULL, LIST_NODE* pListNode=NULL  ); // RHF Jul 03, 2002
-    Engine::Value exfucall(int iExpr);                // RHF Aug 21, 2000
 
     double  exupdate(int iExpr);                      // RHF Nov 17, 2000
     Engine::Value exgetbuffer(int iExpr);
@@ -678,30 +607,6 @@ public:
     double  exmaxocc_pre80(int iExpr);
 
 private:
-    std::optional<std::wstring> ExGetFileName(int iExpr);
-    std::vector<std::wstring> ExGetFileNames(int iExpr);
-
-    template<typename CF>
-    double ExFileCopyRenameProcessor(int program_index, CF callback_function);
-
-public:
-    double  exfilecreate(int iExpr);
-    double  exfileexist(int iExpr);
-    double  exfiledelete(int iExpr);
-    double  ex_filecopy(int program_index);
-    double  ex_filerename(int program_index);
-    double  exfilesize(int iExpr);
-    double  exfileempty(int iExpr);
-    double  exfileconcat(int iExpr);
-    double  exfileread(int iExpr);
-    double  exfilewrite(int iExpr);
-
-    double  exfiletime(int iExpr);
-    double  exdirexist(int iExpr);
-    double  exdircreate(int iExpr);
-    double  exdirdelete(int program_index);
-
-private:
     ParameterManager::Parameter GetSetPropertyParser(int program_index, std::set<int>& symbol_set,
                                                      std::variant<double, std::string>* out_value = nullptr);
 public:
@@ -717,10 +622,6 @@ public:
     Engine::Value ExExecPFF(int iExpr);
     Engine::Value ExExecPFF(std::variant<LogicPff*, std::string> logic_pff_or_pff_file_path, std::optional<int> flags = std::nullopt);
 
-    double exwhile(int iExpr);
-    double ex_do(int program_index);
-    double exfornext(int iExpr);
-    double exforbreak(int iExpr);
 
 public:
     double  exfncurocc(int iExpr);                    // RHC Oct 30, 2000
@@ -847,18 +748,6 @@ private:
     void    ExpWrite1Record();
     void    ExpWriteVar( VART* pVarT, int iOccur = 0 );    // formerly 'expoutvar'
 
-    // --- ISSA-like messages management
-private:
-    SharableString EvaluateUserMessage(int message_node_index, FunctionCode function_code, int* out_message_number = nullptr) override;
-    double DisplayUserMessage(int message_node_index);
-
-public:
-    SharableString EvaluateVariableParameter(const std::variant<double, SharableString>& value, int value_expression, bool request_label);
-
-    // --- miscellaneous
-public:
-    std::string ProcName();
-
     // --- engine links
 public:
     CsDriver* GetCsDriver()               { return m_pCsDriver; }      // victor May 16, 01
@@ -877,14 +766,6 @@ public:
     template<typename T = bool>
     T ExecuteProgramStatements(int program_index);
     Engine::Value ExecuteInstructions(int program_index) override;
-
-    // Runs the callback function and returns the evaluation result, including a flag
-    // indicating whether a movement or program control action has occurred.
-    // Any thrown ProgramControlException exceptions will be stored and can be processed
-    // by calling RethrowProgramControlExceptions.
-    template<typename CF>
-    InterpreterExecuteResult Execute(CF callback_function);
-
 
     // scope functions
     double exScopeChange(int program_index);
@@ -913,8 +794,6 @@ public:
     void SetStartupLanguage();
     std::vector<Language> GetLanguages(bool include_only_capi_languages = true) const;
 
-    SyncClient& GetSyncClient();
-
     std::unique_ptr<C3DObject> ConvertIndex(const CaseItem& case_item, const ItemIndex& item_index);
     std::unique_ptr<C3DObject> ConvertIndex(const CaseItemReference& case_item_reference);
     void ConvertIndex(const C3DIndexes& the3dObject, ItemIndex& item_index);
@@ -933,24 +812,43 @@ private:
     // --------------------------------------------------------------------------
     Engine::Value evalexpr_INTERPRETER_DLL_TODO(Engine::Value (CIntDriver::*instruction)(int), int program_index) override;
     double evalexpr_INTERPRETER_DLL_TODO(double (CIntDriver::*instruction)(int), int program_index) override;
-    void RegisterAndLogEvent_INTERPRETER_DLL_TODO(std::shared_ptr<Paradata::Event> event, const void* instance_object = nullptr) override;
     void IssueMessageWorker(MessageType message_type, int message_number, ...) override;
     std::string GetFormattedMessageWorker(int message_number, ...) override;
     InterpreterExecuteResult Report_Evaluate_INTERPRETER_DLL_TODO(Report& report) override;
     Engine::Value RunSoonToBeRemovedFeature(std::string_view feature_sv, int program_index, void* tag) override;
     int Get_m_iExSymbol_INTERPRETER_DLL_TODO() override { return m_iExSymbol; }
-    bool IsExecutionInterrupted() const override;
+    bool IsExecutionInterrupted() const noexcept override;
     EngineParadataDriver& GetEngineParadataDriver_INTERPRETER_DLL_TODO() override;
     Engine::Value ExExecPFF_INTERPRETER_DLL_TODO(LogicPff& logic_pff) override;
     FrequencyDriver* GetFrequencyDriver_INTERPRETER_DLL_TODO() override;
     void AssignValueToVART_INTERPRETER_DLL_TODO(int variable_compilation, double value) override;
     void AssignValueToVART_INTERPRETER_DLL_TODO(int variable_compilation, SharableString value) override;
+    void AssignValueToVART_INTERPRETER_DLL_TODO(VART& vart, int zero_based_occurrence, double value) override;
+    void AssignValueToVART_INTERPRETER_DLL_TODO(VART& vart, int zero_based_occurrence, SharableString value) override;
     double EvaluateVARTValue_double_INTERPRETER_DLL_TODO(int variable_compilation) override;
     SharableString EvaluateVARTValue_SharableString_INTERPRETER_DLL_TODO(int variable_compilation) override;
     Engine::Value ModifyVARTValue_INTERPRETER_DLL_TODO(int variable_compilation, const std::function<void(double&)>& modify_value_function, std::unique_ptr<Paradata::FieldInfo>* paradata_field_info = nullptr) override;
     Engine::Value ModifyVARTValue_INTERPRETER_DLL_TODO(int variable_compilation, const std::function<void(SharableString&)>& modify_value_function, std::unique_ptr<Paradata::FieldInfo>* paradata_field_info = nullptr) override;
     int SymbolTableSearch_INTERPRETER_DLL_TODO(std::string_view full_symbol_name_sv, SymbolType preferred_symbol_type,
                                                const std::vector<SymbolType>* allowable_symbol_types) const override;
+    bool GetRequestIssued_INTERPRETER_DLL_TODO() const override { return GetRequestIssued(); }
+    void Execute_INTERPRETER_DLL_TODO(bool before_running_callback_function) override;
+    Paradata::ParadataDriver& GetParadataDriver_INTERPRETER_DLL_TODO() override;
+    void ClearParadataCachedObjects_INTERPRETER_DLL_TODO() override;
+    const CSettings* GetSettings_INTERPRETER_DLL_TODO() const override { return m_pEngineSettings; }
+    Listing::WriteFile* GetWriteFile_INTERPRETER_DLL_TODO() override;
+    MessageEvaluator& GetUserMessageEvaluator_INTERPRETER_DLL_TODO() override;
+    MessageManager& GetUserMessageManager_INTERPRETER_DLL_TODO() override;
+    std::shared_ptr<SystemMessageIssuer> GetSharedSystemMessageIssuer_INTERPRETER_DLL_TODO() override;
+    int DisplayMessage_INTERPRETER_DLL_TODO(MessageType message_type, const RuntimeMessage& runtime_message) override;
+    bool InAdvance_INTERPRETER_DLL_TODO() const override;
+public:
+    LoopStack& GetLoopStack() override;
+    bool Get_m_bStopExec_INTERPRETER_DLL_TODO() const override { return m_bStopExec; }
+    std::string GetCurrentProcName() const override;
+private:
+    void SetStopCode_INTERPRETER_DLL_TODO() const override;
+    std::unique_ptr<EngineDictionaryModifier> CreateEngineDictionaryModifier_INTERPRETER_DLL_TODO(Symbol& symbol) override;
 
 
 private:
@@ -958,8 +856,6 @@ private:
     std::vector<CString> m_aShowLines;
 
     std::unique_ptr<SelcaseManager> m_selcaseManager;
-
-    std::shared_ptr<SyncObjects> m_syncObjects;
 
     std::unique_ptr<KeyboardLoader> m_keyboardLoader; // non-null
 };

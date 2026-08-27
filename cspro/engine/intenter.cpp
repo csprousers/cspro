@@ -1,4 +1,4 @@
-﻿//---------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 //
 //  intEnter: interpreting Data-Entry Enter commands
 //
@@ -17,7 +17,7 @@
 #include "StandardSystemIncludes.h"
 #include "Interpreter.h"
 #include "ExEntry.h"
-#include "ProgramControl.h"
+#include <zEngineO/Interpreter/ProgramControlException.h>
 #include <zIssaLib/CFlAdmin.h>
 
 //--------------------------------------------------------

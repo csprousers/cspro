@@ -41,7 +41,6 @@ add_library(${PROJECT_NAME}
     Intchars.cpp
     IntDataAccess.cpp
     Intdrive.cpp
-    IntDynamicLogicEvaluation.cpp
     InterpreterAccessor.cpp
     Intexpr.cpp
     Intextdi.cpp
@@ -51,14 +50,10 @@ add_library(${PROJECT_NAME}
     Intinstr.cpp
     IntItem.cpp
     IntLanguage.cpp
-    IntMessages.cpp
     IntOccurrences.cpp
     IntPre77Report.cpp
     IntProgramControl.cpp
     IntProperties.cpp
-    IntQuery.cpp
-    IntSync.cpp
-    IntUserbar.cpp
     IntUserFunction.cpp
     IntUserInterface.cpp
     Listing.cpp

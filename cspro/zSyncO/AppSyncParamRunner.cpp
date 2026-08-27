@@ -3,6 +3,7 @@
 #include "SyncClient.h"
 #include <zDictO/DDClass.h>
 #include <zDataO/ISyncableDataRepository.h>
+#include <zEngineO/Messages/EngineMessages.h>
 
 
 int AppSyncParamRunner::Run(SyncClient& sync_client, const AppSyncParameters& sync_params, const std::vector<DataRepository*>& data_repositories_to_sync)
@@ -18,7 +19,7 @@ int AppSyncParamRunner::Run(SyncClient& sync_client, const AppSyncParameters& sy
         if( syncable_data_repository == nullptr )
         {
             if( sync_client.GetSyncListener() != nullptr )
-                sync_client.GetSyncListener()->ReportError(100116, "syncdata", data_repository->GetCaseAccess().GetDataDict().GetName().c_str());
+                sync_client.GetSyncListener()->ReportError(MGF::sync_invalid_data_source_100116, "syncdata", data_repository->GetCaseAccess().GetDataDict().GetName().c_str());
 
             continue;
         }

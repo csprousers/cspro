@@ -17,7 +17,6 @@ class CDEBlock;
 class CDEItemBase;
 class CListBox;
 class CTreeCtrl;
-class Userbar;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // CLASS NAME   : CRunApl
@@ -505,7 +504,6 @@ public:
 
     int RunSync(const AppSyncParameters& sync_params);
 
-    Userbar* GetUserbar();
     void PauseUserbar(bool pause);
 
     void ExecuteCallbackUserFunction(int field_symbol_index, UserFunctionArgumentEvaluator& argument_evaluator);

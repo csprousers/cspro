@@ -3,9 +3,9 @@
 #include "3dException.h"
 #include "Engine.h"
 #include "Exappl.h"
-#include "ProgramControl.h"
 #include "RunModes.h"
 #include <zEngineO/Block.h>
+#include <zEngineO/Interpreter/ProgramControlException.h>
 #include <zToolsO/Tools.h>
 #include <zFormO/FormFile.h>
 #include <zFormO/Roster.h>

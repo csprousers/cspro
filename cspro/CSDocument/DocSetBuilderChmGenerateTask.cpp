@@ -4,7 +4,6 @@
 #include "CSDocCompilerWorker.h"
 #include "DocSetBuilderCache.h"
 #include "GenerateTaskProcessRunner.h"
-#include <zToolsO/File.h>
 
 
 namespace

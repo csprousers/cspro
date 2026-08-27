@@ -98,6 +98,9 @@ namespace MGF
     constexpr int List_invalid_index_964                                    =    964;
     constexpr int List_read_only_cannot_be_modified_965                     =    965;
 
+    constexpr int invalid_operation_removed_1005                            =   1005;
+    constexpr int invalid_operation_not_implemented_1006                    =   1006;
+
     constexpr int invalid_subscript_1008                                    =   1008;
 
     constexpr int property_invalid_parameter_1100                           =   1100;
@@ -160,6 +163,9 @@ namespace MGF
     constexpr int Query_record_must_be_working_storage_8273                 =   8273;
     constexpr int Query_paradata_concat_invalid_arguments_8274              =   8274;
     constexpr int Query_paradata_concat_invalid_output_argument_8275        =   8275;
+    constexpr int Query_paradata_concat_error_8291                          =   8291;
+    constexpr int Query_sqlquery_error_8292                                 =   8292;
+    constexpr int Query_paradata_sync_error_8295                            =   8295;
 
     constexpr int SpecialFunction_invalid_case_9112                         =   9112;
     constexpr int SpecialFunction_invalid_syntax_9113                       =   9113;
@@ -171,12 +177,19 @@ namespace MGF
     constexpr int CS_json_argument_error_9205                               =   9205;
     constexpr int CS_access_without_token_prompt_9208                       =   9208;
 
+    constexpr int concat_error_14011                                        =  14011;
+    constexpr int concat_text_file_encoding_not_supported_14012             =  14012;
+    constexpr int concat_data_source_error_14013                            =  14013;
+
     constexpr int Array_invalid_dimension_19041                             =  19041;
     constexpr int SaveArray_only_allowed_in_proc_global_19004               =  19004;
 
     constexpr int setoutput_valid_only_for_batch_29006                      =  29006;
 
     constexpr int OpenMessage_32001                                         =  32001;
+
+    constexpr int path_wildcard_not_supported_33056                         =  33056;
+    constexpr int path_target_directory_does_not_exist_33057                =  33057;
 
     constexpr int item_expected_33109                                       =  33109;
     constexpr int object_of_type_expected_33116                             =  33116;
@@ -262,6 +275,8 @@ namespace MGF
     constexpr int UserFunction_declared_but_never_defined_50009             =  50009;
     constexpr int UserFunction_JavaScript_function_requires_declare_50010   =  50010;
 
+    constexpr int userbar_error_50106                                       =  50106;
+
     constexpr int prompt_invalid_combination_51102                          =  51102;
     constexpr int timestamp_argument_error_51111                            =  51111;
 
@@ -275,6 +290,9 @@ namespace MGF
     constexpr int Variable_destination_invalid_93011                        =  93011;
     constexpr int Variable_destination_not_correct_data_type_93012          =  93012;
     constexpr int Variable_destination_function_error_93013                 =  93013;
+
+    constexpr int sync_direction_invalid_94000                              =  94000;
+    constexpr int sync_direction_invalid_or_both_94003                      =  94003;
 
     constexpr int variable_modifier_duplicated_94100                        =  94100;
     constexpr int variable_modifier_invalid_94101                           =  94101;
@@ -345,6 +363,10 @@ namespace MGF
     constexpr int deprecation_setvalueset_with_at_string_literal_95032      =  95032;
 
     constexpr int sync_generic_error_100114                                 = 100114;
+    constexpr int sync_invalid_data_source_100116                           = 100116;
+    constexpr int sync_feature_not_supported_100146                         = 100146;
+    constexpr int sync_error_running_sync_service_100153                    = 100153;
+    constexpr int sync_set_bluetooth_name_error_100174                      = 100174;
 
     constexpr int regex_invalid_100260                                      = 100260;
 
@@ -429,7 +451,6 @@ namespace MGF_TODO
     constexpr int m_790     =    790;
     constexpr int m_33054   =  33054;
     constexpr int m_33055   =  33055;
-    constexpr int m_33056   =  33056;
     constexpr int m_33059   =  33059;
     constexpr int m_90003   =  90003;
     constexpr int m_90004   =  90004;

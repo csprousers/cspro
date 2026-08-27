@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <engine/StandardSystemIncludes.h>
 #include <engine/StrictCompilerErrors.h>
@@ -14,6 +14,7 @@
 #include <zToolsO/PortableFunctions.h>
 #include <zToolsO/Serializer.h>
 #include <zToolsO/Special.h>
+#include <zToolsO/TextFile.h>
 #include <zToolsO/Utf8.h>
 #include <zUtilO/Interapp.h>
 #include <zUtilO/MimeType.h>
@@ -22,3 +23,4 @@
 #include <zAppO/PFF.h>
 #include <zDictO/DDClass.h>
 #include <zFormO/FormFile.h>
+#include <zParadataO/Logger.h>

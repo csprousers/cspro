@@ -1,14 +1,19 @@
 #include "stdafx.h"
 #include "IncludesRT.h"
-#include "EngineDictionary.h"
-#include "File.h"
-#include "List.h"
+#include "AllSymbols.h"
+#include "EngineAccessor.h"
+#include "EngineCaseConstructionReporter.h"
+#include "Nodes/File.h"
 #include "Nodes/Path.h"
-#include <engine/DicT.h>
 #include <engine/DicX.h>
+#include <engine/Nodes.h>
 #include <zUtilO/CSProExecutables.h>
+#include <zUtilO/PathHelpers.h>
+#include <zUtilO/PortableFileSystem.h>
 #include <zUtilO/SpecialDirectoryLister.h>
 #include <zUtilF/SelectFileDlg.h>
+#include <zConcatO/Concatenator.h>
+#include <zConcatO/ConcatenatorReporter.h>
 
 
 // --------------------------------------------------------------------------
@@ -96,7 +101,6 @@ namespace PathRT
 
     SharableString PathFilterEvaluator(LogicInterpreter& interpreter, int filter_type_or_expression);
 }
-
 
 
 template<bool AllowSpecialDirectories, typename T,
@@ -462,7 +466,7 @@ Engine::Value LogicInterpreter::ex_Path_selectFile(const int program_index)
             // otherwise use the application directory
             else
             {
-                start_directory = PortableFunctions::PathGetDirectory(GetCurrentApplicationFilePath());
+                start_directory = GetCurrentWorkingDirectory();
             }
         }
 
@@ -509,6 +513,66 @@ Engine::Value LogicInterpreter::ex_Path_selectFile(const int program_index)
     select_file_dlg.DoModalOnUIThread();
 
     return select_file_dlg.GetSelectedPath();
+}
+
+
+
+// --------------------------------------------------------------------------
+// directory functions
+// --------------------------------------------------------------------------
+
+Engine::Value LogicInterpreter::ex_direxist(const int program_index)
+{
+    const auto& fnn_node = GetNode<FNN_NODE>(program_index);
+    const std::string directory = EvaluatePath(fnn_node.fn_expr[0]);
+
+    return Engine::Value::Bool(
+        PortableFunctions::FileIsDirectory(directory)
+    );
+}
+
+
+Engine::Value LogicInterpreter::ex_dircreate(const int program_index)
+{
+    const auto& fnn_node = GetNode<FNN_NODE>(program_index);
+    const std::string directory = EvaluatePath(fnn_node.fn_expr[0]);
+
+    return Engine::Value::Bool(
+        PortableFunctions::PathMakeDirectories(directory)
+    );
+}
+
+
+Engine::Value LogicInterpreter::ex_dirdelete(const int program_index)
+{
+    const auto& fnn_node = GetNode<FNN_NODE>(program_index);
+
+    std::string directory = PortableFunctions::PathRemoveTrailingSlash(EvaluatePath(fnn_node.fn_expr[0]));
+    std::string parent_directory = PortableFunctions::PathGetDirectory(directory);
+    std::string directory_name = PortableFunctions::PathGetFilename(directory);
+
+    const std::vector<std::string> directories =
+        DirectoryLister()
+        .SetIncludeFiles(false)
+        .SetIncludeDirectories(true)
+        .SetNameFilter(directory_name)
+        .GetPaths(parent_directory);
+
+    // indicate that the directory was not valid if no directories matched when not using wildcards
+    if( directories.empty() && !Path::Path::HasWildcardCharacters(directory_name) )
+        return Engine::Value::Invalid<double>();
+
+    size_t directories_deleted = 0;
+
+    for( const std::string& this_directory : directories )
+    {
+        if( PortableFunctions::DirectoryDelete(this_directory) )
+            ++directories_deleted;
+    }
+
+    return ( directories_deleted == directories.size() )
+        ? Engine::Value::Integer(directories_deleted)
+        : Engine::Value::Invalid<double>();
 }
 
 
@@ -585,4 +649,576 @@ Engine::Value LogicInterpreter::ex_dirlist(const int program_index)
     }
 
     return Engine::Value::Bool(true);
+}
+
+
+
+// --------------------------------------------------------------------------
+// file functions
+// --------------------------------------------------------------------------
+
+namespace PathRT
+{
+    // Returns the evaluated path or file path of a LogicFile object.
+    std::string EvaluatePathOrSymbolPath(LogicInterpreter& interpreter, int program_index);
+
+    // Returns the evaluated paths or file paths of a LogicFile or LogicList object.
+    // T can be std::string or ConnectionString.
+    template<typename T>
+    std::vector<T> EvaluatePathsOrSymbolPaths(LogicInterpreter& interpreter, int program_index,
+                                              bool evaluate_paths_with_wildcard_support, bool* paths_use_wildcards);
+
+    class EngineConcatenatorReporter;
+}
+
+
+std::string PathRT::EvaluatePathOrSymbolPath(LogicInterpreter& interpreter, const int program_index)
+{
+    if( program_index >= 0 )
+    {
+        return interpreter.EvaluatePath(program_index);
+    }
+
+    else
+    {
+        auto GetSymbolTable = [&]() -> const Logic::SymbolTable& { return interpreter.GetSymbolTable(); };
+
+        const LogicFile& logic_file = GetSymbolLogicFile(-1 * program_index);
+        ASSERT(logic_file.GetFilePath() == interpreter.GetAbsolutePath(logic_file.GetFilePath()));
+        return logic_file.GetFilePath();
+    }
+}
+
+
+template<typename T>
+std::vector<T> PathRT::EvaluatePathsOrSymbolPaths(LogicInterpreter& interpreter, const int program_index,
+                                                  const bool evaluate_paths_with_wildcard_support,
+                                                  bool* const paths_use_wildcards)
+{
+    ASSERT(paths_use_wildcards == nullptr || ( evaluate_paths_with_wildcard_support && !*paths_use_wildcards ));
+
+    std::vector<T> file_paths;
+
+    if( program_index >= 0 )
+    {
+        T& file_path = file_paths.emplace_back(interpreter.Evaluate<std::string>(program_index));
+        interpreter.MakeAbsolutePath(file_path);
+    }
+
+    else
+    {
+        auto GetSymbolTable = [&]() -> const Logic::SymbolTable& { return interpreter.GetSymbolTable(); };
+
+        const Symbol& symbol = NPT_Ref(-1 * program_index);
+
+        if( symbol.IsA(SymbolType::File) )
+        {
+            file_paths.emplace_back(assert_cast<const LogicFile&>(symbol).GetFilePath());
+
+            if constexpr(std::is_same_v<T, std::string>)
+            {
+                ASSERT(file_paths.back() == interpreter.GetAbsolutePath(file_paths.back()));
+            }
+        }
+
+        else
+        {
+            ASSERT(symbol.IsA(SymbolType::List));
+            const LogicList& logic_list = assert_cast<const LogicList&>(symbol);
+            const size_t list_count = logic_list.GetCount();
+
+            for( size_t i = 1; i <= list_count; ++i )
+            {
+                T& file_path = file_paths.emplace_back(*logic_list.GetValue<SharableString>(i));
+                interpreter.MakeAbsolutePath(file_path);
+            }
+        }
+    }
+
+    // remove any blank strings
+    file_paths.erase(
+        std::remove_if(file_paths.begin(), file_paths.end(),
+            [](const T& file_path)
+            {
+                if constexpr(std::is_same_v<T, std::string>)
+                {
+                    return file_path.empty();
+                }
+
+                else
+                {
+                    return !file_path.IsDefined();
+                }
+            }),
+        file_paths.end()
+    );
+
+    // potentially evaluate wildcards
+    if( evaluate_paths_with_wildcard_support )
+    {
+        std::vector<T> provided_file_paths = std::exchange(file_paths, std::vector<T>());
+        ASSERT(file_paths.empty());
+
+        for( const T& provided_file_path : provided_file_paths )
+        {
+            if constexpr(std::is_same_v<T, std::string>)
+            {
+                DirectoryLister::AddFilePathsWithPossibleWildcard(file_paths, provided_file_path, true);
+
+                if( paths_use_wildcards != nullptr && !*paths_use_wildcards )
+                    *paths_use_wildcards = Path::HasWildcardCharacters(Path::GetFilename(provided_file_path));
+            }
+
+            else
+            {
+                PathHelpers::ExpandConnectionStringWildcards(file_paths, provided_file_path);
+                ASSERT(paths_use_wildcards == nullptr);
+            }
+        }
+    }
+
+    return file_paths;
+}
+
+
+Engine::Value LogicInterpreter::ex_fileexist(const int program_index)
+{
+    const auto& file_node = GetNode<Nodes::File>(program_index);
+    const std::string file_path = PathRT::EvaluatePathOrSymbolPath(*this, file_node.symbol_index_or_string_expression);
+
+    return Engine::Value::Bool(
+        file_path.empty()                      ? false :
+        Path::HasWildcardCharacters(file_path) ? !DirectoryLister::GetFilePathsWithPossibleWildcard(file_path, false).empty() :
+                                                 PortableFunctions::FileIsRegular(file_path)
+    );
+}
+
+
+Engine::Value LogicInterpreter::ex_fileempty(const int program_index)
+{
+    const auto& file_node = GetNode<Nodes::File>(program_index);
+
+    // if the file is open, use the file handle to do the check
+    if( file_node.symbol_index_or_string_expression < 0 )
+    {
+        LogicFile& logic_file = GetSymbolLogicFile(-1 * file_node.symbol_index_or_string_expression);
+
+        if( logic_file.IsOpen() )
+        {
+            try
+            {
+                FileIO::TextFile& text_file = logic_file.GetTextFile();
+                logic_file.StartOperation(false); // reading
+
+                const int64_t current_position = text_file.FlushAndGetPosition();
+
+                text_file.SeekToEnd();
+                const int64_t length = text_file.GetPosition();
+
+                if( length == 0 )
+                {
+                    ASSERT(current_position == length);
+                    return Engine::Value::Bool(true);
+                }
+
+                else if( length == static_cast<int64_t>(TextEncoding::Utf8Bom_sv.length()) )
+                {
+                    char buffer[TextEncoding::Utf8Bom_sv.length()];
+                    text_file.Seek(0, SEEK_SET);
+                    text_file.ReadExact(buffer, TextEncoding::Utf8Bom_sv.length());
+
+                    if( memcmp(buffer, TextEncoding::Utf8Bom_sv.data(), TextEncoding::Utf8Bom_sv.length()) == 0 )
+                    {
+                        ASSERT(current_position == length);
+                        return Engine::Value::Bool(true);
+                    }
+                }
+
+                text_file.Seek(current_position, SEEK_SET);
+            }
+            catch(...) { ASSERT(false); }
+
+            return Engine::Value::Bool(false);
+        }
+    }
+
+    // process a provided file path (or the file path of an unopened file handle)
+    const std::string file_path = PathRT::EvaluatePathOrSymbolPath(*this, file_node.symbol_index_or_string_expression);
+    const size_t file_size = static_cast<size_t>(PortableFunctions::FileSize(file_path));
+
+    if( file_size == 0 )
+    {
+        return Engine::Value::Bool(true);
+    }
+
+    else if( file_size == TextEncoding::Utf8Bom_sv.length() )
+    {
+        try
+        {
+            const BinaryBlock content = FileIO::ReadBinary(file_path);
+
+            if( content.size() == TextEncoding::Utf8Bom_sv.length() &&
+                memcmp(content.data(), TextEncoding::Utf8Bom_sv.data(), TextEncoding::Utf8Bom_sv.length()) == 0 )
+            {
+                return Engine::Value::Bool(true);
+            }
+        }
+
+        catch( const FileIO::Exception& )
+        {
+            // if there are errors reading the content, treat the file as not empty
+        }
+    }
+
+    return ( file_size != -1 )
+        ? Engine::Value::Bool(false)
+        : Engine::Value::Invalid<double>();
+}
+
+
+Engine::Value LogicInterpreter::ex_filesize(const int program_index)
+{
+    const auto& file_node = GetNode<Nodes::File>(program_index);
+    const std::string file_path = PathRT::EvaluatePathOrSymbolPath(*this, file_node.symbol_index_or_string_expression);
+
+    if( !file_path.empty() )
+    {
+        const int64_t file_size = PortableFunctions::FileSize(file_path);
+
+        if( file_size != -1 )
+            return Engine::Value::Integer(file_size);
+    }
+
+    return Engine::Value::Invalid<double>();
+}
+
+
+Engine::Value LogicInterpreter::ex_filetime(const int program_index)
+{
+    const auto& file_node = GetNode<Nodes::File>(program_index);
+    const std::string file_path = PathRT::EvaluatePathOrSymbolPath(*this, file_node.symbol_index_or_string_expression);
+
+    if( !file_path.empty() )
+    {
+        const int64_t file_modified_time = PortableFunctions::FileModifiedTime(file_path);
+
+        if( file_modified_time != 0 )
+            return Engine::Value::Integer(file_modified_time);
+    }
+
+    return Engine::Value::Invalid<double>();
+}
+
+
+Engine::Value LogicInterpreter::ex_filename(const int program_index)
+{
+    const auto& fn8_node = GetNode<FN8_NODE>(program_index);
+
+    // the paradata log
+    if( fn8_node.symbol_index == -2 )
+        return Paradata::Logger::GetFilePath();
+
+    // symbols
+    Symbol* const symbol = GetFromSymbolOrEngineItem(
+        fn8_node.symbol_index,
+        m_engineData->MeetsCompiledLogicVersion(Serializer::Iteration_8_0_000_1) ? fn8_node.extra_parameter : -1
+    );
+
+    if( symbol == nullptr )
+        return Engine::Value::Invalid<SharableString>();
+
+    switch( symbol->GetType() )
+    {
+        // dictionary
+        case SymbolType::Dictionary:
+        {
+            const EngineDictionary& engine_dictionary = assert_cast<const EngineDictionary&>(*symbol);
+            const ConnectionString& connection_string = engine_dictionary.GetEngineDataRepository().GetDataRepository().GetConnectionString();
+            return connection_string.HasFilePath() ? connection_string.GetFilePath() :
+                                                     Engine::Value::Undefined<SharableString>();
+        }
+
+        case SymbolType::Pre80Dictionary:
+        {
+            const DICT* const pDicT = assert_cast<const DICT*>(symbol);
+            const DICX* const pDicX = pDicT->GetDicX();
+            const ConnectionString& connection_string = pDicX->GetDataRepository().GetConnectionString();
+            return connection_string.HasFilePath() ? connection_string.GetFilePath() :
+                                                     Engine::Value::Undefined<SharableString>();
+        }
+
+        // File
+        case SymbolType::File:
+        {
+            const LogicFile& logic_file = assert_cast<const LogicFile&>(*symbol);
+            return logic_file.GetFilePath();
+        }
+
+        // Pff
+        case SymbolType::Pff:
+        {
+            LogicPff& logic_pff = assert_cast<LogicPff&>(*symbol);
+            return logic_pff.GetRunnableFilePath();
+        }
+
+        // Report
+        case SymbolType::Report:
+        {
+            const Report& report = assert_cast<const Report&>(*symbol);
+            return report.GetFilePath();
+        }
+    }
+
+    // Audio, Document, Geometry, Image, Video
+    if( BinarySymbol::IsBinarySymbol(*symbol) )
+        return assert_cast<const BinarySymbol&>(*symbol).GetPath();
+
+    return Engine::Value::Invalid<SharableString>();
+}
+
+
+Engine::Value LogicInterpreter::ex_filecreate(const int program_index)
+{
+    const auto& file_node = GetNode<Nodes::File>(program_index);
+    const std::string file_path = PathRT::EvaluatePathOrSymbolPath(*this, file_node.symbol_index_or_string_expression);
+
+    if( !file_path.empty() )
+    {
+        try
+        {
+            FileIO::WriteText(file_path, std::string_view(), true);
+            return Engine::Value::Bool(true);
+        }
+        catch( const FileIO::Exception& ) { }
+    }
+
+    return Engine::Value::Bool(false);
+}
+
+
+Engine::Value LogicInterpreter::ex_filedelete(const int program_index)
+{
+    const auto& file_node = GetNode<Nodes::File>(program_index);
+    const std::vector<std::string> file_paths = PathRT::EvaluatePathsOrSymbolPaths<std::string>(
+        *this,
+        file_node.symbol_index_or_string_expression,
+        true, // evaluate_paths_with_wildcard_support
+        nullptr // paths_use_wildcards
+    );
+    size_t files_deleted = 0;
+
+    for( const std::string& file_path : file_paths )
+    {
+        if( PortableFunctions::FileDelete(file_path) )
+            ++files_deleted;
+    }
+
+    return ( files_deleted == file_paths.size() )
+        ? Engine::Value::Integer(files_deleted)
+        : Engine::Value::Invalid<double>();
+}
+
+
+Engine::Value LogicInterpreter::ex_filecopy_filerename(const int program_index)
+{
+    const auto& file_node = GetNode<Nodes::File>(program_index);
+    const Nodes::List& elements_list = GetListNode(file_node.elements_list_node);
+    const std::string output_path = PathRT::EvaluatePathOrSymbolPath(*this, elements_list.elements[0]);
+
+    if( output_path.empty() )
+        return Engine::Value::Invalid<double>();
+
+    if( Path::HasWildcardCharacters(Path::GetFilename(output_path)) )
+    {
+        IssueMessage(MessageType::Error, MGF::path_wildcard_not_supported_33056, output_path.c_str());
+        return Engine::Value::Invalid<double>();
+    }
+
+    const bool output_is_folder = PortableFunctions::FileIsDirectory(output_path);
+
+    bool paths_use_wildcards = false;
+    const std::vector<std::string> input_file_paths = PathRT::EvaluatePathsOrSymbolPaths<std::string>(
+        *this,
+        file_node.symbol_index_or_string_expression,
+        true, // evaluate_paths_with_wildcard_support
+        &paths_use_wildcards
+    );
+
+    // if a wildcard is used in the input, then the output must be a folder that exists
+    if( paths_use_wildcards && !output_is_folder )
+    {
+        IssueMessage(MessageType::Error, MGF::path_target_directory_does_not_exist_33057, output_path.c_str());
+        return Engine::Value::Invalid<double>();
+    }
+
+    const bool copying = ( file_node.function_code == FunctionCode::FNFILE_COPY_CODE );
+    ASSERT(copying || ( file_node.function_code == FunctionCode::FNFILE_RENAME_CODE ));
+
+    size_t files_processed = 0;
+
+    for( const std::string& input_file_path : input_file_paths )
+    {
+        const std::string output_file_path = !output_is_folder
+            ? output_path
+            : Path::Combine(output_path, PortableFunctions::PathGetFilename(input_file_path));
+
+        try
+        {
+            if( copying )
+            {
+                PortableFileSystem::FileCopy(input_file_path, output_file_path, FileOverwriteFlag::Different);
+            }
+
+            else
+            {
+                PortableFunctions::FileRenameWithExceptions(input_file_path, output_file_path);
+            }
+
+            ++files_processed;
+        }
+        catch(...) { }
+    }
+
+    return ( files_processed == input_file_paths.size() )
+        ? Engine::Value::Integer(files_processed)
+        : Engine::Value::Invalid<double>();
+}
+
+
+class PathRT::EngineConcatenatorReporter : public ConcatenatorReporter
+{
+public:
+    EngineConcatenatorReporter(LogicInterpreter& interpreter, const CDataDict* const dictionary)
+        :   ConcatenatorReporter(( dictionary != nullptr ) ? dictionary->CreateProcessSummary() : std::make_unique<ProcessSummary>()),
+            m_interpreter(interpreter)
+    {
+    }
+
+    bool IsCanceled() const override
+    {
+        return m_interpreter.Get_m_bStopExec_INTERPRETER_DLL_TODO();
+    }
+
+    // progress reporting does not exist when invoked from fileconcat
+    void SetSource(const std::string& /*source_text*/) override { }
+    void SetKey(const std::string& /*key*/) override { }
+
+    void ErrorFileOpenFailed(const std::string& file_path) override
+    {
+        m_interpreter.IssueMessage(MessageType::Error, MGF::cannot_open_file_2001, file_path.c_str());
+    }
+
+    void ErrorDataSourceOpenFailed(const ConnectionString& connection_string, const std::string& error_message) override
+    {
+        m_interpreter.IssueMessage(MessageType::Error, MGF::cannot_open_file_2001, SO::CreateParentheticalExpression(connection_string.ToDisplayString(), error_message).c_str());
+    }
+
+    void ErrorInvalidEncoding(const std::string& file_path) override
+    {
+        m_interpreter.IssueMessage(MessageType::Error, MGF::concat_text_file_encoding_not_supported_14012, file_path.c_str());
+    }
+
+    void ErrorDuplicateCase(const std::string& /*key*/, const ConnectionString& /*connection_string*/, const ConnectionString& /*previous_connection_string*/) override
+    {
+        // ignore duplicate cases as it would be very annoying to show a message for each one
+    }
+
+    void ErrorOther(const ConnectionString& connection_string, const std::string& error_message) override
+    {
+        m_interpreter.IssueMessage(MessageType::Error, MGF::concat_data_source_error_14013, connection_string.ToDisplayString().c_str(), error_message.c_str());
+    }
+
+private:
+    LogicInterpreter& m_interpreter;
+};
+
+
+Engine::Value LogicInterpreter::ex_fileconcat(const int program_index)
+{
+    const auto& file_node = GetNode<Nodes::File>(program_index);
+    const Nodes::List& elements_list = GetListNode(file_node.elements_list_node);
+
+    // if the first argument is a dictionary then this is case concat using the dictionary;
+    // otherwise it is just a filename and we use text concat
+    std::shared_ptr<const CDataDict> dictionary;
+    std::unique_ptr<EngineCaseConstructionReporter> case_construction_reporter;
+
+    int output_file_expression;
+    int input_file_start_position;
+
+    // case concat
+    if( file_node.symbol_index_or_string_expression < 0 )
+    {
+        const Symbol& symbol = NPT_Ref(-1 * file_node.symbol_index_or_string_expression);
+
+        if( symbol.IsA(SymbolType::Dictionary) )
+        {
+            dictionary = assert_cast<const EngineDictionary&>(symbol).GetSharedDictionary();
+        }
+
+        else
+        {
+            dictionary = assert_cast<const DICT&>(symbol).GetSharedDictionary();
+        }
+
+        case_construction_reporter = std::make_unique<EngineCaseConstructionReporter>(
+            m_engineData->engine_accessor->ea_GetSharedSystemMessageIssuer(),
+            nullptr // process_summary
+        );
+
+        output_file_expression = elements_list.elements[0];
+        input_file_start_position = 1;
+    }
+
+    // text concat
+    else
+    {
+        output_file_expression = file_node.symbol_index_or_string_expression;
+        input_file_start_position = 0;
+    }
+
+    const ConnectionString output_connection_string = EvaluateConnectionString(output_file_expression);
+
+    std::vector<ConnectionString> input_connection_strings;
+
+    for( int i = input_file_start_position; i < elements_list.number_elements; ++i )
+    {
+        std::vector<ConnectionString> these_input_connection_strings = PathRT::EvaluatePathsOrSymbolPaths<ConnectionString>(
+            *this,
+            elements_list.elements[i],
+            true, // evaluate_paths_with_wildcard_support
+            nullptr // paths_use_wildcards
+        );
+
+        input_connection_strings.insert(
+            input_connection_strings.end(),
+            std::make_move_iterator(these_input_connection_strings.begin()),
+            std::make_move_iterator(these_input_connection_strings.end())
+        );
+    }
+
+    if( input_connection_strings.empty() )
+        return Engine::Value::Bool(false);
+
+    try
+    {
+        Concatenator concatenator;
+        PathRT::EngineConcatenatorReporter engine_concatenator_reporter(*this, dictionary.get());
+
+        concatenator.Run(
+            engine_concatenator_reporter,
+            input_connection_strings,
+            output_connection_string,
+            dictionary,
+            std::move(case_construction_reporter)
+        );
+
+        return Engine::Value::Bool(true);
+    }
+
+    catch( const CSProException& exception )
+    {
+        IssueMessage(MessageType::Error, MGF::concat_error_14011, exception.what());
+        return Engine::Value::Bool(false);
+    }
 }

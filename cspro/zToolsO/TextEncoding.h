@@ -35,7 +35,8 @@ public:
 
     // Opens the file, reads for a BOM, and returns one if found.
     // If no BOM is present, or the file could not be opened, then default_encoding_if_no_bom is returned.
-    CLASS_DECL_ZTOOLSO static TextEncoding ReadFileBom(const std::string& file_path, Type default_encoding_if_no_bom = DefaultEncodingIfNoBom);
+    CLASS_DECL_ZTOOLSO static TextEncoding ReadFileBom(const std::string& file_path,
+                                                       Type default_encoding_if_no_bom = DefaultEncodingIfNoBom) noexcept;
 
     // Updates the encoding based on a call to one of the constructors, with the value of
     // default_encoding_if_no_bom coming from the current value of m_type.

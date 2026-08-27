@@ -2,8 +2,8 @@
 #include "Sorter.h"
 #include "SortableKeyDatabase.h"
 #include "SortSpec.h"
-#include <zToolsO/File.h>
 #include <zToolsO/NewlineSubstitutor.h>
+#include <zToolsO/TextFile.h>
 #include <zUtilF/ProcessSummaryDlg.h>
 #include <zAppO/PFF.h>
 #include <zCaseO/Case.h>

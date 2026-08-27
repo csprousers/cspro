@@ -1,7 +1,7 @@
 #include "StandardSystemIncludes.h"
 #include "Interpreter.h"
-#include "ProgramControl.h"
 #include <zEngineO/UserFunction.h>
+#include <zEngineO/Interpreter/ProgramControlException.h>
 #include <zLogicO/KeywordTable.h>
 
 
@@ -54,19 +54,4 @@ double CIntDriver::exskipcase(int /*iExpr*/)
     }
 
     throw SkipCaseProgramControlException();
-}
-
-
-double CIntDriver::ex_exit(const int program_index)
-{
-    const auto& statement_node = GetNode<STN_NODE>(program_index);
-
-    if( statement_node.arguments[0] != -1 )
-    {
-        // set the user function's return value
-        UserFunction& user_function = GetSymbolUserFunction(statement_node.arguments[0]);
-        user_function.SetReturnValue(Evaluate<Engine::Value>(statement_node.arguments[1]));
-    }
-
-    throw ExitProgramControlException();
 }

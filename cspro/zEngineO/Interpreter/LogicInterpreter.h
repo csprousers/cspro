@@ -15,22 +15,40 @@ class ApplicationInterface;
 class BinarySymbol;
 class CIntDriver;
 class ConnectionString;
+class CSettings;
 enum class EncodeType : int;
+enum class EngineAppType;
+class EngineDictionaryModifier;
 class EngineParadataDriver;
 class FrequencyDriver;
 enum FunctionCode : int;
 struct InterpreterExecuteResult;
-class PortableColor;
 class JsonReaderInterface;
+class LoopStack;
+class MessageEvaluator;
+class MessageManager;
+class PortableColor;
+struct RuntimeMessage;
+struct sqlite3;
+class SyncClient;
+class SyncDriver;
+class SystemMessageIssuer;
+class TraceHandler;
+class Userbar;
 class UserFunctionArgumentEvaluator;
 class VirtualFileMappingHandler;
 namespace ActionInvoker { class Caller; class Runtime; }
 namespace JavaScript { class Value; }
+namespace Listing { class WriteFile; }
 namespace Nodes { struct ItemSubscript; struct List; struct SymbolComputeWithSubscript;
                   struct SymbolVariableArgumentsWithSubscript; struct SymbolValue; }
-namespace Paradata { class Event; class FieldInfo; }
+namespace Paradata { class FieldInfo; class ParadataDriver; }
 namespace SpecialFunction { enum class Code : int; }
 
+
+// --------------------------------------------------------------------------
+// LogicInterpreter
+// --------------------------------------------------------------------------
 
 class ZENGINEO_API LogicInterpreter
 {
@@ -41,21 +59,33 @@ public:
 
 
     // --------------------------------------------------------------------------
+    // runtime information and flags
+    // (RuntimeRT.cpp)
+    // --------------------------------------------------------------------------
+public:
+    EngineAppType GetEngineAppType() const noexcept;
+
+    virtual std::string GetCurrentProcName() const = 0; // INTERPRETER_DLL_TODO remove as virtual
+
+public: // INTERPRETER_DLL_TODO reevaluate if these should be public, and also don't use Hungarian notation
+    CancelFlag m_bStopProc;
+
+
+    // --------------------------------------------------------------------------
     // symbol table routines
     // --------------------------------------------------------------------------
 public:
     Logic::SymbolTable& GetSymbolTable() const { return m_symbolTable; }
 
+    // Looks up a symbol from the symbol table and returns it using assert_cast.
+    template<typename T = Symbol>
+    const T& GetSymbol(int symbol_index) const;
+
+    template<typename T = Symbol>
+    T& GetSymbol(int symbol_index);
+
 protected:
     Logic::SymbolTable& m_symbolTable;
-
-
-    // --------------------------------------------------------------------------
-    // execution flags
-    // --------------------------------------------------------------------------
-
-public: // INTERPRETER_DLL_TODO reevaluate if these should be public, and also don't use Hungarian notation
-    CancelFlag m_bStopProc;
 
 
     // --------------------------------------------------------------------------
@@ -83,6 +113,12 @@ public:
     Engine::Value ExecuteInstruction(int program_index);
 
     virtual Engine::Value ExecuteInstructions(int program_index) = 0; // INTERPRETER_DLL_TODO remove as virtual
+
+    Engine::Value ex_functionCall(int program_index);
+
+    Engine::Value ex_nop_ignore(int program_index);
+    Engine::Value ex_nop_abort(int program_index);
+    Engine::Value ex_nop_abortFutureFunction(int program_index);
 
 protected:
     using Instruction = std::variant<Engine::Value (LogicInterpreter::*)(int),
@@ -121,6 +157,7 @@ public:
 
     // --------------------------------------------------------------------------
     // message routines
+    // (MessagesRT.cpp)
     // --------------------------------------------------------------------------
 public:
     // Issues the system message.
@@ -131,12 +168,20 @@ public:
     template<typename... Args>
     std::string GetFormattedMessage(int message_number, Args const&... args);
 
-    // Returns an evaluated user message.
-    virtual SharableString EvaluateUserMessage(int message_node_index, FunctionCode function_code, int* out_message_number = nullptr) = 0; // INTERPRETER_DLL_TODO remove as virtual
+    Engine::Value ex_errmsg(int program_index);
+    Engine::Value ex_display(int program_index);
+    Engine::Value ex_write(int program_index);
+    Engine::Value ex_maketext(int program_index);
+    Engine::Value ex_logtext(int program_index);
+    Engine::Value ex_warning(int program_index);
+    Engine::Value ex_variablevalue(int program_index);
 
 private:
     virtual void IssueMessageWorker(MessageType message_type, int message_number, ...) = 0; // INTERPRETER_DLL_TODO remove as virtual
     virtual std::string GetFormattedMessageWorker(int message_number, ...) = 0; // INTERPRETER_DLL_TODO remove as virtual
+
+    SharableString EvaluateUserMessage(int message_node_index, FunctionCode function_code, int* out_message_number = nullptr);
+    Engine::Value DisplayUserMessage(int message_node_index);
 
 
     // --------------------------------------------------------------------------
@@ -146,14 +191,33 @@ private:
 
 public:
     // Returns a flag that indicates that the interpreter should stop execution.
-    virtual bool IsExecutionInterrupted() const { return ReturnProgrammingError(false); } // INTERPRETER_DLL_TODO remove as virtual and replace this implementation
+    virtual bool IsExecutionInterrupted() const noexcept; // INTERPRETER_DLL_TODO remove as virtual once all flags are out of CIntDriver
+
+    // Runs the callback function and returns the evaluation result, including a flag
+    // indicating whether a movement or program control action has occurred.
+    // Any thrown ProgramControlException exceptions will be stored and can be processed
+    // by calling RethrowProgramControlExceptions.
+    InterpreterExecuteResult Execute(const std::function<Engine::Value()>& callback_function);
 
 protected: // INTERPRETER_DLL_TODO change to private
     // Throws a previously-caught program control exception (if applicable).
     void RethrowProgramControlExceptions();
 
-protected: // INTERPRETER_DLL_TODO change to private
+private:
     std::exception_ptr m_caughtProgramControlException;
+
+
+    // --------------------------------------------------------------------------
+    // "Control Flow" routines
+    // (ControlFlowRT.cpp)
+    // --------------------------------------------------------------------------
+public:
+    Engine::Value ex_if(int program_index);
+    Engine::Value ex_while(int program_index);
+    Engine::Value ex_do(int program_index);
+    Engine::Value ex_for_next(int program_index);
+    Engine::Value ex_for_break(int program_index);
+    Engine::Value ex_exit(int program_index);
 
 
     // --------------------------------------------------------------------------
@@ -197,6 +261,7 @@ public:
     Engine::Value ex_seed(int program_index);
     Engine::Value ex_random(int program_index);
     Engine::Value ex_tonumber(int program_index);
+    Engine::Value ex_edit(int program_index);
 
 private:
     bool PreprocessSpecialValues(double& v1, double &v2, double& result) const;
@@ -358,6 +423,17 @@ public:
 
 
     // --------------------------------------------------------------------------
+    // File object functions
+    // (FileRT.cpp)
+    // --------------------------------------------------------------------------
+public:
+    Engine::Value ex_File_open(LogicFile& logic_file, bool create, bool append, int file_path_expression);
+    Engine::Value ex_File_close(LogicFile& logic_file);
+    Engine::Value ex_File_read(int program_index);
+    Engine::Value ex_File_write(int program_index);
+
+
+    // --------------------------------------------------------------------------
     // Geometry object functions
     // (GeometryRT.cpp)
     // --------------------------------------------------------------------------
@@ -438,6 +514,11 @@ public:
     // if the subscript is invalid, a runtime message will appear, but the symbol will still be returned.
     template<typename SymbolT = Symbol>
     SymbolT& GetFromSymbolOrEngineItemForStaticFunction(int symbol_index, int subscript_compilation);
+
+    // Returns the label for an item, looking at the current, and base, value set for a match.
+    // If no value set label exists, the value is formatted as a string.
+    SharableString GetItemValueLabel(const VART& vart, const std::variant<double, SharableString>& value);
+    Engine::Value ex_getvaluelabel(int program_index);
 
 private:
     template<typename SymbolT>
@@ -528,6 +609,18 @@ private:
 
 
     // --------------------------------------------------------------------------
+    // dynamic logic evaluation functions
+    // (LogicRT.cpp)
+    // --------------------------------------------------------------------------
+public:
+    // Compiles and evaluates the logic, throwing exceptions that result from
+    // compiler errors or when the logic is evaluated by the interpreter.
+    // The only logic currently supported is the ability to call user-defined
+    // functions with numeric constants and string literals
+    InterpreterExecuteResult EvaluateLogic(SharableString logic, CancelFlag& cancel_flag);
+
+
+    // --------------------------------------------------------------------------
     // Map object functions
     // (MapRT.cpp)
     // --------------------------------------------------------------------------
@@ -563,6 +656,14 @@ private:
 
 
     // --------------------------------------------------------------------------
+    // movement routines
+    // (MovementRT.cpp)
+    // --------------------------------------------------------------------------
+public:
+    Engine::Value ex_inadvance(int program_index);
+
+
+    // --------------------------------------------------------------------------
     // network functions
     // (NetworkRT.cpp)
     // --------------------------------------------------------------------------
@@ -572,7 +673,7 @@ public:
 
     // --------------------------------------------------------------------------
     // path routines +
-    // path functions
+    // path functions and some file-related functions
     // (PathRT.cpp)
     // --------------------------------------------------------------------------
 public:
@@ -596,7 +697,20 @@ public:
     Engine::Value ex_Path_getRelativePath(int program_index);
     Engine::Value ex_Path_selectFile(int program_index);
 
-    Engine::Value ex_dirlist(const int program_index);
+    Engine::Value ex_direxist(int program_index);
+    Engine::Value ex_dircreate(int program_index);
+    Engine::Value ex_dirdelete(int program_index);
+    Engine::Value ex_dirlist(int program_index);
+
+    Engine::Value ex_fileexist(int program_index);
+    Engine::Value ex_fileempty(int program_index);
+    Engine::Value ex_filesize(int program_index);
+    Engine::Value ex_filetime(int program_index);
+    Engine::Value ex_filename(int program_index);
+    Engine::Value ex_filecreate(int program_index);
+    Engine::Value ex_filedelete(int program_index);
+    Engine::Value ex_filecopy_filerename(int program_index);
+    Engine::Value ex_fileconcat(int program_index);
 
 private:
     std::string m_currentWorkingDirectory;
@@ -621,6 +735,22 @@ public:
     // --------------------------------------------------------------------------
 public:
     Engine::Value ex_diagnostics(int program_index);
+
+
+    // --------------------------------------------------------------------------
+    // query-related functions
+    // (QueryRT.cpp)
+    // --------------------------------------------------------------------------
+public:
+    Engine::Value ex_paradata(int program_index);
+    Engine::Value ex_sqlquery(int program_index);
+    Engine::Value ex_sqlquery(int program_index, const std::function<double(sqlite3*, const std::string&)>* setreportdata_callback);
+
+    void RegisterSqlCallbackFunctions(sqlite3* db);
+    void ProcessSqlCallbackFunction(UserFunction& user_function, void* void_context, int iArgC, void* void_ppArgV);
+
+private:
+    std::vector<std::unique_ptr<std::tuple<LogicInterpreter&, UserFunction&>>> m_sqlCallbackFunctions;
 
 
     // --------------------------------------------------------------------------
@@ -673,6 +803,33 @@ public:
 
 
     // --------------------------------------------------------------------------
+    // Synchronization functions
+    // (SyncRT.cpp)
+    // --------------------------------------------------------------------------
+public:
+    SyncClient& GetSyncClient();
+
+    Engine::Value ex_syncconnect(int program_index);
+    Engine::Value ex_syncdisconnect(int program_index);
+    Engine::Value ex_syncdata(int program_index);
+    Engine::Value ex_syncfile(int program_index);
+    Engine::Value ex_syncserver(int program_index);
+    Engine::Value ex_syncapp(int program_index);
+    Engine::Value ex_syncmessage(int program_index);
+    Engine::Value ex_syncparadata(int program_index);
+    Engine::Value ex_synctime(int program_index);
+
+    Engine::Value ex_getbluetoothname(int program_index);
+    Engine::Value ex_setbluetoothname(int program_index);
+
+private:
+    SyncDriver& GetSyncDriver();
+
+private:
+    std::unique_ptr<SyncDriver> m_syncDriver;
+
+
+    // --------------------------------------------------------------------------
     // SystemApp object functions
     // (SystemAppRT.cpp)
     // --------------------------------------------------------------------------
@@ -714,6 +871,19 @@ protected: // INTERPRETER_DLL_TODO change to private
 
 
     // --------------------------------------------------------------------------
+    // userbar functionality
+    // (UserbarRT.cpp)
+    // --------------------------------------------------------------------------
+public:
+    Userbar* GetUserbar() noexcept { return m_userbar.get(); }
+
+    Engine::Value ex_userbar(int program_index);
+
+private:
+    std::unique_ptr<Userbar> m_userbar;
+
+
+    // --------------------------------------------------------------------------
     // UserFunction object
     // (UserFunctionRT.cpp)
     // --------------------------------------------------------------------------
@@ -722,7 +892,7 @@ public:
 
 
     // --------------------------------------------------------------------------
-    // user interface functions
+    // "User Interface" functions
     // (UserInterfaceRT.cpp)
     // --------------------------------------------------------------------------
 public:
@@ -731,10 +901,25 @@ public:
     Engine::Value ex_accept(int program_index);
     Engine::Value ex_htmldialog(int program_index);
     Engine::Value ex_setfont(int program_index);
+    Engine::Value ex_getorientation_setorientation(int program_index);
 
 protected:
     std::optional<CSize> EvaluateSize(int width_program_index, int height_program_index);
-    std::unique_ptr<ViewerOptions> EvaluateViewerOptions(const int viewer_options_node_program_index);
+    std::unique_ptr<ViewerOptions> EvaluateViewerOptions(int viewer_options_node_program_index);
+
+
+    // --------------------------------------------------------------------------
+    // trace functionality
+    // (TraceCC.cpp)
+    // --------------------------------------------------------------------------
+public:
+    // Executes the callback only if a trace handler is in use.
+    void DoWithTraceHandler(const std::function<void(TraceHandler&)>& callback_function);
+
+    Engine::Value ex_trace(int program_index);
+
+protected:
+    std::unique_ptr<TraceHandler> m_traceHandler;
 
 
     // --------------------------------------------------------------------------
@@ -789,6 +974,7 @@ public:
     // --------------------------------------------------------------------------
 public:
     const EngineData& GetEngineData() const { return *m_engineData; }
+    EngineData& GetEngineData()             { return *m_engineData; }
 
 protected:
     cs::non_null_shared_or_raw_ptr<EngineData> m_engineData;
@@ -802,12 +988,13 @@ protected:
 private:
     virtual Engine::Value evalexpr_INTERPRETER_DLL_TODO(Engine::Value (CIntDriver::*instruction)(int), int program_index) = 0;
     virtual double evalexpr_INTERPRETER_DLL_TODO(double (CIntDriver::*instruction)(int), int program_index) = 0;
-    virtual void RegisterAndLogEvent_INTERPRETER_DLL_TODO(std::shared_ptr<Paradata::Event> event, const void* instance_object = nullptr) = 0;
     virtual SharableString EvaluateTextFill(int program_index) = 0; // INTERPRETER_DLL_TODO remove as virtual
     virtual InterpreterExecuteResult Report_Evaluate_INTERPRETER_DLL_TODO(Report& report) = 0; // INTERPRETER_DLL_TODO remove as virtual
     virtual Engine::Value RunSoonToBeRemovedFeature(std::string_view feature_sv, int program_index, void* tag) = 0;
+public:
     virtual bool HasSpecialFunction(SpecialFunction::Code special_function) = 0; // INTERPRETER_DLL_TODO remove as virtual
     virtual Engine::Value ExecSpecialFunction(int symbol_index, SpecialFunction::Code special_function, std::vector<std::variant<double, SharableString>> arguments) = 0; // INTERPRETER_DLL_TODO remove as virtual
+private:
     virtual int Get_m_iExSymbol_INTERPRETER_DLL_TODO() = 0;
     virtual Symbol* GetFromSymbolOrEngineItemWorker_INTERPRETER_DLL_TODO(const SymbolReference<Symbol*>& symbol_reference, bool use_exceptions) = 0;
     virtual std::shared_ptr<Symbol> GetFromSymbolOrEngineItemWorker_INTERPRETER_DLL_TODO(const SymbolReference<std::shared_ptr<Symbol>>& symbol_reference, bool use_exceptions) = 0;
@@ -817,6 +1004,7 @@ private:
                                       const std::vector<CString>* paColumnTitles, std::vector<bool>* pbaSelections,
                                       const std::vector<PortableColor>* row_text_colors) = 0;
     virtual EngineParadataDriver& GetEngineParadataDriver_INTERPRETER_DLL_TODO() = 0;
+    virtual Engine::Value CallUserFunction(UserFunction& user_function, UserFunctionArgumentEvaluator& argument_evaluator) = 0; // INTERPRETER_DLL_TODO remove as virtual
     virtual void ExecuteCallbackUserFunction(int field_symbol_index, UserFunctionArgumentEvaluator& argument_evaluator) = 0; // INTERPRETER_DLL_TODO remove as virtual
     virtual std::unique_ptr<UserFunctionArgumentEvaluator> EvaluateArgumentsForCallbackUserFunction(int program_index, FunctionCode function_code) = 0; // INTERPRETER_DLL_TODO remove as virtual
     virtual Engine::Value ex_Freq_view(const NamedFrequency& named_frequency, const ViewerOptions* viewer_options, int frequency_parameters_node_index) = 0; // INTERPRETER_DLL_TODO remove as virtual
@@ -825,14 +1013,39 @@ private:
     virtual FrequencyDriver* GetFrequencyDriver_INTERPRETER_DLL_TODO() = 0;
     virtual void AssignValueToVART_INTERPRETER_DLL_TODO(int variable_compilation, double value) = 0; // INTERPRETER_DLL_TODO remove as virtual
     virtual void AssignValueToVART_INTERPRETER_DLL_TODO(int variable_compilation, SharableString value) = 0; // INTERPRETER_DLL_TODO remove as virtual
+public:
+    virtual void AssignValueToVART_INTERPRETER_DLL_TODO(VART& vart, int zero_based_occurrence, double value) = 0; // INTERPRETER_DLL_TODO refactor
+    virtual void AssignValueToVART_INTERPRETER_DLL_TODO(VART& vart, int zero_based_occurrence, SharableString value) = 0; // INTERPRETER_DLL_TODO refactor
+private:
     virtual double EvaluateVARTValue_double_INTERPRETER_DLL_TODO(int variable_compilation) = 0; // INTERPRETER_DLL_TODO remove as virtual
     virtual SharableString EvaluateVARTValue_SharableString_INTERPRETER_DLL_TODO(int variable_compilation) = 0; // INTERPRETER_DLL_TODO remove as virtual
     virtual Engine::Value ModifyVARTValue_INTERPRETER_DLL_TODO(int variable_compilation, const std::function<void(double&)>& modify_value_function, std::unique_ptr<Paradata::FieldInfo>* paradata_field_info = nullptr) = 0; // INTERPRETER_DLL_TODO remove as virtual
     virtual Engine::Value ModifyVARTValue_INTERPRETER_DLL_TODO(int variable_compilation, const std::function<void(SharableString&)>& modify_value_function, std::unique_ptr<Paradata::FieldInfo>* paradata_field_info = nullptr) = 0; // INTERPRETER_DLL_TODO remove as virtual
     int SymbolTableSearchWithPreference_INTERPRETER_DLL_TODO(std::string_view full_symbol_name_sv, SymbolType preferred_symbol_type) const { return SymbolTableSearch_INTERPRETER_DLL_TODO(full_symbol_name_sv, preferred_symbol_type, nullptr); }
+public:
     int SymbolTableSearch_INTERPRETER_DLL_TODO(std::string_view full_symbol_name_sv, const std::vector<SymbolType>& allowable_symbol_types, SymbolType preferred_symbol_type = SymbolType::None) const { return SymbolTableSearch_INTERPRETER_DLL_TODO(full_symbol_name_sv, preferred_symbol_type, &allowable_symbol_types); }
+private:
     virtual int SymbolTableSearch_INTERPRETER_DLL_TODO(std::string_view full_symbol_name_sv, SymbolType preferred_symbol_type,
                                                        const std::vector<SymbolType>* allowable_symbol_types) const = 0; // INTERPRETER_DLL_TODO refactor
+    virtual bool GetRequestIssued_INTERPRETER_DLL_TODO() const = 0; // INTERPRETER_DLL_TODO is this needed?
+    virtual void Execute_INTERPRETER_DLL_TODO(bool before_running_callback_function) = 0; // INTERPRETER_DLL_TODO refactor
+    virtual Paradata::ParadataDriver& GetParadataDriver_INTERPRETER_DLL_TODO() = 0;// INTERPRETER_DLL_TODO is this needed?
+    virtual void ClearParadataCachedObjects_INTERPRETER_DLL_TODO() = 0; // INTERPRETER_DLL_TODO refactor
+    virtual const CSettings* GetSettings_INTERPRETER_DLL_TODO() const = 0; // INTERPRETER_DLL_TODO is this needed?
+    virtual Listing::WriteFile* GetWriteFile_INTERPRETER_DLL_TODO() = 0; // INTERPRETER_DLL_TODO is this needed?
+    virtual MessageEvaluator& GetUserMessageEvaluator_INTERPRETER_DLL_TODO() = 0; // INTERPRETER_DLL_TODO is this needed?
+    virtual MessageManager& GetUserMessageManager_INTERPRETER_DLL_TODO() = 0; // INTERPRETER_DLL_TODO is this needed?
+public:
+    virtual std::shared_ptr<SystemMessageIssuer> GetSharedSystemMessageIssuer_INTERPRETER_DLL_TODO() = 0; // INTERPRETER_DLL_TODO is this needed?
+private:
+    virtual int DisplayMessage_INTERPRETER_DLL_TODO(MessageType message_type, const RuntimeMessage& runtime_message) = 0; // INTERPRETER_DLL_TODO refactor
+    virtual bool InAdvance_INTERPRETER_DLL_TODO() const = 0; // INTERPRETER_DLL_TODO refactor
+public:
+    virtual LoopStack& GetLoopStack() = 0; // INTERPRETER_DLL_TODO remove as virtual
+    virtual bool Get_m_bStopExec_INTERPRETER_DLL_TODO() const = 0; // INTERPRETER_DLL_TODO is this needed?
+private:
+    virtual void SetStopCode_INTERPRETER_DLL_TODO() const = 0; // INTERPRETER_DLL_TODO is this needed?
+    virtual std::unique_ptr<EngineDictionaryModifier> CreateEngineDictionaryModifier_INTERPRETER_DLL_TODO(Symbol& symbol) = 0; // INTERPRETER_DLL_TODO refactor
 };
 
 
@@ -840,6 +1053,20 @@ private:
 // --------------------------------------------------------------------------
 // inline implementations
 // --------------------------------------------------------------------------
+
+template<typename T/* = Symbol*/>
+const T& LogicInterpreter::GetSymbol(const int symbol_index) const
+{
+    return assert_cast<const T&>(m_symbolTable.GetAt(symbol_index));
+}
+
+
+template<typename T/* = Symbol*/>
+T& LogicInterpreter::GetSymbol(const int symbol_index)
+{
+    return assert_cast<T&>(m_symbolTable.GetAt(symbol_index));
+}
+
 
 template<typename NodeType>
 const NodeType& LogicInterpreter::GetNode(const int program_index) const

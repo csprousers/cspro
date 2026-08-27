@@ -8,7 +8,6 @@
 #include <zUtilO/UWM.h>
 #include <zHtml/UseHtmlDialogs.h>
 #include <zViewO/ViewInputCreator.h>
-#include <zParadataO/Logger.h>
 #include <zUtilF/ChoiceDlg.h>
 #include <zUtilF/HtmlDialogFunctionRunner.h>
 #include <zUtilF/TextInputDlg.h>
@@ -219,7 +218,7 @@ Engine::Value LogicInterpreter::ex_prompt(const int program_index)
     if( operator_selection_event != nullptr )
     {
         operator_selection_event->SetPostSelectionValues(std::nullopt, return_value.as<SharableString>(), true);
-        RegisterAndLogEvent_INTERPRETER_DLL_TODO(std::move(operator_selection_event));
+        GetParadataDriver_INTERPRETER_DLL_TODO().RegisterAndLogEvent(std::move(operator_selection_event));
     }
 
     return return_value;
@@ -295,7 +294,7 @@ Engine::Value LogicInterpreter::ex_accept(const int program_index)
             true
         );
 
-        RegisterAndLogEvent_INTERPRETER_DLL_TODO(std::move(operator_selection_event));
+        GetParadataDriver_INTERPRETER_DLL_TODO().RegisterAndLogEvent(std::move(operator_selection_event));
     }
 
     return Engine::Value::Integer(selection);
@@ -427,5 +426,66 @@ Engine::Value LogicInterpreter::ex_setfont(const int program_index)
     }
 
     return Engine::Value::Bool(true);
+#endif
+}
+
+
+Engine::Value LogicInterpreter::ex_getorientation_setorientation(const int program_index)
+{
+#ifndef WIN_DESKTOP
+    // not applicable on portable platforms
+    return Engine::Value::Invalid<double>();
+#else
+    const auto& fnn_node = GetNode<FNN_NODE>(program_index);
+    const std::optional<unsigned int> desired_orientation = ( fnn_node.fn_nargs == 1 )
+        ? std::make_optional(Evaluate<unsigned int>(fnn_node.fn_expr[0]))
+        : std::nullopt;
+    ASSERT(desired_orientation.has_value() == ( fnn_node.fn_code == FunctionCode::FNSETORIENTATION_CODE ));
+
+    // code modified from http://weseetips.com/2009/05/10/how-to-change-the-display-orientation/
+
+    // get the current device mode
+    DEVMODE device_mode { };
+    device_mode.dmSize = sizeof(DEVMODE);
+
+    EnumDisplaySettings(nullptr, ENUM_CURRENT_SETTINGS, &device_mode);
+
+    if( !desired_orientation.has_value() )
+        return Engine::Value::Integer(static_cast<unsigned int>(device_mode.dmDisplayOrientation * 90));
+
+    // no need to change the orientation if the screen is currently that orientation
+    if( device_mode.dmDisplayOrientation == *desired_orientation )
+        return Engine::Value::Bool(true);
+
+    const bool is_currently_landscape = ( device_mode.dmDisplayOrientation == DMDO_DEFAULT ||
+                                          device_mode.dmDisplayOrientation == DMDO_180 );
+    bool is_requesting_landscape;
+
+    switch( *desired_orientation )
+    {
+        case 0:   // DMDO_DEFAULT:
+        case 180: // DMDO_180:
+            is_requesting_landscape = true;
+            break;
+
+        case 90:  // DMDO_90:
+        case 270: // DMDO_270:
+            is_requesting_landscape  = false;
+            break;
+
+        default: // an invalid orientation
+            return Engine::Value::Bool(false);
+    }
+
+    // swap height and width
+    if( is_currently_landscape != is_requesting_landscape )
+        std::swap(device_mode.dmPelsHeight, device_mode.dmPelsWidth);
+
+    // convert it into the DMDO formats
+    device_mode.dmDisplayOrientation = *desired_orientation / 90;
+
+    return Engine::Value::Bool(
+        ( ChangeDisplaySettings(&device_mode, 0) == DISP_CHANGE_SUCCESSFUL )
+    );
 #endif
 }
