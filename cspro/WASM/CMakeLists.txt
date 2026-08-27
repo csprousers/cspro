@@ -2,6 +2,11 @@ cmake_minimum_required(VERSION 3.22)
 
 project(CSEntry LANGUAGES C CXX)
 
+# Make sure that all environment variables are set.
+if(NOT DEFINED ENV{EMSCRIPTEN_CMAKE_TOOLCHAIN_FILE} OR ENV{EMSCRIPTEN_CMAKE_TOOLCHAIN_FILE} STREQUAL "")
+    message(FATAL_ERROR "Define the environment variable EMSCRIPTEN_CMAKE_TOOLCHAIN_FILE to build WASM libraries.")
+endif()
+
 # use C++17
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -45,9 +50,9 @@ include_directories(
 
 # CSEntry (WASM) files
 add_executable(${PROJECT_NAME}
-    "WasmBindings.cpp"
-    "WasmController.cpp"
-    "WasmLocalFileServer.cpp"
+    WasmBindings.cpp
+    WasmController.cpp
+    WasmLocalFileServer.cpp
 )
 
 set_target_properties(${PROJECT_NAME}

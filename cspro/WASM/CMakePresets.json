@@ -1,0 +1,46 @@
+{
+  "version": 6,
+  "configurePresets": [
+    {
+      "name": "WASM-x64",
+      "hidden": true,
+      "generator": "Ninja",
+      "cmakeExecutable": "$env{EMSCRIPTEN_CMAKE_EXE}",
+      "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": "$env{EMSCRIPTEN_CMAKE_TOOLCHAIN_FILE}"
+      }
+    },
+    {
+      "name": "WASM-x64-debug",
+      "displayName": "WASM - Debug",
+      "inherits": [
+        "WASM-x64"
+      ],
+      "binaryDir": "../build/wasm-Debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "WASM-x64-release",
+      "displayName": "WASM - Release",
+      "inherits": [
+        "WASM-x64"
+      ],
+      "binaryDir": "../build/wasm-Release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "WASM-x64-debug",
+      "configurePreset": "WASM-x64"
+    },
+    {
+      "name": "WASM-x64-release",
+      "configurePreset": "WASM-x64"
+    }
+  ]
+}

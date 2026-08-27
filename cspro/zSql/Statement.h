@@ -294,15 +294,18 @@ Sqlite::Statement& Sqlite::Statement::Bind(PT&& parameter_number_or_name, VT val
     const int parameter_number = CheckStatementIsPreparedAndParameterNumber(std::forward<PT>(parameter_number_or_name));
     int result;
 
-    if constexpr(std::is_same_v<VT, int>)
+    if constexpr(( std::is_same_v<VT, int> ) ||
+                 ( std::is_same_v<VT, long> && sizeof(VT) == sizeof(int) ))
     {
-        result = sqlite3_bind_int(*m_statementPtr, parameter_number, value);
+        result = sqlite3_bind_int(*m_statementPtr, parameter_number, static_cast<int>(value));
     }
 
     else if constexpr(std::is_same_v<VT, uint32_t> ||
                       std::is_same_v<VT, int64_t> ||
                       std::is_same_v<VT, uint64_t> ||
-                      std::is_same_v<VT, long>)
+                      std::is_same_v<VT, long> ||
+                      std::is_same_v<VT, unsigned long> ||
+                      std::is_same_v<VT, size_t>)
     {
         result = sqlite3_bind_int64(*m_statementPtr, parameter_number, static_cast<int64_t>(value));
     }
@@ -456,15 +459,18 @@ VT Sqlite::Statement::GetColumn(const int column_number)
 {
     CheckStatementIsPrepared();
 
-    if constexpr(std::is_same_v<VT, int>)
+    if constexpr(( std::is_same_v<VT, int> ) ||
+                 ( std::is_same_v<VT, long> && sizeof(VT) == sizeof(int) ))
     {
-        return sqlite3_column_int(*m_statementPtr, column_number);
+        return static_cast<VT>(sqlite3_column_int(*m_statementPtr, column_number));
     }
 
     else if constexpr(std::is_same_v<VT, uint32_t> ||
                       std::is_same_v<VT, int64_t> ||
                       std::is_same_v<VT, uint64_t> ||
-                      std::is_same_v<VT, long>)
+                      std::is_same_v<VT, long> ||
+                      std::is_same_v<VT, unsigned long> ||
+                      std::is_same_v<VT, size_t>)
     {
         return static_cast<VT>(sqlite3_column_int64(*m_statementPtr, column_number));
     }

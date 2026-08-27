@@ -53,6 +53,8 @@ namespace
         return std::make_shared<WindowsApplicationInterface>();
 #elif defined(ANDROID)
         return PlatformInterface::GetInstance()->GetApplicationInterface();
+#elif defined(WASM)
+        throw CSProException("WASM_TODO: create an ApplicationInterface");
 #else
         static_assert_false();
 #endif

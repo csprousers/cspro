@@ -27,9 +27,7 @@ namespace std
 template<bool flag = false>
 void static_assert_false()
 {
-#ifndef WASM
     static_assert(flag);
-#endif
 }
 
 #endif
