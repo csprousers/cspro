@@ -22,6 +22,15 @@ Batch scripts to update many of the libraries are located here:
 5. The built libraries are also available in the *cspro-libraries* repository.
 
 
+### libwebp
+
+1. Set the Git submodule to the latest release: https://github.com/webmproject/libwebp/tags
+2. Run the build script.
+3. This copies files into CSPro's *third_party* directory, including some that are not necessary.
+4. Remove anything that is not already committed.
+5. The built libraries are also available in the *cspro-libraries* repository.
+
+
 
 ## Libraries With Build Scripts
 
@@ -307,16 +316,6 @@ Batch scripts to update many of the libraries are located here:
 5. Remove anything that is not already committed.
 6. There are CSPro modifications made to many files that have to be restored so that the library builds in the CSPro environment. These modification relate to header inclusion and bindtextdomain.
 7. The library is built as part of the CSPro solution.
-
-
-### libwebp
-
-1. Find the latest tag here: https://github.com/webmproject/libwebp/tags
-2. Edit the batch script, *libwebp.bat*, setting **libwebp_tag**.
-3. Run the batch script.
-4. This copies files into the CSPro solution, including some that are not necessary.
-5. Remove anything that is not already committed.
-6. The library is built as part of the CSPro solution.
 
 
 ### md4c

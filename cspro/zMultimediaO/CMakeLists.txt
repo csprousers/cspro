@@ -3,7 +3,6 @@ project(zMultimediaO)
 set(GPAC_DIR ${EXTERNAL_DIR}/gpac)
 set(GPAC_SRC_DIR ${GPAC_DIR}/src)
 set(LIBEXIF_DIR ${EXTERNAL_DIR}/libexif)
-set(LIBWEBP_DIR ${EXTERNAL_DIR}/libwebp)
 set(QRCODEGEN_DIR ${EXTERNAL_DIR}/qrcodegen)
 
 add_library(${PROJECT_NAME}
@@ -89,138 +88,12 @@ add_library(${PROJECT_NAME}
     ${LIBEXIF_DIR}/pentax/mnote-pentax-entry.c
     ${LIBEXIF_DIR}/pentax/mnote-pentax-tag.c
 
-    ${LIBWEBP_DIR}/sharpyuv/sharpyuv.c
-    ${LIBWEBP_DIR}/sharpyuv/sharpyuv_cpu.c
-    ${LIBWEBP_DIR}/sharpyuv/sharpyuv_csp.c
-    ${LIBWEBP_DIR}/sharpyuv/sharpyuv_dsp.c
-    ${LIBWEBP_DIR}/sharpyuv/sharpyuv_gamma.c
-    ${LIBWEBP_DIR}/sharpyuv/sharpyuv_neon.c
-    ${LIBWEBP_DIR}/sharpyuv/sharpyuv_sse2.c
-    ${LIBWEBP_DIR}/src/dec/alpha_dec.c
-    ${LIBWEBP_DIR}/src/dec/buffer_dec.c
-    ${LIBWEBP_DIR}/src/dec/frame_dec.c
-    ${LIBWEBP_DIR}/src/dec/idec_dec.c
-    ${LIBWEBP_DIR}/src/dec/io_dec.c
-    ${LIBWEBP_DIR}/src/dec/quant_dec.c
-    ${LIBWEBP_DIR}/src/dec/tree_dec.c
-    ${LIBWEBP_DIR}/src/dec/vp8_dec.c
-    ${LIBWEBP_DIR}/src/dec/vp8l_dec.c
-    ${LIBWEBP_DIR}/src/dec/webp_dec.c
-    ${LIBWEBP_DIR}/src/dsp/alpha_processing.c
-    ${LIBWEBP_DIR}/src/dsp/alpha_processing_mips_dsp_r2.c
-    ${LIBWEBP_DIR}/src/dsp/alpha_processing_neon.c
-    ${LIBWEBP_DIR}/src/dsp/alpha_processing_sse2.c
-    ${LIBWEBP_DIR}/src/dsp/alpha_processing_sse41.c
-    ${LIBWEBP_DIR}/src/dsp/cost.c
-    ${LIBWEBP_DIR}/src/dsp/cost_mips_dsp_r2.c
-    ${LIBWEBP_DIR}/src/dsp/cost_mips32.c
-    ${LIBWEBP_DIR}/src/dsp/cost_neon.c
-    ${LIBWEBP_DIR}/src/dsp/cost_sse2.c
-    ${LIBWEBP_DIR}/src/dsp/cpu.c
-    ${LIBWEBP_DIR}/src/dsp/dec.c
-    ${LIBWEBP_DIR}/src/dsp/dec_clip_tables.c
-    ${LIBWEBP_DIR}/src/dsp/dec_mips_dsp_r2.c
-    ${LIBWEBP_DIR}/src/dsp/dec_mips32.c
-    ${LIBWEBP_DIR}/src/dsp/dec_msa.c
-    ${LIBWEBP_DIR}/src/dsp/dec_neon.c
-    ${LIBWEBP_DIR}/src/dsp/dec_sse2.c
-    ${LIBWEBP_DIR}/src/dsp/dec_sse41.c
-    ${LIBWEBP_DIR}/src/dsp/enc.c
-    ${LIBWEBP_DIR}/src/dsp/enc_mips_dsp_r2.c
-    ${LIBWEBP_DIR}/src/dsp/enc_mips32.c
-    ${LIBWEBP_DIR}/src/dsp/enc_msa.c
-    ${LIBWEBP_DIR}/src/dsp/enc_neon.c
-    ${LIBWEBP_DIR}/src/dsp/enc_sse2.c
-    ${LIBWEBP_DIR}/src/dsp/enc_sse41.c
-    ${LIBWEBP_DIR}/src/dsp/filters.c
-    ${LIBWEBP_DIR}/src/dsp/filters_mips_dsp_r2.c
-    ${LIBWEBP_DIR}/src/dsp/filters_msa.c
-    ${LIBWEBP_DIR}/src/dsp/filters_neon.c
-    ${LIBWEBP_DIR}/src/dsp/filters_sse2.c
-    ${LIBWEBP_DIR}/src/dsp/lossless.c
-    ${LIBWEBP_DIR}/src/dsp/lossless_avx2.c
-    ${LIBWEBP_DIR}/src/dsp/lossless_enc.c
-    ${LIBWEBP_DIR}/src/dsp/lossless_enc_avx2.c
-    ${LIBWEBP_DIR}/src/dsp/lossless_enc_mips_dsp_r2.c
-    ${LIBWEBP_DIR}/src/dsp/lossless_enc_mips32.c
-    ${LIBWEBP_DIR}/src/dsp/lossless_enc_msa.c
-    ${LIBWEBP_DIR}/src/dsp/lossless_enc_neon.c
-    ${LIBWEBP_DIR}/src/dsp/lossless_enc_sse2.c
-    ${LIBWEBP_DIR}/src/dsp/lossless_enc_sse41.c
-    ${LIBWEBP_DIR}/src/dsp/lossless_mips_dsp_r2.c
-    ${LIBWEBP_DIR}/src/dsp/lossless_msa.c
-    ${LIBWEBP_DIR}/src/dsp/lossless_neon.c
-    ${LIBWEBP_DIR}/src/dsp/lossless_sse2.c
-    ${LIBWEBP_DIR}/src/dsp/lossless_sse41.c
-    ${LIBWEBP_DIR}/src/dsp/rescaler.c
-    ${LIBWEBP_DIR}/src/dsp/rescaler_mips_dsp_r2.c
-    ${LIBWEBP_DIR}/src/dsp/rescaler_mips32.c
-    ${LIBWEBP_DIR}/src/dsp/rescaler_msa.c
-    ${LIBWEBP_DIR}/src/dsp/rescaler_neon.c
-    ${LIBWEBP_DIR}/src/dsp/rescaler_sse2.c
-    ${LIBWEBP_DIR}/src/dsp/ssim.c
-    ${LIBWEBP_DIR}/src/dsp/ssim_sse2.c
-    ${LIBWEBP_DIR}/src/dsp/upsampling.c
-    ${LIBWEBP_DIR}/src/dsp/upsampling_mips_dsp_r2.c
-    ${LIBWEBP_DIR}/src/dsp/upsampling_msa.c
-    ${LIBWEBP_DIR}/src/dsp/upsampling_neon.c
-    ${LIBWEBP_DIR}/src/dsp/upsampling_sse2.c
-    ${LIBWEBP_DIR}/src/dsp/upsampling_sse41.c
-    ${LIBWEBP_DIR}/src/dsp/yuv.c
-    ${LIBWEBP_DIR}/src/dsp/yuv_mips_dsp_r2.c
-    ${LIBWEBP_DIR}/src/dsp/yuv_mips32.c
-    ${LIBWEBP_DIR}/src/dsp/yuv_neon.c
-    ${LIBWEBP_DIR}/src/dsp/yuv_sse2.c
-    ${LIBWEBP_DIR}/src/dsp/yuv_sse41.c
-    ${LIBWEBP_DIR}/src/enc/alpha_enc.c
-    ${LIBWEBP_DIR}/src/enc/analysis_enc.c
-    ${LIBWEBP_DIR}/src/enc/backward_references_cost_enc.c
-    ${LIBWEBP_DIR}/src/enc/backward_references_enc.c
-    ${LIBWEBP_DIR}/src/enc/config_enc.c
-    ${LIBWEBP_DIR}/src/enc/cost_enc.c
-    ${LIBWEBP_DIR}/src/enc/filter_enc.c
-    ${LIBWEBP_DIR}/src/enc/frame_enc.c
-    ${LIBWEBP_DIR}/src/enc/histogram_enc.c
-    ${LIBWEBP_DIR}/src/enc/iterator_enc.c
-    ${LIBWEBP_DIR}/src/enc/near_lossless_enc.c
-    ${LIBWEBP_DIR}/src/enc/picture_csp_enc.c
-    ${LIBWEBP_DIR}/src/enc/picture_enc.c
-    ${LIBWEBP_DIR}/src/enc/picture_psnr_enc.c
-    ${LIBWEBP_DIR}/src/enc/picture_rescale_enc.c
-    ${LIBWEBP_DIR}/src/enc/picture_tools_enc.c
-    ${LIBWEBP_DIR}/src/enc/predictor_enc.c
-    ${LIBWEBP_DIR}/src/enc/quant_enc.c
-    ${LIBWEBP_DIR}/src/enc/syntax_enc.c
-    ${LIBWEBP_DIR}/src/enc/token_enc.c
-    ${LIBWEBP_DIR}/src/enc/tree_enc.c
-    ${LIBWEBP_DIR}/src/enc/vp8l_enc.c
-    ${LIBWEBP_DIR}/src/enc/webp_enc.c
-    ${LIBWEBP_DIR}/src/utils/bit_reader_utils.c
-    ${LIBWEBP_DIR}/src/utils/bit_writer_utils.c
-    ${LIBWEBP_DIR}/src/utils/color_cache_utils.c
-    ${LIBWEBP_DIR}/src/utils/filters_utils.c
-    ${LIBWEBP_DIR}/src/utils/huffman_encode_utils.c
-    ${LIBWEBP_DIR}/src/utils/huffman_utils.c
-    ${LIBWEBP_DIR}/src/utils/palette.c
-    ${LIBWEBP_DIR}/src/utils/quant_levels_dec_utils.c
-    ${LIBWEBP_DIR}/src/utils/quant_levels_utils.c
-    ${LIBWEBP_DIR}/src/utils/random_utils.c
-    ${LIBWEBP_DIR}/src/utils/rescaler_utils.c
-    ${LIBWEBP_DIR}/src/utils/thread_utils.c
-    ${LIBWEBP_DIR}/src/utils/utils.c
-
     ${QRCODEGEN_DIR}/qrcodegen.cpp
-)
-
-target_compile_definitions(${PROJECT_NAME} PRIVATE
-    # allow the WebP library to use multiple threads
-    WEBP_USE_THREAD
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE
     ${EXTERNAL_DIR}
     ${GPAC_DIR}/include
-    ${LIBWEBP_DIR}
     ${THIRD_PARTY_INCLUDE_DIR}/webm
 )
 
@@ -236,4 +109,8 @@ set_source_files_properties(
 target_link_libraries(${PROJECT_NAME} PRIVATE
     # libwebm
     ${THIRD_PARTY_LIB_DIR}/libwebm${THIRD_PARTY_LIB_EXT}
+
+    # libwebp
+    ${THIRD_PARTY_LIB_DIR}/libsharpyuv${THIRD_PARTY_LIB_EXT}
+    ${THIRD_PARTY_LIB_DIR}/libwebp${THIRD_PARTY_LIB_EXT}
 )

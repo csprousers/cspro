@@ -1,9 +1,9 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "Image.h"
 #include "Icon.h"
 #include <zToolsO/Tools.h>
-#include <external/libwebp/src/webp/decode.h>
-#include <external/libwebp/src/webp/encode.h>
+#include <webp/decode.h>
+#include <webp/encode.h>
 #include <external/zlib/zlib.h>
 
 
