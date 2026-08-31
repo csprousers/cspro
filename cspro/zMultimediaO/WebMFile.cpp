@@ -1,7 +1,7 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "WebMFile.h"
 #include <zToolsO/SafePath.h>
-#include <mkvparser/mkvreader.h>
+#include <webm/mkvparser/mkvreader.h>
 
 
 std::unique_ptr<mkvparser::MkvReader> WebMFile::CreateReader(const std::variant<cs::string_sz, FILE*> file_path_or_file)

@@ -16,10 +16,11 @@
   <ItemDefinitionGroup>
     <ClCompile>
       <PreprocessorDefinitions>ZMULTIMEDIAO_EXPORTS;WEBP_USE_THREAD;_AFXEXT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(CSProDir)external;$(CSProDir)external\gpac\include;$(CSProDir)external\libwebm;$(CSProDir)external\libwebp;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(CSProDir)external;$(ThirdPartyIncludeDir)webm;$(CSProDir)external\gpac\include;$(CSProDir)external\libwebp;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>$(CSProDir)external\zlib\lib\$(PlatformTarget)\zlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies Condition="'$(Configuration)'=='Debug'">libwebmd.lib;$(CSProDir)external\zlib\lib\$(PlatformTarget)\zlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies Condition="'$(Configuration)'=='Release'">libwebm.lib;$(CSProDir)external\zlib\lib\$(PlatformTarget)\zlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -326,12 +327,6 @@
     <ClCompile Include="..\external\libexif\pentax\mnote-pentax-tag.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level2</WarningLevel>
-    </ClCompile>
-    <ClCompile Include="..\external\libwebm\mkvparser\mkvparser.cc">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\external\libwebm\mkvparser\mkvreader.cc">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="..\external\libwebp\sharpyuv\sharpyuv.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>

@@ -3,7 +3,6 @@ project(zMultimediaO)
 set(GPAC_DIR ${EXTERNAL_DIR}/gpac)
 set(GPAC_SRC_DIR ${GPAC_DIR}/src)
 set(LIBEXIF_DIR ${EXTERNAL_DIR}/libexif)
-set(LIBWEBM_DIR ${EXTERNAL_DIR}/libwebm)
 set(LIBWEBP_DIR ${EXTERNAL_DIR}/libwebp)
 set(QRCODEGEN_DIR ${EXTERNAL_DIR}/qrcodegen)
 
@@ -89,9 +88,6 @@ add_library(${PROJECT_NAME}
     ${LIBEXIF_DIR}/pentax/exif-mnote-data-pentax.c
     ${LIBEXIF_DIR}/pentax/mnote-pentax-entry.c
     ${LIBEXIF_DIR}/pentax/mnote-pentax-tag.c
-
-    ${LIBWEBM_DIR}/mkvparser/mkvparser.cc
-    ${LIBWEBM_DIR}/mkvparser/mkvreader.cc
 
     ${LIBWEBP_DIR}/sharpyuv/sharpyuv.c
     ${LIBWEBP_DIR}/sharpyuv/sharpyuv_cpu.c
@@ -224,8 +220,8 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
 target_include_directories(${PROJECT_NAME} PRIVATE
     ${EXTERNAL_DIR}
     ${GPAC_DIR}/include
-    ${LIBWEBM_DIR}
     ${LIBWEBP_DIR}
+    ${THIRD_PARTY_INCLUDE_DIR}/webm
 )
 
 target_precompile_headers(${PROJECT_NAME} PRIVATE
@@ -233,8 +229,11 @@ target_precompile_headers(${PROJECT_NAME} PRIVATE
 )
 
 set_source_files_properties(
-    ${LIBWEBM_DIR}/mkvparser/mkvparser.cc
-    ${LIBWEBM_DIR}/mkvparser/mkvreader.cc
     ${QRCODEGEN_DIR}/qrcodegen.cpp
     PROPERTIES SKIP_PRECOMPILE_HEADERS ON
+)
+
+target_link_libraries(${PROJECT_NAME} PRIVATE
+    # libwebm
+    ${THIRD_PARTY_LIB_DIR}/libwebm${THIRD_PARTY_LIB_EXT}
 )

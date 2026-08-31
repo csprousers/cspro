@@ -1,0 +1,13 @@
+# libwebm
+android-arm64-v8a/libwebm.a
+android-arm64-v8a/libwebmd.a
+android-armeabi-v7a/libwebm.a
+android-armeabi-v7a/libwebmd.a
+android-x86_64/libwebm.a
+android-x86_64/libwebmd.a
+wasm/libwebm.a
+wasm/libwebmd.a
+windows-x64/libwebm.lib
+windows-x64/libwebmd.lib
+windows-x86/libwebm.lib
+windows-x86/libwebmd.lib
