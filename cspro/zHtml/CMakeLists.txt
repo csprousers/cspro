@@ -1,6 +1,6 @@
 project(zHtml)
 
-set(GUMBO_DIRECTORY ${EXTERNAL_DIRECTORY}/gumbo)
+set(GUMBO_DIR ${EXTERNAL_DIR}/gumbo)
 
 add_library(${PROJECT_NAME}
     AccessUrlSerializer.cpp
@@ -18,23 +18,23 @@ add_library(${PROJECT_NAME}
     VirtualFileMappingHandlers.cpp
     WebViewSyncOperationMarker.cpp
 
-    ${GUMBO_DIRECTORY}/attribute.c
-    ${GUMBO_DIRECTORY}/char_ref.c
-    ${GUMBO_DIRECTORY}/error.c
-    ${GUMBO_DIRECTORY}/parser.c
-    ${GUMBO_DIRECTORY}/string_buffer.c
-    ${GUMBO_DIRECTORY}/string_piece.c
-    ${GUMBO_DIRECTORY}/tag.c
-    ${GUMBO_DIRECTORY}/tokenizer.c
-    ${GUMBO_DIRECTORY}/utf8.c
-    ${GUMBO_DIRECTORY}/util.c
-    ${GUMBO_DIRECTORY}/vector.c
+    ${GUMBO_DIR}/attribute.c
+    ${GUMBO_DIR}/char_ref.c
+    ${GUMBO_DIR}/error.c
+    ${GUMBO_DIR}/parser.c
+    ${GUMBO_DIR}/string_buffer.c
+    ${GUMBO_DIR}/string_piece.c
+    ${GUMBO_DIR}/tag.c
+    ${GUMBO_DIR}/tokenizer.c
+    ${GUMBO_DIR}/utf8.c
+    ${GUMBO_DIR}/util.c
+    ${GUMBO_DIR}/vector.c
 )
 
 if(WIN32)
     # for Gumbo's dummy strings.h
     target_include_directories(${PROJECT_NAME} PRIVATE
-        ${GUMBO_DIRECTORY}
+        ${GUMBO_DIR}
     )
 endif()
 

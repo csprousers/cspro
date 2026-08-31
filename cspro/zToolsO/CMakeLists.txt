@@ -1,9 +1,9 @@
 project(zToolsO)
 
-set(BZIP2_DIRECTORY ${EXTERNAL_DIRECTORY}/bzip2)
-set(MD4C_DIRECTORY ${EXTERNAL_DIRECTORY}/md4c)
-set(RIJNDAEL_DIRECTORY rijndael)
-set(SCRYPT_DIRECTORY ${EXTERNAL_DIRECTORY}/scrypt)
+set(BZIP2_DIR ${EXTERNAL_DIR}/bzip2)
+set(MD4C_DIR ${EXTERNAL_DIR}/md4c)
+set(RIJNDAEL_DIR rijndael)
+set(SCRYPT_DIR ${EXTERNAL_DIR}/scrypt)
 
 add_library(${PROJECT_NAME}
     base64.cpp
@@ -48,24 +48,24 @@ add_library(${PROJECT_NAME}
     VarFuncs.cpp
     $<$<BOOL:${WIN32}>:WinRegistry.cpp>
 
-    ${BZIP2_DIRECTORY}/blocksort.c
-    ${BZIP2_DIRECTORY}/bzlib.c
-    ${BZIP2_DIRECTORY}/compress.c
-    ${BZIP2_DIRECTORY}/crctable.c
-    ${BZIP2_DIRECTORY}/decompress.c
-    ${BZIP2_DIRECTORY}/huffman.c
-    ${BZIP2_DIRECTORY}/randtable.c
+    ${BZIP2_DIR}/blocksort.c
+    ${BZIP2_DIR}/bzlib.c
+    ${BZIP2_DIR}/compress.c
+    ${BZIP2_DIR}/crctable.c
+    ${BZIP2_DIR}/decompress.c
+    ${BZIP2_DIR}/huffman.c
+    ${BZIP2_DIR}/randtable.c
 
-    ${MD4C_DIRECTORY}/entity.c
+    ${MD4C_DIR}/entity.c
 
-    ${RIJNDAEL_DIRECTORY}/rijndael-alg-fst.c
+    ${RIJNDAEL_DIR}/rijndael-alg-fst.c
 
-    ${SCRYPT_DIRECTORY}/insecure_memzero.c
-    ${SCRYPT_DIRECTORY}/sha256.c
+    ${SCRYPT_DIR}/insecure_memzero.c
+    ${SCRYPT_DIR}/sha256.c
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE
-    ${EXTERNAL_DIRECTORY}
+    ${EXTERNAL_DIR}
 )
 
 target_precompile_headers(${PROJECT_NAME} PRIVATE

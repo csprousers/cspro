@@ -1,6 +1,6 @@
 project(zSql)
 
-set(SQLITE_DIRECTORY ${EXTERNAL_DIRECTORY}/SQLite)
+set(SQLITE_DIR ${EXTERNAL_DIR}/SQLite)
 
 add_library(${PROJECT_NAME}
     DB.cpp
@@ -9,7 +9,7 @@ add_library(${PROJECT_NAME}
     Statement.cpp
     Transaction.cpp
 
-    ${SQLITE_DIRECTORY}/sqlite3.c
+    ${SQLITE_DIR}/sqlite3.c
 )
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE
@@ -18,7 +18,7 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE
-    ${EXTERNAL_DIRECTORY}
+    ${EXTERNAL_DIR}
 )
 
 target_precompile_headers(${PROJECT_NAME} PRIVATE

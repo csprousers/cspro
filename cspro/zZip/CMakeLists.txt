@@ -1,16 +1,16 @@
 project(zZip)
 
-set(MINIZ_DIRECTORY ${EXTERNAL_DIRECTORY}/miniz)
+set(MINIZ_DIR ${EXTERNAL_DIR}/miniz)
 
 add_library(${PROJECT_NAME}
     ZipException.cpp
     ZipFile.cpp
     ZLib.cpp
 
-    ${MINIZ_DIRECTORY}/miniz.c
-    ${MINIZ_DIRECTORY}/miniz_tdef.c
-    ${MINIZ_DIRECTORY}/miniz_tinfl.c
-    ${MINIZ_DIRECTORY}/miniz_zip.c
+    ${MINIZ_DIR}/miniz.c
+    ${MINIZ_DIR}/miniz_tdef.c
+    ${MINIZ_DIR}/miniz_tinfl.c
+    ${MINIZ_DIR}/miniz_zip.c
 )
 
 target_precompile_headers(${PROJECT_NAME} PRIVATE

@@ -1,6 +1,6 @@
 project(zNetwork)
 
-set(EASYLOGGING_DIRECTORY ${EXTERNAL_DIRECTORY}/easylogging)
+set(EASYLOGGING_DIR ${EXTERNAL_DIR}/easylogging)
 
 add_library(${PROJECT_NAME}
     CSWebConnection.cpp
@@ -20,7 +20,7 @@ add_library(${PROJECT_NAME}
     SyncLog.cpp
     SyncLogSyncListener.cpp
 
-    ${EASYLOGGING_DIRECTORY}/easylogging++.cc
+    ${EASYLOGGING_DIR}/easylogging++.cc
 )
 
 target_precompile_headers(${PROJECT_NAME} PRIVATE
@@ -28,6 +28,6 @@ target_precompile_headers(${PROJECT_NAME} PRIVATE
 )
 
 set_source_files_properties(
-    ${EASYLOGGING_DIRECTORY}/easylogging++.cc
+    ${EASYLOGGING_DIR}/easylogging++.cc
     PROPERTIES SKIP_PRECOMPILE_HEADERS ON
 )

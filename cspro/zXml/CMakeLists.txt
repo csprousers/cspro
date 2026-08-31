@@ -1,11 +1,11 @@
 project(zXml)
 
-set(PUGIXML_DIRECTORY ${EXTERNAL_DIRECTORY}/pugixml)
+set(PUGIXML_DIR ${EXTERNAL_DIR}/pugixml)
 
 add_library(${PROJECT_NAME}
     SimpleXml.cpp
 
-    ${PUGIXML_DIRECTORY}/pugixml.cpp
+    ${PUGIXML_DIR}/pugixml.cpp
 )
 
 target_precompile_headers(${PROJECT_NAME} PRIVATE
@@ -13,6 +13,6 @@ target_precompile_headers(${PROJECT_NAME} PRIVATE
 )
 
 set_source_files_properties(
-    ${PUGIXML_DIRECTORY}/pugixml.cpp
+    ${PUGIXML_DIR}/pugixml.cpp
     PROPERTIES SKIP_PRECOMPILE_HEADERS ON
 )

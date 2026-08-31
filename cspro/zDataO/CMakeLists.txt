@@ -38,7 +38,7 @@ add_library(${PROJECT_NAME}
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE
-    ${EXTERNAL_DIRECTORY}
+    ${EXTERNAL_DIR}
 )
 
 target_precompile_headers(${PROJECT_NAME} PRIVATE

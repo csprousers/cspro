@@ -1,37 +1,37 @@
 project(zYaml)
 
-set(YAML_DIRECTORY ${EXTERNAL_DIRECTORY}/yaml-cpp)
+set(YAML_DIR ${EXTERNAL_DIR}/yaml-cpp)
 
 add_library(${PROJECT_NAME}
-    ${YAML_DIRECTORY}/src/binary.cpp
-    ${YAML_DIRECTORY}/src/convert.cpp
-    ${YAML_DIRECTORY}/src/depthguard.cpp
-    ${YAML_DIRECTORY}/src/directives.cpp
-    ${YAML_DIRECTORY}/src/emit.cpp
-    ${YAML_DIRECTORY}/src/emitfromevents.cpp
-    ${YAML_DIRECTORY}/src/emitter.cpp
-    ${YAML_DIRECTORY}/src/emitterstate.cpp
-    ${YAML_DIRECTORY}/src/emitterutils.cpp
-    ${YAML_DIRECTORY}/src/exceptions.cpp
-    ${YAML_DIRECTORY}/src/exp.cpp
-    ${YAML_DIRECTORY}/src/memory.cpp
-    ${YAML_DIRECTORY}/src/node.cpp
-    ${YAML_DIRECTORY}/src/node_data.cpp
-    ${YAML_DIRECTORY}/src/nodebuilder.cpp
-    ${YAML_DIRECTORY}/src/nodeevents.cpp
-    ${YAML_DIRECTORY}/src/null.cpp
-    ${YAML_DIRECTORY}/src/ostream_wrapper.cpp
-    ${YAML_DIRECTORY}/src/parse.cpp
-    ${YAML_DIRECTORY}/src/parser.cpp
-    ${YAML_DIRECTORY}/src/regex_yaml.cpp
-    ${YAML_DIRECTORY}/src/scanner.cpp
-    ${YAML_DIRECTORY}/src/scanscalar.cpp
-    ${YAML_DIRECTORY}/src/scantag.cpp
-    ${YAML_DIRECTORY}/src/scantoken.cpp
-    ${YAML_DIRECTORY}/src/simplekey.cpp
-    ${YAML_DIRECTORY}/src/singledocparser.cpp
-    ${YAML_DIRECTORY}/src/stream.cpp
-    ${YAML_DIRECTORY}/src/tag.cpp
+    ${YAML_DIR}/src/binary.cpp
+    ${YAML_DIR}/src/convert.cpp
+    ${YAML_DIR}/src/depthguard.cpp
+    ${YAML_DIR}/src/directives.cpp
+    ${YAML_DIR}/src/emit.cpp
+    ${YAML_DIR}/src/emitfromevents.cpp
+    ${YAML_DIR}/src/emitter.cpp
+    ${YAML_DIR}/src/emitterstate.cpp
+    ${YAML_DIR}/src/emitterutils.cpp
+    ${YAML_DIR}/src/exceptions.cpp
+    ${YAML_DIR}/src/exp.cpp
+    ${YAML_DIR}/src/memory.cpp
+    ${YAML_DIR}/src/node.cpp
+    ${YAML_DIR}/src/node_data.cpp
+    ${YAML_DIR}/src/nodebuilder.cpp
+    ${YAML_DIR}/src/nodeevents.cpp
+    ${YAML_DIR}/src/null.cpp
+    ${YAML_DIR}/src/ostream_wrapper.cpp
+    ${YAML_DIR}/src/parse.cpp
+    ${YAML_DIR}/src/parser.cpp
+    ${YAML_DIR}/src/regex_yaml.cpp
+    ${YAML_DIR}/src/scanner.cpp
+    ${YAML_DIR}/src/scanscalar.cpp
+    ${YAML_DIR}/src/scantag.cpp
+    ${YAML_DIR}/src/scantoken.cpp
+    ${YAML_DIR}/src/simplekey.cpp
+    ${YAML_DIR}/src/singledocparser.cpp
+    ${YAML_DIR}/src/stream.cpp
+    ${YAML_DIR}/src/tag.cpp
 )
 
 if(CSPRO_BUILD_CONSOLE)
@@ -41,6 +41,5 @@ if(CSPRO_BUILD_CONSOLE)
 endif()
 
 target_include_directories(${PROJECT_NAME} PRIVATE
-    ${YAML_DIRECTORY}/include
+    ${YAML_DIR}/include
 )
-

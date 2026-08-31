@@ -10,9 +10,9 @@ add_library(${PROJECT_NAME}
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE
-    ${EXTERNAL_DIRECTORY}
-    ${EXTERNAL_DIRECTORY}/geometry.hpp/include
-    ${EXTERNAL_DIRECTORY}/variant/include
+    ${EXTERNAL_DIR}
+    ${EXTERNAL_DIR}/geometry.hpp/include
+    ${EXTERNAL_DIR}/variant/include
 )
 
 target_precompile_headers(${PROJECT_NAME} PRIVATE

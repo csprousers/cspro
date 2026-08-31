@@ -1,13 +1,13 @@
 project(zMarkdown)
 
-set(MD4C_DIRECTORY ${EXTERNAL_DIRECTORY}/md4c)
+set(MD4C_DIR ${EXTERNAL_DIR}/md4c)
 
 add_library(${PROJECT_NAME}
     HtmlParserCallback.cpp
     Markdown.cpp
 
-    ${MD4C_DIRECTORY}/md4c.c
-    ${MD4C_DIRECTORY}/md4c-html.c
+    ${MD4C_DIR}/md4c.c
+    ${MD4C_DIR}/md4c-html.c
 )
 
 target_precompile_headers(${PROJECT_NAME} PRIVATE

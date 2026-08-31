@@ -44,12 +44,12 @@ add_compile_definitions(
 )
 
 # set the directories for the CSPro solution root and the external libraries
-set(CSPRO_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../../../../..)
-set(EXTERNAL_DIRECTORY ${CSPRO_DIRECTORY}/external)
+set(CSPRO_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../../../..)
+set(EXTERNAL_DIR ${CSPRO_DIR}/external)
 
 # global include directories
 include_directories(
-    ${CSPRO_DIRECTORY}
+    ${CSPRO_DIR}
 )
 
 # CSEntry (Android) files
@@ -80,10 +80,10 @@ add_library(${PROJECT_NAME} SHARED
 
 # CSEntry (Android) include directories
 target_include_directories(${PROJECT_NAME} PRIVATE
-    ${EXTERNAL_DIRECTORY}
-    ${EXTERNAL_DIRECTORY}/rxcpp
-    ${EXTERNAL_DIRECTORY}/geometry.hpp/include
-    ${EXTERNAL_DIRECTORY}/variant/include
+    ${EXTERNAL_DIR}
+    ${EXTERNAL_DIR}/rxcpp
+    ${EXTERNAL_DIR}/geometry.hpp/include
+    ${EXTERNAL_DIR}/variant/include
 )
 
 # enable 16 KiB memory pages
@@ -146,48 +146,48 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 )
 
 # external libraries
-add_subdirectory(${EXTERNAL_DIRECTORY}/zlib zlib)
+add_subdirectory(${EXTERNAL_DIR}/zlib zlib)
 
 # CSPro libraries
-add_subdirectory(${CSPRO_DIRECTORY}/engine engine)
-add_subdirectory(${CSPRO_DIRECTORY}/zAction zAction)
-add_subdirectory(${CSPRO_DIRECTORY}/zAppO zAppO)
-add_subdirectory(${CSPRO_DIRECTORY}/zBridgeO zBridgeO)
-add_subdirectory(${CSPRO_DIRECTORY}/zCaseO zCaseO)
-add_subdirectory(${CSPRO_DIRECTORY}/zConcatO zConcatO)
-add_subdirectory(${CSPRO_DIRECTORY}/zDataO zDataO)
-add_subdirectory(${CSPRO_DIRECTORY}/zDictO zDictO)
-add_subdirectory(${CSPRO_DIRECTORY}/zDiffO zDiffO)
-add_subdirectory(${CSPRO_DIRECTORY}/zEngineF zEngineF)
-add_subdirectory(${CSPRO_DIRECTORY}/zEngineO zEngineO)
-add_subdirectory(${CSPRO_DIRECTORY}/zExcelO zExcelO)
-add_subdirectory(${CSPRO_DIRECTORY}/zExportO zExportO)
-add_subdirectory(${CSPRO_DIRECTORY}/zFormatterO zFormatterO)
-add_subdirectory(${CSPRO_DIRECTORY}/zFormO zFormO)
-add_subdirectory(${CSPRO_DIRECTORY}/zFreqO zFreqO)
-add_subdirectory(${CSPRO_DIRECTORY}/zHtml zHtml)
-add_subdirectory(${CSPRO_DIRECTORY}/zIndexO zIndexO)
-add_subdirectory(${CSPRO_DIRECTORY}/zJavaScript zJavaScript)
-add_subdirectory(${CSPRO_DIRECTORY}/zJson zJson)
-add_subdirectory(${CSPRO_DIRECTORY}/zListingO zListingO)
-add_subdirectory(${CSPRO_DIRECTORY}/zLogicO zLogicO)
-add_subdirectory(${CSPRO_DIRECTORY}/zMapping zMapping)
-add_subdirectory(${CSPRO_DIRECTORY}/zMarkdown zMarkdown)
-add_subdirectory(${CSPRO_DIRECTORY}/zMessageO zMessageO)
-add_subdirectory(${CSPRO_DIRECTORY}/zMultimediaO zMultimediaO)
-add_subdirectory(${CSPRO_DIRECTORY}/zNetwork zNetwork)
-add_subdirectory(${CSPRO_DIRECTORY}/zPackO zPackO)
-add_subdirectory(${CSPRO_DIRECTORY}/zParadataO zParadataO)
-add_subdirectory(${CSPRO_DIRECTORY}/zPlatformO zPlatformO)
-add_subdirectory(${CSPRO_DIRECTORY}/zReformatO zReformatO)
-add_subdirectory(${CSPRO_DIRECTORY}/zReportO zReportO)
-add_subdirectory(${CSPRO_DIRECTORY}/zSortO zSortO)
-add_subdirectory(${CSPRO_DIRECTORY}/zSql zSql)
-add_subdirectory(${CSPRO_DIRECTORY}/zSyncO zSyncO)
-add_subdirectory(${CSPRO_DIRECTORY}/zToolsO zToolsO)
-add_subdirectory(${CSPRO_DIRECTORY}/zUtilF zUtilF)
-add_subdirectory(${CSPRO_DIRECTORY}/zUtilO zUtilO)
-add_subdirectory(${CSPRO_DIRECTORY}/zViewO zViewO)
-add_subdirectory(${CSPRO_DIRECTORY}/zXml zXml)
-add_subdirectory(${CSPRO_DIRECTORY}/zYaml zYaml)
-add_subdirectory(${CSPRO_DIRECTORY}/zZip zZip)
+add_subdirectory(${CSPRO_DIR}/engine engine)
+add_subdirectory(${CSPRO_DIR}/zAction zAction)
+add_subdirectory(${CSPRO_DIR}/zAppO zAppO)
+add_subdirectory(${CSPRO_DIR}/zBridgeO zBridgeO)
+add_subdirectory(${CSPRO_DIR}/zCaseO zCaseO)
+add_subdirectory(${CSPRO_DIR}/zConcatO zConcatO)
+add_subdirectory(${CSPRO_DIR}/zDataO zDataO)
+add_subdirectory(${CSPRO_DIR}/zDictO zDictO)
+add_subdirectory(${CSPRO_DIR}/zDiffO zDiffO)
+add_subdirectory(${CSPRO_DIR}/zEngineF zEngineF)
+add_subdirectory(${CSPRO_DIR}/zEngineO zEngineO)
+add_subdirectory(${CSPRO_DIR}/zExcelO zExcelO)
+add_subdirectory(${CSPRO_DIR}/zExportO zExportO)
+add_subdirectory(${CSPRO_DIR}/zFormatterO zFormatterO)
+add_subdirectory(${CSPRO_DIR}/zFormO zFormO)
+add_subdirectory(${CSPRO_DIR}/zFreqO zFreqO)
+add_subdirectory(${CSPRO_DIR}/zHtml zHtml)
+add_subdirectory(${CSPRO_DIR}/zIndexO zIndexO)
+add_subdirectory(${CSPRO_DIR}/zJavaScript zJavaScript)
+add_subdirectory(${CSPRO_DIR}/zJson zJson)
+add_subdirectory(${CSPRO_DIR}/zListingO zListingO)
+add_subdirectory(${CSPRO_DIR}/zLogicO zLogicO)
+add_subdirectory(${CSPRO_DIR}/zMapping zMapping)
+add_subdirectory(${CSPRO_DIR}/zMarkdown zMarkdown)
+add_subdirectory(${CSPRO_DIR}/zMessageO zMessageO)
+add_subdirectory(${CSPRO_DIR}/zMultimediaO zMultimediaO)
+add_subdirectory(${CSPRO_DIR}/zNetwork zNetwork)
+add_subdirectory(${CSPRO_DIR}/zPackO zPackO)
+add_subdirectory(${CSPRO_DIR}/zParadataO zParadataO)
+add_subdirectory(${CSPRO_DIR}/zPlatformO zPlatformO)
+add_subdirectory(${CSPRO_DIR}/zReformatO zReformatO)
+add_subdirectory(${CSPRO_DIR}/zReportO zReportO)
+add_subdirectory(${CSPRO_DIR}/zSortO zSortO)
+add_subdirectory(${CSPRO_DIR}/zSql zSql)
+add_subdirectory(${CSPRO_DIR}/zSyncO zSyncO)
+add_subdirectory(${CSPRO_DIR}/zToolsO zToolsO)
+add_subdirectory(${CSPRO_DIR}/zUtilF zUtilF)
+add_subdirectory(${CSPRO_DIR}/zUtilO zUtilO)
+add_subdirectory(${CSPRO_DIR}/zViewO zViewO)
+add_subdirectory(${CSPRO_DIR}/zXml zXml)
+add_subdirectory(${CSPRO_DIR}/zYaml zYaml)
+add_subdirectory(${CSPRO_DIR}/zZip zZip)

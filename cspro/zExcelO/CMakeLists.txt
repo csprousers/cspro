@@ -1,41 +1,41 @@
 project(zExcelO)
 
-set(LIBXLSXWRITER_DIRECTORY ${EXTERNAL_DIRECTORY}/libxlsxwriter)
+set(LIBXLSXWRITER_DIR ${EXTERNAL_DIR}/libxlsxwriter)
 
 add_library(${PROJECT_NAME}
     ExcelWriter.cpp
 
-    ${LIBXLSXWRITER_DIRECTORY}/src/app.c
-    ${LIBXLSXWRITER_DIRECTORY}/src/chart.c
-    ${LIBXLSXWRITER_DIRECTORY}/src/chartsheet.c
-    ${LIBXLSXWRITER_DIRECTORY}/src/comment.c
-    ${LIBXLSXWRITER_DIRECTORY}/src/content_types.c
-    ${LIBXLSXWRITER_DIRECTORY}/src/core.c
-    ${LIBXLSXWRITER_DIRECTORY}/src/custom.c
-    ${LIBXLSXWRITER_DIRECTORY}/src/drawing.c
-    ${LIBXLSXWRITER_DIRECTORY}/src/format.c
-    ${LIBXLSXWRITER_DIRECTORY}/src/hash_table.c
-    ${LIBXLSXWRITER_DIRECTORY}/src/metadata.c
-    ${LIBXLSXWRITER_DIRECTORY}/src/packager.c
-    ${LIBXLSXWRITER_DIRECTORY}/src/relationships.c
-    ${LIBXLSXWRITER_DIRECTORY}/src/rich_value.c
-    ${LIBXLSXWRITER_DIRECTORY}/src/rich_value_rel.c
-    ${LIBXLSXWRITER_DIRECTORY}/src/rich_value_structure.c
-    ${LIBXLSXWRITER_DIRECTORY}/src/rich_value_types.c
-    ${LIBXLSXWRITER_DIRECTORY}/src/shared_strings.c
-    ${LIBXLSXWRITER_DIRECTORY}/src/styles.c
-    ${LIBXLSXWRITER_DIRECTORY}/src/table.c
-    ${LIBXLSXWRITER_DIRECTORY}/src/theme.c
-    ${LIBXLSXWRITER_DIRECTORY}/src/utility.c
-    ${LIBXLSXWRITER_DIRECTORY}/src/vml.c
-    ${LIBXLSXWRITER_DIRECTORY}/src/workbook.c
-    ${LIBXLSXWRITER_DIRECTORY}/src/worksheet.c
-    ${LIBXLSXWRITER_DIRECTORY}/src/xmlwriter.c
-    ${LIBXLSXWRITER_DIRECTORY}/third_party/md5/md5.c
-    ${LIBXLSXWRITER_DIRECTORY}/third_party/minizip/ioapi.c
-    $<$<BOOL:${WIN32}>:${LIBXLSXWRITER_DIRECTORY}/third_party/minizip/iowin32.c>
-    ${LIBXLSXWRITER_DIRECTORY}/third_party/minizip/zip.c
-    ${LIBXLSXWRITER_DIRECTORY}/third_party/tmpfileplus/tmpfileplus.c
+    ${LIBXLSXWRITER_DIR}/src/app.c
+    ${LIBXLSXWRITER_DIR}/src/chart.c
+    ${LIBXLSXWRITER_DIR}/src/chartsheet.c
+    ${LIBXLSXWRITER_DIR}/src/comment.c
+    ${LIBXLSXWRITER_DIR}/src/content_types.c
+    ${LIBXLSXWRITER_DIR}/src/core.c
+    ${LIBXLSXWRITER_DIR}/src/custom.c
+    ${LIBXLSXWRITER_DIR}/src/drawing.c
+    ${LIBXLSXWRITER_DIR}/src/format.c
+    ${LIBXLSXWRITER_DIR}/src/hash_table.c
+    ${LIBXLSXWRITER_DIR}/src/metadata.c
+    ${LIBXLSXWRITER_DIR}/src/packager.c
+    ${LIBXLSXWRITER_DIR}/src/relationships.c
+    ${LIBXLSXWRITER_DIR}/src/rich_value.c
+    ${LIBXLSXWRITER_DIR}/src/rich_value_rel.c
+    ${LIBXLSXWRITER_DIR}/src/rich_value_structure.c
+    ${LIBXLSXWRITER_DIR}/src/rich_value_types.c
+    ${LIBXLSXWRITER_DIR}/src/shared_strings.c
+    ${LIBXLSXWRITER_DIR}/src/styles.c
+    ${LIBXLSXWRITER_DIR}/src/table.c
+    ${LIBXLSXWRITER_DIR}/src/theme.c
+    ${LIBXLSXWRITER_DIR}/src/utility.c
+    ${LIBXLSXWRITER_DIR}/src/vml.c
+    ${LIBXLSXWRITER_DIR}/src/workbook.c
+    ${LIBXLSXWRITER_DIR}/src/worksheet.c
+    ${LIBXLSXWRITER_DIR}/src/xmlwriter.c
+    ${LIBXLSXWRITER_DIR}/third_party/md5/md5.c
+    ${LIBXLSXWRITER_DIR}/third_party/minizip/ioapi.c
+    $<$<BOOL:${WIN32}>:${LIBXLSXWRITER_DIR}/third_party/minizip/iowin32.c>
+    ${LIBXLSXWRITER_DIR}/third_party/minizip/zip.c
+    ${LIBXLSXWRITER_DIR}/third_party/tmpfileplus/tmpfileplus.c
 )
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE
@@ -44,8 +44,8 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE
-    ${LIBXLSXWRITER_DIRECTORY}/include
-    ${EXTERNAL_DIRECTORY}/zlib
+    ${LIBXLSXWRITER_DIR}/include
+    ${EXTERNAL_DIR}/zlib
 )
 
 target_precompile_headers(${PROJECT_NAME} PRIVATE

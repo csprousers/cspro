@@ -1,23 +1,23 @@
 project(zlib)
 
-set(ZLIB_DIRECTORY ${EXTERNAL_DIRECTORY}/zlib)
+set(ZLIB_DIR ${EXTERNAL_DIR}/zlib)
 
 add_library(${PROJECT_NAME}
-    ${ZLIB_DIRECTORY}/adler32.c
-    ${ZLIB_DIRECTORY}/compress.c
-    ${ZLIB_DIRECTORY}/crc32.c
-    ${ZLIB_DIRECTORY}/deflate.c
-    ${ZLIB_DIRECTORY}/gzclose.c
-    ${ZLIB_DIRECTORY}/gzlib.c
-    ${ZLIB_DIRECTORY}/gzread.c
-    ${ZLIB_DIRECTORY}/gzwrite.c
-    ${ZLIB_DIRECTORY}/infback.c
-    ${ZLIB_DIRECTORY}/inffast.c
-    ${ZLIB_DIRECTORY}/inflate.c
-    ${ZLIB_DIRECTORY}/inftrees.c
-    ${ZLIB_DIRECTORY}/trees.c
-    ${ZLIB_DIRECTORY}/uncompr.c
-    ${ZLIB_DIRECTORY}/zutil.c
+    ${ZLIB_DIR}/adler32.c
+    ${ZLIB_DIR}/compress.c
+    ${ZLIB_DIR}/crc32.c
+    ${ZLIB_DIR}/deflate.c
+    ${ZLIB_DIR}/gzclose.c
+    ${ZLIB_DIR}/gzlib.c
+    ${ZLIB_DIR}/gzread.c
+    ${ZLIB_DIR}/gzwrite.c
+    ${ZLIB_DIR}/infback.c
+    ${ZLIB_DIR}/inffast.c
+    ${ZLIB_DIR}/inflate.c
+    ${ZLIB_DIR}/inftrees.c
+    ${ZLIB_DIR}/trees.c
+    ${ZLIB_DIR}/uncompr.c
+    ${ZLIB_DIR}/zutil.c
 )
 
 if(NOT CSPRO_BUILD_CONSOLE)
