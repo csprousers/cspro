@@ -148,7 +148,7 @@ public class AndroidFtpConnection {
     public void download(String remoteFilePath, String localFilePath) throws IllegalStateException, IOException, FTPIllegalReplyException, FTPException, FTPDataTransferException, SyncCancelException  {
         Timber.i("Start download");
 
-        String dir = Util.removeFilename(remoteFilePath);
+        String dir = Util.removeFilenameSAFE(remoteFilePath);
         m_ftpClient.changeDirectory(dir);
         String name = Util.removeDirectory(remoteFilePath);
         final long size = m_ftpClient.fileSize(name);

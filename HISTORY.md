@@ -17,6 +17,19 @@ Most CSPro development occurs on a [private repository](https://github.com/CSPro
 | 2026&#8209;07&#8209;13 | [dictionary-analysis-dialog](https://github.com/CSProDevelopment/cspro/commit/627293268b40ea5506dca4de407f4e98bb8794bb) | reworked the dictionary analysis reports into a single dialog and added reports about linked value sets and special values |
 
 
+## CSPro 8.1.4
+
+**Installer**: [https://csprousers.org/releases/8.1/cspro-8.1.4-windows-x86.exe](https://csprousers.org/releases/8.1/cspro-8.1.4-windows-x86.exe)
+
+**Release notes**: [https://csprousers.org/releases/8.1/cspro-8.1.4-release-notes.txt](https://csprousers.org/releases/8.1/cspro-8.1.4-release-notes.txt)
+
+**Merged pull requests**:
+
+| Date | Branch | Pull Request Message |
+| --- | --- | --- |
+| 2026&#8209;08&#8209;31 | [release/v8.1.4-20260831](https://github.com/CSProDevelopment/cspro/commit/d7f17947d596d8a4b6f19c084a8b438b78517e66) | fixed bugs, creating version 8.1.4 |
+
+
 ## CSPro 8.1.3
 
 **Installer**: [https://csprousers.org/releases/8.1/cspro-8.1.3-windows-x86.exe](https://csprousers.org/releases/8.1/cspro-8.1.3-windows-x86.exe)

@@ -108,7 +108,9 @@ SharableString CIntDriver::EvaluateCapiText(const CapiQuestion& question, const 
     const CapiText::Type text_type = is_question ? CapiText::Type::Question : CapiText::Type::Help;
     const CapiText* capi_text = matched_condition->GetText(language_name, text_type);
 
-    if( capi_text == nullptr || capi_text->GetText()->empty() )
+    // when there is no text defined for the language, see if text exists for the default language
+    if( ( capi_text == nullptr ) ||
+        ( capi_text->GetProgramIndex() == -1 && capi_text->GetText()->empty() ) )
     {
         const Language& default_language = assert_cast<const CEntryDriver*>(m_pEngineDriver)->GetQuestMgr()->GetDefaultLanguage();
         capi_text = matched_condition->GetText(default_language.GetName(), text_type);
