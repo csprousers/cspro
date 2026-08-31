@@ -1,8 +1,17 @@
 # CSPro's External Libraries
 
-This document lists information about the external libraries used by CSPro. Batch scripts to update many of these libraries are located here:
+This document details information about the external libraries used by CSPro. 
+
+Some libraries are created using build scripts located in the [cspro-libraries-third-party](https://github.com/csprousers/cspro-libraries-third-party) repository.
+The built libraries are available in the [cspro-libraries](https://github.com/csprousers/cspro-libraries) repository.
+
+Batch scripts to update many of the libraries are located here:
 
 - *build-tools/Build External Libraries*
+
+
+## Libraries in the Third-Party Libraries Repository
+
 
 
 ## Libraries With Build Scripts

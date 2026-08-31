@@ -20,7 +20,7 @@
 
   <ItemDefinitionGroup>
     <ClCompile>
-      <AdditionalIncludeDirectories>$(CSProDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(CSProDir);$(ThirdPartyIncludeDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions Condition="'$(Configuration)'=='Debug'">WIN_DESKTOP;WIN32;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions Condition="'$(Configuration)'=='Release'">WIN_DESKTOP;WIN32;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ForceConformanceInForLoopScope>true</ForceConformanceInForLoopScope>
@@ -31,7 +31,7 @@
       <AdditionalOptions>/utf-8</AdditionalOptions>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>$(BuildRoot)lib\</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(BuildRoot)lib\;$(ThirdPartyDir)lib\windows-$(PlatformTarget)\</AdditionalLibraryDirectories>
       <ImportLibrary>$(BuildRoot)lib\$(AssemblyName).lib</ImportLibrary>
       <SubSystem>Windows</SubSystem>
     </Link>
