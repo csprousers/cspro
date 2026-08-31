@@ -87,7 +87,9 @@ public class Messenger implements Runnable, Application.ActivityLifecycleCallbac
     private Handler m_handler = new Handler(Looper.getMainLooper());
     public static void CreateMessengerInstance()
     {
-        m_messenger = new Messenger();
+        if (m_messenger == null) {
+            m_messenger = new Messenger();
+        }
     }
 
     public static Messenger getInstance()

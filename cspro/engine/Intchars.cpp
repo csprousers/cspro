@@ -1296,6 +1296,11 @@ SharableString CIntDriver::EvaluateTextFill(const int program_index)
 
     else
     {
-        return EvaluateSharableString(text_fill_node.data_type, text_fill_node.symbol_index_or_expression);
+        SharableString text = EvaluateSharableString(text_fill_node.data_type, text_fill_node.symbol_index_or_expression);
+
+        if( m_usingLogicSettingsV0 )
+            text.MakeTrimRight();
+
+        return text;
     }
 }

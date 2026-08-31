@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "Utf8.h"
 #include "Utf8Convert.h"
 #include <mutex>
@@ -7,6 +7,18 @@
 // --------------------------------------------------------------------------
 // TC = Text Converter
 // --------------------------------------------------------------------------
+
+bool TC::UsesOnlyUtf8SingleByteChars(const std::string_view text_sv)
+{
+    for( const char ch: text_sv )
+    {
+        if( !IsUtf8SingleByte(ch) )
+            return false;
+    }
+
+    return true;
+}
+
 
 const std::string& TC::GetUtf8ForWideChar(const wchar_t ch)
 {

@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "MessageEvaluator.h"
 #include "MessageFile.h"
 #include <zToolsO/Special.h>
@@ -247,7 +247,21 @@ std::variant<SharableString, std::string_view> MessageEvaluator::EvaluateParamet
             if( message_format.evaluated_formatter.has_value() )
             {
                 ASSERT(message_format.evaluated_formatter->find_first_of("df") == std::string::npos);
-                return FormatText(message_format.evaluated_formatter->c_str(), message_parameter->c_str());
+
+                // a formatter like %15s will only work with single-byte characters...
+                if( TC::UsesOnlyUtf8SingleByteChars(*message_parameter) )
+                {
+                    return FormatText(message_format.evaluated_formatter->c_str(), message_parameter->c_str());
+                }
+
+                // ...so convert to wide characters as needed
+                else
+                {
+                    return UTF8_TODO::GetUtf8(
+                        FormatText(UTF8_TODO::GetWide(*message_format.evaluated_formatter).c_str(),
+                                   UTF8_TODO::GetWide(*message_parameter).c_str())
+                    );
+                }
             }
 
             return message_parameter;

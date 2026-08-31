@@ -81,6 +81,26 @@ public class Util
 		return file;
 	}
 
+    // The removeFilename function does not properly handle paths that only include a filename
+    // (with no directory information). This function handles that case properly.
+    // TODO: Eventually removeFilename's implementation should be removeFilenameSAFE's when
+    // all uses of removeFilename can be tested.
+    public static String removeFilenameSAFE(String file)
+	{
+		int slashPos = file.lastIndexOf(File.separator);
+
+		// Handle path with trailing /
+		if (slashPos == file.length() - 1) {
+			if (slashPos != 0)
+				slashPos = file.substring(0, file.length() - 1).lastIndexOf(File.separator);
+		}
+
+		if( slashPos != -1 )
+			return file.substring(0, slashPos + 1);
+
+		return "";
+	}
+
 	public static String removeDirectory(String path)
 	{
 		int slashPos = path.lastIndexOf(File.separator);
