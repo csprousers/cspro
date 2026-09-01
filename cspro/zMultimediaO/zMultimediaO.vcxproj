@@ -19,8 +19,7 @@
       <AdditionalIncludeDirectories>$(CSProDir)external;$(ThirdPartyIncludeDir)webm;$(CSProDir)external\gpac\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalDependencies Condition="'$(Configuration)'=='Debug'">libsharpyuvd.lib;libwebmd.lib;libwebpd.lib;$(CSProDir)external\zlib\lib\$(PlatformTarget)\zlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalDependencies Condition="'$(Configuration)'=='Release'">libsharpyuv.lib;libwebm.lib;libwebp.lib;$(CSProDir)external\zlib\lib\$(PlatformTarget)\zlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libsharpyuv$(ThirdPartyBuildPostfix).lib;libwebm$(ThirdPartyBuildPostfix).lib;libwebp$(ThirdPartyBuildPostfix).lib;$(CSProDir)external\zlib\lib\$(PlatformTarget)\zlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

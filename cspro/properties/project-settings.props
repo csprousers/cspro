@@ -5,6 +5,9 @@
     <BuildRoot>$(SolutionDir)build\$(PlatformTarget)\$(Configuration)\</BuildRoot>
     <OutDir>$(BuildRoot)bin\</OutDir>
     <IntDir>$(BuildRoot)obj\$(ProjectName)\</IntDir>
+    <ThirdPartyBinDir>$(ThirdPartyDir)bin\windows-$(PlatformTarget)\</ThirdPartyBinDir>
+    <ThirdPartyLibDir>$(ThirdPartyDir)lib\windows-$(PlatformTarget)\</ThirdPartyLibDir>
+    <ThirdPartyBuildPostfix Condition="'$(Configuration)'=='Debug'">d</ThirdPartyBuildPostfix>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
@@ -31,7 +34,7 @@
       <AdditionalOptions>/utf-8</AdditionalOptions>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>$(BuildRoot)lib\;$(ThirdPartyDir)lib\windows-$(PlatformTarget)\</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(BuildRoot)lib\;$(ThirdPartyLibDir)</AdditionalLibraryDirectories>
       <ImportLibrary>$(BuildRoot)lib\$(AssemblyName).lib</ImportLibrary>
       <SubSystem>Windows</SubSystem>
     </Link>

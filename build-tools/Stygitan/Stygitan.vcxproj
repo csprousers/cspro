@@ -18,8 +18,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalDependencies Condition="'$(Configuration)'=='Debug'">libeditorconfig_staticd.lib;libpcre2-8-staticd.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalDependencies Condition="'$(Configuration)'=='Release'">libeditorconfig_static.lib;libpcre2-8-static.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libeditorconfig_static$(ThirdPartyBuildPostfix).lib;libpcre2-8-static$(ThirdPartyBuildPostfix).lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
