@@ -15,7 +15,7 @@ Batch scripts to update many of the libraries are located here:
 
 ### EditorConfig
 
-*Current version: 0.12.10*
+*Current version: 0.12.11*
 
 1. Set the Git submodule to the latest release: https://github.com/editorconfig/editorconfig-core-c/releases/latest/
 2. Run the build script.
@@ -26,6 +26,8 @@ Batch scripts to update many of the libraries are located here:
 
 ### libwebm
 
+*Current version: 1.0.0.32*
+
 1. Set the Git submodule to the latest release: https://github.com/webmproject/libwebm/tags
 2. Run the build script.
 3. This copies files into CSPro's *third_party* directory, including some that are not necessary.
@@ -34,6 +36,8 @@ Batch scripts to update many of the libraries are located here:
 
 
 ### libwebp
+
+*Current version: 1.6.0*
 
 1. Set the Git submodule to the latest release: https://github.com/webmproject/libwebp/tags
 2. Run the build script.

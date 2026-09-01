@@ -6,41 +6,17 @@ libpcre2-8-staticd.lib
 
 
 # libwebm
-android-arm64-v8a/libwebm.a
-android-arm64-v8a/libwebmd.a
-android-armeabi-v7a/libwebm.a
-android-armeabi-v7a/libwebmd.a
-android-x86_64/libwebm.a
-android-x86_64/libwebmd.a
-wasm/libwebm.a
-wasm/libwebmd.a
-windows-x64/libwebm.lib
-windows-x64/libwebmd.lib
-windows-x86/libwebm.lib
-windows-x86/libwebmd.lib
+libwebm.a
+libwebmd.a
+libwebm.lib
+libwebmd.lib
 
 # libwebp
-android-arm64-v8a/libsharpyuv.a
-android-arm64-v8a/libsharpyuvd.a
-android-arm64-v8a/libwebp.a
-android-arm64-v8a/libwebpd.a
-android-armeabi-v7a/libsharpyuv.a
-android-armeabi-v7a/libsharpyuvd.a
-android-armeabi-v7a/libwebp.a
-android-armeabi-v7a/libwebpd.a
-android-x86_64/libsharpyuv.a
-android-x86_64/libsharpyuvd.a
-android-x86_64/libwebp.a
-android-x86_64/libwebpd.a
-wasm/libsharpyuv.a
-wasm/libsharpyuvd.a
-wasm/libwebp.a
-wasm/libwebpd.a
-windows-x64/libsharpyuv.lib
-windows-x64/libsharpyuvd.lib
-windows-x64/libwebp.lib
-windows-x64/libwebpd.lib
-windows-x86/libsharpyuv.lib
-windows-x86/libsharpyuvd.lib
-windows-x86/libwebp.lib
-windows-x86/libwebpd.lib
+libsharpyuv.a
+libsharpyuvd.a
+libsharpyuv.lib
+libsharpyuvd.lib
+libwebp.a
+libwebpd.a
+libwebp.lib
+libwebpd.lib
