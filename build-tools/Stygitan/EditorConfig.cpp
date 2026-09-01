@@ -1,6 +1,6 @@
 #include "StdAfx.h"
 #include "EditorConfig.h"
-#include <external/editorconfig/editorconfig.h>
+#include <editorconfig/editorconfig.h>
 
 
 // --------------------------------------------------------------------------

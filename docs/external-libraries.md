@@ -13,6 +13,17 @@ Batch scripts to update many of the libraries are located here:
 ## Libraries in the Third-Party Libraries Repository
 
 
+### EditorConfig
+
+*Current version: 0.12.10*
+
+1. Set the Git submodule to the latest release: https://github.com/editorconfig/editorconfig-core-c/releases/latest/
+2. Run the build script.
+3. This copies files into CSPro's *third_party* directory, including some that are not necessary.
+4. Remove anything that is not already committed.
+5. The built libraries are also available in the *cspro-libraries* repository.
+
+
 ### libwebm
 
 1. Set the Git submodule to the latest release: https://github.com/webmproject/libwebm/tags
@@ -127,15 +138,6 @@ Batch scripts to update many of the libraries are located here:
     * easylogging++.cc
     * easylogging++.h
 5. The library is built as part of the CSPro solution.
-
-
-### EditorConfig
-
-1. Find the latest version and commit here: https://github.com/editorconfig/editorconfig-core-c/releases/latest/
-2. Edit the batch script, *editorconfig.bat*, setting **ec_version** and **ec_commit**.
-3. Run the batch script from a Visual Studio command prompt.
-4. This builds only a x64 version of EditorConfig.
-5. The built libraries, only used by build tools, are not committed to the repository.
 
 
 ### FakeIt
