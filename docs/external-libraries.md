@@ -59,7 +59,7 @@ Batch scripts to update many of the libraries are located here:
 
 ### pugixml
 
-*Current version: 1.15*
+*Current version: 1.16*
 
 1. Set the Git submodule to the latest release: https://github.com/zeux/pugixml/releases/latest/
 2. Run the build script.
