@@ -48,7 +48,7 @@ Batch scripts to update many of the libraries are located here:
 
 ### md4c
 
-*Current version: 0.5.2*
+*Current version: 0.5.3*
 
 1. CSPro-specific code is located in a forked repository: https://github.com/csprousers/cspro-libraries-fork-md4c
 2. Merge the latest release into the *cspro* branch: https://github.com/mity/md4c/tags
