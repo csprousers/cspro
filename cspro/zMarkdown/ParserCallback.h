@@ -1,8 +1,8 @@
-﻿#pragma once
+#pragma once
 
 #include <zMarkdown/zMarkdown.h>
 #include <zMarkdown/Markdown.h>
-#include <external/md4c/md4c.h>
+#include <md4c/md4c.h>
 
 
 // --------------------------------------------------------------------------

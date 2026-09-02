@@ -21,6 +21,9 @@
     <PostBuildEvent>
       <Command>xcopy /D /Y /F /R /S /I "$(CSProDir)html" "$(TargetDir)html"</Command>
     </PostBuildEvent>
+    <Link>
+      <AdditionalDependencies>libmd4c$(ThirdPartyBuildPostfix).lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\external\gumbo\attribute.c">
@@ -165,6 +168,11 @@
       <Project>{9b29cb57-8263-4e12-8908-cc9641fdf0dc}</Project>
       <Private>false</Private>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="$(ThirdPartyBinDir)libmd4c$(ThirdPartyBuildPostfix).dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

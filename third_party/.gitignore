@@ -11,17 +11,26 @@ libpcre2-8-staticd.lib
 
 # libwebm
 libwebm.a
-libwebmd.a
 libwebm.lib
+libwebmd.a
 libwebmd.lib
 
 
 # libwebp
 libsharpyuv.a
-libsharpyuvd.a
 libsharpyuv.lib
+libsharpyuvd.a
 libsharpyuvd.lib
 libwebp.a
-libwebpd.a
 libwebp.lib
+libwebpd.a
 libwebpd.lib
+
+
+# md4c
+libmd4c.a
+libmd4c.dll
+libmd4c.lib
+libmd4cd.a
+libmd4cd.dll
+libmd4cd.lib

@@ -1,8 +1,3 @@
-// CSPro additions noted with "CSPro"
-
-#include <zToolsO/zToolsO.h> // CSPro
-
-
 /*
  * MD4C: Markdown parser for C
  * (http://github.com/mity/md4c)
@@ -42,15 +37,14 @@ struct ENTITY_tag {
     unsigned codepoints[2];
 };
 
-
-#ifdef __cplusplus // CSPro
+// CSPro: added so that entity_lookup is exported
+#ifdef __cplusplus
     extern "C" {
 #endif
 
-CLASS_DECL_ZTOOLSO // CSPro
 const ENTITY* entity_lookup(const char* name, size_t name_size);
 
-#ifdef __cplusplus // CSPro
+#ifdef __cplusplus
     }  /* extern "C" { */
 #endif
 

@@ -9,17 +9,11 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
     </Filter>
-    <Filter Include="md4c">
-      <UniqueIdentifier>{4fe0d5eb-7ddc-495d-9350-373bbf0ff4d4}</UniqueIdentifier>
+    <Filter Include="Dependencies">
+      <UniqueIdentifier>{bfe86bd1-05eb-4af0-b523-d21687621f15}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\external\md4c\md4c-html.c">
-      <Filter>md4c</Filter>
-    </ClCompile>
-    <ClCompile Include="..\external\md4c\md4c.c">
-      <Filter>md4c</Filter>
-    </ClCompile>
     <ClCompile Include="HtmlParserCallback.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -46,5 +40,10 @@
     <ClInclude Include="zMarkdown.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="$(ThirdPartyBinDir)libmd4c$(ThirdPartyBuildPostfix).dll">
+      <Filter>Dependencies</Filter>
+    </None>
   </ItemGroup>
 </Project>

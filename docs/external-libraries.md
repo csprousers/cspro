@@ -1,6 +1,6 @@
 # CSPro's External Libraries
 
-This document details information about the external libraries used by CSPro. 
+This document details information about the external libraries used by CSPro.
 
 Some libraries are created using build scripts located in the [cspro-libraries-third-party](https://github.com/csprousers/cspro-libraries-third-party) repository.
 The built libraries are available in the [cspro-libraries](https://github.com/csprousers/cspro-libraries) repository.
@@ -43,6 +43,17 @@ Batch scripts to update many of the libraries are located here:
 2. Run the build script.
 3. This copies files into CSPro's *third_party* directory, including some that are not necessary.
 4. Remove anything that is not already committed.
+5. The built libraries are also available in the *cspro-libraries* repository.
+
+
+### md4c
+
+*Current version: 0.5.2*
+
+1. CSPro-specific code is located in a forked repository: https://github.com/csprousers/cspro-libraries-fork-md4c
+2. Merge the latest release into the *cspro* branch: https://github.com/mity/md4c/tags
+3. Run the build script.
+4. This copies files into CSPro's *third_party* directory.
 5. The built libraries are also available in the *cspro-libraries* repository.
 
 
@@ -321,18 +332,6 @@ Batch scripts to update many of the libraries are located here:
 4. This copies files into the CSPro solution, including some that are not necessary.
 5. Remove anything that is not already committed.
 6. There are CSPro modifications made to many files that have to be restored so that the library builds in the CSPro environment. These modification relate to header inclusion and bindtextdomain.
-7. The library is built as part of the CSPro solution.
-
-
-### md4c
-
-1. Find the latest tag here: https://github.com/mity/md4c/tags
-2. Edit the batch script, *md4c.bat*, setting **md_tag**.
-3. Run the batch script.
-4. This copies files into the CSPro solution, including some that are not necessary.
-5. Remove anything that is not already committed.
-6. There are CSPro modifications that have to be restored in:
-    * entity.h
 7. The library is built as part of the CSPro solution.
 
 

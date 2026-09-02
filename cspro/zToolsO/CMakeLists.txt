@@ -1,7 +1,6 @@
 project(zToolsO)
 
 set(BZIP2_DIR ${EXTERNAL_DIR}/bzip2)
-set(MD4C_DIR ${EXTERNAL_DIR}/md4c)
 set(RIJNDAEL_DIR rijndael)
 set(SCRYPT_DIR ${EXTERNAL_DIR}/scrypt)
 
@@ -55,8 +54,6 @@ add_library(${PROJECT_NAME}
     ${BZIP2_DIR}/decompress.c
     ${BZIP2_DIR}/huffman.c
     ${BZIP2_DIR}/randtable.c
-
-    ${MD4C_DIR}/entity.c
 
     ${RIJNDAEL_DIR}/rijndael-alg-fst.c
 

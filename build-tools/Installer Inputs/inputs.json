@@ -153,6 +153,7 @@
     "DataViewer.exe",
     "Excel2CSPro.exe",
     "libcurl.dll",
+    "libmd4c.dll",
     "OAuth2Authorizer.exe",
     "ParadataConcat.exe",
     "ParadataViewer.exe",

@@ -1,7 +1,7 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "HtmlishSanitizer.h"
 #include <external/gumbo/gumbo.h>
-#include <external/md4c/entity.h>
+#include <md4c/entity.h>
 
 
 // --------------------------------------------------------------------------
