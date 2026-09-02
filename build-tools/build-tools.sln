@@ -110,8 +110,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zSortO", "..\cspro\zSortO\z
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zCapiO", "..\cspro\zCapiO\zCapiO.vcxproj", "{9CFF378D-0D09-4800-866D-5FAB8DF44FBF}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zYaml", "..\cspro\zYaml\zYaml.vcxproj", "{0476F3BC-79CC-4653-BA60-31BB8DEAD056}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zRtf", "..\cspro\zRtf\zRtf.vcxproj", "{F5702EFD-6D1C-4591-BC10-184BABF8C4E1}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Update Example Files", "Update Example Files\Update Example Files.vcxproj", "{23B7DB2D-E00E-48BC-81A1-130FD46E6077}"
@@ -330,10 +328,6 @@ Global
 		{9CFF378D-0D09-4800-866D-5FAB8DF44FBF}.Debug|x64.Build.0 = Debug|x64
 		{9CFF378D-0D09-4800-866D-5FAB8DF44FBF}.Release|x64.ActiveCfg = Release|x64
 		{9CFF378D-0D09-4800-866D-5FAB8DF44FBF}.Release|x64.Build.0 = Release|x64
-		{0476F3BC-79CC-4653-BA60-31BB8DEAD056}.Debug|x64.ActiveCfg = Debug|x64
-		{0476F3BC-79CC-4653-BA60-31BB8DEAD056}.Debug|x64.Build.0 = Debug|x64
-		{0476F3BC-79CC-4653-BA60-31BB8DEAD056}.Release|x64.ActiveCfg = Release|x64
-		{0476F3BC-79CC-4653-BA60-31BB8DEAD056}.Release|x64.Build.0 = Release|x64
 		{F5702EFD-6D1C-4591-BC10-184BABF8C4E1}.Debug|x64.ActiveCfg = Debug|x64
 		{F5702EFD-6D1C-4591-BC10-184BABF8C4E1}.Debug|x64.Build.0 = Debug|x64
 		{F5702EFD-6D1C-4591-BC10-184BABF8C4E1}.Release|x64.ActiveCfg = Release|x64

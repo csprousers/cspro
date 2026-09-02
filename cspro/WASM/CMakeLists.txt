@@ -136,7 +136,6 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     zUtilO
     zViewO
     zXml
-    zYaml
     zZip
 )
 
@@ -184,5 +183,4 @@ add_subdirectory(${CSPRO_DIR}/zUtilF zUtilF)
 add_subdirectory(${CSPRO_DIR}/zUtilO zUtilO)
 add_subdirectory(${CSPRO_DIR}/zViewO zViewO)
 add_subdirectory(${CSPRO_DIR}/zXml zXml)
-add_subdirectory(${CSPRO_DIR}/zYaml zYaml)
 add_subdirectory(${CSPRO_DIR}/zZip zZip)

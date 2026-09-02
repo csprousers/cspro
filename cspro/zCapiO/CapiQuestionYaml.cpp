@@ -1,9 +1,8 @@
 #include "StdAfx.h"
 #include "CapiQuestionYaml.h"
 #include "CapiQuestionManager.h"
-#ifdef CSPRO_NO_DLLS
+
 #define YAML_CPP_STATIC_DEFINE
-#endif
 #include <yaml-cpp/yaml.h>
 
 

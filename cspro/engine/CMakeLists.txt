@@ -122,5 +122,9 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     ${EXTERNAL_DIR}
     ${EXTERNAL_DIR}/geometry.hpp/include
     ${EXTERNAL_DIR}/variant/include
-    ${EXTERNAL_DIR}/yaml-cpp/include
+)
+
+target_link_libraries(${PROJECT_NAME} PRIVATE
+    # yaml-cpp
+    ${THIRD_PARTY_LIB_DIR}/libyaml-cpp${THIRD_PARTY_LIB_EXT}
 )

@@ -68,6 +68,17 @@ Batch scripts to update many of the libraries are located here:
 5. The built libraries are also available in the *cspro-libraries* repository.
 
 
+### yaml-cpp
+
+*Current version: 0.8.0*
+
+1. Set the Git submodule to the latest release: https://github.com/jbeder/yaml-cpp/releases/latest/
+2. Run the build script.
+3. This copies files into CSPro's *third_party* directory, including some that are not necessary.
+4. Remove anything that is not already committed.
+5. The built libraries are also available in the *cspro-libraries* repository.
+
+
 
 ## Libraries With Build Scripts
 
@@ -504,16 +515,6 @@ Batch scripts to update many of the libraries are located here:
 3. Run the batch script.
 4. This copies files into the CSPro's *html* directory, including some that are not necessary.
 5. Remove anything that is not already committed.
-
-
-### yaml-cpp
-
-1. Find the latest version here: https://github.com/jbeder/yaml-cpp/releases/latest/
-2. Edit the batch script, *yaml-cpp.bat*, setting **yaml_cpp_version**.
-3. Run the batch script.
-4. This copies files into the CSPro solution, including some that are not necessary.
-5. Remove anything that is not already committed.
-6. The library is built as part of the CSPro solution.
 
 
 ### zlib

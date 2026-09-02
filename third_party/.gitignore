@@ -41,3 +41,10 @@ libpugixml.a
 libpugixml.lib
 libpugixmld.a
 libpugixmld.lib
+
+
+# yaml-cpp
+libyaml-cpp.a
+libyaml-cpp.lib
+libyaml-cppd.a
+libyaml-cppd.lib
