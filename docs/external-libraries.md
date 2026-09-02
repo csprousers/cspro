@@ -70,7 +70,7 @@ Batch scripts to update many of the libraries are located here:
 
 ### yaml-cpp
 
-*Current version: 0.8.0*
+*Current version: 0.9.0*
 
 1. Set the Git submodule to the latest release: https://github.com/jbeder/yaml-cpp/releases/latest/
 2. Run the build script.
