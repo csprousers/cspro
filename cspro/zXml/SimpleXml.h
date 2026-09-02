@@ -1,8 +1,8 @@
-﻿#pragma once
+#pragma once
 
 #include <zXml/zXml.h>
 #include <zToolsO/CSProException.h>
-#include <external/pugixml/pugixml.hpp>
+#include <pugixml/pugixml.hpp>
 
 class XmlNode;
 class XmlNodeSet;

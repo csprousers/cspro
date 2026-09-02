@@ -9,14 +9,8 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
     </Filter>
-    <Filter Include="pugixml">
-      <UniqueIdentifier>{1395685d-cb03-4cfc-89fe-d958a778ac55}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\external\pugixml\pugixml.cpp">
-      <Filter>pugixml</Filter>
-    </ClCompile>
     <ClCompile Include="SimpleXml.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

@@ -34,3 +34,10 @@ libmd4c.lib
 libmd4cd.a
 libmd4cd.dll
 libmd4cd.lib
+
+
+# pugixml
+libpugixml.a
+libpugixml.lib
+libpugixmld.a
+libpugixmld.lib

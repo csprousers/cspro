@@ -57,6 +57,17 @@ Batch scripts to update many of the libraries are located here:
 5. The built libraries are also available in the *cspro-libraries* repository.
 
 
+### pugixml
+
+*Current version: 1.15*
+
+1. Set the Git submodule to the latest release: https://github.com/zeux/pugixml/releases/latest/
+2. Run the build script.
+3. This copies files into CSPro's *third_party* directory, including some that are not necessary.
+4. Remove anything that is not already committed.
+5. The built libraries are also available in the *cspro-libraries* repository.
+
+
 
 ## Libraries With Build Scripts
 
@@ -351,15 +362,6 @@ Batch scripts to update many of the libraries are located here:
 3. Run the batch script.
 4. This copies files into the CSPro's *html* directory.
 5. Run the batch script *Update Android HTML Assets*.
-
-
-### pugixml
-
-1. Find the latest version here: https://github.com/zeux/pugixml/releases/latest/
-2. Edit the batch script, *pugixml.bat*, setting **px_version**.
-3. Run the batch script.
-4. This copies files into the CSPro solution.
-5. The library is built as part of the CSPro solution.
 
 
 ### QR-Code-generator
