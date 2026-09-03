@@ -19,7 +19,7 @@
       <AdditionalIncludeDirectories>$(CSProDir)external;$(ThirdPartyIncludeDir)webm;$(CSProDir)external\gpac\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>libsharpyuv$(ThirdPartyBuildPostfix).lib;libwebm$(ThirdPartyBuildPostfix).lib;libwebp$(ThirdPartyBuildPostfix).lib;libz$(ThirdPartyBuildPostfix).lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libexif$(ThirdPartyBuildPostfix).lib;libsharpyuv$(ThirdPartyBuildPostfix).lib;libwebm$(ThirdPartyBuildPostfix).lib;libwebp$(ThirdPartyBuildPostfix).lib;libz$(ThirdPartyBuildPostfix).lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -224,106 +224,6 @@
       <WarningLevel>Level2</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\external\gpac\src\utils\xml_parser.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level2</WarningLevel>
-    </ClCompile>
-    <ClCompile Include="..\external\libexif\canon\exif-mnote-data-canon.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level2</WarningLevel>
-    </ClCompile>
-    <ClCompile Include="..\external\libexif\canon\mnote-canon-entry.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level2</WarningLevel>
-    </ClCompile>
-    <ClCompile Include="..\external\libexif\canon\mnote-canon-tag.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level2</WarningLevel>
-    </ClCompile>
-    <ClCompile Include="..\external\libexif\exif-byte-order.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level2</WarningLevel>
-    </ClCompile>
-    <ClCompile Include="..\external\libexif\exif-content.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level2</WarningLevel>
-    </ClCompile>
-    <ClCompile Include="..\external\libexif\exif-data.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level2</WarningLevel>
-    </ClCompile>
-    <ClCompile Include="..\external\libexif\exif-entry.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level2</WarningLevel>
-    </ClCompile>
-    <ClCompile Include="..\external\libexif\exif-format.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level2</WarningLevel>
-    </ClCompile>
-    <ClCompile Include="..\external\libexif\exif-gps-ifd.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level2</WarningLevel>
-    </ClCompile>
-    <ClCompile Include="..\external\libexif\exif-ifd.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level2</WarningLevel>
-    </ClCompile>
-    <ClCompile Include="..\external\libexif\exif-loader.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level2</WarningLevel>
-    </ClCompile>
-    <ClCompile Include="..\external\libexif\exif-log.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level2</WarningLevel>
-    </ClCompile>
-    <ClCompile Include="..\external\libexif\exif-mem.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level2</WarningLevel>
-    </ClCompile>
-    <ClCompile Include="..\external\libexif\exif-mnote-data.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level2</WarningLevel>
-    </ClCompile>
-    <ClCompile Include="..\external\libexif\exif-tag.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level2</WarningLevel>
-    </ClCompile>
-    <ClCompile Include="..\external\libexif\exif-utils.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level2</WarningLevel>
-    </ClCompile>
-    <ClCompile Include="..\external\libexif\fuji\exif-mnote-data-fuji.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level2</WarningLevel>
-    </ClCompile>
-    <ClCompile Include="..\external\libexif\fuji\mnote-fuji-entry.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level2</WarningLevel>
-    </ClCompile>
-    <ClCompile Include="..\external\libexif\fuji\mnote-fuji-tag.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level2</WarningLevel>
-    </ClCompile>
-    <ClCompile Include="..\external\libexif\olympus\exif-mnote-data-olympus.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level2</WarningLevel>
-    </ClCompile>
-    <ClCompile Include="..\external\libexif\olympus\mnote-olympus-entry.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level2</WarningLevel>
-    </ClCompile>
-    <ClCompile Include="..\external\libexif\olympus\mnote-olympus-tag.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level2</WarningLevel>
-    </ClCompile>
-    <ClCompile Include="..\external\libexif\pentax\exif-mnote-data-pentax.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level2</WarningLevel>
-    </ClCompile>
-    <ClCompile Include="..\external\libexif\pentax\mnote-pentax-entry.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level2</WarningLevel>
-    </ClCompile>
-    <ClCompile Include="..\external\libexif\pentax\mnote-pentax-tag.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level2</WarningLevel>
     </ClCompile>

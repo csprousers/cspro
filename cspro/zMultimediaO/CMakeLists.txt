@@ -2,7 +2,6 @@ project(zMultimediaO)
 
 set(GPAC_DIR ${EXTERNAL_DIR}/gpac)
 set(GPAC_SRC_DIR ${GPAC_DIR}/src)
-set(LIBEXIF_DIR ${EXTERNAL_DIR}/libexif)
 set(QRCODEGEN_DIR ${EXTERNAL_DIR}/qrcodegen)
 
 add_library(${PROJECT_NAME}
@@ -62,32 +61,6 @@ add_library(${PROJECT_NAME}
     ${GPAC_SRC_DIR}/utils/utf.c
     ${GPAC_SRC_DIR}/utils/xml_parser.c
 
-    ${LIBEXIF_DIR}/exif-byte-order.c
-    ${LIBEXIF_DIR}/exif-content.c
-    ${LIBEXIF_DIR}/exif-data.c
-    ${LIBEXIF_DIR}/exif-entry.c
-    ${LIBEXIF_DIR}/exif-format.c
-    ${LIBEXIF_DIR}/exif-gps-ifd.c
-    ${LIBEXIF_DIR}/exif-ifd.c
-    ${LIBEXIF_DIR}/exif-loader.c
-    ${LIBEXIF_DIR}/exif-log.c
-    ${LIBEXIF_DIR}/exif-mem.c
-    ${LIBEXIF_DIR}/exif-mnote-data.c
-    ${LIBEXIF_DIR}/exif-tag.c
-    ${LIBEXIF_DIR}/exif-utils.c
-    ${LIBEXIF_DIR}/canon/exif-mnote-data-canon.c
-    ${LIBEXIF_DIR}/canon/mnote-canon-entry.c
-    ${LIBEXIF_DIR}/canon/mnote-canon-tag.c
-    ${LIBEXIF_DIR}/fuji/exif-mnote-data-fuji.c
-    ${LIBEXIF_DIR}/fuji/mnote-fuji-entry.c
-    ${LIBEXIF_DIR}/fuji/mnote-fuji-tag.c
-    ${LIBEXIF_DIR}/olympus/exif-mnote-data-olympus.c
-    ${LIBEXIF_DIR}/olympus/mnote-olympus-entry.c
-    ${LIBEXIF_DIR}/olympus/mnote-olympus-tag.c
-    ${LIBEXIF_DIR}/pentax/exif-mnote-data-pentax.c
-    ${LIBEXIF_DIR}/pentax/mnote-pentax-entry.c
-    ${LIBEXIF_DIR}/pentax/mnote-pentax-tag.c
-
     ${QRCODEGEN_DIR}/qrcodegen.cpp
 )
 
@@ -107,6 +80,9 @@ set_source_files_properties(
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
+    # libexif
+    ${THIRD_PARTY_LIB_DIR}/libexif${THIRD_PARTY_LIB_EXT}
+
     # libwebm
     ${THIRD_PARTY_LIB_DIR}/libwebm${THIRD_PARTY_LIB_EXT}
 

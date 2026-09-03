@@ -3,7 +3,7 @@
 #include <zToolsO/DateTime.h>
 #include <zToolsO/EnumHelpers.h>
 #include <zToolsO/NumberToString.h>
-#include <external/libexif/exif-data.h>
+#include <libexif/exif-data.h>
 
 
 // --------------------------------------------------------------------------

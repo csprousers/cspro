@@ -28,6 +28,13 @@ libgumbo-parserd.a
 libgumbo-parserd.lib
 
 
+# libexif
+libexif.a
+libexif.lib
+libexifd.a
+libexifd.lib
+
+
 # libwebm
 libwebm.a
 libwebm.lib

@@ -57,6 +57,19 @@ Batch scripts to update many of the libraries are located here:
 5. The built libraries are also available in the *cspro-libraries* repository.
 
 
+### libexif
+
+*Current version: 0.6.25*
+
+1. CSPro-specific code is located in a forked repository: https://github.com/csprousers/cspro-libraries-fork-libexif
+2. Merge the latest release into the *cspro* branch: https://github.com/libexif/libexif/releases/latest/
+3. Modify the version numbers in *config.h*.
+4. Run the build script.
+5. This copies files into CSPro's *third_party* directory, including some that are not necessary.
+6. Remove anything that is not already committed.
+7. The built libraries are also available in the *cspro-libraries* repository.
+
+
 ### libwebm
 
 *Current version: 1.0.0.32*
@@ -355,17 +368,6 @@ Batch scripts to update many of the libraries are located here:
 2. This copies files into the CSPro solution, including some that are not necessary.
 3. Remove anything that is not already committed.
 4. The library is built as part of the CSPro solution.
-
-
-### libexif
-
-1. Find the latest version here: https://github.com/libexif/libexif/releases/latest/
-2. Edit the batch script, *libexif.bat*, setting **lx_version**.
-3. Run the batch script.
-4. This copies files into the CSPro solution, including some that are not necessary.
-5. Remove anything that is not already committed.
-6. There are CSPro modifications made to many files that have to be restored so that the library builds in the CSPro environment. These modification relate to header inclusion and bindtextdomain.
-7. The library is built as part of the CSPro solution.
 
 
 ### miniz
