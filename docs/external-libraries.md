@@ -24,6 +24,17 @@ Batch scripts to update many of the libraries are located here:
 5. The built libraries are also available in the *cspro-libraries* repository.
 
 
+### CHMLib
+
+*Current version: 0.3 (this library no longer appears to be updated)*
+
+1. CSPro-specific code is located in a forked repository: https://github.com/csprousers/cspro-libraries-fork-CHMLib
+2. Confirm that there are no longer updates: https://github.com/jedwing/CHMLib
+3. Run the build script.
+4. This copies files into CSPro's *third_party* directory.
+5. The built libraries are also available in the *cspro-libraries* repository.
+
+
 ### EditorConfig
 
 *Current version: 0.12.11*
@@ -137,17 +148,6 @@ Batch scripts to update many of the libraries are located here:
 5. Run the batch script *Update Android HTML Assets*.
 
 
-### CHMLib
-
-*(This library has not been updated in years.)*
-
-1. Run the batch script, *chmlib.bat*.
-2. This copies files into the CSPro solution, including some that are not necessary.
-3. Remove anything that is not already committed.
-4. There are CSPro modifications that have to be restored in:
-    * chm_lib.c
-    * chm_lib.h
-5. The library is built as part of the CSPro solution.
 
 
 ### CodeMirror

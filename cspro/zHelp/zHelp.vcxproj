@@ -17,16 +17,11 @@
     <ClCompile>
       <PreprocessorDefinitions>ZHELP_EXPORTS;_AFXEXT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
+    <Link>
+      <AdditionalDependencies>libchm$(ThirdPartyBuildPostfix).lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\external\CHMLib\chm_lib.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level2</WarningLevel>
-    </ClCompile>
-    <ClCompile Include="..\external\CHMLib\lzx.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level3</WarningLevel>
-    </ClCompile>
     <ClCompile Include="ChmFileReader.cpp" />
     <ClCompile Include="ChmFileVirtualFile.cpp" />
     <ClCompile Include="stdafx.cpp">
@@ -35,8 +30,6 @@
     <ClCompile Include="zHelp.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\external\CHMLib\chm_lib.h" />
-    <ClInclude Include="..\external\CHMLib\lzx.h" />
     <ClInclude Include="ChmFileReader.h" />
     <ClInclude Include="ChmFileVirtualFile.h" />
     <ClInclude Include="stdafx.h" />

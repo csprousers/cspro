@@ -9,6 +9,11 @@ libbzip2d.a
 libbzip2d.lib
 
 
+# CHMLib
+libchm.lib
+libchmd.lib
+
+
 # editorconfig-core-c
 libeditorconfig_static.lib
 libeditorconfig_staticd.lib

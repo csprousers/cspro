@@ -1,4 +1,4 @@
-﻿// CSPro modifications marked with // CSPro
+// CSPro modifications marked with // CSPro
 
 #define PPC_BSTR // CSPro
 
@@ -90,7 +90,6 @@ struct chmUnitInfo
 /* open an ITS archive */
 #ifdef PPC_BSTR
 /* RWE 6/12/2003 */
-//struct chmFile* chm_open(BSTR filename);
 struct chmFile* chm_open(const wchar_t* filename); // CSPro
 #else
 struct chmFile* chm_open(const char *filename);
