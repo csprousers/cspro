@@ -59,7 +59,7 @@ Batch scripts to update many of the libraries are located here:
 
 ### libexif
 
-*Current version: 0.6.25*
+*Current version: 0.6.26*
 
 1. CSPro-specific code is located in a forked repository: https://github.com/csprousers/cspro-libraries-fork-libexif
 2. Merge the latest release into the *cspro* branch: https://github.com/libexif/libexif/releases/latest/
