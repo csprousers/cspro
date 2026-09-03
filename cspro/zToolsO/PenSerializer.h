@@ -2,7 +2,7 @@
 
 #include <zToolsO/Serializer.h>
 #include <zToolsO/PortableFunctions.h>
-#include <external/bzip2/bzlib.h>
+#include <bzip2/bzlib.h>
 
 
 class PenSerializer : public SerializerImpl

@@ -1,6 +1,5 @@
 project(zToolsO)
 
-set(BZIP2_DIR ${EXTERNAL_DIR}/bzip2)
 set(RIJNDAEL_DIR rijndael)
 set(SCRYPT_DIR ${EXTERNAL_DIR}/scrypt)
 
@@ -47,14 +46,6 @@ add_library(${PROJECT_NAME}
     VarFuncs.cpp
     $<$<BOOL:${WIN32}>:WinRegistry.cpp>
 
-    ${BZIP2_DIR}/blocksort.c
-    ${BZIP2_DIR}/bzlib.c
-    ${BZIP2_DIR}/compress.c
-    ${BZIP2_DIR}/crctable.c
-    ${BZIP2_DIR}/decompress.c
-    ${BZIP2_DIR}/huffman.c
-    ${BZIP2_DIR}/randtable.c
-
     ${RIJNDAEL_DIR}/rijndael-alg-fst.c
 
     ${SCRYPT_DIR}/insecure_memzero.c
@@ -67,4 +58,9 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 
 target_precompile_headers(${PROJECT_NAME} PRIVATE
     "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/StdAfx.h>"
+)
+
+target_link_libraries(${PROJECT_NAME} PRIVATE
+    # bzip2
+    ${THIRD_PARTY_LIB_DIR}/libbzip2${THIRD_PARTY_LIB_EXT}
 )

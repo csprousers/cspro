@@ -21,35 +21,11 @@
     <Filter Include="Source Files\rijndael">
       <UniqueIdentifier>{d7f6f0d9-1b16-46a1-8988-afe08d42274e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\bzip2">
-      <UniqueIdentifier>{eb8a8ef6-f3b8-45c5-9a32-1831d2c2c735}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\bzip2">
       <UniqueIdentifier>{bb8c6771-04be-4fde-814b-9111545d344d}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\external\bzip2\blocksort.c">
-      <Filter>Source Files\bzip2</Filter>
-    </ClCompile>
-    <ClCompile Include="..\external\bzip2\bzlib.c">
-      <Filter>Source Files\bzip2</Filter>
-    </ClCompile>
-    <ClCompile Include="..\external\bzip2\compress.c">
-      <Filter>Source Files\bzip2</Filter>
-    </ClCompile>
-    <ClCompile Include="..\external\bzip2\crctable.c">
-      <Filter>Source Files\bzip2</Filter>
-    </ClCompile>
-    <ClCompile Include="..\external\bzip2\decompress.c">
-      <Filter>Source Files\bzip2</Filter>
-    </ClCompile>
-    <ClCompile Include="..\external\bzip2\huffman.c">
-      <Filter>Source Files\bzip2</Filter>
-    </ClCompile>
-    <ClCompile Include="..\external\bzip2\randtable.c">
-      <Filter>Source Files\bzip2</Filter>
-    </ClCompile>
     <ClCompile Include="..\external\scrypt\insecure_memzero.c">
       <Filter>Source Files\scrypt</Filter>
     </ClCompile>
@@ -208,7 +184,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\external\bzip2\bzlib.h">
+    <ClInclude Include="$(ThirdPartyPrebuiltIncludeDir)bzip2\bzlib.h">
       <Filter>Header Files\bzip2</Filter>
     </ClInclude>
     <ClInclude Include="..\external\scrypt\insecure_memzero.h">

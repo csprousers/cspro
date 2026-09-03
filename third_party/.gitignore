@@ -2,6 +2,13 @@
 !lib
 
 
+# bzip2
+libbzip2.a
+libbzip2.lib
+libbzip2d.a
+libbzip2d.lib
+
+
 # editorconfig-core-c
 libeditorconfig_static.lib
 libeditorconfig_staticd.lib

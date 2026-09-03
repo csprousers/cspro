@@ -18,6 +18,9 @@
       <PreprocessorDefinitions>ZTOOLSO_IMPL;_AFXEXT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(CSProDir)external;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
+    <Link>
+      <AdditionalDependencies>libbzip2$(ThirdPartyBuildPostfix).lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Platform)'=='Win32'" Label="/J means char is treated as unsigned char (X64_TODO remove)">
     <ClCompile>
@@ -25,31 +28,6 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\external\bzip2\blocksort.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\external\bzip2\bzlib.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level2</WarningLevel>
-    </ClCompile>
-    <ClCompile Include="..\external\bzip2\compress.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level2</WarningLevel>
-    </ClCompile>
-    <ClCompile Include="..\external\bzip2\crctable.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\external\bzip2\decompress.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level3</WarningLevel>
-    </ClCompile>
-    <ClCompile Include="..\external\bzip2\huffman.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level3</WarningLevel>
-    </ClCompile>
-    <ClCompile Include="..\external\bzip2\randtable.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-    </ClCompile>
     <ClCompile Include="..\external\scrypt\insecure_memzero.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
     </ClCompile>
@@ -114,7 +92,7 @@
     <ClCompile Include="zToolsO.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\external\bzip2\bzlib.h" />
+    <ClInclude Include="$(ThirdPartyPrebuiltIncludeDir)bzip2\bzlib.h" />
     <ClInclude Include="..\external\scrypt\insecure_memzero.h" />
     <ClInclude Include="..\external\scrypt\sha256.h" />
     <ClInclude Include="..\external\scrypt\sysendian.h" />

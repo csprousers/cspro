@@ -13,6 +13,17 @@ Batch scripts to update many of the libraries are located here:
 ## Libraries in the Third-Party Libraries Repository
 
 
+### bzip2
+
+*Current version: 1.0.8*
+
+1. CSPro-specific code is located in a cloned repository: https://github.com/csprousers/cspro-libraries-fork-bzip2
+2. Incorporate any new code, if available, into the *cspro* branch: https://www.sourceware.org/bzip2/downloads.html
+3. Run the build script.
+4. This copies files into CSPro's *third_party* directory.
+5. The built libraries are also available in the *cspro-libraries* repository.
+
+
 ### EditorConfig
 
 *Current version: 0.12.11*
@@ -104,18 +115,6 @@ Batch scripts to update many of the libraries are located here:
 3. Run the batch script.
 4. This copies files into the CSPro's *html* directory.
 5. Run the batch script *Update Android HTML Assets*.
-
-
-### bzip2
-
-1. Find the latest version here: https://www.sourceware.org/bzip2/downloads.html
-2. Edit the batch script, *bzip2.bat*, setting **bzip2_version**.
-3. Run the batch script.
-4. This copies files into the CSPro solution, including some that are not necessary.
-5. Remove anything that is not already committed.
-6. There are CSPro modifications that have to be restored in:
-    * bzlib_private.h
-7. The library is built as part of the CSPro solution.
 
 
 ### Chart.js
