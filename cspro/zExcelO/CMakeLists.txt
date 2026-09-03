@@ -51,3 +51,8 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 target_precompile_headers(${PROJECT_NAME} PRIVATE
     "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/stdafx.h>"
 )
+
+target_link_libraries(${PROJECT_NAME} PRIVATE
+    # zlib
+    ${THIRD_PARTY_LIB_DIR}/libz${THIRD_PARTY_LIB_EXT}
+)

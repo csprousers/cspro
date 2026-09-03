@@ -4,7 +4,7 @@
 #include <zToolsO/Tools.h>
 #include <webp/decode.h>
 #include <webp/encode.h>
-#include <external/zlib/zlib.h>
+#include <zlib/zlib.h>
 
 
 #define STBI_WINDOWS_UTF8

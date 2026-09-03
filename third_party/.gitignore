@@ -48,3 +48,12 @@ libyaml-cpp.a
 libyaml-cpp.lib
 libyaml-cppd.a
 libyaml-cppd.lib
+
+
+# zlib
+libz.a
+libz.dll
+libz.lib
+libzd.a
+libzd.dll
+libzd.lib

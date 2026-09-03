@@ -19,7 +19,7 @@
       <AdditionalIncludeDirectories>$(CSProDir)external;$(ThirdPartyIncludeDir)webm;$(CSProDir)external\gpac\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>libsharpyuv$(ThirdPartyBuildPostfix).lib;libwebm$(ThirdPartyBuildPostfix).lib;libwebp$(ThirdPartyBuildPostfix).lib;$(CSProDir)external\zlib\lib\$(PlatformTarget)\zlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libsharpyuv$(ThirdPartyBuildPostfix).lib;libwebm$(ThirdPartyBuildPostfix).lib;libwebp$(ThirdPartyBuildPostfix).lib;libz$(ThirdPartyBuildPostfix).lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -361,6 +361,11 @@
       <Project>{9b29cb57-8263-4e12-8908-cc9641fdf0dc}</Project>
       <Private>false</Private>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="$(ThirdPartyBinDir)libz$(ThirdPartyBuildPostfix).dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

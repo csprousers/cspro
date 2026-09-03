@@ -92,9 +92,6 @@ add_custom_command(TARGET ${PROJECT_NAME}
 
 # supporting libraries
 target_link_libraries(${PROJECT_NAME} PRIVATE
-    # external libraries
-    zlib
-
     # CSPro libraries
     engine
     zAction
@@ -138,9 +135,6 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     zXml
     zZip
 )
-
-# external libraries
-add_subdirectory(${EXTERNAL_DIR}/zlib zlib)
 
 # CSPro libraries
 add_subdirectory(${CSPRO_DIR}/engine engine)

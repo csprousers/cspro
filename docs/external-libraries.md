@@ -79,6 +79,18 @@ Batch scripts to update many of the libraries are located here:
 5. The built libraries are also available in the *cspro-libraries* repository.
 
 
+### zlib
+
+*Current version: *1.3.2*
+
+1. Set the Git submodule to the latest release: https://github.com/madler/zlib/releases/latest/
+2. Run the build script.
+3. This copies files into CSPro's *third_party* directory, including some that are not necessary.
+4. Remove anything that is not already committed.
+5. Different build configurations may result in different versions of *zconf.h*. Commit the Windows version.
+6. The built libraries are also available in the *cspro-libraries* repository.
+
+
 
 ## Libraries With Build Scripts
 
@@ -515,13 +527,6 @@ Batch scripts to update many of the libraries are located here:
 3. Run the batch script.
 4. This copies files into the CSPro's *html* directory, including some that are not necessary.
 5. Remove anything that is not already committed.
-
-
-### zlib
-
-1. Run the batch script, *zlib.bat*, from a Visual Studio command prompt.
-2. This builds both x86 and x64 versions of zlib.
-3. The built libraries are committed to the repository.
 
 
 

@@ -16,15 +16,11 @@
   <ItemDefinitionGroup>
     <ClCompile>
       <PreprocessorDefinitions>ZEXCELO_EXPORTS;NOUNCRYPT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(CSProDir)external\zlib;$(CSProDir)external\libxlsxwriter\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ThirdPartyIncludeDir)zlib;$(CSProDir)external\libxlsxwriter\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>$(CSProDir)external\zlib\lib\$(PlatformTarget)\zlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libz$(ThirdPartyBuildPostfix).lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
-    <PostBuildEvent>
-      <Message>Copy zlib DLL to bin</Message>
-      <Command>xcopy "$(CSProDir)external\zlib\lib\$(PlatformTarget)\*.dll" "$(TargetDir)" /D /I /Y</Command>
-    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\external\libxlsxwriter\src\app.c">
@@ -166,6 +162,11 @@
       <Project>{fb0e28ec-927d-41d0-996c-01c21a7a346b}</Project>
       <Private>false</Private>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="$(ThirdPartyBinDir)libz$(ThirdPartyBuildPostfix).dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

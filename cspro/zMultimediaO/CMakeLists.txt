@@ -113,4 +113,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     # libwebp
     ${THIRD_PARTY_LIB_DIR}/libsharpyuv${THIRD_PARTY_LIB_EXT}
     ${THIRD_PARTY_LIB_DIR}/libwebp${THIRD_PARTY_LIB_EXT}
+
+    # zlib
+    ${THIRD_PARTY_LIB_DIR}/libz${THIRD_PARTY_LIB_EXT}
 )

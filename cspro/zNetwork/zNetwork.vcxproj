@@ -23,8 +23,7 @@
       <AdditionalLibraryDirectories>$(CSProDir)external\curl\lib\$(PlatformTarget);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy "$(CSProDir)external\curl\lib\$(PlatformTarget)\*.dll" "$(TargetDir)" /D /I /Y
-xcopy "$(CSProDir)external\zlib\lib\$(PlatformTarget)\*.dll" "$(TargetDir)" /D /I /Y</Command>
+      <Command>xcopy "$(CSProDir)external\curl\lib\$(PlatformTarget)\*.dll" "$(TargetDir)" /D /I /Y</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -123,6 +122,11 @@ xcopy "$(CSProDir)external\zlib\lib\$(PlatformTarget)\*.dll" "$(TargetDir)" /D /
       <Project>{bde6d79f-d295-48ba-8e8c-e2ab1eda0646}</Project>
       <Private>false</Private>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="$(ThirdPartyBinDir)libz$(ThirdPartyBuildPostfix).dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="zNetwork.rc" />

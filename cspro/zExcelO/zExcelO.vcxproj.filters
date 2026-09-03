@@ -12,6 +12,9 @@
     <Filter Include="libxlsxwriter">
       <UniqueIdentifier>{62b40e8e-9f0e-4be9-8c0f-570f92b61857}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Dependencies">
+      <UniqueIdentifier>{6f6e713e-8e5c-4584-9682-9c706fcb87ef}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\external\libxlsxwriter\src\app.c">
@@ -124,5 +127,10 @@
     <ClInclude Include="zExcelO.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="$(ThirdPartyBinDir)libz$(ThirdPartyBuildPostfix).dll">
+      <Filter>Dependencies</Filter>
+    </None>
   </ItemGroup>
 </Project>
