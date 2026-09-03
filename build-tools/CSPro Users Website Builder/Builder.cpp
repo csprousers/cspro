@@ -1,6 +1,6 @@
 #include "StdAfx.h"
 #include "Builder.h"
-#include <zToolsO/File.h>
+#include <zToolsO/TextFile.h>
 #include <zUtilO/Interapp.h>
 #include <zUtilO/TemporaryFile.h>
 #include <zZip/ZipFile.h>
