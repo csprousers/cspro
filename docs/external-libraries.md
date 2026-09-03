@@ -35,6 +35,17 @@ Batch scripts to update many of the libraries are located here:
 5. The built libraries are also available in the *cspro-libraries* repository.
 
 
+### gumbo-parser
+
+*Current version: 0.10.1 (this library is archived and no longer updated)*
+
+1. CSPro-specific code is located in a forked repository: https://github.com/csprousers/cspro-libraries-fork-gumbo-parser
+2. Confirm that there are no longer updates: https://github.com/google/gumbo-parser
+3. Run the build script.
+4. This copies files into CSPro's *third_party* directory.
+5. The built libraries are also available in the *cspro-libraries* repository.
+
+
 ### libwebm
 
 *Current version: 1.0.0.32*
@@ -224,17 +235,6 @@ Batch scripts to update many of the libraries are located here:
 5. Remove anything that is not already committed.
 6. There are CSPro modifications made to many files that have to be restored.
 7. The library is built as part of the CSPro solution.
-
-
-### gumbo-parser
-
-*(This library is archived and no longer updated.)*
-
-1. Find the latest version here: https://github.com/google/gumbo-parser/releases/latest/
-2. Edit the batch script, *gumbo-parser.bat*, setting **gp_version**.
-3. Run the batch script.
-4. This copies files into the CSPro solution.
-5. The library is built as part of the CSPro solution.
 
 
 ### Handlebars.js.txt

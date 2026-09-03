@@ -16,6 +16,13 @@ libpcre2-8-static.lib
 libpcre2-8-staticd.lib
 
 
+# gumbo-parser
+libgumbo-parser.a
+libgumbo-parser.lib
+libgumbo-parserd.a
+libgumbo-parserd.lib
+
+
 # libwebm
 libwebm.a
 libwebm.lib

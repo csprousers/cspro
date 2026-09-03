@@ -1,7 +1,7 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "HtmlConverter.h"
 #include <zMarkdown/Markdown.h>
-#include <external/gumbo/gumbo.h>
+#include <gumbo-parser/gumbo.h>
 
 
 // --------------------------------------------------------------------------

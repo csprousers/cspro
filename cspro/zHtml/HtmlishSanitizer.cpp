@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "HtmlishSanitizer.h"
-#include <external/gumbo/gumbo.h>
+#include <gumbo-parser/gumbo.h>
 #include <md4c/entity.h>
 
 
