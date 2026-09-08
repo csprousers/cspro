@@ -72,7 +72,7 @@ Batch scripts to update many of the libraries are located here:
 
 ### libgit2
 
-*Current version: 1.9.4*
+*Current version: 1.9.7*
 
 1. Set the Git submodule to the latest release: https://github.com/libgit2/libgit2/releases/latest/
 2. Run the build script.
