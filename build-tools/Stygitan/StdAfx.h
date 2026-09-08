@@ -20,5 +20,5 @@
 #include <zGit/GitDiff.h>
 #include <zGit/GitRepository.h>
 #include <zGit/GitRevisionWalker.h>
-#include <external/libgit2/include/git2/diff.h>
+#include <git2/git2/diff.h>
 #include <thread>

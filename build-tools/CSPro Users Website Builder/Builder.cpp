@@ -9,7 +9,7 @@
 #include <zGit/GitCommit.h>
 #include <zGit/GitDiff.h>
 #include <zGit/GitTree.h>
-#include <external/libgit2/include/git2/diff.h>
+#include <git2/git2/diff.h>
 
 
 namespace

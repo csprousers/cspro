@@ -19,4 +19,4 @@
 #include <zToolsO/Tools.h>
 
 #define GIT_DEPRECATE_HARD
-#include <external/libgit2/include/git2.h>
+#include <git2/git2.h>

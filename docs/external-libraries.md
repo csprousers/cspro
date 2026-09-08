@@ -70,6 +70,17 @@ Batch scripts to update many of the libraries are located here:
 7. The built libraries are also available in the *cspro-libraries* repository.
 
 
+### libgit2
+
+*Current version: 1.9.4*
+
+1. Set the Git submodule to the latest release: https://github.com/libgit2/libgit2/releases/latest/
+2. Run the build script.
+3. This copies files into CSPro's *third_party* directory, including some that are not necessary.
+4. Remove anything that is not already committed.
+5. The built libraries are also available in the *cspro-libraries* repository.
+
+
 ### libwebm
 
 *Current version: 1.0.0.32*
@@ -362,15 +373,6 @@ Batch scripts to update many of the libraries are located here:
 6. There are CSPro modifications made to many files that have to be restored.
 7. The library is built as part of the CSPro solution.
 8. This library should be updated at the same time as Scintilla and ScintillaCtrl / ScintillaView.
-
-
-### libgit2
-
-1. Find the latest version here: https://github.com/libgit2/libgit2/releases/latest/
-2. Edit the batch script, *libgit2.bat*, setting **lg_version**.
-3. Run the batch script from a Visual Studio command prompt.
-4. This builds only a x64 version of libgit2.
-5. The built libraries, only used by build tools, are not committed to the repository.
 
 
 ### librdata

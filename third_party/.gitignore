@@ -35,6 +35,11 @@ libexifd.a
 libexifd.lib
 
 
+# libgit2
+libgit2.lib
+libgit2d.lib
+
+
 # libwebm
 libwebm.a
 libwebm.lib
