@@ -37,7 +37,7 @@ Batch scripts to update many of the libraries are located here:
 
 ### curl
 
-*Current version: 8.18.0*
+*Current version: 8.22.0*
 
 1. CSPro-specific code is located in a forked repository: https://github.com/csprousers/cspro-libraries-fork-curl
 2. Incorporate any new code, if available, into the *cspro* branch: https://github.com/curl/curl/releases/latest/
