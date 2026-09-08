@@ -53,6 +53,13 @@ libwebpd.a
 libwebpd.lib
 
 
+# libxlsxwriter
+libxlsxwriter.a
+libxlsxwriter.lib
+libxlsxwriterd.a
+libxlsxwriterd.lib
+
+
 # md4c
 libmd4c.a
 libmd4c.dll

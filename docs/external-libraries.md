@@ -92,6 +92,18 @@ Batch scripts to update many of the libraries are located here:
 5. The built libraries are also available in the *cspro-libraries* repository.
 
 
+### libxlsxwriter
+
+*Current version: 1.2.4*
+
+1. CSPro-specific code is located in a forked repository: https://github.com/csprousers/cspro-libraries-fork-libxlsxwriter
+2. Merge the latest release into the *cspro* branch: https://github.com/jmcnamara/libxlsxwriter/releases/latest/
+3. Run the build script.
+4. This copies files into CSPro's *third_party* directory, including some that are not necessary.
+5. Remove anything that is not already committed.
+6. The built libraries are also available in the *cspro-libraries* repository.
+
+
 ### md4c
 
 *Current version: 0.5.3*
@@ -371,14 +383,6 @@ Batch scripts to update many of the libraries are located here:
     * rdata_write.c
 4. The library is built as part of the CSPro solution.
 5. This library should be updated at the same time as ReadStat.
-
-
-### libxlsxwriter
-
-1. Run the batch script, *libxlsxwriter.bat*.
-2. This copies files into the CSPro solution, including some that are not necessary.
-3. Remove anything that is not already committed.
-4. The library is built as part of the CSPro solution.
 
 
 ### mustache.js

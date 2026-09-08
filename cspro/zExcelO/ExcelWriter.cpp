@@ -1,9 +1,9 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "ExcelWriter.h"
 #include <zPlatformO/PlatformInterface.h>
 #include <zToolsO/PortableFunctions.h>
 #include <zToolsO/NumberToString.h>
-#include <xlsxwriter.h>
+#include <xlsxwriter/xlsxwriter.h>
 
 
 ExcelWriter::ExcelWriter()
