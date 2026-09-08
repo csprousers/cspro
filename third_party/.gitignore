@@ -62,6 +62,13 @@ libmd4cd.dll
 libmd4cd.lib
 
 
+# miniz
+libminiz.a
+libminiz.lib
+libminizd.a
+libminizd.lib
+
+
 # pugixml
 libpugixml.a
 libpugixml.lib

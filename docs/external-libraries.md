@@ -103,6 +103,17 @@ Batch scripts to update many of the libraries are located here:
 5. The built libraries are also available in the *cspro-libraries* repository.
 
 
+### miniz
+
+*Current version: 3.1.0*
+
+1. Set the Git submodule to the latest release: https://github.com/richgel999/miniz/releases/latest/
+2. Run the build script.
+3. This copies files into CSPro's *third_party* directory, including some that are not necessary.
+4. Remove anything that is not already committed.
+5. The built libraries are also available in the *cspro-libraries* repository.
+
+
 ### pugixml
 
 *Current version: 1.16*
@@ -368,15 +379,6 @@ Batch scripts to update many of the libraries are located here:
 2. This copies files into the CSPro solution, including some that are not necessary.
 3. Remove anything that is not already committed.
 4. The library is built as part of the CSPro solution.
-
-
-### miniz
-
-1. Find the latest version here: https://github.com/richgel999/miniz/releases/latest/
-2. Edit the batch script, *miniz.bat*, setting **miniz_version**.
-3. Run the batch script.
-4. This copies files into the CSPro solution.
-5. The library is built as part of the CSPro solution.
 
 
 ### mustache.js
