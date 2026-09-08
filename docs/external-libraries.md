@@ -105,7 +105,7 @@ Batch scripts to update many of the libraries are located here:
 
 ### miniz
 
-*Current version: 3.1.0*
+*Current version: 3.1.2*
 
 1. Set the Git submodule to the latest release: https://github.com/richgel999/miniz/releases/latest/
 2. Run the build script.
