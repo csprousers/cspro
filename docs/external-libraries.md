@@ -35,6 +35,18 @@ Batch scripts to update many of the libraries are located here:
 5. The built libraries are also available in the *cspro-libraries* repository.
 
 
+### curl
+
+*Current version: 8.18.0*
+
+1. CSPro-specific code is located in a forked repository: https://github.com/csprousers/cspro-libraries-fork-curl
+2. Incorporate any new code, if available, into the *cspro* branch: https://github.com/curl/curl/releases/latest/
+3. Run the build script.
+4. This copies files into CSPro's *third_party* directory, including some that are not necessary.
+5. Remove anything that is not already committed.
+6. The built libraries are also available in the *cspro-libraries* repository.
+
+
 ### EditorConfig
 
 *Current version: 0.12.11*
@@ -218,18 +230,6 @@ Batch scripts to update many of the libraries are located here:
 5. There are CSPro modifications that have to be restored in:
     * httplib.h
 6. The library is built as part of the CSPro solution.
-
-
-### curl
-
-1. Build **zlib** prior to building curl.
-2. Find the latest version here: https://github.com/curl/curl/releases/latest/
-3. Edit the batch script, *libcurl.bat*, setting **curl_version**.
-4. Run the batch script from a Visual Studio command prompt.
-5. This copies files into the CSPro solution, including some that are not necessary.
-6. Remove anything that is not already committed.
-7. This builds both x86 and x64 versions of curl.
-8. The built libraries are committed to the repository.
 
 
 ### Easylogging++

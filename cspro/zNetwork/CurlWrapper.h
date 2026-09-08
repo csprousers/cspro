@@ -1,6 +1,6 @@
-﻿#pragma once
+#pragma once
 
-#include <external/curl/include/curl/curl.h>
+#include <curl/curl.h>
 
 class HeaderList;
 class SyncListener;
@@ -48,7 +48,7 @@ public:
     // --------------------------------------------------------------------------
     // callbacks
     // --------------------------------------------------------------------------
-    
+
     static int DebugCallback(CURL* handle, curl_infotype type, char* data, size_t size, void* clientp);
 
     static size_t WriteToOutputStreamCallback(char* buffer, size_t size, size_t nitems, std::ostream* output_stream);
