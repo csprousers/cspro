@@ -26,6 +26,13 @@ libpcre2-8-static.lib
 libpcre2-8-staticd.lib
 
 
+# gpac
+libgpac.a
+libgpac.lib
+libgpacd.a
+libgpacd.lib
+
+
 # gumbo-parser
 libgumbo-parser.a
 libgumbo-parser.lib
