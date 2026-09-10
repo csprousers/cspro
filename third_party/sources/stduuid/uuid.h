@@ -1,4 +1,4 @@
-﻿// CSPro modifications marked with // CSPro
+// CSPro modifications marked with // CSPro
 
 #ifndef STDUUID_H
 #define STDUUID_H
