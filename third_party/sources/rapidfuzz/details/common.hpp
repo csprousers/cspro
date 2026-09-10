@@ -41,12 +41,6 @@ TO opt_static_cast(const FROM& value)
     return static_cast<TO>(value);
 }
 
-/**
- * @defgroup Common Common
- * Common utilities shared among multiple functions
- * @{
- */
-
 static inline double NormSim_to_NormDist(double score_cutoff, double imprecision = 0.00001)
 {
     return std::min(1.0, 1.0 - score_cutoff + imprecision);
@@ -92,8 +86,6 @@ static inline void rf_aligned_free(void* ptr)
     free(ptr);
 #endif
 }
-
-/**@}*/
 
 } // namespace detail
 } // namespace rapidfuzz

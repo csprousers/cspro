@@ -7,7 +7,7 @@ cd temp\rapidfuzz
 
 
 rem ... find the latest version number here: https://github.com/rapidfuzz/rapidfuzz-cpp/releases/latest/
-set rz_version=3.3.3
+set rz_version=3.3.4
 
 
 rem ... get the latest version
