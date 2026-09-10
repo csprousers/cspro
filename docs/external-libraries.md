@@ -51,11 +51,12 @@ Batch scripts to update many of the libraries are located here:
 
 *Current version: 0.12.11*
 
-1. Set the Git submodule to the latest release: https://github.com/editorconfig/editorconfig-core-c/releases/latest/
-2. Run the build script.
-3. This copies files into CSPro's *third_party* directory, including some that are not necessary.
-4. Remove anything that is not already committed.
-5. The built libraries are also available in the *cspro-libraries* repository.
+1. CSPro-specific code is located in a forked repository: https://github.com/csprousers/cspro-libraries-fork-editorconfig-core-c
+2. Incorporate any new code, if available, into the *cspro* branch: https://github.com/editorconfig/editorconfig-core-c/releases/latest/
+3. Run the build script.
+4. This copies files into CSPro's *third_party* directory, including some that are not necessary.
+5. Remove anything that is not already committed.
+6. The built libraries are also available in the *cspro-libraries* repository.
 
 
 ### GPAC
