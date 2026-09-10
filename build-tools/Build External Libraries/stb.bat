@@ -12,9 +12,9 @@ tar -xvzf stb.tar.gz
 
 
 rem ... copy files to be used by CSPro
-copy /y stb-master\stb_image.h ..\..\..\..\cspro\external\stb\
-copy /y stb-master\stb_image_resize2.h ..\..\..\..\cspro\external\stb\
-copy /y stb-master\stb_image_write.h ..\..\..\..\cspro\external\stb\
+copy /y stb-master\stb_image.h ..\..\..\..\third_party\sources\stb\
+copy /y stb-master\stb_image_resize2.h ..\..\..\..\third_party\sources\stb\
+copy /y stb-master\stb_image_write.h ..\..\..\..\third_party\sources\stb\
 
 
 rem ... update the license

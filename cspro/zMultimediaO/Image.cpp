@@ -15,18 +15,18 @@
 #define STBI_NO_PIC
 #define STBI_NO_PNM
 #define STB_IMAGE_IMPLEMENTATION
-#include <external/stb/stb_image.h>
+#include <stb/stb_image.h>
 
 unsigned char* zlib_compress(unsigned char* data, int data_len, int* out_len, int quality);
 #define STBIW_ZLIB_COMPRESS zlib_compress
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #pragma warning(push)
 #pragma warning(disable: 4996)
-#include <external/stb/stb_image_write.h>
+#include <stb/stb_image_write.h>
 #pragma warning(pop)
 
 #define STB_IMAGE_RESIZE_IMPLEMENTATION
-#include <external/stb/stb_image_resize2.h>
+#include <stb/stb_image_resize2.h>
 
 
 unsigned char* zlib_compress(unsigned char* const data, const int data_len, int* const out_len, const int quality)
