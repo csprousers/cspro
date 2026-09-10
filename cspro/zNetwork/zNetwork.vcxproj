@@ -119,7 +119,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="$(ThirdPartyBinDir)libz$(ThirdPartyBuildPostfix).dll">
+    <None Include="$(ThirdPartyPrebuiltBinDir)libz$(ThirdPartyBuildPostfix).dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

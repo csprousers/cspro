@@ -15,7 +15,7 @@ add_library(${PROJECT_NAME}
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE
-    ${THIRD_PARTY_INCLUDE_DIR}/webm
+    ${THIRD_PARTY_PREBUILT_INCLUDE_DIR}/webm
 )
 
 target_precompile_headers(${PROJECT_NAME} PRIVATE
@@ -29,18 +29,18 @@ set_source_files_properties(
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
     # gpac
-    ${THIRD_PARTY_LIB_DIR}/libgpac${THIRD_PARTY_LIB_EXT}
+    ${THIRD_PARTY_PREBUILT_LIB_DIR}/libgpac${THIRD_PARTY_LIB_EXT}
 
     # libexif
-    ${THIRD_PARTY_LIB_DIR}/libexif${THIRD_PARTY_LIB_EXT}
+    ${THIRD_PARTY_PREBUILT_LIB_DIR}/libexif${THIRD_PARTY_LIB_EXT}
 
     # libwebm
-    ${THIRD_PARTY_LIB_DIR}/libwebm${THIRD_PARTY_LIB_EXT}
+    ${THIRD_PARTY_PREBUILT_LIB_DIR}/libwebm${THIRD_PARTY_LIB_EXT}
 
     # libwebp
-    ${THIRD_PARTY_LIB_DIR}/libsharpyuv${THIRD_PARTY_LIB_EXT}
-    ${THIRD_PARTY_LIB_DIR}/libwebp${THIRD_PARTY_LIB_EXT}
+    ${THIRD_PARTY_PREBUILT_LIB_DIR}/libsharpyuv${THIRD_PARTY_LIB_EXT}
+    ${THIRD_PARTY_PREBUILT_LIB_DIR}/libwebp${THIRD_PARTY_LIB_EXT}
 
     # zlib
-    ${THIRD_PARTY_LIB_DIR}/libz${THIRD_PARTY_LIB_EXT}
+    ${THIRD_PARTY_PREBUILT_LIB_DIR}/libz${THIRD_PARTY_LIB_EXT}
 )

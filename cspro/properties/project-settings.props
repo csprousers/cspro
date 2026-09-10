@@ -5,8 +5,8 @@
     <BuildRoot>$(SolutionDir)build\$(PlatformTarget)\$(Configuration)\</BuildRoot>
     <OutDir>$(BuildRoot)bin\</OutDir>
     <IntDir>$(BuildRoot)obj\$(ProjectName)\</IntDir>
-    <ThirdPartyBinDir>$(ThirdPartyDir)bin\windows-$(PlatformTarget)\</ThirdPartyBinDir>
-    <ThirdPartyLibDir>$(ThirdPartyDir)lib\windows-$(PlatformTarget)\</ThirdPartyLibDir>
+    <ThirdPartyPrebuiltBinDir>$(ThirdPartyPrebuiltDir)bin\windows-$(PlatformTarget)\</ThirdPartyPrebuiltBinDir>
+    <ThirdPartyPrebuiltLibDir>$(ThirdPartyPrebuiltDir)lib\windows-$(PlatformTarget)\</ThirdPartyPrebuiltLibDir>
     <ThirdPartyBuildPostfix Condition="'$(Configuration)'=='Debug'">d</ThirdPartyBuildPostfix>
   </PropertyGroup>
 
@@ -23,7 +23,7 @@
 
   <ItemDefinitionGroup>
     <ClCompile>
-      <AdditionalIncludeDirectories>$(CSProDir);$(ThirdPartyIncludeDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(CSProDir);$(ThirdPartyPrebuiltIncludeDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions Condition="'$(Configuration)'=='Debug'">WIN_DESKTOP;WIN32;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions Condition="'$(Configuration)'=='Release'">WIN_DESKTOP;WIN32;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ForceConformanceInForLoopScope>true</ForceConformanceInForLoopScope>
@@ -34,7 +34,7 @@
       <AdditionalOptions>/utf-8</AdditionalOptions>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>$(BuildRoot)lib\;$(ThirdPartyLibDir)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(BuildRoot)lib\;$(ThirdPartyPrebuiltLibDir)</AdditionalLibraryDirectories>
       <ImportLibrary>$(BuildRoot)lib\$(AssemblyName).lib</ImportLibrary>
       <SubSystem>Windows</SubSystem>
     </Link>

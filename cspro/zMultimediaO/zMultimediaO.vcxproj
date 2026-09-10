@@ -16,7 +16,7 @@
   <ItemDefinitionGroup>
     <ClCompile>
       <PreprocessorDefinitions>ZMULTIMEDIAO_EXPORTS;_AFXEXT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ThirdPartyIncludeDir)webm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ThirdPartyPrebuiltIncludeDir)webm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies>libexif$(ThirdPartyBuildPostfix).lib;libgpac$(ThirdPartyBuildPostfix).lib;libsharpyuv$(ThirdPartyBuildPostfix).lib;libwebm$(ThirdPartyBuildPostfix).lib;libwebp$(ThirdPartyBuildPostfix).lib;libz$(ThirdPartyBuildPostfix).lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -74,7 +74,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="$(ThirdPartyBinDir)libz$(ThirdPartyBuildPostfix).dll">
+    <None Include="$(ThirdPartyPrebuiltBinDir)libz$(ThirdPartyBuildPostfix).dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

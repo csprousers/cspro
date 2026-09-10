@@ -62,5 +62,5 @@ target_precompile_headers(${PROJECT_NAME} PRIVATE
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
     # bzip2
-    ${THIRD_PARTY_LIB_DIR}/libbzip2${THIRD_PARTY_LIB_EXT}
+    ${THIRD_PARTY_PREBUILT_LIB_DIR}/libbzip2${THIRD_PARTY_LIB_EXT}
 )

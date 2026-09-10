@@ -126,5 +126,5 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
     # yaml-cpp
-    ${THIRD_PARTY_LIB_DIR}/libyaml-cpp${THIRD_PARTY_LIB_EXT}
+    ${THIRD_PARTY_PREBUILT_LIB_DIR}/libyaml-cpp${THIRD_PARTY_LIB_EXT}
 )

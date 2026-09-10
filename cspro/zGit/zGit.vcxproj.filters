@@ -138,7 +138,7 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="$(ThirdPartyBinDir)libz$(ThirdPartyBuildPostfix).dll">
+    <None Include="$(ThirdPartyPrebuiltBinDir)libz$(ThirdPartyBuildPostfix).dll">
       <Filter>Dependencies</Filter>
     </None>
   </ItemGroup>

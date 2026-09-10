@@ -23,8 +23,8 @@ target_precompile_headers(${PROJECT_NAME} PRIVATE
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
     # gumbo-parser
-    ${THIRD_PARTY_LIB_DIR}/libgumbo-parser${THIRD_PARTY_LIB_EXT}
+    ${THIRD_PARTY_PREBUILT_LIB_DIR}/libgumbo-parser${THIRD_PARTY_LIB_EXT}
 
     # md4c
-    ${THIRD_PARTY_LIB_DIR}/libmd4c${THIRD_PARTY_LIB_EXT}
+    ${THIRD_PARTY_PREBUILT_LIB_DIR}/libmd4c${THIRD_PARTY_LIB_EXT}
 )

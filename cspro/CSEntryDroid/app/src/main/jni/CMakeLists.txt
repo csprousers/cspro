@@ -43,17 +43,19 @@ add_compile_definitions(
     _UNICODE=1
 )
 
-# set the directories for the CSPro solution root and the external libraries
+# set the directories for the CSPro solution root and the third-party libraries
 set(CSPRO_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../../../..)
 set(EXTERNAL_DIR ${CSPRO_DIR}/external)
-set(THIRD_PARTY_INCLUDE_DIR ${CSPRO_DIR}/../third_party/include)
-set(THIRD_PARTY_LIB_DIR ${CSPRO_DIR}/../third_party/lib/android-${ANDROID_ABI})
+set(THIRD_PARTY_DIR ${CSPRO_DIR}/../third_party)
+set(THIRD_PARTY_PREBUILT_DIR ${THIRD_PARTY_DIR}/prebuilt)
+set(THIRD_PARTY_PREBUILT_INCLUDE_DIR ${THIRD_PARTY_PREBUILT_DIR}/include)
+set(THIRD_PARTY_PREBUILT_LIB_DIR ${THIRD_PARTY_PREBUILT_DIR}/lib/android-${ANDROID_ABI})
 set(THIRD_PARTY_LIB_EXT "$<IF:$<CONFIG:Debug>,d.a,.a>")
 
 # global include directories
 include_directories(
     ${CSPRO_DIR}
-    ${THIRD_PARTY_INCLUDE_DIR}
+    ${THIRD_PARTY_PREBUILT_INCLUDE_DIR}
 )
 
 # CSEntry (Android) files

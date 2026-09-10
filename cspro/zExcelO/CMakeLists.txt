@@ -10,8 +10,8 @@ target_precompile_headers(${PROJECT_NAME} PRIVATE
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
     # libxlsxwriter
-    ${THIRD_PARTY_LIB_DIR}/libxlsxwriter${THIRD_PARTY_LIB_EXT}
+    ${THIRD_PARTY_PREBUILT_LIB_DIR}/libxlsxwriter${THIRD_PARTY_LIB_EXT}
 
     # zlib
-    ${THIRD_PARTY_LIB_DIR}/libz${THIRD_PARTY_LIB_EXT}
+    ${THIRD_PARTY_PREBUILT_LIB_DIR}/libz${THIRD_PARTY_LIB_EXT}
 )

@@ -20,7 +20,7 @@ Batch scripts to update many of the libraries are located here:
 1. CSPro-specific code is located in a cloned repository: https://github.com/csprousers/cspro-libraries-fork-bzip2
 2. Incorporate any new code, if available, into the *cspro* branch: https://www.sourceware.org/bzip2/downloads.html
 3. Run the build script.
-4. This copies files into CSPro's *third_party* directory.
+4. This copies files into CSPro's *third_party/prebuilt* directory.
 5. The built libraries are also available in the *cspro-libraries* repository.
 
 
@@ -31,7 +31,7 @@ Batch scripts to update many of the libraries are located here:
 1. CSPro-specific code is located in a forked repository: https://github.com/csprousers/cspro-libraries-fork-CHMLib
 2. Confirm that there are no longer updates: https://github.com/jedwing/CHMLib
 3. Run the build script.
-4. This copies files into CSPro's *third_party* directory.
+4. This copies files into CSPro's *third_party/prebuilt* directory.
 5. The built libraries are also available in the *cspro-libraries* repository.
 
 
@@ -40,9 +40,9 @@ Batch scripts to update many of the libraries are located here:
 *Current version: 8.22.0*
 
 1. CSPro-specific code is located in a forked repository: https://github.com/csprousers/cspro-libraries-fork-curl
-2. Incorporate any new code, if available, into the *cspro* branch: https://github.com/curl/curl/releases/latest/
+2. Incorporate any new code, if available, into the *cspro* branch: https://github.com/curl/curl/releases/latest
 3. Run the build script.
-4. This copies files into CSPro's *third_party* directory, including some that are not necessary.
+4. This copies files into CSPro's *third_party/prebuilt* directory, including some that are not necessary.
 5. Remove anything that is not already committed.
 6. The built libraries are also available in the *cspro-libraries* repository.
 
@@ -52,9 +52,9 @@ Batch scripts to update many of the libraries are located here:
 *Current version: 0.12.11*
 
 1. CSPro-specific code is located in a forked repository: https://github.com/csprousers/cspro-libraries-fork-editorconfig-core-c
-2. Incorporate any new code, if available, into the *cspro* branch: https://github.com/editorconfig/editorconfig-core-c/releases/latest/
+2. Incorporate any new code, if available, into the *cspro* branch: https://github.com/editorconfig/editorconfig-core-c/releases/latest
 3. Run the build script.
-4. This copies files into CSPro's *third_party* directory, including some that are not necessary.
+4. This copies files into CSPro's *third_party/prebuilt* directory, including some that are not necessary.
 5. Remove anything that is not already committed.
 6. The built libraries are also available in the *cspro-libraries* repository.
 
@@ -64,9 +64,9 @@ Batch scripts to update many of the libraries are located here:
 *Current version: 2.4.0*
 
 1. CSPro-specific code is located in a forked repository: https://github.com/csprousers/cspro-libraries-fork-gpac
-2. Incorporate any new code, if available, into the *cspro* branch: https://github.com/gpac/gpac/releases/latest/
+2. Incorporate any new code, if available, into the *cspro* branch: https://github.com/gpac/gpac/releases/latest
 3. Run the build script.
-4. This copies files into CSPro's *third_party* directory, including some that are not necessary.
+4. This copies files into CSPro's *third_party/prebuilt* directory, including some that are not necessary.
 5. Remove anything that is not already committed.
 6. The built libraries are also available in the *cspro-libraries* repository.
 
@@ -78,7 +78,7 @@ Batch scripts to update many of the libraries are located here:
 1. CSPro-specific code is located in a forked repository: https://github.com/csprousers/cspro-libraries-fork-gumbo-parser
 2. Confirm that there are no longer updates: https://github.com/google/gumbo-parser
 3. Run the build script.
-4. This copies files into CSPro's *third_party* directory.
+4. This copies files into CSPro's *third_party/prebuilt* directory.
 5. The built libraries are also available in the *cspro-libraries* repository.
 
 
@@ -87,10 +87,10 @@ Batch scripts to update many of the libraries are located here:
 *Current version: 0.6.26*
 
 1. CSPro-specific code is located in a forked repository: https://github.com/csprousers/cspro-libraries-fork-libexif
-2. Merge the latest release into the *cspro* branch: https://github.com/libexif/libexif/releases/latest/
+2. Merge the latest release into the *cspro* branch: https://github.com/libexif/libexif/releases/latest
 3. Modify the version numbers in *config.h*.
 4. Run the build script.
-5. This copies files into CSPro's *third_party* directory, including some that are not necessary.
+5. This copies files into CSPro's *third_party/prebuilt* directory, including some that are not necessary.
 6. Remove anything that is not already committed.
 7. The built libraries are also available in the *cspro-libraries* repository.
 
@@ -99,9 +99,9 @@ Batch scripts to update many of the libraries are located here:
 
 *Current version: 1.9.7*
 
-1. Set the Git submodule to the latest release: https://github.com/libgit2/libgit2/releases/latest/
+1. Set the Git submodule to the latest release: https://github.com/libgit2/libgit2/releases/latest
 2. Run the build script.
-3. This copies files into CSPro's *third_party* directory, including some that are not necessary.
+3. This copies files into CSPro's *third_party/prebuilt* directory, including some that are not necessary.
 4. Remove anything that is not already committed.
 5. The built libraries are also available in the *cspro-libraries* repository.
 
@@ -112,7 +112,7 @@ Batch scripts to update many of the libraries are located here:
 
 1. Set the Git submodule to the latest release: https://github.com/webmproject/libwebm/tags
 2. Run the build script.
-3. This copies files into CSPro's *third_party* directory, including some that are not necessary.
+3. This copies files into CSPro's *third_party/prebuilt* directory, including some that are not necessary.
 4. Remove anything that is not already committed.
 5. The built libraries are also available in the *cspro-libraries* repository.
 
@@ -123,7 +123,7 @@ Batch scripts to update many of the libraries are located here:
 
 1. Set the Git submodule to the latest release: https://github.com/webmproject/libwebp/tags
 2. Run the build script.
-3. This copies files into CSPro's *third_party* directory, including some that are not necessary.
+3. This copies files into CSPro's *third_party/prebuilt* directory, including some that are not necessary.
 4. Remove anything that is not already committed.
 5. The built libraries are also available in the *cspro-libraries* repository.
 
@@ -133,9 +133,9 @@ Batch scripts to update many of the libraries are located here:
 *Current version: 1.2.4*
 
 1. CSPro-specific code is located in a forked repository: https://github.com/csprousers/cspro-libraries-fork-libxlsxwriter
-2. Merge the latest release into the *cspro* branch: https://github.com/jmcnamara/libxlsxwriter/releases/latest/
+2. Merge the latest release into the *cspro* branch: https://github.com/jmcnamara/libxlsxwriter/releases/latest
 3. Run the build script.
-4. This copies files into CSPro's *third_party* directory, including some that are not necessary.
+4. This copies files into CSPro's *third_party/prebuilt* directory, including some that are not necessary.
 5. Remove anything that is not already committed.
 6. The built libraries are also available in the *cspro-libraries* repository.
 
@@ -147,7 +147,7 @@ Batch scripts to update many of the libraries are located here:
 1. CSPro-specific code is located in a forked repository: https://github.com/csprousers/cspro-libraries-fork-md4c
 2. Merge the latest release into the *cspro* branch: https://github.com/mity/md4c/tags
 3. Run the build script.
-4. This copies files into CSPro's *third_party* directory.
+4. This copies files into CSPro's *third_party/prebuilt* directory.
 5. The built libraries are also available in the *cspro-libraries* repository.
 
 
@@ -155,9 +155,9 @@ Batch scripts to update many of the libraries are located here:
 
 *Current version: 3.1.2*
 
-1. Set the Git submodule to the latest release: https://github.com/richgel999/miniz/releases/latest/
+1. Set the Git submodule to the latest release: https://github.com/richgel999/miniz/releases/latest
 2. Run the build script.
-3. This copies files into CSPro's *third_party* directory, including some that are not necessary.
+3. This copies files into CSPro's *third_party/prebuilt* directory, including some that are not necessary.
 4. Remove anything that is not already committed.
 5. The built libraries are also available in the *cspro-libraries* repository.
 
@@ -166,9 +166,9 @@ Batch scripts to update many of the libraries are located here:
 
 *Current version: 1.16*
 
-1. Set the Git submodule to the latest release: https://github.com/zeux/pugixml/releases/latest/
+1. Set the Git submodule to the latest release: https://github.com/zeux/pugixml/releases/latest
 2. Run the build script.
-3. This copies files into CSPro's *third_party* directory, including some that are not necessary.
+3. This copies files into CSPro's *third_party/prebuilt* directory, including some that are not necessary.
 4. Remove anything that is not already committed.
 5. The built libraries are also available in the *cspro-libraries* repository.
 
@@ -177,9 +177,9 @@ Batch scripts to update many of the libraries are located here:
 
 *Current version: 0.9.0*
 
-1. Set the Git submodule to the latest release: https://github.com/jbeder/yaml-cpp/releases/latest/
+1. Set the Git submodule to the latest release: https://github.com/jbeder/yaml-cpp/releases/latest
 2. Run the build script.
-3. This copies files into CSPro's *third_party* directory, including some that are not necessary.
+3. This copies files into CSPro's *third_party/prebuilt* directory, including some that are not necessary.
 4. Remove anything that is not already committed.
 5. The built libraries are also available in the *cspro-libraries* repository.
 
@@ -188,9 +188,9 @@ Batch scripts to update many of the libraries are located here:
 
 *Current version: *1.3.2*
 
-1. Set the Git submodule to the latest release: https://github.com/madler/zlib/releases/latest/
+1. Set the Git submodule to the latest release: https://github.com/madler/zlib/releases/latest
 2. Run the build script.
-3. This copies files into CSPro's *third_party* directory, including some that are not necessary.
+3. This copies files into CSPro's *third_party/prebuilt* directory, including some that are not necessary.
 4. Remove anything that is not already committed.
 5. Different build configurations may result in different versions of *zconf.h*. Commit the Windows version.
 6. The built libraries are also available in the *cspro-libraries* repository.
@@ -203,8 +203,8 @@ Batch scripts to update many of the libraries are located here:
 ### Bootstrap + Bootstrap Icons
 
 1. Find the latest versions here:
-    * https://github.com/twbs/bootstrap/releases/latest/
-    * https://github.com/twbs/icons/releases/latest/
+    * https://github.com/twbs/bootstrap/releases/latest
+    * https://github.com/twbs/icons/releases/latest
 2. Edit the batch script, *bootstrap.bat*, setting **bs_version** and **bs_icons_version**.
 3. Run the batch script.
 4. This copies files into the CSPro's *html* directory.
@@ -213,7 +213,7 @@ Batch scripts to update many of the libraries are located here:
 
 ### Chart.js
 
-1. Find the latest version here: https://github.com/chartjs/Chart.js/releases/latest/
+1. Find the latest version here: https://github.com/chartjs/Chart.js/releases/latest
 2. Edit the batch script, *chart-js.bat*, setting **cj_version**.
 3. Run the batch script.
 4. This copies files into the CSPro's *html* directory.
@@ -226,7 +226,7 @@ Batch scripts to update many of the libraries are located here:
 
 *(This is a legacy version of the library, replaced by CodeMirror 6.)*
 
-1. Find the latest version here: https://github.com/codemirror/codemirror5/releases/latest/
+1. Find the latest version here: https://github.com/codemirror/codemirror5/releases/latest
 2. Edit the shell script, *codemirror.sh*, setting **CODE_MIRROR_VERSION**.
 3. Run the shell script (e.g., from the Git terminal).
 4. This copies files into the CSPro's *html* directory.
@@ -236,7 +236,7 @@ Batch scripts to update many of the libraries are located here:
 
 *(The 32-bit version of this library is no longer updated.)*
 
-1. Find the latest version here: https://github.com/yhirose/cpp-httplib/releases/latest/
+1. Find the latest version here: https://github.com/yhirose/cpp-httplib/releases/latest
 2. Edit the batch script, *cpp-httplib.bat*, setting **httplib_version**.
 3. Run the batch script.
 4. This copies files into the CSPro solution.
@@ -249,7 +249,7 @@ Batch scripts to update many of the libraries are located here:
 
 *(This library is archived and no longer updated.)*
 
-1. Find the latest version here: https://github.com/abumq/easyloggingpp/releases/latest/
+1. Find the latest version here: https://github.com/abumq/easyloggingpp/releases/latest
 2. Edit the batch script, *easylogging.bat*, setting **el_version**.
 3. Run the batch script.
 4. This copies files into the CSPro solution.
@@ -270,7 +270,7 @@ Batch scripts to update many of the libraries are located here:
 
 ### geometry.hpp
 
-1. Find the latest version here: https://github.com/mapbox/geometry.hpp/releases/latest/
+1. Find the latest version here: https://github.com/mapbox/geometry.hpp/releases/latest
 2. Edit the batch script, *geometry-hpp.bat*, setting **geohpp_version**.
 3. Run the batch script.
 4. This copies files into the CSPro solution.
@@ -279,7 +279,7 @@ Batch scripts to update many of the libraries are located here:
 
 ### github-markdown-css
 
-1. Find the latest version here: https://github.com/sindresorhus/github-markdown-css/releases/latest/
+1. Find the latest version here: https://github.com/sindresorhus/github-markdown-css/releases/latest
 2. Edit the batch script, *github-markdown-css.bat*, setting **gmc_version**.
 3. Run the batch script.
 4. This copies files into the CSPro's *html* directory.
@@ -288,7 +288,7 @@ Batch scripts to update many of the libraries are located here:
 
 ### Handlebars.js.txt
 
-1. Find the latest version here: https://github.com/handlebars-lang/handlebars.js/releases/latest/
+1. Find the latest version here: https://github.com/handlebars-lang/handlebars.js/releases/latest
 2. Edit the batch script, *handlebars.bat*, setting **hb_version**.
 3. Run the batch script.
 4. This copies files into the CSPro's *html* directory.
@@ -298,8 +298,8 @@ Batch scripts to update many of the libraries are located here:
 ### jQuery + jQuery UI
 
 1. Find the latest versions here:
-    * https://github.com/jquery/jquery/releases/latest/
-    * https://github.com/jquery/jquery-ui/releases/latest/
+    * https://github.com/jquery/jquery/releases/latest
+    * https://github.com/jquery/jquery-ui/releases/latest
 2. Edit the batch script, *jquery.bat*, setting **jq_version** and **jq_ui_version**.
 3. Run the batch script.
 4. This copies files into the CSPro's *html* directory.
@@ -308,7 +308,7 @@ Batch scripts to update many of the libraries are located here:
 
 ### JsBarcode
 
-1. Find the latest version here: https://github.com/lindell/JsBarcode/releases/latest/
+1. Find the latest version here: https://github.com/lindell/JsBarcode/releases/latest
 2. Edit the batch script, *js-barcode.bat*, setting **jsb_version**.
 3. Run the batch script.
 4. This copies files into the CSPro's *html* directory.
@@ -329,7 +329,7 @@ Batch scripts to update many of the libraries are located here:
 
 ### jsoncons
 
-1. Find the latest version here: https://github.com/danielaparker/jsoncons/releases/latest/
+1. Find the latest version here: https://github.com/danielaparker/jsoncons/releases/latest
 2. Edit the batch script, *jsoncons.bat*, setting **jsoncons_version**.
 3. Run the batch script.
 4. This copies files into the CSPro solution, including some that are not necessary.
@@ -346,7 +346,7 @@ Batch scripts to update many of the libraries are located here:
 
 ### Leaflet
 
-1. Find the latest version here: https://github.com/Leaflet/Leaflet/releases/latest/
+1. Find the latest version here: https://github.com/Leaflet/Leaflet/releases/latest
 2. Edit the batch script, *leaflet.bat*, setting **leaflet_version**.
 3. Run the batch script.
 4. This copies files into the CSPro's *html* directory, including some that are not necessary.
@@ -391,7 +391,7 @@ Batch scripts to update many of the libraries are located here:
 
 ### mustache.js
 
-1. Find the latest version here: https://github.com/janl/mustache.js/releases/latest/
+1. Find the latest version here: https://github.com/janl/mustache.js/releases/latest
 2. Edit the batch script, *mustache.bat*, setting **ms_version**.
 3. Run the batch script.
 4. This copies files into the CSPro's *html* directory.
@@ -410,7 +410,7 @@ Batch scripts to update many of the libraries are located here:
 
 ### QuickJS-NG
 
-1. Find the latest version here: https://github.com/quickjs-ng/quickjs/releases/latest/
+1. Find the latest version here: https://github.com/quickjs-ng/quickjs/releases/latest
 2. Edit the batch script, *quickjs.bat*, setting **quickjs_version**.
 3. Run the batch script.
 4. This copies files into the CSPro solution, including some that are not necessary.
@@ -421,7 +421,7 @@ Batch scripts to update many of the libraries are located here:
 
 ### RapidFuzz
 
-1. Find the latest version here: https://github.com/rapidfuzz/rapidfuzz-cpp/releases/latest/
+1. Find the latest version here: https://github.com/rapidfuzz/rapidfuzz-cpp/releases/latest
 2. Edit the batch script, *rapidfuzz.bat*, setting **rz_version**.
 3. Run the batch script.
 4. This copies files into the CSPro solution, including some that are not necessary.
@@ -431,7 +431,7 @@ Batch scripts to update many of the libraries are located here:
 
 ### ReadStat
 
-1. Find the latest version here: https://github.com/WizardMac/ReadStat/releases/latest/
+1. Find the latest version here: https://github.com/WizardMac/ReadStat/releases/latest
 2. Edit the batch script, *readstat.bat*, setting **rs_version**.
 3. Run the batch script.
 4. This copies files into the CSPro solution.
@@ -452,7 +452,7 @@ Batch scripts to update many of the libraries are located here:
 
 ### RxCpp
 
-1. Find the latest version here: https://github.com/ReactiveX/RxCpp/releases/latest/
+1. Find the latest version here: https://github.com/ReactiveX/RxCpp/releases/latest
 2. Edit the batch script, *rxcpp.bat*, setting **rx_version**.
 3. Run the batch script.
 4. This copies files into the CSPro solution.
@@ -520,7 +520,7 @@ Batch scripts to update many of the libraries are located here:
 
 ### stduuid
 
-1. Find the latest version here: https://github.com/mariusbancila/stduuid/releases/latest/
+1. Find the latest version here: https://github.com/mariusbancila/stduuid/releases/latest
 2. Edit the batch script, *stduuid.bat*, setting **stduuid_version**.
 3. Run the batch script.
 4. This copies files into the CSPro solution.
@@ -533,7 +533,7 @@ Batch scripts to update many of the libraries are located here:
 
 *(Summernote is still maintained, but the summernote-rtl-plugin library has not been updated in years.)*
 
-1. Find the latest version here: https://github.com/summernote/summernote/releases/latest/
+1. Find the latest version here: https://github.com/summernote/summernote/releases/latest
 2. Edit the batch script, *summernote.bat*, setting **sn_version**.
 3. Run the batch script.
 4. This copies files into the CSPro's *html* directory, including some that are not necessary.

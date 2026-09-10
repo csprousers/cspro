@@ -246,7 +246,7 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="$(ThirdPartyBinDir)libmd4c$(ThirdPartyBuildPostfix).dll">
+    <None Include="$(ThirdPartyPrebuiltBinDir)libmd4c$(ThirdPartyBuildPostfix).dll">
       <Filter>Dependencies</Filter>
     </None>
   </ItemGroup>

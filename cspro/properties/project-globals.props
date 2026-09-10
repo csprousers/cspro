@@ -13,7 +13,8 @@
 
     <!-- ThirdPartyDir is the location of third-party libraries -->
     <ThirdPartyDir>$(CSProDir)..\third_party\</ThirdPartyDir>
-    <ThirdPartyIncludeDir>$(ThirdPartyDir)include\</ThirdPartyIncludeDir>
+    <ThirdPartyPrebuiltDir>$(ThirdPartyDir)prebuilt\</ThirdPartyPrebuiltDir>
+    <ThirdPartyPrebuiltIncludeDir>$(ThirdPartyPrebuiltDir)include\</ThirdPartyPrebuiltIncludeDir>
 
   </PropertyGroup>
 
