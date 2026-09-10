@@ -1,6 +1,6 @@
 project(zMultimediaO)
 
-set(QRCODEGEN_DIR ${EXTERNAL_DIR}/qrcodegen)
+set(QRCODEGEN_DIR ${THIRD_PARTY_SOURCES_DIR}/qrcodegen)
 
 add_library(${PROJECT_NAME}
     BmpFile.cpp

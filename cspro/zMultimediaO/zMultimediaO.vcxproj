@@ -38,7 +38,7 @@
     <ClInclude Include="zMultimediaO.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\external\qrcodegen\qrcodegen.cpp">
+    <ClCompile Include="$(ThirdPartySourcesDir)qrcodegen\qrcodegen.cpp">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="BmpFile.cpp" />

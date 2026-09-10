@@ -62,7 +62,7 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\external\qrcodegen\qrcodegen.cpp">
+    <ClCompile Include="$(ThirdPartySourcesDir)qrcodegen\qrcodegen.cpp">
       <Filter>qrcodegen</Filter>
     </ClCompile>
     <ClCompile Include="BmpFile.cpp">

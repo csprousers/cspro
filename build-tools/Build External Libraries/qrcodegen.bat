@@ -16,5 +16,5 @@ tar -xvzf qrcodegen.tar.gz
 
 
 rem ... copy files to be used by CSPro
-copy /y QR-Code-generator-%qrcg_version%\cpp\qrcodegen.cpp ..\..\..\..\cspro\external\qrcodegen\
-copy /y QR-Code-generator-%qrcg_version%\cpp\qrcodegen.hpp ..\..\..\..\cspro\external\qrcodegen\
+copy /y QR-Code-generator-%qrcg_version%\cpp\qrcodegen.cpp ..\..\..\..\third_party\sources\qrcodegen\
+copy /y QR-Code-generator-%qrcg_version%\cpp\qrcodegen.hpp ..\..\..\..\third_party\sources\qrcodegen\

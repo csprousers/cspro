@@ -1,7 +1,7 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "QRCode.h"
 #include "Image.h"
-#include <external/qrcodegen/qrcodegen.hpp>
+#include <qrcodegen/qrcodegen.hpp>
 
 
 // --------------------------------------------------------------------------
