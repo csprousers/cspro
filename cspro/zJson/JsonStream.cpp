@@ -1,8 +1,8 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "JsonStream.h"
 #include "JsonConsExceptionRethrower.h"
 #include "JsonSpecFile.h"
-#include <external/jsoncons/json_cursor.hpp>
+#include <jsoncons/json_cursor.hpp>
 #include <fstream>
 
 
@@ -86,7 +86,7 @@ JsonStream JsonStream::FromFile(const InterfaceString file_path)
 {
     std::streampos file_size;
     std::unique_ptr<std::ifstream> stream = FileIO::OpenTextInputFileStream(file_path, &file_size);
-    
+
     return FromStream(std::move(stream), file_size);
 }
 

@@ -16,7 +16,7 @@ tar -xvzf jsoncons.tar.gz
 
 
 rem ... copy files to be used by CSPro
-xcopy .\jsoncons-%jsoncons_version%\include\jsoncons ..\..\..\..\cspro\external\jsoncons /i /k /e /y
+xcopy .\jsoncons-%jsoncons_version%\include\jsoncons ..\..\..\..\third_party\sources\jsoncons /i /k /e /y
 
 
 rem ... update the license
