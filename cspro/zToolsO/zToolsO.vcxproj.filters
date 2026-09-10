@@ -26,10 +26,10 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\external\scrypt\insecure_memzero.c">
+    <ClCompile Include="$(ThirdPartySourcesDir)scrypt\insecure_memzero.c">
       <Filter>Source Files\scrypt</Filter>
     </ClCompile>
-    <ClCompile Include="..\external\scrypt\sha256.c">
+    <ClCompile Include="$(ThirdPartySourcesDir)scrypt\sha256.c">
       <Filter>Source Files\scrypt</Filter>
     </ClCompile>
     <ClCompile Include="acum.cpp">
@@ -187,13 +187,7 @@
     <ClInclude Include="$(ThirdPartyPrebuiltIncludeDir)bzip2\bzlib.h">
       <Filter>Header Files\bzip2</Filter>
     </ClInclude>
-    <ClInclude Include="..\external\scrypt\insecure_memzero.h">
-      <Filter>Header Files\scrypt</Filter>
-    </ClInclude>
-    <ClInclude Include="..\external\scrypt\sha256.h">
-      <Filter>Header Files\scrypt</Filter>
-    </ClInclude>
-    <ClInclude Include="..\external\scrypt\sysendian.h">
+    <ClInclude Include="$(ThirdPartySourcesDir)scrypt\sha256.h">
       <Filter>Header Files\scrypt</Filter>
     </ClInclude>
     <ClInclude Include="acum.h">

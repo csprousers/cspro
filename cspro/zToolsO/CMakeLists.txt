@@ -1,7 +1,7 @@
 project(zToolsO)
 
 set(RIJNDAEL_DIR rijndael)
-set(SCRYPT_DIR ${EXTERNAL_DIR}/scrypt)
+set(SCRYPT_DIR ${THIRD_PARTY_SOURCES_DIR}/scrypt)
 
 add_library(${PROJECT_NAME}
     base64.cpp
@@ -50,10 +50,6 @@ add_library(${PROJECT_NAME}
 
     ${SCRYPT_DIR}/insecure_memzero.c
     ${SCRYPT_DIR}/sha256.c
-)
-
-target_include_directories(${PROJECT_NAME} PRIVATE
-    ${EXTERNAL_DIR}
 )
 
 target_precompile_headers(${PROJECT_NAME} PRIVATE

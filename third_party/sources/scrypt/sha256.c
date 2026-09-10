@@ -1,4 +1,4 @@
-﻿// --------------------------------------------------------------------------
+// --------------------------------------------------------------------------
 // CSPro notes ... these files come from the scrypt library
 // http://www.tarsnap.com/scrypt.html
 // removed the uses of static restrict as they do not compile in VS2026

@@ -16,11 +16,11 @@ tar -xvzf scrypt.tar.gz
 
 
 rem ... copy files to be used by CSPro
-copy /y scrypt-%sc_tag%\libcperciva\alg\sha256.c ..\..\..\..\cspro\external\scrypt\
-copy /y scrypt-%sc_tag%\libcperciva\alg\sha256.h ..\..\..\..\cspro\external\scrypt\
-copy /y scrypt-%sc_tag%\libcperciva\util\insecure_memzero.c ..\..\..\..\cspro\external\scrypt\
-copy /y scrypt-%sc_tag%\libcperciva\util\insecure_memzero.h ..\..\..\..\cspro\external\scrypt\
-copy /y scrypt-%sc_tag%\libcperciva\util\sysendian.h ..\..\..\..\cspro\external\scrypt\
+copy /y scrypt-%sc_tag%\libcperciva\alg\sha256.c ..\..\..\..\third_party\sources\scrypt\
+copy /y scrypt-%sc_tag%\libcperciva\alg\sha256.h ..\..\..\..\third_party\sources\scrypt\
+copy /y scrypt-%sc_tag%\libcperciva\util\insecure_memzero.c ..\..\..\..\third_party\sources\scrypt\
+copy /y scrypt-%sc_tag%\libcperciva\util\insecure_memzero.h ..\..\..\..\third_party\sources\scrypt\
+copy /y scrypt-%sc_tag%\libcperciva\util\sysendian.h ..\..\..\..\third_party\sources\scrypt\
 
 
 rem ... update the license

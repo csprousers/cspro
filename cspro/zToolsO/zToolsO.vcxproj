@@ -16,7 +16,6 @@
   <ItemDefinitionGroup>
     <ClCompile>
       <PreprocessorDefinitions>ZTOOLSO_IMPL;_AFXEXT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(CSProDir)external;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies>libbzip2$(ThirdPartyBuildPostfix).lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -28,10 +27,10 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\external\scrypt\insecure_memzero.c">
+    <ClCompile Include="$(ThirdPartySourcesDir)scrypt\insecure_memzero.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\external\scrypt\sha256.c">
+    <ClCompile Include="$(ThirdPartySourcesDir)scrypt\sha256.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="acum.cpp" />
@@ -93,9 +92,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(ThirdPartyPrebuiltIncludeDir)bzip2\bzlib.h" />
-    <ClInclude Include="..\external\scrypt\insecure_memzero.h" />
-    <ClInclude Include="..\external\scrypt\sha256.h" />
-    <ClInclude Include="..\external\scrypt\sysendian.h" />
+    <ClInclude Include="$(ThirdPartySourcesDir)scrypt\sha256.h" />
     <ClInclude Include="acum.h" />
     <ClInclude Include="ApiKeys.h" />
     <ClInclude Include="ApplicationInterface.h" />
