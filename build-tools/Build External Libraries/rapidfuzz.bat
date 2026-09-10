@@ -16,7 +16,7 @@ tar -xvzf rapidfuzz-cpp.tar.gz
 
 
 rem ... copy files to be used by CSPro
-xcopy .\rapidfuzz-cpp-%rz_version%\rapidfuzz ..\..\..\..\cspro\external\rapidfuzz /i /k /e /y
+xcopy .\rapidfuzz-cpp-%rz_version%\rapidfuzz ..\..\..\..\third_party\sources\rapidfuzz /i /k /e /y
 
 
 rem ... update the license

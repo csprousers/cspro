@@ -1,6 +1,6 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "FuzzyWuzzy.h"
-#include <external/rapidfuzz/fuzz.hpp>
+#include <rapidfuzz/fuzz.hpp>
 
 
 double FuzzyWuzzy::Ratio(const std::string& text1, const std::string& text2)
