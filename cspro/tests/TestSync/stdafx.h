@@ -23,4 +23,4 @@
 
 #include <tests/TestSync/ToString.h>
 
-#include <external/fakeit/fakeit.hpp>
+#include <fakeit/fakeit.hpp>
