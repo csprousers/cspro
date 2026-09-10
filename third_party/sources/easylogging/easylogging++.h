@@ -1,4 +1,4 @@
-﻿// CSPro modifications, to use this in a DLL, are marked using ZNETWORK_API
+// CSPro modifications, to use this in a DLL, are marked using ZNETWORK_API
 
 //
 //  Bismillah ar-Rahmaan ar-Raheem

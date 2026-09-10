@@ -22,7 +22,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\external\easylogging\easylogging++.cc">
+    <ClCompile Include="$(ThirdPartySourcesDir)easylogging\easylogging++.cc">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="CSWebConnection.cpp" />
@@ -53,7 +53,7 @@
     <ClCompile Include="zNetwork.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\external\easylogging\easylogging++.h" />
+    <ClInclude Include="$(ThirdPartySourcesDir)easylogging\easylogging++.h" />
     <ClInclude Include="ConnectResponse.h" />
     <ClInclude Include="CSWebConnection.h" />
     <ClInclude Include="CSWebUser.h" />

@@ -21,7 +21,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\external\easylogging\easylogging++.cc">
+    <ClCompile Include="$(ThirdPartySourcesDir)easylogging\easylogging++.cc">
       <Filter>easylogging</Filter>
     </ClCompile>
     <ClCompile Include="CSWebConnection.cpp">
@@ -98,7 +98,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\external\easylogging\easylogging++.h">
+    <ClInclude Include="$(ThirdPartySourcesDir)easylogging\easylogging++.h">
       <Filter>easylogging</Filter>
     </ClInclude>
     <ClInclude Include="ConnectResponse.h">

@@ -1,6 +1,6 @@
 project(zNetwork)
 
-set(EASYLOGGING_DIR ${EXTERNAL_DIR}/easylogging)
+set(EASYLOGGING_DIR ${THIRD_PARTY_SOURCES_DIR}/easylogging)
 
 add_library(${PROJECT_NAME}
     CSWebConnection.cpp

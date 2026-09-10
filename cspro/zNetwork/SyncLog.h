@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zNetwork/zNetwork.h>
 
@@ -11,7 +11,7 @@
 #pragma push_macro("TRACE")
 #pragma push_macro("VERBOSE")
 
-#include <external/easylogging/easylogging++.h>
+#include <easylogging/easylogging++.h>
 
 #pragma pop_macro("DEBUG")
 #pragma pop_macro("INFO")
