@@ -1,6 +1,6 @@
 // note CSPro additions marked with "CSPro"
 
-// Copyright 2013-2025 Daniel Parker
+// Copyright 2013-2026 Daniel Parker
 // Distributed under the Boost license, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
@@ -19,7 +19,7 @@
 #include <jsoncons/config/jsoncons_config.hpp>
 #include <jsoncons/utility/more_type_traits.hpp>
 
-namespace jsoncons {
+namespace jsoncons { 
 
     // stream_sink
 
@@ -86,6 +86,24 @@ namespace jsoncons {
             }
         }
 
+        void append(std::size_t count, const CharT ch)
+        {
+            if (count <= std::size_t(end_buffer_ - p_))
+            {
+                for (std::size_t i = 0; i < count; ++i)
+                {
+                    *p_++ = ch;
+                }
+            }
+            else
+            {
+                for (std::size_t i = 0; i < count; ++i)
+                {
+                    push_back(ch);
+                }
+            }
+        }
+
         void push_back(CharT ch)
         {
             if (p_ < end_buffer_)
@@ -96,7 +114,7 @@ namespace jsoncons {
             {
                 stream_ptr_->write(begin_buffer_, buffer_length());
                 p_ = begin_buffer_;
-                push_back(ch);
+                *p_++ = ch;
             }
         }
 
@@ -137,18 +155,18 @@ namespace jsoncons {
         binary_stream_sink(binary_stream_sink&&) = default;
 
         binary_stream_sink(std::basic_ostream<char>& os)
-            : stream_ptr_(std::addressof(os)),
-              buffer_(default_buffer_length),
-              begin_buffer_(buffer_.data()),
-              end_buffer_(begin_buffer_+buffer_.size()),
+            : stream_ptr_(std::addressof(os)), 
+              buffer_(default_buffer_length), 
+              begin_buffer_(buffer_.data()), 
+              end_buffer_(begin_buffer_+buffer_.size()), 
               p_(begin_buffer_)
         {
         }
         binary_stream_sink(std::basic_ostream<char>& os, std::size_t buflen)
-            : stream_ptr_(std::addressof(os)),
-              buffer_(buflen),
-              begin_buffer_(buffer_.data()),
-              end_buffer_(begin_buffer_+buffer_.size()),
+            : stream_ptr_(std::addressof(os)), 
+              buffer_(buflen), 
+              begin_buffer_(buffer_.data()), 
+              end_buffer_(begin_buffer_+buffer_.size()), 
               p_(begin_buffer_)
         {
         }
@@ -183,6 +201,24 @@ namespace jsoncons {
             }
         }
 
+        void append(std::size_t count, uint8_t ch)
+        {
+            if (count <= std::size_t(end_buffer_ - p_))
+            {
+                for (std::size_t i = 0; i < count; ++i)
+                {
+                    *p_++ = ch;
+                }
+            }
+            else
+            {
+                for (std::size_t i = 0; i < count; ++i)
+                {
+                    push_back(ch);
+                }
+            }
+        }
+
         void push_back(uint8_t ch)
         {
             if (p_ < end_buffer_)
@@ -193,7 +229,7 @@ namespace jsoncons {
             {
                 stream_ptr_->write((char*)begin_buffer_, buffer_length());
                 p_ = begin_buffer_;
-                push_back(ch);
+                *p_++ = ch;
             }
         }
     private:
@@ -207,7 +243,7 @@ namespace jsoncons {
     // string_sink
 
     template <typename StringT>
-    class string_sink
+    class string_sink 
     {
     public:
         using value_type = typename StringT::value_type;
@@ -228,7 +264,7 @@ namespace jsoncons {
             : buf_ptr(std::addressof(buf))
         {
         }
-
+        
         ~string_sink() = default;
 
         string_sink& operator=(const string_sink&) = delete;
@@ -247,7 +283,12 @@ namespace jsoncons {
 
         void append(const value_type* s, std::size_t length)
         {
-            buf_ptr->insert(buf_ptr->end(), s, s+length);
+            buf_ptr->append(s, length);
+        }
+
+        void append(std::size_t count, value_type ch)
+        {
+            buf_ptr->append(count, ch);
         }
 
         void push_back(value_type ch)
@@ -269,7 +310,7 @@ namespace jsoncons {
     };
 
     template <typename Container>
-    class bytes_sink<Container,typename std::enable_if<ext_traits::is_back_insertable_byte_container<Container>::value>::type>
+    class bytes_sink<Container,typename std::enable_if<ext_traits::is_back_insertable_byte_container<Container>::value>::type> 
     {
     public:
         using container_type = Container;
@@ -287,8 +328,8 @@ namespace jsoncons {
             : buf_ptr(std::addressof(buf))
         {
         }
-
-        ~bytes_sink() = default;
+        
+        ~bytes_sink() = default; 
 
         bytes_sink& operator=(const bytes_sink&) = delete;
         bytes_sink& operator=(bytes_sink&&) = default;
@@ -297,9 +338,51 @@ namespace jsoncons {
         {
         }
 
+        void append(const uint8_t* s, std::size_t length)
+        {
+            append_impl(*buf_ptr, s, length, 0);
+        }
+
         void push_back(uint8_t ch)
         {
             buf_ptr->push_back(static_cast<value_type>(ch));
+        }
+
+    private:
+        template <typename C>
+        static auto append_impl(C& c, const uint8_t* s, std::size_t length, int)
+            -> decltype(c.append(s, length), void())
+        {
+            c.append(s, length);
+        }
+
+        template <typename C>
+        static auto append_impl(C& c, const uint8_t* s, std::size_t length, long)
+            -> decltype(c.insert(c.end(), s, s + length), void())
+        {
+            c.insert(c.end(), s, s + length);
+        }
+
+        template <typename C>
+        static void append_impl(C& c, const uint8_t* s, std::size_t length, ...)
+        {
+            reserve(c, length, 0);
+            for (std::size_t i = 0; i < length; ++i)
+            {
+                c.push_back(static_cast<typename C::value_type>(s[i]));
+            }
+        }
+
+        template <typename C>
+        static auto reserve(C& c, std::size_t length, int)
+            -> decltype(c.reserve(c.size() + length), void())
+        {
+            c.reserve(c.size() + length);
+        }
+
+        template <typename C>
+        static void reserve(C&, std::size_t, ...)
+        {
         }
     };
 

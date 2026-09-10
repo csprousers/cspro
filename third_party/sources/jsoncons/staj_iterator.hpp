@@ -1,4 +1,4 @@
-// Copyright 2013-2025 Daniel Parker
+// Copyright 2013-2026 Daniel Parker
 // Distributed under the Boost license, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
@@ -37,7 +37,7 @@ namespace jsoncons {
         using pointer = T*;
         using reference = T&;
         using iterator_category = std::input_iterator_tag;
-
+        
     private:
         basic_staj_cursor<char_type>* cursor_ptr_{nullptr};
         jsoncons::optional<T> value_;
@@ -53,7 +53,7 @@ namespace jsoncons {
             {
                 done_ = true;
             }
-            else if (cursor_ptr_->current().event_type() == staj_event_type::begin_array)
+            else if (cursor_ptr_->current().event_type() == staj_events::begin_array)
             {
                 next();
             }
@@ -70,7 +70,7 @@ namespace jsoncons {
             {
                 done_ = true;
             }
-            else if (cursor_ptr_->current().event_type() == staj_event_type::begin_array)
+            else if (cursor_ptr_->current().event_type() == staj_events::begin_array)
             {
                 next(ec);
             }
@@ -165,19 +165,19 @@ namespace jsoncons {
                 done_ = true;
                 return;
             }
-            if (JSONCONS_UNLIKELY(cursor_ptr_->current().event_type() == staj_event_type::end_array))
+            if (JSONCONS_UNLIKELY(cursor_ptr_->current().event_type() == staj_events::end_array))
             {
                 done_ = true;
                 return;
             }
-            auto result = reflect::decode_traits<T>::try_decode(make_alloc_set(), *cursor_ptr_);
+            auto result = reflect::decode_traits<T>::decode(make_alloc_set(), *cursor_ptr_);
             if (JSONCONS_UNLIKELY(!result))
             {
                 ec = result.error().code();
                 return;
             }
             value_ = std::move(*result);
-        }
+        }            
     };
 
     template <typename T,typename CharT>
@@ -193,7 +193,7 @@ namespace jsoncons {
     }
 
     // staj_object_iterator
-
+    
     template <typename Key,typename T,typename CharT=char>
     class staj_object_iterator
     {
@@ -220,7 +220,7 @@ namespace jsoncons {
             {
                 done_ = true;
             }
-            else if (cursor_ptr_->current().event_type() == staj_event_type::begin_object)
+            else if (cursor_ptr_->current().event_type() == staj_events::begin_object)
             {
                 next();
             }
@@ -237,7 +237,7 @@ namespace jsoncons {
             {
                 done_ = true;
             }
-            else if (cursor_ptr_->current().event_type() == staj_event_type::begin_object)
+            else if (cursor_ptr_->current().event_type() == staj_events::begin_object)
             {
                 next(ec);
                 if (JSONCONS_UNLIKELY(ec)) {done_ = true;}
@@ -248,11 +248,11 @@ namespace jsoncons {
             }
         }
 
-        staj_object_iterator(const staj_object_iterator& iter) = default;
+        staj_object_iterator(const staj_object_iterator& iter) = default; 
 
         ~staj_object_iterator() noexcept = default;
 
-        staj_object_iterator& operator=(const staj_object_iterator& iter) = default;
+        staj_object_iterator& operator=(const staj_object_iterator& iter) = default; 
 
         const value_type& operator*() const
         {
@@ -326,19 +326,19 @@ namespace jsoncons {
                 done_ = true;
                 return;
             }
-
+            
             cursor_ptr_->next(ec);
             if (JSONCONS_UNLIKELY(ec))
             {
                 done_ = true;
                 return;
             }
-            if (JSONCONS_UNLIKELY(cursor_ptr_->current().event_type() == staj_event_type::end_object))
+            if (JSONCONS_UNLIKELY(cursor_ptr_->current().event_type() == staj_events::end_object))
             {
                 done_ = true;
                 return;
             }
-            JSONCONS_ASSERT(cursor_ptr_->current().event_type() == staj_event_type::key);
+            JSONCONS_ASSERT(cursor_ptr_->current().event_type() == staj_events::key);
             auto key = cursor_ptr_->current(). template get<key_type>();
             cursor_ptr_->next(ec);
             if (JSONCONS_UNLIKELY(ec))
@@ -346,7 +346,7 @@ namespace jsoncons {
                 done_ = true;
                 return;
             }
-            auto result = reflect::decode_traits<T>::try_decode(make_alloc_set(), *cursor_ptr_);
+            auto result = reflect::decode_traits<T>::decode(make_alloc_set(), *cursor_ptr_);
             if (JSONCONS_UNLIKELY(!result))
             {
                 ec = result.error().code();
@@ -372,3 +372,4 @@ namespace jsoncons {
 } // namespace jsoncons
 
 #endif // JSONCONS_STAJ_ITERATOR_HPP
+

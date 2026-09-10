@@ -1,4 +1,4 @@
-/// Copyright 2013-2025 Daniel Parker
+/// Copyright 2013-2026 Daniel Parker
 // Distributed under the Boost license, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
@@ -42,7 +42,7 @@ namespace jsoncons {
         unexpected_rbracket,
         unexpected_rbrace,
         illegal_comment,
-        expected_continuation_byte,
+        bad_continuation_byte,
         over_long_utf8_sequence,
         illegal_codepoint,
         illegal_surrogate_value,
@@ -111,7 +111,7 @@ namespace jsoncons {
                     return "Unexpected right bracket ']'";
                 case json_errc::illegal_comment:
                     return "Illegal comment";
-                case json_errc::expected_continuation_byte:
+                case json_errc::bad_continuation_byte:
                     return "Expected continuation byte";
                 case json_errc::over_long_utf8_sequence:
                     return "Over long UTF-8 sequence";

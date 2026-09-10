@@ -1,4 +1,4 @@
-// Copyright 2013-2025 Daniel Parker
+// Copyright 2013-2026 Daniel Parker
 // Distributed under the Boost license, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
@@ -22,29 +22,29 @@
 #include <jsoncons/json_exception.hpp>
 #include <jsoncons/utility/more_type_traits.hpp>
 
-namespace jsoncons {
+namespace jsoncons { 
 
 // Inspired by yyjson https://github.com/ibireme/yyjson
 
 // Digit: '0'.
 JSONCONS_INLINE_CONSTEXPR uint8_t DIGIT_TYPE_ZERO       = 1 << 0;
 
-// Digit: [1-9].
+// Digit: [1-9]. 
 JSONCONS_INLINE_CONSTEXPR uint8_t DIGIT_TYPE_NONZERO    = 1 << 1;
 
-// Plus sign (positive): '+'.
+// Plus sign (positive): '+'. 
 JSONCONS_INLINE_CONSTEXPR uint8_t DIGIT_TYPE_POS        = 1 << 2;
 
-// Minus sign (negative): '-'.
+// Minus sign (negative): '-'. 
 JSONCONS_INLINE_CONSTEXPR uint8_t DIGIT_TYPE_NEG        = 1 << 3;
 
-// Decimal point: '.'
+// Decimal point: '.' 
 JSONCONS_INLINE_CONSTEXPR uint8_t DIGIT_TYPE_DOT        = 1 << 4;
 
-// Exponent sign: 'e, 'E'.
+// Exponent sign: 'e, 'E'. 
 JSONCONS_INLINE_CONSTEXPR uint8_t DIGIT_TYPE_EXP        = 1 << 5;
 
-// Digit type table (generate with misc/make_tables.c)
+// Digit type table (generate with misc/make_tables.c) 
 JSONCONS_INLINE_CONSTEXPR uint8_t digi_table[256] = {
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -69,32 +69,32 @@ constexpr bool is_type(uint8_t d, uint8_t type) {
     return (digi_table[d] & type) != 0;
 }
 
-// Match a sign: '+', '-'
+// Match a sign: '+', '-' 
 constexpr bool is_sign(char d) {
     return is_type(static_cast<uint8_t>(d), (uint8_t)(DIGIT_TYPE_POS | DIGIT_TYPE_NEG));
 }
 
-// Match a none zero digit: [1-9]
+// Match a none zero digit: [1-9] 
 constexpr bool is_nonzero_digit(char d) {
     return is_type(static_cast<uint8_t>(d), (uint8_t)DIGIT_TYPE_NONZERO);
 }
 
-// Match a digit: [0-9]
+// Match a digit: [0-9] 
 constexpr bool is_digit(char d) {
     return is_type(static_cast<uint8_t>(d), (uint8_t)(DIGIT_TYPE_ZERO | DIGIT_TYPE_NONZERO));
 }
 
-// Match an exponent sign: 'e', 'E'.
+// Match an exponent sign: 'e', 'E'. 
 constexpr bool is_exp(char d) {
     return is_type(static_cast<uint8_t>(d), (uint8_t)DIGIT_TYPE_EXP);
 }
 
-// Match a floating point indicator: '.', 'e', 'E'.
+// Match a floating point indicator: '.', 'e', 'E'. 
 constexpr bool is_fp_indicator(char d) {
     return is_type(static_cast<uint8_t>(d), (uint8_t)(DIGIT_TYPE_DOT | DIGIT_TYPE_EXP));
 }
 
-// Match a digit or floating point indicator: [0-9], '.', 'e', 'E'.
+// Match a digit or floating point indicator: [0-9], '.', 'e', 'E'. 
 constexpr bool is_digit_or_fp(char d) {
     return is_type(static_cast<uint8_t>(d), (uint8_t)(DIGIT_TYPE_ZERO | DIGIT_TYPE_NONZERO |
                                        DIGIT_TYPE_DOT | DIGIT_TYPE_EXP));
@@ -103,27 +103,27 @@ constexpr bool is_sign(wchar_t d) {
     return d == '+' || d == '-';
 }
 
-// Match a none zero digit: [1-9]
+// Match a none zero digit: [1-9] 
 constexpr bool is_nonzero_digit(wchar_t d) {
     return d >= '1' && d <= '9';
 }
 
-// Match a digit: [0-9]
+// Match a digit: [0-9] 
 constexpr bool is_digit(wchar_t d) {
     return d >= '0' && d <= '9';
 }
 
-// Match an exponent sign: 'e', 'E'.
+// Match an exponent sign: 'e', 'E'. 
 constexpr bool is_exp(wchar_t d) {
     return d == 'e' || d == 'E';
 }
 
-// Match a floating point indicator: '.', 'e', 'E'.
+// Match a floating point indicator: '.', 'e', 'E'. 
 constexpr bool is_fp(wchar_t d) {
     return d == '.' || d == 'e' || d == 'E';
 }
 
-// Match a digit or floating point indicator: [0-9], '.', 'e', 'E'.
+// Match a digit or floating point indicator: [0-9], '.', 'e', 'E'. 
 constexpr bool is_digit_or_fp(wchar_t d) {
     return is_digit(d) || is_fp(d);
 }
@@ -164,7 +164,7 @@ bool is_base10(const CharT* s, std::size_t length)
 {
     integer_chars_state state = integer_chars_state::initial;
 
-    const CharT* end = s + length;
+    const CharT* end = s + length; 
     for (;s < end; ++s)
     {
         switch(state)
@@ -219,7 +219,7 @@ bool is_base16(const CharT* s, std::size_t length)
 {
     integer_chars_state state = integer_chars_state::initial;
 
-    const CharT* end = s + length;
+    const CharT* end = s + length; 
     for (;s < end; ++s)
     {
         switch(state)
@@ -258,7 +258,7 @@ bool is_base16(const CharT* s, std::size_t length)
     }
     return state == integer_chars_state::base16 ? true : false;
 }
-
+    
 template <typename T,typename CharT>
 typename std::enable_if<ext_traits::integer_limits<T>::is_specialized && !ext_traits::integer_limits<T>::is_signed,to_number_result<CharT>>::type
 dec_to_integer(const CharT* s, std::size_t length, T& value)
@@ -277,7 +277,7 @@ dec_to_integer(const CharT* s, std::size_t length, T& value)
     static constexpr std::size_t digits10 = static_cast<std::size_t>(ext_traits::integer_limits<T>::digits10);
     const std::size_t n = (std::min)(digits10, length);
     const CharT* stop = s + n;
-
+     
     while (cur < stop)
     {
         uint8_t d;
@@ -317,7 +317,7 @@ dec_to_integer(const CharT* s, std::size_t length, T& value)
         value = num;
         return to_number_result<CharT>(cur, std::errc{});
     }
-
+    
     return to_number_result<CharT>(cur, std::errc::invalid_argument);
 }
 
@@ -376,7 +376,7 @@ to_integer(const CharT* s, std::size_t length, T& n)
 
     integer_chars_state state = integer_chars_state::initial;
 
-    const CharT* end = s + length;
+    const CharT* end = s + length; 
     while (s < end)
     {
         switch(state)
@@ -386,7 +386,7 @@ to_integer(const CharT* s, std::size_t length, T& n)
                 switch(*s)
                 {
                     case '0':
-                        state = integer_chars_state::integer; // Could be binary, octal, hex
+                        state = integer_chars_state::integer; // Could be binary, octal, hex 
                         ++s;
                         break;
                     case '1':case '2':case '3':case '4':case '5':case '6':case '7':case '8': case '9': // Must be decimal
@@ -518,13 +518,13 @@ to_integer(const CharT* s, std::size_t length, T& n)
                     switch (c)
                     {
                         case '0':case '1':case '2':case '3':case '4':case '5':case '6':case '7':case '8': case '9':
-                            x = c - '0';
+                            x = static_cast<T>(c - '0');
                             break;
                         case 'a':case 'b':case 'c':case 'd':case 'e':case 'f':
-                            x = c - ('a' - 10);
+                            x = static_cast<T>(c - ('a' - 10));
                             break;
                         case 'A':case 'B':case 'C':case 'D':case 'E':case 'F':
-                            x = c - ('A' - 10);
+                            x = static_cast<T>(c - ('A' - 10));
                             break;
                         default:
                             return to_number_result<CharT>(s, std::errc::invalid_argument);
@@ -621,7 +621,7 @@ hex_to_integer(const CharT* s, std::size_t length, T& n)
 
     n = 0;
 
-    const CharT* end = s + length;
+    const CharT* end = s + length; 
     if (*s == '-')
     {
         static constexpr T min_value = (ext_traits::integer_limits<T>::lowest)();
@@ -704,7 +704,7 @@ hex_to_integer(const CharT* s, std::size_t length, T& n)
     JSONCONS_ASSERT(length > 0);
 
     n = 0;
-    const CharT* end = s + length;
+    const CharT* end = s + length; 
 
     static constexpr T max_value = (ext_traits::integer_limits<T>::max)();
     static constexpr T max_value_div_16 = max_value / 16;
@@ -746,7 +746,7 @@ hex_to_integer(const CharT* s, std::size_t length, T& n)
 
 #if defined(JSONCONS_HAS_STD_FROM_CHARS) && JSONCONS_HAS_STD_FROM_CHARS
 
-inline to_number_result<char> decstr_to_double(const char* s, std::size_t length, double& val)
+inline to_number_result<char> decstr_to_double(const char* s, std::size_t length, double& val) 
 {
     const char* last = s+length;
     const auto res = std::from_chars(s, last, val);
@@ -774,7 +774,7 @@ inline to_number_result<wchar_t> decstr_to_double(const wchar_t* s, std::size_t 
     {
         buf[i] = static_cast<char>(s[i]);
     }
-
+    
     const auto res = std::from_chars(buf.data(), buf.data()+length, val);
     if (JSONCONS_UNLIKELY(res.ptr != (buf.data()+length)))
     {
@@ -1031,7 +1031,7 @@ inline to_number_result<wchar_t> hexstr_to_double(const wchar_t* s, std::size_t 
     }
     return to_number_result<wchar_t>{str_end};
 }
-
+        
 } // namespace jsoncons
 
 #endif // JSONCONS_UTILITY_READ_NUMBER_HPP

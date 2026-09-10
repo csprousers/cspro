@@ -1,4 +1,4 @@
-// Copyright 2013-2025 Daniel Parker
+// Copyright 2013-2026 Daniel Parker
 // Distributed under the Boost license, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
@@ -14,7 +14,7 @@
 
 namespace jsoncons {
 
-    enum class json_type : uint8_t
+    enum class json_type : uint8_t 
     {
         null,
         boolean,
@@ -109,80 +109,90 @@ namespace jsoncons {
         }
         return os;
     }
-
+    
     struct null_type
     {
-        explicit null_type() = default;
+        explicit null_type() = default; 
     };
-
+    
     JSONCONS_INLINE_CONSTEXPR null_type null_arg{};
-
+    
     struct temp_alloc_arg_t
     {
-        explicit temp_alloc_arg_t() = default;
+        explicit temp_alloc_arg_t() = default; 
     };
-
+    
     JSONCONS_INLINE_CONSTEXPR temp_alloc_arg_t temp_alloc_arg{};
 
     using temp_allocator_arg_t = temp_alloc_arg_t;
 
     JSONCONS_INLINE_CONSTEXPR temp_allocator_arg_t temp_allocator_arg{};
-
+    
     struct half_arg_t
     {
-        explicit half_arg_t() = default;
+        explicit half_arg_t() = default; 
     };
-
+    
     JSONCONS_INLINE_CONSTEXPR half_arg_t half_arg{};
-
+    
     struct json_array_arg_t
     {
-        explicit json_array_arg_t() = default;
+        explicit json_array_arg_t() = default; 
     };
-
+    
     JSONCONS_INLINE_CONSTEXPR json_array_arg_t json_array_arg{};
-
+    
     struct json_object_arg_t
     {
-        explicit json_object_arg_t() = default;
+        explicit json_object_arg_t() = default; 
     };
-
+    
     JSONCONS_INLINE_CONSTEXPR json_object_arg_t json_object_arg{};
-
+    
     struct byte_string_arg_t
     {
-        explicit byte_string_arg_t() = default;
+        explicit byte_string_arg_t() = default; 
     };
-
+    
     JSONCONS_INLINE_CONSTEXPR byte_string_arg_t byte_string_arg{};
 
-    struct json_const_pointer_arg_t
+    struct const_json_ptr_arg_t
     {
-        explicit json_const_pointer_arg_t() = default;
+        explicit const_json_ptr_arg_t() = default; 
     };
 
-    JSONCONS_INLINE_CONSTEXPR json_const_pointer_arg_t json_const_pointer_arg{};
+    JSONCONS_INLINE_CONSTEXPR const_json_ptr_arg_t const_json_ptr_arg{};
 
-    struct json_pointer_arg_t
+    struct json_ptr_arg_t
     {
-        explicit json_pointer_arg_t() = default;
+        explicit json_ptr_arg_t() = default; 
     };
 
-    JSONCONS_INLINE_CONSTEXPR json_pointer_arg_t json_pointer_arg{};
+    JSONCONS_INLINE_CONSTEXPR json_ptr_arg_t json_ptr_arg{};
 
     struct raw_json_arg_t
     {
-        explicit raw_json_arg_t() = default;
+        explicit raw_json_arg_t() = default; 
     };
 
-    JSONCONS_INLINE_CONSTEXPR raw_json_arg_t raw_json_arg{};
+#if !defined(JSONCONS_NO_DEPRECATED)  
+    using json_const_pointer_arg_t = const_json_ptr_arg_t;
 
+    JSONCONS_INLINE_CONSTEXPR json_const_pointer_arg_t json_const_pointer_arg{};
+    
+    using json_pointer_arg_t = json_ptr_arg_t;
+    
+    JSONCONS_INLINE_CONSTEXPR json_pointer_arg_t json_pointer_arg{};
+#endif
+    
+    JSONCONS_INLINE_CONSTEXPR raw_json_arg_t raw_json_arg{};
+    
     struct noesc_arg_t
     {
-        explicit noesc_arg_t() = default;
+        explicit noesc_arg_t() = default; 
     };
 
-    enum class json_storage_kind : uint8_t
+    enum class json_storage_kind : uint8_t 
     {
         null = 0,                 // 0000
         boolean = 1,              // 0001
@@ -192,25 +202,33 @@ namespace jsoncons {
         float64 = 5,              // 0101
         half_float = 6,           // 0110
         short_str = 7,            // 0111
-        json_const_ref = 8, // 1000
-        json_ref = 9,       // 1001
-        byte_str = 12,            // 1100
+        const_json_ref = 8,       // 1000    
+        json_ref = 9,             // 1001    
+        byte_str = 12,            // 1100  
         object = 13,              // 1101
         array = 14,               // 1110
         long_str = 15             // 1111
     };
 
-    inline bool is_string_storage(json_storage_kind storage_kind) noexcept
+    inline bool is_primitive_storage(json_storage_kind storage_kind) noexcept
     {
-        static const uint8_t mask{ uint8_t(json_storage_kind::short_str) & uint8_t(json_storage_kind::long_str) };
-        return (uint8_t(storage_kind) & mask) == mask;
+        static constexpr uint8_t mask{ uint8_t(json_storage_kind::long_str) & uint8_t(json_storage_kind::byte_str) 
+            & uint8_t(json_storage_kind::array) & uint8_t(json_storage_kind::object)
+            & uint8_t(json_storage_kind::const_json_ref) & uint8_t(json_storage_kind::json_ref)};
+        return (uint8_t(storage_kind) & mask) != mask;
     }
 
     inline bool is_trivial_storage(json_storage_kind storage_kind) noexcept
     {
-        static const uint8_t mask{ uint8_t(json_storage_kind::long_str) & uint8_t(json_storage_kind::byte_str)
+        static constexpr uint8_t mask{ uint8_t(json_storage_kind::long_str) & uint8_t(json_storage_kind::byte_str) 
             & uint8_t(json_storage_kind::array) & uint8_t(json_storage_kind::object) };
         return (uint8_t(storage_kind) & mask) != mask;
+    }
+
+    inline bool is_string_storage(json_storage_kind storage_kind) noexcept
+    {
+        static constexpr uint8_t mask{ uint8_t(json_storage_kind::short_str) & uint8_t(json_storage_kind::long_str) };
+        return (uint8_t(storage_kind) & mask) == mask;
     }
 
     template <typename CharT>
@@ -228,7 +246,7 @@ namespace jsoncons {
         static constexpr const CharT* array_value = JSONCONS_CSTRING_CONSTANT(CharT, "array");
         static constexpr const CharT* empty_object_value = JSONCONS_CSTRING_CONSTANT(CharT, "empty_object");
         static constexpr const CharT* object_value = JSONCONS_CSTRING_CONSTANT(CharT, "object");
-        static constexpr const CharT* json_const_ref = JSONCONS_CSTRING_CONSTANT(CharT, "json_const_ref");
+        static constexpr const CharT* const_json_ref = JSONCONS_CSTRING_CONSTANT(CharT, "const_json_ref");
         static constexpr const CharT* json_ref = JSONCONS_CSTRING_CONSTANT(CharT, "json_ref");
 
         switch (storage)
@@ -293,9 +311,9 @@ namespace jsoncons {
                 os << object_value;
                 break;
             }
-            case json_storage_kind::json_const_ref:
+            case json_storage_kind::const_json_ref:
             {
-                os << json_const_ref;
+                os << const_json_ref;
                 break;
             }
             case json_storage_kind::json_ref:

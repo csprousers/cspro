@@ -1,4 +1,4 @@
-// Copyright 2013-2025 Daniel Parker
+// Copyright 2013-2026 Daniel Parker
 // Distributed under the Boost license, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
@@ -19,7 +19,7 @@ namespace jsoncons {
     // text_source_adaptor
 
     template <typename Source>
-    class text_source_adaptor
+    class text_source_adaptor 
     {
     public:
         using value_type = typename Source::value_type;
@@ -46,17 +46,17 @@ namespace jsoncons {
 
         bool is_error() const
         {
-            return source_.is_error();
+            return source_.is_error();  
         }
 
-        span<const value_type> read_buffer(std::error_code& ec)
+        span<const value_type> read_chunk(std::error_code& ec)
         {
             if (source_.eof())
             {
                 return span<const value_type>();
             }
 
-            auto s = source_.read_buffer();
+            auto s = source_.read_chunk();
             const value_type* data = s.data();
             std::size_t length = s.size();
 
@@ -72,14 +72,14 @@ namespace jsoncons {
                 data = r.ptr;
                 bof_ = false;
             }
-            return span<const value_type>(data, length);
+            return span<const value_type>(data, length);           
         }
     };
 
     // json_source_adaptor
 
     template <typename Source>
-    class json_source_adaptor
+    class json_source_adaptor 
     {
     public:
         using value_type = typename Source::value_type;
@@ -106,17 +106,17 @@ namespace jsoncons {
 
         bool is_error() const
         {
-            return source_.is_error();
+            return source_.is_error();  
         }
 
-        span<const value_type> read_buffer(std::error_code& ec)
+        span<const value_type> read_chunk(std::error_code& ec)
         {
             if (source_.eof())
             {
                 return span<const value_type>();
             }
 
-            auto s = source_.read_buffer();
+            auto s = source_.read_chunk();
             const value_type* data = s.data();
             std::size_t length = s.size();
 
@@ -132,11 +132,12 @@ namespace jsoncons {
                 data = r.ptr;
                 bof_ = false;
             }
-
-            return span<const value_type>(data, length);
+            
+            return span<const value_type>(data, length);           
         }
     };
 
 } // namespace jsoncons
 
 #endif // JSONCONS_SOURCE_ADAPTOR_HPP
+

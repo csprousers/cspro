@@ -1,4 +1,4 @@
-// Copyright 2013-2025 Daniel Parker
+// Copyright 2013-2026 Daniel Parker
 // Distributed under the Boost license, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
@@ -21,7 +21,7 @@
 #include <jsoncons/json_type.hpp>
 #include <jsoncons/json_visitor.hpp>
 #include <jsoncons/semantic_tag.hpp>
-#include <jsoncons/ser_util.hpp>
+#include <jsoncons/ser_utils.hpp>
 #include <jsoncons/source.hpp>
 #include <jsoncons/source_adaptor.hpp>
 #include <jsoncons/utility/unicode_traits.hpp>
@@ -59,42 +59,42 @@ namespace jsoncons {
 
     private:
 
-        void visit_flush() override
+        void visit_flush() final
         {
             other_visitor_.flush();
         }
 
-        JSONCONS_VISITOR_RETURN_TYPE visit_begin_object(semantic_tag tag, const ser_context& context, std::error_code& ec) override
+        JSONCONS_VISITOR_RETURN_TYPE visit_begin_object(semantic_tag tag, const ser_context& context, std::error_code& ec) final
         {
             other_visitor_.begin_object(tag, context, ec);
             JSONCONS_VISITOR_RETURN;
         }
 
-        JSONCONS_VISITOR_RETURN_TYPE visit_end_object(const ser_context& context, std::error_code& ec) override
+        JSONCONS_VISITOR_RETURN_TYPE visit_end_object(const ser_context& context, std::error_code& ec) final
         {
             other_visitor_.end_object(context, ec);
             JSONCONS_VISITOR_RETURN;
         }
 
-        JSONCONS_VISITOR_RETURN_TYPE visit_begin_array(semantic_tag tag, const ser_context& context, std::error_code& ec) override
+        JSONCONS_VISITOR_RETURN_TYPE visit_begin_array(semantic_tag tag, const ser_context& context, std::error_code& ec) final
         {
             other_visitor_.begin_array(tag, context, ec);
             JSONCONS_VISITOR_RETURN;
         }
 
-        JSONCONS_VISITOR_RETURN_TYPE visit_end_array(const ser_context& context, std::error_code& ec) override
+        JSONCONS_VISITOR_RETURN_TYPE visit_end_array(const ser_context& context, std::error_code& ec) final
         {
             other_visitor_.end_array(context, ec);
             JSONCONS_VISITOR_RETURN;
         }
 
-        JSONCONS_VISITOR_RETURN_TYPE visit_key(const string_view_type& name, const ser_context& context, std::error_code& ec) override
+        JSONCONS_VISITOR_RETURN_TYPE visit_key(const string_view_type& name, const ser_context& context, std::error_code& ec) final
         {
             std::basic_string<CharT> target;
             auto result = unicode_traits::convert(
-                name.data(), name.size(), target,
-                unicode_traits::conv_flags::strict);
-            if (result.ec != unicode_traits::conv_errc())
+                name.data(), name.size(), target, 
+                unicode_traits::strict_flag::strict);
+            if (result.ec != unicode_traits::unicode_errc())
             {
                 JSONCONS_THROW(ser_error(result.ec,context.line(),context.column()));
             }
@@ -102,13 +102,13 @@ namespace jsoncons {
             JSONCONS_VISITOR_RETURN;
         }
 
-        JSONCONS_VISITOR_RETURN_TYPE visit_string(const string_view_type& value, semantic_tag tag, const ser_context& context, std::error_code& ec) override
+        JSONCONS_VISITOR_RETURN_TYPE visit_string(const string_view_type& value, semantic_tag tag, const ser_context& context, std::error_code& ec) final
         {
             std::basic_string<CharT> target;
             auto result = unicode_traits::convert(
-                value.data(), value.size(), target,
-                unicode_traits::conv_flags::strict);
-            if (result.ec != unicode_traits::conv_errc())
+                value.data(), value.size(), target, 
+                unicode_traits::strict_flag::strict);
+            if (result.ec != unicode_traits::unicode_errc())
             {
                 ec = result.ec;
                 JSONCONS_VISITOR_RETURN;
@@ -117,49 +117,49 @@ namespace jsoncons {
             JSONCONS_VISITOR_RETURN;
         }
 
-        JSONCONS_VISITOR_RETURN_TYPE visit_int64(int64_t value,
-            semantic_tag tag,
+        JSONCONS_VISITOR_RETURN_TYPE visit_int64(int64_t value, 
+            semantic_tag tag, 
             const ser_context& context,
-            std::error_code& ec) override
+            std::error_code& ec) final
         {
             other_visitor_.int64_value(value, tag, context, ec);
             JSONCONS_VISITOR_RETURN;
         }
 
-        JSONCONS_VISITOR_RETURN_TYPE visit_uint64(uint64_t value,
-            semantic_tag tag,
+        JSONCONS_VISITOR_RETURN_TYPE visit_uint64(uint64_t value, 
+            semantic_tag tag, 
             const ser_context& context,
-            std::error_code& ec) override
+            std::error_code& ec) final
         {
             other_visitor_.uint64_value(value, tag, context, ec);
             JSONCONS_VISITOR_RETURN;
         }
 
-        JSONCONS_VISITOR_RETURN_TYPE visit_half(uint16_t value,
+        JSONCONS_VISITOR_RETURN_TYPE visit_half(uint16_t value, 
             semantic_tag tag,
             const ser_context& context,
-            std::error_code& ec) override
+            std::error_code& ec) final
         {
             other_visitor_.half_value(value, tag, context, ec);
             JSONCONS_VISITOR_RETURN;
         }
 
-        JSONCONS_VISITOR_RETURN_TYPE visit_double(double value,
+        JSONCONS_VISITOR_RETURN_TYPE visit_double(double value, 
             semantic_tag tag,
             const ser_context& context,
-            std::error_code& ec) override
+            std::error_code& ec) final
         {
             other_visitor_.double_value(value, tag, context, ec);
             JSONCONS_VISITOR_RETURN;
         }
 
-        JSONCONS_VISITOR_RETURN_TYPE visit_bool(bool value, semantic_tag tag, const ser_context& context, std::error_code& ec) override
+        JSONCONS_VISITOR_RETURN_TYPE visit_bool(bool value, semantic_tag tag, const ser_context& context, std::error_code& ec) final
         {
             other_visitor_.bool_value(value, tag, context, ec);
             JSONCONS_VISITOR_RETURN;
         }
 
-        JSONCONS_VISITOR_RETURN_TYPE visit_null(semantic_tag tag, const ser_context& context, std::error_code& ec) override
+        JSONCONS_VISITOR_RETURN_TYPE visit_null(semantic_tag tag, const ser_context& context, std::error_code& ec) final
         {
             other_visitor_.null_value(tag, context, ec);
             JSONCONS_VISITOR_RETURN;
@@ -167,7 +167,7 @@ namespace jsoncons {
     };
 
     template <typename CharT,typename Source=jsoncons::stream_source<CharT>,typename TempAlloc =std::allocator<char>>
-    class basic_json_reader
+    class basic_json_reader 
     {
     public:
         using char_type = CharT;
@@ -176,7 +176,7 @@ namespace jsoncons {
     private:
         using char_allocator_type = typename std::allocator_traits<TempAlloc>:: template rebind_alloc<CharT>;
 
-        static constexpr size_t default_max_buffer_size = 16384;
+        static constexpr size_t default_max_chunk_size = 16384;
 
         json_source_adaptor<Source> source_;
         basic_default_json_visitor<CharT> default_visitor_;
@@ -190,8 +190,8 @@ namespace jsoncons {
     public:
 
         template <typename Sourceable>
-        basic_json_reader(Sourceable&& source,
-            const basic_json_decode_options<CharT>& options = basic_json_decode_options<CharT>{},
+        basic_json_reader(Sourceable&& source, 
+            const basic_json_decode_options<CharT>& options = basic_json_decode_options<CharT>{}, 
             const TempAlloc& temp_alloc = TempAlloc())
             : basic_json_reader(std::forward<Sourceable>(source),
                                 default_visitor_,
@@ -201,8 +201,8 @@ namespace jsoncons {
         }
 
         template <typename Sourceable>
-        basic_json_reader(Sourceable&& source,
-            basic_json_visitor<CharT>& visitor,
+        basic_json_reader(Sourceable&& source, 
+            basic_json_visitor<CharT>& visitor, 
             const TempAlloc& temp_alloc = TempAlloc())
             : basic_json_reader(std::forward<Sourceable>(source),
                                 visitor,
@@ -212,9 +212,9 @@ namespace jsoncons {
         }
 
         template <typename Sourceable>
-        basic_json_reader(Sourceable&& source,
+        basic_json_reader(Sourceable&& source, 
             basic_json_visitor<CharT>& visitor,
-            const basic_json_decode_options<CharT>& options,
+            const basic_json_decode_options<CharT>& options, 
             const TempAlloc& temp_alloc = TempAlloc())
         : source_(std::forward<Sourceable>(source)),
           visitor_(visitor),
@@ -224,9 +224,9 @@ namespace jsoncons {
 
 #if !defined(JSONCONS_NO_DEPRECATED)
         template <typename Sourceable>
-        basic_json_reader(Sourceable&& source,
+        basic_json_reader(Sourceable&& source, 
             const basic_json_decode_options<CharT>& options,
-            std::function<bool(json_errc,const ser_context&)> err_handler,
+            std::function<bool(json_errc,const ser_context&)> err_handler, 
             const TempAlloc& temp_alloc = TempAlloc())
             : basic_json_reader(std::forward<Sourceable>(source),
                                 default_visitor_,
@@ -239,7 +239,7 @@ namespace jsoncons {
         template <typename Sourceable>
         basic_json_reader(Sourceable&& source,
                           basic_json_visitor<CharT>& visitor,
-                          std::function<bool(json_errc,const ser_context&)> err_handler,
+                          std::function<bool(json_errc,const ser_context&)> err_handler, 
                           const TempAlloc& temp_alloc = TempAlloc())
             : basic_json_reader(std::forward<Sourceable>(source),
                                 visitor,
@@ -251,9 +251,9 @@ namespace jsoncons {
 
         template <typename Sourceable>
         basic_json_reader(Sourceable&& source,
-                          basic_json_visitor<CharT>& visitor,
+                          basic_json_visitor<CharT>& visitor, 
                           const basic_json_decode_options<CharT>& options,
-                          std::function<bool(json_errc,const ser_context&)> err_handler,
+                          std::function<bool(json_errc,const ser_context&)> err_handler, 
                           const TempAlloc& temp_alloc = TempAlloc())
            : source_(std::forward<Sourceable>(source)),
              visitor_(visitor),
@@ -277,13 +277,13 @@ namespace jsoncons {
             {
                 ec = json_errc::source_error;
                 return;
-            }
+            }        
             parser_.reset();
             while (!parser_.stopped())
             {
                 if (parser_.source_exhausted())
                 {
-                    auto s = source_.read_buffer(ec);
+                    auto s = source_.read_chunk(ec);
                     if (JSONCONS_UNLIKELY(ec)) return;
                     if (s.size() > 0)
                     {
@@ -306,14 +306,14 @@ namespace jsoncons {
                     }
                 }
             }
-
+            
             parser_.skip_whitespace();
             while (!source_.eof())
             {
                 parser_.skip_whitespace();
                 if (parser_.source_exhausted())
                 {
-                    auto s = source_.read_buffer(ec);
+                    auto s = source_.read_chunk(ec);
                     if (JSONCONS_UNLIKELY(ec)) return;
                     if (s.size() > 0)
                     {
@@ -353,7 +353,7 @@ namespace jsoncons {
             {
                 ec = json_errc::source_error;
                 return;
-            }
+            }   
             if (source_.eof())
             {
                 parser_.check_done(ec);
@@ -365,7 +365,7 @@ namespace jsoncons {
                 {
                     if (parser_.source_exhausted())
                     {
-                        auto s = source_.read_buffer(ec);
+                        auto s = source_.read_chunk(ec);
                         if (JSONCONS_UNLIKELY(ec)) return;
                         if (s.size() > 0)
                         {
@@ -403,11 +403,12 @@ namespace jsoncons {
         }
     };
 
-    using json_string_reader = basic_json_reader<char,string_source<char>>;
-    using wjson_string_reader = basic_json_reader<wchar_t,string_source<wchar_t>>;
+    using json_string_reader = basic_json_reader<char,chars_source<char>>;
+    using wjson_string_reader = basic_json_reader<wchar_t,chars_source<wchar_t>>;
     using json_stream_reader = basic_json_reader<char,stream_source<char>>;
     using wjson_stream_reader = basic_json_reader<wchar_t,stream_source<wchar_t>>;
 
-}
+} // namespace jsoncons
 
-#endif
+#endif // JSONCONS_JSON_READER_HPP
+

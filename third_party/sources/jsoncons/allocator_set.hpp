@@ -1,4 +1,4 @@
-// Copyright 2013-2025 Daniel Parker
+// Copyright 2013-2026 Daniel Parker
 // Distributed under the Boost license, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
@@ -22,7 +22,7 @@ public:
     using allocator_type = Alloc;
     using temp_allocator_type = TempAlloc;
 
-    allocator_set(const Alloc& alloc=Alloc(),
+    allocator_set(const Alloc& alloc=Alloc(), 
         const TempAlloc& temp_alloc=TempAlloc())
         : result_alloc_(alloc), temp_alloc_(temp_alloc)
     {

@@ -1,4 +1,4 @@
-// Copyright 2013-2025 Daniel Parker
+// Copyright 2013-2026 Daniel Parker
 // Distributed under the Boost license, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
@@ -15,10 +15,10 @@
 #include <jsoncons/config/compiler_support.hpp>
 #include <jsoncons/detail/utility.hpp>
 
-namespace jsoncons
-{
-namespace detail
-{
+namespace jsoncons 
+{ 
+namespace detail 
+{ 
     template <typename T>
     class optional;
 
@@ -59,7 +59,7 @@ namespace detail
             : has_value_(false), dummy_{}
         {
         }
-
+        
         // copy constructors
         optional(const optional<T>& other)
             : has_value_(false), dummy_{}
@@ -113,7 +113,7 @@ namespace detail
             }
        }
 
-        // converting
+        // converting 
         template <typename U>
         optional(optional<U>&& value,
              typename std::enable_if<!std::is_same<T,U>::value &&
@@ -154,9 +154,9 @@ namespace detail
         {
         }
 
-        template<typename... Args,
+        template<typename... Args, 
             typename = typename std::enable_if<std::is_constructible<T, Args...>::value,int>::type>
-        optional(jsoncons::detail::in_place_t, Args&&... args)
+        optional(jsoncons::detail::in_place_t, Args&&... args) 
           : has_value_(true), value_(std::forward<Args>(args)...)
         {
         }
@@ -200,11 +200,11 @@ namespace detail
             optional&>::type
         operator=(const optional<U>& other)
         {
-            if (other)
+            if (other) 
             {
                 assign(*other);
-            }
-            else
+            } 
+            else 
             {
                 destroy();
             }
@@ -219,11 +219,11 @@ namespace detail
             optional&>::type
         operator=(optional<U>&& other) noexcept
         {
-            if (other)
+            if (other) 
             {
                 assign(std::move(*other));
-            }
-            else
+            } 
+            else 
             {
                 destroy();
             }
@@ -276,7 +276,7 @@ namespace detail
         }
 
         template <typename U>
-        constexpr T value_or(U&& default_value) const &
+        constexpr T value_or(U&& default_value) const & 
         {
             static_assert(std::is_copy_constructible<T>::value,
                           "get_value_or: T must be copy constructible");
@@ -288,7 +288,7 @@ namespace detail
         }
 
         template <typename U>
-        T value_or(U&& default_value) &&
+        T value_or(U&& default_value) && 
         {
             static_assert(std::is_move_constructible<T>::value,
                           "get_value_or: T must be move constructible");
@@ -351,15 +351,15 @@ namespace detail
         T& get() { return this->value_; }
 
         template <typename... Args>
-        void construct(Args&&... args)
+        void construct(Args&&... args) 
         {
             ::new (static_cast<void*>(&this->value_)) T(std::forward<Args>(args)...);
             has_value_ = true;
         }
 
-        void destroy() noexcept
+        void destroy() noexcept 
         {
-            if (has_value_)
+            if (has_value_) 
             {
                 value_.~T();
                 has_value_ = false;
@@ -367,13 +367,13 @@ namespace detail
         }
 
         template <typename U>
-        void assign(U&& u)
+        void assign(U&& u) 
         {
-            if (has_value_)
+            if (has_value_) 
             {
                 value_ = std::forward<U>(u);
-            }
-            else
+            } 
+            else 
             {
                 construct(std::forward<U>(u));
             }
@@ -388,104 +388,104 @@ namespace detail
     }
 
     template <typename T1,typename T2>
-    constexpr bool operator==(const optional<T1>& lhs, const optional<T2>& rhs) noexcept
+    constexpr bool operator==(const optional<T1>& lhs, const optional<T2>& rhs) noexcept 
     {
         return lhs.has_value() == rhs.has_value() && (!lhs.has_value() || *lhs == *rhs);
     }
 
     template <typename T1,typename T2>
-    constexpr bool operator!=(const optional<T1>& lhs, const optional<T2>& rhs) noexcept
+    constexpr bool operator!=(const optional<T1>& lhs, const optional<T2>& rhs) noexcept 
     {
         return lhs.has_value() != rhs.has_value() || (lhs.has_value() && *lhs != *rhs);
     }
 
     template <typename T1,typename T2>
-    constexpr bool operator<(const optional<T1>& lhs, const optional<T2>& rhs) noexcept
+    constexpr bool operator<(const optional<T1>& lhs, const optional<T2>& rhs) noexcept 
     {
         return rhs.has_value() && (!lhs.has_value() || *lhs < *rhs);
     }
 
     template <typename T1,typename T2>
-    constexpr bool operator>(const optional<T1>& lhs, const optional<T2>& rhs) noexcept
+    constexpr bool operator>(const optional<T1>& lhs, const optional<T2>& rhs) noexcept 
     {
         return lhs.has_value() && (!rhs.has_value() || *lhs > *rhs);
     }
 
     template <typename T1,typename T2>
-    constexpr bool operator<=(const optional<T1>& lhs, const optional<T2>& rhs) noexcept
+    constexpr bool operator<=(const optional<T1>& lhs, const optional<T2>& rhs) noexcept 
     {
         return !lhs.has_value() || (rhs.has_value() && *lhs <= *rhs);
     }
 
     template <typename T1,typename T2>
-    constexpr bool operator>=(const optional<T1>& lhs, const optional<T2>& rhs) noexcept
+    constexpr bool operator>=(const optional<T1>& lhs, const optional<T2>& rhs) noexcept 
     {
         return !rhs.has_value() || (lhs.has_value() && *lhs >= *rhs);
     }
 
     template <typename T1,typename T2>
-    constexpr bool operator==(const optional<T1>& lhs, const T2& rhs) noexcept
+    constexpr bool operator==(const optional<T1>& lhs, const T2& rhs) noexcept 
     {
         return lhs ? *lhs == rhs : false;
     }
     template <typename T1,typename T2>
-    constexpr bool operator==(const T1& lhs, const optional<T2>& rhs) noexcept
+    constexpr bool operator==(const T1& lhs, const optional<T2>& rhs) noexcept 
     {
         return rhs ? lhs == *rhs : false;
     }
 
     template <typename T1,typename T2>
-    constexpr bool operator!=(const optional<T1>& lhs, const T2& rhs) noexcept
+    constexpr bool operator!=(const optional<T1>& lhs, const T2& rhs) noexcept 
     {
         return lhs ? *lhs != rhs : true;
     }
     template <typename T1,typename T2>
-    constexpr bool operator!=(const T1& lhs, const optional<T2>& rhs) noexcept
+    constexpr bool operator!=(const T1& lhs, const optional<T2>& rhs) noexcept 
     {
         return rhs ? lhs != *rhs : true;
     }
 
     template <typename T1,typename T2>
-    constexpr bool operator<(const optional<T1>& lhs, const T2& rhs) noexcept
+    constexpr bool operator<(const optional<T1>& lhs, const T2& rhs) noexcept 
     {
         return lhs ? *lhs < rhs : true;
     }
     template <typename T1,typename T2>
-    constexpr bool operator<(const T1& lhs, const optional<T2>& rhs) noexcept
+    constexpr bool operator<(const T1& lhs, const optional<T2>& rhs) noexcept 
     {
         return rhs ? lhs < *rhs : false;
     }
 
     template <typename T1,typename T2>
-    constexpr bool operator<=(const optional<T1>& lhs, const T2& rhs) noexcept
+    constexpr bool operator<=(const optional<T1>& lhs, const T2& rhs) noexcept 
     {
         return lhs ? *lhs <= rhs : true;
     }
     template <typename T1,typename T2>
-    constexpr bool operator<=(const T1& lhs, const optional<T2>& rhs) noexcept
+    constexpr bool operator<=(const T1& lhs, const optional<T2>& rhs) noexcept 
     {
         return rhs ? lhs <= *rhs : false;
     }
 
     template <typename T1,typename T2>
-    constexpr bool operator>(const optional<T1>& lhs, const T2& rhs) noexcept
+    constexpr bool operator>(const optional<T1>& lhs, const T2& rhs) noexcept 
     {
         return lhs ? *lhs > rhs : false;
     }
 
     template <typename T1,typename T2>
-    constexpr bool operator>(const T1& lhs, const optional<T2>& rhs) noexcept
+    constexpr bool operator>(const T1& lhs, const optional<T2>& rhs) noexcept 
     {
         return rhs ? lhs > *rhs : true;
     }
 
     template <typename T1,typename T2>
-    constexpr bool operator>=(const optional<T1>& lhs, const T2& rhs) noexcept
+    constexpr bool operator>=(const optional<T1>& lhs, const T2& rhs) noexcept 
     {
         return lhs ? *lhs >= rhs : false;
     }
     template <typename T1,typename T2>
-    constexpr bool operator>=(const T1& lhs, const optional<T2>& rhs) noexcept
+    constexpr bool operator>=(const T1& lhs, const optional<T2>& rhs) noexcept 
     {
         return rhs ? lhs >= *rhs : true;
     }

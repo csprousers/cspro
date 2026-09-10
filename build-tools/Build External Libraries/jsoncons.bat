@@ -7,7 +7,7 @@ cd temp\jsoncons
 
 
 rem ... find the latest version number here: https://github.com/danielaparker/jsoncons/releases/latest/
-set jsoncons_version=1.5.0
+set jsoncons_version=1.9.0
 
 
 rem ... get the latest version

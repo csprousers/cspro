@@ -1,6 +1,6 @@
 // note CSPro additions marked with "CSPro"
 
-// Copyright 2013-2025 Daniel Parker
+// Copyright 2013-2026 Daniel Parker
 // Distributed under the Boost license, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
@@ -141,12 +141,12 @@
 #endif
 
 #ifndef JSONCONS_HAS_CP14
-   #if defined(_MSVC_LANG)
+   #if defined(_MSVC_LANG) 
        #if _MSVC_LANG >= 201402L
-           #define JSONCONS_HAS_CP14
+           #define JSONCONS_HAS_CP14 
        #endif
    #elif __cplusplus >= 201402L
-        #define JSONCONS_HAS_CP14
+        #define JSONCONS_HAS_CP14 
    #endif
 #endif
 
@@ -195,10 +195,12 @@
     #define JSONCONS_NODISCARD [[nodiscard]]
     #define JSONCONS_IF_CONSTEXPR if constexpr
     #define JSONCONS_INLINE_CONSTEXPR inline constexpr
+    #define JSONCONS_ATTRIBUTE_NODISCARD [[nodiscard]]
 #else
     #define JSONCONS_NODISCARD
-    #define JSONCONS_IF_CONSTEXPR if
+    #define JSONCONS_IF_CONSTEXPR if 
     #define JSONCONS_INLINE_CONSTEXPR constexpr
+    #define JSONCONS_ATTRIBUTE_NODISCARD 
 #endif
 
 #if !defined(JSONCONS_HAS_POLYMORPHIC_ALLOCATOR)
@@ -309,19 +311,24 @@
 
 // gcc and clang
 #if !defined(__CUDA_ARCH__)
+
 #if (defined(__clang__) || defined(__GNUC__)) && defined(__cplusplus)
+
 #if defined(__SIZEOF_INT128__) && !defined(_MSC_VER)
 #  define JSONCONS_HAS_INT128
 #endif
 
 #if (defined(linux) || defined(__linux) || defined(__linux__) || defined(__GNU__) || defined(__GLIBC__)) && !defined(_CRAYC)
+#if defined(__clang__) 
 #if (__clang_major__ >= 4) && defined(__has_include)
 #if __has_include(<quadmath.h>)
 #  define JSONCONS_HAS_FLOAT128
 #endif
 #endif
 #endif
-#endif
+#endif 
+
+#endif // (__clang__ || __GNUC__) && __cplusplus
 
 #if defined(__GNUC__)
 #if defined(_GLIBCXX_USE_FLOAT128)
@@ -338,6 +345,7 @@
 #endif
 #endif
 #endif
+
 #endif // __CUDA_ARCH__
 
 #ifndef JSONCONS_FORCE_INLINE
@@ -349,7 +357,7 @@
 #  define JSONCONS_FORCE_INLINE inline
 # endif
 #endif // JSONCONS_FORCE_INLINE
-
+ 
 
 /** compiler builtin check (since gcc 10.0, clang 2.6, icc 2021) */
 #ifndef JSONCONS_HAS_BUILTIN
@@ -387,30 +395,6 @@
 #   endif
 #endif
 
-/** noinline for compiler */
-#ifndef JSONCONS_NOINLINE
-#   if YYJSON_MSC_VER >= 1400
-#       define JSONCONS_NOINLINE __declspec(noinline)
-#   elif JSONCONS_HAS_ATTRIBUTE(noinline) || YYJSON_GCC_VER >= 4
-#       define JSONCONS_NOINLINE __attribute__((noinline))
-#   else
-#       define JSONCONS_NOINLINE
-#   endif
-#endif
-
-/** align for compiler */
-#ifndef JSONCONS_ALIGN
-#   if YYJSON_MSC_VER >= 1300
-#       define JSONCONS_ALIGN(x) __declspec(align(x))
-#   elif JSONCONS_HAS_ATTRIBUTE(aligned) || defined(__GNUC__)
-#       define JSONCONS_ALIGN(x) __attribute__((aligned(x)))
-#   elif YYJSON_CPP_VER >= 201103L
-#       define JSONCONS_ALIGN(x) alignas(x)
-#   else
-#       define JSONCONS_ALIGN(x)
-#   endif
-#endif
-
 // Follows boost config/detail/suffix.hpp
 #if defined(JSONCONS_HAS_INT128) && defined(__cplusplus)
 namespace jsoncons{
@@ -432,10 +416,10 @@ namespace jsoncons {
 #  endif
 }
 #endif
-
+    
 #if defined(_MSC_VER) && _MSC_VER <= 1900
     #define JSONCONS_COPY(first,last,d_first) std::copy(first, last, stdext::make_checked_array_iterator(d_first, static_cast<std::size_t>(std::distance(first, last))))
-#else
+#else 
     #define JSONCONS_COPY(first,last,d_first) std::copy(first, last, d_first)
 #endif
 
@@ -446,7 +430,7 @@ namespace jsoncons {
 #endif
 
 #if !defined(JSONCONS_HAS_STD_REGEX)
-#if defined(__clang__)
+#if defined(__clang__) 
 #define JSONCONS_HAS_STD_REGEX 1
 #elif (defined(__GNUC__) && (__GNUC__ == 4)) && (defined(__GNUC__) && __GNUC_MINOR__ < 9)
 // GCC 4.8 has broken regex support: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=53631
@@ -487,21 +471,21 @@ namespace jsoncons {
 #elif defined(__sun)
 #  include <sys/byteorder.h>
 #elif defined(_MSC_VER)
-// MSVC, which implies sizeof(long) == 4
+// MSVC, which implies sizeof(long) == 4 
 #  define JSONCONS_BYTE_SWAP_64       _byteswap_uint64
 #  define JSONCONS_BYTE_SWAP_32       _byteswap_ulong
 #  define JSONCONS_BYTE_SWAP_16       _byteswap_ushort
 #endif
 
-namespace jsoncons {
-namespace binary {
+namespace jsoncons { 
+namespace binary { 
 
-    static inline bool add_check_overflow(std::size_t v1, std::size_t v2, std::size_t *r)
+    inline bool add_check_overflow(std::size_t v1, std::size_t v2, std::size_t *r)
     {
     #if ((defined(__GNUC__) && (__GNUC__ >= 5)) && !defined(__INTEL_COMPILER)) || __has_builtin(__builtin_add_overflow)
         return __builtin_add_overflow(v1, v2, r);
     #else
-        // unsigned additions are well-defined
+        // unsigned additions are well-defined 
         *r = v1 + v2;
         return v1 > v1 + v2;
     #endif
@@ -511,7 +495,7 @@ namespace binary {
     #define APPLE_MISSING_INTRINSICS 1
     #endif
 
-    inline
+    inline 
     uint16_t encode_half(double val)
     {
     #if defined(__F16C__) && !defined(APPLE_MISSING_INTRINSICS)
@@ -549,7 +533,7 @@ namespace binary {
     }
 
     /* this function was copied & adapted from RFC 7049 Appendix D */
-    inline
+    inline 
     double decode_half(uint16_t half)
     {
     #if defined(__F16C__) && !defined(APPLE_MISSING_INTRINSICS)
@@ -558,14 +542,14 @@ namespace binary {
         int64_t exp = (half >> 10) & 0x1f;
         int64_t mant = half & 0x3ff;
         double val;
-        if (exp == 0)
+        if (exp == 0) 
         {
             val = ldexp(static_cast<double>(mant), -24);
         }
-        else if (exp != 31)
+        else if (exp != 31) 
         {
             val = ldexp(static_cast<double>(mant) + 1024.0, static_cast<int>(exp - 25));
-        }
+        } 
         else
         {
             val = mant == 0 ? std::numeric_limits<double>::infinity() : std::nan("");
@@ -589,5 +573,34 @@ namespace binary {
 #else
 #  define JSONCONS_FALLTHROUGH
 #endif
+
+#if defined( __INTEL_COMPILER ) && __INTEL_COMPILER >= 1300 && \
+	!defined( _MSC_VER )
+
+	#define JSONCONS_ICC_GCC
+
+#endif // ICC check
+
+#if defined( __GNUC__ ) || defined( __clang__ ) || \
+	defined( __IBMC__ ) || defined( __IBMCPP__ ) || defined( JSONCONS_ICC_GCC )
+
+	#define JSONCONS_HAS_GCC_BUILTINS
+
+#endif // GCC built-ins check
+
+#if defined( _MSC_VER )
+	#if defined( __BMI2__ ) || ( !defined( JSONCONS_HAS_GCC_BUILTINS ) && \
+		defined( _M_AMD64 ) && defined( __AVX2__ ) && \
+		( defined( __INTEL_COMPILER ) || _MSC_VER >= 1900 ))
+
+		#include <immintrin.h>
+		#define JSONCONS_HAS_MULX_INTRINSIC
+
+	#else // BMI2
+
+		#include <intrin.h>
+
+	#endif // BMI2
+#endif // defined( _MSC_VER )
 
 #endif // JSONCONS_CONFIG_COMPILER_SUPPORT_HPP

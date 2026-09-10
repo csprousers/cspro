@@ -6,7 +6,7 @@
 #include <fstream>
 
 
-using BasicJson = jsoncons::basic_json<char, jsoncons::order_preserving_policy, std::allocator<char>>;
+using BasicJson = jsoncons::basic_json<char, jsoncons::ordered_policy, std::allocator<char>>;
 
 
 // --------------------------------------------------------------------------

@@ -338,7 +338,6 @@ Batch scripts to update many of the libraries are located here:
     * basic_json.hpp
     * json_encoder.hpp
     * json_exception.hpp
-    * json_options.hpp
     * sink.hpp
     * config/compiler_support.hpp
 7. The library is built as part of the CSPro solution.

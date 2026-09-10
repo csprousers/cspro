@@ -1,11 +1,11 @@
-/// Copyright 2013-2025 Daniel Parker
+/// Copyright 2013-2026 Daniel Parker
 // Distributed under the Boost license, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
 // See https://github.com/danielaparker/jsoncons2 for latest version
 
-#ifndef JSONCONS_DETAIL_EXPECTED_HPP
-#define JSONCONS_DETAIL_EXPECTED_HPP
+#ifndef JSONCONS_DETAIL_EXPECTED_HPP    
+#define JSONCONS_DETAIL_EXPECTED_HPP    
 
 #include <system_error>
 #include <type_traits>
@@ -15,10 +15,10 @@
 
 namespace jsoncons {
 namespace detail {
-
+    
 struct unexpect_t
 {
-    explicit unexpect_t() = default;
+    explicit unexpect_t() = default; 
 };
 
 JSONCONS_INLINE_CONSTEXPR unexpect_t unexpect{};
@@ -42,7 +42,7 @@ public:
     {
     }
 
-    expected(const T& value)
+    expected(const T& value) 
         : has_value_(true)
     {
         construct(value);
@@ -54,22 +54,22 @@ public:
         construct(std::move(value));
     }
 
-    template <typename... Args>
+    template <typename... Args>    
     expected(jsoncons::detail::in_place_t, Args&& ... args) noexcept
         : has_value_(true)
     {
         ::new (&value_) T(std::forward<Args>(args)...);
     }
 
-    template <typename... Args>
+    template <typename... Args>    
     expected(unexpect_t, Args&& ... args) noexcept
         : has_value_(false)
     {
         ::new (&error_) E(std::forward<Args>(args)...);
     }
-
+    
     // copy constructors
-    expected(const expected<T,E>& other)
+    expected(const expected<T,E>& other) 
         : has_value_(other.has_value())
     {
         if (other)
@@ -146,7 +146,7 @@ public:
     {
         return has_value_;
     }
-
+    
     constexpr bool has_value() const noexcept
     {
         return has_value_;
@@ -264,7 +264,7 @@ public:
         }
     }
 private:
-    void construct(const T& value)
+    void construct(const T& value) 
     {
         ::new (&value_) T(value);
         has_value_ = true;
@@ -276,9 +276,9 @@ private:
         has_value_ = true;
     }
 
-    void destroy() noexcept
+    void destroy() noexcept 
     {
-        if (has_value_)
+        if (has_value_) 
         {
             value_.~T();
             has_value_ = false;
@@ -289,25 +289,25 @@ private:
         }
     }
 
-    void assign(const T& u)
+    void assign(const T& u) 
     {
-        if (has_value_)
+        if (has_value_) 
         {
             value_ = u;
-        }
-        else
+        } 
+        else 
         {
             construct(u);
         }
     }
 
-    void assign(T&& u)
+    void assign(T&& u) 
     {
-        if (has_value_)
+        if (has_value_) 
         {
             value_ = std::move(u);
-        }
-        else
+        } 
+        else 
         {
             construct(std::move(u));
         }
@@ -333,15 +333,15 @@ public:
     {
     }
 
-    template <typename... Args>
+    template <typename... Args>    
     expected(unexpect_t, Args&& ... args) noexcept
         : has_value_(false)
     {
         ::new (&error_) E(std::forward<Args>(args)...);
     }
-
+    
     // copy constructors
-    expected(const expected<void,E>& other)
+    expected(const expected<void,E>& other) 
         : has_value_(other.has_value()), dummy_{}
     {
         if (!other)
@@ -397,7 +397,7 @@ public:
     {
         return has_value_;
     }
-
+    
     constexpr bool has_value() const noexcept
     {
         return has_value_;
@@ -448,9 +448,9 @@ public:
         }
     }
 private:
-    void destroy() noexcept
+    void destroy() noexcept 
     {
-        if (!has_value_)
+        if (!has_value_) 
         {
             error_.~E();
         }

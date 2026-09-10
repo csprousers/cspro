@@ -1,4 +1,4 @@
-// Copyright 2013-2025 Daniel Parker
+// Copyright 2013-2026 Daniel Parker
 // Distributed under the Boost license, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
@@ -117,9 +117,9 @@ namespace detail {
             return size_;
         }
 
-         constexpr bool empty() const noexcept
-        {
-            return size_ == 0;
+         constexpr bool empty() const noexcept 
+        { 
+            return size_ == 0; 
         }
 
          constexpr reference operator[](size_type index) const
@@ -127,7 +127,7 @@ namespace detail {
              return data_[index];
          }
 
-        // iterator support
+        // iterator support 
         const_iterator begin() const noexcept
         {
             return data_;
@@ -136,29 +136,29 @@ namespace detail {
         {
             return data_ + size_;
         }
-        const_iterator cbegin() const noexcept
-        {
-            return data_;
+        const_iterator cbegin() const noexcept 
+        { 
+            return data_; 
         }
-        const_iterator cend() const noexcept
-        {
-            return data_ + size_;
+        const_iterator cend() const noexcept 
+        { 
+            return data_ + size_; 
         }
-        const_reverse_iterator rbegin() const noexcept
-        {
-            return const_reverse_iterator(end());
+        const_reverse_iterator rbegin() const noexcept 
+        { 
+            return const_reverse_iterator(end()); 
         }
-        const_reverse_iterator rend() const noexcept
-        {
-            return const_reverse_iterator(begin());
+        const_reverse_iterator rend() const noexcept 
+        { 
+            return const_reverse_iterator(begin()); 
         }
-        const_reverse_iterator crbegin() const noexcept
-        {
-            return const_reverse_iterator(end());
+        const_reverse_iterator crbegin() const noexcept 
+        { 
+            return const_reverse_iterator(end()); 
         }
-        const_reverse_iterator crend() const noexcept
-        {
-            return const_reverse_iterator(begin());
+        const_reverse_iterator crend() const noexcept 
+        { 
+            return const_reverse_iterator(begin()); 
         }
 
         span<element_type, dynamic_extent>

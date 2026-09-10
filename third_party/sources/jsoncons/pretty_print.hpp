@@ -1,4 +1,4 @@
-// Copyright 2013-2025 Daniel Parker
+// Copyright 2013-2026 Daniel Parker
 // Distributed under the Boost license, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
@@ -61,7 +61,7 @@ json_printable<Json> print(const Json& j)
 
 template <typename Json>
 json_printable<Json> print(const Json& j,
-                           const basic_json_encode_options<typename Json::char_type>& options)
+    const basic_json_encode_options<typename Json::char_type>& options)
 {
     return json_printable<Json>(j, options, indenting::no_indent);
 }
@@ -74,7 +74,7 @@ json_printable<Json> pretty_print(const Json& j)
 
 template <typename Json>
 json_printable<Json> pretty_print(const Json& j,
-                                  const basic_json_encode_options<typename Json::char_type>& options)
+    const basic_json_encode_options<typename Json::char_type>& options)
 {
     return json_printable<Json>(j, options, indenting::indent);
 }

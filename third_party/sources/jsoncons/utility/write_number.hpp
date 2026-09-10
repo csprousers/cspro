@@ -1,4 +1,4 @@
-// Copyright 2013-2025 Daniel Parker
+// Copyright 2013-2026 Daniel Parker
 // Distributed under the Boost license, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
@@ -26,7 +26,7 @@
 #include <jsoncons/json_options.hpp>
 #include <jsoncons/utility/more_type_traits.hpp>
 
-namespace jsoncons {
+namespace jsoncons { 
 
 inline
 char to_hex_character(uint8_t c)
@@ -167,9 +167,9 @@ void fill_exponent(int K, Result& result)
 }
 
 template <typename Result>
-void prettify_string(const char *buffer, std::size_t length, int k, int min_exp, int max_exp, Result& result)
+void prettify_string(const char *buffer, int length, int k, int min_exp, int max_exp, Result& result)
 {
-    int nb_digits = (int)length;
+    int nb_digits = length;
     int offset;
     /* v = buffer * 10^k
        kk is such that 10^(kk-1) <= v < 10^kk
@@ -192,7 +192,7 @@ void prettify_string(const char *buffer, std::size_t length, int k, int min_exp,
         }
         result.push_back('.');
         result.push_back('0');
-    }
+    } 
     else if (0 < kk && kk <= max_exp)
     {
         /* comma number. Just insert a '.' at the correct location. */
@@ -205,26 +205,26 @@ void prettify_string(const char *buffer, std::size_t length, int k, int min_exp,
         {
             result.push_back(buffer[i]);
         }
-    }
+    } 
     else if (min_exp < kk && kk <= 0)
     {
         offset = 2 - kk;
 
         result.push_back('0');
         result.push_back('.');
-        for (int i = 2; i < offset; ++i)
+        for (int i = 2; i < offset; ++i) 
             result.push_back('0');
         for (int i = 0; i < nb_digits; ++i)
         {
             result.push_back(buffer[i]);
         }
-    }
+    } 
     else if (nb_digits == 1)
     {
         result.push_back(buffer[0]);
         result.push_back('e');
         fill_exponent(kk - 1, result);
-    }
+    } 
     else
     {
         result.push_back(buffer[0]);
@@ -565,7 +565,7 @@ public:
                     {
                         JSONCONS_THROW(json_runtime_error<std::invalid_argument>("write_double failed."));
                     }
-                }
+                }             
                 break;
             }
             default:

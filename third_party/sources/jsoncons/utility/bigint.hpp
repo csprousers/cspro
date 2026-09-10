@@ -20,6 +20,7 @@
 #include <system_error>
 #include <type_traits> // std::enable_if
 #include <vector> // std::vector
+#include <limits> // std::numeric_limits
 
 #include <jsoncons/config/compiler_support.hpp>
 #include <jsoncons/config/jsoncons_config.hpp>
@@ -64,7 +65,7 @@ public:
         {
         }
 
-        ValueType& operator[](size_type i)
+        ValueType& operator[](size_type i) 
         {
             return data_[i];
         }
@@ -190,6 +191,7 @@ public:
     {
         using real_allocator_type = typename std::allocator_traits<Allocator>:: template rebind_alloc<word_type>;
         using pointer = typename std::allocator_traits<real_allocator_type>::pointer;
+        static const size_type max_size = (std::numeric_limits<size_type>::max)()/sizeof(word_type);
 
         uint8_t is_allocated_ : 1;
         uint8_t is_negative_ : 1;
@@ -207,7 +209,7 @@ public:
             : is_allocated_(true),
               is_negative_(stor.is_negative_),
               size_(stor.size_),
-              capacity_(round_up(stor.size_))
+              capacity_(stor.capacity_)
         {
             real_allocator_type alloc(a);
 
@@ -251,6 +253,7 @@ public:
 
         void reserve(size_type n, const real_allocator_type& a)
         {
+            JSONCONS_ASSERT(n < max_size);
             size_type capacity_new = round_up(n);
 
             real_allocator_type alloc(a);
@@ -268,9 +271,14 @@ public:
         }
 
         // Find suitable new block size
-        constexpr size_type round_up(size_type i) const noexcept
+        static size_type round_up(size_type i) 
         {
-            return ((i + 1/3) / mem_unit + 1) * mem_unit;
+            size_type remainder = i % mem_unit;
+            size_type off = mem_unit - remainder;
+            bool testoff = i < max_size - off;
+            JSONCONS_ASSERT(testoff);
+
+            return i + off;
         }
     };
 
@@ -290,6 +298,10 @@ public:
     bigint_storage(const bigint_storage& other)
         : word_allocator_type(other.get_allocator())
     {
+#if defined(__GNUC__) && JSONCONS_GCC_AVAILABLE(12,0,0)
+# pragma GCC diagnostic push
+# pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#endif
         if (!other.is_allocated())
         {
             ::new (&inlined_) inlined_storage(other.inlined_);
@@ -298,6 +310,9 @@ public:
         {
             ::new (&allocated_) allocated_storage(other.allocated_, get_allocator());
         }
+#if defined(__GNUC__) && JSONCONS_GCC_AVAILABLE(12,0,0)
+# pragma GCC diagnostic pop
+#endif
     }
 
     bigint_storage(const bigint_storage& other, const Allocator& alloc)
@@ -340,7 +355,7 @@ public:
     }
 
     template <typename Integer>
-    bigint_storage(Integer n, const Allocator& alloc = Allocator(),
+    bigint_storage(Integer n, const Allocator& alloc = Allocator(), 
         typename std::enable_if<std::is_integral<Integer>::value>::type* = 0)
         : word_allocator_type(alloc)
     {
@@ -496,21 +511,21 @@ public:
         return common_.is_negative_;
     }
 
-    void set_negative(bool value)
+    void set_negative(bool value) 
     {
         common_.is_negative_ = value;
     }
 
     storage_view<word_type> get_storage_view()
     {
-        return common_.is_allocated_ ?
+        return common_.is_allocated_ ? 
             storage_view<word_type>{allocated_.data_, allocated_.size_} :
             storage_view<word_type>{inlined_.values_, inlined_.size_};
     }
 
     storage_view<const word_type> get_storage_view() const
     {
-        return common_.is_allocated_ ?
+        return common_.is_allocated_ ? 
             storage_view<const word_type>{allocated_.data_, allocated_.size_} :
             storage_view<const word_type>{inlined_.values_, inlined_.size_};
     }
@@ -589,9 +604,9 @@ Chichester: John Wiley.
 
 
 template <typename Allocator = std::allocator<uint64_t>>
-class basic_bigint
+class basic_bigint 
 {
-    detail::bigint_storage<Allocator> storage_;
+    detail::bigint_storage<Allocator> storage_; 
 public:
 
     using allocator_type = Allocator;
@@ -673,7 +688,7 @@ public:
     }
 
     template <typename Integer>
-    basic_bigint(Integer n, const Allocator& alloc = Allocator(),
+    basic_bigint(Integer n, const Allocator& alloc = Allocator(), 
                  typename std::enable_if<std::is_integral<Integer>::value>::type* = 0)
         : storage_(n, alloc)
     {
@@ -714,25 +729,9 @@ public:
         return storage_.is_negative();
     }
 
-    void set_negative(bool value)
+    void set_negative(bool value) 
     {
         storage_.set_negative(value);
-    }
-
-    template <typename CharT>
-    static to_bigint_result<CharT> parse(const std::basic_string<CharT>& s, basic_bigint<Allocator>& value)
-    {
-        return parse<CharT>(s.data(), s.size(), value);
-    }
-
-    template <typename CharT>
-    static to_bigint_result<CharT> parse(const CharT* s, basic_bigint<Allocator>& value)
-    {
-        auto r = parse(s, std::char_traits<CharT>::length(s), value);
-        if (r.ec != std::errc{})
-        {
-            JSONCONS_THROW(std::system_error((int)r.ec, std::system_category()));
-        }
     }
 
     template <typename CharT>
@@ -778,7 +777,8 @@ public:
             {
                 JSONCONS_THROW(std::runtime_error(std::string("Invalid digit in radix ") + std::to_string(radix) + ": \'" + (char)c + "\'"));
             }
-            v = (v * radix) + d;
+            v *= radix;
+            v += d;
         }
 
         if ( neg )
@@ -788,7 +788,7 @@ public:
         return v;
     }
 
-    static basic_bigint from_bytes_be(int signum, const uint8_t* str, size_type n)
+    static basic_bigint from_bytes_be(int signum, const uint8_t* bytes, size_type n)
     {
         static const double radix_log2 = std::log2(next_power_of_two(256));
         // Estimate how big the result will be, so we can pre-allocate it.
@@ -799,12 +799,10 @@ public:
         basic_bigint<Allocator> v = 0;
         v.reserve(static_cast<size_type>(big_digits));
 
-        if (n > 0)
+        for (size_type i = 0; i < n; i++)
         {
-            for (size_type i = 0; i < n; i++)
-            {
-                v = (v * 256) + (word_type)(str[i]);
-            }
+            v *= 256;
+            v += (word_type)(bytes[i]);
         }
         //std::cout << "ACTUAL: " << v.size() << "\n";
 
@@ -846,12 +844,85 @@ public:
         return *this;
     }
 
+    template <typename IntegerType>
+    typename std::enable_if<ext_traits::is_signed_integer<IntegerType>::value && sizeof(IntegerType) <= sizeof(word_type), basic_bigint<Allocator>&>::type
+        operator+=(IntegerType y)
+    {
+        if ( is_negative() != (y < 0))
+            return *this -= -y;
+
+        if (y < 0)
+        {
+            y = -y;
+        }
+
+        word_type d;
+        word_type carry = 0;
+
+        auto this_view = get_storage_view();
+        resize(this_view.size() + 1);
+        this_view = get_storage_view();
+
+        const size_t this_size = this_view.size();
+        const size_t y_size = 1;
+        for (size_type i = 0; i < y_size; i++ )
+        {
+            d = this_view[i] + carry;
+            carry = d < carry;
+            this_view[i] = d + y;
+            if (this_view[i] < d)
+                carry = 1;
+        }
+        for (size_type i = y_size; i < this_size && carry != 0; i++ )
+        {
+            d = this_view[i] + carry;
+            carry = d < carry;
+            this_view[i] = d;
+        }
+        reduce();
+        return *this;
+    }
+
+    template <typename IntegerType>
+    typename std::enable_if<ext_traits::is_unsigned_integer<IntegerType>::value && sizeof(IntegerType) <= sizeof(word_type), basic_bigint<Allocator>&>::type
+        operator+=(IntegerType y)
+    {
+        if ( is_negative())
+            return *this -= -basic_bigint<Allocator>(y);
+
+        word_type d;
+        word_type carry = 0;
+
+        auto this_view = get_storage_view();
+        resize(this_view.size() + 1);
+
+        this_view = get_storage_view();
+        const size_type this_size = this_view.size();
+        size_type y_size = 1;
+
+        d = this_view[0] + carry;
+        carry = d < carry;
+        this_view[0] = d + y;
+        if (this_view[0] < d)
+            carry = 1;
+
+        for (size_type i = y_size; i < this_size && carry != 0; ++i)
+        {
+            d = this_view[i] + carry;
+            carry = d < carry;
+            this_view[i] = d;
+        }
+        reduce();
+        return *this;
+    }
+
     basic_bigint& operator+=( const basic_bigint& y )
     {
-        auto y_view = y.get_storage_view();
-
         if ( is_negative() != y.is_negative())
             return *this -= -y;
+
+        auto y_view = y.get_storage_view();
+        
         word_type d;
         word_type carry = 0;
 
@@ -859,22 +930,21 @@ public:
         resize( (std::max)(y_view.size(), this_view.size()) + 1 );
         this_view = get_storage_view();
 
-        for (size_type i = 0; i < this_view.size(); i++ )
+        const size_t this_size = this_view.size();
+        const size_t y_size = y_view.size();
+        for (size_type i = 0; i < y_size; i++ )
         {
-            if ( i >= y_view.size() && carry == 0 )
-                break;
             d = this_view[i] + carry;
             carry = d < carry;
-            if ( i < y_view.size())
-            {
-                this_view[i] = d + y_view[i];
-                if (this_view[i] < d)
-                    carry = 1;
-            }
-            else
-            {
-                this_view[i] = d;
-            }
+            this_view[i] = d + y_view[i];
+            if (this_view[i] < d)
+                carry = 1;
+        }
+        for (size_type i = y_size; i < this_size && carry != 0; i++ )
+        {
+            d = this_view[i] + carry;
+            carry = d < carry;
+            this_view[i] = d;
         }
         reduce();
         return *this;
@@ -891,22 +961,22 @@ public:
         word_type borrow = 0;
         word_type d;
         auto this_view = get_storage_view();
-        for (size_type i = 0; i < this_view.size(); i++ )
+        const size_type this_size = this_view.size();
+        const size_type y_size = y_view.size();
+
+        for (size_type i = 0; i < y_size; i++ )
         {
-            if ( i >= y_view.size() && borrow == 0 )
-                break;
             d = this_view[i] - borrow;
             borrow = d > this_view[i];
-            if ( i < y_view.size())
-            {
-                this_view[i] = d - y_view[i];
-                if ( this_view[i] > d )
-                    borrow = 1;
-            }
-            else
-            {
-                this_view[i] = d;
-            }
+            this_view[i] = d - y_view[i];
+            if ( this_view[i] > d )
+                borrow = 1;
+        }
+        for (size_type i = y_size; i < this_size && borrow != 0; i++ )
+        {
+            d = this_view[i] - borrow;
+            borrow = d > this_view[i];
+            this_view[i] = d;
         }
         reduce();
         return *this;
@@ -948,8 +1018,8 @@ public:
         reduce();
         return *this;
     }
-
-    basic_bigint& operator*=(basic_bigint y)
+ 
+    basic_bigint& operator*=(basic_bigint y) 
     {
         auto this_view = get_storage_view();
         auto y_view = y.get_storage_view();
@@ -960,7 +1030,8 @@ public:
         }
 
         bool difSigns = is_negative() != y.is_negative();
-        if ( this_view.size() + y_view.size() == 2 ) // size() = y.size() = 1
+        const size_type y_size = y_view.size();
+        if ( this_view.size() + y_size == 2 ) // size() = y.size() = 1
         {
             word_type a = this_view[0], b = y_view[0];
             this_view[0] = a * b;
@@ -1199,28 +1270,17 @@ public:
        return get_storage_view().size() != 0 ? true : false;
     }
 
-    explicit operator int64_t() const
+    template <typename Integer, typename = typename std::enable_if<std::is_integral<Integer>::value && sizeof(Integer) <= sizeof(int64_t)>::type>
+    explicit operator Integer() const
     {
         auto this_view = get_storage_view();
-        int64_t x = 0;
+        Integer x = 0;
         if (this_view.size() > 0)
         {
-            x = static_cast<int64_t>(this_view[0]);
+            x = static_cast<Integer>(this_view[0]);
         }
 
-        return is_negative() ? -x : x;
-    }
-
-    explicit operator word_type() const
-    {
-        auto this_view = get_storage_view();
-        word_type u = 0;
-        if ( this_view.size() > 0 )
-        {
-            u = this_view[0];
-        }
-
-        return u;
+        return is_negative() ? x*(-1) : x;
     }
 
     explicit operator double() const
@@ -1267,7 +1327,7 @@ public:
     void write_bytes_be(int& signum, std::vector<uint8_t,Alloc>& data) const
     {
         basic_bigint<Allocator> n(*this);
-        signum = (n < 0) ? -1 : (n > 0 ? 1 : 0);
+        signum = (n < 0) ? -1 : (n > 0 ? 1 : 0); 
 
         basic_bigint<Allocator> divisor(256);
 
@@ -1311,7 +1371,7 @@ public:
         {
             word_type r;
             basic_bigint<Allocator> R(get_allocator());
-            basic_bigint<Allocator> LP10(max_unsigned_power_10, get_allocator());
+            basic_bigint<Allocator> LP10(max_unsigned_power_10, get_allocator()); 
 
             do
             {
@@ -1327,7 +1387,7 @@ public:
                     if ( r + v_view.size() == 0 )
                         break;
                 }
-            }
+            } 
             while ( v_view.size() > 0);
 
             if (is_negative())
@@ -1379,7 +1439,7 @@ public:
                     if ( r + v_view.size() == 0 )
                         break;
                 }
-            }
+            } 
             while (v_view.size() > 0);
 
             if (is_negative())
@@ -1571,7 +1631,7 @@ public:
     friend std::basic_ostream<CharT>& operator<<(std::basic_ostream<CharT>& os, const basic_bigint& v)
     {
         std::basic_string<CharT> s;
-        v.write_string(s);
+        v.write_string(s); 
         os << s;
 
         return os;
@@ -1582,14 +1642,15 @@ public:
         auto this_view = get_storage_view();
         auto y_view = y.get_storage_view();
 
-        if ( this_view.size() == 0 && y_view.size() == 0 )
+        const size_type y_size = y_view.size();
+        if ( this_view.size() == 0 && y_size == 0 )
             return 0;
         if ( is_negative() != y.is_negative())
             return y.is_negative() - is_negative();
         int code = 0;
-        if ( this_view.size() < y_view.size())
+        if ( this_view.size() < y_size)
             code = -1;
-        else if ( this_view.size() > y_view.size())
+        else if ( this_view.size() > y_size)
             code = +1;
         else
         {
@@ -1856,7 +1917,7 @@ private:
     {
         storage_.reduce();
     }
-
+ 
     static word_type next_power_of_two(word_type n) {
         n = n - 1;
         n |= n >> 1u;
@@ -1918,7 +1979,8 @@ private:
             {
                 return to_bigint_result<CharT>(cur, std::errc::invalid_argument);
             }
-            val = (val * radix) + d;
+            val *= radix;
+            val += d;
             ++cur;
         }
 
@@ -2020,21 +2082,16 @@ to_bigint_result<CharT> to_bigint(const CharT* data, std::size_t length,
     for (std::size_t i = 0; i < length; i++)
     {
         CharT c = data[i];
-        switch (c)
+        if (JSONCONS_LIKELY(c >= '0' && c <= '9'))
         {
-            case '0':case '1':case '2':case '3':case '4':case '5':case '6':case '7':case '8': case '9':
-                v = (v * 10u) + (word_type)(c - '0');
-                break;
-            default:
-                return to_bigint_result<CharT>(data + i, std::errc::invalid_argument);
+            v *= 10u;
+            v += (word_type)(c - '0');
+        }
+        else
+        {
+            return to_bigint_result<CharT>(data + i, std::errc::invalid_argument);
         }
     }
-
-    //auto view = v.get_storage_view();
-    //if (num_words != view.size())
-    //{
-    //    std::cout << "Unexpected num_words! num_words: " << num_words << ", " << num_words << ", size: " << view.size() << "\n";
-    //}
 
     if (neg)
     {
@@ -2083,11 +2140,11 @@ to_bigint_result<CharT> to_bigint(const CharT* data, std::size_t length,
 
     if (*data == '-')
     {
-        return jsoncons::detail::to_bigint(data+1, length-1, true, value, std::allocator<uint64_t>{});
+        return jsoncons::detail::to_bigint(data+1, length-1, true, value, std::allocator<uint64_t>{}); 
     }
     else
     {
-        return jsoncons::detail::to_bigint(data, length, false, value, std::allocator<uint64_t>{});
+        return jsoncons::detail::to_bigint(data, length, false, value, std::allocator<uint64_t>{}); 
     }
 }
 

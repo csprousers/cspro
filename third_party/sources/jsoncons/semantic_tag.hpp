@@ -1,4 +1,4 @@
-// Copyright 2013-2025 Daniel Parker
+// Copyright 2013-2026 Daniel Parker
 // Distributed under the Boost license, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
@@ -14,23 +14,23 @@
 
 namespace jsoncons {
 
-enum class semantic_tag : uint8_t
+enum class semantic_tag : uint8_t 
 {
-    none = 0,               // 00000000
+    none = 0,               // 00000000 
     noesc = 1,              // 00000001
     bigint = 2,             // 00000010
     bigdec = 3,             // 00000011
     datetime = 4,           // 00000111
     epoch_second = 5,       // 00001000
     epoch_milli = 6,        // 00001001
-    epoch_nano = 7,         // 00001010
+    epoch_nano = 7,         // 00001010 
     base16 = 8,             // 00000100
     base64 = 9,             // 00000101
     bigfloat = 10,          // 00001010
     float128 = 11,          // 00001011
     base64url = 12,         // 00001100
-    undefined = 13,
-    uri = 14,
+    undefined = 13,         
+    uri = 14,                
     multi_dim_row_major = 15,
     multi_dim_column_major = 16,
     clamped = 17,
@@ -42,9 +42,9 @@ enum class semantic_tag : uint8_t
 
 inline bool is_number_tag(semantic_tag tag) noexcept
 {
-    constexpr uint8_t mask1{ uint8_t(semantic_tag::bigint) & uint8_t(semantic_tag::bigdec)
+    constexpr uint8_t mask1{ uint8_t(semantic_tag::bigint) & uint8_t(semantic_tag::bigdec) 
         & uint8_t(semantic_tag::bigfloat) & uint8_t(semantic_tag::float128) };
-    constexpr uint8_t mask2{ uint8_t(~uint8_t(semantic_tag::bigint) & ~uint8_t(semantic_tag::bigdec)
+    constexpr uint8_t mask2{ uint8_t(~uint8_t(semantic_tag::bigint) & ~uint8_t(semantic_tag::bigdec) 
         & ~uint8_t(semantic_tag::bigfloat) & ~uint8_t(semantic_tag::float128)) };
 
     return (uint8_t(tag) & mask1) == mask1 && (uint8_t(~(uint8_t)tag) & mask2) == mask2;

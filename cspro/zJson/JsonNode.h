@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zJson/zJson.h>
 #include <zJson/JsonFormattingOptions.h>
@@ -12,7 +12,7 @@ namespace jsoncons
     template<class CharT, class ImplementationPolicy, class Allocator> class basic_json;
     class json_exception;
     template<class Json, template<typename, typename> class SequenceContainer> class json_array;
-    struct order_preserving_policy;
+    struct ordered_policy;
 }
 
 class JsonNodeArray;
@@ -56,7 +56,7 @@ class ZJSON_API JsonNode
     friend JsonNodeArray;
 
 protected:
-    using BasicJson = jsoncons::basic_json<char, jsoncons::order_preserving_policy, std::allocator<char>>;
+    using BasicJson = jsoncons::basic_json<char, jsoncons::ordered_policy, std::allocator<char>>;
 
     // --------------------------------------------------------------------------
     // construction
@@ -303,7 +303,7 @@ class ZJSON_API JsonNodeArray
 {
     friend JsonNode;
 
-    using BasicJson = jsoncons::basic_json<char, jsoncons::order_preserving_policy, std::allocator<char>>;
+    using BasicJson = jsoncons::basic_json<char, jsoncons::ordered_policy, std::allocator<char>>;
     using JsonArray = jsoncons::json_array<BasicJson, std::vector>;
 
 private:

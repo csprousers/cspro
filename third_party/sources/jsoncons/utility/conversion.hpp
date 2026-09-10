@@ -1,4 +1,4 @@
-// Copyright 2013-2025 Daniel Parker
+// Copyright 2013-2026 Daniel Parker
 // Distributed under the Boost license, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
@@ -58,3 +58,4 @@ string_to_bytes(InputIt first, InputIt last, semantic_tag tag, Container& bytes)
 } // namespace jsoncons
 
 #endif // JSONCONS_UTILITY_CONVERSION_HPP
+

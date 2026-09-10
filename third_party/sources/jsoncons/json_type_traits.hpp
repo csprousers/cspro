@@ -1,4 +1,4 @@
-// Copyright 2013-2025 Daniel Parker
+// Copyright 2013-2026 Daniel Parker
 // Distributed under the Boost license, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
@@ -45,7 +45,7 @@ template <typename T>
 struct is_json_type_traits_declared : public std::false_type
 {};
 
-// json_type_traits
+// json_type_traits 
 
 template <typename T>
 struct unimplemented : std::false_type
@@ -91,14 +91,14 @@ struct is_json_type_traits_unspecialized<Json,T,
     typename std::enable_if<!std::integral_constant<bool, json_type_traits<Json, T>::is_compatible>::value>::type
 > : std::true_type {};
 
-} // namespace detail
+} // namespace detail 
 
 // is_json_type_traits_specialized
 template <typename Json,typename T,typename Enable=void>
 struct is_json_type_traits_specialized : std::false_type {};
 
 template <typename Json,typename T>
-struct is_json_type_traits_specialized<Json,T,
+struct is_json_type_traits_specialized<Json,T, 
     typename std::enable_if<!jsoncons::detail::is_json_type_traits_unspecialized<Json,T>::value
 >::type> : std::true_type {};
 

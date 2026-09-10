@@ -1,6 +1,6 @@
 // note CSPro additions marked with "CSPro"
 
-// Copyright 2013-2025 Daniel Parker
+// Copyright 2013-2026 Daniel Parker
 // Distributed under the Boost license, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
@@ -41,7 +41,7 @@ namespace jsoncons {
     template <typename Base>
     class json_runtime_error<Base,
                              typename std::enable_if<std::is_convertible<Base*,std::exception*>::value &&
-                                                     ext_traits::is_constructible_from_string<Base>::value>::type>
+                                                     ext_traits::is_constructible_from_string<Base>::value>::type> 
         : public Base, public virtual json_exception
     {
     public:
@@ -75,7 +75,7 @@ namespace jsoncons {
             JSONCONS_TRY
             {
                 unicode_traits::convert(key, length, name_,
-                                 unicode_traits::conv_flags::strict);
+                                 unicode_traits::strict_flag::strict);
             }
             JSONCONS_CATCH(...)
             {
@@ -122,7 +122,7 @@ namespace jsoncons {
             JSONCONS_TRY
             {
                 unicode_traits::convert(key, length, name_,
-                                 unicode_traits::conv_flags::strict);
+                                 unicode_traits::strict_flag::strict);
             }
             JSONCONS_CATCH(...)
             {
@@ -166,47 +166,47 @@ namespace jsoncons {
         ser_error(std::error_code ec)
             : ec_(ec)
         {
-            err_ = to_what_arg(ec);
+            err_ = to_what_arg(ec); 
         }
         ser_error(std::error_code ec, const std::string& what_arg)
             : ec_(ec)
         {
-            err_ = to_what_arg(ec, what_arg.c_str());
+            err_ = to_what_arg(ec, what_arg.c_str()); 
         }
         ser_error(std::error_code ec, const char* what_arg)
             : ec_(ec)
         {
-            err_ = to_what_arg(ec, what_arg);
+            err_ = to_what_arg(ec, what_arg); 
         }
         ser_error(std::error_code ec, std::size_t position)
             : ec_(ec), column_(position)
         {
-            err_ = to_what_arg(ec, "", 0, position);
+            err_ = to_what_arg(ec, "", 0, position); 
         }
         ser_error(std::error_code ec, const std::string& what_arg, std::size_t position)
             : ec_(ec), column_(position)
         {
-            err_ = to_what_arg(ec, what_arg.c_str(), 0, position);
+            err_ = to_what_arg(ec, what_arg.c_str(), 0, position); 
         }
         ser_error(std::error_code ec, const char* what_arg, std::size_t position)
             : ec_(ec), column_(position)
         {
-            err_ = to_what_arg(ec, what_arg, 0, position);
+            err_ = to_what_arg(ec, what_arg, 0, position); 
         }
         ser_error(std::error_code ec, std::size_t line, std::size_t column)
             : ec_(ec), line_(line), column_(column)
         {
-            err_ = to_what_arg(ec, "", line, column);
+            err_ = to_what_arg(ec, "", line, column); 
         }
         ser_error(std::error_code ec, const std::string& what_arg, std::size_t line, std::size_t column)
             : ec_(ec), line_(line), column_(column)
         {
-            err_ = to_what_arg(ec, what_arg.c_str(), line, column);
+            err_ = to_what_arg(ec, what_arg.c_str(), line, column); 
         }
         ser_error(std::error_code ec, const char* what_arg, std::size_t line, std::size_t column)
             : ec_(ec), line_(line), column_(column)
         {
-            err_ = to_what_arg(ec, what_arg, line, column);
+            err_ = to_what_arg(ec, what_arg, line, column); 
         }
         ser_error(const ser_error& other) = default;
 
@@ -216,7 +216,7 @@ namespace jsoncons {
         {
             return err_.c_str();
         }
-
+        
         std::error_code code() const
         {
             return ec_;
@@ -257,7 +257,7 @@ namespace jsoncons {
                 what_arg.append(" at position ");
                 what_arg.append(std::to_string(column));
             }
-            return what_arg;
+            return what_arg; 
         }
     };
 

@@ -1,4 +1,4 @@
-// Copyright 2013-2025 Daniel Parker
+// Copyright 2013-2026 Daniel Parker
 // Distributed under the Boost license, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
@@ -17,8 +17,9 @@
 #include <string>
 
 #include <jsoncons/config/compiler_support.hpp>
+#include <jsoncons/detail/a5hash.hpp>
 
-namespace jsoncons {
+namespace jsoncons { 
 namespace detail {
 
     template <typename CharT,typename Traits = std::char_traits<CharT>>
@@ -43,7 +44,7 @@ namespace detail {
             : data_(data), length_(length)
         {
         }
-
+        
         basic_string_view(const CharT* data)
             : data_(data), length_(Traits::length(data))
         {
@@ -55,7 +56,7 @@ namespace detail {
             : data_(s.data()), length_(s.length())
         {
         }
-
+        
         ~basic_string_view() = default;
 
         JSONCONS_CPP14_CONSTEXPR basic_string_view& operator=( const basic_string_view& view ) noexcept
@@ -68,11 +69,11 @@ namespace detail {
 
         template <typename Allocator>
         explicit operator std::basic_string<CharT,Traits,Allocator>() const
-        {
-            return std::basic_string<CharT,Traits,Allocator>(data_,length_);
+        { 
+            return std::basic_string<CharT,Traits,Allocator>(data_,length_); 
         }
 
-        // iterator support
+        // iterator support 
         const_iterator begin() const noexcept
         {
             return data_;
@@ -81,29 +82,29 @@ namespace detail {
         {
             return data_ + length_;
         }
-        const_iterator cbegin() const noexcept
-        {
-            return data_;
+        const_iterator cbegin() const noexcept 
+        { 
+            return data_; 
         }
-        const_iterator cend() const noexcept
-        {
-            return data_ + length_;
+        const_iterator cend() const noexcept 
+        { 
+            return data_ + length_; 
         }
-        const_reverse_iterator rbegin() const noexcept
-        {
-            return const_reverse_iterator(end());
+        const_reverse_iterator rbegin() const noexcept 
+        { 
+            return const_reverse_iterator(end()); 
         }
-        const_reverse_iterator rend() const noexcept
-        {
-            return const_reverse_iterator(begin());
+        const_reverse_iterator rend() const noexcept 
+        { 
+            return const_reverse_iterator(begin()); 
         }
-        const_reverse_iterator crbegin() const noexcept
-        {
-            return const_reverse_iterator(end());
+        const_reverse_iterator crbegin() const noexcept 
+        { 
+            return const_reverse_iterator(end()); 
         }
-        const_reverse_iterator crend() const noexcept
-        {
-            return const_reverse_iterator(begin());
+        const_reverse_iterator crend() const noexcept 
+        { 
+            return const_reverse_iterator(begin()); 
         }
 
         // capacity
@@ -117,23 +118,23 @@ namespace detail {
         {
             return length_;
         }
-        size_type max_size() const noexcept
-        {
-            return length_;
+        size_type max_size() const noexcept 
+        { 
+            return length_; 
         }
-        bool empty() const noexcept
-        {
-            return length_ == 0;
+        bool empty() const noexcept 
+        { 
+            return length_ == 0; 
         }
 
         // element access
 
-        const_reference operator[](size_type pos) const
-        {
-            return data_[pos];
+        const_reference operator[](size_type pos) const 
+        { 
+            return data_[pos]; 
         }
 
-        const_reference at(std::size_t pos) const
+        const_reference at(std::size_t pos) const 
         {
             if (pos >= length_)
             {
@@ -142,13 +143,13 @@ namespace detail {
             return data_[pos];
         }
 
-        const_reference front() const
-        {
-            return data_[0];
+        const_reference front() const                
+        { 
+            return data_[0]; 
         }
-        const_reference back()  const
-        {
-            return data_[length_-1];
+        const_reference back()  const                
+        { 
+            return data_[length_-1]; 
         }
 
         const CharT* data() const
@@ -158,7 +159,7 @@ namespace detail {
 
         // string operations
 
-        basic_string_view substr(size_type pos, size_type n=npos) const
+        basic_string_view substr(size_type pos, size_type n=npos) const 
         {
             if (pos > length_)
             {
@@ -177,7 +178,7 @@ namespace detail {
             return rc != 0 ? rc : (length_ == s.length_ ? 0 : length_ < s.length_ ? -1 : 1);
         }
 
-        int compare(const CharT* data) const noexcept
+        int compare(const CharT* data) const noexcept 
         {
             const size_t length = Traits::length(data);
             const int rc = Traits::compare(data_, data, (std::min)(length_, length));
@@ -185,13 +186,13 @@ namespace detail {
         }
 
         template <typename Allocator>
-        int compare(const std::basic_string<CharT,Traits,Allocator>& s) const noexcept
+        int compare(const std::basic_string<CharT,Traits,Allocator>& s) const noexcept 
         {
             const int rc = Traits::compare(data_, s.data(), (std::min)(length_, s.length()));
             return rc != 0 ? rc : (length_ == s.length() ? 0 : length_ < s.length() ? -1 : 1);
         }
 
-        size_type find(basic_string_view s, size_type pos = 0) const noexcept
+        size_type find(basic_string_view s, size_type pos = 0) const noexcept 
         {
             if (pos > length_)
             {
@@ -206,19 +207,19 @@ namespace detail {
             return it == cend() ? npos : std::distance(cbegin(), it);
         }
         size_type find(CharT ch, size_type pos = 0) const noexcept
-        {
-            return find(basic_string_view(&ch, 1), pos);
+        { 
+            return find(basic_string_view(&ch, 1), pos); 
         }
         size_type find(const CharT* s, size_type pos, size_type n) const noexcept
-        {
-            return find(basic_string_view(s, n), pos);
+        { 
+            return find(basic_string_view(s, n), pos); 
         }
         size_type find(const CharT* s, size_type pos = 0) const noexcept
-        {
-            return find(basic_string_view(s), pos);
+        { 
+            return find(basic_string_view(s), pos); 
         }
 
-        size_type rfind(basic_string_view s, size_type pos = npos) const noexcept
+        size_type rfind(basic_string_view s, size_type pos = npos) const noexcept 
         {
             if (length_ < s.length_)
             {
@@ -228,11 +229,11 @@ namespace detail {
             {
                 pos = length_ - s.length_;
             }
-            if (s.length_ == 0)
+            if (s.length_ == 0) 
             {
                 return pos;
             }
-            for (const CharT* p = data_ + pos; true; --p)
+            for (const CharT* p = data_ + pos; true; --p) 
             {
                 if (Traits::compare(p, s.data_, s.length_) == 0)
                 {
@@ -245,19 +246,19 @@ namespace detail {
              };
         }
         size_type rfind(CharT ch, size_type pos = npos) const noexcept
-        {
-            return rfind(basic_string_view(&ch, 1), pos);
+        { 
+            return rfind(basic_string_view(&ch, 1), pos); 
         }
         size_type rfind(const CharT* s, size_type pos, size_type n) const noexcept
-        {
-            return rfind(basic_string_view(s, n), pos);
+        { 
+            return rfind(basic_string_view(s, n), pos); 
         }
         size_type rfind(const CharT* s, size_type pos = npos) const noexcept
-        {
-            return rfind(basic_string_view(s), pos);
+        { 
+            return rfind(basic_string_view(s), pos); 
         }
 
-        size_type find_first_of(basic_string_view s, size_type pos = 0) const noexcept
+        size_type find_first_of(basic_string_view s, size_type pos = 0) const noexcept 
         {
             if (pos >= length_ || s.length_ == 0)
             {
@@ -269,18 +270,18 @@ namespace detail {
         }
         size_type find_first_of(CharT ch, size_type pos = 0) const noexcept
         {
-             return find_first_of(basic_string_view(&ch, 1), pos);
+             return find_first_of(basic_string_view(&ch, 1), pos); 
         }
         size_type find_first_of(const CharT* s, size_type pos, size_type n) const noexcept
-        {
-            return find_first_of(basic_string_view(s, n), pos);
+        { 
+            return find_first_of(basic_string_view(s, n), pos); 
         }
         size_type find_first_of(const CharT* s, size_type pos = 0) const noexcept
-        {
-            return find_first_of(basic_string_view(s), pos);
+        { 
+            return find_first_of(basic_string_view(s), pos); 
         }
 
-        size_type find_last_of(basic_string_view s, size_type pos = npos) const noexcept
+        size_type find_last_of(basic_string_view s, size_type pos = npos) const noexcept 
         {
             if (s.length_ == 0)
             {
@@ -299,19 +300,19 @@ namespace detail {
             return it == crend() ? npos : (length_ - 1 - std::distance(crbegin(), it));
         }
         size_type find_last_of(CharT ch, size_type pos = npos) const noexcept
-        {
-            return find_last_of(basic_string_view(&ch, 1), pos);
+        { 
+            return find_last_of(basic_string_view(&ch, 1), pos); 
         }
         size_type find_last_of(const CharT* s, size_type pos, size_type n) const noexcept
-        {
-            return find_last_of(basic_string_view(s, n), pos);
+        { 
+            return find_last_of(basic_string_view(s, n), pos); 
         }
         size_type find_last_of(const CharT* s, size_type pos = npos) const noexcept
-        {
-            return find_last_of(basic_string_view(s), pos);
+        { 
+            return find_last_of(basic_string_view(s), pos); 
         }
 
-        size_type find_first_not_of(basic_string_view s, size_type pos = 0) const noexcept
+        size_type find_first_not_of(basic_string_view s, size_type pos = 0) const noexcept 
         {
             if (pos >= length_)
                 return npos;
@@ -330,19 +331,19 @@ namespace detail {
             return it == cend() ? npos : std::distance (cbegin(), it);
         }
         size_type find_first_not_of(CharT ch, size_type pos = 0) const noexcept
-        {
-            return find_first_not_of(basic_string_view(&ch, 1), pos);
+        { 
+            return find_first_not_of(basic_string_view(&ch, 1), pos); 
         }
         size_type find_first_not_of(const CharT* s, size_type pos, size_type n) const noexcept
-        {
-            return find_first_not_of(basic_string_view(s, n), pos);
+        { 
+            return find_first_not_of(basic_string_view(s, n), pos); 
         }
         size_type find_first_not_of(const CharT* s, size_type pos = 0) const noexcept
-        {
-            return find_first_not_of(basic_string_view(s), pos);
+        { 
+            return find_first_not_of(basic_string_view(s), pos); 
         }
 
-        size_type find_last_not_of(basic_string_view s, size_type pos = npos) const noexcept
+        size_type find_last_not_of(basic_string_view s, size_type pos = npos) const noexcept 
         {
             if (pos >= length_)
             {
@@ -366,16 +367,16 @@ namespace detail {
             return it == crend() ? npos : (length_ - 1 - std::distance(crbegin(), it));
         }
         size_type find_last_not_of(CharT ch, size_type pos = npos) const noexcept
-        {
-            return find_last_not_of(basic_string_view(&ch, 1), pos);
+        { 
+            return find_last_not_of(basic_string_view(&ch, 1), pos); 
         }
         size_type find_last_not_of(const CharT* s, size_type pos, size_type n) const noexcept
-        {
-            return find_last_not_of(basic_string_view(s, n), pos);
+        { 
+            return find_last_not_of(basic_string_view(s, n), pos); 
         }
         size_type find_last_not_of(const CharT* s, size_type pos = npos) const noexcept
-        {
-            return find_last_not_of(basic_string_view(s), pos);
+        { 
+            return find_last_not_of(basic_string_view(s), pos); 
         }
 
         friend std::basic_ostream<CharT>& operator<<(std::basic_ostream<CharT>& os, const basic_string_view& sv)
@@ -385,33 +386,35 @@ namespace detail {
         }
     };
 
+    template<class CharT,typename Traits> constexpr std::size_t basic_string_view<CharT,Traits>::npos;
+
     // ==
     template <typename CharT,typename Traits>
-    bool operator==(const basic_string_view<CharT,Traits>& lhs,
+    bool operator==(const basic_string_view<CharT,Traits>& lhs, 
                     const basic_string_view<CharT,Traits>& rhs) noexcept
     {
         return lhs.compare(rhs) == 0;
     }
     template <typename CharT,typename Traits,typename Allocator>
-    bool operator==(const basic_string_view<CharT,Traits>& lhs,
+    bool operator==(const basic_string_view<CharT,Traits>& lhs, 
                     const std::basic_string<CharT,Traits,Allocator>& rhs) noexcept
     {
         return lhs.compare(rhs) == 0;
     }
     template <typename CharT,typename Traits,typename Allocator>
-    bool operator==(const std::basic_string<CharT,Traits,Allocator>& lhs,
+    bool operator==(const std::basic_string<CharT,Traits,Allocator>& lhs, 
                     const basic_string_view<CharT,Traits>& rhs) noexcept
     {
         return rhs.compare(lhs) == 0;
     }
     template <typename CharT,typename Traits>
-    bool operator==(const basic_string_view<CharT,Traits>& lhs,
+    bool operator==(const basic_string_view<CharT,Traits>& lhs, 
                     const CharT* rhs) noexcept
     {
         return lhs.compare(rhs) == 0;
     }
     template <typename CharT,typename Traits>
-    bool operator==(const CharT* lhs,
+    bool operator==(const CharT* lhs, 
                     const basic_string_view<CharT,Traits>& rhs) noexcept
     {
         return rhs.compare(lhs) == 0;
@@ -419,31 +422,31 @@ namespace detail {
 
     // !=
     template <typename CharT,typename Traits>
-    bool operator!=(const basic_string_view<CharT,Traits>& lhs,
+    bool operator!=(const basic_string_view<CharT,Traits>& lhs, 
                     const basic_string_view<CharT,Traits>& rhs) noexcept
     {
         return lhs.compare(rhs) != 0;
     }
     template <typename CharT,typename Traits,typename Allocator>
-    bool operator!=(const basic_string_view<CharT,Traits>& lhs,
+    bool operator!=(const basic_string_view<CharT,Traits>& lhs, 
                     const std::basic_string<CharT,Traits,Allocator>& rhs) noexcept
     {
         return lhs.compare(rhs) != 0;
     }
     template <typename CharT,typename Traits,typename Allocator>
-    bool operator!=(const std::basic_string<CharT,Traits,Allocator>& lhs,
+    bool operator!=(const std::basic_string<CharT,Traits,Allocator>& lhs, 
                     const basic_string_view<CharT,Traits>& rhs) noexcept
     {
         return rhs.compare(lhs) != 0;
     }
     template <typename CharT,typename Traits>
-    bool operator!=(const basic_string_view<CharT,Traits>& lhs,
+    bool operator!=(const basic_string_view<CharT,Traits>& lhs, 
                     const CharT* rhs) noexcept
     {
         return lhs.compare(rhs) != 0;
     }
     template <typename CharT,typename Traits>
-    bool operator!=(const CharT* lhs,
+    bool operator!=(const CharT* lhs, 
                     const basic_string_view<CharT,Traits>& rhs) noexcept
     {
         return rhs.compare(lhs) != 0;
@@ -451,19 +454,19 @@ namespace detail {
 
     // <=
     template <typename CharT,typename Traits>
-    bool operator<=(const basic_string_view<CharT,Traits>& lhs,
+    bool operator<=(const basic_string_view<CharT,Traits>& lhs, 
                     const basic_string_view<CharT,Traits>& rhs) noexcept
     {
         return lhs.compare(rhs) <= 0;
     }
     template <typename CharT,typename Traits,typename Allocator>
-    bool operator<=(const basic_string_view<CharT,Traits>& lhs,
+    bool operator<=(const basic_string_view<CharT,Traits>& lhs, 
                     const std::basic_string<CharT,Traits,Allocator>& rhs) noexcept
     {
         return lhs.compare(rhs) <= 0;
     }
     template <typename CharT,typename Traits,typename Allocator>
-    bool operator<=(const std::basic_string<CharT,Traits,Allocator>& lhs,
+    bool operator<=(const std::basic_string<CharT,Traits,Allocator>& lhs, 
                     const basic_string_view<CharT,Traits>& rhs) noexcept
     {
         return rhs.compare(lhs) >= 0;
@@ -471,19 +474,19 @@ namespace detail {
 
     // <
     template <typename CharT,typename Traits>
-    bool operator<(const basic_string_view<CharT,Traits>& lhs,
+    bool operator<(const basic_string_view<CharT,Traits>& lhs, 
                     const basic_string_view<CharT,Traits>& rhs) noexcept
     {
         return lhs.compare(rhs) < 0;
     }
     template <typename CharT,typename Traits,typename Allocator>
-    bool operator<(const basic_string_view<CharT,Traits>& lhs,
+    bool operator<(const basic_string_view<CharT,Traits>& lhs, 
                     const std::basic_string<CharT,Traits,Allocator>& rhs) noexcept
     {
         return lhs.compare(rhs) < 0;
     }
     template <typename CharT,typename Traits,typename Allocator>
-    bool operator<(const std::basic_string<CharT,Traits,Allocator>& lhs,
+    bool operator<(const std::basic_string<CharT,Traits,Allocator>& lhs, 
                     const basic_string_view<CharT,Traits>& rhs) noexcept
     {
         return rhs.compare(lhs) > 0;
@@ -491,19 +494,19 @@ namespace detail {
 
     // >=
     template <typename CharT,typename Traits>
-    bool operator>=(const basic_string_view<CharT,Traits>& lhs,
+    bool operator>=(const basic_string_view<CharT,Traits>& lhs, 
                     const basic_string_view<CharT,Traits>& rhs) noexcept
     {
         return lhs.compare(rhs) >= 0;
     }
     template <typename CharT,typename Traits,typename Allocator>
-    bool operator>=(const basic_string_view<CharT,Traits>& lhs,
+    bool operator>=(const basic_string_view<CharT,Traits>& lhs, 
                     const std::basic_string<CharT,Traits,Allocator>& rhs) noexcept
     {
         return lhs.compare(rhs) >= 0;
     }
     template <typename CharT,typename Traits,typename Allocator>
-    bool operator>=(const std::basic_string<CharT,Traits,Allocator>& lhs,
+    bool operator>=(const std::basic_string<CharT,Traits,Allocator>& lhs, 
                     const basic_string_view<CharT,Traits>& rhs) noexcept
     {
         return rhs.compare(lhs) <= 0;
@@ -511,19 +514,19 @@ namespace detail {
 
     // >
     template <typename CharT,typename Traits>
-    bool operator>(const basic_string_view<CharT,Traits>& lhs,
+    bool operator>(const basic_string_view<CharT,Traits>& lhs, 
                     const basic_string_view<CharT,Traits>& rhs) noexcept
     {
         return lhs.compare(rhs) > 0;
     }
     template <typename CharT,typename Traits,typename Allocator>
-    bool operator>(const basic_string_view<CharT,Traits>& lhs,
+    bool operator>(const basic_string_view<CharT,Traits>& lhs, 
                     const std::basic_string<CharT,Traits,Allocator>& rhs) noexcept
     {
         return lhs.compare(rhs) > 0;
     }
     template <typename CharT,typename Traits,typename Allocator>
-    bool operator>(const std::basic_string<CharT,Traits,Allocator>& lhs,
+    bool operator>(const std::basic_string<CharT,Traits,Allocator>& lhs, 
                     const basic_string_view<CharT,Traits>& rhs) noexcept
     {
         return rhs.compare(lhs) < 0;
@@ -541,15 +544,7 @@ namespace std {
     {
         std::size_t operator()(const jsoncons::detail::basic_string_view<CharT, Traits>& s) const noexcept
         {
-            const int p = 53;
-            const int m = 1000000009;
-            std::size_t hash_value = 0;
-            std::size_t p_pow = 1;
-            for (CharT c : s) {
-                hash_value = (hash_value + (c - 'a' + 1) * p_pow) % m;
-                p_pow = (p_pow * p) % m;
-            }
-            return hash_value;
+            return jsoncons::detail::a5hash(s.data(), s.size(), 0);
         }
     };
 } // namespace std
