@@ -16,7 +16,6 @@
   <ItemDefinitionGroup>
     <ClCompile>
       <PreprocessorDefinitions>ZSYNCO_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(CSProDir)external;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>

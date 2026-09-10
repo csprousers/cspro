@@ -16,7 +16,7 @@ tar -xvzf rxcpp.tar.gz
 
 
 rem ... copy files to be used by CSPro
-xcopy .\RxCpp-%rx_version%\Rx\v2\src\rxcpp ..\..\..\..\cspro\external\rxcpp /i /k /e /y
+xcopy .\RxCpp-%rx_version%\Rx\v2\src\rxcpp ..\..\..\..\third_party\sources\rxcpp /i /k /e /y
 
 
 rem ... update the license

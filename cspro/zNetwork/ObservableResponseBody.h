@@ -1,6 +1,6 @@
-﻿#pragma once
+#pragma once
 
-#include <external/rxcpp/rx-lite.hpp>
+#include <rxcpp/rx-lite.hpp>
 #include <ostream>
 #include <sstream>
 

@@ -89,7 +89,6 @@ add_library(${PROJECT_NAME} SHARED
 # CSEntry (Android) include directories
 target_include_directories(${PROJECT_NAME} PRIVATE
     ${EXTERNAL_DIR}
-    ${EXTERNAL_DIR}/rxcpp
     ${EXTERNAL_DIR}/geometry.hpp/include
     ${EXTERNAL_DIR}/variant/include
 )
