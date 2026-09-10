@@ -15,6 +15,7 @@
     <ThirdPartyDir>$(CSProDir)..\third_party\</ThirdPartyDir>
     <ThirdPartyPrebuiltDir>$(ThirdPartyDir)prebuilt\</ThirdPartyPrebuiltDir>
     <ThirdPartyPrebuiltIncludeDir>$(ThirdPartyPrebuiltDir)include\</ThirdPartyPrebuiltIncludeDir>
+    <ThirdPartySourcesDir>$(ThirdPartyDir)sources\</ThirdPartySourcesDir>
 
   </PropertyGroup>
 

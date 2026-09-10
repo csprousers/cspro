@@ -49,12 +49,14 @@ set(THIRD_PARTY_DIR ${CSPRO_DIR}/../third_party)
 set(THIRD_PARTY_PREBUILT_DIR ${THIRD_PARTY_DIR}/prebuilt)
 set(THIRD_PARTY_PREBUILT_INCLUDE_DIR ${THIRD_PARTY_PREBUILT_DIR}/include)
 set(THIRD_PARTY_PREBUILT_LIB_DIR ${THIRD_PARTY_PREBUILT_DIR}/lib/wasm)
+set(THIRD_PARTY_SOURCES_DIR ${THIRD_PARTY_DIR}/sources)
 set(THIRD_PARTY_LIB_EXT "$<IF:$<CONFIG:Debug>,d.a,.a>")
 
 # global include directories
 include_directories(
     ${CSPRO_DIR}
     ${THIRD_PARTY_PREBUILT_INCLUDE_DIR}
+    ${THIRD_PARTY_SOURCES_DIR}
 )
 
 # CSEntry (WASM) files
