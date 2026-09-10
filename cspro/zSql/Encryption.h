@@ -1,6 +1,6 @@
-﻿#pragma once
+#pragma once
 
-#include <external/SQLite/sqlite3.h>
+#include <sqlite/sqlite3.h>
 
 
 // --------------------------------------------------------------------------

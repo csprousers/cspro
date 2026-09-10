@@ -17,7 +17,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\external\SQLite\sqlite3.h">
+    <ClInclude Include="$(ThirdPartySourcesDir)sqlite\sqlite3.h">
       <Filter>Header Files\sqlite3</Filter>
     </ClInclude>
     <ClInclude Include="Commands.h">
@@ -64,7 +64,7 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\external\SQLite\sqlite3.c">
+    <ClCompile Include="$(ThirdPartySourcesDir)sqlite\sqlite3.c">
       <Filter>Source Files\sqlite3</Filter>
     </ClCompile>
     <ClCompile Include="DB.cpp">

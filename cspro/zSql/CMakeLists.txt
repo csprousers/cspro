@@ -1,6 +1,6 @@
 project(zSql)
 
-set(SQLITE_DIR ${EXTERNAL_DIR}/SQLite)
+set(SQLITE_DIR ${THIRD_PARTY_SOURCES_DIR}/sqlite)
 
 add_library(${PROJECT_NAME}
     DB.cpp
@@ -15,10 +15,6 @@ add_library(${PROJECT_NAME}
 target_compile_definitions(${PROJECT_NAME} PRIVATE
     # use memory for temporary files
     SQLITE_TEMP_STORE=3
-)
-
-target_include_directories(${PROJECT_NAME} PRIVATE
-    ${EXTERNAL_DIR}
 )
 
 target_precompile_headers(${PROJECT_NAME} PRIVATE
