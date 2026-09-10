@@ -1,6 +1,6 @@
 project(zJavaScript)
 
-set(QUICKJS_DIR ${EXTERNAL_DIR}/QuickJS)
+set(QUICKJS_DIR ${THIRD_PARTY_SOURCES_DIR}/quickjs)
 
 add_library(${PROJECT_NAME}
     ActionInvokerJS.cpp
