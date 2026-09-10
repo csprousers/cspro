@@ -86,13 +86,6 @@ add_library(${PROJECT_NAME} SHARED
     JNIHelpers.cpp
 )
 
-# CSEntry (Android) include directories
-target_include_directories(${PROJECT_NAME} PRIVATE
-    ${EXTERNAL_DIR}
-    ${EXTERNAL_DIR}/geometry.hpp/include
-    ${EXTERNAL_DIR}/variant/include
-)
-
 # enable 16 KiB memory pages
 target_link_options(${PROJECT_NAME} PRIVATE
     "-Wl,-z,max-page-size=16384"
