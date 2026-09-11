@@ -44,7 +44,6 @@ add_compile_definitions(
 
 # set the directories for the CSPro solution root and the third-party libraries
 set(CSPRO_DIR ${CMAKE_CURRENT_SOURCE_DIR}/..)
-set(EXTERNAL_DIR ${CSPRO_DIR}/external)
 set(THIRD_PARTY_DIR ${CSPRO_DIR}/../third_party)
 set(THIRD_PARTY_PREBUILT_DIR ${THIRD_PARTY_DIR}/prebuilt)
 set(THIRD_PARTY_PREBUILT_INCLUDE_DIR ${THIRD_PARTY_PREBUILT_DIR}/include)

@@ -16,7 +16,6 @@
   <ItemDefinitionGroup>
     <ClCompile>
       <PreprocessorDefinitions>ZTBDO_IMPL;_AFXEXT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(CSProDir)external;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Platform)'=='Win32'" Label="/J means char is treated as unsigned char (X64_TODO remove)">
