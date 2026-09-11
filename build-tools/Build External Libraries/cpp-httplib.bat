@@ -16,7 +16,7 @@ tar -xvzf httplib.tar.gz
 
 
 rem ... copy files to be used by CSPro
-copy /y cpp-httplib-%httplib_version%\httplib.h ..\..\..\..\cspro\external\cpp-httplib\
+copy /y cpp-httplib-%httplib_version%\httplib.h ..\..\..\..\third_party\sources\cpp-httplib\
 
 
 rem ... update the license

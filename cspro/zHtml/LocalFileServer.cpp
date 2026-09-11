@@ -5,7 +5,7 @@
 #include "PortableLocalFileServer.h"
 #include <zToolsO/WinSettings.h>
 #include <zUtilO/CSProExecutables.h>
-#include <external/cpp-httplib/httplib.h>
+#include <cpp-httplib/httplib.h>
 
 
 namespace

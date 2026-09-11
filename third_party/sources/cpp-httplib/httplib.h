@@ -1,7 +1,7 @@
 // CSPRO CHANGES: some changes have been made, marked with HTTPLIB_CSPRO
 #ifndef X64_BUILD
 // use an older library for 32-bit builds
-#include <external/cpp-httplib/httplib-x86.h>
+#include <cpp-httplib/httplib-x86.h>
 #else
 
 //
