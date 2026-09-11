@@ -1,8 +1,8 @@
 project(zExportO)
 
-set(LIBRDATA_READSTAT_DIR ${EXTERNAL_DIR}/librdata+ReadStat)
-set(LIBRDATA_DIR ${EXTERNAL_DIR}/librdata)
-set(READSTAT_DIR ${EXTERNAL_DIR}/ReadStat)
+set(LIBRDATA_READSTAT_DIR ${THIRD_PARTY_SOURCES_DIR}/librdata+readstat)
+set(LIBRDATA_DIR ${THIRD_PARTY_SOURCES_DIR}/librdata)
+set(READSTAT_DIR ${THIRD_PARTY_SOURCES_DIR}/readstat)
 
 add_library(${PROJECT_NAME}
     CSProExportWriter.cpp

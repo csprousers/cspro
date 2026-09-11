@@ -15,7 +15,7 @@
 #include "../readstat_malloc.h"
 #include "../readstat_writer.h"
 
-#include "../../librdata+ReadStat/CKHashTable.h" // CSPRO_LIBRDATA_MODIFICATIONS
+#include <librdata+readstat/CKHashTable.h> // CSPRO_LIBRDATA_MODIFICATIONS
 
 #include "readstat_sav.h"
 #include "readstat_sav_compress.h"

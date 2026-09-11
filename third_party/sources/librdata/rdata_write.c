@@ -3,7 +3,7 @@
 #include <string.h>
 #include <time.h>
 
-#include "../librdata+ReadStat/CKHashTable.h" // CSPRO_LIBRDATA_MODIFICATIONS
+#include <librdata+readstat/CKHashTable.h> // CSPRO_LIBRDATA_MODIFICATIONS
 #include "rdata.h"
 #include "rdata_internal.h"
 

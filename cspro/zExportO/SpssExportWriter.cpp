@@ -1,9 +1,9 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "SpssExportWriter.h"
 
 extern "C"
 {
-#include <external/ReadStat/spss/readstat_spss.h>
+#include <readstat/spss/readstat_spss.h>
 }
 
 

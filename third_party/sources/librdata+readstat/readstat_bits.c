@@ -1,4 +1,4 @@
-﻿//
+//
 //  readstat_bits.c - Bit-twiddling utility functions
 //
 
@@ -6,7 +6,7 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "../ReadStat/readstat_bits.h" // CSPRO_READSTAT_MODIFICATIONS
+#include <readstat/readstat_bits.h> // CSPRO_READSTAT_MODIFICATIONS
 
 int machine_is_little_endian() {
     int test_byte_order = 1;

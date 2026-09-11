@@ -29,67 +29,67 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\external\librdata+ReadStat\CKHashTable.c">
+    <ClCompile Include="$(ThirdPartySourcesDir)librdata+readstat\CKHashTable.c">
       <Filter>librdata+ReadStat</Filter>
     </ClCompile>
-    <ClCompile Include="..\external\librdata+ReadStat\readstat_bits.c">
+    <ClCompile Include="$(ThirdPartySourcesDir)librdata+readstat\readstat_bits.c">
       <Filter>librdata+ReadStat</Filter>
     </ClCompile>
-    <ClCompile Include="..\external\librdata\rdata_error.c">
+    <ClCompile Include="$(ThirdPartySourcesDir)librdata\rdata_error.c">
       <Filter>librdata</Filter>
     </ClCompile>
-    <ClCompile Include="..\external\librdata\rdata_io_unistd.c">
+    <ClCompile Include="$(ThirdPartySourcesDir)librdata\rdata_io_unistd.c">
       <Filter>librdata</Filter>
     </ClCompile>
-    <ClCompile Include="..\external\librdata\rdata_parser.c">
+    <ClCompile Include="$(ThirdPartySourcesDir)librdata\rdata_parser.c">
       <Filter>librdata</Filter>
     </ClCompile>
-    <ClCompile Include="..\external\librdata\rdata_write.c">
+    <ClCompile Include="$(ThirdPartySourcesDir)librdata\rdata_write.c">
       <Filter>librdata</Filter>
     </ClCompile>
-    <ClCompile Include="..\external\ReadStat\readstat_error.c">
+    <ClCompile Include="$(ThirdPartySourcesDir)readstat\readstat_error.c">
       <Filter>ReadStat</Filter>
     </ClCompile>
-    <ClCompile Include="..\external\ReadStat\readstat_io_unistd.c">
+    <ClCompile Include="$(ThirdPartySourcesDir)readstat\readstat_io_unistd.c">
       <Filter>ReadStat</Filter>
     </ClCompile>
-    <ClCompile Include="..\external\ReadStat\readstat_malloc.c">
+    <ClCompile Include="$(ThirdPartySourcesDir)readstat\readstat_malloc.c">
       <Filter>ReadStat</Filter>
     </ClCompile>
-    <ClCompile Include="..\external\ReadStat\readstat_metadata.c">
+    <ClCompile Include="$(ThirdPartySourcesDir)readstat\readstat_metadata.c">
       <Filter>ReadStat</Filter>
     </ClCompile>
-    <ClCompile Include="..\external\ReadStat\readstat_parser.c">
+    <ClCompile Include="$(ThirdPartySourcesDir)readstat\readstat_parser.c">
       <Filter>ReadStat</Filter>
     </ClCompile>
-    <ClCompile Include="..\external\ReadStat\readstat_value.c">
+    <ClCompile Include="$(ThirdPartySourcesDir)readstat\readstat_value.c">
       <Filter>ReadStat</Filter>
     </ClCompile>
-    <ClCompile Include="..\external\ReadStat\readstat_variable.c">
+    <ClCompile Include="$(ThirdPartySourcesDir)readstat\readstat_variable.c">
       <Filter>ReadStat</Filter>
     </ClCompile>
-    <ClCompile Include="..\external\ReadStat\readstat_writer.c">
+    <ClCompile Include="$(ThirdPartySourcesDir)readstat\readstat_writer.c">
       <Filter>ReadStat</Filter>
     </ClCompile>
-    <ClCompile Include="..\external\ReadStat\sas\ieee.c">
+    <ClCompile Include="$(ThirdPartySourcesDir)readstat\sas\ieee.c">
       <Filter>ReadStat\SAS</Filter>
     </ClCompile>
-    <ClCompile Include="..\external\ReadStat\spss\readstat_sav_compress.c">
+    <ClCompile Include="$(ThirdPartySourcesDir)readstat\spss\readstat_sav_compress.c">
       <Filter>ReadStat\SPSS</Filter>
     </ClCompile>
-    <ClCompile Include="..\external\ReadStat\spss\readstat_sav_write.c">
+    <ClCompile Include="$(ThirdPartySourcesDir)readstat\spss\readstat_sav_write.c">
       <Filter>ReadStat\SPSS</Filter>
     </ClCompile>
-    <ClCompile Include="..\external\ReadStat\spss\readstat_spss.c">
+    <ClCompile Include="$(ThirdPartySourcesDir)readstat\spss\readstat_spss.c">
       <Filter>ReadStat\SPSS</Filter>
     </ClCompile>
-    <ClCompile Include="..\external\ReadStat\spss\readstat_spss_parse.c">
+    <ClCompile Include="$(ThirdPartySourcesDir)readstat\spss\readstat_spss_parse.c">
       <Filter>ReadStat\SPSS</Filter>
     </ClCompile>
-    <ClCompile Include="..\external\ReadStat\stata\readstat_dta.c">
+    <ClCompile Include="$(ThirdPartySourcesDir)readstat\stata\readstat_dta.c">
       <Filter>ReadStat\Stata</Filter>
     </ClCompile>
-    <ClCompile Include="..\external\ReadStat\stata\readstat_dta_write.c">
+    <ClCompile Include="$(ThirdPartySourcesDir)readstat\stata\readstat_dta_write.c">
       <Filter>ReadStat\Stata</Filter>
     </ClCompile>
     <ClCompile Include="CSProExportWriter.cpp">
