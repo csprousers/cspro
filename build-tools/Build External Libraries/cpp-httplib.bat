@@ -7,7 +7,7 @@ cd temp\httplib
 
 
 rem ... find the latest version number here: https://github.com/yhirose/cpp-httplib/releases/latest/
-set httplib_version=0.30.1
+set httplib_version=0.54.1
 
 
 rem ... get the latest version
