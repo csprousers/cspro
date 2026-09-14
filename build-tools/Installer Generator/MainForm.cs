@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -663,7 +663,7 @@ namespace CSPro_Installer_Generator
             foreach( Inputs.Tool tool in inputs.Tools )
             {
                 string solution = Path.Combine(_commonPaths.ToolsDirectory, tool.directory, $"{tool.solution}.sln");
-                var build = new Build(textBoxMSBuild.Text, solution, true);
+                var build = new Build(_commonPaths, textBoxMSBuild.Text, solution, true);
 
                 if( build_tools )
                 {
@@ -809,7 +809,7 @@ namespace CSPro_Installer_Generator
                 Directory.CreateDirectory(_componentsReleaseDirectory);
 
             string solution = Path.Combine(_commonPaths.CSProDirectory, "cspro.sln");
-            var build = new Build(textBoxMSBuild.Text, solution, release);
+            var build = new Build(_commonPaths, textBoxMSBuild.Text, solution, release);
 
             if( build_cspro )
             {

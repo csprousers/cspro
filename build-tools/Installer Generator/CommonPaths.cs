@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using System.Reflection;
 
 namespace CSPro_Installer_Generator
@@ -21,12 +21,12 @@ namespace CSPro_Installer_Generator
 
         public CommonPaths()
         {
-            BuildToolsDirectory = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), @"..\..\..\.."));
+            RootDirectory = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), @"..\..\..\.."));
+            BuildToolsDirectory = Path.Combine(RootDirectory, "build-tools");
             InstallerDirectory = Path.Combine(BuildToolsDirectory, "Installer Inputs");
-            RootDirectory = Path.GetFullPath(Path.Combine(BuildToolsDirectory, ".."));
             CSProDirectory = Path.Combine(RootDirectory, "cspro");
-            CSProDebugDirectory = Path.Combine(CSProDirectory, "build", Build.PlatformTarget, @"Debug\bin");
-            CSProReleaseDirectory = Path.Combine(CSProDirectory, "build", Build.PlatformTarget, @"Release\bin");
+            CSProDebugDirectory = Path.Combine(RootDirectory, "build", Build.PlatformTarget, @"Debug\bin");
+            CSProReleaseDirectory = Path.Combine(RootDirectory, "build", Build.PlatformTarget, @"Release\bin");
             ToolsDirectory = Path.Combine(RootDirectory, "tools");
 
             AndroidAssetsDirectory = Path.Combine(CSProDirectory, @"CSEntryDroid\app\src\main\assets");

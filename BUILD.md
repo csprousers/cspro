@@ -27,7 +27,7 @@ The CSPro solution targets a 32-bit or 64-bit application that uses C++17 along 
 - Microsoft.VisualStudio.Component.VC.Redist.14.Latest
 - Microsoft.VisualStudio.Component.VC.Tools.x86.x64
 
-To build the solution, open the solution file, [cspro/cspro.sln](https://github.com/csprousers/cspro/blob/dev/cspro/cspro.sln), and select *Build -> Build Solution*. All executables and other built files are output to the directory *cspro/build/x86/Debug/bin* or *cspro/build/x86/Release/bin* (or */x64/* if building 64-bit).
+To build the solution, open the solution file, [cspro/cspro.sln](https://github.com/csprousers/cspro/blob/dev/cspro/cspro.sln), and select *Build -> Build Solution*. All executables and other built files are output to the directory *build/x86/Debug/bin* or *build/x86/Release/bin* (or */x64/* if building 64-bit).
 
 A list of files that are distributed with the CSPro installer is available in [build-tools/Installer Inputs/inputs.json](https://github.com/csprousers/cspro/blob/dev/build-tools/Installer%20Inputs/inputs.json).
 

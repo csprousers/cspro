@@ -71,7 +71,7 @@ android {
             path "src/main/jni/CMakeLists.txt"
 
             // Use the same build folder as the Visual Studio builds
-            buildStagingDirectory "${rootProject.projectDir}/../build/android-ndk"
+            buildStagingDirectory "${rootProject.projectDir}/../../build/android-ndk"
         }
     }
 

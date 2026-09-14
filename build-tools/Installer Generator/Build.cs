@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.IO;
 
 namespace CSPro_Installer_Generator
@@ -9,13 +9,15 @@ namespace CSPro_Installer_Generator
         public static string PlatformTarget { get { return Is32Bit ? "x86" : "x64"; } }
         public static string Platform { get { return Is32Bit ? "Win32" : "x64"; } }
 
+        private CommonPaths _commonPaths;
         private string _msbuildFilePath;
         private string _solutionFilePath;
         private bool _release;
         private string Configuration { get { return _release ? "Release" : "Debug"; } }
 
-        public Build(string msbuild_file_path, string solution_file_path, bool release)
+        public Build(CommonPaths common_paths, string msbuild_file_path, string solution_file_path, bool release)
         {
+            _commonPaths = common_paths;
             _msbuildFilePath = msbuild_file_path;
             _solutionFilePath = solution_file_path;
             _release = release;
@@ -37,7 +39,7 @@ namespace CSPro_Installer_Generator
 
         public string GetBuiltFilePath(string filename)
         {
-            return Path.Combine(Path.GetDirectoryName(_solutionFilePath), $"build\\{PlatformTarget}\\{Configuration}\\bin\\{filename}");
+            return Path.Combine(_commonPaths.RootDirectory, $"build\\{PlatformTarget}\\{Configuration}\\bin\\{filename}");
         }
 
         public string GetExecutableFilePath(string project_name)

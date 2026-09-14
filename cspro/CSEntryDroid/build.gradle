@@ -9,5 +9,5 @@ plugins {
 
 allprojects {
     // Use the same build folder as the Visual Studio builds
-    layout.buildDirectory.set(file("${rootProject.projectDir}/../build/android"))
+    layout.buildDirectory.set(file("${rootProject.projectDir}/../../build/android"))
 }

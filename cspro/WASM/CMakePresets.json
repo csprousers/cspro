@@ -16,7 +16,7 @@
       "inherits": [
         "WASM-x64"
       ],
-      "binaryDir": "../build/wasm-Debug",
+      "binaryDir": "../../build/wasm/Debug",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug"
       }
@@ -27,7 +27,7 @@
       "inherits": [
         "WASM-x64"
       ],
-      "binaryDir": "../build/wasm-Release",
+      "binaryDir": "../../build/wasm/Release",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release"
       }
