@@ -765,3 +765,45 @@ size_t CodePurifierDoc::StageTrackedFiles()
 
     return modified_file_paths.size();
 }
+
+
+std::vector<std::string> CodePurifierDoc::GetEmptyDirectories() const
+{
+    DirectoryLister directory_lister(false, true, true);
+    std::vector<std::string> empty_directories;
+
+    const std::function<bool (const std::string&)> process_directory =
+        [&](const std::string& directory)
+        {
+            bool directory_can_be_deleted = true;
+
+            directory_lister.ForeachPath(directory,
+                [&](const std::string& path)
+                {
+                    ASSERT(!path.empty());
+                    const bool is_directory = Path::IsSlashChar(path.back());
+
+                    if( is_directory )
+                    {
+                        if( !process_directory(path) )
+                            directory_can_be_deleted = false;
+                    }
+
+                    else
+                    {
+                        directory_can_be_deleted = false;
+                    }
+
+                    return true;
+                });
+
+            if( directory_can_be_deleted )
+                empty_directories.emplace_back(directory);
+
+            return directory_can_be_deleted;
+        };
+
+    process_directory(m_repoWorkingDirectory);
+
+    return empty_directories;
+}

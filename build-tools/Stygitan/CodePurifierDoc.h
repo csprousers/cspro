@@ -67,6 +67,9 @@ public:
     // Returns the number of files staged.
     size_t StageTrackedFiles();
 
+    // Returns the paths of all empty directories in the working directory.
+    std::vector<std::string> GetEmptyDirectories() const;
+
 protected:
     void SetTitle(LPCTSTR lpszTitle) override;
     void SetPathName(LPCTSTR lpszPathName, BOOL bAddToMRU = TRUE) override;

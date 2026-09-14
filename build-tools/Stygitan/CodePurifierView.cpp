@@ -2,6 +2,7 @@
 #include "CodePurifierView.h"
 #include "DiffTool.h"
 #include "EditorConfigApplier.h"
+#include "RemovalConfirmationDlg.h"
 #include <zToolsO/Hash.h>
 #include <zToolsO/WinClipboard.h>
 
@@ -43,6 +44,7 @@ BEGIN_MESSAGE_MAP(CodePurifierView, CFormView)
     ON_COMMAND(ID_MODIFIED_FILE_DIFF, OnModifiedFileDiff)
     ON_COMMAND(IDC_MODIFIED_FILES_BUTTON, OnModifiedFilesAction)
     ON_COMMAND(ID_STAGE_TRACKED, OnModifiedFilesStageTracked)
+    ON_COMMAND(ID_REMOVE_EMPTY_DIRECTORIES, OnModifiedFilesRemoveEmptyDirectories)
 END_MESSAGE_MAP()
 
 
@@ -678,6 +680,57 @@ void CodePurifierView::OnModifiedFilesStageTracked()
 
         AfxMessageBox(
             FormatText("%zu tracked file%s staged.", count, PluralizeWord(count))
+        );
+    }
+
+    catch( const CSProException& exception )
+    {
+        ErrorMessage::Display(exception);
+    }
+}
+
+
+void CodePurifierView::OnModifiedFilesRemoveEmptyDirectories()
+{
+    CodePurifierDoc& cp_doc = GetDoc();
+
+    try
+    {
+        std::optional<const CWaitCursor> wait_cursor = CWaitCursor();
+
+        const std::vector<std::string> paths = cp_doc.GetEmptyDirectories();
+
+        wait_cursor.reset();
+
+        if( paths.empty() )
+        {
+            AfxMessageBox(L"There are no empty directories.");
+            return;
+        }
+
+        RemovalConfirmationDlg dlg(paths, this);
+
+        if( dlg.DoModal() != IDOK )
+            return;
+
+        wait_cursor.emplace();
+
+        for( const std::string& path : paths )
+        {
+            if( dlg.GetRecycle() )
+            {
+                RecycleFile<true>(path);
+            }
+
+            else
+            {
+                if( !PortableFunctions::DirectoryDelete(path) )
+                    throw FileIO::Exception::FileDeleteFail(path);
+            }
+        }
+
+        AfxMessageBox(
+            FormatText("%zu director%s deleted.", paths.size(), PluralizeWord(paths.size(), "y", "ies"))
         );
     }
 

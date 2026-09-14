@@ -6,6 +6,7 @@
 #include <Stygitan/Helpers.h>
 #include <Stygitan/resource.h>
 #include <Stygitan/UWM.h>
+#include <zToolsO/DirectoryLister.h>
 #include <zToolsO/FileIO.h>
 #include <zToolsO/Utf8.h>
 #include <zUtilO/FileUtil.h>

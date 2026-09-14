@@ -33,6 +33,7 @@
     <ClInclude Include="Helpers.h" />
     <ClInclude Include="MainFrame.h" />
     <ClInclude Include="PropertiesDlg.h" />
+    <ClInclude Include="RemovalConfirmationDlg.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="StdAfx.h" />
     <ClInclude Include="Stygitan.h" />
@@ -50,6 +51,7 @@
     <ClCompile Include="Helpers.cpp" />
     <ClCompile Include="MainFrame.cpp" />
     <ClCompile Include="PropertiesDlg.cpp" />
+    <ClCompile Include="RemovalConfirmationDlg.cpp" />
     <ClCompile Include="StdAfx.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>

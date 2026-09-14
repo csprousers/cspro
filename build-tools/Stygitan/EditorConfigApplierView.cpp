@@ -1,7 +1,6 @@
 #include "StdAfx.h"
 #include "EditorConfigApplierView.h"
 #include "EditorConfigApplier.h"
-#include <zToolsO/DirectoryLister.h>
 #include <zToolsO/TextFile.h>
 #include <zGit/GitIndex.h>
 

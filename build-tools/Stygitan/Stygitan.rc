@@ -103,6 +103,8 @@ BEGIN
     POPUP "0"
     BEGIN
         MENUITEM "Stage Tracked: Modified",     ID_STAGE_TRACKED
+        MENUITEM SEPARATOR
+        MENUITEM "Remove Empty Directories",    ID_REMOVE_EMPTY_DIRECTORIES
     END
 END
 
@@ -233,6 +235,18 @@ BEGIN
     LTEXT           "Example: ""~~OLD~~"" ""~~NEW~~""",IDC_STATIC,59,58,116,8
 END
 
+IDD_REMOVAL_CONFIRMATION DIALOGEX 0, 0, 359, 176
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+CAPTION "Confirm Removal"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    PUSHBUTTON      "Recycle",IDC_RECYCLE,86,155,50,14
+    PUSHBUTTON      "Delete",IDC_DELETE,154,155,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,222,155,50,14
+    LTEXT           "The following files or directories will be removed:",IDC_STATIC,7,7,156,8
+    EDITTEXT        IDC_PATHS,7,22,345,126,ES_MULTILINE | ES_AUTOHSCROLL | ES_READONLY | WS_VSCROLL
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -319,6 +333,16 @@ BEGIN
     0, 0, 0, 0
 END
 
+IDD_REMOVAL_CONFIRMATION AFX_DIALOG_LAYOUT
+BEGIN
+    0,
+    50, 100, 0, 0,
+    50, 100, 0, 0,
+    50, 100, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 100, 100
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -358,6 +382,14 @@ BEGIN
         RIGHTMARGIN, 302
         TOPMARGIN, 7
         BOTTOMMARGIN, 97
+    END
+
+    IDD_REMOVAL_CONFIRMATION, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 352
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 169
     END
 END
 #endif    // APSTUDIO_INVOKED
