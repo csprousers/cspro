@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <Stygitan/CodePurifierData.h>
 
@@ -62,6 +62,10 @@ public:
     // all new and modified files in the working directory will be staged.
     // and then another temporary commit will be created.
     void CreateTemporaryCommit(const bool staged_only);
+
+    // Stages tracked files that are currently modified in the working directory.
+    // Returns the number of files staged.
+    size_t StageTrackedFiles();
 
 protected:
     void SetTitle(LPCTSTR lpszTitle) override;

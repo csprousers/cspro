@@ -41,9 +41,15 @@ public:
     // Adds an entry using content previously added as a blob.
     void AddEntry(const GitObjectId& oid, cs::string_sz path, uint32_t mode);
 
+    // Adds an entry by path.
+    void AddEntrybyPath(cs::string_sz path);
+
     // Removes an entry from the index by path.
     // No error occurs if the path is not found.
     void RemoveEntryByPath(cs::string_sz path);
+
+    // Writes the index to the disk.
+    void Write();
 
     // Adds all non-ignored files (modified and new) in the working directory.
     // The index is updated and then written to the disk.

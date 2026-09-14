@@ -4,6 +4,7 @@
 #include <zGit/GitBlob.h>
 #include <zGit/GitIndex.h>
 #include <zGit/GitTree.h>
+#include <git2/git2/status.h>
 #include <regex>
 
 
@@ -736,4 +737,31 @@ void CodePurifierDoc::CreateTemporaryCommit(const bool staged_only)
 
             return std::nullopt;
         });
+}
+
+
+size_t CodePurifierDoc::StageTrackedFiles()
+{
+    StopRefreshDataThread(ThreadStopType::Wait);
+
+    std::vector<std::string> modified_file_paths;
+
+    m_repo.ForeachStatusInWorkingDirectory(
+        [&](std::string path, const unsigned int status_flags)
+        {
+            if( ( status_flags & GIT_STATUS_WT_MODIFIED ) != 0 )
+                modified_file_paths.emplace_back(std::move(path));
+        });
+
+    if( !modified_file_paths.empty() )
+    {
+        GitIndex index = m_repo.GetUpdatedIndex();
+
+        for( const std::string& file_path : modified_file_paths )
+            index.AddEntrybyPath(file_path);
+
+        index.Write();
+    }
+
+    return modified_file_paths.size();
 }

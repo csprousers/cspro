@@ -41,6 +41,8 @@ BEGIN_MESSAGE_MAP(CodePurifierView, CFormView)
     ON_COMMAND(ID_MODIFIED_FILE_OPEN_CONTAINING_FOLDER, OnModifiedFileOpenContainingFolder)
     ON_COMMAND(ID_MODIFIED_FILE_COPY_PATH, OnModifiedFileCopyPath)
     ON_COMMAND(ID_MODIFIED_FILE_DIFF, OnModifiedFileDiff)
+    ON_COMMAND(IDC_MODIFIED_FILES_BUTTON, OnModifiedFilesAction)
+    ON_COMMAND(ID_STAGE_TRACKED, OnModifiedFilesStageTracked)
 END_MESSAGE_MAP()
 
 
@@ -82,6 +84,11 @@ void CodePurifierView::OnInitialUpdate()
     // add an indication that this list is pending
     m_modifiedFilesListCtrl.AddItem(L"Identifying modified files...", L"", L"");
 
+    // set up the modified files button's menu
+    m_modifiedFilesMenu.LoadMenu(IDR_MODIFIED_FILES_ACTIONS);
+    CMenu* const modified_files_actions_menu = m_modifiedFilesMenu.GetSubMenu(0);
+    m_modifiedFilesActionsButton.m_hMenu = modified_files_actions_menu->GetSafeHmenu();
+
     // start Git processing, with updates posted here using the message UWM::Stygitan::UpdateUI
     cp_doc.StartGitProcessing(this);
 }
@@ -97,6 +104,7 @@ void CodePurifierView::DoDataExchange(CDataExchange* const pDX)
     DDX_Check(pDX, IDC_APPLY_EDITORCONFIG_RULES_BEFORE_RESET, m_applyEditorConfigRulesBeforeReset);
     DDX_Control(pDX, IDC_COMMITS, m_commitsListCtrl);
     DDX_Control(pDX, IDC_MODIFIED_FILES, m_modifiedFilesListCtrl);
+    DDX_Control(pDX, IDC_MODIFIED_FILES_BUTTON, m_modifiedFilesActionsButton);
 }
 
 
@@ -643,6 +651,34 @@ void CodePurifierView::OnModifiedFileDiff()
         }
 
         DiffTool::Launch(old_file_path, *new_file_path);
+    }
+
+    catch( const CSProException& exception )
+    {
+        ErrorMessage::Display(exception);
+    }
+}
+
+
+void CodePurifierView::OnModifiedFilesAction()
+{
+    if( m_modifiedFilesActionsButton.m_nMenuResult != 0 )
+        PostMessage(WM_COMMAND, m_modifiedFilesActionsButton.m_nMenuResult);
+}
+
+
+void CodePurifierView::OnModifiedFilesStageTracked()
+{
+    CodePurifierDoc& cp_doc = GetDoc();
+
+    try
+    {
+        const CWaitCursor wait_cursor;
+        const size_t count = cp_doc.StageTrackedFiles();
+
+        AfxMessageBox(
+            FormatText("%zu tracked file%s staged.", count, PluralizeWord(count))
+        );
     }
 
     catch( const CSProException& exception )

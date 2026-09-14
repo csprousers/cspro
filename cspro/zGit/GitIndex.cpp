@@ -92,9 +92,23 @@ void GitIndex::AddEntry(const GitObjectId& oid, const cs::string_sz path, const 
 }
 
 
+void GitIndex::AddEntrybyPath(const cs::string_sz path)
+{
+    if( git_index_add_bypath(m_index, path.c_str()) != 0 )
+        throw GitException();
+}
+
+
 void GitIndex::RemoveEntryByPath(const cs::string_sz path)
 {
     if( git_index_remove_bypath(m_index, path.c_str()) != 0 )
+        throw GitException();
+}
+
+
+void GitIndex::Write()
+{
+    if( git_index_write(m_index) != 0 )
         throw GitException();
 }
 
@@ -103,9 +117,8 @@ void GitIndex::StageAllFilesInWorkingDirectory()
 {
     const git_strarray pathspec = { nullptr, 0 };
 
-    if( git_index_add_all(m_index, &pathspec, GIT_INDEX_ADD_DEFAULT, nullptr, nullptr) != 0 ||
-        git_index_write(m_index) != 0 )
-    {
+    if( git_index_add_all(m_index, &pathspec, GIT_INDEX_ADD_DEFAULT, nullptr, nullptr) != 0 )
         throw GitException();
-    }
+
+    Write();
 }
