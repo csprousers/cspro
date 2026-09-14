@@ -67,6 +67,9 @@ public:
     // Returns the number of files staged.
     size_t StageTrackedFiles();
 
+    // Returns the paths of all untracked files in the working directory,
+    std::vector<std::string> GetUntrackedFiles();
+
     // Returns the paths of all empty directories in the working directory.
     std::vector<std::string> GetEmptyDirectories() const;
 

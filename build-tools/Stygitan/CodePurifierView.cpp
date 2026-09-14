@@ -43,8 +43,9 @@ BEGIN_MESSAGE_MAP(CodePurifierView, CFormView)
     ON_COMMAND(ID_MODIFIED_FILE_COPY_PATH, OnModifiedFileCopyPath)
     ON_COMMAND(ID_MODIFIED_FILE_DIFF, OnModifiedFileDiff)
     ON_COMMAND(IDC_MODIFIED_FILES_BUTTON, OnModifiedFilesAction)
-    ON_COMMAND(ID_STAGE_TRACKED, OnModifiedFilesStageTracked)
-    ON_COMMAND(ID_REMOVE_EMPTY_DIRECTORIES, OnModifiedFilesRemoveEmptyDirectories)
+    ON_COMMAND(ID_STAGE_TRACKED_FILES, OnModifiedFilesStageTracked)
+    ON_COMMAND_RANGE(ID_REMOVE_UNTRACKED_FILES, ID_REMOVE_UNTRACKED_FILES, OnModifiedFilesRemoveWorker)
+    ON_COMMAND_RANGE(ID_REMOVE_EMPTY_DIRECTORIES, ID_REMOVE_EMPTY_DIRECTORIES, OnModifiedFilesRemoveWorker)
 END_MESSAGE_MAP()
 
 
@@ -690,21 +691,26 @@ void CodePurifierView::OnModifiedFilesStageTracked()
 }
 
 
-void CodePurifierView::OnModifiedFilesRemoveEmptyDirectories()
+void CodePurifierView::OnModifiedFilesRemoveWorker(const UINT nID)
 {
+    const bool processing_untracked_files = ( nID == ID_REMOVE_UNTRACKED_FILES );
+    ASSERT(processing_untracked_files || nID == ID_REMOVE_EMPTY_DIRECTORIES);
+
     CodePurifierDoc& cp_doc = GetDoc();
 
     try
     {
         std::optional<const CWaitCursor> wait_cursor = CWaitCursor();
 
-        const std::vector<std::string> paths = cp_doc.GetEmptyDirectories();
+        const std::vector<std::string> paths = processing_untracked_files
+            ? cp_doc.GetUntrackedFiles()
+            : cp_doc.GetEmptyDirectories();
 
         wait_cursor.reset();
 
         if( paths.empty() )
         {
-            AfxMessageBox(L"There are no empty directories.");
+            AfxMessageBox(processing_untracked_files ? L"There are no untracked files." :  L"There are no empty directories.");
             return;
         }
 
@@ -722,6 +728,11 @@ void CodePurifierView::OnModifiedFilesRemoveEmptyDirectories()
                 RecycleFile<true>(path);
             }
 
+            else if( processing_untracked_files )
+            {
+                PortableFunctions::FileDeleteWithExceptions(path);
+            }
+
             else
             {
                 if( !PortableFunctions::DirectoryDelete(path) )
@@ -729,9 +740,12 @@ void CodePurifierView::OnModifiedFilesRemoveEmptyDirectories()
             }
         }
 
-        AfxMessageBox(
-            FormatText("%zu director%s deleted.", paths.size(), PluralizeWord(paths.size(), "y", "ies"))
-        );
+        AfxMessageBox(FormatText(
+            "%zu %s%s deleted.",
+            paths.size(),
+            processing_untracked_files ? "file" : "director",
+            processing_untracked_files ? PluralizeWord(paths.size()) : PluralizeWord(paths.size(), "y", "ies")
+        ));
     }
 
     catch( const CSProException& exception )

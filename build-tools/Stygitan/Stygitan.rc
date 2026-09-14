@@ -102,8 +102,9 @@ IDR_MODIFIED_FILES_ACTIONS MENU
 BEGIN
     POPUP "0"
     BEGIN
-        MENUITEM "Stage Tracked: Modified",     ID_STAGE_TRACKED
+        MENUITEM "Stage Tracked Files",         ID_STAGE_TRACKED_FILES
         MENUITEM SEPARATOR
+        MENUITEM "Remove Untracked Files",      ID_REMOVE_UNTRACKED_FILES
         MENUITEM "Remove Empty Directories",    ID_REMOVE_EMPTY_DIRECTORIES
     END
 END

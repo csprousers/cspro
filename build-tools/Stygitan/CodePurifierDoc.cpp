@@ -767,6 +767,27 @@ size_t CodePurifierDoc::StageTrackedFiles()
 }
 
 
+std::vector<std::string> CodePurifierDoc::GetUntrackedFiles()
+{
+    StopRefreshDataThread(ThreadStopType::Wait);
+
+    std::vector<std::string> untracked_file_paths;
+
+    m_repo.ForeachStatusInWorkingDirectory(
+        [&](std::string path, const unsigned int status_flags)
+        {
+            if( ( status_flags & GIT_STATUS_WT_NEW ) != 0 )
+            {
+                untracked_file_paths.emplace_back(
+                    Path::Combine(m_repoWorkingDirectory, Path::ToNativeSlash(std::move(path)))
+                );
+            }
+        });
+
+    return untracked_file_paths;
+}
+
+
 std::vector<std::string> CodePurifierDoc::GetEmptyDirectories() const
 {
     DirectoryLister directory_lister(false, true, true);

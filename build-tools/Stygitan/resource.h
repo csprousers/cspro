@@ -59,15 +59,16 @@
 #define ID_MODIFIED_FILE_OPEN_CONTAINING_FOLDER 40007
 #define ID_PROPERTIES                   40008
 #define ID_REMOVE_EMPTY_DIRECTORIES     40009
-#define ID_SET_CLEAN_COMMIT             40012
-#define ID_STAGE_TRACKED                40013
+#define ID_REMOVE_UNTRACKED_FILES       40010
+#define ID_SET_CLEAN_COMMIT             40011
+#define ID_STAGE_TRACKED_FILES          40012
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        112
-#define _APS_NEXT_COMMAND_VALUE         40014
+#define _APS_NEXT_COMMAND_VALUE         40013
 #define _APS_NEXT_CONTROL_VALUE         1037
 #define _APS_NEXT_SYMED_VALUE           112
 #endif

@@ -55,7 +55,7 @@ protected:
 
     void OnModifiedFilesAction();
     void OnModifiedFilesStageTracked();
-    void OnModifiedFilesRemoveEmptyDirectories();
+    void OnModifiedFilesRemoveWorker(UINT nID);
 
 private:
     const CodePurifierDoc& GetDoc() const { return *assert_cast<const CodePurifierDoc*>(GetDocument()); }
