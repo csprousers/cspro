@@ -31,9 +31,6 @@ private:
     struct GitHubTag;
     std::vector<GitHubTag> ParseGitHubTags() const;
 
-    struct GitHubRelease;
-    std::vector<GitHubRelease> ParseGitHubReleases() const;
-
     struct ReleaseOption;
     void PopulateReleaseOptions();
 
@@ -41,6 +38,7 @@ private:
 
 private:
     Controller& m_controller;
+    std::shared_ptr<GitHubRepositoryConnection> m_ghConnection;
 
     CSortListCtrl m_releasesListCtrl;
 

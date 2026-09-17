@@ -307,6 +307,29 @@ void GitHubRepositoryConnection::CreateTag(const std::string& tag_name, const st
 }
 
 
+template<typename T/* = std::vector<GitHubRelease>*/>
+T GitHubRepositoryConnection::GetReleases()
+{
+    std::string json_text = RequestWithPagination<std::string>(
+        CreateApiUrl("releases"),
+        true
+    );
+
+    if constexpr(std::is_same_v<T, std::vector<GitHubRelease>>)
+    {
+        return Json::Parse(json_text).GetArray().GetVector<GitHubRelease>();
+    }
+
+    else
+    {
+        return json_text;
+    }
+}
+
+template std::vector<GitHubRelease> GitHubRepositoryConnection::GetReleases();
+template std::string GitHubRepositoryConnection::GetReleases();
+
+
 int64_t GitHubRepositoryConnection::CreateDraftRelease(const std::string& tag_name, const std::string& release_name,
                                                        std::string release_notes, const bool prerelease)
 {

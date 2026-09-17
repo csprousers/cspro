@@ -1,6 +1,7 @@
 #pragma once
 
 #include "GitHubJsonKeys.h"
+#include "GitHubRelease.h"
 #include <zNetwork/CurlHttpConnection.h>
 
 class MemoryStream;
@@ -101,6 +102,11 @@ public:
     // --------------------------------------------------------------------------
     // releases
     // --------------------------------------------------------------------------
+
+    // Returns details about each release.
+    // T can also be std::string, in which case the JSON text is returned.
+    template<typename T = std::vector<GitHubRelease>>
+    T GetReleases();
 
     // Creates a draft release, returning the release's ID.
     // The release body will be modified to only use \n characters.

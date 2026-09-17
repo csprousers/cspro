@@ -1,7 +1,6 @@
 #include "StdAfx.h"
 #include "ManageReleasesView.h"
 #include "CreateReleaseDlg.h"
-#include "GitHubConnection.h"
 
 
 IMPLEMENT_DYNCREATE(ManageReleasesView, CFormView)
@@ -18,8 +17,9 @@ END_MESSAGE_MAP()
 ManageReleasesView::ManageReleasesView()
     :   CFormView(IDD_MANAGE_RELEASES),
         m_controller(Controller::GetInstance()),
-        m_tagsJsonText(m_controller.GetSettingsDb().ReadOrDefault<std::string>(SettingsKeys::GitHubTags_sv)),
-        m_releasesJsonText(m_controller.GetSettingsDb().ReadOrDefault<std::string>(SettingsKeys::GitHubReleases_sv))
+        m_ghConnection(std::make_unique<GitHubRepositoryConnection>("csprousers", "cspro")),
+        m_tagsJsonText(m_controller.GetSettingsDb().ReadOrDefault<std::string>(SettingsKeys::OpenSourceGitHubTags_sv)),
+        m_releasesJsonText(m_controller.GetSettingsDb().ReadOrDefault<std::string>(SettingsKeys::OpenSourceGitHubReleases_sv))
 {
 }
 
@@ -80,64 +80,6 @@ std::vector<ManageReleasesView::GitHubTag> ManageReleasesView::ParseGitHubTags()
 }
 
 
-struct ManageReleasesView::GitHubRelease
-{
-    std::string html_url;
-    std::string tag_name;
-    std::string name;
-    bool draft;
-    bool prerelease;
-    size_t assets_count;
-
-    const std::string& GetReleaseName() const;
-    std::wstring GetStatus() const;
-};
-
-
-const std::string& ManageReleasesView::GitHubRelease::GetReleaseName() const
-{
-    // release names are not available in old releases
-    return !name.empty() ? name :
-                           tag_name;
-}
-
-
-std::wstring ManageReleasesView::GitHubRelease::GetStatus() const
-{
-    std::wstring status = prerelease ? L"Prerelease" :
-                                       L"Release";
-
-    if( draft )
-        status.insert(0, L"(Draft) ");
-
-    return status;
-}
-
-
-std::vector<ManageReleasesView::GitHubRelease> ManageReleasesView::ParseGitHubReleases() const
-{
-    std::vector<GitHubRelease> releases;
-
-    if( m_releasesJsonText.empty() )
-        return releases;
-
-    for( const JsonNode& json_node : Json::Parse(m_releasesJsonText).GetArray() )
-    {
-        releases.emplace_back(
-            GitHubRelease
-            {
-                json_node.Get<std::string>(JK::html_url),
-                json_node.Get<std::string>(JK::tag_name),
-                json_node.Get<std::string>(JK::name),
-                json_node.Get<bool>(JK::draft),
-                json_node.Get<bool>(JK::prerelease),
-                json_node.GetArray(JK::assets).size()
-            }
-        );
-    }
-
-    return releases;
-}
 
 
 struct ManageReleasesView::ReleaseOption : GitHubTag
@@ -151,7 +93,10 @@ void ManageReleasesView::PopulateReleaseOptions()
     m_releaseOptions.clear();
 
     const std::vector<GitHubTag> tags = ParseGitHubTags();
-    std::vector<GitHubRelease> releases = ParseGitHubReleases();
+
+    std::vector<GitHubRelease> releases = !m_releasesJsonText.empty()
+        ? Json::Parse(m_releasesJsonText).GetArray().GetVector<GitHubRelease>()
+        : std::vector<GitHubRelease>();
 
     for( const GitHubTag& tag : tags )
     {
@@ -203,21 +148,15 @@ void ManageReleasesView::OnRefreshReleases()
 {
     try
     {
-        GitHubRepositoryConnection gh_connection("csprousers", "cspro");
-
-        m_tagsJsonText = gh_connection.RequestWithPagination<std::string>(
-            gh_connection.CreateApiUrl("tags"),
+        m_tagsJsonText = m_ghConnection->RequestWithPagination<std::string>(
+            m_ghConnection->CreateApiUrl("tags"),
             true
         );
 
-        m_controller.GetSettingsDb().Write(SettingsKeys::GitHubTags_sv, m_tagsJsonText);
+        m_controller.GetSettingsDb().Write(SettingsKeys::OpenSourceGitHubTags_sv, m_tagsJsonText);
 
-        m_releasesJsonText = gh_connection.RequestWithPagination<std::string>(
-            gh_connection.CreateApiUrl("releases"),
-            true
-        );
-
-        m_controller.GetSettingsDb().Write(SettingsKeys::GitHubReleases_sv, m_releasesJsonText);
+        m_releasesJsonText = m_ghConnection->GetReleases<std::string>();
+        m_controller.GetSettingsDb().Write(SettingsKeys::OpenSourceGitHubReleases_sv, m_releasesJsonText);
     }
 
     catch( const CSProException& exception )
@@ -278,7 +217,7 @@ void ManageReleasesView::OnCreateRelease()
             if( m_controller.IsOperationRunning() )
                 throw CSProException("Wait until the operation currently running finishes.");
 
-            release_creator = std::make_unique<ReleaseCreator>(m_controller, release_option.name);
+            release_creator = std::make_unique<ReleaseCreator>(m_controller, m_ghConnection, release_option.name);
         });
 
     if( release_creator == nullptr )

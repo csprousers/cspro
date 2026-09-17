@@ -27,6 +27,7 @@
     <ClInclude Include="FileReplacer.h" />
     <ClInclude Include="GitHubConnection.h" />
     <ClInclude Include="GitHubJsonKeys.h" />
+    <ClInclude Include="GitHubRelease.h" />
     <ClInclude Include="LibraryManager.h" />
     <ClInclude Include="LogFrameAndView.h" />
     <ClInclude Include="MainFrame.h" />
@@ -57,6 +58,7 @@
     <ClCompile Include="FeatureBranchSyncerView.cpp" />
     <ClCompile Include="FileReplacer.cpp" />
     <ClCompile Include="GitHubConnection.cpp" />
+    <ClCompile Include="GitHubRelease.cpp" />
     <ClCompile Include="LibraryManager.cpp" />
     <ClCompile Include="LogFrameAndView.cpp" />
     <ClCompile Include="MainFrame.cpp" />

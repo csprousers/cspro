@@ -21,14 +21,15 @@ namespace
 }
 
 
-ReleaseCreator::ReleaseCreator(Controller& controller, SharableString tag_name)
+ReleaseCreator::ReleaseCreator(Controller& controller, std::shared_ptr<GitHubRepositoryConnection> gh_connection, SharableString tag_name)
     :   m_controller(controller),
-        m_ghConnection("csprousers", "cspro"),
+        m_ghConnection(std::move(gh_connection)),
         m_tagName(std::move(tag_name)),
         m_prerelease(ParseReleaseType(*m_tagName) != ReleaseType::Release),
         m_releaseNotes(FileIO::ReadText(Controller::GetTemplatesFilePath(ReleaseNotesTemplateFilename)))
 {
     ASSERT(!m_controller.IsOperationRunning());
+    ASSERT(m_ghConnection != nullptr);
 
     GitRepository& private_repo = m_controller.GetPrivateRepo();
     GitRepository& open_source_repo = m_controller.GetOpenSourceRepo();
@@ -204,7 +205,7 @@ std::string ReleaseCreator::GetFormattedReleaseNotes() const
 
 void ReleaseCreator::CreateRelease()
 {
-    m_ghConnection.CreateRelease(
+    m_ghConnection->CreateRelease(
         *m_tagName, *m_releaseTitle, GetFormattedReleaseNotes(), m_prerelease, m_assets
     );
 }

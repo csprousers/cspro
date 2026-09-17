@@ -1,6 +1,5 @@
 #include "StdAfx.h"
 #include "FileReplacer.h"
-#include "GitHubConnection.h"
 #include <zJson/JsonSpecFile.h>
 #include <Update SQLite/SQLiteSourceUpdater.h>
 

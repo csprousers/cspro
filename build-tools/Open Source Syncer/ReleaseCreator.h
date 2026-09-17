@@ -1,12 +1,10 @@
 #pragma once
 
-#include "GitHubConnection.h"
-
 
 class ReleaseCreator
 {
 public:
-    ReleaseCreator(Controller& controller, SharableString tag_name);
+    ReleaseCreator(Controller& controller, std::shared_ptr<GitHubRepositoryConnection> gh_connection, SharableString tag_name);
 
     // Getters and setters used by CreateReleaseDlg.
     const SharableString& GetTagName() const { return m_tagName; }
@@ -47,7 +45,7 @@ private:
 
 private:
     Controller& m_controller;
-    GitHubRepositoryConnection m_ghConnection;
+    std::shared_ptr<GitHubRepositoryConnection> m_ghConnection;
 
     SharableString m_tagName;
     SharableString m_librariesTag;

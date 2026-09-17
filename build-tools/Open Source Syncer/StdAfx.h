@@ -4,6 +4,7 @@
 #include <StandardIncludes/strict_errors.h>
 
 #include "Controller.h"
+#include "GitHubConnection.h"
 #include "resource.h"
 #include "SettingsKeys.h"
 #include "UWM.h"
