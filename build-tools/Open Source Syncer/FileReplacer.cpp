@@ -158,16 +158,14 @@ std::string FileReplacer::CreateSqliteWithoutSEE(const git_diff_file& new_file)
         constexpr const char* AmalgamationOwner      = "rhuijben";
         constexpr const char* AmalgamationRepository = "sqlite-amalgamation";
 
-        GitHubConnection gh_connection;
+        GitHubRepositoryConnection gh_connection(AmalgamationOwner, AmalgamationRepository);
 
         // find this commit with this version
         std::string commit_sha;
 
         for( int commit_page = 1; commit_sha.empty(); ++commit_page )
         {
-            const std::string url = GitHubConnection::CreateApiUrl(
-                AmalgamationOwner,
-                AmalgamationRepository,
+            const std::string url = gh_connection.CreateApiUrl(
                 "commits?page=" + IntToString(commit_page)
             );
 

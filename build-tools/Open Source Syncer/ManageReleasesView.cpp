@@ -203,17 +203,17 @@ void ManageReleasesView::OnRefreshReleases()
 {
     try
     {
-        GitHubConnection gh_connection;
+        GitHubRepositoryConnection gh_connection("csprousers", "cspro");
 
         m_tagsJsonText = gh_connection.RequestWithPagination<std::string>(
-            GitHubConnection::CreateApiUrl("tags"),
+            gh_connection.CreateApiUrl("tags"),
             true
         );
 
         m_controller.GetSettingsDb().Write(SettingsKeys::GitHubTags_sv, m_tagsJsonText);
 
         m_releasesJsonText = gh_connection.RequestWithPagination<std::string>(
-            GitHubConnection::CreateApiUrl("releases"),
+            gh_connection.CreateApiUrl("releases"),
             true
         );
 

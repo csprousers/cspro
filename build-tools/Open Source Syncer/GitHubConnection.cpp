@@ -9,6 +9,10 @@ namespace
 }
 
 
+// --------------------------------------------------------------------------
+// GitHubConnection
+// --------------------------------------------------------------------------
+
 GitHubConnection::GitHubConnection()
     :   m_connection(std::make_unique<CurlHttpConnection>())
 {
@@ -218,3 +222,18 @@ HttpResponse GitHubConnection::PostBinaryWithAuthentication(const std::string& u
 {
     return RequestWithAuthentication(HttpRequestMethod::HTTP_POST, url, std::make_unique<MemoryStream>(binary_data), false);
 }
+
+
+
+// --------------------------------------------------------------------------
+// GitHubRepositoryConnection
+// --------------------------------------------------------------------------
+
+GitHubRepositoryConnection::GitHubRepositoryConnection(std::string owner, std::string repo)
+    :   m_owner(std::move(owner)),
+        m_repo(std::move(repo))
+{
+    ASSERT(!m_owner.empty() && !m_repo.empty());
+}
+
+

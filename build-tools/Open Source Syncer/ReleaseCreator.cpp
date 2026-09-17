@@ -24,6 +24,7 @@ namespace
 
 ReleaseCreator::ReleaseCreator(Controller& controller, SharableString tag_name)
     :   m_controller(controller),
+        m_ghConnection("csprousers", "cspro"),
         m_tagName(std::move(tag_name)),
         m_prerelease(ParseReleaseType(*m_tagName) != ReleaseType::Release),
         m_releaseNotes(FileIO::ReadText(Controller::GetTemplatesFilePath(ReleaseNotesFilename)))
@@ -217,7 +218,7 @@ int64_t ReleaseCreator::CreateDraftRelease()
                 .EndObject();
 
     const HttpResponse response = m_ghConnection.PostJsonWithAuthentication(
-        GitHubConnection::CreateApiUrl("releases"),
+        m_ghConnection.CreateApiUrl("releases"),
         json_writer->ReleaseString()
     );
 
@@ -242,7 +243,7 @@ void ReleaseCreator::UploadReleaseAsset(const int64_t release_id, const std::str
                                         release_id, Encoders::ToUriComponent(filename).c_str());
 
     const HttpResponse response = m_ghConnection.PostBinaryWithAuthentication(
-        GitHubConnection::CreateUploadUrl(path),
+        m_ghConnection.CreateUploadUrl(path),
         data
     );
 
@@ -257,7 +258,7 @@ void ReleaseCreator::UploadReleaseAsset(const int64_t release_id, const std::str
 void ReleaseCreator::PublishRelease(const int64_t release_id)
 {
     const HttpResponse response = m_ghConnection.PatchJsonWithAuthentication(
-        GitHubConnection::CreateApiUrl("releases/" + IntToString(release_id)),
+        m_ghConnection.CreateApiUrl("releases/" + IntToString(release_id)),
         R"({"draft":false})"
     );
 

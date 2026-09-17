@@ -52,7 +52,7 @@ private:
 
 private:
     Controller& m_controller;
-    GitHubConnection m_ghConnection;
+    GitHubRepositoryConnection m_ghConnection;
 
     SharableString m_tagName;
     SharableString m_librariesTag;

@@ -6,19 +6,24 @@
 class MemoryStream;
 
 
+// --------------------------------------------------------------------------
+// GitHubConnection manages generic GitHub API calls.
+//
+// A subclass exists, GitHubRepositoryConnection, that provides additional
+// functionality useful when working with a specific repository.
+// --------------------------------------------------------------------------
+
 class GitHubConnection
 {
 public:
     GitHubConnection();
-    ~GitHubConnection();
+    virtual ~GitHubConnection();
 
-    // Returns a URL to access the GitHub API, optionally defaulting to csprousers/cspro.
+    // Returns a URL to access the GitHub API.
     static std::string CreateApiUrl(cs::string_sz owner, cs::string_sz repo, cs::string_sz path);
-    static std::string CreateApiUrl(cs::string_sz path) { return CreateApiUrl("csprousers", "cspro", path); }
 
-    // Returns a URL to access the GitHub uploads API, optionally defaulting to csprousers/cspro.
+    // Returns a URL to access the GitHub uploads API.
     static std::string CreateUploadUrl(cs::string_sz owner, cs::string_sz repo, cs::string_sz path);
-    static std::string CreateUploadUrl(cs::string_sz path) { return CreateUploadUrl("csprousers", "cspro", path); }
 
     // Returns a response from the given URL, potentially requring authentication.
     // If T is JsonNode, the response body is parsed as JSON and returned as a JsonNode.
@@ -58,4 +63,26 @@ private:
 private:
     std::unique_ptr<CurlHttpConnection> m_connection;
     std::string m_githubPAT;
+};
+
+
+
+// --------------------------------------------------------------------------
+// GitHubRepositoryConnection
+// --------------------------------------------------------------------------
+
+class GitHubRepositoryConnection : public GitHubConnection
+{
+public:
+    GitHubRepositoryConnection(std::string owner, std::string repo);
+
+    // Returns a URL to access the GitHub API.
+    std::string CreateApiUrl(cs::string_sz path) const    { return GitHubConnection::CreateApiUrl(m_owner, m_repo, path); }
+
+    // Returns a URL to access the GitHub uploads API.
+    std::string CreateUploadUrl(cs::string_sz path) const { return GitHubConnection::CreateUploadUrl(m_owner, m_repo, path); }
+
+private:
+    std::string m_owner;
+    std::string m_repo;
 };
