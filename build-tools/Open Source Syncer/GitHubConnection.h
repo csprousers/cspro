@@ -28,11 +28,12 @@ public:
     // Returns a response from the given URL, potentially requring authentication.
     // If T is JsonNode, the response body is parsed as JSON and returned as a JsonNode.
     // Other options for T: HttpResponse and std::string.
-    template<typename T>
+    // Only when T is HttpResponse can throw_when_status_not_200_OK be set to false.
+    template<typename T, bool throw_when_status_not_200_OK = true>
     T Request(const std::string& url, bool requires_authentication = false);
 
-    template<typename T>
-    T RequestWithAuthentication(const std::string& url) { return Request<T>(std::move(url), true); }
+    template<typename T, bool throw_when_status_not_200_OK = true>
+    T RequestWithAuthentication(const std::string& url) { return Request<T, throw_when_status_not_200_OK>(std::move(url), true); }
 
     // Processes the "Link" response header to process all pages of a request.
     // The response is assumed to be a JSON array.
@@ -81,6 +82,15 @@ public:
 
     // Returns a URL to access the GitHub uploads API.
     std::string CreateUploadUrl(cs::string_sz path) const { return GitHubConnection::CreateUploadUrl(m_owner, m_repo, path); }
+
+    // Returns the commit SHA for the specified tag name.
+    // If the tag does not exist, a blank string is returned.
+    // Errors accessing the API are thrown as exceptions.
+    std::string GetTag(const std::string& tag_name);
+
+    // Creates a lightweight tag as a reference: refs/tags/[tag_name].
+    // No error is returned if the tag already exists.
+    void CreateTag(const std::string& tag_name, const std::string& commit_sha);
 
 private:
     std::string m_owner;

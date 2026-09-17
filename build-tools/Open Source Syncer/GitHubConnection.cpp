@@ -67,14 +67,24 @@ HeaderList GitHubConnection::CreateHeaders(const bool requires_authentication)
 }
 
 
-template<typename T>
+template<typename T, bool throw_when_status_not_200_OK/* = true*/>
 T GitHubConnection::Request(const std::string& url, const bool requires_authentication/* = false*/)
 {
     const HttpRequest request = HttpRequestBuilder(url, CreateHeaders<T>(requires_authentication)).build();
     HttpResponse response = m_connection->Request(request);
 
     if( response.http_status != HttpResponse::Status_200_OK )
-        throw CSProException("Error accessing: " + url);
+    {
+        if constexpr(throw_when_status_not_200_OK)
+        {
+            throw CSProException("Error accessing: " + url);
+        }
+
+        else if constexpr(!std::is_same_v<T, HttpResponse>)
+        {
+            throw ProgrammingErrorException();
+        }
+    }
 
     if constexpr(std::is_same_v<T, JsonNode>)
     {
@@ -237,3 +247,59 @@ GitHubRepositoryConnection::GitHubRepositoryConnection(std::string owner, std::s
 }
 
 
+std::string GitHubRepositoryConnection::GetTag(const std::string& tag_name)
+{
+    const HttpResponse response = RequestWithAuthentication<HttpResponse, false>(
+        CreateApiUrl("git/ref/tags/" + tag_name)
+    );
+
+    if( response.http_status == HttpResponse::Status_200_OK )
+    {
+        const JsonNode json_node = Json::Parse(response.body.ToString());
+
+        return json_node.Get(JK::object)
+                        .Get<std::string>(JK::sha);
+    }
+
+    else if( response.http_status == HttpResponse::Status_404_NotFound )
+    {
+        return std::string();
+    }
+
+    else
+    {
+        throw CSProException("Error querying a tag reference:\n\n" + response.body.ToString());
+    }
+}
+
+
+void GitHubRepositoryConnection::CreateTag(const std::string& tag_name, const std::string& commit_sha)
+{
+    const std::unique_ptr<JsonStringWriter> json_writer = Json::CreateStringWriter();
+
+    json_writer->BeginObject()
+                .Write(JK::ref, "refs/tags/" + tag_name)
+                .Write(JK::sha, commit_sha)
+                .EndObject();
+
+    const HttpResponse response = PostJsonWithAuthentication(
+        CreateApiUrl("git/refs"),
+        json_writer->ReleaseString()
+    );
+
+    if( response.http_status == HttpResponse::Status_200_OK )
+        return;
+
+    // 422 may be returned if the tag already exists, so verify that the tag exists
+    if( response.http_status == HttpResponse::Status_422_UnprocessableContent )
+    {
+        try
+        {
+            if( commit_sha == GetTag(tag_name) )
+                return;
+        }
+        catch(...) { } // in case of another error, throw the original error
+    }
+
+    throw CSProException("Error creating a tag reference:\n\n" + response.body.ToString());
+}
