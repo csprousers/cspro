@@ -83,6 +83,11 @@ public:
     // Returns a URL to access the GitHub uploads API.
     std::string CreateUploadUrl(cs::string_sz path) const { return GitHubConnection::CreateUploadUrl(m_owner, m_repo, path); }
 
+
+    // --------------------------------------------------------------------------
+    // tags
+    // --------------------------------------------------------------------------
+
     // Returns the commit SHA for the specified tag name.
     // If the tag does not exist, a blank string is returned.
     // Errors accessing the API are thrown as exceptions.
@@ -91,6 +96,29 @@ public:
     // Creates a lightweight tag as a reference: refs/tags/[tag_name].
     // No error is returned if the tag already exists.
     void CreateTag(const std::string& tag_name, const std::string& commit_sha);
+
+
+    // --------------------------------------------------------------------------
+    // releases
+    // --------------------------------------------------------------------------
+
+    // Creates a draft release, returning the release's ID.
+    // The release body will be modified to only use \n characters.
+    int64_t CreateDraftRelease(const std::string& tag_name, const std::string& release_name,
+                               std::string release_notes, bool prerelease);
+
+    // Uploads a release asset.
+    void UploadReleaseAsset(int64_t release_id, const std::string& filename, const BinaryBlock& data);
+
+    // Sets a release as published (no longer a draft release).
+    void PublishRelease(int64_t release_id);
+
+    // Creates a release, first as a draft, and then after any assets have been
+    // successfully uploaded, the draft is published.
+    // The assets tuple contains a filename and the file data.
+    int64_t CreateRelease(const std::string& tag_name, const std::string& release_name,
+                          std::string release_notes, bool prerelease,
+                          const std::vector<std::tuple<std::string, std::shared_ptr<const BinaryBlock>>>& assets);
 
 private:
     std::string m_owner;

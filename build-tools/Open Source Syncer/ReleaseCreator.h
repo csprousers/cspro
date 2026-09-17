@@ -36,8 +36,7 @@ public:
     // Replaces the fills in the release notes with the values for this release.
     std::string GetFormattedReleaseNotes() const;
 
-    // Creates the release, first as a draft, and then when all assets
-    // have been successfully uploaded, the draft is published.
+    // Creates the release.
     void CreateRelease();
 
 private:
@@ -45,10 +44,6 @@ private:
     static ReleaseType ParseReleaseType(const std::string& tag_name);
 
     void ParseVersion();
-
-    int64_t CreateDraftRelease();
-    void UploadReleaseAsset(int64_t release_id, const std::string& filename, const BinaryBlock& data);
-    void PublishRelease(int64_t release_id);
 
 private:
     Controller& m_controller;
@@ -67,7 +62,7 @@ private:
     bool m_prerelease;
     std::string m_releaseNotes;
 
-    std::map<std::string, std::shared_ptr<const BinaryBlock>> m_assets;
+    std::vector<std::tuple<std::string, std::shared_ptr<const BinaryBlock>>> m_assets;
 
     std::optional<GitTree> m_openSourceTree;
     std::map<std::string, std::shared_ptr<const BinaryBlock>> m_loadedRepoFiles;

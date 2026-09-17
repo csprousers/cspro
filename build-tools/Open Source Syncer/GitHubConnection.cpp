@@ -1,5 +1,6 @@
 #include "StdAfx.h"
 #include "GitHubConnection.h"
+#include <zToolsO/Encoders.h>
 #include <zToolsO/MemoryStream.h>
 
 
@@ -301,5 +302,92 @@ void GitHubRepositoryConnection::CreateTag(const std::string& tag_name, const st
         catch(...) { } // in case of another error, throw the original error
     }
 
-    throw CSProException("Error creating a tag reference:\n\n" + response.body.ToString());
+    throw CSProException("Error creating a tag reference, error: %d:\n\n%s",
+                         response.http_status, response.body.ToString().c_str());
+}
+
+
+int64_t GitHubRepositoryConnection::CreateDraftRelease(const std::string& tag_name, const std::string& release_name,
+                                                       std::string release_notes, const bool prerelease)
+{
+    const std::unique_ptr<JsonStringWriter> json_writer = Json::CreateStringWriter();
+
+    json_writer->BeginObject()
+                .Write(JK::tag_name, tag_name)
+                .Write(JK::name, release_name)
+                .Write(JK::body, SO::ToNewlineLF(std::move(release_notes)))
+                .Write(JK::draft, true)
+                .Write(JK::prerelease, prerelease)
+                .EndObject();
+
+    const HttpResponse response = PostJsonWithAuthentication(
+        CreateApiUrl("releases"),
+        json_writer->ReleaseString()
+    );
+
+    if( response.http_status != HttpResponse::Status_201_Created )
+        throw CSProException("The draft release could not be created, error: %d", response.http_status);
+
+    const JsonNode json_node = Json::Parse(response.body.ToString());
+
+    // ensure that the upload URL is as expected
+    const std::string upload_url = json_node.Get<std::string>(JK::upload_url);
+
+    if( Path::GetFilename(upload_url) != "assets{?name,label}" )
+        throw CSProException("Modify this tool to handle upload URLs in the form: " + upload_url);
+
+    return json_node.Get<int64_t>(JK::id);
+}
+
+
+void GitHubRepositoryConnection::UploadReleaseAsset(const int64_t release_id, const std::string& filename, const BinaryBlock& data)
+{
+    const std::string path = FormatText("releases/" Formatter_int64_t "/assets?name=%s",
+                                        release_id, Encoders::ToUriComponent(filename).c_str());
+
+    const HttpResponse response = PostBinaryWithAuthentication(
+        CreateUploadUrl(path),
+        data
+    );
+
+    if( response.http_status != HttpResponse::Status_201_Created )
+    {
+        throw CSProException("The release asset '%s' could not be uploaded, error: %d",
+                             filename.c_str(), response.http_status);
+    }
+}
+
+
+void GitHubRepositoryConnection::PublishRelease(const int64_t release_id)
+{
+    const HttpResponse response = PatchJsonWithAuthentication(
+        CreateApiUrl("releases/" + IntToString(release_id)),
+        R"({"draft":false})"
+    );
+
+    if( response.http_status != HttpResponse::Status_200_OK )
+        throw CSProException("The draft release could not published, error: %d", response.http_status);
+}
+
+
+int64_t GitHubRepositoryConnection::CreateRelease(const std::string& tag_name, const std::string& release_name,
+                                                  std::string release_notes, const bool prerelease,
+                                                  const std::vector<std::tuple<std::string, std::shared_ptr<const BinaryBlock>>>& assets)
+{
+    // create the release as a draft
+    const int64_t release_id = CreateDraftRelease(tag_name, release_name, std::move(release_notes), prerelease);
+
+    // upload the assets
+    for( const auto& [filename, data] : assets )
+    {
+        ASSERT(filename == Path::CreateValidFilename(filename));
+        ASSERT(data != nullptr);
+
+        UploadReleaseAsset(release_id, filename, *data);
+    }
+
+    // toggle the draft flag, publishing the release
+    PublishRelease(release_id);
+
+    return release_id;
 }
