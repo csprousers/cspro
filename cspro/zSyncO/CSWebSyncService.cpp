@@ -266,7 +266,7 @@ SyncGetResponse CSWebSyncService::DownloadServerCases(const std::string& url, st
                 m_cswebConnection->HandleServerErrorResponse(100101, http_response.http_status, http_response.body.ToString());
         }
 
-        else if( http_response.http_status == HttpResponse::Status_412_Precondition_Failed )
+        else if( http_response.http_status == HttpResponse::Status_412_PreconditionFailed )
         {
             return SyncGetResponse::SyncGetResult::RevisionNotFound;
         }
@@ -313,7 +313,7 @@ SyncPutResponse CSWebSyncService::UploadClientCases(const std::string& url, cons
         return SyncPutResponse(SyncPutResponse::SyncPutResult::Complete, std::move(server_revision));
     }
 
-    else if( status == HttpResponse::Status_412_Precondition_Failed )
+    else if( status == HttpResponse::Status_412_PreconditionFailed )
     {
         return SyncPutResponse(SyncPutResponse::SyncPutResult::RevisionNotFound);
     }
