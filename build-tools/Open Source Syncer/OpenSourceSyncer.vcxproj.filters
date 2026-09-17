@@ -78,9 +78,6 @@
     <ClInclude Include="ReleaseTag.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="RepoFilePath.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="RepositoryComparerView.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -194,6 +191,9 @@
       <Filter>Overrides</Filter>
     </None>
     <None Include="Templates\GitHubRelease.md">
+      <Filter>Templates</Filter>
+    </None>
+    <None Include="Templates\GitHubThirdPartyLibrariesRelease.md">
       <Filter>Templates</Filter>
     </None>
   </ItemGroup>

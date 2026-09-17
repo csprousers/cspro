@@ -431,19 +431,33 @@ template CLASS_DECL_ZTOOLSO int64_t PortableFunctions::FileModifiedTime<true>(In
 template CLASS_DECL_ZTOOLSO int64_t PortableFunctions::FileModifiedTime<false>(InterfaceString file_path);
 
 
+template<bool ThrowExceptionOnError/* = false*/>
 std::tuple<int64_t, int64_t> PortableFunctions::FileSizeAndModifiedTime(const InterfaceString file_path)
 {
 #ifdef WIN32
     struct _stat64 attrib;
-    int ret = _wstat64(file_path.c_str(), &attrib);
+    const int ret = _wstat64(file_path.c_str(), &attrib);
 #else
     struct stat attrib;
-    int ret = stat(file_path.c_str(), &attrib);
+    const int ret = stat(file_path.c_str(), &attrib);
 #endif
 
-    return ( ret == 0 && S_ISREG(attrib.st_mode) ) ? std::tuple<int64_t, int64_t>(attrib.st_size, attrib.st_mtime) :
-                                                     std::tuple<int64_t, int64_t>(-1, 0);
+    if( ret == 0 && S_ISREG(attrib.st_mode) )
+        return std::tuple<int64_t, int64_t>(attrib.st_size, attrib.st_mtime);
+
+    if constexpr(ThrowExceptionOnError)
+    {
+        throw FileIO::Exception::FileNotFound(file_path);
+    }
+
+    else
+    {
+        return std::tuple<int64_t, int64_t>(-1, 0);
+    }
 }
+
+template CLASS_DECL_ZTOOLSO std::tuple<int64_t, int64_t> PortableFunctions::FileSizeAndModifiedTime<true>(InterfaceString file_path);
+template CLASS_DECL_ZTOOLSO std::tuple<int64_t, int64_t> PortableFunctions::FileSizeAndModifiedTime<false>(InterfaceString file_path);
 
 
 bool PortableFunctions::FileTouch(const InterfaceString file_path)

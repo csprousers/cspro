@@ -1,7 +1,5 @@
 #pragma once
 
-#include "RepoFilePath.h"
-
 
 // --------------------------------------------------------------------------
 // LibraryManager
@@ -10,77 +8,129 @@
 class LibraryManager
 {
 public:
-    struct Build;
-    struct Input;
+    struct FileHash;
+    struct LibrariesData;
+    struct LibraryVersion;
 
     // Build data is read from the settings database, with exceptions ignored.
     LibraryManager(Controller& controller) noexcept;
+    ~LibraryManager();
 
-    // Returns the builds currently in the settings database.
-    // The builds are ordered by tag name in reverse order.
-    // The value is returned as a shared pointer so that ManageLibrariesView::OnUpdateLibraryIds
-    // can have a copy while the builds are potentially refreshed.
-    std::shared_ptr<const std::vector<Build>> GetBuilds() const noexcept { return m_builds; }
+    // Returns an object for interacting with the csprousers/cspro-libraries-third-party repository on GitHub.
+    GitHubRepositoryConnection& GetThirdPartyLibrariesGitHubRepositoryConnection();
 
-    // Reads tags from the open source libraries repository, extracting the
-    // library ID from the the comment in a tag's commit.
-    void RefreshBuildsFromTags();
+    // Updates all library data, or the data for a specified number of library types.
+    LibrariesData UpdateLibrariesData(bool save_library_data);
+    LibrariesData UpdateLibrariesData(const std::vector<std::string>& library_types, bool save_library_data);
 
-    // Returns the paths of files on the disk that are included in a built library.
-    const std::vector<RepoFilePath>& GetInputs();
+    // Returns the file paths of all files that are part of the CSPro build but that are
+    // not committed to the repository
+    std::set<std::string> GetThirdPartyFilePaths();
 
-    // Returns information about the inputs that are part of a built library
-    // at the specified commit.
-    std::vector<Input> GetInputs(const GitCommit& cs_commit);
+    // Returns the libraries ID for the library data, returning:
+    // - the value saved in third_party/prebuilt/libraries.json
+    // - a freshly calculated value from the libraries in the working directory
+    // - the value saved in third_party/prebuilt/libraries.json at a specific commit
+    enum class LibrariesIdType { InLibrariesJson, CalculatedFromWorkingDirectory };
+    std::string GetLibrariesId(LibrariesIdType libraries_id_type);
+    std::string GetLibrariesId(const GitCommit& cs_commit);
 
-    // Returns a cache key for the built libraries. The local version is only valid locally,
-    // as it uses file times and is only a shortcut to access the actual library ID.
-    std::string CalculateCacheKey(const std::vector<Input>& inputs, bool local_version);
+    // Returns the release tag associated with the libraries ID.
+    // An exception is thrown if the release does not exist on GitHub.
+    std::string GetLibrariesReleaseTag(const std::string& libraries_id);
 
-    // Creates a commit in the open source libraries repository with the
-    // built libraries at the specified commit.
-    void CreateAndCommitBuild(const GitCommit& cs_commit);
-
-    // Returns the tag name in the open source libraries repository that contains
-    // the built libraries at the given commit. An exception is thrown when it does not exist.
-    std::string GetTagForBuiltLibraries(const GitCommit& cs_commit);
+    // Creates a tag and then a release on GitHub for the working directory libraries.
+    void CreateLibraryRelease();
 
 private:
-    std::unique_ptr<std::vector<Build>> LoadCachedBuilds() const;
-    void CacheBuilds(const std::vector<Build>& builds) const;
+    // Returns a path from a repository path.
+    std::string CreatePathFromRepoPath(std::string repo_file_path) const;
+
+    // Returns a repository path from a file or directory path.
+    std::string CreateRepoPathFromPath(const std::string& path) const;
+
+    // SHA-256 hashes of files will be cached and stored in the settings database.
+    void LoadCachedFileHashes();
+    void SaveCachedFileHashes() const;
+    std::vector<FileHash> CalculateFileHashes(const std::vector<std::string>& file_paths);
+
+    // Reads the current library data saved in third_party/prebuilt/libraries.json.
+    LibrariesData LoadLibrariesData() const;
+
+    // Parses the library data.
+    LibrariesData ParseLibrariesData(const JsonNode& json_node) const;
+
+    // Saves the library data.
+    void SaveLibrariesData(const LibrariesData& libraries_data) const;
+
+    // Updates the libraries ID, a hash of the repository paths and SHA-256 hashes for each target.
+    void CalculateLibrariesId(LibrariesData& libraries_data) const;
+
+    // Reads the version numbers of prebuilt libraries, reading these from docs/external-libraries.md.
+    std::vector<LibraryVersion> ReadLibraryVersions() const;
+
+    // Returns the file paths of all files that are part of the CSPro build but that are
+    // not committed to the repository for the specified library type.
+    std::vector<std::string> GetLibraryTargetFilePaths(const std::string& library_type, const std::string& platform) const;
+
+    // Returns the file paths of the files in third_party/prebuilt's bin and lib
+    // directories for the specified library type.
+    std::vector<std::string> GetPrebuiltLibraryFilePaths(const std::string& library_type) const;
+
+    // Creates .zip files for each library type, returning the filename and the .zip file data.
+    std::vector<std::tuple<std::string, std::shared_ptr<const BinaryBlock>>> CreateReleaseAssets(
+        const LibrariesData& libraries_data, const std::string& tag_name) const;
+
+    // Creates release notes for the GitHub release.
+    std::string CreateReleaseNotes(const std::string& libraries_id, const std::string& libraries_commit_oid_hash) const;
 
 private:
     Controller& m_controller;
-
-    std::shared_ptr<const std::vector<Build>> m_builds;
-
-    std::vector<RepoFilePath> m_inputRepoFilePaths;
-
-    struct FileData;
-    std::map<Input, std::shared_ptr<FileData>> m_fileData;
+    std::string m_librariesDataFilePath;
+    std::vector<FileHash> m_fileHashes;
+    std::unique_ptr<GitHubRepositoryConnection> m_ghConnection;
 };
 
 
 // --------------------------------------------------------------------------
-// LibraryManager::Build
+// LibraryManager::FileHash
 // --------------------------------------------------------------------------
 
-struct LibraryManager::Build
+struct LibraryManager::FileHash
 {
-    std::string tag_name;
-    std::string library_id;
-    std::string local_hash;
+    std::string file_path;
+    std::string sha256;
+    int64_t file_size;
+    int64_t file_modified_time;
 };
 
 
 // --------------------------------------------------------------------------
-// LibraryManager::Input
+// LibraryManager::LibrariesData
 // --------------------------------------------------------------------------
 
-struct LibraryManager::Input
+struct LibraryManager::LibrariesData
 {
-    RepoFilePath repo_file_path;
-    std::optional<GitObjectId> cs_blob_oid;
+    struct Target
+    {
+        std::string library_type;
+        std::string platform;
+        std::string architecture;
+        std::vector<FileHash> files;
+    };
+
+    std::string id;
+    std::vector<LibraryVersion> library_versions;
+    std::vector<Target> targets;
 };
 
-bool operator<(const LibraryManager::Input& input1, const LibraryManager::Input& input2) noexcept;
+
+// --------------------------------------------------------------------------
+// LibraryManager::LibraryVersion
+// --------------------------------------------------------------------------
+
+struct LibraryManager::LibraryVersion
+{
+    std::string name;
+    std::string version;
+};

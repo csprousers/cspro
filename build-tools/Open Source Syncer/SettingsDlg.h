@@ -18,6 +18,6 @@ private:
     Controller& m_controller;
 
     std::string m_openSourceCodeDirectory;
-    std::string m_openSourceLibrariesDirectory;
+    std::string m_thirdPartyLibrariesDirectory;
     std::string m_githubPAT;
 };

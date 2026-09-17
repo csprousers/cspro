@@ -29,6 +29,7 @@ GitHubRelease GitHubRelease::CreateFromJson(const JsonNode& json_node)
         json_node.Get<std::string>(JK::html_url),
         json_node.Get<std::string>(JK::tag_name),
         json_node.Get<std::string>(JK::name),
+        json_node.Get<std::string>(JK::body),
         json_node.Get<bool>(JK::draft),
         json_node.Get<bool>(JK::prerelease),
         json_node.GetArray(JK::assets).size()

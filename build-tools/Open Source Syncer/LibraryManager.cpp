@@ -2,25 +2,39 @@
 #include "LibraryManager.h"
 #include <zToolsO/DirectoryLister.h>
 #include <zToolsO/Hash.h>
+#include <zGit/GitIgnoreEvaluator.h>
+#include <zZip/ZipFile.h>
 
 
-CREATE_JSON_KEY(libraryId)
-CREATE_JSON_KEY(localHash)
-CREATE_JSON_KEY(tag)
+CREATE_JSON_KEY(architecture)
+CREATE_JSON_KEY(hash)
+CREATE_JSON_KEY(libraries)
+CREATE_JSON_KEY(platform)
+CREATE_JSON_KEY(targets)
 
 
 namespace
 {
-    constexpr std::string_view LibrariesCommitMessageIdentifier_sv = "libraries hash: ";
-    constexpr size_t LibrariesHashHexLength                        = 32;
+    constexpr bool IncludeWasmLibraries = true;
 
-    constexpr std::tuple<std::string_view, std::string_view> LibraryDirectoryAndWildcard_sv[] =
+    constexpr size_t LibrariesIdTagLength = 10;
+
+    constexpr const char* ReleaseNotesTemplateFilename = "GitHubThirdPartyLibrariesRelease.md";
+
+    constexpr const char* LibrariesDataRepoPath = "third_party/prebuilt/libraries.json";
+    constexpr const char* ExternalLibrariesMarkdownRepoPath = "docs/external-libraries.md";
+    constexpr const char* ThirdPartyPrebuiltRepoPath = "third_party/prebuilt";
+
+    const std::map<std::string, const char*> AdditionalLibraryRepoPaths =
     {
-        { "build-tools/Installer Inputs/Webview2",        "MicrosoftEdgeWebview2Setup.exe" },
-        { "cspro/external",                               "*.dll;*.lib" },
-        { "cspro/CSEntryDroid/app/libs",                  "*.jar" },
-        { "cspro/CSEntryDroid/app/src/main/jni/external", "*.a" }
+        { "windows", "build-tools/Installer Inputs/Webview2/MicrosoftEdgeWebview2Setup.exe" },
+        { "android", "cspro/CSEntryDroid/app/libs/*.jar" },
     };
+
+    constexpr std::string_view Fill_LibrariesId_sv           = "~~LIBRARIES_ID~~";
+    constexpr std::string_view Fill_LibrariesCommit_sv       = "~~LIBRARIES_COMMIT~~";
+    constexpr std::string_view Fill_LibrariesCommitShort_sv  = "~~LIBRARIES_COMMIT_SHORT~~";
+    constexpr size_t           Fill_CommitShortLength         = 10;
 }
 
 
@@ -29,429 +43,603 @@ LibraryManager::LibraryManager(Controller& controller) noexcept
 {
     try
     {
-        m_builds = LoadCachedBuilds();
+        m_librariesDataFilePath = CreatePathFromRepoPath(LibrariesDataRepoPath);
+        LoadCachedFileHashes();
     }
+    catch(...) { ASSERT(false); }
+}
 
-    catch(...)
+
+LibraryManager::~LibraryManager()
+{
+}
+
+
+GitHubRepositoryConnection& LibraryManager::GetThirdPartyLibrariesGitHubRepositoryConnection()
+{
+    if( m_ghConnection == nullptr )
+        m_ghConnection = std::make_unique<GitHubRepositoryConnection>("csprousers", "cspro-libraries-third-party");
+
+    return *m_ghConnection;
+}
+
+
+std::string LibraryManager::CreatePathFromRepoPath(std::string repo_file_path) const
+{
+    return Path::Combine(m_controller.GetPrivateRepoDirectory(),
+                         Path::MakeToNativeSlash(repo_file_path));
+}
+
+
+std::string LibraryManager::CreateRepoPathFromPath(const std::string& path) const
+{
+    const std::string& private_repo_directory = m_controller.GetPrivateRepoDirectory();
+    ASSERT(private_repo_directory.back() == Path::NativeSlashChar);
+    ASSERT(SO::StartsWith(path, private_repo_directory));
+
+    return Path::ToForwardSlash(path.substr(private_repo_directory.length()));
+}
+
+
+void LibraryManager::LoadCachedFileHashes()
+{
+    const std::string json = m_controller.GetSettingsDb().ReadOrDefault(SettingsKeys::FileHashes_sv, SO::Empty_string);
+
+    if( json.empty() )
+        return;
+
+    const JsonNode json_node = Json::Parse(json);
+
+    for( const JsonNode& file_json_node : json_node.GetArray() )
     {
-        ASSERT(false);
-        m_builds = std::make_unique<std::vector<Build>>();
+        m_fileHashes.emplace_back(FileHash {
+            file_json_node.Get<std::string>(JK::path),
+            file_json_node.Get<std::string>(JK::hash),
+            file_json_node.Get<int64_t>(JK::size),
+            file_json_node.Get<int64_t>(JK::modifiedTime)
+        });
     }
 }
 
 
-std::unique_ptr<std::vector<LibraryManager::Build>> LibraryManager::LoadCachedBuilds() const
+void LibraryManager::SaveCachedFileHashes() const
 {
-    auto builds = std::make_unique<std::vector<Build>>();
+    ASSERT(!m_fileHashes.empty());
 
-    const std::string json = m_controller.GetSettingsDb().ReadOrDefault(SettingsKeys::Libraries_sv, SO::Empty_string);
+    const std::unique_ptr<JsonStringWriter> json_writer = Json::CreateStringWriter();
 
-    if( !json.empty() )
-    {
-        const JsonNode json_node = Json::Parse(json);
-
-        for( const JsonNode& build_json_node : json_node.GetArray() )
+    json_writer->WriteObjects(m_fileHashes,
+        [&](const FileHash& file_hash)
         {
-            builds->emplace_back(
-                Build
-                {
-                    build_json_node.Get<std::string>(JK::tag),
-                    build_json_node.Get<std::string>(JK::libraryId),
-                    build_json_node.GetOrConstruct<std::string>(JK::localHash)
-                }
-            );
+            json_writer->Write(JK::path, file_hash.file_path)
+                        .Write(JK::hash, file_hash.sha256)
+                        .Write(JK::size, file_hash.file_size)
+                        .Write(JK::modifiedTime, file_hash.file_modified_time);
+        });
+
+    m_controller.GetSettingsDb().Write(SettingsKeys::FileHashes_sv, json_writer->GetString());
+}
+
+
+std::vector<LibraryManager::FileHash> LibraryManager::CalculateFileHashes(const std::vector<std::string>& file_paths)
+{
+    std::vector<FileHash> file_hashes;
+
+    const size_t count_initial_cached_file_hashes = m_fileHashes.size();
+
+    for( const std::string& file_path : file_paths )
+    {
+        int64_t file_size;
+        int64_t file_modified_time;
+        std::tie(file_size, file_modified_time) = PortableFunctions::FileSizeAndModifiedTime<true>(file_path);
+
+        const auto& lookup = std::find_if(
+            m_fileHashes.cbegin(), m_fileHashes.cend(),
+            [&](const FileHash& file_hash)
+            {
+                return ( file_hash.file_path == file_path &&
+                         file_hash.file_size == file_size &&
+                         file_hash.file_modified_time == file_modified_time );
+            });
+
+        // use a cached SHA-256
+        if( lookup != m_fileHashes.cend() )
+        {
+            file_hashes.emplace_back(*lookup);
+        }
+
+        // or calculate a new one
+        else
+        {
+            m_fileHashes.emplace_back(FileHash {
+                file_path,
+                Hash::Sha256::CreateFromFile(file_path, true),
+                file_size,
+                file_modified_time
+            });
+
+            file_hashes.emplace_back(m_fileHashes.back());
         }
     }
 
-    return builds;
+    // if any new hashes were calculated, cache them
+    if( count_initial_cached_file_hashes != m_fileHashes.size() )
+        SaveCachedFileHashes();
+
+    return file_hashes;
 }
 
 
-void LibraryManager::CacheBuilds(const std::vector<Build>& builds) const
+LibraryManager::LibrariesData LibraryManager::LoadLibrariesData() const
 {
-    const std::unique_ptr<JsonStringWriter> json_writer = Json::CreateStringWriter();
+    const JsonNode json_node = Json::ParseFile(m_librariesDataFilePath);
+    return ParseLibrariesData(json_node);
+}
 
-    json_writer->BeginArray();
 
-    for( const Build& build : builds )
+LibraryManager::LibrariesData LibraryManager::ParseLibrariesData(const JsonNode& json_node) const
+{
+    LibrariesData libraries_data;
+
+    libraries_data.id = json_node.Get<std::string>(JK::id);
+
+    for( const JsonNode& library_json_node : json_node.GetArrayOrEmpty(JK::libraries) )
     {
-        json_writer->BeginObject()
-                    .Write(JK::tag, build.tag_name)
-                    .Write(JK::libraryId, build.library_id)
-                    .WriteIfNotBlank(JK::localHash, build.local_hash)
-                    .EndObject();
+        libraries_data.library_versions.emplace_back(LibraryVersion {
+            library_json_node.Get<std::string>(JK::name),
+            library_json_node.Get<std::string>(JK::version)
+        });
     }
 
-    json_writer->EndArray();
+    for( const JsonNode& target_json_node : json_node.GetArrayOrEmpty(JK::targets) )
+    {
+        LibrariesData::Target& target = libraries_data.targets.emplace_back(LibrariesData::Target {
+            target_json_node.Get<std::string>(JK::platform),
+            target_json_node.Get<std::string>(JK::platform),
+            target_json_node.Get<std::string>(JK::architecture)
+        });
 
-    m_controller.GetSettingsDb().Write(SettingsKeys::Libraries_sv, json_writer->GetString());
+        if( !target.architecture.empty() )
+            SO::AppendWithSeparator(target.library_type, target.architecture, '-');
+
+        for( const JsonNode& file_json_node : target_json_node.GetArrayOrEmpty(JK::files) )
+        {
+            target.files.emplace_back(FileHash {
+                CreatePathFromRepoPath(file_json_node.Get<std::string>(JK::path)),
+                file_json_node.Get<std::string>(JK::hash),
+                -1, // file_size
+                -1 // file_modified_time
+            });
+        }
+    }
+
+    return libraries_data;
 }
 
 
-void LibraryManager::RefreshBuildsFromTags()
+void LibraryManager::SaveLibrariesData(const LibrariesData& libraries_data) const
 {
-    GitRepository& library_repo = m_controller.GetOpenSourceLibrariesRepo();
+    const std::unique_ptr<JsonFileWriter> json_writer = Json::CreateFileWriter(m_librariesDataFilePath);
 
-    m_controller.LogText("Reading tags from the open source libraries repository.");
+    json_writer->BeginObject()
+                .Write(JK::id, libraries_data.id);
 
-    auto builds = std::make_unique<std::vector<Build>>();
-
-    library_repo.ForeachTag(
-        [&](const GitTag tag)
+    json_writer->WriteArray(JK::libraries, libraries_data.library_versions,
+        [&](const LibraryVersion& library_version)
         {
-            std::string tag_name = tag.GetDisplayName();
-            m_controller.LogText("Library tag: " + tag_name);
+            const JsonWriter::FormattingHolder json_formatting_holder = json_writer->SetFormattingType(JsonFormattingType::ObjectArraySingleLineSpacing);
 
-            // look up the commit message and see if it contains the library ID
-            const GitCommit commit = library_repo.LookupCommit(tag);
-            const std::string& commit_message = commit.GetMessage();
+            json_writer->BeginObject();
+            json_writer->SetFormattingAction(JsonFormattingAction::TopmostObjectLineSplitSameLine);
 
-            const size_t id_pos = commit_message.find(LibrariesCommitMessageIdentifier_sv);
+            json_writer->Write(JK::name, library_version.name)
+                        .Write(JK::version, library_version.version)
+                        .EndObject();
+        });
 
-            if( id_pos == std::string::npos )
+    json_writer->WriteObjects(JK::targets, libraries_data.targets,
+        [&](const LibrariesData::Target& target)
+        {
+            json_writer->Write(JK::platform, target.platform)
+                        .Write(JK::architecture, target.architecture);
+
+            json_writer->WriteArray(JK::files, target.files,
+                [&](const FileHash& file_hash)
+                {
+                    const JsonWriter::FormattingHolder json_formatting_holder = json_writer->SetFormattingType(JsonFormattingType::ObjectArraySingleLineSpacing);
+
+                    json_writer->BeginObject();
+                    json_writer->SetFormattingAction(JsonFormattingAction::TopmostObjectLineSplitSameLine);
+
+                    json_writer->Write(JK::path, CreateRepoPathFromPath(file_hash.file_path))
+                                .Write(JK::hash, file_hash.sha256)
+                                .EndObject();
+                });
+        });
+
+    json_writer->EndObject();
+}
+
+
+void LibraryManager::CalculateLibrariesId(LibrariesData& libraries_data) const
+{
+    std::string cache_key_inputs;
+
+    for( const LibrariesData::Target& target : libraries_data.targets )
+    {
+        for( const FileHash& file_hash : target.files )
+        {
+            cache_key_inputs.append(CreateRepoPathFromPath(file_hash.file_path))
+                            .append(file_hash.sha256);
+        }
+    }
+
+    libraries_data.id = Hash::Sha256::Create(cache_key_inputs);
+}
+
+
+LibraryManager::LibrariesData LibraryManager::UpdateLibrariesData(const bool save_library_data)
+{
+    const std::vector<std::string> library_types =
+    {
+        // Windows
+        "windows-x86",
+        "windows-x64",
+
+        // Android
+        "android-arm64-v8a",
+        "android-armeabi-v7a",
+        "android-x86_64",
+
+        // WASM
+        "wasm"
+    };
+
+    return UpdateLibrariesData(library_types, save_library_data);
+}
+
+
+
+LibraryManager::LibrariesData LibraryManager::UpdateLibrariesData(const std::vector<std::string>& library_types,
+                                                                  const bool save_library_data)
+{
+    // load the current libraries data
+    LibrariesData libraries_data = LoadLibrariesData();
+
+    // update the library versions
+    libraries_data.library_versions = ReadLibraryVersions();
+
+    // update the files for this library type
+    for( const std::string& library_type : library_types )
+    {
+        auto library_type_lookup = std::find_if(
+            libraries_data.targets.begin(), libraries_data.targets.end(),
+            [&](const LibrariesData::Target& target) { return ( target.library_type == library_type ); }
+        );
+
+        // add a new target when it does not exist in the previously saved data
+        if( library_type_lookup == libraries_data.targets.end() )
+        {
+            LibrariesData::Target& target = libraries_data.targets.emplace_back(LibrariesData::Target { library_type });
+            std::tie(target.platform, target.architecture) = SO::GetTextOnEitherSideOfCharacter(library_type, '-');
+            library_type_lookup = libraries_data.targets.end() - 1;
+        }
+
+        // update the files
+        library_type_lookup->files = CalculateFileHashes(
+            GetLibraryTargetFilePaths(library_type, library_type_lookup->platform)
+        );
+    }
+
+    // update the libraries ID
+    CalculateLibrariesId(libraries_data);
+
+    // potentially save the updated data
+    if( save_library_data )
+        SaveLibrariesData(libraries_data);
+
+    return libraries_data;
+}
+
+
+std::vector<LibraryManager::LibraryVersion> LibraryManager::ReadLibraryVersions() const
+{
+    const std::string external_libraries_doc = FileIO::ReadText(
+        CreatePathFromRepoPath(ExternalLibrariesMarkdownRepoPath)
+    );
+
+    // use regular expressions to extract the library names and versions
+    const std::regex library_name_regex(R"(^### (.+)$)");
+    const std::regex library_version_regex(R"(^\*Current version: (\d.*\d).*\*$)");
+    std::smatch matches;
+
+    std::vector<LibraryVersion> library_versions;
+    std::string last_library_name;
+
+    SO::ForeachLine<std::string>(external_libraries_doc, false,
+        [&](const std::string& line)
+        {
+            if( std::regex_match(line, matches, library_name_regex) )
             {
-                m_controller.LogText(u8"⚠ Library ID not found!");
+                last_library_name = matches.str(1);
             }
 
-            else
+            else if( std::regex_match(line, matches, library_version_regex) )
             {
-                std::string library_id(SO::Trim(
-                    std::string_view(commit_message).substr(id_pos + LibrariesCommitMessageIdentifier_sv.length())
-                ));
+                if( last_library_name.empty() )
+                    throw CSProException("Missing library name for line: " + line);
 
-                if( library_id.length() != LibrariesHashHexLength )
-                    throw CSProException("The library ID was not valid: %s", library_id.c_str());
+                library_versions.emplace_back(LibraryVersion { std::move(last_library_name), matches.str(1) });
+                ASSERT(last_library_name.empty());
+            }
+        });
 
-                m_controller.LogText("Library ID updated: " + library_id);
+    return library_versions;
+}
 
-                builds->emplace_back(Build { std::move(tag_name), std::move(library_id) });
+
+std::vector<std::string> LibraryManager::GetLibraryTargetFilePaths(const std::string& library_type, const std::string& platform) const
+{
+    // add the libraries in the third_party/prebuilt directory
+    std::vector<std::string> library_file_paths = GetPrebuiltLibraryFilePaths(library_type);
+
+    if( library_file_paths.empty() )
+        throw CSProException("The library type is not valid: " + library_type );
+
+    // add libraries in other directories
+    const auto& additional_libraries_lookup = AdditionalLibraryRepoPaths.find(platform);
+
+    if( additional_libraries_lookup != AdditionalLibraryRepoPaths.cend() )
+    {
+        DirectoryLister directory_lister;
+        const std::string directory_with_wildcard = CreatePathFromRepoPath(additional_libraries_lookup->second);
+
+        for( std::string& file_path : directory_lister.GetFilePathsWithPossibleWildcard(directory_with_wildcard, true) )
+            library_file_paths.emplace_back(std::move(file_path));
+    }
+
+    // sort by file path
+    std::sort(library_file_paths.begin(), library_file_paths.end());
+
+    return library_file_paths;
+}
+
+
+std::vector<std::string> LibraryManager::GetPrebuiltLibraryFilePaths(const std::string& library_type) const
+{
+    const std::string prebuilt_directory = CreatePathFromRepoPath(ThirdPartyPrebuiltRepoPath);
+
+    // libraries are specified as files to ignore
+    const std::string prebuild_gitignore_file_path = Path::Combine(prebuilt_directory, ".gitignore");
+
+    GitIgnoreEvaluator exclusion_evaluator;
+    exclusion_evaluator.AddRulesFromFile(prebuild_gitignore_file_path);
+
+    DirectoryLister directory_lister;
+    std::vector<std::string> file_paths;
+
+    for( const char* const directory_type : { "bin", "lib" } )
+    {
+        const std::string directory = Path::Combine(prebuilt_directory, directory_type, library_type);
+
+        directory_lister.ForeachPath(directory,
+            [&](const std::string& file_path)
+            {
+                if( exclusion_evaluator.Ignore(file_path) )
+                    file_paths.emplace_back(file_path);
+
+                return true;
+            });
+    }
+
+     return file_paths;
+}
+
+
+std::set<std::string> LibraryManager::GetThirdPartyFilePaths()
+{
+    LibrariesData libraries_data = UpdateLibrariesData(false);
+
+    std::set<std::string> file_paths;
+
+    for( LibrariesData::Target& target : libraries_data.targets )
+    {
+        for( FileHash& file_hash : target.files )
+            file_paths.insert(std::move(file_hash.file_path));
+    }
+
+    return file_paths;
+}
+
+
+std::string LibraryManager::GetLibrariesId(const LibrariesIdType libraries_id_type)
+{
+    switch( libraries_id_type )
+    {
+        case LibrariesIdType::InLibrariesJson:
+            return LoadLibrariesData().id;
+
+        case LibrariesIdType::CalculatedFromWorkingDirectory:
+            return UpdateLibrariesData(false).id;
+
+        default:
+            throw ProgrammingErrorException();
+    }
+}
+
+
+std::string LibraryManager::GetLibrariesId(const GitCommit& cs_commit)
+{
+    const GitTree current_tree = cs_commit.GetTree();
+    const GitTreeEntry tree_entry = current_tree.GetEntryByPath(LibrariesDataRepoPath);
+    const GitBlob blob = tree_entry.GetObject().GetBlob();
+
+    const JsonNode json_node = Json::Parse(blob.as<std::string_view>());
+
+    return ParseLibrariesData(json_node).id;
+}
+
+
+std::string LibraryManager::GetLibrariesReleaseTag(const std::string& libraries_id)
+{
+    // find the libraries ID locally
+    GitRepository& libraries_repo = m_controller.GetThirdPartyLibrariesRepo();
+
+    const std::string libraries_id_in_tag_name = libraries_id.substr(0, LibrariesIdTagLength);
+    std::string tag_name;
+
+    libraries_repo.ForeachTag(
+        [&](const GitTag tag)
+        {
+            if( tag.GetName().find(libraries_id_in_tag_name) != std::string::npos )
+            {
+                tag_name = tag.GetDisplayName();
+                return false;
             }
 
             return true;
         });
 
-    // sort in reverse order by tag name
-    std::sort(builds->begin(), builds->end(),
-              [](const Build& b1, const Build& b2) { return ( b1.tag_name > b2.tag_name ); });
-
-    CacheBuilds(*builds);
-    m_builds = std::move(builds);
-}
-
-
-const std::vector<RepoFilePath>& LibraryManager::GetInputs()
-{
-    if( !m_inputRepoFilePaths.empty() )
-        return m_inputRepoFilePaths;
-
-    DirectoryLister directory_lister(true);
-
-    const std::string& private_repo_directory = m_controller.GetPrivateRepoDirectory();
-    ASSERT(private_repo_directory.back() == Path::NativeSlashChar);
-
-    for( const auto& [directory_sv, wildcard_sv] : LibraryDirectoryAndWildcard_sv )
+    if( tag_name.empty() )
     {
-        const std::string full_directory = Path::Combine(private_repo_directory,
-                                                         Path::ToNativeSlash(std::string(directory_sv)));
-        directory_lister.SetNameFilter(wildcard_sv);
-
-        for( std::string& file_path : directory_lister.GetPaths(full_directory) )
-            m_inputRepoFilePaths.emplace_back(RepoFilePath::CreateFromFilePath(std::move(file_path), private_repo_directory));
+        throw CSProException("No tag exists in the local repository that matches libraries ID '%s'.\n\n"
+                             "Fetch any tags before proceeding.",
+                             libraries_id.c_str());
     }
 
-    return m_inputRepoFilePaths;
+    GitHubRepositoryConnection& gh_connection = GetThirdPartyLibrariesGitHubRepositoryConnection();
+
+    if( gh_connection.GetTag(tag_name).empty() )
+        throw CSProException("No tag exists on GitHub that matches libraries release tag '%s'.", tag_name.c_str());
+
+    return tag_name;
 }
 
 
-bool operator<(const LibraryManager::Input& input1, const LibraryManager::Input& input2) noexcept
+void LibraryManager::CreateLibraryRelease()
 {
-    if( input1.repo_file_path.repo_path == input2.repo_file_path.repo_path )
+    const std::string saved_libraries_id = GetLibrariesId(LibrariesIdType::InLibrariesJson);
+    const LibrariesData libraries_data = UpdateLibrariesData(true);
+
+    m_controller.LogText("Creating a release for libraries ID: " + libraries_data.id);
+
+    if( libraries_data.id != saved_libraries_id )
     {
-        ASSERT(input1.repo_file_path.file_path == input2.repo_file_path.file_path);
-        return ( input1.cs_blob_oid < input2.cs_blob_oid );
+        throw CSProException("The working directory's libraries.json does not match the current libraries ID. "
+                             "Validate the newly saved file and try again.");
     }
 
-    return ( input1.repo_file_path.repo_path < input2.repo_file_path.repo_path );
-}
+    // make sure that the latest libraries.json is committed
+    GitRepository& private_repo = m_controller.GetPrivateRepo();
+    const GitCommit cs_current_commit = private_repo.LookupCommit(private_repo.GetCurrentBranch());
 
-
-std::vector<LibraryManager::Input> LibraryManager::GetInputs(const GitCommit& cs_commit)
-{
-    std::vector<Input> inputs;
-
-    // to determine the built libraries needed at this point, we will look at the
-    // directories where external libraries are located, and then use the version
-    // in the repository (when available), or the version on the disk (when not)
-    const GitIndex cs_index = cs_commit.GetTree().GetIndex();
-
-    for( const RepoFilePath& repo_file_path : GetInputs() )
+    if( libraries_data.id != GetLibrariesId(cs_current_commit) )
     {
-        Input& input = inputs.emplace_back(Input { repo_file_path });
-
-        try
-        {
-            // an exception is thrown if this library in not in repository
-            input.cs_blob_oid = cs_index.GetObjectIdByPath(repo_file_path.repo_path);
-        }
-        catch(...) { }
+        throw CSProException("The most recently committed libraries.json does not match the current libraries ID. "
+                             "Commit the file before proceeding.");
     }
 
-    return inputs;
+    // the release will be created based on a third-party libraries repository tag
+    GitRepository& libraries_repo = m_controller.GetThirdPartyLibrariesRepo();
+
+    if( libraries_repo.HasChanges() )
+        throw CSProException("You cannot create a library release if there are changes in the third-party libraries directory.");
+
+    const GitCommit libraries_commit = libraries_repo.LookupCommit(libraries_repo.GetCurrentBranch());
+    const std::string libraries_commit_oid_hash = libraries_commit.GetObjectId().GetHexHash();
+
+    m_controller.LogText("The third-party libraries repository will be tagged at commit: " + libraries_commit_oid_hash);
+
+    // the tag name will be the commit date and the first 10 characters of the libraries ID
+    std::string tag_name;
+
+    GitRevisionWalker walker(private_repo);
+    walker.WalkFileRevisions(LibrariesDataRepoPath, cs_current_commit,
+        [&](const GitCommit commit)
+        {
+            if( libraries_data.id != GetLibrariesId(commit) )
+                throw ProgrammingErrorException();
+
+            const int64_t commit_timestamp = commit.GetCommitter().GetWhen().GetTimestamp();
+            const DateTime::Components date_time_components = DateTime::TimeToComponents(commit_timestamp);
+
+            tag_name = FormatText(
+                "v%04d-%02d-%02d-%.*s",
+                date_time_components.year, date_time_components.month, date_time_components.day,
+                static_cast<int>(LibrariesIdTagLength), libraries_data.id.c_str()
+            );
+
+            return false;
+        });
+
+    if( tag_name.empty() )
+        throw ProgrammingErrorException();
+
+    // create the release notes
+    std::string release_notes = CreateReleaseNotes(libraries_data.id, libraries_commit_oid_hash);
+
+    // create the release assets
+    const std::vector<std::tuple<std::string, std::shared_ptr<const BinaryBlock>>> release_assets =
+        CreateReleaseAssets(libraries_data, tag_name);
+
+    // create the lightweight tag
+    GitHubRepositoryConnection& gh_connection = GetThirdPartyLibrariesGitHubRepositoryConnection();
+    m_controller.LogText("Creating the GitHub tag: " + libraries_commit_oid_hash);
+    gh_connection.CreateTag(tag_name, libraries_commit_oid_hash);
+
+    // create the release
+    m_controller.LogText("Creating the GitHub release with %zu assets.", release_assets.size());
+    const int64_t release_id = gh_connection.CreateRelease(tag_name, tag_name, std::move(release_notes), false, release_assets);
+
+    m_controller.LogText("GitHub release successfully created with ID " Formatter_int64_t ".", release_id);
 }
 
 
-struct LibraryManager::FileData
+std::vector<std::tuple<std::string, std::shared_ptr<const BinaryBlock>>> LibraryManager::CreateReleaseAssets(
+    const LibrariesData& libraries_data, const std::string& tag_name) const
 {
-    BinaryBlock file_data;
-    std::string md5;
-};
+    std::vector<std::tuple<std::string, std::shared_ptr<const BinaryBlock>>> release_assets;
 
-
-std::string LibraryManager::CalculateCacheKey(const std::vector<Input>& inputs, const bool local_version)
-{
-    std::string cache_key_inputs;
-
-    for( const Input& input : inputs )
+    for( const LibrariesData::Target& target : libraries_data.targets )
     {
-        cache_key_inputs.append(input.repo_file_path.repo_path);
-
-        // the MD5 may have already been calculated
-        auto lookup = m_fileData.find(input);
-
-        auto process_file_data = [&](BinaryBlock binary_block)
-        {
-            ASSERT(lookup == m_fileData.cend());
-
-            std::unique_ptr<FileData> file_data(new FileData { std::move(binary_block) });
-            file_data->md5 = Hash::Md5::Create(file_data->file_data);
-            return m_fileData.try_emplace(input, std::move(file_data)).first;
-        };
-
-        // for files in the repository, the cache key will be the OID hex hash
-        // for the local version and the MD5 for the actual version
-        if( input.cs_blob_oid.has_value() )
-        {
-            if( local_version )
-            {
-                cache_key_inputs.append(input.cs_blob_oid->GetHexHash());
-            }
-
-            else
-            {
-                if( lookup == m_fileData.cend() )
-                {
-                    const GitBlob cs_blob = m_controller.GetPrivateRepo().LookupBlob(*input.cs_blob_oid);
-                    lookup = process_file_data(BinaryBlock(cs_blob.data(), cs_blob.size()));
-                }
-
-                cache_key_inputs.append(lookup->second->md5);
-            }
-        }
-
-        // for files on disk, the cache key will be the file size and modified time
-        // for the local version and the MD5 for the actual version
-        else
-        {
-            if( local_version )
-            {
-                const std::tuple<int64_t, int64_t> file_size_and_modified_time = PortableFunctions::FileSizeAndModifiedTime(input.repo_file_path.file_path);
-                cache_key_inputs.append(IntToString(std::get<0>(file_size_and_modified_time)));
-                cache_key_inputs.append(IntToString(std::get<1>(file_size_and_modified_time)));
-            }
-
-            else
-            {
-                if( lookup == m_fileData.cend() )
-                    lookup = process_file_data(FileIO::ReadBinary(input.repo_file_path.file_path));
-
-                cache_key_inputs.append(lookup->second->md5);
-            }
-        }
-    }
-
-    return Hash::Create(cache_key_inputs, LibrariesHashHexLength / 2);
-}
-
-
-void LibraryManager::CreateAndCommitBuild(const GitCommit& cs_commit)
-{
-    GitRepository& library_repo = m_controller.GetOpenSourceLibrariesRepo();
-
-    if( library_repo.HasChanges() )
-        throw CSProException("You cannot create a library commit if there are changes in the open source libraries directory.");
-
-    m_controller.LogText("Creating a commit with the built libraries as of:\n    %s\n    %s",
-                         cs_commit.GetCommitter().GetWhen().GetLocalDateTimeString().c_str(),
-                         cs_commit.GetMessage().c_str());
-
-    const std::vector<Input> inputs = GetInputs(cs_commit);
-    std::string library_id = CalculateCacheKey(inputs, false);
-    std::string local_hash = CalculateCacheKey(inputs, true);
-
-    const int64_t commit_timestamp = cs_commit.GetCommitter().GetWhen().GetTimestamp();
-    const DateTime::Components date_time_components = DateTime::TimeToComponents(commit_timestamp);
-    const std::string commit_yyyy_mm_dd = FormatText("%04d-%02d-%02d",
-        date_time_components.year, date_time_components.month, date_time_components.day
-    );
-
-    // the tag name will be the commit date and the first seven characters of the source commit's OID
-    const std::string cs_commit_oid_hash = cs_commit.GetObjectId().GetHexHash();
-    std::string tag_name = FormatText("v%s-%.7s", commit_yyyy_mm_dd.c_str(), cs_commit_oid_hash.c_str());
-
-    if( library_repo.IsTag(tag_name) )
-        throw CSProException("A library commit for these libraries already exists, tagged with: " + tag_name);
-
-    // all commits will be to main
-    GitBranch branch = library_repo.LookupBranch("main");
-    library_repo.CheckoutBranch(branch);
-
-    GitIndex index = library_repo.GetIndex();
-    const std::map<std::string, GitObjectId> current_files = index.GetPathObjectIdMap();
-
-    // remove any libraries no longer used
-    for( const auto& [repo_path, oid] : current_files )
-    {
-        // ignore any files at the root (e.g., README.md)
-        if( PortableFunctions::PathGetDirectory(repo_path).empty() )
+        if( !IncludeWasmLibraries && target.platform == "wasm" )
             continue;
 
-        const auto& lookup = std::find_if(inputs.cbegin(), inputs.cend(),
-            [&](const Input& input) { return ( repo_path == input.repo_file_path.repo_path ); }
+        std::string zip_filename = FormatText("cspro-libraries-%s-%s.zip", tag_name.c_str(), target.library_type.c_str());
+        std::vector<std::string> file_paths;
+        std::vector<std::string> file_paths_in_zip;
+
+        for( const FileHash& file_hash : target.files )
+        {
+            file_paths.emplace_back(file_hash.file_path);
+            file_paths_in_zip.emplace_back(CreateRepoPathFromPath(file_hash.file_path));
+        }
+
+        m_controller.LogText("Creating '%s' with %zu files.", zip_filename.c_str(), file_paths.size());
+
+        TemporaryFile temporary_file;
+
+        ZipCreator zip_creator(temporary_file.GetPath());
+        zip_creator.AddFiles(file_paths, file_paths_in_zip);
+        zip_creator.Close();
+
+        release_assets.emplace_back(
+            std::move(zip_filename),
+            std::make_unique<BinaryBlock>(FileIO::ReadBinary(temporary_file.GetPath()))
         );
-
-        if( lookup == inputs.cend() )
-        {
-            m_controller.LogText("Removing library: " + repo_path);
-            index.RemoveEntryByPath(repo_path);
-        }
     }
 
-    // add the current set of external libraries
-    for( const Input& input : inputs )
-    {
-        const std::string& repo_path = input.repo_file_path.repo_path;
-
-        // only add the entry if it has not been previously added, or has changed
-        const auto& lookup = current_files.find(repo_path);
-
-        if( lookup != current_files.cend() &&
-            lookup->second == input.cs_blob_oid )
-        {
-            m_controller.LogText("Library is unchanged: " + repo_path);
-        }
-
-        else
-        {
-            m_controller.LogText("Adding library: " + repo_path);
-
-            const auto& file_data_lookup = m_fileData.find(input);
-            ASSERT(file_data_lookup != m_fileData.cend());
-
-            const GitObjectId blob_oid = library_repo.CreateBlob(file_data_lookup->second->file_data);
-            index.AddEntry(blob_oid, repo_path, GIT_FILEMODE_BLOB);
-        }
-    }
-
-    // for the signature, use "CSPro Bot" with the date of the source commit
-    GitSignature author_and_committer = Controller::GetCSProBotSignature(library_repo);
-    author_and_committer.SetWhen(cs_commit.GetCommitter().GetWhen());
-
-    // the message will contain the source commit's date and OID, and then the library ID
-    const std::string message = SO::Concatenate(
-        "libraries as of ", commit_yyyy_mm_dd,
-        "\n\nsource commit: https://github.com/CSProDevelopment/cspro/commit/", cs_commit_oid_hash,
-        "\n\n", LibrariesCommitMessageIdentifier_sv, library_id
-    );
-
-    // make sure that there are actually differences
-    const GitCommit parent_commit = library_repo.LookupCommit(branch);
-    GitTree parent_tree = parent_commit.GetTree();
-
-    GitTree tree = library_repo.WriteTree(index);
-
-    const GitDiff merge_diff = m_controller.GetOpenSourceRepo().GetDifference(parent_tree, tree);
-
-    if( merge_diff.GetNumberDeltas() == 0 )
-    {
-        throw CSProException("There are no library changes compared to the previous commit: " +
-                             parent_commit.GetObjectId().GetHexHash());
-    }
-
-    // create the commit
-    const GitObjectId commit_oid = library_repo.CreateCommit(
-        author_and_committer,
-        message,
-        tree,
-        parent_commit
-    );
-
-    m_controller.LogText("Build library created: " + commit_oid.GetHexHash());
-
-    // tag the commit, with the message referencing the source commit's OID
-    library_repo.CreateTag(
-        author_and_committer,
-        library_repo.LookupCommit(commit_oid),
-        tag_name,
-        "Created from: " + cs_commit_oid_hash
-    );
-
-    m_controller.LogText("Build library tagged: " + tag_name);
-
-    // when complete, checkout the HEAD so that the working directory matches the index
-    library_repo.CheckoutHead(GIT_CHECKOUT_FORCE | GIT_CHECKOUT_REMOVE_UNTRACKED);
-
-    // cache this build
-    auto builds = std::make_unique<std::vector<Build>>(*GetBuilds());
-
-    builds->insert(builds->begin(),
-        Build
-        {
-            std::move(tag_name),
-            std::move(library_id),
-            std::move(local_hash)
-        }
-    );
-
-    CacheBuilds(*builds);
-    m_builds = std::move(builds);
+    return release_assets;
 }
 
 
-std::string LibraryManager::GetTagForBuiltLibraries(const GitCommit& cs_commit)
+std::string LibraryManager::CreateReleaseNotes(const std::string& libraries_id, const std::string& libraries_commit_oid_hash) const
 {
-    const std::vector<Input> inputs = GetInputs(cs_commit);
-    const std::shared_ptr<const std::vector<Build>> builds = GetBuilds();
+    std::string release_notes = FileIO::ReadText(Controller::GetTemplatesFilePath(ReleaseNotesTemplateFilename));
 
-    // first see if the tag has been cached using the local cache key
-    std::string local_hash = CalculateCacheKey(inputs, true);
+    SO::RecursiveReplace(release_notes, Fill_LibrariesId_sv, libraries_id);
+    SO::RecursiveReplace(release_notes, Fill_LibrariesCommit_sv, libraries_commit_oid_hash);
+    SO::RecursiveReplace(release_notes, Fill_LibrariesCommitShort_sv, std::string_view(libraries_commit_oid_hash).substr(0, Fill_CommitShortLength));
 
-    auto lookup = std::find_if(builds->cbegin(), builds->cend(),
-        [&](const Build& build) { return ( local_hash == build.local_hash ); }
-    );
-
-    // if not, check if tag has been cached using the actual library ID
-    if( lookup == builds->cend() )
-    {
-        const std::string library_id = CalculateCacheKey(inputs, false);
-
-        lookup = std::find_if(builds->cbegin(), builds->cend(),
-            [&](const Build& build) { return ( library_id == build.library_id ); }
-        );
-
-        if( lookup == builds->cend() )
-        {
-            throw CSProException("Refresh the library IDs and try again.\n"
-                                 "On failure, commit a built library for:\n\n" +
-                                 cs_commit.GetObjectId().GetHexHash());
-        }
-
-        // add the local hash to the cache for future use
-        auto updated_builds = std::make_unique<std::vector<Build>>(*builds);
-        updated_builds->at(std::distance(builds->cbegin(), lookup)).local_hash = std::move(local_hash);
-
-        CacheBuilds(*updated_builds);
-        m_builds = std::move(updated_builds);
-    }
-
-    return lookup->tag_name;
+    return release_notes;
 }

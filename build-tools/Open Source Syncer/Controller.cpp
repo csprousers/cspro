@@ -17,7 +17,7 @@ Controller::Controller()
     :   m_settingsDb("OpenSourceSyncer.db"),
         m_loggingListBox(nullptr),
         m_openSourceCodeDirectory(m_settingsDb.ReadOrDefault<std::string>(SettingsKeys::OpenSourceCodeDirectory_sv)),
-        m_openSourceLibrariesDirectory(m_settingsDb.ReadOrDefault<std::string>(SettingsKeys::OpenSourceLibrariesDirectory_sv)),
+        m_thirdPartyLibrariesDirectory(m_settingsDb.ReadOrDefault<std::string>(SettingsKeys::ThirdPartyLibrariesDirectory_sv)),
         m_githubPAT(m_settingsDb.ReadOrDefault<std::string>(SettingsKeys::GitHubPAT_sv))
 {
     const std::string this_source_directory = PortableFunctions::PathGetDirectory(__FILE__);
@@ -98,34 +98,34 @@ GitRepository& Controller::GetOpenSourceRepo()
 }
 
 
-void Controller::SetOpenSourceLibrariesDirectory(std::string directory)
+void Controller::SetThirdPartyLibrariesDirectory(std::string directory)
 {
-    if( m_openSourceLibrariesDirectory == directory )
+    if( m_thirdPartyLibrariesDirectory == directory )
         return;
 
-    m_openSourceLibrariesDirectory = std::move(directory);
-    m_settingsDb.Write(SettingsKeys::OpenSourceLibrariesDirectory_sv, m_openSourceLibrariesDirectory);
+    m_thirdPartyLibrariesDirectory = std::move(directory);
+    m_settingsDb.Write(SettingsKeys::ThirdPartyLibrariesDirectory_sv, m_thirdPartyLibrariesDirectory);
 
-    m_openSourceLibrariesRepo.reset();
+    m_thirdPartyLibrariesRepo.reset();
 }
 
 
-GitRepository& Controller::GetOpenSourceLibrariesRepo()
+GitRepository& Controller::GetThirdPartyLibrariesRepo()
 {
-    if( !m_openSourceLibrariesRepo.has_value() )
+    if( !m_thirdPartyLibrariesRepo.has_value() )
     {
-        if( m_openSourceLibrariesDirectory.empty() )
-            throw CSProException("Use the Settings dialog to specify the open source libraries directory.");
+        if( m_thirdPartyLibrariesDirectory.empty() )
+            throw CSProException("Use the Settings dialog to specify the third-party libraries directory.");
 
-        LogText("Opening open source libraries repository: " + m_openSourceLibrariesDirectory);
+        LogText("Opening third-party libraries repository: " + m_thirdPartyLibrariesDirectory);
 
         GitRepository repo;
-        repo.Open(m_openSourceLibrariesDirectory);
+        repo.Open(m_thirdPartyLibrariesDirectory);
 
-        m_openSourceLibrariesRepo.emplace(std::move(repo));
+        m_thirdPartyLibrariesRepo.emplace(std::move(repo));
     }
 
-    return *m_openSourceLibrariesRepo;
+    return *m_thirdPartyLibrariesRepo;
 }
 
 

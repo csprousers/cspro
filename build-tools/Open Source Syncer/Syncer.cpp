@@ -11,7 +11,7 @@ namespace
     constexpr const char* BuildFilename   = "BUILD.md";
     constexpr const char* HistoryFilename = "HISTORY.md";
 
-    constexpr std::string_view LibrariesTagInBuildFile_sv = "%LIBRARY_TAG%";
+    constexpr std::string_view LibrariesReleaseTagInBuildFile_sv = "%LIBRARIES_TAG%";
 
     // the commit is the first commit after the v7.5.0 tag
     constexpr std::string_view HistoryLogEarliestVersion_sv = "7.6.0";
@@ -225,14 +225,14 @@ std::string Syncer::CreateHistoryLog(const GitCommit& cs_latest_commit)
 }
 
 
-void Syncer::UpdateBuildDetails(GitIndex& os_index, GitTree& cs_tree, const std::string& libraries_tag)
+void Syncer::UpdateBuildDetails(GitIndex& os_index, GitTree& cs_tree, const std::string& libraries_release_tag)
 {
     GitRepository& open_source_repo = m_controller.GetOpenSourceRepo();
 
     const GitBlob cs_build_blob = cs_tree.GetEntryByPath(BuildFilename).GetObject().GetBlob();
     std::string build_details = cs_build_blob.as<std::string>();
 
-    SO::Replace(build_details, LibrariesTagInBuildFile_sv, libraries_tag);
+    SO::Replace(build_details, LibrariesReleaseTagInBuildFile_sv, libraries_release_tag);
 
     const GitObjectId os_new_build_blob_oid = open_source_repo.CreateBlob(build_details);
     os_index.AddEntry(os_new_build_blob_oid, BuildFilename, GIT_FILEMODE_BLOB);
@@ -542,7 +542,8 @@ GitCommit Syncer::MirrorFeatureBranch(const GitBranch& os_merge_branch,
 
     // make sure that the libraries for this feature branch have been created
     LibraryManager& library_manager = m_controller.GetLibraryManager();
-    const std::string libraries_tag = library_manager.GetTagForBuiltLibraries(cs_new_merge_commit);
+    const std::string libraries_id = library_manager.GetLibrariesId(cs_new_merge_commit);
+    const std::string libraries_release_tag = library_manager.GetLibrariesReleaseTag(libraries_id);
 
     // create and checkout a temporary open source branch for this work
     const GitCommit os_start_commit = open_source_repo.LookupCommit(os_merge_branch);
@@ -600,7 +601,7 @@ GitCommit Syncer::MirrorFeatureBranch(const GitBranch& os_merge_branch,
     os_index.AddEntry(os_history_blob_oid, HistoryFilename, GIT_FILEMODE_BLOB);
 
     // update BUILD.md with information about the external libraries used
-    UpdateBuildDetails(os_index, cs_new_merge_tree, libraries_tag);
+    UpdateBuildDetails(os_index, cs_new_merge_tree, libraries_release_tag);
 
     // commit this merge commit with the updated history and build details
     os_new_tree = open_source_repo.WriteTree(os_index);
@@ -919,7 +920,8 @@ void Syncer::MirrorMergeCommit(const GitBranch& os_branch, const GitCommit& cs_m
 
     // make sure that the libraries used at this merge commit have been created
     LibraryManager& library_manager = m_controller.GetLibraryManager();
-    const std::string libraries_tag = library_manager.GetTagForBuiltLibraries(cs_merge_commit);
+    const std::string libraries_id = library_manager.GetLibrariesId(cs_merge_commit);
+    const std::string libraries_release_tag = library_manager.GetLibrariesReleaseTag(libraries_id);
 
     // mirror the merge commit
     open_source_repo.CheckoutBranch(os_branch);
@@ -936,7 +938,7 @@ void Syncer::MirrorMergeCommit(const GitBranch& os_branch, const GitCommit& cs_m
     os_index.AddEntry(os_history_blob_oid, HistoryFilename, GIT_FILEMODE_BLOB);
 
     // update BUILD.md with information about the external libraries used
-    UpdateBuildDetails(os_index, cs_commit_tree, libraries_tag);
+    UpdateBuildDetails(os_index, cs_commit_tree, libraries_release_tag);
 
     // commit this merge commit with the updated history and build details
     GitTree os_new_tree = open_source_repo.WriteTree(os_index);

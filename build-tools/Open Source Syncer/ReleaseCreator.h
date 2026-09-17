@@ -9,7 +9,7 @@ public:
     // Getters and setters used by CreateReleaseDlg.
     const SharableString& GetTagName() const { return m_tagName; }
 
-    const SharableString& GetLibrariesTag() const { return m_librariesTag; }
+    const SharableString& GetLibrariesReleaseTag() const { return m_librariesReleaseTag; }
 
     const SharableString& GetVersionText() const { return m_versionText; }
 
@@ -48,7 +48,7 @@ private:
     std::shared_ptr<GitHubRepositoryConnection> m_ghConnection;
 
     SharableString m_tagName;
-    SharableString m_librariesTag;
+    SharableString m_librariesReleaseTag;
 
     std::string m_openSourceCommitSHA;
     std::string m_privateCommitSHA;

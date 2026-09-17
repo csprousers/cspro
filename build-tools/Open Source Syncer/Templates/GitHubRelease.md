@@ -9,4 +9,6 @@ Useful links:
 
 The assets are built from the private repository commit [~~PRIVATE_REPO_COMMIT_SHORT~~](https://github.com/CSProDevelopment/cspro/commit/~~PRIVATE_REPO_COMMIT~~), which corresponds to the open source commit [~~OPEN_SOURCE_COMMIT_SHORT~~](https://github.com/csprousers/cspro/commit/~~OPEN_SOURCE_COMMIT~~). The [README](https://github.com/csprousers/cspro/blob/~~OPEN_SOURCE_COMMIT~~/README.md)'s limitations section describes the differences between the two repositories.
 
-If you want to [build](https://github.com/csprousers/cspro/blob/~~OPEN_SOURCE_COMMIT~~/BUILD.md) the open source version of CSPro for this release, you can use the [prebuilt libraries](https://github.com/csprousers/cspro-libraries) tagged [~~LIBRARIES_TAG~~.zip](https://github.com/csprousers/cspro-libraries/archive/refs/tags/~~LIBRARIES_TAG~~.zip).
+If you want to [build](https://github.com/csprousers/cspro/blob/~~OPEN_SOURCE_COMMIT~~/BUILD.md) the open source version of CSPro for this release,
+you can use the [prebuilt libraries](https://github.com/csprousers/cspro-libraries-third-party)
+that are included as assets for the [~~LIBRARIES_TAG~~](https://github.com/csprousers/cspro-libraries-third-party/releases/tag/~~LIBRARIES_TAG~~) libraries release.

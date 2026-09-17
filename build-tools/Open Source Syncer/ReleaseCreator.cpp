@@ -9,7 +9,7 @@ namespace
     constexpr const char* ReleaseNotesTemplateFilename = "GitHubRelease.md";
 
     constexpr std::string_view Fill_ReleasePrefix_sv          = "~~RELEASE_PREFIX~~";
-    constexpr std::string_view Fill_LibrariesTag_sv           = "~~LIBRARIES_TAG~~";
+    constexpr std::string_view Fill_LibrariesReleaseTag_sv    = "~~LIBRARIES_TAG~~";
     constexpr std::string_view Fill_OpenSourceCommit_sv       = "~~OPEN_SOURCE_COMMIT~~";
     constexpr std::string_view Fill_OpenSourceCommitShort_sv  = "~~OPEN_SOURCE_COMMIT_SHORT~~";
     constexpr std::string_view Fill_PrivateRepoCommit_sv      = "~~PRIVATE_REPO_COMMIT~~";
@@ -49,8 +49,8 @@ ReleaseCreator::ReleaseCreator(Controller& controller, std::shared_ptr<GitHubRep
 
     // get the libraries tag for this point
     const GitCommit cs_commit = private_repo.LookupCommit(m_privateCommitSHA);
-
-    m_librariesTag = library_manager.GetTagForBuiltLibraries(cs_commit);
+    const std::string libraries_id = library_manager.GetLibrariesId(cs_commit);
+    m_librariesReleaseTag = library_manager.GetLibrariesReleaseTag(libraries_id);
 
     // get the version at this point
     ParseVersion();
@@ -190,7 +190,7 @@ std::string ReleaseCreator::GetFormattedReleaseNotes() const
     std::string release_notes = m_releaseNotes;
 
     SO::RecursiveReplace(release_notes, Fill_ReleasePrefix_sv, release_prefix);
-    SO::RecursiveReplace(release_notes, Fill_LibrariesTag_sv, *m_librariesTag);
+    SO::RecursiveReplace(release_notes, Fill_LibrariesReleaseTag_sv, *m_librariesReleaseTag);
     SO::RecursiveReplace(release_notes, Fill_OpenSourceCommit_sv, m_openSourceCommitSHA);
     SO::RecursiveReplace(release_notes, Fill_OpenSourceCommitShort_sv, std::string_view(m_openSourceCommitSHA).substr(0, Fill_CommitShortLength));
     SO::RecursiveReplace(release_notes, Fill_PrivateRepoCommit_sv, m_privateCommitSHA);

@@ -2,6 +2,7 @@
 #include "OpenSourceSyncer.h"
 #include "ControllerThreadRunningFrame.h"
 #include "FeatureBranchSyncerView.h"
+#include "LibraryManager.h"
 #include "LogFrameAndView.h"
 #include "MainFrame.h"
 #include "ManageLibrariesView.h"
@@ -58,10 +59,19 @@ BOOL OpenSourceSyncerApp::InitInstance()
 
     LoadStdProfileSettings();  // Load standard INI file options (including MRU)
 
-    // initialize the controller
     try
     {
+        // initialize the controller
         m_controller.emplace();
+
+        // after building third-party libraries, the libraries metadata will be updated via the command line
+        if( __argc >= 2 && wcscmp(__wargv[1], L"update-libraries-data") == 0 )
+        {
+            LibraryManager& library_manager = m_controller->GetLibraryManager();
+            ( __argc >= 3 ) ? library_manager.UpdateLibrariesData({ TC::ToUtf8(__wargv[2]) }, true) :
+                              library_manager.UpdateLibrariesData(true);
+            return FALSE;
+        }
     }
 
     catch( const CSProException& exception )

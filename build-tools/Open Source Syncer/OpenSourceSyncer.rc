@@ -85,31 +85,29 @@ BEGIN
     PUSHBUTTON      "Cancel",IDCANCEL,166,116,50,14
     GROUPBOX        "CSPro Open Source Directories",IDC_STATIC,7,7,297,58
     LTEXT           "Code:",IDC_STATIC,17,24,20,8
-    EDITTEXT        IDC_OPEN_SOURCE_CODE_DIRECTORY,74,22,224,14,ES_AUTOHSCROLL
-    LTEXT           "Built libraries:",IDC_STATIC,17,45,44,8
-    EDITTEXT        IDC_OPEN_SOURCE_LIBRARIES_DIRECTORY,74,42,224,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_OPEN_SOURCE_CODE_DIRECTORY,89,22,209,14,ES_AUTOHSCROLL
+    LTEXT           "Third-party libraries:",IDC_STATIC,17,45,66,8
+    EDITTEXT        IDC_THIRD_PARTY_LIBRARIES_DIRECTORY,89,42,209,14,ES_AUTOHSCROLL
     GROUPBOX        "GitHub Authorization",IDC_STATIC,7,70,297,37
     LTEXT           "Personal Access Token (PAT):",IDC_STATIC,17,86,96,8
     EDITTEXT        IDC_GITHUB_PAT,121,83,177,14,ES_AUTOHSCROLL
 END
 
-IDD_MANAGE_LIBRARIES DIALOGEX 0, 0, 401, 276
+IDD_MANAGE_LIBRARIES DIALOGEX 0, 0, 433, 239
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_CHILD | WS_CAPTION | WS_SYSMENU
 CAPTION "Manage Libraries"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    LTEXT           "Manage CSPro's prebuilt external libraries and binary file dependencies:",IDC_STATIC,7,7,230,8
-    GROUPBOX        "Library IDs",IDC_STATIC,7,24,388,151
-    LTEXT           "Built libraries are identified by an ID based on a hash of the repository paths of included files as well as each file's MD5. The built libraries are associated with a local hash code (that does not necessarily use the MD5), and also by the actual hash.",IDC_STATIC,14,35,373,23
-    CONTROL         "",IDC_LIBRARY_IDS,"SysListView32",LVS_REPORT | LVS_ALIGNLEFT | WS_BORDER | WS_TABSTOP,14,66,373,82
-    PUSHBUTTON      "Refresh Library IDs",IDC_REFRESH_LIBRARY_IDS,139,154,122,14
-    GROUPBOX        "Built Libraries",IDC_STATIC,7,182,387,87
-    LTEXT           "To create a built library, specify a commit SHA, or leave it blank to use the HEAD.",IDC_STATIC,14,195,260,8
-    LTEXT           "Commit:",IDC_STATIC,14,213,27,8
-    EDITTEXT        IDC_COMMIT,51,210,164,14,ES_AUTOHSCROLL
-    PUSHBUTTON      "Create and Commit Built Library",IDC_CREATE_BUILT_LIBRARY,232,210,122,14
-    PUSHBUTTON      "Preview Built Library",IDC_PREVIEW_BUILT_LIBRARY,232,229,122,14
-    PUSHBUTTON      "View List of Input Files",IDC_VIEW_BUILT_LIBRARY_INPUTS,232,248,122,14
+    LTEXT           "Manage CSPro's prebuilt third-party libraries and binary file dependencies:",IDC_STATIC,7,7,238,8
+    GROUPBOX        "Libraries IDs",IDC_STATIC,7,24,419,151
+    LTEXT           "Third-party library releases are identified by a ""libraries ID"" based on a hash of the repository paths of included files as well as each file's SHA-256.",IDC_STATIC,14,35,373,23
+    CONTROL         "",IDC_LIBRARIES_IDS,"SysListView32",LVS_REPORT | LVS_ALIGNLEFT | WS_BORDER | WS_TABSTOP,14,66,403,82
+    PUSHBUTTON      "Refresh Libraries IDs",IDC_REFRESH_LIBRARIES_IDS,85,154,122,14
+    PUSHBUTTON      "View Release on GitHub",IDC_VIEW_RELEASE,224,154,122,14
+    GROUPBOX        "Library Releases",IDC_STATIC,7,182,419,50
+    LTEXT           "Creating a library release will create on GitHub a tag and a release for the current libraries.",IDC_STATIC,14,195,292,8
+    PUSHBUTTON      "Create Library Release",IDC_CREATE_LIBRARY_RELEASE,85,210,122,14
+    PUSHBUTTON      "View List of Input Files",IDC_VIEW_LIBRARY_INPUTS,224,210,122,14
 END
 
 IDD_LOG DIALOGEX 0, 0, 99, 22
@@ -197,7 +195,7 @@ BEGIN
     LTEXT           "Tag name:",IDC_STATIC,17,22,35,8
     EDITTEXT        IDC_TAG_NAME,80,19,181,14,ES_AUTOHSCROLL | ES_READONLY
     LTEXT           "Libraries tag:",IDC_STATIC,17,42,43,8
-    EDITTEXT        IDC_LIBRARIES_TAG,80,39,181,14,ES_AUTOHSCROLL | ES_READONLY
+    EDITTEXT        IDC_LIBRARIES_RELEASE_TAG,80,39,181,14,ES_AUTOHSCROLL | ES_READONLY
     LTEXT           "CSPro version:",IDC_STATIC,17,62,48,8
     EDITTEXT        IDC_RELEASE_VERSION,80,59,54,14,ES_AUTOHSCROLL | ES_READONLY
     GROUPBOX        "Release Files",IDC_STATIC,283,7,353,72
@@ -246,9 +244,9 @@ BEGIN
     IDD_MANAGE_LIBRARIES, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 394
+        RIGHTMARGIN, 426
         TOPMARGIN, 7
-        BOTTOMMARGIN, 269
+        BOTTOMMARGIN, 232
     END
 
     IDD_LOG, DIALOG

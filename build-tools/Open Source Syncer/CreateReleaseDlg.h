@@ -2,7 +2,6 @@
 
 #include "ReleaseCreator.h"
 #include <zUtilO/ResizableDlg.h>
-#include <zUtilO/TemporaryFile.h>
 #include <zEditO/LogicCtrl.h>
 
 
@@ -37,7 +36,7 @@ private:
     std::unique_ptr<ReleaseCreator> m_releaseCreator;
 
     SharableString m_tagName;
-    SharableString m_librariesTag;
+    SharableString m_librariesReleaseTag;
     SharableString m_versionText;
 
     std::string m_readmeRepoPath;

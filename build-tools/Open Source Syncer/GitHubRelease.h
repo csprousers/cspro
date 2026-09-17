@@ -6,6 +6,7 @@ struct GitHubRelease
     std::string html_url;
     std::string tag_name;
     std::string name;
+    std::string release_notes;
     bool draft;
     bool prerelease;
     size_t assets_count;

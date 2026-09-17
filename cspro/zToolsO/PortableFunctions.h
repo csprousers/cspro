@@ -75,11 +75,14 @@ namespace PortableFunctions
     // Returns true if the file exists and is a directory.
     CLASS_DECL_ZTOOLSO bool FileIsDirectory(InterfaceString path);
 
-    // Returns the last modified date/time of a file. The time will be 0 if unable to read file.
+    // Returns the last modified date/time of a file.
+    // If not throwing exceptions, the time will be 0 if unable to read file.
     template<bool ThrowExceptionOnError = false>
     CLASS_DECL_ZTOOLSO int64_t FileModifiedTime(InterfaceString file_path);
 
-    // Returns the size in bytes and the last modified date/time of a file. The size will be -1 if unable to read file.
+    // Returns the size in bytes and the last modified date/time of a file.
+    // If not throwing exceptions, the size will be -1 if unable to read file.
+    template<bool ThrowExceptionOnError = false>
     CLASS_DECL_ZTOOLSO std::tuple<int64_t, int64_t> FileSizeAndModifiedTime(InterfaceString file_path);
 
     // Touches the file with the current time.

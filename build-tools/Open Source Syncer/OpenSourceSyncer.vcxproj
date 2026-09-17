@@ -41,7 +41,6 @@
     </ClInclude>
     <ClInclude Include="ReleaseCreator.h" />
     <ClInclude Include="ReleaseTag.h" />
-    <ClInclude Include="RepoFilePath.h" />
     <ClInclude Include="RepositoryComparerView.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="SettingsDlg.h" />
@@ -95,6 +94,7 @@
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </None>
     <None Include="Templates\GitHubRelease.md" />
+    <None Include="Templates\GitHubThirdPartyLibrariesRelease.md" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\cspro\zEditO\zEditO.vcxproj">
@@ -131,6 +131,10 @@
     </ProjectReference>
     <ProjectReference Include="..\..\cspro\zGit\zGit.vcxproj">
       <Project>{01396fa2-bca6-4f57-9346-ec468db7e0a6}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\cspro\zZip\zZip.vcxproj">
+      <Project>{bde6d79f-d295-48ba-8e8c-e2ab1eda0646}</Project>
       <Private>false</Private>
     </ProjectReference>
   </ItemGroup>

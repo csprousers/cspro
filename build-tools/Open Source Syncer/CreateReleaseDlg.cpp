@@ -16,7 +16,7 @@ CreateReleaseDlg::CreateReleaseDlg(std::unique_ptr<ReleaseCreator> release_creat
     :   DynamicLayoutResizableDlg(IDD_CREATE_RELEASE, pParent),
         m_releaseCreator(std::move(release_creator)),
         m_tagName(m_releaseCreator->GetTagName()),
-        m_librariesTag(m_releaseCreator->GetLibrariesTag()),
+        m_librariesReleaseTag(m_releaseCreator->GetLibrariesReleaseTag()),
         m_versionText(m_releaseCreator->GetVersionText()),
         m_readmeRepoPath("build-tools/Installer Inputs/readme.txt"),
         m_releaseTitle(*m_tagName),
@@ -31,7 +31,7 @@ void CreateReleaseDlg::DoDataExchange(CDataExchange* const pDX)
     __super::DoDataExchange(pDX);
 
     DDX_Text(pDX, IDC_TAG_NAME, m_tagName);
-    DDX_Text(pDX, IDC_LIBRARIES_TAG, m_librariesTag);
+    DDX_Text(pDX, IDC_LIBRARIES_RELEASE_TAG, m_librariesReleaseTag);
     DDX_Text(pDX, IDC_RELEASE_VERSION, m_versionText);
 
     DDX_Text(pDX, IDC_README, m_readmeRepoPath, true);
