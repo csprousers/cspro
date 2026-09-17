@@ -44,6 +44,12 @@ public:
     void Walk(const GitCommit& start_commit, const GitCommit& end_commit, const std::function<void(GitCommit)>& callback_function);
     void ReverseWalk(const GitCommit& start_commit, const GitCommit& end_commit, const std::function<void(GitCommit)>& callback_function);
 
+    // Executes the callback function for each commit when the file changed. Renamed files are not followed.
+    // Commits are walked in topological and time order, starting at the specified commit.
+    // The callback function should return true to continue processing.
+    // The callback function can throw exceptions.
+    void WalkFileRevisions(cs::string_sz path, const GitCommit& start_commit, const std::function<bool(GitCommit)>& callback_function);
+
     // Returns the commits walked using the corresponding WalkFromHead methods.
     std::vector<GitCommit> GetCommitsFromHead();
     std::vector<GitCommit> GetCommitsFromHead(const GitCommit& end_commit);
