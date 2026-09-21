@@ -3,7 +3,7 @@
 
 ## Repositories and Directories
 
-CSPro, CSWeb, and other repositories can be installed in any directory, but these are the locations used by some developers on Windows machines:
+CSPro, CSWeb, and other repositories can be installed in any directory. These are the locations used by some developers on Windows machines:
 
 - [CSPro](https://github.com/csprousers/cspro): C:\\cspro
 - [CSWeb](https://github.com/csprousers/csweb): C:\\code\\csweb
@@ -17,7 +17,7 @@ For those working with CSPro documentation and resources:
 
 Additional CSPro-related repositories:
 
-- [Prebuilt Libraries](https://github.com/csprousers/cspro-libraries): C:\\code\\cspro-open-source-libraries
+- [Third-Party Libraries](https://github.com/csprousers/cspro-libraries-third-party): C:\\code\\cspro-libraries-third-party
 - [Action Invoker (Android) Demo](https://github.com/csprousers/android-action-invoker-demo): C:\\code\\android-action-invoker-demo
 - [CSEntry Launcher (Android)](https://github.com/csprousers/android-csentry-launcher): C:\\code\\android-csentry-launcher
 

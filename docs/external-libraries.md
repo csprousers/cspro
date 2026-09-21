@@ -2,10 +2,12 @@
 
 This document details information about the external libraries used by CSPro.
 
-Some libraries are created using build scripts located in the [cspro-libraries-third-party](https://github.com/csprousers/cspro-libraries-third-party) repository.
-The built libraries are available in the [cspro-libraries](https://github.com/csprousers/cspro-libraries) repository.
+Some libraries are created using build scripts located in the [CSPro Third-Party Libraries](https://github.com/csprousers/cspro-libraries-third-party) repository.
+Prebuilt libraries, creating using CMake, are available to download as part of the repository's
+[release assets](https://github.com/csprousers/cspro-libraries-third-party/releases).
+These libraries, located in *third_party/prebuilt*, are linked to as static or dynamic libraries.
 
-Batch scripts to update many of the libraries are located here:
+Other libraries, primarily located in *third_party/sources*, are built as part of the CSPro solution. Batch scripts to update many of these libraries are located here:
 
 - *build-tools/Build External Libraries*
 
@@ -21,7 +23,7 @@ Batch scripts to update many of the libraries are located here:
 2. Incorporate any new code, if available, into the *cspro* branch: https://www.sourceware.org/bzip2/downloads.html
 3. Run the build script.
 4. This copies files into CSPro's *third_party/prebuilt* directory.
-5. The built libraries are also available in the *cspro-libraries* repository.
+5. Prebuilt libraries are available in the *cspro-libraries-third-party* repository.
 
 
 ### CHMLib
@@ -32,7 +34,7 @@ Batch scripts to update many of the libraries are located here:
 2. Confirm that there are no longer updates: https://github.com/jedwing/CHMLib
 3. Run the build script.
 4. This copies files into CSPro's *third_party/prebuilt* directory.
-5. The built libraries are also available in the *cspro-libraries* repository.
+5. Prebuilt libraries are available in the *cspro-libraries-third-party* repository.
 
 
 ### curl
@@ -44,7 +46,7 @@ Batch scripts to update many of the libraries are located here:
 3. Run the build script.
 4. This copies files into CSPro's *third_party/prebuilt* directory, including some that are not necessary.
 5. Remove anything that is not already committed.
-6. The built libraries are also available in the *cspro-libraries* repository.
+6. Prebuilt libraries are available in the *cspro-libraries-third-party* repository.
 
 
 ### EditorConfig
@@ -56,7 +58,7 @@ Batch scripts to update many of the libraries are located here:
 3. Run the build script.
 4. This copies files into CSPro's *third_party/prebuilt* directory, including some that are not necessary.
 5. Remove anything that is not already committed.
-6. The built libraries are also available in the *cspro-libraries* repository.
+6. Prebuilt libraries are available in the *cspro-libraries-third-party* repository.
 
 
 ### GPAC
@@ -68,7 +70,7 @@ Batch scripts to update many of the libraries are located here:
 3. Run the build script.
 4. This copies files into CSPro's *third_party/prebuilt* directory, including some that are not necessary.
 5. Remove anything that is not already committed.
-6. The built libraries are also available in the *cspro-libraries* repository.
+6. Prebuilt libraries are available in the *cspro-libraries-third-party* repository.
 
 
 ### gumbo-parser
@@ -79,7 +81,7 @@ Batch scripts to update many of the libraries are located here:
 2. Confirm that there are no longer updates: https://github.com/google/gumbo-parser
 3. Run the build script.
 4. This copies files into CSPro's *third_party/prebuilt* directory.
-5. The built libraries are also available in the *cspro-libraries* repository.
+5. Prebuilt libraries are available in the *cspro-libraries-third-party* repository.
 
 
 ### libexif
@@ -92,7 +94,7 @@ Batch scripts to update many of the libraries are located here:
 4. Run the build script.
 5. This copies files into CSPro's *third_party/prebuilt* directory, including some that are not necessary.
 6. Remove anything that is not already committed.
-7. The built libraries are also available in the *cspro-libraries* repository.
+7. Prebuilt libraries are available in the *cspro-libraries-third-party* repository.
 
 
 ### libgit2
@@ -103,7 +105,7 @@ Batch scripts to update many of the libraries are located here:
 2. Run the build script.
 3. This copies files into CSPro's *third_party/prebuilt* directory, including some that are not necessary.
 4. Remove anything that is not already committed.
-5. The built libraries are also available in the *cspro-libraries* repository.
+5. Prebuilt libraries are available in the *cspro-libraries-third-party* repository.
 
 
 ### libwebm
@@ -114,7 +116,7 @@ Batch scripts to update many of the libraries are located here:
 2. Run the build script.
 3. This copies files into CSPro's *third_party/prebuilt* directory, including some that are not necessary.
 4. Remove anything that is not already committed.
-5. The built libraries are also available in the *cspro-libraries* repository.
+5. Prebuilt libraries are available in the *cspro-libraries-third-party* repository.
 
 
 ### libwebp
@@ -125,7 +127,7 @@ Batch scripts to update many of the libraries are located here:
 2. Run the build script.
 3. This copies files into CSPro's *third_party/prebuilt* directory, including some that are not necessary.
 4. Remove anything that is not already committed.
-5. The built libraries are also available in the *cspro-libraries* repository.
+5. Prebuilt libraries are available in the *cspro-libraries-third-party* repository.
 
 
 ### libxlsxwriter
@@ -137,7 +139,7 @@ Batch scripts to update many of the libraries are located here:
 3. Run the build script.
 4. This copies files into CSPro's *third_party/prebuilt* directory, including some that are not necessary.
 5. Remove anything that is not already committed.
-6. The built libraries are also available in the *cspro-libraries* repository.
+6. Prebuilt libraries are available in the *cspro-libraries-third-party* repository.
 
 
 ### md4c
@@ -148,7 +150,7 @@ Batch scripts to update many of the libraries are located here:
 2. Merge the latest release into the *cspro* branch: https://github.com/mity/md4c/tags
 3. Run the build script.
 4. This copies files into CSPro's *third_party/prebuilt* directory.
-5. The built libraries are also available in the *cspro-libraries* repository.
+5. Prebuilt libraries are available in the *cspro-libraries-third-party* repository.
 
 
 ### miniz
@@ -159,7 +161,7 @@ Batch scripts to update many of the libraries are located here:
 2. Run the build script.
 3. This copies files into CSPro's *third_party/prebuilt* directory, including some that are not necessary.
 4. Remove anything that is not already committed.
-5. The built libraries are also available in the *cspro-libraries* repository.
+5. Prebuilt libraries are available in the *cspro-libraries-third-party* repository.
 
 
 ### pugixml
@@ -170,7 +172,7 @@ Batch scripts to update many of the libraries are located here:
 2. Run the build script.
 3. This copies files into CSPro's *third_party/prebuilt* directory, including some that are not necessary.
 4. Remove anything that is not already committed.
-5. The built libraries are also available in the *cspro-libraries* repository.
+5. Prebuilt libraries are available in the *cspro-libraries-third-party* repository.
 
 
 ### yaml-cpp
@@ -181,19 +183,19 @@ Batch scripts to update many of the libraries are located here:
 2. Run the build script.
 3. This copies files into CSPro's *third_party/prebuilt* directory, including some that are not necessary.
 4. Remove anything that is not already committed.
-5. The built libraries are also available in the *cspro-libraries* repository.
+5. Prebuilt libraries are available in the *cspro-libraries-third-party* repository.
 
 
 ### zlib
 
-*Current version: *1.3.2*
+*Current version: 1.3.2*
 
 1. Set the Git submodule to the latest release: https://github.com/madler/zlib/releases/latest
 2. Run the build script.
 3. This copies files into CSPro's *third_party/prebuilt* directory, including some that are not necessary.
 4. Remove anything that is not already committed.
 5. Different build configurations may result in different versions of *zconf.h*. Commit the Windows version.
-6. The built libraries are also available in the *cspro-libraries* repository.
+6. Prebuilt libraries are available in the *cspro-libraries-third-party* repository.
 
 
 
