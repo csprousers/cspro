@@ -1,18 +1,14 @@
 project(zXml)
 
-set(PUGIXML_DIRECTORY ${EXTERNAL_DIRECTORY}/pugixml)
-
 add_library(${PROJECT_NAME}
     SimpleXml.cpp
-
-    ${PUGIXML_DIRECTORY}/pugixml.cpp
 )
 
 target_precompile_headers(${PROJECT_NAME} PRIVATE
     StdAfx.h
 )
 
-set_source_files_properties(
-    ${PUGIXML_DIRECTORY}/pugixml.cpp
-    PROPERTIES SKIP_PRECOMPILE_HEADERS ON
+target_link_libraries(${PROJECT_NAME} PRIVATE
+    # pugixml
+    ${THIRD_PARTY_PREBUILT_LIB_DIR}/libpugixml${THIRD_PARTY_LIB_EXT}
 )

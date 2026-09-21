@@ -16,14 +16,10 @@
   <ItemDefinitionGroup>
     <ClCompile>
       <PreprocessorDefinitions>ZGIT_IMPL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>$(CSProDir)\external\libgit2\lib\$(PlatformTarget)\git2.lib</AdditionalDependencies>
+      <AdditionalDependencies>libgit2$(ThirdPartyBuildPostfix).lib;libz$(ThirdPartyBuildPostfix).lib;Secur32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
-    <PreBuildEvent>
-      <Command>xcopy /D /Y /F /R /S /I "$(CSProDir)external\libgit2\lib\$(PlatformTarget)\*.dll" "$(TargetDir)"</Command>
-    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="GitBlob.cpp" />
@@ -80,6 +76,11 @@
       <Project>{9b29cb57-8263-4e12-8908-cc9641fdf0dc}</Project>
       <Private>false</Private>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="$(ThirdPartyPrebuiltBinDir)libz$(ThirdPartyBuildPostfix).dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

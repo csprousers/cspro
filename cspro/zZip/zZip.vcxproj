@@ -17,20 +17,11 @@
     <ClCompile>
       <PreprocessorDefinitions>ZZIP_IMPL;_AFXEXT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
+    <Link>
+      <AdditionalDependencies>libminiz$(ThirdPartyBuildPostfix).lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\external\miniz\miniz.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\external\miniz\miniz_tdef.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\external\miniz\miniz_tinfl.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\external\miniz\miniz_zip.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-    </ClCompile>
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
@@ -39,7 +30,6 @@
     <ClCompile Include="ZLib.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\external\miniz\miniz.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="ZipException.h" />
     <ClInclude Include="ZipFile.h" />

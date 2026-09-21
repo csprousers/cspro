@@ -1,7 +1,7 @@
-﻿#pragma once
+#pragma once
 
 #include <zHtml/zHtml.h>
-#include <external/gumbo/gumbo.h>
+#include <gumbo-parser/gumbo.h>
 
 
 class ZHTML_API TagModifier

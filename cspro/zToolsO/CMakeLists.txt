@@ -1,9 +1,7 @@
 project(zToolsO)
 
-set(BZIP2_DIRECTORY ${EXTERNAL_DIRECTORY}/bzip2)
-set(MD4C_DIRECTORY ${EXTERNAL_DIRECTORY}/md4c)
-set(RIJNDAEL_DIRECTORY rijndael)
-set(SCRYPT_DIRECTORY ${EXTERNAL_DIRECTORY}/scrypt)
+set(RIJNDAEL_DIR rijndael)
+set(SCRYPT_DIR ${THIRD_PARTY_SOURCES_DIR}/scrypt)
 
 add_library(${PROJECT_NAME}
     base64.cpp
@@ -48,26 +46,17 @@ add_library(${PROJECT_NAME}
     VarFuncs.cpp
     $<$<BOOL:${WIN32}>:WinRegistry.cpp>
 
-    ${BZIP2_DIRECTORY}/blocksort.c
-    ${BZIP2_DIRECTORY}/bzlib.c
-    ${BZIP2_DIRECTORY}/compress.c
-    ${BZIP2_DIRECTORY}/crctable.c
-    ${BZIP2_DIRECTORY}/decompress.c
-    ${BZIP2_DIRECTORY}/huffman.c
-    ${BZIP2_DIRECTORY}/randtable.c
+    ${RIJNDAEL_DIR}/rijndael-alg-fst.c
 
-    ${MD4C_DIRECTORY}/entity.c
-
-    ${RIJNDAEL_DIRECTORY}/rijndael-alg-fst.c
-
-    ${SCRYPT_DIRECTORY}/insecure_memzero.c
-    ${SCRYPT_DIRECTORY}/sha256.c
-)
-
-target_include_directories(${PROJECT_NAME} PRIVATE
-    ${EXTERNAL_DIRECTORY}
+    ${SCRYPT_DIR}/insecure_memzero.c
+    ${SCRYPT_DIR}/sha256.c
 )
 
 target_precompile_headers(${PROJECT_NAME} PRIVATE
     "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/StdAfx.h>"
+)
+
+target_link_libraries(${PROJECT_NAME} PRIVATE
+    # bzip2
+    ${THIRD_PARTY_PREBUILT_LIB_DIR}/libbzip2${THIRD_PARTY_LIB_EXT}
 )

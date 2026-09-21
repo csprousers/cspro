@@ -78,8 +78,10 @@ void UpdateSQLiteDlg::OnOK()
         SQLiteSourceUpdater::Update(sqlite_c, false, SQLiteSourceUpdater::Version::SEE);
 
         // write them to the external sources directory
-        const std::string sqlite_directory = MakeFullPath(PortableFunctions::PathGetDirectory(__FILE__),
-                                                          "..\\..\\cspro\\external\\SQLite");
+        const std::string sqlite_directory = MakeFullPath(
+            PortableFunctions::PathGetDirectory(__FILE__),
+            R"(..\..\third_party\sources\sqlite)"
+        );
 
         FileIO::WriteText(Path::Combine(sqlite_directory, "sqlite3.h"), sqlite_h, true);
         FileIO::WriteText(Path::Combine(sqlite_directory, "sqlite3.c"), sqlite_c, true);

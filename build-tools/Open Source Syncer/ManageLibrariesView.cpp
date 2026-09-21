@@ -7,17 +7,19 @@ IMPLEMENT_DYNCREATE(ManageLibrariesView, CFormView)
 
 
 BEGIN_MESSAGE_MAP(ManageLibrariesView, CFormView)
-    ON_MESSAGE(UWM::OpenSourceSyncer::UpdateUI, OnUpdateLibraryIds)
-    ON_COMMAND(IDC_REFRESH_LIBRARY_IDS, OnRefreshLibraryIds)
-    ON_COMMAND(IDC_CREATE_BUILT_LIBRARY, OnCreateBuiltLibrary)
-    ON_COMMAND(IDC_PREVIEW_BUILT_LIBRARY, OnPreviewBuiltLibrary)
-    ON_COMMAND(IDC_VIEW_BUILT_LIBRARY_INPUTS, OnViewBuiltLibraryInputs)
+    ON_MESSAGE(UWM::OpenSourceSyncer::UpdateUI, OnUpdateLibrariesIds)
+    ON_COMMAND(IDC_REFRESH_LIBRARIES_IDS, OnRefreshLibrariesIds)
+    ON_COMMAND(IDC_VIEW_RELEASE, OnViewRelease)
+    ON_COMMAND(IDC_CREATE_LIBRARY_RELEASE, OnCreateLibraryRelease)
+    ON_COMMAND(IDC_VIEW_LIBRARY_INPUTS, OnViewLibraryInputs)
 END_MESSAGE_MAP()
 
 
 ManageLibrariesView::ManageLibrariesView()
     :   CFormView(IDD_MANAGE_LIBRARIES),
-        m_controller(Controller::GetInstance())
+        m_controller(Controller::GetInstance()),
+        m_releasesJsonText(m_controller.GetSettingsDb().ReadOrDefault<std::string>(SettingsKeys::ThirdPartyLibrariesGitHubReleases_sv)),
+        m_librariesIdRegex(R"(Libraries ID: \*?([[:xdigit:]]+))")
 {
 }
 
@@ -28,9 +30,9 @@ void ManageLibrariesView::OnInitialUpdate()
 
     ResizeParentToFit(FALSE);
 
-    m_libraryIdsListCtrl.SetExtendedStyle(LVS_EX_FULLROWSELECT);
-    m_libraryIdsListCtrl.SetHeadings(L"Tag Name,130;Library ID,210;Local Hash,210");
-    m_libraryIdsListCtrl.LoadColumnInfo();
+    m_librariesIdsListCtrl.SetExtendedStyle(LVS_EX_FULLROWSELECT);
+    m_librariesIdsListCtrl.SetHeadings(L"Tag Name,150;Libraries ID,400;Assets,45;");
+    m_librariesIdsListCtrl.LoadColumnInfo();
 
     PostMessage(UWM::OpenSourceSyncer::UpdateUI);
 }
@@ -40,94 +42,150 @@ void ManageLibrariesView::DoDataExchange(CDataExchange* const pDX)
 {
     __super::DoDataExchange(pDX);
 
-    DDX_Control(pDX, IDC_LIBRARY_IDS, m_libraryIdsListCtrl);
-    DDX_Text(pDX, IDC_COMMIT, m_commit, true);
+    DDX_Control(pDX, IDC_LIBRARIES_IDS, m_librariesIdsListCtrl);
 }
 
 
-LRESULT ManageLibrariesView::OnUpdateLibraryIds(WPARAM /*wParam*/, LPARAM /*lParam*/)
+LRESULT ManageLibrariesView::OnUpdateLibrariesIds(WPARAM /*wParam*/, LPARAM /*lParam*/)
 {
-    m_libraryIdsListCtrl.DeleteAllItems();
+    m_librariesIdsListCtrl.DeleteAllItems();
 
-    const std::shared_ptr<const std::vector<LibraryManager::Build>> builds = m_controller.GetLibraryManager().GetBuilds();
-    ASSERT(builds != nullptr);
-
-    for( const LibraryManager::Build& build : *builds )
+    try
     {
-        m_libraryIdsListCtrl.AddItem(
-            TC::ToWide(build.tag_name).c_str(),
-            TC::ToWide(build.library_id).c_str(),
-            TC::ToWide(build.local_hash).c_str()
+        LibraryManager& library_manager = m_controller.GetLibraryManager();
+
+        const std::string cfwd_libraries_id = library_manager.GetLibrariesId(LibraryManager::LibrariesIdType::CalculatedFromWorkingDirectory);
+        const std::string ilj_libraries_id = library_manager.GetLibrariesId(LibraryManager::LibrariesIdType::InLibrariesJson);
+
+        if( cfwd_libraries_id != ilj_libraries_id )
+        {
+            m_librariesIdsListCtrl.AddItem(
+                L"<current working directory>",
+                TC::ToWide(cfwd_libraries_id).c_str(),
+                L""
+            );
+        }
+
+        m_librariesIdsListCtrl.AddItem(
+            L"<current libraries.json>",
+            TC::ToWide(ilj_libraries_id).c_str(),
+            L""
         );
+
+        if( m_releasesJsonText.empty() )
+            return 1;
+
+        const std::vector<GitHubRelease> releases = Json::Parse(m_releasesJsonText).GetArray().GetVector<GitHubRelease>();
+
+        for( const GitHubRelease& release : releases )
+        {
+            ASSERT(release.tag_name == release.name);
+
+            m_librariesIdsListCtrl.AddItem(
+                TC::ToWide(release.tag_name).c_str(),
+                TC::ToWide(GetLibrariesIdFromReleaseNotes(release.release_notes)).c_str(),
+                TC::ToWide(IntToString(release.assets_count)).c_str()
+            );
+        }
+    }
+
+    catch( const CSProException& exception )
+    {
+        ErrorMessage::Display(exception);
     }
 
     return 1;
 }
 
 
-void ManageLibrariesView::OnRefreshLibraryIds()
+std::string ManageLibrariesView::GetLibrariesIdFromReleaseNotes(const std::string& release_notes) const
+{
+    std::smatch matches;
+
+    if( std::regex_search(release_notes, matches, m_librariesIdRegex) )
+        return matches.str(1);
+
+    throw ProgrammingErrorException();
+}
+
+
+void ManageLibrariesView::OnRefreshLibrariesIds()
+{
+    m_controller.RunOperation(GetParentFrame(),
+        [this](Controller& /*controller*/)
+        {
+            RefreshLibrariesIds();
+        });
+}
+
+
+void ManageLibrariesView::RefreshLibrariesIds()
+{
+    LibraryManager& library_manager = m_controller.GetLibraryManager();
+    GitHubRepositoryConnection& gh_connection = library_manager.GetThirdPartyLibrariesGitHubRepositoryConnection();
+
+    m_controller.LogText("Refreshing the libraries IDs from GitHub.");
+
+    m_releasesJsonText = gh_connection.GetReleases<std::string>();
+    m_controller.GetSettingsDb().Write(SettingsKeys::ThirdPartyLibrariesGitHubReleases_sv, m_releasesJsonText);
+
+    PostMessage(UWM::OpenSourceSyncer::UpdateUI);
+}
+
+
+void ManageLibrariesView::OnViewRelease()
+{
+    try
+    {
+        const int index = m_librariesIdsListCtrl.GetSelectionMark();
+        std::string tag_name;
+
+        if( index >= 0 && m_librariesIdsListCtrl.GetSelectedCount() == 1 )
+        {
+            // the assets are only set for valid releases
+            if( !m_librariesIdsListCtrl.GetItemText(index, 2).IsEmpty() )
+                tag_name = TC::ToUtf8(m_librariesIdsListCtrl.GetItemText(index, 0));
+        }
+
+        if( tag_name.empty() )
+            throw CSProException("Select a release.");
+
+        Viewer().ViewHtmlUrl(
+            "https://github.com/csprousers/cspro-libraries-third-party/releases/tag/" + tag_name
+        );
+    }
+
+    catch( const CSProException& exception )
+    {
+        ErrorMessage::Display(exception);
+    }
+}
+
+
+void ManageLibrariesView::OnCreateLibraryRelease()
 {
     m_controller.RunOperation(GetParentFrame(),
         [this](Controller& controller)
         {
             LibraryManager& library_manager = controller.GetLibraryManager();
-            library_manager.RefreshBuildsFromTags();
+            library_manager.CreateLibraryRelease();
 
-            PostMessage(UWM::OpenSourceSyncer::UpdateUI);
+            RefreshLibrariesIds();
         });
 }
 
 
-void ManageLibrariesView::OnBuiltLibraryAction(const bool create)
-{
-    UpdateData(TRUE);
-
-    m_controller.RunOperation(GetParentFrame(),
-        [this, commit_sha = m_commit, create](Controller& controller)
-        {
-            LibraryManager& library_manager = controller.GetLibraryManager();
-            GitRepository& private_repo = controller.GetPrivateRepo();
-
-            const GitCommit cs_commit = commit_sha.empty() ? private_repo.LookupCommit(private_repo.GetCurrentBranch()) :
-                                                             private_repo.LookupCommit(commit_sha);
-
-            controller.LogText("Generating built library information for: " + cs_commit.GetObjectId().GetHexHash());
-
-            const std::vector<LibraryManager::Input> inputs = library_manager.GetInputs(cs_commit);
-            const std::string library_id = library_manager.CalculateCacheKey(inputs, false);
-            const std::string local_cache_key = library_manager.CalculateCacheKey(inputs, true);
-
-            controller.LogText("There are %zu files included in the built library.", inputs.size());
-            controller.LogText("Library ID: " + library_id);
-            controller.LogText("Local cache key: " + local_cache_key);
-
-            if( create )
-            {
-                library_manager.CreateAndCommitBuild(cs_commit);
-                PostMessage(UWM::OpenSourceSyncer::UpdateUI);
-            }
-        });
-}
-
-
-void ManageLibrariesView::OnViewBuiltLibraryInputs()
+void ManageLibrariesView::OnViewLibraryInputs()
 {
     m_controller.RunOperation(GetParentFrame(),
         [](Controller& controller)
         {
             LibraryManager& library_manager = controller.GetLibraryManager();
-            std::vector<RepoFilePath> inputs = library_manager.GetInputs();
+            const std::set<std::string> file_paths = library_manager.GetThirdPartyFilePaths();
 
-            controller.LogText("There are %zu files included in the built library:\n", inputs.size());
+            controller.LogText("There are %zu files included in the library:\n", file_paths.size());
 
-            // write out the paths in file path order
-            std::sort(inputs.begin(), inputs.end(),
-                [](const RepoFilePath& rfp1, const RepoFilePath& rfp2)
-                {
-                    return ( rfp1.file_path < rfp2.file_path );
-                });
-
-            for( const RepoFilePath& input : inputs )
-                controller.LogText(input.file_path);
+            for( const std::string& file_path : file_paths )
+                controller.LogText(file_path);
         });
 }

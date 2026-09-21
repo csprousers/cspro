@@ -7,7 +7,7 @@ cd temp\httplib
 
 
 rem ... find the latest version number here: https://github.com/yhirose/cpp-httplib/releases/latest/
-set httplib_version=0.30.1
+set httplib_version=0.54.1
 
 
 rem ... get the latest version
@@ -16,7 +16,7 @@ tar -xvzf httplib.tar.gz
 
 
 rem ... copy files to be used by CSPro
-copy /y cpp-httplib-%httplib_version%\httplib.h ..\..\..\..\cspro\external\cpp-httplib\
+copy /y cpp-httplib-%httplib_version%\httplib.h ..\..\..\..\third_party\sources\cpp-httplib\
 
 
 rem ... update the license

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zJson/zJson.h>
 #include <zJson/JsonNode.h>
@@ -55,7 +55,7 @@ namespace Json
 
 class ZJSON_API JsonObjectCreator
 {
-    using BasicJson = jsoncons::basic_json<char, jsoncons::order_preserving_policy, std::allocator<char>>;
+    using BasicJson = jsoncons::basic_json<char, jsoncons::ordered_policy, std::allocator<char>>;
 
 public:
     JsonObjectCreator();
@@ -76,7 +76,7 @@ private:
 
 class ZJSON_API JsonNodeCreator
 {
-    using BasicJson = jsoncons::basic_json<char, jsoncons::order_preserving_policy, std::allocator<char>>;
+    using BasicJson = jsoncons::basic_json<char, jsoncons::ordered_policy, std::allocator<char>>;
 
 public:
     static JsonNode Null();

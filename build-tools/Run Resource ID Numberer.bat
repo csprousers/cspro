@@ -6,4 +6,4 @@ set msbuild="C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Curre
 
 :start
 %msbuild% build-tools.sln /p:Configuration=Debug /p:Platform=x64 /target:"Resource ID Numberer"
-"build\x64\Debug\bin\Resource ID Numberer.exe" "Resource ID Numberer\Resource File IDs.json"
+"..\build\x64\Debug\bin\Resource ID Numberer.exe" "Resource ID Numberer\Resource File IDs.json"

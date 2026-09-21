@@ -1,7 +1,7 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "ChmFileReader.h"
 #include <zToolsO/Utf8.h>
-#include <external/CHMLib/chm_lib.h>
+#include <chm/chm_lib.h>
 
 
 ChmFileReader::ChmFileReader(const std::string& help_file_path)

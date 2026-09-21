@@ -6,7 +6,7 @@
 extern "C"
 {
 #include "md5.h"
-#include <external/scrypt/sha256.h>
+#include <scrypt/sha256.h>
 }
 
 

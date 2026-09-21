@@ -13,44 +13,11 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Gumbo">
-      <UniqueIdentifier>{8453f4ab-3a65-452b-bdec-ea327f9e28c1}</UniqueIdentifier>
+    <Filter Include="Dependencies">
+      <UniqueIdentifier>{5e5b9559-0261-4564-b6ef-647193e09503}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\external\gumbo\attribute.c">
-      <Filter>Gumbo</Filter>
-    </ClCompile>
-    <ClCompile Include="..\external\gumbo\char_ref.c">
-      <Filter>Gumbo</Filter>
-    </ClCompile>
-    <ClCompile Include="..\external\gumbo\error.c">
-      <Filter>Gumbo</Filter>
-    </ClCompile>
-    <ClCompile Include="..\external\gumbo\parser.c">
-      <Filter>Gumbo</Filter>
-    </ClCompile>
-    <ClCompile Include="..\external\gumbo\string_buffer.c">
-      <Filter>Gumbo</Filter>
-    </ClCompile>
-    <ClCompile Include="..\external\gumbo\string_piece.c">
-      <Filter>Gumbo</Filter>
-    </ClCompile>
-    <ClCompile Include="..\external\gumbo\tag.c">
-      <Filter>Gumbo</Filter>
-    </ClCompile>
-    <ClCompile Include="..\external\gumbo\tokenizer.c">
-      <Filter>Gumbo</Filter>
-    </ClCompile>
-    <ClCompile Include="..\external\gumbo\utf8.c">
-      <Filter>Gumbo</Filter>
-    </ClCompile>
-    <ClCompile Include="..\external\gumbo\util.c">
-      <Filter>Gumbo</Filter>
-    </ClCompile>
-    <ClCompile Include="..\external\gumbo\vector.c">
-      <Filter>Gumbo</Filter>
-    </ClCompile>
     <ClCompile Include="AccessUrlSerializer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -277,6 +244,11 @@
     <ResourceCompile Include="zHtml.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="$(ThirdPartyPrebuiltBinDir)libmd4c$(ThirdPartyBuildPostfix).dll">
+      <Filter>Dependencies</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

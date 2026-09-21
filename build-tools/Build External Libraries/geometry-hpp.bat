@@ -19,8 +19,8 @@ tar -xvzf variant.tar.gz
 
 
 rem ... copy files to be used by CSPro
-xcopy .\geometry.hpp-%geohpp_version%\include ..\..\..\..\cspro\external\geometry.hpp\include /i /k /e /y
-xcopy .\variant-master\include ..\..\..\..\cspro\external\variant\include /i /k /e /y
+xcopy .\geometry.hpp-%geohpp_version%\include\mapbox ..\..\..\..\third_party\sources\mapbox /i /k /e /y
+xcopy .\variant-master\include\mapbox ..\..\..\..\third_party\sources\mapbox /i /k /e /y
 
 
 rem ... update the license

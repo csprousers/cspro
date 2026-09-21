@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "GeoJson.h"
-#include <external/jsoncons/json.hpp>
-#include <external/jsoncons/json_cursor.hpp>
+#include <jsoncons/json.hpp>
+#include <jsoncons/json_cursor.hpp>
 
 #pragma warning(push)
 #pragma warning(disable: 4068 4239)

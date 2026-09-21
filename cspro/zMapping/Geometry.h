@@ -1,8 +1,8 @@
-﻿#pragma once
+#pragma once
 
 // Forward declarations of the Mapbox geometry templates.
 // If you actually use the classes in a cpp file
-// include them <external/mapbox/...>
+// include them <mapbox/...>
 
 namespace mapbox
 {

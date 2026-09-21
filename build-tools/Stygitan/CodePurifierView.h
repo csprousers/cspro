@@ -1,7 +1,8 @@
-﻿#pragma once
+#pragma once
 
 #include <Stygitan/CodePurifierDoc.h>
 #include <zUtilF/SortListCtrl.h>
+#include <afxmenubutton.h>
 
 
 class CodePurifierView : public CFormView
@@ -52,6 +53,10 @@ protected:
     void OnModifiedFileCopyPath();
     void OnModifiedFileDiff();
 
+    void OnModifiedFilesAction();
+    void OnModifiedFilesStageTracked();
+    void OnModifiedFilesRemoveWorker(UINT nID);
+
 private:
     const CodePurifierDoc& GetDoc() const { return *assert_cast<const CodePurifierDoc*>(GetDocument()); }
     CodePurifierDoc& GetDoc()             { return *assert_cast<CodePurifierDoc*>(GetDocument()); }
@@ -73,6 +78,8 @@ private:
     bool m_applyEditorConfigRulesBeforeReset;
     CSortListCtrl m_commitsListCtrl;
     CSortListCtrl m_modifiedFilesListCtrl;
+    CMenu m_modifiedFilesMenu;
+    CMFCMenuButton m_modifiedFilesActionsButton;
 
     std::shared_ptr<const std::vector<GitCommit>> m_recentCommits;
     int m_cleanCommitIndex;

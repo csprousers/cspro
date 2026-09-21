@@ -1,6 +1,6 @@
 project(zJavaScript)
 
-set(QUICKJS_DIRECTORY ${EXTERNAL_DIRECTORY}/QuickJS)
+set(QUICKJS_DIR ${THIRD_PARTY_SOURCES_DIR}/quickjs)
 
 add_library(${PROJECT_NAME}
     ActionInvokerJS.cpp
@@ -9,11 +9,11 @@ add_library(${PROJECT_NAME}
     Value.cpp
     VariablePropertyNameEvaluator.cpp
 
-    ${QUICKJS_DIRECTORY}/cutils.c
-    ${QUICKJS_DIRECTORY}/dtoa.c
-    ${QUICKJS_DIRECTORY}/libregexp.c
-    ${QUICKJS_DIRECTORY}/libunicode.c
-    ${QUICKJS_DIRECTORY}/quickjs.c
+    ${QUICKJS_DIR}/cutils.c
+    ${QUICKJS_DIR}/dtoa.c
+    ${QUICKJS_DIR}/libregexp.c
+    ${QUICKJS_DIR}/libunicode.c
+    ${QUICKJS_DIR}/quickjs.c
 )
 
 # QuickJS requires compiling code with features from latest C working draft

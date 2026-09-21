@@ -12,9 +12,9 @@ tar -xvzf librdata.tar.gz
 
 
 rem ... copy files to be used by CSPro
-copy /y librdata-master\src\rdata*.* ..\..\..\..\cspro\external\librdata\
-del ..\..\..\..\cspro\external\librdata\rdata_bits.c
-del ..\..\..\..\cspro\external\librdata\rdata_read.c
+copy /y librdata-master\src\rdata*.* ..\..\..\..\third_party\sources\librdata\
+del ..\..\..\..\third_party\sources\librdata\rdata_bits.c
+del ..\..\..\..\third_party\sources\librdata\rdata_read.c
 
 
 rem ... update the license

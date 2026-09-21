@@ -1,53 +1,17 @@
 project(zExcelO)
 
-set(LIBXLSXWRITER_DIRECTORY ${EXTERNAL_DIRECTORY}/libxlsxwriter)
-
 add_library(${PROJECT_NAME}
     ExcelWriter.cpp
-
-    ${LIBXLSXWRITER_DIRECTORY}/src/app.c
-    ${LIBXLSXWRITER_DIRECTORY}/src/chart.c
-    ${LIBXLSXWRITER_DIRECTORY}/src/chartsheet.c
-    ${LIBXLSXWRITER_DIRECTORY}/src/comment.c
-    ${LIBXLSXWRITER_DIRECTORY}/src/content_types.c
-    ${LIBXLSXWRITER_DIRECTORY}/src/core.c
-    ${LIBXLSXWRITER_DIRECTORY}/src/custom.c
-    ${LIBXLSXWRITER_DIRECTORY}/src/drawing.c
-    ${LIBXLSXWRITER_DIRECTORY}/src/format.c
-    ${LIBXLSXWRITER_DIRECTORY}/src/hash_table.c
-    ${LIBXLSXWRITER_DIRECTORY}/src/metadata.c
-    ${LIBXLSXWRITER_DIRECTORY}/src/packager.c
-    ${LIBXLSXWRITER_DIRECTORY}/src/relationships.c
-    ${LIBXLSXWRITER_DIRECTORY}/src/rich_value.c
-    ${LIBXLSXWRITER_DIRECTORY}/src/rich_value_rel.c
-    ${LIBXLSXWRITER_DIRECTORY}/src/rich_value_structure.c
-    ${LIBXLSXWRITER_DIRECTORY}/src/rich_value_types.c
-    ${LIBXLSXWRITER_DIRECTORY}/src/shared_strings.c
-    ${LIBXLSXWRITER_DIRECTORY}/src/styles.c
-    ${LIBXLSXWRITER_DIRECTORY}/src/table.c
-    ${LIBXLSXWRITER_DIRECTORY}/src/theme.c
-    ${LIBXLSXWRITER_DIRECTORY}/src/utility.c
-    ${LIBXLSXWRITER_DIRECTORY}/src/vml.c
-    ${LIBXLSXWRITER_DIRECTORY}/src/workbook.c
-    ${LIBXLSXWRITER_DIRECTORY}/src/worksheet.c
-    ${LIBXLSXWRITER_DIRECTORY}/src/xmlwriter.c
-    ${LIBXLSXWRITER_DIRECTORY}/third_party/md5/md5.c
-    ${LIBXLSXWRITER_DIRECTORY}/third_party/minizip/ioapi.c
-    $<$<BOOL:${WIN32}>:${LIBXLSXWRITER_DIRECTORY}/third_party/minizip/iowin32.c>
-    ${LIBXLSXWRITER_DIRECTORY}/third_party/minizip/zip.c
-    ${LIBXLSXWRITER_DIRECTORY}/third_party/tmpfileplus/tmpfileplus.c
-)
-
-target_compile_definitions(${PROJECT_NAME} PRIVATE
-    $<$<NOT:$<BOOL:${WIN32}>>:IOAPI_NO_64>
-    NOUNCRYPT
-)
-
-target_include_directories(${PROJECT_NAME} PRIVATE
-    ${LIBXLSXWRITER_DIRECTORY}/include
-    ${EXTERNAL_DIRECTORY}/zlib
 )
 
 target_precompile_headers(${PROJECT_NAME} PRIVATE
-    "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/stdafx.h>"
+    stdafx.h
+)
+
+target_link_libraries(${PROJECT_NAME} PRIVATE
+    # libxlsxwriter
+    ${THIRD_PARTY_PREBUILT_LIB_DIR}/libxlsxwriter${THIRD_PARTY_LIB_EXT}
+
+    # zlib
+    ${THIRD_PARTY_PREBUILT_LIB_DIR}/libz${THIRD_PARTY_LIB_EXT}
 )

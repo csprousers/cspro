@@ -1,5 +1,6 @@
 #include "StdAfx.h"
 #include "GitRevisionWalker.h"
+#include "GitDiff.h"
 
 
 GitRevisionWalker::GitRevisionWalker(GitRepository& repo)
@@ -90,15 +91,55 @@ void GitRevisionWalker::Walk(const GitCommit& start_commit, const GitCommit& end
 }
 
 
-void GitRevisionWalker::Walk(const GitCommit& start_commit, const GitCommit& end_commit, const std::function<void(GitCommit)>& callback_function)
+void GitRevisionWalker::Walk(const GitCommit& start_commit, const GitCommit& end_commit,
+                             const std::function<void(GitCommit)>& callback_function)
 {
     Walk(start_commit, end_commit, 0, callback_function);
 }
 
 
-void GitRevisionWalker::ReverseWalk(const GitCommit& start_commit, const GitCommit& end_commit, const std::function<void(GitCommit)>& callback_function)
+void GitRevisionWalker::ReverseWalk(const GitCommit& start_commit, const GitCommit& end_commit,
+                                    const std::function<void(GitCommit)>& callback_function)
 {
     Walk(start_commit, end_commit, GIT_SORT_REVERSE, callback_function);
+}
+
+
+void GitRevisionWalker::WalkFileRevisions(const cs::string_sz path, const GitCommit& start_commit,
+                                          const std::function<bool(GitCommit)>& callback_function)
+{
+    git_diff_options diff_opts = GIT_DIFF_OPTIONS_INIT;
+    char* paths[] = { const_cast<char*>(path.c_str()) };
+    diff_opts.pathspec.strings = paths;
+    diff_opts.pathspec.count = 1;
+
+    std::optional<GitCommit> current_commit;
+    std::optional<GitTree> current_tree;
+
+    Walk(start_commit,
+        [&](GitCommit parent_commit)
+        {
+            GitTree parent_tree = parent_commit.GetTree();
+
+            // only check for differences when processing the second commit
+            ASSERT(current_commit.has_value() || start_commit == parent_commit);
+
+            if( current_commit.has_value() )
+            {
+                const GitDiff diff = m_repo.GetDifference(parent_tree, *current_tree, diff_opts);
+
+                if( diff.GetNumberDeltas() > 0 &&
+                    !callback_function(std::move(*current_commit)) )
+                {
+                    return false;
+                }
+            }
+
+            current_commit = std::move(parent_commit);
+            current_tree = std::move(parent_tree);
+
+            return true;
+        });
 }
 
 

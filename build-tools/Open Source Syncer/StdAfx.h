@@ -4,12 +4,14 @@
 #include <StandardIncludes/strict_errors.h>
 
 #include "Controller.h"
+#include "GitHubConnection.h"
 #include "resource.h"
 #include "SettingsKeys.h"
 #include "UWM.h"
 #include <zToolsO/FileIO.h>
 #include <zToolsO/Utf8.h>
 #include <zUtilO/Interapp.h>
+#include <zUtilO/TemporaryFile.h>
 #include <zUtilO/Viewers.h>
 #include <zUtilO/WindowHelpers.h>
 #include <zUtilO/WindowsUtf8.h>
@@ -25,4 +27,4 @@
 #include <regex>
 
 #define GIT_DEPRECATE_HARD
-#include <external/libgit2/include/git2.h>
+#include <git2/git2.h>

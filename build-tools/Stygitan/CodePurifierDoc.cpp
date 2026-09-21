@@ -4,6 +4,7 @@
 #include <zGit/GitBlob.h>
 #include <zGit/GitIndex.h>
 #include <zGit/GitTree.h>
+#include <git2/git2/status.h>
 #include <regex>
 
 
@@ -736,4 +737,94 @@ void CodePurifierDoc::CreateTemporaryCommit(const bool staged_only)
 
             return std::nullopt;
         });
+}
+
+
+size_t CodePurifierDoc::StageTrackedFiles()
+{
+    StopRefreshDataThread(ThreadStopType::Wait);
+
+    std::vector<std::string> modified_file_paths;
+
+    m_repo.ForeachStatusInWorkingDirectory(
+        [&](std::string path, const unsigned int status_flags)
+        {
+            if( ( status_flags & GIT_STATUS_WT_MODIFIED ) != 0 )
+                modified_file_paths.emplace_back(std::move(path));
+        });
+
+    if( !modified_file_paths.empty() )
+    {
+        GitIndex index = m_repo.GetUpdatedIndex();
+
+        for( const std::string& file_path : modified_file_paths )
+            index.AddEntrybyPath(file_path);
+
+        index.Write();
+    }
+
+    return modified_file_paths.size();
+}
+
+
+std::vector<std::string> CodePurifierDoc::GetUntrackedFiles()
+{
+    StopRefreshDataThread(ThreadStopType::Wait);
+
+    std::vector<std::string> untracked_file_paths;
+
+    m_repo.ForeachStatusInWorkingDirectory(
+        [&](std::string path, const unsigned int status_flags)
+        {
+            if( ( status_flags & GIT_STATUS_WT_NEW ) != 0 )
+            {
+                untracked_file_paths.emplace_back(
+                    Path::Combine(m_repoWorkingDirectory, Path::ToNativeSlash(std::move(path)))
+                );
+            }
+        });
+
+    return untracked_file_paths;
+}
+
+
+std::vector<std::string> CodePurifierDoc::GetEmptyDirectories() const
+{
+    DirectoryLister directory_lister(false, true, true);
+    std::vector<std::string> empty_directories;
+
+    const std::function<bool (const std::string&)> process_directory =
+        [&](const std::string& directory)
+        {
+            bool directory_can_be_deleted = true;
+
+            directory_lister.ForeachPath(directory,
+                [&](const std::string& path)
+                {
+                    ASSERT(!path.empty());
+                    const bool is_directory = Path::IsSlashChar(path.back());
+
+                    if( is_directory )
+                    {
+                        if( !process_directory(path) )
+                            directory_can_be_deleted = false;
+                    }
+
+                    else
+                    {
+                        directory_can_be_deleted = false;
+                    }
+
+                    return true;
+                });
+
+            if( directory_can_be_deleted )
+                empty_directories.emplace_back(directory);
+
+            return directory_can_be_deleted;
+        };
+
+    process_directory(m_repoWorkingDirectory);
+
+    return empty_directories;
 }

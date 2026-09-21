@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "SimpleServer.h"
 #include "LocalhostUrl.h"
-#include <external/cpp-httplib/httplib.h>
+#include <cpp-httplib/httplib.h>
 #include <thread>
 
 

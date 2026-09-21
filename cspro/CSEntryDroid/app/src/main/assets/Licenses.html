@@ -3260,7 +3260,7 @@
     <p class="license">
         COPYRIGHT AND PERMISSION NOTICE<br>
         <br>
-        Copyright (C) Daniel Stenberg, &lt;daniel@haxx.se&gt;, and many<br>
+        Copyright (c) 1996 - 2026, Daniel Stenberg, &lt;daniel@haxx.se&gt;, and many<br>
         contributors, see the THANKS file.<br>
         <br>
         All rights reserved.<br>
@@ -3811,7 +3811,7 @@
         <br>
         ----------------------------------------------------------------------<br>
         <br>
-        &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; LINKING EXCEPTION<br>
+        &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; LINKING EXCEPTION<br>
         <br>
         &nbsp;In addition to the permissions in the GNU General Public License,<br>
         &nbsp;the authors give you unlimited permission to link the compiled<br>
@@ -3824,15 +3824,15 @@
         <br>
         ----------------------------------------------------------------------<br>
         <br>
-        &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; GNU GENERAL PUBLIC LICENSE<br>
-        &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;Version 2, June 1991<br>
+        &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; GNU GENERAL PUBLIC LICENSE<br>
+        &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;Version 2, June 1991<br>
         <br>
         &nbsp;Copyright (C) 1989, 1991 Free Software Foundation, Inc.<br>
         &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;59 Temple Place, Suite 330, Boston, MA &nbsp;02111-1307 &nbsp;USA<br>
         &nbsp;Everyone is permitted to copy and distribute verbatim copies<br>
         &nbsp;of this license document, but changing it is not allowed.<br>
         <br>
-        &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; Preamble<br>
+        &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; Preamble<br>
         <br>
         &nbsp; The licenses for most software are designed to take away your<br>
         freedom to share and change it. &nbsp;By contrast, the GNU General Public<br>
@@ -3882,7 +3882,7 @@
         &nbsp; The precise terms and conditions for copying, distribution and<br>
         modification follow.<br>
         <br>
-        &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; GNU GENERAL PUBLIC LICENSE<br>
+        &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; GNU GENERAL PUBLIC LICENSE<br>
         &nbsp; &nbsp;TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION<br>
         <br>
         &nbsp; 0. This License applies to any program or other work which contains<br>
@@ -4081,7 +4081,7 @@
         of preserving the free status of all derivatives of our free software and<br>
         of promoting the sharing and reuse of software generally.<br>
         <br>
-        &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; NO WARRANTY<br>
+        &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; NO WARRANTY<br>
         <br>
         &nbsp; 11. BECAUSE THE PROGRAM IS LICENSED FREE OF CHARGE, THERE IS NO WARRANTY<br>
         FOR THE PROGRAM, TO THE EXTENT PERMITTED BY APPLICABLE LAW. &nbsp;EXCEPT WHEN<br>
@@ -4103,9 +4103,9 @@
         PROGRAMS), EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE<br>
         POSSIBILITY OF SUCH DAMAGES.<br>
         <br>
-        &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;END OF TERMS AND CONDITIONS<br>
+        &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;END OF TERMS AND CONDITIONS<br>
         <br>
-        &nbsp; &nbsp; &nbsp; &nbsp; How to Apply These Terms to Your New Programs<br>
+        &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; How to Apply These Terms to Your New Programs<br>
         <br>
         &nbsp; If you develop a new program, and you want it to be of the greatest<br>
         possible use to the public, the best way to achieve this is to make it<br>
@@ -4210,23 +4210,85 @@
         <br>
         ----------------------------------------------------------------------<br>
         <br>
-        The bundled PCRE implementation (deps/pcre/) is licensed under the BSD<br>
-        license.<br>
+        The bundled PCRE implementation (deps/pcre2/) is licensed under the<br>
+        PCRE2 Licence.<br>
+        <br>
+        PCRE2 is a library of functions to support regular expressions whose syntax<br>
+        and semantics are as close as possible to those of the Perl 5 language.<br>
+        <br>
+        Releases 10.00 and above of PCRE2 are distributed under the terms of the "BSD"<br>
+        licence, as specified below, with one exemption for certain binary<br>
+        redistributions. The documentation for PCRE2, supplied in the "doc" directory,<br>
+        is distributed under the same terms as the software itself. The data in the<br>
+        testdata directory is not copyrighted and is in the public domain.<br>
+        <br>
+        The basic library functions are written in C and are freestanding. Also<br>
+        included in the distribution is a just-in-time compiler that can be used to<br>
+        optimize pattern matching. This is an optional feature that can be omitted when<br>
+        the library is built. The just-in-time compiler is separately licensed under the<br>
+        "2-clause BSD" licence.<br>
+        <br>
+        <br>
+        COPYRIGHT<br>
+        ---------<br>
+        <br>
+        ### The basic library functions<br>
+        <br>
+        &nbsp; &nbsp; Written by: &nbsp; &nbsp; &nbsp; Philip Hazel<br>
+        &nbsp; &nbsp; Email local part: Philip.Hazel<br>
+        &nbsp; &nbsp; Email domain: &nbsp; &nbsp; gmail.com<br>
+        <br>
+        &nbsp; &nbsp; Retired from University of Cambridge Computing Service,<br>
+        &nbsp; &nbsp; Cambridge, England.<br>
+        <br>
+        &nbsp; &nbsp; Copyright (c) 1997-2007 University of Cambridge<br>
+        &nbsp; &nbsp; Copyright (c) 2007-2024 Philip Hazel<br>
+        &nbsp; &nbsp; All rights reserved.<br>
+        <br>
+        ### PCRE2 Just-In-Time compilation support<br>
+        <br>
+        &nbsp; &nbsp; Written by: &nbsp; &nbsp; &nbsp; Zoltan Herczeg<br>
+        &nbsp; &nbsp; Email local part: hzmester<br>
+        &nbsp; &nbsp; Email domain: &nbsp; &nbsp; freemail.hu<br>
+        <br>
+        &nbsp; &nbsp; Copyright (c) 2010-2024 Zoltan Herczeg<br>
+        &nbsp; &nbsp; All rights reserved.<br>
+        <br>
+        ### Stack-less Just-In-Time compiler<br>
+        <br>
+        &nbsp; &nbsp; Written by: &nbsp; &nbsp; &nbsp; Zoltan Herczeg<br>
+        &nbsp; &nbsp; Email local part: hzmester<br>
+        &nbsp; &nbsp; Email domain: &nbsp; &nbsp; freemail.hu<br>
+        <br>
+        &nbsp; &nbsp; Copyright (c) 2009-2024 Zoltan Herczeg<br>
+        &nbsp; &nbsp; All rights reserved.<br>
+        <br>
+        The code in the `deps/sljit` directory has its own LICENSE file.<br>
+        <br>
+        ### All other contributions<br>
+        <br>
+        Many other contributors have participated in the authorship of PCRE2. As PCRE2<br>
+        has never required a Contributor Licensing Agreement, or other copyright<br>
+        assignment agreement, all contributions have copyright retained by each<br>
+        original contributor or their employer.<br>
+        <br>
+        <br>
+        THE "BSD" LICENCE<br>
+        -----------------<br>
         <br>
         Redistribution and use in source and binary forms, with or without<br>
         modification, are permitted provided that the following conditions are met:<br>
         <br>
-        &nbsp; &nbsp; * Redistributions of source code must retain the above copyright notice,<br>
-        &nbsp; &nbsp; &nbsp; this list of conditions and the following disclaimer.<br>
+        * Redistributions of source code must retain the above copyright notices,<br>
+        &nbsp; this list of conditions and the following disclaimer.<br>
         <br>
-        &nbsp; &nbsp; * Redistributions in binary form must reproduce the above copyright<br>
-        &nbsp; &nbsp; &nbsp; notice, this list of conditions and the following disclaimer in the<br>
-        &nbsp; &nbsp; &nbsp; documentation and/or other materials provided with the distribution.<br>
+        * Redistributions in binary form must reproduce the above copyright<br>
+        &nbsp; notices, this list of conditions and the following disclaimer in the<br>
+        &nbsp; documentation and/or other materials provided with the distribution.<br>
         <br>
-        &nbsp; &nbsp; * Neither the name of the University of Cambridge nor the name of Google<br>
-        &nbsp; &nbsp; &nbsp; Inc. nor the names of their contributors may be used to endorse or<br>
-        &nbsp; &nbsp; &nbsp; promote products derived from this software without specific prior<br>
-        &nbsp; &nbsp; &nbsp; written permission.<br>
+        * Neither the name of the University of Cambridge nor the names of any<br>
+        &nbsp; contributors may be used to endorse or promote products derived from this<br>
+        &nbsp; software without specific prior written permission.<br>
         <br>
         THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"<br>
         AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE<br>
@@ -4239,6 +4301,16 @@
         CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)<br>
         ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE<br>
         POSSIBILITY OF SUCH DAMAGE.<br>
+        <br>
+        <br>
+        EXEMPTION FOR BINARY LIBRARY-LIKE PACKAGES<br>
+        ------------------------------------------<br>
+        <br>
+        The second condition in the BSD licence (covering binary redistributions) does<br>
+        not apply all the way down a chain of software. If binary package A includes<br>
+        PCRE2, it must respect the condition, but if package B is software that<br>
+        includes package A, the condition is not imposed on package B unless it uses<br>
+        PCRE2 independently.<br>
         <br>
         ----------------------------------------------------------------------<br>
         <br>
@@ -5784,7 +5856,7 @@
     <p class="license">
         MIT License<br>
         <br>
-        Copyright (c) 2006-2025 Arseny Kapoulkine<br>
+        Copyright (c) 2006-2026 Arseny Kapoulkine<br>
         <br>
         Permission is hereby granted, free of charge, to any person<br>
         obtaining a copy of this software and associated documentation<br>
@@ -7546,7 +7618,7 @@
     <p class="license">
         Copyright notice:<br>
         <br>
-        &nbsp;(C) 1995-2022 Jean-loup Gailly and Mark Adler<br>
+        &nbsp;(C) 1995-2026 Jean-loup Gailly and Mark Adler<br>
         <br>
         &nbsp; This software is provided 'as-is', without any express or implied<br>
         &nbsp; warranty. &nbsp;In no event will the authors be held liable for any damages<br>

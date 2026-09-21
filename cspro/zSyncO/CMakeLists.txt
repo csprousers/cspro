@@ -36,11 +36,6 @@ add_library(${PROJECT_NAME}
     SyncServiceFactory.cpp
 )
 
-target_include_directories(${PROJECT_NAME} PRIVATE
-    ${EXTERNAL_DIRECTORY}
-    ${EXTERNAL_DIRECTORY}/rxcpp
-)
-
 target_precompile_headers(${PROJECT_NAME} PRIVATE
     stdafx.h
 )

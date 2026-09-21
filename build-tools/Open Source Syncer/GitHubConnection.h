@@ -1,33 +1,40 @@
 #pragma once
 
 #include "GitHubJsonKeys.h"
+#include "GitHubRelease.h"
 #include <zNetwork/CurlHttpConnection.h>
 
 class MemoryStream;
 
 
+// --------------------------------------------------------------------------
+// GitHubConnection manages generic GitHub API calls.
+//
+// A subclass exists, GitHubRepositoryConnection, that provides additional
+// functionality useful when working with a specific repository.
+// --------------------------------------------------------------------------
+
 class GitHubConnection
 {
 public:
     GitHubConnection();
-    ~GitHubConnection();
+    virtual ~GitHubConnection();
 
-    // Returns a URL to access the GitHub API, optionally defaulting to csprousers/cspro.
+    // Returns a URL to access the GitHub API.
     static std::string CreateApiUrl(cs::string_sz owner, cs::string_sz repo, cs::string_sz path);
-    static std::string CreateApiUrl(cs::string_sz path) { return CreateApiUrl("csprousers", "cspro", path); }
 
-    // Returns a URL to access the GitHub uploads API, optionally defaulting to csprousers/cspro.
+    // Returns a URL to access the GitHub uploads API.
     static std::string CreateUploadUrl(cs::string_sz owner, cs::string_sz repo, cs::string_sz path);
-    static std::string CreateUploadUrl(cs::string_sz path) { return CreateUploadUrl("csprousers", "cspro", path); }
 
     // Returns a response from the given URL, potentially requring authentication.
     // If T is JsonNode, the response body is parsed as JSON and returned as a JsonNode.
     // Other options for T: HttpResponse and std::string.
-    template<typename T>
+    // Only when T is HttpResponse can throw_when_status_not_200_OK be set to false.
+    template<typename T, bool throw_when_status_not_200_OK = true>
     T Request(const std::string& url, bool requires_authentication = false);
 
-    template<typename T>
-    T RequestWithAuthentication(const std::string& url) { return Request<T>(std::move(url), true); }
+    template<typename T, bool throw_when_status_not_200_OK = true>
+    T RequestWithAuthentication(const std::string& url) { return Request<T, throw_when_status_not_200_OK>(std::move(url), true); }
 
     // Processes the "Link" response header to process all pages of a request.
     // The response is assumed to be a JSON array.
@@ -58,4 +65,68 @@ private:
 private:
     std::unique_ptr<CurlHttpConnection> m_connection;
     std::string m_githubPAT;
+};
+
+
+
+// --------------------------------------------------------------------------
+// GitHubRepositoryConnection
+// --------------------------------------------------------------------------
+
+class GitHubRepositoryConnection : public GitHubConnection
+{
+public:
+    GitHubRepositoryConnection(std::string owner, std::string repo);
+
+    // Returns a URL to access the GitHub API.
+    std::string CreateApiUrl(cs::string_sz path) const    { return GitHubConnection::CreateApiUrl(m_owner, m_repo, path); }
+
+    // Returns a URL to access the GitHub uploads API.
+    std::string CreateUploadUrl(cs::string_sz path) const { return GitHubConnection::CreateUploadUrl(m_owner, m_repo, path); }
+
+
+    // --------------------------------------------------------------------------
+    // tags
+    // --------------------------------------------------------------------------
+
+    // Returns the commit SHA for the specified tag name.
+    // If the tag does not exist, a blank string is returned.
+    // Errors accessing the API are thrown as exceptions.
+    std::string GetTag(const std::string& tag_name);
+
+    // Creates a lightweight tag as a reference: refs/tags/[tag_name].
+    // No error is returned if the tag already exists.
+    void CreateTag(const std::string& tag_name, const std::string& commit_sha);
+
+
+    // --------------------------------------------------------------------------
+    // releases
+    // --------------------------------------------------------------------------
+
+    // Returns details about each release.
+    // T can also be std::string, in which case the JSON text is returned.
+    template<typename T = std::vector<GitHubRelease>>
+    T GetReleases();
+
+    // Creates a draft release, returning the release's ID.
+    // The release body will be modified to only use \n characters.
+    int64_t CreateDraftRelease(const std::string& tag_name, const std::string& release_name,
+                               std::string release_notes, bool prerelease);
+
+    // Uploads a release asset.
+    void UploadReleaseAsset(int64_t release_id, const std::string& filename, const BinaryBlock& data);
+
+    // Sets a release as published (no longer a draft release).
+    void PublishRelease(int64_t release_id);
+
+    // Creates a release, first as a draft, and then after any assets have been
+    // successfully uploaded, the draft is published.
+    // The assets tuple contains a filename and the file data.
+    int64_t CreateRelease(const std::string& tag_name, const std::string& release_name,
+                          std::string release_notes, bool prerelease,
+                          const std::vector<std::tuple<std::string, std::shared_ptr<const BinaryBlock>>>& assets);
+
+private:
+    std::string m_owner;
+    std::string m_repo;
 };

@@ -1,11 +1,6 @@
 project(zMultimediaO)
 
-set(GPAC_DIRECTORY ${EXTERNAL_DIRECTORY}/gpac)
-set(GPAC_SRC_DIRECTORY ${GPAC_DIRECTORY}/src)
-set(LIBEXIF_DIRECTORY ${EXTERNAL_DIRECTORY}/libexif)
-set(LIBWEBM_DIRECTORY ${EXTERNAL_DIRECTORY}/libwebm)
-set(LIBWEBP_DIRECTORY ${EXTERNAL_DIRECTORY}/libwebp)
-set(QRCODEGEN_DIRECTORY ${EXTERNAL_DIRECTORY}/qrcodegen)
+set(QRCODEGEN_DIR ${THIRD_PARTY_SOURCES_DIR}/qrcodegen)
 
 add_library(${PROJECT_NAME}
     BmpFile.cpp
@@ -16,225 +11,36 @@ add_library(${PROJECT_NAME}
     QRCode.cpp
     WebMFile.cpp
 
-    ${GPAC_SRC_DIRECTORY}/isomedia/avc_ext.c
-    ${GPAC_SRC_DIRECTORY}/isomedia/box_code_3gpp.c
-    ${GPAC_SRC_DIRECTORY}/isomedia/box_code_apple.c
-    ${GPAC_SRC_DIRECTORY}/isomedia/box_code_base.c
-    ${GPAC_SRC_DIRECTORY}/isomedia/box_code_drm.c
-    ${GPAC_SRC_DIRECTORY}/isomedia/box_code_meta.c
-    ${GPAC_SRC_DIRECTORY}/isomedia/box_funcs.c
-    ${GPAC_SRC_DIRECTORY}/isomedia/data_map.c
-    ${GPAC_SRC_DIRECTORY}/isomedia/drm_sample.c
-    ${GPAC_SRC_DIRECTORY}/isomedia/iff.c
-    ${GPAC_SRC_DIRECTORY}/isomedia/isom_intern.c
-    ${GPAC_SRC_DIRECTORY}/isomedia/isom_read.c
-    ${GPAC_SRC_DIRECTORY}/isomedia/isom_store.c
-    ${GPAC_SRC_DIRECTORY}/isomedia/isom_write.c
-    ${GPAC_SRC_DIRECTORY}/isomedia/media.c
-    ${GPAC_SRC_DIRECTORY}/isomedia/media_odf.c
-    ${GPAC_SRC_DIRECTORY}/isomedia/meta.c
-    ${GPAC_SRC_DIRECTORY}/isomedia/movie_fragments.c
-    ${GPAC_SRC_DIRECTORY}/isomedia/sample_descs.c
-    ${GPAC_SRC_DIRECTORY}/isomedia/stbl_read.c
-    ${GPAC_SRC_DIRECTORY}/isomedia/stbl_write.c
-    ${GPAC_SRC_DIRECTORY}/isomedia/track.c
-    ${GPAC_SRC_DIRECTORY}/isomedia/tx3g.c
-    ${GPAC_SRC_DIRECTORY}/media_tools/av_parsers.c
-    ${GPAC_SRC_DIRECTORY}/media_tools/isom_tools.c
-    ${GPAC_SRC_DIRECTORY}/odf/descriptors.c
-    ${GPAC_SRC_DIRECTORY}/odf/desc_private.c
-    ${GPAC_SRC_DIRECTORY}/odf/odf_code.c
-    ${GPAC_SRC_DIRECTORY}/odf/odf_codec.c
-    ${GPAC_SRC_DIRECTORY}/odf/odf_command.c
-    ${GPAC_SRC_DIRECTORY}/odf/slc.c
-    ${GPAC_SRC_DIRECTORY}/utils/alloc.c
-    ${GPAC_SRC_DIRECTORY}/utils/base_encoding.c
-    ${GPAC_SRC_DIRECTORY}/utils/bitstream.c
-    ${GPAC_SRC_DIRECTORY}/utils/configfile.c
-    ${GPAC_SRC_DIRECTORY}/utils/constants.c
-    ${GPAC_SRC_DIRECTORY}/utils/error.c
-    ${GPAC_SRC_DIRECTORY}/utils/list.c
-    ${GPAC_SRC_DIRECTORY}/utils/module.c
-    ${GPAC_SRC_DIRECTORY}/utils/os_config_init.c
-    ${GPAC_SRC_DIRECTORY}/utils/os_divers.c
-    ${GPAC_SRC_DIRECTORY}/utils/os_file.c
-    ${GPAC_SRC_DIRECTORY}/utils/os_module.c
-    ${GPAC_SRC_DIRECTORY}/utils/sha1.c
-    ${GPAC_SRC_DIRECTORY}/utils/url.c
-    ${GPAC_SRC_DIRECTORY}/utils/utf.c
-    ${GPAC_SRC_DIRECTORY}/utils/xml_parser.c
-
-    ${LIBEXIF_DIRECTORY}/exif-byte-order.c
-    ${LIBEXIF_DIRECTORY}/exif-content.c
-    ${LIBEXIF_DIRECTORY}/exif-data.c
-    ${LIBEXIF_DIRECTORY}/exif-entry.c
-    ${LIBEXIF_DIRECTORY}/exif-format.c
-    ${LIBEXIF_DIRECTORY}/exif-gps-ifd.c
-    ${LIBEXIF_DIRECTORY}/exif-ifd.c
-    ${LIBEXIF_DIRECTORY}/exif-loader.c
-    ${LIBEXIF_DIRECTORY}/exif-log.c
-    ${LIBEXIF_DIRECTORY}/exif-mem.c
-    ${LIBEXIF_DIRECTORY}/exif-mnote-data.c
-    ${LIBEXIF_DIRECTORY}/exif-tag.c
-    ${LIBEXIF_DIRECTORY}/exif-utils.c
-    ${LIBEXIF_DIRECTORY}/canon/exif-mnote-data-canon.c
-    ${LIBEXIF_DIRECTORY}/canon/mnote-canon-entry.c
-    ${LIBEXIF_DIRECTORY}/canon/mnote-canon-tag.c
-    ${LIBEXIF_DIRECTORY}/fuji/exif-mnote-data-fuji.c
-    ${LIBEXIF_DIRECTORY}/fuji/mnote-fuji-entry.c
-    ${LIBEXIF_DIRECTORY}/fuji/mnote-fuji-tag.c
-    ${LIBEXIF_DIRECTORY}/olympus/exif-mnote-data-olympus.c
-    ${LIBEXIF_DIRECTORY}/olympus/mnote-olympus-entry.c
-    ${LIBEXIF_DIRECTORY}/olympus/mnote-olympus-tag.c
-    ${LIBEXIF_DIRECTORY}/pentax/exif-mnote-data-pentax.c
-    ${LIBEXIF_DIRECTORY}/pentax/mnote-pentax-entry.c
-    ${LIBEXIF_DIRECTORY}/pentax/mnote-pentax-tag.c
-
-    ${LIBWEBM_DIRECTORY}/mkvparser/mkvparser.cc
-    ${LIBWEBM_DIRECTORY}/mkvparser/mkvreader.cc
-
-    ${LIBWEBP_DIRECTORY}/sharpyuv/sharpyuv.c
-    ${LIBWEBP_DIRECTORY}/sharpyuv/sharpyuv_cpu.c
-    ${LIBWEBP_DIRECTORY}/sharpyuv/sharpyuv_csp.c
-    ${LIBWEBP_DIRECTORY}/sharpyuv/sharpyuv_dsp.c
-    ${LIBWEBP_DIRECTORY}/sharpyuv/sharpyuv_gamma.c
-    ${LIBWEBP_DIRECTORY}/sharpyuv/sharpyuv_neon.c
-    ${LIBWEBP_DIRECTORY}/sharpyuv/sharpyuv_sse2.c
-    ${LIBWEBP_DIRECTORY}/src/dec/alpha_dec.c
-    ${LIBWEBP_DIRECTORY}/src/dec/buffer_dec.c
-    ${LIBWEBP_DIRECTORY}/src/dec/frame_dec.c
-    ${LIBWEBP_DIRECTORY}/src/dec/idec_dec.c
-    ${LIBWEBP_DIRECTORY}/src/dec/io_dec.c
-    ${LIBWEBP_DIRECTORY}/src/dec/quant_dec.c
-    ${LIBWEBP_DIRECTORY}/src/dec/tree_dec.c
-    ${LIBWEBP_DIRECTORY}/src/dec/vp8_dec.c
-    ${LIBWEBP_DIRECTORY}/src/dec/vp8l_dec.c
-    ${LIBWEBP_DIRECTORY}/src/dec/webp_dec.c
-    ${LIBWEBP_DIRECTORY}/src/dsp/alpha_processing.c
-    ${LIBWEBP_DIRECTORY}/src/dsp/alpha_processing_mips_dsp_r2.c
-    ${LIBWEBP_DIRECTORY}/src/dsp/alpha_processing_neon.c
-    ${LIBWEBP_DIRECTORY}/src/dsp/alpha_processing_sse2.c
-    ${LIBWEBP_DIRECTORY}/src/dsp/alpha_processing_sse41.c
-    ${LIBWEBP_DIRECTORY}/src/dsp/cost.c
-    ${LIBWEBP_DIRECTORY}/src/dsp/cost_mips_dsp_r2.c
-    ${LIBWEBP_DIRECTORY}/src/dsp/cost_mips32.c
-    ${LIBWEBP_DIRECTORY}/src/dsp/cost_neon.c
-    ${LIBWEBP_DIRECTORY}/src/dsp/cost_sse2.c
-    ${LIBWEBP_DIRECTORY}/src/dsp/cpu.c
-    ${LIBWEBP_DIRECTORY}/src/dsp/dec.c
-    ${LIBWEBP_DIRECTORY}/src/dsp/dec_clip_tables.c
-    ${LIBWEBP_DIRECTORY}/src/dsp/dec_mips_dsp_r2.c
-    ${LIBWEBP_DIRECTORY}/src/dsp/dec_mips32.c
-    ${LIBWEBP_DIRECTORY}/src/dsp/dec_msa.c
-    ${LIBWEBP_DIRECTORY}/src/dsp/dec_neon.c
-    ${LIBWEBP_DIRECTORY}/src/dsp/dec_sse2.c
-    ${LIBWEBP_DIRECTORY}/src/dsp/dec_sse41.c
-    ${LIBWEBP_DIRECTORY}/src/dsp/enc.c
-    ${LIBWEBP_DIRECTORY}/src/dsp/enc_mips_dsp_r2.c
-    ${LIBWEBP_DIRECTORY}/src/dsp/enc_mips32.c
-    ${LIBWEBP_DIRECTORY}/src/dsp/enc_msa.c
-    ${LIBWEBP_DIRECTORY}/src/dsp/enc_neon.c
-    ${LIBWEBP_DIRECTORY}/src/dsp/enc_sse2.c
-    ${LIBWEBP_DIRECTORY}/src/dsp/enc_sse41.c
-    ${LIBWEBP_DIRECTORY}/src/dsp/filters.c
-    ${LIBWEBP_DIRECTORY}/src/dsp/filters_mips_dsp_r2.c
-    ${LIBWEBP_DIRECTORY}/src/dsp/filters_msa.c
-    ${LIBWEBP_DIRECTORY}/src/dsp/filters_neon.c
-    ${LIBWEBP_DIRECTORY}/src/dsp/filters_sse2.c
-    ${LIBWEBP_DIRECTORY}/src/dsp/lossless.c
-    ${LIBWEBP_DIRECTORY}/src/dsp/lossless_avx2.c
-    ${LIBWEBP_DIRECTORY}/src/dsp/lossless_enc.c
-    ${LIBWEBP_DIRECTORY}/src/dsp/lossless_enc_avx2.c
-    ${LIBWEBP_DIRECTORY}/src/dsp/lossless_enc_mips_dsp_r2.c
-    ${LIBWEBP_DIRECTORY}/src/dsp/lossless_enc_mips32.c
-    ${LIBWEBP_DIRECTORY}/src/dsp/lossless_enc_msa.c
-    ${LIBWEBP_DIRECTORY}/src/dsp/lossless_enc_neon.c
-    ${LIBWEBP_DIRECTORY}/src/dsp/lossless_enc_sse2.c
-    ${LIBWEBP_DIRECTORY}/src/dsp/lossless_enc_sse41.c
-    ${LIBWEBP_DIRECTORY}/src/dsp/lossless_mips_dsp_r2.c
-    ${LIBWEBP_DIRECTORY}/src/dsp/lossless_msa.c
-    ${LIBWEBP_DIRECTORY}/src/dsp/lossless_neon.c
-    ${LIBWEBP_DIRECTORY}/src/dsp/lossless_sse2.c
-    ${LIBWEBP_DIRECTORY}/src/dsp/lossless_sse41.c
-    ${LIBWEBP_DIRECTORY}/src/dsp/rescaler.c
-    ${LIBWEBP_DIRECTORY}/src/dsp/rescaler_mips_dsp_r2.c
-    ${LIBWEBP_DIRECTORY}/src/dsp/rescaler_mips32.c
-    ${LIBWEBP_DIRECTORY}/src/dsp/rescaler_msa.c
-    ${LIBWEBP_DIRECTORY}/src/dsp/rescaler_neon.c
-    ${LIBWEBP_DIRECTORY}/src/dsp/rescaler_sse2.c
-    ${LIBWEBP_DIRECTORY}/src/dsp/ssim.c
-    ${LIBWEBP_DIRECTORY}/src/dsp/ssim_sse2.c
-    ${LIBWEBP_DIRECTORY}/src/dsp/upsampling.c
-    ${LIBWEBP_DIRECTORY}/src/dsp/upsampling_mips_dsp_r2.c
-    ${LIBWEBP_DIRECTORY}/src/dsp/upsampling_msa.c
-    ${LIBWEBP_DIRECTORY}/src/dsp/upsampling_neon.c
-    ${LIBWEBP_DIRECTORY}/src/dsp/upsampling_sse2.c
-    ${LIBWEBP_DIRECTORY}/src/dsp/upsampling_sse41.c
-    ${LIBWEBP_DIRECTORY}/src/dsp/yuv.c
-    ${LIBWEBP_DIRECTORY}/src/dsp/yuv_mips_dsp_r2.c
-    ${LIBWEBP_DIRECTORY}/src/dsp/yuv_mips32.c
-    ${LIBWEBP_DIRECTORY}/src/dsp/yuv_neon.c
-    ${LIBWEBP_DIRECTORY}/src/dsp/yuv_sse2.c
-    ${LIBWEBP_DIRECTORY}/src/dsp/yuv_sse41.c
-    ${LIBWEBP_DIRECTORY}/src/enc/alpha_enc.c
-    ${LIBWEBP_DIRECTORY}/src/enc/analysis_enc.c
-    ${LIBWEBP_DIRECTORY}/src/enc/backward_references_cost_enc.c
-    ${LIBWEBP_DIRECTORY}/src/enc/backward_references_enc.c
-    ${LIBWEBP_DIRECTORY}/src/enc/config_enc.c
-    ${LIBWEBP_DIRECTORY}/src/enc/cost_enc.c
-    ${LIBWEBP_DIRECTORY}/src/enc/filter_enc.c
-    ${LIBWEBP_DIRECTORY}/src/enc/frame_enc.c
-    ${LIBWEBP_DIRECTORY}/src/enc/histogram_enc.c
-    ${LIBWEBP_DIRECTORY}/src/enc/iterator_enc.c
-    ${LIBWEBP_DIRECTORY}/src/enc/near_lossless_enc.c
-    ${LIBWEBP_DIRECTORY}/src/enc/picture_csp_enc.c
-    ${LIBWEBP_DIRECTORY}/src/enc/picture_enc.c
-    ${LIBWEBP_DIRECTORY}/src/enc/picture_psnr_enc.c
-    ${LIBWEBP_DIRECTORY}/src/enc/picture_rescale_enc.c
-    ${LIBWEBP_DIRECTORY}/src/enc/picture_tools_enc.c
-    ${LIBWEBP_DIRECTORY}/src/enc/predictor_enc.c
-    ${LIBWEBP_DIRECTORY}/src/enc/quant_enc.c
-    ${LIBWEBP_DIRECTORY}/src/enc/syntax_enc.c
-    ${LIBWEBP_DIRECTORY}/src/enc/token_enc.c
-    ${LIBWEBP_DIRECTORY}/src/enc/tree_enc.c
-    ${LIBWEBP_DIRECTORY}/src/enc/vp8l_enc.c
-    ${LIBWEBP_DIRECTORY}/src/enc/webp_enc.c
-    ${LIBWEBP_DIRECTORY}/src/utils/bit_reader_utils.c
-    ${LIBWEBP_DIRECTORY}/src/utils/bit_writer_utils.c
-    ${LIBWEBP_DIRECTORY}/src/utils/color_cache_utils.c
-    ${LIBWEBP_DIRECTORY}/src/utils/filters_utils.c
-    ${LIBWEBP_DIRECTORY}/src/utils/huffman_encode_utils.c
-    ${LIBWEBP_DIRECTORY}/src/utils/huffman_utils.c
-    ${LIBWEBP_DIRECTORY}/src/utils/palette.c
-    ${LIBWEBP_DIRECTORY}/src/utils/quant_levels_dec_utils.c
-    ${LIBWEBP_DIRECTORY}/src/utils/quant_levels_utils.c
-    ${LIBWEBP_DIRECTORY}/src/utils/random_utils.c
-    ${LIBWEBP_DIRECTORY}/src/utils/rescaler_utils.c
-    ${LIBWEBP_DIRECTORY}/src/utils/thread_utils.c
-    ${LIBWEBP_DIRECTORY}/src/utils/utils.c
-
-    ${QRCODEGEN_DIRECTORY}/qrcodegen.cpp
-)
-
-target_compile_definitions(${PROJECT_NAME} PRIVATE
-    # allow the WebP library to use multiple threads
-    WEBP_USE_THREAD
+    ${QRCODEGEN_DIR}/qrcodegen.cpp
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE
-    ${EXTERNAL_DIRECTORY}
-    ${GPAC_DIRECTORY}/include
-    ${LIBWEBM_DIRECTORY}
-    ${LIBWEBP_DIRECTORY}
+    ${THIRD_PARTY_PREBUILT_INCLUDE_DIR}/webm
 )
 
 target_precompile_headers(${PROJECT_NAME} PRIVATE
-    "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/stdafx.h>"
+    stdafx.h
 )
 
 set_source_files_properties(
-    ${LIBWEBM_DIRECTORY}/mkvparser/mkvparser.cc
-    ${LIBWEBM_DIRECTORY}/mkvparser/mkvreader.cc
-    ${QRCODEGEN_DIRECTORY}/qrcodegen.cpp
+    ${QRCODEGEN_DIR}/qrcodegen.cpp
     PROPERTIES SKIP_PRECOMPILE_HEADERS ON
+)
+
+target_link_libraries(${PROJECT_NAME} PRIVATE
+    # gpac
+    ${THIRD_PARTY_PREBUILT_LIB_DIR}/libgpac${THIRD_PARTY_LIB_EXT}
+
+    # libexif
+    ${THIRD_PARTY_PREBUILT_LIB_DIR}/libexif${THIRD_PARTY_LIB_EXT}
+
+    # libwebm
+    ${THIRD_PARTY_PREBUILT_LIB_DIR}/libwebm${THIRD_PARTY_LIB_EXT}
+
+    # libwebp
+    ${THIRD_PARTY_PREBUILT_LIB_DIR}/libsharpyuv${THIRD_PARTY_LIB_EXT}
+    ${THIRD_PARTY_PREBUILT_LIB_DIR}/libwebp${THIRD_PARTY_LIB_EXT}
+
+    # zlib
+    ${THIRD_PARTY_PREBUILT_LIB_DIR}/libz${THIRD_PARTY_LIB_EXT}
 )

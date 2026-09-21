@@ -1,7 +1,7 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 
 #ifndef WIN32
-#include <external/stduuid/uuid.h>
+#include <stduuid/uuid.h>
 #endif
 
 

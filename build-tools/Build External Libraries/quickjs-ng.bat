@@ -16,8 +16,8 @@ tar -xvzf quickjs.tar.gz
 
 
 rem ... copy files to be used by CSPro
-copy /y quickjs-%quickjs_version%\*.c ..\..\..\..\cspro\external\QuickJS\
-copy /y quickjs-%quickjs_version%\*.h ..\..\..\..\cspro\external\quickjs\
+copy /y quickjs-%quickjs_version%\*.c ..\..\..\..\third_party\sources\quickjs\
+copy /y quickjs-%quickjs_version%\*.h ..\..\..\..\third_party\sources\quickjs\
 
 
 rem ... update the license

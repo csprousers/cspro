@@ -19,27 +19,27 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\external\QuickJS\cutils.c">
+    <ClCompile Include="$(ThirdPartySourcesDir)quickjs\cutils.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>TurnOffAllWarnings</WarningLevel>
       <LanguageStandard_C>stdclatest</LanguageStandard_C>
     </ClCompile>
-    <ClCompile Include="..\external\QuickJS\dtoa.c">
+    <ClCompile Include="$(ThirdPartySourcesDir)quickjs\dtoa.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>TurnOffAllWarnings</WarningLevel>
       <LanguageStandard_C>stdclatest</LanguageStandard_C>
     </ClCompile>
-    <ClCompile Include="..\external\QuickJS\libregexp.c">
+    <ClCompile Include="$(ThirdPartySourcesDir)quickjs\libregexp.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>TurnOffAllWarnings</WarningLevel>
       <LanguageStandard_C>stdclatest</LanguageStandard_C>
     </ClCompile>
-    <ClCompile Include="..\external\QuickJS\libunicode.c">
+    <ClCompile Include="$(ThirdPartySourcesDir)quickjs\libunicode.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>TurnOffAllWarnings</WarningLevel>
       <LanguageStandard_C>stdclatest</LanguageStandard_C>
     </ClCompile>
-    <ClCompile Include="..\external\QuickJS\quickjs.c">
+    <ClCompile Include="$(ThirdPartySourcesDir)quickjs\quickjs.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>TurnOffAllWarnings</WarningLevel>
       <LanguageStandard_C>stdclatest</LanguageStandard_C>

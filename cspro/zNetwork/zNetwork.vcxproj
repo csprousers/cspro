@@ -15,20 +15,14 @@
   <Import Project="..\properties\project-settings.props" />
   <ItemDefinitionGroup>
     <ClCompile>
-      <PreprocessorDefinitions>ZNETWORK_EXPORTS;_AFXEXT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(CSProDir)external;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>ZNETWORK_EXPORTS;CURL_STATICLIB;_AFXEXT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>libcurl.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(CSProDir)external\curl\lib\$(PlatformTarget);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libcurl$(ThirdPartyBuildPostfix).lib;libz$(ThirdPartyBuildPostfix).lib;Bcrypt.lib;Iphlpapi.lib;Secur32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
-    <PostBuildEvent>
-      <Command>xcopy "$(CSProDir)external\curl\lib\$(PlatformTarget)\*.dll" "$(TargetDir)" /D /I /Y
-xcopy "$(CSProDir)external\zlib\lib\$(PlatformTarget)\*.dll" "$(TargetDir)" /D /I /Y</Command>
-    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\external\easylogging\easylogging++.cc">
+    <ClCompile Include="$(ThirdPartySourcesDir)easylogging\easylogging++.cc">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="CSWebConnection.cpp" />
@@ -59,7 +53,7 @@ xcopy "$(CSProDir)external\zlib\lib\$(PlatformTarget)\*.dll" "$(TargetDir)" /D /
     <ClCompile Include="zNetwork.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\external\easylogging\easylogging++.h" />
+    <ClInclude Include="$(ThirdPartySourcesDir)easylogging\easylogging++.h" />
     <ClInclude Include="ConnectResponse.h" />
     <ClInclude Include="CSWebConnection.h" />
     <ClInclude Include="CSWebUser.h" />
@@ -123,6 +117,11 @@ xcopy "$(CSProDir)external\zlib\lib\$(PlatformTarget)\*.dll" "$(TargetDir)" /D /
       <Project>{bde6d79f-d295-48ba-8e8c-e2ab1eda0646}</Project>
       <Private>false</Private>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="$(ThirdPartyPrebuiltBinDir)libz$(ThirdPartyBuildPostfix).dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="zNetwork.rc" />

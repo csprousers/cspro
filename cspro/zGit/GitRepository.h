@@ -146,6 +146,8 @@ public:
     // Returns an object than can be used to determine differences between two trees.
     // The diff_flags value is a combination of git_diff_option_t options (defined in diff.h).
     // If not specified, details about the differences within files themselves are not loaded.
+    template<typename git_diff_options_T>
+    GitDiff GetDifference(GitTree& old_tree, GitTree& new_tree, git_diff_options_T& diff_opts) const;
     GitDiff GetDifference(GitTree& old_tree, GitTree& new_tree, uint32_t diff_flags) const;
     GitDiff GetDifference(GitTree& old_tree, GitTree& new_tree) const;
 

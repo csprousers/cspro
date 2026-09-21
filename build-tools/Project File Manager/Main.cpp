@@ -249,7 +249,10 @@ std::string GetDiskPathCase(const std::string& project_directory, const std::str
     if( GetShortPathName(TC::ToWide(evaluated_path).c_str(), short_path, _countof(short_path)) <= 0 ||
         GetLongPathName(short_path, long_path, _countof(long_path)) <= 0 )
     {
-        runtime_errors.emplace_back("GetDiskPathCase warning: " + evaluated_path);
+        // only report warnings when not using template parameters
+        if( evaluated_path.find("\\$(") == std::string::npos )
+            runtime_errors.emplace_back("GetDiskPathCase warning: " + evaluated_path);
+
         return path;
     }
 

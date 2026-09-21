@@ -16,7 +16,7 @@ tar -xvzf fakeit.tar.gz
 
 
 rem ... copy files to be used by CSPro
-xcopy .\FakeIt-%fakeit_version%\single_header\mstest\fakeit.hpp ..\..\..\..\cspro\external\fakeit\ /i /k /e /y
+xcopy .\FakeIt-%fakeit_version%\single_header\mstest\fakeit.hpp ..\..\..\..\third_party\sources\fakeit\ /i /k /e /y
 
 
 rem ... update the license

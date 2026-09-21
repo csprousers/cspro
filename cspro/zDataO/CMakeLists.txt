@@ -37,10 +37,6 @@ add_library(${PROJECT_NAME}
     WrapperRepository.cpp
 )
 
-target_include_directories(${PROJECT_NAME} PRIVATE
-    ${EXTERNAL_DIRECTORY}
-)
-
 target_precompile_headers(${PROJECT_NAME} PRIVATE
     stdafx.h
 )

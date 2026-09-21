@@ -34,6 +34,7 @@ public:
     static std::string GetTemplatesFilePath(const char* filename);
 
     // Gets the directory of the private repository.
+    // The path is returned in native slashes with a trailing slash.
     const std::string& GetPrivateRepoDirectory() const { return m_privateRepoDirectory; }
 
     // Opens the private repository if not open, throwing exceptions on error.
@@ -47,13 +48,13 @@ public:
     // Opens the open source repository if not open, throwing exceptions on error.
     GitRepository& GetOpenSourceRepo();
 
-    // Gets or sets the directory of the open source libraries repository.
+    // Gets or sets the directory of the third-party libraries repository.
     // If the directory changes, the repository is closed (if applicable).
-    const std::string& GetOpenSourceLibrariesDirectory() const { return m_openSourceLibrariesDirectory; }
-    void SetOpenSourceLibrariesDirectory(std::string directory);
+    const std::string& GetThirdPartyLibrariesDirectory() const { return m_thirdPartyLibrariesDirectory; }
+    void SetThirdPartyLibrariesDirectory(std::string directory);
 
-    // Opens the open source libraries repository if not open, throwing exceptions on error.
-    GitRepository& GetOpenSourceLibrariesRepo();
+    // Opens the third-party libraries source libraries repository if not open, throwing exceptions on error.
+    GitRepository& GetThirdPartyLibrariesRepo();
 
     // Gets or sets the GitHub personal access token (PAT) used when performing
     // operations that require authentication (e.g., creating releases).
@@ -97,8 +98,8 @@ private:
     std::string m_openSourceCodeDirectory;
     std::optional<GitRepository> m_openSourceRepo;
 
-    std::string m_openSourceLibrariesDirectory;
-    std::optional<GitRepository> m_openSourceLibrariesRepo;
+    std::string m_thirdPartyLibrariesDirectory;
+    std::optional<GitRepository> m_thirdPartyLibrariesRepo;
 
     std::string m_githubPAT;
 

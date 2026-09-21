@@ -19,78 +19,78 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\external\librdata+ReadStat\CKHashTable.c">
+    <ClCompile Include="$(ThirdPartySourcesDir)librdata+readstat\CKHashTable.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level2</WarningLevel>
     </ClCompile>
-    <ClCompile Include="..\external\librdata+ReadStat\readstat_bits.c">
+    <ClCompile Include="$(ThirdPartySourcesDir)librdata+readstat\readstat_bits.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\external\librdata\rdata_error.c">
+    <ClCompile Include="$(ThirdPartySourcesDir)librdata\rdata_error.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\external\librdata\rdata_io_unistd.c">
+    <ClCompile Include="$(ThirdPartySourcesDir)librdata\rdata_io_unistd.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level2</WarningLevel>
     </ClCompile>
-    <ClCompile Include="..\external\librdata\rdata_parser.c">
+    <ClCompile Include="$(ThirdPartySourcesDir)librdata\rdata_parser.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\external\librdata\rdata_write.c">
+    <ClCompile Include="$(ThirdPartySourcesDir)librdata\rdata_write.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level1</WarningLevel>
     </ClCompile>
-    <ClCompile Include="..\external\ReadStat\readstat_error.c">
+    <ClCompile Include="$(ThirdPartySourcesDir)readstat\readstat_error.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\external\ReadStat\readstat_io_unistd.c">
+    <ClCompile Include="$(ThirdPartySourcesDir)readstat\readstat_io_unistd.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level2</WarningLevel>
     </ClCompile>
-    <ClCompile Include="..\external\ReadStat\readstat_malloc.c">
+    <ClCompile Include="$(ThirdPartySourcesDir)readstat\readstat_malloc.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\external\ReadStat\readstat_metadata.c">
+    <ClCompile Include="$(ThirdPartySourcesDir)readstat\readstat_metadata.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\external\ReadStat\readstat_parser.c">
+    <ClCompile Include="$(ThirdPartySourcesDir)readstat\readstat_parser.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\external\ReadStat\readstat_value.c">
+    <ClCompile Include="$(ThirdPartySourcesDir)readstat\readstat_value.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level1</WarningLevel>
     </ClCompile>
-    <ClCompile Include="..\external\ReadStat\readstat_variable.c">
+    <ClCompile Include="$(ThirdPartySourcesDir)readstat\readstat_variable.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\external\ReadStat\readstat_writer.c">
+    <ClCompile Include="$(ThirdPartySourcesDir)readstat\readstat_writer.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level1</WarningLevel>
     </ClCompile>
-    <ClCompile Include="..\external\ReadStat\sas\ieee.c">
+    <ClCompile Include="$(ThirdPartySourcesDir)readstat\sas\ieee.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
     </ClCompile>
-    <ClCompile Include="..\external\ReadStat\spss\readstat_sav_compress.c">
+    <ClCompile Include="$(ThirdPartySourcesDir)readstat\spss\readstat_sav_compress.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
     </ClCompile>
-    <ClCompile Include="..\external\ReadStat\spss\readstat_sav_write.c">
+    <ClCompile Include="$(ThirdPartySourcesDir)readstat\spss\readstat_sav_write.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level2</WarningLevel>
     </ClCompile>
-    <ClCompile Include="..\external\ReadStat\spss\readstat_spss.c">
+    <ClCompile Include="$(ThirdPartySourcesDir)readstat\spss\readstat_spss.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level2</WarningLevel>
     </ClCompile>
-    <ClCompile Include="..\external\ReadStat\spss\readstat_spss_parse.c">
+    <ClCompile Include="$(ThirdPartySourcesDir)readstat\spss\readstat_spss_parse.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\external\ReadStat\stata\readstat_dta.c">
+    <ClCompile Include="$(ThirdPartySourcesDir)readstat\stata\readstat_dta.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
     </ClCompile>
-    <ClCompile Include="..\external\ReadStat\stata\readstat_dta_write.c">
+    <ClCompile Include="$(ThirdPartySourcesDir)readstat\stata\readstat_dta_write.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level2</WarningLevel>
     </ClCompile>

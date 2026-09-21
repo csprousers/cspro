@@ -9,20 +9,8 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
     </Filter>
-    <Filter Include="Header Files\CHMLib">
-      <UniqueIdentifier>{4557ed61-595d-4fb6-83a8-ec986d11821d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\CHMLib">
-      <UniqueIdentifier>{0107486e-f497-49d3-a45c-43ea0c174b73}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\external\CHMLib\chm_lib.c">
-      <Filter>Source Files\CHMLib</Filter>
-    </ClCompile>
-    <ClCompile Include="..\external\CHMLib\lzx.c">
-      <Filter>Source Files\CHMLib</Filter>
-    </ClCompile>
     <ClCompile Include="ChmFileReader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -37,12 +25,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\external\CHMLib\chm_lib.h">
-      <Filter>Header Files\CHMLib</Filter>
-    </ClInclude>
-    <ClInclude Include="..\external\CHMLib\lzx.h">
-      <Filter>Header Files\CHMLib</Filter>
-    </ClInclude>
     <ClInclude Include="ChmFileReader.h">
       <Filter>Header Files</Filter>
     </ClInclude>

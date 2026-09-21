@@ -1,6 +1,8 @@
-﻿#pragma once
-#include "zReportO.h"
-#include <external/gumbo/gumbo.h>
+#pragma once
+
+#include <zReportO/zReportO.h>
+#include <gumbo-parser/gumbo.h>
+
 
 namespace Pre77Report
 {

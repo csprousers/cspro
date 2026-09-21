@@ -16,7 +16,7 @@ tar -xvzf easylogging.tar.gz
 
 
 rem ... copy files to be used by CSPro
-xcopy .\easyloggingpp-%el_version%\src ..\..\..\..\cspro\external\easylogging /i /k /e /y
+xcopy .\easyloggingpp-%el_version%\src ..\..\..\..\third_party\sources\easylogging /i /k /e /y
 
 
 rem ... update the license

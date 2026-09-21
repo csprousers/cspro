@@ -14,19 +14,19 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\external\QuickJS\cutils.c">
+    <ClCompile Include="$(ThirdPartySourcesDir)quickjs\cutils.c">
       <Filter>QuickJS</Filter>
     </ClCompile>
-    <ClCompile Include="..\external\QuickJS\dtoa.c">
+    <ClCompile Include="$(ThirdPartySourcesDir)quickjs\dtoa.c">
       <Filter>QuickJS</Filter>
     </ClCompile>
-    <ClCompile Include="..\external\QuickJS\libregexp.c">
+    <ClCompile Include="$(ThirdPartySourcesDir)quickjs\libregexp.c">
       <Filter>QuickJS</Filter>
     </ClCompile>
-    <ClCompile Include="..\external\QuickJS\libunicode.c">
+    <ClCompile Include="$(ThirdPartySourcesDir)quickjs\libunicode.c">
       <Filter>QuickJS</Filter>
     </ClCompile>
-    <ClCompile Include="..\external\QuickJS\quickjs.c">
+    <ClCompile Include="$(ThirdPartySourcesDir)quickjs\quickjs.c">
       <Filter>QuickJS</Filter>
     </ClCompile>
     <ClCompile Include="ActionInvokerJS.cpp">

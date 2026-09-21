@@ -16,21 +16,26 @@ protected:
     void OnInitialUpdate() override;
     void DoDataExchange(CDataExchange* pDX) override;
 
-    LRESULT OnUpdateLibraryIds(WPARAM wParam, LPARAM lParam);
+    LRESULT OnUpdateLibrariesIds(WPARAM wParam, LPARAM lParam);
 
-    void OnRefreshLibraryIds();
+    void OnRefreshLibrariesIds();
 
-    void OnCreateBuiltLibrary()  { OnBuiltLibraryAction(true); }
-    void OnPreviewBuiltLibrary() { OnBuiltLibraryAction(false); }
+    void OnViewRelease();
 
-    void OnViewBuiltLibraryInputs();
+    void OnCreateLibraryRelease();
+
+    void OnViewLibraryInputs();
 
 private:
-    void OnBuiltLibraryAction(bool create);
+    std::string GetLibrariesIdFromReleaseNotes(const std::string& release_notes) const;
+
+    void RefreshLibrariesIds();
 
 private:
     Controller& m_controller;
 
-    CSortListCtrl m_libraryIdsListCtrl;
-    std::string m_commit;
+    CSortListCtrl m_librariesIdsListCtrl;
+
+    std::string m_releasesJsonText;
+    std::regex m_librariesIdRegex;
 };

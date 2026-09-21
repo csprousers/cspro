@@ -1,0 +1,116 @@
+!bin
+!lib
+
+
+# bzip2
+libbzip2.a
+libbzip2.lib
+libbzip2d.a
+libbzip2d.lib
+
+
+# CHMLib
+libchm.lib
+libchmd.lib
+
+
+# curl
+libcurl.lib
+libcurld.lib
+
+
+# editorconfig-core-c
+libeditorconfig_static.lib
+libeditorconfig_staticd.lib
+libpcre2-8-static.lib
+libpcre2-8-staticd.lib
+
+
+# gpac
+libgpac.a
+libgpac.lib
+libgpacd.a
+libgpacd.lib
+
+
+# gumbo-parser
+libgumbo-parser.a
+libgumbo-parser.lib
+libgumbo-parserd.a
+libgumbo-parserd.lib
+
+
+# libexif
+libexif.a
+libexif.lib
+libexifd.a
+libexifd.lib
+
+
+# libgit2
+libgit2.lib
+libgit2d.lib
+
+
+# libwebm
+libwebm.a
+libwebm.lib
+libwebmd.a
+libwebmd.lib
+
+
+# libwebp
+libsharpyuv.a
+libsharpyuv.lib
+libsharpyuvd.a
+libsharpyuvd.lib
+libwebp.a
+libwebp.lib
+libwebpd.a
+libwebpd.lib
+
+
+# libxlsxwriter
+libxlsxwriter.a
+libxlsxwriter.lib
+libxlsxwriterd.a
+libxlsxwriterd.lib
+
+
+# md4c
+libmd4c.a
+libmd4c.dll
+libmd4c.lib
+libmd4cd.a
+libmd4cd.dll
+libmd4cd.lib
+
+
+# miniz
+libminiz.a
+libminiz.lib
+libminizd.a
+libminizd.lib
+
+
+# pugixml
+libpugixml.a
+libpugixml.lib
+libpugixmld.a
+libpugixmld.lib
+
+
+# yaml-cpp
+libyaml-cpp.a
+libyaml-cpp.lib
+libyaml-cppd.a
+libyaml-cppd.lib
+
+
+# zlib
+libz.a
+libz.dll
+libz.lib
+libzd.a
+libzd.dll
+libzd.lib

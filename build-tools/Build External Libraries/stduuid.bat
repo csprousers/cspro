@@ -16,8 +16,8 @@ tar -xvzf stduuid.tar.gz
 
 
 rem ... copy files to be used by CSPro
-xcopy .\stduuid-%stduuid_version%\include ..\..\..\..\cspro\external\stduuid /i /k /e /y
-xcopy .\stduuid-%stduuid_version%\gsl ..\..\..\..\cspro\external\stduuid\gsl /i /k /e /y
+xcopy .\stduuid-%stduuid_version%\include ..\..\..\..\third_party\sources\stduuid /i /k /e /y
+xcopy .\stduuid-%stduuid_version%\gsl ..\..\..\..\third_party\sources\stduuid\gsl /i /k /e /y
 
 
 rem ... update the license

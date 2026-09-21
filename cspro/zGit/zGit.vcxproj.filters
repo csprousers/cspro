@@ -9,6 +9,9 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
     </Filter>
+    <Filter Include="Dependencies">
+      <UniqueIdentifier>{339db81a-7b02-4277-b59e-bcbcff2b395b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GitBlob.cpp">
@@ -133,5 +136,10 @@
     <ClInclude Include="zGit.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="$(ThirdPartyPrebuiltBinDir)libz$(ThirdPartyBuildPostfix).dll">
+      <Filter>Dependencies</Filter>
+    </None>
   </ItemGroup>
 </Project>

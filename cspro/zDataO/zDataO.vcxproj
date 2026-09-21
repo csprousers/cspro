@@ -16,7 +16,6 @@
   <ItemDefinitionGroup>
     <ClCompile>
       <PreprocessorDefinitions>ZDATAO_EXPORTS;_AFXEXT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(CSProDir)external;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>

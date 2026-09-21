@@ -19,7 +19,7 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\external\SQLite\sqlite3.h" />
+    <ClInclude Include="$(ThirdPartySourcesDir)sqlite\sqlite3.h" />
     <ClInclude Include="Commands.h" />
     <ClInclude Include="DataStorage.h" />
     <ClInclude Include="DB.h" />
@@ -36,7 +36,7 @@
     <ClInclude Include="zSql.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\external\SQLite\sqlite3.c">
+    <ClCompile Include="$(ThirdPartySourcesDir)sqlite\sqlite3.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="DB.cpp" />

@@ -64,17 +64,18 @@ struct HttpResponse
     HttpResponse(int status);
     HttpResponse(int status, HeaderList headers_);
 
-    static constexpr int Status_200_OK                  = 200;
-    static constexpr int Status_201_Created             = 201;
-    static constexpr int Status_206_PartialContent      = 206;
-    static constexpr int Status_304_NotModified         = 304;
-    static constexpr int Status_400_BadRequest          = 400;
-    static constexpr int Status_401_Unauthorized        = 401;
-    static constexpr int Status_403_Forbidden           = 403;
-    static constexpr int Status_404_NotFound            = 404;
-    static constexpr int Status_412_Precondition_Failed = 412;
-    static constexpr int Status_429_TooManyRequests     = 429;
-    static constexpr int Status_500_InternalServerError = 500;
+    static constexpr int Status_200_OK                   = 200;
+    static constexpr int Status_201_Created              = 201;
+    static constexpr int Status_206_PartialContent       = 206;
+    static constexpr int Status_304_NotModified          = 304;
+    static constexpr int Status_400_BadRequest           = 400;
+    static constexpr int Status_401_Unauthorized         = 401;
+    static constexpr int Status_403_Forbidden            = 403;
+    static constexpr int Status_404_NotFound             = 404;
+    static constexpr int Status_412_PreconditionFailed   = 412;
+    static constexpr int Status_422_UnprocessableContent = 422;
+    static constexpr int Status_429_TooManyRequests      = 429;
+    static constexpr int Status_500_InternalServerError  = 500;
 
     int http_status;
     HeaderList headers;

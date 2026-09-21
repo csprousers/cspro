@@ -1,8 +1,8 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "Markdown.h"
 #include "ParserCallback.h"
 #include <zHtml/HtmlWriter.h>
-#include <external/md4c/md4c-html.h>
+#include <md4c/md4c-html.h>
 
 
 namespace

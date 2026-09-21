@@ -11,6 +11,12 @@
     <!-- CSProDir is the location of the CSPro solution file -->
     <CSProDir>$(MSBuildThisFileDirectory)..\..\cspro\</CSProDir>
 
+    <!-- ThirdPartyDir is the location of third-party libraries -->
+    <ThirdPartyDir>$(CSProDir)..\third_party\</ThirdPartyDir>
+    <ThirdPartyPrebuiltDir>$(ThirdPartyDir)prebuilt\</ThirdPartyPrebuiltDir>
+    <ThirdPartyPrebuiltIncludeDir>$(ThirdPartyPrebuiltDir)include\</ThirdPartyPrebuiltIncludeDir>
+    <ThirdPartySourcesDir>$(ThirdPartyDir)sources\</ThirdPartySourcesDir>
+
   </PropertyGroup>
 
 </Project>

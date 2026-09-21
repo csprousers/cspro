@@ -16,18 +16,18 @@ tar -xvzf readstat.tar.gz
 
 
 rem ... copy files to be used by CSPro
-copy /y ReadStat-%rs_version%\src\CKHashTable*.* "..\..\..\..\cspro\external\librdata+ReadStat\"
-copy /y ReadStat-%rs_version%\src\readstat*.* ..\..\..\..\cspro\external\ReadStat\
-move /y ..\..\..\..\cspro\external\ReadStat\readstat_bits.c "..\..\..\..\cspro\external\librdata+ReadStat\"
-del ..\..\..\..\cspro\external\ReadStat\readstat_convert.c
-copy /y ReadStat-%rs_version%\src\sas\ieee*.* ..\..\..\..\cspro\external\ReadStat\sas\
-copy /y ReadStat-%rs_version%\src\spss\readstat_sav.h ..\..\..\..\cspro\external\ReadStat\spss\
-copy /y ReadStat-%rs_version%\src\spss\readstat_sav_compress*.* ..\..\..\..\cspro\external\ReadStat\spss\
-copy /y ReadStat-%rs_version%\src\spss\readstat_sav_write.c ..\..\..\..\cspro\external\ReadStat\spss\
-copy /y ReadStat-%rs_version%\src\spss\readstat_spss*.h ..\..\..\..\cspro\external\ReadStat\spss\
-copy /y ReadStat-%rs_version%\src\spss\readstat_spss*.c ..\..\..\..\cspro\external\ReadStat\spss\
-copy /y ReadStat-%rs_version%\src\stata\readstat_dta.* ..\..\..\..\cspro\external\ReadStat\stata\
-copy /y ReadStat-%rs_version%\src\stata\readstat_dta_write.c ..\..\..\..\cspro\external\ReadStat\stata\
+copy /y ReadStat-%rs_version%\src\CKHashTable*.* "..\..\..\..\third_party\sources\librdata+readstat\"
+copy /y ReadStat-%rs_version%\src\readstat*.* ..\..\..\..\third_party\sources\readstat\
+move /y ..\..\..\..\third_party\sources\readstat\readstat_bits.c "..\..\..\..\third_party\sources\librdata+readstat\"
+del ..\..\..\..\third_party\sources\readstat\readstat_convert.c
+copy /y ReadStat-%rs_version%\src\sas\ieee*.* ..\..\..\..\third_party\sources\readstat\sas\
+copy /y ReadStat-%rs_version%\src\spss\readstat_sav.h ..\..\..\..\third_party\sources\readstat\spss\
+copy /y ReadStat-%rs_version%\src\spss\readstat_sav_compress*.* ..\..\..\..\third_party\sources\readstat\spss\
+copy /y ReadStat-%rs_version%\src\spss\readstat_sav_write.c ..\..\..\..\third_party\sources\readstat\spss\
+copy /y ReadStat-%rs_version%\src\spss\readstat_spss*.h ..\..\..\..\third_party\sources\readstat\spss\
+copy /y ReadStat-%rs_version%\src\spss\readstat_spss*.c ..\..\..\..\third_party\sources\readstat\spss\
+copy /y ReadStat-%rs_version%\src\stata\readstat_dta.* ..\..\..\..\third_party\sources\readstat\stata\
+copy /y ReadStat-%rs_version%\src\stata\readstat_dta_write.c ..\..\..\..\third_party\sources\readstat\stata\
 
 
 rem ... update the license

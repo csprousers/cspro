@@ -1,6 +1,6 @@
 # CSPro Build Documentation
 
-This document is a brief summary to help users get up and running buding CSPro or the CSEntry Android application. The document also describes limitations that result in code built from this [public repository](https://github.com/csprousers/cspro) differing from the [releases](https://csprousers.org/downloads) built from the [private repository](https://github.com/CSProDevelopment/cspro).
+This document is a brief summary to help users get up and running building CSPro or the CSEntry Android application. The document also describes limitations that result in code built from this [public repository](https://github.com/csprousers/cspro) differing from the [releases](https://csprousers.org/downloads) built from the [private repository](https://github.com/CSProDevelopment/cspro).
 
 In addition to this document, [docs/build-environment-setup.md](https://github.com/csprousers/cspro/tree/dev/docs/build-environment-setup.md) describes the environment used by developers to build CSPro and CSEntry.
 
@@ -9,13 +9,17 @@ In addition to this document, [docs/build-environment-setup.md](https://github.c
 
 The files committed to this repository do not include prebuilt external libraries, and other binary files,
 upon which the CSPro build process depends. To successfully build CSPro, or the CSEntry Android application,
-you can build these libraries yourself, using scripts in [build-tools/Build External Libraries](https://github.com/csprousers/cspro/tree/dev/build-tools/Build%20External%20Libraries),
-or you can use prebuilt libraries that are hosted in the [cspro-libraries](https://github.com/csprousers/cspro-libraries) repository.
-The prebuilt libraries used at this point in CSPro development are marked with the tag: **v2026-05-27-2501552**.
+you can build these libraries yourself, using scripts in the
+[CSPro Third-Party Libraries](https://github.com/csprousers/cspro-libraries-third-party) repository.
+Prebuilt libraries are available to download as part of the repository's
+[release assets](https://github.com/csprousers/cspro-libraries-third-party/releases).
 
-To use these libraries, download [v2026-05-27-2501552.zip](https://github.com/csprousers/cspro-libraries/archive/refs/tags/v2026-05-27-2501552.zip)
-and decompress it into this repository's directory. This includes files such as the built .dll and .lib
-files used on Windows, and the .a static libraries used on Android.
+To access the prebuilt libraries used at this point in CSPro development, view the 
+[v2026-09-21-f54768825b](https://github.com/csprousers/cspro-libraries-third-party/releases/tag/v2026-09-21-f54768825b) release
+and download the prebuilt libraries for the platform and architecture that you are building.
+The prebuilt libraries contain dynamic or static libraries used on Windows (.dll and .lib files), or static libraries (.a files) used
+on Android. The prebuilt libraries contain both debug and release configurations. Decompress the libraries into this
+repository's directory.
 
 
 ## Windows
@@ -27,7 +31,7 @@ The CSPro solution targets a 32-bit or 64-bit application that uses C++17 along 
 - Microsoft.VisualStudio.Component.VC.Redist.14.Latest
 - Microsoft.VisualStudio.Component.VC.Tools.x86.x64
 
-To build the solution, open the solution file, [cspro/cspro.sln](https://github.com/csprousers/cspro/blob/dev/cspro/cspro.sln), and select *Build -> Build Solution*. All executables and other built files are output to the directory *cspro/build/x86/Debug/bin* or *cspro/build/x86/Release/bin* (or */x64/* if building 64-bit).
+To build the solution, open the solution file, [cspro/cspro.sln](https://github.com/csprousers/cspro/blob/dev/cspro/cspro.sln), and select *Build -> Build Solution*. All executables and other built files are output to the directory *build/x86/Debug/bin* or *build/x86/Release/bin* (or */x64/* if building 64-bit).
 
 A list of files that are distributed with the CSPro installer is available in [build-tools/Installer Inputs/inputs.json](https://github.com/csprousers/cspro/blob/dev/build-tools/Installer%20Inputs/inputs.json).
 
@@ -45,7 +49,7 @@ Although the Android user interface is coded in Java and Kotlin, the C++ shared 
 
 The code in the [public repository](https://github.com/csprousers/cspro) differs from the code in the [private repository](https://github.com/CSProDevelopment/cspro) that is used to create the released version of CSPro:
 
-- The released version of CSPro uses the [SQLite Encryption Extension](https://sqlite.org/com/see.html) (SEE) to support encrypting SQLite databases. Because SEE requires a paid license, it cannot be released in the public repository. The SQLite compilation units included in the public repository are from the public SQLite release: [sqlite3.c](https://github.com/csprousers/cspro/blob/dev/cspro/external/SQLite/sqlite3.c) and [sqlite3.h](https://github.com/csprousers/cspro/blob/dev/cspro/external/SQLite/sqlite3.h). Any access to encrypted SQLite databases using code built from the public repository will result in an exception.
+- The released version of CSPro uses the [SQLite Encryption Extension](https://sqlite.org/com/see.html) (SEE) to support encrypting SQLite databases. Because SEE requires a paid license, it cannot be released in the public repository. The SQLite compilation units included in the public repository are from the public SQLite release: [sqlite3.c](https://github.com/csprousers/cspro/blob/dev/third_party/sources/sqlite/sqlite3.c) and [sqlite3.h](https://github.com/csprousers/cspro/blob/dev/third_party/sources/sqlite/sqlite3.h). Any access to encrypted SQLite databases using code built from the public repository will result in an exception.
 
 - The API keys used to access or use CSWeb, Dropbox, and Google Maps have been removed in the public repository (from [ApiKeys.h](https://github.com/csprousers/cspro/blob/dev/cspro/zToolsO/ApiKeys.h) and [api_keys.xml](https://github.com/csprousers/cspro/blob/dev/cspro/CSEntryDroid/app/src/main/res/values/api_keys.xml)). Those choosing to build CSPro from the public repository will have to provide their own API keys if they want to use these services.
 

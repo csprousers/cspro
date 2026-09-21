@@ -40,7 +40,7 @@
   </ImportGroup>
   <PropertyGroup>
     <_ProjectFileVersion>10.0.40219.1</_ProjectFileVersion>
-    <OutDir>$(SolutionDir)build\$(PlatformTarget)\$(Configuration)\bin</OutDir>
+    <OutDir>$(SolutionDir)..\..\build\$(PlatformTarget)\$(Configuration)\bin</OutDir>
     <IntDir>$(OutDir)</IntDir>
     <LinkIncremental Condition="'$(Configuration)'=='Debug'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)'=='Release'">false</LinkIncremental>

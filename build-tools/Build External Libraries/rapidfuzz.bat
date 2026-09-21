@@ -7,7 +7,7 @@ cd temp\rapidfuzz
 
 
 rem ... find the latest version number here: https://github.com/rapidfuzz/rapidfuzz-cpp/releases/latest/
-set rz_version=3.3.3
+set rz_version=3.3.4
 
 
 rem ... get the latest version
@@ -16,7 +16,7 @@ tar -xvzf rapidfuzz-cpp.tar.gz
 
 
 rem ... copy files to be used by CSPro
-xcopy .\rapidfuzz-cpp-%rz_version%\rapidfuzz ..\..\..\..\cspro\external\rapidfuzz /i /k /e /y
+xcopy .\rapidfuzz-cpp-%rz_version%\rapidfuzz ..\..\..\..\third_party\sources\rapidfuzz /i /k /e /y
 
 
 rem ... update the license

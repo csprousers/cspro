@@ -15,14 +15,11 @@
   <Import Project="..\..\cspro\properties\project-settings.props" />
   <ItemDefinitionGroup>
     <ClCompile>
-      <AdditionalIncludeDirectories>$(SolutionDir);$(CSProDir)external;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>$(CSProDir)\external\editorconfig\lib\$(PlatformTarget)\editorconfig.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libeditorconfig_static$(ThirdPartyBuildPostfix).lib;libpcre2-8-static$(ThirdPartyBuildPostfix).lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
-    <PreBuildEvent>
-      <Command>xcopy /D /Y /F /R /S /I "$(CSProDir)external\editorconfig\lib\$(PlatformTarget)\*.dll" "$(TargetDir)"</Command>
-    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="CodePurifierData.h" />
@@ -36,6 +33,7 @@
     <ClInclude Include="Helpers.h" />
     <ClInclude Include="MainFrame.h" />
     <ClInclude Include="PropertiesDlg.h" />
+    <ClInclude Include="RemovalConfirmationDlg.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="StdAfx.h" />
     <ClInclude Include="Stygitan.h" />
@@ -53,6 +51,7 @@
     <ClCompile Include="Helpers.cpp" />
     <ClCompile Include="MainFrame.cpp" />
     <ClCompile Include="PropertiesDlg.cpp" />
+    <ClCompile Include="RemovalConfirmationDlg.cpp" />
     <ClCompile Include="StdAfx.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>

@@ -16,57 +16,15 @@
   <ItemDefinitionGroup>
     <ClCompile>
       <PreprocessorDefinitions>ZHTML_EXPORTS;_AFXEXT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(CSProDir)external;$(CSProDir)external/gumbo;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <PostBuildEvent>
       <Command>xcopy /D /Y /F /R /S /I "$(CSProDir)html" "$(TargetDir)html"</Command>
     </PostBuildEvent>
+    <Link>
+      <AdditionalDependencies>libgumbo-parser$(ThirdPartyBuildPostfix).lib;libmd4c$(ThirdPartyBuildPostfix).lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\external\gumbo\attribute.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level2</WarningLevel>
-    </ClCompile>
-    <ClCompile Include="..\external\gumbo\char_ref.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level2</WarningLevel>
-    </ClCompile>
-    <ClCompile Include="..\external\gumbo\error.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level2</WarningLevel>
-    </ClCompile>
-    <ClCompile Include="..\external\gumbo\parser.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level2</WarningLevel>
-    </ClCompile>
-    <ClCompile Include="..\external\gumbo\string_buffer.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level2</WarningLevel>
-    </ClCompile>
-    <ClCompile Include="..\external\gumbo\string_piece.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level2</WarningLevel>
-    </ClCompile>
-    <ClCompile Include="..\external\gumbo\tag.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level2</WarningLevel>
-    </ClCompile>
-    <ClCompile Include="..\external\gumbo\tokenizer.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level2</WarningLevel>
-    </ClCompile>
-    <ClCompile Include="..\external\gumbo\utf8.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level2</WarningLevel>
-    </ClCompile>
-    <ClCompile Include="..\external\gumbo\util.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level2</WarningLevel>
-    </ClCompile>
-    <ClCompile Include="..\external\gumbo\vector.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level2</WarningLevel>
-    </ClCompile>
     <ClCompile Include="AccessUrlSerializer.cpp" />
     <ClCompile Include="CSHtmlDlgRunner.cpp" />
     <ClCompile Include="CSProHostObject.cpp" />
@@ -165,6 +123,11 @@
       <Project>{9b29cb57-8263-4e12-8908-cc9641fdf0dc}</Project>
       <Private>false</Private>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="$(ThirdPartyPrebuiltBinDir)libmd4c$(ThirdPartyBuildPostfix).dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

@@ -1,8 +1,8 @@
-﻿#pragma once
+#pragma once
 
 #include <zExportO/SingleRecordExportWriterBase.h>
 #include <zToolsO/File.h>
-#include <external/ReadStat/readstat.h>
+#include <readstat/readstat.h>
 
 
 class ReadStatExportWriterBase : public SingleRecordExportWriterBase

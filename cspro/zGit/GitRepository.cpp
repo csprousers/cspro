@@ -333,12 +333,10 @@ void GitRepository::ForeachStatusInWorkingDirectory(const std::function<void(std
 }
 
 
-GitDiff GitRepository::GetDifference(GitTree& old_tree, GitTree& new_tree, const uint32_t diff_flags) const
+template<typename git_diff_options_T>
+GitDiff GitRepository::GetDifference(GitTree& old_tree, GitTree& new_tree, git_diff_options_T& diff_opts) const
 {
     EnsureRepositoryIsOpen();
-
-    git_diff_options diff_opts = GIT_DIFF_OPTIONS_INIT;
-    diff_opts.flags = diff_flags;
 
     git_diff* diff;
 
@@ -346,6 +344,15 @@ GitDiff GitRepository::GetDifference(GitTree& old_tree, GitTree& new_tree, const
         throw GitException();
 
     return GitDiff(*diff);
+}
+
+
+GitDiff GitRepository::GetDifference(GitTree& old_tree, GitTree& new_tree, const uint32_t diff_flags) const
+{
+    git_diff_options diff_opts = GIT_DIFF_OPTIONS_INIT;
+    diff_opts.flags = diff_flags;
+
+    return GetDifference(old_tree, new_tree, diff_opts);
 }
 
 

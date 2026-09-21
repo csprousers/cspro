@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "Main.h"
-#include <zToolsO/File.h>
+#include <zToolsO/TextFile.h>
 
 
 MessageFileAuditor::MessageFileAuditor()
@@ -18,7 +18,7 @@ void MessageFileAuditor::LoadedMessageNumber(int message_number)
 
 void MessageFileAuditor::DoAudit()
 {
-    MessageLoader::LoadMessageFiles(*this, false, &loading_english_messages);       
+    MessageLoader::LoadMessageFiles(*this, false, &loading_english_messages);
 
     // make sure that English is the current language
     ChangeLanguage("EN");
@@ -108,7 +108,7 @@ bool MessageFileAuditor::CheckFormatSpecifiers(const std::string& english_messag
     // make sure that the format specifiers are in the same order as the English version
     const std::vector<std::string> english_formatters = ExtractFormatSpecifiers(english_message_text);
     const std::vector<std::string> other_language_formatters = ExtractFormatSpecifiers(message_text);
-    
+
     if( english_formatters.size() != other_language_formatters.size() )
         return false;
 

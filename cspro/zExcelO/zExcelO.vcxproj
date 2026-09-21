@@ -15,142 +15,13 @@
   <Import Project="..\properties\project-settings.props" />
   <ItemDefinitionGroup>
     <ClCompile>
-      <PreprocessorDefinitions>ZEXCELO_EXPORTS;NOUNCRYPT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(CSProDir)external\zlib;$(CSProDir)external\libxlsxwriter\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>ZEXCELO_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>$(CSProDir)external\zlib\lib\$(PlatformTarget)\zlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libxlsxwriter$(ThirdPartyBuildPostfix).lib;libz$(ThirdPartyBuildPostfix).lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
-    <PostBuildEvent>
-      <Message>Copy zlib DLL to bin</Message>
-      <Command>xcopy "$(CSProDir)external\zlib\lib\$(PlatformTarget)\*.dll" "$(TargetDir)" /D /I /Y</Command>
-    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\external\libxlsxwriter\src\app.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level2</WarningLevel>
-    </ClCompile>
-    <ClCompile Include="..\external\libxlsxwriter\src\chart.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level2</WarningLevel>
-    </ClCompile>
-    <ClCompile Include="..\external\libxlsxwriter\src\chartsheet.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level2</WarningLevel>
-    </ClCompile>
-    <ClCompile Include="..\external\libxlsxwriter\src\comment.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level2</WarningLevel>
-    </ClCompile>
-    <ClCompile Include="..\external\libxlsxwriter\src\content_types.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level2</WarningLevel>
-    </ClCompile>
-    <ClCompile Include="..\external\libxlsxwriter\src\core.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level2</WarningLevel>
-    </ClCompile>
-    <ClCompile Include="..\external\libxlsxwriter\src\custom.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level2</WarningLevel>
-    </ClCompile>
-    <ClCompile Include="..\external\libxlsxwriter\src\drawing.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level1</WarningLevel>
-    </ClCompile>
-    <ClCompile Include="..\external\libxlsxwriter\src\format.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level2</WarningLevel>
-    </ClCompile>
-    <ClCompile Include="..\external\libxlsxwriter\src\hash_table.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level2</WarningLevel>
-    </ClCompile>
-    <ClCompile Include="..\external\libxlsxwriter\src\metadata.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level2</WarningLevel>
-    </ClCompile>
-    <ClCompile Include="..\external\libxlsxwriter\src\packager.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level2</WarningLevel>
-    </ClCompile>
-    <ClCompile Include="..\external\libxlsxwriter\src\relationships.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level2</WarningLevel>
-    </ClCompile>
-    <ClCompile Include="..\external\libxlsxwriter\src\rich_value.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level2</WarningLevel>
-    </ClCompile>
-    <ClCompile Include="..\external\libxlsxwriter\src\rich_value_rel.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level2</WarningLevel>
-    </ClCompile>
-    <ClCompile Include="..\external\libxlsxwriter\src\rich_value_structure.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level2</WarningLevel>
-    </ClCompile>
-    <ClCompile Include="..\external\libxlsxwriter\src\rich_value_types.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level2</WarningLevel>
-    </ClCompile>
-    <ClCompile Include="..\external\libxlsxwriter\src\shared_strings.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level2</WarningLevel>
-    </ClCompile>
-    <ClCompile Include="..\external\libxlsxwriter\src\styles.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level2</WarningLevel>
-    </ClCompile>
-    <ClCompile Include="..\external\libxlsxwriter\src\table.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level2</WarningLevel>
-    </ClCompile>
-    <ClCompile Include="..\external\libxlsxwriter\src\theme.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level2</WarningLevel>
-    </ClCompile>
-    <ClCompile Include="..\external\libxlsxwriter\src\utility.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level2</WarningLevel>
-    </ClCompile>
-    <ClCompile Include="..\external\libxlsxwriter\src\vml.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level2</WarningLevel>
-    </ClCompile>
-    <ClCompile Include="..\external\libxlsxwriter\src\workbook.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level2</WarningLevel>
-    </ClCompile>
-    <ClCompile Include="..\external\libxlsxwriter\src\worksheet.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level2</WarningLevel>
-    </ClCompile>
-    <ClCompile Include="..\external\libxlsxwriter\src\xmlwriter.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level2</WarningLevel>
-    </ClCompile>
-    <ClCompile Include="..\external\libxlsxwriter\third_party\md5\md5.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level2</WarningLevel>
-    </ClCompile>
-    <ClCompile Include="..\external\libxlsxwriter\third_party\minizip\ioapi.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level2</WarningLevel>
-    </ClCompile>
-    <ClCompile Include="..\external\libxlsxwriter\third_party\minizip\iowin32.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level2</WarningLevel>
-    </ClCompile>
-    <ClCompile Include="..\external\libxlsxwriter\third_party\minizip\zip.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level2</WarningLevel>
-    </ClCompile>
-    <ClCompile Include="..\external\libxlsxwriter\third_party\tmpfileplus\tmpfileplus.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level2</WarningLevel>
-    </ClCompile>
     <ClCompile Include="ExcelWriter.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
@@ -166,6 +37,11 @@
       <Project>{fb0e28ec-927d-41d0-996c-01c21a7a346b}</Project>
       <Private>false</Private>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="$(ThirdPartyPrebuiltBinDir)libz$(ThirdPartyBuildPostfix).dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

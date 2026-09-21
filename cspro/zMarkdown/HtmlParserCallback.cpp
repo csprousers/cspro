@@ -1,8 +1,8 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "ParserCallback.h"
 #include <zToolsO/Encoders.h>
 #include <zToolsO/Utf8.h>
-#include <external/md4c/entity.h>
+#include <md4c/entity.h>
 
 
 namespace

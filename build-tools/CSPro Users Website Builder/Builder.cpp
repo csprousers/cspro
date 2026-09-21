@@ -1,6 +1,6 @@
 #include "StdAfx.h"
 #include "Builder.h"
-#include <zToolsO/File.h>
+#include <zToolsO/TextFile.h>
 #include <zUtilO/Interapp.h>
 #include <zUtilO/TemporaryFile.h>
 #include <zZip/ZipFile.h>
@@ -9,7 +9,7 @@
 #include <zGit/GitCommit.h>
 #include <zGit/GitDiff.h>
 #include <zGit/GitTree.h>
-#include <external/libgit2/include/git2/diff.h>
+#include <git2/git2/diff.h>
 
 
 namespace
@@ -79,7 +79,7 @@ void Builder::CopyDirectoryRecursive(const std::string& input_directory, const s
 
 void Builder::BuildDocSet(const std::string& csdocset_file_path, const std::variant<const char*, BuildBlog> build_name_or_build_blog)
 {
-    const std::string csdocument_exe = Path::Combine(m_inputs.cspro_root, R"(cspro\build\x64\Debug\bin\CSDocument.exe)");
+    const std::string csdocument_exe = Path::Combine(m_inputs.cspro_root, R"(build\x64\Debug\bin\CSDocument.exe)");
 
     if( !PortableFunctions::FileIsRegular(csdocument_exe) )
         throw CSProException("CSDocument must exist at: " + csdocument_exe);
@@ -253,7 +253,7 @@ void Builder::UpdateGooglePlayPrivacyPolicy()
 {
     m_loggingListBox.AddText("Creating the Google Play privacy policy...");
 
-    const std::string gcl_exe = Path::Combine(m_inputs.cspro_root, R"(build-tools\build\x64\Debug\bin\Generate Combined License.exe)");
+    const std::string gcl_exe = Path::Combine(m_inputs.cspro_root, R"(build\x64\Debug\bin\Generate Combined License.exe)");
 
     if( !PortableFunctions::FileIsRegular(gcl_exe) )
         throw CSProException("The Generate Combined License program must exist at: " + gcl_exe);

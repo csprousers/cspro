@@ -6,7 +6,7 @@ set msbuild="C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Curre
 
 :start
 %msbuild% build-tools.sln /p:Configuration=Debug /p:Platform=x64 /target:"Toolbar Creator"
-set gh="build\x64\Debug\bin\Toolbar Creator.exe"
+set gh="..\build\x64\Debug\bin\Toolbar Creator.exe"
 
 
 REM 32-bit PNG toolbars (icons are 16x15, file saved with height 15)

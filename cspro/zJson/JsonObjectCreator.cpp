@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "JsonObjectCreator.h"
 #include "Json.h"
 #include <zToolsO/VariantVisitOverload.h>
@@ -47,7 +47,7 @@ namespace
 
 JsonNode Json::CreateObject(const std::initializer_list<std::tuple<std::string_view, JsonObjectCreatorWrapper>> keys_and_values)
 {
-    auto json_node = std::make_unique<jsoncons::basic_json<char, jsoncons::order_preserving_policy, std::allocator<char>>>();
+    auto json_node = std::make_unique<jsoncons::basic_json<char, jsoncons::ordered_policy, std::allocator<char>>>();
 
     for( const auto& [key_sv, value] : keys_and_values )
         SetObjectValue(*json_node, key_sv, value);
@@ -80,7 +80,7 @@ std::string Json::CreateObjectString(const std::initializer_list<std::tuple<std:
                 }
 
             }, value.data);
-    }        
+    }
 
     json_writer->EndObject();
 

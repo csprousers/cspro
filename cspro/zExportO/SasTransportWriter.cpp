@@ -4,8 +4,8 @@
 
 extern "C"
 {
-#include <external/ReadStat/readstat_bits.h>
-#include <external/ReadStat/sas/ieee.h>
+#include <readstat/readstat_bits.h>
+#include <readstat/sas/ieee.h>
 }
 
 const short SasTransportWriter::MaxTransportStringLength; // a definition (of a short) is needed for clang

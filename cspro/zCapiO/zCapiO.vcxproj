@@ -15,9 +15,11 @@
   <Import Project="..\properties\project-settings.props" />
   <ItemDefinitionGroup>
     <ClCompile>
-      <PreprocessorDefinitions>ZCAPIO_IMPL;YAML_CPP_DLL;AFXEXT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(CSProDir)external;$(CSProDir)external/yaml-cpp/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>ZCAPIO_IMPL;AFXEXT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
+    <Link>
+      <AdditionalDependencies>libyaml-cpp$(ThirdPartyBuildPostfix).lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="CapiCondition.cpp" />
@@ -91,10 +93,6 @@
     </ProjectReference>
     <ProjectReference Include="..\zRtf\zRtf.vcxproj">
       <Project>{f5702efd-6d1c-4591-bc10-184babf8c4e1}</Project>
-      <Private>false</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\zYaml\zYaml.vcxproj">
-      <Project>{0476f3bc-79cc-4653-ba60-31bb8dead056}</Project>
       <Private>false</Private>
     </ProjectReference>
     <ProjectReference Include="..\zAppO\zAppO.vcxproj">

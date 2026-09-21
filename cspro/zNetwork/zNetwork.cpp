@@ -1,6 +1,6 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "zNetwork.h"
-#include <external/curl/include/curl/curl.h>
+#include <curl/curl.h>
 #include <afxdllx.h>
 
 
