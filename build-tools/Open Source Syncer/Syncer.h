@@ -42,6 +42,9 @@ public:
     void MirrorMergeCommit(const GitBranch& os_branch, const GitCommit& cs_merge_commit,
                            const GitCommit& os_parent_commit1, const GitCommit& os_parent_commit2);
 
+    // Commits the staged files in the open source repository using the commit details from the private repository.
+    void SpoofCommit(const GitCommit& cs_commit);
+
 private:
     // Returns true if the file should not be included in the open source repository
     // because it was defined in the exclusions.txt file.

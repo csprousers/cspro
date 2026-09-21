@@ -16,6 +16,7 @@ protected:
 
     void OnMirrorCommit();
     void OnMirrorMergeCommit();
+    void OnSpoofCommit();
 
 private:
     static void OnMirrorCommit(Controller& controller, const std::string& branch_name,
@@ -24,6 +25,8 @@ private:
     static void OnMirrorMergeCommit(Controller& controller,
                                     const std::string& target_branch_name, const std::string& merge_commit_sha,
                                     const std::string& parent_commit_sha1, const std::string& parent_commit_sha2);
+
+    static void OnSpoofCommit(Controller& controller, const std::string& commit_to_spoof_sha);
 
 private:
     Controller& m_controller;
@@ -36,4 +39,6 @@ private:
     SharableString m_mergeCommit;
     SharableString m_parentCommit1;
     SharableString m_parentCommit2;
+
+    SharableString m_commitToSpoof;
 };

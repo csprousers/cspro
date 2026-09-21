@@ -118,31 +118,36 @@ BEGIN
     LISTBOX         IDC_LOG,0,0,99,22,LBS_OWNERDRAWFIXED | LBS_NOINTEGRALHEIGHT | LBS_EXTENDEDSEL | LBS_NODATA | WS_VSCROLL | WS_HSCROLL | WS_TABSTOP
 END
 
-IDD_MANUAL_MIRRORER DIALOGEX 0, 0, 297, 291
+IDD_MANUAL_MIRRORER DIALOGEX 0, 0, 305, 368
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_CHILD | WS_CAPTION | WS_SYSMENU
 CAPTION "Manual Mirrorer"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    GROUPBOX        "Mirror Commits",IDC_STATIC,7,7,284,131
-    LTEXT           "One or more commits can be mirrored from the private repository to the open source repository. Specify a branch name, which will be created if it does not exist, and specify one commit, or a range of commits, to mirror.",IDC_STATIC,15,20,266,29
+    GROUPBOX        "Mirror Commits",IDC_STATIC,7,7,291,131
+    LTEXT           "One or more commits can be mirrored from the private repository to the open source repository. Specify a branch name, which will be created if it does not exist, and specify one commit, or a range of commits, to mirror.",IDC_STATIC,15,20,276,29
     LTEXT           "Branch (open source):",IDC_STATIC,15,55,72,8
-    EDITTEXT        IDC_BRANCH_NAME,121,52,164,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_BRANCH_NAME,121,52,172,14,ES_AUTOHSCROLL
     LTEXT           "Oldest commit (private):",IDC_STATIC,15,76,78,8
-    EDITTEXT        IDC_COMMIT_OLDEST,121,73,164,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_COMMIT_OLDEST,121,73,172,14,ES_AUTOHSCROLL
     LTEXT           "Newest commit (private):",IDC_STATIC,15,97,82,8
-    EDITTEXT        IDC_COMMIT_NEWEST,121,94,164,14,ES_AUTOHSCROLL
-    PUSHBUTTON      "Mirror Commits",IDC_MIRROR_COMMIT,173,115,112,14
-    GROUPBOX        "Mirror a Merge Commit ",IDC_STATIC,7,144,283,140
-    LTEXT           "A merge commit can be mirrored by specifying the target and parents in the open source repository.",IDC_STATIC,15,158,266,22
-    LTEXT           "Target branch (open source):",IDC_STATIC,15,187,96,8
-    EDITTEXT        IDC_TARGET_BRANCH_NAME,121,184,164,14,ES_AUTOHSCROLL
-    LTEXT           "Merge commit (private):",IDC_STATIC,15,207,78,8
-    EDITTEXT        IDC_MERGE_COMMIT,121,204,164,14,ES_AUTOHSCROLL
-    LTEXT           "Parent commit 1 (open source):",IDC_STATIC,15,227,102,8
-    EDITTEXT        IDC_PARENT_COMMIT1,121,224,164,14,ES_AUTOHSCROLL
-    LTEXT           "Parent commit 2 (open source):",IDC_STATIC,15,247,102,8
-    EDITTEXT        IDC_PARENT_COMMIT2,121,244,164,14,ES_AUTOHSCROLL
-    PUSHBUTTON      "Mirror Merge Commit",IDC_MIRROR_MERGE_COMMIT,173,264,112,14
+    EDITTEXT        IDC_COMMIT_NEWEST,121,94,172,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "Mirror Commits",IDC_MIRROR_COMMIT,181,115,112,14
+    GROUPBOX        "Mirror a Merge Commit ",IDC_STATIC,7,144,291,138
+    LTEXT           "A merge commit can be mirrored by specifying the target and parents in the open source repository.",IDC_STATIC,15,158,276,22
+    LTEXT           "Target branch (open source):",IDC_STATIC,15,183,96,8
+    EDITTEXT        IDC_TARGET_BRANCH_NAME,121,180,172,14,ES_AUTOHSCROLL
+    LTEXT           "Merge commit (private):",IDC_STATIC,15,203,78,8
+    EDITTEXT        IDC_MERGE_COMMIT,121,200,172,14,ES_AUTOHSCROLL
+    LTEXT           "Parent commit 1 (open source):",IDC_STATIC,15,223,102,8
+    EDITTEXT        IDC_PARENT_COMMIT1,121,220,172,14,ES_AUTOHSCROLL
+    LTEXT           "Parent commit 2 (open source):",IDC_STATIC,15,243,102,8
+    EDITTEXT        IDC_PARENT_COMMIT2,121,240,172,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "Mirror Merge Commit",IDC_MIRROR_MERGE_COMMIT,181,260,112,14
+    GROUPBOX        "Commit Spoofer",IDC_STATIC,7,285,291,76
+    LTEXT           "The staged files in the open source repository can be committed using the details from the private repository. This will spoof the message, author, and committer.",IDC_STATIC,15,298,276,22
+    LTEXT           "Commit (private):",IDC_STATIC,15,324,57,8
+    EDITTEXT        IDC_COMMIT_TO_SPOOF,121,321,172,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "Spoof Commit",IDC_SPOOF_COMMIT,181,342,112,14
 END
 
 IDD_REPO_COMPARER DIALOGEX 0, 0, 275, 114
@@ -256,9 +261,9 @@ BEGIN
     IDD_MANUAL_MIRRORER, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 290
+        RIGHTMARGIN, 298
         TOPMARGIN, 7
-        BOTTOMMARGIN, 284
+        BOTTOMMARGIN, 361
     END
 
     IDD_REPO_COMPARER, DIALOG

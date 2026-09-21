@@ -957,3 +957,14 @@ void Syncer::MirrorMergeCommit(const GitBranch& os_branch, const GitCommit& cs_m
     // when complete, checkout the HEAD so that the working directory matches the index
     open_source_repo.CheckoutHead(GIT_CHECKOUT_FORCE);
 }
+
+
+void Syncer::SpoofCommit(const GitCommit& cs_commit)
+{
+    GitRepository& open_source_repo = m_controller.GetOpenSourceRepo();
+    const GitCommit os_commit_parent = open_source_repo.LookupCommit(open_source_repo.GetCurrentBranch());
+    GitIndex os_index = open_source_repo.GetUpdatedIndex();
+    const GitTree os_tree = open_source_repo.WriteTree(os_index);
+
+    CreateMirroredCommit(cs_commit, os_tree, os_commit_parent, nullptr);
+}
