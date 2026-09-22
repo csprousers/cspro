@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 
 class wstring_view : public std::wstring_view
@@ -35,11 +35,6 @@ public:
         return CStringW(data(), int32_cast(length()));
     }
 #endif
-
-    size_t hash_code() const
-    {
-        return std::hash<std_wstring_view>()(*this);
-    }
 
 
     // overrides of std::wstring_view functions so that they return wstring_view objects
