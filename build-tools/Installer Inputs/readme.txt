@@ -1,4 +1,4 @@
-CSPro 8.1.4                                                   31 August 2026
+CSPro 8.2.0 (beta)                                            31 August 2026
 
 ============================================================================
 
@@ -9,158 +9,100 @@ CSPro 8.1.4                                                   31 August 2026
 
     [1]  What's New in This Version
 
-    [2]  Migrating Previous Applications to 8.1
+    [2]  Migrating Previous Applications to 8.2
 
-    [3]  CSPro 8.1 List of Modules
+    [3]  CSPro 8.2 List of Modules
 
     [4]  Hardware and Software Requirements
 
     [5]  Example Files and Folders
 
-    [6]  What was New in CSPro 8.0
+    [6]  What was New in CSPro 8.1
 
-    [7]  What was New in CSPro 7.7
+    [7]  What was New in CSPro 8.0
+
+    [8]  What was New in CSPro 7.7
 
     [9]  What was New in CSPro 7.6
 
-    [9]  What was New in CSPro 7.5
+    [10] What was New in CSPro 7.5
 
-    [10] What was New in CSPro 7.4
+    [11] What was New in CSPro 7.4
 
-    [11] What was New in CSPro 7.3
+    [12] What was New in CSPro 7.3
 
-    [12] What was New in CSPro 7.2
+    [13] What was New in CSPro 7.2
 
-    [13] What was New in CSPro 7.1
+    [14] What was New in CSPro 7.1
 
-    [14] What was New in CSPro 7.0
+    [15] What was New in CSPro 7.0
 
-    [15] What was New in CSPro 6.3
+    [16] What was New in CSPro 6.3
 
-    [16] What was New in CSPro 6.2
+    [17] What was New in CSPro 6.2
 
-    [17] What was New in CSPro 6.1
+    [18] What was New in CSPro 6.1
 
-    [18] What was New in CSPro 6.0
+    [19] What was New in CSPro 6.0
 
-    [19] What was New in CSPro 5.0
+    [20] What was New in CSPro 5.0
 
-    [20] What was New in CSPro 4.1
+    [21] What was New in CSPro 4.1
 
-    [21] What was New in CSPro 4.0
+    [22] What was New in CSPro 4.0
 
-    [22] What was New in CSPro 3.3
+    [23] What was New in CSPro 3.3
 
-    [23] What was New in CSPro 3.2
+    [24] What was New in CSPro 3.2
 
-    [24] What was New in CSPro 3.1
+    [25] What was New in CSPro 3.1
 
-    [25] What was New in CSPro 3.0
+    [26] What was New in CSPro 3.0
 
-    [26] What was New in CSPro 2.6
+    [27] What was New in CSPro 2.6
 
-    [27] What was New in CSPro 2.5
+    [28] What was New in CSPro 2.5
 
-    [28] What was New in CSPro 2.4
+    [29] What was New in CSPro 2.4
 
-    [29] What was New in CSPro 2.3
+    [30] What was New in CSPro 2.3
 
-    [30] What was New in CSPro 2.2
+    [31] What was New in CSPro 2.2
 
 ============================================================================
 
     [1]  What's New in This Version
 
-    -  CSPro is now open source! The source code is available on GitHub:
-          * https://github.com/csprousers/cspro
-          * https://github.com/csprousers/csweb
-
-    -  The CSWeb data source facilitates directly accessing or updating
-       CSWeb data without requiring synchronization.
-
-    -  The Data Viewer tool has been renamed Data Manager and has several
-       new features, including:
-
-         * Viewing CSWeb data directly on the server without downloading it.
-
-         * Viewing case data as JSON, text, or using the questionnaire view.
-
-         * Exporting individual cases or groups of cases.
-
-         * Deleting and undeleting cases.
-
-    -  Markdown can be used when specifying question text, in templated
-       reports, and can be viewed using the view function or in CSView.
-       CSCode supports editing Markdown.
-
-    -  Applications can access the QuickJS-NG JavaScript Engine from CSPro
-       logic. Using the JS namespace, it is possible to evaluate JavaScript,
-       invoke functions, and convert CSPro symbols to JavaScript numbers,
-       strings, arrays, and objects. It is also possible to create function
-       wrappers in CSPro logic that appear as user-defined functions but
-       call into JavaScript when invoked.
-
-    -  HTTP requests can be made and responses processed using actions in
-       the Action Invoker's Network namespace.
-
-    -  Leaflet can be used as the mapping engine on Android.
-
-    -  A new dialog, Manage Application Files, replaces the Add Files and
-       Drop Files dialogs, providing a central place to manage an
-       application's files and each file's properties.
-
-    -  The new StringWriter logic object supports building strings
-       incrementally.
-
     -  Language additions:
-          * Image functions: getExif
-          * JS functions: eval, getValue, getValueJson, hasValue, invoke,
-              setValue, setValueFromJson
-          * Report functions: writeEncoded, writeEncodedLine, writeLine
-          * StringWriter functions: clear, toString, write, writeEncoded,
-              writeEncodedLine, writeLine
-          * Symbol functions: setValueFromJson
-          * ValueSet functions: removeDuplicates
 
     -  Action Invoker additions:
-          * throwException
-          * Data: close, contains, countCases, deleteCase, getCurrentCase,
-              getSyncStatus, open, query, queryCases, queryKeys, readCase,
-              sync, writeCase
-          * Logic: setSymbolValue
-          * Network: fetch, fetchBody, fetchBytes, fetchFile, fetchJson,
-              fetchText
-          * Sync: connect, disconnect, getConnectionInfo, sendMessage,
-              syncData, syncParadata
-          * System: createShortcut
-          * UI: close, setWebViewOptions
 
     -  Bug fixes and enhancements.
 
 ============================================================================
 
-    [2]  Migrating Previous Applications to 8.1
+    [2]  Migrating Previous Applications to 8.2
 
-    Nearly all previous CSPro applications should work in CSPro 8.1 with
+    Nearly all previous CSPro applications should work in CSPro 8.2 with
     the exception of compiled data entry applications (.enc) created prior
-    to CSPro 6.0. These applications must be regenerated using CSPro 8.1.
+    to CSPro 6.0. These applications must be regenerated using CSPro 8.2.
     These compiled applications will now have the extension .pen and can
     also be run on Android devices running the CSEntry application.
 
-    Data files in CSPro DB (.csdb) format created in versions prior to 8.1
+    Data files in CSPro DB (.csdb) format created in versions prior to 8.2
     can be used with this version. However, due to a file format change,
-    CSPro DB files created in version 8.1 cannot be used in versions earlier
+    CSPro DB files created in version 8.2 cannot be used in versions earlier
     than 7.4. To use CSPro DB files in earlier versions of CSPro, convert
     the file to text format and then convert it back to CSPro DB format
     using an earlier version of CSPro.
 
 ============================================================================
 
-    [3]  CSPro 8.1 List of Modules
+    [3]  CSPro 8.2 List of Modules
 
-    The following modules are located in the CSPro 8.1 installation folder.
-    This folder is generally located at "C:\Program Files\CSPro 8.1" or
-    "C:\Program Files (x86)\CSPro 8.1" on 64-bit machines. Module names are
+    The following modules are located in the CSPro 8.2 installation folder.
+    This folder is generally located at "C:\Program Files\CSPro 8.2" or
+    "C:\Program Files (x86)\CSPro 8.2" on 64-bit machines. Module names are
     followed in parentheses by their Windows executable file name:
 
         Data Dictionary             (CSPro.exe)
@@ -243,8 +185,76 @@ CSPro 8.1.4                                                   31 August 2026
 
     CSPro comes with several example programs to help you learn about the
     software's functionality. The examples are in a subfolder of the
-    Documents folder, "CSPro\Examples 8.1". You can also view the examples
+    Documents folder, "CSPro\Examples 8.2". You can also view the examples
     folder via a link on the Help menu in the CSPro Designer.
+
+============================================================================
+
+    [6]  What was New in CSPro 8.1
+
+    -  CSPro is now open source! The source code is available on GitHub:
+          * https://github.com/csprousers/cspro
+          * https://github.com/csprousers/csweb
+
+    -  The CSWeb data source facilitates directly accessing or updating
+       CSWeb data without requiring synchronization.
+
+    -  The Data Viewer tool has been renamed Data Manager and has several
+       new features, including:
+
+         * Viewing CSWeb data directly on the server without downloading it.
+
+         * Viewing case data as JSON, text, or using the questionnaire view.
+
+         * Exporting individual cases or groups of cases.
+
+         * Deleting and undeleting cases.
+
+    -  Markdown can be used when specifying question text, in templated
+       reports, and can be viewed using the view function or in CSView.
+       CSCode supports editing Markdown.
+
+    -  Applications can access the QuickJS-NG JavaScript Engine from CSPro
+       logic. Using the JS namespace, it is possible to evaluate JavaScript,
+       invoke functions, and convert CSPro symbols to JavaScript numbers,
+       strings, arrays, and objects. It is also possible to create function
+       wrappers in CSPro logic that appear as user-defined functions but
+       call into JavaScript when invoked.
+
+    -  HTTP requests can be made and responses processed using actions in
+       the Action Invoker's Network namespace.
+
+    -  Leaflet can be used as the mapping engine on Android.
+
+    -  A new dialog, Manage Application Files, replaces the Add Files and
+       Drop Files dialogs, providing a central place to manage an
+       application's files and each file's properties.
+
+    -  The new StringWriter logic object supports building strings
+       incrementally.
+
+    -  Language additions:
+          * Image functions: getExif
+          * JS functions: eval, getValue, getValueJson, hasValue, invoke,
+              setValue, setValueFromJson
+          * Report functions: writeEncoded, writeEncodedLine, writeLine
+          * StringWriter functions: clear, toString, write, writeEncoded,
+              writeEncodedLine, writeLine
+          * Symbol functions: setValueFromJson
+          * ValueSet functions: removeDuplicates
+
+    -  Action Invoker additions:
+          * throwException
+          * Data: close, contains, countCases, deleteCase, getCurrentCase,
+              getSyncStatus, open, query, queryCases, queryKeys, readCase,
+              sync, writeCase
+          * Logic: setSymbolValue
+          * Network: fetch, fetchBody, fetchBytes, fetchFile, fetchJson,
+              fetchText
+          * Sync: connect, disconnect, getConnectionInfo, sendMessage,
+              syncData, syncParadata
+          * System: createShortcut
+          * UI: close, setWebViewOptions
 
 ============================================================================
 
@@ -341,7 +351,7 @@ CSPro 8.1.4                                                   31 August 2026
 
 ============================================================================
 
-    [7]  What was New in CSPro 7.7
+    [8]  What was New in CSPro 7.7
 
     -  Addition of a logic-based reporting system in which HTML reports,
        editable in the CSPro Designer, can include logic fills and can
@@ -420,7 +430,7 @@ CSPro 8.1.4                                                   31 August 2026
 
 ============================================================================
 
-    [8]  What was New in CSPro 7.6
+    [9]  What was New in CSPro 7.6
 
     -  New capture types for Android, including barcode (for scanning
        numeric or string barcodes using the device's camera), and slider
@@ -463,7 +473,7 @@ CSPro 8.1.4                                                   31 August 2026
 
 ============================================================================
 
-    [9]  What was New in CSPro 7.5
+    [10] What was New in CSPro 7.5
 
     -  Ability to record and play audio on Android devices in two modes:
        interactive mode, with the enumerator able to control the recording;
@@ -512,7 +522,7 @@ CSPro 8.1.4                                                   31 August 2026
 
 ============================================================================
 
-    [10] What was New in CSPro 7.4
+    [11] What was New in CSPro 7.4
 
     -  New format of the CSPro DB data source using a relational database
        for CSPro data that can be queried using SQL.
@@ -555,7 +565,7 @@ CSPro 8.1.4                                                   31 August 2026
 
 ============================================================================
 
-    [11] What was New in CSPro 7.3
+    [12] What was New in CSPro 7.3
 
     -  Introduction of a mapping module for displaying maps and interacting
        with points.
@@ -591,7 +601,7 @@ CSPro 8.1.4                                                   31 August 2026
 
 ============================================================================
 
-    [12] What was New in CSPro 7.2
+    [13] What was New in CSPro 7.2
 
     -  Introduction of blocks, a way to group several fields into a related
        unit. On mobile devices, all fields on a block can be displayed on
@@ -607,7 +617,7 @@ CSPro 8.1.4                                                   31 August 2026
 
 ============================================================================
 
-    [13] What was New in CSPro 7.1
+    [14] What was New in CSPro 7.1
 
     -  Ability to collect paradata during an application's run. A new tool,
        Paradata Viewer, displays reports about the collected paradata.
@@ -646,7 +656,7 @@ CSPro 8.1.4                                                   31 August 2026
 
 ============================================================================
 
-    [14] What was New in CSPro 7.0
+    [15] What was New in CSPro 7.0
 
     -  Introduction of data sources, which allow for the collection and
        storage of data in multiple formats. Traditional text files are
@@ -688,7 +698,7 @@ CSPro 8.1.4                                                   31 August 2026
 
 ============================================================================
 
-    [15] What was New in CSPro 6.3
+    [16] What was New in CSPro 6.3
 
     -  CSPro no longer works on Windows XP but instead requires Vista
        or higher.
@@ -700,7 +710,7 @@ CSPro 8.1.4                                                   31 August 2026
 
 ============================================================================
 
-    [16] What was New in CSPro 6.2
+    [17] What was New in CSPro 6.2
 
     -  Dictionaries can now have labels in multiple languages, facilitating
        data collection in more than one language.
@@ -730,7 +740,7 @@ CSPro 8.1.4                                                   31 August 2026
 
 ============================================================================
 
-    [17] What was New in CSPro 6.1
+    [18] What was New in CSPro 6.1
 
     -  On Android tablets, the case tree now appears alongside the
        questions, resulting in simplified navigation.
@@ -768,7 +778,7 @@ CSPro 8.1.4                                                   31 August 2026
 
 ============================================================================
 
-    [18] What was New in CSPro 6.0
+    [19] What was New in CSPro 6.0
 
     -  Android support: The CSPro engine was rewritten so that it can run
        on both Windows and Android devices. CSEntry is available for
@@ -832,7 +842,7 @@ CSPro 8.1.4                                                   31 August 2026
 
 ============================================================================
 
-    [19] What was New in CSPro 5.0
+    [20] What was New in CSPro 5.0
 
     -  Internationalization. CSPro now supports non-Latin languages. This
        is a large change to CSPro and even affects users who use only Latin
@@ -884,7 +894,7 @@ CSPro 8.1.4                                                   31 August 2026
 
 ============================================================================
 
-    [20] What was New in CSPro 4.1
+    [21] What was New in CSPro 4.1
 
     Those of you who are already familiar with CSPro 4.0 should note the
     following significant changes and new features.  Please refer to the
@@ -931,7 +941,7 @@ CSPro 8.1.4                                                   31 August 2026
 
 ============================================================================
 
-    [21] What was New in CSPro 4.0
+    [22] What was New in CSPro 4.0
 
     Those of you who are already familiar with CSPro 3.3 should note the
     following significant changes and new features.  Please refer to the
@@ -964,7 +974,7 @@ CSPro 8.1.4                                                   31 August 2026
 
 ============================================================================
 
-    [22] What was New in CSPro 3.3
+    [23] What was New in CSPro 3.3
 
     Those of you who are already familiar with CSPro 3.2 should note the
     following significant changes and new features.  Please refer to the
@@ -997,7 +1007,7 @@ CSPro 8.1.4                                                   31 August 2026
 
 ============================================================================
 
-    [23] What was New in CSPro 3.2
+    [24] What was New in CSPro 3.2
 
     Those of you who are already familiar with CSPro 3.1 should note the
     following significant changes and new features.  Please refer to the
@@ -1039,7 +1049,7 @@ CSPro 8.1.4                                                   31 August 2026
 
 ============================================================================
 
-    [24] What was New in CSPro 3.1
+    [25] What was New in CSPro 3.1
 
     Those of you who are already familiar with CSPro 3.0 should note the
     following significant changes and new features.  Please refer to the
@@ -1086,7 +1096,7 @@ CSPro 8.1.4                                                   31 August 2026
 
 ============================================================================
 
-    [25] What was New in CSPro 3.0
+    [26] What was New in CSPro 3.0
 
     CSPro
     =====
@@ -1161,7 +1171,7 @@ CSPro 8.1.4                                                   31 August 2026
 
 ============================================================================
 
-    [26] What was New in CSPro 2.6
+    [27] What was New in CSPro 2.6
 
     Those of you who are already familiar with CSPro 2.5 should note the
     following significant changes and new features.  Please refer to the
@@ -1282,7 +1292,7 @@ CSPro 8.1.4                                                   31 August 2026
 
 ============================================================================
 
-    [27] What was New in CSPro 2.5
+    [28] What was New in CSPro 2.5
 
     Those of you who are already familiar with CSPro 2.4 should note the
     following significant changes and new features.  Please refer to the
@@ -1368,7 +1378,7 @@ CSPro 8.1.4                                                   31 August 2026
 
 ============================================================================
 
-    [28] What was New in CSPro 2.4
+    [29] What was New in CSPro 2.4
 
     Those of you who are already familiar with CSPro 2.3 should note the
     following significant changes and new features.  Please refer to the
@@ -1425,7 +1435,7 @@ CSPro 8.1.4                                                   31 August 2026
 
 ============================================================================
 
-    [29] What was New in CSPro 2.3
+    [30] What was New in CSPro 2.3
 
     Those of you who are already familiar with CSPro 2.2 should note the
     following significant changes and new features.  Please refer to the
@@ -1487,7 +1497,7 @@ CSPro 8.1.4                                                   31 August 2026
 
 ============================================================================
 
-    [30] What was New in CSPro 2.2
+    [31] What was New in CSPro 2.2
 
     Installation
     ============
