@@ -241,6 +241,7 @@ Language=EN
 771    Display/Errmsg/Write require at least one argument specifying either a message number or message text
 772    Numbered messages require a positive integer message number no greater than %d (so %f is invalid)
 773    The DENOM specification cannot be used with the CASE clause
+774    You cannot specify both 'select' and 'choices'
 775    Message number %d does not exist in the application message file and will be processed without text
 776    Repeated DENOM/SELECT specification
 777    DENOM specification is not allowed for Display messages

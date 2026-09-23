@@ -219,6 +219,7 @@ int LogicCompiler::CompileMessageFunction(FunctionCode function_code)
 
     std::optional<int> denominator_symbol_index;
     std::optional<Nodes::ExtendedMessage::DisplayType> display_type;
+    const char* select_type = nullptr; // select or choices
     std::vector<int> select_button_texts;
     std::vector<int> select_movements;
     std::optional<int> select_default_button_expression;
@@ -233,7 +234,8 @@ int LogicCompiler::CompileMessageFunction(FunctionCode function_code)
 
     while( true )
     {
-        const size_t additional_clauses_selection = NextKeyword({ "DENOM", "CASE", "SUMMARY", "SELECT" });
+        const std::initializer_list<const char*> keywords { "denom", "case", "summary", "select", "choices" };
+        const size_t additional_clauses_selection = NextKeyword(keywords);
 
         if( additional_clauses_selection == 0 )
         {
@@ -247,9 +249,10 @@ int LogicCompiler::CompileMessageFunction(FunctionCode function_code)
             break;
         }
 
+        const char* const selected_keyword = *( keywords.begin() + additional_clauses_selection - 1 );
 
         // denom
-        else if( additional_clauses_selection == 1 )
+        if( additional_clauses_selection == 1 )
         {
             // don't allow multiple specifications
             if( denominator_symbol_index.has_value() )
@@ -314,12 +317,18 @@ int LogicCompiler::CompileMessageFunction(FunctionCode function_code)
         }
 
 
-        // select
-        else if( additional_clauses_selection == 4 )
+        // select + choices
+        else if( const bool using_select = ( additional_clauses_selection == 4 );
+                 ( using_select || additional_clauses_selection == 5 ) )
         {
             // don't allow multiple specifications
+            if( select_type != nullptr && select_type != selected_keyword )
+                IssueError(MGF_TODO::m_774);
+
             if( !select_button_texts.empty() )
                 IssueError(MGF_TODO::m_776);
+
+            select_type = selected_keyword;
 
             bool has_path_for_warning_function = false;
 
@@ -350,32 +359,41 @@ int LogicCompiler::CompileMessageFunction(FunctionCode function_code)
                     IssueError(MGF_TODO::m_770);
                 }
 
-                // move past the optional comma to the movement specification
-                if( Tkn == TOKCOMMA )
-                    NextToken();
-
-                if( Tkn == TOKCONTINUE || Tkn == TOKNEXT )
+                // choices only expects text, whereas select expects text and a movement specifier
+                if( !using_select )
                 {
-                    has_path_for_warning_function = true;
                     select_movements.emplace_back(-1);
-                    NextToken();
                 }
 
-                else if( Tkn == TOKREENTER )
-                {
-                    select_movements.emplace_back(CompileReenterStatement_COMPILER_DLL_TODO(false));
-                    NextToken();
-                }
-
-                else if( Tkn == TOKVAR || Tkn == TOKBLOCK || Tkn == TOKGROUP || Tkn == TOKWORKSTRING )
-                {
-                    select_movements.emplace_back(CompileMoveStatement_COMPILER_DLL_TODO(true));
-                }
-
-                // expecting a variable
                 else
                 {
-                    IssueError(MGF::expecting_variable_11);
+                    // move past the optional comma to the movement specification
+                    if( Tkn == TOKCOMMA )
+                        NextToken();
+
+                    if( Tkn == TOKCONTINUE || Tkn == TOKNEXT )
+                    {
+                        has_path_for_warning_function = true;
+                        select_movements.emplace_back(-1);
+                        NextToken();
+                    }
+
+                    else if( Tkn == TOKREENTER )
+                    {
+                        select_movements.emplace_back(CompileReenterStatement_COMPILER_DLL_TODO(false));
+                        NextToken();
+                    }
+
+                    else if( Tkn == TOKVAR || Tkn == TOKBLOCK || Tkn == TOKGROUP || Tkn == TOKWORKSTRING )
+                    {
+                        select_movements.emplace_back(CompileMoveStatement_COMPILER_DLL_TODO(true));
+                    }
+
+                    // expecting a variable
+                    else
+                    {
+                        IssueError(MGF::expecting_variable_11);
+                    }
                 }
 
                 if( Tkn != TOKCOMMA )
@@ -383,6 +401,8 @@ int LogicCompiler::CompileMessageFunction(FunctionCode function_code)
 
                 NextToken();
             }
+
+            ASSERT(select_button_texts.size() == select_movements.size());
 
             IssueErrorOnTokenMismatch(TOKRPAREN, MGF::right_parenthesis_expected_in_function_call_17);
 

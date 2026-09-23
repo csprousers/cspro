@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 
 // this is outside of the Logic namespace in order to avoid needing to
@@ -229,4 +229,5 @@ enum TokenCode : int
     TOKSTRINGWRITER     = 486, // 20250417
     TOKKWVIDEO          = 487, // 20250909
     TOKVIDEO            = 488, // 20250909
+    TOKCHOICES          = 489, // 20260923
 };

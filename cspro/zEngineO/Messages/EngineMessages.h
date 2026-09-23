@@ -434,6 +434,7 @@ namespace MGF_TODO
     constexpr int m_771     =    771;
     constexpr int m_772     =    772;
     constexpr int m_773     =    773;
+    constexpr int m_774     =    774;
     constexpr int m_775     =    775;
     constexpr int m_776     =    776;
     constexpr int m_777     =    777;
