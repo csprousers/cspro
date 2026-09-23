@@ -630,8 +630,10 @@ int LogicInterpreter::DisplayUserMessage(const MessageType message_type, const R
     errmsg_dlg.SetDefaultButtonIndex(default_button_index);
     errmsg_dlg.SetButtons(*message_buttons);
 
+    // in entry applications, display the message along with a message sound (on Windows)
 #ifdef WIN_DESKTOP
-    ::MessageBeep(0);
+    if( GetEngineAppType() == EngineAppType::Entry )
+        ::MessageBeep(0);
 #endif
 
     while( true )
