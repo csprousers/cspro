@@ -19,15 +19,10 @@ int LogicCompiler::CompileMessageFunctions()
     NextToken();
     IssueErrorOnTokenMismatch(TOKLPAREN, MGF::left_parenthesis_expected_in_function_call_14);
 
-    if( function_code == FunctionCode::FNDISPLAY_CODE )
+    if( function_code == FunctionCode::FNWRITE_CODE &&
+        m_engineData->application != nullptr )
     {
-        IssueWarning(Logic::ParserMessage::Type::DeprecationMinor, MGF_TODO::m_95001, "DISPLAY", "ERRMSG");
-    }
-
-    else if( function_code == FunctionCode::FNWRITE_CODE )
-    {
-        if( m_engineData->application != nullptr )
-            m_engineData->application->SetHasWriteStatements();
+        m_engineData->application->SetHasWriteStatements();
     }
 
     return CompileMessageFunction(function_code);
@@ -224,13 +219,8 @@ int LogicCompiler::CompileMessageFunction(FunctionCode function_code)
     std::vector<int> select_movements;
     std::optional<int> select_default_button_expression;
 
-    bool display_function = ( function_code == FunctionCode::FNDISPLAY_CODE );
-
-    if( display_function )
-        display_type = Nodes::ExtendedMessage::DisplayType::Case;
-
     bool read_next_token = true;
-    bool extended_message_node_necessary = display_function;
+    bool extended_message_node_necessary = false;
 
     while( true )
     {
@@ -251,16 +241,19 @@ int LogicCompiler::CompileMessageFunction(FunctionCode function_code)
 
         const char* const selected_keyword = *( keywords.begin() + additional_clauses_selection - 1 );
 
+        // listing-related options are invalid for display functions (starting in CSPro 8.2)
+        if( function_code == FunctionCode::FNDISPLAY_CODE &&
+            additional_clauses_selection <= 3 )
+        {
+            IssueError(MGF_TODO::m_777, selected_keyword);
+        }
+
         // denom
-        if( additional_clauses_selection == 1 )
+        else if( additional_clauses_selection == 1 )
         {
             // don't allow multiple specifications
             if( denominator_symbol_index.has_value() )
-                IssueError(MGF_TODO::m_776);
-
-            // invalid for display functions
-            if( display_function )
-                IssueError(MGF_TODO::m_777);
+                IssueError(MGF_TODO::m_776, selected_keyword);
 
             // invalid along with case
             if( display_type == Nodes::ExtendedMessage::DisplayType::Case )
@@ -288,14 +281,12 @@ int LogicCompiler::CompileMessageFunction(FunctionCode function_code)
 
 
         // case + summary
-        else if( bool specifying_case = ( additional_clauses_selection == 2 ); specifying_case || additional_clauses_selection == 3 )
+        else if( const bool specifying_case = ( additional_clauses_selection == 2 );
+                 specifying_case || additional_clauses_selection == 3 )
         {
-            // invalid for display functions
-            if( display_function )
-                IssueError(specifying_case ? MGF_TODO::m_784 : MGF_TODO::m_787);
-
-            Nodes::ExtendedMessage::DisplayType new_display_type = specifying_case ? Nodes::ExtendedMessage::DisplayType::Case :
-                                                                                     Nodes::ExtendedMessage::DisplayType::Summary;
+            const Nodes::ExtendedMessage::DisplayType new_display_type = specifying_case
+                ? Nodes::ExtendedMessage::DisplayType::Case
+                : Nodes::ExtendedMessage::DisplayType::Summary;
 
             // don't allow multiple specifications
             if( display_type == new_display_type )
@@ -326,7 +317,7 @@ int LogicCompiler::CompileMessageFunction(FunctionCode function_code)
                 IssueError(MGF_TODO::m_774);
 
             if( !select_button_texts.empty() )
-                IssueError(MGF_TODO::m_776);
+                IssueError(MGF_TODO::m_776, selected_keyword);
 
             select_type = selected_keyword;
 
@@ -341,7 +332,7 @@ int LogicCompiler::CompileMessageFunction(FunctionCode function_code)
             while( true )
             {
                 if( select_button_texts.size() == MaximumNumberSelectButtons )
-                    IssueError(MGF_TODO::m_789, static_cast<int>(MaximumNumberSelectButtons));
+                    IssueError(MGF_TODO::m_789, selected_keyword, static_cast<int>(MaximumNumberSelectButtons));
 
                 if( IsCurrentTokenString() )
                 {
@@ -349,14 +340,14 @@ int LogicCompiler::CompileMessageFunction(FunctionCode function_code)
                 }
 
                 // for some reason the original compilation allowed blank button text
-                else if( Tkn == TOKCOMMA )
+                else if( using_select && Tkn == TOKCOMMA )
                 {
                     select_button_texts.emplace_back(CreateStringLiteralNode(std::string()));
                 }
 
                 else
                 {
-                    IssueError(MGF_TODO::m_770);
+                    IssueError(MGF_TODO::m_770, selected_keyword);
                 }
 
                 // choices only expects text, whereas select expects text and a movement specifier
@@ -422,8 +413,10 @@ int LogicCompiler::CompileMessageFunction(FunctionCode function_code)
                 {
                     if( !IsNumericConstantInteger() || Tokvalue < 1 || Tokvalue > select_movements.size() )
                     {
-                        IssueError(MGF_TODO::m_790, ( select_movements.size() == 1 ) ? "1" :
-                                                                                       FormatText("1-%d", static_cast<int>(select_movements.size())).c_str());
+                        IssueError(MGF_TODO::m_790,
+                            selected_keyword,
+                            ( select_movements.size() == 1 ) ? "1" : FormatText("1-%d", static_cast<int>(select_movements.size())).c_str()
+                        );
                     }
                 }
 
