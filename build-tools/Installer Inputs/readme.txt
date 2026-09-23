@@ -79,6 +79,7 @@ CSPro 8.2.0 (beta)                                            31 August 2026
     -  Language additions:
 
     -  Action Invoker additions:
+          * UI: showMessage
 
     -  Bug fixes and enhancements.
 

@@ -3508,6 +3508,78 @@
   },
   {
     "namespace": "UI",
+    "name": "showMessage",
+    "description": "Displays a message in a modal dialog, potentially formatting it with inserted values using base text specified by a message number or text.",
+    "parameters": [
+      {
+        "name": "number",
+        "description": "The message number. Either \"number\" or \"text\" must be specified.",
+        "types": [
+          "number"
+        ],
+        "required": false
+      },
+      {
+        "name": "text",
+        "description": "The base (unformatted) text for the message. If \"number\" is specified, this value is only used if the number is not found in the message set. Either \"number\" or \"text\" must be specified.",
+        "types": [
+          "string"
+        ],
+        "required": false
+      },
+      {
+        "name": "type",
+        "description": "The message set to query if using a message number (either \"user\" or \"system\"). (Default value is \"user\".)",
+        "types": [
+          "string"
+        ],
+        "required": false
+      },
+      {
+        "name": "arguments",
+        "description": "The inserted values for each % formatting placeholder.",
+        "types": [
+          "array"
+        ],
+        "required": false
+      },
+      {
+        "name": "title",
+        "description": "The dialog's title.",
+        "types": [
+          "string"
+        ],
+        "required": false
+      },
+      {
+        "name": "choices",
+        "description": "Text for buttons.",
+        "types": [
+          "array"
+        ],
+        "required": false
+      },
+      {
+        "name": "defaultChoiceIndex",
+        "description": "The one-based index of the button to have the initial focus.",
+        "types": [
+          "number"
+        ],
+        "required": false
+      }
+    ],
+    "returns": [
+      {
+        "name": "",
+        "description": "The one-based index of the selected button.",
+        "types": [
+          "number"
+        ]
+      }
+    ]
+  },
+  {
+    "namespace": "UI",
     "name": "view",
     "description": "Views a file or web page in a new web view.",
     "parameters": [

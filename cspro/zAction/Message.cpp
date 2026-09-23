@@ -1,16 +1,15 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include <zMessageO/MessageEvaluator.h>
 #include <zMessageO/MessageFile.h>
 #include <zMessageO/SystemMessages.h>
 
 
-SharableString ActionInvoker::Runtime::GetMessageText(const JsonNode& json_node, const Action action)
+SharableString ActionInvoker::Runtime::GetMessageText(const JsonNode& json_node, const bool require_number)
 {
-    ASSERT(action == Action::Message_formatText || action == Action::Message_getText);
-
     const std::optional<int> message_number =
-        ( action == Action::Message_getText || json_node.Contains(JK::number) ) ? std::make_optional(json_node.Get<int>(JK::number)) :
-                                                                                  std::nullopt;
+        ( require_number || json_node.Contains(JK::number) )
+        ? std::make_optional(json_node.Get<int>(JK::number))
+        : std::nullopt;
 
     if( message_number.has_value() )
     {
@@ -55,7 +54,9 @@ SharableString ActionInvoker::Runtime::GetMessageText(const JsonNode& json_node,
 
 ActionInvoker::Result ActionInvoker::Runtime::Message_getText(const JsonNode& json_node, Caller& /*caller*/)
 {
-    return Result::String(GetMessageText(json_node, Action::Message_getText));
+    return Result::String(
+        GetMessageText(json_node, true)
+    );
 }
 
 
@@ -179,20 +180,29 @@ namespace
 }
 
 
-ActionInvoker::Result ActionInvoker::Runtime::Message_formatText(const JsonNode& json_node, Caller& /*caller*/)
+SharableString ActionInvoker::Runtime::GetFormattedMessageText(const JsonNode& json_node)
 {
-    SharableString unformatted_message_text = GetMessageText(json_node, Action::Message_formatText);
+    SharableString unformatted_message_text = GetMessageText(json_node, false);
 
     // we can return the string directly if there are no formats in the message
     if( unformatted_message_text->find('%') == std::string::npos )
-        return Result::String(std::move(unformatted_message_text));
+        return unformatted_message_text;
 
     // use a dummy message file since we are not using message numbers at this point
     if( m_messageEvaluator == nullptr )
         m_messageEvaluator = std::make_unique<MessageEvaluator>(std::make_unique<MessageFile>());
 
-    ActionInvokerMessageParameterEvaluator message_parameter_evaluator(json_node.Contains(JK::arguments) ? std::make_optional(json_node.GetArray(JK::arguments)) :
-                                                                                                           std::nullopt);
+    ActionInvokerMessageParameterEvaluator message_parameter_evaluator(
+        json_node.Contains(JK::arguments) ? std::make_optional(json_node.GetArray(JK::arguments)) : std::nullopt
+    );
 
-    return Result::String(m_messageEvaluator->GetFormattedMessage(message_parameter_evaluator, *unformatted_message_text));
+    return m_messageEvaluator->GetFormattedMessage(message_parameter_evaluator, *unformatted_message_text);
+}
+
+
+ActionInvoker::Result ActionInvoker::Runtime::Message_formatText(const JsonNode& json_node, Caller& /*caller*/)
+{
+    return Result::String(
+        GetFormattedMessageText(json_node)
+    );
 }
