@@ -7,6 +7,7 @@
 #include <zUtilF/HtmlDialogFunctionRunner.h>
 #include <zHtml/PortableLocalhost.h>
 #include <zAppO/PFF.h>
+#include <zMessageO/Messages.h>
 
 
 CREATE_JSON_KEY(targetOrigin)
@@ -232,19 +233,13 @@ ActionInvoker::Result ActionInvoker::Runtime::UI_showDialog(const JsonNode& json
 ActionInvoker::Result ActionInvoker::Runtime::UI_alert(const JsonNode& json_node, Caller& /*caller*/)
 {
     // use the errmsg dialog
-    const std::string dialog_file_path = GetHtmlDialogFilePath(
-        Path::AppendExtension(ErrmsgDlg::DialogName, FileExtensions::HTML)
-    );
+    ErrmsgDlg errmsg_dlg;
 
-    // create the input data
-    const std::unique_ptr<JsonStringWriter> json_writer = Json::CreateStringWriter();
+    errmsg_dlg.SetTitle(json_node.Contains(JK::title) ? json_node.Get<std::string>(JK::title) : "Alert");
+    errmsg_dlg.SetMessage(json_node.Get<std::string>(JK::text));
+    errmsg_dlg.SetButtons({ MGF::GetMessageText(MGF::Ok) });
 
-    json_writer->BeginObject()
-                .Write(JK::title, json_node.Contains(JK::title) ? json_node.Get<std::string_view>(JK::title) : "Alert")
-                .Write(JK::message, json_node.Get<std::string_view>(JK::text))
-                .EndObject();
-
-    ShowHtmlDialog(dialog_file_path, json_writer->ReleaseSharableString());
+    errmsg_dlg.DoModalOnUIThread();
 
     return Result::Undefined();
 }

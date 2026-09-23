@@ -7,8 +7,6 @@
 class CLASS_DECL_ZUTILF ErrmsgDlg : public CSHtmlDlgRunner
 {
 public:
-    static constexpr const char* DialogName = "errmsg";
-
     ErrmsgDlg();
 
     void SetTitle(SharableString title) { m_title = std::move(title); }
