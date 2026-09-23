@@ -21,7 +21,6 @@
   <ItemGroup>
     <ClCompile Include="EngineUI.cpp" />
     <ClCompile Include="EngineUIWindows.cpp" />
-    <ClCompile Include="ErrmsgDlg.cpp" />
     <ClCompile Include="PifInfoPopulator.cpp" />
     <ClCompile Include="PromptFuncDlg.cpp" />
     <ClCompile Include="ReviewNotesDlg.cpp" />
@@ -38,7 +37,6 @@
   <ItemGroup>
     <ClInclude Include="EngineUI.h" />
     <ClInclude Include="EngineUINodes.h" />
-    <ClInclude Include="ErrmsgDlg.h" />
     <ClInclude Include="PifInfoPopulator.h" />
     <ClInclude Include="PromptFuncDlg.h" />
     <ClInclude Include="Resource.h" />

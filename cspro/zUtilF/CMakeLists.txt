@@ -2,6 +2,7 @@ project(zUtilF)
 
 add_library(${PROJECT_NAME}
     ChoiceDlg.cpp
+    ErrmsgDlg.cpp
     HtmlDialogFunctionRunner.cpp
     ImageCaptureDlg.cpp
     ImageViewDlg.cpp

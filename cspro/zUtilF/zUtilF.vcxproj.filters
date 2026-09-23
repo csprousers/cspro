@@ -32,6 +32,9 @@
     <ClCompile Include="EditControls.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ErrmsgDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="HtmlDialogFunctionRunner.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -149,6 +152,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="EditControls.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ErrmsgDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="HtmlDialogFunctionRunner.h">

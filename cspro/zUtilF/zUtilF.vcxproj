@@ -26,6 +26,7 @@
     <ClCompile Include="DropFilesListCtrl.cpp" />
     <ClCompile Include="DynamicMenuBuilder.cpp" />
     <ClCompile Include="EditControls.cpp" />
+    <ClCompile Include="ErrmsgDlg.cpp" />
     <ClCompile Include="HtmlDialogFunctionRunner.cpp" />
     <ClCompile Include="ImageCaptureDlg.cpp" />
     <ClCompile Include="ImageFileDialog.cpp" />
@@ -72,6 +73,7 @@
     <ClInclude Include="DropFilesListCtrl.h" />
     <ClInclude Include="DynamicMenuBuilder.h" />
     <ClInclude Include="EditControls.h" />
+    <ClInclude Include="ErrmsgDlg.h" />
     <ClInclude Include="HtmlDialogFunctionRunner.h" />
     <ClInclude Include="IconToPngConverter.h" />
     <ClInclude Include="ImageCaptureDlg.h" />

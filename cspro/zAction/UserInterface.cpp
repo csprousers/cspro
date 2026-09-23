@@ -1,12 +1,12 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "AccessToken.h"
 #include <zToolsO/Screen.h>
 #include <zUtilO/Interapp.h>
 #include <zUtilO/Viewers.h>
+#include <zUtilF/ErrmsgDlg.h>
 #include <zUtilF/HtmlDialogFunctionRunner.h>
 #include <zHtml/PortableLocalhost.h>
 #include <zAppO/PFF.h>
-#include <zEngineF/ErrmsgDlg.h>
 
 
 CREATE_JSON_KEY(targetOrigin)
@@ -232,7 +232,9 @@ ActionInvoker::Result ActionInvoker::Runtime::UI_showDialog(const JsonNode& json
 ActionInvoker::Result ActionInvoker::Runtime::UI_alert(const JsonNode& json_node, Caller& /*caller*/)
 {
     // use the errmsg dialog
-    const std::string dialog_file_path = GetHtmlDialogFilePath(PortableFunctions::PathAppendFileExtension(std::string(ErrmsgDlg::DialogName), FileExtensions::HTML));
+    const std::string dialog_file_path = GetHtmlDialogFilePath(
+        Path::AppendExtension(ErrmsgDlg::DialogName, FileExtensions::HTML)
+    );
 
     // create the input data
     const std::unique_ptr<JsonStringWriter> json_writer = Json::CreateStringWriter();
