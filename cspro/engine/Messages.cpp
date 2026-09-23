@@ -90,7 +90,7 @@ namespace
 
                 const RuntimeMessage runtime_message { message_number, message_number, message_text };
 
-                const int selected_button_number = m_pEngineDriver->DisplayMessage(message_type, runtime_message);
+                const int selected_button_number = m_pEngineDriver->HandleErrorMessage(message_type, runtime_message);
 
                 // log the paradata message event
                 if( message_event != nullptr )
@@ -185,7 +185,7 @@ void CEngineDriver::UpdateMessageIssuers(const bool set_on_system_message_define
 }
 
 
-int CEngineDriver::DisplayMessage(const MessageType message_type, const RuntimeMessage& runtime_message)
+int CEngineDriver::HandleErrorMessage(const MessageType message_type, const RuntimeMessage& runtime_message)
 {
     if( m_lister != nullptr )
         m_lister->Write(message_type, runtime_message.message_number_for_display, runtime_message.message_text);
@@ -194,7 +194,7 @@ int CEngineDriver::DisplayMessage(const MessageType message_type, const RuntimeM
 }
 
 
-int CIntDriver::DisplayMessage_INTERPRETER_DLL_TODO(const MessageType message_type, const RuntimeMessage& runtime_message)
+int CIntDriver::HandleErrorMessage_INTERPRETER_DLL_TODO(const MessageType message_type, const RuntimeMessage& runtime_message)
 {
-    return m_pEngineDriver->DisplayMessage(message_type, runtime_message);
+    return m_pEngineDriver->HandleErrorMessage(message_type, runtime_message);
 }

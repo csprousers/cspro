@@ -73,6 +73,9 @@ CSPro 8.2.0 (beta)                                            31 August 2026
 
     [1]  What's New in This Version
 
+    -  The display function shows a modal dialog with message text in all
+       environments, not just in entry applications.
+
     -  Language additions:
 
     -  Action Invoker additions:

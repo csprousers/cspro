@@ -1,4 +1,4 @@
-﻿#include "StandardSystemIncludes.h"
+#include "StandardSystemIncludes.h"
 #include "Interpreter.h"
 #include "Engine.h"
 #include "ParadataDriver.h"
@@ -343,6 +343,7 @@ std::unique_ptr<Paradata::MessageEvent> EngineParadataDriver::CreateMessageEvent
         const FunctionCode& function_code = std::get<FunctionCode>(message_type_or_function_code);
         source = ( function_code == FNERRMSG_CODE )  ? Paradata::MessageEvent::Source::Errmsg :
                  ( function_code == FNWARNING_CODE ) ? Paradata::MessageEvent::Source::Warning :
+                 ( function_code == FNDISPLAY_CODE ) ? Paradata::MessageEvent::Source::Display :
                                                        Paradata::MessageEvent::Source::Logtext;
         message_type = MessageType::User;
     }

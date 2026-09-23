@@ -840,7 +840,7 @@ private:
     MessageEvaluator& GetUserMessageEvaluator_INTERPRETER_DLL_TODO() override;
     MessageManager& GetUserMessageManager_INTERPRETER_DLL_TODO() override;
     std::shared_ptr<SystemMessageIssuer> GetSharedSystemMessageIssuer_INTERPRETER_DLL_TODO() override;
-    int DisplayMessage_INTERPRETER_DLL_TODO(MessageType message_type, const RuntimeMessage& runtime_message) override;
+    int HandleErrorMessage_INTERPRETER_DLL_TODO(MessageType message_type, const RuntimeMessage& runtime_message) override;
     bool InAdvance_INTERPRETER_DLL_TODO() const override;
 public:
     LoopStack& GetLoopStack() override;

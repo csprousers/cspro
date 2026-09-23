@@ -3,6 +3,8 @@
 #include "Nodes/Messages.h"
 #include <engine/Settings.h>
 #include <engine/VarT.h>
+#include <zHtml/WebViewSyncOperationMarker.h>
+#include <zUtilF/ErrmsgDlg.h>
 #include <zMessageO/Messages.h>
 #include <zMessageO/MessageEvaluator.h>
 #include <zMessageO/MessageManager.h>
@@ -403,6 +405,11 @@ Engine::Value LogicInterpreter::DisplayUserMessage(const int message_node_index)
     const auto& message_node = GetNode<Nodes::Message>(message_node_index);
     const Nodes::ExtendedMessage* extended_message_node = nullptr;
 
+    const bool is_errmsg_warning = ( message_node.function_code != FunctionCode::FNDISPLAY_CODE );
+    ASSERT(!is_errmsg_warning ||
+           message_node.function_code == FunctionCode::FNERRMSG_CODE ||
+           message_node.function_code == FunctionCode::FNWARNING_CODE);
+
     MessageManager& user_message_manager = GetUserMessageManager_INTERPRETER_DLL_TODO();
 
     // evaluate the message
@@ -425,13 +432,16 @@ Engine::Value LogicInterpreter::DisplayUserMessage(const int message_node_index)
 
         // with variable-numbered messages, we need to set the denominator information at runtime
         if( extended_message_node->denominator_symbol_index != -1 )
+        {
+            ASSERT(is_errmsg_warning);
             user_message_manager.AddDenominator(runtime_message.message_number, extended_message_node->denominator_symbol_index);
+        }
 
         // modify the default display type
         display_type = extended_message_node->display_type;
 
-        // process any select options
-        if( engine_app_type == EngineAppType::Entry )
+        // process any select options for the display function, or for errmsg/warning in entry
+        if( !is_errmsg_warning || engine_app_type == EngineAppType::Entry )
         {
             const Nodes::List& select_button_texts_list_node = GetListNode(extended_message_node->select_button_texts_list);
 
@@ -461,25 +471,28 @@ Engine::Value LogicInterpreter::DisplayUserMessage(const int message_node_index)
         }
     }
 
-    // it is possible to override the default display type in a batch application
-    if( engine_app_type == EngineAppType::Batch &&
-        display_type == Nodes::ExtendedMessage::DisplayType::Default &&
-        m_engineData->pff != nullptr &&
-        m_engineData->pff->GetErrMsgOverride() != ErrMsgOverride::No )
+    if( is_errmsg_warning )
     {
-        display_type = ( m_engineData->pff->GetErrMsgOverride() == ErrMsgOverride::Case )
-            ? Nodes::ExtendedMessage::DisplayType::Case
-            : Nodes::ExtendedMessage::DisplayType::Summary;
-    }
+        // it is possible to override the default errmsg display type in a batch application
+        if( engine_app_type == EngineAppType::Batch &&
+            display_type == Nodes::ExtendedMessage::DisplayType::Default &&
+            m_engineData->pff != nullptr &&
+            m_engineData->pff->GetErrMsgOverride() != ErrMsgOverride::No )
+        {
+            display_type = ( m_engineData->pff->GetErrMsgOverride() == ErrMsgOverride::Case )
+                ? Nodes::ExtendedMessage::DisplayType::Case
+                : Nodes::ExtendedMessage::DisplayType::Summary;
+        }
 
-    // increment the message count if this isn't a case message
-    if( display_type != Nodes::ExtendedMessage::DisplayType::Case )
-    {
-        user_message_manager.IncrementMessageCount(runtime_message.message_number);
+        // increment the message count if this isn't a case message
+        if( display_type != Nodes::ExtendedMessage::DisplayType::Case )
+        {
+            user_message_manager.IncrementMessageCount(runtime_message.message_number);
 
-        // if this is a summary message, return without displaying the message
-        if( display_type == Nodes::ExtendedMessage::DisplayType::Summary )
-            return Engine::Value::Integer(1);
+            // if this is a summary message, return without displaying the message
+            if( display_type == Nodes::ExtendedMessage::DisplayType::Summary )
+                return Engine::Value::Integer(1);
+        }
     }
 
 
@@ -499,13 +512,16 @@ Engine::Value LogicInterpreter::DisplayUserMessage(const int message_node_index)
             if( runtime_message.select_buttons != nullptr )
             {
                 operator_selection_event = std::make_unique<Paradata::OperatorSelectionEvent>(
-                    Paradata::OperatorSelectionEvent::Source::Errmsg
+                    is_errmsg_warning ? Paradata::OperatorSelectionEvent::Source::Errmsg : Paradata::OperatorSelectionEvent::Source::Display
                 );
             }
         }
 
         // display the message
-        const int selected_button_number = DisplayMessage_INTERPRETER_DLL_TODO(MessageType::User, runtime_message);
+        const int selected_button_number = is_errmsg_warning
+            ? HandleErrorMessage_INTERPRETER_DLL_TODO(MessageType::User, runtime_message)
+            : DisplayUserMessage(MessageType::User, runtime_message);
+
         ASSERT(selected_button_number > 0);
 
         // log the paradata events
@@ -533,20 +549,99 @@ Engine::Value LogicInterpreter::DisplayUserMessage(const int message_node_index)
             return Engine::Value::Integer(1);
 
         // otherwise, the selected button number is returned, and if there is a movement
-        // associated with the button, we need to execute the movement
+        // associated with the button, we need to execute the movement (in an entry application)
 
         // the user must select a valid value
         if( selected_button_number == 0 )
             continue;
 
         // follow the selection
-        const int select_expression = GetListNode(extended_message_node->select_movements_list).elements[selected_button_number - 1];
+        if( engine_app_type == EngineAppType::Entry )
+        {
+            const int select_expression = GetListNode(extended_message_node->select_movements_list).elements[selected_button_number - 1];
 
-        // if not next or continue, execute the move command
-        if( select_expression != -1 )
-            ExecuteInstruction(select_expression);
+            // if not next or continue, execute the move command
+            if( select_expression != -1 )
+            {
+                ASSERT(is_errmsg_warning);
+                ExecuteInstruction(select_expression);
+            }
+        }
 
         // return the index of the button selected
         return Engine::Value::Integer(selected_button_number);
     }
+}
+
+
+int LogicInterpreter::DisplayUserMessage(const MessageType message_type, const RuntimeMessage& runtime_message)
+{
+    // abort messages are handled in SystemMessageIssuer subclasses
+    ASSERT(message_type != MessageType::Abort);
+
+    cs::shared_or_raw_ptr<const std::vector<SharableString>> message_buttons;
+    int default_button_index = 0;
+
+    if( runtime_message.select_buttons != nullptr )
+    {
+        message_buttons = &runtime_message.select_buttons->button_texts;
+
+        if( runtime_message.select_buttons->default_button_number.has_value() )
+        {
+            // + 1 as the default button index is one-based
+            default_button_index = int32_cast(*runtime_message.select_buttons->default_button_number + 1);
+        }
+
+        ASSERT(static_cast<size_t>(default_button_index) <= message_buttons->size());
+    }
+
+    // when no custom buttons are shown...
+    if( message_buttons == nullptr || message_buttons->empty() )
+    {
+        // ...to allow simple error messages to display during synchronous JavaScript
+        // calls into the engine, display messages using a native message box
+        if( WebViewSyncOperationMarker::IsOperationInProgress() )
+        {
+            ErrorMessage::Display(*runtime_message.message_text);
+            return 1;
+        }
+
+        // ...otherwise add the default OK button
+        message_buttons = std::make_unique<std::vector<SharableString>>(std::vector<SharableString>({ MGF::GetMessageText(MGF::Ok) }));
+    }
+
+
+    ErrmsgDlg errmsg_dlg;
+
+    // construct the title
+    if( ( OnWindowsDesktop() ) ||
+        ( m_engineData->application != nullptr && m_engineData->application->GetShowErrorMessageNumbers() ) )
+    {
+        const SharableString message_type_text =
+            ( message_type == MessageType::User )    ? MGF::GetMessageText(MGF::UserErrorTitle) :
+            ( message_type == MessageType::Warning ) ? MGF::GetMessageText(MGF::SystemWarningTitle) :
+                                                       MGF::GetMessageText(MGF::SystemErrorTitle);
+
+        errmsg_dlg.SetTitle(FormatText("%s (%d)", message_type_text->c_str(), runtime_message.message_number_for_display));
+    }
+
+    // add the message text, default button index, and buttons
+    errmsg_dlg.SetMessage(runtime_message.message_text);
+    errmsg_dlg.SetDefaultButtonIndex(default_button_index);
+    errmsg_dlg.SetButtons(*message_buttons);
+
+#ifdef WIN_DESKTOP
+    ::MessageBeep(0);
+#endif
+
+    while( true )
+    {
+        if( errmsg_dlg.DoModalOnUIThread() == IDOK )
+        {
+            // only return once the user has made a valid selection
+            if( errmsg_dlg.GetSelectedButtonIndex() != 0 )
+                return errmsg_dlg.GetSelectedButtonIndex();
+        }
+    }
+
 }

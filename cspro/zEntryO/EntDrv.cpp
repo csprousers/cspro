@@ -17,17 +17,13 @@
 #include <zPlatformO/PlatformInterface.h>
 #include <zToolsO/Tools.h>
 #include <zToolsO/VarFuncs.h>
-#include <zUtilO/ArrUtil.h>
 #include <zUtilF/MsgOpt.h>
-#include <zHtml/WebViewSyncOperationMarker.h>
-#include <zAppO/Application.h>
+#include <zHtml/UseHtmlDialogs.h>
 #include <zMessageO/Messages.h>
 #include <zMessageO/RuntimeMessage.h>
 #include <zDictO/ValueProcessor.h>
 #include <zBridgeO/NPff.h>
-#include <zCapiO/CapiQuestionManager.h>
 #include <zCaseO/Case.h>
-#include <zCaseO/CaseItemReference.h>
 #include <zDataO/CaseIterator.h>
 #include <zDataO/DataRepository.h>
 #include <engine/Entdrv.h>
@@ -36,7 +32,6 @@
 #include <zIssaLib/CsDriver.h>
 #include <zEngineO/ResponseProcessor.h>
 #include <zEngineO/ValueSet.h>
-#include <zUtilF/ErrmsgDlg.h>
 #include <engine/EngineQuestionnaireViewer.h>
 #include <CSEntry/UWM.h>
 
@@ -824,89 +819,34 @@ bool CEntryDriver::EditNote(const bool case_note, const DEFLD* defld/* = nullptr
 }
 
 
-int CEntryDriver::DisplayMessage(const MessageType message_type, const RuntimeMessage& runtime_message)
+int CEntryDriver::HandleErrorMessage(const MessageType message_type, const RuntimeMessage& runtime_message)
 {
-    // abort messages aren't displayed using the entry message because they are handled elsewhere
+    // abort messages are handled in SystemMessageIssuer subclasses
     ASSERT(message_type != MessageType::Abort);
 
     if( !UseHtmlDialogs() )
-        return DisplayMessage_pre77(message_type, runtime_message);
+        return HandleErrorMessage_pre77(message_type, runtime_message);
 
-    cs::shared_or_raw_ptr<const std::vector<SharableString>> message_buttons;
-    int default_button_index = 0;
-
-    if( runtime_message.select_buttons != nullptr )
-    {
-        message_buttons = &runtime_message.select_buttons->button_texts;
-
-        if( runtime_message.select_buttons->default_button_number.has_value() )
-        {
-            // + 1 as the default button index is one-based
-            default_button_index = int32_cast(*runtime_message.select_buttons->default_button_number + 1);
-        }
-
-        ASSERT(static_cast<size_t>(default_button_index) <= message_buttons->size());
-    }
-
-    // when not using select, the only button is the OK button
-    if( message_buttons == nullptr || message_buttons->empty() )
+    // when not using select or choices, the message may be handled in other ways
+    if( runtime_message.select_buttons == nullptr ||
+        runtime_message.select_buttons->button_texts.empty() )
     {
         // use the old message style while in operator-controlled mode
         if( WindowsDesktopMessage::Send(UWM::CSEntry::UsingOperatorControlledMessages) == 1 )
-            return DisplayMessage_pre77(message_type, runtime_message);
+            return HandleErrorMessage_pre77(message_type, runtime_message);
 
         // CSEntry may decide that this error message does not need to be displayed
         // (for example, while in an interactive edit)
         if( WindowsDesktopMessage::Send(UWM::CSEntry::PreprocessEngineMessage, static_cast<WPARAM>(message_type), runtime_message.message_number_for_display) < 0 )
             return 1;
-
-        // to allow simple error messages to display during synchronous JavaScript calls
-        // into the engine, display messages using a native message box
-        if( WebViewSyncOperationMarker::IsOperationInProgress() )
-        {
-            ErrorMessage::Display(*runtime_message.message_text);
-            return 1;
-        }
-
-        // add the default OK text
-        message_buttons = std::make_unique<std::vector<SharableString>>(std::vector<SharableString>({ MGF::GetMessageText(MGF::Ok) }));
     }
 
-    ErrmsgDlg errmsg_dlg;
-
-    // construct the title
-    if( OnWindowsDesktop() || GetApplication()->GetShowErrorMessageNumbers() )
-    {
-        const SharableString message_type_text =
-            ( message_type == MessageType::User )    ? MGF::GetMessageText(MGF::UserErrorTitle) :
-            ( message_type == MessageType::Warning ) ? MGF::GetMessageText(MGF::SystemWarningTitle) :
-                                                       MGF::GetMessageText(MGF::SystemErrorTitle);
-
-        errmsg_dlg.SetTitle(FormatText("%s (%d)", message_type_text->c_str(), runtime_message.message_number_for_display));
-    }
-
-    // add the message text, default button index, and buttons
-    errmsg_dlg.SetMessage(runtime_message.message_text);
-    errmsg_dlg.SetDefaultButtonIndex(default_button_index);
-    errmsg_dlg.SetButtons(*message_buttons);
-
-#ifdef WIN_DESKTOP
-    ::MessageBeep(0);
-#endif
-
-    while( true )
-    {
-        if( errmsg_dlg.DoModalOnUIThread() == IDOK )
-        {
-            // only return once the user has made a valid selection
-            if( errmsg_dlg.GetSelectedButtonIndex() != 0 )
-                return errmsg_dlg.GetSelectedButtonIndex();
-        }
-    }
+    // otherwise use the same routine used for the display function
+    return m_pIntDriver->DisplayUserMessage(message_type, runtime_message);
 }
 
 
-int CEntryDriver::DisplayMessage_pre77(const MessageType message_type, const RuntimeMessage& runtime_message)
+int CEntryDriver::HandleErrorMessage_pre77(const MessageType message_type, const RuntimeMessage& runtime_message)
 {
     std::vector<CString> message_buttons;
     int default_button_number = -1;

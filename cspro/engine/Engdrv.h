@@ -117,7 +117,7 @@ public:
     MessageManager& GetUserMessageManager()     { return *m_userMessageManager; }
     MessageEvaluator& GetUserMessageEvaluator() { return *m_userMessageEvaluator; }
 
-    virtual int DisplayMessage(MessageType message_type, const RuntimeMessage& runtime_message);
+    virtual int HandleErrorMessage(MessageType message_type, const RuntimeMessage& runtime_message);
 
     // listing and write files
 private:
