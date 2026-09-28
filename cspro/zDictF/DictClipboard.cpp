@@ -6,79 +6,100 @@
 std::vector<unsigned> DictClipboard::m_clipboardFormats;
 
 
-namespace
+namespace DC // DC = DictClipboard
 {
-    void DisplayException(const CSProException& exception)
-    {
-        ErrorMessage::Display(SO::Concatenate("Error pasting from the clipboard: ", exception.what()));
-    }
+    class DictionaryPasteJsonReaderInterface;
+
+    void DisplayException(const CSProException& exception);
 
     template<typename CF>
-    void Iterate(DictLevel& dict_level, const CF& callback_function)
-    {
-        callback_function(dict_level, nullptr);
-
-        for( int r = -1; r < dict_level.GetNumRecords(); ++r )
-        {
-            CDictRecord* dict_record = dict_level.GetRecord(( r == -1 ) ? COMMON : r);
-            Iterate(*dict_record, callback_function);
-        }
-    }
+    void Iterate(DictLevel& dict_level, const CF& callback_function);
 
     template<typename CF>
-    void Iterate(CDictRecord& dict_record, const CF& callback_function)
-    {
-        callback_function(dict_record, nullptr);
-
-        for( int i = 0; i < dict_record.GetNumItems(); ++i )
-        {
-            CDictItem* dict_item = dict_record.GetItem(i);
-            Iterate(*dict_item, callback_function);
-        }
-    }
+    void Iterate(CDictRecord& dict_record, const CF& callback_function);
 
     template<typename CF>
-    void Iterate(CDictItem& dict_item, const CF& callback_function)
-    {
-        callback_function(dict_item, nullptr);
-
-        for( DictValueSet& dict_value_set : dict_item.GetValueSets() )
-            Iterate(dict_value_set, callback_function, &dict_item);
-    }
+    void Iterate(CDictItem& dict_item, const CF& callback_function);
 
     template<typename CF>
-    void Iterate(DictValueSet& dict_value_set, const CF& callback_function, const CDictItem* parent_dict_item = nullptr)
-    {
-        callback_function(dict_value_set, parent_dict_item);
-    }
-
-
-    class DictionaryPasteJsonReaderInterface : public JsonReaderInterface
-    {
-    public:
-        void OnLogWarning(std::string message) override
-        {
-            if( std::find(m_messages.cbegin(), m_messages.cend(), UTF8_TODO::GetWide(message)) == m_messages.cend() )
-                m_messages.emplace_back(std::move(UTF8_TODO::GetWide(message)));
-        }
-
-        bool DisplayWarningsAndPromptToContinue() const
-        {
-            if( m_messages.empty() )
-                return true;
-
-            std::wstring full_message = _T("There are language differences in the dictionary elements pasted. Continue?\n");
-
-            for( const std::wstring& message : m_messages )
-                SO::Append(full_message, _T("\n  • "), message);
-
-            return ( AfxMessageBox(full_message.c_str(), MB_YESNOCANCEL | MB_ICONEXCLAMATION | MB_DEFBUTTON1) == IDYES );
-        }
-
-    private:
-        std::vector<std::wstring> m_messages;
-    };
+    void Iterate(DictValueSet& dict_value_set, const CF& callback_function, const CDictItem* parent_dict_item = nullptr);
 }
+
+
+void DC::DisplayException(const CSProException& exception)
+{
+    ErrorMessage::Display(SO::Concatenate("Error pasting from the clipboard: ", exception.what()));
+}
+
+
+template<typename CF>
+void DC::Iterate(DictLevel& dict_level, const CF& callback_function)
+{
+    callback_function(dict_level, nullptr);
+
+    for( int r = -1; r < dict_level.GetNumRecords(); ++r )
+    {
+        CDictRecord* dict_record = dict_level.GetRecord(( r == -1 ) ? COMMON : r);
+        Iterate(*dict_record, callback_function);
+    }
+}
+
+
+template<typename CF>
+void DC::Iterate(CDictRecord& dict_record, const CF& callback_function)
+{
+    callback_function(dict_record, nullptr);
+
+    for( int i = 0; i < dict_record.GetNumItems(); ++i )
+    {
+        CDictItem* dict_item = dict_record.GetItem(i);
+        Iterate(*dict_item, callback_function);
+    }
+}
+
+
+template<typename CF>
+void DC::Iterate(CDictItem& dict_item, const CF& callback_function)
+{
+    callback_function(dict_item, nullptr);
+
+    for( DictValueSet& dict_value_set : dict_item.GetValueSets() )
+        Iterate(dict_value_set, callback_function, &dict_item);
+}
+
+
+template<typename CF>
+void DC::Iterate(DictValueSet& dict_value_set, const CF& callback_function, const CDictItem* const parent_dict_item/* = nullptr*/)
+{
+    callback_function(dict_value_set, parent_dict_item);
+}
+
+
+class DC::DictionaryPasteJsonReaderInterface : public JsonReaderInterface
+{
+public:
+    void OnLogWarning(std::string message) override
+    {
+        if( std::find(m_messages.cbegin(), m_messages.cend(), UTF8_TODO::GetWide(message)) == m_messages.cend() )
+            m_messages.emplace_back(std::move(UTF8_TODO::GetWide(message)));
+    }
+
+    bool DisplayWarningsAndPromptToContinue() const
+    {
+        if( m_messages.empty() )
+            return true;
+
+        std::wstring full_message = _T("There are language differences in the dictionary elements pasted. Continue?\n");
+
+        for( const std::wstring& message : m_messages )
+            SO::Append(full_message, _T("\n  • "), message);
+
+        return ( AfxMessageBox(full_message.c_str(), MB_YESNOCANCEL | MB_ICONEXCLAMATION | MB_DEFBUTTON1) == IDYES );
+    }
+
+private:
+    std::vector<std::wstring> m_messages;
+};
 
 
 DictClipboard::DictClipboard(CDDDoc& dictionary_doc)
@@ -139,7 +160,7 @@ DictPastedValues<T> DictClipboard::GetFromClipboardWorker(CWnd* const pWnd) cons
     const unsigned clipboard_format = GetClipboardFormat<T>();
     const std::string clipboard_text = WinClipboard::GetTextWithFormat<std::string>(clipboard_format, pWnd);
 
-    DictionaryPasteJsonReaderInterface dictionary_paste_json_reader_interface;
+    DC::DictionaryPasteJsonReaderInterface dictionary_paste_json_reader_interface;
     const JsonNode json_node(clipboard_text, &dictionary_paste_json_reader_interface);
 
     // read labels with the proper languages
@@ -171,7 +192,7 @@ std::vector<T> DictClipboard::GetFromClipboard(CWnd* const pWnd) const
 
     catch( const CSProException& exception )
     {
-        DisplayException(exception);
+        DC::DisplayException(exception);
         return { };
     }
 }
@@ -190,7 +211,7 @@ DictPastedValues<T> DictClipboard::GetNamedElementsFromClipboard(CWnd* pWnd) con
 
         for( T& dict_element : pasted_values.values )
         {
-            Iterate(dict_element,
+            DC::Iterate(dict_element,
                 [&](DictNamedBase& dict_element, const CDictItem* parent_dict_item)
                 {
                     // 1. keep track of added records
@@ -316,7 +337,7 @@ DictPastedValues<T> DictClipboard::GetNamedElementsFromClipboard(CWnd* pWnd) con
 
     catch( const CSProException& exception )
     {
-        DisplayException(exception);
+        DC::DisplayException(exception);
         return { };
     }
 }

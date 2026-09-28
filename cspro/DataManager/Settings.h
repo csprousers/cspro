@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zUtilO/SettingsDb.h>
 
@@ -6,6 +6,7 @@ class CaseHtmlContentCreatorSettings;
 struct CaseJsonContentCreatorSettings;
 class CaseQuestionnaireContentCreatorSettings;
 struct CaseTextContentCreatorSettings;
+class ConnectionString;
 class DataSourceSettings;
 struct ExportDataSettings;
 struct ExtractBinaryDataSettings;

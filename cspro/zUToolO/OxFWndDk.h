@@ -757,6 +757,7 @@ void COXBaseDockDocument<PARENTDOC>::UpdateFrameCounts()
     ASSERT(iFrame == nFrames + 1);
 }
 
+#if 0 // moved to the bottom of this file so it will compile in C++20
 template<class PARENTDOC>
 CFrameWnd* COXBaseDockDocument<PARENTDOC>::GetParentFrame(CView* pView) const
 {
@@ -789,6 +790,7 @@ CFrameWnd* COXBaseDockDocument<PARENTDOC>::GetParentFrame(CView* pView) const
     }
     return NULL;
 }
+#endif
 
 template<class PARENTDOC>
 void COXBaseDockDocument<PARENTDOC>::UndockAllViews()
@@ -1097,3 +1099,37 @@ protected:
     friend COXDockDocument;
     friend COXSizableMiniDockFrameWnd;
 };
+
+
+template<class PARENTDOC>
+CFrameWnd* COXBaseDockDocument<PARENTDOC>::GetParentFrame(CView* pView) const
+{
+    if (pView->GetSafeHwnd() == NULL) // no Window attached
+    {
+        return NULL;
+    }
+
+    ASSERT_VALID(pView);
+
+    CWnd* pParentWnd = pView->GetParent();  // start with one parent up
+    while (pParentWnd != NULL)
+    {
+        if (pParentWnd->IsFrameWnd())
+        {
+            return (CFrameWnd*)pParentWnd;
+        }
+        else if (pParentWnd->IsKindOf(RUNTIME_CLASS(COXSizeViewBar)))
+        {
+            if(::IsWindow(((COXSizeViewBar*)pParentWnd)->m_pChildWnd->m_hWnd))
+            {
+                return (CFrameWnd*)((COXSizeViewBar*)pParentWnd)->m_pChildWnd;
+            }
+            else
+            {
+                return NULL;
+            }
+        }
+        pParentWnd = pParentWnd->GetParent();
+    }
+    return NULL;
+}
