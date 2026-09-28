@@ -1039,7 +1039,7 @@ const OperatingSystemDetails& GetOperatingSystemDetails()
         details.version_number = "WASM_TODO";
 
 #else
-        static_assert_false();
+        static_assert(false);
 #endif
     }
 

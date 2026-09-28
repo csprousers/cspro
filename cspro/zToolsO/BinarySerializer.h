@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 
 class BinarySerializer
@@ -83,7 +83,7 @@ constexpr size_t BinarySerializer::GetSize()
 
     else
     {
-        static_assert_false();
+        static_assert(false);
     }
 }
 

@@ -41,8 +41,6 @@
 
 #include <StandardIncludes/minimal.h>
 
-#include <zToolsO/StandardTemplatesCpp20.h>
-
 #include <zToolsO/BinaryBlock.h>
 #include <zToolsO/CSProException.h>
 #include <zToolsO/ErrorMessageDisplayer.h>

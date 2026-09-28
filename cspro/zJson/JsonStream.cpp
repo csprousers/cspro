@@ -77,8 +77,7 @@ JsonStream JsonStream::FromString(const std::string& text)
 
 JsonStream JsonStream::FromString(std::string&& text)
 {
-    static_assert(__cplusplus < 202002L, "move text into the created std::stringstream");
-    return FromString(text);
+    return FromStream(std::make_unique<std::stringstream>(std::move(text)));
 }
 
 

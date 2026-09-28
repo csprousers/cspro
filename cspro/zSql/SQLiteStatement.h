@@ -202,7 +202,7 @@ public:
 
         else
         {
-            static_assert_false();
+            static_assert(false);
         }
 
         return *this;
@@ -365,7 +365,7 @@ public:
 
         else
         {
-            static_assert_false();
+            static_assert(false);
         }
     }
 

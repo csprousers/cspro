@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zJson/zJson.h>
 #include <zJson/JsonNode.h>
@@ -294,7 +294,7 @@ JsonWriter& JsonWriter::Write(const ValueType& value)
         // this fails on Clang
         static_assert(false, "create a JsonSerializer for ValueType");
 #else
-        static_assert_false();
+        static_assert(false);
 #endif
     }
 

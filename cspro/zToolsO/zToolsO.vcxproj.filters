@@ -376,9 +376,6 @@
     <ClInclude Include="StandardTemplates.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="StandardTemplatesCpp20.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="StdAfx.h">
       <Filter>Header Files</Filter>
     </ClInclude>

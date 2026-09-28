@@ -3457,7 +3457,7 @@ CFormTracker& CFormScrollView::AddTrackerT(const CRect& rect, int index)
 
     else
     {
-        static_assert_false();
+        static_assert(false);
     }
 
     return tracker;

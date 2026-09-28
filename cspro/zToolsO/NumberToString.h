@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zToolsO/zToolsO.h>
 #include <zToolsO/TextFormatter.h>
@@ -67,7 +67,7 @@ std::string IntToString(T value)
                       std::is_same_v<T, unsigned long>)
 #else
     else if constexpr(std::is_same_v<T, uint32_t>)
-#endif    
+#endif
     {
         static_assert(sizeof(T) == sizeof(uint32_t));
         return FormatText("%" PRIu32, static_cast<uint32_t>(value));
@@ -89,7 +89,7 @@ std::string IntToString(T value)
 
         else
         {
-            static_assert_false();
+            static_assert(false);
         }
     }
 }

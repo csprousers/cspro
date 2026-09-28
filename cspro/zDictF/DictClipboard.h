@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zJson/Json.h>
 
@@ -57,7 +57,7 @@ private:
         else if constexpr(std::is_same_v<T, DictValueSet>)  return 3;
         else if constexpr(std::is_same_v<T, DictValue>)     return 4;
         else if constexpr(std::is_same_v<T, DictValuePair>) return 5;
-        else                                                static_assert_false();
+        else                                                static_assert(false);
     }
 
     template<typename T>

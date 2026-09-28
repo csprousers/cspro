@@ -155,7 +155,6 @@
     <ClInclude Include="SpanHelpers.h" />
     <ClInclude Include="Special.h" />
     <ClInclude Include="StandardTemplates.h" />
-    <ClInclude Include="StandardTemplatesCpp20.h" />
     <ClInclude Include="StdAfx.h" />
     <ClInclude Include="StringOperations.h" />
     <ClInclude Include="StringPos.h" />

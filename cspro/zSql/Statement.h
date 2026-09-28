@@ -335,7 +335,7 @@ Sqlite::Statement& Sqlite::Statement::Bind(PT&& parameter_number_or_name, VT val
 
     else
     {
-        static_assert_false();
+        static_assert(false);
     }
 
     CheckValidBinding(result);
@@ -514,7 +514,7 @@ VT Sqlite::Statement::GetColumn(const int column_number)
 
     else
     {
-        static_assert_false();
+        static_assert(false);
     }
 }
 

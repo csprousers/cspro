@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "RuntimeEvent.h"
 #include "PersistentVariableProcessor.h"
 #include "PreinitializedVariable.h"
@@ -22,7 +22,7 @@ T& RuntimeEventsProcessor::GetOrCreateEvent()
 
     else
     {
-        static_assert_false();
+        static_assert(false);
     }
 
     auto event_lookup = std::find_if(m_events.begin(), m_events.end(),
@@ -45,7 +45,7 @@ T& RuntimeEventsProcessor::GetOrCreateEvent()
 
         else
         {
-            static_assert_false();
+            static_assert(false);
         }
     }
 

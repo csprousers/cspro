@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "FreqDoc.h"
 #include "CSFreq.h"
 #include "MainFrm.h"
@@ -947,7 +947,7 @@ namespace
 
             else
             {
-                static_assert_false();
+                static_assert(false);
             }
         }
 

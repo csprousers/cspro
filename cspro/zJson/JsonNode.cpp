@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "JsonNode.h"
 #include "Json.h"
 #include "JsonConsExceptionRethrower.h"
@@ -444,7 +444,7 @@ T JsonNode::GetEngineValue() const
 
     else
     {
-        static_assert_false();
+        static_assert(false);
     }
 }
 
