@@ -527,7 +527,7 @@ void EngineParadataDriver::ProcessCachedEvents(const std::vector<std::string>& e
 
         std::unique_ptr<Event> event;
 
-        if( SO::StartsWith(event_type_sv, "gps") )
+        if( event_type_sv.starts_with("gps") )
         {
             event = m_pIntDriver->CreateParadataGpsEvent(event_type_sv, event_information_sv);
         }

@@ -11,7 +11,7 @@ GitTag::GitTag(const git_oid& oid, std::string name) noexcept
 
 std::string GitTag::GetDisplayName() const noexcept
 {
-    if( SO::StartsWith(m_name, RefsTagPrefix_sv) )
+    if( m_name.starts_with(RefsTagPrefix_sv) )
         return m_name.substr(RefsTagPrefix_sv.length());
 
     return m_name;

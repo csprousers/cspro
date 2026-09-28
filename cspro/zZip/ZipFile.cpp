@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "ZipFile.h"
 #include <zToolsO/CallbackFunctionProcessor.h>
 
@@ -363,7 +363,7 @@ void ZipCreator::NormalizeFilePathAndCreateDirectoriesForFile(std::string& file_
     PortableFunctions::MakePathToForwardSlash(file_path_in_zip);
 
     // a "." directory is created in the archive if you use "./" so remove it
-    if( SO::StartsWith(file_path_in_zip, "./") )
+    if( file_path_in_zip.starts_with("./") )
         file_path_in_zip = file_path_in_zip.substr(2);
 
     std::string directory_in_zip = PortableFunctions::PathGetDirectory(file_path_in_zip);

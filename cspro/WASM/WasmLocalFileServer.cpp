@@ -34,7 +34,7 @@ int WasmLocalFileServer::RetrieveVirtualFile(const std::string& path)
 
     try
     {
-        if( !SO::StartsWith(path, LocalhostUrl::WasmBaseUrlSuffix_sv) )
+        if( !path.starts_with(LocalhostUrl::WasmBaseUrlSuffix_sv) )
             throw CSProException("The path '%s' is not valid.", path.c_str());
 
         // the path URL will arrive percent-encoded

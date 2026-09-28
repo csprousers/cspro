@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "CurlFtpConnection.h"
 #include "CurlWrapper.h"
 #include "ParsedUri.h"
@@ -34,7 +34,7 @@ std::string CurlFtpConnection::DoConnect(const std::string& username, const std:
     std::string evaluated_url = m_providedUrl;
 
     // Extract the TLS type (if any from the URL)
-    if( SO::StartsWith(m_providedUrl, FTPES_sv) )
+    if( m_providedUrl.starts_with(FTPES_sv) )
     {
         // cURL wants a regular ftp:// url instead of an ftpes:// url
         // but with CURLUSESSL_ALL it will force explicit SSL
@@ -42,7 +42,7 @@ std::string CurlFtpConnection::DoConnect(const std::string& username, const std:
         curl_easy_setopt(m_curl, CURLOPT_USE_SSL, CURLUSESSL_ALL);
     }
 
-    else if( SO::StartsWith(m_providedUrl, FTPS_sv) )
+    else if( m_providedUrl.starts_with(FTPS_sv) )
     {
         curl_easy_setopt(m_curl, CURLOPT_USE_SSL, CURLUSESSL_ALL);
     }
@@ -50,7 +50,7 @@ std::string CurlFtpConnection::DoConnect(const std::string& username, const std:
     else
     {
         // Must be a plain FTP url, no SSL
-        ASSERT(SO::StartsWith(m_providedUrl, FTP_sv));
+        ASSERT(m_providedUrl.starts_with(FTP_sv));
         curl_easy_setopt(m_curl, CURLOPT_USE_SSL, CURLUSESSL_NONE);
     }
 
@@ -121,12 +121,12 @@ void CurlFtpConnection::QueryFeatures()
         {
             SYNCLOG_INFO << line;
 
-            if( SO::StartsWith(line, "220") )
+            if( line.starts_with("220") )
             {
                 // Welcome message, including server software name.
             }
 
-            else if( SO::StartsWith(line, "211") )
+            else if( line.starts_with("211") )
             {
                 in_feature_list = !in_feature_list;
             }

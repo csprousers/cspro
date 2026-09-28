@@ -238,7 +238,7 @@ std::string CaseItemPrinter::FormatNumber(const CDictItem& dict_item, const doub
                 value_text.insert(0, 1, '0');
             }
 
-            else if( SO::StartsWith(value_text, "-.") )
+            else if( value_text.starts_with("-.") )
             {
                 ASSERT(false);
                 value_text.insert(1, 1, '0');

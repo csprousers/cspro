@@ -122,7 +122,7 @@ std::string FileReplacer::CreateSqliteWithoutSEE(const git_diff_file& new_file)
     SO::ForeachLine(cs_header_blob.as<std::string_view>(), false,
         [&](std::string_view line_sv)
         {
-            if( SO::StartsWith(line_sv, VersionPrefix_sv) )
+            if( line_sv.starts_with(VersionPrefix_sv) )
             {
                 full_version_line = line_sv;
 

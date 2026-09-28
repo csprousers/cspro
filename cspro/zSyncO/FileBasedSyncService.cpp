@@ -311,7 +311,7 @@ std::vector<std::shared_ptr<Case>> FileBasedSyncService::GetCasesFromZipFile(con
                 {
                     JsonNode metadata_json_node = (array_node_itr++)->Get<JsonNode>();
 
-                    if( universe.empty() || SO::StartsWith(metadata_json_node.Get<std::string_view>(JK::key), universe) )
+                    if( universe.empty() || metadata_json_node.Get<std::string_view>(JK::key).starts_with(universe) )
                         return metadata_json_node;
                 }
 
@@ -355,7 +355,7 @@ void FileBasedSyncService::FilterCasesByUniverse(std::vector<std::shared_ptr<Cas
 
     for( auto case_itr = cases.begin(); case_itr != cases.end(); )
     {
-        if( SO::StartsWith((*case_itr)->GetKey(), universe) )
+        if( (*case_itr)->GetKey().starts_with(universe) )
         {
             ++case_itr;
         }

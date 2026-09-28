@@ -412,10 +412,10 @@ void DocSetBuilderChmGenerateTask::WriteChmProjectFileContextIds(FileIO::TextFil
 
     for( const auto& [context, context_id] : GetDocSetSpec().GetContextIds() )
     {
-        const unsigned context_id_adjustment = SO::StartsWith(context, "ID_")  ? 0x10000 :
-                                               SO::StartsWith(context, "IDD_") ? 0x20000 :
-                                               SO::StartsWith(context, "IDR_") ? 0x20000 :
-                                                                                 0;
+        const unsigned context_id_adjustment = context.starts_with("ID_")  ? 0x10000 :
+                                               context.starts_with("IDD_") ? 0x20000 :
+                                               context.starts_with("IDR_") ? 0x20000 :
+                                                                             0;
 
         if( context_id_adjustment != 0 )
         {

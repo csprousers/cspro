@@ -106,8 +106,8 @@ SyncServiceType SyncConnectionString::CalculateImplicitSyncServiceType(const std
     }
 
     // http:// + https://
-    else if( SO::StartsWith(sync_service_type_sv, Http_sv) && ( sync_service_type_sv.length() == Http_sv.length() ||
-                                                                sync_service_type_sv.substr(Http_sv.length()) == "s") )
+    else if( sync_service_type_sv.starts_with(Http_sv) && ( sync_service_type_sv.length() == Http_sv.length() ||
+                                                            sync_service_type_sv.substr(Http_sv.length()) == "s") )
     {
         return SyncServiceType::CSWeb;
     }
@@ -125,14 +125,14 @@ SyncServiceType SyncConnectionString::CalculateImplicitSyncServiceType(const std
     }
 
     // ftp:// + ftps:// + ftpes://
-    else if( SO::StartsWith(sync_service_type_sv, Ftp_sv) && ( sync_service_type_sv.length() == Ftp_sv.length() ||
-                                                               SO::EqualsOneOf(sync_service_type_sv.substr(Ftp_sv.length()), "s", "es") ) )
+    else if( sync_service_type_sv.starts_with(Ftp_sv) && ( sync_service_type_sv.length() == Ftp_sv.length() ||
+                                                           SO::EqualsOneOf(sync_service_type_sv.substr(Ftp_sv.length()), "s", "es") ) )
     {
         return SyncServiceType::Ftp;
     }
 
     // file:///
-    else if( SO::StartsWith(sync_service_type_sv, File_sv) )
+    else if( sync_service_type_sv.starts_with(File_sv) )
     {
         return SyncServiceType::LocalFiles;
     }
@@ -186,7 +186,7 @@ void SyncConnectionString::Initialize(std::optional<SyncServiceType> sync_servic
     {
         ASSERT(m_syncServiceType == SyncServiceType::LocalFiles);
 
-        if( SO::StartsWith(m_resource, Encoders::FileUrlPrefix_sv) )
+        if( m_resource.starts_with(Encoders::FileUrlPrefix_sv) )
         {
             m_resourceType = ResourceType::Url;
             Path::MakeToForwardSlash(m_resource);
@@ -207,7 +207,7 @@ std::string SyncConnectionString::GetEvaluatedDirectoryPath() const
 
     if( m_resourceType == ResourceType::Url )
     {
-        ASSERT(SO::StartsWith(m_resource, Encoders::FileUrlPrefix_sv));
+        ASSERT(m_resource.starts_with(Encoders::FileUrlPrefix_sv));
 
         std::optional<std::string> directory_path = Encoders::FromFileUrl(m_resource);
 

@@ -38,7 +38,7 @@ std::string CreateRegularExpressionFromFileSpec(const std::string_view file_spec
             {
                 // replace *.* with .* to match Windows file matching behavior where *.*
                 // matches a file spec that doesn't have a .
-                if( SO::StartsWith(segment_sv, "*.*") )
+                if( segment_sv.starts_with("*.*") )
                     segment_itr += 2;
 
                 pattern.append(".*");

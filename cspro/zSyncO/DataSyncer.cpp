@@ -476,7 +476,7 @@ std::optional<SyncHistoryEntry> DataSyncer::GetRevisionFromLastSync(const SyncDi
     );
 
     // only use the previous revision number if the universe stayed the same or became more restrictive
-    if( last_sync_revision.has_value() && !SO::StartsWith(m_universe, last_sync_revision->GetUniverse()) )
+    if( last_sync_revision.has_value() && !m_universe.starts_with(last_sync_revision->GetUniverse()) )
         last_sync_revision.reset();
 
     return last_sync_revision;

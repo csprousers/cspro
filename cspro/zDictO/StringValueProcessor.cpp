@@ -180,7 +180,7 @@ const DictValue* StringValueSetValueProcessor::GetDictValue(std::string_view val
 
             for( const auto& [code, index] : m_data->alphas.GetVector() )
             {
-                if( SO::StartsWith(code, value_sv) &&
+                if( code.starts_with(value_sv) &&
                     SO::TrimRightSpace(code).length() == value_sv.length() )
                 {
                     alphas_index = &index;

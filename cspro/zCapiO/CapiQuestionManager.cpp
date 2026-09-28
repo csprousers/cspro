@@ -310,7 +310,7 @@ void CapiQuestionManager::Load(const std::string& file_path)
     {
         const std::string input = FileIO::ReadText(file_path);
 
-        if( SO::StartsWith(input, "[CAPI QUESTIONS]") )
+        if( input.starts_with("[CAPI QUESTIONS]") )
         {
 #ifdef WIN_DESKTOP
             LoadPre76File(file_path);

@@ -139,7 +139,7 @@ std::vector<FileInfo> LocalFileConnection::GetDirectoryListing(const std::string
     // store the relative path that when concatenated with the root path will construct the full path
     std::string path_from_root = PortableFunctions::PathToForwardSlash(full_remote_directory_path);
 
-    if( !SO::StartsWith(path_from_root, "./") && !SO::StartsWith(path_from_root, "../") )
+    if( !path_from_root.starts_with("./") && !path_from_root.starts_with("../") )
         path_from_root = PortableFunctions::PathAppendForwardSlashToPath("/", path_from_root);
 
     for( const std::string& full_path : DirectoryLister().SetIncludeDirectories()

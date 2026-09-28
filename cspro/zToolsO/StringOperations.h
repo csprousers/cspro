@@ -244,10 +244,6 @@ public:
     [[nodiscard]] static bool EqualsOneOfNoCase(wstring_view source_sv, wstring_view compare1_sv, Args const&... compare2_and_more);
 
     // returns whether the source string starts with the entire second string
-    template<typename ST1, typename ST2>
-    [[nodiscard]] static bool StartsWith(const ST1& source, const ST2& starts_with_text);
-
-    // returns whether the source string starts with the entire second string
     // in a case-insensitive manner
     template<typename ST1, typename ST2>
     [[nodiscard]] static bool StartsWithNoCase(const ST1& source, const ST2& starts_with_text);
@@ -949,14 +945,6 @@ bool SO::EqualsOneOfNoCase(const wstring_view source_sv, const wstring_view comp
     }
 
     return false;
-}
-
-
-template<typename ST1, typename ST2>
-bool SO::StartsWith(const ST1& source, const ST2& starts_with_text)
-{
-    // C++20 has a starts_with operator, but in the meantime:
-    return EqualsStartsWithWorker<ST1, ST2, false, false>(source, starts_with_text);
 }
 
 

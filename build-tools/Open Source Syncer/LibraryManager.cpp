@@ -75,7 +75,7 @@ std::string LibraryManager::CreateRepoPathFromPath(const std::string& path) cons
 {
     const std::string& private_repo_directory = m_controller.GetPrivateRepoDirectory();
     ASSERT(private_repo_directory.back() == Path::NativeSlashChar);
-    ASSERT(SO::StartsWith(path, private_repo_directory));
+    ASSERT(path.starts_with(private_repo_directory));
 
     return Path::ToForwardSlash(path.substr(private_repo_directory.length()));
 }

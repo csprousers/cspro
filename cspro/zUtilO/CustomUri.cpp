@@ -50,12 +50,12 @@ bool CustomUri::UsesHttpScheme(std::string_view uri_sv)
 {
     constexpr std::string_view Http_sv = HttpScheme_sv.substr(0, 4);
 
-    if( SO::StartsWith(uri_sv, Http_sv) )
+    if( uri_sv.starts_with(Http_sv) )
     {
         uri_sv.remove_prefix(Http_sv.length());
 
-        if( SO::StartsWith(uri_sv, HttpScheme_sv.substr(Http_sv.length())) ||
-            SO::StartsWith(uri_sv, HttpsScheme_sv.substr(Http_sv.length())) )
+        if( uri_sv.starts_with(HttpScheme_sv.substr(Http_sv.length())) ||
+            uri_sv.starts_with(HttpsScheme_sv.substr(Http_sv.length())) )
         {
             return true;
         }
@@ -74,11 +74,11 @@ bool CustomUri::UsesHttpOrCSProScheme(const std::string_view uri_sv)
 
 std::optional<CustomUri::UriType> CustomUri::GetUriType(const std::string_view uri_sv)
 {
-    return SO::StartsWith(uri_sv, CSProTextPrefix_sv)  ? std::make_optional(UriType::Text) :
-           SO::StartsWith(uri_sv, CSProDataPrefix_sv)  ? std::make_optional(UriType::Data) :
-           SO::StartsWith(uri_sv, CSProSyncPrefix_sv)  ? std::make_optional(UriType::Sync) :
-           SO::StartsWith(uri_sv, CSProCachePrefix_sv) ? std::make_optional(UriType::Cache) :
-                                                         std::nullopt;
+    return uri_sv.starts_with(CSProTextPrefix_sv)  ? std::make_optional(UriType::Text) :
+           uri_sv.starts_with(CSProDataPrefix_sv)  ? std::make_optional(UriType::Data) :
+           uri_sv.starts_with(CSProSyncPrefix_sv)  ? std::make_optional(UriType::Sync) :
+           uri_sv.starts_with(CSProCachePrefix_sv) ? std::make_optional(UriType::Cache) :
+                                                     std::nullopt;
 }
 
 
@@ -121,7 +121,7 @@ std::string CustomUri::EncodeFilePath(std::string file_path)
 
 std::string CustomUri::ConvertUriToPropertyString(const std::string_view cspro_scheme_prefix_sv, const std::string_view uri_sv)
 {
-    ASSERT(SO::StartsWith(uri_sv, cspro_scheme_prefix_sv));
+    ASSERT(uri_sv.starts_with(cspro_scheme_prefix_sv));
 
     std::vector<std::tuple<std::string, std::string>> properties;
     const std::string path = EvaluatePathAndQueryString(uri_sv.substr(cspro_scheme_prefix_sv.length()), &properties);
@@ -147,7 +147,7 @@ std::string CustomUri::CreateTextUri(std::string file_path)
 
 std::string CustomUri::ConvertTextUriToFilePath(const std::string_view uri_sv)
 {
-    ASSERT(SO::StartsWith(uri_sv, CSProTextPrefix_sv));
+    ASSERT(uri_sv.starts_with(CSProTextPrefix_sv));
 
     std::string file_path = EvaluatePathAndQueryString(uri_sv.substr(CSProTextPrefix_sv.length()), nullptr);
 

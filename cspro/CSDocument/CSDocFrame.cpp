@@ -318,7 +318,7 @@ void CSDocFrame::OnFormatLink()
 
     auto process_potential_path = [&](std::string potential_path)
     {
-        if( SO::StartsWith(potential_path, "http") )
+        if( potential_path.starts_with("http") )
         {
             surround_link_with_quotes = true;
             return potential_path;

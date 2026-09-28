@@ -572,7 +572,9 @@ Engine::Value LogicInterpreter::ex_startswith(const int program_index)
     const SharableString starts_with_text = Evaluate<SharableString>(fnn_node.fn_expr[0]);
     const SharableString source_text = Evaluate<SharableString>(fnn_node.fn_expr[1]);
 
-    return Engine::Value::Bool(SO::StartsWith(*source_text, *starts_with_text));
+    return Engine::Value::Bool(
+        source_text->starts_with(*starts_with_text)
+    );
 }
 
 

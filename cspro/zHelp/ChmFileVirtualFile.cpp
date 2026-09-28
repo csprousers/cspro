@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "ChmFileVirtualFile.h"
 #include "ChmFileReader.h"
 #include <zToolsO/Encoders.h>
@@ -158,7 +158,7 @@ void ChmFileVirtualFile::PreprocessHtmlContent(std::vector<std::byte>& content)
             --quote_start_pos;
 
         if( quote_start_pos >= HrefStartText_sv.length() && quote_start_pos < html.size() &&
-            SO::StartsWith(std::string_view(html).substr(quote_start_pos - HrefStartText_sv.length()), HrefStartText_sv) )
+            std::string_view(html).substr(quote_start_pos - HrefStartText_sv.length()).starts_with(HrefStartText_sv) )
         {
             // links will appear as: csconcat.chm::introduction_to_concatenate_data.html
             // replace to: [local file server]/csconcat/introduction_to_concatenate_data.html

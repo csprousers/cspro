@@ -89,11 +89,11 @@ std::vector<TemporaryFile> FileBasedParadataSyncer::GetParadata()
             const std::string& filename = file_info.GetName();
             constexpr std::string_view ParadataLogPrefix_sv(ParadataLogPrefix);
 
-            if( SO::StartsWith(filename, ParadataLogPrefix_sv) )
+            if( filename.starts_with(ParadataLogPrefix_sv) )
             {
-                const char* const log_uuid_start = filename.c_str() + ParadataLogPrefix_sv.length();
+                const std::string_view log_uuid_start_sv(filename.c_str() + ParadataLogPrefix_sv.length());
 
-                if( !SO::StartsWith(log_uuid_start, m_clientLogUuid) )
+                if( !log_uuid_start_sv.starts_with(m_clientLogUuid) )
                 {
                     compressed_logs_to_download.emplace_back(filename);
                     m_highestGetFileTime = std::max(m_highestGetFileTime.value_or(0), file_info.GetLastModified());

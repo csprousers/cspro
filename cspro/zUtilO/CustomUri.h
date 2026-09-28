@@ -96,7 +96,7 @@ private:
 
 inline bool CustomUri::UsesCSProScheme(const std::string_view uri_sv)
 {
-    return SO::StartsWith(uri_sv, CSProScheme_sv);
+    return uri_sv.starts_with(CSProScheme_sv);
 }
 
 

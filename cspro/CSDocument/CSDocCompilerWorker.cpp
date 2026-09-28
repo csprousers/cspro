@@ -564,10 +564,10 @@ std::string CSDocCompilerWorker::PreprocessTextForDefinitionsAndIncludes(const s
         const std::string_view start_tag_sv = SO::TrimLeft(text_sv.substr(start_tag_position + 1));
 
         const size_t expected_tag_components =
-            SO::StartsWith(start_tag_sv, DefineTag_sv)     ? 4 :
-            SO::StartsWith(start_tag_sv, DefinitionTag_sv) ? 3 :
-            SO::StartsWith(start_tag_sv, IncludeTag_sv)    ? 3 :
-                                                             0;
+            start_tag_sv.starts_with(DefineTag_sv)     ? 4 :
+            start_tag_sv.starts_with(DefinitionTag_sv) ? 3 :
+            start_tag_sv.starts_with(IncludeTag_sv)    ? 3 :
+                                                         0;
 
         if( expected_tag_components == 0 )
         {
@@ -756,7 +756,7 @@ void CSDocCompilerWorker::ProcessParagraph(std::string paragraph)
     // these should not be processed
     if( text.length() % NewLineMarker_sv.length() == 0 )
     {
-        for( std::string_view text_check_sv = text; SO::StartsWith(text_check_sv, NewLineMarker_sv); )
+        for( std::string_view text_check_sv = text; text_check_sv.starts_with(NewLineMarker_sv); )
         {
             text_check_sv.remove_prefix(NewLineMarker_sv.length());
 
@@ -816,7 +816,7 @@ std::string CSDocCompilerWorker::ProcessText(std::string& text)
         std::string before_tag_text = text.substr(0, tag_position.start);
 
         // process end tags...
-        if( !tag_components.empty() && SO::StartsWith(tag_components.front(), "/")  )
+        if( !tag_components.empty() && tag_components.front().starts_with('/')  )
         {
             if( m_tagStack.empty() )
                 throw CSProException("End tag without a start tag around: %s", text.substr(tag_position.start).c_str());
@@ -1525,7 +1525,7 @@ std::string CSDocCompilerWorker::CreateLinkStartHtml(std::string url, const bool
 {
     bool target_blank = false;
 
-    if( Encoders::IsDataOrHttpUrl(url) || SO::StartsWith(url, "mailto") )
+    if( Encoders::IsDataOrHttpUrl(url) || url.starts_with("mailto") )
     {
         target_blank = m_settings.OpenExternalLinksInSeparateWindow();
     }

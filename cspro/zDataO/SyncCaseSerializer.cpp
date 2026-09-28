@@ -316,7 +316,7 @@ std::optional<SyncCaseSerializer::BinaryParser> SyncCaseSerializer::ParseSyncabl
 {
     std::optional<BinaryParser> binary_parser;
 
-    if( SO::StartsWith(case_data_sv, BinaryHeader_sv) )
+    if( case_data_sv.starts_with(BinaryHeader_sv) )
         binary_parser.emplace(case_data_sv.substr(BinaryHeader_sv.length()));
 
     SYNCLOG_INFO << "Parsing case data (length " << case_data_sv.length() << ") in " << ( binary_parser.has_value() ? "binary" : "JSON" ) << " format";

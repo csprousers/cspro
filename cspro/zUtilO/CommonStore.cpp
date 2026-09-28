@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "CommonStore.h"
 #include <zSql/DB.h>
 #include <zSql/TableNamer.h>
@@ -190,7 +190,7 @@ std::map<std::string, std::string>* CommonStore::GetCurrentCachedSystemSettings(
 
     // caching is only used for user settings
     if( ( UseGlobalCommonStoreAndCaching() ) &&
-        ( key_for_system_setting_check_sv.empty() || SO::StartsWith(key_for_system_setting_check_sv, SystemSettingPrefix) ) )
+        ( key_for_system_setting_check_sv.empty() || key_for_system_setting_check_sv.starts_with(SystemSettingPrefix) ) )
     {
         current_cached_system_settings = ( m_globalCommonStore == nullptr ) ? GlobalCachedSystemSettings.get() :
                                                                               m_cachedSystemSettings.get();
@@ -226,7 +226,7 @@ void CommonStore::CacheSystemSettings(std::map<std::string, std::string>& cached
 
 std::string CommonStore::GetSystemSetting(const std::string& key) noexcept
 {
-    ASSERT(SO::StartsWith(key, SystemSettingPrefix));
+    ASSERT(key.starts_with(SystemSettingPrefix));
 
     CommonStore* const current_common_store = CommonStores.empty() ? nullptr :
                                                                      CommonStores.back();

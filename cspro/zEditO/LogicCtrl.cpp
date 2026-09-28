@@ -1435,7 +1435,7 @@ void CLogicCtrl::FormatLogic() // 20101208
             auto match_multiline_comment = [&](const std::string_view multiline_comment_sv, const wstring_view line_sv, const int line_pos)
             {
                 return ( ( line_pos + multiline_comment_sv.length() ) <= line_sv.length() &&
-                         SO::StartsWith(line_sv.substr(line_pos), UTF8_TODO::GetWide(multiline_comment_sv)) );
+                         line_sv.substr(line_pos).starts_with(UTF8_TODO::GetWide(multiline_comment_sv)) );
             };
 
 

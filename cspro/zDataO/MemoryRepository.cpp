@@ -296,7 +296,7 @@ std::vector<size_t> MemoryRepository::GetFilteredIndices(const CaseIteratorSetti
         FilterIndices(indices,
             [&](const Case& data_case)
             {
-                if( use_key_prefix && !SO::StartsWith(data_case.GetKey(), *start_parameters->key_prefix) )
+                if( use_key_prefix && !data_case.GetKey().starts_with(*start_parameters->key_prefix) )
                 {
                     return false;
                 }

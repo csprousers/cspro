@@ -1018,7 +1018,7 @@ std::string CSDocCompilerWorker::ActionEndHandler(const std::string& inner_text)
 
     std::string action_text = inner_text;
 
-    const bool cs_was_specified = SO::StartsWith(action_text, "CS.");
+    const bool cs_was_specified = action_text.starts_with("CS.");
 
     if( !cs_was_specified )
         action_text.insert(0, "CS.");

@@ -98,7 +98,7 @@ const std::string& GitCommit::GetMessage() const noexcept
         message = SO::Trim(std::string_view(git_commit_message(m_commit)));
 
         // strip UTF-8 BOMs when present
-        if( SO::StartsWith(message, TextEncoding::Utf8Bom_sv) )
+        if( message.starts_with(TextEncoding::Utf8Bom_sv) )
         {
             message.erase(0, TextEncoding::Utf8Bom_sv.length());
             SO::MakeTrim(message);

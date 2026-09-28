@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "CaseLevel.h"
 #include "CaseItemReference.h"
 #include "FixedWidthCaseItem.h"
@@ -184,15 +184,18 @@ void CaseLevel::RemoveChildCaseLevel(CaseLevel& child_case_level)
 
             const CaseItemReference* const partial_save_case_item_reference = data_case.GetPartialSaveCaseItemReference();
 
-            if( partial_save_case_item_reference != nullptr && SO::StartsWith(partial_save_case_item_reference->GetLevelKey(), child_case_level.GetLevelKey()) )
+            if( partial_save_case_item_reference != nullptr &&
+                partial_save_case_item_reference->GetLevelKey().starts_with(UTF8_TODO::GetUtf8(child_case_level.GetLevelKey())) )
+            {
                 data_case.SetPartialSaveStatus(data_case.GetPartialSaveMode());
+            }
 
             // remove any notes from this level or child levels
             std::vector<Note>& notes = data_case.GetNotes();
 
             for( auto note_itr = notes.cbegin(); note_itr != notes.cend(); )
             {
-                if( SO::StartsWith(note_itr->GetNamedReference().GetLevelKey(), child_case_level.GetLevelKey()) )
+                if( note_itr->GetNamedReference().GetLevelKey().starts_with(UTF8_TODO::GetUtf8(child_case_level.GetLevelKey())) )
                 {
                     note_itr = notes.erase(note_itr);
                 }
@@ -270,7 +273,7 @@ void CaseLevel::RecalculateLevelIdentifier(const bool adjust_level_keys/* = true
     // for other levels, because partial save statuses and notes are linked by the level key,
     // we can't just compute the level key on demand; we need to always compute it and then
     // adjust the level keys of statuses and notes based on the changed key
-    CString previous_level_key = m_levelIdentifier;
+    std::string previous_level_key = UTF8_TODO::GetUtf8(m_levelIdentifier);
 
     m_levelIdentifier.Empty();
 
@@ -283,7 +286,7 @@ void CaseLevel::RecalculateLevelIdentifier(const bool adjust_level_keys/* = true
 
     const CString& new_level_key = GetLevelIdentifier();
 
-    if( !previous_level_key.IsEmpty() )
+    if( !previous_level_key.empty() )
     {
         auto calculate_new_level_key = [&](CString level_key)
         {
@@ -298,15 +301,18 @@ void CaseLevel::RecalculateLevelIdentifier(const bool adjust_level_keys/* = true
 
         CaseItemReference* partial_save_case_item_reference = data_case.GetPartialSaveCaseItemReference();
 
-        if( partial_save_case_item_reference != nullptr && SO::StartsWith(partial_save_case_item_reference->GetLevelKey(), previous_level_key) )
+        if( partial_save_case_item_reference != nullptr &&
+            partial_save_case_item_reference->GetLevelKey().starts_with(previous_level_key) )
+        {
             partial_save_case_item_reference->SetLevelKey(calculate_new_level_key(UTF8_TODO::GetCString(partial_save_case_item_reference->GetLevelKey())));
+        }
 
         // change the references in notes
         for( Note& note : data_case.GetNotes() )
         {
             NamedReference& named_reference = note.GetNamedReference();
 
-            if( SO::StartsWith(named_reference.GetLevelKey(), previous_level_key) )
+            if( named_reference.GetLevelKey().starts_with(previous_level_key) )
                 named_reference.SetLevelKey(calculate_new_level_key(UTF8_TODO::GetCString(named_reference.GetLevelKey())));
         }
     }

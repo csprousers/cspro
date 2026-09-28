@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "FileIO.h"
 #include "TextEncoding.h"
 #include "Utf8FileStream.h"
@@ -168,7 +168,7 @@ std::string FileIO::ReadText(InterfaceString file_path, TextEncoding text_encodi
     // if UTF-8 with a BOM, we can remove the BOM and then return the text directly
     else if( text_encoding.GetType() == TextEncoding::Type::Utf8Bom )
     {
-        ASSERT81(SO::StartsWith(text, TextEncoding::Utf8Bom_sv));
+        ASSERT81(text.starts_with(TextEncoding::Utf8Bom_sv));
         return text.erase(0, TextEncoding::Utf8Bom_sv.length());
     }
 
@@ -202,7 +202,7 @@ std::string FileIO::ReadText(InterfaceString file_path, const int64_t max_bytes_
         });
 
     // potentially remove the BOM
-    if( SO::StartsWith(text, TextEncoding::Utf8Bom_sv) )
+    if( text.starts_with(TextEncoding::Utf8Bom_sv) )
         text.erase(0, TextEncoding::Utf8Bom_sv.length());
 
     if( file_is_larger_than_max_bytes )
