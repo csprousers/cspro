@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 //***************************************************************************
 //  File name: HTMLExpt.h
@@ -38,7 +38,7 @@ public:
     void operator=(const CHTMLStyleInfo& x) {
         SetStyle(x.GetStyle());
     }
-    bool operator==(const CHTMLStyleInfo& x) {
+    bool operator==(const CHTMLStyleInfo& x) const {
         return (GetStyle()==x.GetStyle());
     }
 

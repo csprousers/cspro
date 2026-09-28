@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 //***************************************************************************
 //  File name: PrtView.h
@@ -140,7 +140,7 @@ public:
         m_iPgOb=h.m_iPgOb;
         return *this;
     }
-    bool operator==(const CTblPrtViewHitOb& h)  {
+    bool operator==(const CTblPrtViewHitOb& h) const {
         return (m_iPg==h.GetPg() && m_iPgOb==h.GetPgOb());
     }
 
@@ -380,7 +380,7 @@ public:
         m_pPgOb=x.GetPgOb();
         return *this;
     }
-    bool operator==(const CTabPrtViewCellInfo& x)  {
+    bool operator==(const CTabPrtViewCellInfo& x) const {
         return (m_dData==x.GetData() && m_pPgOb==x.GetPgOb());
     }
 

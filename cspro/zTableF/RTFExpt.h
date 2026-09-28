@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 //***************************************************************************
 //  File name: RTFExpt.h
 //
@@ -43,7 +43,7 @@ public:
         SetFace(x.GetFace());
         SetPitchAndFamily(x.GetPitchAndFamily());
     }
-    bool operator==(const CRTFFontInfo& x) {
+    bool operator==(const CRTFFontInfo& x) const {
         return (GetFace()==x.GetFace() && GetPitchAndFamily()==x.GetPitchAndFamily());
     }
 
