@@ -856,7 +856,7 @@ CString PortableFunctions::PathToNativeSlash(CString path)
 
 
 template<typename T>
-T PortableFunctions::PathAppendToPath(T path, wstring_view append_text_sv, const TCHAR separator/* = PATH_CHAR*/)
+T PortableFunctions::PathAppendToPath(T path, wstring_view append_text_sv, const TCHAR separator/* = Path::NativeSlashChar*/)
 {
     if constexpr(std::is_same_v<T, std::wstring>)
     {

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zUtilF/DialogValidators.h>
 
@@ -67,7 +67,7 @@ constexpr bool PropertiesDlgPage::FromForm::Check(const int value)
 
 
 template<>
-int PropertiesDlgPage::FromForm::Text<int>(const std::string& text_value, const char* const description, const std::optional<int> value_if_text_is_blank/* = std::nullopt*/)
+inline int PropertiesDlgPage::FromForm::Text<int>(const std::string& text_value, const char* const description, const std::optional<int> value_if_text_is_blank/* = std::nullopt*/)
 {
     if( SO::IsBlank(text_value) )
     {

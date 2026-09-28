@@ -1,4 +1,4 @@
-﻿// todo:
+// todo:
 // - figure out the MISSING constant (search for 1.0e50)
 // - change
 //    for (int iFmtType=(int)FMT_ID_SPANNER ; iFmtType<=(int)FMT_ID_TBLPRINT ; iFmtType++) {
@@ -2011,7 +2011,7 @@ PRTVIEW_HITTEST CTabPrtView::HitTest(const CPoint& ptDPTest, CTblPrtViewHitOb& o
             obHit.SetPg(iPage);
             for (int iPgOb=0 ; iPgOb<pl.GetNumPgObs(); iPgOb++) {
                 const CPgOb& ob = pl.GetPgOb(iPgOb);
-                CRect& rcOb = ob.GetClientRectDP();
+                const CRect& rcOb = ob.GetClientRectDP();
 
                 if (rcOb.PtInRect(ptDPTest)) {
                     obHit.SetPgOb(iPgOb);

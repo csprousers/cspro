@@ -191,7 +191,7 @@ namespace PortableFunctions
 
     // PATH_TODO instead of using PathAppendToPath, use Path::Combine.
     template<typename T>
-    CLASS_DECL_ZTOOLSO T PathAppendToPath(T path, wstring_view append_text_sv, TCHAR separator = PATH_CHAR);
+    CLASS_DECL_ZTOOLSO T PathAppendToPath(T path, wstring_view append_text_sv, TCHAR separator = Path::NativeSlashChar);
 
     // Appends text to a path using a forward slash, making sure to avoid duplicate slashes.
     // PATH_TODO instead of using PathAppendForwardSlashToPath, use Path::CombineForwardSlash.

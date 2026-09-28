@@ -129,7 +129,7 @@ constexpr PT CreatePercent(NT&& numerator, DT&& denominator)
 template<typename T>
 constexpr double CreatePercentMultiplier(T number_values)
 {
-    return 100.0 / std::max(number_values, static_cast<T>(1));
+    return 100.0 / std::max<T>(number_values, 1);
 }
 
 

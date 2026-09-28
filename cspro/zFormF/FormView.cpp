@@ -602,10 +602,12 @@ void CFormScrollView::TreeSelectionChanged (std::vector<CFormID*> pIDs)
 
         CRect allRect = std::accumulate(itemRects.begin(), itemRects.end(),
             CRect(),
-            [](CRect&a, CRect& b) {
-            a.UnionRect(a, b);
-            return a;
-        });
+            [](const CRect&a, const CRect& b) {
+                CRect rect = a;
+                rect.UnionRect(a, b);
+                return rect;
+            }
+        );
 
         ScrollAsNecessary(&allRect);
 
@@ -705,10 +707,12 @@ void CFormScrollView::TreeSelectionChanged (std::vector<CFormID*> pIDs)
 
                 CRect allRect = std::accumulate(itemRects.begin(), itemRects.end(),
                     CRect(),
-                    [](CRect&a, CRect& b) {
-                    a.UnionRect(a, b);
-                    return a;
-                });
+                    [](const CRect&a, const CRect& b) {
+                        CRect rect = a;
+                        rect.UnionRect(a, b);
+                        return rect;
+                    }
+                );
 
                 ScrollAsNecessary(&allRect);
 

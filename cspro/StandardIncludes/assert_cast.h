@@ -1,4 +1,6 @@
-﻿#pragma once
+#pragma once
+
+#include <memory>
 
 
 // in debug: performs a dynamic_cast and asserts that the cast succeeded
