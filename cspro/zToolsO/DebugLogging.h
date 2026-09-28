@@ -1,18 +1,19 @@
-﻿#pragma once
+#pragma once
+
+#ifdef _DEBUG
 
 #include <zToolsO/zToolsO.h>
 #include <zToolsO/TextFormatter.h>
 
 
-// a class to facilitate tracing, and asserting, on all platforms
-
-#ifdef _DEBUG
+// --------------------------------------------------------------------------
+// CSLOG is a class that facilitates tracing, and asserting, on all
+// platforms.
+// --------------------------------------------------------------------------
 
 #define CSLOG_TRACE CSLOG(__FILE__, __LINE__)
 
 #define CSLOG_ASSERT(expression) (void)( ( !!( expression ) ) || ( CSLOG::AssertFail(#expression, __FILE__, __LINE__), 0) )
-
-#endif
 
 
 class CSLOG
@@ -41,7 +42,7 @@ private:
 
 private:
     const char* const m_filePath;
-	const int m_lineNumber;
+    const int m_lineNumber;
 };
 
 
@@ -81,3 +82,6 @@ void CSLOG::operator()(const wchar_t* formatter, Args const&... args)
     LogTraceMessage(FormatText(formatter, args...));
 #endif
 }
+
+
+#endif // _DEBUG

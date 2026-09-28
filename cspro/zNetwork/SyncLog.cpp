@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "SyncLog.h"
 #include <zPlatformO/PlatformInterface.h>
 #include <zToolsO/DebugLogging.h>
@@ -51,6 +51,8 @@ void SyncLog::EnableLogging()
 }
 
 
+#ifdef _DEBUG
+
 void SyncLog::handle(const el::LogDispatchData* const data) noexcept
 {
     const el::LogMessage* const log_message = data->logMessage();
@@ -91,3 +93,5 @@ void SyncLog::handle(const el::LogDispatchData* const data) noexcept
     const CSLOG cslog(log_message->file().c_str(), log_message->line());
     cslog.LogMessage(log_priority, "Sync", log_message->message().c_str());
 }
+
+#endif // _DEBUG

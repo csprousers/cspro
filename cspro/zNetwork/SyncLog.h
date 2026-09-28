@@ -29,9 +29,11 @@ public:
 
     ZNETWORK_API static void EnableLogging();
 
+#ifdef _DEBUG
 protected:
     // el::LogDispatchCallback overrides
     void handle(const el::LogDispatchData* data) noexcept override;
+#endif
 };
 
 
