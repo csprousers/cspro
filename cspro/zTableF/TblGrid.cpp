@@ -1,4 +1,4 @@
-﻿/***************************************************
+/***************************************************
 ****************************************************
 Skeleton Class for a Derived CTblGrid v3.5
 ****************************************************
@@ -7552,8 +7552,16 @@ void CTblGrid::GetFmt4DataCell2(CGTblRow* pGTblRow , CGTblCol* pGTblCol ,CDataCe
 
         }
     }
-    bDeleteEvalDRowFmt? delete pEvaldRowFmt : pEvaldRowFmt = pEvaldRowFmt;
-    bDeleteEvalDColFmt? delete pEvaldColFmt : pEvaldColFmt = pEvaldColFmt;
+    if (bDeleteEvalDRowFmt) {
+        delete pEvaldRowFmt;
+    } else {
+        pEvaldRowFmt = pEvaldRowFmt;
+    }
+    if (bDeleteEvalDColFmt) {
+        delete pEvaldColFmt;
+    } else {
+        pEvaldColFmt = pEvaldColFmt;
+    }
 }
 /////////////////////////////////////////////////////////////////////////////////
 //
@@ -9723,17 +9731,22 @@ bool CTblGrid::GetFmt4AreaCaptionCells(CGTblCol* pGTblCol ,CFmt& retFmt)
 
         }
     }
-    retFmt.GetLineBottom() == LINE_DEFAULT? retFmt.SetLineBottom(LINE_NONE) :_T("") ;
-    retFmt.GetLineTop() ==    LINE_DEFAULT? retFmt.SetLineTop(LINE_NONE) :_T("") ;
-    retFmt.GetLineRight() == LINE_DEFAULT? retFmt.SetLineRight(LINE_NONE) :_T("") ;
-    retFmt.GetLineLeft() == LINE_DEFAULT? retFmt.SetLineLeft(LINE_NONE) :_T("") ;
+
+    if (retFmt.GetLineBottom() == LINE_DEFAULT) retFmt.SetLineBottom(LINE_NONE);
+    if (retFmt.GetLineTop()    == LINE_DEFAULT) retFmt.SetLineTop(LINE_NONE);
+    if (retFmt.GetLineRight()  == LINE_DEFAULT) retFmt.SetLineRight(LINE_NONE);
+    if (retFmt.GetLineLeft()   == LINE_DEFAULT) retFmt.SetLineLeft(LINE_NONE);
 
     //Hidden
     retFmt.SetHidden(pAreaCaptionFmt->GetHidden() == HIDDEN_YES || pEvaldColFmt->GetHidden() == HIDDEN_YES ?
                      HIDDEN_YES :
                      HIDDEN_NO);
 
-    bDeleteEvalDColFmt? delete pEvaldColFmt : pEvaldColFmt = pEvaldColFmt;
+    if (bDeleteEvalDColFmt) {
+        delete pEvaldColFmt;
+    } else {
+        pEvaldColFmt = pEvaldColFmt;
+    }
 
     return true;
 }

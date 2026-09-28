@@ -113,7 +113,7 @@ void CDictGrid::OnSetup()
 
 void CDictGrid::Size(const CRect& rect, const bool reset_widths/* = false*/)
 {
-    CIMSAString csWidths = reset_widths ? _T("-1") : AfxGetApp()->GetProfileString(_T("Data Dictionary"), _T("DictGridWidths"), _T("-1"));
+    CIMSAString csWidths = reset_widths ? CString(_T("-1")) : AfxGetApp()->GetProfileString(_T("Data Dictionary"), _T("DictGridWidths"), _T("-1"));
     if (csWidths == _T("-1")) {
         int iUsed = static_cast<int>(NOTE_WIDTH * (GetDesignerFontZoomLevel() / 100.0));
         SetColWidth(DICT_NOTE_COL, iUsed);

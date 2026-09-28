@@ -1109,9 +1109,9 @@ namespace
                 bool parameter_is_optional = ( i >= user_function.GetNumberRequiredParameters() );
 
                 CString parameter_type_string =
-                    ( parameter_symbol.IsA(SymbolType::WorkVariable) ) ? L"Numeric" :
-                    ( parameter_symbol.IsA(SymbolType::WorkString) )   ? L"String" :
-                    ( parameter_symbol.IsA(SymbolType::UserFunction) ) ? L"Function" :
+                    ( parameter_symbol.IsA(SymbolType::WorkVariable) ) ? CString(L"Numeric") :
+                    ( parameter_symbol.IsA(SymbolType::WorkString) )   ? CString(L"String") :
+                    ( parameter_symbol.IsA(SymbolType::UserFunction) ) ? CString(L"Function") :
                                                                          UTF8_TODO::GetCString(ToString(parameter_symbol.GetType()));
 
                 if( parameter_symbol.GetSubType() == SymbolSubType::WorkAlpha )

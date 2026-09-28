@@ -193,7 +193,7 @@ void CRecordGrid::OnSetup()
 
 void CRecordGrid::Size(const CRect& rect, const bool reset_widths/* = false*/)
 {
-    CIMSAString csWidths = reset_widths ? _T("-1") : AfxGetApp()->GetProfileString(_T("Data Dictionary"), _T("RecGridWidths"), _T("-1"));
+    CIMSAString csWidths = reset_widths ? CString(_T("-1")) : AfxGetApp()->GetProfileString(_T("Data Dictionary"), _T("RecGridWidths"), _T("-1"));
     if (csWidths == _T("-1")) {
         CUGCell cell;
         CUGCellType* pCellType;

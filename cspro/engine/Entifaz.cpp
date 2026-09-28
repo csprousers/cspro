@@ -1776,7 +1776,7 @@ void CEntryIFaz::C_SetOperatorId(CString csOperatorID)
 
 CString CEntryIFaz::C_GetOperatorId() const
 {
-    return ( m_pEntryDriver == NULL ) ? _T("") : m_pEntryDriver->GetOperatorId();
+    return ( m_pEntryDriver == NULL ) ? CString() : m_pEntryDriver->GetOperatorId();
 }
 
 

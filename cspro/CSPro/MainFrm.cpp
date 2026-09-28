@@ -887,10 +887,10 @@ void CMainFrame::OnChangeDictionaryLanguage()
 LRESULT CMainFrame::SelectTab(WPARAM wParam, LPARAM /*lParam*/)
 {
     FrameType frame_type = static_cast<FrameType>(wParam);
-    CString tab_name = ( frame_type == FrameType::Dictionary ) ? DICT_TAB_LABEL :
-                       ( frame_type == FrameType::Form )       ? FORM_TAB_LABEL :
-                       ( frame_type == FrameType::Order )      ? ORDER_TAB_LABEL :
-                       ( frame_type == FrameType::Table )      ? TABLE_TAB_LABEL :
+    CString tab_name = ( frame_type == FrameType::Dictionary ) ? CString(DICT_TAB_LABEL) :
+                       ( frame_type == FrameType::Form )       ? CString(FORM_TAB_LABEL) :
+                       ( frame_type == FrameType::Order )      ? CString(ORDER_TAB_LABEL) :
+                       ( frame_type == FrameType::Table )      ? CString(TABLE_TAB_LABEL) :
                                                                  CString();
     ASSERT(!tab_name.IsEmpty());
 

@@ -1,4 +1,4 @@
-﻿// subexpr.cpp: implementation of the CSubExpr class.
+// subexpr.cpp: implementation of the CSubExpr class.
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -148,7 +148,7 @@ CString CSubExpresion::GetLabel( Logic::SymbolTable* pSymbolTable ) {
 
             pSymbol = (iSymCoord > 0) ? &pSymbolTable->GetAt(iSymCoord) : NULL;
 
-            csName = (pSymbol==NULL) ? _T("none") : UTF8_TODO::GetCString(pSymbol->GetName());
+            csName = (pSymbol==NULL) ? CString(_T("none")) : UTF8_TODO::GetCString(pSymbol->GetName());
 
             if( iDepth == 0 )
                 csLabel = csLabel + csName;

@@ -305,7 +305,7 @@ void CSDocFrame::OnFormatStyle(const UINT nID)
     ( nID == ID_FORMAT_TABLE )       ? WrapSelectionInTags("<table 2>\n\t<cell>", "</cell><cell> </cell>\n</table>") :
     ( nID == ID_FORMAT_LOGIC_COLOR ) ? WrapSelectionInTags("<logiccolor>",        "</logiccolor>") :
     ( nID == ID_FORMAT_SYNTAX_ARG )  ? WrapSelectionInTags("<arg>",               "</arg>") :
-                                       ReturnProgrammingError(std::make_tuple("", ""));
+                                       ASSERT(false);
 }
 
 

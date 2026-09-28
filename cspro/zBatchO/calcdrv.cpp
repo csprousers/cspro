@@ -311,7 +311,7 @@ bool CCalcDriver::LoadBreak( CString csCurrentBreakKey, int iBreakKeyNum, CArray
         int iBreakLen = m_Tbd.breaklen( pCtab->GetNumBreaks() );
 
         //get the break for display
-        csLoadedBreak = bHasBreak ? csBreakKeyNoTableNum.Mid(0,iBreakLen) : _T("");
+        csLoadedBreak = bHasBreak ? csBreakKeyNoTableNum.Mid(0,iBreakLen) : CString();
         if(!csLoadedBreak.IsEmpty()){//Set the correct break key for display
             sLoadedBreakKey = csLoadedBreak;
         }
