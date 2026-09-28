@@ -57,8 +57,8 @@ public:
 protected:
     static int CALLBACK CompareFunction( LPARAM lParam1, LPARAM lParam2, LPARAM lParamData );
     void FreeItemMemory( const int iItem );
-    BOOL CSortListCtrl::SetTextArray( int iItem, LPTSTR* arrpsz );
-    LPTSTR* CSortListCtrl::GetTextArray( int iItem ) const;
+    BOOL SetTextArray( int iItem, LPTSTR* arrpsz );
+    LPTSTR* GetTextArray( int iItem ) const;
 
     CSortHeaderCtrl m_ctlHeader;
 

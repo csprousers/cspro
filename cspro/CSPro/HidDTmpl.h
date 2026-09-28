@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 
 class CHiddenDocTemplate : public CMultiDocTemplate
@@ -11,5 +11,5 @@ public:
     CDocument* OpenDocumentFile(LPCTSTR lpszPathName, BOOL bMakeVisible) override;
     CDocument* OpenDocumentFile(LPCTSTR lpszPathName, BOOL bAddToMRU, BOOL bMakeVisible) override;
 
-    CDocTemplate::Confidence CHiddenDocTemplate::MatchDocType(LPCTSTR lpszPathName, CDocument*& rpDocMatch) override;
+    CDocTemplate::Confidence MatchDocType(LPCTSTR lpszPathName, CDocument*& rpDocMatch) override;
 };

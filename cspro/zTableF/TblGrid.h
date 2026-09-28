@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 //***************************************************************************
 //  File name: TblGrid.h
@@ -270,7 +270,7 @@ public:
 
     DROPEFFECT DoFlip(COleDataObject* pDataObject,int col,long row);
     int StartDragDrop(int iRow, int iCol);
-    int CTblGrid::DragDropTarget(BOOL state);
+    int DragDropTarget(BOOL state);
     #endif
 
 
