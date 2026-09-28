@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "BatchMeterDlg.h"
 #include <zToolsO/CancelFlag.h>
 
@@ -88,7 +88,7 @@ BOOL BatchMeterDlg::OnInitDialog()
 
     m_levelDetails = static_cast<CListCtrl*>(GetDlgItem(IDC_LIST_LEVEL));
 
-    constexpr std::tuple<TCHAR*, size_t> ColumnDetails[]
+    constexpr std::tuple<const wchar_t*, size_t> ColumnDetails[]
     {
         { L"Level",      50 },
         { L"Input Case", 87 },
@@ -102,7 +102,7 @@ BOOL BatchMeterDlg::OnInitDialog()
     for( size_t column = 0; column < _countof(ColumnDetails); ++column )
     {
         lvc.iSubItem = column;
-        lvc.pszText = std::get<0>(ColumnDetails[column]);
+        lvc.pszText = const_cast<wchar_t*>(std::get<0>(ColumnDetails[column]));
         lvc.cx = std::get<1>(ColumnDetails[column]);
         lvc.fmt = LVCFMT_LEFT;
         m_levelDetails->InsertColumn(column, &lvc);

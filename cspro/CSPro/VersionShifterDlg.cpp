@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "VersionShifterDlg.h"
 #include <zToolsO/DirectoryLister.h>
 #include <zToolsO/WinRegistry.h>
@@ -68,9 +68,9 @@ BOOL VersionShifterDlg::OnInitDialog()
 }
 
 
-bool SetRegistryStringValue(HKEY hKey, TCHAR* value_name, NullTerminatedString value)
+bool SetRegistryStringValue(HKEY hKey, const TCHAR* value_name, NullTerminatedString value)
 {
-    return RegSetValueEx(hKey, value_name, 0, REG_SZ, (BYTE*)value.c_str(), sizeof(TCHAR) * ( value.length() + 1 )) == ERROR_SUCCESS;
+    return RegSetValueEx(hKey, value_name, 0, REG_SZ, (const BYTE*)value.c_str(), sizeof(TCHAR) * ( value.length() + 1 )) == ERROR_SUCCESS;
 }
 
 

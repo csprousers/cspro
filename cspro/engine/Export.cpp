@@ -930,7 +930,7 @@ void CExport::stata_variable( VART* pVarT, const CString& csExportedVarName, int
     // RHF INIC Apr 30, 2002
         //CASE_ID & RECORD Type
     if( !m_bCaseIdReady ) {
-        csprochar*   pszVarType=_T("str");
+        const csprochar* pszVarType = _T("str");
 
         if( m_pHeadNode->m_bCaseIdAfterRecType ) {
                         if( m_pHeadNode->m_iLenRecId > 0 )
@@ -970,7 +970,7 @@ void CExport::stata_variable( VART* pVarT, const CString& csExportedVarName, int
     _tcslwr( pszGenName );                               // RHF 15/3/99
 
     int     iVarLength  = pVarT->GetLength();
-    csprochar*   pszVarType;
+    const csprochar* pszVarType;
 
     if( pVarT->IsNumeric() ) {
 

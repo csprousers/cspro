@@ -1387,7 +1387,7 @@ int CExport::Export_SpssDescription( int iVar, int aIndex[DIM_MAXDIM], int aDimF
 
 int CExport::Export_SpssVarLabel( int iVar, int aIndex[DIM_MAXDIM], int aDimFlag[DIM_MAXDIM], void* pInfo ) {
     VART*    pVarT=VPT(iVar);
-    csprochar*    pszTitle=_T("VARIABLE LABELS");
+    const csprochar* pszTitle = _T("VARIABLE LABELS");
     csprochar    pszLabel[_MAXLABLEN+2];
 
     GetVarLabel( pVarT, pszLabel );
@@ -1425,7 +1425,7 @@ int CExport::Export_SpssVarLabel( int iVar, int aIndex[DIM_MAXDIM], int aDimFlag
 
 int CExport::Export_SpssMissing( int iVar, int aIndex[DIM_MAXDIM], int aDimFlag[DIM_MAXDIM], void* pInfo ) {
     VART*    pVarT=VPT(iVar);
-    csprochar*    pszTitle=_T("MISSING VALUE");
+    const csprochar* pszTitle = _T("MISSING VALUE");
 
     if( !pVarT->IsNumeric() )
         return 0;
@@ -1460,7 +1460,7 @@ int CExport::Export_SpssMissing( int iVar, int aIndex[DIM_MAXDIM], int aDimFlag[
 
 int CExport::Export_SpssValueLabels( int iVar, int aIndex[DIM_MAXDIM], int aDimFlag[DIM_MAXDIM], void* pInfo ) {
     VART*    pVarT=VPT(iVar);
-    csprochar*    pszTitle=_T("VALUE LABELS");
+    const csprochar* pszTitle = _T("VALUE LABELS");
     csprochar    pszValue[_MAXLABLEN+2];
     csprochar    pszLabel[_MAXLABLEN+2];
     int     iNumCategories = BuildVarCategories( pVarT );
@@ -1604,7 +1604,7 @@ int CExport::Export_StataDescription( int iVar, int aIndex[DIM_MAXDIM], int aDim
 
 int CExport::Export_StataVarLabel( int iVar, int aIndex[DIM_MAXDIM], int aDimFlag[DIM_MAXDIM], void* pInfo ) {
     VART*    pVarT=VPT(iVar);
-    csprochar*    pszTitle=_T("");
+    const csprochar* pszTitle = _T("");
     csprochar    pszLabel[_MAXLABLEN+2];
 
     GetVarLabel( pVarT, pszLabel );
@@ -1642,7 +1642,7 @@ int CExport::Export_StataVarLabel( int iVar, int aIndex[DIM_MAXDIM], int aDimFla
 
 int CExport::Export_StataValueLabels( int iVar, int aIndex[DIM_MAXDIM], int aDimFlag[DIM_MAXDIM], void* pInfo ) {
     VART*    pVarT=VPT(iVar);
-    csprochar*    pszTitle=_T("\n#delimit ;");
+    const csprochar* pszTitle = _T("\n#delimit ;");
 
 
     //~~if( pVarT->IsUsed() )       // ??? if( !pVarT->IsUsed() )
@@ -1744,7 +1744,7 @@ int CExport::Export_StataValueLabels( int iVar, int aIndex[DIM_MAXDIM], int aDim
 
 int CExport::Export_StataAsocValueLabels( int iVar, int aIndex[DIM_MAXDIM], int aDimFlag[DIM_MAXDIM], void* pInfo ) {
     VART*    pVarT=VPT(iVar);
-    csprochar*    pszTitle=_T("\n#delimit cr");
+    const csprochar* pszTitle = _T("\n#delimit cr");
 
     // value set not allowed for alpha Var
     if( !pVarT->IsNumeric() )
@@ -2052,8 +2052,8 @@ int CExport::Export_R_ValueLabels( int iVar, int aIndex[DIM_MAXDIM], int aDimFla
         GenVarName(varName,pVarT,aIndex,aDimFlag); // GHM 20120622
         varName.MakeLower();
 
-        TCHAR * tabChar = _T("");
-        TCHAR * levelEncloserChar = _T("");
+        const TCHAR* tabChar = _T("");
+        const TCHAR* levelEncloserChar = _T("");
 
         if( pVarT->IsAlpha() )
         {
