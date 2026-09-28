@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zDesignerF/PropertyGrid/PropertyBuilder.h>
 
@@ -120,12 +120,12 @@ namespace PropertyGrid
         CMFCPropertyGridProperty* ToProperty() override
         {
             // buttons are not possible because the button location is used to display the list
-            ASSERT(!m_data->button_click_callback);
+            ASSERT(!PropertyBuilderBase<T>::m_data->button_click_callback);
 
             // formatting is not allowed
-            ASSERT(!m_data->format_callback);
+            ASSERT(!PropertyBuilderBase<T>::m_data->format_callback);
 
-            CMFCPropertyGridProperty* property = new ListProperty<T>(m_data, m_options);
+            CMFCPropertyGridProperty* property = new ListProperty<T>(PropertyBuilderBase<T>::m_data, m_options);
 
             for( const auto& [ option_value, option_text ] : *m_options )
                 property->AddOption(option_text);

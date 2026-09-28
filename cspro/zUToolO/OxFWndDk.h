@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 // ===================================================================================
 //                          Class Specification :
 //      COXFrameWndSizeDock & COXMDIFrameWndSizeDock & COXMDIChildWndSizeDock
@@ -579,9 +579,9 @@ BOOL COXBaseDockDocument<PARENTDOC>::OnCmdMsg(UINT nID, int nCode, void* pExtra,
         CWnd* pMainWnd=AfxGetMainWnd();
         if(pMainWnd->IsKindOf(RUNTIME_CLASS(COXMDIFrameWndSizeDock)))
         {
-            if(SaveModified())
+            if(PARENTDOC::SaveModified())
             {
-                SetModifiedFlag(FALSE);
+                PARENTDOC::SetModifiedFlag(FALSE);
             }
 
             OnCloseDocument();
@@ -601,10 +601,10 @@ BOOL COXBaseDockDocument<PARENTDOC>::CanCloseFrame(CFrameWnd* pFrameArg)
     ASSERT_VALID(pFrameArg);
     UNREFERENCED_PARAMETER(pFrameArg);   // unused in release builds
 
-    POSITION pos = GetFirstViewPosition();
+    POSITION pos = PARENTDOC::GetFirstViewPosition();
     while (pos != NULL)
     {
-        CView* pView = GetNextView(pos);
+        CView* pView = PARENTDOC::GetNextView(pos);
         ASSERT_VALID(pView);
         CFrameWnd* pFrame = GetParentFrame(pView);
         // assume frameless views are ok to close
@@ -618,9 +618,9 @@ BOOL COXBaseDockDocument<PARENTDOC>::CanCloseFrame(CFrameWnd* pFrameArg)
     }
 
     // otherwise only one frame that we know about
-    if(SaveModified())
+    if(PARENTDOC::SaveModified())
     {
-        SetModifiedFlag(FALSE);
+        PARENTDOC::SetModifiedFlag(FALSE);
         return TRUE;
     }
     else
@@ -647,21 +647,21 @@ void COXBaseDockDocument<PARENTDOC>::OnCloseDocument()
     {
         // destroy all frames viewing this document
         // the last destroy may destroy us
-        BOOL bAutoDelete = m_bAutoDelete;
-        m_bAutoDelete = FALSE;  // don't destroy document while closing views
+        BOOL bAutoDelete = PARENTDOC::m_bAutoDelete;
+        PARENTDOC::m_bAutoDelete = FALSE;  // don't destroy document while closing views
 
         UndockAllViews();
 
-        while(!m_viewList.IsEmpty())
+        while(!PARENTDOC::m_viewList.IsEmpty())
         {
             // get frame attached to the view
-            CView* pView = (CView*)m_viewList.GetHead();
+            CView* pView = (CView*)PARENTDOC::m_viewList.GetHead();
             ASSERT_VALID(pView);
             CFrameWnd* pFrame = GetParentFrame(pView);
             ASSERT_VALID(pFrame);
 
             // and close it
-            PreCloseFrame(pFrame);
+            PARENTDOC::PreCloseFrame(pFrame);
 
             if(::IsWindow(pFrame->m_hWnd))
             {
@@ -676,13 +676,13 @@ void COXBaseDockDocument<PARENTDOC>::OnCloseDocument()
                 }
             }
         }
-        m_bAutoDelete = bAutoDelete;
+        PARENTDOC::m_bAutoDelete = bAutoDelete;
 
         // clean up contents of document before destroying the document itself
-        DeleteContents();
+        PARENTDOC::DeleteContents();
 
         // delete the document if necessary
-        if (m_bAutoDelete)
+        if (PARENTDOC::m_bAutoDelete)
             delete this;
 
         ((COXMDIFrameWndSizeDock*)pMainWnd)->RecalcLayout();
@@ -698,10 +698,10 @@ void COXBaseDockDocument<PARENTDOC>::UpdateFrameCounts()
      // assumes 1 doc per frame
 {
     // walk all frames of views (mark and sweep approach)
-    POSITION pos = GetFirstViewPosition();
+    POSITION pos = PARENTDOC::GetFirstViewPosition();
     while (pos != NULL)
     {
-        CView* pView = GetNextView(pos);
+        CView* pView = PARENTDOC::GetNextView(pos);
         ASSERT_VALID(pView);
         ASSERT(::IsWindow(pView->m_hWnd));
         if (pView->IsWindowVisible())   // Do not count invisible windows.
@@ -714,10 +714,10 @@ void COXBaseDockDocument<PARENTDOC>::UpdateFrameCounts()
 
     // now do it again counting the unique ones
     int nFrames = 0;
-    pos = GetFirstViewPosition();
+    pos = PARENTDOC::GetFirstViewPosition();
     while (pos != NULL)
     {
-        CView* pView = GetNextView(pos);
+        CView* pView = PARENTDOC::GetNextView(pos);
         ASSERT_VALID(pView);
         ASSERT(::IsWindow(pView->m_hWnd));
         if (pView->IsWindowVisible())   // Do not count invisible windows.
@@ -735,10 +735,10 @@ void COXBaseDockDocument<PARENTDOC>::UpdateFrameCounts()
     // lastly walk the frames and update titles (assume same order)
     // go through frames updating the appropriate one
     int iFrame = 1;
-    pos = GetFirstViewPosition();
+    pos = PARENTDOC::GetFirstViewPosition();
     while (pos != NULL)
     {
-        CView* pView = GetNextView(pos);
+        CView* pView = PARENTDOC::GetNextView(pos);
         ASSERT_VALID(pView);
         ASSERT(::IsWindow(pView->m_hWnd));
         if (pView->IsWindowVisible())   // Do not count invisible windows.
@@ -795,11 +795,11 @@ CFrameWnd* COXBaseDockDocument<PARENTDOC>::GetParentFrame(CView* pView) const
 template<class PARENTDOC>
 void COXBaseDockDocument<PARENTDOC>::UndockAllViews()
 {
-    POSITION pos=m_viewList.GetHeadPosition();
+    POSITION pos=PARENTDOC::m_viewList.GetHeadPosition();
     while(pos!=NULL)
     {
         // get frame attached to the view
-        CView* pView = (CView*)m_viewList.GetNext(pos);
+        CView* pView = (CView*)PARENTDOC::m_viewList.GetNext(pos);
         ASSERT_VALID(pView);
         CFrameWnd* pFrame = GetParentFrame(pView);
         ASSERT_VALID(pFrame);

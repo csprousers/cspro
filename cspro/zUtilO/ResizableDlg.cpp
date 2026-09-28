@@ -33,7 +33,7 @@ BOOL ResizableDlgBase<DialogT>::OnInitDialog()
         return FALSE;
 
     CRect rect;
-    GetWindowRect(rect);
+    DialogT::GetWindowRect(rect);
     m_minimumSize = rect.Size();
 
     // potentially restore the size
@@ -51,7 +51,7 @@ BOOL ResizableDlgBase<DialogT>::OnInitDialog()
 
             // only resize if the width or height is different from the default sizes
             if( safe_width > m_minimumSize.cx || safe_height > m_minimumSize.cy )
-                PostMessage(UWM::UtilO::ResizableDlgRestoreSize, *width, *height);
+                DialogT::PostMessage(UWM::UtilO::ResizableDlgRestoreSize, *width, *height);
         }
     }
 
@@ -76,7 +76,7 @@ void ResizableDlgBase<DialogT>::OnDestroy()
     if( m_serializationSettings != nullptr )
     {
         CRect rect;
-        GetWindowRect(rect);
+        DialogT::GetWindowRect(rect);
 
         std::get<0>(*m_serializationSettings).Write(std::get<1>(*m_serializationSettings), rect.Width());
         std::get<0>(*m_serializationSettings).Write(std::get<2>(*m_serializationSettings), rect.Height());
@@ -102,11 +102,11 @@ LRESULT ResizableDlgBase<DialogT>::OnRestoreSize(const WPARAM wParam, const LPAR
     // the dialog based on where it initially was displayed (which was not an issue when this
     // was done in OnInitDialog)
     CRect rect;
-    GetWindowRect(&rect);
+    DialogT::GetWindowRect(&rect);
     const int diff_x = new_width - rect.Width();
     const int diff_y = new_height - rect.Height();
 
-    SetWindowPos(
+    DialogT::SetWindowPos(
         nullptr,
         std::max<int>(0, rect.left - ( diff_x / 2 )),
         std::max<int>(0, rect.top - ( diff_y / 2 )),
