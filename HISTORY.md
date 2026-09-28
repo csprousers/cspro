@@ -3,6 +3,19 @@
 Most CSPro development occurs on a [private repository](https://github.com/CSProDevelopment/cspro), though the commits are mirrored to this [public repository](https://github.com/csprousers/cspro). This document lists information about each pull request merged into the private repository, starting with pull requests for CSPro 7.6.
 
 
+## CSPro 8.1.5
+
+**Installer**: [https://csprousers.org/releases/8.1/cspro-8.1.5-windows-x86.exe](https://csprousers.org/releases/8.1/cspro-8.1.5-windows-x86.exe)
+
+**Release notes**: [https://csprousers.org/releases/8.1/cspro-8.1.5-release-notes.txt](https://csprousers.org/releases/8.1/cspro-8.1.5-release-notes.txt)
+
+**Merged pull requests**:
+
+| Date | Branch | Pull Request Message |
+| --- | --- | --- |
+| 2026&#8209;09&#8209;28 | [release/v8.1.5-20260928](https://github.com/CSProDevelopment/cspro/commit/def81d00d0a8a68afec2f3cf4aeaa3d9a27759b2) | fixed bugs, creating version 8.1.5 |
+
+
 ## CSPro 8.1.4
 
 **Installer**: [https://csprousers.org/releases/8.1/cspro-8.1.4-windows-x86.exe](https://csprousers.org/releases/8.1/cspro-8.1.4-windows-x86.exe)

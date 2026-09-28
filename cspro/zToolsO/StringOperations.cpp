@@ -38,13 +38,12 @@ const std::wstring& CS2WS_Reference(const CString& text)
 template<typename T>
 const T& UTF8_TODO::Create_Reference(const std::string_view text_sv)
 {
-    static std::map<std::string, std::unique_ptr<T>> converted_values;
+    static std::map<std::string, std::unique_ptr<T>, std::less<>> converted_values;
 
-    std::string text = std::string(text_sv);
-    auto lookup = converted_values.find(text);
+    auto lookup = converted_values.find(text_sv);
 
     if( lookup == converted_values.cend() )
-        lookup = converted_values.try_emplace(std::move(text), std::make_unique<T>(UTF8Convert::UTF8ToWide<T>(text_sv))).first;
+        lookup = converted_values.try_emplace(std::string(text_sv), std::make_unique<T>(UTF8Convert::UTF8ToWide<T>(text_sv))).first;
 
     return *lookup->second;
 }
@@ -61,13 +60,12 @@ const std::string& UTF8_TODO::Create_Reference(const wstring_view text_sv)
 
 const SharableString& UTF8_TODO::Create_SharableStringReference(const wstring_view text_sv)
 {
-    static std::map<size_t, std::unique_ptr<SharableString>> converted_values;
+    static std::map<std::wstring, std::unique_ptr<SharableString>, std::less<>> converted_values;
 
-    const size_t text_hash = text_sv.hash_code();
-    auto lookup = converted_values.find(text_hash);
+    auto lookup = converted_values.find(text_sv);
 
     if( lookup == converted_values.cend() )
-        lookup = converted_values.try_emplace(text_hash, std::make_unique<SharableString>(UTF8Convert::WideToUTF8(text_sv))).first;
+        lookup = converted_values.try_emplace(std::wstring(text_sv), std::make_unique<SharableString>(UTF8Convert::WideToUTF8(text_sv))).first;
 
     return *lookup->second;
 }
