@@ -2,6 +2,14 @@
 #include "PortableUserbar.h"
 
 
+PortableUserbarItem::PortableUserbarItem(const int id_, std::string text_, std::optional<Userbar::Action> action_)
+    :   id(id_),
+        text(std::move(text_)),
+        action(std::move(action_))
+{
+}
+
+
 PortableUserbar::PortableUserbar()
     :   m_shownState(false)
 {
@@ -43,7 +51,7 @@ int PortableUserbar::AddButton(std::string text, std::optional<Action> action)
     const int id = m_items.empty() ? StartingId : ( m_items.back().id + 1 );
 
     // add the button
-    m_items.emplace_back(PortableUserbarItem { id, std::move(text), std::move(action) });
+    m_items.emplace_back(id, std::move(text), std::move(action));
 
     OnDisplayOrItemChange();
 

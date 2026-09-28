@@ -185,13 +185,7 @@ int WindowsUserbar::AddItem(WindowsUserbarItem::Type item_type, std::optional<Ac
     const int id = m_items.empty() ? StartingId : ( m_items.back().id + 1 );
     const long x = Default::Spacing + ( m_items.empty() ? 0 : m_items.back().rect.right );
 
-    WindowsUserbarItem& item = m_items.emplace_back(
-        WindowsUserbarItem
-        {
-            item_type,
-            id,
-            std::move(action)
-        });
+    WindowsUserbarItem& item = m_items.emplace_back(item_type, id, std::move(action));
 
     item.window.reset(callback_function(item, x));
 
