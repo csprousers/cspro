@@ -133,9 +133,7 @@ public:
 
         else
         {
-#ifndef __clang__
-            static_assert(constexpr(std::is_same_v<PT, int>));
-#endif
+            static_assert(std::is_same_v<PT, int>);
             pn = parameter_number_or_name;
         }
 

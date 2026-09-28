@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "Array.h"
 #include <zJavaScript/Executor.h>
 
@@ -496,9 +496,7 @@ std::unique_ptr<Symbol> LogicArray::CloneInInitialState() const
 template<typename T>
 LogicArray::Impl<T>& LogicArray::GetImpl() const
 {
-#ifndef __clang__
-    ASSERT(IsNumeric() == constexpr(std::is_same_v<T, double>));
-#endif
+    ASSERT(( IsNumeric() == std::is_same_v<T, double> ));
 
     if( m_impl == nullptr )
     {

@@ -1443,8 +1443,8 @@ CAplDoc* CMainFrame::ProcessFOForSrcCode(CDocument& document)
 template<typename T>
 T* CMainFrame::GetNodeIdForSourceCode(T* pNodeId/* = nullptr*/)
 {
-    const CTreeCtrl& tree = constexpr(std::is_same_v<T, CFormID>) ? static_cast<const CTreeCtrl&>(m_SizeDlgBar.m_FormTree) :
-                                                                    static_cast<const CTreeCtrl&>(m_SizeDlgBar.m_OrderTree);
+    const CTreeCtrl& tree = std::is_same_v<T, CFormID> ? static_cast<const CTreeCtrl&>(m_SizeDlgBar.m_FormTree) :
+                                                         static_cast<const CTreeCtrl&>(m_SizeDlgBar.m_OrderTree);
 
     auto get_node_id = [&](HTREEITEM hItem)
     {
