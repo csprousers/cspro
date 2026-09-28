@@ -179,8 +179,8 @@ void PackerImpl::WriteLogFilesToPack()
 {
     ASSERT(m_log != nullptr);
 
-    constexpr const char* FormatterLevel1 = u8"    • %s";
-    constexpr const char* FormatterLevel2 = u8"        • %s";
+    constexpr const char* FormatterLevel1 = "    • %s";
+    constexpr const char* FormatterLevel2 = "        • %s";
 
     m_log->WriteLine();
     m_log->WriteLine("The following inputs are included, along with any dependent files:");

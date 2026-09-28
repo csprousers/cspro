@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "CaseTestHelpers.h"
 #include <zCaseO/BinaryCaseItem.h>
 #include <zCaseO/CaseConstructionHelpers.h>
@@ -59,9 +59,9 @@ void SyncUnitTest::CaseJsonWriterTest::ThreeLevelTest()
 
     data_case->SetPartialSaveStatus(PartialSaveMode::Modify, level2_case_item_reference);
 
-    data_case->GetNotes().emplace_back(u8"note --> 🐼 <-- text", level0_case_item_reference, u8"operator --> 天津 <-- id");
-    data_case->GetNotes().emplace_back(u8"note --> 🐼 <-- text", level1_case_item_reference, u8"operator --> 天津 <-- id");
-    data_case->GetNotes().emplace_back(u8"note --> 🐼 <-- text", level2_case_item_reference, u8"operator --> 天津 <-- id");
+    data_case->GetNotes().emplace_back("note --> 🐼 <-- text", level0_case_item_reference, "operator --> 天津 <-- id");
+    data_case->GetNotes().emplace_back("note --> 🐼 <-- text", level1_case_item_reference, "operator --> 天津 <-- id");
+    data_case->GetNotes().emplace_back("note --> 🐼 <-- text", level2_case_item_reference, "operator --> 天津 <-- id");
 
     data_case->GetVectorClock().increment(MakeUniqueDeviceId("CaseJsonWriterTest-"));
 

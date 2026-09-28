@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "TextLister.h"
 #include <zToolsO/NewlineSubstitutor.h>
 #include <zToolsO/Special.h>
@@ -24,7 +24,7 @@ namespace
     constexpr wchar_t BottomRightChar = L'╝';
     constexpr wchar_t HorizontalChar = L'═';
     constexpr wchar_t VerticalChar = L'║';
-    constexpr const char* VerticalCharText = u8"║";
+    constexpr const char* VerticalCharText = "║";
     constexpr wchar_t TopCellSeparatorChar = L'╦';
     constexpr wchar_t MiddleCellSeparatorChar = L'╬';
     constexpr wchar_t BottomCellSeparatorChar = L'╩';
@@ -236,7 +236,7 @@ Listing::TextLister::TextLister(std::shared_ptr<ProcessSummary> process_summary,
         m_wrapMessages(pff.GetMessageWrap()),
         m_messagesAreFromCase(false),
         m_writeProcessSummaryAndMessages(pff.GetAppType() != APPTYPE::ENTRY_TYPE)
-{    
+{
 }
 
 

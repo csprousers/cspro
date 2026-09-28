@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "MappingPropertiesTester.h"
 #include "CoordinateConverter.h"
 #include "CurrentLocation.h"
@@ -155,7 +155,7 @@ void MappingPropertiesTester::SetupMapForTileProvider(TestMapUI& map_ui, const M
         SO::AppendWithSeparator(coordinates_text,
                                 SO::Concatenate(CoordinateConverter::ToString(coordinate_display, current_location),
                                                 ( coordinate_display == mapping_properties.GetCoordinateDisplay() ) ? " (default)" : ""),
-                                u8" — ");
+                                " — ");
     };
 
     add_coordinates(CoordinateDisplay::Decimal);

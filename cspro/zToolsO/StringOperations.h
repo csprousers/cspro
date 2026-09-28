@@ -518,7 +518,7 @@ private:
     CLASS_DECL_ZTOOLSO [[nodiscard]] static size_t WideLengthWorker(const char* text_start);
 
     // returns the offset from the end of a UTF-8 string in wide characters;
-    // e.g., WideGetOffsetFromEnd(u8"abcdéf", 2) == 4
+    // e.g., WideGetOffsetFromEnd("abcdéf", 2) == 4
     CLASS_DECL_ZTOOLSO [[nodiscard]] static size_t WideGetOffsetFromEnd(std::string_view text_sv, size_t wide_offset);
 
     template<bool insert_spaces_at_end = true>

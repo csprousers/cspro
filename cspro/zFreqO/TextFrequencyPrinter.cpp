@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "TextFrequencyPrinter.h"
 
 
@@ -10,21 +10,21 @@ namespace
     constexpr int SpacingBetweenTables = 2;
 
     constexpr const char* TitleSeparatorFormatter    = "____________%s_____________________________________________________________________________";
-                                                         
+
     constexpr const char* RowAboveColumns1Formatter  = "            %s                    _____________________________ _____________";
     constexpr const char* RowColumns1Formatter       = "  Categories%s                         Frequency        CumFreq      %%  Cum %%";
     constexpr const char* RowBelowColumns1Formatter  = "____________%s___________________ _____________________________ _____________";
-                                                         
+
     constexpr const char* RowAboveColumns2           = " _____________";
     constexpr const char* RowColumns2                = "  Net % cNet %";
     constexpr const char* RowBelowColumns2           = " _____________";
-                                                         
+
     constexpr int RowFormatter1BaseWidth             = 31;
     constexpr const char* RowFormatter1              = "%s %14s %14s  %5s  %5s";
     constexpr const char* RowFormatter2              = "  %5s  %5s";
 
     constexpr const char* OutOfValueSetRowText       = "@";
-    constexpr const char* MultipleLabelsPerValueText = u8"†";
+    constexpr const char* MultipleLabelsPerValueText = "†";
 }
 
 
@@ -285,7 +285,7 @@ void TextFrequencyPrinterWorker::PrintStatistics(const FrequencyTable& frequency
 
     auto get_category_text = [](const auto& table_statistics)
     {
-        return FormatText(u8"• Statistics:  %d categor%s",
+        return FormatText("• Statistics:  %d categor%s",
                           static_cast<int>(table_statistics.number_defined_categories),
                           PluralizeWord(table_statistics.number_defined_categories, "y", "ies"));
     };
@@ -409,7 +409,7 @@ void TextFrequencyPrinterWorker::PrintStatistics(const FrequencyTable& frequency
                 max_value_type6_length = std::max(max_value_type6_length, SO::WideLength(formatted_value_type6));
             }
 
-            AddLine(FormatText(u8"• Percentiles:   %*s  %*s  %*s",
+            AddLine(FormatText("• Percentiles:   %*s  %*s  %*s",
                                static_cast<int>(max_percentile_length), "",
                                static_cast<int>(max_value_type2_length), "Discontinuous",
                                static_cast<int>(max_value_type6_length), "Continuous"));
@@ -430,7 +430,7 @@ void TextFrequencyPrinterWorker::PrintStatistics(const FrequencyTable& frequency
             // variance calculations
             if( table_statistics.sum_count.has_value() )
             {
-                AddLine(FormatText(u8"• SumsNumCats: (freq) %s, (cat*freq) %s, (cat*cat*freq) %s",
+                AddLine(FormatText("• SumsNumCats: (freq) %s, (cat*freq) %s, (cat*cat*freq) %s",
                                    FPH::GetValueWithMinimumDecimals(*table_statistics.sum_count, frequency_table.dict_item).c_str(),
                                    FPH::GetValueWithMinimumDecimals(*table_statistics.product_value_count, frequency_table.dict_item).c_str(),
                                    FPH::GetValueWithMinimumDecimals(*table_statistics.product_value_value_count, frequency_table.dict_item).c_str()));
@@ -499,7 +499,7 @@ void TextFrequencyPrinter::Print(const FrequencyTable& frequency_table)
     // the minimum page length must have space for the heading (or the page number),
     // a space between the heading and the title, the title, and then at least one line of data
     page_length = std::max(page_length, std::max(1, static_cast<int>(frequency_table.frequency_printer_options.GetHeadings().size())) +
-                                        1 + 
+                                        1 +
                                         static_cast<int>(title_lines.size()) +
                                         1);
 

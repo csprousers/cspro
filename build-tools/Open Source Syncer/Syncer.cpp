@@ -273,7 +273,7 @@ bool Syncer::CompareRepositories(const GitCommit& cs_commit, const GitCommit& os
         {
             if( !IsFileExcluded(cs_path) )
             {
-                fatal_errors.emplace_back(u8"⚠ Missing file: " + cs_path);
+                fatal_errors.emplace_back("⚠ Missing file: " + cs_path);
             }
 
             else if( verbose )
@@ -312,7 +312,7 @@ bool Syncer::CompareRepositories(const GitCommit& cs_commit, const GitCommit& os
 
             if( cs_text != os_text )
             {
-                fatal_errors.emplace_back(u8"⚠ Different file: " + cs_path);
+                fatal_errors.emplace_back("⚠ Different file: " + cs_path);
             }
 
             else if( verbose )
@@ -340,12 +340,12 @@ bool Syncer::CompareRepositories(const GitCommit& cs_commit, const GitCommit& os
 
         else
         {
-            fatal_errors.emplace_back(u8"⚠ Missing file (open source repository): ").append(os_path);
+            fatal_errors.emplace_back("⚠ Missing file (open source repository): ").append(os_path);
         }
     }
 
     for( const auto& [os_path, os_file_oid] : os_files )
-        fatal_errors.emplace_back(u8"⚠ Unexpected file: " + os_path);
+        fatal_errors.emplace_back("⚠ Unexpected file: " + os_path);
 
     if( fatal_errors.empty() )
     {
@@ -354,7 +354,7 @@ bool Syncer::CompareRepositories(const GitCommit& cs_commit, const GitCommit& os
     }
 
     // report on the fatal errors
-    m_controller.LogText(u8"\n⚠ There are %zu fatal errors!\n", fatal_errors.size());
+    m_controller.LogText("\n⚠ There are %zu fatal errors!\n", fatal_errors.size());
 
     for( const std::string& fatal_error : fatal_errors )
         m_controller.LogText(fatal_error);
@@ -587,7 +587,7 @@ GitCommit Syncer::MirrorFeatureBranch(const GitBranch& os_merge_branch,
         merge_diff.ForeachDifference(
             [&](const std::string path, unsigned int /*diff_flag*/)
             {
-                m_controller.LogText(u8"⚠ Differences exist in: " + path);
+                m_controller.LogText("⚠ Differences exist in: " + path);
                 return true;
             });
 

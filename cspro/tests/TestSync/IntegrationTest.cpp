@@ -282,7 +282,7 @@ namespace SyncUnitTest
 
         TEST_METHOD(TestSyncUnicode)
         {
-            const char* unicodeData = u8"🐼🐼🐼 有人做过一。Кто-то странное.";
+            const char* unicodeData = "🐼🐼🐼 有人做过一。Кто-то странное.";
             DeviceId client1DeviceId = MakeUniqueDeviceId("it1-");
             TestRepoBuilder repoBuilder(client1DeviceId, dictionary.get());
             ISyncableDataRepository* pRepo = repoBuilder.GetRepo();

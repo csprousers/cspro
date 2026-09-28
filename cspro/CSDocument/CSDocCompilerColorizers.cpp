@@ -65,14 +65,14 @@ private:
 
     static constexpr std::string_view ArgTagStart_sv              = "<arg>";
     static constexpr std::string_view ArgTagEnd_sv                = "</arg>";
-    static constexpr std::string_view OptionalTagStart_sv         = u8"『";
-    static constexpr std::string_view OptionalTagEnd_sv           = u8"』";
-    static constexpr std::string_view OptionalTagSeparator_sv     = u8"‖";
+    static constexpr std::string_view OptionalTagStart_sv         = "『";
+    static constexpr std::string_view OptionalTagEnd_sv           = "』";
+    static constexpr std::string_view OptionalTagSeparator_sv     = "‖";
 
     static constexpr std::string_view ArgReplacementTextStart_sv  = "arg_start_";
     static constexpr std::string_view ArgReplacementTextEnd_sv    = "_end_arg";
-    static constexpr std::string_view OptionalReplacementStart_sv = u8"ʃ";
-    static constexpr std::string_view OptionalReplacementEnd_sv   = u8"ʅ";
+    static constexpr std::string_view OptionalReplacementStart_sv = "ʃ";
+    static constexpr std::string_view OptionalReplacementEnd_sv   = "ʅ";
 };
 
 

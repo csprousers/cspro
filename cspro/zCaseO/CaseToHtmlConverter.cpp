@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "CaseToHtmlConverter.h"
 #include "BinaryCaseItem.h"
 #include "CaseItemReference.h"
@@ -11,7 +11,7 @@
 
 namespace
 {
-    constexpr std::string_view Divider_sv = u8"<span class=\"c2h_divider\">&nbsp; ► &nbsp;</span>";
+    constexpr std::string_view Divider_sv = "<span class=\"c2h_divider\">&nbsp; ► &nbsp;</span>";
 
     constexpr std::string_view PartialSaveAnchor_sv = "PartialSave";
     constexpr const char* NoteAnchorFormatter = "Note%p";
@@ -287,7 +287,7 @@ std::string CaseToHtmlConverter::GetCaseConstructionErrorsHtml(const std::vector
         if( i > 0 )
             html_writer.WriteNewline();
 
-        html_writer << u8"\n⚠ " << case_construction_errors[i];
+        html_writer << "\n⚠ " << case_construction_errors[i];
     }
 
     html_writer << "\n</p>\n";

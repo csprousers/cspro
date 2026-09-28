@@ -343,12 +343,12 @@ void ValueProcessorTest::StringDictionaryItem()
     Assert::IsTrue(value_processor->IsValid("12345678", false));
     Assert::IsFalse(value_processor->IsValid("123456789", true));
     Assert::IsFalse(value_processor->IsValid("123456789", false));
-    Assert::IsTrue(value_processor->IsValid(u8"▶天津◀", true));
-    Assert::IsFalse(value_processor->IsValid(u8"▶天津◀", false));
-    Assert::IsTrue(value_processor->IsValid(u8"▶▶▶天津◀◀◀", true));
-    Assert::IsTrue(value_processor->IsValid(u8"▶▶▶天津◀◀◀", false));
-    Assert::IsFalse(value_processor->IsValid(u8"▶▶▶▶天津◀◀◀◀", true));
-    Assert::IsFalse(value_processor->IsValid(u8"▶▶▶▶天津◀◀◀◀", false));
+    Assert::IsTrue(value_processor->IsValid("▶天津◀", true));
+    Assert::IsFalse(value_processor->IsValid("▶天津◀", false));
+    Assert::IsTrue(value_processor->IsValid("▶▶▶天津◀◀◀", true));
+    Assert::IsTrue(value_processor->IsValid("▶▶▶天津◀◀◀", false));
+    Assert::IsFalse(value_processor->IsValid("▶▶▶▶天津◀◀◀◀", true));
+    Assert::IsFalse(value_processor->IsValid("▶▶▶▶天津◀◀◀◀", false));
     Assert::IsNull(value_processor->GetDictValue("12345678"));
     Assert::IsNull(value_processor->GetDictValueByLabel("Chinese Cities"));
     Assert::IsTrue(value_processor->GetMatchingDictValues("12345678").empty());
@@ -358,12 +358,12 @@ void ValueProcessorTest::StringDictionaryItem()
     Assert::IsTrue(value_processor->GetOutput("12345678") == "12345678");
     Assert::IsTrue(value_processor->GetAlphaFromInput("123456789") == "12345678");
     Assert::IsTrue(value_processor->GetOutput("123456789") == "12345678");
-    Assert::IsTrue(value_processor->GetAlphaFromInput(u8"▶天津◀") == u8"▶天津◀    ");
-    Assert::IsTrue(value_processor->GetOutput(u8"▶天津◀") == u8"▶天津◀    ");
-    Assert::IsTrue(value_processor->GetAlphaFromInput(u8"▶▶▶天津◀◀◀") == u8"▶▶▶天津◀◀◀");
-    Assert::IsTrue(value_processor->GetOutput(u8"▶▶▶天津◀◀◀") == u8"▶▶▶天津◀◀◀");
-    Assert::IsTrue(value_processor->GetAlphaFromInput(u8"▶▶▶▶天津◀◀◀◀") == u8"▶▶▶▶天津◀◀");
-    Assert::IsTrue(value_processor->GetOutput(u8"▶▶▶▶天津◀◀◀◀") == u8"▶▶▶▶天津◀◀");
+    Assert::IsTrue(value_processor->GetAlphaFromInput("▶天津◀") == "▶天津◀    ");
+    Assert::IsTrue(value_processor->GetOutput("▶天津◀") == "▶天津◀    ");
+    Assert::IsTrue(value_processor->GetAlphaFromInput("▶▶▶天津◀◀◀") == "▶▶▶天津◀◀◀");
+    Assert::IsTrue(value_processor->GetOutput("▶▶▶天津◀◀◀") == "▶▶▶天津◀◀◀");
+    Assert::IsTrue(value_processor->GetAlphaFromInput("▶▶▶▶天津◀◀◀◀") == "▶▶▶▶天津◀◀");
+    Assert::IsTrue(value_processor->GetOutput("▶▶▶▶天津◀◀◀◀") == "▶▶▶▶天津◀◀");
     Assert::IsTrue(value_processor->GetResponses().empty());
 }
 
@@ -377,27 +377,27 @@ void ValueProcessorTest::StringDictionaryValueSet()
     value_processor = CreateValueProcessor<StringValueSetValueProcessor>("STRING_LENGTH_08_VS");
     Assert::IsFalse(value_processor->IsValid(""));
     Assert::IsFalse(value_processor->IsValid("12345678"));
-    Assert::IsTrue(value_processor->IsValid(u8"Yaoundé"));
-    Assert::IsTrue(value_processor->IsValid(u8"天津"));
-    Assert::IsTrue(value_processor->IsValid(u8"北京"));
-    Assert::IsTrue(value_processor->IsValid(u8"北京      "));
-    Assert::IsFalse(value_processor->IsValid(u8"北京       "));
+    Assert::IsTrue(value_processor->IsValid("Yaoundé"));
+    Assert::IsTrue(value_processor->IsValid("天津"));
+    Assert::IsTrue(value_processor->IsValid("北京"));
+    Assert::IsTrue(value_processor->IsValid("北京      "));
+    Assert::IsFalse(value_processor->IsValid("北京       "));
     Assert::IsNull(value_processor->GetDictValue("12345678"));
-    Assert::IsNotNull(value_processor->GetDictValue(u8"北京", true));
-    Assert::IsNull(value_processor->GetDictValue(u8"北京", false));
+    Assert::IsNotNull(value_processor->GetDictValue("北京", true));
+    Assert::IsNull(value_processor->GetDictValue("北京", false));
     Assert::IsNotNull(value_processor->GetDictValueByLabel("Chinese Cities"));
     Assert::IsNull(value_processor->GetDictValueByLabel("Jimothy"));
     Assert::IsTrue(value_processor->GetMatchingDictValues("12345678").size() == 0);
-    Assert::IsTrue(value_processor->GetMatchingDictValues(u8"Yaoundé").size() == 2);
+    Assert::IsTrue(value_processor->GetMatchingDictValues("Yaoundé").size() == 2);
     Assert::IsTrue(value_processor->GetMatchingDictValues("天津").size() == 2);
     Assert::IsTrue(value_processor->GetMatchingDictValues("北京").size() == 1);
     Assert::IsTrue(value_processor->GetMatchingDictValues("北京              ").size() == 1);
 
     responses = value_processor->GetResponses();
     Assert::IsTrue(responses.size() == 5);
-    Assert::IsTrue(responses[1]->GetLabel() == u8"Yaoundé 2");
+    Assert::IsTrue(responses[1]->GetLabel() == "Yaoundé 2");
     Assert::IsTrue(responses[4]->GetLabel() == "Chinese Cities");
-    Assert::IsTrue(responses[4]->GetCode() == u8"北京");
+    Assert::IsTrue(responses[4]->GetCode() == "北京");
 }
 
 

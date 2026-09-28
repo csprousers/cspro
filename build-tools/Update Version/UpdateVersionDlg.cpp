@@ -68,7 +68,7 @@ LRESULT UpdateVersionDlg::OnReadVersionNumbers(WPARAM /*wParam*/, LPARAM /*lPara
 
             else
             {
-                m_log.AddText(u8"⚠ Could not find version numbers in: "+ versioned_file_itr->file_path);
+                m_log.AddText("⚠ Could not find version numbers in: "+ versioned_file_itr->file_path);
                 versioned_file_itr = m_versionedFiles.erase(versioned_file_itr);
             }
         }

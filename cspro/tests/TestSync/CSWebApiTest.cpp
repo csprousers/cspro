@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "CaseTestHelpers.h"
 #include "SyncTestCredentials.h"
 #include <zUtilO/BinaryContentCacher.h>
@@ -93,7 +93,7 @@ void SyncUnitTest::CSWebApiTest::TestSyncData(const bool v2, const bool binary_t
         std::vector<std::string> string_values;
 
         for( int j = 1; j <= i; ++j )
-            string_values.emplace_back(SO::WideSubstring(u8"☀☁☂☃☄★☆☇☈☉☊☋☌☍☎☏☐☑☒☓☚☛☜☝", i - 1));
+            string_values.emplace_back(SO::WideSubstring("☀☁☂☃☄★☆☇☈☉☊☋☌☍☎☏☐☑☒☓☚☛☜☝", i - 1));
 
         Case& data_case = *put_cases.emplace_back(CreateCase(*m_caseAccess, CreateUuid(), i, string_values, binary_test));
 
