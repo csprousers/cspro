@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "TableFrequencyPrinter.h"
 #include <zTableO/Table.h>
 
@@ -373,10 +373,10 @@ void TableFrequencyPrinterWorker::AddTotalAndRows()
     {
         int column_number = 0;
 
-        auto add_cell = [&](const double value, const bool percent_cell, const bool blank_cell)
+        auto add_cell = [&](/*const*/ double value, const bool percent_cell, const bool blank_cell)
         {
             ++column_number;
-            cells.Add(static_cast<double>(value));
+            cells.Add(value); // const commented out above because CArray requires a double&
 
             CDataCellFmt* cell_format = GetStubOrCellFormat(FMT_ID_DATACELL, out_of_range_row, line_on_bottom_row, percent_cell, blank_cell);
 

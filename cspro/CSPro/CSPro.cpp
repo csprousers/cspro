@@ -1087,7 +1087,7 @@ bool CCSProApp::SaveAsFormFile(CFormDoc* pFormDoc)
             return false;
     }
 
-    CArray<bool, bool&> aCreateNewDocFlags;
+    CArray<bool, bool> aCreateNewDocFlags;
     aCreateNewDocFlags.SetSize(1);
     if (!DuplicateSharedFilesForSaveAs(aplFileAssociationsDlg, aCreateNewDocFlags)) {
             return false;
@@ -1262,7 +1262,7 @@ bool CCSProApp::SaveAsApplication(CAplDoc* pApplDoc)
 
         // check if any of the form or dict files are shared by other open apps - if so we need to create new
         // docs for them so we don't screw up the other open apps
-        CArray<bool, bool&> aCreateNewDocFlags;
+        CArray<bool, bool> aCreateNewDocFlags;
         aCreateNewDocFlags.SetSize((int)pAplFileAssociationsDlg->m_fileAssociations.size());
         if (!DuplicateSharedFilesForSaveAs(*pAplFileAssociationsDlg, aCreateNewDocFlags)) {
                 return false;
@@ -1423,7 +1423,7 @@ void CCSProApp::GetFileAssocsForSaveAs(CAplDoc* pApplDoc, const CString& sNewApp
 }
 
 bool CCSProApp::SaveAppFilesWithNewNames(CAplDoc* pApplDoc, const CString& sNewAppName, const CAplFileAssociationsDlg& aplFileAssociationsDlg,
-    const CArray<bool, bool&>& aCreateNewDocFlags)
+    const CArray<bool, bool>& aCreateNewDocFlags)
 {
     // got all the object names, now save them
     for (int iAssoc = 0; iAssoc < (int)aplFileAssociationsDlg.m_fileAssociations.size(); ++iAssoc) {
@@ -1504,7 +1504,7 @@ bool CCSProApp::SaveAppFilesWithNewNames(CAplDoc* pApplDoc, const CString& sNewA
     return true;
 }
 
-bool CCSProApp::DuplicateSharedFilesForSaveAs(CAplFileAssociationsDlg& aplFileAssociationsDlg, CArray<bool, bool&>& aCreateNewDocFlags)
+bool CCSProApp::DuplicateSharedFilesForSaveAs(CAplFileAssociationsDlg& aplFileAssociationsDlg, CArray<bool, bool>& aCreateNewDocFlags)
 {
     for (int iAssoc = 0; iAssoc < (int)aplFileAssociationsDlg.m_fileAssociations.size(); ++iAssoc) {
         const FileAssociation& file_association = aplFileAssociationsDlg.m_fileAssociations[iAssoc];
@@ -1562,7 +1562,7 @@ bool CCSProApp::DuplicateSharedFilesForSaveAs(CAplFileAssociationsDlg& aplFileAs
 
 
 void CCSProApp::RenameApp(CAplDoc* pApplDoc, const CString& sNewAppName, const CAplFileAssociationsDlg& aplFileAssociationsDlg,
-    const CArray<bool, bool&>& aCreateNewDocFlags)
+    const CArray<bool, bool>& aCreateNewDocFlags)
 {
     ASSERT_VALID(pApplDoc);
     Application& application = pApplDoc->GetAppObject();
@@ -1596,14 +1596,14 @@ void CCSProApp::RenameApp(CAplDoc* pApplDoc, const CString& sNewAppName, const C
                     // get dictionary children new names
                     CDEFormFile* pFormSpec = &pFormDoc->GetFormFile();
                     CStringArray aDictNames;
-                    CArray<bool, bool&> aSkipDictFlags;
+                    CArray<bool, bool> aSkipDictFlags;
 
                     const CString sOrigDictName = pFormSpec->GetDictionaryFilename();
                     int iPifInd = aplFileAssociationsDlg.FindFileAssocIndex(sOrigDictName);
                     ASSERT(iPifInd != NONE);
                     const FileAssociation& dict_file_association = aplFileAssociationsDlg.m_fileAssociations[iPifInd];
                     aDictNames.Add(dict_file_association.GetNewFilename());
-                    aSkipDictFlags.Add((bool)aCreateNewDocFlags[iPifInd]); // skip rename of dict if this was one we created
+                    aSkipDictFlags.Add(aCreateNewDocFlags[iPifInd]); // skip rename of dict if this was one we created
                     aMainDicts.Add(sOrigDictName);
 
                     // rename form and child dicts
@@ -1628,14 +1628,14 @@ void CCSProApp::RenameApp(CAplDoc* pApplDoc, const CString& sNewAppName, const C
                                         // get dictionary children and change names
                     CDEFormFile* pOrderSpec = &pOrderDoc->GetFormFile();
                     CStringArray aNewDictNames;
-                    CArray<bool, bool&> aSkipDictFlags;
+                    CArray<bool, bool> aSkipDictFlags;
 
                     const CString sOrigDictName = pOrderSpec->GetDictionaryFilename();
                     int iPifInd = aplFileAssociationsDlg.FindFileAssocIndex(sOrigDictName);
                     ASSERT(iPifInd != NONE);
                     const FileAssociation& dict_file_association = aplFileAssociationsDlg.m_fileAssociations[iPifInd];
                     aNewDictNames.Add(dict_file_association.GetNewFilename());
-                    aSkipDictFlags.Add((bool)aCreateNewDocFlags[iPifInd]); // skip rename of dict if this was one we created
+                    aSkipDictFlags.Add(aCreateNewDocFlags[iPifInd]); // skip rename of dict if this was one we created
                     aMainDicts.Add(sOrigDictName);
 
                     RenameOrdFile(pApplDoc, sOrigOrdName, sNewOrdName, aNewDictNames, aSkipDictFlags);
@@ -1766,7 +1766,7 @@ void CCSProApp::RenameFormFile(CAplDoc* pApplDoc,
                                CString sOrigFormName,
                                const CString& sNewFormName,
                                const CStringArray& aNewDictNames,
-                               const CArray<bool, bool&>& aDictSkipFlags)
+                               const CArray<bool, bool>& aDictSkipFlags)
 {
     CMainFrame* const pFrame = assert_cast<CMainFrame*>(AfxGetMainWnd());
 
@@ -1810,7 +1810,7 @@ void CCSProApp::RenameOrdFile(CAplDoc* pApplDoc,
                               CString sOrigOrdName,
                               const CString& sNewOrdName,
                               const CStringArray& aNewDictNames,
-                              const CArray<bool, bool&>& aDictSkipFlags)
+                              const CArray<bool, bool>& aDictSkipFlags)
 {
     CMainFrame* const pFrame = assert_cast<CMainFrame*>(AfxGetMainWnd());
 

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 /////////////////////////////////////////////////////////////////////////////
 // CCSProApp:
@@ -55,17 +55,17 @@ public:
     void ProcessAppHObjects(CAplDoc* pAplDoc);
 
     void GetFileAssocsForSaveAs(CAplDoc* pApplDoc, const CString& sNewAppName, CAplFileAssociationsDlg& aplFileAssociationsDlg);
-    bool SaveAppFilesWithNewNames(CAplDoc* pApplDoc, const CString& sNewAppName, const CAplFileAssociationsDlg& aplFileAssociationsDlg, const CArray<bool, bool&>& aCreateNewDocFlags);
-    bool DuplicateSharedFilesForSaveAs(CAplFileAssociationsDlg& aplFileAssociationsDlg, CArray<bool, bool&>& aCreateNewDocFlags);
-    void RenameApp(CAplDoc* pApplDoc, const CString& sNewAppName, const CAplFileAssociationsDlg& aplFileAssociationsDlg, const CArray<bool, bool&>& aCreateNewDocFlags);
+    bool SaveAppFilesWithNewNames(CAplDoc* pApplDoc, const CString& sNewAppName, const CAplFileAssociationsDlg& aplFileAssociationsDlg, const CArray<bool, bool>& aCreateNewDocFlags);
+    bool DuplicateSharedFilesForSaveAs(CAplFileAssociationsDlg& aplFileAssociationsDlg, CArray<bool, bool>& aCreateNewDocFlags);
+    void RenameApp(CAplDoc* pApplDoc, const CString& sNewAppName, const CAplFileAssociationsDlg& aplFileAssociationsDlg, const CArray<bool, bool>& aCreateNewDocFlags);
     void RenameDictionaryFile(CDocument* pParentDoc, CString sOldDictFName, const CString& sNewDictFName, bool bAddToMRU);
     void RenameFormFile(CAplDoc* pApplDoc,
                         CString sOldFName,
                         const CString& sNewFName,
                         const CStringArray& aNewDictNames,
-                        const CArray<bool, bool&>& aDictSkipFlags);
+                        const CArray<bool, bool>& aDictSkipFlags);
     void RenameOrdFile(CAplDoc* pApplDoc, CString sOldFName, const CString& sNewFName,
-                       const CStringArray& aNewDictNames, const CArray<bool, bool&>& aDictSkipFlags);
+                       const CStringArray& aNewDictNames, const CArray<bool, bool>& aDictSkipFlags);
     void RenameTabSpecFile(CAplDoc* pApplDoc, CString sOldFName,const CString& sNewFName,
                            const CString& sNewDictName);
     void RenameAppCodeFile(CAplDoc* pAplDoc, const CString& new_filename);

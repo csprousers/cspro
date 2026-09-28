@@ -1,4 +1,4 @@
-﻿//***************************************************************************
+//***************************************************************************
 //  File name: HTMLExpt.cpp
 //
 //  Description:
@@ -233,15 +233,15 @@ int FindHTMLStyleInfo(const CString& sStyle, const CHTMLStyleInfoArray& aStyleIn
 // replace HTML special chars in text string with appropriate esc seqs
 CIMSAString EscapeHTMLSpecialChars(const CIMSAString& sSrc)
 {
-    static CMap<_TCHAR, _TCHAR, CIMSAString, CIMSAString&> gHTMLEscMap;
-    if (gHTMLEscMap.GetCount() == 0) {
+    static std::map<_TCHAR, CString> gHTMLEscMap;
+    if (gHTMLEscMap.empty()) {
         // first time - init the map
-        gHTMLEscMap.SetAt(_T('<'), CIMSAString(_T("&lt;")));
-        gHTMLEscMap.SetAt(_T('>'), CIMSAString(_T("&gt;")));
-        gHTMLEscMap.SetAt(_T('&'), CIMSAString(_T("&amp;")));
-        gHTMLEscMap.SetAt(_T('"'), CIMSAString(_T("&quot;")));
-        gHTMLEscMap.SetAt(_T('\n'), CIMSAString(_T("<br />")));
-        gHTMLEscMap.SetAt(_T('\r'), CIMSAString(_T("<br />")));
+        gHTMLEscMap.try_emplace(_T('<'), _T("&lt;"));
+        gHTMLEscMap.try_emplace(_T('>'), _T("&gt;"));
+        gHTMLEscMap.try_emplace(_T('&'), _T("&amp;"));
+        gHTMLEscMap.try_emplace(_T('"'), _T("&quot;"));
+        gHTMLEscMap.try_emplace(_T('\n'), _T("<br />"));
+        gHTMLEscMap.try_emplace(_T('\r'), _T("<br />"));
     }
     CIMSAString sDst;
     // replace special chars with esc sequences
@@ -269,10 +269,9 @@ CIMSAString EscapeHTMLSpecialChars(const CIMSAString& sSrc)
             }
         }
         else {
-
-            CIMSAString sEscSeq;
-            if (gHTMLEscMap.Lookup(c, sEscSeq)) {
-                sDst += sEscSeq;
+            const auto& lookup = gHTMLEscMap.find(c);
+            if (lookup != gHTMLEscMap.cend()) {
+                sDst += lookup->second;
             }
             else {
                 sDst += c;
@@ -549,4 +548,3 @@ void CTableGridExporterHTML::WriteCell(_tostream& os,
     }
     os << std::endl;
 }
-
