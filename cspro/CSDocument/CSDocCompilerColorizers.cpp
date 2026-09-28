@@ -810,7 +810,7 @@ std::string CSDocCompilerWorker::TrimOnlyOneNewlineFromBothEnds(std::string text
 }
 
 
-const std::string* CSDocCompilerWorker::ProcessHelpsHtmlProcessorModeOverride(const cs::span<const std::string> tag_components)
+const std::string* CSDocCompilerWorker::ProcessHelpsHtmlProcessorModeOverride(const std::span<const std::string> tag_components)
 {
     ASSERT(!m_helpsHtmlProcessorModeOverride.has_value());
     ASSERT(tag_components.size() <= 2);
@@ -837,7 +837,7 @@ const std::string* CSDocCompilerWorker::ProcessHelpsHtmlProcessorModeOverride(co
 }
 
 
-std::string CSDocCompilerWorker::LogicObjectStartHandler(const cs::span<const std::string> tag_components)
+std::string CSDocCompilerWorker::LogicObjectStartHandler(const std::span<const std::string> tag_components)
 {
     ASSERT(!m_logicFunctionDomain.has_value());
 
@@ -905,7 +905,7 @@ std::string CSDocCompilerWorker::LogicEndHandlerWorker(std::string text, const H
 }
 
 
-std::string CSDocCompilerWorker::LogicDeclareStartHandler(const cs::span<const std::string> tag_components)
+std::string CSDocCompilerWorker::LogicDeclareStartHandler(const std::span<const std::string> tag_components)
 {
     const std::string& symbol_type_name = tag_components.front();
     const std::string& symbol_name = tag_components.back();
@@ -936,7 +936,7 @@ std::string CSDocCompilerWorker::LogicDeclareStartHandler(const cs::span<const s
 }
 
 
-std::string CSDocCompilerWorker::LogicTableStartHandler(const cs::span<const std::string> tag_components)
+std::string CSDocCompilerWorker::LogicTableStartHandler(const std::span<const std::string> tag_components)
 {
     int columns = 0;
 
@@ -1043,7 +1043,7 @@ std::string CSDocCompilerWorker::MessageEndHandler(const std::string& inner_text
 }
 
 
-std::string CSDocCompilerWorker::ReportStartHandler(const cs::span<const std::string> tag_components)
+std::string CSDocCompilerWorker::ReportStartHandler(const std::span<const std::string> tag_components)
 {
     ASSERT(!m_lexerLanguage.has_value());
 
@@ -1089,7 +1089,7 @@ std::string CSDocCompilerWorker::ReportEndHandler(const std::string& inner_text)
 }
 
 
-std::string CSDocCompilerWorker::ColorStartHandler(const cs::span<const std::string> tag_components)
+std::string CSDocCompilerWorker::ColorStartHandler(const std::span<const std::string> tag_components)
 {
     ASSERT(!m_lexerLanguage.has_value());
 

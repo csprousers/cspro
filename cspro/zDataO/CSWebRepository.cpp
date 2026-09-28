@@ -826,7 +826,11 @@ void CSWebRepository::WriteCaseWorker(Case& data_case)
 
     try
     {
-        std::string case_data = m_syncCaseSerializer->GetSyncableCaseData({ &data_case }, m_syncBinaryDataUploadManager->get());
+        std::string case_data = m_syncCaseSerializer->GetSyncableCaseData(
+            std::span<const Case* const>({ &data_case }),
+            m_syncBinaryDataUploadManager->get()
+        );
+
         m_cswebConnection->UploadCase(m_syncableDictionaryName, m_deviceId, std::move(case_data));
     }
 

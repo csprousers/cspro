@@ -17,8 +17,8 @@ public:
     virtual std::string Encrypt(cs::string_view_sz text_sv) = 0;
     virtual std::string Decrypt(std::string_view encrypted_text_sv) = 0;
 
-    virtual std::vector<std::byte> Encrypt(cs::span<const std::byte> buffer) = 0;
-    virtual std::vector<std::byte> Decrypt(cs::span<const std::byte> encrypted_buffer) = 0;
+    virtual std::vector<std::byte> Encrypt(std::span<const std::byte> buffer) = 0;
+    virtual std::vector<std::byte> Decrypt(std::span<const std::byte> encrypted_buffer) = 0;
 };
 
 
@@ -34,16 +34,16 @@ public:
     std::string Encrypt(cs::string_view_sz text_sv) override;
     std::string Decrypt(std::string_view encrypted_text_sv) override;
 
-    std::vector<std::byte> Encrypt(cs::span<const std::byte> buffer) override;
-    std::vector<std::byte> Decrypt(cs::span<const std::byte> encrypted_buffer) override;
+    std::vector<std::byte> Encrypt(std::span<const std::byte> buffer) override;
+    std::vector<std::byte> Decrypt(std::span<const std::byte> encrypted_buffer) override;
 
 private:
     using BufferSizeStorage = uint64_t;
 
     template<bool AddBufferSize>
-    std::vector<std::byte> EncryptWorker(cs::span<const std::byte> buffer);
+    std::vector<std::byte> EncryptWorker(std::span<const std::byte> buffer);
 
-    std::vector<std::byte> DecryptWorker(cs::span<const std::byte> buffer);
+    std::vector<std::byte> DecryptWorker(std::span<const std::byte> buffer);
 
     static bool HexStringLengthIsValid(const std::string_view hex_string)
     {
@@ -82,7 +82,7 @@ RijndaelEncryptor::RijndaelEncryptor(const std::string_view key_sv, const bool u
 std::string RijndaelEncryptor::Encrypt(const cs::string_view_sz text_sv)
 {
     // the text is encoded including the null terminator
-    const cs::span<const std::byte> buffer(reinterpret_cast<const std::byte*>(text_sv.c_str()), text_sv.length() + 1);
+    const std::span<const std::byte> buffer(reinterpret_cast<const std::byte*>(text_sv.c_str()), text_sv.length() + 1);
     const std::vector<std::byte> encrypted_buffer = EncryptWorker<false>(buffer);
 
     // Base64
@@ -130,13 +130,13 @@ std::string RijndaelEncryptor::Decrypt(const std::string_view encrypted_text_sv)
 }
 
 
-std::vector<std::byte> RijndaelEncryptor::Encrypt(const cs::span<const std::byte> buffer)
+std::vector<std::byte> RijndaelEncryptor::Encrypt(const std::span<const std::byte> buffer)
 {
     return EncryptWorker<true>(buffer);
 }
 
 
-std::vector<std::byte> RijndaelEncryptor::Decrypt(const cs::span<const std::byte> encrypted_buffer)
+std::vector<std::byte> RijndaelEncryptor::Decrypt(const std::span<const std::byte> encrypted_buffer)
 {
     std::vector<std::byte> decrypted_buffer = DecryptWorker(encrypted_buffer);
     const size_t buffer_size_without_buffer_size_value = decrypted_buffer.size() - sizeof(BufferSizeStorage);
@@ -159,7 +159,7 @@ std::vector<std::byte> RijndaelEncryptor::Decrypt(const cs::span<const std::byte
 
 
 template<bool AddBufferSize>
-std::vector<std::byte> RijndaelEncryptor::EncryptWorker(const cs::span<const std::byte> buffer)
+std::vector<std::byte> RijndaelEncryptor::EncryptWorker(const std::span<const std::byte> buffer)
 {
     size_t real_data_bytes = buffer.size();
 
@@ -195,7 +195,7 @@ std::vector<std::byte> RijndaelEncryptor::EncryptWorker(const cs::span<const std
         buffer_itr += BlockSize;
     }
 
-    const size_t remaining_bytes_from_buffer = buffer.cend() - buffer_full_block_end;
+    const size_t remaining_bytes_from_buffer = ( buffer.data() + buffer.size() ) - buffer_full_block_end;
     ASSERT(remaining_bytes_from_buffer == 0 || ( AddBufferSize || padding_required > 0 ));
 
     const size_t remaining_data_bytes = total_bytes - buffer.size() + remaining_bytes_from_buffer;
@@ -243,7 +243,7 @@ std::vector<std::byte> RijndaelEncryptor::EncryptWorker(const cs::span<const std
 }
 
 
-std::vector<std::byte> RijndaelEncryptor::DecryptWorker(const cs::span<const std::byte> buffer)
+std::vector<std::byte> RijndaelEncryptor::DecryptWorker(const std::span<const std::byte> buffer)
 {
     // return if the size of the buffer is not valid
     if( buffer.size() % BlockSize != 0 )
@@ -305,13 +305,13 @@ std::string Encryptor::Decrypt(const std::string_view encrypted_text_sv)
 }
 
 
-std::vector<std::byte> Encryptor::Encrypt(const cs::span<const std::byte> buffer)
+std::vector<std::byte> Encryptor::Encrypt(const std::span<const std::byte> buffer)
 {
     return m_encryptor->Encrypt(buffer);
 }
 
 
-std::vector<std::byte> Encryptor::Decrypt(const cs::span<const std::byte> encrypted_buffer)
+std::vector<std::byte> Encryptor::Decrypt(const std::span<const std::byte> encrypted_buffer)
 {
     return m_encryptor->Decrypt(encrypted_buffer);
 }

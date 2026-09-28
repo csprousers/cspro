@@ -110,7 +110,7 @@ std::string SyncCaseSerializer::GetSyncableJson(const Case& data_case, const boo
 }
 
 
-std::string SyncCaseSerializer::GetSyncableJson(const cs::span<const Case* const> cases)
+std::string SyncCaseSerializer::GetSyncableJson(const std::span<const Case* const> cases)
 {
     const std::unique_ptr<JsonStringWriter> json_writer = Json::CreateStringWriter(JsonFormattingOptions::Compact);
 
@@ -125,7 +125,7 @@ std::string SyncCaseSerializer::GetSyncableJson(const cs::span<const Case* const
 }
 
 
-std::string SyncCaseSerializer::GetSyncableCaseData(const cs::span<const Case* const> cases, const SyncBinaryDataUploadManager* const sync_binary_data_upload_manager)
+std::string SyncCaseSerializer::GetSyncableCaseData(const std::span<const Case* const> cases, const SyncBinaryDataUploadManager* const sync_binary_data_upload_manager)
 {
     std::string cases_json = GetSyncableJson(cases);
 

@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "UserFunctionArgumentChecker.h"
 #include "AllSymbols.h"
 #include "Compiler/LogicCompiler.h"
@@ -245,7 +245,7 @@ void UserFunctionArgumentChecker::CheckSymbolArgument(const size_t parameter_num
 }
 
 
-std::optional<size_t> UserFunctionArgumentChecker::FindFirstInvalidParameter(const cs::span<const SymbolType> valid_parameter_symbol_types,
+std::optional<size_t> UserFunctionArgumentChecker::FindFirstInvalidParameter(const std::span<const SymbolType> valid_parameter_symbol_types,
                                                                              const bool include_numeric_and_string_parameters) const noexcept
 {
     for( size_t i = 0; i < m_userFunction.GetNumberParameters(); ++i )

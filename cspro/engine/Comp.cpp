@@ -184,7 +184,7 @@ const Logic::ProcDirectory* CEngineCompFunc::CreateProcDirectory()
     };
 
     // go through each of the basic tokens
-    cs::span<const Logic::BasicToken> basic_tokens = GetBasicTokensSpan();
+    const std::span<const Logic::BasicToken> basic_tokens = GetBasicTokensSpan();
 
     std::optional<std::string> constructing_proc_name;
 

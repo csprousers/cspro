@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zAction/ActionInvoker.h>
 #include <zAction/Listener.h>
@@ -54,9 +54,10 @@ void ActionInvoker::Runtime::IterateOverListeners(const Caller& caller, CF callb
 template<typename... Args>
 const char* const GetUniqueKeyFromChoices(const JsonNode& json_node, const char* const key1, Args const&... key2_and_more)
 {
+    const std::initializer_list<const char*> keys { key1, key2_and_more... };
     const char* selected_key = nullptr;
 
-    for( const char* const key : std::initializer_list<const char*> { key1, key2_and_more... } )
+    for( const char* const key : keys )
     {
         if( json_node.Contains(key) )
         {
@@ -70,5 +71,5 @@ const char* const GetUniqueKeyFromChoices(const JsonNode& json_node, const char*
     if( selected_key != nullptr )
         return selected_key;
 
-    throw CSProException("You must specify one of: " + SO::CreateSingleString(cs::span<const char* const> { key1, key2_and_more... }));
+    throw CSProException("You must specify one of: " + SO::CreateSingleString(keys));
 }

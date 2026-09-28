@@ -105,18 +105,20 @@ public:
 
     int CreateOperatorNode(FunctionCode function_code, int left_expr, int right_expr);
 
-    int CreateListNode(cs::span<const int> arguments);
+    int CreateListNode(std::span<const int> arguments);
 
-    int CreateVariableArgumentsNode(FunctionCode function_code, cs::span<const int> arguments);
+    int CreateVariableArgumentsNode(FunctionCode function_code, std::span<const int> arguments);
+    int CreateVariableArgumentsNode(FunctionCode function_code, std::initializer_list<const int> arguments) { return CreateVariableArgumentsNode(function_code, std::span<const int>(arguments)); }
 
-    int CreateVariableArgumentsWithSizeNode(FunctionCode function_code, cs::span<const int> arguments);
+    int CreateVariableArgumentsWithSizeNode(FunctionCode function_code, std::span<const int> arguments);
+    int CreateVariableArgumentsWithSizeNode(FunctionCode function_code, std::initializer_list<const int> arguments) { return CreateVariableArgumentsWithSizeNode(function_code, std::span<const int>(arguments)); }
 
-    int CreateSymbolVariableArgumentsNode(FunctionCode function_code, const Symbol& symbol, cs::span<const int> arguments);
+    int CreateSymbolVariableArgumentsNode(FunctionCode function_code, const Symbol& symbol, std::span<const int> arguments);
 
     Nodes::SymbolVariableArguments& CreateSymbolVariableArgumentsNode(FunctionCode function_code, const Symbol& symbol, int number_arguments);
     Nodes::SymbolVariableArguments& CreateSymbolVariableArgumentsNode(FunctionCode function_code, const Symbol& symbol, int number_arguments, int initialize_value);
 
-    int CreateSymbolVariableArgumentsWithSubscriptNode(FunctionCode function_code, const Symbol& symbol, int symbol_subscript_compilation, cs::span<const int> arguments);
+    int CreateSymbolVariableArgumentsWithSubscriptNode(FunctionCode function_code, const Symbol& symbol, int symbol_subscript_compilation, std::span<const int> arguments);
 
     Nodes::SymbolVariableArgumentsWithSubscript& CreateSymbolVariableArgumentsWithSubscriptNode(FunctionCode function_code, const Symbol& symbol, int symbol_subscript_compilation,
                                                                                                 int number_arguments, std::optional<int> initialize_value = std::nullopt);

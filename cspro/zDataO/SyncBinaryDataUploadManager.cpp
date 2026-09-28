@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "SyncBinaryDataUploadManager.h"
 #include "ISyncableDataRepository.h"
 #include <zToolsO/VectorHelpers.h>
@@ -69,7 +69,7 @@ void SyncBinaryDataUploadManager::AnalyzeCaseBinaryData(const Case& data_case)
 }
 
 
-void SyncBinaryDataUploadManager::AnalyzeCaseBinaryData(const cs::span<const Case* const> cases)
+void SyncBinaryDataUploadManager::AnalyzeCaseBinaryData(const std::span<const Case* const> cases)
 {
     for( const Case* const data_case : cases )
         AnalyzeCaseBinaryData(*data_case);

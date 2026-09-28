@@ -233,7 +233,7 @@ Multimedia::BmpFile Multimedia::QRCode::GetBmpFile() const
         }
     }
 
-    return BmpFile(cs::span<const std::byte>(image_content.get(), image_size), length_pixels, length_pixels);
+    return BmpFile(std::span<const std::byte>(image_content.get(), image_size), length_pixels, length_pixels);
 }
 
 

@@ -1,9 +1,9 @@
-﻿#pragma once
+#pragma once
 
 #include <zSyncO/SyncGetResponse.h>
 #include <zSyncO/SyncPutResponse.h>
-#include <zToolsO/span.h>
 #include <zAppO/SyncTypes.h>
+#include <span>
 
 class ApplicationPackage;
 class Case;
@@ -59,7 +59,7 @@ public:
     // If sync_binary_data_manager is non-null, it means that the case can have binary data.
     // Throws: SyncException + DataRepositoryException::Error.
     virtual SyncPutResponse PutCases(std::shared_ptr<const CaseAccess> case_access,
-                                     cs::span<const Case* const> cases, const SyncBinaryDataUploadManager* sync_binary_data_upload_manager,
+                                     std::span<const Case* const> cases, const SyncBinaryDataUploadManager* sync_binary_data_upload_manager,
                                      const DeviceId& device_id, const std::string& universe, const std::string& last_server_revision) = 0;
 
     // Get mutable chunk object.

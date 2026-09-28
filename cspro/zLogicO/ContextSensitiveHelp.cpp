@@ -40,8 +40,10 @@ namespace
 
     const MultipleReservedWordsTable<MultipleWordExpressionDetails>& GetMultipleWordExpressions()
     {
-        static const MultipleReservedWordsTable<MultipleWordExpressionDetails> multiple_word_expressions_table(cs::span<const MultipleWordExpressionDetails>(
-                                                                                                               MultipleWordExpressions, MultipleWordExpressions + _countof(MultipleWordExpressions)));
+        static const MultipleReservedWordsTable<MultipleWordExpressionDetails> multiple_word_expressions_table(
+            std::span(MultipleWordExpressions, _countof(MultipleWordExpressions))
+        );
+
         return multiple_word_expressions_table;
     }
 }
@@ -80,7 +82,7 @@ const char* const ContextSensitiveHelp::GetTopicFilename(const std::string_view 
 }
 
 
-const char* const ContextSensitiveHelp::GetTopicFilename(const cs::span<const std::string> dot_notation_entries, const std::string_view text_sv, const FunctionDetails** function_details)
+const char* const ContextSensitiveHelp::GetTopicFilename(const std::span<const std::string> dot_notation_entries, const std::string_view text_sv, const FunctionDetails** function_details)
 {
     // a routine for dot notation words
     ASSERT(!dot_notation_entries.empty());

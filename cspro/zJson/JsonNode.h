@@ -5,7 +5,7 @@
 #include <zJson/JsonParseException.h>
 #include <zJson/JsonSerializer.h>
 #include <zToolsO/SerializerHelper.h>
-#include <zToolsO/span.h>
+#include <span>
 
 namespace jsoncons
 {
@@ -196,7 +196,7 @@ public:
     // on error, or if not in the options, throws JsonParseException
     template<typename T>
     [[nodiscard]] size_t GetFromStringOptions(const T& option_strings) const;
-    [[nodiscard]] size_t GetFromStringOptions(std::initializer_list<const char*> option_strings) const { return GetFromStringOptions(cs::span<const char* const>(option_strings)); }
+    [[nodiscard]] size_t GetFromStringOptions(std::initializer_list<const char*> option_strings) const { return GetFromStringOptions(std::span<const char* const>(option_strings)); }
 
     template<typename T>
     [[nodiscard]] size_t GetFromStringOptions(std::string_view key_sv, const T& option_strings) const                           { return Get(key_sv).GetFromStringOptions(option_strings); }

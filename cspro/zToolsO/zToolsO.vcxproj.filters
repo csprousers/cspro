@@ -364,9 +364,6 @@
     <ClInclude Include="SharedSettings.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="span.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="SpanHelpers.h">
       <Filter>Header Files</Filter>
     </ClInclude>

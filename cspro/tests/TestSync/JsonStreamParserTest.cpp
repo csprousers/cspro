@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "CaseTestHelpers.h"
 #include <zToolsO/VectorHelpers.h>
 #include <zUtilO/ConnectionString.h>
@@ -210,10 +210,14 @@ namespace SyncUnitTest
             Assert::AreEqual(size_t(2), parsed_cases_3.size());
 
             // test 4: the cases should be equal
-            CompareCases(SpanHelpers::CreatePointersSpan(cases),
-                         { parsed_cases_1->front().get(), parsed_cases_2->front().get(),
-                           parsed_cases_3.front().get(), parsed_cases_3.back().get(), },
-                         CompareCasesType::CountsAndBinaryData);
+            CompareCases(
+                SpanHelpers::CreatePointersSpan(cases),
+                std::span<const Case* const>({
+                    parsed_cases_1->front().get(), parsed_cases_2->front().get(),
+                    parsed_cases_3.front().get(), parsed_cases_3.back().get(),
+                }),
+                CompareCasesType::CountsAndBinaryData
+            );
         }
     };
 }

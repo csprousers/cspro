@@ -1,8 +1,8 @@
-﻿#pragma once
+#pragma once
 
 #include <zDataO/zDataO.h>
-#include <zToolsO/span.h>
 #include <zCaseO/CaseItemIndex.h>
+#include <span>
 
 class BinaryCaseItem;
 class BinaryDataMetadata;
@@ -28,7 +28,7 @@ public:
 
     // Determines what binary data from the case, or group of cases, needs to be included in this chunk.
     void AnalyzeCaseBinaryData(const Case& data_case);
-    void AnalyzeCaseBinaryData(const cs::span<const Case* const> cases);
+    void AnalyzeCaseBinaryData(std::span<const Case* const> cases);
 
     // Returns true if binary data is part of this chunk.
     bool IsBinaryDataPartOfChunk() const { return !m_binaryCaseItemsToSync.empty(); }

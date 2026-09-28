@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "IncludesCC.h"
 #include "Nodes/Strings.h"
 #include <zLogicO/LocalSymbolStack.h>
@@ -35,7 +35,7 @@ int LogicCompiler::CreateOperatorNode(const FunctionCode function_code, const in
 }
 
 
-int LogicCompiler::CreateListNode(const cs::span<const int> arguments)
+int LogicCompiler::CreateListNode(const std::span<const int> arguments)
 {
     auto& list_node = CreateVariableSizeNode<Nodes::List>(arguments.size());
 
@@ -48,7 +48,7 @@ int LogicCompiler::CreateListNode(const cs::span<const int> arguments)
 }
 
 
-int LogicCompiler::CreateVariableArgumentsNode(const FunctionCode function_code, const cs::span<const int> arguments)
+int LogicCompiler::CreateVariableArgumentsNode(const FunctionCode function_code, const std::span<const int> arguments)
 {
     auto& va_node = CreateVariableSizeNode<Nodes::VariableArguments>(function_code, arguments.size());
 
@@ -59,7 +59,7 @@ int LogicCompiler::CreateVariableArgumentsNode(const FunctionCode function_code,
 }
 
 
-int LogicCompiler::CreateVariableArgumentsWithSizeNode(const FunctionCode function_code, const cs::span<const int> arguments)
+int LogicCompiler::CreateVariableArgumentsWithSizeNode(const FunctionCode function_code, const std::span<const int> arguments)
 {
     auto& va_with_size_node = CreateVariableSizeNode<Nodes::VariableArgumentsWithSize>(function_code, arguments.size());
 
@@ -72,7 +72,7 @@ int LogicCompiler::CreateVariableArgumentsWithSizeNode(const FunctionCode functi
 }
 
 
-int LogicCompiler::CreateSymbolVariableArgumentsNode(const FunctionCode function_code, const Symbol& symbol, const cs::span<const int> arguments)
+int LogicCompiler::CreateSymbolVariableArgumentsNode(const FunctionCode function_code, const Symbol& symbol, const std::span<const int> arguments)
 {
     auto& symbol_va_node = CreateNode<Nodes::SymbolVariableArguments>(function_code, arguments.size() - 1);
 
@@ -109,7 +109,7 @@ Nodes::SymbolVariableArguments& LogicCompiler::CreateSymbolVariableArgumentsNode
 
 
 int LogicCompiler::CreateSymbolVariableArgumentsWithSubscriptNode(const FunctionCode function_code, const Symbol& symbol,
-                                                                  const int symbol_subscript_compilation, const cs::span<const int> arguments)
+                                                                  const int symbol_subscript_compilation, const std::span<const int> arguments)
 {
     auto& symbol_va_with_subscript_node = CreateNode<Nodes::SymbolVariableArgumentsWithSubscript>(function_code, arguments.size() - 1);
 
@@ -165,7 +165,7 @@ int LogicCompiler::WrapNodeAroundScopeChange(const Logic::LocalSymbolStack& loca
             ++symbol_names_itr;
         }
 
-        scope_change_node.local_symbol_names_list = CreateListNode(cs::span<const int>(symbol_names.get(), local_symbol_stack.GetLocalSymbolIndices().size()));
+        scope_change_node.local_symbol_names_list = CreateListNode(std::span<const int>(symbol_names.get(), local_symbol_stack.GetLocalSymbolIndices().size()));
     }
 
     else

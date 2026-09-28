@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "BmpFile.h"
 #include "Image.h"
 
@@ -47,7 +47,7 @@ namespace
 }
 
 
-Multimedia::BmpFile::BmpFile(const cs::span<const std::byte> content, const int width, const int height)
+Multimedia::BmpFile::BmpFile(const std::span<const std::byte> content, const int width, const int height)
     :   m_width(width),
         m_height(height)
 {
@@ -91,13 +91,13 @@ Multimedia::BmpFile::BmpFile(HBITMAP hBitmap)
     const int content_bytes_per_pixel = bmp_info.bmiHeader.biBitCount / 8;
     ASSERT(content_bytes_per_pixel == 4);
 
-    ParseContent(cs::span<const std::byte>(pixels.get(), bmp_info.bmiHeader.biSizeImage), content_bytes_per_pixel, { 2, 1, 0 });
+    ParseContent(std::span<const std::byte>(pixels.get(), bmp_info.bmiHeader.biSizeImage), content_bytes_per_pixel, { 2, 1, 0 });
 }
 
 #endif // WIN_DESKTOP
 
 
-void Multimedia::BmpFile::ParseContent(const cs::span<const std::byte> content, const int content_bytes_per_pixel, const std::tuple<int, int, int> rgb_index)
+void Multimedia::BmpFile::ParseContent(const std::span<const std::byte> content, const int content_bytes_per_pixel, const std::tuple<int, int, int> rgb_index)
 {
     ASSERT(content_bytes_per_pixel >= BytesPerPixel24Bit);
     ASSERT(content.size() == static_cast<size_t>(m_width * m_height * content_bytes_per_pixel));
@@ -175,5 +175,5 @@ void Multimedia::BmpFile::Save(const std::string& file_path)
 
 std::unique_ptr<Multimedia::Image> Multimedia::BmpFile::CreateImage()
 {
-    return Image::FromBuffer(cs::span<const std::byte>(m_bmpData.get(), m_bmpDataLength));
+    return Image::FromBuffer(std::span<const std::byte>(m_bmpData.get(), m_bmpDataLength));
 }

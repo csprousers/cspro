@@ -160,7 +160,10 @@ namespace
 
 const ReservedWordsTable<KeywordDetails>& KeywordTable::GetKeywords()
 {
-    static const ReservedWordsTable<KeywordDetails> keyword_table(cs::span<const KeywordDetails>(Keywords, Keywords + _countof(Keywords)));
+    static const ReservedWordsTable<KeywordDetails> keyword_table(
+        std::span(Keywords, _countof(Keywords))
+    );
+
     return keyword_table;
 }
 

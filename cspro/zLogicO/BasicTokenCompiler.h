@@ -1,9 +1,9 @@
-﻿#pragma once
+#pragma once
 
 #include <zLogicO/zLogicO.h>
 #include <zLogicO/ParserMessage.h>
 #include <zLogicO/SourceBuffer.h>
-#include <zToolsO/span.h>
+#include <span>
 
 class CompilerMessageIssuer;
 class LogicSettings;
@@ -59,7 +59,7 @@ public:
     // If not found, the function returns 0 and the token is not processed.
     template<typename T>
     size_t NextKeyword(const T& keywords);
-    size_t NextKeyword(std::initializer_list<const char*> keywords) { return NextKeyword(cs::span<const char* const>(keywords)); }
+    size_t NextKeyword(std::initializer_list<const char*> keywords) { return NextKeyword(std::span<const char* const>(keywords)); }
 
     // Skips past all tokens until the matching token is located or the end of the source
     // buffer is reached. If the token is found, it is not read or processed.
@@ -70,10 +70,10 @@ public:
     bool SkipBasicTokensUntil(std::string_view token_text_sv);
 
     // Returns an iterator to the remaining tokens, starting with the current token.
-    cs::span<const BasicToken> GetBasicTokensSpanFromCurrentToken() const;
+    std::span<const BasicToken> GetBasicTokensSpanFromCurrentToken() const;
 
     // Returns an iterator to all of the tokens.
-    cs::span<const BasicToken> GetBasicTokensSpan() const { return m_basicTokens; }
+    std::span<const BasicToken> GetBasicTokensSpan() const { return m_basicTokens; }
 
     // Returns the line of text (including any comments) where the token is located.
     std::string GetBasicTokenLine(const BasicToken& basic_token) const;

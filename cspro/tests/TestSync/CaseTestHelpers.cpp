@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "CaseTestHelpers.h"
 #include <zToolsO/PortableFunctions.h>
 #include <zUtilO/BinaryDataMetadata.h>
@@ -131,7 +131,7 @@ void SetPartialSave(const CaseAccess& case_access, Case& data_case, const Partia
 
 
 std::unique_ptr<SyncBinaryDataUploadManager> CreateSyncBinaryDataUploadManager(const std::shared_ptr<const CaseAccess> case_access,
-                                                                               const cs::span<const Case* const> cases_to_analyze/* = cs::span<const Case* const>*/)
+                                                                               const std::span<const Case* const> cases_to_analyze/* = std::span<const Case* const>*/)
 {
     ASSERT(case_access != nullptr);
 
@@ -162,7 +162,8 @@ std::unique_ptr<SyncBinaryDataUploadManager> CreateSyncBinaryDataUploadManager(c
 }
 
 
-std::string GetSyncableCaseData(const std::shared_ptr<const CaseAccess> case_access, const cs::span<const Case* const> cases, SyncCaseSerializer& sync_case_serializer)
+std::string GetSyncableCaseData(const std::shared_ptr<const CaseAccess> case_access, const std::span<const Case* const> cases,
+                                SyncCaseSerializer& sync_case_serializer)
 {
     ASSERT(case_access != nullptr);
 
@@ -172,7 +173,15 @@ std::string GetSyncableCaseData(const std::shared_ptr<const CaseAccess> case_acc
 }
 
 
-std::string GetSyncableCaseData(std::shared_ptr<const CaseAccess> case_access, const cs::span<const Case* const> cases, const SyncCaseSerializer::Version version)
+std::string GetSyncableCaseData(std::shared_ptr<const CaseAccess> case_access, const Case& data_case,
+                                SyncCaseSerializer& sync_case_serializer)
+{
+    return GetSyncableCaseData(std::move(case_access), std::span<const Case* const>({ &data_case }), sync_case_serializer);
+}
+
+
+std::string GetSyncableCaseData(std::shared_ptr<const CaseAccess> case_access, const std::span<const Case* const> cases,
+                                const SyncCaseSerializer::Version version)
 {
     ASSERT(case_access != nullptr);
 
@@ -182,7 +191,14 @@ std::string GetSyncableCaseData(std::shared_ptr<const CaseAccess> case_access, c
 }
 
 
-void CompareCases(const cs::span<const Case* const> expected_cases, const cs::span<const Case* const> actual_cases, const CompareCasesType compare_cases_type)
+std::string GetSyncableCaseData(std::shared_ptr<const CaseAccess> case_access, const Case& data_case,
+                                const SyncCaseSerializer::Version version)
+{
+    return GetSyncableCaseData(std::move(case_access), std::span<const Case* const>({ &data_case }), version);
+}
+
+
+void CompareCases(const std::span<const Case* const> expected_cases, const std::span<const Case* const> actual_cases, const CompareCasesType compare_cases_type)
 {
     Assert::AreEqual(expected_cases.size(), actual_cases.size());
 
@@ -191,8 +207,9 @@ void CompareCases(const cs::span<const Case* const> expected_cases, const cs::sp
 
     for( const Case* const expected_case : expected_cases )
     {
-        const auto& lookup = std::find_if(actual_cases.cbegin(), actual_cases.cend(),
-                                         [&](const Case* const actual_case) { return ( actual_case->GetUuid() == expected_case->GetUuid() ); });
+        const auto& lookup = std::find_if(actual_cases.begin(), actual_cases.end(),
+            [&](const Case* const actual_case) { return ( actual_case->GetUuid() == expected_case->GetUuid() ); }
+        );
         Assert::IsTrue(lookup != actual_cases.end());
 
         const Case* const actual_case = *lookup;

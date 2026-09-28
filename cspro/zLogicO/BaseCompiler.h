@@ -41,7 +41,7 @@ public:
     // If not found, the function issues an error indicating the valid keyword options.
     template<typename T>
     size_t NextKeywordOrError(const T& keywords);
-    size_t NextKeywordOrError(std::initializer_list<const char*> keywords) { return NextKeywordOrError(cs::span<const char* const>(keywords)); }
+    size_t NextKeywordOrError(std::initializer_list<const char*> keywords) { return NextKeywordOrError(std::span<const char* const>(keywords)); }
 
     // Returns true and reads the next token if it matches the single supplied keyword,
     // specified as text. This method is similar to calling NextKeyword with the
@@ -56,7 +56,9 @@ public:
     // Returns true if the next token matches the supplied keyword(s), specified as
     // token code(s). The token code(s) must be operators or must have entries
     // in the keyword table.
-    bool IsNextToken(cs::span<const TokenCode> token_codes) const;
+    bool IsNextToken(std::span<const TokenCode> token_codes) const;
+    bool IsNextToken(std::initializer_list<const TokenCode> token_codes) const { return IsNextToken(std::span(token_codes)); }
+    bool IsNextToken(TokenCode token_code) const                               { return IsNextToken(std::span(&token_code, 1)); }
 
     // Returns true if the next token is a named argument.
     bool IsNextTokenNamedArgument() const;
@@ -117,7 +119,7 @@ size_t Logic::BaseCompiler::NextKeywordOrError(const T& keywords)
     const size_t keyword_type = NextKeyword(keywords);
 
     if( keyword_type == 0 )
-        IssueError(7016, SO::CreateSingleString(tcb::make_span(keywords)).c_str());
+        IssueError(7016, SO::CreateSingleString(std::span(keywords)).c_str());
 
     return keyword_type;
 }

@@ -1,7 +1,7 @@
-﻿#pragma once
+#pragma once
 
 #include <zToolsO/CaseInsensitiveComparer.h>
-#include <zToolsO/span.h>
+#include <span>
 
 namespace Logic { template<typename T> class MultipleReservedWordsTable;
                   template<typename T> class ReservedWordsTable; }
@@ -16,7 +16,7 @@ template<typename T>
 class Logic::ReservedWordsTable
 {
 public:
-    ReservedWordsTable(cs::span<const T> entries);
+    ReservedWordsTable(std::span<const T> entries);
 
     bool IsEntry(std::string_view text_sv, const T** entry_details) const;
 
@@ -40,7 +40,7 @@ class Logic::MultipleReservedWordsTable
 {
 public:
     template<typename VT>
-    MultipleReservedWordsTable(cs::span<const VT> entries);
+    MultipleReservedWordsTable(std::span<const VT> entries);
 
     template<typename CF>
     bool IsEntry(std::string_view text_sv, const T** entry_details, const CF& filter_callback) const;
@@ -61,7 +61,7 @@ private:
 // --------------------------------------------------------------------------
 
 template<typename T>
-Logic::ReservedWordsTable<T>::ReservedWordsTable(const cs::span<const T> entries)
+Logic::ReservedWordsTable<T>::ReservedWordsTable(const std::span<const T> entries)
 {
     for( const T& entry : entries )
         m_table.try_emplace(entry.name, &entry);
@@ -104,7 +104,7 @@ const char* Logic::ReservedWordsTable<T>::GetName(const P& func) const
 
 template<typename T>
 template<typename VT>
-Logic::MultipleReservedWordsTable<T>::MultipleReservedWordsTable(const cs::span<const VT> entries)
+Logic::MultipleReservedWordsTable<T>::MultipleReservedWordsTable(const std::span<const VT> entries)
 {
     for( const VT& entry_value_or_pointer : entries )
     {

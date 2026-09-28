@@ -168,7 +168,7 @@ namespace SyncUnitTest
             // Add new case on client and put
             std::shared_ptr<Case> clientCase5 = CreateCase(*case_access, "guid5", 1, { "newclientdata5" });
             clientCase5->SetVectorClock(clockClient1);
-            putJson = GetSyncableCaseData(case_access, { clientCase5.get() }, SyncCaseSerializer::Version::V3);
+            putJson = GetSyncableCaseData(case_access, *clientCase5, SyncCaseSerializer::Version::V3);
             requestHeaders = HeaderList();
             requestHeaders.Add_UserAgent_CSProSyncClient();
             requestHeaders.Add(SyncCustomHeaders::IF_REVISION_EXISTS_HEADER, serverRevisionFromPut);
@@ -310,7 +310,7 @@ namespace SyncUnitTest
             HeaderList requestHeaders;
             requestHeaders.Add_UserAgent_CSProSyncClient();
             requestHeaders.Add(SyncCustomHeaders::DEVICE_ID_HEADER, clientDeviceId);
-            std::string putJson = GetSyncableCaseData(case_access, { clientCase1.get(), clientCase2.get() }, SyncCaseSerializer::Version::V3);
+            std::string putJson = GetSyncableCaseData(case_access, std::span<const Case* const>({ clientCase1.get(), clientCase2.get() }), SyncCaseSerializer::Version::V3);
             std::unique_ptr<IObexResource> resource;
             ObexResponseCode responseCode = handler.onPut(OBEX_SYNC_DATA_MEDIA_TYPE, UTF8_TODO::GetCString(syncPath), requestHeaders, resource);
             Assert::AreEqual((int)OBEX_OK, (int)responseCode);
@@ -338,7 +338,7 @@ namespace SyncUnitTest
             // Add a case on server from a different client
             std::shared_ptr<Case> clientCase3 = CreateCase(*case_access, "guid3", 3, { "13newclientdata3" });
             clientCase3->SetVectorClock(clockClient1);
-            putJson = GetSyncableCaseData(case_access, { clientCase3.get() }, SyncCaseSerializer::Version::V3);
+            putJson = GetSyncableCaseData(case_access, *clientCase3, SyncCaseSerializer::Version::V3);
             HeaderList requestHeadersClient2;
             requestHeadersClient2.Add_UserAgent_CSProSyncClient();
             requestHeadersClient2.Add(SyncCustomHeaders::DEVICE_ID_HEADER, ": client2");

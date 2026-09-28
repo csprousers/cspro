@@ -151,7 +151,6 @@
     <ClInclude Include="SharableString.h" />
     <ClInclude Include="SharedPointerHelpers.h" />
     <ClInclude Include="SharedSettings.h" />
-    <ClInclude Include="span.h" />
     <ClInclude Include="SpanHelpers.h" />
     <ClInclude Include="Special.h" />
     <ClInclude Include="StandardTemplates.h" />
