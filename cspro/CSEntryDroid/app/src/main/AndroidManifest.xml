@@ -2,8 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
   xmlns:tools="http://schemas.android.com/tools"
   android:installLocation="auto"
-  android:versionCode="20260831"
-  android:versionName="8.1.4-20260831">
+  android:versionCode="20260928"
+  android:versionName="8.1.5-20260928">
 
   <supports-screens
     android:anyDensity="true"
