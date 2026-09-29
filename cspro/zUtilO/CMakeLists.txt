@@ -20,6 +20,7 @@ add_library(${PROJECT_NAME}
     MediaStore.cpp
     MimeType.cpp
     MimeTypeMap.cpp
+    NameRules.cpp
     NameShortener.cpp
     PathHelpers.cpp
     PortableColor.cpp

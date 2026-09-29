@@ -111,11 +111,13 @@ double CIntDriver::expre77_setreportdata(int iExpr)
     else
     {
         // check that the attribute is a valid name
-        CString csAttribute = ( iAttributeName >= 0 ) ? EvalAlphaExprCS(iAttributeName) : UTF8_TODO::GetCString(NPT(iSourceSymbol)->GetName());
+        const std::string attribute = ( iAttributeName >= 0 )
+            ? Evaluate<std::string>(iAttributeName)
+            : NPT(iSourceSymbol)->GetName();
 
-        if( !CIMSAString::IsName(csAttribute) )
+        if( !NameRules::IsName(attribute) )
         {
-            issaerror(MessageType::Error, 8293, UTF8_TODO::GetUtf8(csAttribute).c_str());
+            issaerror(MessageType::Error, 8293, attribute.c_str());
             return 0;
         }
 
@@ -129,7 +131,7 @@ double CIntDriver::expre77_setreportdata(int iExpr)
                 {
                     try
                     {
-                        m_pre77reportManager->SetReportData(csAttribute, db, sql_query);
+                        m_pre77reportManager->SetReportData(UTF8_TODO::GetCString(attribute), db, sql_query);
                         return 1;
                     }
 
@@ -151,7 +153,7 @@ double CIntDriver::expre77_setreportdata(int iExpr)
 
             json_writer->BeginObject();
 
-            json_writer->Key(UTF8_TODO::GetUtf8(csAttribute));
+            json_writer->Key(attribute);
 
             // process string expressions
             if( iSourceType == PRE77_SETREPORTDATA_SOURCE_STRING_EXPRESSION )
@@ -346,7 +348,7 @@ double CIntDriver::expre77_setreportdata(int iExpr)
             // set the report data
             json_writer->EndObject();
 
-            m_pre77reportManager->SetReportData(csAttribute, json_writer->ReleaseString());
+            m_pre77reportManager->SetReportData(UTF8_TODO::GetCString(attribute), json_writer->ReleaseString());
         }
     }
 

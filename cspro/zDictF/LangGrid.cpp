@@ -1,4 +1,4 @@
-﻿// LangGrid.cpp: implementation of the CLangGrid class.
+// LangGrid.cpp: implementation of the CLangGrid class.
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -147,7 +147,7 @@ bool CLangGrid::EditEnd(bool /*bSilent*/)
 
 
     //Check if the Name is valid
-    if(!CIMSAString::IsName(sName)) {
+    if(!NameRules::IsName(UTF8_TODO::GetUtf8(sName))) {
         AfxMessageBox(_T("Not a Valid name"));
         GotoRow(m_iEditRow);
         m_aEditControl[0]->SetFocus();

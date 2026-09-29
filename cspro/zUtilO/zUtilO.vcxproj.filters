@@ -104,6 +104,9 @@
     <ClCompile Include="MimeTypeMap.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="NameRules.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="NameShortener.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -325,6 +328,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="MimeType.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="NameRules.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="NameShortener.h">

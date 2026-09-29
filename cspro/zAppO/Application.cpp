@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "Application.h"
 #include "Properties/ApplicationProperties.h"
 #include <zUtilO/AppLoader.h>
@@ -688,7 +688,7 @@ void Application::CreateFromJsonWorker(const JsonNode& json_node, const bool loa
 
     auto check_name = [&](const char* const file_type, const std::string& name, const std::string& file_path)
     {
-        if( !CIMSAString::IsName(name) || CIMSAString::IsReservedWord(name) )
+        if( !NameRules::IsName(name) || CIMSAString::IsReservedWord(name) )
         {
             json_node.LogWarning("The %s name '%s' is not valid and the %s will not be loaded.",
                                  file_type, name.c_str(), file_type);

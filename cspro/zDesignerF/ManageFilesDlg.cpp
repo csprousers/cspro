@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "ManageFilesDlg.h"
 #include "AppFileTypeImageList.h"
 #include "ApplicationPropertiesPageDlg.h"
@@ -1232,7 +1232,7 @@ void ManageFilesDlg::ValidateName(const std::string& name, const std::string& pa
     if( SO::IsWhitespace(name) )
         throw CSProException("Symbol names cannot be blank.");
 
-    if( !CIMSAString::IsName(name) )
+    if( !NameRules::IsName(name) )
         ExceptionThrowingSystemMessageIssuer().Issue(MessageType::Error, 101, name.c_str());
 
     // check if this is a reserved name

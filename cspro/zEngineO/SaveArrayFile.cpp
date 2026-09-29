@@ -1,4 +1,4 @@
-﻿//***************************************************************************
+//***************************************************************************
 //  File name: SaveArrayFile.cpp
 //
 //  Description:
@@ -340,7 +340,7 @@ const LogicArray* SaveArrayFile::ReadArray(const JsonNode& json_node, std::vecto
 {
     std::string array_name = json_node.Get<std::string>(JK::name);
 
-    if( !CIMSAString::IsName(UTF8_TODO::GetWide(array_name)) )
+    if( !NameRules::IsName(array_name) )
         throw CSProException("The Array name '%s' is invalid.", array_name.c_str());
 
     // find the save array

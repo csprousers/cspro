@@ -1,4 +1,4 @@
-﻿//---------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 //  File name: Settings.h
 //
 //  Description:
@@ -122,7 +122,7 @@ void CSettings::SetPathOff()
 
 void CSettings::SetLevelZeroName(std::string level_zero_name)
 {
-    ASSERT(CIMSAString::IsName(level_zero_name));
+    ASSERT(NameRules::IsName(level_zero_name));
 
     m_levelZeroName = std::move(level_zero_name);
     SO::MakeUpper(m_levelZeroName);

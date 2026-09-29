@@ -344,7 +344,7 @@ bool CConsolidate::Build(CSpecFile& specFile, bool bSilent /*= false*/)
                 CIMSAString sTemp = sArg;
                 while (!sTemp.IsEmpty()) {
                     CString sName = sTemp.GetToken();
-                    if (CIMSAString::IsName(sName)) {
+                    if (NameRules::IsName(UTF8_TODO::GetUtf8(sName))) {
                         m_aStructure.Add(sName);
                     }
                     else {
@@ -523,7 +523,7 @@ bool CConSpec::Build(CSpecFile& specFile, CStringArray* pAreaStruct, bool bSilen
     while (specFile.GetLine(sCmd, sArg) == SF_OK) {
         if (sCmd[0] != '[')  {
             if (sCmd.CompareNoCase(XTS_CMD_NAME) == 0)  {
-                if (CIMSAString::IsName(sArg)) {
+                if (NameRules::IsName(UTF8_TODO::GetUtf8(sArg))) {
                     m_sAreaLevel = sArg;
                 }
                 else {
@@ -538,7 +538,7 @@ bool CConSpec::Build(CSpecFile& specFile, CStringArray* pAreaStruct, bool bSilen
             else if (sCmd.CompareNoCase(XTS_CMD_LEVEL) == 0)  {
                 CIMSAString sTemp = sArg;
                 CString sName = sTemp.GetToken();
-                if (CIMSAString::IsName(sName)) {
+                if (NameRules::IsName(UTF8_TODO::GetUtf8(sName))) {
                     int i;
                     for (i = 0 ; i < pAreaStruct->GetSize() ; i++) {
                         if (sName.CompareNoCase(pAreaStruct->GetAt(i)) == 0) {

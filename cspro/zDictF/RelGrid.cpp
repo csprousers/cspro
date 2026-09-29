@@ -321,7 +321,7 @@ bool CRelGrid::EditEnd(bool /*bSilent*/)
         }
     }
     if (!sName.IsEmpty()) {
-        if (!CIMSAString::IsName(sName)) {
+        if (!NameRules::IsName(UTF8_TODO::GetUtf8(sName))) {
             AfxMessageBox(_T("Relation name must contain A-Z, 0-9, or underline and start with a letter."));
             m_iEditCol = 0;
             return false;

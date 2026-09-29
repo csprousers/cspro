@@ -50,6 +50,7 @@
     <ClCompile Include="MediaStore.cpp" />
     <ClCompile Include="MimeType.cpp" />
     <ClCompile Include="MimeTypeMap.cpp" />
+    <ClCompile Include="NameRules.cpp" />
     <ClCompile Include="NameShortener.cpp" />
     <ClCompile Include="NumEdit.cpp" />
     <ClCompile Include="PageSetup.cpp" />
@@ -129,6 +130,7 @@
     <ClInclude Include="MediaStore.h" />
     <ClInclude Include="MemoryHelpers.h" />
     <ClInclude Include="MimeType.h" />
+    <ClInclude Include="NameRules.h" />
     <ClInclude Include="NameShortener.h" />
     <ClInclude Include="NumEdit.h" />
     <ClInclude Include="PageSetup.h" />
