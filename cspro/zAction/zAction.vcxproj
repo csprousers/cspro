@@ -15,7 +15,7 @@
   <Import Project="..\properties\project-settings.props" />
   <ItemDefinitionGroup>
     <ClCompile>
-      <PreprocessorDefinitions>ZACTION_EXPORTS;_AFXEXT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ZACTION_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -46,7 +46,6 @@
     <ClCompile Include="Sync.cpp" />
     <ClCompile Include="System.cpp" />
     <ClCompile Include="UserInterface.cpp" />
-    <ClCompile Include="zAction.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AccessToken.h" />
