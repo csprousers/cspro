@@ -70,7 +70,6 @@ public:
     JsonWriter& Write(cs::string_sz value);
 
     ZJSON_API JsonWriter& Write(const std::wstring& value);
-    ZJSON_API JsonWriter& Write(const CString& value);
 
     virtual JsonWriter& Write(const JsonNode& json_node) = 0;
 

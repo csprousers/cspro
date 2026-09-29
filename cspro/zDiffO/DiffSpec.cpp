@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "DiffSpec.h"
 #include <zUtilO/Interapp.h>
 #include <zUtilO/SpecFile.h>
@@ -317,7 +317,7 @@ std::string DiffSpec::ConvertPre80SpecFile(const InterfaceString file_path)
         read_header(_T("[Dictionaries]"));
         read_line(_T("File"));
 
-        json_writer->Write(JK::dictionary, specfile.EvaluateRelativeFilename(argument));
+        json_writer->Write(JK::dictionary, UTF8_TODO::GetUtf8(specfile.EvaluateRelativeFilename(argument)));
 
 
         // get the comparison attributes
@@ -353,10 +353,10 @@ std::string DiffSpec::ConvertPre80SpecFile(const InterfaceString file_path)
             json_writer->WriteObject(
                 [&]()
                 {
-                    json_writer->Write(JK::name, item_name);
+                    json_writer->Write(JK::name, UTF8_TODO::GetUtf8(item_name));
 
                     if( !occurrence_text.IsEmpty() )
-                        json_writer->Write(JK::occurrence, occurrence_text);
+                        json_writer->Write(JK::occurrence, UTF8_TODO::GetUtf8(occurrence_text));
                 });
         }
 

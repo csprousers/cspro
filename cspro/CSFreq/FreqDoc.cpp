@@ -1826,7 +1826,7 @@ void CSFreqDoc::SaveSpecFile() const
             json_writer->WriteObject(
                 [&]()
                 {
-                    json_writer->Write(JK::name, freqname.freqnames);
+                    json_writer->Write(JK::name, UTF8_TODO::GetUtf8(freqname.freqnames));
 
                     if( freqname.occ != -1 )
                         json_writer->Write(JK::occurrence, freqname.occ);
@@ -1882,7 +1882,7 @@ std::string CSFreqDoc::ConvertPre80SpecFile(const InterfaceString file_path)
         {
             if( command.CompareNoCase(L"File") == 0 )
             {
-                json_writer->Write(JK::dictionary, specfile.EvaluateRelativeFilename(argument));
+                json_writer->Write(JK::dictionary, UTF8_TODO::GetUtf8(specfile.EvaluateRelativeFilename(argument)));
             }
 
             else if( command.CompareNoCase(L"ItemsAre") == 0 )
@@ -1922,17 +1922,17 @@ std::string CSFreqDoc::ConvertPre80SpecFile(const InterfaceString file_path)
 
             else if( command.CompareNoCase(L"Universe") == 0 )
             {
-                json_writer->Write(JK::universe, argument);
+                json_writer->Write(JK::universe, UTF8_TODO::GetUtf8(argument));
             }
 
             else if( command.CompareNoCase(L"Weight") == 0 )
             {
-                json_writer->Write(JK::weight, argument);
+                json_writer->Write(JK::weight, UTF8_TODO::GetUtf8(argument));
             }
 
             else if( command.CompareNoCase(L"Language") == 0 )
             {
-                json_writer->Write(JK::language, argument);
+                json_writer->Write(JK::language, UTF8_TODO::GetUtf8(argument));
             }
 
             else if( command.CompareNoCase(L"[Item]") == 0 )
@@ -1972,7 +1972,7 @@ std::string CSFreqDoc::ConvertPre80SpecFile(const InterfaceString file_path)
         json_writer->WriteObjects(JK::items, names_and_occurrences,
             [&](const auto& name_and_occurrence)
             {
-                json_writer->Write(JK::name, std::get<0>(name_and_occurrence));
+                json_writer->Write(JK::name, UTF8_TODO::GetUtf8(std::get<0>(name_and_occurrence)));
 
                 if( std::get<1>(name_and_occurrence) != -1 )
                     json_writer->Write(JK::occurrence, std::get<1>(name_and_occurrence));

@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "PifDlgBuilder.h"
 #include <zUtilO/StdioFileUnicode.h>
 #include <zUtilO/SpecFile.h>
@@ -66,7 +66,7 @@ bool PifDlgBuilder::BuildPifInfo(PROCESS eCurrentProcess, bool bNoOutPutFiles4AL
 
             try
             {
-                dictionary_name = JsonStream::GetValueFromSpecFile<CString, CDataDict>(JK::name, dictionary_file_path);
+                dictionary_name = UTF8_TODO::GetCString(JsonStream::GetValueFromSpecFile<std::string, CDataDict>(JK::name, dictionary_file_path));
             }
 
             catch( const CSProException& )

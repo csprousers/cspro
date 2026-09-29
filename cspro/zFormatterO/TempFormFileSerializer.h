@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <zJson/Json.h>
 #include <zJson/JsonSerializer.h>
@@ -60,8 +60,8 @@ inline void TempFormFileSerializer::WriteFormFile()
 {
     m_jsonWriter.BeginObject();
 
-    m_jsonWriter.Write(JK::name, m_formFile.GetName());
-    m_jsonWriter.Write(JK::label, m_formFile.GetLabel());
+    m_jsonWriter.Write(JK::name, UTF8_TODO::GetUtf8(m_formFile.GetName()));
+    m_jsonWriter.Write(JK::label, UTF8_TODO::GetUtf8(m_formFile.GetLabel()));
 
     m_jsonWriter.BeginObject(JK::dictionary)
                 .Write(JK::name, m_formFile.GetDictionary()->GetName())
@@ -87,8 +87,8 @@ inline void TempFormFileSerializer::WriteFormLevel(const CDELevel& form_level)
 {
     m_jsonWriter.BeginObject();
 
-    m_jsonWriter.Write(JK::name, form_level.GetName());
-    m_jsonWriter.Write(JK::label, form_level.GetLabel());
+    m_jsonWriter.Write(JK::name, UTF8_TODO::GetUtf8(form_level.GetName()));
+    m_jsonWriter.Write(JK::label, UTF8_TODO::GetUtf8(form_level.GetLabel()));
 
     m_jsonWriter.BeginArray("items");
 
@@ -138,8 +138,8 @@ inline void TempFormFileSerializer::WriteFormGroup(const CDEGroup& form_group, b
     {
         m_jsonWriter.BeginObject();
 
-        m_jsonWriter.Write(JK::name, form_group.GetName());
-        m_jsonWriter.Write(JK::label, form_group.GetLabel());
+        m_jsonWriter.Write(JK::name, UTF8_TODO::GetUtf8(form_group.GetName()));
+        m_jsonWriter.Write(JK::label, UTF8_TODO::GetUtf8(form_group.GetLabel()));
         m_jsonWriter.Write(JK::type, "group");
     }
 
@@ -192,8 +192,8 @@ inline void TempFormFileSerializer::WriteFormRoster(const CDERoster& form_roster
 {
     m_jsonWriter.BeginObject();
 
-    m_jsonWriter.Write(JK::name, form_roster.GetName());
-    m_jsonWriter.Write(JK::label, form_roster.GetLabel());
+    m_jsonWriter.Write(JK::name, UTF8_TODO::GetUtf8(form_roster.GetName()));
+    m_jsonWriter.Write(JK::label, UTF8_TODO::GetUtf8(form_roster.GetLabel()));
     m_jsonWriter.Write(JK::type, "roster");
     m_jsonWriter.Write("orientation", ( form_roster.GetOrientation() == RosterOrientation::Horizontal ) ? "horizontal" : "vertical");
 
@@ -207,8 +207,8 @@ inline void TempFormFileSerializer::WriteFormBlock(const CDEBlock& form_block, c
 {
     m_jsonWriter.BeginObject();
 
-    m_jsonWriter.Write(JK::name, form_block.GetName());
-    m_jsonWriter.Write(JK::label, form_block.GetLabel());
+    m_jsonWriter.Write(JK::name, UTF8_TODO::GetUtf8(form_block.GetName()));
+    m_jsonWriter.Write(JK::label, UTF8_TODO::GetUtf8(form_block.GetLabel()));
     m_jsonWriter.Write(JK::type, "block");
 
     if( m_jsonWriter.Verbose() || !items.empty() )
@@ -223,7 +223,7 @@ inline void TempFormFileSerializer::WriteFormField(const CDEField& form_field)
     m_jsonWriter.BeginObject();
 
     m_jsonWriter.Write(JK::dictionary, m_formFile.GetDictionary()->GetName());
-    m_jsonWriter.Write(JK::name, form_field.GetName());
+    m_jsonWriter.Write(JK::name, UTF8_TODO::GetUtf8(form_field.GetName()));
 
     CString label =
         ( form_field.GetDictItem() == nullptr || form_field.GetFieldLabelType() == FieldLabelType::Custom ) ? form_field.GetLabel() :

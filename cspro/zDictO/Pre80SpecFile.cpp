@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "DDClass.h"
 #include <zUtilO/SpecFile.h>
 #include <zAppO/LanguageSerializerHelper.h>
@@ -184,7 +184,7 @@ private:
     CString m_argument;
 
     std::vector<Language> m_languages;
-    std::stack<std::set<CString>> m_aliasesStack;
+    std::stack<std::set<std::string>> m_aliasesStack;
     std::stack<CString> m_notesStack;
 };
 
@@ -252,12 +252,12 @@ bool DictionaryPre80SpecFileConverter::ProcessBase(bool named_entity, CString* n
         if( name_read != nullptr )
             *name_read = m_argument;
 
-        m_jsonWriter.Write(JK::name, m_argument);
+        m_jsonWriter.Write(JK::name, UTF8_TODO::GetUtf8(m_argument));
     }
 
     else if( named_entity && CommandIs(_T("Alias")) )
     {
-        m_aliasesStack.top().insert(m_argument);
+        m_aliasesStack.top().insert(UTF8_TODO::GetUtf8(m_argument));
     }
 
     else
@@ -313,8 +313,8 @@ void DictionaryPre80SpecFileConverter::WriteOccurrencesNode(std::optional<bool> 
 
 void DictionaryPre80SpecFileConverter::ReadDictionary()
 {
-    RAII::PushOnStackAndPopOnDestruction aliases_holder(m_aliasesStack, std::set<CString>());
-    RAII::PushOnStackAndPopOnDestruction notes_holder(m_notesStack, CString());
+    const RAII::PushOnStackAndPopOnDestruction aliases_holder(m_aliasesStack, std::set<std::string>());
+    const RAII::PushOnStackAndPopOnDestruction notes_holder(m_notesStack, CString());
     CString name;
     unsigned record_type_start = DictionaryDefaults::RecTypeStart;
     unsigned record_type_length = DictionaryDefaults::RecTypeLen;
@@ -374,7 +374,7 @@ void DictionaryPre80SpecFileConverter::ReadDictionary()
             }
 
             m_jsonWriter.BeginObject(JK::security)
-                        .Write(JK::settings, m_argument)
+                        .Write(JK::settings, UTF8_TODO::GetUtf8(m_argument))
                         .EndObject();
         }
 
@@ -427,8 +427,8 @@ void DictionaryPre80SpecFileConverter::ReadLevels()
     {
         m_jsonWriter.BeginObject();
 
-        RAII::PushOnStackAndPopOnDestruction aliases_holder(m_aliasesStack, std::set<CString>());
-        RAII::PushOnStackAndPopOnDestruction notes_holder(m_notesStack, CString());
+        const RAII::PushOnStackAndPopOnDestruction aliases_holder(m_aliasesStack, std::set<std::string>());
+        const RAII::PushOnStackAndPopOnDestruction notes_holder(m_notesStack, CString());
         bool next_line_should_be_an_item = false;
 
         while( ( read_more_entries = GetLine() ) == true )
@@ -495,8 +495,8 @@ void DictionaryPre80SpecFileConverter::ReadRecords()
     {
         m_jsonWriter.BeginObject();
 
-        RAII::PushOnStackAndPopOnDestruction aliases_holder(m_aliasesStack, std::set<CString>());
-        RAII::PushOnStackAndPopOnDestruction notes_holder(m_notesStack, CString());
+        const RAII::PushOnStackAndPopOnDestruction aliases_holder(m_aliasesStack, std::set<std::string>());
+        const RAII::PushOnStackAndPopOnDestruction notes_holder(m_notesStack, CString());
         bool required = DictionaryDefaults::Required;
         std::optional<unsigned> max_recs;
         OccurrenceLabels occurrence_labels;
@@ -568,8 +568,8 @@ void DictionaryPre80SpecFileConverter::ReadItems()
     {
         m_jsonWriter.BeginObject();
 
-        RAII::PushOnStackAndPopOnDestruction aliases_holder(m_aliasesStack, std::set<CString>());
-        RAII::PushOnStackAndPopOnDestruction notes_holder(m_notesStack, CString());
+        const RAII::PushOnStackAndPopOnDestruction aliases_holder(m_aliasesStack, std::set<std::string>());
+        const RAII::PushOnStackAndPopOnDestruction notes_holder(m_notesStack, CString());
         std::optional<unsigned> occurs;
         std::optional<std::wstring> content;
         bool dec_char = DictionaryDefaults::DecChar;
@@ -686,8 +686,8 @@ void DictionaryPre80SpecFileConverter::ReadValueSets()
     {
         m_jsonWriter.BeginObject();
 
-        RAII::PushOnStackAndPopOnDestruction aliases_holder(m_aliasesStack, std::set<CString>());
-        RAII::PushOnStackAndPopOnDestruction notes_holder(m_notesStack, CString());
+        const RAII::PushOnStackAndPopOnDestruction aliases_holder(m_aliasesStack, std::set<std::string>());
+        const RAII::PushOnStackAndPopOnDestruction notes_holder(m_notesStack, CString());
 
         while( ( read_more_entries = GetLine() ) == true )
         {
@@ -698,7 +698,7 @@ void DictionaryPre80SpecFileConverter::ReadValueSets()
 
             else if( CommandIs(_T("Link")) )
             {
-                m_jsonWriter.Write(JK::link, m_argument);
+                m_jsonWriter.Write(JK::link, UTF8_TODO::GetUtf8(m_argument));
             }
 
             else if( CommandIs(_T("Value")) )
@@ -771,14 +771,14 @@ void DictionaryPre80SpecFileConverter::ReadValues()
 
                 if( to.IsEmpty() )
                 {
-                    m_jsonWriter.Write(JK::value, from);
+                    m_jsonWriter.Write(JK::value, UTF8_TODO::GetUtf8(from));
                 }
 
                 else
                 {
                     m_jsonWriter.BeginArray(JK::range)
-                                .Write(from)
-                                .Write(to)
+                                .Write(UTF8_TODO::GetUtf8(from))
+                                .Write(UTF8_TODO::GetUtf8(to))
                                 .EndArray();
                 }
 
@@ -802,7 +802,7 @@ void DictionaryPre80SpecFileConverter::ReadValues()
             {
                 CString special_value = CIMSAString(m_argument).GetToken();
                 ASSERT(SpecialValues::StringIsSpecial(UTF8_TODO::GetUtf8(special_value)));
-                m_jsonWriter.Write(JK::special, special_value);
+                m_jsonWriter.Write(JK::special, UTF8_TODO::GetUtf8(special_value));
             }
 
             else if( CommandIs(_T("Image")) )
@@ -812,7 +812,7 @@ void DictionaryPre80SpecFileConverter::ReadValues()
 
             else if( CommandIs(_T("TextColor")) )
             {
-                m_jsonWriter.Write(JK::textColor, m_argument);
+                m_jsonWriter.Write(JK::textColor, UTF8_TODO::GetUtf8(m_argument));
             }
 
             else if( CommandStartsSection() )
@@ -838,8 +838,8 @@ void DictionaryPre80SpecFileConverter::ReadValues()
 void DictionaryPre80SpecFileConverter::ReadRelations()
 {
     // relations do not have aliases or notes but these are necessary to call ProcessBase
-    RAII::PushOnStackAndPopOnDestruction aliases_holder(m_aliasesStack, std::set<CString>());
-    RAII::PushOnStackAndPopOnDestruction notes_holder(m_notesStack, CString());
+    const RAII::PushOnStackAndPopOnDestruction aliases_holder(m_aliasesStack, std::set<std::string>());
+    const RAII::PushOnStackAndPopOnDestruction notes_holder(m_notesStack, CString());
 
     do
     {
@@ -908,7 +908,7 @@ void DictionaryPre80SpecFileConverter::ReadRelations()
             }
         }
 
-        m_jsonWriter.Write(JK::primary, primary_name);
+        m_jsonWriter.Write(JK::primary, UTF8_TODO::GetUtf8(primary_name));
 
         m_jsonWriter.WriteObjects(JK::links, parts,
             [&](const Part& part)

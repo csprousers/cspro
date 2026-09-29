@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "TabDlg.h"
 #include "CSTab.h"
 #include <zToolsO/WinSettings.h>
@@ -334,7 +334,7 @@ bool CSTabDlg::BuildPifInfo4Check()
 
             try
             {
-                CString dictionary_name = JsonStream::GetValueFromSpecFile<CString, CDataDict>(JK::name, dictionary_file_path);
+                CString dictionary_name = UTF8_TODO::GetCString(JsonStream::GetValueFromSpecFile<std::string, CDataDict>(JK::name, dictionary_file_path));
 
                 PIFINFO PifInfo;
                 PifInfo.eType = PIFDICT;

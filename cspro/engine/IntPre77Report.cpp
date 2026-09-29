@@ -327,7 +327,7 @@ double CIntDriver::expre77_setreportdata(int iExpr)
 
                                 else
                                 {
-                                    json_writer->Write(CString(lpszValue, pVarT->GetLength()).TrimRight());
+                                    json_writer->Write(SO::TrimRight(UTF8_TODO::GetUtf8(std::wstring_view(lpszValue, pVarT->GetLength()))));
                                 }
                             }
 

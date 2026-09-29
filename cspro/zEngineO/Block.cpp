@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "Block.h"
 #include <engine/VarT.h>
 #include <zIssaLib/GroupT.h>
@@ -78,7 +78,7 @@ void EngineBlock::serialize_subclass(Serializer& ar)
 
 void EngineBlock::WriteJsonMetadata_subclass(JsonWriter& json_writer) const
 {
-    json_writer.Write(JK::label, m_formBlock.GetLabel())
+    json_writer.Write(JK::label, UTF8_TODO::GetUtf8(m_formBlock.GetLabel()))
                .Write(JK::properties, m_formBlock.GetProperties());
 
     json_writer.WriteArray(JK::fields, m_fields,
@@ -86,7 +86,7 @@ void EngineBlock::WriteJsonMetadata_subclass(JsonWriter& json_writer) const
         {
             json_writer.BeginObject()
                        .WriteIfNotBlank(JK::dictionary, UTF8_TODO::GetUtf8(form_field->GetItemDict()))
-                       .Write(JK::name, form_field->GetName())
+                       .Write(JK::name, UTF8_TODO::GetUtf8(form_field->GetName()))
                        .EndObject();
         });
 }

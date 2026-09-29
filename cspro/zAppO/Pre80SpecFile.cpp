@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "Application.h"
 #include "Properties/ApplicationProperties.h"
 #include <zUtilO/SpecFile.h>
@@ -21,7 +21,7 @@ namespace
 
     private:
         Json::ObjectCreator m_node;
-        std::set<CString> m_eventNames;
+        std::set<std::string> m_eventNames;
     };
 
 
@@ -94,7 +94,7 @@ namespace
 
         else if( command_is(_T("CollectEvent")) )
         {
-            m_eventNames.insert(argument);
+            m_eventNames.insert(UTF8_TODO::GetUtf8(argument));
         }
 
         else
@@ -138,9 +138,9 @@ std::string Application::ConvertPre80SpecFile(const InterfaceString file_path)
 
     std::vector<DictionaryDescription> dictionary_descriptions;
     std::vector<CodeFile> code_files;
-    std::vector<CString> message_filenames;
+    std::vector<std::string> message_filenames;
     std::unique_ptr<JsonStringWriter> reports_json_writer;
-    std::vector<CString> form_order_tab_spec_filenames;
+    std::vector<std::string> form_order_tab_spec_filenames;
     std::vector<AppResource> resources;
     std::optional<Json::ObjectCreator> sync_node;
     std::optional<Json::ObjectCreator> mapping_node;
@@ -256,12 +256,12 @@ std::string Application::ConvertPre80SpecFile(const InterfaceString file_path)
 
                 else if( command_is(_T("Label")) )
                 {
-                    json_writer->Write(JK::label, argument);
+                    json_writer->Write(JK::label, UTF8_TODO::GetUtf8(argument));
                 }
 
                 else if( command_is(_T("Name")) )
                 {
-                    json_writer->Write(JK::name, argument);
+                    json_writer->Write(JK::name, UTF8_TODO::GetUtf8(argument));
                 }
 
                 else if( command_is(_T("AppType")) )
@@ -416,7 +416,7 @@ std::string Application::ConvertPre80SpecFile(const InterfaceString file_path)
                 if( command_is(_T("File")) )
                 {
                     properties_json_writer->BeginArray(JK::import)
-                                           .Write(specfile.EvaluateRelativeFilename(argument))
+                                           .Write(UTF8_TODO::GetUtf8(specfile.EvaluateRelativeFilename(argument)))
                                            .EndArray();
                 }
 
@@ -457,7 +457,10 @@ std::string Application::ConvertPre80SpecFile(const InterfaceString file_path)
             {
                 if( bool main_file = command_is(_T("File")); main_file || command_is(_T("Include")) )
                 {
-                    message_filenames.insert(main_file ? message_filenames.begin() : message_filenames.end(), specfile.EvaluateRelativeFilename(argument));
+                    message_filenames.insert(
+                        main_file ? message_filenames.begin() : message_filenames.end(),
+                        UTF8_TODO::GetUtf8(specfile.EvaluateRelativeFilename(argument))
+                    );
                 }
 
                 else
@@ -471,8 +474,8 @@ std::string Application::ConvertPre80SpecFile(const InterfaceString file_path)
                 ASSERT(reports_json_writer != nullptr);
 
                 reports_json_writer->BeginObject()
-                                    .Write(JK::name, command)
-                                    .Write(JK::path, specfile.EvaluateRelativeFilename(argument))
+                                    .Write(JK::name, UTF8_TODO::GetUtf8(command))
+                                    .Write(JK::path, UTF8_TODO::GetUtf8(specfile.EvaluateRelativeFilename(argument)))
                                     .EndObject();
             }
 
@@ -480,7 +483,7 @@ std::string Application::ConvertPre80SpecFile(const InterfaceString file_path)
             {
                 if( command_is(_T("File")) )
                 {
-                    json_writer->Write(JK::questionText, std::vector<CString> { specfile.EvaluateRelativeFilename(argument) });
+                    json_writer->Write(JK::questionText, std::vector<std::string> { UTF8_TODO::GetUtf8(specfile.EvaluateRelativeFilename(argument)) });
                 }
 
                 else
@@ -493,7 +496,7 @@ std::string Application::ConvertPre80SpecFile(const InterfaceString file_path)
             {
                 if( command_is(_T("File")) )
                 {
-                    form_order_tab_spec_filenames.emplace_back(specfile.EvaluateRelativeFilename(argument));
+                    form_order_tab_spec_filenames.emplace_back(UTF8_TODO::GetUtf8(specfile.EvaluateRelativeFilename(argument)));
                 }
 
                 else
@@ -558,7 +561,7 @@ std::string Application::ConvertPre80SpecFile(const InterfaceString file_path)
 
                 if( command_is(_T("Server")) )
                 {
-                    sync_node->Set(JK::connection, argument);
+                    sync_node->Set(JK::connection, UTF8_TODO::GetUtf8(argument));
                 }
 
                 else if( command_is(_T("Direction")) )
@@ -580,12 +583,12 @@ std::string Application::ConvertPre80SpecFile(const InterfaceString file_path)
 
                 if( command_is(_T("LatitudeItem")) )
                 {
-                    mapping_node->Set(JK::latitude, argument);
+                    mapping_node->Set(JK::latitude, UTF8_TODO::GetUtf8(argument));
                 }
 
                 else if( command_is(_T("LongitudeItem")) )
                 {
-                    mapping_node->Set(JK::longitude, argument);
+                    mapping_node->Set(JK::longitude, UTF8_TODO::GetUtf8(argument));
                 }
 
                 else
@@ -771,12 +774,12 @@ std::string ApplicationProperties::ConvertPre80SpecFile(const InterfaceString fi
                     if( !PortableFunctions::FileIsRegular(filename_or_base_map) )
                         filename_or_base_map = argument;
 
-                    mapping_node.Set(JK::defaultBaseMap, filename_or_base_map);
+                    mapping_node.Set(JK::defaultBaseMap, UTF8_TODO::GetUtf8(filename_or_base_map));
                 }
 
                 else if( command_is(_T("WindowsMappingTileProvider")) )
                 {
-                    mapping_node.Set(JK::tileProvider, argument);
+                    mapping_node.Set(JK::tileProvider, UTF8_TODO::GetUtf8(argument));
                 }
 
                 else
@@ -791,12 +794,12 @@ std::string ApplicationProperties::ConvertPre80SpecFile(const InterfaceString fi
 
                 if( command_is(_T("AccessToken")) )
                 {
-                    mapping_tile_provider_json_writer->Write(JK::accessToken, argument);
+                    mapping_tile_provider_json_writer->Write(JK::accessToken, UTF8_TODO::GetUtf8(argument));
                 }
 
                 else
                 {
-                    mapping_tile_provider_json_writer->Write(UTF8_TODO::GetUtf8(command), argument);
+                    mapping_tile_provider_json_writer->Write(UTF8_TODO::GetUtf8(command), UTF8_TODO::GetUtf8(argument));
                 }
             }
 

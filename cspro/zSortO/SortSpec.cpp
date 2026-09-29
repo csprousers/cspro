@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "SortSpec.h"
 #include <zUtilO/Interapp.h>
 #include <zUtilO/SpecFile.h>
@@ -337,7 +337,7 @@ std::string SortSpec::ConvertPre80SpecFile(const InterfaceString file_path)
         read_header(_T("[Dictionaries]"));
         read_line(_T("File"));
 
-        json_writer->Write(JK::dictionary, specfile.EvaluateRelativeFilename(argument));
+        json_writer->Write(JK::dictionary, UTF8_TODO::GetUtf8(specfile.EvaluateRelativeFilename(argument)));
 
 
         // get the sort type
@@ -366,7 +366,7 @@ std::string SortSpec::ConvertPre80SpecFile(const InterfaceString file_path)
                 use_record_items = read_line_if(_T("Using"));
 
                 if( use_record_items )
-                    json_writer->Write(JK::record, static_cast<const CString&>(argument.GetToken()));
+                    json_writer->Write(JK::record, UTF8_TODO::GetUtf8(static_cast<const CString&>(argument.GetToken())));
             }
 
             else

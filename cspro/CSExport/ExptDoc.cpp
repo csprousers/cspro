@@ -5821,7 +5821,7 @@ bool CExportDoc::OpenSpecFile(const std::string& spec_file_path, const bool sile
 
             m_logicSettings = json_reader->GetOrDefault(JK::logicSettings, m_logicSettings);
 
-            m_csUniverse = json_reader->GetOrConstruct<CString>(JK::universe);
+            m_csUniverse = UTF8_TODO::GetCString(json_reader->GetOrConstruct<std::string>(JK::universe));
 
             const std::optional<ItemDisplay> item_display = json_reader->GetOptional<ItemDisplay>(JK::itemDisplay);
 
@@ -6008,7 +6008,7 @@ std::string CExportDoc::ConvertPre80SpecFile(const InterfaceString file_path)
         {
             if( command.CompareNoCase(_T("File")) == 0 )
             {
-                json_writer->Write(JK::dictionary, specfile.EvaluateRelativeFilename(argument));
+                json_writer->Write(JK::dictionary, UTF8_TODO::GetUtf8(specfile.EvaluateRelativeFilename(argument)));
             }
 
             else if( command.CompareNoCase(_T("DoMerge")) == 0 )
@@ -6033,7 +6033,7 @@ std::string CExportDoc::ConvertPre80SpecFile(const InterfaceString file_path)
 
             else if( command.CompareNoCase(_T("Language")) == 0 )
             {
-                json_writer->Write(JK::language, argument);
+                json_writer->Write(JK::language, UTF8_TODO::GetUtf8(argument));
             }
 
             else if( command.CompareNoCase(EXPORT_CMD_ExportMethod) == 0 )
@@ -6135,7 +6135,7 @@ std::string CExportDoc::ConvertPre80SpecFile(const InterfaceString file_path)
         json_writer->Write(JK::model, model_node.GetJsonNode());
 
         if( !universe.IsEmpty() )
-            json_writer->Write(JK::universe, universe);
+            json_writer->Write(JK::universe, UTF8_TODO::GetUtf8(universe));
 
         json_writer->WriteObjects(JK::items, relations_names_and_occurrences,
             [&](const auto& relation_name_and_occurrence)
