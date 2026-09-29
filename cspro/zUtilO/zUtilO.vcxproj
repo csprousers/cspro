@@ -29,7 +29,6 @@
     <ClCompile Include="ConnectionString.cpp" />
     <ClCompile Include="ConnectionStringFileSimulator.cpp" />
     <ClCompile Include="CredentialStore.cpp" />
-    <ClCompile Include="CSProExecutables.cpp" />
     <ClCompile Include="CustomFont.cpp" />
     <ClCompile Include="CustomUri.cpp" />
     <ClCompile Include="DataExchange.cpp" />
@@ -108,7 +107,6 @@
     <ClInclude Include="ConnectionString.h" />
     <ClInclude Include="ConnectionStringFileSimulator.h" />
     <ClInclude Include="CredentialStore.h" />
-    <ClInclude Include="CSProExecutables.h" />
     <ClInclude Include="CustomFont.h" />
     <ClInclude Include="CustomUri.h" />
     <ClInclude Include="DataExchange.h" />

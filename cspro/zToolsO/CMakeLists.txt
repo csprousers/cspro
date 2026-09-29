@@ -6,6 +6,7 @@ set(SCRYPT_DIR ${THIRD_PARTY_SOURCES_DIR}/scrypt)
 add_library(${PROJECT_NAME}
     base64.cpp
     BinaryGen.cpp
+    CSProExecutables.cpp
     DateTime.cpp
     DebugLogging.cpp
     DelimitedTextCreator.cpp

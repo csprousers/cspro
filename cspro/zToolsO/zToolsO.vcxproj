@@ -36,6 +36,7 @@
     <ClCompile Include="acum.cpp" />
     <ClCompile Include="base64.cpp" />
     <ClCompile Include="BinaryGen.cpp" />
+    <ClCompile Include="CSProExecutables.cpp" />
     <ClCompile Include="DateTime.cpp" />
     <ClCompile Include="DebugLogging.cpp" />
     <ClCompile Include="DelimitedTextCreator.cpp" />
@@ -107,6 +108,7 @@
     <ClInclude Include="ConstantConserver.h" />
     <ClInclude Include="ConstReferenceOptional.h" />
     <ClInclude Include="CSProException.h" />
+    <ClInclude Include="CSProExecutables.h" />
     <ClInclude Include="DateTime.h" />
     <ClInclude Include="DebugLogging.h" />
     <ClInclude Include="DelimitedTextCreator.h" />

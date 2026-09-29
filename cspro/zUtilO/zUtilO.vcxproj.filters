@@ -41,9 +41,6 @@
     <ClCompile Include="CredentialStore.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CSProExecutables.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="CustomFont.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -262,9 +259,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="CredentialStore.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="CSProExecutables.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="CustomFont.h">

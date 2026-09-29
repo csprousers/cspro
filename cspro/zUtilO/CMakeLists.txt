@@ -8,7 +8,6 @@ add_library(${PROJECT_NAME}
     CommonStore.cpp
     ConnectionString.cpp
     CredentialStore.cpp
-    CSProExecutables.cpp
     CustomUri.cpp
     DataTypes.cpp
     ExecutionStack.cpp

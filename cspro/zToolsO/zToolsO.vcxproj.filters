@@ -41,6 +41,9 @@
     <ClCompile Include="BinaryGen.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="CSProExecutables.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="DateTime.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -230,6 +233,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="CSProException.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CSProExecutables.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DateTime.h">
