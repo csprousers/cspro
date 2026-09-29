@@ -1,6 +1,5 @@
 #include "StdAfx.h"
 #include "Versioning.h"
-#include "CSProExecutables.h"
 
 
 namespace

@@ -1,4 +1,4 @@
-﻿//***************************************************************************
+//***************************************************************************
 //  File name: DDTrCtl.cpp
 //
 //  Description:
@@ -14,8 +14,8 @@
 #include "DDTrCtl.h"
 #include "CapiLDlg.h"
 #include "DictionaryMacros.h"
+#include <zToolsO/CSProExecutables.h>
 #include <zToolsO/SharedSettings.h>
-#include <zUtilO/CSProExecutables.h>
 #include <zAppO/PFF.h>
 #include <zDataO/ConnectionStringProperties.h>
 #include <zInterfaceF/resource_shared.h>

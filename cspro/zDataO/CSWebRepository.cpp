@@ -8,7 +8,7 @@
 #include "SyncBinaryDataUploadManager.h"
 #include "SyncCaseJsonSerializer.h"
 #include "SyncCaseSerializer.h"
-#include <zUtilO/CSProExecutables.h>
+#include <zToolsO/CSProExecutables.h>
 #include <zUtilO/Versioning.h>
 #include <zToolsO/Encoders.h>
 #include <zNetwork/ConnectResponse.h>

@@ -1,10 +1,10 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "SystemMessages.h"
 #include "MessageFile.h"
 #include <zPlatformO/PlatformInterface.h>
+#include <zToolsO/CSProExecutables.h>
 #include <zToolsO/DirectoryLister.h>
 #include <zUtilO/ArrUtil.h>
-#include <zUtilO/CSProExecutables.h>
 #include <zUtilO/TextSourceExternal.h>
 
 

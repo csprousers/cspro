@@ -1,6 +1,6 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "CompilerOutputTabViewPage.h"
-#include <zUtilO/CSProExecutables.h>
+#include <zToolsO/CSProExecutables.h>
 
 
 BEGIN_MESSAGE_MAP(CompilerOutputTabViewPage, COXTabViewPage<ReadOnlyEditCtrl>)

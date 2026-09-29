@@ -1,7 +1,7 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "BatchLogicViewerDlg.h"
+#include <zToolsO/CSProExecutables.h>
 #include <zToolsO/FileIO.h>
-#include <zUtilO/CSProExecutables.h>
 #include <zUtilO/FileDlg.h>
 #include <zUtilO/Interapp.h>
 #include <zAppO/Application.h>

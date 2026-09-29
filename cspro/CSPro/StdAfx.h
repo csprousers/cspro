@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #pragma warning(disable:4800)
 #pragma warning(disable:4996)
@@ -6,11 +6,11 @@
 #include <engine/StandardSystemIncludes.h>
 // X64_TODO #include <StandardIncludes/strict_errors.h>
 
+#include <zToolsO/CSProExecutables.h>
 #include <zToolsO/Encoders.h>
 #include <zToolsO/SharedSettings.h>
 #include <zToolsO/Utf8.h>
 #include <zToolsO/WinClipboard.h>
-#include <zUtilO/CSProExecutables.h>
 #include <zUtilO/FileDlg.h>
 #include <zUtilO/ImsaFileDlg.h>
 #include <zUtilO/ImsaStr.h>

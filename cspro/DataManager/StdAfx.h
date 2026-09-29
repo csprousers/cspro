@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <engine/StandardSystemIncludes.h>
 #include <engine/StrictCompilerErrors.h>
@@ -11,10 +11,10 @@
 #include <DataManager/MainFrame.h>
 #include <DataManager/resource.h>
 #include <DataManager/UWM.h>
+#include <zToolsO/CSProExecutables.h>
 #include <zToolsO/Encoders.h>
 #include <zToolsO/FileIO.h>
 #include <zToolsO/Utf8.h>
-#include <zUtilO/CSProExecutables.h>
 #include <zUtilO/FileDlg.h>
 #include <zUtilO/Interapp.h>
 #include <zUtilO/MimeType.h>

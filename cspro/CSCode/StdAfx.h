@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <engine/StandardSystemIncludes.h>
 #include <StandardIncludes/strict_errors.h>
@@ -10,10 +10,10 @@
 #include <CSCode/MainFrame.h>
 #include <CSCode/resource.h>
 #include <CSCode/UWM.h>
+#include <zToolsO/CSProExecutables.h>
 #include <zToolsO/Utf8.h>
 #include <zToolsO/WinClipboard.h>
 #include <zToolsO/ObjectTransporter.h>
-#include <zUtilO/CSProExecutables.h>
 #include <zUtilO/FileDlg.h>
 #include <zUtilO/Interapp.h>
 #include <zUtilO/WindowsUtf8.h>

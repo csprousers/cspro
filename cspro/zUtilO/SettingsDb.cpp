@@ -2,7 +2,6 @@
 #include "SettingsDb.h"
 #include <zSql/DB.h>
 #include <zSql/SQLiteHelpers.h>
-#include <zUtilO/CSProExecutables.h>
 
 
 // --------------------------------------------------------------------------
