@@ -88,8 +88,10 @@ public:
     CLASS_DECL_ZTOOLSO static std::string FromBSTR(BSTR wide_text);
 
     // Converts UTF-8 text to/from COleVariant.
+#ifdef _AFX
     CLASS_DECL_ZTOOLSO static COleVariant ToOleVariant(std::string_view utf8_text_sv);
     CLASS_DECL_ZTOOLSO static std::string FromOleVariant(const COleVariant& wide_text);
+#endif
 };
 
 #endif
@@ -172,10 +174,12 @@ std::string TC::ToUtf8(const T& wide_text)
         return ToUtf8(wide_text.data(), wide_text.length());
     }
 
+#ifdef USING_CSTRING
     else if constexpr(std::is_same_v<T, CString>)
     {
         return ToUtf8(wide_text.GetString(), wide_text.GetLength());
     }
+#endif
 
     else
     {
