@@ -17,9 +17,6 @@
     <ClCompile Include="rtf2html.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="rtf2html_dll.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="rtf_keyword.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
