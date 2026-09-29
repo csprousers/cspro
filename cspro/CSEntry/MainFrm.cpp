@@ -3512,6 +3512,15 @@ LRESULT CMainFrame::OnGivenGoTo(WPARAM wParam, LPARAM lParam)
     return TRUE;
 }
 
+
+template<typename T, typename ARG_TYPE>
+void VectorToCArray(const std::vector<T>& v, CArray<T, ARG_TYPE>& ca)
+{
+    for( const T& v_val : v )
+        ca.Add(v_val);
+}
+
+
 LRESULT CMainFrame::OnSelectiveRefreshCaseTree(WPARAM wParam, LPARAM /*lParam*/)
 {
     const std::vector<void*>& vpArray = *reinterpret_cast<std::vector<void*>*>(wParam);

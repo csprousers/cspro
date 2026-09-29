@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 //***************************************************************************
 //  File name: ArrUtil.h
@@ -54,7 +54,9 @@ void AppendUnique(ARRTYPE& dst, const ARRTYPE& src)
     }
 }
 
-#ifdef WIN_DESKTOP
+
+#if defined(WIN_DESKTOP) && defined(USING_CSTRING)
+
 inline void AppendUnique(CStringArray& dst, const std::vector<CString>& src)
 {
     for (const CString& val : src) {
@@ -63,6 +65,7 @@ inline void AppendUnique(CStringArray& dst, const std::vector<CString>& src)
         }
     }
 }
+
 #endif
 
 
@@ -126,6 +129,8 @@ bool IsFilePathInUse(const std::vector<T>& objects_with_file_paths, const std::s
 }
 
 
+#ifdef USING_CSTRING
+
 inline std::vector<std::wstring> CS2WS_Vector(const std::vector<CString>& cstring_values)
 {
     std::vector<std::wstring> wstring_values;
@@ -147,12 +152,4 @@ inline std::vector<CString> WS2CS_Vector(const std::vector<std::wstring>& wstrin
     return cstring_values;
 }
 
-
-#ifdef WIN_DESKTOP
-template<typename T, typename ARG_TYPE>
-void VectorToCArray(const std::vector<T>& v, CArray<T, ARG_TYPE>& ca)
-{
-    for( const T& v_val : v )
-        ca.Add(v_val);
-}
-#endif
+ #endif // USING_CSTRING
