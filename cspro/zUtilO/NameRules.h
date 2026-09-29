@@ -25,4 +25,7 @@ class CLASS_DECL_ZUTILO NameRules
 public:
     // Returns true if the name is valid.
     static bool IsName(std::string_view name_sv) noexcept;
+
+    // Returns true if the name is both valid and defined in upper case.
+    static bool IsUpperCaseName(std::string_view name_sv) noexcept;
 };

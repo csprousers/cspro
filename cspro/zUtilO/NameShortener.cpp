@@ -251,7 +251,7 @@ std::string NameShortener::Shorten(std::string cspro_name, size_t max_wide_lengt
         return cspro_name;
 
     // make sure that the name is valid
-    ASSERT(NameRules::IsName(cspro_name) && SO::IsUpper(cspro_name));
+    ASSERT(NameRules::IsUpperCaseName(cspro_name));
 
     // generate the name
     std::string shortened_name(1, ShorteningIndicator);

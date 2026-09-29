@@ -24,3 +24,9 @@ bool NameRules::IsName(const std::string_view name_sv) noexcept
 
     return true;
 }
+
+
+bool NameRules::IsUpperCaseName(const std::string_view name_sv) noexcept
+{
+    return ( SO::IsUpper(name_sv) && IsName(name_sv) );
+}
