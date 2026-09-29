@@ -83,12 +83,12 @@ public:
 class WindowsTC
 {
 public:
+#ifdef _AFX
     // Converts UTF-8 text to/from BSTR.
     CLASS_DECL_ZTOOLSO static BSTR ToBSTR(std::string_view utf8_text_sv);
     CLASS_DECL_ZTOOLSO static std::string FromBSTR(BSTR wide_text);
 
     // Converts UTF-8 text to/from COleVariant.
-#ifdef _AFX
     CLASS_DECL_ZTOOLSO static COleVariant ToOleVariant(std::string_view utf8_text_sv);
     CLASS_DECL_ZTOOLSO static std::string FromOleVariant(const COleVariant& wide_text);
 #endif
