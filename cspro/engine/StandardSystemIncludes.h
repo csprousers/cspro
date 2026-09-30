@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 // Standard system wide includes: Windows.h, MFC, a few std lib classes...
 // This should be in every pre-compiled header file.
@@ -98,10 +98,22 @@
 
 #endif
 
+
+// CString will come from MFC or via CStdStr
 #ifndef WIN_DESKTOP
-// MFC collection classes for non MFC platforms
+#include <zPlatformO/stdstring.h>
+using CString = CStdString;
+using CStringW = CStdStringW;
+#endif
+
+#define USING_CSTRING
+
+
+// MFC collection classes for non-MFC platforms
+#ifndef WIN_DESKTOP
 #include <zPlatformO/PortableMFC.h>
 #endif
+
 
 // Cross platform includes
 #include <math.h>
@@ -149,5 +161,4 @@
 #endif
 
 
-#define USING_CSTRING
 #include <StandardIncludes/cspro_shared.h>

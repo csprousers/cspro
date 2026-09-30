@@ -1,9 +1,9 @@
-﻿#pragma once
+#pragma once
 
 #include <assert.h>
 
 #ifdef _DEBUG
-#define ASSERT(f)           assert(f)
+#define ASSERT(f)           assert((f))
 #else
 #define ASSERT(f)           ((void)0)
 #endif

@@ -387,7 +387,7 @@ typedef struct _GUID {
 
 #define TEXT                _T
 
-#define PATH_CHAR           _T('/')
+#define PATH_CHAR           '/'
 #define PATH_STRING         _T("/")
 
 #define FILE_ATTRIBUTE_NORMAL 0x00000080
@@ -395,8 +395,10 @@ typedef struct _GUID {
 typedef UINT_PTR            WPARAM;
 typedef LONG_PTR            LPARAM;
 
+#ifndef MINIMAL_WINDOWS_DEFINES
 #include <zPlatformO/PortableWindowsGUIDefines.h>
 #include <zPlatformO/PortableFStream.h>
+#endif
 
 #endif // !WIN32
 

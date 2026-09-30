@@ -230,7 +230,7 @@ static Serializer& serialize(Serializer& ar, T& object)
 
 CLASS_DECL_ZTOOLSO Serializer& serialize(Serializer& ar, size_t& value);
 
-#ifdef _AFX
+#if defined(_AFX) || defined(USING_PORTABLE_MFC)
 CLASS_DECL_ZTOOLSO Serializer& serialize(Serializer& ar, CPoint& rect);
 CLASS_DECL_ZTOOLSO Serializer& serialize(Serializer& ar, CRect& rect);
 CLASS_DECL_ZTOOLSO Serializer& serialize(Serializer& ar, LOGFONT& font);

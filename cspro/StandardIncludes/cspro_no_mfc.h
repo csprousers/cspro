@@ -5,8 +5,18 @@
 // WINDOWS FUNCTIONALITY
 // --------------------------------------------------------------------------
 
+#ifdef WIN32
+
+#define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
 #include <Windows.h>
+
+#else
+
+#define MINIMAL_WINDOWS_DEFINES
+#include <zPlatformO/PortableWindowsDefines.h>
+
+#endif
 
 
 // --------------------------------------------------------------------------
@@ -40,6 +50,20 @@
 #  else // RELEASE
 #    define TRACE(...) ((void)0)
 #  endif
+#endif
+
+
+// --------------------------------------------------------------------------
+// CString
+//
+// Until CString is removed from shared code, we will forward declare it to
+// allow the compilation of header files in MFC-based projects.
+// --------------------------------------------------------------------------
+
+#ifdef USING_CSTRING
+static_assert(false);
+#else
+class CString;
 #endif
 
 

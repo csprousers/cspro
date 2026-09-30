@@ -658,6 +658,7 @@ typedef wchar_t			OLECHAR;
 #ifndef ASSERT
 #include <crtdbg.h>
 #define ASSERT(f) _ASSERTE((f))
+#define UNDEF_ASSERT // CSPro this ASSERT will be undefined at the end of the file
 #endif
 #ifndef VERIFY
 #ifdef _DEBUG
@@ -4560,4 +4561,9 @@ struct StdStringEqualsNoCaseA
 #ifdef __BORLANDC__
 #pragma option pop  // Turn back on inline function warnings
 //  #pragma warn +inl   // Turn back on inline function warnings
+#endif
+
+#ifdef UNDEF_ASSERT
+#undef ASSERT
+#undef UNDEF_ASSERT
 #endif

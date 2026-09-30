@@ -1414,11 +1414,12 @@ ST& SO::MakeExactLength(ST& text, const size_t length)
         }
     }
 
-    else
+#ifdef USING_CSTRING
+    else if constexpr(std::is_convertible_v<ST, CString>)
     {
         static_assert(insert_spaces_at_end);
 
-        int spaces_needed = static_cast<int>(length) - text.GetLength();
+        const int spaces_needed = static_cast<int>(length) - text.GetLength();
 
         if( spaces_needed > 0 )
         {
@@ -1429,6 +1430,12 @@ ST& SO::MakeExactLength(ST& text, const size_t length)
         {
             text.Truncate(static_cast<int>(length));
         }
+    }
+#endif
+
+    else
+    {
+        static_assert(false);
     }
 
     return text;
