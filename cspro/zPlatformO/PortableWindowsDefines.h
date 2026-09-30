@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 /*
  * PortableWindowsDefines.h
@@ -384,8 +384,6 @@ typedef struct _GUID {
 } GUID;
 
 #define _countof(x) (sizeof(x)/sizeof(x[0]))
-
-inline void Sleep(DWORD dwMilliseconds) { usleep(dwMilliseconds * 1000); }
 
 #define TEXT                _T
 

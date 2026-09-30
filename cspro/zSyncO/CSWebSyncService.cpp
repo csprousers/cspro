@@ -390,7 +390,7 @@ int CSWebSyncService::SendUploadClientCasesRequest(const std::string& url, const
         ++retries;
 
         SYNCLOG_INFO << "Retrying. Attempt #" << retries;
-        Sleep(backOff.NextBackOffMillis());
+        backOff.Sleep();
     }
 
     return HttpResponse::Status_500_InternalServerError; // should never get here
@@ -453,7 +453,7 @@ HttpResponse CSWebSyncService::SendDownloadServerCasesRequest(const std::string&
         ++retries;
 
         SYNCLOG_INFO << "Retrying. Attempt #" << retries;
-        Sleep(backOff.NextBackOffMillis());
+        backOff.Sleep();
     }
 
     return HttpResponse::Status_500_InternalServerError; // should never get here
