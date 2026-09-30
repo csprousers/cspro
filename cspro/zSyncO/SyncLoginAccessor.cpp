@@ -4,6 +4,7 @@
 #ifdef WIN_DESKTOP
 #include "ChooseBluetoothDeviceDialog.h"
 #else
+#include "BluetoothDeviceInfo.h"
 #include "IBluetoothAdapter.h"
 #include "ObexConstants.h"
 #endif

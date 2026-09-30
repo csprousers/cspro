@@ -1,4 +1,5 @@
-﻿#include "PlatformInterface.h"
+#include <StandardIncludes/cspro_no_mfc.h>
+#include "PlatformInterface.h"
 
 
 PlatformInterface::PlatformInterface()
