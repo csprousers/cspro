@@ -1169,14 +1169,14 @@ void AndroidApplicationInterface::Prompt(EngineUI::PromptNode& prompt_node)
 {
     JNIEnv* const pEnv = GetJNIEnvForCurrentThread();
 
-    jstring title = WideToJava(pEnv, prompt_node.title);
-    jstring initial_value = WideToJava(pEnv, prompt_node.initial_value);
+    jstring title = JavaString::ToJava(*pEnv, prompt_node.title);
+    jstring initial_value = JavaString::ToJava(*pEnv, prompt_node.initial_value);
 
     auto return_value = (jstring)pEnv->CallStaticObjectMethod(JNIReferences::classApplicationInterface, JNIReferences::methodApplicationInterfacePrompt,
         title, initial_value, prompt_node.numeric, prompt_node.password, prompt_node.upper_case, prompt_node.multiline);
 
     if( return_value != nullptr )
-        prompt_node.return_value = JavaToWSZ(pEnv, return_value);
+        prompt_node.return_value = JavaString::ToUtf8(*pEnv, return_value);
 }
 
 

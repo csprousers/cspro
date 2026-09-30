@@ -14,10 +14,10 @@ Engine::Value CIntDriver::exprompt_pre77(int iExpr)
     const FNVARIOUS_NODE* various_node = (FNVARIOUS_NODE*)PPT(iExpr);
     EngineUI::PromptNode prompt_node;
 
-    prompt_node.title = UTF8_TODO::GetCString(ConvertV0Escapes(Evaluate<std::string>(various_node->fn_expr[0]), V0_EscapeType::NewlinesToSlashN_Backslashes));
+    prompt_node.title = ConvertV0Escapes(Evaluate<SharableString>(various_node->fn_expr[0]), V0_EscapeType::NewlinesToSlashN_Backslashes);
 
     if( various_node->fn_expr[1] >= 0 )
-        prompt_node.initial_value = UTF8_TODO::GetCString(ConvertV0Escapes(Evaluate<std::string>(various_node->fn_expr[1]), V0_EscapeType::NewlinesToSlashN_Backslashes));
+        prompt_node.initial_value = ConvertV0Escapes(Evaluate<SharableString>(various_node->fn_expr[1]), V0_EscapeType::NewlinesToSlashN_Backslashes);
 
     const int& flags = various_node->fn_expr[2];
 
@@ -36,15 +36,15 @@ Engine::Value CIntDriver::exprompt_pre77(int iExpr)
 
     SendEngineUIMessage(EngineUI::Type::Prompt, prompt_node);
 
-    prompt_node.return_value = UTF8_TODO::GetCString(ApplyV0Escapes(UTF8_TODO::GetUtf8(prompt_node.return_value), V0_EscapeType::NewlinesToSlashN_Backslashes));
+    prompt_node.return_value = ApplyV0Escapes(prompt_node.return_value, V0_EscapeType::NewlinesToSlashN_Backslashes);
 
     if( operator_selection_event != nullptr )
     {
-        operator_selection_event->SetPostSelectionValues(std::nullopt, UTF8_TODO::GetUtf8(prompt_node.return_value), true);
+        operator_selection_event->SetPostSelectionValues(std::nullopt, prompt_node.return_value, true);
         m_paradataDriver->RegisterAndLogEvent(std::move(operator_selection_event));
     }
 
-    return UTF8_TODO::GetUtf8(prompt_node.return_value);
+    return std::move(prompt_node.return_value);
 }
 
 
