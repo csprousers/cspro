@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #include "BasicTokenCompiler.h"
 #include "ProcDirectory.h"
-#include <zUtilO/StdioFileUnicode.h>
 #include <zUtilO/TextSource.h>
 
 
