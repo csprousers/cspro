@@ -1,6 +1,5 @@
-#include <engine/StandardSystemIncludes.h>
+#include "StdAfx.h"
 #include "JNIHelpers.h"
-#include <android/log.h>
 
 
 namespace

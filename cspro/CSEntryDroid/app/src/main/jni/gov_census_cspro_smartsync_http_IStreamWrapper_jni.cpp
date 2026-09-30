@@ -1,6 +1,5 @@
-﻿#include "gov_census_cspro_smartsync_http_IStreamWrapper_jni.h"
-#include <engine/StandardSystemIncludes.h>
-#include "JNIHelpers.h"
+#include "StdAfx.h"
+#include "gov_census_cspro_smartsync_http_IStreamWrapper_jni.h"
 #include <istream>
 #include <errno.h>
 

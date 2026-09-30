@@ -1,11 +1,8 @@
-#include <engine/StandardSystemIncludes.h>
+#include "StdAfx.h"
 #include "AndroidHttpConnection.h"
-#include "JNIHelpers.h"
-#include <zToolsO/Tools.h>
 #include <zNetwork/SyncException.h>
 #include <zNetwork/SyncListener.h>
 #include <rxcpp/rx-lite.hpp>
-#include <android/log.h>
 
 
 namespace

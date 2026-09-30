@@ -1,4 +1,4 @@
-#include <engine/StandardSystemIncludes.h>
+#include "StdAfx.h"
 #include "AndroidApplicationInterface.h"
 #include "AndroidBluetoothAdapter.h"
 #include "AndroidFtpConnection.h"
@@ -7,18 +7,8 @@
 #include "AndroidMapUI.h"
 #include "AndroidUserbar.h"
 #include "GeometryJni.h"
-#include "JNIHelpers.h"
-
-// NDK Includes
-#include <android/log.h>
-#include <sys/stat.h>
-
-// Project Includes
-#include <zPlatformO/PlatformInterface.h>
-#include <zToolsO/Tools.h>
 #include <zJson/Json.h>
 #include <zUtilO/AppLoader.h>
-#include <zUtilO/ImsaStr.h>
 #include <zUtilO/MemoryHelpers.h>
 #include <zUtilO/TemporaryFile.h>
 #include <zUtilO/Viewers.h>

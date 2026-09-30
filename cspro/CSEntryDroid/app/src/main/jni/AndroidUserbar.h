@@ -1,7 +1,6 @@
 #pragma once
 
 #include <zEngineF/PortableUserbar.h>
-#include "JNIHelpers.h"
 
 
 class AndroidUserbar : public PortableUserbar

@@ -1,9 +1,8 @@
-﻿#include <engine/StandardSystemIncludes.h>
+#include "StdAfx.h"
 #include "AndroidBluetoothAdapter.h"
 #include "AndroidBluetoothObexTransport.h"
 #include <zNetwork/SyncException.h>
 #include <zNetwork/SyncListener.h>
-#include "JNIHelpers.h"
 
 
 namespace

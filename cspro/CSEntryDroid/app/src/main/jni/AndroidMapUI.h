@@ -1,8 +1,6 @@
-﻿#pragma once
+#pragma once
 
-#include <zPlatformO/PortableWindowsDefines.h>
 #include <zMapping/IMapUI.h>
-#include <jni.h>
 
 
 // --------------------------------------------------------------------------

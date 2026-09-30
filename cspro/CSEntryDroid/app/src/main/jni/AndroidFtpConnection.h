@@ -1,8 +1,6 @@
-﻿#pragma once
+#pragma once
 
-#include <engine/StandardSystemIncludes.h>
 #include <zNetwork/FtpConnection.h>
-#include <jni.h>
 
 
 // Ftp connection implementation for Android that calls through to ftp4j library

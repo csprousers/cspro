@@ -1,6 +1,4 @@
-﻿#include <jni.h>
-#include <engine/StandardSystemIncludes.h>
-#include "JNIHelpers.h"
+#include "StdAfx.h"
 #include "AndroidBluetoothObexTransport.h"
 
 

@@ -1,8 +1,7 @@
-﻿#pragma once
+#pragma once
 
-#include <zPlatformO/PortableMFC.h>
 #include <zSyncO/IBluetoothAdapter.h>
-#include <jni.h>
+
 
 //  Bluetooth adapter implementation for Android that calls through to Java BluetoothAdapter class via JNI.
 

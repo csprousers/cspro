@@ -1,10 +1,9 @@
-﻿#include <engine/StandardSystemIncludes.h>
+#include "StdAfx.h"
 #include "gov_census_cspro_engine_EngineInterface_jni.h"
 #include "AndroidEngineInterface.h"
 #include "AndroidHtmlMapUI.h"
 #include "AndroidLocalFileServer.h"
 #include "AndroidMapUI.h"
-#include "JNIHelpers.h"
 #include <zToolsO/DirectoryLister.h>
 #include <zToolsO/Encoders.h>
 #include <zToolsO/Screen.h>

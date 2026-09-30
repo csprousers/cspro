@@ -1,12 +1,8 @@
-#include <engine/StandardSystemIncludes.h>
+#include "StdAfx.h"
 #include "gov_census_cspro_bridge_CNPifFile.h"
-#include "JNIHelpers.h"
-#include <zPlatformO/PlatformInterface.h>
 #include <zToolsO/DirectoryLister.h>
 #include <zToolsO/Encoders.h>
-#include <zToolsO/Tools.h>
 #include <zUtilO/ConnectionString.h>
-#include <zUtilO/Interapp.h>
 #include <zNetwork/ParsedUri.h>
 #include <zBridgeO/NPff.h>
 #include <zEngineO/PffExecutor.h>

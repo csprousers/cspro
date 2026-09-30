@@ -1,8 +1,6 @@
-﻿#include <engine/StandardSystemIncludes.h>
+#include "StdAfx.h"
 #include "AndroidMapUI.h"
 #include "GeometryJni.h"
-#include "JNIHelpers.h"
-#include <android/log.h>
 
 
 AndroidMapUI::AndroidMapUI()

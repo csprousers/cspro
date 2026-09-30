@@ -1,7 +1,6 @@
-#include <engine/StandardSystemIncludes.h>
-#include "gov_census_cspro_engine_EngineInterface_jni.h"
+#include "StdAfx.h"
 #include "AndroidApplicationInterface.h"
-#include "JNIHelpers.h"
+#include "gov_census_cspro_engine_EngineInterface_jni.h"
 #include <zToolsO/Encryption.h>
 #include <zToolsO/ExceptionHolder.h>
 #include <zToolsO/UniqueId.h>

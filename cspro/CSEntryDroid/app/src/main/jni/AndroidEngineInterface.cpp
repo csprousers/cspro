@@ -1,13 +1,9 @@
-#include <engine/StandardSystemIncludes.h>
+#include "StdAfx.h"
 #include "AndroidEngineInterface.h"
 #include "AndroidApplicationInterface.h"
 #include "AndroidUserbar.h"
 #include "gov_census_cspro_bridge_CNPifFile.h"
-#include "JNIHelpers.h"
-#include <zPlatformO/PlatformInterface.h>
 #include <zBridgeO/NPff.h>
-#include <android/log.h>
-#include <sys/stat.h>
 
 
 #ifdef SQLITE_LOGGING

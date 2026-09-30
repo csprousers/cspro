@@ -1,10 +1,9 @@
-#include <engine/StandardSystemIncludes.h>
-#include <android/log.h>
+#include "StdAfx.h"
+#include "gov_census_cspro_form_EntryPage_jni.h"
+#include <zDictO/ValueSetResponse.h>
 #include <zFormO/FormFile.h>
 #include <zEntryO/CoreEntryPage.h>
-#include <zDictO/ValueSetResponse.h>
-#include "gov_census_cspro_form_EntryPage_jni.h"
-#include "JNIHelpers.h"
+
 
 /*
  * Class:     gov_census_cspro_form_EntryPage

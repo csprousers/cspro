@@ -1,6 +1,5 @@
-﻿#include <engine/StandardSystemIncludes.h>
+#include "StdAfx.h"
 #include "AndroidHtmlMapUI.h"
-#include "JNIHelpers.h"
 #include <zToolsO/RaiiHelpers.h>
 
 
