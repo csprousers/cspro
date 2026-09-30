@@ -234,6 +234,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TestData", "tests\TestData\
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TestEngine", "tests\TestEngine\TestEngine.vcxproj", "{97DEAB04-3EC7-47FB-98C9-E5E0612AB9B1}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zDocument", "zDocument\zDocument.vcxproj", "{C50FA4AD-7AF7-408B-B798-E8F01925B0CA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -1090,6 +1092,14 @@ Global
 		{97DEAB04-3EC7-47FB-98C9-E5E0612AB9B1}.Release|Win32.Build.0 = Release|Win32
 		{97DEAB04-3EC7-47FB-98C9-E5E0612AB9B1}.Release|x64.ActiveCfg = Release|x64
 		{97DEAB04-3EC7-47FB-98C9-E5E0612AB9B1}.Release|x64.Build.0 = Release|x64
+		{C50FA4AD-7AF7-408B-B798-E8F01925B0CA}.Debug|Win32.ActiveCfg = Debug|Win32
+		{C50FA4AD-7AF7-408B-B798-E8F01925B0CA}.Debug|Win32.Build.0 = Debug|Win32
+		{C50FA4AD-7AF7-408B-B798-E8F01925B0CA}.Debug|x64.ActiveCfg = Debug|x64
+		{C50FA4AD-7AF7-408B-B798-E8F01925B0CA}.Debug|x64.Build.0 = Debug|x64
+		{C50FA4AD-7AF7-408B-B798-E8F01925B0CA}.Release|Win32.ActiveCfg = Release|Win32
+		{C50FA4AD-7AF7-408B-B798-E8F01925B0CA}.Release|Win32.Build.0 = Release|Win32
+		{C50FA4AD-7AF7-408B-B798-E8F01925B0CA}.Release|x64.ActiveCfg = Release|x64
+		{C50FA4AD-7AF7-408B-B798-E8F01925B0CA}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

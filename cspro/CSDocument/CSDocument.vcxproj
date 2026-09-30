@@ -154,6 +154,10 @@
       <Project>{5a7c4b2c-3c72-4c23-994f-bc647ab0a882}</Project>
       <Private>false</Private>
     </ProjectReference>
+    <ProjectReference Include="..\zDocument\zDocument.vcxproj">
+      <Project>{c50fa4ad-7af7-408b-b798-e8f01925b0ca}</Project>
+      <Private>false</Private>
+    </ProjectReference>
     <ProjectReference Include="..\zEditO\zEditO.vcxproj">
       <Project>{adef6fc1-00ee-4f3a-84dd-43ee2f108bb0}</Project>
       <Private>false</Private>
