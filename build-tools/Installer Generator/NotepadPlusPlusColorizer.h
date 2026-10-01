@@ -1,6 +1,11 @@
 #pragma once
 
-#include <zDocument/zDocument.h>
 
-
-ZDOCUMENT_API void CreateNotepadPlusPlusColorizer(const GlobalSettings& global_settings);
+namespace CSPro::InstallerGenerator
+{
+    public ref class NotepadPlusPlusColorizer sealed
+    {
+    public:
+        static System::String^ Create(System::String^ installer_inputs_directory);
+    };
+}

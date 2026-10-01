@@ -10,7 +10,6 @@
 #include <zUtilF/CommonControls.h>
 #include <zUtilF/MDIFrameWndHelpers.h>
 #include <zDocument/CSProUsersBlogBuilder.h>
-#include <zDocument/NotepadPlusPlusColorizer.h>
 
 
 namespace
@@ -83,12 +82,6 @@ BOOL CSDocumentApp::InitInstance()
                                           command_line_parser.GetDocSetFilePath(),
                                           command_line_parser.GetOutputPath());
             builder.Build();
-            return FALSE;
-        }
-
-        else if( command_line_parser.CreateNotepadPlusPlusColorizer() )
-        {
-            CreateNotepadPlusPlusColorizer(global_settings);
             return FALSE;
         }
     }

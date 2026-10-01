@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 
 class CommandLineParser : public CCommandLineInfo
@@ -12,8 +12,7 @@ public:
     const std::string& GetBuildSettingsFilePath() const       { return m_buildSettingsFilePath; }
     const std::string& GetBuildNameOrType() const             { return m_buildNameOrType; }
 
-    bool CreateCSProUsersBlog() const           { return m_createCSProUsersBlog; }
-    bool CreateNotepadPlusPlusColorizer() const { return m_createNotepadPlusPlusColorizer; }
+    bool CreateCSProUsersBlog() const { return m_createCSProUsersBlog; }
 
     const std::vector<std::string>& GetFilePaths() const { return m_filePaths; }
 
@@ -34,7 +33,6 @@ private:
     std::string m_buildNameOrType;
 
     bool m_createCSProUsersBlog = false;
-    bool m_createNotepadPlusPlusColorizer = false;
 };
 
 
@@ -103,11 +101,6 @@ inline void CommandLineParser::ParseParam(const wchar_t* const pszParam, const B
         else if( !m_createCSProUsersBlog && SO::EqualsNoCase("csprousers-blog", param) )
         {
             m_createCSProUsersBlog = true;
-        }
-
-        else if( !m_createNotepadPlusPlusColorizer && SO::EqualsNoCase("Notepad++", param) )
-        {
-            m_createNotepadPlusPlusColorizer = true;
         }
 
         else

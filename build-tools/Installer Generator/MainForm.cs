@@ -709,18 +709,14 @@ namespace CSPro_Installer_Generator
             }
 
             // create the Notepad++ colorization file
-            string csdocument_exe = _commonPaths.GetLatestCSDocument();
-
             AddToLog(LogType.Log, "Creating the Notepad++ colorization file...", LogExtra.InSection);
 
-            var process = new Process();
-            process.StartInfo = new ProcessStartInfo(csdocument_exe, "/Notepad++");
-            process.Start();
-            process.WaitForExit();
+            string notepad_pp_udl = CSPro.InstallerGenerator.NotepadPlusPlusColorizer.Create(_commonPaths.InstallerDirectory);
 
-            string colorization_file = Path.Combine(Path.GetDirectoryName(csdocument_exe), "userDefineLang.xml");
-            File.Move(colorization_file, Path.Combine(_componentsMiscellaneousDirectory, Path.GetFileName(colorization_file)));
-            AddToLog(LogType.Log, $"Copied miscellaneous file {colorization_file}", LogExtra.InSection);
+            const string udl_filename = "userDefineLang.xml";
+            File.WriteAllText(Path.Combine(_componentsMiscellaneousDirectory, udl_filename), notepad_pp_udl);
+
+            AddToLog(LogType.Log, $"Created miscellaneous file {udl_filename}", LogExtra.InSection);
             ++files;
 
             AddToLog(LogType.Log, $"Successfully copied miscellaneous {files} files.", LogExtra.EndSection);

@@ -1,16 +1,15 @@
 #include "StdAfx.h"
 #include "NotepadPlusPlusColorizer.h"
+#include <zToolsO/FileIO.h>
+#include <zToolsO/PortableFunctions.h>
 #include <zAppO/PFF.h>
 #include <zLogicO/ReservedWords.h>
 
 
-void CreateNotepadPlusPlusColorizer(const GlobalSettings& global_settings)
+std::string NotepadPlusPlusColorizerCreate(const std::string& installer_inputs_directory)
 {
-    const std::string project_name = Path::GetFilenameWithoutExtension(CSProExecutables::GetModuleFilePath());
-    const std::string template_file_path = Path::Combine(global_settings.cspro_code_path, project_name, "userDefineLang-template.xml");
-    const std::string output_file_path = Path::Combine(CSProExecutables::GetModuleDirectory(), "userDefineLang.xml");
-
     // read in the template file
+    const std::string template_file_path = Path::Combine(installer_inputs_directory, "userDefineLang-template.xml");
     std::string colorizer_template = FileIO::ReadText(template_file_path);
 
     // replace the templated sections with logic and PFF words
@@ -19,7 +18,9 @@ void CreateNotepadPlusPlusColorizer(const GlobalSettings& global_settings)
         const size_t template_length = colorizer_template.length();
 
         // create a space-separated string of the (sorted) words
-        std::sort(words.begin(), words.end(), [&](const auto& word1, const auto& word2) { return ( SO::CompareNoCase(word1, word2) < 0 );});
+        std::sort(words.begin(), words.end(),
+            [&](const auto& word1, const auto& word2) { return ( SO::CompareNoCase(word1, word2) < 0 );}
+        );
 
         SO::Replace(colorizer_template, template_id, SO::CreateSingleString(words, " "));
 
@@ -32,6 +33,21 @@ void CreateNotepadPlusPlusColorizer(const GlobalSettings& global_settings)
     fill_template("~~template-pff-headings~~", PFF::GetHeadingWords());
     fill_template("~~template-pff-attributes~~", PFF::GetAttributeWords());
 
-    // write out the file
-    FileIO::WriteText(output_file_path, colorizer_template, false);
+    return colorizer_template;
+}
+
+
+System::String^ CSPro::InstallerGenerator::NotepadPlusPlusColorizer::Create(System::String^ installer_inputs_directory)
+{
+    try
+    {
+        return clr_helpers::to_SystemString(
+            NotepadPlusPlusColorizerCreate(clr_helpers::to_string(installer_inputs_directory))
+        );
+    }
+
+    catch( const std::exception& exception )
+    {
+        throw clr_helpers::to_SystemException(exception);
+    }
 }

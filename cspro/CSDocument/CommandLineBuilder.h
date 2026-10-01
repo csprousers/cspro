@@ -12,8 +12,6 @@ public:
 
     void Build(const CommandLineParser& command_line_parser);
 
-    void CreateNotepadPlusPlusColorizer();
-
 protected:
     // GenerateTask::Interface overrides
     void SetTitle(const std::string& title) override;
