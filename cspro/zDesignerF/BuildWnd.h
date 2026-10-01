@@ -1,12 +1,11 @@
-﻿#pragma once
+#pragma once
 
 #include <zDesignerF/zDesignerF.h>
+#include <zDesignerF/CompilerMessageType.h>
 #include <afxdockablepane.h>
 
 class CLogicCtrl;
 namespace Logic { struct ParserMessage; }
-
-enum class CompilerMessageType { Info,  Error, Warning };
 
 
 class CLASS_DECL_ZDESIGNERF BuildWnd : public CDockablePane
@@ -26,7 +25,7 @@ public:
 
     void Finalize();
 
-    void AddMessage(CompilerMessageType compiler_message_type, const std::string& text, int line_number_base1 = -1)                              { AddMessage(compiler_message_type, nullptr, text, line_number_base1); }
+    void AddMessage(CompilerMessageType compiler_message_type, const std::string& text, int line_number_base1 = -1)                               { AddMessage(compiler_message_type, nullptr, text, line_number_base1); }
     void AddMessage(CompilerMessageType compiler_message_type, const std::string& file_path, const std::string& text, int line_number_base1 = -1) { AddMessage(compiler_message_type, &file_path, text, line_number_base1); }
     void AddMessage(const Logic::ParserMessage& parser_message);
 

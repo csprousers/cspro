@@ -167,6 +167,9 @@
     <ClInclude Include="CodeMenu.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="CompilerMessageType.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="CompilerOutputTabViewPage.h">
       <Filter>Header Files</Filter>
     </ClInclude>
