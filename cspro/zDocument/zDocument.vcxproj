@@ -19,13 +19,80 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="CacheableCalculator.cpp" />
+    <ClCompile Include="CSDocCompiler.cpp" />
+    <ClCompile Include="CSDocCompilerColorizers.cpp" />
+    <ClCompile Include="CSDocCompilerMarkdownCreator.cpp" />
+    <ClCompile Include="CSDocCompilerPffColorizer.cpp" />
+    <ClCompile Include="CSDocCompilerSettings.cpp" />
+    <ClCompile Include="CSDocCompilerSettingsForBuilding.cpp" />
+    <ClCompile Include="CSDocCompilerWorker.cpp" />
+    <ClCompile Include="CSProUsersBlogBuilder.cpp" />
+    <ClCompile Include="DocBuildSettings.cpp" />
+    <ClCompile Include="DocSetBuilderBaseGenerateTask.cpp" />
+    <ClCompile Include="DocSetBuilderCache.cpp" />
+    <ClCompile Include="DocSetBuilderChmGenerateTask.cpp" />
+    <ClCompile Include="DocSetBuilderCompileAllGenerateTask.cpp" />
+    <ClCompile Include="DocSetBuilderHtmlPagesGenerateTask.cpp" />
+    <ClCompile Include="DocSetBuilderHtmlWebsiteGenerateTask.cpp" />
+    <ClCompile Include="DocSetBuilderPdfGenerateTask.cpp" />
+    <ClCompile Include="DocSetCompiler.cpp" />
+    <ClCompile Include="DocSetIndex.cpp" />
+    <ClCompile Include="DocSetSettings.cpp" />
+    <ClCompile Include="DocSetSpec.cpp" />
+    <ClCompile Include="DocSetTableOfContents.cpp" />
+    <ClCompile Include="GenerateTaskProcessRunner.cpp" />
+    <ClCompile Include="GlobalSettings.cpp" />
+    <ClCompile Include="HelpTasks.cpp" />
+    <ClCompile Include="NotepadPlusPlusColorizer.cpp" />
+    <ClCompile Include="PdfCreator.cpp" />
     <ClCompile Include="StdAfx.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="TitleManager.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CacheableCalculator.h" />
+    <ClInclude Include="CSDocCompiler.h" />
+    <ClInclude Include="CSDocCompilerSettings.h" />
+    <ClInclude Include="CSDocCompilerWorker.h" />
+    <ClInclude Include="CSProUsersBlogBuilder.h" />
+    <ClInclude Include="DocBuildSettings.h" />
+    <ClInclude Include="DocSetBuilder.h" />
+    <ClInclude Include="DocSetBuilderCache.h" />
+    <ClInclude Include="DocSetCompiler.h" />
+    <ClInclude Include="DocSetComponent.h" />
+    <ClInclude Include="DocSetIndex.h" />
+    <ClInclude Include="DocSetIndexTableOfContentsBase.h" />
+    <ClInclude Include="DocSetSettings.h" />
+    <ClInclude Include="DocSetSpec.h" />
+    <ClInclude Include="DocSetTableOfContents.h" />
+    <ClInclude Include="GenerateTask.h" />
+    <ClInclude Include="GenerateTaskProcessRunner.h" />
+    <ClInclude Include="GlobalSettings.h" />
+    <ClInclude Include="HelpTasks.h" />
+    <ClInclude Include="HtmlTags.h" />
+    <ClInclude Include="PdfCreator.h" />
+    <ClInclude Include="SearchFilePathsByFilename.h" />
     <ClInclude Include="StdAfx.h" />
+    <ClInclude Include="TitleManager.h" />
     <ClInclude Include="zDocument.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\html\document\toc-chapter-closed.png" />
+    <Image Include="..\html\document\toc-chapter-open.png" />
+    <Image Include="..\html\document\toc-topic-current.png" />
+    <Image Include="..\html\document\toc-topic.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\html\document\compilation-error.html" />
+    <None Include="..\html\document\csdoc-syntax.html" />
+    <None Include="..\html\document\csdoc.css" />
+    <None Include="..\html\document\docset-preview.html" />
+    <None Include="..\html\document\docset.css" />
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="userDefineLang-template.xml" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>
