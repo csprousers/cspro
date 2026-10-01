@@ -12,9 +12,6 @@
     <Filter Include="HTML">
       <UniqueIdentifier>{1447b0ef-a4bd-400d-967f-f6e16655a1ef}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Notepad++">
-      <UniqueIdentifier>{4c90c5b0-3d12-406f-b387-ed57857558b0}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CacheableCalculator.cpp">
@@ -92,9 +89,6 @@
     <ClCompile Include="HelpTasks.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="NotepadPlusPlusColorizer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="PdfCreator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -169,9 +163,6 @@
     <ClInclude Include="HtmlTags.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="NotepadPlusPlusColorizer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="PdfCreator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -218,10 +209,5 @@
     <None Include="..\html\document\docset.css">
       <Filter>HTML</Filter>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <Xml Include="userDefineLang-template.xml">
-      <Filter>Notepad++</Filter>
-    </Xml>
   </ItemGroup>
 </Project>

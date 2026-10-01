@@ -44,7 +44,6 @@
     <ClCompile Include="GenerateTaskProcessRunner.cpp" />
     <ClCompile Include="GlobalSettings.cpp" />
     <ClCompile Include="HelpTasks.cpp" />
-    <ClCompile Include="NotepadPlusPlusColorizer.cpp" />
     <ClCompile Include="PdfCreator.cpp" />
     <ClCompile Include="StdAfx.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
@@ -73,7 +72,6 @@
     <ClInclude Include="GlobalSettings.h" />
     <ClInclude Include="HelpTasks.h" />
     <ClInclude Include="HtmlTags.h" />
-    <ClInclude Include="NotepadPlusPlusColorizer.h" />
     <ClInclude Include="PdfCreator.h" />
     <ClInclude Include="SearchFilePathsByFilename.h" />
     <ClInclude Include="StdAfx.h" />
@@ -92,9 +90,6 @@
     <None Include="..\html\document\csdoc.css" />
     <None Include="..\html\document\docset-preview.html" />
     <None Include="..\html\document\docset.css" />
-  </ItemGroup>
-  <ItemGroup>
-    <Xml Include="userDefineLang-template.xml" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\zAppO\zAppO.vcxproj">
