@@ -138,6 +138,13 @@
   <ItemGroup>
     <None Include="Resources\DefaultSettings.txt" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="InstallerGenerator.vcxproj">
+      <Project>{f6e9fbb4-0a25-49bd-a652-4a69dd4d721d}</Project>
+      <Name>Installer Generator %28CLR%29</Name>
+      <Private>False</Private>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
