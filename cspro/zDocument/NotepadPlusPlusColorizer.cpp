@@ -1,13 +1,13 @@
-﻿#include "StdAfx.h"
-#include "CommandLineBuilder.h"
+#include "StdAfx.h"
+#include "NotepadPlusPlusColorizer.h"
 #include <zAppO/PFF.h>
 #include <zLogicO/ReservedWords.h>
 
 
-void CommandLineBuilder::CreateNotepadPlusPlusColorizer()
+void CreateNotepadPlusPlusColorizer(const GlobalSettings& global_settings)
 {
     const std::string project_name = Path::GetFilenameWithoutExtension(CSProExecutables::GetModuleFilePath());
-    const std::string template_file_path = Path::Combine(m_globalSettings.cspro_code_path, project_name, "userDefineLang-template.xml");
+    const std::string template_file_path = Path::Combine(global_settings.cspro_code_path, project_name, "userDefineLang-template.xml");
     const std::string output_file_path = Path::Combine(CSProExecutables::GetModuleDirectory(), "userDefineLang.xml");
 
     // read in the template file

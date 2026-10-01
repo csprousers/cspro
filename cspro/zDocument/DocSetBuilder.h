@@ -1,16 +1,17 @@
-﻿#pragma once
+#pragma once
 
-#include <CSDocument/CSDocCompilerSettings.h>
+#include <zDocument/zDocument.h>
+#include <zDocument/CSDocCompilerSettings.h>
 
-class PdfCreator;
 namespace FileIO { class TextFile; }
+class PdfCreator;
 
 
 // --------------------------------------------------------------------------
 // DocSetBuilderBaseGenerateTask
 // --------------------------------------------------------------------------
 
-class DocSetBuilderBaseGenerateTask : public GenerateTask
+class ZDOCUMENT_API DocSetBuilderBaseGenerateTask : public GenerateTask
 {
 protected:
     DocSetBuilderBaseGenerateTask(std::unique_ptr<CSDocCompilerSettingsForBuilding> settings);
@@ -83,7 +84,7 @@ private:
 // DocSetBuilderCompileAllGenerateTask
 // --------------------------------------------------------------------------
 
-class DocSetBuilderCompileAllGenerateTask : public DocSetBuilderBaseGenerateTask
+class ZDOCUMENT_API DocSetBuilderCompileAllGenerateTask : public DocSetBuilderBaseGenerateTask
 {
 public:
     DocSetBuilderCompileAllGenerateTask(cs::non_null_shared_or_raw_ptr<DocSetSpec> doc_set_spec);

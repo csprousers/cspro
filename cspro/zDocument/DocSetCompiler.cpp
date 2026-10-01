@@ -1,5 +1,7 @@
 #include "StdAfx.h"
 #include "DocSetCompiler.h"
+#include "DocumentBuildMessageTarget.h"
+#include <zDesignerF/UWM.h>
 
 
 std::vector<DocSetCompiler::GetFileTextOrModifiedIterationCallback> DocSetCompiler::m_getFileTextOrModifiedIterationCallbacks;
@@ -38,12 +40,12 @@ void DocSetCompiler::AddErrorOrWarning(const bool error, const std::string& text
 
     else if( error )
     {
-        std::get<BuildWnd*>(m_errorIssuer)->AddError(file_path_with_error, text);
+        std::get<DocumentBuildMessageTarget*>(m_errorIssuer)->AddDocumentError(file_path_with_error, text);
     }
 
     else
     {
-        std::get<BuildWnd*>(m_errorIssuer)->AddWarning(file_path_with_error, text);
+        std::get<DocumentBuildMessageTarget*>(m_errorIssuer)->AddDocumentWarning(file_path_with_error, text);
     }
 }
 

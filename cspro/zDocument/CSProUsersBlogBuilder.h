@@ -1,10 +1,12 @@
-﻿#pragma once
+#pragma once
+
+#include <zDocument/zDocument.h>
 
 class CSDocCompilerSettingsForCSProUsersBlog;
 class CSProUsersBlogTagModifier;
 
 
-class CSProUsersBlogBuilder
+class ZDOCUMENT_API CSProUsersBlogBuilder
 {
 public:
     CSProUsersBlogBuilder(GlobalSettings& global_settings, std::string blog_doc_set_spec_file_path, std::string output_directory);

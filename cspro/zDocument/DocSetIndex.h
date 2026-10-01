@@ -1,10 +1,12 @@
-﻿#pragma once
+#pragma once
+
+#include <zDocument/zDocument.h>
 
 class DocSetSpec;
 class DocSetCompiler;
 
 
-class DocSetIndex
+class ZDOCUMENT_API DocSetIndex
 {
     class CompileWorker;
 

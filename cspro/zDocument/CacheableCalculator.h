@@ -1,7 +1,10 @@
-﻿#pragma once
+#pragma once
+
+#include <zDocument/zDocument.h>
+#include <zToolsO/CaseInsensitiveComparer.h>
 
 
-class CacheableCalculator
+class ZDOCUMENT_API CacheableCalculator
 {
 private:
     CacheableCalculator() { }

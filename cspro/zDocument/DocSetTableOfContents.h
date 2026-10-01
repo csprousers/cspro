@@ -1,4 +1,6 @@
-﻿#pragma once
+#pragma once
+
+#include <zDocument/zDocument.h>
 
 class DocSetSpec;
 class DocSetCompiler;
@@ -8,7 +10,7 @@ class DocSetCompiler;
 // DocSetTableOfContents
 // --------------------------------------------------------------------------
 
-class DocSetTableOfContents
+class ZDOCUMENT_API DocSetTableOfContents
 {
     class CompileWorker;
 

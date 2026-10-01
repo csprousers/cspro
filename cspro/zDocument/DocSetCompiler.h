@@ -1,9 +1,13 @@
-﻿#pragma once
+#pragma once
 
-#include <CSDocument/DocSetSpec.h>
+#include <zDocument/zDocument.h>
+#include <zDocument/DocSetSpec.h>
+#include <zJson/Json.h>
+
+class DocumentBuildMessageTarget;
 
 
-class DocSetCompiler
+class ZDOCUMENT_API DocSetCompiler
 {
     friend class DocBuildSettings;
     friend class DocSetBuilderBaseGenerateTask;
@@ -15,7 +19,7 @@ class DocSetCompiler
 public:
     struct SuppressErrors { };
     struct ThrowErrors { };
-    using ErrorIssuerType = std::variant<SuppressErrors, ThrowErrors, BuildWnd*>;
+    using ErrorIssuerType = std::variant<SuppressErrors, ThrowErrors, DocumentBuildMessageTarget*>;
 
     DocSetCompiler(const GlobalSettings& global_settings, ErrorIssuerType error_issuer);
     DocSetCompiler(ErrorIssuerType error_issuer);

@@ -1,9 +1,10 @@
-﻿#pragma once
+#pragma once
 
-#include <CSDocument/DocBuildSettings.h>
+#include <zDocument/zDocument.h>
+#include <zDocument/DocBuildSettings.h>
 
 
-class DocSetSettings
+class ZDOCUMENT_API DocSetSettings
 {
 public:
     void Reset();

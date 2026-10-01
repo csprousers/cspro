@@ -27,6 +27,9 @@
     <ClInclude Include="ConsoleWrapper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="CSDocCompilerSettingsForCSDocumentPreview.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="CSDocDoc.h">
       <Filter>Header Files</Filter>
     </ClInclude>

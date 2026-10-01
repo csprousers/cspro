@@ -1,7 +1,7 @@
 #include "StdAfx.h"
 #include "DocSetBuildHandlerFrame.h"
-#include "DocSetBuilder.h"
 #include "GenerateDlg.h"
+#include <zDocument/DocSetBuilder.h>
 
 
 BEGIN_MESSAGE_MAP(DocSetBuildHandlerFrame, TextEditFrame)

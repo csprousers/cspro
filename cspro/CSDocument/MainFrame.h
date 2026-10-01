@@ -1,10 +1,10 @@
 #pragma once
 
 #include <CSDocument/BuildWnd.h>
-#include <CSDocument/DocSetCompiler.h>
 #include <CSDocument/HtmlOutputWnd.h>
 #include <zHtml/SharedHtmlLocalFileServer.h>
 #include <zUtilF/MFCMenuBarWithoutSerializableState.h>
+#include <zDocument/DocSetCompiler.h>
 
 class DocSetSpec;
 class TextEditDoc;

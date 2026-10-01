@@ -1,7 +1,7 @@
 #include "StdAfx.h"
 #include "DocSetBaseFrame.h"
-#include "CSDocCompilerSettings.h"
-#include "TitleManager.h"
+#include <zDocument/CSDocCompilerSettings.h>
+#include <zDocument/TitleManager.h>
 #include <zDesignerF/BuildWndJsonReaderInterface.h>
 
 

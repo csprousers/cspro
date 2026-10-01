@@ -2,9 +2,9 @@
 #include "CommandLineBuilder.h"
 #include "CommandLineParser.h"
 #include "ConsoleWrapper.h"
-#include "CSDocCompiler.h"
-#include "DocSetBuilder.h"
-#include "DocSetBuilderCache.h"
+#include <zDocument/CSDocCompiler.h>
+#include <zDocument/DocSetBuilder.h>
+#include <zDocument/DocSetBuilderCache.h>
 
 
 CommandLineBuilder::CommandLineBuilder(GlobalSettings& global_settings)

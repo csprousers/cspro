@@ -1,9 +1,10 @@
-﻿#pragma once
+#pragma once
 
+#include <zDocument/zDocument.h>
 #include <zUtilO/FromString.h>
 
 
-class DocBuildSettings
+class ZDOCUMENT_API DocBuildSettings
 {
 public:
     static DocBuildSettings SettingsForCSDocBuildToClipboard();
@@ -167,4 +168,4 @@ private:
 };
 
 
-template<> std::optional<DocBuildSettings::BuildType> FromString<DocBuildSettings::BuildType>(std::string_view text_sv);
+template<> ZDOCUMENT_API std::optional<DocBuildSettings::BuildType> FromString<DocBuildSettings::BuildType>(std::string_view text_sv);

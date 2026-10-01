@@ -1,4 +1,6 @@
-﻿#pragma once
+#pragma once
+
+#include <zDocument/zDocument.h>
 
 
 // TitleManager caches the titles of CSPro Documents in a SettingsDb;
@@ -6,7 +8,7 @@
 // is more recent than the cache, the file will be compiled to get a title;
 // an exception is thrown if the title cannot be found
 
-class TitleManager
+class ZDOCUMENT_API TitleManager
 {
 public:
     TitleManager(cs::non_null_shared_or_raw_ptr<DocSetSpec> doc_set_spec);

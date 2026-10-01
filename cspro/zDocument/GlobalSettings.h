@@ -1,9 +1,10 @@
-﻿#pragma once
+#pragma once
 
+#include <zDocument/zDocument.h>
 #include <zUtilO/SettingsDb.h>
 
 
-class GlobalSettings
+class ZDOCUMENT_API GlobalSettings
 {
 public:
     GlobalSettings();

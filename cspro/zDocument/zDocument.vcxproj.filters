@@ -151,6 +151,9 @@
     <ClInclude Include="DocSetTableOfContents.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="DocumentBuildMessageTarget.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="GenerateTask.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -164,6 +167,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="HtmlTags.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="NotepadPlusPlusColorizer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="PdfCreator.h">

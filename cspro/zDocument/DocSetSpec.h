@@ -1,12 +1,15 @@
-﻿#pragma once
+#pragma once
 
-#include <CSDocument/DocSetComponent.h>
-#include <CSDocument/DocSetIndex.h>
-#include <CSDocument/DocSetSettings.h>
-#include <CSDocument/DocSetTableOfContents.h>
+#include <zDocument/zDocument.h>
+#include <zToolsO/CaseInsensitiveComparer.h>
+#include <zDocument/DocSetComponent.h>
+#include <zDocument/DocSetIndex.h>
+#include <zDocument/DocSetSettings.h>
+#include <zDocument/DocSetTableOfContents.h>
+#include <zDocument/GlobalSettings.h>
 
 
-class DocSetSpec
+class ZDOCUMENT_API DocSetSpec
 {
     friend class DocSetCompiler;
 

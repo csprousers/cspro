@@ -1,6 +1,7 @@
-﻿#pragma once
+#pragma once
 
 #include <zUtilF/LoggingListBox.h>
+#include <zDocument/GenerateTask.h>
 
 
 class GenerateDlg : public CDialog, public GenerateTask::Interface

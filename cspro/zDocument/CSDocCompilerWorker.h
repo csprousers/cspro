@@ -1,6 +1,6 @@
 #pragma once
 
-#include <CSDocument/CSDocCompilerSettings.h>
+#include <zDocument/CSDocCompilerSettings.h>
 #include <zLogicO/FunctionTable.h>
 #include <regex>
 #include <span>

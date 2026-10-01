@@ -1,15 +1,16 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "CSDocument.h"
 #include "CommandLineBuilder.h"
 #include "CommandLineParser.h"
 #include "CSDocFrame.h"
-#include "CSProUsersBlogBuilder.h"
 #include "DocSetComponentDocTemplate.h"
 #include "DocSetComponentFrame.h"
 #include "DocSetSpecFrame.h"
 #include <zUtilO/ImsaDlg.h>
 #include <zUtilF/CommonControls.h>
 #include <zUtilF/MDIFrameWndHelpers.h>
+#include <zDocument/CSProUsersBlogBuilder.h>
+#include <zDocument/NotepadPlusPlusColorizer.h>
 
 
 namespace
@@ -87,8 +88,7 @@ BOOL CSDocumentApp::InitInstance()
 
         else if( command_line_parser.CreateNotepadPlusPlusColorizer() )
         {
-            CommandLineBuilder builder(global_settings);
-            builder.CreateNotepadPlusPlusColorizer();
+            CreateNotepadPlusPlusColorizer(global_settings);
             return FALSE;
         }
     }

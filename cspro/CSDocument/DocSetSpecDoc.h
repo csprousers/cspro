@@ -1,7 +1,7 @@
-﻿#pragma once
+#pragma once
 
-#include <CSDocument/DocSetSpec.h>
 #include <CSDocument/TextEditDoc.h>
+#include <zDocument/DocSetSpec.h>
 
 class DocSetSpecFrame;
 

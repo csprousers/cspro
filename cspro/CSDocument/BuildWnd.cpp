@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "BuildWnd.h"
 #include "CSDocument.h"
 
@@ -91,4 +91,16 @@ TextEditDoc* CSDocumentBuildWnd::OpenDocumentOnMessageClick(const std::string& f
     }
 
     return nullptr;
+}
+
+
+void CSDocumentBuildWnd::AddDocumentError(const std::string& file_path_with_error, const std::string& error_text)
+{
+    AddError(file_path_with_error, error_text);
+}
+
+
+void CSDocumentBuildWnd::AddDocumentWarning(const std::string& file_path_with_error, const std::string& error_text)
+{
+    AddWarning(file_path_with_error, error_text);
 }

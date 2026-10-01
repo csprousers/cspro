@@ -33,6 +33,9 @@ CSDocCompilerBuildToFileGenerateTask::CSDocCompilerBuildToFileGenerateTask(cs::n
 }
 
 
+CSDocCompilerBuildToFileGenerateTask::~CSDocCompilerBuildToFileGenerateTask() = default;
+
+
 void CSDocCompilerBuildToFileGenerateTask::ValidateInputs()
 {
     if( m_outputFilePath.empty() )

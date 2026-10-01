@@ -1,6 +1,7 @@
-﻿#pragma once
+#pragma once
 
-#include <CSDocument/CSDocCompilerSettings.h>
+#include <zDocument/zDocument.h>
+#include <zDocument/CSDocCompilerSettings.h>
 
 class PdfCreator;
 
@@ -9,7 +10,7 @@ class PdfCreator;
 // CSDocCompiler
 // --------------------------------------------------------------------------
 
-class CSDocCompiler
+class ZDOCUMENT_API CSDocCompiler
 {
 public:
     std::string CompileToHtml(CSDocCompilerSettings& settings, std::string csdoc_file_path, std::string_view csdoc_text_sv);
@@ -20,11 +21,12 @@ public:
 // CSDocCompilerBuildToFileGenerateTask
 // --------------------------------------------------------------------------
 
-class CSDocCompilerBuildToFileGenerateTask : public GenerateTask
+class ZDOCUMENT_API CSDocCompilerBuildToFileGenerateTask : public GenerateTask
 {
 public:
     CSDocCompilerBuildToFileGenerateTask(cs::non_null_shared_or_raw_ptr<DocSetSpec> doc_set_spec, DocBuildSettings base_build_settings,
                                          std::string csdoc_file_path, std::string csdoc_text, std::string output_file_path);
+    ~CSDocCompilerBuildToFileGenerateTask();
 
     void ValidateInputs() override;
 

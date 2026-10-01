@@ -1,5 +1,5 @@
-﻿#include "StdAfx.h"
-#include "CSDocCompilerSettings.h"
+#include "StdAfx.h"
+#include "CSDocCompilerSettingsForCSDocumentPreview.h"
 
 
 CSDocCompilerSettingsForCSDocumentPreview::CSDocCompilerSettingsForCSDocumentPreview(cs::non_null_shared_or_raw_ptr<DocSetSpec> doc_set_spec, BuildWnd* const build_wnd)

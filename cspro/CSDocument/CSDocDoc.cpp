@@ -1,7 +1,8 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "CSDocDoc.h"
 #include "CSDocument.h"
-#include "DocSetSpec.h"
+#include <zToolsO/DirectoryLister.h>
+#include <zDocument/DocSetSpec.h>
 
 
 namespace
