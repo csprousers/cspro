@@ -22,7 +22,7 @@ BuildToolDocSetBuilder::~BuildToolDocSetBuilder() noexcept = default;
 
 void BuildToolDocSetBuilder::BuildDocSet(std::string csdocset_file_path, std::string output_directory, const std::string& build_name)
 {
-    ASSERT(PortableFunctions::FileIsRegular(csdocset_file_path) && !output_directory.empty());
+    ASSERT(PortableFunctions::FileIsRegular(csdocset_file_path));
 
     // compile the doc set
     DocSetSpec doc_set_spec(std::move(csdocset_file_path));
@@ -36,7 +36,9 @@ void BuildToolDocSetBuilder::BuildDocSet(std::string csdocset_file_path, std::st
     );
 
     DocBuildSettings doc_set_settings_for_build = doc_set_spec.GetSettings().GetEvaluatedBuildSettings(build_name);
-    doc_set_settings_for_build.SetOutputDirectory(std::move(output_directory));
+
+    if( !output_directory.empty() )
+        doc_set_settings_for_build.SetOutputDirectory(std::move(output_directory));
 
     // generate the build task
     const std::unique_ptr<DocSetBuilderBaseGenerateTask> generate_task = DocSetBuilderBaseGenerateTask::CreateForBuild(

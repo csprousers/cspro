@@ -27,11 +27,13 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="HelpBuilder.h" />
     <ClInclude Include="NotepadPlusPlusColorizer.h" />
     <ClInclude Include="StdAfx.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AssemblyInfo.cpp" />
+    <ClCompile Include="HelpBuilder.cpp" />
     <ClCompile Include="NotepadPlusPlusColorizer.cpp" />
     <ClCompile Include="StdAfx.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
@@ -43,6 +45,10 @@
   <ItemGroup>
     <ProjectReference Include="..\..\cspro\zAppO\zAppO.vcxproj">
       <Project>{a417c381-2afd-4889-ae6b-a15e8436da45}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\cspro\zDocument\zDocument.vcxproj">
+      <Project>{c50fa4ad-7af7-408b-b798-e8f01925b0ca}</Project>
       <Private>false</Private>
     </ProjectReference>
     <ProjectReference Include="..\..\cspro\zLogicO\zLogicO.vcxproj">

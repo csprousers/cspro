@@ -1,7 +1,6 @@
 #include "StdAfx.h"
 #include "NotepadPlusPlusColorizer.h"
 #include <zToolsO/FileIO.h>
-#include <zToolsO/PortableFunctions.h>
 #include <zAppO/PFF.h>
 #include <zLogicO/ReservedWords.h>
 

@@ -535,35 +535,40 @@ namespace CSPro_Installer_Generator
 
             if( build_helps )
             {
-                string command_line = "-build \"Compiled HTML Help\" -input";
+                var messages = new List<string>();
+
+                var help_builder = new CSPro.InstallerGenerator.HelpBuilder(
+                    textBoxHelps.Text,
+                    (string text) => { messages.Add(text); }
+                );
 
                 foreach( string program in inputs.Helps )
-                    command_line = command_line + $" \"{Path.Combine(textBoxHelps.Text, program, $"{program}.csdocset")}\"";
+                {
+                    AddToLog(LogType.Log, $"Building helps for {program}...", LogExtra.InSection);
 
-                AddToLog(LogType.Log, $"Building helps using CSDocument...", LogExtra.InSection);
+                    help_builder.Create(program);
 
-                var process = new Process();
-                process.StartInfo = new ProcessStartInfo(_commonPaths.GetLatestCSDocument(), command_line);
-                process.Start();
-                process.WaitForExit();
+                    // show the messages queued from the log text callback
+                    foreach( string message in messages )
+                        AddToLog(LogType.Log, message, LogExtra.InSection);
 
-                if( process.ExitCode != 0 )
-                    throw new Exception($"There was an error building the helps using the arguments: {command_line}");
+                    messages.Clear();
+                }
             }
 
             int number_helps = 0;
 
             foreach( string program in inputs.Helps )
             {
-                string chm_filename = Path.Combine(textBoxHelps.Text, @"Outputs\CHM", $"{program}.chm");
+                string chm_file_path = Path.Combine(textBoxHelps.Text, @"Outputs\CHM", $"{program}.chm");
 
-                if( !File.Exists(chm_filename) )
+                if( !File.Exists(chm_file_path) )
                     throw new Exception($"The {build_type} {program} was not created successfully.");
 
                 if( copy_helps )
-                    File.Copy(chm_filename, Path.Combine(_componentsHelpsDirectory, Path.GetFileName(chm_filename)));
+                    File.Copy(chm_file_path, Path.Combine(_componentsHelpsDirectory, Path.GetFileName(chm_file_path)));
 
-                AddBuildMessageToLog(BuildMessage.Build, $"{build_type} {Path.GetFileName(chm_filename)}", build_helps, copy_helps);
+                AddBuildMessageToLog(BuildMessage.Build, $"{build_type} {Path.GetFileName(chm_file_path)}", build_helps, copy_helps);
 
                 ++number_helps;
             }

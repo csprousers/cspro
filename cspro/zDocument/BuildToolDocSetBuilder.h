@@ -23,6 +23,7 @@ public:
 
     void SetLogger(std::function<void(SharableString text)> logger) noexcept { m_logger = std::move(logger); }
 
+    // The output directory will only be set if output_directory is not empty.
     void BuildDocSet(std::string csdocset_file_path, std::string output_directory, const std::string& build_name);
 
 private:
