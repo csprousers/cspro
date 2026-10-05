@@ -134,7 +134,7 @@ void Builder::BuildSite()
 }
 
 
-void Builder::UpdateBlog()
+void Builder::UpdateBlog(const BuildToolDocSetBuilder& build_tool_doc_set_builder)
 {
     m_loggingListBox.AddText("Building the blog...");
 
@@ -146,7 +146,12 @@ void Builder::UpdateBlog()
     m_loggingListBox.AddText("Converting the blog posts in %s...", Path::GetFilename(blog_doc_set_spec_file_path).c_str());
 
     CSProUsersBlogBuilder blog_builder;
-    const std::vector<std::string> file_paths =  blog_builder.Build(m_inputs.cspro_root, blog_doc_set_spec_file_path, posts_directory);
+
+    const std::vector<std::string> file_paths =  blog_builder.Build(
+        build_tool_doc_set_builder.GetGlobalSettings(),
+        blog_doc_set_spec_file_path,
+        posts_directory
+    );
 
     if( !file_paths.empty() )
     {
@@ -157,7 +162,7 @@ void Builder::UpdateBlog()
 }
 
 
-void Builder::UpdateHelps()
+void Builder::UpdateHelps(BuildToolDocSetBuilder& build_tool_doc_set_builder)
 {
     m_loggingListBox.AddText("Building the helps...");
 
@@ -177,21 +182,20 @@ void Builder::UpdateHelps()
                  Path::Combine(helps_output_directory, "resources", Path::GetFilename(resource_file_path)));
     }
 
-    const std::string csdocument_outputs_directory = Path::Combine(m_inputs.helps, "Outputs");
-    RecycleDirectory(csdocument_outputs_directory);
-
     DirectoryLister directory_lister(true);
     directory_lister.SetNameFilter("*.csdocset");
 
-    for( const std::string& csdocset_file_path : directory_lister.GetPaths(m_inputs.helps) )
+    for( std::string csdocset_file_path : directory_lister.GetPaths(m_inputs.helps) )
     {
         // build the website
         m_loggingListBox.AddText("Building the website for %s...", Path::GetFilenameWithoutExtension(csdocset_file_path).c_str());
-        BuildDocSet(csdocset_file_path, "CSPro Users Help Website");
-    }
 
-    CopyDirectoryRecursive(Path::Combine(csdocument_outputs_directory, "Website"),
-                           helps_output_directory);
+        build_tool_doc_set_builder.BuildDocSet(
+            std::move(csdocset_file_path),
+            helps_output_directory,
+            "CSPro Users Help Website"
+        );
+    }
 }
 
 

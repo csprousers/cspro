@@ -40,4 +40,6 @@ private:
     LoggingListBox m_loggingListBox;
 
     std::unique_ptr<std::thread> m_buildThread;
+
+    std::unique_ptr<BuildToolDocSetBuilder> m_buildToolDocSetBuilder;
 };

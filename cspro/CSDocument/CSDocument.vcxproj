@@ -15,7 +15,7 @@
   <Import Project="..\properties\project-settings.props" />
   <ItemDefinitionGroup Condition="'$(Platform)'=='x64'">
     <Link>
-      <StackReserveSize>2048000</StackReserveSize>
+      <StackReserveSize>0x400000</StackReserveSize>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

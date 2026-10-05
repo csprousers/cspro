@@ -11,11 +11,11 @@ public:
 
     void BuildSite();
 
-    void UpdateBlog();
+    void UpdateBlog(const BuildToolDocSetBuilder& build_tool_doc_set_builder);
 
     void UpdateReleases();
 
-    void UpdateHelps();
+    void UpdateHelps(BuildToolDocSetBuilder& build_tool_doc_set_builder);
 
     void UpdateMobileWorkshop();
 

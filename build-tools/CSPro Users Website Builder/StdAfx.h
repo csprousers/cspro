@@ -12,3 +12,4 @@
 #include <zJson/Json.h>
 #include <zUtilO/SettingsDb.h>
 #include <zUtilF/LoggingListBox.h>
+#include <zDocument/BuildToolDocSetBuilder.h>

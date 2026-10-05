@@ -235,14 +235,11 @@ CSProUsersBlogBuilder::CSProUsersBlogBuilder() = default;
 CSProUsersBlogBuilder::~CSProUsersBlogBuilder() = default;
 
 
-std::vector<std::string> CSProUsersBlogBuilder::Build(const std::string& cspro_directory, const std::string& blog_doc_set_spec_file_path,
+std::vector<std::string> CSProUsersBlogBuilder::Build(const GlobalSettings& global_settings, const std::string& blog_doc_set_spec_file_path,
                                                       const std::string& posts_output_directory)
 {
     // compile the doc set
     DocSetSpec doc_set_spec(blog_doc_set_spec_file_path);
-
-    GlobalSettings global_settings;
-    global_settings.cspro_code_path = cspro_directory;
 
     DocSetCompiler doc_set_compiler(global_settings, DocSetCompiler::ThrowErrors { });
     doc_set_compiler.CompileSpec(doc_set_spec, FileIO::ReadText(blog_doc_set_spec_file_path),

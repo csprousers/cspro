@@ -11,7 +11,7 @@ public:
     ~CSProUsersBlogBuilder();
 
     // Returns the file paths of the blog entries created.
-    std::vector<std::string> Build(const std::string& cspro_directory, const std::string& blog_doc_set_spec_file_path,
+    std::vector<std::string> Build(const GlobalSettings& global_settings, const std::string& blog_doc_set_spec_file_path,
                                    const std::string& posts_output_directory);
 
 private:

@@ -19,6 +19,7 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="BuildToolDocSetBuilder.cpp" />
     <ClCompile Include="CacheableCalculator.cpp" />
     <ClCompile Include="CSDocCompiler.cpp" />
     <ClCompile Include="CSDocCompilerColorizers.cpp" />
@@ -50,6 +51,7 @@
     <ClCompile Include="TitleManager.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="BuildToolDocSetBuilder.h" />
     <ClInclude Include="CacheableCalculator.h" />
     <ClInclude Include="CSDocCompiler.h" />
     <ClInclude Include="CSDocCompilerSettings.h" />

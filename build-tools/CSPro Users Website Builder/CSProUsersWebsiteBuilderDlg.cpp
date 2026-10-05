@@ -142,6 +142,17 @@ void CSProUsersWebsiteBuilderDlg::OnBuildTask(const UINT nID)
                 throw CSProException("Specify the last processed commit.");
         }
 
+        if( ( m_buildToolDocSetBuilder == nullptr ) &&
+            ( nID == IDC_UPDATE_BLOG ||
+              nID == IDC_UPDATE_HELPS ) )
+        {
+            m_buildToolDocSetBuilder = std::make_unique<BuildToolDocSetBuilder>();
+
+            m_buildToolDocSetBuilder->SetLogger(
+                [this](SharableString text) { m_loggingListBox.AddText(std::move(text)); }
+            );
+        }
+
         m_settingsDb.Write<std::string>(HelpsDirectoryKey_sv, m_inputs.helps);
         m_settingsDb.Write<std::string>(MobileWorkshopDirectoryKey_sv, m_inputs.mobile_workshop);
         m_settingsDb.Write<std::string>(RubyDirectoryKey_sv, m_inputs.ruby);
@@ -167,7 +178,7 @@ void CSProUsersWebsiteBuilderDlg::OnBuildTask(const UINT nID)
                             break;
 
                         case IDC_UPDATE_BLOG:
-                            builder->UpdateBlog();
+                            builder->UpdateBlog(*m_buildToolDocSetBuilder);
                             break;
 
                         case IDC_UPDATE_RELEASES:
@@ -175,7 +186,7 @@ void CSProUsersWebsiteBuilderDlg::OnBuildTask(const UINT nID)
                             break;
 
                         case IDC_UPDATE_HELPS:
-                            builder->UpdateHelps();
+                            builder->UpdateHelps(*m_buildToolDocSetBuilder);
                             break;
 
                         case IDC_UPDATE_MOBILE_WORKSHOP:

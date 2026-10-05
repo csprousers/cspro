@@ -14,6 +14,9 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="BuildToolDocSetBuilder.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="CacheableCalculator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -97,6 +100,9 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="BuildToolDocSetBuilder.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="CacheableCalculator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
