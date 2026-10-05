@@ -38,9 +38,6 @@
     <ClCompile Include="CSDocCompilerWorker.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CSProUsersBlogBuilder.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="DocBuildSettings.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -110,9 +107,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="CSDocCompilerWorker.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="CSProUsersBlogBuilder.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DocBuildSettings.h">

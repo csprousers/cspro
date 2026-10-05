@@ -27,7 +27,6 @@
     <ClCompile Include="CSDocCompilerSettings.cpp" />
     <ClCompile Include="CSDocCompilerSettingsForBuilding.cpp" />
     <ClCompile Include="CSDocCompilerWorker.cpp" />
-    <ClCompile Include="CSProUsersBlogBuilder.cpp" />
     <ClCompile Include="DocBuildSettings.cpp" />
     <ClCompile Include="DocSetBuilderBaseGenerateTask.cpp" />
     <ClCompile Include="DocSetBuilderCache.cpp" />
@@ -55,7 +54,6 @@
     <ClInclude Include="CSDocCompiler.h" />
     <ClInclude Include="CSDocCompilerSettings.h" />
     <ClInclude Include="CSDocCompilerWorker.h" />
-    <ClInclude Include="CSProUsersBlogBuilder.h" />
     <ClInclude Include="DocBuildSettings.h" />
     <ClInclude Include="DocSetBuilder.h" />
     <ClInclude Include="DocSetBuilderCache.h" />

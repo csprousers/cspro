@@ -18,6 +18,9 @@
     <ClInclude Include="Builder.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="CSProUsersBlogBuilder.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="CSProUsersWebsiteBuilder.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -36,6 +39,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Builder.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CSProUsersBlogBuilder.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CSProUsersWebsiteBuilder.cpp">
