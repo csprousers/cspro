@@ -33,8 +33,6 @@ private:
 
     void CopyDirectoryRecursive(const std::string& input_directory, const std::string& output_directory);
 
-    void BuildDocSet(const std::string& csdocset_file_path, const char* build_name);
-
     size_t ClearOutputs(GitIgnoreEvaluator& exclusion_evaluator, const std::string& directory_path, bool recursive);
 
     static void CreateWebsiteRemoveScript(const std::string& script_file_path, const std::vector<std::string>& removed_files);

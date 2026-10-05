@@ -37,8 +37,7 @@ END_MESSAGE_MAP()
 CSProUsersWebsiteBuilderDlg::CSProUsersWebsiteBuilderDlg(CWnd* const pParent/* = nullptr*/)
     :   ResizableDlgEx(IDD_BUILDER, pParent),
         m_settingsDb("CSProUsersWebsiteBuilder.db"),
-        m_inputs{ MakeFullPath(PortableFunctions::PathGetDirectory(__FILE__), "..\\.."),
-                  m_settingsDb.ReadOrDefault<std::string>(HelpsDirectoryKey_sv),
+        m_inputs{ m_settingsDb.ReadOrDefault<std::string>(HelpsDirectoryKey_sv),
                   m_settingsDb.ReadOrDefault<std::string>(MobileWorkshopDirectoryKey_sv),
                   m_settingsDb.ReadOrDefault<std::string>(RubyDirectoryKey_sv),
                   m_settingsDb.ReadOrDefault<std::string>(CSProUsersInputDirectoryKey_sv),
@@ -60,7 +59,6 @@ void CSProUsersWebsiteBuilderDlg::DoDataExchange(CDataExchange* const pDX)
 {
     __super::DoDataExchange(pDX);
 
-    DDX_Text(pDX, IDC_DIRECTORY_CSPRO, m_inputs.cspro_root, true);
     DDX_Text(pDX, IDC_DIRECTORY_HELPS, m_inputs.helps, true);
     DDX_Text(pDX, IDC_DIRECTORY_MOBILE_WORKSHOP, m_inputs.mobile_workshop, true);
     DDX_Text(pDX, IDC_DIRECTORY_RUBY, m_inputs.ruby, true);
@@ -115,9 +113,6 @@ void CSProUsersWebsiteBuilderDlg::OnBuildTask(const UINT nID)
             throw CSProException("You must wait until the current build task has completed.");
 
         // validate the directories, and if successful, save them for future runs of this program
-        if( !PortableFunctions::FileIsDirectory(m_inputs.cspro_root) )
-            throw CSProException("Specify a valid CSPro directory.");
-
         if( nID == IDC_UPDATE_HELPS && !PortableFunctions::FileIsDirectory(m_inputs.helps) )
             throw CSProException("Specify a valid helps directory.");
 

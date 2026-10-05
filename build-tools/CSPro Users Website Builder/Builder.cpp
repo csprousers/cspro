@@ -3,7 +3,6 @@
 #include "CSProUsersBlogBuilder.h"
 #include "GooglePlayPrivacyPolicyGenerator.h"
 #include <zUtilO/Interapp.h>
-#include <zUtilO/TemporaryFile.h>
 #include <zZip/ZipFile.h>
 #include <zGit/GitBlob.h>
 #include <zGit/GitBranch.h>
@@ -75,25 +74,6 @@ void Builder::CopyDirectoryRecursive(const std::string& input_directory, const s
                  Path::Combine(output_directory, input_file_path.substr(input_directory.length())),
                  false);
     }
-}
-
-
-void Builder::BuildDocSet(const std::string& csdocset_file_path, const char* const build_name)
-{
-    const std::string csdocument_exe = Path::Combine(m_inputs.cspro_root, R"(build\x64\Debug\bin\CSDocument.exe)");
-
-    if( !PortableFunctions::FileIsRegular(csdocument_exe) )
-        throw CSProException("CSDocument must exist at: " + csdocument_exe);
-
-    std::string command = EscapeCommandLineArgument(csdocument_exe);
-
-    command.append(" -build ").append(EscapeCommandLineArgument(build_name))
-           .append(" -input ").append(EscapeCommandLineArgument(csdocset_file_path));
-
-    int return_code;
-
-    if( !RunProgram(TC::ToWide(command), &return_code, SW_SHOWNA, true, true) )
-        throw CSProException("Error running CSDocument (build '%s'): %s", build_name, csdocset_file_path.c_str());
 }
 
 
