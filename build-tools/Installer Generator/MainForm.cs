@@ -6,7 +6,6 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
-using Ionic.Zip;
 using LibGit2Sharp;
 using RestSharp;
 
@@ -895,8 +894,8 @@ namespace CSPro_Installer_Generator
 
                 CleanComponents();
 
-                string zip_exe = Path.Combine(Path.GetDirectoryName(_installerExe), Path.GetFileNameWithoutExtension(_installerExe) + ".zip");
-                File.Delete(zip_exe);
+                string zip_file_path = Path.Combine(Path.GetDirectoryName(_installerExe), Path.GetFileNameWithoutExtension(_installerExe) + ".zip");
+                File.Delete(zip_file_path);
 
                 BuildCSPro(inputs, build_programs, true, rebuild_programs, true);
 
@@ -913,14 +912,13 @@ namespace CSPro_Installer_Generator
                 CopyRedistributables();
 
                 // create the zip file
-                using( ZipFile zip = new ZipFile() )
-                {
-                    AddFilesToZip(zip, new DirectoryInfo(_componentsDirectory), 0);
-                    zip.Save(zip_exe);
-                }
+                var file_paths_on_disk = new List<string>();
+                var file_paths_in_zip = new List<string>();
+                AddFilesToZipList(file_paths_on_disk, file_paths_in_zip, new DirectoryInfo(_componentsDirectory), 0);
+                CSPro.InstallerGenerator.ZipCreator.Create(zip_file_path, file_paths_on_disk, file_paths_in_zip);
 
                 // go to the zip file in Windows Explorer
-                Process.Start("explorer.exe", $"/select,\"{zip_exe}\"");
+                Process.Start("explorer.exe", $"/select,\"{zip_file_path}\"");
             }
 
             catch( Exception exception )
@@ -931,10 +929,10 @@ namespace CSPro_Installer_Generator
             comboBoxZipActions.SelectedIndex = -1;
         }
 
-        private void AddFilesToZip(ZipFile zip, DirectoryInfo di, int subdirectory_depth)
+        private void AddFilesToZipList(List<string> file_paths_on_disk, List<string> file_paths_in_zip, DirectoryInfo di, int subdirectory_depth)
         {
             foreach( var sub_di in di.GetDirectories() )
-                AddFilesToZip(zip, sub_di, subdirectory_depth + 1);
+                AddFilesToZipList(file_paths_on_disk, file_paths_in_zip, sub_di, subdirectory_depth + 1);
 
             foreach( var fi in di.GetFiles() )
             {
@@ -946,7 +944,8 @@ namespace CSPro_Installer_Generator
                     zip_directory = di.FullName.Substring(slash_pos + 1);
                 }
 
-                zip.AddFile(fi.FullName, zip_directory);
+                file_paths_on_disk.Add(fi.FullName);
+                file_paths_in_zip.Add(Path.Combine(zip_directory, fi.Name));
             }
         }
 
