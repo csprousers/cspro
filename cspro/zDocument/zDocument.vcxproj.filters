@@ -145,6 +145,9 @@
     <ClInclude Include="GenerateTask.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="GenerateTaskInterface.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="GenerateTaskProcessRunner.h">
       <Filter>Header Files</Filter>
     </ClInclude>

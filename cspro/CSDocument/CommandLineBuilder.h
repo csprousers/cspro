@@ -1,11 +1,11 @@
-﻿#pragma once
+#pragma once
 
 class CommandLineParser;
 class ConsoleWrapper;
 class DocSetBuilderCache;
 
 
-class CommandLineBuilder : public GenerateTask::Interface
+class CommandLineBuilder : public GenerateTaskInterface
 {
 public:
     CommandLineBuilder(GlobalSettings& global_settings);
@@ -13,14 +13,14 @@ public:
     void Build(const CommandLineParser& command_line_parser);
 
 protected:
-    // GenerateTask::Interface overrides
+    // GenerateTaskInterface overrides
     void SetTitle(const std::string& title) override;
     void LogText(SharableString text) override;
     void UpdateProgress(double percent) override;
     void SetOutputText(const std::string& text) override;
     void OnCreatedOutput(std::string output_title, std::string path) override;
     void OnException(const CSProException& exception) override;
-    void OnCompletion(GenerateTask::Status status) override;
+    void OnCompletion(GenerateTaskStatus status) override;
     const GlobalSettings& GetGlobalSettings() override;
 
 private:
@@ -40,7 +40,7 @@ private:
 
     // for Build
     ConsoleWrapper* m_console;
-    std::optional<GenerateTask::Status> m_completionStatus;
+    std::optional<GenerateTaskStatus> m_completionStatus;
     std::vector<std::tuple<std::string, std::string>> m_finalOutputs;
     std::shared_ptr<DocSetBuilderCache> m_docSetBuilderCache;
 };

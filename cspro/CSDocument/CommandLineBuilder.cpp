@@ -49,10 +49,10 @@ void CommandLineBuilder::Build(const CommandLineParser& command_line_parser)
                 Sleep(SleepMilliseconds);
             }
 
-            if( *m_completionStatus == GenerateTask::Status::Canceled )
+            if( *m_completionStatus == GenerateTaskStatus::Canceled )
                 throw CSProException("Build canceled!");
 
-            if( *m_completionStatus == GenerateTask::Status::EndedInException )
+            if( *m_completionStatus == GenerateTaskStatus::EndedInException )
                 throw CSProException("Build canceled due to errors building: %s", input_file_path.c_str());
         }
 
@@ -268,7 +268,7 @@ void CommandLineBuilder::OnException(const CSProException& exception)
 }
 
 
-void CommandLineBuilder::OnCompletion(const GenerateTask::Status status)
+void CommandLineBuilder::OnCompletion(const GenerateTaskStatus status)
 {
     m_completionStatus = status;
 }

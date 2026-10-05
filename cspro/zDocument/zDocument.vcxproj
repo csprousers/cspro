@@ -66,6 +66,7 @@
     <ClInclude Include="DocSetTableOfContents.h" />
     <ClInclude Include="DocumentBuildMessageTarget.h" />
     <ClInclude Include="GenerateTask.h" />
+    <ClInclude Include="GenerateTaskInterface.h" />
     <ClInclude Include="GenerateTaskProcessRunner.h" />
     <ClInclude Include="GlobalSettings.h" />
     <ClInclude Include="HelpTasks.h" />

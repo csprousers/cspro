@@ -1,62 +1,34 @@
-﻿#pragma once
+#pragma once
 
+#include <zDocument/GenerateTaskInterface.h>
 #include <thread>
-
-class GlobalSettings;
 
 
 class GenerateTask
 {
 public:
-    enum class Status { NotStarted, Running, Complete, Canceled, EndedInException };
-
-    class Interface
-    {
-    public:
-        virtual ~Interface() { }
-
-        virtual void SetTitle(const std::string& title) = 0;
-
-        virtual void LogText(SharableString text) = 0;
-
-        template<typename... Args>
-        void LogText(const char* formatter, Args const&... args);
-
-        virtual void UpdateProgress(double percent) = 0;
-
-        virtual void SetOutputText(const std::string& text) = 0;
-
-        virtual void OnCreatedOutput(std::string output_title, std::string path) = 0;
-
-        virtual void OnException(const CSProException& exception) = 0;
-
-        virtual void OnCompletion(Status status) = 0;
-
-        virtual const GlobalSettings& GetGlobalSettings() = 0;
-    };
-
     virtual ~GenerateTask();
 
     virtual void ValidateInputs() { }
 
-    bool IsInterfaceSet() const              { return ( m_interface != nullptr ); }
-    Interface& GetInterface()                { return *m_interface; }
-    void SetInterface(Interface& interface_) { m_interface = &interface_; }
+    bool IsInterfaceSet() const noexcept                          { return ( m_interface != nullptr ); }
+    GenerateTaskInterface& GetInterface()                         { return *m_interface; }
+    void SetInterface(GenerateTaskInterface& interface_) noexcept { m_interface = &interface_; }
 
     void Run();
-    bool IsRunning() const { return ( m_status == Status::Running ); }
+    bool IsRunning() const { return ( m_status == GenerateTaskStatus::Running ); }
 
     void Cancel();
-    bool IsCanceled() const { return ( m_status == Status::Canceled ); }
+    bool IsCanceled() const { return ( m_status == GenerateTaskStatus::Canceled ); }
 
 protected:
     // subclasses must override OnRun
     virtual void OnRun() = 0;
 
 private:
-    Interface* m_interface = nullptr;
+    GenerateTaskInterface* m_interface = nullptr;
     std::thread m_runThread;
-    Status m_status = Status::NotStarted;
+    GenerateTaskStatus m_status = GenerateTaskStatus::NotStarted;
 };
 
 
@@ -64,13 +36,6 @@ private:
 // --------------------------------------------------------------------------
 // inline implementations
 // --------------------------------------------------------------------------
-
-template<typename... Args>
-void GenerateTask::Interface::LogText(const char* const formatter, Args const&... args)
-{
-    LogText(FormatText(formatter, args...));
-}
-
 
 inline GenerateTask::~GenerateTask()
 {
@@ -81,26 +46,26 @@ inline GenerateTask::~GenerateTask()
 
 inline void GenerateTask::Run()
 {
-    ASSERT(m_interface != nullptr && m_status == Status::NotStarted);
+    ASSERT(m_interface != nullptr && m_status == GenerateTaskStatus::NotStarted);
 
     m_runThread = std::thread(
         [&]()
         {
             try
             {
-                m_status = Status::Running;
+                m_status = GenerateTaskStatus::Running;
                 OnRun();
             }
 
             catch( const CSProException& exception )
             {
-                m_status = Status::EndedInException;
+                m_status = GenerateTaskStatus::EndedInException;
                 GetInterface().OnException(exception);
             }
 
-            if( m_status == Status::Running )
+            if( m_status == GenerateTaskStatus::Running )
             {
-                m_status = Status::Complete;
+                m_status = GenerateTaskStatus::Complete;
                 GetInterface().UpdateProgress(100);
             }
 
@@ -113,7 +78,7 @@ inline void GenerateTask::Cancel()
 {
     if( IsRunning() )
     {
-        m_status = Status::Canceled;
+        m_status = GenerateTaskStatus::Canceled;
         m_runThread.join();
     }
 }
