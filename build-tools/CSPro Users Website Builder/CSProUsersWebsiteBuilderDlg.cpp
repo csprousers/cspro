@@ -144,7 +144,8 @@ void CSProUsersWebsiteBuilderDlg::OnBuildTask(const UINT nID)
 
         if( ( m_buildToolDocSetBuilder == nullptr ) &&
             ( nID == IDC_UPDATE_BLOG ||
-              nID == IDC_UPDATE_HELPS ) )
+              nID == IDC_UPDATE_HELPS ||
+              nID == IDC_UPDATE_MOBILE_WORKSHOP ) )
         {
             m_buildToolDocSetBuilder = std::make_unique<BuildToolDocSetBuilder>();
 
@@ -190,7 +191,7 @@ void CSProUsersWebsiteBuilderDlg::OnBuildTask(const UINT nID)
                             break;
 
                         case IDC_UPDATE_MOBILE_WORKSHOP:
-                            builder->UpdateMobileWorkshop();
+                            builder->UpdateMobileWorkshop(*m_buildToolDocSetBuilder);
                             break;
 
                         case IDC_UPDATE_GOOGLE_PLAY_PRIVACY_POLICY:

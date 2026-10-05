@@ -17,7 +17,7 @@ public:
 
     void UpdateHelps(BuildToolDocSetBuilder& build_tool_doc_set_builder);
 
-    void UpdateMobileWorkshop();
+    void UpdateMobileWorkshop(BuildToolDocSetBuilder& build_tool_doc_set_builder);
 
     void UpdateGooglePlayPrivacyPolicy();
 

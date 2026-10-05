@@ -199,28 +199,38 @@ void Builder::UpdateHelps(BuildToolDocSetBuilder& build_tool_doc_set_builder)
 }
 
 
-void Builder::UpdateMobileWorkshop()
+void Builder::UpdateMobileWorkshop(BuildToolDocSetBuilder& build_tool_doc_set_builder)
 {
     m_loggingListBox.AddText("Building the mobile workshop materials...");
 
     const std::string mobile_workshop_output_directory = Path::Combine(m_inputs.csprousers_output, MobileWorkshopDirectory_sv);
+    const std::string mobile_workshop_pdf_directory = Path::Combine(mobile_workshop_output_directory, "pdf");
+    const std::string mobile_workshop_materials_directory = Path::Combine(mobile_workshop_output_directory, "materials");
 
     const std::string csdocset_file_path = Path::Combine(m_inputs.mobile_workshop, "CSProMobileWorkshop", "CSProMobileWorkshop.csdocset");
 
-    const std::string csdocument_outputs_directory = Path::Combine(m_inputs.mobile_workshop, "Outputs");
-    RecycleDirectory(csdocument_outputs_directory);
-
     // build the website
     m_loggingListBox.AddText("Building the website...");
-    BuildDocSet(csdocset_file_path, "CSPro Users Workshop Website");
-    CopyDirectoryRecursive(Path::Combine(csdocument_outputs_directory, "mobile-workshop"),
-                           mobile_workshop_output_directory);
+
+    build_tool_doc_set_builder.BuildDocSet(
+        csdocset_file_path,
+        mobile_workshop_output_directory,
+        "CSPro Users Workshop Website"
+    );
 
     // build the PDF
     m_loggingListBox.AddText("Building the PDF...");
-    BuildDocSet(csdocset_file_path, "PDF Documentation");
-    CopyFile(Path::Combine(csdocument_outputs_directory, "CSProMobileWorkshop.pdf"),
-             Path::Combine(mobile_workshop_output_directory, "pdf", "cspro-mobile-workshop.pdf"));
+
+    build_tool_doc_set_builder.BuildDocSet(
+        csdocset_file_path,
+        mobile_workshop_pdf_directory,
+        "PDF Documentation"
+    );
+
+    PortableFunctions::FileRenameWithExceptions(
+        Path::Combine(mobile_workshop_pdf_directory, "CSProMobileWorkshop.pdf"),
+        Path::Combine(mobile_workshop_pdf_directory, "cspro-mobile-workshop.pdf")
+    );
 
     // create the materials ZIP file
     m_loggingListBox.AddText("Building the materials ZIP file...");
@@ -230,7 +240,7 @@ void Builder::UpdateMobileWorkshop()
     directory_lister.AddPaths(zip_input_file_paths, Path::Combine(m_inputs.mobile_workshop, "FilesForExercises"));
     directory_lister.AddPaths(zip_input_file_paths, Path::Combine(m_inputs.mobile_workshop, "Questionnaire"));
 
-    std::string zip_output_file_path = Path::Combine(mobile_workshop_output_directory, "materials", "cspro-mobile-workshop-materials.zip");
+    std::string zip_output_file_path = Path::Combine(mobile_workshop_materials_directory, "cspro-mobile-workshop-materials.zip");
     FileIO::CreateDirectoriesForFile(zip_output_file_path);
 
     ZipCreator zip_creator(std::move(zip_output_file_path));
