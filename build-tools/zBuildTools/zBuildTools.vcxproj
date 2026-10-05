@@ -19,11 +19,13 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="LicenseGenerator.cpp" />
     <ClCompile Include="StdAfx.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="LicenseGenerator.h" />
     <ClInclude Include="StdAfx.h" />
     <ClInclude Include="zBuildTools.h" />
   </ItemGroup>
