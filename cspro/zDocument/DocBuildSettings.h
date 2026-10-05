@@ -3,6 +3,9 @@
 #include <zDocument/zDocument.h>
 #include <zUtilO/FromString.h>
 
+class DocSetCompiler;
+class DocSetSpec;
+
 
 class ZDOCUMENT_API DocBuildSettings
 {

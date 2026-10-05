@@ -1,26 +1,23 @@
 #pragma once
 
-#include <zDocument/zDocument.h>
-
 class CSDocCompilerSettingsForCSProUsersBlog;
 class CSProUsersBlogTagModifier;
 
 
-class ZDOCUMENT_API CSProUsersBlogBuilder
+class CSProUsersBlogBuilder
 {
 public:
-    CSProUsersBlogBuilder(GlobalSettings& global_settings, std::string blog_doc_set_spec_file_path, std::string output_directory);
+    CSProUsersBlogBuilder();
     ~CSProUsersBlogBuilder();
 
-    void Build();
+    // Returns the file paths of the blog entries created.
+    std::vector<std::string> Build(const std::string& cspro_directory, const std::string& blog_doc_set_spec_file_path,
+                                   const std::string& posts_output_directory);
 
 private:
-    void Build(const std::string& blog_file_path, const std::string& blog_text, const std::string& output_file_path);
+    void BuildBlog(const std::string& blog_file_path, const std::string& blog_text, const std::string& output_file_path);
 
 private:
-    std::string m_outputDirectory;
-    std::unique_ptr<CSProUsersBlogTagModifier> m_tagModifier;
-
-    DocSetSpec m_docSetSpec;
     std::unique_ptr<CSDocCompilerSettingsForCSProUsersBlog> m_settings;
+    std::unique_ptr<CSProUsersBlogTagModifier> m_tagModifier;
 };

@@ -9,7 +9,6 @@
 #include <zUtilO/ImsaDlg.h>
 #include <zUtilF/CommonControls.h>
 #include <zUtilF/MDIFrameWndHelpers.h>
-#include <zDocument/CSProUsersBlogBuilder.h>
 
 
 namespace
@@ -73,15 +72,6 @@ BOOL CSDocumentApp::InitInstance()
         {
             CommandLineBuilder builder(global_settings);
             builder.Build(command_line_parser);
-            return FALSE;
-        }
-
-        else if( command_line_parser.CreateCSProUsersBlog() )
-        {
-            CSProUsersBlogBuilder builder(global_settings,
-                                          command_line_parser.GetDocSetFilePath(),
-                                          command_line_parser.GetOutputPath());
-            builder.Build();
             return FALSE;
         }
     }

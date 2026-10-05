@@ -12,8 +12,6 @@ public:
     const std::string& GetBuildSettingsFilePath() const       { return m_buildSettingsFilePath; }
     const std::string& GetBuildNameOrType() const             { return m_buildNameOrType; }
 
-    bool CreateCSProUsersBlog() const { return m_createCSProUsersBlog; }
-
     const std::vector<std::string>& GetFilePaths() const { return m_filePaths; }
 
 protected:
@@ -31,8 +29,6 @@ private:
     std::string m_docSetFilePath;
     std::string m_buildSettingsFilePath;
     std::string m_buildNameOrType;
-
-    bool m_createCSProUsersBlog = false;
 };
 
 
@@ -96,11 +92,6 @@ inline void CommandLineParser::ParseParam(const wchar_t* const pszParam, const B
         else if( m_buildNameOrType.empty() && SO::EqualsNoCase("build", param) )
         {
             m_nextBuildValue = &m_buildNameOrType;
-        }
-
-        else if( !m_createCSProUsersBlog && SO::EqualsNoCase("csprousers-blog", param) )
-        {
-            m_createCSProUsersBlog = true;
         }
 
         else

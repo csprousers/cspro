@@ -2,6 +2,8 @@
 
 #include <zDocument/zDocument.h>
 #include <zDocument/CSDocCompilerSettings.h>
+#include <zDocument/DocBuildSettings.h>
+#include <zDocument/GenerateTask.h>
 
 class PdfCreator;
 

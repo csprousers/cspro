@@ -1,9 +1,12 @@
 #include "StdAfx.h"
 #include "CSProUsersBlogBuilder.h"
-#include "CSDocCompiler.h"
-#include "HtmlTags.h"
+#include <zToolsO/Encoders.h>
 #include <zToolsO/VectorHelpers.h>
+#include <zUtilO/FileExtensions.h>
 #include <zHtml/TagModifier.h>
+#include <zDocument/CSDocCompiler.h>
+#include <zDocument/DocSetCompiler.h>
+#include <zDocument/HtmlTags.h>
 
 
 // --------------------------------------------------------------------------
@@ -228,45 +231,57 @@ void CSProUsersBlogTagModifier::ProcessTag(std::string& start_tag, std::string* 
 // CSProUsersBlogBuilder
 // --------------------------------------------------------------------------
 
-CSProUsersBlogBuilder::CSProUsersBlogBuilder(GlobalSettings& global_settings, std::string blog_doc_set_spec_file_path, std::string output_directory)
-    :   m_outputDirectory(std::move(output_directory)),
-        m_tagModifier(std::make_unique<CSProUsersBlogTagModifier>()),
-        m_docSetSpec(std::move(blog_doc_set_spec_file_path))
-{
-    FileIO::CreateDirectories(m_outputDirectory);
+CSProUsersBlogBuilder::CSProUsersBlogBuilder() = default;
+CSProUsersBlogBuilder::~CSProUsersBlogBuilder() = default;
 
+
+std::vector<std::string> CSProUsersBlogBuilder::Build(const std::string& cspro_directory, const std::string& blog_doc_set_spec_file_path,
+                                                      const std::string& posts_output_directory)
+{
     // compile the doc set
+    DocSetSpec doc_set_spec(blog_doc_set_spec_file_path);
+
+    GlobalSettings global_settings;
+    global_settings.cspro_code_path = cspro_directory;
+
     DocSetCompiler doc_set_compiler(global_settings, DocSetCompiler::ThrowErrors { });
-    doc_set_compiler.CompileSpec(m_docSetSpec, FileIO::ReadText(m_docSetSpec.GetFilePath()), DocSetCompiler::SpecCompilationType::SpecAndComponents);
+    doc_set_compiler.CompileSpec(doc_set_spec, FileIO::ReadText(blog_doc_set_spec_file_path),
+                                 DocSetCompiler::SpecCompilationType::SpecAndComponents);
 
-    m_settings = std::make_unique<CSDocCompilerSettingsForCSProUsersBlog>(&m_docSetSpec);
-}
+    // build the blog posts
+    m_settings = std::make_unique<CSDocCompilerSettingsForCSProUsersBlog>(&doc_set_spec);
+    m_tagModifier = std::make_unique<CSProUsersBlogTagModifier>();
 
+    FileIO::CreateDirectories(posts_output_directory);
 
-CSProUsersBlogBuilder::~CSProUsersBlogBuilder()
-{
-}
+    std::vector<std::string> output_file_paths;
 
-
-void CSProUsersBlogBuilder::Build()
-{
-    for( const DocSetComponent& doc_set_component : VI_V(m_docSetSpec.GetComponents()) )
+    for( const DocSetComponent& doc_set_component : VI_V(doc_set_spec.GetComponents()) )
     {
-        if( doc_set_component.type == DocSetComponent::Type::Document )
-        {
-            const std::string& blog_file_path = doc_set_component.file_path;
-            const std::string output_filename = Path::AppendExtension(Path::GetFilenameWithoutExtension(blog_file_path), FileExtensions::HTML);
+        if( doc_set_component.type != DocSetComponent::Type::Document )
+            continue;
 
-            Build(blog_file_path,
-                  FileIO::ReadText(blog_file_path),
-                  Path::Combine(m_outputDirectory, output_filename));
-        }
+        const std::string& blog_file_path = doc_set_component.file_path;
+
+        const std::string& output_file_path = output_file_paths.emplace_back(
+            Path::Combine(
+                posts_output_directory,
+                Path::AppendExtension(Path::GetFilenameWithoutExtension(blog_file_path), FileExtensions::HTML)
+            )
+        );
+
+
+        BuildBlog(blog_file_path, FileIO::ReadText(blog_file_path), output_file_path);
     }
+
+    return output_file_paths;
 }
 
 
-void CSProUsersBlogBuilder::Build(const std::string& blog_file_path, const std::string& blog_text, const std::string& output_file_path)
+void CSProUsersBlogBuilder::BuildBlog(const std::string& blog_file_path, const std::string& blog_text, const std::string& output_file_path)
 {
+    ASSERT(m_tagModifier != nullptr && m_settings != nullptr);
+
     m_settings->Reset();
 
     CSDocCompiler csdoc_compiler;

@@ -1,7 +1,9 @@
 #pragma once
 
 #include <zDocument/zDocument.h>
+#include <zDocument/DocBuildSettings.h>
 #include <zDocument/TitleManager.h>
+#include <zToolsO/CaseInsensitiveComparer.h>
 #include <zDesignerF/CompilerMessageType.h>
 
 enum class CompilerMessageType;

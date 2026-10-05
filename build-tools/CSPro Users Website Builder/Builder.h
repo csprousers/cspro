@@ -33,8 +33,7 @@ private:
 
     void CopyDirectoryRecursive(const std::string& input_directory, const std::string& output_directory);
 
-    struct BuildBlog { const std::string& posts_directory; };
-    void BuildDocSet(const std::string& csdocset_file_path, std::variant<const char*, BuildBlog> build_name_or_build_blog);
+    void BuildDocSet(const std::string& csdocset_file_path, const char* build_name);
 
     size_t ClearOutputs(GitIgnoreEvaluator& exclusion_evaluator, const std::string& directory_path, bool recursive);
 

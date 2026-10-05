@@ -1,6 +1,6 @@
 #include "StdAfx.h"
 #include "Builder.h"
-#include <zToolsO/TextFile.h>
+#include "CSProUsersBlogBuilder.h"
 #include <zUtilO/Interapp.h>
 #include <zUtilO/TemporaryFile.h>
 #include <zZip/ZipFile.h>
@@ -77,7 +77,7 @@ void Builder::CopyDirectoryRecursive(const std::string& input_directory, const s
 }
 
 
-void Builder::BuildDocSet(const std::string& csdocset_file_path, const std::variant<const char*, BuildBlog> build_name_or_build_blog)
+void Builder::BuildDocSet(const std::string& csdocset_file_path, const char* const build_name)
 {
     const std::string csdocument_exe = Path::Combine(m_inputs.cspro_root, R"(build\x64\Debug\bin\CSDocument.exe)");
 
@@ -85,29 +85,14 @@ void Builder::BuildDocSet(const std::string& csdocset_file_path, const std::vari
         throw CSProException("CSDocument must exist at: " + csdocument_exe);
 
     std::string command = EscapeCommandLineArgument(csdocument_exe);
-    const char* evaluated_build_name;
 
-    if( std::holds_alternative<const char*>(build_name_or_build_blog) )
-    {
-        evaluated_build_name = std::get<const char*>(build_name_or_build_blog);
-
-        command.append(" -build ").append(EscapeCommandLineArgument(evaluated_build_name))
-               .append(" -input ").append(EscapeCommandLineArgument(csdocset_file_path));
-    }
-
-    else
-    {
-        evaluated_build_name = "CSPro Users Blog";
-
-        command.append(" -csprousers-blog ")
-               .append(" -documentSet ").append(EscapeCommandLineArgument(csdocset_file_path))
-               .append(" -output ").append(EscapeCommandLineArgument(std::get<BuildBlog>(build_name_or_build_blog).posts_directory));
-    }
+    command.append(" -build ").append(EscapeCommandLineArgument(build_name))
+           .append(" -input ").append(EscapeCommandLineArgument(csdocset_file_path));
 
     int return_code;
 
     if( !RunProgram(TC::ToWide(command), &return_code, SW_SHOWNA, true, true) )
-        throw CSProException("Error running CSDocument (build '%s'): %s", evaluated_build_name, csdocset_file_path.c_str());
+        throw CSProException("Error running CSDocument (build '%s'): %s", build_name, csdocset_file_path.c_str());
 }
 
 
@@ -155,18 +140,18 @@ void Builder::UpdateBlog()
     const std::string posts_directory = Path::Combine(m_inputs.csprousers_input, "_posts");
     RecycleDirectory(posts_directory);
 
-    const std::string csdocset_file_path = Path::Combine(m_inputs.csprousers_input, "blog", "CSPro Users Blog.csdocset");
+    const std::string blog_doc_set_spec_file_path = Path::Combine(m_inputs.csprousers_input, "blog", "CSPro Users Blog.csdocset");
 
-    m_loggingListBox.AddText("Converting the blog posts in %s...", Path::GetFilename(csdocset_file_path).c_str());
-    BuildDocSet(csdocset_file_path, BuildBlog { posts_directory });
+    m_loggingListBox.AddText("Converting the blog posts in %s...", Path::GetFilename(blog_doc_set_spec_file_path).c_str());
 
-    const std::vector<std::string> post_file_paths = DirectoryLister().GetPaths(posts_directory);
+    CSProUsersBlogBuilder blog_builder;
+    const std::vector<std::string> file_paths =  blog_builder.Build(m_inputs.cspro_root, blog_doc_set_spec_file_path, posts_directory);
 
-    if( !post_file_paths.empty() )
+    if( !file_paths.empty() )
     {
-        m_loggingListBox.AddText("Successfully converted %d blog post%s, the last one being:\n    %s",
-                                 static_cast<int>(post_file_paths.size()), PluralizeWord(post_file_paths.size()),
-                                 Path::GetFilename(post_file_paths.back()).c_str());
+        m_loggingListBox.AddText("Successfully converted %zu blog post%s, the last one being:\n    %s",
+                                 static_cast<int>(file_paths.size()), PluralizeWord(file_paths.size()),
+                                 Path::GetFilename(file_paths.back()).c_str());
     }
 }
 

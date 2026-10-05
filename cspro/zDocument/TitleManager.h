@@ -2,6 +2,8 @@
 
 #include <zDocument/zDocument.h>
 
+class DocSetSpec;
+
 
 // TitleManager caches the titles of CSPro Documents in a SettingsDb;
 // if a title is requested that has not been cached, or if the CSPro Document file
