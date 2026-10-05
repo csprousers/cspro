@@ -1,14 +1,20 @@
 #pragma once
 
+#include "zBuildTools.h"
 
-class LicenseGenerator
+
+class ZBUILDTOOLS_API LicenseGenerator
 {
 public:
-    void Generate();
+    LicenseGenerator();
+    virtual ~LicenseGenerator();
 
-    bool DisplayMessage() const { return !m_licenseTemplateOutputFilePaths.has_value(); }
+    // Returns the number of licenses processed.
+    size_t Generate();
 
-    size_t GetNumberLicenses() const { return m_licenses.size(); }
+protected:
+    virtual std::string GetLicenseTemplateFilePath() const;
+    virtual std::string GetLicenseOutputFilePath() const;
 
 private:
     static std::string ReadInputFile(const std::string& file_path);
@@ -24,9 +30,10 @@ private:
     std::string CreateLicensesHtml();
 
 private:
+    struct License;
+
     std::string m_inputsDirectory;
     std::string m_licensesDirectory;
-    std::optional<std::tuple<std::string, std::string>> m_licenseTemplateOutputFilePaths;
     std::vector<License> m_licenses;
     std::string m_csproLicenseText;
     std::map<std::string, std::string> m_anchorIds;

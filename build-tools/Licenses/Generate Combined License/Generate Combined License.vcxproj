@@ -16,6 +16,7 @@
   <ItemDefinitionGroup>
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <AdditionalIncludeDirectories>$(SolutionDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -25,12 +26,12 @@
     <ClCompile Include="Main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\cspro\zJson\zJson.vcxproj">
-      <Project>{44a4fe38-ca5a-487c-a227-4be1ebd4874d}</Project>
-      <Private>false</Private>
-    </ProjectReference>
     <ProjectReference Include="..\..\..\cspro\zToolsO\zToolsO.vcxproj">
       <Project>{fb0e28ec-927d-41d0-996c-01c21a7a346b}</Project>
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\zBuildTools\zBuildTools.vcxproj">
+      <Project>{9b27f2ae-4a93-4b31-a883-c9a6bd2336f0}</Project>
       <Private>false</Private>
     </ProjectReference>
   </ItemGroup>

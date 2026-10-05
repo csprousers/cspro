@@ -1,5 +1,6 @@
 #include "StdAfx.h"
 #include "LicenseGenerator.h"
+#include <zHtml/HtmlWriter.h>
 
 
 CREATE_JSON_KEY(projectName)
@@ -8,7 +9,7 @@ CREATE_JSON_KEY(licenseFilename)
 CREATE_JSON_KEY(licenseUrl)
 
 
-struct License
+struct LicenseGenerator::License
 {
     std::string project_name;
     std::string project_url;
@@ -18,14 +19,14 @@ struct License
 };
 
 
-void LicenseGenerator::Generate()
-{
-    m_inputsDirectory = MakeFullPath(PortableFunctions::PathGetDirectory(__FILE__), "..\\");
-    m_licensesDirectory = Path::Combine(m_inputsDirectory, "Licenses");
+LicenseGenerator::LicenseGenerator() = default;
+LicenseGenerator::~LicenseGenerator() = default;
 
-    // path overrides come from the CSPro Users Website Builder
-    if( __argc >= 3 )
-        m_licenseTemplateOutputFilePaths.emplace(TC::ToUtf8(__wargv[1]), TC::ToUtf8(__wargv[2]));
+
+size_t LicenseGenerator::Generate()
+{
+    m_inputsDirectory = MakeFullPath(PortableFunctions::PathGetDirectory(__FILE__), R"(..\Licenses\)");
+    m_licensesDirectory = Path::Combine(m_inputsDirectory, "Licenses");
 
     LoadLicenseDetails();
 
@@ -35,6 +36,20 @@ void LicenseGenerator::Generate()
     m_csproLicenseText = LoadLicenseText("CSPro");
 
     CreateLicense();
+
+    return m_licenses.size();
+}
+
+
+std::string LicenseGenerator::GetLicenseTemplateFilePath() const
+{
+    return Path::Combine(m_inputsDirectory, "Licenses-Template.html");
+}
+
+
+std::string LicenseGenerator::GetLicenseOutputFilePath() const
+{
+    return Path::Combine(m_inputsDirectory, "Licenses.html");
 }
 
 
@@ -85,11 +100,8 @@ std::string LicenseGenerator::LoadLicenseText(const std::string& project_name)
 
 void LicenseGenerator::CreateLicense()
 {
-    const std::string license_template_file_path = m_licenseTemplateOutputFilePaths.has_value() ? std::get<0>(*m_licenseTemplateOutputFilePaths) :
-                                                                                                  Path::Combine(m_inputsDirectory, "Licenses-Template.html");
-
-    const std::string license_output_file_path = m_licenseTemplateOutputFilePaths.has_value() ? std::get<1>(*m_licenseTemplateOutputFilePaths) :
-                                                                                                Path::Combine(m_inputsDirectory, "Licenses.html");
+    const std::string license_template_file_path = GetLicenseTemplateFilePath();
+    const std::string license_output_file_path = GetLicenseOutputFilePath();
 
     const std::string license_introduction_file_path = Path::Combine(m_inputsDirectory, "Licenses-Introduction.html");
     std::string license_introduction_html = ReadInputFile(license_introduction_file_path);

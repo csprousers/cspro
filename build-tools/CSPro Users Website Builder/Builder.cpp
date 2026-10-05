@@ -1,6 +1,7 @@
 #include "StdAfx.h"
 #include "Builder.h"
 #include "CSProUsersBlogBuilder.h"
+#include "GooglePlayPrivacyPolicyGenerator.h"
 #include <zUtilO/Interapp.h>
 #include <zUtilO/TemporaryFile.h>
 #include <zZip/ZipFile.h>
@@ -238,32 +239,14 @@ void Builder::UpdateGooglePlayPrivacyPolicy()
 {
     m_loggingListBox.AddText("Creating the Google Play privacy policy...");
 
-    const std::string gcl_exe = Path::Combine(m_inputs.cspro_root, R"(build\x64\Debug\bin\Generate Combined License.exe)");
-
-    if( !PortableFunctions::FileIsRegular(gcl_exe) )
-        throw CSProException("The Generate Combined License program must exist at: " + gcl_exe);
-
     const std::string privacy_path_directory = Path::Combine(m_inputs.csprousers_input, "privacy");
-    const std::string privacy_path_template_file_path = Path::Combine(privacy_path_directory, "privacy-policy-template.html");
-    const std::string privacy_path_output_file_path = Path::Combine(privacy_path_directory, "privacy-policy.html");
 
-    // create the license as a temporary file
-    TemporaryFile privacy_path_output_temporary_file;
-    const int64_t privacy_path_output_initial_size = PortableFunctions::FileSize(privacy_path_output_temporary_file.GetPath());
+    GooglePlayPrivacyPolicyGenerator generator(
+        Path::Combine(privacy_path_directory, "privacy-policy-template.html"), // privacy_path_template_file_path
+        Path::Combine(privacy_path_directory, "privacy-policy.html")           // privacy_path_output_file_path
+    );
 
-    const std::string command = EscapeCommandLineArgument(gcl_exe)
-                                .append(" ").append(EscapeCommandLineArgument(privacy_path_template_file_path))
-                                .append(" ").append(EscapeCommandLineArgument(privacy_path_output_temporary_file.GetPath()));
-    int return_code;
-
-    if( !RunProgram(TC::ToWide(command), &return_code, SW_SHOWNA, true, true) ||
-        privacy_path_output_initial_size == PortableFunctions::FileSize(privacy_path_output_temporary_file.GetPath()) )
-    {
-        throw CSProException("Error running the Generate Combined License program.");
-    }
-
-    // copy the license to its destination
-    PortableFunctions::FileCopyWithExceptions(privacy_path_output_temporary_file.GetPath(), privacy_path_output_file_path, FileOverwriteFlag::Always);
+    generator.Generate();
 }
 
 

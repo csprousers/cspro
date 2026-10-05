@@ -27,6 +27,9 @@
     <ClInclude Include="CSProUsersWebsiteBuilderDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="GooglePlayPrivacyPolicyGenerator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="Inputs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
