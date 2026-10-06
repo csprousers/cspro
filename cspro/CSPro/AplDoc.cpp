@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "AplDoc.h"
 #include <zUtilO/ArrUtil.h>
 #include <zUtilF/ProgressDlg.h>
@@ -11,9 +11,9 @@
 /////////////////////////////////////////////////////////////////////////////
 // CAplDoc
 
-IMPLEMENT_DYNCREATE(CAplDoc, CDocument)
+IMPLEMENT_DYNCREATE(CAplDoc, DesignerDoc)
 
-BEGIN_MESSAGE_MAP(CAplDoc, CDocument)
+BEGIN_MESSAGE_MAP(CAplDoc, DesignerDoc)
     ON_COMMAND(ID_FILE_CSPRO_CLOSE, OnFileClose)
 END_MESSAGE_MAP()
 
@@ -51,7 +51,7 @@ void CAplDoc::ReplaceAppObject(std::unique_ptr<Application> application)
 BOOL CAplDoc::OnOpenDocument(LPCTSTR lpszPathName)
 {
     // load the application object
-    if( !CDocument::OnOpenDocument(lpszPathName) )
+    if( !__super::OnOpenDocument(lpszPathName) )
         return FALSE;
 
     try
@@ -318,7 +318,7 @@ void CAplDoc::OnCloseDocument()
     CMainFrame* const pFrame = assert_cast<CMainFrame*>(AfxGetMainWnd());
     FileTreeNode* const file_tree_node = pFrame->GetDlgBar().m_ObjTree.FindNode(this);
 
-    CDocument::OnCloseDocument();
+    __super::OnCloseDocument();
 
     //remove the application node on the object tree .
     if( file_tree_node != nullptr )

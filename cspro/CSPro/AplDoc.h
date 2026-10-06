@@ -1,9 +1,10 @@
-﻿#pragma once
+#pragma once
 
 // AplDoc.h : header file
 //
 
 #include <zAppO/Application.h>
+#include <zDesignerF/DesignerDoc.h>
 #include <zDictF/LangGrid.h>
 
 class CapiQuestionManager;
@@ -17,7 +18,7 @@ class TextSourceEditable;
 // CAplDoc document
 
 
-class CAplDoc : public CDocument
+class CAplDoc : public DesignerDoc
 {
     friend class CCSProApp;
 
@@ -60,7 +61,9 @@ public:
     void RefreshExternalLogicAndReportNodes();
 
     std::shared_ptr<TextSourceEditable> GetLogicMainCodeFileTextSource();
-    std::shared_ptr<TextSourceEditable> GetMessageTextSource();
+
+    // DesignerDoc overrides
+    std::shared_ptr<TextSourceEditable> GetMessageTextSource() override;
 
     BOOL AreAplDictsOK(void);
     bool m_bIsClosing;

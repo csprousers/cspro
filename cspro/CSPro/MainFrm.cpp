@@ -1359,6 +1359,20 @@ LRESULT CMainFrame::ShowOSrcCode(WPARAM /*wParam*/, LPARAM lParam)
 }
 
 
+DesignerDoc* CMainFrame::GetDesignerDoc(CDocument* const doc)
+{
+    if( doc == nullptr )
+        return nullptr;
+
+    DesignerDoc* const designer_doc = dynamic_cast<DesignerDoc*>(doc);
+
+    if( designer_doc != nullptr )
+        return designer_doc;
+
+    return ProcessFOForSrcCode(*doc);
+}
+
+
 CAplDoc* CMainFrame::ProcessFOForSrcCode(CDocument& document)
 {
     // returns the application which has this form/order/table spec
@@ -2551,15 +2565,13 @@ bool CMainFrame::PutOSourceCode(AppTreeNode* app_tree_node, bool bForceCompile)
 
 LRESULT CMainFrame::OnGetMessageTextSource(const WPARAM wParam, const LPARAM lParam)
 {
-    CDocument* const pDoc = reinterpret_cast<CDocument*>(wParam);
+    DesignerDoc* const designer_doc = GetDesignerDoc(reinterpret_cast<CDocument*>(wParam));
     std::shared_ptr<TextSourceEditable>& message_text_source = *reinterpret_cast<std::shared_ptr<TextSourceEditable>*>(lParam);
 
-    CAplDoc* const pAplDoc = ProcessFOForSrcCode(*pDoc);
-
-    if( pAplDoc == nullptr )
+    if( designer_doc == nullptr )
         return 0;
 
-    message_text_source = pAplDoc->GetMessageTextSource();
+    message_text_source = designer_doc->GetMessageTextSource();
 
     return 1;
 }

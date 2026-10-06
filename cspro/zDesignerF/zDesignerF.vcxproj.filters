@@ -45,6 +45,9 @@
     <ClCompile Include="CompilerOutputTabViewPage.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="DesignerDoc.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="DictionaryBasedDoc.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -171,6 +174,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="CompilerOutputTabViewPage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DesignerDoc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DesignerObjectTransporter.h">

@@ -59,6 +59,10 @@ public:
     // the user must select which one to use
     CAplDoc* GetApplicationUsingFormFile(const std::string& form_file_path, bool silent = false);
 
+    // If the document is not null and derives from DesignerDoc, the document is returned.
+    // Otherwise, ProcessFOForSrcCode is called and its result is returned.
+    DesignerDoc* GetDesignerDoc(CDocument* doc);
+
     CAplDoc* ProcessFOForSrcCode(CDocument& document);
 
 protected:

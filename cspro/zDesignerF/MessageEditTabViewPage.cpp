@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "MessageEditTabViewPage.h"
 
 
@@ -37,6 +37,8 @@ void MessageEditTabViewPage::OnTabChange()
 
 void MessageEditTabViewPage::SetModified(const bool modified/* = true*/)
 {
+    ASSERT(m_textSourceEditable != nullptr);
+
     MessageEditCtrl::SetModified(modified);
 
     if( modified )

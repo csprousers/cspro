@@ -45,6 +45,7 @@
 #include <zSrcMgrO/Compiler.h>
 #include <zSrcMgrO/SrcCode.h>
 #include <zInterfaceF/resource_shared.h>
+#include <zDesignerF/DesignerDoc.h>
 #include <zDesignerF/OnUpdateHints.h>
 #include <zDesignerF/resource_shared.h>
 #include <zDesignerF/UWM.h>
