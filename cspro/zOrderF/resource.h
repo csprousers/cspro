@@ -21,15 +21,13 @@
 #define ID_ORD_EDIT_FIND                45505
 #define ID_REPLACE                      45506
 #define ID_RUNBATCH                     45507
-#define ID_VIEW_GOTO_LOGIC_WORD         45508
-#define ID_VIEW_PEEK_LOGIC_WORD         45509
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        11013
-#define _APS_NEXT_COMMAND_VALUE         45510
+#define _APS_NEXT_COMMAND_VALUE         45508
 #define _APS_NEXT_CONTROL_VALUE         11500
 #define _APS_NEXT_SYMED_VALUE           11013
 #endif

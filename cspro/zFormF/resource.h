@@ -315,17 +315,15 @@
 #define ID_UNGROUP                      44094
 #define ID_UNGROUP_ITEMS                44095
 #define ID_VIEW_FORM                    44096
-#define ID_VIEW_GOTO_LOGIC_WORD         44097
-#define ID_VIEW_PEEK_LOGIC_WORD         44098
-#define ID_VQSF_EDITOR                  44099
-#define ID_VVIEW_LOGIC                  44100
+#define ID_VQSF_EDITOR                  44097
+#define ID_VVIEW_LOGIC                  44098
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        8055
-#define _APS_NEXT_COMMAND_VALUE         44101
+#define _APS_NEXT_COMMAND_VALUE         44099
 #define _APS_NEXT_CONTROL_VALUE         8663
 #define _APS_NEXT_SYMED_VALUE           8055
 #endif

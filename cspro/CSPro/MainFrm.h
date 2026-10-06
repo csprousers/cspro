@@ -210,8 +210,9 @@ private:
                                        bool using_line_number, int line_number_or_position_in_buffer);
 
 protected:
-    afx_msg void OnViewTopLogic();
+    void OnViewTopLogic();
     LRESULT OnLogicReference(WPARAM wParam, LPARAM lParam);
+    void OnLogicGotoPeekWord(UINT nID);
     LRESULT OnSymbolsAdded(WPARAM wParam, LPARAM lParam);
     LRESULT OnLogicAutoComplete(WPARAM wParam, LPARAM lParam);
     LRESULT OnLogicInsertProcName(WPARAM wParam, LPARAM lParam);

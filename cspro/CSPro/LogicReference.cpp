@@ -2285,6 +2285,25 @@ LRESULT CMainFrame::OnLogicReference(const WPARAM wParam, const LPARAM lParam)
 }
 
 
+void CMainFrame::OnLogicGotoPeekWord(const UINT nID)
+{
+    ASSERT(nID == ID_LOGIC_GOTO_WORD || nID == ID_LOGIC_PEEK_WORD);
+
+    CFrameWnd* const active_frame = GetActiveFrame();
+    LogicView* const logic_view = ( active_frame != nullptr )
+        ? assert_nullable_cast<LogicView*>(active_frame->GetActiveView())
+        : nullptr;
+
+    if( logic_view == nullptr )
+        return;
+
+    PostMessage(ZEDITO_LOGIC_REFERENCE,
+        ( nID == ID_LOGIC_GOTO_WORD ) ? ZEDITO_LOGIC_REFERENCE_GOTO : ZEDITO_LOGIC_REFERENCE,
+        reinterpret_cast<LPARAM>(logic_view->GetLogicCtrl())
+    );
+}
+
+
 LRESULT CMainFrame::OnSymbolsAdded(WPARAM wParam, LPARAM lParam)
 {
     bool reset_symbols = ( wParam == 1 );

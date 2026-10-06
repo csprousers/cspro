@@ -32,8 +32,6 @@ BEGIN_MESSAGE_MAP(COrderChildWnd, ApplicationChildWnd)
     ON_WM_MDIACTIVATE()
     ON_COMMAND(ID_RUNBATCH, OnRun)
     ON_COMMAND(ID_ORD_COMPILE, OnCompile)
-    ON_COMMAND(ID_VIEW_PEEK_LOGIC_WORD, OnPeekLogicWord)
-    ON_COMMAND(ID_VIEW_GOTO_LOGIC_WORD, OnGotoLogicWord)
     ON_COMMAND(ID_COMMENT_CODE, OnCommentCode)
     ON_COMMAND(ID_LOGIC_FORMAT, OnFormatLogic)
     ON_UPDATE_COMMAND_UI(ID_LOGIC_FORMAT, OnUpdateFormatLogic)
@@ -369,16 +367,6 @@ void COrderChildWnd::OnCompile()
             ((COSourceEditView*)pView)->GetLogicCtrl()->SetFocus();
         }
     }
-}
-
-void COrderChildWnd::OnPeekLogicWord()
-{
-    AfxGetMainWnd()->SendMessage(ZEDITO_LOGIC_REFERENCE, ZEDITO_LOGIC_REFERENCE, reinterpret_cast<LPARAM>(GetOSourceView()->GetLogicCtrl()));
-}
-
-void COrderChildWnd::OnGotoLogicWord()
-{
-    AfxGetMainWnd()->SendMessage(ZEDITO_LOGIC_REFERENCE, ZEDITO_LOGIC_REFERENCE_GOTO, reinterpret_cast<LPARAM>(GetOSourceView()->GetLogicCtrl()));
 }
 
 

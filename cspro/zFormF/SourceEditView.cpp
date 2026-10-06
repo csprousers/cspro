@@ -53,8 +53,6 @@ BEGIN_MESSAGE_MAP(CFSourceEditView, LogicView)
     ON_COMMAND(ID_SHIFT_F10, OnShiftF10)
     ON_COMMAND(ID_LOGIC_FORMAT, OnFormatLogic)
     ON_UPDATE_COMMAND_UI(ID_LOGIC_FORMAT, OnUpdateFormatLogic)
-    ON_COMMAND(ID_VIEW_PEEK_LOGIC_WORD, OnPeekLogicWord)
-    ON_COMMAND(ID_VIEW_GOTO_LOGIC_WORD, OnGotoLogicWord)
     ON_COMMAND(ID_COMMENT_CODE, OnCommentCode)
     //}}AFX_MSG_MAP
 END_MESSAGE_MAP()
@@ -323,18 +321,6 @@ void CFSourceEditView::OnUpdateFormatLogic(CCmdUI* const pCmdUI)
 
     pCmdUI->Enable(( logic_ctrl == GetFocus() &&
                      Lexers::IsCSProLogic(logic_ctrl->GetLexer()) ));
-}
-
-
-void CFSourceEditView::OnPeekLogicWord()
-{
-    AfxGetMainWnd()->SendMessage(ZEDITO_LOGIC_REFERENCE, ZEDITO_LOGIC_REFERENCE, (LPARAM)GetLogicCtrl());
-}
-
-
-void CFSourceEditView::OnGotoLogicWord()
-{
-    AfxGetMainWnd()->SendMessage(ZEDITO_LOGIC_REFERENCE, ZEDITO_LOGIC_REFERENCE_GOTO, (LPARAM)GetLogicCtrl());
 }
 
 

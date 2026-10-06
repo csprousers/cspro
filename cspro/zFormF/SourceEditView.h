@@ -1,4 +1,5 @@
 #pragma once
+
 //***************************************************************************
 //  File name: MyView.h
 //
@@ -13,6 +14,7 @@
 
 #include <zFormF/zFormF.h>
 #include <zEditO/LogicView.h>
+
 
 /////////////////////////////////////////////////////////////////////////////
 // CFSourceEditView view
@@ -51,8 +53,6 @@ protected:
     afx_msg void OnShiftF10();
     afx_msg void OnFormatLogic();
     afx_msg void OnUpdateFormatLogic(CCmdUI* pCmdUI);
-    afx_msg void OnPeekLogicWord();
-    afx_msg void OnGotoLogicWord();
     afx_msg void OnCommentCode();
 
     //}}AFX_MSG
