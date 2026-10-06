@@ -1,7 +1,6 @@
 #include "StdAfx.h"
 #include "BuildWnd.h"
 #include <zToolsO/Utf8.h>
-#include <zJson/JsonNode.h>
 #include <zLogicO/ParserMessage.h>
 #include <zEditO/ReadOnlyEditCtrl.h>
 

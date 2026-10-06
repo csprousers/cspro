@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <engine/StandardSystemIncludes.h>
 #include <engine/StrictCompilerErrors.h>
@@ -9,10 +9,13 @@
 #include <zDesignerF/resource_shared.h>
 #include <zDesignerF/UWM.h>
 #include <zToolsO/Encoders.h>
+#include <zToolsO/FileIO.h>
 #include <zToolsO/Utf8.h>
 #include <zToolsO/WinClipboard.h>
 #include <zToolsO/WinSettings.h>
+#include <zJson/Json.h>
 #include <zUtilO/Interapp.h>
+#include <zUtilO/TextSourceEditable.h>
 #include <zUtilO/WindowsUtf8.h>
 #include <zUtilO/WindowsWS.h>
 #include <zUtilF/DialogValidators.h>

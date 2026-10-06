@@ -1,7 +1,6 @@
 #include "StdAfx.h"
 #include "StringEncoderDlg.h"
 #include <zToolsO/RaiiHelpers.h>
-#include <zJson/Json.h>
 #include <zMessageO/ExceptionThrowingSystemMessageIssuer.h>
 #include <zLogicO/BaseCompiler.h>
 #include <zLogicO/SymbolTable.h>

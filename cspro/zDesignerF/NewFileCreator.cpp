@@ -1,7 +1,5 @@
 #include "StdAfx.h"
 #include "NewFileCreator.h"
-#include <zToolsO/FileIO.h>
-#include <zUtilO/TextSourceEditable.h>
 #include <zAppO/PFF.h>
 #include <zAppO/Properties/ApplicationProperties.h>
 #include <zFormO/DragOptions.h>

@@ -1,7 +1,6 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "QuestionnaireView.h"
 #include "DictionaryBasedDoc.h"
-#include <zJson/Json.h>
 #include <zAppO/Application.h>
 #include <zFormatterO/QuestionnaireViewer.h>
 #include <zAction/AccessToken.h>
