@@ -20,7 +20,6 @@
 
 #include "StdAfx.h"
 #include "Interapp.h"
-#include "CSProExecutables.h"
 #include "CustomUri.h"
 #include <zPlatformO/PlatformInterface.h>
 

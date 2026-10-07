@@ -404,7 +404,7 @@ void CDEFormFile::AddUniqueName(const CString& name)
 {
     if( !name.IsEmpty() )
     {
-        ASSERT(SO::IsUpper(name) && CIMSAString::IsName(name));
+        ASSERT(NameRules::IsUpperCaseName(UTF8_TODO::GetUtf8(name)));
         m_uniqueNames.insert(name);
     }
 }

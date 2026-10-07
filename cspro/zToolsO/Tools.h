@@ -174,11 +174,11 @@ constexpr const char* PluralizeWord(const T& count, const char* const word_for_o
 template<typename T>
 wchar_t SuperscriptDigit(T count) { ASSERT(count >= 0 && count <= 9); return L"⁰¹²³⁴⁵⁶⁷⁸⁹"[static_cast<size_t>(count)]; }
 
-constexpr bool is_digit(int ch)     { return ( ch >= '0' && ch <= '9' ); }
-constexpr bool is_lower(int ch)     { return ( ch >= 'a' && ch <= 'z' ); }
-constexpr bool is_upper(int ch)     { return ( ch >= 'A' && ch <= 'Z' ); }
-constexpr bool is_alpha(int ch)     { return ( is_lower(ch) || is_upper(ch) ); }
-constexpr bool is_alnum(int ch)     { return ( is_alpha(ch) || is_digit(ch) ); }
-constexpr bool is_tokch(int ch)     { return ( is_alnum(ch) || ch == '_' ); }
-constexpr bool is_quotemark(int ch) { return ( ch == '\'' || ch == '"' ); }
-constexpr bool is_crlf(int ch)      { return ( ch == '\n' || ch == '\r' ); }
+constexpr bool is_digit(int ch) noexcept     { return ( ch >= '0' && ch <= '9' ); }
+constexpr bool is_lower(int ch) noexcept     { return ( ch >= 'a' && ch <= 'z' ); }
+constexpr bool is_upper(int ch) noexcept     { return ( ch >= 'A' && ch <= 'Z' ); }
+constexpr bool is_alpha(int ch) noexcept     { return ( is_lower(ch) || is_upper(ch) ); }
+constexpr bool is_alnum(int ch) noexcept     { return ( is_alpha(ch) || is_digit(ch) ); }
+constexpr bool is_tokch(int ch) noexcept     { return ( is_alnum(ch) || ch == '_' ); }
+constexpr bool is_quotemark(int ch) noexcept { return ( ch == '\'' || ch == '"' ); }
+constexpr bool is_crlf(int ch) noexcept      { return ( ch == '\n' || ch == '\r' ); }

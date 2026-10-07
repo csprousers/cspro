@@ -1,4 +1,5 @@
-﻿#include "GeometryJni.h"
+#include "StdAfx.h"
+#include "GeometryJni.h"
 #include <mapbox/geometry.hpp>
 #include <mapbox/variant.hpp>
 #include <mapbox/feature.hpp>

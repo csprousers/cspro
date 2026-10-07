@@ -1,4 +1,4 @@
-﻿#include "Stdafx.h"
+#include "Stdafx.h"
 #include "Excel2CSProSpec.h"
 #include <zToolsO/FileIO.h>
 #include <zUtilO/ArrUtil.h>
@@ -81,7 +81,7 @@ void CSPro::Data::Excel2CSPro::Spec::Load(System::String^ file_path)
 {
     try
     {
-        auto json_reader = CreateJsonReader(clr_helpers::to_string(file_path));
+        const std::unique_ptr<JsonSpecFile::Reader> json_reader = CreateJsonReader(clr_helpers::to_string(file_path));
 
         try
         {
@@ -96,7 +96,7 @@ void CSPro::Data::Excel2CSPro::Spec::Load(System::String^ file_path)
 
             if( json_reader->Contains(JK::output) )
             {
-                OutputConnectionString = gcnew CSPro::Util::ConnectionString(gcnew System::String(json_reader->Get<CString>(JK::output)));
+                OutputConnectionString = gcnew CSPro::Util::ConnectionString(clr_helpers::to_SystemString(json_reader->Get<std::string_view>(JK::output)));
                 OutputConnectionString->AdjustRelativePath(System::IO::Path::GetDirectoryName(file_path));
             }
 
@@ -106,29 +106,29 @@ void CSPro::Data::Excel2CSPro::Spec::Load(System::String^ file_path)
 
             bool errors_processing_mappings = false;
 
-            for( const auto& record_node : json_reader->GetArrayOrEmpty(JK::records) )
+            for( const JsonNode& record_node : json_reader->GetArrayOrEmpty(JK::records) )
             {
                 try
                 {
                     auto record_mapping = gcnew RecordMapping;
 
-                    record_mapping->RecordName = gcnew System::String(record_node.Get<CString>(JK::name));
+                    record_mapping->RecordName = clr_helpers::to_SystemString(record_node.Get<std::string_view>(JK::name));
 
                     // worskheet
                     {
-                        auto worksheet_node = record_node.Get(JK::worksheet);
+                        const JsonNode worksheet_node = record_node.Get(JK::worksheet);
 
                         if( worksheet_node.Contains(JK::name) )
-                            record_mapping->WorksheetName = gcnew System::String(worksheet_node.Get<CString>(JK::name));
+                            record_mapping->WorksheetName = clr_helpers::to_SystemString(worksheet_node.Get<std::string_view>(JK::name));
 
                         record_mapping->WorksheetIndex = worksheet_node.Get<int>(JK::index);
                     }
 
-                    for( const auto& item_node : record_node.GetArrayOrEmpty(JK::items) )
+                    for( const JsonNode& item_node : record_node.GetArrayOrEmpty(JK::items) )
                     {
                         auto item_mapping = gcnew ItemMapping;
 
-                        item_mapping->ItemName = gcnew System::String(item_node.Get<CString>(JK::name));
+                        item_mapping->ItemName = clr_helpers::to_SystemString(item_node.Get<std::string_view>(JK::name));
 
                         if( item_node.Contains(JK::occurrence) )
                             item_mapping->Occurrence = item_node.Get<int>(JK::occurrence);
@@ -300,7 +300,7 @@ namespace Pre80Spec
             {
                 if( SO::EqualsNoCase(command, UTF8_TODO::GetWide(Pre80Spec::Excel)) )
                 {
-                    json_writer->Write(JK::excel, specfile.EvaluateRelativeFilename(argument));
+                    json_writer->Write(JK::excel, UTF8_TODO::GetUtf8(specfile.EvaluateRelativeFilename(argument)));
                 }
 
                 else if( SO::EqualsNoCase(command, UTF8_TODO::GetWide(Pre80Spec::InputDict)) )
@@ -323,7 +323,7 @@ namespace Pre80Spec
 
                 else if( SO::EqualsNoCase(command, UTF8_TODO::GetWide(Pre80Spec::CaseManagement)) )
                 {
-                    for( const auto& potential_argument : { JV::createNewFile, JV::modifyAddCases, JV::modifyAddDeleteCases } )
+                    for( const char* const potential_argument : { JV::createNewFile, JV::modifyAddCases, JV::modifyAddDeleteCases } )
                     {
                         if( SO::EqualsNoCase(argument, UTF8_TODO::GetWide(potential_argument)) )
                         {

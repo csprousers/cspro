@@ -1,8 +1,5 @@
-﻿#include "MobileStringConversion.h"
-#include "PortableMFC.h"
-#include "wchar.h"
-#include <stdlib.h>
-#include <string>
+#include <engine/StandardSystemIncludes.h>
+#include "MobileStringConversion.h"
 
 
 // --------------------------- UTF-8 -> WIDE ---------------------------

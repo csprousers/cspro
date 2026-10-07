@@ -1,8 +1,8 @@
-﻿#include "gov_census_cspro_smartsync_http_OStreamWrapper_jni.h"
-#include <engine/StandardSystemIncludes.h>
-#include "JNIHelpers.h"
+#include "StdAfx.h"
+#include "gov_census_cspro_smartsync_http_OStreamWrapper_jni.h"
 #include <ostream>
 #include <errno.h>
+
 
 /*
  * Class:     gov_census_cspro_smartsync_http_OStreamWrapper

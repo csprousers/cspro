@@ -78,9 +78,9 @@ namespace EngineUI
 
     struct PromptNode
     {
-        CString title;
-        CString initial_value;
-        CString return_value;
+        SharableString title;
+        SharableString initial_value;
+        SharableString return_value;
         bool numeric;
         bool password;
         bool upper_case;

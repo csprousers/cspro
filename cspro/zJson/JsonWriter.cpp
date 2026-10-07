@@ -1,15 +1,9 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "JsonWriter.h"
 #include <zToolsO/Special.h>
 
 
 JsonWriter& JsonWriter::Write(const std::wstring& value)
-{
-    return Write(UTF8_TODO::GetUtf8(value));
-}
-
-
-JsonWriter& JsonWriter::Write(const CString& value)
 {
     return Write(UTF8_TODO::GetUtf8(value));
 }

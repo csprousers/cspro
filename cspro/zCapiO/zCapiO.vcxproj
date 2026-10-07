@@ -15,7 +15,7 @@
   <Import Project="..\properties\project-settings.props" />
   <ItemDefinitionGroup>
     <ClCompile>
-      <PreprocessorDefinitions>ZCAPIO_IMPL;AFXEXT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ZCAPIO_IMPL;_AFXEXT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <AdditionalDependencies>libyaml-cpp$(ThirdPartyBuildPostfix).lib;%(AdditionalDependencies)</AdditionalDependencies>

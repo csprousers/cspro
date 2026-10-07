@@ -1,4 +1,4 @@
-﻿//***************************************************************************
+//***************************************************************************
 //  File name: ImsaStr.cpp
 //
 //  Description:
@@ -199,35 +199,6 @@ bool CIMSAString::IsInteger(std::string_view text_sv)
 
 /////////////////////////////////////////////////////////////////////////////
 //
-//                           CIMSAString::IsName
-//
-/////////////////////////////////////////////////////////////////////////////
-
-bool CIMSAString::IsName(const std::string_view name_sv)
-{
-    auto name_sv_itr = name_sv.cbegin();
-    const auto& name_sv_end = name_sv.cend();
-
-    // first char must be alpha
-    if( name_sv_itr == name_sv_end || !is_alpha(*name_sv_itr) )
-        return false;
-
-    // additional characters must be alpha, numeric, or an underscore
-    while( ++name_sv_itr != name_sv_end )
-    {
-        if( !is_tokch(*name_sv_itr) )
-            return false;
-    }
-
-    // last char cannot be an underscore
-    if( *(name_sv_itr - 1) == UNDERSCORE )
-        return false;
-
-    return true;
-}
-
-/////////////////////////////////////////////////////////////////////////////
-//
 //                           CIMSAString::ReverseFindOneOf
 //
 /////////////////////////////////////////////////////////////////////////////
@@ -267,9 +238,9 @@ CString CIMSAString::MakeName(const wstring_view base_name_sv, const size_t max_
         {
             // previously labels like "Survey Date: Day" would lead to names with multiple underscore
             // characters (SURVEY_DATE__DAY); now only put a single underscore for sequences of invalid characters
-            if( i == 0 || text.GetAt(i - 1) != UNDERSCORE )
+            if( i == 0 || text.GetAt(i - 1) != '_' )
             {
-                text.SetAt(i, UNDERSCORE);
+                text.SetAt(i, '_');
             }
 
             else
@@ -289,13 +260,13 @@ CString CIMSAString::MakeName(const wstring_view base_name_sv, const size_t max_
         text.Truncate(max_name_length);
 
     // strip off right-side trailing underscores
-    text.TrimRight(UNDERSCORE);
+    text.TrimRight('_');
 
     // make sure we're not empty
     if( text.IsEmpty() )
         text =_T("NAME");
 
-    ASSERT(IsName(text));
+    ASSERT(NameRules::IsName(UTF8_TODO::GetUtf8(text)));
 
     return text;
 }
@@ -308,7 +279,7 @@ std::string CIMSAString::CreateUnreservedName(const std::string_view text_sv,
 
     for( int i = 0; ; ++i )
     {
-        if( IsName(name_candidate) && !IsReservedWord(name_candidate) )
+        if( NameRules::IsName(name_candidate) && !IsReservedWord(name_candidate) )
         {
             if( !extra_check_callback || extra_check_callback(name_candidate) )
                 return name_candidate;

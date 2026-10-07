@@ -1,7 +1,7 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "CSTab.h"
 #include "TabDlg.h"
-#include <zUtilO/CSProExecutables.h>
+#include <zToolsO/CSProExecutables.h>
 #include <zUtilF/CommonControls.h>
 #include <zFormO/FormFile.h>
 

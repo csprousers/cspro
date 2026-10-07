@@ -480,7 +480,7 @@ std::tuple<std::string, std::string> CaseTextContentCreator::Formatter::CreateCa
                     .BeginArray(JK::metadata)
                     .Write("Type").Write("Dictionary")
                     .Write("Name").Write(dictionary.GetName())
-                    .Write("Label").Write(dictionary.GetLabel())
+                    .Write("Label").Write(UTF8_TODO::GetUtf8(dictionary.GetLabel()))
                     .EndArray()
                     .EndObject();
 
@@ -536,7 +536,7 @@ std::tuple<std::string, std::string> CaseTextContentCreator::Formatter::CreateCa
                 if( dict_item != nullptr )
                 {
                     json_writer->Write("Name").Write(dict_item->GetName())
-                                .Write("Label").Write(dict_item->GetLabel());
+                                .Write("Label").Write(UTF8_TODO::GetUtf8(dict_item->GetLabel()));
                 }
 
                 json_writer->Write("Start Position").Write(parsed_entity->entity->start_len.start + 1)

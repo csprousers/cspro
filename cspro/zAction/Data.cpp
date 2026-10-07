@@ -273,7 +273,7 @@ std::unique_ptr<ActionInvoker::Runtime::DataWrapper::ActionInvokerOwned>
     else
     {
         // use a dictionary owned by the interpreter
-        if( CIMSAString::IsName(dictionary_json_node->Get<std::string_view>()) )
+        if( NameRules::IsName(dictionary_json_node->Get<std::string_view>()) )
         {
             dictionary = runtime.GetInterpreterAccessor().GetDictionary(dictionary_json_node->Get<std::string_view>());
         }

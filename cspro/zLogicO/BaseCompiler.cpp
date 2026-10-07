@@ -449,7 +449,7 @@ const Token& BaseCompiler::NextTokenOrNewSymbolName()
 void BaseCompiler::CheckIfValidNewSymbolName(const std::string_view new_symbol_name_sv)
 {
     // check that the name is valid
-    if( !CIMSAString::IsName(new_symbol_name_sv) )
+    if( !NameRules::IsName(new_symbol_name_sv) )
         IssueError(101, std::string(new_symbol_name_sv).c_str());
 
     // check if the name is already in use

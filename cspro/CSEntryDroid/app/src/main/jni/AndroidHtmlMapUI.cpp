@@ -1,12 +1,11 @@
-﻿#include <engine/StandardSystemIncludes.h>
+#include "StdAfx.h"
 #include "AndroidHtmlMapUI.h"
-#include "JNIHelpers.h"
 #include <zToolsO/RaiiHelpers.h>
 
 
 namespace
 {
-    constexpr useconds_t SleepInterval = 100 * 1000; // 100 milliseconds
+    constexpr useconds_t SleepInterval = 100 * 1000; // 100 milliseconds (for usleep)
 }
 
 
@@ -181,7 +180,7 @@ void AndroidHtmlMapUI::OnNotifyEvent(std::unique_ptr<MapEvent> event)
 
     // wait until any existing events have been processed by the engine
     while( m_mapEvent != nullptr )
-        Sleep(SleepInterval);
+        usleep(SleepInterval);
 
     std::lock_guard<std::mutex> lock(m_mapEventMutex);
     m_mapEvent = std::move(event);

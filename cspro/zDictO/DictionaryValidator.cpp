@@ -414,7 +414,7 @@ bool DictionaryValidator::CheckName(CDataDict* pDict)
     // syncable name must be valid
     const std::string& syncable_name = pDict->GetSyncableName(false);
 
-    if( !syncable_name.empty() && !CIMSAString::IsName(syncable_name) )
+    if( !syncable_name.empty() && !NameRules::IsName(syncable_name) )
     {
         bValid = false;
         csMsg = IDS_RULE_MSG018;
@@ -3772,7 +3772,7 @@ bool DictionaryValidator::CheckAliases(DictNamedBase& dict_element, const bool t
             valid = false;
         };
 
-        if( !CIMSAString::IsName(alias) )
+        if( !NameRules::IsName(alias) )
         {
             issue_error("is not a valid CSPro name");
         }

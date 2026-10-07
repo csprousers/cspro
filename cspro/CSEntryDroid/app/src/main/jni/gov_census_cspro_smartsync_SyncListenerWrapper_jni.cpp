@@ -1,7 +1,7 @@
-﻿#include "gov_census_cspro_smartsync_SyncListenerWrapper_jni.h"
-#include <engine/StandardSystemIncludes.h>
+#include "StdAfx.h"
+#include "gov_census_cspro_smartsync_SyncListenerWrapper_jni.h"
 #include <zNetwork/SyncListener.h>
-#include "JNIHelpers.h"
+
 
 extern "C" JNIEXPORT void JNICALL
 Java_gov_census_cspro_smartsync_SyncListenerWrapper_onProgress(JNIEnv* pEnv, jobject thisObj, jlong progress)

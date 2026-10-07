@@ -1,6 +1,7 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "CSProExecutables.h"
 #include <zPlatformO/PlatformInterface.h>
+#include <zUtilO/FileExtensions.h>
 
 
 #ifdef WIN_DESKTOP

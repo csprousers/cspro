@@ -1,13 +1,10 @@
-#include <engine/StandardSystemIncludes.h>
+#include "StdAfx.h"
 #include "AndroidFtpConnection.h"
-#include "JNIHelpers.h"
 #include <zToolsO/FileIO.h>
-#include <zToolsO/PortableFunctions.h>
 #include <zUtilO/TemporaryFile.h>
 #include <zNetwork/FileInfo.h>
 #include <zNetwork/SyncException.h>
 #include <zNetwork/SyncListener.h>
-#include <android/log.h>
 
 
 AndroidFtpConnection::AndroidFtpConnection()

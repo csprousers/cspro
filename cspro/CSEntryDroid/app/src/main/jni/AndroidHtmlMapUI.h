@@ -1,7 +1,6 @@
-﻿#pragma once
+#pragma once
 
 #include <zMapping/HtmlMapUI.h>
-#include <jni.h>
 
 
 // --------------------------------------------------------------------------

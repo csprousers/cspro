@@ -124,11 +124,11 @@ LRESULT EngineUIProcessor::HtmlDialogsDirectoryQuery(std::string& html_dialogs_d
 
 LRESULT EngineUIProcessor::Prompt(EngineUI::PromptNode& prompt_node)
 {
-    CPromptFunctionDlg prompt_dlg(prompt_node.title, prompt_node.initial_value,
-        prompt_node.multiline, prompt_node.numeric, prompt_node.password, prompt_node.upper_case);
+    CPromptFunctionDlg prompt_dlg(UTF8_TODO::GetCString(*prompt_node.title), UTF8_TODO::GetCString(*prompt_node.initial_value),
+                                 prompt_node.multiline, prompt_node.numeric, prompt_node.password, prompt_node.upper_case);
 
     if( prompt_dlg.DoModal() == IDOK )
-        prompt_node.return_value = prompt_dlg.GetResponse();
+        prompt_node.return_value = UTF8_TODO::GetUtf8(prompt_dlg.GetResponse());
 
     return 1;
 }

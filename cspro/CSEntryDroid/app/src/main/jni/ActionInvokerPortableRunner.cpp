@@ -1,5 +1,4 @@
-﻿#include <engine/StandardSystemIncludes.h>
-#include "JNIHelpers.h"
+#include "StdAfx.h"
 #include <zAction/PortableRunner.h>
 
 

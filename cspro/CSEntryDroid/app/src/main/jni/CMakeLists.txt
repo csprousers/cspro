@@ -85,6 +85,10 @@ add_library(${PROJECT_NAME} SHARED
     JNIHelpers.cpp
 )
 
+target_precompile_headers(${PROJECT_NAME} PRIVATE
+    StdAfx.h
+)
+
 # enable 16 KiB memory pages
 target_link_options(${PROJECT_NAME} PRIVATE
     "-Wl,-z,max-page-size=16384"

@@ -53,7 +53,7 @@ void DictPropertyGridDictionaryManager::SetupProperties(CMFCPropertyGridCtrl& pr
             {
                 const std::string_view trimmed_syncable_name_sv = SO::Trim(syncable_name);
 
-                if( !trimmed_syncable_name_sv.empty() && !CIMSAString::IsName(trimmed_syncable_name_sv) )
+                if( !trimmed_syncable_name_sv.empty() && !NameRules::IsName(trimmed_syncable_name_sv) )
                 {
                     throw PropertyGrid::PropertyValidationException(
                         std::string(),

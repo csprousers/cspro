@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "Pre76CapiQuestionFile.h"
 #include <zToolsO/Special.h>
 #include <zUtilO/SpecFile.h>
@@ -434,7 +434,7 @@ bool CapiPre76::CNewCapiQuestionHelp::CheckOccurrences(CString& csOccurrences, i
 
     for( const std::string_view part_sv : part_svs )
     {
-        if( !CIMSAString::IsName(part_sv) )
+        if( !NameRules::IsName(part_sv) )
             return false;
     }
 
@@ -695,7 +695,7 @@ bool CapiPre76::CNewCapiQuestionFile::Build(CSpecFile& cCapiQuestFile, std::shar
                         else {//Assumes as languages  Example: ENG=English
                             CNewCapiLanguage    cNewCapiLanguage;
 
-                            if (!CIMSAString::IsName(csCmd)) {
+                            if (!NameRules::IsName(UTF8_TODO::GetUtf8(csCmd))) {
                                 if (!bSilent) {
                                     csError.Format(_T("Invalid Language Name at line %d"), cCapiQuestFile.GetLineNumber()); // Invalid section heading at line %d:
                                     csError += _T("\n") + csCmd;
@@ -793,7 +793,7 @@ bool CapiPre76::CNewCapiQuestionFile::Build(CSpecFile& cCapiQuestFile, std::shar
                             cNewCapiQuestionHelp.SetOccurrences(csArg);
                         }
                         else { //Assumes as question in a specific language Example: ENG=Question Text
-                            if (!CIMSAString::IsName(csCmd)) {
+                            if (!NameRules::IsName(UTF8_TODO::GetUtf8(csCmd))) {
                                 if (!bSilent) {
                                     csError.Format(_T("Invalid Language Name at line %d"), cCapiQuestFile.GetLineNumber()); // Invalid section heading at line %d:
                                     csError += _T("\n") + csCmd;

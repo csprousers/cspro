@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "JsonSpecFile.h"
+#include <zToolsO/CSProExecutables.h>
 #include <zToolsO/Utf8.h>
 #include <zUtilO/Versioning.h>
 
@@ -131,13 +132,10 @@ void JsonSpecFile::Reader::CheckFileType(const std::string_view file_type_sv)
         throw CSProException("The file type '%s' cannot be read by this program", std::string(*file_type_json_sv).c_str());
 
 #ifdef WIN_DESKTOP
-    if( !GetOrDefault(JK::editable, true) )
+    if( !GetOrDefault(JK::editable, true) &&
+        SO::EqualsNoCase(Path::GetFilenameWithoutExtension(CSProExecutables::GetModuleFilePath()), "CSPro") )
     {
-        auto exe_name = std::make_unique_for_overwrite<wchar_t[]>(_MAX_PATH);
-        GetModuleFileName(AfxGetApp()->m_hInstance, exe_name.get(), _MAX_PATH);
-
-        if( SO::EqualsNoCase(Path::GetFilenameWithoutExtension(TC::ToUtf8(exe_name.get())), "CSPro") )
-            throw CSProException("This file has been locked and cannot be edited using the CSPro Designer");
+        throw CSProException("This file has been locked and cannot be edited using the CSPro Designer");
     }
 #endif
 }

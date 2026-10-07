@@ -1,4 +1,7 @@
-﻿#pragma once
+#pragma once
+
+#include <zUtilO/NameRules.h>
+
 
 #ifdef USING_CSTRING
 
@@ -67,18 +70,6 @@
 //          The first character can be a plus or minus sign and
 //          there can be a decimal point (period) within the number.
 //          All other characters must be the digits from 0 to 9.
-//
-//---------------------------------------------------------------------------
-//
-//  bool CIMSAString::IsName();
-//
-//      Return value
-//          TRUE if the string is an IMSA name, otherwise FALSE.
-//
-//      Remarks
-//          An IMSA name is 1 to 16 characters long and consists of
-//          letters (A-Z), digits, and imbedded underline (_).
-//          The first character must be a letter.
 //
 //---------------------------------------------------------------------------
 //
@@ -467,7 +458,6 @@ constexpr TCHAR ZERO        = '0';
 constexpr TCHAR COLON       = ':';
 constexpr TCHAR TAB         = '\t';
 constexpr TCHAR EOS         = '\0';
-constexpr char  UNDERSCORE  = '_';
 
 #define TAB_STR             _T("\t")
 #define SPACE_COMMA_STR     _T(" ,")
@@ -508,9 +498,7 @@ public:
 
     static bool IsInteger(std::string_view text_sv);
 
-    static bool IsName(std::string_view name_sv);
-    static bool IsName(wstring_view name_sv) { return IsName(UTF8_TODO::GetUtf8(name_sv)); }
-    bool IsName() const { return IsName(*this); }
+    bool IsName() const { return NameRules::IsName(UTF8_TODO::GetUtf8(*this)); }
 
     static bool IsReservedWord(std::string_view word_sv);
     static bool IsReservedWord(wstring_view word_sv) { return IsReservedWord(UTF8_TODO::GetUtf8(word_sv)); }

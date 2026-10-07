@@ -1,11 +1,11 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "PFF.h"
+#include <zToolsO/CSProExecutables.h>
 #include <zToolsO/DirectoryLister.h>
 #include <zToolsO/Encoders.h>
 #include <zToolsO/NewlineSubstitutor.h>
 #include <zToolsO/Utf8.h>
 #include <zUtilO/ArrUtil.h> // remove once CString is gone
-#include <zUtilO/CSProExecutables.h>
 #include <zUtilO/PathHelpers.h>
 #include <zUtilO/SpecFile.h>
 #include <zUtilO/Viewers.h>

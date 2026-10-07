@@ -29,7 +29,6 @@
     <ClCompile Include="ConnectionString.cpp" />
     <ClCompile Include="ConnectionStringFileSimulator.cpp" />
     <ClCompile Include="CredentialStore.cpp" />
-    <ClCompile Include="CSProExecutables.cpp" />
     <ClCompile Include="CustomFont.cpp" />
     <ClCompile Include="CustomUri.cpp" />
     <ClCompile Include="DataExchange.cpp" />
@@ -50,6 +49,7 @@
     <ClCompile Include="MediaStore.cpp" />
     <ClCompile Include="MimeType.cpp" />
     <ClCompile Include="MimeTypeMap.cpp" />
+    <ClCompile Include="NameRules.cpp" />
     <ClCompile Include="NameShortener.cpp" />
     <ClCompile Include="NumEdit.cpp" />
     <ClCompile Include="PageSetup.cpp" />
@@ -107,7 +107,6 @@
     <ClInclude Include="ConnectionString.h" />
     <ClInclude Include="ConnectionStringFileSimulator.h" />
     <ClInclude Include="CredentialStore.h" />
-    <ClInclude Include="CSProExecutables.h" />
     <ClInclude Include="CustomFont.h" />
     <ClInclude Include="CustomUri.h" />
     <ClInclude Include="DataExchange.h" />
@@ -129,6 +128,7 @@
     <ClInclude Include="MediaStore.h" />
     <ClInclude Include="MemoryHelpers.h" />
     <ClInclude Include="MimeType.h" />
+    <ClInclude Include="NameRules.h" />
     <ClInclude Include="NameShortener.h" />
     <ClInclude Include="NumEdit.h" />
     <ClInclude Include="PageSetup.h" />

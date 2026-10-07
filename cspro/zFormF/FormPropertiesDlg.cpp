@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "FormPropertiesDlg.h"
 
 
@@ -76,7 +76,7 @@ void CFormPropDlg::OnOK()
         return;
     }
 
-    if(!CIMSAString::IsName(m_sFormName))
+    if(!NameRules::IsName(UTF8_TODO::GetUtf8(m_sFormName)))
     {
         AfxMessageBox(_T("Not a Valid Name"));
         return;

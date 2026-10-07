@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "NameShortener.h"
 
 
@@ -59,7 +59,7 @@ int NameShortenerWorker::GetNumberFromText(const std::string_view text_sv) const
         {
             name_id = name_id * m_numberValidCharacters + GetOffsetFromCharacter(ch);
         });
-    
+
     ASSERT(GetTextFromNumber(name_id) == text_sv);
 
     return name_id;
@@ -251,7 +251,7 @@ std::string NameShortener::Shorten(std::string cspro_name, size_t max_wide_lengt
         return cspro_name;
 
     // make sure that the name is valid
-    ASSERT(CIMSAString::IsName(cspro_name) && SO::IsUpper(cspro_name));
+    ASSERT(NameRules::IsUpperCaseName(cspro_name));
 
     // generate the name
     std::string shortened_name(1, ShorteningIndicator);
@@ -314,7 +314,7 @@ std::string NameShortener::Unshorten(std::string shortened_name)
         });
 
     // make sure that the name is valid
-    ASSERT(CIMSAString::IsName(cspro_name));
+    ASSERT(NameRules::IsName(cspro_name));
 
     return cspro_name;
 }

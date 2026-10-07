@@ -1,8 +1,6 @@
-﻿#pragma once
+#pragma once
 
-#include <zPlatformO/PortableMFC.h>
 #include <zMapping/Geometry.h>
-#include "JNIHelpers.h"
 
 
 // utility functions for converting from Geometry C++ types to Java

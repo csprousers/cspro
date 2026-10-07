@@ -8,7 +8,7 @@
 #include "SyncBinaryDataUploadManager.h"
 #include "SyncCaseJsonSerializer.h"
 #include "SyncCaseSerializer.h"
-#include <zUtilO/CSProExecutables.h>
+#include <zToolsO/CSProExecutables.h>
 #include <zUtilO/Versioning.h>
 #include <zToolsO/Encoders.h>
 #include <zNetwork/ConnectResponse.h>
@@ -122,7 +122,7 @@ void CSWebRepository::Open(const DataRepositoryOpenFlag open_flag)
 
     if( dictionary_name_override != nullptr )
     {
-        if( !CIMSAString::IsName(*dictionary_name_override) )
+        if( !NameRules::IsName(*dictionary_name_override) )
         {
             throw DataRepositoryException::IOError("No dictionary named '%s' can exist on the CSWeb server because it is not a valid name.",
                                                    dictionary_name_override->c_str());

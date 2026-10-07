@@ -216,8 +216,8 @@ void WindowsOAuth2Authorizer::HandleTokenPage(SimpleServer::Handler& handler)
 // remove all of the below if/when CSDeploy is no longer a C# program
 // --------------------------------------------------------------------------
 
+#include <zToolsO/CSProExecutables.h>
 #include <zToolsO/Encryption.h>
-#include <zUtilO/CSProExecutables.h>
 #include <zUtilO/TemporaryFile.h>
 
 

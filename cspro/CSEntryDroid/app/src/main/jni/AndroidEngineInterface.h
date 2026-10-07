@@ -1,11 +1,11 @@
-﻿#pragma once
+#pragma once
 
-#include <zPlatformO/PortableMFC.h>
 #include <zEntryO/Runaple.h>
 #include <zEntryO/CoreEntryPage.h>
 #include <zEntryO/CoreEntryPageField.h>
 #include <zEntryO/CoreEntryEngineInterface.h>
 #include "AndroidApplicationInterface.h"
+
 
 class AndroidEngineInterface : public CoreEntryEngineInterface
 {

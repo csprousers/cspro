@@ -762,7 +762,7 @@ static int format_converter(register buffy * odp, const wchar_t *fmt,
             s_len = precision;
         }
         else {
-            s = S_NULL;
+            s = const_cast<wchar_t*>(S_NULL); // CSPro added
             s_len = S_NULL_LEN;
         }
         pad_char = ' ';
@@ -847,7 +847,7 @@ static int format_converter(register buffy * odp, const wchar_t *fmt,
                  s = conv_p2(ui_num, 4, 'x',
                      &num_buf[NUM_BUF_SIZE], &s_len);
         else {
-            s = L"%p";
+            s = const_cast<wchar_t*>(L"%p"); // CSPro added
             s_len = 2;
         }
         pad_char = ' ';

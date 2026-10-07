@@ -1,4 +1,4 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "ApplicationListingRuntime.h"
 #include <zToolsO/DirectoryLister.h>
 #include <zAppO/PFF.h>
@@ -79,7 +79,7 @@ SharableString ApplicationListingRuntime::GetApplications()
         {
             json_writer->BeginObject()
                         .Write(JK::path, pff_file_path)
-                        .Write(JK::description, pff.GetEvaluatedAppDescription())
+                        .Write(JK::description, UTF8_TODO::GetUtf8(pff.GetEvaluatedAppDescription()))
                         .Write(JK::showInApplicationListing, pff.GetShowInApplicationListing()) // RT_TODO process here instead?
                         .WriteIfNotBlank(JK::iconUrl, GetUrlForFileExtension(PortableFunctions::PathGetFileExtension(UTF8_TODO::GetUtf8(pff.GetAppFName()))))
                         .EndObject();

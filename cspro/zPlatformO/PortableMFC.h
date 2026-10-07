@@ -6,6 +6,8 @@
 
 #else
 
+#define USING_PORTABLE_MFC
+
 #ifndef WIN_DESKTOP
 #include <zPlatformO/PortableWindowsDefines.h>
 #endif
@@ -15,13 +17,6 @@
 // CObject
 #include <zPlatformO/CSProObject.h>
 using CObject = CCSProObject;
-
-// CString
-#define USING_CSTRING
-#include <zPlatformO/stdstring.h>
-using CString = CStdString;
-using CStringA = CStdStringA;
-using CStringW = CStdStringW;
 
 // CSize + CPoint + CSize
 #include <zPlatformO/CSProSize.h>

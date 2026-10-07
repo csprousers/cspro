@@ -91,7 +91,9 @@ public:
     void WriteFilename(NullTerminatedString filename);
     Serializer& SerializePath(std::string& path, bool adjust_to_use_native_slash = false);
     Serializer& SerializePaths(std::vector<std::string>& paths, bool adjust_to_use_native_slash = false);
+#ifdef USING_CSTRING
     Serializer& SerializeFilename(CString& filename, bool normalize_filename = false);
+#endif
     Serializer& SerializeFilename(std::wstring& filename, bool normalize_filename = false);
 
     void Dump(void* buffer, int length)
@@ -179,8 +181,10 @@ public:
     Serializer& operator<<(const std::wstring& value) { return operator<<(UTF8_TODO::GetUtf8(value)); }
     Serializer& operator>>(std::wstring& value)       { value = UTF8_TODO::GetWide(Read<std::string>()); return *this; }
 
+#ifdef USING_CSTRING
     Serializer& operator<<(const CString& value) { return operator<<(UTF8_TODO::GetUtf8(value)); }
     Serializer& operator>>(CString& value)       { value = UTF8_TODO::GetCString(Read<std::string>()); return *this; }
+#endif
 
     template<typename T>
     Serializer& SerializeEnum(T& enum_value);
@@ -226,10 +230,12 @@ static Serializer& serialize(Serializer& ar, T& object)
 
 CLASS_DECL_ZTOOLSO Serializer& serialize(Serializer& ar, size_t& value);
 
+#if defined(_AFX) || defined(USING_PORTABLE_MFC)
 CLASS_DECL_ZTOOLSO Serializer& serialize(Serializer& ar, CPoint& rect);
 CLASS_DECL_ZTOOLSO Serializer& serialize(Serializer& ar, CRect& rect);
 CLASS_DECL_ZTOOLSO Serializer& serialize(Serializer& ar, LOGFONT& font);
 CLASS_DECL_ZTOOLSO Serializer& serialize(Serializer& ar, POINT& point);
+#endif
 
 
 

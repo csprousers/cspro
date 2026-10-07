@@ -2,14 +2,9 @@
 
 #ifndef WIN_DESKTOP
 
-#include <zToolsO/zToolsO.h>
-#include <engine/StandardSystemIncludes.h>
 #include <zToolsO/ApplicationInterface.h>
-#include <zUtilO/MediaStore.h>
-#include <zUtilO/PortableColor.h>
 #include <zAppO/MappingDefines.h>
 #include <zParadataO/Logger.h>
-#include <zSyncO/BluetoothDeviceInfo.h>
 #include <zEngineF/EngineUINodes.h>
 #include <zMapping/Geometry.h>
 
@@ -20,15 +15,22 @@ using BaseApplicationInterfaceParent = WindowsApplicationInterface;
 using BaseApplicationInterfaceParent = ApplicationInterface;
 #endif
 
+#ifndef USING_CSTRING
+class CString;
+#endif
+
 class Application;
+struct BluetoothDeviceInfo;
 class ExceptionHolder;
 class FtpConnection;
 class HttpConnection;
 class IBluetoothAdapter;
+namespace MediaStore { enum class MediaType; }
 class NavigationAddress;
 class OAuth2Authorizer;
 class OAuth2Token;
 class ObjectTransporter;
+class PortableColor;
 class TemporaryFile;
 class Userbar;
 struct UsernamePassword;

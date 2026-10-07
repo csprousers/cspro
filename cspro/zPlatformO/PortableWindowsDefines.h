@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 /*
  * PortableWindowsDefines.h
@@ -385,11 +385,9 @@ typedef struct _GUID {
 
 #define _countof(x) (sizeof(x)/sizeof(x[0]))
 
-inline void Sleep(DWORD dwMilliseconds) { usleep(dwMilliseconds * 1000); }
-
 #define TEXT                _T
 
-#define PATH_CHAR           _T('/')
+#define PATH_CHAR           '/'
 #define PATH_STRING         _T("/")
 
 #define FILE_ATTRIBUTE_NORMAL 0x00000080
@@ -397,8 +395,10 @@ inline void Sleep(DWORD dwMilliseconds) { usleep(dwMilliseconds * 1000); }
 typedef UINT_PTR            WPARAM;
 typedef LONG_PTR            LPARAM;
 
+#ifndef MINIMAL_WINDOWS_DEFINES
 #include <zPlatformO/PortableWindowsGUIDefines.h>
 #include <zPlatformO/PortableFStream.h>
+#endif
 
 #endif // !WIN32
 

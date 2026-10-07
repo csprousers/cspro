@@ -33,7 +33,10 @@ public:
 
 private:
     CLASS_DECL_ZTOOLSO void LogTraceMessage(const char* text) const;
+
+#ifdef USING_CSTRING
     CLASS_DECL_ZTOOLSO void LogTraceMessage(const CString& text) const;
+#endif
 
     // the values match the ANDROID_LOG_... values
     enum class LogPriority { Verbose = 2, Debug = 3, Info = 4, Warning = 5, Error = 6, Fatal = 7 };
@@ -76,7 +79,7 @@ void CSLOG::operator()(const char* const formatter, Args const&... args)
 template<typename... Args>
 void CSLOG::operator()(const wchar_t* formatter, Args const&... args)
 {
-#ifdef WIN_DESKTOP
+#ifdef _AFX
     ATL::CTraceFileAndLineInfo(m_filePath, m_lineNumber)(formatter, args...);
 #else
     LogTraceMessage(FormatText(formatter, args...));

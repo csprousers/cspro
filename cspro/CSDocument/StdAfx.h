@@ -5,6 +5,7 @@
 
 #include <afxcontrolbars.h>
 #include <zToolsO/CaseInsensitiveComparer.h>
+#include <zToolsO/CSProExecutables.h>
 #include <zToolsO/DirectoryLister.h>
 #include <zToolsO/FileIO.h>
 #include <zToolsO/Hash.h>
@@ -12,7 +13,6 @@
 #include <zToolsO/Utf8.h>
 #include <zToolsO/VectorHelpers.h>
 #include <zToolsO/WinClipboard.h>
-#include <zUtilO/CSProExecutables.h>
 #include <zUtilO/FileDlg.h>
 #include <zUtilO/Interapp.h>
 #include <zUtilO/MimeType.h>

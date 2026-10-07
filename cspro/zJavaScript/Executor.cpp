@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "Executor.h"
 #include "ActionInvokerJS.h"
 #include "Atom.h"
@@ -6,7 +6,6 @@
 #include "VariablePropertyNameEvaluator.h"
 #include <zToolsO/Hash.h>
 #include <zToolsO/UniqueId.h>
-#include <zUtilO/FileExtensions.h>
 
 
 JavaScript::Executor::Executor(std::string root_directory/* = std::string()*/)
@@ -264,8 +263,7 @@ void JavaScript::Executor::SetModuleLoaderErrorTracker(std::shared_ptr<std::vect
 std::shared_ptr<JavaScript::Printer> JavaScript::Executor::SetPrinter(std::shared_ptr<Printer> printer)
 {
     ASSERT(printer != nullptr);
-    std::swap(m_printer, printer);
-    return printer;
+    return std::exchange(m_printer, printer);
 }
 
 

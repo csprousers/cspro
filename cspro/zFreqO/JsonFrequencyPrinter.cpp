@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "JsonFrequencyPrinter.h"
 
 
@@ -27,7 +27,7 @@ void JsonFrequencyPrinter::Print(const FrequencyTable& frequency_table)
     if( frequency_table.dict_item != nullptr )
     {
         m_jsonWriter->Write(JK::name, frequency_table.dict_item->GetName())
-                     .Write(JK::label, frequency_table.dict_item->GetLabel());
+                     .Write(JK::label, UTF8_TODO::GetUtf8(frequency_table.dict_item->GetLabel()));
     }
 
     else
@@ -41,7 +41,7 @@ void JsonFrequencyPrinter::Print(const FrequencyTable& frequency_table)
     {
         m_jsonWriter->BeginObject(JK::valueSet)
                      .Write(JK::name, frequency_table.dict_value_set->GetName())
-                     .Write(JK::label, frequency_table.dict_value_set->GetLabel())
+                     .Write(JK::label, UTF8_TODO::GetUtf8(frequency_table.dict_value_set->GetLabel()))
                      .EndObject();
     }
 
@@ -192,7 +192,7 @@ void JsonFrequencyPrinter::PrintStatistics(const FrequencyTable& frequency_table
 
             PrintStatisticsCategories(table_statistics.number_defined_categories, []() { });
         }
-    }    
+    }
 
     m_jsonWriter->EndObject();
 }

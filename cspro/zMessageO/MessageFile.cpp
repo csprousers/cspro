@@ -196,7 +196,7 @@ void MessageFile::Compiler::ProcessLine(const std::string& line)
     // ensure that the language is a valid name
     const std::string language_name = SO::ToUpper(SO::TrimRight(line_sv.substr(0, left_parenthesis_pos)));
 
-    if( !CIMSAString::IsName(language_name) )
+    if( !NameRules::IsName(language_name) )
         IssueMessage<Logic::ParserMessage::Type::Error>(MGF::message_language_name_invalid_171, language_name.c_str());
 
     const size_t language_set_index = m_messageFile.GetOrCreateLanguageSet(language_name);
@@ -338,7 +338,7 @@ void MessageFile::Compiler::ProcessLanguageLine(const std::string_view line_sv)
 
     for( const std::string_view language_name_sv : SO::SplitString<std::string_view>(all_languages_text, ',') )
     {
-        if( !CIMSAString::IsName(language_name_sv) )
+        if( !NameRules::IsName(language_name_sv) )
             IssueMessage<Logic::ParserMessage::Type::Error>(MGF::message_language_name_invalid_171, std::string(language_name_sv).c_str());
 
         // if no messages have been inserted yet, make this language the language name for the primary message file language set

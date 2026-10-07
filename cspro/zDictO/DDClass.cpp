@@ -290,7 +290,7 @@ void CDataDict::AddToNameList(const std::string& name, int iLevel /*=NONE*/,
 {
     if( !name.empty() )
     {
-        ASSERT(SO::IsUpper(name) && CIMSAString::IsName(name));
+        ASSERT(NameRules::IsUpperCaseName(name));
         ASSERT(m_mapNames.find(name) == m_mapNames.cend());
 
         m_mapNames.emplace(name, CDictName(iLevel, iRec, iItem, iVSet));

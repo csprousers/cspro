@@ -1,4 +1,4 @@
-﻿#include "Stdafx.h"
+#include "Stdafx.h"
 #include "Names.h"
 #include <zLogicO/ReservedWords.h>
 
@@ -7,7 +7,7 @@ bool CSPro::Logic::Names::IsValid(System::String^ name_)
 {
     const std::string name = clr_helpers::to_string(name_);
 
-    return ( CIMSAString::IsName(name) && !::Logic::ReservedWords::IsReservedWord(name) );
+    return ( NameRules::IsName(name) && !::Logic::ReservedWords::IsReservedWord(name) );
 }
 
 

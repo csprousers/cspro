@@ -1,7 +1,6 @@
-﻿#pragma once
+#pragma once
 
 #include <zNetwork/HttpConnection.h>
-#include <jni.h>
 
 
 //  HTTP connection implementation for Android that calls through to Java HttpConnection class via JNI.

@@ -10,6 +10,6 @@
 #endif
 
 
-#ifdef WIN_DESKTOP
+#if defined(WIN_DESKTOP) && defined(_AFX)
 extern AFX_EXTENSION_MODULE zHtmlDLL;
 #endif

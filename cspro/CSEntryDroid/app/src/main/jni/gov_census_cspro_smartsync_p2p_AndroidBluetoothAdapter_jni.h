@@ -1,7 +1,5 @@
-﻿#include <jni.h>
+#pragma once
 
-#ifndef _Included_gov_census_cspro_smartsync_p2p_AndroidBluetoothAdapter_jni
-#define _Included_gov_census_cspro_smartsync_p2p_AndroidBluetoothAdapter_jni
 
 #ifdef __cplusplus
 extern "C" {
@@ -17,6 +15,4 @@ JNIEXPORT jboolean JNICALL Java_gov_census_cspro_smartsync_p2p_AndroidBluetoothA
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "Language.h"
 
 
@@ -6,7 +6,7 @@ Language::Language(std::string name/* = DefaultName*/, std::string label/* = Def
     :   m_name(std::move(name)),
         m_label(std::move(label))
 {
-    ASSERT(SO::IsUpper(m_name) && CIMSAString::IsName(m_name));
+    ASSERT(NameRules::IsUpperCaseName(m_name));
 }
 
 

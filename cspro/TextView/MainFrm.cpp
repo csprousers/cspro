@@ -14,7 +14,7 @@
 //
 
 #include "StdAfx.h"
-#include <zUtilO/CSProExecutables.h>
+#include <zToolsO/CSProExecutables.h>
 
 // for OnDDEExecute below
 #include <Dde.h>

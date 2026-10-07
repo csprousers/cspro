@@ -1,13 +1,13 @@
-﻿#include "StdAfx.h"
+#include "StdAfx.h"
 #include "CSEntry.h"
 #include "MainFrm.h"
 #include "Rundoc.h"
 #include "RunView.h"
 #include "LeftView.h"
 #include "DynamicMenu.h"
+#include <zToolsO/CSProExecutables.h>
 #include <zToolsO/Serializer.h>
 #include <zUtilO/AppLoader.h>
-#include <zUtilO/CSProExecutables.h>
 #include <zUtilO/FileDlg.h>
 #include <zUtilO/ImsaDlg.h>
 #include <zUtilO/WindowFocusMgr.h>

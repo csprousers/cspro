@@ -8,7 +8,6 @@ add_library(${PROJECT_NAME}
     CommonStore.cpp
     ConnectionString.cpp
     CredentialStore.cpp
-    CSProExecutables.cpp
     CustomUri.cpp
     DataTypes.cpp
     ExecutionStack.cpp
@@ -20,6 +19,7 @@ add_library(${PROJECT_NAME}
     MediaStore.cpp
     MimeType.cpp
     MimeTypeMap.cpp
+    NameRules.cpp
     NameShortener.cpp
     PathHelpers.cpp
     PortableColor.cpp

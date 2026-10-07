@@ -251,17 +251,6 @@ ValueType JsonNode::GetWorker() const
                                 UTF8_TODO::GetWide(GetWorker<std::string>());
         }
 
-        else if constexpr(std::is_same_v<ValueType, CString>)
-        {
-            return IsString() ? UTF8_TODO::GetCString(m_json->template as<std::string_view>()) :
-                                UTF8_TODO::GetCString(GetWorker<std::string>());
-        }
-
-        else if constexpr(std::is_same_v<ValueType, std::vector<CString>>)
-        {
-            return GetArray().template GetVector<CString>();
-        }
-
         else
         {
             return m_json->template as<ValueType>();
@@ -293,12 +282,10 @@ template ZJSON_API std::string JsonNode::GetWorker<std::string>() const;
 template ZJSON_API SharableString JsonNode::GetWorker<SharableString>() const;
 
 template ZJSON_API std::wstring JsonNode::GetWorker<std::wstring>() const;
-template ZJSON_API CString JsonNode::GetWorker<CString>() const;
 
 template ZJSON_API std::vector<double> JsonNode::GetWorker<std::vector<double>>() const;
 template ZJSON_API std::vector<std::string> JsonNode::GetWorker<std::vector<std::string>>() const;
 template ZJSON_API std::vector<std::wstring> JsonNode::GetWorker<std::vector<std::wstring>>() const;
-template ZJSON_API std::vector<CString> JsonNode::GetWorker<std::vector<CString>>() const;
 
 template ZJSON_API std::variant<double, std::string> JsonNode::GetWorker<std::variant<double, std::string>>() const;
 template ZJSON_API std::variant<double, std::wstring> JsonNode::GetWorker<std::variant<double, std::wstring>>() const;

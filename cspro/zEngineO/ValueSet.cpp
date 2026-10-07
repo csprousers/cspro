@@ -1225,7 +1225,7 @@ const Logic::SymbolTable& ValueSetListWrapper::GetSymbolTable() const
 
 void ValueSet::WriteJsonMetadata_subclass(JsonWriter& json_writer) const
 {
-    json_writer.Write(JK::label, GetLabel())
+    json_writer.Write(JK::label, UTF8_TODO::GetUtf8(GetLabel()))
                .Write(JK::contentType, GetDataType());
 }
 

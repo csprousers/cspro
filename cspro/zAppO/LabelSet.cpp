@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "LabelSet.h"
 #include "LanguageSerializerHelper.h"
 
@@ -102,7 +102,7 @@ LabelSet LabelSet::CreateFromJson(const JsonNode& json_node)
             json_node.LogWarning("The language '%s' has duplicate labels and all but the first label will be discarded", std::string(language_name_sv).c_str());
         }
 
-        labels[*language_index] = label_object.GetOrConstruct<CString>(JK::text);
+        labels[*language_index] = UTF8_TODO::GetCString(label_object.GetOrConstruct<std::string>(JK::text));
 
         if( !first_defined_language_index.has_value() )
             first_defined_language_index = *language_index;
@@ -163,7 +163,7 @@ void LabelSet::WriteJson(JsonWriter& json_writer) const
         {
             json_writer.BeginObject();
 
-            json_writer.Write(JK::text, m_labels[i]);
+            json_writer.Write(JK::text, UTF8_TODO::GetUtf8(m_labels[i]));
 
             if( serialize_languages )
                 json_writer.Write(JK::language, language_serializer_helper->GetLanguageName(i));

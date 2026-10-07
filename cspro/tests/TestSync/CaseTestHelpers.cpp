@@ -1,8 +1,8 @@
 #include "stdafx.h"
 #include "CaseTestHelpers.h"
+#include <zToolsO/CSProExecutables.h>
 #include <zToolsO/PortableFunctions.h>
 #include <zUtilO/BinaryDataMetadata.h>
-#include <zUtilO/CSProExecutables.h>
 #include <zDictO/DDClass.h>
 #include <zCaseO/BinaryCaseItem.h>
 #include <zCaseO/CaseItemReference.h>

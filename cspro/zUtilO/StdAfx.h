@@ -8,6 +8,7 @@
 #include <zUtilO/resource.h>
 #include <zUtilO/SpecFile.h>
 #include <zUtilO/UWM.h>
+#include <zToolsO/CSProExecutables.h>
 #include <zToolsO/Encoders.h>
 #include <zToolsO/FileIO.h>
 #include <zToolsO/Hash.h>

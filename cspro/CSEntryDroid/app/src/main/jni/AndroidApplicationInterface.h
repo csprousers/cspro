@@ -1,10 +1,7 @@
 #pragma once
 
-#include <zPlatformO/PlatformInterface.h>
-#include <zPlatformO/PortableMFC.h>
 #include <zEngineF/EngineUI.h>
 #include <zEntryO/CoreEntryEngineInterface.h>
-#include <jni.h>
 
 struct ActionInvokerData;
 

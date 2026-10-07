@@ -1,11 +1,14 @@
 #pragma once
 
+#include <string>
+
 
 // Returns a formatted string as a std::string.
 template<typename... Args>
 std::string FormatText(const char* formatter, Args const&... args);
 
 // Returns a formatted wide-character string as a std::wstring or a CString, defaulting to std::wstring.
+// Wide-character strings can only be formatted on WIN32 unless the project has access to CString.
 template<typename RT = std::wstring, typename... Args>
 RT FormatText(const wchar_t* formatter, Args const&... args);
 
@@ -75,6 +78,8 @@ std::string FormatText(const char* const formatter, Args const&... args)
 }
 
 
+#if defined(WIN32) || defined(USING_CSTRING)
+
 template<typename RT/* = std::wstring*/, typename... Args>
 RT FormatText(const wchar_t* const formatter, Args const&... args)
 {
@@ -100,14 +105,14 @@ RT FormatText(const wchar_t* const formatter, Args const&... args)
         else
 #endif
         {
-#ifdef WIN_DESKTOP
+#ifdef WIN32
 #pragma warning(push)
 #pragma warning(disable:4996)
             std::wstring formatted_text(_snwprintf(nullptr, 0, formatter, args...), '\0');
            _swprintf(formatted_text.data(), formatter, args...);
 #pragma warning(pop)
 
-#ifdef USING_CSTRING
+#if defined(USING_CSTRING) && defined(ASSERT81)
             ASSERT81(wcscmp(formatted_text.c_str(), FormatText<CString>(formatter, args...).GetString()) == 0);
 #endif
             return formatted_text;
@@ -118,3 +123,5 @@ RT FormatText(const wchar_t* const formatter, Args const&... args)
         }
     }
 }
+
+#endif

@@ -1,18 +1,5 @@
 #pragma once
 
-// JNI Includes
-#include <jni.h>
-
-// NDK Includes
-#include <string>
-#include <map>
-#include <wchar.h>
-
-class CSProException;
-class SharableString;
-
-#define WCHAR_SIZE  4
-
 
 class JavaString
 {
