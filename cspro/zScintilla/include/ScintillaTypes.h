@@ -26,6 +26,7 @@ enum class WhiteSpace {
 enum class TabDrawMode {
 	LongArrow = 0,
 	StrikeOut = 1,
+	ControlChar = 2,
 };
 
 enum class EndOfLine {
@@ -431,6 +432,7 @@ enum class Status {
 	Ok = 0,
 	Failure = 1,
 	BadAlloc = 2,
+	OutsideDocument = 3,
 	WarnStart = 1000,
 	RegEx = 1001,
 };
@@ -600,6 +602,8 @@ enum class Update {
 	Selection = 0x2,
 	VScroll = 0x4,
 	HScroll = 0x8,
+	Text = 0x10,
+	LineCount = 0x20,
 };
 
 enum class FocusChange {
@@ -653,6 +657,11 @@ enum class CharacterSource {
 	DirectInput = 0,
 	TentativeInput = 1,
 	ImeResult = 2,
+};
+
+enum class ScaleTechnique {
+	Default = 0,
+	PixelAligned = 1,
 };
 
 enum class Bidirectional {
